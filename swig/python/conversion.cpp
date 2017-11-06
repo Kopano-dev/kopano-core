@@ -2298,45 +2298,29 @@ exit:
 
 PyObject *Object_from_LPECUSER(ECUSER *lpUser, ULONG ulFlags)
 {
-	PyObject *MVProps = Object_from_MVPROPMAP(lpUser->sMVPropmap, ulFlags);
-	PyObject *userid = PyBytes_FromStringAndSize((const char *)lpUser->sUserId.lpb, lpUser->sUserId.cb);
-	PyObject *result = NULL;
+	pyobj_ptr MVProps(Object_from_MVPROPMAP(lpUser->sMVPropmap, ulFlags));
+	pyobj_ptr userid(PyBytes_FromStringAndSize(reinterpret_cast<const char *>(lpUser->sUserId.lpb), lpUser->sUserId.cb));
 
 	if (ulFlags & MAPI_UNICODE)
-		result = PyObject_CallFunction(PyTypeECUser, "(uuuuullllOO)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, userid, MVProps);
-	else
-		result = PyObject_CallFunction(PyTypeECUser, "(sssssllllOO)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, userid, MVProps);
-
-	Py_DECREF(MVProps);
-	Py_DECREF(userid);
-	return result;
+		return PyObject_CallFunction(PyTypeECUser, "(uuuuullllOO)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, userid.get(), MVProps.get());
+	return PyObject_CallFunction(PyTypeECUser, "(sssssllllOO)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, userid.get(), MVProps.get());
 }
 
 PyObject *List_from_LPECUSER(ECUSER *lpUser, ULONG cElements, ULONG ulFlags)
 {
-	PyObject *list = PyList_New(0);
-	PyObject *item = NULL;
-
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < cElements; ++i) {
-		item = Object_from_LPECUSER(&lpUser[i], ulFlags);
+		pyobj_ptr item(Object_from_LPECUSER(&lpUser[i], ulFlags));
 		if (PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, item);
-
-		Py_DECREF(item);
-		item = NULL;
 	}
 
 exit:
-	if(PyErr_Occurred()) {
-		if (list != nullptr)
-			Py_DECREF(list);
-		list = NULL;
-	}
-	if (item != nullptr)
-		Py_DECREF(item);
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 ECGROUP *Object_to_LPECGROUP(PyObject *elem, ULONG ulFlags)
@@ -2375,45 +2359,29 @@ exit:
 
 PyObject *Object_from_LPECGROUP(ECGROUP *lpGroup, ULONG ulFlags)
 {
-	PyObject *MVProps = Object_from_MVPROPMAP(lpGroup->sMVPropmap, ulFlags);
-	PyObject *groupid = PyBytes_FromStringAndSize((const char *)lpGroup->sGroupId.lpb, lpGroup->sGroupId.cb);
-	PyObject *result = NULL;
+	pyobj_ptr MVProps(Object_from_MVPROPMAP(lpGroup->sMVPropmap, ulFlags));
+	pyobj_ptr groupid(PyBytes_FromStringAndSize(reinterpret_cast<const char *>(lpGroup->sGroupId.lpb), lpGroup->sGroupId.cb));
 
 	if(ulFlags & MAPI_UNICODE)
-		result = PyObject_CallFunction(PyTypeECGroup, "(uuulOO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid, MVProps);
-	else
-		result = PyObject_CallFunction(PyTypeECGroup, "(ssslOO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid, MVProps);
-
-	Py_DECREF(MVProps);
-	Py_DECREF(groupid);
-	return result;
+		return PyObject_CallFunction(PyTypeECGroup, "(uuulOO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid.get(), MVProps.get());
+	return PyObject_CallFunction(PyTypeECGroup, "(ssslOO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid.get(), MVProps.get());
 }
 
 PyObject *List_from_LPECGROUP(ECGROUP *lpGroup, ULONG cElements, ULONG ulFlags)
 {
-	PyObject *list = PyList_New(0);
-	PyObject *item = NULL;
-
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < cElements; ++i) {
-		item = Object_from_LPECGROUP(&lpGroup[i], ulFlags);
+		pyobj_ptr item(Object_from_LPECGROUP(&lpGroup[i], ulFlags));
 		if (PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, item);
-
-		Py_DECREF(item);
-		item = NULL;
 	}
 
 exit:
-	if(PyErr_Occurred()) {
-		if (list != nullptr)
-			Py_DECREF(list);
-		list = NULL;
-	}
-	if (item != nullptr)
-		Py_DECREF(item);
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 ECCOMPANY *Object_to_LPECCOMPANY(PyObject *elem, ULONG ulFlags)
@@ -2453,48 +2421,31 @@ exit:
 
 PyObject *Object_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG ulFlags)
 {
-	PyObject *MVProps = Object_from_MVPROPMAP(lpCompany->sMVPropmap, ulFlags);
-	PyObject *companyid = PyBytes_FromStringAndSize((const char *)lpCompany->sCompanyId.lpb, lpCompany->sCompanyId.cb);
-	PyObject *adminid = PyBytes_FromStringAndSize((const char *)lpCompany->sAdministrator.lpb, lpCompany->sAdministrator.cb);
-	PyObject *result = NULL;
+	pyobj_ptr MVProps(Object_from_MVPROPMAP(lpCompany->sMVPropmap, ulFlags));
+	pyobj_ptr companyid(PyBytes_FromStringAndSize(reinterpret_cast<const char *>(lpCompany->sCompanyId.lpb), lpCompany->sCompanyId.cb));
+	pyobj_ptr adminid(PyBytes_FromStringAndSize(reinterpret_cast<const char *>(lpCompany->sAdministrator.lpb), lpCompany->sAdministrator.cb));
 
         if(ulFlags & MAPI_UNICODE)
-		result = PyObject_CallFunction(PyTypeECCompany, "(uulOOO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid, MVProps, adminid);
-	else
-		result = PyObject_CallFunction(PyTypeECCompany, "(sslOOO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid, MVProps, adminid);
-
-	Py_DECREF(MVProps);
-	Py_DECREF(companyid);
-	Py_DECREF(adminid);
-	return result;
+		return PyObject_CallFunction(PyTypeECCompany, "(uulOOO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid.get(), MVProps.get(), adminid.get());
+	return PyObject_CallFunction(PyTypeECCompany, "(sslOOO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid.get(), MVProps.get(), adminid.get());
 }
 
 PyObject *List_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG cElements,
     ULONG ulFlags)
 {
-	PyObject *list = PyList_New(0);
-	PyObject *item = NULL;
-
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < cElements; ++i) {
-		item = Object_from_LPECCOMPANY(&lpCompany[i], ulFlags);
+		pyobj_ptr item(Object_from_LPECCOMPANY(&lpCompany[i], ulFlags));
 		if (PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, item);
-
-		Py_DECREF(item);
-		item = NULL;
 	}
 
 exit:
-	if(PyErr_Occurred()) {
-		if (list != nullptr)
-			Py_DECREF(list);
-		list = NULL;
-	}
-	if (item != nullptr)
-		Py_DECREF(item);
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 PyObject *Object_from_LPECUSERCLIENTUPDATESTATUS(ECUSERCLIENTUPDATESTATUS *lpECUCUS)
