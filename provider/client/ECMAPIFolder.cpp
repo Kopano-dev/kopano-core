@@ -285,8 +285,11 @@ HRESULT ECMAPIFolder::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterf
 		hr = HrGetOneProp(this, PR_SOURCE_KEY, &~ptrSK);
 		if(hr != hrSuccess)
 			return hr;
-		HrGetOneProp(this, PR_DISPLAY_NAME, &~ptrDisplay); // ignore error
-		hr = ECExchangeExportChanges::Create(this->GetMsgStore(), *lpiid, std::string((const char*)ptrSK->Value.bin.lpb, ptrSK->Value.bin.cb), !ptrDisplay ? L"" : ptrDisplay->Value.lpszW, ICS_SYNC_CONTENTS, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
+		auto dsp = HrGetOneProp(this, PR_DISPLAY_NAME, &~ptrDisplay) == hrSuccess ?
+		           ptrDisplay->Value.lpszW : L"";
+		hr = ECExchangeExportChanges::Create(this->GetMsgStore(),
+		     *lpiid, std::string(reinterpret_cast<const char *>(ptrSK->Value.bin.lpb), ptrSK->Value.bin.cb),
+		     dsp, ICS_SYNC_CONTENTS, reinterpret_cast<IExchangeExportChanges **>(lppUnk));
 	} else {
 		hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 	}

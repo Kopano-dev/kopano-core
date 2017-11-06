@@ -328,10 +328,9 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 
 	if (lplstIcalRecip->empty())
 		return hrSuccess;
-	
-	// ignore error
-	if(m_lpMailUser)
-		HrGetOneProp(m_lpMailUser, PR_ENTRYID, &~lpUsrEidProp);
+	if (m_lpMailUser != nullptr &&
+	    HrGetOneProp(m_lpMailUser, PR_ENTRYID, &~lpUsrEidProp) != hrSuccess)
+		/* ignore error - will check for pointer instead */;
 
 	ULONG ulRecpCnt = lplstIcalRecip->size();
 	auto hr = MAPIAllocateBuffer(CbNewFlagList(ulRecpCnt), &~lpFlagList);

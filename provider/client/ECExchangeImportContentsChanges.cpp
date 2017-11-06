@@ -598,15 +598,18 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 		return hr;
 	}
 
-	HrGetOneProp(lpRootFolder, PR_ADDITIONAL_REN_ENTRYIDS, &~lpAdditionalREN);
 
 	//make new PR_ADDITIONAL_REN_ENTRYIDS
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpNewAdditionalREN);
 	if(hr != hrSuccess)
 		return hr;
-
 	lpNewAdditionalREN->ulPropTag = PR_ADDITIONAL_REN_ENTRYIDS;
-	lpNewAdditionalREN->Value.MVbin.cValues = (lpAdditionalREN == nullptr || lpAdditionalREN->Value.MVbin.cValues < 4) ? 4 : lpAdditionalREN->Value.MVbin.cValues;
+	if (HrGetOneProp(lpRootFolder, PR_ADDITIONAL_REN_ENTRYIDS, &~lpAdditionalREN) != hrSuccess ||
+	    lpAdditionalREN->Value.MVbin.cValues < 4)
+		lpNewAdditionalREN->Value.MVbin.cValues = 4;
+	else
+		lpNewAdditionalREN->Value.MVbin.cValues = lpAdditionalREN->Value.MVbin.cValues;
+
 	hr = MAPIAllocateMore(sizeof(SBinary)*lpNewAdditionalREN->Value.MVbin.cValues, lpNewAdditionalREN, (LPVOID*)&lpNewAdditionalREN->Value.MVbin.lpbin);
 	if(hr != hrSuccess)
 		return hr;

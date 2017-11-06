@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <new>
+#include <stdexcept>
 #include <kopano/platform.h>
 #include "WSABPropStorage.h"
 #include "Mem.h"
@@ -41,8 +42,9 @@ WSABPropStorage::WSABPropStorage(ULONG cbEntryId, LPENTRYID lpEntryId,
 	ECUnknown("WSABPropStorage"), lpDataLock(data_lock),
 	m_lpTransport(lpTransport)
 {
-	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
-
+	auto ret = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
+	if (ret != hrSuccess)
+		throw std::runtime_error("CopyMAPIEntryIdToSOAPEntryId");
 	this->lpCmd = lpCmd;
 	this->ecSessionId = ecSessionId;
     lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);

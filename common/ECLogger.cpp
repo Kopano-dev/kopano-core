@@ -653,7 +653,8 @@ namespace PrivatePipe {
 	{
 		if (m_lpConfig) {
 			const char *ll;
-			m_lpConfig->ReloadSettings();
+			if (!m_lpConfig->ReloadSettings())
+				/* ignore error */;
 			ll = m_lpConfig->GetSetting("log_level");
 			if (ll)
 				m_lpFileLogger->SetLoglevel(atoi(ll));

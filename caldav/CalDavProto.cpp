@@ -1767,9 +1767,10 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 		ulFolderType = TASKS_FOLDER;
 	else
 		ulFolderType = OTHER_FOLDER;
-	/* ignore errors - nullptr will be handled */
-	HrGetOneProp(m_lpActiveUser, PR_SMTP_ADDRESS_A, &~ptrEmail);
-	HrGetOneProp(m_lpActiveUser, PR_DISPLAY_NAME_W, &~ptrFullname);
+	if (HrGetOneProp(m_lpActiveUser, PR_SMTP_ADDRESS_A, &~ptrEmail) != hrSuccess)
+		/* ignore error - will check for pointer instead */;
+	if (HrGetOneProp(m_lpActiveUser, PR_DISPLAY_NAME_W, &~ptrFullname) != hrSuccess)
+		/* ignore error - will check for pointer instead */;
 
 	// owner is DAV namespace, the owner of the resource (url)
 	strOwnerURL = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8") + "/";

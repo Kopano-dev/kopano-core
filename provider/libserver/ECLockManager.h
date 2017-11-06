@@ -29,7 +29,6 @@
 namespace KC {
 
 class ECLockManager;
-class ECObjectLockImpl;
 
 typedef std::shared_ptr<ECLockManager> ECLockManagerPtr;
 
@@ -44,8 +43,8 @@ public:
 
 private:
 	std::weak_ptr<ECLockManager> m_ptrLockManager;
-	unsigned int m_ulObjId;
-	ECSESSIONID m_sessionId;
+	unsigned int m_ulObjId = 0;
+	ECSESSIONID m_sessionId = 0;
 };
 
 ////////////////

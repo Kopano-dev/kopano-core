@@ -358,7 +358,8 @@ void give_filesize_hint(const int fd, const off_t len)
 	// kernel can now look for the best disk allocation
 	// pattern as it knows how much date is going to be
 	// inserted
-	posix_fallocate(fd, 0, len);
+	if (posix_fallocate(fd, 0, len) < 0)
+		/* ignore error */;
 #endif
 }
 
