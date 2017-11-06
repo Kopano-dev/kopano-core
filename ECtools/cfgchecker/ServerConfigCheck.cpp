@@ -55,7 +55,6 @@ void ServerConfigCheck::loadChecks()
 	addCheck("enable_sso_ntlmauth", 0, &testBoolean);
 	addCheck("client_update_enabled", 0, &testBoolean);
 	addCheck("hide_everyone", 0, &testBoolean);
-	addCheck("index_services_enabled", 0, &testBoolean);
 	addCheck("enable_enhanced_ics", 0, &testBoolean);
 
 	addCheck("softdelete_lifetime", 0, &testNonZero);
