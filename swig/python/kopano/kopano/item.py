@@ -128,13 +128,17 @@ class PersistentList(list):
 class Item(Properties, Contact, Appointment):
     """Item class"""
 
-    def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, create=False, mapiobj=None, entryid=None, content_flag=None, save=True):
+    def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None,
+        loads=None, attachments=True, create=False, mapiobj=None,
+        entryid=None, content_flag=None, cache={}, save=True
+    ):
         self.emlfile = None
         self._architem = None
         self._folder = None
         self.mapiobj = mapiobj
         self._entryid = entryid
         self._content_flag = content_flag or 0
+        self._cache = cache
 
         if isinstance(parent, _folder.Folder):
             self._folder = parent
@@ -226,7 +230,7 @@ class Item(Properties, Contact, Appointment):
     def entryid(self):
         """ Item entryid """
 
-        return bin2hex(HrGetOneProp(self.mapiobj, PR_ENTRYID).Value)
+        return _hex(self._get_fast(PR_ENTRYID, must_exist=True))
 
     @property
     def hierarchyid(self):
@@ -244,15 +248,11 @@ class Item(Properties, Contact, Appointment):
     def subject(self):
         """ Item subject """
 
-        try:
-            return self.prop(PR_SUBJECT_W).value
-        except NotFoundError:
-            return u''
+        return self._get_fast(PR_SUBJECT_W, u'')
 
     @subject.setter
     def subject(self, x):
-        self.mapiobj.SetProps([SPropValue(PR_SUBJECT_W, _unicode(x))])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        self._set_fast(PR_SUBJECT_W, _unicode(x))
 
     @property
     def name(self):
@@ -325,17 +325,11 @@ class Item(Properties, Contact, Appointment):
     def received(self):
         """ Datetime instance with item delivery time """
 
-        try:
-            return self.prop(PR_MESSAGE_DELIVERY_TIME).value
-        except NotFoundError:
-            pass
+        return self._get_fast(PR_MESSAGE_DELIVERY_TIME)
 
     @property
     def last_modified(self):
-        try:
-            return self.prop(PR_LAST_MODIFICATION_TIME).value
-        except NotFoundError:
-            pass
+        return self._get_fast(PR_LAST_MODIFICATION_TIME)
 
     @property
     def stubbed(self):

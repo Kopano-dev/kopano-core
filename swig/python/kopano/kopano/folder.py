@@ -31,7 +31,7 @@ from MAPI.Tags import (
     PR_FOLDER_ASSOCIATED_CONTENTS, PR_CONTAINER_HIERARCHY,
     PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME,
     CONVENIENT_DEPTH, PR_DEPTH, PR_CONTENT_COUNT, PR_ASSOC_CONTENT_COUNT,
-    PR_DELETED_MSG_COUNT,
+    PR_DELETED_MSG_COUNT, PR_LAST_MODIFICATION_TIME
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE
@@ -254,14 +254,21 @@ class Folder(Properties):
     def items(self, restriction=None):
         """ Return all :class:`items <Item>` in folder, reverse sorted on received date """
 
-        table = None
+        # TODO determine preload columns dynamically, based on usage pattern
+        columns = [
+            PR_ENTRYID,
+            PR_MESSAGE_DELIVERY_TIME,
+            PR_SUBJECT_W, # watch out: table unicode data is max 255 chars
+            PR_LAST_MODIFICATION_TIME
+        ]
+
         try:
             table = Table(
                 self.server,
                 self.mapiobj.GetContentsTable(self.content_flag),
                 PR_CONTAINER_CONTENTS,
-                columns=[PR_ENTRYID, PR_MESSAGE_DELIVERY_TIME],
-                restriction=restriction
+                columns = columns,
+                restriction = restriction
             )
         except MAPIErrorNoSupport:
             return
@@ -270,8 +277,10 @@ class Folder(Properties):
 
         for row in table.rows():
             item = _item.Item(
-                self, entryid=row[0].value,
-                content_flag=self.content_flag
+                self,
+                entryid = row[0].value,
+                content_flag=self.content_flag,
+                cache = dict(zip(columns, row))
             )
             yield item
 

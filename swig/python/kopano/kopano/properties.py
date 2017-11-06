@@ -7,6 +7,18 @@ Copyright 2017 - Kopano and its licensors (see LICENSE file)
 
 import sys
 
+from MAPI import (
+    KEEP_OPEN_READWRITE, PT_UNICODE
+)
+
+from MAPI.Defs import (
+    PROP_TYPE
+)
+
+from MAPI.Struct import (
+    SPropValue
+)
+
 from .compat import repr as _repr
 from .errors import NotFoundError
 
@@ -91,6 +103,31 @@ class Properties(object):
         creating the property if it doesn't exist.
         """
         return self.set_value(proptag, value)
+
+    # TODO generalize for any property?
+    def _get_fast(self, proptag, default=None, must_exist=False):
+        # mapi table cells are limited to 255 characters
+        # TODO make the server return PT_ERROR when not-found..!?
+        # TODO check other PT types before using them with this!!
+
+        if proptag in self._cache:
+            value = self._cache[proptag].value
+            if value != 0x8004010f and \
+               not (PROP_TYPE(proptag) == PT_UNICODE and len(value) >= 255):
+                return value
+
+        try:
+            return self.prop(proptag).value
+        except NotFoundError:
+            if must_exist:
+                raise
+            else:
+                return default
+
+    def _set_fast(self, proptag, value):
+        self._cache.pop(proptag, None)
+        self.mapiobj.SetProps([SPropValue(proptag, value)])
+        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def __repr__(self):
         return _repr(self)
