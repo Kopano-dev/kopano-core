@@ -42,7 +42,6 @@ HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc, struct rowSet **l
 HRESULT CopyMAPIRowToSOAPRow(const SRow *lpRowSrc, struct propValArray *lpsRowDst, convert_context *lpConverter = NULL);
 HRESULT CopySOAPRowToMAPIRow(const struct propValArray *lpsRowSrc, LPSPropValue lpsRowDst, void *lpBase, convert_context *lpConverter = NULL);
 
-HRESULT CopySOAPEntryId(const entryId *lpSrc, entryId *lpDest);
 HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc, const ENTRYID *lpEntryIdSrc, entryId **lppDest);
 HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc, const ENTRYID *lpEntryIdSrc, entryId *lpDest, bool bCheapCopy = false);
 HRESULT CopySOAPEntryIdToMAPIEntryId(const entryId *lpSrc, ULONG *lpcbDest, LPENTRYID *lppEntryIdDest, void *lpBase = NULL);
