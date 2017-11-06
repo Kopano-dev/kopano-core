@@ -339,7 +339,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ECArchiveAwareMsgStore.cpp provider/client/ECArchiveAwareMsgStore.h \
 	provider/client/ECAttach.cpp provider/client/ECAttach.h \
 	provider/client/ECChangeAdvisor.cpp provider/client/ECChangeAdvisor.h \
-	provider/client/ECDisplayTable.cpp \
 	provider/client/ECExchangeExportChanges.cpp provider/client/ECExchangeExportChanges.h \
 	provider/client/ECExchangeImportContentsChanges.cpp \
 	provider/client/ECExchangeImportContentsChanges.h \
