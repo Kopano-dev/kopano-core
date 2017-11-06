@@ -24,7 +24,10 @@
 #include <Python.h>
 #include <kopano/charset/convert.h>
 #include <kopano/conversion.h>
+#include "pymem.hpp"
 #include "scl.h"
+
+using KCHL::pyobj_ptr;
 
 // From Structs.py
 static PyObject *PyTypeSPropValue;
@@ -164,10 +167,8 @@ void Init()
 // Coerce PyObject into PyUnicodeObject, copy and zero-terminate
 wchar_t * CopyPyUnicode(wchar_t **lpWide, PyObject *o, void *lpBase)
 {
-    PyObject *unicode = NULL;
     int size;
-    
-    unicode = PyUnicode_FromObject(o);
+	pyobj_ptr unicode(PyUnicode_FromObject(o));
     if(!unicode) {
         *lpWide = NULL;
         return NULL;
@@ -179,41 +180,28 @@ wchar_t * CopyPyUnicode(wchar_t **lpWide, PyObject *o, void *lpBase)
 	    #if PY_MAJOR_VERSION >= 3
 		PyUnicode_AsWideChar(unicode, *lpWide, size);
 	    #else
-		PyUnicode_AsWideChar((PyUnicodeObject *)unicode, *lpWide, size);
+		PyUnicode_AsWideChar((PyUnicodeObject *)unicode.get(), *lpWide, size);
 	    #endif
 	    
 	    (*lpWide)[size] = '\0';
-	 
-	    Py_DECREF(unicode);
-	    
 	    return *lpWide;
     }
-
-    Py_DECREF(unicode);
-
     return NULL;
 }
 
 int Object_is_list_of(PyObject *object, TypeCheckFunc fnTypeCheck)
 {
 	int rc = 1;
-	PyObject *iter = NULL;
-	PyObject *elem = NULL;
-
 	if (object == Py_None)
 		return 0;
-
-	iter = PyObject_GetIter(object);
+	pyobj_ptr iter(PyObject_GetIter(object));
 	if (!iter)
 		return 0;
 
-	while (rc == 1 && (elem = PyIter_Next(iter))) {
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
 		rc = fnTypeCheck(elem);
-		Py_DECREF(elem);
-		elem = NULL;
-	}
-
-	Py_DECREF(iter);
+	} while (rc == 1);
 	return rc;
 }
 
@@ -241,17 +229,11 @@ FILETIME Object_to_FILETIME(PyObject *object)
 PyObject *Object_from_FILETIME(FILETIME ft)
 {
 	PyObject *object = NULL;
-	PyObject *filetime = NULL;
-
-	filetime = PyLong_FromUnsignedLongLong(((unsigned long long)ft.dwHighDateTime << 32) + ft.dwLowDateTime);
+	pyobj_ptr filetime(PyLong_FromUnsignedLongLong((static_cast<unsigned long long>(ft.dwHighDateTime) << 32) + ft.dwLowDateTime));
 	if (PyErr_Occurred())
 		goto exit;
-	object = PyObject_CallFunction(PyTypeFiletime, "(O)", filetime);
-
+	object = PyObject_CallFunction(PyTypeFiletime, "(O)", filetime.get());
 exit:
-	if (filetime != NULL)
-		Py_DECREF(filetime);
-
 	return object;
 }
 
@@ -262,70 +244,71 @@ int Object_is_FILETIME(PyObject *object)
 
 PyObject *Object_from_SPropValue(const SPropValue *lpProp)
 {
-	PyObject *Value = NULL;
-	PyObject *ulPropTag = NULL;
 	PyObject *object = NULL;
+	pyobj_ptr Value, ulPropTag(PyLong_FromUnsignedLong(lpProp->ulPropTag));
 
-	ulPropTag = PyLong_FromUnsignedLong(lpProp->ulPropTag);
 	switch(PROP_TYPE(lpProp->ulPropTag)) {
 	case PT_STRING8:
-		Value = PyString_FromString(lpProp->Value.lpszA);
+		Value.reset(PyString_FromString(lpProp->Value.lpszA));
 		break;
 	case PT_UNICODE:
-		Value = PyUnicode_FromWideChar(lpProp->Value.lpszW, wcslen(lpProp->Value.lpszW));
+		Value.reset(PyUnicode_FromWideChar(lpProp->Value.lpszW, wcslen(lpProp->Value.lpszW)));
 		break;
 	case PT_BINARY:
-		Value = PyString_FromStringAndSize((const char *)lpProp->Value.bin.lpb, lpProp->Value.bin.cb);
+		Value.reset(PyString_FromStringAndSize(reinterpret_cast<const char *>(lpProp->Value.bin.lpb), lpProp->Value.bin.cb));
 		break;
 	case PT_SHORT:
-		Value = PyLong_FromLong(lpProp->Value.i);
+		Value.reset(PyLong_FromLong(lpProp->Value.i));
 		break;
 	case PT_ERROR:
-		Value = PyLong_FromUnsignedLong((unsigned int)lpProp->Value.err);
+		Value.reset(PyLong_FromUnsignedLong(static_cast<unsigned int>(lpProp->Value.err)));
 		break;
 	case PT_LONG:
-		Value = PyLong_FromLongLong(lpProp->Value.l); // We have to use LongLong since it could be either PT_LONG or PT_ULONG. 'Long' doesn't cover the range
+		/*
+		 * Need to use LongLong since it could be either PT_LONG or
+		 * PT_ULONG. 'Long' doesn't cover the range.
+		 */
+		Value.reset(PyLong_FromLongLong(lpProp->Value.l));
 		break;
 	case PT_FLOAT:
-		Value = PyFloat_FromDouble(lpProp->Value.flt);
+		Value.reset(PyFloat_FromDouble(lpProp->Value.flt));
 		break;
 	case PT_APPTIME:
 	case PT_DOUBLE:
-		Value = PyFloat_FromDouble(lpProp->Value.dbl);
+		Value.reset(PyFloat_FromDouble(lpProp->Value.dbl));
 		break;
 	case PT_LONGLONG:
 	case PT_CURRENCY:
-		Value = PyLong_FromLongLong(lpProp->Value.cur.int64);
+		Value.reset(PyLong_FromLongLong(lpProp->Value.cur.int64));
 		break;
 	case PT_BOOLEAN:
-		Value = PyBool_FromLong(lpProp->Value.b);
+		Value.reset(PyBool_FromLong(lpProp->Value.b));
 		break;
 	case PT_SYSTIME:
-		Value = Object_from_FILETIME(lpProp->Value.ft);
+		Value.reset(Object_from_FILETIME(lpProp->Value.ft));
 		break;
 	case PT_CLSID:
-		Value = PyString_FromStringAndSize((const char *)lpProp->Value.lpguid, sizeof(GUID));
+		Value.reset(PyString_FromStringAndSize(reinterpret_cast<const char *>(lpProp->Value.lpguid), sizeof(GUID)));
 		break;
 	case PT_OBJECT:
 		Py_INCREF(Py_None);
-		Value = Py_None;
+		Value.reset(Py_None);
 		break;
 	case PT_SRESTRICTION:
-		Value = Object_from_LPSRestriction((LPSRestriction)lpProp->Value.lpszA);
+		Value.reset(Object_from_LPSRestriction(reinterpret_cast<SRestriction *>(lpProp->Value.lpszA)));
 		break;
 	case PT_ACTIONS:
-		Value = Object_from_LPACTIONS((ACTIONS *)lpProp->Value.lpszA);
+		Value.reset(Object_from_LPACTIONS(reinterpret_cast<ACTIONS *>(lpProp->Value.lpszA)));
 		break;
 
 #define BASE(x) x
 #define INT64(x) x.int64
 #define QUADPART(x) x.QuadPart
 #define PT_MV_CASE(MVname,MVelem,From,Sub) \
-	Value = PyList_New(0); \
+	Value.reset(PyList_New(0)); \
 	for (unsigned int i = 0; i < lpProp->Value.MV##MVname.cValues; ++i) { \
-		PyObject *elem = From(Sub(lpProp->Value.MV##MVname.lp##MVelem[i])); \
+		pyobj_ptr elem(From(Sub(lpProp->Value.MV##MVname.lp##MVelem[i]))); \
 		PyList_Append(Value, elem); \
-		Py_DECREF(elem); \
 	} \
 	break;
 
@@ -344,43 +327,39 @@ PyObject *Object_from_SPropValue(const SPropValue *lpProp)
 	case PT_MV_LONGLONG:
 		PT_MV_CASE(li, li, PyLong_FromLongLong,QUADPART)
 	case PT_MV_SYSTIME:
-		Value = PyList_New(0);
+		Value.reset(PyList_New(0));
 		for (unsigned int i = 0; i < lpProp->Value.MVft.cValues; ++i) {
-			PyObject *elem = Object_from_FILETIME(lpProp->Value.MVft.lpft[i]);
+			pyobj_ptr elem(Object_from_FILETIME(lpProp->Value.MVft.lpft[i]));
 			PyList_Append(Value, elem);
-			Py_DECREF(elem);
 		}
 		break;
 	case PT_MV_STRING8:
 		PT_MV_CASE(szA, pszA, PyString_FromString, BASE)
 	case PT_MV_BINARY:
-		Value = PyList_New(0);
+		Value.reset(PyList_New(0));
 		for (unsigned int i = 0; i < lpProp->Value.MVbin.cValues; ++i) {
-			PyObject *elem = PyString_FromStringAndSize((const char *)lpProp->Value.MVbin.lpbin[i].lpb, lpProp->Value.MVbin.lpbin[i].cb);
+			pyobj_ptr elem(PyString_FromStringAndSize(reinterpret_cast<const char *>(lpProp->Value.MVbin.lpbin[i].lpb), lpProp->Value.MVbin.lpbin[i].cb));
 			PyList_Append(Value, elem);
-			Py_DECREF(elem);
 		}
 		break;
 	case PT_MV_UNICODE:
-		Value = PyList_New(0);
+		Value.reset(PyList_New(0));
 		for (unsigned int i = 0; i < lpProp->Value.MVszW.cValues; ++i) {
 			int len = wcslen(lpProp->Value.MVszW.lppszW[i]);
-			PyObject *elem = PyUnicode_FromWideChar(lpProp->Value.MVszW.lppszW[i], len);
+			pyobj_ptr elem(PyUnicode_FromWideChar(lpProp->Value.MVszW.lppszW[i], len));
 			PyList_Append(Value, elem);
-			Py_DECREF(elem);
 		}
 		break;
 	case PT_MV_CLSID:
-		Value = PyList_New(0);
+		Value.reset(PyList_New(0));
 		for (unsigned int i = 0; i < lpProp->Value.MVguid.cValues; ++i) {
-			PyObject *elem = PyString_FromStringAndSize((const char *)&lpProp->Value.MVguid.lpguid[i], sizeof(GUID));
+			pyobj_ptr elem(PyString_FromStringAndSize(reinterpret_cast<const char *>(&lpProp->Value.MVguid.lpguid[i]), sizeof(GUID)));
 			PyList_Append(Value, elem);
-			Py_DECREF(elem);
 		}
 		break;
 	case PT_NULL:
 		Py_INCREF(Py_None);
-		Value = Py_None;
+		Value.reset(Py_None);
 		break;
 	default:
 		PyErr_Format(PyExc_RuntimeError, "Bad property type %x", PROP_TYPE(lpProp->ulPropTag));
@@ -388,13 +367,8 @@ PyObject *Object_from_SPropValue(const SPropValue *lpProp)
 	}
 	if (PyErr_Occurred())
 		goto exit;
-	object = PyObject_CallFunction(PyTypeSPropValue, "(OO)", ulPropTag, Value);
-
+	object = PyObject_CallFunction(PyTypeSPropValue, "(OO)", ulPropTag.get(), Value.get());
 exit:
-	if (Value != nullptr)
-		Py_DECREF(Value);
-	if (ulPropTag != nullptr)
-		Py_DECREF(ulPropTag);
 	return object;
 }
 
@@ -410,29 +384,19 @@ int Object_is_LPSPropValue(PyObject *object)
 
 PyObject *List_from_SPropValue(const SPropValue *lpProps, ULONG cValues)
 {
-	PyObject *list = PyList_New(0);
-	PyObject *item = NULL;
-
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < cValues; ++i) {
-		item = Object_from_LPSPropValue(&lpProps[i]);
+		pyobj_ptr item(Object_from_LPSPropValue(&lpProps[i]));
 		if(PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, item);
-
-		Py_DECREF(item);
-		item = NULL;
 	}
 
 exit:
-	if(PyErr_Occurred()) {
-		if (list != nullptr)
-			Py_DECREF(list);
-		list = NULL;
-	}
-	if (item != nullptr)
-		Py_DECREF(item);
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 PyObject *List_from_LPSPropValue(const SPropValue *props, ULONG vals)

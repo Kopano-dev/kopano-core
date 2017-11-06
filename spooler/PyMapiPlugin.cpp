@@ -28,6 +28,7 @@
 #include "PyMapiPlugin.h"
 #include <kopano/stringutil.h>
 #include "frameobject.h"
+#include "pymem.hpp"
 
 #define NEW_SWIG_INTERFACE_POINTER_OBJ(pyswigobj, objpointer, typeobj) {\
 	if (objpointer) {\
@@ -49,12 +50,7 @@
 	}\
 }
 
-class kcpy_decref {
-	public:
-	void operator()(PyObject *obj) const { Py_DECREF(obj); }
-};
-
-typedef KCHL::memory_ptr<PyObject, kcpy_decref> PyObjectAPtr;
+typedef KCHL::pyobj_ptr PyObjectAPtr;
 
 class PyMapiPlugin _kc_final : public pym_plugin_intf {
 	public:
