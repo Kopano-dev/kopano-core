@@ -2594,8 +2594,7 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 {
 	HRESULT hr = hrSuccess;
 	Py_ssize_t len = 0;
-	PyObject *iter = NULL;
-	PyObject *elem = NULL;
+	pyobj_ptr iter;
 	ECSVRNAMELIST *lpSvrNameList = NULL;
 
 	if (object == Py_None)
@@ -2611,12 +2610,13 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 		goto exit;
 
 	memset(lpSvrNameList, 0, sizeof(ECSVRNAMELIST) + (sizeof(ECSERVER *) * len) );
-
-	iter = PyObject_GetIter(object);
+	iter.reset(PyObject_GetIter(object));
 	if (iter == NULL)
 		goto exit;
-
-	while ((elem = PyIter_Next(iter))) {
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
 		char *ptr = NULL;
 		Py_ssize_t strlen = 0;
 
@@ -2631,21 +2631,13 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 		}
 
 		memcpy(lpSvrNameList->lpszaServer[lpSvrNameList->cServers], ptr, strlen);
-
-		Py_DECREF(elem);
-		elem = NULL;
 		++lpSvrNameList->cServers;
-	}
-
+	} while (true);
 exit:
 	if(PyErr_Occurred()) {
 		MAPIFreeBuffer(lpSvrNameList);
 		lpSvrNameList = NULL;
 	}
-	if (elem != nullptr)
-		Py_DECREF(elem);
-	if (iter != nullptr)
-		Py_DECREF(iter);
 	return lpSvrNameList;
 }
 
@@ -2656,43 +2648,32 @@ PyObject *Object_from_LPECSERVER(ECSERVER *lpServer)
 
 PyObject *List_from_LPECSERVERLIST(ECSERVERLIST *lpServerList)
 {
-	PyObject *list = PyList_New(0);
-	PyObject *item = NULL;
-
+	pyobj_ptr list(PyList_New(0));
 	for (unsigned int i = 0; i < lpServerList->cServers; ++i) {
-		item = Object_from_LPECSERVER(&lpServerList->lpsaServer[i]);
+		pyobj_ptr item(Object_from_LPECSERVER(&lpServerList->lpsaServer[i]));
 		if (PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, item);
-
-		Py_DECREF(item);
-		item = NULL;
 	}
 
 exit:
-	if(PyErr_Occurred()) {
-		if (list != nullptr)
-			Py_DECREF(list);
-		list = NULL;
-	}
-	if (item != nullptr)
-		Py_DECREF(item);
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 
 }
 
 void Object_to_STATSTG(PyObject *object, STATSTG *stg)
 {
-	PyObject *cbSize = NULL;
+	pyobj_ptr cbSize;
 
 	if(object == Py_None) {
 		PyErr_Format(PyExc_TypeError, "Invalid None passed for STATSTG");
 		goto exit;
 	}
 
-	cbSize = PyObject_GetAttrString(object, "cbSize");
-
+	cbSize.reset(PyObject_GetAttrString(object, "cbSize"));
 	if(!cbSize) {
 		PyErr_Format(PyExc_TypeError, "STATSTG does not contain cbSize");
 		goto exit;
@@ -2700,31 +2681,18 @@ void Object_to_STATSTG(PyObject *object, STATSTG *stg)
 
 	stg->cbSize.QuadPart = PyLong_AsINT64(cbSize);
 
-exit:
-	if (cbSize != nullptr)
-		Py_DECREF(cbSize);
+exit:;
 }
 
 PyObject *Object_from_STATSTG(STATSTG *lpStatStg)
 {
-	PyObject *result = NULL;
-	PyObject *cbSize = NULL;
-
 	if(lpStatStg == NULL) {
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
-
-	cbSize = PyLong_FromLongLong(lpStatStg->cbSize.QuadPart);
-
-	result = PyObject_CallFunction(PyTypeSTATSTG, "(O)", cbSize);
-	if (cbSize != nullptr)
-		Py_DECREF(cbSize);
-	if(PyErr_Occurred()) {
-		if (result != nullptr)
-			Py_DECREF(result);
-		result = NULL;
-	}
-
-	return result;
+	pyobj_ptr cbSize(PyLong_FromLongLong(lpStatStg->cbSize.QuadPart));
+	pyobj_ptr result(PyObject_CallFunction(PyTypeSTATSTG, "(O)", cbSize.get()));
+	if (PyErr_Occurred())
+		result.reset();
+	return result.release();
 }
