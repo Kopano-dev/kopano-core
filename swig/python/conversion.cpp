@@ -1209,51 +1209,34 @@ PyObject *		Object_from_LPACTION(LPACTION lpAction)
 
 PyObject *		Object_from_LPACTIONS(ACTIONS *lpsActions)
 {
-	PyObject *sub = NULL;
-	PyObject *subs = NULL;
-	PyObject *result = NULL;
-
 	if (lpsActions == NULL) {
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
 
-	subs = PyList_New(0);
+	pyobj_ptr result, subs(PyList_New(0));
 	for (UINT i = 0; i < lpsActions->cActions; ++i) {
-		sub = Object_from_LPACTION(&lpsActions->lpAction[i]);
+		pyobj_ptr sub(Object_from_LPACTION(&lpsActions->lpAction[i]));
 		if (!sub)
 			goto exit;
 
 		PyList_Append(subs, sub);
-
-		Py_DECREF(sub);
-		sub = NULL;
 	}
-
-	result = PyObject_CallFunction(PyTypeACTIONS, "lO", lpsActions->ulVersion, subs);
-
+	result.reset(PyObject_CallFunction(PyTypeACTIONS, "lO", lpsActions->ulVersion, subs.get()));
 exit:
-	if (sub != nullptr)
-		Py_DECREF(sub);
-	if (subs != nullptr)
-		Py_DECREF(subs);
-	if(PyErr_Occurred()) {
-		if (result != nullptr)
-			Py_DECREF(result);
-		result = NULL;
-	}
-
-	return result;
+	if (PyErr_Occurred())
+		result.reset();
+	return result.release();
 }
 
 void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 {
-	PyObject *poActType = PyObject_GetAttrString(object, "acttype");
-	PyObject *poActionFlavor = PyObject_GetAttrString(object, "ulActionFlavor");
-	PyObject *poRes = PyObject_GetAttrString(object, "lpRes");
-	PyObject *poPropTagArray = PyObject_GetAttrString(object, "lpPropTagArray");
-	PyObject *poFlags = PyObject_GetAttrString(object, "ulFlags");
-	PyObject *poActObject = PyObject_GetAttrString(object, "actobj");
+	pyobj_ptr poActType(PyObject_GetAttrString(object, "acttype"));
+	pyobj_ptr poActionFlavor(PyObject_GetAttrString(object, "ulActionFlavor"));
+	pyobj_ptr poRes(PyObject_GetAttrString(object, "lpRes"));
+	pyobj_ptr poPropTagArray(PyObject_GetAttrString(object, "lpPropTagArray"));
+	pyobj_ptr poFlags(PyObject_GetAttrString(object, "ulFlags"));
+	pyobj_ptr poActObject(PyObject_GetAttrString(object, "actobj"));
 
 	lpAction->acttype = (ACTTYPE)PyLong_AsUnsignedLong(poActType);
 	lpAction->ulActionFlavor = PyLong_AsUnsignedLong(poActionFlavor);
@@ -1266,8 +1249,8 @@ void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 	case OP_MOVE:
 	case OP_COPY:
 	{
-		PyObject *poStore = PyObject_GetAttrString(poActObject, "StoreEntryId");
-		PyObject *poFolder = PyObject_GetAttrString(poActObject, "FldEntryId");
+		pyobj_ptr poStore(PyObject_GetAttrString(poActObject, "StoreEntryId"));
+		pyobj_ptr poFolder(PyObject_GetAttrString(poActObject, "FldEntryId"));
 		Py_ssize_t size;
 		if (PyString_AsStringAndSize(poStore, reinterpret_cast<char **>(&lpAction->actMoveCopy.lpStoreEntryId), &size) < 0)
 			break;
@@ -1275,15 +1258,13 @@ void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 		if (PyString_AsStringAndSize(poFolder, reinterpret_cast<char **>(&lpAction->actMoveCopy.lpFldEntryId), &size) < 0)
 			break;
 		lpAction->actMoveCopy.cbFldEntryId = size;
-		Py_DECREF(poFolder);
-		Py_DECREF(poStore);
 		break;
 	}
 	case OP_REPLY:
 	case OP_OOF_REPLY:
 	{
-		PyObject *poEntryId = PyObject_GetAttrString(poActObject, "EntryId");
-		PyObject *poGuid = PyObject_GetAttrString(poActObject, "guidReplyTemplate");
+		pyobj_ptr poEntryId(PyObject_GetAttrString(poActObject, "EntryId"));
+		pyobj_ptr poGuid(PyObject_GetAttrString(poActObject, "guidReplyTemplate"));
 		char *ptr;
 		Py_ssize_t size;
 		if (PyString_AsStringAndSize(poEntryId, reinterpret_cast<char **>(&lpAction->actReply.lpEntryId), &size) < 0)
@@ -1295,69 +1276,47 @@ void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 			memcpy(&lpAction->actReply.guidReplyTemplate, ptr, size);
 		else
 			memset(&lpAction->actReply.guidReplyTemplate, 0, sizeof(GUID));
-		Py_DECREF(poEntryId);
-		Py_DECREF(poGuid);
 		break;
 	}
 	case OP_DEFER_ACTION:
 	{
-		PyObject *poData = PyObject_GetAttrString(poActObject, "data");
+		pyobj_ptr poData(PyObject_GetAttrString(poActObject, "data"));
 		Py_ssize_t size;
 		if (PyString_AsStringAndSize(poData, reinterpret_cast<char **>(&lpAction->actDeferAction.pbData), &size) < 0)
 			break;
 		lpAction->actDeferAction.cbData = size;
-		Py_DECREF(poData);
 		break;
 	}
 	case OP_BOUNCE:
 	{
-		PyObject *poBounce = PyObject_GetAttrString(poActObject, "scBounceCode");
+		pyobj_ptr poBounce(PyObject_GetAttrString(poActObject, "scBounceCode"));
 		lpAction->scBounceCode = PyLong_AsUnsignedLong(poBounce);
-		Py_DECREF(poBounce);
 		break;
 	}
 	case OP_FORWARD:
 	case OP_DELEGATE:
 	{
-		PyObject *poAdrList = PyObject_GetAttrString(poActObject, "lpadrlist");
+		pyobj_ptr poAdrList(PyObject_GetAttrString(poActObject, "lpadrlist"));
 		// @todo fix memleak
 		lpAction->lpadrlist = List_to_LPADRLIST(poAdrList, CONV_COPY_SHALLOW, lpBase);
-		Py_DECREF(poAdrList);
 		break;
 	}
 	case OP_TAG:
 	{
-		PyObject *poPropTag = PyObject_GetAttrString(poActObject, "propTag");
+		pyobj_ptr poPropTag(PyObject_GetAttrString(poActObject, "propTag"));
 		Object_to_LPSPropValue(poPropTag, &lpAction->propTag, CONV_COPY_SHALLOW, lpBase);
-		Py_DECREF(poPropTag);
 		break;
 	}
 	case OP_DELETE:
 	case OP_MARK_AS_READ:
 		break;
 	}
-
-	if (poActType != nullptr)
-		Py_DECREF(poActType);
-	if (poActionFlavor != nullptr)
-		Py_DECREF(poActionFlavor);
-	if (poRes != nullptr)
-		Py_DECREF(poRes);
-	if (poPropTagArray != nullptr)
-		Py_DECREF(poPropTagArray);
-	if (poFlags != nullptr)
-		Py_DECREF(poFlags);
-	if (poActObject != nullptr)
-		Py_DECREF(poActObject);
 }
 
 void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
 {
 	HRESULT hr = hrSuccess;
-	PyObject *poVersion = NULL;
-	PyObject *poAction = NULL;
-	PyObject *iter = NULL;
-	PyObject *elem = NULL;
+	pyobj_ptr poVersion, poAction, iter;
 	Py_ssize_t len = 0;
 	unsigned int i = 0;
 
@@ -1366,10 +1325,8 @@ void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
 
 	if (lpBase == NULL)
 		lpBase = lpActions;
-
-	poVersion = PyObject_GetAttrString(object, "ulVersion");
-	poAction = PyObject_GetAttrString(object, "lpAction");
-
+	poVersion.reset(PyObject_GetAttrString(object, "ulVersion"));
+	poAction.reset(PyObject_GetAttrString(object, "lpAction"));
 	if(!poVersion || !poAction) {
 		PyErr_SetString(PyExc_RuntimeError, "Missing ulVersion or lpAction for ACTIONS struct");
 		goto exit;
@@ -1392,26 +1349,18 @@ void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
 
 	lpActions->ulVersion = PyLong_AsUnsignedLong(poVersion); // EDK_RULES_VERSION
 	lpActions->cActions = len;
-
-	iter = PyObject_GetIter(poAction);
+	iter.reset(PyObject_GetIter(poAction));
 	if(iter == NULL)
 		goto exit;
 
 	i = 0;
-	while ((elem = PyIter_Next(iter))) {
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
 		Object_to_LPACTION(elem, &lpActions->lpAction[i++], lpBase != nullptr? lpBase : lpActions);
-		Py_DECREF(elem);
-	}
-
-exit:
-	if (poVersion != nullptr)
-		Py_DECREF(poVersion);
-	if (poAction != nullptr)
-		Py_DECREF(poAction);
-	if (iter != nullptr)
-		Py_DECREF(iter);
-	if (elem != nullptr)
-		Py_DECREF(elem);
+	} while (true);
+exit:;
 }
 
 SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *object)
