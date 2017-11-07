@@ -54,31 +54,6 @@ ECConvenientDepthObjectTable::ECConvenientDepthObjectTable(ECSession *lpSession,
  * around 5 or so.
  *
  */
-typedef std::list<ECUSortKey> SortKey;
-
-struct FOLDERINFO {
-    unsigned int ulFolderId;		// Actual folder id in the DB
-    std::string strFolderName;		// Folder name like 'inbox'
-    SortKey sortKey;				// List of collation keys of the folder names.
-    
-	bool operator<(const FOLDERINFO &a) const
-	{
-		SortKey::const_iterator iKeyThis = sortKey.cbegin();
-		SortKey::const_iterator iKeyOther = a.sortKey.cbegin();
-
-		while (iKeyThis != sortKey.cend() && iKeyOther != a.sortKey.cend()) {
-			int res = iKeyThis->compareTo(*iKeyOther);
-			if (res < 0) return true;
-			if (res > 0) return false;
-
-			++iKeyThis;
-			++iKeyOther;
-		}
-
-		// If we get this far, all collation keys were equal. So we should only return true if this.sortKey has less items than a.sortKey.
-		return sortKey.size() < a.sortKey.size();
-    }
-};
 
 ECRESULT ECConvenientDepthObjectTable::Create(ECSession *lpSession,
     unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId,
@@ -96,39 +71,31 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	auto lpData = static_cast<const ECODStore *>(m_lpObjectData);
 	sObjectTableKey		sRowItem;
 	unsigned int ulDepth = 0;
-	
-	std::list<FOLDERINFO> lstFolders;	// The list of folders
-	std::map<unsigned int, SortKey> mapSortKey;	// map a known folder to its sortkey. This is used to derive a subfolder's sort key
+
+	std::list<unsigned int> lstFolders;	// The list of folders
 	std::list<unsigned int> lstObjIds;
 
 	unsigned int ulFlags = lpData->ulFlags;
-	unsigned int ulFolderId = m_ulFolderId;
-
-	FOLDERINFO sRoot;
 
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 
-	sRoot.ulFolderId = ulFolderId;
-	sRoot.strFolderName.clear();
-	//sRoot.strSortKey = "root";
-	lstFolders.emplace_back(sRoot);
-	mapSortKey[ulFolderId] = sRoot.sortKey;
+	lstFolders.emplace_back(m_ulFolderId);
 
 	for (auto iterFolders = lstFolders.cbegin(); iterFolders != lstFolders.cend(); ) {
-		std::string strQuery = "SELECT hierarchy.id, hierarchy.parent, hierarchy.owner, hierarchy.flags, hierarchy.type, properties.val_string FROM hierarchy LEFT JOIN properties ON properties.hierarchyid = hierarchy.id AND properties.tag = 12289  AND properties.type = 30 WHERE hierarchy.type = " +  stringify(MAPI_FOLDER) + " AND hierarchy.flags & "+stringify(MSGFLAG_DELETED)+" = " + stringify(ulFlags&MSGFLAG_DELETED);
+		std::string strQuery = "SELECT hierarchy.id, hierarchy.parent, hierarchy.owner, hierarchy.flags, hierarchy.type FROM hierarchy WHERE hierarchy.type = " + stringify(MAPI_FOLDER) + " AND hierarchy.flags & " + stringify(MSGFLAG_DELETED) + " = " + stringify(ulFlags & MSGFLAG_DELETED);
 		strQuery += " AND hierarchy.parent IN(";
 		
 		while (iterFolders != lstFolders.cend()) {
-		    strQuery += stringify(iterFolders->ulFolderId);
+		    strQuery += stringify(*iterFolders);
 		    ++iterFolders;
 		    if (iterFolders != lstFolders.cend())
     		    strQuery += ",";
         }
         
         strQuery += ")";
-		
+
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess)
 			return er;
@@ -136,32 +103,23 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 		auto cache = lpSession->GetSessionManager()->GetCacheManager();
 		auto sec = lpSession->GetSecurity();
 		while (1) {
-		    FOLDERINFO sFolderInfo;
-		    
 			lpDBRow = lpDBResult.fetch_row();
 			if (lpDBRow == NULL)
 				break;
 
-			if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL || lpDBRow[4] == NULL || lpDBRow[5] == NULL)
+			if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr || lpDBRow[2] == nullptr || lpDBRow[3] == nullptr || lpDBRow[4] == nullptr)
 				continue;
 
-            sFolderInfo.ulFolderId = atoui(lpDBRow[0]);
-            sFolderInfo.strFolderName = lpDBRow[5];
-
-			sFolderInfo.sortKey = mapSortKey[atoui(lpDBRow[1])];
-			sFolderInfo.sortKey.emplace_back(createSortKeyFromUTF8(sFolderInfo.strFolderName.c_str(), 0, GetLocale()));
-            mapSortKey[sFolderInfo.ulFolderId] = sFolderInfo.sortKey;
-            
             // Since we have this information, give the cache manager the hierarchy information for this object
 			cache->SetObject(atoui(lpDBRow[0]), atoui(lpDBRow[1]), atoui(lpDBRow[2]), atoui(lpDBRow[3]), atoui(lpDBRow[4]));
-			if (sec->CheckPermission(sFolderInfo.ulFolderId, ecSecurityFolderVisible) != erSuccess)
+			if (sec->CheckPermission(atoui(lpDBRow[0]), ecSecurityFolderVisible) != erSuccess)
 				continue;
 			
 			// Push folders onto end of list
-			lstFolders.emplace_back(std::move(sFolderInfo));
+			lstFolders.emplace_back(atoui(lpDBRow[0]));
             
             // If we were pointing at the last item, point at the freshly inserted item
-            if(iterFolders == lstFolders.end())
+            if(iterFolders == lstFolders.cend())
 			--iterFolders;
 		}
 
@@ -170,14 +128,12 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 		if (++ulDepth > 256)
 		    break;
 	}
-	
-	// Our lstFolders now contains all folders, and a sortkey. All we need to do is sort by that sortkey ...
-	lstFolders.sort();
-	
+
 	// ... and put the data into the row system
-	for (const auto &f : lstFolders)
-		if (f.ulFolderId != m_ulFolderId)
-			lstObjIds.emplace_back(f.ulFolderId);
+	for (const auto f : lstFolders)
+		if (f != m_ulFolderId)
+			lstObjIds.emplace_back(f);
+
     LoadRows(&lstObjIds, 0);
 	return erSuccess;
 }
