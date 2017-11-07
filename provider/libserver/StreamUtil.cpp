@@ -1589,21 +1589,6 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 				// Cache the written value
 				sObjectTableKey key(ulObjId, 0);
 				gcache->SetCell(&key, lpsPropval->ulPropTag, lpsPropval);
-				
-				if (0) {
-					// FIXME do we need this code? Currently we get always a deferredupdate!
-					// Please also update cmd.cpp:WriteProps
-					er = WriteSingleProp(lpDatabase, ulObjId, ulParentId, lpsPropval, true, lpDatabase->GetMaxAllowedPacket(), strInsertTProp);
-					if (er == KCERR_TOO_BIG) {
-						er = lpDatabase->DoInsert(strInsertTProp);
-						if (er == erSuccess) {
-							strInsertTProp.clear();
-							er = WriteSingleProp(lpDatabase, ulObjId, ulParentId, lpsPropval, true, lpDatabase->GetMaxAllowedPacket(), strInsertTProp);
-						}
-					}
-					if(er != erSuccess)
-						goto exit;
-				}
 			}
 		}
 
@@ -1621,26 +1606,11 @@ next_property:
 			goto exit;
 	}
 
-	if(ulParentType == MAPI_FOLDER) {
-		if (0) {
-			/* Modification, just directly write the tproperties
-			 * The idea behind this is that we'd need some serious random-access reads to properties later when flushing
-			 * tproperties, and we have the properties in memory now anyway. Also, modifications usually are just a few properties, causing
-			 * only minor random I/O on tproperties, and a tproperties flush reads all the properties, not just the modified ones.
-			 */
-			if (!strInsertTProp.empty()) {
-				er = lpDatabase->DoInsert(strInsertTProp);
-				if (er != erSuccess)
-					goto exit;
-			}
-		} else {
-			// Instead of writing directly to tproperties, save a delayed write request (flushed on table open).
-			if (ulParentId != CACHE_NO_PARENT) {
-                er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, ulParentId, 0, ulObjId);
-				if(er != erSuccess)
-					goto exit;
-			}
-		}
+	if(ulParentType == MAPI_FOLDER && ulParentId != CACHE_NO_PARENT) {
+		// Instead of writing directly to tproperties, save a delayed write request (flushed on table open).
+		er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, ulParentId, 0, ulObjId);
+		if(er != erSuccess)
+			goto exit;
 	}
 
 	if (bNewItem && ulParentType == MAPI_FOLDER && RealObjType(ulObjType, ulParentType) == MAPI_MESSAGE) {
