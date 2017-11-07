@@ -824,17 +824,6 @@ HRESULT CopySOAPRowToMAPIRow(void *lpProvider,
 	return hrSuccess;
 }
 
-HRESULT CopySOAPEntryId(const entryId *lpSrc, entryId *lpDst)
-{
-	if (lpSrc == NULL || lpDst == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
-	lpDst->__size = lpSrc->__size;
-	lpDst->__ptr = s_alloc<unsigned char>(nullptr, lpDst->__size);
-	memcpy(lpDst->__ptr, lpSrc->__ptr, lpDst->__size);
-	return hrSuccess;
-}
-
 HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
     const ENTRYID *lpEntryIdSrc, entryId **lppDest)
 {
