@@ -83,14 +83,7 @@ typedef KCHL::object_ptr<IProfSect> ProfSectPtr;
 static const uint32_t MAPI_S_SPECIAL_OK = MAKE_MAPI_S(0x900);
 
 // Client wide variable
-tstring		g_strCommonFilesKopano;
-tstring		g_strUserLocalAppDataKopano;
-tstring		g_strKopanoDirectory;
-
-tstring		g_strManufacturer;
 tstring		g_strProductName;
-tstring		g_strProductNameShort;
-bool		g_isOEM;
 
 // Map of msprovider with Profilename as key
 ECMapProvider	g_mapProviders;
@@ -100,13 +93,7 @@ class CKopanoApp {
 public:
     CKopanoApp() {
         ssl_threading_setup();
-		g_strManufacturer = KC_T("Kopano");
 		g_strProductName = KC_T("Kopano Core");
-		g_isOEM = false;
-
-		// FIXME for offline
-		// - g_strUserLocalAppDataKopano = ~/kopano ?
-		// - g_strKopanoDirectory = /usr/bin/ ?
     }
     ~CKopanoApp() {
         ssl_threading_cleanup();

@@ -35,14 +35,7 @@ class WSTransport;
 extern HRESULT InitializeProvider(IProviderAdmin *, IProfSect *, const sGlobalProfileProps &, ULONG *eid_size, ENTRYID **store_eid);
 
 // Global values
-extern tstring	g_strCommonFilesKopano;
-extern tstring	g_strUserLocalAppDataKopano;
-extern tstring	g_strKopanoDirectory;
 extern ECMapProvider g_mapProviders;
-extern tstring		g_strManufacturer;
 extern tstring		g_strProductName;
-extern tstring		g_strProductNameShort;
-extern bool g_isOEM;
-
 
 #endif // ENTRYPOINT_H
