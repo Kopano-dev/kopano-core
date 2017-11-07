@@ -82,8 +82,8 @@ ECRESULT GetSourceKey(unsigned int ulObjId, SOURCEKEY *lpSourceKey)
  * ns__saveObject
  * importMessageFromStream
  *
- * It does a recursive delete of objects in the hierarchytable, according to the flags given
- * which is any combination of
+ * It does a recursive deletion of objects in the hierarchytable, according to
+ * the flags given, which is any combination of:
  *
  * EC_DELETE_FOLDERS		- Delete subfolders
  * EC_DELETE_MESSAGES		- Delete messages
@@ -373,7 +373,7 @@ ECRESULT DeleteObjectUpdateICS(ECSession *lpSession, unsigned int ulFlags, ECLis
 }
 
 /** 
- * Check if the delete of the object should actually occur in the sync
+ * Check if the deletion of the object should actually occur in the sync
  * scope. Checks the syncedmessages table.
  * 
  * @param lpDatabase Database object
@@ -391,7 +391,7 @@ static ECRESULT CheckICSDeleteScope(ECDatabase *lpDatabase,
 	     iterDeleteItems != lstDeleted.end(); ) {
 		er = CheckWithinLastSyncedMessagesSet(lpDatabase, ulSyncId, iterDeleteItems->sSourceKey);
 		if (er == KCERR_NOT_FOUND) {
-			// ignore delete of message
+			/* Ignore deletion of message. */
 			ec_log_debug("Message not in sync scope, ignoring delete");
 			FreeDeleteItem(&(*iterDeleteItems));
 			iterDeleteItems = lstDeleted.erase(iterDeleteItems);

@@ -372,7 +372,7 @@ HRESULT iCal::HrAddMessage(ICalToMapi *lpIcal2Mapi, ULONG ulPos)
  * The message is moved to wastebasket(deleted items folder)
  * 
  * @param[in]	sbEid		EntryID of the message to be deleted
- * @param[in]	blCensor	boolean to block delete of private messages
+ * @param[in]	blCensor	boolean to block deletion of private messages
  *
  * @return		HRESULT 
  */

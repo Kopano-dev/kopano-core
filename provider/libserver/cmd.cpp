@@ -7477,7 +7477,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 			goto exit;
 		}
 
-		// Start tranaction
+		// Start transaction
 		if (lpInternalAttachmentStorage) {
 			er = lpInternalAttachmentStorage->Begin();
 			if (er != erSuccess) {

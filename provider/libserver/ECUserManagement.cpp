@@ -651,7 +651,10 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 	return er;
 }
 
-// Get parent objects which an object belongs, with on-the-fly delete of the specified parent object
+/**
+ * Get parents for an object, with on-the-fly deletion of the specified parent
+ * object.
+ */
 ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t relation, unsigned int ulChildId,
 														   std::list<localobjectdetails_t> **lppObjects, unsigned int ulFlags) {
 	// Return data
@@ -754,7 +757,10 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 	return er;
 }
 
-// Set data for a single object, with on-the-fly delete of the specified object id
+/**
+ * Set data for a single object, with on-the-fly deletion of the specified
+ * object id.
+ */
 ECRESULT ECUserManagement::SetObjectDetailsAndSync(unsigned int ulObjectId, const objectdetails_t &sDetails, std::list<std::string> *lpRemoveProps) {
 	objectid_t objectid;
 	UserPlugin *lpPlugin = NULL;
@@ -863,7 +869,9 @@ ECRESULT ECUserManagement::CreateOrModifyObject(const objectid_t &sExternId, con
 	return er;
 }
 
-// Add a member to a group, with on-the-fly delete of the specified group id
+/**
+ * Add a member to a group, with on-the-fly deletion of the specified group id.
+ */
 ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t relation, unsigned int ulParentId, unsigned int ulChildId) {
 	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	objectid_t parentid;
@@ -1005,7 +1013,10 @@ ECRESULT ECUserManagement::ResolveObject(objectclass_t objclass, const std::stri
 	return erSuccess;
 }
 
-// Resolve an object name to an object id, with on-the-fly create of the specified object class
+/**
+ * Resolve an object name to an object id, with on-the-fly creation of the
+ * specified object class.
+ */
 ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, const char* szName, unsigned int* lpulObjectId) {
 	objectsignature_t objectsignature;
 	string username;
@@ -1094,7 +1105,10 @@ ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, const ch
 	return GetLocalObjectIdOrCreate(objectsignature, lpulObjectId);
 }
 
-// Get MAPI property data for a group or user/group id, with on-the-fly delete of the specified user/group
+/**
+ * Get MAPI property data for a group or user/group id, with on-the-fly
+ * deletion of the specified user/group.
+ */
 ECRESULT ECUserManagement::GetProps(struct soap *soap, unsigned int ulId, struct propTagArray *lpPropTagArray, struct propValArray *lpPropValArray) {
 	objectdetails_t objectdetails;
 
