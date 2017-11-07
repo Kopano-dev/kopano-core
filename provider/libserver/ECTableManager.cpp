@@ -159,11 +159,12 @@ ECTableManager::~ECTableManager()
 	mapTable.clear();
 }
 
-void ECTableManager::AddTableEntry(std::unique_ptr<TABLE_ENTRY> &&lpEntry,
+void ECTableManager::AddTableEntry(std::unique_ptr<TABLE_ENTRY> &&arg,
     unsigned int *lpulTableId)
 {
 	scoped_rlock lock(hListMutex);
-	mapTable[ulNextTableId] = std::move(lpEntry);
+	mapTable[ulNextTableId] = std::move(arg);
+	auto &lpEntry = mapTable[ulNextTableId];
 	lpEntry->lpTable->AddRef();
 
 	*lpulTableId = ulNextTableId;
