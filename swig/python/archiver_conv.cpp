@@ -37,14 +37,9 @@ PyObject* List_from(const ListType &lst)
     for (i = lst.begin(); i != lst.end(); ++i) {
 		pyobj_ptr item(PyObject_from_Iterator(i));
 		if (PyErr_Occurred())
-			goto exit;
-
+			return nullptr;
 		PyList_Append(list, item);
 	}
-
-exit:
-	if (PyErr_Occurred())
-		list.reset();
 	return list.release();
 }
 
