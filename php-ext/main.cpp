@@ -7495,6 +7495,7 @@ ZEND_FUNCTION(mapi_mapitovcf)
 	std::unique_ptr<mapitovcf> conv;
 	std::string vcf;
 
+	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrra",
 	    &resSession, &resAddrBook, &resMessage, &resOptions) == FAILURE)

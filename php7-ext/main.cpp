@@ -7436,8 +7436,8 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	MAPI_G(hr) = lpIcalToMapi->GetItem(0, 0, lpMessage);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
- exit:
 	RETVAL_TRUE;
+ exit:
 	LOG_END();
     	THROW_ON_ERROR();
 	return;
@@ -7518,8 +7518,8 @@ ZEND_FUNCTION(mapi_vcftomapi)
 	MAPI_G(hr) = conv->get_item(lpMessage);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
- exit:
 	RETVAL_TRUE;
+ exit:
 	LOG_END();
 	THROW_ON_ERROR();
 	return;
@@ -7538,6 +7538,7 @@ ZEND_FUNCTION(mapi_mapitovcf)
 	std::unique_ptr<mapitovcf> conv;
 	std::string vcf;
 
+	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrra",
 	    &resSession, &resAddrBook, &resMessage, &resOptions) == FAILURE)
