@@ -954,7 +954,7 @@ class Item(Properties, Contact, Appointment):
 
         for row in self.table(PR_MESSAGE_ATTACHMENTS).dict_rows(): # XXX should we use GetAttachmentTable?
             num = row[PR_ATTACH_NUM]
-            method = row[PR_ATTACH_METHOD] # XXX default
+            method = row.get(PR_ATTACH_METHOD, ATTACH_BY_VALUE)
             if method == ATTACH_EMBEDDED_MSG:
                 att = self.mapiobj.OpenAttach(num, IID_IAttachment, 0)
                 msg = att.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_MODIFY | MAPI_DEFERRED_ERRORS)

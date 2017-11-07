@@ -314,6 +314,7 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_msgstore_openmultistoretable, NULL)
 	ZEND_FE(mapi_msgstore_advise, NULL)
 	ZEND_FE(mapi_msgstore_unadvise, NULL)
+	ZEND_FE(mapi_msgstore_abortsubmit, nullptr)
 	
 	ZEND_FE(mapi_sink_create, NULL)
 	ZEND_FE(mapi_sink_timedwait, NULL)
@@ -7312,8 +7313,8 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	MAPI_G(hr) = lpIcalToMapi->GetItem(0, 0, lpMessage);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
- exit:
 	RETVAL_TRUE;
+ exit:
 	LOG_END();
     	THROW_ON_ERROR();
 	return;
@@ -7394,8 +7395,8 @@ ZEND_FUNCTION(mapi_vcftomapi)
 	MAPI_G(hr) = conv->get_item(lpMessage);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
- exit:
 	RETVAL_TRUE;
+ exit:
 	LOG_END();
 	THROW_ON_ERROR();
 	return;
@@ -7414,6 +7415,7 @@ ZEND_FUNCTION(mapi_mapitovcf)
 	std::unique_ptr<mapitovcf> conv;
 	std::string vcf;
 
+	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrra",
 	    &resSession, &resAddrBook, &resMessage, &resOptions) == FAILURE)
@@ -7519,4 +7521,23 @@ ZEND_FUNCTION(kc_session_restore)
 	}
 	RETVAL_LONG(MAPI_G(hr));
 	LOG_END();
+}
+
+ZEND_FUNCTION(mapi_msgstore_abortsubmit)
+{
+	PMEASURE_FUNC;
+	LOG_BEGIN();
+	zval *res;
+	IMsgStore *store = nullptr;
+	ENTRYID *eid = nullptr;
+	size_t eid_size = 0;
+
+	RETVAL_FALSE;
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|s", &res, &eid, &eid_size) == FAILURE)
+		return;
+	ZEND_FETCH_RESOURCE_C(store, IMsgStore *, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
+	MAPI_G(hr) = store->AbortSubmit(eid_size, eid, 0);
+	LOG_END();
+	THROW_ON_ERROR();
 }
