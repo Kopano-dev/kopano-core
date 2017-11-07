@@ -28,7 +28,6 @@
 
 namespace KC {
 typedef Locale ECLocale;
-typedef CollationKey ECUSortKey;
 
 // us-ascii strings
 extern _kc_export const char *str_ifind(const char *haystack, const char *needle);
@@ -68,7 +67,6 @@ extern _kc_export ECLocale createLocaleFromName(const char *);
 extern _kc_export ECRESULT LocaleIdToLCID(const char *locale, ULONG *id);
 extern _kc_export ECRESULT LCIDToLocaleId(ULONG id, const char **locale);
 extern _kc_export std::string createSortKeyDataFromUTF8(const char *s, int ncap, const ECLocale &);
-extern _kc_export ECUSortKey createSortKeyFromUTF8(const char *s, int ncap, const ECLocale &);
 extern _kc_export int compareSortKeys(const std::string &, const std::string &);
 extern _kc_export std::string createSortKeyData(const char *s, int ncap, const ECLocale &);
 extern _kc_export std::string createSortKeyData(const wchar_t *s, int ncap, const ECLocale &);
