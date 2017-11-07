@@ -159,11 +159,12 @@ ECTableManager::~ECTableManager()
 	mapTable.clear();
 }
 
-void ECTableManager::AddTableEntry(std::unique_ptr<TABLE_ENTRY> &&lpEntry,
+void ECTableManager::AddTableEntry(std::unique_ptr<TABLE_ENTRY> &&arg,
     unsigned int *lpulTableId)
 {
 	scoped_rlock lock(hListMutex);
-	mapTable[ulNextTableId] = std::move(lpEntry);
+	mapTable[ulNextTableId] = std::move(arg);
+	auto &lpEntry = mapTable[ulNextTableId];
 	lpEntry->lpTable->AddRef();
 
 	*lpulTableId = ulNextTableId;
@@ -550,7 +551,6 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 	if (iterTables == mapTable.cend())
 		return er;
 
-	// Remember the table entry struct
 	auto &lpEntry = iterTables->second;
 
 	// Unsubscribe if needed
@@ -569,6 +569,8 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 		break;
 	}
 
+	// Remember the table entry struct
+	auto lpEntry2 = std::move(lpEntry);
 	// Now, remove the table from the open table list
 	mapTable.erase(ulTableId);
 
@@ -576,8 +578,7 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 	lk.unlock();
 
 	// Free table data and threads running
-	lpEntry->lpTable->Release();
-	lpEntry.reset();
+	lpEntry2->lpTable->Release();
 	return er;
 }
 
