@@ -986,17 +986,17 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 
 	// Expand target folders if recursive
     if(lpSearchCrit->ulFlags & RECURSIVE_SEARCH) {
-		auto iterFolders = lstFolders.cbegin();
-		while (iterFolders != lstFolders.cend()) {
+		for (auto iterFolders = lstFolders.cbegin();
+		     iterFolders != lstFolders.cend(); ++iterFolders) {
 			std::string strQuery = "SELECT hierarchy.id from hierarchy WHERE hierarchy.parent = " + stringify(*iterFolders) + " AND hierarchy.type=3 AND hierarchy.flags & " + stringify(MSGFLAG_DELETED|MSGFLAG_ASSOCIATED) + " = 0 ORDER by hierarchy.id DESC";
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-			if(er == erSuccess) {
-				while ((lpDBRow = lpDBResult.fetch_row()) != nullptr)
-					if(lpDBRow && lpDBRow[0])
-						lstFolders.emplace_back(atoi(lpDBRow[0]));
-			} else
+			if (er != erSuccess) {
 				ec_log_crit("ECSearchFolders::Search() could not expand target folders: 0x%x", er);
-			++iterFolders;
+				continue;
+			}
+			while ((lpDBRow = lpDBResult.fetch_row()) != nullptr)
+				if (lpDBRow && lpDBRow[0])
+					lstFolders.emplace_back(atoi(lpDBRow[0]));
 		}
 	}
 

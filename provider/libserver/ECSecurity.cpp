@@ -64,19 +64,8 @@ ECSecurity::ECSecurity(ECSession *lpSession, ECConfig *lpConfig,
     ECLogger *lpAudit) :
 	m_lpSession(lpSession), m_lpAudit(lpAudit), m_lpConfig(lpConfig)
 {
-	if (m_lpAudit != NULL)
-		m_lpAudit->AddRef();
 	m_bRestrictedAdmin = parseBool(lpConfig->GetSetting("restrict_admin_permissions"));
 	m_bOwnerAutoFullAccess = parseBool(lpConfig->GetSetting("owner_auto_full_access"));
-}
-
-ECSecurity::~ECSecurity()
-{
-	delete m_lpGroups;
-	delete m_lpViewCompanies;
-	delete m_lpAdminCompanies;
-	if (m_lpAudit != NULL)
-		m_lpAudit->Release();
 }
 
 /** 
@@ -236,7 +225,7 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 				}
 
 			// Also check for groups that we are in, and add those permissions
-			if(m_lpGroups || GetGroupsForUser(m_ulUserID, &m_lpGroups) == erSuccess)
+			if (m_lpGroups || GetGroupsForUser(m_ulUserID, &unique_tie(m_lpGroups)) == erSuccess)
 				for (const auto &grp : *m_lpGroups)
 					for (gsoap_size_t i = 0; i < lpRights->__size; ++i)
 						if (lpRights->__ptr[i].ulType == ACCESS_TYPE_GRANT &&
@@ -788,7 +777,7 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags,
 	 * want all details while others will only want the IDs.
 	 */
 	if (!m_lpViewCompanies) {
-		er = GetViewableCompanies(0, &m_lpViewCompanies);
+		er = GetViewableCompanies(0, &unique_tie(m_lpViewCompanies));
 		if (er != erSuccess)
 			return er;
 	}
@@ -844,7 +833,7 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
 		ulCompanyId = ulUserObjectId;
 
 	if (!m_lpViewCompanies) {
-		er = GetViewableCompanies(0, &m_lpViewCompanies);
+		er = GetViewableCompanies(0, &unique_tie(m_lpViewCompanies));
 		if (er != erSuccess)
 			return er;
 	}
@@ -1098,7 +1087,7 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 	}
 
 	if (!m_lpAdminCompanies) {
-		er = GetAdminCompanies(USERMANAGEMENT_IDS_ONLY, &m_lpAdminCompanies);
+		er = GetAdminCompanies(USERMANAGEMENT_IDS_ONLY, &unique_tie(m_lpAdminCompanies));
 		if (er != erSuccess)
 			return er;
 	}

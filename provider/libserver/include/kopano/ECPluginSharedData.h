@@ -19,6 +19,7 @@
 #define ECPLUGINSHAREDDATA_H
 
 #include <kopano/zcdefs.h>
+#include <atomic>
 #include <mutex>
 #include <kopano/ECConfig.h>
 
@@ -53,7 +54,7 @@ private:
 	/**
 	 * Reference count, used to destroy object when no users are left.
 	 */
-	unsigned int m_ulRefCount = 0;
+	std::atomic<unsigned int> m_ulRefCount{0};
 
 	/**
 	 * @param[in]	lpParent

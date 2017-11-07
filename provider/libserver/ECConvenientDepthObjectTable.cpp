@@ -98,8 +98,6 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	unsigned int ulDepth = 0;
 	
 	std::list<FOLDERINFO> lstFolders;	// The list of folders
-	std::list<FOLDERINFO>::const_iterator iterFolders;
-
 	std::map<unsigned int, SortKey> mapSortKey;	// map a known folder to its sortkey. This is used to derive a subfolder's sort key
 	std::list<unsigned int> lstObjIds;
 
@@ -118,8 +116,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	lstFolders.emplace_back(sRoot);
 	mapSortKey[ulFolderId] = sRoot.sortKey;
 
-	iterFolders = lstFolders.cbegin();
-	while (iterFolders != lstFolders.cend()) {
+	for (auto iterFolders = lstFolders.cbegin(); iterFolders != lstFolders.cend(); ) {
 		std::string strQuery = "SELECT hierarchy.id, hierarchy.parent, hierarchy.owner, hierarchy.flags, hierarchy.type, properties.val_string FROM hierarchy LEFT JOIN properties ON properties.hierarchyid = hierarchy.id AND properties.tag = 12289  AND properties.type = 30 WHERE hierarchy.type = " +  stringify(MAPI_FOLDER) + " AND hierarchy.flags & "+stringify(MSGFLAG_DELETED)+" = " + stringify(ulFlags&MSGFLAG_DELETED);
 		strQuery += " AND hierarchy.parent IN(";
 		
@@ -178,13 +175,9 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	lstFolders.sort();
 	
 	// ... and put the data into the row system
-
-	for (iterFolders = lstFolders.begin(); iterFolders != lstFolders.end(); ++iterFolders) {
-		if(iterFolders->ulFolderId == m_ulFolderId)
-			continue;
-		lstObjIds.emplace_back(iterFolders->ulFolderId);
-    }
-    
+	for (const auto &f : lstFolders)
+		if (f.ulFolderId != m_ulFolderId)
+			lstObjIds.emplace_back(f.ulFolderId);
     LoadRows(&lstObjIds, 0);
 	return erSuccess;
 }

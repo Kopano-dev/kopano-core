@@ -48,18 +48,14 @@ namespace KC {
 
 ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
     bool bHostedKopano, bool bDistributedKopano) :
-	m_lpConfig(lpConfig), m_lpAudit(lpAudit),
-	m_bHostedKopano(bHostedKopano),
-	m_bDistributedKopano(bDistributedKopano)
+	m_lpConfig(lpConfig), m_bHostedKopano(bHostedKopano),
+	m_bDistributedKopano(bDistributedKopano), m_lpAudit(lpAudit)
 {
-	if (m_lpAudit)
-		m_lpAudit->AddRef();
-
-	m_lpDatabaseFactory = new ECDatabaseFactory(lpConfig);
-	m_lpPluginFactory = new ECPluginFactory(lpConfig, g_lpStatsCollector, bHostedKopano, bDistributedKopano);
-	m_lpECCacheManager = new ECCacheManager(lpConfig, m_lpDatabaseFactory);
-	m_lpSearchFolders = new ECSearchFolders(this, m_lpDatabaseFactory);
-	m_lpTPropsPurge = new ECTPropsPurge(lpConfig, m_lpDatabaseFactory);
+	m_lpPluginFactory.reset(new ECPluginFactory(lpConfig, g_lpStatsCollector, bHostedKopano, bDistributedKopano));
+	m_lpDatabaseFactory.reset(new ECDatabaseFactory(lpConfig));
+	m_lpSearchFolders.reset(new ECSearchFolders(this, m_lpDatabaseFactory.get()));
+	m_lpECCacheManager.reset(new ECCacheManager(lpConfig, m_lpDatabaseFactory.get()));
+	m_lpTPropsPurge.reset(new ECTPropsPurge(lpConfig, m_lpDatabaseFactory.get()));
 	m_ptrLockManager = ECLockManager::Create();
 	
 	// init SSL randomness for session IDs
@@ -72,7 +68,7 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 	if (err != 0)
 		ec_log_crit("Unable to spawn thread for session cleaner! Sessions will live forever!: %s", strerror(err));
 
-	m_lpNotificationManager = new ECNotificationManager();
+	m_lpNotificationManager.reset(new ECNotificationManager());
 }
 
 ECSessionManager::~ECSessionManager()
@@ -81,9 +77,9 @@ ECSessionManager::~ECSessionManager()
 	bExit = TRUE;
 	m_hExitSignal.notify_one();
 	l_exit.unlock();
-	delete m_lpTPropsPurge;
-	delete m_lpDatabase;
-	delete m_lpDatabaseFactory;
+	m_lpTPropsPurge.reset();
+	m_lpDatabase.reset();
+	m_lpDatabaseFactory.reset();
 		
 	int err = pthread_join(m_hSessionCleanerThread, NULL);
 	if (err != 0)
@@ -91,22 +87,10 @@ ECSessionManager::~ECSessionManager()
 
 	/* Clean up all sessions */
 	std::lock_guard<KC::shared_mutex> l_cache(m_hCacheRWLock);
-	auto iSession = m_mapSessions.begin();
-	while (iSession != m_mapSessions.cend()) {
-		delete iSession->second;
-		iSession = m_mapSessions.erase(iSession);
-	}
-	
-	delete m_lpNotificationManager;
-//#ifdef DEBUG
+	for (auto s = m_mapSessions.begin(); s != m_mapSessions.end();
+	     s = m_mapSessions.erase(s))
+		delete s->second;
 	// Clearing the cache takes too long while shutting down
-	delete m_lpECCacheManager;
-//#endif
-	delete m_lpSearchFolders;
-	delete m_lpPluginFactory;
-	delete m_lpServerGuid;
-	if (m_lpAudit != NULL)
-		m_lpAudit->Release();
 }
 
 ECRESULT ECSessionManager::LoadSettings(){
@@ -115,7 +99,7 @@ ECRESULT ECSessionManager::LoadSettings(){
 
 	if (m_lpServerGuid != nullptr)
 		return KCERR_BAD_VALUE;
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory.get(), &lpDatabase);
 	if(er != erSuccess)
 		return er;
 
@@ -129,9 +113,8 @@ ECRESULT ECSessionManager::LoadSettings(){
 	    lpDBLenths == nullptr || lpDBLenths[0] != sizeof(GUID))
 		return KCERR_NOT_FOUND;
 
-	m_lpServerGuid = new GUID;
-
-	memcpy(m_lpServerGuid, lpDBRow[0], sizeof(GUID));
+	m_lpServerGuid.reset(new GUID);
+	memcpy(m_lpServerGuid.get(), lpDBRow[0], sizeof(GUID));
 	strQuery = "SELECT `value` FROM settings WHERE `name` = 'source_key_auto_increment'";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
@@ -261,20 +244,14 @@ BTSession* ECSessionManager::GetSession(ECSESSIONID sessionID, bool fLockSession
 // Clean up all current sessions
 ECRESULT ECSessionManager::RemoveAllSessions()
 {
-	BTSession		*lpSession = NULL;
 	std::list<BTSession *> lstSessions;
 	
 	// Lock the session map since we're going to remove all the sessions.
 	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	ec_log_info("Shutdown all current sessions");
-
-	auto iIterSession = m_mapSessions.begin();
-	while (iIterSession != m_mapSessions.cend()) {
-		lpSession = iIterSession->second;
-		iIterSession = m_mapSessions.erase(iIterSession);
-		lstSessions.emplace_back(lpSession);
-	}
-
+	for (auto s = m_mapSessions.cbegin(); s != m_mapSessions.cend();
+	     s = m_mapSessions.erase(s))
+		lstSessions.emplace_back(s->second);
 	l_cache.unlock();
 	// Do the actual session deletes, while the session map is not locked (!)
 	for (auto sesp : lstSessions)
@@ -291,8 +268,8 @@ ECRESULT ECSessionManager::CancelAllSessions(ECSESSIONID sessionIDException)
 	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	ec_log_info("Shutdown all current sessions");
 
-	auto iIterSession = m_mapSessions.begin();
-	while (iIterSession != m_mapSessions.cend()) {
+	for (auto iIterSession = m_mapSessions.begin();
+	     iIterSession != m_mapSessions.cend(); ) {
 		if (iIterSession->first == sessionIDException) {
 			++iIterSession;
 			continue;
@@ -408,7 +385,8 @@ ECRESULT ECSessionManager::CreateAuthSession(struct soap *soap, unsigned int ulC
 
 	CreateSessionID(ulCapabilities, &newSessionID);
 
-	auto lpAuthSession = new(std::nothrow) ECAuthSession(GetSourceAddr(soap), newSessionID, m_lpDatabaseFactory, this, ulCapabilities);
+	auto lpAuthSession = new(std::nothrow) ECAuthSession(GetSourceAddr(soap),
+		newSessionID, m_lpDatabaseFactory.get(), this, ulCapabilities);
 	if (lpAuthSession == NULL)
 		return KCERR_NOT_ENOUGH_MEMORY;
 	if (bLockSession)
@@ -434,7 +412,6 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
     bool fAllowUidAuth)
 {
 	std::unique_ptr<ECAuthSession> lpAuthSession;
-	ECSession		*lpSession	= NULL;
 	const char		*method = "error";
 	std::string		from;
 	CONNECTION_TYPE ulType = SOAP_CONNECTION_TYPE(soap);
@@ -450,7 +427,7 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 
 	auto er = this->CreateAuthSession(soap, ulCapabilities, lpSessionID, &unique_tie(lpAuthSession), false, false);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	if (szClientApp == nullptr)
 		szClientApp = "<unknown>";
 
@@ -479,14 +456,13 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 	ZLOG_AUDIT(m_lpAudit, "authenticate failed user='%s' from='%s' program='%s'",
 		szName, from.c_str(), szClientApp);
 
-	er = KCERR_LOGON_FAILED;			
 	g_lpStatsCollector->Increment(SCN_LOGIN_DENIED);
-	goto exit;
+	return KCERR_LOGON_FAILED;
 
 authenticated:
 	er = RegisterSession(lpAuthSession.get(), sessionGroupID,
 	     szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc,
-	     lpSessionID, &lpSession, fLockSession);
+	     lpSessionID, lppSession, fLockSession);
 	if (er != erSuccess) {
 		if (er == KCERR_NO_ACCESS && szImpersonateUser != NULL && *szImpersonateUser != '\0') {
 			ec_log_err("Failed attempt to impersonate user \"%s\" by user \"%s\": %s (0x%x)", szImpersonateUser, szName, GetMAPIErrorMessage(er), er);
@@ -497,7 +473,7 @@ authenticated:
 			ZLOG_AUDIT(m_lpAudit, "authenticate ok, session failed: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\"",
 				from.c_str(), szImpersonateUser, szName, method, szClientApp);
 		}
-		goto exit;
+		return er;
 	}
 	if (!szImpersonateUser || *szImpersonateUser == '\0')
 		ZLOG_AUDIT(m_lpAudit, "authenticate ok: from=\"%s\" user=\"%s\" method=\"%s\" program=\"%s\" sid=0x%llx",
@@ -505,10 +481,7 @@ authenticated:
 	else
 		ZLOG_AUDIT(m_lpAudit, "authenticate ok, impersonate ok: from=\"%s\" user=\"%s\" impersonator=\"%s\" method=\"%s\" program=\"%s\" sid=0x%llx",
 			from.c_str(), szImpersonateUser, szName, method, szClientApp, static_cast<unsigned long long>(*lpSessionID));
-exit:
-	*lppSession = lpSession;
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession,
@@ -544,19 +517,16 @@ ECRESULT ECSessionManager::CreateSessionInternal(ECSession **lppSession, unsigne
 
 	CreateSessionID(KOPANO_CAP_LARGE_SESSIONID, &newSID);
 
-	auto lpSession = new(std::nothrow) ECSession("<internal>", newSID, 0,
-	                 m_lpDatabaseFactory, this, 0, ECSession::METHOD_NONE, 0,
-	                "internal", "kopano-server", "", "");
+	std::unique_ptr<ECSession> lpSession(new(std::nothrow) ECSession("<internal>",
+		newSID, 0, m_lpDatabaseFactory.get(), this, 0,
+		ECSession::METHOD_NONE, 0, "internal", "kopano-server", "", ""));
 	if (lpSession == NULL)
 		return KCERR_LOGON_FAILED;
 	auto er = lpSession->GetSecurity()->SetUserContext(ulUserId, EC_NO_IMPERSONATOR);
-	if (er != erSuccess) {
-		delete lpSession;
+	if (er != erSuccess)
 		return er;
-	}
 	g_lpStatsCollector->Increment(SCN_SESSIONS_INTERNAL_CREATED);
-
-	*lppSession = lpSession;
+	*lppSession = lpSession.release();
 	return erSuccess;
 }
 
@@ -625,13 +595,11 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 
 	// Send notification to subscribed sessions
 	ulock_normal l_sub(m_mutexObjectSubscriptions);
-	auto iterObjectSubscription = m_mapObjectSubscriptions.lower_bound(ulStore);
-	while (iterObjectSubscription != m_mapObjectSubscriptions.cend() &&
-	       iterObjectSubscription->first == ulStore) {
+	for (auto sub = m_mapObjectSubscriptions.lower_bound(ulStore);
+	     sub != m_mapObjectSubscriptions.cend() && sub->first == ulStore;
+	     ++sub)
 		// Send a notification only once to a session group, even if it has subscribed multiple times
-		setGroups.emplace(iterObjectSubscription->second);
-		++iterObjectSubscription;
-	}
+		setGroups.emplace(sub->second);
 	l_sub.unlock();
 
 	// Send each subscribed session group one notification
@@ -687,7 +655,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		return 0;
 
 	ECDatabase *db = NULL;
-	if (GetThreadLocalDatabase(lpSessionManager->m_lpDatabaseFactory, &db) != erSuccess)
+	if (GetThreadLocalDatabase(lpSessionManager->m_lpDatabaseFactory.get(), &db) != erSuccess)
 		ec_log_err("GTLD failed in SessionCleaner");
 
 	while(true){
@@ -695,8 +663,8 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		auto lCurTime = GetProcessTime();
 		
 		// Find a session that has timed out
-		auto iIterator = lpSessionManager->m_mapSessions.begin();
-		while (iIterator != lpSessionManager->m_mapSessions.cend()) {
+		for (auto iIterator = lpSessionManager->m_mapSessions.begin();
+		     iIterator != lpSessionManager->m_mapSessions.cend(); ) {
 			bool del = iIterator->second->GetSessionTime() < lCurTime &&
 			           !lpSessionManager->IsSessionPersistent(iIterator->first);
 			if (!del) {
@@ -781,13 +749,9 @@ ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
 		
     // Find out which sessions our interested in this event by looking at our subscriptions
 	ulock_normal l_sub(m_mutexTableSubscriptions);
-    
-	auto iterSubscriptions = m_mapTableSubscriptions.find(sSubscription);
-	while (iterSubscriptions != m_mapTableSubscriptions.cend() &&
-	       iterSubscriptions->first == sSubscription) {
-		setSessions.emplace(iterSubscriptions->second);
-        ++iterSubscriptions;
-    }
+	for (auto sub = m_mapTableSubscriptions.find(sSubscription);
+	     sub != m_mapTableSubscriptions.cend() && sub->first == sSubscription; ++sub)
+		setSessions.emplace(sub->second);
 	l_sub.unlock();
 
     // We now have a set of sessions that are interested in the notification. This list is normally quite small since not that many
@@ -1168,7 +1132,7 @@ ECRESULT ECSessionManager::GetLicensedUsers(unsigned int ulServiceType, unsigned
 ECRESULT ECSessionManager::GetServerGUID(GUID* lpServerGuid){
 	if (lpServerGuid == NULL)
 		return KCERR_INVALID_PARAMETER;
-	memcpy(lpServerGuid, m_lpServerGuid, sizeof(GUID));
+	memcpy(lpServerGuid, m_lpServerGuid.get(), sizeof(GUID));
 	return erSuccess;
 }
 
@@ -1268,7 +1232,7 @@ ECRESULT ECSessionManager::CreateDatabaseConnection()
     
 	if (m_lpDatabase != nullptr)
 		return erSuccess;
-	auto er = m_lpDatabaseFactory->CreateDatabaseObject(&m_lpDatabase, strError);
+	auto er = m_lpDatabaseFactory->CreateDatabaseObject(&unique_tie(m_lpDatabase), strError);
 	if (er != erSuccess)
 		ec_log_crit("Unable to open connection to database: %s", strError.c_str());
 	return er;
@@ -1353,7 +1317,7 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 
 	if (lpLcid == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory.get(), &lpDatabase);
 	if(er != erSuccess)
 		return er;
 
