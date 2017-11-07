@@ -780,8 +780,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 			return hr;
 		MungeForwardBody(lpFwdMsg, lpOrigMessage);
 	}
-
-	*lppMessage = lpFwdMsg;
+	*lppMessage = lpFwdMsg.release();
  exitpm:
 	return hr;
 }
