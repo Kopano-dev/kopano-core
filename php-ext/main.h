@@ -133,6 +133,7 @@ ZEND_FUNCTION(mapi_msgstore_entryidfromsourcekey);
 ZEND_FUNCTION(mapi_msgstore_openmultistoretable);
 ZEND_FUNCTION(mapi_msgstore_advise);
 ZEND_FUNCTION(mapi_msgstore_unadvise);
+ZEND_FUNCTION(mapi_msgstore_abortsubmit);
 
 ZEND_FUNCTION(mapi_sink_create);
 ZEND_FUNCTION(mapi_sink_timedwait);
