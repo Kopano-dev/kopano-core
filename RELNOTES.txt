@@ -1,5 +1,15 @@
-Release notes for 8.4.2
-=======================
+Release notes for 8.4.3 (2017-11-07)
+====================================
+Enhancements:
+* Dagent: enable automated backtraces when invoked with -f [KC-879]
+
+Fixes:
+* Php5-ext: fix positive retval setting in error case [KC-875]
+* Dagent: redirect rule do not work anymore in 8.4.2 [KC-871]
+* Dagent: unspecific segfault in 8.4.1 [KC-868]
+
+Release notes for 8.4.2 (2017-11-02)
+====================================
 * server: revert NO_UNSIGNED_SUBTRACTIONS [KC-841,KC-869]
 
 
