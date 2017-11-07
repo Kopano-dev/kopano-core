@@ -33,6 +33,9 @@
 #endif
 
 #include <kopano/platform.h>
+#include "pymem.hpp"
+
+using KCHL::pyobj_ptr;
 
 // Get Py_ssize_t for older versions of python
 #if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
@@ -198,11 +201,11 @@ template<typename ObjType, typename MemType, MemType(ObjType::*Member)>
 void conv_out_default(ObjType *lpObj, PyObject *elem, const char *lpszMember,
     void *lpBase, ULONG ulFlags)
 {
-	PyObject *value = PyObject_GetAttrString(elem, const_cast<char*>(lpszMember));	// Older versions of python might expect a non-const char pointer.
+	// Older versions of python might expect a non-const char pointer.
+	pyobj_ptr value(PyObject_GetAttrString(elem, const_cast<char *>(lpszMember)));
 	if (PyErr_Occurred())
 		return;
 	priv::conv_out(value, lpBase, ulFlags, &(lpObj->*Member));
-	Py_DECREF(value);
 }
 
 /**
