@@ -1,12 +1,11 @@
 Release notes for 8.4.3 (2017-11-07)
 ====================================
 Enhancements:
-* Dagent: enable automated backtraces when invoked with -f [KC-879]
-
+* dagent: enable automated backtraces when invoked with -f [KC-879]
 Fixes:
-* Php5-ext: fix positive retval setting in error case [KC-875]
-* Dagent: redirect rule do not work anymore in 8.4.2 [KC-871]
-* Dagent: unspecific segfault in 8.4.1 [KC-868]
+* php5-ext: fix positive retval setting in error case [KC-875]
+* dagent: redirect rule led to crash [KC-868,KC-871]
+
 
 Release notes for 8.4.2 (2017-11-02)
 ====================================
