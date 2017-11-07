@@ -65,7 +65,7 @@ Enable specified feature for user specified with --user.
 .PP
 \fB\-\-add-permission\fR \fINAME\fR
 .RS 4
-Add specified permissions to store of user specified with --user. Can be used with --folder to add permissions for a specific folder. The syntax to be used for permissions is 'member:right1,right..', where 'member' is a group or user name, and rights are chosen from the following: read_items, create_items, create_subfolders, edit_own, edit_all, delete_own, delete_all, folder_owner, folder_contact and folder_visible. So for example, to add certain permissions to the inbox of a user 'user2', to the inbox of user 'user1': --user user1 --folder Inbox --add-permission user2:read_items,create_subfolders. The colon is optional.
+Add specified permissions to store of user specified with --user. Can be used with --folder to add permissions for a specific folder. The syntax to be used for permissions is 'member:right1,right..', where 'member' is a group or user name, and rights are chosen from the following: read_items, create_items, create_subfolders, edit_own, edit_all, delete_own, delete_all, folder_owner, folder_contact and folder_visible. So for example, to add certain permissions to the inbox of a user 'user2', to the inbox of user 'user1': --user user1 --folder Inbox --add-permission user2:read_items,folder_visible. The colon is optional.
 .RE
 .PP
 \fB\-\-add-sendas\fR \fINAME\fR
