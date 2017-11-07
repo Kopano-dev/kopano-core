@@ -3213,7 +3213,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 		   (lpecSession->GetSecurity()->GetAdminLevel() == 0) &&
 		   (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("shared_reminders"))))
 		{
-			strQuery = "SELECT val_string FROM properties where hierarchyid=" + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(PR_CONTAINER_CLASS))+ ";";
+			strQuery = "SELECT val_string FROM properties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(PR_CONTAINER_CLASS)) + " LIMIT 1";
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 			if(er != erSuccess)
 				goto exit;
