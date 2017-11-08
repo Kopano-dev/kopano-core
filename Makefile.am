@@ -747,7 +747,7 @@ mapi_la_SOURCES += \
 	php7-ext/ECImportContentsChangesProxy.h \
 	php7-ext/ECImportHierarchyChangesProxy.cpp \
 	php7-ext/ECImportHierarchyChangesProxy.h \
-	php7-ext/ECRulesTableProxy.cpp php-ext/ECRulesTableProxy.h \
+	php-ext/ECRulesTableProxy.cpp php-ext/ECRulesTableProxy.h \
 	php-ext/globals.h php7-ext/main.cpp php-ext/main.h \
 	php-ext/phpconfig.h \
 	php7-ext/typeconversion.cpp php7-ext/typeconversion.h \
