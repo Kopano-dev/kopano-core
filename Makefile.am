@@ -151,7 +151,7 @@ kopano_cfgchecker_LDADD = libkcutil.la libkcmapi.la libmapi.la ${PROG_LIBS}
 libkcpyplug_la_CPPFLAGS = \
 	${AM_CPPFLAGS} -Ispooler ${PYTHON_CFLAGS} -DSWIG_TYPE_TABLE=MAPI
 libkcpyplug_la_SOURCES = \
-	spooler/PyMapiPlugin.cpp spooler/PyMapiPlugin.h \
+	common/pymem.hpp spooler/PyMapiPlugin.cpp spooler/PyMapiPlugin.h \
 	spooler/PythonSWIGRuntime.h
 libkcpyplug_la_LIBADD = \
 	libkcutil.la libmapi.la ${PYTHON_LIBS}
