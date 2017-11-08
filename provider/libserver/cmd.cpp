@@ -2119,21 +2119,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				// Cache the written value
 				sObjectTableKey key(ulObjId,0);
 				g_lpSessionManager->GetCacheManager()->SetCell(&key, lpPropValArray->__ptr[i].ulPropTag, &lpPropValArray->__ptr[i]);
-				
-				if (0) {
-					// FIXME do we need this code? Currently we get always a deferredupdate!
-					// Please also update streamutil.cpp:DeserializeProps
-					er = WriteSingleProp(lpDatabase, ulObjId, ulParent, &lpPropValArray->__ptr[i], true, lpDatabase->GetMaxAllowedPacket(), strInsertTProp);
-					if (er == KCERR_TOO_BIG) {
-						er = lpDatabase->DoInsert(strInsertTProp);
-						if (er == erSuccess) {
-							strInsertTProp.clear();
-							er = WriteSingleProp(lpDatabase, ulObjId, ulParent, &lpPropValArray->__ptr[i], true, lpDatabase->GetMaxAllowedPacket(), strInsertTProp);
-						}
-					}
-					if(er != erSuccess)
-						return er;
-				}
 			}
 		}
 
@@ -2146,24 +2131,11 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			return er;
 	}
 	
-	if(ulParentType == MAPI_FOLDER) {
-		if(0) {
-			/* Modification, just directly write the tproperties
-			 * The idea behind this is that we'd need some serious random-access reads to properties later when flushing
-			 * tproperties, and we have the properties in memory now anyway. Also, modifications usually are just a few properties, causing
-			 * only minor random I/O on tproperties, and a tproperties flush reads all the properties, not just the modified ones.
-			 */
-			if(!strInsertTProp.empty()) {
-				er = lpDatabase->DoInsert(strInsertTProp);
-				if(er != erSuccess)
-					return er;
-			}
-		} else if (ulParent != CACHE_NO_PARENT) {
-			// Instead of writing directly to tproperties, save a delayed write request.
-			er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, ulParent, 0, ulObjId);
-			if (er != erSuccess)
-				return er;
-		}
+	if(ulParentType == MAPI_FOLDER && ulParent != CACHE_NO_PARENT) {
+		// Instead of writing directly to tproperties, save a delayed write request.
+		er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, ulParent, 0, ulObjId);
+		if (er != erSuccess)
+			return er;
 	}
 		
 	// Insert the properties
