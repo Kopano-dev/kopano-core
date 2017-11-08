@@ -381,14 +381,12 @@ HRESULT ECMemStream::Revert()
 /* we don't support locking ! */
 HRESULT ECMemStream::LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType)
 {
-	/* return STG_E_INVALIDFUNCTION; */
-	return hrSuccess; /* hack for loadsim */
+	return STG_E_INVALIDFUNCTION;
 }
 
 HRESULT ECMemStream::UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType)
 {
-	return hrSuccess; //hack for loadsim
-	//return STG_E_INVALIDFUNCTION;
+	return STG_E_INVALIDFUNCTION;
 }
 
 HRESULT ECMemStream::Stat(STATSTG *pstatstg, DWORD grfStatFlag)

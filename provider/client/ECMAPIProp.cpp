@@ -107,9 +107,6 @@ ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
 	// ICS system
 	this->HrAddPropHandlers(PR_SOURCE_KEY,		DefaultMAPIGetProp	,SetPropHandler,		(void*) this, FALSE, FALSE);
 
-	// Used for loadsim
-	this->HrAddPropHandlers(0x664B0014/*PR_REPLICA_VERSION*/,		DefaultMAPIGetProp	,DefaultSetPropIgnore,		(void*) this, FALSE, FALSE);
-
 	// Track 'root object'. This is the object that was opened via OpenEntry or OpenMsgStore, so normally
 	// lpRoot == this, but in the case of attachments and submessages it points to the top-level message
 	if(lpRoot)
@@ -168,12 +165,6 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 		hr = lpProp->HrGetRealProp(PR_SOURCE_KEY, ulFlags, lpBase, lpsPropValue);
 		if(hr != hrSuccess)
 			return hr;
-		break;
-		
-	case PROP_ID(0x664B0014):
-		// Used for loadsim
-		lpsPropValue->ulPropTag = 0x664B0014;//PR_REPLICA_VERSION;
-		lpsPropValue->Value.li.QuadPart = 1688871835664386LL;
 		break;
 		
 	case PROP_ID(PR_MAPPING_SIGNATURE):
