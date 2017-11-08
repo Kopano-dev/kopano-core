@@ -470,7 +470,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	list<unsigned int> lstChanges;
 	std::unique_ptr<ECGetContentChangesHelper> lpHelper;
 	
-	ec_log(EC_LOGLEVEL_ICS, "GetChanges(): sourcekey=%s, syncid=%d, changetype=%d, flags=%d", bin2hex(sFolderSourceKey).c_str(), ulSyncId, ulChangeType, ulFlags);
+	ec_log(EC_LOGLEVEL_ICS, "K-1200: sourcekey=%s, syncid=%d, changetype=%d, flags=%d", bin2hex(sFolderSourceKey).c_str(), ulSyncId, ulChangeType, ulFlags);
 	auto gcache = g_lpSessionManager->GetCacheManager();
 
     // Get database object
@@ -511,16 +511,21 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             }
 
             lpDBRow = lpDBResult.fetch_row();
+			if (lpDBRow == nullptr) {
+				ec_log_err("K-1201: No row retrievable"); /* despite get_num_rows>0! */
+				er = KCERR_DATABASE_ERROR;
+				goto exit;
+			}
             lpDBLen = lpDBResult.fetch_row_lengths();
-            if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL){
+			if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr || lpDBRow[2] == nullptr) {
                 er = KCERR_DATABASE_ERROR; // this should never happen
-			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
+				ec_log_err("K-1202: NULL values were returned from SQL");
                 goto exit;
             }
 
             if((dummy = atoui(lpDBRow[2])) != ulChangeType){
 			er = KCERR_COLLISION;
-			ec_log_crit("GetChanges(): unexpected change type %u/%u", dummy, ulChangeType);
+				ec_log_err("K-1203: unexpected change type %u/%u", dummy, ulChangeType);
 			goto exit;
             }
 
@@ -536,17 +541,20 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 			lpDBRow = lpDBResult.fetch_row();
 			lpDBLen = lpDBResult.fetch_row_lengths();
-			if( lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
+			if (lpDBRow == nullptr) {
 				std::string username;
 
 				er = lpSession->GetSecurity()->GetUsername(&username);
 				er = KCERR_DATABASE_ERROR;
-				ec_log_warn(
-					"%s:%d The sync ID %u does not exist. "
-					"(unexpected null pointer) "
-					"session user name: %s.",
-					__FUNCTION__, __LINE__, ulSyncId,
-					username.c_str());
+				ec_log_warn("K-1204: The sync ID %u does not exist. Session user name: %s.",
+					ulSyncId, username.c_str());
+				goto exit;
+			} else if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr) {
+				std::string username;
+				er = lpSession->GetSecurity()->GetUsername(&username);
+				ec_log_warn("K-1205: Received NULL values from SQL for sync id %u. Session username: %s.",
+					ulSyncId, username.c_str());
+				er = KCERR_DATABASE_ERROR;
 				goto exit;
 			}
 		}
@@ -606,7 +614,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 			if (lpDBRow[icsSourceKey] == NULL || lpDBRow[icsParentSourceKey] == NULL) {
 				er = KCERR_DATABASE_ERROR;
-				ec_log_crit("ECGetContentChangesHelper::ProcessRow(): row null");
+				ec_log_err("K-1206: Received NULL values from SQL");
 				goto exit;
 			}
 			db_rows.push_back(lpDBRow);
@@ -680,9 +688,9 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 					goto exit;
 
 				while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-					if( lpDBRow == NULL || lpDBRow[0] == NULL){
+					if (lpDBRow[0] == nullptr) {
 						er = KCERR_DATABASE_ERROR; // this should never happen
-						ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
+						ec_log_err("K-1207: Received NULL values from SQL");
 						goto exit;
 					}
 					lstChanges.push_back(atoui(lpDBRow[0]));
@@ -700,9 +708,9 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                     goto exit;
 
                 while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-                    if( lpDBRow == NULL || lpDBRow[0] == NULL){
+					if (lpDBRow[0] == nullptr) {
                         er = KCERR_DATABASE_ERROR; // this should never happen
-			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
+						ec_log_err("K-1208: Received NULL values from SQL");
                         goto exit;
                     }
 
@@ -735,7 +743,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			lpDBRow = lpDBResult.fetch_row();
 			if( lpDBRow == NULL){
 				er = KCERR_DATABASE_ERROR; // this should never happen
-				ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
+				ec_log_err("K-1209: The \"changes\" table seems to be empty");
 				goto exit;
 			}
 			ulMaxChange = (lpDBRow[0] == NULL ? 0 : atoui(lpDBRow[0]));
@@ -793,9 +801,13 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 					goto exit;
 				lpDBRow = lpDBResult.fetch_row();
 				lpDBLen = lpDBResult.fetch_row_lengths();
-				if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL) {
+				if (lpDBRow == nullptr) {
+					ec_log_err("K-1210: changes.id %d not found", chg_id);
 					er = KCERR_DATABASE_ERROR;
-					ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
+					goto exit;
+				} else if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr || lpDBRow[2] == nullptr || lpDBRow[3] == nullptr) {
+					er = KCERR_DATABASE_ERROR;
+					ec_log_err("K-1211: Received NULL values from SQL");
 					goto exit;
 				}
 
@@ -845,15 +857,15 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 			while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 				lpDBLen = lpDBResult.fetch_row_lengths();
-                if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL) {
+				if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr || lpDBRow[2] == nullptr || lpDBRow[3] == nullptr) {
                     er = KCERR_DATABASE_ERROR; // this should never happen
-			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
+					ec_log_err("K-1212: Received NULL values from SQL");
                     goto exit;
                 }
 
 				if (lpDBLen[1] < CbNewABEID("")) {
                     er = KCERR_DATABASE_ERROR; // this should never happen
-					ec_log_crit("%s:%d invalid size for ab entryid %lu", __FUNCTION__, __LINE__, static_cast<unsigned long>(lpDBLen[1]));
+					ec_log_err("K-1213: invalid size for ab entryid %lu", static_cast<unsigned long>(lpDBLen[1]));
                     goto exit;
 				}
 
@@ -950,7 +962,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                     
                 if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
                     er = KCERR_DATABASE_ERROR;
-			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
+					ec_log_err("K-1214: Received NULL values from SQL");
                     goto exit;
                 }
                 

@@ -1615,7 +1615,7 @@ done:
 			if (ulId == 0) {
 				ulId = ulIdTmp;
 			} else if (ulId != ulIdTmp) {
-				ec_log_crit("ECUserManagement::SearchObjectAndSync() unexpected id %u/%u", ulId, ulIdTmp);
+				ec_log_err("K-1215: unexpected id %u/%u", ulId, ulIdTmp);
 				return KCERR_COLLISION;
 			}
 		} else {
