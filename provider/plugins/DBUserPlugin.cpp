@@ -264,7 +264,7 @@ void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &qu
 		"SELECT o.externid "
 		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
 		"WHERE o.externid='" + m_lpDatabase->Escape(objectid.id) + "' "
-			"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", objectid.objclass);
+		"AND " + OBJECTCLASS_COMPARE_SQL("o.objectclass", objectid.objclass) + " LIMIT 2";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
