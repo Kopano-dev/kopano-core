@@ -9064,14 +9064,7 @@ SOAP_ENTRY_START(abResolveNames, lpsABResolveNames->er, struct propTagArray* lpa
 		if(lpDisplayName == NULL || (PROP_TYPE(lpDisplayName->ulPropTag) != PT_STRING8 && PROP_TYPE(lpDisplayName->ulPropTag) != PT_UNICODE))
 			continue; // No display name
 
-		/* Blackberry likes it to put a '=' in front of the username */
-		search = strrchr(lpDisplayName->Value.lpszA, '=');
-		if (search) {
-			++search;
-			ulFlags |= EMS_AB_ADDRESS_LOOKUP;
-		} else {
-			search = lpDisplayName->Value.lpszA;
-		}
+		search = lpDisplayName->Value.lpszA;
 
 		/* NOTE: ECUserManagement is responsible for calling ECSecurity::IsUserObjectVisible(ulObjectId) for found objects */
 		switch (usrmgt->SearchObjectAndSync(search, ulFlags, &ulObjectId)) {
