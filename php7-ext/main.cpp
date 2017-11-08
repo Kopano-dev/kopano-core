@@ -239,7 +239,7 @@ public:
 
 private:
 	std::string what;
-	unsigned long long start_ts = 0;
+	KC::time_point start_ts;
 };
 
 using namespace std;
@@ -256,28 +256,22 @@ pmeasure::pmeasure(const std::string &whatIn)
 	if (perf_measure_file == NULL || *perf_measure_file == '\0')
 		return;
 	what = whatIn;
-	struct timespec ts;
-	clock_gettime(CLOCK_MONOTONIC, &ts);
-	start_ts = ts.tv_sec * 1000 * 1000 + ts.tv_nsec / 1000;
+	start_ts = decltype(start_ts)::clock::now();
 }
 
 pmeasure::~pmeasure(void)
 {
 	if (perf_measure_file == NULL || *perf_measure_file == '\0')
 		return;
-	struct timespec ts;
-	clock_gettime(CLOCK_MONOTONIC, &ts);
-
+	auto end_ts = decltype(start_ts)::clock::now();
 	FILE *fh = fopen(perf_measure_file, "a+");
 	if (fh == NULL) {
 		if (lpLogger != NULL)
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "~pmeasure: cannot open \"%s\": %s", perf_measure_file, strerror(errno));
 		return;
 	}
-
-	unsigned long long int now = ts.tv_sec * 1000 * 1000 + ts.tv_nsec / 1000;
-	unsigned long long int tdiff = now - start_ts;
-
+	using namespace std::chrono;
+	long long int tdiff = duration_cast<microseconds>(end_ts - start_ts).count();
 	fprintf(fh, "%lld %s\n", tdiff, what.c_str());
 	fclose(fh);
 }

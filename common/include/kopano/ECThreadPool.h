@@ -39,7 +39,6 @@ private:	// types
 	struct STaskInfo {
 		ECTask			*lpTask;
 		bool			bDelete;
-		struct timeval	tvQueueTime;
 	};
 
 	typedef std::set<pthread_t> ThreadSet;

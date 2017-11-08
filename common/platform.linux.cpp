@@ -14,13 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <chrono>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
 
 #include <sys/select.h>
-#include <sys/time.h>
 #include <iconv.h>
 #include <cstring>
 #include <cstdio>
@@ -105,12 +104,11 @@ HRESULT CoCreateGuid(LPGUID pNewGUID) {
 }
 
 void GetSystemTimeAsFileTime(FILETIME *ft) {
-	struct timeval now;
-	__int64_t l;
-	gettimeofday(&now,NULL); // null==timezone
-	l = ((__int64_t)now.tv_sec * 10000000) + ((__int64_t)now.tv_usec * 10) + (__int64_t)NANOSECS_BETWEEN_EPOCHS;
-	ft->dwLowDateTime = (unsigned int)(l & 0xffffffff);
-	ft->dwHighDateTime = l >> 32;
+	using namespace std::chrono;
+	using ft_ns = duration<nanoseconds::rep, std::ratio_multiply<std::hecto, std::nano>>;
+	auto now = duration_cast<ft_ns>(system_clock::now().time_since_epoch()).count() + NANOSECS_BETWEEN_EPOCHS;
+	ft->dwLowDateTime  = now & 0xffffffff;
+	ft->dwHighDateTime = now >> 32;
 }
 
 /** 

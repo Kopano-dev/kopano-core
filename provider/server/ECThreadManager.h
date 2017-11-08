@@ -36,7 +36,7 @@
  */
 struct WORKITEM {
     struct soap *soap;			// socket and state associated with the connection
-    double dblReceiveStamp;		// time at which activity was detected on the socket
+	KC::time_point dblReceiveStamp; /* time at which activity was detected on the socket */
 };
 
 struct ACTIVESOCKET _kc_final {

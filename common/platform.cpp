@@ -28,7 +28,6 @@
 
 #include <sys/stat.h>
 #include <sys/syscall.h>
-#include <sys/time.h> /* gettimeofday */
 #include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
 #include "TmpPath.h"
@@ -227,25 +226,6 @@ double timespec2dbl(const struct timespec &t)
     return (double)t.tv_sec + t.tv_nsec/1000000000.0;
 }
 
-struct timespec GetDeadline(unsigned int ulTimeoutMs)
-{
-	struct timespec	deadline;
-	struct timeval	now;
-	gettimeofday(&now, NULL);
-
-	now.tv_sec += ulTimeoutMs / 1000;
-	now.tv_usec += 1000 * (ulTimeoutMs % 1000);
-	if (now.tv_usec >= 1000000) {
-		++now.tv_sec;
-		now.tv_usec -= 1000000;
-	}
-
-	deadline.tv_sec = now.tv_sec;
-	deadline.tv_nsec = now.tv_usec * 1000;
-
-	return deadline;
-}
-
 // Does mkdir -p <path>
 int CreatePath(const char *createpath)
 {
@@ -275,15 +255,6 @@ int CreatePath(const char *createpath)
 		return -1;
 	// Create the actual directory
 	return mkdir(createpath, 0700);
-}
-
-double GetTimeOfDay()
-{
-	struct timeval tv;
-
-	gettimeofday(&tv, NULL);
-
-	return (double)tv.tv_sec + ((double)tv.tv_usec / 1000000); // usec = microsec = 1 millionth of a second
 }
 
 void set_thread_name(pthread_t tid, const std::string & name)

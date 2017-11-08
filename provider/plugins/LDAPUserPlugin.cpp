@@ -17,6 +17,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
+#include <chrono>
 #include <exception>
 #include <iostream>
 #include <memory>
@@ -31,7 +32,6 @@
 
 #include <cerrno>
 #include <cassert>
-#include <sys/time.h> /* gettimeofday */
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
@@ -246,6 +246,11 @@ private:
 
 std::unique_ptr<LDAPCache> LDAPUserPlugin::m_lpCache(new LDAPCache());
 
+template<typename T> static constexpr inline LONGLONG dur2ms(const T &t)
+{
+	return std::chrono::duration_cast<std::chrono::milliseconds>(t).count();
+}
+
 LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
     ECPluginSharedData *shareddata) :
 	UserPlugin(pluginlock, shareddata), m_ldap(NULL), ldapServerIndex(0)
@@ -434,10 +439,8 @@ void LDAPUserPlugin::InitPlugin()
 LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 	int rc = -1;
 	LDAP *ld = NULL;
-	struct timeval tstart, tend;
 	LONGLONG llelapsedtime = 0;
-
-	gettimeofday(&tstart, NULL);
+	auto tstart = std::chrono::steady_clock::now();
 
 	if ((bind_dn && bind_dn[0] != 0) && (bind_pw == NULL || bind_pw[0] == 0)) {
 		// Username specified, but no password. Apparently, OpenLDAP will attempt
@@ -512,10 +515,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 			throw ldap_error("Failure connecting any of the LDAP servers");
 	}
 
-	gettimeofday(&tend, NULL);
-
-	llelapsedtime = difftimeval(&tstart, &tend);
-
+	llelapsedtime = dur2ms(decltype(tstart)::clock::now() - tstart);
 	m_lpStatsCollector->Increment(SCN_LDAP_CONNECTS);
 	m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_TIME, llelapsedtime);
 	m_lpStatsCollector->Max(SCN_LDAP_CONNECT_TIME_MAX, llelapsedtime);
@@ -539,11 +539,9 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 {
 	int result=LDAP_SUCCESS;
 	string req;
-	struct timeval tstart, tend;
 	LONGLONG llelapsedtime;
 	auto_free_ldap_message res;
-
-	gettimeofday(&tstart, NULL);
+	auto tstart = std::chrono::steady_clock::now();
 
 	if (attrs != NULL)
 		for (unsigned int i = 0; attrs[i] != NULL; ++i)
@@ -601,9 +599,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 		goto exit;
 	}
 
-	gettimeofday(&tend, NULL);
-	llelapsedtime = difftimeval(&tstart,&tend);
-
+	llelapsedtime = dur2ms(decltype(tstart)::clock::now() - tstart);
 	LOG_PLUGIN_DEBUG("ldaptiming [%08.2f] (\"%s\" \"%s\" %s), results: %d", llelapsedtime/1000000.0, base, filter, req.c_str(), ldap_count_entries(m_ldap, res));
 
 	*lppres = res.release(); // deref the pointer from object
@@ -1429,11 +1425,9 @@ objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const stri
 
 objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const string &password, const objectid_t &company)
 {
-	struct timeval tstart, tend;
 	const char *authmethod = m_config->GetSetting("ldap_authentication_method");
 	objectsignature_t id;
-
-	gettimeofday(&tstart, NULL);
+	auto tstart = std::chrono::steady_clock::now();
 
 	try {
 		if (strcasecmp(authmethod, "password") == 0)
@@ -1445,8 +1439,7 @@ objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const
 		throw;
 	}
 
-	gettimeofday(&tend, NULL);
-	LONGLONG llelapsedtime = difftimeval(&tstart,&tend);
+	auto llelapsedtime = dur2ms(decltype(tstart)::clock::now() - tstart);
 	m_lpStatsCollector->Increment(SCN_LDAP_AUTH_LOGINS);
 	m_lpStatsCollector->Increment(SCN_LDAP_AUTH_TIME, llelapsedtime);
 	m_lpStatsCollector->Max(SCN_LDAP_AUTH_TIME_MAX, llelapsedtime);

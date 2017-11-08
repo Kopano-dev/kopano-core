@@ -22,7 +22,6 @@
 #include <kopano/ECThreadPool.h>
 #include <kopano/lockhelper.hpp>
 #include <algorithm>
-#include <sys/time.h> /* gettimeofday */
 
 namespace KC {
 
@@ -54,10 +53,7 @@ ECThreadPool::~ECThreadPool()
  */
 bool ECThreadPool::dispatch(ECTask *lpTask, bool bTakeOwnership)
 {
-	STaskInfo sTaskInfo = {lpTask, bTakeOwnership, {0, 0}};
-	
-	gettimeofday(&sTaskInfo.tvQueueTime, NULL);
-	
+	STaskInfo sTaskInfo = {lpTask, bTakeOwnership};
 	ulock_normal locker(m_hMutex);
 	m_listTasks.emplace_back(std::move(sTaskInfo));
 	m_hCondition.notify_one();

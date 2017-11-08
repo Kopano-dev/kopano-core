@@ -627,6 +627,8 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, struct saveObject *lpsSaveObj, unsigned int ulObjId, bool fNewItem, unsigned int ulSyncId, struct saveObject *lpsReturnObj, bool *lpfHaveChangeKey, FILETIME *ftCreated, FILETIME *ftModified);
 static ECRESULT DoNotifySubscribe(ECSession *lpecSession, unsigned long long ulSessionId, struct notifySubscribe *notifySubscribe);
 
+using steady_clock = std::chrono::steady_clock;
+
 /**
  * logon: log on and create a session with provided credentials
  */
@@ -642,7 +644,7 @@ int ns__logon(struct soap *soap, const char *user, const char *pass,
 	ECSESSIONID	sessionID = 0;
 	GUID		sServerGuid = {0};
 	struct timespec startTimes = {0}, endTimes = {0};
-	double          dblStart = GetTimeOfDay();
+	auto dblStart = steady_clock::now();
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
 
@@ -727,8 +729,7 @@ exit:
 	LOG_SOAP_DEBUG("%020llu: E logon 0x%08x %f %f",
 		static_cast<unsigned long long>(sessionID), er,
 		timespec2dbl(endTimes) - timespec2dbl(startTimes),
-		GetTimeOfDay() - dblStart);
-
+		dur2dbl(decltype(dblStart)::clock::now() - dblStart));
 	return SOAP_OK;
 }
 
@@ -750,7 +751,7 @@ int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, const char *szUsername,
 	xsd__base64Binary *lpOutput = NULL;
 	const char *lpszEnabled = NULL;
 	struct timespec startTimes = {0}, endTimes = {0};
-	double          dblStart = GetTimeOfDay();
+	auto dblStart = steady_clock::now();
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
 
@@ -887,7 +888,9 @@ nosso:
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
 
-	LOG_SOAP_DEBUG("%020" PRIu64 ": E ssoLogon 0x%08x %f %f", ulSessionId, er, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
+	LOG_SOAP_DEBUG("%020" PRIu64 ": E ssoLogon 0x%08x %f %f",
+		ulSessionId, er, timespec2dbl(endTimes) - timespec2dbl(startTimes),
+		dur2dbl(decltype(dblStart)::clock::now() - dblStart));
 	return SOAP_OK;
 }
 
@@ -899,7 +902,7 @@ int ns__logoff(struct soap *soap, ULONG64 ulSessionId, unsigned int *result)
 	ECRESULT	er = erSuccess;
 	ECSession 	*lpecSession = NULL;
 	struct timespec startTimes = {0}, endTimes = {0};
-	double          dblStart = GetTimeOfDay();
+	auto dblStart = steady_clock::now();
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
 	LOG_SOAP_DEBUG("%020" PRIu64 ": S logoff", ulSessionId);
@@ -923,14 +926,16 @@ exit:
     *result = er;
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
-	LOG_SOAP_DEBUG("%020" PRIu64 ": E logoff 0x%08x %f %f", ulSessionId, 0, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart);
+	LOG_SOAP_DEBUG("%020" PRIu64 ": E logoff 0x%08x %f %f",
+		ulSessionId, 0, timespec2dbl(endTimes) - timespec2dbl(startTimes),
+		dur2dbl(decltype(dblStart)::clock::now() - dblStart));
 	return SOAP_OK;
 }
 
 #define SOAP_ENTRY_FUNCTION_HEADER(resultvar, fname) \
     ECRESULT		er = erSuccess; \
     struct timespec	startTimes = {0}, endTimes = {0};	\
-    double			dblStart = GetTimeOfDay(); \
+	auto dblStart = steady_clock::now(); \
     ECSession		*lpecSession = NULL; \
     unsigned int 	*lpResultVar = &resultvar; \
 	const char *szFname = #fname; \
@@ -950,7 +955,8 @@ __soapentry_exit: \
     *lpResultVar = er; \
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes); \
     if(lpecSession) { \
-		LOG_SOAP_DEBUG("%020" PRIu64 ": E %s 0x%08x %f %f", ulSessionId, szFname, er, timespec2dbl(endTimes) - timespec2dbl(startTimes), GetTimeOfDay() - dblStart); \
+		LOG_SOAP_DEBUG("%020" PRIu64 ": E %s 0x%08x %f %f", ulSessionId, szFname, er, timespec2dbl(endTimes) - timespec2dbl(startTimes), \
+			dur2dbl(decltype(dblStart)::clock::now() - dblStart)); \
 		lpecSession->UpdateBusyState(pthread_self(), SESSION_STATE_SENDING); \
         lpecSession->Unlock(); \
     } \

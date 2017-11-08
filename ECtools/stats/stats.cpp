@@ -17,7 +17,7 @@
 
 #include <kopano/platform.h>
 #include "config.h"
-
+#include <chrono>
 #include <iostream>
 #include <string>
 #include <mapi.h>
@@ -203,7 +203,7 @@ static void showtop(LPMDB lpStore)
 	std::set<std::string> setHosts;
 	char date[64];
 	int wx, wy, key;
-    double dblLast = 0;
+	KC::time_point dblLast;
 
 	// columns in sizes, not literal offsets
 	static const unsigned int cols[] = {0, 4, 21, 8, 25, 16, 20, 8, 8, 7, 7, 5};
@@ -242,9 +242,9 @@ static void showtop(LPMDB lpStore)
 		hr = lpTable->QueryRows(-1, 0, &~lpsRowSet);
         if(hr != hrSuccess)
             goto exit;
-            
-		auto dblTime = GetTimeOfDay() - dblLast;
-        dblLast = GetTimeOfDay();
+		auto cr_now = std::chrono::steady_clock::now();
+		auto dblTime = dur2dbl(cr_now - dblLast);
+		dblLast = std::move(cr_now);
             
         for (ULONG i = 0; i < lpsRowSet->cRows; ++i) {
 		auto lpName  = lpsRowSet->aRow[i].cfind(PR_DISPLAY_NAME_A);

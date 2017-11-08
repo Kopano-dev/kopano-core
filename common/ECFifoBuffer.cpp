@@ -46,7 +46,6 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 {
 	ECRESULT			er = erSuccess;
 	size_type			cbWritten = 0;
-	struct timespec		deadline = {0};
 	auto lpData = reinterpret_cast<const unsigned char *>(lpBuf);
 
 	if (lpBuf == NULL)
@@ -60,9 +59,6 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 			*lpcbWritten = 0;
 		return erSuccess;
 	}
-
-	if (ulTimeoutMs > 0)
-		deadline = GetDeadline(ulTimeoutMs);
 
 	ulock_normal locker(m_hMutex);
 	while (cbWritten < cbBuf) {
@@ -119,7 +115,6 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 {
 	ECRESULT		er = erSuccess;
 	size_type		cbRead = 0;
-	struct timespec	deadline = {0};
 	auto lpData = reinterpret_cast<unsigned char *>(lpBuf);
 
 	if (lpBuf == NULL)
@@ -134,9 +129,6 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 		return erSuccess;
 	}
 
-	if (ulTimeoutMs > 0)
-		deadline = GetDeadline(ulTimeoutMs);
-	
 	ulock_normal locker(m_hMutex);
 	while (cbRead < cbBuf) {
 		while (IsEmpty()) {

@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <chrono>
 #include <mutex>
 #include <string>
 #include "ECThreadManager.h"
@@ -179,15 +180,14 @@ void *ECWorkerThread::Work(void *lpParam)
 			err = 0;
 
 			// Record start of handling of this request
-			double dblStart = GetTimeOfDay(), dblEnd = 0;
-			
+			auto dblStart = std::chrono::steady_clock::now();
 			// Reset last session ID so we can use it reliably after the call is done
 			auto info = soap_info(lpWorkItem->soap);
 			info->ulLastSessionId = 0;
             // Pass information on start time of the request into soap->user, so that it can be applied to the correct
             // session after XML parsing
 			clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->threadstart);
-			info->start = GetTimeOfDay();
+			info->start = decltype(dblStart)::clock::now();
 			info->szFname = nullptr;
 			info->fdone = NULL;
 
@@ -237,7 +237,7 @@ done:
 			if (info->fdone != nullptr)
 				info->fdone(lpWorkItem->soap, info->fdoneparam);
 
-            dblEnd = GetTimeOfDay();
+			auto dblEnd = decltype(dblStart)::clock::now();
 
             // Tell the session we're done processing the request for this session. This will also tell the session that this
             // thread is done processing the item, so any time spent in this thread until now can be accounted in that session.
@@ -245,9 +245,8 @@ done:
             
 		// Track cpu usage server-wide
 		g_lpStatsCollector->Increment(SCN_SOAP_REQUESTS);
-		g_lpStatsCollector->Increment(SCN_PROCESSING_TIME, int64_t((dblEnd - dblStart) * 1000));
-		g_lpStatsCollector->Increment(SCN_RESPONSE_TIME, int64_t((dblEnd - lpWorkItem->dblReceiveStamp) * 1000));
-
+			g_lpStatsCollector->Increment(SCN_PROCESSING_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
+			g_lpStatsCollector->Increment(SCN_RESPONSE_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - lpWorkItem->dblReceiveStamp).count());
         }
 
 	// Clear memory used by soap calls. Note that this does not actually
@@ -442,17 +441,15 @@ ECRESULT ECDispatcher::GetThreadCount(unsigned int *lpulThreads, unsigned int *l
 // Get the age (in seconds) of the next-in-line item in the queue, or 0 if the queue is empty
 ECRESULT ECDispatcher::GetFrontItemAge(double *lpdblAge)
 {
-    double dblNow = GetTimeOfDay();
-    double dblAge = 0;
+	auto now = std::chrono::steady_clock::now();
     
 	scoped_lock lock(m_mutexItems);
     if(m_queueItems.empty() && m_queuePrioItems.empty())
-        dblAge = 0;
+		*lpdblAge = 0;
     else if (m_queueItems.empty()) // normal items queue is more important when checking queue age
-        dblAge = dblNow - m_queuePrioItems.front()->dblReceiveStamp;
+		*lpdblAge = dur2dbl(now - m_queuePrioItems.front()->dblReceiveStamp);
 	else
-        dblAge = dblNow - m_queueItems.front()->dblReceiveStamp;
-    *lpdblAge = dblAge;
+		*lpdblAge = dur2dbl(now - m_queueItems.front()->dblReceiveStamp);
     return erSuccess;
 }
 
@@ -480,7 +477,7 @@ ECRESULT ECDispatcher::QueueItem(struct soap *soap)
 	CONNECTION_TYPE ulType;
 
 	item->soap = soap;
-	item->dblReceiveStamp = GetTimeOfDay();
+	item->dblReceiveStamp = std::chrono::steady_clock::now();
 	ulType = SOAP_CONNECTION_TYPE(soap);
 
 	scoped_lock lock(m_mutexItems);
