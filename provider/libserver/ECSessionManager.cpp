@@ -409,7 +409,7 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
     const char *szClientAppVersion, const char *szClientAppMisc,
     unsigned int ulCapabilities, ECSESSIONGROUPID sessionGroupID,
     ECSESSIONID *lpSessionID, ECSession **lppSession, bool fLockSession,
-    bool fAllowUidAuth)
+    bool fAllowUidAuth, bool bRegisterSession)
 {
 	std::unique_ptr<ECAuthSession> lpAuthSession;
 	const char		*method = "error";
@@ -460,6 +460,8 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 	return KCERR_LOGON_FAILED;
 
 authenticated:
+	if (!bRegisterSession)
+		return erSuccess;
 	er = RegisterSession(lpAuthSession.get(), sessionGroupID,
 	     szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc,
 	     lpSessionID, lppSession, fLockSession);

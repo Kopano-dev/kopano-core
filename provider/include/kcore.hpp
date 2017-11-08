@@ -376,6 +376,8 @@ typedef EID * PEID;
 //
 // Don't allow uid based authentication (Unix socket only)
 #define KOPANO_LOGON_NO_UID_AUTH		0x0001
+// Don't register session after authentication
+#define KOPANO_LOGON_NO_REGISTER_SESSION	0x0002
 
 // MTOM IDs
 #define MTOM_ID_EXPORTMESSAGES			"idExportMessages"
