@@ -3374,28 +3374,6 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsign
 
 				memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
 				break;
-			case PR_EMS_AB_HOME_MDB: {
-				/* Make BlackBerry happy */
-				std::string serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
-				if (serverName.empty())
-					serverName = "Unknown";
-				std::string hostname =
-					"/o=Domain/ou=Location/cn=Configuration/cn=Servers/cn=" + serverName + "/cn=Microsoft Private MDB";
-				lpPropVal->Value.lpszA = s_strcpy(soap, hostname.c_str());
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			}
-			case PR_EMS_AB_HOME_MTA: {
-				/* Make BlackBerry happy */
-				std::string serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
-				if (serverName.empty())
-					serverName = "Unknown";
-				std::string hostname =
-					"/o=KOPANO/ou=First Administrative Group/cn=Configuration/cn=Servers/cn=" + serverName + "/cn=Microsoft MTA";
-				lpPropVal->Value.lpszA = s_strcpy(soap, hostname.c_str());
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			}
 			case PR_ACCOUNT:
 			case PR_EMAIL_ADDRESS:
 				// Dont use login name for NONACTIVE_CONTACT since it doesn't have a login name
@@ -3955,7 +3933,6 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 {
 	std::string strName;
 	ABEID abeid;
-	static const char MUIDEMSAB[] = "\xDC\xA7\x40\xC8\xC0\x42\x10\x1A\xB4\xB9\x08\x00\x2B\x2F\xE1\x82";
 
 	lpPropValArray->__ptr = s_alloc<struct propVal>(soap, lpPropTagArray->__size);
 	lpPropValArray->__size = lpPropTagArray->__size;
@@ -4067,15 +4044,8 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 			lpSession = dynamic_cast<ECSession *>(m_lpSession);
 			if(lpSession)
 				lpSession->GetClientApp(&strApp);
-			if (strncasecmp(strApp.c_str(), "blackberry", 10) == 0)
-				// For blackberry, we pose as being the Exchange AddressList. We have to do this
-				// since it searches for the GAB by restricting by this GUID, otherwise the Lookup
-				// function will not function properly.
-				// Multiple blackberry binaries need to be able to access, including BlackBerryAgent.exe
-				// and BlackBerryMailStore.exe
-				memcpy(lpPropVal->Value.bin->__ptr, MUIDEMSAB, sizeof(GUID));
-			else
-				memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
+
+			memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
 			break;
 		}
 		case PR_EMS_AB_IS_MASTER:
