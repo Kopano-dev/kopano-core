@@ -88,7 +88,9 @@ else:
 class Folder(Properties):
     """Folder class"""
 
-    def __init__(self, store=None, entryid=None, associated=False, deleted=False, mapiobj=None, _check_mapiobj=True):
+    def __init__(self, store=None, entryid=None, associated=False,
+        deleted=False, mapiobj=None, _check_mapiobj=True, cache={}
+    ):
         if store:
             self.store = store
             self.server = store.server
@@ -106,6 +108,7 @@ class Folder(Properties):
         if _check_mapiobj: # raise error for specific key
             self.mapiobj
 
+        self._cache = cache
         self._iter = None
 
     @property
@@ -143,13 +146,11 @@ class Folder(Properties):
 
     @property
     def parent(self):
-        """Return :class:`parent <Folder>` or None"""
-
-        if self.entryid != self.store.root.entryid:
-            try:
-                return Folder(self.store, _hex(self.prop(PR_PARENT_ENTRYID).value))
-            except NotFoundError:
-                pass
+        """Return :class:`parent <Folder>`"""
+        parent_eid = _hex(self._get_fast(PR_PARENT_ENTRYID))
+        # TODO public_store.subtree.parent -> inf loop
+        if parent_eid != self.store.root.entryid: # root parent is root
+            return Folder(self.store, parent_eid, _check_mapiobj=False)
 
     @property
     def hierarchyid(self):
@@ -170,9 +171,11 @@ class Folder(Properties):
     def name(self):
         """ Folder name """
 
-        try:
-            return self.prop(PR_DISPLAY_NAME_W).value.replace('/', '\\/')
-        except NotFoundError:
+        name = self._get_fast(PR_DISPLAY_NAME_W)
+
+        if name is not None:
+            return name.replace('/', '\\/')
+        else:
             if self.entryid == self.store.root.entryid: # Root folder's PR_DISPLAY_NAME_W is never set
                 return u'ROOT'
             else:
@@ -180,14 +183,23 @@ class Folder(Properties):
 
     @property
     def path(self):
+        """Folder path"""
         names = []
         parent = self
         subtree_entryid = self.store.subtree.entryid
-        while parent and parent.entryid != subtree_entryid:
+        root_entryid = self.store.root.entryid
+        while True:
             names.append(parent.name)
-            parent = parent.parent
-        if parent is not None:
-            return '/'.join(reversed(names))
+            # TODO table/mapiobj parent entryid are different
+            # for certain public store special folders, so we
+            # don't rely on cached table data here (fix server?)
+            parent_eid = _hex(parent.prop(PR_PARENT_ENTRYID).value)
+            if parent_eid == subtree_entryid:
+                return '/'.join(reversed(names))
+            elif parent_eid == root_entryid:
+                return
+            else:
+                parent = Folder(self.store, parent_eid)
 
     @name.setter
     def name(self, name):
@@ -267,8 +279,8 @@ class Folder(Properties):
                 self.server,
                 self.mapiobj.GetContentsTable(self.content_flag),
                 PR_CONTAINER_CONTENTS,
-                columns = columns,
-                restriction = restriction
+                columns=columns,
+                restriction=restriction
             )
         except MAPIErrorNoSupport:
             return
@@ -278,9 +290,9 @@ class Folder(Properties):
         for row in table.rows():
             item = _item.Item(
                 self,
-                entryid = row[0].value,
+                entryid=row[0].value,
                 content_flag=self.content_flag,
-                cache = dict(zip(columns, row))
+                cache=dict(zip(columns, row))
             )
             yield item
 
@@ -479,17 +491,25 @@ class Folder(Properties):
         :param recurse: include all sub-folders
         """
 
-        try:
-            flags = MAPI_UNICODE | self.content_flag
-            if recurse:
-                flags |= CONVENIENT_DEPTH
+        columns = [
+            PR_ENTRYID,
+            PR_PARENT_ENTRYID,
+            PR_DISPLAY_NAME_W,
+            PR_LAST_MODIFICATION_TIME
+        ]
 
+        flags = MAPI_UNICODE | self.content_flag
+        if recurse:
+            flags |= CONVENIENT_DEPTH
+
+        try:
             mapitable = self.mapiobj.GetHierarchyTable(flags)
 
             table = Table(
-                self.server, mapitable,
+                self.server,
+                mapitable,
                 PR_CONTAINER_HIERARCHY,
-                columns=[PR_ENTRYID, PR_PARENT_ENTRYID, PR_DISPLAY_NAME_W]
+                columns=columns
             )
         except MAPIErrorNoSupport: # XXX webapp search folder?
             return
@@ -500,7 +520,13 @@ class Folder(Properties):
         children = collections.defaultdict(list)
 
         for row in table.rows():
-            folder = Folder(self.store, _hex(row[0].value), _check_mapiobj=False)
+            folder = Folder(
+                self.store,
+                _hex(row[0].value),
+                _check_mapiobj=False,
+                cache=dict(zip(columns, row))
+            )
+
             folders[_hex(row[0].value)] = folder, _hex(row[1].value)
             names[_hex(row[0].value)] = row[2].value
             children[_hex(row[1].value)].append((_hex(row[0].value), folder))
@@ -742,6 +768,10 @@ class Folder(Properties):
             return self.prop(PR_CREATION_TIME).value
         except NotFoundError:
             pass
+
+    @property
+    def last_modified(self):
+        return self._get_fast(PR_LAST_MODIFICATION_TIME)
 
     def __eq__(self, f): # XXX check same store?
         if isinstance(f, Folder):
