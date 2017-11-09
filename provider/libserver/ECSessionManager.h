@@ -98,7 +98,7 @@ public:
 	_kc_hidden virtual ~ECSessionManager(void);
 	_kc_hidden virtual ECRESULT CreateAuthSession(struct soap *, unsigned int caps, ECSESSIONID *, ECAuthSession **, bool register_ses, bool lock_ses);
 	// Creates a session based on passed credentials
-	_kc_hidden virtual ECRESULT CreateSession(struct soap *, const char *name, const char *pass, const char *imp_user, const char *cl_vers, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, unsigned int caps, ECSESSIONGROUPID, ECSESSIONID *, ECSession **, bool lock_ses, bool allow_uid_auth);
+	_kc_hidden virtual ECRESULT CreateSession(struct soap *, const char *name, const char *pass, const char *imp_user, const char *cl_vers, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, unsigned int caps, ECSESSIONGROUPID, ECSESSIONID *, ECSession **, bool lock_ses, bool allow_uid_auth, bool register_session);
 	// Creates a session without credential checking (caller must check credentials)
 	_kc_hidden virtual ECRESULT RegisterSession(ECAuthSession *, ECSESSIONGROUPID, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, ECSESSIONID *, ECSession **, bool lock_ses);
 	virtual ECRESULT CreateSessionInternal(ECSession **, unsigned int user_id = KOPANO_UID_SYSTEM);

@@ -675,7 +675,7 @@ int ns__logon(struct soap *soap, const char *user, const char *pass,
 	}
 
 	// check username and password
-	er = g_lpSessionManager->CreateSession(soap, user, pass, impersonate, clientVersion, szClientApp, szClientAppVersion, szClientAppMisc, clientCaps, ullSessionGroup, &sessionID, &lpecSession, true, (logonFlags & KOPANO_LOGON_NO_UID_AUTH) == 0);
+	er = g_lpSessionManager->CreateSession(soap, user, pass, impersonate, clientVersion, szClientApp, szClientAppVersion, szClientAppMisc, clientCaps, ullSessionGroup, &sessionID, &lpecSession, true, (logonFlags & KOPANO_LOGON_NO_UID_AUTH) == 0, (logonFlags & KOPANO_LOGON_NO_REGISTER_SESSION) == 0);
 	if(er != erSuccess){
 		er = KCERR_LOGON_FAILED;
 		goto exit;
@@ -684,7 +684,7 @@ int ns__logon(struct soap *soap, const char *user, const char *pass,
 	// We allow Zarafa >=6 clients to connect to a Kopano server. However, anything below that will be
 	// denied. We can't say what future clients may or may not be capable of. So we'll leave that to the
 	// clients.
-	if (KOPANO_COMPARE_VERSION_TO_GENERAL(lpecSession->ClientVersion(), MAKE_KOPANO_GENERAL(6)) < 0) {
+	if (lpecSession && (KOPANO_COMPARE_VERSION_TO_GENERAL(lpecSession->ClientVersion(), MAKE_KOPANO_GENERAL(6)) < 0)) {
 		ec_log_warn("Rejected logon attempt from a %s version client.", clientVersion ? clientVersion : "<unknown>");
 		er = KCERR_INVALID_VERSION;
 		goto exit;
@@ -715,7 +715,7 @@ int ns__logon(struct soap *soap, const char *user, const char *pass,
 	lpsResponse->sServerGuid.__size = sizeof(sServerGuid);
 
     // Only save logon if credentials were supplied by the user; otherwise the logon is probably automated
-    if(lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD || lpecSession->GetAuthMethod() == ECSession::METHOD_SSO)
+    if (lpecSession && (lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD || lpecSession->GetAuthMethod() == ECSession::METHOD_SSO))
 		record_logon_time(lpecSession, true);
 	
 exit:
