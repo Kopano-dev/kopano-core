@@ -45,11 +45,16 @@ else:
 class User(Properties):
     """User class"""
 
-    def __init__(self, name=None, server=None, email=None, ecuser=None):
+    def __init__(self, name=None, server=None, email=None, ecuser=None,
+        userid=None
+    ):
         self.server = server or _server.Server()
 
         if ecuser:
             self._ecuser = ecuser
+            self._name = ecuser.Username
+        elif userid:
+            self._ecuser = self.server.sa.GetUser(_unhex(userid), MAPI_UNICODE)
             self._name = ecuser.Username
         else:
             if email:
