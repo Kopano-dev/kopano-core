@@ -4101,12 +4101,12 @@ SOAP_ENTRY_START(emptyFolder, *result, entryId sEntryId, unsigned int ulFlags, u
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulId);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 
 	// Check Rights set permission
 	er = lpecSession->GetSecurity()->CheckPermission(ulId, ecSecurityDelete);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Add object into the list
 	lObjectIds.emplace_back(ulId);
@@ -4116,13 +4116,7 @@ SOAP_ENTRY_START(emptyFolder, *result, entryId sEntryId, unsigned int ulFlags, u
 
 	if((ulFlags&DEL_ASSOCIATED) == 0)
 		ulDeleteFlags |= EC_DELETE_NOT_ASSOCIATED_MSG;
-
-	er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, ulSyncId, false, true);
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	ROLLBACK_ON_ERROR();
+	return DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, ulSyncId, false, true);
 }
 SOAP_ENTRY_END()
 
@@ -4145,16 +4139,15 @@ SOAP_ENTRY_START(deleteFolder, *result,  entryId sEntryId, unsigned int ulFlags,
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulId);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 
 	// Check permission
 	er = lpecSession->GetSecurity()->CheckPermission(ulId, ecSecurityFolderAccess);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = g_lpSessionManager->GetCacheManager()->GetObjectFlags(ulId, &ulFolderFlags);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// insert objectid into the delete list
 	lObjectIds.emplace_back(ulId);
@@ -4168,13 +4161,7 @@ SOAP_ENTRY_START(deleteFolder, *result,  entryId sEntryId, unsigned int ulFlags,
 
 	if( (ulFlags & DELETE_HARD_DELETE) || ulFolderFlags == FOLDER_SEARCH)
 		ulDeleteFlags |= EC_DELETE_HARD_DELETE;
-
-	er = DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, ulSyncId, false, true);
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	ROLLBACK_ON_ERROR();
+	return DeleteObjects(lpecSession, lpDatabase, &lObjectIds, ulDeleteFlags, ulSyncId, false, true);
 }
 SOAP_ENTRY_END()
 
