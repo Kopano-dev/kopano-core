@@ -46,26 +46,6 @@ bool SymmetricIsCrypted(const char *c)
 }
 
 /**
- * Check if the provided password is crypted.
- * 
- * Crypted passwords have the format "{N}:<crypted password>, with N being the encryption algorithm. 
- * Currently only algorithm number 1 and 2 are supported:
- * 1: base64-of-XOR-A5 of windows-1252 encoded data
- * 2: base64-of-XOR-A5 of UTF-8 encoded data
- * 
- * @param[in]	strCrypted
- * 					The wide character string to test.
- * 
- * @return	boolean
- * @retval	true	The provided string was encrypted.
- * @retval	false 	The provided string was not encrypted.
- */
-bool SymmetricIsCrypted(const wchar_t *c)
-{
-	return wcsncmp(c, L"{1}:", 4) == 0 || wcsncmp(c, L"{2}:", 4) == 0;
-}
-
-/**
  * Decrypt the crypt data.
  * 
  * Depending on the N value, the password is decrypted using algorithm 1 or 2.
@@ -112,25 +92,6 @@ std::string SymmetricDecrypt(const char *strCrypted)
 	// Length has been guaranteed to be >=4.
 	return SymmetricDecryptBlob(strCrypted[1] - '0',
 		base64_decode(convert_to<std::string>(strCrypted + 4)));
-}
-
-/**
- * Decrypt an encrypted password.
- * 
- * Depending on the N value, the password is decrypted using algorithm 1 or 2.
- * 
- * @param[in]	strCrypted
- * 					The wide character encrypted password to decrypt.
- * 
- * @return	THe decrypted password encoded in UTF-8.
- */
-std::string SymmetricDecrypt(const wchar_t *wstrCrypted)
-{
-	if (!SymmetricIsCrypted(wstrCrypted))
-		return "";
-	// Length has been guaranteed to be >=4.
-	return SymmetricDecryptBlob(wstrCrypted[1] - '0',
-		base64_decode(convert_to<std::string>(wstrCrypted + 4)));
 }
 
 } /* namespace */

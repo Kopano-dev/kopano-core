@@ -50,7 +50,6 @@
 
 #include "SSLUtil.h"
 #include "ClientUtil.h"
-#include "SymmetricCrypt.h"
 
 #include "EntryPoint.h"
 
