@@ -193,6 +193,9 @@ class SearchWorker(kopano.Worker):
                         response(conn, 'OK:')
                         self.log.info("queued store %s for reindexing", args[0])
                         break
+                    else:
+                        self.log.error("unknown command: %s", cmd)
+                        break
                 conn.close()
 
 class IndexWorker(kopano.Worker):
