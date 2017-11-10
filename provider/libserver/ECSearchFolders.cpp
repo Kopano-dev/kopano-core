@@ -275,24 +275,9 @@ exit:
 // See if a folder is a search folder
 ECRESULT ECSearchFolders::IsSearchFolder(unsigned int ulFolderId)
 {
-	ECDatabase		*lpDatabase = NULL;
-	DB_RESULT lpDBResult;
-
-	/* Get database */
-	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
-	if (er != erSuccess)
-		return er;
-
-	// Find out what kind of table this is
-	std::string strQuery = "SELECT flags FROM hierarchy WHERE id=" + stringify(ulFolderId) + " LIMIT 1";
-
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if(er != erSuccess)
-		return er;
-	auto lpDBRow = lpDBResult.fetch_row();
-	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
-		return KCERR_NOT_FOUND;
-	if (atoui(lpDBRow[0]) != FOLDER_SEARCH)
+	unsigned int flags = 0;
+	auto er = m_lpSessionManager->GetCacheManager()->GetObjectFlags(ulFolderId, &flags);
+	if (er != erSuccess || flags != FOLDER_SEARCH)
 		return KCERR_NOT_FOUND;
 	return erSuccess;
 }
