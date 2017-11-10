@@ -47,8 +47,12 @@ class Table(object):
     def header(self):
         return [_unicode(REV_TAG.get(c, hex(c))) for c in self.mapitable.QueryColumns(0)]
 
-    def rows(self, batch_size=100):
+    def rows(self, batch_size=100, page_start=None, page_limit=None):
         offset = 0
+        if page_limit is not None:
+            batch_size = page_limit
+        if page_start is not None:
+            self.mapitable.SeekRow(0, page_start)
         try:
             while True:
                 result = self.mapitable.QueryRows(batch_size, offset)
@@ -57,6 +61,9 @@ class Table(object):
 
                 for row in result:
                     yield [_prop.Property(self.server.mapistore, c) for c in row]
+
+                if page_limit is not None:
+                    break
                 offset += batch_size
 
         except MAPIErrorNotFound:

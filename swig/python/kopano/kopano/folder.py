@@ -251,7 +251,7 @@ class Folder(Properties):
         item = _item.Item(self, mapiobj=mapiobj)
         return item
 
-    def items(self, restriction=None):
+    def items(self, restriction=None, page_start=None, page_limit=None):
         """ Return all :class:`items <Item>` in folder, reverse sorted on received date """
 
         # TODO determine preload columns dynamically, based on usage pattern
@@ -275,7 +275,7 @@ class Folder(Properties):
 
         table.sort(-1 * PR_MESSAGE_DELIVERY_TIME)
 
-        for row in table.rows():
+        for row in table.rows(page_start=page_start, page_limit=page_limit):
             item = _item.Item(
                 self,
                 entryid = row[0].value,
