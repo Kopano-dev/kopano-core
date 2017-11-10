@@ -1571,40 +1571,37 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 	}
 
 	if (ulObjType == MAPI_FOLDER || ulObjType == MAPI_STORE || ulObjType == MAPI_MESSAGE) {
-        // Get PARENT_ENTRYID
-        strQuery = "SELECT hierarchy.parent,hierarchy.flags,hierarchy.type FROM hierarchy WHERE hierarchy.id="+stringify(ulObjId) + " LIMIT 1";
-        er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-        if(er != erSuccess)
+		unsigned int cached_parent = 0, cached_flags = 0, cached_type = 0;
+
+		er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjId, &cached_parent, NULL, &cached_flags, &cached_type);
+		if (er != erSuccess)
 			return er;
 
-		if (lpDBResult.get_num_rows() > 0) {
-			lpDBRow = lpDBResult.fetch_row();
-			if (lpDBRow != nullptr && lpDBRow[0] != nullptr &&
-			    ECGenProps::GetPropComputedUncached(soap, nullptr, lpecSession, PR_PARENT_ENTRYID, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
-				sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
-				sChildProps.lpPropVals->AddPropVal(sPropVal);
-			}
+		// Get PARENT_ENTRYID
+		if (cached_parent != CACHE_NO_PARENT &&
+			ECGenProps::GetPropComputedUncached(soap, nullptr, lpecSession, PR_PARENT_ENTRYID, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+			sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
+			sChildProps.lpPropVals->AddPropVal(sPropVal);
+		}
 
-			// PR_RIGHTS
-			if (lpDBRow != nullptr && lpDBRow[1] != nullptr && lpDBRow[2] != nullptr && atoi(lpDBRow[2]) == 3 &&
-				ECGenProps::GetPropComputedUncached(soap, nullptr, lpecSession, PR_RIGHTS, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
-				sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
-				sChildProps.lpPropVals->AddPropVal(sPropVal);
-			}
+		// PR_RIGHTS
+		if (cached_type == MAPI_FOLDER &&
+			ECGenProps::GetPropComputedUncached(soap, nullptr, lpecSession, PR_RIGHTS, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+			sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
+			sChildProps.lpPropVals->AddPropVal(sPropVal);
+		}
 
-			// Set the flags PR_ACCESS and PR_ACCESS_LEVEL
-			if (lpDBRow != nullptr && lpDBRow[0] != nullptr && lpDBRow[2] != nullptr && (atoi(lpDBRow[2]) == 3 || atoi(lpDBRow[2]) == 5) && lpDBRow[1] != nullptr &&
-				ECGenProps::GetPropComputedUncached(soap, nullptr, lpecSession, PR_ACCESS, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
-				sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
-				sChildProps.lpPropVals->AddPropVal(sPropVal);
-			}
-			if (lpDBRow != nullptr && lpDBRow[2] != nullptr && lpDBRow[1] != nullptr &&
-			    ECGenProps::GetPropComputedUncached(soap, nullptr, lpecSession, PR_ACCESS_LEVEL, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
-				sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
-				sChildProps.lpPropVals->AddPropVal(sPropVal);
-			}
-        }
-    }
+		// Set the flags PR_ACCESS and PR_ACCESS_LEVEL
+		if (cached_parent != CACHE_NO_PARENT && (cached_type == MAPI_FOLDER || cached_type == MAPI_MESSAGE) &&
+			ECGenProps::GetPropComputedUncached(soap, nullptr, lpecSession, PR_ACCESS, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+			sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
+			sChildProps.lpPropVals->AddPropVal(sPropVal);
+		}
+		if (ECGenProps::GetPropComputedUncached(soap, nullptr, lpecSession, PR_ACCESS_LEVEL, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+			sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
+			sChildProps.lpPropVals->AddPropVal(sPropVal);
+		}
+	}
     
 	er = sChildProps.lpPropTags->GetPropTagArray(lpsPropTag);
 	if(er != erSuccess)
