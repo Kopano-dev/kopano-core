@@ -2708,7 +2708,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 	if (er != erSuccess)
 		return er;
-	er = lpAttachmentStorage->Begin();
+	auto atx = lpAttachmentStorage->Begin(er);
 	if (er != erSuccess)
 		return er;
 	er = lpDatabase->Begin();
@@ -2923,7 +2923,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 			goto exit;
 	}
 
-	er = lpAttachmentStorage->Commit();
+	er = atx.commit();
 	if (er != erSuccess)
 		goto exit;
 
@@ -2941,8 +2941,6 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 	g_lpStatsCollector->Increment(SCN_DATABASE_MWOPS);
 	
 exit:
-	if (er != erSuccess && lpAttachmentStorage)
-		lpAttachmentStorage->Rollback();
 	ROLLBACK_ON_ERROR();
 }
 SOAP_ENTRY_END()
@@ -7365,6 +7363,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	}
 
 	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
+	kd_trans atx;
 	if (!lpAttachmentStorage) {
 		if (!bIsRoot) {
 			ec_log_err("CopyObject: \"!attachmentstore && !isroot\" clause failed: %s (%x)", GetMAPIErrorMessage(er), er);
@@ -7415,7 +7414,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 
 		// Start transaction
 		if (lpInternalAttachmentStorage) {
-			er = lpInternalAttachmentStorage->Begin();
+			atx = lpInternalAttachmentStorage->Begin(er);
 			if (er != erSuccess) {
 				ec_log_err("CopyObject: starting transaction in attachment storage failed: %s (%x)", GetMAPIErrorMessage(er), er);
 				goto exit;
@@ -7629,8 +7628,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 				ec_log_err("CopyObject: ECTPropsPurge::AddDeferredUpdate(%u): %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
 				goto exit;
 			}
-
-			er = lpInternalAttachmentStorage->Commit();
+			er = atx.commit();
 			if (er != erSuccess) {
 				ec_log_err("CopyObject: attachmentstorage commit failed: %s (%x)", GetMAPIErrorMessage(er), er);
 				goto exit;
@@ -7678,11 +7676,8 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	}
 
 exit:
-	if(er != erSuccess && lpInternalAttachmentStorage) {
-		// Rollback attachments and database!
-		lpInternalAttachmentStorage->Rollback();
+	if (er != erSuccess)
 		lpDatabase->Rollback();
-	}
 	if(lpsNewEntryId)
 		FreeEntryId(lpsNewEntryId, true);
 
@@ -7747,8 +7742,7 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		ec_log_err("CopyFolderObjects: GetStore for %u (from cache) failed: %s (%x)", ulFolderFrom, GetMAPIErrorMessage(er), er);
 		return er;
 	}
-
-	er = lpAttachmentStorage->Begin();
+	auto atx = lpAttachmentStorage->Begin(er);
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: Begin() on attachment storage failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		return er;
@@ -7877,8 +7871,7 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		ec_log_err("CopyFolderObjects: database commit failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		goto exit;
 	}
-
-	er = lpAttachmentStorage->Commit();
+	er = atx.commit();
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: attachment storage commit failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		goto exit;
@@ -7936,8 +7929,7 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 exit:
     if(lpDatabase && er != erSuccess && er != KCWARN_PARTIAL_COMPLETION) {
         lpDatabase->Rollback();
-		if (lpAttachmentStorage)
-			lpAttachmentStorage->Rollback();
+		atx.rollback();
 	}
 	return er;
 
@@ -10227,6 +10219,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	MTOMSessionInfo		*lpMTOMSessionInfo = NULL;
 
 	USE_DATABASE();
+	kd_trans atx;
 
 	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 	if (er != erSuccess)
@@ -10246,10 +10239,9 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	soap_info(soap)->fdone = MTOMSessionDone;
 	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 
-	er = lpAttachmentStorage->Begin();
+	atx = lpAttachmentStorage->Begin(er);
 	if (er != erSuccess)
 		goto exit;
-
 	er = lpDatabase->Begin();
 	if (er != erSuccess)
 		goto exit;
@@ -10452,7 +10444,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 			goto exit;
 	}
 
-	er = lpAttachmentStorage->Commit();
+	er = atx.commit();
 	if (er != erSuccess)
 		goto exit;
 
@@ -10469,9 +10461,6 @@ exit:
 	if (lpsStreamInfo != NULL && lpsStreamInfo->lpPropValArray != NULL)
 		FreePropValArray(lpsStreamInfo->lpPropValArray, true);
 	FreeDeletedItems(&lstDeleteItems);
-
-	if(lpAttachmentStorage && er != erSuccess)
-		lpAttachmentStorage->Rollback();
 	ROLLBACK_ON_ERROR();
 	if (er != erSuccess) {
 		// remove from cache, else we can get sync issue, with missing messages offline

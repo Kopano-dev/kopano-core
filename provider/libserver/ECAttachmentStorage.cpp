@@ -1039,9 +1039,9 @@ ECRESULT ECDatabaseAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulS
 	return erSuccess;
 }
 
-ECRESULT ECDatabaseAttachment::Begin()
+kd_trans ECDatabaseAttachment::Begin(ECRESULT &res)
 {
-	return erSuccess;
+	return kd_trans(*this, res);
 }
 
 ECRESULT ECDatabaseAttachment::Commit()
@@ -2033,12 +2033,12 @@ exit:
 	return er;
 }
 
-ECRESULT ECFileAttachment::Begin()
+kd_trans ECFileAttachment::Begin(ECRESULT &trigger)
 {
 	if(m_bTransaction) {
 		// Possible a duplicate begin call, don't destroy the data in production
 		assert(false);
-		return erSuccess;
+		return kd_trans();
 	}
 
 	// Set begin values
@@ -2046,7 +2046,7 @@ ECRESULT ECFileAttachment::Begin()
 	m_setDeletedAttachment.clear();
 	m_setMarkedAttachment.clear();
 	m_bTransaction = true;
-	return erSuccess;
+	return kd_trans(*this, trigger);
 }
 
 ECRESULT ECFileAttachment::Commit()

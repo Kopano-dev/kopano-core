@@ -849,18 +849,18 @@ ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
 	return erSuccess;
 }
 
-ECRESULT ECS3Attachment::Begin(void)
+kd_trans ECS3Attachment::Begin(ECRESULT &trigger)
 {
 	ec_log_debug("S3: begin transaction");
 	if (m_transact) {
 		/* Possible a duplicate begin call, don't destroy the data in production */
 		assert(false);
-		return erSuccess;
+		return kd_trans();
 	}
 	m_new_att.clear();
 	m_marked_att.clear();
 	m_transact = true;
-	return erSuccess;
+	return kd_trans(*this, trigger);
 }
 
 ECRESULT ECS3Attachment::Commit(void)

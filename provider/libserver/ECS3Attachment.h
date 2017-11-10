@@ -37,10 +37,7 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	virtual ECRESULT DeleteAttachmentInstances(const std::list<ULONG> &, bool);
 	virtual ECRESULT DeleteAttachmentInstance(ULONG, bool);
 	virtual ECRESULT GetSizeInstance(ULONG, size_t *, bool * = NULL);
-
-	virtual ECRESULT Begin(void);
-	virtual ECRESULT Commit(void);
-	virtual ECRESULT Rollback(void);
+	virtual kd_trans Begin(ECRESULT &) override;
 
 	private:
 	static S3Status response_prop_cb(const S3ResponseProperties *, void *);
@@ -57,6 +54,8 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	bool should_retry(struct s3_cd &);
 	struct s3_cd create_cd(void);
 	ECRESULT del_marked_att(ULONG);
+	virtual ECRESULT Commit() override;
+	virtual ECRESULT Rollback() override;
 
 	/* Variables: */
 	std::string m_basepath;
