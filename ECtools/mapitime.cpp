@@ -206,6 +206,42 @@ static int mpt_main_lsr(bool with_ping)
 	return EXIT_SUCCESS;
 }
 
+static int mpt_main_orc(bool with_ping)
+{
+	AutoMAPI automapi;
+	auto ret = automapi.Initialize();
+	if (ret != hrSuccess) {
+		perror("MAPIInitialize");
+		return EXIT_FAILURE;
+	}
+
+	int err = mpt_setup_tick();
+	if (err < 0)
+		return EXIT_FAILURE;
+
+	object_ptr<IMAPISession> ses;
+	ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
+	      mpt_socket, 0, nullptr, nullptr);
+	if (ret != hrSuccess) {
+		fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
+		return EXIT_FAILURE;
+	}
+	object_ptr<IMsgStore> store;
+	ret = HrOpenDefaultStore(ses, &~store);
+
+	struct mpt_stat_entry dp;
+	convert_context converter;
+	while (mpt_repeat-- > 0) {
+		dp.start = clk::now();
+		ULONG ulType = 0;
+		object_ptr<IMAPIFolder> root;
+		store->OpenEntry(0, nullptr, &iid_of(root), MAPI_MODIFY, &ulType, &~root);
+		dp.stop = clk::now();
+		mpt_stat_record(dp);
+	}
+	return EXIT_SUCCESS;
+}
+
 static int mpt_main_pagetime(int argc, char **argv)
 {
 	if (argc < 2) {
@@ -362,6 +398,7 @@ static void mpt_usage(void)
 	fprintf(stderr, "  ping        Issue login/logoff/PING RPCs, and measure all\n");
 	fprintf(stderr, "  lsr         Measure profile save-restore cycle\n");
 	fprintf(stderr, "  lsr+ping    lsr with forced network access (PING RPC)\n");
+	fprintf(stderr, "  orc         Open root container\n");
 	fprintf(stderr, "  pagetime    Measure webpage retrieval time\n");
 	fprintf(stderr, "  exectime    Measure process runtime\n");
 	fprintf(stderr, "  qicast      Measure QueryInterface throughput\n");
@@ -438,6 +475,8 @@ int main(int argc, char **argv)
 		return mpt_main_lsr(false);
 	else if (strcmp(argv[1], "lsr+ping") == 0)
 		return mpt_main_lsr(true);
+	else if (strcmp(argv[1], "orc") == 0)
+		return mpt_main_orc(false);
 	else if (strcmp(argv[1], "exectime") == 0)
 		return mpt_main_exectime(argc - 1, argv + 1);
 	else if (strcmp(argv[1], "pagetime") == 0)
