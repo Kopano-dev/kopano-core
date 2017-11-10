@@ -11,7 +11,7 @@ import kopano
 from kopano.parser import _true, _int, _name, _guid, _bool, _list_name, _date, _path
 
 def parser_opt_args():
-    parser = kopano.parser('skpcuGCfV')
+    parser = kopano.parser('skpcuGCfVUP')
     parser.add_option('--debug', help='Debug mode', **_true())
     parser.add_option('--lang', help='Create folders in this language')
     parser.add_option('--sync', help='Synchronize users and groups with external source', **_true())
@@ -341,17 +341,6 @@ def user_options(name, options, server):
         for folder in [user.root] + list(user.folders()):
             folder.recount()
 
-    if options.fullname:
-        user.fullname = options.fullname
-    if options.password:
-        user.password = options.password
-    if options.password_prompt:
-        user.password = getpass.getpass("Password for '%s': " % user.name)
-    if options.admin_level is not None:
-        user.admin_level = options.admin_level
-    if options.active is not None:
-        user.active = options.active
-
     if options.mr_accept is not None:
         user.autoaccept.enabled = options.mr_accept
     if options.mr_accept_conflicts is not None:
@@ -383,6 +372,17 @@ def user_options(name, options, server):
         user.outofoffice.start = options.ooo_from
     if options.ooo_until is not None:
         user.outofoffice.end = options.ooo_until
+
+    if options.fullname:
+        user.fullname = options.fullname
+    if options.password:
+        user.password = options.password
+    if options.password_prompt:
+        user.password = getpass.getpass("Password for '%s': " % user.name)
+    if options.admin_level is not None:
+        user.admin_level = options.admin_level
+    if options.active is not None:
+        user.active = options.active
 
     if options.details:
         user_details(user)
