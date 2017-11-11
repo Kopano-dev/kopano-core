@@ -744,7 +744,7 @@ int zcp_peeraddr_is_local(const struct sockaddr *peer_sockaddr,
 int zcp_peerfd_is_local(int fd)
 {
 	struct sockaddr_storage peer_sockaddr;
-	socklen_t peer_socklen = sizeof(sockaddr);
+	socklen_t peer_socklen = sizeof(peer_sockaddr);
 	auto sa = reinterpret_cast<struct sockaddr *>(&peer_sockaddr);
 	int ret = getsockname(fd, sa, &peer_socklen);
 	if (ret < 0)
