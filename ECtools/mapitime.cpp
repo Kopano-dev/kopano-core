@@ -21,6 +21,7 @@
 #ifdef HAVE_CURL_CURL_H
 #	include <curl/curl.h>
 #endif
+#define NO_NOTIFY EC_PROFILE_FLAGS_NO_NOTIFICATIONS
 
 struct mpt_stat_entry {
 	KC::time_point start, stop;
@@ -142,7 +143,7 @@ static int mpt_main_login(bool with_lo, bool with_ping)
 		object_ptr<IMAPISession> ses;
 		dp.start = clk::now();
 		ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
-		      mpt_socket, 0, NULL, NULL);
+		      mpt_socket, NO_NOTIFY, NULL, NULL);
 		if (!with_lo)
 			dp.stop = clk::now();
 		if (ret != hrSuccess) {
@@ -178,7 +179,7 @@ static int mpt_main_lsr(bool with_ping)
 
 	object_ptr<IMAPISession> ses;
 	ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
-	      mpt_socket, 0, nullptr, nullptr);
+	      mpt_socket, NO_NOTIFY, nullptr, nullptr);
 	if (ret != hrSuccess) {
 		fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
 		return EXIT_FAILURE;
@@ -221,7 +222,7 @@ static int mpt_main_orc(bool with_ping)
 
 	object_ptr<IMAPISession> ses;
 	ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
-	      mpt_socket, 0, nullptr, nullptr);
+	      mpt_socket, NO_NOTIFY, nullptr, nullptr);
 	if (ret != hrSuccess) {
 		fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
 		return EXIT_FAILURE;
