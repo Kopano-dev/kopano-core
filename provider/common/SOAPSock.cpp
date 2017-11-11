@@ -100,7 +100,8 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
 	// chances of this happening are, of course, small, but also very real.
 
 	soap->status = SOAP_POST;
-
+	/* Do like gsoap's tcp_connect would */
+	soap->keep_alive = -((soap->omode & SOAP_IO_KEEPALIVE) != 0);
    	return SOAP_OK;
 }
 
