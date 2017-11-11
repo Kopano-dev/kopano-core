@@ -544,31 +544,28 @@ ECRESULT ECDispatcher::NotifyDone(struct soap *soap)
     if(m_bExit) {	
 		kopano_end_soap_connection(soap);
         soap_free(soap);
-    } else {
-		--soap->max_keep_alive;
-		if (soap->max_keep_alive == 0)
-			soap->keep_alive = 0;
-        if(soap->socket != SOAP_INVALID_SOCKET) {
-			SOAP_SOCKET	socket;
-			socket = soap->socket;
-            ACTIVESOCKET sActive;
-            
-            sActive.soap = soap;
-            time(&sActive.ulLastActivity);
-            
-			ulock_normal l_sock(m_mutexSockets);
-			m_setSockets.emplace(soap->socket, sActive);
-			l_sock.unlock();
-            // Notify select restart, send socket number which is done
-			NotifyRestart(socket);
-        } else {
-            // SOAP has closed the socket, no need to requeue
-			kopano_end_soap_connection(soap);
-            soap_free(soap);
-        }
-    }
-    
-    return erSuccess;
+		return erSuccess;
+	}
+	--soap->max_keep_alive;
+	if (soap->max_keep_alive == 0)
+		soap->keep_alive = 0;
+	if (soap->socket == SOAP_INVALID_SOCKET) {
+		// SOAP has closed the socket, no need to requeue
+		kopano_end_soap_connection(soap);
+		soap_free(soap);
+		return erSuccess;
+	}
+
+	SOAP_SOCKET socket = soap->socket;
+	ACTIVESOCKET sActive;
+	sActive.soap = soap;
+	time(&sActive.ulLastActivity);
+	ulock_normal l_sock(m_mutexSockets);
+	m_setSockets.emplace(soap->socket, sActive);
+	l_sock.unlock();
+	// Notify select restart, send socket number which is done
+	NotifyRestart(socket);
+	return erSuccess;
 }
 
 // Set the nominal thread count
