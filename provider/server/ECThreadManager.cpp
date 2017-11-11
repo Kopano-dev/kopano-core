@@ -546,9 +546,6 @@ ECRESULT ECDispatcher::NotifyDone(struct soap *soap)
         soap_free(soap);
 		return erSuccess;
 	}
-	--soap->max_keep_alive;
-	if (soap->max_keep_alive == 0)
-		soap->keep_alive = 0;
 	if (soap->socket == SOAP_INVALID_SOCKET) {
 		// SOAP has closed the socket, no need to requeue
 		kopano_end_soap_connection(soap);
