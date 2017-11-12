@@ -34,8 +34,8 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	virtual ECRESULT LoadAttachmentInstance(ULONG, size_t *, ECSerializer *);
 	virtual ECRESULT SaveAttachmentInstance(ULONG, ULONG, size_t, unsigned char *);
 	virtual ECRESULT SaveAttachmentInstance(ULONG, ULONG, size_t, ECSerializer *);
-	virtual ECRESULT DeleteAttachmentInstances(const std::list<ULONG> &, bool);
-	virtual ECRESULT DeleteAttachmentInstance(ULONG, bool);
+	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) override;
+	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
 	virtual ECRESULT GetSizeInstance(ULONG, size_t *, bool * = NULL);
 	virtual kd_trans Begin(ECRESULT &) override;
 

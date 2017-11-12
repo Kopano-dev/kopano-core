@@ -682,11 +682,11 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
  *
  * @return Kopano error code
  */
-ECRESULT ECS3Attachment::DeleteAttachmentInstances(const std::list<ULONG> &lstDeleteInstances, bool bReplace)
+ECRESULT ECS3Attachment::DeleteAttachmentInstances(const std::list<ext_siid> &lstDeleteInstances, bool bReplace)
 {
 	ECRESULT ret = erSuccess;
 	int errors = 0;
-	for (auto del_id : lstDeleteInstances) {
+	for (const auto &del_id : lstDeleteInstances) {
 		ret = this->DeleteAttachmentInstance(del_id, bReplace);
 		if (ret != erSuccess)
 			++errors;
@@ -743,15 +743,15 @@ ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
  *
  * @return
  */
-ECRESULT ECS3Attachment::DeleteAttachmentInstance(ULONG ins_id,
+ECRESULT ECS3Attachment::DeleteAttachmentInstance(const ext_siid &ins_id,
     bool bReplace)
 {
-	std::string filename = make_att_filename(ins_id, m_bFileCompression);
+	auto filename = make_att_filename(ins_id.siid, m_bFileCompression);
 
 	if (!m_transact)
-		return del_marked_att(ins_id);
-	ec_log_debug("S3: set delete mark for %u", ins_id);
-	m_marked_att.emplace(ins_id);
+		return del_marked_att(ins_id.siid);
+	ec_log_debug("S3: set delete mark for %u", ins_id.siid);
+	m_marked_att.emplace(ins_id.siid);
 	return erSuccess;
 }
 
