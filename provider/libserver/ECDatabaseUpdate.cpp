@@ -136,4 +136,9 @@ ECRESULT db_update_70(ECDatabase *db)
 	return db->DoUpdate("ALTER TABLE `names` CHANGE COLUMN `guid` `guid` binary(16) NOT NULL");
 }
 
+ECRESULT db_update_71(ECDatabase *d)
+{
+	return d->DoUpdate("ALTER TABLE `singleinstances` ADD COLUMN `filename` VARCHAR(255) DEFAULT NULL");
+}
+
 } /* namespace */
