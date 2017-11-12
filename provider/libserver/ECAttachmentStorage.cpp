@@ -608,12 +608,7 @@ ECRESULT ECAttachmentStorage::DeleteAttachments(const std::list<ULONG> &lstDelet
 	std::list<ULONG> lstAttachments;
 	std::list<ULONG> lstDeleteAttach;
 
-	/*
-	 * Convert object ids into attachment ids
-	 * NOTE: lstDeleteObjects.size() >= lstAttachments.size()
-	 * because the list does not 100% consists of attachments id and the
-	 * duplicate attachment ids will be filtered out.
-	 */
+	/* Convert object ids into attachment ids */
 	auto er = GetSingleInstanceIds(lstDeleteObjects, &lstAttachments);
 	if (er != erSuccess)
 		return er;
