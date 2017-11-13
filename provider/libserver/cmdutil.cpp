@@ -1922,7 +1922,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 
     if(!setUncached.empty()) {    
         // For the items that were uncached, go directly to their parent (or the item itself for folders) in the DB
-        strQuery = "SELECT hierarchyid, hierarchy.type, hierarchy.parent FROM indexedproperties JOIN hierarchy ON hierarchy.id=indexedproperties.hierarchyid WHERE tag = " + stringify(ulTag) + " AND val_binary IN(";
+        strQuery = "SELECT hierarchyid, hierarchy.type, hierarchy.parent, hierarchy.owner, hierarchy.flags FROM indexedproperties JOIN hierarchy ON hierarchy.id=indexedproperties.hierarchyid WHERE tag = " + stringify(ulTag) + " AND val_binary IN(";
         for (auto i = setUncached.cbegin(); i != setUncached.cend(); ++i) {
             if (i != setUncached.cbegin())
                 strQuery += ",";
@@ -1935,13 +1935,17 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
             return er;
         
         while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-            if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL)
+            if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL || lpDBRow[4] == NULL)
                 continue;
-                
+			if(atoui(lpDBRow[1]) != MAPI_MESSAGE && atoui(lpDBRow[1]) != MAPI_FOLDER)
+				continue;
+
             if(atoui(lpDBRow[1]) == MAPI_MESSAGE)
 				setFolders.emplace(atoui(lpDBRow[2]));
             else if(atoui(lpDBRow[1]) == MAPI_FOLDER)
 				setFolders.emplace(atoui(lpDBRow[0]));
+
+			g_lpSessionManager->GetCacheManager()->SetObject(atoui(lpDBRow[0]), atoui(lpDBRow[2]), atoui(lpDBRow[3]), atoui(lpDBRow[4]), atoui(lpDBRow[1]));
         }
     }
         
