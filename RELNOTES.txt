@@ -1,3 +1,9 @@
+Release notes for 8.4.4
+=======================
+* common: fix detection of local connections that need not use zlib compression
+* libserver: improve ECICS error reporting [KC-880]
+
+
 Release notes for 8.4.3 (2017-11-07)
 ====================================
 Enhancements:
