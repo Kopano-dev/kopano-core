@@ -85,6 +85,12 @@ else:
     import utils as _utils
     import ics as _ics
 
+# TODO generalize, autogenerate basic item getters/setters?
+PROPMAP = {
+    'subject': PR_SUBJECT_W,
+    'received':  PR_MESSAGE_DELIVERY_TIME,
+}
+
 class Folder(Properties):
     """Folder class"""
 
@@ -251,8 +257,18 @@ class Folder(Properties):
         item = _item.Item(self, mapiobj=mapiobj)
         return item
 
-    def items(self, restriction=None, page_start=None, page_limit=None):
-        """ Return all :class:`items <Item>` in folder, reverse sorted on received date """
+    def items(self, restriction=None, page_start=None, page_limit=None,
+            order='-received',
+        ):
+        """Return all :class:`items <Item>` in folder, reverse sorted on
+        received date.
+
+        :param restriction: apply :class:`restriction <Restriction>`
+        :param order: order by (limited set of) attributes, e.g. 'subject',
+            '-subject' (reverse order), or ('subject', 'received').
+        :param page_start: skip this many items from the start
+        :param page_limit: return up to this many items
+        """
 
         # TODO determine preload columns dynamically, based on usage pattern
         columns = [
@@ -273,7 +289,16 @@ class Folder(Properties):
         except MAPIErrorNoSupport:
             return
 
-        table.sort(-1 * PR_MESSAGE_DELIVERY_TIME)
+        # TODO MAPI has more than just ascend/descend
+        if not isinstance(order, tuple):
+            order = (order,)
+        sorttags = []
+        for term in order:
+            if term.startswith('-'):
+                sorttags.append(-PROPMAP[term[1:]])
+            else:
+                sorttags.append(PROPMAP[term])
+        table.sort(tuple(sorttags))
 
         for row in table.rows(page_start=page_start, page_limit=page_limit):
             item = _item.Item(
