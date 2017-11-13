@@ -1004,7 +1004,7 @@ ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
  *
  * @returns		ECUSortKey object containing the blob
  */
-static ECUSortKey createSortKey(UnicodeString &&s, int nCap,
+static CollationKey createSortKey(UnicodeString &&s, int nCap,
     const ECLocale &locale)
 {
 	if (nCap > 1)
@@ -1084,23 +1084,6 @@ std::string createSortKeyDataFromUTF8(const char *s, int nCap,
 {
 	assert(s != NULL);
 	return createSortKeyData(UTF8ToUnicode(s), nCap, locale);
-}
-
-/**
- * Create a locale independent blob that can be used to sort
- * strings fast. This is used when a string would be compared
- * multiple times.
- *
- * @param[in]	s			The string to compare.
- * @param[in]	nCap		Base the key on the first nCap characters of s (if larger than 0).
- * @param[in]	locale		The locale used to create the sort key.
- *
- * @returns		The ECUSortKey containing the blob.
- */
-ECUSortKey createSortKeyFromUTF8(const char *s, int nCap, const ECLocale &locale)
-{
-	assert(s != NULL);
-	return createSortKey(UTF8ToUnicode(s), nCap, locale);
 }
 
 /**
