@@ -771,9 +771,14 @@ ECRESULT ECDispatcherSelect::MainLoop()
 			ulType = SOAP_CONNECTION_TYPE(p.second);
 			if (ulType == CONNECTION_TYPE_NAMED_PIPE ||
 			    ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
-				int socket = accept(newsoap->master, NULL, 0);
-				newsoap->errnum = errno;
-				newsoap->socket = socket;
+				socklen_t socklen = sizeof(newsoap->peer.storage);
+				newsoap->socket = accept(newsoap->master, &newsoap->peer.addr, &socklen);
+				newsoap->peerlen = socklen;
+				if (newsoap->socket == SOAP_INVALID_SOCKET ||
+				    socklen > sizeof(newsoap->peer.storage)) {
+					newsoap->peerlen = 0;
+					memset(&newsoap->peer, 0, sizeof(newsoap->peer));
+				}
 			} else {
 				soap_accept(newsoap);
 			}
@@ -858,12 +863,17 @@ ECDispatcherEPoll::ECDispatcherEPoll(ECConfig *lpConfig,
 	ECDispatcher(lpConfig, lpCallback, lpCallbackParam)
 {
 	m_fdMax = getdtablesize();
+	if (m_fdMax < 0)
+		throw std::runtime_error("getrlimit failed");
 	m_epFD = epoll_create(m_fdMax);
+	if (m_epFD < 0)
+		throw std::runtime_error("epoll_create failed");
 }
 
 ECDispatcherEPoll::~ECDispatcherEPoll()
 {
-	close(m_epFD);
+	if (m_epFD >= 0)
+		close(m_epFD);
 }
 
 ECRESULT ECDispatcherEPoll::MainLoop()

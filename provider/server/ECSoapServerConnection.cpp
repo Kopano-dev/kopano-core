@@ -16,7 +16,10 @@
  */
 
 #include <kopano/platform.h>
+#include <cerrno>
+#include <cstdlib>
 #include <ctime>
+#include <sys/socket.h>
 #include <kopano/ECLogger.h>
 
 #ifdef HAVE_SYS_STAT_H
@@ -297,6 +300,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	ECRESULT	er = erSuccess;
 	int			sPipe = -1;
 	struct soap	*lpsSoap = NULL;
+	socklen_t socklen;
 
 	if (lpPipeName == nullptr)
 		return KCERR_INVALID_PARAMETER;
@@ -322,8 +326,16 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	}
 
 	lpsSoap->master = sPipe;
-	lpsSoap->peerlen = 0;
-	memset(&lpsSoap->peer, 0, sizeof(lpsSoap->peer));
+	socklen = sizeof(lpsSoap->peer.storage);
+	if (getsockname(lpsSoap->socket, &lpsSoap->peer.addr, &socklen) != 0) {
+		ec_log_warn("getsockname %s: %s", m_strPipeName.c_str(), strerror(errno));
+		socklen = 0;
+	} else if (socklen > sizeof(lpsSoap->peer.storage)) {
+		socklen = 0;
+	}
+	lpsSoap->peerlen = socklen;
+	if (socklen == 0)
+		memset(&lpsSoap->peer, 0, sizeof(lpsSoap->peer));
 	m_lpDispatcher->AddListenSocket(lpsSoap);
 
 	/* Manually check for attachments, independent of streaming support. */

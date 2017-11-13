@@ -18,15 +18,16 @@
 #ifndef ECCHANNEL_H
 #define ECCHANNEL_H
 
+#include <set>
+#include <string>
+#include <utility>
 #include <kopano/zcdefs.h>
+#include <cstdint>
 #include <cstdio>
 #include <iostream>
 #include <sys/socket.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-
-#include <string>
-
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 
@@ -85,6 +86,7 @@ extern _kc_export HRESULT HrAccept(int fd, ECChannel **ch);
 extern _kc_export int zcp_bindtodevice(int fd, const char *iface);
 extern int zcp_peeraddr_is_local(const struct sockaddr *, socklen_t);
 extern _kc_export int zcp_peerfd_is_local(int);
+extern _kc_export std::set<std::pair<std::string, uint16_t>> kc_parse_bindaddrs(const char *, uint16_t);
 
 } /* namespace KC */
 
