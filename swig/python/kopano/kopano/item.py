@@ -529,16 +529,26 @@ class Item(Properties, Contact, Appointment):
         elif tag == PR_RTF_COMPRESSED:
             return 'rtf'
 
-    def eml(self, received_date=False):
-        """ Return .eml version of item """
+    def _generate_eml(self, received_date):
+        sopt = inetmapi.sending_options()
+        sopt.no_recipients_workaround = True
+        sopt.add_received_date = received_date
+        return inetmapi.IMToINet(self.store.server.mapisession, None, self.mapiobj, sopt)
+
+    def eml(self, received_date=False, stored=True):
+        """ convert the object to a RFC 2822 mail
+
+        :param received_date: add delivery date as received date
+        :param stored: use the stored PR_EC_IMAP_EMAIL instead of calling inetmapi to convert
+        """
+        if not stored:
+            return self._generate_eml(received_date)
+
         if self.emlfile is None:
             try:
                 self.emlfile = _utils.stream(self.mapiobj, PR_EC_IMAP_EMAIL)
             except MAPIErrorNotFound:
-                sopt = inetmapi.sending_options()
-                sopt.no_recipients_workaround = True
-                sopt.add_received_date = received_date
-                self.emlfile = inetmapi.IMToINet(self.store.server.mapisession, None, self.mapiobj, sopt)
+                self.emlfile = self._generate_eml(received_date)
         return self.emlfile
 
     def vcf(self): # XXX don't we have this builtin somewhere? very basic for now
