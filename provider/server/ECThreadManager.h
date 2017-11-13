@@ -213,7 +213,6 @@ protected:
 	void *					m_lpCreatePipeSocketParam;
 
 	// Socket settings (TCP + SSL)
-	int			m_nMaxKeepAlive;
 	int			m_nRecvTimeout;
 	int			m_nReadTimeout;
 	int			m_nSendTimeout;
