@@ -1,5 +1,20 @@
-Release notes for 8.4.2
+Release notes for 8.4.4
 =======================
+* common: fix detection of local connections that need not use zlib compression
+* libserver: improve ECICS error reporting [KC-880]
+
+
+Release notes for 8.4.3 (2017-11-07)
+====================================
+Enhancements:
+* dagent: enable automated backtraces when invoked with -f [KC-879]
+Fixes:
+* php5-ext: fix positive retval setting in error case [KC-875]
+* dagent: redirect rule led to crash [KC-868,KC-871]
+
+
+Release notes for 8.4.2 (2017-11-02)
+====================================
 * server: revert NO_UNSIGNED_SUBTRACTIONS [KC-841,KC-869]
 
 

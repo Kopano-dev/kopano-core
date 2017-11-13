@@ -91,7 +91,7 @@ int StatsClient::startup(const std::string &collectorSocket)
 		struct sockaddr_un laddr;
 		memset(&laddr, 0, sizeof(laddr));
 		laddr.sun_family = AF_UNIX;
-		int ret = snprintf(laddr.sun_path, sizeof(laddr.sun_path), "%s/.%x%x.sock", TmpPath::getInstance() -> getTempPath().c_str(), rand(), rand());
+		ret = snprintf(laddr.sun_path, sizeof(laddr.sun_path), "%s/.%x%x.sock", TmpPath::getInstance()->getTempPath().c_str(), rand(), rand());
 		if (ret >= 0 &&
 		    static_cast<size_t>(ret) >= sizeof(laddr.sun_path)) {
 			ec_log_err("%s: Random path too long (%s...) for AF_UNIX socket",

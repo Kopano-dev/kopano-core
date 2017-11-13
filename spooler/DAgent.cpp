@@ -3337,6 +3337,8 @@ int main(int argc, char *argv[]) {
 	stack_t st;
 	struct sigaction act;
 	struct rlimit file_limit;
+	memset(&st, 0, sizeof(st));
+	memset(&act, 0, sizeof(act));
 
 	DeliveryArgs sDeliveryArgs;
 		const char *szConfig = ECConfig::GetDefaultPath("dagent.cfg");
@@ -3615,8 +3617,6 @@ int main(int argc, char *argv[]) {
 	signal(SIGPIPE, SIG_IGN);
 
 	// SIGSEGV backtrace support
-	memset(&st, 0, sizeof(st));
-	memset(&act, 0, sizeof(act));
 	st.ss_sp = malloc(65536);
 	st.ss_flags = 0;
 	st.ss_size = 65536;
