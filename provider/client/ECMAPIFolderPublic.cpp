@@ -35,7 +35,6 @@
 #include <kopano/stringutil.h>
 #include "ECMsgStorePublic.h"
 
-#include "favoritesutil.h"
 #include <kopano/charset/convstring.h>
 
 #include <kopano/ECGetText.h>
@@ -463,8 +462,6 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 
 HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
-	ULONG ulObjType = 0;
 	memory_ptr<SPropValue> lpProp;
 
 	if (ValidateZEntryId(cbEntryID, reinterpret_cast<BYTE *>(lpEntryID), MAPI_FOLDER) == false)
@@ -473,18 +470,8 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, U
 		return ECMAPIFolder::DeleteFolder(cbEntryID, lpEntryID,
 		       ulUIParam, lpProgress, ulFlags);
 
-	// remove the shortcut from the shortcut folder
-	object_ptr<IMAPIFolder> lpFolder, lpShortcutFolder;
-	hr = OpenEntry(cbEntryID, lpEntryID, &iid_of(lpFolder), 0, &ulObjType, &~lpFolder);
-	if (hr != hrSuccess)
-		return hr;
-	hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &~lpProp);
-	if (hr != hrSuccess)
-		return hr;
-	hr = ((ECMsgStorePublic *)GetMsgStore())->GetDefaultShortcutFolder(&~lpShortcutFolder);
-	if (hr != hrSuccess)
-		return hr;
-	return DelFavoriteFolder(lpShortcutFolder, lpProp);
+	// favorite folder not supported
+	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
