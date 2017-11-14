@@ -31,7 +31,8 @@ from MAPI.Tags import (
     PR_FOLDER_ASSOCIATED_CONTENTS, PR_CONTAINER_HIERARCHY,
     PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME,
     CONVENIENT_DEPTH, PR_DEPTH, PR_CONTENT_COUNT, PR_ASSOC_CONTENT_COUNT,
-    PR_DELETED_MSG_COUNT, PR_LAST_MODIFICATION_TIME
+    PR_DELETED_MSG_COUNT, PR_LAST_MODIFICATION_TIME,
+    PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID,
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE
@@ -152,9 +153,8 @@ class Folder(Properties):
 
     @property
     def parent(self):
-        """Return :class:`parent <Folder>`"""
+        """:class:`Parent <Folder>` folder"""
         parent_eid = _hex(self._get_fast(PR_PARENT_ENTRYID))
-        # TODO public_store.subtree.parent -> inf loop
         if parent_eid != self.store.root.entryid: # root parent is root
             return Folder(self.store, parent_eid, _check_mapiobj=False)
 
@@ -169,13 +169,13 @@ class Folder(Properties):
 
     @property
     def subfolder_count(self):
-        """ Number of direct subfolders """
+        """Number of direct subfolders"""
 
         return self.prop(PR_FOLDER_CHILD_COUNT).value
 
     @property
     def name(self):
-        """ Folder name """
+        """Folder name"""
 
         name = self._get_fast(PR_DISPLAY_NAME_W)
 
@@ -194,18 +194,21 @@ class Folder(Properties):
         parent = self
         subtree_entryid = self.store.subtree.entryid
         root_entryid = self.store.root.entryid
-        while True:
-            names.append(parent.name)
-            # TODO table/mapiobj parent entryid are different
-            # for certain public store special folders, so we
-            # don't rely on cached table data here (fix server?)
-            parent_eid = _hex(parent.prop(PR_PARENT_ENTRYID).value)
-            if parent_eid == subtree_entryid:
-                return '/'.join(reversed(names))
+        # parent entryids coming from a table are not converted like normal
+        # parent entryids for certains public store folders (via getprops,
+        # or store PR_IPM_SUBTREE_ENTRYID), so we match with this property,
+        # which is also not converted
+        pub_entryid = _hex(self.store.get(PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, ''))
+
+        while parent:
+            parent_eid = parent.entryid
+            if parent_eid in (subtree_entryid, pub_entryid):
+                return '/'.join(reversed(names)) if names else None
             elif parent_eid == root_entryid:
                 return
             else:
-                parent = Folder(self.store, parent_eid)
+                names.append(parent.name)
+                parent = parent.parent
 
     @name.setter
     def name(self, name):
