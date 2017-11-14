@@ -1319,41 +1319,51 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, std::list<unsigned
 		return er;
 	}
 
-	std::string strQuery = "INSERT IGNORE INTO searchresults (folderid, hierarchyid, flags) VALUES";
+	std::string strQuery = "SELECT * FROM searchresults WHERE folderid = " +  stringify(ulFolderId) + " AND hierarchyid IN (";
 	for (const auto n : lstObjId) {
-        strQuery += "(";
-        strQuery += stringify(ulFolderId);
-        strQuery += ",";
-		strQuery += stringify(n);
-        strQuery += ",1),";
-    }
-    strQuery.resize(strQuery.size()-1);
-    
+		strQuery += stringify(n) + ",";
+	}
+	strQuery.resize(strQuery.size()-1);
+	strQuery += ") FOR UPDATE";
+
+	er = lpDatabase->DoSelect(strQuery, NULL);
+	if (er != erSuccess) {
+		ec_log_err("ECSearchFolders::AddResults(): DoSelect failed 0x%x", er);
+		return er;
+	}
+
+	strQuery = "INSERT IGNORE INTO searchresults (folderid, hierarchyid, flags) VALUES";
+	for (const auto n : lstObjId) {
+		strQuery += "(" + stringify(ulFolderId) + "," + stringify(n) + ",1),";
+	}
+	strQuery.resize(strQuery.size()-1);
+
     er = lpDatabase->DoInsert(strQuery, NULL, &ulInserted);
     if (er != erSuccess) {
 		ec_log_err("ECSearchFolders::AddResults(): DoInsert failed 0x%x", er);
 		return er;
 	}
 
-    /*
-     * Combining the following queries in one query seems to cause MySQL to do a range- or gaplock, causing deadlocks
-     * when folders with adjacent ids are updated at the same time.
-     */
-	for (auto i = lstFlags.cbegin(), j = lstObjId.cbegin();
-	     i != lstFlags.cend(); ++i, ++j) {
-        if(*i == 0) {
-            unsigned int modified = 0;
-            
-            strQuery = "UPDATE searchresults SET flags = 0 WHERE hierarchyid = " + stringify(*j) + " AND folderid = " + stringify(ulFolderId);
-            er = lpDatabase->DoUpdate(strQuery, &modified);
-            if (er != erSuccess) {
-			ec_log_err("ECSearchFolders::AddResults(): UPDATE failed 0x%x", er);
-			return er;
+	unsigned int n = 0;
+	strQuery = "UPDATE searchresults SET flags = 0 WHERE hierarchyid IN (";
+	for (auto i = lstFlags.cbegin(), j = lstObjId.cbegin(); i != lstFlags.cend(); i++, j++) {
+		if (*i != 0)
+			continue;
+
+		strQuery += stringify(*j) + ",";
+		n++;
 	}
 
-            ulModified += modified;
-        }
-    }
+	if (n > 0) {
+		strQuery.resize(strQuery.size()-1);
+		strQuery += ") AND folderid = " + stringify(ulFolderId);
+
+		er = lpDatabase->DoUpdate(strQuery, &ulModified);
+		if (er != erSuccess) {
+			ec_log_err("ECSearchFolders::AddResults(): UPDATE failed 0x%x", er);
+			return er;
+		}
+	}
 
 	if (lpulCount != NULL)
 		*lpulCount += ulInserted;
