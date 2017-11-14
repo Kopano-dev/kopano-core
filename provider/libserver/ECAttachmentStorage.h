@@ -72,7 +72,7 @@ public:
 	ECRESULT GetSingleInstanceParents(ULONG ulInstanceId, std::list<ext_siid> *);
 
 	/* Single Instance Attachment handlers (must be overridden by subclasses) */
-	virtual bool ExistAttachmentInstance(ULONG ulInstanceId) = 0;
+	virtual bool ExistAttachmentInstance(const ext_siid &) = 0;
 	virtual kd_trans Begin(ECRESULT &) = 0;
 protected:
 	virtual ~ECAttachmentStorage(void) = default;
@@ -84,7 +84,7 @@ protected:
 	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, ECSerializer *) = 0;
 	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) = 0;
 	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) = 0;
-	virtual ECRESULT GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize, bool *lpbCompressed = NULL) = 0;
+	virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *size, bool *comp = nullptr) = 0;
 
 private:
 	/* Count the number of times an attachment is referenced */
@@ -106,14 +106,14 @@ public:
 
 protected:
 	/* Single Instance Attachment handlers */
-	virtual bool ExistAttachmentInstance(ULONG ulInstanceId);
+	virtual bool ExistAttachmentInstance(const ext_siid &) override;
 	virtual ECRESULT LoadAttachmentInstance(struct soap *soap, const ext_siid &, size_t *size, unsigned char **data) override;
 	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *size, ECSerializer *sink) override;
 	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, unsigned char *) override;
 	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, ECSerializer *) override;
 	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) override;
 	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
-	virtual ECRESULT GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize, bool *lpbCompressed = NULL);
+	virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *size, bool *comp = nullptr) override;
 	virtual kd_trans Begin(ECRESULT &) override;
 
 	private:
@@ -130,14 +130,14 @@ protected:
 	_kc_hidden virtual ~ECFileAttachment(void);
 	
 	/* Single Instance Attachment handlers */
-	_kc_hidden virtual bool ExistAttachmentInstance(ULONG instance);
+	_kc_hidden virtual bool ExistAttachmentInstance(const ext_siid &) override;
 	_kc_hidden virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;
 	_kc_hidden virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *, ECSerializer *) override;
 	_kc_hidden virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, unsigned char *) override;
 	_kc_hidden virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, ECSerializer *) override;
 	_kc_hidden virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) override;
 	_kc_hidden virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
-	_kc_hidden virtual ECRESULT GetSizeInstance(ULONG instance, size_t *size, bool *compr = nullptr);
+	_kc_hidden virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *size, bool *compr = nullptr) override;
 	_kc_hidden virtual kd_trans Begin(ECRESULT &) override;
 private:
 	_kc_hidden std::string CreateAttachmentFilename(ULONG instance, bool compressed);

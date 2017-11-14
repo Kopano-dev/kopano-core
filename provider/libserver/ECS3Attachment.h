@@ -29,14 +29,14 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	virtual ~ECS3Attachment(void);
 
 	/* Single Instance Attachment handlers */
-	virtual bool ExistAttachmentInstance(ULONG);
+	virtual bool ExistAttachmentInstance(const ext_siid &) override;
 	virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;
 	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *, ECSerializer *) override;
 	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG, size_t, unsigned char *) override;
 	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG, size_t, ECSerializer *) override;
 	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) override;
 	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
-	virtual ECRESULT GetSizeInstance(ULONG, size_t *, bool * = NULL);
+	virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *, bool * = nullptr) override;
 	virtual kd_trans Begin(ECRESULT &) override;
 
 	private:

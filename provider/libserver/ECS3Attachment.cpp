@@ -428,7 +428,7 @@ int ECS3Attachment::put_obj(int bufferSize, char *buffer, void *cbdata)
  *
  * @return instance present
  */
-bool ECS3Attachment::ExistAttachmentInstance(ULONG ins_id)
+bool ECS3Attachment::ExistAttachmentInstance(const ext_siid &ins_id)
 {
 	size_t ignored;
 	return GetSizeInstance(ins_id, &ignored, nullptr) == hrSuccess;
@@ -795,15 +795,15 @@ bool ECS3Attachment::should_retry(struct s3_cd &cd)
  *
  * @return Kopano error code
  */
-ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
-    bool *compr_p)
+ECRESULT ECS3Attachment::GetSizeInstance(const ext_siid &ins_id,
+    size_t *size_p, bool *compr_p)
 {
 	bool comp = false;
-	std::string filename = make_att_filename(ins_id, comp);
+	auto filename = make_att_filename(ins_id.siid, comp);
 	auto fn = filename.c_str();
 
 	ulock_normal locker(m_cachelock);
-	auto cache_item = m_cache.find(ins_id);
+	auto cache_item = m_cache.find(ins_id.siid);
 	if (cache_item != m_cache.cend() && steady_clock::now() < cache_item->second.valid_until) {
 		if (cache_item->second.size == S3_NEGATIVE_ENTRY)
 			return KCERR_NOT_FOUND;
@@ -837,13 +837,13 @@ ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
 		fn, DY_get_status_name(cd.status), cd.size);
 	if (cd.status == S3StatusHttpErrorNotFound) {
 		locker.lock();
-		m_cache[ins_id] = {now_negative(), S3_NEGATIVE_ENTRY};
+		m_cache[ins_id.siid] = {now_negative(), S3_NEGATIVE_ENTRY};
 		return KCERR_NOT_FOUND;
 	}
 	if (cd.status != S3StatusOK)
 		return KCERR_NOT_FOUND;
 	locker.lock();
-	m_cache[ins_id] = {now_positive(), cd.size};
+	m_cache[ins_id.siid] = {now_positive(), cd.size};
 	*size_p = cd.size;
 	if (compr_p != NULL)
 		*compr_p = comp;

@@ -729,11 +729,11 @@ ECDatabaseAttachment::ECDatabaseAttachment(ECDatabase *lpDatabase) :
  * 
  * @return instance present
  */
-bool ECDatabaseAttachment::ExistAttachmentInstance(ULONG ulInstanceId)
+bool ECDatabaseAttachment::ExistAttachmentInstance(const ext_siid &ulInstanceId)
 {
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
-	std::string strQuery = "SELECT instanceid FROM lob WHERE instanceid = " + stringify(ulInstanceId) + " LIMIT 1";
+	auto strQuery = "SELECT instanceid FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid) + " LIMIT 1";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::ExistAttachmentInstance(): DoSelect failed %x", er);
@@ -992,11 +992,12 @@ ECRESULT ECDatabaseAttachment::DeleteAttachmentInstance(const ext_siid &ulInstan
  * 
  * @return Kopano error code
  */
-ECRESULT ECDatabaseAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize, bool *lpbCompressed)
+ECRESULT ECDatabaseAttachment::GetSizeInstance(const ext_siid &ulInstanceId,
+    size_t *lpulSize, bool *lpbCompressed)
 {
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL; 
-	std::string strQuery = "SELECT SUM(LENGTH(val_binary)) FROM lob WHERE instanceid = " + stringify(ulInstanceId);
+	auto strQuery = "SELECT SUM(LENGTH(val_binary)) FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult); 
 	if (er != erSuccess)  {
 		ec_log_err("ECAttachmentStorage::GetSizeInstance(): DoSelect failed %x", er);
@@ -1068,13 +1069,12 @@ ECFileAttachment::~ECFileAttachment()
  * 
  * @return instance present
  */
-bool ECFileAttachment::ExistAttachmentInstance(ULONG ulInstanceId)
+bool ECFileAttachment::ExistAttachmentInstance(const ext_siid &ulInstanceId)
 {
-	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
-
+	auto filename = CreateAttachmentFilename(ulInstanceId.siid, m_bFileCompression);
 	struct stat st;
 	if (stat(filename.c_str(), &st) == -1) {
-		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
+		filename = CreateAttachmentFilename(ulInstanceId.siid, !m_bFileCompression);
 		if (stat(filename.c_str(), &st) == -1)
 			return false;
 	}
@@ -1933,10 +1933,11 @@ std::string ECFileAttachment::CreateAttachmentFilename(ULONG ulInstanceId, bool 
  * 
  * @return Kopano error code
  */
-ECRESULT ECFileAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize, bool *lpbCompressed)
+ECRESULT ECFileAttachment::GetSizeInstance(const ext_siid &ulInstanceId,
+    size_t *lpulSize, bool *lpbCompressed)
 {
 	ECRESULT er = erSuccess;
-	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
+	auto filename = CreateAttachmentFilename(ulInstanceId.siid, m_bFileCompression);
 	bool bCompressed = m_bFileCompression;
 	struct stat st;
 
@@ -1952,7 +1953,7 @@ ECRESULT ECFileAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize,
 	 */
 	int fd = open(filename.c_str(), O_RDONLY);
 	if (fd == -1) {
-		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
+		filename = CreateAttachmentFilename(ulInstanceId.siid, !m_bFileCompression);
 		bCompressed = !m_bFileCompression;
 
 		fd = open(filename.c_str(), O_RDONLY);
