@@ -873,7 +873,8 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(const ext_siid &ulInstance
  * 
  * @return Kopano error code
  */
-ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPropId, size_t iSize, unsigned char *lpData)
+ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
+    ULONG ulPropId, size_t iSize, unsigned char *lpData)
 {
 	std::string strQuery;
 
@@ -885,7 +886,7 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG 
 	do {
 		size_t iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;
 		std::string strQuery = "INSERT INTO lob (instanceid, chunkid, tag, val_binary) VALUES (" +
-			stringify(ulInstanceId) + ", " + stringify(ulChunk) + ", " + stringify(ulPropId) +
+			stringify(ulInstanceId.siid) + ", " + stringify(ulChunk) + ", " + stringify(ulPropId) +
 			", " + m_lpDatabase->EscapeBinary(lpData + iPtr, iChunkSize) + ")";
 
 		auto er = m_lpDatabase->DoInsert(strQuery);
@@ -916,7 +917,8 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG 
  * 
  * @return Kopano error code
  */
-ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPropId, size_t iSize, ECSerializer *lpSource)
+ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
+    ULONG ulPropId, size_t iSize, ECSerializer *lpSource)
 {
 	unsigned char szBuffer[CHUNK_SIZE] = {0};
 
@@ -931,7 +933,7 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG 
 			return er;
 
 		std::string strQuery = "INSERT INTO lob (instanceid, chunkid, tag, val_binary) VALUES (" +
-			stringify(ulInstanceId) + ", " + stringify(ulChunk) + ", " + stringify(ulPropId) +
+			stringify(ulInstanceId.siid) + ", " + stringify(ulChunk) + ", " + stringify(ulPropId) +
 			", " + m_lpDatabase->EscapeBinary(szBuffer, iChunkSize) + ")";
 
 		er = m_lpDatabase->DoInsert(strQuery);
@@ -1542,7 +1544,7 @@ static bool EvaluateCompressibleness(const uint8_t *const lpData, const size_t i
  * 
  * @return Kopano error code
  */
-ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
+ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
     ULONG ulPropId, size_t iSize, unsigned char *lpData)
 {
 	bool compressible = EvaluateCompressibleness(lpData, iSize);
@@ -1550,7 +1552,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 	bool compressAttachment = compressible ? m_bFileCompression && iSize : false;
 
 	ECRESULT er = erSuccess;
-	string filename = CreateAttachmentFilename(ulInstanceId, compressAttachment);
+	auto filename = CreateAttachmentFilename(ulInstanceId.siid, compressAttachment);
 	gzFile gzfp = NULL;
 	int fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IRUSR | S_IRGRP);
 	if (fd < 0) {
@@ -1590,7 +1592,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 
 	// set in transaction before disk full check to remove empty file
 	if(m_bTransaction)
-		m_setNewAttachment.emplace(ulInstanceId);
+		m_setNewAttachment.emplace(ulInstanceId.siid);
 exit:
 	if (gzfp != NULL) {
 		int ret = gzclose(gzfp);
@@ -1616,11 +1618,11 @@ exit:
  * 
  * @return Kopano error code
  */
-ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
+ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
     ULONG ulPropId, size_t iSize, ECSerializer *lpSource)
 {
 	ECRESULT er = erSuccess;
-	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
+	auto filename = CreateAttachmentFilename(ulInstanceId.siid, m_bFileCompression);
 	unsigned char szBuffer[CHUNK_SIZE];
 	size_t iSizeLeft = iSize;
 
@@ -1643,7 +1645,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 
 		// file created on disk, now in transaction
 		if (m_bTransaction)
-			m_setNewAttachment.emplace(ulInstanceId);
+			m_setNewAttachment.emplace(ulInstanceId.siid);
 
 		while (iSizeLeft > 0) {
 			size_t iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;
@@ -1698,7 +1700,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 
 		// file created on disk, now in transaction
 		if (m_bTransaction)
-			m_setNewAttachment.emplace(ulInstanceId);
+			m_setNewAttachment.emplace(ulInstanceId.siid);
 
 		while (iSizeLeft > 0) {
 			size_t iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;

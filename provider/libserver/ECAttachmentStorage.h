@@ -80,8 +80,8 @@ protected:
 	/* Single Instance Attachment handlers (must be overridden by subclasses) */
 	virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *size, unsigned char **data) = 0;
 	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *size, ECSerializer *sink) = 0;
-	virtual ECRESULT SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPropId, size_t iSize, unsigned char *lpData) = 0;
-	virtual ECRESULT SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPropId, size_t iSize, ECSerializer *lpSource) = 0;
+	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, unsigned char *) = 0;
+	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, ECSerializer *) = 0;
 	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) = 0;
 	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) = 0;
 	virtual ECRESULT GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize, bool *lpbCompressed = NULL) = 0;
@@ -109,8 +109,8 @@ protected:
 	virtual bool ExistAttachmentInstance(ULONG ulInstanceId);
 	virtual ECRESULT LoadAttachmentInstance(struct soap *soap, const ext_siid &, size_t *size, unsigned char **data) override;
 	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *size, ECSerializer *sink) override;
-	virtual ECRESULT SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPropId, size_t iSize, unsigned char *lpData);
-	virtual ECRESULT SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPropId, size_t iSize, ECSerializer *lpSource);
+	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, unsigned char *) override;
+	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, ECSerializer *) override;
 	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) override;
 	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
 	virtual ECRESULT GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize, bool *lpbCompressed = NULL);
@@ -133,8 +133,8 @@ protected:
 	_kc_hidden virtual bool ExistAttachmentInstance(ULONG instance);
 	_kc_hidden virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;
 	_kc_hidden virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *, ECSerializer *) override;
-	_kc_hidden virtual ECRESULT SaveAttachmentInstance(ULONG instance, ULONG prop_id, size_t size, unsigned char *data);
-	_kc_hidden virtual ECRESULT SaveAttachmentInstance(ULONG obj_id, ULONG prop_id, size_t size, ECSerializer *source);
+	_kc_hidden virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, unsigned char *) override;
+	_kc_hidden virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, ECSerializer *) override;
 	_kc_hidden virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) override;
 	_kc_hidden virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
 	_kc_hidden virtual ECRESULT GetSizeInstance(ULONG instance, size_t *size, bool *compr = nullptr);

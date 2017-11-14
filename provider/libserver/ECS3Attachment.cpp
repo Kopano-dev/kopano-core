@@ -572,8 +572,8 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
  *
  * @return Kopano error code
  */
-ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
-    size_t size, unsigned char *data)
+ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
+    ULONG propid, size_t size, unsigned char *data)
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
 	bool comp = false;
@@ -584,7 +584,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	std::string filename = make_att_filename(ins_id, comp && size != 0);
+	auto filename = make_att_filename(ins_id.siid, comp && size != 0);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: saving %s (buffer of %zu bytes)", fn, size);
 	/*
@@ -603,7 +603,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cd.status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
-		m_new_att.emplace(ins_id);
+		m_new_att.emplace(ins_id.siid);
 
 	if (cd.size != cd.processed) {
 		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
@@ -611,7 +611,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 		ret = KCERR_DATABASE_ERROR;
 	} else if (cd.status == S3StatusOK) {
 		scoped_lock locker(m_cachelock);
-		m_cache[ins_id] = {now_positive(), cd.size};
+		m_cache[ins_id.siid] = {now_positive(), cd.size};
 		ret = erSuccess;
 	}
 	cd.data = NULL;
@@ -628,8 +628,8 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
  *
  * @return Kopano error code
  */
-ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
-    size_t size, ECSerializer *source)
+ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
+    ULONG propid, size_t size, ECSerializer *source)
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
 	bool comp = false;
@@ -640,7 +640,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	std::string filename = make_att_filename(ins_id, comp && size != 0);
+	auto filename = make_att_filename(ins_id.siid, comp && size != 0);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: saving %s (serializer with %zu bytes)", fn, size);
 	/*
@@ -660,7 +660,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cd.status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
-		m_new_att.emplace(ins_id);
+		m_new_att.emplace(ins_id.siid);
 
 	if (cd.size != cd.processed) {
 		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
@@ -668,7 +668,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 		ret = KCERR_DATABASE_ERROR;
 	} else if (cd.status == S3StatusOK) {
 		scoped_lock locker(m_cachelock);
-		m_cache[ins_id] = {now_positive(), cd.size};
+		m_cache[ins_id.siid] = {now_positive(), cd.size};
 		ret = erSuccess;
 	}
 	cd.sink = NULL;
