@@ -150,16 +150,14 @@ private:
 	bool force_changes_to_disk;
 
 	/* helper functions for transacted deletion */
-	_kc_hidden ECRESULT MarkAttachmentForDeletion(ULONG instance);
-	_kc_hidden ECRESULT DeleteMarkedAttachment(ULONG instance);
-	_kc_hidden ECRESULT RestoreMarkedAttachment(ULONG instance);
+	_kc_hidden ECRESULT MarkAttachmentForDeletion(const ext_siid &);
+	_kc_hidden ECRESULT DeleteMarkedAttachment(const ext_siid &);
+	_kc_hidden ECRESULT RestoreMarkedAttachment(const ext_siid &);
 	_kc_hidden bool VerifyInstanceSize(ULONG instance, size_t expected_size, const std::string &filename);
 
 	std::string m_basepath;
 	bool m_bTransaction = false;
-	std::set<ULONG> m_setNewAttachment;
-	std::set<ULONG> m_setDeletedAttachment;
-	std::set<ULONG> m_setMarkedAttachment;
+	std::set<ext_siid> m_setNewAttachment, m_setDeletedAttachment, m_setMarkedAttachment;
 };
 
 } /* namespace */

@@ -1592,7 +1592,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
 
 	// set in transaction before disk full check to remove empty file
 	if(m_bTransaction)
-		m_setNewAttachment.emplace(ulInstanceId.siid);
+		m_setNewAttachment.emplace(ulInstanceId);
 exit:
 	if (gzfp != NULL) {
 		int ret = gzclose(gzfp);
@@ -1645,7 +1645,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
 
 		// file created on disk, now in transaction
 		if (m_bTransaction)
-			m_setNewAttachment.emplace(ulInstanceId.siid);
+			m_setNewAttachment.emplace(ulInstanceId);
 
 		while (iSizeLeft > 0) {
 			size_t iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;
@@ -1700,7 +1700,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
 
 		// file created on disk, now in transaction
 		if (m_bTransaction)
-			m_setNewAttachment.emplace(ulInstanceId.siid);
+			m_setNewAttachment.emplace(ulInstanceId);
 
 		while (iSizeLeft > 0) {
 			size_t iChunkSize = iSizeLeft < CHUNK_SIZE ? iSizeLeft : CHUNK_SIZE;
@@ -1773,16 +1773,16 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstances(const std::list<ext_siid> &
  * 
  * @return Kopano error code
  */
-ECRESULT ECFileAttachment::MarkAttachmentForDeletion(ULONG ulInstanceId) 
+ECRESULT ECFileAttachment::MarkAttachmentForDeletion(const ext_siid &ulInstanceId)
 {
-	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
+	auto filename = CreateAttachmentFilename(ulInstanceId.siid, m_bFileCompression);
 
 	if(rename(filename.c_str(), string(filename+".deleted").c_str()) == 0)
 		return erSuccess;
 
 	if (errno == ENOENT) {
 		// retry with another filename
-		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
+		filename = CreateAttachmentFilename(ulInstanceId.siid, !m_bFileCompression);
 		if(rename(filename.c_str(), string(filename+".deleted").c_str()) == 0)
 			return erSuccess;
 	}
@@ -1792,8 +1792,7 @@ ECRESULT ECFileAttachment::MarkAttachmentForDeletion(ULONG ulInstanceId)
 		return KCERR_NO_ACCESS;
 	else if (errno == ENOENT)
 		return KCERR_NOT_FOUND;
-
-	ec_log_err("ECFileAttachment::MarkAttachmentForDeletion(): cannot mark %u", ulInstanceId);
+	ec_log_err("ECFileAttachment::MarkAttachmentForDeletion(): cannot mark %u", ulInstanceId.siid);
 	return KCERR_DATABASE_ERROR;
 }
 
@@ -1804,16 +1803,15 @@ ECRESULT ECFileAttachment::MarkAttachmentForDeletion(ULONG ulInstanceId)
  * 
  * @return Kopano error code
  */
-ECRESULT ECFileAttachment::RestoreMarkedAttachment(ULONG ulInstanceId)
+ECRESULT ECFileAttachment::RestoreMarkedAttachment(const ext_siid &ulInstanceId)
 {
-	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
-
+	auto filename = CreateAttachmentFilename(ulInstanceId.siid, m_bFileCompression);
 	if(rename(string(filename+".deleted").c_str(), filename.c_str()) == 0)
 		return erSuccess;
 
 	if (errno == ENOENT) {
 		// retry with another filename
-		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
+		filename = CreateAttachmentFilename(ulInstanceId.siid, !m_bFileCompression);
 		if(rename(string(filename+".deleted").c_str(), filename.c_str()) == 0)
 			return erSuccess;
 	}
@@ -1822,8 +1820,7 @@ ECRESULT ECFileAttachment::RestoreMarkedAttachment(ULONG ulInstanceId)
 		return KCERR_NO_ACCESS;
     else if (errno == ENOENT)
 		return KCERR_NOT_FOUND;
-
-	ec_log_err("ECFileAttachment::RestoreMarkedAttachment(): cannot mark %u", ulInstanceId);
+	ec_log_err("ECFileAttachment::RestoreMarkedAttachment(): cannot mark %u", ulInstanceId.siid);
 	return KCERR_DATABASE_ERROR;
 }
 
@@ -1834,15 +1831,15 @@ ECRESULT ECFileAttachment::RestoreMarkedAttachment(ULONG ulInstanceId)
  * 
  * @return Kopano error code
  */
-ECRESULT ECFileAttachment::DeleteMarkedAttachment(ULONG ulInstanceId)
+ECRESULT ECFileAttachment::DeleteMarkedAttachment(const ext_siid &ulInstanceId)
 {
-	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression) + ".deleted";
+	auto filename = CreateAttachmentFilename(ulInstanceId.siid, m_bFileCompression) + ".deleted";
 
 	if (unlink(filename.c_str()) == 0)
 		return erSuccess;
 
 	if (errno == ENOENT) {
-		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression) + ".deleted";
+		filename = CreateAttachmentFilename(ulInstanceId.siid, !m_bFileCompression) + ".deleted";
 		if (unlink(filename.c_str()) == 0)
 			return erSuccess;
 	}
@@ -1850,7 +1847,7 @@ ECRESULT ECFileAttachment::DeleteMarkedAttachment(ULONG ulInstanceId)
 	if (errno == EACCES || errno == EPERM)
 		return KCERR_NO_ACCESS;
 	if (errno != ENOENT) { // ignore "file not found" error
-		ec_log_err("ECFileAttachment::DeleteMarkedAttachment() cannot delete instance %u", ulInstanceId);
+		ec_log_err("ECFileAttachment::DeleteMarkedAttachment() cannot delete instance %u", ulInstanceId.siid);
 		return KCERR_DATABASE_ERROR;
 	}
 	return erSuccess;
@@ -1871,17 +1868,17 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstance(const ext_siid &ulInstanceId
    
 	if(m_bTransaction) {
 		if (bReplace) {
-			er = MarkAttachmentForDeletion(ulInstanceId.siid);
+			er = MarkAttachmentForDeletion(ulInstanceId);
 			if (er != erSuccess && er != KCERR_NOT_FOUND) {
 				assert(false);
 				return er;
 			} else if(er != KCERR_NOT_FOUND) {
-				 m_setMarkedAttachment.emplace(ulInstanceId.siid);
+				 m_setMarkedAttachment.emplace(ulInstanceId);
 			}
 
 			er = erSuccess;
 		} else {
-			m_setDeletedAttachment.emplace(ulInstanceId.siid);
+			m_setDeletedAttachment.emplace(ulInstanceId);
 		}
 		return er;
 	}
@@ -2043,11 +2040,11 @@ ECRESULT ECFileAttachment::Commit()
 	m_bTransaction = false;
 
 	// Delete the attachments
-	for (auto att_id : m_setDeletedAttachment)
+	for (const auto &att_id : m_setDeletedAttachment)
 		if (DeleteAttachmentInstance(att_id, false) != erSuccess)
 			bError = true;
 	// Delete marked attachments
-	for (auto att_id : m_setMarkedAttachment)
+	for (const auto &att_id : m_setMarkedAttachment)
 		if (DeleteMarkedAttachment(att_id) != erSuccess)
 			bError = true;
 
@@ -2079,11 +2076,11 @@ ECRESULT ECFileAttachment::Rollback()
 	m_setDeletedAttachment.clear();
 	
 	// Remove the created attachments
-	for (auto att_id : m_setNewAttachment)
+	for (const auto &att_id : m_setNewAttachment)
 		if (DeleteAttachmentInstance(att_id, false) != erSuccess)
 			bError = true;
 	// Restore marked attachment
-	for (auto att_id : m_setMarkedAttachment)
+	for (const auto &att_id : m_setMarkedAttachment)
 		if (RestoreMarkedAttachment(att_id) != erSuccess)
 			bError = true;
 
