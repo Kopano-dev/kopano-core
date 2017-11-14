@@ -449,7 +449,7 @@ bool ECS3Attachment::ExistAttachmentInstance(ULONG ins_id)
  * @return Kopano error code
  */
 ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
-    ULONG ins_id, size_t *size_p, unsigned char **data_p)
+    const ext_siid &ins_id, size_t *size_p, unsigned char **data_p)
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
 	struct s3_cd cd;
@@ -459,7 +459,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	std::string filename = make_att_filename(ins_id, false);
+	auto filename = make_att_filename(ins_id.siid, false);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: loading %s into buffer", fn);
 	/*
@@ -514,7 +514,8 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
  * @return erSuccess if we were able to load the instance, or the error code
  * if we could not.
  */
-ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, ECSerializer *sink)
+ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
+    size_t *size_p, ECSerializer *sink)
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
 	struct s3_cd cd;
@@ -523,7 +524,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, EC
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	std::string filename = make_att_filename(ins_id, false);
+	auto filename = make_att_filename(ins_id.siid, false);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: loading %s into serializer", fn);
 	/*
@@ -550,7 +551,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, EC
 		ret = erSuccess;
 	} else {
 		scoped_lock locker(m_cachelock);
-		m_cache[ins_id] = {now_positive(), cd.size};
+		m_cache[ins_id.siid] = {now_positive(), cd.size};
 		*size_p = cd.size;
 	}
 	/*

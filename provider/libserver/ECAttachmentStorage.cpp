@@ -385,7 +385,7 @@ ECRESULT ECAttachmentStorage::LoadAttachment(struct soap *soap, ULONG ulObjId, U
 	auto er = GetSingleInstanceId(ulObjId, ulPropId, &ulInstanceId);
 	if (er != erSuccess)
 		return er;
-	return LoadAttachmentInstance(soap, ulInstanceId.siid, lpiSize, lppData);
+	return LoadAttachmentInstance(soap, ulInstanceId, lpiSize, lppData);
 }
 
 /** 
@@ -407,7 +407,7 @@ ECRESULT ECAttachmentStorage::LoadAttachment(ULONG ulObjId, ULONG ulPropId, size
 	auto er = GetSingleInstanceId(ulObjId, ulPropId, &ulInstanceId);
 	if (er != erSuccess)
 		return er;
-	return LoadAttachmentInstance(ulInstanceId.siid, lpiSize, lpSink);
+	return LoadAttachmentInstance(ulInstanceId, lpiSize, lpSink);
 }
 
 /** 
@@ -756,7 +756,8 @@ bool ECDatabaseAttachment::ExistAttachmentInstance(ULONG ulInstanceId)
  * 
  * @return Kopano error code
  */
-ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap, ULONG ulInstanceId, size_t *lpiSize, unsigned char **lppData)
+ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap,
+    const ext_siid &ulInstanceId, size_t *lpiSize, unsigned char **lppData)
 {
 	size_t iSize = 0;
 	size_t iReadSize = 0;
@@ -766,7 +767,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap, ULONG u
 	DB_LENGTHS lpDBLen = NULL;
 
 	// we first need to know the complete size of the attachment (some old databases don't have the correct chunk size)
-	std::string strQuery = "SELECT SUM(LENGTH(val_binary)) FROM lob WHERE instanceid = " + stringify(ulInstanceId);
+	auto strQuery = "SELECT SUM(LENGTH(val_binary)) FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect failed %x", er);
@@ -782,8 +783,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap, ULONG u
 	iSize = strtoul(lpDBRow[0], NULL, 0);
 
 	// get all chunks
-	strQuery = "SELECT val_binary FROM lob WHERE instanceid = " + stringify(ulInstanceId) + " ORDER BY chunkid";
-
+	strQuery = "SELECT val_binary FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid) + " ORDER BY chunkid";
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect(2) failed %x", er);
@@ -822,7 +822,8 @@ exit:
  * 
  * @return 
  */
-ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(ULONG ulInstanceId, size_t *lpiSize, ECSerializer *lpSink)
+ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
+    size_t *lpiSize, ECSerializer *lpSink)
 {
 	size_t iReadSize = 0;
 	DB_RESULT lpDBResult;
@@ -830,7 +831,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(ULONG ulInstanceId, size_t
 	DB_LENGTHS lpDBLen = NULL;
 
 	// get all chunks
-	std::string strQuery = "SELECT val_binary FROM lob WHERE instanceid = " + stringify(ulInstanceId) + " ORDER BY chunkid";
+	auto strQuery = "SELECT val_binary FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid) + " ORDER BY chunkid";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect failed %x", er);
@@ -1199,7 +1200,9 @@ bool ECFileAttachment::VerifyInstanceSize(const ULONG instanceId, const size_t e
  * 
  * @return Kopano error code
  */
-ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap, ULONG ulInstanceId, size_t *lpiSize, unsigned char **lppData) {
+ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
+    const ext_siid &ulInstanceId, size_t *lpiSize, unsigned char **lppData)
+{
 	ECRESULT er = erSuccess;
 	string filename;
 	unsigned char *lpData = NULL;
@@ -1207,7 +1210,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap, ULONG ulIns
 	gzFile gzfp = NULL;
 
 	*lpiSize = 0;
-	filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
+	filename = CreateAttachmentFilename(ulInstanceId.siid, bCompressed);
 	int fd = open(filename.c_str(), O_RDONLY);
 	if (fd < 0 && errno != ENOENT) {
 		/* Access problems */
@@ -1216,7 +1219,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap, ULONG ulIns
 	} else if (fd < 0) {
 		/* Not found, try gzip */
 		bCompressed = true;
-		filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
+		filename = CreateAttachmentFilename(ulInstanceId.siid, bCompressed);
 		fd = open(filename.c_str(), O_RDONLY);
 		if (fd < 0) {
 			ec_log_err("K-1562: cannot open attachment \"%s\": %s", filename.c_str(), strerror(errno));
@@ -1300,7 +1303,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap, ULONG ulIns
 		}
 
 		if (er == erSuccess)
-			(void)VerifyInstanceSize(ulInstanceId, *lpiSize, filename);
+			VerifyInstanceSize(ulInstanceId.siid, *lpiSize, filename);
 
 		if (er == erSuccess) {
 			lpData = s_alloc<unsigned char>(soap, *lpiSize);
@@ -1385,7 +1388,9 @@ exit:
  * 
  * @return 
  */
-ECRESULT ECFileAttachment::LoadAttachmentInstance(ULONG ulInstanceId, size_t *lpiSize, ECSerializer *lpSink) {
+ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
+    size_t *lpiSize, ECSerializer *lpSink)
+{
 	ECRESULT er = erSuccess;
 	bool bCompressed = false;
 	char buffer[CHUNK_SIZE];
@@ -1393,7 +1398,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(ULONG ulInstanceId, size_t *lp
 	gzFile gzfp = NULL;
 
 	*lpiSize = 0;
-	std::string filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
+	auto filename = CreateAttachmentFilename(ulInstanceId.siid, bCompressed);
 	fd = open(filename.c_str(), O_RDONLY);
 	if (fd < 0 && errno != ENOENT) {
 		/* Access problems */
@@ -1402,7 +1407,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(ULONG ulInstanceId, size_t *lp
 	} else if (fd < 0) {
 		/* Not found, try gzip */
 		bCompressed = true;
-		filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
+		filename = CreateAttachmentFilename(ulInstanceId.siid, bCompressed);
 		fd = open(filename.c_str(), O_RDONLY);
 		if (fd < 0) {
 			ec_log_err("K-1564: cannot open attachment \"%s\": %s", filename.c_str(), strerror(errno));
@@ -1441,7 +1446,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(ULONG ulInstanceId, size_t *lp
 		}
 
 		if (er == erSuccess)
-			(void)VerifyInstanceSize(ulInstanceId, *lpiSize, filename);
+			VerifyInstanceSize(ulInstanceId.siid, *lpiSize, filename);
 	}
 	else {
 		for(;;) {

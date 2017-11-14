@@ -78,8 +78,8 @@ protected:
 	virtual ~ECAttachmentStorage(void) = default;
 	
 	/* Single Instance Attachment handlers (must be overridden by subclasses) */
-	virtual ECRESULT LoadAttachmentInstance(struct soap *soap, ULONG ulInstanceId, size_t *lpiSize, unsigned char **lppData) = 0;
-	virtual ECRESULT LoadAttachmentInstance(ULONG ulInstanceId, size_t *lpiSize, ECSerializer *lpSink) = 0;
+	virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *size, unsigned char **data) = 0;
+	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *size, ECSerializer *sink) = 0;
 	virtual ECRESULT SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPropId, size_t iSize, unsigned char *lpData) = 0;
 	virtual ECRESULT SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPropId, size_t iSize, ECSerializer *lpSource) = 0;
 	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) = 0;
@@ -107,8 +107,8 @@ public:
 protected:
 	/* Single Instance Attachment handlers */
 	virtual bool ExistAttachmentInstance(ULONG ulInstanceId);
-	virtual ECRESULT LoadAttachmentInstance(struct soap *soap, ULONG ulInstanceId, size_t *lpiSize, unsigned char **lppData);
-	virtual ECRESULT LoadAttachmentInstance(ULONG ulInstanceId, size_t *lpiSize, ECSerializer *lpSink);
+	virtual ECRESULT LoadAttachmentInstance(struct soap *soap, const ext_siid &, size_t *size, unsigned char **data) override;
+	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *size, ECSerializer *sink) override;
 	virtual ECRESULT SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPropId, size_t iSize, unsigned char *lpData);
 	virtual ECRESULT SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPropId, size_t iSize, ECSerializer *lpSource);
 	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) override;
@@ -131,8 +131,8 @@ protected:
 	
 	/* Single Instance Attachment handlers */
 	_kc_hidden virtual bool ExistAttachmentInstance(ULONG instance);
-	_kc_hidden virtual ECRESULT LoadAttachmentInstance(struct soap *, ULONG instance, size_t *size, unsigned char **data);
-	_kc_hidden virtual ECRESULT LoadAttachmentInstance(ULONG obj_id, size_t *size, ECSerializer *sink);
+	_kc_hidden virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;
+	_kc_hidden virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *, ECSerializer *) override;
 	_kc_hidden virtual ECRESULT SaveAttachmentInstance(ULONG instance, ULONG prop_id, size_t size, unsigned char *data);
 	_kc_hidden virtual ECRESULT SaveAttachmentInstance(ULONG obj_id, ULONG prop_id, size_t size, ECSerializer *source);
 	_kc_hidden virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) override;
