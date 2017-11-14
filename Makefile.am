@@ -356,7 +356,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ECMAPITable.cpp provider/client/ECMAPITable.h \
 	provider/client/ECMSProvider.cpp provider/client/ECMSProvider.h \
 	provider/client/ECMailUser.cpp provider/client/ECMailUser.h \
-	provider/client/ECMemTablePublic.cpp provider/client/ECMemTablePublic.h \
 	provider/client/ECMessage.cpp provider/client/ECMessage.h \
 	provider/client/ECMessageStreamImporterIStreamAdapter.cpp \
 	provider/client/ECMessageStreamImporterIStreamAdapter.h \

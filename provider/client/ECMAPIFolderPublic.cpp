@@ -34,7 +34,6 @@
 
 #include <kopano/stringutil.h>
 #include "ECMsgStorePublic.h"
-#include "ECMemTablePublic.h"
 
 #include "favoritesutil.h"
 #include <kopano/charset/convstring.h>
@@ -323,7 +322,6 @@ HRESULT ECMAPIFolderPublic::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTab
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<ECMemTableView> lpView;
-	object_ptr<ECMemTablePublic> lpMemTable;
 
 	if( m_ePublicEntryID == ePE_IPMSubtree)
 	{
@@ -335,20 +333,7 @@ HRESULT ECMAPIFolderPublic::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTab
 			return hr;
 		return lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 	} else if( m_ePublicEntryID == ePE_Favorites || m_ePublicEntryID == ePE_FavoriteSubFolder) {
-
-		// FIXME: if exchange support CONVENIENT_DEPTH than we must implement this
-		if (ulFlags & (SHOW_SOFT_DELETES | CONVENIENT_DEPTH))
-			return MAPI_E_NO_SUPPORT;
-		hr = ECMemTablePublic::Create(this, &~lpMemTable);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpMemTable->Init(ulFlags&MAPI_UNICODE);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
-		if(hr != hrSuccess)
-			return hr;
-		return lpView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
+		return MAPI_E_NO_SUPPORT;
 	} else {
 		return ECMAPIFolder::GetHierarchyTable(ulFlags, lppTable);
 	}
