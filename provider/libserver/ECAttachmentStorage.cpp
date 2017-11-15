@@ -1071,10 +1071,10 @@ ECFileAttachment::~ECFileAttachment()
  */
 bool ECFileAttachment::ExistAttachmentInstance(const ext_siid &ulInstanceId)
 {
-	auto filename = CreateAttachmentFilename(ulInstanceId.siid, m_bFileCompression);
+	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
 	struct stat st;
 	if (stat(filename.c_str(), &st) == -1) {
-		filename = CreateAttachmentFilename(ulInstanceId.siid, !m_bFileCompression);
+		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
 		if (stat(filename.c_str(), &st) == -1)
 			return false;
 	}
@@ -1214,7 +1214,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 	gzFile gzfp = NULL;
 
 	*lpiSize = 0;
-	filename = CreateAttachmentFilename(ulInstanceId.siid, bCompressed);
+	filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
 	int fd = open(filename.c_str(), O_RDONLY);
 	if (fd < 0 && errno != ENOENT) {
 		/* Access problems */
@@ -1223,7 +1223,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 	} else if (fd < 0) {
 		/* Not found, try gzip */
 		bCompressed = true;
-		filename = CreateAttachmentFilename(ulInstanceId.siid, bCompressed);
+		filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
 		fd = open(filename.c_str(), O_RDONLY);
 		if (fd < 0) {
 			ec_log_err("K-1562: cannot open attachment \"%s\": %s", filename.c_str(), strerror(errno));
@@ -1401,7 +1401,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
 	gzFile gzfp = NULL;
 
 	*lpiSize = 0;
-	auto filename = CreateAttachmentFilename(ulInstanceId.siid, bCompressed);
+	auto filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
 	fd = open(filename.c_str(), O_RDONLY);
 	if (fd < 0 && errno != ENOENT) {
 		/* Access problems */
@@ -1410,7 +1410,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
 	} else if (fd < 0) {
 		/* Not found, try gzip */
 		bCompressed = true;
-		filename = CreateAttachmentFilename(ulInstanceId.siid, bCompressed);
+		filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
 		fd = open(filename.c_str(), O_RDONLY);
 		if (fd < 0) {
 			ec_log_err("K-1564: cannot open attachment \"%s\": %s", filename.c_str(), strerror(errno));
@@ -1553,7 +1553,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
 	bool compressAttachment = compressible ? m_bFileCompression && iSize : false;
 
 	ECRESULT er = erSuccess;
-	auto filename = CreateAttachmentFilename(ulInstanceId.siid, compressAttachment);
+	auto filename = CreateAttachmentFilename(ulInstanceId, compressAttachment);
 	gzFile gzfp = NULL;
 	int fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IRUSR | S_IRGRP);
 	if (fd < 0) {
@@ -1623,7 +1623,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
     ULONG ulPropId, size_t iSize, ECSerializer *lpSource)
 {
 	ECRESULT er = erSuccess;
-	auto filename = CreateAttachmentFilename(ulInstanceId.siid, m_bFileCompression);
+	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
 	unsigned char szBuffer[CHUNK_SIZE];
 	size_t iSizeLeft = iSize;
 
@@ -1776,14 +1776,14 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstances(const std::list<ext_siid> &
  */
 ECRESULT ECFileAttachment::MarkAttachmentForDeletion(const ext_siid &ulInstanceId)
 {
-	auto filename = CreateAttachmentFilename(ulInstanceId.siid, m_bFileCompression);
+	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
 
 	if(rename(filename.c_str(), string(filename+".deleted").c_str()) == 0)
 		return erSuccess;
 
 	if (errno == ENOENT) {
 		// retry with another filename
-		filename = CreateAttachmentFilename(ulInstanceId.siid, !m_bFileCompression);
+		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
 		if(rename(filename.c_str(), string(filename+".deleted").c_str()) == 0)
 			return erSuccess;
 	}
@@ -1806,13 +1806,13 @@ ECRESULT ECFileAttachment::MarkAttachmentForDeletion(const ext_siid &ulInstanceI
  */
 ECRESULT ECFileAttachment::RestoreMarkedAttachment(const ext_siid &ulInstanceId)
 {
-	auto filename = CreateAttachmentFilename(ulInstanceId.siid, m_bFileCompression);
+	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
 	if(rename(string(filename+".deleted").c_str(), filename.c_str()) == 0)
 		return erSuccess;
 
 	if (errno == ENOENT) {
 		// retry with another filename
-		filename = CreateAttachmentFilename(ulInstanceId.siid, !m_bFileCompression);
+		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
 		if(rename(string(filename+".deleted").c_str(), filename.c_str()) == 0)
 			return erSuccess;
 	}
@@ -1834,13 +1834,13 @@ ECRESULT ECFileAttachment::RestoreMarkedAttachment(const ext_siid &ulInstanceId)
  */
 ECRESULT ECFileAttachment::DeleteMarkedAttachment(const ext_siid &ulInstanceId)
 {
-	auto filename = CreateAttachmentFilename(ulInstanceId.siid, m_bFileCompression) + ".deleted";
+	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression) + ".deleted";
 
 	if (unlink(filename.c_str()) == 0)
 		return erSuccess;
 
 	if (errno == ENOENT) {
-		filename = CreateAttachmentFilename(ulInstanceId.siid, !m_bFileCompression) + ".deleted";
+		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression) + ".deleted";
 		if (unlink(filename.c_str()) == 0)
 			return erSuccess;
 	}
@@ -1865,7 +1865,7 @@ ECRESULT ECFileAttachment::DeleteMarkedAttachment(const ext_siid &ulInstanceId)
 ECRESULT ECFileAttachment::DeleteAttachmentInstance(const ext_siid &ulInstanceId, bool bReplace)
 {
 	ECRESULT er = erSuccess;
-	auto filename = CreateAttachmentFilename(ulInstanceId.siid, m_bFileCompression);
+	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
    
 	if(m_bTransaction) {
 		if (bReplace) {
@@ -1886,7 +1886,7 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstance(const ext_siid &ulInstanceId
 
 	if (unlink(filename.c_str()) != 0) {
 		if (errno == ENOENT){
-			filename = CreateAttachmentFilename(ulInstanceId.siid, !m_bFileCompression);
+			filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
 			if (unlink(filename.c_str()) == 0)
 				return erSuccess;
 		}
@@ -1909,16 +1909,11 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstance(const ext_siid &ulInstanceId
  * 
  * @return Kopano error code
  */
-std::string ECFileAttachment::CreateAttachmentFilename(ULONG ulInstanceId, bool bCompressed)
+std::string ECFileAttachment::CreateAttachmentFilename(const ext_siid &esid, bool bCompressed)
 {
-	string filename;
-	unsigned int l1, l2;
-
-	l1 = ulInstanceId % ATTACH_PATHDEPTH_LEVEL1;
-	l2 = (ulInstanceId / ATTACH_PATHDEPTH_LEVEL1) % ATTACH_PATHDEPTH_LEVEL2;
-
-	filename = m_basepath + PATH_SEPARATOR + stringify(l1) + PATH_SEPARATOR + stringify(l2) + PATH_SEPARATOR + stringify(ulInstanceId);
-
+	unsigned int l1 = esid.siid % ATTACH_PATHDEPTH_LEVEL1;
+	unsigned int l2 = (esid.siid / ATTACH_PATHDEPTH_LEVEL1) % ATTACH_PATHDEPTH_LEVEL2;
+	auto filename = m_basepath + PATH_SEPARATOR + stringify(l1) + PATH_SEPARATOR + stringify(l2) + PATH_SEPARATOR + stringify(esid.siid);
 	if (bCompressed)
 		filename += ".gz";
 
@@ -1938,7 +1933,7 @@ ECRESULT ECFileAttachment::GetSizeInstance(const ext_siid &ulInstanceId,
     size_t *lpulSize, bool *lpbCompressed)
 {
 	ECRESULT er = erSuccess;
-	auto filename = CreateAttachmentFilename(ulInstanceId.siid, m_bFileCompression);
+	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
 	bool bCompressed = m_bFileCompression;
 	struct stat st;
 
@@ -1954,7 +1949,7 @@ ECRESULT ECFileAttachment::GetSizeInstance(const ext_siid &ulInstanceId,
 	 */
 	int fd = open(filename.c_str(), O_RDONLY);
 	if (fd == -1) {
-		filename = CreateAttachmentFilename(ulInstanceId.siid, !m_bFileCompression);
+		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
 		bCompressed = !m_bFileCompression;
 
 		fd = open(filename.c_str(), O_RDONLY);

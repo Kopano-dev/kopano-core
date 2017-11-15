@@ -140,7 +140,7 @@ protected:
 	_kc_hidden virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *size, bool *compr = nullptr) override;
 	_kc_hidden virtual kd_trans Begin(ECRESULT &) override;
 private:
-	_kc_hidden std::string CreateAttachmentFilename(ULONG instance, bool compressed);
+	_kc_hidden std::string CreateAttachmentFilename(const ext_siid &, bool compressed);
 	virtual ECRESULT Commit() override;
 	virtual ECRESULT Rollback() override;
 

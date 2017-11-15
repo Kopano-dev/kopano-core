@@ -459,7 +459,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	auto filename = make_att_filename(ins_id.siid, false);
+	auto filename = make_att_filename(ins_id, false);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: loading %s into buffer", fn);
 	/*
@@ -524,7 +524,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	auto filename = make_att_filename(ins_id.siid, false);
+	auto filename = make_att_filename(ins_id, false);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: loading %s into serializer", fn);
 	/*
@@ -584,7 +584,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	auto filename = make_att_filename(ins_id.siid, comp && size != 0);
+	auto filename = make_att_filename(ins_id, comp && size != 0);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: saving %s (buffer of %zu bytes)", fn, size);
 	/*
@@ -603,7 +603,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
 	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cd.status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
-		m_new_att.emplace(ins_id.siid);
+		m_new_att.emplace(ins_id);
 
 	if (cd.size != cd.processed) {
 		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
@@ -640,7 +640,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	auto filename = make_att_filename(ins_id.siid, comp && size != 0);
+	auto filename = make_att_filename(ins_id, comp && size != 0);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: saving %s (serializer with %zu bytes)", fn, size);
 	/*
@@ -660,7 +660,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
 	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cd.status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
-		m_new_att.emplace(ins_id.siid);
+		m_new_att.emplace(ins_id);
 
 	if (cd.size != cd.processed) {
 		ec_log_err("S3: save %s: processed only %zu/%zu bytes",
@@ -702,14 +702,14 @@ ECRESULT ECS3Attachment::DeleteAttachmentInstances(const std::list<ext_siid> &ls
  *
  * @return Kopano error code
  */
-ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
+ECRESULT ECS3Attachment::del_marked_att(const ext_siid &ins_id)
 {
 	struct s3_cd cd;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	std::string filename = make_att_filename(ins_id, false);
+	auto filename = make_att_filename(ins_id, false);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: delete marked attachment: %s", fn);
 	/*
@@ -729,7 +729,7 @@ ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
 	if (cd.status == S3StatusOK || cd.status == S3StatusHttpErrorNotFound) {
 		/* Delete successful, or did not exist before */
 		scoped_lock locker(m_cachelock);
-		m_cache[ins_id] = {now_negative(), S3_NEGATIVE_ENTRY};
+		m_cache[ins_id.siid] = {now_negative(), S3_NEGATIVE_ENTRY};
 	}
 	/* else { do not touch cache for network errors, etc. } */
 
@@ -747,12 +747,11 @@ ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
 ECRESULT ECS3Attachment::DeleteAttachmentInstance(const ext_siid &ins_id,
     bool bReplace)
 {
-	auto filename = make_att_filename(ins_id.siid, m_bFileCompression);
-
+	auto filename = make_att_filename(ins_id, m_bFileCompression);
 	if (!m_transact)
-		return del_marked_att(ins_id.siid);
+		return del_marked_att(ins_id);
 	ec_log_debug("S3: set delete mark for %u", ins_id.siid);
-	m_marked_att.emplace(ins_id.siid);
+	m_marked_att.emplace(ins_id);
 	return erSuccess;
 }
 
@@ -764,9 +763,9 @@ ECRESULT ECS3Attachment::DeleteAttachmentInstance(const ext_siid &ins_id,
  *
  * @return Kopano error code
  */
-std::string ECS3Attachment::make_att_filename(ULONG ins_id, bool comp)
+std::string ECS3Attachment::make_att_filename(const ext_siid &esid, bool comp)
 {
-	std::string filename = m_basepath + PATH_SEPARATOR + stringify(ins_id);
+	auto filename = m_basepath + PATH_SEPARATOR + stringify(esid.siid);
 	if (comp)
 		filename += ".gz";
 	return filename;
@@ -799,7 +798,7 @@ ECRESULT ECS3Attachment::GetSizeInstance(const ext_siid &ins_id,
     size_t *size_p, bool *compr_p)
 {
 	bool comp = false;
-	auto filename = make_att_filename(ins_id.siid, comp);
+	auto filename = make_att_filename(ins_id, comp);
 	auto fn = filename.c_str();
 
 	ulock_normal locker(m_cachelock);
@@ -877,7 +876,7 @@ ECRESULT ECS3Attachment::Commit(void)
 	/* Disable the transaction */
 	m_transact = false;
 	/* Delete marked attachments */
-	for (auto att_id : m_marked_att)
+	for (const auto &att_id : m_marked_att)
 		if (del_marked_att(att_id) != erSuccess)
 			error = true;
 
@@ -899,12 +898,12 @@ ECRESULT ECS3Attachment::Rollback(void)
 	/* Disable the transaction */
 	m_transact = false;
 	/* Remove the created attachments */
-	for (auto att_id : m_new_att)
+	for (const auto &att_id : m_new_att)
 		if (DeleteAttachmentInstance(att_id, false) != erSuccess)
 			error = true;
 	/* Restore marked attachment */
-	for (auto att_id : m_marked_att) {
-		ec_log_debug("S3: removed delete mark for %u", att_id);
+	for (const auto &att_id : m_marked_att) {
+		ec_log_debug("S3: removed delete mark for %u", att_id.siid);
 		m_marked_att.erase(att_id);
 	}
 	m_new_att.clear();

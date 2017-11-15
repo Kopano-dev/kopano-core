@@ -49,19 +49,17 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	void response_complete(S3Status, const S3ErrorDetails *, void *);
 	S3Status get_obj(int, const char *, void *);
 	int put_obj(int, char *, void *);
-
-	std::string make_att_filename(ULONG, bool);
+	std::string make_att_filename(const ext_siid &, bool);
 	bool should_retry(struct s3_cd &);
 	struct s3_cd create_cd(void);
-	ECRESULT del_marked_att(ULONG);
+	ECRESULT del_marked_att(const ext_siid &);
 	virtual ECRESULT Commit() override;
 	virtual ECRESULT Rollback() override;
 
 	/* Variables: */
 	std::string m_basepath;
 	S3BucketContext m_bucket_ctx;
-	std::set<ULONG> m_new_att;
-	std::set<ULONG> m_marked_att;
+	std::set<ext_siid> m_new_att, m_marked_att;
 	bool m_transact = false;
 
 	/*
