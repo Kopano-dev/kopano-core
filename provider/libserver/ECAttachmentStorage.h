@@ -28,10 +28,11 @@ class ECLogger;
 class ext_siid {
 	public:
 	ext_siid() = default;
-	explicit ext_siid(unsigned int a) : siid(a) {}
+	explicit ext_siid(unsigned int a, std::string f = "") : siid(a), filename(f) {}
 	unsigned int siid = 0;
-	inline constexpr bool operator==(const ext_siid &o) const { return siid == o.siid; }
-	inline constexpr bool operator<(const ext_siid &r) const { return siid < r.siid; }
+	std::string filename;
+	inline bool operator==(const ext_siid &o) const { return siid == o.siid; }
+	inline bool operator<(const ext_siid &r) const { return siid < r.siid; }
 };
 
 class ECAttachmentConfig {

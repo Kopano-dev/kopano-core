@@ -149,7 +149,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceId(ULONG ulObjId, ULONG ulTag,
 {
 	DB_RESULT lpDBResult;
 	std::string strQuery =
-		"SELECT `instanceid` "
+		"SELECT `instanceid`, `filename` "
 		"FROM `singleinstances` "
 		"WHERE `hierarchyid` = " + stringify(ulObjId) + " AND `tag` = " + stringify(ulTag) + " LIMIT 1";
 
@@ -160,8 +160,11 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceId(ULONG ulObjId, ULONG ulTag,
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
 		// ec_perror("ECAttachmentStorage::GetSingleInstanceId(): FetchRow() failed", er);
 		return KCERR_NOT_FOUND;
-	if (esid != nullptr)
+	if (esid != nullptr) {
 		esid->siid = atoi(lpDBRow[0]);
+		if (lpDBRow[1] != nullptr)
+			esid->filename = lpDBRow[1];
+	}
 	return erSuccess;
 }
 
@@ -186,7 +189,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 	if (lstObjIds.empty())
 		return erSuccess;
 	std::string strQuery =
-		"SELECT DISTINCT `instanceid` "
+		"SELECT DISTINCT `instanceid`, `filename` "
 		"FROM `singleinstances` "
 		"WHERE `hierarchyid` IN (";
 	for (auto i = lstObjIds.cbegin(); i != lstObjIds.cend(); ++i) {
@@ -205,7 +208,8 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 			ec_log_err("ECAttachmentStorage::GetSingleInstanceIds(): column contains NULL");
 			return KCERR_DATABASE_ERROR;
 		}
-		lstInstanceIds.emplace_back(atoi(lpDBRow[0]));
+		lstInstanceIds.emplace_back(atoui(lpDBRow[0]),
+			lpDBRow[1] != nullptr ? lpDBRow[1] : "");
 	}
 	*lstAttachIds = std::move(lstInstanceIds);
 	return erSuccess;
@@ -225,8 +229,8 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceParents(ULONG ulInstanceId,
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	std::list<ext_siid> lstObjIds;
-	std::string strQuery =
-		"SELECT DISTINCT `hierarchyid` "
+	auto strQuery =
+		"SELECT DISTINCT `hierarchyid`, `filename` "
 		"FROM `singleinstances` "
 		"WHERE `instanceid` = " + stringify(ulInstanceId);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -238,7 +242,8 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceParents(ULONG ulInstanceId,
 			ec_log_err("ECAttachmentStorage::GetSingleInstanceParents(): column contains NULL");
 			return KCERR_DATABASE_ERROR;
 		}
-		lstObjIds.emplace_back(atoi(lpDBRow[0]));
+		lstObjIds.emplace_back(atoui(lpDBRow[0]),
+			lpDBRow[1] != nullptr ? lpDBRow[1] : "");
 	}
 	*lplstObjIds = std::move(lstObjIds);
 	return erSuccess;
@@ -285,7 +290,7 @@ ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ext_sii
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
 	std::string strQuery =
-		"SELECT DISTINCT `instanceid` "
+		"SELECT DISTINCT `instanceid`, `filename` "
 		"FROM `singleinstances` "
 		"WHERE `instanceid` IN ( ";
 	for (auto i = lstInstanceIds.cbegin(); i != lstInstanceIds.cend(); ++i) {
@@ -309,7 +314,8 @@ ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ext_sii
 			ec_log_err("ECAttachmentStorage::GetOrphanedSingleInstances(): column contains NULL");
 			return KCERR_DATABASE_ERROR;
 		}
-		lplstOrphanedInstanceIds->remove(ext_siid(atoui(lpDBRow[0])));
+		lplstOrphanedInstanceIds->remove(ext_siid(atoui(lpDBRow[0]),
+			lpDBRow[1] != nullptr ? lpDBRow[1] : ""));
 	}
 	return erSuccess;
 }
