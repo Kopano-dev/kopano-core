@@ -28,6 +28,9 @@ enum {
 
 namespace KC {
 
+#define S_IRWUG (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)
+#define S_IRWXUG (S_IRWXU | S_IRWXG)
+
 #define KOPANO_SYSTEM_USER		"SYSTEM"
 #define KOPANO_SYSTEM_USER_W	L"SYSTEM"
 

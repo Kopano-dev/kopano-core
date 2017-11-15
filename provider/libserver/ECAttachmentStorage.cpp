@@ -19,12 +19,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <libHX/io.h>
+#include <libHX/string.h>
 #include "ECAttachmentStorage.h"
 #include "SOAPUtils.h"
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
 #include <mapitags.h>
 #include <kopano/stringutil.h>
+#include <openssl/sha.h>
 #include "StreamUtil.h"
 #include "ECS3Attachment.h"
 
@@ -101,13 +104,24 @@ class ECFileAttachmentConfig2 final : public ECFileAttachmentConfig {
 	friend class ECFileAttachment2;
 };
 
-class ECFileAttachment2 : public ECFileAttachment {
+class ECFileAttachment2 final : public ECFileAttachment {
 	public:
 	ECFileAttachment2(ECFileAttachmentConfig2 &, ECDatabase *, const std::string &basepath, unsigned int complvl, bool sync);
 
 	protected:
+	virtual ECRESULT SaveAttachmentInstance(ext_siid &, ULONG propid, size_t, unsigned char *) override;
+	virtual ECRESULT SaveAttachmentInstance(ext_siid &, ULONG propid, size_t, ECSerializer *) override;
+	virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *, bool *) override;
+	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
 	ECFileAttachmentConfig2 &m_config;
 };
+
+struct at2_layout {
+	std::string ident, base_dir, content_file;
+	std::string intent_dir, intent_ref, holder_dir, holder_ref;
+};
+
+static const char fa_hex[] = "0123456789abcdef";
 
 using std::string;
 
@@ -132,6 +146,87 @@ using std::string;
  * attachment but only the attachment id. When that happens the server can return an error
  * and simply request the dagent to resend the attachment and to obtain a new attachment id.
  */
+
+static constexpr const size_t UAS_FILENAME_BUFSIZE = SHA256_DIGEST_LENGTH * 2 + 2;
+
+/*
+ * UAS:
+ *
+ * Deduplication naturally happens only when saving attachments. A globally
+ * unique name (ident) is derived from the data stream (either hash or some
+ * other mechanism). This derivation is repeatable in general, i.e. it should
+ * give the same result for the same input data. Changing the derivation
+ * function causes a one-time boundary - past attachments won't be considered
+ * as candidates to link to - but otherwise no ill effect. This way, hash types
+ * and directory layouts can be changed at practically any time.
+ *
+ * Two types of globally unique name exist:
+ *
+ * S-type: A name based on server GUID (unique) and SIID
+ * (unique within server). It is not globally discoverable, and is used for
+ * temporary directories and when uploads conflict.
+ *
+ * H-type: A name based on data contents only.
+ */
+
+static struct at2_layout uas_server_layout(const std::string &root,
+    const std::string &sguid, const ext_siid &i)
+{
+	unsigned int n = i.siid % 256, m = n / 256 % 256;
+	struct at2_layout e;
+	e.ident        = "XX/XX/s" + sguid + "i" + stringify(i.siid);
+	e.ident[0]     = fa_hex[(n>>4)&0xF0];
+	e.ident[1]     = fa_hex[n&0x0F];
+	e.ident[3]     = fa_hex[(m>>4)&0xF0];
+	e.ident[4]     = fa_hex[m&0x0F];
+	e.base_dir     = root + "/" + e.ident;
+	e.content_file = e.base_dir + "/content";
+	e.intent_dir   = e.base_dir + "/intent";
+	e.intent_ref   = e.intent_dir + "/s" + sguid + "i" + stringify(i.siid);
+	e.holder_dir   = e.base_dir + "/holder";
+	e.holder_ref   = e.holder_dir + "/s" + sguid + "i" + stringify(i.siid);
+	return e;
+}
+
+static struct at2_layout uas_hash_layout(const std::string &root,
+    const std::string &sguid, const ext_siid &i)
+{
+	struct at2_layout e;
+	e.ident        = i.filename;
+	e.base_dir     = root + "/" + e.ident;
+	e.content_file = e.base_dir + "/content";
+	e.intent_dir   = e.base_dir + "/intent";
+	e.intent_ref   = e.intent_dir + "/s" + sguid + "i" + stringify(i.siid);
+	e.holder_dir   = e.base_dir + "/holder";
+	e.holder_ref   = e.holder_dir + "/s" + sguid + "i" + stringify(i.siid);
+	return e;
+}
+
+static std::string uas_md_to_ident(const std::string &md)
+{
+	assert(md.size() == SHA256_DIGEST_LENGTH);
+	std::string name;
+	name.resize(UAS_FILENAME_BUFSIZE);
+	name[0] = fa_hex[(md[0] & 0xF0) >> 4];
+	name[1] = fa_hex[md[0] & 0x0F];
+	name[2] = '/';
+	name[3] = fa_hex[(md[1] & 0xF0) >> 4];
+	name[4] = fa_hex[md[1] & 0x0F];
+	name[5] = '/';
+	unsigned int j = 6;
+	for (unsigned int i = 2; i < sizeof(md); ++i) {
+		name[j++] = fa_hex[(md[i] & 0xF0) >> 4];
+		name[j++] = fa_hex[md[i] & 0x0F];
+	}
+	return name;
+}
+
+static std::string uas_data_to_ident(const void *data, size_t dsize)
+{
+	unsigned char md[SHA256_DIGEST_LENGTH];
+	SHA256(static_cast<const unsigned char *>(data), dsize, md);
+	return uas_md_to_ident(std::string(reinterpret_cast<char *>(md), sizeof(md)));
+}
 
 // Generic Attachment storage
 ECAttachmentStorage::ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ulCompressionLevel) :
@@ -603,8 +698,8 @@ ECRESULT ECAttachmentStorage::CopyAttachment(ULONG ulObjId, ULONG ulNewObjId)
 	 * no need to really physically store the attachment twice.
 	 */
 	std::string strQuery =
-		"INSERT INTO `singleinstances` (`hierarchyid`, `instanceid`, `tag`) "
-			"SELECT " + stringify(ulNewObjId) + ", `instanceid`, `tag` "
+		"INSERT INTO `singleinstances` (`hierarchyid`, `instanceid`, `tag`, `filename`) "
+			"SELECT " + stringify(ulNewObjId) + ", `instanceid`, `tag`, `filename` "
 			"FROM `singleinstances` "
 			"WHERE `hierarchyid` = " + stringify(ulObjId);
 	auto er = m_lpDatabase->DoInsert(strQuery);
@@ -2024,7 +2119,7 @@ ECRESULT ECFileAttachment::Rollback()
 }
 
 ECFileAttachmentConfig2::ECFileAttachmentConfig2(const GUID &g) :
-	m_server_guid(bin2hex(sizeof(g), &g))
+	m_server_guid(strToLower(bin2hex(sizeof(g), &g)))
 {}
 
 ECAttachmentStorage *ECFileAttachmentConfig2::new_handle(ECDatabase *db)
@@ -2037,5 +2132,260 @@ ECFileAttachment2::ECFileAttachment2(ECFileAttachmentConfig2 &acf,
     bool sync) :
 	ECFileAttachment(db, basepath, complvl, sync), m_config(acf)
 {}
+
+ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
+    ULONG propid, size_t dsize, unsigned char *data)
+{
+	instance.filename = uas_data_to_ident(data, dsize);
+	bool uploaded = false;
+	auto sl = uas_server_layout(m_basepath, m_config.m_server_guid, instance);
+	auto hl = uas_hash_layout(m_basepath, m_config.m_server_guid, instance);
+	int retries  = 3;
+	ECRESULT ret = erSuccess;
+
+	do {
+		int x = open(hl.intent_ref.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRWUG);
+		if (x >= 0) {
+			close(x);
+			x = rename(hl.intent_ref.c_str(), hl.holder_ref.c_str());
+			if (x == 0)
+				break;
+			if (x < 0 && errno == ENOENT) {
+				/* not using CreatePath, don't want it recursive */
+				x = mkdir(hl.holder_dir.c_str(), S_IRWXU | S_IRWXG);
+				if (x == 0 || errno == EEXIST) {
+					x = rename(hl.intent_ref.c_str(), hl.holder_ref.c_str());
+					if (x == 0)
+						break;
+				}
+			}
+		}
+
+		if (!uploaded) {
+			auto ret = CreatePath(sl.intent_dir.c_str(), S_IRWXUG);
+			if (ret != 0 && errno != EEXIST) {
+				ec_log_err("K-1299: mkdir -p \"%s\": %s", sl.intent_dir.c_str(), GetMAPIErrorMessage(ret));
+				break;
+			}
+			uploaded = true;
+			ret = CreatePath(sl.holder_dir.c_str(), S_IRWXUG);
+			if (ret != 0 && errno != EEXIST) {
+				ec_log_err("K-1298: mkdir -p \"%s\": %s", sl.holder_dir.c_str(), GetMAPIErrorMessage(ret));
+				break;
+			}
+			int fd = open(sl.content_file.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
+			if (fd < 0) {
+				ec_log_err("K-1297: open \"%s\": %s", sl.content_file.c_str(), strerror(errno));
+				ret = KCERR_DATABASE_ERROR;
+				break;
+			}
+			ret = save_instance_data(sl.content_file, fd, propid, dsize, data, false); /* closes fd */
+			if (ret != hrSuccess) {
+				ec_log_err("K-1296: save_instance_data \"%s\": %s", sl.content_file.c_str(), GetMAPIErrorMessage(ret));
+				close(fd);
+				break;
+			}
+			fd = open(sl.holder_ref.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
+			if (fd < 0) {
+				ec_log_err("K-1295: open \"%s\": %s", sl.holder_ref.c_str(), strerror(errno));
+				ret = KCERR_DATABASE_ERROR;
+				break;
+			}
+			close(fd);
+		}
+
+		std::unique_ptr<char[], cstdlib_deleter> enclosing_dir(HX_dirname(hl.base_dir.c_str()));
+		ret = CreatePath(enclosing_dir.get());
+		if (ret != hrSuccess) {
+			ec_log_err("K-1294: mkdir -p \"%s\": %s", enclosing_dir.get(), GetMAPIErrorMessage(ret));
+			break;
+		}
+		x = rename(sl.base_dir.c_str(), hl.base_dir.c_str());
+		if (x == 0) {
+			uploaded = false;
+			break;
+		}
+		if (errno != EEXIST) {
+			ec_log_debug("K-1293: rename \"%s\" -> \"%s\": %s",
+				sl.base_dir.c_str(), hl.base_dir.c_str(), strerror(errno));
+			break;
+		}
+		pthread_yield();
+		if (--retries == 0)
+			break;
+	} while (true);
+
+	if (ret == erSuccess) {
+		instance.filename = (uploaded && retries <= 0) ? std::move(sl.ident) : std::move(hl.ident);
+		return hrSuccess;
+	}
+	if (uploaded)
+		HX_rrmdir(sl.base_dir.c_str());
+	return ret;
+}
+
+/**
+ * Streaming support. This is only used when importing messages
+ * through ECExchange*, it is not used by normal e-mail receiption or
+ * e.g. when saving a draft.
+ */
+ECRESULT ECFileAttachment2::SaveAttachmentInstance(ext_siid &instance,
+    ULONG propid, size_t dsize, ECSerializer *src)
+{
+	bool uploaded = false;
+	auto sl = uas_server_layout(m_basepath, m_config.m_server_guid, instance);
+	decltype(sl) hl;
+	ECRESULT ret = erSuccess;
+
+	/*
+	 * Data is just arriving. It is put into a file (lest it would have to
+	 * be held in memory) while the hash is being computed.
+	 */
+	do {
+		SHA256_CTX shactx;
+		SHA256_Init(&shactx);
+
+		auto ret = CreatePath(sl.intent_dir.c_str(), S_IRWXUG);
+		if (ret != 0 && errno != EEXIST) {
+			ec_log_err("K-1292: mkdir \"%s\": %s", sl.intent_dir.c_str(), strerror(errno));
+			break;
+		}
+		uploaded = true;
+		ret = CreatePath(sl.holder_dir.c_str(), S_IRWXUG);
+		if (ret != 0 && errno != EEXIST) {
+			ec_log_err("K-1291: mkdir \"%s\": %s", sl.holder_dir.c_str(), strerror(errno));
+			break;
+		}
+		int fd = open(sl.content_file.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
+		if (fd < 0) {
+			ec_log_err("K-1290: open \"%s\": %s", sl.content_file.c_str(), strerror(errno));
+			ret = MAPI_E_DISK_ERROR;
+			break;
+		}
+
+		give_filesize_hint(fd, dsize);
+		while (dsize > 0) {
+			size_t chunk_size = std::min(static_cast<size_t>(CHUNK_SIZE), dsize);
+			char buffer[CHUNK_SIZE];
+			ret = src->Read(buffer, 1, chunk_size);
+			if (ret != erSuccess) {
+				close(fd);
+				return ret;
+			}
+			SHA256_Update(&shactx, buffer, chunk_size);
+			ssize_t did_write = write_retry(fd, buffer, chunk_size);
+			if (did_write != static_cast<ssize_t>(chunk_size)) {
+				ec_log_err("K-1289: Unable to write bytes to attachment \"%s\": %s.",
+					sl.content_file.c_str(), strerror(errno));
+				ret = KCERR_DATABASE_ERROR;
+				close(fd);
+				break;
+			}
+			dsize -= chunk_size;
+		}
+		unsigned char shasum[SHA256_DIGEST_LENGTH];
+		SHA256_Final(shasum, &shactx);
+		instance.filename = uas_md_to_ident(std::string(reinterpret_cast<char *>(shasum), sizeof(shasum)));
+		hl = uas_hash_layout(m_basepath, m_config.m_server_guid, instance);
+
+		fd = open(sl.holder_ref.c_str(), O_WRONLY | O_CREAT, S_IRWUG);
+		if (fd < 0) {
+			ec_log_err("K-1288: open \"%s\": %s", sl.holder_ref.c_str(), strerror(errno));
+			ret = MAPI_E_DISK_ERROR;
+			break;
+		}
+		close(fd);
+	} while (false);
+
+	std::unique_ptr<char[], cstdlib_deleter> enclosing_dir(HX_dirname(hl.base_dir.c_str()));
+	ret = CreatePath(enclosing_dir.get());
+	if (ret != hrSuccess) {
+		ec_log_err("K-1287: mkdir -p \"%s\": %s", enclosing_dir.get(), GetMAPIErrorMessage(ret));
+		return ret;
+	}
+
+	int retries = 3;
+	do {
+		ret = rename(sl.base_dir.c_str(), hl.base_dir.c_str());
+		if (ret == 0) {
+			uploaded = false;
+			break;
+		}
+		if (ret != EEXIST) {
+			ec_log_debug("K-1286: rename \"%s\" -> \"%s\": %s",
+				sl.base_dir.c_str(), hl.base_dir.c_str(), strerror(errno));
+			break;
+		}
+		pthread_yield();
+		if (--retries == 0)
+			break;
+
+		int fd = open(hl.intent_ref.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRWUG);
+		if (fd >= 0) {
+			close(fd);
+			fd = open(hl.holder_ref.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRWUG);
+			if (fd >= 0) {
+				close(fd);
+				unlink(hl.intent_ref.c_str());
+				break;
+			}
+		}
+	} while (true);
+
+	if (ret == erSuccess) {
+		instance.filename = (uploaded && retries <= 0) ? std::move(sl.ident) : std::move(hl.ident);
+		return hrSuccess;
+	}
+	if (uploaded)
+		HX_rrmdir(sl.base_dir.c_str());
+	return ret;
+}
+
+ECRESULT ECFileAttachment2::GetSizeInstance(const ext_siid &inst,
+    size_t *size, bool *comp)
+{
+	auto content_file = m_basepath + "/" + inst.filename + "/content";
+	struct stat sb;
+	auto ret = stat(content_file.c_str(), &sb);
+	if (ret != 0)
+		return MAPI_E_DISK_ERROR;
+	if (size != nullptr)
+		*size = sb.st_size;
+	if (comp != nullptr)
+		*comp = false;
+	return erSuccess;
+}
+
+ECRESULT ECFileAttachment2::DeleteAttachmentInstance(const ext_siid &i, bool replace)
+{
+	auto hl = uas_hash_layout(m_basepath, m_config.m_server_guid, i);
+	auto ret = unlink(hl.holder_ref.c_str());
+	if (ret != 0) {
+		if (errno == ENOENT) {
+			ec_log_err("K-1290: Huh, \"%s\" already gone", hl.holder_ref.c_str());
+		} else {
+			ec_log_err("K-1289: unlink \"%s\": %s", hl.holder_ref.c_str(), strerror(errno));
+			return MAPI_E_DISK_ERROR;
+		}
+	}
+	ret = rmdir(hl.holder_dir.c_str());
+	if (ret != 0) {
+		if (errno == ENOTEMPTY)
+			/* normal condition: other holder exists */;
+		else
+			ec_log_err("K-1288: rmdir \"%s\": %s", hl.holder_dir.c_str(), strerror(errno));
+		return erSuccess;
+	}
+	ret = rmdir(hl.intent_dir.c_str());
+	if (ret != 0) {
+		if (errno == ENOTEMPTY)
+			/* normal condition: other writer signalled new intent to link */;
+		else
+			ec_log_err("K-1287: rmdir \"%s\": %s", hl.intent_dir.c_str(), strerror(errno));
+		return erSuccess;
+	}
+	HX_rrmdir(hl.base_dir.c_str());
+	return erSuccess;
+}
 
 } /* namespace */
