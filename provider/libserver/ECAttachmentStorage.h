@@ -78,9 +78,6 @@ protected:
 	virtual ECRESULT GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize, bool *lpbCompressed = NULL) = 0;
 
 private:
-	/* Add reference between Object and Single Instance */
-	ECRESULT SetSingleInstanceId(ULONG ulObjId, ULONG ulInstanceId, ULONG ulTag);
-
 	/* Count the number of times an attachment is referenced */
 	ECRESULT IsOrphanedSingleInstance(ULONG ulInstanceId, bool *bOrphan);
 	ECRESULT GetOrphanedSingleInstances(const std::list<ULONG> &lstInstanceIds, std::list<ULONG> *lplstOrphanedInstanceIds);

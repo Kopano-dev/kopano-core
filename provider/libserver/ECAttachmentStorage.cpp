@@ -236,33 +236,6 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 }
 
 /** 
- * Sets or replaces a row in the singleinstances table for a given
- * hierarchyid, tag and instanceid.
- * 
- * @param[in] ulObjId HierarchyID to set/add instance id for
- * @param[in] ulInstanceId InstanceID to set for HierarchyID + Tag
- * @param[in] ulTag PropID to set/add instance id for
- * 
- * @return Kopano error code
- */
-ECRESULT ECAttachmentStorage::SetSingleInstanceId(ULONG ulObjId, ULONG ulInstanceId, ULONG ulTag)
-{
-	/*
-	 * Check if attachment reference exists, if not return error
-	 */
-	if (!ExistAttachmentInstance(ulInstanceId))
-		return KCERR_UNABLE_TO_COMPLETE;
-	/*
-	 * Create Attachment reference, use provided attachment id
-	 */
-	std::string strQuery =
-		"REPLACE INTO `singleinstances` (`instanceid`, `hierarchyid`, `tag`) VALUES"
-		"(" + stringify(ulInstanceId) + ", " + stringify(ulObjId) + ", " +  stringify(ulTag) + ")";
-
-	return m_lpDatabase->DoInsert(strQuery, reinterpret_cast<unsigned int *>(&ulInstanceId));
-}
-
-/** 
  * Get all HierarchyIDs for a given InstanceID.
  * 
  * @param[in] ulInstanceId InstanceID to get HierarchyIDs for
@@ -560,7 +533,15 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 			return er;
 	}
 
-	auto er = SetSingleInstanceId(ulObjId, ulInstanceId, ulPropId);
+	/* Check if attachment reference exists, if not return error */
+	if (!ExistAttachmentInstance(ulInstanceId))
+		return KCERR_UNABLE_TO_COMPLETE;
+	/* Create Attachment reference, use provided attachment id */
+	auto strQuery =
+		"REPLACE INTO `singleinstances` (`instanceid`, `hierarchyid`, `tag`) VALUES"
+		"(" + stringify(ulInstanceId) + ", " + stringify(ulObjId) + ", " +  stringify(ulPropId) + ")";
+	unsigned int ignore;
+	auto er = m_lpDatabase->DoInsert(strQuery, &ignore);
 	if (er != erSuccess)
 		return er;
 	/* InstanceId is equal to provided AttachId */
