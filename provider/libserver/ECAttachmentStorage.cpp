@@ -339,8 +339,7 @@ ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ext_sii
 			ec_log_err("ECAttachmentStorage::GetOrphanedSingleInstances(): column contains NULL");
 			return KCERR_DATABASE_ERROR;
 		}
-
-		lplstOrphanedInstanceIds->remove(atoi(lpDBRow[0]));
+		lplstOrphanedInstanceIds->remove(ext_siid(atoui(lpDBRow[0])));
 	}
 	return erSuccess;
 }
@@ -363,6 +362,11 @@ bool ECAttachmentStorage::ExistAttachment(ULONG ulObjId, ULONG ulPropId)
 	if (er != erSuccess)
 		return false;
 	return ExistAttachmentInstance(ulInstanceId.siid);
+}
+
+bool ECAttachmentStorage::ExistAttachmentInstance(ULONG ins_id)
+{
+	return ExistAttachmentInstance(ext_siid(ins_id));
 }
 
 /** 
@@ -424,8 +428,6 @@ ECRESULT ECAttachmentStorage::LoadAttachment(ULONG ulObjId, ULONG ulPropId, size
  */
 ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool bDeleteOld, size_t iSize, unsigned char *lpData, ULONG *lpulInstanceId)
 {
-	ULONG ulInstanceId = 0;
-
 	if (lpData == NULL)
 		return KCERR_INVALID_PARAMETER;
 	if (bDeleteOld) {
@@ -444,17 +446,17 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 	std::string strQuery =
 		"INSERT INTO `singleinstances` (`hierarchyid`, `tag`) VALUES"
 		"(" + stringify(ulObjId) + ", " + stringify(ulPropId) + ")";
-	auto er = m_lpDatabase->DoInsert(strQuery, reinterpret_cast<unsigned int *>(&ulInstanceId));
+	ext_siid esid;
+	auto er = m_lpDatabase->DoInsert(strQuery, &esid.siid);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::SaveAttachment(): DoInsert failed %x", er);
 		return er;
 	}
-
-	er = SaveAttachmentInstance(ulInstanceId, ulPropId, iSize, lpData);
+	er = SaveAttachmentInstance(esid, ulPropId, iSize, lpData);
 	if (er != erSuccess)
 		return er;
 	if (lpulInstanceId)
-		*lpulInstanceId = ulInstanceId;
+		*lpulInstanceId = esid.siid;
 	return erSuccess;
 }
 
@@ -472,8 +474,6 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
  */
 ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool bDeleteOld, size_t iSize, ECSerializer *lpSource, ULONG *lpulInstanceId)
 {
-	ULONG ulInstanceId = 0;
-
 	if (bDeleteOld) {
 		/*
 		 * Call DeleteAttachment to decrease the refcount
@@ -490,17 +490,17 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 	std::string strQuery =
 		"INSERT INTO `singleinstances` (`hierarchyid`, `tag`) VALUES"
 		"(" + stringify(ulObjId) + ", " + stringify(ulPropId) + ")";
-	auto er = m_lpDatabase->DoInsert(strQuery, (unsigned int*)&ulInstanceId);
+	ext_siid esid;
+	auto er = m_lpDatabase->DoInsert(strQuery, &esid.siid);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::SaveAttachment(): DoInsert failed %x", er);
 		return er;
 	}
-
-	er = SaveAttachmentInstance(ulInstanceId, ulPropId, iSize, lpSource);
+	er = SaveAttachmentInstance(esid, ulPropId, iSize, lpSource);
 	if (er != erSuccess)
 		return er;
 	if (lpulInstanceId)
-		*lpulInstanceId = ulInstanceId;
+		*lpulInstanceId = esid.siid;
 	return erSuccess;
 }
 
@@ -524,7 +524,7 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 		 */
 		ext_siid ulOldAttachId;
 		if (GetSingleInstanceId(ulObjId, ulPropId, &ulOldAttachId) == erSuccess &&
-		    ulOldAttachId == ulInstanceId)
+		    ulOldAttachId.siid == ulInstanceId)
 			// Nothing to do, we already have that instance ID
 			return erSuccess;
 		auto er = DeleteAttachment(ulObjId, ulPropId, true);
@@ -713,7 +713,7 @@ ECRESULT ECAttachmentStorage::GetSize(ULONG ulObjId, ULONG ulPropId, size_t *lpu
 	} else if (er != erSuccess) {
 		return er;
 	}
-	return GetSizeInstance(ulInstanceId.siid, lpulSize);
+	return GetSizeInstance(ulInstanceId, lpulSize);
 }
 
 // Attachment storage is in database

@@ -37,7 +37,7 @@ class ECLogger;
 class ext_siid {
 	public:
 	ext_siid() = default;
-	ext_siid(unsigned int a) : siid(a) {}
+	explicit ext_siid(unsigned int a) : siid(a) {}
 	unsigned int siid = 0;
 	inline constexpr bool operator==(const ext_siid &o) const { return siid == o.siid; }
 	inline constexpr bool operator<(const ext_siid &r) const { return siid < r.siid; }
@@ -54,6 +54,7 @@ public:
 
 	/* Single Instance Attachment wrappers (should not be overridden by subclasses) */
 	bool ExistAttachment(ULONG ulObjId, ULONG ulPropId);
+	bool ExistAttachmentInstance(ULONG);
 	ECRESULT LoadAttachment(struct soap *soap, ULONG ulObjId, ULONG ulPropId, size_t *lpiSize, unsigned char **lppData);
 	ECRESULT LoadAttachment(ULONG ulObjId, ULONG ulPropId, size_t *lpiSize, ECSerializer *lpSink);
 	ECRESULT SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool bDeleteOld, size_t iSize, unsigned char *lpData, ULONG *lpulInstanceId);
