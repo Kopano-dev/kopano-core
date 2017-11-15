@@ -750,6 +750,64 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
     return er;
 }
 
+ECRESULT ECSearchFolders::ProcessCandidateRowsNotify(ECDatabase *lpDatabase,
+    ECSession *lpSession, struct restrictTable *lpRestrict, bool *lpbCancel,
+    unsigned int ulStoreId, unsigned int ulFolderId, ECODStore *lpODStore,
+    ECObjectTableList ecRows, struct propTagArray *lpPropTags,
+    const ECLocale &locale)
+{
+	unsigned int ulParent = 0;
+	auto cache = m_lpSessionManager->GetCacheManager();
+
+	auto er = lpDatabase->Begin();
+	if (er != erSuccess) {
+		ec_log_err("ECSearchFolders::ProcessCandidateRows() BEGIN failed %d", er);
+		lpDatabase->Rollback();
+		return er;
+	}
+	er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
+	if (er != erSuccess) {
+		ec_log_err("ECSearchFolders::ProcessCandidateRows() SELECT failed %d", er);
+		lpDatabase->Rollback();
+		return er;
+	}
+
+	std::list<unsigned int> lst;
+	er = ProcessCandidateRows(lpDatabase, lpSession, lpRestrict, lpbCancel, ulStoreId, ulFolderId, lpODStore, ecRows, lpPropTags, locale, lst);
+	if (er != erSuccess) {
+		lpDatabase->Rollback();
+		return er;
+	}
+
+	er = lpDatabase->Commit();
+	if (er != erSuccess) {
+		ec_log_err("ECSearchFolders::ProcessCandidateRows() DB commit failed %d", er);
+		lpDatabase->Rollback();
+		return er;
+	}
+
+	// Add matched row and send a notification to update views of this search (if any are open)
+	m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulFolderId, lst, MAPI_MESSAGE);
+
+	cache->Update(fnevObjectModified, ulFolderId);
+	m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
+
+	if (cache->GetParent(ulFolderId, &ulParent) == erSuccess)
+		m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER); // PR_CONTENT_* has changed in tables too
+
+	return er;
+}
+
+ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
+    ECSession *lpSession, struct restrictTable *lpRestrict, bool *lpbCancel,
+    unsigned int ulStoreId, unsigned int ulFolderId, ECODStore *lpODStore,
+    ECObjectTableList ecRows, struct propTagArray *lpPropTags,
+    const ECLocale &locale)
+{
+	std::list<unsigned int> lst;
+	return ProcessCandidateRows(lpDatabase, lpSession, lpRestrict, lpbCancel, ulStoreId, ulFolderId, lpODStore, ecRows, lpPropTags, locale, lst);
+}
+
 /**
  * Process a set of rows and add them to the searchresults table if they match the restriction
  *
@@ -775,7 +833,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
     ECSession *lpSession, struct restrictTable *lpRestrict, bool *lpbCancel,
     unsigned int ulStoreId, unsigned int ulFolderId, ECODStore *lpODStore,
     ECObjectTableList ecRows, struct propTagArray *lpPropTags,
-    const ECLocale &locale, bool bNotify)
+    const ECLocale &locale, std::list<unsigned int> &lstMatches)
 {
 	ECRESULT er = erSuccess;
 	struct rowSet *lpRowSet = NULL;
@@ -783,27 +841,12 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 	int lUnreadCount = 0;
 	bool fMatch = false;
 	unsigned int ulObjFlags = 0;
-	unsigned int ulParent = 0;
-	std::list<unsigned int> lstMatches;
 	std::list<unsigned int> lstFlags;
 	SUBRESTRICTIONRESULTS sub_results;
 	
 	assert(lpPropTags->__ptr[0] == PR_MESSAGE_FLAGS);
 	auto iterRows = ecRows.cbegin();
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
-    if(bNotify) {
-        er = lpDatabase->Begin();
-		if (er != erSuccess) {
-			ec_log_err("ECSearchFolders::ProcessCandidateRows() BEGIN failed %d", er);
-			return er;
-		}
-            
-        er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
-		if (er != erSuccess) {
-			ec_log_err("ECSearchFolders::ProcessCandidateRows() SELECT failed %d", er);
-			goto exit;
-    }
-	}
     
     // Get the row data for the search
     er = ECStoreObjectTable::QueryRowData(NULL, NULL, lpSession, &ecRows, lpPropTags, lpODStore, &lpRowSet, false, false);
@@ -855,29 +898,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 			ec_log_crit("ECSearchFolders::ProcessCandidateRows() UpdateFolderCount failed(2) %d", er);
 	}
 
-    if(bNotify) {
-        er = lpDatabase->Commit();
-		if (er != erSuccess) {
-			ec_log_err("ECSearchFolders::ProcessCandidateRows() DB commit failed %d", er);
-			goto exit;
-		}
-    
-        // Add matched row and send a notification to update views of this search (if any are open)
-        m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulFolderId, lstMatches, MAPI_MESSAGE);
-    }
-    
-    // If the searchfolder counte have changed, update counts and send notifications
-    if(bNotify) {
-		cache->Update(fnevObjectModified, ulFolderId);
-		m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
-		if (cache->GetParent(ulFolderId, &ulParent) == erSuccess)
-			m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER); // PR_CONTENT_* has changed in tables too
-    }
-
 exit:    
-    if(bNotify && lpDatabase && er != erSuccess)
-        lpDatabase->Rollback();
-        
     if(lpRowSet) {
         FreeRowSet(lpRowSet, true);
         lpRowSet = NULL;
@@ -1032,7 +1053,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
                 break; // no more rows
                 
             // Note that we do not want ProcessCandidateRows to send notifications since we will send a bulk TABLE_CHANGE later, so bNotify == false here
-            er = ProcessCandidateRows(lpDatabase, lpSession, lpAdditionalRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, locale, false);
+            er = ProcessCandidateRows(lpDatabase, lpSession, lpAdditionalRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, locale);
             if (er != erSuccess) {
 			ec_log_err("ECSearchFolders::Search() ProcessCandidateRows failed: 0x%x", er);
 			goto exit;
@@ -1105,7 +1126,11 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 				if(ecRows.empty())
 					break; // no more rows
 					
-				er = ProcessCandidateRows(lpDatabase, lpSession, lpSearchCrit->lpRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, locale, bNotify);
+				if(bNotify)
+					er = ProcessCandidateRowsNotify(lpDatabase, lpSession, lpSearchCrit->lpRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, locale);
+				else
+					er = ProcessCandidateRows(lpDatabase, lpSession, lpSearchCrit->lpRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, locale);
+
 				if (er != erSuccess) {
 					ec_log_err("ECSearchFolders::Search() ProcessCandidateRows failed: 0x%x", er);
 					goto exit;

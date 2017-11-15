@@ -412,7 +412,9 @@ private:
      * @param[in] bNotify TRUE on a live system, FALSE if only the database must be updated.
      * @return result
      */
-	_kc_hidden virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &, bool notify);
+	_kc_hidden virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &, std::list<unsigned int> &);
+	_kc_hidden virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &);
+	_kc_hidden virtual ECRESULT ProcessCandidateRowsNotify(ECDatabase *, ECSession *, struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &);
 
     // Map StoreID -> SearchFolderId -> SearchCriteria
     // Because searchfolders only work within a store, this allows us to skip 99% of all
