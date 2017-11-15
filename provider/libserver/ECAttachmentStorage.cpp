@@ -1174,7 +1174,9 @@ static ssize_t gzwrite_retry(gzFile fp, const void *data, size_t uclen)
 	return wrote_total;
 }
 
-bool ECFileAttachment::VerifyInstanceSize(const ULONG instanceId, const size_t expectedSize, const std::string & filename) {
+bool ECFileAttachment::VerifyInstanceSize(const ext_siid &instanceId,
+    const size_t expectedSize, const std::string &filename)
+{
 	bool bCompressed = false;
 	size_t ulSize = 0;
 	if (GetSizeInstance(instanceId, &ulSize, &bCompressed) != erSuccess) {
@@ -1305,8 +1307,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 		}
 
 		if (er == erSuccess)
-			VerifyInstanceSize(ulInstanceId.siid, *lpiSize, filename);
-
+			VerifyInstanceSize(ulInstanceId, *lpiSize, filename);
 		if (er == erSuccess) {
 			lpData = s_alloc<unsigned char>(soap, *lpiSize);
 
@@ -1448,7 +1449,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
 		}
 
 		if (er == erSuccess)
-			VerifyInstanceSize(ulInstanceId.siid, *lpiSize, filename);
+			VerifyInstanceSize(ulInstanceId, *lpiSize, filename);
 	}
 	else {
 		for(;;) {

@@ -153,7 +153,7 @@ private:
 	_kc_hidden ECRESULT MarkAttachmentForDeletion(const ext_siid &);
 	_kc_hidden ECRESULT DeleteMarkedAttachment(const ext_siid &);
 	_kc_hidden ECRESULT RestoreMarkedAttachment(const ext_siid &);
-	_kc_hidden bool VerifyInstanceSize(ULONG instance, size_t expected_size, const std::string &filename);
+	_kc_hidden bool VerifyInstanceSize(const ext_siid &, size_t expected_size, const std::string &filename);
 
 	std::string m_basepath;
 	bool m_bTransaction = false;
