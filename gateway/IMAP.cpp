@@ -2778,29 +2778,24 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 		HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error queryring rows");
 		return hr;
 	}
+	if (lpRows->cRows == 0)
+		return hrSuccess;
+	entry_list->cValues = 0;
+	hr = MAPIAllocateMore(sizeof(SBinary) * lpRows->cRows, entry_list, (LPVOID *)&entry_list->lpbin);
+	if (hr != hrSuccess)
+		return hr;
 
-	if(lpRows->cRows) {
-        entry_list->cValues = 0;
-		hr = MAPIAllocateMore(sizeof(SBinary) * lpRows->cRows, entry_list, (LPVOID *) &entry_list->lpbin);
-        if (hr != hrSuccess)
-			return hr;
+	for (ULONG ulMailnr = 0; ulMailnr < lpRows->cRows; ++ulMailnr) {
+		hr = lpFolder->SetMessageStatus(lpRows->aRow[ulMailnr].lpProps[EID].Value.bin.cb, (LPENTRYID)lpRows->aRow[ulMailnr].lpProps[EID].Value.bin.lpb,
+		     0, ~MSGSTATUS_DELMARKED, NULL);
+		if (hr != hrSuccess)
+			lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to update message status flag during " + strCommand);
+		entry_list->lpbin[entry_list->cValues++] = lpRows->aRow[ulMailnr].lpProps[EID].Value.bin;
+	}
 
-        for (ULONG ulMailnr = 0; ulMailnr < lpRows->cRows; ++ulMailnr) {
-			hr = lpFolder->SetMessageStatus(lpRows->aRow[ulMailnr].lpProps[EID].Value.bin.cb, (LPENTRYID)lpRows->aRow[ulMailnr].lpProps[EID].Value.bin.lpb,
-			     0, ~MSGSTATUS_DELMARKED, NULL);
-			if (hr != hrSuccess)
-				lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to update message status flag during " + strCommand);
-
-            entry_list->lpbin[entry_list->cValues++] = lpRows->aRow[ulMailnr].lpProps[EID].Value.bin;
-        }
-
-        hr = lpFolder->DeleteMessages(entry_list, 0, NULL, 0);
-        if (hr != hrSuccess) {
-            HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error deleting messages");
-            return hr;
-        }
-    }
-
+	hr = lpFolder->DeleteMessages(entry_list, 0, NULL, 0);
+	if (hr != hrSuccess)
+		HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error deleting messages");
 	return hr;
 }
 
