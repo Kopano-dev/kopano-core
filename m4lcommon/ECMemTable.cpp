@@ -748,7 +748,7 @@ HRESULT ECMemTableView::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin,
 	return hr;
 }
 
-HRESULT ECMemTableView::Restrict(LPSRestriction lpRestriction, ULONG ulFlags)
+HRESULT ECMemTableView::Restrict(const SRestriction *lpRestriction, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
 

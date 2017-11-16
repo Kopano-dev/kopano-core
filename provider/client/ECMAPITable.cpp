@@ -273,7 +273,7 @@ HRESULT ECMAPITable::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, UL
 	return this->lpTableOps->HrFindRow(lpRestriction, bkOrigin, ulFlags);
 }
 
-HRESULT ECMAPITable::Restrict(LPSRestriction lpRestriction, ULONG ulFlags)
+HRESULT ECMAPITable::Restrict(const SRestriction *lpRestriction, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
 

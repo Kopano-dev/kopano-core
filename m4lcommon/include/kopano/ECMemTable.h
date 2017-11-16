@@ -121,7 +121,7 @@ public:
 	_kc_hidden virtual HRESULT SeekRowApprox(ULONG numerator, ULONG denominator);
 	_kc_hidden virtual HRESULT QueryPosition(ULONG *row, ULONG *numerator, ULONG *denominator);
 	_kc_hidden virtual HRESULT FindRow(LPSRestriction, BOOKMARK origin, ULONG flags);
-	_kc_hidden virtual HRESULT Restrict(LPSRestriction, ULONG flags);
+	_kc_hidden virtual HRESULT Restrict(const SRestriction *, ULONG flags) _kc_override;
 	_kc_hidden virtual HRESULT CreateBookmark(BOOKMARK *pos);
 	_kc_hidden virtual HRESULT FreeBookmark(BOOKMARK pos);
 	_kc_hidden virtual HRESULT SortTable(const SSortOrderSet *sort_crit, ULONG flags);

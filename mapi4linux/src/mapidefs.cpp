@@ -408,7 +408,8 @@ HRESULT M4LMAPITable::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, U
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPITable::Restrict(LPSRestriction lpRestriction, ULONG ulFlags) {
+HRESULT M4LMAPITable::Restrict(const SRestriction *, ULONG flags)
+{
 	return MAPI_E_NO_SUPPORT;
 }
 

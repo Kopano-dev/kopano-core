@@ -110,7 +110,7 @@ HRESULT ECRulesTableProxy::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrig
 	return m_lpTable->FindRow(lpRestriction, bkOrigin, ulFlags);
 }
 
-HRESULT ECRulesTableProxy::Restrict(LPSRestriction lpRestriction, ULONG ulFlags)
+HRESULT ECRulesTableProxy::Restrict(const SRestriction *lpRestriction, ULONG ulFlags)
 {
 	return m_lpTable->Restrict(lpRestriction, ulFlags);
 }
