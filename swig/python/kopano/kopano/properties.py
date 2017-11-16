@@ -104,6 +104,10 @@ class Properties(object):
         """
         return self.set_value(proptag, value)
 
+    def __delitem__(self, proptag):
+        """Delete the :class:`property <Property>` with given proptag."""
+        self.delete(self.prop(proptag))
+
     # TODO generalize for any property?
     def _get_fast(self, proptag, default=None, must_exist=False):
         # mapi table cells are limited to 255 characters
