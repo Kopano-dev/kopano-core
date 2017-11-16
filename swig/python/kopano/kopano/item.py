@@ -30,7 +30,8 @@ from MAPI import (
     MAPI_CREATE, MAPI_MODIFY, MAPI_DEFERRED_ERRORS,
     ATTACH_BY_VALUE, ATTACH_EMBEDDED_MSG, STGM_WRITE, STGM_TRANSACTED,
     MAPI_UNICODE, MAPI_TO, MAPI_CC, MAPI_BCC, MAPI_E_NOT_FOUND,
-    MAPI_E_NOT_ENOUGH_MEMORY, PT_SYSTIME, MAPI_ASSOCIATED
+    MAPI_E_NOT_ENOUGH_MEMORY, PT_SYSTIME, MAPI_ASSOCIATED,
+    WrapCompressedRTFStream
 )
 from MAPI.Defs import HrGetOneProp, CHANGE_PROP_TYPE, bin2hex
 from MAPI.Struct import (
@@ -517,6 +518,14 @@ class Item(Properties, Contact, Appointment):
             return _utils.stream(self._arch_item, PR_RTF_COMPRESSED)
         except MAPIErrorNotFound:
             return ''
+
+    @rtf.setter
+    def rtf(self, x):
+        stream = self._arch_item.OpenProperty(PR_RTF_COMPRESSED, IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_MODIFY | MAPI_CREATE)
+        uncompressed = WrapCompressedRTFStream(stream, MAPI_MODIFY)
+        uncompressed.Write(x)
+        uncompressed.Commit(0)
+        stream.Commit(0)
 
     @property
     def body_type(self):
