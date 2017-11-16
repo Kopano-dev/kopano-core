@@ -725,13 +725,13 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 	if (strcmp(g_lpConfig->GetSetting("server_tcp_enabled"), "yes") == 0) {
 		auto addr = cfg->GetSetting("server_bind");
 		auto port = cfg->GetSetting("server_tcp_port");
-		if (addr[0] != '\0' && port[0] != '\0')
+		if (port[0] != '\0')
 			http_sock.emplace(addr, strtoul(port, nullptr, 10));
 	}
 	if (strcmp(g_lpConfig->GetSetting("server_ssl_enabled"), "yes") == 0) {
 		auto addr = cfg->GetSetting("server_bind");
 		auto port = cfg->GetSetting("server_ssl_port");
-		if (addr[0] != '\0' && port[0] != '\0')
+		if (port[0] != '\0')
 			https_sock.emplace(addr, strtoul(port, nullptr, 10));
 	}
 
@@ -848,7 +848,7 @@ static int running_server(char *szName, const char *szConfig,
 #endif
 		{"server_ssl_ciphers", "ALL:!LOW:!SSLv2:!EXP:!aNULL", CONFIGSETTING_RELOADABLE},
 		{"server_ssl_prefer_server_ciphers", "no", CONFIGSETTING_RELOADABLE},
-		{"server_listen", "*:236"},
+		{"server_listen", ""},
 		{"server_listen_tls", ""},
 		{ "sslkeys_path",				"/etc/kopano/sslkeys" },	// login keys
 		// Database options
