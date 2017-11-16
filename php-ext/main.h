@@ -113,7 +113,6 @@ ZEND_FUNCTION(mapi_prop_tag);
 ZEND_FUNCTION(mapi_createoneoff);
 ZEND_FUNCTION(mapi_parseoneoff);
 
-ZEND_FUNCTION(mapi_logon);
 ZEND_FUNCTION(mapi_logon_zarafa);
 ZEND_FUNCTION(mapi_getmsgstorestable);
 ZEND_FUNCTION(mapi_openmsgstore);

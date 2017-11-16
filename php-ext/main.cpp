@@ -280,7 +280,6 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_prop_tag, NULL)
 	ZEND_FE(mapi_createoneoff, NULL)
 	ZEND_FE(mapi_parseoneoff, NULL)
-	ZEND_FE(mapi_logon, NULL)
 	ZEND_FE(mapi_logon_zarafa, NULL)
 	ZEND_FE(mapi_getmsgstorestable, NULL)
 	ZEND_FE(mapi_openmsgstore, NULL)
@@ -1034,43 +1033,6 @@ ZEND_FUNCTION(mapi_openentry)
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
-}
-
-// This function cannot be used, since you currently can't create profiles directly in php
-ZEND_FUNCTION(mapi_logon)
-{
-	PMEASURE_FUNC;
-	LOG_BEGIN();
-	// params
-	const char *profilename = "";
-	const char *profilepassword = "";
-	php_stringsize_t profilename_len = 0, profilepassword_len = 0;
-	// return value
-	LPMAPISESSION	lpMAPISession = NULL;
-	// local
-
-	RETVAL_FALSE;
-	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-
-	if (ZEND_NUM_ARGS() > 0 &&
-	    zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss",
-	    &profilename, &profilename_len, &profilepassword, &profilepassword_len) == FAILURE)
-		return;
-	/*
-	* MAPI_LOGON_UI will show a dialog when a profilename is not
-	* found or a password is not correct, without it the dialog will never appear => that's what we want
-	* MAPI_USE_DEFAULT |
-	*/
-	MAPI_G(hr) = MAPILogonEx(0, (LPTSTR)profilename, (LPTSTR)profilepassword, MAPI_USE_DEFAULT | MAPI_EXTENDED | MAPI_TIMEOUT_SHORT | MAPI_NEW_SESSION, &lpMAPISession);
-
-	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, lpMAPISession, le_mapi_session);
 
 exit:
 	LOG_END();
