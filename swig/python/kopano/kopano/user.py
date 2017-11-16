@@ -55,7 +55,7 @@ class User(Properties):
             self._name = ecuser.Username
         elif userid:
             self._ecuser = self.server.sa.GetUser(_unhex(userid), MAPI_UNICODE)
-            self._name = ecuser.Username
+            self._name = self._ecuser.Username
         else:
             if email:
                 try:
