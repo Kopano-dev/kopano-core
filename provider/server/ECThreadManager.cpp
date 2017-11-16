@@ -421,7 +421,6 @@ ECDispatcher::ECDispatcher(ECConfig *lpConfig,
 	m_lpConfig = lpConfig;
 
 	// Default socket settings
-	m_nMaxKeepAlive = atoi(m_lpConfig->GetSetting("server_max_keep_alive_requests"));
 	m_nRecvTimeout = atoi(m_lpConfig->GetSetting("server_recv_timeout"));
 	m_nReadTimeout = atoi(m_lpConfig->GetSetting("server_read_timeout"));
 	m_nSendTimeout = atoi(m_lpConfig->GetSetting("server_send_timeout"));
@@ -464,7 +463,6 @@ ECRESULT ECDispatcher::GetQueueLength(unsigned int *lpulLength)
 
 ECRESULT ECDispatcher::AddListenSocket(struct soap *soap)
 {
-	soap->max_keep_alive = m_nMaxKeepAlive;
 	soap->recv_timeout = m_nReadTimeout; // Use m_nReadTimeout, the value for timeouts during XML reads
 	soap->send_timeout = m_nSendTimeout;
 	m_setListenSockets.emplace(soap->socket, soap);
@@ -585,7 +583,6 @@ ECRESULT ECDispatcher::SetThreadCount(unsigned int ulThreads)
 
 ECRESULT ECDispatcher::DoHUP()
 {
-	m_nMaxKeepAlive = atoi(m_lpConfig->GetSetting("server_max_keep_alive_requests"));
 	m_nRecvTimeout = atoi(m_lpConfig->GetSetting("server_recv_timeout"));
 	m_nReadTimeout = atoi(m_lpConfig->GetSetting("server_read_timeout"));
 	m_nSendTimeout = atoi(m_lpConfig->GetSetting("server_send_timeout"));
@@ -779,6 +776,8 @@ ECRESULT ECDispatcherSelect::MainLoop()
 					newsoap->peerlen = 0;
 					memset(&newsoap->peer, 0, sizeof(newsoap->peer));
 				}
+				/* Do like gsoap's soap_accept would */
+				newsoap->keep_alive = -(((newsoap->imode | newsoap->omode) & SOAP_IO_KEEPALIVE) != 0);
 			} else {
 				soap_accept(newsoap);
 			}
@@ -947,10 +946,13 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 				time(&sActive.ulLastActivity);
 
 				ulType = SOAP_CONNECTION_TYPE(iterListenSockets->second);
-				if (ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+				if (ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
 					newsoap->socket = accept(newsoap->master, NULL, 0);
-				else
+					/* Do like gsoap's soap_accept would */
+					newsoap->keep_alive = -(((newsoap->imode | newsoap->omode) & SOAP_IO_KEEPALIVE) != 0);
+				} else {
 					soap_accept(newsoap);
+				}
 
 				if(newsoap->socket == SOAP_INVALID_SOCKET) {
 					if (ulType == CONNECTION_TYPE_NAMED_PIPE)

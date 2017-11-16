@@ -820,7 +820,7 @@ static int running_server(char *szName, const char *szConfig,
 		{ "server_recv_timeout",		"5", CONFIGSETTING_RELOADABLE },	// timeout before reading next XML request
 		{ "server_read_timeout",		"60", CONFIGSETTING_RELOADABLE }, // timeout during reading of XML request
 		{ "server_send_timeout",		"60", CONFIGSETTING_RELOADABLE },
-		{ "server_max_keep_alive_requests",	"100" },
+		{"server_max_keep_alive_requests", "100", CONFIGSETTING_UNUSED},
 		{"thread_stacksize", "512", CONFIGSETTING_UNUSED},
 		{ "allow_local_users",			"yes", CONFIGSETTING_RELOADABLE },			// allow any user connect through the Unix socket
 		{ "local_admin_users",			"root", CONFIGSETTING_RELOADABLE },			// this local user is admin
