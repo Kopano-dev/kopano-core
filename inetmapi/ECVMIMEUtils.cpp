@@ -341,6 +341,10 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 
 		vmMessage->generate(ossAdapter);
 
+		/*
+		 * This would be the place for spooler's
+		 * log_raw_message_stage2, but this so deep in inetmapi…
+		 */
 		const std::string &str(oss.str()); // copy?
 		vmime::utility::inputStreamStringAdapter isAdapter(str); // direct oss.str() ?
 		

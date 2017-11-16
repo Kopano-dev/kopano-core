@@ -20,8 +20,14 @@
 
 #include <kopano/zcdefs.h>
 #include <string>
+#include <cstdio>
 
 namespace KC {
+
+class file_deleter {
+	public:
+	void operator()(FILE *f) { fclose(f); }
+};
 
 extern _kc_export HRESULT HrFileLFtoCRLF(FILE *fin, FILE **fout);
 extern _kc_export HRESULT HrMapFileToString(FILE *f, std::string *buf, int *size = nullptr);

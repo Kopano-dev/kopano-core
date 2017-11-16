@@ -198,6 +198,15 @@ The level of output for logging in the range from 0 to 5. 0 means no logging, 5 
 Default:
 \fI2\fR
 .RE
+.TP
+\fBlog_raw_message_stage1\fP
+Log the raw message to a file. In stage 1, not all recipients are necessarily
+resolved yet, and Bcc is still visible; this is not the exact mail that is
+delivered to the SMTP server. The file is saved to the location specified in
+\fBlog_raw_message_path\fP. Default: \fBno\fP.
+.TP
+\fBlog_raw_message_path\fR
+Path to save the raw message to. Default: \fB/tmp\fP.
 .PP
 \fBmax_threads\fR
 .RS 4

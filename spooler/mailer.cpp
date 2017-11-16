@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <utility>
 #include "mailer.h"
@@ -55,6 +56,7 @@
 
 #include <list>
 #include <algorithm>
+#include "fileutil.h"
 
 using namespace KCHL;
 using std::list;
@@ -1632,6 +1634,32 @@ static HRESULT PostSendProcessing(ULONG cbEntryId, const ENTRYID *lpEntryId,
 	return hr;
 }
 
+static void lograw1(IMAPISession *ses, IAddrBook *ab, IMessage *msg,
+    const struct sending_options &sopt)
+{
+	std::ostringstream os;
+	auto ret = IMToINet(ses, ab, msg, os, sopt);
+	if (ret != hrSuccess) {
+		kc_perror("IMToINet", ret);
+		return;
+	}
+	auto now = time(nullptr);
+	struct tm tm;
+	char buf[64];
+	gmtime_safe(&now, &tm);
+	std::string fname = g_lpConfig->GetSetting("log_raw_message_path");
+	strftime(buf, sizeof(buf), "/SMTP1_%Y%m%d%H%M%S_", &tm);
+	fname += buf;
+	snprintf(buf, sizeof(buf), "%08x.eml", rand_mt());
+	fname += buf;
+	std::unique_ptr<FILE, file_deleter> fp(fopen(fname.c_str(), "w"));
+	if (fp == nullptr) {
+		ec_log_warn("Cannot write to %s: %s", fname.c_str(), strerror(errno));
+		return;
+	}
+	fputs(os.str().c_str(), fp.get());
+}
+
 /**
  * Using the given resources, sends the mail to the SMTP server.
  *
@@ -2032,6 +2060,9 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			goto exit;
 		}
 	}
+
+	if (parseBool(g_lpConfig->GetSetting("log_raw_message_stage1")))
+		lograw1(lpUserSession, lpAddrBook, lpMessage, sopt);
 
 	// Now hand message to library which will send it, inetmapi will handle addressbook
 	hr = IMToINet(lpUserSession, lpAddrBook, lpMessage, lpMailer, sopt);
