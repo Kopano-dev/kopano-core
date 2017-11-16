@@ -73,7 +73,7 @@ public:
 	virtual HRESULT SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought) _kc_override;
 	virtual HRESULT SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator) _kc_override;
 	virtual HRESULT QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *lpulDenominator) _kc_override;
-	virtual HRESULT FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG flags) _kc_override;
+	virtual HRESULT FindRow(const SRestriction *, BOOKMARK origin, ULONG flags) _kc_override;
 	virtual HRESULT Restrict(const SRestriction *, ULONG flags) _kc_override;
 	virtual HRESULT CreateBookmark(BOOKMARK *lpbkPosition) _kc_override;
 	virtual HRESULT FreeBookmark(BOOKMARK bkPosition) _kc_override;

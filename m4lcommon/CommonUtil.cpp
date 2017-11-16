@@ -1161,7 +1161,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 // is retrieved from the passed lpProps/cValues property array
 class ECRowWrapper _kc_final : public IMAPIProp {
 public:
-	ECRowWrapper(LPSPropValue lpProps, ULONG cValues) : m_cValues(cValues), m_lpProps(lpProps) {};
+	ECRowWrapper(const SPropValue *lpProps, ULONG cValues) : m_cValues(cValues), m_lpProps(lpProps) {}
 	ULONG AddRef(void) _kc_override { return 1; } // no ref counting
 	ULONG Release(void) _kc_override { return 1; }
 	HRESULT QueryInterface(const IID &iid, LPVOID *lpvoid) _kc_override { return MAPI_E_INTERFACE_NOT_SUPPORTED; }
@@ -1228,7 +1228,7 @@ public:
 	HRESULT GetIDsFromNames( ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) _kc_override { return MAPI_E_NO_SUPPORT; }
 private:
 	ULONG			m_cValues;
-	LPSPropValue	m_lpProps;
+	const SPropValue *m_lpProps;
 };
 
 static HRESULT TestRelop(ULONG relop, int result, bool* fMatch)
@@ -1346,12 +1346,16 @@ static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
 	return hrSuccess;
 }
 
-HRESULT TestRestriction(LPSRestriction lpCondition, ULONG cValues, LPSPropValue lpPropVals, const ECLocale &locale, ULONG ulLevel) {
+HRESULT TestRestriction(const SRestriction *lpCondition, ULONG cValues,
+    const SPropValue *lpPropVals, const ECLocale &locale, ULONG ulLevel)
+{
 	ECRowWrapper lpRowWrapper(lpPropVals, cValues);
 	return TestRestriction(lpCondition, static_cast<IMAPIProp *>(&lpRowWrapper), locale, ulLevel);
 }
 
-HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const ECLocale &locale, ULONG ulLevel) {
+HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
+    const ECLocale &locale, ULONG ulLevel)
+{
 	HRESULT hr = hrSuccess;
 	ULONG c;
 	bool fMatch = false;

@@ -1476,7 +1476,7 @@ public:
     virtual HRESULT SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought) = 0;
     virtual HRESULT SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator) = 0;
     virtual HRESULT QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *lpulDenominator) = 0;
-    virtual HRESULT FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG ulFlags) = 0;
+	virtual HRESULT FindRow(const SRestriction *, BOOKMARK origin, ULONG flags) = 0;
 	virtual HRESULT Restrict(const SRestriction *, ULONG flags) = 0;
     virtual HRESULT CreateBookmark(BOOKMARK* lpbkPosition) = 0;
     virtual HRESULT FreeBookmark(BOOKMARK bkPosition) = 0;

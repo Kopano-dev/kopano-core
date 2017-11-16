@@ -404,7 +404,8 @@ HRESULT M4LMAPITable::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG 
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPITable::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG ulFlags) {
+HRESULT M4LMAPITable::FindRow(const SRestriction *, BOOKMARK origin, ULONG fl)
+{
 	return MAPI_E_NO_SUPPORT;
 }
 

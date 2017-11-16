@@ -69,8 +69,8 @@ extern _kc_export HRESULT HrGetAddress(LPADRBOOK, LPSPropValue props, ULONG nval
 extern _kc_export HRESULT HrGetAddress(LPADRBOOK, LPENTRYID eid, ULONG eid_size, std::wstring &name, std::wstring &type, std::wstring &addr);
 extern _kc_export std::string ToQuotedBase64Header(const std::string &s, const std::string &charset);
 extern _kc_export std::string ToQuotedBase64Header(const std::wstring &);
-HRESULT TestRestriction(LPSRestriction lpCondition, ULONG cValues, LPSPropValue lpPropVals, const ECLocale &locale, ULONG ulLevel = 0);
-extern _kc_export HRESULT TestRestriction(LPSRestriction cond, IMAPIProp *msg, const ECLocale &, ULONG level = 0);
+extern HRESULT TestRestriction(const SRestriction *cond, ULONG nvals, const SPropValue *props, const ECLocale &, ULONG level = 0);
+extern _kc_export HRESULT TestRestriction(const SRestriction *cond, IMAPIProp *msg, const ECLocale &, ULONG level = 0);
 extern _kc_export HRESULT HrOpenUserMsgStore(LPMAPISESSION, const wchar_t *user, LPMDB *store);
 // Auto-accept settings
 extern _kc_export HRESULT SetAutoAcceptSettings(IMsgStore *, bool auto_accept, bool decline_conflict, bool decline_recurring);
