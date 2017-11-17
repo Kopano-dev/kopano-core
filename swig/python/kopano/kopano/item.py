@@ -191,7 +191,7 @@ class Item(Properties, Contact, Appointment):
                     elif container_class == 'IPF.Appointment':
                         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')]) # XXX set default props
                         self.from_ = self.store.user
-                        self.set_value(PidLidAppointmentStateFlags, 1)
+                        self[PidLidAppointmentStateFlags] = 1
             if save:
                 self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 

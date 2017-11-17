@@ -50,10 +50,10 @@ class Contact(object):
     def address1(self):
         return Address(
             self.server,
-            self.get_value(PidLidEmail1AddressType),
-            self.get_value(PidLidEmail1DisplayName),
-            self.get_value(PidLidEmail1EmailAddress),
-            self.get_value(PidLidEmail1OriginalEntryId),
+            self.get(PidLidEmail1AddressType),
+            self.get(PidLidEmail1DisplayName),
+            self.get(PidLidEmail1EmailAddress),
+            self.get(PidLidEmail1OriginalEntryId),
         )
 
     @address1.setter
@@ -61,15 +61,15 @@ class Contact(object):
         pr_addrtype, pr_dispname, pr_email, pr_entryid = \
             self._addr_props(addr)
 
-        self.set_value(PidLidEmail1AddressType, _unicode(pr_addrtype))
-        self.set_value(PidLidEmail1DisplayName, pr_dispname)
-        self.set_value(PidLidEmail1EmailAddress, pr_email)
-        self.set_value(PidLidEmail1OriginalEntryId, pr_entryid)
+        self[PidLidEmail1AddressType] = _unicode(pr_addrtype)
+        self[PidLidEmail1DisplayName] = pr_dispname
+        self[PidLidEmail1EmailAddress] = pr_email
+        self[PidLidEmail1OriginalEntryId] = pr_entryid
 
     @property
     def photo(self):
         for attachment in self.attachments():
-            if attachment.get_value(PR_ATTACHMENT_CONTACTPHOTO):
+            if attachment.get(PR_ATTACHMENT_CONTACTPHOTO):
                 s = StringIO(attachment.data)
                 s.name = attachment.name
                 return s
@@ -78,9 +78,9 @@ class Contact(object):
     def photo(self, f):
         name, data = f.name, f.read()
         for attachment in self.attachments():
-            if attachment.get_value(PR_ATTACHMENT_CONTACTPHOTO):
+            if attachment.get(PR_ATTACHMENT_CONTACTPHOTO):
                 self.delete(attachment)
         attachment = self.create_attachment(name, data)
-        attachment.set_value(PR_ATTACHMENT_CONTACTPHOTO, True)
+        attachment[PR_ATTACHMENT_CONTACTPHOTO] = True
         # XXX shouldn't be needed?
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
