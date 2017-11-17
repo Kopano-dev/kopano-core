@@ -258,7 +258,7 @@ class Server(object):
         """Server GUID."""
         return bin2hex(HrGetOneProp(self.mapistore, PR_MAPPING_SIGNATURE).Value)
 
-    def user(self, name=None, email=None, create=False):
+    def user(self, name=None, email=None, create=False, userid=None):
         """Return :class:`user <User>` with given name or email address.
 
         :param name: user name
@@ -266,7 +266,7 @@ class Server(object):
         :param create: create user if it doesn't exist (name required)
         """
         try:
-            return _user.User(name, email=email, server=self)
+            return _user.User(name, email=email, server=self, userid=userid)
         except NotFoundError:
             if create and name:
                 return self.create_user(name)
