@@ -943,8 +943,8 @@ int main(int argc, char *argv[]) {
         { "plugin_manager_path", "/usr/share/kopano-spooler/python" },
 		{ "z_statsd_stats", "/var/run/kopano/statsd.sock" },
 		{ "tmp_path", "/tmp" },
-		{ "tmp_path", "/tmp" },
-		{ "tmp_path", "/tmp" },
+		{"log_raw_message_path", "/tmp", CONFIGSETTING_RELOADABLE},
+		{"log_raw_message_stage1", "no", CONFIGSETTING_RELOADABLE},
 		{ NULL, NULL },
 	};
     // SIGSEGV backtrace support

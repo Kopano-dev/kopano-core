@@ -38,11 +38,6 @@
 
 namespace KC {
 
-class file_deleter {
-	public:
-	void operator()(FILE *f) { fclose(f); }
-};
-
 /** 
  * Reads the contents of a file, and writes it to the output file
  * while converting Unix \n enters to DOS \r\n enters.
