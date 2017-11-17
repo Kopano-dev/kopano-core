@@ -4,17 +4,21 @@
 ICS driven spam learning daemon for Kopano / SpamAssasin
 See included readme.md for more information.
 """
-import shlex
-import subprocess
+
+from .version import __version__
+
+import os
+import shutil
 import time
 import kopano
-from MAPI.Tags import *
 from kopano import Config, log_exc
+from contextlib import closing
 
 CONFIG = {
     'run_as_user': Config.string(default="kopano"),
     'run_as_group': Config.string(default="kopano"),
-    'learncmd': Config.string(default="/usr/bin/sudo -u amavis /usr/bin/sa-learn --spam")
+    'spam_dir': Config.string(default="/var/lib/kopano/spamd/spam"),
+    'sa_group': Config.string(default="amavis")
 }
 
 
@@ -39,10 +43,10 @@ class Service(kopano.Service):
 class Checker(object):
     def __init__(self, service):
         self.log = service.log
-        self.learncmd = service.config['learncmd']
+        self.spamdir = service.config['spam_dir']
+        self.sagroup = service.config['sa_group']
 
     def update(self, item, flags):
-	print item
         if item.message_class == 'IPM.Note':
             if item.folder == item.store.user.junk and not item.header('x-spam-flag') == 'YES':
                 self.learn(item)
@@ -50,17 +54,19 @@ class Checker(object):
     def learn(self, item):
         with log_exc(self.log):
             try:
+                entryid = item.entryid
                 spameml = item.eml()
                 havespam = True
             except Exception as e:
                 self.log.info('Failed to extract eml of email: [%s] [%s]' % (e, item.entryid))
             if havespam:
                 try:
-                    p = subprocess.Popen(shlex.split(self.learncmd), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-                    learning, output_err = p.communicate(spameml)
-                    self.log.info('[%s] sa-learn: %s' % (item.store.user.name, learning.strip('\n')))
+                    emlfilename = os.path.join(self.spamdir, entryid)
+                    with closing(open(emlfilename, "w")) as fh:
+                        fh.write(spameml)
+                    shutil.chown(emlfilename, group=self.sagroup)
                 except Exception as e:
-                    self.log.info('sa-learn failed: [%s] [%s]' % (e, item.entryid))
+                    self.log.info('could not write to spam dir: [%s] [%s]' % (e, item.entryid))
 
 
 def main():
