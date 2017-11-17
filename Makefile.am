@@ -356,7 +356,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ECMAPITable.cpp provider/client/ECMAPITable.h \
 	provider/client/ECMSProvider.cpp provider/client/ECMSProvider.h \
 	provider/client/ECMailUser.cpp provider/client/ECMailUser.h \
-	provider/client/ECMemTablePublic.cpp provider/client/ECMemTablePublic.h \
 	provider/client/ECMessage.cpp provider/client/ECMessage.h \
 	provider/client/ECMessageStreamImporterIStreamAdapter.cpp \
 	provider/client/ECMessageStreamImporterIStreamAdapter.h \
@@ -705,7 +704,6 @@ libmapi_la_SOURCES = \
 	m4lcommon/MAPIConsoleTable.cpp m4lcommon/MAPIConsoleTable.h \
 	m4lcommon/MAPINotifSink.cpp m4lcommon/MAPINotifSink.h \
 	m4lcommon/Util.cpp \
-	m4lcommon/favoritesutil.cpp m4lcommon/favoritesutil.h \
 	m4lcommon/mapicontact.h
 libmapi_la_LIBADD = \
 	libkcutil.la libkcmapi.la -lpthread ${PROG_LIBS} ${DL_LIBS}
