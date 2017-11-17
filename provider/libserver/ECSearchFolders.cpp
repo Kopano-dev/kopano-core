@@ -1618,12 +1618,7 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(ECDatabase *lpDatabase, unsigned in
 	// xml now contains XML version of search criteria
 
 	// Replace PR_EC_SEARCHCRIT in database
-	std::string strQuery = "DELETE from properties WHERE properties.hierarchyid = " + stringify(ulFolderId) + " AND tag=" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) + " AND type=" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT));
-	auto er = lpDatabase->DoDelete(strQuery);
-	if(er != erSuccess)
-		return er;
-
-	strQuery = "INSERT INTO properties (hierarchyid, tag, type, val_string) VALUES(" + stringify(ulFolderId) + "," + stringify(PROP_ID(PR_EC_SEARCHCRIT)) + "," + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)) + ",'" + lpDatabase->Escape( xml.str() ) + "')";
+	std::string strQuery = "REPLACE INTO properties (hierarchyid, tag, type, val_string) VALUES(" + stringify(ulFolderId) + "," + stringify(PROP_ID(PR_EC_SEARCHCRIT)) + "," + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)) + ",'" + lpDatabase->Escape( xml.str() ) + "')";
 	return lpDatabase->DoInsert(strQuery);
 }
 
