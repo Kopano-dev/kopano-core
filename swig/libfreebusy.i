@@ -43,7 +43,7 @@ enum FBStatus {
 };
 
 %apply (ULONG, MAPIARRAY) { (ULONG cMax, FBUser *rgfbuser), (ULONG cUsers, FBUser *lpUsers) };
-%apply (MAPIARRAY, ULONG) { (FBBlock_1 *lpBlocks, ULONG nBlocks), (FBBlock_1 *lpBlocks, ULONG nBlocks) }
+%apply (MAPIARRAY, ULONG) { (FBBlock_1 const *, ULONG), (FBBlock_1 *, ULONG) }
 
 %typemap(in) (LONG, FBBLOCK)
 {
