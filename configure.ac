@@ -230,6 +230,8 @@ AC_ARG_ENABLE(coverage,
 	  ])
     ])
 
+AC_ARG_ENABLE([dovecot], [AS_HELP_STRING([--enable-dovecot], [Build dovecot modules (default: disabled)])])
+AM_CONDITIONAL([WITH_DOVECOT], [test "$enable_dovecot" = yes])
 
 # stats client requires ncurses(w) for --top
 # check wide version before non-wide version
@@ -721,6 +723,7 @@ AC_CONFIG_FILES([Makefile
 		swig/python/kopano/Makefile
 		common/kopano.pc common/libkcutil.sym
 		default.sym
+		gateway/doveauth.sym
 		mapi4linux/src/libmapi.sym
 		provider/plugin.sym provider/provider.sym
 		provider/libkcserver.sym provider/libkcsoap.sym

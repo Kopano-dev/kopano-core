@@ -153,6 +153,10 @@ endif
 # Undefined references
 #noinst_DATA += libkcsoap.ldd
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
+dovmoddir = ${libdir}/dovecot/modules
+if WITH_DOVECOT
+dovmod_LTLIBRARIES = libauthdb_mapi.la
+endif
 
 
 #
@@ -738,6 +742,17 @@ mapi4linux/src/libmapi.sym: ${top_builddir}/config.status
 
 libm4lcommondir = ${includedir}/mapi4linux
 libm4lcommon_HEADERS = m4lcommon/include/edkguid.h
+
+
+#
+#
+#
+libauthdb_mapi_la_SOURCES = gateway/doveauth1.c gateway/doveauth.cpp
+libauthdb_mapi_la_LDFLAGS = -avoid-version -module -Wl,--version-script=${srcdir}/gateway/doveauth.sym
+libauthdb_mapi_la_LIBADD  = libmapi.la
+EXTRA_libauthdb_mapi_la_DEPENDENCIES = gateway/doveauth.sym
+
+gateway/doveauth.sym: ${top_builddir}/config.status
 
 
 #
