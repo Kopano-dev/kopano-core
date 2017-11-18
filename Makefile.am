@@ -155,7 +155,7 @@ endif
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
 dovmoddir = ${libdir}/dovecot/modules
 if WITH_DOVECOT
-dovmod_LTLIBRARIES = libauthdb_mapi.la
+dovmod_LTLIBRARIES = libauthdb_mapi.la libdovemapi_plugin.la
 endif
 
 
@@ -752,7 +752,13 @@ libauthdb_mapi_la_LDFLAGS = -avoid-version -module -Wl,--version-script=${srcdir
 libauthdb_mapi_la_LIBADD  = libmapi.la
 EXTRA_libauthdb_mapi_la_DEPENDENCIES = gateway/doveauth.sym
 
-gateway/doveauth.sym: ${top_builddir}/config.status
+# dovecot expects to find "_plugin" in filenames
+libdovemapi_plugin_la_SOURCES = gateway/dovestore1.c gateway/dovestore.cpp
+libdovemapi_plugin_la_LDFLAGS = -avoid-version -module -Wl,--version-script=${srcdir}/gateway/dovestore.sym
+libdovemapi_plugin_la_LIBADD  = libmapi.la
+EXTRA_libdovemapi_plugin_la_DEPENDENCIES = gateway/dovestore.sym
+
+gateway/doveauth.sym gateway/dovestore.sym: ${top_builddir}/config.status
 
 
 #

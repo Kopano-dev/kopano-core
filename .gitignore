@@ -55,6 +55,7 @@ stamp-h2
 /rosie-test
 /rtfcomp
 /gateway/doveauth.sym
+/gateway/dovestore.sym
 /mapi4linux/src/libmapi.sym
 /provider/plugin.sym
 /provider/provider.sym

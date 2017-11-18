@@ -723,7 +723,7 @@ AC_CONFIG_FILES([Makefile
 		swig/python/kopano/Makefile
 		common/kopano.pc common/libkcutil.sym
 		default.sym
-		gateway/doveauth.sym
+		gateway/doveauth.sym gateway/dovestore.sym
 		mapi4linux/src/libmapi.sym
 		provider/plugin.sym provider/provider.sym
 		provider/libkcserver.sym provider/libkcsoap.sym
