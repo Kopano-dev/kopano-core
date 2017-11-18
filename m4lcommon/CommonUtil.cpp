@@ -964,8 +964,10 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
  *
  * Also, the address will be resolved to SMTP if steps 1 and 2 did not provide one.
  */
-HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPSPropValue lpProps, ULONG cValues, ULONG ulPropTagEntryID, ULONG ulPropTagName, ULONG ulPropTagType, ULONG ulPropTagEmailAddress,
-					 std::wstring &strName, std::wstring &strType, std::wstring &strEmailAddress)
+HRESULT HrGetAddress(IAddrBook *lpAdrBook, const SPropValue *lpProps,
+    ULONG cValues, ULONG ulPropTagEntryID, ULONG ulPropTagName,
+    ULONG ulPropTagType, ULONG ulPropTagEmailAddress, std::wstring &strName,
+    std::wstring &strType, std::wstring &strEmailAddress)
 {
 	HRESULT hr = hrSuccess;
 	const SPropValue *lpEntryID = NULL;
@@ -995,8 +997,7 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPSPropValue lpProps, ULONG cValues, U
 	}
 
 	if (lpEntryID == NULL || lpAdrBook == NULL ||
-		HrGetAddress(lpAdrBook, (LPENTRYID)lpEntryID->Value.bin.lpb, lpEntryID->Value.bin.cb, strName, strType, strEmailAddress) != hrSuccess)
-	{
+	    HrGetAddress(lpAdrBook, reinterpret_cast<const ENTRYID *>(lpEntryID->Value.bin.lpb), lpEntryID->Value.bin.cb, strName, strType, strEmailAddress) != hrSuccess) {
         // EntryID failed, try fallback
         if (lpName) {
 			if (PROP_TYPE(lpName->ulPropTag) == PT_UNICODE)
@@ -1041,7 +1042,9 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPSPropValue lpProps, ULONG cValues, U
  * address parts to be returned to the caller. If an SMTP address is available, returns the SMTP
  * address for the user, otherwise the ZARAFA addresstype and address is returned.
  */
-HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPENTRYID lpEntryID, ULONG cbEntryID, std::wstring &strName, std::wstring &strType, std::wstring &strEmailAddress)
+HRESULT HrGetAddress(IAddrBook *lpAdrBook, const ENTRYID *lpEntryID,
+    ULONG cbEntryID, std::wstring &strName, std::wstring &strType,
+    std::wstring &strEmailAddress)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMailUser> lpMailUser;
