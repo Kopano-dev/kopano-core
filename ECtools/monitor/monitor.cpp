@@ -232,7 +232,7 @@ int main(int argc, char *argv[]) {
 	    m_lpThreadMonitor->lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors())) {
 		/* Create fatal logger without a timestamp to stderr. */
-		m_lpThreadMonitor->lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false));
+		m_lpThreadMonitor->lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false), false);
 		if (m_lpThreadMonitor->lpLogger == nullptr) {
 			hr = MAPI_E_NOT_ENOUGH_MEMORY;
 			goto exit;

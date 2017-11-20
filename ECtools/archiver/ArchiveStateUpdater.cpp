@@ -128,7 +128,7 @@ ArchiveStateUpdater::ArchiveStateUpdater(const ArchiverSessionPtr &ptrSession,
 	m_mapArchiveInfo(mapArchiveInfo)
 {
 	if (m_lpLogger == nullptr)
-		m_lpLogger.reset(new ECLogger_Null);
+		m_lpLogger.reset(new ECLogger_Null, false);
 }
 
 /**
