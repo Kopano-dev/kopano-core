@@ -886,7 +886,10 @@ def dump_delegates(user, server, stats, log):
 
     usernames = []
     with log_exc(log, stats):
-        usernames = [d.user.name for d in user.delegations()]
+        try:
+            usernames = [d.user.name for d in user.delegations()]
+        except (MAPIErrorNotFound, kopano.NotFoundError):
+            log.warning("could not load delegations for %s", user.name)
 
     return pickle_dumps(usernames)
 
