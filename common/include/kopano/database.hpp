@@ -4,6 +4,7 @@
 #include <mutex>
 #include <string>
 #include <utility>
+#include <mapidefs.h>
 #include <mysql.h>
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
@@ -113,6 +114,7 @@ class _kc_export KDatabase {
 	std::string Escape(const std::string &);
 	std::string EscapeBinary(const void *, size_t);
 	std::string EscapeBinary(const std::string &s) { return EscapeBinary(s.c_str(), s.size()); }
+	std::string EscapeBinary(const SBinary &s) { return EscapeBinary(s.lpb, s.cb); }
 	const char *GetError(void);
 	DB_ERROR GetLastError(void);
 	unsigned int GetMaxAllowedPacket(void) const { return m_ulMaxAllowedPacket; }
