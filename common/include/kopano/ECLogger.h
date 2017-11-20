@@ -19,10 +19,10 @@
 #ifndef ECLOGGER_H
 #define ECLOGGER_H
 
+#include <atomic>
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <list>
-#include <mutex>
 #include <pthread.h>
 #include <csignal>
 #include <cstdarg>
@@ -96,8 +96,7 @@ enum logprefix { LP_NONE, LP_TID, LP_PID };
  */
 class _kc_export ECLogger {
 	private:
-		std::mutex m_mutex;
-		unsigned m_ulRef;
+		std::atomic<unsigned> m_ulRef{1};
 
 	protected:
 		/**

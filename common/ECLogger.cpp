@@ -67,7 +67,6 @@ ECLogger::ECLogger(int max_ll) {
 	timelocale = createlocale(LC_TIME, "C");
 	datalocale = createUTF8Locale();
 	prefix = LP_NONE;
-	m_ulRef = 1;
 }
 
 ECLogger::~ECLogger() {
@@ -136,15 +135,12 @@ void ECLogger::SetLogprefix(logprefix lp) {
 
 unsigned int ECLogger::AddRef(void)
 {
-	scoped_lock locker(m_mutex);
 	assert(m_ulRef < UINT_MAX);
 	return ++m_ulRef;
 }
 
 unsigned ECLogger::Release() {
-	ulock_normal locker(m_mutex);
 	unsigned int ulRef = --m_ulRef;
-	locker.unlock();
 	if (ulRef == 0)
 		delete this;
 	return ulRef;
