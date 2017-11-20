@@ -317,6 +317,7 @@ class Item(Properties, Contact, Appointment):
 
     @property
     def created(self):
+        """Creation time."""
         try:
             return self.prop(PR_CREATION_TIME).value
         except NotFoundError:
@@ -324,29 +325,34 @@ class Item(Properties, Contact, Appointment):
 
     @property
     def received(self):
-        """ Datetime instance with item delivery time """
-
+        """Delivery time."""
         return self._get_fast(PR_MESSAGE_DELIVERY_TIME)
+
+    @received.setter
+    def received(self, value):
+        self._cache.pop(PR_MESSAGE_DELIVERY_TIME, None) # TODO generalize
+        self.prop(PR_MESSAGE_DELIVERY_TIME, create=True).value = value
 
     @property
     def last_modified(self):
+        """Last modification time."""
         return self._get_fast(PR_LAST_MODIFICATION_TIME)
 
     @property
     def stubbed(self):
-        """ Is item stubbed by archiver? """
-
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX cache folder.GetIDs..?
+        """Item is stubbed by archiver."""
+        # TODO caching folder.GetIDs..?
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0)
         PROP_STUBBED = CHANGE_PROP_TYPE(ids[2], PT_BOOLEAN)
         try:
-            return HrGetOneProp(self.mapiobj, PROP_STUBBED).Value # False means destubbed
+            # False means destubbed
+            return HrGetOneProp(self.mapiobj, PROP_STUBBED).Value
         except MAPIErrorNotFound:
             return False
 
     @property
     def read(self):
-        """ Return boolean which shows if a message has been read """
-
+        """Item is read."""
         return self.prop(PR_MESSAGE_FLAGS).value & MSGFLAG_READ > 0
 
     @read.setter
@@ -358,6 +364,7 @@ class Item(Properties, Contact, Appointment):
 
     @property
     def categories(self):
+        """Categories."""
         proptag = self.mapiobj.GetIDsFromNames([NAMED_PROP_CATEGORY], MAPI_CREATE)[0]
         proptag = CHANGE_PROP_TYPE(proptag, PT_MV_STRING8)
         try:
