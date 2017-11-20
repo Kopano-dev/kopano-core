@@ -60,83 +60,66 @@ The following directives exist:
 .RS 4
 Include and process
 \fIargument\fR
-.sp
+.PP
 Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF EACH PARAMETER"
+.SS fullname_charset
 .PP
-\fBfullname_charset\fR
-.RS 4
 The charset that is used in /etc/passwd for the fullname of a user. In most setups, us\-ascii is used, but may also be iso\-8859\-15. All charsets supported by the system iconv() are supported here. Since iso\-8859\-15 is an extension on us\-ascii, this is used as the default to support high characters for most latin languages. If your default shell is in UTF\-8 (see your locales settings), enter utf\-8 here.
-.sp
+.PP
 Default:
 \fIiso\-8859\-15\fR
-.RE
+.SS default_domain
 .PP
-\fBdefault_domain\fR
-.RS 4
 The default domain name to set as e\-mail address. When a user is created, its email address will be set to
 \fIusername@default_domain\fR.
-.sp
+.PP
 Default:
 \fIno default present\fR.
-.RE
+.SS min_user_uid
 .PP
-\fBmin_user_uid\fR
-.RS 4
 This is the minimal uid a user must have to be created as a Kopano user. This is to skip system users present in the /etc/passwd file. Normally, users start at 1000.
-.sp
+.PP
 Default:
 \fI1000\fR
-.RE
+.SS max_user_uid
 .PP
-\fBmax_user_uid\fR
-.RS 4
 This is the maximum uid a user may have to be created as a Kopano user. This is to skip system users present in the /etc/passwd file with a high uid, as user nobody does.
-.sp
+.PP
 Default:
 \fI10000\fR
-.RE
+.SS except_user_uids
 .PP
-\fBexcept_user_uids\fR
-.RS 4
 A whitespace separated list of uids that are within the min_user_uid and max_user_uid range, but shouldn\*(Aqt be considered as users.
-.sp
+.PP
 Default:
 \fIempty\fR
-.RE
+.SS min_group_gid
 .PP
-\fBmin_group_gid\fR
-.RS 4
 This is the minimal gid a group must have to be created as a Kopano group. This is to skip system groups present in the /etc/group file. Normally, groups start at 1000.
-.sp
+.PP
 Default:
 \fI1000\fR
-.RE
+.SS max_group_gid
 .PP
-\fBmax_group_gid\fR
-.RS 4
 This is the maximum gid a group may have to be created as a Kopano group. This is to skip system groups present in the /etc/group file with a high gid, as group nogroup does.
-.sp
+.PP
 Default:
 \fI10000\fR
-.RE
+.SS except_group_gids
 .PP
-\fBexcept_group_gids\fR
-.RS 4
 A whitespace separated list of gids that are within the min_group_gid and max_group_gid range, but shouldn\*(Aqt be considered as groups.
-.sp
+.PP
 Default:
 \fIempty\fR
-.RE
+.SS non_login_shell
 .PP
-\fBnon_login_shell\fR
-.RS 4
 A space-separated list of shells that, if a user account has one of them set as
 login shell, marks the corresponding Kopano user account as locked. Mail can be
 delivered to that user's inbox, but the user cannot directly login with this
 username.
-.sp
+.PP
 Default:
 \fI/bin/false\fR
 .RE
