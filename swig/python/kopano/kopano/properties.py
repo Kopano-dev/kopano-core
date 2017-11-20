@@ -8,11 +8,11 @@ Copyright 2017 - Kopano and its licensors (see LICENSE file)
 import sys
 
 from MAPI import (
-    KEEP_OPEN_READWRITE, PT_UNICODE
+    KEEP_OPEN_READWRITE, PT_UNICODE, PT_ERROR, MAPI_E_NOT_FOUND
 )
 
 from MAPI.Defs import (
-    PROP_TYPE
+    PROP_TYPE, PROP_ID
 )
 
 from MAPI.Struct import (
@@ -110,16 +110,20 @@ class Properties(object):
 
     # TODO generalize for any property?
     def _get_fast(self, proptag, default=None, must_exist=False):
-        # mapi table cells are limited to 255 characters
-        # TODO make the server return PT_ERROR when not-found..!?
-        # TODO check other PT types before using them with this!!
-
+        # in cache
         if proptag in self._cache:
+            proptype = PROP_TYPE(self._cache[proptag].proptag)
             value = self._cache[proptag].value
-            if value != 0x8004010f and \
-               not (PROP_TYPE(proptag) == PT_UNICODE and len(value) >= 255):
+
+            if proptype == PT_ERROR and value == MAPI_E_NOT_FOUND:
+                return default
+
+            # mapi table cells are limited to 255 characters/bytes
+            # TODO check other types
+            if not (proptype == PT_UNICODE and len(value) >= 255):
                 return value
 
+        # fallback to (slow) lookup
         try:
             return self.prop(proptag).value
         except NotFoundError:
