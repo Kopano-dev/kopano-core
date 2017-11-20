@@ -108,14 +108,20 @@ ECRESULT ECCacheManager::PurgeCache(unsigned int ulFlags)
 		m_QuotaCache.ClearCache();
 	if (ulFlags & PURGE_CACHE_QUOTADEFAULT)
 		m_QuotaUserDefaultCache.ClearCache();
-	if (ulFlags & PURGE_CACHE_OBJECTS)
-		m_ObjectsCache.ClearCache();
-	if (ulFlags & PURGE_CACHE_STORES)
-		m_StoresCache.ClearCache();
 	if (ulFlags & PURGE_CACHE_ACL)
 		m_AclCache.ClearCache();
 	l_cache.unlock();
-	
+
+	ulock_rec l_object(m_hCacheObjectMutex);
+	if (ulFlags & PURGE_CACHE_OBJECTS)
+		m_ObjectsCache.ClearCache();
+	l_object.unlock();
+
+	ulock_rec l_store(m_hCacheStoreMutex);
+	if (ulFlags & PURGE_CACHE_STORES)
+		m_StoresCache.ClearCache();
+	l_store.unlock();
+
 	// Cell cache mutex
 	ulock_rec l_cells(m_hCacheCellsMutex);
 	if(ulFlags & PURGE_CACHE_CELL)
@@ -200,7 +206,7 @@ ECRESULT ECCacheManager::I_GetObject(unsigned int ulObjId,
     unsigned int *ulType)
 {
 	ECsObjects	*sObject;
-	scoped_rlock lock(m_hCacheMutex);
+	scoped_rlock lock(m_hCacheObjectMutex);
 
 	auto er = m_ObjectsCache.GetCacheItem(ulObjId, &sObject);
 	if(er != erSuccess)
@@ -232,7 +238,7 @@ ECRESULT ECCacheManager::SetObject(unsigned int ulObjId, unsigned int ulParent, 
 	sObjects.ulFlags	= ulFlags;
 	sObjects.ulType		= ulType;
 
-	scoped_rlock lock(m_hCacheMutex);
+	scoped_rlock lock(m_hCacheObjectMutex);
 	auto er = m_ObjectsCache.AddCacheItem(ulObjId, sObjects);
 	LOG_CACHE_DEBUG("Set cache object id %d, parent %d, owner %d, flags %d, type %d", ulObjId, ulParent, ulOwner, ulFlags, ulType);
 	return er;
@@ -240,7 +246,7 @@ ECRESULT ECCacheManager::SetObject(unsigned int ulObjId, unsigned int ulParent, 
 
 ECRESULT ECCacheManager::I_DelObject(unsigned int ulObjId)
 {
-	scoped_rlock lock(m_hCacheMutex);
+	scoped_rlock lock(m_hCacheObjectMutex);
 	return m_ObjectsCache.RemoveCacheItem(ulObjId);
 }
 
@@ -248,7 +254,7 @@ ECRESULT ECCacheManager::I_GetStore(unsigned int ulObjId, unsigned int *ulStore,
     GUID *lpGuid, unsigned int *lpulType)
 {
 	ECsStores	*sStores;
-	scoped_rlock lock(m_hCacheMutex);
+	scoped_rlock lock(m_hCacheStoreMutex);
 
 	auto er = m_StoresCache.GetCacheItem(ulObjId, &sStores);
 	if(er != erSuccess)
@@ -270,7 +276,7 @@ ECRESULT ECCacheManager::SetStore(unsigned int ulObjId, unsigned int ulStore,
 	sStores.guidStore = *lpGuid;
 	sStores.ulType = ulType;
 
-	scoped_rlock lock(m_hCacheMutex);
+	scoped_rlock lock(m_hCacheStoreMutex);
 	auto er = m_StoresCache.AddCacheItem(ulObjId, sStores);
 	LOG_CACHE_DEBUG("Set store cache id %d, store %d, type %d, guid %s", ulObjId, ulStore, ulType, (lpGuid != nullptr ? bin2hex(sizeof(GUID), lpGuid).c_str() : "NULL"));
 	return er;
@@ -278,7 +284,7 @@ ECRESULT ECCacheManager::SetStore(unsigned int ulObjId, unsigned int ulStore,
 
 ECRESULT ECCacheManager::I_DelStore(unsigned int ulObjId)
 {
-	scoped_rlock lock(m_hCacheMutex);
+	scoped_rlock lock(m_hCacheStoreMutex);
 	return m_StoresCache.RemoveCacheItem(ulObjId);
 }
 
@@ -409,7 +415,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 		
     {
         // Get everything from the cache that we can
-    	scoped_rlock lock(m_hCacheMutex);
+       scoped_rlock lock(m_hCacheObjectMutex);
 
 	for (const auto &key : lstObjects)
 		if (m_ObjectsCache.GetCacheItem(key.ulObjId, &lpsObject) == erSuccess)
@@ -1172,8 +1178,6 @@ ECRESULT ECCacheManager::I_DelQuota(unsigned int ulUserId, bool bIsDefaultQuota)
 void ECCacheManager::ForEachCacheItem(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
 {
 	ulock_rec l_cache(m_hCacheMutex);
-	m_ObjectsCache.RequestStats(callback, obj);
-	m_StoresCache.RequestStats(callback, obj);
 	m_AclCache.RequestStats(callback, obj);
 	m_QuotaCache.RequestStats(callback, obj);
 	m_QuotaUserDefaultCache.RequestStats( callback, obj);
@@ -1182,6 +1186,14 @@ void ECCacheManager::ForEachCacheItem(void(callback)(const std::string &, const 
 	m_UserObjectDetailsCache.RequestStats(callback, obj);
 	m_ServerDetailsCache.RequestStats(callback, obj);
 	l_cache.unlock();
+
+	ulock_rec l_store(m_hCacheStoreMutex);
+	m_StoresCache.RequestStats(callback, obj);
+	l_store.unlock();
+
+	ulock_rec l_object(m_hCacheObjectMutex);
+	m_ObjectsCache.RequestStats(callback, obj);
+	l_object.unlock();
 
 	ulock_rec l_cell(m_hCacheCellsMutex);
 	m_CellCache.RequestStats(callback, obj);
@@ -1198,8 +1210,6 @@ ECRESULT ECCacheManager::DumpStats()
 	ec_log_info("Dumping cache stats:");
 
 	ulock_rec l_cache(m_hCacheMutex);
-	m_ObjectsCache.DumpStats();
-	m_StoresCache.DumpStats();
 	m_AclCache.DumpStats();
 	m_QuotaCache.DumpStats();
 	m_QuotaUserDefaultCache.DumpStats();
@@ -1208,6 +1218,14 @@ ECRESULT ECCacheManager::DumpStats()
 	m_UserObjectDetailsCache.DumpStats();
 	m_ServerDetailsCache.DumpStats();
 	l_cache.unlock();
+
+	ulock_rec l_object(m_hCacheObjectMutex);
+	m_ObjectsCache.DumpStats();
+	l_object.unlock();
+
+	ulock_rec l_store(m_hCacheStoreMutex);
+	m_StoresCache.DumpStats();
+	l_store.unlock();
 
 	ulock_rec l_cells(m_hCacheCellsMutex);
 	m_CellCache.DumpStats();
