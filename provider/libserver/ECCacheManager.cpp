@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <chrono>
 #include <list>
 #include <map>
 #include <mutex>
@@ -100,6 +101,7 @@ ECCacheManager::~ECCacheManager()
 
 ECRESULT ECCacheManager::PurgeCache(unsigned int ulFlags)
 {
+	auto start = std::chrono::steady_clock::now();
 	LOG_CACHE_DEBUG("Purge cache, flags 0x%08X", ulFlags);
 
 	// cache mutex items
@@ -145,6 +147,10 @@ ECRESULT ECCacheManager::PurgeCache(unsigned int ulFlags)
 	if (ulFlags & PURGE_CACHE_SERVER)
 		m_ServerDetailsCache.ClearCache();
 	l_cache.unlock();
+
+	using namespace std::chrono;
+	auto end = duration_cast<milliseconds>(decltype(start)::clock::now() - start);
+	ec_log_debug("PurgeCache took %u ms", static_cast<unsigned int>(end.count()));
 	return erSuccess;
 }
 
