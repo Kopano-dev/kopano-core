@@ -84,6 +84,30 @@ static const struct _sLocalNames {
 
 #define SERVER_NAMED_OFFSET	0x8500
 
+/**
+ * Sort function
+ *
+ * It does not really matter *how* it sorts, as long as it is reproduceable.
+ */
+bool ltmap::operator()(const MAPINAMEID *a, const MAPINAMEID *b) const noexcept
+{
+	auto r = memcmp(a->lpguid, b->lpguid, sizeof(GUID));
+	if (r < 0)
+		return false;
+	if (r > 0)
+		return true;
+	if (a->ulKind != b->ulKind)
+		return a->ulKind > b->ulKind;
+	switch (a->ulKind) {
+	case MNID_ID:
+		return a->Kind.lID > b->Kind.lID;
+	case MNID_STRING:
+		return wcscmp(a->Kind.lpwstrName, b->Kind.lpwstrName) < 0;
+	default:
+		return false;
+	}
+}
+
 ECNamedProp::ECNamedProp(WSTransport *lpTransport)
 {
 	this->lpTransport = lpTransport;
