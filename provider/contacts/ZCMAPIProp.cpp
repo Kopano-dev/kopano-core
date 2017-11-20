@@ -65,7 +65,6 @@ ZCMAPIProp::~ZCMAPIProp()
 HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSPropValue lpProps, ULONG ulIndex)
 {
 	HRESULT hr = hrSuccess;
-//	LPSPropValue lpProp = NULL;
 	SPropValue sValue, sSource;
 	std::string strSearchKey;
 	convert_context converter;
@@ -175,7 +174,6 @@ HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSP
 HRESULT ZCMAPIProp::ConvertDistList(LPSPropTagArray lpNames, ULONG cValues, LPSPropValue lpProps)
 {
 	HRESULT hr = hrSuccess;
-//	LPSPropValue lpProp = NULL;
 	SPropValue sValue, sSource;
 
 	sSource.ulPropTag = PR_ADDRTYPE;
