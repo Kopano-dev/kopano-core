@@ -112,7 +112,7 @@ class _kc_export KDatabase {
 	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affect = nullptr);
 	std::string Escape(const std::string &);
 	std::string EscapeBinary(const void *, size_t);
-	std::string EscapeBinary(const std::string &);
+	std::string EscapeBinary(const std::string &s) { return EscapeBinary(s.c_str(), s.size()); }
 	const char *GetError(void);
 	DB_ERROR GetLastError(void);
 	unsigned int GetMaxAllowedPacket(void) const { return m_ulMaxAllowedPacket; }
