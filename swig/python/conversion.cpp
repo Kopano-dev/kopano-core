@@ -391,14 +391,14 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		lpProp->Value.x = 0;
 		break;
 	case PT_STRING8:
-		if (ulFlags == CONV_COPY_SHALLOW)
+		if (ulFlags == CONV_COPY_SHALLOW) {
 			lpProp->Value.lpszA = PyString_AsString(Value);
-		else {
-			if (PyString_AsStringAndSize(Value, &lpstr, &size) < 0 ||
-			    MAPIAllocateMore(size + 1, lpBase, (LPVOID *)&lpProp->Value.lpszA) != hrSuccess)
-				return;
-			memcpy(lpProp->Value.lpszA, lpstr, size + 1);
+			break;
 		}
+		if (PyString_AsStringAndSize(Value, &lpstr, &size) < 0 ||
+		    MAPIAllocateMore(size + 1, lpBase, (LPVOID *)&lpProp->Value.lpszA) != hrSuccess)
+			return;
+		memcpy(lpProp->Value.lpszA, lpstr, size + 1);
 		break;
 	case PT_UNICODE:
 		// @todo add PyUnicode_Check call?
@@ -439,17 +439,17 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 	case PT_CLSID:
 		if (PyString_AsStringAndSize(Value, &lpstr, &size) < 0)
 			return;
-		if (size == sizeof(GUID)) {
-			if (ulFlags == CONV_COPY_SHALLOW)
-				lpProp->Value.lpguid = (LPGUID)lpstr;
-			else {
-				if (MAPIAllocateMore(sizeof(GUID), lpBase, (LPVOID *)&lpProp->Value.lpguid) != hrSuccess)
-					return;
-				memcpy(lpProp->Value.lpguid, lpstr, sizeof(GUID));
-			}
-		}
-		else
+		if (size != sizeof(GUID)) {
 			PyErr_Format(PyExc_TypeError, "PT_CLSID Value must be exactly %d bytes", (int)sizeof(GUID));
+			break;
+		}
+		if (ulFlags == CONV_COPY_SHALLOW) {
+			lpProp->Value.lpguid = (LPGUID)lpstr;
+			break;
+		}
+		if (MAPIAllocateMore(sizeof(GUID), lpBase, (LPVOID *)&lpProp->Value.lpguid) != hrSuccess)
+			return;
+		memcpy(lpProp->Value.lpguid, lpstr, sizeof(GUID));
 		break;
 	case PT_BINARY:
 		if (PyString_AsStringAndSize(Value, &lpstr, &size) < 0)
@@ -1693,20 +1693,20 @@ LPENTRYLIST		List_to_LPENTRYLIST(PyObject *list)
 	} while (true);
 exit:
 	if (PyErr_Occurred())
-		lpEntryList.reset();
+		return nullptr;
 	return lpEntryList.release();
 }
 
 PyObject *		List_from_LPENTRYLIST(LPENTRYLIST lpEntryList)
 {
 	pyobj_ptr list(PyList_New(0));
-	if (lpEntryList) {
-		for (unsigned int i = 0; i < lpEntryList->cValues; ++i) {
-			pyobj_ptr elem(PyString_FromStringAndSize(reinterpret_cast<const char *>(lpEntryList->lpbin[i].lpb), lpEntryList->lpbin[i].cb));
-			if(PyErr_Occurred())
-				return nullptr;
-			PyList_Append(list, elem);
-		}
+	if (lpEntryList == nullptr)
+		return list.release();
+	for (unsigned int i = 0; i < lpEntryList->cValues; ++i) {
+		pyobj_ptr elem(PyString_FromStringAndSize(reinterpret_cast<const char *>(lpEntryList->lpbin[i].lpb), lpEntryList->lpbin[i].cb));
+		if (PyErr_Occurred())
+			return nullptr;
+		PyList_Append(list, elem);
 	}
 	return list.release();
 }
@@ -1799,74 +1799,62 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 	if(obj == Py_None)
 		return NULL;
 	if (MAPIAllocateBuffer(sizeof(NOTIFICATION), &~lpNotif) != hrSuccess)
-		goto exit;
-
+		return nullptr;
 	memset(lpNotif, 0, sizeof(NOTIFICATION));
 
-	if(PyObject_IsInstance(obj, PyTypeNEWMAIL_NOTIFICATION))
-	{
-		lpNotif->ulEventType = fnevNewMail;
-
-		Py_ssize_t size;
-		pyobj_ptr oTmp(PyObject_GetAttrString(obj, "lpEntryID"));
-		if(!oTmp) {
-			PyErr_SetString(PyExc_RuntimeError, "lpEntryID missing for newmail notification");
-	   		goto exit;
-		}
-
-		if (oTmp != Py_None) {
-			if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpEntryID), &size) < 0)
-				goto exit;
-			lpNotif->info.newmail.cbEntryID = size;
-		}
-
-		oTmp.reset(PyObject_GetAttrString(obj, "lpParentID"));
-			if(!oTmp) {
-				PyErr_SetString(PyExc_RuntimeError, "lpParentID missing for newmail notification");
-				goto exit;
-			}
-
-		 if (oTmp != Py_None) {
-			if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpParentID), &size) < 0)
-				goto exit;
-			lpNotif->info.newmail.cbParentID = size;
-		 }
-
-		oTmp.reset(PyObject_GetAttrString(obj, "ulFlags"));
-			if(!oTmp) {
-				PyErr_SetString(PyExc_RuntimeError, "ulFlags missing for newmail notification");
-				goto exit;
-			}
-
-			if (oTmp != Py_None) {
-				lpNotif->info.newmail.ulFlags = (ULONG)PyLong_AsUnsignedLong(oTmp);
-			}
-
-		oTmp.reset(PyObject_GetAttrString(obj, "ulMessageFlags"));
-			if(!oTmp) {
-				PyErr_SetString(PyExc_RuntimeError, "ulMessageFlags missing for newmail notification");
-				goto exit;
-			}
-
-			if (oTmp != Py_None) {
-				lpNotif->info.newmail.ulMessageFlags = (ULONG)PyLong_AsUnsignedLong(oTmp);
-			}
-
-			// MessageClass
-		oTmp.reset(PyObject_GetAttrString(obj, "lpszMessageClass"));
-			if(!oTmp) {
-				PyErr_SetString(PyExc_RuntimeError, "lpszMessageClass missing for newmail notification");
-				goto exit;
-			}
-
-			if (oTmp != Py_None) {
-				if (lpNotif->info.newmail.ulFlags & MAPI_UNICODE)
-				    CopyPyUnicode(&lpNotif->info.newmail.lpszMessageClass, oTmp, lpNotif);
-				else if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpszMessageClass), nullptr) == -1)
-					goto exit;
-			}
-	} else {
+	if (!PyObject_IsInstance(obj, PyTypeNEWMAIL_NOTIFICATION)) {
 		PyErr_Format(PyExc_RuntimeError, "Bad object type %p", obj->ob_type);
+		return PyErr_Occurred() ? nullptr : lpNotif.release();
+	}
+	lpNotif->ulEventType = fnevNewMail;
+	Py_ssize_t size;
+	pyobj_ptr oTmp(PyObject_GetAttrString(obj, "lpEntryID"));
+	if (!oTmp) {
+		PyErr_SetString(PyExc_RuntimeError, "lpEntryID missing for newmail notification");
+		goto exit;
+	}
+	if (oTmp != Py_None) {
+		if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpEntryID), &size) < 0)
+			goto exit;
+		lpNotif->info.newmail.cbEntryID = size;
+	}
+	oTmp.reset(PyObject_GetAttrString(obj, "lpParentID"));
+	if (!oTmp) {
+		PyErr_SetString(PyExc_RuntimeError, "lpParentID missing for newmail notification");
+		goto exit;
+	}
+	if (oTmp != Py_None) {
+		if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpParentID), &size) < 0)
+			goto exit;
+		lpNotif->info.newmail.cbParentID = size;
+	}
+	oTmp.reset(PyObject_GetAttrString(obj, "ulFlags"));
+	if (!oTmp) {
+		PyErr_SetString(PyExc_RuntimeError, "ulFlags missing for newmail notification");
+		goto exit;
+	}
+	if (oTmp != Py_None) {
+		lpNotif->info.newmail.ulFlags = (ULONG)PyLong_AsUnsignedLong(oTmp);
+	}
+	oTmp.reset(PyObject_GetAttrString(obj, "ulMessageFlags"));
+	if (!oTmp) {
+		PyErr_SetString(PyExc_RuntimeError, "ulMessageFlags missing for newmail notification");
+		goto exit;
+	}
+	if (oTmp != Py_None) {
+		lpNotif->info.newmail.ulMessageFlags = (ULONG)PyLong_AsUnsignedLong(oTmp);
+	}
+	// MessageClass
+	oTmp.reset(PyObject_GetAttrString(obj, "lpszMessageClass"));
+	if (!oTmp) {
+		PyErr_SetString(PyExc_RuntimeError, "lpszMessageClass missing for newmail notification");
+		goto exit;
+	}
+	if (oTmp != Py_None) {
+		if (lpNotif->info.newmail.ulFlags & MAPI_UNICODE)
+		    CopyPyUnicode(&lpNotif->info.newmail.lpszMessageClass, oTmp, lpNotif);
+		else if (PyString_AsStringAndSize(oTmp, reinterpret_cast<char **>(&lpNotif->info.newmail.lpszMessageClass), nullptr) == -1)
+			goto exit;
 	}
 
 exit:
@@ -2110,13 +2098,13 @@ Object_to_MVPROPMAP(PyObject *elem, T *&lpObj, ULONG ulFlags)
 		for (int j = 0; j < ValuesLength; ++j) {
 			ListItem = PyList_GetItem(Values, j);
 
-			if (ListItem != Py_None) {
-				if ((ulFlags & MAPI_UNICODE) == 0)
-					// XXX: meh, not sure what todo here. Maybe use process_conv_out??
-					lpObj->sMVPropmap.lpEntries[i].lpszValues[j] = reinterpret_cast<TCHAR *>(PyString_AsString(ListItem));
-				else
-					CopyPyUnicode(&lpObj->sMVPropmap.lpEntries[i].lpszValues[j], ListItem, lpObj);
-			}
+			if (ListItem == Py_None)
+				continue;
+			if ((ulFlags & MAPI_UNICODE) == 0)
+				// XXX: meh, not sure what todo here. Maybe use process_conv_out??
+				lpObj->sMVPropmap.lpEntries[i].lpszValues[j] = reinterpret_cast<TCHAR *>(PyString_AsString(ListItem));
+			else
+				CopyPyUnicode(&lpObj->sMVPropmap.lpEntries[i].lpszValues[j], ListItem, lpObj);
 		}
 	}
 }
