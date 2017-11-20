@@ -390,19 +390,6 @@ struct ECsSortKeyKey {
 	unsigned int	ulPropTag;
 };
 
-struct lessindexobjectkey {
-	bool operator()(const ECsIndexObject &a, const ECsIndexObject &b) const noexcept
-	{
-		if(a.ulObjId < b.ulObjId)
-			return true;
-		else if(a.ulObjId == b.ulObjId && a.ulTag < b.ulTag)
-			return true;
-
-		return false;
-	}
-
-};
-
 inline unsigned int IPRSHash(const ECsIndexProp &_Keyval1) noexcept
 {
 	unsigned int b    = 378551;
@@ -453,7 +440,7 @@ typedef std::map<std::string, ECsServerDetails> ECMapServerDetails;
 typedef std::unordered_map<unsigned int, ECsCells> ECMapCells;
 
 // Index properties
-typedef std::map<ECsIndexObject, ECsIndexProp, lessindexobjectkey > ECMapObjectToProp;
+typedef std::map<ECsIndexObject, ECsIndexProp> ECMapObjectToProp;
 typedef std::unordered_map<ECsIndexProp, ECsIndexObject> ECMapPropToObject;
 
 #define CACHE_NO_PARENT 0xFFFFFFFF
