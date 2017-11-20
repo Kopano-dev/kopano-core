@@ -743,7 +743,7 @@ SPropTagArray *List_to_p_SPropTagArray(PyObject *object, ULONG /*ulFlags*/)
 
 exit:
 	if (PyErr_Occurred())
-		lpPropTagArray.reset();
+		return nullptr;
 	return lpPropTagArray.release();
 }
 
@@ -1341,7 +1341,7 @@ SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *object)
 
 exit:
 	if (PyErr_Occurred())
-		lpsSortOrderSet.reset();
+		return nullptr;
 	return lpsSortOrderSet.release();
 }
 
@@ -1416,7 +1416,7 @@ SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags, void *lpBase)
 
 exit:
 	if (PyErr_Occurred())
-		lpsRowSet.reset();
+		return nullptr;
 	return lpsRowSet.release();
 }
 
@@ -1531,7 +1531,7 @@ LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *list, ULONG /*ulFlags*
 
 exit:
 	if (PyErr_Occurred())
-		lpsProblems.reset();
+		return nullptr;
 	return lpsProblems.release();
 }
 
@@ -1650,7 +1650,7 @@ LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *list, ULONG *lpcNames, ULONG /*u
 
 exit:
 	if (PyErr_Occurred())
-		lpNames.reset();
+		return nullptr;
 	return lpNames.release();
 }
 
@@ -1871,7 +1871,7 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 
 exit:
 	if (PyErr_Occurred())
-		lpNotif.reset();
+		return nullptr;
 	return lpNotif.release();
 }
 
@@ -1901,7 +1901,7 @@ LPFlagList		List_to_LPFlagList(PyObject *list)
 
 exit:
 	if (PyErr_Occurred())
-		lpList.reset();
+		return nullptr;
 	return lpList.release();
 }
 
@@ -1978,7 +1978,7 @@ LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 
 exit:
 	if (PyErr_Occurred())
-		lpList.reset();
+		return nullptr;
 	return lpList.release();
 }
 
@@ -2037,7 +2037,7 @@ LPCIID			List_to_LPCIID(PyObject *list, ULONG *cInterfaces)
 
 exit:
 	if (PyErr_Occurred())
-		lpList.reset();
+		return nullptr;
 	return lpList.release();
 }
 
@@ -2382,7 +2382,7 @@ LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 
 exit:
 	if (PyErr_Occurred())
-		lpRowList.reset();
+		return nullptr;
 	return lpRowList.release();
 }
 
@@ -2520,7 +2520,7 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 	} while (true);
 exit:
 	if (PyErr_Occurred())
-		lpSvrNameList.reset();
+		return nullptr;
 	return lpSvrNameList.release();
 }
 
@@ -2569,6 +2569,6 @@ PyObject *Object_from_STATSTG(STATSTG *lpStatStg)
 	pyobj_ptr cbSize(PyLong_FromLongLong(lpStatStg->cbSize.QuadPart));
 	pyobj_ptr result(PyObject_CallFunction(PyTypeSTATSTG, "(O)", cbSize.get()));
 	if (PyErr_Occurred())
-		result.reset();
+		return nullptr;
 	return result.release();
 }
