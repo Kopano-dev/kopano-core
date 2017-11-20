@@ -7,10 +7,12 @@ import kopano
 
 
 class Resource(object):
+    def get_fields(self, obj, fields):
+        return {f: self.fields[f](obj) for f in fields}
+
     def json(self, obj, fields):
         # dump requested fields
-        return json.dumps(
-            {f: self.fields[f](obj) for f in fields},
+        return json.dumps(self.get_fields(obj, fields),
             indent=4, separators=(',', ': ')
         )
 
@@ -25,8 +27,12 @@ class Resource(object):
         # jsonify result (as stream)
         resp.content_type = "application/json"
         if isinstance(obj, types.GeneratorType):
-            resp.append_header('transfer-encoding', 'chunked')
-            resp.stream = (self.json(o, fields)+'\n' for o in obj)
+#            #disable chunking for jelle
+#            resp.append_header('transfer-encoding', 'chunked')
+#            resp.stream = (self.json(o, fields)+'\n' for o in obj)
+            resp.body = json.dumps(
+                [self.get_fields(o, fields) for o in obj]
+            )
         else:
             resp.body = self.json(obj, fields)
 
