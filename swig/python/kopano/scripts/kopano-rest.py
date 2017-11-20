@@ -30,12 +30,16 @@ class Resource(object):
         else:
             resp.body = self.json(obj, fields)
 
-    def pagination(self, req, generator):
+    def generator(self, req, generator):
         # TODO error for non-items?
+
+        # determine pagination and ordering
         args = urlparse.parse_qs(req.query_string)
         start = int(args['start'][0]) if 'start' in args else None
         limit = int(args['limit'][0]) if 'limit' in args else None
-        return generator(page_start=start, page_limit=limit)
+        order = tuple(args['order'][0].split(',')) if 'order' in args else None
+
+        return generator(page_start=start, page_limit=limit, order=order)
 
 class UserResource(Resource):
     fields = {
@@ -88,7 +92,8 @@ class ItemResource(Resource):
         'subject': lambda item: item.subject,
         'to': lambda item: ['%s <%s>' % (to.name, to.email) for to in item.to],
         'text': lambda item: item.text,
-        'modified': lambda item: item.last_modified.isoformat()
+        'modified': lambda item: item.last_modified.isoformat(),
+        'received': lambda item: item.received.isoformat()
     }
 
     def on_get(self, req, resp, storeid, folderid, itemid=None):
@@ -97,7 +102,7 @@ class ItemResource(Resource):
             data = store.item(itemid)
         else:
             folder = store.folder(entryid=folderid)
-            data = self.pagination(req, folder.items)
+            data = self.generator(req, folder.items)
         self.respond(req, resp, data)
 
 server = kopano.Server(parse_args=False)
