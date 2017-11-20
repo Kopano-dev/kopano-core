@@ -3941,8 +3941,12 @@ int main(int argc, char* argv[])
 		break;
 	case MODE_PURGE_SOFTDELETE:
 		hr = lpServiceAdmin->PurgeSoftDelete(ulDays);
-		if (hr != hrSuccess) {
-			cerr << "Softdelete purge failed" << endl;
+		if (hr == MAPI_E_BUSY) {
+			cout << "Softdelete purge already running." << endl;
+			hr = hrSuccess;
+			break;
+		} else if (hr != hrSuccess) {
+			cerr << "Softdelete purge failed: " << getMapiCodeString(hr) << endl;
 			goto exit;
 		}
 		cout << "Softdelete purge done." << endl;
