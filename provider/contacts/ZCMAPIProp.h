@@ -31,7 +31,7 @@ protected:
 	virtual ~ZCMAPIProp();
 
 	HRESULT ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSPropValue lpProps, ULONG ulIndex);
-	HRESULT ConvertDistList(LPSPropTagArray lpNames, ULONG cValues, LPSPropValue lpProps);
+	HRESULT ConvertDistList(ULONG cValues, LPSPropValue lpProps);
 	HRESULT ConvertProps(IMAPIProp *contact, ULONG eid_size, const ENTRYID *eid, ULONG index);
 
 	/* getprops helper */
