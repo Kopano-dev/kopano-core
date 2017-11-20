@@ -256,7 +256,6 @@ kopano_server_SOURCES = \
 	provider/server/ECServer.cpp \
 	provider/server/ECSoapServerConnection.cpp provider/server/ECSoapServerConnection.h \
 	provider/server/ECThreadManager.cpp provider/server/ECThreadManager.h \
-	provider/common/SOAPHelpers.cpp provider/common/SOAPHelpers.h \
 	provider/soap/soapServer.cpp
 kopano_server_LDADD = \
 	libkcutil.la libkcmapi.la libkcssl.la \
