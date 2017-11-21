@@ -185,6 +185,7 @@ class Worker(Process):
         self.daemon = True
         self.name = name
         self.service = service
+        self._server = None
         self.__dict__.update(kwargs)
         self.log = logging.getLogger(name=self.name)
         if not self.log.handlers:
@@ -196,11 +197,16 @@ class Worker(Process):
             self.log.addHandler(qh)
             self.log.setLevel(loglevel)
 
+    @property
+    def server(self):
+        if self._server is None:
+            self._server = _server.Server(options=self.service.options, config=self.service.config, log=self.service.log, service=self.service)
+        return self._server
+
     def main(self):
         raise _errors.Error('Worker.main not implemented')
 
     def run(self):
-        self.service._server = None # do not re-use "forked" session
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         signal.signal(signal.SIGHUP, signal.SIG_IGN)
         signal.signal(signal.SIGTERM, lambda *args: sys.exit(0))
