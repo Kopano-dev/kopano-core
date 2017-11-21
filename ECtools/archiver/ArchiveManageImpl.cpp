@@ -96,7 +96,7 @@ ArchiveManageImpl::ArchiveManageImpl(ArchiverSessionPtr ptrSession, ECConfig *lp
 	m_lpConfig(lpConfig),
 	m_strUser(strUser)
 {
-	m_lpLogger.reset(new(std::nothrow) ECArchiverLogger(lpLogger));
+	m_lpLogger.reset(new(std::nothrow) ECArchiverLogger(lpLogger), false);
 	if (m_lpLogger == nullptr)
 		return;
 	m_lpLogger->SetUser(strUser);
