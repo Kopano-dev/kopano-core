@@ -62,144 +62,111 @@ The following directives exist:
 .RS 4
 Include and process
 \fIargument\fR
-.sp
+.PP
 Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF EACH PARAMETER"
+.SS server_bind
 .PP
-\fBserver_bind\fR
-.RS 4
 IP address to bind to. Leave empty to bind to all addresses.
-.sp
-Default: (empty)
-.RE
 .PP
-\fBical_enable\fR
-.RS 4
+Default: (empty)
+.SS ical_enable
+.PP
 Enable iCal/CalDAV service with value yes. All other values disable the service.
-.sp
+.PP
 Default:
 \fIyes\fR
-.RE
+.SS ical_port
 .PP
-\fBical_port\fR
-.RS 4
 The iCal/CalDAV service will listen on this port for incoming connections.
-.sp
+.PP
 Default:
 \fI8080\fR
-.RE
+.SS icals_enable
 .PP
-\fBicals_enable\fR
-.RS 4
 Enable SSL iCal/CalDAV service with value yes. All other values disable the service.
-.sp
+.PP
 Default:
 \fIyes\fR
-.RE
+.SS icals_port
 .PP
-\fBicals_port\fR
-.RS 4
 The SSL iCal/CalDAV service will listen on this port for incoming connections.
-.sp
+.PP
 Default:
 \fI8443\fR
-.RE
+.SS server_socket
 .PP
-\fBserver_socket\fR
-.RS 4
 The http address of the storage server.
-.sp
+.PP
 Default:
 \fIhttp://localhost:236/\fR
-.sp
+.PP
 It is not advised to specify the UNIX socket here, but the http address instead. In default configuration the gateway will then be trusted by the storage server (as set in its local_admin_users configuration setting). Unless is run as an untrusted user, by specifying the
 \fBrun_as_user\fR, the gateway always authenticates users even if they provide no or wrong credentials!
-.RE
+.SS run_as_user
 .PP
-\fBrun_as_user\fR
-.RS 4
 After correctly starting, the iCal/CalDAV gateway process will become this user, dropping root privileges. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation. This can also be achieved by setting the correct group and permissions.
-.sp
+.PP
 Default value is empty, not changing the user after starting.
-.RE
+.SS run_as_group
 .PP
-\fBrun_as_group\fR
-.RS 4
 After correctly starting, the iCal/CalDAV gateway process will become this group, dropping root privileges.
-.sp
-Default value is empty, not changing the group after starting.
-.RE
 .PP
-\fBpid_file\fR
-.RS 4
+Default value is empty, not changing the group after starting.
+.SS pid_file
+.PP
 Write the process ID number to this file. This is used by the init.d script to correctly stop/restart the service.
-.sp
+.PP
 Default:
 \fI/var/run/kopano/ical.pid\fR
-.RE
+.SS running_path
 .PP
-\fBrunning_path\fR
-.RS 4
 Change directory to this path when running in daemonize mode. When using the \-F switch to run in the foreground the directory will not be changed.
-.sp
+.PP
 Default:
 \fI/\fR
-.RE
+.SS process_model
 .PP
-\fBprocess_model\fR
-.RS 4
 You can change the process model between
 \fIfork\fR
 and
 \fIthread\fR. The forked model uses somewhat more resources, but if a crash is triggered, this will only affect one user. In the threaded model, a crash means all users are affected, and will not be able to use the service.
-.sp
+.PP
 Default:
 \fIfork\fR
-.RE
+.SS ssl_private_key_file
 .PP
-\fBssl_private_key_file\fR
-.RS 4
 The iCal/CalDAV gateway will use this file as private key for SSL TLS. This file can be created with:
 \fBopenssl genrsa \-out /etc/kopano/ical/privkey.pem 2048\fR.
-.sp
+.PP
 Default:
 \fI/etc/kopano/ical/privkey.pem\fR
-.RE
+.SS ssl_certificate_file
 .PP
-\fBssl_certificate_file\fR
-.RS 4
 The iCal/CalDAV gateway will use this file as certificate for SSL TLS. A self\-signed certificate can be created with:
 \fBopenssl req \-new \-x509 \-key /etc/kopano/ical/privkey.pem \-out /etc/kopano/ical/cert.pem \-days 1095\fR.
-.sp
+.PP
 Default:
 \fI/etc/kopano/ical/cert.pem\fR
-.RE
+.SS ssl_verify_client
 .PP
-\fBssl_verify_client\fR
-.RS 4
 Enable client certificate verification with value yes. All other values disable the verification.
-.sp
+.PP
 Default:
 \fIno\fR
-.RE
+.SS ssl_verify_file
 .PP
-\fBssl_verify_file\fR
-.RS 4
 The file to verify the clients certificates with.
-.sp
-Default: value not set.
-.RE
 .PP
-\fBssl_verify_path\fR
-.RS 4
+Default: value not set.
+.SS ssl_verify_path
+.PP
 The path with the files to verify the clients certificates with.
-.sp
-Default: value not set.
-.RE
 .PP
-\fBssl_protocols\fR
-.RS 4
+Default: value not set.
+.SS ssl_protocols
+.PP
 Disabled or enabled protocol names. Supported protocol names are
 \fISSLv3\fR
 and
@@ -210,84 +177,64 @@ and
 \fBserver_ssl_protocols\fR
 to
 \fI!SSLv3 !TLSv1\fR.
-.sp
-Default: SSLv2 being disabled
-.RE
 .PP
-\fBssl_ciphers\fR
-.RS 4
+Default: SSLv2 being disabled
+.SS ssl_ciphers
+.PP
 SSL ciphers to use, set to
 \fIALL\fR
 for backward compatibility.
-.sp
+.PP
 Default:
 \fIALL:!LOW:!SSLv2:!EXP:!aNULL\fR
-.RE
+.SS ssl_prefer_server_ciphers
 .PP
-\fBssl_prefer_server_ciphers\fR
-.RS 4
 Prefer the server\*(Aqs order of SSL ciphers over client\*(Aqs.
-.sp
+.PP
 Default:
 \fIno\fR
-.RE
+.SS log_method
 .PP
-\fBlog_method\fR
-.RS 4
 The method which should be used for logging. Valid values are:
-.PP
+.TP
 \fIsyslog\fR
-.RS 4
 Use the Linux system log. All messages will be written to the mail facility. See also
 \fBsyslog.conf\fR(5).
-.RE
-.PP
-\fIfile\fR
-.RS 4
+.TP
+\fIfile\fP
 Log to a file. The filename will be specified in
 \fBlog_file\fR.
-.RE
-.sp
+.PP
 Default:
 \fIfile\fR
-.RE
+.SS log_file
 .PP
-\fBlog_file\fR
-.RS 4
 When logging to a file, specify the filename in this parameter. Use
 \fI\-\fR
 (minus sign) for stderr output.
-.sp
+.PP
 Default:
 \fI/var/log/kopano/ical.log\fR
-.RE
+.SS log_level
 .PP
-\fBlog_level\fR
-.RS 4
 The level of output for logging in the range from 0 to 5. 0=no logging, 5=full logging.
-.sp
+.PP
 Default:
 \fI2\fR
-.RE
+.SS log_timestamp
 .PP
-\fBlog_timestamp\fR
-.RS 4
 Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode.
-.sp
+.PP
 Default:
 \fI1\fR
-.RE
+.SS log_buffer_size
 .PP
-\fBlog_buffer_size\fR
-.RS 4
 Buffer logging in what sized blocks. The special value 0 selects line buffering.
-.sp
+.PP
 Default:
 \fI0\fR
-.RE
+.SS enable_ical_get
 .PP
-\fBenable_ical_get\fR
-.RS 4
 Enable the ical GET method to download an entire calendar. When set to \*(Aqyes\*(Aq, the GET method is enabled and allowed. If not, then calendars can only be retrieved with the CalDAV PROPFIND method, which is much more efficient. This option allows you to force the use of CalDAV which lowers load on your server.
 .RE
 .SH "RELOADING"
@@ -295,8 +242,6 @@ Enable the ical GET method to download an entire calendar. When set to \*(Aqyes\
 The following options are reloadable by sending the kopano\-ical process a HUP signal:
 .PP
 log_level
-.RS 4
-.RE
 .SH "FILES"
 .PP
 /etc/kopano/ical.cfg
