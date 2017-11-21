@@ -776,8 +776,6 @@ ECRESULT ECDispatcherSelect::MainLoop()
 					newsoap->peerlen = 0;
 					memset(&newsoap->peer, 0, sizeof(newsoap->peer));
 				}
-				/* Do like gsoap's soap_accept would */
-				newsoap->keep_alive = -(((newsoap->imode | newsoap->omode) & SOAP_IO_KEEPALIVE) != 0);
 			} else {
 				soap_accept(newsoap);
 			}
@@ -946,13 +944,10 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 				time(&sActive.ulLastActivity);
 
 				ulType = SOAP_CONNECTION_TYPE(iterListenSockets->second);
-				if (ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
+				if (ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
 					newsoap->socket = accept(newsoap->master, NULL, 0);
-					/* Do like gsoap's soap_accept would */
-					newsoap->keep_alive = -(((newsoap->imode | newsoap->omode) & SOAP_IO_KEEPALIVE) != 0);
-				} else {
+				else
 					soap_accept(newsoap);
-				}
 
 				if(newsoap->socket == SOAP_INVALID_SOCKET) {
 					if (ulType == CONNECTION_TYPE_NAMED_PIPE)
