@@ -97,13 +97,31 @@ class FolderResource(Resource):
         folder = store.folder(entryid=folderid)
 
         fields = json.loads(req.stream.read())
-        send = fields.pop('send', 'false')
         item = folder.create_item(**fields) # TODO conversion
-        if send == 'true':
-            item.send()
 
         resp.status = falcon.HTTP_201
         resp.location = req.path+'/items/'+item.entryid
+
+    def on_put(self, req, resp, storeid, folderid):
+        store = server.store(entryid=storeid) # TODO cache?
+        folder = store.folder(entryid=folderid)
+
+        data = json.loads(req.stream.read())
+        if 'action' in data:
+            action = data['action']
+            items = [store.item(entryid=entryid) for entryid in data['items']]
+
+            if action == 'send':
+                for item in items:
+                    item.send()
+            elif action == 'delete':
+                folder.delete(items)
+            elif action == 'copy':
+                target = store.folder(entryid=data['target'])
+                folder.copy(items, target)
+            elif action == 'move':
+                target = store.folder(entryid=data['target'])
+                folder.move(items, target)
 
 class ItemResource(Resource):
     fields = {
