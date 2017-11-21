@@ -92,6 +92,19 @@ class FolderResource(Resource):
             data = store.folders()
         self.respond(req, resp, data)
 
+    def on_post(self, req, resp, storeid, folderid):
+        store = server.store(entryid=storeid) # TODO cache?
+        folder = store.folder(entryid=folderid)
+
+        fields = json.loads(req.stream.read())
+        send = fields.pop('send', 'false')
+        item = folder.create_item(**fields) # TODO conversion
+        if send == 'true':
+            item.send()
+
+        resp.status = falcon.HTTP_201
+        resp.location = req.path+'/items/'+item.entryid
+
 class ItemResource(Resource):
     fields = {
         'entryid': lambda item: item.entryid,
