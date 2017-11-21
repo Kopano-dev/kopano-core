@@ -273,7 +273,7 @@ class Folder(Properties):
         return item
 
     def items(self, restriction=None, page_start=None, page_limit=None,
-            order='-received',
+            order=None,
         ):
         """Return all :class:`items <Item>` in folder, reverse sorted on
         received date.
@@ -305,6 +305,8 @@ class Folder(Properties):
             return
 
         # TODO MAPI has more than just ascend/descend
+        if order is None:
+            order = '-received'
         if not isinstance(order, tuple):
             order = (order,)
         sorttags = []
