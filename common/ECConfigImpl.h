@@ -37,13 +37,7 @@ struct settingkey_t {
 	char s[256];
 	unsigned short ulFlags;
 	unsigned short ulGroup;
-};
-
-struct settingcompare {
-	bool operator()(const settingkey_t &a, const settingkey_t &b) const
-	{
-		return strcmp(a.s, b.s) < 0;
-	}
+	bool operator<(const settingkey_t &o) const noexcept { return strcmp(s, o.s) < 0; }
 };
 
 #define MAXLINELEN 4096
@@ -51,7 +45,7 @@ struct settingcompare {
 class ECConfigImpl;
 
 /* Note: char* in map is allocated ONCE to 1024, and GetSetting will always return the same pointer to this buffer */
-typedef std::map<settingkey_t, char*, settingcompare> settingmap_t;
+typedef std::map<settingkey_t, char *> settingmap_t;
 typedef bool (ECConfigImpl::*directive_func_t)(const char *, unsigned int);
 struct directive_t {
 	const char			*lpszDirective;

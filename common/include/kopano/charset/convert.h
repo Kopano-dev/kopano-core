@@ -539,6 +539,20 @@ private:
 		const char *tocode;
 		const char *fromtype;
 		const char *fromcode;
+
+		bool operator<(const context_key &o) const noexcept
+		{
+			auto r = strcmp(fromtype, o.fromtype);
+			if (r != 0)
+				return r < 0;
+			r = strcmp(totype, o.totype);
+			if (r != 0)
+				return r < 0;
+			r = strcmp(fromcode, o.fromcode);
+			if (r != 0)
+				return r < 0;
+			return strcmp(tocode, o.tocode) < 0;
+		}
 	};
 
 	/** Create a context_key based on the to- and from types and optionaly the to- and from codes.
@@ -568,31 +582,9 @@ private:
 	}
 
 	/**
-	 * @brief Sort predicate for the context_map;
-	 */
-	class _kc_hidden context_predicate _kc_final {
-	public:
-		bool operator()(const context_key &lhs, const context_key &rhs) const {
-			int r = strcmp(lhs.fromtype, rhs.fromtype);
-			if (r != 0)
-				return (r < 0);
-
-			r = strcmp(lhs.totype, rhs.totype);
-			if (r != 0)
-				return (r < 0);
-
-			r = strcmp(lhs.fromcode, rhs.fromcode);
-			if (r != 0)
-				return (r < 0);
-
-			return (strcmp(lhs.tocode, rhs.tocode) < 0);
-		}
-	};
-	
-	/**
 	 * @brief Map containing contexts that can be reused.
 	 */
-	typedef std::map<context_key, details::iconv_context_base*, context_predicate>	context_map;
+	typedef std::map<context_key, details::iconv_context_base *> context_map;
 
 	/**
 	 * @brief Set containing dynamic allocated from- and to codes.

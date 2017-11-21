@@ -24,32 +24,8 @@
 
 class WSTransport;
 
-// Sort function
-//
-// Doesn't really matter *how* it sorts, as long as it's reproduceable
 struct ltmap {
-	bool operator()(const MAPINAMEID *a, const MAPINAMEID *b) const
-	{
-	    int r = memcmp(a->lpguid, b->lpguid, sizeof(GUID));
-	    
-        if(r<0)
-            return false;
-        else if(r>0)
-            return true;
-        else {	    
-            if(a->ulKind != b->ulKind)
-                return a->ulKind > b->ulKind;
-
-            switch(a->ulKind) {
-            case MNID_ID:
-                return a->Kind.lID > b->Kind.lID;
-            case MNID_STRING:
-                return wcscmp(a->Kind.lpwstrName, b->Kind.lpwstrName) < 0;
-            default:
-                return false;
-            }
-        }
-	}
+	bool operator()(const MAPINAMEID *, const MAPINAMEID *) const noexcept;
 };
 
 class ECNamedProp _kc_final {

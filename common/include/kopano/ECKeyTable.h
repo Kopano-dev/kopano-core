@@ -69,12 +69,10 @@ struct sObjectTableKey {
 	sObjectTableKey(void) = default;
 	unsigned int ulObjId = 0;
 	unsigned int ulOrderId = 0;
-};
 
-struct ObjectTableKeyCompare {
-	bool operator()(const sObjectTableKey& a, const sObjectTableKey& b) const
+	bool operator()(const sObjectTableKey &o) const noexcept
 	{
-		return a.ulObjId < b.ulObjId || (a.ulObjId == b.ulObjId && a.ulOrderId < b.ulOrderId);
+		return ulObjId < o.ulObjId || (ulObjId == o.ulObjId && ulOrderId < o.ulOrderId);
 	}
 };
 
@@ -83,7 +81,7 @@ extern _kc_export bool operator==(const sObjectTableKey &, const sObjectTableKey
 extern _kc_export bool operator<(const sObjectTableKey &, const sObjectTableKey &) noexcept;
 extern bool operator>(const sObjectTableKey &, const sObjectTableKey &) noexcept;
 
-typedef std::map<sObjectTableKey, unsigned int, ObjectTableKeyCompare>  ECObjectTableMap;
+typedef std::map<sObjectTableKey, unsigned int> ECObjectTableMap;
 typedef std::list<sObjectTableKey> ECObjectTableList;
 
 #define TABLEROW_FLAG_DESC		0x00000001
@@ -143,7 +141,7 @@ public:
 	bool		fHidden;		// The row is hidden (is it non-existent for all purposes)
 };
 
-typedef std::map<sObjectTableKey, ECTableRow*, ObjectTableKeyCompare>  ECTableRowMap;
+typedef std::map<sObjectTableKey, ECTableRow *> ECTableRowMap;
 
 struct sBookmarkPosition {
 	unsigned int	ulFirstRowPosition;

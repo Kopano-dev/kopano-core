@@ -161,18 +161,14 @@ public:
 		return *this;
 	}
 
+	bool operator<(const BinaryArray &o) const noexcept
+	{
+		return cb < o.cb || (cb == o.cb && memcmp(lpb, o.lpb, cb) < 0);
+	}
+
 	BYTE *lpb = nullptr;
 	ULONG cb = 0;
 	bool bcheap = false;
-};
-
-struct lessBinaryArray {
-	bool operator()(const BinaryArray &a, const BinaryArray &b) const noexcept
-	{
-		if (a.cb < b.cb || (a.cb == b.cb && memcmp(a.lpb, b.lpb, a.cb) < 0) )
-			return true;
-		return false;
-	}
 };
 
 // FLAGS: \Seen \Answered \Flagged \Deleted \Draft \Recent
@@ -292,7 +288,7 @@ private:
 
 	enum { PR_IPM_FAKEJUNK_ENTRYID = PR_ADDITIONAL_REN_ENTRYIDS };
 	// special folder entryids (not able to move/delete inbox and such ...)
-	std::map<BinaryArray, ULONG, lessBinaryArray> lstSpecialEntryIDs;
+	std::map<BinaryArray, ULONG> lstSpecialEntryIDs;
 
 	// Message cache
 	std::string m_strCache;
