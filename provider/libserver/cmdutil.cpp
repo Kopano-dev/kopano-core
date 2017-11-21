@@ -696,8 +696,9 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 		}
 
 		// Start transaction
+		kd_trans atx;
 		if (!bNoTransaction) {
-			er = lpAttachmentStorage->Begin();
+			atx = lpAttachmentStorage->Begin(er);
 			if (er != erSuccess)
 				goto exit;
 
@@ -774,7 +775,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 
 		// Commit the transaction
 		if (!bNoTransaction) {
-			er = lpAttachmentStorage->Commit();
+			er = atx.commit();
 			if (er != erSuccess)
 				goto exit;
 
@@ -789,12 +790,8 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 	} // while iterDeleteItems != end()
 
 exit:
-	if (er != erSuccess && !bNoTransaction) {
-		if(lpInternalAttachmentStorage)
-			lpInternalAttachmentStorage->Rollback();
-
+	if (er != erSuccess && !bNoTransaction)
 		lpDatabase->Rollback();
-	}
 	return er;
 }
 

@@ -34,7 +34,7 @@ namespace KC {
 class ECSerializer;
 class ECLogger;
 
-class ECAttachmentStorage {
+class ECAttachmentStorage : public kt_completion {
 public:
 	ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ulCompressionLevel);
 
@@ -64,11 +64,7 @@ public:
 
 	/* Single Instance Attachment handlers (must be overridden by subclasses) */
 	virtual bool ExistAttachmentInstance(ULONG ulInstanceId) = 0;
-
-	virtual ECRESULT Begin() = 0;
-	virtual ECRESULT Commit() = 0;
-	virtual ECRESULT Rollback() = 0;
-
+	virtual kd_trans Begin(ECRESULT &) = 0;
 protected:
 	virtual ~ECAttachmentStorage(void) = default;
 	
@@ -113,10 +109,11 @@ protected:
 	virtual ECRESULT DeleteAttachmentInstances(const std::list<ULONG> &lstDeleteInstances, bool bReplace);
 	virtual ECRESULT DeleteAttachmentInstance(ULONG ulInstanceId, bool bReplace);
 	virtual ECRESULT GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize, bool *lpbCompressed = NULL);
+	virtual kd_trans Begin(ECRESULT &) override;
 
-	virtual ECRESULT Begin();
-	virtual ECRESULT Commit();
-	virtual ECRESULT Rollback();
+	private:
+	virtual ECRESULT Commit() override;
+	virtual ECRESULT Rollback() override;
 };
 
 class ECFileAttachment _kc_final :
@@ -136,12 +133,11 @@ protected:
 	_kc_hidden virtual ECRESULT DeleteAttachmentInstances(const std::list<ULONG> &instances, bool replace);
 	_kc_hidden virtual ECRESULT DeleteAttachmentInstance(ULONG instance, bool replace);
 	_kc_hidden virtual ECRESULT GetSizeInstance(ULONG instance, size_t *size, bool *compr = nullptr);
-	_kc_hidden virtual ECRESULT Begin(void);
-	_kc_hidden virtual ECRESULT Commit(void);
-	_kc_hidden virtual ECRESULT Rollback(void);
-
+	_kc_hidden virtual kd_trans Begin(ECRESULT &) override;
 private:
 	_kc_hidden std::string CreateAttachmentFilename(ULONG instance, bool compressed);
+	virtual ECRESULT Commit() override;
+	virtual ECRESULT Rollback() override;
 
 	size_t attachment_size_safety_limit;
 	int m_dirFd = -1;

@@ -15,6 +15,7 @@
  */
 #include "config.h"
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <cassert>
@@ -524,4 +525,62 @@ ECRESULT KDatabase::I_Update(const std::string &q, unsigned int *aff)
 	if (aff != nullptr)
 		*aff = GetAffectedRows();
 	return erSuccess;
+}
+
+class kd_noop_trans final : public kt_completion {
+	public:
+	ECRESULT Commit() override { return 0; }
+	ECRESULT Rollback() override { return 0; }
+	ECRESULT tmp;
+};
+
+static kd_noop_trans kd_noop_trans;
+
+kd_trans::kd_trans() :
+	m_db(&kd_noop_trans), m_result(&kd_noop_trans.tmp), m_done(true)
+{}
+
+kd_trans::kd_trans(kd_trans &&o) :
+	m_db(o.m_db), m_result(o.m_result), m_done(o.m_done)
+{
+	o.m_done = true;
+}
+
+kd_trans::~kd_trans()
+{
+	if (m_done || std::uncaught_exception())
+		/* was not handled earlier either */
+		return;
+	if (*m_result != 0)
+		m_db->Rollback();
+	else
+		*m_result = m_db->Commit();
+}
+
+kd_trans &kd_trans::operator=(kd_trans &&o)
+{
+	kd_trans x(std::move(*this));
+	m_result = o.m_result;
+	m_db     = o.m_db;
+	m_done   = o.m_done;
+	o.m_done = true;
+	return *this;
+}
+
+ECRESULT kd_trans::commit()
+{
+	if (m_done)
+		return 0;
+	auto ret = m_db->Commit();
+	m_done = true;
+	return ret;
+}
+
+ECRESULT kd_trans::rollback()
+{
+	if (m_done)
+		return 0;
+	auto ret = m_db->Rollback();
+	m_done = true;
+	return ret;
 }
