@@ -674,16 +674,6 @@ HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSe
 	return hrSuccess;
 }
 
-/*
- * Read registry key to discover the installation directory for the exchange redirector
- *
- * @param[out] lpConfigPath String containing full config path
- */
-HRESULT ClientUtil::GetConfigPath(std::string *lpConfigPath)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 /* 
 entryid functions
 
