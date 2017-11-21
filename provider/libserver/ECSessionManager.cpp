@@ -103,7 +103,7 @@ ECRESULT ECSessionManager::LoadSettings(){
 	if(er != erSuccess)
 		return er;
 
-	std::string strQuery = "SELECT `value` FROM settings WHERE `name` = 'server_guid'";
+	std::string strQuery = "SELECT `value` FROM settings WHERE `name` = 'server_guid' LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
@@ -115,7 +115,7 @@ ECRESULT ECSessionManager::LoadSettings(){
 
 	m_lpServerGuid.reset(new GUID);
 	memcpy(m_lpServerGuid.get(), lpDBRow[0], sizeof(GUID));
-	strQuery = "SELECT `value` FROM settings WHERE `name` = 'source_key_auto_increment'";
+	strQuery = "SELECT `value` FROM settings WHERE `name` = 'source_key_auto_increment' LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
@@ -1324,7 +1324,7 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 		return er;
 
 	std::string strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid=" + stringify(ulStoreId) +
-				" AND tag=" + stringify(PROP_ID(PR_SORT_LOCALE_ID)) + " AND type=" + stringify(PROP_TYPE(PR_SORT_LOCALE_ID));
+				" AND tag=" + stringify(PROP_ID(PR_SORT_LOCALE_ID)) + " AND type=" + stringify(PROP_TYPE(PR_SORT_LOCALE_ID)) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
