@@ -280,7 +280,7 @@ class Folder(Properties):
 
         :param restriction: apply :class:`restriction <Restriction>`
         :param order: order by (limited set of) attributes, e.g. 'subject',
-            '-subject' (reverse order), or ('subject', 'received').
+            '-subject' (reverse order), or ('subject', '-received').
         :param page_start: skip this many items from the start
         :param page_limit: return up to this many items
         """
