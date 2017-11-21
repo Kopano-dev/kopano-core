@@ -553,7 +553,9 @@ private:
 	ECRESULT I_AddIndexData(const ECsIndexObject &, const ECsIndexProp &);
 
 	ECDatabaseFactory*	m_lpDatabaseFactory;
-	std::recursive_mutex m_hCacheMutex; /* Store, Object, User, ACL, server cache */
+	std::recursive_mutex m_hCacheMutex; /* User, ACL, server cache */
+	std::recursive_mutex m_hCacheStoreMutex;
+	std::recursive_mutex m_hCacheObjectMutex;
 	std::recursive_mutex m_hCacheCellsMutex; /* Cell cache */
 	std::recursive_mutex m_hCacheIndPropMutex; /* Indexed properties cache */
 	
