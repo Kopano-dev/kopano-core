@@ -156,7 +156,7 @@ HRESULT ArchiveStateCollector::Create(const ArchiverSessionPtr &ptrSession, ECLo
  */
 ArchiveStateCollector::ArchiveStateCollector(const ArchiverSessionPtr &ptrSession, ECLogger *lpLogger)
 : m_ptrSession(ptrSession)
-, m_lpLogger(new ECArchiverLogger(lpLogger))
+, m_lpLogger(new ECArchiverLogger(lpLogger), false)
 { }
 
 /**

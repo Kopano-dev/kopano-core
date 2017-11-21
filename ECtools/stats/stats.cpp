@@ -522,7 +522,7 @@ static void print_help(const char *name)
 int main(int argc, char *argv[])
 {
 	HRESULT hr = hrSuccess;
-	object_ptr<ECLogger> lpLogger(new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false));
+	object_ptr<ECLogger> lpLogger(new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false), false);
 	AutoMAPI mapiinit;
 	object_ptr<IMAPISession> lpSession;
 	object_ptr<IMsgStore> lpStore;

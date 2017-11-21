@@ -84,7 +84,7 @@ HRESULT ArchiveControlImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpCo
 ArchiveControlImpl::ArchiveControlImpl(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, bool bForceCleanup)
 : m_ptrSession(ptrSession)
 , m_lpConfig(lpConfig)
-, m_lpLogger(new ECArchiverLogger(lpLogger))
+, m_lpLogger(new ECArchiverLogger(lpLogger), false)
 , m_cleanupAction(caStore)
 , m_bForceCleanup(bForceCleanup), m_propmap(5)
 {
