@@ -62,13 +62,10 @@ class Properties(object):
         """Return all :class:`properties <Property>`."""
         return _prop.props(self.mapiobj, namespace)
 
-    # TODO deprecate in favor of __getitem__
-    def value(self, proptag):
-        """Return :class:`property <Property>` value for given proptag."""
-        return self.prop(proptag).value
+    # mapi objects/properties are basically key-value stores
+    # so the following provides some useful dict-like behaviour
 
-    # TODO deprecate in favor of get
-    def get_value(self, proptag, default=None):
+    def get(self, proptag, default=None):
         """Return :class:`property <Property>` value for given proptag or
         *None* if property does not exist.
 
@@ -79,34 +76,23 @@ class Properties(object):
         except NotFoundError:
             return default
 
-    # TODO deprecate in favor of __setitem__
-    def set_value(self, proptag, value):
-        """Set :class:`property <Property>` value for given proptag,
-        creating the property if it doesn't exist.
-        """
-        self.prop(proptag, create=True).value = value
-
-    def get(self, proptag, default=None):
-        """Return :class:`property <Property>` value for given proptag or
-        *None* if property does not exist.
-
-        :param proptag: MAPI property tag
-        """
-        return self.get_value(proptag, default=default)
-
     def __getitem__(self, proptag):
         """Return :class:`property <Property>` value for given proptag."""
-        return self.get_value(proptag)
+        return self.prop(proptag).value
 
     def __setitem__(self, proptag, value):
         """Set :class:`property <Property>` value for given proptag,
         creating the property if it doesn't exist.
         """
-        return self.set_value(proptag, value)
+        self.prop(proptag, create=True).value = value
 
     def __delitem__(self, proptag):
         """Delete the :class:`property <Property>` with given proptag."""
         self.delete(self.prop(proptag))
+
+    # the following is faster in case of preloaded/cached table data,
+    # because it avoids the backend preloading all item properties with
+    # about 20 SQL statements _per item_ (!)
 
     # TODO generalize for any property?
     def _get_fast(self, proptag, default=None, must_exist=False):

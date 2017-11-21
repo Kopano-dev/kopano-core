@@ -415,7 +415,7 @@ class Folder(Properties):
             proptag = PR_ASSOC_CONTENT_COUNT
         elif self.content_flag == SHOW_SOFT_DELETES:
             proptag = PR_DELETED_MSG_COUNT
-        return folder.get_value(proptag) or 0
+        return folder.get(proptag, 0)
 
     def recount(self):
         self.server.sa.ResetFolderCount(_unhex(self.entryid))
