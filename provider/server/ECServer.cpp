@@ -1016,8 +1016,7 @@ static int running_server(char *szName, const char *szConfig,
 	ec_log_set(g_lpLogger);
 	if (m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())
 		LogConfigErrors(g_lpConfig);
-
-	if (!TmpPath::getInstance() -> OverridePath(g_lpConfig))
+	if (!TmpPath::instance.OverridePath(g_lpConfig))
 		ec_log_err("Ignoring invalid path-setting!");
 
 	g_lpAudit = CreateLogger(g_lpConfig, szName, "KopanoServer", true);

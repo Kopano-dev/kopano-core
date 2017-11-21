@@ -28,10 +28,9 @@ class _kc_export TmpPath _kc_final {
 
 	public:
 		_kc_hidden TmpPath(void);
-		static TmpPath *getInstance();
-
 		bool OverridePath(ECConfig *const ec);
 		_kc_hidden const std::string &getTempPath(void) const { return path; }
+		static _kc_export TmpPath instance;
 };
 
 extern TmpPath *tmpPath;
