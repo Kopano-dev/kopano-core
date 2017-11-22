@@ -202,7 +202,7 @@ class IndexWorker(kopano.Worker):
     """ process which gets folders from input queue and indexes them, putting the nr of changes in output queue """
 
     def main(self):
-        config, server, plugin = self.service.config, self.service.server, self.service.plugin
+        config, server, plugin = self.service.config, self.server, self.service.plugin
         state_db = os.path.join(config['index_path'], server.guid+'_state')
         while True:
             changes = 0
