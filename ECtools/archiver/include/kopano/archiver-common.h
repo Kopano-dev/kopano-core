@@ -169,22 +169,10 @@ public:
 	{
 		return reinterpret_cast<LPVOID>(const_cast<unsigned char *>(&m_vEntryId.front()));
 	}
-	
-	/**
-	 * Copy operator
-	 * @param[in]	other
-	 *					The entryid to copy.
-	 * @return Reference to itself.
-	 */
-	_kc_hidden entryid_t &operator=(const entryid_t &other)
-	{
-		if (&other != this) {
-			entryid_t tmp(other);
-			swap(tmp);
-		}
-		return *this;
-	}
-	
+
+	entryid_t &operator=(const entryid_t &) = default;
+	entryid_t &operator=(entryid_t &&) = default;
+
 	/**
 	 * Swap the content of the current entryid with the content of another entryid
 	 * @param[in,out]	other
@@ -397,21 +385,10 @@ public:
 	{
 		return reinterpret_cast<LPVOID>(const_cast<unsigned char *>(&m_vEntryId.front()));
 	}
-	
-	/**
-	 * Copy operator
-	 * @param[in]	other
-	 *					The entryid to copy.
-	 * @return Reference to itself.
-	 */
-	abentryid_t &operator=(const abentryid_t &other) {
-		if (&other != this) {
-			abentryid_t tmp(other);
-			swap(tmp);
-		}
-		return *this;
-	}
-	
+
+	abentryid_t &operator=(const abentryid_t &) = default;
+	abentryid_t &operator=(abentryid_t &&) = default;
+
 	/**
 	 * Swap the content of the current entryid with the content of another entryid
 	 * @param[in,out]	other

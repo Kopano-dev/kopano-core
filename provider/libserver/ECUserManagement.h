@@ -86,14 +86,8 @@ public:
 		swap(tmp);
 	}
 
-	usercount_t &operator=(const usercount_t &other)
-	{
-		if (&other != this) {
-			usercount_t tmp(other);
-			swap(tmp);
-		}
-		return *this;
-	}
+	usercount_t &operator=(const usercount_t &) = default;
+	usercount_t &operator=(usercount_t &&) = default;
 
 	bool isValid() const {
 		return m_bValid;
