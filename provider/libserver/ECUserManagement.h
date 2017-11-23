@@ -71,9 +71,7 @@ public:
 		m_ulCounts[ucContact]		= ulContact;
 	}
 
-	usercount_t(const usercount_t &other): m_bValid(other.m_bValid) {
-		memcpy(m_ulCounts, other.m_ulCounts, sizeof(m_ulCounts));
-	}
+	usercount_t(const usercount_t &) = default;
 
 	void swap(usercount_t &other) noexcept
 	{

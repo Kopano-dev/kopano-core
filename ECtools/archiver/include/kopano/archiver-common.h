@@ -92,13 +92,7 @@ public:
 	: m_vEntryId(sBin.lpb, sBin.lpb + sBin.cb)
 	{ }
 	
-	/**
-	 * @param[in]	other
-	 *					The entryid to copy.
-	 */
-	_kc_hidden entryid_t(const entryid_t &other)
-	: m_vEntryId(other.m_vEntryId)
-	{ }
+	_kc_hidden entryid_t(const entryid_t &) = default;
 	
 	/**
 	 * Assign a new entryid based on a length and pointer argument.
@@ -328,13 +322,7 @@ public:
 	: m_vEntryId(sBin.lpb, sBin.lpb + sBin.cb)
 	{ }
 	
-	/**
-	 * @param[in]	other
-	 *					The entryid to copy.
-	 */
-	abentryid_t(const abentryid_t &other)
-	: m_vEntryId(other.m_vEntryId)
-	{ }
+	abentryid_t(const abentryid_t &) = default;
 	
 	/**
 	 * Assign a new entryid based on a length and pointer argument.
