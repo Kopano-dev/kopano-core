@@ -93,6 +93,7 @@ public:
 	{ }
 	
 	_kc_hidden entryid_t(const entryid_t &) = default;
+	_kc_hidden entryid_t(entryid_t &&) = default;
 	
 	/**
 	 * Assign a new entryid based on a length and pointer argument.
@@ -323,6 +324,7 @@ public:
 	{ }
 	
 	abentryid_t(const abentryid_t &) = default;
+	abentryid_t(abentryid_t &&) = default;
 	
 	/**
 	 * Assign a new entryid based on a length and pointer argument.

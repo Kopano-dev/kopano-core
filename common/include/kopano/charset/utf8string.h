@@ -52,6 +52,7 @@ public:
 
 	utf8string(void) = default;
 	utf8string(const utf8string &) = default;
+	utf8string(utf8string &&) = default;
 	utf8string(size_t n, char c): m_bNull(false), m_str(n, c) {}
 	
 	utf8string &operator=(const utf8string &other) {

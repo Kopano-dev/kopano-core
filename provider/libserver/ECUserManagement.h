@@ -72,6 +72,7 @@ public:
 	}
 
 	usercount_t(const usercount_t &) = default;
+	usercount_t(usercount_t &&) = default;
 
 	void swap(usercount_t &other) noexcept
 	{
