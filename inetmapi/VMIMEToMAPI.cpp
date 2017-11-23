@@ -1125,7 +1125,7 @@ HRESULT VMIMEToMAPI::handleRecipients(vmime::shared_ptr<vmime::header> vmHeader,
 			return hr;
 
 		// actually modify recipients in mapi object
-		hr = lpMessage->ModifyRecipients(MODRECIP_ADD, lpRecipients);	
+		hr = lpMessage->ModifyRecipients(0, lpRecipients);
 		if (hr != hrSuccess)
 			return hr;
 	}
