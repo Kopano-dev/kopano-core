@@ -47,6 +47,7 @@ from MAPI.Time import unixtime
 
 from .properties import Properties
 from .permission import Permission
+from .restriction import Restriction
 from .rule import Rule
 from .table import Table
 from .property_ import Property
@@ -475,7 +476,7 @@ class Folder(Properties):
 
         self.copy(objects, folder, _delete=True)
 
-    def folder(self, path=None, entryid=None, recurse=False, create=False): # XXX kill (slow) recursive search
+    def folder(self, path=None, entryid=None, recurse=False, create=False):
         """ Return :class:`Folder` with given path or entryid
 
             :param key: name, path or entryid
@@ -504,11 +505,14 @@ class Folder(Properties):
             except MAPIErrorCollision:
                 pass
 
-        matches = [f for f in self.folders(recurse=recurse) if f.name.lower() == path.lower()]
-        if matches:
-            return matches[0]
+        name = path.replace('\\/', '/')
+        restriction = Restriction(SPropertyRestriction(RELOP_EQ, PR_DISPLAY_NAME_W, SPropValue(PR_DISPLAY_NAME_W, _unicode(name))))
 
-        raise NotFoundError("no such folder: '%s'" % path)
+        folders = list(self.folders(recurse=recurse, restriction=restriction))
+        if len(folders) == 0:
+            raise NotFoundError("no such folder: '%s'" % path)
+
+        return folders[0]
 
     def get_folder(self, path=None, entryid=None):
         """ Return :class:`folder <Folder>` with given name/entryid or *None* if not found """
@@ -518,7 +522,7 @@ class Folder(Properties):
         except NotFoundError:
             pass
 
-    def folders(self, recurse=True):
+    def folders(self, recurse=True, restriction=None):
         """ Return all :class:`sub-folders <Folder>` in folder
 
         :param recurse: include all sub-folders
@@ -542,7 +546,8 @@ class Folder(Properties):
                 self.server,
                 mapitable,
                 PR_CONTAINER_HIERARCHY,
-                columns=columns
+                columns=columns,
+                restriction=restriction
             )
         except MAPIErrorNoSupport: # XXX webapp search folder?
             return
