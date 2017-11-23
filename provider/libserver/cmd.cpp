@@ -1796,7 +1796,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	std::set<unsigned int>	setInserted;
 
 	GUID sGuidServer;
-	std::list<ULONG> lstObjIds;
 	ULONG ulInstanceId = 0;
 	ULONG ulInstanceTag = 0;
 	bool bAttachmentStored = false;
@@ -1898,12 +1897,13 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		 * or not having access to it.
 		 */
 		if (lpecSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN) {
+			std::list<ext_siid> lstObjIds;
 			er = lpAttachmentStorage->GetSingleInstanceParents(ulInstanceId, &lstObjIds);
 			if (er != erSuccess)
 				return er;
 			er = KCERR_UNKNOWN_INSTANCE_ID;
-			for (const auto i : lstObjIds)
-				if (lpecSession->GetSecurity()->CheckPermission(i, ecSecurityRead) == erSuccess) {
+			for (const auto &i : lstObjIds)
+				if (lpecSession->GetSecurity()->CheckPermission(i.siid, ecSecurityRead) == erSuccess) {
 						er = erSuccess;
 						break;
 				}
@@ -2952,7 +2952,6 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 {
 	ECRESULT 		er = erSuccess;
 	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
-	ULONG			ulInstanceId = 0;
 	ULONG			ulInstanceTag = 0;
 	struct saveObject sSavedObject;
 	GUID			sGuidServer;
@@ -3049,12 +3048,12 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 			ulInstanceTag = PROP_ID(PR_EC_IMAP_EMAIL);
 		else
 			ulInstanceTag = PROP_ID(PR_ATTACH_DATA_BIN);
+		ext_siid ulInstanceId;
 		if (lpAttachmentStorage->GetSingleInstanceId(ulObjId, ulInstanceTag, &ulInstanceId) == erSuccess) {
 			sSavedObject.lpInstanceIds = s_alloc<entryList>(soap);
 			sSavedObject.lpInstanceIds->__size = 1;
 			sSavedObject.lpInstanceIds->__ptr = s_alloc<entryId>(soap, sSavedObject.lpInstanceIds->__size);
-
-			er = SIIDToEntryID(soap, &sGuidServer, ulInstanceId, ulInstanceTag, &sSavedObject.lpInstanceIds->__ptr[0]);
+			er = SIIDToEntryID(soap, &sGuidServer, ulInstanceId.siid, ulInstanceTag, &sSavedObject.lpInstanceIds->__ptr[0]);
 			if (er != erSuccess) {
 				sSavedObject.lpInstanceIds->__size = 0;
 				goto exit;

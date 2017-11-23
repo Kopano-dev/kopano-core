@@ -29,14 +29,14 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	virtual ~ECS3Attachment(void);
 
 	/* Single Instance Attachment handlers */
-	virtual bool ExistAttachmentInstance(ULONG);
-	virtual ECRESULT LoadAttachmentInstance(struct soap *, ULONG, size_t *, unsigned char **);
-	virtual ECRESULT LoadAttachmentInstance(ULONG, size_t *, ECSerializer *);
-	virtual ECRESULT SaveAttachmentInstance(ULONG, ULONG, size_t, unsigned char *);
-	virtual ECRESULT SaveAttachmentInstance(ULONG, ULONG, size_t, ECSerializer *);
-	virtual ECRESULT DeleteAttachmentInstances(const std::list<ULONG> &, bool);
-	virtual ECRESULT DeleteAttachmentInstance(ULONG, bool);
-	virtual ECRESULT GetSizeInstance(ULONG, size_t *, bool * = NULL);
+	virtual bool ExistAttachmentInstance(const ext_siid &) override;
+	virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;
+	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *, ECSerializer *) override;
+	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG, size_t, unsigned char *) override;
+	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG, size_t, ECSerializer *) override;
+	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) override;
+	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
+	virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *, bool * = nullptr) override;
 	virtual kd_trans Begin(ECRESULT &) override;
 
 	private:
@@ -49,19 +49,17 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	void response_complete(S3Status, const S3ErrorDetails *, void *);
 	S3Status get_obj(int, const char *, void *);
 	int put_obj(int, char *, void *);
-
-	std::string make_att_filename(ULONG, bool);
+	std::string make_att_filename(const ext_siid &, bool);
 	bool should_retry(struct s3_cd &);
 	struct s3_cd create_cd(void);
-	ECRESULT del_marked_att(ULONG);
+	ECRESULT del_marked_att(const ext_siid &);
 	virtual ECRESULT Commit() override;
 	virtual ECRESULT Rollback() override;
 
 	/* Variables: */
 	std::string m_basepath;
 	S3BucketContext m_bucket_ctx;
-	std::set<ULONG> m_new_att;
-	std::set<ULONG> m_marked_att;
+	std::set<ext_siid> m_new_att, m_marked_att;
 	bool m_transact = false;
 
 	/*

@@ -919,13 +919,8 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 		ec_log_warn("Manually forced the database upgrade because the option \"--force-database-upgrade\" was given.");
 
 	// Loop throught the update list
-	for (size_t i = ulDatabaseRevisionMin;
-	     i < ARRAY_SIZE(sUpdateList); ++i)
-	{
-		if ((ulDatabaseRevisionMin > 0 && IsUpdateDone(sUpdateList[i].ulVersion) == hrSuccess) ||
-		    (sUpdateList[i].ulVersionMin != 0 && stored_ver.v_schema >= sUpdateList[i].ulVersion &&
-		    stored_ver.v_schema >= sUpdateList[i].ulVersionMin) ||
-		    (sUpdateList[i].ulVersionMin != 0 && IsUpdateDone(sUpdateList[i].ulVersionMin, PROJECT_VERSION_REVISION) == hrSuccess))
+	for (size_t i = 0; i < ARRAY_SIZE(sUpdateList); ++i) {
+		if (stored_ver.v_schema >= sUpdateList[i].ulVersion)
 			// Update already done, next
 			continue;
 

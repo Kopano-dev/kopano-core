@@ -428,7 +428,7 @@ int ECS3Attachment::put_obj(int bufferSize, char *buffer, void *cbdata)
  *
  * @return instance present
  */
-bool ECS3Attachment::ExistAttachmentInstance(ULONG ins_id)
+bool ECS3Attachment::ExistAttachmentInstance(const ext_siid &ins_id)
 {
 	size_t ignored;
 	return GetSizeInstance(ins_id, &ignored, nullptr) == hrSuccess;
@@ -449,7 +449,7 @@ bool ECS3Attachment::ExistAttachmentInstance(ULONG ins_id)
  * @return Kopano error code
  */
 ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
-    ULONG ins_id, size_t *size_p, unsigned char **data_p)
+    const ext_siid &ins_id, size_t *size_p, unsigned char **data_p)
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
 	struct s3_cd cd;
@@ -459,7 +459,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	std::string filename = make_att_filename(ins_id, false);
+	auto filename = make_att_filename(ins_id, false);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: loading %s into buffer", fn);
 	/*
@@ -514,7 +514,8 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
  * @return erSuccess if we were able to load the instance, or the error code
  * if we could not.
  */
-ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, ECSerializer *sink)
+ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
+    size_t *size_p, ECSerializer *sink)
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
 	struct s3_cd cd;
@@ -523,7 +524,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, EC
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	std::string filename = make_att_filename(ins_id, false);
+	auto filename = make_att_filename(ins_id, false);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: loading %s into serializer", fn);
 	/*
@@ -550,7 +551,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, EC
 		ret = erSuccess;
 	} else {
 		scoped_lock locker(m_cachelock);
-		m_cache[ins_id] = {now_positive(), cd.size};
+		m_cache[ins_id.siid] = {now_positive(), cd.size};
 		*size_p = cd.size;
 	}
 	/*
@@ -571,8 +572,8 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, EC
  *
  * @return Kopano error code
  */
-ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
-    size_t size, unsigned char *data)
+ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
+    ULONG propid, size_t size, unsigned char *data)
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
 	bool comp = false;
@@ -583,7 +584,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	std::string filename = make_att_filename(ins_id, comp && size != 0);
+	auto filename = make_att_filename(ins_id, comp && size != 0);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: saving %s (buffer of %zu bytes)", fn, size);
 	/*
@@ -610,7 +611,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 		ret = KCERR_DATABASE_ERROR;
 	} else if (cd.status == S3StatusOK) {
 		scoped_lock locker(m_cachelock);
-		m_cache[ins_id] = {now_positive(), cd.size};
+		m_cache[ins_id.siid] = {now_positive(), cd.size};
 		ret = erSuccess;
 	}
 	cd.data = NULL;
@@ -627,8 +628,8 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
  *
  * @return Kopano error code
  */
-ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
-    size_t size, ECSerializer *source)
+ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
+    ULONG propid, size_t size, ECSerializer *source)
 {
 	ECRESULT ret = KCERR_NOT_FOUND;
 	bool comp = false;
@@ -639,7 +640,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	std::string filename = make_att_filename(ins_id, comp && size != 0);
+	auto filename = make_att_filename(ins_id, comp && size != 0);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: saving %s (serializer with %zu bytes)", fn, size);
 	/*
@@ -667,7 +668,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 		ret = KCERR_DATABASE_ERROR;
 	} else if (cd.status == S3StatusOK) {
 		scoped_lock locker(m_cachelock);
-		m_cache[ins_id] = {now_positive(), cd.size};
+		m_cache[ins_id.siid] = {now_positive(), cd.size};
 		ret = erSuccess;
 	}
 	cd.sink = NULL;
@@ -682,11 +683,11 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
  *
  * @return Kopano error code
  */
-ECRESULT ECS3Attachment::DeleteAttachmentInstances(const std::list<ULONG> &lstDeleteInstances, bool bReplace)
+ECRESULT ECS3Attachment::DeleteAttachmentInstances(const std::list<ext_siid> &lstDeleteInstances, bool bReplace)
 {
 	ECRESULT ret = erSuccess;
 	int errors = 0;
-	for (auto del_id : lstDeleteInstances) {
+	for (const auto &del_id : lstDeleteInstances) {
 		ret = this->DeleteAttachmentInstance(del_id, bReplace);
 		if (ret != erSuccess)
 			++errors;
@@ -701,14 +702,14 @@ ECRESULT ECS3Attachment::DeleteAttachmentInstances(const std::list<ULONG> &lstDe
  *
  * @return Kopano error code
  */
-ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
+ECRESULT ECS3Attachment::del_marked_att(const ext_siid &ins_id)
 {
 	struct s3_cd cd;
 	struct s3_cdw cwdata;
 	cwdata.caller = this;
 	cwdata.cbdata = &cd;
 
-	std::string filename = make_att_filename(ins_id, false);
+	auto filename = make_att_filename(ins_id, false);
 	auto fn = filename.c_str();
 	ec_log_debug("S3: delete marked attachment: %s", fn);
 	/*
@@ -728,7 +729,7 @@ ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
 	if (cd.status == S3StatusOK || cd.status == S3StatusHttpErrorNotFound) {
 		/* Delete successful, or did not exist before */
 		scoped_lock locker(m_cachelock);
-		m_cache[ins_id] = {now_negative(), S3_NEGATIVE_ENTRY};
+		m_cache[ins_id.siid] = {now_negative(), S3_NEGATIVE_ENTRY};
 	}
 	/* else { do not touch cache for network errors, etc. } */
 
@@ -743,14 +744,13 @@ ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
  *
  * @return
  */
-ECRESULT ECS3Attachment::DeleteAttachmentInstance(ULONG ins_id,
+ECRESULT ECS3Attachment::DeleteAttachmentInstance(const ext_siid &ins_id,
     bool bReplace)
 {
-	std::string filename = make_att_filename(ins_id, m_bFileCompression);
-
+	auto filename = make_att_filename(ins_id, m_bFileCompression);
 	if (!m_transact)
 		return del_marked_att(ins_id);
-	ec_log_debug("S3: set delete mark for %u", ins_id);
+	ec_log_debug("S3: set delete mark for %u", ins_id.siid);
 	m_marked_att.emplace(ins_id);
 	return erSuccess;
 }
@@ -763,9 +763,9 @@ ECRESULT ECS3Attachment::DeleteAttachmentInstance(ULONG ins_id,
  *
  * @return Kopano error code
  */
-std::string ECS3Attachment::make_att_filename(ULONG ins_id, bool comp)
+std::string ECS3Attachment::make_att_filename(const ext_siid &esid, bool comp)
 {
-	std::string filename = m_basepath + PATH_SEPARATOR + stringify(ins_id);
+	auto filename = m_basepath + PATH_SEPARATOR + stringify(esid.siid);
 	if (comp)
 		filename += ".gz";
 	return filename;
@@ -794,15 +794,15 @@ bool ECS3Attachment::should_retry(struct s3_cd &cd)
  *
  * @return Kopano error code
  */
-ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
-    bool *compr_p)
+ECRESULT ECS3Attachment::GetSizeInstance(const ext_siid &ins_id,
+    size_t *size_p, bool *compr_p)
 {
 	bool comp = false;
-	std::string filename = make_att_filename(ins_id, comp);
+	auto filename = make_att_filename(ins_id, comp);
 	auto fn = filename.c_str();
 
 	ulock_normal locker(m_cachelock);
-	auto cache_item = m_cache.find(ins_id);
+	auto cache_item = m_cache.find(ins_id.siid);
 	if (cache_item != m_cache.cend() && steady_clock::now() < cache_item->second.valid_until) {
 		if (cache_item->second.size == S3_NEGATIVE_ENTRY)
 			return KCERR_NOT_FOUND;
@@ -836,13 +836,13 @@ ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
 		fn, DY_get_status_name(cd.status), cd.size);
 	if (cd.status == S3StatusHttpErrorNotFound) {
 		locker.lock();
-		m_cache[ins_id] = {now_negative(), S3_NEGATIVE_ENTRY};
+		m_cache[ins_id.siid] = {now_negative(), S3_NEGATIVE_ENTRY};
 		return KCERR_NOT_FOUND;
 	}
 	if (cd.status != S3StatusOK)
 		return KCERR_NOT_FOUND;
 	locker.lock();
-	m_cache[ins_id] = {now_positive(), cd.size};
+	m_cache[ins_id.siid] = {now_positive(), cd.size};
 	*size_p = cd.size;
 	if (compr_p != NULL)
 		*compr_p = comp;
@@ -876,7 +876,7 @@ ECRESULT ECS3Attachment::Commit(void)
 	/* Disable the transaction */
 	m_transact = false;
 	/* Delete marked attachments */
-	for (auto att_id : m_marked_att)
+	for (const auto &att_id : m_marked_att)
 		if (del_marked_att(att_id) != erSuccess)
 			error = true;
 
@@ -898,12 +898,12 @@ ECRESULT ECS3Attachment::Rollback(void)
 	/* Disable the transaction */
 	m_transact = false;
 	/* Remove the created attachments */
-	for (auto att_id : m_new_att)
+	for (const auto &att_id : m_new_att)
 		if (DeleteAttachmentInstance(att_id, false) != erSuccess)
 			error = true;
 	/* Restore marked attachment */
-	for (auto att_id : m_marked_att) {
-		ec_log_debug("S3: removed delete mark for %u", att_id);
+	for (const auto &att_id : m_marked_att) {
+		ec_log_debug("S3: removed delete mark for %u", att_id.siid);
 		m_marked_att.erase(att_id);
 	}
 	m_new_att.clear();
