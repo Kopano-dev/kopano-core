@@ -189,22 +189,6 @@ wchar_t * CopyPyUnicode(wchar_t **lpWide, PyObject *o, void *lpBase)
     return NULL;
 }
 
-int Object_is_list_of(PyObject *object, TypeCheckFunc fnTypeCheck)
-{
-	int rc = 1;
-	if (object == Py_None)
-		return 0;
-	pyobj_ptr iter(PyObject_GetIter(object));
-	if (!iter)
-		return 0;
-
-	do {
-		pyobj_ptr elem(PyIter_Next(iter));
-		rc = fnTypeCheck(elem);
-	} while (rc == 1);
-	return rc;
-}
-
 FILETIME Object_to_FILETIME(PyObject *object)
 {
 	FILETIME ft = {0, 0};
@@ -235,11 +219,6 @@ PyObject *Object_from_FILETIME(FILETIME ft)
 	object = PyObject_CallFunction(PyTypeFiletime, "(O)", filetime.get());
 exit:
 	return object;
-}
-
-int Object_is_FILETIME(PyObject *object)
-{
-	return PyObject_IsInstance(object, PyTypeFiletime);
 }
 
 PyObject *Object_from_SPropValue(const SPropValue *lpProp)
@@ -402,23 +381,6 @@ exit:
 PyObject *List_from_LPSPropValue(const SPropValue *props, ULONG vals)
 {
 	return List_from_SPropValue(props, vals);
-}
-
-PyObject *	  List_from_wchar_t(wchar_t **lpStrings, ULONG cElements)
-{
-	pyobj_ptr list(PyList_New(0));
-	for (unsigned int i = 0; i < cElements; ++i) {
-		pyobj_ptr item(PyUnicode_FromWideChar(lpStrings[i], wcslen(lpStrings[i])));
-		if(PyErr_Occurred())
-			goto exit;
-
-		PyList_Append(list, item);
-	}
-
-exit:
-	if (PyErr_Occurred())
-		list.reset();
-	return list.release();
 }
 
 void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
@@ -761,13 +723,6 @@ SPropValue *List_to_LPSPropValue(PyObject *object, ULONG *pvals,
     ULONG flags, void *base)
 {
 	return List_to_p_SPropValue(object, pvals, flags, base);
-}
-
-PyObject *		List_from_LPTSTRPtr(LPTSTR *lpStrings, ULONG cValues)
-{
-	PyErr_SetString(PyExc_RuntimeError, "LPSSTRPtr unsupported");
-
-	return NULL;
 }
 
 SPropTagArray *List_to_p_SPropTagArray(PyObject *object, ULONG /*ulFlags*/)
@@ -3075,34 +3030,4 @@ PyObject *Object_from_STATSTG(STATSTG *lpStatStg)
 	}
 
 	return result;
-}
-
-PyObject *Object_from_SYSTEMTIME(const SYSTEMTIME &time)
-{
-	return PyObject_CallFunction(PyTypeSYSTEMTIME, "(iiiiiiii)",
-	       time.wYear, time.wMonth, time.wDayOfWeek, time.wDay,
-	       time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
-}
-
-SYSTEMTIME Object_to_SYSTEMTIME(PyObject *object)
-{
-	static conv_out_info<SYSTEMTIME> conv_info[] = {
-		{conv_out_default<SYSTEMTIME, WORD, &SYSTEMTIME::wYear>, "wYear"},
-		{conv_out_default<SYSTEMTIME, WORD, &SYSTEMTIME::wMonth>, "wMonth"},
-		{conv_out_default<SYSTEMTIME, WORD, &SYSTEMTIME::wDayOfWeek>, "wDayOfWeek"},
-		{conv_out_default<SYSTEMTIME, WORD, &SYSTEMTIME::wDay>, "wDay"},
-		{conv_out_default<SYSTEMTIME, WORD, &SYSTEMTIME::wHour>, "wHour"},
-		{conv_out_default<SYSTEMTIME, WORD, &SYSTEMTIME::wMinute>, "wMinute"},
-		{conv_out_default<SYSTEMTIME, WORD, &SYSTEMTIME::wSecond>, "wSecond"},
-		{conv_out_default<SYSTEMTIME, WORD, &SYSTEMTIME::wMilliseconds>, "wMilliseconds"},
-	};
-
-	HRESULT hr = hrSuccess;
-	SYSTEMTIME st = {0};
-
-	if (object == Py_None)
-		return st;
-
-	process_conv_out_array(&st, object, conv_info, NULL, 0);
-	return st;
 }

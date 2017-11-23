@@ -91,12 +91,6 @@
   %append_output(Object_from_FILETIME(*$1));
 }
 
-%typecheck(9999) FILETIME
-{
-  $1 = Object_is_FILETIME($input);
-}
-
-
 // ULONG+LP
 
 // Input
@@ -360,12 +354,6 @@
 }
 
 // MAPIARRAY (List of objects)
-
-// Check
-%typecheck(9999)	(ULONG, MAPIARRAY)
-{
-	$1 = Object_is_list_of($input, &Object_is$2_mangle);
-}
 
 // Output
 %typemap(in,numinputs=0)	(ULONG *,MAPIARRAY *) (ULONG c, KCHL::memory_ptr< std::remove_pointer< std::remove_pointer< $2_type >::type >::type > tmp)
