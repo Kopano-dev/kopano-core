@@ -27,6 +27,7 @@
 #include <cmath>
 #include <algorithm>
 #include "freebusy.h"
+#include "icalcompat.hpp"
 
 static bool operator ==(const SPropValue &spv, ULONG ulPropTag)
 {
@@ -821,8 +822,7 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(TIMEZONE_STRUCT sTimeZone, bool b
 			else
 				ittExDate = icaltime_from_timet_with_zone(LocalToUTC(*iException, sTimeZone), 0, nullptr);
 
-			ittExDate.is_utc = 1;
-
+			kc_ical_utc(ittExDate, true);
 			icalcomponent_add_property(lpicEvent, icalproperty_new_exdate(ittExDate));
 		}
 	}
@@ -941,7 +941,7 @@ HRESULT ICalRecurrence::HrCreateICalRecurrenceType(TIMEZONE_STRUCT sTimeZone, bo
 		icRec.count = 0;
 		// if untiltime is saved as UTC it breaks last occurrence.
 		icRec.until = icaltime_from_timet_with_zone(lpRecurrence->getEndDate() + lpRecurrence->getStartTimeOffset(), bIsAllday, nullptr);
-		icRec.until.is_utc = 0;
+		kc_ical_utc(icRec.until, false);
 		break;
 	case recurrence::NUMBER:
 		icRec.count = lpRecurrence->getCount();

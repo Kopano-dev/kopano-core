@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
+#include "icalcompat.hpp"
 
 using namespace std;
 
@@ -153,7 +154,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 	iterComp = icalcomponent_get_first_component(lpVTZ, kind);
 	while (iterComp != NULL) {
 		icTime = icalcomponent_get_dtstart(iterComp);
-		icTime.is_utc = 1;
+		kc_ical_utc(icTime, true);
 		struct tm start = UTC_ICalTime2UnixTime(icTime);
 		if (time(NULL) < mktime(&start))
 			break;
@@ -178,8 +179,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 	}
 
 	icTime = icalcomponent_get_dtstart(icComp);
-	icTime.is_utc = 1;
-
+	kc_ical_utc(icTime, true);
 	if (kind == ICAL_XSTANDARD_COMPONENT) {
 		// this is set when we request the STD timezone part.
 		lpsTimeZone->lBias    = -(icalproperty_get_tzoffsetto(tzTo) / 60); // STD time is set as bias for timezone

@@ -32,6 +32,7 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/namedprops.h>
 #include <kopano/base64.h>
+#include "icalcompat.hpp"
 
 using namespace std;
 
@@ -2112,8 +2113,7 @@ HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProp
 	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, PR_CREATION_TIME);
 	if (lpPropVal) {
 		ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0, nullptr);
-		ittICalTime.is_utc = 1;
-
+		kc_ical_utc(ittICalTime, true);
 		lpProp = icalproperty_new_created(ittICalTime);
 		icalcomponent_add_property(lpEvent, lpProp);
 	}
@@ -2133,8 +2133,7 @@ HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProp
 	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, PR_LAST_MODIFICATION_TIME);
 	if (lpPropVal) {
 		ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0, nullptr);
-		ittICalTime.is_utc = 1;
-
+		kc_ical_utc(ittICalTime, true);
 		lpProp = icalproperty_new_lastmodified(ittICalTime);
 		icalcomponent_add_property(lpEvent,lpProp);
 
