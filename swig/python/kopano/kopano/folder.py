@@ -39,7 +39,7 @@ from MAPI.Defs import (
 )
 from MAPI.Struct import (
     MAPIErrorNoAccess, MAPIErrorNotFound, MAPIErrorNoSupport,
-    MAPIErrorInvalidEntryid, SPropValue,
+    MAPIErrorInvalidEntryid, MAPIErrorCollision, SPropValue,
     MAPINAMEID, SOrRestriction, SAndRestriction, SPropertyRestriction,
     SContentRestriction, ROWENTRY
 )
@@ -496,16 +496,19 @@ class Folder(Properties):
         if self == self.store.subtree and path in ENGLISH_FOLDER_MAP: # XXX depth==0?
             path = getattr(self.store, ENGLISH_FOLDER_MAP[path]).name
 
+        if create:
+            name = path.replace('\\/', '/')
+            try:
+                mapifolder = self.mapiobj.CreateFolder(FOLDER_GENERIC, _unicode(name), u'', None, MAPI_UNICODE)
+                return Folder(self.store, _hex(HrGetOneProp(mapifolder, PR_ENTRYID).Value))
+            except MAPIErrorCollision:
+                pass
+
         matches = [f for f in self.folders(recurse=recurse) if f.name.lower() == path.lower()]
         if matches:
             return matches[0]
-        else:
-            if create:
-                name = path.replace('\\/', '/')
-                mapifolder = self.mapiobj.CreateFolder(FOLDER_GENERIC, _unicode(name), u'', None, MAPI_UNICODE)
-                return Folder(self.store, _hex(HrGetOneProp(mapifolder, PR_ENTRYID).Value))
-            else:
-                raise NotFoundError("no such folder: '%s'" % path)
+
+        raise NotFoundError("no such folder: '%s'" % path)
 
     def get_folder(self, path=None, entryid=None):
         """ Return :class:`folder <Folder>` with given name/entryid or *None* if not found """
