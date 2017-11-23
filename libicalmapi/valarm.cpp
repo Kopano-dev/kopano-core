@@ -30,6 +30,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
+#include "icalcompat.hpp"
 
 namespace KC {
 
@@ -57,7 +58,7 @@ HRESULT HrParseReminder(LONG lRemindBefore, time_t ttReminderTime, bool bTask, i
 
 	if (ttReminderTime && bTask) {
 		sittTrigger.time = icaltime_from_timet_with_zone(ttReminderTime, false, nullptr);			// given in UTC
-		sittTrigger.time.is_utc = 1;
+		kc_ical_utc(sittTrigger.time, true);
 	} else
 		sittTrigger.duration = icaldurationtype_from_int(-1 * lRemindBefore * 60);	// set seconds
 
