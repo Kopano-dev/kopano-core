@@ -87,15 +87,12 @@ public:
 		swap(tmp);
 	}
 
-	void assign(const usercount_t &other) {
+	usercount_t &operator=(const usercount_t &other)
+	{
 		if (&other != this) {
 			usercount_t tmp(other);
 			swap(tmp);
 		}
-	}
-
-	usercount_t& operator=(const usercount_t &other) {
-		assign(other);
 		return *this;
 	}
 

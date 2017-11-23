@@ -4167,8 +4167,7 @@ ECRESULT ECUserManagement::GetCachedUserCount(usercount_t *lpUserCount)
 		return GetUserCount(lpUserCount);
 
 	if (lpUserCount)
-		lpUserCount->assign(m_userCount);
-
+		*lpUserCount = m_userCount;
 	return erSuccess;
 }
 
