@@ -174,16 +174,6 @@ public:
 	entryid_t &operator=(entryid_t &&) = default;
 
 	/**
-	 * Swap the content of the current entryid with the content of another entryid
-	 * @param[in,out]	other
-	 *						The other entryid to swap content with.
-	 */
-	_kc_hidden void swap(entryid_t &other) noexcept
-	{
-		std::swap(m_vEntryId, other.m_vEntryId);
-	}
-	
-	/**
 	 * Compare the content of the current entryid with the content of another entryid.
 	 * @param[in]	other
 	 *					The other entryid to compare content with.
@@ -389,16 +379,6 @@ public:
 	abentryid_t &operator=(const abentryid_t &) = default;
 	abentryid_t &operator=(abentryid_t &&) = default;
 
-	/**
-	 * Swap the content of the current entryid with the content of another entryid
-	 * @param[in,out]	other
-	 *						The other entryid to swap content with.
-	 */
-	void swap(abentryid_t &other) noexcept
-	{
-		std::swap(m_vEntryId, other.m_vEntryId);
-	}
-	
 	/**
 	 * Compare the content of the current entryid with the content of another entryid.
 	 * @param[in]	other

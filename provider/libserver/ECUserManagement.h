@@ -74,16 +74,8 @@ public:
 	usercount_t(const usercount_t &) = default;
 	usercount_t(usercount_t &&) = default;
 
-	void swap(usercount_t &other) noexcept
-	{
-		std::swap(m_bValid, other.m_bValid);
-		for (unsigned i = 0; i < ucMAX; ++i)
-			std::swap(m_ulCounts[i], other.m_ulCounts[i]);
-	}
-
 	void assign(unsigned int ulActiveUser, unsigned int ulNonActiveUser, unsigned int ulRoom, unsigned int ulEquipment, unsigned int ulContact) {
-		usercount_t tmp(ulActiveUser, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
-		swap(tmp);
+		*this = usercount_t(ulActiveUser, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
 	}
 
 	usercount_t &operator=(const usercount_t &) = default;
