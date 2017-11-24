@@ -578,7 +578,7 @@ class Item(Properties, Contact, Appointment):
         _, data = mic.Finalize(0)
         return data
 
-    def send(self):
+    def send(self, copy_to_sentmail=True):
         item = self
         if self.message_class == 'IPM.Appointment':
             # XXX: check if start/end is set
@@ -613,7 +613,9 @@ class Item(Properties, Contact, Appointment):
             item.create_prop('meeting:35', goid, PT_BINARY)
 
         props = []
-        props.append(SPropValue(PR_SENTMAIL_ENTRYID, _unhex(item.folder.store.sentmail.entryid)))
+
+        if copy_to_sentmail:
+            props.append(SPropValue(PR_SENTMAIL_ENTRYID, _unhex(item.folder.store.sentmail.entryid)))
         props.append(SPropValue(PR_DELETE_AFTER_SUBMIT, True))
         item.mapiobj.SetProps(props)
         item.mapiobj.SubmitMessage(0)
