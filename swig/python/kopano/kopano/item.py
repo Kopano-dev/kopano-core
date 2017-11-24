@@ -578,39 +578,43 @@ class Item(Properties, Contact, Appointment):
         _, data = mic.Finalize(0)
         return data
 
+    def _send_meeting_request(self):
+        # XXX: check if start/end is set
+        # XXX: Check if we can copy the calendar item.
+        # XXX: Update the calendar item, for tracking status
+        # XXX: Set the body of the message like WebApp / OL does.
+        item = self.store.outbox.create_item(subject=self.subject, to=self.to, start=self.start, end=self.end, html=self.html)
+        # Set meeting request props
+        item.message_class = 'IPM.Schedule.Meeting.Request'
+        item.create_prop(PR_START_DATE, self.start)
+        item.create_prop(PR_END_DATE, self.end)
+        item.create_prop(PR_RESPONSE_REQUESTED, True)
+        item.private = False
+        item.reminder = False
+        item.create_prop('appointment:33321', True, PT_BOOLEAN) # PidLidFInvited
+        item.create_prop('appointment:33320', self.start, PT_SYSTIME) # basedate????!
+        item.create_prop('appointment:33316', False, PT_BOOLEAN) # intendedbusystatus???
+        item.create_prop('appointment:33315', False, PT_BOOLEAN) # XXX item.recurring
+        item.create_prop('appointment:33303', 3, PT_LONG) # XXX meetingtype?!
+        item.create_prop('appointment:33301', False, PT_BOOLEAN) # XXX item.alldayevent?!
+        duration = int((self.end - self.start).total_seconds() / 60) # XXX: total time in minutes
+        item.create_prop('appointment:33293', self.start, PT_SYSTIME) # XXX start
+        item.create_prop('appointment:33294', self.end, PT_SYSTIME) # XXX end
+        item.create_prop('appointment:33299', duration, PT_LONG) # XXX item.alldayevent?!
+        item.create_prop('appointment:33285', 1, PT_LONG) # XXX busystatus???
+        item.create_prop('appointment:33281', 0, PT_LONG) # XXX updatecounter???
+        item.create_prop('appointment:33280', 0, PT_BOOLEAN) # XXX sendasical
+        item.create_prop(PR_OWNER_APPT_ID, random.randrange(2**32))
+        item.create_prop(PR_ICON_INDEX, 1026) # XXX: meeting request icon index.. const?
+        goid = self._generate_goid()
+        item.create_prop('meeting:3', goid, PT_BINARY)
+        item.create_prop('meeting:35', goid, PT_BINARY)
+        return item
+
     def send(self, copy_to_sentmail=True):
         item = self
         if self.message_class == 'IPM.Appointment':
-            # XXX: check if start/end is set
-            # XXX: Check if we can copy the calendar item.
-            # XXX: Update the calendar item, for tracking status
-            # XXX: Set the body of the message like WebApp / OL does.
-            item = self.store.outbox.create_item(subject=self.subject, to=self.to, start=self.start, end=self.end, html=self.html)
-            # Set meeting request props
-            item.message_class = 'IPM.Schedule.Meeting.Request'
-            item.create_prop(PR_START_DATE, self.start)
-            item.create_prop(PR_END_DATE, self.end)
-            item.create_prop(PR_RESPONSE_REQUESTED, True)
-            item.private = False
-            item.reminder = False
-            item.create_prop('appointment:33321', True, PT_BOOLEAN) # PidLidFInvited
-            item.create_prop('appointment:33320', self.start, PT_SYSTIME) # basedate????!
-            item.create_prop('appointment:33316', False, PT_BOOLEAN) # intendedbusystatus???
-            item.create_prop('appointment:33315', False, PT_BOOLEAN) # XXX item.recurring
-            item.create_prop('appointment:33303', 3, PT_LONG) # XXX meetingtype?!
-            item.create_prop('appointment:33301', False, PT_BOOLEAN) # XXX item.alldayevent?!
-            duration = int((self.end - self.start).total_seconds() / 60) # XXX: total time in minutes
-            item.create_prop('appointment:33293', self.start, PT_SYSTIME) # XXX start
-            item.create_prop('appointment:33294', self.end, PT_SYSTIME) # XXX end
-            item.create_prop('appointment:33299', duration, PT_LONG) # XXX item.alldayevent?!
-            item.create_prop('appointment:33285', 1, PT_LONG) # XXX busystatus???
-            item.create_prop('appointment:33281', 0, PT_LONG) # XXX updatecounter???
-            item.create_prop('appointment:33280', 0, PT_BOOLEAN) # XXX sendasical
-            item.create_prop(PR_OWNER_APPT_ID, random.randrange(2**32))
-            item.create_prop(PR_ICON_INDEX, 1026) # XXX: meeting request icon index.. const?
-            goid = self._generate_goid()
-            item.create_prop('meeting:3', goid, PT_BINARY)
-            item.create_prop('meeting:35', goid, PT_BINARY)
+            item = self._send_meeting_request()
 
         props = []
 
