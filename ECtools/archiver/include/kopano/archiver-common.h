@@ -121,17 +121,6 @@ public:
 	}
 	
 	/**
-	 * Assign a new entryid based on another entryid.
-	 *
-	 * @param[in]	other
-	 *					The entryid to copy.
-	 */
-	_kc_hidden void assign(const entryid_t &other)
-	{
-		m_vEntryId = other.m_vEntryId;
-	}
-	
-	/**
 	 * Returns the size in bytes of the entryid.
 	 * @return The size in bytes of the entryid.
 	 */
@@ -325,16 +314,6 @@ public:
 	 */
 	void assign(const SBinary &sBin) {
 		m_vEntryId.assign(sBin.lpb, sBin.lpb + sBin.cb);
-	}
-	
-	/**
-	 * Assign a new entryid based on another entryid.
-	 *
-	 * @param[in]	other
-	 *					The entryid to copy.
-	 */
-	void assign(const abentryid_t &other) {
-		m_vEntryId = other.m_vEntryId;
 	}
 	
 	/**
