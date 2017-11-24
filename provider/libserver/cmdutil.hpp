@@ -104,6 +104,7 @@ public:
 	bool operator<(const EntryId &s) const noexcept { return m_data < s.m_data; }
     operator const std::string& () const { return m_data; }    
     operator unsigned char *() const { return (unsigned char *)m_data.data(); }
+	operator void *() { return const_cast<char *>(m_data.data()); }
     operator entryId *() { return &m_sEntryId; }
     
     unsigned int 	size() const { return m_data.size(); }
