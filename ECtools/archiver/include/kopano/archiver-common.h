@@ -115,9 +115,10 @@ public:
 	 * @param[in]	sBin
 	 *					The SBinary structure from which the data will be extracted.
 	 */
-	_kc_hidden void assign(const SBinary &sBin)
+	_kc_hidden entryid_t &operator=(const SBinary &sBin)
 	{
 		m_vEntryId.assign(sBin.lpb, sBin.lpb + sBin.cb);
+		return *this;
 	}
 	
 	/**
@@ -312,8 +313,10 @@ public:
 	 * @param[in]	sBin
 	 *					The SBinary structure from which the data will be extracted.
 	 */
-	void assign(const SBinary &sBin) {
+	abentryid_t &operator=(const SBinary &sBin)
+	{
 		m_vEntryId.assign(sBin.lpb, sBin.lpb + sBin.cb);
+		return *this;
 	}
 	
 	/**

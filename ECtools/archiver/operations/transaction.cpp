@@ -136,8 +136,7 @@ HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 	     &iid_of(entry.ptrFolder), MAPI_MODIFY, &ulType, &~entry.ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
-
-	entry.eidMessage.assign(ptrMsgProps[IDX_ENTRYID].Value.bin);
+	entry.eidMessage = ptrMsgProps[IDX_ENTRYID].Value.bin;
 	m_lstDelete.emplace_back(std::move(entry));
 	return hrSuccess;
 }

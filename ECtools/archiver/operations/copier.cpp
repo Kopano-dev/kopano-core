@@ -465,9 +465,8 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 	}
 
 	// Set the reference to the original message
-	refObjectEntry.sStoreEntryId.assign(lpStoreEntryId->Value.bin);
-	refObjectEntry.sItemEntryId.assign(lpEntryId->Value.bin);
-
+	refObjectEntry.sStoreEntryId = lpStoreEntryId->Value.bin;
+	refObjectEntry.sItemEntryId = lpEntryId->Value.bin;
 	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin).c_str());
 	hr = CurrentFolder()->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IECMessageRaw, MAPI_MODIFY|fMapiDeferredErrors, &ulType, &~ptrMessageRaw);
 	if (hr != hrSuccess) {
@@ -670,8 +669,7 @@ HRESULT Copier::DoInitialArchive(LPMESSAGE lpMessage, const SObjectEntry &archiv
 
 	// Update the list of archive messages for this message.
 	objectEntry.sStoreEntryId = archiveRootEntry.sStoreEntryId;
-	objectEntry.sItemEntryId.assign(ptrEntryId->Value.bin);
-
+	objectEntry.sItemEntryId = ptrEntryId->Value.bin;
 	ptrTransaction.reset(new Transaction(objectEntry));
 	hr = ptrTransaction->Save(ptrNewArchive, true, ptrPSAction);
 	if (hr != hrSuccess) {
@@ -707,7 +705,7 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 
 	// Create the transaction, which is needed by CopyToHistory, now.
 	newArchiveEntry.sStoreEntryId = archiveRootEntry.sStoreEntryId;
-	newArchiveEntry.sItemEntryId.assign(ptrEntryId->Value.bin);
+	newArchiveEntry.sItemEntryId = ptrEntryId->Value.bin;
 	ptrTransaction.reset(new Transaction(newArchiveEntry));
 	hr = MoveToHistory(archiveRootEntry, archiveMsgEntry, ptrTransaction, &movedEntry, &~ptrMovedMessage);
 	if (hr != hrSuccess) {
@@ -869,8 +867,7 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 
 	// Create the transaction, which is needed by CopyToHistory, now.
 	objectEntry.sStoreEntryId = archiveRootEntry.sStoreEntryId;
-	objectEntry.sItemEntryId.assign(ptrEntryId->Value.bin);
-
+	objectEntry.sItemEntryId = ptrEntryId->Value.bin;
 	ptrTransaction.reset(new Transaction(objectEntry));
 	hr = ptrTransaction->Save(ptrArchiveCopy, true);
 	if (hr == hrSuccess)
@@ -977,7 +974,7 @@ HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot, const SObje
 			return hr;
 	}
 	lpNewEntry->sStoreEntryId = sourceMsgEntry.sStoreEntryId;
-	lpNewEntry->sItemEntryId.assign(ptrEntryID->Value.bin);
+	lpNewEntry->sItemEntryId = ptrEntryID->Value.bin;
 	return hrSuccess;
 }
 
