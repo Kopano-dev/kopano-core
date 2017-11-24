@@ -224,3 +224,26 @@ public:
 	}
 };
 
+/* kc_session_save/kc_session_restore */
+%typemap(in,numinputs=0) (std::string &serout) (std::string temp) {
+        $1 = &temp;
+}
+
+%typemap(argout,numinputs=0) (std::string &serout) {
+        %append_output(SWIG_FromCharPtrAndSize($1->c_str(), $1->length()));
+}
+
+%typemap(in) (const std::string &a) (std::string temp, char *buf=NULL, Py_ssize_t size)
+{
+    if(PyBytes_AsStringAndSize($input, &buf, &size) == -1)
+        %argument_fail(SWIG_ERROR,"$type",$symname, $argnum);
+
+    temp = std::string(buf, size);
+    $1 = &temp;
+}
+
+%typemap(freearg) (const std::string &a) {
+}
+
+HRESULT kc_session_save(IMAPISession *ses, std::string &serout);
+HRESULT kc_session_restore(const std::string &a, IMAPISession **s);
