@@ -42,7 +42,9 @@ static void mpt_stat_dump(int s = 0)
 	size_t z = mpt_stat_list.size();
 	if (z == 0)
 		return;
-	auto dt = mpt_stat_list.back().stop - mpt_stat_list.front().start;
+	decltype(mpt_stat_list.front().start - mpt_stat_list.front().start) dt;
+	for (const auto &i : mpt_stat_list)
+		dt += i.stop - i.start;
 	if (dt.count() == 0)
 		return;
 	printf("\r\x1b\x5b""2K%.1f per second", z / std::chrono::duration_cast<std::chrono::duration<double>>(dt).count());
