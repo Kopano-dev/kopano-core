@@ -1124,73 +1124,66 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 				goto exit;
 		}
 		
-		if(ulSubObjType == MAPI_ATTACH) {
-			unsigned int ulLen = 0;
-			
-			if (lpAttachmentStorage->ExistAttachment(ulSubObjId, PROP_ID(PR_ATTACH_DATA_BIN))) {
-				unsigned char *data = NULL;
-				size_t temp = 0;
-				er = lpAttachmentStorage->LoadAttachment(NULL, ulSubObjId, PROP_ID(PR_ATTACH_DATA_BIN), &temp, &data);
-				if (er != erSuccess)
-					goto exit;
+		if (ulSubObjType != MAPI_ATTACH)
+			continue;
 
-				ulLen = (unsigned int)temp;
-
-				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
-				if (er != erSuccess) {
-					s_free(NULL, data);
-					goto exit;
-				}
-
-				er = lpSink->Write(data, 1, ulLen);
-				s_free(NULL, data);
-				if (er != erSuccess)
-					goto exit;
-			} else {
-				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
-				if (er != erSuccess)
-					goto exit;
-			}
-
-			// start sub objects, can only be 0 or 1
-			if (bUseSQLMulti) {
-				er = lpStreamDatabase->GetNextResult(&lpDBResultAttachment);
-			} else {
-				strQuery = "SELECT id, hierarchy.type FROM hierarchy WHERE parent = " + stringify(ulSubObjId) + " LIMIT 1";
-				er = lpStreamDatabase->DoSelect(strQuery, &lpDBResultAttachment);
-			}
+		unsigned int ulLen = 0;
+		if (lpAttachmentStorage->ExistAttachment(ulSubObjId, PROP_ID(PR_ATTACH_DATA_BIN))) {
+			unsigned char *data = NULL;
+			size_t temp = 0;
+			er = lpAttachmentStorage->LoadAttachment(NULL, ulSubObjId, PROP_ID(PR_ATTACH_DATA_BIN), &temp, &data);
 			if (er != erSuccess)
 				goto exit;
-			/* Force value to 0 or 1, we cannot output more than one submessage. */
-			ulLen = lpDBResultAttachment.get_num_rows() >= 1 ? 1 : 0;
+			ulLen = (unsigned int)temp;
+			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
+			if (er != erSuccess) {
+				s_free(NULL, data);
+				goto exit;
+			}
+			er = lpSink->Write(data, 1, ulLen);
+			s_free(NULL, data);
+			if (er != erSuccess)
+				goto exit;
+		} else {
 			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er != erSuccess)
 				goto exit;
-												
-			lpDBRow = lpDBResultAttachment.fetch_row();
-			if(lpDBRow != NULL) {
-				if(lpDBRow[0] == NULL) {
-					er = KCERR_DATABASE_ERROR;
-					ec_log_err("SerializeMessage(): column null");
-					goto exit;
-				}
-				
-				ulSubObjType = atoi(lpDBRow[1]);
-				er = lpSink->Write(&ulSubObjType, sizeof(ulSubObjType), 1);
-				if (er != erSuccess)
-					goto exit;
-				ulSubObjId = atoi(lpDBRow[0]);
-				er = lpSink->Write(&ulSubObjId, sizeof(ulSubObjId), 1);
-				if (er != erSuccess)
-					goto exit;
-
-				// Recurse into subobject, depth is ignored when not using sql procedures
-				er = SerializeMessage(lpecSession, lpStreamDatabase, lpAttachmentStorage, lpStreamCaps, ulSubObjId, ulSubObjType, ulStoreId, lpsGuid, ulFlags, lpSink, false);
-				if (er != erSuccess)
-					goto exit;
-			}
 		}
 
+		// start sub objects, can only be 0 or 1
+		if (bUseSQLMulti) {
+			er = lpStreamDatabase->GetNextResult(&lpDBResultAttachment);
+		} else {
+			strQuery = "SELECT id, hierarchy.type FROM hierarchy WHERE parent = " + stringify(ulSubObjId) + " LIMIT 1";
+			er = lpStreamDatabase->DoSelect(strQuery, &lpDBResultAttachment);
+		}
+		if (er != erSuccess)
+			goto exit;
+		/* Force value to 0 or 1, we cannot output more than one submessage. */
+		ulLen = lpDBResultAttachment.get_num_rows() >= 1 ? 1 : 0;
+		er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
+		if (er != erSuccess)
+			goto exit;
+		lpDBRow = lpDBResultAttachment.fetch_row();
+		if (lpDBRow == nullptr)
+			continue;
+		if (lpDBRow[0] == NULL) {
+			er = KCERR_DATABASE_ERROR;
+			ec_log_err("SerializeMessage(): column null");
+			goto exit;
+		}
+		ulSubObjType = atoi(lpDBRow[1]);
+		er = lpSink->Write(&ulSubObjType, sizeof(ulSubObjType), 1);
+		if (er != erSuccess)
+			goto exit;
+		ulSubObjId = atoi(lpDBRow[0]);
+		er = lpSink->Write(&ulSubObjId, sizeof(ulSubObjId), 1);
+		if (er != erSuccess)
+			goto exit;
+		// Recurse into subobject, depth is ignored when not using sql procedures
+		er = SerializeMessage(lpecSession, lpStreamDatabase, lpAttachmentStorage, lpStreamCaps, ulSubObjId, ulSubObjType, ulStoreId, lpsGuid, ulFlags, lpSink, false);
+		if (er != erSuccess)
+			goto exit;
 	}
 
 	if(bTop && bUseSQLMulti)

@@ -46,16 +46,14 @@ ULONG ECUnknown::Release() {
 	ULONG nRef = --this->m_cRef;
 	if (static_cast<int>(nRef) == -1)
 		assert(false);
-	if (nRef == 0) {
-		ulock_normal locker(mutex);
-		bool lastref = lstChildren.empty();
-		locker.unlock();
-		if (lastref)
-			this->Suicide();
-	}
-
+	if (nRef != 0)
+		return nRef;
+	ulock_normal locker(mutex);
+	bool lastref = lstChildren.empty();
+	locker.unlock();
+	if (lastref)
+		this->Suicide();
 	// The object may be deleted now
-
 	return nRef;
 }
 
@@ -130,13 +128,13 @@ BOOL ECUnknown::IsParentOf(const ECUnknown *lpObject) const
  */
 BOOL ECUnknown::IsChildOf(const ECUnknown *lpObject) const
 {
-	if (lpObject) {
-		for (auto p : lpObject->lstChildren) {
-			if (this == p)
-				return TRUE;
-			if (this->IsChildOf(p))
-				return TRUE;
-		}
+	if (lpObject == nullptr)
+		return false;
+	for (auto p : lpObject->lstChildren) {
+		if (this == p)
+			return TRUE;
+		if (this->IsChildOf(p))
+			return TRUE;
 	}
 	return FALSE;
 }

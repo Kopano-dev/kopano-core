@@ -1580,11 +1580,12 @@ list<string> LDAPUserPlugin::getLDAPAttributeValues(char *attribute, LDAPMessage
 	string s;
 	auto_free_ldap_berval berval(ldap_get_values_len(m_ldap, entry, attribute));
 
-	if (berval != NULL)
-		for (int i = 0; berval[i] != NULL; ++i) {
-			s.assign(berval[i]->bv_val, berval[i]->bv_len);
-			r.emplace_back(std::move(s));
-		}
+	if (berval == NULL)
+		return r;
+	for (int i = 0; berval[i] != NULL; ++i) {
+		s.assign(berval[i]->bv_val, berval[i]->bv_len);
+		r.emplace_back(std::move(s));
+	}
 	return r;
 }
 
@@ -2488,37 +2489,37 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 
 		if (!memberlist.empty())
 			members = resolveObjectsFromAttributesType(childobjclass, memberlist, member_attr_rel->get(), member_attr_type);
-	} else {
-		// Members are specified by a filter
-		FOREACH_ENTRY(res) {
-			// We need the DN of the addresslist so that we can later find out which company it is in
-			dn = GetLDAPEntryDN(entry);
-
-			FOREACH_ATTR(entry) {
-				if (member_attr && !strcasecmp(att, member_attr))
-					ldap_member_filter = getLDAPAttributeValue(att, entry);
-				if (base_attr && !strcasecmp(att, base_attr))
-					ldap_basedn = getLDAPAttributeValue(att, entry);
-			}
-			END_FOREACH_ATTR
-		}
-		END_FOREACH_ENTRY
-
-		if(!ldap_member_filter.empty()) {
-			if(m_bHosted) {
-				auto lpCompanyCache = m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY);
-				companyid = m_lpCache->getParentForDN(lpCompanyCache, dn);
-				companyDN = m_lpCache->getDNForObject(lpCompanyCache, companyid);
-			}
-
-			// Use the filter to get all members matching the specified search filter
-			if (ldap_basedn.empty())
-				ldap_basedn = getSearchBase();
-			ldap_filter = "(&" + getSearchFilter(childobjclass) + ldap_member_filter + ")";
-			members = getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, companyDN, false);
-		}
+		return members;
 	}
 
+	// Members are specified by a filter
+	FOREACH_ENTRY(res) {
+		// We need the DN of the addresslist so that we can later find out which company it is in
+		dn = GetLDAPEntryDN(entry);
+
+		FOREACH_ATTR(entry) {
+			if (member_attr && !strcasecmp(att, member_attr))
+				ldap_member_filter = getLDAPAttributeValue(att, entry);
+			if (base_attr && !strcasecmp(att, base_attr))
+				ldap_basedn = getLDAPAttributeValue(att, entry);
+		}
+		END_FOREACH_ATTR
+	}
+	END_FOREACH_ENTRY
+
+	if (ldap_member_filter.empty())
+		return members;
+	if (m_bHosted) {
+		auto lpCompanyCache = m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY);
+		companyid = m_lpCache->getParentForDN(lpCompanyCache, dn);
+		companyDN = m_lpCache->getDNForObject(lpCompanyCache, companyid);
+	}
+
+	// Use the filter to get all members matching the specified search filter
+	if (ldap_basedn.empty())
+		ldap_basedn = getSearchBase();
+	ldap_filter = "(&" + getSearchFilter(childobjclass) + ldap_member_filter + ")";
+	members = getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, companyDN, false);
 	return members;
 }
 
