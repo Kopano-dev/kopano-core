@@ -129,7 +129,8 @@ exit:
 	return hr;
 }
 
-HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG ulFlags, ULONG ulSyncId)
+HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId,
+    const ENTRYID *lpEntryId, ULONG ulFlags, ULONG ulSyncId)
 {
 	ECRESULT	er = erSuccess;
 	HRESULT		hr = hrSuccess;

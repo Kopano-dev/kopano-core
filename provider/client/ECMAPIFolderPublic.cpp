@@ -460,11 +460,12 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 	return this->lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID, lpPropArray[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropArray[0].Value.bin.lpb), convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
 }
 
-HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
+HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, ULONG ulUIParam, IMAPIProgress *lpProgress,
+    ULONG ulFlags)
 {
 	memory_ptr<SPropValue> lpProp;
-
-	if (ValidateZEntryId(cbEntryID, reinterpret_cast<BYTE *>(lpEntryID), MAPI_FOLDER) == false)
+	if (!ValidateZEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), MAPI_FOLDER))
 		return MAPI_E_INVALID_ENTRYID;
 	if (cbEntryID <= 4 || !(lpEntryID->abFlags[3] & KOPANO_FAVORITE))
 		return ECMAPIFolder::DeleteFolder(cbEntryID, lpEntryID,
