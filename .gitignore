@@ -45,7 +45,6 @@ stamp-h2
 /rosie-test
 /rtfcomp
 /mapi4linux/src/libmapi.sym
-/mapi4linux/src/libkchl.sym
 /provider/plugin.sym
 /provider/provider.sym
 /provider/soap/

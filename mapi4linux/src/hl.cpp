@@ -3,7 +3,6 @@
  */
 #include <kopano/platform.h>
 #include <string>
-#include <kopano/ECDebug.h>
 #include <kopano/hl.hpp>
 
 using namespace KC;
