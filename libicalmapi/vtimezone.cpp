@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
+#include "icalcompat.hpp"
 
 namespace KC {
 
@@ -159,7 +160,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 	auto iterComp = icalcomponent_get_first_component(lpVTZ, kind);
 	while (iterComp != NULL) {
 		auto icTime = icalcomponent_get_dtstart(iterComp);
-		icTime.is_utc = 1;
+		kc_ical_utc(icTime, true);
 		struct tm start = UTC_ICalTime2UnixTime(icTime);
 		if (time(NULL) < mktime(&start) && icComp != nullptr)
 			break;
@@ -178,7 +179,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 	if (tzFrom == NULL || tzTo == NULL || dtStart == NULL)
 		return MAPI_E_NOT_FOUND;
 	auto icTime = icalcomponent_get_dtstart(icComp);
-	icTime.is_utc = 1;
+	kc_ical_utc(icTime, true);
 
 	if (kind == ICAL_XSTANDARD_COMPONENT) {
 		// this is set when we request the STD timezone part.

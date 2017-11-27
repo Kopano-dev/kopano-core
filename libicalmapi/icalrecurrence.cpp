@@ -29,6 +29,7 @@
 #include <cmath>
 #include <algorithm>
 #include "freebusy.h"
+#include "icalcompat.hpp"
 
 using namespace KCHL;
 
@@ -745,7 +746,7 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(const TIMEZONE_STRUCT &sTimeZone,
 			ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, sTZgmt), bIsAllDay, nullptr);
 		else
 			ittExDate = icaltime_from_timet_with_zone(LocalToUTC(exc, sTimeZone), 0, nullptr);
-		ittExDate.is_utc = 1;
+		kc_ical_utc(ittExDate, true);
 		icalcomponent_add_property(lpicEvent, icalproperty_new_exdate(ittExDate));
 	}
 	// modified exceptions are done by the caller because of the attachments with info
@@ -855,7 +856,7 @@ HRESULT ICalRecurrence::HrCreateICalRecurrenceType(const TIMEZONE_STRUCT &sTimeZ
 		icRec.count = 0;
 		// if untiltime is saved as UTC it breaks last occurrence.
 		icRec.until = icaltime_from_timet_with_zone(lpRecurrence->getEndDate() + lpRecurrence->getStartTimeOffset(), bIsAllday, nullptr);
-		icRec.until.is_utc = 0;
+		kc_ical_utc(icRec.until, false);
 		break;
 	case recurrence::NUMBER:
 		icRec.count = lpRecurrence->getCount();
