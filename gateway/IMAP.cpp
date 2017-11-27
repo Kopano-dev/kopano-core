@@ -2809,6 +2809,7 @@ HRESULT IMAP::HrGetSubscribedList() {
 	hr = lpStream->Read(&size, sizeof(ULONG), &read);
 	if (hr != hrSuccess || read != sizeof(ULONG))
 		return hr;
+	size = le32_to_cpu(size);
 	if (size == 0)
 		return hr;
 
@@ -2818,6 +2819,7 @@ HRESULT IMAP::HrGetSubscribedList() {
 		hr = lpStream->Read(&cb, sizeof(ULONG), &read);
 		if (hr != hrSuccess || read != sizeof(ULONG))
 			return hr;
+		cb = le32_to_cpu(cb);
 		lpb.reset(new BYTE[cb]);
 		hr = lpStream->Read(lpb.get(), cb, &read);
 		if (hr != hrSuccess || read != cb)
@@ -2855,14 +2857,14 @@ HRESULT IMAP::HrSetSubscribedList() {
 	if (hr != hrSuccess)
 		return hr;
     lpStream->SetSize(liZero);
-
-	size = m_vSubscriptions.size();
+	size = cpu_to_le32(m_vSubscriptions.size());
 	hr = lpStream->Write(&size, sizeof(ULONG), &written);
 	if (hr != hrSuccess)
 		return hr;
 
 	for (const auto &folder : m_vSubscriptions) {
-		hr = lpStream->Write(&folder.cb, sizeof(ULONG), &written);
+		size = cpu_to_le32(folder.cb);
+		hr = lpStream->Write(&size, sizeof(ULONG), &written);
 		if (hr != hrSuccess)
 			return hr;
 		hr = lpStream->Write(folder.lpb, folder.cb, &written);
