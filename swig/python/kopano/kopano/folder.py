@@ -199,7 +199,7 @@ class Folder(Properties):
         # parent entryids for certains public store folders (via getprops,
         # or store PR_IPM_SUBTREE_ENTRYID), so we match with this property,
         # which is also not converted
-        pub_entryid = _hex(self.store.get(PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, ''))
+        pub_entryid = _hex(self.store.get(PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, b''))
 
         while parent:
             parent_eid = parent.entryid
