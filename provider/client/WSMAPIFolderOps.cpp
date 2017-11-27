@@ -372,7 +372,8 @@ exit:
 	return hr;
 }
 
-HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, ULONG *lpulMessageStatus)
+HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, ULONG ulFlags, ULONG *lpulMessageStatus)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;

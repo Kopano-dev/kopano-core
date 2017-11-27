@@ -705,9 +705,10 @@ exit:
 	return hr;
 }
 
-HRESULT ECMAPIFolder::GetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, ULONG *lpulMessageStatus)
+HRESULT ECMAPIFolder::GetMessageStatus(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, ULONG ulFlags, ULONG *lpulMessageStatus)
 {
-	if (lpEntryID == NULL || !IsKopanoEntryId(cbEntryID, reinterpret_cast<LPBYTE>(lpEntryID)))
+	if (lpEntryID == nullptr || !IsKopanoEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID)))
 		return MAPI_E_INVALID_ENTRYID;
 	if (lpulMessageStatus == NULL)
 		return MAPI_E_INVALID_OBJECT;
