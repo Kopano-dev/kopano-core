@@ -95,7 +95,12 @@ def permissions(obj):
             acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
         except MAPIErrorNotFound:
             return
-        table = _table.Table(obj.server, acl_table.GetTable(0), PR_ACL_TABLE)
+        table = _table.Table(
+            obj.server,
+            obj.mapiobj,
+            acl_table.GetTable(0),
+            PR_ACL_TABLE,
+        )
         for row in table.dict_rows():
             yield _permission.Permission(acl_table, row, obj.server)
 

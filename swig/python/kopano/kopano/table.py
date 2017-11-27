@@ -30,8 +30,9 @@ else:
 class Table(object):
     """Table class"""
 
-    def __init__(self, server, mapitable, proptag=None, restriction=None, order=None, columns=None):
+    def __init__(self, server, mapiobj, mapitable, proptag=None, restriction=None, order=None, columns=None):
         self.server = server
+        self.mapiobj = mapiobj
         self.mapitable = mapitable
         self.proptag = proptag
         if columns:
@@ -60,7 +61,7 @@ class Table(object):
                     break
 
                 for row in result:
-                    yield [_prop.Property(self.server.mapistore, c) for c in row]
+                    yield [_prop.Property(self.mapiobj, c) for c in row]
 
                 if page_limit is not None:
                     break

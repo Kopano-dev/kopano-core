@@ -446,8 +446,9 @@ class Item(Properties, Contact, Appointment):
         mapiitem = self._arch_item
         table = Table(
             self.server,
+            self.mapiobj,
             mapiitem.GetAttachmentTable(MAPI_DEFERRED_ERRORS),
-            columns=[PR_ATTACH_NUM, PR_ATTACH_METHOD]
+            columns=[PR_ATTACH_NUM, PR_ATTACH_METHOD],
         )
 
         for row in table.rows():
@@ -691,7 +692,15 @@ class Item(Properties, Contact, Appointment):
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def table(self, name, restriction=None, order=None, columns=None):
-        return Table(self.server, self.mapiobj.OpenProperty(name, IID_IMAPITable, MAPI_UNICODE, 0), name, restriction=restriction, order=order, columns=columns)
+        return Table(
+            self.server,
+            self.mapiobj,
+            self.mapiobj.OpenProperty(name, IID_IMAPITable, MAPI_UNICODE, 0),
+            name,
+            restriction=restriction,
+            order=order,
+            columns=columns,
+        )
 
     def tables(self):
         yield self.table(PR_MESSAGE_RECIPIENTS)
@@ -1021,8 +1030,10 @@ class Item(Properties, Contact, Appointment):
         # cleanup primary item
         mapiobj.DeleteProps([PROP_STUBBED, PR_ICON_INDEX])
         at = Table(
-            self.server, mapiobj.GetAttachmentTable(0),
-            columns=[PR_ATTACH_NUM]
+            self.server,
+            self.mapiobj,
+            mapiobj.GetAttachmentTable(0),
+            columns=[PR_ATTACH_NUM],
         )
         for row in at.rows():
             mapiobj.DeleteAttach(row[0].value, 0, None, 0)
