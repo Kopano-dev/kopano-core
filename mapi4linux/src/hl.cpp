@@ -201,15 +201,6 @@ KFolder &KFolder::operator=(KFolder &&other)
 	return *this;
 }
 
-KMessage KFolder::create_message(LPCIID intf, unsigned int flags)
-{
-	IMessage *message;
-	int ret = m_folder->CreateMessage(intf, flags, &message);
-	if (ret != hrSuccess)
-		throw KMAPIError(ret);
-	return KMessage(message);
-}
-
 KTable KFolder::get_contents_table(unsigned int flags)
 {
 	IMAPITable *table;
@@ -356,18 +347,6 @@ KStore &KStore::operator=(KStore &&other)
 	return *this;
 }
 
-KEntryId KStore::get_receive_folder(const char *cls, char **xcls)
-{
-	ULONG eid_size = 0;
-	ENTRYID *raw_eid = nullptr;
-	auto ret = m_store->GetReceiveFolder(reinterpret_cast<const TCHAR *>(cls),
-	           0, &eid_size, &raw_eid, reinterpret_cast<TCHAR **>(xcls));
-	KEntryId eid(raw_eid, eid_size); /* stuff into RAII object before throw */
-	if (ret != hrSuccess)
-		throw KMAPIError(ret);
-	return eid;
-}
-
 KProp KStore::get_prop(unsigned int tag)
 {
 	SPropValue *prop;
@@ -375,36 +354,6 @@ KProp KStore::get_prop(unsigned int tag)
 	if (ret != hrSuccess)
 		throw KMAPIError(ret);
 	return KProp(prop);
-}
-
-KUnknown KStore::open_entry(const KEntryId &eid, LPCIID intf,
-    unsigned int flags)
-{
-	IUnknown *unk;
-	auto ret = m_store->OpenEntry(eid.m_size, eid.m_eid,
-                   &IID_IUnknown, flags, &m_type, &unk);
-	if (ret != hrSuccess)
-		throw KMAPIError(ret);
-	return KUnknown(unk);
-}
-
-KUnknown KStore::open_entry(const SPropValue *eid, LPCIID intf,
-    unsigned int flags)
-{
-	IUnknown *unk;
-	int ret;
-	if (eid == NULL) {
-		ret = m_store->OpenEntry(0, NULL, &IID_IUnknown, flags, &m_type, &unk);
-	} else {
-		if (PROP_TYPE(eid->ulPropTag) != PT_BINARY)
-			throw KMAPIError(MAPI_E_INVALID_TYPE);
-		ret = m_store->OpenEntry(eid->Value.bin.cb,
-		      reinterpret_cast<ENTRYID *>(eid->Value.bin.lpb),
-	              &IID_IUnknown, flags, &m_type, &unk);
-	}
-	if (ret != hrSuccess)
-		throw KMAPIError(ret);
-	return KUnknown(unk);
 }
 
 KStream::KStream(IStream *stream) :

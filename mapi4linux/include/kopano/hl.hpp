@@ -110,8 +110,6 @@ class _kc_export KFolder _kc_final {
 	KFolder &operator=(KFolder &&);
 	IMAPIFolder *operator->(void) { return m_folder; }
 	operator IMAPIFolder *(void) { return m_folder; }
-
-	KMessage create_message(LPCIID = NULL, unsigned int = 0);
 	KTable get_contents_table(unsigned int = 0);
 	KTable get_hierarchy_table(unsigned int = 0);
 	KProp get_prop(unsigned int);
@@ -163,11 +161,7 @@ class _kc_export KStore _kc_final {
 	KStore &operator=(KStore &&);
 	IMsgStore *operator->(void) { return m_store; }
 	operator IMsgStore *(void) { return m_store; }
-
-	KEntryId get_receive_folder(const char *cls = nullptr, char **xcls = nullptr);
 	KProp get_prop(unsigned int);
-	KUnknown open_entry(const KEntryId &, LPCIID = nullptr, unsigned int = 0);
-	KUnknown open_entry(const SPropValue * = NULL, LPCIID = NULL, unsigned int = 0);
 
 	protected:
 	IMsgStore *m_store;
