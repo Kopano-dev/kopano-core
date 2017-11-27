@@ -897,7 +897,8 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
  * @return		HRESULT
  */
 HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
-    LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, LPMDB *lppMDB)
+    const ENTRYID *lpEntryID, LPCIID lpInterface, ULONG ulFlags,
+    IMsgStore **lppMDB)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMSProvider> msp;
