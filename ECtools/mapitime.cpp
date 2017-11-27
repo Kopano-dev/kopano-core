@@ -210,7 +210,7 @@ static int mpt_main_lsr(bool with_ping)
 	return EXIT_SUCCESS;
 }
 
-static int mpt_main_orc(bool with_ping)
+static int mpt_main_orc()
 {
 	AutoMAPI automapi;
 	auto ret = automapi.Initialize();
@@ -480,7 +480,7 @@ int main(int argc, char **argv)
 	else if (strcmp(argv[1], "lsr+ping") == 0)
 		return mpt_main_lsr(true);
 	else if (strcmp(argv[1], "orc") == 0)
-		return mpt_main_orc(false);
+		return mpt_main_orc();
 	else if (strcmp(argv[1], "exectime") == 0)
 		return mpt_main_exectime(argc - 1, argv + 1);
 	else if (strcmp(argv[1], "pagetime") == 0)
