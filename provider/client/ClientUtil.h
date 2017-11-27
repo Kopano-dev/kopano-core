@@ -59,9 +59,6 @@ public:
 
 	/* Get the delegate stores from the global profile. */
 	static HRESULT GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSect, ULONG *lpcDelegates, LPBYTE *lppDelegateStores);
-
-	// Get MSEMS emulator config
-	static HRESULT GetConfigPath(std::string *lpConfigPath);
 };
 
 extern HRESULT HrCreateEntryId(const GUID &store_guid, unsigned int obj_type, ULONG *eid_size, ENTRYID **eid);

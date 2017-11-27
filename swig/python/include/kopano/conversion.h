@@ -34,11 +34,8 @@ typedef ECUSER *LPECUSER;
 
 typedef int(*TypeCheckFunc)(PyObject*);
 
-int				Object_is_list_of(PyObject *object, TypeCheckFunc fnTypeCheck); 
-
 FILETIME		Object_to_FILETIME(PyObject *object);
 PyObject *		Object_from_FILETIME(FILETIME ft);
-int				Object_is_FILETIME(PyObject *object);
 
 extern SPropValue *Object_to_p_SPropValue(PyObject *, ULONG flags = CONV_COPY_SHALLOW, void *base = nullptr);
 extern SPropValue *Object_to_LPSPropValue(PyObject *, ULONG flags = CONV_COPY_SHALLOW, void *base = nullptr);
@@ -48,8 +45,6 @@ extern PyObject *List_from_SPropValue(const SPropValue *, ULONG n);
 extern PyObject *List_from_LPSPropValue(const SPropValue *, ULONG n);
 extern SPropValue *List_to_p_SPropValue(PyObject *, ULONG *nvals, ULONG flags = CONV_COPY_SHALLOW, void *base = nullptr);
 extern SPropValue *List_to_LPSPropValue(PyObject *, ULONG *nvals, ULONG flags = CONV_COPY_SHALLOW, void *base = nullptr);
-
-PyObject *		List_from_LPTSTRPtr(LPTSTR *lpStrings, ULONG cValues);
 
 SPropTagArray *List_to_p_SPropTagArray(PyObject *sv, ULONG ulFlags = CONV_COPY_SHALLOW);
 PyObject *List_from_SPropTagArray(const SPropTagArray *lpPropTagArray);
@@ -134,8 +129,6 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object);
 PyObject *Object_from_LPECSERVER(ECSERVER *lpServer);
 PyObject *List_from_LPECSERVERLIST(ECSERVERLIST *lpServerList);
 
-PyObject *		List_from_wchar_t(wchar_t **, ULONG cElements);
-
 void			Init();
 
 void			DoException(HRESULT hr);
@@ -143,8 +136,5 @@ int				GetExceptionError(PyObject *, HRESULT *);
 
 void			Object_to_STATSTG(PyObject *, STATSTG *);
 PyObject *		Object_from_STATSTG(STATSTG *);
-
-PyObject *		Object_from_SYSTEMTIME(const SYSTEMTIME &time);
-SYSTEMTIME		Object_to_SYSTEMTIME(PyObject *);
 
 #endif // ndef CONVERSION_H
