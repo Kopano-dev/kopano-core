@@ -307,8 +307,7 @@ private:
 	std::vector<BinaryArray> m_vSubscriptions;
 	HRESULT HrGetSubscribedList();
 	HRESULT HrSetSubscribedList();
-	HRESULT ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, LPENTRYID lpEntryID);
-
+	HRESULT ChangeSubscribeList(bool bSubscribe, ULONG eid_size, const ENTRYID *);
 	HRESULT HrMakeSpecialsList();
 
 	HRESULT HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigned int *lpulUnseen, ULONG *lpulUIDValidity = NULL);

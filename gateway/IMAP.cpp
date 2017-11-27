@@ -2406,7 +2406,7 @@ LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
 			if (lpNotif[i].info.tab.propIndex.ulPropTag == PR_INSTANCE_KEY) {
 				auto iterMail = lpIMAP->lstFolderMailEIDs.begin();
 				for (; iterMail != lpIMAP->lstFolderMailEIDs.cend(); ++iterMail)
-					if (iterMail->sInstanceKey == BinaryArray(lpNotif[i].info.tab.propIndex.Value.bin))
+					if (iterMail->sInstanceKey == lpNotif[i].info.tab.propIndex.Value.bin)
 						break;
 			    
 				if (iterMail != lpIMAP->lstFolderMailEIDs.cend()) {
@@ -2955,16 +2955,14 @@ HRESULT IMAP::HrSetSubscribedList() {
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, LPENTRYID lpEntryID)
+HRESULT IMAP::ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, const ENTRYID *lpEntryID)
 {
 	bool bChanged = false;
-
-	auto iFolder = find(m_vSubscriptions.begin(), m_vSubscriptions.end(),
-	               BinaryArray(reinterpret_cast<BYTE *>(lpEntryID),
-	               cbEntryID, true));
+	BinaryArray eid(lpEntryID, cbEntryID);
+	auto iFolder = find(m_vSubscriptions.begin(), m_vSubscriptions.end(), eid);
 	if (iFolder == m_vSubscriptions.cend()) {
 		if (bSubscribe) {
-			m_vSubscriptions.emplace_back(reinterpret_cast<BYTE *>(lpEntryID), cbEntryID);
+			m_vSubscriptions.emplace_back(std::move(eid));
 			bChanged = true;
 		}
 	} else if (!bSubscribe) {
