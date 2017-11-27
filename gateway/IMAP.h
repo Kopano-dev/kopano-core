@@ -55,59 +55,46 @@ class ECRestriction;
 #define RESP_TAGGED_NO " NO "
 #define RESP_TAGGED_BAD " BAD "
 
-class BinaryArray _kc_final {
+/**
+ * An ownership-indicating wrapper atop SBinary.
+ */
+class BinaryArray _kc_final : public SBinary {
 public:
-	BinaryArray(void) = default;
-	BinaryArray(BYTE *lpData, ULONG cbData, bool bcheap = false)
+	BinaryArray() : SBinary() {}
+	BinaryArray(BYTE *lpData, ULONG cbData, bool b = false) :
+		SBinary{cbData, nullptr}, bcheap(b)
 	{
-		this->bcheap = bcheap;
-		if (cbData == 0) {
-			cb = 0;
-			lpb = NULL;
+		if (cbData == 0)
 			return;
-		}
 		if (!bcheap) {
 			lpb = new BYTE[cbData];
 			memcpy(lpb, lpData, cbData);
 		} else {
 			lpb = lpData;
 		}
-		cb = cbData;
 	}
-	BinaryArray(const BinaryArray &old) {
-		bcheap = false;
-		if (old.cb == 0) {
-			cb = 0;
-			lpb = NULL;
+	BinaryArray(const BinaryArray &old) :
+		SBinary{old.cb, nullptr}, bcheap(false)
+	{
+		if (cb == 0)
 			return;
-		}
-		cb = old.cb;
 		lpb = new BYTE[cb];
 		memcpy(lpb, old.lpb, cb);
 	}
 	BinaryArray(BinaryArray &&o) :
-	    lpb(o.lpb), cb(o.cb), bcheap(o.bcheap)
+		SBinary{o.cb, o.lpb}, bcheap(o.bcheap)
 	{
 		o.lpb = nullptr;
 		o.cb = 0;
 		o.bcheap = false;
 	}
-	BinaryArray(const SBinary &bin) {
-		bcheap = false;
-		if (bin.cb == 0) {
-			cb = 0;
-			lpb = NULL;
+	BinaryArray(const SBinary &bin) :
+		SBinary{bin.cb, nullptr}, bcheap(false)
+	{
+		if (cb == 0)
 			return;
-		}
 		lpb = new BYTE[bin.cb];
 		memcpy(lpb, bin.lpb, bin.cb);
-		cb = bin.cb;
-	}
-	BinaryArray(SBinary &&o) :
-	    lpb(o.lpb), cb(o.cb), bcheap(false)
-	{
-		o.lpb = nullptr;
-		o.cb = 0;
 	}
 	~BinaryArray(void)
 	{
@@ -115,17 +102,7 @@ public:
 			delete[] lpb;
 	}
 
-	bool operator==(const BinaryArray &b) const noexcept
-	{
-		if (b.cb == 0 && this->cb == 0)
-			return true;
-		if (b.cb != this->cb)
-			return false;
-		else
-			return memcmp(lpb, b.lpb, cb) == 0;
-	}
-
-	BinaryArray &operator=(const BinaryArray &b)
+	BinaryArray &operator=(const SBinary &b)
 	{
 		BYTE *lpbPrev = lpb;
 		if (b.cb == 0) {
@@ -160,13 +137,6 @@ public:
 		return *this;
 	}
 
-	bool operator<(const BinaryArray &o) const noexcept
-	{
-		return cb < o.cb || (cb == o.cb && memcmp(lpb, o.lpb, cb) < 0);
-	}
-
-	BYTE *lpb = nullptr;
-	ULONG cb = 0;
 	bool bcheap = false;
 };
 
