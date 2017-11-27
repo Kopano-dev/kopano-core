@@ -1,3 +1,19 @@
+/*
+ * Copyright 2016+, Kopano and its licensors
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 #include "config.h"
 #include <chrono>
 #include <memory>
@@ -30,6 +46,14 @@ struct mpt_stat_entry {
 using namespace KCHL;
 using clk = std::chrono::steady_clock;
 
+class mpt_job {
+	public:
+	virtual int init();
+	virtual int run() = 0;
+	private:
+	AutoMAPI m_mapi;
+};
+
 static std::list<struct mpt_stat_entry> mpt_stat_list;
 static std::wstring mpt_userw, mpt_passw;
 static const wchar_t *mpt_user, *mpt_pass;
@@ -52,7 +76,7 @@ static void mpt_stat_dump(int s = 0)
 	fflush(stdout);
 }
 
-static void mpt_stat_record(const struct mpt_stat_entry &dp, size_t limit = 50)
+static void mpt_stat_record(const struct mpt_stat_entry &dp, size_t limit = 300)
 {
 	mpt_stat_list.emplace_back(dp);
 	if (mpt_stat_list.size() > limit)
@@ -109,137 +133,122 @@ static int mpt_main_init(void)
 	return EXIT_SUCCESS;
 }
 
-static void mpt_ping(IMAPISession *ses)
+int mpt_job::init()
 {
+	auto ret = m_mapi.Initialize();
+	if (ret != hrSuccess) {
+		perror("MAPIInitialize");
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;
+}
+
+static int mpt_basic_open(object_ptr<IMAPISession> &ses,
+    object_ptr<IMsgStore> &store)
+{
+	auto ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
+	           mpt_socket, NO_NOTIFY, nullptr, nullptr);
+	if (ret != hrSuccess) {
+		fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
+		sleep(1);
+		return EXIT_SUCCESS;
+	}
+	ret = HrOpenDefaultStore(ses, &~store);
+	if (ret != hrSuccess) {
+		fprintf(stderr, "OpenDefaultStore: %s\n", GetMAPIErrorMessage(ret));
+		sleep(1);
+	}
+	return EXIT_SUCCESS;
+}
+
+static int mpt_basic_work(IMsgStore *store)
+{
+	object_ptr<IMAPIFolder> root;
+	ULONG type = 0;
+	auto ret = store->OpenEntry(0, nullptr, &iid_of(root), MAPI_MODIFY, &type, &~root);
+	if (ret != hrSuccess) {
+		fprintf(stderr, "save failed: %s\n", GetMAPIErrorMessage(ret));
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;
+}
+
+class mpt_open1 : public mpt_job {
+	public:
+	int run() override;
+};
+
+int mpt_open1::run()
+{
+	object_ptr<IMAPISession> ses;
 	object_ptr<IMsgStore> store;
-	auto ret = HrOpenDefaultStore(ses, &~store);
+	auto ret = mpt_basic_open(ses, store);
 	if (ret != hrSuccess)
-		return;
-	object_ptr<IECTestProtocol> tp;
-	ret = store->QueryInterface(IID_IECTestProtocol, &~tp);
-	if (ret != hrSuccess)
-		return;
-	memory_ptr<char> out;
-	tp->TestGet("ping", &~out);
+		return EXIT_FAILURE;
+	return mpt_basic_work(store);
 }
 
-/**
- * @with_lo:	whether to include the logoff RPC in the time
- * 		measurement (it is executed in any case)
- * @with_ping:	whether to issue some more RPCs
- */
-static int mpt_main_login(bool with_lo, bool with_ping)
+class mpt_open2 : public mpt_job {
+	public:
+	int init() override;
+	int run() override;
+	private:
+	std::string m_data;
+};
+
+int mpt_open2::init()
 {
-	HRESULT ret = MAPIInitialize(NULL);
-	if (ret != hrSuccess) {
-		perror("MAPIInitialize");
+	auto ret = mpt_job::init();
+	if (ret != hrSuccess)
 		return EXIT_FAILURE;
-	}
-
-	int err = mpt_setup_tick();
-	if (err < 0)
-		return EXIT_FAILURE;
-
-	struct mpt_stat_entry dp;
-
-	while (mpt_repeat-- > 0) {
-		object_ptr<IMAPISession> ses;
-		dp.start = clk::now();
-		ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
-		      mpt_socket, NO_NOTIFY, NULL, NULL);
-		if (!with_lo)
-			dp.stop = clk::now();
-		if (ret != hrSuccess) {
-			fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
-			sleep(1);
-			continue;
-		}
-		if (with_lo) {
-			if (with_ping)
-				mpt_ping(ses);
-			ses.reset();
-			dp.stop = clk::now();
-		}
-		mpt_stat_record(dp);
-	}
-	MAPIUninitialize();
-	return EXIT_SUCCESS;
-}
-
-/* Login-Logout with Save–Restore */
-static int mpt_main_lsr(bool with_ping)
-{
-	AutoMAPI automapi;
-	auto ret = automapi.Initialize();
-	if (ret != hrSuccess) {
-		perror("MAPIInitialize");
-		return EXIT_FAILURE;
-	}
-
-	int err = mpt_setup_tick();
-	if (err < 0)
-		return EXIT_FAILURE;
-
 	object_ptr<IMAPISession> ses;
-	ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
-	      mpt_socket, NO_NOTIFY, nullptr, nullptr);
+	object_ptr<IMsgStore> store;
+	ret = mpt_basic_open(ses, store);
 	if (ret != hrSuccess) {
-		fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
+		fprintf(stderr, "mpt_open_base: %s\n", GetMAPIErrorMessage(ret));
 		return EXIT_FAILURE;
 	}
-
-	struct mpt_stat_entry dp;
-	while (mpt_repeat-- > 0) {
-		dp.start = clk::now();
-		std::string data;
-		ret = kc_session_save(ses, data);
-		if (ret != hrSuccess) {
-			fprintf(stderr, "save failed: %s\n", GetMAPIErrorMessage(ret));
-			return EXIT_FAILURE;
-		}
-		ret = kc_session_restore(data, &~ses);
-		if (ret != hrSuccess) {
-			fprintf(stderr, "restore failed: %s\n", GetMAPIErrorMessage(ret));
-			return EXIT_FAILURE;
-		}
-		if (with_ping)
-			mpt_ping(ses);
-		dp.stop = clk::now();
-		mpt_stat_record(dp);
+	ret = kc_session_save(ses, m_data);
+	if (ret != hrSuccess) {
+		fprintf(stderr, "save failed: %s\n", GetMAPIErrorMessage(ret));
+		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;
 }
 
-static int mpt_main_orc()
+int mpt_open2::run()
 {
-	AutoMAPI automapi;
-	auto ret = automapi.Initialize();
-	if (ret != hrSuccess) {
-		perror("MAPIInitialize");
-		return EXIT_FAILURE;
-	}
-
-	int err = mpt_setup_tick();
-	if (err < 0)
-		return EXIT_FAILURE;
-
 	object_ptr<IMAPISession> ses;
-	ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
-	      mpt_socket, NO_NOTIFY, nullptr, nullptr);
+	auto ret = kc_session_restore(m_data, &~ses);
 	if (ret != hrSuccess) {
-		fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
+		fprintf(stderr, "restore failed: %s\n", GetMAPIErrorMessage(ret));
 		return EXIT_FAILURE;
 	}
 	object_ptr<IMsgStore> store;
 	ret = HrOpenDefaultStore(ses, &~store);
+	if (ret != hrSuccess) {
+		fprintf(stderr, "OpenDefaultStore: %s\n", GetMAPIErrorMessage(ret));
+		return EXIT_FAILURE;
+	}
+	return mpt_basic_work(store);
+}
 
+static int mpt_runner(mpt_job &&fct)
+{
+	auto ret = fct.init();
+	if (ret != hrSuccess) {
+		perror("MAPIInitialize");
+		return EXIT_FAILURE;
+	}
+	ret = mpt_setup_tick();
+	if (ret < 0)
+		return EXIT_FAILURE;
 	struct mpt_stat_entry dp;
-	convert_context converter;
 	while (mpt_repeat-- > 0) {
 		dp.start = clk::now();
-		ULONG ulType = 0;
-		object_ptr<IMAPIFolder> root;
-		store->OpenEntry(0, nullptr, &iid_of(root), MAPI_MODIFY, &ulType, &~root);
+		ret = fct.run();
+		if (ret != EXIT_SUCCESS)
+			break;
 		dp.stop = clk::now();
 		mpt_stat_record(dp);
 	}
@@ -397,12 +406,8 @@ static void mpt_usage(void)
 	fprintf(stderr, "  -z count    Run this many iterations (default: finite but almost forever)\n");
 	fprintf(stderr, "Benchmark choices:\n");
 	fprintf(stderr, "  init        Just the library initialization\n");
-	fprintf(stderr, "  li          Issue login/logoff RPCs, but measure only login\n");
-	fprintf(stderr, "  lilo        Issue login/logoff RPCs, and measure both\n");
-	fprintf(stderr, "  ping        Issue login/logoff/PING RPCs, and measure all\n");
-	fprintf(stderr, "  lsr         Measure profile save-restore cycle\n");
-	fprintf(stderr, "  lsr+ping    lsr with forced network access (PING RPC)\n");
-	fprintf(stderr, "  orc         Open root container\n");
+	fprintf(stderr, "  open1       Measure: init, login, open store, open root container\n");
+	fprintf(stderr, "  open2       Like open1, but use Save-Restore\n");
 	fprintf(stderr, "  pagetime    Measure webpage retrieval time\n");
 	fprintf(stderr, "  exectime    Measure process runtime\n");
 	fprintf(stderr, "  qicast      Measure QueryInterface throughput\n");
@@ -469,18 +474,10 @@ int main(int argc, char **argv)
 	}
 	if (strcmp(argv[1], "init") == 0 || strcmp(argv[1], "i") == 0)
 		return mpt_main_init();
-	else if (strcmp(argv[1], "li") == 0)
-		return mpt_main_login(false, false);
-	else if (strcmp(argv[1], "lilo") == 0)
-		return mpt_main_login(true, false);
-	else if (strcmp(argv[1], "ping") == 0)
-		return mpt_main_login(true, true);
-	else if (strcmp(argv[1], "lsr") == 0)
-		return mpt_main_lsr(false);
-	else if (strcmp(argv[1], "lsr+ping") == 0)
-		return mpt_main_lsr(true);
-	else if (strcmp(argv[1], "orc") == 0)
-		return mpt_main_orc();
+	else if (strcmp(argv[1], "open1") == 0)
+		return mpt_runner(mpt_open1());
+	else if (strcmp(argv[1], "open2") == 0)
+		return mpt_runner(mpt_open2());
 	else if (strcmp(argv[1], "exectime") == 0)
 		return mpt_main_exectime(argc - 1, argv + 1);
 	else if (strcmp(argv[1], "pagetime") == 0)
