@@ -3308,81 +3308,70 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 	static constexpr const SizedSSortOrderSet(1, mapi_sort_criteria) =
 		{1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
 
-	try {
-		object_ptr<IMAPITable> table;
-		auto hr = folder->GetHierarchyTable(CONVENIENT_DEPTH, &~table);
-		if (hr != hrSuccess)
-			return kc_perror("K-2394", hr);
-		hr = table->SetColumns(cols, TBL_BATCH);
-		if (hr != hrSuccess)
-			return kc_perror("K-2389", hr);
-		hr = table->SortTable(mapi_sort_criteria, TBL_BATCH);
-		if (hr != hrSuccess)
-			return kc_perror("K-2390", hr);
-		rowset_ptr rows;
-		hr = table->QueryRows(-1, 0, &~rows);
-		if (hr != hrSuccess)
-			return kc_perror("K-2395", hr);
+	object_ptr<IMAPITable> table;
+	auto hr = folder->GetHierarchyTable(CONVENIENT_DEPTH, &~table);
+	if (hr != hrSuccess)
+		return kc_perror("K-2394", hr);
+	hr = table->SetColumns(cols, TBL_BATCH);
+	if (hr != hrSuccess)
+		return kc_perror("K-2389", hr);
+	hr = table->SortTable(mapi_sort_criteria, TBL_BATCH);
+	if (hr != hrSuccess)
+		return kc_perror("K-2390", hr);
+	rowset_ptr rows;
+	hr = table->QueryRows(-1, 0, &~rows);
+	if (hr != hrSuccess)
+		return kc_perror("K-2395", hr);
 
-		for (unsigned int i = 0; i < rows.size(); ++i) {
-			if (rows[i].lpProps[IMAPID].ulPropTag != PR_EC_IMAP_ID) {
-				lpLogger->Log(EC_LOGLEVEL_FATAL, "Server does not support PR_EC_IMAP_ID. Please update the storage server.");
+	for (unsigned int i = 0; i < rows.size(); ++i) {
+		if (rows[i].lpProps[IMAPID].ulPropTag != PR_EC_IMAP_ID) {
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Server does not support PR_EC_IMAP_ID. Please update the storage server.");
+			break;
+		}
+
+		string container_class = "";
+		bool mailfolder = true;
+		if (rows[i].lpProps[NAME].ulPropTag != PR_DISPLAY_NAME_W ||
+		    rows[i].lpProps[SUBFOLDERS].ulPropTag != PR_SUBFOLDERS ||
+		    rows[i].lpProps[EID].ulPropTag != PR_ENTRYID ||
+		    rows[i].lpProps[PEID].ulPropTag != PR_PARENT_ENTRYID)
+			continue;
+		std::wstring foldername = rows[i].lpProps[NAME].Value.lpszW;
+		bool subfolders = rows[i].lpProps[SUBFOLDERS].Value.b;
+		if (PROP_TYPE(rows[i].lpProps[CONTAINERCLASS].ulPropTag) == PT_STRING8)
+			container_class = strToUpper(rows[i].lpProps[CONTAINERCLASS].Value.lpszA);
+
+		while (foldername.find(IMAP_HIERARCHY_DELIMITER) != string::npos)
+			foldername.erase(foldername.find(IMAP_HIERARCHY_DELIMITER), 1);
+
+		if (!container_class.empty() &&
+			container_class.compare(0, 3, "IPM") != 0 &&
+			container_class.compare("IPF.NOTE") != 0) {
+
+			if (bOnlyMailFolders)
+				continue;
+			mailfolder = false;
+		}
+
+		BinaryArray entry_id(rows[i].lpProps[EID].Value.bin);
+		const auto &parent_entry_id = rows[i].lpProps[PEID].Value.bin;
+		list<SFolder>::const_iterator tmp_parent_folder = parent_folder;
+		for (auto iter = folders.cbegin(); iter != folders.cend(); iter++) {
+			if (iter->sEntryID == parent_entry_id) {
+				tmp_parent_folder = iter;
 				break;
 			}
-
-			try {
-				string container_class = "";
-				bool mailfolder = true;
-				if (rows[i].lpProps[NAME].ulPropTag != PR_DISPLAY_NAME_W ||
-				    rows[i].lpProps[SUBFOLDERS].ulPropTag != PR_SUBFOLDERS ||
-				    rows[i].lpProps[EID].ulPropTag != PR_ENTRYID ||
-				    rows[i].lpProps[PEID].ulPropTag != PR_PARENT_ENTRYID)
-					continue;
-				std::wstring foldername = rows[i].lpProps[NAME].Value.lpszW;
-				bool subfolders = rows[i].lpProps[SUBFOLDERS].Value.b;
-				if (PROP_TYPE(rows[i].lpProps[CONTAINERCLASS].ulPropTag) == PT_STRING8)
-					container_class = strToUpper(rows[i].lpProps[CONTAINERCLASS].Value.lpszA);
-
-				while (foldername.find(IMAP_HIERARCHY_DELIMITER) != string::npos)
-					foldername.erase(foldername.find(IMAP_HIERARCHY_DELIMITER), 1);
-
-				if (!container_class.empty() &&
-					container_class.compare(0, 3, "IPM") != 0 &&
-					container_class.compare("IPF.NOTE") != 0) {
-
-					if (bOnlyMailFolders)
-						continue;
-					mailfolder = false;
-				}
-
-				BinaryArray entry_id(rows[i].lpProps[EID].Value.bin);
-				const auto &parent_entry_id = rows[i].lpProps[PEID].Value.bin;
-				list<SFolder>::const_iterator tmp_parent_folder = parent_folder;
-				for (auto iter = folders.cbegin(); iter != folders.cend(); iter++) {
-					if (iter->sEntryID == parent_entry_id) {
-						tmp_parent_folder = iter;
-						break;
-					}
-				}
-				auto subscribed_iter = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), entry_id);
-				sfolder.bActive = subscribed_iter != m_vSubscriptions.cend();
-				sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb, reinterpret_cast<ENTRYID *>(entry_id.lpb), sfolder.ulSpecialFolderType);
-				sfolder.bMailFolder = mailfolder;
-				sfolder.lpParentFolder = tmp_parent_folder;
-				sfolder.strFolderName = foldername;
-				sfolder.sEntryID = std::move(entry_id);
-				sfolder.bHasSubfolders = subfolders;
-				folders.emplace_front(std::move(sfolder));
-			}
-			catch (const KMAPIError &e) {
-				/* just continue */
-			}
 		}
+		auto subscribed_iter = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), entry_id);
+		sfolder.bActive = subscribed_iter != m_vSubscriptions.cend();
+		sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb, reinterpret_cast<ENTRYID *>(entry_id.lpb), sfolder.ulSpecialFolderType);
+		sfolder.bMailFolder = mailfolder;
+		sfolder.lpParentFolder = tmp_parent_folder;
+		sfolder.strFolderName = foldername;
+		sfolder.sEntryID = std::move(entry_id);
+		sfolder.bHasSubfolders = subfolders;
+		folders.emplace_front(std::move(sfolder));
 	}
-	catch (const KMAPIError &e) {
-		return e.code();
-	}
-
 	return hrSuccess;
 }
 
