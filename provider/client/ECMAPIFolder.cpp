@@ -550,7 +550,9 @@ HRESULT ECMAPIFolder::DeleteMessages(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPM
 	return this->GetMsgStore()->lpTransport->HrDeleteObjects(ulFlags, lpMsgList, 0);
 }
 
-HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType, LPTSTR lpszFolderName, LPTSTR lpszFolderComment, LPCIID lpInterface, ULONG ulFlags, LPMAPIFOLDER *lppFolder)
+HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
+    const TCHAR *lpszFolderName, const TCHAR *lpszFolderComment,
+    const IID *lpInterface, ULONG ulFlags, IMAPIFolder **lppFolder)
 {
 	HRESULT			hr = hrSuccess;
 	ULONG			cbEntryId = 0;
