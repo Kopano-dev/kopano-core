@@ -28,7 +28,6 @@ class KStore;
 class KStream;
 class KTable;
 class KUnknown;
-class KEntryId;
 
 class _kc_export KProp _kc_final {
 	public:
@@ -48,7 +47,6 @@ class _kc_export KProp _kc_final {
 	const int &l() const;
 	std::string str();
 	std::wstring wstr();
-	KEntryId entry_id();
 
 	private:
 	SPropValue *m_s;
@@ -69,24 +67,6 @@ class _kc_export KAttach _kc_final {
 	protected:
 	IAttach *m_attach;
 	unsigned int m_num;
-};
-
-class _kc_export KEntryId _kc_final {
-	public:
-	KEntryId(void) = default;
-	KEntryId(KEntryId &&);
-	KEntryId(ENTRYID *, size_t);
-	~KEntryId(void);
-	KEntryId &operator=(KEntryId &&);
-
-	ENTRYID *lpb() { return m_eid; }
-	const ENTRYID *lpb() const { return m_eid; }
-	size_t cb() const { return m_size; }
-
-	private:
-	friend class KStore;
-	ENTRYID *m_eid = nullptr;
-	size_t m_size = 0;
 };
 
 class _kc_export_throw KMAPIError _kc_final : public std::exception {

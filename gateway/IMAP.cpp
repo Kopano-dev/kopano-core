@@ -3363,9 +3363,8 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 					mailfolder = false;
 				}
 
-				auto entry_id = rows[i][EID].entry_id();
-				auto parent_entry_id = rows[i][PEID].entry_id();
-
+				BinaryArray entry_id(rows[i][EID]->Value.bin);
+				const auto &parent_entry_id = rows[i][PEID]->Value.bin;
 				list<SFolder>::const_iterator tmp_parent_folder = parent_folder;
 				for (auto iter = folders.cbegin(); iter != folders.cend(); iter++) {
 					if (iter->sEntryID == parent_entry_id) {
@@ -3373,13 +3372,13 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 						break;
 					}
 				}
-				auto subscribed_iter = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), BinaryArray(entry_id));
+				auto subscribed_iter = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), entry_id);
 				sfolder.bActive = subscribed_iter != m_vSubscriptions.cend();
-				sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb(), entry_id.lpb(), sfolder.ulSpecialFolderType);
+				sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb, reinterpret_cast<ENTRYID *>(entry_id.lpb), sfolder.ulSpecialFolderType);
 				sfolder.bMailFolder = mailfolder;
 				sfolder.lpParentFolder = tmp_parent_folder;
 				sfolder.strFolderName = foldername;
-				sfolder.sEntryID = entry_id;
+				sfolder.sEntryID = std::move(entry_id);
 				sfolder.bHasSubfolders = subfolders;
 				folders.emplace_front(std::move(sfolder));
 			}

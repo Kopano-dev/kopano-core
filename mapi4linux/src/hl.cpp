@@ -88,22 +88,6 @@ std::wstring KProp::wstr()
 	return std::wstring(m_s->Value.lpszW);
 }
 
-KEntryId KProp::entry_id()
-{
-	if (PROP_TYPE(prop_tag()) != PT_BINARY)
-		throw KMAPIError(MAPI_E_INVALID_TYPE);
-
-	memory_ptr<ENTRYID> entry_id;
-	HRESULT ret = MAPIAllocateBuffer(m_s->Value.bin.cb, &~entry_id);
-
-	if (ret != hrSuccess)
-		throw KMAPIError(ret);
-
-	memcpy(entry_id, m_s->Value.bin.lpb, m_s->Value.bin.cb);
-
-	return KEntryId(entry_id.release(), m_s->Value.bin.cb);
-}
-
 KAttach::KAttach(IAttach *attach, unsigned int num) :
 	m_attach(attach), m_num(num)
 {
@@ -143,29 +127,6 @@ KStream KAttach::open_property_stream(unsigned int tag, unsigned int intopts,
 HRESULT KAttach::save_changes(unsigned int flags)
 {
 	return m_attach->SaveChanges(flags);
-}
-
-KEntryId::KEntryId(ENTRYID *eid, size_t size) :
-	m_eid(eid), m_size(size)
-{
-}
-
-KEntryId::KEntryId(KEntryId &&other) :
-	m_eid(other.m_eid), m_size(other.m_size)
-{
-	other.m_eid = NULL;
-}
-
-KEntryId::~KEntryId(void)
-{
-	MAPIFreeBuffer(m_eid);
-}
-
-KEntryId &KEntryId::operator=(KEntryId &&other)
-{
-	std::swap(m_eid, other.m_eid);
-	other.m_size = 0;
-	return *this;
 }
 
 KMAPIError::KMAPIError(HRESULT code) :
