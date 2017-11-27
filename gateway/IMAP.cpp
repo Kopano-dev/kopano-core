@@ -3014,7 +3014,7 @@ HRESULT IMAP::HrMakeSpecialsList() {
 		return hr;
 
 	// inbox is special too
-	lstSpecialEntryIDs.emplace(BinaryArray(reinterpret_cast<unsigned char *>(lpEntryID.get()), cbEntryID), 0);
+	lstSpecialEntryIDs.emplace(BinaryArray(lpEntryID.get(), cbEntryID), 0);
 	hr = lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpInbox);
 	if (hr != hrSuccess)
 		return hr;
@@ -3045,14 +3045,14 @@ HRESULT IMAP::HrMakeSpecialsList() {
  */
 bool IMAP::IsSpecialFolder(ULONG cbEntryID, LPENTRYID lpEntryID) const
 {
-	return lstSpecialEntryIDs.find(BinaryArray(reinterpret_cast<BYTE *>(lpEntryID), cbEntryID, true)) !=
+	return lstSpecialEntryIDs.find(BinaryArray(lpEntryID, cbEntryID, true)) !=
 	       lstSpecialEntryIDs.end();
 }
 
 bool IMAP::IsSpecialFolder(ULONG cbEntryID, ENTRYID *lpEntryID,
     ULONG &folder_type) const
 {
-	auto iter = lstSpecialEntryIDs.find(BinaryArray(reinterpret_cast<BYTE *>(lpEntryID), cbEntryID, true));
+	auto iter = lstSpecialEntryIDs.find(BinaryArray(lpEntryID, cbEntryID, true));
 	if(iter == lstSpecialEntryIDs.cend())
 		return false;
 	folder_type = (*iter).second;

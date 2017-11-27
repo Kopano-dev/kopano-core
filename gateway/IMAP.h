@@ -61,7 +61,7 @@ class ECRestriction;
 class BinaryArray _kc_final : public SBinary {
 public:
 	BinaryArray() : SBinary() {}
-	BinaryArray(BYTE *lpData, ULONG cbData, bool b = false) :
+	BinaryArray(const void *lpData, ULONG cbData, bool b = false) :
 		SBinary{cbData, nullptr}, bcheap(b)
 	{
 		if (cbData == 0)
@@ -70,7 +70,7 @@ public:
 			lpb = new BYTE[cbData];
 			memcpy(lpb, lpData, cbData);
 		} else {
-			lpb = lpData;
+			lpb = static_cast<BYTE *>(const_cast<void *>(lpData));
 		}
 	}
 	BinaryArray(const BinaryArray &old) :
