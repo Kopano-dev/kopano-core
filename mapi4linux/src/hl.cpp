@@ -180,15 +180,6 @@ KTable KFolder::get_hierarchy_table(unsigned int flags)
 	return KTable(table);
 }
 
-KProp KFolder::get_prop(unsigned int tag)
-{
-	SPropValue *prop;
-	auto ret = HrGetOneProp(m_folder, tag, &prop);
-	if (ret != hrSuccess)
-		throw KMAPIError(ret);
-	return prop;
-}
-
 KMessage::KMessage(IMessage *message) :
 	m_message(message)
 {
@@ -220,15 +211,6 @@ KAttach KMessage::create_attach(LPCIID intf, unsigned int flags)
 	if (ret != hrSuccess)
 		throw KMAPIError(ret);
 	return KAttach(atm, num);
-}
-
-KProp KMessage::get_prop(unsigned int tag)
-{
-	SPropValue *prop;
-	int ret = HrGetOneProp(m_message, tag, &prop);
-	if (ret != hrSuccess)
-		throw KMAPIError(ret);
-	return KProp(prop);
 }
 
 HRESULT KMessage::save_changes(unsigned int flags)
@@ -306,15 +288,6 @@ KStore &KStore::operator=(KStore &&other)
 	std::swap(m_store, other.m_store);
 	std::swap(m_type, other.m_type);
 	return *this;
-}
-
-KProp KStore::get_prop(unsigned int tag)
-{
-	SPropValue *prop;
-	int ret = HrGetOneProp(m_store, tag, &prop);
-	if (ret != hrSuccess)
-		throw KMAPIError(ret);
-	return KProp(prop);
 }
 
 KStream::KStream(IStream *stream) :

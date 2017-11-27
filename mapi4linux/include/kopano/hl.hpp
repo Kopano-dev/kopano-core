@@ -92,7 +92,6 @@ class _kc_export KFolder _kc_final {
 	operator IMAPIFolder *(void) { return m_folder; }
 	KTable get_contents_table(unsigned int = 0);
 	KTable get_hierarchy_table(unsigned int = 0);
-	KProp get_prop(unsigned int);
 
 	protected:
 	IMAPIFolder *m_folder = nullptr;
@@ -109,7 +108,6 @@ class _kc_export KMessage _kc_final {
 	operator IMessage *(void) { return m_message; }
 
 	KAttach create_attach(LPCIID = NULL, unsigned int = 0);
-	KProp get_prop(unsigned int);
 	HRESULT save_changes(unsigned int = 0);
 	HRESULT set_read_flag(unsigned int = 0);
 
@@ -141,7 +139,6 @@ class _kc_export KStore _kc_final {
 	KStore &operator=(KStore &&);
 	IMsgStore *operator->(void) { return m_store; }
 	operator IMsgStore *(void) { return m_store; }
-	KProp get_prop(unsigned int);
 
 	protected:
 	IMsgStore *m_store;
