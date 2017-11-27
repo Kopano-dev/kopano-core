@@ -28,7 +28,6 @@
 #include <algorithm>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
-#include <kopano/hl.hpp>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapicode.h>
@@ -1554,7 +1553,7 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
     const std::vector<std::string> &args)
 {
 	HRESULT hr = hrSuccess;
-	KFolder lpStatusFolder;
+	object_ptr<IMAPIFolder> lpStatusFolder;
 	vector<string> lstStatusData;
 	string strData;
 	string strResponse;
@@ -1587,15 +1586,11 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 	strStatusData = strToUpper(strStatusData);
 	strIMAPFolder = strToUpper(strIMAPFolder);
 	object_ptr<IMAPIFolder> tmp_folder;
-	hr = HrFindFolder(strIMAPFolder, false, &~tmp_folder);
-
+	hr = HrFindFolder(strIMAPFolder, false, &~lpStatusFolder);
 	if(hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "STATUS error finding folder");
 		return MAPI_E_CALL_FAILED;
 	}
-
-	lpStatusFolder = tmp_folder.release();
-
 	if (!IsMailFolder(lpStatusFolder)) {
 		HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no mail folder");
 		return MAPI_E_CALL_FAILED;
@@ -3076,7 +3071,7 @@ bool IMAP::IsSpecialFolder(ULONG cbEntryID, ENTRYID *lpEntryID,
  */
 HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigned int *lpulUnseen, ULONG *lpulUIDValidity) {
 	HRESULT hr = hrSuccess;
-	object_ptr<IMAPIFolder> lpFolder;
+	object_ptr<IMAPIFolder> folder;
 	ULONG ulMailnr = 0;
 	ULONG ulMaxUID = 0;
 	ULONG ulRecent = 0;
@@ -3095,10 +3090,10 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 
 	if (strCurrentFolder.empty() || lpSession == nullptr)
 		return MAPI_E_CALL_FAILED;
-	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFolder);
+	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~folder);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpFolder->GetProps(sPropsFolderIDs, 0, &cValues, &~lpFolderIDs);
+	hr = folder->GetProps(sPropsFolderIDs, 0, &cValues, &~lpFolderIDs);
 	if (FAILED(hr))
 		return hr;
 
@@ -3116,20 +3111,16 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 		PR_LAST_VERB_EXECUTED}};
 	static constexpr const SizedSSortOrderSet(1, sortuid) =
 		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_ASCEND}}};
-	auto folder = KFolder(lpFolder.release());
-	auto table = KTable(nullptr);
-	try {
-		table = folder.get_contents_table(MAPI_DEFERRED_ERRORS);
-		hr = table->SetColumns(cols, TBL_BATCH);
-		if (hr != hrSuccess)
-			return kc_perror("K-2387", hr);
-		hr = table->SortTable(sortuid, TBL_BATCH);
-		if (hr != hrSuccess)
-			return kc_perror("K-2388", hr);
-	}
-	catch (const KMAPIError &e) {
-		return e.code();
-	}
+	object_ptr<IMAPITable> table;
+	hr = folder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~table);
+	if (hr != hrSuccess)
+		return kc_perror("K-2396", hr);
+	hr = table->SetColumns(cols, TBL_BATCH);
+	if (hr != hrSuccess)
+		return kc_perror("K-2387", hr);
+	hr = table->SortTable(sortuid, TBL_BATCH);
+	if (hr != hrSuccess)
+		return kc_perror("K-2388", hr);
     // Remember UIDs if needed
     if(!bInitialLoad)
 		for (const auto &mail : lstFolderMailEIDs)
@@ -3221,7 +3212,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
     if(bResetRecent && ulRecent) {
     	sPropMax.ulPropTag = PR_EC_IMAP_MAX_ID;
     	sPropMax.Value.ul = m_ulLastUid;
-    	HrSetOneProp(folder, &sPropMax);
+		HrSetOneProp(folder, &sPropMax);
     }
 	if (lpulUnseen)
 		*lpulUnseen = ulUnseen;
@@ -3268,7 +3259,7 @@ HRESULT IMAP::HrGetFolderPath(list<SFolder>::const_iterator lpFolder, const list
  */
 HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFolder>::const_iterator parent_folder)
 {
-	object_ptr<IMAPIFolder> mapi_folder;
+	object_ptr<IMAPIFolder> folder;
 	memory_ptr<SPropValue> sprop;
 	ULONG obj_type;
 	wstring in_folder_name;
@@ -3282,7 +3273,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 			lpLogger->Log(EC_LOGLEVEL_WARNING, "Public store is enabled in configuration, but Public Folders inside public store could not be found.");
 			return hrSuccess;
 		}
-		hr = lpPublicStore->OpenEntry(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), &IID_IMAPIFolder, 0, &obj_type, &~mapi_folder);
+		hr = lpPublicStore->OpenEntry(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), &IID_IMAPIFolder, 0, &obj_type, &~folder);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -3294,8 +3285,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 		HRESULT hr = HrGetOneProp(lpStore, PR_IPM_SUBTREE_ENTRYID, &~sprop);
 		if (hr != hrSuccess)
 			return hr;
-
-		hr = lpStore->OpenEntry(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), &IID_IMAPIFolder, 0, &obj_type, &~mapi_folder);
+		hr = lpStore->OpenEntry(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), &IID_IMAPIFolder, 0, &obj_type, &~folder);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -3319,18 +3309,23 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 		{1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
 
 	try {
-		KFolder folder = mapi_folder.release();
-		KTable table = folder.get_hierarchy_table(CONVENIENT_DEPTH);
-		auto hr = table->SetColumns(cols, TBL_BATCH);
+		object_ptr<IMAPITable> table;
+		auto hr = folder->GetHierarchyTable(CONVENIENT_DEPTH, &~table);
+		if (hr != hrSuccess)
+			return kc_perror("K-2394", hr);
+		hr = table->SetColumns(cols, TBL_BATCH);
 		if (hr != hrSuccess)
 			return kc_perror("K-2389", hr);
 		hr = table->SortTable(mapi_sort_criteria, TBL_BATCH);
 		if (hr != hrSuccess)
 			return kc_perror("K-2390", hr);
-		KRowSet rows = table.rows(-1, 0);
+		rowset_ptr rows;
+		hr = table->QueryRows(-1, 0, &~rows);
+		if (hr != hrSuccess)
+			return kc_perror("K-2395", hr);
 
-		for (unsigned int i = 0; i < rows.count(); ++i) {
-			if (rows[i][IMAPID].prop_type() != PT_LONG) {
+		for (unsigned int i = 0; i < rows.size(); ++i) {
+			if (rows[i].lpProps[IMAPID].ulPropTag != PR_EC_IMAP_ID) {
 				lpLogger->Log(EC_LOGLEVEL_FATAL, "Server does not support PR_EC_IMAP_ID. Please update the storage server.");
 				break;
 			}
@@ -3338,21 +3333,18 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 			try {
 				string container_class = "";
 				bool mailfolder = true;
-				wstring foldername = rows[i][NAME].wstr();
-				bool subfolders = rows[i][SUBFOLDERS].b();
-				try {
-					container_class = rows[i][CONTAINERCLASS].str();
-				}
-				catch (const KMAPIError &e) {
-					if(e.code() != MAPI_E_NOT_FOUND && e.code() != MAPI_E_INVALID_TYPE)
-						throw;
-				}
+				if (rows[i].lpProps[NAME].ulPropTag != PR_DISPLAY_NAME_W ||
+				    rows[i].lpProps[SUBFOLDERS].ulPropTag != PR_SUBFOLDERS ||
+				    rows[i].lpProps[EID].ulPropTag != PR_ENTRYID ||
+				    rows[i].lpProps[PEID].ulPropTag != PR_PARENT_ENTRYID)
+					continue;
+				std::wstring foldername = rows[i].lpProps[NAME].Value.lpszW;
+				bool subfolders = rows[i].lpProps[SUBFOLDERS].Value.b;
+				if (PROP_TYPE(rows[i].lpProps[CONTAINERCLASS].ulPropTag) == PT_STRING8)
+					container_class = strToUpper(rows[i].lpProps[CONTAINERCLASS].Value.lpszA);
 
 				while (foldername.find(IMAP_HIERARCHY_DELIMITER) != string::npos)
 					foldername.erase(foldername.find(IMAP_HIERARCHY_DELIMITER), 1);
-
-
-				container_class = strToUpper(container_class);
 
 				if (!container_class.empty() &&
 					container_class.compare(0, 3, "IPM") != 0 &&
@@ -3363,8 +3355,8 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 					mailfolder = false;
 				}
 
-				BinaryArray entry_id(rows[i][EID]->Value.bin);
-				const auto &parent_entry_id = rows[i][PEID]->Value.bin;
+				BinaryArray entry_id(rows[i].lpProps[EID].Value.bin);
+				const auto &parent_entry_id = rows[i].lpProps[PEID].Value.bin;
 				list<SFolder>::const_iterator tmp_parent_folder = parent_folder;
 				for (auto iter = folders.cbegin(); iter != folders.cend(); iter++) {
 					if (iter->sEntryID == parent_entry_id) {
