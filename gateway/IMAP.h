@@ -58,7 +58,6 @@ class ECRestriction;
 class BinaryArray _kc_final {
 public:
 	BinaryArray(void) = default;
-	BinaryArray(KCHL::KEntryId &entry_id) : lpb(reinterpret_cast<BYTE *>(entry_id.lpb())), cb(entry_id.cb()), bcheap(true) {}
 	BinaryArray(BYTE *lpData, ULONG cbData, bool bcheap = false)
 	{
 		this->bcheap = bcheap;
@@ -213,8 +212,10 @@ private:
 	HRESULT HrCmdSubscribe(const std::string &tag, const std::vector<std::string> &args, bool subscribe);
 	template<bool> HRESULT HrCmdList(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdList(const std::string &tag, const std::vector<std::string> &args, bool sub_only);
-	HRESULT get_uid_next(KCHL::KFolder &status_folder, const std::string &tag, ULONG &uid_next);
-	HRESULT get_recent(KCHL::KFolder &folder, const std::string &tag, ULONG &recent, const ULONG &messages);
+	HRESULT get_uid_next(IMAPIFolder *status_folder, const std::string &tag, ULONG &uid_next);
+	HRESULT get_uid_next2(IMAPIFolder *status_folder, ULONG &uid_next);
+	HRESULT get_recent(IMAPIFolder *folder, const std::string &tag, ULONG &recent, const ULONG &messages);
+	HRESULT get_recent2(IMAPIFolder *folder, ULONG &recent, const ULONG &messages);
 	HRESULT HrCmdStatus(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdAppend(const std::string &tag, const std::string &folder, const std::string &data, std::string flags = {}, const std::string &time = {});
 	HRESULT HrCmdClose(const std::string &tag);

@@ -75,7 +75,7 @@ COND_libkcrosie_la = libkcrosie.la
 COND_libkcrosie_ldd = libkcrosie.ldd
 endif
 lib_LTLIBRARIES = \
-	libkcutil.la libkcmapi.la libkcssl.la libmapi.la libkchl.la \
+	libkcutil.la libkcmapi.la libkcssl.la libmapi.la \
 	libkcfreebusy.la libkcsync.la libkcsoap.la libkcserver.la \
 	libkcicalmapi.la ${COND_libkcrosie_la} libkcinetmapi.la \
 	libkcarchiver.la libkcarchivercore.la
@@ -89,7 +89,7 @@ noinst_DATA = \
 	kopano-passwd.ldx kopano-server.ldx kopano-spooler.ldx \
 	kopano-stats.ldx \
 	libkcarchiver.ldd libkcarchivercore.ldd libkcclient.ldd \
-	libkccontacts.ldd libkcfreebusy.ldd libkchl.ldd libkcicalmapi.ldd \
+	libkccontacts.ldd libkcfreebusy.ldd libkcicalmapi.ldd \
 	libkcinetmapi.ldd libkcmapi.ldd ${COND_libkcrosie_ldd} \
 	libkcserver.ldd libkcssl.ldd libkcsync.ldd libkcutil.ldd libmapi.ldd
 # Undefined references
@@ -162,7 +162,7 @@ kopano_dagent_SOURCES = \
 	spooler/rules.cpp spooler/rules.h
 kopano_dagent_LDADD = \
 	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
-	libkchl.la libkcarchiver.la libkcarchivercore.la \
+	libkcarchiver.la libkcarchivercore.la \
 	${PROG_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 if ENABLE_PYTHON
 kopano_dagent_LDADD += libkcpyplug.la
@@ -187,7 +187,7 @@ kopano_gateway_SOURCES = \
 	gateway/POP3.cpp gateway/POP3.h
 kopano_gateway_LDADD = \
 	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
-	libkchl.la -lpthread \
+	-lpthread \
 	${PROG_LIBS} ${CRYPTO_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 
 
@@ -434,17 +434,6 @@ libkcfreebusy_la_LIBADD = \
 libkcfreebusy_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcfreebusy_la_DEPENDENCIES = ${default_sym}
-
-
-#
-# libkchl
-#
-libkchl_la_SOURCES = mapi4linux/src/hl.cpp
-libkchl_la_LIBADD = libmapi.la
-libkchl_la_SYFLAGS = -Wl,--version-script=mapi4linux/src/libkchl.sym
-libkchl_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0 \
-	${libkchl_la_SYFLAGS${NO_VSYM}}
-EXTRA_libkchl_la_DEPENDENCIES = mapi4linux/src/libkchl.sym
 
 
 #
@@ -915,8 +904,7 @@ dist_man_MANS = \
 #
 # build infrastructure
 #
-default.sym mapi4linux/src/libkchl.sym \
-provider/plugin.sym provider/provider.sym: ${top_builddir}/config.status
+default.sym provider/plugin.sym provider/provider.sym: ${top_builddir}/config.status
 
 include global.am
 

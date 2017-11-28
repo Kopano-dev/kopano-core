@@ -35,7 +35,6 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/charset/convert.h>
-#include <kopano/hl.hpp>
 #include <kopano/IECInterfaces.hpp>
 #include "PyMapiPlugin.h"
 
@@ -442,17 +441,22 @@ static bool proc_fwd_allowed(const std::vector<std::string> &wdomlist,
  * Drop an additional message into @inbox informing about the
  * unwillingness to process a forwarding rule.
  */
-static HRESULT kc_send_fwdabort_notice(KCHL::KStore &&store, const wchar_t *addr, const wchar_t *subject)
+static HRESULT kc_send_fwdabort_notice(IMsgStore *store, const wchar_t *addr, const wchar_t *subject)
 {
-	using namespace KCHL;
-	KMessage msg;
-	try {
-		KFolder inbox = store.open_entry(store.get_receive_folder(), nullptr, MAPI_MODIFY);
-		msg = inbox.create_message(nullptr, 0);
-	} catch (KCHL::KMAPIError &err) {
-		ec_log_warn("K-2382: create_message: 0x%08x %s", err.code(), err.what());
-		return err.code();
-	}
+	memory_ptr<ENTRYID> eid;
+	ULONG eid_size;
+	auto ret = store->GetReceiveFolder((LPTSTR)"IPM", 0, &eid_size, &~eid, nullptr);
+	if (ret != hrSuccess)
+		return kc_perror("K-2382", ret);
+	object_ptr<IMAPIFolder> inbox;
+	ret = store->OpenEntry(eid_size, eid, &iid_of(inbox), MAPI_MODIFY, nullptr, &~inbox);
+	if (ret != hrSuccess)
+		return kc_perror("K-2383", ret);
+	object_ptr<IMessage> msg;
+	ret = inbox->CreateMessage(nullptr, 0, &~msg);
+	if (ret != hrSuccess)
+		return kc_perror("K-2384", ret);
+
 	SPropValue prop[7];
 	size_t nprop = 0;
 	prop[nprop].ulPropTag = PR_SENDER_NAME_W;
