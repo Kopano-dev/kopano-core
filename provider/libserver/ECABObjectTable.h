@@ -48,8 +48,8 @@ public:
 	static ECRESULT Create(ECSession *lpSession, unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId, unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale, ECABObjectTable **lppTable);
 
 	//Overrides
-	ECRESULT GetColumnsAll(ECListInt* lplstProps);
-	ECRESULT Load();
+	virtual ECRESULT GetColumnsAll(ECListInt *props) override;
+	virtual ECRESULT Load() override;
 	static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, ECObjectTableList *, struct propTagArray *, const void *priv, struct rowSet **, bool table_data, bool table_limit);
 
 protected:
@@ -64,8 +64,8 @@ protected:
 	ECRESULT LoadContentsDistlist(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
 
 private:
-	virtual ECRESULT GetMVRowCount(std::list<unsigned int> ulObjIds, std::map<unsigned int, unsigned int> &lpulCount);
-	ECRESULT ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag);
+	virtual ECRESULT GetMVRowCount(std::list<unsigned int> obj_ids, std::map<unsigned int, unsigned int> &count) override;
+	virtual ECRESULT ReloadTableMVData(ECObjectTableList *rows, ECListInt *mvproptags) override;
 
 protected:
 	unsigned int m_ulUserManagementFlags;

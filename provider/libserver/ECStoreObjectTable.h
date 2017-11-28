@@ -55,10 +55,10 @@ protected:
 	virtual ~ECStoreObjectTable();
 public:
 	static ECRESULT Create(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags, const ECLocale &locale, ECStoreObjectTable **lppTable);
-	virtual ECRESULT Load();
+	virtual ECRESULT Load() override;
 
 	//Overrides
-	virtual ECRESULT GetColumnsAll(ECListInt* lplstProps);
+	virtual ECRESULT GetColumnsAll(ECListInt *props) override;
     
 	// Static database row functions, can be used externally aswell .. Obviously these are *not* threadsafe, make sure that
 	// you either lock the passed arguments or all arguments are from the local stack.
@@ -68,16 +68,15 @@ public:
 	static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, ECObjectTableList *, struct propTagArray *, const void *priv, struct rowSet **, bool cache_table_data, bool table_limit, bool sub_objects);
 
 protected:
-	virtual ECRESULT AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bInitialLoad, bool bOverride, struct restrictTable *lpOverride);
-	
+	virtual ECRESULT AddRowKey(ECObjectTableList *rows, unsigned int *loaded, unsigned int flags, bool first_load, bool override, struct restrictTable *override_tbl) override;
 	static ECRESULT QueryRowDataByColumn(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSesion, const std::multimap<unsigned int, unsigned int> &mapColumns, unsigned int ulFolderId, const std::map<sObjectTableKey, unsigned int> &mapObjIds, struct rowSet *lpRowSet);
 	static ECRESULT QueryRowDataByRow(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, const sObjectTableKey &sKey, unsigned int ulRowNum, std::multimap<unsigned int, unsigned int> &mapColumns, bool bTableLimit, struct rowSet *lpsRowSet);
 
 private:
 	static ECRESULT GetMVRowCountHelper(ECDatabase *db, std::string query, std::list<unsigned int> &ids, std::map<unsigned int, unsigned int> &count);
-	virtual ECRESULT GetMVRowCount(std::list<unsigned int> ids, std::map<unsigned int, unsigned int> &count);
-	virtual ECRESULT ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag);
-	virtual ECRESULT CheckPermissions(unsigned int ulObjId);
+	virtual ECRESULT GetMVRowCount(std::list<unsigned int> obj_ids, std::map<unsigned int, unsigned int> &count) override;
+	virtual ECRESULT ReloadTableMVData(ECObjectTableList *rows, ECListInt *mvproptags) override;
+	virtual ECRESULT CheckPermissions(unsigned int obj_id) override;
 
 	unsigned int ulPermission = 0;
 	bool fPermissionRead = false;
