@@ -1060,19 +1060,19 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 		goto exit;
 	}
 
-	if (IsSpecialFolder(folder)) {
+	hr = HrGetOneProp(folder, PR_ENTRYID, &~prop);
+	if (hr != hrSuccess) {
+		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error getting entryid");
+		goto exit;
+	}
+
+	if (IsSpecialFolder(prop->Value.bin.cb, reinterpret_cast<LPENTRYID>(prop->Value.bin.lpb))) {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE special folder may not be deleted");
 		goto exit;
 	}
 	hr = HrOpenParentFolder(folder, &~lpParentFolder);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error opening parent folder");
-		goto exit;
-	}
-
-	hr = HrGetOneProp(folder, PR_ENTRYID, &~prop);
-	if (hr != hrSuccess) {
-		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error getting entryid");
 		goto exit;
 	}
 
@@ -1173,7 +1173,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		goto exit;
 	}
 
-	if (IsSpecialFolder(lpMovFolder)) {
+	if (IsSpecialFolder(prop->Value.bin.cb, reinterpret_cast<LPENTRYID>(prop->Value.bin.lpb))) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME special folder may not be moved or renamed");
 		goto exit;
 	}
@@ -1305,18 +1305,18 @@ HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
 		return hr;
 	}
 
-	if (IsSpecialFolder(folder)) {
+	hr = HrGetOneProp(folder, PR_ENTRYID, &~prop);
+	if (hr != hrSuccess) {
+		HrResponse(RESP_TAGGED_OK, strTag, strAction + " error getting entryid");
+		return hr;
+	}
+
+	if (IsSpecialFolder(prop->Value.bin.cb, reinterpret_cast<LPENTRYID>(prop->Value.bin.lpb))) {
 		if (!bSubscribe)
 			HrResponse(RESP_TAGGED_NO, strTag, strAction + " cannot unsubscribe this special folder");
 		else
 			HrResponse(RESP_TAGGED_OK, strTag, strAction + " completed");
 		return hrSuccess;
-	}
-
-	hr = HrGetOneProp(folder, PR_ENTRYID, &~prop);
-	if (hr != hrSuccess) {
-		HrResponse(RESP_TAGGED_OK, strTag, strAction + " error getting entryid");
-		return hr;
 	}
 
 	hr = ChangeSubscribeList(bSubscribe, prop->Value.bin.cb, reinterpret_cast<LPENTRYID>(prop->Value.bin.lpb));
@@ -6074,21 +6074,6 @@ HRESULT IMAP::HrFindFolderPartial(const wstring& strFolder, IMAPIFolder **lppFol
     }
 	*lppFolder = lpFolder.release();
 	return hrSuccess;
-}
-
-/** 
- * Special MAPI Folders are blocked to delete, rename or unsubscribe from.
- * 
- * @param[in] lpFolder MAPI Folder to check
- * 
- * @return Special (true) or not (false)
- */
-bool IMAP::IsSpecialFolder(IMAPIFolder *lpFolder) const
-{
-	memory_ptr<SPropValue> lpProp;
-	if (HrGetOneProp(lpFolder, PR_ENTRYID, &~lpProp) != hrSuccess)
-		return false;
-	return IsSpecialFolder(lpProp->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpProp->Value.bin.lpb));
 }
 
 /** 
