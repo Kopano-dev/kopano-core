@@ -43,6 +43,7 @@ static void mpt_stat_dump(int s = 0)
 	if (z == 0)
 		return;
 	decltype(mpt_stat_list.front().start - mpt_stat_list.front().start) dt;
+	dt = dt.zero();
 	for (const auto &i : mpt_stat_list)
 		dt += i.stop - i.start;
 	if (dt.count() == 0)
