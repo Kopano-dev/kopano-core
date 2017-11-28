@@ -289,7 +289,6 @@ private:
 
 	HRESULT HrPrintQuotaRoot(const std::string &tag);
 	HRESULT HrFindFolder(const std::wstring &folder, bool readonly, IMAPIFolder **);
-	HRESULT HrFindFolderEntryID(const std::wstring &folder, ULONG *eid_size, LPENTRYID *eid);
 	HRESULT HrFindFolderPartial(const std::wstring &folder, IMAPIFolder **, std::wstring *notfound);
 	HRESULT HrFindSubFolder(IMAPIFolder *lpFolder, const std::wstring &folder, ULONG *eid_size, LPENTRYID *eid);
 	bool IsSpecialFolder(IMAPIFolder *) const;
