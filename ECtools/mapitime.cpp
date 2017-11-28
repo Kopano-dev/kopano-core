@@ -119,8 +119,6 @@ static int mpt_setup_tick(void)
 
 static int mpt_main_init(void)
 {
-	if (mpt_setup_tick() < 0)
-		return EXIT_FAILURE;
 	struct mpt_stat_entry dp;
 	while (mpt_repeat-- > 0) {
 		dp.start = clk::now();
@@ -240,9 +238,6 @@ static int mpt_runner(mpt_job &&fct)
 		perror("MAPIInitialize");
 		return EXIT_FAILURE;
 	}
-	ret = mpt_setup_tick();
-	if (ret < 0)
-		return EXIT_FAILURE;
 	struct mpt_stat_entry dp;
 	while (mpt_repeat-- > 0) {
 		dp.start = clk::now();
@@ -261,10 +256,6 @@ static int mpt_main_pagetime(int argc, char **argv)
 		fprintf(stderr, "Need URL to test\n");
 		return EXIT_FAILURE;
 	}
-	int err = mpt_setup_tick();
-	if (err < 0)
-		return EXIT_FAILURE;
-
 #ifndef HAVE_CURL_CURL_H
 	fprintf(stderr, "Not built with curl support\n");
 	return EXIT_FAILURE;
@@ -293,10 +284,6 @@ static int mpt_main_exectime(int argc, char **argv)
 	}
 	--argc;
 	++argv; // skip "exectime"
-	int err = mpt_setup_tick();
-	if (err < 0)
-		return EXIT_FAILURE;
-
 	struct mpt_stat_entry dp;
 	while (mpt_repeat-- > 0) {
 		pid_t pid;
@@ -319,9 +306,6 @@ static int mpt_main_cast(bool which)
 		perror("MAPIInitialize");
 		return EXIT_FAILURE;
 	}
-	int err = mpt_setup_tick();
-	if (err < 0)
-		return EXIT_FAILURE;
 	object_ptr<IProfAdmin> profadm;
 	ret = MAPIAdminProfiles(0, &~profadm);
 	if (ret != hrSuccess)
@@ -358,10 +342,6 @@ static int mpt_main_cast(bool which)
 static int mpt_main_malloc(void)
 {
 	struct mpt_stat_entry dp;
-	int err = mpt_setup_tick();
-	if (err < 0)
-		return EXIT_FAILURE;
-
 	while (mpt_repeat-- > 0) {
 		dp.start = clk::now();
 		memory_ptr<MAPIUID> base;
@@ -383,10 +363,6 @@ static int mpt_main_malloc(void)
 
 static int mpt_main_bin2hex()
 {
-	int err = mpt_setup_tick();
-	if (err < 0)
-		return EXIT_FAILURE;
-
 	struct mpt_stat_entry dp;
 	static constexpr const size_t bufsize = 1048576;
 	std::unique_ptr<char[]> temp(new char[bufsize]);
@@ -472,25 +448,28 @@ int main(int argc, char **argv)
 		mpt_usage();
 		return EXIT_FAILURE;
 	}
+	if (mpt_setup_tick() < 0)
+		return EXIT_FAILURE;
+	ret = EXIT_FAILURE;
 	if (strcmp(argv[1], "init") == 0 || strcmp(argv[1], "i") == 0)
-		return mpt_main_init();
+		ret = mpt_main_init();
 	else if (strcmp(argv[1], "open1") == 0)
-		return mpt_runner(mpt_open1());
+		ret = mpt_runner(mpt_open1());
 	else if (strcmp(argv[1], "open2") == 0)
-		return mpt_runner(mpt_open2());
+		ret = mpt_runner(mpt_open2());
 	else if (strcmp(argv[1], "exectime") == 0)
-		return mpt_main_exectime(argc - 1, argv + 1);
+		ret = mpt_main_exectime(argc - 1, argv + 1);
 	else if (strcmp(argv[1], "pagetime") == 0)
-		return mpt_main_pagetime(argc - 1, argv + 1);
+		ret = mpt_main_pagetime(argc - 1, argv + 1);
 	else if (strcmp(argv[1], "qicast") == 0)
-		return mpt_main_cast(0);
+		ret = mpt_main_cast(0);
 	else if (strcmp(argv[1], "dycast") == 0)
-		return mpt_main_cast(1);
+		ret = mpt_main_cast(1);
 	else if (strcmp(argv[1], "malloc") == 0)
-		return mpt_main_malloc();
+		ret = mpt_main_malloc();
 	else if (strcmp(argv[1], "bin2hex") == 0)
-		return mpt_main_bin2hex();
-
-	mpt_usage();
-	return EXIT_FAILURE;
+		ret = mpt_main_bin2hex();
+	else
+		mpt_usage();
+	return ret;
 }
