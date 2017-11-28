@@ -1465,66 +1465,60 @@ IMAP::HrCmdList(const std::string &tag, const std::vector<std::string> &args)
 	return HrCmdList(tag, args, sub_only);
 }
 
-HRESULT IMAP::get_uid_next2(IMAPIFolder *folder, ULONG &uid_next)
+HRESULT IMAP::get_recent_uidnext2(IMAPIFolder *folder, ULONG &recent, ULONG &uidnext, const ULONG &messages)
 {
-	static constexpr const SizedSPropTagArray(1, cols) = {1, {PR_EC_IMAP_ID}};
 	static constexpr const SizedSSortOrderSet(1, sortuid) =
 		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_DESCEND}}};
+	static constexpr const SizedSPropTagArray(1, cols) = {1, {PR_EC_IMAP_ID}};
+	memory_ptr<SPropValue> max_id;
+	auto ret = HrGetOneProp(folder, PR_EC_IMAP_MAX_ID, &~max_id);
+	if (ret != hrSuccess && ret != MAPI_E_NOT_FOUND)
+		return kc_perror("K-2390", ret);
+
 	object_ptr<IMAPITable> table;
-	auto ret = folder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~table);
+	ret = folder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~table);
 	if (ret != hrSuccess)
-		return kc_perror("K-2387", ret);
+		return kc_perror("K-2391", ret);
 	ret = table->SetColumns(cols, TBL_BATCH);
 	if (ret != hrSuccess)
 		return kc_perror("K-2385", ret);
 	ret = table->SortTable(sortuid, TBL_BATCH);
 	if (ret != hrSuccess)
 		return kc_perror("K-2386", ret);
+
+	/* Handle recent */
+	if (max_id == nullptr) {
+		recent = messages;
+	} else {
+		ret = ECPropertyRestriction(RELOP_GT, PR_EC_IMAP_ID, max_id, ECRestriction::Cheap)
+			.RestrictTable(table, TBL_BATCH);
+		if (ret != hrSuccess)
+			return kc_perror("K-2392", ret);
+		ret = table->GetRowCount(0, &recent);
+		if (ret != hrSuccess)
+			return kc_perror("K-2393", ret);
+	}
+
+	/* Handle uidnext */
 	rowset_ptr rowset;
 	ret = table->QueryRows(1, 0, &~rowset);
 	if (ret != hrSuccess)
 		return kc_perror("K-2388", ret);
-	uid_next = rowset->cRows == 0 ? 1 : rowset->aRow[0].lpProps[0].Value.ul + 1;
+
+	if (rowset->cRows > 0)
+		uidnext = rowset->aRow[0].lpProps[0].Value.ul + 1;
+	else if (max_id)
+		uidnext = max_id->Value.ul + 1;
+	else
+		uidnext = 1;
+
 	return hrSuccess;
 }
 
-HRESULT IMAP::get_uid_next(IMAPIFolder *folder, const std::string &tag,
-    ULONG &uid_next)
+HRESULT IMAP::get_recent_uidnext(IMAPIFolder *folder, const std::string &tag,
+    ULONG &recent, ULONG &uidnext, const ULONG &messages)
 {
-	auto ret = get_uid_next2(folder, uid_next);
-	if (ret != hrSuccess)
-		HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
-	return ret;
-}
-
-HRESULT IMAP::get_recent2(IMAPIFolder *folder, ULONG &recent, const ULONG &messages)
-{
-	memory_ptr<SPropValue> max_id;
-	auto ret = HrGetOneProp(folder, PR_EC_IMAP_MAX_ID, &~max_id);
-	if (ret != hrSuccess && ret != MAPI_E_NOT_FOUND)
-		return kc_perror("K-2390", ret);
-	if (max_id == nullptr) {
-		recent = messages;
-		return hrSuccess;
-	}
-	object_ptr<IMAPITable> table;
-	ret = folder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~table);
-	if (ret != hrSuccess)
-		return kc_perror("K-2391", ret);
-	ret = ECPropertyRestriction(RELOP_GT, PR_EC_IMAP_ID, max_id, ECRestriction::Cheap)
-	      .RestrictTable(table, TBL_BATCH);
-	if (ret != hrSuccess)
-		return kc_perror("K-2392", ret);
-	ret = table->GetRowCount(0, &recent);
-	if (ret != hrSuccess)
-		return kc_perror("K-2393", ret);
-	return hrSuccess;
-}
-
-HRESULT IMAP::get_recent(IMAPIFolder *folder, const std::string &tag,
-    ULONG &recent, const ULONG &messages)
-{
-	auto ret = get_recent2(folder, recent, messages);
+	auto ret = get_recent_uidnext2(folder, recent, uidnext, messages);
 	if (ret != hrSuccess)
 		HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
 	return ret;
@@ -1619,6 +1613,16 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 
 	HrSplitInput(strStatusData, lstStatusData);
 
+	auto comp = [](const std::string &elem) {
+		return elem.compare("UIDNEXT") == 0 || elem.compare("RECENT") == 0;
+	};
+	auto iter = std::find_if(lstStatusData.cbegin(), lstStatusData.cend(), comp);
+	if(iter != lstStatusData.cend()) {
+		hr = get_recent_uidnext(lpStatusFolder, strTag, ulRecent, ulUIDNext, ulMessages);
+		if(hr != hrSuccess)
+			return hr;
+	}
+
 	// loop statusdata
 	cStatusData = lstStatusData.size();
 	strResponse = "STATUS \"";
@@ -1633,15 +1637,9 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 			snprintf(szBuffer, 10, "%u", ulMessages);
 			strResponse += szBuffer;
 		} else if (strData.compare("RECENT") == 0) {
-			hr = get_recent(lpStatusFolder, strTag, ulRecent, ulMessages);
-			if (hr != hrSuccess)
-				return hr;
 			snprintf(szBuffer, 10, "%u", ulRecent);
 			strResponse += szBuffer;
 		} else if (strData.compare("UIDNEXT") == 0) {
-			hr = get_uid_next(lpStatusFolder, strTag, ulUIDNext);
-			if (hr != hrSuccess)
-				return hr;
 			snprintf(szBuffer, 10, "%u", ulUIDNext);
 			strResponse += szBuffer;
 		} else if (strData.compare("UIDVALIDITY") == 0) {
