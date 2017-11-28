@@ -129,7 +129,8 @@ exit:
 	return hr;
 }
 
-HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG ulFlags, ULONG ulSyncId)
+HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId,
+    const ENTRYID *lpEntryId, ULONG ulFlags, ULONG ulSyncId)
 {
 	ECRESULT	er = erSuccess;
 	HRESULT		hr = hrSuccess;
@@ -371,7 +372,8 @@ exit:
 	return hr;
 }
 
-HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, ULONG *lpulMessageStatus)
+HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, ULONG ulFlags, ULONG *lpulMessageStatus)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
@@ -407,7 +409,9 @@ exit:
 	return hr;
 }
 
-HRESULT WSMAPIFolderOps::HrSetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulNewStatus, ULONG ulNewStatusMask, ULONG ulSyncId, ULONG *lpulOldStatus)
+HRESULT WSMAPIFolderOps::HrSetMessageStatus(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, ULONG ulNewStatus, ULONG ulNewStatusMask,
+    ULONG ulSyncId, ULONG *lpulOldStatus)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;

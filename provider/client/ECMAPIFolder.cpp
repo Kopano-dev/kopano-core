@@ -550,7 +550,9 @@ HRESULT ECMAPIFolder::DeleteMessages(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPM
 	return this->GetMsgStore()->lpTransport->HrDeleteObjects(ulFlags, lpMsgList, 0);
 }
 
-HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType, LPTSTR lpszFolderName, LPTSTR lpszFolderComment, LPCIID lpInterface, ULONG ulFlags, LPMAPIFOLDER *lppFolder)
+HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
+    const TCHAR *lpszFolderName, const TCHAR *lpszFolderComment,
+    const IID *lpInterface, ULONG ulFlags, IMAPIFolder **lppFolder)
 {
 	HRESULT			hr = hrSuccess;
 	ULONG			cbEntryId = 0;
@@ -628,9 +630,10 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 	return hr;
 }
 
-HRESULT ECMAPIFolder::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
+HRESULT ECMAPIFolder::DeleteFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ULONG ulUIParam, IMAPIProgress *, ULONG ulFlags)
 {
-	if (!ValidateZEntryId(cbEntryID, reinterpret_cast<LPBYTE>(lpEntryID), MAPI_FOLDER))
+	if (!ValidateZEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), MAPI_FOLDER))
 		return MAPI_E_INVALID_ENTRYID;
 	if (lpFolderOps == NULL)
 		return MAPI_E_NO_SUPPORT;
@@ -702,9 +705,10 @@ exit:
 	return hr;
 }
 
-HRESULT ECMAPIFolder::GetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, ULONG *lpulMessageStatus)
+HRESULT ECMAPIFolder::GetMessageStatus(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, ULONG ulFlags, ULONG *lpulMessageStatus)
 {
-	if (lpEntryID == NULL || !IsKopanoEntryId(cbEntryID, reinterpret_cast<LPBYTE>(lpEntryID)))
+	if (lpEntryID == nullptr || !IsKopanoEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID)))
 		return MAPI_E_INVALID_ENTRYID;
 	if (lpulMessageStatus == NULL)
 		return MAPI_E_INVALID_OBJECT;
@@ -713,9 +717,10 @@ HRESULT ECMAPIFolder::GetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULO
 	return lpFolderOps->HrGetMessageStatus(cbEntryID, lpEntryID, ulFlags, lpulMessageStatus);
 }
 
-HRESULT ECMAPIFolder::SetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulNewStatus, ULONG ulNewStatusMask, ULONG *lpulOldStatus)
+HRESULT ECMAPIFolder::SetMessageStatus(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ULONG ulNewStatus, ULONG ulNewStatusMask, ULONG *lpulOldStatus)
 {
-	if (lpEntryID == NULL || !IsKopanoEntryId(cbEntryID, reinterpret_cast<LPBYTE>(lpEntryID)))
+	if (lpEntryID == nullptr || !IsKopanoEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID)))
 		return MAPI_E_INVALID_ENTRYID;
 	if (lpFolderOps == NULL)
 		return MAPI_E_NO_SUPPORT;

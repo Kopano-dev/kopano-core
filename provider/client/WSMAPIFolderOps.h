@@ -50,7 +50,7 @@ public:
 	virtual HRESULT HrCreateFolder(ULONG fl_type, const utf8string &name, const utf8string &comment, BOOL fOpenIfExists, ULONG sync_id, const SBinary *srckey, ULONG neweid_size, ENTRYID *neweid, ULONG *eid_size, ENTRYID **eid);
 
 	// Completely remove a folder, the messages in it, the folders in it or any combination
-	virtual HRESULT HrDeleteFolder(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG ulFlags, ULONG ulSyncId);
+	virtual HRESULT HrDeleteFolder(ULONG eid_size, const ENTRYID *, ULONG flags, ULONG sync_id);
 
 	// Empty folder (ie delete all folders and messages in folder)
 	virtual HRESULT HrEmptyFolder(ULONG ulFlags, ULONG ulSyncId);
@@ -69,8 +69,8 @@ public:
 	virtual HRESULT HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest, LPENTRYID lpEntryDest, ULONG ulFlags, ULONG ulSyncId);
 	
 	// Message status
-	virtual HRESULT HrGetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, ULONG *lpulMessageStatus);
-	virtual HRESULT HrSetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulNewStatus, ULONG ulNewStatusMask, ULONG ulSyncId, ULONG *lpulOldStatus);
+	virtual HRESULT HrGetMessageStatus(ULONG eid_size, const ENTRYID *, ULONG flags, ULONG *status);
+	virtual HRESULT HrSetMessageStatus(ULONG eid_size, const ENTRYID *, ULONG new_status, ULONG stmask, ULONG sync_id, ULONG *old_status);
 	
 	// Streaming Support
 	virtual HRESULT HrGetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue *lppPropPCL, LPSPropValue *lppPropCK);

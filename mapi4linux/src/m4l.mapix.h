@@ -132,7 +132,7 @@ public:
 	M4LMAPISession(const TCHAR *profname, M4LMsgServiceAdmin *);
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, LPMDB *lppMDB);
+	virtual HRESULT OpenMsgStore(ULONG_PTR ui_param, ULONG eid_size, const ENTRYID *, const IID *intf, ULONG flags, IMsgStore **) override;
 	virtual HRESULT OpenAddressBook(ULONG_PTR ulUIParam, LPCIID lpInterface, ULONG ulFlags, LPADRBOOK *lppAdrBook);
 	virtual HRESULT OpenProfileSection(const MAPIUID *uid, const IID *intf, ULONG flags, IProfSect **);
 	virtual HRESULT GetStatusTable(ULONG ulFlags, LPMAPITABLE *lppTable);
