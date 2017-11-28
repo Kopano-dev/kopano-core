@@ -157,26 +157,34 @@ def human_to_bytes(s):
         prefix[s] = 1 << (i + 1) * 10
     return int(num * prefix[letter])
 
-# XXX check doc for exact format, check php version
-def _get_timezone(date, tz_data):
-    if tz_data is None:
-        return 0
-
-    timezone, _, timezonedst, _, dstendmonth, dstendweek, dstendhour, _, _, _, dststartmonth, dststartweek, dststarthour, _, _ = struct.unpack('<lllllHHllHlHHlH', tz_data)
-
+def _in_dst(date, dststartmonth, dststartweek, dststarthour, dstendmonth, dstendweek, dstendhour):
     dststart = datetime.datetime(date.year, dststartmonth, 1) + \
         datetime.timedelta(seconds=dststartweek*7*24*60*60 + dststarthour*60*60)
 
     dstend = datetime.datetime(date.year, dstendmonth, 1) + \
         datetime.timedelta(seconds=dstendweek*7*24*60*60 + dstendhour*60*60)
 
-    dst = False
     if dststart <= dstend:
         if dststart < date < dstend:
-            dst = True
+            return True
     else:
         if data < dstend or data > dststart:
-            dst = True
+            return True
+
+# XXX check doc for exact format, check php version
+def _get_timezone(date, tz_data, align_dst=False):
+    if tz_data is None:
+        return 0
+
+    timezone, _, timezonedst, _, dstendmonth, dstendweek, dstendhour, _, _, _, dststartmonth, dststartweek, dststarthour, _, _ = struct.unpack('<lllllHHllHlHHlH', tz_data)
+
+    dst = _in_dst(date, dststartmonth, dststartweek, dststarthour, dstendmonth, dstendweek, dstendhour)
+
+    # TODO use DST-aware datetimes?
+    if align_dst and not _in_dst(datetime.datetime.now(),
+       dststartmonth, dststartweek, dststarthour,
+       dstendmonth, dstendweek, dstendhour):
+        dst = not dst
 
     if dst:
         return timezone + timezonedst
@@ -186,8 +194,8 @@ def _get_timezone(date, tz_data):
 def _from_gmt(date, tz_data):
     return date - datetime.timedelta(minutes=_get_timezone(date, tz_data))
 
-def _to_gmt(date, tz_data):
-    return date + datetime.timedelta(minutes=_get_timezone(date, tz_data))
+def _to_gmt(date, tz_data, align_dst=False):
+    return date + datetime.timedelta(minutes=_get_timezone(date, tz_data, align_dst=align_dst))
 
 def arg_objects(arg, supported_classes, method_name):
     if isinstance(arg, supported_classes):

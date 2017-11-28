@@ -776,7 +776,7 @@ class Recurrence(object):
             else:
                 minutes = self.endtime_offset - self.starttime_offset
 
-            d = _utils._to_gmt(d, tz)
+            d = _utils._to_gmt(d, tz, align_dst=True)
 
             occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes), subject, location)
             if (not start or occ.end > start) and (not end or occ.start < end):
