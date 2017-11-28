@@ -38,6 +38,7 @@ struct sSQLDatabase_t {
 	const char *lpSQL;
 };
 
+class ECConfig;
 class KDatabase;
 
 class _kc_export DB_RESULT _kc_final {
