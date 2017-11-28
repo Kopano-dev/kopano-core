@@ -2388,8 +2388,8 @@ LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
 
 		switch (lpNotif[i].info.tab.ulTableEvent) {
 		case TABLE_ROW_ADDED:
-			sMail.sEntryID = BinaryArray(lpNotif[i].info.tab.row.lpProps[EID].Value.bin);
-			sMail.sInstanceKey = BinaryArray(lpNotif[i].info.tab.propIndex.Value.bin);
+			sMail.sEntryID = lpNotif[i].info.tab.row.lpProps[EID].Value.bin;
+			sMail.sInstanceKey = lpNotif[i].info.tab.propIndex.Value.bin;
 			sMail.bRecent = true;
 
 			if (lpNotif[i].info.tab.row.lpProps[IMAPID].ulPropTag == PR_EC_IMAP_ID)
@@ -3006,7 +3006,7 @@ HRESULT IMAP::HrMakeSpecialsList() {
 		return hr;
 	for (ULONG i = 0; i < cValues; ++i)
 		if (PROP_TYPE(lpPropArrayStore[i].ulPropTag) == PT_BINARY)
-			lstSpecialEntryIDs.emplace(BinaryArray(lpPropArrayStore[i].Value.bin.lpb, lpPropArrayStore[i].Value.bin.cb), lpPropArrayStore[i].ulPropTag);
+			lstSpecialEntryIDs.emplace(BinaryArray(lpPropArrayStore[i].Value.bin), lpPropArrayStore[i].ulPropTag);
 	hr = lpStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryID, &~lpEntryID, nullptr);
 	if (hr != hrSuccess)
 		return hr;
@@ -3021,15 +3021,15 @@ HRESULT IMAP::HrMakeSpecialsList() {
 		return hr;
 	for (ULONG i = 0; i < cValues; ++i)
 		if (PROP_TYPE(lpPropArrayInbox[i].ulPropTag) == PT_BINARY)
-			lstSpecialEntryIDs.emplace(BinaryArray(lpPropArrayInbox[i].Value.bin.lpb, lpPropArrayInbox[i].Value.bin.cb), lpPropArrayInbox[i].ulPropTag);
+			lstSpecialEntryIDs.emplace(BinaryArray(lpPropArrayInbox[i].Value.bin), lpPropArrayInbox[i].ulPropTag);
 
 	if (HrGetOneProp(lpInbox, PR_ADDITIONAL_REN_ENTRYIDS, &~lpPropVal) == hrSuccess &&
 	    lpPropVal->Value.MVbin.cValues >= 5 && lpPropVal->Value.MVbin.lpbin[4].cb != 0)
-		lstSpecialEntryIDs.emplace(BinaryArray(lpPropVal->Value.MVbin.lpbin[4].lpb, lpPropVal->Value.MVbin.lpbin[4].cb), PR_IPM_FAKEJUNK_ENTRYID);
+		lstSpecialEntryIDs.emplace(BinaryArray(lpPropVal->Value.MVbin.lpbin[4]), PR_IPM_FAKEJUNK_ENTRYID);
 	if(!lpPublicStore)
 		return hrSuccess;
 	if (HrGetOneProp(lpPublicStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~lpPropVal) == hrSuccess)
-		lstSpecialEntryIDs.emplace(BinaryArray(lpPropVal->Value.bin.lpb, lpPropVal->Value.bin.cb), 0);
+		lstSpecialEntryIDs.emplace(BinaryArray(lpPropVal->Value.bin), 0);
 	return hrSuccess;
 }
 
@@ -3149,8 +3149,8 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
             auto iterUID = mapUIDs.find(lpRows->aRow[ulMailnr].lpProps[IMAPID].Value.ul);
 		    if(iterUID == mapUIDs.end()) {
 		        // There is a new message
-                sMail.sEntryID = BinaryArray(lpRows->aRow[ulMailnr].lpProps[EID].Value.bin);
-                sMail.sInstanceKey = BinaryArray(lpRows->aRow[ulMailnr].lpProps[IKEY].Value.bin);
+                sMail.sEntryID = lpRows->aRow[ulMailnr].lpProps[EID].Value.bin;
+                sMail.sInstanceKey = lpRows->aRow[ulMailnr].lpProps[IKEY].Value.bin;
                 sMail.ulUid = lpRows->aRow[ulMailnr].lpProps[IMAPID].Value.ul;
 
                 // Mark as recent if the message has a UID higher than the last highest read UID
@@ -3565,7 +3565,8 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
             if (lpRows != nullptr)
 				// use nRow to start checking where we left off
                 for (unsigned int i = nRow + 1; i < lpRows->cRows; ++i)
-                    if(lpRows->aRow[i].lpProps[0].ulPropTag == PR_INSTANCE_KEY && BinaryArray(lpRows->aRow[i].lpProps[0].Value.bin) == BinaryArray(sPropVal.Value.bin)) {
+					if (lpRows->aRow[i].lpProps[0].ulPropTag == PR_INSTANCE_KEY &&
+					    lpRows->aRow[i].lpProps[0].Value.bin == sPropVal.Value.bin) {
                         lpRow = &lpRows->aRow[i];
 						nRow = i;
 						break;
