@@ -356,23 +356,22 @@ struct ECsSortKeyKey {
 	unsigned int	ulPropTag;
 };
 
-inline unsigned int IPRSHash(const ECsIndexProp &_Keyval1) noexcept
-{
-	unsigned int b = 378551, a = 63689, hash = 0;
-	for (std::size_t i = 0; i < _Keyval1.cbData; ++i) {
-		hash = hash * a + _Keyval1.lpData[i];
-		a *= b;
-	}
-	return hash;
-}
-
 } /* namespace KC */
 
 namespace std {
 	// hash function for type ECsIndexProp
 	template<> struct hash<KC::ECsIndexProp> {
 		public:
-		size_t operator()(const KC::ECsIndexProp &value) const noexcept { return KC::IPRSHash(value); }
+		size_t operator()(const KC::ECsIndexProp &value) const noexcept
+		{
+			/* Robert Sedgewick string hash function */
+			unsigned int a = 63689, b = 378551, hash = 0;
+			for (size_t i = 0; i < value.cbData; ++i) {
+				hash = hash * a + value.lpData[i];
+				a *= b;
+			}
+			return hash;
+		}
 	};
 
 	// hash function for type ECsIndexObject
