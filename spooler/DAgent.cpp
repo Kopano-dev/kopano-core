@@ -535,7 +535,6 @@ static void SaveRawMessage(FILE *fp, const char *lpRecipient)
 	time_t now = time(NULL);
 	gmtime_safe(&now, &tmResult);
 
-	//  @todo fix windows path!
 	if (strFileName.empty()) {
 		 ec_log_crit("Unable to save raw message. Wrong configuration: field \"log_raw_message_path\" is empty.");
 		 return;

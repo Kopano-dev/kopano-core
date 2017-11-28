@@ -68,15 +68,6 @@ static HRESULT GetMailboxDataPerServer(const char *lpszPath, const char *lpSSLKe
 static HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath, DataCollector *lpCollector);
 static HRESULT UpdateServerList(IABContainer *lpContainer, std::set<servername> &listServers);
 
-class UserCountCollector _kc_final : public DataCollector {
-public:
-	virtual HRESULT CollectData(LPMAPITABLE store_table) _kc_override;
-	unsigned int result() const;
-
-private:
-	unsigned int m_ulUserCount = 0;
-};
-
 template <typename string_type, ULONG prAccount>
 class UserListCollector _kc_final : public DataCollector {
 public:
@@ -119,20 +110,6 @@ HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRest
 	).CreateMAPIRestriction(lppRestriction, ECRestriction::Full);
  exitpm:
 	return hr;
-}
-
-HRESULT UserCountCollector::CollectData(LPMAPITABLE lpStoreTable) {
-	ULONG ulCount = 0;
-	HRESULT hr = lpStoreTable->GetRowCount(0, &ulCount);
-	if (hr != hrSuccess)
-		return hr;
-
-	m_ulUserCount += ulCount;
-	return hrSuccess;
-}
-
-inline unsigned int UserCountCollector::result() const {
-	return m_ulUserCount;
 }
 
 template<typename string_type, ULONG prAccount>

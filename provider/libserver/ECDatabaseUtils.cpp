@@ -692,27 +692,6 @@ bool CompareDBPropTag(unsigned int ulPropTag1, unsigned int ulPropTag2)
 	return NormalizeDBPropTag(ulPropTag1) == NormalizeDBPropTag(ulPropTag2);
 }
 
-ECRESULT GetDatabaseSettingAsInteger(ECDatabase *lpDatabase, const std::string &strSettings, unsigned int *lpulResult)
-{
-	DB_RESULT lpDBResult;
-
-	std::string strQuery = "SELECT `value` FROM settings WHERE `name` = '" + lpDatabase->Escape(strSettings) + "' LIMIT 1";
-	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if(er != erSuccess)
-		return er;
-	auto lpDBRow = lpDBResult.fetch_row();
-	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
-		return KCERR_NOT_FOUND;
-	*lpulResult = atoui(lpDBRow[0]);
-	return erSuccess;
-}
-
-ECRESULT SetDatabaseSetting(ECDatabase *lpDatabase, const std::string &strSettings, unsigned int ulValue)
-{
-	std::string strQuery = "REPLACE INTO settings (`name`, `value`) VALUES('" + lpDatabase->Escape(strSettings) + "', '" + stringify(ulValue) + "')";
-	return lpDatabase->DoUpdate(strQuery);
-}
-
 SuppressLockErrorLogging::SuppressLockErrorLogging(ECDatabase *lpDatabase)
 : m_lpDatabase(lpDatabase)
 , m_bResetValue(lpDatabase ? lpDatabase->SuppressLockErrorLogging(true) : false)
