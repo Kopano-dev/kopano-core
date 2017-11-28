@@ -295,7 +295,6 @@ private:
 	bool IsSpecialFolder(ULONG eid_size, ENTRYID *, ULONG &folder_type) const;
 	bool IsMailFolder(IMAPIFolder *) const;
 	bool IsSentItemFolder(IMAPIFolder *) const;
-	HRESULT HrOpenParentFolder(ULONG cbEntryID, LPENTRYID lpEntryID, IMAPIFolder **lppFolder);
 	HRESULT HrOpenParentFolder(IMAPIFolder *lpFolder, IMAPIFolder **lppFolder);
 	HRESULT HrGetFolderList(std::list<SFolder> &);
 

@@ -6111,29 +6111,6 @@ bool IMAP::IsSentItemFolder(IMAPIFolder *lpFolder) const
 }
 
 /** 
- * Return the parent folder for an EntryID
- * 
- * @param[in] cbEntryID number of bytes in lpEntryID
- * @param[in] lpEntryID EntryID of a folder
- * @param[out] lppFolder Parent MAPI Folder of given EntryID
- * 
- * @return MAPI Error code
- */
-HRESULT IMAP::HrOpenParentFolder(ULONG cbEntryID, LPENTRYID lpEntryID, IMAPIFolder **lppFolder)
-{
-    HRESULT hr = hrSuccess;
-	object_ptr<IMAPIFolder> lpFolder;
-    ULONG ulObjType = 0;
-
-	hr = lpSession->OpenEntry(cbEntryID, lpEntryID, &iid_of(lpFolder), MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &ulObjType, &~lpFolder);
-	if (hr != hrSuccess)
-		return hr;
-	if (ulObjType != MAPI_FOLDER)
-		return MAPI_E_NOT_FOUND;
-	return HrOpenParentFolder(lpFolder, lppFolder);
-}
-
-/** 
  * Open parent MAPI folder for given MAPI folder
  * 
  * @param[in] lpFolder MAPI Folder to open the parent folder for
