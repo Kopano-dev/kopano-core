@@ -14,15 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "config.h"
 #include <chrono>
 #include <memory>
+#include <mutex>
 #include <cerrno>
-#include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
 #include <getopt.h>
+#include <pthread.h>
 #include <spawn.h>
 #include <unistd.h>
 #include <kopano/CommonUtil.h>
@@ -54,67 +54,41 @@ class mpt_job {
 	AutoMAPI m_mapi;
 };
 
+static pthread_t mpt_ticker;
 static std::list<struct mpt_stat_entry> mpt_stat_list;
+static std::mutex mpt_stat_lock;
 static std::wstring mpt_userw, mpt_passw;
 static const wchar_t *mpt_user, *mpt_pass;
 static const char *mpt_socket;
 static size_t mpt_repeat = ~0U;
 static int mpt_loglevel = EC_LOGLEVEL_NOTICE;
 
-static void mpt_stat_dump(int s = 0)
+static void *mpt_stat_dump(void *)
 {
-	size_t z = mpt_stat_list.size();
-	if (z == 0)
-		return;
-	decltype(mpt_stat_list.front().start - mpt_stat_list.front().start) dt;
-	dt = dt.zero();
-	for (const auto &i : mpt_stat_list)
-		dt += i.stop - i.start;
-	if (dt.count() == 0)
-		return;
-	printf("\r\x1b\x5b""2K%.1f per second", z / std::chrono::duration_cast<std::chrono::duration<double>>(dt).count());
-	fflush(stdout);
+	for (;; sleep(1)) {
+		std::unique_lock<std::mutex> locker(mpt_stat_lock);
+		size_t z = mpt_stat_list.size();
+		if (z == 0)
+			continue;
+		decltype(mpt_stat_list.front().start - mpt_stat_list.front().start) dt;
+		dt = dt.zero();
+		for (const auto &i : mpt_stat_list)
+			dt += i.stop - i.start;
+		locker.unlock();
+		if (dt.count() == 0)
+			continue;
+		printf("\r\x1b\x5b""2K%.1f per second", z / std::chrono::duration_cast<std::chrono::duration<double>>(dt).count());
+		fflush(stdout);
+	}
+	return nullptr;
 }
 
 static void mpt_stat_record(const struct mpt_stat_entry &dp, size_t limit = 300)
 {
+	std::lock_guard<std::mutex> locker(mpt_stat_lock);
 	mpt_stat_list.emplace_back(dp);
 	if (mpt_stat_list.size() > limit)
 		mpt_stat_list.pop_front();
-}
-
-static int mpt_setup_tick(void)
-{
-#ifdef HAVE_TIMER_CREATE
-	struct sigaction sa;
-	sa.sa_handler = mpt_stat_dump;
-	sa.sa_flags = SA_RESTART;
-	sigemptyset(&sa.sa_mask);
-	if (sigaction(SIGALRM, &sa, NULL) < 0) {
-		perror("sigaction");
-		return -errno;
-	}
-	struct sigevent sev;
-	memset(&sev, 0, sizeof(sev));
-	sev.sigev_notify = SIGEV_SIGNAL;
-	sev.sigev_signo  = SIGALRM;
-	timer_t timerid;
-	if (timer_create(CLOCK_MONOTONIC, &sev, &timerid) < 0) {
-		perror("timer_create");
-		return -errno;
-	}
-	struct itimerspec it;
-	it.it_interval.tv_sec = it.it_value.tv_sec = 1;
-	it.it_interval.tv_nsec = it.it_value.tv_nsec = 0;
-	if (timer_settime(timerid, 0, &it, NULL) < 0) {
-		perror("timer_settime");
-		return -errno;
-	}
-#else
-	/* Not guaranteed to use CLOCK_MONOTONIC */
-	alarm(1);
-#endif
-	return 1;
 }
 
 static int mpt_main_init(void)
@@ -448,8 +422,12 @@ int main(int argc, char **argv)
 		mpt_usage();
 		return EXIT_FAILURE;
 	}
-	if (mpt_setup_tick() < 0)
+
+	ret = pthread_create(&mpt_ticker, nullptr, mpt_stat_dump, nullptr);
+	if (ret != 0) {
+		perror("pthread_create");
 		return EXIT_FAILURE;
+	}
 	ret = EXIT_FAILURE;
 	if (strcmp(argv[1], "init") == 0 || strcmp(argv[1], "i") == 0)
 		ret = mpt_main_init();
@@ -471,5 +449,7 @@ int main(int argc, char **argv)
 		ret = mpt_main_bin2hex();
 	else
 		mpt_usage();
+	pthread_cancel(mpt_ticker);
+	pthread_join(mpt_ticker, nullptr);
 	return ret;
 }
