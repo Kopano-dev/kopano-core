@@ -606,10 +606,11 @@ class Store(Properties):
 
         table = Table(
             self.server,
+            self.mapiobj,
             self.common_views.mapiobj.GetContentsTable(MAPI_ASSOCIATED),
-            columns=[PR_WLINK_ENTRYID, PR_WLINK_STORE_ENTRYID],
             restriction=Restriction(SPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS,
-                                    SPropValue(PR_MESSAGE_CLASS, b"IPM.Microsoft.WunderBar.Link")))
+                                    SPropValue(PR_MESSAGE_CLASS, b"IPM.Microsoft.WunderBar.Link"))),
+            columns=[PR_WLINK_ENTRYID, PR_WLINK_STORE_ENTRYID],
         )
         for entryid, store_entryid in table:
             try:

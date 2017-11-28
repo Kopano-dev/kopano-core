@@ -251,7 +251,15 @@ class Server(object):
             yield Server(options=self.options, config=self.config, sslkey_file=self.sslkey_file, sslkey_pass=self.sslkey_pass, server_socket=row[PR_EC_STATS_SERVER_HTTPSURL], log=self.log, service=self.service)
 
     def table(self, name, restriction=None, order=None, columns=None):
-        return Table(self, self.mapistore.OpenProperty(name, IID_IMAPITable, MAPI_UNICODE, 0), name, restriction=restriction, order=order, columns=columns)
+        return Table(
+            self,
+            self.mapistore,
+            self.mapistore.OpenProperty(name, IID_IMAPITable, MAPI_UNICODE, 0),
+            name,
+            restriction=restriction,
+            order=order,
+            columns=columns,
+        )
 
     def tables(self):
         for table in (PR_EC_STATSTABLE_SYSTEM, PR_EC_STATSTABLE_SESSIONS, PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_COMPANY, PR_EC_STATSTABLE_SERVERS):
@@ -262,7 +270,12 @@ class Server(object):
 
     def gab_table(self): # XXX separate addressbook class? useful to add to self.tables?
         ct = self.gab.GetContentsTable(MAPI_DEFERRED_ERRORS)
-        return Table(self, ct, PR_CONTAINER_CONTENTS)
+        return Table(
+            self,
+            self.mapistore,
+            ct,
+            PR_CONTAINER_CONTENTS,
+        )
 
     @property
     def ab(self):

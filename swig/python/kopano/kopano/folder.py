@@ -297,10 +297,11 @@ class Folder(Properties):
         try:
             table = Table(
                 self.server,
+                self.mapiobj,
                 self.mapiobj.GetContentsTable(self.content_flag),
                 PR_CONTAINER_CONTENTS,
                 columns=columns,
-                restriction=restriction
+                restriction=restriction,
             )
         except MAPIErrorNoSupport:
             return
@@ -351,8 +352,11 @@ class Folder(Properties):
             ])
 
             table = Table(
-                self.server, self.mapiobj.GetContentsTable(0),
-                PR_CONTAINER_CONTENTS, columns=[PR_ENTRYID]
+                self.server,
+                self.mapiobj,
+                self.mapiobj.GetContentsTable(0),
+                PR_CONTAINER_CONTENTS,
+                columns=[PR_ENTRYID],
             )
             table.mapitable.Restrict(restriction, 0)
             for row in table.rows():
@@ -394,8 +398,10 @@ class Folder(Properties):
         try:
             table = Table(
                 self.server,
+                self.mapiobj,
                 self.mapiobj.GetContentsTable(self.content_flag),
-                PR_CONTAINER_CONTENTS, columns=[PR_MESSAGE_SIZE]
+                PR_CONTAINER_CONTENTS,
+                columns=[PR_MESSAGE_SIZE],
             )
         except MAPIErrorNoSupport:
             return 0
@@ -544,10 +550,11 @@ class Folder(Properties):
 
             table = Table(
                 self.server,
+                self.mapiobj,
                 mapitable,
                 PR_CONTAINER_HIERARCHY,
                 columns=columns,
-                restriction=restriction
+                restriction=restriction,
             )
         except MAPIErrorNoSupport: # XXX webapp search folder?
             return
@@ -598,12 +605,25 @@ class Folder(Properties):
 
     def rules(self):
         rule_table = self.mapiobj.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, MAPI_UNICODE, 0)
-        table = Table(self.server, rule_table.GetTable(0), PR_RULES_TABLE)
+        table = Table(
+            self.server,
+            self.mapiobj,
+            rule_table.GetTable(0),
+            PR_RULES_TABLE,
+        )
         for row in table.dict_rows():
             yield Rule(row)
 
     def table(self, name, restriction=None, order=None, columns=None): # XXX associated, PR_CONTAINER_CONTENTS?
-        return Table(self.server, self.mapiobj.OpenProperty(name, IID_IMAPITable, MAPI_UNICODE, 0), name, restriction=restriction, order=order, columns=columns)
+        return Table(
+            self.server,
+            self.mapiobj,
+            self.mapiobj.OpenProperty(name, IID_IMAPITable, MAPI_UNICODE, 0),
+            name,
+            restriction=restriction,
+            order=order,
+            columns=columns,
+        )
 
     def tables(self): # XXX associated, rules
         yield self.table(PR_CONTAINER_CONTENTS)
