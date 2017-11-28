@@ -206,16 +206,45 @@ class Server(object):
                 except MAPIErrorLogonFailed:
                     raise LogonError('Could not logon to server: username or password incorrect')
 
-        # start talking dirty
-        self.mapistore = GetDefaultStore(self.mapisession)
-        self.sa = self.mapistore.QueryInterface(IID_IECServiceAdmin)
-        self.ems = self.mapistore.QueryInterface(IID_IExchangeManageStore)
+        self._mapistore = None
+        self._sa = None
+        self._ems = None
         self._ab = None
         self._admin_store = None
         self._gab = None
-        entryid = HrGetOneProp(self.mapistore, PR_STORE_ENTRYID).Value
-        self.pseudo_url = entryid[entryid.find(b'pseudo:'):-1] # XXX ECSERVER
-        self.name = self.pseudo_url[9:].decode('ascii') # XXX encoding, get this kind of stuff from pr_ec_statstable_servers..?
+        self._pseudo_url = None
+        self._name = None
+
+    @property
+    def mapistore(self):
+        if self._mapistore is None:
+            self._mapistore = GetDefaultStore(self.mapisession)
+        return self._mapistore
+
+    @property
+    def sa(self):
+        if self._sa is None:
+            self._sa = self.mapistore.QueryInterface(IID_IECServiceAdmin)
+        return self._sa
+
+    @property
+    def ems(self):
+        if self._ems is None:
+            self._ems = self.mapistore.QueryInterface(IID_IExchangeManageStore)
+        return self._ems
+
+    @property
+    def pseudo_url(self):
+        if self._pseudo_url is None:
+            entryid = HrGetOneProp(self.mapistore, PR_STORE_ENTRYID).Value
+            self._pseudo_url = entryid[entryid.find(b'pseudo:'):-1] # XXX ECSERVER
+        return self._pseudo_url
+
+    @property
+    def name(self):
+        if self._name is None:
+            self._name = self.pseudo_url[9:].decode('ascii') # XXX encoding, get this kind of stuff from pr_ec_statstable_servers..?
+        return self._name
 
     def nodes(self): # XXX delay mapi sessions until actually needed
         for row in self.table(PR_EC_STATSTABLE_SERVERS).dict_rows():
