@@ -470,6 +470,8 @@
 #define PR_SEARCH_KEY                               PROP_TAG( PT_BINARY,    0x300B)
 #define PR_PROVIDER_UID                             PROP_TAG( PT_BINARY,    0x300C)
 #define PR_PROVIDER_ORDINAL                         PROP_TAG( PT_LONG,      0x300D)
+#define PR_SORT_POSITION                            PROP_TAG(PT_BINARY,     0x3020)
+#define PR_SORT_PARENTID                            PROP_TAG(PT_BINARY,     0x3021)
 
 /*
  *  MAPI Form properties
