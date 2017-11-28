@@ -1,3 +1,4 @@
+from MAPI.Util import kc_session_save, kc_session_restore
 import json
 import urlparse
 import types
@@ -5,6 +6,21 @@ import types
 import falcon
 import kopano
 
+def _server(req):
+    # TODO cross process caching, store caching?
+
+    userid = req.headers['X-Kopano-UserEntryID']
+
+    if userid in userid_sessiondata:
+        sessiondata = userid_sessiondata[userid]
+        mapisession = kc_session_restore(sessiondata)
+        server = kopano.Server(mapisession=mapisession, parse_args=False)
+    else:
+        username = admin_server.user(userid=userid).name
+        server = kopano.Server(auth_user=username, auth_pass='', parse_args=False)
+        sessiondata = kc_session_save(server.mapisession)
+        userid_sessiondata[userid] = sessiondata
+    return server
 
 class Resource(object):
     def get_fields(self, obj, fields):
@@ -56,6 +72,7 @@ class UserResource(Resource):
     }
 
     def on_get(self, req, resp, userid=None):
+        server = _server(req)
         if userid:
             data = server.user(userid=userid)
         else:
@@ -70,6 +87,7 @@ class StoreResource(Resource):
     }
 
     def on_get(self, req, resp, storeid=None):
+        server = _server(req)
         if storeid:
             data = server.store(entryid=storeid)
         else:
@@ -85,7 +103,8 @@ class FolderResource(Resource):
     }
 
     def on_get(self, req, resp, storeid, folderid=None):
-        store = server.store(entryid=storeid) # TODO cache?
+        server = _server(req)
+        store = server.store(entryid=storeid)
         if folderid:
             data = store.folder(entryid=folderid)
         else:
@@ -93,7 +112,8 @@ class FolderResource(Resource):
         self.respond(req, resp, data)
 
     def on_post(self, req, resp, storeid, folderid):
-        store = server.store(entryid=storeid) # TODO cache?
+        server = _server(req)
+        store = server.store(entryid=storeid)
         folder = store.folder(entryid=folderid)
 
         fields = json.loads(req.stream.read())
@@ -103,7 +123,8 @@ class FolderResource(Resource):
         resp.location = req.path+'/items/'+item.entryid
 
     def on_put(self, req, resp, storeid, folderid):
-        store = server.store(entryid=storeid) # TODO cache?
+        server = _server(req)
+        store = server.store(entryid=storeid)
         folder = store.folder(entryid=folderid)
 
         data = json.loads(req.stream.read())
@@ -134,7 +155,8 @@ class ItemResource(Resource):
     }
 
     def on_get(self, req, resp, storeid, folderid, itemid=None):
-        store = server.store(entryid=storeid) # TODO cache?
+        server = _server(req)
+        store = server.store(entryid=storeid)
         if itemid:
             data = store.item(itemid)
         else:
@@ -142,7 +164,8 @@ class ItemResource(Resource):
             data = self.generator(req, folder.items)
         self.respond(req, resp, data)
 
-server = kopano.Server(parse_args=False)
+admin_server = kopano.Server(parse_args=False)
+userid_sessiondata = {}
 
 app = falcon.API()
 users = UserResource()

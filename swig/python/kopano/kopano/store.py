@@ -98,7 +98,13 @@ class Store(Properties):
 
         self.mapiobj = mapiobj
         # XXX: fails if store is orphaned and guid is given..
-        self._root = self.mapiobj.OpenEntry(None, None, 0)
+        self.__root = None
+
+    @property
+    def _root(self):
+        if self.__root is None:
+            self.__root = self.mapiobj.OpenEntry(None, None, 0)
+        return self.__root
 
     @property
     def entryid(self):
