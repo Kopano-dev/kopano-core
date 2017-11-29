@@ -1105,8 +1105,6 @@ int ns__getRemoteAdminList(ULONG64 ecSessionId, unsigned int ulCompanyId, entryI
 int ns__checkExistObject(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulFlags, unsigned int *result);
 
 int ns__readABProps(ULONG64 ulSessionId, entryId sEntryId, struct ns:readPropsResponse *readPropsResponse);
-int ns__writeABProps(ULONG64 ulSessionId, entryId sEntryId, struct propValArray *aPropVal, unsigned int *result);
-int ns__deleteABProps(ULONG64 ulSessionId, entryId sEntryId, struct propTagArray *lpsPropTags, unsigned int *result);
 int ns__loadABProp(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulPropTag, struct ns:loadPropResponse *lpsResponse);
 
 int ns__abResolveNames(ULONG64 ulSessionId, struct propTagArray* lpaPropTag, struct rowSet* lpsRowSet, struct flagArray* lpaFlags, unsigned int ulFlags, struct ns:abResolveNamesResponse* lpsABResolveNames);
