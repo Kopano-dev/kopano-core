@@ -982,7 +982,8 @@ ECRESULT ECStoreObjectTable::GetMVRowCountHelper(ECDatabase *db, std::string que
 	return er;
 }
 
-ECRESULT ECStoreObjectTable::GetMVRowCount(std::list<unsigned int> ids, std::map<unsigned int, unsigned int> &count)
+ECRESULT ECStoreObjectTable::GetMVRowCount(std::list<unsigned int> &&ids,
+    std::map<unsigned int, unsigned int> &count)
 {
 	ECDatabase *lpDatabase = NULL;
 

@@ -490,7 +490,8 @@ skip:
  *
  * @return Kopano error code
  */
-ECRESULT ECGenericObjectTable::GetMVRowCount(std::list<unsigned int> ulObjIds, std::map<unsigned int, unsigned int> &lpulCount)
+ECRESULT ECGenericObjectTable::GetMVRowCount(std::list<unsigned int> &&ids,
+    std::map<unsigned int, unsigned int> &count)
 {
 	return KCERR_NO_SUPPORT;
 }
@@ -1423,8 +1424,6 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 							cMVNew = 1;
 	unsigned int			i;
 	std::list<unsigned int> lstFilteredIds;
-	std::list<unsigned int> ids;
-	std::map<unsigned int, unsigned int> count;
 	
 	ECObjectTableList		ecRowsItem;
 	ECObjectTableList		ecRowsDeleted;
@@ -1477,7 +1476,10 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 		break;
 
 	case ECKeyTable::TABLE_ROW_MODIFY:
-	case ECKeyTable::TABLE_ROW_ADD:
+	case ECKeyTable::TABLE_ROW_ADD: {
+		std::list<unsigned int> ids;
+		std::map<unsigned int, unsigned int> count;
+
 		for (const auto &obj_id : *lstObjId) {
 			/* Add the object to our list of objects */
 			ecRowsItem.emplace_back(obj_id, 0);
@@ -1488,12 +1490,12 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 
 		// get new mvprop count
 		if (ids.size() > 0) {
-			er = GetMVRowCount(ids, count);
+			er = GetMVRowCount(std::move(ids), count);
 			if (er != erSuccess)
 				return er;
 		}
 
-		for (const auto pair : count) {
+		for (const auto &pair : count) {
 			auto obj_id = pair.first;
 			cMVNew = pair.second;
 			// get old mvprops count
@@ -1530,6 +1532,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 		if(er != erSuccess)
 			return er;
 		break;
+	}
 	case ECKeyTable::TABLE_CHANGE:
 		// The whole table needs to be reread
 		this->Clear();

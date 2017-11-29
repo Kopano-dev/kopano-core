@@ -136,7 +136,8 @@ ECRESULT ECABObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECLis
 	return erSuccess;
 }
 
-ECRESULT ECABObjectTable::GetMVRowCount(std::list<unsigned int> ulObjIds, std::map<unsigned int, unsigned int> &lpulCount)
+ECRESULT ECABObjectTable::GetMVRowCount(std::list<unsigned int> &&ids,
+    std::map<unsigned int, unsigned int> &lpulCount)
 {
 	lpulCount = {};
 	return erSuccess;
