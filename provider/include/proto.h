@@ -429,11 +429,6 @@ struct userobjectArray {
 	struct userobject *__ptr;
 };
 
-struct ns:userobjectResponse {
-	struct userobjectArray *pUserObjectArray;
-	unsigned int er;
-};
-
 struct ns:getOwnerResponse {
 	unsigned int ulOwner;
 	entryId sOwner;
@@ -981,7 +976,6 @@ int ns__logoff(ULONG64 ulSessionId, unsigned int *result);
 
 int ns__getRights(ULONG64 ulSessionId, entryId sEntryId, int ulType, struct ns:rightsResponse *lpsRightResponse);
 int ns__setRights(ULONG64 ulSessionId, entryId sEntryId, struct rightsArray *lpsrightsArray, unsigned int *result);
-int ns__getUserObjectList(ULONG64 ulSessionId, unsigned int ulCompanyId, entryId sCompanyId, int ulType, struct ns:userobjectResponse *lpsUserObjectResponse);
 
 /* loads a big prop from an object */
 int ns__loadProp(ULONG64 ulSessionId, entryId sEntryId, unsigned int ulObjId, unsigned int ulPropTag, struct ns:loadPropResponse *lpsResponse);
