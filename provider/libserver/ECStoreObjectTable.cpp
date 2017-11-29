@@ -950,45 +950,74 @@ ECRESULT ECStoreObjectTable::CopyEmptyCellToSOAPPropVal(struct soap *soap, unsig
 	return erSuccess;
 }
 
-ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
+ECRESULT ECStoreObjectTable::GetMVRowCountHelper(ECDatabase *db, std::string query, std::list<unsigned int> &ids, std::map<unsigned int, unsigned int> &count) {
+	while (!ids.empty()) {
+		query += stringify(ids.front()) + ",";
+		ids.pop_front();
+		if (query.size() > KC_DFL_MAX_PACKET_SIZE - 1024)
+			break;
+	}
+	query.resize(query.size()-1);
+	query += ") GROUP BY h.id ORDER by h.id, orderid";
+
+	DB_RESULT result;
+	auto er = db->DoSelect(query, &result);
+	if (er != erSuccess)
+		return er;
+
+	auto row = result.fetch_row();
+	if (row == nullptr || row[0] == nullptr) {
+		ec_log_err("ECStoreObjectTable::GetMVRowCount(): row or column null");
+		return KCERR_DATABASE_ERROR;
+	}
+
+	while (row != nullptr) {
+		if (row[0] == nullptr || row[1] == nullptr)
+			continue;
+
+		count[atoi(row[0])] = atoi(row[1]);
+		row = result.fetch_row();
+	}
+
+	return er;
+}
+
+ECRESULT ECStoreObjectTable::GetMVRowCount(std::list<unsigned int> ids, std::map<unsigned int, unsigned int> &count)
 {
-	DB_RESULT lpDBResult;
-	DB_ROW			lpRow = NULL;
-	std::string		strQuery, strColName;
-	int j;
-	ECObjectTableList listRows;
 	ECDatabase *lpDatabase = NULL;
+
+	if (ids.size() == 0)
+		return erSuccess;
 
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
 
-	// scan for MV-props and add rows
-	strQuery = "SELECT count(h.id) FROM hierarchy as h";
-	j=0;
+	// scan for MV-props and generate the base query
+	std::string query = "SELECT h.id, count(h.id) FROM hierarchy as h";
+
 	ulock_rec biglock(m_hLock);
+
 	for (auto tag : m_listMVSortCols) {
-		strColName = "col" + stringify(tag);
-		strQuery += " LEFT JOIN mvproperties as " + strColName +
-			" ON h.id=" + strColName + ".hierarchyid AND " +
-			strColName + ".tag=" +
-			stringify(PROP_ID(tag)) + " AND " + strColName +
+		auto colname = "col" + stringify(tag);
+		query += " LEFT JOIN mvproperties as " + colname +
+			" ON h.id=" + colname + ".hierarchyid AND " +
+			colname + ".tag=" +
+			stringify(PROP_ID(tag)) + " AND " + colname +
 			".type=" + stringify(PROP_TYPE(NormalizeDBPropTag(tag) &~MV_INSTANCE));
-		++j;
 	}
+
 	biglock.unlock();
-	strQuery += " WHERE h.id="+stringify(ulObjId)+" ORDER by h.id, orderid";
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if(er != erSuccess)
-		return er;
-	lpRow = lpDBResult.fetch_row();
-    if(lpRow == NULL || lpRow[0] == NULL) {
-	ec_log_err("ECStoreObjectTable::GetMVRowCount(): row or column null");
-		return KCERR_DATABASE_ERROR;
-    }
-	
-	*lpulCount = atoi(lpRow[0]);
-	return erSuccess;
+
+	query += " WHERE h.id IN ( ";
+
+	while (ids.size() > 0) {
+		er = GetMVRowCountHelper(lpDatabase, query, ids, count);
+		if (er != erSuccess)
+			return er;
+	}
+
+	return er;
 }
 
 ECRESULT ECStoreObjectTable::Load()
