@@ -8946,12 +8946,6 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 }
 SOAP_ENTRY_END()
 
-int ns__loadABProp(struct soap *, ULONG64, entryId, unsigned int,
-    struct loadPropResponse *)
-{
-	return SOAP_OK;
-}
-
 /**
  * ns__abResolveNames
  *

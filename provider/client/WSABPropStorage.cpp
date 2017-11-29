@@ -75,41 +75,7 @@ HRESULT WSABPropStorage::Create(ULONG cbEntryId, LPENTRYID lpEntryId,
 
 HRESULT WSABPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue)
 {
-	ECRESULT		er = erSuccess;
-	HRESULT			hr = hrSuccess;
-	LPSPropValue	lpsPropValDst = NULL;
-
-	struct loadPropResponse	sResponse;
-
-	LockSoap();
-
-	START_SOAP_CALL
-	{
-        if(SOAP_OK != lpCmd->ns__loadABProp(ecSessionId, m_sEntryId, ulPropTag, &sResponse))
-            er = KCERR_NETWORK_ERROR;
-        else
-            er = sResponse.er;
-    }
-    END_SOAP_CALL
-
-	hr = ECAllocateBuffer(sizeof(SPropValue), (void **)&lpsPropValDst);
-
-	if(hr != hrSuccess)
-		goto exit;
-
-	if(sResponse.lpPropVal == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	hr = CopySOAPPropValToMAPIPropVal(lpsPropValDst, sResponse.lpPropVal, lpsPropValDst);
-
-	*lppsPropValue = lpsPropValDst;
-
-exit:
-	UnLockSoap();
-
-	return hr;
+	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT WSABPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
