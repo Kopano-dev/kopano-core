@@ -37,7 +37,7 @@
 
 /* darn, no sane place because of depend include on mapidefs.h */
 extern _kc_export bool operator==(const SBinary &, const SBinary &) noexcept;
-extern bool operator<(const SBinary &, const SBinary &) noexcept;
+extern _kc_export bool operator<(const SBinary &, const SBinary &) noexcept;
 
 namespace KC {
 
