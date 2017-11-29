@@ -2095,9 +2095,6 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 		} else if (strcmp(keyIndex->val, "use_tnef") == 0) {
 			convert_to_long_ex(entry);
 			lpSOPT->use_tnef = Z_LVAL_P(entry);
-		} else if (strcmp(keyIndex->val, "force_utf8") == 0) {
-			convert_to_boolean_ex(entry);
-			lpSOPT->force_utf8 = (Z_TYPE_P(entry) == IS_TRUE);
 		} else if (strcmp(keyIndex->val, "charset_upgrade") == 0) {
 			convert_to_string_ex(entry);
 			lpSOPT->charset_upgrade = Z_STRVAL_P(entry);

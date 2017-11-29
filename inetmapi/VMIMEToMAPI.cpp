@@ -3793,7 +3793,6 @@ void imopt_default_sending_options(sending_options *sopt) {
 	sopt->headers_only = false;
 	sopt->add_received_date = false;
 	sopt->use_tnef = 0;
-	sopt->force_utf8 = false;
 	sopt->charset_upgrade = const_cast<char *>("windows-1252");
 	sopt->allow_send_to_everyone = true;
 	sopt->enable_dsn = true;

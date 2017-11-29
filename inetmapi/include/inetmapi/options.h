@@ -51,7 +51,6 @@ struct sending_options {
 	bool headers_only;
 	bool add_received_date;
 	int use_tnef;					// -1: minimize usage, 0: autodetect, 1: force
-	bool force_utf8;
 	char *charset_upgrade;
 	bool allow_send_to_everyone;
 	bool enable_dsn;				/**< Enable SMTP Delivery Status Notifications */
