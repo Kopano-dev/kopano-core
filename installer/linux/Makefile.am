@@ -15,7 +15,8 @@ dist_pkgdata_DATA = ldap.active-directory.cfg ldap.openldap.cfg ldap.propmap.cfg
 config_files = \
 	server.cfg unix.cfg presence.cfg \
 	spooler.cfg gateway.cfg monitor.cfg dagent.cfg ical.cfg search.cfg \
-	autorespond archiver.cfg backup.cfg migration-pst.cfg
+	autorespond archiver.cfg backup.cfg migration-pst.cfg \
+	autorespond.cfg
 
 rhel_initscript_files = \
 	kopano-server.init.rhel kopano-spooler.init.rhel \
@@ -57,7 +58,7 @@ ldap.openldap.cfg: ldap.m4
 ldap.active-directory.cfg: ldap.m4
 	m4 -DTYPE=ADS ${top_srcdir}/installer/linux/ldap.m4 > $@
 
-dist_sbin_SCRIPTS = kopano-autorespond kopano-mr-accept kopano-mr-process kopano-mr-accept.py kopano-mr-process.py
+dist_sbin_SCRIPTS = kopano-autorespond kopano-mr-accept kopano-mr-process kopano-mr-accept.py kopano-mr-process.py kopano-autorespond.py
 
 sysconf_rotatedir = ${sysconfdir}/logrotate.d
 dist_sysconf_rotate_DATA = kopano.logrotate

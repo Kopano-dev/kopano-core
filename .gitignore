@@ -64,6 +64,7 @@ stamp-h2
 /ECtools/backup/kopano_backup/version.py
 /ECtools/cli/kopano_cli/version.py
 /ECtools/spamd/kopano_spamd/version.py
+/swig/python/kopano/kopano/version.py
 
 # /autoconf/
 /autoconf/ltsugar.m4
@@ -103,6 +104,7 @@ stamp-h2
 /installer/linux/ldapms.active-directory.cfg
 /installer/linux/kopano-mr-accept.py
 /installer/linux/kopano-mr-process.py
+/installer/linux/kopano-autorespond.py
 
 # /installer/userscripts/
 /installer/userscripts/creategroup

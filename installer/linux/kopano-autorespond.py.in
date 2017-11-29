@@ -1,4 +1,4 @@
-#!/usr/bin/env /usr/bin/python
+#!/usr/bin/env @PYTHON@
 
 import kopano
 from kopano.log import logger
@@ -17,7 +17,8 @@ CONFIG = {
     "autorespond_bcc": kopano.Config.boolean(default=False),
     "autorespond_norecip": kopano.Config.boolean(default=False),
     "timelimit": kopano.Config.integer(default=24 * 3600),
-    "senddb": kopano.Config.string(default="/var/lib/kopano/autorespond.db")
+    "senddb": kopano.Config.string(default="/var/lib/kopano/autorespond.db"),
+    "copy_to_sentmail": kopano.Config.boolean(default=True)
 }
 
 user_blacklist = ["mailer-daemon", "postmaster", "root"]
@@ -32,10 +33,10 @@ def in_blacklist(log, from_, to):
 
     return False
 
-def send_ooo(server, username, msg):
+def send_ooo(server, username, msg, copy_to_sentmail):
     outbox = server.user(username).outbox
     item = outbox.create_item(eml=msg)
-    item.send()
+    item.send(copy_to_sentmail=copy_to_sentmail)
 
 def check_time(senddb, timelimit, username, to):
     with closing(bsddb.btopen(senddb, 'c')) as db:
@@ -99,7 +100,7 @@ def main():
         )
     else:
         add_time(config["senddb"], username, to)
-        send_ooo(server, username, msg)
+        send_ooo(server, username, msg, config["copy_to_sentmail"])
         log.info("Sent OOO to %s (username %s)", to, username)
 
 if __name__ == '__main__':
