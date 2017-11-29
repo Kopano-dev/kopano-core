@@ -51,11 +51,6 @@ class ECConvenientDepthABObjectTable _kc_final : public ECABObjectTable {
 	ECConvenientDepthABObjectTable(ECSession *lpSession, unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId, unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale);
 
 	private:
-	struct CONTAINERINFO {
-		unsigned int ulId;
-		unsigned int ulDepth;
-		std::string strPath;
-	};
 	std::map<unsigned int, unsigned int> m_mapDepth;
 	std::map<unsigned int, std::string> m_mapPath;
 	ALLOC_WRAP_FRIEND;
