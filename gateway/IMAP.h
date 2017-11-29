@@ -361,7 +361,6 @@ private:
 	std::string PropsToFlags(LPSPropValue props, unsigned int nprops, bool recent, bool read);
 	void HrParseHeaders(const std::string &, std::list<std::pair<std::string, std::string> > &);
 	void HrGetSubString(std::string &output, const std::string &input, const std::string &begin, const std::string &end);
-	void HrTokenize(std::set<std::string> &setTokens, const std::string &strInput);
 	HRESULT HrExpungeDeleted(const std::string &tag, const std::string &cmd, std::unique_ptr<ECRestriction> &&);
 };
 
