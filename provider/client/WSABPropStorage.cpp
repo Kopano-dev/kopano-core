@@ -151,31 +151,6 @@ exit:
 	return hr;
 }
 
-HRESULT WSABPropStorage::HrDeleteProps(const SPropTagArray *lpsPropTagArray)
-{
-	ECRESULT	er = erSuccess;
-	HRESULT		hr = hrSuccess;
-
-	struct propTagArray sPropTags;
-
-	sPropTags.__size = lpsPropTagArray->cValues;
-	sPropTags.__ptr = (unsigned int *)lpsPropTagArray->aulPropTag;
-
-	LockSoap();
-	
-	START_SOAP_CALL
-	{
-    	if(SOAP_OK != lpCmd->ns__deleteABProps(ecSessionId, m_sEntryId, &sPropTags, &er))
-	    	er = KCERR_NETWORK_ERROR;
-    }
-    END_SOAP_CALL
-
-exit:
-	UnLockSoap();
-
-	return hr;
-}
-
 HRESULT WSABPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 {
 	return MAPI_E_NO_SUPPORT;

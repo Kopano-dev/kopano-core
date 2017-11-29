@@ -60,9 +60,6 @@ private:
 	// Write all properties to disk (overwrites a property if it already exists)
 	virtual	HRESULT	HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG ulFlags = 0);
 
-	// Delete properties from file
-	virtual HRESULT HrDeleteProps(const SPropTagArray *lpsPropTagArray);
-
 	// Save complete object to server
 	virtual HRESULT HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);
 

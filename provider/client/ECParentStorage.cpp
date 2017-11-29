@@ -72,12 +72,6 @@ HRESULT	ECParentStorage::HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ECParentStorage::HrDeleteProps(const SPropTagArray *lpsPropTagArray)
-{
-	// this call should disappear
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT ECParentStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 {
 	if (m_lpParentObject == NULL)
