@@ -104,8 +104,6 @@ typedef std::set<MAPIOBJECT*, MAPIOBJECT::CompareMAPIOBJECT>	ECMapiObjects;
 
 class IECPropStorage : public virtual IUnknown {
 public:
-	// Get a list of the properties
-	virtual HRESULT HrReadProps(LPSPropTagArray *lppPropTags,ULONG *cValues, LPSPropValue *ppValues) = 0;
 
 	// Get a single (large) property from an object
 	virtual HRESULT HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue) = 0;
