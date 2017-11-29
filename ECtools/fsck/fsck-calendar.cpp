@@ -470,8 +470,8 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	iEx = r.lstExceptions.begin();
 	for (auto &eex : r.lstExtendedExceptions) {
 		std::wstring wstr;
-		eex.strReservedBlock1 = "";
-		eex.strReservedBlock2 = "";
+		eex.strReservedBlock1.clear();
+		eex.strReservedBlock2.clear();
 		eex.ulChangeHighlightValue = 0;
 		eex.ulOriginalStartDate = (iEx->ulOriginalStartDate / 1440) * 1440;
 		TryConvert(convertContext, iEx->strSubject, rawsize(iEx->strSubject), "windows-1252", wstr);
@@ -482,8 +482,8 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	}
 
 	// Reset reserved data to 0
-	r.strReservedBlock1 = "";
-	r.strReservedBlock2 = "";
+	r.strReservedBlock1.clear();
+	r.strReservedBlock2.clear();
 
 	// These are constant
 	r.ulReaderVersion = 0x3004;

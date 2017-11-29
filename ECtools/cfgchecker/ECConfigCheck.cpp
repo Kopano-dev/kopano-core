@@ -303,7 +303,7 @@ void ECConfigCheck::addCheck(const std::string &option, unsigned int flags,
 	config_check_t config_check;
 
 	config_check.option1 = option;
-	config_check.option2 = "";
+	config_check.option2.clear();
 	config_check.check = check;
 	addCheck(std::move(config_check), flags);
 }
