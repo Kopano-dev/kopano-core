@@ -591,7 +591,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 
 	// Logon defaults
 	strType = "http";
-	strServerName = "";
 	strServerPort ="236";
 
 	switch(ulContext) {
