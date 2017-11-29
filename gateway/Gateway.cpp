@@ -337,7 +337,7 @@ int main(int argc, char *argv[]) {
 		{ "imap_always_generate", "no", CONFIGSETTING_UNUSED },
 		{ "imap_max_fail_commands", "10", CONFIGSETTING_RELOADABLE },
 		{ "imap_max_messagesize", "128M", CONFIGSETTING_RELOADABLE | CONFIGSETTING_SIZE },
-		{ "imap_generate_utf8", "no", CONFIGSETTING_RELOADABLE },
+		{ "imap_generate_utf8", "no", CONFIGSETTING_UNUSED },
 		{ "imap_expunge_on_delete", "no", CONFIGSETTING_RELOADABLE },
 		{ "imap_store_rfc822", "yes", CONFIGSETTING_RELOADABLE },
 		{ "imap_cache_folders_time_limit", "0", CONFIGSETTING_RELOADABLE },

@@ -4161,9 +4161,7 @@ HRESULT IMAP::HrGetMessageEnvelope(string &strResponse, LPMESSAGE lpMessage) {
 		return MAPI_E_CALL_FAILED;
 
 	// Get the outgoing charset we want to be using
-	// @todo, add gateway force_utf8 option
-	if (!parseBool(lpConfig->GetSetting("imap_generate_utf8")) &&
-	    HrGetOneProp(lpMessage, PR_INTERNET_CPID, &~lpInternetCPID) == hrSuccess &&
+	if (HrGetOneProp(lpMessage, PR_INTERNET_CPID, &~lpInternetCPID) == hrSuccess &&
 		HrGetCharsetByCP(lpInternetCPID->Value.ul, &lpszCharset) == hrSuccess)
 	{
 		strCharset = lpszCharset;
