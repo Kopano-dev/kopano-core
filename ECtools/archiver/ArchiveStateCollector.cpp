@@ -108,8 +108,7 @@ namespace details {
 					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Mismatch in archive prop count, %u vs. %u", ptrRows[i].lpProps[IDX_STORE_ENTRYIDS].Value.MVbin.cValues, ptrRows[i].lpProps[IDX_ITEM_ENTRYIDS].Value.MVbin.cValues);
 					continue;
 				}
-
-				userId.assign(ptrRows[i].lpProps[IDX_MAILBOX_OWNER_ENTRYID].Value.bin);
+				userId = ptrRows[i].lpProps[IDX_MAILBOX_OWNER_ENTRYID].Value.bin;
 				auto res = m_mapArchiveInfo.emplace(userId, ArchiveStateCollector::ArchiveInfo());
 				if (res.second == true)
 					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Inserting row for user id %s", userId.tostring().c_str());
@@ -117,14 +116,14 @@ namespace details {
 					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Updating row for user '" TSTRING_PRINTF "'", res.first->second.userName.c_str());
 
 				// Assign entryid
-				res.first->second.storeId.assign(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin);
+				res.first->second.storeId = ptrRows[i].lpProps[IDX_ENTRYID].Value.bin;
 
 				// Assign archives
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Adding %u archive(s)", ptrRows[i].lpProps[IDX_STORE_ENTRYIDS].Value.MVbin.cValues);
 				for (ULONG j = 0; j < ptrRows[i].lpProps[IDX_STORE_ENTRYIDS].Value.MVbin.cValues; ++j) {
 					SObjectEntry objEntry;
-					objEntry.sStoreEntryId.assign(entryid_t(ptrRows[i].lpProps[IDX_STORE_ENTRYIDS].Value.MVbin.lpbin[j]));
-					objEntry.sItemEntryId.assign(entryid_t(ptrRows[i].lpProps[IDX_ITEM_ENTRYIDS].Value.MVbin.lpbin[j]));
+					objEntry.sStoreEntryId = ptrRows[i].lpProps[IDX_STORE_ENTRYIDS].Value.MVbin.lpbin[j];
+					objEntry.sItemEntryId = ptrRows[i].lpProps[IDX_ITEM_ENTRYIDS].Value.MVbin.lpbin[j];
 					res.first->second.lstArchives.emplace_back(std::move(objEntry));
 				}
 			}

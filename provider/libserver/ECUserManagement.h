@@ -71,33 +71,15 @@ public:
 		m_ulCounts[ucContact]		= ulContact;
 	}
 
-	usercount_t(const usercount_t &other): m_bValid(other.m_bValid) {
-		memcpy(m_ulCounts, other.m_ulCounts, sizeof(m_ulCounts));
-	}
-
-	void swap(usercount_t &other) noexcept
-	{
-		std::swap(m_bValid, other.m_bValid);
-		for (unsigned i = 0; i < ucMAX; ++i)
-			std::swap(m_ulCounts[i], other.m_ulCounts[i]);
-	}
+	usercount_t(const usercount_t &) = default;
+	usercount_t(usercount_t &&) = default;
 
 	void assign(unsigned int ulActiveUser, unsigned int ulNonActiveUser, unsigned int ulRoom, unsigned int ulEquipment, unsigned int ulContact) {
-		usercount_t tmp(ulActiveUser, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
-		swap(tmp);
+		*this = usercount_t(ulActiveUser, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
 	}
 
-	void assign(const usercount_t &other) {
-		if (&other != this) {
-			usercount_t tmp(other);
-			swap(tmp);
-		}
-	}
-
-	usercount_t& operator=(const usercount_t &other) {
-		assign(other);
-		return *this;
-	}
+	usercount_t &operator=(const usercount_t &) = default;
+	usercount_t &operator=(usercount_t &&) = default;
 
 	bool isValid() const {
 		return m_bValid;

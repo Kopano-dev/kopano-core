@@ -110,9 +110,8 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 		ec_log_warn("Archive::HrArchiveMessageForDelivery(): GetProps failed %x", hr);
 		goto exit;
 	}
-
-	refMsgEntry.sStoreEntryId.assign(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin);
-	refMsgEntry.sItemEntryId.assign(ptrMsgProps[IDX_ENTRYID].Value.bin);
+	refMsgEntry.sStoreEntryId = ptrMsgProps[IDX_STORE_ENTRYID].Value.bin;
+	refMsgEntry.sItemEntryId = ptrMsgProps[IDX_ENTRYID].Value.bin;
 	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrStore), MDB_WRITE, &~ptrStore);
@@ -192,9 +191,8 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 			ec_log_warn("Archive::HrArchiveMessageForDelivery(): ArchivedMessage GetProps failed %x", hr);
 			goto exit;
 		}
-
-		refArchiveEntry.sItemEntryId.assign(ptrArchivedMsgProps[IDX_ENTRYID].Value.bin);
-		refArchiveEntry.sStoreEntryId.assign(ptrArchivedMsgProps[IDX_STORE_ENTRYID].Value.bin);
+		refArchiveEntry.sItemEntryId = ptrArchivedMsgProps[IDX_ENTRYID].Value.bin;
+		refArchiveEntry.sStoreEntryId = ptrArchivedMsgProps[IDX_STORE_ENTRYID].Value.bin;
 		lstReferences.emplace_back(refArchiveEntry);
 		hr = msg.first->SaveChanges(KEEP_OPEN_READWRITE);
 		if (hr != hrSuccess) {

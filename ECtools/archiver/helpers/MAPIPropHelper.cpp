@@ -306,9 +306,8 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
 	
 	for (ULONG i = 0; i < ptrPropArray[0].Value.MVbin.cValues; ++i) {
 		SObjectEntry objectEntry;
-		
-		objectEntry.sStoreEntryId.assign(ptrPropArray[IDX_ARCHIVE_STORE_ENTRYIDS].Value.MVbin.lpbin[i]);
-		objectEntry.sItemEntryId.assign(ptrPropArray[IDX_ARCHIVE_ITEM_ENTRYIDS].Value.MVbin.lpbin[i]);
+		objectEntry.sStoreEntryId = ptrPropArray[IDX_ARCHIVE_STORE_ENTRYIDS].Value.MVbin.lpbin[i];
+		objectEntry.sItemEntryId = ptrPropArray[IDX_ARCHIVE_ITEM_ENTRYIDS].Value.MVbin.lpbin[i];
 		lstArchives.emplace_back(std::move(objectEntry));
 	}
 	
@@ -453,9 +452,8 @@ HRESULT MAPIPropHelper::GetReference(SObjectEntry *lpEntry)
 		return ptrMessageProps[IDX_REF_STORE_ENTRYID].Value.err;
 	if (PROP_TYPE(ptrMessageProps[IDX_REF_ITEM_ENTRYID].ulPropTag) == PT_ERROR)
 		return ptrMessageProps[IDX_REF_ITEM_ENTRYID].Value.err;
-
-	lpEntry->sStoreEntryId.assign(ptrMessageProps[IDX_REF_STORE_ENTRYID].Value.bin);
-	lpEntry->sItemEntryId.assign(ptrMessageProps[IDX_REF_ITEM_ENTRYID].Value.bin);
+	lpEntry->sStoreEntryId = ptrMessageProps[IDX_REF_STORE_ENTRYID].Value.bin;
+	lpEntry->sItemEntryId = ptrMessageProps[IDX_REF_ITEM_ENTRYID].Value.bin;
 	return hr;
 }
 
@@ -639,9 +637,8 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 	
 	for (ULONG i = 0; i < lpPropStoreEIDs->Value.MVbin.cValues; ++i) {
 		SObjectEntry objectEntry;
-		
-		objectEntry.sStoreEntryId.assign(lpPropStoreEIDs->Value.MVbin.lpbin[i]);
-		objectEntry.sItemEntryId.assign(lpPropItemEIDs->Value.MVbin.lpbin[i]);
+		objectEntry.sStoreEntryId = lpPropStoreEIDs->Value.MVbin.lpbin[i];
+		objectEntry.sItemEntryId = lpPropItemEIDs->Value.MVbin.lpbin[i];
 		lstArchives.emplace_back(std::move(objectEntry));
 	}
 	

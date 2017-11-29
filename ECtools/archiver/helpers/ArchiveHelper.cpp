@@ -171,8 +171,7 @@ HRESULT ArchiveHelper::GetAttachedUser(abentryid_t *lpsUserEntryId)
 	hr = HrGetOneProp(ptrFolder, PROP_ATTACHED_USER_ENTRYID, &~ptrPropValue);
 	if (hr != hrSuccess)
 		return hr;
-	
-	lpsUserEntryId->assign(ptrPropValue->Value.bin);
+	*lpsUserEntryId = ptrPropValue->Value.bin;
 	return hrSuccess;
 }
 
@@ -224,12 +223,10 @@ HRESULT ArchiveHelper::GetArchiveEntry(bool bCreate, SObjectEntry *lpsObjectEntr
 	hr = HrGetOneProp(ptrFolder, PR_ENTRYID, &~ptrFolderEntryId);
 	if (hr != hrSuccess)
 		return hr;
-	
-	lpsObjectEntry->sStoreEntryId.assign(ptrStoreEntryId->Value.bin);
+	lpsObjectEntry->sStoreEntryId = ptrStoreEntryId->Value.bin;
 	if (!m_strServerPath.empty())
 		lpsObjectEntry->sStoreEntryId.wrap(m_strServerPath);
-		
-	lpsObjectEntry->sItemEntryId.assign(ptrFolderEntryId->Value.bin);
+	lpsObjectEntry->sItemEntryId = ptrFolderEntryId->Value.bin;
 	return hrSuccess;
 }
 
@@ -550,8 +547,8 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 	hr = HrGetOneProp(ptrArchiveFolder, PR_ENTRYID, &~ptrFolderEntryId);
 	if (hr != hrSuccess)
 		return hr;
-	objectEntry.sStoreEntryId.assign(ptrStoreEntryId->Value.bin);
-	objectEntry.sItemEntryId.assign(ptrFolderEntryId->Value.bin);
+	objectEntry.sStoreEntryId = ptrStoreEntryId->Value.bin;
+	objectEntry.sItemEntryId = ptrFolderEntryId->Value.bin;
 	lstFolderArchives.emplace_back(objectEntry);
 	lstFolderArchives.sort();
 	lstFolderArchives.unique();
@@ -563,10 +560,8 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 	hr = ptrSourceFolder->GetProps(sptaFolderPropsForReference, 0, &cValues, &~ptrPropArray);
 	if (hr != hrSuccess)
 		return hr;
-
-	objectEntry.sStoreEntryId.assign(ptrPropArray[1].Value.bin);
-	objectEntry.sItemEntryId.assign(ptrPropArray[0].Value.bin);
-
+	objectEntry.sStoreEntryId = ptrPropArray[1].Value.bin;
+	objectEntry.sItemEntryId = ptrPropArray[0].Value.bin;
 	hr = MAPIPropHelper::Create(ptrArchiveFolder.as<MAPIPropPtr>(), &ptrArchiveFolderHelper);
 	if (hr != hrSuccess)
 		return hr;
