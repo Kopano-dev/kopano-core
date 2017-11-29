@@ -143,7 +143,7 @@ int main(int argc, char **argv) {
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/ical.pid" },
 		{ "running_path", "/var/lib/kopano" },
-		{ "process_model", "fork" },
+		{ "process_model", "thread" },
 		{ "server_bind", "" },
 		{"ical_port", "8080", CONFIGSETTING_NONEMPTY},
 		{"ical_enable", "yes", CONFIGSETTING_NONEMPTY},
