@@ -123,6 +123,9 @@ void IMAP::ReleaseContentsCache()
 {
 	m_lpTable.reset();
 	m_vTableDataColumns.clear();
+	current_folder.reset();
+	current_folder_state.first = L"";
+	current_folder_state.second = false;
 }
 
 /** 
@@ -2494,11 +2497,7 @@ HRESULT IMAP::HrCmdIdle(const string &strTag) {
 	m_strIdleTag = strTag;
 	m_bIdleMode = true;
 
-	if (strCurrentFolder.empty() || !lpSession) {
-		HrResponse(RESP_CONTINUE, "empty idle, nothing is going to happen");
-		goto exit;
-	}
-	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFolder);
+	hr = HrGetCurrentFolder(lpFolder);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_CONTINUE, "Can't open selected folder to idle in");
 		goto exit;
@@ -2780,7 +2779,7 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 		return hr;
 
 	entry_list->lpbin = nullptr;
-	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFolder);
+	hr = HrGetCurrentFolder(lpFolder);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error opening folder");
 		return hr;
@@ -3100,9 +3099,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 	memory_ptr<SPropValue> lpFolderIDs;
 	ULONG cValues;
 
-	if (strCurrentFolder.empty() || lpSession == nullptr)
-		return MAPI_E_CALL_FAILED;
-	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~folder);
+	hr = HrGetCurrentFolder(folder);
 	if (hr != hrSuccess)
 		return hr;
 	hr = folder->GetProps(sPropsFolderIDs, 0, &cValues, &~lpFolderIDs);
@@ -3527,7 +3524,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
         lpPropTags->cValues = setProps.size()+1;
 
         // Open the folder in question
-        hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFolder);
+        hr = HrGetCurrentFolder(lpFolder);
         if (hr != hrSuccess)
 			return hr;
 
@@ -3550,7 +3547,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		m_vTableDataColumns = lstDataItems;
     } else if (bMarkAsRead) {
         // we need the folder to mark mails as read
-        hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFolder);
+        hr = HrGetCurrentFolder(lpFolder);
         if (hr != hrSuccess)
 			return hr;
     }
@@ -4972,7 +4969,7 @@ HRESULT IMAP::HrCopy(const list<ULONG> &lstMails, const string &strFolderParam, 
 	if (strCurrentFolder.empty() || !lpSession)
 		return MAPI_E_CALL_FAILED;
 
-	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFromFolder);
+	hr = HrGetCurrentFolder(lpFromFolder);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -5066,7 +5063,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 	// Make a map of UID->ID
 	for (const auto &e : lstFolderMailEIDs)
 		mapUIDs[e.ulUid] = n++;
-	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFolder);
+	hr = HrGetCurrentFolder(lpFolder);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpFolder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~lpTable);
@@ -6131,4 +6128,24 @@ HRESULT IMAP::HrOpenParentFolder(IMAPIFolder *lpFolder, IMAPIFolder **lppFolder)
 	       MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &ulObjType, reinterpret_cast<IUnknown **>(lppFolder));
 }
 
+HRESULT IMAP::HrGetCurrentFolder(object_ptr<IMAPIFolder> &folder)
+{
+	if (strCurrentFolder.empty() || !lpSession)
+		return MAPI_E_CALL_FAILED;
+
+	if (current_folder_state.first == strCurrentFolder &&
+		current_folder_state.second == bCurrentFolderReadOnly) {
+		folder = current_folder;
+		return hrSuccess;
+	}
+
+	auto hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~current_folder);
+	if (hr != hrSuccess)
+		return hr;
+
+	folder = current_folder;
+	current_folder_state.first = strCurrentFolder;
+	current_folder_state.second = bCurrentFolderReadOnly;
+	return hrSuccess;
+}
 /** @} */

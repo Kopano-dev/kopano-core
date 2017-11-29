@@ -244,6 +244,8 @@ private:
 	KCHL::memory_ptr<SPropTagArray> m_lpsIMAPTags;
 
 	// current folder name
+	KCHL::object_ptr<IMAPIFolder> current_folder;
+	std::pair<std::wstring, bool> current_folder_state;
 	std::wstring strCurrentFolder;
 	KCHL::object_ptr<IMAPITable> m_lpTable; /* current contents table */
 	std::vector<std::string> m_vTableDataColumns; /* current dataitems that caused the setcolumns on the table */
@@ -358,6 +360,7 @@ private:
 	void HrGetSubString(std::string &output, const std::string &input, const std::string &begin, const std::string &end);
 	void HrTokenize(std::set<std::string> &setTokens, const std::string &strInput);
 	HRESULT HrExpungeDeleted(const std::string &tag, const std::string &cmd, std::unique_ptr<ECRestriction> &&);
+	HRESULT HrGetCurrentFolder(KCHL::object_ptr<IMAPIFolder> &);
 };
 
 /** @} */
