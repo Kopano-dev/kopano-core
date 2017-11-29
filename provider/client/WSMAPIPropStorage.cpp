@@ -135,12 +135,6 @@ exit:
 	return hr;
 }
 
-HRESULT WSMAPIPropStorage::HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG ulFlags)
-{
-	// this call should disappear
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, struct saveObject *lpSaveObj, convert_context *lpConverter)
 {
 	HRESULT hr = hrSuccess;

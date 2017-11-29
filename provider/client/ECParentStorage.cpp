@@ -66,12 +66,6 @@ HRESULT ECParentStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue
 	return m_lpServerStorage->HrLoadProp(ulObjId, ulPropTag, lppsPropValue);
 }
 
-HRESULT	ECParentStorage::HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG ulFlags)
-{
-	// this call should disappear
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT ECParentStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 {
 	if (m_lpParentObject == NULL)

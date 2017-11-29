@@ -108,9 +108,6 @@ public:
 	// Get a single (large) property from an object
 	virtual HRESULT HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue) = 0;
 
-	// Write all properties to disk (overwrites a property if it already exists)
-	virtual	HRESULT	HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG ulFlags = 0) = 0;
-
 	// Save a complete object to the server
 	virtual HRESULT HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpSavedObjects) = 0;
 

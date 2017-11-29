@@ -112,45 +112,6 @@ exit:
 	return hr;
 }
 
-HRESULT WSABPropStorage::HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG ulFlags)
-{
-	HRESULT			hr = hrSuccess;
-	ECRESULT		er = erSuccess;
-	unsigned int	i = 0;
-	unsigned int	j = 0;
-	convert_context	converter;
-
-	struct propValArray sPropVals;
-
-	sPropVals.__ptr = s_alloc<propVal>(nullptr, cValues);
-	for (i = 0; i < cValues; ++i) {
-		hr = CopyMAPIPropValToSOAPPropVal(&sPropVals.__ptr[j], &pValues[i], &converter);
-		if(hr == hrSuccess)
-			++j;
-	}
-
-	hr = hrSuccess;
-
-	sPropVals.__size = j;
-
-	LockSoap();
-	
-	START_SOAP_CALL
-	{
-    	if(SOAP_OK != lpCmd->ns__writeABProps(ecSessionId, m_sEntryId, &sPropVals, &er))
-    		er = KCERR_NETWORK_ERROR;
-    }
-    END_SOAP_CALL
-
-exit:
-	UnLockSoap();
-
-	if(sPropVals.__ptr)
-		FreePropValArray(&sPropVals);
-
-	return hr;
-}
-
 HRESULT WSABPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 {
 	return MAPI_E_NO_SUPPORT;

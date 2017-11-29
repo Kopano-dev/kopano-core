@@ -56,9 +56,6 @@ private:
 	// Get a single (large) property
 	virtual HRESULT HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue);
 
-	// Not implemented
-	virtual	HRESULT	HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG ulFlags = 0);
-
 	// Save complete object, deletes/adds/modifies/creates
 	virtual HRESULT HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);
 
