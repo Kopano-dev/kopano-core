@@ -175,7 +175,7 @@ and
 \fIthread\fR. The forked model uses somewhat more resources, but if a crash is triggered, this will only affect one user. In the threaded model, a crash means all users are affected, and will not be able to use the service.
 .PP
 Default:
-\fIfork\fR
+\fIthread\fR
 .SS bypass_auth
 .PP
 This parameter can be used to skip password verification when connecting over the UNIX socket. Connecting through the UNIX socket can have a big performance gain, compared to the TCP socket of kopano-server. As kopano-gateway is usually running as the user kopano (which is a local_admin_user in kopano-server) this would normally mean that kopano-gateway would only verify usernames and no password (because its running as an administrator). When set to \fIno\fR (default value) forces verification of passwords, even when running as an administrator. For migrations you will want to set \fIyes\fR.
