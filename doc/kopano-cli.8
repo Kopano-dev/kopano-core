@@ -395,6 +395,14 @@ To set out of office for a user:
 To delete a user:
 .PP
 \fBkopano\-cli \-\-delete \-u john\fR
+.PP
+To set permission on a calendar folder:
+.PP
+\fBkopano\-cli \-u john \-\-folder Calendar \-\-add\-permission everyone:read_items,folder_visible\fR
+.PP
+To set permission on a store:
+.PP
+\fBkopano\-cli \-u john \-\-add\-permission joe:read_items,folder_visible\fR
 .SH "AUTHOR"
 .PP
 Written by Kopano.
