@@ -1188,7 +1188,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 					return kc_perrorf("OpenMsgStore failed", hr);
                   
 			// Keep the store open in case somebody else needs it later (only via this function)
-			mapStores.emplace(guidProvider, object_ptr<IMsgStore>(lpMDB));
+			mapStores.emplace(guidProvider, object_ptr<IMsgStore>(lpMDB, false));
 			if(bStoreEntryID == true) {
 				hr = lpMDB->QueryInterface(IID_IMsgStore, (void**)lppUnk);
 				if (hr == hrSuccess)
