@@ -123,9 +123,6 @@ void IMAP::ReleaseContentsCache()
 {
 	m_lpTable.reset();
 	m_vTableDataColumns.clear();
-	current_folder.reset();
-	current_folder_state.first = L"";
-	current_folder_state.second = false;
 }
 
 /** 
@@ -1095,6 +1092,9 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 	// close folder if it was selected
 	if (strCurrentFolder == strFolder) {
 	    strCurrentFolder.clear();
+		current_folder.reset();
+		current_folder_state.first = L"";
+		current_folder_state.second = false;
 		// close old contents table if cached version was open
 		ReleaseContentsCache();
     }
@@ -1945,6 +1945,8 @@ HRESULT IMAP::HrCmdClose(const string &strTag) {
 	HrResponse(RESP_TAGGED_OK, strTag, "CLOSE completed");
 exit:
 	strCurrentFolder.clear();	// always "close" the SELECT command
+	current_folder_state.first = L"";
+	current_folder_state.second = false;
 	return hr;
 }
 
@@ -6133,7 +6135,8 @@ HRESULT IMAP::HrGetCurrentFolder(object_ptr<IMAPIFolder> &folder)
 	if (strCurrentFolder.empty() || !lpSession)
 		return MAPI_E_CALL_FAILED;
 
-	if (current_folder_state.first == strCurrentFolder &&
+	if (current_folder != nullptr &&
+		current_folder_state.first == strCurrentFolder &&
 		current_folder_state.second == bCurrentFolderReadOnly) {
 		folder = current_folder;
 		return hrSuccess;
