@@ -81,7 +81,7 @@ extern _kc_export HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, ECSe
 
 // Parse the RFC822 input and create IMAP Envelope, Body and Bodystructure property values
 extern _kc_export HRESULT createIMAPProperties(const std::string &input, std::string *envelope, std::string *body, std::string *bodystruct);
-
+extern _kc_export HRESULT createIMAPBody(const std::string &input, IMessage *lpMessage);
 } /* namespace */
 
 #endif // INETMAPI_H
