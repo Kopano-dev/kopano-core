@@ -1716,9 +1716,7 @@ SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags)
 	// in an uninitialized state for FreeProws()
 	if (MAPIAllocateBuffer(CbNewSRowSet(len), (void **)&lpsRowSet) != hrSuccess)
 		goto exit;
-
-	memset(lpsRowSet, 0, CbNewSRowSet(len));
-
+	lpsRowSet->cRows = 0;
 	while((elem = PyIter_Next(iter))) {
 		lpsRowSet->aRow[i].lpProps = List_to_LPSPropValue(elem, &lpsRowSet->aRow[i].cValues, ulFlags);
 
@@ -1727,11 +1725,8 @@ SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags)
 
 		Py_DECREF(elem);
 		elem = NULL;
-		++i;
+		lpsRowSet->cRows = ++i;
 	}
-
-	lpsRowSet->cRows = i;
-
 exit:
 	if (elem != nullptr)
 		Py_DECREF(elem);
@@ -3003,7 +2998,7 @@ LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 
 	if (MAPIAllocateBuffer(CbNewROWLIST(len), (void **)&lpRowList) != hrSuccess)
 		goto exit;
-
+	lpRowList->cEntries = 0;
 	iter = PyObject_GetIter(object);
 	if (iter == NULL)
 		goto exit;
@@ -3019,7 +3014,7 @@ LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 
 		lpRowList->aEntries[n].ulRowFlags = (ULONG)PyLong_AsUnsignedLong(rowflags);
 		lpRowList->aEntries[n].rgPropVals = List_to_LPSPropValue(props, &lpRowList->aEntries[n].cValues, ulFlags);
-
+		lpRowList->cEntries = ++n;
 		Py_DECREF(props);
 		props = NULL;
 
@@ -3028,11 +3023,7 @@ LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 
 		Py_DECREF(elem);
 		elem = NULL;
-		++n;
 	}
-
-	lpRowList->cEntries = n;
-
 exit:
 	if (PyErr_Occurred()) {
 		MAPIFreeBuffer(lpRowList);

@@ -526,11 +526,11 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpMods);
 	if (hr != hrSuccess)
 		return hr;
-	lpMods->cEntries = 1;
-
+	lpMods->cEntries = 0;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 8, (void**)&lpMods->aEntries->rgPropVals);
 	if (hr != hrSuccess)
 		return hr;
+	++lpMods->cEntries;
 	hr = ECParseOneOff(reinterpret_cast<ENTRYID *>(spv[RR_REPORT_ENTRYID].Value.bin.lpb), spv[RR_REPORT_ENTRYID].Value.bin.cb, strName, strType, strAddress);
 	if (hr != hrSuccess)
 		return hr;

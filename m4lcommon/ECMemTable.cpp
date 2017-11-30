@@ -114,6 +114,7 @@ HRESULT ECMemTable::HrGetAllWithStatus(LPSRowSet *lppRowSet, LPSPropValue *lppID
 	hr = MAPIAllocateBuffer(CbNewSRowSet(mapRows.size()), &~lpRowSet);
 	if(hr != hrSuccess)
 		return hr;
+	lpRowSet->cRows = 0;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * mapRows.size(), &~lpIDs);
 	if(hr != hrSuccess)
 		return hr;
@@ -135,6 +136,7 @@ HRESULT ECMemTable::HrGetAllWithStatus(LPSRowSet *lppRowSet, LPSPropValue *lppID
 		hr = Util::HrCopyPropertyArrayByRef(rowp.second.lpsPropVal, rowp.second.cValues, &lpRowSet->aRow[n].lpProps, &lpRowSet->aRow[n].cValues);
 		if(hr != hrSuccess)
 			return hr;
+		++lpRowSet->cRows;
 		if (rowp.second.lpsID != NULL) {
 			hr = Util::HrCopyProperty(&lpIDs[n], rowp.second.lpsID, lpIDs);
 			if(hr != hrSuccess)
@@ -145,8 +147,6 @@ HRESULT ECMemTable::HrGetAllWithStatus(LPSRowSet *lppRowSet, LPSPropValue *lppID
 		}
 		++n;
 	}
-	lpRowSet->cRows = n;
-
 	*lppRowSet = lpRowSet.release();
 	*lppIDs = lpIDs.release();
 	*lppulStatus = lpulStatus.release();
@@ -1017,6 +1017,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 	hr = MAPIAllocateBuffer(CbNewSRowSet(lpsRowList->size()), &~lpRows);
 	if(hr != hrSuccess)
 		return hr;
+	lpRows->cRows = 0;
 
 	// Copy the rows into the rowset
 	i = 0;
@@ -1032,6 +1033,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpsPropTags->cValues, (void **)&lpRows->aRow[i].lpProps);
 		if(hr != hrSuccess)
 			return hr;
+		++lpRows->cRows;
 
 		for (j = 0; j < lpsPropTags->cValues; ++j) {
 			auto &prop = lpRows->aRow[i].lpProps[j];
@@ -1100,8 +1102,6 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 		}
 		++i;
 	}
-
-	lpRows->cRows = lpsRowList->size();
 	*lppRows = lpRows.release();
 	return hr;
 }

@@ -898,14 +898,13 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
 	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAdrList);
 	if (hr != hrSuccess)
 		return hr;
-    
-    lpAdrList->cEntries = 1;
+	lpAdrList->cEntries = 0;
     lpAdrList->aEntries[0].cValues = 1;
 
     hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[0].rgPropVals);
     if(hr != hrSuccess)
 		return hr;
-        
+	++lpAdrList->cEntries;
     lpAdrList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
     lpAdrList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR *)strResolve.c_str();
     

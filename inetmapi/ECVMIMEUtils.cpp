@@ -195,9 +195,10 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
 		hr = MAPIAllocateBuffer(CbNewSRowSet(1), &~lpRows);
 		if (hr != hrSuccess)
 			return hr;
-		lpRows->cRows = 1;
+		lpRows->cRows = 0;
 		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpRows->aRow[0].lpProps)) != hrSuccess)
 			return hr;
+		++lpRows->cRows;
 		lpRows->aRow[0].cValues = 1;
 		
 		lpRows->aRow[0].lpProps[0].ulPropTag = PR_DISPLAY_NAME_W;

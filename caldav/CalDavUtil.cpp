@@ -731,7 +731,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	hr = MAPIAllocateBuffer(CbNewADRLIST(cUsers), &~lpAdrList);
 	if(hr != hrSuccess)
 		return hr;
-	lpAdrList->cEntries = cUsers;
+	lpAdrList->cEntries = 0;
 	hr = MAPIAllocateBuffer(CbNewFlagList(cUsers), &~ptrFlagList);
 	if (hr != hrSuccess)
 		return hr;
@@ -745,6 +745,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[cUsers].rgPropVals);
 		if(hr != hrSuccess)
 			return hr;
+		++lpAdrList->cEntries;
 		lpAdrList->aEntries[cUsers].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_A;
 		lpAdrList->aEntries[cUsers].rgPropVals[0].Value.lpszA = const_cast<char *>(user.c_str());
 		ptrFlagList->ulFlag[cUsers] = MAPI_UNRESOLVED;

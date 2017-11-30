@@ -361,9 +361,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	hr = MAPIAllocateBuffer(CbNewADRLIST(ulRecpCnt), &~lpAdrList);
 	if (hr != hrSuccess)
 		return hr;
-
-	lpAdrList->cEntries = ulRecpCnt;
-
+	lpAdrList->cEntries = 0;
 	ulRecpCnt = 0;
 	for (const auto &recip : *lplstIcalRecip) {
 		lpAdrList->aEntries[ulRecpCnt].cValues = 1;
@@ -371,6 +369,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[ulRecpCnt].rgPropVals);
 		if (hr != hrSuccess)
 			return hr;
+		++lpAdrList->cEntries;
 		lpAdrList->aEntries[ulRecpCnt].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
 		lpAdrList->aEntries[ulRecpCnt].rgPropVals[0].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
 		lpFlagList->ulFlag[ulRecpCnt++] = MAPI_UNRESOLVED;

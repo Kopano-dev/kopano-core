@@ -737,8 +737,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 				hr = ECAllocateMore(CbNewADRLIST(sa->act.adrlist->__size), lpBase, reinterpret_cast<void **>(&da->lpadrlist));
 				if (hr != hrSuccess)
 					return hr;
-				da->lpadrlist->cEntries = sa->act.adrlist->__size;
-
+				da->lpadrlist->cEntries = 0;
 				for (gsoap_size_t j = 0; j < sa->act.adrlist->__size; ++j) {
 					da->lpadrlist->aEntries[j].ulReserved1 = 0;
 					da->lpadrlist->aEntries[j].cValues = sa->act.adrlist->__ptr[j].__size;
@@ -748,6 +747,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dp, const struct propVal *sp,
 					     reinterpret_cast<void **>(&da->lpadrlist->aEntries[j].rgPropVals));
 					if (hr != hrSuccess)
 						return hr;
+					++da->lpadrlist->cEntries;
 					hr = CopySOAPRowToMAPIRow(&sa->act.adrlist->__ptr[j], da->lpadrlist->aEntries[j].rgPropVals, lpBase, lpConverter);
 					if (hr != hrSuccess)
 						return hr;

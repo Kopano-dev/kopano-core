@@ -791,7 +791,7 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 	MAPI_G(hr) = MAPI_ALLOC(CbNewADRLIST(count), lpBase, (void **)&lpAdrList);
 	if(MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
-
+	lpAdrList->cEntries = 0;
 	zend_hash_internal_pointer_reset(target_hash);
 
 	// FIXME: It is possible that the memory allocated is more than actually needed. We should first
@@ -808,7 +808,7 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 		MAPI_G(hr) = PHPArraytoPropValueArray(entry, lpBase, &countProperties, &pPropValue TSRMLS_CC);
 		if(MAPI_G(hr) != hrSuccess)
 			goto exit;
-			
+		++lpAdrList->cEntries;
 		lpAdrList->aEntries[countRecipients].ulReserved1 = 0;
 		lpAdrList->aEntries[countRecipients].rgPropVals = pPropValue;
 		lpAdrList->aEntries[countRecipients].cValues = countProperties;
@@ -817,9 +817,6 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 		zend_hash_move_forward(target_hash);
 		++countRecipients;
 	}
-
-	lpAdrList->cEntries = countRecipients;
-
 	*lppAdrList = lpAdrList;
 
 exit:
@@ -863,7 +860,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 	             reinterpret_cast<void **>(&lpRowList));
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-
+	lpRowList->cEntries = 0;
 	zend_hash_internal_pointer_reset(target_hash);
 
 	// FIXME: It is possible that the memory allocated is more than actually needed. We should first
@@ -895,6 +892,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 				MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 				goto exit;
 			}
+			++lpRowList->cEntries;
 			lpRowList->aEntries[countRows].rgPropVals = pPropValue;
 			lpRowList->aEntries[countRows++].cValues = countProperties;
 		}else {
@@ -906,8 +904,6 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 		// move the pointer to the next entry
 		zend_hash_move_forward(target_hash);
 	}
-	lpRowList->cEntries = countRows;
-
 	*lppRowList = lpRowList;
 
 exit:
