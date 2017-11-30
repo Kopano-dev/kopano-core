@@ -135,8 +135,7 @@ std::string IncrementalQueryCreator::CreateBaseQuery()
 				"  AND changes.sourcesync != " + stringify(m_ulSyncId);																/* And we didn't generate this change ourselves */
 
 	if(!m_sFolderSourceKey.empty()) 
-		strQuery += "  AND changes.parentsourcekey = " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size());	/* Where change took place in Folder X */
-
+		strQuery += "  AND changes.parentsourcekey = " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey); /* Where change took place in Folder X */
 	if (m_ulFlags & SYNC_NO_DELETIONS)
 		strQuery += " AND changes.change_type & " + stringify(ICS_ACTION_MASK) + " != " + stringify(ICS_SOFT_DELETE) +
 					" AND changes.change_type & " + stringify(ICS_ACTION_MASK) + " != " + stringify(ICS_HARD_DELETE);
@@ -189,8 +188,7 @@ std::string FullQueryCreator::CreateBaseQuery()
 				"JOIN indexedproperties as sourcekey ON sourcekey.hierarchyid = hierarchy.id AND sourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
 				"JOIN indexedproperties as parentsourcekey ON parentsourcekey.hierarchyid = hierarchy.parent AND parentsourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) +
 				" LEFT JOIN changes on changes.sourcekey=sourcekey.val_binary AND changes.parentsourcekey=parentsourcekey.val_binary AND changes.change_type=" + stringify(ICS_MESSAGE_NEW) + " ";
-				
-	strQuery +=	"WHERE parentsourcekey.val_binary = " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size()) +
+	strQuery += "WHERE parentsourcekey.val_binary = " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey) +
 				"  AND hierarchy.type=" + stringify(MAPI_MESSAGE) + " AND hierarchy.flags & 1024 = 0";
 	
 	if (m_ulFilteredSourceSync)
@@ -577,7 +575,7 @@ ECRESULT ECGetContentChangesHelper::Init()
 
 	std::string strQuery = "SELECT MAX(id) FROM changes";
 	if(!m_sFolderSourceKey.empty())
-		strQuery += " WHERE parentsourcekey=" + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size());
+		strQuery += " WHERE parentsourcekey=" + m_lpDatabase->EscapeBinary(m_sFolderSourceKey);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
@@ -828,7 +826,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		 * changes table.
 		 */
 		// Bump the changeid
-		std::string strQuery = "REPLACE INTO changes (sourcekey,parentsourcekey,sourcesync) VALUES (0, " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size()) + "," + stringify(m_ulSyncId) + ")";
+		auto strQuery = "REPLACE INTO changes (sourcekey,parentsourcekey,sourcesync) VALUES (0, " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey) + "," + stringify(m_ulSyncId) + ")";
 		er = m_lpDatabase->DoInsert(strQuery, &ulNewChange);
 		if (er != erSuccess)
 			return er;
@@ -918,8 +916,8 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	strQuery = "INSERT INTO syncedmessages (sync_id,change_id,sourcekey,parentsourcekey) VALUES ";
 	for (const auto &p : m_setNewMessages)
 		strQuery += "(" + stringify(m_ulSyncId) + "," + stringify(ulMaxChange) + "," +
-			m_lpDatabase->EscapeBinary(p.first, p.first.size()) + "," +
-			m_lpDatabase->EscapeBinary(p.second.sParentSourceKey, p.second.sParentSourceKey.size()) + "),";
+			m_lpDatabase->EscapeBinary(p.first) + "," +
+			m_lpDatabase->EscapeBinary(p.second.sParentSourceKey) + "),";
 
 	strQuery.resize(strQuery.size() - 1);
 	er = m_lpDatabase->DoInsert(strQuery);

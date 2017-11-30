@@ -880,7 +880,7 @@ void DBPlugin::CreateObjectWithExternId(const objectid_t &objectid, const object
 	auto strQuery =
 		"SELECT id "
 		"FROM " + (string)DB_OBJECT_TABLE + " "
-		"WHERE externid = " + m_lpDatabase->EscapeBinary(objectid.id.c_str(), objectid.id.length()) + " "
+		"WHERE externid = " + m_lpDatabase->EscapeBinary(objectid.id) + " "
 		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", OBJECTCLASS_CLASSTYPE(details.GetClass()));
 
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
@@ -956,7 +956,7 @@ objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
 	strQuery =
 		"INSERT INTO " + (string)DB_OBJECT_TABLE + "(objectclass, externid) "
 		"VALUES (" + stringify(details.GetClass()) + "," +
-		m_lpDatabase->EscapeBinary(strExternId.c_str(), strExternId.length()) + ")";
+		m_lpDatabase->EscapeBinary(strExternId) + ")";
 
 	er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
