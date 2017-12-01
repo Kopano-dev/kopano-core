@@ -60,6 +60,7 @@ from .permission import Permission
 from .freebusy import FreeBusy
 from .table import Table
 from .restriction import Restriction
+from .notification import Sink, Notification
 
 from .compat import (
     hex as _hex, unhex as _unhex, decode as _decode, encode as _encode,
@@ -85,13 +86,6 @@ else:
     import item as _item
     import utils as _utils
 
-class Sink:
-    def __init__(self, mapiobj):
-        self.mapiobj = mapiobj
-
-    @property
-    def notifications(self, time=1000):
-        return self.mapiobj.GetNotifications(False, time)
 
 class Store(Properties):
     """Store class"""
@@ -699,7 +693,7 @@ class Store(Properties):
 
     def advise(self):
         flags = fnevObjectModified | fnevObjectCreated \
-                | fnevObjectMoved | fnevObjectDeleted
+            | fnevObjectMoved | fnevObjectDeleted
 
         sink = MAPINotifSink()
         try:
@@ -710,7 +704,7 @@ class Store(Properties):
                 "server(notifications=True)"
             )
 
-        return Sink(sink)
+        return Sink(self, sink)
 
     def __ne__(self, s):
         return not self == s

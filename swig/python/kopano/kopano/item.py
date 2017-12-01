@@ -146,8 +146,8 @@ class Item(Properties, Contact, Appointment):
             self.store = parent.store
             self.server = parent.server
         elif isinstance(parent, _store.Store):
-            self.store = store
-            self.server = store.server
+            self.store = parent
+            self.server = parent.server
 
         if create:
             self.mapiobj = self.folder.mapiobj.CreateMessage(None, MAPI_ASSOCIATED if self.folder.content_flag & MAPI_ASSOCIATED else 0)
