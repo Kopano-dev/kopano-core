@@ -1,6 +1,9 @@
 from MAPI.Util import kc_session_save, kc_session_restore
 import json
-import urlparse
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
 import types
 
 import falcon
@@ -9,7 +12,7 @@ import kopano
 def _server(req):
     # TODO cross process caching, store caching?
 
-    userid = req.headers['X-Kopano-UserEntryID']
+    userid = req.get_header('X-Kopano-UserEntryID', required=True)
 
     if userid in userid_sessiondata:
         sessiondata = userid_sessiondata[userid]
