@@ -126,10 +126,8 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 		    break;
 	}
 
-	// ... and put the data into the row system
-	for (const auto f : lstFolders)
-		if (f != m_ulFolderId)
-			lstObjIds.emplace_back(f);
+	lstFolders.remove(m_ulFolderId);
+	lstObjIds = std::move(lstFolders);
 
     LoadRows(&lstObjIds, 0);
 	return erSuccess;
