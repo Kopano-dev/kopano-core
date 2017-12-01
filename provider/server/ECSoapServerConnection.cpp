@@ -92,9 +92,8 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 		close(s);
 		return -1;
 	}
-	
-	if (listen(s, SOMAXCONN) == -1) {
-		ec_log_crit("Can't listen on unix socket %s", unix_socket);
+	if (listen(s, INT_MAX) < 0) {
+		ec_log_crit("Can't listen on unix socket %s: %s", unix_socket, strerror(errno));
 		close(s);
 		return -1;
 	}
