@@ -33,6 +33,7 @@
 #include <new>
 #include <string>
 #include <list>
+#include <sys/time.h>
 
 namespace KC {
 
