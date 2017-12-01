@@ -32,6 +32,7 @@
 #include <new>
 #include <string>
 #include <list>
+#include <sys/time.h>
 
 /**
  * Returns TRUE if the restriction is always FALSE.
