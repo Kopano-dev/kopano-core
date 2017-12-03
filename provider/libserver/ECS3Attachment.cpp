@@ -282,12 +282,12 @@ S3Status ECS3Attachment::response_prop(const S3ResponseProperties *properties, v
 	 * Only allocate memory if we are not able to use a serializer sink, we
 	 * are instructed to alloc data->data and have not allocated it yet.
 	 */
-	if (data->sink == NULL && data->alloc_data && data->data == NULL) {
-		data->data = s_alloc_nothrow<unsigned char>(data->soap, data->size);
-		if (data->data == NULL) {
-			ec_log_err("S3: cannot allocate %zu bytes", data->size);
-			return S3StatusAbortedByCallback;
-		}
+	if (data->sink != nullptr || !data->alloc_data || data->data != nullptr)
+		return S3StatusOK;
+	data->data = s_alloc_nothrow<unsigned char>(data->soap, data->size);
+	if (data->data == NULL) {
+		ec_log_err("S3: cannot allocate %zu bytes", data->size);
+		return S3StatusAbortedByCallback;
 	}
 	return S3StatusOK;
 }
@@ -399,25 +399,24 @@ int ECS3Attachment::put_obj(int bufferSize, char *buffer, void *cbdata)
 		return -1;
 
 	remaining = data->size - data->processed;
-	if (remaining > 0) {
-		toRead = remaining > bufferSize ? bufferSize : remaining;
-		ec_log_debug("S3: Putting data using callback: "
-			"Remaining bytes to put: %d - Writing %d bytes in %d buffer",
-			remaining, toRead, bufferSize);
-
-		if (data->sink != NULL) {
-			ret = data->sink->Read(buffer, 1, toRead);
-			if (ret != erSuccess) {
-				ec_log_err("S3: Unable to read from the serializer sink");
-				return -1;
-			}
-		} else {
-			memcpy(buffer, data->data + data->processed, toRead);
-		}
-		data->processed += toRead;
-	} else {
+	if (remaining <= 0) {
 		ec_log_debug("S3: putting data using callback: Remaining bytes to put: %d - We processed all the data, but S3 expects more", remaining);
+		return toRead;
 	}
+	toRead = remaining > bufferSize ? bufferSize : remaining;
+	ec_log_debug("S3: Putting data using callback: "
+		"Remaining bytes to put: %d - Writing %d bytes in %d buffer",
+		remaining, toRead, bufferSize);
+	if (data->sink != NULL) {
+		ret = data->sink->Read(buffer, 1, toRead);
+		if (ret != erSuccess) {
+			ec_log_err("S3: Unable to read from the serializer sink");
+			return -1;
+		}
+	} else {
+		memcpy(buffer, data->data + data->processed, toRead);
+	}
+	data->processed += toRead;
 	return toRead;
 }
 
