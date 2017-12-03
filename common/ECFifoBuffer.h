@@ -39,8 +39,8 @@ public:
 	ECRESULT Close(close_flags flags);
 	_kc_hidden ECRESULT Flush(void);
 	_kc_hidden bool IsClosed(ULONG flags) const;
-	_kc_hidden bool IsEmpty(void) const;
-	_kc_hidden bool IsFull(void) const;
+	_kc_hidden bool IsEmpty() const { return m_storage.empty(); }
+	_kc_hidden bool IsFull() const { return m_storage.size() == m_ulMaxSize; }
 	
 private:
 	// prohibit copy
@@ -68,14 +68,6 @@ inline bool ECFifoBuffer::IsClosed(ULONG flags) const {
 		assert(false);
 		return false;
 	}
-}
-
-inline bool ECFifoBuffer::IsEmpty() const {
-	return m_storage.empty();
-}
-
-inline bool ECFifoBuffer::IsFull() const {
-	return m_storage.size() == m_ulMaxSize;
 }
 
 } /* namespace */
