@@ -1842,7 +1842,6 @@ ECRESULT CopyUserDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const obje
 	// assert(OBJECTCLASS_TYPE(objClass) == OBJECTTYPE_MAILUSER);
 	lpUser->ulUserId = ulId;
 	lpUser->lpszUsername = s_strcpy(soap, details.GetPropString(OB_PROP_S_LOGIN).c_str());
-	lpUser->ulIsNonActive = (objClass == ACTIVE_USER ? 0 : 1);	// Needed for pre 6.40 clients
 	lpUser->ulObjClass = objClass;
 	lpUser->lpszMailAddress = s_strcpy(soap, details.GetPropString(OB_PROP_S_EMAIL).c_str());
 	lpUser->lpszFullName = s_strcpy(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());

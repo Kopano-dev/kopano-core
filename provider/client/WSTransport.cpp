@@ -1723,7 +1723,6 @@ HRESULT WSTransport::HrCreateUser(ECUSER *lpECUser, ULONG ulFlags,
 	sUser.lpszMailAddress	= TO_UTF8_DEF((char *)lpECUser->lpszMailAddress);
 	sUser.ulUserId			= 0;
 	sUser.ulObjClass		= lpECUser->ulObjClass;
-	sUser.ulIsNonActive		= lpECUser->ulObjClass;		// Keep 6.40.0 servers happy
 	sUser.ulIsAdmin			= lpECUser->ulIsAdmin;
 	sUser.lpszFullName		= TO_UTF8_DEF((char *)lpECUser->lpszFullName);
 	sUser.ulIsABHidden		= lpECUser->ulIsABHidden;
@@ -1835,7 +1834,6 @@ HRESULT WSTransport::HrSetUser(ECUSER *lpECUser, ULONG ulFlags)
 	sUser.lpszMailAddress	= TO_UTF8_DEF(lpECUser->lpszMailAddress);
 	sUser.ulUserId			= ABEID_ID(lpECUser->sUserId.lpb);
 	sUser.ulObjClass		= lpECUser->ulObjClass;
-	sUser.ulIsNonActive		= lpECUser->ulObjClass;		// Keep 6.40.0 servers happy
 	sUser.ulIsAdmin			= lpECUser->ulIsAdmin;
 	sUser.lpszFullName		= TO_UTF8_DEF(lpECUser->lpszFullName);
 	sUser.sUserId.__ptr		= lpECUser->sUserId.lpb;

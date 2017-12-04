@@ -1681,33 +1681,7 @@ static HRESULT SoapUserToUser(const struct user *lpUser, ECUSER *lpsUser,
 	lpsUser->ulIsAdmin		= lpUser->ulIsAdmin;
 	lpsUser->ulIsABHidden	= lpUser->ulIsABHidden;
 	lpsUser->ulCapacity		= lpUser->ulCapacity;
-
-	/**
-	 * If we're talking to a pre 6.40 server we won't get a object class,
-	 * only an is-non-active flag. Luckily we don't have to support that.
-	 * However, a 6.40.0 server will put the object class information in
-	 * that is-non-active field. We (6.40.1 and up) expect the object class
-	 * information in a dedicated object class field, and reverted the
-	 * is-non-active field to its original usage.
-	 *
-	 * We can easily determine what's the case here:
-	 *  If ulClass is missing (value == 0), we're dealing with a pre 6.40.1
-	 *  server. In that case the ulIsNonActive either contains is-non-active
-	 *  information or an object class. We can distinguish this since an
-	 *  object class has data in the high 16-bit of its value, the
-	 *  is-non-active field is either 0 or 1.
-	 *  If we detect a class, we put the class in the ulClass field.
-	 *  If we detect a is-non-active, we'll simply return an error since we're
-	 *  not required to be able to communicate with a pre 6.40.
-	 *  We could guess things here, but why bother?
-	 */
-	if (lpUser->ulObjClass == 0) {
-		if (OBJECTCLASS_TYPE(lpUser->ulIsNonActive) != 0)
-			lpsUser->ulObjClass = (objectclass_t)lpUser->ulIsNonActive;	// ulIsNonActive itself will be ignored by the offline server.
-		else
-			return MAPI_E_UNABLE_TO_COMPLETE;
-	} else
-		lpsUser->ulObjClass = (objectclass_t)lpUser->ulObjClass;
+	lpsUser->ulObjClass = (objectclass_t)lpUser->ulObjClass;
 
 	return hrSuccess;
 }
