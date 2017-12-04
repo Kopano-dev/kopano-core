@@ -626,11 +626,8 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 	}
 
 	if (!lpAttachmentStorage) {
-		er = CreateAttachmentStorage(lpDatabase, &~lpInternalAttachmentStorage);
-		if (er != erSuccess)
-			goto exit;
-
-		lpAttachmentStorage = lpInternalAttachmentStorage;
+		lpInternalAttachmentStorage.reset(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
+		lpAttachmentStorage = lpInternalAttachmentStorage.get();
 	}
 
 	for (auto iterDeleteItems = lstDeleteItems.crbegin();

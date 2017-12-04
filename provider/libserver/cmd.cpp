@@ -1428,8 +1428,6 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 	quotadetails_t	sDetails;
 	unsigned int	ulCompanyId = 0;
 	unsigned int	ulStoreOwner = 0;
-	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
-
 	struct propVal sPropVal;
 	ECStringCompat stringCompat(lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE);
 
@@ -1549,9 +1547,9 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 
 	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
 		ULONG ulPropTag = (ulObjType == MAPI_MESSAGE ? PR_EC_IMAP_EMAIL : PR_ATTACH_DATA_BIN);
-		er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
-		if (er != erSuccess)
-			return er;
+		object_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
+		if (lpAttachmentStorage == nullptr)
+			return KCERR_NOT_ENOUGH_MEMORY;
 		if (lpAttachmentStorage->ExistAttachment(ulObjId, PROP_ID(ulPropTag)))
 		    sChildProps.lpPropTags->AddPropTag(ulPropTag);
 	}
@@ -1614,7 +1612,6 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
  */
 SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObjId, unsigned int ulPropTag, struct loadPropResponse *lpsResponse)
 {
-	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	USE_DATABASE();
 
 	if(ulObjId == 0) {
@@ -1668,10 +1665,9 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 		lpsResponse->lpPropVal->__union = SOAP_UNION_propValData_bin;
 		lpsResponse->lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 		memset(lpsResponse->lpPropVal->Value.bin, 0, sizeof(struct xsd__base64Binary));
-		er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
-		if (er != erSuccess)
-			goto exit;
-
+		object_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
+		if (lpAttachmentStorage == nullptr)
+			return KCERR_NOT_ENOUGH_MEMORY;
 		size_t atsize = 0;
 		er = lpAttachmentStorage->LoadAttachment(soap, ulObjId, PROP_ID(ulPropTag), &atsize, &lpsResponse->lpPropVal->Value.bin->__ptr);
 		lpsResponse->lpPropVal->Value.bin->__size = atsize;
@@ -2701,11 +2697,10 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 	bool			fHaveChangeKey = false;
 	unsigned int	ulObjId = 0;
 	struct propVal	*pvCommitTime = NULL;
-	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
+	object_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
 
-	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
-	if (er != erSuccess)
-		return er;
+	if (lpAttachmentStorage == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	auto atx = lpAttachmentStorage->Begin(er);
 	if (er != erSuccess)
 		return er;
@@ -2949,7 +2944,6 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
     std::map<unsigned int, CHILDPROPS> *lpChildProps)
 {
 	ECRESULT 		er = erSuccess;
-	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	ULONG			ulInstanceTag = 0;
 	struct saveObject sSavedObject;
 	GUID			sGuidServer;
@@ -3032,10 +3026,9 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	}
 
 	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
-		er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
-		if (er != erSuccess)
-			goto exit;
-
+		object_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
+		if (lpAttachmentStorage == nullptr)
+			return KCERR_NOT_ENOUGH_MEMORY;
 		er = g_lpSessionManager->GetServerGUID(&sGuidServer);
 		if (er != erSuccess)
 			goto exit;
@@ -7337,8 +7330,9 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 			ec_log_err("CopyObject: \"!attachmentstore && !isroot\" clause failed: %s (%x)", GetMAPIErrorMessage(er), er);
 			return KCERR_INVALID_PARAMETER;
 		}
-		er = CreateAttachmentStorage(lpDatabase, &~lpInternalAttachmentStorage);
-		if (er != erSuccess) {
+		lpInternalAttachmentStorage.reset(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
+		if (lpInternalAttachmentStorage == nullptr) {
+			er = KCERR_NOT_ENOUGH_MEMORY;
 			ec_log_err("CopyObject: CreateAttachmentStorage failed: %s (%x)", GetMAPIErrorMessage(er), er);
 			goto exit;
 		}
@@ -7680,7 +7674,6 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 
 	SOURCEKEY		sSourceKey;
 	SOURCEKEY		sParentSourceKey;
-	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 
 	if(lpszNewFolderName == NULL) {
 		ec_log_err("CopyFolderObjects: \"new folder name\" missing");
@@ -7695,8 +7688,9 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 	auto gcache = g_lpSessionManager->GetCacheManager();
 	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
 	auto sec = lpecSession->GetSecurity();
-	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
-	if (er != erSuccess) {
+	object_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
+	if (lpAttachmentStorage == nullptr) {
+		er = KCERR_NOT_ENOUGH_MEMORY;
 		ec_log_err("CopyFolderObjects: CreateAttachmentStorage failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		return er;
 	}
@@ -9690,7 +9684,7 @@ struct MTOMSessionInfo {
 	ECSession		*lpecSession;
 	ECDatabase		*lpSharedDatabase;
 	ECDatabase		*lpDatabase;
-	ECAttachmentStorage *lpAttachmentStorage;
+	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	ECRESULT er;
 	ECThreadPool	*lpThreadPool;
 	MTOMStreamInfo	*lpCurrentWriteStream; /* This is only tracked for cleanup at session exit */
@@ -9899,10 +9893,11 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		er = KCERR_NO_SUPPORT;
 		goto exit;
 	}
-	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
-	if (er != erSuccess)
+	lpAttachmentStorage.reset(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
+	if (lpAttachmentStorage == nullptr) {
+		er = KCERR_NOT_ENOUGH_MEMORY;
 		goto exit;
-
+	}
 	lpMTOMSessionInfo = new MTOMSessionInfo;
 	lpMTOMSessionInfo->lpCurrentWriteStream = NULL;
 	lpMTOMSessionInfo->lpCurrentReadStream = NULL;
@@ -10128,15 +10123,12 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	unsigned int	ulDeleteFlags = EC_DELETE_ATTACHMENTS | EC_DELETE_RECIPIENTS | EC_DELETE_CONTAINER | EC_DELETE_MESSAGES | EC_DELETE_HARD_DELETE;
 	ECListDeleteItems lstDeleteItems;
 	ECListDeleteItems lstDeleted;
-	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	MTOMSessionInfo		*lpMTOMSessionInfo = NULL;
 
 	USE_DATABASE();
-	kd_trans atx;
-
-	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
-	if (er != erSuccess)
-		goto exit;
+	object_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
+	if (lpAttachmentStorage == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 
 	lpMTOMSessionInfo = new MTOMSessionInfo;
 	lpMTOMSessionInfo->lpCurrentWriteStream = NULL;
@@ -10152,7 +10144,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	soap_info(soap)->fdone = MTOMSessionDone;
 	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 
-	atx = lpAttachmentStorage->Begin(er);
+	auto atx = lpAttachmentStorage->Begin(er);
 	if (er != erSuccess)
 		goto exit;
 	er = lpDatabase->Begin();

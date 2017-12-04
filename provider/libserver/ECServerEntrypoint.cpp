@@ -20,6 +20,7 @@
 #include <pthread.h>
 #include <kopano/ECLogger.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/hl.hpp>
 #include "ECDatabase.h"
 #include "ECSessionManager.h"
 #include "ECStatsCollector.h"
@@ -109,8 +110,11 @@ ECRESULT kopano_init(ECConfig *lpConfig, ECLogger *lpAudit, bool bHostedKopano, 
 {
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
-
-	g_lpSessionManager = new ECSessionManager(lpConfig, lpAudit, bHostedKopano, bDistributedKopano);
+	try {
+		g_lpSessionManager = new ECSessionManager(lpConfig, lpAudit, bHostedKopano, bDistributedKopano);
+	} catch (KCHL::KMAPIError &e) {
+		return e.code();
+	}
 	auto er = g_lpSessionManager->LoadSettings();
 	if(er != erSuccess)
 		return er;

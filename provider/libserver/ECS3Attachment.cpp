@@ -71,6 +71,27 @@ W(get_object)
 static std::mutex m_cachelock;
 static std::map<ULONG, s3_cache_entry> m_cache;
 
+ECRESULT ECS3Config::init(ECConfig *cfg)
+{
+	/* Copy strings, in case ECConfig gets reloaded and changes pointers */
+	m_prot   = cfg->GetSetting("attachment_s3_protocol");
+	m_uri    = cfg->GetSetting("attachment_s3_uristyle");
+	m_akid   = cfg->GetSetting("attachment_s3_accesskeyid");
+	m_sakey  = cfg->GetSetting("attachment_s3_secretaccesskey");
+	m_bkname = cfg->GetSetting("attachment_s3_bucketname");
+	m_region = cfg->GetSetting("attachment_s3_region");
+	m_path   = cfg->GetSetting("attachment_path");
+	m_comp   = strtol(cfg->GetSetting("attachment_compression"), nullptr, 0);
+	return erSuccess;
+}
+
+ECAttachmentStorage *ECS3Config::new_handle(ECDatabase *db)
+{
+	return new(std::nothrow) ECS3Attachment(db, m_prot.c_str(),
+	       m_uri.c_str(), m_akid.c_str(), m_sakey.c_str(),
+	       m_bkname.c_str(), m_region.c_str(), m_path.c_str(), m_comp);
+}
+
 /**
  * Static function used to forward the response properties callback to the
  * right object.

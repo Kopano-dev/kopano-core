@@ -19,6 +19,16 @@ class ECSerializer;
 class ECLogger;
 struct s3_cd;
 
+class ECS3Config final : public ECAttachmentConfig {
+	public:
+	virtual ECRESULT init(ECConfig *) override;
+	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
+
+	private:
+	std::string m_prot, m_uri, m_akid, m_sakey, m_bkname, m_region, m_path;
+	unsigned int m_comp;
+};
+
 class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	public:
 	static ECRESULT StaticInit(ECConfig *);

@@ -33,11 +33,6 @@ namespace KC {
 // External objects
 extern ECSessionManager *g_lpSessionManager;	// ECServerEntrypoint.cpp
 
-ECRESULT CreateAttachmentStorage(ECDatabase *lpDatabase, ECAttachmentStorage **lppAttachmentStorage)
-{
-	return ECAttachmentStorage::CreateAttachmentStorage(lpDatabase, g_lpSessionManager->GetConfig(), lppAttachmentStorage);
-}
-
 ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned int ulParentObjId, unsigned int ulParentType, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulObjId) 
 {
 	ECRESULT		er;
@@ -112,7 +107,6 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	DB_ROW			lpDBRow = NULL;
 	unsigned int	ulSize = 0;
 	std::string		strQuery;
-	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	ECDatabaseAttachment *lpDatabaseStorage = NULL;
 
 	*lpulSize = 0;
@@ -129,9 +123,9 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	else
 		ulSize = atoui(lpDBRow[0])+ 28;// + hierarchy size
 
-	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
-	if (er != erSuccess)
-		return er;
+	object_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
+	if (lpAttachmentStorage == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 
 	// since we already did the length magic in the previous query, we only need the 
 	// extra size for filestorage and S3 storage, i.e. not database storage

@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -45,6 +46,22 @@
 #include "ECS3Attachment.h"
 
 namespace KC {
+
+class ECDatabaseAttachmentConfig final : public ECAttachmentConfig {
+	public:
+	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
+};
+
+class ECFileAttachmentConfig final : public ECAttachmentConfig {
+	public:
+	virtual ECRESULT init(ECConfig *) override;
+	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
+
+	private:
+	std::string m_dir;
+	unsigned int m_complvl;
+	bool m_sync_files;
+};
 
 using std::string;
 
@@ -95,66 +112,57 @@ ULONG ECAttachmentStorage::Release() {
 	return ulRef;
 }
 
-/** 
- * Create an attachment storage object which either uses the
- * ECDatabase or a filesystem as storage.
- * 
- * @param[in] lpDatabase Database class that stays valid during the lifetime of the returned ECAttachmentStorage
- * @param[in] lpConfig The server configuration object
- * @param[out] lppAttachmentStorage The attachment storage object
- * 
- * @return Kopano error code
- * @retval KCERR_DATABASE_ERROR given database pointer wasn't valid
- */
-ECRESULT ECAttachmentStorage::CreateAttachmentStorage(ECDatabase *lpDatabase,
-    ECConfig *lpConfig, ECAttachmentStorage **lppAttachmentStorage)
+ECRESULT ECAttachmentConfig::create(ECConfig *config, ECAttachmentConfig **atcp)
 {
-	ECAttachmentStorage *lpAttachmentStorage = NULL;
-
-	if (lpDatabase == NULL) {
-		ec_log_err("ECAttachmentStorage::CreateAttachmentStorage(): DB not available yet");
-		return KCERR_DATABASE_ERROR; // somebody called this function too soon.
-	}
-
-	const char *ans = lpConfig->GetSetting("attachment_storage");
-	const char *dir = lpConfig->GetSetting("attachment_path");
-	if (dir == NULL) {
-		ec_log_err("No attachment_path set despite attachment_storage=files. Falling back to database attachments.");
-		ans = NULL;
-	}
-	if (ans != NULL && strcmp(ans, "files") == 0) {
-		const char *const sync_files_par = lpConfig->GetSetting("attachment_files_fsync");
-		bool sync_files = sync_files_par == NULL || strcasecmp(sync_files_par, "yes") == 0;
-		const char *comp = lpConfig->GetSetting("attachment_compression");
-		unsigned int complvl = (comp == NULL) ? 0 : strtoul(comp, NULL, 0);
-
-		lpAttachmentStorage = new ECFileAttachment(lpDatabase, dir, complvl, sync_files);
+	auto type = config->GetSetting("attachment_storage");
+	std::unique_ptr<ECAttachmentConfig> a;
+	if (type == nullptr || strcmp(type, "db") == 0) {
+		a.reset(new(std::nothrow) ECDatabaseAttachmentConfig);
+	} else if (strcmp(type, "files") == 0) {
+		a.reset(new(std::nothrow) ECFileAttachmentConfig);
+	} else if (strcmp(type, "s3") == 0) {
 #ifdef HAVE_LIBS3_H
-	} else if (ans != NULL && strcmp(ans, "s3") == 0) {
-		try {
-			lpAttachmentStorage = new ECS3Attachment(lpDatabase,
-					lpConfig->GetSetting("attachment_s3_protocol"),
-					lpConfig->GetSetting("attachment_s3_uristyle"),
-					lpConfig->GetSetting("attachment_s3_accesskeyid"),
-					lpConfig->GetSetting("attachment_s3_secretaccesskey"),
-					lpConfig->GetSetting("attachment_s3_bucketname"),
-					lpConfig->GetSetting("attachment_s3_region"),
-					lpConfig->GetSetting("attachment_path"),
-					strtol(lpConfig->GetSetting("attachment_compression"), NULL, 0));
-		} catch (std::runtime_error &e) {
-			ec_log_warn("Cannot instantiate ECS3Attachment: %s", e.what());
-			return KCERR_DATABASE_ERROR;
-		}
+		a.reset(new(std::nothrow) ECS3Config);
+#else
+		ec_log_err("K-1541: Cannot process attachment_storage=s3. Server not built with S3.");
+		return MAPI_E_CALL_FAILED;
 #endif
 	} else {
-		lpAttachmentStorage = new ECDatabaseAttachment(lpDatabase);
+		ec_log_err("K-1542: Unrecognized attachment_storage=\"%s\"", type);
+		return MAPI_E_CALL_FAILED;
 	}
+	if (a == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	auto ret = a->init(config);
+	if (ret != hrSuccess)
+		return ret;
+	*atcp = a.release();
+	return hrSuccess;
+}
 
-	lpAttachmentStorage->AddRef();
+ECAttachmentStorage *ECDatabaseAttachmentConfig::new_handle(ECDatabase *db)
+{
+	return new(std::nothrow) ECDatabaseAttachment(db);
+}
 
-	*lppAttachmentStorage = lpAttachmentStorage;
+ECRESULT ECFileAttachmentConfig::init(ECConfig *config)
+{
+	auto dir = config->GetSetting("attachment_path");
+	if (dir == nullptr) {
+		ec_log_err("No attachment_path set despite attachment_storage=files.");
+		return MAPI_E_CALL_FAILED;
+	}
+	auto sync_files_par = config->GetSetting("attachment_files_fsync");
+	auto comp = config->GetSetting("attachment_compression");
+	m_dir = dir;
+	m_complvl = (comp == nullptr) ? 0 : strtoul(comp, nullptr, 0);
+	m_sync_files = sync_files_par == nullptr || strcasecmp(sync_files_par, "yes") == 0;
+	return hrSuccess;
+}
 
-	return erSuccess;
+ECAttachmentStorage *ECFileAttachmentConfig::new_handle(ECDatabase *db)
+{
+	return new(std::nothrow) ECFileAttachment(db, m_dir, m_complvl, m_sync_files);
 }
 
 /** 
