@@ -119,7 +119,6 @@ class default_delete {
  */
 template<typename T, typename Deleter = default_delete> class memory_ptr {
 	public:
-	typedef T value_type;
 	typedef T *pointer;
 	constexpr memory_ptr(void) noexcept {}
 	constexpr memory_ptr(std::nullptr_t) noexcept {}
@@ -193,7 +192,6 @@ template<typename T, typename Deleter = default_delete> class memory_ptr {
  */
 template<typename T> class object_ptr {
 	public:
-	typedef T value_type;
 	typedef T *pointer;
 	constexpr object_ptr(void) noexcept {}
 	constexpr object_ptr(std::nullptr_t) noexcept {}
@@ -341,20 +339,20 @@ HRESULT object_ptr<T>::QueryInterface(U &result)
 	/*
 	 * Here we check if it makes sense to try to get the requested
 	 * interface through the PR_EC_OBJECT object. It only makes
-	 * sense to attempt this if the current type (value_type) is
+	 * sense to attempt this if the current type is
 	 * derived from IMAPIProp. If it is higher than IMAPIProp, no
 	 * OpenProperty exists. If it is derived from
 	 * ECMAPIProp/ECGenericProp, there is no need to try the
 	 * workaround, because we can be sure it is not wrapped by
 	 * MAPI.
 	 *
-	 * The Conversion<IMAPIProp,value_type>::exists is some
+	 * The Conversion<IMAPIProp, T>::exists is some
 	 * template magic that checks at compile time. We could check
 	 * at run time with a dynamic_cast, but we know the current
 	 * type at compile time, so why not check it at compile time?
 	 */
 	else if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED &&
-	    std::is_base_of<IMAPIProp, value_type>::value) {
+	    std::is_base_of<IMAPIProp, T>::value) {
 		KCHL::memory_ptr<SPropValue> pv;
 		if (HrGetOneProp(m_ptr, PR_EC_OBJECT, &~pv) != hrSuccess)
 			return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
