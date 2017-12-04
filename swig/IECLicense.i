@@ -17,7 +17,6 @@ public:
 	 * The following two methods are displayed for completeness.
 	 *
 	 * virtual HRESULT LicenseCapa(unsigned int ulServiceType, char ***lppszCapabilities, unsigned int *lpulCapabilities) = 0;
-	 * virtual HRESULT LicenseUsers(unsigned int ulServiceType, unsigned int *ulUsers) = 0;
 	 */
 
 	%extend {

@@ -9649,13 +9649,6 @@ SOAP_ENTRY_START(getLicenseCapa, lpsResponse->er, unsigned int ulServiceType, st
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getLicenseUsers, lpsResponse->er, unsigned int ulServiceType, struct getLicenseUsersResponse *lpsResponse)
-{
-	lpsResponse->ulUsers = UINT_MAX;
-	return erSuccess;
-}
-SOAP_ENTRY_END()
-
 SOAP_ENTRY_START(resolvePseudoUrl, lpsResponse->er, const char *lpszPseudoUrl,
     struct resolvePseudoUrlResponse *lpsResponse)
 {

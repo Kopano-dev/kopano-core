@@ -262,8 +262,6 @@ public:
 
 	virtual HRESULT HrLicenseCapa(unsigned int ulServiceType, char ***lppszCapas, unsigned int *lpulSize);
 	
-	virtual HRESULT HrLicenseUsers(unsigned int ulServiceType, unsigned int *lpulUsers);
-
 	/* expose capabilities */
 	virtual HRESULT HrCheckCapabilityFlags(ULONG ulFlags, BOOL *lpbResult);
 

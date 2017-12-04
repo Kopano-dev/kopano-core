@@ -4248,30 +4248,6 @@ HRESULT WSTransport::HrLicenseCapa(unsigned int ulServiceType, char ***lppszCapa
     return hr;
 }
 
-HRESULT WSTransport::HrLicenseUsers(unsigned int ulServiceType, unsigned int *lpulUsers)
-{
-	HRESULT hr = hrSuccess;
-	ECRESULT er = erSuccess;
-	struct getLicenseUsersResponse sResponse;
-
-	LockSoap();
-
-	START_SOAP_CALL
-	{
-		if(SOAP_OK != m_lpCmd->ns__getLicenseUsers(m_ecSessionId, ulServiceType, &sResponse))
-			er = KCERR_NETWORK_ERROR;
-		else
-			er = sResponse.er;
-	}
-	END_SOAP_CALL
-
-	*lpulUsers = sResponse.ulUsers;
- exitm:
-	UnLockSoap();
-
-	return hr;
-}
-
 HRESULT WSTransport::HrTestPerform(const char *szCommand, unsigned int ulArgs,
     char **lpszArgs)
 {
