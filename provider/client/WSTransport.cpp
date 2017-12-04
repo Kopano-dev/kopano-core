@@ -4211,43 +4211,6 @@ HRESULT WSTransport::HrLicenseAuth(unsigned char *lpData, unsigned int ulSize, u
     return hr;
 }
 
-HRESULT WSTransport::HrLicenseCapa(unsigned int ulServiceType, char ***lppszCapas, unsigned int * lpulSize)
-{
-    HRESULT hr = hrSuccess;
-    ECRESULT er = erSuccess;
-    struct getLicenseCapaResponse sResponse;
-	memory_ptr<char *> lpszCapas;
-    
-    LockSoap();
-    
-	START_SOAP_CALL
-	{
-		if(SOAP_OK != m_lpCmd->ns__getLicenseCapa(m_ecSessionId, ulServiceType, &sResponse))
-			er = KCERR_NETWORK_ERROR;
-		else
-			er = sResponse.er;
-        
-	}
-	END_SOAP_CALL
-        
-	hr = MAPIAllocateBuffer(sResponse.sCapabilities.__size * sizeof(char *), &~lpszCapas);
-    if(hr != hrSuccess)
-		goto exitm;
-
-    for (gsoap_size_t i = 0; i < sResponse.sCapabilities.__size; ++i) {
-        if ((hr = MAPIAllocateMore(strlen(sResponse.sCapabilities.__ptr[i])+1, lpszCapas, (void **) &lpszCapas[i])) != hrSuccess)
-		goto exitm;
-        strcpy(lpszCapas[i], sResponse.sCapabilities.__ptr[i]);
-    }
-    
-	*lppszCapas = lpszCapas.release();
-    *lpulSize = sResponse.sCapabilities.__size;
- exitm:
-    UnLockSoap();
-    
-    return hr;
-}
-
 HRESULT WSTransport::HrTestPerform(const char *szCommand, unsigned int ulArgs,
     char **lpszArgs)
 {

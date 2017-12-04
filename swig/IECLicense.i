@@ -12,13 +12,6 @@
 class IECLicense : public virtual IUnknown {
 public:
 	virtual HRESULT LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lpAuthResponse, unsigned int *lpulResponseSize) = 0;
-
-	/**
-	 * The following two methods are displayed for completeness.
-	 *
-	 * virtual HRESULT LicenseCapa(unsigned int ulServiceType, char ***lppszCapabilities, unsigned int *lpulCapabilities) = 0;
-	 */
-
 	%extend {
 		~IECLicense() { self->Release(); }
 	}

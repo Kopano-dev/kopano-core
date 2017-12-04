@@ -259,8 +259,6 @@ public:
 	// License information
 
 	virtual HRESULT HrLicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lppResponseData, unsigned int *lpulSize);
-
-	virtual HRESULT HrLicenseCapa(unsigned int ulServiceType, char ***lppszCapas, unsigned int *lpulSize);
 	
 	/* expose capabilities */
 	virtual HRESULT HrCheckCapabilityFlags(ULONG ulFlags, BOOL *lpbResult);

@@ -33,7 +33,6 @@
 #include "ECSessionManager.h"
 #include "ECStatsCollector.h"
 #include "ECTPropsPurge.h"
-#include "ECLicenseClient.h"
 #include "ECDatabaseUtils.h"
 #include "ECSecurity.h"
 #include "SSLUtil.h"

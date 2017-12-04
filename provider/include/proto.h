@@ -845,16 +845,6 @@ struct ns:resolvePseudoUrlResponse {
 	unsigned int er;
 };
 
-struct licenseCapabilities {
-    int __size;
-    char **__ptr;
-};
-
-struct ns:getLicenseCapaResponse {
-    struct licenseCapabilities sCapabilities;
-    unsigned int er;
-};
-
 struct server {
 	char *lpszName;
 	char *lpszFilePath;
@@ -1129,7 +1119,6 @@ int ns__getSyncStates(ULONG64 ulSessionId, struct mv_long ulaSyncId, struct ns:g
 
 // Licensing
 int ns__getLicenseAuth(ULONG64 ulSessionId, struct xsd__base64Binary sAuthData, struct ns:getLicenseAuthResponse *lpsResponse);
-int ns__getLicenseCapa(ULONG64 ulSessionId, unsigned int ulServiceType, struct ns:getLicenseCapaResponse *lpsResponse);
 
 // Multi Server
 int ns__resolvePseudoUrl(ULONG64 ulSessionId, const char *lpszPseudoUrl, struct ns:resolvePseudoUrlResponse *lpsResponse);
