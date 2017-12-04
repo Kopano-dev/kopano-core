@@ -114,9 +114,6 @@ ECRESULT kopano_init(ECConfig *lpConfig, ECLogger *lpAudit, bool bHostedKopano, 
 	auto er = g_lpSessionManager->LoadSettings();
 	if(er != erSuccess)
 		return er;
-	er = g_lpSessionManager->CheckUserLicense();
-	if (er != erSuccess)
-		return er;
 #ifdef HAVE_LIBS3_H
         if (strcmp(lpConfig->GetSetting("attachment_storage"), "s3") == 0)
                 ECS3Attachment::StaticInit(lpConfig);

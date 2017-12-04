@@ -116,7 +116,6 @@ public:
 	_kc_hidden ECRESULT CancelAllSessions(ECSESSIONID except = 0);
 	_kc_hidden ECRESULT ForEachSession(void (*cb)(ECSession *, void *), void *obj);
 	_kc_hidden ECRESULT LoadSettings(void);
-	_kc_hidden ECRESULT CheckUserLicense(void);
 	_kc_hidden ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int obj_id, unsigned int child_id, unsigned int obj_type);
 	_kc_hidden ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int obj_id, std::list<unsigned int> &objects, unsigned int obj_type);
 	_kc_hidden ECRESULT UpdateOutgoingTables(ECKeyTable::UpdateType, unsigned int store_id, unsigned int obj_id, unsigned int flags, unsigned int obj_type);

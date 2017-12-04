@@ -129,36 +129,6 @@ ECRESULT ECSessionManager::LoadSettings(){
 	return erSuccess;
 }
 
-ECRESULT ECSessionManager::CheckUserLicense()
-{
-	ECSession *lpecSession = NULL;
-	unsigned int ulLicense = 0;
-
-	auto er = this->CreateSessionInternal(&lpecSession);
-	if (er != erSuccess)
-		goto exit;
-
-	lpecSession->Lock();
-
-	er = lpecSession->GetUserManagement()->CheckUserLicense(&ulLicense);
-	if (er != erSuccess)
-		goto exit;
-
-	if (ulLicense & USERMANAGEMENT_USER_LICENSE_EXCEEDED) {
-		ec_log_err("Failed to start server: Your license does not permit this amount of users.");
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
-
-exit:
-	if(lpecSession) {
-		lpecSession->Unlock(); // Lock the session
-		this->RemoveSessionInternal(lpecSession);
-	}
-
-	return er;
-}
-
 /*
  * This function is threadsafe since we hold the lock the the group list, and the session retrieved from the grouplist
  * is locked so it cannot be deleted by other sessions, while we hold the lock for the group list.
