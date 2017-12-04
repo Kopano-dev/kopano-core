@@ -473,7 +473,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				$props[$this->proptags['counter_proposal']] = true;
 			else
 				$props[$this->proptags['counter_proposal']] = false;
-			mapi_message_setprops($calendaritem, $props);
+			mapi_setprops($calendaritem, $props);
 		}
 		
 		mapi_message_savechanges($calendaritem);
@@ -563,7 +563,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			foreach($calendaritems as $entryid) {
 				// Open each calendar item and set the properties of the cancellation object
 				$calendaritem = mapi_msgstore_openentry($store, $entryid);
-				mapi_message_setprops($calendaritem, $messageprops);
+				mapi_setprops($calendaritem, $messageprops);
 				mapi_savechanges($calendaritem);
 			}
 		}
