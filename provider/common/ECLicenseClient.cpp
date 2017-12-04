@@ -69,17 +69,4 @@ ECRESULT ECLicenseClient::GetCapabilities(unsigned int ulServiceType, std::vecto
 	return erSuccess;
 }
 
-ECRESULT ECLicenseClient::GetInfo(unsigned int ulServiceType, unsigned int *lpulUserCount)
-{
-	ECRESULT er;
-	std::string strServiceType;
-
-	er = ServiceTypeToServiceTypeString(ulServiceType, strServiceType);
-	if (er != erSuccess)
-		return er;
-
-	*lpulUserCount = 65535;
-	return erSuccess;
-}
-
 } /* namespace */

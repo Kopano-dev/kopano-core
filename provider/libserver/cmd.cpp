@@ -9651,14 +9651,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getLicenseUsers, lpsResponse->er, unsigned int ulServiceType, struct getLicenseUsersResponse *lpsResponse)
 {
-	unsigned int ulUsers = 0;
-	std::vector<std::string> lstCapabilities;
-
-	er = ECLicenseClient().GetInfo(ulServiceType, &ulUsers);
-	if(er != erSuccess)
-		return er;
-
-	lpsResponse->ulUsers = ulUsers;
+	lpsResponse->ulUsers = UINT_MAX;
 	return erSuccess;
 }
 SOAP_ENTRY_END()

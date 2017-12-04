@@ -32,8 +32,6 @@ public:
 	_kc_hidden ECLicenseClient(const char * = nullptr, unsigned int = 0) {}
     
     ECRESULT GetCapabilities(unsigned int ulServiceType, std::vector<std::string > &lstCapabilities);
-    ECRESULT GetInfo(unsigned int ulServiceType, unsigned int *lpulUserCount);
-
 private:
 	_kc_hidden ECRESULT ServiceTypeToServiceTypeString(unsigned int type, std::string &tname);
 };
