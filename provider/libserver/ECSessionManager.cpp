@@ -1087,20 +1087,6 @@ ECRESULT ECSessionManager::DumpStats()
 	return this->m_lpECCacheManager->DumpStats();
 }
 
-ECRESULT ECSessionManager::GetLicensedUsers(unsigned int ulServiceType, unsigned int* lpulLicensedUsers)
-{
-	unsigned int ulLicensedUsers = 0;
-	
-	auto er = ECLicenseClient().GetInfo(ulServiceType, &ulLicensedUsers);
-	if(er != erSuccess) {
-	    ulLicensedUsers = 0;
-	    er = erSuccess;
-	}
-	*lpulLicensedUsers = ulLicensedUsers;
-
-	return er;
-}
-
 ECRESULT ECSessionManager::GetServerGUID(GUID* lpServerGuid){
 	if (lpServerGuid == NULL)
 		return KCERR_INVALID_PARAMETER;

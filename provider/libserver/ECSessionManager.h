@@ -139,7 +139,6 @@ public:
 	_kc_hidden ECRESULT DumpStats(void);
 	_kc_hidden bool IsHostedSupported() const { return m_bHostedKopano; }
 	_kc_hidden bool IsDistributedSupported() const { return m_bDistributedKopano; }
-	_kc_hidden ECRESULT GetLicensedUsers(unsigned int svc_type, unsigned int *licusers);
 	_kc_hidden ECRESULT GetServerGUID(GUID *);
 	_kc_hidden ECRESULT GetNewSourceKey(SOURCEKEY *);
 
