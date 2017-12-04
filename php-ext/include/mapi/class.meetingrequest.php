@@ -2332,7 +2332,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		// Publish updated free/busy information
 		if(!$this->errorSetResource){
 			for($i = 0, $len = count($resourceRecipData); $i < $len; $i++){
-				$storeProps = mapi_msgstore_getprops($resourceRecipData[$i]['store'], array(PR_MAILBOX_OWNER_ENTRYID));
+				$storeProps = mapi_getprops($resourceRecipData[$i]['store'], array(PR_MAILBOX_OWNER_ENTRYID));
 				if (isset($storeProps[PR_MAILBOX_OWNER_ENTRYID])){
 					$pub = new FreeBusyPublish($this->session, $resourceRecipData[$i]['store'], $resourceRecipData[$i]['folder'], $storeProps[PR_MAILBOX_OWNER_ENTRYID]);
 					$pub->publishFB(time() - (7 * 24 * 60 * 60), 6 * 30 * 24 * 60 * 60); // publish from one week ago, 6 months ahead
