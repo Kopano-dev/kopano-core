@@ -453,7 +453,6 @@ zend_function_entry mapi_functions[] =
 	ZEND_FALIAS(mapi_attach_openbin, mapi_openproperty, NULL)
 	ZEND_FALIAS(mapi_msgstore_getprops, mapi_getprops, NULL)
 	ZEND_FALIAS(mapi_folder_getprops, mapi_getprops, NULL)
-	ZEND_FALIAS(mapi_folder_openproperty, mapi_openproperty, NULL)
 	ZEND_FALIAS(mapi_folder_setprops, mapi_setprops, NULL)
 	ZEND_FALIAS(mapi_message_getprops, mapi_getprops, NULL)
 	ZEND_FALIAS(mapi_message_setprops, mapi_setprops, NULL)
