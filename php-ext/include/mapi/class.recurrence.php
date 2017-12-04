@@ -678,8 +678,8 @@
 
 			$this->setExceptionRecipients($imessage, $exception_recips, true);
 
-			mapi_message_savechanges($imessage);
-			mapi_message_savechanges($attachment);
+			mapi_savechanges($imessage);
+			mapi_savechanges($attachment);
 		}
 		
 		/**

@@ -415,7 +415,7 @@ function autoRespond($session, $store, $entryid, $capacity, $policy)
 			$recip[PR_RECIPIENT_TYPE] = MAPI_BCC;
 			// not setting PidLidAllAttendees, not important
 			mapi_message_modifyrecipients($calitem, MODRECIP_ADD, array($recip));
-			mapi_message_savechanges($calitem);
+			mapi_savechanges($calitem);
 			debugLog("Accept updated.\n");
 		} else {
 			debugLog("Unable to update accepted item.\n");

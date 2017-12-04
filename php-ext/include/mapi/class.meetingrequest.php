@@ -387,7 +387,7 @@ class Meetingrequest {
 				$recurr->createException($exception_props, $basedate, false, $recips);
 			}
 
-			mapi_message_savechanges($calendaritem);
+			mapi_savechanges($calendaritem);
 
 			$attach = $recurr->getExceptionAttachment($basedate);
 			if (!$attach)
@@ -476,10 +476,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			mapi_setprops($calendaritem, $props);
 		}
 		
-		mapi_message_savechanges($calendaritem);
+		mapi_savechanges($calendaritem);
 		if (isset($attach)) {
-			mapi_message_savechanges($attach);
-			mapi_message_savechanges($recurringItem);
+			mapi_savechanges($attach);
+			mapi_savechanges($recurringItem);
 		}
 
 		return $data;
@@ -643,7 +643,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				return false;
 			}
 			mapi_setprops($this->message, Array(PR_PROCESSED => true));
-			mapi_message_savechanges($this->message);
+			mapi_savechanges($this->message);
 		}
 
 		/* If this meeting request is received by a delegate, open the delegator's store. */
@@ -875,7 +875,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 							mapi_message_modifyrecipients($calmsg, MODRECIP_ADD, $recips);
 						}
 
-						mapi_message_savechanges($calmsg);
+						mapi_savechanges($calmsg);
 
 						// Move the message to the wastebasket
 						$wastebasket = $this->openDefaultWastebasket();
@@ -935,7 +935,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 							mapi_message_modifyrecipients($new, MODRECIP_ADD, $recips);
 						}
 
-						mapi_message_savechanges($new);
+						mapi_savechanges($new);
 
 						$props = mapi_getprops($new, array(PR_ENTRYID));
 						$entryid = $props[PR_ENTRYID];
@@ -1725,7 +1725,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$message = mapi_folder_createmessage($outbox);
 		mapi_setprops($message, $props);
 		mapi_message_modifyrecipients($message, MODRECIP_ADD, Array($recip));
-		mapi_message_savechanges($message);
+		mapi_savechanges($message);
 		mapi_message_submitmessage($message);
 	}
 
@@ -2608,7 +2608,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 			}
 
 			mapi_setprops($new, $newmessageprops);
-			mapi_message_savechanges($new);
+			mapi_savechanges($new);
 
 			// Submit message to non-resource recipients
 			mapi_message_submitmessage($new);
@@ -2628,7 +2628,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				$newmessageprops[PR_SUBJECT] = dgettext("kopano","Canceled").": " . $newmessageprops[PR_SUBJECT];
 
 			mapi_setprops($new, $newmessageprops);
-			mapi_message_savechanges($new);
+			mapi_savechanges($new);
 
 			// Submit message to non-resource recipients
 			mapi_message_submitmessage($new);
