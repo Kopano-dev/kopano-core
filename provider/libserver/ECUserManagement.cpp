@@ -2284,51 +2284,6 @@ ECRESULT ECUserManagement::UpdateUserDetailsFromClient(objectdetails_t *lpDetail
 //
 // ******************************************************************************************************
 
-// Perform a license check
-ECRESULT ECUserManagement::CheckUserLicense(unsigned int *lpulLicenseStatus)
-{
-	unsigned int ulActive = 0;
-	unsigned int ulNonActive = 0;
-	unsigned int ulLicensedUsers = 0;
-
-	// NOTE: this function is only a precaution 
-
-	*lpulLicenseStatus = 0;
-
-	auto er = GetUserCount(&ulActive, &ulNonActive);
-	if (er != erSuccess) {
-		ec_log_crit("K-1530: Unable to query user count");
-		return er;
-	}
-	auto ulTotalUsers = ulActive + ulNonActive;
-
-	er = m_lpSession->GetSessionManager()->GetLicensedUsers(0 /*SERVICE_TYPE_ZCP*/, &ulLicensedUsers);
-	if (er != erSuccess) {
-		ec_log_crit("K-1531: Unable to query license user count");
-		return er;
-	}
-
-	/* Active limit is always licensed users limit when the limit is 0 we have unlimited users,
-	 * Inactive limit is minimally the licensed user limit + 25 and maximally the licensed user limit + 150% (*2.5) licensed user limit */
-	auto ulActiveLimit = ulLicensedUsers;
-	unsigned int ulNonActiveLimit = ulLicensedUsers ? std::max(ulLicensedUsers + 25, (ulLicensedUsers * 5) / 2) : 0;
-
-	if (ulActiveLimit) {
-		if (ulActive == ulActiveLimit)
-			*lpulLicenseStatus |= USERMANAGEMENT_LIMIT_ACTIVE_USERS;
-		if (ulActive > ulActiveLimit)
-			*lpulLicenseStatus |= USERMANAGEMENT_EXCEED_ACTIVE_USERS;
-	}
-
-	if (ulNonActiveLimit) {
-		if (ulTotalUsers == ulNonActiveLimit)
-			*lpulLicenseStatus |= USERMANAGEMENT_LIMIT_NONACTIVE_USERS;
-		if (ulTotalUsers > ulNonActiveLimit)
-			*lpulLicenseStatus |= USERMANAGEMENT_EXCEED_NONACTIVE_USERS;
-	}
-	return erSuccess;
-}
-
 // Create a local user corresponding to the given userid on the external database
 ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature, unsigned int *lpulObjectId) {
 	ECDatabase *lpDatabase = NULL;
@@ -2336,7 +2291,6 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	unsigned int ulId;
 	unsigned int ulCompanyId;
 	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
-	unsigned int ulLicenseStatus;
 	SOURCEKEY sSourceKey;
 	UserPlugin *lpPlugin = NULL;
 	string strUserServer;
@@ -2349,21 +2303,6 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
 		return er;
-
-	if (OBJECTCLASS_TYPE(signature.id.objclass) == OBJECTTYPE_MAILUSER && signature.id.objclass != NONACTIVE_CONTACT) {
-		er = CheckUserLicense(&ulLicenseStatus);
-		if (er != erSuccess)
-			return er;
-
-		if (signature.id.objclass == ACTIVE_USER && (ulLicenseStatus & USERMANAGEMENT_BLOCK_CREATE_ACTIVE_USER)) {
-			ec_log_crit("K-1532: Unable to create active user: Your license does not permit this amount of users.");
-			return KCERR_UNABLE_TO_COMPLETE;
-		} else if (ulLicenseStatus & USERMANAGEMENT_BLOCK_CREATE_NONACTIVE_USER) {
-			ec_log_crit("K-1533: Unable to create non-active user: Your license does not permit this amount of users.");
-			return KCERR_UNABLE_TO_COMPLETE;
-		}
-	}
-
 	ec_log_info("Auto-creating %s from external source", ObjectClassToName(signature.id.objclass));
 
 	try {
@@ -4084,20 +4023,6 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 			break;
 		}
 	}
-	return erSuccess;
-}
-
-ECRESULT ECUserManagement::GetUserCount(unsigned int *lpulActive, unsigned int *lpulNonActive)
-{
-	usercount_t userCount;
-
-	auto er = GetUserCount(&userCount);
-	if (er != erSuccess)
-		return er;
-	if (lpulActive)
-		*lpulActive = userCount[usercount_t::ucActiveUser];
-	if (lpulNonActive)
-		*lpulNonActive = userCount[usercount_t::ucNonActiveTotal];
 	return erSuccess;
 }
 
