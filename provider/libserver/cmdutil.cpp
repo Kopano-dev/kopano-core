@@ -29,6 +29,7 @@
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
 #include <kopano/EMSAbTag.h>
+#include <kopano/tie.hpp>
 #include <edkmdb.h>
 #include "ECMAPI.h"
 
@@ -602,7 +603,7 @@ ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase, unsigned
 ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, unsigned int ulFlags, ECListDeleteItems &lstDeleteItems, bool bNoTransaction, ECListDeleteItems &lstDeleted)
 {
 	ECRESULT er = erSuccess;
-	object_ptr<ECAttachmentStorage> lpInternalAttachmentStorage;
+	std::shared_ptr<ECAttachmentStorage> lpInternalAttachmentStorage;
 	std::list<ULONG> lstDeleteAttachments;
 	std::string strInclause;
 	std::string strOGQInclause;

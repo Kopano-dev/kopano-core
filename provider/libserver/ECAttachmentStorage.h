@@ -59,9 +59,6 @@ public:
 	ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ulCompressionLevel);
 	virtual ~ECAttachmentStorage() = default;
 
-	ULONG AddRef();
-	ULONG Release();
-
 	/* Single Instance Attachment wrappers (should not be overridden by subclasses) */
 	bool ExistAttachment(ULONG ulObjId, ULONG ulPropId);
 	bool ExistAttachmentInstance(ULONG);
@@ -105,7 +102,6 @@ protected:
 	ECDatabase *m_lpDatabase;
 	bool m_bFileCompression;
 	std::string m_CompressionLevel;
-	std::atomic<unsigned int> m_ulRef{0};
 };
 
 class _kc_export_dycast ECDatabaseAttachment _kc_final :

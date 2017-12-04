@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include "StorageUtil.h"
 #include "ECDatabase.h"
 #include "ECAttachmentStorage.h"
@@ -123,7 +124,7 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	else
 		ulSize = atoui(lpDBRow[0])+ 28;// + hierarchy size
 
-	object_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
+	std::unique_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
 	if (lpAttachmentStorage == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
 

@@ -91,25 +91,12 @@ using std::string;
 ECAttachmentStorage::ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ulCompressionLevel)
 	: m_lpDatabase(lpDatabase)
 {
-	m_ulRef = 0;
 	m_bFileCompression = ulCompressionLevel != 0;
 
 	if (ulCompressionLevel > Z_BEST_COMPRESSION)
 		ulCompressionLevel = Z_BEST_COMPRESSION;
 
 	m_CompressionLevel = stringify(ulCompressionLevel);
-}
-
-ULONG ECAttachmentStorage::AddRef() {
-	return ++m_ulRef;
-}
-
-ULONG ECAttachmentStorage::Release() {
-	ULONG ulRef = --m_ulRef;
-	if (ulRef == 0)
-		delete this;
-
-	return ulRef;
 }
 
 ECRESULT ECAttachmentConfig::create(ECConfig *config, ECAttachmentConfig **atcp)
