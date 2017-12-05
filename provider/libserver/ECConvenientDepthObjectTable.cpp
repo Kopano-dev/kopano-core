@@ -77,6 +77,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 
 	unsigned int ulFlags = lpData->ulFlags;
 
+	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
@@ -100,8 +101,6 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 		if (er != erSuccess)
 			return er;
 
-		auto cache = lpSession->GetSessionManager()->GetCacheManager();
-		auto sec = lpSession->GetSecurity();
 		while (1) {
 			lpDBRow = lpDBResult.fetch_row();
 			if (lpDBRow == NULL)
@@ -112,8 +111,6 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 
             // Since we have this information, give the cache manager the hierarchy information for this object
 			cache->SetObject(atoui(lpDBRow[0]), atoui(lpDBRow[1]), atoui(lpDBRow[2]), atoui(lpDBRow[3]), atoui(lpDBRow[4]));
-			if (sec->CheckPermission(atoui(lpDBRow[0]), ecSecurityFolderVisible) != erSuccess)
-				continue;
 			
 			// Push folders onto end of list
 			lstFolders.emplace_back(atoui(lpDBRow[0]));
@@ -129,10 +126,8 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 		    break;
 	}
 
-	// ... and put the data into the row system
-	for (const auto f : lstFolders)
-		if (f != m_ulFolderId)
-			lstObjIds.emplace_back(f);
+	lstFolders.remove(m_ulFolderId);
+	lstObjIds = std::move(lstFolders);
 
     LoadRows(&lstObjIds, 0);
 	return erSuccess;

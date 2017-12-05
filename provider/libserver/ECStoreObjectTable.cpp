@@ -1035,6 +1035,7 @@ ECRESULT ECStoreObjectTable::Load()
     
     std::list<unsigned int> lstObjIds;
 
+	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
@@ -1045,7 +1046,7 @@ ECRESULT ECStoreObjectTable::Load()
         Clear();
 
         // Load the table with all the objects of type ulObjType and flags ulFlags in container ulParent
-	std::string strQuery = "SELECT hierarchy.id FROM hierarchy WHERE hierarchy.parent=" + stringify(ulFolderId);
+	std::string strQuery = "SELECT hierarchy.id, hierarchy.parent, hierarchy.owner, hierarchy.flags, hierarchy.type FROM hierarchy WHERE hierarchy.parent=" + stringify(ulFolderId);
 
         if(ulObjType == MAPI_MESSAGE)
         {
@@ -1076,9 +1077,10 @@ ECRESULT ECStoreObjectTable::Load()
             if(lpDBRow == NULL)
                 break;
 
-            if(lpDBRow[0] == NULL)
-                continue;
-                
+			if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr || lpDBRow[2] == nullptr || lpDBRow[3] == nullptr || lpDBRow[4] == nullptr)
+				continue;
+
+			cache->SetObject(atoui(lpDBRow[0]), atoui(lpDBRow[1]), atoui(lpDBRow[2]), atoui(lpDBRow[3]), atoui(lpDBRow[4]));
             // Altough we don't want more than ulMaxItems entries, keep looping to get all the results from MySQL. We need to do this
             // because otherwise we can get out of sync with mysql which is still sending us results while we have already stopped
             // reading data.
