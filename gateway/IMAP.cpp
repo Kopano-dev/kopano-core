@@ -3627,30 +3627,13 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 
 HRESULT IMAP::save_generated_properties(const std::string &text, IMessage *message)
 {
-	SPropValue imap_props[4];
-	HRESULT hr = hrSuccess;
-
 	lpLogger->Log(EC_LOGLEVEL_DEBUG, "Setting IMAP props");
 
-	imap_props[0].ulPropTag = PR_EC_IMAP_EMAIL;
-	imap_props[0].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(text.c_str()));
-	imap_props[0].Value.bin.cb = text.length();
-
-	imap_props[1].ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
-	imap_props[1].Value.ul = text.length();
-
-	std::string body, body_structure;
-	createIMAPProperties(text, nullptr, &body, &body_structure);
-
-	imap_props[2].ulPropTag = PR_EC_IMAP_BODY;
-	imap_props[2].Value.lpszA = const_cast<char *>(body.c_str());
-
-	imap_props[3].ulPropTag = PR_EC_IMAP_BODYSTRUCTURE;
-	imap_props[3].Value.lpszA = const_cast<char *>(body_structure.c_str());
-
-	hr = message->SetProps(4, imap_props, NULL);
-	if (hr != hrSuccess)
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to set IMAP props %08x", hr);
+	auto hr = createIMAPBody(text, message);
+	if (hr != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to create IMAP body %08x", hr);
+		return hr;
+	}
 
 	hr = message->SaveChanges(0);
 	if (hr != hrSuccess)
