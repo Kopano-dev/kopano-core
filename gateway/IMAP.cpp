@@ -4438,16 +4438,15 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
         strMessagePart.clear();
         
         if(bNot) {
-			std::set<std::string> setFields;
+			std::set<std::string> s;
+			auto lstTokens = tokenize(strFields, " ");
+			std::copy(lstTokens.begin(), lstTokens.end(), std::inserter(s, s.begin()));
 
-            // Get fields as set
-            HrTokenize(setFields, strFields);
-            
             // Output all headers except those specified
             for (const auto &field : lstFields) {
                 std::string strFieldUpper = field.first;
                 strFieldUpper = strToUpper(strFieldUpper);
-                if (setFields.find(strFieldUpper) != setFields.cend())
+                if (s.find(strFieldUpper) != s.cend())
                     continue;
                 strMessagePart += field.first + ": " + field.second + "\r\n";
             }
@@ -5844,21 +5843,6 @@ void IMAP::HrGetSubString(std::string &strOutput, const std::string &strInput,
         strOutput = strInput.substr(begin+1);
     else
         strOutput = strInput.substr(begin+1, end-begin-1);
-}
-
-/** 
- * Make a set of tokens from a string, separated by spaces.
- * 
- * @param[out] setTokens A set of strings from input
- * @param[in] strInput split by spaces into the set
- */
-void IMAP::HrTokenize(std::set<std::string> &setTokens,
-    const std::string &strInput)
-{
-    vector<string> lstTokens = tokenize(strInput, " ");
-
-    setTokens.clear();
-	std::copy(lstTokens.begin(), lstTokens.end(), std::inserter(setTokens, setTokens.begin()));    
 }
 
 /** 
