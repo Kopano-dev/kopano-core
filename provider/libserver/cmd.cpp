@@ -8936,26 +8936,6 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 }
 SOAP_ENTRY_END()
 
-int ns__writeABProps(struct soap *, ULONG64, entryId, struct propValArray *,
-    unsigned int *r)
-{
-	*r = KCERR_NOT_FOUND;
-	return SOAP_OK;
-}
-
-int ns__deleteABProps(struct soap *, ULONG64, entryId, struct propTagArray *,
-    unsigned int *r)
-{
-	*r = KCERR_NOT_FOUND;
-	return SOAP_OK;
-}
-
-int ns__loadABProp(struct soap *, ULONG64, entryId, unsigned int,
-    struct loadPropResponse *)
-{
-	return SOAP_OK;
-}
-
 /**
  * ns__abResolveNames
  *

@@ -104,17 +104,9 @@ typedef std::set<MAPIOBJECT*, MAPIOBJECT::CompareMAPIOBJECT>	ECMapiObjects;
 
 class IECPropStorage : public virtual IUnknown {
 public:
-	// Get a list of the properties
-	virtual HRESULT HrReadProps(LPSPropTagArray *lppPropTags,ULONG *cValues, LPSPropValue *ppValues) = 0;
 
 	// Get a single (large) property from an object
 	virtual HRESULT HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue) = 0;
-
-	// Write all properties to disk (overwrites a property if it already exists)
-	virtual	HRESULT	HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG ulFlags = 0) = 0;
-
-	// Delete properties from file
-	virtual HRESULT HrDeleteProps(const SPropTagArray *lpsPropTagArray) = 0;
 
 	// Save a complete object to the server
 	virtual HRESULT HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpSavedObjects) = 0;

@@ -91,12 +91,6 @@ HRESULT WSMAPIPropStorage::Create(ULONG cbParentEntryId,
 	       ulServerCapabilities, lpTransport).put(lppPropStorage);
 }
 
-HRESULT WSMAPIPropStorage::HrReadProps(LPSPropTagArray *lppPropTags,ULONG *cValues, LPSPropValue *ppValues)
-{
-	// this call should disappear
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue)
 {
 	ECRESULT		er = erSuccess;
@@ -139,18 +133,6 @@ exit:
 	UnLockSoap();
 
 	return hr;
-}
-
-HRESULT WSMAPIPropStorage::HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG ulFlags)
-{
-	// this call should disappear
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT WSMAPIPropStorage::HrDeleteProps(const SPropTagArray *lpsPropTagArray)
-{
-	// this call should disappear
-	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, struct saveObject *lpSaveObj, convert_context *lpConverter)

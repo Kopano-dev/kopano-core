@@ -59,29 +59,11 @@ HRESULT ECParentStorage::Create(ECGenericProp *lpParentObject, ULONG ulUniqueId,
 	       lpServerStorage).put(lppParentStorage);
 }
 
-HRESULT ECParentStorage::HrReadProps(LPSPropTagArray *lppPropTags, ULONG *lpcValues, LPSPropValue *lppValues)
-{
-	// this call should disappear
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT ECParentStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue)
 {
 	if (m_lpServerStorage == NULL)
 		return MAPI_E_NOT_FOUND;
 	return m_lpServerStorage->HrLoadProp(ulObjId, ulPropTag, lppsPropValue);
-}
-
-HRESULT	ECParentStorage::HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG ulFlags)
-{
-	// this call should disappear
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT ECParentStorage::HrDeleteProps(const SPropTagArray *lpsPropTagArray)
-{
-	// this call should disappear
-	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT ECParentStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
