@@ -1245,7 +1245,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 	 * The public store is stored in the database with the companyid as owner.
 	 */
 	strQuery =
-		"SELECT hierarchy.id, stores.guid, stores.hierarchy_id "
+		"SELECT hierarchy.id, stores.guid, stores.hierarchy_id, stores.type "
 		"FROM stores "
 		"JOIN hierarchy on stores.hierarchy_id=hierarchy.parent "
 		"WHERE stores.user_id = " + stringify(ulCompanyId) + " LIMIT 1";
@@ -1277,6 +1277,13 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 	lpsResponse->guid.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
 
 	memcpy(lpsResponse->guid.__ptr, lpDBRow[1], lpDBLen[1]);
+
+	if (lpDBRow[3] != nullptr && lpDBLen[1] == sizeof(GUID)) {
+		GUID guid;
+		memcpy(&guid, lpDBRow[1], lpDBLen[1]);
+		gcache->SetStore(atoui(lpDBRow[2]), atoui(lpDBRow[2]), &guid, atoi(lpDBRow[3]));
+	}
+
 	return erSuccess;
 }
 SOAP_ENTRY_END()
@@ -1327,7 +1334,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
     // Always return a pseudo URL
     lpsResponse->lpszServerPath = STROUT_FIX_CPY(std::string("pseudo://" + strServerName).c_str());
 
-	strQuery = "SELECT hierarchy.id, stores.guid, stores.hierarchy_id "
+	strQuery = "SELECT hierarchy.id, stores.guid, stores.hierarchy_id, stores.type "
 	           "FROM stores join hierarchy on stores.hierarchy_id=hierarchy.parent ";
 
 	if(lpsEntryId) {
@@ -1378,6 +1385,13 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 	lpsResponse->guid.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
 
 	memcpy(lpsResponse->guid.__ptr, lpDBRow[1], lpDBLen[1]);
+
+	if (lpDBRow[3] != nullptr && lpDBLen[1] == sizeof(GUID)) {
+		GUID guid;
+		memcpy(&guid, lpDBRow[1], lpDBLen[1]);
+		gcache->SetStore(atoui(lpDBRow[2]), atoui(lpDBRow[2]), &guid, atoi(lpDBRow[3]));
+	}
+
 	return erSuccess;
 }
 SOAP_ENTRY_END()
