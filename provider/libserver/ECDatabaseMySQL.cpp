@@ -327,45 +327,6 @@ void ECDatabase::UnloadLibrary(void)
 	mysql_library_end();
 }
 
-ECRESULT ECDatabase::CheckExistColumn(const std::string &strTable,
-    const std::string &strColumn, bool *lpbExist)
-{
-	DB_RESULT lpDBResult;
-
-	std::string strQuery = "SELECT 1 FROM information_schema.COLUMNS "
-				"WHERE TABLE_SCHEMA = '" + std::string(m_lpConfig->GetSetting("mysql_database")) + "' "
-				"AND TABLE_NAME = '" + strTable + "' "
-				"AND COLUMN_NAME = '" + strColumn + "' LIMIT 1";
-	auto er = DoSelect(strQuery, &lpDBResult);
-	if (er != erSuccess)
-		return er;
-	*lpbExist = lpDBResult.fetch_row() != nullptr;
-	return er;
-}
-
-ECRESULT ECDatabase::CheckExistIndex(const std::string &strTable,
-    const std::string &strKey, bool *lpbExist)
-{
-	DB_RESULT lpDBResult;
-	DB_ROW			lpRow = NULL;
-
-	// WHERE not supported in MySQL < 5.0.3 
-	std::string strQuery = "SHOW INDEXES FROM " + strTable;
-	auto er = DoSelect(strQuery, &lpDBResult);
-	if (er != erSuccess)
-		return er;
-
-	*lpbExist = false;
-	while ((lpRow = lpDBResult.fetch_row()) != nullptr) {
-		// 2 is Key_name
-		if (lpRow[2] && strcmp(lpRow[2], strKey.c_str()) == 0) {
-			*lpbExist = true;
-			break;
-		}
-	}
-	return er;
-}
-
 ECRESULT ECDatabase::Connect(void)
 {
 	auto gcm = atoui(m_lpConfig->GetSetting("mysql_group_concat_max_len"));
@@ -833,24 +794,6 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 	return erSuccess;
 }
 
-ECRESULT ECDatabase::IsUpdateDone(unsigned int ulDatabaseRevision,
-    unsigned int ulRevision)
-{
-	DB_RESULT lpResult;
-
-	std::string strQuery = "SELECT major,minor,revision,databaserevision FROM versions WHERE databaserevision = " + stringify(ulDatabaseRevision);
-	if (ulRevision > 0)
-		strQuery += " AND revision = " + stringify(ulRevision);
-
-	strQuery += " ORDER BY major DESC, minor DESC, revision DESC, databaserevision DESC LIMIT 1";
-	auto er = DoSelect(strQuery, &lpResult);
-	if(er != erSuccess)
-		return er;
-	if (lpResult.get_num_rows() != 1)
-		return KCERR_NOT_FOUND;
-	return erSuccess;
-}
-
 ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 {
 	DB_RESULT lpResult;
@@ -983,64 +926,6 @@ ECRESULT ECDatabase::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 		strQuery += stringify(PROJECT_VERSION_MICRO) + std::string(", ");
 	strQuery += "'" + stringify(PROJECT_VERSION_REVISION) + "', " + stringify(ulDatabaseRevision) + ", FROM_UNIXTIME(" + stringify(time(nullptr)) + "))";
 	return DoInsert(strQuery);
-}
-/**
- * Validate all database tables
-*/
-ECRESULT ECDatabase::ValidateTables(void)
-{
-	std::list<std::string> listTables, listErrorTables;
-	DB_RESULT lpResult;
-	DB_ROW		lpDBRow = NULL;
-
-	auto er = DoSelect("SHOW TABLES", &lpResult);
-	if(er != erSuccess) {
-		ec_log_err("Unable to get all tables from the mysql database. %s", GetError());
-		return er;
-	}
-
-	// Get all tables of the database
-	while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
-		if (lpDBRow == NULL || lpDBRow[0] == NULL) {
-			ec_log_err("Wrong table information.");
-			return KCERR_DATABASE_ERROR;
-		}
-		listTables.emplace(listTables.end(), lpDBRow[0]);
-	}
-
-	for (const auto &table : listTables) {
-		er = DoSelect("CHECK TABLE " + table, &lpResult);
-		if(er != erSuccess) {
-			ec_log_err("Unable to check table \"%s\"", table.c_str());
-			return er;
-		}
-		lpDBRow = lpResult.fetch_row();
-		if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
-			ec_log_err("Wrong check table information.");
-			return KCERR_DATABASE_ERROR;
-		}
-
-		ec_log_info("%30s | %15s | %s", lpDBRow[0], lpDBRow[2], lpDBRow[3]);
-		if (strcmp(lpDBRow[2], "error") == 0)
-			listErrorTables.emplace(listErrorTables.end(), lpDBRow[0]);
-	}
-
-	if (!listErrorTables.empty())
-	{
-		ec_log_notice("Rebuilding tables.");
-		for (const auto &table : listErrorTables) {
-			er = DoUpdate("ALTER TABLE " + table + " FORCE");
-			if(er != erSuccess) {
-				ec_log_crit("Unable to fix table \"%s\"", table.c_str());
-				break;
-			}
-		}
-		if (er != erSuccess)
-			ec_log_crit("Rebuild tables failed. Error code 0x%08x", er);
-		else
-			ec_log_notice("Rebuilding tables done.");
-	}//	if (!listErrorTables.empty())
-	return er;
 }
 
 static constexpr const sSQLDatabase_t kcsrv_tables[] = {

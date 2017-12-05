@@ -36,8 +36,6 @@ public:
 	static void UnloadLibrary(void);
 
 	virtual ECRESULT Begin(void) _kc_override;
-	ECRESULT CheckExistColumn(const std::string &table, const std::string &column, bool *exist);
-	ECRESULT CheckExistIndex(const std::string &table, const std::string &key, bool *exist);
 	virtual ECRESULT Commit(void) _kc_override;
 	ECRESULT Connect(void);
 	ECRESULT CreateDatabase(void);
@@ -51,7 +49,6 @@ public:
 	std::string FilterBMP(const std::string &to_filter);
 	ECRESULT GetNextResult(DB_RESULT *);
 	ECRESULT InitializeDBState(void);
-	ECRESULT ValidateTables(void);
 	virtual ECRESULT Rollback(void) _kc_override;
 	bool SuppressLockErrorLogging(bool suppress);
 	void ThreadEnd(void);
@@ -63,7 +60,6 @@ public:
 	virtual const struct sSQLDatabase_t *GetDatabaseDefs(void) _kc_override;
 	ECRESULT GetDatabaseVersion(zcp_versiontuple *);
 	ECRESULT GetFirstUpdate(unsigned int *lpulDatabaseRevision);
-	ECRESULT IsUpdateDone(unsigned int ulDatabaseRevision, unsigned int ulRevision=0);
 	ECRESULT UpdateDatabaseVersion(unsigned int ulDatabaseRevision);
 	virtual ECRESULT Query(const std::string &q) _kc_override;
 
