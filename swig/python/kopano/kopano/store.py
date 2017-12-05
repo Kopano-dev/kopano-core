@@ -13,6 +13,8 @@ from MAPI import (
     MAPI_UNICODE, MAPI_MODIFY, KEEP_OPEN_READWRITE, PT_MV_BINARY,
     RELOP_EQ, TBL_BATCH, ECSTORE_TYPE_PUBLIC, FOLDER_SEARCH,
     MAPI_ASSOCIATED, MAPI_DEFERRED_ERRORS, ROW_REMOVE,
+    MAPINotifSink, fnevObjectModified, fnevObjectCreated,
+    fnevObjectMoved, fnevObjectDeleted
 )
 from MAPI.Defs import (
     bin2hex, HrGetOneProp, CHANGE_PROP_TYPE, PpropFindProp
@@ -39,7 +41,8 @@ from MAPI.Tags import (
 )
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue, ROWENTRY,
-    MAPIErrorNotFound, MAPIErrorInvalidEntryid
+    MAPIErrorNotFound, MAPIErrorInvalidEntryid,
+    MAPIErrorNoSupport
 )
 
 from .defs import (
@@ -47,7 +50,7 @@ from .defs import (
     RSF_PID_RSS_SUBSCRIPTION, NAMED_PROPS_ARCHIVER
 )
 
-from .errors import NotFoundError
+from .errors import NotFoundError, NotSupportedError
 from .properties import Properties
 from .autoaccept import AutoAccept
 from .outofoffice import OutOfOffice
@@ -57,6 +60,7 @@ from .permission import Permission
 from .freebusy import FreeBusy
 from .table import Table
 from .restriction import Restriction
+from .notification import Sink, Notification
 
 from .compat import (
     hex as _hex, unhex as _unhex, decode as _decode, encode as _encode,
@@ -81,6 +85,7 @@ else:
     import folder as _folder
     import item as _item
     import utils as _utils
+
 
 class Store(Properties):
     """Store class"""
@@ -685,6 +690,21 @@ class Store(Properties):
         if isinstance(s, Store):
             return self.guid == s.guid
         return False
+
+    def advise(self):
+        flags = fnevObjectModified | fnevObjectCreated \
+            | fnevObjectMoved | fnevObjectDeleted
+
+        sink = MAPINotifSink()
+        try:
+            self.mapiobj.Advise(None, flags, sink)
+        except MAPIErrorNoSupport:
+            raise NotSupportedError(
+                "No support for advise, please you use"
+                "server(notifications=True)"
+            )
+
+        return Sink(self, sink)
 
     def __ne__(self, s):
         return not self == s

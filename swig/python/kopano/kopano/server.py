@@ -118,7 +118,7 @@ def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
 class Server(object):
     """Server class"""
 
-    def __init__(self, options=None, config=None, sslkey_file=None, sslkey_pass=None, server_socket=None, auth_user=None, auth_pass=None, log=None, service=None, mapisession=None, parse_args=True):
+    def __init__(self, options=None, config=None, sslkey_file=None, sslkey_pass=None, server_socket=None, auth_user=None, auth_pass=None, log=None, service=None, mapisession=None, parse_args=True, notifications=False):
         """
         Create Server instance.
 
@@ -186,7 +186,9 @@ class Server(object):
             self.auth_user = auth_user or getattr(self.options, 'auth_user', None) or 'SYSTEM' # XXX override with args
             self.auth_pass = auth_pass or getattr(self.options, 'auth_pass', None) or ''
 
-            flags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS
+            flags = 0
+            if not notifications:
+                flags |= EC_PROFILE_FLAGS_NO_NOTIFICATIONS
 
             # Username and password was supplied, so let us do verfication
             # (OpenECSession will not check password unless this parameter is provided)
