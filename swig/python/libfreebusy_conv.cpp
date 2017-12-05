@@ -17,6 +17,9 @@
 
 #include <kopano/memory.hpp>
 #include "libfreebusy_conv.h"
+#include "pymem.hpp"
+
+using KCHL::pyobj_ptr;
 
 static PyObject *PyTypeFreeBusyBlock;
 
@@ -33,8 +36,7 @@ void InitFreebusy() {
 LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 	KCHL::memory_ptr<FBUser> lpFbUsers;
 	LPENTRYID entryid = nullptr;
-	PyObject *iter = NULL;
-	PyObject *elem = NULL;
+	pyobj_ptr iter;
 	char *buf = 0 ;
 	int len;
 	size_t size;
@@ -42,16 +44,17 @@ LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 
 	if (list == Py_None)
 		goto exit;
-
-	iter = PyObject_GetIter(list);
+	iter.reset(PyObject_GetIter(list));
 	if (!iter)
 		goto exit;
 
 	len = PyObject_Length(list);
 	if (MAPIAllocateBuffer(len * sizeof(FBUser), &~lpFbUsers) != hrSuccess)
 		goto exit;
-
-	while ((elem = PyIter_Next(iter))) {
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
 		if (PyBytes_AsStringAndSize(elem, &buf, (Py_ssize_t *)&size) == -1) {
 			PyErr_SetString(PyExc_RuntimeError, "Entryid is missing");
 			goto exit;
@@ -62,16 +65,9 @@ LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 		lpFbUsers[i].m_cbEid = size;
 		lpFbUsers[i].m_lpEid = entryid;
 		++i;
-
-		Py_XDECREF(elem);
-		elem = nullptr;
-	}
-
+	} while (true);
 	*cValues = i;
  exit:
-	Py_XDECREF(elem);
-	Py_XDECREF(iter);
-
 	if (PyErr_Occurred() && lpFbUsers != nullptr)
 		return nullptr;
 	return lpFbUsers.release();
@@ -79,14 +75,12 @@ LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 
 LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
 	KCHL::memory_ptr<FBBlock_1> lpFBBlocks;
-	PyObject *iter = nullptr, *elem = nullptr;
-	PyObject *start, *end, *status;
+	pyobj_ptr iter;
 	size_t i, len;
 
 	if (list == Py_None)
 		goto exit;
-
-	iter = PyObject_GetIter(list);
+	iter.reset(PyObject_GetIter(list));
 	if (!iter)
 		goto exit;
 
@@ -95,90 +89,55 @@ LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
 		goto exit;
 
 	i=0;
-
-	while ((elem = PyIter_Next(iter))) {
-		start = PyObject_GetAttrString(elem, "start");
-		end = PyObject_GetAttrString(elem, "end");
-		status = PyObject_GetAttrString(elem, "status");
+	do {
+		pyobj_ptr elem(PyIter_Next(iter));
+		pyobj_ptr start(PyObject_GetAttrString(elem, "start"));
+		pyobj_ptr end(PyObject_GetAttrString(elem, "end"));
+		pyobj_ptr status(PyObject_GetAttrString(elem, "status"));
 
 		lpFBBlocks[i].m_tmStart = PyLong_AsLong(start);
 		lpFBBlocks[i].m_tmEnd = PyLong_AsLong(end);
 		lpFBBlocks[i].m_fbstatus = FBStatus(PyLong_AsLong(status));
 
 		i++;
-
-		Py_XDECREF(elem);
-		Py_XDECREF(start);
-		Py_XDECREF(end);
-		Py_XDECREF(status);
-
-		elem = nullptr;
-	}
-
+	} while (true);
 	*nBlocks = i;
 
  exit:
-	Py_XDECREF(elem);
-	Py_XDECREF(iter);
-
 	if (PyErr_Occurred() && lpFBBlocks != nullptr)
 		return nullptr;
 	return lpFBBlocks.release();
 }
 
 PyObject* Object_from_FBBlock_1(FBBlock_1 const& sFBBlock) {
-	PyObject *start = nullptr, *end = nullptr,
-		*status = nullptr, *object = nullptr;
-
-	start = PyLong_FromLong(sFBBlock.m_tmStart);
+	pyobj_ptr end, status, object;
+	pyobj_ptr start(PyLong_FromLong(sFBBlock.m_tmStart));
 	if (PyErr_Occurred())
 		goto exit;
-
-	end = PyLong_FromLong(sFBBlock.m_tmEnd);
+	end.reset(PyLong_FromLong(sFBBlock.m_tmEnd));
 	if (PyErr_Occurred())
 		goto exit;
-
-	status = PyLong_FromLong(sFBBlock.m_fbstatus);
+	status.reset(PyLong_FromLong(sFBBlock.m_fbstatus));
 	if (PyErr_Occurred())
 		goto exit;
-
-	object = PyObject_CallFunction(PyTypeFreeBusyBlock, "(OOO)", start, end, status);
-
+	object.reset(PyObject_CallFunction(PyTypeFreeBusyBlock, "(OOO)", start.get(), end.get(), status.get()));
  exit:
-	Py_XDECREF(start);
-	Py_XDECREF(end);
-	Py_XDECREF(status);
-
-	if (PyErr_Occurred()) {
-		Py_XDECREF(object);
-		object = nullptr;
-	}
-
-	return object;
+	if (PyErr_Occurred())
+		object.reset();
+	return object.release();
 }
 
 PyObject* List_from_FBBlock_1(LPFBBlock_1 lpFBBlocks, LONG* nBlocks) {
-	PyObject *elem = nullptr;
-	PyObject *list = PyList_New(0);
-
+	pyobj_ptr list(PyList_New(0));
 	for (size_t i = 0; i < *nBlocks; ++i) {
-		elem = Object_from_FBBlock_1(lpFBBlocks[i]);
-
+		pyobj_ptr elem(Object_from_FBBlock_1(lpFBBlocks[i]));
 		if(PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, elem);
-
-		Py_XDECREF(elem);
-		elem = nullptr;
 	}
  exit:
-	Py_XDECREF(elem);
-
-	if (PyErr_Occurred()) {
-		Py_XDECREF(list);
-		list = nullptr;
-	}
-
-	return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }

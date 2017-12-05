@@ -16,6 +16,9 @@
  */
 
 #include "archiver_conv.h"
+#include "pymem.hpp"
+
+using KCHL::pyobj_ptr;
 
 PyObject* PyObject_from_Iterator(const ArchiveList::const_iterator &i) {
 	return Py_BuildValue("(sssi)", i->StoreName.c_str(), i->FolderName.c_str(), i->StoreOwner.c_str(), i->Rights);
@@ -28,30 +31,21 @@ PyObject* PyObject_from_Iterator(const UserList::const_iterator &i) {
 template<typename ListType>
 PyObject* List_from(const ListType &lst)
 {
-    PyObject *list = PyList_New(0);
-    PyObject *item = NULL;
-
+	pyobj_ptr list(PyList_New(0));
     typename ListType::const_iterator i;
 
     for (i = lst.begin(); i != lst.end(); ++i) {
-		item = PyObject_from_Iterator(i);
+		pyobj_ptr item(PyObject_from_Iterator(i));
 		if (PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, item);
-		Py_DECREF(item);
-		item = NULL;
 	}
 
 exit:
-    if(PyErr_Occurred()) {
-        if (list != nullptr)
-            Py_DECREF(list);
-        list = NULL;
-    }
-    if (item != nullptr)
-        Py_DECREF(item);
-    return list;
+	if (PyErr_Occurred())
+		list.reset();
+	return list.release();
 }
 
 PyObject* List_from_ArchiveList(const ArchiveList &lst)
