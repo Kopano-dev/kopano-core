@@ -27,7 +27,6 @@ namespace KC {
 ECScheduler::ECScheduler(ECLogger *lpLogger) :
 	m_lpLogger(lpLogger)
 {
-	m_lpLogger->AddRef();
 	//Create Scheduler thread
 	pthread_create(&m_hMainThread, NULL, ScheduleThread, (void*)this);
 	set_thread_name(m_hMainThread, "ECScheduler:main");
@@ -40,9 +39,6 @@ ECScheduler::~ECScheduler(void)
 	m_hExitSignal.notify_one();
 	l_exit.unlock();
 	pthread_join(m_hMainThread, NULL);
-
-	//Clean up something
-	m_lpLogger->Release();
 }
 
 HRESULT ECScheduler::AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle, void* (*lpFunction)(void*), void* lpData)

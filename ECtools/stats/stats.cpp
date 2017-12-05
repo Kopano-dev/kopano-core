@@ -39,8 +39,9 @@
 #include <kopano/ecversion.h>
 #include <kopano/memory.hpp>
 #include <kopano/charset/convert.h>
-#include "MAPIConsoleTable.h"
 #include <kopano/ECLogger.h>
+#include <kopano/mapi_ptr.h>
+#include "ConsoleTable.h"
 
 using namespace KCHL;
 using std::cerr;
@@ -481,6 +482,61 @@ exit:
 #endif
 }
  
+static std::string mapitable_ToString(const SPropValue *lpProp)
+{
+	switch (PROP_TYPE(lpProp->ulPropTag)) {
+	case PT_STRING8:
+		return std::string(lpProp->Value.lpszA);
+	case PT_LONG:
+		return stringify(lpProp->Value.ul);
+	case PT_DOUBLE:
+		return stringify(lpProp->Value.dbl);
+	case PT_FLOAT:
+		return stringify(lpProp->Value.flt);
+	case PT_I8:
+		return stringify_int64(lpProp->Value.li.QuadPart);
+	case PT_SYSTIME: {
+		time_t t;
+		char buf[32]; // must be at least 26 bytes
+		FileTimeToUnixTime(lpProp->Value.ft, &t);
+		ctime_r(&t, buf);
+		return trim(buf, " \t\n\r\v\f");
+	}
+	case PT_MV_STRING8: {
+		std::string s;
+		for (unsigned int i = 0; i < lpProp->Value.MVszA.cValues; ++i) {
+			if (!s.empty())
+				s += ",";
+			s += lpProp->Value.MVszA.lppszA[i];
+		}
+		return s;
+	}
+	}
+	return std::string();
+}
+
+static HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true */)
+{
+	SPropTagArrayPtr ptrColumns;
+	SRowSetPtr ptrRows;
+	ConsoleTable ct(0, 0);
+
+	HRESULT hr = lpTable->QueryColumns(0, &~ptrColumns);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpTable->QueryRows(-1, 0, &~ptrRows);
+	if (hr != hrSuccess)
+		return hr;
+	ct.Resize(ptrRows.size(), ptrColumns->cValues);
+	for (unsigned int i = 0; i < ptrColumns->cValues; ++i)
+		ct.SetHeader(i, stringify(ptrColumns->aulPropTag[i], true));
+	for (unsigned int i = 0; i < ptrRows.size(); ++i)
+		for (unsigned int j = 0; j < ptrRows[i].cValues; ++j)
+			ct.SetColumn(i, j, mapitable_ToString(&ptrRows[i].lpProps[j]));
+	humanreadable ? ct.PrintTable() : ct.DumpTable();
+	return hrSuccess;
+}
+
 static void dumptable(eTableType eTable, LPMDB lpStore, bool humanreadable)
 {
 	HRESULT hr = hrSuccess;

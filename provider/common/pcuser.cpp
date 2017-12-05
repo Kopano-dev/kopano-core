@@ -24,19 +24,6 @@
 
 namespace KC {
 
-template<int(*fnCmp)(const char*, const char*)>
-class StringComparer {
-public:
-	StringComparer(const std::string &str): m_str(str) {}
-	bool operator()(const std::string &other) const
-	{
-		return m_str.size() == other.size() && fnCmp(m_str.c_str(), other.c_str()) == 0;
-	}
-
-private:
-	const std::string &m_str;
-};
-
 objectid_t::objectid_t(const std::string &str)
 {
 	std::string objclass;
@@ -200,8 +187,14 @@ bool objectdetails_t::PropListStringContains(property_key_t propname,
 {
 	const std::list<std::string> list = GetPropListString(propname);
 	if (ignoreCase)
-		return std::find_if(list.begin(), list.end(), StringComparer<strcasecmp>(value)) != list.end();
-	return std::find_if(list.begin(), list.end(), StringComparer<strcmp>(value)) != list.end();
+		return std::find_if(list.begin(), list.end(),
+			[&](const std::string &o) {
+				return value.size() == o.size() && strcasecmp(value.c_str(), o.c_str()) == 0;
+			}) != list.end();
+	return std::find_if(list.begin(), list.end(),
+		[&](const std::string &o) {
+			return value.size() == o.size() && strcmp(value.c_str(), o.c_str()) == 0;
+		}) != list.end();
 }
 
 void objectdetails_t::ClearPropList(property_key_t propname)

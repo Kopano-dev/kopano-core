@@ -4333,15 +4333,6 @@ SOAP_ENTRY_START(setRights, *result, entryId sEntryId, struct rightsArray *lpsRi
 }
 SOAP_ENTRY_END()
 
-int ns__getUserObjectList(struct soap *, ULONG64, unsigned int, entryId, int,
-    struct userobjectResponse *r)
-{
-	/* Deprecated. This is only accessable through IECSecurity, and nobody calls this anymore! */
-	// TODO: if we just remove this handler -- same result?!
-	r->er = KCERR_NO_SUPPORT;
-	return SOAP_OK;
-}
-
 SOAP_ENTRY_START(getOwner, lpsResponse->er, entryId sEntryId, struct getOwnerResponse *lpsResponse)
 {
 	unsigned int	ulobjid = 0;

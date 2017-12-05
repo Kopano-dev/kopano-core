@@ -48,29 +48,29 @@ namespace KC {
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_CACHE, "cellcache: " _msg, ##__VA_ARGS__)
 
 // Specialization for ECsACL
-template<>
-unsigned int GetCacheAdditionalSize(const ECsACLs &val) {
+template<> size_t GetCacheAdditionalSize(const ECsACLs &val)
+{
 	return val.ulACLs * sizeof(val.aACL[0]);
 }
 
-template<>
-unsigned int GetCacheAdditionalSize(const ECsIndexProp &val) {
+template<> size_t GetCacheAdditionalSize(const ECsIndexProp &val)
+{
 	return val.cbData;
 }
 
 // Specialization for ECsCell
-template<>
-unsigned int GetCacheAdditionalSize(const ECsCells &val) {
+template<> size_t GetCacheAdditionalSize(const ECsCells &val)
+{
 	return val.GetSize();
 }
 
-template<>
-unsigned int GetCacheAdditionalSize(const std::string &val) {
+template<> size_t GetCacheAdditionalSize(const std::string &val)
+{
 	return MEMORY_USAGE_STRING(val);
 }
 
-template<>
-unsigned int GetCacheAdditionalSize(const ECsUEIdKey &val) {
+template<> size_t GetCacheAdditionalSize(const ECsUEIdKey &val)
+{
 	return MEMORY_USAGE_STRING(val.strExternId);
 }
 

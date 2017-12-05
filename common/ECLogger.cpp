@@ -396,17 +396,15 @@ ECLogger_Syslog::ECLogger_Syslog(unsigned int max_ll, const char *ident, int fac
 	 * itself >:-((, we have to do it.
 	 */
 	if (ident == NULL) {
-		m_ident = NULL;
 		openlog(ident, LOG_PID, facility);
 	} else {
-		m_ident = strdup(ident);
-		openlog(m_ident, LOG_PID, facility);
+		m_ident.reset(strdup(ident));
+		openlog(m_ident.get(), LOG_PID, facility);
 	}
 }
 
 ECLogger_Syslog::~ECLogger_Syslog() {
 	closelog();
-	free(m_ident);
 }
 
 void ECLogger_Syslog::Reset() {
@@ -443,16 +441,6 @@ void ECLogger_Syslog::LogVA(unsigned int loglevel, const char *format, va_list& 
 }
 
 ECLogger_Tee::ECLogger_Tee(): ECLogger(EC_LOGLEVEL_DEBUG) {
-}
-
-/**
- * The destructor calls Release on each attached logger so
- * they'll be deleted if it was the last reference.
- */
-ECLogger_Tee::~ECLogger_Tee(void)
-{
-	for (auto log : m_loggers)
-		log->Release();
 }
 
 /**
@@ -529,8 +517,7 @@ void ECLogger_Tee::LogVA(unsigned int loglevel, const char *format, va_list &va)
 void ECLogger_Tee::AddLogger(ECLogger *lpLogger) {
 	if (lpLogger == nullptr)
 		return;
-	lpLogger->AddRef();
-	m_loggers.emplace_back(lpLogger);
+	m_loggers.emplace_back(KCHL::object_ptr<ECLogger>(lpLogger));
 }
 
 ECLogger_Pipe::ECLogger_Pipe(int fd, pid_t childpid, int loglevel) :

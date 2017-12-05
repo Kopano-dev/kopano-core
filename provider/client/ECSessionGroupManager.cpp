@@ -25,20 +25,6 @@
 #include "SessionGroupData.h"
 #include "SSLUtil.h"
 
-/* std::algorithm helper structures/functions */
-struct findSessionGroupId {
-	ECSESSIONGROUPID ecSessionGroupId;
-
-	findSessionGroupId(ECSESSIONGROUPID ecSessionGroupId) : ecSessionGroupId(ecSessionGroupId)
-	{
-	}
-
-	bool operator()(const SESSIONGROUPMAP::value_type &entry) const
-	{
-		return entry.second->GetSessionGroupId() == ecSessionGroupId;
-	}
-};
-
 /* Global SessionManager for entire client */
 ECSessionGroupManager g_ecSessionManager;
 
@@ -101,8 +87,10 @@ HRESULT ECSessionGroupManager::DeleteSessionGroupDataIfOrphan(ECSESSIONGROUPID e
 	HRESULT hr = hrSuccess;
 	SessionGroupData *lpSessionGroupData = NULL;
 	ulock_rec biglock(m_hMutex);
-
-	auto iter = find_if(m_mapSessionGroups.cbegin(), m_mapSessionGroups.cend(), findSessionGroupId(ecSessionGroupId));
+	auto iter = std::find_if(m_mapSessionGroups.cbegin(), m_mapSessionGroups.cend(),
+		[&](const SESSIONGROUPMAP::value_type &e) {
+			return e.second->GetSessionGroupId() == ecSessionGroupId;
+		});
 	if (iter != m_mapSessionGroups.cend()) {
         if(iter->second->IsOrphan()) {
             // If the group is an orphan now, we can delete it safely since the only way
