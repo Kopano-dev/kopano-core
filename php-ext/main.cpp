@@ -452,21 +452,13 @@ zend_function_entry mapi_functions[] =
 
 	ZEND_FALIAS(mapi_attach_openbin, mapi_openproperty, NULL)
 	ZEND_FALIAS(mapi_msgstore_getprops, mapi_getprops, NULL)
-	ZEND_FALIAS(mapi_msgstore_setprops, mapi_setprops, NULL)
 	ZEND_FALIAS(mapi_folder_getprops, mapi_getprops, NULL)
-	ZEND_FALIAS(mapi_folder_openproperty, mapi_openproperty, NULL)
-	ZEND_FALIAS(mapi_folder_setprops, mapi_setprops, NULL)
 	ZEND_FALIAS(mapi_message_getprops, mapi_getprops, NULL)
 	ZEND_FALIAS(mapi_message_setprops, mapi_setprops, NULL)
 	ZEND_FALIAS(mapi_message_openproperty, mapi_openproperty, NULL)
 	ZEND_FALIAS(mapi_attach_getprops, mapi_getprops, NULL)
-	ZEND_FALIAS(mapi_attach_setprops, mapi_setprops, NULL)
 	ZEND_FALIAS(mapi_attach_openproperty, mapi_openproperty, NULL)
 	ZEND_FALIAS(mapi_message_savechanges, mapi_savechanges, NULL)
-
-	// old versions
-	ZEND_FALIAS(mapi_zarafa_getuser, mapi_zarafa_getuser_by_name, NULL)
-	ZEND_FALIAS(mapi_zarafa_getgroup, mapi_zarafa_getgroup_by_name, NULL)
 
 	ZEND_FE(kc_session_save, second_arg_force_ref)
 	ZEND_FE(kc_session_restore, second_arg_force_ref)
