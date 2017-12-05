@@ -31,7 +31,6 @@
 #include "ECPluginFactory.h"
 #include "ECDBDef.h"
 #include "ECDatabaseUpdate.h"
-#include "ECLicenseClient.h"
 #include <kopano/ECGuid.h>
 #include "ECLockManager.h"
 
@@ -9599,37 +9598,6 @@ SOAP_ENTRY_START(getLicenseAuth, r->er, struct xsd__base64Binary, struct getLice
 {
 	r->sAuthResponse.__ptr = nullptr;
 	r->sAuthResponse.__size = 0;
-}
-SOAP_ENTRY_END()
-
-SOAP_ENTRY_START(getLicenseCapa, lpsResponse->er, unsigned int ulServiceType, struct getLicenseCapaResponse *lpsResponse)
-{
-    std::vector<std::string> lstCapabilities;
-
-	er = ECLicenseClient().GetCapabilities(ulServiceType, lstCapabilities);
-    if(er != erSuccess)
-		return er;
-        
-    lpsResponse->sCapabilities.__size = lstCapabilities.size();
-    lpsResponse->sCapabilities.__ptr = s_alloc<char *>(soap, lstCapabilities.size());
-    
-	for (unsigned int i = 0; i < lstCapabilities.size(); ++i)
-		lpsResponse->sCapabilities.__ptr[i] = s_strcpy(soap, lstCapabilities[i].c_str());
-	return erSuccess;
-}
-SOAP_ENTRY_END()
-
-SOAP_ENTRY_START(getLicenseUsers, lpsResponse->er, unsigned int ulServiceType, struct getLicenseUsersResponse *lpsResponse)
-{
-	unsigned int ulUsers = 0;
-	std::vector<std::string> lstCapabilities;
-
-	er = ECLicenseClient().GetInfo(ulServiceType, &ulUsers);
-	if(er != erSuccess)
-		return er;
-
-	lpsResponse->ulUsers = ulUsers;
-	return erSuccess;
 }
 SOAP_ENTRY_END()
 

@@ -33,7 +33,6 @@
 #include "ECSessionManager.h"
 #include "ECStatsCollector.h"
 #include "ECTPropsPurge.h"
-#include "ECLicenseClient.h"
 #include "ECDatabaseUtils.h"
 #include "ECSecurity.h"
 #include "SSLUtil.h"
@@ -127,36 +126,6 @@ ECRESULT ECSessionManager::LoadSettings(){
 
 	memcpy(&m_ullSourceKeyAutoIncrement, lpDBRow[0], sizeof(m_ullSourceKeyAutoIncrement));
 	return erSuccess;
-}
-
-ECRESULT ECSessionManager::CheckUserLicense()
-{
-	ECSession *lpecSession = NULL;
-	unsigned int ulLicense = 0;
-
-	auto er = this->CreateSessionInternal(&lpecSession);
-	if (er != erSuccess)
-		goto exit;
-
-	lpecSession->Lock();
-
-	er = lpecSession->GetUserManagement()->CheckUserLicense(&ulLicense);
-	if (er != erSuccess)
-		goto exit;
-
-	if (ulLicense & USERMANAGEMENT_USER_LICENSE_EXCEEDED) {
-		ec_log_err("Failed to start server: Your license does not permit this amount of users.");
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
-
-exit:
-	if(lpecSession) {
-		lpecSession->Unlock(); // Lock the session
-		this->RemoveSessionInternal(lpecSession);
-	}
-
-	return er;
 }
 
 /*
@@ -1115,20 +1084,6 @@ ECRESULT ECSessionManager::DumpStats()
 	ec_log_info("  Queue     : %u", sSearchStats.ulEvents);
 	ec_log_info("  Mem usage : %llu Bytes", static_cast<unsigned long long>(sSearchStats.ullSize));
 	return this->m_lpECCacheManager->DumpStats();
-}
-
-ECRESULT ECSessionManager::GetLicensedUsers(unsigned int ulServiceType, unsigned int* lpulLicensedUsers)
-{
-	unsigned int ulLicensedUsers = 0;
-	
-	auto er = ECLicenseClient().GetInfo(ulServiceType, &ulLicensedUsers);
-	if(er != erSuccess) {
-	    ulLicensedUsers = 0;
-	    er = erSuccess;
-	}
-	*lpulLicensedUsers = ulLicensedUsers;
-
-	return er;
 }
 
 ECRESULT ECSessionManager::GetServerGUID(GUID* lpServerGuid){

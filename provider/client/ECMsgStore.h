@@ -160,8 +160,6 @@ public:
 
     // ECLicense
     virtual HRESULT LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lppResponse, unsigned int * lpulResponseData);
-    virtual HRESULT LicenseCapa(unsigned int ulServiceType, char ***lppszChars, unsigned int *lpulSize);
-	virtual HRESULT LicenseUsers(unsigned int ulServiceType, unsigned int *lpulUsers);
 
     // ECTestProtocol
 	virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **argv);
@@ -237,8 +235,6 @@ public:
 		virtual HRESULT GetIDsFromNames(ULONG cNames, LPMAPINAMEID *ppNames, ULONG flags, LPSPropTagArray *pptaga) _kc_override;
 		virtual HRESULT OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG flags, LPMAPITABLE *lppTable) _kc_override;
 		virtual HRESULT LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lpResponseData, unsigned int *lpulResponseSize) _kc_override;
-		virtual HRESULT LicenseCapa(unsigned int ulServiceType, char ***lppszCapas, unsigned int *lpulSize) _kc_override;
-		virtual HRESULT LicenseUsers(unsigned int ulServiceType, unsigned int *lpulUsers) _kc_override;
 		virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **args) _kc_override;
 		virtual HRESULT TestSet(const char *name, const char *value) _kc_override;
 		virtual HRESULT TestGet(const char *name, char **value) _kc_override;

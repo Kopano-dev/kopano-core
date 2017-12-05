@@ -549,7 +549,6 @@ libkcserver_la_SOURCES = \
 	provider/libserver/cmd.cpp provider/libserver/cmd.hpp \
 	provider/libserver/cmdutil.cpp provider/libserver/cmdutil.hpp \
 	provider/libserver/logontime.cpp provider/libserver/logontime.hpp \
-	provider/common/ECLicenseClient.cpp provider/common/ECLicenseClient.h \
 	provider/common/ECSearchClient.cpp provider/common/ECSearchClient.h \
 	provider/common/SOAPDebug.cpp provider/common/SOAPDebug.h
 libkcserver_la_LIBADD = \

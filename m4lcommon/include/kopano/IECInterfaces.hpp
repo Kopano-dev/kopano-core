@@ -152,8 +152,6 @@ class IECImportHierarchyChanges : public IExchangeImportHierarchyChanges {
 class IECLicense : public virtual IUnknown {
 	public:
 	virtual HRESULT LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lpAuthResponse, unsigned int *lpulResponseSize) = 0;
-	virtual HRESULT LicenseCapa(unsigned int ulServiceType, char ***lppszCapabilities, unsigned int *lpulCapabilities) = 0;
-	virtual HRESULT LicenseUsers(unsigned int ulServiceType, unsigned int *ulUsers) = 0;
 };
 
 class IECMultiStoreTable : public virtual IUnknown {

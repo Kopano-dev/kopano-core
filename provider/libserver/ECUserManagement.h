@@ -111,16 +111,6 @@ private:
 #define USERMANAGEMENT_FORCE_SYNC		0x4		// Force sync with external database
 #define USERMANAGEMENT_SHOW_HIDDEN		0x8		// Show hidden entries
 
-// Use for ulLicenseStatus in CheckUserLicense()
-#define USERMANAGEMENT_LIMIT_ACTIVE_USERS		0x1	/* Limit reached, but not yet exceeded */
-#define USERMANAGEMENT_LIMIT_NONACTIVE_USERS	0x2 /* Limit reached, but not yet exceeded */
-#define USERMANAGEMENT_EXCEED_ACTIVE_USERS		0x4 /* Limit exceeded */
-#define USERMANAGEMENT_EXCEED_NONACTIVE_USERS	0x8 /* Limit exceeded */
-
-#define USERMANAGEMENT_BLOCK_CREATE_ACTIVE_USER		( USERMANAGEMENT_LIMIT_ACTIVE_USERS | USERMANAGEMENT_EXCEED_ACTIVE_USERS )
-#define USERMANAGEMENT_BLOCK_CREATE_NONACTIVE_USER	( USERMANAGEMENT_LIMIT_NONACTIVE_USERS | USERMANAGEMENT_EXCEED_NONACTIVE_USERS )
-#define USERMANAGEMENT_USER_LICENSE_EXCEEDED		( USERMANAGEMENT_EXCEED_ACTIVE_USERS | USERMANAGEMENT_EXCEED_NONACTIVE_USERS )
-
 class _kc_export ECUserManagement _kc_final {
 public:
 	_kc_hidden ECUserManagement(BTSession *, ECPluginFactory *, ECConfig *);
@@ -164,15 +154,11 @@ public:
 	// Do the same for a whole set of items
 	_kc_hidden virtual ECRESULT QueryContentsRowData(struct soap *, ECObjectTableList *rowlist, struct propTagArray *, struct rowSet **);
 	_kc_hidden virtual ECRESULT QueryHierarchyRowData(struct soap *, ECObjectTableList *rowlist, struct propTagArray *, struct rowSet **);
-	_kc_hidden virtual ECRESULT GetUserCount(unsigned int *active, unsigned int *inactive); // returns active users and non-active users (so you may get ulUsers=3, ulNonActives=5)
 	_kc_hidden virtual ECRESULT GetUserCount(usercount_t *);
 	_kc_hidden virtual ECRESULT GetCachedUserCount(usercount_t *);
 	_kc_hidden virtual ECRESULT GetPublicStoreDetails(objectdetails_t *);
 	virtual ECRESULT GetServerDetails(const std::string &server, serverdetails_t *);
 	_kc_hidden virtual ECRESULT GetServerList(serverlist_t *);
-
-	/* Check if the user license status */
-	_kc_hidden ECRESULT CheckUserLicense(unsigned int *licstatus);
 
 	// Returns true if ulId is an internal ID (so either SYSTEM or EVERYONE)
 	bool IsInternalObject(unsigned int id) const;

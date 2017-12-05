@@ -116,7 +116,6 @@ public:
 	_kc_hidden ECRESULT CancelAllSessions(ECSESSIONID except = 0);
 	_kc_hidden ECRESULT ForEachSession(void (*cb)(ECSession *, void *), void *obj);
 	_kc_hidden ECRESULT LoadSettings(void);
-	_kc_hidden ECRESULT CheckUserLicense(void);
 	_kc_hidden ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int obj_id, unsigned int child_id, unsigned int obj_type);
 	_kc_hidden ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int obj_id, std::list<unsigned int> &objects, unsigned int obj_type);
 	_kc_hidden ECRESULT UpdateOutgoingTables(ECKeyTable::UpdateType, unsigned int store_id, unsigned int obj_id, unsigned int flags, unsigned int obj_type);
@@ -140,7 +139,6 @@ public:
 	_kc_hidden ECRESULT DumpStats(void);
 	_kc_hidden bool IsHostedSupported() const { return m_bHostedKopano; }
 	_kc_hidden bool IsDistributedSupported() const { return m_bDistributedKopano; }
-	_kc_hidden ECRESULT GetLicensedUsers(unsigned int svc_type, unsigned int *licusers);
 	_kc_hidden ECRESULT GetServerGUID(GUID *);
 	_kc_hidden ECRESULT GetNewSourceKey(SOURCEKEY *);
 

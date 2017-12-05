@@ -2654,16 +2654,6 @@ HRESULT ECMsgStore::LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsi
 	return lpTransport->HrLicenseAuth(lpData, ulSize, lppResponse, lpulResponseData);
 }
 
-HRESULT ECMsgStore::LicenseCapa(unsigned int ulServiceType, char ***lppszCapas, unsigned int *lpulSize)
-{
-	return lpTransport->HrLicenseCapa(ulServiceType, lppszCapas, lpulSize);
-}
-
-HRESULT ECMsgStore::LicenseUsers(unsigned int ulServiceType, unsigned int *lpulUsers)
-{
-	return lpTransport->HrLicenseUsers(ulServiceType, lpulUsers);
-}
-
 HRESULT ECMsgStore::TestPerform(const char *szCommand, unsigned int ulArgs,
     char **lpszArgs)
 {
@@ -2809,8 +2799,6 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, OpenMultiStoreTable, (LPENT
 
 // IECLicense interface
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, LicenseAuth, (unsigned char *, lpData), (unsigned int, ulSize), (unsigned char **, lppResponse), (unsigned int *, lpulResponseSize))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, LicenseCapa, (unsigned int, ulServiceType), (char ***, lppszData), (unsigned int *, lpulSize))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, LicenseUsers, (unsigned int, ulServiceType), (unsigned int *, lpulUsers))
 
 // IECTestProtocol interface
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, TestPerform, (const char *, cmd), (unsigned int, argc), (char **, args))
