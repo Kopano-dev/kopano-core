@@ -349,7 +349,7 @@ static bool FNeedsAutoAccept(IMsgStore *lpStore, LPMESSAGE lpMessage)
 		kc_perrorf("GetAutoAcceptSettings failed", hr);
 		return false; /* hr */
 	}
-	return !bAutoAccept;
+	return bAutoAccept;
 }
 
 /**
