@@ -28,6 +28,14 @@ class ECS3Config final : public ECAttachmentConfig {
 	std::string m_akid, m_sakey, m_bkname, m_region, m_path;
 	unsigned int m_comp;
 	S3BucketContext m_bkctx{};
+	/*
+	 * The Request Context and Response Handler variables are responsible
+	 * for the operation of the handler functions.
+	 */
+	S3ResponseHandler m_response_handler{};
+	S3PutObjectHandler m_put_obj_handler{};
+	S3GetObjectHandler m_get_obj_handler{};
+	S3GetConditions m_get_conditions{};
 
 	friend class ECS3Attachment;
 };
@@ -74,14 +82,7 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	std::set<ext_siid> m_new_att, m_marked_att;
 	bool m_transact = false;
 
-	/*
-	 * The Request Context and Response Handler variables are responsible
-	 * for the operation of the handler functions.
-	 */
-	S3ResponseHandler m_response_handler;
-	S3PutObjectHandler m_put_obj_handler;
-	S3GetObjectHandler m_get_obj_handler;
-	S3GetConditions m_get_conditions;
+	friend class ECS3Config;
 };
 
 } /* namespace */

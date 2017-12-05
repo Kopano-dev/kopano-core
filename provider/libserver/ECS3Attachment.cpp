@@ -89,6 +89,17 @@ ECRESULT ECS3Config::init(ECConfig *cfg)
 	m_bkctx.accessKeyId = m_akid.c_str();
 	m_bkctx.secretAccessKey = m_sakey.c_str();
 	m_bkctx.authRegion = m_region.c_str();
+
+	m_response_handler.propertiesCallback = &ECS3Attachment::response_prop_cb;
+	m_response_handler.completeCallback = &ECS3Attachment::response_complete_cb;
+	m_put_obj_handler.responseHandler = m_response_handler;
+	m_put_obj_handler.putObjectDataCallback = &ECS3Attachment::put_obj_cb;
+	m_get_obj_handler.responseHandler = m_response_handler;
+	m_get_obj_handler.getObjectDataCallback = &ECS3Attachment::get_obj_cb;
+	m_get_conditions.ifModifiedSince = -1;
+	m_get_conditions.ifNotModifiedSince = -1;
+	m_get_conditions.ifMatchETag = nullptr;
+	m_get_conditions.ifNotMatchETag = nullptr;
 	return erSuccess;
 }
 
@@ -253,19 +264,7 @@ ECRESULT ECS3Attachment::StaticDeinit(void)
  */
 ECS3Attachment::ECS3Attachment(ECS3Config &config, ECDatabase *db) :
 	ECAttachmentStorage(db, config.m_comp), m_config(config)
-{
-	/* Set the handlers */
-	m_response_handler.propertiesCallback = &ECS3Attachment::response_prop_cb;
-	m_response_handler.completeCallback = &ECS3Attachment::response_complete_cb;
-	m_put_obj_handler.responseHandler = m_response_handler;
-	m_put_obj_handler.putObjectDataCallback = &ECS3Attachment::put_obj_cb;
-	m_get_obj_handler.responseHandler = m_response_handler;
-	m_get_obj_handler.getObjectDataCallback = &ECS3Attachment::get_obj_cb;
-	m_get_conditions.ifModifiedSince = -1;
-	m_get_conditions.ifNotModifiedSince = -1;
-	m_get_conditions.ifMatchETag = NULL;
-	m_get_conditions.ifNotMatchETag = NULL;
-}
+{}
 
 ECS3Attachment::~ECS3Attachment(void)
 {
@@ -483,8 +482,8 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_get_object(&m_config.m_bkctx, fn, &m_get_conditions, 0, 0,
-			nullptr, 0, &m_get_obj_handler, &cwdata);
+		DY_get_object(&m_config.m_bkctx, fn, &m_config.m_get_conditions,
+			0, 0, nullptr, 0, &m_config.m_get_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: load %s: retryable status: %s",
 				fn, DY_get_status_name(cd.status));
@@ -548,8 +547,8 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_get_object(&m_config.m_bkctx, fn, &m_get_conditions, 0, 0,
-			nullptr, 0, &m_get_obj_handler, &cwdata);
+		DY_get_object(&m_config.m_bkctx, fn, &m_config.m_get_conditions,
+			0, 0, nullptr, 0, &m_config.m_get_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: load %s: retryable status: %s",
 				fn, DY_get_status_name(cd.status));
@@ -609,7 +608,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
 	cd.retries = S3_RETRIES;
 	do {
 		DY_put_object(&m_config.m_bkctx, fn, size, nullptr, nullptr, 0,
-			&m_put_obj_handler, &cwdata);
+			&m_config.m_put_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: save %s: retryable status: %s",
 				fn, DY_get_status_name(cd.status));
@@ -665,7 +664,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
 	cd.retries = S3_RETRIES;
 	do {
 		DY_put_object(&m_config.m_bkctx, fn, size, nullptr, nullptr, 0,
-			&m_put_obj_handler, &cwdata);
+			&m_config.m_put_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: save %s: retryable status: %s",
 				fn, DY_get_status_name(cd.status));
@@ -734,7 +733,7 @@ ECRESULT ECS3Attachment::del_marked_att(const ext_siid &ins_id)
 	cd.retries = S3_RETRIES;
 	do {
 		DY_delete_object(&m_config.m_bkctx, fn, nullptr, 0,
-			&m_response_handler, &cwdata);
+			&m_config.m_response_handler, &cwdata);
 		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: delete %s: retryable status: %s",
 				fn, DY_get_status_name(cd.status));
@@ -841,7 +840,7 @@ ECRESULT ECS3Attachment::GetSizeInstance(const ext_siid &ins_id,
 	cd.retries = S3_RETRIES;
 	do {
 		DY_head_object(&m_config.m_bkctx, fn, nullptr, 0,
-			&m_response_handler, &cwdata);
+			&m_config.m_response_handler, &cwdata);
 		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: getsize %s: retryable status: %s",
 				fn, DY_get_status_name(cd.status));
