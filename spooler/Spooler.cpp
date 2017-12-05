@@ -930,7 +930,7 @@ int main(int argc, char *argv[]) {
 		{ "fax_international", "+", CONFIGSETTING_RELOADABLE },
 		{ "always_send_delegates", "no", CONFIGSETTING_RELOADABLE },
 		{ "always_send_tnef", "no", CONFIGSETTING_RELOADABLE },
-		{ "always_send_utf8", "no", CONFIGSETTING_RELOADABLE },
+		{ "always_send_utf8", "no", CONFIGSETTING_UNUSED },
 		{ "charset_upgrade", "windows-1252", CONFIGSETTING_RELOADABLE },
 		{ "allow_redirect_spoofing", "yes", CONFIGSETTING_RELOADABLE },
 		{ "allow_delegate_meeting_request", "yes", CONFIGSETTING_RELOADABLE },

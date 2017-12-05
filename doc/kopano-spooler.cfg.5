@@ -206,12 +206,6 @@ When an email body is written in RTF text, normally this data is sent using TNEF
 .PP
 Default:
 \fIno\fR
-.SS always_send_utf8
-.PP
-E\-mails can be sent in any charset that the e\-mail was written in. It may be desirable to always send in the UTF\-8 charset, which may be more widely supported. To enable e\-mail to always be sent in the utf\-8 charset, set this option to \*(Aqyes\*(Aq.
-.PP
-Default:
-\fIno\fR
 .SS enable_dsn
 .PP
 Enable the Delivery Status Notifications (DSN) for users. If a user requests a DSN the spooler sends the request to the MTA and when the MTA support this the user will receive the report in the mailbox. When the MTA doesn\*(Aqt support DSN the user will not receive a report. Ensure you have a supported MTA like postfix 2.3 and higher. If DSN is disabled and the user request a DSN then it will be ignored and the delivery report is not sent.
@@ -220,7 +214,7 @@ Default:
 \fIyes\fR
 .SS charset_upgrade
 .PP
-Upgrades the us\-ascii charset to this charset. This makes sure high\-characters in recipients and attachment filenames are correctly sent when the body is in plain text. Not used when always_send_utf8 is enabled.
+Upgrades the us\-ascii charset to this charset. This makes sure high\-characters in recipients and attachment filenames are correctly sent when the body is in plain text.
 .PP
 Default:
 \fIwindows\-1252\fR

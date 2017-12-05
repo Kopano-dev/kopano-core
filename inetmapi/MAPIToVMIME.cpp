@@ -901,10 +901,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 		HrGetCharsetByCP(lpInternetCPID->Value.ul, &lpszCharset) == hrSuccess)
 	{
 		m_strHTMLCharset = lpszCharset;
-		if (sopt.force_utf8)
-			m_vmCharset = MAPI_CHARSET_STRING;
-		else
-			m_vmCharset = m_strHTMLCharset;
+		m_vmCharset = m_strHTMLCharset;
 	} else {
 		// default to UTF-8 if not set
 		m_vmCharset = MAPI_CHARSET_STRING;

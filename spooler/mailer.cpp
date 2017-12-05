@@ -1727,7 +1727,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	else
 		sopt.use_tnef = 1;
 
-	sopt.force_utf8 = parseBool(g_lpConfig->GetSetting("always_send_utf8"));
 	sopt.allow_send_to_everyone = parseBool(g_lpConfig->GetSetting("allow_send_to_everyone"));
 
 	// Enable SMTP Delivery Status Notifications
