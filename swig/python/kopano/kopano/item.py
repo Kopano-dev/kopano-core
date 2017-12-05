@@ -8,7 +8,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 import datetime
 import email.parser
 import email.utils
-from functools import wraps
+import functools
 import random
 import sys
 import struct
@@ -118,7 +118,7 @@ class PersistentList(list):
         list.__init__(self, *args, **kwargs)
 
     def _autosave(self, func):
-        @wraps(func)
+        @functools.wraps(func)
         def _func(*args, **kwargs):
             ret = func(*args, **kwargs)
             self.mapiobj.SetProps([SPropValue(self.proptag, self)])

@@ -7,6 +7,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 
 import atexit
 import datetime
+import functools
 import os
 import time
 import socket
@@ -79,13 +80,6 @@ else:
     import store as _store
     import utils as _utils
 
-# avoid module-class-decorator-cache-store references, which are
-# somehow not dereferenced correctly (python bug?), resulting in
-# many valgrind errors
-def _clear_cache():
-    Server._store2.cache_clear()
-atexit.register(_clear_cache)
-
 def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
     # used with permission from will mcgugan, https://www.willmcgugan.com
     time_delta = datetime.timedelta(seconds=seconds, minutes=minutes, hours=hours, days=days)
@@ -114,6 +108,28 @@ def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
                 return results[key]
         return do_cache
     return decorate
+
+def instance_method_lru_cache(*cache_args, **cache_kwargs):
+    '''
+    Just like functools.lru_cache, but a new cache is created for each instance
+    of the class that owns the method this is applied to.
+
+    Snippet by Alex Fraser (https://github.com/z0u, alex@phatcore.com)
+    '''
+    def cache_decorator(func):
+        @functools.wraps(func)
+        def cache_factory(self, *args, **kwargs):
+            # Wrap the function in a cache by calling the decorator
+            instance_cache = _lru_cache(*cache_args, **cache_kwargs)(func)
+            # Bind the decorated function to the instance to make it a method
+            instance_cache = instance_cache.__get__(self, self.__class__)
+            setattr(self, func.__name__, instance_cache)
+            # Call the instance cache now. Next time the method is called, the
+            # call will go directly to the instance cache and not via this
+            # decorator.
+            return instance_cache(*args, **kwargs)
+        return cache_factory
+    return cache_decorator
 
 class Server(object):
     """Server class"""
@@ -488,9 +504,9 @@ class Server(object):
             return self._store2(row[0].Value)
         raise NotFoundError("no such store: '%s'" % guid)
 
-    @_lru_cache(128) # backend doesn't like more than 1000 stores open on certain multiserver setup
-    def _store2(self, storeid): # XXX max lifetime
-        return self.mapisession.OpenMsgStore(0, storeid, IID_IMsgStore, MDB_WRITE)
+    @instance_method_lru_cache(128) # backend doesn't like too many open stores
+    def _store2(self, storeid): # TODO max lifetime?
+        return self.mapisession.OpenMsgStore(0, storeid, IID_IMsgStore,MDB_WRITE)
 
     def groups(self):
         """Return all :class:`groups <Group>` on server."""
