@@ -31,8 +31,6 @@ template<typename Type> class iconv_charset _kc_final {
 #define CHARSET_WCHAR "UTF-32LE"
 #define CHARSET_TCHAR (iconv_charset<TCHAR*>::name())
 
-extern _kc_export void setCharsetBestAttempt(std::string &);
-
 // Multibyte character specializations
 template<> class iconv_charset<std::string> _kc_final {
 public:

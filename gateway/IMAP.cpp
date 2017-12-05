@@ -5557,7 +5557,7 @@ string IMAP::EscapeString(WCHAR *input, std::string& charset, bool bIgnore)
 	std::string tmp;
 	std::string iconvCharset = charset;
 	if (bIgnore)
-		setCharsetBestAttempt(iconvCharset);
+		iconvCharset += "//TRANSLIT";
 	try {
 		tmp = convert_to<std::string>(iconvCharset.c_str(), input, rawsize(input), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {

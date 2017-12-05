@@ -663,8 +663,7 @@ libkcutil_la_SOURCES = \
 	common/fileutil.cpp common/my_getopt.cpp common/platform.cpp \
 	common/platform.linux.cpp common/stringutil.cpp \
 	common/ustringutil.cpp common/charset/convert.cpp \
-	common/charset/convstring.cpp common/charset/traits.cpp \
-	common/charset/localeutil.cpp
+	common/charset/convstring.cpp common/charset/localeutil.cpp
 libkcutil_la_LIBADD = \
 	-lpthread -lz ${CRYPTO_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} ${UUID_LIBS}
 libkcutil_la_SYFLAGS = -Wl,--version-script=common/libkcutil.sym
