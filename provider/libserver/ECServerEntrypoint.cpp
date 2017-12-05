@@ -115,14 +115,7 @@ ECRESULT kopano_init(ECConfig *lpConfig, ECLogger *lpAudit, bool bHostedKopano, 
 	} catch (KCHL::KMAPIError &e) {
 		return e.code();
 	}
-	auto er = g_lpSessionManager->LoadSettings();
-	if(er != erSuccess)
-		return er;
-#ifdef HAVE_LIBS3_H
-        if (strcmp(lpConfig->GetSetting("attachment_storage"), "s3") == 0)
-                ECS3Attachment::StaticInit(lpConfig);
-#endif
-	return erSuccess;
+	return g_lpSessionManager->LoadSettings();
 }
 
 void kopano_removeallsessions()
@@ -135,12 +128,6 @@ ECRESULT kopano_exit()
 {
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
-
-#ifdef HAVE_LIBS3_H
-        if (g_lpSessionManager && strcmp(g_lpSessionManager->GetConfig()->GetSetting("attachment_storage"), "s3") == 0)
-                ECS3Attachment::StaticDeinit();
-#endif
-
 	// delete our plugin of the mainthread: requires ECPluginFactory to be alive, because that holds the dlopen() result
 	plugin_destroy(pthread_getspecific(plugin_key));
 

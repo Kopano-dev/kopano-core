@@ -51,22 +51,11 @@ struct s3_cdw {
 
 #define S3_NEGATIVE_ENTRY SIZE_MAX
 
-static void *ec_libs3_handle;
-#define W(n) static decltype(S3_ ## n) *DY_ ## n;
-W(put_object)
-W(initialize)
-W(status_is_retryable)
-W(deinitialize)
-W(get_status_name)
-W(head_object)
-W(delete_object)
-W(get_object)
-#undef W
-
 /* This ought to be moved into ECS3Attachment, if and when that becomes a singleton. */
 
 ECRESULT ECS3Config::init(ECConfig *cfg)
 {
+	ec_log_info("S3: initializing attachment storage");
 	/* Copy strings, in case ECConfig gets reloaded and changes pointers */
 	m_akid   = cfg->GetSetting("attachment_s3_accesskeyid");
 	m_sakey  = cfg->GetSetting("attachment_s3_secretaccesskey");
@@ -94,7 +83,52 @@ ECRESULT ECS3Config::init(ECConfig *cfg)
 	m_get_conditions.ifNotModifiedSince = -1;
 	m_get_conditions.ifMatchETag = nullptr;
 	m_get_conditions.ifNotMatchETag = nullptr;
+	/*
+	 * Do a dlopen of libs3.so.4 so that the implicit pull-in of
+	 * libldap-2.4.so.2 symbols does not pollute our namespace of
+	 * libldap_r-2.4.so.2 symbols.
+	 */
+	m_handle = dlopen("libs3.so.4", RTLD_LAZY | RTLD_LOCAL);
+	const char *err;
+	if (m_handle == nullptr) {
+		ec_log_warn("dlopen libs3.so.4: %s", (err = dlerror()) ? err : "<none>");
+		return KCERR_DATABASE_ERROR;
+	}
+#define W(n) do { \
+		DY_ ## n = reinterpret_cast<decltype(DY_ ## n)>(dlsym(m_handle, "S3_" #n)); \
+		if (DY_ ## n == nullptr) { \
+			ec_log_warn("dlsym S3_" #n ": %s", (err = dlerror()) ? err : "<none>"); \
+			return KCERR_DATABASE_ERROR; \
+		} \
+	} while (false)
+
+	W(put_object);
+	W(initialize);
+	W(status_is_retryable);
+	W(deinitialize);
+	W(get_status_name);
+	W(head_object);
+	W(delete_object);
+	W(get_object);
+#undef W
+	auto status = DY_initialize("Kopano Mail", S3_INIT_ALL,
+	              cfg->GetSetting("attachment_s3_hostname"));
+	if (status != S3StatusOK) {
+		ec_log_err("S3: error while initializing attachment storage: %s",
+			DY_get_status_name(status));
+		return KCERR_NETWORK_ERROR;
+	}
 	return erSuccess;
+}
+
+ECS3Config::~ECS3Config()
+{
+	ec_log_info("S3: deinitializing attachment storage");
+	/* Deinitialize the S3 storage environment */
+	if (m_handle != nullptr) {
+		DY_deinitialize();
+		dlclose(m_handle);
+	}
 }
 
 ECAttachmentStorage *ECS3Config::new_handle(ECDatabase *db)
@@ -159,60 +193,6 @@ int ECS3Attachment::put_obj_cb(int bufferSize, char *buffer, void *cbdata)
 {
 	auto data = static_cast<struct s3_cdw *>(cbdata);
 	return data->caller->put_obj(bufferSize, buffer, data->cbdata);
-}
-
-ECRESULT ECS3Attachment::StaticInit(ECConfig *cf)
-{
-	ec_log_info("S3: initializing attachment storage");
-	/*
-	 * Do a dlopen of libs3.so.4 so that the implicit pull-in of
-	 * libldap-2.4.so.2 symbols does not pollute our namespace of
-	 * libldap_r-2.4.so.2 symbols.
-	 */
-	void *h = ec_libs3_handle = dlopen("libs3.so.4", RTLD_LAZY | RTLD_LOCAL);
-	const char *err;
-	if (ec_libs3_handle == NULL) {
-		ec_log_warn("dlopen libs3.so.4: %s", (err = dlerror()) ? err : "<none>");
-		return KCERR_DATABASE_ERROR;
-	}
-#define W(n) do { \
-		DY_ ## n = reinterpret_cast<decltype(DY_ ## n)>(dlsym(h, "S3_" #n)); \
-		if (DY_ ## n == NULL) { \
-			ec_log_warn("dlsym S3_" #n ": %s", (err = dlerror()) ? err : "<none>"); \
-			dlclose(h); \
-			ec_libs3_handle = NULL; \
-			return KCERR_DATABASE_ERROR; \
-		} \
-	} while (false)
-
-	W(put_object);
-	W(initialize);
-	W(status_is_retryable);
-	W(deinitialize);
-	W(get_status_name);
-	W(head_object);
-	W(delete_object);
-	W(get_object);
-#undef W
-
-	S3Status status = DY_initialize("Kopano Mail", S3_INIT_ALL, cf->GetSetting("attachment_s3_hostname"));
-	if (status != S3StatusOK) {
-		ec_log_err("S3: error while initializing attachment storage: %s",
-			DY_get_status_name(status));
-		return KCERR_NETWORK_ERROR;
-	}
-	return erSuccess;
-}
-
-ECRESULT ECS3Attachment::StaticDeinit(void)
-{
-	ec_log_info("S3: deinitializing attachment storage");
-	/* Deinitialize the S3 storage environment */
-	if (ec_libs3_handle != NULL) {
-		DY_deinitialize();
-		dlclose(ec_libs3_handle);
-	}
-	return erSuccess;
 }
 
 /*
@@ -316,15 +296,15 @@ void ECS3Attachment::response_complete(S3Status status,
 	auto data = static_cast<struct s3_cd *>(cbdata);
 	data->status = status;
 
-	ec_log_debug("S3: response completed: %s.", DY_get_status_name(status));
+	ec_log_debug("S3: response completed: %s.", m_config.DY_get_status_name(status));
 	if (status == S3StatusOK)
 		return;
 	if (error == 0) {
-		ec_log_err("S3: Amazon return status %s", DY_get_status_name(status));
+		ec_log_err("S3: Amazon return status %s", m_config.DY_get_status_name(status));
 		return;
 	}
 	ec_log_err("S3: Amazon return status %s, error: %s, resource: \"%s\"",
-		DY_get_status_name(status),
+		m_config.DY_get_status_name(status),
 		error->message ? error->message : "<unknown>",
 		error->resource ? error->resource : "<none>");
 	if (error->furtherDetails != NULL)
@@ -476,14 +456,14 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_get_object(&m_config.m_bkctx, fn, &m_config.m_get_conditions,
+		m_config.DY_get_object(&m_config.m_bkctx, fn, &m_config.m_get_conditions,
 			0, 0, nullptr, 0, &m_config.m_get_obj_handler, &cwdata);
-		if (DY_status_is_retryable(cd.status))
+		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: load %s: retryable status: %s",
-				fn, DY_get_status_name(cd.status));
-	} while (DY_status_is_retryable(cd.status) && should_retry(cd));
+				fn, m_config.DY_get_status_name(cd.status));
+	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(cd));
 
-	ec_log_debug("S3: load %s: %s", fn, DY_get_status_name(cd.status));
+	ec_log_debug("S3: load %s: %s", fn, m_config.DY_get_status_name(cd.status));
 	if (cd.size != cd.processed) {
 		ec_log_err("S3: load %s: short read %zu/%zu bytes",
 			fn, cd.processed, cd.size);
@@ -541,14 +521,14 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_get_object(&m_config.m_bkctx, fn, &m_config.m_get_conditions,
+		m_config.DY_get_object(&m_config.m_bkctx, fn, &m_config.m_get_conditions,
 			0, 0, nullptr, 0, &m_config.m_get_obj_handler, &cwdata);
-		if (DY_status_is_retryable(cd.status))
+		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: load %s: retryable status: %s",
-				fn, DY_get_status_name(cd.status));
-	} while (DY_status_is_retryable(cd.status) && should_retry(cd));
+				fn, m_config.DY_get_status_name(cd.status));
+	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(cd));
 
-	ec_log_debug("S3: load %s: %s", fn, DY_get_status_name(cd.status));
+	ec_log_debug("S3: load %s: %s", fn, m_config.DY_get_status_name(cd.status));
 	if (cd.size != cd.processed) {
 		ec_log_err("S3: load %s: short read %zu/%zu bytes",
 			fn, cd.processed, cd.size);
@@ -601,14 +581,14 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_put_object(&m_config.m_bkctx, fn, size, nullptr, nullptr, 0,
-			&m_config.m_put_obj_handler, &cwdata);
-		if (DY_status_is_retryable(cd.status))
+		m_config.DY_put_object(&m_config.m_bkctx, fn, size, nullptr,
+			nullptr, 0, &m_config.m_put_obj_handler, &cwdata);
+		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: save %s: retryable status: %s",
-				fn, DY_get_status_name(cd.status));
-	} while (DY_status_is_retryable(cd.status) && should_retry(cd));
+				fn, m_config.DY_get_status_name(cd.status));
+	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(cd));
 
-	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cd.status));
+	ec_log_debug("S3: save %s: %s", fn, m_config.DY_get_status_name(cd.status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
 		m_new_att.emplace(ins_id);
@@ -657,15 +637,14 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_put_object(&m_config.m_bkctx, fn, size, nullptr, nullptr, 0,
-			&m_config.m_put_obj_handler, &cwdata);
-		if (DY_status_is_retryable(cd.status))
+		m_config.DY_put_object(&m_config.m_bkctx, fn, size, nullptr,
+			nullptr, 0, &m_config.m_put_obj_handler, &cwdata);
+		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: save %s: retryable status: %s",
-				fn, DY_get_status_name(cd.status));
-	}
-	while (DY_status_is_retryable(cd.status) && should_retry(cd));
+				fn, m_config.DY_get_status_name(cd.status));
+	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(cd));
 
-	ec_log_debug("S3: save %s: %s", fn, DY_get_status_name(cd.status));
+	ec_log_debug("S3: save %s: %s", fn, m_config.DY_get_status_name(cd.status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
 		m_new_att.emplace(ins_id);
@@ -726,14 +705,14 @@ ECRESULT ECS3Attachment::del_marked_att(const ext_siid &ins_id)
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_delete_object(&m_config.m_bkctx, fn, nullptr, 0,
+		m_config.DY_delete_object(&m_config.m_bkctx, fn, nullptr, 0,
 			&m_config.m_response_handler, &cwdata);
-		if (DY_status_is_retryable(cd.status))
+		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: delete %s: retryable status: %s",
-				fn, DY_get_status_name(cd.status));
-	} while (DY_status_is_retryable(cd.status) && should_retry(cd));
+				fn, m_config.DY_get_status_name(cd.status));
+	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(cd));
 
-	ec_log_debug("S3: delete %s: %s", fn, DY_get_status_name(cd.status));
+	ec_log_debug("S3: delete %s: %s", fn, m_config.DY_get_status_name(cd.status));
 	if (cd.status == S3StatusOK || cd.status == S3StatusHttpErrorNotFound) {
 		/* Delete successful, or did not exist before */
 		scoped_lock locker(m_config.m_cachelock);
@@ -834,15 +813,15 @@ ECRESULT ECS3Attachment::GetSizeInstance(const ext_siid &ins_id,
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_head_object(&m_config.m_bkctx, fn, nullptr, 0,
+		m_config.DY_head_object(&m_config.m_bkctx, fn, nullptr, 0,
 			&m_config.m_response_handler, &cwdata);
-		if (DY_status_is_retryable(cd.status))
+		if (m_config.DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: getsize %s: retryable status: %s",
-				fn, DY_get_status_name(cd.status));
-	} while (DY_status_is_retryable(cd.status) && should_retry(cd));
+				fn, m_config.DY_get_status_name(cd.status));
+	} while (m_config.DY_status_is_retryable(cd.status) && should_retry(cd));
 
 	ec_log_debug("S3: getsize %s: %s, %zu bytes",
-		fn, DY_get_status_name(cd.status), cd.size);
+		fn, m_config.DY_get_status_name(cd.status), cd.size);
 	if (cd.status == S3StatusHttpErrorNotFound) {
 		locker.lock();
 		m_config.m_cache[ins_id.siid] = {now_negative(), S3_NEGATIVE_ENTRY};

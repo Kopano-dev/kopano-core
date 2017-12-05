@@ -26,12 +26,26 @@ struct s3_cache_entry {
 
 class ECS3Config final : public ECAttachmentConfig {
 	public:
+	virtual ~ECS3Config();
 	virtual ECRESULT init(ECConfig *) override;
 	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
 
 	private:
 	std::string m_akid, m_sakey, m_bkname, m_region, m_path;
 	unsigned int m_comp;
+
+	void *m_handle = nullptr;
+#define W(n) decltype(S3_ ## n) *DY_ ## n;
+	W(put_object)
+	W(initialize)
+	W(status_is_retryable)
+	W(deinitialize)
+	W(get_status_name)
+	W(head_object)
+	W(delete_object)
+	W(get_object)
+#undef W
+
 	S3BucketContext m_bkctx{};
 	/*
 	 * The Request Context and Response Handler variables are responsible
@@ -49,8 +63,6 @@ class ECS3Config final : public ECAttachmentConfig {
 
 class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	public:
-	static ECRESULT StaticInit(ECConfig *);
-	static ECRESULT StaticDeinit(void);
 	ECS3Attachment(ECS3Config &, ECDatabase *);
 
 	protected:
