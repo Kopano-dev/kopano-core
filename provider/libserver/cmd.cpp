@@ -4972,7 +4972,7 @@ SOAP_ENTRY_START(createUser, lpsUserSetResponse->er, struct user *lpsUser, struc
 	objectdetails_t		details(ACTIVE_USER); // should this function also be able to createContact?
 
 	if (lpsUser == NULL || lpsUser->lpszUsername == NULL || lpsUser->lpszFullName == NULL || lpsUser->lpszMailAddress == NULL ||
-		(lpsUser->lpszPassword == nullptr && lpsUser->ulIsNonActive == 0))
+		(lpsUser->lpszPassword == nullptr && lpsUser->ulObjClass == OBJECTTYPE_UNKNOWN))
 		return KCERR_INVALID_PARAMETER;
 
 	if (!bSupportUnicode) {
@@ -5071,7 +5071,7 @@ SOAP_ENTRY_START(setUser, *result, struct user *lpsUser, unsigned int *result)
 			lpsUser->lpszServername = NULL;
 		}
 
-		// FIXME: check OB_PROP_B_NONACTIVE too? NOTE: ulIsNonActive is now ignored.
+		// FIXME: check OB_PROP_B_NONACTIVE too?
 		if (lpsUser->ulObjClass != (ULONG)-1 && oldDetails.GetClass() != (objectclass_t)lpsUser->ulObjClass) {
 			ec_log_warn("Disallowing user \"%s\" to update their active flag to %d",
 												 oldDetails.GetPropString(OB_PROP_S_LOGIN).c_str(), lpsUser->ulObjClass);
@@ -5137,10 +5137,6 @@ SOAP_ENTRY_START(getUser, lpsGetUserResponse->er, unsigned int ulUserId, entryId
 	if (er != erSuccess)
 		return er;
 
-	// 6.40.0 stores the object class in the IsNonActive field
-	if (lpecSession->ClientVersion() == ZARAFA_VERSION_6_40_0)
-		lpsGetUserResponse->lpsUser->ulIsNonActive = lpsGetUserResponse->lpsUser->ulObjClass;
-
 	if (!bSupportUnicode) {
 		er = FixUserEncoding(soap, stringCompat, Out, lpsGetUserResponse->lpsUser);
 		if (er != erSuccess)
@@ -5187,10 +5183,6 @@ SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId, entryId
 		     soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			return er;
-
-		// 6.40.0 stores the object class in the IsNonActive field
-		if (lpecSession->ClientVersion() == ZARAFA_VERSION_6_40_0)
-			lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size].ulIsNonActive = lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size].ulObjClass;
 
 		if (!bSupportUnicode) {
 			er = FixUserEncoding(soap, stringCompat, Out, lpsUserList->sUserArray.__ptr + lpsUserList->sUserArray.__size);
@@ -5241,10 +5233,6 @@ SOAP_ENTRY_START(getSendAsList, lpsUserList->er, unsigned int ulUserId, entryId 
 		     soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			return er;
-
-		// 6.40.0 stores the object class in the IsNonActive field
-		if (lpecSession->ClientVersion() == ZARAFA_VERSION_6_40_0)
-			lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size].ulIsNonActive = lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size].ulObjClass;
 
 		if (!bSupportUnicode) {
 			er = FixUserEncoding(soap, stringCompat, Out, lpsUserList->sUserArray.__ptr + lpsUserList->sUserArray.__size);
@@ -5867,10 +5855,6 @@ SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId, en
 		if (er != erSuccess)
 			return er;
 
-		// 6.40.0 stores the object class in the IsNonActive field
-		if (lpecSession->ClientVersion() == ZARAFA_VERSION_6_40_0)
-			lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size].ulIsNonActive = lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size].ulObjClass;
-
 		if (!bSupportUnicode) {
 			er = FixUserEncoding(soap, stringCompat, Out, lpsUserList->sUserArray.__ptr + lpsUserList->sUserArray.__size);
 			if (er != erSuccess)
@@ -6317,10 +6301,6 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 		     soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			return er;
-
-		// 6.40.0 stores the object class in the IsNonActive field
-		if (lpecSession->ClientVersion() == ZARAFA_VERSION_6_40_0)
-			lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size].ulIsNonActive = lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size].ulObjClass;
 
 		if (!bSupportUnicode) {
 			er = FixUserEncoding(soap, stringCompat, Out, lpsUserList->sUserArray.__ptr + lpsUserList->sUserArray.__size);
@@ -9215,10 +9195,6 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 		     soap, &lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size]);
 		if (er != erSuccess)
 			return er;
-
-		// 6.40.0 stores the object class in the IsNonActive field
-		if (lpecSession->ClientVersion() == ZARAFA_VERSION_6_40_0)
-			lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size].ulIsNonActive = lpsUserList->sUserArray.__ptr[lpsUserList->sUserArray.__size].ulObjClass;
 
 		if (!bSupportUnicode) {
 			er = FixUserEncoding(soap, stringCompat, Out, lpsUserList->sUserArray.__ptr + lpsUserList->sUserArray.__size);
