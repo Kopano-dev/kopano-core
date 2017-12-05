@@ -423,7 +423,9 @@ HRESULT ECMsgStore::InternalAdvise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG u
 	return hrSuccess;
 }
 
-HRESULT ECMsgStore::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection){
+HRESULT ECMsgStore::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ULONG ulEventMask, IMAPIAdviseSink *lpAdviseSink, ULONG *lpulConnection)
+{
 	HRESULT hr = hrSuccess;
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
@@ -444,7 +446,7 @@ HRESULT ECMsgStore::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMa
 		lpEntryID = lpUnWrapStoreID;
 	} else {
 		// check that the given lpEntryID belongs to the store in m_lpEntryId
-		if (memcmp(&this->GetStoreGuid(), &reinterpret_cast<EID *>(lpEntryID)->guid, sizeof(GUID)) != 0)
+		if (memcmp(&this->GetStoreGuid(), &reinterpret_cast<const EID *>(lpEntryID)->guid, sizeof(GUID)) != 0)
 			return MAPI_E_NO_SUPPORT;
 	}
 
@@ -2763,7 +2765,7 @@ HRESULT ECMsgStore::xMsgStoreProxy::QueryInterface(REFIID refiid, void **lppInte
 	return pThis->QueryInterfaceProxy(refiid, lppInterface);
 }
 
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, Advise, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, Advise, (ULONG, eid_size), (const ENTRYID *, eid), (ULONG, evt_mask), (IMAPIAdviseSink *, sink), (ULONG *, conn))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, Unadvise, (ULONG, ulConnection))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, CompareEntryIDs, (ULONG, cbEntryID1), (const ENTRYID *, lpEntryID1), (ULONG, cbEntryID2), (const ENTRYID *, lpEntryID2), (ULONG, ulFlags), (ULONG *, lpulResult))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, OpenEntry, (ULONG, cbEntryID), (const ENTRYID *, lpEntryID), (const IID *, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (IUnknown **, lppUnk))

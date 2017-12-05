@@ -48,8 +48,7 @@ public:
 
 	// Folder with the favorites links
 	HRESULT GetDefaultShortcutFolder(IMAPIFolder** lppFolder);
-
-	virtual HRESULT Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection);
+	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
 
 protected:	
 	ENTRYID *m_lpIPMSubTreeID = nullptr, *m_lpIPMFavoritesID = nullptr;
