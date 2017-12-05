@@ -182,10 +182,8 @@ private:
 	HRESULT HrCmdSubscribe(const std::string &tag, const std::vector<std::string> &args, bool subscribe);
 	template<bool> HRESULT HrCmdList(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdList(const std::string &tag, const std::vector<std::string> &args, bool sub_only);
-	HRESULT get_uid_next(IMAPIFolder *status_folder, const std::string &tag, ULONG &uid_next);
-	HRESULT get_uid_next2(IMAPIFolder *status_folder, ULONG &uid_next);
-	HRESULT get_recent(IMAPIFolder *folder, const std::string &tag, ULONG &recent, const ULONG &messages);
-	HRESULT get_recent2(IMAPIFolder *folder, ULONG &recent, const ULONG &messages);
+	HRESULT get_recent_uidnext2(IMAPIFolder *folder, ULONG &recent, ULONG &uidnext, const ULONG &messages);
+	HRESULT get_recent_uidnext(IMAPIFolder *folder, const std::string &tag, ULONG &recent, ULONG &uidnext, const ULONG &messages);
 	HRESULT HrCmdStatus(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdAppend(const std::string &tag, const std::string &folder, const std::string &data, std::string flags = {}, const std::string &time = {});
 	HRESULT HrCmdClose(const std::string &tag);
@@ -246,6 +244,8 @@ private:
 	KCHL::memory_ptr<SPropTagArray> m_lpsIMAPTags;
 
 	// current folder name
+	KCHL::object_ptr<IMAPIFolder> current_folder;
+	std::pair<std::wstring, bool> current_folder_state;
 	std::wstring strCurrentFolder;
 	KCHL::object_ptr<IMAPITable> m_lpTable; /* current contents table */
 	std::vector<std::string> m_vTableDataColumns; /* current dataitems that caused the setcolumns on the table */
@@ -291,15 +291,12 @@ private:
 
 	HRESULT HrPrintQuotaRoot(const std::string &tag);
 	HRESULT HrFindFolder(const std::wstring &folder, bool readonly, IMAPIFolder **);
-	HRESULT HrFindFolderEntryID(const std::wstring &folder, ULONG *eid_size, LPENTRYID *eid);
 	HRESULT HrFindFolderPartial(const std::wstring &folder, IMAPIFolder **, std::wstring *notfound);
 	HRESULT HrFindSubFolder(IMAPIFolder *lpFolder, const std::wstring &folder, ULONG *eid_size, LPENTRYID *eid);
-	bool IsSpecialFolder(IMAPIFolder *) const;
 	bool IsSpecialFolder(ULONG eid_size, ENTRYID *) const;
 	bool IsSpecialFolder(ULONG eid_size, ENTRYID *, ULONG &folder_type) const;
 	bool IsMailFolder(IMAPIFolder *) const;
 	bool IsSentItemFolder(IMAPIFolder *) const;
-	HRESULT HrOpenParentFolder(ULONG cbEntryID, LPENTRYID lpEntryID, IMAPIFolder **lppFolder);
 	HRESULT HrOpenParentFolder(IMAPIFolder *lpFolder, IMAPIFolder **lppFolder);
 	HRESULT HrGetFolderList(std::list<SFolder> &);
 
@@ -363,6 +360,7 @@ private:
 	void HrGetSubString(std::string &output, const std::string &input, const std::string &begin, const std::string &end);
 	void HrTokenize(std::set<std::string> &setTokens, const std::string &strInput);
 	HRESULT HrExpungeDeleted(const std::string &tag, const std::string &cmd, std::unique_ptr<ECRestriction> &&);
+	HRESULT HrGetCurrentFolder(KCHL::object_ptr<IMAPIFolder> &);
 };
 
 /** @} */
