@@ -10,8 +10,6 @@ import falcon
 import kopano
 
 def _server(req):
-    # TODO cross process caching, store caching?
-
     userid = req.get_header('X-Kopano-UserEntryID', required=True)
 
     if userid in userid_sessiondata:
@@ -20,7 +18,8 @@ def _server(req):
         server = kopano.Server(mapisession=mapisession, parse_args=False)
     else:
         username = admin_server.user(userid=userid).name
-        server = kopano.Server(auth_user=username, auth_pass='', parse_args=False)
+        server = kopano.Server(auth_user=username, auth_pass='', parse_args=False,
+                               store_cache=False)
         sessiondata = kc_session_save(server.mapisession)
         userid_sessiondata[userid] = sessiondata
     return server
@@ -167,7 +166,7 @@ class ItemResource(Resource):
             data = self.generator(req, folder.items)
         self.respond(req, resp, data)
 
-admin_server = kopano.Server(parse_args=False)
+admin_server = kopano.Server(parse_args=False, store_cache=False)
 userid_sessiondata = {}
 
 app = falcon.API()

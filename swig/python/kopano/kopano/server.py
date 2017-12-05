@@ -134,7 +134,7 @@ def instance_method_lru_cache(*cache_args, **cache_kwargs):
 class Server(object):
     """Server class"""
 
-    def __init__(self, options=None, config=None, sslkey_file=None, sslkey_pass=None, server_socket=None, auth_user=None, auth_pass=None, log=None, service=None, mapisession=None, parse_args=True, notifications=False):
+    def __init__(self, options=None, config=None, sslkey_file=None, sslkey_pass=None, server_socket=None, auth_user=None, auth_pass=None, log=None, service=None, mapisession=None, parse_args=True, notifications=False, store_cache=True):
         """
         Create Server instance.
 
@@ -161,7 +161,7 @@ class Server(object):
         self.service = service
         self.log = log
         self.mapisession = mapisession
-        self._store_cache = {}
+        self.store_cache = store_cache
 
         if not self.mapisession:
             # get cmd-line options
@@ -505,8 +505,14 @@ class Server(object):
         raise NotFoundError("no such store: '%s'" % guid)
 
     @instance_method_lru_cache(128) # backend doesn't like too many open stores
-    def _store2(self, storeid): # TODO max lifetime?
+    def _store_cached(self, storeid):
         return self.mapisession.OpenMsgStore(0, storeid, IID_IMsgStore,MDB_WRITE)
+
+    def _store2(self, storeid): # TODO max lifetime?
+        if self.store_cache:
+            return self._store_cached(storeid)
+        else:
+            return self.mapisession.OpenMsgStore(0, storeid, IID_IMsgStore,MDB_WRITE)
 
     def groups(self):
         """Return all :class:`groups <Group>` on server."""
