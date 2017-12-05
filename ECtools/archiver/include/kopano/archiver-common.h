@@ -78,8 +78,8 @@ public:
 	 * @param[in]	lpEntryId
 	 *					Pointer to the entryid.
 	 */
-	_kc_hidden entryid_t(ULONG cbEntryId, LPENTRYID lpEntryId)
-	: m_vEntryId(reinterpret_cast<LPBYTE>(lpEntryId), reinterpret_cast<LPBYTE>(lpEntryId) + cbEntryId)
+	_kc_hidden entryid_t(size_t z, const ENTRYID *eid) :
+		m_eid(reinterpret_cast<const char *>(eid), z)
 	{ }
 	
 	/**
@@ -88,8 +88,8 @@ public:
 	 * @param[in]	sBin
 	 *					The SBinary structure from which the data will be extracted.
 	 */
-	_kc_hidden entryid_t(const SBinary &sBin)
-	: m_vEntryId(sBin.lpb, sBin.lpb + sBin.cb)
+	_kc_hidden entryid_t(const SBinary &sBin) :
+		m_eid(reinterpret_cast<const char *>(sBin.lpb), sBin.cb)
 	{ }
 	
 	_kc_hidden entryid_t(const entryid_t &) = default;
@@ -103,10 +103,9 @@ public:
 	 * @param[in]	lpEntryId
 	 *					Pointer to the entryid.
 	 */
-	_kc_hidden void assign(ULONG cbEntryId, LPENTRYID lpEntryId)
+	_kc_hidden void assign(size_t z, const ENTRYID *eid)
 	{
-		m_vEntryId.assign(reinterpret_cast<LPBYTE>(lpEntryId),
-		                  reinterpret_cast<LPBYTE>(lpEntryId) + cbEntryId);
+		m_eid.assign(reinterpret_cast<const char *>(eid), z);
 	}
 	
 	/**
@@ -117,7 +116,7 @@ public:
 	 */
 	_kc_hidden entryid_t &operator=(const SBinary &sBin)
 	{
-		m_vEntryId.assign(sBin.lpb, sBin.lpb + sBin.cb);
+		m_eid.assign(reinterpret_cast<const char *>(sBin.lpb), sBin.cb);
 		return *this;
 	}
 	
@@ -125,13 +124,13 @@ public:
 	 * Returns the size in bytes of the entryid.
 	 * @return The size in bytes of the entryid.
 	 */
-	_kc_hidden ULONG size(void) const { return m_vEntryId.size(); }
+	_kc_hidden ULONG size(void) const { return m_eid.size(); }
 	
 	/**
 	 * Returns true if the entryid is empty.
 	 * @return true or false
 	 */
-	_kc_hidden bool empty(void) const { return m_vEntryId.empty(); }
+	_kc_hidden bool empty(void) const { return m_eid.empty(); }
 	
 	/**
 	 * Return a pointer to the data as a BYTE pointer.
@@ -139,7 +138,7 @@ public:
 	 */
 	_kc_hidden operator LPBYTE(void) const
 	{
-		return reinterpret_cast<LPBYTE>(const_cast<unsigned char *>(&m_vEntryId.front()));
+		return reinterpret_cast<BYTE *>(const_cast<char *>(m_eid.data()));
 	}
 	
 	/**
@@ -148,7 +147,7 @@ public:
 	 */
 	_kc_hidden operator LPENTRYID(void) const
 	{
-		return reinterpret_cast<LPENTRYID>(const_cast<unsigned char *>(&m_vEntryId.front()));
+		return reinterpret_cast<ENTRYID *>(const_cast<char *>(m_eid.data()));
 	}
 	
 	/**
@@ -157,7 +156,7 @@ public:
 	 */
 	_kc_hidden operator LPVOID(void) const
 	{
-		return reinterpret_cast<LPVOID>(const_cast<unsigned char *>(&m_vEntryId.front()));
+		return const_cast<char *>(m_eid.data());
 	}
 
 	entryid_t &operator=(const entryid_t &) = default;
@@ -204,7 +203,7 @@ public:
 	 */
 	_kc_hidden std::string tostring(void) const
 	{
-		return bin2hex(m_vEntryId.size(), &m_vEntryId.front());
+		return bin2hex(m_eid.size(), m_eid.data());
 	}
 	
 	/**
@@ -213,7 +212,7 @@ public:
 	 */
 	_kc_hidden std::string data(void) const
 	{
-		return std::string(reinterpret_cast<char *>(const_cast<unsigned char *>(&m_vEntryId.front())), m_vEntryId.size());
+		return m_eid;
 	}
 	
 	/**
@@ -256,7 +255,7 @@ public:
 	entryid_t getUnwrapped() const;
 	
 private:
-	std::vector<BYTE> m_vEntryId;
+	std::string m_eid;
 };
 
 /**
@@ -277,8 +276,8 @@ public:
 	 * @param[in]	lpEntryId
 	 *					Pointer to the entryid.
 	 */
-	abentryid_t(ULONG cbEntryId, LPENTRYID lpEntryId)
-	: m_vEntryId(reinterpret_cast<LPBYTE>(lpEntryId), reinterpret_cast<LPBYTE>(lpEntryId) + cbEntryId)
+	abentryid_t(size_t z, const ENTRYID *eid) :
+		m_eid(reinterpret_cast<const char *>(eid), z)
 	{ }
 	
 	/**
@@ -287,8 +286,8 @@ public:
 	 * @param[in]	sBin
 	 *					The SBinary structure from which the data will be extracted.
 	 */
-	abentryid_t(const SBinary &sBin)
-	: m_vEntryId(sBin.lpb, sBin.lpb + sBin.cb)
+	abentryid_t(const SBinary &sBin) :
+		m_eid(reinterpret_cast<const char *>(sBin.lpb), sBin.cb)
 	{ }
 	
 	abentryid_t(const abentryid_t &) = default;
@@ -302,9 +301,9 @@ public:
 	 * @param[in]	lpEntryId
 	 *					Pointer to the entryid.
 	 */
-	void assign(ULONG cbEntryId, LPENTRYID lpEntryId) {
-		m_vEntryId.assign(reinterpret_cast<LPBYTE>(lpEntryId),
-		                  reinterpret_cast<LPBYTE>(lpEntryId) + cbEntryId);
+	void assign(size_t z, const ENTRYID *eid)
+	{
+		m_eid.assign(reinterpret_cast<const char *>(eid), z);
 	}
 	
 	/**
@@ -315,7 +314,7 @@ public:
 	 */
 	abentryid_t &operator=(const SBinary &sBin)
 	{
-		m_vEntryId.assign(sBin.lpb, sBin.lpb + sBin.cb);
+		m_eid.assign(reinterpret_cast<const char *>(sBin.lpb), sBin.cb);
 		return *this;
 	}
 	
@@ -323,13 +322,13 @@ public:
 	 * Returns the size in bytes of the entryid.
 	 * @return The size in bytes of the entryid.
 	 */
-	ULONG size() const { return m_vEntryId.size(); }
+	ULONG size() const { return m_eid.size(); }
 	
 	/**
 	 * Returns true if the entryid is empty.
 	 * @return true or false
 	 */
-	bool empty() const { return m_vEntryId.empty(); }
+	bool empty() const { return m_eid.empty(); }
 	
 	/**
 	 * Return a pointer to the data as a BYTE pointer.
@@ -337,7 +336,7 @@ public:
 	 */
 	operator LPBYTE(void) const
 	{
-		return reinterpret_cast<LPBYTE>(const_cast<unsigned char *>(&m_vEntryId.front()));
+		return reinterpret_cast<BYTE *>(const_cast<char *>(m_eid.data()));
 	}
 	
 	/**
@@ -346,7 +345,7 @@ public:
 	 */
 	operator LPENTRYID(void) const
 	{
-		return reinterpret_cast<LPENTRYID>(const_cast<unsigned char *>(&m_vEntryId.front()));
+		return reinterpret_cast<ENTRYID *>(const_cast<char *>(m_eid.data()));
 	}
 	
 	/**
@@ -355,7 +354,7 @@ public:
 	 */
 	operator LPVOID(void) const
 	{
-		return reinterpret_cast<LPVOID>(const_cast<unsigned char *>(&m_vEntryId.front()));
+		return const_cast<char *>(m_eid.data());
 	}
 
 	abentryid_t &operator=(const abentryid_t &) = default;
@@ -406,7 +405,7 @@ public:
 	 * @return The entryid in hexadecimal format.
 	 */
 	std::string tostring() const {
-		return bin2hex(m_vEntryId.size(), &m_vEntryId.front());
+		return bin2hex(m_eid.size(), m_eid.data());
 	}
 
 private:
@@ -431,7 +430,7 @@ private:
 	 */ 
 	int compare(const abentryid_t &other) const;
 
-	std::vector<BYTE> m_vEntryId;
+	std::string m_eid;
 };
 
 /**
