@@ -19,6 +19,11 @@ class ECSerializer;
 class ECLogger;
 struct s3_cd;
 
+struct s3_cache_entry {
+	KC::time_point valid_until;
+	size_t size;
+};
+
 class ECS3Config final : public ECAttachmentConfig {
 	public:
 	virtual ECRESULT init(ECConfig *) override;
@@ -36,6 +41,8 @@ class ECS3Config final : public ECAttachmentConfig {
 	S3PutObjectHandler m_put_obj_handler{};
 	S3GetObjectHandler m_get_obj_handler{};
 	S3GetConditions m_get_conditions{};
+	std::mutex m_cachelock;
+	std::map<ULONG, s3_cache_entry> m_cache;
 
 	friend class ECS3Attachment;
 };

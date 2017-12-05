@@ -49,10 +49,6 @@ struct s3_cdw {
 	void *cbdata;
 };
 
-struct s3_cache_entry {
-	KC::time_point valid_until;
-	size_t size;
-};
 #define S3_NEGATIVE_ENTRY SIZE_MAX
 
 static void *ec_libs3_handle;
@@ -68,8 +64,6 @@ W(get_object)
 #undef W
 
 /* This ought to be moved into ECS3Attachment, if and when that becomes a singleton. */
-static std::mutex m_cachelock;
-static std::map<ULONG, s3_cache_entry> m_cache;
 
 ECRESULT ECS3Config::init(ECConfig *cfg)
 {
@@ -564,8 +558,8 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
 	} else if (cd.status != S3StatusOK) {
 		ret = erSuccess;
 	} else {
-		scoped_lock locker(m_cachelock);
-		m_cache[ins_id.siid] = {now_positive(), cd.size};
+		scoped_lock locker(m_config.m_cachelock);
+		m_config.m_cache[ins_id.siid] = {now_positive(), cd.size};
 		*size_p = cd.size;
 	}
 	/*
@@ -624,8 +618,8 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
 			fn, cd.processed, cd.size);
 		ret = KCERR_DATABASE_ERROR;
 	} else if (cd.status == S3StatusOK) {
-		scoped_lock locker(m_cachelock);
-		m_cache[ins_id.siid] = {now_positive(), cd.size};
+		scoped_lock locker(m_config.m_cachelock);
+		m_config.m_cache[ins_id.siid] = {now_positive(), cd.size};
 		ret = erSuccess;
 	}
 	cd.data = NULL;
@@ -681,8 +675,8 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
 			fn, cd.processed, cd.size);
 		ret = KCERR_DATABASE_ERROR;
 	} else if (cd.status == S3StatusOK) {
-		scoped_lock locker(m_cachelock);
-		m_cache[ins_id.siid] = {now_positive(), cd.size};
+		scoped_lock locker(m_config.m_cachelock);
+		m_config.m_cache[ins_id.siid] = {now_positive(), cd.size};
 		ret = erSuccess;
 	}
 	cd.sink = NULL;
@@ -742,8 +736,8 @@ ECRESULT ECS3Attachment::del_marked_att(const ext_siid &ins_id)
 	ec_log_debug("S3: delete %s: %s", fn, DY_get_status_name(cd.status));
 	if (cd.status == S3StatusOK || cd.status == S3StatusHttpErrorNotFound) {
 		/* Delete successful, or did not exist before */
-		scoped_lock locker(m_cachelock);
-		m_cache[ins_id.siid] = {now_negative(), S3_NEGATIVE_ENTRY};
+		scoped_lock locker(m_config.m_cachelock);
+		m_config.m_cache[ins_id.siid] = {now_negative(), S3_NEGATIVE_ENTRY};
 	}
 	/* else { do not touch cache for network errors, etc. } */
 
@@ -815,9 +809,10 @@ ECRESULT ECS3Attachment::GetSizeInstance(const ext_siid &ins_id,
 	auto filename = make_att_filename(ins_id, comp);
 	auto fn = filename.c_str();
 
-	ulock_normal locker(m_cachelock);
-	auto cache_item = m_cache.find(ins_id.siid);
-	if (cache_item != m_cache.cend() && steady_clock::now() < cache_item->second.valid_until) {
+	ulock_normal locker(m_config.m_cachelock);
+	auto cache_item = m_config.m_cache.find(ins_id.siid);
+	if (cache_item != m_config.m_cache.cend() &&
+	    steady_clock::now() < cache_item->second.valid_until) {
 		if (cache_item->second.size == S3_NEGATIVE_ENTRY)
 			return KCERR_NOT_FOUND;
 		*size_p = cache_item->second.size;
@@ -850,13 +845,13 @@ ECRESULT ECS3Attachment::GetSizeInstance(const ext_siid &ins_id,
 		fn, DY_get_status_name(cd.status), cd.size);
 	if (cd.status == S3StatusHttpErrorNotFound) {
 		locker.lock();
-		m_cache[ins_id.siid] = {now_negative(), S3_NEGATIVE_ENTRY};
+		m_config.m_cache[ins_id.siid] = {now_negative(), S3_NEGATIVE_ENTRY};
 		return KCERR_NOT_FOUND;
 	}
 	if (cd.status != S3StatusOK)
 		return KCERR_NOT_FOUND;
 	locker.lock();
-	m_cache[ins_id.siid] = {now_positive(), cd.size};
+	m_config.m_cache[ins_id.siid] = {now_positive(), cd.size};
 	*size_p = cd.size;
 	if (compr_p != NULL)
 		*compr_p = comp;
