@@ -210,7 +210,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		// then we can ignore the change.
 
 		std::string strQuery = "SELECT id FROM syncs "
-                    "WHERE sourcekey=" + lpDatabase->EscapeBinary(sParentSourceKey, sParentSourceKey.size());
+			"WHERE sourcekey=" + lpDatabase->EscapeBinary(sParentSourceKey);
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
 			return er;
@@ -228,8 +228,8 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	// Record the change
 	std::string strQuery = "REPLACE INTO changes(change_type, sourcekey, parentsourcekey, sourcesync, flags) "
 				"VALUES (" + stringify(ulChange) +
-				  ", " + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size()) +
-				  ", " + lpDatabase->EscapeBinary(sParentSourceKey, sParentSourceKey.size()) +
+				  ", " + lpDatabase->EscapeBinary(sSourceKey) +
+				  ", " + lpDatabase->EscapeBinary(sParentSourceKey) +
 				  ", " + stringify(ulSyncId) +
 				  ", " + stringify(ulFlags) +
 				")";
@@ -1006,7 +1006,7 @@ ECRESULT AddABChange(BTSession *lpSession, unsigned int ulChange, SOURCEKEY sSou
 		return er;
 
 	// Add/Replace new change
-	std::string strQuery = "REPLACE INTO abchanges (sourcekey, parentsourcekey, change_type) VALUES(" + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size()) + "," + lpDatabase->EscapeBinary(sParentSourceKey, sParentSourceKey.size()) + "," + stringify(ulChange) + ")";
+	auto strQuery = "REPLACE INTO abchanges (sourcekey, parentsourcekey, change_type) VALUES(" + lpDatabase->EscapeBinary(sSourceKey) + "," + lpDatabase->EscapeBinary(sParentSourceKey) + "," + stringify(ulChange) + ")";
 	return lpDatabase->DoInsert(strQuery);
 }
 
@@ -1075,8 +1075,8 @@ ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncI
 	strQuery = "INSERT INTO syncedmessages (sync_id,change_id,sourcekey,parentsourcekey) VALUES (" +
 				stringify(ulSyncId) + "," +
 				lpDBRow[0] + "," + 
-				lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size()) + "," +
-				lpDatabase->EscapeBinary(sParentSourceKey, sParentSourceKey.size()) + ")";
+				lpDatabase->EscapeBinary(sSourceKey) + "," +
+				lpDatabase->EscapeBinary(sParentSourceKey) + ")";
 	return lpDatabase->DoInsert(strQuery);
 }
 
@@ -1110,7 +1110,7 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 	// check if the delete would remove the message
 	strQuery = "SELECT 0 FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId) +
 				" AND change_id=" + lpDBRow[0] +
-				" AND sourcekey=" + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size()) + " LIMIT 1";
+				" AND sourcekey=" + lpDatabase->EscapeBinary(sSourceKey) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
@@ -1139,7 +1139,7 @@ ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ul
 	
 	strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId) +
 				" AND change_id=" + lpDBRow[0] +
-				" AND sourcekey=" + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size());
+				" AND sourcekey=" + lpDatabase->EscapeBinary(sSourceKey);
 	return lpDatabase->DoDelete(strQuery);
 }
 

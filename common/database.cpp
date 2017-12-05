@@ -409,11 +409,6 @@ std::string KDatabase::EscapeBinary(const void *data, size_t len)
 	return "'" + std::string(esc.get()) + "'";
 }
 
-std::string KDatabase::EscapeBinary(const std::string &s)
-{
-	return EscapeBinary(reinterpret_cast<const unsigned char *>(s.c_str()), s.size());
-}
-
 void KDatabase::FreeResult_internal(void *r)
 {
 	assert(r != nullptr);
