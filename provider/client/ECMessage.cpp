@@ -1304,8 +1304,8 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		sPropResponsibility.Value.b = FALSE;
 
 		// Set PR_RESPONSIBILITY
-		hr = Util::HrAddToPropertyArray(lpsRow->aRow[0].lpProps,
-		     lpsRow->aRow[0].cValues, &sPropResponsibility, &+lpRecip, &cRecip);
+		hr = Util::HrAddToPropertyArray(lpsRow[0].lpProps,
+		     lpsRow[0].cValues, &sPropResponsibility, &+lpRecip, &cRecip);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -1313,7 +1313,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		sRowSetRecip.aEntries[0].rgPropVals = lpRecip;
 		sRowSetRecip.aEntries[0].cValues = cRecip;
 
-		if(lpsRow->aRow[0].cValues > 1){
+		if (lpsRow[0].cValues > 1) {
 			hr = this->ModifyRecipients(MODRECIP_MODIFY, sRowSetRecip);
 			if (hr != hrSuccess)
 				return hr;
@@ -1509,28 +1509,29 @@ HRESULT ECMessage::SyncRecips()
 		if (hr != hrSuccess || lpRows->cRows != 1)
 			break;
 
-		if (lpRows->aRow[0].lpProps[0].ulPropTag == PR_RECIPIENT_TYPE && lpRows->aRow[0].lpProps[0].Value.ul == MAPI_TO) {
-			if (lpRows->aRow[0].lpProps[1].ulPropTag != PR_DISPLAY_NAME_W)
+		if (lpRows[0].lpProps[0].ulPropTag == PR_RECIPIENT_TYPE &&
+		    lpRows[0].lpProps[0].Value.ul == MAPI_TO) {
+			if (lpRows[0].lpProps[1].ulPropTag != PR_DISPLAY_NAME_W)
 				continue;
 			if (wstrTo.length() > 0)
 				wstrTo += L"; ";
-			wstrTo += lpRows->aRow[0].lpProps[1].Value.lpszW;
+			wstrTo += lpRows[0].lpProps[1].Value.lpszW;
 			continue;
-		}
-		else if (lpRows->aRow[0].lpProps[0].ulPropTag == PR_RECIPIENT_TYPE && lpRows->aRow[0].lpProps[0].Value.ul == MAPI_CC) {
-			if (lpRows->aRow[0].lpProps[1].ulPropTag != PR_DISPLAY_NAME_W)
+		} else if (lpRows[0].lpProps[0].ulPropTag == PR_RECIPIENT_TYPE &&
+		    lpRows[0].lpProps[0].Value.ul == MAPI_CC) {
+			if (lpRows[0].lpProps[1].ulPropTag != PR_DISPLAY_NAME_W)
 				continue;
 			if (wstrCc.length() > 0)
 				wstrCc += L"; ";
-			wstrCc += lpRows->aRow[0].lpProps[1].Value.lpszW;
+			wstrCc += lpRows[0].lpProps[1].Value.lpszW;
 			continue;
-		}
-		else if (lpRows->aRow[0].lpProps[0].ulPropTag == PR_RECIPIENT_TYPE && lpRows->aRow[0].lpProps[0].Value.ul == MAPI_BCC) {
-			if (lpRows->aRow[0].lpProps[1].ulPropTag != PR_DISPLAY_NAME_W)
+		} else if (lpRows[0].lpProps[0].ulPropTag == PR_RECIPIENT_TYPE &&
+		    lpRows[0].lpProps[0].Value.ul == MAPI_BCC) {
+			if (lpRows[0].lpProps[1].ulPropTag != PR_DISPLAY_NAME_W)
 				continue;
 			if (wstrBcc.length() > 0)
 				wstrBcc += L"; ";
-			wstrBcc += lpRows->aRow[0].lpProps[1].Value.lpszW;
+			wstrBcc += lpRows[0].lpProps[1].Value.lpszW;
 		}
 	}
 
@@ -1570,13 +1571,13 @@ HRESULT ECMessage::SaveRecips()
 		MAPIOBJECT *mo = NULL;
 
 		// Get the right object type for a DistList
-		auto lpObjType = lpRowSet->aRow[i].cfind(PR_OBJECT_TYPE);
+		auto lpObjType = lpRowSet[i].cfind(PR_OBJECT_TYPE);
 		if(lpObjType != NULL)
 			ulRealObjType = lpObjType->Value.ul; // MAPI_MAILUSER or MAPI_DISTLIST
 		else
 			ulRealObjType = MAPI_MAILUSER; // add in list?
 
-		auto lpRowId = lpRowSet->aRow[i].cfind(PR_ROWID); /* unique value of recipient */
+		auto lpRowId = lpRowSet[i].cfind(PR_ROWID); /* unique value of recipient */
 		if (!lpRowId) {
 			assert(lpRowId != NULL);
 			continue;
@@ -1585,26 +1586,26 @@ HRESULT ECMessage::SaveRecips()
 		AllocNewMapiObject(lpRowId->Value.ul, lpObjIDs[i].Value.ul, ulRealObjType, &mo);
 
 		// Move any PR_ENTRYIDs to PR_EC_CONTACT_ENTRYID
-		auto lpEntryID = lpRowSet->aRow[i].find(PR_ENTRYID);
+		auto lpEntryID = lpRowSet[i].find(PR_ENTRYID);
 		if(lpEntryID)
 			lpEntryID->ulPropTag = PR_EC_CONTACT_ENTRYID;
 
 		if (lpulStatus[i] == ECROW_MODIFIED || lpulStatus[i] == ECROW_ADDED) {
 			mo->bChanged = true;
-			for (j = 0; j < lpRowSet->aRow[i].cValues; ++j)
-				if(PROP_TYPE(lpRowSet->aRow[i].lpProps[j].ulPropTag) != PT_NULL) {
-					mo->lstModified.emplace_back(&lpRowSet->aRow[i].lpProps[j]);
+			for (j = 0; j < lpRowSet[i].cValues; ++j)
+				if (PROP_TYPE(lpRowSet[i].lpProps[j].ulPropTag) != PT_NULL) {
+					mo->lstModified.emplace_back(&lpRowSet[i].lpProps[j]);
 					// as in ECGenericProp.cpp, we also save the properties to the known list,
 					// since this is used when we reload the object from memory.
-					mo->lstProperties.emplace_back(&lpRowSet->aRow[i].lpProps[j]);
+					mo->lstProperties.emplace_back(&lpRowSet[i].lpProps[j]);
 				}
 		} else if (lpulStatus[i] == ECROW_DELETED) {
 			mo->bDelete = true;
 		} else {
 			// ECROW_NORMAL, untouched recipient
-			for (j = 0; j < lpRowSet->aRow[i].cValues; ++j)
-				if(PROP_TYPE(lpRowSet->aRow[i].lpProps[j].ulPropTag) != PT_NULL)
-					mo->lstProperties.emplace_back(&lpRowSet->aRow[i].lpProps[j]);
+			for (j = 0; j < lpRowSet[i].cValues; ++j)
+				if(PROP_TYPE(lpRowSet[i].lpProps[j].ulPropTag) != PT_NULL)
+					mo->lstProperties.emplace_back(&lpRowSet[i].lpProps[j]);
 		}
 
 		// find old recipient in child list, and remove if present
@@ -1670,10 +1671,10 @@ HRESULT ECMessage::SyncAttachments()
 	for (i = 0; i < lpRowSet->cRows; ++i) {
 		if (lpulStatus[i] != ECROW_DELETED)
 			continue;
-		auto lpObjType = lpRowSet->aRow[i].cfind(PR_OBJECT_TYPE);
+		auto lpObjType = lpRowSet[i].cfind(PR_OBJECT_TYPE);
 		if(lpObjType == NULL || lpObjType->Value.ul != MAPI_ATTACH)
 			continue;
-		auto lpAttachNum = lpRowSet->aRow[i].cfind(PR_ATTACH_NUM); /* unique value of attachment */
+		auto lpAttachNum = lpRowSet[i].cfind(PR_ATTACH_NUM); /* unique value of attachment */
 		if (!lpAttachNum) {
 			assert(lpAttachNum != NULL);
 			continue;

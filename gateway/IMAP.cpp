@@ -2811,11 +2811,12 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 		return hr;
 
 	for (ULONG ulMailnr = 0; ulMailnr < lpRows->cRows; ++ulMailnr) {
-		hr = lpFolder->SetMessageStatus(lpRows->aRow[ulMailnr].lpProps[EID].Value.bin.cb, (LPENTRYID)lpRows->aRow[ulMailnr].lpProps[EID].Value.bin.lpb,
+		hr = lpFolder->SetMessageStatus(lpRows[ulMailnr].lpProps[EID].Value.bin.cb,
+		     reinterpret_cast<const ENTRYID *>(lpRows[ulMailnr].lpProps[EID].Value.bin.lpb),
 		     0, ~MSGSTATUS_DELMARKED, NULL);
 		if (hr != hrSuccess)
 			lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to update message status flag during " + strCommand);
-		entry_list->lpbin[entry_list->cValues++] = lpRows->aRow[ulMailnr].lpProps[EID].Value.bin;
+		entry_list->lpbin[entry_list->cValues++] = lpRows[ulMailnr].lpProps[EID].Value.bin;
 	}
 
 	hr = lpFolder->DeleteMessages(entry_list, 0, NULL, 0);
@@ -3154,17 +3155,17 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
             break;
             
 		for (ulMailnr = 0; ulMailnr < lpRows->cRows; ++ulMailnr) {
-            if (lpRows->aRow[ulMailnr].lpProps[EID].ulPropTag != PR_ENTRYID ||
-                lpRows->aRow[ulMailnr].lpProps[IKEY].ulPropTag != PR_INSTANCE_KEY ||
-                lpRows->aRow[ulMailnr].lpProps[IMAPID].ulPropTag != PR_EC_IMAP_ID)
+            if (lpRows[ulMailnr].lpProps[EID].ulPropTag != PR_ENTRYID ||
+                lpRows[ulMailnr].lpProps[IKEY].ulPropTag != PR_INSTANCE_KEY ||
+                lpRows[ulMailnr].lpProps[IMAPID].ulPropTag != PR_EC_IMAP_ID)
                 continue;
 
-            auto iterUID = mapUIDs.find(lpRows->aRow[ulMailnr].lpProps[IMAPID].Value.ul);
+            auto iterUID = mapUIDs.find(lpRows[ulMailnr].lpProps[IMAPID].Value.ul);
 		    if(iterUID == mapUIDs.end()) {
 		        // There is a new message
-                sMail.sEntryID = lpRows->aRow[ulMailnr].lpProps[EID].Value.bin;
-                sMail.sInstanceKey = lpRows->aRow[ulMailnr].lpProps[IKEY].Value.bin;
-                sMail.ulUid = lpRows->aRow[ulMailnr].lpProps[IMAPID].Value.ul;
+                sMail.sEntryID = lpRows[ulMailnr].lpProps[EID].Value.bin;
+                sMail.sInstanceKey = lpRows[ulMailnr].lpProps[IKEY].Value.bin;
+                sMail.ulUid = lpRows[ulMailnr].lpProps[IMAPID].Value.ul;
 
                 // Mark as recent if the message has a UID higher than the last highest read UID
                 // in this folder. This means that this session is the only one to see the message
@@ -3172,7 +3173,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
                 sMail.bRecent = sMail.ulUid > ulMaxUID;
 
                 // Remember flags
-                sMail.strFlags = PropsToFlags(lpRows->aRow[ulMailnr].lpProps, lpRows->aRow[ulMailnr].cValues, sMail.bRecent, false);
+                sMail.strFlags = PropsToFlags(lpRows[ulMailnr].lpProps, lpRows[ulMailnr].cValues, sMail.bRecent, false);
 
                 // Put message on the end of our message
 				lstFolderMailEIDs.emplace_back(sMail);
@@ -3180,8 +3181,9 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
                 bNewMail = true;
                 
                 // Remember the first unseen message
-                if (ulUnseen == 0 &&
-                    lpRows->aRow[ulMailnr].lpProps[FLAGS].ulPropTag == PR_MESSAGE_FLAGS && (lpRows->aRow[ulMailnr].lpProps[FLAGS].Value.ul & MSGFLAG_READ) == 0)
+				if (ulUnseen == 0 &&
+				    lpRows[ulMailnr].lpProps[FLAGS].ulPropTag == PR_MESSAGE_FLAGS &&
+				    (lpRows[ulMailnr].lpProps[FLAGS].Value.ul & MSGFLAG_READ) == 0)
                         ulUnseen = lstFolderMailEIDs.size()-1+1; // size()-1 = last offset, mail ID = position + 1
 				continue;
             }

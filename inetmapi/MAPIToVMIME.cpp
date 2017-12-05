@@ -208,13 +208,13 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 
 	try {
 		for (ULONG i = 0; i < pRows->cRows; ++i) {
-			auto pPropRecipType = pRows->aRow[i].cfind(PR_RECIPIENT_TYPE);
+			auto pPropRecipType = pRows[i].cfind(PR_RECIPIENT_TYPE);
 
 			if(pPropRecipType == NULL) {
 				// getMailBox properties
-				auto pPropDispl = pRows->aRow[i].cfind(PR_DISPLAY_NAME_W);
-				auto pPropAType = pRows->aRow[i].cfind(PR_ADDRTYPE_W);
-				auto pPropEAddr = pRows->aRow[i].cfind(PR_EMAIL_ADDRESS_W);
+				auto pPropDispl = pRows[i].cfind(PR_DISPLAY_NAME_W);
+				auto pPropAType = pRows[i].cfind(PR_ADDRTYPE_W);
+				auto pPropEAddr = pRows[i].cfind(PR_EMAIL_ADDRESS_W);
 				ec_log_err("No recipient type set for recipient. DisplayName: %ls, AddrType: %ls, Email: %ls",
 					pPropDispl ? pPropDispl->Value.lpszW : L"(none)",
 					pPropAType ? pPropAType->Value.lpszW : L"(none)",
@@ -958,10 +958,10 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 
 		if (lpRows->cRows != 1)
 			goto normal;
-		lpPropAttach = lpRows->aRow[0].cfind(PR_ATTACH_MIME_TAG);
+		lpPropAttach = lpRows[0].cfind(PR_ATTACH_MIME_TAG);
 		if (!lpPropAttach)
 			goto normal;
-		lpPropAttach = lpRows->aRow[0].cfind(PR_ATTACH_NUM);
+		lpPropAttach = lpRows[0].cfind(PR_ATTACH_NUM);
 		if (!lpPropAttach)
 			goto normal;
 		hr = lpMessage->OpenAttach(lpPropAttach->Value.ul, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
@@ -1917,10 +1917,10 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 			return hr;
             
         for (unsigned int i = 0; i < lpAttachRows->cRows; ++i)
-            if(lpAttachRows->aRow[i].lpProps[0].ulPropTag == PR_ATTACH_METHOD && 
-                lpAttachRows->aRow[i].lpProps[1].ulPropTag == PR_ATTACH_NUM &&
-                lpAttachRows->aRow[i].lpProps[0].Value.ul == ATTACH_OLE)
-				lstOLEAttach.emplace_back(lpAttachRows->aRow[i].lpProps[1].Value.ul);
+			if (lpAttachRows[i].lpProps[0].ulPropTag == PR_ATTACH_METHOD &&
+			    lpAttachRows[i].lpProps[1].ulPropTag == PR_ATTACH_NUM &&
+			    lpAttachRows[i].lpProps[0].Value.ul == ATTACH_OLE)
+				lstOLEAttach.emplace_back(lpAttachRows[i].lpProps[1].Value.ul);
 	
         // Start processing TNEF properties
 		if (HrGetOneProp(lpMessage, PR_EC_SEND_AS_ICAL, &~lpSendAsICal) != hrSuccess)

@@ -239,8 +239,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	if (lpRows->cRows != 1) {
 		return MAPI_E_NOT_FOUND;
 	}
-	
-	sbEid = lpRows->aRow[0].lpProps[0].Value.bin;
+	sbEid = lpRows[0].lpProps[0].Value.bin;
 	hr = lpMsgStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
 	     &iid_of(lpUsrFld), MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<IUnknown **>(&lpUsrFld));
 	if(hr != hrSuccess)
@@ -674,9 +673,9 @@ HRESULT HrFindAndGetMessage(const std::string &strGuid, IMAPIFolder *lpUsrFld,
 		return hr;
 	if (lpValRows->cRows != 1)
 		return MAPI_E_NOT_FOUND;
-	if (PROP_TYPE(lpValRows->aRow[0].lpProps[0].ulPropTag) != PT_BINARY)
+	if (PROP_TYPE(lpValRows[0].lpProps[0].ulPropTag) != PT_BINARY)
 		return MAPI_E_NOT_FOUND;
-	sbEid = lpValRows->aRow[0].lpProps[0].Value.bin;
+	sbEid = lpValRows[0].lpProps[0].Value.bin;
 	hr = lpUsrFld->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
 	     &iid_of(lpMessage), MAPI_MODIFY, &ulObjType, &~lpMessage);
 	if (hr != hrSuccess)

@@ -803,7 +803,7 @@ HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		return hr;
 
 	for (i = 0; i < lpsRowSet->cRows; ++i) {
-		hr = lpMemTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpsRowSet->aRow[i].lpProps, NUM_RFT_PROPS);
+		hr = lpMemTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, nullptr, lpsRowSet[i].lpProps, NUM_RFT_PROPS);
 		if(hr != hrSuccess)
 			return hr;
 	}

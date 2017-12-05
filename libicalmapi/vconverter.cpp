@@ -1792,7 +1792,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 			return MAPI_E_CALL_FAILED;
 
 		// @todo: use correct index number?
-		hr = HrGetAddress(m_lpAdrBook, lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues,
+		hr = HrGetAddress(m_lpAdrBook, lpRows[0].lpProps, lpRows[0].cValues,
 		     PR_ENTRYID, PR_DISPLAY_NAME, PR_ADDRTYPE, PR_EMAIL_ADDRESS,
 		     strReceiverName, strReceiverType, strReceiverEmailAddr);
 		if (hr != hrSuccess)
@@ -1962,7 +1962,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	for (ULONG ulCount = 0; ulCount < lpRows->cRows; ++ulCount) {
 		// ZARAFA types go correct because of addressbook, (slow?, should use PR_SMTP_ADDRESS?)
 		// SMTP types go correct because of PR_EMAIL_ADDRESS 
-		hr = HrGetAddress(m_lpAdrBook, lpRows->aRow[ulCount].lpProps, lpRows->aRow[ulCount].cValues,
+		hr = HrGetAddress(m_lpAdrBook, lpRows[ulCount].lpProps, lpRows[ulCount].cValues,
 						  PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_EMAIL_ADDRESS_A,
 						  strName, strType, strEmailAddress);
 
@@ -1971,10 +1971,10 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 			continue;
 
 		// flags set to 3 is organizer, so skip that entry
-		auto lpPropVal = lpRows->aRow[ulCount].cfind(PR_RECIPIENT_FLAGS);
+		auto lpPropVal = lpRows[ulCount].cfind(PR_RECIPIENT_FLAGS);
 		if (lpPropVal != NULL && lpPropVal->Value.ul == 3)
 			continue;
-		lpPropVal = lpRows->aRow[ulCount].cfind(PR_RECIPIENT_TYPE);
+		lpPropVal = lpRows[ulCount].cfind(PR_RECIPIENT_TYPE);
 		if (lpPropVal == NULL)
 			continue;
 
@@ -1995,7 +1995,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 		strEmailAddress.insert(0, L"mailto:");
 		auto lpProp = icalproperty_new_attendee(m_converter.convert_to<string>(m_strCharset.c_str(), strEmailAddress, rawsize(strEmailAddress), CHARSET_WCHAR).c_str());
 		icalproperty_add_parameter(lpProp, lpParam);
-		lpPropVal = lpRows->aRow[ulCount].cfind(PR_RECIPIENT_TRACKSTATUS);
+		lpPropVal = lpRows[ulCount].cfind(PR_RECIPIENT_TRACKSTATUS);
 		if (lpPropVal != NULL) {
 			if (lpPropVal->Value.ul == 2)
 				icalproperty_add_parameter(lpProp, icalparameter_new_partstat(ICAL_PARTSTAT_TENTATIVE));
@@ -2823,7 +2823,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 	if (lpRows->cRows == 0)
 		// if this is a cancel message, no exceptions are present, so ignore.
 		return MAPI_E_NOT_FOUND;
-	lpPropVal = lpRows->aRow[0].cfind(PR_ATTACH_NUM);
+	lpPropVal = lpRows[0].cfind(PR_ATTACH_NUM);
 	if (lpPropVal == nullptr)
 		return MAPI_E_NOT_FOUND;
 	hr = lpMessage->OpenAttach(lpPropVal->Value.ul, nullptr, 0, &~lpAttach);

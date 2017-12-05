@@ -282,7 +282,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 				return hr;
 				
 			for (unsigned int i = 0; i < lpAttachRows->cRows; ++i) {
-				hr = lpMessage->DeleteAttach(lpAttachRows->aRow[i].lpProps[0].Value.ul, 0, NULL, 0);
+				hr = lpMessage->DeleteAttach(lpAttachRows[i].lpProps[0].Value.ul, 0, nullptr, 0);
 				if(hr != hrSuccess)
 					return hr;
 			}

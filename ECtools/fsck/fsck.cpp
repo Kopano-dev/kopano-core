@@ -237,7 +237,7 @@ static HRESULT DetectFolderDetails(LPMAPIFOLDER lpFolder, string *lpName,
 
 static HRESULT
 RunFolderValidation(const std::set<std::string> &setFolderIgnore,
-    IMAPIFolder *lpRootFolder, SRow *lpRow, const CHECKMAP &checkmap)
+    IMAPIFolder *lpRootFolder, const SRow *lpRow, const CHECKMAP &checkmap)
 {
 	object_ptr<IMAPIFolder> lpFolder;
 	ULONG ulObjectType = 0;
@@ -415,7 +415,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 			break;
 
 		for (ULONG i = 0; i < lpRows->cRows; ++i)
-			RunFolderValidation(setFolderIgnore, lpRootFolder, &lpRows->aRow[i], checkmap);
+			RunFolderValidation(setFolderIgnore, lpRootFolder, &lpRows[i], checkmap);
 	}
 	return hrSuccess;
 }

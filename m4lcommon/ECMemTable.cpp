@@ -548,8 +548,8 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 		hr = QueryRowData(&sRowList, &~lpRows);
 		if(hr != hrSuccess)
 			return hr;
-		tab.row.cValues = lpRows->aRow[0].cValues;
-		tab.row.lpProps = lpRows->aRow[0].lpProps;
+		tab.row.cValues = lpRows[0].cValues;
+		tab.row.lpProps = lpRows[0].lpProps;
 		break;
 	default:
 		break;// no row needed
@@ -1033,7 +1033,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 			return hr;
 
 		for (j = 0; j < lpsPropTags->cValues; ++j) {
-			auto &prop = lpRows->aRow[i].lpProps[j];
+			auto &prop = lpRows[i].lpProps[j];
 			// Handle some fixed properties
 			if(lpsPropTags->aulPropTag[j] == lpMemTable->ulRowPropTag) {
 				prop.ulPropTag = lpMemTable->ulRowPropTag;
@@ -1050,7 +1050,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 			} else if(lpsPropTags->aulPropTag[j] == PR_INSTANCE_KEY) {
 				prop.ulPropTag = PR_INSTANCE_KEY;
 				prop.Value.bin.cb = sizeof(ULONG)*2;
-				hr = MAPIAllocateMore(prop.Value.bin.cb, lpRows->aRow[i].lpProps, reinterpret_cast<void **>(&prop.Value.bin.lpb));
+				hr = MAPIAllocateMore(prop.Value.bin.cb, lpRows[i].lpProps, reinterpret_cast<void **>(&prop.Value.bin.lpb));
 				if(hr != hrSuccess)
 					return hr;
 				memcpy(prop.Value.bin.lpb, &rowlist.ulObjId, sizeof(ULONG));
@@ -1070,7 +1070,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 				prop.ulPropTag = PROP_TAG(PT_UNICODE, PROP_ID(lpsPropTags->aulPropTag[j]));
 				const auto strTmp = converter.convert_to<std::wstring>(lpsProp->Value.lpszA);
 				hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(std::wstring::value_type),
-				     lpRows->aRow[i].lpProps, reinterpret_cast<void **>(&prop.Value.lpszW));
+				     lpRows[i].lpProps, reinterpret_cast<void **>(&prop.Value.lpszW));
 				if (hr != hrSuccess)
 					return hr;
 				memcpy(prop.Value.lpszW, strTmp.c_str(), (strTmp.size() + 1) * sizeof(std::wstring::value_type));
@@ -1079,14 +1079,14 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 				// PT_STRING8 requested, and PT_UNICODE provided. Do conversion.
 				prop.ulPropTag = PROP_TAG(PT_STRING8, PROP_ID(lpsPropTags->aulPropTag[j]));
 				const auto strTmp = converter.convert_to<std::string>(lpsProp->Value.lpszW);
-				hr = MAPIAllocateMore(strTmp.size() + 1, lpRows->aRow[i].lpProps, reinterpret_cast<void **>(&prop.Value.lpszA));
+				hr = MAPIAllocateMore(strTmp.size() + 1, lpRows[i].lpProps, reinterpret_cast<void **>(&prop.Value.lpszA));
 				if (hr != hrSuccess)
 					return hr;
 				memcpy(prop.Value.lpszA, strTmp.c_str(), strTmp.size() + 1);
 				continue; // Finished with this property
 			} else if (lpsPropTags->aulPropTag[j] == lpsProp->ulPropTag) {
 				// Exact property requested that we have
-				hr = Util::HrCopyProperty(&prop, lpsProp, (void *)lpRows->aRow[i].lpProps);
+				hr = Util::HrCopyProperty(&prop, lpsProp, lpRows[i].lpProps);
 				if (hr != hrSuccess) {
 					prop.ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsPropTags->aulPropTag[j]));
 					prop.Value.err = MAPI_E_NOT_FOUND;

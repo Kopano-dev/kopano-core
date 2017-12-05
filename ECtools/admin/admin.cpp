@@ -1245,17 +1245,17 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 			break;
 
 		for (ULONG i = 0; i < lpRowSet->cRows; ++i) {
-			auto lpStoreGuid = lpRowSet->aRow[i].cfind(PR_EC_STOREGUID);
-			auto lpUserName  = lpRowSet->aRow[i].cfind(PR_EC_USERNAME_A);
-			auto lpModTime   = lpRowSet->aRow[i].cfind(PR_LAST_MODIFICATION_TIME);
-			auto lpStoreSize = lpRowSet->aRow[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
-			auto lpStoreType = lpRowSet->aRow[i].cfind(PR_EC_STORETYPE);
+			auto lpStoreGuid = lpRowSet[i].cfind(PR_EC_STOREGUID);
+			auto lpUserName  = lpRowSet[i].cfind(PR_EC_USERNAME_A);
+			auto lpModTime   = lpRowSet[i].cfind(PR_LAST_MODIFICATION_TIME);
+			auto lpStoreSize = lpRowSet[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
+			auto lpStoreType = lpRowSet[i].cfind(PR_EC_STORETYPE);
 			if (lpStoreGuid && lpUserName)
 				continue;
 
 			if (!lpUserName) {
 				// find "guessed" named
-				lpUserName = lpRowSet->aRow[i].cfind(PR_DISPLAY_NAME_A);
+				lpUserName = lpRowSet[i].cfind(PR_DISPLAY_NAME_A);
 				if (lpUserName)
 					strUsername = lpUserName->Value.lpszA;
 				else

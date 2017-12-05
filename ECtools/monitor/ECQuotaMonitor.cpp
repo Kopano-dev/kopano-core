@@ -390,11 +390,11 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 
 		for (i = 0; i < lpRowSet->cRows; ++i) {
 			MsgStorePtr ptrStore;
-			auto lpUsername  = lpRowSet->aRow[i].cfind(PR_EC_USERNAME_A);
-			auto lpStoreSize = lpRowSet->aRow[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
-			auto lpQuotaWarn = lpRowSet->aRow[i].cfind(PR_QUOTA_WARNING_THRESHOLD);
-			auto lpQuotaSoft = lpRowSet->aRow[i].cfind(PR_QUOTA_SEND_THRESHOLD);
-			auto lpQuotaHard = lpRowSet->aRow[i].cfind(PR_QUOTA_RECEIVE_THRESHOLD);
+			auto lpUsername  = lpRowSet[i].cfind(PR_EC_USERNAME_A);
+			auto lpStoreSize = lpRowSet[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
+			auto lpQuotaWarn = lpRowSet[i].cfind(PR_QUOTA_WARNING_THRESHOLD);
+			auto lpQuotaSoft = lpRowSet[i].cfind(PR_QUOTA_SEND_THRESHOLD);
+			auto lpQuotaHard = lpRowSet[i].cfind(PR_QUOTA_RECEIVE_THRESHOLD);
 			if (!lpUsername || !lpStoreSize)
 				continue;		// don't log error: could be for several valid reasons (contacts, other server, etc)
 

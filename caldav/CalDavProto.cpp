@@ -377,11 +377,11 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 		for (ULONG ulRowCntr = 0; ulRowCntr < lpRowSet->cRows; ++ulRowCntr)
 		{
 			// test PUT url part
-			if (lpRowSet->aRow[ulRowCntr].lpProps[0].ulPropTag == ulTagTsRef)
-				strConvVal = W2U((const WCHAR*)lpRowSet->aRow[ulRowCntr].lpProps[0].Value.lpszW);
+			if (lpRowSet[ulRowCntr].lpProps[0].ulPropTag == ulTagTsRef)
+				strConvVal = W2U(lpRowSet[ulRowCntr].lpProps[0].Value.lpszW);
 			// test ical UID value
-			else if (lpRowSet->aRow[ulRowCntr].lpProps[1].ulPropTag == ulTagGOID)
-				strConvVal = SPropValToString(&(lpRowSet->aRow[ulRowCntr].lpProps[1]));
+			else if (lpRowSet[ulRowCntr].lpProps[1].ulPropTag == ulTagGOID)
+				strConvVal = SPropValToString(&lpRowSet[ulRowCntr].lpProps[1]);
 			else
 				strConvVal.clear();
 
@@ -389,13 +389,12 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 			if (strConvVal.empty())
 			{
 				// this really shouldn't happen, every item should have a guid.
-
-				hr = CreateAndGetGuid(lpRowSet->aRow[ulRowCntr].lpProps[2].Value.bin, ulTagGOID, &strConvVal);
+				hr = CreateAndGetGuid(lpRowSet[ulRowCntr].lpProps[2].Value.bin, ulTagGOID, &strConvVal);
 				if(hr == E_ACCESSDENIED)
 				{
 					// @todo shouldn't we use PR_ENTRYID in the first place? Saving items in a read-only command is a serious no-no.
 					// use PR_ENTRYID since we couldn't create a new guid for the item
-					strConvVal = bin2hex(lpRowSet->aRow[ulRowCntr].lpProps[2].Value.bin);
+					strConvVal = bin2hex(lpRowSet[ulRowCntr].lpProps[2].Value.bin);
 					hr = hrSuccess;
 				}
 				else if (hr != hrSuccess) {
@@ -408,12 +407,13 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 
 			sWebResponse.sHRef.strValue = strReqUrl + strConvVal + ".ics";
 
-			if (blCensorPrivate && lpRowSet->aRow[ulRowCntr].lpProps[3].ulPropTag == ulTagPrivate && lpRowSet->aRow[ulRowCntr].lpProps[3].Value.b)
+			if (blCensorPrivate && lpRowSet[ulRowCntr].lpProps[3].ulPropTag == ulTagPrivate &&
+			    lpRowSet[ulRowCntr].lpProps[3].Value.b)
 				ulCensorFlag |= M2IC_CENSOR_PRIVATE;
 			else
 				ulCensorFlag = 0;
 
-			hr = HrMapValtoStruct(m_lpUsrFld, lpRowSet->aRow[ulRowCntr].lpProps, lpRowSet->aRow[ulRowCntr].cValues, lpMtIcal.get(), ulCensorFlag, true, &(lpsWebRCalQry->sProp.lstProps), &sWebResponse);
+			hr = HrMapValtoStruct(m_lpUsrFld, lpRowSet[ulRowCntr].lpProps, lpRowSet[ulRowCntr].cValues, lpMtIcal.get(), ulCensorFlag, true, &(lpsWebRCalQry->sProp.lstProps), &sWebResponse);
 			++ulItemCount;
 			lpsWebMStatus->lstResp.emplace_back(sWebResponse);
 			sWebResponse.lstsPropStat.clear();
@@ -515,15 +515,15 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 			hr = lpTable->QueryRows(1, TBL_NOADVANCE, &~lpValRows); // TODO: what if we get multiple items ?
 			if(hr != hrSuccess || lpValRows->cRows != 1)
 				return hr;
-
-			if (blCensorPrivate && PROP_TYPE(lpValRows->aRow[0].lpProps[1].ulPropTag) != PT_ERROR && lpValRows->aRow[0].lpProps[1].Value.b)
+			if (blCensorPrivate && PROP_TYPE(lpValRows[0].lpProps[1].ulPropTag) != PT_ERROR &&
+			    lpValRows[0].lpProps[1].Value.b)
 				ulCensorFlag |= M2IC_CENSOR_PRIVATE;
 			else
 				ulCensorFlag = 0;
 		}
 
 		if(hr == hrSuccess) {
-			hr = HrMapValtoStruct(m_lpUsrFld, lpValRows->aRow[0].lpProps, lpValRows->aRow[0].cValues, lpMtIcal.get(), ulCensorFlag, true, &sDavProp.lstProps, &sWebResponse);
+			hr = HrMapValtoStruct(m_lpUsrFld, lpValRows[0].lpProps, lpValRows[0].cValues, lpMtIcal.get(), ulCensorFlag, true, &sDavProp.lstProps, &sWebResponse);
 			if (hr != hrSuccess)
 				return hr;
 		} else {
@@ -714,14 +714,13 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 
 		for (ULONG i = 0; i < lpValRows->cRows; ++i) {
 			WEBDAVVALUE sWebDavVal;
-			auto lpsPropVal = lpValRows->aRow[i].cfind(PR_ACCOUNT_W);
+			auto lpsPropVal = lpValRows[i].cfind(PR_ACCOUNT_W);
 			if (!lpsPropVal)
 				continue;		// user without account name is useless
 
 			HrSetDavPropName(&(sWebResponse.sHRef.sPropName), "href", WEBDAVNS);
 			sWebResponse.sHRef.strValue = strReq + urlEncode(lpsPropVal->Value.lpszW, "utf-8") + "/";
-			
-			hr = HrMapValtoStruct(lpAbCont, lpValRows->aRow[i].lpProps, lpValRows->aRow[i].cValues, NULL, 0, true, &sDavProp.lstProps, &sWebResponse);
+			hr = HrMapValtoStruct(lpAbCont, lpValRows[i].lpProps, lpValRows[i].cValues, nullptr, 0, true, &sDavProp.lstProps, &sWebResponse);
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to convert user properties to entry for user %ls", lpsPropVal->Value.lpszW);
 				continue;
@@ -1365,9 +1364,9 @@ nowaste:
 			if (lpDelHichyTable && lpRowsDeleted->cRows != 0 && ulDelEntries != lpRowsDeleted->cRows)
 			{
 				// @todo is this optimized, or just pure luck that this works? don't we need a loop?
-				ulCmp = memcmp(lpRowsALL->aRow[i].lpProps[0].Value.bin.lpb,
-					       lpRowsDeleted->aRow[ulDelEntries].lpProps[0].Value.bin.lpb,
-					       lpRowsALL->aRow[i].lpProps[0].Value.bin.cb);
+				ulCmp = memcmp(lpRowsALL[i].lpProps[0].Value.bin.lpb,
+					       lpRowsDeleted[ulDelEntries].lpProps[0].Value.bin.lpb,
+					       lpRowsALL[i].lpProps[0].Value.bin.cb);
 				if(ulCmp == 0)
 				{
 					++ulDelEntries;
@@ -1376,13 +1375,12 @@ nowaste:
 			}
 
 			HrSetDavPropName(&(sDavResponse.sPropName), "response", lpsDavProp->sPropName.strNS);
-
-			if (lpRowsALL->aRow[i].lpProps[1].ulPropTag == ulPropTagFldId)
-				wstrFldPath = lpRowsALL->aRow[i].lpProps[1].Value.lpszW;
-			else if (lpRowsALL->aRow[i].lpProps[0].ulPropTag == PR_ENTRYID)
+			if (lpRowsALL[i].lpProps[1].ulPropTag == ulPropTagFldId)
+				wstrFldPath = lpRowsALL[i].lpProps[1].Value.lpszW;
+			else if (lpRowsALL[i].lpProps[0].ulPropTag == PR_ENTRYID)
 				// creates new ulPropTagFldId on this folder, or return PR_ENTRYID in wstrFldPath
 				// @todo boolean should become default return proptag if save fails, PT_NULL for no default
-				hr = HrAddProperty(m_lpActiveStore, lpRowsALL->aRow[i].lpProps[0].Value.bin, ulPropTagFldId, true, &wstrFldPath);
+				hr = HrAddProperty(m_lpActiveStore, lpRowsALL[i].lpProps[0].Value.bin, ulPropTagFldId, true, &wstrFldPath);
 
 			if (hr != hrSuccess || wstrFldPath.empty()) {
 				kc_perror("Error adding folder id property", hr);
@@ -1395,7 +1393,7 @@ nowaste:
 
 			HrSetDavPropName(&(sDavResponse.sHRef.sPropName), "href", lpsDavProp->sPropName.strNS);
 			sDavResponse.sHRef.strValue = strReqUrl + W2U(wstrFldPath);
-			HrMapValtoStruct(m_lpUsrFld, lpRowsALL->aRow[i].lpProps, lpRowsALL->aRow[i].cValues, NULL, 0, true, &lpsDavProp->lstProps, &sDavResponse);
+			HrMapValtoStruct(m_lpUsrFld, lpRowsALL[i].lpProps, lpRowsALL[i].cValues, nullptr, 0, true, &lpsDavProp->lstProps, &sDavResponse);
 			lpsMulStatus->lstResp.emplace_back(sDavResponse);
 			sDavResponse.lstsPropStat.clear();
 		}

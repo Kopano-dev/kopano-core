@@ -946,11 +946,11 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 			return kc_perrorf("QueryRows failed", hr);
 		if(lpsRows->cRows != 1)
 			break;
-		if (lpsRows->aRow[0].lpProps[0].ulPropTag == PR_RECORD_KEY && 
-		    lpsRows->aRow[0].lpProps[0].Value.bin.cb == sizeof(GUID) &&
-		    memcmp(lpsRows->aRow[0].lpProps[0].Value.bin.lpb, reinterpret_cast<char *>(lpStoreEntryID.get()) + 4, sizeof(GUID)) == 0) {
+		if (lpsRows[0].lpProps[0].ulPropTag == PR_RECORD_KEY &&
+		    lpsRows[0].lpProps[0].Value.bin.cb == sizeof(GUID) &&
+		    memcmp(lpsRows[0].lpProps[0].Value.bin.lpb, reinterpret_cast<char *>(lpStoreEntryID.get()) + 4, sizeof(GUID)) == 0) {
 			// Found it
-			memcpy(&sProviderUID, lpsRows->aRow[0].lpProps[1].Value.bin.lpb, sizeof(MAPIUID));
+			memcpy(&sProviderUID, lpsRows[0].lpProps[1].Value.bin.lpb, sizeof(MAPIUID));
 			break;
 			
 		}
@@ -1168,12 +1168,13 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if (lpsRows->cRows != 1)
 			return MAPI_E_NOT_FOUND;
 			
-        if(lpsRows->aRow[0].lpProps[0].ulPropTag == PR_ENTRYID &&
-            lpsRows->aRow[0].lpProps[1].ulPropTag == PR_RECORD_KEY &&
-            lpsRows->aRow[0].lpProps[1].Value.bin.cb == sizeof(GUID) &&
-            memcmp(lpsRows->aRow[0].lpProps[1].Value.bin.lpb, &guidProvider, sizeof(GUID)) == 0)
+		if (lpsRows[0].lpProps[0].ulPropTag == PR_ENTRYID &&
+		    lpsRows[0].lpProps[1].ulPropTag == PR_RECORD_KEY &&
+		    lpsRows[0].lpProps[1].Value.bin.cb == sizeof(GUID) &&
+		    memcmp(lpsRows[0].lpProps[1].Value.bin.lpb, &guidProvider, sizeof(GUID)) == 0)
 		{
-			if (lpsRows->aRow[0].lpProps[2].ulPropTag == PR_RESOURCE_TYPE && lpsRows->aRow[0].lpProps[2].Value.ul == MAPI_AB_PROVIDER) {
+			if (lpsRows[0].lpProps[2].ulPropTag == PR_RESOURCE_TYPE &&
+			    lpsRows[0].lpProps[2].Value.ul == MAPI_AB_PROVIDER) {
 				hr = OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
 				if (hr != hrSuccess)
 					return kc_perrorf("OpenAddressBook(2) failed", hr);
@@ -1182,8 +1183,8 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 					kc_perrorf("OpenEntry(2) failed", hr);
 				break;
 			} else {
-                hr = OpenMsgStore(0, lpsRows->aRow[0].lpProps[0].Value.bin.cb, (LPENTRYID)lpsRows->aRow[0].lpProps[0].Value.bin.lpb,
-								  &IID_IMsgStore, MDB_WRITE | MDB_NO_DIALOG | MDB_TEMPORARY, &lpMDB);
+				hr = OpenMsgStore(0, lpsRows[0].lpProps[0].Value.bin.cb, reinterpret_cast<const ENTRYID *>(lpsRows[0].lpProps[0].Value.bin.lpb),
+				     &IID_IMsgStore, MDB_WRITE | MDB_NO_DIALOG | MDB_TEMPORARY, &lpMDB);
 				if (hr != hrSuccess)
 					return kc_perrorf("OpenMsgStore failed", hr);
                   
@@ -1757,7 +1758,7 @@ HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
 		return kc_perrorf("GetSearchPath failed", hr);
 
 	for (ULONG c = 0; bContinue && c < lpSearchRows->cRows; ++c) {
-		auto lpEntryID = lpSearchRows->aRow[c].cfind(PR_ENTRYID);
+		auto lpEntryID = lpSearchRows[c].cfind(PR_ENTRYID);
 		if (!lpEntryID)
 			continue;
 
@@ -1883,7 +1884,7 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 	}
 
 	// get entry id from table, use it.
-	lpProp = lpRowSet->aRow[0].cfind(PR_ENTRYID);
+	lpProp = lpRowSet[0].cfind(PR_ENTRYID);
 no_hierarchy:
 
 	if (!lpProp) {
@@ -2432,7 +2433,7 @@ HRESULT kc_session_save(IMAPISession *ses, std::string &serout)
 		if (ret != hrSuccess || rows->cRows == 0)
 			break;
 		serout += "S"; /* service start marker */
-		ret = kc_sesave_propvals(rows->aRow[0].lpProps, rows->aRow[0].cValues, serout);
+		ret = kc_sesave_propvals(rows[0].lpProps, rows[0].cValues, serout);
 		if (ret != hrSuccess)
 			return ret;
 		ret = svcadm->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, 0, &~sect);
@@ -2451,11 +2452,11 @@ HRESULT kc_session_save(IMAPISession *ses, std::string &serout)
 			return ret;
 		if (rows->cRows == 0)
 			break;
-		auto provuid_prop = rows->aRow[0].cfind(PR_PROVIDER_UID);
+		auto provuid_prop = rows[0].cfind(PR_PROVIDER_UID);
 		if (provuid_prop == nullptr)
 			continue;
 		serout += "P"; /* provider start marker */
-		ret = kc_sesave_propvals(rows->aRow[0].lpProps, rows->aRow[0].cValues, serout);
+		ret = kc_sesave_propvals(rows[0].lpProps, rows[0].cValues, serout);
 		if (ret != hrSuccess)
 			return ret;
 		ret = svcadm->OpenProfileSection(reinterpret_cast<const MAPIUID *>(provuid_prop->Value.bin.lpb), nullptr, 0, &~sect);

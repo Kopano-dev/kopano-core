@@ -976,14 +976,14 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			break;
 
 		sc -> countAdd("rules", "n_rules", int64_t(lpRowSet->cRows));
-		auto lpRuleName = lpRowSet->aRow[0].cfind(CHANGE_PROP_TYPE(PR_RULE_NAME, PT_STRING8));
+		auto lpRuleName = lpRowSet[0].cfind(CHANGE_PROP_TYPE(PR_RULE_NAME, PT_STRING8));
 		if (lpRuleName)
 			strRule = lpRuleName->Value.lpszA;
 		else
 			strRule = "(no name)";
 
 		ec_log_debug("Processing rule %s for %s", strRule.c_str(), recip.c_str());
-		auto lpRuleState = lpRowSet->aRow[0].cfind(PR_RULE_STATE);
+		auto lpRuleState = lpRowSet[0].cfind(PR_RULE_STATE);
 		if (lpRuleState != nullptr){
 			if (!(lpRuleState->Value.i & ST_ENABLED)) {
 				ec_log_debug("Rule '%s' is disabled, skipping...", strRule.c_str());
@@ -997,7 +997,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 
 		lpCondition = NULL;
 		lpActions = NULL;
-		lpProp = lpRowSet->aRow[0].cfind(PR_RULE_CONDITION);
+		lpProp = lpRowSet[0].cfind(PR_RULE_CONDITION);
 		if (lpProp)
 			// NOTE: object is placed in Value.lpszA, not Value.x
 			lpCondition = (LPSRestriction)lpProp->Value.lpszA;
@@ -1005,7 +1005,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			ec_log_debug("Rule '%s' has no contition, skipping...", strRule.c_str());
 			continue;
 		}
-		lpProp = lpRowSet->aRow[0].cfind(PR_RULE_ACTIONS);
+		lpProp = lpRowSet[0].cfind(PR_RULE_ACTIONS);
 		if (lpProp)
 			// NOTE: object is placed in Value.lpszA, not Value.x
 			lpActions = (ACTIONS*)lpProp->Value.lpszA;
