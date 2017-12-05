@@ -105,12 +105,13 @@ HRESULT ECRulesTableProxy::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, U
 	return m_lpTable->QueryPosition(lpulRow, lpulNumerator, lpulDenominator);
 }
 
-HRESULT ECRulesTableProxy::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG ulFlags)
+HRESULT ECRulesTableProxy::FindRow(const SRestriction *lpRestriction,
+    BOOKMARK bkOrigin, ULONG ulFlags)
 {
 	return m_lpTable->FindRow(lpRestriction, bkOrigin, ulFlags);
 }
 
-HRESULT ECRulesTableProxy::Restrict(LPSRestriction lpRestriction, ULONG ulFlags)
+HRESULT ECRulesTableProxy::Restrict(const SRestriction *lpRestriction, ULONG ulFlags)
 {
 	return m_lpTable->Restrict(lpRestriction, ulFlags);
 }

@@ -988,7 +988,7 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 exit:;
 }
 
-LPSRestriction	Object_to_LPSRestriction(PyObject *object, void *lpBase)
+SRestriction *Object_to_p_SRestriction(PyObject *object, void *lpBase)
 {
 	LPSRestriction lpRestriction = NULL;
 
@@ -1007,7 +1007,12 @@ LPSRestriction	Object_to_LPSRestriction(PyObject *object, void *lpBase)
 	return lpRestriction;
 }
 
-PyObject *		Object_from_LPSRestriction(LPSRestriction lpsRestriction)
+SRestriction *Object_to_LPSRestriction(PyObject *obj, void *base)
+{
+	return Object_to_p_SRestriction(obj, base);
+}
+
+PyObject *Object_from_SRestriction(const SRestriction *lpsRestriction)
 {
 	pyobj_ptr result;
 	if (lpsRestriction == NULL) {
@@ -1096,6 +1101,11 @@ exit:
 	if (PyErr_Occurred())
 		result.reset();
 	return result.release();
+}
+
+PyObject *Object_from_LPSRestriction(const SRestriction *r)
+{
+	return Object_from_SRestriction(r);
 }
 
 PyObject *		Object_from_LPACTION(LPACTION lpAction)

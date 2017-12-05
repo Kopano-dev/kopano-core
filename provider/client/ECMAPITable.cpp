@@ -261,7 +261,8 @@ HRESULT ECMAPITable::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *
 	return hr;
 }
 
-HRESULT ECMAPITable::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG ulFlags)
+HRESULT ECMAPITable::FindRow(const SRestriction *lpRestriction,
+    BOOKMARK bkOrigin, ULONG ulFlags)
 {
 	if (lpRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -273,7 +274,7 @@ HRESULT ECMAPITable::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, UL
 	return this->lpTableOps->HrFindRow(lpRestriction, bkOrigin, ulFlags);
 }
 
-HRESULT ECMAPITable::Restrict(LPSRestriction lpRestriction, ULONG ulFlags)
+HRESULT ECMAPITable::Restrict(const SRestriction *lpRestriction, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
 

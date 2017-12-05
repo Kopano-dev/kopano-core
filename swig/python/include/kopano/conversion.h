@@ -51,9 +51,11 @@ PyObject *List_from_SPropTagArray(const SPropTagArray *lpPropTagArray);
 SPropTagArray *List_to_LPSPropTagArray(PyObject *sv, ULONG ulFlags = CONV_COPY_SHALLOW);
 PyObject *List_from_LPSPropTagArray(const SPropTagArray *lpPropTagArray);
 
-LPSRestriction	Object_to_LPSRestriction(PyObject *sv, void *lpBase = NULL);
+extern SRestriction *Object_to_p_SRestriction(PyObject *, void *base = nullptr);
+extern SRestriction *Object_to_LPSRestriction(PyObject *, void *base = nullptr);
 void			Object_to_LPSRestriction(PyObject *sv, LPSRestriction lpsRestriction, void *lpBase = NULL);
-PyObject *		Object_from_LPSRestriction(LPSRestriction lpRestriction);
+extern PyObject *Object_from_SRestriction(const SRestriction *);
+extern PyObject *Object_from_LPSRestriction(const SRestriction *);
 
 PyObject *		Object_from_LPACTION(LPACTION lpAction);
 PyObject *		Object_from_LPACTIONS(ACTIONS *lpsActions);

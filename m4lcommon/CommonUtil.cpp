@@ -964,8 +964,10 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
  *
  * Also, the address will be resolved to SMTP if steps 1 and 2 did not provide one.
  */
-HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPSPropValue lpProps, ULONG cValues, ULONG ulPropTagEntryID, ULONG ulPropTagName, ULONG ulPropTagType, ULONG ulPropTagEmailAddress,
-					 std::wstring &strName, std::wstring &strType, std::wstring &strEmailAddress)
+HRESULT HrGetAddress(IAddrBook *lpAdrBook, const SPropValue *lpProps,
+    ULONG cValues, ULONG ulPropTagEntryID, ULONG ulPropTagName,
+    ULONG ulPropTagType, ULONG ulPropTagEmailAddress, std::wstring &strName,
+    std::wstring &strType, std::wstring &strEmailAddress)
 {
 	HRESULT hr = hrSuccess;
 	const SPropValue *lpEntryID = NULL;
@@ -995,8 +997,7 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPSPropValue lpProps, ULONG cValues, U
 	}
 
 	if (lpEntryID == NULL || lpAdrBook == NULL ||
-		HrGetAddress(lpAdrBook, (LPENTRYID)lpEntryID->Value.bin.lpb, lpEntryID->Value.bin.cb, strName, strType, strEmailAddress) != hrSuccess)
-	{
+	    HrGetAddress(lpAdrBook, reinterpret_cast<const ENTRYID *>(lpEntryID->Value.bin.lpb), lpEntryID->Value.bin.cb, strName, strType, strEmailAddress) != hrSuccess) {
         // EntryID failed, try fallback
         if (lpName) {
 			if (PROP_TYPE(lpName->ulPropTag) == PT_UNICODE)
@@ -1041,7 +1042,9 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPSPropValue lpProps, ULONG cValues, U
  * address parts to be returned to the caller. If an SMTP address is available, returns the SMTP
  * address for the user, otherwise the ZARAFA addresstype and address is returned.
  */
-HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPENTRYID lpEntryID, ULONG cbEntryID, std::wstring &strName, std::wstring &strType, std::wstring &strEmailAddress)
+HRESULT HrGetAddress(IAddrBook *lpAdrBook, const ENTRYID *lpEntryID,
+    ULONG cbEntryID, std::wstring &strName, std::wstring &strType,
+    std::wstring &strEmailAddress)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMailUser> lpMailUser;
@@ -1161,7 +1164,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 // is retrieved from the passed lpProps/cValues property array
 class ECRowWrapper _kc_final : public IMAPIProp {
 public:
-	ECRowWrapper(LPSPropValue lpProps, ULONG cValues) : m_cValues(cValues), m_lpProps(lpProps) {};
+	ECRowWrapper(const SPropValue *lpProps, ULONG cValues) : m_cValues(cValues), m_lpProps(lpProps) {}
 	ULONG AddRef(void) _kc_override { return 1; } // no ref counting
 	ULONG Release(void) _kc_override { return 1; }
 	HRESULT QueryInterface(const IID &iid, LPVOID *lpvoid) _kc_override { return MAPI_E_INTERFACE_NOT_SUPPORTED; }
@@ -1228,7 +1231,7 @@ public:
 	HRESULT GetIDsFromNames( ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) _kc_override { return MAPI_E_NO_SUPPORT; }
 private:
 	ULONG			m_cValues;
-	LPSPropValue	m_lpProps;
+	const SPropValue *m_lpProps;
 };
 
 static HRESULT TestRelop(ULONG relop, int result, bool* fMatch)
@@ -1346,12 +1349,16 @@ static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
 	return hrSuccess;
 }
 
-HRESULT TestRestriction(LPSRestriction lpCondition, ULONG cValues, LPSPropValue lpPropVals, const ECLocale &locale, ULONG ulLevel) {
+HRESULT TestRestriction(const SRestriction *lpCondition, ULONG cValues,
+    const SPropValue *lpPropVals, const ECLocale &locale, ULONG ulLevel)
+{
 	ECRowWrapper lpRowWrapper(lpPropVals, cValues);
 	return TestRestriction(lpCondition, static_cast<IMAPIProp *>(&lpRowWrapper), locale, ulLevel);
 }
 
-HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const ECLocale &locale, ULONG ulLevel) {
+HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
+    const ECLocale &locale, ULONG ulLevel)
+{
 	HRESULT hr = hrSuccess;
 	ULONG c;
 	bool fMatch = false;

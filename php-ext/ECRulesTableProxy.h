@@ -41,8 +41,8 @@ public:
 	virtual HRESULT SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought) ;
 	virtual HRESULT SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator);
 	virtual HRESULT QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *lpulDenominator);
-	virtual HRESULT FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG ulFlags);
-	virtual HRESULT Restrict(LPSRestriction lpRestriction, ULONG ulFlags);
+	virtual HRESULT FindRow(const SRestriction *, BOOKMARK origin, ULONG flags) override;
+	virtual HRESULT Restrict(const SRestriction *, ULONG flags) override;
 	virtual HRESULT CreateBookmark(BOOKMARK* lpbkPosition);
 	virtual HRESULT FreeBookmark(BOOKMARK bkPosition);
 	virtual HRESULT SortTable(const SSortOrderSet *, ULONG flags);
