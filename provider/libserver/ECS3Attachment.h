@@ -25,15 +25,18 @@ class ECS3Config final : public ECAttachmentConfig {
 	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
 
 	private:
-	std::string m_prot, m_uri, m_akid, m_sakey, m_bkname, m_region, m_path;
+	std::string m_akid, m_sakey, m_bkname, m_region, m_path;
 	unsigned int m_comp;
+	S3BucketContext m_bkctx{};
+
+	friend class ECS3Attachment;
 };
 
 class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	public:
 	static ECRESULT StaticInit(ECConfig *);
 	static ECRESULT StaticDeinit(void);
-	ECS3Attachment(ECDatabase *, const char *, const char *, const char *, const char *, const char *, const char *, const char *, unsigned int);
+	ECS3Attachment(ECS3Config &, ECDatabase *);
 
 	protected:
 	virtual ~ECS3Attachment(void);
@@ -67,8 +70,7 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	virtual ECRESULT Rollback() override;
 
 	/* Variables: */
-	std::string m_basepath;
-	S3BucketContext m_bucket_ctx;
+	ECS3Config &m_config;
 	std::set<ext_siid> m_new_att, m_marked_att;
 	bool m_transact = false;
 

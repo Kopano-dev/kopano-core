@@ -74,22 +74,27 @@ static std::map<ULONG, s3_cache_entry> m_cache;
 ECRESULT ECS3Config::init(ECConfig *cfg)
 {
 	/* Copy strings, in case ECConfig gets reloaded and changes pointers */
-	m_prot   = cfg->GetSetting("attachment_s3_protocol");
-	m_uri    = cfg->GetSetting("attachment_s3_uristyle");
 	m_akid   = cfg->GetSetting("attachment_s3_accesskeyid");
 	m_sakey  = cfg->GetSetting("attachment_s3_secretaccesskey");
 	m_bkname = cfg->GetSetting("attachment_s3_bucketname");
 	m_region = cfg->GetSetting("attachment_s3_region");
 	m_path   = cfg->GetSetting("attachment_path");
 	m_comp   = strtol(cfg->GetSetting("attachment_compression"), nullptr, 0);
+
+	auto protocol = cfg->GetSetting("attachment_s3_protocol");
+	auto uri_style = cfg->GetSetting("attachment_s3_uristyle");
+	m_bkctx.bucketName = m_bkname.c_str();
+	m_bkctx.protocol = strncmp(protocol, "https", 5) == 0 ? S3ProtocolHTTPS : S3ProtocolHTTP;
+	m_bkctx.uriStyle = strncmp(uri_style, "path", 4) == 0 ? S3UriStylePath : S3UriStyleVirtualHost;
+	m_bkctx.accessKeyId = m_akid.c_str();
+	m_bkctx.secretAccessKey = m_sakey.c_str();
+	m_bkctx.authRegion = m_region.c_str();
 	return erSuccess;
 }
 
 ECAttachmentStorage *ECS3Config::new_handle(ECDatabase *db)
 {
-	return new(std::nothrow) ECS3Attachment(db, m_prot.c_str(),
-	       m_uri.c_str(), m_akid.c_str(), m_sakey.c_str(),
-	       m_bkname.c_str(), m_region.c_str(), m_path.c_str(), m_comp);
+	return new(std::nothrow) ECS3Attachment(*this, db);
 }
 
 /**
@@ -246,20 +251,9 @@ ECRESULT ECS3Attachment::StaticDeinit(void)
  *		   a single server cluster.
  * @param ulCompressionLevel the compression level used to gzip the attachment data.
  */
-ECS3Attachment::ECS3Attachment(ECDatabase *database, const char *protocol,
-    const char *uri_style, const char *access_key_id,
-    const char *secret_access_key, const char *bucket_name, const char *region,
-    const char *basepath, unsigned int complvl) :
-	ECAttachmentStorage(database, complvl), m_basepath(basepath)
+ECS3Attachment::ECS3Attachment(ECS3Config &config, ECDatabase *db) :
+	ECAttachmentStorage(db, config.m_comp), m_config(config)
 {
-	memset(&m_bucket_ctx, 0, sizeof(m_bucket_ctx));
-	m_bucket_ctx.bucketName = bucket_name;
-	m_bucket_ctx.protocol = strncmp(protocol, "https", 5) == 0 ? S3ProtocolHTTPS : S3ProtocolHTTP;
-	m_bucket_ctx.uriStyle = strncmp(uri_style, "path", 4) == 0 ? S3UriStylePath : S3UriStyleVirtualHost;
-	m_bucket_ctx.accessKeyId = access_key_id;
-	m_bucket_ctx.secretAccessKey = secret_access_key;
-	m_bucket_ctx.authRegion = region;
-
 	/* Set the handlers */
 	m_response_handler.propertiesCallback = &ECS3Attachment::response_prop_cb;
 	m_response_handler.completeCallback = &ECS3Attachment::response_complete_cb;
@@ -489,7 +483,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_get_object(&m_bucket_ctx, fn, &m_get_conditions, 0, 0,
+		DY_get_object(&m_config.m_bkctx, fn, &m_get_conditions, 0, 0,
 			nullptr, 0, &m_get_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: load %s: retryable status: %s",
@@ -554,7 +548,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(const ext_siid &ins_id,
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_get_object(&m_bucket_ctx, fn, &m_get_conditions, 0, 0,
+		DY_get_object(&m_config.m_bkctx, fn, &m_get_conditions, 0, 0,
 			nullptr, 0, &m_get_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: load %s: retryable status: %s",
@@ -614,7 +608,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_put_object(&m_bucket_ctx, fn, size, nullptr, nullptr, 0,
+		DY_put_object(&m_config.m_bkctx, fn, size, nullptr, nullptr, 0,
 			&m_put_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: save %s: retryable status: %s",
@@ -670,7 +664,7 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(const ext_siid &ins_id,
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_put_object(&m_bucket_ctx, fn, size, nullptr, nullptr, 0,
+		DY_put_object(&m_config.m_bkctx, fn, size, nullptr, nullptr, 0,
 			&m_put_obj_handler, &cwdata);
 		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: save %s: retryable status: %s",
@@ -739,7 +733,7 @@ ECRESULT ECS3Attachment::del_marked_att(const ext_siid &ins_id)
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_delete_object(&m_bucket_ctx, fn, nullptr, 0,
+		DY_delete_object(&m_config.m_bkctx, fn, nullptr, 0,
 			&m_response_handler, &cwdata);
 		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: delete %s: retryable status: %s",
@@ -786,7 +780,7 @@ ECRESULT ECS3Attachment::DeleteAttachmentInstance(const ext_siid &ins_id,
  */
 std::string ECS3Attachment::make_att_filename(const ext_siid &esid, bool comp)
 {
-	auto filename = m_basepath + PATH_SEPARATOR + stringify(esid.siid);
+	auto filename = m_config.m_path + PATH_SEPARATOR + stringify(esid.siid);
 	if (comp)
 		filename += ".gz";
 	return filename;
@@ -846,7 +840,7 @@ ECRESULT ECS3Attachment::GetSizeInstance(const ext_siid &ins_id,
 	 */
 	cd.retries = S3_RETRIES;
 	do {
-		DY_head_object(&m_bucket_ctx, fn, nullptr, 0,
+		DY_head_object(&m_config.m_bkctx, fn, nullptr, 0,
 			&m_response_handler, &cwdata);
 		if (DY_status_is_retryable(cd.status))
 			ec_log_debug("S3: getsize %s: retryable status: %s",
