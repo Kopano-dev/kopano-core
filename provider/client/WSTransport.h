@@ -135,7 +135,7 @@ public:
 	
 	// ReceiveFolder
 	virtual HRESULT HrGetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, const utf8string &strMessageClass, ULONG* lpcbEntryID, LPENTRYID* lppEntryID, utf8string *lpstrExplicitClass);
-	virtual HRESULT HrSetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, const utf8string &strMessageClass, ULONG cbEntryID, LPENTRYID lpEntryID);
+	virtual HRESULT HrSetReceiveFolder(ULONG store_eid_size, const ENTRYID *store_eid, const utf8string &cls, ULONG eid_size, const ENTRYID *folder_eid);
 	virtual HRESULT HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, LPSRowSet* lppsRowSet);
 
 	// Read / Unread

@@ -1424,7 +1424,9 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreE
 	return hr;
 }
 
-HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID, LPENTRYID lpStoreID, const utf8string &strMessageClass, ULONG cbEntryID, LPENTRYID lpEntryID)
+HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
+    const ENTRYID *lpStoreID, const utf8string &strMessageClass,
+    ULONG cbEntryID, const ENTRYID *lpEntryID)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
