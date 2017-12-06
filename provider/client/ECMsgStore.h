@@ -76,7 +76,7 @@ public:
 	virtual HRESULT GetReceiveFolder(const TCHAR *cls, ULONG flags, ULONG *eid_size, ENTRYID **eid, TCHAR **exp_class) override;
 	virtual HRESULT GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable);
 	virtual HRESULT StoreLogoff(ULONG *lpulFlags);
-	virtual HRESULT AbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags);
+	virtual HRESULT AbortSubmit(ULONG eid_size, const ENTRYID *, ULONG flags) override;
 	virtual HRESULT GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable);
 	virtual HRESULT SetLockState(LPMESSAGE lpMessage,ULONG ulLockState);
 	virtual HRESULT FinishedMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID);
@@ -213,7 +213,7 @@ public:
 		virtual HRESULT GetReceiveFolder(const TCHAR *cls, ULONG flags, ULONG *eid_size, ENTRYID **eid, TCHAR **exp_class) override;
 		virtual HRESULT GetReceiveFolderTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
 		virtual HRESULT StoreLogoff(ULONG *lpulFlags) _kc_override;
-		virtual HRESULT AbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG flags) _kc_override;
+		virtual HRESULT AbortSubmit(ULONG eid_size, const ENTRYID *, ULONG flags) override;
 		virtual HRESULT GetOutgoingQueue(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
 		virtual HRESULT SetLockState(LPMESSAGE lpMessage,ULONG ulLockState) _kc_override;
 		virtual HRESULT FinishedMsg(ULONG flags, ULONG cbEntryID, LPENTRYID lpEntryID) _kc_override;

@@ -820,7 +820,7 @@ HRESULT ECMsgStore::StoreLogoff(ULONG *lpulFlags) {
 	return hrSuccess;
 }
 
-HRESULT ECMsgStore::AbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags)
+HRESULT ECMsgStore::AbortSubmit(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulFlags)
 {
 	// Non supported function for publicfolder
 	if (IsPublicStore() == TRUE)
@@ -2774,7 +2774,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, SetReceiveFolder, (const TC
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetReceiveFolder, (const TCHAR *, cls), (ULONG, flags), (ULONG *, eid_size), (ENTRYID **, eid), (TCHAR **, exp_class))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetReceiveFolderTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, StoreLogoff, (ULONG *, lpulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, AbortSubmit, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, AbortSubmit, (ULONG, eid_size), (const ENTRYID *, eid), (ULONG, flags))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetOutgoingQueue, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, SetLockState, (LPMESSAGE, lpMessage), (ULONG, ulLockState))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, FinishedMsg, (ULONG, ulFlags), (ULONG, cbEntryID), (LPENTRYID, lpEntryID))

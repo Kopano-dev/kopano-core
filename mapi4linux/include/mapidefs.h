@@ -968,7 +968,7 @@ public:
 	virtual HRESULT GetReceiveFolder(const TCHAR *cls, ULONG flags, ULONG *eid_size, ENTRYID **eid, TCHAR **exp_class) = 0;
     virtual HRESULT GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
     virtual HRESULT StoreLogoff(ULONG *lpulFlags) = 0;
-    virtual HRESULT AbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags) = 0;
+	virtual HRESULT AbortSubmit(ULONG eid_size, const ENTRYID *, ULONG flags) = 0;
     virtual HRESULT GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
     virtual HRESULT SetLockState(LPMESSAGE lpMessage,ULONG ulLockState) = 0;
     virtual HRESULT FinishedMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) = 0;

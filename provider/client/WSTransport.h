@@ -146,7 +146,7 @@ public:
 
 	// Outgoing Queue Finished message
 	virtual HRESULT HrFinishedMessage(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulFlags);
-	virtual HRESULT HrAbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID);
+	virtual HRESULT HrAbortSubmit(ULONG eid_size, const ENTRYID *);
 
 	// Get user information
 	virtual HRESULT HrResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);

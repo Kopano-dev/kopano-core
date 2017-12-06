@@ -1539,7 +1539,7 @@ HRESULT WSTransport::HrFinishedMessage(ULONG cbEntryID,
 	return hr;
 }
 
-HRESULT WSTransport::HrAbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID)
+HRESULT WSTransport::HrAbortSubmit(ULONG cbEntryID, const ENTRYID *lpEntryID)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
