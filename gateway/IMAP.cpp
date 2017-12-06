@@ -4437,9 +4437,8 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
         strMessagePart.clear();
         
         if(bNot) {
-			std::set<std::string> s;
 			auto lstTokens = tokenize(strFields, " ");
-			std::copy(lstTokens.begin(), lstTokens.end(), std::inserter(s, s.begin()));
+			std::set<std::string> s(std::make_move_iterator(lstTokens.begin()), std::make_move_iterator(lstTokens.end()));
 
             // Output all headers except those specified
             for (const auto &field : lstFields) {
