@@ -39,7 +39,7 @@ HRESULT ECRestriction::CreateMAPIRestriction(LPSRestriction *lppRestriction, ULO
 
 	if (lppRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = MAPIAllocateBuffer(sizeof(SRestrictionPtr::value_type), &~ptrRestriction);
+	auto hr = MAPIAllocateBuffer(sizeof(SRestriction), &~ptrRestriction);
 	if (hr != hrSuccess)
 		return hr;
 	hr = GetMAPIRestriction(ptrRestriction, ptrRestriction, ulFlags);
@@ -404,7 +404,7 @@ ECRawRestriction::ECRawRestriction(const SRestriction *lpRestriction,
 		return;
 	}
 	SRestrictionPtr ptrResTmp;
-	HRESULT hr = MAPIAllocateBuffer(sizeof(SRestrictionPtr::value_type), &~ptrResTmp);
+	auto hr = MAPIAllocateBuffer(sizeof(SRestriction), &~ptrResTmp);
 	if (hr != hrSuccess)
 		return;
 	if (ulFlags & ECRestriction::Shallow)
