@@ -1273,6 +1273,16 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 
 	if (lpLcid == nullptr)
 		return KCERR_INVALID_PARAMETER;
+
+	auto cache = GetCacheManager();
+
+	sObjectTableKey key(ulStoreId, 0);
+	struct propVal prop;
+	if (cache->GetCell(&key, PR_SORT_LOCALE_ID, &prop, nullptr, false) == erSuccess) {
+		*lpLcid = prop.Value.ul;
+		return erSuccess;
+	}
+
 	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory.get(), &lpDatabase);
 	if(er != erSuccess)
 		return er;
@@ -1286,6 +1296,15 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
 		return KCERR_NOT_FOUND;
 	*lpLcid = strtoul(lpDBRow[0], NULL, 10);
+
+	struct propVal new_prop;
+	new_prop.ulPropTag = PR_SORT_LOCALE_ID;
+	new_prop.Value.ul = *lpLcid;
+
+	er = cache->SetCell(&key, PR_SORT_LOCALE_ID, &new_prop);
+	if (er != erSuccess)
+		return er;
+
 	return erSuccess;
 }
 
