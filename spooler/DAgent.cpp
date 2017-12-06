@@ -349,7 +349,7 @@ static bool FNeedsAutoAccept(IMsgStore *lpStore, LPMESSAGE lpMessage)
 		kc_perrorf("GetAutoAcceptSettings failed", hr);
 		return false; /* hr */
 	}
-	return !bAutoAccept;
+	return bAutoAccept;
 }
 
 /**
@@ -487,7 +487,7 @@ static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
 		convert_to<std::string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR),
 		g_lpConfig->GetSettingsPath(), strEntryID
 	};
-	ec_log_debug("Starting autoaccept");
+	ec_log_debug("Starting autoprocessing");
 	if (!unix_system(autoprocessor, cmdline, const_cast<const char **>(environ)))
 		hr = MAPI_E_CALL_FAILED;
 
