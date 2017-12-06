@@ -199,7 +199,6 @@ public:
 %include "IECSpooler.i"
 %include "IECTestProtocol.i"
 %include "IECMultiStoreTable.i"
-%include "IECLicense.i"
 %include "IECExportChanges.i"
 %include "helpers.i"
 %include "ecdefs.i"
@@ -270,7 +269,6 @@ swig_type_info *TypeFromIID(REFIID iid)
   TYPECASE(IECChangeAdvisor)
   TYPECASE(IECChangeAdviseSink)
   TYPECASE(IECSingleInstance)
-  TYPECASE(IECLicense)
   TYPECASE(IProxyStoreObject)
   TYPECASE(IECImportContentsChanges)
   TYPECASE(IECImportHierarchyChanges)
@@ -303,7 +301,6 @@ LPCIID IIDFromType(const char *type)
   IIDCASE(IECChangeAdvisor)
   IIDCASE(IECChangeAdviseSink)
   IIDCASE(IECSingleInstance)
-  IIDCASE(IECLicense)
   IIDCASE(IProxyStoreObject)
   IIDCASE(IECImportContentsChanges)
   IIDCASE(IECImportHierarchyChanges)

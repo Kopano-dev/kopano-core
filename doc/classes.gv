@@ -116,7 +116,6 @@ digraph {
 	ECMessageStreamImporterIStreamAdapter -> ECUnknown;
 	ECMessageStreamImporterIStreamAdapter -> IStream;
 	ECMsgStore -> ECMAPIProp;
-	ECMsgStore -> IECLicense;
 	ECMsgStore -> IECMultiStoreTable;
 	ECMsgStore -> IECServiceAdmin;
 	ECMsgStore -> IECSpooler;
@@ -137,7 +136,6 @@ digraph {
 	IECExportAddressbookChanges -> IUnknown;
 	IECExportChanges -> IExchangeExportChanges;
 	IECImportContentsChanges -> IExchangeImportContentsChanges;
-	IECLicense -> IUnknown;
 	IECMultiStoreTable -> IUnknown;
 	IECPropStorage -> IUnknown;
 	IECSecurity -> IUnknown;

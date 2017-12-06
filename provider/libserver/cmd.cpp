@@ -9586,6 +9586,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getLicenseAuth, r->er, struct xsd__base64Binary, struct getLicenseAuthResponse *r)
 {
+	/* Called by ZCP 7.2.6 */
 	r->sAuthResponse.__ptr = nullptr;
 	r->sAuthResponse.__size = 0;
 }

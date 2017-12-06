@@ -4175,40 +4175,6 @@ HRESULT WSTransport::HrCheckCapabilityFlags(ULONG ulFlags, BOOL *lpbResult)
 	return hrSuccess;
 }
 
-HRESULT WSTransport::HrLicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lppResponseData, unsigned int *lpulSize)
-{
-    HRESULT hr = hrSuccess;
-    ECRESULT er = erSuccess;
-    struct getLicenseAuthResponse sResponse;
-    struct xsd__base64Binary sData;
-    
-    sData.__ptr = lpData;
-    sData.__size = ulSize;
-    
-    LockSoap();
-    
-	START_SOAP_CALL
-	{
-		if(SOAP_OK != m_lpCmd->ns__getLicenseAuth(m_ecSessionId, sData, &sResponse))
-			er = KCERR_NETWORK_ERROR;
-		else
-			er = sResponse.er;
-        
-	}
-	END_SOAP_CALL
-        
-    hr = MAPIAllocateBuffer(sResponse.sAuthResponse.__size, (void **) lppResponseData);
-    if(hr != hrSuccess)
-		goto exitm;
-        
-    memcpy(*lppResponseData, sResponse.sAuthResponse.__ptr, sResponse.sAuthResponse.__size);
-    *lpulSize = sResponse.sAuthResponse.__size;
- exitm:
-    UnLockSoap();
-    
-    return hr;
-}
-
 HRESULT WSTransport::HrTestPerform(const char *szCommand, unsigned int ulArgs,
     char **lpszArgs)
 {

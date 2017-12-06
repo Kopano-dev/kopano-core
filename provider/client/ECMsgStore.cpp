@@ -233,7 +233,6 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 	}
 	// is admin store?
 	REGISTER_INTERFACE2(IECMultiStoreTable, &this->m_xMsgStoreProxy);
-	REGISTER_INTERFACE2(IECLicense, &this->m_xMsgStoreProxy);
 	REGISTER_INTERFACE2(IECTestProtocol, &this->m_xMsgStoreProxy);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
@@ -2649,11 +2648,6 @@ HRESULT ECMsgStore::OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, LP
 	return hr;
 }
 
-HRESULT ECMsgStore::LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lppResponse, unsigned int * lpulResponseData)
-{
-	return lpTransport->HrLicenseAuth(lpData, ulSize, lppResponse, lpulResponseData);
-}
-
 HRESULT ECMsgStore::TestPerform(const char *szCommand, unsigned int ulArgs,
     char **lpszArgs)
 {
@@ -2796,9 +2790,6 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetIDsFromNames, (ULONG, cN
 
 // IECMultiStoreTable interface
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, OpenMultiStoreTable, (LPENTRYLIST, lpMsgList), (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-
-// IECLicense interface
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, LicenseAuth, (unsigned char *, lpData), (unsigned int, ulSize), (unsigned char **, lppResponse), (unsigned int *, lpulResponseSize))
 
 // IECTestProtocol interface
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, TestPerform, (const char *, cmd), (unsigned int, argc), (char **, args))
