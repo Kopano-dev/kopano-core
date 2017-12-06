@@ -79,7 +79,7 @@ public:
 	virtual HRESULT AbortSubmit(ULONG eid_size, const ENTRYID *, ULONG flags) override;
 	virtual HRESULT GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable);
 	virtual HRESULT SetLockState(LPMESSAGE lpMessage,ULONG ulLockState);
-	virtual HRESULT FinishedMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID);
+	virtual HRESULT FinishedMsg(ULONG flags, ULONG eid_size, const ENTRYID *) override;
 	virtual HRESULT NotifyNewMail(LPNOTIFICATION lpNotification);
 
 	virtual HRESULT CreateStoreEntryID(const TCHAR *store_dn, const TCHAR *mbox_dn, ULONG flags, ULONG *eid_size, ENTRYID **eid);
@@ -216,7 +216,7 @@ public:
 		virtual HRESULT AbortSubmit(ULONG eid_size, const ENTRYID *, ULONG flags) override;
 		virtual HRESULT GetOutgoingQueue(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
 		virtual HRESULT SetLockState(LPMESSAGE lpMessage,ULONG ulLockState) _kc_override;
-		virtual HRESULT FinishedMsg(ULONG flags, ULONG cbEntryID, LPENTRYID lpEntryID) _kc_override;
+		virtual HRESULT FinishedMsg(ULONG flags, ULONG eid_size, const ENTRYID *) override;
 		virtual HRESULT NotifyNewMail(LPNOTIFICATION lpNotification) _kc_override;
 		virtual HRESULT GetLastError(HRESULT hError, ULONG flags, LPMAPIERROR *lppMapiError) _kc_override;
 		virtual HRESULT SaveChanges(ULONG flags) _kc_override;

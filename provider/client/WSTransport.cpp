@@ -4143,7 +4143,7 @@ HRESULT WSTransport::HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags, ULONG cbE
 	       reinterpret_cast<void **>(lppTableView));
 }
 
-HRESULT WSTransport::HrSetLockState(ULONG cbEntryID, LPENTRYID lpEntryID, bool bLocked)
+HRESULT WSTransport::HrSetLockState(ULONG cbEntryID, const ENTRYID *lpEntryID, bool bLocked)
 {
 	HRESULT hr = hrSuccess;
     ECRESULT er = erSuccess;

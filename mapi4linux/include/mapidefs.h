@@ -971,7 +971,7 @@ public:
 	virtual HRESULT AbortSubmit(ULONG eid_size, const ENTRYID *, ULONG flags) = 0;
     virtual HRESULT GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
     virtual HRESULT SetLockState(LPMESSAGE lpMessage,ULONG ulLockState) = 0;
-    virtual HRESULT FinishedMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) = 0;
+	virtual HRESULT FinishedMsg(ULONG flags, ULONG eid_size, const ENTRYID *) = 0;
     virtual HRESULT NotifyNewMail(LPNOTIFICATION lpNotification) = 0;
 };
 IID_OF(IMsgStore)

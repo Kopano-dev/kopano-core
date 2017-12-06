@@ -254,7 +254,7 @@ public:
 	virtual HRESULT HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECMsgStore *lpMsgStore, WSTableView **lppTableView);
 
 	/* Message locking */
-	virtual HRESULT HrSetLockState(ULONG cbEntryID, LPENTRYID lpEntryID, bool bLocked);
+	virtual HRESULT HrSetLockState(ULONG eid_size, const ENTRYID *, bool locked);
 
 	/* expose capabilities */
 	virtual HRESULT HrCheckCapabilityFlags(ULONG ulFlags, BOOL *lpbResult);
