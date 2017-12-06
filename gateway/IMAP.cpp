@@ -3342,7 +3342,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 			break;
 		}
 
-		string container_class = "";
+		std::string container_class;
 		bool mailfolder = true;
 		if (rows[i].lpProps[NAME].ulPropTag != PR_DISPLAY_NAME_W ||
 		    rows[i].lpProps[SUBFOLDERS].ulPropTag != PR_SUBFOLDERS ||

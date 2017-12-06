@@ -74,7 +74,7 @@ protected:
 
 private:
 	static ECRESULT GetMVRowCountHelper(ECDatabase *db, std::string query, std::list<unsigned int> &ids, std::map<unsigned int, unsigned int> &count);
-	virtual ECRESULT GetMVRowCount(std::list<unsigned int> obj_ids, std::map<unsigned int, unsigned int> &count) override;
+	virtual ECRESULT GetMVRowCount(std::list<unsigned int> &&obj_ids, std::map<unsigned int, unsigned int> &count) override;
 	virtual ECRESULT ReloadTableMVData(ECObjectTableList *rows, ECListInt *mvproptags) override;
 	virtual ECRESULT CheckPermissions(unsigned int obj_id) override;
 

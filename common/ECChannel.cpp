@@ -968,7 +968,7 @@ kc_parse_bindaddrs(const char *longline, uint16_t defport)
 			}
 			host = std::move(spec);
 			if (host == "*")
-				host = "";
+				host.clear();
 		}
 		socks.emplace(std::move(host), port);
 	}

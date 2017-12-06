@@ -205,22 +205,19 @@ HRESULT ECMemTable::HrGetRowData(LPSPropValue lpRow, ULONG *lpcValues, LPSPropVa
 HRESULT ECMemTable::HrSetClean()
 {
 	HRESULT hr = hrSuccess;
-	std::map<unsigned int, ECTableEntry>::iterator iterRows, iterNext;
 	scoped_rlock l_data(m_hDataMutex);
 
-	for (iterRows = mapRows.begin(); iterRows != mapRows.end(); iterRows = iterNext) {
-		iterNext = iterRows;
-		++iterNext;
-
+	for (auto iterRows = mapRows.begin(); iterRows != mapRows.end(); ) {
 		if(iterRows->second.fDeleted) {
 			MAPIFreeBuffer(iterRows->second.lpsID);
 			MAPIFreeBuffer(iterRows->second.lpsPropVal);
-			mapRows.erase(iterRows);
+			iterRows = mapRows.erase(iterRows);
 			continue;
 		}
 		iterRows->second.fDeleted = false;
 		iterRows->second.fDirty = false;
 		iterRows->second.fNew = false;
+		++iterRows;
 	}
 	return hr;
 }
@@ -398,7 +395,7 @@ HRESULT ECMemTable::HrClear()
 
 ECMemTableView::ECMemTableView(ECMemTable *lpMemTable, const ECLocale &locale,
     ULONG ulFlags) :
-	ECUnknown("ECMemTableView"), lpKeyTable(new ECKeyTable)
+	ECUnknown("ECMemTableView")
 {
 	this->lpMemTable = lpMemTable;
 
@@ -437,7 +434,6 @@ ECMemTableView::~ECMemTableView()
 
 	delete[] this->lpsPropTags;
 	delete[] lpsSortOrderSet;
-	delete lpKeyTable;
 	MAPIFreeBuffer(lpsRestriction);
 }
 
@@ -646,7 +642,7 @@ HRESULT ECMemTableView::GetRowCount(ULONG ulFlags, ULONG *lpulCount)
 
 	if(lpulCount == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	ECRESULT er = this->lpKeyTable->GetRowCount(&ulCount, &ulCurrentRow);
+	auto er = lpKeyTable.GetRowCount(&ulCount, &ulCurrentRow);
 	HRESULT hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
 		return hr;
@@ -657,8 +653,7 @@ HRESULT ECMemTableView::GetRowCount(ULONG ulFlags, ULONG *lpulCount)
 HRESULT ECMemTableView::SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought)
 {
 	int lRowsSought;
-
-	ECRESULT er = this->lpKeyTable->SeekRow(static_cast<unsigned int>(bkOrigin),
+	auto er = lpKeyTable.SeekRow(static_cast<unsigned int>(bkOrigin),
 	              lRowCount, &lRowsSought);
 	HRESULT hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
@@ -672,8 +667,7 @@ HRESULT ECMemTableView::SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator)
 {
 	unsigned int ulRows = 0;
 	unsigned int ulCurrentRow = 0;
-
-	ECRESULT er = lpKeyTable->GetRowCount(&ulRows, &ulCurrentRow);
+	auto er = lpKeyTable.GetRowCount(&ulRows, &ulCurrentRow);
 	HRESULT hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
 		return hr;
@@ -687,7 +681,7 @@ HRESULT ECMemTableView::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULON
 
 	if (lpulRow == NULL || lpulNumerator == NULL || lpulDenominator == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	ECRESULT er = lpKeyTable->GetRowCount(&ulRows, &ulCurrentRow);
+	auto er = lpKeyTable.GetRowCount(&ulRows, &ulCurrentRow);
 	HRESULT hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
 		return hr;
@@ -714,7 +708,7 @@ HRESULT ECMemTableView::FindRow(const SRestriction *lpRestriction,
 	{
 		sRowItem.ulObjId = lpRestriction->res.resContent.lpProp->Value.ul;
 		sRowItem.ulOrderId = 0; // FIXME:mvprops ?
-		return kcerr_to_mapierr(this->lpKeyTable->SeekId(&sRowItem));
+		return kcerr_to_mapierr(lpKeyTable.SeekId(&sRowItem));
 	}
 	if (bkOrigin == BOOKMARK_END && ulFlags & DIR_BACKWARD)
 		// Loop through the rows
@@ -727,7 +721,7 @@ HRESULT ECMemTableView::FindRow(const SRestriction *lpRestriction,
 
 	// Loop through the rows until one matches.
 	while(1) {
-		er = this->lpKeyTable->QueryRows(1, &sRowList, ulFlags & DIR_BACKWARD, 0);
+		er = lpKeyTable.QueryRows(1, &sRowList, ulFlags & DIR_BACKWARD, 0);
 		hr = kcerr_to_mapierr(er);
 		if(hr != hrSuccess)
 			return hr;
@@ -777,7 +771,7 @@ HRESULT ECMemTableView::CreateBookmark(BOOKMARK* lpbkPosition)
 
 	if (lpbkPosition == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	ECRESULT er = this->lpKeyTable->CreateBookmark(&bkPosition);
+	auto er = lpKeyTable.CreateBookmark(&bkPosition);
 	HRESULT hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
 		return hr;
@@ -787,7 +781,7 @@ HRESULT ECMemTableView::CreateBookmark(BOOKMARK* lpbkPosition)
 
 HRESULT ECMemTableView::FreeBookmark(BOOKMARK bkPosition)
 {
-	return kcerr_to_mapierr(this->lpKeyTable->FreeBookmark(static_cast<unsigned int>(bkPosition)));
+	return kcerr_to_mapierr(lpKeyTable.FreeBookmark(static_cast<unsigned int>(bkPosition)));
 }
 
 // This is the client version of ECGenericObjectTable::GetBinarySortKey()
@@ -888,7 +882,7 @@ HRESULT ECMemTableView::UpdateSortOrRestrict() {
 	sObjectTableKey sRowItem;
 
 	// Clear the keytable
-	lpKeyTable->Clear();
+	lpKeyTable.Clear();
 
 	// Add the columns into the keytable, which does the actual sorting, etc.
 	for (const auto &recip : lpMemTable->mapRows) {
@@ -900,8 +894,7 @@ HRESULT ECMemTableView::UpdateSortOrRestrict() {
 	}
 
 	// Seek to start of table (FIXME should this seek to the previously selected row ?)
-	lpKeyTable->SeekRow(ECKeyTable::EC_SEEK_SET, 0 , NULL);
-
+	lpKeyTable.SeekRow(ECKeyTable::EC_SEEK_SET, 0, nullptr);
 	return hr;
 }
 
@@ -923,7 +916,7 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 	    TestRestriction(this->lpsRestriction, iterData->second.cValues, iterData->second.lpsPropVal, m_locale) != hrSuccess) {
 		// no match
 		// Remove the row, ignore error
-		lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, lpsRowItem, {}, lpsPrevRow, false, (ECKeyTable::UpdateType *)lpulAction);
+		lpKeyTable.UpdateRow(ECKeyTable::TABLE_ROW_DELETE, lpsRowItem, {}, lpsPrevRow, false, reinterpret_cast<ECKeyTable::UpdateType *>(lpulAction));
 		return hrSuccess;
 	}
 
@@ -940,7 +933,7 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 		if(lpsSortOrderSet->aSort[j].ulOrder == TABLE_SORT_DESCEND)
 			sortcols[j].flags |= TABLEROW_FLAG_DESC;
 	}
-	lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_ADD, lpsRowItem,
+	lpKeyTable.UpdateRow(ECKeyTable::TABLE_ROW_ADD, lpsRowItem,
 		std::move(sortcols), lpsPrevRow, false,
 		reinterpret_cast<ECKeyTable::UpdateType *>(lpulAction));
 	return hrSuccess;
@@ -994,7 +987,7 @@ HRESULT ECMemTableView::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, L
 HRESULT ECMemTableView::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows)
 {
 	ECObjectTableList	sRowList;
-	HRESULT hr = kcerr_to_mapierr(lpKeyTable->QueryRows(lRowCount, &sRowList, false, ulFlags));
+	auto hr = kcerr_to_mapierr(lpKeyTable.QueryRows(lRowCount, &sRowList, false, ulFlags));
 	if(hr != hrSuccess)
 		return hr;
 	return QueryRowData(&sRowList, lppRows);
@@ -1121,7 +1114,7 @@ HRESULT ECMemTableView::UpdateRow(ULONG ulUpdateType, ULONG ulId)
 	if(((this->lpsSortOrderSet == NULL  || this->lpsSortOrderSet->cSorts == 0) && this->lpsRestriction == NULL) ||
 		ulUpdateType == ECKeyTable::TABLE_ROW_DELETE)
 	{
-		er = lpKeyTable->UpdateRow((ECKeyTable::UpdateType)ulUpdateType, &sRowItem, {}, &sPrevRow, false, reinterpret_cast<ECKeyTable::UpdateType *>(&ulTableEvent));
+		er = lpKeyTable.UpdateRow(static_cast<ECKeyTable::UpdateType>(ulUpdateType), &sRowItem, {}, &sPrevRow, false, reinterpret_cast<ECKeyTable::UpdateType *>(&ulTableEvent));
 		hr = kcerr_to_mapierr(er);
 	} else {
 		hr = ModifyRowKey(&sRowItem, &sPrevRow, &ulTableEvent);
@@ -1135,13 +1128,7 @@ HRESULT ECMemTableView::UpdateRow(ULONG ulUpdateType, ULONG ulId)
 
 HRESULT ECMemTableView::Clear()
 {
-	HRESULT hr = hrSuccess;
-	ECRESULT er = hrSuccess;
-
-	er = lpKeyTable->Clear();
-
-	hr = kcerr_to_mapierr(er);
-
+	auto hr = kcerr_to_mapierr(lpKeyTable.Clear());
 	// FIXME: Outlook gives a TABLE_ROW_DELETE or TABLE_CHANGE?
 	if (hr == hrSuccess)
 		Notify(TABLE_CHANGED, NULL, NULL);

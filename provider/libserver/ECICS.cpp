@@ -259,8 +259,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	}
 	if(er != erSuccess)
 		return er;
-
-	strChangeList = "";
 	strQuery = "SELECT val_binary FROM properties "
 				"WHERE tag = " + stringify(PROP_ID(PR_PREDECESSOR_CHANGE_LIST)) +
 				" AND type = " + stringify(PROP_TYPE(PR_PREDECESSOR_CHANGE_LIST)) +

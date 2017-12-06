@@ -1199,10 +1199,9 @@ void WebDav::HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName, xmlNode *lpXmlNode
 	else
 		lpsDavPropName->strNS.clear();
 	if(!lpsDavPropName->strNS.empty())
-		m_mapNs[lpsDavPropName->strNS] = "";
-
-	lpsDavPropName->strPropAttribName = "";
-	lpsDavPropName->strPropAttribValue = "";
+		m_mapNs[lpsDavPropName->strNS].clear();
+	lpsDavPropName->strPropAttribName.clear();
+	lpsDavPropName->strPropAttribValue.clear();
 }
 
 /**
@@ -1249,7 +1248,7 @@ void WebDav::HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName,
 	lpsDavPropName->strPropAttribName = strPropAttribName;
 	lpsDavPropName->strPropAttribValue = strPropAttribValue;
 	if (!lpsDavPropName->strNS.empty())
-		m_mapNs[lpsDavPropName->strNS] = "";
+		m_mapNs[lpsDavPropName->strNS].clear();
 }
 
 /**

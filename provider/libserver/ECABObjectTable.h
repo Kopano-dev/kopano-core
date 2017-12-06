@@ -64,7 +64,7 @@ protected:
 	ECRESULT LoadContentsDistlist(unsigned int obj_id, unsigned int flags, std::list<localobjectdetails_t> **objects);
 
 private:
-	virtual ECRESULT GetMVRowCount(std::list<unsigned int> obj_ids, std::map<unsigned int, unsigned int> &count) override;
+	virtual ECRESULT GetMVRowCount(std::list<unsigned int> &&obj_ids, std::map<unsigned int, unsigned int> &count) override;
 	virtual ECRESULT ReloadTableMVData(ECObjectTableList *rows, ECListInt *mvproptags) override;
 
 protected:

@@ -37,6 +37,12 @@
 
 namespace KC {
 
+struct CONTAINERINFO {
+	unsigned int ulId;
+	unsigned int ulDepth;
+	std::string strPath;
+};
+
 ECConvenientDepthObjectTable::ECConvenientDepthObjectTable(ECSession *lpSession, unsigned int ulStoreId, LPGUID lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) : ECStoreObjectTable(lpSession, ulStoreId, lpGuid, 0, ulObjType, ulFlags, 0, locale) {
     m_ulFolderId = ulFolderId;
 }
@@ -227,7 +233,6 @@ ECRESULT ECConvenientDepthABObjectTable::Load()
 	// Load this container
 	root.ulId = lpODAB->ulABParentId;
 	root.ulDepth = -1; // Our children are at depth 0, so the root object is depth -1. Note that this object is not actually added as a row in the end.
-	root.strPath = "";
 	lstObjects.emplace_back(std::move(root));
 
 	// 'Recursively' loop through all our containers and add each of those children to our object list
