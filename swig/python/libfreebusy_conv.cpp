@@ -113,18 +113,14 @@ PyObject* Object_from_FBBlock_1(FBBlock_1 const& sFBBlock) {
 	pyobj_ptr end, status, object;
 	pyobj_ptr start(PyLong_FromLong(sFBBlock.m_tmStart));
 	if (PyErr_Occurred())
-		goto exit;
+		return nullptr;
 	end.reset(PyLong_FromLong(sFBBlock.m_tmEnd));
 	if (PyErr_Occurred())
-		goto exit;
+		return nullptr;
 	status.reset(PyLong_FromLong(sFBBlock.m_fbstatus));
 	if (PyErr_Occurred())
-		goto exit;
-	object.reset(PyObject_CallFunction(PyTypeFreeBusyBlock, "(OOO)", start.get(), end.get(), status.get()));
- exit:
-	if (PyErr_Occurred())
-		object.reset();
-	return object.release();
+		return nullptr;
+	return PyObject_CallFunction(PyTypeFreeBusyBlock, "(OOO)", start.get(), end.get(), status.get());
 }
 
 PyObject* List_from_FBBlock_1(LPFBBlock_1 lpFBBlocks, LONG* nBlocks) {
@@ -132,12 +128,8 @@ PyObject* List_from_FBBlock_1(LPFBBlock_1 lpFBBlocks, LONG* nBlocks) {
 	for (size_t i = 0; i < *nBlocks; ++i) {
 		pyobj_ptr elem(Object_from_FBBlock_1(lpFBBlocks[i]));
 		if(PyErr_Occurred())
-			goto exit;
-
+			return nullptr;
 		PyList_Append(list, elem);
 	}
- exit:
-	if (PyErr_Occurred())
-		list.reset();
 	return list.release();
 }
