@@ -1098,8 +1098,8 @@ HRESULT ZCABContainer::CopyProps(const SPropTagArray *, ULONG, IMAPIProgress *,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ZCABContainer::GetNamesFromIDs(SPropTagArray **, GUID *, ULONG,
-    ULONG *, MAPINAMEID ***)
+HRESULT ZCABContainer::GetNamesFromIDs(SPropTagArray **tags, const GUID *propset,
+    ULONG flags, ULONG *nvals, MAPINAMEID ***names)
 {
 	return MAPI_E_NO_SUPPORT;
 }

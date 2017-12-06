@@ -32,8 +32,7 @@ class ECNamedProp _kc_final {
 public:
 	ECNamedProp(WSTransport *lpTransport);
 	virtual ~ECNamedProp();
-
-	virtual HRESULT GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames);
+	virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names);
 	virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags);
 
 private:
@@ -42,10 +41,8 @@ private:
 
 	HRESULT			ResolveLocal(MAPINAMEID *lpName, ULONG *ulId);
 	HRESULT			ResolveCache(MAPINAMEID *lpName, ULONG *ulId);
-
-	HRESULT			ResolveReverseLocal(ULONG ulId, LPGUID lpGuid, ULONG ulFlags, void *lpBase, MAPINAMEID **lppName);
-	HRESULT			ResolveReverseCache(ULONG ulId, LPGUID lpGuid, ULONG ulFlags, void *lpBase, MAPINAMEID **lppName);
-
+	HRESULT ResolveReverseLocal(ULONG ulId, const GUID *, ULONG flags, void *base, MAPINAMEID **name);
+	HRESULT ResolveReverseCache(ULONG ulId, const GUID *, ULONG flags, void *base, MAPINAMEID **name);
 	HRESULT			UpdateCache(ULONG ulId, MAPINAMEID *lpName);
 	HRESULT			HrCopyNameId(LPMAPINAMEID lpSrc, LPMAPINAMEID *lppDst, void *lpBase);
 

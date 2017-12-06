@@ -169,7 +169,8 @@
 // Input
 %typemap(in,fragment="SWIG_AsCharPtrAndSize")	LPMAPIUID (int res, char *buf = NULL, size_t size, int alloc = 0),
 				LPCIID (int res, char *buf = NULL, size_t size, int alloc = 0),
-				LPGUID (int res, char *buf = NULL, size_t size, int alloc = 0)
+				LPGUID (int res, char *buf = NULL, size_t size, int alloc = 0),
+				GUID * (int res, char *buf = NULL, size_t size, int alloc = 0)
 {
   alloc = SWIG_OLDOBJ;
   if($input == Py_None)

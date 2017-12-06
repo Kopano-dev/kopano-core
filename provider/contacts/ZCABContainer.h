@@ -69,7 +69,7 @@ public:
 	virtual HRESULT DeleteProps(const SPropTagArray *, SPropProblemArray **) _kc_override;
 	virtual HRESULT CopyTo(ULONG, const IID *, const SPropTagArray *, ULONG, IMAPIProgress *, const IID *, void *, ULONG, SPropProblemArray **) _kc_override;
 	virtual HRESULT CopyProps(const SPropTagArray *, ULONG, IMAPIProgress *, const IID *, void *, ULONG, SPropProblemArray **) _kc_override;
-	virtual HRESULT GetNamesFromIDs(SPropTagArray **, GUID *, ULONG, ULONG *, MAPINAMEID ***) _kc_override;
+	virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) override;
 	virtual HRESULT GetIDsFromNames(ULONG, MAPINAMEID **, ULONG, SPropTagArray **) _kc_override;
 
 private:

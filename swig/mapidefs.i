@@ -127,8 +127,7 @@ public:
 	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *OUTPUT /*lppProblems*/) = 0;
 	virtual HRESULT CopyTo(ULONG cInterfaces, LPCIID lpInterfaces, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, IMAPIProgress *lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, LPSPropProblemArray *OUTPUT /*lppProblems*/) = 0;
 	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, IMAPIProgress *lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, LPSPropProblemArray *OUTPUT /*lppProblems*/) = 0;
-    virtual HRESULT GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* OUTPUTC,
-				    LPMAPINAMEID** OUTPUTP /*lpppPropNames*/) = 0;
+	virtual HRESULT GetNamesFromIDs(LPSPropTagArray *lppPropTags, const GUID *lpPropSetGuid, ULONG ulFlags, ULONG *OUTPUTC, LPMAPINAMEID **OUTPUTP /*lpppPropNames*/) = 0;
     virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* OUTPUT /*lppPropTags*/) = 0;
 	%extend {
 		~IMAPIProp() { self->Release(); }

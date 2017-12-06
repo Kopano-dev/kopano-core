@@ -1202,7 +1202,8 @@ HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames,
 	return hr;
 }
 
-HRESULT WSTransport::HrGetNamesFromIDs(LPSPropTagArray lpsPropTags, LPMAPINAMEID **lpppNames, ULONG *lpcResolved)
+HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
+    MAPINAMEID ***lpppNames, ULONG *lpcResolved)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;

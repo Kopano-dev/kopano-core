@@ -130,8 +130,7 @@ public:
 
 	// Named properties
 	virtual HRESULT HrGetIDsFromNames(LPMAPINAMEID *lppPropNamesUnresolved, ULONG cUnresolved, ULONG ulFlags, ULONG **lpServerIDs);
-
-	virtual HRESULT HrGetNamesFromIDs(LPSPropTagArray lpsPropTags, LPMAPINAMEID ** lpppNames, ULONG *cResolved);
+	virtual HRESULT HrGetNamesFromIDs(SPropTagArray *tags, MAPINAMEID ***names, ULONG *resolved);
 	
 	// ReceiveFolder
 	virtual HRESULT HrGetReceiveFolder(ULONG store_eid_size, const ENTRYID *store_eid, const utf8string &cls, ULONG *eid_size, ENTRYID **folder_eid, utf8string *exp_class);

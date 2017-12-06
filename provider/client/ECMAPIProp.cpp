@@ -704,7 +704,9 @@ HRESULT ECMAPIProp::CopyProps(const SPropTagArray *lpIncludeProps,
 }
 
 // Pass call off to lpMsgStore
-HRESULT ECMAPIProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames)
+HRESULT ECMAPIProp::GetNamesFromIDs(SPropTagArray **lppPropTags,
+    const GUID *lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames,
+    MAPINAMEID ***lpppPropNames)
 {
 	return this->GetMsgStore()->lpNamedProp->GetNamesFromIDs(lppPropTags, lpPropSetGuid, ulFlags, lpcPropNames, lpppPropNames);
 }
