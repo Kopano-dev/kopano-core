@@ -1734,12 +1734,6 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 		HrResponse(RESP_TAGGED_NO, strTag, "APPEND error converting message");
 		return hr;
 	}
-	if (IsSentItemFolder(lpAppendFolder) &&
-	    HrGetOneProp(lpAppendFolder, PR_ENTRYID, &~lpPropVal) == hrSuccess) {
-		// needed for blackberry
-		lpPropVal->ulPropTag = PR_SENTMAIL_ENTRYID;
-		HrSetOneProp(lpMessage, lpPropVal);
-	}
 
 	if (strFlags.size() > 2 && strFlags[0] == '(') {
 		// remove () around flags
@@ -6046,23 +6040,6 @@ bool IMAP::IsMailFolder(IMAPIFolder *lpFolder) const
 		return true;
 	return strcasecmp(lpProp->Value.lpszA, "IPM") == 0 ||
 	       strcasecmp(lpProp->Value.lpszA, "IPF.NOTE") == 0;
-}
-
-bool IMAP::IsSentItemFolder(IMAPIFolder *lpFolder) const
-{
-    ULONG ulResult = FALSE;
-	memory_ptr<SPropValue> lpProp, lpPropStore;
-
-	HRESULT hr = HrGetOneProp(lpFolder, PR_ENTRYID, &~lpProp);
-	if (hr != hrSuccess)
-		return false;
-	hr = HrGetOneProp(lpStore, PR_IPM_SENTMAIL_ENTRYID, &~lpPropStore);
-	if (hr != hrSuccess)
-		return false;
-	hr = lpStore->CompareEntryIDs(lpProp->Value.bin.cb, (LPENTRYID)lpProp->Value.bin.lpb, lpPropStore->Value.bin.cb, (LPENTRYID)lpPropStore->Value.bin.lpb , 0, &ulResult);
-	if (hr != hrSuccess)
-		return false;
-	return ulResult;
 }
 
 /** 
