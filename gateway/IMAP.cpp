@@ -3037,19 +3037,15 @@ HRESULT IMAP::HrMakeSpecialsList() {
  * 
  * @return is a special folder (true) or a custom user folder (false)
  */
-bool IMAP::IsSpecialFolder(ULONG cbEntryID, LPENTRYID lpEntryID) const
-{
-	return lstSpecialEntryIDs.find(BinaryArray(lpEntryID, cbEntryID, true)) !=
-	       lstSpecialEntryIDs.end();
-}
 
 bool IMAP::IsSpecialFolder(ULONG cbEntryID, ENTRYID *lpEntryID,
-    ULONG &folder_type) const
+    ULONG *folder_type) const
 {
 	auto iter = lstSpecialEntryIDs.find(BinaryArray(lpEntryID, cbEntryID, true));
 	if(iter == lstSpecialEntryIDs.cend())
 		return false;
-	folder_type = (*iter).second;
+	if (folder_type)
+		*folder_type = iter->second;
 	return true;
 }
 
@@ -3286,7 +3282,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 
 	SFolder sfolder;
 	sfolder.bActive = true;
-	sfolder.bSpecialFolder = IsSpecialFolder(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), sfolder.ulSpecialFolderType);
+	sfolder.bSpecialFolder = IsSpecialFolder(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), &sfolder.ulSpecialFolderType);
 	sfolder.bMailFolder = false;
 	sfolder.lpParentFolder = parent_folder;
 	sfolder.strFolderName = in_folder_name;
@@ -3357,7 +3353,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 		}
 		auto subscribed_iter = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), entry_id);
 		sfolder.bActive = subscribed_iter != m_vSubscriptions.cend();
-		sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb, reinterpret_cast<ENTRYID *>(entry_id.lpb), sfolder.ulSpecialFolderType);
+		sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb, reinterpret_cast<ENTRYID *>(entry_id.lpb), &sfolder.ulSpecialFolderType);
 		sfolder.bMailFolder = mailfolder;
 		sfolder.lpParentFolder = tmp_parent_folder;
 		sfolder.strFolderName = foldername;
