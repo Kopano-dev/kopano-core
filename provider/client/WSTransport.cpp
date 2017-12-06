@@ -1268,7 +1268,8 @@ HRESULT WSTransport::HrGetNamesFromIDs(LPSPropTagArray lpsPropTags, LPMAPINAMEID
 	return hr;
 }
 
-HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, LPSRowSet* lppsRowSet)
+HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
+    ULONG cbStoreEntryID, const ENTRYID *lpStoreEntryID, SRowSet **lppsRowSet)
 {
 	struct receiveFolderTableResponse sReceiveFolders;
 	ECRESULT	er = erSuccess;
@@ -1368,7 +1369,9 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID
 	return hr;
 }
 
-HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, const utf8string &strMessageClass, ULONG* lpcbEntryID, LPENTRYID* lppEntryID, utf8string *lpstrExplicitClass)
+HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID,
+    const ENTRYID *lpStoreEntryID, const utf8string &strMessageClass,
+    ULONG *lpcbEntryID, ENTRYID **lppEntryID, utf8string *lpstrExplicitClass)
 {
 	struct receiveFolderResponse sReceiveFolderTable;
 
