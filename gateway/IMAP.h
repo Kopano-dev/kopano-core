@@ -290,13 +290,11 @@ private:
 	delivery_options dopt;
 
 	HRESULT HrPrintQuotaRoot(const std::string &tag);
-	HRESULT HrFindFolder(const std::wstring &folder, bool readonly, IMAPIFolder **);
+	HRESULT HrFindFolder(const std::wstring &folder, bool readonly, IMAPIFolder **, ULONG * = nullptr, ENTRYID ** = nullptr);
 	HRESULT HrFindFolderPartial(const std::wstring &folder, IMAPIFolder **, std::wstring *notfound);
 	HRESULT HrFindSubFolder(IMAPIFolder *lpFolder, const std::wstring &folder, ULONG *eid_size, LPENTRYID *eid);
-	bool IsSpecialFolder(ULONG eid_size, ENTRYID *) const;
-	bool IsSpecialFolder(ULONG eid_size, ENTRYID *, ULONG &folder_type) const;
+	bool IsSpecialFolder(ULONG eid_size, ENTRYID *, ULONG * = nullptr) const;
 	bool IsMailFolder(IMAPIFolder *) const;
-	bool IsSentItemFolder(IMAPIFolder *) const;
 	HRESULT HrOpenParentFolder(IMAPIFolder *lpFolder, IMAPIFolder **lppFolder);
 	HRESULT HrGetFolderList(std::list<SFolder> &);
 

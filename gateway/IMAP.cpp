@@ -1032,7 +1032,8 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpParentFolder;
 	object_ptr<IMAPIFolder> folder;
-	memory_ptr<SPropValue> prop;
+	ULONG cb;
+	memory_ptr<ENTRYID> entry_id;
 	wstring strFolder;
 	const std::string &strFolderParam = args[0];
 
@@ -1054,19 +1055,13 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-	hr = HrFindFolder(strFolder, false, &~folder);
+	hr = HrFindFolder(strFolder, false, &~folder, &cb, &~entry_id);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error folder not found");
 		goto exit;
 	}
 
-	hr = HrGetOneProp(folder, PR_ENTRYID, &~prop);
-	if (hr != hrSuccess) {
-		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error getting entryid");
-		goto exit;
-	}
-
-	if (IsSpecialFolder(prop->Value.bin.cb, reinterpret_cast<LPENTRYID>(prop->Value.bin.lpb))) {
+	if (IsSpecialFolder(cb, entry_id)) {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE special folder may not be deleted");
 		goto exit;
 	}
@@ -1076,14 +1071,14 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 		goto exit;
 	}
 
-	hr = lpParentFolder->DeleteFolder(prop->Value.bin.cb, reinterpret_cast<LPENTRYID>(prop->Value.bin.lpb), 0, NULL, DEL_FOLDERS | DEL_MESSAGES);
+	hr = lpParentFolder->DeleteFolder(cb, entry_id, 0, NULL, DEL_FOLDERS | DEL_MESSAGES);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error deleting folder");
 		goto exit;
 	}
 
 	// remove from subscribed list
-	hr = ChangeSubscribeList(false, prop->Value.bin.cb, reinterpret_cast<LPENTRYID>(prop->Value.bin.lpb));
+	hr = ChangeSubscribeList(false, cb, entry_id);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to update subscribed list for deleted folder '%ls'", strFolder.c_str());
 		hr = hrSuccess;
@@ -1121,7 +1116,9 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
     const std::vector<std::string> &args)
 {
 	HRESULT hr = hrSuccess;
-	memory_ptr<SPropValue> lppvFromEntryID, lppvDestEntryID, prop;
+	ULONG cb;
+	memory_ptr<ENTRYID> entry_id;
+	memory_ptr<SPropValue> lppvFromEntryID, lppvDestEntryID;
 	object_ptr<IMAPIFolder> lpParentFolder, lpMakeFolder, lpSubFolder, lpMovFolder;
 	ULONG ulObjType = 0;
 	string::size_type deliPos;
@@ -1164,19 +1161,13 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		goto exit;
 	}
 
-	hr = HrFindFolder(strExistingFolder, false, &~lpMovFolder);
+	hr = HrFindFolder(strExistingFolder, false, &~lpMovFolder, &cb, &~entry_id);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error source folder not found");
 		goto exit;
 	}
 
-	hr = HrGetOneProp(lpMovFolder, PR_ENTRYID, &~prop);
-	if (hr != hrSuccess) {
-		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error could not get source folder entryid");
-		goto exit;
-	}
-
-	if (IsSpecialFolder(prop->Value.bin.cb, reinterpret_cast<LPENTRYID>(prop->Value.bin.lpb))) {
+	if (IsSpecialFolder(cb, entry_id)) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME special folder may not be moved or renamed");
 		goto exit;
 	}
@@ -1230,7 +1221,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 	// When moving in the same folder, just rename
 	if (lppvFromEntryID->Value.bin.cb != lppvDestEntryID->Value.bin.cb || memcmp(lppvFromEntryID->Value.bin.lpb, lppvDestEntryID->Value.bin.lpb, lppvDestEntryID->Value.bin.cb) != 0) {
 	    // Do the real move
-		hr = lpParentFolder->CopyFolder(prop->Value.bin.cb, reinterpret_cast<LPENTRYID>(prop->Value.bin.lpb), &IID_IMAPIFolder, lpMakeFolder,
+		hr = lpParentFolder->CopyFolder(cb, entry_id, &IID_IMAPIFolder, lpMakeFolder,
 		     (TCHAR *) strFolder.c_str(), 0, NULL, MAPI_UNICODE | FOLDER_MOVE);
 	} else {
 		// from is same as dest folder, use SetProps(PR_DISPLAY_NAME)
@@ -1238,7 +1229,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		propName.ulPropTag = PR_DISPLAY_NAME_W;
 		propName.Value.lpszW = (WCHAR*)strFolder.c_str();
 
-		hr = lpSession->OpenEntry(prop->Value.bin.cb, reinterpret_cast<LPENTRYID>(prop->Value.bin.lpb), &IID_IMAPIFolder, MAPI_MODIFY | MAPI_DEFERRED_ERRORS,
+		hr = lpSession->OpenEntry(cb, entry_id, &IID_IMAPIFolder, MAPI_MODIFY | MAPI_DEFERRED_ERRORS,
 		     &ulObjType, &~lpSubFolder);
 		if (hr != hrSuccess) {
 			HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening folder");
@@ -1282,7 +1273,8 @@ HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
 	HRESULT hr = hrSuccess;
 	string strAction;
 	object_ptr<IMAPIFolder> folder;
-	memory_ptr<SPropValue> prop;
+	ULONG cb;
+	memory_ptr<ENTRYID> entry_id;
 	wstring strFolder;
 	const std::string &strFolderParam = args[0];
 
@@ -1301,20 +1293,14 @@ HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
 		HrResponse(RESP_TAGGED_NO, strTag, strAction + " invalid folder name");
 		return hr;
 	}
-	hr = HrFindFolder(strFolder, false, &~folder);
+	hr = HrFindFolder(strFolder, false, &~folder, &cb, &~entry_id);
 	if (hr != hrSuccess) {
 		// folder not found, but not error, so thunderbird updates view correctly.
 		HrResponse(RESP_TAGGED_OK, strTag, strAction + " folder not found");
 		return hr;
 	}
 
-	hr = HrGetOneProp(folder, PR_ENTRYID, &~prop);
-	if (hr != hrSuccess) {
-		HrResponse(RESP_TAGGED_OK, strTag, strAction + " error getting entryid");
-		return hr;
-	}
-
-	if (IsSpecialFolder(prop->Value.bin.cb, reinterpret_cast<LPENTRYID>(prop->Value.bin.lpb))) {
+	if (IsSpecialFolder(cb, entry_id)) {
 		if (!bSubscribe)
 			HrResponse(RESP_TAGGED_NO, strTag, strAction + " cannot unsubscribe this special folder");
 		else
@@ -1322,7 +1308,7 @@ HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
 		return hrSuccess;
 	}
 
-	hr = ChangeSubscribeList(bSubscribe, prop->Value.bin.cb, reinterpret_cast<LPENTRYID>(prop->Value.bin.lpb));
+	hr = ChangeSubscribeList(bSubscribe, cb, entry_id);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, strAction + " writing subscriptions to server failed");
 		return hr;
@@ -1747,12 +1733,6 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "APPEND error converting message");
 		return hr;
-	}
-	if (IsSentItemFolder(lpAppendFolder) &&
-	    HrGetOneProp(lpAppendFolder, PR_ENTRYID, &~lpPropVal) == hrSuccess) {
-		// needed for blackberry
-		lpPropVal->ulPropTag = PR_SENTMAIL_ENTRYID;
-		HrSetOneProp(lpMessage, lpPropVal);
 	}
 
 	if (strFlags.size() > 2 && strFlags[0] == '(') {
@@ -3057,19 +3037,15 @@ HRESULT IMAP::HrMakeSpecialsList() {
  * 
  * @return is a special folder (true) or a custom user folder (false)
  */
-bool IMAP::IsSpecialFolder(ULONG cbEntryID, LPENTRYID lpEntryID) const
-{
-	return lstSpecialEntryIDs.find(BinaryArray(lpEntryID, cbEntryID, true)) !=
-	       lstSpecialEntryIDs.end();
-}
 
 bool IMAP::IsSpecialFolder(ULONG cbEntryID, ENTRYID *lpEntryID,
-    ULONG &folder_type) const
+    ULONG *folder_type) const
 {
 	auto iter = lstSpecialEntryIDs.find(BinaryArray(lpEntryID, cbEntryID, true));
 	if(iter == lstSpecialEntryIDs.cend())
 		return false;
-	folder_type = (*iter).second;
+	if (folder_type)
+		*folder_type = iter->second;
 	return true;
 }
 
@@ -3306,7 +3282,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 
 	SFolder sfolder;
 	sfolder.bActive = true;
-	sfolder.bSpecialFolder = IsSpecialFolder(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), sfolder.ulSpecialFolderType);
+	sfolder.bSpecialFolder = IsSpecialFolder(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), &sfolder.ulSpecialFolderType);
 	sfolder.bMailFolder = false;
 	sfolder.lpParentFolder = parent_folder;
 	sfolder.strFolderName = in_folder_name;
@@ -3377,7 +3353,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 		}
 		auto subscribed_iter = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), entry_id);
 		sfolder.bActive = subscribed_iter != m_vSubscriptions.cend();
-		sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb, reinterpret_cast<ENTRYID *>(entry_id.lpb), sfolder.ulSpecialFolderType);
+		sfolder.bSpecialFolder = IsSpecialFolder(entry_id.cb, reinterpret_cast<ENTRYID *>(entry_id.lpb), &sfolder.ulSpecialFolderType);
 		sfolder.bMailFolder = mailfolder;
 		sfolder.lpParentFolder = tmp_parent_folder;
 		sfolder.strFolderName = foldername;
@@ -5852,7 +5828,7 @@ void IMAP::HrGetSubString(std::string &strOutput, const std::string &strInput,
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrFindFolder(const wstring& strFolder, bool bReadOnly, IMAPIFolder **lppFolder)
+HRESULT IMAP::HrFindFolder(const wstring& strFolder, bool bReadOnly, IMAPIFolder **lppFolder, ULONG *cb, ENTRYID **lpb)
 {
 	vector<wstring> folder_parts;
 	object_ptr<IMAPIFolder> folder;
@@ -5881,6 +5857,10 @@ HRESULT IMAP::HrFindFolder(const wstring& strFolder, bool bReadOnly, IMAPIFolder
 	}
 
 	*lppFolder = folder.release();
+	if (cb != nullptr)
+		*cb = cb_entry_id;
+	if (lpb != nullptr)
+		*lpb = entry_id.release();
 
 	return hrSuccess;
 }
@@ -6055,23 +6035,6 @@ bool IMAP::IsMailFolder(IMAPIFolder *lpFolder) const
 		return true;
 	return strcasecmp(lpProp->Value.lpszA, "IPM") == 0 ||
 	       strcasecmp(lpProp->Value.lpszA, "IPF.NOTE") == 0;
-}
-
-bool IMAP::IsSentItemFolder(IMAPIFolder *lpFolder) const
-{
-    ULONG ulResult = FALSE;
-	memory_ptr<SPropValue> lpProp, lpPropStore;
-
-	HRESULT hr = HrGetOneProp(lpFolder, PR_ENTRYID, &~lpProp);
-	if (hr != hrSuccess)
-		return false;
-	hr = HrGetOneProp(lpStore, PR_IPM_SENTMAIL_ENTRYID, &~lpPropStore);
-	if (hr != hrSuccess)
-		return false;
-	hr = lpStore->CompareEntryIDs(lpProp->Value.bin.cb, (LPENTRYID)lpProp->Value.bin.lpb, lpPropStore->Value.bin.cb, (LPENTRYID)lpPropStore->Value.bin.lpb , 0, &ulResult);
-	if (hr != hrSuccess)
-		return false;
-	return ulResult;
 }
 
 /** 
