@@ -32,7 +32,7 @@ typedef HRESULT (*RELOADCALLBACK)(void *lpParam);
 
 class WSTableView : public ECUnknown {
 protected:
-	WSTableView(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *, const char *szClassName = NULL);
+	WSTableView(ULONG type, ULONG flags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *eid, WSTransport *, const char *cls_name = nullptr);
 	virtual ~WSTableView();
 
 public:

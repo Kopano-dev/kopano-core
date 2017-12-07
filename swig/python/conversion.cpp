@@ -1619,7 +1619,7 @@ exit:
 	return lpNames.release();
 }
 
-LPENTRYLIST		List_to_LPENTRYLIST(PyObject *list)
+ENTRYLIST *List_to_p_ENTRYLIST(PyObject *list)
 {
 	memory_ptr<ENTRYLIST> lpEntryList;
 	Py_ssize_t len = 0;
@@ -1659,6 +1659,11 @@ exit:
 	if (PyErr_Occurred())
 		return nullptr;
 	return lpEntryList.release();
+}
+
+ENTRYLIST *List_to_LPENTRYLIST(PyObject *list)
+{
+	return List_to_p_ENTRYLIST(list);
 }
 
 PyObject *		List_from_LPENTRYLIST(LPENTRYLIST lpEntryList)

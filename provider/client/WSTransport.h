@@ -246,7 +246,7 @@ public:
 	virtual bool IsConnected();
 
 	/* multi store table functions */
-	virtual HRESULT HrOpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECMsgStore *lpMsgStore, WSTableView **lppTableOps);
+	virtual HRESULT HrOpenMultiStoreTable(const ENTRYLIST *msglist, ULONG flags, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTableView **ops);
 
 	/* statistics tables (system, threads, users), ulTableType is proto.h TABLETYPE_STATS_... */
 	/* userstores table TABLETYPE_USERSTORE */

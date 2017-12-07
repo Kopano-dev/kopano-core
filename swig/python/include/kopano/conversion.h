@@ -81,7 +81,8 @@ PyObject *		Object_from_LPMAPINAMEID(LPMAPINAMEID lpMAPINameId);
 PyObject *		List_from_LPMAPINAMEID(LPMAPINAMEID *lppMAPINameId, ULONG cNames);
 LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *, ULONG *lpcNames, ULONG ulFlags = CONV_COPY_SHALLOW);
 
-LPENTRYLIST		List_to_LPENTRYLIST(PyObject *);
+extern ENTRYLIST *List_to_p_ENTRYLIST(PyObject *);
+extern ENTRYLIST *List_to_LPENTRYLIST(PyObject *);
 PyObject *		List_from_LPENTRYLIST(LPENTRYLIST lpEntryList);
 
 LPNOTIFICATION	List_to_LPNOTIFICATION(PyObject *, ULONG *lpcNames);

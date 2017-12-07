@@ -4113,7 +4113,9 @@ bool WSTransport::IsConnected()
 	return m_lpCmd != NULL;
 }
 
-HRESULT WSTransport::HrOpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECMsgStore *lpMsgStore, WSTableView **lppTableView)
+HRESULT WSTransport::HrOpenMultiStoreTable(const ENTRYLIST *lpMsgList,
+    ULONG ulFlags, ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ECMsgStore *lpMsgStore, WSTableView **lppTableView)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<WSTableMultiStore> lpMultiStoreTable;

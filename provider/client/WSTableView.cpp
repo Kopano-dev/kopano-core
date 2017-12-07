@@ -35,7 +35,8 @@
 
 WSTableView::WSTableView(ULONG ty, ULONG fl, KCmd *cmd,
     std::recursive_mutex &data_lock, ECSESSIONID sid, ULONG cbEntryId,
-    LPENTRYID lpEntryId, WSTransport *lpTransport, const char *szClassName) :
+    const ENTRYID *lpEntryId, WSTransport *lpTransport,
+    const char *szClassName) :
 	ECUnknown(szClassName), lpCmd(cmd), lpDataLock(data_lock),
 	ecSessionId(sid), m_lpTransport(lpTransport), ulFlags(fl), ulType(ty)
 {
@@ -710,7 +711,8 @@ HRESULT WSTableView::SetReloadCallback(RELOADCALLBACK callback, void *lpParam)
 // WSTableOutGoingQueue view
 WSTableOutGoingQueue::WSTableOutGoingQueue(KCmd *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
-    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) :
+    const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore,
+    WSTransport *lpTransport) :
 	WSStoreTableView(MAPI_MESSAGE, 0, lpCmd, lpDataLock, ecSessionId,
 	    cbEntryId, lpEntryId, lpMsgStore, lpTransport)
 {
@@ -718,7 +720,7 @@ WSTableOutGoingQueue::WSTableOutGoingQueue(KCmd *lpCmd,
 
 HRESULT WSTableOutGoingQueue::Create(KCmd *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
-    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
+    const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
     WSTableOutGoingQueue **lppTableOutGoingQueue)
 {
 	return alloc_wrap<WSTableOutGoingQueue>(lpCmd, lpDataLock, ecSessionId,

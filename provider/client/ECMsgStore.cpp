@@ -2543,7 +2543,9 @@ HRESULT ECMsgStore::UnwrapNoRef(LPVOID *ppvObject)
 
 // open a table with given entryids and columns.
 // entryids can be from any store
-HRESULT ECMsgStore::OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, LPMAPITABLE *lppTable) {
+HRESULT ECMsgStore::OpenMultiStoreTable(const ENTRYLIST *lpMsgList,
+    ULONG ulFlags, IMAPITable **lppTable)
+{
 	HRESULT		hr = hrSuccess;
 	object_ptr<ECMAPITable> lpTable;
 	object_ptr<WSTableView> lpTableOps;
@@ -2712,7 +2714,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetNamesFromIDs, (SPropTagA
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetIDsFromNames, (ULONG, cNames), (LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
 
 // IECMultiStoreTable interface
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, OpenMultiStoreTable, (LPENTRYLIST, lpMsgList), (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, OpenMultiStoreTable, (const ENTRYLIST *, msglist), (ULONG, flags), (IMAPITable **, table))
 
 // IECTestProtocol interface
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, TestPerform, (const char *, cmd), (unsigned int, argc), (char **, args))

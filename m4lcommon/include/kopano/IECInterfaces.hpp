@@ -152,7 +152,7 @@ class IECImportHierarchyChanges : public IExchangeImportHierarchyChanges {
 class IECMultiStoreTable : public virtual IUnknown {
 	public:
 	/* ulFlags is currently unused */
-	virtual HRESULT OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
+	virtual HRESULT OpenMultiStoreTable(const ENTRYLIST *msglist, ULONG flags, IMAPITable **) = 0;
 };
 
 class IECSecSvcAdm_base : public virtual IUnknown {
