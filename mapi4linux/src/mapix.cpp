@@ -1248,8 +1248,9 @@ HRESULT M4LMAPISession::CompareEntryIDs(ULONG cbEntryID1,
  * @return		HRESULT
  * @retval		MAPI_E_INVALID_ENTRYID	either lpEntryID1 or lpEntryID2 is NULL
  */
-HRESULT M4LMAPISession::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink,
-							   ULONG* lpulConnection) {
+HRESULT M4LMAPISession::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ULONG ulEventMask, IMAPIAdviseSink *lpAdviseSink, ULONG *lpulConnection)
+{
 	object_ptr<IMsgStore> lpMsgStore;
 
 	//FIXME: Advise should handle one or more stores/addressbooks not only the default store,
