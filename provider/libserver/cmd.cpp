@@ -2123,7 +2123,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				return er;
 			
 			// Write the property to the table properties if needed (only on objects in folders (folders, messages), and if the property is being tracked here.
-			if(ulParentType == MAPI_FOLDER) {
+			if(ulParentType == MAPI_FOLDER || lpPropValArray->__ptr[i].ulPropTag == PR_SORT_LOCALE_ID) {
 				// Cache the written value
 				sObjectTableKey key(ulObjId,0);
 				g_lpSessionManager->GetCacheManager()->SetCell(&key, lpPropValArray->__ptr[i].ulPropTag, &lpPropValArray->__ptr[i]);
