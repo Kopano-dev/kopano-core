@@ -27,7 +27,6 @@ class ECDatabase;
 class ECAttachmentStorage;
 class ECSession;
 
-ECRESULT CreateAttachmentStorage(ECDatabase *lpDatabase, ECAttachmentStorage **lppAttachmentStorage);	
 ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned int ulParentObjId, unsigned int ulParentType, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulObjId);
 
 enum eSizeUpdateAction{ UPDATE_SET, UPDATE_ADD, UPDATE_SUB };

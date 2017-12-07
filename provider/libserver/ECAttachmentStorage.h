@@ -31,6 +31,7 @@ struct soap;
 
 namespace KC {
 
+class ECAttachmentStorage;
 class ECSerializer;
 class ECLogger;
 
@@ -43,14 +44,20 @@ class ext_siid {
 	inline constexpr bool operator<(const ext_siid &r) const { return siid < r.siid; }
 };
 
+class ECAttachmentConfig {
+	public:
+	virtual ~ECAttachmentConfig() = default;
+	static ECRESULT create(ECConfig *, ECAttachmentConfig **);
+	virtual ECAttachmentStorage *new_handle(ECDatabase *) = 0;
+
+	private:
+	virtual ECRESULT init(ECConfig *) { return hrSuccess; }
+};
+
 class ECAttachmentStorage : public kt_completion {
 public:
 	ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ulCompressionLevel);
-
-	ULONG AddRef();
-	ULONG Release();
-
-	static ECRESULT CreateAttachmentStorage(ECDatabase *lpDatabase, ECConfig *lpConfig, ECAttachmentStorage **lppAttachmentStorage);
+	virtual ~ECAttachmentStorage() = default;
 
 	/* Single Instance Attachment wrappers (should not be overridden by subclasses) */
 	bool ExistAttachment(ULONG ulObjId, ULONG ulPropId);
@@ -76,8 +83,6 @@ public:
 	virtual bool ExistAttachmentInstance(const ext_siid &) = 0;
 	virtual kd_trans Begin(ECRESULT &) = 0;
 protected:
-	virtual ~ECAttachmentStorage(void) = default;
-	
 	/* Single Instance Attachment handlers (must be overridden by subclasses) */
 	virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *size, unsigned char **data) = 0;
 	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *size, ECSerializer *sink) = 0;
@@ -97,7 +102,6 @@ protected:
 	ECDatabase *m_lpDatabase;
 	bool m_bFileCompression;
 	std::string m_CompressionLevel;
-	std::atomic<unsigned int> m_ulRef{0};
 };
 
 class _kc_export_dycast ECDatabaseAttachment _kc_final :

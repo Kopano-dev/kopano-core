@@ -19,11 +19,51 @@ class ECSerializer;
 class ECLogger;
 struct s3_cd;
 
+struct s3_cache_entry {
+	KC::time_point valid_until;
+	size_t size;
+};
+
+class ECS3Config final : public ECAttachmentConfig {
+	public:
+	virtual ~ECS3Config();
+	virtual ECRESULT init(ECConfig *) override;
+	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
+
+	private:
+	std::string m_akid, m_sakey, m_bkname, m_region, m_path;
+	unsigned int m_comp;
+
+	void *m_handle = nullptr;
+#define W(n) decltype(S3_ ## n) *DY_ ## n;
+	W(put_object)
+	W(initialize)
+	W(status_is_retryable)
+	W(deinitialize)
+	W(get_status_name)
+	W(head_object)
+	W(delete_object)
+	W(get_object)
+#undef W
+
+	S3BucketContext m_bkctx{};
+	/*
+	 * The Request Context and Response Handler variables are responsible
+	 * for the operation of the handler functions.
+	 */
+	S3ResponseHandler m_response_handler{};
+	S3PutObjectHandler m_put_obj_handler{};
+	S3GetObjectHandler m_get_obj_handler{};
+	S3GetConditions m_get_conditions{};
+	std::mutex m_cachelock;
+	std::map<ULONG, s3_cache_entry> m_cache;
+
+	friend class ECS3Attachment;
+};
+
 class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	public:
-	static ECRESULT StaticInit(ECConfig *);
-	static ECRESULT StaticDeinit(void);
-	ECS3Attachment(ECDatabase *, const char *, const char *, const char *, const char *, const char *, const char *, const char *, unsigned int);
+	ECS3Attachment(ECS3Config &, ECDatabase *);
 
 	protected:
 	virtual ~ECS3Attachment(void);
@@ -57,19 +97,11 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	virtual ECRESULT Rollback() override;
 
 	/* Variables: */
-	std::string m_basepath;
-	S3BucketContext m_bucket_ctx;
+	ECS3Config &m_config;
 	std::set<ext_siid> m_new_att, m_marked_att;
 	bool m_transact = false;
 
-	/*
-	 * The Request Context and Response Handler variables are responsible
-	 * for the operation of the handler functions.
-	 */
-	S3ResponseHandler m_response_handler;
-	S3PutObjectHandler m_put_obj_handler;
-	S3GetObjectHandler m_get_obj_handler;
-	S3GetConditions m_get_conditions;
+	friend class ECS3Config;
 };
 
 } /* namespace */

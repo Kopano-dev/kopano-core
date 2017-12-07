@@ -26,6 +26,7 @@
 #include <mapitags.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/hl.hpp>
 #include <kopano/tie.hpp>
 #include "ECMAPI.h"
 #include "ECDatabase.h"
@@ -68,6 +69,12 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 		ec_log_crit("Unable to spawn thread for session cleaner! Sessions will live forever!: %s", strerror(err));
 
 	m_lpNotificationManager.reset(new ECNotificationManager());
+	err = ECAttachmentConfig::create(m_lpConfig, &unique_tie(m_atxconfig));
+	if (err != hrSuccess) {
+		err = kcerr_to_mapierr(err);
+		ec_log_crit("Could not initialize attachment store: %s", GetMAPIErrorMessage(err));
+		throw KMAPIError(err);
+	}
 }
 
 ECSessionManager::~ECSessionManager()

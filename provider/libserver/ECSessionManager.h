@@ -31,6 +31,7 @@
 #include <set>
 #include <pthread.h>
 #include <kopano/lockhelper.hpp>
+#include "ECAttachmentStorage.h"
 #include "ECUserManagement.h"
 #include "ECSearchFolders.h"
 #include "ECDatabaseFactory.h"
@@ -166,6 +167,7 @@ public:
 	_kc_hidden ECLogger *GetAudit(void) { return m_lpAudit; }
 	_kc_hidden ECPluginFactory *GetPluginFactory(void) { return m_lpPluginFactory.get(); }
 	_kc_hidden ECLockManager *GetLockManager(void) { return m_ptrLockManager.get(); }
+	_kc_hidden ECAttachmentConfig *get_atxconfig() const { return m_atxconfig.get(); }
 
 protected:
 	_kc_hidden BTSession *GetSession(ECSESSIONID, bool lock_ses = false);
@@ -217,6 +219,7 @@ protected:
 	ECLockManagerPtr m_ptrLockManager;
 	std::unique_ptr<ECNotificationManager> m_lpNotificationManager;
 	std::unique_ptr<ECDatabase> m_lpDatabase;
+	std::unique_ptr<ECAttachmentConfig> m_atxconfig;
 };
 
 extern _kc_export ECSessionManager *g_lpSessionManager;
