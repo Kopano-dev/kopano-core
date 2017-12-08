@@ -38,7 +38,7 @@ def opt_args():
 
 def run_app(socket_path, n):
     app = __import__('kopano-rest').app
-    unix_socket = 'unix:' + os.path.join(socket_path, 'mfr%d' % n)
+    unix_socket = 'unix:' + os.path.join(socket_path, 'mfr%d.sock' % n)
     bjoern.run(app, unix_socket)
 
 def main():
@@ -64,10 +64,11 @@ def main():
     finally:
         for n in range(nworkers):
             try:
-                unix_socket = os.path.join(socket_path, 'mfr%d' % n)
+                unix_socket = os.path.join(socket_path, 'mfr%d.sock' % n)
                 os.unlink(unix_socket)
             except OSError, e:
                 pass
 
 if __name__ == '__main__':
     main()
+
