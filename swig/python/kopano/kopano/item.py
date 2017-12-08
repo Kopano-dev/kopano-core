@@ -234,6 +234,12 @@ class Item(Properties, Contact, Appointment):
         return _hex(self._get_fast(PR_ENTRYID, must_exist=True))
 
     @property
+    def guid(self):
+        """ Item guid """
+
+        return self.entryid[56:88]
+
+    @property
     def hierarchyid(self):
         return HrGetOneProp(self.mapiobj, PR_EC_HIERARCHYID).Value
 

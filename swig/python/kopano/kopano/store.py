@@ -416,11 +416,17 @@ class Store(Properties):
         mapiobj = self.findroot.mapiobj.CreateFolder(FOLDER_SEARCH, _encode(str(uuid.uuid4())), _encode('comment'), None, 0)
         return _folder.Folder(self, mapiobj=mapiobj)
 
-    def item(self, entryid):
+    def item(self, entryid=None, guid=None):
         """Return :class:`Item` with given entryid."""
+
         item = _item.Item() # XXX copy-pasting..
         item.store = self
         item.server = self.server
+
+        if guid:
+            # 01 -> entryid format version, 05 -> object type (message)
+            entryid = '00000000' + self.guid + '0100000005000000' + guid + '00000000'
+
         try:
             item.mapiobj = _utils.openentry_raw(self.mapiobj, _unhex(entryid), 0) # XXX soft-deleted item?
         except MAPIErrorNotFound:
