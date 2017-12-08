@@ -797,8 +797,11 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 	// FIXME: It is possible that the memory allocated is more than actually needed. We should first
 	//		  count the number of elements needed then allocate memory and then fill the memory.
 	//        but since this waste is probably very minimal, we could not care less about this.
+
 	for (unsigned int i = 0; i < count; ++i) {
 		entry = zend_hash_get_current_data(target_hash);
+		ZVAL_DEREF(entry);
+
 		if(Z_TYPE_P(entry) != IS_ARRAY) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "phparraytoadrlist array must include an array with array of propvalues");
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -868,6 +871,8 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 	//        but since this waste is probably very minimal, we could not care less about this.
 	for (unsigned int i = 0; i < count; ++i) {
 		entry = zend_hash_get_current_data(target_hash);
+		ZVAL_DEREF(entry);
+
 		if (Z_TYPE_P(entry) != IS_ARRAY) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArraytoRowList, Row not wrapped in array");
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
