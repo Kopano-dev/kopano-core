@@ -66,7 +66,7 @@ def main():
             try:
                 unix_socket = os.path.join(socket_path, 'mfr%d.sock' % n)
                 os.unlink(unix_socket)
-            except OSError, e:
+            except OSError as e:
                 pass
 
 if __name__ == '__main__':
