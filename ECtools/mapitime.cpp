@@ -123,14 +123,15 @@ static int mpt_basic_open(object_ptr<IMAPISession> &ses,
 	if (ret != hrSuccess) {
 		fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
 		sleep(1);
-		return EXIT_SUCCESS;
+		return ret;
 	}
 	ret = HrOpenDefaultStore(ses, &~store);
 	if (ret != hrSuccess) {
 		fprintf(stderr, "OpenDefaultStore: %s\n", GetMAPIErrorMessage(ret));
 		sleep(1);
+		return ret;
 	}
-	return EXIT_SUCCESS;
+	return hrSuccess;
 }
 
 static int mpt_basic_work(IMsgStore *store)
@@ -221,7 +222,7 @@ static int mpt_runner(mpt_job &&fct)
 		dp.stop = clk::now();
 		mpt_stat_record(dp);
 	}
-	return EXIT_SUCCESS;
+	return ret;
 }
 
 static int mpt_main_pagetime(int argc, char **argv)
