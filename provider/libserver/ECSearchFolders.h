@@ -374,6 +374,7 @@ private:
      * @param[in] lppSearchCriteria Loaded search criteria
      */
 	_kc_hidden virtual ECRESULT LoadSearchCriteria(unsigned int folder_id, struct searchCriteria **);
+	_kc_hidden virtual ECRESULT LoadSearchCriteria2(const std::string &, struct searchCriteria **);
 
     /**
      * Save serialized search criteria to database
