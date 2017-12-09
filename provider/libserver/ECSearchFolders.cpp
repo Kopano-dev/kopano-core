@@ -99,22 +99,16 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
 	while ((lpRow = lpResult.fetch_row()) != nullptr) {
         if(lpRow[0] == NULL)
             continue;
-            
-        if(lpRow[1] != NULL)
-            ulStatus = atoi(lpRow[1]);
-        else
-            ulStatus = EC_SEARCHFOLDER_STATUS_RUNNING; // this is the default if no property is found
-            
+		ulStatus = (lpRow[1] == nullptr) ? EC_SEARCHFOLDER_STATUS_RUNNING : atoui(lpRow[1]);
+		if (ulStatus == EC_SEARCHFOLDER_STATUS_STOPPED)
+			/* Only load the table if it is not stopped */
+			continue;
 		auto ulFolderId = atoi(lpRow[0]);
         er = m_lpSessionManager->GetCacheManager()->GetStore(ulFolderId, &ulStoreId, NULL);
         if(er != erSuccess) {
             er = erSuccess;
             continue;
         }
-        
-        // Only load the table if it is not stopped
-		if (ulStatus == EC_SEARCHFOLDER_STATUS_STOPPED)
-			continue;
 		er = LoadSearchCriteria(ulFolderId, &lpSearchCriteria);
 		if (er != erSuccess) {
 			er = erSuccess;
