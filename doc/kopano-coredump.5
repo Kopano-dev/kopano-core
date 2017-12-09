@@ -79,12 +79,21 @@ the automatic generation as explained above does not work for whatever reason
 (such as the inability to edit kernel.core_pattern).
 .PP
 Using gdb, one can attach to a particular process or start a new instance, and
-at any point generate a dump using the "\fBgcore\fP" command.
+at any point, generate a dump using the "\fBgcore\fP" command:
 .PP
 .nf
-Thread 1 "kopano-dagent" received signal SIGSEGV, Segmentation fault.
+Thread 1 "kopano\-dagent" received signal SIGSEGV, Segmentation fault.
 0x0000000000000000 in ?? ()
 (gdb) gcore
 warning: target file /proc/25097/cmdline contained unexpected null characters
 Saved corefile core.25097
 .fi
+.PP
+Some signals are received under normal conditions, such as SIGPIPE. To have gdb
+not stop and require user input all the time, SIGPIPE should be ignored:
+.PP
+.nf
+(gdb) handle SIGPIPE nostop noprint
+.fi
+If you expect to observe a process for a really long time, it may make sense to
+do the same for SIGHUP too.
