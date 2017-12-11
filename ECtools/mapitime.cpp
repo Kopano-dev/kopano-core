@@ -136,11 +136,18 @@ static int mpt_basic_open(object_ptr<IMAPISession> &ses,
 
 static int mpt_basic_work(IMsgStore *store)
 {
-	object_ptr<IMAPIFolder> root;
-	ULONG type = 0;
-	auto ret = store->OpenEntry(0, nullptr, &iid_of(root), MAPI_MODIFY, &type, &~root);
+	memory_ptr<ENTRYID> eid;
+	ULONG neid = 0;
+	auto ret = store->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &neid, &~eid, nullptr);
 	if (ret != hrSuccess) {
-		fprintf(stderr, "save failed: %s\n", GetMAPIErrorMessage(ret));
+		fprintf(stderr, "GRF failed: %s\n", GetMAPIErrorMessage(ret));
+		return EXIT_FAILURE;
+	}
+	object_ptr<IMAPIFolder> folder;
+	ULONG type = 0;
+	ret = store->OpenEntry(0, nullptr, &iid_of(folder), MAPI_MODIFY, &type, &~folder);
+	if (ret != hrSuccess) {
+		fprintf(stderr, "OE failed: %s\n", GetMAPIErrorMessage(ret));
 		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;
