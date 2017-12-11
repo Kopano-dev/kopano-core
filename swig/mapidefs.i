@@ -329,8 +329,7 @@ public:
     //    virtual ~IMAPIFolder() = 0;
 
     virtual HRESULT CreateMessage(LPCIID lpInterface, ULONG ulFlags, IMessage ** OUTPUT /*lppMessage*/) = 0;
-    virtual HRESULT CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, IUnknown *lpDestFolder, ULONG ulUIParam,
-				 IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
+	virtual HRESULT CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, void *lpDestFolder, ULONG ulUIParam, IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
     virtual HRESULT DeleteMessages(LPENTRYLIST lpMsgList, ULONG ulUIParam, IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
     virtual HRESULT CreateFolder(ULONG ulFolderType, LPTSTR lpszFolderName, LPTSTR lpszFolderComment, LPCIID lpInterface,
 				 ULONG ulFlags, IMAPIFolder** OUTPUT /*lppFolder*/) = 0;
