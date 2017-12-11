@@ -1286,6 +1286,9 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 	sObjectTableKey key(ulStoreId, 0);
 	struct propVal prop;
 	if (cache->GetCell(&key, PR_SORT_LOCALE_ID, &prop, nullptr, false) == erSuccess) {
+		if (prop.ulPropTag == PROP_TAG(PT_ERROR, PROP_ID(PR_SORT_LOCALE_ID)))
+			return prop.Value.ul;
+
 		*lpLcid = prop.Value.ul;
 		return erSuccess;
 	}
@@ -1300,13 +1303,25 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 	if(er != erSuccess)
 		return er;
 	auto lpDBRow = lpDBResult.fetch_row();
-	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
-		return KCERR_NOT_FOUND;
-	*lpLcid = strtoul(lpDBRow[0], NULL, 10);
 
 	struct propVal new_prop;
+	if (lpDBRow == nullptr || lpDBRow[0] == nullptr) {
+		new_prop.ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(PR_SORT_LOCALE_ID));
+		new_prop.Value.ul = KCERR_NOT_FOUND;
+		new_prop.__union = SOAP_UNION_propValData_ul;
+
+		er = cache->SetCell(&key, PR_SORT_LOCALE_ID, &new_prop);
+		if (er != erSuccess)
+			return er;
+
+		return KCERR_NOT_FOUND;
+	}
+
+	*lpLcid = strtoul(lpDBRow[0], NULL, 10);
+
 	new_prop.ulPropTag = PR_SORT_LOCALE_ID;
 	new_prop.Value.ul = *lpLcid;
+	new_prop.__union = SOAP_UNION_propValData_ul;
 
 	er = cache->SetCell(&key, PR_SORT_LOCALE_ID, &new_prop);
 	if (er != erSuccess)
