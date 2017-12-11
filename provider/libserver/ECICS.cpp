@@ -259,36 +259,25 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	}
 	if(er != erSuccess)
 		return er;
-	strQuery = "SELECT val_binary FROM properties "
-				"WHERE tag = " + stringify(PROP_ID(PR_PREDECESSOR_CHANGE_LIST)) +
-				" AND type = " + stringify(PROP_TYPE(PR_PREDECESSOR_CHANGE_LIST)) +
-				" AND hierarchyid = " + stringify(ulObjId) + " LIMIT 1";
+	strQuery = "SELECT val_binary, tag FROM properties "
+				"WHERE tag IN (" + stringify(PROP_ID(PR_PREDECESSOR_CHANGE_LIST)) +
+				" , " + stringify(PROP_ID(PR_CHANGE_KEY)) + " )" +
+				" AND type IN ( " + stringify(PROP_TYPE(PR_PREDECESSOR_CHANGE_LIST)) +
+				" , " + stringify(PROP_TYPE(PR_CHANGE_KEY)) + " )" +
+				" AND hierarchyid = " + stringify(ulObjId);
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
 
-	if (lpDBResult.get_num_rows() > 0) {
-		lpDBRow = lpDBResult.fetch_row();
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		lpDBLen = lpDBResult.fetch_row_lengths();
-		if (lpDBRow != nullptr && lpDBRow[0] != nullptr &&
-		    lpDBLen != nullptr && lpDBLen[0] > 16)
+		if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr || lpDBLen == nullptr)
+			continue;
+
+		if (lpDBRow[1] == stringify(PROP_ID(PR_PREDECESSOR_CHANGE_LIST)) && lpDBLen[0] > 16)
 			strChangeList.assign(lpDBRow[0], lpDBLen[0]);
-	}
-
-	strQuery = "SELECT val_binary FROM properties "
-				"WHERE tag = " + stringify(PROP_ID(PR_CHANGE_KEY)) +
-				" AND type = " + stringify(PROP_TYPE(PR_CHANGE_KEY)) +
-				" AND hierarchyid = " + stringify(ulObjId) + " LIMIT 1";
-
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if(er != erSuccess)
-		return er;
-
-	if (lpDBResult.get_num_rows() > 0) {
-		lpDBRow = lpDBResult.fetch_row();
-		lpDBLen = lpDBResult.fetch_row_lengths();
-		if (lpDBRow != nullptr && lpDBRow[0] != nullptr && lpDBLen != nullptr && lpDBLen[0] > 16)
+		else if (lpDBRow[1] == stringify(PROP_ID(PR_CHANGE_KEY)) && lpDBLen[0] > 16)
 			AddChangeKeyToChangeList(&strChangeList, lpDBLen[0], lpDBRow[0]);
 	}
 
