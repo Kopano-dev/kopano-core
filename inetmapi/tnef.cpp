@@ -533,7 +533,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 		hr = HrWriteDWord(lpStream, lpProp->ulPropTag);
 		if(hr != hrSuccess)
 			return hr;
-		hr = HrWriteData(lpStream, (char *)lppNames[0]->lpguid, sizeof(GUID));
+		hr = HrWriteData(lpStream, lppNames[0]->lpguid, sizeof(GUID));
 		if(hr != hrSuccess)
 			return hr;
 
@@ -555,7 +555,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 			hr = HrWriteDWord(lpStream, ulLen);
 			if(hr != hrSuccess)
 				return hr;
-			hr = HrWriteData(lpStream, (char *)ucs2.c_str(), ulLen);
+			hr = HrWriteData(lpStream, ucs2.c_str(), ulLen);
 			if(hr != hrSuccess)
 				return hr;
 
@@ -641,21 +641,21 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 			break;
 		case PT_R4:
 			if(lpProp->ulPropTag & MV_FLAG)
-				hr = HrWriteData(lpStream,(char *)&lpProp->Value.MVflt.lpflt[ulMVProp], sizeof(float));
+				hr = HrWriteData(lpStream, &lpProp->Value.MVflt.lpflt[ulMVProp], sizeof(float));
 			else
-				hr = HrWriteData(lpStream,(char *)&lpProp->Value.flt, sizeof(float));
+				hr = HrWriteData(lpStream, &lpProp->Value.flt, sizeof(float));
 			break;
 		case PT_APPTIME:
 			if(lpProp->ulPropTag & MV_FLAG)
-				hr = HrWriteData(lpStream,(char *)&lpProp->Value.MVat.lpat[ulMVProp], sizeof(double));
+				hr = HrWriteData(lpStream, &lpProp->Value.MVat.lpat[ulMVProp], sizeof(double));
 			else
-				hr = HrWriteData(lpStream,(char *)&lpProp->Value.at, sizeof(double));
+				hr = HrWriteData(lpStream, &lpProp->Value.at, sizeof(double));
 			break;
 		case PT_DOUBLE:
 			if(lpProp->ulPropTag & MV_FLAG)
-				hr = HrWriteData(lpStream,(char *)&lpProp->Value.MVdbl.lpdbl[ulMVProp], sizeof(double));
+				hr = HrWriteData(lpStream, &lpProp->Value.MVdbl.lpdbl[ulMVProp], sizeof(double));
 			else
-				hr = HrWriteData(lpStream,(char *)&lpProp->Value.dbl, sizeof(double));
+				hr = HrWriteData(lpStream, &lpProp->Value.dbl, sizeof(double));
 			break;
 		case PT_CURRENCY:
 			if(lpProp->ulPropTag & MV_FLAG) {
@@ -742,7 +742,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 				hr = HrWriteDWord(lpStream, ulLen);
 				if(hr != hrSuccess)
 					return hr;
-				hr = HrWriteData(lpStream, (char *)ucs2.c_str(), ulLen);
+				hr = HrWriteData(lpStream, ucs2.c_str(), ulLen);
 			} else {
 				ucs2 = converter.convert_to<std::u16string>(lpProp->Value.lpszW);
 				ulLen = ucs2.length() * sizeof(std::u16string::value_type) + sizeof(std::u16string::value_type);
@@ -753,7 +753,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 				hr = HrWriteDWord(lpStream, ulLen);
 				if(hr != hrSuccess)
 					return hr;
-				hr = HrWriteData(lpStream, (char *)ucs2.c_str(), ulLen);
+				hr = HrWriteData(lpStream, ucs2.c_str(), ulLen);
 			}
 			if (hr != hrSuccess)
 				return hr;
@@ -776,7 +776,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 				hr = HrWriteDWord(lpStream, ulLen);
 				if(hr != hrSuccess)
 					return hr;
-				hr = HrWriteData(lpStream, (char *)lpProp->Value.MVbin.lpbin[ulMVProp].lpb, ulLen);
+				hr = HrWriteData(lpStream, lpProp->Value.MVbin.lpbin[ulMVProp].lpb, ulLen);
 			} else {
 				ulLen = lpProp->Value.bin.cb;
 
@@ -788,9 +788,8 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 					return hr;
 
                 if(PROP_TYPE(lpProp->ulPropTag) == PT_OBJECT)
-                    HrWriteData(lpStream, (char *)&IID_IStorage, sizeof(GUID));
-
-				hr = HrWriteData(lpStream, (char *)lpProp->Value.bin.lpb, ulLen);
+					HrWriteData(lpStream, &IID_IStorage, sizeof(GUID));
+				hr = HrWriteData(lpStream, lpProp->Value.bin.lpb, ulLen);
 			}
 			if (hr != hrSuccess)
 				return hr;
@@ -806,9 +805,9 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 		
 		case PT_CLSID:
 			if (lpProp->ulPropTag & MV_FLAG)
-				hr = HrWriteData(lpStream, (char *)&lpProp->Value.MVguid.lpguid[ulMVProp], sizeof(GUID));
+				hr = HrWriteData(lpStream, &lpProp->Value.MVguid.lpguid[ulMVProp], sizeof(GUID));
 			else
-				hr = HrWriteData(lpStream, (char *)lpProp->Value.lpguid, sizeof(GUID));
+				hr = HrWriteData(lpStream, lpProp->Value.lpguid, sizeof(GUID));
 			if (hr != hrSuccess)
 				return hr;
 			break;
@@ -1662,7 +1661,7 @@ HRESULT ECTNEF::HrReadByte(IStream *lpStream, unsigned char *ulData)
  * @retval MAPI_E_NOT_FOUND if stream was too short, other MAPI error code
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrReadData(IStream *lpStream, char *lpData, ULONG ulLen)
+HRESULT ECTNEF::HrReadData(IStream *lpStream, void *lpData, size_t ulLen)
 {
 	HRESULT hr;
 	ULONG ulRead = 0;
@@ -1752,7 +1751,7 @@ HRESULT ECTNEF::HrWriteByte(IStream *lpStream, unsigned char ulData)
  * @param[in]		ulData		unsigned char value to write in lpStream
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrWriteData(IStream *lpStream, const char *data, ULONG ulLen)
+HRESULT ECTNEF::HrWriteData(IStream *lpStream, const void *data, size_t ulLen)
 {
 	HRESULT hr;
 	ULONG ulWritten = 0;
