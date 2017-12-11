@@ -485,9 +485,10 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 		hr = MAPIAllocateMore(bin.cb, lpNotification, reinterpret_cast<void **>(&bin.lpb));
 		if(hr != hrSuccess)
 			return hr;
-		memcpy(bin.lpb, &lpsPrevRow->ulObjId, sizeof(ULONG));
-		memcpy(bin.lpb + sizeof(ULONG), &lpsPrevRow->ulOrderId, sizeof(ULONG));
-
+		uint32_t tmp4 = cpu_to_le32(lpsPrevRow->ulObjId);
+		memcpy(bin.lpb, &tmp4, sizeof(tmp4));
+		tmp4 = cpu_to_le32(lpsPrevRow->ulOrderId);
+		memcpy(bin.lpb + sizeof(tmp4), &tmp4, sizeof(tmp4));
 	}
 
 	if (lpsRowItem == NULL || lpsRowItem->ulObjId == 0) {
@@ -499,8 +500,10 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 		hr = MAPIAllocateMore(bin.cb, lpNotification, reinterpret_cast<void **>(&bin.lpb));
 		if(hr != hrSuccess)
 			return hr;
-		memcpy(bin.lpb, &lpsRowItem->ulObjId, sizeof(ULONG));
-		memcpy(bin.lpb + sizeof(ULONG), &lpsRowItem->ulOrderId, sizeof(ULONG));
+		uint32_t tmp4 = cpu_to_le32(lpsRowItem->ulObjId);
+		memcpy(bin.lpb, &tmp4, sizeof(tmp4));
+		tmp4 = cpu_to_le32(lpsRowItem->ulOrderId);
+		memcpy(bin.lpb + sizeof(tmp4), &tmp4, sizeof(tmp4));
 	}
 	
 	switch(ulTableEvent) {
@@ -988,8 +991,10 @@ HRESULT ECMemTableView::QueryRowData(const ECObjectTableList *lpsRowList,
 				hr = MAPIAllocateMore(prop.Value.bin.cb, lpRows[i].lpProps, reinterpret_cast<void **>(&prop.Value.bin.lpb));
 				if(hr != hrSuccess)
 					return hr;
-				memcpy(prop.Value.bin.lpb, &rowlist.ulObjId, sizeof(ULONG));
-				memcpy(prop.Value.bin.lpb + sizeof(ULONG), &rowlist.ulOrderId, sizeof(ULONG));
+				uint32_t tmp4 = cpu_to_le32(rowlist.ulObjId);
+				memcpy(prop.Value.bin.lpb, &tmp4, sizeof(tmp4));
+				tmp4 = cpu_to_le32(rowlist.ulOrderId);
+				memcpy(prop.Value.bin.lpb + sizeof(tmp4), &tmp4, sizeof(tmp4));
 				continue;
 			}
 			// Find the property in the data (locate the property by property ID, since we may need conversion)

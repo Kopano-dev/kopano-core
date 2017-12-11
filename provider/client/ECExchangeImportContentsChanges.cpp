@@ -420,9 +420,12 @@ bool ECExchangeImportContentsChanges::IsConflict(const SPropValue *lpLocalCK,
 		if (ulSize <= sizeof(GUID)) {
 			break;
 		 } else if (lpLocalCK->Value.bin.cb > sizeof(GUID) && memcmp(strChangeList.data() + ulPos, lpLocalCK->Value.bin.lpb, sizeof(GUID)) == 0) {
+			uint32_t tmp4;
 			bGuidFound = true;	// Track if we found the GUID from our local change key
-			auto ulRemoteChangeNumber = *reinterpret_cast<const unsigned int *>(strChangeList.data() + ulPos + sizeof(GUID));
-			auto ulLocalChangeNumber = *reinterpret_cast<const unsigned int *>(lpLocalCK->Value.bin.lpb + sizeof(GUID));
+			memcpy(&tmp4, strChangeList.data() + ulPos + sizeof(GUID), sizeof(tmp4));
+			unsigned int ulRemoteChangeNumber = le32_to_cpu(tmp4);
+			memcpy(&tmp4, lpLocalCK->Value.bin.lpb + sizeof(GUID), sizeof(tmp4));
+			unsigned int ulLocalChangeNumber = le32_to_cpu(tmp4);
 			// We have a conflict if we have a newer change locally than the remove server is sending us.
 			bConflict = ulLocalChangeNumber > ulRemoteChangeNumber;
 		}
