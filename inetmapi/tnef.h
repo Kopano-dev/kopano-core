@@ -67,7 +67,7 @@ private:
 	HRESULT HrReadDWord(IStream *, uint32_t *value);
 	HRESULT HrReadWord(IStream *, uint16_t *value);
 	HRESULT HrReadByte(IStream *lpStream, unsigned char *ulData);
-	HRESULT HrReadData(IStream *lpStream, void *lpData, size_t ulLen);
+	HRESULT HrReadData(IStream *, void *, size_t);
 	HRESULT HrWriteDWord(IStream *, uint32_t value);
 	HRESULT HrWriteWord(IStream *, uint16_t value);
 	HRESULT HrWriteByte(IStream *lpStream, unsigned char ulData);
