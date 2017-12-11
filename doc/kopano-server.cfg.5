@@ -291,6 +291,19 @@ The level of output for logging in the range from 0 to 5. 0 means no logging, 5 
 .sp
 Default:
 \fI2\fR
+.sp
+Extended logging per component is available for development and can be combined to log multiple components at the same time.
+.TS
+allbox;
+c c.
+Component	Value
+SQL	0x00010000
+USERPLUGIN	0x00020000
+CACHE	0x00040000
+USERCACHE	0x00080000
+SOAP	0x00100000
+ICS	0x00200000
+.TE
 .RE
 .PP
 \fBlog_timestamp\fR
