@@ -350,6 +350,7 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	hr = MAPIAllocateBuffer(CbNewROWLIST(2), &~ptrRowList);
 	if (hr != hrSuccess)
 		return hr;
+	ptrRowList->cEntries = 0;
 
 	// First set permissions on the IPM Subtree since we'll simply overwrite
 	// them if the archive folder IS the IPM Subtree.

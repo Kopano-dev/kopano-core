@@ -460,7 +460,7 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 	
 	//Get the interface of destinationfolder
 	if(lpInterface == NULL || *lpInterface == IID_IMAPIFolder)
-		hr = ((IMAPIFolder *)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
+		lpMapiFolder.reset(static_cast<IMAPIFolder *>(lpDestFolder));
 	else if(*lpInterface == IID_IMAPIContainer)
 		hr = ((IMAPIContainer *)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IUnknown)
@@ -597,7 +597,7 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 
 	//Get the interface of destinationfolder
 	if(lpInterface == NULL || *lpInterface == IID_IMAPIFolder)
-		hr = ((IMAPIFolder*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
+		lpMapiFolder.reset(static_cast<IMAPIFolder *>(lpDestFolder));
 	else if(*lpInterface == IID_IMAPIContainer)
 		hr = ((IMAPIContainer*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IUnknown)

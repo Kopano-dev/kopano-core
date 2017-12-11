@@ -1537,7 +1537,8 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 			memcpy(*lppData, sObject->lpData, sObject->cbData);
 			
 			// All done
-			goto exit;
+			LOG_CACHE_DEBUG("Get Prop From Object tag=0x%04X, objectid %d, data %s", ulTag, ulObjId, bin2hex(sObject->cbData, sObject->lpData).c_str());
+			return erSuccess;
 		}
 	}
 

@@ -34,6 +34,7 @@
 #include <string>
 #include <utility>
 #include <list>
+#include <sys/time.h>
 
 namespace KC {
 

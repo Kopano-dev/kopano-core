@@ -1306,9 +1306,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 	er = ECAllocateBuffer(CbNewSRowSet(sReceiveFolders.sFolderArray.__size), reinterpret_cast<void **>(&lpsRowSet));
 	if (er != erSuccess)
 		goto exitm;
-	memset(lpsRowSet, 0, CbNewSRowSet(sReceiveFolders.sFolderArray.__size));
-	lpsRowSet->cRows = sReceiveFolders.sFolderArray.__size;
-
+	lpsRowSet->cRows = 0;
 	for (gsoap_size_t i = 0; i < sReceiveFolders.sFolderArray.__size; ++i) {
 		ulRowId = i+1;
 
@@ -1316,6 +1314,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 		er = ECAllocateBuffer(sizeof(SPropValue) * NUM_RFT_PROPS, reinterpret_cast<void **>(&lpsRowSet->aRow[i].lpProps));
 		if (er != erSuccess)
 			goto exitm;
+		++lpsRowSet->cRows;
 		memset(lpsRowSet->aRow[i].lpProps, 0, sizeof(SPropValue)*NUM_RFT_PROPS);
 		
 		lpsRowSet->aRow[i].lpProps[RFT_ROWID].ulPropTag = PR_ROWID;

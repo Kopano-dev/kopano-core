@@ -622,7 +622,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 	auto hr = MAPIAllocateBuffer(CbNewADRLIST(ulRCPT), &~lpAdrList);
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed(1)", hr);
-	lpAdrList->cEntries = ulRCPT;
+	lpAdrList->cEntries = 0;
 	hr = MAPIAllocateBuffer(CbNewFlagList(ulRCPT), &~lpFlagList);
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed(2)", hr);
@@ -635,7 +635,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[ulRCPT].rgPropVals);
 		if (hr != hrSuccess)
 			return kc_perrorf("MAPIAllocateBuffer failed(3)", hr);
-
+		++lpAdrList->cEntries;
 		/* szName can either be the email address or username, it doesn't really matter */
 		lpAdrList->aEntries[ulRCPT].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
 		lpAdrList->aEntries[ulRCPT].rgPropVals[0].Value.lpszW = const_cast<wchar_t *>(recip->wstrRCPT.c_str());

@@ -534,11 +534,11 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed", hr);
 
+	lpRecipients->cEntries = 0;
 	std::vector<std::string> fwd_whitelist =
 		tokenize(g_lpConfig->GetSetting("forward_whitelist_domains"), " ");
 	if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMsgClass) != hrSuccess)
 		/* ignore error - will check for pointer instead */;
-	lpRecipients->cEntries = 0;
 
 	for (ULONG i = 0; i < lpRuleRecipients->cEntries; ++i) {
 		std::wstring strRuleName, strRuleType, strRuleAddress;
@@ -577,8 +577,9 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 		if (hr != hrSuccess)
 			return kc_perrorf("Util::HrCopyPropertyArray failed", hr);
 
+		++lpRecipients->cEntries;
         if(bIncludeAsP1) {
-			auto lpRecipType = PpropFindProp(lpRecipients->aEntries[lpRecipients->cEntries].rgPropVals, lpRecipients->aEntries[lpRecipients->cEntries].cValues, PR_RECIPIENT_TYPE);
+			auto lpRecipType = PpropFindProp(lpRecipients->aEntries[lpRecipients->cEntries-1].rgPropVals, lpRecipients->aEntries[lpRecipients->cEntries-1].cValues, PR_RECIPIENT_TYPE);
             if(!lpRecipType) {
                 ec_log_crit("Attempt to add recipient with no PR_RECIPIENT_TYPE");
 				return MAPI_E_INVALID_PARAMETER;
@@ -586,7 +587,6 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
             
             lpRecipType->Value.ul = MAPI_P1;
         }
-		++lpRecipients->cEntries;
 	}
 
 	if (lpRecipients->cEntries == 0) {
@@ -598,7 +598,6 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 		ec_log_info("Loop protection blocked some recipients");
 
 	*lppNewRecipients = lpRecipients.release();
-	lpRecipients = NULL;
 	return hrSuccess;
 }
 

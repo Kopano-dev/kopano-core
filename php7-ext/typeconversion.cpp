@@ -790,14 +790,17 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 	MAPI_G(hr) = MAPI_ALLOC(CbNewADRLIST(count), lpBase, (void **)&lpAdrList);
 	if(MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
-
+	lpAdrList->cEntries = 0;
 	zend_hash_internal_pointer_reset(target_hash);
 
 	// FIXME: It is possible that the memory allocated is more than actually needed. We should first
 	//		  count the number of elements needed then allocate memory and then fill the memory.
 	//        but since this waste is probably very minimal, we could not care less about this.
+
 	for (unsigned int i = 0; i < count; ++i) {
 		entry = zend_hash_get_current_data(target_hash);
+		ZVAL_DEREF(entry);
+
 		if(Z_TYPE_P(entry) != IS_ARRAY) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "phparraytoadrlist array must include an array with array of propvalues");
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -807,7 +810,7 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 		MAPI_G(hr) = PHPArraytoPropValueArray(entry, lpBase, &countProperties, &pPropValue TSRMLS_CC);
 		if(MAPI_G(hr) != hrSuccess)
 			goto exit;
-			
+		++lpAdrList->cEntries;
 		lpAdrList->aEntries[countRecipients].ulReserved1 = 0;
 		lpAdrList->aEntries[countRecipients].rgPropVals = pPropValue;
 		lpAdrList->aEntries[countRecipients].cValues = countProperties;
@@ -816,9 +819,6 @@ HRESULT PHPArraytoAdrList(zval *phpArray, void *lpBase, LPADRLIST *lppAdrList TS
 		zend_hash_move_forward(target_hash);
 		++countRecipients;
 	}
-
-	lpAdrList->cEntries = countRecipients;
-
 	*lppAdrList = lpAdrList;
 
 exit:
@@ -862,7 +862,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 	             reinterpret_cast<void **>(&lpRowList));
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-
+	lpRowList->cEntries = 0;
 	zend_hash_internal_pointer_reset(target_hash);
 
 	// FIXME: It is possible that the memory allocated is more than actually needed. We should first
@@ -870,6 +870,8 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 	//        but since this waste is probably very minimal, we could not care less about this.
 	for (unsigned int i = 0; i < count; ++i) {
 		entry = zend_hash_get_current_data(target_hash);
+		ZVAL_DEREF(entry);
+
 		if (Z_TYPE_P(entry) != IS_ARRAY) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "PHPArraytoRowList, Row not wrapped in array");
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -894,6 +896,7 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 				MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 				goto exit;
 			}
+			++lpRowList->cEntries;
 			lpRowList->aEntries[countRows].rgPropVals = pPropValue;
 			lpRowList->aEntries[countRows++].cValues = countProperties;
 		}else {
@@ -905,8 +908,6 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 		// move the pointer to the next entry
 		zend_hash_move_forward(target_hash);
 	}
-	lpRowList->cEntries = countRows;
-
 	*lppRowList = lpRowList;
 
 exit:

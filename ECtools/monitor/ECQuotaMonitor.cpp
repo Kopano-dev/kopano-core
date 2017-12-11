@@ -824,8 +824,7 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
 	auto hr = MAPIAllocateBuffer(CbNewADRLIST(cToUsers), &~lpAddrList);
 	if(hr != hrSuccess)
 		return hr;
-
-	lpAddrList->cEntries = cToUsers;
+	lpAddrList->cEntries = 0;
 	for (ULONG i = 0; i < cToUsers; ++i) {
 		lpAddrList->aEntries[i].cValues = 7;
 

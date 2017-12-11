@@ -981,9 +981,6 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 			lpMods->aEntries[cEntries].cValues = ulPropModsPos;
 			++cEntries;
 		}
-
-		lpMods->cEntries = cEntries;
-
 		hr = lpErrorMsg->ModifyRecipients(MODRECIP_ADD, lpMods);
 		if (hr != hrSuccess)
 			return hr;
@@ -1111,10 +1108,11 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 	auto hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAList);
 	if (hr != hrSuccess)
 		return hrSuccess;
-	lpAList->cEntries = 1;
+	lpAList->cEntries = 0;
 	lpAList->aEntries[0].cValues = 1;
 	if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAList->aEntries[0].cValues, (void**)&lpAList->aEntries[0].rgPropVals)) != hrSuccess)
 		return hrSuccess;
+	++lpAList->cEntries;
 	lpAList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
 	lpAList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR*)wstrEmailAddress.c_str();
 	hr = lpAddrBook->ResolveName(0, EMS_AB_ADDRESS_LOOKUP, NULL, lpAList);

@@ -136,3 +136,27 @@ the unique_tie function makes it possible to do without the explicit temporary
 
 	std::unique_ptr<Foo> g;
 	somefunction(&unique_tie(g));
+
+
+== adrlist_ptr, rowset_ptr, rowlist_ptr ==
+
+There are three extra typedefs for the purpose of portraying the "individual
+allocation" strategy often used for ADRLIST, SRowSet and ROWLIST:
+
+	typedef memory_ptr<ADRLIST, rowlist_delete> adrlist_ptr;
+	typedef memory_ptr<SRowSet, rowlist_delete> rowset_ptr;
+	typedef memory_ptr<ROWLIST, rowlist_delete> rowlist_ptr;
+
+(https://msdn.microsoft.com/en-us/library/office/cc842180.aspx) When every
+SPropValue within such a type is allocated independently — with
+MAPIAllocateBuffer rather than MAPIAllocateMore —, the rowlist deleter must be
+used. Conversely, if a certain block of code depends on that the SPropValue not
+be freed, such as when the SPropValue is a local automatic, then rowlist_ptr
+must *not* be used.
+
+	memory_ptr<ROWLIST> rowlist;
+	SPropValue foo;
+	MAPIAllocateMemory(CbNewROWLIST(1), &~rowlist);
+	foo.ulPropTag = PR_FOO;
+	rowlist->aEntries[0].rgPropVals = &foo;
+	rowlist->cEntries = 1;
