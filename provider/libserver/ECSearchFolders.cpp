@@ -83,7 +83,10 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
     unsigned int ulStatus = 0;
 
     // Search for all folders with PR_EC_SEARCHCRIT that are not deleted. Note that this query can take quite some time on large databases
-    std::string strQuery = "SELECT hierarchy.id, properties.val_ulong FROM hierarchy LEFT JOIN properties ON properties.hierarchyid=hierarchy.id AND properties.tag=" + stringify(PROP_ID(PR_EC_SEARCHFOLDER_STATUS)) +" AND properties.type=" + stringify(PROP_TYPE(PR_EC_SEARCHFOLDER_STATUS)) + " WHERE hierarchy.type=3 AND hierarchy.flags=2";
+	auto strQuery = "SELECT h.id, p.val_ulong, p2.val_string FROM hierarchy AS h"
+		" LEFT JOIN properties AS p ON h.id=p.hierarchyid AND p.tag=" + stringify(PROP_ID(PR_EC_SEARCHFOLDER_STATUS)) + " AND p.type=" + stringify(PROP_TYPE(PR_EC_SEARCHFOLDER_STATUS)) +
+		" LEFT JOIN properties AS p2 ON h.id=p2.hierarchyid AND p.tag=" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) + " AND p.type=" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)) +
+		" WHERE h.type=3 AND h.flags=2";
     struct searchCriteria *lpSearchCriteria = NULL;
     
     // Get database
@@ -97,25 +100,19 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
         
 	ec_log_notice("Loading search folders.");
 	while ((lpRow = lpResult.fetch_row()) != nullptr) {
-        if(lpRow[0] == NULL)
-            continue;
-            
-        if(lpRow[1] != NULL)
-            ulStatus = atoi(lpRow[1]);
-        else
-            ulStatus = EC_SEARCHFOLDER_STATUS_RUNNING; // this is the default if no property is found
-            
+		if (lpRow[0] == nullptr || lpRow[2] == nullptr)
+			continue;
+		ulStatus = (lpRow[1] == nullptr) ? EC_SEARCHFOLDER_STATUS_RUNNING : atoui(lpRow[1]);
+		if (ulStatus == EC_SEARCHFOLDER_STATUS_STOPPED)
+			/* Only load the table if it is not stopped */
+			continue;
 		auto ulFolderId = atoi(lpRow[0]);
         er = m_lpSessionManager->GetCacheManager()->GetStore(ulFolderId, &ulStoreId, NULL);
         if(er != erSuccess) {
             er = erSuccess;
             continue;
         }
-        
-        // Only load the table if it is not stopped
-		if (ulStatus == EC_SEARCHFOLDER_STATUS_STOPPED)
-			continue;
-		er = LoadSearchCriteria(ulFolderId, &lpSearchCriteria);
+		er = LoadSearchCriteria2(lpRow[2], &lpSearchCriteria);
 		if (er != erSuccess) {
 			er = erSuccess;
 			continue;
@@ -1506,7 +1503,6 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulFolderId, struct sea
 {
 	ECDatabase		*lpDatabase = NULL;
 	DB_RESULT lpDBResult;
-	struct soap				xmlsoap;
 
     // Get database
 	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
@@ -1515,9 +1511,6 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulFolderId, struct sea
 		return er;
 	}
 
-	// We use the soap serializer / deserializer to store the data
-	soap_set_mode(&xmlsoap, SOAP_XML_TREE | SOAP_C_UTFSTRING);
-	
 	// Find out what kind of table this is
 	std::string strQuery = "SELECT hierarchy.flags, properties.val_string FROM hierarchy JOIN properties on hierarchy.id=properties.hierarchyid AND properties.tag =" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) + " AND properties.type =" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)) + " WHERE hierarchy.id =" + stringify(ulFolderId) + " LIMIT 1";
 
@@ -1530,11 +1523,19 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulFolderId, struct sea
 	auto lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr || atoi(lpDBRow[0]) != 2 || lpDBRow[1] == nullptr)
 		return KCERR_NOT_FOUND;
+	return LoadSearchCriteria2(lpDBRow[1], lppSearchCriteria);
+}
 
-	std::string xmldata(lpDBRow[1]);
+ECRESULT ECSearchFolders::LoadSearchCriteria2(const std::string &xmldata,
+    struct searchCriteria **lppSearchCriteria)
+{
 	std::istringstream xml(xmldata);
+	struct soap xmlsoap;
 	struct searchCriteria crit;
+	ECRESULT er = erSuccess;
 
+	/* Use the soap (de)serializer to store the data */
+	soap_set_mode(&xmlsoap, SOAP_XML_TREE | SOAP_C_UTFSTRING);
 	xmlsoap.is = &xml;
 	soap_default_searchCriteria(&xmlsoap, &crit);
 	if (soap_begin_recv(&xmlsoap) != 0)
