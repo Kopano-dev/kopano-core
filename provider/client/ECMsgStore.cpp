@@ -1687,7 +1687,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 	// Open the created messagestore
 	hr = ECMsgStore::Create("", lpSupport, lpTempTransport, true, MAPI_BEST_ACCESS, false, false, false, &~lpecMsgStore);
 	if (hr != hrSuccess)
-		//FIXME: wat te doen met de aangemaakte store ?
+		//FIXME: what todo with created store?
 		return hr;
 	if (ulStoreType == ECSTORE_TYPE_PRIVATE)
 		memcpy(&lpecMsgStore->m_guidMDB_Provider, &KOPANO_SERVICE_GUID, sizeof(MAPIUID));
