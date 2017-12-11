@@ -130,13 +130,12 @@ public:
 
 	// Named properties
 	virtual HRESULT HrGetIDsFromNames(LPMAPINAMEID *lppPropNamesUnresolved, ULONG cUnresolved, ULONG ulFlags, ULONG **lpServerIDs);
-
-	virtual HRESULT HrGetNamesFromIDs(LPSPropTagArray lpsPropTags, LPMAPINAMEID ** lpppNames, ULONG *cResolved);
+	virtual HRESULT HrGetNamesFromIDs(SPropTagArray *tags, MAPINAMEID ***names, ULONG *resolved);
 	
 	// ReceiveFolder
-	virtual HRESULT HrGetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, const utf8string &strMessageClass, ULONG* lpcbEntryID, LPENTRYID* lppEntryID, utf8string *lpstrExplicitClass);
-	virtual HRESULT HrSetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, const utf8string &strMessageClass, ULONG cbEntryID, LPENTRYID lpEntryID);
-	virtual HRESULT HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, LPSRowSet* lppsRowSet);
+	virtual HRESULT HrGetReceiveFolder(ULONG store_eid_size, const ENTRYID *store_eid, const utf8string &cls, ULONG *eid_size, ENTRYID **folder_eid, utf8string *exp_class);
+	virtual HRESULT HrSetReceiveFolder(ULONG store_eid_size, const ENTRYID *store_eid, const utf8string &cls, ULONG eid_size, const ENTRYID *folder_eid);
+	virtual HRESULT HrGetReceiveFolderTable(ULONG flags, ULONG store_eid_size, const ENTRYID *store_eid, SRowSet **);
 
 	// Read / Unread
 	virtual HRESULT HrSetReadFlag(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, ULONG ulSyncId);
@@ -146,7 +145,7 @@ public:
 
 	// Outgoing Queue Finished message
 	virtual HRESULT HrFinishedMessage(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulFlags);
-	virtual HRESULT HrAbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID);
+	virtual HRESULT HrAbortSubmit(ULONG eid_size, const ENTRYID *);
 
 	// Get user information
 	virtual HRESULT HrResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
@@ -254,12 +253,8 @@ public:
 	virtual HRESULT HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECMsgStore *lpMsgStore, WSTableView **lppTableView);
 
 	/* Message locking */
-	virtual HRESULT HrSetLockState(ULONG cbEntryID, LPENTRYID lpEntryID, bool bLocked);
+	virtual HRESULT HrSetLockState(ULONG eid_size, const ENTRYID *, bool locked);
 
-	// License information
-
-	virtual HRESULT HrLicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lppResponseData, unsigned int *lpulSize);
-	
 	/* expose capabilities */
 	virtual HRESULT HrCheckCapabilityFlags(ULONG ulFlags, BOOL *lpbResult);
 

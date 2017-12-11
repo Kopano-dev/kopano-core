@@ -656,7 +656,8 @@ exit:
 	return hr;
 }
 
-HRESULT ECMsgStorePublic::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection)
+HRESULT ECMsgStorePublic::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ULONG ulEventMask, IMAPIAdviseSink *lpAdviseSink, ULONG *lpulConnection)
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulResult = 0;

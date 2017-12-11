@@ -1031,7 +1031,8 @@ HRESULT ECGenericProp::CopyProps(const SPropTagArray *, ULONG ui_param,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ECGenericProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames)
+HRESULT ECGenericProp::GetNamesFromIDs(SPropTagArray **tags, const GUID *propset,
+    ULONG flags, ULONG *nvals, MAPINAMEID ***names)
 {
 	return MAPI_E_NO_SUPPORT;
 }

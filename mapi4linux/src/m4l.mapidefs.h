@@ -44,7 +44,7 @@ public:
 	virtual HRESULT DeleteProps(const SPropTagArray *proptag, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *exclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID iface, LPVOID dest_obj, ULONG flags, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID iface, LPVOID dest_obj, ULONG flags, LPSPropProblemArray *) _kc_override;
-	virtual HRESULT GetNamesFromIDs(LPSPropTagArray *proptag, LPGUID lpPropSetGuid, ULONG flags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _kc_override;
+	virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) override;
 	virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG flags, LPSPropTagArray *proptag) _kc_override;
 	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
 };

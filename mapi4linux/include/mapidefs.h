@@ -756,8 +756,7 @@ public:
 	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems) = 0;
 	virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) = 0;
 	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) = 0;
-    virtual HRESULT GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* lpcPropNames,
-				    LPMAPINAMEID** lpppPropNames) = 0;
+	virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) = 0;
     virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* lppPropTags) = 0;
 };
 IID_OF(IMAPIProp)
@@ -960,19 +959,18 @@ IID_OF(IMAPIAdviseSink)
 
 class IMsgStore : public virtual IMAPIProp {
 public:
-    virtual HRESULT Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink,
-			   ULONG *lpulConnection) = 0;
+	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) = 0;
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
 	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result) = 0;
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **) = 0;
-    virtual HRESULT SetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) = 0;
+	virtual HRESULT SetReceiveFolder(const TCHAR *cls, ULONG flags, ULONG eid_size, const ENTRYID *) = 0;
 	virtual HRESULT GetReceiveFolder(const TCHAR *cls, ULONG flags, ULONG *eid_size, ENTRYID **eid, TCHAR **exp_class) = 0;
     virtual HRESULT GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
     virtual HRESULT StoreLogoff(ULONG *lpulFlags) = 0;
-    virtual HRESULT AbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags) = 0;
+	virtual HRESULT AbortSubmit(ULONG eid_size, const ENTRYID *, ULONG flags) = 0;
     virtual HRESULT GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
     virtual HRESULT SetLockState(LPMESSAGE lpMessage,ULONG ulLockState) = 0;
-    virtual HRESULT FinishedMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) = 0;
+	virtual HRESULT FinishedMsg(ULONG flags, ULONG eid_size, const ENTRYID *) = 0;
     virtual HRESULT NotifyNewMail(LPNOTIFICATION lpNotification) = 0;
 };
 IID_OF(IMsgStore)

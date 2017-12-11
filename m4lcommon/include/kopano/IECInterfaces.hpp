@@ -149,11 +149,6 @@ class IECImportHierarchyChanges : public IExchangeImportHierarchyChanges {
 	virtual HRESULT ImportFolderChangeEx(ULONG cValues, LPSPropValue lpPropArray, BOOL fNew) = 0;
 };
 
-class IECLicense : public virtual IUnknown {
-	public:
-	virtual HRESULT LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lpAuthResponse, unsigned int *lpulResponseSize) = 0;
-};
-
 class IECMultiStoreTable : public virtual IUnknown {
 	public:
 	/* ulFlags is currently unused */

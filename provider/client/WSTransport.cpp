@@ -1202,7 +1202,8 @@ HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames,
 	return hr;
 }
 
-HRESULT WSTransport::HrGetNamesFromIDs(LPSPropTagArray lpsPropTags, LPMAPINAMEID **lpppNames, ULONG *lpcResolved)
+HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
+    MAPINAMEID ***lpppNames, ULONG *lpcResolved)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -1268,7 +1269,8 @@ HRESULT WSTransport::HrGetNamesFromIDs(LPSPropTagArray lpsPropTags, LPMAPINAMEID
 	return hr;
 }
 
-HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, LPSRowSet* lppsRowSet)
+HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
+    ULONG cbStoreEntryID, const ENTRYID *lpStoreEntryID, SRowSet **lppsRowSet)
 {
 	struct receiveFolderTableResponse sReceiveFolders;
 	ECRESULT	er = erSuccess;
@@ -1368,7 +1370,9 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID
 	return hr;
 }
 
-HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, const utf8string &strMessageClass, ULONG* lpcbEntryID, LPENTRYID* lppEntryID, utf8string *lpstrExplicitClass)
+HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID,
+    const ENTRYID *lpStoreEntryID, const utf8string &strMessageClass,
+    ULONG *lpcbEntryID, ENTRYID **lppEntryID, utf8string *lpstrExplicitClass)
 {
 	struct receiveFolderResponse sReceiveFolderTable;
 
@@ -1424,7 +1428,9 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreE
 	return hr;
 }
 
-HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID, LPENTRYID lpStoreID, const utf8string &strMessageClass, ULONG cbEntryID, LPENTRYID lpEntryID)
+HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
+    const ENTRYID *lpStoreID, const utf8string &strMessageClass,
+    ULONG cbEntryID, const ENTRYID *lpEntryID)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -1534,7 +1540,7 @@ HRESULT WSTransport::HrFinishedMessage(ULONG cbEntryID,
 	return hr;
 }
 
-HRESULT WSTransport::HrAbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID)
+HRESULT WSTransport::HrAbortSubmit(ULONG cbEntryID, const ENTRYID *lpEntryID)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -4138,7 +4144,7 @@ HRESULT WSTransport::HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags, ULONG cbE
 	       reinterpret_cast<void **>(lppTableView));
 }
 
-HRESULT WSTransport::HrSetLockState(ULONG cbEntryID, LPENTRYID lpEntryID, bool bLocked)
+HRESULT WSTransport::HrSetLockState(ULONG cbEntryID, const ENTRYID *lpEntryID, bool bLocked)
 {
 	HRESULT hr = hrSuccess;
     ECRESULT er = erSuccess;
@@ -4173,40 +4179,6 @@ HRESULT WSTransport::HrCheckCapabilityFlags(ULONG ulFlags, BOOL *lpbResult)
 
 	*lpbResult = ((m_ulServerCapabilities & ulFlags) == ulFlags) ? TRUE : FALSE;
 	return hrSuccess;
-}
-
-HRESULT WSTransport::HrLicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lppResponseData, unsigned int *lpulSize)
-{
-    HRESULT hr = hrSuccess;
-    ECRESULT er = erSuccess;
-    struct getLicenseAuthResponse sResponse;
-    struct xsd__base64Binary sData;
-    
-    sData.__ptr = lpData;
-    sData.__size = ulSize;
-    
-    LockSoap();
-    
-	START_SOAP_CALL
-	{
-		if(SOAP_OK != m_lpCmd->ns__getLicenseAuth(m_ecSessionId, sData, &sResponse))
-			er = KCERR_NETWORK_ERROR;
-		else
-			er = sResponse.er;
-        
-	}
-	END_SOAP_CALL
-        
-    hr = MAPIAllocateBuffer(sResponse.sAuthResponse.__size, (void **) lppResponseData);
-    if(hr != hrSuccess)
-		goto exitm;
-        
-    memcpy(*lppResponseData, sResponse.sAuthResponse.__ptr, sResponse.sAuthResponse.__size);
-    *lpulSize = sResponse.sAuthResponse.__size;
- exitm:
-    UnLockSoap();
-    
-    return hr;
 }
 
 HRESULT WSTransport::HrTestPerform(const char *szCommand, unsigned int ulArgs,

@@ -291,8 +291,9 @@ HRESULT M4LMAPIProp::CopyProps(const SPropTagArray *lpIncludeProps,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPIProp::GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* lpcPropNames,
-				     LPMAPINAMEID** lpppPropNames) {
+HRESULT M4LMAPIProp::GetNamesFromIDs(SPropTagArray **tags, const GUID *propset,
+    ULONG flags, ULONG *nvals, MAPINAMEID ***names)
+{
 	return MAPI_E_NO_SUPPORT;
 }
 

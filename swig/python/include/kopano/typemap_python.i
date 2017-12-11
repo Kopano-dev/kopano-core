@@ -360,7 +360,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
     $input = SWIG_FromCharPtrAndSize((char*)$2_name, $1_name);
 }
 
-%typemap(directorin,noblock=1)	LPCIID, LPGUID
+%typemap(directorin,noblock=1)	LPCIID, LPGUID, GUID *
 {
 	LPCIID __iid = $1_name;
 	$input = SWIG_FromCharPtrAndSize((char*)$1_name, sizeof(GUID));

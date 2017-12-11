@@ -68,18 +68,18 @@ public:
 	virtual HRESULT SetProps(ULONG cValues, const SPropValue *lpPropArray, LPSPropProblemArray *lppProblems);
 	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems);
 	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
-	virtual HRESULT Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection);
+	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
 	virtual HRESULT Unadvise(ULONG ulConnection);
 	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result);
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
-	virtual HRESULT SetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID);
+	virtual HRESULT SetReceiveFolder(const TCHAR *cls, ULONG flags, ULONG eid_size, const ENTRYID *eid) override;
 	virtual HRESULT GetReceiveFolder(const TCHAR *cls, ULONG flags, ULONG *eid_size, ENTRYID **eid, TCHAR **exp_class) override;
 	virtual HRESULT GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable);
 	virtual HRESULT StoreLogoff(ULONG *lpulFlags);
-	virtual HRESULT AbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags);
+	virtual HRESULT AbortSubmit(ULONG eid_size, const ENTRYID *, ULONG flags) override;
 	virtual HRESULT GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable);
 	virtual HRESULT SetLockState(LPMESSAGE lpMessage,ULONG ulLockState);
-	virtual HRESULT FinishedMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID);
+	virtual HRESULT FinishedMsg(ULONG flags, ULONG eid_size, const ENTRYID *) override;
 	virtual HRESULT NotifyNewMail(LPNOTIFICATION lpNotification);
 
 	virtual HRESULT CreateStoreEntryID(const TCHAR *store_dn, const TCHAR *mbox_dn, ULONG flags, ULONG *eid_size, ENTRYID **eid);
@@ -158,9 +158,6 @@ public:
 	// ECMultiStoreTable
 	virtual HRESULT OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, LPMAPITABLE *lppTable);
 
-    // ECLicense
-    virtual HRESULT LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lppResponse, unsigned int * lpulResponseData);
-
     // ECTestProtocol
 	virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **argv);
 	virtual HRESULT TestSet(const char *name, const char *value);
@@ -204,23 +201,22 @@ private:
 
 public:
 	class xMsgStoreProxy _kc_final :
-	    public IMsgStore, public IECMultiStoreTable, public IECLicense,
-	    public IECTestProtocol {
+	    public IMsgStore, public IECMultiStoreTable, public IECTestProtocol {
 		virtual ULONG AddRef(void) _kc_override;
 		virtual ULONG Release(void) _kc_override;
 		virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
-		virtual HRESULT Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection) _kc_override;
+		virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
 		virtual HRESULT Unadvise(ULONG ulConnection) _kc_override;
 		virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result);
 		virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
-		virtual HRESULT SetReceiveFolder(LPTSTR lpszMessageClass, ULONG flags, ULONG cbEntryID, LPENTRYID lpEntryID) _kc_override;
+		virtual HRESULT SetReceiveFolder(const TCHAR *cls, ULONG flags, ULONG eid_size, const ENTRYID *eid) override;
 		virtual HRESULT GetReceiveFolder(const TCHAR *cls, ULONG flags, ULONG *eid_size, ENTRYID **eid, TCHAR **exp_class) override;
 		virtual HRESULT GetReceiveFolderTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
 		virtual HRESULT StoreLogoff(ULONG *lpulFlags) _kc_override;
-		virtual HRESULT AbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG flags) _kc_override;
+		virtual HRESULT AbortSubmit(ULONG eid_size, const ENTRYID *, ULONG flags) override;
 		virtual HRESULT GetOutgoingQueue(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
 		virtual HRESULT SetLockState(LPMESSAGE lpMessage,ULONG ulLockState) _kc_override;
-		virtual HRESULT FinishedMsg(ULONG flags, ULONG cbEntryID, LPENTRYID lpEntryID) _kc_override;
+		virtual HRESULT FinishedMsg(ULONG flags, ULONG eid_size, const ENTRYID *) override;
 		virtual HRESULT NotifyNewMail(LPNOTIFICATION lpNotification) _kc_override;
 		virtual HRESULT GetLastError(HRESULT hError, ULONG flags, LPMAPIERROR *lppMapiError) _kc_override;
 		virtual HRESULT SaveChanges(ULONG flags) _kc_override;
@@ -231,10 +227,9 @@ public:
 		virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems) _kc_override;
 		virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *exclprop, ULONG ui_param, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *lppProblems) _kc_override;
 		virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *lppProblems) _kc_override;
-		virtual HRESULT GetNamesFromIDs(LPSPropTagArray *pptaga, LPGUID lpguid, ULONG flags, ULONG *pcNames, LPMAPINAMEID **pppNames) _kc_override;
+		virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) override;
 		virtual HRESULT GetIDsFromNames(ULONG cNames, LPMAPINAMEID *ppNames, ULONG flags, LPSPropTagArray *pptaga) _kc_override;
 		virtual HRESULT OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG flags, LPMAPITABLE *lppTable) _kc_override;
-		virtual HRESULT LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lpResponseData, unsigned int *lpulResponseSize) _kc_override;
 		virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **args) _kc_override;
 		virtual HRESULT TestSet(const char *name, const char *value) _kc_override;
 		virtual HRESULT TestGet(const char *name, char **value) _kc_override;

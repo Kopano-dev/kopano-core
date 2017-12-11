@@ -125,7 +125,9 @@ ECNamedProp::~ECNamedProp()
 		lpTransport->Release();
 }
 
-HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames)
+HRESULT ECNamedProp::GetNamesFromIDs(SPropTagArray **lppPropTags,
+    const GUID *lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames,
+    MAPINAMEID ***lpppPropNames)
 {
 	HRESULT			hr = hrSuccess;
 	unsigned int	i = 0;
@@ -296,7 +298,8 @@ HRESULT ECNamedProp::ResolveLocal(MAPINAMEID *lpName, ULONG *ulPropTag)
 	return MAPI_E_NOT_FOUND;
 }
 
-HRESULT ECNamedProp::ResolveReverseCache(ULONG ulId, LPGUID lpGuid, ULONG ulFlags, void *lpBase, MAPINAMEID **lppName)
+HRESULT ECNamedProp::ResolveReverseCache(ULONG ulId, const GUID *lpGuid,
+    ULONG ulFlags, void *lpBase, MAPINAMEID **lppName)
 {
 	HRESULT hr = MAPI_E_NOT_FOUND;
 
@@ -315,7 +318,8 @@ HRESULT ECNamedProp::ResolveReverseCache(ULONG ulId, LPGUID lpGuid, ULONG ulFlag
 	return hr;
 }
 
-HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, LPGUID lpGuid, ULONG ulFlags, void *lpBase, MAPINAMEID **lppName)
+HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, const GUID *lpGuid,
+    ULONG ulFlags, void *lpBase, MAPINAMEID **lppName)
 {
 	MAPINAMEID*	lpName = NULL; 
 
