@@ -156,7 +156,7 @@ class Folder(Properties):
     def parent(self):
         """:class:`Parent <Folder>` folder"""
         parent_eid = _hex(self._get_fast(PR_PARENT_ENTRYID))
-        if parent_eid != self.store.root.entryid: # root parent is root
+        if parent_eid != self.entryid: # root parent is itself
             return Folder(self.store, parent_eid, _check_mapiobj=False)
 
     @property
@@ -243,8 +243,7 @@ class Folder(Properties):
     @property
     def unread(self):
         """ Number of unread items """
-
-        return self.prop(PR_CONTENT_UNREAD).value
+        return self._get_fast(PR_CONTENT_UNREAD)
 
     def item(self, entryid=None, sourcekey=None):
         """ Return :class:`Item` with given entryid or sourcekey
@@ -538,7 +537,8 @@ class Folder(Properties):
             PR_ENTRYID,
             PR_PARENT_ENTRYID,
             PR_DISPLAY_NAME_W,
-            PR_LAST_MODIFICATION_TIME
+            PR_LAST_MODIFICATION_TIME,
+            PR_CONTENT_UNREAD,
         ]
 
         flags = MAPI_UNICODE | self.content_flag

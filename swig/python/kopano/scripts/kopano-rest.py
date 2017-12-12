@@ -101,7 +101,8 @@ class FolderResource(Resource):
         'entryid': lambda folder: folder.entryid,
         'parent': lambda folder: folder.parent.entryid,
         'name': lambda folder: folder.name,
-        'modified': lambda folder: folder.last_modified.isoformat()
+        'modified': lambda folder: folder.last_modified.isoformat(),
+        'unread': lambda folder: folder.unread,
     }
 
     def on_get(self, req, resp, storeid, folderid=None):
