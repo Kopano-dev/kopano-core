@@ -336,12 +336,6 @@ private:
 	// add 24 hour to the time to be able to check if a time is on a date
 	FILETIME AddDay(FILETIME sFileTime);
 
-	// escape (quote) a unicode string to a specific charset in quoted-printable header format
-	std::string EscapeString(wchar_t *input, std::string &charset, bool ignore = false);
-
-	// escape (quote) a string for a quoted-text (between "")
-	std::string EscapeStringQT(const std::string &);
-
 	// Folder names are in a *modified* utf-7 form. See RFC2060, chapter 5.1.3
 	HRESULT MAPI2IMAPCharset(const std::wstring &input, std::string &output);
 	HRESULT IMAP2MAPICharset(const std::string &input, std::wstring &output);
