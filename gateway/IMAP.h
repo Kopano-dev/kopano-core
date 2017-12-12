@@ -314,9 +314,6 @@ private:
 	HRESULT HrPropertyFetch(std::list<ULONG> &mails, std::vector<std::string> &data_items);
 	HRESULT save_generated_properties(const std::string &text, IMessage *message);
 	HRESULT HrPropertyFetchRow(LPSPropValue props, ULONG nprops, std::string &response, ULONG mail_nr, bool bounce_flags, const std::vector<std::string> &data_items);
-	std::string HrEnvelopeRecipients(LPSRowSet lpRows, ULONG ulType, std::string& strCharset, bool bIgnore);
-	std::string HrEnvelopeSender(LPMESSAGE lpMessage, ULONG ulTagName, ULONG ulTagEmail, std::string& strCharset, bool bIgnore);
-	HRESULT HrGetMessageEnvelope(std::string &response, LPMESSAGE msg);
 	HRESULT HrGetMessageFlags(std::string &response, LPMESSAGE msg, bool recent);
 	HRESULT HrGetMessagePart(std::string &message_part, std::string &msg, std::string part_name);
 	ULONG LastOrNumber(const char *szNr, bool bUID);
