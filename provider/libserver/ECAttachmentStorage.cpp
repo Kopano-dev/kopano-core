@@ -103,7 +103,7 @@ ECRESULT ECAttachmentConfig::create(ECConfig *config, ECAttachmentConfig **atcp)
 {
 	auto type = config->GetSetting("attachment_storage");
 	std::unique_ptr<ECAttachmentConfig> a;
-	if (type == nullptr || strcmp(type, "db") == 0) {
+	if (type == nullptr || strcmp(type, "database") == 0) {
 		a.reset(new(std::nothrow) ECDatabaseAttachmentConfig);
 	} else if (strcmp(type, "files") == 0) {
 		a.reset(new(std::nothrow) ECFileAttachmentConfig);
