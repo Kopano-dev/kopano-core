@@ -68,6 +68,7 @@ public:
 	HRESULT convertVMIMEToMAPI(const std::string &input, IMessage *lpMessage);
 	HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope, std::string *lpBody, std::string *lpBodyStructure);
 	HRESULT createIMAPBody(const std::string &input, vmime::shared_ptr<vmime::message>, IMessage *lpMessage);
+	HRESULT createIMAPEnvelope(vmime::shared_ptr<vmime::message>, IMessage* lpMessage);
 
 private:
 	delivery_options m_dopt;
@@ -105,7 +106,6 @@ private:
 
 	std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox>);
 	std::string addressListToEnvelope(vmime::shared_ptr<vmime::addressList> mbox);
-	HRESULT createIMAPEnvelope(vmime::shared_ptr<vmime::message>, IMessage* lpMessage);
 	std::string createIMAPEnvelope(vmime::shared_ptr<vmime::message>);
 	HRESULT messagePartToStructure(const std::string &input, vmime::shared_ptr<vmime::bodyPart>, std::string *lpSimple, std::string *lpExtended);
 	HRESULT bodyPartToStructure(const std::string &input, vmime::shared_ptr<vmime::bodyPart>, std::string *lpSimple, std::string *lpExtended);

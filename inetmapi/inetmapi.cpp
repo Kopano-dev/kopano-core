@@ -264,14 +264,18 @@ HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope,
 	return VMIMEToMAPI().createIMAPProperties(input, lpEnvelope, lpBody, lpBodyStructure);
 }
 
-HRESULT createIMAPBody(const std::string &input, IMessage *lpMessage)
+HRESULT createIMAPBody(const std::string &input, IMessage *lpMessage, bool envelope)
 {
 	InitializeVMime();
 
 	auto vmMessage = vmime::make_shared<vmime::message>();
 	vmMessage->parse(input);
 
-	return VMIMEToMAPI().createIMAPBody(input, vmMessage, lpMessage);
+	auto hr = VMIMEToMAPI().createIMAPBody(input, vmMessage, lpMessage);
+	if (hr != hrSuccess || !envelope)
+		return hr;
+
+	return VMIMEToMAPI().createIMAPEnvelope(vmMessage, lpMessage);
 }
 
 } /* namespace */

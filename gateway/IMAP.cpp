@@ -3620,7 +3620,7 @@ HRESULT IMAP::save_generated_properties(const std::string &text, IMessage *messa
 {
 	lpLogger->Log(EC_LOGLEVEL_DEBUG, "Setting IMAP props");
 
-	auto hr = createIMAPBody(text, message);
+	auto hr = createIMAPBody(text, message, true);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to create IMAP body %08x", hr);
 		return hr;
