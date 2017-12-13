@@ -518,7 +518,8 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 		return MAPI_E_CALL_FAILED;
 	}
 
-	createIMAPEnvelope(vmMessage, lpMessage);
+	if (m_dopt.add_imap_data)
+		createIMAPEnvelope(vmMessage, lpMessage);
 
 	// ignore error/warings from fixup function: it's not critical for correct delivery
 	postWriteFixups(lpMessage);

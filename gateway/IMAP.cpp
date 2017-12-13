@@ -3620,7 +3620,7 @@ HRESULT IMAP::save_generated_properties(const std::string &text, IMessage *messa
 {
 	lpLogger->Log(EC_LOGLEVEL_DEBUG, "Setting IMAP props");
 
-	auto hr = createIMAPBody(text, message);
+	auto hr = createIMAPBody(text, message, true);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to create IMAP body %08x", hr);
 		return hr;
@@ -3740,11 +3740,28 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 			if (lpProp) {
 				vProps.emplace_back(item);
 				vProps.emplace_back("(" + string_strip_crlf(lpProp->Value.lpszA) + ")");
-			} else if (lpMessage) {
-				string strEnvelope;
-				HrGetMessageEnvelope(strEnvelope, lpMessage);
-				vProps.emplace_back(strEnvelope); // @note contains ENVELOPE (...)
-			} else {
+			}
+			else if (lpMessage) {
+				memory_ptr<SPropValue> prop;
+				sopt.headers_only = false;
+				hr = IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt);
+				if (hr != hrSuccess)
+					return hr;
+
+				strMessage = oss.str();
+
+				hr = save_generated_properties(strMessage, lpMessage);
+				if (hr != hrSuccess)
+					return hr;
+
+				hr = HrGetOneProp(lpMessage, m_lpsIMAPTags->aulPropTag[0], &~prop);
+				if (hr != hrSuccess)
+					return hr;
+
+				vProps.emplace_back(item);
+				vProps.emplace_back("(" + string_strip_crlf(prop->Value.lpszA) + ")");
+			}
+			else {
 				vProps.emplace_back(item);
 				vProps.emplace_back("NIL");
 			}
@@ -3980,230 +3997,6 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 	return hr;
 }
 
-/**
- * Returns a recipient block for the envelope request. Format:
- * (("fullname" NIL "email name" "email domain")(...))
- *
- * @param[in]	lpRows	recipient table rows
- * @param[in]	ulType	recipient type to print
- * @param[in]	strCharset	charset for the fullname
- * @return string containing the To/Cc/Bcc recipient data
- */
-std::string IMAP::HrEnvelopeRecipients(LPSRowSet lpRows, ULONG ulType, std::string& strCharset, bool bIgnore)
-{
-	ULONG ulCount;
-	std::string strResponse;
-	std::string::size_type ulPos;
-	enum { EMAIL_ADDRESS, DISPLAY_NAME, RECIPIENT_TYPE, ADDRTYPE, ENTRYID, NUM_COLS };
-
-	strResponse = "(";
-	for (ulCount = 0; ulCount < lpRows->cRows; ++ulCount) {
-		SPropValue *pr = lpRows->aRow[ulCount].lpProps;
-
-		if (pr[RECIPIENT_TYPE].Value.ul != ulType)
-			continue;
-		/*
-		 * """The fields of an address structure are in the following
-		 * order: personal name, SMTP at-domain-list (source route),
-		 * mailbox name, and host name.""" RFC 3501 §2.3.5 p.76.
-		 */
-		strResponse += "(";
-		if (pr[DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME_W)
-			strResponse += EscapeString(pr[DISPLAY_NAME].Value.lpszW, strCharset, bIgnore);
-		else
-			strResponse += "NIL";
-
-		strResponse += " NIL ";
-		bool has_email = pr[EMAIL_ADDRESS].ulPropTag == PR_EMAIL_ADDRESS_A;
-		bool za_addr = pr[ADDRTYPE].ulPropTag == PR_ADDRTYPE_W &&
-		               wcscmp(pr[ADDRTYPE].Value.lpszW, L"ZARAFA") == 0;
-		std::string strPart;
-
-		if (has_email && za_addr) {
-			std::wstring name, type, email;
-			HRESULT ret;
-			ret = HrGetAddress(lpAddrBook, pr, NUM_COLS,
-			      PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_W,
-			      PR_EMAIL_ADDRESS_A, name, type, email);
-			if (ret == hrSuccess)
-				strPart = convert_to<std::string>(email);
-		} else if (has_email) {
-			/* treat all non-ZARAFA cases as "SMTP" */
-			strPart = pr[EMAIL_ADDRESS].Value.lpszA;
-		}
-		if (strPart.length() > 0) {
-			ulPos = strPart.find("@");
-			if (ulPos != string::npos) {
-				strResponse += EscapeStringQT(strPart.substr(0, ulPos));
-				strResponse += " ";
-				strResponse += EscapeStringQT(strPart.substr(ulPos + 1));
-			} else {
-				strResponse += EscapeStringQT(strPart);
-				strResponse += " NIL";
-			}
-		} else {
-			strResponse += "NIL NIL";
-		}
-
-		strResponse += ") ";
-	}
-
-    if (strResponse.compare(strResponse.size() - 1, 1, " ") == 0) {
-        strResponse.resize(strResponse.size() - 1);
-        strResponse += ") ";
-    } else {
-		// no recipients at all
-        strResponse.resize(strResponse.size() - 1);
-        strResponse += "NIL ";
-    }
-
-	return strResponse;
-}
-
-/**
- * Returns a sender block for the envelope request. Format:
- * (("fullname" NIL "email name" "email domain"))
- *
- * @param[in]	lpMessage	GetProps object
- * @param[in]	ulTagName	Proptag to get for the fullname
- * @param[in]	ulTagEmail	Proptag to get for the email address
- * @param[in]	strCharset	Charset for the fullname
- * @return string containing the From/Sender/Reply-To envelope data
- */
-std::string IMAP::HrEnvelopeSender(LPMESSAGE lpMessage, ULONG ulTagName, ULONG ulTagEmail, std::string& strCharset, bool bIgnore)
-{
-	HRESULT hr = hrSuccess;
-	std::string strResponse;
-	std::string strPart;
-	std::string::size_type ulPos;
-	memory_ptr<SPropValue> lpPropValues;
-	ULONG ulProps;
-	SizedSPropTagArray(2, sPropTags) = { 2, {ulTagName, ulTagEmail} };
-
-	hr = lpMessage->GetProps(sPropTags, 0, &ulProps, &~lpPropValues);
-	strResponse = "((";
-	if (!FAILED(hr) && PROP_TYPE(lpPropValues[0].ulPropTag) != PT_ERROR)
-		strResponse += EscapeString(lpPropValues[0].Value.lpszW, strCharset, bIgnore);
-	else
-		strResponse += "NIL";
-
-	strResponse += " NIL ";
-
-	if (!FAILED(hr) && PROP_TYPE(lpPropValues[1].ulPropTag) != PT_ERROR) {
-		strPart = lpPropValues[1].Value.lpszA;
-
-		ulPos = strPart.find("@", 0);
-		if (ulPos != string::npos) {
-			strResponse += EscapeStringQT(strPart.substr(0, ulPos));
-			strResponse += " ";
-			strResponse += EscapeStringQT(strPart.substr(ulPos + 1));
-		} else {
-			strResponse += EscapeStringQT(strPart);
-			strResponse += " NIL";
-		}
-	} else {
-		strResponse += "NIL";
-	}
-
-	strResponse += ")) ";
-	return strResponse;
-}
-
-/**
- * Returns the IMAP ENVELOPE string of a specific email. Since this
- * doesn't come from vmime, the values in this response may differ
- * from other requests.
- *
- * @param[out]	strResponse	The ENVELOPE answer will be concatenated to this string
- * @param[in]	lpMessage	The MAPI message object
- * @return	MAPI Error code
- */
-HRESULT IMAP::HrGetMessageEnvelope(string &strResponse, LPMESSAGE lpMessage) {
-	HRESULT hr = hrSuccess;
-	memory_ptr<SPropValue> lpPropVal, lpInternetCPID;
-	const char *lpszCharset = NULL;
-	string strCharset;
-	bool bIgnoreCharsetErrors = false;
-	object_ptr<IMAPITable> lpTable;
-	rowset_ptr lpRows;
-	static constexpr const SizedSPropTagArray(5, spt) =
-		{5, {PR_EMAIL_ADDRESS_A, PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE,
-		PR_ADDRTYPE_W, PR_ENTRYID}};
-
-	if (lpMessage == nullptr)
-		return MAPI_E_CALL_FAILED;
-
-	// Get the outgoing charset we want to be using
-	if (HrGetOneProp(lpMessage, PR_INTERNET_CPID, &~lpInternetCPID) == hrSuccess &&
-		HrGetCharsetByCP(lpInternetCPID->Value.ul, &lpszCharset) == hrSuccess)
-	{
-		strCharset = lpszCharset;
-		bIgnoreCharsetErrors = true;
-	} else {
-		// default to UTF-8 if not set
-		strCharset = "UTF-8";
-	}
-
-	strResponse += "ENVELOPE (";
-	// date string
-	if (HrGetOneProp(lpMessage, PR_CLIENT_SUBMIT_TIME, &~lpPropVal) == hrSuccess ||
-	    HrGetOneProp(lpMessage, PR_MESSAGE_DELIVERY_TIME, &~lpPropVal) == hrSuccess) {
-		strResponse += "\"";
-		strResponse += FileTimeToString(lpPropVal->Value.ft);
-		strResponse += "\" ";
-	} else {
-		strResponse += "NIL ";
-	}
-
-	// subject
-	if (HrGetOneProp(lpMessage, PR_SUBJECT_W, &~lpPropVal) == hrSuccess)
-		strResponse += EscapeString(lpPropVal->Value.lpszW, strCharset, bIgnoreCharsetErrors);
-	strResponse += " ";
-
-	// from
-	strResponse += HrEnvelopeSender(lpMessage, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_A, strCharset, bIgnoreCharsetErrors);
-	// sender
-	strResponse += HrEnvelopeSender(lpMessage, PR_SENDER_NAME_W, PR_SENDER_EMAIL_ADDRESS_A, strCharset, bIgnoreCharsetErrors);
-	// reply-to, @fixme use real reply-to info from PR_REPLY_RECIPIENT_ENTRIES
-	strResponse += HrEnvelopeSender(lpMessage, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_A, strCharset, bIgnoreCharsetErrors);
-
-	// recipients
-	hr = lpMessage->GetRecipientTable(0, &~lpTable);
-	if (hr != hrSuccess)
-		goto recipientsdone;
-	hr = lpTable->SetColumns(spt, 0);
-	if (hr != hrSuccess)
-		goto recipientsdone;
-	hr = lpTable->QueryRows(-1, 0, &~lpRows);
-	if (hr != hrSuccess)
-		goto recipientsdone;
-
-	strResponse += HrEnvelopeRecipients(lpRows, MAPI_TO, strCharset, bIgnoreCharsetErrors);
-	strResponse += HrEnvelopeRecipients(lpRows, MAPI_CC, strCharset, bIgnoreCharsetErrors);
-	strResponse += HrEnvelopeRecipients(lpRows, MAPI_BCC, strCharset, bIgnoreCharsetErrors);
-
-recipientsdone:
-	if (hr != hrSuccess) {
-		strResponse += "NIL NIL NIL ";
-	}
-
-	// in reply to
-	if (HrGetOneProp(lpMessage, PR_IN_REPLY_TO_ID_A, &~lpPropVal) == hrSuccess)
-		strResponse += EscapeStringQT(lpPropVal->Value.lpszA);
-	else
-		strResponse += "NIL";
-
-	strResponse += " ";
-
-	// internet message id
-	if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &~lpPropVal) == hrSuccess)
-		strResponse += EscapeStringQT(lpPropVal->Value.lpszA);
-	else
-		strResponse += "NIL";
-
-	strResponse += ")";
-	return hrSuccess;
-}
 
 /** 
  * Returns IMAP flags for a given message
@@ -5513,71 +5306,6 @@ FILETIME IMAP::AddDay(FILETIME sFileTime) {
 	// add 24 hour in seconds = 24*60*60 seconds
 	UnixTimeToFileTime(FileTimeToUnixTime(sFileTime.dwHighDateTime, sFileTime.dwLowDateTime) + 24 * 60 * 60, &sFT);
 	return sFT;
-}
-
-/** 
- * Converts a unicode string to an encoded representation in a
- * specified charset. This function can return either quoted-printable
- * or base64 encoded data.
- * 
- * @param[in] input string to escape in quoted-printable or base64
- * @param[in] charset charset for output string
- * @param[in] bIgnore add the //TRANSLIT or //IGNORE flag to iconv
- * 
- * @return 
- */
-string IMAP::EscapeString(WCHAR *input, std::string& charset, bool bIgnore)
-{
-	std::string tmp;
-	std::string iconvCharset = charset;
-	if (bIgnore)
-		iconvCharset += "//TRANSLIT";
-	try {
-		tmp = convert_to<std::string>(iconvCharset.c_str(), input, rawsize(input), CHARSET_WCHAR);
-	} catch (const convert_exception &ce) {
-		return "NIL";
-	}
-	// known charsets that are better represented in base64 than quoted-printable
-	if (CaseCompare(charset, "UTF-8") || CaseCompare(charset, "ISO-2022-JP"))
-		return "\"" + ToQuotedBase64Header(tmp, charset) + "\"";
-	else
-		return "\"" + ToQuotedPrintable(tmp, charset, true, true) + "\"";
-}
-
-/** 
- * Escapes input string with \ character for specified characters.
- * 
- * @param[in] input string to escape
- * 
- * @return escaped string
- */
-string IMAP::EscapeStringQT(const string &input) {
-	string s;
-	unsigned int i;
-
-	/*
-	 * qtext           =       NO-WS-CTL /     ; Non white space controls
-	 * %d33 /          ; The rest of the US-ASCII
-	 * %d35-91 /       ;  characters not including "\"
-	 * %d93-126        ;  or the quote character
-	 */
-
-	s.reserve(input.length() * 2); // worst-case, only short strings are passing in this function
-	s.append(1, '"');
-	// We quote NO-WS-CTL anyway, just to be sure
-	for (i = 0; i < input.length(); ++i) {
-		if (input[i] == 33 || (input[i] >= 35 && input[i] <= 91) || (input[i] >= 93 && input[i] <= 126))
-			s += input[i];
-		else if (input[i] == 34) {
-			// " found, should send literal and data
-			return "{" + stringify(input.length()) + "}\n" + input;
-		} else {
-			s.append(1, '\\');
-			s += input[i];
-		}
-	}
-	s.append(1, '"');
-	return s;
 }
 
 /**
