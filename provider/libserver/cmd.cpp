@@ -8749,13 +8749,7 @@ SOAP_ENTRY_START(checkExistObject, *result, entryId sEntryId, unsigned int ulFla
 	unsigned int	ulObjId = 0;
 	unsigned int	ulObjType = 0;
 	unsigned int	ulDBFlags = 0;
-	
-	USE_DATABASE();
 
-	er = BeginLockFolders(lpDatabase, EntryId(sEntryId), LOCK_SHARED);
-	if(er != erSuccess)
-	    goto exit;
-	
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
 	    goto exit;
@@ -8776,8 +8770,7 @@ SOAP_ENTRY_START(checkExistObject, *result, entryId sEntryId, unsigned int ulFla
 		}
 	}
 exit:
-    lpDatabase->Commit();
-    
+	;
 }
 SOAP_ENTRY_END()
 
