@@ -111,3 +111,9 @@ not stop and require user input all the time, SIGPIPE should be ignored:
 .fi
 If you expect to observe a process for a really long time, it may make sense to
 do the same for SIGHUP too.
+.PP
+Note that openssl will, on certain architectures (ARM, PPC, s390x, sparcv9),
+use "smoke testing" to determine CPU capabilities, where it issues CPU
+instructions that not all CPUs understand. openssl sets up a signal handler to
+deal with it, but said signals will still stop gdb and you need to issue
+"continue" a few times.
