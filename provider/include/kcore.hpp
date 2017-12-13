@@ -46,8 +46,6 @@
 // When this is a store EID, the szServer field is also set, and the ulId
 // points to the top-level object for the store. The other fields are the same.
 
-
-#pragma pack(push,1)
 // Entryid from version 6
 // Entryid version 1 (48 bytes)
 struct EID {
@@ -117,8 +115,6 @@ struct EID_V0 {
 		memset(this, 0, sizeof(EID_V0));
 	}
 };
-
-#pragma pack(pop)
 
 /* 36 bytes */
 struct ABEID {

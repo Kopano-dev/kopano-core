@@ -122,7 +122,7 @@ typedef __int64_t __int64;
 	UNUSED_VAR auto pThis = container_of(this, theClass, m_x##localClass)
 
 /* GUID defines */
-struct __attribute__((__packed__)) GUID {
+struct GUID {
     DWORD	Data1;
     WORD	Data2;
     WORD	Data3;

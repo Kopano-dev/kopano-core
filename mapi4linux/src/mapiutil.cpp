@@ -330,7 +330,7 @@ HRESULT CreateStreamOnHGlobal(void *hGlobal, BOOL fDeleteOnRelease,
 }
 
 #pragma pack(push, 1)
-struct CONVERSATION_INDEX {
+struct CONVERSATION_INDEX { /* 22 bytes */
 	char ulReserved1;
 	char ftTime[5];
 	GUID guid;
