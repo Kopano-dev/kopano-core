@@ -2049,6 +2049,8 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpDBLen = NULL;
 
+	static const std::set<ULONG> excluded_properties = { PR_EC_WEBACCESS_SETTINGS_JSON, PR_EC_RECIPIENT_HISTORY_JSON };
+
 	if (ulObjId == 0 && ulParentId == 0)
 		return KCERR_INVALID_PARAMETER;
 
@@ -2140,7 +2142,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 
         er = GetPropSize(lpDBRow, lpDBLen, &ulSize);
 
-        if(er == erSuccess && (ulMaxSize == 0 || ulSize < ulMaxSize)) {
+        if(er == erSuccess && (ulMaxSize == 0 || ulSize < ulMaxSize) && excluded_properties.find(ulPropTag) == excluded_properties.cend()) {
             // the size of this property is small enough to send in the initial loading sequence
             
             er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);
