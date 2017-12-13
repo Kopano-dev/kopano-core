@@ -90,7 +90,6 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	BOOL			fIsDefaultStore = FALSE;
 	ULONG			ulStoreType = 0;
 	MAPIUID			guidMDBProvider;
-	BOOL			bOfflineStore = FALSE;
 	sGlobalProfileProps	sProfileProps;
 
 	// Always suppress UI when running in a service
@@ -159,7 +158,7 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	hr = CreateMsgStoreObject(reinterpret_cast<const char *>(sProfileProps.strProfileName.c_str()),
 	     lpMAPISup, cbEntryID, lpEntryID, ulFlags,
 	     sProfileProps.ulProfileFlags, lpTransport, &guidMDBProvider,
-	     false, fIsDefaultStore, bOfflineStore, &~lpECMsgStore);
+	     false, fIsDefaultStore, false, &~lpECMsgStore);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -184,8 +183,6 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	return lpECMSLogon->QueryInterface(IID_IMSLogon, reinterpret_cast<void **>(lppMSLogon));
 }
 
-//FIXME: What todo with offline??
-//TODO: online/offline state???
 HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
     const TCHAR *lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
     ULONG ulFlags, LPCIID lpInterface, ULONG cbSpoolSecurity,
@@ -200,7 +197,6 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	object_ptr<IProfSect> lpProfSect;
 	ULONG cValues = 0;
 	LPSPropValue lpsPropArray = NULL;
-	bool bOfflineStore = false;
 	sGlobalProfileProps	sProfileProps;
 	wchar_t *strSep = NULL;
 
@@ -256,7 +252,7 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 
 	// Get a message store object
 	hr = CreateMsgStoreObject((LPSTR)sProfileProps.strProfileName.c_str(), lpMAPISup, cbEntryID, lpEntryID, ulFlags, sProfileProps.ulProfileFlags, lpTransport,
-	     &guidMDBProvider, true, true, bOfflineStore, &~lpMsgStore);
+	     &guidMDBProvider, true, true, false, &~lpMsgStore);
 	if(hr != hrSuccess)
 		return hr;
 

@@ -558,7 +558,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	std::wstring	strUserName;
 	std::wstring	strUserPassword;
 	std::string		strServerPort;
-	std::string		strDefaultOfflinePath;
 	std::string		strType;
 	std::string		strDefStoreServer;
 	sGlobalProfileProps	sProfileProps;
