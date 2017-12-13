@@ -33,7 +33,7 @@ struct soap;
 
 namespace KC {
 
-#define MAX_PROP_SIZE 8192	
+#define MAX_PROP_SIZE 32768
 #define MAX_QUERY 4096
 
 #define PROPCOL_ULONG	"val_ulong"
