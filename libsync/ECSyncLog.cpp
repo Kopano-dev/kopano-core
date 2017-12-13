@@ -56,11 +56,10 @@ HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 				strPath += "synclog-";
 				strPath += stringify(now);
 				strPath += ".txt.gz";
-
-				s_lpLogger = new ECLogger_File(lpSettings->SyncLogLevel(), 1, strPath.c_str(), true);
+				s_lpLogger.reset(new ECLogger_File(lpSettings->SyncLogLevel(), 1, strPath.c_str(), true));
 			} else {
 				strPath += "synclog.txt";
-				s_lpLogger = new ECLogger_File(lpSettings->SyncLogLevel(), 1, strPath.c_str(), false);
+				s_lpLogger.reset(new ECLogger_File(lpSettings->SyncLogLevel(), 1, strPath.c_str(), false));
 			}
 
 			s_lpLogger->Log(EC_LOGLEVEL_FATAL, "********************");
@@ -72,12 +71,12 @@ HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 			s_lpLogger->Log(EC_LOGLEVEL_FATAL, "********************");
 		}
 		else {
-			s_lpLogger = new ECLogger_Null();
+			s_lpLogger.reset(new ECLogger_Null);
 		}
 	}
 
 	if (!s_lpLogger)
-		s_lpLogger = new ECLogger_Syslog(EC_LOGLEVEL_DEBUG, "kclibsync", LOG_MAIL);
+		s_lpLogger.reset(new ECLogger_Syslog(EC_LOGLEVEL_DEBUG, "kclibsync", LOG_MAIL));
 	*lppLogger = s_lpLogger;
 
 	s_lpLogger->AddRef();
@@ -87,27 +86,25 @@ HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 HRESULT ECSyncLog::SetLogger(ECLogger *lpLogger)
 {
 	scoped_lock lock(s_hMutex);
-
-	if (s_lpLogger)
-		s_lpLogger->Release();
-
-	s_lpLogger = lpLogger;
-	if (s_lpLogger)
-		s_lpLogger->AddRef();
+	s_lpLogger.reset(lpLogger);
 	return hrSuccess;
 }
 
 std::mutex ECSyncLog::s_hMutex;
-ECLogger		*ECSyncLog::s_lpLogger = NULL;
+KCHL::object_ptr<ECLogger> ECSyncLog::s_lpLogger;
 
 ECSyncLog::initializer::~initializer()
 {
 	if (ECSyncLog::s_lpLogger == nullptr)
 		return;
-	unsigned ulRef = ECSyncLog::s_lpLogger->Release();
-	// Make sure all references are released so compressed logs don't get corrupted.
-	while (ulRef)
+	auto ulRef = ECSyncLog::s_lpLogger->AddRef();
+	/*
+	 * Forcibly drop all references so the bytestream of a compressed log
+	 * gets finalized.
+	 */
+	while (ulRef > 1)
 		ulRef = ECSyncLog::s_lpLogger->Release();
+	ECSyncLog::s_lpLogger.reset();
 }
 
 ECSyncLog::initializer ECSyncLog::xinit;
