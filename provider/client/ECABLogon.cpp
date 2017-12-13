@@ -44,13 +44,8 @@ ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport *lpTransport,
 	/* The specific GUID for *this* addressbook provider, if available */
 	m_ABPGuid((lpGUID != nullptr) ? *lpGUID : GUID_NULL)
 {
-	if(m_lpTransport)
-		m_lpTransport->AddRef();
-	if(m_lpMAPISup)
-		m_lpMAPISup->AddRef();
-
 	if (! (ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS))
-		ECNotifyClient::Create(MAPI_ADDRBOOK, this, ulProfileFlags, lpMAPISup, &m_lpNotifyClient);
+		ECNotifyClient::Create(MAPI_ADDRBOOK, this, ulProfileFlags, lpMAPISup, &~m_lpNotifyClient);
 }
 
 ECABLogon::~ECABLogon()
@@ -61,13 +56,6 @@ ECABLogon::~ECABLogon()
 	// Disable all advises
 	if(m_lpNotifyClient)
 		m_lpNotifyClient->ReleaseAll();
-
-	if(m_lpNotifyClient)
-		m_lpNotifyClient->Release();
-	if (m_lpMAPISup != nullptr)
-		m_lpMAPISup->Release();
-	if(m_lpTransport)
-		m_lpTransport->Release();
 }
 
 HRESULT ECABLogon::Create(IMAPISupport *lpMAPISup, WSTransport *lpTransport,
@@ -98,13 +86,7 @@ HRESULT ECABLogon::Logoff(ULONG ulFlags)
 	//FIXME: Release all Other open objects ?
 	//Releases all open objects, such as any subobjects or the status object. 
 	//Releases the provider's support object.
-
-	if(m_lpMAPISup)
-	{
-		m_lpMAPISup->Release();
-		m_lpMAPISup = NULL;
-	}
-
+	m_lpMAPISup.reset();
 	return hr;
 }
 

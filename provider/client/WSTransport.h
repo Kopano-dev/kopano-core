@@ -68,6 +68,8 @@ enum
     NUM_RFT_PROPS
 };
 
+class ECABLogon;
+
 class WSTransport _kc_final : public ECUnknown {
 protected:
 	WSTransport(ULONG ulUIFlags);
