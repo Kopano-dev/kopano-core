@@ -3417,6 +3417,7 @@ int main(int argc, char *argv[]) {
 		{"forward_whitelist_domain_subject", "REJECT: %subject not forwarded (administratively blocked)"},
 		{"html_safety_filter", "no"},
 		{"unknown_charset_substitutions", ""},
+		{"indexed_headers", ""},
 		{ NULL, NULL },
 	};
 
@@ -3608,6 +3609,19 @@ int main(int argc, char *argv[]) {
 			auto t = tokenize(s, ' ', true);
 			for (size_t i = 0; i + 1 < t.size(); i += 2)
 				sDeliveryArgs.sDeliveryOpts.cset_subst[t[i]] = std::move(t[i+1]);
+		}
+	}
+	{
+		auto s = g_lpConfig->GetSetting("indexed_headers");
+		if (s != nullptr) {
+			auto l = tokenize(s, ' ', true);
+			auto &headers = sDeliveryArgs.sDeliveryOpts.indexed_headers;
+
+			if (l.size() > 0) {
+				headers.clear();
+				for (const auto &elem : l)
+					headers.push_back(elem);
+			}
 		}
 	}
 
