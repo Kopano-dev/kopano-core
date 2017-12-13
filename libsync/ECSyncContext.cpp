@@ -87,30 +87,12 @@ static HRESULT HrCreateECChangeAdviseSink(ECSyncContext *lpsSyncContext,
 	       .as(IID_IECChangeAdviseSink, lppAdviseSink);
 }
 
-ECSyncContext::ECSyncContext(LPMDB lpStore, ECLogger *lpLogger)
-	: m_lpStore(lpStore)
-	, m_lpLogger(lpLogger)
-	, m_lpSettings(ECSyncSettings::GetInstance())
+ECSyncContext::ECSyncContext(IMsgStore *lpStore, ECLogger *lpLogger) :
+	m_lpLogger(lpLogger), m_lpStore(lpStore),
+	m_lpSettings(ECSyncSettings::GetInstance())
 {
-	m_lpLogger->AddRef();
-	m_lpStore->AddRef();
-
 	if (m_lpSettings->ChangeNotificationsEnabled())
-		HrCreateECChangeAdviseSink(this, &ECSyncContext::OnChange, &m_lpChangeAdviseSink);
-}
-
-ECSyncContext::~ECSyncContext()
-{
-	if (m_lpChangeAdvisor)
-		m_lpChangeAdvisor->Release();
-
-	if (m_lpChangeAdviseSink)
-		m_lpChangeAdviseSink->Release();
-
-	if (m_lpStore)
-		m_lpStore->Release();
-
-	m_lpLogger->Release();
+		HrCreateECChangeAdviseSink(this, &ECSyncContext::OnChange, &~m_lpChangeAdviseSink);
 }
 
 HRESULT ECSyncContext::HrGetMsgStore(LPMDB *lppMsgStore)
@@ -148,8 +130,7 @@ HRESULT ECSyncContext::HrGetChangeAdvisor(IECChangeAdvisor **lppChangeAdvisor)
 		return MAPI_E_NO_SUPPORT;
 	if (m_lpChangeAdvisor == NULL) {
 		HRESULT hr = m_lpStore->OpenProperty(PR_EC_CHANGE_ADVISOR,
-			&IID_IECChangeAdvisor, 0, 0,
-			reinterpret_cast<LPUNKNOWN *>(&m_lpChangeAdvisor));
+			&IID_IECChangeAdvisor, 0, 0, &~m_lpChangeAdvisor);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -171,13 +152,10 @@ HRESULT ECSyncContext::HrReleaseChangeAdvisor()
 	if (!m_lpSettings->ChangeNotificationsEnabled())
 		return MAPI_E_NO_SUPPORT;
 
-	if (m_lpChangeAdvisor) {
+	if (m_lpChangeAdvisor)
 		// Don't release while holding the lock as that might
 		// cause a deadlock if a notification is being delivered.
-		ptrReleaseMe.reset(m_lpChangeAdvisor);
-		m_lpChangeAdvisor = NULL;
-	}
-
+		ptrReleaseMe.reset(m_lpChangeAdvisor.release());
 	m_mapNotifiedSyncIds.clear();
 	return hrSuccess;
 }
@@ -435,7 +413,6 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 	ULONG ulSize = 0;
 	ULONG ulPos = 0;
 	std::string strSourceKey;
-	LPSTREAM lpStream = NULL;
 
 	assert(lpsSyncState != NULL);
 	if (lpsSyncState->cb < 8)
@@ -471,15 +448,14 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 
 		ZLOG_DEBUG(m_lpLogger, "  Stream %u: size=%u, sourcekey=%s",
 			ulStatusNumber, ulSize, bin2hex(strSourceKey).c_str());
-		HRESULT hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, ulSize), true, &lpStream);
+		object_ptr<IStream> lpStream;
+		auto hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, ulSize), true, &~lpStream);
 		if (hr != hrSuccess)
 			return hr;
 		hr = lpStream->Write(lpsSyncState->lpb + ulPos, ulSize, &ulSize);
 		if (hr != hrSuccess)
 			return hr;
-		m_mapSyncStatus[std::move(strSourceKey)] = lpStream;
-		lpStream = NULL;
-
+		m_mapSyncStatus[std::move(strSourceKey)].reset(lpStream);
 		ulPos += ulSize;
 	}
 	return hrSuccess;
@@ -569,8 +545,7 @@ HRESULT ECSyncContext::HrGetSyncStatusStream(SBinary *lpsSourceKey, LPSTREAM *lp
 		if (hr != hrSuccess)
 			return hr;
 		hr = MAPI_W_POSITION_CHANGED;
-		m_mapSyncStatus[std::move(strSourceKey)] = lpStream;
-		lpStream->AddRef();
+		m_mapSyncStatus[std::move(strSourceKey)].reset(lpStream);
 		*lppStream = lpStream;
 	}
 	(*lppStream)->AddRef();

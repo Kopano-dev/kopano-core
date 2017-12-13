@@ -26,10 +26,10 @@
 #include <set>
 #include <string>
 #include <kopano/IECInterfaces.hpp>
+#include <kopano/memory.hpp>
 
 namespace KC {
 
-typedef	std::map<std::string, IStream *> StatusStreamMap;
 typedef std::map<std::string,SSyncState>	SyncStateMap;
 typedef	std::map<ULONG,ULONG>				NotifiedSyncIdMap;
 
@@ -51,11 +51,6 @@ public:
 	 *					The logger to log to.
 	 */
 	ECSyncContext(LPMDB lpStore, ECLogger *lpLogger);
-
-	/**
-	 * Destructor.
-	 */
-	~ECSyncContext();
 
 	/**
 	 * Get a pointer to the message store on which this sync context operates.
@@ -314,12 +309,12 @@ private:	// methods
 	 */
 	HRESULT HrReleaseChangeAdvisor();
 
-	LPMDB					m_lpStore;
-	ECLogger				*m_lpLogger;
+	KCHL::object_ptr<ECLogger> m_lpLogger;
+	KCHL::object_ptr<IMsgStore> m_lpStore;
 	ECSyncSettings			*m_lpSettings;
-	IECChangeAdvisor *m_lpChangeAdvisor = nullptr;
-	IECChangeAdviseSink *m_lpChangeAdviseSink = nullptr;
-	StatusStreamMap			m_mapSyncStatus;
+	KCHL::object_ptr<IECChangeAdviseSink> m_lpChangeAdviseSink;
+	KCHL::object_ptr<IECChangeAdvisor> m_lpChangeAdvisor;
+	std::map<std::string, KCHL::object_ptr<IStream>> m_mapSyncStatus;
 	SyncStateMap			m_mapStates;
 	NotifiedSyncIdMap		m_mapNotifiedSyncIds;
 	std::mutex m_hMutex;
