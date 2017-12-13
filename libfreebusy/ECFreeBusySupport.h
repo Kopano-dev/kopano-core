@@ -78,7 +78,7 @@ public:
 		_kc_hidden virtual HRESULT GetFBPublishMonthRange(void *) { return E_NOTIMPL; }
 		_kc_hidden virtual HRESULT PublishRangeChanged(void) { return E_NOTIMPL; }
 		_kc_hidden virtual HRESULT CleanTombstone(void) { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *lpulStart, unsigned int *lpulEnd);
+		_kc_hidden virtual HRESULT GetDelegateInfoEx(FBUser, unsigned int *status, unsigned int *start, unsigned int *end) { return E_NOTIMPL; }
 		_kc_hidden virtual HRESULT PushDelegateInfoToWorkspace(void) { return E_NOTIMPL; }
 
 private:
