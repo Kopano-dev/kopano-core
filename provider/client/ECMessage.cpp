@@ -1341,8 +1341,6 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	hr = this->GetMsgStore()->lpSupport->ExpandRecips(this, &ulPreprocessFlags);
 	if (hr != hrSuccess)
 		return hr;
-	if (this->GetMsgStore()->IsOfflineStore())
-		ulPreprocessFlags |= NEEDS_SPOOLER;
 
 	// Setup PR_SUBMIT_FLAGS
 	if (ulPreprocessFlags & NEEDS_PREPROCESSING)

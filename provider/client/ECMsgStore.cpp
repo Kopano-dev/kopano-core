@@ -80,7 +80,7 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport,
     BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore) :
 	ECMAPIProp(NULL, MAPI_STORE, fModify, NULL, "IMsgStore"),
 	m_ulProfileFlags(ulProfileFlags), m_fIsSpooler(fIsSpooler),
-	m_fIsDefaultStore(fIsDefaultStore), m_bOfflineStore(bOfflineStore)
+	m_fIsDefaultStore(fIsDefaultStore)
 {
 	this->lpSupport = lpSupport;
 	lpSupport->AddRef();
@@ -192,8 +192,6 @@ static HRESULT GetIMsgStoreObject(BOOL bOffline,
 
 HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	HRESULT hr = hrSuccess;
-
 	REGISTER_INTERFACE2(ECMsgStore, this);
 	REGISTER_INTERFACE2(ECMAPIProp, this);
 	REGISTER_INTERFACE2(ECUnknown, this);
@@ -201,7 +199,7 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(IMAPIProp, this);
 	REGISTER_INTERFACE2(IUnknown, this);
 
-	if (refiid == IID_IExchangeManageStore && m_bOfflineStore == FALSE)
+	if (refiid == IID_IExchangeManageStore)
 		REGISTER_INTERFACE2(IExchangeManageStore, this);
 
 	REGISTER_INTERFACE2(IECServiceAdmin, this);
@@ -211,24 +209,8 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 
 	if (refiid == IID_ECMsgStoreOnline)
 	{
-		if (m_bOfflineStore == FALSE) {
-			*lppInterface = static_cast<IMsgStore *>(this);
-			AddRef();
-			return hrSuccess;
-		} 
-
-		hr = GetIMsgStoreObject(FALSE, fModify, &g_mapProviders, lpSupport, m_cbEntryId, m_lpEntryId, (LPMDB*)lppInterface);
-		if (hr != hrSuccess)
-			return hr;
-
-		// Add the child because mapi lookto the ref count if you work through ProxyStoreObject
-		object_ptr<ECMsgStore> lpChild;
-		if (((IMsgStore *)*lppInterface)->QueryInterface(IID_ECMsgStore, &~lpChild) != hrSuccess) {
-			((LPMDB)*lppInterface)->Release();
-			return MAPI_E_INTERFACE_NOT_SUPPORTED;
-		}
-		
-		AddChild(lpChild);
+		*lppInterface = static_cast<IMsgStore *>(this);
+		AddRef();
 		return hrSuccess;
 	}
 	// is admin store?
@@ -1058,7 +1040,7 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 			break;
 
 		case PROP_ID(PR_MAILBOX_OWNER_NAME):
-			if(lpStore->IsPublicStore() == TRUE || lpStore->IsOfflineStore() == TRUE) {
+			if(lpStore->IsPublicStore() == TRUE) {
 				hr = MAPI_E_NOT_FOUND;
 				break;
 			}
@@ -1066,7 +1048,7 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 			hr = lpStore->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 			break;
 		case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):
-			if(lpStore->IsPublicStore() == TRUE || lpStore->IsOfflineStore() == TRUE) {
+			if(lpStore->IsPublicStore() == TRUE) {
 				hr = MAPI_E_NOT_FOUND;
 				break;
 			}
@@ -1080,7 +1062,7 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 				break;
 			}
 			lpsPropValue->ulPropTag = PR_STORE_OFFLINE;
-			lpsPropValue->Value.b = !!lpStore->IsOfflineStore();
+			lpsPropValue->Value.b = false;
 			break;
 		case PROP_ID(PR_USER_NAME):
 			lpsPropValue->ulPropTag = PR_USER_NAME;

@@ -179,7 +179,7 @@ public:
 	BOOL IsDefaultStore() const { return m_fIsDefaultStore; }
 	BOOL IsPublicStore() const;
 	BOOL IsDelegateStore() const;
-	BOOL IsOfflineStore() const { return m_bOfflineStore; }
+	BOOL IsOfflineStore() const { return false; }
 	LPCSTR GetProfileName() const { return m_strProfname.c_str(); }
 
 	const GUID& GetStoreGuid();
@@ -247,7 +247,6 @@ public:
 private:
 	BOOL				m_fIsSpooler;
 	BOOL				m_fIsDefaultStore;
-	BOOL				m_bOfflineStore;
 	RELEASECALLBACK lpfnCallback = nullptr;
 	ECUnknown *lpCallbackObject = nullptr;
 	std::string			m_strProfname;
