@@ -58,7 +58,11 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
 		snprintf(filename, sizeof(filename), "libkcserver-%s.%s",
 		         pluginname, SHARED_OBJECT_EXTENSION);
         m_dl = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
-
+	if (m_dl == nullptr) {
+		snprintf(filename, sizeof(filename), "%s%clibkcserver-%s.%s",
+		         PKGLIBDIR, PATH_SEPARATOR, pluginname, SHARED_OBJECT_EXTENSION);
+		m_dl = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
+	}
         if (!m_dl) {
 			ec_log_crit("Failed to load \"%s\": %s", filename, dlerror());
 			ec_log_crit("Please correct your configuration file and set the \"user_plugin\" option.");

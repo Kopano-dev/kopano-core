@@ -825,7 +825,7 @@ CLEANFILES += ${SOAP_CPP_SRC} provider/soap/*
 #
 COMMON_PLUGIN_FILES = provider/plugins/plugin.h
 COMMON_DBPLUGIN_FILES = provider/plugins/DBBase.h provider/plugins/DBBase.cpp
-lib_LTLIBRARIES += libkcserver-db.la
+pkglib_LTLIBRARIES += libkcserver-db.la
 noinst_DATA += libkcserver-db.ldd
 libkcserver_db_la_SOURCES = \
 	provider/plugins/DBUserPlugin.cpp provider/plugins/DBUserPlugin.h \
@@ -837,7 +837,7 @@ libkcserver_db_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
 EXTRA_libkcserver_db_la_DEPENDENCIES = provider/plugin.sym
 
 if WITH_UNIX
-lib_LTLIBRARIES += libkcserver-unix.la
+pkglib_LTLIBRARIES += libkcserver-unix.la
 noinst_DATA += libkcserver-unix.ldd
 libkcserver_unix_la_SOURCES = \
 	provider/plugins/UnixUserPlugin.cpp provider/plugins/UnixUserPlugin.h \
@@ -850,7 +850,7 @@ EXTRA_libkcserver_unix_la_DEPENDENCIES = provider/plugin.sym
 endif
 
 if WITH_LDAP
-lib_LTLIBRARIES += libkcserver-ldap.la
+pkglib_LTLIBRARIES += libkcserver-ldap.la
 noinst_DATA += libkcserver-ldap.ldd
 libkcserver_ldap_la_SOURCES = \
 	provider/plugins/LDAPUserPlugin.cpp provider/plugins/LDAPUserPlugin.h \
