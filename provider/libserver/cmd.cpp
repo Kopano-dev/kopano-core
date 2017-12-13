@@ -8752,25 +8752,17 @@ SOAP_ENTRY_START(checkExistObject, *result, entryId sEntryId, unsigned int ulFla
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
-	    goto exit;
-
+		return er;
 	er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjId, NULL, NULL, &ulDBFlags, &ulObjType);
 	if(er != erSuccess)
-	    goto exit;
-
+		return er;
 	if(ulFlags & SHOW_SOFT_DELETES) {
-		if(!(ulDBFlags & MSGFLAG_DELETED)) {
-			er = KCERR_NOT_FOUND;
-			goto exit;
-		}
+		if (!(ulDBFlags & MSGFLAG_DELETED))
+			return KCERR_NOT_FOUND;
 	} else {
-		if(ulDBFlags & MSGFLAG_DELETED) {
-			er = KCERR_NOT_FOUND;
-			goto exit;
-		}
+		if (ulDBFlags & MSGFLAG_DELETED)
+			return KCERR_NOT_FOUND;
 	}
-exit:
-	;
 }
 SOAP_ENTRY_END()
 
