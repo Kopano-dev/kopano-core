@@ -2049,7 +2049,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpDBLen = NULL;
 
-	static const std::set<ULONG> excluded_properties = { PR_EC_WEBACCESS_SETTINGS_JSON, PR_EC_RECIPIENT_HISTORY_JSON };
+	static const std::set<ULONG> excluded_properties = { PR_EC_WEBACCESS_SETTINGS, PR_EC_RECIPIENT_HISTORY, PR_EC_WEBACCESS_SETTINGS_JSON, PR_EC_RECIPIENT_HISTORY_JSON, PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON };
 
 	if (ulObjId == 0 && ulParentId == 0)
 		return KCERR_INVALID_PARAMETER;
