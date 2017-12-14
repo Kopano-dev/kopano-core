@@ -11,15 +11,14 @@ import kopano
 
 def _server(req):
     userid = req.get_header('X-Kopano-UserEntryID', required=True)
-
     if userid in userid_sessiondata:
         sessiondata = userid_sessiondata[userid]
         mapisession = kc_session_restore(sessiondata)
         server = kopano.Server(mapisession=mapisession, parse_args=False)
     else:
         username = admin_server.user(userid=userid).name
-        server = kopano.Server(auth_user=username, auth_pass='', parse_args=False,
-                               store_cache=False)
+        server = kopano.Server(auth_user=username, auth_pass='',
+                               parse_args=False, store_cache=False)
         sessiondata = kc_session_save(server.mapisession)
         userid_sessiondata[userid] = sessiondata
     return server
@@ -29,10 +28,20 @@ class Resource(object):
         return {f: self.fields[f](obj) for f in fields}
 
     def json(self, obj, fields):
-        # dump requested fields
         return json.dumps(self.get_fields(obj, fields),
             indent=4, separators=(',', ': ')
         )
+
+    def json_multi(self, obj, fields):
+        # TODO itertools magic?
+        yield '[\n'
+        first = True
+        for o in obj:
+            if not first:
+                yield ',\n'
+            first = False
+            yield self.json(o, fields)
+        yield '\n]'
 
     def respond(self, req, resp, obj):
         # determine fields (default all)
@@ -45,12 +54,7 @@ class Resource(object):
         # jsonify result (as stream)
         resp.content_type = "application/json"
         if isinstance(obj, types.GeneratorType):
-#            #disable chunking for jelle
-#            resp.append_header('transfer-encoding', 'chunked')
-#            resp.stream = (self.json(o, fields)+'\n' for o in obj)
-            resp.body = json.dumps(
-                [self.get_fields(o, fields) for o in obj]
-            )
+            resp.stream = self.json_multi(obj, fields)
         else:
             resp.body = self.json(obj, fields)
 
