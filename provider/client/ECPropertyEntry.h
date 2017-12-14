@@ -18,6 +18,7 @@
 #ifndef ECPROPERTYENTRY_H
 #define ECPROPERTYENTRY_H
 
+#include <memory>
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapicode.h>
@@ -81,16 +82,16 @@ private:
 class ECPropertyEntry _kc_final {
 public:
 	ECPropertyEntry(ULONG ulPropTag);
-	ECPropertyEntry(ECProperty *property);
+	ECPropertyEntry(std::unique_ptr<ECProperty> &&);
+	ECPropertyEntry(ECPropertyEntry &&) = default;
 	~ECPropertyEntry();
 
 	HRESULT			HrSetProp(ECProperty *property);
 	HRESULT HrSetProp(const SPropValue *);
 	HRESULT			HrSetClean();
-
-	ECProperty *	GetProperty() { return lpProperty; }
+	ECProperty *GetProperty() const { return lpProperty.get(); }
 	ULONG			GetPropTag() const { return ulPropTag; }
-	void			DeleteProperty();
+	void DeleteProperty() { lpProperty.reset(); }
 	BOOL			FIsDirty() const { return fDirty; }
 	BOOL			FIsLoaded() const { return lpProperty != NULL; }
 
@@ -99,8 +100,8 @@ public:
 private:
 	DECL_INVARIANT_GUARD(ECPropertyEntry)
 
-	ECProperty		*lpProperty;
 	ULONG			ulPropTag;
+	std::unique_ptr<ECProperty> lpProperty;
 	BOOL fDirty = true;
 };
 

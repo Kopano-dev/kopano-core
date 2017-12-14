@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <memory>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
@@ -110,7 +110,6 @@ HRESULT ECGenericProp::HrAddPropHandlers(ULONG ulPropTag, GetPropCallBack lpfnGe
 HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 {
 	HRESULT					hr = hrSuccess;
-	ECProperty*				lpProperty = NULL;
 	ECPropertyEntryIterator	iterProps;
 	ECPropertyEntryIterator iterPropsFound;
 	ULONG ulPropId = 0;
@@ -149,20 +148,16 @@ HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 	if (iterPropsFound != lstProps.end()) {
 		iterPropsFound->second.HrSetProp(lpsPropValue);
 	} else { // Add new property
-		lpProperty = new ECProperty(lpsPropValue);
-
+		std::unique_ptr<ECProperty> lpProperty(new ECProperty(lpsPropValue));
 		if(lpProperty->GetLastError() != 0) {
 			hr = lpProperty->GetLastError();
 			goto exit;
 		}
-		lstProps.emplace(PROP_ID(lpsPropValue->ulPropTag), ECPropertyEntry(lpProperty));
+		lstProps.emplace(PROP_ID(lpsPropValue->ulPropTag), ECPropertyEntry(std::move(lpProperty)));
 	}
 
 	// Property is now added/modified and marked 'dirty' for saving
 exit:
-	if (hr != hrSuccess)
-		delete lpProperty;
-
 	dwLastError = hr;
 	return hr;
 }
