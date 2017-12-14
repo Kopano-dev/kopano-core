@@ -39,14 +39,14 @@ public:
 	void DumpTable();
 
 private:
-	size_t m_nRow;
+	size_t m_nRow = 0;
 	size_t m_iRows;
 	size_t m_iColumns;
 	std::vector<std::wstring> m_vHeader;
 	std::vector<std::vector<std::wstring> > m_vTable;
 	std::vector<size_t> m_vMaxLengths;
 	convert_context m_converter;
-	bool bHaveHeader;
+	bool bHaveHeader = false;
 
 	_kc_hidden void PrintRow(const std::vector<std::wstring> &row);
 	_kc_hidden void DumpRow(const std::vector<std::wstring> &row);

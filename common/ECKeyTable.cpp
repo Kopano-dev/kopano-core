@@ -216,14 +216,10 @@ unsigned int ECTableRow::GetObjectSize(void) const
 	return ulSize;
 }
 
-ECKeyTable::ECKeyTable()
+ECKeyTable::ECKeyTable() :
+	lpRoot(new ECTableRow(sObjectTableKey(), {}, false)), lpCurrent(lpRoot)
 {
-	sObjectTableKey sKey;
-	memset(&sKey, 0, sizeof(sObjectTableKey));
-	lpRoot = new ECTableRow(std::move(sKey), {}, false);
 	this->lpRoot->fRoot = true;
-	this->lpCurrent = lpRoot;
-
 	// The start of bookmark, the first 3 (0,1,2) are default
 	m_ulBookmarkPosition = 3;
 }

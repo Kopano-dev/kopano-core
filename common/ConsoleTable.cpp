@@ -33,15 +33,14 @@ using std::endl;
  * @param[in] rows number of rows in the table (if exceeding, table will be printed and cleared)
  * @param[in] columns exact number of columns
  */
-ConsoleTable::ConsoleTable(size_t rows, size_t columns) : m_iRows(rows), m_iColumns(columns)
+ConsoleTable::ConsoleTable(size_t rows, size_t columns) :
+	m_iRows(rows), m_iColumns(columns)
 {
-	m_nRow = 0;
 	m_vTable.resize(rows);
 	for (size_t i = 0; i < rows; ++i)
 		m_vTable[i].resize(columns);
 	m_vMaxLengths.resize(m_iColumns);
 	m_vHeader.resize(m_iColumns);
-	bHaveHeader = false;
 }
 
 /**

@@ -26,11 +26,9 @@
 
 namespace KC {
 
-ECMemBlock::ECMemBlock(const char *buffer, ULONG ulDataLen, ULONG ulFlags) :
-    ECUnknown("ECMemBlock")
+ECMemBlock::ECMemBlock(const char *buffer, ULONG ulDataLen, ULONG fl) :
+	ECUnknown("ECMemBlock"), ulFlags(fl)
 {
-	this->ulFlags = ulFlags;
-
 	if (ulDataLen == 0)
 		return;
 	cbTotal = ulDataLen;

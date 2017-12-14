@@ -26,10 +26,9 @@
 
 namespace KC {
 
-ECUnknown::ECUnknown(const char *szClassName)
-{
-	this->szClassName = szClassName;
-}
+ECUnknown::ECUnknown(const char *name) :
+	szClassName(name)
+{}
 
 ECUnknown::~ECUnknown()
 {

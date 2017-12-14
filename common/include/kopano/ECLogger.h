@@ -244,7 +244,7 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 		_kc_hidden std::string DoPrefix(void);
 
 	public:
-		ECLogger_File(const unsigned int max_ll, const bool add_timestamp, const char *const filename, const bool compress);
+		ECLogger_File(unsigned int max_ll, bool add_timestamp, const char *filename, bool compress);
 		~ECLogger_File(void);
 		_kc_hidden std::string EmitLevel(unsigned int level);
 		_kc_hidden void reinit_buffer(size_t size);

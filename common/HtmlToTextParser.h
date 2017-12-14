@@ -83,10 +83,9 @@ protected:
 
 	struct _kc_hidden tagParser {
 		tagParser(void) = default;
-		tagParser(bool bParseAttrs, ParseMethodType parserMethod){
-			this->bParseAttrs = bParseAttrs;
-			this->parserMethod = parserMethod;
-		};
+		tagParser(bool pa, ParseMethodType mt) :
+			bParseAttrs(pa), parserMethod(mt)
+		{}
 		bool bParseAttrs = false;
 		ParseMethodType parserMethod = nullptr;
 	};

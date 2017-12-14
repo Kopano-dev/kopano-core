@@ -61,12 +61,12 @@ static const char *const ll_names[] = {
 static ECLogger_File ec_log_fallback_target(EC_LOGLEVEL_WARNING, false, "-", false);
 static ECLogger *ec_log_target = &ec_log_fallback_target;
 
-ECLogger::ECLogger(int max_ll) {
-	max_loglevel = max_ll;
+ECLogger::ECLogger(int max_ll) :
+	max_loglevel(max_ll), prefix(LP_NONE)
+{
 	// get system locale for time, NULL is returned if locale was not found.
 	timelocale = createlocale(LC_TIME, "C");
 	datalocale = createUTF8Locale();
-	prefix = LP_NONE;
 }
 
 ECLogger::~ECLogger() {
@@ -168,10 +168,10 @@ void ECLogger_Null::LogVA(unsigned int loglevel, const char *format, va_list& va
  * @param[in]	add_timestamp	true if a timestamp before the logmessage is wanted
  * @param[in]	filename		filename of log in current locale
  */
-ECLogger_File::ECLogger_File(const unsigned int max_ll, const bool add_timestamp, const char *const filename, const bool compress) : ECLogger(max_ll) {
-	logname = filename;
-	timestamp = add_timestamp;
-
+ECLogger_File::ECLogger_File(unsigned int max_ll, bool add_timestamp,
+    const char *filename, bool compress) :
+	ECLogger(max_ll), logname(filename), timestamp(add_timestamp)
+{
 	if (logname == "-") {
 		init_for_stderr();
 	} else {
