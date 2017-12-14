@@ -74,7 +74,7 @@ class UserResource(Resource):
         'userid': lambda user: user.userid,
         'name': lambda user: user.name,
         'fullname': lambda user: user.fullname,
-        'store': lambda user: user.store.entryid,
+        'store': lambda user: user.store and user.store.entryid or None,
     }
 
     def on_get(self, req, resp, userid=None):
