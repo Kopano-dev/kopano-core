@@ -89,7 +89,7 @@ static HRESULT HrCreateECChangeAdviseSink(ECSyncContext *lpsSyncContext,
 
 ECSyncContext::ECSyncContext(IMsgStore *lpStore, ECLogger *lpLogger) :
 	m_lpLogger(lpLogger), m_lpStore(lpStore),
-	m_lpSettings(ECSyncSettings::GetInstance())
+	m_lpSettings(&ECSyncSettings::instance)
 {
 	if (m_lpSettings->ChangeNotificationsEnabled())
 		HrCreateECChangeAdviseSink(this, &ECSyncContext::OnChange, &~m_lpChangeAdviseSink);

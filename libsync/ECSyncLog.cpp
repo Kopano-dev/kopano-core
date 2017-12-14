@@ -40,7 +40,7 @@ HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 	scoped_lock lock(s_hMutex);
 
 	if (s_lpLogger == NULL) {
-		ECSyncSettings *lpSettings = ECSyncSettings::GetInstance();
+		auto lpSettings = &ECSyncSettings::instance;
 
 		if (lpSettings->SyncLogEnabled()) {
 			char dummy[MAX_PATH + 1] = { 0 };

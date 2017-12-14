@@ -33,8 +33,6 @@ namespace KC {
 
 class _kc_export ECSyncSettings _kc_final {
 public:
-	static ECSyncSettings* GetInstance();
-
 	// Synclog settings
 	bool	SyncLogEnabled() const;
 	ULONG	SyncLogLevel() const;
@@ -58,6 +56,8 @@ public:
 	ULONG	SetStreamBufferSize(ULONG ulBufferSize);
 	ULONG	SetStreamBatchSize(ULONG ulBatchSize);
 
+	static _kc_export ECSyncSettings instance;
+
 private:
 	_kc_hidden ECSyncSettings(void);
 
@@ -66,7 +66,6 @@ private:
 	ULONG m_ulStreamBufferSize = 131072, m_ulStreamBatchSize = 256;
 
 	static std::mutex s_hMutex;
-	static std::unique_ptr<ECSyncSettings> s_lpInstance;
 };
 
 } /* namespace */

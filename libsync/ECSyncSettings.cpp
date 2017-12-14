@@ -23,15 +23,6 @@
 
 #include <kopano/ECLogger.h>
 
-ECSyncSettings* ECSyncSettings::GetInstance()
-{
-	scoped_lock lock(s_hMutex);
-
-	if (s_lpInstance == NULL)
-		s_lpInstance.reset(new ECSyncSettings);
-	return s_lpInstance.get();
-}
-
 ECSyncSettings::ECSyncSettings(void) :
 	m_ulSyncLogLevel(EC_LOGLEVEL_INFO)
 {
@@ -177,4 +168,4 @@ ULONG ECSyncSettings::SetStreamBatchSize(ULONG ulBatchSize) {
 }
 
 std::mutex ECSyncSettings::s_hMutex;
-std::unique_ptr<ECSyncSettings> ECSyncSettings::s_lpInstance;
+ECSyncSettings ECSyncSettings::instance;
