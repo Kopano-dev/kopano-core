@@ -23,13 +23,12 @@
 #include "ECMAPIFolder.h"
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 
 class ECExchangeImportHierarchyChanges _kc_final :
     public ECUnknown, public IExchangeImportHierarchyChanges {
 protected:
 	ECExchangeImportHierarchyChanges(ECMAPIFolder *lpFolder);
-	virtual ~ECExchangeImportHierarchyChanges();
-
 public:
 	static	HRESULT Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTHIERARCHYCHANGES* lppExchangeImportHierarchyChanges);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
@@ -40,7 +39,7 @@ public:
 	virtual HRESULT ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList);
 
 private:
-	ECMAPIFolder *m_lpFolder = nullptr;
+	KCHL::object_ptr<ECMAPIFolder> m_lpFolder;
 	IStream *m_lpStream = nullptr;
 	ULONG m_ulFlags = 0;
 	ULONG m_ulSyncId = 0;

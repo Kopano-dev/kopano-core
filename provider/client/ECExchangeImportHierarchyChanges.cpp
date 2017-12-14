@@ -42,13 +42,7 @@ using namespace KCHL;
 
 ECExchangeImportHierarchyChanges::ECExchangeImportHierarchyChanges(ECMAPIFolder *lpFolder) :
 	m_lpFolder(lpFolder)
-{
-	m_lpFolder->AddRef();
-}
-
-ECExchangeImportHierarchyChanges::~ECExchangeImportHierarchyChanges(){
-	m_lpFolder->Release();
-}
+{}
 
 HRESULT ECExchangeImportHierarchyChanges::Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTHIERARCHYCHANGES* lppExchangeImportHierarchyChanges){
 

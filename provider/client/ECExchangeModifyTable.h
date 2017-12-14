@@ -21,6 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/ECMemTable.h>
+#include <kopano/memory.hpp>
 #include <mapidefs.h>
 #include <edkmdb.h>
 #include <kopano/IECInterfaces.hpp>
@@ -29,7 +30,6 @@ class ECExchangeModifyTable _kc_final :
     public ECUnknown, public IECExchangeModifyTable {
 public:
 	ECExchangeModifyTable(ULONG ulUniqueTag, ECMemTable *table, ECMAPIProp *lpParent, ULONG ulStartRuleId, ULONG ulFlags);
-	virtual ~ECExchangeModifyTable();
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT GetTable(ULONG ulFlags, LPMAPITABLE *lppTable);
@@ -50,8 +50,8 @@ private:
 	ULONG	m_ulUniqueId;
 	ULONG	m_ulUniqueTag;
 	ULONG	m_ulFlags;
-	ECMAPIProp *m_lpParent;
-	ECMemTable *m_ecTable;
+	KCHL::object_ptr<ECMAPIProp> m_lpParent;
+	KCHL::object_ptr<ECMemTable> m_ecTable;
 	bool m_bPushToServer = true;
 };
 

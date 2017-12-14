@@ -84,19 +84,7 @@ ECExchangeModifyTable::ECExchangeModifyTable(ULONG ulUniqueTag,
     ULONG ulFlags) :
 	m_ulUniqueId(ulStartUniqueId), m_ulUniqueTag(ulUniqueTag),
 	m_ulFlags(ulFlags), m_lpParent(lpParent), m_ecTable(table)
-{
-	m_ecTable->AddRef();
-	if (m_lpParent != nullptr)
-		m_lpParent->AddRef();
-}
-
-ECExchangeModifyTable::~ECExchangeModifyTable() {
-	if (m_ecTable)
-		m_ecTable->Release();
-
-	if(m_lpParent)
-		m_lpParent->Release();
-}
+{}
 
 HRESULT ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent,
     ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj)
