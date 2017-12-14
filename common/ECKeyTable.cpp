@@ -219,7 +219,7 @@ unsigned int ECTableRow::GetObjectSize(void) const
 ECKeyTable::ECKeyTable() :
 	lpRoot(new ECTableRow(sObjectTableKey(), {}, false)), lpCurrent(lpRoot)
 {
-	this->lpRoot->fRoot = true;
+	lpRoot->fRoot = true;
 	// The start of bookmark, the first 3 (0,1,2) are default
 	m_ulBookmarkPosition = 3;
 }
@@ -368,8 +368,8 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 
 		// Move cursor to next node (or previous if this was the last row)
 		if (lpCurrent == lpRow) {
-			this->SeekRow(EC_SEEK_CUR, -1, NULL);
-			this->SeekRow(EC_SEEK_CUR, 1, NULL);
+			SeekRow(EC_SEEK_CUR, -1, nullptr);
+			SeekRow(EC_SEEK_CUR, 1, nullptr);
 		}
 
 		// Delete this uncoupled node
@@ -571,8 +571,7 @@ ECRESULT ECKeyTable::Clear()
 ECRESULT ECKeyTable::SeekId(const sObjectTableKey *lpsRowItem)
 {
 	scoped_rlock biglock(mLock);
-
-	auto iterMap = this->mapRow.find(*lpsRowItem);
+	auto iterMap = mapRow.find(*lpsRowItem);
 	if (iterMap == mapRow.cend())
 		return KCERR_NOT_FOUND;
 	lpCurrent = iterMap->second;
@@ -652,15 +651,13 @@ ECRESULT ECKeyTable::InvalidateBookmark(ECTableRow *lpRow)
 
 ECRESULT ECKeyTable::SeekRow(unsigned int lbkOrgin, int lSeekTo, int *lplRowsSought)
 {
-	ECRESULT er = erSuccess;
 	int lDestRow = 0;
 	unsigned int ulCurrentRow = 0;
 	unsigned int ulRowCount = 0;
 	ECTableRow *lpRow = NULL;
 	scoped_rlock biglock(mLock);
 
-	er = this->GetRowCount(&ulRowCount, &ulCurrentRow);
-
+	auto er = GetRowCount(&ulRowCount, &ulCurrentRow);
 	if(er != erSuccess)
 		return er;
 

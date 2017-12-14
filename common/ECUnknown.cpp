@@ -32,17 +32,17 @@ ECUnknown::ECUnknown(const char *name) :
 
 ECUnknown::~ECUnknown()
 {
-	if (this->lpParent != nullptr)
+	if (lpParent != nullptr)
 		assert(false);	// apparently, we're being destructed with delete() while
 						// a parent was set up, so we should be deleted via Suicide() !
 }
 
 ULONG ECUnknown::AddRef() {
-	return ++this->m_cRef;
+	return ++m_cRef;
 }
 
 ULONG ECUnknown::Release() {
-	ULONG nRef = --this->m_cRef;
+	ULONG nRef = --m_cRef;
 	if (static_cast<int>(nRef) == -1)
 		assert(false);
 	if (nRef != 0)
@@ -51,7 +51,7 @@ ULONG ECUnknown::Release() {
 	bool lastref = lstChildren.empty();
 	locker.unlock();
 	if (lastref)
-		this->Suicide();
+		Suicide();
 	// The object may be deleted now
 	return nRef;
 }
@@ -82,12 +82,10 @@ HRESULT ECUnknown::RemoveChild(ECUnknown *lpChild) {
 	if (iterChild == lstChildren.end())
 		return MAPI_E_NOT_FOUND;
 	lstChildren.erase(iterChild);
-
-	bool bLastRef = this->lstChildren.empty() && this->m_cRef == 0;
+	bool bLastRef = lstChildren.empty() && m_cRef == 0;
 	locker.unlock();
 	if(bLastRef)
-		this->Suicide();
-
+		Suicide();
 	// The object may be deleted now
 	return hrSuccess;
 }
@@ -95,7 +93,7 @@ HRESULT ECUnknown::RemoveChild(ECUnknown *lpChild) {
 HRESULT ECUnknown::SetParent(ECUnknown *parent)
 {
 	// Parent object may only be set once
-	assert(this->lpParent == NULL);
+	assert(lpParent == nullptr);
 	lpParent = parent;
 	return hrSuccess;
 }
@@ -128,7 +126,7 @@ BOOL ECUnknown::IsChildOf(const ECUnknown *lpObject) const
 	if (lpObject == nullptr)
 		return false;
 	for (auto p : lpObject->lstChildren)
-		if (this == p || this->IsChildOf(p))
+		if (this == p || IsChildOf(p))
 			return TRUE;
 	return FALSE;
 }
@@ -141,7 +139,7 @@ HRESULT ECUnknown::Suicide() {
 	auto self = this;
 
 	// First, destroy the current object
-	this->lpParent = NULL;
+	lpParent = nullptr;
 	delete this;
 
 	// WARNING: The child list of our parent now contains a pointer to this 
