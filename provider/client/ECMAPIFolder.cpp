@@ -62,8 +62,9 @@ static LONG AdviseECFolderCallback(void *lpContext, ULONG cNotif,
 }
 
 ECMAPIFolder::ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL fModify,
-    WSMAPIFolderOps *lpFolderOps, const char *szClassName) :
-	ECMAPIContainer(lpMsgStore, MAPI_FOLDER, fModify, szClassName)
+    WSMAPIFolderOps *ops, const char *szClassName) :
+	ECMAPIContainer(lpMsgStore, MAPI_FOLDER, fModify, szClassName),
+	lpFolderOps(ops)
 {
 	// Folder counters
 	HrAddPropHandlers(PR_ASSOC_CONTENT_COUNT,		GetPropHandler,	DefaultSetPropComputed, (void *)this);
@@ -87,8 +88,6 @@ ECMAPIFolder::ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL fModify,
 
 	// ACLs are only offline
 	HrAddPropHandlers(PR_ACL_DATA,			GetPropHandler,			SetPropHandler,			(void*)this);
-
-	this->lpFolderOps = lpFolderOps;
 	if (lpFolderOps)
 		lpFolderOps->AddRef();
 

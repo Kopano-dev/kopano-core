@@ -41,19 +41,14 @@
 
 WSMAPIPropStorage::WSMAPIPropStorage(ULONG cbParentEntryId,
     LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID lpEntryId,
-    ULONG ulFlags, KCmd *lpCmd, std::recursive_mutex &data_lock,
-    ECSESSIONID ecSessionId, unsigned int ulServerCapabilities,
-    WSTransport *lpTransport) :
-	ECUnknown("WSMAPIPropStorage"), lpDataLock(data_lock),
-	m_ulFlags(ulFlags), m_lpTransport(lpTransport)
+    ULONG ulFlags, KCmd *cmd, std::recursive_mutex &data_lock,
+    ECSESSIONID sid, unsigned int ulServerCapabilities, WSTransport *tp) :
+	ECUnknown("WSMAPIPropStorage"), lpCmd(cmd), lpDataLock(data_lock),
+	ecSessionId(sid), m_ulFlags(ulFlags), m_lpTransport(tp)
 {
 	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
 	CopyMAPIEntryIdToSOAPEntryId(cbParentEntryId, lpParentEntryId, &m_sParentEntryId);
-
-	this->lpCmd = lpCmd;
-	this->ecSessionId = ecSessionId;
-	this->ulServerCapabilities = ulServerCapabilities;
-	lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
+	tp->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
 }
 
 WSMAPIPropStorage::~WSMAPIPropStorage()

@@ -60,14 +60,12 @@ HRESULT ECMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew,
 	return ECMessage::Create(lpMsgStore, fNew, fModify, ulFlags, bEmbedded, lpRoot, lpMessage);
 }
 
-ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify,
-    ULONG ulFlags, BOOL bEmbedded, const ECMAPIProp *lpRoot) :
+ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL is_new, BOOL fModify,
+    ULONG ulFlags, BOOL emb, const ECMAPIProp *lpRoot) :
 	ECMAPIProp(lpMsgStore, MAPI_MESSAGE, fModify, lpRoot, "IMessage"),
-	m_bEmbedded(bEmbedded)
+	fNew(is_new), m_bEmbedded(emb)
 {
 	this->ulObjFlags = ulFlags & MAPI_ASSOCIATED;
-	this->fNew = fNew;
-	this->m_bEmbedded = bEmbedded;
 
 	// proptag, getprop, setprops, class, bRemovable, bHidden
 

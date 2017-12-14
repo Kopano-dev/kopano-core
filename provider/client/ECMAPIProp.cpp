@@ -76,7 +76,14 @@ static ECPERMISSION RightsToECPermCheap(const struct rights r)
 
 ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
     const ECMAPIProp *lpRoot, const char *szClassName) :
-	ECGenericProp(lpProvider, ulObjType, fModify, szClassName)
+	ECGenericProp(lpProvider, ulObjType, fModify, szClassName),
+	/*
+	 * Track "root object". This is the object that was opened via
+	 * OpenEntry or OpenMsgStore, so normally lpRoot == this, but in the
+	 * case of attachments and submessages it points to the top-level
+	 * message.
+	 */
+	m_lpRoot(lpRoot != nullptr ? lpRoot : this)
 {
 	this->HrAddPropHandlers(PR_STORE_ENTRYID,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
 	this->HrAddPropHandlers(PR_STORE_RECORD_KEY,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
@@ -95,13 +102,6 @@ ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
 
 	// ICS system
 	this->HrAddPropHandlers(PR_SOURCE_KEY,		DefaultMAPIGetProp	,SetPropHandler,		(void*) this, FALSE, FALSE);
-
-	// Track 'root object'. This is the object that was opened via OpenEntry or OpenMsgStore, so normally
-	// lpRoot == this, but in the case of attachments and submessages it points to the top-level message
-	if(lpRoot)
-		m_lpRoot = lpRoot;
-	else
-		m_lpRoot = this;
 }
 
 ECMAPIProp::~ECMAPIProp()

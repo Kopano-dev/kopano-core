@@ -37,11 +37,10 @@ HRESULT ECAttachFactory::Create(ECMsgStore *lpMsgStore, ULONG ulObjType,
 }
 
 ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify,
-    ULONG ulAttachNum, const ECMAPIProp *lpRoot) :
-	ECMAPIProp(lpMsgStore, ulObjType, fModify, lpRoot, "IAttach")
+    ULONG anum, const ECMAPIProp *lpRoot) :
+	ECMAPIProp(lpMsgStore, ulObjType, fModify, lpRoot, "IAttach"),
+	ulAttachNum(anum)
 {
-	this->ulAttachNum = ulAttachNum;
-
 	this->HrAddPropHandlers(PR_ATTACH_DATA_OBJ,	GetPropHandler,	SetPropHandler,	(void*) this, TRUE,  FALSE);	// Includes PR_ATTACH_DATA_BIN as type is ignored
 	this->HrAddPropHandlers(PR_ATTACH_SIZE,		DefaultGetProp,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	this->HrAddPropHandlers(PR_ATTACH_NUM,		GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);

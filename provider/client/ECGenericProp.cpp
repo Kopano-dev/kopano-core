@@ -34,13 +34,10 @@
 #include <kopano/charset/convert.h>
 #include "EntryPoint.h"
 
-ECGenericProp::ECGenericProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
+ECGenericProp::ECGenericProp(void *prov, ULONG type, BOOL mod,
     const char *szClassName) :
-	ECUnknown(szClassName)
+	ECUnknown(szClassName), ulObjType(type), fModify(mod), lpProvider(prov)
 {
-	this->ulObjType		= ulObjType;
-	this->fModify		= fModify;
-	this->lpProvider	= lpProvider;
 	this->HrAddPropHandlers(PR_EC_OBJECT,				DefaultGetProp,			DefaultSetPropComputed, (void*) this, FALSE, TRUE);
 	this->HrAddPropHandlers(PR_NULL,					DefaultGetProp,			DefaultSetPropIgnore,	(void*) this, FALSE, TRUE);
 	this->HrAddPropHandlers(PR_OBJECT_TYPE,				DefaultGetProp,			DefaultSetPropComputed, (void*) this);

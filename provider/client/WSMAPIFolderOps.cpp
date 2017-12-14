@@ -41,11 +41,11 @@
  * The WSMAPIFolderOps for use with the WebServices transport
  */
 
-WSMAPIFolderOps::WSMAPIFolderOps(KCmd *lpCmd, std::recursive_mutex &data_lock,
-    ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId,
+WSMAPIFolderOps::WSMAPIFolderOps(KCmd *cmd, std::recursive_mutex &data_lock,
+    ECSESSIONID sid, ULONG cbEntryId, ENTRYID *lpEntryId,
     WSTransport *lpTransport) :
-	ECUnknown("WSMAPIFolderOps"), lpDataLock(data_lock),
-	m_lpTransport(lpTransport)
+	ECUnknown("WSMAPIFolderOps"), lpCmd(cmd), lpDataLock(data_lock),
+	ecSessionId(sid), m_lpTransport(lpTransport)
 {
 	this->lpCmd = lpCmd;
 	this->ecSessionId = ecSessionId;

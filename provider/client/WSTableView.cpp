@@ -33,17 +33,12 @@
 	if(hr != hrSuccess) \
 		goto exit;
 
-WSTableView::WSTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
-    std::recursive_mutex &data_lock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+WSTableView::WSTableView(ULONG ty, ULONG fl, KCmd *cmd,
+    std::recursive_mutex &data_lock, ECSESSIONID sid, ULONG cbEntryId,
     LPENTRYID lpEntryId, WSTransport *lpTransport, const char *szClassName) :
-	ECUnknown(szClassName), lpDataLock(data_lock),
-	m_lpTransport(lpTransport)
+	ECUnknown(szClassName), lpCmd(cmd), lpDataLock(data_lock),
+	ecSessionId(sid), m_lpTransport(lpTransport), ulFlags(fl), ulType(ty)
 {
-	this->ulType = ulType;
-	this->ulFlags = ulFlags;
-
-	this->lpCmd = lpCmd;
-	this->ecSessionId = ecSessionId;
 	m_lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
 
 	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);

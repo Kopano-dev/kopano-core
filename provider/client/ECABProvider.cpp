@@ -41,10 +41,8 @@
 using namespace KCHL;
 
 ECABProvider::ECABProvider(ULONG ulFlags, const char *szClassName) :
-    ECUnknown(szClassName)
-{
-	m_ulFlags = ulFlags;
-}
+	ECUnknown(szClassName), m_ulFlags(ulFlags)
+{}
 
 HRESULT ECABProvider::Create(ECABProvider **lppECABProvider)
 {

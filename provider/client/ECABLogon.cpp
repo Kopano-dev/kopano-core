@@ -38,13 +38,12 @@ using namespace KCHL;
 ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport *lpTransport,
     ULONG ulProfileFlags, const GUID *lpGUID) :
 	ECUnknown("IABLogon"), m_lpMAPISup(lpMAPISup),
-	m_lpTransport(lpTransport)
+	m_lpTransport(lpTransport),
+	/* The "legacy" guid used normally (all AB entryIDs have this GUID) */
+	m_guid(MUIDECSAB),
+	/* The specific GUID for *this* addressbook provider, if available */
+	m_ABPGuid((lpGUID != nullptr) ? *lpGUID : GUID_NULL)
 {
-	// The 'legacy' guid used normally (all AB entryIDs have this GUID)
-	m_guid = MUIDECSAB;
-
-	// The specific GUID for *this* addressbook provider, if available
-	m_ABPGuid = (lpGUID != nullptr) ? *lpGUID : GUID_NULL;
 	if(m_lpTransport)
 		m_lpTransport->AddRef();
 	if(m_lpMAPISup)
