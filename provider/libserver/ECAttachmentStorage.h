@@ -25,6 +25,8 @@
 #include <set>
 #include <string>
 #include <dirent.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 
 struct soap;
@@ -159,7 +161,8 @@ private:
 	_kc_hidden ECRESULT DeleteMarkedAttachment(const ext_siid &);
 	_kc_hidden ECRESULT RestoreMarkedAttachment(const ext_siid &);
 	_kc_hidden bool VerifyInstanceSize(const ext_siid &, size_t expected_size, const std::string &filename);
-
+	_kc_hidden void give_filesize_hint(const int fd, const off_t len);
+	_kc_hidden void my_readahead(int fd);
 	std::string m_basepath;
 	bool m_bTransaction = false;
 	std::set<ext_siid> m_setNewAttachment, m_setDeletedAttachment, m_setMarkedAttachment;
