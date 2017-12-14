@@ -388,12 +388,12 @@ class Store(Properties):
         except NotFoundError:
             pass
 
-    def create_folder(self, path):
+    def create_folder(self, path=None, **kwargs):
         """Create :class:`folder <Folder>` with given path.
 
         :param path: The path of the folder
         """
-        return self.subtree.folder(path, create=True)
+        return self.subtree.create_folder(path, **kwargs)
 
     def folders(self, recurse=True, parse=True):
         """Return all :class:`folders <Folder>` in store.
