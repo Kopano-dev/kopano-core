@@ -45,7 +45,6 @@ public:
 	virtual HRESULT HrFindRow(const SRestriction *lpsRestriction, BOOKMARK bkOrigin, ULONG ulFlags);
 	virtual HRESULT HrQueryColumns(ULONG ulFlags, LPSPropTagArray *lppsPropTags);
 	virtual HRESULT HrSortTable(const SSortOrderSet *lpsSortOrderSet);
-	virtual HRESULT HrRestrict(const SRestriction *lpsRestriction);
 	virtual HRESULT HrQueryRows(ULONG ulRowCount, ULONG ulFlags, LPSRowSet *lppRowSet);
 	virtual HRESULT HrGetRowCount(ULONG *lpulRowCount, ULONG *lpulCurrentRow);
 	virtual HRESULT HrSeekRow(BOOKMARK bkOrigin, LONG ulRows, LONG *lplRowsSought);
