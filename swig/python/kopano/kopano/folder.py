@@ -164,11 +164,6 @@ class Folder(Properties):
         return self.prop(PR_EC_HIERARCHYID).value
 
     @property
-    def folderid(self): # XXX deprecated (8.4.x) to be removed
-        warnings.warn("Property 'folderid' is deprecated and will be removed.", _DeprecationWarning)
-        return self.hierarchyid
-
-    @property
     def subfolder_count(self):
         """Number of direct subfolders"""
 

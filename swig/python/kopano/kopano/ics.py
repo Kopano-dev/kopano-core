@@ -104,7 +104,6 @@ class TrackingContentsImporter(ECImportContentsChanges):
                 item.mapiobj = _utils.openentry_raw(mapistore, entryid.Value, 0)
                 props = item.mapiobj.GetProps([PR_EC_HIERARCHYID, PR_EC_PARENT_HIERARCHYID, PR_STORE_RECORD_KEY], 0) # XXX properties don't exist?
                 item.docid = props[0].Value
-                # item.folderid = props[1].Value # XXX
                 item.storeid = _hex(props[2].Value)
                 if hasattr(self.importer, 'update'):
                     self.importer.update(item, flags)
