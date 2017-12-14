@@ -362,13 +362,18 @@ class Store(Properties):
         if others:
             self.root.delete(others, soft=soft)
 
-    def folder(self, path=None, entryid=None, recurse=False, create=False):
+    def folder(self, path=None, entryid=None, recurse=False, create=False, guid=None):
         """Return :class:`Folder` with given path/entryid.
 
         :param path: The path of the folder
         :param entryid: The entryid of the folder
         :param create: Create folder if it doesn't exist
         """
+
+        if guid:
+            # 01 -> entryid format version, 03 -> object type (folder)
+            entryid = '00000000' + self.guid + '0100000003000000' + guid + '00000000'
+
         if entryid is not None:
             try:
                 return _folder.Folder(self, entryid)

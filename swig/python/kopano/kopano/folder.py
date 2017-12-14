@@ -147,6 +147,12 @@ class Folder(Properties):
         return _hex(self._entryid)
 
     @property
+    def guid(self):
+        """ Folder guid """
+
+        return self.entryid[56:88]
+
+    @property
     def sourcekey(self):
         if not self._sourcekey:
             self._sourcekey = _hex(HrGetOneProp(self.mapiobj, PR_SOURCE_KEY).Value)
