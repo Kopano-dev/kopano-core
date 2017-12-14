@@ -21,13 +21,14 @@
 #include <kopano/zcdefs.h>
 #include <kopano/Util.h>
 #include <kopano/IECInterfaces.hpp>
+#include <kopano/memory.hpp>
 #include "ECABLogon.h"
 #include "ECABProp.h"
 
 class ECABContainer : public ECABProp, public IABContainer {
 protected:
 	ECABContainer(void* lpProvider, ULONG ulObjType, BOOL fModify, const char *szClassName);
-	virtual ~ECABContainer();
+	virtual ~ECABContainer() = default;
 public:
 	static HRESULT	Create(void* lpProvider, ULONG ulObjType, BOOL fModify, ECABContainer **lppABContainer);
 
@@ -56,7 +57,6 @@ public:
 	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
 
 private:
-	IECImportAddressbookChanges *m_lpImporter = nullptr;
 	ALLOC_WRAP_FRIEND;
 };
 

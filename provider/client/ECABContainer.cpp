@@ -53,12 +53,6 @@ ECABContainer::ECABContainer(void *lpProvider, ULONG ulObjType, BOOL fModify,
 	this->HrAddPropHandlers(PR_TRANSMITABLE_DISPLAY_NAME,	DefaultABContainerGetProp, DefaultSetPropIgnore, (void*) this);
 }
 
-ECABContainer::~ECABContainer()
-{
-    if(m_lpImporter)
-        m_lpImporter->Release();
-}
-
 HRESULT	ECABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(ECABContainer, this);
