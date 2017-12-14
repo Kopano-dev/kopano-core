@@ -33,6 +33,4 @@ class _kc_export TmpPath _kc_final {
 		static _kc_export TmpPath instance;
 };
 
-extern TmpPath *tmpPath;
-
 } /* namespace */
