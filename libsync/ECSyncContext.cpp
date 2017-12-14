@@ -346,16 +346,16 @@ HRESULT ECSyncContext::HrUpdateChangeId(LPSTREAM lpStream)
 			m_mapNotifiedSyncIds.erase(ulSyncId);
 	}
 
-	if(m_lpChangeAdvisor) {
-		// Now inform the change advisor of our accomplishment
-		hr = m_lpChangeAdvisor->QueryInterface(iid_of(ptrECA), &~ptrECA);
-		if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED)
-			return hr;
-		hr = ptrECA->UpdateSyncState(ulSyncId, ulChangeId);
-		if (hr == MAPI_E_INVALID_PARAMETER)
-			// We're apparently not tracking this syncid.
-			return hrSuccess;
-	}
+	if (m_lpChangeAdvisor == nullptr)
+		return hrSuccess;
+	// Now inform the change advisor of our accomplishment
+	hr = m_lpChangeAdvisor->QueryInterface(iid_of(ptrECA), &~ptrECA);
+	if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED)
+		return hr;
+	hr = ptrECA->UpdateSyncState(ulSyncId, ulChangeId);
+	if (hr == MAPI_E_INVALID_PARAMETER)
+		// We're apparently not tracking this syncid.
+		return hrSuccess;
 	return hrSuccess;
 }
 
