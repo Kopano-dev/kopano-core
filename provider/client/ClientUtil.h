@@ -41,7 +41,6 @@ struct sGlobalProfileProps {
 	ULONG			ulProxyPort;
 	std::string		strProxyUserName;
 	std::string		strProxyPassword;
-	tstring			strOfflinePath;
 	std::string		strClientAppVersion;
 	std::string		strClientAppMisc;
 };

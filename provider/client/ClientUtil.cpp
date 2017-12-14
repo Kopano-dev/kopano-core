@@ -52,8 +52,7 @@ static constexpr const SizedSPropTagArray(22, sptaKopanoProfile) =
 	PR_EC_IMPERSONATEUSER_A, PR_EC_IMPERSONATEUSER_W, PR_EC_FLAGS,
 	PR_EC_SSLKEY_FILE, PR_EC_SSLKEY_PASS, PR_EC_PROXY_HOST,
 	PR_EC_PROXY_PORT, PR_EC_PROXY_USERNAME, PR_EC_PROXY_PASSWORD,
-	PR_EC_PROXY_FLAGS, PR_EC_CONNECTION_TIMEOUT, PR_EC_OFFLINE_PATH_A,
-	PR_EC_OFFLINE_PATH_W, PR_SERVICE_NAME,
+	PR_EC_PROXY_FLAGS, PR_EC_CONNECTION_TIMEOUT, PR_SERVICE_NAME,
 	PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION,
 	PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC}};
 
@@ -632,10 +631,6 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 		lpsProfileProps->ulConnectionTimeOut = lpProp->Value.ul;
 	else
 		lpsProfileProps->ulConnectionTimeOut = 10;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_OFFLINE_PATH_W)) != NULL)
-		lpsProfileProps->strOfflinePath = convstring::from_SPropValue(lpProp);
-	else if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_OFFLINE_PATH_A)) != NULL)
-		lpsProfileProps->strOfflinePath = convstring::from_SPropValue(lpProp);
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION)) != NULL)
 		lpsProfileProps->strClientAppVersion = lpProp->Value.lpszA;
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC)) != NULL)

@@ -1341,14 +1341,10 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	hr = this->GetMsgStore()->lpSupport->ExpandRecips(this, &ulPreprocessFlags);
 	if (hr != hrSuccess)
 		return hr;
-	if (this->GetMsgStore()->IsOfflineStore())
-		ulPreprocessFlags |= NEEDS_SPOOLER;
 
 	// Setup PR_SUBMIT_FLAGS
 	if (ulPreprocessFlags & NEEDS_PREPROCESSING)
 		ulSubmitFlag = SUBMITFLAG_PREPROCESS;
-	if (ulPreprocessFlags & NEEDS_SPOOLER)
-		ulSubmitFlag = 0L;
 	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropArray);
 	if (hr != hrSuccess)
 		return hr;
@@ -1365,19 +1361,8 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	if(hr != hrSuccess)
 		return hr;
 
-	// We look al ulPreprocessFlags to see whether to submit the message via the
-	// spooler or not
-
-	if(ulPreprocessFlags & NEEDS_SPOOLER) {
-		// Add this message into the local outgoing queue
-
-		hr = this->GetMsgStore()->lpTransport->HrSubmitMessage(this->m_cbEntryId, this->m_lpEntryId, EC_SUBMIT_LOCAL);
-	} else {
-
-		// Add the message to the master outgoing queue, and request the spooler to DoSentMail()
-		hr = this->GetMsgStore()->lpTransport->HrSubmitMessage(this->m_cbEntryId, this->m_lpEntryId, EC_SUBMIT_MASTER | EC_SUBMIT_DOSENTMAIL);
-	}
-	return hr;
+	// Add the message to the master outgoing queue, and request the spooler to DoSentMail()
+	return this->GetMsgStore()->lpTransport->HrSubmitMessage(this->m_cbEntryId, this->m_lpEntryId, EC_SUBMIT_MASTER | EC_SUBMIT_DOSENTMAIL);
 }
 
 HRESULT ECMessage::SetReadFlag(ULONG ulFlags)

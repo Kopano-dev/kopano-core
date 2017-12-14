@@ -262,7 +262,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	ZLOG_DEBUG(m_lpLogger, "Decoded state stream: syncid=%u, changeid=%u, processed changes=%lu", ulSyncId, ulChangeId, (long unsigned int)m_setProcessedChanges.size());
 
 	if(ulSyncId == 0) {
-		ZLOG_DEBUG(m_lpLogger, "Getting new sync id for %s folder '%ls'...", (m_lpStore->IsOfflineStore() ? "offline" : "online"), m_strDisplay.c_str());
+		ZLOG_DEBUG(m_lpLogger, "Getting new sync id for folder '%ls'...", m_strDisplay.c_str());
 
 		// Ignore any trailing garbage in the stream
 		if (m_sourcekey.size() < 24 && (m_sourcekey[m_sourcekey.size()-1] & 0x80)) {
@@ -283,7 +283,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 			return hr;
 		}
 
-		ZLOG_DEBUG(m_lpLogger, "New sync id for %s folder '%ls': %u", (m_lpStore->IsOfflineStore() ? "offline" : "online"), m_strDisplay.c_str(), ulSyncId);
+		ZLOG_DEBUG(m_lpLogger, "New sync id for folder '%ls': %u", m_strDisplay.c_str(), ulSyncId);
 
 		bForceImplicitStateUpdate = true;
 	}
@@ -300,7 +300,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	m_ulSyncId = ulSyncId;
 	m_ulChangeId = ulChangeId;
 
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "%s folder: %ls changes: %u syncid: %u changeid: %u", (m_lpStore->IsOfflineStore() ? "offline" : "online"), m_strDisplay.c_str(), m_ulChanges, m_ulSyncId, m_ulChangeId);
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "folder: %ls changes: %u syncid: %u changeid: %u", m_strDisplay.c_str(), m_ulChanges, m_ulSyncId, m_ulChangeId);
 
 	/**
 	 * Filter the changes.
@@ -433,7 +433,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	m_bConfiged = true;
 
 	if (bForceImplicitStateUpdate) {
-		ZLOG_DEBUG(m_lpLogger, "Forcing state update for %s folder '%ls'", (m_lpStore->IsOfflineStore() ? "offline" : "online"), m_strDisplay.c_str());
+		ZLOG_DEBUG(m_lpLogger, "Forcing state update for folder '%ls'", m_strDisplay.c_str());
 		if (m_ulChangeId == 0)
 			UpdateState(NULL);
 	}
