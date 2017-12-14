@@ -91,7 +91,6 @@ public:
 	HRESULT			HrSetClean();
 	ECProperty *GetProperty() const { return lpProperty.get(); }
 	ULONG			GetPropTag() const { return ulPropTag; }
-	void DeleteProperty() { lpProperty.reset(); }
 	BOOL			FIsDirty() const { return fDirty; }
 	BOOL			FIsLoaded() const { return lpProperty != NULL; }
 

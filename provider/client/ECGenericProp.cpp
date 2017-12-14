@@ -48,8 +48,6 @@ ECGenericProp::~ECGenericProp()
 {
 	if (m_sMapiObject)
 		FreeMapiObject(m_sMapiObject);
-	for (auto &i : lstProps)
-		i.second.DeleteProperty();
 	if(lpStorage)
 		lpStorage->Release();
 	MAPIFreeBuffer(m_lpEntryId);
@@ -137,7 +135,6 @@ HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 		if (iterProps->second.GetPropTag() != lpsPropValue->ulPropTag) {
 			// type is different, remove the property and insert a new item
 			m_setDeletedProps.emplace(lpsPropValue->ulPropTag);
-			iterProps->second.DeleteProperty();
 			lstProps.erase(iterProps);
 		} else {
 			iterPropsFound = iterProps;
@@ -266,7 +263,6 @@ HRESULT ECGenericProp::HrDeleteRealProp(ULONG ulPropTag, BOOL fOverwriteRO)
 	}
 
 	m_setDeletedProps.emplace(iterProps->second.GetPropTag());
-	iterProps->second.DeleteProperty();
 	lstProps.erase(iterProps);
 exit:
 	dwLastError = hr;
@@ -670,8 +666,6 @@ HRESULT ECGenericProp::HrLoadProps()
 		m_sMapiObject = NULL;
 
 		// only remove my own properties: keep recipients and attachment tables
-		for (auto &p : lstProps)
-			p.second.DeleteProperty();
 		lstProps.clear();
 		m_setDeletedProps.clear();
 	}
