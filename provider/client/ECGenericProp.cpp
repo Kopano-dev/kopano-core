@@ -642,7 +642,7 @@ HRESULT ECGenericProp::HrLoadEmptyProps()
 	assert(m_sMapiObject == NULL);
 	lstProps.clear(); /* release build has no asserts */
 	m_props_loaded = true;
-	AllocNewMapiObject(0, 0, ulObjType, &m_sMapiObject);
+	m_sMapiObject = new MAPIOBJECT(0, 0, ulObjType);
 	return hrSuccess;
 }
 

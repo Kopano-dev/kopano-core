@@ -473,14 +473,14 @@ ECRESULT WSMAPIPropStorage::ECSoapObjectToMapiObject(struct saveObject *lpsSaveO
 	for (gsoap_size_t i = 0; i < lpsSaveObj->__size; ++i) {
 		switch (lpsSaveObj->__ptr[i].ulObjType) {
 		case MAPI_ATTACH:
-			AllocNewMapiObject(ulAttachUniqueId++, lpsSaveObj->__ptr[i].ulServerId, lpsSaveObj->__ptr[i].ulObjType, &mo);
+			mo = new MAPIOBJECT(ulAttachUniqueId++, lpsSaveObj->__ptr[i].ulServerId, lpsSaveObj->__ptr[i].ulObjType);
 			break;
 		case MAPI_MAILUSER:
 		case MAPI_DISTLIST:
-			AllocNewMapiObject(ulRecipUniqueId++, lpsSaveObj->__ptr[i].ulServerId, lpsSaveObj->__ptr[i].ulObjType, &mo);
+			mo = new MAPIOBJECT(ulRecipUniqueId++, lpsSaveObj->__ptr[i].ulServerId, lpsSaveObj->__ptr[i].ulObjType);
 			break;
 		default:
-			AllocNewMapiObject(0, lpsSaveObj->__ptr[i].ulServerId, lpsSaveObj->__ptr[i].ulObjType, &mo);
+			mo = new MAPIOBJECT(0, lpsSaveObj->__ptr[i].ulServerId, lpsSaveObj->__ptr[i].ulObjType);
 			break;
 		}
 
@@ -568,9 +568,7 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		hr = MAPI_E_UNCONFIGURED;			// Force a reconfigure
 	if(hr != hrSuccess)
 		goto exit;
-
-	AllocNewMapiObject(0, 0, 0, &lpsMapiObject); // ulObjType, ulObjId and ulUniqueId are unknown here
-
+	lpsMapiObject = new MAPIOBJECT; /* ulObjType, ulObjId and ulUniqueId are unknown here */
 	ECSoapObjectToMapiObject(&sResponse.sSaveObject, lpsMapiObject);
 
 	*lppsMapiObject = lpsMapiObject;

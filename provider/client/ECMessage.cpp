@@ -1562,8 +1562,7 @@ HRESULT ECMessage::SaveRecips()
 			continue;
 		}
 
-		AllocNewMapiObject(lpRowId->Value.ul, lpObjIDs[i].Value.ul, ulRealObjType, &mo);
-
+		mo = new MAPIOBJECT(lpRowId->Value.ul, lpObjIDs[i].Value.ul, ulRealObjType);
 		// Move any PR_ENTRYIDs to PR_EC_CONTACT_ENTRYID
 		auto lpEntryID = lpRowSet[i].find(PR_ENTRYID);
 		if(lpEntryID)

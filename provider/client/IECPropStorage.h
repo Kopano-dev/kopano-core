@@ -43,12 +43,12 @@
 #include <kopano/Util.h>
 
 struct MAPIOBJECT {
-	MAPIOBJECT() {
-		/* see AllocNewMapiObject :: Mem.cpp */
-	};
-	
+	MAPIOBJECT() = default;
 	MAPIOBJECT(unsigned int ulType, unsigned int ulId) : ulUniqueId(ulId), ulObjType(ulType) {
 	}
+	MAPIOBJECT(unsigned int uqid, unsigned int id, unsigned int type) :
+		ulUniqueId(uqid), ulObjId(id), ulObjType(type)
+	{}
 
 	bool operator < (const MAPIOBJECT &other) const {
 		std::pair<unsigned int, unsigned int> me(ulObjType, ulUniqueId), him(other.ulObjType, other.ulUniqueId);

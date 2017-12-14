@@ -105,7 +105,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
     
 	// Convert the property tags to a MAPIOBJECT
 	//(type,objectid)
-	AllocNewMapiObject(0, 0, 0, &mo);
+	mo = new MAPIOBJECT;
 
 	/*
 	 * This is only done to have a base for AllocateMore, otherwise a local
