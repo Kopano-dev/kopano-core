@@ -3197,7 +3197,6 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 	object_ptr<IABContainer> lpAddrDir;
 	recipients_t lRCPT;
 	std::string strUsername = recipient;
-	std::wstring strwLoginname;
 
 	if (bStringEmail)
 		// we have to strip off the @domainname.tld to get the username
