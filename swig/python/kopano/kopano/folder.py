@@ -592,7 +592,9 @@ class Folder(Properties):
                     g.depth += f.depth+1
                     yield g
 
-    def create_folder(self, path, **kwargs):
+    def create_folder(self, path=None, **kwargs):
+        if path is None:
+            path = kwargs.get('path', kwargs.get('name'))
         folder = self.folder(path, create=True)
         for key, val in kwargs.items():
             setattr(folder, key, val)
