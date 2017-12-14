@@ -189,7 +189,7 @@ static HRESULT GetIMsgStoreObject(BOOL bOffline,
 		return hr;
 	return sProviderInfo.lpMSProviderOnline->Logon(lpMAPISup, 0,
 	       reinterpret_cast<const TCHAR *>(lpszProfileName), cbEntryId, lpEntryId,
-	       bModify ? MAPI_BEST_ACCESS | MDB_NO_DIALOG : MDB_NO_DIALOG,
+	       bModify ? MAPI_BEST_ACCESS : 0,
 	       nullptr, nullptr, nullptr, nullptr, nullptr, lppIMsgStore);
 }
 

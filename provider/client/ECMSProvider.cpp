@@ -92,10 +92,6 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	MAPIUID			guidMDBProvider;
 	sGlobalProfileProps	sProfileProps;
 
-	// Always suppress UI when running in a service
-	if(m_ulFlags & MAPI_NT_SERVICE)
-		ulFlags |= MDB_NO_DIALOG;
-
 	// If the EntryID is not configured, return MAPI_E_UNCONFIGURED, this will
 	// cause MAPI to call our configuration entry point (MSGServiceEntry)
 	if (lpEntryID == nullptr)
@@ -244,11 +240,8 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	if(hr != hrSuccess)
 		return hr;
 	hr = LogonByEntryID(lpTransport, &sProfileProps, cbEntryID, lpEntryID);
-	if(hr != hrSuccess) {
-		if (ulFlags & MDB_NO_DIALOG)
-			return MAPI_E_FAILONEPROVIDER;
+	if (hr != hrSuccess)
 		return MAPI_E_UNCONFIGURED;
-	}
 
 	// Get a message store object
 	hr = CreateMsgStoreObject((LPSTR)sProfileProps.strProfileName.c_str(), lpMAPISup, cbEntryID, lpEntryID, ulFlags, sProfileProps.ulProfileFlags, lpTransport,
@@ -465,10 +458,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	}
 
 	if(hr != hrSuccess) {
-		if(ulFlags & MDB_NO_DIALOG) {
-			hr = MAPI_E_FAILONEPROVIDER;
-			goto exit;
-		} else if(hr == MAPI_E_NETWORK_ERROR) {
+		if (hr == MAPI_E_NETWORK_ERROR) {
 			hr = MAPI_E_FAILONEPROVIDER; //for disable public folders, so you can work offline
 			goto exit;
 		} else if (hr == MAPI_E_LOGON_FAILED) {
