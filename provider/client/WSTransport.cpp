@@ -1447,7 +1447,7 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
 	sStoreId.__size = cbUnWrapStoreID;
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if (hr != hrSuccess)
-		/* ignore error */;
+		goto exitm;
 	START_SOAP_CALL
 	{
 		if(SOAP_OK != m_lpCmd->ns__setReceiveFolder(m_ecSessionId, sStoreId, (lpEntryID)?&sEntryId : NULL, (char*)strMessageClass.c_str(), &result))
