@@ -389,11 +389,6 @@ HRESULT ECSyncContext::HrGetSyncStateFromSourceKey(SBinary *lpSourceKey, SSyncSt
 	return hrSuccess;
 }
 
-bool ECSyncContext::SyncStatusLoaded() const
-{
-	return !m_mapSyncStatus.empty();
-}
-
 HRESULT ECSyncContext::HrClearSyncStatus()
 {
 	m_mapSyncStatus.clear();

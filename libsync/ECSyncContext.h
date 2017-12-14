@@ -186,7 +186,7 @@ public:
 	 *
 	 * @return true if sync status streams have been loaded, false otherwise.
 	 */
-	bool    SyncStatusLoaded() const;
+	bool SyncStatusLoaded() const { return !m_mapSyncStatus.empty(); }
 
 	/**
 	 * Clear the sync status streams.
