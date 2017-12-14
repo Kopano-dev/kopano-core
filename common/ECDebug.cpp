@@ -1641,45 +1641,6 @@ std::string PropValueToString(const SPropValue *lpPropValue)
 	}
 }
 
-std::string RowToString(const SRow *lpRow)
-{
-	std::string strResult;
-
-	if(lpRow == NULL)
-		return "NULL";
-
-	for (unsigned int i = 0; i < lpRow->cValues; ++i)
-		strResult += PropNameFromPropTag(lpRow->lpProps[i].ulPropTag)+" : "+PropValueToString(&lpRow->lpProps[i]) + "\n";
-
-	return strResult;
-}
-
-std::string RowEntryToString(const ROWENTRY *lpRowEntry)
-{
-	std::string strResult;
-	if(lpRowEntry == NULL)
-		return "NULL";
-
-	strResult = "rowflags: "+ stringify(lpRowEntry->ulRowFlags, true) + "\n";
-	for (unsigned int i = 0; i < lpRowEntry->cValues; ++i)
-		strResult += PropNameFromPropTag(lpRowEntry->rgPropVals[i].ulPropTag)+" : "+PropValueToString(&lpRowEntry->rgPropVals[i]) + "\n";
-
-	return strResult;
-}
-
-std::string RowListToString(const ROWLIST *lpRowList)
-{
-	std::string strResult;
-
-	if(lpRowList == NULL)
-		return "NULL";
-
-	for (unsigned int i = 0; i < lpRowList->cEntries; ++i)
-		strResult+= "row "+stringify(i) + " : " + RowEntryToString(&lpRowList->aEntries[i]) + "\n";
-
-	return strResult;
-}
-
 std::string DBGGUIDToString(REFIID iid)
 {
 	std::string guidIDD;
