@@ -233,9 +233,6 @@ class IECServiceAdmin : public virtual IUnknown {
 	virtual HRESULT GetServerDetails(ECSVRNAMELIST *lpServerNameList, ULONG ulFlags, ECSERVERLIST **lppsServerList) = 0;
 	virtual HRESULT ResolvePseudoUrl(const char *url, char **path, bool *ispeer) = 0;
 
-	/* Public store function(s) */
-	virtual HRESULT GetPublicStoreEntryID(ULONG ulFlags, ULONG *lpcbStoreID, LPENTRYID *lppStoreID) = 0;
-
 	/* Archive store function(s) */
 	virtual HRESULT GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG *lpcbStoreID, LPENTRYID *lppStoreID) = 0;
 	virtual HRESULT ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates) = 0;
