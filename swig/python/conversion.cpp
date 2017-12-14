@@ -2386,7 +2386,7 @@ void DoException(HRESULT hr)
 	pyobj_ptr attr_name(PyString_FromString("_errormap"));
 	#endif
 	pyobj_ptr errormap(PyObject_GetAttr(PyTypeMAPIError, attr_name)), ex;
-	PyObject *errortype;
+	PyObject *errortype = nullptr;
 	if (errormap != NULL) {
 		errortype = PyDict_GetItem(errormap, hrObj);
 		if (errortype)
