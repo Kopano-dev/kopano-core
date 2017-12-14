@@ -19,24 +19,7 @@ ECRESULT TestPerform(ECSession *lpSession,
 {
     ECRESULT er = erSuccess;
 
-    if(strcasecmp(szCommand, "purge_deferred") == 0) {
-        while (1) {
-            unsigned int ulFolderId = 0;
-			ECDatabase *lpDatabase = NULL;
-
-			er = lpSession->GetDatabase(&lpDatabase);
-            if(er != erSuccess)
-				return er;
-            er = ECTPropsPurge::GetLargestFolderId(lpDatabase, &ulFolderId);
-            if(er != erSuccess) {
-                er = erSuccess;
-                break;
-            }
-            er = ECTPropsPurge::PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
-            if(er != erSuccess)
-                return er;
-        }
-    } else if (strcasecmp(szCommand, "indexer_syncrun") == 0) {
+	if (strcasecmp(szCommand, "indexer_syncrun") == 0) {
 		if (parseBool(g_lpSessionManager->GetConfig()->GetSetting("search_enabled")))
 			er = ECSearchClientNET(
 				g_lpSessionManager->GetConfig()->GetSetting("search_socket"),
