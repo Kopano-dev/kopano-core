@@ -389,7 +389,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	    PROP_TYPE(ulPropTag) != PT_UNICODE)
 		return MAPI_E_NOT_FOUND;
 
-	if (*lpiid == IID_IStream && this->lstProps == NULL &&
+	if (*lpiid == IID_IStream && !this->m_props_loaded &&
 	    PROP_TYPE(ulPropTag) == PT_BINARY && !(ulFlags & MAPI_MODIFY) &&
 	    // Shortcut: don't load entire object if only one property is being requested for read-only. HrLoadProp() will return
 		// without querying the server if the server does not support this capability (introduced in 6.20.8). Main reason is

@@ -73,7 +73,7 @@ HRESULT ECAttach::SaveChanges(ULONG ulFlags)
 	if (!fModify)
 		return MAPI_E_NO_ACCESS;
 
-	if (!lstProps || lstProps->find(PROP_ID(PR_RECORD_KEY)) == lstProps->end()) {
+	if (!m_props_loaded || lstProps.find(PROP_ID(PR_RECORD_KEY)) == lstProps.cend()) {
 		GUID guid;
 		SPropValue sPropVal;
 

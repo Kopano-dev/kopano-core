@@ -161,7 +161,7 @@ HRESULT ECMessage::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 		lRtfIdx = Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_RTF_COMPRESSED, PT_UNSPECIFIED));
 		lHtmlIdx = Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_HTML, PT_UNSPECIFIED));
 	}
-	if (lstProps == NULL && (!lpPropTagArray || lBodyIdx >= 0 || lRtfIdx >=0 || lHtmlIdx >= 0)) {
+	if (!m_props_loaded && (!lpPropTagArray || lBodyIdx >= 0 || lRtfIdx >=0 || lHtmlIdx >= 0)) {
 		// Get the properties from the server so we can determine the body type.
 		m_ulBodyType = bodyTypeUnknown;		// Make sure no bodies are generated.
 		hr = HrLoadProps();					// HrLoadProps will (re)determine the best body type.
@@ -831,12 +831,10 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	memory_ptr<SPropTagArray> lpPropTagArray;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	if(lstProps == NULL) {
+	if (!m_props_loaded) {
 		hr = HrLoadProps();
 		if (hr != hrSuccess)
 			return hr;
-		if (lstProps == nullptr)
-			return MAPI_E_CALL_FAILED;
 	}
 
 	if (this->lpAttachments == NULL) {
@@ -1061,12 +1059,10 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	memory_ptr<SPropTagArray> lpPropTagArray;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	if(lstProps == NULL) {
+	if (!m_props_loaded) {
 		hr = HrLoadProps();
 		if (hr != hrSuccess)
 			return hr;
-		if (lstProps == nullptr)
-			return MAPI_E_CALL_FAILED;
 	}
 
 	if (this->lpRecips == NULL) {
@@ -1618,12 +1614,10 @@ BOOL ECMessage::HasAttachment()
 	ECMapiObjects::const_iterator iterObjects;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	if(lstProps == NULL) {
+	if (!m_props_loaded) {
 		hr = HrLoadProps();
 		if (hr != hrSuccess)
 			return false; /* hr */
-		if (lstProps == nullptr)
-			return false; /* MAPI_E_CALL_FAILED */
 	}
 
 	for (iterObjects = m_sMapiObject->lstChildren.cbegin();
@@ -1747,7 +1741,7 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 		return MAPI_E_NO_ACCESS;
 
 	// nothing changed -> no need to save
- 	if (this->lstProps == NULL)
+	if (!this->m_props_loaded)
 		return hr;
 
 	assert(m_sMapiObject != NULL); // the actual bug .. keep open on submessage

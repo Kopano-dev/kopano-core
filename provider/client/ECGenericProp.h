@@ -125,7 +125,7 @@ public:
 	virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags);
 
 protected:
-	ECPropertyEntryMap *lstProps = nullptr;
+	ECPropertyEntryMap lstProps;
 	std::set<ULONG>			m_setDeletedProps;
 	ECPropCallBackMap		lstCallBack;
 	DWORD dwLastError = hrSuccess;
@@ -137,6 +137,7 @@ protected:
 	void*					lpProvider;
 	BOOL isTransactedObject = true; // only ECMsgStore and ECMAPIFolder are not transacted
 	ULONG m_ulMaxPropSize = 8192;
+	bool m_props_loaded = false;
 
 public:
 	// Current entryid of object
