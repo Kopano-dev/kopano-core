@@ -1661,8 +1661,9 @@ HRESULT ECTNEF::HrReadByte(IStream *lpStream, unsigned char *ulData)
  * @retval MAPI_E_NOT_FOUND if stream was too short, other MAPI error code
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrReadData(IStream *lpStream, void *lpData, size_t ulLen)
+HRESULT ECTNEF::HrReadData(IStream *lpStream, void *data, size_t ulLen)
 {
+	auto lpData = static_cast<char *>(data);
 	HRESULT hr;
 	ULONG ulRead = 0;
 	ULONG ulToRead = 0;
@@ -1751,8 +1752,9 @@ HRESULT ECTNEF::HrWriteByte(IStream *lpStream, unsigned char ulData)
  * @param[in]		ulData		unsigned char value to write in lpStream
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrWriteData(IStream *lpStream, const void *data, size_t ulLen)
+HRESULT ECTNEF::HrWriteData(IStream *lpStream, const void *vdata, size_t ulLen)
 {
+	auto data = static_cast<const char *>(vdata);
 	HRESULT hr;
 	ULONG ulWritten = 0;
 
