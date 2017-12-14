@@ -34,14 +34,14 @@ class Resource(object):
 
     def json_multi(self, obj, fields):
         # TODO itertools magic?
-        yield '[\n'
+        yield b'[\n'
         first = True
         for o in obj:
             if not first:
-                yield ',\n'
+                yield b',\n'
             first = False
-            yield self.json(o, fields)
-        yield '\n]'
+            yield self.json(o, fields).encode('utf-8')
+        yield b'\n]'
 
     def respond(self, req, resp, obj):
         # determine fields (default all)
