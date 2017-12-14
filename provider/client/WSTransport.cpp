@@ -1445,10 +1445,9 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
 		goto exitm;
 	sStoreId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
 	sStoreId.__size = cbUnWrapStoreID;
-
-	// Ignore error
-	CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
-
+	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
+	if (hr != hrSuccess)
+		/* ignore error */;
 	START_SOAP_CALL
 	{
 		if(SOAP_OK != m_lpCmd->ns__setReceiveFolder(m_ecSessionId, sStoreId, (lpEntryID)?&sEntryId : NULL, (char*)strMessageClass.c_str(), &result))
