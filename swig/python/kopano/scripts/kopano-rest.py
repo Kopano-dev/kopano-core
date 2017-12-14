@@ -1,4 +1,4 @@
-from MAPI.Util import kc_session_save, kc_session_restore
+from MAPI.Util import kc_session_save, kc_session_restore, GetDefaultStore
 import json
 try:
     import urlparse
@@ -105,9 +105,13 @@ class FolderResource(Resource):
         'unread': lambda folder: folder.unread,
     }
 
-    def on_get(self, req, resp, storeid, folderid=None):
+    def on_get(self, req, resp, storeid=None, folderid=None):
         server = _server(req)
-        store = server.store(entryid=storeid)
+        if storeid:
+            store = server.store(entryid=storeid)
+        else:
+            store = kopano.Store(server=server,
+                mapiobj=GetDefaultStore(server.mapisession))
         if folderid:
             data = store.folder(entryid=folderid)
         else:
@@ -180,7 +184,12 @@ app.add_route('/users', users)
 app.add_route('/users/{userid}', users)
 app.add_route('/stores', stores)
 app.add_route('/stores/{storeid}', stores)
-app.add_route('/stores/{storeid}/folders', folders)
-app.add_route('/stores/{storeid}/folders/{folderid}', folders)
-app.add_route('/stores/{storeid}/folders/{folderid}/items', items)
-app.add_route('/stores/{storeid}/folders/{folderid}/items/{itemid}', items)
+
+for folder_route in (
+    '/folders',
+    '/folders/{folderid}',
+    '/folders/{folderid}/items',
+    '/folders/{folderid}/items/{itemid}',
+    ):
+    app.add_route(folder_route, folders)
+    app.add_route('/stores/{storeid}'+folder_route, folders)
