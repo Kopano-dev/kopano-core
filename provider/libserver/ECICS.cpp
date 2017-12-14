@@ -979,7 +979,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	*lppChanges = lpChanges;
 
 exit:
-	if (lpDatabase && er != erSuccess)
+	if (er != erSuccess)
 		lpDatabase->Rollback();
 	return er;
 }

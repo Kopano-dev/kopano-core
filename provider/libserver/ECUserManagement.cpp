@@ -2787,7 +2787,7 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 		goto exit;
 
 exit:
-	if (lpDatabase && bTransaction && er != erSuccess)
+	if (bTransaction && er != erSuccess)
 		lpDatabase->Rollback();
 
 	return er;

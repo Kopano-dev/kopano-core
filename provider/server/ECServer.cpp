@@ -526,11 +526,8 @@ static ECRESULT check_server_configuration(void)
 	}	
 	
 exit:
-	if (lpecSession) {
-		lpecSession->Unlock();
-		g_lpSessionManager->RemoveSessionInternal(lpecSession);
-	}
-
+	lpecSession->Unlock();
+	g_lpSessionManager->RemoveSessionInternal(lpecSession);
 	// we could return an error when bHaveErrors is set, but we currently find this not fatal as a sysadmin might be smarter than us.
 	if (bHaveErrors)
  		ec_log_warn("WARNING: Inconsistencies detected between local and LDAP based configuration.");
