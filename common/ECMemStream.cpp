@@ -26,11 +26,9 @@
 
 namespace KC {
 
-ECMemBlock::ECMemBlock(const char *buffer, ULONG ulDataLen, ULONG ulFlags) :
-    ECUnknown("ECMemBlock")
+ECMemBlock::ECMemBlock(const char *buffer, ULONG ulDataLen, ULONG fl) :
+	ECUnknown("ECMemBlock"), ulFlags(fl)
 {
-	this->ulFlags = ulFlags;
-
 	if (ulDataLen == 0)
 		return;
 	cbTotal = ulDataLen;
@@ -165,7 +163,7 @@ ECMemStream::ECMemStream(const char *buffer, ULONG ulDataLen, ULONG f,
 	ECUnknown("IStream"), lpCommitFunc(cf), lpDeleteFunc(df), lpParam(p),
 	ulFlags(f)
 {
-	ECMemBlock::Create(buffer, ulDataLen, ulFlags, &this->lpMemBlock);
+	ECMemBlock::Create(buffer, ulDataLen, ulFlags, &lpMemBlock);
 }
 
 ECMemStream::ECMemStream(ECMemBlock *mb, ULONG f, CommitFunc cf,
@@ -179,11 +177,9 @@ ECMemStream::ECMemStream(ECMemBlock *mb, ULONG f, CommitFunc cf,
 ECMemStream::~ECMemStream()
 {
 	ULONG refs = 0;
-
-	if(this->lpMemBlock)
-		refs = this->lpMemBlock->Release();
-
-	if (refs == 0 && this->lpDeleteFunc)
+	if (lpMemBlock != nullptr)
+		refs = lpMemBlock->Release();
+	if (refs == 0 && lpDeleteFunc != nullptr)
 		lpDeleteFunc(lpParam);
 }
 
@@ -204,9 +200,8 @@ ULONG ECMemStream::Release()
 	// If you read the docs on STGM_SHARE_EXCLUSIVE it doesn't say you need
 	// to Commit() at the end, so if the client hasn't called Commit() yet,
 	// we need to do it for them before throwing away the data.
-	if (this->m_cRef == 1 && this->ulFlags & STGM_SHARE_EXCLUSIVE &&
-	    this->fDirty)
-		this->Commit(0);
+	if (m_cRef == 1 && ulFlags & STGM_SHARE_EXCLUSIVE && fDirty)
+		Commit(0);
 	return ECUnknown::Release();
 }
 
@@ -226,7 +221,6 @@ HRESULT	ECMemStream::Create(ECMemBlock *lpMemBlock, ULONG ulFlags, CommitFunc lp
 
 HRESULT ECMemStream::Read(void *pv, ULONG cb, ULONG *pcbRead)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulRead = 0;
 
 	// FIXME we currently accept any block size for reading, should this be capped at say 64k ?
@@ -234,9 +228,8 @@ HRESULT ECMemStream::Read(void *pv, ULONG cb, ULONG *pcbRead)
 	// Outlookspy tries to read the whole thing into a small textbox in one go which takes rather long
 	// so I suspect PST files and Exchange have some kind of limit here (it should never be a problem
 	// if the client is correctly coded, but hey ...)
-
-	hr = this->lpMemBlock->ReadAt((ULONG)this->liPos.QuadPart, cb, (char *)pv, &ulRead);
-
+	auto hr = lpMemBlock->ReadAt(static_cast<ULONG>(liPos.QuadPart),
+	          cb, static_cast<char *>(pv), &ulRead);
 	liPos.QuadPart += ulRead;
 
 	if(pcbRead)
@@ -247,14 +240,12 @@ HRESULT ECMemStream::Read(void *pv, ULONG cb, ULONG *pcbRead)
 
 HRESULT ECMemStream::Write(const void *pv, ULONG cb, ULONG *pcbWritten)
 {
-	HRESULT hr;
 	ULONG ulWritten = 0;
 
 	if(!(ulFlags&STGM_WRITE))
 		return MAPI_E_NO_ACCESS;
-
-	hr = this->lpMemBlock->WriteAt((ULONG)this->liPos.QuadPart, cb, (char *)pv, &ulWritten);
-
+	auto hr = lpMemBlock->WriteAt(static_cast<ULONG>(liPos.QuadPart),
+	          cb, static_cast<const char *>(pv), &ulWritten);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -275,11 +266,8 @@ HRESULT ECMemStream::Write(const void *pv, ULONG cb, ULONG *pcbWritten)
 
 HRESULT ECMemStream::Seek(LARGE_INTEGER dlibmove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition)
 {
-	HRESULT hr;
 	ULONG ulSize = 0;
-
-	hr = this->lpMemBlock->GetSize(&ulSize);
-
+	auto hr = lpMemBlock->GetSize(&ulSize);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -310,8 +298,7 @@ HRESULT ECMemStream::SetSize(ULARGE_INTEGER libNewSize)
 		return MAPI_E_NO_ACCESS;
 
 	hr = lpMemBlock->SetSize((ULONG)libNewSize.QuadPart);
-
-	this->fDirty = TRUE;
+	fDirty = true;
 	return hr;
 }
 
@@ -330,8 +317,7 @@ HRESULT ECMemStream::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pc
 	ulOffset = liPos.u.LowPart;
 
 	while(cb.QuadPart && ulSize > ulOffset) {
-		pstm->Write(this->lpMemBlock->GetBuffer() + ulOffset, std::min(ulSize - ulOffset, cb.u.LowPart), &ulWritten);
-
+		pstm->Write(lpMemBlock->GetBuffer() + ulOffset, std::min(ulSize - ulOffset, cb.u.LowPart), &ulWritten);
 		ulOffset += ulWritten;
 		cb.QuadPart -= ulWritten;
 	}
@@ -348,33 +334,26 @@ HRESULT ECMemStream::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pc
 
 HRESULT ECMemStream::Commit(DWORD grfCommitFlags)
 {
-	HRESULT hr = hrSuccess;
 	KCHL::object_ptr<IStream> lpClonedStream;
-
-	hr = this->lpMemBlock->Commit();
-
+	auto hr = lpMemBlock->Commit();
 	if(hr != hrSuccess)
 		return hr;
 
 	// If there is no commit func, just ignore the commit
-	if(this->lpCommitFunc) {
-		hr = this->Clone(&~lpClonedStream);
+	if (lpCommitFunc != nullptr) {
+		hr = Clone(&~lpClonedStream);
 		if(hr != hrSuccess)
 			return hr;
-		hr = this->lpCommitFunc(lpClonedStream, lpParam);
+		hr = lpCommitFunc(lpClonedStream, lpParam);
 	}
-
-	this->fDirty = FALSE;
+	fDirty = false;
 	return hr;
 }
 
 HRESULT ECMemStream::Revert()
 {
-	HRESULT hr = hrSuccess;
-
-	hr = this->lpMemBlock->Revert();
-	this->liPos.QuadPart = 0;
-
+	auto hr = lpMemBlock->Revert();
+	liPos.QuadPart = 0;
 	return hr;
 }
 
@@ -391,14 +370,11 @@ HRESULT ECMemStream::UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, D
 
 HRESULT ECMemStream::Stat(STATSTG *pstatstg, DWORD grfStatFlag)
 {
-	HRESULT hr;
 	ULONG ulSize = 0;
 
 	if (pstatstg == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	hr = this->lpMemBlock->GetSize(&ulSize);
-
+	auto hr = lpMemBlock->GetSize(&ulSize);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -415,8 +391,7 @@ HRESULT ECMemStream::Clone(IStream **ppstm)
 	HRESULT hr = hrSuccess;
 	ECMemStream *lpStream = NULL;
 
-	ECMemStream::Create(this->lpMemBlock, ulFlags, this->lpCommitFunc, this->lpDeleteFunc, lpParam, &lpStream);
-
+	ECMemStream::Create(lpMemBlock, ulFlags, lpCommitFunc, lpDeleteFunc, lpParam, &lpStream);
 	hr = lpStream->QueryInterface(IID_IStream, (void **)ppstm);
 
 	lpStream->Release();
@@ -427,13 +402,13 @@ HRESULT ECMemStream::Clone(IStream **ppstm)
 ULONG ECMemStream::GetSize()
 {
 	ULONG ulSize = 0;
-	this->lpMemBlock->GetSize(&ulSize);
+	lpMemBlock->GetSize(&ulSize);
 	return ulSize;
 }
 
 char* ECMemStream::GetBuffer()
 {
-	return this->lpMemBlock->GetBuffer();
+	return lpMemBlock->GetBuffer();
 }
 
 } /* namespace */

@@ -265,7 +265,7 @@ const char *ECConfigImpl::GetAlias(const char *szName)
 const char *ECConfigImpl::GetSetting(const char *szName, const char *equal,
     const char *other)
 {
-	const char *value = this->GetSetting(szName);
+	auto value = GetSetting(szName);
 	if (value == equal || (value && equal && !strcmp(value, equal)))
 		return other;
 	else
@@ -285,7 +285,7 @@ const wchar_t *ECConfigImpl::GetSettingW(const char *szName)
 const wchar_t *ECConfigImpl::GetSettingW(const char *szName,
     const wchar_t *equal, const wchar_t *other)
 {
-	const wchar_t *value = this->GetSettingW(szName);
+	auto value = GetSettingW(szName);
 	if (value == equal || (value && equal && !wcscmp(value, equal)))
 		return other;
 	else

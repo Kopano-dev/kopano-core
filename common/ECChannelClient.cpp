@@ -34,12 +34,9 @@
 
 namespace KC {
 
-ECChannelClient::ECChannelClient(const char *szPath, const char *szTokenizer)
+ECChannelClient::ECChannelClient(const char *szPath, const char *tk) :
+	m_strTokenizer(tk), m_strPath(GetServerNameFromPath(szPath))
 {
-	m_strTokenizer = szTokenizer;
-
-	m_strPath = GetServerNameFromPath(szPath);
-
 	if (strncmp(szPath, "file", 4) == 0 || szPath[0] == PATH_SEPARATOR) {
 		m_bSocket = true;
 		m_ulPort = 0;

@@ -242,14 +242,12 @@ HRESULT ECChannel::HrFreeCtx() {
 	return hrSuccess;
 }
 
-ECChannel::ECChannel(int fd) {
+ECChannel::ECChannel(int inputfd) :
+	fd(inputfd), peer_atxt(), peer_sockaddr()
+{
 	int flag = 1;
-    
-	this->fd = fd;
 	if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char *>(&flag), sizeof(flag)) < 0)
 		/* silence Coverity */;
-	*peer_atxt = '\0';
-	memset(&peer_sockaddr, 0, sizeof(peer_sockaddr));
 }
 
 ECChannel::~ECChannel() {

@@ -77,14 +77,14 @@ KDatabase::KDatabase(void)
 ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
     unsigned int mysql_flags, unsigned int gcm)
 {
-	const char *mysql_port = cfg->GetSetting("mysql_port");
-	const char *mysql_socket = cfg->GetSetting("mysql_socket");
+	auto port = cfg->GetSetting("mysql_port");
+	auto socket = cfg->GetSetting("mysql_socket");
 	DB_RESULT result;
 	DB_ROW row = nullptr;
 	std::string query;
 
-	if (*mysql_socket == '\0')
-		mysql_socket = nullptr;
+	if (*socket == '\0')
+		socket = nullptr;
 	auto er = InitEngine(reconnect);
 	if (er != erSuccess) {
 		ec_log_crit("KDatabase::Connect(): InitEngine failed %d", er);
@@ -92,9 +92,8 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 	}
 	if (mysql_real_connect(&m_lpMySQL, cfg->GetSetting("mysql_host"),
 	    cfg->GetSetting("mysql_user"), cfg->GetSetting("mysql_password"),
-	    cfg->GetSetting("mysql_database"),
-	    mysql_port ? atoi(mysql_port) : 0,
-	    mysql_socket, mysql_flags) == nullptr) {
+	    cfg->GetSetting("mysql_database"), port != nullptr ? atoi(port) : 0,
+	    socket, mysql_flags) == nullptr) {
 		if (mysql_errno(&m_lpMySQL) == ER_BAD_DB_ERROR)
 			/* Database does not exist */
 			er = KCERR_DATABASE_NOT_FOUND;
@@ -164,11 +163,11 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 {
 	const char *dbname = cfg->GetSetting("mysql_database");
-	const char *mysql_port = cfg->GetSetting("mysql_port");
-	const char *mysql_socket = cfg->GetSetting("mysql_socket");
+	auto port = cfg->GetSetting("mysql_port");
+	auto socket = cfg->GetSetting("mysql_socket");
 
-	if (*mysql_socket == '\0')
-		mysql_socket = nullptr;
+	if (*socket == '\0')
+		socket = nullptr;
 
 	// Kopano archiver database tables
 	auto er = InitEngine(reconnect);
@@ -181,8 +180,7 @@ ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 	// MYSQL structure.
 	if (mysql_real_connect(&m_lpMySQL, cfg->GetSetting("mysql_host"),
 	    cfg->GetSetting("mysql_user"), cfg->GetSetting("mysql_password"),
-	    nullptr, mysql_port != nullptr ? atoi(mysql_port) : 0,
-	    mysql_socket, 0) == nullptr) {
+	    nullptr, port != nullptr ? atoi(port) : 0, socket, 0) == nullptr) {
 		ec_log_err("Failed to connect to database: %s", GetError());
 		return KCERR_DATABASE_ERROR;
 	}

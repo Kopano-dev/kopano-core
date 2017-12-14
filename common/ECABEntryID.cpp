@@ -34,11 +34,12 @@ struct ABEID {
 	char	szExId[1];
 	char	szPadding[3];
 
-	ABEID(ULONG ulType, GUID guid, ULONG ulId) {
+	ABEID(ULONG t, GUID g, ULONG id)
+	{
 		memset(this, 0, sizeof(ABEID));
-		this->ulType = ulType;
-		this->guid = guid;
-		this->ulId = ulId;
+		ulType = t;
+		guid = g;
+		ulId = id;
 	}
 };
 
