@@ -588,8 +588,6 @@ HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
 	if (lpsInputOccrInfo != nullptr)
 		for (ULONG i = 0; i < ulModVal; ++i)
 			lpsNewOccrInfo[i] = lpsInputOccrInfo[i];
-	if (hr != hrSuccess)
-		return hr;
 	if (lpcValues != NULL)
 		*lpcValues = ulModVal;
 	lpsNewOccrInfo[ulModVal -1] = sOccrInfo;
