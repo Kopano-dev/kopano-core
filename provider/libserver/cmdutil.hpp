@@ -63,9 +63,6 @@ public:
         m_data = data;
         updateStruct();
     }
-    ~EntryId() { 
-    }
-    
     EntryId&  operator= (const EntryId &s) { 
         m_data = s.m_data;
         updateStruct();

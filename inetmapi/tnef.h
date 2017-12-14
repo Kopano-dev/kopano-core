@@ -67,12 +67,11 @@ private:
 	HRESULT HrReadDWord(IStream *lpStream, ULONG *ulData);
 	HRESULT HrReadWord(IStream *lpStream, unsigned short *ulData);
 	HRESULT HrReadByte(IStream *lpStream, unsigned char *ulData);
-	HRESULT HrReadData(IStream *lpStream, char *lpData, ULONG ulLen);
-    
+	HRESULT HrReadData(IStream *, void *, size_t);
 	HRESULT HrWriteDWord(IStream *lpStream, ULONG ulData);
 	HRESULT HrWriteWord(IStream *lpStream, unsigned short ulData);
 	HRESULT HrWriteByte(IStream *lpStream, unsigned char ulData);
-	HRESULT HrWriteData(IStream *, const char *buf, ULONG len);
+	HRESULT HrWriteData(IStream *, const void *, size_t);
 	HRESULT HrWritePropStream(IStream *lpStream, std::list<KCHL::memory_ptr<SPropValue>> &proplist);
 	HRESULT HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp);
 	HRESULT HrReadPropStream(const char *buf, ULONG size, std::list<KCHL::memory_ptr<SPropValue>> &proplist);
