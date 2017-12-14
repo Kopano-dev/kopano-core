@@ -58,18 +58,6 @@ void LDAPConfigCheck::loadChecks()
 	addCheck("ldap_quota_companywarning_recipients_attribute_type", 0, &testLdapType);
 }
 
-int LDAPConfigCheck::testLdapScope(const config_check_t *check)
-{
-	if (check->value1.empty() ||
-		check->value1 == "base" ||
-		check->value1 == "one" ||
-		check->value1 == "sub")
-			return CHECK_OK;
-
-	printError(check->option1, "contains unknown scope \"" + check->value1 + "\"");
-	return CHECK_ERROR;
-}
-
 int LDAPConfigCheck::testLdapType(const config_check_t *check)
 {
 	if (check->value1.empty() ||
