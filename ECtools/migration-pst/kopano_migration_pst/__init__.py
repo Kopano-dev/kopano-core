@@ -19,6 +19,20 @@ else:
 
 PSETID_Archive = DEFINE_GUID(0x72e98ebc, 0x57d2, 0x4ab5, 0xb0, 0xaa, 0xd5, 0x0a, 0x7b, 0x53, 0x1c, 0xb9)
 
+def recip_prop(propid, value):
+    # PST not generated with full unicode?
+    if isinstance(value, unicode):
+        return SPropValue(PROP_TAG(PT_UNICODE, propid), value)
+    else:
+        return SPropValue(PROP_TAG(PT_STRING8, propid), value)
+
+def rev_cp1252(value):
+    # PST not generated with full unicode flag?
+    if isinstance(value, unicode):
+        return value
+    else:
+        return value.decode('cp1252')
+
 class Service(kopano.Service):
     def import_props(self, parent, mapiobj, embedded=False):
         props2 = []
@@ -83,13 +97,16 @@ class Service(kopano.Service):
             if r.RecipientType is not None:
                 props.append(SPropValue(PR_RECIPIENT_TYPE, r.RecipientType))
             if user or r.AddressType is not None:
-                props.append(SPropValue(PR_ADDRTYPE_W, u'ZARAFA' if user else r.AddressType))
+                value = u'ZARAFA' if user else r.AddressType
+                props.append(recip_prop(PROP_ID(PR_ADDRTYPE), value))
             if user or r.DisplayName is not None:
-                props.append(SPropValue(PR_DISPLAY_NAME_W, user.fullname if user else r.DisplayName))
+                value = user.fullname if user else r.DisplayName
+                props.append(recip_prop(PROP_ID(PR_DISPLAY_NAME), value))
             if r.DisplayType is not None:
                 props.append(SPropValue(PR_DISPLAY_TYPE, r.DisplayType))
             if user or r.EmailAddress:
-                props.append(SPropValue(PR_EMAIL_ADDRESS_W, user.name if user else r.EmailAddress))
+                value = user.name if user else r.EmailAddress
+                props.append(recip_prop(PROP_ID(PR_EMAIL_ADDRESS), value))
             if user:
                 props.append(SPropValue(PR_ENTRYID, user.userid.decode('hex')))
             recipients.append(props)
@@ -97,10 +114,10 @@ class Service(kopano.Service):
 
     def import_pst(self, p, store):
         folders = p.folder_generator()
-        root_path = next(folders).path # skip root
+        root_path = rev_cp1252(next(folders).path) # skip root
         for folder in folders:
             with log_exc(self.log, self.stats):
-                path = folder.path[len(root_path)+1:]
+                path = rev_cp1252(folder.path[len(root_path)+1:])
                 if self.options.folders and \
                    path.lower() not in [f.lower() for f in self.options.folders]:
                     continue
@@ -114,7 +131,7 @@ class Service(kopano.Service):
                     folder2.container_class = folder.ContainerClass
                 for message in p.message_generator(folder):
                     with log_exc(self.log, self.stats):
-                        self.log.debug("importing message '%s'" % (message.Subject or ''))
+                        self.log.debug("importing message '%s'" % (rev_cp1252(message.Subject or '')))
                         message2 = folder2.create_item(save=False)
                         self.import_attachments(message, message2.mapiobj)
                         self.import_recipients(message, message2.mapiobj)
@@ -157,16 +174,16 @@ def show_contents(args, options):
     for arg in args:
         p = pst.PST(arg)
         folders = p.folder_generator()
-        root_path = next(folders).path # skip root
+        root_path = rev_cp1252(next(folders).path) # skip root
         for folder in folders:
-            path = folder.path[len(root_path)+1:]
+            path = rev_cp1252(folder.path[len(root_path)+1:])
             if options.folders and path.lower() not in [f.lower() for f in options.folders]:
                 continue
             if options.stats:
                 writer.writerow([_encode(path), folder.ContentCount])
             elif options.index:
                 for message in p.message_generator(folder):
-                    writer.writerow([_encode(path), _encode(message.Subject or '')])
+                    writer.writerow([_encode(path), _encode(rev_cp1252(message.Subject or ''))])
 
 def main():
     parser = kopano.parser('cflskpUPuS', usage='kopano-migration-pst PATH [-u NAME]')
