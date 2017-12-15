@@ -63,8 +63,7 @@ from .restriction import Restriction
 from .notification import Sink, Notification
 
 from .compat import (
-    hex as _hex, unhex as _unhex, decode as _decode, encode as _encode,
-    repr as _repr
+    hex as _hex, unhex as _unhex, encode as _encode, repr as _repr
 )
 
 if sys.hexversion >= 0x03000000:
@@ -410,7 +409,7 @@ class Store(Properties):
         # parse=True
         if parse and getattr(self.server.options, 'folders', None):
             for path in self.server.options.folders:
-                yield self.folder(_decode(path)) # XXX can optparse output unicode?
+                yield self.folder(path)
             return
 
         if self.subtree:
