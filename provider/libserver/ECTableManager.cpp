@@ -328,7 +328,7 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 
 	auto locale = sesmgr->GetSortLocale(ulStoreId);
 	if (sesmgr->GetSearchFolders()->IsSearchFolder(ulParent) == erSuccess) {
-		if (ulFlags & (MSGFLAG_DELETED | MAPI_ASSOCIATED))
+		if (ulObjType == MAPI_FOLDER || ulFlags & (MSGFLAG_DELETED | MAPI_ASSOCIATED))
 			return KCERR_NO_SUPPORT;
 		er = lpSession->GetSecurity()->CheckPermission(ulParent, ecSecurityFolderVisible);
 		if(er != erSuccess)

@@ -109,9 +109,6 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	HRESULT			hr = hrSuccess;
 	object_ptr<ECMAPITable> lpTable;
 	object_ptr<WSTableView> lpTableOps;
-	SizedSPropTagArray(1, sPropTagArray);
-	ULONG			cValues = 0;
-	ecmem_ptr<SPropValue> lpPropArray;
 	std::string		strName = "Hierarchy table";
 	
 #ifdef DEBUG
@@ -123,17 +120,6 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	}
 #endif
 
-	sPropTagArray.aulPropTag[0] = PR_FOLDER_TYPE;
-	sPropTagArray.cValues = 1;
-
-	hr = GetProps(sPropTagArray, 0, &cValues, &~lpPropArray);
-	if(FAILED(hr))
-		return hr;
-	
-	// block for searchfolders
-	if (lpPropArray != nullptr && lpPropArray[0].ulPropTag == PR_FOLDER_TYPE &&
-	    lpPropArray[0].Value.l == FOLDER_SEARCH)
-		return MAPI_E_NO_SUPPORT;
 	hr = ECMAPITable::Create(strName.c_str(), this->GetMsgStore()->m_lpNotifyClient, 0, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
