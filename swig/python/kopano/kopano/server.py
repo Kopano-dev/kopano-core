@@ -51,7 +51,7 @@ from .group import Group
 from .property_ import _proptag_to_name
 
 from .compat import (
-    unhex as _unhex, decode as _decode, repr as _repr, is_str as _is_str,
+    unhex as _unhex, repr as _repr, is_str as _is_str,
     fake_unicode as _unicode, lru_cache as _lru_cache
 )
 
@@ -348,7 +348,7 @@ class Server(object):
         """
         if parse and getattr(self.options, 'users', None):
             for username in self.options.users:
-                yield _user.User(_decode(username), self)
+                yield _user.User(username, self)
             return
         try:
             for name in self._companylist():
@@ -464,7 +464,6 @@ class Server(object):
         """
         if parse and getattr(self.options, 'companies', None):
             for name in self.options.companies:
-                name = _decode(name) # can optparse give us unicode?
                 try:
                     yield Company(name, self)
                 except MAPIErrorNoSupport:
