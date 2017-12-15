@@ -528,11 +528,16 @@ class Folder(Properties):
         except NotFoundError:
             pass
 
-    def folders(self, recurse=True, restriction=None):
+    def folders(self, recurse=True, restriction=None, page_start=None,
+            page_limit=None, order=None):
         """ Return all :class:`sub-folders <Folder>` in folder
 
         :param recurse: include all sub-folders
+        :param restriction: apply :class:`restriction <Restriction>`
+        :param page_start: skip this many items from the start
+        :param page_limit: return up to this many items
         """
+        # TODO implement order arg
 
         columns = [
             PR_ENTRYID,
@@ -565,7 +570,7 @@ class Folder(Properties):
         names = {}
         children = collections.defaultdict(list)
 
-        for row in table.rows():
+        for row in table.rows(page_start=page_start, page_limit=page_limit):
             folder = Folder(
                 self.store,
                 _hex(row[0].value),

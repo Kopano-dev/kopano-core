@@ -59,8 +59,6 @@ class Resource(object):
             resp.body = self.json(obj, fields)
 
     def generator(self, req, generator):
-        # TODO error for non-items?
-
         # determine pagination and ordering
         args = urlparse.parse_qs(req.query_string)
         start = int(args['start'][0]) if 'start' in args else None
@@ -115,11 +113,11 @@ class FolderResource(Resource):
             store = server.store(entryid=storeid)
         else:
             store = kopano.Store(server=server,
-                mapiobj=GetDefaultStore(server.mapisession))
+                mapiobj = GetDefaultStore(server.mapisession))
         if folderid:
             data = store.folder(entryid=folderid)
         else:
-            data = store.folders()
+            data = self.generator(req, store.folders)
         self.respond(req, resp, data)
 
     def on_post(self, req, resp, storeid, folderid):
@@ -165,9 +163,13 @@ class ItemResource(Resource):
         'received': lambda item: item.received.isoformat()
     }
 
-    def on_get(self, req, resp, storeid, folderid, itemid=None):
+    def on_get(self, req, resp, storeid=None, folderid=None, itemid=None):
         server = _server(req)
-        store = server.store(entryid=storeid)
+        if storeid:
+            store = server.store(entryid=storeid)
+        else:
+            store = kopano.Store(server=server,
+                mapiobj = GetDefaultStore(server.mapisession))
         if itemid:
             data = store.item(itemid)
         else:
@@ -189,11 +191,11 @@ app.add_route('/users/{userid}', users)
 app.add_route('/stores', stores)
 app.add_route('/stores/{storeid}', stores)
 
-for folder_route in (
-    '/folders',
-    '/folders/{folderid}',
-    '/folders/{folderid}/items',
-    '/folders/{folderid}/items/{itemid}',
+for (route, resource) in (
+    ('/folders', folders),
+    ('/folders/{folderid}', folders),
+    ('/folders/{folderid}/items', items),
+    ('/folders/{folderid}/items/{itemid}', items),
     ):
-    app.add_route(folder_route, folders)
-    app.add_route('/stores/{storeid}'+folder_route, folders)
+    app.add_route(route, resource)
+    app.add_route('/stores/{storeid}'+route, resource)
