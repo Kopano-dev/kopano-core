@@ -377,7 +377,7 @@ HRESULT WSMAPIPropStorage::HrUpdateMapiObject(MAPIOBJECT *lpClientObj, struct sa
 			// this child was removed, so we don't need it anymore
 			auto iterDel = iterObj;
 			++iterObj;
-			FreeMapiObject(*iterDel);
+			delete *iterDel;
 			lpClientObj->lstChildren.erase(iterDel);
 			continue;
 		} else if (!(*iterObj)->bChanged) {

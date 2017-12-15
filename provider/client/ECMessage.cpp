@@ -1589,7 +1589,7 @@ HRESULT ECMessage::SaveRecips()
 		// find old recipient in child list, and remove if present
 		auto iterSObj = m_sMapiObject->lstChildren.find(mo);
 		if (iterSObj != m_sMapiObject->lstChildren.cend()) {
-			FreeMapiObject(*iterSObj);
+			delete *iterSObj;
 			m_sMapiObject->lstChildren.erase(iterSObj);
 		}
 		m_sMapiObject->lstChildren.emplace(mo);
@@ -2491,7 +2491,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 		if(hr != hrSuccess)
 			return hr;
 		// Remove item
-		FreeMapiObject(*iterSObj);
+		delete *iterSObj;
 		m_sMapiObject->lstChildren.erase(iterSObj);
 	}
 

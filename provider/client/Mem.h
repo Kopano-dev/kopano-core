@@ -25,7 +25,6 @@
 HRESULT ECFreeBuffer(void *lpvoid);
 HRESULT ECAllocateBuffer(ULONG cbSize, void **lpvoid);
 HRESULT ECAllocateMore(ULONG cbSize, void *lpBase, void **lpvoid);
-HRESULT FreeMapiObject(MAPIOBJECT *lpsObject);
 
 class client_delete {
 	public:

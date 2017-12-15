@@ -49,6 +49,7 @@ struct MAPIOBJECT {
 	MAPIOBJECT(unsigned int uqid, unsigned int id, unsigned int type) :
 		ulUniqueId(uqid), ulObjId(id), ulObjType(type)
 	{}
+	~MAPIOBJECT();
 
 	bool operator < (const MAPIOBJECT &other) const {
 		std::pair<unsigned int, unsigned int> me(ulObjType, ulUniqueId), him(other.ulObjType, other.ulUniqueId);

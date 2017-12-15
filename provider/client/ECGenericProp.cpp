@@ -47,7 +47,7 @@ ECGenericProp::ECGenericProp(void *prov, ULONG type, BOOL mod,
 ECGenericProp::~ECGenericProp()
 {
 	if (m_sMapiObject)
-		FreeMapiObject(m_sMapiObject);
+		delete m_sMapiObject;
 	if(lpStorage)
 		lpStorage->Release();
 	MAPIFreeBuffer(m_lpEntryId);
@@ -662,7 +662,7 @@ HRESULT ECGenericProp::HrLoadProps()
 
 	if (m_sMapiObject != NULL) {
 		// remove what we know, (scenario: keep open r/w, drop props, get all again causes to know the server changes, incl. the hierarchy id)
-		FreeMapiObject(m_sMapiObject);
+		delete m_sMapiObject;
 		m_sMapiObject = NULL;
 
 		// only remove my own properties: keep recipients and attachment tables

@@ -136,7 +136,7 @@ exit:
 	UnLockSoap();
 
 	if (hr != hrSuccess && mo)
-		FreeMapiObject(mo);
+		delete mo;
 	return hr;
 }
 
