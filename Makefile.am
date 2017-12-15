@@ -631,10 +631,9 @@ EXTRA_libkcssl_la_DEPENDENCIES = ${default_sym}
 #
 libkcsyncdir = ${includedir}/libkcsync
 libkcsync_HEADERS = \
-	libsync/ECResyncSet.h libsync/ECSyncContext.h libsync/ECSyncLog.h \
+	libsync/ECSyncContext.h libsync/ECSyncLog.h \
 	libsync/ECSyncSettings.h libsync/ECSyncUtil.h
 libkcsync_la_SOURCES = \
-	libsync/ECResyncSet.cpp \
 	libsync/ECSyncContext.cpp libsync/ECSyncLog.cpp \
 	libsync/ECSyncSettings.cpp libsync/ECSyncUtil.cpp
 libkcsync_la_LIBADD = libkcmapi.la libmapi.la

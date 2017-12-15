@@ -112,8 +112,7 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId, ULONG cbE
 			goto exit;
 	}
 
-	lpSyncSettings = ECSyncSettings::GetInstance();
-
+	lpSyncSettings = &ECSyncSettings::instance;
 	ptrStreamImporter.reset(new(std::nothrow) WSMessageStreamImporter(ulFlags, ulSyncId, sEntryId, sFolderEntryId, bNewMessage, sConflictItems, lpTransport, lpSyncSettings->StreamBufferSize(), lpSyncSettings->StreamTimeout()));
 	if (ptrStreamImporter == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;

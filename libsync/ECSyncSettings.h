@@ -33,22 +33,20 @@ namespace KC {
 
 class _kc_export ECSyncSettings _kc_final {
 public:
-	static ECSyncSettings* GetInstance();
-
 	// Synclog settings
-	bool	SyncLogEnabled() const;
-	ULONG	SyncLogLevel() const;
-	bool	ContinuousLogging() const;
+	bool SyncLogEnabled() const { return ContinuousLogging() ? true : m_ulSyncLog != 0; }
+	ULONG SyncLogLevel() const;
+	bool ContinuousLogging() const { return m_ulSyncOpts & EC_SYNC_OPT_CONTINUOUS; }
 
 	// Sync options
-	bool	SyncStreamEnabled() const;
-	bool	ChangeNotificationsEnabled() const;
-	bool	StateCollectorEnabled() const;
+	bool SyncStreamEnabled() const { return m_ulSyncOpts & EC_SYNC_OPT_STREAM; }
+	bool ChangeNotificationsEnabled() const { return m_ulSyncOpts & EC_SYNC_OPT_CHANGENOTIF; }
+	bool StateCollectorEnabled() const { return m_ulSyncOpts & EC_SYNC_OPT_STATECOLLECT; }
 
 	// Stream settings
-	ULONG	StreamTimeout() const;
-	ULONG	StreamBufferSize() const;
-	ULONG	StreamBatchSize() const;
+	ULONG StreamTimeout() const { return m_ulStreamTimeout; }
+	ULONG StreamBufferSize() const { return m_ulStreamBufferSize; }
+	ULONG StreamBatchSize() const { return m_ulStreamBatchSize; }
 
 	// Update settings
 	bool	EnableSyncLog(bool bEnable);
@@ -58,6 +56,8 @@ public:
 	ULONG	SetStreamBufferSize(ULONG ulBufferSize);
 	ULONG	SetStreamBatchSize(ULONG ulBatchSize);
 
+	static _kc_export ECSyncSettings instance;
+
 private:
 	_kc_hidden ECSyncSettings(void);
 
@@ -66,7 +66,6 @@ private:
 	ULONG m_ulStreamBufferSize = 131072, m_ulStreamBatchSize = 256;
 
 	static std::mutex s_hMutex;
-	static std::unique_ptr<ECSyncSettings> s_lpInstance;
 };
 
 } /* namespace */

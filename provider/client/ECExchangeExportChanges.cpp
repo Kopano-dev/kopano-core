@@ -173,8 +173,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	BOOL		bCanStream = FALSE;
 
 	bool		bForceImplicitStateUpdate = false;
-	ECSyncSettings *lpSyncSettings = ECSyncSettings::GetInstance();
-
+	auto lpSyncSettings = &ECSyncSettings::instance;
 	typedef std::map<SBinary, ChangeListIter, Util::SBinaryLess>	ChangeMap;
 	typedef ChangeMap::iterator					ChangeMapIter;
 	ChangeMap		mapChanges;
@@ -590,7 +589,7 @@ HRESULT ECExchangeExportChanges::GetChangeCount(ULONG *lpcChanges) {
 HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize)
 {
 	HRESULT hr;
-	ECSyncSettings *lpSyncSettings = ECSyncSettings::GetInstance();
+	auto lpSyncSettings = &ECSyncSettings::instance;
 	BOOL bCanStream = false;
 	BOOL bSupportsPropTag = false;
 	

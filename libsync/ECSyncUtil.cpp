@@ -29,7 +29,6 @@ namespace KC {
 
 HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpulChangeId, PROCESSEDCHANGESSET *lpSetProcessChanged)
 {
-	HRESULT		hr = hrSuccess;
 	STATSTG		stat;
 	ULONG		ulSyncId = 0;
 	ULONG		ulChangeId = 0;
@@ -39,7 +38,7 @@ HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpu
 	LARGE_INTEGER		liPos = {{0, 0}};
 	PROCESSEDCHANGESSET setProcessedChanged;
 
-	hr = lpStream->Stat(&stat, STATFLAG_NONAME);
+	auto hr = lpStream->Stat(&stat, STATFLAG_NONAME);
 	if(hr != hrSuccess)
 		return hr;
 	
