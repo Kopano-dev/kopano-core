@@ -1,5 +1,5 @@
-Release notes for 8.4.5
-=======================
+Release notes for 8.4.5 (2017-12-15)
+====================================
 Fixes:
 * treewide: avoid freeing ADRLIST garbage pointers [KC-927]
 * libserver: fix waiting for ntlm_auth forever [KC-916]
