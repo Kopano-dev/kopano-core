@@ -99,7 +99,7 @@ HRESULT ECParentStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	if (iterSObj == m_lpParentObject->m_sMapiObject->lstChildren.cend())
 		return MAPI_E_NOT_FOUND;
 	// make a complete copy of the object, because of close / re-open
-	*lppsMapiObject = new MAPIOBJECT(*iterSObj);
+	*lppsMapiObject = new MAPIOBJECT(**iterSObj);
 	return hr;
 }
 

@@ -2495,7 +2495,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 		m_sMapiObject->lstChildren.erase(iterSObj);
 	}
 
-	m_sMapiObject->lstChildren.emplace(new MAPIOBJECT(lpsMapiObject));
+	m_sMapiObject->lstChildren.emplace(new MAPIOBJECT(*lpsMapiObject));
 	// Update the attachment table. The attachment table contains all properties of the attachments
 	ulProps = lpsMapiObject->lstProperties.size();
 

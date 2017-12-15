@@ -64,18 +64,20 @@ struct MAPIOBJECT {
 		}
 	};
 
-	MAPIOBJECT(const MAPIOBJECT *s) :
-		lstDeleted(s->lstDeleted), lstAvailable(s->lstAvailable),
-		lstModified(s->lstModified), lstProperties(s->lstProperties),
-		bChangedInstance(s->bChangedInstance), bChanged(s->bChanged),
-		bDelete(s->bDelete), ulUniqueId(s->ulUniqueId),
-		ulObjId(s->ulObjId), ulObjType(s->ulObjType)
+	MAPIOBJECT(const MAPIOBJECT &s) :
+		lstDeleted(s.lstDeleted), lstAvailable(s.lstAvailable),
+		lstModified(s.lstModified), lstProperties(s.lstProperties),
+		bChangedInstance(s.bChangedInstance), bChanged(s.bChanged),
+		bDelete(s.bDelete), ulUniqueId(s.ulUniqueId),
+		ulObjId(s.ulObjId), ulObjType(s.ulObjType)
 	{
-		Util::HrCopyEntryId(s->cbInstanceID, reinterpret_cast<const ENTRYID *>(s->lpInstanceID),
+		Util::HrCopyEntryId(s.cbInstanceID, reinterpret_cast<const ENTRYID *>(s.lpInstanceID),
 							&this->cbInstanceID, (LPENTRYID *)&this->lpInstanceID);
-		for (const auto &i : s->lstChildren)
-			this->lstChildren.emplace(new MAPIOBJECT(i));
+		for (const auto &i : s.lstChildren)
+			this->lstChildren.emplace(new MAPIOBJECT(*i));
 	};
+
+	void operator=(const MAPIOBJECT &) = delete;
 
 	/* data */
 	std::set<MAPIOBJECT *, CompareMAPIOBJECT> lstChildren; /* ECSavedObjects */
