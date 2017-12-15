@@ -553,10 +553,13 @@ int main(int argc, char *argv[])
 	/*
 	 * Cleanup
 	 */
-	if (hr == hrSuccess)
+	if (hr == hrSuccess) {
 		cout << endl << "Statistics:" << endl;
-	for (auto i = checkmap.begin(); i != checkmap.end(); ++i)
-		if (hr == hrSuccess)
+		for (auto i = checkmap.begin(); i != checkmap.end(); ++i) {
 			i->second->PrintStatistics(i->first);
-	return (hr == hrSuccess);
+		}
+		return 0;
+	} else {
+		return 1;
+	}
 }
