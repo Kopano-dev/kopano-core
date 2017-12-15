@@ -400,7 +400,7 @@ class Store(Properties):
         """
         return self.subtree.create_folder(path, **kwargs)
 
-    def folders(self, recurse=True, parse=True):
+    def folders(self, recurse=True, parse=True, **kwargs):
         """Return all :class:`folders <Folder>` in store.
 
         :param recurse: include all sub-folders
@@ -414,7 +414,7 @@ class Store(Properties):
             return
 
         if self.subtree:
-            for folder in self.subtree.folders(recurse=recurse):
+            for folder in self.subtree.folders(recurse=recurse, **kwargs):
                 yield folder
 
     def create_searchfolder(self, text=None): # XXX store.findroot.create_folder()?
