@@ -28,12 +28,11 @@
 #include "ClientUtil.h"
 #include <kopano/ECMemTable.h>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 
 class ECMsgStorePublic _kc_final : public ECMsgStore {
 protected:
 	ECMsgStorePublic(const char *profile, IMAPISupport *, WSTransport *, BOOL modify, ULONG profile_flags, BOOL is_spooler, BOOL offline_store);
-	~ECMsgStorePublic(void);
-
 public:
 	static HRESULT GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
@@ -51,12 +50,12 @@ public:
 	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
 
 protected:	
-	ENTRYID *m_lpIPMSubTreeID = nullptr, *m_lpIPMFavoritesID = nullptr;
-	ENTRYID *m_lpIPMPublicFoldersID = nullptr;
+	KCHL::memory_ptr<ENTRYID> m_lpIPMSubTreeID, m_lpIPMFavoritesID;
+	KCHL::memory_ptr<ENTRYID> m_lpIPMPublicFoldersID;
 	ULONG m_cIPMSubTreeID = 0, m_cIPMFavoritesID = 0;
 	ULONG m_cIPMPublicFoldersID = 0;
-	ECMemTable *m_lpIPMSubTree = nullptr; // Build-in IPM subtree
-	IMsgStore *m_lpDefaultMsgStore = nullptr;
+	KCHL::object_ptr<ECMemTable> m_lpIPMSubTree; /* Built-in IPM subtree */
+	KCHL::object_ptr<IMsgStore> m_lpDefaultMsgStore;
 
 	HRESULT BuildIPMSubTree();
 	// entryid : level
