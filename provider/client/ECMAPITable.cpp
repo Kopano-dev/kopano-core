@@ -37,9 +37,6 @@ ECMAPITable::ECMAPITable(const std::string &strName, ECNotifyClient *nc,
     ULONG f) :
 	ECUnknown("IMAPITable"), lpNotifyClient(nc), ulFlags(f)
 {
-	if(this->lpNotifyClient)
-		this->lpNotifyClient->AddRef();
-
 	this->ulFlags = ulFlags;
 	m_strName = strName;
 }
@@ -82,12 +79,7 @@ ECMAPITable::~ECMAPITable()
 		++iterMapInt;
 		Unadvise(*iterMapIntDel);
 	}
-
-	if(lpNotifyClient)
-		lpNotifyClient->Release();
-
-	if(lpTableOps)
-		lpTableOps->Release();	// closes the table on the server too
+	/* ~WSTableView closes the table on the server too */
 }
 
 HRESULT ECMAPITable::Create(const std::string &strName,
@@ -425,13 +417,11 @@ HRESULT ECMAPITable::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBY
 	return hr;
 }
 
-HRESULT ECMAPITable::HrSetTableOps(WSTableView *lpTableOps, bool fLoad)
+HRESULT ECMAPITable::HrSetTableOps(WSTableView *ops, bool fLoad)
 {
 	HRESULT hr;
 
-	this->lpTableOps = lpTableOps;
-	lpTableOps->AddRef();
-
+	lpTableOps.reset(ops);
 	// Open the table on the server, ready for reading ..
 	if(fLoad) {
 		hr = lpTableOps->HrOpenTable();

@@ -21,6 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <map>
+#include <kopano/memory.hpp>
 
 class WSTransport;
 
@@ -36,8 +37,8 @@ public:
 	virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags);
 
 private:
+	KCHL::object_ptr<WSTransport> lpTransport;
 	std::map<MAPINAMEID *,ULONG,ltmap>		mapNames;
-	WSTransport	*							lpTransport;
 
 	HRESULT			ResolveLocal(MAPINAMEID *lpName, ULONG *ulId);
 	HRESULT			ResolveCache(MAPINAMEID *lpName, ULONG *ulId);

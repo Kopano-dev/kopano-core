@@ -110,9 +110,7 @@ bool ltmap::operator()(const MAPINAMEID *a, const MAPINAMEID *b) const noexcept
 
 ECNamedProp::ECNamedProp(WSTransport *tp) :
 	lpTransport(tp)
-{
-	lpTransport->AddRef();
-}
+{}
 
 ECNamedProp::~ECNamedProp()
 {
@@ -120,8 +118,6 @@ ECNamedProp::~ECNamedProp()
 	for (const auto &p : mapNames)
 		if (p.first)
 			ECFreeBuffer(p.first);
-	if(lpTransport)
-		lpTransport->Release();
 }
 
 HRESULT ECNamedProp::GetNamesFromIDs(SPropTagArray **lppPropTags,
