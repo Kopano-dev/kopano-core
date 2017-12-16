@@ -708,12 +708,12 @@ HRESULT ECMAPIProp::GetNamesFromIDs(SPropTagArray **lppPropTags,
     const GUID *lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames,
     MAPINAMEID ***lpppPropNames)
 {
-	return this->GetMsgStore()->lpNamedProp->GetNamesFromIDs(lppPropTags, lpPropSetGuid, ulFlags, lpcPropNames, lpppPropNames);
+	return GetMsgStore()->lpNamedProp.GetNamesFromIDs(lppPropTags, lpPropSetGuid, ulFlags, lpcPropNames, lpppPropNames);
 }
 
 HRESULT ECMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags)
 {
-	return this->GetMsgStore()->lpNamedProp->GetIDsFromNames(cPropNames, lppPropNames, ulFlags, lppPropTags);
+	return GetMsgStore()->lpNamedProp.GetIDsFromNames(cPropNames, lppPropNames, ulFlags, lppPropTags);
 }
 
 // Stream functions

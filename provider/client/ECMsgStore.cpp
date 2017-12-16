@@ -79,7 +79,7 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, IMAPISupport *sup,
     WSTransport *tp, BOOL fModify, ULONG ulProfileFlags,
     BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore) :
 	ECMAPIProp(NULL, MAPI_STORE, fModify, NULL, "IMsgStore"),
-	lpSupport(sup), lpTransport(tp), lpNamedProp(new ECNamedProp(tp)),
+	lpSupport(sup), lpTransport(tp), lpNamedProp(tp),
 	m_ulProfileFlags(ulProfileFlags), m_fIsSpooler(fIsSpooler),
 	m_fIsDefaultStore(fIsDefaultStore),
 	m_strProfname((lpszProfname != nullptr) ? lpszProfname : "")
@@ -146,8 +146,6 @@ ECMsgStore::~ECMsgStore() {
 	// destruct
 	if(m_lpNotifyClient)
 		m_lpNotifyClient->Release();
-
-	delete lpNamedProp;
 	if(lpStorage) {
 		// Release our propstorage since it is registered on lpTransport
 		lpStorage->Release();
