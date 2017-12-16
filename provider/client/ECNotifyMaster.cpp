@@ -62,11 +62,6 @@ ECNotifyMaster::~ECNotifyMaster(void)
 	assert(m_listNotifyClients.empty());
 	/* Disable Notifications */
 	StopNotifyWatch();
-
-	if (m_lpSessionGroupData)
-		m_lpSessionGroupData = NULL; /* DON'T Release() */
-	if (m_lpTransport)
-		m_lpTransport->Release();
 }
 
 HRESULT ECNotifyMaster::Create(SessionGroupData *lpData, ECNotifyMaster **lppMaster)
@@ -89,12 +84,11 @@ HRESULT ECNotifyMaster::ConnectToSession()
 		auto hr = m_lpTransport->HrCancelIO();
 		if (hr != hrSuccess)
 			return hr;
-		m_lpTransport->Release();
-		m_lpTransport = NULL;
+		m_lpTransport.reset();
 	}
 
 	/* Open notification transport */
-	return m_lpSessionGroupData->GetTransport(&m_lpTransport);
+	return m_lpSessionGroupData->GetTransport(&~m_lpTransport);
 }
 
 HRESULT ECNotifyMaster::AddSession(ECNotifyClient* lpClient)

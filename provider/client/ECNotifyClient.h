@@ -70,6 +70,7 @@ private:
 	ECMAPADVISE				m_mapAdvise;		// Map of all advise request from the client (outlook)
 	ECMAPCHANGEADVISE		m_mapChangeAdvise;	// ExchangeChangeAdvise(s)
 	KCHL::object_ptr<SessionGroupData> m_lpSessionGroup;
+	/* weak ptr: ECNotifyMaster is already owned by SessionGroupData */
 	ECNotifyMaster*			m_lpNotifyMaster;
 	KCHL::object_ptr<WSTransport> m_lpTransport;
 	KCHL::object_ptr<IMAPISupport> m_lpSupport;

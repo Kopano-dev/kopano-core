@@ -30,21 +30,7 @@ ECParentStorage::ECParentStorage(ECGenericProp *lpParentObject,
     ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage) :
 	m_lpParentObject(lpParentObject), m_ulObjId(ulObjId),
 	m_ulUniqueId(ulUniqueId), m_lpServerStorage(lpServerStorage)
-{
-	if (m_lpParentObject)
-		m_lpParentObject->AddRef();
-	if (m_lpServerStorage)
-		m_lpServerStorage->AddRef();
-}
-
-ECParentStorage::~ECParentStorage()
-{
-	if (m_lpParentObject)
-		m_lpParentObject->Release();
-
-	if (m_lpServerStorage)
-		m_lpServerStorage->Release();
-}
+{}
 
 HRESULT ECParentStorage::QueryInterface(REFIID refiid, void **lppInterface)
 {
