@@ -18,6 +18,8 @@
 #ifndef ECMSGSTORE_H
 #define ECMSGSTORE_H
 
+#include <memory>
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapispi.h>
@@ -236,10 +238,10 @@ public:
 	} m_xMsgStoreProxy;
 	
 public:
-	LPMAPISUP			lpSupport;
-	WSTransport*		lpTransport;
+	KCHL::object_ptr<IMAPISupport> lpSupport;
+	KCHL::object_ptr<WSTransport> lpTransport;
 	ECNamedProp lpNamedProp;
-	ECNotifyClient *m_lpNotifyClient = nullptr;
+	KCHL::object_ptr<ECNotifyClient> m_lpNotifyClient;
 	ULONG				m_ulProfileFlags;
 	MAPIUID				m_guidMDB_Provider;
 	unsigned int m_ulClientVersion = 0;

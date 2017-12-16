@@ -18,6 +18,7 @@
 #ifndef ECMAPIFOLDER_H
 #define ECMAPIFOLDER_H
 
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <kopano/Util.h>
@@ -83,8 +84,8 @@ public:
 	virtual HRESULT UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppsStreamImporter);
 
 protected:
-	WSMAPIFolderOps	*	lpFolderOps;
-	IMAPIAdviseSink *m_lpFolderAdviseSink = nullptr;
+	KCHL::object_ptr<IMAPIAdviseSink> m_lpFolderAdviseSink;
+	KCHL::object_ptr<WSMAPIFolderOps> lpFolderOps;
 	ULONG m_ulConnection = 0;
 
 	friend class		ECExchangeImportHierarchyChanges;	// Allowed access to lpFolderOps

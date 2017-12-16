@@ -50,7 +50,7 @@ protected:
 	 * \param lpRoot		The parent object when the message is embedded.
 	 */
 	ECMessage(ECMsgStore *, BOOL fnew, BOOL modify, ULONG flags, BOOL embedded, const ECMAPIProp *root);
-	virtual ~ECMessage();
+	virtual ~ECMessage() = default;
 
 public:
 	/**
@@ -170,8 +170,8 @@ private:
 
 public:
 	ULONG m_cbParentID = 0;
-	ENTRYID *m_lpParentID = nullptr; // For new messages
-	ECMemTable *lpRecips = nullptr, *lpAttachments = nullptr;
+	KCHL::object_ptr<ECMemTable> lpAttachments, lpRecips;
+	KCHL::memory_ptr<ENTRYID> m_lpParentID;
 	ULONG ulNextRecipUniqueId = 0, ulNextAttUniqueId = 0;
 	ALLOC_WRAP_FRIEND;
 };

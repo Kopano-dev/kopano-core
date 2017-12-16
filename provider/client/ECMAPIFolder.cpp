@@ -88,23 +88,14 @@ ECMAPIFolder::ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL fModify,
 
 	// ACLs are only offline
 	HrAddPropHandlers(PR_ACL_DATA,			GetPropHandler,			SetPropHandler,			(void*)this);
-	if (lpFolderOps)
-		lpFolderOps->AddRef();
-
 	this->isTransactedObject = FALSE;
 }
 
 ECMAPIFolder::~ECMAPIFolder()
 {
-	if(lpFolderOps)
-		lpFolderOps->Release();
-
+	lpFolderOps.reset();
 	if (m_ulConnection > 0)
 		GetMsgStore()->m_lpNotifyClient->UnRegisterAdvise(m_ulConnection);
-
-	if (m_lpFolderAdviseSink)
-		m_lpFolderAdviseSink->Release();
-
 }
 
 HRESULT ECMAPIFolder::Create(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, ECMAPIFolder **lppECMAPIFolder)
@@ -215,13 +206,12 @@ HRESULT	ECMAPIFolder::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECMAPIFolder::HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProps)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulEventMask = fnevObjectModified  | fnevObjectDeleted | fnevObjectMoved | fnevObjectCreated;
 	object_ptr<WSMAPIPropStorage> lpMAPIPropStorage;
 	ULONG cbEntryId;
 	LPENTRYID lpEntryId = NULL;
 
-	hr = HrAllocAdviseSink(AdviseECFolderCallback, this, &m_lpFolderAdviseSink);	
+	auto hr = HrAllocAdviseSink(AdviseECFolderCallback, this, &~m_lpFolderAdviseSink);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpStorage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage);
@@ -427,7 +417,7 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags
 
 	// We don't actually create the object until savechanges is called, so remember in which
 	// folder it was created
-	hr = Util::HrCopyEntryId(this->m_cbEntryId, this->m_lpEntryId, &lpMessage->m_cbParentID, &lpMessage->m_lpParentID);
+	hr = Util::HrCopyEntryId(m_cbEntryId, m_lpEntryId, &lpMessage->m_cbParentID, &~lpMessage->m_lpParentID);
 	if(hr != hrSuccess)
 		return hr;
 	if(lpInterface)
