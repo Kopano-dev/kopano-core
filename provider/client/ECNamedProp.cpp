@@ -108,10 +108,9 @@ bool ltmap::operator()(const MAPINAMEID *a, const MAPINAMEID *b) const noexcept
 	}
 }
 
-ECNamedProp::ECNamedProp(WSTransport *lpTransport)
+ECNamedProp::ECNamedProp(WSTransport *tp) :
+	lpTransport(tp)
 {
-	this->lpTransport = lpTransport;
-
 	lpTransport->AddRef();
 }
 

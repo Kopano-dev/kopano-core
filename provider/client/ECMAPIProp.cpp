@@ -76,7 +76,14 @@ static ECPERMISSION RightsToECPermCheap(const struct rights r)
 
 ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
     const ECMAPIProp *lpRoot, const char *szClassName) :
-	ECGenericProp(lpProvider, ulObjType, fModify, szClassName)
+	ECGenericProp(lpProvider, ulObjType, fModify, szClassName),
+	/*
+	 * Track "root object". This is the object that was opened via
+	 * OpenEntry or OpenMsgStore, so normally lpRoot == this, but in the
+	 * case of attachments and submessages it points to the top-level
+	 * message.
+	 */
+	m_lpRoot(lpRoot != nullptr ? lpRoot : this)
 {
 	this->HrAddPropHandlers(PR_STORE_ENTRYID,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
 	this->HrAddPropHandlers(PR_STORE_RECORD_KEY,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
@@ -95,13 +102,6 @@ ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
 
 	// ICS system
 	this->HrAddPropHandlers(PR_SOURCE_KEY,		DefaultMAPIGetProp	,SetPropHandler,		(void*) this, FALSE, FALSE);
-
-	// Track 'root object'. This is the object that was opened via OpenEntry or OpenMsgStore, so normally
-	// lpRoot == this, but in the case of attachments and submessages it points to the top-level message
-	if(lpRoot)
-		m_lpRoot = lpRoot;
-	else
-		m_lpRoot = this;
 }
 
 ECMAPIProp::~ECMAPIProp()
@@ -389,7 +389,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	    PROP_TYPE(ulPropTag) != PT_UNICODE)
 		return MAPI_E_NOT_FOUND;
 
-	if (*lpiid == IID_IStream && this->lstProps == NULL &&
+	if (*lpiid == IID_IStream && !this->m_props_loaded &&
 	    PROP_TYPE(ulPropTag) == PT_BINARY && !(ulFlags & MAPI_MODIFY) &&
 	    // Shortcut: don't load entire object if only one property is being requested for read-only. HrLoadProp() will return
 		// without querying the server if the server does not support this capability (introduced in 6.20.8). Main reason is

@@ -41,19 +41,14 @@
 
 WSMAPIPropStorage::WSMAPIPropStorage(ULONG cbParentEntryId,
     LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID lpEntryId,
-    ULONG ulFlags, KCmd *lpCmd, std::recursive_mutex &data_lock,
-    ECSESSIONID ecSessionId, unsigned int ulServerCapabilities,
-    WSTransport *lpTransport) :
-	ECUnknown("WSMAPIPropStorage"), lpDataLock(data_lock),
-	m_ulFlags(ulFlags), m_lpTransport(lpTransport)
+    ULONG ulFlags, KCmd *cmd, std::recursive_mutex &data_lock,
+    ECSESSIONID sid, unsigned int ulServerCapabilities, WSTransport *tp) :
+	ECUnknown("WSMAPIPropStorage"), lpCmd(cmd), lpDataLock(data_lock),
+	ecSessionId(sid), m_ulFlags(ulFlags), m_lpTransport(tp)
 {
 	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
 	CopyMAPIEntryIdToSOAPEntryId(cbParentEntryId, lpParentEntryId, &m_sParentEntryId);
-
-	this->lpCmd = lpCmd;
-	this->ecSessionId = ecSessionId;
-	this->ulServerCapabilities = ulServerCapabilities;
-	lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
+	tp->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
 }
 
 WSMAPIPropStorage::~WSMAPIPropStorage()
@@ -382,7 +377,7 @@ HRESULT WSMAPIPropStorage::HrUpdateMapiObject(MAPIOBJECT *lpClientObj, struct sa
 			// this child was removed, so we don't need it anymore
 			auto iterDel = iterObj;
 			++iterObj;
-			FreeMapiObject(*iterDel);
+			delete *iterDel;
 			lpClientObj->lstChildren.erase(iterDel);
 			continue;
 		} else if (!(*iterObj)->bChanged) {
@@ -478,14 +473,14 @@ ECRESULT WSMAPIPropStorage::ECSoapObjectToMapiObject(struct saveObject *lpsSaveO
 	for (gsoap_size_t i = 0; i < lpsSaveObj->__size; ++i) {
 		switch (lpsSaveObj->__ptr[i].ulObjType) {
 		case MAPI_ATTACH:
-			AllocNewMapiObject(ulAttachUniqueId++, lpsSaveObj->__ptr[i].ulServerId, lpsSaveObj->__ptr[i].ulObjType, &mo);
+			mo = new MAPIOBJECT(ulAttachUniqueId++, lpsSaveObj->__ptr[i].ulServerId, lpsSaveObj->__ptr[i].ulObjType);
 			break;
 		case MAPI_MAILUSER:
 		case MAPI_DISTLIST:
-			AllocNewMapiObject(ulRecipUniqueId++, lpsSaveObj->__ptr[i].ulServerId, lpsSaveObj->__ptr[i].ulObjType, &mo);
+			mo = new MAPIOBJECT(ulRecipUniqueId++, lpsSaveObj->__ptr[i].ulServerId, lpsSaveObj->__ptr[i].ulObjType);
 			break;
 		default:
-			AllocNewMapiObject(0, lpsSaveObj->__ptr[i].ulServerId, lpsSaveObj->__ptr[i].ulObjType, &mo);
+			mo = new MAPIOBJECT(0, lpsSaveObj->__ptr[i].ulServerId, lpsSaveObj->__ptr[i].ulObjType);
 			break;
 		}
 
@@ -573,9 +568,7 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		hr = MAPI_E_UNCONFIGURED;			// Force a reconfigure
 	if(hr != hrSuccess)
 		goto exit;
-
-	AllocNewMapiObject(0, 0, 0, &lpsMapiObject); // ulObjType, ulObjId and ulUniqueId are unknown here
-
+	lpsMapiObject = new MAPIOBJECT; /* ulObjType, ulObjId and ulUniqueId are unknown here */
 	ECSoapObjectToMapiObject(&sResponse.sSaveObject, lpsMapiObject);
 
 	*lppsMapiObject = lpsMapiObject;

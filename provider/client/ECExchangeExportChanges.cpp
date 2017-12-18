@@ -49,21 +49,14 @@
 
 using namespace KCHL;
 
-ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore, const std::string &sk, const wchar_t * szDisplay, unsigned int ulSyncType)
-: m_iidMessage(IID_IMessage)
+ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore,
+    const std::string &sk, const wchar_t *szDisplay, unsigned int ulSyncType) :
+	m_ulSyncType(ulSyncType), m_lpStore(lpStore), m_sourcekey(sk),
+	m_strDisplay(szDisplay != nullptr ? szDisplay : L"<Unknown>"),
+	/* In server-side sync, only use a batch size of 1. */
+	m_ulBatchSize(sk.empty() ? 1 : 256), m_iidMessage(IID_IMessage)
 {
 	ECSyncLog::GetLogger(&m_lpLogger);
-
-	m_lpStore = lpStore;
-	m_sourcekey = sk;
-	m_strDisplay = szDisplay ? szDisplay : L"<Unknown>";
-	m_ulSyncType = ulSyncType;
-
-	// In server-side sync, only use a batch size of 1.
-	if (m_sourcekey.empty())
-		m_ulBatchSize = 1;
-	else
-		m_ulBatchSize = 256;
 	memset(&m_tmsStart, 0, sizeof(m_tmsStart));
 
 	m_lpStore->AddRef();

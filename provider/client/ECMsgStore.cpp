@@ -75,17 +75,16 @@ using namespace KCHL;
 /**
  * ECMsgStore
  **/
-ECMsgStore::ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport,
-    WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags,
+ECMsgStore::ECMsgStore(const char *lpszProfname, IMAPISupport *sup,
+    WSTransport *tp, BOOL fModify, ULONG ulProfileFlags,
     BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore) :
 	ECMAPIProp(NULL, MAPI_STORE, fModify, NULL, "IMsgStore"),
+	lpSupport(sup), lpTransport(tp), lpNamedProp(new ECNamedProp(tp)),
 	m_ulProfileFlags(ulProfileFlags), m_fIsSpooler(fIsSpooler),
-	m_fIsDefaultStore(fIsDefaultStore)
+	m_fIsDefaultStore(fIsDefaultStore),
+	m_strProfname((lpszProfname != nullptr) ? lpszProfname : "")
 {
-	this->lpSupport = lpSupport;
 	lpSupport->AddRef();
-
-	this->lpTransport = lpTransport;
 	lpTransport->AddRef();
 
 	// Add our property handlers
@@ -131,13 +130,9 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport,
 
 	// Basically a workaround because we can't pass 'this' in the superclass constructor.
 	SetProvider(this);
-
-	this->lpNamedProp = new ECNamedProp(lpTransport);
 	this->isTransactedObject = FALSE;
 	GetClientVersion(&this->m_ulClientVersion); //Ignore errors
 	assert(lpszProfname != NULL);
-	if(lpszProfname)
-		this->m_strProfname = lpszProfname;
 }
 
 ECMsgStore::~ECMsgStore() {

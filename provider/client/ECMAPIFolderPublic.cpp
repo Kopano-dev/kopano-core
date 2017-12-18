@@ -43,7 +43,8 @@
 using namespace KCHL;
 
 ECMAPIFolderPublic::ECMAPIFolderPublic(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, enumPublicEntryID ePublicEntryID) : 
-		ECMAPIFolder(lpMsgStore, fModify, lpFolderOps, "IMAPIFolderPublic") 
+	ECMAPIFolder(lpMsgStore, fModify, lpFolderOps, "IMAPIFolderPublic"),
+	m_ePublicEntryID(ePublicEntryID)
 {
 	HrAddPropHandlers(PR_ACCESS,		GetPropHandler,		DefaultSetPropComputed, (void *)this);
 	HrAddPropHandlers(PR_ACCESS_LEVEL,	GetPropHandler,		DefaultSetPropComputed, (void *)this);
@@ -63,9 +64,6 @@ ECMAPIFolderPublic::ECMAPIFolderPublic(ECMsgStore *lpMsgStore, BOOL fModify, WSM
 	HrAddPropHandlers(PR_SUBFOLDERS,			GetPropHandler,		DefaultSetPropComputed, (void *)this);
 
 	HrAddPropHandlers(PR_ORIGINAL_ENTRYID,		GetPropHandler,		DefaultSetPropComputed, (void *)this, FALSE, TRUE);
-	
-
-	m_ePublicEntryID = ePublicEntryID;
 }
 
 HRESULT	ECMAPIFolderPublic::QueryInterface(REFIID refiid, void **lppInterface)

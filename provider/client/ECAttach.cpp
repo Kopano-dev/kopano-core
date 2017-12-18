@@ -37,11 +37,10 @@ HRESULT ECAttachFactory::Create(ECMsgStore *lpMsgStore, ULONG ulObjType,
 }
 
 ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify,
-    ULONG ulAttachNum, const ECMAPIProp *lpRoot) :
-	ECMAPIProp(lpMsgStore, ulObjType, fModify, lpRoot, "IAttach")
+    ULONG anum, const ECMAPIProp *lpRoot) :
+	ECMAPIProp(lpMsgStore, ulObjType, fModify, lpRoot, "IAttach"),
+	ulAttachNum(anum)
 {
-	this->ulAttachNum = ulAttachNum;
-
 	this->HrAddPropHandlers(PR_ATTACH_DATA_OBJ,	GetPropHandler,	SetPropHandler,	(void*) this, TRUE,  FALSE);	// Includes PR_ATTACH_DATA_BIN as type is ignored
 	this->HrAddPropHandlers(PR_ATTACH_SIZE,		DefaultGetProp,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	this->HrAddPropHandlers(PR_ATTACH_NUM,		GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
@@ -74,7 +73,7 @@ HRESULT ECAttach::SaveChanges(ULONG ulFlags)
 	if (!fModify)
 		return MAPI_E_NO_ACCESS;
 
-	if (!lstProps || lstProps->find(PROP_ID(PR_RECORD_KEY)) == lstProps->end()) {
+	if (!m_props_loaded || lstProps.find(PROP_ID(PR_RECORD_KEY)) == lstProps.cend()) {
 		GUID guid;
 		SPropValue sPropVal;
 
@@ -266,7 +265,7 @@ HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 
 	if (!m_sMapiObject) {
 		assert(m_sMapiObject != NULL);
-		AllocNewMapiObject(0, 0, MAPI_MESSAGE, &m_sMapiObject);
+		m_sMapiObject = new MAPIOBJECT(0, 0, MAPI_MESSAGE);
 	}
 
 	if (lpsMapiObject->ulObjType != MAPI_MESSAGE)
@@ -276,9 +275,9 @@ HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 	// attachments can only have 1 sub-message
 	iterSObj = m_sMapiObject->lstChildren.cbegin();
 	if (iterSObj != m_sMapiObject->lstChildren.cend()) {
-		FreeMapiObject(*iterSObj);
+		delete *iterSObj;
 		m_sMapiObject->lstChildren.erase(iterSObj);
 	}
-	m_sMapiObject->lstChildren.emplace(new MAPIOBJECT(lpsMapiObject));
+	m_sMapiObject->lstChildren.emplace(new MAPIOBJECT(*lpsMapiObject));
 	return hrSuccess;
 }

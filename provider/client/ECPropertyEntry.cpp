@@ -34,17 +34,15 @@ DEF_INVARIANT_CHECK(ECPropertyEntry) {
 	assert(PROP_TYPE(ulPropTag) != PT_MV_STRING8);
 }
 
-ECPropertyEntry::ECPropertyEntry(ULONG ulPropTag) :
-	lpProperty(nullptr)
+ECPropertyEntry::ECPropertyEntry(ULONG tag) :
+	ulPropTag(tag)
 {
-	this->ulPropTag = ulPropTag;
 	DEBUG_CHECK_INVARIANT;
 }
 
-ECPropertyEntry::ECPropertyEntry(ECProperty *property)
+ECPropertyEntry::ECPropertyEntry(std::unique_ptr<ECProperty> &&p) :
+	ulPropTag(p->GetPropTag()), lpProperty(std::move(p))
 {
-	this->ulPropTag = property->GetPropTag();
-	this->lpProperty = property;
 	DEBUG_CHECK_INVARIANT;
 }
 
@@ -65,8 +63,7 @@ HRESULT ECPropertyEntry::HrSetProp(const SPropValue *lpsPropValue)
 	if(this->lpProperty)
 		this->lpProperty->CopyFrom(lpsPropValue);
 	else
-		this->lpProperty = new ECProperty(lpsPropValue);
-
+		lpProperty.reset(new ECProperty(lpsPropValue));
 	this->fDirty = TRUE;
 
 	return hr;
@@ -80,7 +77,7 @@ HRESULT ECPropertyEntry::HrSetProp(ECProperty *property)
 
 	assert(property->GetPropTag() != 0);
 	assert(this->lpProperty == NULL);
-	this->lpProperty = property;
+	lpProperty.reset(property);
 	this->fDirty = TRUE;
 
 	return hr;
@@ -95,14 +92,6 @@ HRESULT ECPropertyEntry::HrSetClean()
 	return hrSuccess;
 }
 
-void ECPropertyEntry::DeleteProperty()
-{
-	delete this->lpProperty;
-	this->lpProperty = NULL;
-}
-//
-//
-//
 // ECProperty
 //
 // C++ class representing a property

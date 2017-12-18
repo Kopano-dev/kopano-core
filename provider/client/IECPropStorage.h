@@ -43,12 +43,13 @@
 #include <kopano/Util.h>
 
 struct MAPIOBJECT {
-	MAPIOBJECT() {
-		/* see AllocNewMapiObject :: Mem.cpp */
-	};
-	
+	MAPIOBJECT() = default;
 	MAPIOBJECT(unsigned int ulType, unsigned int ulId) : ulUniqueId(ulId), ulObjType(ulType) {
 	}
+	MAPIOBJECT(unsigned int uqid, unsigned int id, unsigned int type) :
+		ulUniqueId(uqid), ulObjId(id), ulObjType(type)
+	{}
+	~MAPIOBJECT();
 
 	bool operator < (const MAPIOBJECT &other) const {
 		std::pair<unsigned int, unsigned int> me(ulObjType, ulUniqueId), him(other.ulObjType, other.ulUniqueId);
@@ -63,26 +64,20 @@ struct MAPIOBJECT {
 		}
 	};
 
-	MAPIOBJECT(const MAPIOBJECT *lpSource)
+	MAPIOBJECT(const MAPIOBJECT &s) :
+		lstDeleted(s.lstDeleted), lstAvailable(s.lstAvailable),
+		lstModified(s.lstModified), lstProperties(s.lstProperties),
+		bChangedInstance(s.bChangedInstance), bChanged(s.bChanged),
+		bDelete(s.bDelete), ulUniqueId(s.ulUniqueId),
+		ulObjId(s.ulObjId), ulObjType(s.ulObjType)
 	{
-		this->bChanged = lpSource->bChanged;
-		this->bChangedInstance = lpSource->bChangedInstance;
-		this->bDelete = lpSource->bDelete;
-		this->ulUniqueId = lpSource->ulUniqueId;
-		this->ulObjId = lpSource->ulObjId;
-		this->ulObjType = lpSource->ulObjType;
-
-		Util::HrCopyEntryId(lpSource->cbInstanceID, (LPENTRYID)lpSource->lpInstanceID,
+		Util::HrCopyEntryId(s.cbInstanceID, reinterpret_cast<const ENTRYID *>(s.lpInstanceID),
 							&this->cbInstanceID, (LPENTRYID *)&this->lpInstanceID);
-
-		this->lstDeleted = lpSource->lstDeleted;
-		this->lstModified = lpSource->lstModified;
-		this->lstProperties = lpSource->lstProperties;
-		this->lstAvailable = lpSource->lstAvailable;
-
-		for (const auto &i : lpSource->lstChildren)
-			this->lstChildren.emplace(new MAPIOBJECT(i));
+		for (const auto &i : s.lstChildren)
+			this->lstChildren.emplace(new MAPIOBJECT(*i));
 	};
+
+	void operator=(const MAPIOBJECT &) = delete;
 
 	/* data */
 	std::set<MAPIOBJECT *, CompareMAPIOBJECT> lstChildren; /* ECSavedObjects */

@@ -51,25 +51,10 @@ HRESULT ECAllocateMore(ULONG cbSize, void *lpBase, void **lpvoid) {
 	else return _pfnAllocMore(cbSize, lpBase, lpvoid);
 }
 
-HRESULT AllocNewMapiObject(ULONG ulUniqueId, ULONG ulObjId, ULONG ulObjType, MAPIOBJECT **lppMapiObject)
+MAPIOBJECT::~MAPIOBJECT()
 {
-	auto sMapiObject = new MAPIOBJECT;
-	sMapiObject->ulUniqueId = ulUniqueId;
-	sMapiObject->ulObjId = ulObjId;
-	sMapiObject->ulObjType = ulObjType;
-	*lppMapiObject = sMapiObject;
-
-	return hrSuccess;
-}
-
-HRESULT FreeMapiObject(MAPIOBJECT *lpsObject)
-{
-	for (const auto &obj : lpsObject->lstChildren)
-		FreeMapiObject(obj);
-	if (lpsObject->lpInstanceID)
-		ECFreeBuffer(lpsObject->lpInstanceID);
-
-	delete lpsObject;
-
-	return hrSuccess;
+	for (auto &obj : lstChildren)
+		delete obj;
+	if (lpInstanceID != nullptr)
+		ECFreeBuffer(lpInstanceID);
 }

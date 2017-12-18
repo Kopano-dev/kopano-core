@@ -33,21 +33,14 @@
 
 using namespace KCHL;
 
-ECMAPITable::ECMAPITable(const std::string &strName,
-    ECNotifyClient *lpNotifyClient, ULONG ulFlags) :
-	ECUnknown("IMAPITable")
+ECMAPITable::ECMAPITable(const std::string &strName, ECNotifyClient *nc,
+    ULONG f) :
+	ECUnknown("IMAPITable"), lpNotifyClient(nc), ulFlags(f)
 {
-	this->lpNotifyClient = lpNotifyClient;
-	
 	if(this->lpNotifyClient)
 		this->lpNotifyClient->AddRef();
 
 	this->ulFlags = ulFlags;
-	this->lpTableOps = NULL;
-	
-	m_ulRowCount = 0;
-	m_ulFlags = 0;
-	m_ulDeferredFlags = 0;
 	m_strName = strName;
 }
 

@@ -60,14 +60,12 @@ HRESULT ECMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew,
 	return ECMessage::Create(lpMsgStore, fNew, fModify, ulFlags, bEmbedded, lpRoot, lpMessage);
 }
 
-ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify,
-    ULONG ulFlags, BOOL bEmbedded, const ECMAPIProp *lpRoot) :
+ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL is_new, BOOL fModify,
+    ULONG ulFlags, BOOL emb, const ECMAPIProp *lpRoot) :
 	ECMAPIProp(lpMsgStore, MAPI_MESSAGE, fModify, lpRoot, "IMessage"),
-	m_bEmbedded(bEmbedded)
+	fNew(is_new), m_bEmbedded(emb)
 {
 	this->ulObjFlags = ulFlags & MAPI_ASSOCIATED;
-	this->fNew = fNew;
-	this->m_bEmbedded = bEmbedded;
 
 	// proptag, getprop, setprops, class, bRemovable, bHidden
 
@@ -163,7 +161,7 @@ HRESULT ECMessage::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 		lRtfIdx = Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_RTF_COMPRESSED, PT_UNSPECIFIED));
 		lHtmlIdx = Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_HTML, PT_UNSPECIFIED));
 	}
-	if (lstProps == NULL && (!lpPropTagArray || lBodyIdx >= 0 || lRtfIdx >=0 || lHtmlIdx >= 0)) {
+	if (!m_props_loaded && (!lpPropTagArray || lBodyIdx >= 0 || lRtfIdx >=0 || lHtmlIdx >= 0)) {
 		// Get the properties from the server so we can determine the body type.
 		m_ulBodyType = bodyTypeUnknown;		// Make sure no bodies are generated.
 		hr = HrLoadProps();					// HrLoadProps will (re)determine the best body type.
@@ -833,12 +831,10 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	memory_ptr<SPropTagArray> lpPropTagArray;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	if(lstProps == NULL) {
+	if (!m_props_loaded) {
 		hr = HrLoadProps();
 		if (hr != hrSuccess)
 			return hr;
-		if (lstProps == nullptr)
-			return MAPI_E_CALL_FAILED;
 	}
 
 	if (this->lpAttachments == NULL) {
@@ -1063,12 +1059,10 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	memory_ptr<SPropTagArray> lpPropTagArray;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	if(lstProps == NULL) {
+	if (!m_props_loaded) {
 		hr = HrLoadProps();
 		if (hr != hrSuccess)
 			return hr;
-		if (lstProps == nullptr)
-			return MAPI_E_CALL_FAILED;
 	}
 
 	if (this->lpRecips == NULL) {
@@ -1568,8 +1562,7 @@ HRESULT ECMessage::SaveRecips()
 			continue;
 		}
 
-		AllocNewMapiObject(lpRowId->Value.ul, lpObjIDs[i].Value.ul, ulRealObjType, &mo);
-
+		mo = new MAPIOBJECT(lpRowId->Value.ul, lpObjIDs[i].Value.ul, ulRealObjType);
 		// Move any PR_ENTRYIDs to PR_EC_CONTACT_ENTRYID
 		auto lpEntryID = lpRowSet[i].find(PR_ENTRYID);
 		if(lpEntryID)
@@ -1596,7 +1589,7 @@ HRESULT ECMessage::SaveRecips()
 		// find old recipient in child list, and remove if present
 		auto iterSObj = m_sMapiObject->lstChildren.find(mo);
 		if (iterSObj != m_sMapiObject->lstChildren.cend()) {
-			FreeMapiObject(*iterSObj);
+			delete *iterSObj;
 			m_sMapiObject->lstChildren.erase(iterSObj);
 		}
 		m_sMapiObject->lstChildren.emplace(mo);
@@ -1620,12 +1613,10 @@ BOOL ECMessage::HasAttachment()
 	ECMapiObjects::const_iterator iterObjects;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	if(lstProps == NULL) {
+	if (!m_props_loaded) {
 		hr = HrLoadProps();
 		if (hr != hrSuccess)
 			return false; /* hr */
-		if (lstProps == nullptr)
-			return false; /* MAPI_E_CALL_FAILED */
 	}
 
 	for (iterObjects = m_sMapiObject->lstChildren.cbegin();
@@ -1749,7 +1740,7 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 		return MAPI_E_NO_ACCESS;
 
 	// nothing changed -> no need to save
- 	if (this->lstProps == NULL)
+	if (!this->m_props_loaded)
 		return hr;
 
 	assert(m_sMapiObject != NULL); // the actual bug .. keep open on submessage
@@ -2500,11 +2491,11 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 		if(hr != hrSuccess)
 			return hr;
 		// Remove item
-		FreeMapiObject(*iterSObj);
+		delete *iterSObj;
 		m_sMapiObject->lstChildren.erase(iterSObj);
 	}
 
-	m_sMapiObject->lstChildren.emplace(new MAPIOBJECT(lpsMapiObject));
+	m_sMapiObject->lstChildren.emplace(new MAPIOBJECT(*lpsMapiObject));
 	// Update the attachment table. The attachment table contains all properties of the attachments
 	ulProps = lpsMapiObject->lstProperties.size();
 
