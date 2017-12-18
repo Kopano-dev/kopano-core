@@ -1476,6 +1476,26 @@ exit:
 	return er;
 }
 
+void ECFileAttachment::give_filesize_hint(const int fd, const off_t len) {
+#ifdef LINUX
+	// this helps preventing filesystem fragmentation as the
+	// kernel can now look for the best disk allocation
+	// pattern as it knows how much date is going to be
+	// inserted
+	if (posix_fallocate(fd, 0, len) < 0)
+		/* ignore error */;
+#endif
+}
+
+void ECFileAttachment::my_readahead(int fd) {
+#ifdef LINUX
+	struct stat st;
+
+	if (fstat(fd, &st) == 0)
+		(void)readahead(fd, 0, st.st_size);
+#endif
+}
+
 static bool EvaluateCompressibleness(const uint8_t *const lpData, const size_t iSize) {
 	// If a file is smallar than the (usual) blocksize of the filesystem
 	// then don't bother compressing it; it will give no gain as the

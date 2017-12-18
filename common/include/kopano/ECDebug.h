@@ -54,11 +54,8 @@ std::string PropNameFromPropTagArray(const SPropTagArray *);
 std::string PropNameFromPropArray(ULONG cValues, const SPropValue *lpPropArray);
 extern _kc_export std::string PropNameFromPropTag(ULONG tag);
 std::string RestrictionToString(const SRestriction *lpRestriction, unsigned int indent=0);
-std::string RowToString(const SRow *lpRow);
 std::string RowSetToString(const SRowSet *lpRows);
 std::string AdrRowSetToString(const ADRLIST *lpAdrList, const FlagList *lpFlagList);
-std::string RowEntryToString(const ROWENTRY *lpRowEntry);
-std::string RowListToString(const ROWLIST *lprowList);
 
 //Internal used only
 extern _kc_export const char *RelationalOperatorToString(ULONG relop);

@@ -62,7 +62,6 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 	memory_ptr<SPropValue> lpspvStatusRow;
 	ULONG			cCurVal = 0;
 	unsigned int	size = 0;
-	std::wstring	wstrSearchKey;
 
 	hResult = MAPIAllocateBuffer(sizeof(SPropValue) * 13, &~lpspvStatusRow);
 	if(hResult != hrSuccess)

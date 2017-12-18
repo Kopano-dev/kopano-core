@@ -142,7 +142,6 @@ HRESULT ECProperty::CopyFrom(const SPropValue *lpsProp)
 HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 {
 	ULONG ulNewSize = 0;
-	unsigned int i;
 
 	if (lpsProp == NULL)
 		return dwLastError = MAPI_E_INVALID_PARAMETER;
@@ -472,7 +471,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if(ulSize < ulNewSize) {
 			
 			if(this->Value.MVszW.lppszW) {
-				for (i = 0; i < this->Value.MVszW.cValues; ++i)
+				for (unsigned int i = 0; i < this->Value.MVszW.cValues; ++i)
 					delete [] this->Value.MVszW.lppszW[i];
 				delete [] this->Value.MVszW.lppszW;
 			}

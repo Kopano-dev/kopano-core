@@ -2506,27 +2506,6 @@ HRESULT ECMsgStore::ResolvePseudoUrl(const char *lpszPseudoUrl,
 	return lpTransport->HrResolvePseudoUrl(lpszPseudoUrl, lppszServerPath, lpbIsPeer);
 }
 
-HRESULT ECMsgStore::GetPublicStoreEntryID(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
-{
-	ULONG cbStoreID;
-	EntryIdPtr ptrStoreID;
-	std::string strRedirServer;
-
-	HRESULT hr = lpTransport->HrGetPublicStore(ulFlags, &cbStoreID, &~ptrStoreID, &strRedirServer);
-	if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
-		WSTransportPtr ptrTransport;
-
-		hr = lpTransport->CreateAndLogonAlternate(strRedirServer.c_str(), &~ptrTransport);
-		if (hr != hrSuccess)
-			return hr;
-		hr = ptrTransport->HrGetPublicStore(ulFlags, &cbStoreID, &~ptrStoreID);
-	}
-	if (hr != hrSuccess)
-		return hr;
-
-	return lpSupport->WrapStoreEntryID(cbStoreID, ptrStoreID, lpcbStoreID, lppStoreID);
-}
-
 HRESULT ECMsgStore::GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
 {
 	HRESULT hr;

@@ -190,41 +190,6 @@ exit:
 	return hr;
 }
 
-HRESULT WSTableView::HrRestrict(const SRestriction *lpsRestriction)
-{
-	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
-	struct restrictTable *lpsRestrictTable = NULL;
-
-	LockSoap();
-
-	if(lpsRestriction) {
-		hr = CopyMAPIRestrictionToSOAPRestriction(&lpsRestrictTable, lpsRestriction);
-
-		if(hr != hrSuccess)
-			goto exit;
-	}
-	
-	hr = HrOpenTable();
-	if(hr != erSuccess)
-	    goto exit;
-
-	START_SOAP_CALL
-	{
-		if(SOAP_OK != lpCmd->ns__tableRestrict(ecSessionId, ulTableId, lpsRestrictTable, &er))
-			er = KCERR_NETWORK_ERROR;
-	}
-	END_SOAP_CALL
-
-exit:
-	UnLockSoap();
-
-	if(lpsRestrictTable)
-		FreeRestrictTable(lpsRestrictTable);
-
-	return hr;
-}
-
 HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
 {
 	ECRESULT er = erSuccess;

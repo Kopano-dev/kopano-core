@@ -93,8 +93,6 @@ extern _kc_export ssize_t read_retry(int, void *, size_t);
 extern _kc_export ssize_t write_retry(int, const void *, size_t);
 
 extern _kc_export void set_thread_name(pthread_t, const std::string &);
-extern _kc_export void my_readahead(int fd);
-extern _kc_export void give_filesize_hint(int fd, off_t len);
 
 extern _kc_export bool force_buffers_to_disk(int fd);
 extern _kc_export int ec_relocate_fd(int);
