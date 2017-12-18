@@ -3198,7 +3198,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 	sort(lstFolderMailEIDs.begin(), lstFolderMailEIDs.end());
 	
     // Save the max UID so that other session will not see the items as \Recent
-    if(bResetRecent && ulRecent) {
+    if(bResetRecent && ulRecent && ulMaxUID != m_ulLastUid) {
     	sPropMax.ulPropTag = PR_EC_IMAP_MAX_ID;
     	sPropMax.Value.ul = m_ulLastUid;
 		HrSetOneProp(folder, &sPropMax);
