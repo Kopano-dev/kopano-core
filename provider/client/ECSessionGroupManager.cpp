@@ -32,8 +32,7 @@ ECSESSIONGROUPID ECSessionGroupManager::GetSessionGroupId(const sGlobalProfilePr
 {
 	ECSESSIONGROUPID ecSessionGroupId;
 	scoped_rlock lock(m_hMutex);
-
-    ECSessionGroupInfo ecSessionGroup = ECSessionGroupInfo(sProfileProps.strServerPath, sProfileProps.strProfileName);
+	ECSessionGroupInfo ecSessionGroup(sProfileProps.strServerPath, sProfileProps.strProfileName);
 	auto result = m_mapSessionGroupIds.emplace(ecSessionGroup, 0);
 	if (result.second == true) {
         // Not found, generate one now
@@ -63,7 +62,7 @@ ECSESSIONGROUPID ECSessionGroupManager::GetSessionGroupId(const sGlobalProfilePr
 HRESULT ECSessionGroupManager::GetSessionGroupData(ECSESSIONGROUPID ecSessionGroupId, const sGlobalProfileProps &sProfileProps, SessionGroupData **lppData)
 {
 	HRESULT hr = hrSuccess;
-	ECSessionGroupInfo ecSessionGroup = ECSessionGroupInfo(sProfileProps.strServerPath, sProfileProps.strProfileName);
+	ECSessionGroupInfo ecSessionGroup(sProfileProps.strServerPath, sProfileProps.strProfileName);
 	SessionGroupData *lpData = NULL;
 	scoped_rlock lock(m_hMutex);
 
