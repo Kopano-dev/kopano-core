@@ -92,8 +92,6 @@ using std::wstring;
 static StatsClient *sc = NULL;
 
 // spooler exit codes
-#define EXIT_OK 0
-#define EXIT_FAILED 1
 #define EXIT_WAIT 2
 #define EXIT_REMOVE 3
 
@@ -387,7 +385,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 				ec_log_info("Message for user %ls will be tried again later", sSendData.strUsername.c_str());
 				sc -> countInc("Spooler", "exit_wait");
 			}
-			else if (WEXITSTATUS(status) == EXIT_OK || WEXITSTATUS(status) == EXIT_FAILED) {
+			else if (WEXITSTATUS(status) == EXIT_SUCCESS || WEXITSTATUS(status) == EXIT_FAILURE) {
 				// message was sent, or the user already received an error mail.
 				ec_log_info("Processed message for user %ls", sSendData.strUsername.c_str());
 				wasSent = true;
@@ -1023,10 +1021,10 @@ int main(int argc, char *argv[]) {
 			/* Create info logger without a timestamp to stderr. */
 			g_lpLogger = new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);
 			if (g_lpLogger == nullptr)
-				return EXIT_FAILED; /* MAPI_E_NOT_ENOUGH_MEMORY */
+				return EXIT_FAILURE; /* MAPI_E_NOT_ENOUGH_MEMORY */
 			ec_log_set(g_lpLogger);
 			LogConfigErrors(g_lpConfig);
-			return EXIT_FAILED; /* E_FAIL */
+			return EXIT_FAILURE; /* E_FAIL */
 		}
 		
 		// ECConfig::ParseParams returns the index in the passed array,
@@ -1148,13 +1146,13 @@ exit:
 	free(st.ss_sp);
 	switch(hr) {
 	case hrSuccess:
-		return EXIT_OK;
+		return EXIT_SUCCESS;
 
 	case MAPI_E_WAIT:			// Timed message
 		case MAPI_W_NO_SERVICE:	// SMTP server did not react in forked mode, mail should be retried later
 		return EXIT_WAIT;
 	}
 
-		// forked: failed sending message, but is already removed from the queue
-		return EXIT_FAILED;
+	// forked: failed sending message, but is already removed from the queue
+	return EXIT_FAILURE;
 }
