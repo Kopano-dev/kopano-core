@@ -351,12 +351,11 @@ bool ECAttachmentStorage::ExistAttachment(ULONG ulObjId, ULONG ulPropId)
 {
 	ext_siid ulInstanceId;
 	/*
-	 * Convert object id into attachment id
+	 * For there to be a mapping {objid, propid}->siid in the DB, the
+	 * attachment must have been stored at some point in the past. No need
+	 * to ask the storage for its real existence.
 	 */
-	auto er = GetSingleInstanceId(ulObjId, ulPropId, &ulInstanceId);
-	if (er != erSuccess)
-		return false;
-	return ExistAttachmentInstance(ulInstanceId.siid);
+	return GetSingleInstanceId(ulObjId, ulPropId, &ulInstanceId) == erSuccess;
 }
 
 bool ECAttachmentStorage::ExistAttachmentInstance(ULONG ins_id)
