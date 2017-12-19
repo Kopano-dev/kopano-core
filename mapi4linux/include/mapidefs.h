@@ -686,7 +686,7 @@ class ISequentialStream : public virtual IUnknown {
 };
 IID_OF(ISequentialStream)
 
-class IEnumSTATSTG : public IUnknown {
+class IEnumSTATSTG : public virtual IUnknown {
 	public:
 	virtual HRESULT Next(ULONG celt, STATSTG *rgelt, ULONG *pceltFetched) = 0;
 	virtual HRESULT Skip(ULONG celt) = 0;
@@ -713,7 +713,7 @@ class IStream : public virtual ISequentialStream {
 IID_OF(IStream)
 typedef IStream *LPSTREAM;
 
-class IMalloc : public IUnknown {
+class IMalloc : public virtual IUnknown {
 	public:
 	virtual void *Alloc(ULONG cb) = 0;
 	virtual void *Realloc(void *pv, ULONG cb) = 0;
@@ -724,7 +724,7 @@ class IMalloc : public IUnknown {
 };
 typedef IMalloc *LPMALLOC;
 
-class IStorage : public IUnknown {
+class IStorage : public virtual IUnknown {
 	public:
 	virtual HRESULT CreateStream(const OLECHAR *pwcsName, DWORD grfMode, DWORD reserved1, DWORD reserved2, IStream **ppstm) = 0;
 	virtual HRESULT OpenStream(const OLECHAR *pwcsName, void *reserved1, DWORD grfMode, DWORD reserved2, IStream **ppstm) = 0;
@@ -1573,7 +1573,7 @@ IID_OF(IProfSect)
  */
 #define MAPI_TOP_LEVEL      ((ULONG) 0x00000001)
 
-class IMAPIProgress : public IUnknown {
+class IMAPIProgress : public virtual IUnknown {
 public:
     virtual HRESULT Progress(ULONG ulValue, ULONG ulCount, ULONG ulTotal) = 0;
     virtual HRESULT GetFlags(ULONG* lpulFlags) = 0;
@@ -1728,7 +1728,7 @@ typedef struct ADRPARM *LPADRPARM;
  */
 #define  MAPI_ENABLED       ((ULONG) 0x00000000)
 #define  MAPI_DISABLED      ((ULONG) 0x00000001)
-class IMAPIControl : public IUnknown {
+class IMAPIControl : public virtual IUnknown {
 public:
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT Activate(ULONG ulFlags, ULONG ulUIParam) = 0;

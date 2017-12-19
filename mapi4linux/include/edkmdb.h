@@ -833,7 +833,7 @@ typedef IExchangeRuleAction* LPEXCHANGERULEACTION;
 
 
 //Outlook 2007, Blocked Attachments
-class IAttachmentSecurity : public IUnknown {
+class IAttachmentSecurity : public virtual IUnknown {
 public:
 	virtual HRESULT IsAttachmentBlocked(LPCWSTR pwszFileName, BOOL *pfBlocked) = 0;
 };
@@ -968,7 +968,7 @@ public:
 
 typedef IFolderSupport* LPIFOLDERSUPPORT;
 
-class IExchangeFavorites : public IUnknown {
+class IExchangeFavorites : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hr, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 	virtual HRESULT AddFavorites(LPENTRYLIST lpEntryList) = 0;

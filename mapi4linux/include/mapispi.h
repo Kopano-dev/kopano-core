@@ -309,7 +309,7 @@ typedef IXPProvider* LPXPPROVIDER;
 class IXPLogon;
 typedef IXPLogon* LPXPLOGON;
 
-class IXPProvider : public IUnknown {
+class IXPProvider : public virtual IUnknown {
 public: 
     virtual HRESULT Shutdown(ULONG * lpulFlags) = 0; 
 	virtual HRESULT TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, const TCHAR *lpszProfileName, ULONG *lpulFlags, LPMAPIERROR *lppMAPIError, LPXPLOGON *lppXPLogon) = 0;
@@ -376,8 +376,7 @@ typedef SCODE (OPTIONCALLBACK)(
 #define END_RESEND_LATER            ((ULONG) 0x00020000)
 #define END_DONT_RESEND             ((ULONG) 0x00040000)
 
-
-class IXPLogon : public IUnknown {
+class IXPLogon : public virtual IUnknown {
 public: 
     virtual HRESULT AddressTypes(ULONG * lpulFlags, ULONG * lpcAdrType, LPTSTR** lpppAdrTypeArray,
 				   ULONG * lpcMAPIUID, LPMAPIUID * * lpppUIDArray) = 0; 

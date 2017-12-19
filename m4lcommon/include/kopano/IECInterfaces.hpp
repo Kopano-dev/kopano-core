@@ -129,7 +129,7 @@ class IECExportChanges : public IExchangeExportChanges {
 	virtual HRESULT SetLogger(ECLogger *lpLogger) = 0;
 };
 
-class IECImportAddressbookChanges : public IUnknown {
+class IECImportAddressbookChanges : public virtual IUnknown {
 	public:
 	virtual HRESULT GetLastError(HRESULT hr, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 	virtual HRESULT Config(LPSTREAM lpState, ULONG ulFlags) = 0;
