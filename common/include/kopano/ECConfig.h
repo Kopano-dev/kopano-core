@@ -52,7 +52,7 @@ public:
 	static ECConfig *Create(const std::nothrow_t &, const configsetting_t *defaults, const char *const *directives = lpszDEFAULTDIRECTIVES);
 	static const char *GetDefaultPath(const char *basename);
 	_kc_hidden virtual ~ECConfig(void) = default;
-	_kc_hidden virtual bool LoadSettings(const char *file) = 0;
+	_kc_hidden virtual bool LoadSettings(const char *file, bool ignore_missing = false) = 0;
 	_kc_hidden virtual int ParseParams(int argc, char **argv) = 0;
 	_kc_hidden virtual const char *GetSettingsPath() const = 0;
 	_kc_hidden virtual bool	ReloadSettings(void) = 0;

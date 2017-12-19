@@ -315,6 +315,7 @@ int main(int argc, char *argv[]) {
 
 	ssl_threading_setup();
 	const char *szConfig = ECConfig::GetDefaultPath("gateway.cfg");
+	bool exp_config = false;
 	static const configsetting_t lpDefaults[] = {
 		{ "server_bind", "" },
 		{ "run_as_user", "kopano" },
@@ -395,6 +396,7 @@ int main(int argc, char *argv[]) {
 		case OPT_CONFIG:
 		case 'c':
 			szConfig = optarg;
+			exp_config = true;
 			break;
 		case OPT_HOST:
 		case 'h':
@@ -422,7 +424,7 @@ int main(int argc, char *argv[]) {
 
 	// Setup config
 	g_lpConfig = ECConfig::Create(lpDefaults);
-	if (!g_lpConfig->LoadSettings(szConfig) ||
+	if (!g_lpConfig->LoadSettings(szConfig, !exp_config) ||
 	    g_lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);	// create logger without a timestamp to stderr

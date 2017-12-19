@@ -100,6 +100,7 @@ static int nReload = 0;
 static int disconnects = 0;
 static const char *szCommand = NULL;
 static const char *szConfig = ECConfig::GetDefaultPath("spooler.cfg");
+static bool sp_exp_config;
 extern ECConfig *g_lpConfig;
 ECConfig *g_lpConfig = NULL;
 static ECLogger *g_lpLogger;
@@ -258,8 +259,10 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	auto logfd = stringify(g_lpLogger->GetFileDescriptor());
 	argv[argc++] = "--log-fd";
 	argv[argc++] = logfd.c_str();
-	argv[argc++] = "--config";
-	argv[argc++] = szConfig;
+	if (szConfig != nullptr && sp_exp_config) {
+		argv[argc++] = "--config";
+		argv[argc++] = szConfig;
+	}
 	argv[argc++] = "--host";
 	argv[argc++] = szPath;
 	argv[argc++] = "--foreground",
@@ -976,6 +979,7 @@ int main(int argc, char *argv[]) {
 		case OPT_CONFIG:
 		case 'c':
 			szConfig = optarg;
+			sp_exp_config = true;
 			break;
 		case OPT_HOST:
 		case 'h':
@@ -1024,7 +1028,7 @@ int main(int argc, char *argv[]) {
 
 	g_lpConfig = ECConfig::Create(lpDefaults);
 	int argidx = 0;
-	if (!g_lpConfig->LoadSettings(szConfig) ||
+	if (!g_lpConfig->LoadSettings(szConfig, !sp_exp_config) ||
 	    (argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind])) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 		/* Create info logger without a timestamp to stderr. */

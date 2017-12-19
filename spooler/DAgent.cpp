@@ -3456,7 +3456,6 @@ int main(int argc, char *argv[]) {
 		case OPT_LISTEN:
 		case 'l':
 			bListenLMTP = true;
-			bExplicitConfig = true;
 			break;
 
 		case OPT_DAEMONIZE:

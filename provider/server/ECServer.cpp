@@ -77,12 +77,6 @@ using std::endl;
 using std::string;
 
 static const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
-
-// Reports information on the current state of the license
-void* ReportLicense(void *);
-
-static int running_server(char *, const char *, int, char **, int, char **);
-
 static int g_Quit = 0;
 static int daemonize = 1;
 static int restart_searches = 0;
@@ -100,6 +94,8 @@ static ECLogger *g_lpAudit = nullptr;
 static ECScheduler *g_lpScheduler = nullptr;
 static ECSoapServerConnection *g_lpSoapServerConn = nullptr;
 static bool m_bDatabaseUpdateIgnoreSignals = false;
+
+static int running_server(char *, const char *, bool, int, char **, int, char **);
 
 // This is the callback function for libserver/* so that it can notify that a delayed soap
 // request has been handled.
@@ -619,6 +615,7 @@ int main(int argc, char* argv[])
 	int nReturn = 0;
 	const char *config = ECConfig::GetDefaultPath("server.cfg");
 	const char *default_config = config;
+	bool exp_config = false;
 
 	enum {
 		OPT_HELP = UCHAR_MAX + 1,
@@ -656,6 +653,7 @@ int main(int argc, char* argv[])
 		case 'c':
 		case OPT_CONFIG:
 			config = optarg;
+			exp_config = true;
 			break;
 		case OPT_HELP:
 			cout << "kopano-server " PROJECT_VERSION;
@@ -698,7 +696,7 @@ int main(int argc, char* argv[])
 			break;
 		};
 	}
-	nReturn = running_server(argv[0], config, argc, argv,
+	nReturn = running_server(argv[0], config, exp_config, argc, argv,
 	          argc - optind, &argv[optind]);
 	return nReturn;
 }
@@ -778,7 +776,7 @@ static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 	return erSuccess;
 }
 
-static int running_server(char *szName, const char *szConfig,
+static int running_server(char *szName, const char *szConfig, bool exp_config,
     int argc, char **argv, int trim_argc, char **trim_argv)
 {
 	int retval = -1;
@@ -986,7 +984,7 @@ static int running_server(char *szName, const char *szConfig,
 	// Load settings
 	g_lpConfig = ECConfig::Create(lpDefaults);
 	
-	if (!g_lpConfig->LoadSettings(szConfig) ||
+	if (!g_lpConfig->LoadSettings(szConfig, !exp_config) ||
 	    g_lpConfig->ParseParams(trim_argc, trim_argv) < 0 ||
 	    (!m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) ) {
 		/* Create info logger without a timestamp to stderr. */

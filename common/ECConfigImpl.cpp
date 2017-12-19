@@ -62,8 +62,11 @@ ECConfigImpl::ECConfigImpl(const configsetting_t *lpDefaults,
 	InitDefaults(LOADSETTING_INITIALIZING | LOADSETTING_UNKNOWN | LOADSETTING_OVERWRITE);
 }
 
-bool ECConfigImpl::LoadSettings(const char *szFilename)
+bool ECConfigImpl::LoadSettings(const char *szFilename, bool ignore_missing)
 {
+	struct stat sb;
+	if (stat(szFilename, &sb) != 0 && errno == ENOENT && ignore_missing)
+		return true;
 	m_szConfigFile = szFilename;	
 	return InitConfigFile(LOADSETTING_OVERWRITE);
 }

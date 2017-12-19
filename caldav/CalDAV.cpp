@@ -138,6 +138,7 @@ int main(int argc, char **argv) {
 	// Configuration
 	int opt = 0;
 	const char *lpszCfg = ECConfig::GetDefaultPath("ical.cfg");
+	bool exp_config = false;
 	static const configsetting_t lpDefaults[] = {
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
@@ -197,6 +198,7 @@ int main(int argc, char **argv) {
 		switch (opt) {
 		case 'c':
 			lpszCfg = optarg;
+			exp_config = true;
 			break;
 		case 'F':
 			g_bDaemonize = false;
@@ -218,7 +220,7 @@ int main(int argc, char **argv) {
 	xmlInitParser();
 
 	g_lpConfig = ECConfig::Create(lpDefaults);
-	if (!g_lpConfig->LoadSettings(lpszCfg) ||
+	if (!g_lpConfig->LoadSettings(lpszCfg, !exp_config) ||
 	    g_lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 		g_lpLogger = new ECLogger_File(1, 0, "-", false);
