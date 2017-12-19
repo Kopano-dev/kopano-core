@@ -1341,7 +1341,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, std::list<unsigned
 		return er;
 	}
 
-	std::string strQuery = "SELECT * FROM searchresults WHERE folderid = " +  stringify(ulFolderId) + " AND hierarchyid IN (";
+	std::string strQuery = "SELECT 1 FROM searchresults WHERE folderid = " +  stringify(ulFolderId) + " AND hierarchyid IN (";
 	for (const auto n : lstObjId) {
 		strQuery += stringify(n) + ",";
 	}

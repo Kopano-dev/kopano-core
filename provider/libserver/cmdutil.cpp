@@ -1856,7 +1856,7 @@ static ECRESULT LockFolders(ECDatabase *lpDatabase, bool bShared,
     if(setParents.empty())
 		return erSuccess;
     
-    strQuery = "SELECT * FROM properties WHERE hierarchyid IN(";
+    strQuery = "SELECT 1 FROM properties WHERE hierarchyid IN(";
     
 	for (auto pa_id : setParents) {
 		strQuery += stringify(pa_id);
