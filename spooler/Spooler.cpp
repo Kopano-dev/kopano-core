@@ -1022,14 +1022,11 @@ int main(int argc, char *argv[]) {
 		    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 			/* Create info logger without a timestamp to stderr. */
 			g_lpLogger = new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);
-			if (g_lpLogger == nullptr) {
-				hr = MAPI_E_NOT_ENOUGH_MEMORY;
-				goto exit;
-			}
+			if (g_lpLogger == nullptr)
+				return EXIT_FAILED; /* MAPI_E_NOT_ENOUGH_MEMORY */
 			ec_log_set(g_lpLogger);
 			LogConfigErrors(g_lpConfig);
-			hr = E_FAIL;
-			goto exit;
+			return EXIT_FAILED; /* E_FAIL */
 		}
 		
 		// ECConfig::ParseParams returns the index in the passed array,
