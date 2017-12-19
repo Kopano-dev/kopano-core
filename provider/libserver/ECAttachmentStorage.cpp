@@ -722,30 +722,6 @@ ECDatabaseAttachment::ECDatabaseAttachment(ECDatabase *lpDatabase) :
 }
 
 /** 
- * For a given instance id, check if this has a valid attachment data present
- * 
- * @param[in] ulInstanceId instance id to check validity
- * 
- * @return instance present
- */
-bool ECDatabaseAttachment::ExistAttachmentInstance(const ext_siid &ulInstanceId)
-{
-	DB_RESULT lpDBResult;
-	DB_ROW lpDBRow = NULL;
-	auto strQuery = "SELECT instanceid FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid) + " LIMIT 1";
-	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if (er != erSuccess) {
-		ec_log_err("ECAttachmentStorage::ExistAttachmentInstance(): DoSelect failed %x", er);
-		return false;
-	}
-
-	lpDBRow = lpDBResult.fetch_row();
-	if (!lpDBRow || !lpDBRow[0])
-		return false; /* KCERR_NOT_FOUND */
-	return true;
-}
-
-/** 
  * Load instance data using soap and return as blob.
  * 
  * @param[in] soap soap to use memory allocations for
@@ -1059,25 +1035,6 @@ ECFileAttachment::~ECFileAttachment()
 		closedir(m_dirp);
 	if (m_bTransaction)
 		assert(false);
-}
-
-/** 
- * For a given instance id, check if this has a valid attachment data present
- * 
- * @param[in] ulInstanceId instance id to check validity
- * 
- * @return instance present
- */
-bool ECFileAttachment::ExistAttachmentInstance(const ext_siid &ulInstanceId)
-{
-	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
-	struct stat st;
-	if (stat(filename.c_str(), &st) == -1) {
-		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
-		if (stat(filename.c_str(), &st) == -1)
-			return false;
-	}
-	return true;
 }
 
 /**

@@ -82,7 +82,6 @@ public:
 	ECRESULT GetSingleInstanceParents(ULONG ulInstanceId, std::list<ext_siid> *);
 
 	/* Single Instance Attachment handlers (must be overridden by subclasses) */
-	virtual bool ExistAttachmentInstance(const ext_siid &) = 0;
 	virtual kd_trans Begin(ECRESULT &) = 0;
 protected:
 	/* Single Instance Attachment handlers (must be overridden by subclasses) */
@@ -113,7 +112,6 @@ public:
 
 protected:
 	/* Single Instance Attachment handlers */
-	virtual bool ExistAttachmentInstance(const ext_siid &) override;
 	virtual ECRESULT LoadAttachmentInstance(struct soap *soap, const ext_siid &, size_t *size, unsigned char **data) override;
 	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *size, ECSerializer *sink) override;
 	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, unsigned char *) override;
@@ -137,7 +135,6 @@ protected:
 	_kc_hidden virtual ~ECFileAttachment(void);
 	
 	/* Single Instance Attachment handlers */
-	_kc_hidden virtual bool ExistAttachmentInstance(const ext_siid &) override;
 	_kc_hidden virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;
 	_kc_hidden virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *, ECSerializer *) override;
 	_kc_hidden virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, unsigned char *) override;
