@@ -36,11 +36,6 @@ ECConfig *ECConfig::Create(const std::nothrow_t &,
 	return new(std::nothrow) ECConfigImpl(dfl, direc);
 }
 
-bool ECConfig::LoadSettings(const wchar_t *szFilename)
-{
-	return LoadSettings(convert_context().convert_to<char *>(szFilename));
-}
-
 /**
  * Get the default path for the configuration file specified with lpszBasename.
  * Usually this will return '/etc/kopano/<lpszBasename>'. However, the path to
