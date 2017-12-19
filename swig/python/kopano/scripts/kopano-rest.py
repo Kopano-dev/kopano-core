@@ -1,10 +1,12 @@
-from MAPI.Util import kc_session_save, kc_session_restore, GetDefaultStore
+import dateutil.parser
 import json
 try:
     import urlparse
 except ImportError:
     import urllib.parse as urlparse
 import types
+
+from MAPI.Util import kc_session_save, kc_session_restore, GetDefaultStore
 
 import falcon
 import kopano
@@ -24,40 +26,40 @@ def _server(req):
     return server
 
 class Resource(object):
-    def get_fields(self, obj, fields):
-        return {f: self.fields[f](obj) for f in fields}
+    def get_fields(self, obj, fields, all_fields):
+        return {f: all_fields[f](obj) for f in fields}
 
-    def json(self, obj, fields):
-        return json.dumps(self.get_fields(obj, fields),
+    def json(self, obj, fields, all_fields):
+        return json.dumps(self.get_fields(obj, fields, all_fields),
             indent=4, separators=(',', ': ')
         )
 
-    def json_multi(self, obj, fields):
-        # TODO itertools magic?
+    def json_multi(self, obj, fields, all_fields):
         yield b'{\n    "value": [\n'
         first = True
         for o in obj:
             if not first:
                 yield b',\n'
             first = False
-            wa = self.json(o, fields).encode('utf-8')
+            wa = self.json(o, fields, all_fields).encode('utf-8')
             yield '\n'.join(['        '+line for line in wa.splitlines()])
         yield b'\n    ]\n}'
 
-    def respond(self, req, resp, obj):
+    def respond(self, req, resp, obj, all_fields=None):
         # determine fields (default all)
         args = urlparse.parse_qs(req.query_string)
+        fields = all_fields or self.fields
         if 'fields' in args:
-            fields = args['fields'][0].split(',') # TODO 0?
+            fields = args['fields'][0].split(',')
         else:
-            fields = self.fields.keys()
+            fields = fields.keys()
 
         # jsonify result (as stream)
         resp.content_type = "application/json"
         if isinstance(obj, types.GeneratorType):
-            resp.stream = self.json_multi(obj, fields)
+            resp.stream = self.json_multi(obj, fields, all_fields or self.fields)
         else:
-            resp.body = self.json(obj, fields)
+            resp.body = self.json(obj, fields, all_fields or self.fields)
 
     def generator(self, req, generator):
         # determine pagination and ordering
@@ -160,15 +162,33 @@ class CalendarResource(Resource): # TODO merge with FolderResource?
             store = kopano.Store(server=server,
                 mapiobj = GetDefaultStore(server.mapisession))
 
-        if req.path.split('/')[-1] == 'calendar':
-            folderid = store.calendar.entryid
+        path = req.path
 
-        if folderid:
-            data = store.folder(entryid=folderid)
-        else:
+        method = None
+        fields = None
+
+        if path.split('/')[-1] == 'calendarView':
+            method = 'calendarView'
+            path = '/'.join(path.split('/')[:-1])
+
+        if path.split('/')[-1] == 'calendars':
             data = self.generator(req, store.calendars)
+        else:
+            if folderid:
+                folder = store.folder(entryid=folderid)
+            else:
+                folder = store.calendar
 
-        self.respond(req, resp, data)
+            if method == 'calendarView':
+                args = urlparse.parse_qs(req.query_string)
+                start = dateutil.parser.parse(args['startDateTime'][0])
+                end = dateutil.parser.parse(args['endDateTime'][0])
+                data = folder.occurrences(start, end)
+                fields = EventResource.fields
+            else:
+                data = folder
+
+        self.respond(req, resp, data, fields)
 
 class MessageResource(Resource):
     fields = {
@@ -253,6 +273,8 @@ for user in ('/me', '/users/{userid}'):
     app.add_route(user+'/calendar', calendars)
     app.add_route(user+'/calendars', calendars)
     app.add_route(user+'/calendars/{folderid}', calendars)
+    app.add_route(user+'/calendar/calendarView', calendars)
+    app.add_route(user+'/calendars/{folderid}/calendarView', calendars)
 
     app.add_route(user+'/events', events)
     app.add_route(user+'/calendar/events', events)
