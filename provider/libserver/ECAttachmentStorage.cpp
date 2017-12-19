@@ -360,7 +360,12 @@ bool ECAttachmentStorage::ExistAttachment(ULONG ulObjId, ULONG ulPropId)
 
 bool ECAttachmentStorage::ExistAttachmentInstance(ULONG ins_id)
 {
-	return ExistAttachmentInstance(ext_siid(ins_id));
+	DB_RESULT result;
+	auto query = "SELECT `hierarchyid` FROM `singleinstances` WHERE `instanceid` = " + stringify(ins_id) + " LIMIT 1";
+	auto er = m_lpDatabase->DoSelect(query, &result);
+	if (er != erSuccess)
+		return er;
+	return result.get_num_rows() > 0;
 }
 
 /** 

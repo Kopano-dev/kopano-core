@@ -1895,9 +1895,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		/* Server GUID must always match */
 		if (memcmp(&sGuidTmp, &sGuidServer, sizeof(sGuidTmp)) != 0)
 			return KCERR_UNKNOWN_INSTANCE_ID;
-		/* The attachment should at least exist */
-		if (!lpAttachmentStorage->ExistAttachmentInstance(ulInstanceId))
-			return KCERR_UNKNOWN_INSTANCE_ID;
 		/*
 		 * Check if we have access to the instance which is being referenced,
 		 * a user has access to an instance when he is administrator or owns at
@@ -1907,6 +1904,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		 */
 		if (lpecSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN) {
 			std::list<ext_siid> lstObjIds;
+			/* Existence check implied */
 			er = lpAttachmentStorage->GetSingleInstanceParents(ulInstanceId, &lstObjIds);
 			if (er != erSuccess)
 				return er;
@@ -1919,6 +1917,9 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 
 			if (er != erSuccess)
 				return er;
+		} else if (!lpAttachmentStorage->ExistAttachmentInstance(ulInstanceId)) {
+			/* The attachment should at least exist */
+			return KCERR_UNKNOWN_INSTANCE_ID;
 		}
 
 		er = lpAttachmentStorage->SaveAttachment(ulObjId, ulInstanceTag, !fNewItem, ulInstanceId, &ulInstanceId);
