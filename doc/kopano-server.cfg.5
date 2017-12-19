@@ -1153,14 +1153,6 @@ Default:
 \fIyes\fR
 .RE
 .PP
-\fBcounter_reset\fR
-.RS 4
-The counter_reset option forces a recount of items in the folder each time a folder is opened. Although this is not strictly necessary, it is a precaution to make sure that counters are always correct. When enabled, this does incur a performance penalty, especially on large (>50000 items) folders. Each time a counter_reset found an incorrect item count, it increments the system statistic counter_resyncs. If it is at 0 on your system, then this option has had no effect except for slowing it down.
-.sp
-Default:
-\fIyes\fR
-.RE
-.PP
 \fBproxy_header\fR
 .RS 4
 In normal operation, a cluster of kopano\-server nodes is served by sending redirections back to the clients requesting information. The redirection URL is built from the server\*(Aqs information in the LDAP database. However, in some cases it is useful to place the kopano\-server instances behind a reverse HTTP proxy. In this case the redirected URL returned to the client cannot be the \*(Aqnormal\*(Aq hostname, but must be a URL that is handled by the proxy.
@@ -1199,7 +1191,7 @@ threads, watchdog_max_age, watchdog_frequency, max_deferred_records, max_deferre
 .RS 4
 .RE
 .PP
-counter_reset, user_safe_mode, enable_enhanced_ics, client_update_log_level, client_update_path, client_update_log_path
+user_safe_mode, enable_enhanced_ics, client_update_log_level, client_update_path, client_update_log_path
 .RS 4
 .RE
 .PP
