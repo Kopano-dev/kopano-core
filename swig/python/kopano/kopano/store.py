@@ -416,6 +416,12 @@ class Store(Properties):
             for folder in self.subtree.folders(recurse=recurse, **kwargs):
                 yield folder
 
+    def calendars(self, **kwargs):
+        # TODO restriction
+        for folder in self.folders():
+            if folder.container_class == 'IPF.Appointment':
+                yield folder
+
     def create_searchfolder(self, text=None): # XXX store.findroot.create_folder()?
         mapiobj = self.findroot.mapiobj.CreateFolder(FOLDER_SEARCH, _encode(str(uuid.uuid4())), _encode('comment'), None, 0)
         return _folder.Folder(self, mapiobj=mapiobj)

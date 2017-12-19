@@ -34,14 +34,15 @@ class Resource(object):
 
     def json_multi(self, obj, fields):
         # TODO itertools magic?
-        yield b'[\n'
+        yield b'{\n    "value": [\n'
         first = True
         for o in obj:
             if not first:
                 yield b',\n'
             first = False
-            yield self.json(o, fields).encode('utf-8')
-        yield b'\n]'
+            wa = self.json(o, fields).encode('utf-8')
+            yield '\n'.join(['        '+line for line in wa.splitlines()])
+        yield b'\n    ]\n}'
 
     def respond(self, req, resp, obj):
         # determine fields (default all)
@@ -69,55 +70,46 @@ class Resource(object):
 
 class UserResource(Resource):
     fields = {
-        'userid': lambda user: user.userid,
-        'name': lambda user: user.name,
-        'fullname': lambda user: user.fullname,
-        'store': lambda user: user.store and user.store.entryid or None,
+        'id': lambda user: user.userid,
+        'userPrincipalName': lambda user: user.name,
     }
 
     def on_get(self, req, resp, userid=None):
         server = _server(req)
+
+        if req.path.split('/')[-1] == 'me':
+            userid = kopano.Store(server=server,
+                mapiobj = GetDefaultStore(server.mapisession)).user.userid
+
         if userid:
             data = server.user(userid=userid)
         else:
             data = server.users()
         self.respond(req, resp, data)
 
-class StoreResource(Resource):
-    fields = {
-        'entryid': lambda store: store.entryid,
-        'public': lambda store: store.public,
-        'user': lambda store: store.user.entryid if store.user else None,
-    }
-
-    def on_get(self, req, resp, storeid=None):
-        server = _server(req)
-        if storeid:
-            data = server.store(entryid=storeid)
-        else:
-            data = server.stores()
-        self.respond(req, resp, data)
-
 class FolderResource(Resource):
     fields = {
-        'entryid': lambda folder: folder.entryid,
-        'parent': lambda folder: folder.parent.entryid,
-        'name': lambda folder: folder.name,
-        'modified': lambda folder: folder.last_modified.isoformat(),
-        'unread': lambda folder: folder.unread,
+        'id': lambda folder: folder.entryid,
+        'parentFolderId': lambda folder: folder.parent.entryid,
+        'displayName': lambda folder: folder.name,
+#        'modified': lambda folder: folder.last_modified.isoformat(),
+#        'unread': lambda folder: folder.unread,
     }
 
-    def on_get(self, req, resp, storeid=None, folderid=None):
+    def on_get(self, req, resp, userid=None, folderid=None):
         server = _server(req)
-        if storeid:
-            store = server.store(entryid=storeid)
+
+        if userid:
+            store = server.user(userid=userid).store
         else:
             store = kopano.Store(server=server,
                 mapiobj = GetDefaultStore(server.mapisession))
+
         if folderid:
             data = store.folder(entryid=folderid)
         else:
             data = self.generator(req, store.folders)
+
         self.respond(req, resp, data)
 
     def on_post(self, req, resp, storeid, folderid):
@@ -153,49 +145,115 @@ class FolderResource(Resource):
                 target = store.folder(entryid=data['target'])
                 folder.move(items, target)
 
-class ItemResource(Resource):
+class CalendarResource(Resource): # TODO merge with FolderResource?
     fields = {
-        'entryid': lambda item: item.entryid,
-        'subject': lambda item: item.subject,
-        'to': lambda item: ['%s <%s>' % (to.name, to.email) for to in item.to],
-        'text': lambda item: item.text,
-        'modified': lambda item: item.last_modified.isoformat(),
-        'received': lambda item: item.received.isoformat()
+        'id': lambda folder: folder.entryid,
+        'displayName': lambda folder: folder.name,
     }
 
-    def on_get(self, req, resp, storeid=None, folderid=None, itemid=None):
+    def on_get(self, req, resp, userid=None, folderid=None):
         server = _server(req)
-        if storeid:
-            store = server.store(entryid=storeid)
+
+        if userid:
+            store = server.user(userid=userid).store
         else:
             store = kopano.Store(server=server,
                 mapiobj = GetDefaultStore(server.mapisession))
-        if itemid:
-            data = store.item(itemid)
+
+        if req.path.split('/')[-1] == 'calendar':
+            folderid = store.calendar.entryid
+
+        if folderid:
+            data = store.folder(entryid=folderid)
         else:
+            data = self.generator(req, store.calendars)
+
+        self.respond(req, resp, data)
+
+class MessageResource(Resource):
+    fields = {
+        'id': lambda item: item.entryid,
+        'subject': lambda item: item.subject,
+#        'to': lambda item: ['%s <%s>' % (to.name, to.email) for to in item.to],
+#        'text': lambda item: item.text,
+#        'modified': lambda item: item.last_modified.isoformat(),
+#        'received': lambda item: item.received.isoformat()
+    }
+
+    def on_get(self, req, resp, userid=None, folderid=None, messageid=None):
+        server = _server(req)
+        if userid:
+            store = server.user(userid=userid).store
+        else:
+            store = kopano.Store(server=server,
+                mapiobj = GetDefaultStore(server.mapisession))
+
+        if folderid:
             folder = store.folder(entryid=folderid)
+        else:
+            folder = store.inbox # TODO messages from all folders?
+
+        if messageid:
+            data = folder.item(messageid)
+        else:
             data = self.generator(req, folder.items)
+
+        self.respond(req, resp, data)
+
+class EventResource(Resource):
+    fields = {
+        'id': lambda item: item.entryid,
+        'subject': lambda item: item.subject,
+    }
+
+    def on_get(self, req, resp, userid=None, folderid=None, messageid=None):
+        server = _server(req)
+        if userid:
+            store = server.user(userid=userid).store
+        else:
+            store = kopano.Store(server=server,
+                mapiobj = GetDefaultStore(server.mapisession))
+
+        if folderid:
+            folder = store.folder(entryid=folderid)
+        else:
+            folder = store.calendar
+
+        if messageid:
+            data = folder.item(messageid)
+        else:
+            data = self.generator(req, folder.items)
+
         self.respond(req, resp, data)
 
 admin_server = kopano.Server(parse_args=False, store_cache=False)
 userid_sessiondata = {}
 
 app = falcon.API()
-users = UserResource()
-stores = StoreResource()
-items = ItemResource()
-folders = FolderResource()
 
+users = UserResource()
+messages = MessageResource()
+folders = FolderResource()
+calendars = CalendarResource()
+events = EventResource()
+
+app.add_route('/me', users)
 app.add_route('/users', users)
 app.add_route('/users/{userid}', users)
-app.add_route('/stores', stores)
-app.add_route('/stores/{storeid}', stores)
 
-for (route, resource) in (
-    ('/folders', folders),
-    ('/folders/{folderid}', folders),
-    ('/folders/{folderid}/items', items),
-    ('/folders/{folderid}/items/{itemid}', items),
-    ):
-    app.add_route(route, resource)
-    app.add_route('/stores/{storeid}'+route, resource)
+for user in ('/me', '/users/{userid}'):
+    app.add_route(user+'/mailFolders', folders)
+    app.add_route(user+'/mailFolders/{folderid}', folders)
+
+    app.add_route(user+'/messages', messages)
+    app.add_route(user+'/messages/{messageid}', messages)
+    app.add_route(user+'/mailFolders/{folderid}/messages', messages)
+    app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}', messages)
+
+    app.add_route(user+'/calendar', calendars)
+    app.add_route(user+'/calendars', calendars)
+    app.add_route(user+'/calendars/{folderid}', calendars)
+
+    app.add_route(user+'/events', events)
+    app.add_route(user+'/calendar/events', events)
+    app.add_route(user+'/calendars/{folderid}/events', events)
