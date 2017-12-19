@@ -1012,28 +1012,24 @@ int main(int argc, char *argv[]) {
 		bIgnoreUnknownConfigOptions = true;
 
 	g_lpConfig = ECConfig::Create(lpDefaults);
-	if (szConfig) {
-		int argidx = 0;
-
-		if (!g_lpConfig->LoadSettings(szConfig) ||
-		    (argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind])) < 0 ||
-		    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
-			/* Create info logger without a timestamp to stderr. */
-			g_lpLogger = new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);
-			if (g_lpLogger == nullptr)
-				return EXIT_FAILURE; /* MAPI_E_NOT_ENOUGH_MEMORY */
-			ec_log_set(g_lpLogger);
-			LogConfigErrors(g_lpConfig);
-			return EXIT_FAILURE; /* E_FAIL */
-		}
-		
-		// ECConfig::ParseParams returns the index in the passed array,
-		// after some shuffling, where it stopped parsing. optind is
-		// the index where my_getopt_long_permissive stopped parsing. So
-		// adding argidx to optind will result in the index after all
-		// options are parsed.
-		optind += argidx;
+	int argidx = 0;
+	if (!g_lpConfig->LoadSettings(szConfig) ||
+	    (argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind])) < 0 ||
+	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
+		/* Create info logger without a timestamp to stderr. */
+		g_lpLogger = new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);
+		if (g_lpLogger == nullptr)
+			return EXIT_FAILURE; /* MAPI_E_NOT_ENOUGH_MEMORY */
+		ec_log_set(g_lpLogger);
+		LogConfigErrors(g_lpConfig);
+		return EXIT_FAILURE; /* E_FAIL */
 	}
+	// ECConfig::ParseParams returns the index in the passed array,
+	// after some shuffling, where it stopped parsing. optind is
+	// the index where my_getopt_long_permissive stopped parsing. So
+	// adding argidx to optind will result in the index after all
+	// options are parsed.
+	optind += argidx;
 
 	// commandline overwrites spooler.cfg
 	if (optind < argc)

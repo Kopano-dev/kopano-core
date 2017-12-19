@@ -3535,29 +3535,27 @@ int main(int argc, char *argv[]) {
 	}
 
 	g_lpConfig = ECConfig::Create(lpDefaults);
-	if (szConfig) {
-		/* When LoadSettings fails, provide warning to user (but wait until we actually have the Logger) */
-		if (!g_lpConfig->LoadSettings(szConfig))
-			bDefaultConfigWarning = true;
-		else {
-			auto argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind]);
-			if (argidx < 0)
-				goto exit;
-			if (argidx > 0)
-				// If one overrides the config, it is assumed that the
-				// config is explicit. This causes errors from
-				// ECConfig::ParseParams to be logged. Besides that
-				// it doesn't make sense to override your config if
-				// you don't know whats in it.
-				bExplicitConfig = true;
+	/* When LoadSettings fails, provide warning to user (but wait until we actually have the Logger) */
+	if (!g_lpConfig->LoadSettings(szConfig))
+		bDefaultConfigWarning = true;
+	else {
+		auto argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind]);
+		if (argidx < 0)
+			goto exit;
+		if (argidx > 0)
+			// If one overrides the config, it is assumed that the
+			// config is explicit. This causes errors from
+			// ECConfig::ParseParams to be logged. Besides that
+			// it doesn't make sense to override your config if
+			// you don't know whats in it.
+			bExplicitConfig = true;
 
-			// ECConfig::ParseParams returns the index in the passed array,
-			// after some shuffling, where it stopped parsing. optind is
-			// the index where my_getopt_long_permissive stopped parsing. So
-			// adding argidx to optind will result in the index after all
-			// options are parsed.
-			optind += argidx;
-		}
+		// ECConfig::ParseParams returns the index in the passed array,
+		// after some shuffling, where it stopped parsing. optind is
+		// the index where my_getopt_long_permissive stopped parsing. So
+		// adding argidx to optind will result in the index after all
+		// options are parsed.
+		optind += argidx;
 	}
 
 	if (!bListenLMTP && optind == argc) {
