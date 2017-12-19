@@ -51,47 +51,19 @@ using namespace KCHL;
 
 ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore,
     const std::string &sk, const wchar_t *szDisplay, unsigned int ulSyncType) :
-	m_ulSyncType(ulSyncType), m_lpStore(lpStore), m_sourcekey(sk),
+	m_ulSyncType(ulSyncType), m_sourcekey(sk),
 	m_strDisplay(szDisplay != nullptr ? szDisplay : L"<Unknown>"),
 	/* In server-side sync, only use a batch size of 1. */
-	m_ulBatchSize(sk.empty() ? 1 : 256), m_iidMessage(IID_IMessage)
+	m_ulBatchSize(sk.empty() ? 1 : 256), m_iidMessage(IID_IMessage),
+	m_lpStore(lpStore)
 {
-	ECSyncLog::GetLogger(&m_lpLogger);
+	ECSyncLog::GetLogger(&~m_lpLogger);
 	memset(&m_tmsStart, 0, sizeof(m_tmsStart));
-
-	m_lpStore->AddRef();
-}
-
-ECExchangeExportChanges::~ECExchangeExportChanges(){
-	MAPIFreeBuffer(m_lpChanges);
-	if(m_lpStore)
-		m_lpStore->Release();
-
-	if(m_lpStream)
-		m_lpStream->Release();
-
-	if(m_lpImportContents)
-		m_lpImportContents->Release();
-
-	if(m_lpImportStreamedContents)
-		m_lpImportStreamedContents->Release();
-
-	if(m_lpImportHierarchy)
-		m_lpImportHierarchy->Release();
-	MAPIFreeBuffer(m_lpRestrict);
-	if(m_lpLogger)
-		m_lpLogger->Release();
 }
 
 HRESULT ECExchangeExportChanges::SetLogger(ECLogger *lpLogger)
 {
-	if(m_lpLogger)
-		m_lpLogger->Release();
-
-	m_lpLogger = lpLogger;
-	if (m_lpLogger != NULL)
-		m_lpLogger->AddRef();
-
+	m_lpLogger.reset(lpLogger);
 	return hrSuccess;
 }
 
@@ -180,13 +152,13 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	}
 
 	if(lpRestriction) {
-		hr = Util::HrCopySRestriction(&m_lpRestrict, lpRestriction);
+		hr = Util::HrCopySRestriction(&~m_lpRestrict, lpRestriction);
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Invalid restriction");
 			return hr;
 		}
 	} else {
-		m_lpRestrict = NULL;
+		m_lpRestrict.reset();
 	}
 
 	m_ulFlags = ulFlags;
@@ -199,12 +171,12 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 		// We don't need the importer when doing SYNC_CATCHUP
 		if(m_ulSyncType == ICS_SYNC_CONTENTS){
-			hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, (LPVOID*) &m_lpImportContents);
+			hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, &~m_lpImportContents);
 			if (hr == hrSuccess && lpSyncSettings->SyncStreamEnabled()) {
 				m_lpStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &bCanStream);
 				if (bCanStream == TRUE) {
 					ZLOG_DEBUG(m_lpLogger, "Exporter supports enhanced ICS, checking importer...");
-					hr = lpCollector->QueryInterface(IID_IECImportContentsChanges, (LPVOID*) &m_lpImportStreamedContents);
+					hr = lpCollector->QueryInterface(IID_IECImportContentsChanges, &~m_lpImportStreamedContents);
 					if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED) {
 						assert(m_lpImportStreamedContents == NULL);
 						hr = hrSuccess;
@@ -215,7 +187,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 					ZLOG_DEBUG(m_lpLogger, "Exporter doesn't support enhanced ICS");
 			}
 		}else if(m_ulSyncType == ICS_SYNC_HIERARCHY){
-			hr = lpCollector->QueryInterface(IID_IExchangeImportHierarchyChanges, (LPVOID*) &m_lpImportHierarchy);
+			hr = lpCollector->QueryInterface(IID_IExchangeImportHierarchyChanges, &~m_lpImportHierarchy);
 		}else{
 			hr = MAPI_E_INVALID_PARAMETER;
 		}
@@ -229,7 +201,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		ULONG ulSize = 0;
 
 		ZLOG_DEBUG(m_lpLogger, "Creating new exporter stream");
-		hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, sizeof(tmp)), true, &m_lpStream);
+		hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, sizeof(tmp)), true, &~m_lpStream);
 		if (hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to create new exporter stream");
 			return hr;
@@ -238,7 +210,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		m_lpStream->Seek(lint, STREAM_SEEK_SET, NULL);
 		m_lpStream->Write(tmp, sizeof(tmp), &ulSize);
 	} else {
-		hr = lpStream->QueryInterface(IID_IStream, (LPVOID*)&m_lpStream);
+		hr = lpStream->QueryInterface(IID_IStream, &~m_lpStream);
 		if (hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Passed state stream does not support IStream interface");
 			return hr;
@@ -281,9 +253,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	}
 
 	MAPIFreeBuffer(m_lpChanges);
-	m_lpChanges = NULL;
-
-	hr = m_lpStore->lpTransport->HrGetChanges(sourcekey, ulSyncId, ulChangeId, m_ulSyncType, ulFlags, m_lpRestrict, &m_ulMaxChangeId, &m_ulChanges, &m_lpChanges);
+	hr = m_lpStore->lpTransport->HrGetChanges(sourcekey, ulSyncId, ulChangeId, m_ulSyncType, ulFlags, m_lpRestrict, &m_ulMaxChangeId, &m_ulChanges, &~m_lpChanges);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Unable to get changes from server, hr=0x%08x", hr);
 		return hr;
@@ -612,12 +582,12 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 		return MAPI_E_NO_SUPPORT;
 
 	// Select an importer interface
-	hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, (LPVOID*) &m_lpImportContents);
+	hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, &~m_lpImportContents);
 	if (hr == hrSuccess && lpSyncSettings->SyncStreamEnabled()) {
 		m_lpStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &bCanStream);
 		if (bCanStream == TRUE) {
 			ZLOG_DEBUG(m_lpLogger, "Exporter supports enhanced ICS, checking importer...");
-			hr = lpCollector->QueryInterface(IID_IECImportContentsChanges, (LPVOID*) &m_lpImportStreamedContents);
+			hr = lpCollector->QueryInterface(IID_IECImportContentsChanges, &~m_lpImportStreamedContents);
 			if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED) {
 				assert(m_lpImportStreamedContents == NULL);
 				hr = hrSuccess;
@@ -631,7 +601,7 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 	m_ulEntryPropTag = ulPropTag;
 
 	// Fill m_lpChanges with items from lpEntries
-	hr = MAPIAllocateBuffer(sizeof(ICSCHANGE) * lpEntries->cValues, (void **)&m_lpChanges);
+	hr = MAPIAllocateBuffer(sizeof(ICSCHANGE) * lpEntries->cValues, &~m_lpChanges);
 	if(hr != hrSuccess)
 		return hr;
 

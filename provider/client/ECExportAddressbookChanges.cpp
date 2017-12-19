@@ -37,16 +37,7 @@
 ECExportAddressbookChanges::ECExportAddressbookChanges(ECMsgStore *lpStore) :
 	m_lpMsgStore(lpStore)
 {
-	ECSyncLog::GetLogger(&m_lpLogger);
-}
-
-ECExportAddressbookChanges::~ECExportAddressbookChanges() {
-	MAPIFreeBuffer(m_lpRawChanges);
-	MAPIFreeBuffer(m_lpChanges);
-	if(m_lpImporter)
-		m_lpImporter->Release();
-	if (m_lpLogger)
-		m_lpLogger->Release();
+	ECSyncLog::GetLogger(&~m_lpLogger);
 }
 
 HRESULT ECExportAddressbookChanges::QueryInterface(REFIID refiid, void **lppInterface) {
@@ -101,9 +92,7 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 	}
 
 	// ulFlags ignored
-    m_lpImporter = lpCollector;
-    m_lpImporter->AddRef();
-
+	m_lpImporter.reset(lpCollector);
 	memset(&abeid, 0, sizeof(ABEID));
 	
 	abeid.ulType = MAPI_ABCONT;
@@ -111,12 +100,10 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 	abeid.ulId = 1; // 1 is the first container
     
     // The parent source key is the entryid of the AB container that we're sync'ing
-	MAPIFreeBuffer(m_lpChanges);
-	m_lpChanges = NULL;
-	MAPIFreeBuffer(m_lpRawChanges);
-	m_lpRawChanges = NULL;
-
-    hr = m_lpMsgStore->lpTransport->HrGetChanges(std::string((char *)&abeid, sizeof(ABEID)), 0, m_ulChangeId, ICS_SYNC_AB, 0, NULL, &m_ulMaxChangeId, &m_ulChanges, &m_lpRawChanges);
+	m_lpChanges.reset();
+	hr = m_lpMsgStore->lpTransport->HrGetChanges(std::string(reinterpret_cast<const char *>(&abeid), sizeof(ABEID)),
+	     0, m_ulChangeId, ICS_SYNC_AB, 0, nullptr, &m_ulMaxChangeId,
+	     &m_ulChanges, &~m_lpRawChanges);
     if(hr != hrSuccess)
 		return hr;
 
@@ -141,10 +128,11 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 		 * - Add + (Change +) Delete = -
 		 * - Delete + Add = Delete + Add (e.g. user changes from object class from/to contact)
 		 */
-		std::stable_sort(m_lpRawChanges, m_lpRawChanges + m_ulChanges, LeftPrecedesRight);
+		std::stable_sort(m_lpRawChanges.get(), m_lpRawChanges.get() + m_ulChanges, LeftPrecedesRight);
 
 		// Now go through the changes to remove multiple changes for the same object.
-		if ((hr = MAPIAllocateBuffer(sizeof(ICSCHANGE) * m_ulChanges, (void **)&m_lpChanges)) != hrSuccess)
+		hr = MAPIAllocateBuffer(sizeof(ICSCHANGE) * m_ulChanges, &~m_lpChanges);
+		if (hr != hrSuccess)
 			return hr;
 
 		for (ULONG i = 0; i < m_ulChanges; ++i) {

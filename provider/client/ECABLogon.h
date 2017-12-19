@@ -22,7 +22,9 @@
 #include <mapispi.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 #include "ECNotifyClient.h"
+#include "WSTransport.h"
 
 class WSTransport;
 
@@ -45,11 +47,9 @@ public:
 	virtual HRESULT GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable);
 	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList);
 
-	LPMAPISUP			m_lpMAPISup;
-	WSTransport*		m_lpTransport;
-	ECNotifyClient *m_lpNotifyClient = nullptr;
-	//ECNamedProp*		m_lpNamedProp;
-
+	KCHL::object_ptr<IMAPISupport> m_lpMAPISup;
+	KCHL::object_ptr<WSTransport> m_lpTransport;
+	KCHL::object_ptr<ECNotifyClient> m_lpNotifyClient;
 	GUID				m_guid;
 	GUID				m_ABPGuid;
 	ALLOC_WRAP_FRIEND;

@@ -41,10 +41,7 @@ bool ECChangeAdvisor::CompareSyncId(const ConnectionMap::value_type &sConnection
 ECChangeAdvisor::ECChangeAdvisor(ECMsgStore *lpMsgStore)
 	: m_lpMsgStore(lpMsgStore)
 { 
-	ECSyncLog::GetLogger(&m_lpLogger);
-
-	m_lpMsgStore->AddRef();
-
+	ECSyncLog::GetLogger(&~m_lpLogger);
 	// Need MUTEX RECURSIVE because with a reconnection the funtion PurgeStates called indirect the function Reload again:
 	// ECChangeAdvisor::Reload(....)
  	// WSTransport::HrReLogon()
@@ -61,13 +58,6 @@ ECChangeAdvisor::~ECChangeAdvisor()
 	// Unregister notifications
 	if (!(m_ulFlags & SYNC_CATCHUP))
 		m_lpMsgStore->m_lpNotifyClient->Unadvise(ECLISTCONNECTION(m_mapConnections.begin(), m_mapConnections.end()));
-
-	if (m_lpChangeAdviseSink)
-		m_lpChangeAdviseSink->Release();
-		
-	if (m_lpLogger)
-		m_lpLogger->Release();
-	m_lpMsgStore->Release();
 }
 
 HRESULT ECChangeAdvisor::QueryInterface(REFIID refiid, void **lppInterface)
@@ -109,8 +99,7 @@ HRESULT ECChangeAdvisor::Create(ECMsgStore *lpMsgStore, ECChangeAdvisor **lppCha
 	hr = lpMsgStore->lpTransport->AddSessionReloadCallback(lpChangeAdvisor, &Reload, &lpChangeAdvisor->m_ulReloadId);
 	if (hr != hrSuccess)
 		return hr;
-	lpChangeAdvisor->AddRef();
-	*lppChangeAdvisor = lpChangeAdvisor;
+	*lppChangeAdvisor = lpChangeAdvisor.release();
 	return hr;
 }
 
@@ -135,19 +124,8 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 	if (!(m_ulFlags & SYNC_CATCHUP))
 		m_lpMsgStore->m_lpNotifyClient->Unadvise(ECLISTCONNECTION(m_mapConnections.begin(), m_mapConnections.end()));
 	m_mapConnections.clear();
-
-	if (m_lpChangeAdviseSink) {
-		m_lpChangeAdviseSink->Release();
-		m_lpChangeAdviseSink = NULL;
-	}
-
 	m_ulFlags = ulFlags;
-
-	if (lpAdviseSink) {
-		m_lpChangeAdviseSink = lpAdviseSink;
-		m_lpChangeAdviseSink->AddRef();
-	}
-
+	m_lpChangeAdviseSink.reset(lpAdviseSink);
 	if (lpStream == NULL)
 		return hr;
 	hr = lpStream->Seek(liSeekStart, SEEK_SET, NULL);

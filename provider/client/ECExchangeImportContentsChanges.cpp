@@ -49,14 +49,7 @@ using namespace KCHL;
 ECExchangeImportContentsChanges::ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder) :
 	m_lpFolder(lpFolder)
 {
-	ECSyncLog::GetLogger(&m_lpLogger);
-	m_lpFolder->AddRef();
-}
-
-ECExchangeImportContentsChanges::~ECExchangeImportContentsChanges(){
-	m_lpFolder->Release();
-	m_lpLogger->Release();
-	MAPIFreeBuffer(m_lpSourceKey);
+	ECSyncLog::GetLogger(&~m_lpLogger);
 }
 
 HRESULT ECExchangeImportContentsChanges::Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTCONTENTSCHANGES* lppExchangeImportContentsChanges){
@@ -66,7 +59,7 @@ HRESULT ECExchangeImportContentsChanges::Create(ECMAPIFolder *lpFolder, LPEXCHAN
 	object_ptr<ECExchangeImportContentsChanges> lpEICC(new(std::nothrow) ECExchangeImportContentsChanges(lpFolder));
 	if (lpEICC == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &lpEICC->m_lpSourceKey);
+	hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &~lpEICC->m_lpSourceKey);
 	if (hr != hrSuccess)
 		return hr;
 	return lpEICC->QueryInterface(IID_IExchangeImportContentsChanges,
@@ -293,8 +286,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 	hr = lpMessage->SetProps(cValue, lpPropArray, NULL);
 	if(hr != hrSuccess)
 		return hr;
-	*lppMessage = lpMessage;
-	lpMessage->AddRef();
+	*lppMessage = lpMessage.release();
 	return hrSuccess;
 }
 

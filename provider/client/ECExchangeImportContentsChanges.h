@@ -33,8 +33,6 @@ class ECExchangeImportContentsChanges _kc_final :
     public ECUnknown, public IECImportContentsChanges {
 protected:
 	ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder);
-	virtual ~ECExchangeImportContentsChanges();
-
 public:
 	static	HRESULT Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTCONTENTSCHANGES* lppExchangeImportContentsChanges);
 
@@ -69,13 +67,13 @@ private:
 	static HRESULT HrUpdateSearchReminders(LPMAPIFOLDER lpRootFolder, const SPropValue *);
 	friend class ECExchangeImportHierarchyChanges;
 
-	ECLogger *m_lpLogger = nullptr;
-	ECMAPIFolder *m_lpFolder = nullptr;
-	SPropValue *m_lpSourceKey = nullptr;
 	IStream *m_lpStream = nullptr;
 	ULONG m_ulFlags = 0;
 	ULONG m_ulSyncId = 0;
 	ULONG m_ulChangeId = 0;
+	KCHL::memory_ptr<SPropValue> m_lpSourceKey;
+	KCHL::object_ptr<ECLogger> m_lpLogger;
+	KCHL::object_ptr<ECMAPIFolder> m_lpFolder;
 };
 
 #endif // ECEXCHANGEIMPORTCONTENTSCHANGES_H

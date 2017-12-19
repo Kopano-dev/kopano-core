@@ -237,8 +237,8 @@ public:
 public:
 	LPMAPISUP			lpSupport;
 	WSTransport*		lpTransport;
+	ECNamedProp lpNamedProp;
 	ECNotifyClient *m_lpNotifyClient = nullptr;
-	ECNamedProp*		lpNamedProp;
 	ULONG				m_ulProfileFlags;
 	MAPIUID				m_guidMDB_Provider;
 	unsigned int m_ulClientVersion = 0;
