@@ -1638,9 +1638,6 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 	er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityRead);
 	if(er != erSuccess)
 		return er;
-	er = lpDatabase->Begin();
-	if(er != erSuccess)
-		return er;
 
 	if (ulPropTag != PR_ATTACH_DATA_BIN && ulPropTag != PR_EC_IMAP_EMAIL) {
 		if (ulPropTag & MV_FLAG)
@@ -1689,10 +1686,6 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 			goto exit;
 	}
 
-	er = lpDatabase->Commit();
-	if(er != erSuccess)
-		goto exit;
-
 	if (!bSupportUnicode) {
 		er = FixPropEncoding(soap, stringCompat, Out, lpsResponse->lpPropVal);
 		if (er != erSuccess)
@@ -1700,7 +1693,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 	}
 
 exit:
-	ROLLBACK_ON_ERROR();
+	return er;
 }
 SOAP_ENTRY_END()
 
