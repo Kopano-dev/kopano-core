@@ -2148,7 +2148,7 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 		} else if (strcmp(keyIndex->val, "mark_as_read") == 0) {
 			convert_to_boolean_ex(entry);
 			lpDOPT->mark_as_read = (Z_TYPE_P(entry) == IS_TRUE);
-		} else if (strcmp(keyIndex->val, "add_imap_date") == 0) {
+		} else if (strcmp(keyIndex->val, "add_imap_data") == 0) {
 			convert_to_boolean_ex(entry);
 			lpDOPT->add_imap_data = (Z_TYPE_P(entry) == IS_TRUE);
 		} else if (strcmp(keyIndex->val, "parse_smime_signed") == 0) {
