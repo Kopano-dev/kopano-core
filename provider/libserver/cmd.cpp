@@ -1638,9 +1638,6 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 	er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityRead);
 	if(er != erSuccess)
 		return er;
-	er = lpDatabase->Begin();
-	if(er != erSuccess)
-		return er;
 
 	if (ulPropTag != PR_ATTACH_DATA_BIN && ulPropTag != PR_EC_IMAP_EMAIL) {
 		if (ulPropTag & MV_FLAG)
@@ -1650,18 +1647,16 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 		strQuery += " LIMIT 2";
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
-			goto exit;
-		if (lpDBResult.get_num_rows() != 1) {
-			er = KCERR_NOT_FOUND;
-			goto exit;
-		}
+			return er;
+		if (lpDBResult.get_num_rows() != 1)
+			return KCERR_NOT_FOUND;
+
 		lpDBRow = lpDBResult.fetch_row();
 		lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBLen == NULL)
 		{
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("loadProp(): no rows from db");
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		lpsResponse->lpPropVal = s_alloc<propVal>(soap);
@@ -1669,7 +1664,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 
 		er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, lpsResponse->lpPropVal);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	} else {
 
 		lpsResponse->lpPropVal = s_alloc<propVal>(soap);
@@ -1686,21 +1681,16 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 		er = lpAttachmentStorage->LoadAttachment(soap, ulObjId, PROP_ID(ulPropTag), &atsize, &lpsResponse->lpPropVal->Value.bin->__ptr);
 		lpsResponse->lpPropVal->Value.bin->__size = atsize;
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-	er = lpDatabase->Commit();
-	if(er != erSuccess)
-		goto exit;
 
 	if (!bSupportUnicode) {
 		er = FixPropEncoding(soap, stringCompat, Out, lpsResponse->lpPropVal);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
-exit:
-	ROLLBACK_ON_ERROR();
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
