@@ -27,9 +27,9 @@
 namespace KC {
 
 extern _kc_export bool isFeature(const char *);
-extern _kc_export HRESULT hasFeature(const char *feature, const SPropValue *lpProps);
-extern _kc_export HRESULT hasFeature(const wchar_t *feature, const SPropValue *props);
-extern _kc_export bool isFeatureDisabled(const char *, IAddrBook *, IMsgStore *user);
+extern _kc_export HRESULT hasFeature(const char *feature, const SPropValue *props);
+extern _kc_export bool checkFeature(const char *feature, IAddrBook *lpAddrBook, IMsgStore *lpStore, ULONG ulPropTag);
+
 
 } /* namespace */
 

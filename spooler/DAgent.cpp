@@ -615,7 +615,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 	{ PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ACCOUNT_W, PR_SMTP_ADDRESS_A,
 	  PR_ADDRTYPE_A, PR_EMAIL_ADDRESS_W, PR_DISPLAY_TYPE, PR_SEARCH_KEY,
 	  PR_EC_COMPANY_NAME_W,	PR_EC_HOMESERVER_NAME_W, PR_EC_ADMINISTRATOR, 
-	  PR_EC_ENABLED_FEATURES_W, PR_OBJECT_TYPE }
+	  PR_EC_ENABLED_FEATURES_A, PR_OBJECT_TYPE }
 	};
 	ULONG ulRCPT = lRCPT->size();
 
@@ -734,8 +734,8 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 			memcpy(recip->sSearchKey.lpb, key.c_str(), recip->sSearchKey.cb);
 		}
 
-		auto lpFeatureList = lpAdrList->aEntries[ulRCPT].cfind(PR_EC_ENABLED_FEATURES_W);
-		recip->bHasIMAP = lpFeatureList && hasFeature(L"imap", lpFeatureList) == hrSuccess;
+		auto lpFeatureList = lpAdrList->aEntries[ulRCPT].cfind(PR_EC_ENABLED_FEATURES_A);
+		recip->bHasIMAP = lpFeatureList && hasFeature("imap", lpFeatureList) == hrSuccess;
 		++ulRCPT;
 	}
 	return hrSuccess;
