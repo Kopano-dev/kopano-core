@@ -84,11 +84,9 @@ int abentryid_t::compare(const abentryid_t &other) const
 		return -1;
 	if (size() > other.size())
 		return 1;
-
-	if (size() <= 32) {
+	if (size() <= 32)
 		// Too small, just compare the whole thing
 		return memcmp(LPBYTE(*this), LPBYTE(other), size());
-	}
 
 	// compare the part before the legacy user id.
 	int res = memcmp(LPBYTE(*this), LPBYTE(other), 28);

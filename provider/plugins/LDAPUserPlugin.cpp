@@ -442,12 +442,12 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 	LONGLONG llelapsedtime = 0;
 	auto tstart = std::chrono::steady_clock::now();
 
-	if ((bind_dn && bind_dn[0] != 0) && (bind_pw == NULL || bind_pw[0] == 0)) {
+	if ((bind_dn != nullptr && bind_dn[0] != '\0') &&
+	    (bind_pw == nullptr || bind_pw[0] == '\0'))
 		// Username specified, but no password. Apparently, OpenLDAP will attempt
 		// an anonymous bind when this is attempted. We therefore disallow this
 		// to make sure you can authenticate a user's password with this function
 		throw ldap_error(string("Disallowing NULL password for user ") + bind_dn);
-	}
 
 	// Initialize LDAP struct
 	for (unsigned long int loop = 0; loop < ldap_servers.size(); ++loop) {

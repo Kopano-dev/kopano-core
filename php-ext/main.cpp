@@ -152,22 +152,27 @@ ZEND_BEGIN_ARG_INFO(fourth_arg_force_ref, 0)
 ZEND_END_ARG_INFO()
 #endif
 
-#define LOG_BEGIN() { \
-    if (mapi_debug & 1) { \
-        php_error_docref(NULL TSRMLS_CC, E_NOTICE, "[IN] %s", __FUNCTION__); \
-    } \
-}
+#define LOG_BEGIN() do { \
+	if (mapi_debug & 1) \
+		php_error_docref(nullptr TSRMLS_CC, E_NOTICE, "[IN] %s", __FUNCTION__); \
+} while (false)
 
-#define LOG_END()   { \
-    if (mapi_debug & 2) { \
-        HRESULT hrx =  MAPI_G(hr); \
-        php_error_docref(NULL TSRMLS_CC, E_NOTICE, "[OUT] %s hr=0x%08x", __FUNCTION__, hrx); \
-    } \
-}
+#define LOG_END() do { \
+	if (mapi_debug & 2) { \
+		HRESULT hrx =  MAPI_G(hr); \
+		php_error_docref(nullptr TSRMLS_CC, E_NOTICE, "[OUT] %s hr=0x%08x", __FUNCTION__, hrx); \
+	} \
+} while (false)
 
+/*
+ * PHP fails to apply do{}while(0), so we have to do it extra in some places.
+ * Do not remove the do{} wrap.
+ */
 /* Only PHP >= 5.6 (or so) has the type of "resource_type_name" properly */
 #define ZEND_FETCH_RESOURCE_C(rsrc, rsrc_type, passed_id, default_id, resource_type_name, resource_type) \
-	ZEND_FETCH_RESOURCE((rsrc), rsrc_type, (passed_id), (default_id), const_cast<char *>(resource_type_name), (resource_type))
+	do { \
+		ZEND_FETCH_RESOURCE((rsrc), rsrc_type, (passed_id), (default_id), const_cast<char *>(resource_type_name), (resource_type)); \
+	} while (false)
 
 // A very, very nice PHP #define that causes link errors in MAPI when you have multiple
 // files referencing MAPI....
@@ -5907,10 +5912,8 @@ ZEND_FUNCTION(mapi_freebusysupport_open)
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|r", &resSession, &resStore) == FAILURE) return;
 
 	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession*, &resSession, -1, name_mapi_session, le_mapi_session);
-
-	if(resStore != NULL) {
+	if (resStore != nullptr)
 		ZEND_FETCH_RESOURCE_C(lpUserStore, LPMDB, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
-	}
 
 	// Create the freebusy support object
 	MAPI_G(hr) = ECFreeBusySupport::Create(&~lpecFBSupport);

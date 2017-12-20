@@ -55,12 +55,10 @@ HRESULT FileTimeToUnixTime(const FILETIME &ft, time_t *t)
 	
 	if(sizeof(time_t) < 8) {
 		// On 32-bit systems, we cap the values at MAXINT and MININT
-		if(l < (__int64)INT_MIN) {
+		if (l < static_cast<__int64>(INT_MIN))
 			l = INT_MIN;
-		}
-		if(l > (__int64)INT_MAX) {
+		if (l > static_cast<__int64>(INT_MAX))
 			l = INT_MAX;
-		}
 	}
 
 	*t = (time_t)l;
