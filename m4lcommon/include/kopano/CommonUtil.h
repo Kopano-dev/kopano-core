@@ -47,7 +47,6 @@ extern _kc_export HRESULT HrOpenECSession(IMAPISession **ses, const char *app_ve
 extern _kc_export HRESULT HrOpenECPublicStoreOnline(IMAPISession *, IMsgStore **ret);
 extern _kc_export HRESULT ECCreateOneOff(const TCHAR * name, const TCHAR * addrtype, const TCHAR * addr, ULONG flags, ULONG *eid_size, LPENTRYID *eid);
 extern _kc_export HRESULT ECParseOneOff(const ENTRYID *eid, ULONG eid_size, std::wstring &name, std::wstring &type, std::wstring &addr);
-extern _kc_export std::string ToQuotedPrintable(const std::string &s, const std::string &charset, bool header = true, bool imap = false);
 extern _kc_export HRESULT HrNewMailNotification(IMsgStore *, IMessage *);
 extern _kc_export HRESULT HrCreateEmailSearchKey(const char *type, const char *addr, ULONG *size, LPBYTE *out);
 extern _kc_export HRESULT DoSentMail(IMAPISession *, IMsgStore *, ULONG flags, KCHL::object_ptr<IMessage>);
