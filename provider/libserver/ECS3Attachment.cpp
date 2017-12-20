@@ -409,19 +409,6 @@ int ECS3Attachment::put_obj(int bufferSize, char *buffer, void *cbdata)
 }
 
 /**
- * For a given instance id, check if this has valid attachment data present.
- *
- * @param[in] ins_id instance id to check validity
- *
- * @return instance present
- */
-bool ECS3Attachment::ExistAttachmentInstance(const ext_siid &ins_id)
-{
-	size_t ignored;
-	return GetSizeInstance(ins_id, &ignored, nullptr) == hrSuccess;
-}
-
-/**
  * Load instance data using soap and return as blob.
  *
  * IMPORTANT: We allocated the data in referred to by data_p to store the

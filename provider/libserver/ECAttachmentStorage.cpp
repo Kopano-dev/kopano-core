@@ -351,17 +351,21 @@ bool ECAttachmentStorage::ExistAttachment(ULONG ulObjId, ULONG ulPropId)
 {
 	ext_siid ulInstanceId;
 	/*
-	 * Convert object id into attachment id
+	 * For there to be a mapping {objid, propid}->siid in the DB, the
+	 * attachment must have been stored at some point in the past. No need
+	 * to ask the storage for its real existence.
 	 */
-	auto er = GetSingleInstanceId(ulObjId, ulPropId, &ulInstanceId);
-	if (er != erSuccess)
-		return false;
-	return ExistAttachmentInstance(ulInstanceId.siid);
+	return GetSingleInstanceId(ulObjId, ulPropId, &ulInstanceId) == erSuccess;
 }
 
 bool ECAttachmentStorage::ExistAttachmentInstance(ULONG ins_id)
 {
-	return ExistAttachmentInstance(ext_siid(ins_id));
+	DB_RESULT result;
+	auto query = "SELECT `hierarchyid` FROM `singleinstances` WHERE `instanceid` = " + stringify(ins_id) + " LIMIT 1";
+	auto er = m_lpDatabase->DoSelect(query, &result);
+	if (er != erSuccess)
+		return er;
+	return result.get_num_rows() > 0;
 }
 
 /** 
@@ -718,30 +722,6 @@ ECDatabaseAttachment::ECDatabaseAttachment(ECDatabase *lpDatabase) :
 }
 
 /** 
- * For a given instance id, check if this has a valid attachment data present
- * 
- * @param[in] ulInstanceId instance id to check validity
- * 
- * @return instance present
- */
-bool ECDatabaseAttachment::ExistAttachmentInstance(const ext_siid &ulInstanceId)
-{
-	DB_RESULT lpDBResult;
-	DB_ROW lpDBRow = NULL;
-	auto strQuery = "SELECT instanceid FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid) + " LIMIT 1";
-	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if (er != erSuccess) {
-		ec_log_err("ECAttachmentStorage::ExistAttachmentInstance(): DoSelect failed %x", er);
-		return false;
-	}
-
-	lpDBRow = lpDBResult.fetch_row();
-	if (!lpDBRow || !lpDBRow[0])
-		return false; /* KCERR_NOT_FOUND */
-	return true;
-}
-
-/** 
  * Load instance data using soap and return as blob.
  * 
  * @param[in] soap soap to use memory allocations for
@@ -1055,25 +1035,6 @@ ECFileAttachment::~ECFileAttachment()
 		closedir(m_dirp);
 	if (m_bTransaction)
 		assert(false);
-}
-
-/** 
- * For a given instance id, check if this has a valid attachment data present
- * 
- * @param[in] ulInstanceId instance id to check validity
- * 
- * @return instance present
- */
-bool ECFileAttachment::ExistAttachmentInstance(const ext_siid &ulInstanceId)
-{
-	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
-	struct stat st;
-	if (stat(filename.c_str(), &st) == -1) {
-		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
-		if (stat(filename.c_str(), &st) == -1)
-			return false;
-	}
-	return true;
 }
 
 /**
