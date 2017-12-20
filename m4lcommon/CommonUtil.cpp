@@ -593,21 +593,6 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 
 /**
  * Convert string to e-mail header format, base64 encoded with
- * specified charset.
- *
- * @param[in]	input	Input string
- * @param[in]	charset	Charset of input string
- * @return				Output string in e-mail header format
- */
-std::string ToQuotedBase64Header(const std::string &input,
-    const std::string &charset)
-{
-	return "=?" + charset + "?B?" +
-	       base64_encode(input.c_str(), input.length()) += "?=";
-}
-
-/**
- * Convert string to e-mail header format, base64 encoded with
  * UTF-8 charset.
  *
  * @param[in]	input	Input wide string
@@ -615,106 +600,8 @@ std::string ToQuotedBase64Header(const std::string &input,
  */
 std::string ToQuotedBase64Header(const std::wstring &input)
 {
-	return ToQuotedBase64Header(convert_to<std::string>("UTF-8", input, rawsize(input), CHARSET_WCHAR), "UTF-8");
-}
-
-/**
- * Convert string to e-mail format, quoted-printable encoded with
- * specified charset. Can optionally add markings used in e-mail
- * headers. If no special quoted printable entities were required, it
- * will return the input string.
- *
- * @param[in]	input	Input string
- * @param[in]	charset	Charset of input string
- * @param[in]	header	Use extra markings to make the string valid for e-mail headers
- * @param[in]	imap	Also encode \ and " for IMAP
- * @return quoted printable valid string
- */
-std::string ToQuotedPrintable(const std::string &input,
-    const std::string &charset, bool header, bool imap)
-{
-	ULONG i;
-	std::string tmp;
-	bool qp = false;
-	const char digits[] = "0123456789ABCDEF";
-
-	if (charset.empty())
-		return input;
-
-	// only email headers have this prefix
-	if (header)
-		tmp = "=?"+charset+"?Q?";
-
-	for (i = 0; i < input.size(); ++i) {
-		if ((unsigned char)input[i] > 127) {
-			tmp.push_back('=');
-			tmp.push_back(digits[((unsigned char)input[i]>>4)]);
-			tmp.push_back(digits[((unsigned char)input[i]&0x0F)]);
-			qp = true;
-			continue;
-		}
-		switch ((unsigned char)input[i]) {
-		case ' ':
-			if (header)
-				tmp.push_back('_'); // only email headers need this, don't set qp marker if only spaces are found
-			else
-				tmp.push_back(input[i]); // leave email body unaffected
-			break;
-		case '\r':
-		case '\n':
-			// no idea how a user would enter a \r\n in the subject, but it s doable of course ;)
-			if (!header) {
-				tmp.push_back(input[i]); // leave email body unaffected
-				break;
-			}
-			tmp.push_back('=');
-			tmp.push_back(digits[((unsigned char)input[i]>>4)]);
-			tmp.push_back(digits[((unsigned char)input[i]&0x0F)]);
-			qp = true;
-			break;
-		case '\t':
-		case ',':
-		case ';':
-		case ':':
-		case '_':
-		case '@':
-		case '(':
-		case ')':
-		case '<':
-		case '>':
-		case '[':
-		case ']':
-		case '?':
-		case '=':
-			tmp.push_back('=');
-			tmp.push_back(digits[((unsigned char)input[i]>>4)]);
-			tmp.push_back(digits[((unsigned char)input[i]&0x0F)]);
-			qp = true;
-			break;
-		case '\\':
-		case '"':
-			// IMAP requires encoding of these 2 characters
-			if (!imap) {
-				tmp.push_back(input[i]);
-				break;
-			}
-			tmp.push_back('=');
-			tmp.push_back(digits[((unsigned char)input[i]>>4)]);
-			tmp.push_back(digits[((unsigned char)input[i]&0x0F)]);
-			qp = true;
-			break;
-		default:
-			tmp.push_back(input[i]);
-		};
-	}
-
-	if (header)
-		tmp += "?=";
-
-	if (qp)
-		return tmp;
-	else
-		return input;           // simple string was good enough
+	auto str = convert_to<std::string>("UTF-8", input, rawsize(input), CHARSET_WCHAR);
+	return "=?UTF-8?B?" + base64_encode(str.c_str(), str.length()) += "?=";
 }
 
 /**
