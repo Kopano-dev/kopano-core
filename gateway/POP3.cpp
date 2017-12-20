@@ -748,7 +748,7 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 	}
 
 	// check if pop3 access is disabled
-	if (isFeatureDisabled("pop3", lpAddrBook, lpStore)) {
+	if (checkFeature("pop3", lpAddrBook, lpStore, PR_EC_DISABLED_FEATURES_A)) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "POP3 not enabled for user '%s'", strUsername.c_str());
 		hr = MAPI_E_LOGON_FAILED;
 		goto exit;

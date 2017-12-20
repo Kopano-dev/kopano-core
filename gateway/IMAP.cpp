@@ -802,7 +802,7 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 	}
 
 	// check if imap access is disabled
-	if (isFeatureDisabled("imap", lpAddrBook, lpStore)) {
+	if (checkFeature("imap", lpAddrBook, lpStore, PR_EC_DISABLED_FEATURES_A)) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "IMAP not enabled for user '%s'", strUsername.c_str());
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN imap feature disabled");
 		hr = MAPI_E_LOGON_FAILED;
