@@ -593,21 +593,6 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 
 /**
  * Convert string to e-mail header format, base64 encoded with
- * specified charset.
- *
- * @param[in]	input	Input string
- * @param[in]	charset	Charset of input string
- * @return				Output string in e-mail header format
- */
-std::string ToQuotedBase64Header(const std::string &input,
-    const std::string &charset)
-{
-	return "=?" + charset + "?B?" +
-	       base64_encode(input.c_str(), input.length()) += "?=";
-}
-
-/**
- * Convert string to e-mail header format, base64 encoded with
  * UTF-8 charset.
  *
  * @param[in]	input	Input wide string
@@ -615,7 +600,8 @@ std::string ToQuotedBase64Header(const std::string &input,
  */
 std::string ToQuotedBase64Header(const std::wstring &input)
 {
-	return ToQuotedBase64Header(convert_to<std::string>("UTF-8", input, rawsize(input), CHARSET_WCHAR), "UTF-8");
+	auto str = convert_to<std::string>("UTF-8", input, rawsize(input), CHARSET_WCHAR);
+	return "=?UTF-8?B?" + base64_encode(str.c_str(), str.length()) += "?=";
 }
 
 /**
