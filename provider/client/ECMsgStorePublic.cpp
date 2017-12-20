@@ -16,6 +16,7 @@
  */
 #include <new>
 #include <string>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ECMsgStorePublic.h"
@@ -46,18 +47,6 @@ ECMsgStorePublic::ECMsgStorePublic(const char *lpszProfname,
 	HrAddPropHandlers(PR_IPM_PUBLIC_FOLDERS_ENTRYID,	GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	HrAddPropHandlers(PR_IPM_FAVORITES_ENTRYID,			GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	HrAddPropHandlers(PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID,	GetPropHandler, SetPropHandler,			(void*) this, FALSE, TRUE);
-}
-
-ECMsgStorePublic::~ECMsgStorePublic(void)
-{
-	if (m_lpDefaultMsgStore)
-		m_lpDefaultMsgStore->Release();
-
-	if (m_lpIPMSubTree)
-		m_lpIPMSubTree->Release();
-	MAPIFreeBuffer(m_lpIPMSubTreeID);
-	MAPIFreeBuffer(m_lpIPMFavoritesID);
-	MAPIFreeBuffer(m_lpIPMPublicFoldersID);
 }
 
 HRESULT ECMsgStorePublic::Create(const char *lpszProfname,
@@ -277,19 +266,19 @@ HRESULT ECMsgStorePublic::InitEntryIDs()
 	HRESULT hr;
 
 	if (m_lpIPMSubTreeID == NULL) {
-		hr = ::GetPublicEntryId(ePE_IPMSubtree, GetStoreGuid(), NULL, &m_cIPMSubTreeID, &m_lpIPMSubTreeID);
+		hr = ::GetPublicEntryId(ePE_IPMSubtree, GetStoreGuid(), nullptr, &m_cIPMSubTreeID, &~m_lpIPMSubTreeID);
 		if(hr != hrSuccess)
 			return hr;
 	}
 
 	if (m_lpIPMPublicFoldersID == NULL) {
-		hr = ::GetPublicEntryId(ePE_PublicFolders, GetStoreGuid(), NULL, &m_cIPMPublicFoldersID, &m_lpIPMPublicFoldersID);
+		hr = ::GetPublicEntryId(ePE_PublicFolders, GetStoreGuid(), nullptr, &m_cIPMPublicFoldersID, &~m_lpIPMPublicFoldersID);
 		if(hr != hrSuccess)
 			return hr;
 	}
 
 	if (m_lpIPMFavoritesID == NULL) {
-		hr = ::GetPublicEntryId(ePE_Favorites, GetStoreGuid(), NULL, &m_cIPMFavoritesID, &m_lpIPMFavoritesID);
+		hr = ::GetPublicEntryId(ePE_Favorites, GetStoreGuid(), nullptr, &m_cIPMFavoritesID, &~m_lpIPMFavoritesID);
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -385,7 +374,7 @@ HRESULT ECMsgStorePublic::ComparePublicEntryId(enumPublicEntryID ePublicEntryID,
 HRESULT ECMsgStorePublic::BuildIPMSubTree()
 {
 	HRESULT hr = hrSuccess;
-	ECMemTable *lpIPMSubTree = NULL;
+	object_ptr<ECMemTable> lpIPMSubTree;
 	memory_ptr<SPropValue> lpProps;
 	ULONG cProps = 0;
 	ULONG cMaxProps = 0;
@@ -403,7 +392,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 		assert(false);
 		return hrSuccess;
 	}
-	hr = ECMemTable::Create(sPropsHierarchyColumns, PR_ROWID, &lpIPMSubTree);
+	hr = ECMemTable::Create(sPropsHierarchyColumns, PR_ROWID, &~lpIPMSubTree);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -586,7 +575,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 		return hr;
 
 	assert(cProps <= cMaxProps);
-	m_lpIPMSubTree = lpIPMSubTree;
+	m_lpIPMSubTree = std::move(lpIPMSubTree);
 	return hrSuccess;
 }
 
@@ -630,8 +619,7 @@ HRESULT ECMsgStorePublic::GetDefaultShortcutFolder(IMAPIFolder** lppFolder)
 		hr = lpSupport->OpenEntry(cbEntryId, lpEntryId, &IID_IMsgStore, MAPI_BEST_ACCESS, &ulObjType, &~lpMsgStore);
  		if(hr != hrSuccess) 
 			goto exit;
-
-		hr = lpMsgStore->QueryInterface(IID_IMsgStore, (void**)&m_lpDefaultMsgStore);
+		hr = lpMsgStore->QueryInterface(iid_of(m_lpDefaultMsgStore), &~m_lpDefaultMsgStore);
 		if (hr != hrSuccess)
 			goto exit;
 	}

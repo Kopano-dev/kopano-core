@@ -25,6 +25,7 @@
 
 #include <kopano/kcodes.h>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 #include "ClientUtil.h"
 
 class ECNotifyMaster;
@@ -65,7 +66,7 @@ private:
 	ECSessionGroupInfo	m_ecSessionGroupInfo;
 
 	/* Notification information */
-	ECNotifyMaster *m_lpNotifyMaster = nullptr;
+	KCHL::object_ptr<ECNotifyMaster> m_lpNotifyMaster;
 
 	/* Mutex */
 	std::recursive_mutex m_hMutex;
@@ -76,8 +77,6 @@ private:
 
 public:
 	SessionGroupData(ECSESSIONGROUPID ecSessionGroupId, ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps);
-	~SessionGroupData(void);
-
 	static HRESULT Create(ECSESSIONGROUPID ecSessionGroupId, ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps, SessionGroupData **lppData);
 
 	HRESULT GetOrCreateNotifyMaster(ECNotifyMaster **lppMaster);

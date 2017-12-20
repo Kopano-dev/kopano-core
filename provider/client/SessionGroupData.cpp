@@ -36,12 +36,6 @@ SessionGroupData::SessionGroupData(ECSESSIONGROUPID ecSessionGroupId,
 	m_ecSessionGroupInfo.strProfile = lpInfo->strProfile;
 }
 
-SessionGroupData::~SessionGroupData(void)
-{
-	if (m_lpNotifyMaster)
-		m_lpNotifyMaster->Release();
-}
-
 HRESULT SessionGroupData::Create(ECSESSIONGROUPID ecSessionGroupId, ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps, SessionGroupData **lppData)
 {
 	return alloc_wrap<SessionGroupData>(ecSessionGroupId, lpInfo,
@@ -54,8 +48,8 @@ HRESULT SessionGroupData::GetOrCreateNotifyMaster(ECNotifyMaster **lppMaster)
 	scoped_rlock lock(m_hMutex);
 
 	if (!m_lpNotifyMaster)
-		hr = ECNotifyMaster::Create(this, &m_lpNotifyMaster);
-	*lppMaster = m_lpNotifyMaster;
+		hr = ECNotifyMaster::Create(this, &~m_lpNotifyMaster);
+	*lppMaster = m_lpNotifyMaster.get();
 	return hr;
 }
 

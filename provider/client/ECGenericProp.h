@@ -19,11 +19,13 @@
 #define ECGENERICPROP_H
 
 #include <kopano/zcdefs.h>
+#include <memory>
 #include <mutex>
 #include <kopano/ECUnknown.h>
 #include "IECPropStorage.h"
 #include "ECPropertyEntry.h"
 #include <kopano/IECInterfaces.hpp>
+#include <kopano/memory.hpp>
 #include <list>
 #include <map>
 #include <set>
@@ -55,7 +57,7 @@ class ECGenericProp :
     public ECUnknown, public virtual IMAPIProp, public IECSingleInstance {
 protected:
 	ECGenericProp(void *lpProvider, ULONG ulObjType, BOOL fModify, const char *szClassName = NULL);
-	virtual ~ECGenericProp();
+	virtual ~ECGenericProp() = default;
 
 public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
@@ -142,11 +144,11 @@ protected:
 public:
 	// Current entryid of object
 	ULONG m_cbEntryId = 0;
-	ENTRYID *m_lpEntryId = nullptr;
-	MAPIOBJECT *m_sMapiObject = nullptr;
 	std::recursive_mutex m_hMutexMAPIObject; /* Mutex for locking the MAPIObject */
 	BOOL m_bReload = false, m_bLoading = false;
-	IECPropStorage *lpStorage = nullptr;
+	KCHL::memory_ptr<ENTRYID> m_lpEntryId;
+	KCHL::object_ptr<IECPropStorage> lpStorage;
+	std::unique_ptr<MAPIOBJECT> m_sMapiObject;
 };
 
 

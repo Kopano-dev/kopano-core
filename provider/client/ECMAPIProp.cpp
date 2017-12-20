@@ -104,11 +104,6 @@ ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
 	this->HrAddPropHandlers(PR_SOURCE_KEY,		DefaultMAPIGetProp	,SetPropHandler,		(void*) this, FALSE, FALSE);
 }
 
-ECMAPIProp::~ECMAPIProp()
-{
-	MAPIFreeBuffer(m_lpParentID);
-}
-
 HRESULT ECMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(ECMAPIProp, this);
@@ -853,13 +848,10 @@ HRESULT ECMAPIProp::GetCompanyList(ULONG ulFlags, ULONG *lpcCompanies,
 
 HRESULT ECMAPIProp::SetParentID(ULONG cbParentID, LPENTRYID lpParentID)
 {
-	HRESULT hr;
-
 	assert(m_lpParentID == NULL);
 	if (lpParentID == NULL || cbParentID == 0)
 		return MAPI_E_INVALID_PARAMETER;
-
-	hr = MAPIAllocateBuffer(cbParentID, (void**)&m_lpParentID);
+	auto hr = MAPIAllocateBuffer(cbParentID, &~m_lpParentID);
 	if (hr != hrSuccess)
 		return hr;
 

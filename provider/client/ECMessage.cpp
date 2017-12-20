@@ -116,16 +116,6 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL is_new, BOOL fModify,
 	this->HrAddPropHandlers(PR_ASSOCIATED,				GetPropHandler,		DefaultSetPropComputed, 	(void *)this, TRUE, TRUE);
 }
 
-ECMessage::~ECMessage()
-{
-	MAPIFreeBuffer(m_lpParentID);
-	if(lpRecips)
-		lpRecips->Release();
-
-	if(lpAttachments)
-		lpAttachments->Release();
-}
-
 HRESULT ECMessage::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify,
     ULONG ulFlags, BOOL bEmbedded, const ECMAPIProp *lpRoot,
     ECMessage **lppMessage)
@@ -839,7 +829,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 	if (this->lpAttachments == NULL) {
 		Util::proptag_change_unicode(ulFlags, sPropAttachColumns);
-		hr = ECMemTable::Create(sPropAttachColumns, PR_ATTACH_NUM, &this->lpAttachments);
+		hr = ECMemTable::Create(sPropAttachColumns, PR_ATTACH_NUM, &~lpAttachments);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -1067,7 +1057,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 	if (this->lpRecips == NULL) {
 		Util::proptag_change_unicode(ulFlags, sPropRecipColumns);
-		hr = ECMemTable::Create(sPropRecipColumns, PR_ROWID, &lpRecips);
+		hr = ECMemTable::Create(sPropRecipColumns, PR_ROWID, &~lpRecips);
 		if(hr != hrSuccess)
 			return hr;
 

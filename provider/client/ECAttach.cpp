@@ -265,7 +265,7 @@ HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 
 	if (!m_sMapiObject) {
 		assert(m_sMapiObject != NULL);
-		m_sMapiObject = new MAPIOBJECT(0, 0, MAPI_MESSAGE);
+		m_sMapiObject.reset(new MAPIOBJECT(0, 0, MAPI_MESSAGE));
 	}
 
 	if (lpsMapiObject->ulObjType != MAPI_MESSAGE)

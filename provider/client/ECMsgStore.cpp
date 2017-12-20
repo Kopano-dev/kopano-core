@@ -84,9 +84,6 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, IMAPISupport *sup,
 	m_fIsDefaultStore(fIsDefaultStore),
 	m_strProfname((lpszProfname != nullptr) ? lpszProfname : "")
 {
-	lpSupport->AddRef();
-	lpTransport->AddRef();
-
 	// Add our property handlers
 	HrAddPropHandlers(PR_ENTRYID,			GetPropHandler,			DefaultSetPropComputed, (void *)this);
 	HrAddPropHandlers(PR_RECORD_KEY,		GetPropHandler,			DefaultSetPropComputed, (void *)this);
@@ -142,22 +139,8 @@ ECMsgStore::~ECMsgStore() {
 	// remove all advices
 	if(m_lpNotifyClient)
 		m_lpNotifyClient->ReleaseAll();
-
-	// destruct
-	if(m_lpNotifyClient)
-		m_lpNotifyClient->Release();
-	if(lpStorage) {
-		// Release our propstorage since it is registered on lpTransport
-		lpStorage->Release();
-		/* needed because base (~ECGenericProp) also tries to release it */
-		lpStorage = NULL;
-	}
-
-	if(lpTransport)
-		lpTransport->Release();
-
-	if(lpSupport)
-		lpSupport->Release();
+	// Release this->ECMAPIProp::lpStorage since it is registered on lpTransport.
+	lpStorage.reset();
 }
 
 //FIXME: remove duplicate profilename
@@ -507,7 +490,7 @@ HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 {
 	PEID peid1 = (PEID)lpEntryID1;
 	PEID peid2 = (PEID)lpEntryID2;
-	PEID lpStoreId = (PEID)m_lpEntryId;
+	auto lpStoreId = reinterpret_cast<const EID *>(m_lpEntryId.get());
 
 	if (lpulResult != nullptr)
 		*lpulResult = false;
@@ -1128,7 +1111,7 @@ HRESULT ECMsgStore::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 
 	if(! (m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS)) {
 		// Create Notifyclient
-		hr = ECNotifyClient::Create(MAPI_STORE, this, m_ulProfileFlags, lpSupport, &m_lpNotifyClient);
+		hr = ECNotifyClient::Create(MAPI_STORE, this, m_ulProfileFlags, lpSupport, &~m_lpNotifyClient);
 		assert(m_lpNotifyClient != NULL);
 		if(hr != hrSuccess)
 			return hr;
@@ -1138,7 +1121,7 @@ HRESULT ECMsgStore::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 
 const GUID& ECMsgStore::GetStoreGuid()
 {
-	return ((PEID)m_lpEntryId)->guid;
+	return reinterpret_cast<const EID *>(m_lpEntryId.get())->guid;
 }
 
 HRESULT ECMsgStore::GetWrappedStoreEntryID(ULONG* lpcbWrapped, LPENTRYID* lppWrapped)

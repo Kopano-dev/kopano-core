@@ -73,8 +73,8 @@ public:
 
 private:
 	std::recursive_mutex m_hLock;
-	WSTableView *lpTableOps = nullptr;
-	ECNotifyClient		*lpNotifyClient;
+	KCHL::object_ptr<WSTableView> lpTableOps;
+	KCHL::object_ptr<ECNotifyClient> lpNotifyClient;
 	KCHL::memory_ptr<SSortOrderSet> lpsSortOrderSet;
 	ULONG				ulFlags; // Currently unused
 	std::set<ULONG>		m_ulConnectionList;

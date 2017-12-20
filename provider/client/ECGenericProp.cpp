@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include <mapidefs.h>
 #include "WSTransport.h"
 #include "ECGenericProp.h"
@@ -44,15 +45,6 @@ ECGenericProp::ECGenericProp(void *prov, ULONG type, BOOL mod,
 	this->HrAddPropHandlers(PR_ENTRYID,					DefaultGetProp,			DefaultSetPropComputed, (void*) this);
 }
 
-ECGenericProp::~ECGenericProp()
-{
-	if (m_sMapiObject)
-		delete m_sMapiObject;
-	if(lpStorage)
-		lpStorage->Release();
-	MAPIFreeBuffer(m_lpEntryId);
-}
-
 HRESULT ECGenericProp::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(ECUnknown, this);
@@ -73,7 +65,7 @@ HRESULT ECGenericProp::SetProvider(void* lpProvider)
 HRESULT ECGenericProp::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 {
 	assert(m_lpEntryId == NULL);
-	return Util::HrCopyEntryId(cbEntryId, lpEntryId, &m_cbEntryId, &m_lpEntryId);
+	return Util::HrCopyEntryId(cbEntryId, lpEntryId, &m_cbEntryId, &~m_lpEntryId);
 }
 
 // Add a property handler. Usually called by a subclass
@@ -468,7 +460,7 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	
 	for (auto l : m_setDeletedProps) {
 		// Make sure the property is not present in deleted/modified list
-		HrRemoveModifications(m_sMapiObject, l);
+		HrRemoveModifications(m_sMapiObject.get(), l);
 		m_sMapiObject->lstDeleted.emplace_back(l);
 	}
 
@@ -478,7 +470,7 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 			// Save in the 'modified' list
 
 			// Make sure the property is not present in deleted/modified list
-			HrRemoveModifications(m_sMapiObject, p.second.GetPropTag());
+			HrRemoveModifications(m_sMapiObject.get(), p.second.GetPropTag());
 			// Save modified property
 			m_sMapiObject->lstModified.emplace_back(*p.second.GetProperty());
 			// Save in the normal properties list
@@ -499,7 +491,7 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	// and its modifications in lstModified and lstDeleted.
 
 	// save to parent or server
-	hr = lpStorage->HrSaveObject(this->ulObjFlags, m_sMapiObject);
+	hr = lpStorage->HrSaveObject(this->ulObjFlags, m_sMapiObject.get());
 	if (hr != hrSuccess)
 		return hr;
 
@@ -608,19 +600,12 @@ exit:
 	return hr;
 }
 
-HRESULT ECGenericProp::HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProps)
+HRESULT ECGenericProp::HrSetPropStorage(IECPropStorage *storage, BOOL fLoadProps)
 {
 	HRESULT hr;
 	SPropValue sPropValue;
 
-	if(this->lpStorage)
-		this->lpStorage->Release();
-
-	this->lpStorage = lpStorage;
-
-	if(lpStorage)
-		lpStorage->AddRef();
-
+	lpStorage.reset(storage);
 	if(fLoadProps) {
 		hr = HrLoadProps();
 		if(hr != hrSuccess)
@@ -642,7 +627,7 @@ HRESULT ECGenericProp::HrLoadEmptyProps()
 	assert(m_sMapiObject == NULL);
 	lstProps.clear(); /* release build has no asserts */
 	m_props_loaded = true;
-	m_sMapiObject = new MAPIOBJECT(0, 0, ulObjType);
+	m_sMapiObject.reset(new MAPIOBJECT(0, 0, ulObjType));
 	return hrSuccess;
 }
 
@@ -662,15 +647,13 @@ HRESULT ECGenericProp::HrLoadProps()
 
 	if (m_sMapiObject != NULL) {
 		// remove what we know, (scenario: keep open r/w, drop props, get all again causes to know the server changes, incl. the hierarchy id)
-		delete m_sMapiObject;
-		m_sMapiObject = NULL;
-
+		m_sMapiObject.reset();
 		// only remove my own properties: keep recipients and attachment tables
 		lstProps.clear();
 		m_setDeletedProps.clear();
 	}
 
-	hr = lpStorage->HrLoadObject(&m_sMapiObject);
+	hr = lpStorage->HrLoadObject(&KCHL::unique_tie(m_sMapiObject));
 	if (hr != hrSuccess)
 		goto exit;
 	m_props_loaded = true;

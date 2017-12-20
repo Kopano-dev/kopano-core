@@ -107,11 +107,9 @@ static HRESULT RemoveAllProviders(ECMapProvider *mp)
 {
 	if (mp == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	for (const auto &p : *mp) {
-		if (p.second.lpMSProviderOnline)
-			p.second.lpMSProviderOnline->Release();
-		if (p.second.lpABProviderOnline)
-			p.second.lpABProviderOnline->Release();
+	for (auto &p : *mp) {
+		p.second.lpMSProviderOnline.reset();
+		p.second.lpABProviderOnline.reset();
 	}
 	return hrSuccess;
 }

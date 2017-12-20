@@ -18,6 +18,7 @@
 #ifndef PROVIDERUTIL_H
 #define PROVIDERUTIL_H
 
+#include <kopano/memory.hpp>
 #include "WSTransport.h"
 
 #define CT_UNSPECIFIED		0x00
@@ -25,8 +26,8 @@
 #define CT_OFFLINE			0x02
 
 struct PROVIDER_INFO {
-	IMSProvider *lpMSProviderOnline;
-	IABProvider *lpABProviderOnline;
+	KCHL::object_ptr<IMSProvider> lpMSProviderOnline;
+	KCHL::object_ptr<IABProvider> lpABProviderOnline;
 	ULONG		ulProfileFlags;	//  Profile flags when you start the first time
 	ULONG		ulConnectType; // CT_* values, The type of connection when you start the first time
 };

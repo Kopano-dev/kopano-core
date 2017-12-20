@@ -25,6 +25,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
+#include <kopano/memory.hpp>
 #include "IECPropStorage.h"
 
 #include "ECGenericProp.h"
@@ -45,7 +46,6 @@ class ECParentStorage _kc_final : public ECUnknown, public IECPropStorage {
 	 */
 protected:
 	ECParentStorage(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage);
-	virtual ~ECParentStorage();
 
 public:
 	static HRESULT Create(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage, ECParentStorage **lppParentStorage);
@@ -66,10 +66,10 @@ private:
 	virtual IECPropStorage* GetServerStorage();
 
 private:
-	ECGenericProp *m_lpParentObject;
+	KCHL::object_ptr<ECGenericProp> m_lpParentObject;
 	ULONG m_ulObjId;
 	ULONG m_ulUniqueId;
-	IECPropStorage *m_lpServerStorage;
+	KCHL::object_ptr<IECPropStorage> m_lpServerStorage;
 	ALLOC_WRAP_FRIEND;
 };
 
