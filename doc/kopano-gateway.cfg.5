@@ -213,13 +213,6 @@ Normally when you delete an e\-mail in an IMAP client, it will only be marked as
 .PP
 Default:
 \fIno\fR
-.SS imap_store_rfc822
-.PP
-Store the rfc822 data with the message in MAPI. The Kopano Gateway stores the original rfc822 data of an APPENDed message in the database for later retrieval. This makes sure that the exact message that was delivered into the Kopano gateway is available for retrieval later, which is the behaviour when set to
-\fIyes\fR. If set to no, the kopano\-gateway will not store the original rfc822 text. This means that the rfc822 data must be re\-created when retrieved. This may cause changes in encoding or charset and some loss of fidelity. This will also invalidate any signatures in the stored messages.
-.PP
-Default:
-\fIyes\fR
 .SS imap_max_fail_commands
 .PP
 Maximum of failed commands before forcibly closing connection of client. This makes sure that a client which does repeatedly fails on a specific connection (like opening folders over and over again which do not exist) does not affect the overall performance of the gateway process. With the default value set to
