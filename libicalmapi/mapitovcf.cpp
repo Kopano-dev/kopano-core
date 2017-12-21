@@ -25,7 +25,11 @@
 #include <kopano/memory.hpp>
 #include <kopano/platform.h>
 #include <kopano/mapiguidext.h>
+#include <kopano/stringutil.h>
+#include <kopano/charset/convstring.h>
+#include <kopano/namedprops.h>
 #include "mapitovcf.hpp"
+#include "icaluid.h"
 
 using namespace KCHL;
 
@@ -63,6 +67,10 @@ VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
 		setVObjectUStringZValue_(newnode, wcsdup(s.Value.lpszW));
 	else if (PROP_TYPE(s.ulPropTag) == PT_STRING8)
 		setVObjectStringZValue(newnode, s.Value.lpszA);
+	else if (PROP_TYPE(s.ulPropTag) == PT_BINARY) {
+		auto str = bin2hex(s.Value.bin);
+		setVObjectStringZValue(newnode, str.c_str());
+	}
 	return newnode;
 }
 
@@ -227,6 +235,46 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 			to_prop(adrnode, "PC", msgprop_array[3].Value.lpszW);
 			to_prop(adrnode, "C", msgprop_array[4].Value.lpszW);
 		}
+	}
+
+	/* Handle UID */
+	MAPINAMEID name;
+	MAPINAMEID *namep = &name;
+	name.lpguid = const_cast<GUID *>(&PSETID_Meeting);
+	name.ulKind = MNID_ID;
+	name.Kind.lID = dispidGlobalObjectID;
+
+	std::string uid;
+	hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
+	if (hr == hrSuccess) {
+		proptag->aulPropTag[0] = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
+
+		hr = lpMessage->GetProps(proptag, 0, &count, &~msgprop_array);
+		if (hr == hrSuccess) {
+			HrGetICalUidFromBinUid(msgprop_array[0].Value.bin, &uid);
+			auto uid_wstr = convert_to<std::wstring>(uid);
+			to_prop(root, "UID", uid_wstr.c_str());
+		}
+	}
+	/* Object did not have guid, let us generate one, and save it
+	   if possible */
+	if (uid.size() == 0) {
+		HrGenerateUid(&uid);
+		auto binstr = hex2bin(uid);
+
+		SPropValue prop;
+		prop.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
+		prop.Value.bin.lpb = (LPBYTE)binstr.c_str();
+		prop.Value.bin.cb = binstr.length();
+
+		hr = HrSetOneProp(lpMessage, &prop);
+		if (hr == hrSuccess) {
+			hr = lpMessage->SaveChanges(0);
+			if (hr != hrSuccess)
+				/* ignore */;
+		}
+
+		to_prop(root, "UID", prop);
 	}
 
 	/* Write memobject */
