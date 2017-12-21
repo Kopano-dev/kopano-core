@@ -94,8 +94,8 @@ class FolderResource(Resource):
         'id': lambda folder: folder.entryid,
         'parentFolderId': lambda folder: folder.parent.entryid,
         'displayName': lambda folder: folder.name,
-#        'modified': lambda folder: folder.last_modified.isoformat(),
-#        'unread': lambda folder: folder.unread,
+        'unreadItemCount': lambda folder: folder.unread,
+        'totalItemCount': lambda folder: folder.count,
     }
 
     def on_get(self, req, resp, userid=None, folderid=None):
@@ -194,10 +194,11 @@ class MessageResource(Resource):
     fields = {
         'id': lambda item: item.entryid,
         'subject': lambda item: item.subject,
-#        'to': lambda item: ['%s <%s>' % (to.name, to.email) for to in item.to],
-#        'text': lambda item: item.text,
-#        'modified': lambda item: item.last_modified.isoformat(),
-#        'received': lambda item: item.received.isoformat()
+        'body': lambda item: {'contentType': 'html', 'content': item.html},
+        'from': lambda item: {'emailAddress': {'name': item.sender.name, 'address': item.sender.email} },
+        'toRecipients': lambda item: [{'emailAddress': {'name': to.name, 'address': to.email}} for to in item.to],
+        'lastModifiedDateTime': lambda item: item.last_modified.isoformat(),
+        'receivedDateTime': lambda item: item.received.isoformat(),
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, messageid=None):
@@ -224,6 +225,9 @@ class EventResource(Resource):
     fields = {
         'id': lambda item: item.entryid,
         'subject': lambda item: item.subject,
+        'recurrence': lambda item: {'pattern': 'weekly'} if isinstance(item, kopano.Item) and item.recurring else None,
+        'start': lambda item: {'dateTime': item.start.isoformat(), 'timeZone': 'UTC'},
+        'end': lambda item: {'dateTime': item.end.isoformat(), 'timeZone': 'UTC'},
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, messageid=None):
