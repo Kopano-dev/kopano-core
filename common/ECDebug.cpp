@@ -1684,27 +1684,4 @@ std::string MapiNameIdToString(const MAPINAMEID *pNameId)
 	return str += "Unknown kind";
 }
 
-std::string MapiNameIdListToString(ULONG cNames,
-    const MAPINAMEID *const *ppNames, const SPropTagArray *pptaga)
-{
-	std::string str;
-	ULONG i;
-
-	if(ppNames == NULL)
-		return "NULL";
-
-	str = "NameIds: (" + stringify(cNames) + ")\n";
-
-	for (i = 0; i < cNames; ++i) {
-		str += MapiNameIdToString(ppNames[i]);
-		if(pptaga && pptaga->cValues == cNames) {
-			str += " -> ";
-			str += stringify(pptaga->aulPropTag[i], true);
-		}
-		str += "\n";
-	}
-
-	return str;
-}
-
 } /* namespace */
