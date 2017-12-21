@@ -47,8 +47,6 @@ WSMAPIFolderOps::WSMAPIFolderOps(KCmd *cmd, std::recursive_mutex &data_lock,
 	ECUnknown("WSMAPIFolderOps"), lpCmd(cmd), lpDataLock(data_lock),
 	ecSessionId(sid), m_lpTransport(lpTransport)
 {
-	this->lpCmd = lpCmd;
-	this->ecSessionId = ecSessionId;
 	lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
 	auto ret = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
 	if (ret != hrSuccess)
