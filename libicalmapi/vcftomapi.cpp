@@ -120,6 +120,12 @@ HRESULT vcftomapi_impl::handle_TEL(VObject *v)
 					return ret;
 				props.emplace_back(s);
 			}
+			if (strcasecmp(token.c_str(), "WORK") == 0) {
+				auto ret = vobject_to_prop(v, s, PR_BUSINESS_TELEPHONE_NUMBER);
+				if (ret != hrSuccess)
+					return ret;
+				props.emplace_back(s);
+			}
 		}
 	}
 	return hrSuccess;
