@@ -51,7 +51,7 @@ public:
 	~StatsClient();
 
 	int startup(const std::string &collector);
-	_kc_hidden inline ECLogger *getLogger(void) { return logger; }
+	_kc_hidden inline ECLogger *getLogger() const { return logger; }
 	void countInc(const std::string & key, const std::string & key_sub);
 	_kc_hidden void countAdd(const std::string &key, const std::string &key_sub, double n);
 	void countAdd(const std::string & key, const std::string & key_sub, const int64_t n);

@@ -161,12 +161,12 @@ public:
 	_kc_hidden LPCSTR GetDefaultSortLocaleID(void);
 	_kc_hidden ULONG GetSortLCID(ULONG store_id);
 	_kc_hidden ECLocale GetSortLocale(ULONG store_id);
-	_kc_hidden ECCacheManager *GetCacheManager(void) { return m_lpECCacheManager.get(); }
-	_kc_hidden ECSearchFolders *GetSearchFolders(void) { return m_lpSearchFolders.get(); }
-	_kc_hidden ECConfig *GetConfig(void) { return m_lpConfig; }
-	_kc_hidden ECLogger *GetAudit(void) { return m_lpAudit; }
-	_kc_hidden ECPluginFactory *GetPluginFactory(void) { return m_lpPluginFactory.get(); }
-	_kc_hidden ECLockManager *GetLockManager(void) { return m_ptrLockManager.get(); }
+	_kc_hidden ECCacheManager *GetCacheManager() const { return m_lpECCacheManager.get(); }
+	_kc_hidden ECSearchFolders *GetSearchFolders() const { return m_lpSearchFolders.get(); }
+	_kc_hidden ECConfig *GetConfig() const { return m_lpConfig; }
+	_kc_hidden ECLogger *GetAudit() const { return m_lpAudit; }
+	_kc_hidden ECPluginFactory *GetPluginFactory() const { return m_lpPluginFactory.get(); }
+	_kc_hidden ECLockManager *GetLockManager() const { return m_ptrLockManager.get(); }
 	_kc_hidden ECAttachmentConfig *get_atxconfig() const { return m_atxconfig.get(); }
 
 protected:

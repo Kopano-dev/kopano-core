@@ -1334,10 +1334,10 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	bool bAutoAccept = false, bDeclineConflict = false, bDeclineRecurring = false;
 	ULONG cbObjectId = 0;
-	LPENTRYID lpObjectId = NULL;
+	memory_ptr<ENTRYID> lpObjectId;
 	ArchiveManagePtr ptrArchiveManage;
 	ArchiveList lstArchives;
-	ECUSERCLIENTUPDATESTATUS *lpECUCUS = NULL;
+	memory_ptr<ECUSERCLIENTUPDATESTATUS> lpECUCUS;
 	convert_context converter;
 
 	auto hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
@@ -1349,7 +1349,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 	switch (ulClass) {
 	case OBJECTCLASS_CONTAINER:
 	case CONTAINER_COMPANY:
-		hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)lpszName, 0, &cbObjectId, &lpObjectId);
+		hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)lpszName, 0, &cbObjectId, &~lpObjectId);
 		if (hr != hrSuccess) {
 			cerr << "Unable to resolve company: " << getMapiCodeString(hr, lpszName) << endl;
 			return hr;
@@ -1395,7 +1395,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
 	case DISTLIST_DYNAMIC:
-		hr = lpServiceAdmin->ResolveGroupName((LPTSTR)lpszName, 0, &cbObjectId, &lpObjectId);
+		hr = lpServiceAdmin->ResolveGroupName((LPTSTR)lpszName, 0, &cbObjectId, &~lpObjectId);
 		if (hr != hrSuccess) {
 			cerr << "Unable to resolve group: " << getMapiCodeString(hr, lpszName) << endl;
 			return hr;
@@ -1419,7 +1419,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 	case NONACTIVE_EQUIPMENT:
 	case NONACTIVE_CONTACT:
 	default:
-		hr = lpServiceAdmin->ResolveUserName((LPTSTR)lpszName, 0, &cbObjectId, &lpObjectId);
+		hr = lpServiceAdmin->ResolveUserName((LPTSTR)lpszName, 0, &cbObjectId, &~lpObjectId);
 		if (hr != hrSuccess) {
 			cerr << "Unable to resolve user: " << getMapiCodeString(hr, lpszName) << endl;
 			return hr;
@@ -1468,7 +1468,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 				hr = hrSuccess; /* Don't make error fatal */
 			}
 		}
-		hr = lpServiceAdmin->GetUserClientUpdateStatus(cbObjectId, lpObjectId, 0, &lpECUCUS);
+		hr = lpServiceAdmin->GetUserClientUpdateStatus(cbObjectId, lpObjectId, 0, &~lpECUCUS);
 		if (hr != hrSuccess) {
 			cerr << "Unable to get auto update status: " <<
 				GetMAPIErrorMessage(hr) << " (" <<

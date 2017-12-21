@@ -1,0 +1,16 @@
+Debugging notes
+
+* When configuring with --with-asan (likewise with ubsan, etc.), if the linking
+  stage fails because of missing ASAN symbols, it will be necessary to to use
+  `make LIBS=-lasan`. Though, when using clang in a GNU environment where
+  /usr/lib/libasan.so already belongs to gcc, LIBS=-lasan must never be used.
+
+* ASAN may (still) require the use of LD_PRELOAD=/usr/lib/libasan.so.N when it
+  complains about having been loaded "too late".
+
+* LSAN's backtraces do not show line information about frames whose code
+  resides in dlopened modules. (Prints "(<unknown module>)".) This affects for
+  example libkcclient.so. To work around this, let ld.so preload the module by
+  using LD_PRELOAD=libkcclient.so. The future dlopen call will return the
+  *same* handle when it opens the same file, thanks to a common optimization in
+  libdl.so.

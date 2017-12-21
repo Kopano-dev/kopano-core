@@ -1,0 +1,22 @@
+#
+# Find parent<->child object (all kinds of objects) relationships where a
+# parent references the child's entryid.
+#
+# Output is like:
+# +-----+------+-------------+-------------+------+
+# | id  | type | HEX(pp.tag) | hierarchyid | type |
+# +-----+------+-------------+-------------+------+
+# |   3 |    1 | 35E0        |           5 |    3 |
+#
+# Meaning: object 3 (of type 1, MAPI_STORE) has a property 0x35E0
+# (PR_IPM_SUBTREE_ENTRYID) which contains the entryid of object 5
+# (type 3, MAPI_FOLDER).
+#
+# Adding WHERE ch.type=5 (MAPI_MESSAGE) hence checks if any message's entryid
+# is referenced by something else.
+#
+SELECT ph.id,ph.type,HEX(pp.tag),cip.hierarchyid,ch.type
+FROM hierarchy AS ph
+INNER JOIN properties AS pp ON ph.id=pp.hierarchyid AND pp.val_binary IS NOT NULL
+INNER JOIN indexedproperties AS cip ON pp.val_binary=cip.val_binary AND cip.tag=4095
+INNER JOIN hierarchy AS ch ON cip.hierarchyid=ch.id;
