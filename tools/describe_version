@@ -1,4 +1,6 @@
 #!/bin/sh
+# Emit distance-based commit identifier.
+#
 if ! which git >/dev/null 2>/dev/null || ! which perl >/dev/null 2>/dev/null; then
 	exit 1
 fi
@@ -6,6 +8,13 @@ if [ "$#" -eq 0 ]; then
 	set -- HEAD
 fi
 for commit in "$@"; do
-	base=$(git describe --first-parent "$commit" | perl -pe 's{-\d+-g[0-9a-f]+$}{$1}')
-	git describe --match="$base" "$commit"
+	if git describe --match=kopanocore-8.4.0 "$commit" >/dev/null 2>/dev/null ||
+	   git describe --match=kopanocore-8.4.90 "$commit" >/dev/null 2>/dev/null; then
+		base=$(git describe --first-parent "$commit" | perl -pe 's{-\d+-g[0-9a-f]+$}{$1}')
+		git describe --match="$base" "$commit"
+	else
+		# Used before 8.4.x
+		base=$(git describe --match="bp/*" --tags "$commit" | perl -pe 's{-\d+-g[0-9a-f]+$}{$1}')
+		git describe --match="$base" --tags "$commit"
+	fi
 done
