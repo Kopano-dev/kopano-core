@@ -3512,7 +3512,7 @@ HRESULT WSTransport::HrSyncUsers(ULONG cbCompanyId, LPENTRYID lpCompanyId)
     	if(SOAP_OK != m_lpCmd->ns__syncUsers(m_ecSessionId, ulCompanyId, sCompanyId, &sResponse))
 			er = KCERR_NETWORK_ERROR;
 		else
-			er = (ECRESULT) sResponse;
+			er = sResponse;
 	}
 	END_SOAP_CALL
  exitm:
@@ -3545,7 +3545,7 @@ HRESULT WSTransport::GetQuota(ULONG cbUserId, LPENTRYID lpUserId,
     	if(SOAP_OK != m_lpCmd->ns__GetQuota(m_ecSessionId, ABEID_ID(lpUserId), sUserId, bGetUserDefault, &sResponse))
 			er = KCERR_NETWORK_ERROR;
 		else
-			er = (ECRESULT) sResponse.er;
+			er = sResponse.er;
 	}
 	END_SOAP_CALL
 
@@ -3595,7 +3595,7 @@ HRESULT WSTransport::SetQuota(ULONG cbUserId, LPENTRYID lpUserId,
     	if(SOAP_OK != m_lpCmd->ns__SetQuota(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sQuota, &sResponse))
 			er = KCERR_NETWORK_ERROR;
 		else
-			er = (ECRESULT) sResponse;
+			er = sResponse;
 	}
 	END_SOAP_CALL
  exitm:
@@ -3730,7 +3730,7 @@ HRESULT WSTransport::GetQuotaStatus(ULONG cbUserId, LPENTRYID lpUserId,
     	if(SOAP_OK != m_lpCmd->ns__GetQuotaStatus(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sResponse))
 			er = KCERR_NETWORK_ERROR;
 		else
-			er = (ECRESULT) sResponse.er;
+			er = sResponse.er;
 	}
 	END_SOAP_CALL
 
@@ -3851,9 +3851,9 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 		if (m_lpCmd->ns__resolvePseudoUrl(m_ecSessionId, lpszPseudoUrl,
 		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-    	else
-    		er = (ECRESULT)sResponse.er;
-    }
+		else
+			er = sResponse.er;
+	}
 	END_SOAP_CALL
 
 	cachedResult.hr = hr;
@@ -3903,11 +3903,11 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 	START_SOAP_CALL
 	{
     	if( SOAP_OK != m_lpCmd->ns__getServerDetails(m_ecSessionId, *lpsSvrNameList, ulFlags & ~MAPI_UNICODE, &sResponse))
-    		er = KCERR_NETWORK_ERROR;
-    	else
-    		er = (ECRESULT)sResponse.er;
-    }
-    END_SOAP_CALL
+			er = KCERR_NETWORK_ERROR;
+		else
+			er = sResponse.er;
+	}
+	END_SOAP_CALL
 
 	hr = SoapServerListToServerList(&sResponse.sServerList, ulFlags & MAPI_UNICODE, lppsServerList);
 	if (hr != hrSuccess)
@@ -3941,8 +3941,7 @@ HRESULT WSTransport::HrGetChanges(const std::string& sourcekey, ULONG ulSyncId, 
 		if(SOAP_OK != m_lpCmd->ns__getChanges(m_ecSessionId, sSourceKey, ulSyncId, ulChangeId, ulSyncType, ulFlags, lpsSoapRestrict, &sResponse))
 			er = KCERR_NETWORK_ERROR;
 		else
-			er = (ECRESULT) sResponse.er;
-
+			er = sResponse.er;
 	}
 	END_SOAP_CALL
 
@@ -4002,8 +4001,7 @@ HRESULT WSTransport::HrSetSyncStatus(const std::string& sourcekey, ULONG ulSyncI
 		if(SOAP_OK != m_lpCmd->ns__setSyncStatus(m_ecSessionId, sSourceKey, ulSyncId, ulChangeId, ulSyncType, ulFlags, &sResponse))
 			er = KCERR_NETWORK_ERROR;
 		else
-			er = (ECRESULT) sResponse.er;
-
+			er = sResponse.er;
 	}
 	END_SOAP_CALL
 
@@ -4052,8 +4050,7 @@ HRESULT WSTransport::HrEntryIDFromSourceKey(ULONG cbStoreID, LPENTRYID lpStoreID
 		if(SOAP_OK != m_lpCmd->ns__getEntryIDFromSourceKey(m_ecSessionId, sStoreId, folderSourceKey, messageSourceKey, &sResponse))
 			er = KCERR_NETWORK_ERROR;
 		else
-			er = (ECRESULT) sResponse.er;
-
+			er = sResponse.er;
 	}
 	END_SOAP_CALL
 
@@ -4087,7 +4084,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 		if(SOAP_OK != m_lpCmd->ns__getSyncStates(m_ecSessionId, ulaSyncId, &sResponse))
 			er = KCERR_NETWORK_ERROR;
 		else
-			er = (ECRESULT) sResponse.er;
+			er = sResponse.er;
 	}
 	END_SOAP_CALL
 
