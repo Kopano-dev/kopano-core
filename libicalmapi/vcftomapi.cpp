@@ -33,6 +33,8 @@
 #include <mapix.h>
 #include <vector>
 #include "vcftomapi.hpp"
+#include "icaluid.h"
+#include "nameids.h"
 
 using namespace KCHL;
 
@@ -54,6 +56,7 @@ class vcftomapi_impl _kc_final : public vcftomapi {
 	HRESULT handle_TEL(VObject *);
 	HRESULT handle_EMAIL(VObject *);
 	HRESULT handle_ADR(VObject *);
+	HRESULT handle_UID(VObject *);
 	HRESULT vobject_to_prop(VObject *, SPropValue &, ULONG proptype);
 	HRESULT vobject_to_named_prop(VObject *, SPropValue &, ULONG named_proptype);
 	HRESULT unicode_to_named_prop(const wchar_t *, SPropValue &, ULONG named_proptype);
@@ -208,6 +211,47 @@ HRESULT vcftomapi_impl::handle_ADR(VObject *v)
 	return hrSuccess;
 }
 
+HRESULT vcftomapi_impl::handle_UID(VObject *v)
+{
+	auto value_type = vObjectValueType(v);
+	if (value_type != VCVT_USTRINGZ)
+		return MAPI_E_INVALID_PARAMETER;
+
+	auto uid_wstring = vObjectUStringZValue(v);
+	auto uid_string = convert_to<std::string>(uid_wstring);
+
+	memory_ptr<SPropValue> prop;
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~prop);
+	if (hr != hrSuccess)
+		return hr;
+
+	hr = HrMakeBinaryUID(uid_string, prop, prop);
+	if (hr != hrSuccess)
+		return hr;
+
+	MAPINAMEID name;
+	MAPINAMEID *namep = &name;
+	memory_ptr<SPropTagArray> proptag;
+
+	name.lpguid = const_cast<GUID *>(&PSETID_Meeting);
+	name.ulKind = MNID_ID;
+	name.Kind.lID = dispidGlobalObjectID;
+	hr = m_propobj->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptag);
+
+	SPropValue s;
+	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
+
+	hr = MAPIAllocateBuffer(prop->Value.bin.cb, reinterpret_cast<void **>(&s.Value.bin.lpb));
+	if (hr != hrSuccess)
+		return hr;
+
+	memcpy(s.Value.bin.lpb, prop->Value.bin.lpb, prop->Value.bin.cb);
+	s.Value.bin.cb = prop->Value.bin.cb;
+	props.emplace_back(s);
+
+	return hrSuccess;
+}
+
 /**
  * Parses an ICal string (with a certain charset) and converts the
  * data in memory. The real MAPI object can be retrieved using
@@ -258,6 +302,10 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 				return hr;
 		} else if (strcmp(name, VCAdrProp) == 0) {
 			auto hr = handle_ADR(v);
+			if (hr != hrSuccess)
+				return hr;
+		} else if (strcmp(name, "UID") == 0) {
+			auto hr = handle_UID(v);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -375,6 +423,8 @@ HRESULT vcftomapi_impl::save_props(const std::list<SPropValue> &proplist,
 			MAPIFreeBuffer(prop.Value.lpszW);
 		else if (PROP_TYPE(prop.ulPropTag) == PT_STRING8)
 			MAPIFreeBuffer(prop.Value.lpszA);
+		else if (PROP_TYPE(prop.ulPropTag) == PT_BINARY)
+			MAPIFreeBuffer(prop.Value.bin.lpb);
 	}
 	return ret;
 }
