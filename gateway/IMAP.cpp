@@ -99,7 +99,6 @@ IMAP::IMAP(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger,
 
 	bOnlyMailFolders = parseBool(lpConfig->GetSetting("imap_only_mailfolders"));
 	bShowPublicFolder = parseBool(lpConfig->GetSetting("imap_public_folders"));
-	cache_folders_time_limit = atoui(lpConfig->GetSetting("imap_cache_folders_time_limit"));
 }
 
 IMAP::~IMAP() {
@@ -1008,7 +1007,6 @@ HRESULT IMAP::HrCmdCreate(const std::string &strTag,
 
 	HrResponse(RESP_TAGGED_OK, strTag, "CREATE completed");
 exit:
-	cached_folders.clear();
 	return hr;
 }
 
@@ -1096,7 +1094,6 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 
 	HrResponse(RESP_TAGGED_OK, strTag, "DELETE completed");
 exit:
-	cached_folders.clear();
 	return hr;
 }
 
@@ -1246,7 +1243,6 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 
 	HrResponse(RESP_TAGGED_OK, strTag, "RENAME completed");
 exit:
-	cached_folders.clear();
 	return hr;
 }
 
@@ -1386,16 +1382,8 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 	}
 	strPattern = strToUpper(strPattern);
 
-	list<SFolder> *folders = &cached_folders;
-	list<SFolder> tmp_folders;
-	if (cache_folders_time_limit > 0) {
-		hr = HrGetFolderList(cached_folders);
-		cache_folders_last_used = std::time(nullptr);
-	}
-	else {
-		hr = HrGetFolderList(tmp_folders);
-		folders = &tmp_folders;
-	}
+	std::list<SFolder> folders;
+	hr = HrGetFolderList(folders);
 
 	// Get all folders
 
@@ -1405,7 +1393,7 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 	}
 
 	// Loop through all folders to see if they match
-	for (auto iFld = folders->cbegin(); iFld != folders->cend(); ++iFld) {
+	for (auto iFld = folders.cbegin(); iFld != folders.cend(); ++iFld) {
 		if (bSubscribedOnly && !iFld->bActive && !iFld->bSpecialFolder)
 		    // Folder is not subscribed to
 		    continue;
@@ -1413,7 +1401,7 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 		// Get full path name
 		strFolderPath.clear();
 		// if path is empty, we're probably dealing the IPM_SUBTREE entry
-		if(HrGetFolderPath(iFld, *folders, strFolderPath) != hrSuccess || strFolderPath.empty())
+		if(HrGetFolderPath(iFld, folders, strFolderPath) != hrSuccess || strFolderPath.empty())
 		    continue;
 		    
 		if (!strFolderPath.empty())
