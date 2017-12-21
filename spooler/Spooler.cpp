@@ -92,8 +92,6 @@ using std::wstring;
 static StatsClient *sc = NULL;
 
 // spooler exit codes
-#define EXIT_OK 0
-#define EXIT_FAILED 1
 #define EXIT_WAIT 2
 #define EXIT_REMOVE 3
 
@@ -387,7 +385,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 				ec_log_info("Message for user %ls will be tried again later", sSendData.strUsername.c_str());
 				sc -> countInc("Spooler", "exit_wait");
 			}
-			else if (WEXITSTATUS(status) == EXIT_OK || WEXITSTATUS(status) == EXIT_FAILED) {
+			else if (WEXITSTATUS(status) == EXIT_SUCCESS || WEXITSTATUS(status) == EXIT_FAILURE) {
 				// message was sent, or the user already received an error mail.
 				ec_log_info("Processed message for user %ls", sSendData.strUsername.c_str());
 				wasSent = true;
@@ -1014,31 +1012,24 @@ int main(int argc, char *argv[]) {
 		bIgnoreUnknownConfigOptions = true;
 
 	g_lpConfig = ECConfig::Create(lpDefaults);
-	if (szConfig) {
-		int argidx = 0;
-
-		if (!g_lpConfig->LoadSettings(szConfig) ||
-		    (argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind])) < 0 ||
-		    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
-			/* Create info logger without a timestamp to stderr. */
-			g_lpLogger = new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);
-			if (g_lpLogger == nullptr) {
-				hr = MAPI_E_NOT_ENOUGH_MEMORY;
-				goto exit;
-			}
-			ec_log_set(g_lpLogger);
-			LogConfigErrors(g_lpConfig);
-			hr = E_FAIL;
-			goto exit;
-		}
-		
-		// ECConfig::ParseParams returns the index in the passed array,
-		// after some shuffling, where it stopped parsing. optind is
-		// the index where my_getopt_long_permissive stopped parsing. So
-		// adding argidx to optind will result in the index after all
-		// options are parsed.
-		optind += argidx;
+	int argidx = 0;
+	if (!g_lpConfig->LoadSettings(szConfig) ||
+	    (argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind])) < 0 ||
+	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
+		/* Create info logger without a timestamp to stderr. */
+		g_lpLogger = new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);
+		if (g_lpLogger == nullptr)
+			return EXIT_FAILURE; /* MAPI_E_NOT_ENOUGH_MEMORY */
+		ec_log_set(g_lpLogger);
+		LogConfigErrors(g_lpConfig);
+		return EXIT_FAILURE; /* E_FAIL */
 	}
+	// ECConfig::ParseParams returns the index in the passed array,
+	// after some shuffling, where it stopped parsing. optind is
+	// the index where my_getopt_long_permissive stopped parsing. So
+	// adding argidx to optind will result in the index after all
+	// options are parsed.
+	optind += argidx;
 
 	// commandline overwrites spooler.cfg
 	if (optind < argc)
@@ -1151,13 +1142,13 @@ exit:
 	free(st.ss_sp);
 	switch(hr) {
 	case hrSuccess:
-		return EXIT_OK;
+		return EXIT_SUCCESS;
 
 	case MAPI_E_WAIT:			// Timed message
 		case MAPI_W_NO_SERVICE:	// SMTP server did not react in forked mode, mail should be retried later
 		return EXIT_WAIT;
 	}
 
-		// forked: failed sending message, but is already removed from the queue
-		return EXIT_FAILED;
+	// forked: failed sending message, but is already removed from the queue
+	return EXIT_FAILURE;
 }

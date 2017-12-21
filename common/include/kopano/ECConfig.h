@@ -53,7 +53,6 @@ public:
 	static const char *GetDefaultPath(const char *basename);
 	_kc_hidden virtual ~ECConfig(void) = default;
 	_kc_hidden virtual bool LoadSettings(const char *file) = 0;
-	_kc_hidden virtual bool	LoadSettings(const wchar_t *file);
 	_kc_hidden virtual int ParseParams(int argc, char **argv) = 0;
 	_kc_hidden virtual const char *GetSettingsPath(void) = 0;
 	_kc_hidden virtual bool	ReloadSettings(void) = 0;

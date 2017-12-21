@@ -2857,25 +2857,22 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if (szConfig) {
-		bool bHaveConfig = lpsConfig->LoadSettings(szConfig);
-		/* Special case on complaining errors in config file:
-		 * - explicit config file given, but was not found
-		 * - default config file loaded, but contains errors
-		 * This makes that we do not complain for errors when an "invalid" config was given but did load ok.
-		 * This is a trick that people can use to give the spooler or dagent a config for its client SSL settings,
-		 * which are the only settings used by the admin program.
-		 */
-		if ((!bHaveConfig && bExplicitConfig) || (bHaveConfig && !bExplicitConfig && lpsConfig->HasErrors())) {
-			cerr << "Error while reading configuration file " << szConfig << endl;
-			// create fatal logger without a timestamp to stderr
-			lpLogger.reset(new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false), false);
-			ec_log_set(lpLogger);
-			LogConfigErrors(lpsConfig.get());
-			return 1;
-		}
+	bool bHaveConfig = lpsConfig->LoadSettings(szConfig);
+	/* Special case on complaining errors in config file:
+	 * - explicit config file given, but was not found
+	 * - default config file loaded, but contains errors
+	 * This makes that we do not complain for errors when an "invalid" config was given but did load ok.
+	 * This is a trick that people can use to give the spooler or dagent a config for its client SSL settings,
+	 * which are the only settings used by the admin program.
+	 */
+	if ((!bHaveConfig && bExplicitConfig) || (bHaveConfig && !bExplicitConfig && lpsConfig->HasErrors())) {
+		cerr << "Error while reading configuration file " << szConfig << endl;
+		// create fatal logger without a timestamp to stderr
+		lpLogger.reset(new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false), false);
+		ec_log_set(lpLogger);
+		LogConfigErrors(lpsConfig.get());
+		return 1;
 	}
-
 	if(lang) {
 		char* locale = setlocale(LC_MESSAGES, lang);
 		if (!locale) {
