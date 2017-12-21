@@ -1,3 +1,11 @@
 #!/bin/sh
-which git >/dev/null 2>/dev/null && which perl >/dev/null 2>/dev/null && \
-git describe --match=$(git describe --first-parent "$@" | perl -pe 's{-\d+-g[0-9a-f]+$}{$1}') "$@"
+if ! which git >/dev/null 2>/dev/null || ! which perl >/dev/null 2>/dev/null; then
+	exit 1
+fi
+if [ "$#" -eq 0 ]; then
+	set -- HEAD
+fi
+for commit in "$@"; do
+	base=$(git describe --first-parent "$commit" | perl -pe 's{-\d+-g[0-9a-f]+$}{$1}')
+	git describe --match="$base" "$commit"
+done
