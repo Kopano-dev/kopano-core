@@ -125,18 +125,6 @@ void IMAP::ReleaseContentsCache()
 	m_vTableDataColumns.clear();
 }
 
-/** 
- * Returns number of minutes to keep connection alive
- * 
- * @return user logged in (true) or not (false)
- */
-int IMAP::getTimeoutMinutes() {
-	if (lpStore != NULL)
-		return 30;				// 30 minutes when logged in
-	else
-		return 1;				// 1 minute when not logged in
-}
-
 /**
  * Case insensitive std::string compare
  *

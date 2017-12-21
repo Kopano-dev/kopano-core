@@ -63,18 +63,6 @@ POP3::~POP3() {
 		delete[] m.sbEntryID.lpb;
 }
 
-/** 
- * Returns number of minutes to keep connection alive
- * 
- * @return user logged in (true) or not (false)
- */
-int POP3::getTimeoutMinutes() {
-	if (lpStore != NULL)
-		return 5;				// 5 minutes when logged in
-	else
-		return 1;				// 1 minute when not logged in
-}
-
 HRESULT POP3::HrSendGreeting(const std::string &strHostString) {
 	HRESULT hr = hrSuccess;
 

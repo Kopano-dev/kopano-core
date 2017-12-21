@@ -146,7 +146,8 @@ public:
 	IMAP(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig);
 	~IMAP();
 
-	int getTimeoutMinutes();
+	// getTimeoutMinutes: 30 min when logged in otherwise 1 min
+	int getTimeoutMinutes() const { return lpStore == nullptr ? 1 : 30; }
 	bool isIdle() const { return m_bIdleMode; }
 	bool isContinue() const { return m_bContinue; }
 
