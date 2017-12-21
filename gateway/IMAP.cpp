@@ -953,36 +953,34 @@ HRESULT IMAP::HrCmdCreate(const std::string &strTag,
 
 	if (!lpSession) {
 		HrResponse(RESP_TAGGED_NO, strTag, "CREATE error no session");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	if (strFolderParam.empty()) {
 		HrResponse(RESP_TAGGED_NO, strTag, "CREATE error no folder");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	hr = IMAP2MAPICharset(strFolderParam, strFolder);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "CREATE invalid folder name");
-		goto exit;
+		return hr;
 	}
 
 	if (strFolder[0] == IMAP_HIERARCHY_DELIMITER) {
 		// courier and dovecot also block this
 		HrResponse(RESP_TAGGED_NO, strTag, "CREATE invalid folder name");
-		goto exit;
+		return hr;
 	}
 	hr = HrFindFolderPartial(strFolder, &~lpFolder, &strPath);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "CREATE error opening destination folder");
-		goto exit;
+		return hr;
 	}
 
 	if (strPath.empty()) {
 		HrResponse(RESP_TAGGED_NO, strTag, "CREATE folder already exists");
-		goto exit;
+		return hr;
 	}
 
 	strPaths = tokenize(strPath, IMAP_HIERARCHY_DELIMITER);
@@ -994,19 +992,18 @@ HRESULT IMAP::HrCmdCreate(const std::string &strTag,
 				HrResponse(RESP_TAGGED_NO, strTag, "CREATE folder already exists");
 			else
 				HrResponse(RESP_TAGGED_NO, strTag, "CREATE can't create folder");
-			goto exit;
+			return hr;
 		}
 
 		sFolderClass.ulPropTag = PR_CONTAINER_CLASS_A;
 		sFolderClass.Value.lpszA = const_cast<char *>("IPF.Note");
 		hr = HrSetOneProp(lpSubFolder, &sFolderClass);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		lpFolder = std::move(lpSubFolder);
 	}
 
 	HrResponse(RESP_TAGGED_OK, strTag, "CREATE completed");
-exit:
 	return hr;
 }
 
@@ -1037,42 +1034,40 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 
 	if (!lpSession) {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error no session");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	hr = IMAP2MAPICharset(strFolderParam, strFolder);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE invalid folder name");
-		goto exit;
+		return hr;
 	}
 	strFolder = strToUpper(strFolder);
 
 	if (strFolder.compare(L"INBOX") == 0) {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error deleting INBOX is not allowed");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	hr = HrFindFolder(strFolder, false, &~folder, &cb, &~entry_id);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error folder not found");
-		goto exit;
+		return hr;
 	}
 
 	if (IsSpecialFolder(cb, entry_id)) {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE special folder may not be deleted");
-		goto exit;
+		return hr;
 	}
 	hr = HrOpenParentFolder(folder, &~lpParentFolder);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error opening parent folder");
-		goto exit;
+		return hr;
 	}
 
 	hr = lpParentFolder->DeleteFolder(cb, entry_id, 0, NULL, DEL_FOLDERS | DEL_MESSAGES);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "DELETE error deleting folder");
-		goto exit;
+		return hr;
 	}
 
 	// remove from subscribed list
@@ -1093,7 +1088,6 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
     }
 
 	HrResponse(RESP_TAGGED_OK, strTag, "DELETE completed");
-exit:
 	return hr;
 }
 
@@ -1129,19 +1123,18 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 
 	if (!lpSession) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error no session");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	hr = IMAP2MAPICharset(strExistingFolderParam, strExistingFolder);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME invalid folder name");
-		goto exit;
+		return hr;
 	}
 	hr = IMAP2MAPICharset(strNewFolderParam, strNewFolder);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME invalid folder name");
-		goto exit;
+		return hr;
 	}
 
 	strExistingFolder = strToUpper(strExistingFolder);
@@ -1154,35 +1147,34 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		//       inferior hierarchical names of INBOX, these are unaffected by a
 		//       rename of INBOX.
 
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	hr = HrFindFolder(strExistingFolder, false, &~lpMovFolder, &cb, &~entry_id);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error source folder not found");
-		goto exit;
+		return hr;
 	}
 
 	if (IsSpecialFolder(cb, entry_id)) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME special folder may not be moved or renamed");
-		goto exit;
+		return hr;
 	}
 	hr = HrOpenParentFolder(lpMovFolder, &~lpParentFolder);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening parent folder");
-		goto exit;
+		return hr;
 	}
 
 	// Find the folder as far as we can
 	hr = HrFindFolderPartial(strNewFolder, &~lpMakeFolder, &strPath);
 	if(hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening destination folder");
-		goto exit;
+		return hr;
 	}
 	if (strPath.empty()) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME destination already exists");
-		goto exit;
+		return hr;
 	}
     
     // strPath now contains subfolder we want to create (eg sub/new). So now we have to
@@ -1199,20 +1191,20 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 			hr = lpMakeFolder->CreateFolder(FOLDER_GENERIC, (TCHAR *)strFolder.c_str(), nullptr, nullptr, MAPI_UNICODE | OPEN_IF_EXISTS, &~lpSubFolder);
 		if (hr != hrSuccess || lpSubFolder == NULL) {
 			HrResponse(RESP_TAGGED_NO, strTag, "RENAME error creating folder");
-			goto exit;
+			return hr;
 		}
 		sFolderClass.ulPropTag = PR_CONTAINER_CLASS_A;
 		sFolderClass.Value.lpszA = const_cast<char *>("IPF.Note");
 		hr = HrSetOneProp(lpSubFolder, &sFolderClass);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		lpMakeFolder = std::move(lpSubFolder);
 	} while (deliPos != string::npos);
 
 	if (HrGetOneProp(lpParentFolder, PR_ENTRYID, &~lppvFromEntryID) != hrSuccess ||
 	    HrGetOneProp(lpMakeFolder, PR_ENTRYID, &~lppvDestEntryID) != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening source or destination");
-		goto exit;
+		return hr;
 	}
 
 	// When moving in the same folder, just rename
@@ -1230,7 +1222,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		     &ulObjType, &~lpSubFolder);
 		if (hr != hrSuccess) {
 			HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening folder");
-			goto exit;
+			return hr;
 		}
 
 		hr = lpSubFolder->SetProps(1, &propName, NULL);
@@ -1238,11 +1230,10 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME error moving folder");
-		goto exit;
+		return hr;
 	}
 
 	HrResponse(RESP_TAGGED_OK, strTag, "RENAME completed");
-exit:
 	return hr;
 }
 
