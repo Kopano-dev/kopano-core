@@ -138,18 +138,6 @@ int IMAP::getTimeoutMinutes() {
 }
 
 /**
- * Case insensitive std::string compare
- *
- * @param[in]	strA	compare with strB
- * @param[in]	strB	compare with strA
- * @return	true if equal, not considering case differences
- */
-bool IMAP::CaseCompare(const string& strA, const string& strB)
-{
-	return strcasecmp(strA.c_str(), strB.c_str()) == 0;
-}
-
-/**
  * Split a string with IMAP_HIERARCHY_DELIMITER into a vector
  *
  * @param[in]	strInput	Folder string with the IMAP_HIERARCHY_DELIMITER for a hierarchy
@@ -4228,7 +4216,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 				if (!seen.emplace(reqfield).second)
                     continue;
                 for (const auto &field : lstFields) {
-                    if (!CaseCompare(reqfield, field.first))
+                    if (strcasecmp(reqfield.c_str(), field.first.c_str()) != 0)
                         continue;
                     strMessagePart += field.first + ": " + field.second + "\r\n";
                     break;
@@ -5254,7 +5242,7 @@ FILETIME IMAP::StringToFileTime(string strTime, bool bDateOnly) {
 
 	sTm.tm_mon = 0;
 	for (ulMonth = 0; ulMonth < 12; ++ulMonth)
-		if (CaseCompare(strMonth[ulMonth],strTime.substr(3, 3)))
+		if (strcasecmp(strMonth[ulMonth].c_str(),strTime.substr(3, 3).c_str()) == 0)
 			sTm.tm_mon = ulMonth;
 	if (strTime.size() < 11)
 		goto done;
