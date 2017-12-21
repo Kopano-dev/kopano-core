@@ -74,10 +74,6 @@ extern ADRLIST *List_to_LPADRLIST(PyObject *, ULONG flags = CONV_COPY_SHALLOW, v
 extern PyObject *List_from_ADRLIST(const ADRLIST *);
 extern PyObject *List_from_LPADRLIST(const ADRLIST *);
 
-LPADRPARM		Object_to_LPADRPARM(PyObject *av);
-
-LPADRENTRY		Object_to_LPADRENTRY(PyObject *av);
-
 PyObject *		List_from_LPSPropProblemArray(LPSPropProblemArray lpProblemArray);
 LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *, ULONG ulFlags = CONV_COPY_SHALLOW);
 

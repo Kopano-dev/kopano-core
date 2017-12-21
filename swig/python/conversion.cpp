@@ -1446,20 +1446,6 @@ PyObject *List_from_LPADRLIST(const ADRLIST *lpAdrList)
 	return List_from_LPSRowSet((LPSRowSet)lpAdrList);
 }
 
-LPADRPARM		Object_to_LPADRPARM(PyObject *av)
-{
-	// Unsupported for now
-	PyErr_SetString(PyExc_RuntimeError, "LPADRPARM is not yet supported");
-	return NULL;
-}
-
-LPADRENTRY		Object_to_LPADRENTRY(PyObject *av)
-{
-	// Unsupported for now
-	PyErr_SetString(PyExc_RuntimeError, "LPADRENTRY is not yet supported");
-	return NULL;
-}
-
 PyObject *		Object_from_LPSPropProblem(LPSPropProblem lpProblem)
 {
 	return PyObject_CallFunction(PyTypeSPropProblem, "(lII)", lpProblem->ulIndex, lpProblem->ulPropTag, lpProblem->scode);
