@@ -200,12 +200,6 @@ Allow IMAP clients to issue the IDLE command. When an IMAP client is idle, it ma
 .PP
 Default:
 \fIyes\fR
-.SS imap_generate_utf8
-.PP
-Normally e\-mails specify the correct charset for their contents. This may be altered to make it always UTF\-8. This will only happen on e\-mails that do not have the extra imap data properties, which is true for users without the \*(Aqimap\*(Aq feature enabled.
-.PP
-Default:
-\fIno\fR
 .SS imap_max_messagesize
 .PP
 Limit the maximum message size (in bytes) which can be created by an IMAP client. The maximum of this value is 4GB although this is not recommended. If the value is too high it will cause a segmentation fault. This value may contain a k, m or g multiplier.
