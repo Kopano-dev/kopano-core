@@ -11,6 +11,12 @@ from MAPI.Util import kc_session_save, kc_session_restore, GetDefaultStore
 import falcon
 import kopano
 
+TOP = 10
+
+# TODO /me/messages does not return _all_ messages in store
+# TODO pagination for non-messages
+# TODO check @odata.etag, $orderby
+
 def _server(req):
     userid = req.get_header('X-Kopano-UserEntryID', required=True)
     if userid in userid_sessiondata:
@@ -34,8 +40,13 @@ class Resource(object):
             indent=4, separators=(',', ': ')
         )
 
-    def json_multi(self, obj, fields, all_fields):
-        yield b'{\n    "value": [\n'
+    def json_multi(self, req, obj, fields, all_fields, top, skip, count):
+        header = b'{\n'
+        header += b'    "@odata.context": "%s",\n' % req.path
+        if skip+top < count:
+              header += b'    "@odata.nextLink": "%s?$skip=%d",\n' % (req.path, skip+top)
+        header += b'    "value": [\n'
+        yield header
         first = True
         for o in obj:
             if not first:
@@ -45,7 +56,7 @@ class Resource(object):
             yield '\n'.join(['        '+line for line in wa.splitlines()])
         yield b'\n    ]\n}'
 
-    def respond(self, req, resp, obj, all_fields=None):
+    def respond(self, req, resp, obj, all_fields=None, count=None):
         # determine fields (default all)
         args = urlparse.parse_qs(req.query_string)
         fields = all_fields or self.fields
@@ -56,19 +67,20 @@ class Resource(object):
 
         # jsonify result (as stream)
         resp.content_type = "application/json"
-        if isinstance(obj, types.GeneratorType):
-            resp.stream = self.json_multi(obj, fields, all_fields or self.fields)
+        if isinstance(obj, tuple):
+            obj, top, skip, count = obj
+            resp.stream = self.json_multi(req, obj, fields, all_fields or self.fields, top, skip, count)
         else:
             resp.body = self.json(obj, fields, all_fields or self.fields)
 
-    def generator(self, req, generator):
+    def generator(self, req, generator, count=0):
         # determine pagination and ordering
         args = urlparse.parse_qs(req.query_string)
-        start = int(args['start'][0]) if 'start' in args else None
-        limit = int(args['limit'][0]) if 'limit' in args else None
-        order = tuple(args['order'][0].split(',')) if 'order' in args else None
+        top = int(args['$top'][0]) if '$top' in args else TOP
+        skip = int(args['$skip'][0]) if '$skip' in args else 0
+        order = tuple(args['$orderby'][0].split(',')) if '$orderby' in args else None
 
-        return generator(page_start=start, page_limit=limit, order=order)
+        return (generator(page_start=skip, page_limit=top, order=order), top, skip, count)
 
 class UserResource(Resource):
     fields = {
@@ -182,7 +194,7 @@ class CalendarResource(Resource): # TODO merge with FolderResource?
                 args = urlparse.parse_qs(req.query_string)
                 start = dateutil.parser.parse(args['startDateTime'][0])
                 end = dateutil.parser.parse(args['endDateTime'][0])
-                data = folder.occurrences(start, end)
+                data = (folder.occurrences(start, end), TOP, 0, 0)
                 fields = EventResource.fields
             else:
                 data = folder
@@ -216,7 +228,7 @@ class MessageResource(Resource):
         if messageid:
             data = folder.item(messageid)
         else:
-            data = self.generator(req, folder.items)
+            data = self.generator(req, folder.items, folder.count)
 
         self.respond(req, resp, data)
 
