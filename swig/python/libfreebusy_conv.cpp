@@ -91,6 +91,9 @@ LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
 	i=0;
 	do {
 		pyobj_ptr elem(PyIter_Next(iter));
+		if (elem == nullptr)
+			break;
+
 		pyobj_ptr start(PyObject_GetAttrString(elem, "start"));
 		pyobj_ptr end(PyObject_GetAttrString(elem, "end"));
 		pyobj_ptr status(PyObject_GetAttrString(elem, "status"));
