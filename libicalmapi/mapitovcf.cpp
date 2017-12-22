@@ -124,6 +124,12 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	else if (hr != MAPI_E_NOT_FOUND)
 		return hr;
 
+	hr = HrGetOneProp(lpMessage, PR_NICKNAME, &~msgprop);
+	if (hr == hrSuccess)
+		to_prop(root, "NICKNAME", *msgprop);
+	else if (hr != MAPI_E_NOT_FOUND)
+		return hr;
+
 	hr = HrGetOneProp(lpMessage, PR_COMPANY_NAME, &~msgprop);
 	if (hr == hrSuccess) {
 		auto node = addGroup(root, VCOrgProp);
