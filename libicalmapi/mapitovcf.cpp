@@ -28,6 +28,7 @@
 #include <kopano/stringutil.h>
 #include <kopano/charset/convstring.h>
 #include <kopano/namedprops.h>
+#include <kopano/ecversion.h>
 #include "mapitovcf.hpp"
 #include "icaluid.h"
 
@@ -98,6 +99,8 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 
 	auto root = newVObject(VCCardProp);
 	to_prop(root, "VERSION", L"3.0");
+	auto prodid = L"-//Kopano//libicalmapi " + convert_to<std::wstring>(PROJECT_VERSION) + L"//EN";
+	to_prop(root, "PRODID", prodid.c_str());
 
 	memory_ptr<SPropValue> msgprop, msgprop2;
 	hr = HrGetOneProp(lpMessage, PR_GIVEN_NAME, &~msgprop);
