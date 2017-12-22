@@ -161,15 +161,28 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		return hr;
 	}
 
+	MAPINAMEID name;
+	MAPINAMEID *namep = &name;
+	name.lpguid = const_cast<GUID *>(&PSETID_Address);
+	name.ulKind = MNID_ID;
+	name.Kind.lID = dispidWebPage;
+
+	memory_ptr<SPropTagArray> proptag;
+	hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
+	if (hr == hrSuccess) {
+
+		ULONG proptype = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
+		hr = HrGetOneProp(lpMessage, proptype, &~msgprop);
+		if (hr == hrSuccess)
+			to_prop(root, "URL", *msgprop);
+	}
+
 	/* Email */
 	for (int lid = 0x8083; lid <= 0x80a3; lid += 0x10) {
-		MAPINAMEID name;
-		MAPINAMEID *namep = &name;
 		name.lpguid = const_cast<GUID *>(&PSETID_Address);
 		name.ulKind = MNID_ID;
 		name.Kind.lID = lid;
 
-		memory_ptr<SPropTagArray> proptag;
 		hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
 		if (hr != hrSuccess)
 			continue;
@@ -233,7 +246,6 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		nameids_ptrs[i] = &nameids[i];
 	}
 
-	memory_ptr<SPropTagArray> proptag;
 	hr = lpMessage->GetIDsFromNames(5, nameids_ptrs, MAPI_BEST_ACCESS, &~proptag);
 	if (hr == hrSuccess) {
 		for (size_t i = 0; i < 5; ++i)
@@ -253,8 +265,6 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	}
 
 	/* Handle UID */
-	MAPINAMEID name;
-	MAPINAMEID *namep = &name;
 	name.lpguid = const_cast<GUID *>(&PSETID_Meeting);
 	name.ulKind = MNID_ID;
 	name.Kind.lID = dispidGlobalObjectID;
