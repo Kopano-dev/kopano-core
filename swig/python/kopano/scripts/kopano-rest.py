@@ -163,7 +163,6 @@ class CalendarResource(Resource): # TODO merge with FolderResource?
                 mapiobj = GetDefaultStore(server.mapisession))
 
         path = req.path
-
         method = None
         fields = None
 
@@ -221,11 +220,27 @@ class MessageResource(Resource):
 
         self.respond(req, resp, data)
 
+def recurrence_json(item):
+    if isinstance(item, kopano.Item) and item.recurring:
+        recurrence = item.recurrence
+        return {
+            'pattern': {
+                'type': recurrence.pattern,
+                'interval': recurrence.period,
+                # TODO patterntype_specific
+            },
+            'range': {
+                'startDate': recurrence._start.isoformat(), # TODO .start?
+                'endDate': recurrence._end.isoformat(), # TODO .start?
+                # TODO timezone
+            },
+        }
+
 class EventResource(Resource):
     fields = {
         'id': lambda item: item.entryid,
         'subject': lambda item: item.subject,
-        'recurrence': lambda item: {'pattern': 'weekly'} if isinstance(item, kopano.Item) and item.recurring else None,
+        'recurrence': recurrence_json,
         'start': lambda item: {'dateTime': item.start.isoformat(), 'timeZone': 'UTC'},
         'end': lambda item: {'dateTime': item.end.isoformat(), 'timeZone': 'UTC'},
     }

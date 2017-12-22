@@ -100,6 +100,15 @@ class Recurrence(object):
         self.tz = item.get(PidLidTimeZoneStruct)
         self._parse()
 
+    @property
+    def pattern(self):
+        return {
+            PATTERN_DAILY: 'daily',
+            PATTERN_WEEKLY: 'weekly',
+            PATTERN_MONTHLY: 'monthly',
+            PATTERN_MONTHNTH: 'monthnth', # TODO check
+        }[self.pattern_type]
+
     def _parse(self):
         # AppointmentRecurrencePattern
         value = self.item.prop(PidLidAppointmentRecur).value
