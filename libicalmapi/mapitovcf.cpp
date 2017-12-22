@@ -97,6 +97,8 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		return MAPI_E_INVALID_PARAMETER;
 
 	auto root = newVObject(VCCardProp);
+	to_prop(root, "VERSION", L"3.0");
+
 	memory_ptr<SPropValue> msgprop, msgprop2;
 	hr = HrGetOneProp(lpMessage, PR_GIVEN_NAME, &~msgprop);
 	HRESULT hr2 = HrGetOneProp(lpMessage, PR_SURNAME, &~msgprop2);
