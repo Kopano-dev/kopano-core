@@ -62,6 +62,7 @@ from .attachment import Attachment
 from .autoaccept import AutoAccept
 from .body import Body
 from .company import Company
+from .compat import set_bin_encoding
 from .delegation import Delegation
 from .folder import Folder
 from .freebusy import FreeBusyBlock, FreeBusy

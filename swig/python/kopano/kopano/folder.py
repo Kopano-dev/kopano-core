@@ -57,7 +57,9 @@ from .defs import (
 )
 from .errors import NotFoundError, Error, _DeprecationWarning
 
-from .compat import hex as _hex, unhex as _unhex, fake_unicode as _unicode
+from .compat import (
+    hex as _hex, unhex as _unhex, fake_unicode as _unicode, bdec as _bdec
+)
 
 if sys.hexversion >= 0x03000000:
     try:
@@ -266,7 +268,7 @@ class Folder(Properties):
 
         # open message with entryid
         try:
-            mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), self.content_flag)
+            mapiobj = _utils.openentry_raw(self.store.mapiobj, _bdec(entryid), self.content_flag)
         except MAPIErrorNotFound:
             raise NotFoundError("no item with entryid '%s'" % entryid)
 
@@ -430,8 +432,8 @@ class Folder(Properties):
         self.server.sa.ResetFolderCount(_unhex(self.entryid))
 
     def _get_entryids(self, items):
-        item_entryids = [_unhex(item.entryid) for item in items if isinstance(item, _item.Item)]
-        folder_entryids = [_unhex(item.entryid) for item in items if isinstance(item, Folder)]
+        item_entryids = [_bdec(item.entryid) for item in items if isinstance(item, _item.Item)]
+        folder_entryids = [_bdec(item.entryid) for item in items if isinstance(item, Folder)]
         perms = [item for item in items if isinstance(item, Permission)]
         props = [item for item in items if isinstance(item, Property)]
         return item_entryids, folder_entryids, perms, props

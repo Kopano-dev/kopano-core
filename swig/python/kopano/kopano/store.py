@@ -64,6 +64,7 @@ from .notification import Sink, Notification
 
 from .compat import (
     hex as _hex, unhex as _unhex, encode as _encode, repr as _repr,
+    bdec as _bdec
 )
 
 if sys.hexversion >= 0x03000000:
@@ -438,7 +439,7 @@ class Store(Properties):
             entryid = '00000000' + self.guid + '0100000005000000' + guid + '00000000'
 
         try:
-            item.mapiobj = _utils.openentry_raw(self.mapiobj, _unhex(entryid), 0) # XXX soft-deleted item?
+            item.mapiobj = _utils.openentry_raw(self.mapiobj, _bdec(entryid), 0) # XXX soft-deleted item?
         except MAPIErrorNotFound:
             raise NotFoundError("no item with entryid '%s'" % entryid)
         return item

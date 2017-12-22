@@ -209,3 +209,4 @@ def arg_objects(arg, supported_classes, method_name):
     if [o for o in objects if not isinstance(o, supported_classes)]:
         raise Error('invalid argument to %s' % method_name)
     return objects
+

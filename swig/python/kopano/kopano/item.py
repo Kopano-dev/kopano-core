@@ -67,7 +67,7 @@ from .compat import (
     hex as _hex, unhex as _unhex, is_str as _is_str, repr as _repr,
     pickle_load as _pickle_load, pickle_loads as _pickle_loads,
     fake_unicode as _unicode, is_file as _is_file,
-    encode as _encode
+    encode as _encode, benc as _benc,
 )
 
 from .defs import (
@@ -231,7 +231,7 @@ class Item(Properties, Contact, Appointment):
     def entryid(self):
         """ Item entryid """
 
-        return _hex(self._get_fast(PR_ENTRYID, must_exist=True))
+        return _benc(self._get_fast(PR_ENTRYID, must_exist=True))
 
     @property
     def guid(self):
@@ -255,7 +255,7 @@ class Item(Properties, Contact, Appointment):
     def changekey(self):
         """ Item changekey """
 
-        return _hex(self[PR_CHANGE_KEY])
+        return _benc(self[PR_CHANGE_KEY])
 
     @property
     def subject(self):

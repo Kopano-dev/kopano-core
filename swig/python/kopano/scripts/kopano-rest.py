@@ -10,6 +10,7 @@ from MAPI.Util import kc_session_save, kc_session_restore, GetDefaultStore
 
 import falcon
 import kopano
+kopano.set_bin_encoding('base64')
 
 TOP = 10
 
@@ -19,10 +20,9 @@ TOP = 10
 # TODO post, put, delete
 # TODO copy/move/send actions
 # TODO unicode/encoding checks
-# TODO use base64
 
 def _server(req):
-    userid = USERID #req.get_header('X-Kopano-UserEntryID', required=True)
+    userid = req.get_header('X-Kopano-UserEntryID', required=True)
     if userid in userid_sessiondata:
         sessiondata = userid_sessiondata[userid]
         mapisession = kc_session_restore(sessiondata)
@@ -276,7 +276,6 @@ class EventResource(Resource):
         self.respond(req, resp, data)
 
 admin_server = kopano.Server(parse_args=False, store_cache=False)
-USERID = admin_server.user('user1').userid
 userid_sessiondata = {}
 
 users = UserResource()

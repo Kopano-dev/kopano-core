@@ -25,6 +25,8 @@ import codecs
 import io
 import sys
 
+_BIN_ENCODING = 'hex'
+
 # Python 3
 if sys.hexversion >= 0x03000000:
     def is_str(s):
@@ -41,6 +43,15 @@ if sys.hexversion >= 0x03000000:
 
     def unhex(s):
         return codecs.decode(s, 'hex')
+
+    def benc(s):
+        if _BIN_ENCODING == 'hex':
+            return codecs.encode(s, _BIN_ENCODING).strip().upper().decode('ascii')
+        else:
+            return codecs.encode(s, _BIN_ENCODING).strip().decode('ascii')
+
+    def bdec(s):
+        return codecs.decode(s, _BIN_ENCODING)
 
     def is_int(i):
         return isinstance(i, int)
@@ -77,6 +88,15 @@ else:
     def unhex(s):
         return s.decode('hex')
 
+    def benc(s):
+        if _BIN_ENCODING == 'hex':
+            return s.encode(_BIN_ENCODING).strip().upper()
+        else:
+            return s.encode(_BIN_ENCODING).strip()
+
+    def bdec(s):
+        return s.decode(_BIN_ENCODING)
+
     def is_int(i):
         return isinstance(i, (int, long))
 
@@ -95,3 +115,7 @@ else:
 
     def fake_unicode(u):
         return unicode(u)
+
+def set_bin_encoding(encoding):
+    global _BIN_ENCODING
+    _BIN_ENCODING = encoding
