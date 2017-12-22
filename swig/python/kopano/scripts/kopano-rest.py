@@ -16,9 +16,11 @@ TOP = 10
 # TODO /me/messages does not return _all_ messages in store
 # TODO pagination for non-messages
 # TODO check @odata.etag, $orderby
+# TODO post, put, delete
+# TODO copy/move/send actions
 
 def _server(req):
-    userid = req.get_header('X-Kopano-UserEntryID', required=True)
+    userid = USERID #req.get_header('X-Kopano-UserEntryID', required=True)
     if userid in userid_sessiondata:
         sessiondata = userid_sessiondata[userid]
         mapisession = kc_session_restore(sessiondata)
@@ -30,6 +32,13 @@ def _server(req):
         sessiondata = kc_session_save(server.mapisession)
         userid_sessiondata[userid] = sessiondata
     return server
+
+def _store(server, userid):
+    if userid:
+        return server.user(userid=userid).store
+    else:
+        return kopano.Store(server=server,
+                            mapiobj=GetDefaultStore(server.mapisession))
 
 class Resource(object):
     def get_fields(self, obj, fields, all_fields):
@@ -112,12 +121,7 @@ class FolderResource(Resource):
 
     def on_get(self, req, resp, userid=None, folderid=None):
         server = _server(req)
-
-        if userid:
-            store = server.user(userid=userid).store
-        else:
-            store = kopano.Store(server=server,
-                mapiobj = GetDefaultStore(server.mapisession))
+        store = _store(server, userid)
 
         if folderid:
             data = store.folder(entryid=folderid)
@@ -126,9 +130,9 @@ class FolderResource(Resource):
 
         self.respond(req, resp, data)
 
-    def on_post(self, req, resp, storeid, folderid):
+    def on_post(self, req, resp, userid=None, folderid=None):
         server = _server(req)
-        store = server.store(entryid=storeid)
+        store = _store(server, userid)
         folder = store.folder(entryid=folderid)
 
         fields = json.loads(req.stream.read())
@@ -137,9 +141,9 @@ class FolderResource(Resource):
         resp.status = falcon.HTTP_201
         resp.location = req.path+'/items/'+item.entryid
 
-    def on_put(self, req, resp, storeid, folderid):
+    def on_put(self, req, resp, userid=None, folderid=None):
         server = _server(req)
-        store = server.store(entryid=storeid)
+        store = _store(server, userid)
         folder = store.folder(entryid=folderid)
 
         data = json.loads(req.stream.read())
@@ -167,12 +171,7 @@ class CalendarResource(Resource): # TODO merge with FolderResource?
 
     def on_get(self, req, resp, userid=None, folderid=None):
         server = _server(req)
-
-        if userid:
-            store = server.user(userid=userid).store
-        else:
-            store = kopano.Store(server=server,
-                mapiobj = GetDefaultStore(server.mapisession))
+        store = _store(server, userid)
 
         path = req.path
         method = None
@@ -214,11 +213,7 @@ class MessageResource(Resource):
 
     def on_get(self, req, resp, userid=None, folderid=None, messageid=None):
         server = _server(req)
-        if userid:
-            store = server.user(userid=userid).store
-        else:
-            store = kopano.Store(server=server,
-                mapiobj = GetDefaultStore(server.mapisession))
+        store = _store(server, userid)
 
         if folderid:
             folder = store.folder(entryid=folderid)
@@ -259,11 +254,7 @@ class EventResource(Resource):
 
     def on_get(self, req, resp, userid=None, folderid=None, messageid=None):
         server = _server(req)
-        if userid:
-            store = server.user(userid=userid).store
-        else:
-            store = kopano.Store(server=server,
-                mapiobj = GetDefaultStore(server.mapisession))
+        store = _store(server, userid)
 
         if folderid:
             folder = store.folder(entryid=folderid)
@@ -273,14 +264,13 @@ class EventResource(Resource):
         if messageid:
             data = folder.item(messageid)
         else:
-            data = self.generator(req, folder.items)
+            data = self.generator(req, folder.items, folder.count)
 
         self.respond(req, resp, data)
 
 admin_server = kopano.Server(parse_args=False, store_cache=False)
+USERID = admin_server.user('user1').userid
 userid_sessiondata = {}
-
-app = falcon.API()
 
 users = UserResource()
 messages = MessageResource()
@@ -288,6 +278,7 @@ folders = FolderResource()
 calendars = CalendarResource()
 events = EventResource()
 
+app = falcon.API()
 app.add_route('/me', users)
 app.add_route('/users', users)
 app.add_route('/users/{userid}', users)
