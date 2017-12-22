@@ -18,6 +18,8 @@ TOP = 10
 # TODO check @odata.etag, $orderby
 # TODO post, put, delete
 # TODO copy/move/send actions
+# TODO unicode/encoding checks
+# TODO use base64
 
 def _server(req):
     userid = USERID #req.get_header('X-Kopano-UserEntryID', required=True)
@@ -203,12 +205,17 @@ class CalendarResource(Resource): # TODO merge with FolderResource?
 class MessageResource(Resource):
     fields = {
         'id': lambda item: item.entryid,
+        'createdDateTime': lambda item: item.created.isoformat(),
+        'categories': lambda item: item.categories,
+        'changeKey': lambda item: item.changekey,
         'subject': lambda item: item.subject,
         'body': lambda item: {'contentType': 'html', 'content': item.html},
         'from': lambda item: {'emailAddress': {'name': item.sender.name, 'address': item.sender.email} },
         'toRecipients': lambda item: [{'emailAddress': {'name': to.name, 'address': to.email}} for to in item.to],
         'lastModifiedDateTime': lambda item: item.last_modified.isoformat(),
+        'sentDateTime': lambda item: item.sent.isoformat(),
         'receivedDateTime': lambda item: item.received.isoformat(),
+        'hasAttachments': lambda item: item.has_attachments,
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, messageid=None):

@@ -39,10 +39,10 @@ from MAPI.Struct import (
     MAPIErrorInterfaceNotSupported, MAPIErrorUnconfigured, MAPIErrorNoAccess,
 )
 from MAPI.Tags import (
-    PR_BODY, PR_DISPLAY_NAME_W, PR_MESSAGE_CLASS_W,
-    PR_CONTAINER_CLASS, PR_ENTRYID, PR_EC_HIERARCHYID,
+    PR_BODY, PR_DISPLAY_NAME_W, PR_MESSAGE_CLASS_W, PR_CHANGE_KEY,
+    PR_CONTAINER_CLASS, PR_ENTRYID, PR_EC_HIERARCHYID, PR_HASATTACH,
     PR_SOURCE_KEY, PR_SUBJECT_W, PR_ATTACH_LONG_FILENAME_W,
-    PR_MESSAGE_SIZE, PR_BODY_W, PR_CREATION_TIME,
+    PR_MESSAGE_SIZE, PR_BODY_W, PR_CREATION_TIME, PR_CLIENT_SUBMIT_TIME,
     PR_MESSAGE_DELIVERY_TIME, PR_LAST_MODIFICATION_TIME,
     PR_MESSAGE_FLAGS, PR_PARENT_ENTRYID, PR_IMPORTANCE,
     PR_ATTACH_NUM, PR_ATTACH_METHOD, PR_ATTACH_DATA_BIN,
@@ -252,6 +252,12 @@ class Item(Properties, Contact, Appointment):
         return self._sourcekey
 
     @property
+    def changekey(self):
+        """ Item changekey """
+
+        return _hex(self[PR_CHANGE_KEY])
+
+    @property
     def subject(self):
         """ Item subject """
 
@@ -338,6 +344,14 @@ class Item(Properties, Contact, Appointment):
     def received(self, value):
         self._cache.pop(PR_MESSAGE_DELIVERY_TIME, None) # TODO generalize
         self.prop(PR_MESSAGE_DELIVERY_TIME, create=True).value = value
+
+    @property
+    def sent(self):
+        """Client submit time."""
+        try:
+            return self.prop(PR_CLIENT_SUBMIT_TIME).value
+        except NotFoundError:
+            pass
 
     @property
     def last_modified(self):
@@ -479,6 +493,10 @@ class Item(Properties, Contact, Appointment):
         attach.SaveChanges(KEEP_OPEN_READWRITE)
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
         return Attachment(mapiobj=attach)
+
+    @property
+    def has_attachments(self):
+        return self[PR_HASATTACH]
 
     def header(self, name):
         """ Return transport message header with given name """
