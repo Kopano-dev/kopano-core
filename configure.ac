@@ -77,6 +77,7 @@ ZCPPFLAGS="$ZCPPFLAGS \
 	-I\${top_builddir}/common/include \
 	-I\${top_srcdir}/common/include \
 	-I\${top_srcdir}/m4lcommon/include \
+	-I\${top_srcdir}/mapi4linux/include \
 	-I\${top_srcdir}/provider/common/include \
 	-I\${top_srcdir}/provider/libserver/include \
 	-I\${top_srcdir}/ECtools/archiver/include \
