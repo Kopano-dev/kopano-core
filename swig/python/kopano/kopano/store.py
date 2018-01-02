@@ -63,7 +63,7 @@ from .restriction import Restriction
 from .notification import Sink, Notification
 
 from .compat import (
-    hex as _hex, unhex as _unhex, encode as _encode, repr as _repr
+    hex as _hex, unhex as _unhex, encode as _encode, repr as _repr,
 )
 
 if sys.hexversion >= 0x03000000:
@@ -586,7 +586,10 @@ class Store(Properties):
         _, (entryids, _, _) = self._fbmsg_delgs()
 
         for entryid in entryids.Value:
-            username = self.server.sa.GetUser(entryid, MAPI_UNICODE).Username
+            try:
+                username = self.server.sa.GetUser(entryid, MAPI_UNICODE).Username
+            except MAPIErrorNotFound:
+                raise NotFoundError("no user found with userid '%s'" % _hex(entryid))
             yield Delegation(self, self.server.user(username))
 
     def delegation(self, user, create=False, see_private=False):
