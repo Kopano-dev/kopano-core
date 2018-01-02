@@ -125,10 +125,17 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		return hr;
 
 	hr = HrGetOneProp(lpMessage, PR_COMPANY_NAME, &~msgprop);
-	if (hr == hrSuccess)
-		to_prop(root, VCOrgProp, *msgprop);
-	else if (hr != MAPI_E_NOT_FOUND)
+	if (hr == hrSuccess) {
+		auto node = addGroup(root, VCOrgProp);
+		to_prop(node, "ORGNAME", *msgprop);
+		hr = HrGetOneProp(lpMessage, PR_DEPARTMENT_NAME, &~msgprop);
+		if (hr == hrSuccess)
+			to_prop(node, "OUN", *msgprop);
+		else if (hr != MAPI_E_NOT_FOUND)
+			return hr;
+	} else if (hr != MAPI_E_NOT_FOUND) {
 		return hr;
+	}
 
 	hr = HrGetOneProp(lpMessage, PR_HOME_TELEPHONE_NUMBER, &~msgprop);
 	if (hr == hrSuccess) {

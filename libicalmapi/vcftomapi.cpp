@@ -57,6 +57,7 @@ class vcftomapi_impl _kc_final : public vcftomapi {
 	HRESULT handle_EMAIL(VObject *);
 	HRESULT handle_ADR(VObject *);
 	HRESULT handle_UID(VObject *);
+	HRESULT handle_ORG(VObject *);
 	HRESULT vobject_to_prop(VObject *, SPropValue &, ULONG proptype);
 	HRESULT vobject_to_named_prop(VObject *, SPropValue &, ULONG named_proptype);
 	HRESULT unicode_to_named_prop(const wchar_t *, SPropValue &, ULONG named_proptype);
@@ -258,6 +259,31 @@ HRESULT vcftomapi_impl::handle_UID(VObject *v)
 	return hrSuccess;
 }
 
+HRESULT vcftomapi_impl::handle_ORG(VObject *v)
+{
+	VObjectIterator t;
+	initPropIterator(&t, v);
+	if (!moreIteration(&t))
+		return hrSuccess;
+
+	SPropValue s;
+	auto vv = nextVObject(&t);
+	auto name = vObjectName(vv);
+	if (strcmp(name, "ORGNAME") == 0) {
+		auto hr = vobject_to_prop(vv, s, PR_COMPANY_NAME);
+		if (hr != hrSuccess)
+			return hr;
+		props.emplace_back(std::move(s));
+	}
+	if (strcmp(name, "OUN") == 0) {
+		auto hr = vobject_to_prop(vv, s, PR_DEPARTMENT_NAME);
+		if (hr != hrSuccess)
+			return hr;
+		props.emplace_back(std::move(s));
+	}
+	return hrSuccess;
+}
+
 /**
  * Parses an ICal string (with a certain charset) and converts the
  * data in memory. The real MAPI object can be retrieved using
@@ -276,28 +302,24 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 		v = nextVObject(&t);
 		auto name = vObjectName(v);
 
-		if (vObjectValueType(v) == VCVT_NOVALUE)
-			continue;
-
 		if (strcmp(name, VCNameProp) == 0) {
 			auto hr = handle_N(v);
 			if (hr != hrSuccess)
 				return hr;
-		} else if (strcmp(name, VCFullNameProp) == 0) {
+		} else if (strcmp(name, VCFullNameProp) == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_prop(v, s, PR_DISPLAY_NAME);
 			if (hr != hrSuccess)
 				return hr;
 			props.emplace_back(s);
-		} else if (strcmp(name, VCTitleProp) == 0) {
+		} else if (strcmp(name, VCTitleProp) == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
 			auto hr = vobject_to_prop(v, s, PR_TITLE);
 			if (hr != hrSuccess)
 				return hr;
 			props.emplace_back(s);
 		} else if (strcmp(name, VCOrgProp) == 0) {
-			auto hr = vobject_to_prop(v, s, PR_COMPANY_NAME);
+			auto hr = handle_ORG(v);
 			if (hr != hrSuccess)
 				return hr;
-			props.emplace_back(s);
 		} else if (strcmp(name, VCTelephoneProp) == 0) {
 			auto hr = handle_TEL(v);
 			if (hr != hrSuccess)
