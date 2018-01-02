@@ -47,8 +47,6 @@ WSMAPIFolderOps::WSMAPIFolderOps(KCmd *cmd, std::recursive_mutex &data_lock,
 	ECUnknown("WSMAPIFolderOps"), lpCmd(cmd), lpDataLock(data_lock),
 	ecSessionId(sid), m_lpTransport(lpTransport)
 {
-	this->lpCmd = lpCmd;
-	this->ecSessionId = ecSessionId;
 	lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
 	auto ret = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
 	if (ret != hrSuccess)
@@ -106,7 +104,9 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != lpCmd->ns__createFolder(ecSessionId, m_sEntryId, lpsEntryId, ulFolderType, (char*)strFolderName.c_str(), (char*)strComment.c_str(), fOpenIfExists == 0 ? false : true, ulSyncId, sSourceKey, &sResponse))
+		if (lpCmd->ns__createFolder(ecSessionId, m_sEntryId, lpsEntryId,
+		    ulFolderType, strFolderName.c_str(), strComment.c_str(),
+		    !!fOpenIfExists, ulSyncId, sSourceKey, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -325,7 +325,8 @@ HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom, LPENTRYID lpEntryFrom, 
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != lpCmd->ns__copyFolder(ecSessionId, sEntryFrom, sEntryDest, (char*)strNewFolderName.c_str(), ulFlags, ulSyncId, &er))
+		if (lpCmd->ns__copyFolder(ecSessionId, sEntryFrom, sEntryDest,
+		    strNewFolderName.c_str(), ulFlags, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
