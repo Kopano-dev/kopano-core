@@ -45,6 +45,7 @@ class mapitovcf_impl _kc_final : public mapitovcf {
 	VObject *to_prop(VObject *node, const char *prop, const SPropValue &value);
 	VObject *to_prop(VObject *node, const char *prop, const wchar_t *value);
 	HRESULT add_adr(IMessage *lpMessage, VObject *root);
+	HRESULT add_email(IMessage *lpMessage, VObject *root);
 
 	std::string m_result;
 	/*
@@ -153,6 +154,33 @@ HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
 	return hrSuccess;
 }
 
+HRESULT mapitovcf_impl::add_email(IMessage *lpMessage, VObject *root)
+{
+	MAPINAMEID name;
+	MAPINAMEID *namep = &name;
+
+	for (int lid = 0x8083; lid <= 0x80a3; lid += 0x10) {
+		name.lpguid = const_cast<GUID *>(&PSETID_Address);
+		name.ulKind = MNID_ID;
+		name.Kind.lID = lid;
+
+		memory_ptr<SPropTagArray> proptag;
+		auto hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
+		if (hr != hrSuccess)
+			continue;
+
+		ULONG proptype = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
+		memory_ptr<SPropValue> prop;
+		hr = HrGetOneProp(lpMessage, proptype, &~prop);
+		if (hr == hrSuccess)
+			to_prop(root, VCEmailAddressProp, *prop);
+		else if (hr != MAPI_E_NOT_FOUND)
+			continue;
+	}
+
+	return hrSuccess;
+}
+
 HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 {
 	memory_ptr<SPropValue> lpMessageClass;
@@ -244,6 +272,10 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	if (hr != hrSuccess)
 		return hr;
 
+	hr = add_email(lpMessage, root);
+	if (hr != hrSuccess)
+		return hr;
+
 	MAPINAMEID name;
 	MAPINAMEID *namep = &name;
 	name.lpguid = const_cast<GUID *>(&PSETID_Address);
@@ -258,24 +290,6 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		hr = HrGetOneProp(lpMessage, proptype, &~msgprop);
 		if (hr == hrSuccess)
 			to_prop(root, "URL", *msgprop);
-	}
-
-	/* Email */
-	for (int lid = 0x8083; lid <= 0x80a3; lid += 0x10) {
-		name.lpguid = const_cast<GUID *>(&PSETID_Address);
-		name.ulKind = MNID_ID;
-		name.Kind.lID = lid;
-
-		hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
-		if (hr != hrSuccess)
-			continue;
-
-		ULONG proptype = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
-		hr = HrGetOneProp(lpMessage, proptype, &~msgprop);
-		if (hr == hrSuccess)
-			to_prop(root, VCEmailAddressProp, *msgprop);
-		else if (hr != MAPI_E_NOT_FOUND)
-			continue;
 	}
 
 	/* Handle UID */
