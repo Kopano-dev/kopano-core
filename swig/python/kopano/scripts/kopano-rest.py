@@ -1,3 +1,4 @@
+import base64
 import dateutil.parser
 import json
 try:
@@ -20,6 +21,7 @@ TOP = 10
 # TODO post, put, delete
 # TODO copy/move/send actions
 # TODO unicode/encoding checks
+# TODO efficient attachment streaming
 
 def _server(req):
     userid = USERID or req.get_header('X-Kopano-UserEntryID', required=True)
@@ -248,6 +250,31 @@ class MessageResource(Resource):
 
         store.delete(item)
 
+class AttachmentResource(Resource):
+    fields = {
+        'id': lambda attachment: attachment.entryid,
+        'name': lambda attachment: attachment.name,
+        'contentBytes': lambda attachment: base64.urlsafe_b64encode(attachment.data),
+    }
+
+    def on_get(self, req, resp, userid=None, folderid=None, messageid=None, attachmentid=None):
+        server = _server(req)
+        store = _store(server, userid)
+
+        if folderid:
+            folder = store.folder(entryid=folderid)
+        else:
+            folder = store.inbox # TODO messages from all folders?
+
+        item = folder.item(messageid)
+
+        if attachmentid:
+            data = item.attachment(attachmentid)
+        else:
+            data = self.generator(req, item.attachments)
+
+        self.respond(req, resp, data)
+
 def recurrence_json(item):
     if isinstance(item, kopano.Item) and item.recurring:
         recurrence = item.recurrence
@@ -295,6 +322,7 @@ userid_sessiondata = {}
 
 users = UserResource()
 messages = MessageResource()
+attachments = AttachmentResource()
 folders = FolderResource()
 calendars = CalendarResource()
 events = EventResource()
@@ -312,6 +340,11 @@ for user in ('/me', '/users/{userid}'):
     app.add_route(user+'/messages/{messageid}', messages)
     app.add_route(user+'/mailFolders/{folderid}/messages', messages)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}', messages)
+
+    app.add_route(user+'/messages/{messageid}/attachments', attachments)
+    app.add_route(user+'/messages/{messageid}/attachments/{attachmentid}', attachments)
+    app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments', attachments)
+    app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments/{attachmentid}', attachments)
 
     app.add_route(user+'/calendar', calendars)
     app.add_route(user+'/calendars', calendars)
