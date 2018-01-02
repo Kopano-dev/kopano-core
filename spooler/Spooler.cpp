@@ -100,6 +100,7 @@ static int nReload = 0;
 static int disconnects = 0;
 static const char *szCommand = NULL;
 static const char *szConfig = ECConfig::GetDefaultPath("spooler.cfg");
+static bool sp_exp_config;
 extern ECConfig *g_lpConfig;
 ECConfig *g_lpConfig = NULL;
 static ECLogger *g_lpLogger;
@@ -244,39 +245,52 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	sSendData.strUsername = szUsername;
 
 	// execute the new spooler process to send the email
+	const char *argv[18];
+	int argc = 0;
+	argv[argc++] = szCommand;
+	std::unique_ptr<char[]> bname(strdup(szCommand));
+	argv[argc++] = basename(bname.get());
+	auto eidhex = bin2hex(cbMsgEntryId, lpMsgEntryId);
+	argv[argc++] = "--send-message-entryid";
+	argv[argc++] = eidhex.c_str();
+	auto encuser = encodestring(szUsername);
+	argv[argc++] = "--send-username-enc";
+	argv[argc++] = encuser.c_str();
+	auto logfd = stringify(g_lpLogger->GetFileDescriptor());
+	argv[argc++] = "--log-fd";
+	argv[argc++] = logfd.c_str();
+	if (szConfig != nullptr && sp_exp_config) {
+		argv[argc++] = "--config";
+		argv[argc++] = szConfig;
+	}
+	argv[argc++] = "--host";
+	argv[argc++] = szPath;
+	argv[argc++] = "--foreground",
+	argv[argc++] = szSMTP;
+	argv[argc++] = "--port";
+	argv[argc++] = strPort.c_str();
+	if (bDoSentMail)
+		argv[argc++] = "--do-sentmail";
+	argv[argc] = nullptr;
+	std::vector<std::string> cmd{argv, argv + argc};
+	ec_log_debug("Executing \"%s\"", kc_join(cmd, "\" \"").c_str());
+
 	pid = vfork();
 	if (pid < 0) {
 		ec_log_crit(string("Unable to start new spooler process: ") + strerror(errno));
 		return MAPI_E_CALL_FAILED;
 	}
-
+	/*
+	 * We execute because of all the MAPI memory in use would be duplicated
+	 * in the child, and there will not be a nice way to clean it all up
+	 * (that is fixable though). Moreover, due to inclusion of the Python
+	 * interpreter with global state (as it is being said), we cannot thread.
+	 */
 	if (pid == 0) {
-		char *bname = strdup(szCommand);
-		ec_log_debug("%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s",
-			  szCommand, basename(bname) /* argv[0] */,
-			  "--send-message-entryid", bin2hex(cbMsgEntryId, lpMsgEntryId).c_str(),
-			  "--send-username-enc", encodestring(szUsername).c_str(),
-			  "--log-fd", stringify(g_lpLogger->GetFileDescriptor()).c_str(),
-			  "--config", szConfig,
-			  "--host", szPath,
-			  "--foreground", szSMTP,
-			  "--port", strPort.c_str(),
-			  bDoSentMail ? "--do-sentmail" : "");
+		execv(argv[0], const_cast<char *const *>(argv));
 #ifdef SPOOLER_FORK_DEBUG
 		_exit(EXIT_WAIT);
 #else
-		// we execute because of all the mapi memory in use would be duplicated in the child,
-		// and there won't be a nice way to clean it all up.
-		execlp(szCommand, basename(bname) /* argv[0] */,
-			  "--send-message-entryid", bin2hex(cbMsgEntryId, lpMsgEntryId).c_str(),
-			  "--send-username-enc", encodestring(szUsername).c_str(),
-			  "--log-fd", stringify(g_lpLogger->GetFileDescriptor()).c_str(),
-			  "--config", szConfig,
-			  "--host", szPath,
-			  "--foreground", szSMTP, 
-			  "--port", strPort.c_str(),
-			  bDoSentMail ? "--do-sentmail" : NULL, NULL);
-		ec_log_crit(string("Cannot start spooler process `") + szCommand + "`: " + strerror(errno));
 		_exit(EXIT_REMOVE);
 #endif
 	}
@@ -965,6 +979,7 @@ int main(int argc, char *argv[]) {
 		case OPT_CONFIG:
 		case 'c':
 			szConfig = optarg;
+			sp_exp_config = true;
 			break;
 		case OPT_HOST:
 		case 'h':
@@ -1013,7 +1028,7 @@ int main(int argc, char *argv[]) {
 
 	g_lpConfig = ECConfig::Create(lpDefaults);
 	int argidx = 0;
-	if (!g_lpConfig->LoadSettings(szConfig) ||
+	if (!g_lpConfig->LoadSettings(szConfig, !sp_exp_config) ||
 	    (argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind])) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 		/* Create info logger without a timestamp to stderr. */

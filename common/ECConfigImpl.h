@@ -66,7 +66,7 @@ class ECConfigImpl _kc_final : public ECConfig {
 public:
 	ECConfigImpl(const configsetting_t *lpDefaults, const char *const *lpszDirectives);
 	~ECConfigImpl();
-	bool LoadSettings(const char *file) _kc_override;
+	virtual bool LoadSettings(const char *file, bool ignore_missing = false) _kc_override;
 	virtual int ParseParams(int argc, char **argv) _kc_override;
 	const char *GetSettingsPath() const _kc_override { return m_szConfigFile; }
 	bool ReloadSettings(void) _kc_override;
