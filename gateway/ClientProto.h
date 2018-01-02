@@ -32,7 +32,7 @@ public:
 	m_strPath(szServerPath), lpChannel(lpChannel), lpLogger(lpLogger), lpConfig(lpConfig), m_ulFailedLogins(0)
 	{};
 	virtual ~ClientProto(void) = default;
-	virtual int getTimeoutMinutes() = 0;
+	virtual int getTimeoutMinutes() const = 0;
 	virtual bool isContinue() const { return false; }; // imap only
 
 	virtual HRESULT HrSendGreeting(const std::string &strHostString) = 0;
