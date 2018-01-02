@@ -54,7 +54,10 @@ class User(Properties):
             self._ecuser = ecuser
             self._name = ecuser.Username
         elif userid:
-            self._ecuser = self.server.sa.GetUser(_unhex(userid), MAPI_UNICODE)
+            try:
+                self._ecuser = self.server.sa.GetUser(_unhex(userid), MAPI_UNICODE)
+            except MAPIErrorNotFound:
+                raise NotFoundError("no user found with userid '%s'" % userid)
             self._name = self._ecuser.Username
         else:
             if email:
