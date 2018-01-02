@@ -811,7 +811,7 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID,
 	LPENTRYID lpEntryID = NULL;
 
 	GUID guidEmpty = {0};
-	EID eid = EID(MAPI_FOLDER, guidStore, guidEmpty);
+	EID eid(MAPI_FOLDER, guidStore, guidEmpty);
 
 	switch (ePublicEntryID) {
 	case ePE_IPMSubtree:

@@ -434,7 +434,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	for (const auto &loc_id : *lpLocalIds) {
 		if (IsInternalObject(loc_id)) {
 			// Local user, add it to the result array directly
-			objectdetails_t details = objectdetails_t();
+			objectdetails_t details;
 			er = GetLocalObjectDetails(loc_id, &details);
 			if(er != erSuccess)
 				return er;

@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 	}
 	fclose(fh);
 
-	std::string html_in = std::string(buffer, size), html_out;
+	std::string html_in(buffer, size), html_out;
 	delete[] buffer;
 
 	std::vector<std::string> errors;
