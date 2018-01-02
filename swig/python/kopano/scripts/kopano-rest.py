@@ -17,7 +17,7 @@ TOP = 10
 
 # TODO /me/messages does not return _all_ messages in store
 # TODO pagination for non-messages
-# TODO check @odata.etag, $orderby
+# TODO check https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters
 # TODO post, put, delete
 # TODO copy/move/send actions
 # TODO unicode/encoding checks
@@ -74,7 +74,7 @@ class Resource(object):
         args = urlparse.parse_qs(req.query_string)
         fields = all_fields or self.fields
         if '$select' in args:
-            fields = set(args['$select'][0].split(',') + ['id'])
+            fields = set(args['$select'][0].split(',') + ['@odata.etag', 'id'])
         else:
             fields = set(fields.keys())
 
@@ -213,6 +213,7 @@ class CalendarResource(Resource): # TODO merge with FolderResource?
 
 class MessageResource(Resource):
     fields = {
+        '@odata.etag': lambda item: 'W/"'+item.changekey+'"',
         'id': lambda item: item.entryid,
         'createdDateTime': lambda item: item.created.isoformat(),
         'categories': lambda item: item.categories,

@@ -56,7 +56,7 @@ class User(Properties):
             self._name = ecuser.Username
         elif userid:
             try:
-                self._ecuser = self.server.sa.GetUser(_unhex(userid), MAPI_UNICODE)
+                self._ecuser = self.server.sa.GetUser(_bdec(userid), MAPI_UNICODE)
             except MAPIErrorNotFound:
                 raise NotFoundError("no user found with userid '%s'" % userid)
             self._name = self._ecuser.Username
