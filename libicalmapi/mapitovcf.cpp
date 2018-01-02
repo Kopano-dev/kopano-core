@@ -123,16 +123,8 @@ HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
 		to_prop(adrnode, "C", msgprop_array[4].Value.lpszW);
 	}
 
-	memory_ptr<MAPINAMEID> nameids;
-	hr = MAPIAllocateBuffer(5 * sizeof(MAPINAMEID), &~nameids);
-	if (hr != hrSuccess)
-		return hr;
-
-	memory_ptr<MAPINAMEID *> nameids_ptrs;
-	hr = MAPIAllocateBuffer(5 * sizeof(MAPINAMEID *), &~nameids_ptrs);
-	if (hr != hrSuccess)
-		return hr;
-
+	MAPINAMEID nameids[5];
+	MAPINAMEID *nameids_ptrs[5];
 	for (size_t i = 0; i < 5; ++i) {
 		nameids[i].lpguid = const_cast<GUID *>(&PSETID_Address);
 		nameids[i].ulKind = MNID_ID;
