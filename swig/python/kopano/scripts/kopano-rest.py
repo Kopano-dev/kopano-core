@@ -22,7 +22,7 @@ TOP = 10
 # TODO unicode/encoding checks
 
 def _server(req):
-    userid = req.get_header('X-Kopano-UserEntryID', required=True)
+    userid = USERID or req.get_header('X-Kopano-UserEntryID', required=True)
     if userid in userid_sessiondata:
         sessiondata = userid_sessiondata[userid]
         mapisession = kc_session_restore(sessiondata)
@@ -165,6 +165,13 @@ class FolderResource(Resource):
                 target = store.folder(entryid=data['target'])
                 folder.move(items, target)
 
+    def on_delete(self, req, resp, userid=None, folderid=None):
+        server = _server(req)
+        store = _store(server, userid)
+        folder = store.folder(entryid=folderid)
+
+        store.delete(folder)
+
 class CalendarResource(Resource): # TODO merge with FolderResource?
     fields = {
         'id': lambda folder: folder.entryid,
@@ -234,6 +241,13 @@ class MessageResource(Resource):
 
         self.respond(req, resp, data)
 
+    def on_delete(self, req, resp, userid=None, folderid=None, messageid=None):
+        server = _server(req)
+        store = _store(server, userid)
+        item = store.item(messageid)
+
+        store.delete(item)
+
 def recurrence_json(item):
     if isinstance(item, kopano.Item) and item.recurring:
         recurrence = item.recurrence
@@ -276,6 +290,7 @@ class EventResource(Resource):
         self.respond(req, resp, data)
 
 admin_server = kopano.Server(parse_args=False, store_cache=False)
+USERID = None #admin_server.user('user1').userid
 userid_sessiondata = {}
 
 users = UserResource()
