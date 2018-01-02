@@ -266,12 +266,6 @@ private:
 	std::string m_strCache;
 	ULONG m_ulCacheUID = 0;
 
-	// Folder cache
-	unsigned int cache_folders_time_limit = 0;
-	time_t cache_folders_last_used = 0;
-
-	std::list<SFolder> cached_folders;
-
 	/* A command has sent a continuation response, and requires more
 	 * data from the client. This is currently only used in the
 	 * AUTHENTICATE command, other continuations are already handled
