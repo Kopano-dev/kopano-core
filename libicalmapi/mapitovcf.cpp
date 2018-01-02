@@ -46,6 +46,7 @@ class mapitovcf_impl _kc_final : public mapitovcf {
 	VObject *to_prop(VObject *node, const char *prop, const wchar_t *value);
 	HRESULT add_adr(IMessage *lpMessage, VObject *root);
 	HRESULT add_email(IMessage *lpMessage, VObject *root);
+	HRESULT add_uid(IMessage *lpMessage, VObject *root);
 
 	std::string m_result;
 	/*
@@ -181,6 +182,54 @@ HRESULT mapitovcf_impl::add_email(IMessage *lpMessage, VObject *root)
 	return hrSuccess;
 }
 
+HRESULT mapitovcf_impl::add_uid(IMessage *lpMessage, VObject *root)
+{
+	MAPINAMEID name;
+	MAPINAMEID *namep = &name;
+
+	name.lpguid = const_cast<GUID *>(&PSETID_Meeting);
+	name.ulKind = MNID_ID;
+	name.Kind.lID = dispidGlobalObjectID;
+
+	std::string uid;
+	memory_ptr<SPropTagArray> proptag;
+	auto hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
+	if (hr == hrSuccess) {
+		proptag->aulPropTag[0] = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
+
+		unsigned int count;
+		memory_ptr<SPropValue> msgprop_array;
+		hr = lpMessage->GetProps(proptag, 0, &count, &~msgprop_array);
+		if (hr == hrSuccess) {
+			HrGetICalUidFromBinUid(msgprop_array[0].Value.bin, &uid);
+			auto uid_wstr = convert_to<std::wstring>(uid);
+			to_prop(root, "UID", uid_wstr.c_str());
+		}
+	}
+	/* Object did not have guid, let us generate one, and save it
+	   if possible */
+	if (uid.size() == 0) {
+		HrGenerateUid(&uid);
+		auto binstr = hex2bin(uid);
+
+		SPropValue prop;
+		prop.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
+		prop.Value.bin.lpb = (LPBYTE)binstr.c_str();
+		prop.Value.bin.cb = binstr.length();
+
+		hr = HrSetOneProp(lpMessage, &prop);
+		if (hr == hrSuccess) {
+			hr = lpMessage->SaveChanges(0);
+			if (hr != hrSuccess)
+				/* ignore */;
+		}
+
+		to_prop(root, "UID", prop);
+	}
+
+	return hrSuccess;
+}
+
 HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 {
 	memory_ptr<SPropValue> lpMessageClass;
@@ -276,6 +325,10 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	if (hr != hrSuccess)
 		return hr;
 
+	hr = add_uid(lpMessage, root);
+	if (hr != hrSuccess)
+		return hr;
+
 	MAPINAMEID name;
 	MAPINAMEID *namep = &name;
 	name.lpguid = const_cast<GUID *>(&PSETID_Address);
@@ -290,46 +343,6 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		hr = HrGetOneProp(lpMessage, proptype, &~msgprop);
 		if (hr == hrSuccess)
 			to_prop(root, "URL", *msgprop);
-	}
-
-	/* Handle UID */
-	name.lpguid = const_cast<GUID *>(&PSETID_Meeting);
-	name.ulKind = MNID_ID;
-	name.Kind.lID = dispidGlobalObjectID;
-
-	std::string uid;
-	hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
-	if (hr == hrSuccess) {
-		proptag->aulPropTag[0] = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
-
-		unsigned int count;
-		memory_ptr<SPropValue> msgprop_array;
-		hr = lpMessage->GetProps(proptag, 0, &count, &~msgprop_array);
-		if (hr == hrSuccess) {
-			HrGetICalUidFromBinUid(msgprop_array[0].Value.bin, &uid);
-			auto uid_wstr = convert_to<std::wstring>(uid);
-			to_prop(root, "UID", uid_wstr.c_str());
-		}
-	}
-	/* Object did not have guid, let us generate one, and save it
-	   if possible */
-	if (uid.size() == 0) {
-		HrGenerateUid(&uid);
-		auto binstr = hex2bin(uid);
-
-		SPropValue prop;
-		prop.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
-		prop.Value.bin.lpb = (LPBYTE)binstr.c_str();
-		prop.Value.bin.cb = binstr.length();
-
-		hr = HrSetOneProp(lpMessage, &prop);
-		if (hr == hrSuccess) {
-			hr = lpMessage->SaveChanges(0);
-			if (hr != hrSuccess)
-				/* ignore */;
-		}
-
-		to_prop(root, "UID", prop);
 	}
 
 	/* Write memobject */
