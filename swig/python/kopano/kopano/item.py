@@ -457,7 +457,9 @@ class Item(Properties, Contact, Appointment):
     def reminder(self, value):
         return self.create_prop('common:34051', value, proptype=PT_BOOLEAN)
 
-    def attachments(self, embedded=False):
+    def attachments(self, embedded=False, page_start=None, page_limit=None,
+            order=None
+        ):
         """ Return item :class:`attachments <Attachment>`
 
         :param embedded: include embedded attachments
@@ -474,6 +476,16 @@ class Item(Properties, Contact, Appointment):
         for row in table.rows():
             if row[1].value == ATTACH_BY_VALUE or (embedded and row[1].value == ATTACH_EMBEDDED_MSG):
                 yield Attachment(mapiitem, row[0].value)
+
+    def attachment(self, entryid):
+        # TODO can we use something existing for entryid, like PR_ENTRYID? check exchange?
+
+        # TODO performance, restriction on PR_RECORD_KEY part?
+        for attachment in self.attachments():
+            if attachment.entryid == entryid:
+                return attachment
+        else:
+            raise NotFoundError("no attachment with entryid '%s'" % entryid)
 
     def create_attachment(self, name, data):
         """Create a new attachment
