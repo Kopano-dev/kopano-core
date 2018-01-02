@@ -316,6 +316,16 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 			if (hr != hrSuccess)
 				return hr;
 			props.emplace_back(s);
+		} else if (strcmp(name, "URL") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			auto hr = vobject_to_named_prop(v, s, dispidWebPage);
+			if (hr != hrSuccess)
+				return hr;
+			props.emplace_back(s);
+		} else if (strcmp(name, "NICKNAME") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			auto hr = vobject_to_prop(v, s, PR_NICKNAME);
+			if (hr != hrSuccess)
+				return hr;
+			props.emplace_back(s);
 		} else if (strcmp(name, VCOrgProp) == 0) {
 			auto hr = handle_ORG(v);
 			if (hr != hrSuccess)
