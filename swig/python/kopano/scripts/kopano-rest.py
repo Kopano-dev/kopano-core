@@ -71,10 +71,10 @@ class Resource(object):
         # determine fields (default all)
         args = urlparse.parse_qs(req.query_string)
         fields = all_fields or self.fields
-        if 'fields' in args:
-            fields = args['fields'][0].split(',')
+        if '$select' in args:
+            fields = set(args['$select'][0].split(',') + ['id'])
         else:
-            fields = fields.keys()
+            fields = set(fields.keys())
 
         # jsonify result (as stream)
         resp.content_type = "application/json"
