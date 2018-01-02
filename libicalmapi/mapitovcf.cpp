@@ -138,6 +138,14 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		return hr;
 	}
 
+	hr = HrGetOneProp(lpMessage, PR_BUSINESS_TELEPHONE_NUMBER, &~msgprop);
+	if (hr == hrSuccess) {
+		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+		to_prop(node, "TYPE", L"WORK");
+	} else if (hr != MAPI_E_NOT_FOUND) {
+		return hr;
+	}
+
 	/* Email */
 	for (int lid = 0x8083; lid <= 0x80a3; lid += 0x10) {
 		MAPINAMEID name;
