@@ -52,7 +52,6 @@ protected:
 	convert_context m_converter;
 
 	virtual HRESULT HrGetUID(icalcomponent *lpEvent, std::string *strUid);
-	virtual HRESULT HrMakeBinaryUID(const std::string &strUid, void *base, SPropValue *lpPropValue);
 	virtual HRESULT HrResolveUser(void *base, std::list<icalrecip> *lplstIcalRecip);
 	virtual bool bIsUserLoggedIn(const std::wstring &strUser);
 

@@ -159,4 +159,63 @@ HRESULT HrMakeBinUidFromICalUid(const std::string &strUid, std::string *lpStrBin
 	return hrSuccess;
 }
 
+/**
+ * Converts string UID to binary property. The converted UID is in a
+ * format outlook wants, as described here.
+ *
+ * UID contents according to [MS-OXCICAL].pdf
+ * UID = EncodedGlobalId or ThirdPartyGlobalId
+ *
+ * EncodedGlobalId    = Header GlobalIdData
+ * ThirdPartyGlobalId = 1*UTF8-octets    ; Assuming UTF-8 is the encoding
+ *
+ * Header = ByteArrayID InstanceDate CreationDateTime Padding DataSize
+ *
+ * ByteArrayID        = "040000008200E00074C5B7101A82E008"
+ * InstanceDate       = InstanceYear InstanceMonth InstanceDay
+ * InstanceYear       = 4*4HEXDIGIT      ; UInt16
+ * InstanceMonth      = 2*2HEXDIGIT      ; UInt8
+ * InstanceDay        = 2*2HEXDIGIT      ; UInt8
+ * CreationDateTime   = FileTime
+ * FileTime           = 16*16HEXDIGIT    ; UInt6
+ * Padding            = 16*16HEXDIGIT    ; "0000000000000000" recommended
+ * DataSize           = 8*8HEXDIGIT      ; UInt32 little-endian
+ * GlobalIdData       = 2*HEXDIGIT4
+ *
+ * @param[in]	strUid			String UID
+ * @param[in]	base			Base for allocating memory
+ * @param[out]	lpPropValue		The binary uid is returned in SPropValue structure
+ * @return		Always return hrSuccess
+ */
+HRESULT HrMakeBinaryUID(const std::string &strUid, void *base, SPropValue *lpPropValue)
+{
+	SPropValue sPropValue;
+	std::string strBinUid;
+	std::string strByteArrayID = "040000008200E00074C5B7101A82E008";
+
+	// Check whether this is a default Outlook UID
+	// Exchange example: UID:040000008200E00074C5B7101A82E008 00000000 305D0F2A9A06C901 0000000000000000 10000000 7F64D28AE2DCC64C88F849733F5FBD1D
+	// GMail example:    UID:rblkvqecgurvb0all6rjb3d1j8@google.com
+	// Sunbird example: UID:1090c3de-36b2-4352-a155-a1436bc806b8
+	if (strUid.compare(0, strByteArrayID.length(), strByteArrayID) == 0)
+		// EncodedGlobalId
+		strBinUid = hex2bin(strUid);
+	else
+		// ThirdPartyGlobalId
+		HrMakeBinUidFromICalUid(strUid, &strBinUid);
+
+	// Caller sets .ulPropTag
+	sPropValue.Value.bin.cb = strBinUid.size();
+	HRESULT hr = MAPIAllocateMore(sPropValue.Value.bin.cb, base,
+	             reinterpret_cast<void **>(&sPropValue.Value.bin.lpb));
+	if (hr != hrSuccess)
+		return hr;
+	memcpy(sPropValue.Value.bin.lpb, strBinUid.data(), sPropValue.Value.bin.cb);
+
+	// set return value
+	lpPropValue->Value.bin.cb  = sPropValue.Value.bin.cb;
+	lpPropValue->Value.bin.lpb = sPropValue.Value.bin.lpb;
+	return hrSuccess;
+}
+
 } /* namespace */
