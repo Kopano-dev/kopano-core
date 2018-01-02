@@ -47,7 +47,6 @@ struct INFOGUID {
 
 extern _kc_export std::string GetMAPIErrorDescription(HRESULT);
 std::string DBGGUIDToString(REFIID iid);
-std::string MapiNameIdListToString(ULONG cNames, const MAPINAMEID *const *ppNames, const SPropTagArray *pptaga = NULL);
 std::string MapiNameIdToString(const MAPINAMEID *pNameId);
 
 std::string PropNameFromPropTagArray(const SPropTagArray *);

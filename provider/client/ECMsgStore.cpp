@@ -1236,18 +1236,6 @@ HRESULT ECMsgStore::CreateStoreEntryID(const TCHAR *lpszMsgStoreDN,
 	       cbStoreEntryID, lpStoreEntryID, lpcbEntryID, lppEntryID);
 }
 
-HRESULT ECMsgStore::CreateStoreEntryID2(ULONG cValues, LPSPropValue lpProps, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
-{
-	auto lpMsgStoreDN = PCpropFindProp(lpProps, cValues, PR_PROFILE_MDB_DN);
-	auto lpMailboxDN = PCpropFindProp(lpProps, cValues, PR_PROFILE_MAILBOX);
-
-	if (lpMsgStoreDN == NULL || lpMailboxDN == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	return CreateStoreEntryID(reinterpret_cast<const TCHAR *>(lpMsgStoreDN->Value.lpszA),
-	       reinterpret_cast<const TCHAR *>(lpMailboxDN->Value.lpszA),
-	       ulFlags & ~MAPI_UNICODE, lpcbEntryID, lppEntryID);
-}
-
 HRESULT ECMsgStore::EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey,	ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
 	return lpTransport->HrEntryIDFromSourceKey(this->m_cbEntryId, this->m_lpEntryId, cFolderKeySize, lpFolderSourceKey, cMessageKeySize, lpMessageSourceKey, lpcbEntryID, lppEntryID);

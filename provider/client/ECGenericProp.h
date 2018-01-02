@@ -65,7 +65,6 @@ public:
 	HRESULT SetProvider(void* lpProvider);
 	HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
 	static HRESULT		DefaultGetPropGetReal(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);	
-	static HRESULT		DefaultGetPropNotFound(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 	static HRESULT DefaultSetPropComputed(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
 	static HRESULT DefaultSetPropIgnore(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
 	static HRESULT DefaultSetPropSetReal(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);

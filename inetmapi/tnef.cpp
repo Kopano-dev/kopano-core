@@ -347,8 +347,6 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 		case ATT_MESSAGE_CLASS: /* PR_MESSAGE_CLASS */
 			{
 				szSClass.reset(new char[ulSize+1]);
-				char *szMAPIClass = NULL;
-
 				// NULL terminate the string
 				memcpy(szSClass.get(), lpBuffer, ulSize);
 				szSClass[ulSize] = 0;
@@ -356,7 +354,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 				// We map the Schedule+ message class to the more modern MAPI message
 				// class. The mapping should be correct as far as we can find ..
 
-				szMAPIClass = (char *)FindMAPIClassByScheduleClass(szSClass.get());
+				char *szMAPIClass = (char *)FindMAPIClassByScheduleClass(szSClass.get());
 				if(szMAPIClass == NULL)
 					szMAPIClass = szSClass.get(); // mapping not found, use string from TNEF file
 
