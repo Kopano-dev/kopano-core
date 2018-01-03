@@ -38,11 +38,7 @@ struct configsetting_t {
 #define CONFIGGROUP_PROPMAP			0x0001
 };
 
-#ifdef UNICODE
 #define GetConfigSetting(_config, _name) ((_config)->GetSettingW(_name))
-#else
-#define GetConfigSetting(_config, _name) ((_config)->GetSetting(_name))
-#endif
 
 static const char *const lpszDEFAULTDIRECTIVES[] = {"include", NULL};
 

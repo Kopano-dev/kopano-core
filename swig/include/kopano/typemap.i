@@ -7,11 +7,7 @@
 %apply unsigned int *INOUT {ULONG *INOUT};
 %apply unsigned int *OUTPUT {LONG *};
 %apply bool {BOOL};
-#ifdef UNICODE
 %apply wchar_t * {LPTSTR};
-#else
-%apply char * {LPTSTR};
-#endif
 
 %include "cstring.i"
 %include "cwstring.i"

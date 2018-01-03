@@ -66,12 +66,7 @@
  */
 #define MAPI_UNICODE            ((ULONG) 0x80000000)
 
-#ifdef UNICODE
 #define fMapiUnicode            MAPI_UNICODE
-#else
-#define fMapiUnicode            0
-#endif
-
 
 #define hrSuccess		0
 
@@ -186,19 +181,11 @@ typedef struct MAPIUID *LPMAPIUID;
  *  dereferenced to obtain the string pointer.
  */
 
-#ifdef  UNICODE
 #define PT_TSTRING          PT_UNICODE
 #define PT_MV_TSTRING       (MV_FLAG|PT_UNICODE)
 #define LPSZ                lpszW
 #define LPPSZ               lppszW
 #define MVSZ                MVszW
-#else
-#define PT_TSTRING          PT_STRING8
-#define PT_MV_TSTRING       (MV_FLAG|PT_STRING8)
-#define LPSZ                lpszA
-#define LPPSZ               lppszA
-#define MVSZ                MVszA
-#endif
 
 
     /* Property Tags */
