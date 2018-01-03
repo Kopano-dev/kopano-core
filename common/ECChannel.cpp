@@ -358,23 +358,6 @@ HRESULT ECChannel::HrReadLine(std::string * strBuffer, ULONG ulMaxBuffer) {
 	return hr;
 }
 
-HRESULT ECChannel::HrWriteString(const char *szBuffer)
-{
-	HRESULT hr = hrSuccess;
-
-	if(!szBuffer)
-		return MAPI_E_INVALID_PARAMETER;
-
-	if (lpSSL) {
-		if (SSL_write(lpSSL, szBuffer, (int)strlen(szBuffer)) < 1)
-			hr = MAPI_E_NETWORK_ERROR;
-	}
-	else if (send(fd, szBuffer, (int)strlen(szBuffer), 0) < 1) {
-		hr = MAPI_E_NETWORK_ERROR;
-	}
-	return hr;
-}
-
 HRESULT ECChannel::HrWriteString(const std::string & strBuffer) {
 	HRESULT hr = hrSuccess;
 
