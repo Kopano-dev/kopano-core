@@ -45,8 +45,6 @@ public:
 	HRESULT ComparePublicEntryId(enumPublicEntryID, ULONG eid_size, const ENTRYID *eid, ULONG *result);
 	ECMemTable *GetIPMSubTree();
 
-	// Folder with the favorites links
-	HRESULT GetDefaultShortcutFolder(IMAPIFolder** lppFolder);
 	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
 
 protected:	
