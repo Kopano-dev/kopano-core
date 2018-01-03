@@ -750,7 +750,6 @@ AC_CONFIG_FILES([Makefile
 		common/kopano.pc common/libkcmapi.sym common/libkcutil.sym
 		default.sym
 		mapi4linux/src/libmapi.sym
-		mapi4linux/src/libkchl.sym
 		provider/plugin.sym provider/provider.sym
 		provider/libkcserver.sym provider/libkcsoap.sym
 ])
