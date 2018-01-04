@@ -22,6 +22,10 @@
 #include <cstdio>
 #include <ctime>
 #include <cmath>
+#if __GNUC_PREREQ(5, 0) && !__GNUC_PREREQ(6, 0)
+using std::isfinite;
+using std::isnan;
+#endif
 
 extern "C" {
 	// Remove these defines to remove warnings
@@ -30,12 +34,6 @@ extern "C" {
 	#undef PACKAGE_NAME
 	#undef PACKAGE_STRING
 	#undef PACKAGE_BUGREPORT
-
-	#if !__GNUC_PREREQ(6,0)
-	#define zend_isfinite(a) std::isfinite(a)
-	#define zend_isnan(a) std::isnan(a)
-	#endif
-	
 	#include "php.h"
    	#include "php_globals.h"
 	#include "ext/standard/info.h"
