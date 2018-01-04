@@ -92,7 +92,6 @@ HRESULT ECGenericProp::HrAddPropHandlers(ULONG ulPropTag, GetPropCallBack lpfnGe
 	sCallBack.fRemovable = fRemovable;
 	sCallBack.fHidden = fHidden;
 	lstCallBack.emplace(PROP_ID(ulPropTag), sCallBack);
-	dwLastError = hr;
 	return hr;
 }
 
@@ -147,7 +146,6 @@ HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 
 	// Property is now added/modified and marked 'dirty' for saving
 exit:
-	dwLastError = hr;
 	return hr;
 }
 
@@ -220,8 +218,6 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 	iterProps->second.GetProperty()->CopyTo(lpsPropValue, lpBase, ulPropTag);
 
 exit:
-	dwLastError = hr;
-
 	return hr;
 }
 
@@ -257,7 +253,6 @@ HRESULT ECGenericProp::HrDeleteRealProp(ULONG ulPropTag, BOOL fOverwriteRO)
 	m_setDeletedProps.emplace(iterProps->second.GetPropTag());
 	lstProps.erase(iterProps);
 exit:
-	dwLastError = hr;
 	return hr;
 }
 
@@ -591,7 +586,6 @@ HRESULT	ECGenericProp::HrGetHandler(ULONG ulPropTag, SetPropCallBack *lpfnSetPro
 		*lpParam = iterCallBack->second.lpParam;
 	
 exit:
-	dwLastError = hr;
 	return hr;
 }
 
@@ -682,7 +676,6 @@ HRESULT ECGenericProp::HrLoadProps()
 	fSaved = true;
 
 exit:
-	dwLastError = hr;
 	m_bReload = FALSE;
 	m_bLoading = FALSE;
 	return hr;
