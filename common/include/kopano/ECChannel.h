@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <openssl/ssl.h>
 #include <kopano/zcdefs.h>
+#include <kopano/platform.h>
 
 struct sockaddr;
 
