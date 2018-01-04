@@ -63,7 +63,7 @@ def convert(cmd, data, log):
             'xmltotext': 'xsltproc '+os.path.join(os.path.dirname(os.path.realpath(__file__)), 'xmltotext.xslt')
         }
         log.debug("executing command: '%s'" % cmd)
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=setlimits)
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=setlimits, env={"HOME": tmpdir})
         out, err = p.communicate()
         if err: 
             log.warning('output on stderr:\n'+err[:1024]+'..')
