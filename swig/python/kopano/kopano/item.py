@@ -1100,6 +1100,7 @@ class Item(Properties, Contact, Appointment):
 
         mapiobj = folder.mapiobj.CreateMessage(None, 0)
         self.mapiobj.CopyTo([], [], 0, None, IID_IMessage, mapiobj, 0)
+        mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
         if _delete:
             self.folder.delete(self)
         item = Item(mapiobj=mapiobj)
