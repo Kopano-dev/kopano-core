@@ -11,7 +11,7 @@ from MAPI import (
     MAPI_UNICODE, MAPI_UNRESOLVED, ECSTORE_TYPE_PRIVATE, ECSTORE_TYPE_ARCHIVE,
     WrapStoreEntryID
 )
-from MAPI.Defs import bin2hex, HrGetOneProp
+from MAPI.Defs import HrGetOneProp
 from MAPI.Struct import (
     SPropValue, MAPIErrorNotFound, MAPIErrorInvalidParameter,
     MAPIErrorCollision, MAPIErrorNoSupport, ECUSER
@@ -32,7 +32,8 @@ from .defs import (
 )
 from .errors import Error, NotFoundError, NotSupportedError, DuplicateError
 from .compat import (
-    hex as _hex, unhex as _unhex, fake_unicode as _unicode
+    hex as _hex, unhex as _unhex, fake_unicode as _unicode, benc as _benc,
+    bdec as _bdec,
 )
 
 if sys.hexversion >= 0x03000000:
@@ -55,7 +56,7 @@ class User(Properties):
             self._name = ecuser.Username
         elif userid:
             try:
-                self._ecuser = self.server.sa.GetUser(_unhex(userid), MAPI_UNICODE)
+                self._ecuser = self.server.sa.GetUser(_bdec(userid), MAPI_UNICODE)
             except MAPIErrorNotFound:
                 raise NotFoundError("no user found with userid '%s'" % userid)
             self._name = self._ecuser.Username
@@ -201,7 +202,7 @@ class User(Properties):
     def userid(self):
         """ Userid """
 
-        return bin2hex(self._ecuser.UserID)
+        return _benc(self._ecuser.UserID)
 
     @property
     def company(self):
@@ -215,7 +216,7 @@ class User(Properties):
     @property # XXX
     def local(self):
         store = self.store
-        return bool(store and (self.server.guid == bin2hex(HrGetOneProp(store.mapiobj, PR_MAPPING_SIGNATURE).Value)))
+        return bool(store and (self.server.guid == _hex(HrGetOneProp(store.mapiobj, PR_MAPPING_SIGNATURE).Value)))
 
     def create_store(self):
         try:

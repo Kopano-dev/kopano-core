@@ -57,7 +57,10 @@ from .defs import (
 )
 from .errors import NotFoundError, Error, _DeprecationWarning
 
-from .compat import hex as _hex, unhex as _unhex, fake_unicode as _unicode
+from .compat import (
+    hex as _hex, unhex as _unhex, fake_unicode as _unicode, bdec as _bdec,
+    benc as _benc
+)
 
 if sys.hexversion >= 0x03000000:
     try:
@@ -107,7 +110,7 @@ class Folder(Properties):
             self._mapiobj = mapiobj
             self._entryid = HrGetOneProp(self.mapiobj, PR_ENTRYID).Value
         elif entryid:
-            self._entryid = _unhex(entryid)
+            self._entryid = _bdec(entryid)
 
         self.content_flag = MAPI_ASSOCIATED if associated else (SHOW_SOFT_DELETES if deleted else 0)
         self._sourcekey = None
@@ -144,13 +147,13 @@ class Folder(Properties):
     def entryid(self):
         """ Folder entryid """
 
-        return _hex(self._entryid)
+        return _benc(self._entryid)
 
     @property
     def guid(self):
         """ Folder guid """
 
-        return self.entryid[56:88]
+        return self.entryid[56:88] # TODO assumes hex
 
     @property
     def sourcekey(self):
@@ -161,7 +164,7 @@ class Folder(Properties):
     @property
     def parent(self):
         """:class:`Parent <Folder>` folder"""
-        parent_eid = _hex(self._get_fast(PR_PARENT_ENTRYID))
+        parent_eid = _benc(self._get_fast(PR_PARENT_ENTRYID))
         if parent_eid != self.entryid: # root parent is itself
             return Folder(self.store, parent_eid, _check_mapiobj=False)
 
@@ -266,7 +269,7 @@ class Folder(Properties):
 
         # open message with entryid
         try:
-            mapiobj = _utils.openentry_raw(self.store.mapiobj, _unhex(entryid), self.content_flag)
+            mapiobj = _utils.openentry_raw(self.store.mapiobj, _bdec(entryid), self.content_flag)
         except MAPIErrorNotFound:
             raise NotFoundError("no item with entryid '%s'" % entryid)
 
@@ -430,8 +433,8 @@ class Folder(Properties):
         self.server.sa.ResetFolderCount(_unhex(self.entryid))
 
     def _get_entryids(self, items):
-        item_entryids = [_unhex(item.entryid) for item in items if isinstance(item, _item.Item)]
-        folder_entryids = [_unhex(item.entryid) for item in items if isinstance(item, Folder)]
+        item_entryids = [_bdec(item.entryid) for item in items if isinstance(item, _item.Item)]
+        folder_entryids = [_bdec(item.entryid) for item in items if isinstance(item, Folder)]
         perms = [item for item in items if isinstance(item, Permission)]
         props = [item for item in items if isinstance(item, Property)]
         return item_entryids, folder_entryids, perms, props
@@ -573,7 +576,7 @@ class Folder(Properties):
         for row in table.rows(page_start=page_start, page_limit=page_limit):
             folder = Folder(
                 self.store,
-                _hex(row[0].value),
+                _benc(row[0].value),
                 _check_mapiobj=False,
                 cache=dict(zip(columns, row))
             )

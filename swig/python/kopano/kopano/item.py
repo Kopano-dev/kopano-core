@@ -39,10 +39,10 @@ from MAPI.Struct import (
     MAPIErrorInterfaceNotSupported, MAPIErrorUnconfigured, MAPIErrorNoAccess,
 )
 from MAPI.Tags import (
-    PR_BODY, PR_DISPLAY_NAME_W, PR_MESSAGE_CLASS_W,
-    PR_CONTAINER_CLASS, PR_ENTRYID, PR_EC_HIERARCHYID,
+    PR_BODY, PR_DISPLAY_NAME_W, PR_MESSAGE_CLASS_W, PR_CHANGE_KEY,
+    PR_CONTAINER_CLASS, PR_ENTRYID, PR_EC_HIERARCHYID, PR_HASATTACH,
     PR_SOURCE_KEY, PR_SUBJECT_W, PR_ATTACH_LONG_FILENAME_W,
-    PR_MESSAGE_SIZE, PR_BODY_W, PR_CREATION_TIME,
+    PR_MESSAGE_SIZE, PR_BODY_W, PR_CREATION_TIME, PR_CLIENT_SUBMIT_TIME,
     PR_MESSAGE_DELIVERY_TIME, PR_LAST_MODIFICATION_TIME,
     PR_MESSAGE_FLAGS, PR_PARENT_ENTRYID, PR_IMPORTANCE,
     PR_ATTACH_NUM, PR_ATTACH_METHOD, PR_ATTACH_DATA_BIN,
@@ -67,7 +67,7 @@ from .compat import (
     hex as _hex, unhex as _unhex, is_str as _is_str, repr as _repr,
     pickle_load as _pickle_load, pickle_loads as _pickle_loads,
     fake_unicode as _unicode, is_file as _is_file,
-    encode as _encode
+    encode as _encode, benc as _benc,
 )
 
 from .defs import (
@@ -231,7 +231,7 @@ class Item(Properties, Contact, Appointment):
     def entryid(self):
         """ Item entryid """
 
-        return _hex(self._get_fast(PR_ENTRYID, must_exist=True))
+        return _benc(self._get_fast(PR_ENTRYID, must_exist=True))
 
     @property
     def guid(self):
@@ -250,6 +250,12 @@ class Item(Properties, Contact, Appointment):
         if not hasattr(self, '_sourcekey'): # XXX more general caching solution
             self._sourcekey = bin2hex(HrGetOneProp(self.mapiobj, PR_SOURCE_KEY).Value)
         return self._sourcekey
+
+    @property
+    def changekey(self):
+        """ Item changekey """
+
+        return _benc(self[PR_CHANGE_KEY])
 
     @property
     def subject(self):
@@ -338,6 +344,14 @@ class Item(Properties, Contact, Appointment):
     def received(self, value):
         self._cache.pop(PR_MESSAGE_DELIVERY_TIME, None) # TODO generalize
         self.prop(PR_MESSAGE_DELIVERY_TIME, create=True).value = value
+
+    @property
+    def sent(self):
+        """Client submit time."""
+        try:
+            return self.prop(PR_CLIENT_SUBMIT_TIME).value
+        except NotFoundError:
+            pass
 
     @property
     def last_modified(self):
@@ -443,7 +457,9 @@ class Item(Properties, Contact, Appointment):
     def reminder(self, value):
         return self.create_prop('common:34051', value, proptype=PT_BOOLEAN)
 
-    def attachments(self, embedded=False):
+    def attachments(self, embedded=False, page_start=None, page_limit=None,
+            order=None
+        ):
         """ Return item :class:`attachments <Attachment>`
 
         :param embedded: include embedded attachments
@@ -460,6 +476,16 @@ class Item(Properties, Contact, Appointment):
         for row in table.rows():
             if row[1].value == ATTACH_BY_VALUE or (embedded and row[1].value == ATTACH_EMBEDDED_MSG):
                 yield Attachment(mapiitem, row[0].value)
+
+    def attachment(self, entryid):
+        # TODO can we use something existing for entryid, like PR_ENTRYID? check exchange?
+
+        # TODO performance, restriction on PR_RECORD_KEY part?
+        for attachment in self.attachments():
+            if attachment.entryid == entryid:
+                return attachment
+        else:
+            raise NotFoundError("no attachment with entryid '%s'" % entryid)
 
     def create_attachment(self, name, data):
         """Create a new attachment
@@ -479,6 +505,10 @@ class Item(Properties, Contact, Appointment):
         attach.SaveChanges(KEEP_OPEN_READWRITE)
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
         return Attachment(mapiobj=attach)
+
+    @property
+    def has_attachments(self):
+        return self[PR_HASATTACH]
 
     def header(self, name):
         """ Return transport message header with given name """

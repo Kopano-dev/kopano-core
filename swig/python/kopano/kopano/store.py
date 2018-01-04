@@ -64,6 +64,7 @@ from .notification import Sink, Notification
 
 from .compat import (
     hex as _hex, unhex as _unhex, encode as _encode, repr as _repr,
+    bdec as _bdec, benc as _benc
 )
 
 if sys.hexversion >= 0x03000000:
@@ -153,7 +154,7 @@ class Store(Properties):
     def root(self):
         """:class:`Folder` designated as store root."""
         try:
-            return _folder.Folder(self, _hex(HrGetOneProp(self._root, PR_ENTRYID).Value))
+            return _folder.Folder(self, _benc(HrGetOneProp(self._root, PR_ENTRYID).Value))
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
@@ -166,7 +167,7 @@ class Store(Properties):
             else:
                 ipmsubtreeid = HrGetOneProp(self.mapiobj, PR_IPM_SUBTREE_ENTRYID).Value
 
-            return _folder.Folder(self, _hex(ipmsubtreeid))
+            return _folder.Folder(self, _benc(ipmsubtreeid))
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
@@ -190,7 +191,7 @@ class Store(Properties):
     def inbox(self):
         """:class:`Folder` designated as inbox."""
         try:
-            return _folder.Folder(self, _hex(self.mapiobj.GetReceiveFolder(u'IPM', MAPI_UNICODE)[0]))
+            return _folder.Folder(self, _benc(self.mapiobj.GetReceiveFolder(u'IPM', MAPI_UNICODE)[0]))
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
@@ -416,6 +417,12 @@ class Store(Properties):
             for folder in self.subtree.folders(recurse=recurse, **kwargs):
                 yield folder
 
+    def calendars(self, **kwargs):
+        # TODO restriction
+        for folder in self.folders():
+            if folder.container_class == 'IPF.Appointment':
+                yield folder
+
     def create_searchfolder(self, text=None): # XXX store.findroot.create_folder()?
         mapiobj = self.findroot.mapiobj.CreateFolder(FOLDER_SEARCH, _encode(str(uuid.uuid4())), _encode('comment'), None, 0)
         return _folder.Folder(self, mapiobj=mapiobj)
@@ -432,7 +439,7 @@ class Store(Properties):
             entryid = '00000000' + self.guid + '0100000005000000' + guid + '00000000'
 
         try:
-            item.mapiobj = _utils.openentry_raw(self.mapiobj, _unhex(entryid), 0) # XXX soft-deleted item?
+            item.mapiobj = _utils.openentry_raw(self.mapiobj, _bdec(entryid), 0) # XXX soft-deleted item?
         except MAPIErrorNotFound:
             raise NotFoundError("no item with entryid '%s'" % entryid)
         return item

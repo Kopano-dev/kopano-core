@@ -8,14 +8,18 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file)
 import sys
 
 from MAPI.Tags import (
-    PR_EC_HIERARCHYID, PR_ATTACH_NUM, PR_ATTACH_MIME_TAG_W,
-    PR_ATTACH_LONG_FILENAME_W, PR_ATTACH_SIZE, PR_ATTACH_DATA_BIN,
+    PR_EC_HIERARCHYID, PR_ATTACH_NUM, PR_ATTACH_MIME_TAG_W, PR_RECORD_KEY,
+    PR_ATTACH_LONG_FILENAME_W, PR_ATTACH_SIZE, PR_ATTACH_DATA_BIN, PR_ENTRYID,
     IID_IAttachment
 )
 from MAPI.Defs import HrGetOneProp
 from MAPI.Struct import MAPIErrorNotFound
 
 from .properties import Properties
+
+from .compat import (
+    benc as _benc
+)
 
 if sys.hexversion >= 0x03000000:
     try:
@@ -43,6 +47,10 @@ class Attachment(Properties):
             self._entryid, IID_IAttachment, 0
         )
         return self._mapiobj
+
+    @property
+    def entryid(self):
+        return _benc(HrGetOneProp(self._mapiitem, PR_ENTRYID).Value) + _benc(self[PR_RECORD_KEY])
 
     @mapiobj.setter
     def mapiobj(self, mapiobj):

@@ -65,10 +65,10 @@ def dump_folder(folder):
             item.received or DEFAULT_DATETIME,
             item.subject,
             item.name,
-            item.get_value('address:32896'),
-            item.get_value(PR_CLIENT_SUBMIT_TIME) or DEFAULT_DATETIME,
-            item.get_value(PR_COMPANY_NAME_W),
-            item.get_value(PR_INTERNET_ARTICLE_NUMBER) or 0,
+            item.get('address:32896'),
+            item.get(PR_CLIENT_SUBMIT_TIME) or DEFAULT_DATETIME,
+            item.get(PR_COMPANY_NAME_W),
+            item.get(PR_INTERNET_ARTICLE_NUMBER) or 0,
         )
 
     items = sorted(folder.items(), key=item_key)
