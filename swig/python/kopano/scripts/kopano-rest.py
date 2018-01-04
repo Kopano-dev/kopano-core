@@ -18,10 +18,12 @@ TOP = 10
 # TODO /me/messages does not return _all_ messages in store
 # TODO pagination for non-messages
 # TODO check https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters
-# TODO post, put, delete
+# TODO post, put, delete (all resource types)
 # TODO copy/move/send actions
 # TODO unicode/encoding checks
 # TODO efficient attachment streaming
+# TODO be able to use special folder names (eg copy/move)
+# TODO bulk copy/move/delete?
 
 def _server(req):
     userid = USERID or req.get_header('X-Kopano-UserEntryID', required=True)
@@ -134,39 +136,6 @@ class FolderResource(Resource):
 
         self.respond(req, resp, data)
 
-    def on_post(self, req, resp, userid=None, folderid=None):
-        server = _server(req)
-        store = _store(server, userid)
-        folder = store.folder(entryid=folderid)
-
-        fields = json.loads(req.stream.read())
-        item = folder.create_item(**fields) # TODO conversion
-
-        resp.status = falcon.HTTP_201
-        resp.location = req.path+'/items/'+item.entryid
-
-    def on_put(self, req, resp, userid=None, folderid=None):
-        server = _server(req)
-        store = _store(server, userid)
-        folder = store.folder(entryid=folderid)
-
-        data = json.loads(req.stream.read())
-        if 'action' in data:
-            action = data['action']
-            items = [store.item(entryid=entryid) for entryid in data['items']]
-
-            if action == 'send':
-                for item in items:
-                    item.send()
-            elif action == 'delete':
-                folder.delete(items)
-            elif action == 'copy':
-                target = store.folder(entryid=data['target'])
-                folder.copy(items, target)
-            elif action == 'move':
-                target = store.folder(entryid=data['target'])
-                folder.move(items, target)
-
     def on_delete(self, req, resp, userid=None, folderid=None):
         server = _server(req)
         store = _store(server, userid)
@@ -180,16 +149,14 @@ class CalendarResource(Resource): # TODO merge with FolderResource?
         'displayName': lambda folder: folder.name,
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None):
+    def on_get(self, req, resp, userid=None, folderid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
 
         path = req.path
-        method = None
         fields = None
 
-        if path.split('/')[-1] == 'calendarView':
-            method = 'calendarView'
+        if method:
             path = '/'.join(path.split('/')[:-1])
 
         if path.split('/')[-1] == 'calendars':
@@ -228,7 +195,7 @@ class MessageResource(Resource):
         'hasAttachments': lambda item: item.has_attachments,
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, messageid=None):
+    def on_get(self, req, resp, userid=None, folderid=None, messageid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
 
@@ -241,6 +208,16 @@ class MessageResource(Resource):
             data = folder.item(messageid)
         else:
             data = self.generator(req, folder.items, folder.count)
+
+        if method:
+            body = json.loads(req.stream.read())
+            folder = store.folder(entryid=body['destinationId'].encode('ascii')) # TODO ascii?
+            item = data
+
+            if method == 'copy':
+                data = item.copy(folder)
+            elif method == 'move':
+                data = item.move(folder)
 
         self.respond(req, resp, data)
 
@@ -334,25 +311,32 @@ app.add_route('/users', users)
 app.add_route('/users/{userid}', users)
 
 for user in ('/me', '/users/{userid}'):
+    # folders
     app.add_route(user+'/mailFolders', folders)
     app.add_route(user+'/mailFolders/{folderid}', folders)
 
+    # messages
     app.add_route(user+'/messages', messages)
-    app.add_route(user+'/messages/{messageid}', messages)
     app.add_route(user+'/mailFolders/{folderid}/messages', messages)
+    app.add_route(user+'/messages/{messageid}', messages)
+    app.add_route(user+'/messages/{messageid}/{method}', messages)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}', messages)
+    app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/{method}', messages)
 
+    # attachments
     app.add_route(user+'/messages/{messageid}/attachments', attachments)
     app.add_route(user+'/messages/{messageid}/attachments/{attachmentid}', attachments)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments', attachments)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments/{attachmentid}', attachments)
 
-    app.add_route(user+'/calendar', calendars)
+    # calendars
     app.add_route(user+'/calendars', calendars)
+    app.add_route(user+'/calendar', calendars)
+    app.add_route(user+'/calendar/{method}', calendars)
     app.add_route(user+'/calendars/{folderid}', calendars)
-    app.add_route(user+'/calendar/calendarView', calendars)
-    app.add_route(user+'/calendars/{folderid}/calendarView', calendars)
+    app.add_route(user+'/calendars/{folderid}/{method}', calendars)
 
+    # events
     app.add_route(user+'/events', events)
     app.add_route(user+'/calendar/events', events)
     app.add_route(user+'/calendars/{folderid}/events', events)
