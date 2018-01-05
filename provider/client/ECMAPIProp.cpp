@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapitags.h>
@@ -522,12 +523,17 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 	struct rightsArray	rights;
 	std::string			strAclData;
 
+	auto laters = make_scope_success([&]() {
+		soap_destroy(&soap);
+		soap_end(&soap); // clean up allocated temporaries
+	});
+
 	hr = QueryInterface(IID_IECSecurity, &~ptrSecurity);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~ptrPerms);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	rights.__size = cPerms;
 	rights.__ptr = s_alloc<struct rights>(&soap, cPerms);
@@ -546,13 +552,9 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 	lpsPropValue->Value.bin.cb = strAclData.size();
 	hr = MAPIAllocateMore(lpsPropValue->Value.bin.cb, lpBase, (LPVOID*)&lpsPropValue->Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memcpy(lpsPropValue->Value.bin.lpb, strAclData.data(), lpsPropValue->Value.bin.cb);
 
-exit:
-	soap_destroy(&soap);
-	soap_end(&soap); // clean up allocated temporaries 
-	
 	return hr;
 }
 
@@ -564,10 +566,13 @@ HRESULT ECMAPIProp::SetSerializedACLData(const SPropValue *lpsPropValue)
 	struct rightsArray	rights;
 	std::string			strAclData;
 
-	if (lpsPropValue == NULL || PROP_TYPE(lpsPropValue->ulPropTag) != PT_BINARY) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	auto laters = make_scope_success([&]() {
+		soap_destroy(&soap);
+		soap_end(&soap); // clean up allocated temporaries
+	});
+
+	if (lpsPropValue == NULL || PROP_TYPE(lpsPropValue->ulPropTag) != PT_BINARY)
+		return MAPI_E_INVALID_PARAMETER;
 
 	{
 		std::istringstream is(std::string((char*)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb));
@@ -575,29 +580,21 @@ HRESULT ECMAPIProp::SetSerializedACLData(const SPropValue *lpsPropValue)
 		soap.is = &is;
 		soap_set_imode(&soap, SOAP_C_UTFSTRING);
 		soap_begin(&soap);
-		if (soap_begin_recv(&soap) != 0) {
-			hr = MAPI_E_NETWORK_FAILURE;
-			goto exit;
-		}
-		if (!soap_get_rightsArray(&soap, &rights, "rights", "rightsArray")) {
-			hr = MAPI_E_CORRUPT_DATA;
-			goto exit;
-		}
-		if (soap_end_recv(&soap) != 0) {
-			hr = MAPI_E_NETWORK_ERROR;
-			goto exit;
-		}
+		if (soap_begin_recv(&soap) != 0)
+			return MAPI_E_NETWORK_FAILURE;
+
+		if (!soap_get_rightsArray(&soap, &rights, "rights", "rightsArray"))
+			return MAPI_E_CORRUPT_DATA;
+
+		if (soap_end_recv(&soap) != 0)
+			return MAPI_E_NETWORK_ERROR;
 	}
 	hr = MAPIAllocateBuffer(rights.__size * sizeof(ECPERMISSION), &~ptrPerms);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	std::transform(rights.__ptr, rights.__ptr + rights.__size, ptrPerms.get(), &RightsToECPermCheap);
 	hr = UpdateACLs(rights.__size, ptrPerms);
-
-exit:
-	soap_destroy(&soap);
-	soap_end(&soap); // clean up allocated temporaries 
 
 	return hr;
 }
