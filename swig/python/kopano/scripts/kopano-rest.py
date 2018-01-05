@@ -99,6 +99,17 @@ class Resource(object):
 
         return (generator(page_start=skip, page_limit=top, order=order), top, skip, count)
 
+    def create_message(self, folder, fields, all_fields=None):
+        # TODO only save in the end
+
+        item = folder.create_item()
+        for field, value in fields.items():
+            if field in (all_fields or self.set_fields):
+                print 'setfield', field, value
+                (all_fields or self.set_fields)[field](item, value)
+
+        return item
+
 class UserResource(Resource):
     fields = {
         'id': lambda user: user.userid,
@@ -118,6 +129,14 @@ class UserResource(Resource):
             data = self.generator(req, server.users)
 
         self.respond(req, resp, data)
+
+    def on_post(self, req, resp, userid=None, method=None):
+        server = _server(req)
+        store = _store(server, userid)
+
+        fields = json.loads(req.stream.read())['message']
+        self.create_message(store.outbox, fields, MessageResource.set_fields).send()
+        # TODO save in sent items?
 
 class FolderResource(Resource):
     fields = {
@@ -249,11 +268,7 @@ class MessageResource(Resource):
             folder = store.inbox # TODO messages from all folders?
 
         fields = json.loads(req.stream.read())
-        # TODO only save in the end
-        item = folder.create_item()
-        for field, value in fields.items():
-            if field in self.set_fields:
-                self.set_fields[field](item, value)
+        item = self.create_message(folder, fields)
 
         self.respond(req, resp, item)
 
@@ -345,7 +360,7 @@ class EventResource(Resource):
         self.respond(req, resp, data)
 
 admin_server = kopano.Server(parse_args=False, store_cache=False)
-USERID = admin_server.user('user1').userid
+USERID = None #admin_server.user('user1').userid
 userid_sessiondata = {}
 
 users = UserResource()
@@ -356,9 +371,13 @@ calendars = CalendarResource()
 events = EventResource()
 
 app = falcon.API()
+
+# users
 app.add_route('/me', users)
+app.add_route('/me/{method}', users)
 app.add_route('/users', users)
 app.add_route('/users/{userid}', users)
+app.add_route('/users/{userid}/{method}', users)
 
 for user in ('/me', '/users/{userid}'):
     # folders
