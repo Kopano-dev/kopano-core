@@ -114,7 +114,8 @@ class UserResource(Resource):
         if userid:
             data = server.user(userid=userid)
         else:
-            data = server.users()
+            data = self.generator(req, server.users)
+
         self.respond(req, resp, data)
 
 class FolderResource(Resource):
