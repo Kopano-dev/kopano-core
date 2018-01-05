@@ -24,6 +24,7 @@ TOP = 10
 # TODO efficient attachment streaming
 # TODO be able to use special folder names (eg copy/move)
 # TODO bulk copy/move/delete?
+# TODO childFolders recursion & (custom?) falcon routing
 
 def _server(req):
     userid = USERID or req.get_header('X-Kopano-UserEntryID', required=True)
@@ -48,7 +49,7 @@ def _store(server, userid):
 
 class Resource(object):
     def get_fields(self, obj, fields, all_fields):
-        return {f: all_fields[f](obj) for f in fields}
+        return {f: all_fields[f](obj) for f in fields if f in all_fields}
 
     def json(self, obj, fields, all_fields):
         return json.dumps(self.get_fields(obj, fields, all_fields),
@@ -253,6 +254,14 @@ class AttachmentResource(Resource):
 
         self.respond(req, resp, data)
 
+    def on_delete(self, req, resp, userid=None, folderid=None, messageid=None, attachmentid=None):
+        server = _server(req)
+        store = _store(server, userid)
+        item = store.item(messageid)
+        attachment = item.attachment(attachmentid)
+
+        item.delete(attachment)
+
 def recurrence_json(item):
     if isinstance(item, kopano.Item) and item.recurring:
         recurrence = item.recurrence
@@ -278,7 +287,7 @@ class EventResource(Resource):
         'end': lambda item: {'dateTime': item.end.isoformat(), 'timeZone': 'UTC'},
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, messageid=None):
+    def on_get(self, req, resp, userid=None, folderid=None, eventid=None):
         server = _server(req)
         store = _store(server, userid)
 
@@ -287,8 +296,8 @@ class EventResource(Resource):
         else:
             folder = store.calendar
 
-        if messageid:
-            data = folder.item(messageid)
+        if eventid:
+            data = folder.item(eventid)
         else:
             data = self.generator(req, folder.items, folder.count)
 
@@ -317,26 +326,29 @@ for user in ('/me', '/users/{userid}'):
 
     # messages
     app.add_route(user+'/messages', messages)
-    app.add_route(user+'/mailFolders/{folderid}/messages', messages)
     app.add_route(user+'/messages/{messageid}', messages)
     app.add_route(user+'/messages/{messageid}/{method}', messages)
+    app.add_route(user+'/mailFolders/{folderid}/messages', messages)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}', messages)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/{method}', messages)
+
+    # calendars
+    app.add_route(user+'/calendar', calendars)
+    app.add_route(user+'/calendar/{method}', calendars)
+    app.add_route(user+'/calendars', calendars)
+    app.add_route(user+'/calendars/{folderid}', calendars)
+    app.add_route(user+'/calendars/{folderid}/{method}', calendars)
+
+    # events
+    app.add_route(user+'/events', events)
+    app.add_route(user+'/events/{eventid}', events)
+    app.add_route(user+'/calendar/events', events)
+    app.add_route(user+'/calendar/events/{eventid}', events)
+    app.add_route(user+'/calendars/{folderid}/events', events)
+    app.add_route(user+'/calendars/{folderid}/events/{eventid}', events)
 
     # attachments
     app.add_route(user+'/messages/{messageid}/attachments', attachments)
     app.add_route(user+'/messages/{messageid}/attachments/{attachmentid}', attachments)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments', attachments)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments/{attachmentid}', attachments)
-
-    # calendars
-    app.add_route(user+'/calendars', calendars)
-    app.add_route(user+'/calendar', calendars)
-    app.add_route(user+'/calendar/{method}', calendars)
-    app.add_route(user+'/calendars/{folderid}', calendars)
-    app.add_route(user+'/calendars/{folderid}/{method}', calendars)
-
-    # events
-    app.add_route(user+'/events', events)
-    app.add_route(user+'/calendar/events', events)
-    app.add_route(user+'/calendars/{folderid}/events', events)
