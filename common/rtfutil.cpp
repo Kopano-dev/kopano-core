@@ -165,12 +165,12 @@ static std::wstring RTFFlushStateOutput(convert_context &convertContext,
  * @param[out]	lpStrHTMLOut	HTML output in requested ulCodepage
  * @param[out]	ulCodepage		codepage for HTML output
  */
-HRESULT HrExtractHTMLFromRTF(const std::string &rtf_unfilt,
+HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
     std::string &lpStrHTMLOut, ULONG ulCodepage)
 {
 	HRESULT hr;
- 	auto lpStrRTFIn = string_strip_nuls(rtf_unfilt);
 	const char *szInput = lpStrRTFIn.c_str();
+	auto rtfend = szInput + lpStrRTFIn.size();
 	const char *szANSICharset = "us-ascii";
 	const char *szHTMLCharset;
 	std::string strConvertCharset;
@@ -193,7 +193,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &rtf_unfilt,
 	strConvertCharset = szHTMLCharset + std::string("//HTMLENTITIES");
 	InitRTFState(&sState[0]);
 
-	while(*szInput) {
+	while (szInput < rtfend) {
 		if(strncmp(szInput,"\\*",2) == 0) {
 			szInput+=2;
 		} else if(*szInput == '\\') {
@@ -360,7 +360,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &rtf_unfilt,
 			if(ulState > 0)
 				--ulState;
 			++szInput;
-		} else if(*szInput == '\r' || *szInput == '\n') {
+		} else if (*szInput == '\r' || *szInput == '\n' || *szInput == '\0') {
 			++szInput;
 		} else {
 			if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars) {
@@ -393,13 +393,13 @@ HRESULT HrExtractHTMLFromRTF(const std::string &rtf_unfilt,
  * @param[out]	lpStrHTMLOut	HTML output in requested ulCodepage
  * @param[out]	ulCodepage		codepage for HTML output
  */
-HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf_unfilt,
+HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
     std::string &lpStrHTMLOut, ULONG ulCodepage)
 {
 	HRESULT hr;
-	auto lpStrRTFIn = string_strip_nuls(rtf_unfilt);
 	std::wstring wstrUnicodeTmp;
 	const char *szInput = lpStrRTFIn.c_str();
+	auto rtfend = szInput + lpStrRTFIn.size();
 	const char *szANSICharset = "us-ascii";
 	const char *szHTMLCharset;
 	std::string strConvertCharset, tmp;
@@ -438,7 +438,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf_unfilt,
 
 	InitRTFState(&sState[0]);
 
-	while(*szInput) {
+	while (szInput < rtfend) {
 		if(strncmp(szInput,"\\*",2) == 0) {
 			szInput+=2;
 		} else if(*szInput == '\\') {
@@ -624,7 +624,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf_unfilt,
 			if(ulState > 0)
 				--ulState;
 			++szInput;
-		} else if (*szInput == '\r' || *szInput == '\n') {
+		} else if (*szInput == '\r' || *szInput == '\n' || *szInput == '\0') {
 			++szInput;
 		} else if (!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars) {
 			if (bPar == false) {
@@ -684,13 +684,13 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf_unfilt,
  *
  * @todo Export the right HTML tags, now only plain stuff
  */
-HRESULT HrExtractHTMLFromRealRTF(const std::string &rtf_unfilt,
+HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
     std::string &lpStrHTMLOut, ULONG ulCodepage)
 {
 	HRESULT hr;
-	auto lpStrRTFIn = string_strip_nuls(rtf_unfilt);
 	std::wstring wstrUnicodeTmp;
 	const char *szInput = lpStrRTFIn.c_str();
+	auto rtfend = szInput + lpStrRTFIn.size();
 	const char *szANSICharset = "us-ascii";
 	const char *szHTMLCharset;
 	std::string strConvertCharset, tmp;
@@ -727,7 +727,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &rtf_unfilt,
 
 	InitRTFState(&sState[0]);
 
-	while(*szInput) {
+	while (szInput < rtfend) {
 		if(strncmp(szInput,"\\*",2) == 0) {
 			szInput+=2;
 		} else if(*szInput == '\\') {
@@ -984,7 +984,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &rtf_unfilt,
 			if(ulState > 0)
 				--ulState;
 			++szInput;
-		} else if(*szInput == '\r' || *szInput == '\n') {
+		} else if (*szInput == '\r' || *szInput == '\n' || *szInput == '\0') {
 			++szInput;
 		} else {
 			if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars) {

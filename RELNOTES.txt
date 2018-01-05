@@ -26,6 +26,12 @@ Packager notes:
 * libical 3.x support [KC-920]
 
 
+Release notes for 8.4.6
+=======================
+Fixes:
+* common: restore support for binary data in RTF [KC-969]
+
+
 Release notes for 8.4.5 (2017-12-15)
 ====================================
 Fixes:
