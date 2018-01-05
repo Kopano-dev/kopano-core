@@ -18,6 +18,10 @@
 #ifndef PLATFORM_LINUX_H
 #define PLATFORM_LINUX_H
 
+#ifndef UNICODE
+#        error But KC libmapi only knows to deal with UNICODE
+#endif
+
 /*
  * Functions and (type)definitions that are needed for the Linux platform
  *
