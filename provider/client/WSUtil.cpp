@@ -22,6 +22,7 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include "Mem.h"
 
 #include <kopano/mapiext.h>
@@ -1251,10 +1252,14 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 	struct restrictTable *lpDst = NULL;
 	unsigned int i=0;
 
+	auto laters = KCHL::make_scope_success([&]() {
+		if(hr != hrSuccess && lpDst != NULL)
+			FreeRestrictTable(lpDst);
+	});
+
 	if (lpConverter == NULL) {
 		convert_context converter;
-		hr = CopyMAPIRestrictionToSOAPRestriction(lppDst, lpSrc, &converter);
-		goto exit;
+		return CopyMAPIRestrictionToSOAPRestriction(lppDst, lpSrc, &converter);
 	}
 
 	lpDst = s_alloc<restrictTable>(nullptr);
@@ -1274,7 +1279,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 			hr = CopyMAPIRestrictionToSOAPRestriction(&(lpDst->lpOr->__ptr[i]), &lpSrc->res.resOr.lpRes[i], lpConverter);
 
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 		break;
 
@@ -1290,7 +1295,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 			hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpAnd->__ptr[i], &lpSrc->res.resAnd.lpRes[i], lpConverter);
 
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 		break;
 
@@ -1312,12 +1317,12 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		for (unsigned int i = 0; i < lpSrc->res.resComment.cValues; ++i) {
 			hr = CopyMAPIPropValToSOAPPropVal(&lpDst->lpComment->sProps.__ptr[i], &lpSrc->res.resComment.lpProp[i], lpConverter);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpComment->lpResTable, lpSrc->res.resComment.lpRes, lpConverter);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		break;
 
 	case RES_COMPAREPROPS:
@@ -1341,10 +1346,8 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 			PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) != PT_MV_UNICODE) ||
 			(PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) == PT_BINARY && lpSrc->res.resContent.lpProp->Value.bin.cb >0 && lpSrc->res.resContent.lpProp->Value.bin.lpb == NULL) ||
 			(PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) == PT_STRING8 && lpSrc->res.resContent.lpProp->Value.lpszA == NULL) ||
-			(PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) == PT_UNICODE && lpSrc->res.resContent.lpProp->Value.lpszW == NULL)) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
+			(PROP_TYPE(lpSrc->res.resContent.lpProp->ulPropTag) == PT_UNICODE && lpSrc->res.resContent.lpProp->Value.lpszW == NULL))
+			return MAPI_E_INVALID_PARAMETER;
 
 		lpDst->lpContent->ulFuzzyLevel = lpSrc->res.resContent.ulFuzzyLevel;
 		lpDst->lpContent->ulPropTag = lpSrc->res.resContent.ulPropTag;
@@ -1353,7 +1356,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 		hr = CopyMAPIPropValToSOAPPropVal(lpDst->lpContent->lpProp, lpSrc->res.resContent.lpProp, lpConverter);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		break;
 
 	case RES_EXIST:
@@ -1368,7 +1371,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		memset(lpDst->lpNot, 0, sizeof(restrictNot));
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpNot->lpNot, lpSrc->res.resNot.lpRes, lpConverter);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		break;
 
 	case RES_PROPERTY:
@@ -1382,7 +1385,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 
 		hr = CopyMAPIPropValToSOAPPropVal(lpDst->lpProp->lpProp, lpSrc->res.resProperty.lpProp, lpConverter);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		break;
 
 	case RES_SIZE:
@@ -1401,20 +1404,15 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		lpDst->lpSub->ulSubObject = lpSrc->res.resSub.ulSubObject;
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpSub->lpSubObject, lpSrc->res.resSub.lpRes, lpConverter);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		break;
 
 	default:
 		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return hr;
 	}
 
 	*lppDst = lpDst;
-
-exit:
-	if(hr != hrSuccess && lpDst != NULL)
-		FreeRestrictTable(lpDst);
-
 	return hr;
 }
 
@@ -2252,15 +2250,16 @@ HRESULT CopySOAPChangeNotificationToSyncState(const struct notification *lpSrc,
 		hr = ECAllocateMore(lpSBinary->cb, lpSBinary, reinterpret_cast<void **>(&lpSBinary->lpb));
 	else
 		hr = ECAllocateMore(lpSBinary->cb, lpBase, reinterpret_cast<void **>(&lpSBinary->lpb));
-	if (hr != hrSuccess)
-		goto exit;
+	if (hr != hrSuccess) {
+		MAPIFreeBuffer(lpSBinary);
+		return hr;
+	}
 
 	memcpy(lpSBinary->lpb, lpSrc->ics->pSyncState->__ptr, lpSBinary->cb);
 
 	*lppDst = lpSBinary;
 	lpSBinary = NULL;
 
-exit:
 	MAPIFreeBuffer(lpSBinary);
 	return hr;
 }
