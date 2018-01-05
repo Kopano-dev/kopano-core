@@ -192,8 +192,8 @@ class MessageResource(Resource):
         'from': lambda item: {'emailAddress': {'name': item.sender.name, 'address': item.sender.email} },
         'toRecipients': lambda item: [{'emailAddress': {'name': to.name, 'address': to.email}} for to in item.to],
         'lastModifiedDateTime': lambda item: item.last_modified.isoformat(),
-        'sentDateTime': lambda item: item.sent.isoformat(),
-        'receivedDateTime': lambda item: item.received.isoformat(),
+        'sentDateTime': lambda item: item.sent.isoformat() if item.sent else None,
+        'receivedDateTime': lambda item: item.received.isoformat() if item.received else None,
         'hasAttachments': lambda item: item.has_attachments,
     }
 
@@ -222,6 +222,20 @@ class MessageResource(Resource):
                 data = item.move(folder)
 
         self.respond(req, resp, data)
+
+    def on_post(self, req, resp, userid=None, folderid=None):
+        server = _server(req)
+        store = _store(server, userid)
+
+        if folderid:
+            folder = store.folder(entryid=folderid)
+        else:
+            folder = store.inbox # TODO messages from all folders?
+
+        fields = json.loads(req.stream.read())
+        item = folder.create_item(**fields)
+
+        self.respond(req, resp, item)
 
     def on_delete(self, req, resp, userid=None, folderid=None, messageid=None):
         server = _server(req)
