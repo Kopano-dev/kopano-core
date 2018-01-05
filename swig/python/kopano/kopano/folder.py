@@ -179,6 +179,23 @@ class Folder(Properties):
         return self.prop(PR_FOLDER_CHILD_COUNT).value
 
     @property
+    def subfolder_count_recursive(self):
+        """Number of subfolders (recursive)"""
+
+        # TODO faster?
+        flags = MAPI_UNICODE | self.content_flag | CONVENIENT_DEPTH
+        mapitable = self.mapiobj.GetHierarchyTable(flags)
+
+        table = Table(
+            self.server,
+            self.mapiobj,
+            mapitable,
+            PR_CONTAINER_HIERARCHY,
+        )
+
+        return table.count
+
+    @property
     def name(self):
         """Folder name"""
 

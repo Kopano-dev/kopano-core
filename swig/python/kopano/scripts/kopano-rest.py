@@ -154,7 +154,7 @@ class FolderResource(Resource):
         if folderid:
             data = store.folder(entryid=folderid)
         else:
-            data = self.generator(req, store.folders)
+            data = self.generator(req, store.folders, store.subtree.subfolder_count_recursive)
 
         self.respond(req, resp, data)
 
