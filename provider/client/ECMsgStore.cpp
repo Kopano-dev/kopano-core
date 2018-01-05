@@ -19,6 +19,7 @@
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include <mapiutil.h>
 #include <edkguid.h>
 #include <list>
@@ -2010,11 +2011,18 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYI
 	if ((*lpcbStoreId == 0 || *lpcbRootId == 0) && CoCreateGuid(&guidStore) != S_OK)
 		return MAPI_E_CALL_FAILED;
 
+	auto laters = make_scope_success([&]() {
+		if (lpcbStoreId != nullptr && *lpcbStoreId == 0)
+			MAPIFreeBuffer(lpStoreId);
+		if (lpcbRootId != nullptr && *lpcbRootId == 0)
+			MAPIFreeBuffer(lpRootId);
+	});
+
 	if (*lpcbStoreId == 0) {
 		// Create store entryid
 		hr = HrCreateEntryId(guidStore, MAPI_STORE, &cbStoreId, &lpStoreId);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else {
 		ULONG cbTmp = 0;
 		LPENTRYID lpTmp = NULL;
@@ -2028,7 +2036,7 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYI
 		if (hr != hrSuccess) {
 			if (lpTmp != *lppStoreId)
 				MAPIFreeBuffer(lpTmp);
-			goto exit;
+			return hr;
 		}
 	}
 
@@ -2036,7 +2044,7 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYI
 		// create root entryid
 		hr = HrCreateEntryId(guidStore, MAPI_FOLDER, &cbRootId, &lpRootId);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else {
 		cbRootId = *lpcbRootId;
 		lpRootId = *lppRootId;
@@ -2045,7 +2053,7 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYI
 	// Create the messagestore
 	hr = lpTransport->HrCreateStore(ulStoreType, cbUserId, lpUserId, cbStoreId, lpStoreId, cbRootId, lpRootId, ulFlags);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if (*lppStoreId == 0) {
 		*lpcbStoreId = cbStoreId;
@@ -2058,12 +2066,6 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYI
 		*lppRootId = lpRootId;
 		lpRootId = NULL;
 	}
-
-exit:
-	if (lpcbStoreId != NULL && *lpcbStoreId == 0)
-		MAPIFreeBuffer(lpStoreId);
-	if (lpcbRootId != nullptr && *lpcbRootId == 0)
-		MAPIFreeBuffer(lpRootId);
 
 	return hr;
 }
