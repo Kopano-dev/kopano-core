@@ -20,6 +20,7 @@
 #include <new>
 #include <utility>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include "WSUtil.h"
 #include "WSTransport.h"
 #include "SOAPUtils.h"
@@ -428,35 +429,42 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 	char *szXML = NULL;
 	struct soap soap;
 
+	auto laters = make_scope_success([&]() {
+		if(lpSOAPRowSet)
+			FreeRowSet(lpSOAPRowSet, true);
+		soap_destroy(&soap);
+		soap_end(&soap); // clean up allocated temporaries
+	});
+
 	// Get a view
 	hr = lpTable->HrGetView(createLocaleFromName(""), MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Get all Columns
 	hr = lpView->QueryColumns(TBL_ALL_COLUMNS, &~lpCols);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = lpView->SetColumns(lpCols, 0);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Get all rows
 	hr = lpView->QueryRows(0x7fffffff, 0, &~lpRowSet);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// we need to convert data from clients which save PT_STRING8 inside PT_SRESTRICTION and PT_ACTIONS structures,
 	// because unicode clients won't be able to understand those anymore.
 	hr = ConvertString8ToUnicode(lpRowSet);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Convert to SOAP rows
 	hr = CopyMAPIRowSetToSOAPRowSet(lpRowSet, &lpSOAPRowSet);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Convert to XML
 	soap_set_omode(&soap, SOAP_C_UTFSTRING);
@@ -474,12 +482,6 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 	szXML[os.str().size()] = 0;
 
 	*lppSerialized = std::move(szXML);
-exit:
-	if(lpSOAPRowSet)
-		FreeRowSet(lpSOAPRowSet, true);
-	soap_destroy(&soap);
-	soap_end(&soap); // clean up allocated temporaries 
-
 	return hr;
 }
 
@@ -497,24 +499,26 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 	struct soap soap;
 	convert_context converter;
 
+	auto laters = make_scope_success([&]() {
+		soap_destroy(&soap);
+		soap_end(&soap); // clean up allocated temporaries
+	});
+
 	soap.is = &is;
 	soap_set_imode(&soap, SOAP_C_UTFSTRING);
 	soap_begin(&soap);
-	if (soap_begin_recv(&soap) != 0) {
-		hr = MAPI_E_NETWORK_FAILURE;
-		goto exit;
-	}
-	if (!soap_get_rowSet(&soap, &sSOAPRowSet, "tableData", "rowSet")) {
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
-	if (soap_end_recv(&soap) != 0) {
-		hr = MAPI_E_NETWORK_FAILURE;
-		goto exit;
-	}
+	if (soap_begin_recv(&soap) != 0)
+		return MAPI_E_NETWORK_FAILURE;
+
+	if (!soap_get_rowSet(&soap, &sSOAPRowSet, "tableData", "rowSet"))
+		return MAPI_E_CORRUPT_DATA;
+
+	if (soap_end_recv(&soap) != 0)
+		return MAPI_E_NETWORK_FAILURE;
+
 	hr = CopySOAPRowSetToMAPIRowSet(NULL, &sSOAPRowSet, &~lpsRowSet, 0);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (i = 0; i < lpsRowSet->cRows; ++i) {
 		memory_ptr<SPropValue> lpProps;
@@ -525,7 +529,7 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 		sRowId.Value.li.QuadPart = ulHighestRuleID++;
 		hr = Util::HrAddToPropertyArray(lpsRowSet[i].lpProps, lpsRowSet[i].cValues, &sRowId, &~lpProps, &cValues);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		for (n = 0; n < cValues; ++n) {
 			/*
@@ -541,14 +545,9 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 
 		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sRowId, lpProps, cValues);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	*ulRuleId = ulHighestRuleID;
-
-exit:
-	soap_destroy(&soap);
-	soap_end(&soap); // clean up allocated temporaries 
-
 	return hr;
 }
 
