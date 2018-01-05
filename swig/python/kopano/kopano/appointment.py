@@ -17,7 +17,10 @@ class Appointment(object):
 
     @property
     def start(self): # XXX optimize, guid
-        return self.prop('common:34070').value
+        try:
+            return self.prop('common:34070').value
+        except NotFoundError:
+            pass
 
     @start.setter
     def start(self, val):
@@ -27,7 +30,10 @@ class Appointment(object):
 
     @property
     def end(self): # XXX optimize, guid
-        return self.prop('common:34071').value
+        try:
+            return self.prop('common:34071').value
+        except NotFoundError:
+            pass
 
     @end.setter
     def end(self, val):
@@ -44,7 +50,10 @@ class Appointment(object):
 
     @property
     def recurring(self):
-        return self.prop('appointment:33315').value
+        try:
+            return self.prop('appointment:33315').value
+        except NotFoundError:
+            return False
 
     @property
     def recurrence(self):

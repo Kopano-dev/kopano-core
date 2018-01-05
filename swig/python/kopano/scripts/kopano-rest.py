@@ -236,16 +236,21 @@ class AttachmentResource(Resource):
         'contentBytes': lambda attachment: base64.urlsafe_b64encode(attachment.data),
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, messageid=None, attachmentid=None):
+    def on_get(self, req, resp, userid=None, folderid=None, messageid=None, eventid=None, attachmentid=None):
         server = _server(req)
         store = _store(server, userid)
 
         if folderid:
             folder = store.folder(entryid=folderid)
+        elif eventid:
+            folder = store.calendar
         else:
             folder = store.inbox # TODO messages from all folders?
 
-        item = folder.item(messageid)
+        if eventid:
+            item = folder.item(eventid)
+        else:
+            item = folder.item(messageid)
 
         if attachmentid:
             data = item.attachment(attachmentid)
@@ -254,10 +259,11 @@ class AttachmentResource(Resource):
 
         self.respond(req, resp, data)
 
-    def on_delete(self, req, resp, userid=None, folderid=None, messageid=None, attachmentid=None):
+    def on_delete(self, req, resp, userid=None, folderid=None, messageid=None, eventid=None, attachmentid=None):
         server = _server(req)
         store = _store(server, userid)
-        item = store.item(messageid)
+
+        item = store.item(messageid or eventid)
         attachment = item.attachment(attachmentid)
 
         item.delete(attachment)
@@ -304,7 +310,7 @@ class EventResource(Resource):
         self.respond(req, resp, data)
 
 admin_server = kopano.Server(parse_args=False, store_cache=False)
-USERID = None #admin_server.user('user1').userid
+USERID = admin_server.user('user1').userid
 userid_sessiondata = {}
 
 users = UserResource()
@@ -352,3 +358,7 @@ for user in ('/me', '/users/{userid}'):
     app.add_route(user+'/messages/{messageid}/attachments/{attachmentid}', attachments)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments', attachments)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments/{attachmentid}', attachments)
+
+    # TODO via calendar(s)
+    app.add_route(user+'/events/{eventid}/attachments', attachments)
+    app.add_route(user+'/events/{eventid}/attachments/{attachmentid}', attachments)
