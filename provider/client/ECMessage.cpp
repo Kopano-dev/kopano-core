@@ -348,16 +348,14 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 	HRESULT hr = hrSuccess;
 	const BOOL fModifyOld = fModify;
 
-	if (m_ulBodyType == bodyTypeUnknown) {
-	    // There's nothing to synchronize if we don't know what our best body type is.
-		hr = MAPI_E_NO_SUPPORT;
-		goto exit;
-	}
+	auto laters = make_scope_success([&]() { fModify = fModifyOld; });
 
-	if (!Util::IsBodyProp(ulPropTag)) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (m_ulBodyType == bodyTypeUnknown)
+	    // There's nothing to synchronize if we don't know what our best body type is.
+		return MAPI_E_NO_SUPPORT;
+
+	if (!Util::IsBodyProp(ulPropTag))
+		return MAPI_E_INVALID_PARAMETER;
 
 	// Temporary enable write access
 	fModify = TRUE;
@@ -376,9 +374,6 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 		else if (PROP_ID(ulPropTag) == PROP_ID(PR_RTF_COMPRESSED))
 			hr = SyncHtmlToRtf();
 	}
-
-exit:
-	fModify = fModifyOld;
 
 	return hr;
 }
@@ -739,9 +734,11 @@ HRESULT ECMessage::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 	bool bHaveHtml;
 
 	m_ulBodyType = bodyTypeUnknown;	// Make sure no bodies are generated when attempts are made to open them to check the error code if any.
+	auto laters = make_scope_success([&]() { m_ulBodyType = ulBodyTypeSaved; });
+
 	hr = ECMAPIProp::GetPropList(ulFlags, &~ptrPropTagArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Because the body type was set to unknown, ECMAPIProp::GetPropList does not return the proptags of the bodies that can be
 	// generated unless they were already generated.
@@ -755,13 +752,13 @@ HRESULT ECMessage::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 	{
 		// Nothing more to do
 		*lppPropTagArray = ptrPropTagArray.release();
-		goto exit;
+		return hr;
 	}
 
 	// We have at least one body prop. Determine which tags to add.
 	hr = ECAllocateBuffer(CbNewSPropTagArray(ptrPropTagArray->cValues + 2), &~ptrPropTagArrayMod);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	ptrPropTagArrayMod->cValues = ptrPropTagArray->cValues;
 	memcpy(ptrPropTagArrayMod->aulPropTag, ptrPropTagArray->aulPropTag, sizeof(*ptrPropTagArrayMod->aulPropTag) * ptrPropTagArrayMod->cValues);
@@ -776,8 +773,6 @@ HRESULT ECMessage::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 
 	*lppPropTagArray = ptrPropTagArrayMod.release();
 
-exit:
-	m_ulBodyType = ulBodyTypeSaved;
 	return hr;
 }
 
@@ -1880,10 +1875,12 @@ HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	const BOOL bInhibitSyncOld = m_bInhibitSync;
 	m_bInhibitSync = TRUE; // We want to override the logic in ECMessage::HrSetRealProp.
 
+	auto laters = make_scope_success([&]() { m_bInhibitSync = bInhibitSyncOld; });
+
 	// Send to IMAPIProp first
 	hr = ECMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	m_bInhibitSync = bInhibitSyncOld;
 
@@ -1919,8 +1916,6 @@ HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 		HrDeleteRealProp(PR_HTML, FALSE);
 	}
 
-exit:
-	m_bInhibitSync = bInhibitSyncOld;
 	return hr;
 }
 
