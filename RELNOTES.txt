@@ -7,6 +7,8 @@ Enhancements:
   [KC-62,KC-181,KC-889,KC-892,KC-893]
 * server: update PR_LOCAL_COMMIT_MAX on hard-deletes [KC-770]
 * server: speed up contact and search folder querying [KC-265,KC-941]
+* server: skip some unnecessary attachment accesses [KC-769,KC-794]
+* spooler: introduce indexed_headers config directive [KC-948]
 * search: pass "limit_results" to xapian to improve performance [KC-786]
 * search: optionally index draft folders [KC-787]
 * unixplugin: support multiple non_login_shells [KC-824]
@@ -15,15 +17,31 @@ Enhancements:
 * gateway: RFC 6154 support [KC-857]
 * dagent: a Python version of kopano-autorespond is available [KC-861]
 * kopano-spamd: new program [KC-666]
+* icalmapi: support URL, NICKNAME, PRODID in vcards
+Fixes:
+* gateway: generate envelope using inetmapi if not present yet [KC-607]
+* spooler: only evaluate rules that are explicitly enabled using
+  PR_RULE_STATE [KC-963]
 Changes:
 * Support for Debian 7 ended [KC-615]
+* /etc/kopano is no longer prepopulated, create .cfg manually if you need to
+  override anything [KC-681]
 * server: remove support for upgrading databases older than ZCP 7.2 [KC-839]
 * gateway: use threaded mode for reduced memory usage on many-user systems
   (new installs only) [KC-768]
+* gateway: the "imap_store_rfc822" config directive is removed
+  [KC-964]
+* server: the "counter_reset" config directive is removed [KC-960]
 * spooler: the "always_send_utf8" config directive is removed [KC-901]
 * client: MAPI provider configuration moved from /etc/mapi to /usr/lib/mapi.d
 Packager notes:
 * libical 3.x support [KC-920]
+
+
+Release notes for 8.4.6
+=======================
+Fixes:
+* common: restore support for binary data in RTF [KC-969]
 
 
 Release notes for 8.4.5 (2017-12-15)
