@@ -22,6 +22,7 @@
 #include <edkguid.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include "IECPropStorage.h"
 #include "Mem.h"
 
@@ -87,15 +88,15 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 	ECMsgStore *lpMsgStore;
 
 	m_bLoading = true;
+	auto laters = KCHL::make_scope_success([&]() { m_bLoading = false; });
+
 	hr = ECMessage::HrLoadProps();
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// If we noticed we are stubbed, we need to perform a merge here.
-	if (m_mode != MODE_STUBBED) {
-		m_bLoading = false;
+	if (m_mode != MODE_STUBBED)
 		return hr;
-	}
 
 	fModifyCopy = this->fModify;
 	lpMsgStore = GetMsgStore();
@@ -108,17 +109,14 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 
 	if (!m_ptrArchiveMsg) {
 		auto lpStore = dynamic_cast<ECArchiveAwareMsgStore *>(lpMsgStore);
-		if (lpStore == NULL) {
+		if (lpStore == NULL)
 			// This is quite a serious error since an ECArchiveAwareMessage can only be created by an
 			// ECArchiveAwareMsgStore. We won't just die here though...
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
+			return MAPI_E_NOT_FOUND;
+
 		hr = lpStore->OpenItemFromArchive(m_ptrStoreEntryIDs, m_ptrItemEntryIDs, &~m_ptrArchiveMsg);
-		if (hr != hrSuccess) {
-			hr = CreateInfoMessage(sptaDeleteProps, CreateErrorBodyUtf8(hr));
-			goto exit;
-		}
+		if (hr != hrSuccess)
+			return CreateInfoMessage(sptaDeleteProps, CreateErrorBodyUtf8(hr));
 	}
 
 	// Now merge the properties and reconstruct the attachment table.
@@ -133,14 +131,14 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 	hr = DeleteProps(sptaDeleteProps, NULL);
 	if (hr != hrSuccess) {
 		this->fModify = fModifyCopy;
-		goto exit;
+		return hr;
 	}
 	hr = Util::DoCopyProps(&IID_IMAPIProp, static_cast<IMAPIProp *>(m_ptrArchiveMsg),
 	     sptaRestoreProps, 0, NULL, &IID_IMAPIProp,
 	     static_cast<IMAPIProp *>(this), 0, nullptr);
 	if (hr != hrSuccess) {
 		this->fModify = fModifyCopy;
-		goto exit;
+		return hr;
 	}
 
 	// Now remove any dummy attachment(s) and copy the attachments from the archive (except the properties
@@ -148,12 +146,10 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 	hr = Util::HrDeleteAttachments(this);
 	if (hr != hrSuccess) {
 		this->fModify = fModifyCopy;
-		goto exit;
+		return hr;
 	}
 	hr = Util::CopyAttachments(m_ptrArchiveMsg, this, NULL);
 	this->fModify = fModifyCopy;
-exit:
-	m_bLoading = false;
 
 	return hr;
 }
@@ -396,33 +392,30 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDelet
 	ULARGE_INTEGER liZero = {{0, 0}};
 
 	this->fModify = TRUE;
+	auto laters = KCHL::make_scope_success([&]() { this->fModify = FALSE; });
 
 	hr = DeleteProps(lpptaDeleteProps, NULL);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sPropVal.ulPropTag = PR_INTERNET_CPID;
 	sPropVal.Value.l = 65001;
 	hr = HrSetOneProp(this, &sPropVal);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = OpenProperty(PR_HTML, &iid_of(ptrHtmlStream), 0, MAPI_CREATE | MAPI_MODIFY, &~ptrHtmlStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = ptrHtmlStream->SetSize(liZero);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = ptrHtmlStream->Write(strBodyHtml.c_str(), strBodyHtml.size(), NULL);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = ptrHtmlStream->Commit(0);
-
-exit:
-	this->fModify = FALSE;
-
 	return hr;
 }
 
