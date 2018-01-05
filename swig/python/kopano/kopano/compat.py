@@ -55,7 +55,7 @@ if sys.hexversion >= 0x03000000:
 
     def bdec(s):
         if _BIN_ENCODING == 'base64':
-            return base64.urlsafe_b64decode(s).decode('ascii')
+            return base64.urlsafe_b64decode(s)
         else:
             return codecs.decode(s, _BIN_ENCODING)
 
