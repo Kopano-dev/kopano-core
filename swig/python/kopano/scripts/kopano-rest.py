@@ -14,6 +14,7 @@ import kopano
 kopano.set_bin_encoding('base64')
 
 TOP = 10
+PREFIX = '/api/gc/v0'
 
 # TODO /me/messages does not return _all_ messages in store
 # TODO pagination for non-messages
@@ -105,7 +106,6 @@ class Resource(object):
         item = folder.create_item()
         for field, value in fields.items():
             if field in (all_fields or self.set_fields):
-                print 'setfield', field, value
                 (all_fields or self.set_fields)[field](item, value)
 
         return item
@@ -373,13 +373,13 @@ events = EventResource()
 app = falcon.API()
 
 # users
-app.add_route('/me', users)
-app.add_route('/me/{method}', users)
-app.add_route('/users', users)
-app.add_route('/users/{userid}', users)
-app.add_route('/users/{userid}/{method}', users)
+app.add_route(PREFIX+'/me', users)
+app.add_route(PREFIX+'/me/{method}', users)
+app.add_route(PREFIX+'/users', users)
+app.add_route(PREFIX+'/users/{userid}', users)
+app.add_route(PREFIX+'/users/{userid}/{method}', users)
 
-for user in ('/me', '/users/{userid}'):
+for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
     # folders
     app.add_route(user+'/mailFolders', folders)
     app.add_route(user+'/mailFolders/{folderid}', folders)
