@@ -508,7 +508,7 @@ class Item(Properties, Contact, Appointment):
 
     @property
     def has_attachments(self):
-        return self[PR_HASATTACH]
+        return self.get(PR_HASATTACH, False)
 
     def header(self, name):
         """ Return transport message header with given name """

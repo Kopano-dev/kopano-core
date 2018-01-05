@@ -25,6 +25,7 @@ TOP = 10
 # TODO be able to use special folder names (eg copy/move)
 # TODO bulk copy/move/delete?
 # TODO childFolders recursion & (custom?) falcon routing
+# TODO Field class
 
 def _server(req):
     userid = USERID or req.get_header('X-Kopano-UserEntryID', required=True)
@@ -180,6 +181,15 @@ class CalendarResource(Resource): # TODO merge with FolderResource?
 
         self.respond(req, resp, data, fields)
 
+def set_body(item, arg):
+    if arg['contentType'] == 'text':
+        item.text = arg['content']
+    elif arg['contentType'] == 'html':
+        item.html = arg['content']
+
+def set_torecipients(item, arg):
+    item.to = ';'.join('%s <%s>' % (a['name'], a['address']) for a in arg)
+
 class MessageResource(Resource):
     fields = {
         '@odata.etag': lambda item: 'W/"'+item.changekey+'"',
@@ -195,6 +205,12 @@ class MessageResource(Resource):
         'sentDateTime': lambda item: item.sent.isoformat() if item.sent else None,
         'receivedDateTime': lambda item: item.received.isoformat() if item.received else None,
         'hasAttachments': lambda item: item.has_attachments,
+    }
+
+    set_fields = {
+        'subject': lambda item, arg: setattr(item, 'subject', arg),
+        'body': set_body,
+        'toRecipients': set_torecipients,
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, messageid=None, method=None):
@@ -233,7 +249,11 @@ class MessageResource(Resource):
             folder = store.inbox # TODO messages from all folders?
 
         fields = json.loads(req.stream.read())
-        item = folder.create_item(**fields)
+        # TODO only save in the end
+        item = folder.create_item()
+        for field, value in fields.items():
+            if field in self.set_fields:
+                self.set_fields[field](item, value)
 
         self.respond(req, resp, item)
 
