@@ -68,17 +68,24 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
 			ec_log_crit("Please correct your configuration file and set the \"user_plugin\" option.");
 			goto out;
         }
-        auto fngetUserPluginInstance = reinterpret_cast<unsigned long (*)()>(dlsym(m_dl, "getUserPluginVersion"));
-        if (fngetUserPluginInstance == NULL) {
+	auto sversion = reinterpret_cast<const char *>(dlsym(m_dl, "kcsrv_plugin_version"));
+	if (sversion == nullptr) {
+		auto fngetUserPluginInstance = reinterpret_cast<unsigned long (*)()>(dlsym(m_dl, "getUserPluginVersion"));
+		if (fngetUserPluginInstance == NULL) {
 			ec_log_crit("Failed to load getUserPluginVersion from plugin: %s", dlerror());
 			goto out;
-        }
-	unsigned long version = fngetUserPluginInstance();
-        if (version != PROJECT_VERSION_REVISION) {
-			ec_log_crit("Version of the plugin \"%s\" is not the same for the server. Expected 0x%lx (%s), plugin 0x%lx",
-				filename, PROJECT_VERSION_REVISION, PROJECT_VERSION, version);
+		}
+		auto version = fngetUserPluginInstance();
+		if (version != PROJECT_VERSION_REVISION) {
+			ec_log_err("%s: Plugin version 0x%lx, but expected 0x%lx",
+				filename, version, PROJECT_VERSION_REVISION);
 			goto out;
-	}
+		}
+	} else if (strcmp(sversion, PROJECT_VERSION) != 0) {
+		ec_log_err("%s: Plugin version \"%s\", but server is \"%s\"",
+			filename, sversion, PROJECT_VERSION);
+		goto out;
+        }
     
         m_getUserPluginInstance = (UserPlugin* (*)(std::mutex &, ECPluginSharedData *)) dlsym(m_dl, "getUserPluginInstance");
         if (m_getUserPluginInstance == NULL) {

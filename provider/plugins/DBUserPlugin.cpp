@@ -49,8 +49,10 @@ UserPlugin *getUserPluginInstance(std::mutex &pluginlock,
 
 unsigned long getUserPluginVersion()
 {
-	return PROJECT_VERSION_REVISION;
+	return 1;
 }
+
+const char kcsrv_plugin_version[] = PROJECT_VERSION;
 
 } /* extern "C" */
 
