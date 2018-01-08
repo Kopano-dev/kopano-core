@@ -92,7 +92,6 @@ HRESULT ECGenericProp::HrAddPropHandlers(ULONG ulPropTag, GetPropCallBack lpfnGe
 	sCallBack.fRemovable = fRemovable;
 	sCallBack.fHidden = fHidden;
 	lstCallBack.emplace(PROP_ID(ulPropTag), sCallBack);
-	dwLastError = hr;
 	return hr;
 }
 
@@ -116,7 +115,7 @@ HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 	if (!m_props_loaded) {
 		hr = HrLoadProps();
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}			
 	iterPropsFound = lstProps.end();
 	// Loop through all properties, get the first EXACT matching property, but delete ALL
@@ -138,16 +137,13 @@ HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 		iterPropsFound->second.HrSetProp(lpsPropValue);
 	} else { // Add new property
 		std::unique_ptr<ECProperty> lpProperty(new ECProperty(lpsPropValue));
-		if(lpProperty->GetLastError() != 0) {
-			hr = lpProperty->GetLastError();
-			goto exit;
-		}
+		if (lpProperty->GetLastError() != 0)
+			return lpProperty->GetLastError();
+
 		lstProps.emplace(PROP_ID(lpsPropValue->ulPropTag), ECPropertyEntry(std::move(lpProperty)));
 	}
 
 	// Property is now added/modified and marked 'dirty' for saving
-exit:
-	dwLastError = hr;
 	return hr;
 }
 
@@ -169,7 +165,7 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 	if (!m_props_loaded || m_bReload) {
 		hr = HrLoadProps();
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		m_bReload = FALSE;
 	}			
 
@@ -186,15 +182,13 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 	{
 		lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR,PROP_ID(ulPropTag));
 		lpsPropValue->Value.err = MAPI_E_NOT_FOUND;
-		hr = MAPI_W_ERRORS_RETURNED;
-		goto exit;
+		return MAPI_W_ERRORS_RETURNED;
 	}
 
 	if(!iterProps->second.FIsLoaded()) {
 		lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
 		lpsPropValue->Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
-		hr = MAPI_W_ERRORS_RETURNED;
-		goto exit;
+		return MAPI_W_ERRORS_RETURNED;
 
 		// The load should have loaded into the value pointed to by iterProps, so we can use that now
 	}
@@ -203,8 +197,7 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 	if (ulMaxSize != 0 && iterProps->second.GetProperty()->GetSize() > ulMaxSize) {
 		lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
 		lpsPropValue->Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
-		hr = MAPI_W_ERRORS_RETURNED;
-		goto exit;
+		return MAPI_W_ERRORS_RETURNED;
 	}
 
 	if (PROP_TYPE(ulPropTag) == PT_UNSPECIFIED) {
@@ -218,9 +211,6 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 
 	// Copy the property to its final destination, with base pointer for extra allocations, if required.
 	iterProps->second.GetProperty()->CopyTo(lpsPropValue, lpBase, ulPropTag);
-
-exit:
-	dwLastError = hr;
 
 	return hr;
 }
@@ -243,21 +233,18 @@ HRESULT ECGenericProp::HrDeleteRealProp(ULONG ulPropTag, BOOL fOverwriteRO)
 	if (!m_props_loaded) {
 		hr = HrLoadProps();
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}			
 
 	// Now find the real value
 	iterProps = lstProps.find(PROP_ID(ulPropTag));
 	if (iterProps == lstProps.end()) {
 		// Couldn't find it!
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	m_setDeletedProps.emplace(iterProps->second.GetPropTag());
 	lstProps.erase(iterProps);
-exit:
-	dwLastError = hr;
 	return hr;
 }
 
@@ -576,10 +563,8 @@ HRESULT	ECGenericProp::HrGetHandler(ULONG ulPropTag, SetPropCallBack *lpfnSetPro
 	if(iterCallBack == lstCallBack.end() || 
 		(ulPropTag != iterCallBack->second.ulPropTag && PROP_TYPE(ulPropTag) != PT_UNSPECIFIED &&
 		!(PROP_TYPE(iterCallBack->second.ulPropTag) == PT_TSTRING && (PROP_TYPE(ulPropTag) == PT_STRING8 || PROP_TYPE(ulPropTag) == PT_UNICODE) )
-		) ) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		) )
+		return MAPI_E_NOT_FOUND;
 
 	if(lpfnSetProp)
 		*lpfnSetProp = iterCallBack->second.lpfnSetProp;
@@ -590,8 +575,6 @@ HRESULT	ECGenericProp::HrGetHandler(ULONG ulPropTag, SetPropCallBack *lpfnSetPro
 	if(lpParam)
 		*lpParam = iterCallBack->second.lpParam;
 	
-exit:
-	dwLastError = hr;
 	return hr;
 }
 
@@ -682,7 +665,6 @@ HRESULT ECGenericProp::HrLoadProps()
 	fSaved = true;
 
 exit:
-	dwLastError = hr;
 	m_bReload = FALSE;
 	m_bLoading = FALSE;
 	return hr;
