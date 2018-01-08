@@ -78,11 +78,7 @@ static const unsigned int EC_LOGLEVEL_EXTENDED_MASK = 0xFFFF0000;
 			(_plog)->Log(EC_LOGLEVEL_FATAL, __VA_ARGS__); \
 	} while (false)
 
-#ifdef UNICODE
 #define TSTRING_PRINTF "%ls"
-#else
-#define TSTRING_PRINTF "%s"
-#endif
 
 /**
  * Prefixes in log message in different process models.

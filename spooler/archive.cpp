@@ -47,11 +47,7 @@ using std::list;
 using std::pair;
 using std::string;
 
-#ifdef UNICODE
 typedef std::wostringstream tostringstream;
-#else
-typedef std::ostringstream tostringstream;
-#endif
 
 void ArchiveResult::AddMessage(MessagePtr ptrMessage) {
 	m_lstMessages.emplace_back(ptrMessage);

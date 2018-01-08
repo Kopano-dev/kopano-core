@@ -31,10 +31,7 @@ namespace KC {
 // can cause all sorts of mischief that can be hard to trace. Unfortunately
 // it's in use in 51 different files all over the project, so changing it is
 // a bit of a bother. NS 16 October 2013
-#ifdef UNICODE
-#	define _(string) KC_W(string)
-#else
-#	define _(string) KC_A(string)
-#endif
+#define _(string) KC_W(string)
+
 
 #endif // ndef ECGetText_INCLUDED

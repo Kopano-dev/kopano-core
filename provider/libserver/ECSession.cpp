@@ -47,11 +47,8 @@
 #include "ECICS.h"
 #include <kopano/ECIConv.h>
 #include "versions.h"
-#if defined LINUX || !defined UNICODE
+
 #define WHITESPACE " \t\n\r"
-#else
-#define WHITESPACE L" \t\n\r"
-#endif
 
 namespace KC {
 

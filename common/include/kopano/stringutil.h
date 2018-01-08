@@ -73,11 +73,7 @@ extern _kc_export std::string stringify_double(double, int prec = 18, bool local
 
 extern _kc_export std::wstring wstringify(unsigned int x, bool usehex = false, bool _signed = false);
 
-#ifdef UNICODE
-	#define tstringify			wstringify
-#else
-	#define tstringify			stringify
-#endif
+#define tstringify			wstringify
 
 static inline unsigned int atoui(const char *s) { return strtoul(s, nullptr, 10); }
 static inline unsigned int xtoi(const char *s) { return strtoul(s, nullptr, 16); }

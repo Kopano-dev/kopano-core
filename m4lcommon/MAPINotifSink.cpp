@@ -105,13 +105,8 @@ static HRESULT CopyMAPIERROR(const MAPIERROR *lpSrc, void *lpBase,
 
     lpDst->ulVersion = lpSrc->ulVersion;
 	// @todo we don't know if the strings were create with unicode anymore
-#ifdef UNICODE
     MAPICopyUnicode(lpSrc->lpszError, lpBase, &lpDst->lpszError);
     MAPICopyUnicode(lpSrc->lpszComponent, lpBase, &lpDst->lpszComponent);
-#else
-    MAPICopyString(lpSrc->lpszError, lpBase, &lpDst->lpszError);
-    MAPICopyString(lpSrc->lpszComponent, lpBase, &lpDst->lpszComponent);
-#endif
     lpDst->ulLowLevelError = lpSrc->ulLowLevelError;
     lpDst->ulContext = lpSrc->ulContext;
     
