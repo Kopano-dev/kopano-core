@@ -175,55 +175,6 @@ _kopano_backup_options()
 }
 complete -F _kopano_backup_options $filenames kopano-backup
 
-_kopano_restore_options()
-{
-	local cur short_actions long_actions possiblelist
-
-	short_actions='-u -f -h -c -i -r -p -a -b -v'
-	long_actions='--user --public --from --restorefile --recurse --not-before --not-after --host --config --verbose --help'
-
-	COMPREPLY=()
-	cur=${COMP_WORDS[COMP_CWORD]}
-	prev=${COMP_WORDS[COMP_CWORD-1]}
-
-	case "$prev" in
-		-@(h|-host))
-		_kopano__hosts
-		return 0
-		;;
-
-		# actually the (.*).zbk.index part ?
-		-@(u|-user|f|-from))
-		_kopano__userlist
-		;;
-
-		-@(i|-restorefile|c|-config|a))
-		_filedir
-		return 0
-		;;
-
-		-@(-not-before|b))
-		# opt req, no hints
-		return 0
-		;;
-
-		# empty parameters, ok with help and read??
-		--@(help|public|recurse|verbose))
-		;;
-		-@(p|r|v))
-		;;
-	esac
-
-	if [ -z "$POSSIBLELIST" ]; then
-		possiblelist="$short_actions $long_actions"
-	fi
-	
-	COMPREPLY=( $( compgen -W "$possiblelist" -- "$cur" ) )
-	
-	return 0
-}
-complete -F _kopano_restore_options $filenames kopano-restore
-
 _kopano_dagent_options()
 {
 	local cur short_actions long_actions possiblelist
