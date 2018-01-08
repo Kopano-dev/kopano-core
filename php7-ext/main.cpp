@@ -108,6 +108,10 @@
 // we need to include this in c++ space because php.h also includes it in
 // 'extern "C"'-space which doesn't work in win32
 #include <cmath>
+#if __GNUC_PREREQ(5, 0) && !__GNUC_PREREQ(6, 0)
+using std::isfinite;
+using std::isnan;
+#endif
 
 extern "C" {
 	// Remove these defines to remove warnings
@@ -116,12 +120,6 @@ extern "C" {
 	#undef PACKAGE_NAME
 	#undef PACKAGE_STRING
 	#undef PACKAGE_BUGREPORT
-
-	#if !__GNUC_PREREQ(6,0)
-	#define zend_isfinite(a) std::isfinite(a)
-	#define zend_isnan(a) std::isnan(a)
-	#endif
-
 	#include "php.h"
    	#include "php_globals.h"
    	#include "php_ini.h"
@@ -7385,7 +7383,7 @@ ZEND_FUNCTION(mapi_feature)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	static const char *const features[] =
-		{"LOGONFLAGS", "NOTIFICATIONS", "INETMAPI_IMTOMAPI"};
+		{"LOGONFLAGS", "NOTIFICATIONS", "INETMAPI_IMTOMAPI", "ST_ONLY_WHEN_OOF"};
 	const char *szFeature = NULL;
 	php_stringsize_t cbFeature = 0;
     
