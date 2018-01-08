@@ -7385,7 +7385,7 @@ ZEND_FUNCTION(mapi_feature)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	static const char *const features[] =
-		{"LOGONFLAGS", "NOTIFICATIONS", "INETMAPI_IMTOMAPI"};
+		{"LOGONFLAGS", "NOTIFICATIONS", "INETMAPI_IMTOMAPI", "ST_ONLY_WHEN_OOF"};
 	const char *szFeature = NULL;
 	php_stringsize_t cbFeature = 0;
     
