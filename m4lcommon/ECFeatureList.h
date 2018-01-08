@@ -26,7 +26,7 @@ namespace KC {
 
 ///< all kopano features that are checked for access before allowing it
 static const char *const kopano_features[] = {
-	"imap", "pop3", "mobile", "outlook"
+	"imap", "pop3", "mobile", "outlook", "webapp"
 };
 
 } /* namespace */

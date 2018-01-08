@@ -105,7 +105,7 @@ _kopano_admin_options()
 		;;
 		
 		-@(-en|-dis)able-feature)
-		possiblelist="imap pop3"
+		possiblelist="imap pop3 mobile outlook webapp"
 		;;
 	esac
 
