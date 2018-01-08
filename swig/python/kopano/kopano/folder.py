@@ -58,8 +58,7 @@ from .defs import (
 from .errors import NotFoundError, Error, _DeprecationWarning
 
 from .compat import (
-    hex as _hex, unhex as _unhex, fake_unicode as _unicode, bdec as _bdec,
-    benc as _benc
+    fake_unicode as _unicode, bdec as _bdec, benc as _benc
 )
 
 if sys.hexversion >= 0x03000000:
@@ -133,7 +132,7 @@ class Folder(Properties):
             try:
                 self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
             except (MAPIErrorNotFound, MAPIErrorInvalidEntryid):
-                raise NotFoundError("cannot open folder with entryid '%s'" % _hex(self._entryid)) # XXX check too late??
+                raise NotFoundError("cannot open folder with entryid '%s'" % _benc(self._entryid)) # XXX check too late??
         except MAPIErrorNoAccess: # XXX XXX
             self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, 0)
 
@@ -158,7 +157,7 @@ class Folder(Properties):
     @property
     def sourcekey(self):
         if not self._sourcekey:
-            self._sourcekey = _hex(HrGetOneProp(self.mapiobj, PR_SOURCE_KEY).Value)
+            self._sourcekey = _benc(HrGetOneProp(self.mapiobj, PR_SOURCE_KEY).Value)
         return self._sourcekey
 
     @property
@@ -220,7 +219,7 @@ class Folder(Properties):
         # parent entryids for certains public store folders (via getprops,
         # or store PR_IPM_SUBTREE_ENTRYID), so we match with this property,
         # which is also not converted
-        pub_entryid = _hex(self.store.get(PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, b''))
+        pub_entryid = _benc(self.store.get(PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, b''))
 
         while parent:
             parent_eid = parent.entryid
@@ -275,14 +274,14 @@ class Folder(Properties):
 
         # resolve sourcekey to entryid
         if sourcekey is not None:
-            restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY, SPropValue(PR_SOURCE_KEY, _unhex(sourcekey)))
+            restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY, SPropValue(PR_SOURCE_KEY, _bdec(sourcekey)))
             table = self.mapiobj.GetContentsTable(0)
             table.SetColumns([PR_ENTRYID, PR_SOURCE_KEY], 0)
             table.Restrict(restriction, 0)
             rows = list(table.QueryRows(-1, 0))
             if not rows:
                 raise NotFoundError("no item with sourcekey '%s'" % sourcekey)
-            entryid = _hex(rows[0][0].Value)
+            entryid = _benc(rows[0][0].Value)
 
         # open message with entryid
         try:
@@ -380,7 +379,7 @@ class Folder(Properties):
             )
             table.mapitable.Restrict(restriction, 0)
             for row in table.rows():
-                entryid = _hex(row[0].value)
+                entryid = _benc(row[0].value)
                 for occurrence in self.item(entryid).occurrences(start, end):
                     yield occurrence
 
@@ -447,7 +446,7 @@ class Folder(Properties):
         return folder.get(proptag, 0)
 
     def recount(self):
-        self.server.sa.ResetFolderCount(_unhex(self.entryid))
+        self.server.sa.ResetFolderCount(_bdec(self.entryid))
 
     def _get_entryids(self, items):
         item_entryids = [_bdec(item.entryid) for item in items if isinstance(item, _item.Item)]
@@ -527,7 +526,7 @@ class Folder(Properties):
             name = path.replace('\\/', '/')
             try:
                 mapifolder = self.mapiobj.CreateFolder(FOLDER_GENERIC, _unicode(name), u'', None, MAPI_UNICODE)
-                return Folder(self.store, _hex(HrGetOneProp(mapifolder, PR_ENTRYID).Value))
+                return Folder(self.store, _benc(HrGetOneProp(mapifolder, PR_ENTRYID).Value))
             except MAPIErrorCollision:
                 pass
 
@@ -598,9 +597,9 @@ class Folder(Properties):
                 cache=dict(zip(columns, row))
             )
 
-            folders[_hex(row[0].value)] = folder, _hex(row[1].value)
-            names[_hex(row[0].value)] = row[2].value
-            children[_hex(row[1].value)].append((_hex(row[0].value), folder))
+            folders[_benc(row[0].value)] = folder, _benc(row[1].value)
+            names[_benc(row[0].value)] = row[2].value
+            children[_benc(row[1].value)].append((_benc(row[0].value), folder))
 
         # yield depth-first XXX improve server?
         def folders_recursive(fs, depth=0):
@@ -673,13 +672,13 @@ class Folder(Properties):
         """
 
         if state is None:
-            state = _hex(8 * b'\0')
+            state = _benc(8 * b'\0')
         importer.store = self.store
         return _ics.sync(self.store.server, self.mapiobj, importer, state, log, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
 
     def hierarchy_sync(self, importer, state=None):
         if state is None:
-            state = _hex(8 * b'\0')
+            state = _benc(8 * b'\0')
         importer.store = self.store
         return _ics.hierarchy_sync(self.store.server, self.mapiobj, importer, state)
 
@@ -783,7 +782,7 @@ class Folder(Properties):
         searchfolder.search_wait()
         for item in searchfolder:
             yield item
-        self.store.findroot.mapiobj.DeleteFolder(_unhex(searchfolder.entryid), 0, None, 0) # XXX store.findroot
+        self.store.findroot.mapiobj.DeleteFolder(_bdec(searchfolder.entryid), 0, None, 0) # XXX store.findroot
 
     def search_start(self, folders, text, recurse=False):
         # specific restriction format, needed to reach indexer
@@ -799,7 +798,7 @@ class Folder(Properties):
         search_flags = 0
         if recurse:
             search_flags = SEARCH_RECURSIVE
-        self.mapiobj.SetSearchCriteria(restriction, [_unhex(f.entryid) for f in folders], search_flags)
+        self.mapiobj.SetSearchCriteria(restriction, [_bdec(f.entryid) for f in folders], search_flags)
 
     def search_wait(self):
         while True:
@@ -823,7 +822,7 @@ class Folder(Properties):
             return
 
         archive_store = self.server._store2(arch_storeid)
-        return _store.Store(mapiobj=archive_store, server=self.server).folder(entryid=_hex(arch_folderid))
+        return _store.Store(mapiobj=archive_store, server=self.server).folder(entryid=_benc(arch_folderid))
 
     @property
     def primary_store(self):
@@ -834,7 +833,7 @@ class Folder(Properties):
         except MAPIErrorNotFound:
             return
 
-        return _store.Store(entryid=_hex(entryid), server=self.server)
+        return _store.Store(entryid=_benc(entryid), server=self.server)
 
     @property
     def primary_folder(self):
@@ -844,7 +843,7 @@ class Folder(Properties):
 
         if self.primary_store:
             try:
-                return self.primary_store.folder(entryid=_hex(entryid))
+                return self.primary_store.folder(entryid=_benc(entryid))
             except NotFoundError:
                 pass
 
