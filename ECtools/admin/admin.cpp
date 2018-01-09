@@ -961,6 +961,7 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
 		cerr << "No archive found for user '" << lpszName << "'." << endl;
 		return hr;
 	}
+	printf("%-23s %s\n", "Archive store id:", bin2hex(cbArchiveId, ptrArchiveId.get()).c_str());
 	hr = lpSession->OpenMsgStore(0, cbArchiveId, ptrArchiveId, &iid_of(ptrArchive), 0, &~ptrArchive);
 	if (hr != hrSuccess) {
 		cerr << "Unable to open archive." << endl;
@@ -1354,6 +1355,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 			cerr << "Unable to resolve company: " << getMapiCodeString(hr, lpszName) << endl;
 			return hr;
 		}
+		printf("Company object id: %s\n", bin2hex(cbObjectId, lpObjectId).c_str());
 		hr = lpServiceAdmin->GetCompany(cbObjectId, lpObjectId, 0, &~lpECCompany);
 		if (hr != hrSuccess) {
 			cerr << "Unable to show company details: " << getMapiCodeString(hr) << endl;
@@ -1369,6 +1371,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 			cerr << "Unable to get company store entry id. Company possibly has no store." << endl;
 			return hr;
 		}
+		printf("%-23s %s\n", "Company object id:", bin2hex(cbEntryID, lpEntryID).c_str());
 		hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, &~lpStore);
 		if (hr != hrSuccess) {
 			cerr << "Unable to open company store." << endl;
@@ -1400,6 +1403,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 			cerr << "Unable to resolve group: " << getMapiCodeString(hr, lpszName) << endl;
 			return hr;
 		}
+		printf("%-23s %s\n", "Group object id:", bin2hex(cbObjectId, lpObjectId).c_str());
 		hr = lpServiceAdmin->GetGroup(cbObjectId, lpObjectId, 0, &~lpECGroup);
 		if (hr != hrSuccess) {
 			cerr << "Unable to show group details: " << getMapiCodeString(hr) << endl;
@@ -1424,6 +1428,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 			cerr << "Unable to resolve user: " << getMapiCodeString(hr, lpszName) << endl;
 			return hr;
 		}
+		printf("%-23s %s\n", "User object id:", bin2hex(cbObjectId, lpObjectId).c_str());
 		hr = lpServiceAdmin->GetUser(cbObjectId, lpObjectId, 0, &~lpECUser);
 		if (hr != hrSuccess) {
 			cerr << "Unable to show user details: " << getMapiCodeString(hr) << endl;
@@ -1450,6 +1455,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 			GetAutoAcceptSettings(lpStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
 			/* Ignore return value */
 		}
+		printf("%-23s %s\n", "User store id:", bin2hex(cbEntryID, lpEntryID).c_str());
 		hr = lpServiceAdmin->GetGroupListOfUser(cbObjectId, lpObjectId, 0, &cGroups, &~lpECGroups);
 		if (hr != hrSuccess) {
 			cerr << "Unable to request groups for user: " << getMapiCodeString(hr) << endl;
