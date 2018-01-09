@@ -470,9 +470,6 @@ typedef void * DLIB;
 
 namespace KC {
 
-// unavailable in linux
-#define _dstbias 0
-
 extern _kc_export time_t GetProcessTime(void);
 
 #define OutputDebugStringA(dstr) fprintf(stderr,"%s",dstr)
