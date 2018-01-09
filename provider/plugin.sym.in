@@ -3,6 +3,7 @@ global:
 	deleteUserPluginInstance;
 	getUserPluginInstance;
 	getUserPluginVersion;
+	kcsrv_plugin_version;
 	extern "C++" {
 		std::*::_S_*;
 	};
