@@ -23,6 +23,7 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECLogger.h>
+#include <kopano/scope.hpp>
 #include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapitags.h>
@@ -347,16 +348,14 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 	HRESULT hr = hrSuccess;
 	const BOOL fModifyOld = fModify;
 
-	if (m_ulBodyType == bodyTypeUnknown) {
-	    // There's nothing to synchronize if we don't know what our best body type is.
-		hr = MAPI_E_NO_SUPPORT;
-		goto exit;
-	}
+	auto laters = make_scope_success([&]() { fModify = fModifyOld; });
 
-	if (!Util::IsBodyProp(ulPropTag)) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (m_ulBodyType == bodyTypeUnknown)
+	    // There's nothing to synchronize if we don't know what our best body type is.
+		return MAPI_E_NO_SUPPORT;
+
+	if (!Util::IsBodyProp(ulPropTag))
+		return MAPI_E_INVALID_PARAMETER;
 
 	// Temporary enable write access
 	fModify = TRUE;
@@ -376,9 +375,6 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 			hr = SyncHtmlToRtf();
 	}
 
-exit:
-	fModify = fModifyOld;
-
 	return hr;
 }
 
@@ -396,43 +392,44 @@ HRESULT ECMessage::SyncPlainToRtf()
 	assert(m_bInhibitSync == false);
 	m_bInhibitSync = TRUE;
 
+	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+
 	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrBodyStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECMAPIProp::OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrCompressedRtfStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//Truncate to zero
 	hr = ptrCompressedRtfStream->SetSize(emptySize);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = WrapCompressedRTFStream(ptrCompressedRtfStream, MAPI_MODIFY, &~ptrUncompressedRtfStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Convert it now
 	hr = Util::HrTextToRtf(ptrBodyStream, ptrUncompressedRtfStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Commit uncompress data
 	hr = ptrUncompressedRtfStream->Commit(0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Commit compresed data
 	hr = ptrCompressedRtfStream->Commit(0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// We generated this property but don't really want to save it to the server
 	HrSetCleanProperty(PR_RTF_COMPRESSED);
 
 	// and mark it as deleted, since we want the server to remove the old version if this was in the database
 	m_setDeletedProps.emplace(PR_RTF_COMPRESSED);
-exit:
-	m_bInhibitSync = FALSE;
+
 	return hr;
 }
 
@@ -450,36 +447,37 @@ HRESULT ECMessage::SyncPlainToHtml()
 	assert(m_bInhibitSync == false);
 	m_bInhibitSync = TRUE;
 
+	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+
 	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrBodyStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrHtmlStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = GetCodePage(&ulCodePage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = ptrHtmlStream->SetSize(emptySize);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = Util::HrTextToHtml(ptrBodyStream, ptrHtmlStream, ulCodePage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = ptrHtmlStream->Commit(0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// We generated this property but don't really want to save it to the server
 	HrSetCleanProperty(PR_HTML);
 
 	// and mark it as deleted, since we want the server to remove the old version if this was in the database
 	m_setDeletedProps.emplace(PR_HTML);
-exit:
-	m_bInhibitSync = FALSE;
+
 	return hr;
 }
 
@@ -503,20 +501,22 @@ HRESULT ECMessage::SyncRtf()
 	assert(m_bInhibitSync == false);
 	m_bInhibitSync = TRUE;
 
+	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+
 	hr = GetRtfData(&strRTF);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = GetCodePage(&ulCodePage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrHTMLStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = ptrHTMLStream->SetSize(emptySize);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Determine strategy based on RTF type.
 	if (isrtfhtml(strRTF.c_str(), strRTF.size()))
@@ -534,19 +534,19 @@ HRESULT ECMessage::SyncRtf()
 
 			hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrBodyStream);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			hr = ptrHTMLStream->SetSize(emptySize);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			hr = Util::HrTextToHtml(ptrBodyStream, ptrHTMLStream, ulCodePage);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			hr = ptrHTMLStream->Commit(0);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			bDone = true;
 		}
@@ -568,34 +568,34 @@ HRESULT ECMessage::SyncRtf()
 			break;
 		}
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		hr = ptrHTMLStream->Write(strHTML.c_str(), strHTML.size(), &ulWritten);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		hr = ptrHTMLStream->Commit(0);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		hr = ptrHTMLStream->Seek(moveBegin, STREAM_SEEK_SET, NULL);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrBodyStream);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		hr = ptrBodyStream->SetSize(emptySize);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		hr = Util::HrHtmlToText(ptrHTMLStream, ptrBodyStream, ulCodePage);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		hr = ptrBodyStream->Commit(0);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if (rtfType == RTFTypeOther) {
@@ -617,8 +617,6 @@ HRESULT ECMessage::SyncRtf()
 		m_setDeletedProps.emplace(PR_RTF_COMPRESSED);
 	}
 
-exit:
-	m_bInhibitSync = FALSE;
 	return hr;
 }
 
@@ -637,31 +635,31 @@ HRESULT ECMessage::SyncHtmlToPlain()
 	assert(m_bInhibitSync == FALSE);
 	m_bInhibitSync = TRUE;
 
+	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+
 	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrHtmlStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrBodyStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = ptrBodyStream->SetSize(emptySize);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = GetCodePage(&ulCodePage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = Util::HrHtmlToText(ptrHtmlStream, ptrBodyStream, ulCodePage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = ptrBodyStream->Commit(0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
-exit:
-	m_bInhibitSync = FALSE;
 	return hr;
 }
 
@@ -680,47 +678,48 @@ HRESULT ECMessage::SyncHtmlToRtf()
 	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
+	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
+
 	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrHtmlStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = ECMAPIProp::OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, &~ptrRtfCompressedStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = ptrRtfCompressedStream->SetSize(emptySize);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = WrapCompressedRTFStream(ptrRtfCompressedStream, MAPI_MODIFY, &~ptrRtfUncompressedStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = GetCodePage(&ulCodePage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Convert it now
 	hr = Util::HrHtmlToRtf(ptrHtmlStream, ptrRtfUncompressedStream, ulCodePage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Commit uncompress data
 	hr = ptrRtfUncompressedStream->Commit(0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Commit compresed data
 	hr = ptrRtfCompressedStream->Commit(0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// We generated this property but don't really want to save it to the server
 	HrSetCleanProperty(PR_RTF_COMPRESSED);
 
 	// and mark it as deleted, since we want the server to remove the old version if this was in the database
 	m_setDeletedProps.emplace(PR_RTF_COMPRESSED);
-exit:
-	m_bInhibitSync = FALSE;
+
 	return hr;
 }
 
@@ -735,9 +734,11 @@ HRESULT ECMessage::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 	bool bHaveHtml;
 
 	m_ulBodyType = bodyTypeUnknown;	// Make sure no bodies are generated when attempts are made to open them to check the error code if any.
+	auto laters = make_scope_success([&]() { m_ulBodyType = ulBodyTypeSaved; });
+
 	hr = ECMAPIProp::GetPropList(ulFlags, &~ptrPropTagArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Because the body type was set to unknown, ECMAPIProp::GetPropList does not return the proptags of the bodies that can be
 	// generated unless they were already generated.
@@ -751,13 +752,13 @@ HRESULT ECMessage::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 	{
 		// Nothing more to do
 		*lppPropTagArray = ptrPropTagArray.release();
-		goto exit;
+		return hr;
 	}
 
 	// We have at least one body prop. Determine which tags to add.
 	hr = ECAllocateBuffer(CbNewSPropTagArray(ptrPropTagArray->cValues + 2), &~ptrPropTagArrayMod);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	ptrPropTagArrayMod->cValues = ptrPropTagArray->cValues;
 	memcpy(ptrPropTagArrayMod->aulPropTag, ptrPropTagArray->aulPropTag, sizeof(*ptrPropTagArrayMod->aulPropTag) * ptrPropTagArrayMod->cValues);
@@ -772,8 +773,6 @@ HRESULT ECMessage::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 
 	*lppPropTagArray = ptrPropTagArrayMod.release();
 
-exit:
-	m_ulBodyType = ulBodyTypeSaved;
 	return hr;
 }
 
@@ -1876,10 +1875,12 @@ HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	const BOOL bInhibitSyncOld = m_bInhibitSync;
 	m_bInhibitSync = TRUE; // We want to override the logic in ECMessage::HrSetRealProp.
 
+	auto laters = make_scope_success([&]() { m_bInhibitSync = bInhibitSyncOld; });
+
 	// Send to IMAPIProp first
 	hr = ECMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	m_bInhibitSync = bInhibitSyncOld;
 
@@ -1915,8 +1916,6 @@ HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 		HrDeleteRealProp(PR_HTML, FALSE);
 	}
 
-exit:
-	m_bInhibitSync = bInhibitSyncOld;
 	return hr;
 }
 
