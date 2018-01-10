@@ -6406,28 +6406,24 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 		data = HASH_OF(entry);
 		zend_hash_internal_pointer_reset(data);
 
-		if ((value = zend_hash_find(data, str_start)) != NULL) {
-			UnixTimeToRTime(Z_LVAL_P(value), &lpBlocks[i].m_tmStart);
-		} else {
+		value = zend_hash_find(data, str_start);
+		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
-
-		if ((value = zend_hash_find(data, str_end)) != NULL ) {
-			UnixTimeToRTime(Z_LVAL_P(value), &lpBlocks[i].m_tmEnd);
-		} else {
+		UnixTimeToRTime(Z_LVAL_P(value), &lpBlocks[i].m_tmStart);
+		value = zend_hash_find(data, str_end);
+		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
-
-		if ((value = zend_hash_find(data, str_status)) != NULL) {
-			lpBlocks[i].m_fbstatus = (enum FBStatus)Z_LVAL_P(value);
-		} else {
+		UnixTimeToRTime(Z_LVAL_P(value), &lpBlocks[i].m_tmEnd);
+		value = zend_hash_find(data, str_status);
+		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
-		++i;
-
+		lpBlocks[i++].m_fbstatus = (enum FBStatus)Z_LVAL_P(value);
 	} ZEND_HASH_FOREACH_END();
 	MAPI_G(hr) = lpFBUpdate->PublishFreeBusy(lpBlocks, cBlocks);
 	if(MAPI_G(hr) != hrSuccess)
