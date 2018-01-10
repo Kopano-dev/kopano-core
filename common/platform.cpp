@@ -184,10 +184,9 @@ time_t timegm(struct tm *t) {
 }
 #endif
 
-struct tm* gmtime_safe(const time_t* timer, struct tm *result)
+struct tm *gmtime_safe(time_t t, struct tm *result)
 {
-	struct tm *tmp = NULL;
-	tmp = gmtime_r(timer, result);
+	auto tmp = gmtime_r(&t, result);
 	if(tmp == NULL)
 		memset(result, 0, sizeof(struct tm));
 

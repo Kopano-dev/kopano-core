@@ -70,8 +70,6 @@ HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
 	LONG			rtmStart = 0;
 	LONG			rtmEnd = 0;
 	FILETIME		ft;	
-	time_t			tmUnixStart;
-	time_t			tmUnixEnd;
 	struct tm		tmStart;
 	struct tm		tmEnd;
 
@@ -110,11 +108,8 @@ HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
 	m_fbBlockList.Restrict(rtmStart, rtmEnd);
 
 	//Calculate months
-	tmUnixStart = RTimeToUnixTime(rtmStart);
-	tmUnixEnd   = RTimeToUnixTime(rtmEnd);
-	gmtime_safe(&tmUnixStart, &tmStart);
-	gmtime_safe(&tmUnixEnd, &tmEnd);
-
+	gmtime_safe(RTimeToUnixTime(rtmStart), &tmStart);
+	gmtime_safe(RTimeToUnixTime(rtmEnd), &tmEnd);
 	ulMonths = DiffYearMonthToMonth(&tmStart, &tmEnd);
 	if(ulMonths == 0)
 		++ulMonths;

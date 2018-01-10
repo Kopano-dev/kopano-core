@@ -5155,8 +5155,7 @@ string IMAP::FileTimeToString(FILETIME sFileTime) {
 	char szBuffer[31];
 	struct tm ptr;
 
-	auto sTime = FileTimeToUnixTime(sFileTime);
-	gmtime_safe(&sTime, &ptr);
+	gmtime_safe(FileTimeToUnixTime(sFileTime), &ptr);
 	strftime(szBuffer, 30, "%d-", &ptr);
 	std::string strTime = szBuffer;
 	strTime += strMonth[ptr.tm_mon];

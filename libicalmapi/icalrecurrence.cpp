@@ -77,7 +77,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	// use localtime for calculating weekday as in UTC time 
 	// the weekday can change to previous day for time 00:00 am
 	auto dtLocalStart = icaltime_as_timet(icalproperty_get_dtstart(lpicProp));
-	gmtime_safe(&dtLocalStart, &tm);
+	gmtime_safe(dtLocalStart, &tm);
 	auto dtUTCStart = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTEND_PROPERTY);

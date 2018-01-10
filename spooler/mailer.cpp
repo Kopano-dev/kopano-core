@@ -1640,10 +1640,9 @@ static void lograw1(IMAPISession *ses, IAddrBook *ab, IMessage *msg,
 		kc_perror("IMToINet", ret);
 		return;
 	}
-	auto now = time(nullptr);
 	struct tm tm;
 	char buf[64];
-	gmtime_safe(&now, &tm);
+	gmtime_safe(time(nullptr), &tm);
 	std::string fname = g_lpConfig->GetSetting("log_raw_message_path");
 	strftime(buf, sizeof(buf), "/SMTP1_%Y%m%d%H%M%S_", &tm);
 	fname += buf;

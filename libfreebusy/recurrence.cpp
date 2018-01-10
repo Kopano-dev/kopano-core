@@ -91,7 +91,7 @@ HRESULT recurrence::HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, 
 		break;
 	case RF_WEEKLY: {
 		auto tStart = getStartDate();
-		gmtime_safe(&tStart, &tm);
+		gmtime_safe(tStart, &tm);
 		int daycount = 0, dayskip = -1;
 		for (int j = 0; j < 7; ++j) {
 			if (m_sRecState.ulWeekDays & (1<<((tm.tm_wday + j)%7))) {
@@ -108,8 +108,8 @@ HRESULT recurrence::HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, 
 		// weekskip is the amount of weeks to skip from the startdate before the first occurence
 
 		// The real start is start + dayskip + weekskip-1 (since dayskip will already bring us into the next week)
-		tStart = tStart + dayskip * 24 * 60 * 60 + weekskip * (m_sRecState.ulPeriod - 1) * 7 * 24 * 60 * 60;
-		gmtime_safe(&tStart, &tm);
+		tStart += dayskip * 24 * 60 * 60 + weekskip * (m_sRecState.ulPeriod - 1) * 7 * 24 * 60 * 60;
+		gmtime_safe(tStart, &tm);
 
 		LONG rStart;
 		UnixTimeToRTime(tStart, &rStart);
@@ -120,8 +120,7 @@ HRESULT recurrence::HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, 
 	}
 	case RF_MONTHLY:
 	case RF_YEARLY: {
-		auto tStart = getStartDate();
-		gmtime_safe(&tStart, &tm);
+		gmtime_safe(getStartDate(), &tm);
 		LONG rStart = ((((12 % m_sRecState.ulPeriod) * ((tm.tm_year + 1900 - 1601) % m_sRecState.ulPeriod)) % m_sRecState.ulPeriod) + tm.tm_mon) % m_sRecState.ulPeriod;
 		m_sRecState.ulFirstDateTime = 0;
 		for (int i = 0; i < rStart; ++i)
@@ -398,9 +397,7 @@ UCHAR recurrence::getMonth() const
 	if (m_ulMonth > 0 && m_ulMonth < 13)
 		return m_ulMonth;
 	struct tm tmMonth;
-	time_t tStart = getStartDate();
-	gmtime_safe(&tStart, &tmMonth);
-
+	gmtime_safe(getStartDate(), &tmMonth);
 	return tmMonth.tm_mon+1;
 }
 
@@ -707,7 +704,7 @@ time_t recurrence::calcStartDate() const
 		// Use the default start date.
 		break;
 	case RF_WEEKLY: {
-		gmtime_safe(&tStart, &tm);
+		gmtime_safe(tStart, &tm);
 		int daycount = 0, dayskip = -1;
 		for (int j = 0; j < 7; ++j) {
 			if (m_sRecState.ulWeekDays & (1<<((tm.tm_wday + j)%7))) {
@@ -724,14 +721,13 @@ time_t recurrence::calcStartDate() const
 		// weekskip is the amount of weeks to skip from the startdate before the first occurence
 
 		// The real start is start + dayskip + weekskip-1 (since dayskip will already bring us into the next week)
-		tStart = tStart + (dayskip * 24*60*60) + (weekskip * (m_sRecState.ulPeriod-1) * 7 * 24*60*60);
-		gmtime_safe(&tStart, &tm);
-
+		tStart += dayskip * 24 * 60 * 60 + weekskip * (m_sRecState.ulPeriod - 1) * 7 * 24 * 60 * 60;
+		gmtime_safe(tStart, &tm);
 		break;
 	}
 	case RF_MONTHLY:
 	case RF_YEARLY:
-		gmtime_safe(&tStart, &tm);
+		gmtime_safe(tStart, &tm);
 
 		if (m_sRecState.ulPatternType == PT_MONTH) {
 			unsigned int count = 0;
@@ -772,7 +768,7 @@ time_t recurrence::calcStartDate() const
             // if the day of the month we got is wrong, and then back up to the last day of the previous
             // month.
 			if ( m_sRecState.ulDayOfMonth >= 28 &&  m_sRecState.ulDayOfMonth <=31) {
-				gmtime_safe(&tStart, &tm);
+				gmtime_safe(tStart, &tm);
 				if (tm.tm_mday < static_cast<int>(m_sRecState.ulDayOfMonth))
 					tStart -= tm.tm_mday * 24 * 60 *60;
 			}
@@ -846,7 +842,7 @@ time_t recurrence::calcStartDate() const
 		}
 
 		// Seek to the right day (tStart should be the first day or the last day of the month.
-		gmtime_safe(&tStart, &tm);
+		gmtime_safe(tStart, &tm);
 		for (int i = 0; i < 7; ++i) {
 			if (m_sRecState.ulWeekNumber == 5 && (1<< (tm.tm_wday - i)%7) & m_sRecState.ulWeekDays) {
 				tStart -= i * 24 * 60 *60;
@@ -896,7 +892,7 @@ time_t recurrence::calcEndDate() const
 		fwd *= m_sRecState.ulPeriod;
 
 		tEnd += fwd * 7 * 24 * 60 * 60;
-		gmtime_safe(&tEnd, &tm);
+		gmtime_safe(tEnd, &tm);
 
 		for (int j = 1; m_sRecState.ulWeekDays != 0 && rest > 0; ++j) {
 			if ((tm.tm_wday + j)%7 == (int)getFirstDOW())
@@ -914,7 +910,7 @@ time_t recurrence::calcEndDate() const
 	}
 	case RF_MONTHLY:
 	case RF_YEARLY: {
-		gmtime_safe(&tStart, &tm);
+		gmtime_safe(tStart, &tm);
 		tm.tm_year += 1900;		// 1900 based
 		++tm.tm_mon; // 1-based
 		int fwd = (m_sRecState.ulOccurrenceCount - 1) * m_sRecState.ulPeriod;
@@ -930,7 +926,7 @@ time_t recurrence::calcEndDate() const
 			--fwd;
 		}
 
-		gmtime_safe(&tEnd, &tm);
+		gmtime_safe(tEnd, &tm);
 		tm.tm_year += 1900;
 		++tm.tm_mon;
 
@@ -956,7 +952,7 @@ time_t recurrence::calcEndDate() const
 			tEnd -= (tm.tm_mday-1) * 24 * 60 * 60;
 
 		for (int daycount = 0; daycount < 7; ++daycount) {
-			gmtime_safe(&tEnd, &tm);
+			gmtime_safe(tEnd, &tm);
 			tm.tm_year += 1900;
 			++tm.tm_mon;
 			if (m_sRecState.ulWeekNumber == 5 && (1 << (tm.tm_wday - daycount) % 7) & m_sRecState.ulWeekDays)
@@ -1061,29 +1057,28 @@ ULONG recurrence::Minutes2Month(ULONG minutes)
 time_t recurrence::StartOfDay(time_t t)
 {
 	struct tm sTM;
-	gmtime_safe(&t, &sTM);
-
+	gmtime_safe(t, &sTM);
 	return t - (sTM.tm_hour * 60 * 60 + sTM.tm_min * 60 + sTM.tm_sec);
 }
 
 time_t recurrence::StartOfWeek(time_t t)
 {
 	struct tm sTM;
-	gmtime_safe(&t, &sTM);
+	gmtime_safe(t, &sTM);
 	return t - (sTM.tm_wday * 24 * 60 * 60 + sTM.tm_hour * 60 * 60 + sTM.tm_min * 60 + sTM.tm_sec);
 }
 
 time_t recurrence::StartOfMonth(time_t t)
 {
 	struct tm sTM;
-	gmtime_safe(&t, &sTM);
+	gmtime_safe(t, &sTM);
 	return t - ((sTM.tm_mday -1) * 24 * 60 * 60 + sTM.tm_hour * 60 * 60 + sTM.tm_min * 60 + sTM.tm_sec);
 }
 
 time_t recurrence::StartOfYear(time_t t)
 {
 	struct tm sTM;
-	gmtime_safe(&t, &sTM);
+	gmtime_safe(t, &sTM);
 	return t - (sTM.tm_yday * 24 * 60 * 60 + sTM.tm_hour * 60 * 60 + sTM.tm_min * 60 + sTM.tm_sec);
 }
 
@@ -1115,40 +1110,35 @@ ULONG recurrence::DaysInMonth(ULONG year, ULONG month)
 ULONG recurrence::MonthFromTime(time_t t)
 {
 	struct tm lpT;
-	gmtime_safe(&t, &lpT);
-
+	gmtime_safe(t, &lpT);
 	return lpT.tm_mon + 1;
 }
 
 ULONG recurrence::YearFromTime(time_t t)
 {
 	struct tm lpT;
-	gmtime_safe(&t, &lpT);
-
+	gmtime_safe(t, &lpT);
 	return lpT.tm_year + 1900;
 }
 
 ULONG recurrence::AllMonthsFromTime(time_t t)
 {
 	struct tm lpT;
-	gmtime_safe(&t, &lpT);
-
+	gmtime_safe(t, &lpT);
 	return lpT.tm_mon + (lpT.tm_year + 1900 - 1601) * 12;
 }
 
 ULONG recurrence::WeekDayFromTime(time_t t)
 {
 	struct tm lpT;
-	gmtime_safe(&t, &lpT);
-
+	gmtime_safe(t, &lpT);
 	return lpT.tm_wday;
 }
 
 ULONG recurrence::MonthDayFromTime(time_t t)
 {
 	struct tm lpT;
-	gmtime_safe(&t, &lpT);
-
+	gmtime_safe(t, &lpT);
 	return lpT.tm_mday;
 }
 
@@ -1221,7 +1211,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 			time_t remainder = (tsDayEnd - tsDayStart) % (60 * 1440); // shouldn't this be m_sRecState.ulPeriod * 60? (see above)
 			for (time_t tsNow = tsDayEnd - remainder; tsNow >= tsDayStart; tsNow -= 60 * 1440) { //604800 = 60*60*24*7
 				tm sTm;
-				gmtime_safe(&tsNow, &sTm);
+				gmtime_safe(tsNow, &sTm);
 				if (sTm.tm_wday > 0 && sTm.tm_wday < 6 &&
 				    CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues))
 					break;
@@ -1230,7 +1220,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 		}
 		for (time_t tsNow = tsDayStart ;tsNow <= tsDayEnd; tsNow += 60 * 1440) { //604800 = 60*60*24*7
 			tm sTm;
-			gmtime_safe(&tsNow, &sTm);
+			gmtime_safe(tsNow, &sTm);
 			if (sTm.tm_wday > 0 && sTm.tm_wday < 6)
 				CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
 		}

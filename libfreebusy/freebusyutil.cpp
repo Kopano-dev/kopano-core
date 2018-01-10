@@ -473,10 +473,8 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 
 		if(fbBlk.m_fbstatus == fbStatus || fbStatus == fbKopanoAllBusy)
 		{
-			auto tmUnixStart = RTimeToUnixTime(fbBlk.m_tmStart);
-			auto tmUnixEnd   = RTimeToUnixTime(fbBlk.m_tmEnd);
-			gmtime_safe(&tmUnixStart, &tmStart);
-			gmtime_safe(&tmUnixEnd, &tmEnd);
+			gmtime_safe(RTimeToUnixTime(fbBlk.m_tmStart), &tmStart);
+			gmtime_safe(RTimeToUnixTime(fbBlk.m_tmEnd), &tmEnd);
 			
 			if(tmStart.tm_year > ulLastYear || tmStart.tm_mon > ulLastMonth)
 			{

@@ -120,8 +120,7 @@ static ULONG CreateIntTime(ULONG seconds, ULONG minutes, ULONG hours)
 static ULONG FileTimeToIntDate(const FILETIME &ft)
 {
 	struct tm date;
-	auto t = FileTimeToUnixTime(ft);
-	gmtime_safe(&t, &date);
+	gmtime_safe(FileTimeToUnixTime(ft), &date);
 	return CreateIntDate(date.tm_mday, date.tm_mon+1, date.tm_year+1900);
 }
 
