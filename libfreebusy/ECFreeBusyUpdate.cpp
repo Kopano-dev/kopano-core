@@ -87,8 +87,8 @@ HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
 		}
 	};
 
-	FileTimeToRTime(&ftStart, &rtmStart);
-	FileTimeToRTime(&ftEnd, &rtmEnd);
+	rtmStart = FileTimeToRTime(&ftStart);
+	rtmEnd   = FileTimeToRTime(&ftEnd);
 
 	if(m_lpMessage == NULL)
 	{

@@ -88,8 +88,8 @@ HRESULT ECEnumFBBlock::Restrict(FILETIME ftmStart, FILETIME ftmEnd)
 	LONG rtmStart = 0;
 	LONG rtmEnd = 0;
 
-	FileTimeToRTime(&ftmStart, &rtmStart);
-	FileTimeToRTime(&ftmEnd, &rtmEnd);
+	rtmStart = FileTimeToRTime(&ftmStart);
+	rtmEnd   = FileTimeToRTime(&ftmEnd);
 
 	return m_FBBlock.Restrict(rtmStart, rtmEnd);
 }
