@@ -293,8 +293,6 @@ static HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth,
     LPSPropValue lpEvent, ECFBBlockList *lpfbBlockList)
 {
 	struct tm	tmTmp;
-	LONG		rtmStart;
-	LONG		rtmEnd;
 	FBBlock_1	fbBlock;
 
 	// Check varibales
@@ -318,16 +316,14 @@ static HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth,
 			tmTmp.tm_mday = 1;
 			tmTmp.tm_min = (int)(unsigned short)lpfbEvents[j].rtmStart;
 			tmTmp.tm_isdst = -1;
-			auto tmUnix = timegm(&tmTmp);
-			rtmStart = UnixTimeToRTime(tmUnix);
+			auto rtmStart = UnixTimeToRTime(timegm(&tmTmp));
 			memset(&tmTmp, 0, sizeof(struct tm));
 			tmTmp.tm_year = FB_YEAR(lpMonth->Value.MVl.lpl[i]) - 1900;
 			tmTmp.tm_mon = FB_MONTH(lpMonth->Value.MVl.lpl[i])-1;
 			tmTmp.tm_mday = 1;
 			tmTmp.tm_min = (int)(unsigned short)lpfbEvents[j].rtmEnd;
 			tmTmp.tm_isdst = -1;
-			tmUnix = timegm(&tmTmp);
-			rtmEnd = UnixTimeToRTime(tmUnix);
+			auto rtmEnd = UnixTimeToRTime(timegm(&tmTmp));
 			
 			// Don't reset fbBlock.m_tmEnd
 			auto bMerge = fbBlock.m_tmEnd == rtmStart;

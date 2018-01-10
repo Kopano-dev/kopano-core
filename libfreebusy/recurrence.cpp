@@ -110,11 +110,7 @@ HRESULT recurrence::HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, 
 		// The real start is start + dayskip + weekskip-1 (since dayskip will already bring us into the next week)
 		tStart += dayskip * 24 * 60 * 60 + weekskip * (m_sRecState.ulPeriod - 1) * 7 * 24 * 60 * 60;
 		gmtime_safe(tStart, &tm);
-
-		LONG rStart;
-		rStart = UnixTimeToRTime(tStart);
-		m_sRecState.ulFirstDateTime = rStart % (m_sRecState.ulPeriod*7*24*60);
-
+		m_sRecState.ulFirstDateTime = UnixTimeToRTime(tStart) % (m_sRecState.ulPeriod * 7 * 24 * 60);
 		m_sRecState.ulFirstDateTime -= ((tm.tm_wday-1) * 24 * 60); // php says -1, but it's already 0..6 ... err?
 		break;
 	}
@@ -431,9 +427,7 @@ HRESULT recurrence::setWeekNumber(UCHAR s)
 
 HRESULT recurrence::addDeletedException(time_t tDelete)
 {
-	LONG rtime;
-	rtime = UnixTimeToRTime(StartOfDay(tDelete));
-	m_sRecState.lstDeletedInstanceDates.emplace_back(rtime);
+	m_sRecState.lstDeletedInstanceDates.emplace_back(UnixTimeToRTime(StartOfDay(tDelete)));
 	return hrSuccess;
 }
 
@@ -548,13 +542,8 @@ ULONG recurrence::getModifiedSubType(ULONG id) const
 
 HRESULT recurrence::addModifiedException(time_t tStart, time_t tEnd, time_t tOriginalStart, ULONG *lpid)
 {
-	LONG rStart, rEnd, rOrig, rDayStart;
 	RecurrenceState::Exception sException = {0};
 	RecurrenceState::ExtendedException sExtException = {0};
-
-	rStart = UnixTimeToRTime(tStart);
-	rEnd   = UnixTimeToRTime(tEnd);
-	rOrig  = UnixTimeToRTime(tOriginalStart);
 
 	// this is not thread safe, but since this code is not (yet)
 	// called in a thread unsafe manner I could not care less at
@@ -562,7 +551,7 @@ HRESULT recurrence::addModifiedException(time_t tStart, time_t tEnd, time_t tOri
 	ULONG id = m_sRecState.lstModifiedInstanceDates.size();
 
 	// move is the exception day start
-	rDayStart = UnixTimeToRTime(StartOfDay(tStart));
+	auto rDayStart = UnixTimeToRTime(StartOfDay(tStart));
 	m_sRecState.lstModifiedInstanceDates.emplace_back(rDayStart);
 
 	// every modify is also a delete in the blob
@@ -570,9 +559,9 @@ HRESULT recurrence::addModifiedException(time_t tStart, time_t tEnd, time_t tOri
 	rDayStart = UnixTimeToRTime(StartOfDay(tOriginalStart));
 	m_sRecState.lstDeletedInstanceDates.emplace_back(rDayStart);
 
-	sExtException.ulStartDateTime     = sException.ulStartDateTime     = rStart;
-	sExtException.ulEndDateTime       = sException.ulEndDateTime       = rEnd;
-	sExtException.ulOriginalStartDate = sException.ulOriginalStartDate = rOrig;
+	sExtException.ulStartDateTime     = sException.ulStartDateTime     = UnixTimeToRTime(tStart);
+	sExtException.ulEndDateTime       = sException.ulEndDateTime       = UnixTimeToRTime(tEnd);
+	sExtException.ulOriginalStartDate = sException.ulOriginalStartDate = UnixTimeToRTime(tOriginalStart);
 	sExtException.ulChangeHighlightValue = 0;
 
 	m_sRecState.lstExceptions.emplace_back(std::move(sException));

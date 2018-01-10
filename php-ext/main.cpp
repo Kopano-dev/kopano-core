@@ -6179,9 +6179,6 @@ ZEND_FUNCTION(mapi_freebusydata_setrange)
 	LOG_BEGIN();
 	IFreeBusyData*		lpFBData = NULL;
 	zval*				resFBData = NULL;
-
-	LONG				rtmStart;
-	LONG				rtmEnd;
 	time_t				ulUnixStart = 0;
 	time_t				ulUnixEnd = 0;
 
@@ -6191,11 +6188,7 @@ ZEND_FUNCTION(mapi_freebusydata_setrange)
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll", &resFBData, &ulUnixStart, &ulUnixEnd) == FAILURE) return;
 
 	ZEND_FETCH_RESOURCE_C(lpFBData, IFreeBusyData*, &resFBData, -1, name_fb_data, le_freebusy_data);
-
-	rtmStart = UnixTimeToRTime(ulUnixStart);
-	rtmEnd   = UnixTimeToRTime(ulUnixEnd);
-
-	MAPI_G(hr) = lpFBData->SetFBRange(rtmStart, rtmEnd);
+	MAPI_G(hr) = lpFBData->SetFBRange(UnixTimeToRTime(ulUnixStart), UnixTimeToRTime(ulUnixEnd));
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
