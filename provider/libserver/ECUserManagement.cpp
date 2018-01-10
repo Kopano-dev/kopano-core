@@ -2078,6 +2078,7 @@ ECRESULT ECUserManagement::ConvertExternIDsToLocalIDs(objectdetails_t *lpDetails
 
 		for (const auto &loc_id : mapLocalIDs) {
 			if (loc_id.first.objclass != ACTIVE_USER &&
+			    loc_id.first.objclass != NONACTIVE_USER &&
 			    OBJECTCLASS_TYPE(loc_id.first.objclass) != OBJECTTYPE_DISTLIST)
 				continue;
 			lpDetails->AddPropInt(OB_PROP_LI_SENDAS, loc_id.second);
