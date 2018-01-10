@@ -32,7 +32,7 @@ namespace KC {
 
 class _kc_export recurrence _kc_final {
 public:
-	HRESULT HrLoadRecurrenceState(const char *lpData, unsigned int ulLen, ULONG ulFlags);
+	HRESULT HrLoadRecurrenceState(const char *data, size_t len, ULONG flags) { return m_sRecState.ParseBlob(data, len, flags); }
 	HRESULT HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, void *base = NULL);
 	void HrGetHumanReadableString(std::string *);
 	HRESULT HrGetItems(time_t start, time_t end, const TIMEZONE_STRUCT &ttZinfo, ULONG ulBusyStatus, OccrInfo **lppFbBlock, ULONG *lpcValues, bool last = false);
@@ -41,41 +41,43 @@ public:
 
 	freq_type getFrequency() const;
 	HRESULT setFrequency(freq_type ft);
-	_kc_hidden time_t getStartDate() const;
-	_kc_hidden void setStartDate(time_t);
-	time_t getEndDate() const;
-	void setEndDate(time_t tEnd);
-	ULONG getStartTimeOffset() const;
+	_kc_hidden time_t getStartDate() const { return RTimeToUnixTime(m_sRecState.ulStartDate); }
+	_kc_hidden void setStartDate(time_t t) { m_sRecState.ulStartDate = UnixTimeToRTime(StartOfDay(t)); }
+	_kc_hidden time_t getEndDate() const { return RTimeToUnixTime(m_sRecState.ulEndDate); }
+	_kc_hidden void setEndDate(time_t t) { m_sRecState.ulEndDate = UnixTimeToRTime(StartOfDay(t)); }
+	_kc_hidden ULONG getStartTimeOffset() const { return m_sRecState.ulStartTimeOffset * 60; }
 	_kc_hidden HRESULT setStartTimeOffset(ULONG minutes_since_midnight);
-	_kc_hidden ULONG getEndTimeOffset(void) const;
-	void setEndTimeOffset(ULONG min);
-	time_t getStartDateTime() const;
-	void setStartDateTime(time_t tStart);
-	_kc_hidden time_t getEndDateTime() const;
+	_kc_hidden ULONG getEndTimeOffset(void) const { return m_sRecState.ulEndTimeOffset * 60; }
+	_kc_hidden void setEndTimeOffset(ULONG min) { m_sRecState.ulEndTimeOffset = min; }
+	_kc_hidden time_t getStartDateTime() const { return RTimeToUnixTime(m_sRecState.ulStartDate) + m_sRecState.ulStartTimeOffset * 60; }
+
+	void setStartDateTime(time_t);
+	_kc_hidden time_t getEndDateTime() const { return RTimeToUnixTime(m_sRecState.ulEndDate) + m_sRecState.ulEndTimeOffset * 60; }
 	_kc_hidden void setEndDateTime(time_t);
-	ULONG getCount() const;
-	void setCount(ULONG ulCount);
+	_kc_hidden ULONG getCount() const { return m_sRecState.ulOccurrenceCount; }
+	_kc_hidden void setCount(ULONG n) { m_sRecState.ulOccurrenceCount = n; }
 	term_type getEndType() const;
 	HRESULT setEndType(term_type);
 	ULONG getInterval() const;
 	HRESULT setInterval(ULONG);
 	_kc_hidden ULONG getSlidingFlag() const { return m_sRecState.ulSlidingFlag; }
-	_kc_hidden void setSlidingFlag(ULONG);
-	_kc_hidden ULONG getFirstDOW() const;
-	void setFirstDOW(ULONG);
-	UCHAR getWeekDays() const;
+	_kc_hidden void setSlidingFlag(ULONG s) { m_sRecState.ulSlidingFlag = s; }
+	_kc_hidden ULONG getFirstDOW() const { return m_sRecState.ulFirstDOW; }
+	_kc_hidden void setFirstDOW(ULONG d) { m_sRecState.ulFirstDOW = d; }
+
+	_kc_hidden UCHAR getWeekDays() const { return m_sRecState.ulPatternType == PT_DAY ? 0 : m_sRecState.ulWeekDays; }
 	void setWeekDays(UCHAR);
 	UCHAR getDayOfMonth() const;
-	void setDayOfMonth(UCHAR);
+	_kc_hidden void setDayOfMonth(UCHAR d) { m_sRecState.ulDayOfMonth = d; }
 	UCHAR getMonth() const;
  	HRESULT setMonth(UCHAR);
 	UCHAR getWeekNumber() const; /* 1..4 and 5 (last) */
 	void setWeekNumber(UCHAR);
 
 	/* exception handling */
-	void addDeletedException(time_t);
+	_kc_hidden void addDeletedException(time_t t) { m_sRecState.lstDeletedInstanceDates.emplace_back(UnixTimeToRTime(StartOfDay(t))); }
 	std::list<time_t> getDeletedExceptions() const;
-	ULONG getModifiedCount() const;
+	_kc_hidden ULONG getModifiedCount() const { return m_sRecState.ulModifiedInstanceCount; }
 	ULONG getModifiedFlags(ULONG id) const; /* 0..getModifiedCount() */
 	time_t getModifiedStartDateTime(ULONG id) const;
 	time_t getModifiedEndDateTime(ULONG id) const;
@@ -110,19 +112,19 @@ public:
 	time_t calcStartDate() const;
 	time_t calcEndDate() const;
 	ULONG calcCount() const;
-	_kc_hidden static time_t MonthInSeconds(ULONG year, ULONG month);
+	_kc_hidden static time_t MonthInSeconds(ULONG y, ULONG m) { return DaysInMonth(y, m) * 24 * 60 * 60; }
 	_kc_hidden static time_t MonthsInSeconds(ULONG months);
-	_kc_hidden static time_t Minutes2Time(ULONG);
-	_kc_hidden static ULONG Time2Minutes(time_t);
+	_kc_hidden static time_t Minutes2Time(ULONG m) { return (m - NANOSECS_BETWEEN_EPOCHS / 600000000) * 60; }
+	_kc_hidden static ULONG Time2Minutes(time_t t) { return (t / 60) + (NANOSECS_BETWEEN_EPOCHS / 600000000); }
 	_kc_hidden static ULONG Minutes2Month(ULONG);
 	static time_t StartOfDay(time_t);
 	_kc_hidden static time_t StartOfWeek(time_t);
 	_kc_hidden static time_t StartOfMonth(time_t);
 	_kc_hidden static time_t StartOfYear(time_t);
-	_kc_hidden static bool isLeapYear(ULONG year);
+	_kc_hidden static bool isLeapYear(ULONG y) { return (y % 4 == 0 && y % 100 != 0) || y % 400 == 0; }
 	_kc_hidden static ULONG DaysInMonth(ULONG);
 	_kc_hidden static ULONG DaysInMonth(ULONG, ULONG);
-	_kc_hidden static ULONG DaysInYear(ULONG);
+	_kc_hidden static ULONG DaysInYear(ULONG y) { return isLeapYear(y) ? 366 : 365; }
 	_kc_hidden static ULONG MonthFromTime(time_t);
 	_kc_hidden static ULONG YearFromTime(time_t);
 	_kc_hidden static ULONG AllMonthsFromTime(time_t);

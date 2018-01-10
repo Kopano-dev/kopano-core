@@ -36,19 +36,6 @@
 namespace KC {
 
 /**
- * Load recurrence from blob property data
- *
- * @param[in]	lpData	Data from named property RecurrenceState
- * @param[in]	ulLen	Length of lpData
- * @param[in]	ulFlags	RECURRENCE_STATE_TASKS if the recurrence is from a task
- */
-HRESULT recurrence::HrLoadRecurrenceState(const char *lpData,
-    unsigned int ulLen, ULONG ulFlags)
-{
-	return m_sRecState.ParseBlob(lpData, ulLen, ulFlags);
-}
-
-/**
  * Write the new recurrence blob.
  *
  * @param[out]	lppData	The blob will be returned in this pointer.
@@ -195,31 +182,6 @@ HRESULT recurrence::setFrequency(freq_type ft)
 	return S_OK;
 }
 
-time_t recurrence::getStartDate() const
-{
-	return RTimeToUnixTime(m_sRecState.ulStartDate);
-}
-
-void recurrence::setStartDate(time_t tStart)
-{
-	m_sRecState.ulStartDate = UnixTimeToRTime(StartOfDay(tStart));
-}
-
-time_t recurrence::getEndDate() const
-{
-	return RTimeToUnixTime(m_sRecState.ulEndDate);
-}
-
-void recurrence::setEndDate(time_t tEnd)
-{
-	m_sRecState.ulEndDate = UnixTimeToRTime(StartOfDay(tEnd));
-}
-
-ULONG recurrence::getStartTimeOffset() const
-{
-	return m_sRecState.ulStartTimeOffset*60;
-}
-
 HRESULT recurrence::setStartTimeOffset(ULONG ulMinutesSinceMidnight)
 {
 	if (ulMinutesSinceMidnight >= 24 * 60)
@@ -230,22 +192,6 @@ HRESULT recurrence::setStartTimeOffset(ULONG ulMinutesSinceMidnight)
 	return S_OK;
 }
 
-ULONG recurrence::getEndTimeOffset() const
-{
-	return m_sRecState.ulEndTimeOffset*60;
-}
-
-void recurrence::setEndTimeOffset(ULONG ulMinutesSinceMidnight)
-{
-	m_sRecState.ulEndTimeOffset = ulMinutesSinceMidnight;
-}
-
-time_t recurrence::getStartDateTime() const
-{
-	return RTimeToUnixTime(m_sRecState.ulStartDate) +
-	       m_sRecState.ulStartTimeOffset * 60;
-}
-
 void recurrence::setStartDateTime(time_t t)
 {
 	time_t startDate = StartOfDay(t);
@@ -253,27 +199,11 @@ void recurrence::setStartDateTime(time_t t)
 	m_sRecState.ulStartTimeOffset = (t - startDate)/60;
 }
 
-time_t recurrence::getEndDateTime() const
-{
-	return RTimeToUnixTime(m_sRecState.ulEndDate) +
-	       m_sRecState.ulEndTimeOffset * 60;
-}
-
 void recurrence::setEndDateTime(time_t t)
 {
 	m_sRecState.ulEndDate = UnixTimeToRTime(StartOfDay(t));
 	// end time in minutes since midnight of start of item
 	m_sRecState.ulEndTimeOffset = (t - getStartDate())/60;
-}
-
-ULONG recurrence::getCount() const
-{
-	return m_sRecState.ulOccurrenceCount;
-}
-
-void recurrence::setCount(ULONG ulCount)
-{
-	m_sRecState.ulOccurrenceCount = ulCount;
 }
 
 recurrence::term_type recurrence::getEndType() const
@@ -323,26 +253,6 @@ HRESULT recurrence::setInterval(ULONG i)
 	return S_OK;
 }
 
-void recurrence::setSlidingFlag(ULONG s)
-{
-	m_sRecState.ulSlidingFlag = s;
-}
-
-ULONG recurrence::getFirstDOW() const
-{
-	return m_sRecState.ulFirstDOW;
-}
-
-void recurrence::setFirstDOW(ULONG ulFirstDOW)
-{
-	m_sRecState.ulFirstDOW = ulFirstDOW;
-}
-
-UCHAR recurrence::getWeekDays() const
-{
-	// valid ulPatternTypes: 1 2 4 a c
-	return m_sRecState.ulPatternType == PT_DAY ? 0 : m_sRecState.ulWeekDays;
-}
 
 void recurrence::setWeekDays(UCHAR d)
 {
@@ -363,11 +273,6 @@ UCHAR recurrence::getDayOfMonth() const
 	    m_sRecState.ulPatternType == PT_MONTH_END))
 		return m_sRecState.ulDayOfMonth;
 	return 0;
-}
-
-void recurrence::setDayOfMonth(UCHAR d)
-{
-	m_sRecState.ulDayOfMonth = d;
 }
 
 /**
@@ -412,11 +317,6 @@ void recurrence::setWeekNumber(UCHAR s)
 // handle exceptions
 // ------------
 
-void recurrence::addDeletedException(time_t tDelete)
-{
-	m_sRecState.lstDeletedInstanceDates.emplace_back(UnixTimeToRTime(StartOfDay(tDelete)));
-}
-
 std::list<time_t> recurrence::getDeletedExceptions() const
 {
 	time_t offset = getStartTimeOffset();
@@ -444,11 +344,6 @@ std::list<time_t> recurrence::getModifiedOccurrences() const
 	for (const auto &exc : m_sRecState.lstExceptions)
 		lstModified.emplace_back(RTimeToUnixTime(exc.ulOriginalStartDate));
 	return lstModified;
-}
-
-ULONG recurrence::getModifiedCount() const
-{
-	return m_sRecState.ulModifiedInstanceCount;
 }
 
 ULONG recurrence::getModifiedFlags(ULONG id) const
@@ -996,11 +891,6 @@ ULONG recurrence::calcCount() const
 	return ulCount +1;
 }
 
-time_t recurrence::MonthInSeconds(ULONG year, ULONG month)
-{
-	return DaysInMonth(year, month) * 24 * 60 * 60;
-}
-
 time_t recurrence::MonthsInSeconds(ULONG months)
 {
 	ULONG year = 1601, days = 0;
@@ -1010,16 +900,6 @@ time_t recurrence::MonthsInSeconds(ULONG months)
 			++year;
 	}
 	return days * 24 * 60 * 60;
-}
-
-time_t recurrence::Minutes2Time(ULONG minutes)
-{
-	return (minutes - NANOSECS_BETWEEN_EPOCHS/600000000) * 60;
-}
-
-ULONG recurrence::Time2Minutes(time_t time)
-{
-	return (time / 60) + (NANOSECS_BETWEEN_EPOCHS/600000000);
 }
 
 ULONG recurrence::Minutes2Month(ULONG minutes)
@@ -1053,16 +933,6 @@ time_t recurrence::StartOfYear(time_t t)
 	struct tm sTM;
 	gmtime_safe(t, &sTM);
 	return t - (sTM.tm_yday * 24 * 60 * 60 + sTM.tm_hour * 60 * 60 + sTM.tm_min * 60 + sTM.tm_sec);
-}
-
-bool recurrence::isLeapYear(ULONG year)
-{
-	return ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0);
-}
-
-ULONG recurrence::DaysInYear(ULONG year)
-{
-	return isLeapYear(year) ? 366 : 365;
 }
 
 ULONG recurrence::DaysInMonth(ULONG month)
