@@ -26,7 +26,8 @@
 namespace KC {
 
 // Returns the FILETIME as GM-time
-FILETIME vmimeDatetimeToFiletime(vmime::datetime dt) {
+FILETIME vmimeDatetimeToFiletime(const vmime::datetime &dt)
+{
 	FILETIME sFiletime;
 	struct tm when;
 	int iYear, iMonth, iDay, iHour, iMinute, iSecond, iZone;
@@ -46,7 +47,8 @@ FILETIME vmimeDatetimeToFiletime(vmime::datetime dt) {
 	return sFiletime;
 }
 
-vmime::datetime FiletimeTovmimeDatetime(FILETIME ft) {
+vmime::datetime FiletimeTovmimeDatetime(const FILETIME &ft)
+{
 	struct tm convert;
 	gmtime_safe(FileTimeToUnixTime(ft), &convert);
 	return vmime::datetime(convert.tm_year + 1900, convert.tm_mon + 1, convert.tm_mday, convert.tm_hour, convert.tm_min, convert.tm_sec);

@@ -1081,7 +1081,7 @@ ULONG recurrence::DaysInYear(ULONG year)
 
 ULONG recurrence::DaysInMonth(ULONG month)
 {
-	UCHAR days[13]={0,31,28,31,30,31,30,31,31,30,31,30,31};
+	static const uint8_t days[] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
 
 	if (month>12)
 		return 0;
@@ -1130,8 +1130,8 @@ ULONG recurrence::MonthDayFromTime(time_t t)
 }
 
 bool recurrence::CheckAddValidOccr(time_t tsNow, time_t tsStart, time_t tsEnd,
-    TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfoAll,
-    ULONG *lpcValues)
+    const TIMEZONE_STRUCT &ttZinfo, ULONG ulBusyStatus,
+    OccrInfo **lppOccrInfoAll, ULONG *lpcValues)
 {
 	ec_log_debug("Testing match: %lu ==> %s", tsNow, ctime(&tsNow));
 	if (!isOccurrenceValid(UTCToLocal(tsStart, ttZinfo), UTCToLocal(tsEnd, ttZinfo), tsNow + getStartTimeOffset())) {
@@ -1158,7 +1158,7 @@ bool recurrence::CheckAddValidOccr(time_t tsNow, time_t tsStart, time_t tsEnd,
  * @return		HRESULT
  */
 HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
-    TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfo,
+    const TIMEZONE_STRUCT &ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfo,
     ULONG *lpcValues, bool last)
 {
 	HRESULT hr = 0;

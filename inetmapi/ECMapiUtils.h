@@ -23,8 +23,8 @@
 
 namespace KC {
 
-FILETIME vmimeDatetimeToFiletime(vmime::datetime dt);
-vmime::datetime FiletimeTovmimeDatetime(FILETIME ft);
+extern FILETIME vmimeDatetimeToFiletime(const vmime::datetime &dt);
+extern vmime::datetime FiletimeTovmimeDatetime(const FILETIME &ft);
 const char *ext_to_mime_type(const char *ext, const char *def = "application/octet-stream");
 const char *mime_type_to_ext(const char *mime_type, const char *def = "txt");
 

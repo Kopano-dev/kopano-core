@@ -323,17 +323,17 @@ private:
 	HRESULT HrGetEmailAddress(LPSPropValue props, ULONG addr_type, ULONG eid, ULONG name, ULONG email, std::string header_name, std::string *hdrs);
 
 	// IMAP4rev1 date format: 01-Jan-2000 00:00 +0000
-	std::string FileTimeToString(FILETIME sFiletime);
+	std::string FileTimeToString(const FILETIME &sFiletime);
 	FILETIME StringToFileTime(std::string t, bool date_only = false);
 	// add 24 hour to the time to be able to check if a time is on a date
-	FILETIME AddDay(FILETIME sFileTime);
+	FILETIME AddDay(const FILETIME &sFileTime);
 
 	// Folder names are in a *modified* utf-7 form. See RFC2060, chapter 5.1.3
 	HRESULT MAPI2IMAPCharset(const std::wstring &input, std::string &output);
 	HRESULT IMAP2MAPICharset(const std::string &input, std::wstring &output);
 	
 	// Match a folder path
-	bool MatchFolderPath(std::wstring folder, const std::wstring &pattern);
+	bool MatchFolderPath(const std::wstring &folder, const std::wstring &pattern);
 
 	// Various conversion functions
 	std::string PropsToFlags(LPSPropValue props, unsigned int nprops, bool recent, bool read);

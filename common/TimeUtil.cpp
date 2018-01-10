@@ -59,7 +59,7 @@ static time_t getDateByYearMonthWeekDayHour(WORD year, WORD month, WORD week,
 	return date;
 }
 
-static LONG getTZOffset(time_t date, TIMEZONE_STRUCT sTimeZone)
+static LONG getTZOffset(time_t date, const TIMEZONE_STRUCT &sTimeZone)
 {
 	struct tm tm;
 	time_t dststart, dstend;
@@ -85,12 +85,12 @@ static LONG getTZOffset(time_t date, TIMEZONE_STRUCT sTimeZone)
 	return -(sTimeZone.lBias + sTimeZone.lStdBias) * 60;
 }
 
-time_t UTCToLocal(time_t utc, TIMEZONE_STRUCT sTimeZone)
+time_t UTCToLocal(time_t utc, const TIMEZONE_STRUCT &sTimeZone)
 {
 	return utc + getTZOffset(utc, sTimeZone);
 }
 
-time_t LocalToUTC(time_t local, TIMEZONE_STRUCT sTimeZone)
+time_t LocalToUTC(time_t local, const TIMEZONE_STRUCT &sTimeZone)
 {
 	return local - getTZOffset(local, sTimeZone);
 }

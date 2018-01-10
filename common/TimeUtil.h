@@ -38,8 +38,8 @@ struct TIMEZONE_STRUCT {
 	SYSTEMTIME stDstDate;		/* 3->2, dus 2 in wHour */
 };
 
-extern _kc_export time_t LocalToUTC(time_t local, TIMEZONE_STRUCT);
-extern _kc_export time_t UTCToLocal(time_t utc, TIMEZONE_STRUCT);
+extern _kc_export time_t LocalToUTC(time_t local, const TIMEZONE_STRUCT &);
+extern _kc_export time_t UTCToLocal(time_t utc, const TIMEZONE_STRUCT &);
 
 } /* namespace */
 

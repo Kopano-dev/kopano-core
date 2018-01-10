@@ -36,7 +36,7 @@ public:
 	HRESULT HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, void *base = NULL);
 
 	HRESULT HrGetHumanReadableString(std::string *lpstrHRS);
-	HRESULT HrGetItems(time_t start, time_t end, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppFbBlock, ULONG *lpcValues, bool last = false);
+	HRESULT HrGetItems(time_t start, time_t end, const TIMEZONE_STRUCT &ttZinfo, ULONG ulBusyStatus, OccrInfo **lppFbBlock, ULONG *lpcValues, bool last = false);
 	enum freq_type { DAILY, WEEKLY, MONTHLY, YEARLY };
 	enum term_type { DATE, NUMBER, NEVER };
 
@@ -138,7 +138,7 @@ private:
 	std::vector<std::wstring> vExceptionsLocation;
 
 	_kc_hidden ULONG calcBits(ULONG x) const;
-	_kc_hidden bool CheckAddValidOccr(time_t now, time_t start, time_t end, TIMEZONE_STRUCT, ULONG busy_status, OccrInfo **occrinfoall, ULONG *nvals);
+	_kc_hidden bool CheckAddValidOccr(time_t now, time_t start, time_t end, const TIMEZONE_STRUCT &, ULONG busy_status, OccrInfo **occrinfoall, ULONG *nvals);
 };
 
 } /* namespace */
