@@ -81,14 +81,11 @@ static FILETIME RTimeToFileTime(LONG rtime)
 	return {static_cast<DWORD>(q & 0xFFFFFFFF), static_cast<DWORD>(q >> 32)};
 }
  
-LONG FileTimeToRTime(const FILETIME *pft)
+LONG FileTimeToRTime(const FILETIME &pft)
 {
-	// assert(pft != NULL);
-	// assert(prtime != NULL);
-	ULONGLONG q = pft->dwHighDateTime;
+	ULONGLONG q = pft.dwHighDateTime;
 	q <<= 32;
-	q |= pft->dwLowDateTime;
-
+	q |= pft.dwLowDateTime;
 	q += UnitsPerHalfMinute;
 	q /= UnitsPerMinute;
 	return q & 0x7FFFFFFF;
@@ -103,7 +100,7 @@ LONG UnixTimeToRTime(time_t unixtime)
 {
 	FILETIME ft;
 	UnixTimeToFileTime(unixtime, &ft);
-	return FileTimeToRTime(&ft);
+	return FileTimeToRTime(ft);
 }
 
 /* The 'IntDate' and 'IntTime' date and time encoding are used for some CDO calculations. They

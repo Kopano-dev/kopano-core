@@ -275,9 +275,9 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 				OccrInfo sOccrBlock;
 
 				if (lpRowSet[i].lpProps[0].ulPropTag == PROP_APPT_STARTWHOLE)
-					sOccrBlock.fbBlock.m_tmStart = FileTimeToRTime(&lpRowSet[i].lpProps[0].Value.ft);
+					sOccrBlock.fbBlock.m_tmStart = FileTimeToRTime(lpRowSet[i].lpProps[0].Value.ft);
 				if (lpRowSet[i].lpProps[1].ulPropTag == PROP_APPT_ENDWHOLE) {
-					sOccrBlock.fbBlock.m_tmEnd = FileTimeToRTime(&lpRowSet[i].lpProps[1].Value.ft);
+					sOccrBlock.fbBlock.m_tmEnd = FileTimeToRTime(lpRowSet[i].lpProps[1].Value.ft);
 					sOccrBlock.tBaseDate = FileTimeToUnixTime(lpRowSet[i].lpProps[1].Value.ft);
 				}
 				if (lpRowSet[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)

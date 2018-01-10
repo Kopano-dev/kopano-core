@@ -49,7 +49,7 @@ typedef int gsoap_size_t;
 extern _kc_export HRESULT UnixTimeToFileTime(time_t, FILETIME *);
 extern _kc_export time_t FileTimeToUnixTime(const FILETIME &);
 extern _kc_export void UnixTimeToFileTime(time_t, int *hi, unsigned int *lo);
-extern _kc_export LONG FileTimeToRTime(const FILETIME *);
+extern _kc_export LONG FileTimeToRTime(const FILETIME &);
 extern _kc_export LONG UnixTimeToRTime(time_t);
 extern _kc_export time_t RTimeToUnixTime(LONG rtime);
 extern _kc_export struct tm *gmtime_safe(time_t, struct tm *);

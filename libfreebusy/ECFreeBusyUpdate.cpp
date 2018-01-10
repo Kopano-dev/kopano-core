@@ -83,8 +83,8 @@ HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
 			PR_FREEBUSY_TENTATIVE_MONTHS
 		}
 	};
-	auto rtmStart = FileTimeToRTime(&ftStart);
-	auto rtmEnd   = FileTimeToRTime(&ftEnd);
+	auto rtmStart = FileTimeToRTime(ftStart);
+	auto rtmEnd   = FileTimeToRTime(ftEnd);
 
 	if(m_lpMessage == NULL)
 	{
