@@ -203,9 +203,7 @@ HRESULT recurrence::setFrequency(freq_type ft)
 
 time_t recurrence::getStartDate() const
 {
-	time_t tStart = 0;
-	tStart = RTimeToUnixTime(m_sRecState.ulStartDate);
-	return tStart;
+	return RTimeToUnixTime(m_sRecState.ulStartDate);
 }
 
 HRESULT recurrence::setStartDate(time_t tStart)
@@ -216,9 +214,7 @@ HRESULT recurrence::setStartDate(time_t tStart)
 
 time_t recurrence::getEndDate() const
 {
-	time_t tEnd;
-	tEnd = RTimeToUnixTime(m_sRecState.ulEndDate);
-	return tEnd;
+	return RTimeToUnixTime(m_sRecState.ulEndDate);
 }
 
 HRESULT recurrence::setEndDate(time_t tEnd)
@@ -256,10 +252,8 @@ HRESULT recurrence::setEndTimeOffset(ULONG ulMinutesSinceMidnight)
 
 time_t recurrence::getStartDateTime() const
 {
-	time_t tStart;
-
-	tStart = RTimeToUnixTime(m_sRecState.ulStartDate);
-	return tStart + (m_sRecState.ulStartTimeOffset*60);
+	return RTimeToUnixTime(m_sRecState.ulStartDate) +
+	       m_sRecState.ulStartTimeOffset * 60;
 }
 
 HRESULT recurrence::setStartDateTime(time_t t)
@@ -273,10 +267,8 @@ HRESULT recurrence::setStartDateTime(time_t t)
 
 time_t recurrence::getEndDateTime() const
 {
-	time_t tStart;
-
-	tStart = RTimeToUnixTime(m_sRecState.ulEndDate);
-	return tStart + (m_sRecState.ulEndTimeOffset*60);
+	return RTimeToUnixTime(m_sRecState.ulEndDate) +
+	       m_sRecState.ulEndTimeOffset * 60;
 }
 
 HRESULT recurrence::setEndDateTime(time_t t)
@@ -452,7 +444,7 @@ HRESULT recurrence::addDeletedException(time_t tDelete)
 
 std::list<time_t> recurrence::getDeletedExceptions() const
 {
-	time_t tDayDelete, offset = getStartTimeOffset();
+	time_t offset = getStartTimeOffset();
 	std::list<time_t> lstDeletes;
 	// make copy of struct info
 	auto lstDeletedInstanceDates = m_sRecState.lstDeletedInstanceDates;
@@ -465,24 +457,17 @@ std::list<time_t> recurrence::getDeletedExceptions() const
 		if (d != lstDeletedInstanceDates.end())
 			lstDeletedInstanceDates.erase(d);
 	}
-	for (const auto &d : lstDeletedInstanceDates) {
-		tDayDelete = RTimeToUnixTime(d);
-		lstDeletes.emplace_back(tDayDelete + offset);
-	}
-
+	for (const auto &d : lstDeletedInstanceDates)
+		lstDeletes.emplace_back(RTimeToUnixTime(d) + offset);
 	return lstDeletes;
 }
 
 std::list<time_t> recurrence::getModifiedOccurrences() const
 {
-	time_t tDayModified;
 	std::list<time_t> lstModified;
 
-	for (const auto &exc : m_sRecState.lstExceptions) {
-		tDayModified = RTimeToUnixTime(exc.ulOriginalStartDate);
-		lstModified.emplace_back(tDayModified);
-	}
-
+	for (const auto &exc : m_sRecState.lstExceptions)
+		lstModified.emplace_back(RTimeToUnixTime(exc.ulOriginalStartDate));
 	return lstModified;
 }
 
@@ -499,35 +484,23 @@ ULONG recurrence::getModifiedFlags(ULONG id) const
 
 time_t recurrence::getModifiedStartDateTime(ULONG id) const
 {
-	time_t tDayModified = 0;
-
 	if (id >= m_sRecState.ulModifiedInstanceCount)
 		return 0;
-	
-	tDayModified = RTimeToUnixTime(m_sRecState.lstExceptions[id].ulStartDateTime);
-	return tDayModified;
+	return RTimeToUnixTime(m_sRecState.lstExceptions[id].ulStartDateTime);
 }
 
 time_t recurrence::getModifiedEndDateTime(ULONG id) const
 {
-	time_t tDayModified = 0;
-
 	if (id >= m_sRecState.ulModifiedInstanceCount)
 		return 0;
-	
-	tDayModified = RTimeToUnixTime(m_sRecState.lstExceptions[id].ulEndDateTime);
-	return tDayModified;
+	return RTimeToUnixTime(m_sRecState.lstExceptions[id].ulEndDateTime);
 }
 
 time_t recurrence::getModifiedOriginalDateTime(ULONG id) const
 {
-	time_t tDayModified = 0;
-
 	if (id >= m_sRecState.ulModifiedInstanceCount)
 		return 0;
-	
-	tDayModified = RTimeToUnixTime(m_sRecState.lstExceptions[id].ulOriginalStartDate);
-	return tDayModified;
+	return RTimeToUnixTime(m_sRecState.lstExceptions[id].ulOriginalStartDate);
 }
 
 std::wstring recurrence::getModifiedSubject(ULONG id) const
@@ -1403,8 +1376,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 
 		lpException = lstExceptions.back();
 		// APPT_STARTWHOLE
-		time_t tsOccStart, tsOccEnd;
-		tsOccStart = RTimeToUnixTime(lpException.ulStartDateTime); /* tsOccStart is localtime */
+		auto tsOccStart = RTimeToUnixTime(lpException.ulStartDateTime); /* tsOccStart is localtime */
 		tsOccStart = LocalToUTC(tsOccStart, ttZinfo);
 		if(tsOccStart > tsEnd) {									// tsStart, tsEnd == gmtime
 			ec_log_debug("Skipping exception start match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
@@ -1413,7 +1385,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 		UnixTimeToRTime(tsOccStart, &sOccrInfo.fbBlock.m_tmStart);	// gmtime in rtime, is this correct?
 
 		// APPT_ENDWHOLE
-		tsOccEnd = RTimeToUnixTime(lpException.ulEndDateTime);
+		auto tsOccEnd = RTimeToUnixTime(lpException.ulEndDateTime);
 		tsOccEnd = LocalToUTC(tsOccEnd, ttZinfo);
 		if(tsOccEnd < tsStart) {
 			ec_log_debug("Skipping exception end match: %lu ==> %s", tsOccEnd, ctime(&tsOccEnd));

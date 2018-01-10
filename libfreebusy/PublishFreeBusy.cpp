@@ -337,8 +337,6 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 	std::map<time_t , TSARRAY> mpTimestamps;
 	std::vector <ULONG> vctStatus;
 	std::vector <FBBlock_1> vcFBblocks;
-	time_t tTemp = 0;
-
 	ec_log_debug("Input blocks %ul", cValues);
 
 	auto lpFbBlocks = *lppfbBlocks;
@@ -346,7 +344,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 		sTsitem.ulType = START_TIME;
 		sTsitem.ulStatus = lpFbBlocks[i].m_fbstatus;
 		sTsitem.tsTime = lpFbBlocks[i].m_tmStart;
-		tTemp = RTimeToUnixTime(sTsitem.tsTime);
+		auto tTemp = RTimeToUnixTime(sTsitem.tsTime);
 		// @note ctime adds \n character
 		ec_log_debug("Blocks start %s", ctime(&tTemp));
 

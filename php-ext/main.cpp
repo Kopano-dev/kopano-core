@@ -6155,8 +6155,6 @@ ZEND_FUNCTION(mapi_freebusydata_getpublishrange)
 
 	LONG				rtmStart;
 	LONG				rtmEnd;
-	time_t				ulUnixStart = 0;
-	time_t				ulUnixEnd = 0;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -6168,12 +6166,9 @@ ZEND_FUNCTION(mapi_freebusydata_getpublishrange)
 	MAPI_G(hr) = lpFBData->GetFBPublishRange(&rtmStart, &rtmEnd);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
-	ulUnixStart = RTimeToUnixTime(rtmStart);
-	ulUnixEnd   = RTimeToUnixTime(rtmEnd);
 	array_init(return_value);
-	add_assoc_long(return_value, "start", ulUnixStart);
-	add_assoc_long(return_value, "end", ulUnixEnd);
-
+	add_assoc_long(return_value, "start", RTimeToUnixTime(rtmStart));
+	add_assoc_long(return_value, "end", RTimeToUnixTime(rtmEnd));
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -6246,8 +6241,6 @@ ZEND_FUNCTION(mapi_freebusyenumblock_next)
 	LONG				cFetch = 0;
 	LONG				i;
 	memory_ptr<FBBlock_1> lpBlk;
-	time_t				ulUnixStart = 0;
-	time_t				ulUnixEnd = 0;
 	zval				*zval_data_value  = NULL;
 
 	RETVAL_FALSE;
@@ -6270,10 +6263,8 @@ ZEND_FUNCTION(mapi_freebusyenumblock_next)
 	for (i = 0; i < cFetch; ++i) {
 		MAKE_STD_ZVAL(zval_data_value);
 		array_init(zval_data_value);
-		ulUnixStart = RTimeToUnixTime(lpBlk[i].m_tmStart);
-		ulUnixEnd   = RTimeToUnixTime(lpBlk[i].m_tmEnd);
-		add_assoc_long(zval_data_value, "start", ulUnixStart);
-		add_assoc_long(zval_data_value, "end", ulUnixEnd);
+		add_assoc_long(zval_data_value, "start", RTimeToUnixTime(lpBlk[i].m_tmStart));
+		add_assoc_long(zval_data_value, "end", RTimeToUnixTime(lpBlk[i].m_tmEnd));
 		add_assoc_long(zval_data_value, "status", (LONG)lpBlk[i].m_fbstatus);
 
 		add_next_index_zval(return_value, zval_data_value);
