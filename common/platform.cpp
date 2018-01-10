@@ -75,13 +75,10 @@ void UnixTimeToFileTime(time_t t, int *hi, unsigned int *lo)
 static const LONGLONG UnitsPerMinute = 600000000;
 static const LONGLONG UnitsPerHalfMinute = 300000000;
 
-void RTimeToFileTime(LONG rtime, FILETIME *pft)
+static FILETIME RTimeToFileTime(LONG rtime)
 {
-	// assert(pft != NULL);
-	ULONGLONG q = rtime;
-	q *= UnitsPerMinute;
-	pft->dwLowDateTime  = q & 0xFFFFFFFF;
-	pft->dwHighDateTime = q >> 32;
+	auto q = static_cast<ULONGLONG>(rtime) * UnitsPerMinute;
+	return {static_cast<DWORD>(q & 0xFFFFFFFF), static_cast<DWORD>(q >> 32)};
 }
  
 LONG FileTimeToRTime(const FILETIME *pft)
@@ -99,9 +96,7 @@ LONG FileTimeToRTime(const FILETIME *pft)
 
 time_t RTimeToUnixTime(LONG rtime)
 {
-	FILETIME ft;
-	RTimeToFileTime(rtime, &ft);
-	return FileTimeToUnixTime(ft);
+	return FileTimeToUnixTime(RTimeToFileTime(rtime));
 }
 
 LONG UnixTimeToRTime(time_t unixtime)
