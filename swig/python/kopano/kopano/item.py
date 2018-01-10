@@ -64,10 +64,10 @@ from MAPI.Tags import (
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
 
 from .compat import (
-    hex as _hex, unhex as _unhex, is_str as _is_str, repr as _repr,
+    unhex as _unhex, is_str as _is_str, repr as _repr,
     pickle_load as _pickle_load, pickle_loads as _pickle_loads,
     fake_unicode as _unicode, is_file as _is_file,
-    encode as _encode, benc as _benc,
+    encode as _encode, benc as _benc, bdec as _bdec,
 )
 
 from .defs import (
@@ -406,7 +406,7 @@ class Item(Properties, Contact, Appointment):
         if self._folder:
             return self._folder
         try:
-            return _folder.Folder(self.store, _hex(HrGetOneProp(self.mapiobj, PR_PARENT_ENTRYID).Value))
+            return _folder.Folder(self.store, _benc(HrGetOneProp(self.mapiobj, PR_PARENT_ENTRYID).Value))
         except (MAPIErrorNotFound, NotFoundError):
             pass
 
@@ -508,7 +508,7 @@ class Item(Properties, Contact, Appointment):
 
     @property
     def has_attachments(self):
-        return self[PR_HASATTACH]
+        return self.get(PR_HASATTACH, False)
 
     def header(self, name):
         """ Return transport message header with given name """
@@ -656,7 +656,7 @@ class Item(Properties, Contact, Appointment):
         props = []
 
         if copy_to_sentmail:
-            props.append(SPropValue(PR_SENTMAIL_ENTRYID, _unhex(item.folder.store.sentmail.entryid)))
+            props.append(SPropValue(PR_SENTMAIL_ENTRYID, _bdec(item.folder.store.sentmail.entryid)))
         props.append(SPropValue(PR_DELETE_AFTER_SUBMIT, True))
         item.mapiobj.SetProps(props)
         item.mapiobj.SubmitMessage(0)
@@ -778,7 +778,7 @@ class Item(Properties, Contact, Appointment):
             pr_addrtype = 'ZARAFA'
             pr_dispname = addr.name
             pr_email = addr.email
-            pr_entryid = _unhex(addr.userid)
+            pr_entryid = _bdec(addr.userid)
         elif isinstance(addr, Address):
             pr_addrtype = addr.addrtype
             pr_dispname = addr.name
@@ -1046,7 +1046,7 @@ class Item(Properties, Contact, Appointment):
         entryid = HrGetOneProp(self.mapiobj, PROP_REF_ITEM_ENTRYID).Value
 
         try:
-            return self.folder.primary_store.item(entryid=_hex(entryid))
+            return self.folder.primary_store.item(entryid=_benc(entryid))
         except NotFoundError:
             pass
 
@@ -1100,6 +1100,7 @@ class Item(Properties, Contact, Appointment):
 
         mapiobj = folder.mapiobj.CreateMessage(None, 0)
         self.mapiobj.CopyTo([], [], 0, None, IID_IMessage, mapiobj, 0)
+        mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
         if _delete:
             self.folder.delete(self)
         item = Item(mapiobj=mapiobj)

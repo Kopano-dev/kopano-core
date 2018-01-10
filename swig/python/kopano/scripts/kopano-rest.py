@@ -14,14 +14,19 @@ import kopano
 kopano.set_bin_encoding('base64')
 
 TOP = 10
+PREFIX = '/api/gc/v0'
 
 # TODO /me/messages does not return _all_ messages in store
 # TODO pagination for non-messages
 # TODO check https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters
-# TODO post, put, delete
+# TODO post, put, delete (all resource types)
 # TODO copy/move/send actions
 # TODO unicode/encoding checks
 # TODO efficient attachment streaming
+# TODO be able to use special folder names (eg copy/move)
+# TODO bulk copy/move/delete?
+# TODO childFolders recursion & (custom?) falcon routing
+# TODO Field class
 
 def _server(req):
     userid = USERID or req.get_header('X-Kopano-UserEntryID', required=True)
@@ -46,7 +51,7 @@ def _store(server, userid):
 
 class Resource(object):
     def get_fields(self, obj, fields, all_fields):
-        return {f: all_fields[f](obj) for f in fields}
+        return {f: all_fields[f](obj) for f in fields if f in all_fields}
 
     def json(self, obj, fields, all_fields):
         return json.dumps(self.get_fields(obj, fields, all_fields),
@@ -95,6 +100,16 @@ class Resource(object):
 
         return (generator(page_start=skip, page_limit=top, order=order), top, skip, count)
 
+    def create_message(self, folder, fields, all_fields=None):
+        # TODO only save in the end
+
+        item = folder.create_item()
+        for field, value in fields.items():
+            if field in (all_fields or self.set_fields):
+                (all_fields or self.set_fields)[field](item, value)
+
+        return item
+
 class UserResource(Resource):
     fields = {
         'id': lambda user: user.userid,
@@ -111,8 +126,17 @@ class UserResource(Resource):
         if userid:
             data = server.user(userid=userid)
         else:
-            data = server.users()
+            data = self.generator(req, server.users)
+
         self.respond(req, resp, data)
+
+    def on_post(self, req, resp, userid=None, method=None):
+        server = _server(req)
+        store = _store(server, userid)
+
+        fields = json.loads(req.stream.read())['message']
+        self.create_message(store.outbox, fields, MessageResource.set_fields).send()
+        # TODO save in sent items?
 
 class FolderResource(Resource):
     fields = {
@@ -130,42 +154,9 @@ class FolderResource(Resource):
         if folderid:
             data = store.folder(entryid=folderid)
         else:
-            data = self.generator(req, store.folders)
+            data = self.generator(req, store.folders, store.subtree.subfolder_count_recursive)
 
         self.respond(req, resp, data)
-
-    def on_post(self, req, resp, userid=None, folderid=None):
-        server = _server(req)
-        store = _store(server, userid)
-        folder = store.folder(entryid=folderid)
-
-        fields = json.loads(req.stream.read())
-        item = folder.create_item(**fields) # TODO conversion
-
-        resp.status = falcon.HTTP_201
-        resp.location = req.path+'/items/'+item.entryid
-
-    def on_put(self, req, resp, userid=None, folderid=None):
-        server = _server(req)
-        store = _store(server, userid)
-        folder = store.folder(entryid=folderid)
-
-        data = json.loads(req.stream.read())
-        if 'action' in data:
-            action = data['action']
-            items = [store.item(entryid=entryid) for entryid in data['items']]
-
-            if action == 'send':
-                for item in items:
-                    item.send()
-            elif action == 'delete':
-                folder.delete(items)
-            elif action == 'copy':
-                target = store.folder(entryid=data['target'])
-                folder.copy(items, target)
-            elif action == 'move':
-                target = store.folder(entryid=data['target'])
-                folder.move(items, target)
 
     def on_delete(self, req, resp, userid=None, folderid=None):
         server = _server(req)
@@ -180,16 +171,14 @@ class CalendarResource(Resource): # TODO merge with FolderResource?
         'displayName': lambda folder: folder.name,
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None):
+    def on_get(self, req, resp, userid=None, folderid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
 
         path = req.path
-        method = None
         fields = None
 
-        if path.split('/')[-1] == 'calendarView':
-            method = 'calendarView'
+        if method:
             path = '/'.join(path.split('/')[:-1])
 
         if path.split('/')[-1] == 'calendars':
@@ -211,6 +200,15 @@ class CalendarResource(Resource): # TODO merge with FolderResource?
 
         self.respond(req, resp, data, fields)
 
+def set_body(item, arg):
+    if arg['contentType'] == 'text':
+        item.text = arg['content']
+    elif arg['contentType'] == 'html':
+        item.html = arg['content']
+
+def set_torecipients(item, arg):
+    item.to = ';'.join('%s <%s>' % (a['name'], a['address']) for a in arg)
+
 class MessageResource(Resource):
     fields = {
         '@odata.etag': lambda item: 'W/"'+item.changekey+'"',
@@ -223,12 +221,18 @@ class MessageResource(Resource):
         'from': lambda item: {'emailAddress': {'name': item.sender.name, 'address': item.sender.email} },
         'toRecipients': lambda item: [{'emailAddress': {'name': to.name, 'address': to.email}} for to in item.to],
         'lastModifiedDateTime': lambda item: item.last_modified.isoformat(),
-        'sentDateTime': lambda item: item.sent.isoformat(),
-        'receivedDateTime': lambda item: item.received.isoformat(),
+        'sentDateTime': lambda item: item.sent.isoformat() if item.sent else None,
+        'receivedDateTime': lambda item: item.received.isoformat() if item.received else None,
         'hasAttachments': lambda item: item.has_attachments,
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, messageid=None):
+    set_fields = {
+        'subject': lambda item, arg: setattr(item, 'subject', arg),
+        'body': set_body,
+        'toRecipients': set_torecipients,
+    }
+
+    def on_get(self, req, resp, userid=None, folderid=None, messageid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
 
@@ -242,7 +246,31 @@ class MessageResource(Resource):
         else:
             data = self.generator(req, folder.items, folder.count)
 
+        if method:
+            body = json.loads(req.stream.read())
+            folder = store.folder(entryid=body['destinationId'].encode('ascii')) # TODO ascii?
+            item = data
+
+            if method == 'copy':
+                data = item.copy(folder)
+            elif method == 'move':
+                data = item.move(folder)
+
         self.respond(req, resp, data)
+
+    def on_post(self, req, resp, userid=None, folderid=None):
+        server = _server(req)
+        store = _store(server, userid)
+
+        if folderid:
+            folder = store.folder(entryid=folderid)
+        else:
+            folder = store.inbox # TODO messages from all folders?
+
+        fields = json.loads(req.stream.read())
+        item = self.create_message(folder, fields)
+
+        self.respond(req, resp, item)
 
     def on_delete(self, req, resp, userid=None, folderid=None, messageid=None):
         server = _server(req)
@@ -258,16 +286,21 @@ class AttachmentResource(Resource):
         'contentBytes': lambda attachment: base64.urlsafe_b64encode(attachment.data),
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, messageid=None, attachmentid=None):
+    def on_get(self, req, resp, userid=None, folderid=None, messageid=None, eventid=None, attachmentid=None):
         server = _server(req)
         store = _store(server, userid)
 
         if folderid:
             folder = store.folder(entryid=folderid)
+        elif eventid:
+            folder = store.calendar
         else:
             folder = store.inbox # TODO messages from all folders?
 
-        item = folder.item(messageid)
+        if eventid:
+            item = folder.item(eventid)
+        else:
+            item = folder.item(messageid)
 
         if attachmentid:
             data = item.attachment(attachmentid)
@@ -275,6 +308,15 @@ class AttachmentResource(Resource):
             data = self.generator(req, item.attachments)
 
         self.respond(req, resp, data)
+
+    def on_delete(self, req, resp, userid=None, folderid=None, messageid=None, eventid=None, attachmentid=None):
+        server = _server(req)
+        store = _store(server, userid)
+
+        item = store.item(messageid or eventid)
+        attachment = item.attachment(attachmentid)
+
+        item.delete(attachment)
 
 def recurrence_json(item):
     if isinstance(item, kopano.Item) and item.recurring:
@@ -301,7 +343,7 @@ class EventResource(Resource):
         'end': lambda item: {'dateTime': item.end.isoformat(), 'timeZone': 'UTC'},
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, messageid=None):
+    def on_get(self, req, resp, userid=None, folderid=None, eventid=None):
         server = _server(req)
         store = _store(server, userid)
 
@@ -310,8 +352,8 @@ class EventResource(Resource):
         else:
             folder = store.calendar
 
-        if messageid:
-            data = folder.item(messageid)
+        if eventid:
+            data = folder.item(eventid)
         else:
             data = self.generator(req, folder.items, folder.count)
 
@@ -329,30 +371,48 @@ calendars = CalendarResource()
 events = EventResource()
 
 app = falcon.API()
-app.add_route('/me', users)
-app.add_route('/users', users)
-app.add_route('/users/{userid}', users)
 
-for user in ('/me', '/users/{userid}'):
+# users
+app.add_route(PREFIX+'/me', users)
+app.add_route(PREFIX+'/me/{method}', users)
+app.add_route(PREFIX+'/users', users)
+app.add_route(PREFIX+'/users/{userid}', users)
+app.add_route(PREFIX+'/users/{userid}/{method}', users)
+
+for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
+    # folders
     app.add_route(user+'/mailFolders', folders)
     app.add_route(user+'/mailFolders/{folderid}', folders)
 
+    # messages
     app.add_route(user+'/messages', messages)
     app.add_route(user+'/messages/{messageid}', messages)
+    app.add_route(user+'/messages/{messageid}/{method}', messages)
     app.add_route(user+'/mailFolders/{folderid}/messages', messages)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}', messages)
+    app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/{method}', messages)
 
+    # calendars
+    app.add_route(user+'/calendar', calendars)
+    app.add_route(user+'/calendar/{method}', calendars)
+    app.add_route(user+'/calendars', calendars)
+    app.add_route(user+'/calendars/{folderid}', calendars)
+    app.add_route(user+'/calendars/{folderid}/{method}', calendars)
+
+    # events
+    app.add_route(user+'/events', events)
+    app.add_route(user+'/events/{eventid}', events)
+    app.add_route(user+'/calendar/events', events)
+    app.add_route(user+'/calendar/events/{eventid}', events)
+    app.add_route(user+'/calendars/{folderid}/events', events)
+    app.add_route(user+'/calendars/{folderid}/events/{eventid}', events)
+
+    # attachments
     app.add_route(user+'/messages/{messageid}/attachments', attachments)
     app.add_route(user+'/messages/{messageid}/attachments/{attachmentid}', attachments)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments', attachments)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments/{attachmentid}', attachments)
 
-    app.add_route(user+'/calendar', calendars)
-    app.add_route(user+'/calendars', calendars)
-    app.add_route(user+'/calendars/{folderid}', calendars)
-    app.add_route(user+'/calendar/calendarView', calendars)
-    app.add_route(user+'/calendars/{folderid}/calendarView', calendars)
-
-    app.add_route(user+'/events', events)
-    app.add_route(user+'/calendar/events', events)
-    app.add_route(user+'/calendars/{folderid}/events', events)
+    # TODO via calendar(s)
+    app.add_route(user+'/events/{eventid}/attachments', attachments)
+    app.add_route(user+'/events/{eventid}/attachments/{attachmentid}', attachments)

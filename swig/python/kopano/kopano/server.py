@@ -340,7 +340,9 @@ class Server(object):
         except NotFoundError:
             pass
 
-    def users(self, remote=False, system=False, parse=True):
+    def users(self, remote=False, system=False, parse=True, page_start=None,
+            page_limit=None, order=None
+        ):
         """Return all :class:`users <User>` on server.
 
         :param remote: include users on remote server nodes
