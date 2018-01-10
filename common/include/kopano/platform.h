@@ -52,7 +52,7 @@ extern _kc_export void UnixTimeToFileTime(time_t, int *hi, unsigned int *lo);
 void	RTimeToFileTime(LONG rtime, FILETIME *pft);
 extern _kc_export void FileTimeToRTime(const FILETIME *, LONG *rtime);
 extern _kc_export HRESULT UnixTimeToRTime(time_t unixtime, LONG *rtime);
-extern _kc_export HRESULT RTimeToUnixTime(LONG rtime, time_t *unixtime);
+extern _kc_export time_t RTimeToUnixTime(LONG rtime);
 extern _kc_export struct tm *gmtime_safe(const time_t *timer, struct tm *result);
 extern _kc_export double timespec2dbl(const struct timespec &);
 extern bool operator==(const FILETIME &, const FILETIME &) noexcept;

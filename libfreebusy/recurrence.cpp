@@ -204,7 +204,7 @@ HRESULT recurrence::setFrequency(freq_type ft)
 time_t recurrence::getStartDate() const
 {
 	time_t tStart = 0;
-	RTimeToUnixTime(m_sRecState.ulStartDate, &tStart);
+	tStart = RTimeToUnixTime(m_sRecState.ulStartDate);
 	return tStart;
 }
 
@@ -217,7 +217,7 @@ HRESULT recurrence::setStartDate(time_t tStart)
 time_t recurrence::getEndDate() const
 {
 	time_t tEnd;
-	RTimeToUnixTime(m_sRecState.ulEndDate, &tEnd);
+	tEnd = RTimeToUnixTime(m_sRecState.ulEndDate);
 	return tEnd;
 }
 
@@ -258,7 +258,7 @@ time_t recurrence::getStartDateTime() const
 {
 	time_t tStart;
 
-	RTimeToUnixTime(m_sRecState.ulStartDate, &tStart);
+	tStart = RTimeToUnixTime(m_sRecState.ulStartDate);
 	return tStart + (m_sRecState.ulStartTimeOffset*60);
 }
 
@@ -275,7 +275,7 @@ time_t recurrence::getEndDateTime() const
 {
 	time_t tStart;
 
-	RTimeToUnixTime(m_sRecState.ulEndDate, &tStart);
+	tStart = RTimeToUnixTime(m_sRecState.ulEndDate);
 	return tStart + (m_sRecState.ulEndTimeOffset*60);
 }
 
@@ -466,7 +466,7 @@ std::list<time_t> recurrence::getDeletedExceptions() const
 			lstDeletedInstanceDates.erase(d);
 	}
 	for (const auto &d : lstDeletedInstanceDates) {
-		RTimeToUnixTime(d, &tDayDelete);
+		tDayDelete = RTimeToUnixTime(d);
 		lstDeletes.emplace_back(tDayDelete + offset);
 	}
 
@@ -479,7 +479,7 @@ std::list<time_t> recurrence::getModifiedOccurrences() const
 	std::list<time_t> lstModified;
 
 	for (const auto &exc : m_sRecState.lstExceptions) {
-		RTimeToUnixTime(exc.ulOriginalStartDate, &tDayModified);
+		tDayModified = RTimeToUnixTime(exc.ulOriginalStartDate);
 		lstModified.emplace_back(tDayModified);
 	}
 
@@ -504,7 +504,7 @@ time_t recurrence::getModifiedStartDateTime(ULONG id) const
 	if (id >= m_sRecState.ulModifiedInstanceCount)
 		return 0;
 	
-	RTimeToUnixTime(m_sRecState.lstExceptions[id].ulStartDateTime, &tDayModified);
+	tDayModified = RTimeToUnixTime(m_sRecState.lstExceptions[id].ulStartDateTime);
 	return tDayModified;
 }
 
@@ -515,7 +515,7 @@ time_t recurrence::getModifiedEndDateTime(ULONG id) const
 	if (id >= m_sRecState.ulModifiedInstanceCount)
 		return 0;
 	
-	RTimeToUnixTime(m_sRecState.lstExceptions[id].ulEndDateTime, &tDayModified);
+	tDayModified = RTimeToUnixTime(m_sRecState.lstExceptions[id].ulEndDateTime);
 	return tDayModified;
 }
 
@@ -526,7 +526,7 @@ time_t recurrence::getModifiedOriginalDateTime(ULONG id) const
 	if (id >= m_sRecState.ulModifiedInstanceCount)
 		return 0;
 	
-	RTimeToUnixTime(m_sRecState.lstExceptions[id].ulOriginalStartDate, &tDayModified);
+	tDayModified = RTimeToUnixTime(m_sRecState.lstExceptions[id].ulOriginalStartDate);
 	return tDayModified;
 }
 
@@ -1404,7 +1404,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 		lpException = lstExceptions.back();
 		// APPT_STARTWHOLE
 		time_t tsOccStart, tsOccEnd;
-		RTimeToUnixTime(lpException.ulStartDateTime, &tsOccStart);	// tsOccStart == localtime
+		tsOccStart = RTimeToUnixTime(lpException.ulStartDateTime); /* tsOccStart is localtime */
 		tsOccStart = LocalToUTC(tsOccStart, ttZinfo);
 		if(tsOccStart > tsEnd) {									// tsStart, tsEnd == gmtime
 			ec_log_debug("Skipping exception start match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
@@ -1413,7 +1413,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 		UnixTimeToRTime(tsOccStart, &sOccrInfo.fbBlock.m_tmStart);	// gmtime in rtime, is this correct?
 
 		// APPT_ENDWHOLE
-		RTimeToUnixTime(lpException.ulEndDateTime, &tsOccEnd);
+		tsOccEnd = RTimeToUnixTime(lpException.ulEndDateTime);
 		tsOccEnd = LocalToUTC(tsOccEnd, ttZinfo);
 		if(tsOccEnd < tsStart) {
 			ec_log_debug("Skipping exception end match: %lu ==> %s", tsOccEnd, ctime(&tsOccEnd));
@@ -1425,7 +1425,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 		sOccrInfo.fbBlock.m_fbstatus = (FBStatus)lpException.ulBusyStatus;
 
 		// Freebusy status
-		RTimeToUnixTime(lpException.ulOriginalStartDate, &sOccrInfo.tBaseDate);
+		sOccrInfo.tBaseDate = RTimeToUnixTime(lpException.ulOriginalStartDate);
 		ec_log_debug("Adding exception match: %lu ==> %s", sOccrInfo.tBaseDate, ctime(&sOccrInfo.tBaseDate));
 		hr = HrAddFBBlock(sOccrInfo, &lpOccrInfoAll, lpcValues);
 	}

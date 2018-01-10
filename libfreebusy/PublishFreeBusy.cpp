@@ -346,8 +346,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 		sTsitem.ulType = START_TIME;
 		sTsitem.ulStatus = lpFbBlocks[i].m_fbstatus;
 		sTsitem.tsTime = lpFbBlocks[i].m_tmStart;
-		RTimeToUnixTime(sTsitem.tsTime, &tTemp);
-
+		tTemp = RTimeToUnixTime(sTsitem.tsTime);
 		// @note ctime adds \n character
 		ec_log_debug("Blocks start %s", ctime(&tTemp));
 

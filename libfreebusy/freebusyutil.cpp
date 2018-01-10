@@ -474,9 +474,8 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 
 		if(fbBlk.m_fbstatus == fbStatus || fbStatus == fbKopanoAllBusy)
 		{
-			RTimeToUnixTime(fbBlk.m_tmStart, &tmUnixStart);
-			RTimeToUnixTime(fbBlk.m_tmEnd, &tmUnixEnd);
-
+			tmUnixStart = RTimeToUnixTime(fbBlk.m_tmStart);
+			tmUnixEnd   = RTimeToUnixTime(fbBlk.m_tmEnd);
 			gmtime_safe(&tmUnixStart, &tmStart);
 			gmtime_safe(&tmUnixEnd, &tmEnd);
 			

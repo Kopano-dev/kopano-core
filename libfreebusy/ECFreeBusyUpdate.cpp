@@ -110,9 +110,8 @@ HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
 	m_fbBlockList.Restrict(rtmStart, rtmEnd);
 
 	//Calculate months
-	RTimeToUnixTime(rtmStart, &tmUnixStart);
-	RTimeToUnixTime(rtmEnd, &tmUnixEnd);
-
+	tmUnixStart = RTimeToUnixTime(rtmStart);
+	tmUnixEnd   = RTimeToUnixTime(rtmEnd);
 	gmtime_safe(&tmUnixStart, &tmStart);
 	gmtime_safe(&tmUnixEnd, &tmEnd);
 

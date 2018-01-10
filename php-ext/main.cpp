@@ -6168,10 +6168,8 @@ ZEND_FUNCTION(mapi_freebusydata_getpublishrange)
 	MAPI_G(hr) = lpFBData->GetFBPublishRange(&rtmStart, &rtmEnd);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
-
-	RTimeToUnixTime(rtmStart, &ulUnixStart);
-	RTimeToUnixTime(rtmEnd, &ulUnixEnd);
-
+	ulUnixStart = RTimeToUnixTime(rtmStart);
+	ulUnixEnd   = RTimeToUnixTime(rtmEnd);
 	array_init(return_value);
 	add_assoc_long(return_value, "start", ulUnixStart);
 	add_assoc_long(return_value, "end", ulUnixEnd);
@@ -6272,10 +6270,8 @@ ZEND_FUNCTION(mapi_freebusyenumblock_next)
 	for (i = 0; i < cFetch; ++i) {
 		MAKE_STD_ZVAL(zval_data_value);
 		array_init(zval_data_value);
-
-		RTimeToUnixTime(lpBlk[i].m_tmStart, &ulUnixStart);
-		RTimeToUnixTime(lpBlk[i].m_tmEnd, &ulUnixEnd);
-
+		ulUnixStart = RTimeToUnixTime(lpBlk[i].m_tmStart);
+		ulUnixEnd   = RTimeToUnixTime(lpBlk[i].m_tmEnd);
 		add_assoc_long(zval_data_value, "start", ulUnixStart);
 		add_assoc_long(zval_data_value, "end", ulUnixEnd);
 		add_assoc_long(zval_data_value, "status", (LONG)lpBlk[i].m_fbstatus);

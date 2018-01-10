@@ -151,8 +151,8 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 		lpicProp = icalproperty_new(ICAL_FREEBUSY_PROPERTY);
 		if (lpicProp == NULL)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
-		RTimeToUnixTime(lpsFbblk[i].m_tmStart, &tStart);
-		RTimeToUnixTime(lpsFbblk[i].m_tmEnd, &tEnd);
+		tStart = RTimeToUnixTime(lpsFbblk[i].m_tmStart);
+		tEnd   = RTimeToUnixTime(lpsFbblk[i].m_tmEnd);
 		icalPeriod.start = icaltime_from_timet_with_zone(tStart, false, icaltimezone_get_utc_timezone());
 		icalPeriod.end = icaltime_from_timet_with_zone(tEnd, false, icaltimezone_get_utc_timezone());
 	

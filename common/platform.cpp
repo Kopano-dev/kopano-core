@@ -97,15 +97,11 @@ void FileTimeToRTime(const FILETIME *pft, LONG *prtime)
 	*prtime = q & 0x7FFFFFFF;
 }
 
-HRESULT RTimeToUnixTime(LONG rtime, time_t *unixtime)
+time_t RTimeToUnixTime(LONG rtime)
 {
 	FILETIME ft;
-
-	if (unixtime == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 	RTimeToFileTime(rtime, &ft);
-	*unixtime = FileTimeToUnixTime(ft);
-	return hrSuccess;
+	return FileTimeToUnixTime(ft);
 }
 
 HRESULT UnixTimeToRTime(time_t unixtime, LONG *rtime)
