@@ -88,33 +88,10 @@ Example::
             for key, val in self.config.items():
                 if 'default' in val.kwargs:
                     self.data[key] = val.kwargs.get('default')
-        for line in open(filename):
-            line = _decode(line.strip())
-            if not line.startswith('#'):
-                pos = line.find('=')
-                if pos != -1:
-                    key = line[:pos].strip()
-                    value = line[pos + 1:].strip()
-                    if self.config is None:
-                        self.data[key] = value
-                    elif key in self.config:
-                        if self.config[key].type_ == 'ignore':
-                            self.data[key] = None
-                            self.warnings.append('%s: config option ignored' % key)
-                        else:
-                            try:
-                                self.data[key] = self.config[key].parse(key, value)
-                            except ConfigError as e:
-                                if service:
-                                    self.errors.append(e.message)
-                                else:
-                                    raise
-                    else:
-                        msg = "%s: unknown config option" % key
-                        if service:
-                            self.warnings.append(msg)
-                        else:
-                            raise ConfigError(msg)
+
+        fh = open(filename, "r")
+        self._parse_config(fh)
+
         if self.config is not None:
             for key, val in self.config.items():
                 if key not in self.data and val.type_ != 'ignore':
@@ -123,6 +100,37 @@ Example::
                         self.errors.append(msg)
                     else:
                         raise ConfigError(msg)
+
+    def _parse_config(self, fh):
+        for line in fh:
+            line = _decode(line.strip())
+            if line.startswith('#'):
+                continue
+            pos = line.find('=')
+            if pos == -1:
+                continue
+            key = line[:pos].strip()
+            value = line[pos + 1:].strip()
+            if self.config is None:
+                self.data[key] = value
+            elif key in self.config:
+                if self.config[key].type_ == 'ignore':
+                    self.data[key] = None
+                    self.warnings.append('%s: config option ignored' % key)
+                else:
+                    try:
+                        self.data[key] = self.config[key].parse(key, value)
+                    except ConfigError as e:
+                        if service:
+                            self.errors.append(e.message)
+                        else:
+                            raise
+            else:
+                msg = "%s: unknown config option" % key
+                if service:
+                    self.warnings.append(msg)
+                else:
+                    raise ConfigError(msg)
 
     @staticmethod
     def string(**kwargs):
