@@ -107,10 +107,8 @@ time_t RTimeToUnixTime(LONG rtime)
 LONG UnixTimeToRTime(time_t unixtime)
 {
 	FILETIME ft;
-	LONG rtime;
 	UnixTimeToFileTime(unixtime, &ft);
-	rtime = FileTimeToRTime(&ft);
-	return rtime;
+	return FileTimeToRTime(&ft);
 }
 
 /* The 'IntDate' and 'IntTime' date and time encoding are used for some CDO calculations. They
