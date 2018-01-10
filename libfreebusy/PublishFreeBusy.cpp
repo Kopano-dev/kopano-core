@@ -280,7 +280,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 					FileTimeToRTime(&lpRowSet[i].lpProps[0].Value.ft, &sOccrBlock.fbBlock.m_tmStart);
 				if (lpRowSet[i].lpProps[1].ulPropTag == PROP_APPT_ENDWHOLE) {
 					FileTimeToRTime(&lpRowSet[i].lpProps[1].Value.ft, &sOccrBlock.fbBlock.m_tmEnd);
-					FileTimeToUnixTime(lpRowSet[i].lpProps[1].Value.ft, &sOccrBlock.tBaseDate);
+					sOccrBlock.tBaseDate = FileTimeToUnixTime(lpRowSet[i].lpProps[1].Value.ft);
 				}
 				if (lpRowSet[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)
 					sOccrBlock.fbBlock.m_fbstatus = (FBStatus)lpRowSet[i].lpProps[2].Value.ul;
@@ -454,7 +454,7 @@ HRESULT PublishFreeBusy::HrPublishFBblocks(const FBBlock_1 *lpfbBlocks, ULONG cV
 	if(hr != hrSuccess)
 		return hr;
 
-	FileTimeToUnixTime(m_ftStart, &tsStart);
+	tsStart = FileTimeToUnixTime(m_ftStart);
 	// @todo use a "start of day" function?
 	tsStart = tsStart - 86400; // 24*60*60 = 86400 include current day.
 	UnixTimeToFileTime(tsStart, &m_ftStart);

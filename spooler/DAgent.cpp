@@ -1173,11 +1173,11 @@ static bool dagent_oof_active(const SPropValue *prop)
 		return false;
 	time_t ts, now = time(nullptr);
 	if (prop[3].ulPropTag == PR_EC_OUTOFOFFICE_FROM) {
-		FileTimeToUnixTime(prop[3].Value.ft, &ts);
+		ts = FileTimeToUnixTime(prop[3].Value.ft);
 		a &= ts <= now;
 	}
 	if (prop[4].ulPropTag == PR_EC_OUTOFOFFICE_UNTIL) {
-		FileTimeToUnixTime(prop[4].Value.ft, &ts);
+		ts = FileTimeToUnixTime(prop[4].Value.ft);
 		a &= now <= ts;
 	}
 	return a;
@@ -1648,7 +1648,7 @@ static HRESULT HrMessageExpired(IMessage *lpMessage, bool *bExpired)
 		time_t now = time(NULL);
 		time_t expire;
 
-		FileTimeToUnixTime(lpsExpiryTime->Value.ft, &expire);
+		expire = FileTimeToUnixTime(lpsExpiryTime->Value.ft);
 
 		if (now > expire) {
 			// exit with no errors

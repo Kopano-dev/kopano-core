@@ -252,7 +252,7 @@ HRESULT iCal::HrHandleIcalPost()
 
 				lpICalToMapi->GetItemInfo(mpIterI->second, &etype, &tLastMod, &sbEid);
 				ftModTime =  mpSrvTimes[mpIterJ->first];
-				FileTimeToUnixTime(ftModTime, &tUnixModTime);
+				tUnixModTime = FileTimeToUnixTime(ftModTime);
 				if(tUnixModTime != tLastMod && etype == VEVENT)
 				{
 					hr = HrModify(lpICalToMapi.get(), mpIterJ->second, mpIterI->second, blCensorPrivate);

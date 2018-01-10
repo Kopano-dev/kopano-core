@@ -1802,7 +1802,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		time_t now = time(NULL);
 		time_t sendat;
 
-		FileTimeToUnixTime(lpDeferSendTime->Value.ft, &sendat);
+		sendat = FileTimeToUnixTime(lpDeferSendTime->Value.ft);
 
 		if (now < sendat) {
 			// should actually be logged just once .. but how?

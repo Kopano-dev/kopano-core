@@ -297,8 +297,7 @@ ECRESULT ECUserStoreTable::Load() {
 			FILETIME ft;
 			ft.dwHighDateTime = atoui(lpDBRow[MODTIME_HI]);
 			ft.dwLowDateTime =  atoui(lpDBRow[MODTIME_LO]);
-			sUserStore.tModTime = 0;
-			FileTimeToUnixTime(ft, &sUserStore.tModTime);
+			sUserStore.tModTime = FileTimeToUnixTime(ft);
 		}
 
 		if(lpDBRow[STORESIZE])

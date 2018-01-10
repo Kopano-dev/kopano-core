@@ -159,7 +159,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 			WCHAR buffer[64];
 			time_t t;
 			struct tm date;
-			FileTimeToUnixTime(ptrInfo[2].Value.ft, &t);
+			t = FileTimeToUnixTime(ptrInfo[2].Value.ft);
 			localtime_r(&t, &date);
 			wcsftime(buffer, ARRAY_SIZE(buffer), L"%c", &date);
 			strForwardText += buffer;
@@ -225,7 +225,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 			char buffer[32];
 			time_t t;
 			struct tm date;
-			FileTimeToUnixTime(ptrInfo[2].Value.ft, &t);
+			t = FileTimeToUnixTime(ptrInfo[2].Value.ft);
 			localtime_r(&t, &date);
 			strftime(buffer, 32, "%c", &date);
 			strHTMLForwardText += buffer;
@@ -936,11 +936,11 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		if (bOOFactive) {
 			time_t ts, now = time(nullptr);
 			if (OOFProps[1].ulPropTag == PR_EC_OUTOFOFFICE_FROM) {
-				FileTimeToUnixTime(OOFProps[1].Value.ft, &ts);
+				ts = FileTimeToUnixTime(OOFProps[1].Value.ft);
 				bOOFactive &= ts <= now;
 			}
 			if (OOFProps[2].ulPropTag == PR_EC_OUTOFOFFICE_UNTIL) {
-				FileTimeToUnixTime(OOFProps[2].Value.ft, &ts);
+				ts = FileTimeToUnixTime(OOFProps[2].Value.ft);
 				bOOFactive &= now <= ts;
 			}
 		}

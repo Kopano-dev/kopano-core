@@ -497,7 +497,7 @@ static std::string mapitable_ToString(const SPropValue *lpProp)
 	case PT_SYSTIME: {
 		time_t t;
 		char buf[32]; // must be at least 26 bytes
-		FileTimeToUnixTime(lpProp->Value.ft, &t);
+		t = FileTimeToUnixTime(lpProp->Value.ft);
 		ctime_r(&t, buf);
 		return trim(buf, " \t\n\r\v\f");
 	}

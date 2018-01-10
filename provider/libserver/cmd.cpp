@@ -1030,7 +1030,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 	ulDeleteFlags = EC_DELETE_CONTAINER | EC_DELETE_FOLDERS | EC_DELETE_MESSAGES | EC_DELETE_RECIPIENTS | EC_DELETE_ATTACHMENTS | EC_DELETE_HARD_DELETE;
 
 	GetSystemTimeAsFileTime(&ft);
-	FileTimeToUnixTime(ft, &ulTime);
+	ulTime = FileTimeToUnixTime(ft);
 
 	ulTime -= ulLifetime;
 

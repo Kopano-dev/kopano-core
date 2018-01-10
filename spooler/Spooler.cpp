@@ -532,7 +532,7 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 			time_t now = time(NULL);
 			time_t sendat;
 			
-			FileTimeToUnixTime(lpsRowSet[0].lpProps[4].Value.ft, &sendat);
+			sendat = FileTimeToUnixTime(lpsRowSet[0].lpProps[4].Value.ft);
 			if (now < sendat) {
 				// if we ever add logging here, it should trigger just once for this mail
 				++later_mails;

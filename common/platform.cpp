@@ -45,7 +45,7 @@ HRESULT UnixTimeToFileTime(time_t t, FILETIME *ft)
 	return hrSuccess;
 }
 
-HRESULT FileTimeToUnixTime(const FILETIME &ft, time_t *t)
+time_t FileTimeToUnixTime(const FILETIME &ft)
 {
 	__int64 l;
 
@@ -60,10 +60,7 @@ HRESULT FileTimeToUnixTime(const FILETIME &ft, time_t *t)
 		if (l > static_cast<__int64>(INT_MAX))
 			l = INT_MAX;
 	}
-
-	*t = (time_t)l;
-
-	return hrSuccess;
+	return l;
 }
 
 void UnixTimeToFileTime(time_t t, int *hi, unsigned int *lo)
@@ -82,8 +79,7 @@ time_t FileTimeToUnixTime(unsigned int hi, unsigned int lo)
 	ft.dwHighDateTime = hi;
 	ft.dwLowDateTime = lo;
 	
-	if(FileTimeToUnixTime(ft, &t) != hrSuccess)
-		return 0;
+	t = FileTimeToUnixTime(ft);
 	
 	return t;
 }
@@ -120,7 +116,7 @@ HRESULT RTimeToUnixTime(LONG rtime, time_t *unixtime)
 	if (unixtime == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	RTimeToFileTime(rtime, &ft);
-	FileTimeToUnixTime(ft, unixtime);
+	*unixtime = FileTimeToUnixTime(ft);
 	return hrSuccess;
 }
 
@@ -176,8 +172,8 @@ time_t operator -(const FILETIME &a, const FILETIME &b)
 {
 	time_t aa, bb;
 
-	FileTimeToUnixTime(a, &aa);
-	FileTimeToUnixTime(b, &bb);
+	aa = FileTimeToUnixTime(a);
+	bb = FileTimeToUnixTime(b);
 
 	return aa - bb;
 }

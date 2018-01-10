@@ -2037,7 +2037,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	// X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE
 	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OWNERCRITICALCHANGE], PT_SYSTIME));
 	if (lpPropVal != nullptr)
-		FileTimeToUnixTime(lpPropVal->Value.ft, &ttCriticalChange);
+		ttCriticalChange = FileTimeToUnixTime(lpPropVal->Value.ft);
 	else
 		ttCriticalChange = time(NULL);
 
@@ -2053,7 +2053,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	// X-MICROSOFT-CDO-ATTENDEE-CRITICAL-CHANGE
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ATTENDEECRITICALCHANGE], PT_SYSTIME));
 	if (lpPropVal != nullptr)
-		FileTimeToUnixTime(lpPropVal->Value.ft, &ttCriticalChange);
+		ttCriticalChange = FileTimeToUnixTime(lpPropVal->Value.ft);
 	else
 		ttCriticalChange = time(NULL);
 
@@ -2183,7 +2183,7 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 		lRemindBefore = lpPropVal->Value.l;
 	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_SYSTIME));
 	if (lpPropVal)
-		FileTimeToUnixTime(lpPropVal->Value.ft, &ttReminderTime);
+		ttReminderTime = FileTimeToUnixTime(lpPropVal->Value.ft);
 	lpPropVal = PCpropFindProp(lpProps, ulProps, PR_MESSAGE_CLASS);
 	if (lpPropVal && _tcsicmp(lpPropVal->Value.LPSZ, KC_T("IPM.Task")) == 0)
 		bTask = true;
@@ -2199,7 +2199,7 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 	// retrieve the suffix time for property X-MOZ-SNOOZE-TIME
 	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZ_SNOOZE_SUFFIX], PT_SYSTIME));
 	if(lpPropVal)
-		FileTimeToUnixTime(lpPropVal->Value.ft, &ttSnoozeSuffix);	
+		ttSnoozeSuffix = FileTimeToUnixTime(lpPropVal->Value.ft);
 	// check latest snooze time
 	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME));
 	if (lpPropVal) {
@@ -2210,8 +2210,7 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 		// set timestamp in name for recurring items i.e. X-MOZ-SNOOZE-TIME-1231250400000000:20090107T132846Z
 		if (ttSnoozeSuffix != 0 && blisItemReccr)
 			strSnoozeTime += "-" + stringify(ttSnoozeSuffix) + "000000";
-
-		FileTimeToUnixTime(lpPropVal->Value.ft, &ttSnooze);
+		ttSnooze = FileTimeToUnixTime(lpPropVal->Value.ft);
 		icSnooze = icaltime_from_timet_with_zone(ttSnooze, false, icaltimezone_get_utc_timezone());
 		lpicValue = icalvalue_new_datetime(icSnooze);
 		auto lpszTemp = icalvalue_as_ical_string_r(lpicValue);
@@ -2235,7 +2234,7 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 		icaltimetype icModTime;
 		icalvalue *lpicValue = NULL;
 		
-		FileTimeToUnixTime(lpPropVal->Value.ft, &ttLastAckTime);
+		ttLastAckTime = FileTimeToUnixTime(lpPropVal->Value.ft);
 		//do not send X-MOZ-LASTACK if reminder older than last ack time
 		if(ttLastAckTime > ttSnooze && !blxmozgen)
 			return hrSuccess;
@@ -2619,7 +2618,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 				lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_LONG));
 				if (lpProp)
-					FileTimeToUnixTime(lpProp->Value.ft, &ttReminderTime);
+					ttReminderTime = FileTimeToUnixTime(lpProp->Value.ft);
 			}
 
 			// add new valarm

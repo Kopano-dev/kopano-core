@@ -323,7 +323,7 @@ std::string ProtocolBase::SPropValToString(const SPropValue *lpSprop)
 
 	if (PROP_TYPE(lpSprop->ulPropTag) == PT_SYSTIME)
 	{
-		FileTimeToUnixTime(lpSprop->Value.ft, &tmUnixTime);
+		tmUnixTime = FileTimeToUnixTime(lpSprop->Value.ft);
 		strRetVal = stringify_int64(tmUnixTime, false);
 	}
 	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_STRING8)

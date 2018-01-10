@@ -47,7 +47,7 @@ typedef int gsoap_size_t;
  * Platform independent functions
  */
 extern _kc_export HRESULT UnixTimeToFileTime(time_t, FILETIME *);
-extern _kc_export HRESULT FileTimeToUnixTime(const FILETIME &, time_t *);
+extern _kc_export time_t FileTimeToUnixTime(const FILETIME &);
 extern _kc_export void UnixTimeToFileTime(time_t, int *hi, unsigned int *lo);
 extern _kc_export time_t FileTimeToUnixTime(unsigned int hi, unsigned int lo);
 

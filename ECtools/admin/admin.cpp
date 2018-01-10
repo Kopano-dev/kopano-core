@@ -409,7 +409,7 @@ static std::string FiletimeToString(FILETIME ft)
 
 	memset(d, 0, sizeof(d));
 
-	FileTimeToUnixTime(ft, &timestamp);
+	timestamp = FileTimeToUnixTime(ft);
 
 	localtime_r(&timestamp, &local);
 	strftime(d, sizeof(d), "%x %X", &local);
@@ -787,7 +787,7 @@ static string ClassToString(objectclass_t eClass)
 static int FileTimeToTimestamp(const FILETIME &ft, time_t& ts, char* buf, size_t size) {
 	struct tm *tm;
 
-	FileTimeToUnixTime(ft, &ts);
+	ts = FileTimeToUnixTime(ft);
 	if ((tm = localtime(&ts)) == NULL) {
 		perror("localtime");
 		return -1;
@@ -881,9 +881,9 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 
 		adm_oof_status(lpProps);
 		if(lpProps[0].ulPropTag == PR_LAST_LOGON_TIME)
-			FileTimeToUnixTime(lpProps[0].Value.ft, &logon);
+			logon = FileTimeToUnixTime(lpProps[0].Value.ft);
 		if(lpProps[1].ulPropTag == PR_LAST_LOGOFF_TIME)
-			FileTimeToUnixTime(lpProps[1].Value.ft, &logoff);
+			logoff = FileTimeToUnixTime(lpProps[1].Value.ft);
 
 		if(logon) {
 			strftime(d, sizeof(d), "%x %X", localtime(&logon));

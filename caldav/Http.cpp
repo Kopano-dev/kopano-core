@@ -381,7 +381,7 @@ bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 	if (lpProp != nullptr &&
 	    HrGetOneProp(lpProp, PR_LAST_MODIFICATION_TIME, &~ptrLastModTime) == hrSuccess) {
 		time_t stamp;
-		FileTimeToUnixTime(ptrLastModTime->Value.ft, &stamp);
+		stamp = FileTimeToUnixTime(ptrLastModTime->Value.ft);
 		strValue = stringify_int64(stamp, false);
 	}
 
