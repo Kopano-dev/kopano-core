@@ -250,6 +250,16 @@ HRESULT HrOpenECAdminSession(IMAPISession **lppSession,
 	return HrOpenECSession(lppSession, app_version, app_misc, KOPANO_SYSTEM_USER_W, KOPANO_SYSTEM_USER_W, szPath, ulProfileFlags, sslkey_file, sslkey_password);
 }
 
+HRESULT HrOpenECSession(IMAPISession **ses, const char *appver,
+    const char *appmisc, const char *user, const char *pass, const char *path,
+    ULONG flags, const char *sslkey, const char *sslpass, const char *profname)
+{
+	return HrOpenECSession(ses, appver, appmisc,
+	       convert_to<std::wstring>(user).c_str(),
+	       convert_to<std::wstring>(pass).c_str(),
+	       path, flags, sslkey, sslpass, profname);
+}
+
 HRESULT HrOpenECSession(IMAPISession **lppSession,
     const char *const app_version, const char *const app_misc,
     const wchar_t *szUsername, const wchar_t *szPassword, const char *szPath,

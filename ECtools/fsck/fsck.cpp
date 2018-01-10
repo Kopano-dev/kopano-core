@@ -310,7 +310,6 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
     // user
     ULONG			cbUserStoreEntryID = 0;
 	memory_ptr<ENTRYID> lpUserStoreEntryID, lpEntryIDSrc;
-	std::wstring strwUsername, strwAltUsername, strwPassword;
 	std::set<std::string> setFolderIgnore;
 	memory_ptr<SPropValue> lpAddRenProp;
 	ULONG cbEntryIDSrc = 0;
@@ -322,14 +321,8 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	}
 
 	// input from commandline is current locale
-	if (strUser)
-		strwUsername = convert_to<std::wstring>(strUser);
-	if (strPass)
-		strwPassword = convert_to<std::wstring>(strPass);
-	if (strAltUser)
-		strwAltUsername = convert_to<std::wstring>(strAltUser);
 	hr = HrOpenECSession(&~lpSession, "fsck", PROJECT_VERSION,
-	     strwUsername.c_str(), strwPassword.c_str(), strHost, 0, NULL, NULL);
+	     strUser, strPass, strHost, 0, nullptr, nullptr);
 	if(hr != hrSuccess) {
 		cout << "Wrong username or password." << endl;
 		return hr;
@@ -349,7 +342,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 		}
 	}
 
-	if (!strwAltUsername.empty()) {
+	if (strAltUser != nullptr && *strAltUser != '\0') {
 		hr = lpStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
         if (hr != hrSuccess) {
             cout << "Cannot open ExchangeManageStore object" << endl;
@@ -357,7 +350,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
         }
 
 		hr = lpIEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(L""),
-		     reinterpret_cast<const TCHAR *>(strwAltUsername.c_str()),
+		     reinterpret_cast<const TCHAR *>(convert_to<std::wstring>(strAltUser).c_str()),
 		     MAPI_UNICODE | OPENSTORE_HOME_LOGON, &cbUserStoreEntryID,
 		     &~lpUserStoreEntryID);
         if (hr != hrSuccess) {
