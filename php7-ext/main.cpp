@@ -6221,8 +6221,8 @@ ZEND_FUNCTION(mapi_freebusydata_setrange)
 
 	ZEND_FETCH_RESOURCE_C(lpFBData, IFreeBusyData*, &resFBData, -1, name_fb_data, le_freebusy_data);
 
-	UnixTimeToRTime(ulUnixStart, &rtmStart);
-	UnixTimeToRTime(ulUnixEnd, &rtmEnd);
+	rtmStart = UnixTimeToRTime(ulUnixStart);
+	rtmEnd   = UnixTimeToRTime(ulUnixEnd);
 
 	MAPI_G(hr) = lpFBData->SetFBRange(rtmStart, rtmEnd);
 	if(MAPI_G(hr) != hrSuccess)
@@ -6411,13 +6411,13 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
-		UnixTimeToRTime(Z_LVAL_P(value), &lpBlocks[i].m_tmStart);
+		lpBlocks[i].m_tmStart = UnixTimeToRTime(Z_LVAL_P(value));
 		value = zend_hash_find(data, str_end);
 		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
-		UnixTimeToRTime(Z_LVAL_P(value), &lpBlocks[i].m_tmEnd);
+		lpBlocks[i].m_tmEnd = UnixTimeToRTime(Z_LVAL_P(value));
 		value = zend_hash_find(data, str_status);
 		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;

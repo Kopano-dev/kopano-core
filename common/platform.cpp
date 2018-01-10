@@ -104,15 +104,13 @@ time_t RTimeToUnixTime(LONG rtime)
 	return FileTimeToUnixTime(ft);
 }
 
-HRESULT UnixTimeToRTime(time_t unixtime, LONG *rtime)
+LONG UnixTimeToRTime(time_t unixtime)
 {
 	FILETIME ft;
-
-	if (rtime == NULL)
-		return MAPI_E_INVALID_PARAMETER;
+	LONG rtime;
 	UnixTimeToFileTime(unixtime, &ft);
-	FileTimeToRTime(&ft, rtime);
-	return hrSuccess;
+	FileTimeToRTime(&ft, &rtime);
+	return rtime;
 }
 
 /* The 'IntDate' and 'IntTime' date and time encoding are used for some CDO calculations. They

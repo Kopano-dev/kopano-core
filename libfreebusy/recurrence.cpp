@@ -112,7 +112,7 @@ HRESULT recurrence::HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, 
 		gmtime_safe(tStart, &tm);
 
 		LONG rStart;
-		UnixTimeToRTime(tStart, &rStart);
+		rStart = UnixTimeToRTime(tStart);
 		m_sRecState.ulFirstDateTime = rStart % (m_sRecState.ulPeriod*7*24*60);
 
 		m_sRecState.ulFirstDateTime -= ((tm.tm_wday-1) * 24 * 60); // php says -1, but it's already 0..6 ... err?
@@ -207,8 +207,8 @@ time_t recurrence::getStartDate() const
 
 HRESULT recurrence::setStartDate(time_t tStart)
 {
-	return UnixTimeToRTime(StartOfDay(tStart),
-	       reinterpret_cast<LONG *>(&m_sRecState.ulStartDate));
+	m_sRecState.ulStartDate = UnixTimeToRTime(StartOfDay(tStart));
+	return hrSuccess;
 }
 
 time_t recurrence::getEndDate() const
@@ -218,8 +218,8 @@ time_t recurrence::getEndDate() const
 
 HRESULT recurrence::setEndDate(time_t tEnd)
 {
-	return UnixTimeToRTime(StartOfDay(tEnd),
-	       reinterpret_cast<LONG *>(&m_sRecState.ulEndDate));
+	m_sRecState.ulEndDate = UnixTimeToRTime(StartOfDay(tEnd));
+	return hrSuccess;
 }
 
 ULONG recurrence::getStartTimeOffset() const
@@ -258,10 +258,9 @@ time_t recurrence::getStartDateTime() const
 HRESULT recurrence::setStartDateTime(time_t t)
 {
 	time_t startDate = StartOfDay(t);
-	auto hr = UnixTimeToRTime(startDate, (LONG*)&m_sRecState.ulStartDate);
+	m_sRecState.ulStartDate = UnixTimeToRTime(startDate);
 	m_sRecState.ulStartTimeOffset = (t - startDate)/60;
-
-	return hr;
+	return hrSuccess;
 }
 
 time_t recurrence::getEndDateTime() const
@@ -272,11 +271,10 @@ time_t recurrence::getEndDateTime() const
 
 HRESULT recurrence::setEndDateTime(time_t t)
 {
-	auto hr = UnixTimeToRTime(StartOfDay(t), (LONG*)&m_sRecState.ulEndDate);
+	m_sRecState.ulEndDate = UnixTimeToRTime(StartOfDay(t));
 	// end time in minutes since midnight of start of item
 	m_sRecState.ulEndTimeOffset = (t - getStartDate())/60;
-
-	return hr;
+	return hrSuccess;
 }
 
 ULONG recurrence::getCount() const
@@ -434,9 +432,9 @@ HRESULT recurrence::setWeekNumber(UCHAR s)
 HRESULT recurrence::addDeletedException(time_t tDelete)
 {
 	LONG rtime;
-	auto hr = UnixTimeToRTime(StartOfDay(tDelete), &rtime);
+	rtime = UnixTimeToRTime(StartOfDay(tDelete));
 	m_sRecState.lstDeletedInstanceDates.emplace_back(rtime);
-	return hr;
+	return hrSuccess;
 }
 
 std::list<time_t> recurrence::getDeletedExceptions() const
@@ -554,9 +552,9 @@ HRESULT recurrence::addModifiedException(time_t tStart, time_t tEnd, time_t tOri
 	RecurrenceState::Exception sException = {0};
 	RecurrenceState::ExtendedException sExtException = {0};
 
-	UnixTimeToRTime(tStart, &rStart);
-	UnixTimeToRTime(tEnd, &rEnd);
-	UnixTimeToRTime(tOriginalStart, &rOrig);
+	rStart = UnixTimeToRTime(tStart);
+	rEnd   = UnixTimeToRTime(tEnd);
+	rOrig  = UnixTimeToRTime(tOriginalStart);
 
 	// this is not thread safe, but since this code is not (yet)
 	// called in a thread unsafe manner I could not care less at
@@ -564,12 +562,12 @@ HRESULT recurrence::addModifiedException(time_t tStart, time_t tEnd, time_t tOri
 	ULONG id = m_sRecState.lstModifiedInstanceDates.size();
 
 	// move is the exception day start
-	UnixTimeToRTime(StartOfDay(tStart), &rDayStart);
+	rDayStart = UnixTimeToRTime(StartOfDay(tStart));
 	m_sRecState.lstModifiedInstanceDates.emplace_back(rDayStart);
 
 	// every modify is also a delete in the blob
 	// delete is the original start
-	UnixTimeToRTime(StartOfDay(tOriginalStart), &rDayStart);
+	rDayStart = UnixTimeToRTime(StartOfDay(tOriginalStart));
 	m_sRecState.lstDeletedInstanceDates.emplace_back(rDayStart);
 
 	sExtException.ulStartDateTime     = sException.ulStartDateTime     = rStart;
@@ -1372,7 +1370,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 			ec_log_debug("Skipping exception start match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
 			continue;
 		}
-		UnixTimeToRTime(tsOccStart, &sOccrInfo.fbBlock.m_tmStart);	// gmtime in rtime, is this correct?
+		sOccrInfo.fbBlock.m_tmStart = UnixTimeToRTime(tsOccStart);
 
 		// APPT_ENDWHOLE
 		auto tsOccEnd = RTimeToUnixTime(lpException.ulEndDateTime);
@@ -1381,7 +1379,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 			ec_log_debug("Skipping exception end match: %lu ==> %s", tsOccEnd, ctime(&tsOccEnd));
 			continue;
 		}
-		UnixTimeToRTime(tsOccEnd, &sOccrInfo.fbBlock.m_tmEnd);
+		sOccrInfo.fbBlock.m_tmEnd = UnixTimeToRTime(tsOccEnd);
 
 		// APPT_FBSTATUS
 		sOccrInfo.fbBlock.m_fbstatus = (FBStatus)lpException.ulBusyStatus;
@@ -1401,12 +1399,11 @@ HRESULT recurrence::AddValidOccr(time_t tsOccrStart, time_t tsOccrEnd, ULONG ulB
 	OccrInfo sOccrInfo;
 
 	// APPT_STARTWHOLE
-	UnixTimeToRTime(tsOccrStart, &sOccrInfo.fbBlock.m_tmStart);
+	sOccrInfo.fbBlock.m_tmStart = UnixTimeToRTime(tsOccrStart);
 	sOccrInfo.tBaseDate = tsOccrStart;
 
 	// APPT_ENDWHOLE
-	UnixTimeToRTime(tsOccrEnd, &sOccrInfo.fbBlock.m_tmEnd);
-
+	sOccrInfo.fbBlock.m_tmEnd = UnixTimeToRTime(tsOccrEnd);
 	sOccrInfo.fbBlock.m_fbstatus = (FBStatus)ulBusyStatus;
 	return HrAddFBBlock(sOccrInfo, lpFBBlocksAll, lpcValues);
 }
