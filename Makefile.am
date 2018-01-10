@@ -9,7 +9,7 @@ SUBDIRS = . ECtools/archiver/include/kopano \
 SUBDIRS += installer po
 if ENABLE_PYTHON
 SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
-	ECtools/presence ECtools/search swig
+	ECtools/presence ECtools/search ECtools/utils swig
 endif
 
 

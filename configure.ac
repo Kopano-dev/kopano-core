@@ -718,6 +718,7 @@ AC_CONFIG_FILES([Makefile
 		ECtools/presence/Makefile
 		ECtools/search/Makefile
 		ECtools/migration-pst/Makefile
+		ECtools/utils/Makefile
 		installer/Makefile
 		installer/linux/Makefile
 		installer/userscripts/Makefile
