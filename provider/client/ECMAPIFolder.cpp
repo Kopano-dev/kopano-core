@@ -516,16 +516,16 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 	{
 		hr = this->lpFolderOps->HrCopyMessage(lpMsgListEC, lpDestPropArray[0].Value.bin.cb, (LPENTRYID)lpDestPropArray[0].Value.bin.lpb, ulFlags, 0);
 		if(FAILED(hr))
-			goto exit;
+			return hr;
 		hrEC = hr;
 	}
 	if (lpMsgListSupport->cValues > 0)
 	{
 		hr = this->GetMsgStore()->lpSupport->CopyMessages(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(this), lpMsgListSupport, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
 		if(FAILED(hr))
-			goto exit;
+			return hr;
 	}
-exit:
+
 	return (hr == hrSuccess)?hrEC:hr;
 }
 
@@ -676,7 +676,7 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 				if(hr == MAPI_E_USER_CANCEL) {// MAPI_E_USER_CANCEL is user click on the Cancel button.
 					hr = hrSuccess;
 					bError = TRUE;
-					goto exit;
+					return MAPI_W_PARTIAL_COMPLETION;
 				}else if(hr != hrSuccess) {
 					return hr;
 				}
@@ -687,7 +687,6 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 		hr = lpFolderOps->HrSetReadFlags(lpMsgList, ulFlags, 0);
 	}
 
-exit:
 	if(hr == hrSuccess && bError == TRUE)
 		hr = MAPI_W_PARTIAL_COMPLETION;
 

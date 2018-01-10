@@ -23,6 +23,7 @@
 
 #include <kopano/ECGetText.h>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include "Mem.h"
 
 #include <kopano/ECGuid.h>
@@ -393,23 +394,26 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 
 	convstring			tstrProfileName(lpszProfileName, ulFlags);
 
+	auto laters = KCHL::make_scope_success([&]() {
+		if (lppMAPIError != nullptr)
+			*lppMAPIError = nullptr;
+	});
+
 	// Get the username and password from the profile settings
 	hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Open profile settings
 	hr = lpMAPISup->OpenProfileSection(nullptr, MAPI_MODIFY, &~lpProfSect);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if (lpEntryID == NULL) {
 
 		// Try to initialize the provider
-		if (InitializeProvider(NULL, lpProfSect, sProfileProps, &cbStoreID, &~lpStoreID) != hrSuccess) {
-			hr = MAPI_E_UNCONFIGURED;
-			goto exit;
-		}
+		if (InitializeProvider(NULL, lpProfSect, sProfileProps, &cbStoreID, &~lpStoreID) != hrSuccess)
+			return MAPI_E_UNCONFIGURED;
 
 		lpEntryID = lpStoreID;
 		cbEntryID = cbStoreID;
@@ -425,10 +429,10 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 
 	hr = GetProviders(&g_mapProviders, lpMAPISup, tstrProfileName.c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = sProviderInfo.lpMSProviderOnline->QueryInterface(IID_IMSProvider, &~lpOnline);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Default error
 	hr = MAPI_E_LOGON_FAILED; //or MAPI_E_FAILONEPROVIDER
@@ -452,38 +456,31 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 
 	// Set the provider in the right connection type
 	if (bIsDefaultStore &&
-	    SetProviderMode(lpMAPISup, &g_mapProviders, tstrProfileName.c_str(), ulConnectType) != hrSuccess) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	    SetProviderMode(lpMAPISup, &g_mapProviders, tstrProfileName.c_str(), ulConnectType) != hrSuccess)
+		return MAPI_E_INVALID_PARAMETER;
 
 	if(hr != hrSuccess) {
-		if (hr == MAPI_E_NETWORK_ERROR) {
-			hr = MAPI_E_FAILONEPROVIDER; //for disable public folders, so you can work offline
-			goto exit;
-		} else if (hr == MAPI_E_LOGON_FAILED) {
-			hr = MAPI_E_UNCONFIGURED; // Linux error ??//
-			//hr = MAPI_E_LOGON_FAILED;
-			goto exit;
-		}else{
-			hr = MAPI_E_LOGON_FAILED;
-			goto exit;
-		}
+		if (hr == MAPI_E_NETWORK_ERROR)
+			return MAPI_E_FAILONEPROVIDER; //for disable public folders, so you can work offline
+		else if (hr == MAPI_E_LOGON_FAILED)
+			return MAPI_E_UNCONFIGURED; // Linux error ??//
+		else
+			return MAPI_E_LOGON_FAILED;
 	}
 
 	hr = lpMDB->QueryInterface(IID_ECMsgStore, &~lpecMDB);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Register ourselves with mapisupport
 	hr = lpMAPISup->SetProviderUID((MAPIUID *)&lpecMDB->GetStoreGuid(), 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Set profile identity
 	hr = ClientUtil::HrSetIdentity(lpecMDB->lpTransport, lpMAPISup, &~lpIdentityProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Get store name
 	// The server will return MAPI_E_UNCONFIGURED when an attempt is made to open a store
@@ -494,7 +491,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	// up to the caller so this 'error' can be resolved by reconfiguring the profile.
 	hr = HrGetOneProp(lpMDB, PR_DISPLAY_NAME_A, &~lpProp);
 	if (hr == MAPI_E_UNCONFIGURED)
-		goto exit;
+		return MAPI_E_UNCONFIGURED;
 	if (hr != hrSuccess || lpProp->ulPropTag != PR_DISPLAY_NAME_A) {
 		lpDisplayName = KC_A("Unknown");
 		hr = hrSuccess;
@@ -507,19 +504,19 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	{
 		hr = ClientUtil::HrInitializeStatusRow(lpDisplayName, MAPI_STORE_PROVIDER, lpMAPISup, lpIdentityProps, 0);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if (lppMSLogon) {
 		hr = lpMSLogon->QueryInterface(IID_IMSLogon, (void **)lppMSLogon);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	
 	if (lppMDB) {
 		hr = lpMDB->QueryInterface(IID_IMsgStore, (void **)lppMDB);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	// Store username and password so SpoolerLogon can log on to the profile
@@ -529,15 +526,12 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 
 		hr = MAPIAllocateBuffer(cbSpoolSecurity, (void **)lppbSpoolSecurity);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		swprintf((wchar_t*)*lppbSpoolSecurity, cbSpoolSecurity, L"%s%c%s", sProfileProps.strUserName.c_str(), 0, sProfileProps.strPassword.c_str());
 		*lpcbSpoolSecurity = cbSpoolSecurity;
 	}
 
-exit:
-	if (lppMAPIError)
-		*lppMAPIError = NULL;
 	return hr;
 }
 
@@ -554,50 +548,48 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
 	object_ptr<IMSLogon> lpMSLogon;
 	object_ptr<ECMsgStore> lpecMDB;
 
-	if (lpEntryID == NULL) {
-		hr = MAPI_E_UNCONFIGURED;
-		goto exit;
-	}
-	
-	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == NULL) {
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
+	auto laters = KCHL::make_scope_success([&]() {
+		if (lppMAPIError != nullptr)
+			*lppMAPIError = nullptr;
+	});
+
+	if (lpEntryID == NULL)
+		return MAPI_E_UNCONFIGURED;
+
+	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == NULL)
+		return MAPI_E_NO_ACCESS;
 
 	hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpProvider = sProviderInfo.lpMSProviderOnline;
 	hr = lpProvider->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName,
 	     cbEntryID, lpEntryID, ulFlags, lpInterface, cbSpoolSecurity,
 	     lpbSpoolSecurity, nullptr, &~lpMSLogon, &~lpMDB);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpMDB->QueryInterface(IID_ECMsgStore, &~lpecMDB);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Register ourselves with mapisupport
 	hr = lpMAPISup->SetProviderUID((MAPIUID *)&lpecMDB->GetStoreGuid(), 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if (lppMSLogon) {
 		hr = lpMSLogon->QueryInterface(IID_IMSLogon, (void **)lppMSLogon);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	
 	if (lppMDB) {
 		hr = lpMDB->QueryInterface(IID_IMsgStore, (void **)lppMDB);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
-exit:
-	if (lppMAPIError)
-		*lppMAPIError = NULL;
 	return hr;
 }
 
