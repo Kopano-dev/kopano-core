@@ -403,14 +403,9 @@ static int parse_yesno(const char *opt)
  */
 static std::string FiletimeToString(FILETIME ft)
 {
-	time_t timestamp;
 	tm local;
 	char d[64];
-
-	memset(d, 0, sizeof(d));
-
-	timestamp = FileTimeToUnixTime(ft);
-
+	auto timestamp = FileTimeToUnixTime(ft);
 	localtime_r(&timestamp, &local);
 	strftime(d, sizeof(d), "%x %X", &local);
 

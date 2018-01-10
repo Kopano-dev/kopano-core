@@ -157,9 +157,8 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		strForwardText += L"\nSent: ";
 		if (PROP_TYPE(ptrInfo[2].ulPropTag) != PT_ERROR) {
 			WCHAR buffer[64];
-			time_t t;
 			struct tm date;
-			t = FileTimeToUnixTime(ptrInfo[2].Value.ft);
+			auto t = FileTimeToUnixTime(ptrInfo[2].Value.ft);
 			localtime_r(&t, &date);
 			wcsftime(buffer, ARRAY_SIZE(buffer), L"%c", &date);
 			strForwardText += buffer;
@@ -223,9 +222,8 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		strHTMLForwardText += "<br><b>Sent:</b> ";
 		if (PROP_TYPE(ptrInfo[2].ulPropTag) != PT_ERROR) {
 			char buffer[32];
-			time_t t;
 			struct tm date;
-			t = FileTimeToUnixTime(ptrInfo[2].Value.ft);
+			auto t = FileTimeToUnixTime(ptrInfo[2].Value.ft);
 			localtime_r(&t, &date);
 			strftime(buffer, 32, "%c", &date);
 			strHTMLForwardText += buffer;
@@ -934,15 +932,11 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		bOOFactive = OOFProps[0].ulPropTag == PR_EC_OUTOFOFFICE && OOFProps[0].Value.b;
 
 		if (bOOFactive) {
-			time_t ts, now = time(nullptr);
-			if (OOFProps[1].ulPropTag == PR_EC_OUTOFOFFICE_FROM) {
-				ts = FileTimeToUnixTime(OOFProps[1].Value.ft);
-				bOOFactive &= ts <= now;
-			}
-			if (OOFProps[2].ulPropTag == PR_EC_OUTOFOFFICE_UNTIL) {
-				ts = FileTimeToUnixTime(OOFProps[2].Value.ft);
-				bOOFactive &= now <= ts;
-			}
+			time_t now = time(nullptr);
+			if (OOFProps[1].ulPropTag == PR_EC_OUTOFOFFICE_FROM)
+				bOOFactive &= FileTimeToUnixTime(OOFProps[1].Value.ft) <= now;
+			if (OOFProps[2].ulPropTag == PR_EC_OUTOFOFFICE_UNTIL)
+				bOOFactive &= now <= FileTimeToUnixTime(OOFProps[2].Value.ft);
 		}
 	}
 

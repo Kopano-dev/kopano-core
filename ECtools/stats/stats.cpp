@@ -495,9 +495,8 @@ static std::string mapitable_ToString(const SPropValue *lpProp)
 	case PT_I8:
 		return stringify_int64(lpProp->Value.li.QuadPart);
 	case PT_SYSTIME: {
-		time_t t;
 		char buf[32]; // must be at least 26 bytes
-		t = FileTimeToUnixTime(lpProp->Value.ft);
+		auto t = FileTimeToUnixTime(lpProp->Value.ft);
 		ctime_r(&t, buf);
 		return trim(buf, " \t\n\r\v\f");
 	}

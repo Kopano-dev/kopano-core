@@ -433,7 +433,6 @@ HRESULT PublishFreeBusy::HrPublishFBblocks(const FBBlock_1 *lpfbBlocks, ULONG cV
 	object_ptr<IMessage> lpMessage;
 	object_ptr<IMsgStore> lpPubStore;
 	memory_ptr<SPropValue> lpsPrpUsrMEid;
-	time_t tsStart = 0;
 
 	auto hr = HrOpenECPublicStore(m_lpSession, &~lpPubStore);
 	if(hr != hrSuccess)
@@ -453,11 +452,8 @@ HRESULT PublishFreeBusy::HrPublishFBblocks(const FBBlock_1 *lpfbBlocks, ULONG cV
 	hr = lpFBUpdate->PublishFreeBusy(lpfbBlocks, cValues);
 	if(hr != hrSuccess)
 		return hr;
-
-	tsStart = FileTimeToUnixTime(m_ftStart);
-	// @todo use a "start of day" function?
-	tsStart = tsStart - 86400; // 24*60*60 = 86400 include current day.
-	UnixTimeToFileTime(tsStart, &m_ftStart);
+	/* 86400: include current day. */
+	UnixTimeToFileTime(FileTimeToUnixTime(m_ftStart) - 86400, &m_ftStart);
 	return lpFBUpdate->SaveChanges(m_ftStart, m_ftEnd);
 }
 

@@ -47,10 +47,8 @@ FILETIME vmimeDatetimeToFiletime(vmime::datetime dt) {
 }
 
 vmime::datetime FiletimeTovmimeDatetime(FILETIME ft) {
-	time_t tmp;
 	struct tm convert;
-
-	tmp = FileTimeToUnixTime(ft);
+	auto tmp = FileTimeToUnixTime(ft);
 	gmtime_safe(&tmp, &convert);
 	return vmime::datetime(convert.tm_year + 1900, convert.tm_mon + 1, convert.tm_mday, convert.tm_hour, convert.tm_min, convert.tm_sec);
 }

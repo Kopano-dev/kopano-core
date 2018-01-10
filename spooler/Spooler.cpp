@@ -529,11 +529,7 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 			goto exit;
 		if (lpsRowSet[0].lpProps[4].ulPropTag == PR_DEFERRED_SEND_TIME) {
 			// check time
-			time_t now = time(NULL);
-			time_t sendat;
-			
-			sendat = FileTimeToUnixTime(lpsRowSet[0].lpProps[4].Value.ft);
-			if (now < sendat) {
+			if (time(nullptr) < FileTimeToUnixTime(lpsRowSet[0].lpProps[4].Value.ft)) {
 				// if we ever add logging here, it should trigger just once for this mail
 				++later_mails;
 				continue;

@@ -275,9 +275,8 @@ HRESULT VTodoConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsg
 	// Set start time / DTSTART	
 	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME));
 	if (lpPropVal != NULL) {
-		time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft);
-
-		hr = HrSetTimeProperty(ttTime, false, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpEvent);
+		hr = HrSetTimeProperty(FileTimeToUnixTime(lpPropVal->Value.ft),
+		     false, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpEvent);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -285,9 +284,8 @@ HRESULT VTodoConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsg
 	// Set end time / DUE
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME));
 	if (lpPropVal) {
-		time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft);
-
-		hr = HrSetTimeProperty(ttTime, false, lpicTZinfo, strTZid, ICAL_DUE_PROPERTY, lpEvent);
+		hr = HrSetTimeProperty(FileTimeToUnixTime(lpPropVal->Value.ft),
+		     false, lpicTZinfo, strTZid, ICAL_DUE_PROPERTY, lpEvent);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -296,9 +294,8 @@ HRESULT VTodoConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsg
 	// Set Completion time
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_COMPLETED_DATE], PT_SYSTIME));
 	if (lpPropVal) {
-		time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft);
-
-		hr = HrSetTimeProperty(ttTime, false, lpicTZinfo, strTZid, ICAL_COMPLETED_PROPERTY, lpEvent);
+		hr = HrSetTimeProperty(FileTimeToUnixTime(lpPropVal->Value.ft),
+		     false, lpicTZinfo, strTZid, ICAL_COMPLETED_PROPERTY, lpEvent);
 		if (hr != hrSuccess)
 			return hr;
 	}

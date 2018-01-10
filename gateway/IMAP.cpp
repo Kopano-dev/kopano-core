@@ -5152,15 +5152,13 @@ HRESULT IMAP::HrGetBodyStructure(bool bExtended, string &strBodyStructure, const
  * @return date/time in string format
  */
 string IMAP::FileTimeToString(FILETIME sFileTime) {
-	string strTime;
 	char szBuffer[31];
-	time_t sTime;
 	struct tm ptr;
 
-	sTime = FileTimeToUnixTime(sFileTime);
+	auto sTime = FileTimeToUnixTime(sFileTime);
 	gmtime_safe(&sTime, &ptr);
 	strftime(szBuffer, 30, "%d-", &ptr);
-	strTime += szBuffer;
+	std::string strTime = szBuffer;
 	strTime += strMonth[ptr.tm_mon];
 	strftime(szBuffer, 30, "-%Y %H:%M:%S +0000", &ptr);
 	strTime += szBuffer;

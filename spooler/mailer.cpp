@@ -1799,12 +1799,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	hr = HrGetOneProp(lpMessage, PR_DEFERRED_SEND_TIME, &~lpDeferSendTime);
 	if (hr == hrSuccess) {
 		// check time
-		time_t now = time(NULL);
-		time_t sendat;
-
-		sendat = FileTimeToUnixTime(lpDeferSendTime->Value.ft);
-
-		if (now < sendat) {
+		auto sendat = FileTimeToUnixTime(lpDeferSendTime->Value.ft);
+		if (time(nullptr) < sendat) {
 			// should actually be logged just once .. but how?
 			struct tm tmp;
 			char timestring[256];

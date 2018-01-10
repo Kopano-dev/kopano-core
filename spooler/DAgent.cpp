@@ -1171,15 +1171,11 @@ static bool dagent_oof_active(const SPropValue *prop)
 	bool a = prop[0].ulPropTag == PR_EC_OUTOFOFFICE && prop[0].Value.b;
 	if (!a)
 		return false;
-	time_t ts, now = time(nullptr);
-	if (prop[3].ulPropTag == PR_EC_OUTOFOFFICE_FROM) {
-		ts = FileTimeToUnixTime(prop[3].Value.ft);
-		a &= ts <= now;
-	}
-	if (prop[4].ulPropTag == PR_EC_OUTOFOFFICE_UNTIL) {
-		ts = FileTimeToUnixTime(prop[4].Value.ft);
-		a &= now <= ts;
-	}
+	time_t now = time(nullptr);
+	if (prop[3].ulPropTag == PR_EC_OUTOFOFFICE_FROM)
+		a &= FileTimeToUnixTime(prop[3].Value.ft) <= now;
+	if (prop[4].ulPropTag == PR_EC_OUTOFOFFICE_UNTIL)
+		a &= now <= FileTimeToUnixTime(prop[4].Value.ft);
 	return a;
 }
 
@@ -1645,12 +1641,7 @@ static HRESULT HrMessageExpired(IMessage *lpMessage, bool *bExpired)
 	 * skip delivering the email.
 	 */
 	if (HrGetOneProp(lpMessage, PR_EXPIRY_TIME, &~lpsExpiryTime) == hrSuccess) {
-		time_t now = time(NULL);
-		time_t expire;
-
-		expire = FileTimeToUnixTime(lpsExpiryTime->Value.ft);
-
-		if (now > expire) {
+		if (time(nullptr) > FileTimeToUnixTime(lpsExpiryTime->Value.ft)) {
 			// exit with no errors
 			hr = hrSuccess;
 			*bExpired = true;

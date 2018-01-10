@@ -158,12 +158,7 @@ bool operator<=(const FILETIME &a, const FILETIME &b) noexcept
 
 time_t operator -(const FILETIME &a, const FILETIME &b)
 {
-	time_t aa, bb;
-
-	aa = FileTimeToUnixTime(a);
-	bb = FileTimeToUnixTime(b);
-
-	return aa - bb;
+	return FileTimeToUnixTime(a) - FileTimeToUnixTime(b);
 }
 
 #ifndef HAVE_TIMEGM
