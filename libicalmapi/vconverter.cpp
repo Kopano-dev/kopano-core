@@ -1835,7 +1835,7 @@ HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProp
 	// Set creation time / CREATED
 	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_CREATION_TIME);
 	if (lpPropVal) {
-		auto ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0, nullptr);
+		auto ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft), 0, nullptr);
 		kc_ical_utc(ittICalTime, true);
 		auto lpProp = icalproperty_new_created(ittICalTime);
 		icalcomponent_add_property(lpEvent, lpProp);
@@ -1844,7 +1844,7 @@ HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProp
 	// exchange 2003 is using DTSTAMP for 'X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE'
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OWNERCRITICALCHANGE], PT_SYSTIME));
 	if (lpPropVal) {
-		auto ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), false, icaltimezone_get_utc_timezone());
+		auto ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft), false, icaltimezone_get_utc_timezone());
 		auto lpProp = icalproperty_new_dtstamp(ittICalTime);
 		icalcomponent_add_property(lpEvent,lpProp);
 
@@ -1854,7 +1854,7 @@ HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProp
 	// Set modification time / LAST-MODIFIED + DTSTAMP
 	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_LAST_MODIFICATION_TIME);
 	if (lpPropVal) {
-		auto ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0, nullptr);
+		auto ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft), 0, nullptr);
 		kc_ical_utc(ittICalTime, true);
 		auto lpProp = icalproperty_new_lastmodified(ittICalTime);
 		icalcomponent_add_property(lpEvent,lpProp);
@@ -2391,7 +2391,7 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 		else 
 			tRecId = icaltime_as_timet_with_zone(icTime,lpicTZinfo);
 	} else {
-		tRecId = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);	
+		tRecId = FileTimeToUnixTime(lpPropVal->Value.ft);	
 	}
 	
 	return HrSetTimeProperty(tRecId, bIsSeriesAllDay, lpicTZinfo, strTZid,
@@ -2578,7 +2578,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OLDSTART], PT_SYSTIME));
 
 		if (lpProp) {
-			tNewTime = FileTimeToUnixTime(lpProp->Value.ft.dwHighDateTime, lpProp->Value.ft.dwLowDateTime);
+			tNewTime = FileTimeToUnixTime(lpProp->Value.ft);
 			hr = HrSetTimeProperty(tNewTime, bIsAllDay, lpicTZinfo,
 			     strTZid, ICAL_RECURRENCEID_PROPERTY, lpicException.get());
 			if (hr != hrSuccess)

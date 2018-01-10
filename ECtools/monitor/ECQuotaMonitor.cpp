@@ -1048,10 +1048,7 @@ HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage,
 	auto lpResendInterval = m_lpThreadMonitor->lpConfig->GetSetting("mailquota_resend_interval");
 	ULONG ulResendInterval = (lpResendInterval && atoui(lpResendInterval) > 0) ? atoui(lpResendInterval) : 1;
 	GetSystemTimeAsFileTime(&ft);
-
-	UnixTimeToFileTime(FileTimeToUnixTime(ptrProp->Value.ft.dwHighDateTime, ptrProp->Value.ft.dwLowDateTime) +
-					   (ulResendInterval * 60 * 60 * 24) -(2 * 60), &ftNextRun);
-
+	UnixTimeToFileTime(FileTimeToUnixTime(ptrProp->Value.ft) + ulResendInterval * 60 * 60 * 24 - 2 * 60, &ftNextRun);
 	*lppMessage = ptrMessage.release();
 	*lpbTimeout = (ft > ftNextRun);
 	return hrSuccess;

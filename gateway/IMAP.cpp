@@ -5157,7 +5157,7 @@ string IMAP::FileTimeToString(FILETIME sFileTime) {
 	time_t sTime;
 	struct tm ptr;
 
-	sTime = FileTimeToUnixTime(sFileTime.dwHighDateTime, sFileTime.dwLowDateTime);
+	sTime = FileTimeToUnixTime(sFileTime);
 	gmtime_safe(&sTime, &ptr);
 	strftime(szBuffer, 30, "%d-", &ptr);
 	strTime += szBuffer;
@@ -5258,7 +5258,7 @@ FILETIME IMAP::AddDay(FILETIME sFileTime) {
 	FILETIME sFT;
 
 	// add 24 hour in seconds = 24*60*60 seconds
-	UnixTimeToFileTime(FileTimeToUnixTime(sFileTime.dwHighDateTime, sFileTime.dwLowDateTime) + 24 * 60 * 60, &sFT);
+	UnixTimeToFileTime(FileTimeToUnixTime(sFileTime) + 24 * 60 * 60, &sFT);
 	return sFT;
 }
 

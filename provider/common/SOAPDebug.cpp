@@ -221,7 +221,7 @@ std::string PropValueToString(const propVal *lpPropValue)
 	case PT_SYSTIME:
 		//strResult = "PT_SYSTIME: fth="+stringify(lpPropValue->Value.hilo->hi)+" ftl="+stringify(lpPropValue->Value.hilo->lo);
 		{
-			time_t t = FileTimeToUnixTime(lpPropValue->Value.hilo->hi, lpPropValue->Value.hilo->lo);
+			auto t = FileTimeToUnixTime({lpPropValue->Value.hilo->lo, static_cast<DWORD>(lpPropValue->Value.hilo->hi)});
 			return (std::string)"PT_SYSTIME: " + ctime(&t);
 		}
 		break;

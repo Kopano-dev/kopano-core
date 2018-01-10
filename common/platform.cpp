@@ -72,18 +72,6 @@ void UnixTimeToFileTime(time_t t, int *hi, unsigned int *lo)
 	*hi = (unsigned int)(ll >> 32);
 }
 
-time_t FileTimeToUnixTime(unsigned int hi, unsigned int lo)
-{
-	time_t t = 0;
-	FILETIME ft;
-	ft.dwHighDateTime = hi;
-	ft.dwLowDateTime = lo;
-	
-	t = FileTimeToUnixTime(ft);
-	
-	return t;
-}
-
 static const LONGLONG UnitsPerMinute = 600000000;
 static const LONGLONG UnitsPerHalfMinute = 300000000;
 
