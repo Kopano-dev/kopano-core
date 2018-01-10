@@ -149,6 +149,8 @@ Encapsulates everything to create a simple service, such as:
         if getattr(options, 'worker_processes', None):
             self.config.data['worker_processes'] = options.worker_processes
         self.log = _log.logger(self.logname or self.name, options=self.options, config=self.config) # check that this works here or daemon may die silently XXX check run_as_user..?
+        for msg in self.config.info:
+            self.log.info(msg)
         for msg in self.config.warnings:
             self.log.warn(msg)
         if self.config.errors:

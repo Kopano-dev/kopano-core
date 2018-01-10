@@ -77,6 +77,7 @@ Example::
         self.service = service
         self.warnings = []
         self.errors = []
+        self.info = []
         if filename:
             pass
         elif options and getattr(options, 'config_file', None):
@@ -89,8 +90,12 @@ Example::
                 if 'default' in val.kwargs:
                     self.data[key] = val.kwargs.get('default')
 
-        fh = open(filename, "r")
-        self._parse_config(fh)
+        try:
+            fh = open(filename, "r")
+            self._parse_config(fh)
+        except:
+            msg = "cannot open config file %s running with defaults"
+            self.info.append(msg)
 
         if self.config is not None:
             for key, val in self.config.items():
