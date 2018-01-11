@@ -23,7 +23,7 @@ class Restriction(object):
             return False
 
     def __unicode__(self):
-        return u"Restriction()"
+        return u'Restriction()'
 
     def __repr__(self):
         return _repr(self)

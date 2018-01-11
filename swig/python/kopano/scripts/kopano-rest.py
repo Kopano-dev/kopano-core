@@ -21,15 +21,16 @@ PREFIX = '/api/gc/v0'
 # TODO pagination for non-messages
 # TODO check https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters
 # TODO post, put, delete (all resource types)
-# TODO copy/move/send actions
 # TODO unicode/encoding checks
-# TODO efficient attachment streaming
-# TODO be able to use special folder names (eg copy/move)
+# TODO efficient attachment streaming?
 # TODO bulk copy/move/delete?
-# TODO childFolders recursion & (custom?) falcon routing
-# TODO Field class
-# TODO Message.{bodyPreview, isDraft}?
+# TODO childFolders recursion/relative paths
+# TODO Message.{bodyPreview, isDraft, webLink, inferenceClassification}?
+# TODO Event.{bodyPreview, webLink, onlineMeetingUrl}?
+# TODO Attachment.{contentId, contentLocation}?
 # TODO /me/{contactFolders,calendars} -> which folders exactly?
+# TODO @odata.context: check exact structure
+# TODO overlapping class functionality (eg MessageResource, EventResource)
 
 def _server(req):
     userid = req.get_header('X-Kopano-UserEntryID', required=True)
@@ -69,26 +70,27 @@ class Resource(object):
             result['@odata.type'] = '#microsoft.graph.fileAttachment'
         return result
 
-    def json(self, obj, fields, all_fields):
-        return json.dumps(self.get_fields(obj, fields, all_fields),
-            indent=4, separators=(',', ': ')
-        )
+    def json(self, req, obj, fields, all_fields, multi=False):
+        data = self.get_fields(obj, fields, all_fields)
+        if not multi:
+            data['@odata.context'] = req.path
+        return json.dumps(data, indent=2, separators=(',', ': '))
 
     def json_multi(self, req, obj, fields, all_fields, top, skip, count):
         header = b'{\n'
-        header += b'    "@odata.context": "%s",\n' % req.path.encode('utf-8')
+        header += b'  "@odata.context": "%s",\n' % req.path.encode('utf-8')
         if skip+top < count:
-              header += b'    "@odata.nextLink": "%s?$skip=%d",\n' % (req.path.encode('utf-8'), skip+top)
-        header += b'    "value": [\n'
+              header += b'  "@odata.nextLink": "%s?$skip=%d",\n' % (req.path.encode('utf-8'), skip+top)
+        header += b'  "value": [\n'
         yield header
         first = True
         for o in obj:
             if not first:
                 yield b',\n'
             first = False
-            wa = self.json(o, fields, all_fields).encode('utf-8')
-            yield b'\n'.join([b'        '+line for line in wa.splitlines()])
-        yield b'\n    ]\n}'
+            wa = self.json(req, o, fields, all_fields, multi=True).encode('utf-8')
+            yield b'\n'.join([b'    '+line for line in wa.splitlines()])
+        yield b'\n  ]\n}'
 
     def respond(self, req, resp, obj, all_fields=None):
         # determine fields
@@ -105,7 +107,7 @@ class Resource(object):
             obj, top, skip, count = obj
             resp.stream = self.json_multi(req, obj, fields, all_fields or self.fields, top, skip, count)
         else:
-            resp.body = self.json(obj, fields, all_fields or self.fields)
+            resp.body = self.json(req, obj, fields, all_fields or self.fields)
 
     def generator(self, req, generator, count=0):
         # determine pagination and ordering
@@ -117,7 +119,7 @@ class Resource(object):
         return (generator(page_start=skip, page_limit=top, order=order), top, skip, count)
 
     def create_message(self, folder, fields, all_fields=None):
-        # TODO only save in the end
+        # TODO item.update and/or only save in the end
 
         item = folder.create_item()
         for field, value in fields.items():
@@ -133,6 +135,7 @@ class UserResource(Resource):
         'mail': lambda user: user.email,
     }
 
+    # TODO redirect to other resources?
     def on_get(self, req, resp, userid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
@@ -184,14 +187,35 @@ class UserResource(Resource):
             data = self.generator(req, calendar.items, calendar.count)
             self.respond(req, resp, data, EventResource.fields)
 
+    # TODO redirect to other resources?
     def on_post(self, req, resp, userid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
+        fields = json.loads(req.stream.read().decode('utf-8'))
 
         if method == 'sendMail':
             # TODO save in sent items?
-            fields = json.loads(req.stream.read().decode('utf-8'))['message']
-            self.create_message(store.outbox, fields, MessageResource.set_fields).send()
+            self.create_message(store.outbox, fields['message'],
+                MessageResource.set_fields).send()
+
+        elif method == 'contacts':
+            item = self.create_message(store.contacts, fields,
+                ContactResource.set_fields)
+            self.respond(req, resp, item, ContactResource.fields)
+
+        elif method == 'messages':
+            item = self.create_message(store.drafts, fields,
+                MessageResource.set_fields)
+            self.respond(req, resp, item, MessageResource.fields)
+
+        elif method == 'events':
+            item = self.create_message(store.calendar, fields,
+                EventResource.set_fields)
+            self.respond(req, resp, item, EventResource.fields)
+
+        elif method == 'mailFolders':
+            folder = store.create_folder(fields['displayName']) # TODO exception on conflict
+            self.respond(req, resp, folder, MailFolderResource.fields)
 
 class MailFolderResource(Resource):
     fields = {
@@ -200,6 +224,7 @@ class MailFolderResource(Resource):
         'displayName': lambda folder: folder.name,
         'unreadItemCount': lambda folder: folder.unread,
         'totalItemCount': lambda folder: folder.count,
+        'childFolderCount': lambda folder: folder.subfolder_count,
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, method=None):
@@ -209,6 +234,8 @@ class MailFolderResource(Resource):
         if folderid:
             if folderid == 'inbox': # XXX more
                 data = store.inbox
+            elif folderid == 'drafts':
+                data = store.drafts
             else:
                 data = store.folder(entryid=folderid)
         else:
@@ -216,6 +243,7 @@ class MailFolderResource(Resource):
 
         if method == 'childFolders':
             data = self.generator(req, data.folders, data.subfolder_count_recursive)
+
         elif method == 'messages':
             data = self.generator(req, data.items, data.count)
             self.respond(req, resp, data, MessageResource.fields)
@@ -232,11 +260,22 @@ class MailFolderResource(Resource):
         else:
             folder = store.folder(entryid=folderid)
 
-        if method == 'messages':
-            fields = json.loads(req.stream.read().decode('utf-8'))
-            item = self.create_message(folder, fields, MessageResource.set_fields)
+        fields = json.loads(req.stream.read().decode('utf-8'))
 
+        if method == 'messages':
+            item = self.create_message(folder, fields, MessageResource.set_fields)
             self.respond(req, resp, item, MessageResource.fields)
+
+        elif method == 'childFolders':
+            child = folder.create_folder(fields['displayName']) # TODO exception on conflict
+            self.respond(req, resp, child, MailFolderResource.fields)
+
+        elif method in ('copy', 'move'):
+            to_folder = store.folder(entryid=fields['destinationId'].encode('ascii')) # TODO ascii?
+            if method == 'copy':
+                folder.parent.copy(folder, to_folder)
+            else:
+                folder.parent.move(folder, to_folder)
 
     def on_delete(self, req, resp, userid=None, folderid=None):
         server = _server(req)
@@ -296,7 +335,6 @@ class CalendarResource(Resource):
         if method == 'events':
             fields = json.loads(req.stream.read().decode('utf-8'))
             item = self.create_message(folder, fields, EventResource.set_fields)
-
             self.respond(req, resp, item, EventResource.fields)
 
 def set_body(item, arg):
@@ -331,6 +369,9 @@ class MessageResource(Resource):
         'parentFolderId': lambda item: item.folder.entryid,
         'conversationId': lambda item: item.conversationid,
         'isRead': lambda item: item.read,
+        'isReadReceiptRequested': lambda item: item.read_receipt,
+        'isDeliveryReceiptRequested': lambda item: item.read_receipt,
+        'replyTo': lambda item: [{'emailAddress': {'name': to.name, 'address': to.email}} for to in item.replyto],
     }
 
     set_fields = {
@@ -353,16 +394,40 @@ class MessageResource(Resource):
 
         item = folder.item(messageid)
 
-        if method:
+        if method == 'attachments':
+            data = self.generator(req, item.attachments, 0) # TODO item.attachment_count?
+            self.respond(req, resp, data, AttachmentResource.fields)
+            return
+
+        elif method in ('copy', 'move'):
             body = json.loads(req.stream.read().decode('utf-8'))
             folder = store.folder(entryid=body['destinationId'].encode('ascii')) # TODO ascii?
 
             if method == 'copy':
                 item = item.copy(folder)
-            elif method == 'move':
+            else:
                 item = item.move(folder)
 
         self.respond(req, resp, item)
+
+    def on_post(self, req, resp, userid=None, folderid=None, messageid=None, method=None):
+        server = _server(req)
+        store = _store(server, userid)
+
+        if folderid:
+            if folderid == 'inbox': # XXX more
+                folder = store.inbox
+            else:
+                folder = store.folder(entryid=folderid)
+        else:
+            folder = store.inbox # TODO messages from all folders?
+
+        item = folder.item(messageid)
+
+        if method == 'attachments':
+            fields = json.loads(req.stream.read().decode('utf-8'))
+            if fields['@odata.type'] == '#microsoft.graph.fileAttachment':
+                item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
 
     def on_delete(self, req, resp, userid=None, folderid=None, messageid=None):
         server = _server(req)
@@ -375,7 +440,11 @@ class AttachmentResource(Resource):
     fields = {
         'id': lambda attachment: attachment.entryid,
         'name': lambda attachment: attachment.name,
-        'contentBytes': lambda attachment: str(base64.urlsafe_b64encode(attachment.data)),
+        'contentBytes': lambda attachment: base64.urlsafe_b64encode(attachment.data).decode('ascii'),
+        'lastModifiedDateTime': lambda attachment: _date(attachment.last_modified),
+        'size': lambda attachment: attachment.size,
+        'isInline': lambda attachment: False, # TODO
+        'contentType': lambda attachment: attachment.mimetype,
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, messageid=None, eventid=None, attachmentid=None):
@@ -394,11 +463,7 @@ class AttachmentResource(Resource):
         else:
             item = folder.item(messageid)
 
-        if attachmentid:
-            data = item.attachment(attachmentid)
-        else:
-            data = self.generator(req, item.attachments)
-
+        data = item.attachment(attachmentid)
         self.respond(req, resp, data)
 
     def on_delete(self, req, resp, userid=None, folderid=None, messageid=None, eventid=None, attachmentid=None):
@@ -410,21 +475,38 @@ class AttachmentResource(Resource):
 
         item.delete(attachment)
 
+pattern_map = {
+    'month': 'absoluteMonthly',
+    'monthnth': 'relativeMonthly',
+}
+
 def recurrence_json(item):
     if isinstance(item, kopano.Item) and item.recurring:
         recurrence = item.recurrence
         return {
             'pattern': {
-                'type': recurrence.pattern,
+                'type': pattern_map[recurrence.pattern],
                 'interval': recurrence.period,
-                # TODO patterntype_specific
+                'month': 0,
+                'dayOfMonth': 0,
+                'daysOfWeek': recurrence.weekdays,
+                'index': recurrence.index,
+
             },
             'range': {
+                'type': 'endDate', # TODO
                 'startDate': _date(recurrence._start), # TODO .start?
                 'endDate': _date(recurrence._end), # TODO .start?
                 # TODO timezone
             },
         }
+
+def attendees_json(item):
+    result = []
+    for attendee in item.attendees():
+        address = attendee.address
+        result.append({'emailAddress': {'name': address.name, 'address': address.email}})
+    return result
 
 def setdate(item, field, arg):
     date = dateutil.parser.parse(arg['dateTime'])
@@ -432,11 +514,23 @@ def setdate(item, field, arg):
 
 class EventResource(Resource):
     fields = {
+        '@odata.etag': lambda item: 'W/"'+item.changekey+'"',
         'id': lambda item: item.entryid,
         'subject': lambda item: item.subject,
         'recurrence': recurrence_json,
         'start': lambda item: {'dateTime': _date(item.start), 'timeZone': 'UTC'} if item.start else None,
         'end': lambda item: {'dateTime': _date(item.end), 'timeZone': 'UTC'} if item.end else None,
+        'createdDateTime': lambda item: _date(item.created),
+        'lastModifiedDateTime': lambda item: _date(item.last_modified),
+        'categories': lambda item: item.categories,
+        'changeKey': lambda item: item.changekey,
+        'location': lambda item: { 'displayName': item.location, 'address': {}}, # TODO
+        'importance': lambda item: item.urgency,
+        'hasAttachments': lambda item: item.has_attachments,
+        'body': lambda item: {'contentType': 'html', 'content': item.html.decode('utf8')}, # TODO if not utf8?
+        'isReminderOn': lambda item: item.reminder,
+        'reminderMinutesBeforeStart': lambda item: item.reminder_minutes,
+        'attendees': lambda item: attendees_json(item),
     }
 
     set_fields = {
@@ -445,7 +539,7 @@ class EventResource(Resource):
         'end': lambda item, arg: setdate(item, 'end', arg),
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, eventid=None):
+    def on_get(self, req, resp, userid=None, folderid=None, eventid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
 
@@ -454,8 +548,30 @@ class EventResource(Resource):
         else:
             folder = store.calendar
 
-        data = folder.item(eventid)
-        self.respond(req, resp, data)
+        item = folder.item(eventid)
+
+        if method == 'attachments':
+            data = self.generator(req, item.attachments, 0) # TODO item.attachment_count?
+            self.respond(req, resp, data, AttachmentResource.fields)
+            return
+
+        self.respond(req, resp, item)
+
+    def on_post(self, req, resp, userid=None, folderid=None, eventid=None, method=None):
+        server = _server(req)
+        store = _store(server, userid)
+
+        if folderid:
+            folder = store.folder(entryid=folderid)
+        else:
+            folder = store.calendar
+
+        item = folder.item(eventid)
+
+        if method == 'attachments':
+            fields = json.loads(req.stream.read().decode('utf-8'))
+            if fields['@odata.type'] == '#microsoft.graph.fileAttachment':
+                item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
 
     def on_delete(self, req, resp, userid=None, folderid=None, eventid=None):
         server = _server(req)
@@ -564,12 +680,14 @@ app.add_route(PREFIX+'/users', users)
 app.add_route(PREFIX+'/users/{userid}', users)
 app.add_route(PREFIX+'/users/{userid}/{method}', users)
 
+# TODO avoid duplication for {method}?
+
 for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
-    # mailFolders (method=childFolders,messages)
+    # mailFolders (method=childFolders,messages,copy,move)
     app.add_route(user+'/mailFolders/{folderid}', folders)
     app.add_route(user+'/mailFolders/{folderid}/{method}', folders)
 
-    # messages (method=copy,move)
+    # messages (method=copy,move,attachments)
     app.add_route(user+'/messages/{messageid}', messages)
     app.add_route(user+'/messages/{messageid}/{method}', messages)
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}', messages)
@@ -580,20 +698,18 @@ for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
     app.add_route(user+'/calendars/{folderid}', calendars)
     app.add_route(user+'/calendars/{folderid}/{method}', calendars)
 
-    # events
+    # events (method=attachments)
     app.add_route(user+'/events/{eventid}', events)
+    app.add_route(user+'/events/{eventid}/{method}', events)
     app.add_route(user+'/calendar/events/{eventid}', events)
-    app.add_route(user+'/calendars/{folderid}/events', events) # TODO to folder
+    app.add_route(user+'/calendar/events/{eventid}/{method}', events)
     app.add_route(user+'/calendars/{folderid}/events/{eventid}', events)
+    app.add_route(user+'/calendars/{folderid}/events/{eventid}/{method}', events)
 
     # attachments
-    app.add_route(user+'/messages/{messageid}/attachments', attachments) # TODO to message?
     app.add_route(user+'/messages/{messageid}/attachments/{attachmentid}', attachments)
-    app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments', attachments) # TODO to message?
     app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments/{attachmentid}', attachments)
-
-    app.add_route(user+'/events/{eventid}/attachments', attachments) # TODO to event?
-    app.add_route(user+'/events/{eventid}/attachments/{attachmentid}', attachments) # TODO to attachment?
+    app.add_route(user+'/events/{eventid}/attachments/{attachmentid}', attachments)
 
     # contactFolders (method=contacts)
     app.add_route(user+'/contactFolders/{folderid}', contactfolders)
