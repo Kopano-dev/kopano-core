@@ -1029,21 +1029,9 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRowSet;
 	SPropValue sStoreGuid;
-
-	static constexpr const SizedSSortOrderSet(1, tableSort) =
-	{ 1, 0, 0,
-		{
-			{ PR_EC_STOREGUID, TABLE_SORT_ASCEND },
-		}
-	};
-
 	auto hr = lpServiceAdmin->OpenUserStoresTable(MAPI_UNICODE, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->SortTable(tableSort, 0);
-	if (hr != hrSuccess)
-		return hr;
-
 	sStoreGuid.ulPropTag = PR_EC_STOREGUID;
 	sStoreGuid.Value.bin.cb = sizeof(GUID);
 	sStoreGuid.Value.bin.lpb = (BYTE*)lpStoreGuid;
