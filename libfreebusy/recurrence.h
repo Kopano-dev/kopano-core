@@ -34,8 +34,7 @@ class _kc_export recurrence _kc_final {
 public:
 	HRESULT HrLoadRecurrenceState(const char *lpData, unsigned int ulLen, ULONG ulFlags);
 	HRESULT HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, void *base = NULL);
-
-	HRESULT HrGetHumanReadableString(std::string *lpstrHRS);
+	void HrGetHumanReadableString(std::string *);
 	HRESULT HrGetItems(time_t start, time_t end, const TIMEZONE_STRUCT &ttZinfo, ULONG ulBusyStatus, OccrInfo **lppFbBlock, ULONG *lpcValues, bool last = false);
 	enum freq_type { DAILY, WEEKLY, MONTHLY, YEARLY };
 	enum term_type { DATE, NUMBER, NEVER };
@@ -43,39 +42,38 @@ public:
 	freq_type getFrequency() const;
 	HRESULT setFrequency(freq_type ft);
 	_kc_hidden time_t getStartDate() const;
-	_kc_hidden HRESULT setStartDate(time_t);
+	_kc_hidden void setStartDate(time_t);
 	time_t getEndDate() const;
-	HRESULT setEndDate(time_t tEnd);
+	void setEndDate(time_t tEnd);
 	ULONG getStartTimeOffset() const;
 	_kc_hidden HRESULT setStartTimeOffset(ULONG minutes_since_midnight);
 	_kc_hidden ULONG getEndTimeOffset(void) const;
-	HRESULT setEndTimeOffset(ULONG ulMinutesSinceMidnight);
+	void setEndTimeOffset(ULONG min);
 	time_t getStartDateTime() const;
-	HRESULT setStartDateTime(time_t tStart);
+	void setStartDateTime(time_t tStart);
 	_kc_hidden time_t getEndDateTime() const;
-	_kc_hidden HRESULT setEndDateTime(time_t);
+	_kc_hidden void setEndDateTime(time_t);
 	ULONG getCount() const;
-	HRESULT setCount(ULONG ulCount);
+	void setCount(ULONG ulCount);
 	term_type getEndType() const;
 	HRESULT setEndType(term_type);
 	ULONG getInterval() const;
 	HRESULT setInterval(ULONG);
 	_kc_hidden ULONG getSlidingFlag() const { return m_sRecState.ulSlidingFlag; }
-	_kc_hidden HRESULT setSlidingFlag(ULONG);
+	_kc_hidden void setSlidingFlag(ULONG);
 	_kc_hidden ULONG getFirstDOW() const;
-	HRESULT setFirstDOW(ULONG);
+	void setFirstDOW(ULONG);
 	UCHAR getWeekDays() const;
-	HRESULT setWeekDays(UCHAR);
+	void setWeekDays(UCHAR);
 	UCHAR getDayOfMonth() const;
-	HRESULT setDayOfMonth(UCHAR);
+	void setDayOfMonth(UCHAR);
 	UCHAR getMonth() const;
  	HRESULT setMonth(UCHAR);
 	UCHAR getWeekNumber() const; /* 1..4 and 5 (last) */
-	HRESULT setWeekNumber(UCHAR);
+	void setWeekNumber(UCHAR);
 
 	/* exception handling */
-
-	HRESULT addDeletedException(time_t);
+	void addDeletedException(time_t);
 	std::list<time_t> getDeletedExceptions() const;
 	ULONG getModifiedCount() const;
 	ULONG getModifiedFlags(ULONG id) const; /* 0..getModifiedCount() */
@@ -91,7 +89,7 @@ public:
 	_kc_hidden ULONG getModifiedAttachment(ULONG id) const;
 	ULONG getModifiedSubType(ULONG id) const;
 
-	HRESULT addModifiedException(time_t tStart, time_t tEnd, time_t tOriginalStart, ULONG *id);
+	void addModifiedException(time_t tStart, time_t tEnd, time_t tOriginalStart, ULONG *id);
 	HRESULT setModifiedSubject(ULONG id, const std::wstring &strSubject);
 	_kc_hidden HRESULT setModifiedMeetingType(ULONG id, ULONG type);
 	HRESULT setModifiedReminderDelta(ULONG id, LONG delta);
