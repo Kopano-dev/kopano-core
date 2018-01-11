@@ -187,10 +187,9 @@ public:
  */
 class ECRecipient {
 public:
-	ECRecipient(const std::wstring &wstrName) :
-		wstrRCPT(wstrName)
+	ECRecipient(const std::string &wstrName) : wstrRCPT(wstrName)
 	{
-		/* strRCPT much match recipient string from LMTP caller */
+		/* strRCPT must match recipient string from LMTP caller */
 		vwstrRecipients.emplace_back(wstrName);
 		sEntryId.cb = 0;
 		sEntryId.lpb = NULL;
@@ -220,8 +219,8 @@ public:
 	ULONG ulResolveFlags = MAPI_UNRESOLVED;
 
 	/* Information from LMTP caller */
-	std::wstring wstrRCPT;
-	std::vector<std::wstring> vwstrRecipients;
+	std::string wstrRCPT;
+	std::vector<std::string> vwstrRecipients;
 
 	/* User properties */
 	std::wstring wstrUsername;
@@ -637,9 +636,8 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 			return kc_perrorf("MAPIAllocateBuffer failed(3)", hr);
 		++lpAdrList->cEntries;
 		/* szName can either be the email address or username, it doesn't really matter */
-		lpAdrList->aEntries[ulRCPT].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
-		lpAdrList->aEntries[ulRCPT].rgPropVals[0].Value.lpszW = const_cast<wchar_t *>(recip->wstrRCPT.c_str());
-
+		lpAdrList->aEntries[ulRCPT].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_A;
+		lpAdrList->aEntries[ulRCPT].rgPropVals[0].Value.lpszA = const_cast<char *>(recip->wstrRCPT.c_str());
 		lpFlagList->ulFlag[ulRCPT] = MAPI_UNRESOLVED;
 		++ulRCPT;
 	}
@@ -656,7 +654,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 
 		ULONG temp = lpFlagList->ulFlag[ulRCPT];
 		if (temp != MAPI_RESOLVED) {
-			ec_log_err("Failed to resolve recipient %ls (%x)", recip->wstrRCPT.c_str(), temp);
+			ec_log_err("Failed to resolve recipient %s (%x)", recip->wstrRCPT.c_str(), temp);
 			continue;
 		}
 
@@ -669,20 +667,20 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 		// the only property that is allowed NULL in this list
 		auto lpDisplayProp  = lpAdrList->aEntries[ulRCPT].cfind(PR_DISPLAY_TYPE);
 		if(!lpEntryIdProp || !lpFullNameProp || !lpAccountProp || !lpSMTPProp || !lpObjectProp) {
-			ec_log_err("Not all properties found for %ls", recip->wstrRCPT.c_str());
+			ec_log_err("Not all properties found for %s", recip->wstrRCPT.c_str());
 			continue;
 		}
 
 		if (lpObjectProp->Value.ul != MAPI_MAILUSER) {
-			ec_log_warn("Resolved recipient %ls is not a user", recip->wstrRCPT.c_str());
+			ec_log_warn("Resolved recipient %s is not a user", recip->wstrRCPT.c_str());
 			continue;
 		} else if (lpDisplayProp && lpDisplayProp->Value.ul == DT_REMOTE_MAILUSER) {
 			// allowed are DT_MAILUSER, DT_ROOM and DT_EQUIPMENT. all other DT_* defines are no MAPI_MAILUSER
-			ec_log_warn("Resolved recipient %ls is a contact address, unable to deliver", recip->wstrRCPT.c_str());
+			ec_log_warn("Resolved recipient %s is a contact address, unable to deliver", recip->wstrRCPT.c_str());
 			continue;
 		}
 
-		ec_log_notice("Resolved recipient %ls as user %ls", recip->wstrRCPT.c_str(), lpAccountProp->Value.lpszW);
+		ec_log_notice("Resolved recipient %s as user %ls", recip->wstrRCPT.c_str(), lpAccountProp->Value.lpszW);
 
 		/* The following are allowed to be NULL */
 		auto lpCompanyProp   = lpAdrList->aEntries[ulRCPT].cfind(PR_EC_COMPANY_NAME_W);
@@ -815,7 +813,8 @@ static HRESULT AddServerRecipient(companyrecipients_t *lpCompanyRecips,
 		// The recipient is in the list, and no longer belongs to the caller
 		*lppRecipient = NULL;
 	} else {
-		ec_log_info("Combining recipient %ls and %ls, delivering only once", lpRecipient->wstrRCPT.c_str(), (*iterRecip)->wstrUsername.c_str());
+		ec_log_info("Combining recipient %s and %ls, delivering only once",
+			lpRecipient->wstrRCPT.c_str(), (*iterRecip)->wstrUsername.c_str());
 		(*iterRecip)->combine(lpRecipient);
 	}
 	return hrSuccess;
@@ -2876,8 +2875,7 @@ static void *HandlerLMTP(void *lpArg)
 				sc -> countInc("DAgent::LMTP", "bad_recipient_address");
 				break;
 			}
-			auto lpRecipient = new ECRecipient(converter.convert_to<std::wstring>(strMailAddress));
-					
+			auto lpRecipient = new ECRecipient(strMailAddress);
 			// Resolve the mail address, so to have a user name instead of a mail address
 			hr = ResolveUser(lpAddrDir, lpRecipient);
 			if (hr == hrSuccess) {
@@ -3202,7 +3200,7 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 		// we have to strip off the @domainname.tld to get the username
 		strUsername = strUsername.substr(0, strUsername.find_first_of("@"));
 
-	ECRecipient single_recip(convert_to<std::wstring>(strUsername));
+	ECRecipient single_recip(strUsername);
 	
 	// Always try to resolve the user unless we just stripped an email address.
 	if (!bStringEmail) {
@@ -3227,12 +3225,12 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 		}
 		else {
 			// set commandline user in resolved name to deliver without resolve function
-			single_recip.wstrUsername = single_recip.wstrRCPT;
+			single_recip.wstrUsername = convert_to<std::wstring>(single_recip.wstrRCPT);
 		}
 	}
 	else {
 		// set commandline user in resolved name to deliver without resolve function
-		single_recip.wstrUsername = single_recip.wstrRCPT;
+		single_recip.wstrUsername = convert_to<std::wstring>(single_recip.wstrRCPT);
 	}
 	
 	hr = HrGetSession(lpArgs, single_recip.wstrUsername.c_str(), &~lpSession);

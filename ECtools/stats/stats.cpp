@@ -38,7 +38,6 @@
 #include <kopano/automapi.hpp>
 #include <kopano/ecversion.h>
 #include <kopano/memory.hpp>
-#include <kopano/charset/convert.h>
 #include <kopano/ECLogger.h>
 #include <kopano/mapi_ptr.h>
 #include "ConsoleTable.h"
@@ -583,9 +582,7 @@ int main(int argc, char *argv[])
 	object_ptr<IMAPISession> lpSession;
 	object_ptr<IMsgStore> lpStore;
 	eTableType eTable = INVALID_STATS;
-	const char *user = NULL;
-	const char *pass = NULL;
-	const char *host = NULL;
+	const char *user = nullptr, *pass = "", *host = nullptr;
 	bool humanreadable(true);
 
 	setlocale(LC_MESSAGES, "");
@@ -644,12 +641,12 @@ int main(int argc, char *argv[])
             return 1;
 	    }
 	}
-
-	auto strwUsername = convert_to<std::wstring>(user ? user : "SYSTEM");
-	auto strwPassword = convert_to<std::wstring>(pass ? pass : "");
-	hr = HrOpenECSession(&~lpSession, "stats", PROJECT_VERSION,
-	     strwUsername.c_str(), strwPassword.c_str(), host,
-	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE);
+	if (user == nullptr)
+		user = KOPANO_SYSTEM_USER;
+	if (pass == nullptr)
+		pass = "";
+	hr = HrOpenECSession(&~lpSession, "stats", PROJECT_VERSION, user, pass,
+	     host, EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE);
 	if (hr != hrSuccess) {
 		cout << "Cannot open admin session on host " << (host ? host : "localhost") << ", username " << (user ? user : "SYSTEM") << endl;
 		return EXIT_FAILURE;
