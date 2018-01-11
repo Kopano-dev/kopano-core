@@ -1640,16 +1640,14 @@ static HRESULT HrMessageExpired(IMessage *lpMessage, bool *bExpired)
 	 * If the message has an expiry date, and it is past that time,
 	 * skip delivering the email.
 	 */
-	if (HrGetOneProp(lpMessage, PR_EXPIRY_TIME, &~lpsExpiryTime) == hrSuccess) {
-		if (time(nullptr) > FileTimeToUnixTime(lpsExpiryTime->Value.ft)) {
-			// exit with no errors
-			hr = hrSuccess;
-			*bExpired = true;
-
-			ec_log_warn("Message was expired, not delivering");
-			// TODO: if a read-receipt was requested, we need to send a non-read read-receipt
-			goto exit;
-		}
+	if (HrGetOneProp(lpMessage, PR_EXPIRY_TIME, &~lpsExpiryTime) == hrSuccess &&
+	    time(nullptr) > FileTimeToUnixTime(lpsExpiryTime->Value.ft)) {
+		// exit with no errors
+		hr = hrSuccess;
+		*bExpired = true;
+		ec_log_warn("Message was expired, not delivering");
+		// TODO: if a read-receipt was requested, we need to send a non-read read-receipt
+		goto exit;
 	}
 
 	*bExpired = false;

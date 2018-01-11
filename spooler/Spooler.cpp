@@ -527,13 +527,11 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 
 		if (lpsRowSet->cRows == 0)		// All rows done
 			goto exit;
-		if (lpsRowSet[0].lpProps[4].ulPropTag == PR_DEFERRED_SEND_TIME) {
-			// check time
-			if (time(nullptr) < FileTimeToUnixTime(lpsRowSet[0].lpProps[4].Value.ft)) {
-				// if we ever add logging here, it should trigger just once for this mail
-				++later_mails;
-				continue;
-			}
+		if (lpsRowSet[0].lpProps[4].ulPropTag == PR_DEFERRED_SEND_TIME &&
+		    time(nullptr) < FileTimeToUnixTime(lpsRowSet[0].lpProps[4].Value.ft)) {
+			// if we ever add logging here, it should trigger just once for this mail
+			++later_mails;
+			continue;
 		}
 
 		// Check whether the row contains the entryid and store id
