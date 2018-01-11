@@ -352,7 +352,7 @@ def permission_options(store, options, server):
 
 def user_options(name, options, server):
     if options.create:
-        server.create_user(name)
+        server.create_user(name, create_store=False)
     user = server.user(name)
 
     shared_options(user, options, server)
