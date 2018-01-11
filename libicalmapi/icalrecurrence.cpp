@@ -236,7 +236,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	lpRec->setEndTimeOffset((lpRec->getStartTimeOffset() + dtUTCEnd - dtUTCStart) / 60);
 
 	// Set 0x8236, also known as ClipEnd in OutlookSpy
-	UnixTimeToFileTime(dtUTCUntil, &sPropVal.Value.ft);
+	sPropVal.Value.ft  = UnixTimeToFileTime(dtUTCUntil);
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCE_END], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
@@ -269,13 +269,13 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	// Set 0x8235, also known as ClipStart in OutlookSpy
-	UnixTimeToFileTime(LocalToUTC(recurrence::StartOfDay(lpRec->getStartDateTime()), sTimeZone), &sPropVal.Value.ft);
+	sPropVal.Value.ft  = UnixTimeToFileTime(LocalToUTC(recurrence::StartOfDay(lpRec->getStartDateTime()), sTimeZone));
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCE_START], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_RECURRENCEID_PROPERTY);
 	if(!lpicProp) {
-		UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime(), sTimeZone), &sPropVal.Value.ft);
+		sPropVal.Value.ft = UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime(), sTimeZone));
 
 		// Set 0x820D / ApptStartWhole
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
@@ -284,7 +284,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		// Set 0x8516 / CommonStart
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME);
 		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
-		UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime() + (dtUTCEnd - dtUTCStart), sTimeZone), &sPropVal.Value.ft);
+		sPropVal.Value.ft = UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime() + (dtUTCEnd - dtUTCStart), sTimeZone));
 
 		// Set 0x820E / ApptEndWhole
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
@@ -364,19 +364,19 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 		return hr;
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME);
-	UnixTimeToFileTime(ttOriginalUtcTime, &sPropVal.Value.ft);
+	sPropVal.Value.ft  = UnixTimeToFileTime(ttOriginalUtcTime);
 	lpEx->lstMsgProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_EXCEPTION_STARTTIME;
-	UnixTimeToFileTime(ttStartLocalTime, &sPropVal.Value.ft);
+	sPropVal.Value.ft  = UnixTimeToFileTime(ttStartLocalTime);
 	lpEx->lstAttachProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_EXCEPTION_ENDTIME;
-	UnixTimeToFileTime(ttEndLocalTime, &sPropVal.Value.ft);
+	sPropVal.Value.ft  = UnixTimeToFileTime(ttEndLocalTime);
 	lpEx->lstAttachProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
-	UnixTimeToFileTime(ttStartUtcTime, &sPropVal.Value.ft);	
+	sPropVal.Value.ft  = UnixTimeToFileTime(ttStartUtcTime);
 	lpEx->lstMsgProps.emplace_back(sPropVal);
 	
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME);
@@ -386,7 +386,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	lpEx->lstMsgProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
-	UnixTimeToFileTime(ttEndUtcTime, &sPropVal.Value.ft);	
+	sPropVal.Value.ft  = UnixTimeToFileTime(ttEndUtcTime);
 	lpEx->lstMsgProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME);
@@ -396,7 +396,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	lpEx->lstMsgProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_EXCEPTION_ENDTIME;
-	UnixTimeToFileTime(ttEndLocalTime, &sPropVal.Value.ft);
+	sPropVal.Value.ft  = UnixTimeToFileTime(ttEndLocalTime);
 	lpEx->lstAttachProps.emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_DISPLAY_NAME_W;
@@ -620,7 +620,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 					ttReminderTime = ttStartLocalTime;
 
 				sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_SYSTIME);
-				UnixTimeToFileTime(ttReminderTime, &sPropVal.Value.ft);
+				sPropVal.Value.ft  = UnixTimeToFileTime(ttReminderTime);
 				lpEx->lstMsgProps.emplace_back(sPropVal);
 			}
 

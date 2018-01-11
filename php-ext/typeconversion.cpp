@@ -361,7 +361,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 		case PT_SYSTIME:
 			convert_to_long_ex(entry);
 			// convert timestamp to windows FileTime
-			UnixTimeToFileTime(entry[0]->value.lval, &lpPropValue[cvalues++].Value.ft);
+			lpPropValue[cvalues++].Value.ft = UnixTimeToFileTime(entry[0]->value.lval);
 			break;
 		case PT_BINARY:
 			convert_to_string_ex(entry);
@@ -460,7 +460,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			for (j = 0; j < countarray; ++j) {
 				zend_hash_get_current_data(dataHash, (void **)&dataEntry);
 				convert_to_long_ex(dataEntry);
-				UnixTimeToFileTime(dataEntry[0]->value.lval, &lpPropValue[cvalues].Value.MVft.lpft[j]);
+				lpPropValue[cvalues].Value.MVft.lpft[j] = UnixTimeToFileTime(dataEntry[0]->value.lval);
 				zend_hash_move_forward(dataHash);
 			}
 			++cvalues;
@@ -1158,7 +1158,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 				break;
 			case PT_SYSTIME:
 				convert_to_long_ex(valueEntry);
-				UnixTimeToFileTime(valueEntry[0]->value.lval, &lpProp->Value.ft);
+				lpProp->Value.ft = UnixTimeToFileTime(valueEntry[0]->value.lval);
 				break;
 			case PT_BINARY:
 				convert_to_string_ex(valueEntry);

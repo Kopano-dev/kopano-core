@@ -34,15 +34,10 @@
 
 namespace KC {
 
-HRESULT UnixTimeToFileTime(time_t t, FILETIME *ft)
+FILETIME UnixTimeToFileTime(time_t t)
 {
-    __int64 l;
-
-    l = (__int64)t * 10000000 + NANOSECS_BETWEEN_EPOCHS;
-    ft->dwLowDateTime = (unsigned int)l;
-    ft->dwHighDateTime = (unsigned int)(l >> 32);
-
-	return hrSuccess;
+	auto l = static_cast<int64_t>(t) * 10000000 + NANOSECS_BETWEEN_EPOCHS;
+	return {static_cast<DWORD>(l), static_cast<DWORD>(l >> 32)};
 }
 
 time_t FileTimeToUnixTime(const FILETIME &ft)
@@ -99,7 +94,7 @@ time_t RTimeToUnixTime(LONG rtime)
 LONG UnixTimeToRTime(time_t unixtime)
 {
 	FILETIME ft;
-	UnixTimeToFileTime(unixtime, &ft);
+	ft = UnixTimeToFileTime(unixtime);
 	return FileTimeToRTime(ft);
 }
 

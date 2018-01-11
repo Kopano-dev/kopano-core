@@ -42,7 +42,7 @@ FILETIME vmimeDatetimeToFiletime(vmime::datetime dt) {
 	when.tm_year	= iYear - 1900;
 	when.tm_isdst	= -1;		// ignore dst
 	auto lTmpTime = timegm(&when);
-	UnixTimeToFileTime(lTmpTime, &sFiletime);
+	sFiletime = UnixTimeToFileTime(lTmpTime);
 	return sFiletime;
 }
 

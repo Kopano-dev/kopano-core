@@ -494,9 +494,9 @@ HRESULT VConverter::HrAddRecurrenceID(icalcomponent *lpiEvent, icalitem *lpIcalI
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME);
 	if (icalproperty_get_recurrenceid(icProp).is_date)
-		UnixTimeToFileTime(icaltime_as_timet(icalproperty_get_recurrenceid (icProp)), &sPropVal.Value.ft);
+		sPropVal.Value.ft = UnixTimeToFileTime(icaltime_as_timet(icalproperty_get_recurrenceid(icProp)));
 	else
-		UnixTimeToFileTime(ICalTimeTypeToLocal(icProp), &sPropVal.Value.ft);
+		sPropVal.Value.ft = UnixTimeToFileTime(ICalTimeTypeToLocal(icProp));
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);	
 
 	//RECURRENCE-ID is present only for exception
@@ -769,7 +769,7 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 				continue;
 			auto ttCritcalChange = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ATTENDEECRITICALCHANGE], PT_SYSTIME);
-			UnixTimeToFileTime(ttCritcalChange, &sPropVal.Value.ft);
+			sPropVal.Value.ft  = UnixTimeToFileTime(ttCritcalChange);
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
 
@@ -779,7 +779,7 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 				continue;
 			auto ttCritcalChange = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OWNERCRITICALCHANGE], PT_SYSTIME);
-			UnixTimeToFileTime(ttCritcalChange, &sPropVal.Value.ft);
+			sPropVal.Value.ft  = UnixTimeToFileTime(ttCritcalChange);
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
 
@@ -1245,7 +1245,7 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
 			ttReminderNext = icaltime_as_timet_with_zone(icalvalue_get_datetime(lpicValue), NULL); // no timezone			
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME);
-			UnixTimeToFileTime(ttReminderNext, &sPropVal.Value.ft);
+			sPropVal.Value.ft  = UnixTimeToFileTime(ttReminderNext);
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			
 			// X-MOZ-SNOOZE-TIME-1231250400000000
@@ -1255,7 +1255,7 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 				sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZ_SNOOZE_SUFFIX], PT_SYSTIME);
 				strSuffix.erase(0, strlen("X-MOZ-SNOOZE-TIME-"));
 				strSuffix.erase(10);									// ignoring trailing 6 zeros for hh:mm:ss
-				UnixTimeToFileTime(atoi(strSuffix.c_str()), &sPropVal.Value.ft);
+				sPropVal.Value.ft = UnixTimeToFileTime(atoi(strSuffix.c_str()));
 				lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			}
 			icalvalue_free(lpicValue);
@@ -1275,7 +1275,7 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 
 	if (bHasMozAck) { // save X-MOZ-LAST-ACK if found in request.
 		sPropMozAck.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZLASTACK], PT_SYSTIME);
-		UnixTimeToFileTime(ttMozLastAckMax, &sPropMozAck.Value.ft);		
+		sPropMozAck.Value.ft  = UnixTimeToFileTime(ttMozLastAckMax);
 		lpIcalItem->lstMsgProps.emplace_back(sPropMozAck);
 	}
 	else { //delete X-MOZ-LAST-ACK if not found in request.
@@ -1302,7 +1302,7 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 		ttReminderTime = ICalTimeTypeToUTC(lpicEventRoot, lpicDTStartProp);
 	}
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_SYSTIME);
-	UnixTimeToFileTime(ttReminderTime, &sPropVal.Value.ft);
+	sPropVal.Value.ft  = UnixTimeToFileTime(ttReminderTime);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 	if (ttReminderNext != 0)
@@ -1313,7 +1313,7 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 		return hrSuccess;
 	}
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME);
-	UnixTimeToFileTime(ttReminderTime - (ulRemindBefore * 60), &sPropVal.Value.ft);
+	sPropVal.Value.ft  = UnixTimeToFileTime(ttReminderTime - ulRemindBefore * 60);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	return hrSuccess;
 }
@@ -2708,7 +2708,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 	SPropValue sMethod = {0};
 
 	sStart.ulPropTag = PR_EXCEPTION_STARTTIME;
-	UnixTimeToFileTime(tStart, &sStart.Value.ft);
+	sStart.Value.ft  = UnixTimeToFileTime(tStart);
 	sMethod.ulPropTag = PR_ATTACH_METHOD;
 	sMethod.Value.ul = ATTACH_EMBEDDED_MSG;
 	auto hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);

@@ -351,7 +351,7 @@ HRESULT ScCreateConversationIndex(ULONG cbParent, LPBYTE lpbParent,
 		cbConvIndex = sizeof(CONVERSATION_INDEX);
 		auto ci = reinterpret_cast<CONVERSATION_INDEX *>(pbConvIndex);
 		ci->ulReserved1 = 1;
-		UnixTimeToFileTime(time(NULL), &ft);
+		ft = UnixTimeToFileTime(time(nullptr));
 		uint32_t tmp = cpu_to_le32(ft.dwLowDateTime);
 		memcpy(ci->ftTime, &tmp, sizeof(tmp));
 		ci->ftTime[4] = ft.dwHighDateTime;
@@ -370,7 +370,7 @@ HRESULT ScCreateConversationIndex(ULONG cbParent, LPBYTE lpbParent,
 		memcpy(&parent.dwLowDateTime, &ci->ftTime, sizeof(DWORD));
 		parent.dwLowDateTime = le32_to_cpu(parent.dwLowDateTime);
 		parent.dwHighDateTime = lpbParent[4];
-		UnixTimeToFileTime(time(NULL), &now);
+		now = UnixTimeToFileTime(time(nullptr));
 
 		diff = FtSubFt(now, parent);
 		diff.dwLowDateTime = cpu_to_le32(diff.dwLowDateTime);

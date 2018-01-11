@@ -53,9 +53,7 @@ HRESULT HrGenerateUid(std::string *lpStrData)
 	HRESULT hr = CoCreateGuid(&sGuid);
 	if (hr != hrSuccess)
 		return hr;
-	hr = UnixTimeToFileTime(time(NULL), &ftNow);
-	if (hr != hrSuccess)
-		return hr;
+	ftNow = UnixTimeToFileTime(time(nullptr));
 	auto strBinUid = outlook_guid;
 	strBinUid += "00000000";	// InstanceDate
 	strBinUid += bin2hex(sizeof(FILETIME), &ftNow);

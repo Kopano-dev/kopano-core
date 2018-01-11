@@ -5938,8 +5938,8 @@ ZEND_FUNCTION(mapi_freebusydata_enumblocks)
 
 	ZEND_FETCH_RESOURCE_C(lpFBData, IFreeBusyData*, &resFBData, -1, name_fb_data, le_freebusy_data);
 
-	UnixTimeToFileTime(ulUnixStart, &ftmStart);
-	UnixTimeToFileTime(ulUnixEnd, &ftmEnd);
+	ftmStart = UnixTimeToFileTime(ulUnixStart);
+	ftmEnd   = UnixTimeToFileTime(ulUnixEnd);
 
 	MAPI_G(hr) = lpFBData->EnumBlocks(&lpEnumBlock, ftmStart, ftmEnd);
 	if(MAPI_G(hr) != hrSuccess)
@@ -6115,8 +6115,8 @@ ZEND_FUNCTION(mapi_freebusyenumblock_restrict)
 
 	ZEND_FETCH_RESOURCE_C(lpEnumBlock, IEnumFBBlock*, &resEnumBlock, -1, name_fb_enumblock, le_freebusy_enumblock);
 
-	UnixTimeToFileTime(ulUnixStart, &ftmStart);
-	UnixTimeToFileTime(ulUnixEnd, &ftmEnd);
+	ftmStart = UnixTimeToFileTime(ulUnixStart);
+	ftmEnd   = UnixTimeToFileTime(ulUnixEnd);
 
 	MAPI_G(hr) = lpEnumBlock->Restrict(ftmStart, ftmEnd);
 	if(MAPI_G(hr) != hrSuccess)
@@ -6253,8 +6253,8 @@ ZEND_FUNCTION(mapi_freebusyupdate_savechanges)
 
 	ZEND_FETCH_RESOURCE_C(lpFBUpdate, IFreeBusyUpdate*, &resFBUpdate, -1, name_fb_update, le_freebusy_update);
 
-	UnixTimeToFileTime(ulUnixStart, &ftmStart);
-	UnixTimeToFileTime(ulUnixEnd, &ftmEnd);
+	ftmStart = UnixTimeToFileTime(ulUnixStart);
+	ftmEnd   = UnixTimeToFileTime(ulUnixEnd);
 
 	MAPI_G(hr) = lpFBUpdate->SaveChanges(ftmStart, ftmEnd);
 	if(MAPI_G(hr) != hrSuccess)

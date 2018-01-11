@@ -5242,7 +5242,7 @@ FILETIME IMAP::StringToFileTime(string strTime, bool bDateOnly) {
 
 done:
 	sTime = timegm(&sTm);
-	UnixTimeToFileTime(sTime, &sFileTime);
+	sFileTime = UnixTimeToFileTime(sTime);
 	return sFileTime;
 }
 
@@ -5257,7 +5257,7 @@ FILETIME IMAP::AddDay(FILETIME sFileTime) {
 	FILETIME sFT;
 
 	// add 24 hour in seconds = 24*60*60 seconds
-	UnixTimeToFileTime(FileTimeToUnixTime(sFileTime) + 24 * 60 * 60, &sFT);
+	sFT = UnixTimeToFileTime(FileTimeToUnixTime(sFileTime) + 24 * 60 * 60);
 	return sFT;
 }
 

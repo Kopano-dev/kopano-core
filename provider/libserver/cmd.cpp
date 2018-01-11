@@ -1034,7 +1034,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 	ulDeleteFlags = EC_DELETE_CONTAINER | EC_DELETE_FOLDERS | EC_DELETE_MESSAGES | EC_DELETE_RECIPIENTS | EC_DELETE_ATTACHMENTS | EC_DELETE_HARD_DELETE;
 
 	GetSystemTimeAsFileTime(&ft);
-	UnixTimeToFileTime(FileTimeToUnixTime(ft) - ulLifetime, &ft);
+	ft = UnixTimeToFileTime(FileTimeToUnixTime(ft) - ulLifetime);
 
 	// Select softdeleted stores (ignore softdelete_lifetime setting because a store can't be restored anyway)
 	strQuery = "SELECT id FROM hierarchy WHERE parent IS NULL AND (flags&"+stringify(MSGFLAG_DELETED)+")="+stringify(MSGFLAG_DELETED)+" AND type="+stringify(MAPI_STORE);
@@ -2218,7 +2218,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		unsigned int tags[] = {PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME};
 
 		// Get current time
-		UnixTimeToFileTime(time(NULL), &ft);
+		ft = UnixTimeToFileTime(time(nullptr));
 
 		sPropTime.Value.hilo = s_alloc<struct hiloLong>(soap);
 		sPropTime.Value.hilo->hi = ft.dwHighDateTime;

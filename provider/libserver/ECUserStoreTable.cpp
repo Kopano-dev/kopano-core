@@ -154,7 +154,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 			case PROP_ID(PR_LAST_MODIFICATION_TIME):
 				if (pThis->m_mapUserStoreData[row.ulObjId].tModTime != 0) {
 					FILETIME ftTmp;
-					UnixTimeToFileTime(pThis->m_mapUserStoreData[row.ulObjId].tModTime, &ftTmp);
+					ftTmp = UnixTimeToFileTime(pThis->m_mapUserStoreData[row.ulObjId].tModTime);
 
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
