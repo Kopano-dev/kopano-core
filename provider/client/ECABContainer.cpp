@@ -253,13 +253,8 @@ HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	HRESULT			hr = hrSuccess;
 	object_ptr<ECMAPITable> lpTable;
 	object_ptr<WSTableView> lpTableOps;
-	SizedSSortOrderSet(1, sSortByDisplayName);
-
-	sSortByDisplayName.cSorts = 1;
-	sSortByDisplayName.cCategories = 0;
-	sSortByDisplayName.cExpanded = 0;
-	sSortByDisplayName.aSort[0].ulPropTag = PR_DISPLAY_NAME;
-	sSortByDisplayName.aSort[0].ulOrder = TABLE_SORT_ASCEND;
+	static constexpr const SizedSSortOrderSet(1, sSortByDisplayName) =
+		{1, 0, 0, {{PR_DISPLAY_NAME, TABLE_SORT_ASCEND}}};
 
 	hr = ECMAPITable::Create("AB Contents", nullptr, 0, &~lpTable);
 	if(hr != hrSuccess)

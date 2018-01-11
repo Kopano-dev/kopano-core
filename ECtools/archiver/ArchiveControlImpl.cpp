@@ -652,6 +652,8 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 	const tstring strFolderRestore = m_lpLogger->GetFolder();
 	static constexpr const SizedSPropTagArray(3, sptaProps) =
 		{3, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
+	static constexpr const SizedSSortOrderSet(1, sptaOrder) =
+		{1, 0, 0, {{PR_PARENT_ENTRYID, TABLE_SORT_ASCEND}}};
 
 	auto hr = ptrFolder->GetContentsTable(fMapiDeferredErrors, &~ptrTable);
 	if (hr != hrSuccess) {
@@ -674,17 +676,7 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set restriction on table. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
 	}
-	hr = MAPIAllocateBuffer(CbNewSSortOrderSet(1), &~ptrSortOrder);
-	if (hr != hrSuccess)
-		goto exit;
-
-	ptrSortOrder->cSorts = 1;
-	ptrSortOrder->cCategories = 0;
-	ptrSortOrder->cExpanded = 0;
-	ptrSortOrder->aSort[0].ulPropTag = PR_PARENT_ENTRYID;
-	ptrSortOrder->aSort[0].ulOrder = TABLE_SORT_ASCEND ;
-
-	hr = ptrTable->SortTable(ptrSortOrder, TBL_BATCH);
+	hr = ptrTable->SortTable(sptaOrder, TBL_BATCH);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to sort table. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
