@@ -897,12 +897,7 @@ HRESULT CopySOAPEntryIdToMAPIEntryId(const entryId *lpSrc, ULONG ulObjId,
 
 	if((unsigned int)lpSrc->__size < CbNewABEID("") || lpSrc->__ptr == NULL)
 		return MAPI_E_INVALID_ENTRYID;
-
-	if (lpBase != NULL)
-		hr = MAPIAllocateMore(lpSrc->__size, lpBase, (void**)&lpEntryId);
-	else
-		hr = MAPIAllocateBuffer(lpSrc->__size, (void**)&lpEntryId);
-
+	hr = MAPIAllocateMore(lpSrc->__size, lpBase, reinterpret_cast<void **>(&lpEntryId));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2274,10 +2269,7 @@ static HRESULT CopyMAPISourceKeyToSoapSourceKey(const SBinary *lpsMAPISourceKey,
 		return MAPI_E_INVALID_PARAMETER;
 
 	sSoapSourceKey.__size = (int)lpsMAPISourceKey->cb;
-	if (lpBase)
-		hr = MAPIAllocateMore(lpsMAPISourceKey->cb, lpBase, (void**)&sSoapSourceKey.__ptr);
-	else
-		hr = MAPIAllocateBuffer(lpsMAPISourceKey->cb, (void**)&sSoapSourceKey.__ptr);
+	hr = MAPIAllocateMore(lpsMAPISourceKey->cb, lpBase, reinterpret_cast<void **>(&sSoapSourceKey.__ptr));
 	if (hr != hrSuccess)
 		return hr;
 

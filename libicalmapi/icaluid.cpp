@@ -81,12 +81,9 @@ HRESULT HrCreateGlobalID(ULONG ulNamedTag, void *base, LPSPropValue *lppPropVal)
 	LPSPropValue lpPropVal = NULL;
 	std::string strUid, strBinUid;
 
-	if (base) {
-		hr = MAPIAllocateMore(sizeof(SPropValue), base, (void**)&lpPropVal);
-	} else {
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpPropVal);
+	hr = MAPIAllocateMore(sizeof(SPropValue), base, reinterpret_cast<void **>(&lpPropVal));
+	if (base == nullptr)
 		base = lpPropVal;
-	}
 	if (hr != hrSuccess)
 		return hr;
 

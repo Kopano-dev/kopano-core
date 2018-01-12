@@ -90,10 +90,7 @@ HRESULT ECRestriction::CopyProp(SPropValue *lpPropSrc, void *lpBase,
 
 	if (lpPropSrc == nullptr || lppPropDst == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	if (lpBase == NULL)
-		hr = MAPIAllocateBuffer(sizeof *lpPropDst, &~lpPropDst);
-	else
-		hr = MAPIAllocateMore(sizeof *lpPropDst, lpBase, &~lpPropDst);
+	hr = MAPIAllocateMore(sizeof(*lpPropDst), lpBase, &~lpPropDst);
 	if (hr != hrSuccess)
 		return hr;
 	if (ulFlags & Shallow)

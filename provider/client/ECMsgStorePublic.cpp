@@ -316,10 +316,7 @@ HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, voi
 			return MAPI_E_INVALID_PARAMETER;
 	}
 
-	if (lpBase)
-		hr = MAPIAllocateMore(cbPublicID, lpBase, (void**)&lpEntryID);
-	else
-		hr = MAPIAllocateBuffer(cbPublicID, (void**)&lpEntryID);
+	hr = MAPIAllocateMore(cbPublicID, lpBase, reinterpret_cast<void **>(&lpEntryID));
 	if (hr != hrSuccess)
 		return hr;
 

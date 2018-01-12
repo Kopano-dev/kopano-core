@@ -830,11 +830,7 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID,
 		return MAPI_E_INVALID_PARAMETER;
 
 	cbEntryID = CbEID(&eid);
-
-	if (lpBase)
-		hr = MAPIAllocateMore(cbEntryID, lpBase, (void**)&lpEntryID);
-	else
-		hr = MAPIAllocateBuffer(cbEntryID, (void**)&lpEntryID);
+	hr = MAPIAllocateMore(cbEntryID, lpBase, reinterpret_cast<void **>(&lpEntryID));
 	if (hr != hrSuccess)
 		return hr;
 

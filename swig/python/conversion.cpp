@@ -641,17 +641,10 @@ SPropValue *Object_to_p_SPropValue(PyObject *object, ULONG ulFlags,
 {
 	LPSPropValue lpProp = NULL;
 
-	if(lpBase) {
-		if (MAPIAllocateMore(sizeof(SPropValue), lpBase, (void **)&lpProp) != hrSuccess)
-			return NULL;
-	}
-	else {
-		if (MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpProp) != hrSuccess)
-			return NULL;
-
+	if (MAPIAllocateMore(sizeof(SPropValue), lpBase, reinterpret_cast<void **>(&lpProp)) != hrSuccess)
+		return NULL;
+	if (lpBase == nullptr)
 		lpBase = lpProp;
-	}
-
 	Object_to_LPSPropValue(object, lpProp, ulFlags, lpBase);
 
 	if (!PyErr_Occurred())
