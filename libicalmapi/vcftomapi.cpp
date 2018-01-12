@@ -247,13 +247,10 @@ HRESULT vcftomapi_impl::handle_UID(VObject *v)
 
 	SPropValue s;
 	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
-
-	hr = MAPIAllocateBuffer(prop->Value.bin.cb, reinterpret_cast<void **>(&s.Value.bin.lpb));
+	s.Value.bin.cb = prop->Value.bin.cb;
+	hr = KAllocCopy(prop->Value.bin.lpb, prop->Value.bin.cb, reinterpret_cast<void **>(&s.Value.bin.lpb));
 	if (hr != hrSuccess)
 		return hr;
-
-	memcpy(s.Value.bin.lpb, prop->Value.bin.lpb, prop->Value.bin.cb);
-	s.Value.bin.cb = prop->Value.bin.cb;
 	props.emplace_back(s);
 
 	return hrSuccess;

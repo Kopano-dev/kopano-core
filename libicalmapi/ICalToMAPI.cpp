@@ -536,20 +536,17 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 		rg[2].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
 		rg[3].ulPropTag = PR_ENTRYID;
 		rg[3].Value.bin.cb = recip.cbEntryID;
-		hr = MAPIAllocateMore(recip.cbEntryID, rg,
-		     reinterpret_cast<void **>(&rg[3].Value.bin.lpb));
+		hr = KAllocCopy(recip.lpEntryID, recip.cbEntryID, reinterpret_cast<void **>(&rg[3].Value.bin.lpb), rg);
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(rg[3].Value.bin.lpb, recip.lpEntryID, recip.cbEntryID);
 		rg[4].ulPropTag = PR_ADDRTYPE_W;
 		rg[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 		strSearch = strToUpper("SMTP:" + converter.convert_to<std::string>(recip.strEmail));
 		rg[5].ulPropTag = PR_SEARCH_KEY;
 		rg[5].Value.bin.cb = strSearch.size() + 1;
-		hr = MAPIAllocateMore(strSearch.size() + 1, rg, reinterpret_cast<void **>(&rg[5].Value.bin.lpb));
+		hr = KAllocCopy(strSearch.c_str(), strSearch.size() + 1, reinterpret_cast<void **>(&rg[5].Value.bin.lpb), rg);
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(rg[5].Value.bin.lpb, strSearch.c_str(), strSearch.size()+1);
 		rg[6].ulPropTag = PR_EMAIL_ADDRESS_W;
 		rg[6].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
 		rg[7].ulPropTag = PR_DISPLAY_TYPE;

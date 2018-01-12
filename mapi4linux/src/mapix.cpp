@@ -2694,4 +2694,13 @@ HRESULT kc_session_restore(const std::string &a, IMAPISession **s)
 	return SessionRestorer().restore_profile(a, s);
 }
 
+SCODE KAllocCopy(const void *src, size_t z, void **dst, void *base)
+{
+	auto ret = MAPIAllocateMore(z, base, dst);
+	if (ret != hrSuccess)
+		return ret;
+	memcpy(*dst, src, z);
+	return hrSuccess;
+}
+
 } /* namespace */

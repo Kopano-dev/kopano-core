@@ -53,12 +53,9 @@ static HRESULT MAPICopyMem(ULONG cb, const void *lpb, void *lpBase, ULONG *lpCb,
         *lpCb = 0;
 		return hrSuccess;
     }
-    
-	HRESULT hr = MAPIAllocateMore(cb, lpBase, lpDest);
+	auto hr = KAllocCopy(lpb, cb, lpDest, lpBase);
 	if (hr != hrSuccess)
 		return hr;
-        
-    memcpy(*lpDest, lpb, cb);
     *lpCb = cb;
 	return hrSuccess;
 }
@@ -69,13 +66,7 @@ static HRESULT MAPICopyString(const char *lpSrc, void *lpBase, char **lpDst)
         *lpDst = NULL;
 		return hrSuccess;
 	}
-    
-	HRESULT hr = MAPIAllocateMore(strlen(lpSrc) + 1, lpBase,
-	             reinterpret_cast<void **>(lpDst));
-	if (hr != hrSuccess)
-		return hr;
-	strcpy(*lpDst, lpSrc);
-	return hrSuccess;
+	return KAllocCopy(lpSrc, strlen(lpSrc) + 1, reinterpret_cast<void **>(lpDst), lpBase);
 }
 
 static HRESULT MAPICopyUnicode(const wchar_t *lpSrc, void *lpBase, wchar_t **lpDst)
@@ -84,13 +75,7 @@ static HRESULT MAPICopyUnicode(const wchar_t *lpSrc, void *lpBase, wchar_t **lpD
         *lpDst = NULL;
 		return hrSuccess;
     }
-    
-	HRESULT hr = MAPIAllocateMore(wcslen(lpSrc) * sizeof(WCHAR) +
-	             sizeof(WCHAR), lpBase, reinterpret_cast<void **>(lpDst));
-	if (hr != hrSuccess)
-		return hr;
-	wcscpy(*lpDst, lpSrc);
-	return hrSuccess;
+	return KAllocCopy(lpSrc, (wcslen(lpSrc) + 1) * sizeof(WCHAR), reinterpret_cast<void **>(lpDst), lpBase);
 }
 
 static HRESULT CopyMAPIERROR(const MAPIERROR *lpSrc, void *lpBase,

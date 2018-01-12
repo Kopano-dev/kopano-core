@@ -489,12 +489,9 @@ HRESULT ECCreateOneOff(const TCHAR *lpszName, const TCHAR *lpszAdrType,
 		strOneOff.append(addr, strlen(addr) + 1);
 	}
 
-	HRESULT hr = MAPIAllocateBuffer(strOneOff.size(),
-	             reinterpret_cast<void **>(lppEntryID));
+	auto hr = KAllocCopy(strOneOff.c_str(), strOneOff.size(), reinterpret_cast<void **>(lppEntryID));
 	if(hr != hrSuccess)
 		return hr;
-
-	memcpy(*lppEntryID, strOneOff.c_str(), strOneOff.size());
 	*lpcbEntryID = strOneOff.size();
 	return hrSuccess;
 }

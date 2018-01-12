@@ -210,9 +210,9 @@ HRESULT iCal::HrHandleIcalPost()
 			else
 				continue; // skip new entries
 			sbEid.cb = lpRows[i].lpProps[0].Value.bin.cb;
-			if ((hr = MAPIAllocateBuffer(sbEid.cb, (void **)&sbEid.lpb)) != hrSuccess)
+			hr = KAllocCopy(lpRows[i].lpProps[0].Value.bin.lpb, sbEid.cb, reinterpret_cast<void **>(&sbEid.lpb));
+			if (hr != hrSuccess)
 				goto exit;
-			memcpy(sbEid.lpb, lpRows[i].lpProps[0].Value.bin.lpb, sbEid.cb);
 			strUidString = bin2hex(sbUid);
 			mpSrvEntries[strUidString] = sbEid;
 			if (lpRows[i].lpProps[1].ulPropTag == PR_LAST_MODIFICATION_TIME)
@@ -403,11 +403,9 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 		return hrSuccess; /* ignoring private items */
 
 	lpEntryList->lpbin[0].cb = sbEid.cb;
-	if ((hr = MAPIAllocateMore(sbEid.cb, lpEntryList, (void**)&lpEntryList->lpbin[0].lpb)) != hrSuccess)
+	hr = KAllocCopy(sbEid.lpb, sbEid.cb, reinterpret_cast<void **>(&lpEntryList->lpbin[0].lpb), lpEntryList);
+	if (hr != hrSuccess)
 		return hr;
-
-	memcpy(lpEntryList->lpbin[0].lpb, sbEid.lpb, sbEid.cb);
-				
 	hr = m_lpUsrFld->DeleteMessages(lpEntryList, 0, NULL, MESSAGE_DIALOG);
 	if(hr != hrSuccess)
 		ec_log_err("Error while deleting a calendar entry, error code: 0x%08X",hr);

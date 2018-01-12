@@ -96,13 +96,9 @@ HRESULT HrCreateGlobalID(ULONG ulNamedTag, void *base, LPSPropValue *lppPropVal)
 	strBinUid = hex2bin(strUid);
 
 	lpPropVal->Value.bin.cb = strBinUid.length();
-
-	hr = MAPIAllocateMore(lpPropVal->Value.bin.cb, base, (void**)&lpPropVal->Value.bin.lpb);
+	hr = KAllocCopy(strBinUid.data(), lpPropVal->Value.bin.cb, reinterpret_cast<void **>(&lpPropVal->Value.bin.lpb), base);
 	if (hr != hrSuccess)
 		goto exit;
-
-	memcpy(lpPropVal->Value.bin.lpb, strBinUid.data(), lpPropVal->Value.bin.cb);
-
 	*lppPropVal = lpPropVal;
 
 exit:
@@ -203,11 +199,9 @@ HRESULT HrMakeBinaryUID(const std::string &strUid, void *base, SPropValue *lpPro
 
 	// Caller sets .ulPropTag
 	sPropValue.Value.bin.cb = strBinUid.size();
-	HRESULT hr = MAPIAllocateMore(sPropValue.Value.bin.cb, base,
-	             reinterpret_cast<void **>(&sPropValue.Value.bin.lpb));
+	auto hr = KAllocCopy(strBinUid.data(), sPropValue.Value.bin.cb, reinterpret_cast<void **>(&sPropValue.Value.bin.lpb), base);
 	if (hr != hrSuccess)
 		return hr;
-	memcpy(sPropValue.Value.bin.lpb, strBinUid.data(), sPropValue.Value.bin.cb);
 
 	// set return value
 	lpPropValue->Value.bin.cb  = sPropValue.Value.bin.cb;

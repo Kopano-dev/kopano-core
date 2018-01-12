@@ -5589,11 +5589,9 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
             if(hr != hrSuccess)
 				return hr;
             cbEntryID = lpProp->Value.bin.cb;
-            hr = MAPIAllocateBuffer(cbEntryID, (void **)&lpEntryID);
+            hr = KAllocCopy(lpProp->Value.bin.lpb, cbEntryID, reinterpret_cast<void **>(&lpEntryID));
             if(hr != hrSuccess)
 				return hr;
-            memcpy(lpEntryID, lpProp->Value.bin.lpb, cbEntryID);
-            
             *lppEntryID = lpEntryID;
             *lpcbEntryID = cbEntryID;
 			return hr;
@@ -5634,13 +5632,9 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
 		return MAPI_E_INVALID_PARAMETER;
     
     cbEntryID = lpRowSet->aRow[0].lpProps[0].Value.bin.cb;
-
-    hr = MAPIAllocateBuffer(cbEntryID, (void **)&lpEntryID);
+	hr = KAllocCopy(lpRowSet->aRow[0].lpProps[0].Value.bin.lpb, cbEntryID, reinterpret_cast<void **>(&lpEntryID));
     if(hr != hrSuccess)
 		return hr;
-        
-    memcpy(lpEntryID, lpRowSet->aRow[0].lpProps[0].Value.bin.lpb, cbEntryID);
-    
     *lppEntryID = lpEntryID;
     *lpcbEntryID = cbEntryID;
 	return hrSuccess;

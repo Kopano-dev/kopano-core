@@ -266,6 +266,7 @@ namespace KC {
 
 extern _kc_export HRESULT kc_session_save(IMAPISession *, std::string &);
 extern _kc_export HRESULT kc_session_restore(const std::string &, IMAPISession **);
+extern _kc_export SCODE KAllocCopy(const void *src, size_t z, void **dst, void *base = nullptr);
 
 }
 

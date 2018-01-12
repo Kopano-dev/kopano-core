@@ -819,15 +819,12 @@ HRESULT CalDAV::HrHandleDelete()
 		ec_log_debug("CalDAV::HrHandleDelete mapiallocatemore failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-	
-	hr = MAPIAllocateMore(sbEid.cb, lpEntryList, (void**)&lpEntryList->lpbin[0].lpb);
+	lpEntryList->lpbin[0].cb = sbEid.cb;
+	hr = KAllocCopy(sbEid.lpb, sbEid.cb, reinterpret_cast<void **>(&lpEntryList->lpbin[0].lpb), lpEntryList);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandleDelete mapiallocatemore(2) failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-
-	lpEntryList->lpbin[0].cb = sbEid.cb;
-	memcpy(lpEntryList->lpbin[0].lpb, sbEid.lpb, sbEid.cb);
 
 	wstrFldTmpName = wstrFldName;
 	while (true) {
@@ -924,16 +921,12 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 		ec_log_debug("CalDAV::HrMoveEntry MAPIAllocateMore failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
 	}
-	
-	hr = MAPIAllocateMore(sbEid.cb, lpEntryList, (void**)&lpEntryList->lpbin[0].lpb);
+	lpEntryList->lpbin[0].cb = sbEid.cb;
+	hr = KAllocCopy(sbEid.lpb, sbEid.cb, reinterpret_cast<void **>(&lpEntryList->lpbin[0].lpb), lpEntryList);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrMoveEntry MAPIAllocateMore(2) failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
 	}
-
-	lpEntryList->lpbin[0].cb = sbEid.cb;
-	memcpy(lpEntryList->lpbin[0].lpb, sbEid.lpb, sbEid.cb);
-
 	hr = m_lpUsrFld->CopyMessages(lpEntryList, NULL, lpDestFolder, 0, NULL, MAPI_MOVE);
 	if (hr != hrSuccess)
 	{
