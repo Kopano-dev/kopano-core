@@ -384,7 +384,6 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 
 	// return message
 	hr = lpReplyMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
- exitpm:
 	return hr;
 }
 
@@ -764,7 +763,6 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 		MungeForwardBody(lpFwdMsg, lpOrigMessage);
 	}
 	*lppMessage = lpFwdMsg.release();
- exitpm:
 	return hr;
 }
 
@@ -840,7 +838,9 @@ static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		 */
 		PROPMAP_START(1)
 		PROPMAP_NAMED_ID(KopanoRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-kopano-rule-action")
-		PROPMAP_INIT((*lppMessage));
+		hr = m_propmap.Resolve(*lppMessage);
+		if (hr != hrSuccess)
+			return -1;
 
 		memory_ptr<SPropValue> lpPropRule;
 		if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &~lpPropRule) == hrSuccess) {
@@ -867,8 +867,6 @@ static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 	// update original message, set as forwarded
 	bAddFwdFlag = true;
 	return 2;
- exitpm:
-	return -1;
 }
 
 // lpMessage: gets EntryID, maybe pass this and close message in DAgent.cpp

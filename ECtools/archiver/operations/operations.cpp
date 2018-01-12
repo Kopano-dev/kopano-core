@@ -94,7 +94,6 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 			)
 		);
 	hr = resResult.CreateMAPIRestriction(lppRestriction, ECRestriction::Full);
- exitpm:
 	return hr;
 }
 
