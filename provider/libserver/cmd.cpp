@@ -3442,24 +3442,24 @@ SOAP_ENTRY_START(createFolder, lpsResponse->er, entryId sParentId,
 	er = lpDatabase->Begin();
 	if (er != erSuccess)
 		return er;
+
+	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
+
 	er = lpecSession->GetObjectFromEntryId(&sParentId, &ulParentId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	er = CreateFolder(lpecSession, lpDatabase, ulParentId, lpsNewEntryId, ulType, szName, szComment, fOpenIfExists, true, ulSyncId, &sOrigSourceKey, &ulFolderId, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	er = lpDatabase->Commit();
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(ulFolderId, soap, 0, &lpsResponse->sEntryId);
 	if (er != erSuccess)
-		goto exit;
-
-exit:
-	ROLLBACK_ON_ERROR();
+		return er;
 }
 SOAP_ENTRY_END()
 
@@ -3670,24 +3670,24 @@ SOAP_ENTRY_START(tableGetSearchCriteria, lpsResponse->er,  entryId sEntryId, str
 	er = lpecSession->GetSessionManager()->GetSearchFolders()->GetSearchCriteria(ulStoreId, ulId, &lpSearchCriteria, &ulFlags);
 	if(er != erSuccess)
 		return er;
+
+	auto laters = make_scope_success([&]() { FreeSearchCriteria(lpSearchCriteria); });
+
 	er = CopyRestrictTable(soap, lpSearchCriteria->lpRestrict, &lpsResponse->lpRestrict);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	if (!bSupportUnicode) {
 		er = FixRestrictionEncoding(soap, stringCompat, Out, lpsResponse->lpRestrict);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	er = CopyEntryList(soap, lpSearchCriteria->lpFolders, &lpsResponse->lpFolderIDs);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	lpsResponse->ulFlags = ulFlags;
-
-exit:
-	FreeSearchCriteria(lpSearchCriteria);
 }
 SOAP_ENTRY_END()
 
@@ -4381,13 +4381,13 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 	if (er != erSuccess)
 		return er;
 
+	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
+
 	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
 		if (lpsResponse->lpsPropTags.__ptr[i] != 0)
 			continue;
-		if (lpsNamedProps->__ptr[i].lpguid == nullptr) {
-			er = KCERR_NO_ACCESS;
-			goto exit;
-		}
+		if (lpsNamedProps->__ptr[i].lpguid == nullptr)
+			return KCERR_NO_ACCESS;
 
 		strQuery = "INSERT INTO names (nameid, namestring, guid) VALUES(";
 		if (lpsNamedProps->__ptr[i].lpId != 0)
@@ -4409,18 +4409,15 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 		strQuery += ")";
 		er = lpDatabase->DoInsert(strQuery, &ulLastId);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		lpsResponse->lpsPropTags.__ptr[i] = ulLastId+1; // offset one because 0 is 'not found'
 	}
 
 	er = lpDatabase->Commit();
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	// Everything is done, now set the size
 	lpsResponse->lpsPropTags.__size = lpsNamedProps->__size;
-
-exit:
-	ROLLBACK_ON_ERROR();
 }
 SOAP_ENTRY_END()
 
@@ -4513,15 +4510,15 @@ SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId,
 	if (er != erSuccess)
 		return er;
 
+	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
+
 	// Check, lpsEntryId and lpszMessageClass can't both be empty or 0
-	if(lpsEntryId == NULL && (lpszMessageClass == NULL || *lpszMessageClass == '\0')){
-		er = KCERR_INVALID_TYPE;
-		goto exit;
-	}
+	if (lpsEntryId == NULL && (lpszMessageClass == NULL || *lpszMessageClass == '\0'))
+		return KCERR_INVALID_TYPE;
 
 	er = lpecSession->GetObjectFromEntryId(&sStoreId, &ulStoreid);
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 
 	// an empty lpszMessageClass is the default folder
 	if(lpszMessageClass == NULL)
@@ -4534,68 +4531,59 @@ SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId,
 
 		er = lpecSession->GetObjectFromEntryId(lpsEntryId, &ulId);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		// Check if storeid and ulId have a relation
 		er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulId, &ulCheckStoreId, NULL);
-		if(er != erSuccess){
-			er = KCERR_INVALID_ENTRYID;
-			goto exit;
-		}
+		if (er != erSuccess)
+			return KCERR_INVALID_ENTRYID;
 
-		if(ulStoreid != ulCheckStoreId) {
-			er = KCERR_INVALID_ENTRYID;
-			goto exit;
-		}
+		if (ulStoreid != ulCheckStoreId)
+			return KCERR_INVALID_ENTRYID;
 
 		er = lpecSession->GetSecurity()->CheckDeletedParent(ulId);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 	} else {
 		// Set MessageClass with the default of the store (that's the empty MessageClass)
 		strQuery = "SELECT objid FROM receivefolder WHERE storeid="+stringify(ulStoreid)+" AND messageclass='' LIMIT 2";
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		if (lpDBResult.get_num_rows() == 1) {
 			lpDBRow = lpDBResult.fetch_row();
 			if(lpDBRow == NULL || lpDBRow[0] == NULL){
-				er = KCERR_DATABASE_ERROR;
 				ec_log_err("setReceiveFolder(): row or columns null");
-				goto exit;
+				return KCERR_DATABASE_ERROR;
 			}
 
 			//Set the default folder
 			ulId = atoi(lpDBRow[0]);
 		}else{
-			er = KCERR_DATABASE_ERROR; //FIXME: no default error ?
 			ec_log_err("setReceiveFolder(): unexpected row count");
-			goto exit;
+			return KCERR_DATABASE_ERROR; //FIXME: no default error ?
 		}
 	}
 
 	strQuery = "SELECT objid, id FROM receivefolder WHERE storeid="+stringify(ulStoreid)+" AND messageclass='"+lpDatabase->Escape(lpszMessageClass)+"' LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	bIsUpdate = false;
 	// If ok, item already exists, return ok
 	if (lpDBResult.get_num_rows() == 1) {
 		lpDBRow = lpDBResult.fetch_row();
 		if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL){
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("setReceiveFolder(): row or columns null");
-			goto exit;
+			return KCERR_DATABASE_ERROR;
 		}
 
 		// Item exists
-		if(ulId == atoui(lpDBRow[0])){
-			er = lpDatabase->Rollback();	// Nothing changed, so Commit() would also do.
-			goto exit;
-		}
+		if (ulId == atoui(lpDBRow[0]))
+			return lpDatabase->Rollback();	// Nothing changed, so Commit() would also do.
 
 		bIsUpdate = true;
 	}
@@ -4607,7 +4595,7 @@ SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId,
 	else
 		er = lpecSession->GetSecurity()->CheckPermission(ulStoreid, ecSecurityCreate);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	if(bIsUpdate) {
 		strQuery = "UPDATE receivefolder SET objid="+stringify(ulId);
@@ -4620,14 +4608,11 @@ SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId,
 	}
 
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	er = lpDatabase->Commit();
 	if (er != erSuccess)
-		goto exit;
-
-exit:
-	ROLLBACK_ON_ERROR();
+		return er;
 }
 SOAP_ENTRY_END()
 
@@ -4698,20 +4683,23 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	er = lpDatabase->Begin();
 	if (er != erSuccess)
 		return er;
+
+	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
+
 	if(lpMessageList == NULL) {
 	    // No message list passed, so 'mark all items (un)read'
         er = lpecSession->GetObjectFromEntryId(lpsEntryId, &ulFolderId);
         if(er != erSuccess)
-            goto exit;
+            return er;
             
         er = lpDatabase->DoSelect("SELECT val_ulong FROM properties WHERE hierarchyid=" + stringify(ulFolderId) + " FOR UPDATE", NULL);
         if(er != erSuccess)
-            goto exit;
+            return er;
 
         // Check permission
         er = lpecSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityRead);
         if(er != erSuccess)
-            goto exit;
+            return er;
 
 		// Purge changes
 		ECTPropsPurge::PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
@@ -4722,13 +4710,12 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		strQueryCache = "SELECT id, tproperties.val_ulong FROM hierarchy FORCE INDEX(parenttypeflags) JOIN tproperties FORCE INDEX(PRIMARY) ON tproperties.hierarchyid=hierarchy.id AND tproperties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND tproperties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE parent="+ stringify(ulFolderId) + " AND hierarchy.type=5 AND flags = 0 AND (tproperties.val_ulong & " + stringify(ulFlagsRemove) + " OR tproperties.val_ulong & " + stringify(ulFlagsAdd) + " != " + stringify(ulFlagsAdd) + ") AND tproperties.folderid = " + stringify(ulFolderId) + " FOR UPDATE";
 		er = lpDatabase->DoSelect(strQueryCache, &lpDBResult);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL || lpDBRow[1] == NULL){
-				er = KCERR_DATABASE_ERROR;
 				ec_log_err("setReadFlags(): columns null");
-				goto exit;
+				return KCERR_DATABASE_ERROR;
 			}
 			lObjectIds.emplace_back(atoui(lpDBRow[0]), atoui(lpDBRow[1]));
 			++i;
@@ -4739,7 +4726,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		if(lHierarchyIDs.empty()) {
 			// Nothing to do
 			lpDatabase->Commit();
-			goto exit;
+			return er;
 		}
 		
 	    // Because the messagelist can contain messages from all over the place, we have to check permissions for all the parent folders of the items
@@ -4756,14 +4743,14 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
         for (auto parent_id : setParents) {
             er = lpDatabase->DoSelect("SELECT val_ulong FROM properties WHERE hierarchyid=" + stringify(parent_id) + " FOR UPDATE", NULL);
             if(er != erSuccess)
-                goto exit;
+                return er;
         }
 
         // Check permission
         for (auto parent_id : setParents) {
             er = lpecSession->GetSecurity()->CheckPermission(parent_id, ecSecurityRead);
             if(er != erSuccess)
-                goto exit;
+                return er;
         }
         
         // Now find all messages that will actually change
@@ -4777,13 +4764,12 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		strQueryCache += ") FOR UPDATE"; // See comment above about FOR UPDATE
 		er = lpDatabase->DoSelect(strQueryCache, &lpDBResult);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			if(lpDBRow[0] == NULL || lpDBRow[1] == NULL){
-				er = KCERR_DATABASE_ERROR;
 				ec_log_err("setReadFlags(): columns null(2)");
-				goto exit;
+				return KCERR_DATABASE_ERROR;
 			}
 			lObjectIds.emplace_back(atoui(lpDBRow[0]), atoui(lpDBRow[1]));
 			++i;
@@ -4795,7 +4781,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	// Check if there is anything to do
 	if(lObjectIds.empty()) {
 		lpDatabase->Commit();
-		goto exit;
+		return er;
 	}
 
     strQuery += " WHERE properties.hierarchyid IN(";
@@ -4816,11 +4802,11 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
    	// Update the database
    	er = lpDatabase->DoUpdate(strQuery);
    	if(er != erSuccess)
-    	goto exit;
+		return er;
 
 	er = UpdateTProp(lpDatabase, PR_MESSAGE_FLAGS, ulParent, &lHierarchyIDs); // FIXME ulParent is not constant for all lHierarchyIDs
 	if(er != erSuccess)
-		goto exit;
+		return er;
     
     // Add changes to ICS
     for (const auto &op : lObjectIds) {
@@ -4847,7 +4833,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	for (const auto &op : lObjectIds) {
 		er = g_lpSessionManager->GetCacheManager()->GetObject(op.first, &ulParent, NULL, NULL);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		mapParents.emplace(ulParent, 0);
 		if (ulFlagsAdd & MSGFLAG_READ &&
 		    (op.second & MSGFLAG_READ) == 0)
@@ -4861,15 +4847,15 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 			continue;
 		er = g_lpSessionManager->GetCacheManager()->GetParent(p.first, &ulGrandParent);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 		er = UpdateFolderCount(lpDatabase, p.first, PR_CONTENT_UNREAD, p.second);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 	
 	er = lpDatabase->Commit();
     if(er != erSuccess)
-	    goto exit;
+	    return er;
 
 	// Now, update cache and send the notifications
 
@@ -4917,9 +4903,6 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 				ulFlagsNotify & MSGFLAG_NOTIFY_FLAGS,
 				p.first, 0, MAPI_MESSAGE);
     }
-
-exit:
-    ROLLBACK_ON_ERROR();
 }
 SOAP_ENTRY_END()
 
@@ -6333,6 +6316,8 @@ SOAP_ENTRY_START(submitMessage, *result, entryId sEntryId, unsigned int ulFlags,
 	if(er != erSuccess)
 		return er;
 
+	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
+
 	// Set PR_MESSAGE_FLAGS to MSGFLAG_SUBMIT|MSGFLAG_UNSENT
 	if(!(ulFlags & EC_SUBMIT_MASTER)) {
 	    // Set the submit flag (because it has just been submitted), and set it to UNSENT, as it has definitely
@@ -6340,7 +6325,7 @@ SOAP_ENTRY_START(submitMessage, *result, entryId sEntryId, unsigned int ulFlags,
 		strQuery = "UPDATE properties SET val_ulong=val_ulong|"+stringify(MSGFLAG_SUBMIT|MSGFLAG_UNSENT)+" where hierarchyid="+stringify(ulObjId) + " and tag=" + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " and type=" + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
 		er = lpDatabase->DoUpdate(strQuery);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		// Add change to ICS
 		GetSourceKey(ulObjId, &sSourceKey);
@@ -6354,17 +6339,17 @@ SOAP_ENTRY_START(submitMessage, *result, entryId sEntryId, unsigned int ulFlags,
 	
 	er = UpdateTProp(lpDatabase, PR_MESSAGE_FLAGS, ulParentId, ulObjId);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Insert the message into the outgoing queue
 	strQuery = "INSERT IGNORE INTO outgoingqueue (store_id, hierarchy_id, flags) VALUES("+stringify(ulStoreId)+", "+stringify(ulObjId)+","+stringify(ulFlags)+")";
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	er = lpDatabase->Commit();
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	if (bMessageChanged) {
 		// Update cache
@@ -6378,9 +6363,6 @@ SOAP_ENTRY_START(submitMessage, *result, entryId sEntryId, unsigned int ulFlags,
 	}
 	
 	g_lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_ADD, ulStoreId, ulObjId, ulFlags, MAPI_MESSAGE);
-
-exit:
-    ROLLBACK_ON_ERROR();
 }
 SOAP_ENTRY_END()
 
@@ -6555,21 +6537,21 @@ SOAP_ENTRY_START(abortSubmit, *result, entryId sEntryId, unsigned int *result)
 	if(er != erSuccess)
 		return er;
 
+	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
+
 	// Get storeid and check if the message into the queue
 	strQuery = "SELECT store_id, flags FROM outgoingqueue WHERE hierarchy_id="+stringify(ulObjId) + " LIMIT 2";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 // FIXME: can be also more than 2??
 	if (lpDBResult.get_num_rows() != 1) {
-		er = KCERR_NOT_IN_QUEUE;
-		goto exit;
+		return KCERR_NOT_IN_QUEUE;
 	}
 	lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("abortSubmit(): row/col null");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	ulStoreId = atoui(lpDBRow[0]);
@@ -6579,17 +6561,17 @@ SOAP_ENTRY_START(abortSubmit, *result, entryId sEntryId, unsigned int *result)
 	strQuery = "DELETE FROM outgoingqueue WHERE hierarchy_id="+stringify(ulObjId);
 	er = lpDatabase->DoDelete(strQuery);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// remove in property PR_MESSAGE_FLAGS the MSGFLAG_SUBMIT flag
 	strQuery = "UPDATE properties SET val_ulong=val_ulong& ~"+stringify(MSGFLAG_SUBMIT)+" WHERE hierarchyid="+stringify(ulObjId)+ " AND tag=" + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND type=" + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
 	er = lpDatabase->DoUpdate(strQuery);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 		
 	er = UpdateTProp(lpDatabase, PR_MESSAGE_FLAGS, ulParentId, ulObjId);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 	
 	// Update ICS system
 	GetSourceKey(ulObjId, &sSourceKey);
@@ -6599,7 +6581,7 @@ SOAP_ENTRY_START(abortSubmit, *result, entryId sEntryId, unsigned int *result)
     
 	er = lpDatabase->Commit();
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	g_lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_DELETE, ulStoreId, ulObjId, ulSubmitFlags, MAPI_MESSAGE);
 	if (gcache->GetParent(ulObjId, &ulParentId) == erSuccess) {
@@ -6612,9 +6594,6 @@ SOAP_ENTRY_START(abortSubmit, *result, entryId sEntryId, unsigned int *result)
 		if (gcache->GetParent(ulParentId, &ulGrandParentId) == erSuccess)
 			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParentId, ulParentId, MAPI_FOLDER);
 	}
-
-exit:
-    ROLLBACK_ON_ERROR();
 }
 SOAP_ENTRY_END()
 
@@ -7878,10 +7857,11 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages, entryId sDes
 
 	const EntryId dstEntryId(&sDestFolderId);
 
+	auto laters = make_scope_success([&]() { lpDatabase->Commit(); });
+
 	if(aMessages == NULL) {
 		ec_log_err("SOAP::copyObjects: list of messages (entryList) missing");
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
 	}
 	
 	for (unsigned int i = 0; i < aMessages->__size; ++i)
@@ -7890,21 +7870,21 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages, entryId sDes
 	er = BeginLockFolders(lpDatabase, setEntryIds, LOCK_EXCLUSIVE);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyObjects: failed locking folders: %s (%x)", GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	er = lpecSession->GetObjectFromEntryId(&sDestFolderId, &ulDestFolderId);
 	if (er != erSuccess) {
 		std::string dstEntryIdStr = dstEntryId;
 		ec_log_err("SOAP::copyObjects: failed obtaining object by entry id (%s): %s (%x)", dstEntryIdStr.c_str(), GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	// Check permission, Destination folder
 	er = lpecSession->GetSecurity()->CheckPermission(ulDestFolderId, ecSecurityCreate);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyObjects: failed checking permissions for folder id %u: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
-		goto exit;
+		return er;
 	}
 
 	if(g_lpSessionManager->GetCacheManager()->GetEntryListToObjectList(aMessages, &lObjectIds) != erSuccess)
@@ -7917,7 +7897,7 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages, entryId sDes
 		er = MoveObjects(lpecSession, lpDatabase, &lObjectIds, ulDestFolderId, ulSyncId);
 		if (er != erSuccess) {
 			ec_log_err("SOAP::copyObjects: MoveObjects failed: %s (%x)", GetMAPIErrorMessage(er), er);
-			goto exit;
+			return er;
 		}
 	}else { // A copy
 
@@ -7936,7 +7916,7 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages, entryId sDes
 		er = WriteLocalCommitTimeMax(NULL, lpDatabase, ulDestFolderId, NULL);
 		if (er != erSuccess) {
 			ec_log_err("SOAP::copyObjects: WriteLocalCommitTimeMax failed: %s (%x)", GetMAPIErrorMessage(er), er);
-			goto exit;
+			return er;
 		}
 
 		if(cObjectItems >= EC_TABLE_CHANGE_THRESHOLD)
@@ -7955,9 +7935,6 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages, entryId sDes
 
 	if(bPartialCompletion && er == erSuccess)
 		er = KCWARN_PARTIAL_COMPLETION;
-exit:
-    lpDatabase->Commit();
-    
 }
 SOAP_ENTRY_END()
 
