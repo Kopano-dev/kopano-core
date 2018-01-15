@@ -39,7 +39,7 @@
 using namespace KCHL;
 
 static int opt_create_store, opt_create_public, opt_detach_store;
-static int opt_copytopublic;
+static int opt_copytopublic, opt_list_orphan;
 static const char *opt_attach_store, *opt_remove_store;
 static const char *opt_config_file, *opt_host;
 static const char *opt_entity_name, *opt_entity_type;
@@ -50,6 +50,7 @@ static constexpr const struct poptOption adm_options[] = {
 	{nullptr, 'A', POPT_ARG_STRING, &opt_attach_store, 0, "Attach an orphaned store by GUID to a user account (with -n)"},
 	{nullptr, 'C', POPT_ARG_NONE, &opt_create_store, 0, "Create a store and attach it to a user account (with -n)"},
 	{nullptr, 'D', POPT_ARG_NONE, &opt_detach_store, 0, "Detach a user's store (with -n) and make it orphan"},
+	{nullptr, 'O', POPT_ARG_NONE, &opt_list_orphan, 0, "List orphaned stores"},
 	{nullptr, 'P', POPT_ARG_NONE, &opt_create_public, 0, "Create a public store"},
 	{nullptr, 'R', POPT_ARG_STRING, &opt_remove_store, 0, "Remove an orphaned store by GUID"},
 	{nullptr, 'c', POPT_ARG_STRING, &opt_config_file, 'c', "Specify alternate config file"},
@@ -68,6 +69,116 @@ static constexpr const configsetting_t adm_config_defaults[] = {
 	{"sslkey_pass", ""},
 	{nullptr},
 };
+
+static std::string time_to_rel2(double n)
+{
+	if (n < 120)
+		return stringify(n) + "s";
+	if (n < 7200)
+		return stringify(n / 60) + "m";
+	if (n < 172800)
+		return stringify(n / 3600) + "h";
+	if (n < 63115200)
+		return stringify(n / 86400) + "d";
+	return stringify(n / 63115200) + "y";
+}
+
+static std::string time_to_rel(time_t then)
+{
+	auto delta = difftime(time(nullptr), then);
+	if (delta >= 0)
+		return time_to_rel2(delta) + " ago";
+	return "in " + time_to_rel2(-delta);
+}
+
+static const char *store_type_string(unsigned int t)
+{
+	if (t == ECSTORE_TYPE_PRIVATE)
+		return "private";
+	if (t == ECSTORE_TYPE_ARCHIVE)
+		return "archive";
+	if (t == ECSTORE_TYPE_PUBLIC)
+		return "public";
+	return "<unrecognized>";
+}
+
+/**
+ * List users without a store, and stores without a user.
+ *
+ * Gets a list of users and stores. Because of the sorting chosen, stores
+ * without a user will be printed first, until the first user without a store
+ * is found. Then those are printed, until the first user with a store is
+ * found.
+ */
+static HRESULT adm_list_orphans(IECServiceAdmin *svcadm)
+{
+	bool listing_orphans = true;
+	ConsoleTable ct(50, 5);
+	static constexpr const SizedSSortOrderSet(2, sort_order) =
+		{2, 0, 0, {
+			{PR_EC_USERNAME, TABLE_SORT_ASCEND},
+			{PR_EC_STOREGUID, TABLE_SORT_ASCEND},
+		}};
+
+	object_ptr<IMAPITable> table;
+	auto ret = svcadm->OpenUserStoresTable(0, &~table);
+	if (ret != hrSuccess)
+		return kc_perror("OpenUserStoresTable", ret);
+	ret = table->SortTable(sort_order, 0);
+	if (ret != hrSuccess)
+		return kc_perror("SortTable", ret);
+	ct.set_lead("");
+	ct.SetHeader(0, "Store GUID");
+	ct.SetHeader(1, "Guessed username");
+	ct.SetHeader(2, "Last login");
+	ct.SetHeader(3, "Store size");
+	ct.SetHeader(4, "Store type");
+	printf("Stores without users:\n");
+
+	while (true) {
+		rowset_ptr rowset;
+		ret = table->QueryRows(-1, 0, &~rowset);
+		if (ret != hrSuccess)
+			return kc_perror("QueryRows", ret);
+		if (rowset.size() == 0)
+			break;
+
+		for (unsigned int i = 0; i < rowset->cRows; ++i) {
+			auto guid  = rowset[i].cfind(PR_EC_STOREGUID);
+			auto userp = rowset[i].cfind(PR_EC_USERNAME_A);
+			if (guid != nullptr && userp != nullptr)
+				continue;
+			auto mtime = rowset[i].cfind(PR_LAST_MODIFICATION_TIME);
+			auto ssize = rowset[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
+			auto stype = rowset[i].cfind(PR_EC_STORETYPE);
+			std::string user;
+			if (userp == nullptr) {
+				userp = rowset[i].cfind(PR_DISPLAY_NAME_A);
+				user = userp != nullptr ? userp->Value.lpszA : "<unknown>";
+			} else {
+				if (listing_orphans) {
+					listing_orphans = false;
+					ct.PrintTable();
+					ct.Resize(50, 1);
+					ct.SetHeader(0, "Username");
+					printf("\nUsers without stores:\n");
+				}
+				user = userp->Value.lpszA;
+			}
+			if (guid == nullptr) {
+				ct.AddColumn(0, user);
+				continue;
+			}
+			ct.AddColumn(0, strToLower(bin2hex(guid->Value.bin)));
+			ct.AddColumn(1, user);
+			ct.AddColumn(2, mtime != nullptr ? time_to_rel(FileTimeToUnixTime(mtime->Value.ft)) : "<unknown>");
+			ct.AddColumn(3, ssize != nullptr ? str_storage(ssize->Value.li.QuadPart, false) : "<unknown>");
+			ct.AddColumn(4, stype != nullptr ? store_type_string(stype->Value.ul) : "<unknown>");
+		}
+	}
+	ct.PrintTable();
+	return hrSuccess;
+}
 
 static HRESULT adm_hex2bin(const char *x, GUID &out)
 {
@@ -572,6 +683,8 @@ static HRESULT adm_perform()
 		return adm_remove_store(srvctx.m_svcadm, opt_remove_store);
 	if (opt_attach_store != nullptr)
 		return adm_attach_store(srvctx, opt_attach_store);
+	if (opt_list_orphan)
+		return adm_list_orphans(srvctx.m_svcadm);
 	return MAPI_E_CALL_FAILED;
 }
 
@@ -596,12 +709,12 @@ static bool adm_parse_options(int &argc, char **&argv)
 		return false;
 	}
 	auto act = !!opt_attach_store + !!opt_detach_store + !!opt_create_store +
-	           !!opt_remove_store + !!opt_create_public;
+	           !!opt_remove_store + !!opt_create_public + !!opt_list_orphan;
 	if (act > 1) {
-		fprintf(stderr, "-A, -C, -D, -P and -R are mutually exclusive.\n");
+		fprintf(stderr, "-A, -C, -D, -O, -P and -R are mutually exclusive.\n");
 		return false;
 	} else if (act == 0) {
-		fprintf(stderr, "One of -A, -C, -D, -P, -R or -? must be specified.\n");
+		fprintf(stderr, "One of -A, -C, -D, -O, -P, -R or -? must be specified.\n");
 		return false;
 	} else if (opt_attach_store != nullptr && ((opt_entity_name != nullptr) == !!opt_copytopublic)) {
 		fprintf(stderr, "-A needs exactly one of -n or -p\n");
