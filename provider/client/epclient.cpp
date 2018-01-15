@@ -485,10 +485,9 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 
 	if (lpcStoreID && lppStoreID) {
 		*lpcStoreID = d.eid_size;
-		hr = MAPIAllocateBuffer(d.eid_size, reinterpret_cast<void **>(lppStoreID));
+		hr = KAllocCopy(d.eid, d.eid_size, reinterpret_cast<void **>(lppStoreID));
 		if(hr != hrSuccess)
 			return hr;
-		memcpy(*lppStoreID, d.eid, d.eid_size);
 	}
 	return hrSuccess;
 }

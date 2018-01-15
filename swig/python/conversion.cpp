@@ -396,9 +396,8 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 			break;
 		}
 		if (PyString_AsStringAndSize(Value, &lpstr, &size) < 0 ||
-		    MAPIAllocateMore(size + 1, lpBase, (LPVOID *)&lpProp->Value.lpszA) != hrSuccess)
+		    KAllocCopy(lpstr, size + 1, reinterpret_cast<void **>(&lpProp->Value.lpszA), lpBase) != hrSuccess)
 			return;
-		memcpy(lpProp->Value.lpszA, lpstr, size + 1);
 		break;
 	case PT_UNICODE:
 		// @todo add PyUnicode_Check call?
@@ -447,20 +446,16 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 			lpProp->Value.lpguid = (LPGUID)lpstr;
 			break;
 		}
-		if (MAPIAllocateMore(sizeof(GUID), lpBase, (LPVOID *)&lpProp->Value.lpguid) != hrSuccess)
+		if (KAllocCopy(lpstr, sizeof(GUID), reinterpret_cast<void **>(&lpProp->Value.lpguid), lpBase) != hrSuccess)
 			return;
-		memcpy(lpProp->Value.lpguid, lpstr, sizeof(GUID));
 		break;
 	case PT_BINARY:
 		if (PyString_AsStringAndSize(Value, &lpstr, &size) < 0)
 			return;
 		if (ulFlags == CONV_COPY_SHALLOW)
 			lpProp->Value.bin.lpb = (LPBYTE)lpstr;
-		else {
-			if (MAPIAllocateMore(size, lpBase, (LPVOID *)&lpProp->Value.bin.lpb) != hrSuccess)
-				return;
-			memcpy(lpProp->Value.bin.lpb, lpstr, size);
-		}
+		else if (KAllocCopy(lpstr, size, reinterpret_cast<void **>(&lpProp->Value.bin.lpb), lpBase) != hrSuccess)
+			return;
 		lpProp->Value.bin.cb = size;
 		break;
 	case PT_SRESTRICTION:
@@ -540,12 +535,9 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 				break;
 			if (ulFlags == CONV_COPY_SHALLOW)
 				lpProp->Value.MVszA.lppszA[n] = PyString_AsString(elem);
-			else {
-				if (PyString_AsStringAndSize(elem, &lpstr, &size) < 0 ||
-				    MAPIAllocateMore(size+1, lpBase, (LPVOID *)&lpProp->Value.MVszA.lppszA[n]) != hrSuccess)
-					return;
-				memcpy(lpProp->Value.MVszA.lppszA[n], lpstr, size+1);
-			}
+			else if (PyString_AsStringAndSize(elem, &lpstr, &size) < 0 ||
+			    KAllocCopy(lpstr, size + 1, reinterpret_cast<void **>(&lpProp->Value.MVszA.lppszA[n]), lpBase) != hrSuccess)
+				return;
 			++n;
 		} while (true);
 		lpProp->Value.MVszA.cValues = n;
@@ -567,11 +559,8 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 				return;
 			if (ulFlags == CONV_COPY_SHALLOW)
 				lpProp->Value.MVbin.lpbin[n].lpb = (LPBYTE)lpstr;
-			else {
-				if (MAPIAllocateMore(size, lpBase, (LPVOID *)&lpProp->Value.MVbin.lpbin[n].lpb) != hrSuccess)
-					return;
-				memcpy(lpProp->Value.MVbin.lpbin[n].lpb, lpstr, size);
-			}
+			else if (KAllocCopy(lpstr, size, reinterpret_cast<void **>(&lpProp->Value.MVbin.lpbin[n].lpb), lpBase) != hrSuccess)
+				return;
 			lpProp->Value.MVbin.lpbin[n].cb = size;
 			++n;
 		} while (true);
@@ -1662,9 +1651,8 @@ LPENTRYLIST		List_to_LPENTRYLIST(PyObject *list)
 			goto exit;
 
 		lpEntryList->lpbin[i].cb = strlen;
-		if (MAPIAllocateMore(strlen, lpEntryList, (void**)&lpEntryList->lpbin[i].lpb) != hrSuccess)
+		if (KAllocCopy(ptr, strlen, reinterpret_cast<void **>(&lpEntryList->lpbin[i].lpb), lpEntryList) != hrSuccess)
 			goto exit;
-		memcpy(lpEntryList->lpbin[i].lpb, ptr, strlen);
 		++i;
 	} while (true);
 exit:
@@ -1927,14 +1915,11 @@ LPREADSTATE		List_to_LPREADSTATE(PyObject *list, ULONG *lpcElements)
 		if (PyString_AsStringAndSize(sourcekey, &ptr, &len) == -1 ||
 		    PyErr_Occurred())
 			goto exit;
-
-		hr = MAPIAllocateMore(len, lpList, (LPVOID*)&lpList[i].pbSourceKey);
+		hr = KAllocCopy(ptr, len, reinterpret_cast<void **>(&lpList[i].pbSourceKey), lpList);
 		if (hr != hrSuccess) {
 			PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 			goto exit;
 		}
-
-		memcpy(lpList[i].pbSourceKey, ptr, len);
 		lpList[i].cbSourceKey = len;
 		++i;
 	} while (true);
@@ -2471,14 +2456,11 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 		if (PyString_AsStringAndSize(elem, &ptr, &strlen) == -1 ||
 		    PyErr_Occurred())
 			goto exit;
-
-		hr = MAPIAllocateMore(strlen,  lpSvrNameList, (void**)&lpSvrNameList->lpszaServer[lpSvrNameList->cServers]);
+		hr = KAllocCopy(ptr, strlen, reinterpret_cast<void **>(&lpSvrNameList->lpszaServer[lpSvrNameList->cServers]), lpSvrNameList);
 		if (hr != hrSuccess) {
 			PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 			goto exit;
 		}
-
-		memcpy(lpSvrNameList->lpszaServer[lpSvrNameList->cServers], ptr, strlen);
 		++lpSvrNameList->cServers;
 	} while (true);
 exit:

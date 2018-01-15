@@ -968,11 +968,8 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 			if(hr != hrSuccess)
 				return hr;
 			lpsPropValue->ulPropTag = PR_EMSMDB_SECTION_UID;
-			if ((hr = MAPIAllocateMore(sizeof(GUID), lpBase, (void **) &lpsPropValue->Value.bin.lpb)) != hrSuccess)
-				return hr;
-			memcpy(lpsPropValue->Value.bin.lpb, lpProp->Value.bin.lpb, sizeof(GUID));
 			lpsPropValue->Value.bin.cb = sizeof(GUID);
-			break;
+			return KAllocCopy(lpProp->Value.bin.lpb, sizeof(GUID), reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb), lpBase);
 			}
 		case PROP_ID(PR_SEARCH_KEY):
 		case PROP_ID(PR_ENTRYID):

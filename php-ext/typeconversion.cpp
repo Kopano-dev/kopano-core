@@ -113,13 +113,11 @@ HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray
 		pentry = *ppentry;
 
 		convert_to_string_ex(&pentry);
-		
-		MAPI_G(hr) = MAPIAllocateMore(pentry->value.str.len, lpBase, (void **) &lpBinaryArray->lpbin[n].lpb);
+		lpBinaryArray->lpbin[n].cb = pentry->value.str.len;
+		MAPI_G(hr) = KAllocCopy(pentry->value.str.val, pentry->value.str.len, reinterpret_cast<void **>(&lpBinaryArray->lpbin[n].lpb), lpBase);
 		if(MAPI_G(hr) != hrSuccess)
 			return MAPI_G(hr);
-		
-		memcpy(lpBinaryArray->lpbin[n].lpb, pentry->value.str.val, pentry->value.str.len);
-		lpBinaryArray->lpbin[n++].cb = pentry->value.str.len;
+		++n;
 		zend_hash_move_forward(target_hash);
 	}
 
@@ -369,20 +367,20 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			convert_to_string_ex(entry);
 
 			// Allocate and copy data
-			MAPI_G(hr) = MAPIAllocateMore(entry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.bin.lpb);
+			lpPropValue[cvalues].Value.bin.cb =  entry[0]->value.str.len;
+			MAPI_G(hr) = KAllocCopy(entry[0]->value.str.val, entry[0]->value.str.len, reinterpret_cast<void **>(&lpPropValue[cvalues].Value.bin.lpb), lpBase != nullptr ? lpBase : lpPropValue);
 			if (MAPI_G(hr) != hrSuccess)
 				return MAPI_G(hr);
-			memcpy(lpPropValue[cvalues].Value.bin.lpb, entry[0]->value.str.val, entry[0]->value.str.len);
-			lpPropValue[cvalues++].Value.bin.cb =  entry[0]->value.str.len;
+			++cvalues;
 			break;
 		case PT_STRING8:
 			convert_to_string_ex(entry);
 
 			// Allocate and copy data
-			MAPI_G(hr) = MAPIAllocateMore(entry[0]->value.str.len+1, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.lpszA);
+			MAPI_G(hr) = KAllocCopy(entry[0]->value.str.val, entry[0]->value.str.len + 1, reinterpret_cast<void **>(&lpPropValue[cvalues].Value.lpszA), lpBase != nullptr ? lpBase : lpPropValue);
 			if (MAPI_G(hr) != hrSuccess)
 				return MAPI_G(hr);
-			strncpy(lpPropValue[cvalues++].Value.lpszA, entry[0]->value.str.val, entry[0]->value.str.len + 1);
+			++cvalues;
 			break;
 		case PT_APPTIME:
 			convert_to_double_ex(entry);
@@ -394,10 +392,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "GUID must be 16 bytes");
 				return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			}
-			MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID), lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.lpguid);
+			MAPI_G(hr) = KAllocCopy(entry[0]->value.str.val, sizeof(GUID), reinterpret_cast<void **>(&lpPropValue[cvalues].Value.lpguid), lpBase != nullptr ? lpBase : lpPropValue);
 			if (MAPI_G(hr) != hrSuccess)
 				return MAPI_G(hr);
-			memcpy(lpPropValue[cvalues++].Value.lpguid, entry[0]->value.str.val, sizeof(GUID));
+			++cvalues;
 			break;
 
 #define GET_MV_HASH() \
@@ -477,10 +475,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 				zend_hash_get_current_data(dataHash, (void **)&dataEntry);
 				convert_to_string_ex(dataEntry);
 				lpPropValue[cvalues].Value.MVbin.lpbin[h].cb = dataEntry[0]->value.str.len;
-				MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVbin.lpbin[h].lpb);
+				MAPI_G(hr) = KAllocCopy(dataEntry[0]->value.str.val, dataEntry[0]->value.str.len, reinterpret_cast<void **>(&lpPropValue[cvalues].Value.MVbin.lpbin[h].lpb), lpBase != nullptr ? lpBase : lpPropValue);
 				if (MAPI_G(hr) != hrSuccess)
 					return MAPI_G(hr);
-				memcpy(lpPropValue[cvalues].Value.MVbin.lpbin[h++].lpb, dataEntry[0]->value.str.val, dataEntry[0]->value.str.len);
+				++h;
 				zend_hash_move_forward(dataHash);
 			}
 			lpPropValue[cvalues++].Value.MVbin.cValues = h;
@@ -493,10 +491,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			for (h = 0, j = 0; j < countarray; ++j) {
 				zend_hash_get_current_data(dataHash, (void **)&dataEntry);
 				convert_to_string_ex(dataEntry);
-				MAPI_G(hr) = MAPIAllocateMore(dataEntry[0]->value.str.len+1, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVszA.lppszA[h]);
+				MAPI_G(hr) = KAllocCopy(dataEntry[0]->value.str.val, dataEntry[0]->value.str.len + 1, reinterpret_cast<void **>(&lpPropValue[cvalues].Value.MVszA.lppszA[h]), lpBase != nullptr ? lpBase : lpPropValue);
 				if (MAPI_G(hr) != hrSuccess)
 					return MAPI_G(hr);
-				strncpy(lpPropValue[cvalues].Value.MVszA.lppszA[h++], dataEntry[0]->value.str.val, dataEntry[0]->value.str.len + 1);
+				++h;
 				zend_hash_move_forward(dataHash);
 			}
 			lpPropValue[cvalues++].Value.MVszA.cValues = h;

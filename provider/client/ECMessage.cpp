@@ -2176,16 +2176,9 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		strID.resize(6,0);
 
 		strSourceKey = strServerGUID + strID;
-
-		hr = MAPIAllocateMore(strSourceKey.size(), lpBase, (void **)&lpsPropValue->Value.bin.lpb);
-		if(hr != hrSuccess)
-			return hr;
-
 		lpsPropValue->ulPropTag = PR_SOURCE_KEY;
 		lpsPropValue->Value.bin.cb = strSourceKey.size();
-		memcpy(lpsPropValue->Value.bin.lpb, strSourceKey.c_str(), strSourceKey.size());
-
-		break;
+		return KAllocCopy(strSourceKey.c_str(), strSourceKey.size(), reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb), lpBase);
 	}
 	default:
 		hr = MAPI_E_NOT_FOUND;

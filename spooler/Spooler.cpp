@@ -231,16 +231,13 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 
 	// place pid with entryid copy in map
 	sSendData.cbStoreEntryId = cbStoreEntryId;
-	HRESULT hr = MAPIAllocateBuffer(cbStoreEntryId,
-	             reinterpret_cast<void **>(&sSendData.lpStoreEntryId));
+	auto hr = KAllocCopy(lpStoreEntryId, cbStoreEntryId, reinterpret_cast<void **>(&sSendData.lpStoreEntryId));
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed(1)", hr);
-	memcpy(sSendData.lpStoreEntryId, lpStoreEntryId, cbStoreEntryId);
 	sSendData.cbMessageEntryId = cbMsgEntryId;
-	hr = MAPIAllocateBuffer(cbMsgEntryId, (void**)&sSendData.lpMessageEntryId);
+	hr = KAllocCopy(lpMsgEntryId, cbMsgEntryId, reinterpret_cast<void **>(&sSendData.lpMessageEntryId));
 	if (hr != hrSuccess)
 		return kc_perror("MAPIAllocateBuffer failed(2)", hr);
-	memcpy(sSendData.lpMessageEntryId, lpMsgEntryId, cbMsgEntryId);
 	sSendData.ulFlags = ulFlags;
 	sSendData.strUsername = szUsername;
 

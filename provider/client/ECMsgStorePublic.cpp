@@ -161,11 +161,9 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		ePublicEntryID = ePE_FavoriteSubFolder;
 
 		// Replace the original entryid because this one is only readable
-		hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryIDIntern);
+		hr = KAllocCopy(lpEntryIDIntern, cbEntryID, &~lpEntryIDIntern);
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(lpEntryIDIntern, lpEntryID, cbEntryID);
-
 		// Remove Flags intern
 		lpEntryIDIntern->abFlags[3] &= ~KOPANO_FAVORITE;
 
@@ -316,12 +314,9 @@ HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, voi
 			return MAPI_E_INVALID_PARAMETER;
 	}
 
-	hr = MAPIAllocateMore(cbPublicID, lpBase, reinterpret_cast<void **>(&lpEntryID));
+	hr = KAllocCopy(lpPublicID, cbPublicID, reinterpret_cast<void **>(&lpEntryID), lpBase);
 	if (hr != hrSuccess)
 		return hr;
-
-	memcpy(lpEntryID, lpPublicID, cbPublicID);
-
 	*lpcbEntryID = cbPublicID;
 	*lppEntryID = lpEntryID;
 	return hrSuccess;
@@ -597,11 +592,9 @@ HRESULT ECMsgStorePublic::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		return MAPI_E_NO_SUPPORT; // FIXME
 	} else if (lpEntryID && (lpEntryID->abFlags[3] & KOPANO_FAVORITE)) {
 		// Replace the original entryid because this one is only readable
-		hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryIDIntern);
+		hr = KAllocCopy(lpEntryID, cbEntryID, &~lpEntryIDIntern);
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(lpEntryIDIntern, lpEntryID, cbEntryID);
-
 		// Remove Flags intern
 		lpEntryIDIntern->abFlags[3] &= ~KOPANO_FAVORITE;
 

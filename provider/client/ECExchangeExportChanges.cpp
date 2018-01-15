@@ -607,20 +607,15 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 
 	for (unsigned int i = 0; i < lpEntries->cValues; ++i) {
 		memset(&m_lpChanges[i], 0, sizeof(ICSCHANGE));
-		hr = MAPIAllocateMore(lpEntries->lpbin[i].cb, m_lpChanges, (void **)&m_lpChanges[i].sSourceKey.lpb);
+		m_lpChanges[i].sSourceKey.cb = lpEntries->lpbin[i].cb;
+		hr = KAllocCopy(lpEntries->lpbin[i].lpb, lpEntries->lpbin[i].cb, reinterpret_cast<void **>(&m_lpChanges[i].sSourceKey.lpb), m_lpChanges);
 		if(hr != hrSuccess)
 			return hr;
-			
-		memcpy(m_lpChanges[i].sSourceKey.lpb, lpEntries->lpbin[i].lpb, lpEntries->lpbin[i].cb);
-		m_lpChanges[i].sSourceKey.cb = lpEntries->lpbin[i].cb;
-		
 		if(lpParents) {
-			hr = MAPIAllocateMore(lpParents->lpbin[i].cb, m_lpChanges, (void **)&m_lpChanges[i].sParentSourceKey.lpb);
+			m_lpChanges[i].sParentSourceKey.cb = lpParents->lpbin[i].cb;
+			hr = KAllocCopy(lpParents->lpbin[i].lpb, lpParents->lpbin[i].cb, reinterpret_cast<void **>(&m_lpChanges[i].sParentSourceKey.lpb), m_lpChanges);
 			if(hr != hrSuccess)
 				return hr;
-				
-			memcpy(m_lpChanges[i].sParentSourceKey.lpb, lpParents->lpbin[i].lpb, lpParents->lpbin[i].cb);
-			m_lpChanges[i].sParentSourceKey.cb = lpParents->lpbin[i].cb;
 		}
 		
 		m_lpChanges[i].ulChangeType = ICS_MESSAGE_NEW;
@@ -1020,11 +1015,10 @@ HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 
 	ulCount = 0;
 	for (const auto &change : m_lstFlag) {
-		hr = MAPIAllocateMore(change.sSourceKey.cb, lpReadState, reinterpret_cast<LPVOID *>(&lpReadState[ulCount].pbSourceKey));
+		lpReadState[ulCount].cbSourceKey = change.sSourceKey.cb;
+		hr = KAllocCopy(change.sSourceKey.lpb, change.sSourceKey.cb, reinterpret_cast<void **>(&lpReadState[ulCount].pbSourceKey), lpReadState);
 		if (hr != hrSuccess)
 			goto exit;
-		lpReadState[ulCount].cbSourceKey = change.sSourceKey.cb;
-		memcpy(lpReadState[ulCount].pbSourceKey, change.sSourceKey.lpb, change.sSourceKey.cb);
 		lpReadState[ulCount].ulFlags = change.ulFlags;
 		++ulCount;
 	}
@@ -1316,11 +1310,10 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 		ulCount = 0;
 		for (const auto &change : *lpLstChanges) {
 			lpEntryList->lpbin[ulCount].cb = change.sSourceKey.cb;
-			hr = MAPIAllocateMore(change.sSourceKey.cb, lpEntryList,
-			     reinterpret_cast<void **>(&lpEntryList->lpbin[ulCount].lpb));
+			hr = KAllocCopy(change.sSourceKey.lpb, change.sSourceKey.cb,
+			     reinterpret_cast<void **>(&lpEntryList->lpbin[ulCount].lpb), lpEntryList);
 			if (hr != hrSuccess)
 				return hr;
-			memcpy(lpEntryList->lpbin[ulCount].lpb, change.sSourceKey.lpb, change.sSourceKey.cb);
 			++ulCount;
 		}
 	}else{

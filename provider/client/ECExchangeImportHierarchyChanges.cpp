@@ -305,10 +305,9 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 					return hr;
 			}else{
 				cbDestEntryId = m_lpFolder->m_cbEntryId;
-				hr = MAPIAllocateBuffer(cbDestEntryId, &~lpDestEntryId);
+				hr = KAllocCopy(m_lpFolder->m_lpEntryId, cbDestEntryId, &~lpDestEntryId);
 				if(hr != hrSuccess)
 					return hr;
-				memcpy(lpDestEntryId, m_lpFolder->m_lpEntryId, cbDestEntryId);
 			}
 			
 			// Do the move

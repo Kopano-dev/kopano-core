@@ -401,10 +401,9 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 				return MAPI_E_CALL_FAILED;
 
 			lpECPermissions[cECPerm].sUserId.cb = sEntryId.__size;
-			if ((hr = MAPIAllocateMore(lpECPermissions[cECPerm].sUserId.cb, lpECPermissions, (void**)&lpECPermissions[cECPerm].sUserId.lpb)) != hrSuccess)
+			hr = KAllocCopy(sEntryId.__ptr, sEntryId.__size, reinterpret_cast<void **>(&lpECPermissions[cECPerm].sUserId.lpb), lpECPermissions);
+			if (hr != hrSuccess)
 				return hr;
-			memcpy(lpECPermissions[cECPerm].sUserId.lpb, sEntryId.__ptr, sEntryId.__size);
-
 			FreeEntryId(&sEntryId, false);
 		}
 

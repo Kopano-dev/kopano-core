@@ -126,11 +126,9 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	} else {
 		if (cbEntryID == 0 || lpEntryID == nullptr)
 			return MAPI_E_UNKNOWN_ENTRYID;
-		hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryIDServer);
+		hr = KAllocCopy(lpEntryID, cbEntryID, &~lpEntryIDServer);
 		if(hr != hrSuccess)
 			return hr;
-
-		memcpy(lpEntryIDServer, lpEntryID, cbEntryID);
 		lpEntryID = lpEntryIDServer;
 		memcpy(&lpABeid, lpEntryID, sizeof(ABEID));
 

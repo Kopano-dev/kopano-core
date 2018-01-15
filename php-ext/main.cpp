@@ -3197,10 +3197,9 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 			if (guidEntry[0]->type != IS_STRING || sizeof(GUID) != guidEntry[0]->value.str.len) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "The GUID with index number %d that is passed is not of the right length, cannot convert to GUID", i);
 			} else {
-				MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID),lppNamePropId,(void **) &lppNamePropId[i]->lpguid);
+				MAPI_G(hr) = KAllocCopy(guidEntry[0]->value.str.val, sizeof(GUID), reinterpret_cast<void **>(&lppNamePropId[i]->lpguid), lppNamePropId);
 				if (MAPI_G(hr) != hrSuccess)
 					goto exit;
-				memcpy(lppNamePropId[i]->lpguid, guidEntry[0]->value.str.val, sizeof(GUID));
 			}
 		}
 
