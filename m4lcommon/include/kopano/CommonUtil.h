@@ -24,6 +24,9 @@
 #include <mapix.h>
 #include <string>
 #include <kopano/ECTags.h>
+#include <kopano/IECInterfaces.hpp>
+#include <kopano/automapi.hpp>
+#include <kopano/ecversion.h>
 #include <kopano/memory.hpp>
 #include <kopano/ustringutil.h>
 
@@ -123,6 +126,24 @@ private:
 #define PROPMAP_INIT(lpObject) do { hr = m_propmap.Resolve(lpObject); if (hr != hrSuccess) return hr; } while (false);
 #define PROPMAP_DEF_NAMED_ID(name) ULONG PROP_##name = 0;
 #define PROPMAP_INIT_NAMED_ID(name, type, guid, id) m_propmap.AddProp(&PROP_##name, type, ECPropMapEntry(guid, id));
+
+class _kc_export KServerContext {
+	public:
+	HRESULT logon(const char *user = nullptr, const char *password = nullptr);
+
+	const char *m_app_misc = nullptr, *m_app_ver = PROJECT_VERSION, *m_host = nullptr;
+	const char *m_ssl_keyfile = nullptr, *m_ssl_keypass = nullptr;
+	unsigned int m_ses_flags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS;
+
+	private:
+	KCHL::AutoMAPI m_mapi;
+
+	public:
+	KCHL::object_ptr<IMAPISession> m_session;
+	KCHL::object_ptr<IMsgStore> m_admstore;
+	KCHL::object_ptr<IUnknown> m_ecobject;
+	KCHL::object_ptr<IECServiceAdmin> m_svcadm;
+};
 
 } /* namespace */
 

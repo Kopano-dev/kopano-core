@@ -33,7 +33,8 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/librosie \
 	-I${top_srcdir}/ECtools/archiver \
 	${CRYPTO_CFLAGS} ${curl_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
-	${KRB5_CFLAGS} ${LDAP_FLAGS} ${MYSQL_INCLUDES} ${SSL_CFLAGS} \
+	${KRB5_CFLAGS} ${LDAP_FLAGS} ${MYSQL_INCLUDES} ${popt_CFLAGS} \
+	${SSL_CFLAGS} \
 	${s3_CFLAGS} ${TCMALLOC_CFLAGS} ${tidy_CPPFLAGS} \
 	${VMIME_CFLAGS} ${XML2_CFLAGS}
 AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare
@@ -47,7 +48,7 @@ dist_bin_SCRIPTS = ECtools/migration-imap/kopano-migration-imap \
 	ECtools/utils/kopano-set-oof
 sbin_PROGRAMS = \
 	kopano-admin kopano-archiver kopano-dagent kopano-gateway kopano-ical \
-	kopano-monitor kopano-server kopano-spooler
+	kopano-monitor kopano-server kopano-spooler kopano-storeadm
 dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 	ECtools/archiver/scripts/kopano-archiver-aclset \
 	ECtools/archiver/scripts/kopano-archiver-aclsync \
@@ -247,6 +248,10 @@ kopano_stats_CPPFLAGS = ${AM_CPPFLAGS} ${NCURSES_FLAGS}
 # which overrides the ncurses lib selection >:-(
 kopano_stats_LDADD = \
 	${NCURSES_LIBS} libmapi.la libkcmapi.la libkcutil.la ${PROG_LIBS}
+
+
+kopano_storeadm_SOURCES = ECtools/storeadm.cpp
+kopano_storeadm_LDADD = ${popt_LIBS} libmapi.la libkcmapi.la libkcutil.la
 
 
 #
@@ -889,7 +894,7 @@ dist_man_MANS = \
 	doc/kopano-set-oof.1 \
 	doc/kopano-spooler.8 doc/kopano-spooler.cfg.5 \
 	doc/kopano-backup.8 doc/kopano-backup.cfg.5 \
-	doc/kopano-stats.1 \
+	doc/kopano-stats.1 doc/kopano-storeadm.8 \
 	doc/kopano-unix.cfg.5 \
 	doc/kopano-migration-pst.8 doc/kopano-migration-pst.cfg.5 \
 	doc/kopano-archiver-aclsync.8 \
