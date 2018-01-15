@@ -38,21 +38,23 @@
 
 using namespace KCHL;
 
-static int opt_create_store, opt_create_public;
+static int opt_create_store, opt_create_public, opt_detach_store;
 static const char *opt_remove_store;
 static const char *opt_config_file, *opt_host;
-static const char *opt_entity_name;
+static const char *opt_entity_name, *opt_entity_type;
 static const char *opt_companyname;
 static std::unique_ptr<ECConfig> adm_config;
 
 static constexpr const struct poptOption adm_options[] = {
 	{nullptr, 'C', POPT_ARG_NONE, &opt_create_store, 0, "Create a store and attach it to a user account (with -n)"},
+	{nullptr, 'D', POPT_ARG_NONE, &opt_detach_store, 0, "Detach a user's store (with -n) and make it orphan"},
 	{nullptr, 'P', POPT_ARG_NONE, &opt_create_public, 0, "Create a public store"},
 	{nullptr, 'R', POPT_ARG_STRING, &opt_remove_store, 0, "Remove an orphaned store by GUID"},
 	{nullptr, 'c', POPT_ARG_STRING, &opt_config_file, 'c', "Specify alternate config file"},
 	{nullptr, 'h', POPT_ARG_STRING, &opt_host, 0, "URI for server"},
 	{nullptr, 'k', POPT_ARG_STRING, &opt_companyname, 0, "Name of the company for creating a public store in a multi-tenant setup"},
 	{nullptr, 'n', POPT_ARG_STRING, &opt_entity_name, 0, "User/group/company account to work on for -A,-C,-D"},
+	{nullptr, 't', POPT_ARG_STRING, &opt_entity_type, 0, "Store type for the -n argument (user, archive, group, company)"},
 	POPT_AUTOHELP
 	{nullptr}
 };
@@ -73,6 +75,129 @@ static HRESULT adm_hex2bin(const char *x, GUID &out)
 		return MAPI_E_INVALID_PARAMETER;
 	}
 	memcpy(&out, s.c_str(), s.size());
+	return hrSuccess;
+}
+
+static HRESULT adm_resolve_entity(IECServiceAdmin *svcadm,
+    unsigned int &store_type, ULONG &eid_size, memory_ptr<ENTRYID> &eid)
+{
+	auto entity = reinterpret_cast<const TCHAR *>(opt_entity_name);
+	if (opt_entity_type == nullptr)
+		opt_entity_type = "user";
+	HRESULT ret = hrSuccess;
+	if (strcmp(opt_entity_type, "user") == 0) {
+		store_type = ECSTORE_TYPE_PRIVATE;
+		ret = svcadm->ResolveUserName(entity, 0, &eid_size, &~eid);
+	} else if (strcmp(opt_entity_type, "archive") == 0) {
+		store_type = ECSTORE_TYPE_ARCHIVE;
+		ret = svcadm->ResolveUserName(entity, 0, &eid_size, &~eid);
+	} else if (strcmp(opt_entity_type, "group") == 0) {
+		store_type = ECSTORE_TYPE_PUBLIC;
+		ret = svcadm->ResolveGroupName(entity, 0, &eid_size, &~eid);
+	} else if (strcmp(opt_entity_type, "company") == 0) {
+		store_type = ECSTORE_TYPE_PUBLIC;
+		ret = svcadm->ResolveCompanyName(entity, 0, &eid_size, &~eid);
+	} else {
+		fprintf(stderr, "Unknown store type \"%s\"\n", opt_entity_type);
+		return MAPI_E_CALL_FAILED;
+	}
+	if (ret != hrSuccess)
+		ec_log_err("Unable to find store for %s \"%s\": %s",
+			opt_entity_type, opt_entity_name, GetMAPIErrorMessage(ret));
+	return ret;
+}
+
+/**
+ * Get the public store from a company or just the default public store. If a
+ * company name is given it will try to open the companies store. if it fails
+ * it will not fall back to the default store.
+ *
+ * @ses:	Current MAPI session.
+ * @store:	Random store for opening the ExchangeManageStore object.
+ * @company:	Owner of the public store. If empty, opens the default public store.
+ * @pub:	Pointer to the public store
+ */
+static HRESULT adm_get_public_store(IMAPISession *ses,
+    IMsgStore *store, const std::wstring &company, IMsgStore **pub)
+{
+	if (company.empty())
+		return HrOpenECPublicStore(ses, pub);
+	object_ptr<IExchangeManageStore> ms;
+	auto ret = store->QueryInterface(IID_IExchangeManageStore, &~ms);
+	if (ret != hrSuccess)
+		return kc_perror("QueryInterface", ret);
+	ULONG eid_size = 0;
+	memory_ptr<ENTRYID> eid;
+	ret = ms->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(L""),
+	      reinterpret_cast<const TCHAR *>(company.c_str()),
+	      MAPI_UNICODE, &eid_size, &~eid);
+	if (ret != hrSuccess)
+		return ret;
+	return ses->OpenMsgStore(0, eid_size, eid, &iid_of(*pub), MDB_WRITE, pub);
+}
+
+static HRESULT adm_detach_store(KServerContext &kadm)
+{
+	unsigned int store_type = 0;
+	ULONG user_size = 0, unwrap_size = 0;
+	memory_ptr<ENTRYID> user_eid, unwrap_eid;
+	auto ret = adm_resolve_entity(kadm.m_svcadm, store_type, user_size, user_eid);
+	if (ret != hrSuccess)
+		return ret;
+
+	if (store_type == ECSTORE_TYPE_PUBLIC) {
+		/*
+		 * ns__resolveUserStore (CreateStoreEntryID) does not work with
+		 * normal (non-company) public store.
+		 */
+		object_ptr<IMsgStore> pub_store;
+		std::wstring company;
+		if (opt_companyname != nullptr)
+			company = convert_to<std::wstring>(opt_companyname);
+		ret = adm_get_public_store(kadm.m_session, kadm.m_admstore, company, &~pub_store);
+		if (ret != hrSuccess)
+			return kc_perror("Unable to open public store", ret);
+		memory_ptr<SPropValue> pv;
+		ret = HrGetOneProp(pub_store, PR_STORE_ENTRYID, &~pv);
+		if (ret != hrSuccess)
+			return kc_perror("Unable to get public store entryid", ret);
+		ret = UnWrapStoreEntryID(pv->Value.bin.cb, reinterpret_cast<ENTRYID *>(pv->Value.bin.lpb), &unwrap_size, &~unwrap_eid);
+		if (ret != hrSuccess)
+			return kc_perror("Unable to unhook store. Unable to unwrap the store entryid", ret);
+	} else {
+		ULONG cbstore = 0;
+		memory_ptr<ENTRYID> lpstore;
+		if (store_type == ECSTORE_TYPE_ARCHIVE) {
+			ret = kadm.m_svcadm->GetArchiveStoreEntryID(reinterpret_cast<const TCHAR *>(opt_entity_name), nullptr, 0, &cbstore, &~lpstore);
+			if (ret != hrSuccess)
+				return kc_perror("Unable to retrieve store entryid", ret);
+		} else {
+			object_ptr<IExchangeManageStore> ms;
+			auto ret = kadm.m_admstore->QueryInterface(IID_IExchangeManageStore, &~ms);
+			if (ret != hrSuccess)
+				return kc_perror("QueryInterface", ret);
+			/*
+			 * Do not redirect to another server, unhook works on
+			 * the server it is connected to.
+			 */
+			ret = ms->CreateStoreEntryID(nullptr, reinterpret_cast<const TCHAR *>(opt_entity_name), OPENSTORE_OVERRIDE_HOME_MDB, &cbstore, &~lpstore);
+			if (ret == MAPI_E_NOT_FOUND) {
+				fprintf(stderr, "Unable to unhook store. User \"%s\" has no store attached.\n", opt_entity_name);
+				return ret;
+			}
+			if (ret != hrSuccess)
+				return kc_perror("Unable to unhook store. Can not create store entryid", ret);
+		}
+		ret = UnWrapStoreEntryID(cbstore, lpstore, &unwrap_size, &~unwrap_eid);
+		if (ret != hrSuccess)
+			return kc_perror("UnwrapStoreEntryID", ret);
+	}
+
+	ret = kadm.m_svcadm->UnhookStore(store_type, user_size, user_eid);
+	if (ret != hrSuccess)
+		return kc_perror("Unable to unhook store", ret);
+	printf("The store has been unhooked.\nStore GUID is %s\n",
+	       strToLower(bin2hex(sizeof(GUID), unwrap_eid->ab)).c_str());
 	return hrSuccess;
 }
 
@@ -152,6 +277,8 @@ static HRESULT adm_perform()
 		return adm_create_public(srvctx.m_svcadm, opt_companyname);
 	if (opt_create_store)
 		return adm_create_store(srvctx.m_svcadm);
+	if (opt_detach_store)
+		return adm_detach_store(srvctx);
 	if (opt_remove_store != nullptr)
 		return adm_remove_store(srvctx.m_svcadm, opt_remove_store);
 	return MAPI_E_CALL_FAILED;
@@ -177,15 +304,16 @@ static bool adm_parse_options(int &argc, char **&argv)
 		poptPrintHelp(ctx, stderr, 0);
 		return false;
 	}
-	auto act = !!opt_create_store + !!opt_remove_store + !!opt_create_public;
+	auto act = !!opt_detach_store + !!opt_create_store +
+	           !!opt_remove_store + !!opt_create_public;
 	if (act > 1) {
-		fprintf(stderr, "-C, -P and -R are mutually exclusive.\n");
+		fprintf(stderr, "-C, -D, -P and -R are mutually exclusive.\n");
 		return false;
 	} else if (act == 0) {
-		fprintf(stderr, "One of -C, -P, -R or -? must be specified.\n");
+		fprintf(stderr, "One of -C, -D, -P, -R or -? must be specified.\n");
 		return false;
-	} else if (opt_create_store && opt_entity_name == nullptr) {
-		fprintf(stderr, "-C needs the -n option\n");
+	} else if ((opt_create_store || opt_detach_store) && opt_entity_name == nullptr) {
+		fprintf(stderr, "-C/-D need the -n option\n");
 		return false;
 	}
 	return true;
