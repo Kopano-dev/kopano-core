@@ -38,17 +38,20 @@
 
 using namespace KCHL;
 
-static int opt_create_store;
+static int opt_create_store, opt_create_public;
 static const char *opt_remove_store;
 static const char *opt_config_file, *opt_host;
 static const char *opt_entity_name;
+static const char *opt_companyname;
 static std::unique_ptr<ECConfig> adm_config;
 
 static constexpr const struct poptOption adm_options[] = {
 	{nullptr, 'C', POPT_ARG_NONE, &opt_create_store, 0, "Create a store and attach it to a user account (with -n)"},
+	{nullptr, 'P', POPT_ARG_NONE, &opt_create_public, 0, "Create a public store"},
 	{nullptr, 'R', POPT_ARG_STRING, &opt_remove_store, 0, "Remove an orphaned store by GUID"},
 	{nullptr, 'c', POPT_ARG_STRING, &opt_config_file, 'c', "Specify alternate config file"},
 	{nullptr, 'h', POPT_ARG_STRING, &opt_host, 0, "URI for server"},
+	{nullptr, 'k', POPT_ARG_STRING, &opt_companyname, 0, "Name of the company for creating a public store in a multi-tenant setup"},
 	{nullptr, 'n', POPT_ARG_STRING, &opt_entity_name, 0, "User/group/company account to work on for -A,-C,-D"},
 	POPT_AUTOHELP
 	{nullptr}
@@ -93,6 +96,38 @@ static HRESULT adm_create_store(IECServiceAdmin *svcadm)
 	return hrSuccess;
 }
 
+static HRESULT adm_create_public(IECServiceAdmin *svcadm, const char *cname)
+{
+	ULONG cmpeid_size = 0;
+	memory_ptr<ENTRYID> cmpeid;
+	if (opt_companyname == nullptr) {
+		cmpeid_size = g_cbEveryoneEid;
+		auto ret = KAllocCopy(g_lpEveryoneEid, g_cbEveryoneEid, &~cmpeid);
+		if (ret != hrSuccess)
+			return kc_perror("KAllocCopy", ret);
+	} else {
+		auto ret = svcadm->ResolveCompanyName(reinterpret_cast<const TCHAR *>(cname), 0, &cmpeid_size, &~cmpeid);
+		if (ret == MAPI_E_NO_SUPPORT)
+			ec_log_info("Multi-tenancy not enabled in server.");
+		if (ret != hrSuccess)
+			return kc_perror("ResolveCompanyName", ret);
+	}
+	memory_ptr<ENTRYID> store_eid, root_fld;
+	ULONG store_size = 0, root_size = 0;
+	auto ret = svcadm->CreateStore(ECSTORE_TYPE_PUBLIC, cmpeid_size,
+	           cmpeid, &store_size, &~store_eid, &root_size, &~root_fld);
+	if (ret == MAPI_E_COLLISION)
+		return kc_perror("Public store already exists", ret);
+	if (ret != hrSuccess)
+		return kc_perror("Unable to create public store", ret);
+	printf("The store has been created.\n");
+	if (store_size == sizeof(EID))
+		printf("Store GUID is %s\n", strToLower(bin2hex(sizeof(GUID), &reinterpret_cast<EID *>(store_eid.get())->guid)).c_str());
+	else
+		printf("Store EID is %s\n", strToLower(bin2hex(store_size, store_eid->ab)).c_str());
+	return hrSuccess;
+}
+
 static HRESULT adm_remove_store(IECServiceAdmin *svcadm, const char *hexguid)
 {
 	GUID binguid;
@@ -113,6 +148,8 @@ static HRESULT adm_perform()
 	auto ret = srvctx.logon();
 	if (ret != hrSuccess)
 		return kc_perror("KServerContext::logon", ret);
+	if (opt_create_public)
+		return adm_create_public(srvctx.m_svcadm, opt_companyname);
 	if (opt_create_store)
 		return adm_create_store(srvctx.m_svcadm);
 	if (opt_remove_store != nullptr)
@@ -140,12 +177,12 @@ static bool adm_parse_options(int &argc, char **&argv)
 		poptPrintHelp(ctx, stderr, 0);
 		return false;
 	}
-	auto act = !!opt_create_store + !!opt_remove_store;
+	auto act = !!opt_create_store + !!opt_remove_store + !!opt_create_public;
 	if (act > 1) {
-		fprintf(stderr, "-C and -R are mutually exclusive.\n");
+		fprintf(stderr, "-C, -P and -R are mutually exclusive.\n");
 		return false;
 	} else if (act == 0) {
-		fprintf(stderr, "One of -C, -R or -? must be specified.\n");
+		fprintf(stderr, "One of -C, -P, -R or -? must be specified.\n");
 		return false;
 	} else if (opt_create_store && opt_entity_name == nullptr) {
 		fprintf(stderr, "-C needs the -n option\n");
