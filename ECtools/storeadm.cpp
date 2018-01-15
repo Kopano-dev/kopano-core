@@ -39,13 +39,14 @@
 using namespace KCHL;
 
 static int opt_create_store, opt_create_public, opt_detach_store;
-static const char *opt_remove_store;
+static const char *opt_attach_store, *opt_remove_store;
 static const char *opt_config_file, *opt_host;
 static const char *opt_entity_name, *opt_entity_type;
 static const char *opt_companyname;
 static std::unique_ptr<ECConfig> adm_config;
 
 static constexpr const struct poptOption adm_options[] = {
+	{nullptr, 'A', POPT_ARG_STRING, &opt_attach_store, 0, "Attach an orphaned store by GUID to a user account (with -n)"},
 	{nullptr, 'C', POPT_ARG_NONE, &opt_create_store, 0, "Create a store and attach it to a user account (with -n)"},
 	{nullptr, 'D', POPT_ARG_NONE, &opt_detach_store, 0, "Detach a user's store (with -n) and make it orphan"},
 	{nullptr, 'P', POPT_ARG_NONE, &opt_create_public, 0, "Create a public store"},
@@ -134,6 +135,74 @@ static HRESULT adm_get_public_store(IMAPISession *ses,
 	if (ret != hrSuccess)
 		return ret;
 	return ses->OpenMsgStore(0, eid_size, eid, &iid_of(*pub), MDB_WRITE, pub);
+}
+
+static HRESULT adm_hook_check_server(IECServiceAdmin *svcadm,
+    unsigned int user_size, const ENTRYID *user_eid)
+{
+	if (strcmp(opt_entity_type, "user") != 0)
+		return hrSuccess;
+	/* Check if this user should exist on the connected server */
+	memory_ptr<ECUSER> user;
+	auto ret = svcadm->GetUser(user_size, user_eid, 0, &~user);
+	if (ret != hrSuccess)
+		return kc_perror("Unable to load details with GetUser", ret);
+
+	/* Home server on single server installations is empty */
+	if (user->lpszServername == nullptr ||
+	    *reinterpret_cast<TCHAR *>(user->lpszServername) == '\0')
+		return hrSuccess;
+	/* GetServerDetails uses AllocateMore, so this needs MAPIAllocate. */
+	memory_ptr<ECSVRNAMELIST> srvlist;
+	ret = MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), &~srvlist);
+	if (ret != hrSuccess)
+		return kc_perror("MAPIAllocate", ret);
+	ret = MAPIAllocateMore(sizeof(TCHAR *), srvlist, reinterpret_cast<void **>(&srvlist->lpszaServer));
+	if (ret != hrSuccess)
+		return kc_perror("MAPIAllocate", ret);
+	srvlist->cServers = 1;
+	srvlist->lpszaServer[0] = user->lpszServername;
+	memory_ptr<ECSERVERLIST> details;
+	ret = svcadm->GetServerDetails(srvlist, 0, &~details);
+	if (ret != hrSuccess) {
+		ec_log_err("Unable to load server details for \"%s\": %s",
+			reinterpret_cast<const char *>(user->lpszServername), GetMAPIErrorMessage(ret));
+		return ret;
+	}
+	if (!(details->lpsaServer[0].ulFlags & EC_SDFLAG_IS_PEER))
+		/* Since we do not know which server is connected, do not print a server name. */
+		ec_log_warn("Hooking store of non-homeserver of \"%s\"", opt_entity_name);
+	return hrSuccess;
+}
+
+static HRESULT adm_hook_to_normal(IECServiceAdmin *svcadm, const GUID &guid)
+{
+	unsigned int store_type = 0;
+	ULONG user_size = 0;
+	memory_ptr<ENTRYID> user_eid;
+	HRESULT ret = hrSuccess;
+
+	ret = adm_resolve_entity(svcadm, store_type, user_size, user_eid);
+	if (ret != hrSuccess)
+		return ret;
+	ret = adm_hook_check_server(svcadm, user_size, user_eid);
+	if (ret != hrSuccess)
+		return ret;
+	/* The server will not let you hook public stores to users and vice-versa. */
+	ret = svcadm->HookStore(store_type, user_size, user_eid, &guid);
+	if (ret != hrSuccess)
+		return kc_perror("Unable to hook store", ret);
+	printf("The store has been hooked.\n");
+	return hrSuccess;
+}
+
+static HRESULT adm_attach_store(KServerContext &kadm, const char *hexguid)
+{
+	GUID binguid;
+	auto ret = adm_hex2bin(hexguid, binguid);
+	if (ret != hrSuccess)
+		return ret;
+	return adm_hook_to_normal(kadm.m_svcadm, binguid);
 }
 
 static HRESULT adm_detach_store(KServerContext &kadm)
@@ -281,6 +350,8 @@ static HRESULT adm_perform()
 		return adm_detach_store(srvctx);
 	if (opt_remove_store != nullptr)
 		return adm_remove_store(srvctx.m_svcadm, opt_remove_store);
+	if (opt_attach_store != nullptr)
+		return adm_attach_store(srvctx, opt_attach_store);
 	return MAPI_E_CALL_FAILED;
 }
 
@@ -304,13 +375,16 @@ static bool adm_parse_options(int &argc, char **&argv)
 		poptPrintHelp(ctx, stderr, 0);
 		return false;
 	}
-	auto act = !!opt_detach_store + !!opt_create_store +
+	auto act = !!opt_attach_store + !!opt_detach_store + !!opt_create_store +
 	           !!opt_remove_store + !!opt_create_public;
 	if (act > 1) {
-		fprintf(stderr, "-C, -D, -P and -R are mutually exclusive.\n");
+		fprintf(stderr, "-A, -C, -D, -P and -R are mutually exclusive.\n");
 		return false;
 	} else if (act == 0) {
-		fprintf(stderr, "One of -C, -D, -P, -R or -? must be specified.\n");
+		fprintf(stderr, "One of -A, -C, -D, -P, -R or -? must be specified.\n");
+		return false;
+	} else if (opt_attach_store != nullptr && opt_entity_name != nullptr) {
+		fprintf(stderr, "-A needs -n\n");
 		return false;
 	} else if ((opt_create_store || opt_detach_store) && opt_entity_name == nullptr) {
 		fprintf(stderr, "-C/-D need the -n option\n");
