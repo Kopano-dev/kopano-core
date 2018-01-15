@@ -43,6 +43,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/Util.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/scope.hpp>
 #include <inetmapi/inetmapi.h>
 #include <kopano/mapiext.h>
 #include <vector>
@@ -701,6 +702,11 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 	const std::string &strUser = args[0], &strPass = args[1];
 
+	auto laters = make_scope_success([&]() {
+		if (hr != hrSuccess)
+			CleanupObject();
+	});
+
 	// strUser isn't sent in imap style utf-7, but \ is escaped, so strip those
 	for (i = 0; i < strUser.length(); ++i) {
 		if (strUser[i] == '\\' && i+1 < strUser.length() && (strUser[i+1] == '"' || strUser[i+1] == '\\'))
@@ -718,25 +724,24 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s with username \"%s\" (tried to use disallowed plaintext auth)",
 					  lpChannel->peer_addr(), strUsername.c_str());
-		goto exitpm;
+		return hr;
 	}
 
 	if (lpSession != NULL) {
 		lpLogger->Log(EC_LOGLEVEL_INFO, "Ignoring to login TWICE for username \"%s\"", strUsername.c_str());
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN Can't login twice");
-		// hr = MAPI_E_CALL_FAILED;
-		goto exitpm;
+		return hr;
 	}
 
 	hr = TryConvert(strUsername, rawsize(strUsername), "windows-1252", strwUsername);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Illegal byte sequence in username");
-		goto exitpm;
+		return hr;
 	}
 	hr = TryConvert(strPass, rawsize(strPass), "windows-1252", strwPassword);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Illegal byte sequence in password");
-		goto exitpm;
+		return hr;
 	}
 
 	flags = EC_PROFILE_FLAGS_NO_COMPRESSION;
@@ -759,21 +764,21 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 		if (m_ulFailedLogins >= LOGIN_RETRIES)
 			// disconnect client
 			hr = MAPI_E_END_OF_SESSION;
-		goto exitpm;
+		return hr;
 	}
 
 	hr = HrOpenDefaultStore(lpSession, &~lpStore);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open default store");
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't open default store");
-		goto exitpm;
+		return hr;
 	}
 
 	hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open addressbook");
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't open addressbook");
-		goto exitpm;
+		return hr;
 	}
 
 	// check if imap access is disabled
@@ -781,7 +786,7 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "IMAP not enabled for user '%s'", strUsername.c_str());
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN imap feature disabled");
 		hr = MAPI_E_LOGON_FAILED;
-		goto exitpm;
+		return hr;
 	}
 
 	m_strwUsername = strwUsername;
@@ -793,7 +798,7 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), &~m_lpsIMAPTags);
 		if (hr != hrSuccess)
-			goto exitpm;
+			return hr;
 
 		m_lpsIMAPTags->aulPropTag[0] = PROP_ENVELOPE;
 	}
@@ -813,14 +818,11 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to find special folder properties");
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't find special folder properties");
-		goto exitpm;
+		return hr;
 	}
 
 	lpLogger->Log(EC_LOGLEVEL_NOTICE, "IMAP Login from %s for user %s", lpChannel->peer_addr(), strUsername.c_str());
 	HrResponse(RESP_TAGGED_OK, strTag, "[" + GetCapabilityString(false) + "] LOGIN completed");
- exitpm:
-	if (hr != hrSuccess)
-		CleanupObject();
 	return hr;
 }
 

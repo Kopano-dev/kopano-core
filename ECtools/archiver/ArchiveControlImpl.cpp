@@ -38,6 +38,7 @@
 #include "ArchiveManage.h"
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
+#include <kopano/scope.hpp>
 
 using namespace KC::helpers;
 using namespace KC::operations;
@@ -437,6 +438,11 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	PROPMAP_INIT_NAMED_ID(DIRTY, PT_BOOLEAN, PSETID_Archive, dispidDirty)
 	PROPMAP_INIT(ptrUserStore)
 
+	auto laters = KCHL::make_scope_success([&]() {
+		if (hr == hrSuccess && bHaveErrors)
+			hr = MAPI_W_PARTIAL_COMPLETION;
+	});
+
 	hr = StoreHelper::Create(ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create store helper. (hr=%s)", stringify(hr, true).c_str());
@@ -450,12 +456,12 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 			hr = hrSuccess;
 		} else
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get list of archives. (hr=%s)", stringify(hr, true).c_str());
-		goto exitpm;
+		return hr;
 	}
 
 	if (lstArchives.empty()) {
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "'" TSTRING_PRINTF "' has no attached archives", strUser.c_str());
-		goto exitpm;
+		return hr;
 	}
 	hr = ptrStoreHelper->GetSearchFolders(&~ptrSearchArchiveFolder, &~ptrSearchDeleteFolder, &~ptrSearchStubFolder);
 	if (hr != hrSuccess) {
@@ -489,7 +495,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 		hr = ProcessFolder(ptrSearchArchiveFolder, ptrCopyOp);
 		if (FAILED(hr)) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to archive messages. (hr=%s)", stringify(hr, true).c_str());
-			goto exitpm;
+			return hr;
 		} else if (hr == MAPI_W_PARTIAL_COMPLETION) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Some message could not be archived");
 			bHaveErrors = true;
@@ -504,7 +510,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 		hr = ProcessFolder(ptrSearchDeleteFolder, ptrDeleteOp);
 		if (FAILED(hr)) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to delete old messages. (hr=%s)", stringify(hr, true).c_str());
-			goto exitpm;
+			return hr;
 		} else if (hr == MAPI_W_PARTIAL_COMPLETION) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Some message could not be deleted");
 			bHaveErrors = true;
@@ -519,7 +525,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 		hr = ProcessFolder(ptrSearchStubFolder, ptrStubOp);
 		if (FAILED(hr)) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to stub messages. (hr=%s)", stringify(hr, true).c_str());
-			goto exitpm;
+			return hr;
 		} else if (hr == MAPI_W_PARTIAL_COMPLETION) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Some message could not be stubbed");
 			bHaveErrors = true;
@@ -533,7 +539,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 		hr = PurgeArchives(lstArchives);
 		if (FAILED(hr)) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to purge archive(s). (hr=%s)", stringify(hr, true).c_str());
-			goto exitpm;
+			return hr;
 		} else if (hr == MAPI_W_PARTIAL_COMPLETION) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Some archives could not be purged");
 			bHaveErrors = true;
@@ -541,9 +547,6 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 		}
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Done purging archive(s)");
 	}
- exitpm:
-	if (hr == hrSuccess && bHaveErrors)
-		return MAPI_W_PARTIAL_COMPLETION;
 	return hr;
 }
 
@@ -1091,7 +1094,6 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 				break;
 		}
 	}
- exitpm:
 	return hr;
 }
 
@@ -1203,7 +1205,6 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 		if (ptrRows.size() < batch_size)
 			break;
 	}
- exitpm:
 	return hr;
 }
 
@@ -1317,7 +1318,6 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 				return hr;
 		}
 	}
- exitpm:
 	return hr;
 }
 

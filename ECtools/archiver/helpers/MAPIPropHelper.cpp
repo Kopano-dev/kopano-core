@@ -75,7 +75,6 @@ HRESULT MAPIPropHelper::Init()
 	PROPMAP_INIT_NAMED_ID(REF_ITEM_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefItemEntryId)
 	PROPMAP_INIT_NAMED_ID(REF_PREV_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefPrevEntryId)
 	PROPMAP_INIT(m_ptrMapiProp)
- exitpm:
 	return hr;
 }
 
@@ -643,7 +642,6 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 	}
 	
 	swap(*lplstArchives, lstArchives);
- exitpm:
 	return hr;
 }
 

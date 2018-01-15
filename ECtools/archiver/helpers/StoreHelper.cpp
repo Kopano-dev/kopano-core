@@ -98,7 +98,6 @@ HRESULT StoreHelper::Init()
 	PROPMAP_INIT_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
 	PROPMAP_INIT_NAMED_ID(VERSION, PT_LONG, PSETID_Archive, dispidVersion)
 	PROPMAP_INIT(m_ptrMsgStore)
- exitpm:
 	return hr;
 }
 

@@ -173,7 +173,6 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 		}
 	}
 	*lpptrPSAction = std::move(ptrPSAction);
- exitpm:
 	return hr;
 }
 
@@ -413,7 +412,6 @@ HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestric
 	// is present.
 	resResult += ECExistRestriction(PROP_ORIGINAL_SOURCE_KEY);
 	hr = resResult.CreateMAPIRestriction(lppRestriction, ECRestriction::Full);
- exitpm:
 	return hr;
 }
 

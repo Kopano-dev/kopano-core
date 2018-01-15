@@ -379,7 +379,6 @@ HRESULT ECArchiveAwareMessage::MapNamedProps()
 	PROPMAP_INIT_NAMED_ID(ORIGINAL_SOURCE_KEY,    PT_BINARY,    PSETID_Archive, dispidOrigSourceKey);
 	PROPMAP_INIT(this);
 	m_bNamedPropsMapped = true;
- exitpm:
 	return hr;
 }
 

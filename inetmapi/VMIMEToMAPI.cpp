@@ -3210,7 +3210,6 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 				return hr;
 		}
 	}
- exitpm:
 	return hr;
 }
 
@@ -3331,7 +3330,6 @@ HRESULT VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vmMess
 	sEnvelope.Value.lpszA = (char*)buffer.c_str();
 
 	hr = lpMessage->SetProps(1, &sEnvelope, NULL);
- exitpm:
 	return hr;
 }
 

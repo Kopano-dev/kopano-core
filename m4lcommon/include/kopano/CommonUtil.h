@@ -119,7 +119,7 @@ private:
 #define PROPMAP_DECL() ECPropMap m_propmap;
 #define PROPMAP_START(hint) ECPropMap m_propmap(hint);
 #define PROPMAP_NAMED_ID(name, type, guid, id) ULONG PROP_##name; m_propmap.AddProp(&PROP_##name, type, ECPropMapEntry(guid, id));
-#define PROPMAP_INIT(lpObject) do { hr = m_propmap.Resolve(lpObject); if (hr != hrSuccess) goto exitpm; } while (false);
+#define PROPMAP_INIT(lpObject) do { hr = m_propmap.Resolve(lpObject); if (hr != hrSuccess) return hr; } while (false);
 #define PROPMAP_DEF_NAMED_ID(name) ULONG PROP_##name = 0;
 #define PROPMAP_INIT_NAMED_ID(name, type, guid, id) m_propmap.AddProp(&PROP_##name, type, ECPropMapEntry(guid, id));
 
