@@ -336,7 +336,10 @@ class FolderImporter:
 
             self.log.debug('folder %s: deleted document with sourcekey %s', self.folder.sourcekey, item.sourcekey)
 
-            if item.sourcekey.encode('ascii') in db_items: # ICS may generate delete events without update events (soft-deletes?)
+            # NOTE ICS may generate delete events for items that did not exist
+            # before, for example for a new message which has already been
+            # deleted in the meantime.
+            if item.sourcekey.encode('ascii') in db_items:
                 idx = pickle_loads(db_index[item.sourcekey.encode('ascii')])
                 idx[b'backup_deleted'] = self.service.timestamp
                 db_index[item.sourcekey.encode('ascii')] = pickle_dumps(idx)
@@ -513,7 +516,8 @@ class Service(kopano.Service):
                             if backup_deleted and (self.timestamp - backup_deleted).days >= self.options.purge:
                                 self.log.debug('purging item: %s', item)
                                 stats['items'] += 1
-                                del db_items[item]
+                                if item in db_items:
+                                    del db_items[item]
                                 del db_index[item]
 
         self.log.info('purged %d folders and %d items', stats['folders'], stats['items'])

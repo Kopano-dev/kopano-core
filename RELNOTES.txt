@@ -23,7 +23,7 @@ Fixes:
 * spooler: only evaluate rules that are explicitly enabled using
   PR_RULE_STATE [KC-963]
 Changes:
-* Support for Debian 7 ended [KC-615]
+* Support for Debian 7 ended [KC-736]
 * /etc/kopano is no longer prepopulated, create .cfg manually if you need to
   override anything [KC-681]
 * server: remove support for upgrading databases older than ZCP 7.2 [KC-839]
