@@ -2,8 +2,8 @@
 .SH Name
 kopano\-storeadm \(em store management utility
 .SH Synopsis
-\fBkopano\-storeadm\fP \fB\-C\fP [\fB\-c\fP \fIfile\fP] [\fB\-h\fP \fIuri\fP]
-[\fB\-k\fP \fIcompany\fP] [\fB\-n\fP \fIname\fP]
+\fBkopano\-storeadm\fP {\fB\-C\fP|\fB\-R\fP \fIguid\fP} [\fB\-c\fP \fIfile\fP]
+[\fB\-h\fP \fIuri\fP] [\fB\-k\fP \fIcompany\fP] [\fB\-n\fP \fIname\fP]
 .SH Description
 .PP
 This tool is used to manage message stores on the Kopano server. Specifically,
@@ -14,6 +14,10 @@ must be running for kopano-storeadm to work.
 \fB\-C\fP
 Create a new store and attach it to the user account specified with \fB\-n\fP.
 That account must not have an associated store yet.
+.TP
+\fB\-R\fP \fIguid\fP
+Remove an orphaned store. It actually only marks it as deleted in the database
+and the softdelete mechanism will remove it later on.
 .TP
 \fB\-c\fP \fIfile\fP
 Read config file.
@@ -30,6 +34,8 @@ The store type for the entity specified with \fB\-n\fP. If not specified,
 .SH Examples
 .IP \(bu 4
 Create new store for user: kopano\-storeadm \-Cn user1
+.IP \(bu 4
+Remove store: kopano\-storeadm \-R 24680B
 .SH Configuration file
 .PP
 Normally, no configuration file is used or required. If the file

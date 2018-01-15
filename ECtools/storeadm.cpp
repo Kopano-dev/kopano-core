@@ -39,12 +39,14 @@
 using namespace KCHL;
 
 static int opt_create_store;
+static const char *opt_remove_store;
 static const char *opt_config_file, *opt_host;
 static const char *opt_entity_name;
 static std::unique_ptr<ECConfig> adm_config;
 
 static constexpr const struct poptOption adm_options[] = {
 	{nullptr, 'C', POPT_ARG_NONE, &opt_create_store, 0, "Create a store and attach it to a user account (with -n)"},
+	{nullptr, 'R', POPT_ARG_STRING, &opt_remove_store, 0, "Remove an orphaned store by GUID"},
 	{nullptr, 'c', POPT_ARG_STRING, &opt_config_file, 'c', "Specify alternate config file"},
 	{nullptr, 'h', POPT_ARG_STRING, &opt_host, 0, "URI for server"},
 	{nullptr, 'n', POPT_ARG_STRING, &opt_entity_name, 0, "User/group/company account to work on for -A,-C,-D"},
@@ -58,6 +60,18 @@ static constexpr const configsetting_t adm_config_defaults[] = {
 	{"sslkey_pass", ""},
 	{nullptr},
 };
+
+static HRESULT adm_hex2bin(const char *x, GUID &out)
+{
+	auto s = hex2bin(x);
+	if (s.size() != sizeof(out)) {
+		ec_log_err("GUID must be exactly %zu bytes long (%zu characters in hex representation)",
+			sizeof(out), 2 * sizeof(out));
+		return MAPI_E_INVALID_PARAMETER;
+	}
+	memcpy(&out, s.c_str(), s.size());
+	return hrSuccess;
+}
 
 static HRESULT adm_create_store(IECServiceAdmin *svcadm)
 {
@@ -79,6 +93,19 @@ static HRESULT adm_create_store(IECServiceAdmin *svcadm)
 	return hrSuccess;
 }
 
+static HRESULT adm_remove_store(IECServiceAdmin *svcadm, const char *hexguid)
+{
+	GUID binguid;
+	auto ret = adm_hex2bin(hexguid, binguid);
+	if (ret != hrSuccess)
+		return ret;
+	ret = svcadm->RemoveStore(&binguid);
+	if (ret != hrSuccess)
+		return kc_perror("RemoveStore", ret);
+	printf("The store has been removed.\n");
+	return hrSuccess;
+}
+
 static HRESULT adm_perform()
 {
 	KServerContext srvctx;
@@ -88,6 +115,8 @@ static HRESULT adm_perform()
 		return kc_perror("KServerContext::logon", ret);
 	if (opt_create_store)
 		return adm_create_store(srvctx.m_svcadm);
+	if (opt_remove_store != nullptr)
+		return adm_remove_store(srvctx.m_svcadm, opt_remove_store);
 	return MAPI_E_CALL_FAILED;
 }
 
@@ -111,9 +140,12 @@ static bool adm_parse_options(int &argc, char **&argv)
 		poptPrintHelp(ctx, stderr, 0);
 		return false;
 	}
-	auto act = !!opt_create_store;
-	if (act == 0) {
-		fprintf(stderr, "One of -C or -? must be specified.\n");
+	auto act = !!opt_create_store + !!opt_remove_store;
+	if (act > 1) {
+		fprintf(stderr, "-C and -R are mutually exclusive.\n");
+		return false;
+	} else if (act == 0) {
+		fprintf(stderr, "One of -C, -R or -? must be specified.\n");
 		return false;
 	} else if (opt_create_store && opt_entity_name == nullptr) {
 		fprintf(stderr, "-C needs the -n option\n");
