@@ -1,5 +1,3 @@
-#!/usr/bin/env @PYTHON@
-
 import kopano
 from kopano.log import logger
 import sys

@@ -718,6 +718,7 @@ AC_CONFIG_FILES([Makefile
 		ECtools/presence/Makefile
 		ECtools/search/Makefile
 		ECtools/migration-pst/Makefile
+		ECtools/utils/Makefile
 		installer/Makefile
 		installer/linux/Makefile
 		installer/userscripts/Makefile
@@ -757,13 +758,14 @@ AC_CONFIG_FILES([ECtools/cli/kopano-cli], [chmod +x ECtools/cli/kopano-cli])
 AC_CONFIG_FILES([ECtools/presence/kopano-presence], [chmod +x ECtools/presence/kopano-presence])
 AC_CONFIG_FILES([ECtools/migration-pst/kopano-migration-pst], [chmod +x ECtools/migration-pst/kopano-migration-pst])
 AC_CONFIG_FILES([ECtools/spamd/kopano-spamd], [chmod +x ECtools/spamd/kopano-spamd])
-AC_CONFIG_FILES([installer/linux/kopano-mr-accept.py], [chmod +x installer/linux/kopano-mr-accept.py])
-AC_CONFIG_FILES([installer/linux/kopano-mr-process.py], [chmod +x installer/linux/kopano-mr-process.py])
-AC_CONFIG_FILES([installer/linux/kopano-autorespond.py], [chmod +x installer/linux/kopano-autorespond.py])
+AC_CONFIG_FILES([ECtools/utils/kopano-mr-accept.py], [chmod +x ECtools/utils/kopano-mr-accept.py])
+AC_CONFIG_FILES([ECtools/utils/kopano-mr-process.py], [chmod +x ECtools/utils/kopano-mr-process.py])
+AC_CONFIG_FILES([ECtools/utils/kopano-autorespond.py], [chmod +x ECtools/utils/kopano-autorespond.py])
 AC_CONFIG_FILES([ECtools/search/kopano_search/version.py], [])
 AC_CONFIG_FILES([ECtools/backup/kopano_backup/version.py], [])
 AC_CONFIG_FILES([ECtools/cli/kopano_cli/version.py], [])
 AC_CONFIG_FILES([ECtools/spamd/kopano_spamd/version.py], [])
+AC_CONFIG_FILES([ECtools/utils/kopano_utils/version.py], [])
 AC_CONFIG_FILES([swig/python/kopano/kopano/version.py], [])
 
 AC_OUTPUT
