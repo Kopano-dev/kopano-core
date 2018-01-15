@@ -431,7 +431,6 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 	sfbEvent		fbEvent;
 	FBBlock_1		fbBlk;
 	memory_ptr<SPropValue> lpPropFBDataArray;
-	time_t tmUnixStart = 0, tmUnixEnd = 0;
 
 	//Check of propertys are mv
 	if(lpfbBlockList == NULL || lppPropFBDataArray == NULL)
@@ -474,11 +473,8 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 
 		if(fbBlk.m_fbstatus == fbStatus || fbStatus == fbKopanoAllBusy)
 		{
-			RTimeToUnixTime(fbBlk.m_tmStart, &tmUnixStart);
-			RTimeToUnixTime(fbBlk.m_tmEnd, &tmUnixEnd);
-
-			gmtime_safe(&tmUnixStart, &tmStart);
-			gmtime_safe(&tmUnixEnd, &tmEnd);
+			gmtime_safe(RTimeToUnixTime(fbBlk.m_tmStart), &tmStart);
+			gmtime_safe(RTimeToUnixTime(fbBlk.m_tmEnd), &tmEnd);
 			
 			if(tmStart.tm_year > ulLastYear || tmStart.tm_mon > ulLastMonth)
 			{

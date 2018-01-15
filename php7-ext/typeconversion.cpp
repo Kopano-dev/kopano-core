@@ -1643,8 +1643,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues, LPSPropValue pPropValueArray, zv
 
 		case PT_SYSTIME:
 			// convert time to Unix timestamp
-			add_assoc_long(zval_prop_value, pulproptag,
-						   FileTimeToUnixTime(pPropValue->Value.ft.dwHighDateTime,pPropValue->Value.ft.dwLowDateTime));
+			add_assoc_long(zval_prop_value, pulproptag, FileTimeToUnixTime(pPropValue->Value.ft));
 			break;
 		case PT_CLSID:
 			add_assoc_stringl(zval_prop_value, pulproptag, (char *)pPropValue->Value.lpguid, sizeof(GUID));
@@ -1705,9 +1704,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues, LPSPropValue pPropValueArray, zv
 
 			for (j = 0; j < pPropValue->Value.MVft.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
-				add_assoc_long(&zval_mvprop_value, ulKey,
-							   FileTimeToUnixTime(pPropValue->Value.MVft.lpft[j].dwHighDateTime,
-												  pPropValue->Value.MVft.lpft[j].dwLowDateTime));
+				add_assoc_long(&zval_mvprop_value, ulKey, FileTimeToUnixTime(pPropValue->Value.MVft.lpft[j]));
 			}
 
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);

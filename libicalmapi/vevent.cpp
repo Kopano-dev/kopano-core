@@ -481,8 +481,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	if (lpPropVal == NULL)
 		// do not create calendar items without start/end date, which is invalid.
 		return MAPI_E_CORRUPT_DATA;
-
-	time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
+	auto ttTime = FileTimeToUnixTime(lpPropVal->Value.ft);
 	hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpEvent);
 	if (hr != hrSuccess)
 		return hr;
@@ -492,8 +491,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	if (lpPropVal == nullptr)
 		// do not create calendar items without start/end date, which is invalid.
 		return MAPI_E_CORRUPT_DATA;
-
-	ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
+	ttTime = FileTimeToUnixTime(lpPropVal->Value.ft);
 	hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpEvent);
 	if (hr != hrSuccess)
 		return hr;
@@ -510,8 +508,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	if (lpPropVal == nullptr)
 		// do not create calendar items without start/end date, which is invalid.
 		return MAPI_E_CORRUPT_DATA;
-
-	ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
+	ttTime = FileTimeToUnixTime(lpPropVal->Value.ft);
 	lpProp = icalproperty_new_x("overwrite-me");
 	icalproperty_set_x_name(lpProp, "X-MS-OLK-ORIGINALSTART");
 	hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpProp);
@@ -524,8 +521,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	if (lpPropVal == nullptr)
 		// do not create calendar items without start/end date, which is invalid.
 		return MAPI_E_CORRUPT_DATA;
-
-	ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
+	ttTime = FileTimeToUnixTime(lpPropVal->Value.ft);
 	lpProp = icalproperty_new_x("overwrite-me");
 	icalproperty_set_x_name(lpProp, "X-MS-OLK-ORIGINALEND");
 	hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpProp);

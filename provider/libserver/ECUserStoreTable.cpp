@@ -293,14 +293,8 @@ ECRESULT ECUserStoreTable::Load() {
 			sUserStore.ulObjId = 0;
 
 		sUserStore.tModTime = 0;
-		if(lpDBRow[MODTIME_HI] && lpDBRow[MODTIME_LO]) {
-			FILETIME ft;
-			ft.dwHighDateTime = atoui(lpDBRow[MODTIME_HI]);
-			ft.dwLowDateTime =  atoui(lpDBRow[MODTIME_LO]);
-			sUserStore.tModTime = 0;
-			FileTimeToUnixTime(ft, &sUserStore.tModTime);
-		}
-
+		if (lpDBRow[MODTIME_HI] != nullptr && lpDBRow[MODTIME_LO] != nullptr)
+			sUserStore.tModTime = FileTimeToUnixTime({atoui(lpDBRow[MODTIME_HI]), atoui(lpDBRow[MODTIME_LO])});
 		if(lpDBRow[STORESIZE])
 			sUserStore.ullStoreSize = atoll(lpDBRow[STORESIZE]);
 		else

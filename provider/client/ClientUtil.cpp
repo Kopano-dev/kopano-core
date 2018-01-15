@@ -334,7 +334,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		strBodyText += KC_T("\t");
 		strBodyText+= _("Sent on:");
 		strBodyText += KC_T(" ");
-		FileTimeToUnixTime(spv[RR_CLIENT_SUBMIT_TIME].Value.ft, &tt);
+		tt = FileTimeToUnixTime(spv[RR_CLIENT_SUBMIT_TIME].Value.ft);
 		tm = localtime(&tt);
 		if (tm == NULL)
 			tm = localtime(&zero);
@@ -347,8 +347,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	strBodyText += KC_T("\r\n");
 	strBodyText+= lpReportText;
 	strBodyText += KC_T(" ");
-	
-	FileTimeToUnixTime(ft, &tt);
+	tt = FileTimeToUnixTime(ft);
 	tm = localtime(&tt);
 	if (tm == NULL)
 		tm = localtime(&zero);

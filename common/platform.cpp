@@ -45,7 +45,7 @@ HRESULT UnixTimeToFileTime(time_t t, FILETIME *ft)
 	return hrSuccess;
 }
 
-HRESULT FileTimeToUnixTime(const FILETIME &ft, time_t *t)
+time_t FileTimeToUnixTime(const FILETIME &ft)
 {
 	__int64 l;
 
@@ -60,10 +60,7 @@ HRESULT FileTimeToUnixTime(const FILETIME &ft, time_t *t)
 		if (l > static_cast<__int64>(INT_MAX))
 			l = INT_MAX;
 	}
-
-	*t = (time_t)l;
-
-	return hrSuccess;
+	return l;
 }
 
 void UnixTimeToFileTime(time_t t, int *hi, unsigned int *lo)
@@ -73,19 +70,6 @@ void UnixTimeToFileTime(time_t t, int *hi, unsigned int *lo)
 	ll = (__int64)t * 10000000 + NANOSECS_BETWEEN_EPOCHS;
 	*lo = (unsigned int)ll;
 	*hi = (unsigned int)(ll >> 32);
-}
-
-time_t FileTimeToUnixTime(unsigned int hi, unsigned int lo)
-{
-	time_t t = 0;
-	FILETIME ft;
-	ft.dwHighDateTime = hi;
-	ft.dwLowDateTime = lo;
-	
-	if(FileTimeToUnixTime(ft, &t) != hrSuccess)
-		return 0;
-	
-	return t;
 }
 
 static const LONGLONG UnitsPerMinute = 600000000;
@@ -113,15 +97,11 @@ void FileTimeToRTime(const FILETIME *pft, LONG *prtime)
 	*prtime = q & 0x7FFFFFFF;
 }
 
-HRESULT RTimeToUnixTime(LONG rtime, time_t *unixtime)
+time_t RTimeToUnixTime(LONG rtime)
 {
 	FILETIME ft;
-
-	if (unixtime == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 	RTimeToFileTime(rtime, &ft);
-	FileTimeToUnixTime(ft, unixtime);
-	return hrSuccess;
+	return FileTimeToUnixTime(ft);
 }
 
 HRESULT UnixTimeToRTime(time_t unixtime, LONG *rtime)
@@ -174,12 +154,7 @@ bool operator<=(const FILETIME &a, const FILETIME &b) noexcept
 
 time_t operator -(const FILETIME &a, const FILETIME &b)
 {
-	time_t aa, bb;
-
-	FileTimeToUnixTime(a, &aa);
-	FileTimeToUnixTime(b, &bb);
-
-	return aa - bb;
+	return FileTimeToUnixTime(a) - FileTimeToUnixTime(b);
 }
 
 #ifndef HAVE_TIMEGM
@@ -209,10 +184,9 @@ time_t timegm(struct tm *t) {
 }
 #endif
 
-struct tm* gmtime_safe(const time_t* timer, struct tm *result)
+struct tm *gmtime_safe(time_t t, struct tm *result)
 {
-	struct tm *tmp = NULL;
-	tmp = gmtime_r(timer, result);
+	auto tmp = gmtime_r(&t, result);
 	if(tmp == NULL)
 		memset(result, 0, sizeof(struct tm));
 

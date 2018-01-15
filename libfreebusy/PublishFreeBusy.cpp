@@ -280,7 +280,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 					FileTimeToRTime(&lpRowSet[i].lpProps[0].Value.ft, &sOccrBlock.fbBlock.m_tmStart);
 				if (lpRowSet[i].lpProps[1].ulPropTag == PROP_APPT_ENDWHOLE) {
 					FileTimeToRTime(&lpRowSet[i].lpProps[1].Value.ft, &sOccrBlock.fbBlock.m_tmEnd);
-					FileTimeToUnixTime(lpRowSet[i].lpProps[1].Value.ft, &sOccrBlock.tBaseDate);
+					sOccrBlock.tBaseDate = FileTimeToUnixTime(lpRowSet[i].lpProps[1].Value.ft);
 				}
 				if (lpRowSet[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)
 					sOccrBlock.fbBlock.m_fbstatus = (FBStatus)lpRowSet[i].lpProps[2].Value.ul;
@@ -337,8 +337,6 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 	std::map<time_t , TSARRAY> mpTimestamps;
 	std::vector <ULONG> vctStatus;
 	std::vector <FBBlock_1> vcFBblocks;
-	time_t tTemp = 0;
-
 	ec_log_debug("Input blocks %ul", cValues);
 
 	auto lpFbBlocks = *lppfbBlocks;
@@ -346,8 +344,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 		sTsitem.ulType = START_TIME;
 		sTsitem.ulStatus = lpFbBlocks[i].m_fbstatus;
 		sTsitem.tsTime = lpFbBlocks[i].m_tmStart;
-		RTimeToUnixTime(sTsitem.tsTime, &tTemp);
-
+		auto tTemp = RTimeToUnixTime(sTsitem.tsTime);
 		// @note ctime adds \n character
 		ec_log_debug("Blocks start %s", ctime(&tTemp));
 
@@ -433,7 +430,6 @@ HRESULT PublishFreeBusy::HrPublishFBblocks(const FBBlock_1 *lpfbBlocks, ULONG cV
 	object_ptr<IMessage> lpMessage;
 	object_ptr<IMsgStore> lpPubStore;
 	memory_ptr<SPropValue> lpsPrpUsrMEid;
-	time_t tsStart = 0;
 
 	auto hr = HrOpenECPublicStore(m_lpSession, &~lpPubStore);
 	if(hr != hrSuccess)
@@ -453,11 +449,8 @@ HRESULT PublishFreeBusy::HrPublishFBblocks(const FBBlock_1 *lpfbBlocks, ULONG cV
 	hr = lpFBUpdate->PublishFreeBusy(lpfbBlocks, cValues);
 	if(hr != hrSuccess)
 		return hr;
-
-	FileTimeToUnixTime(m_ftStart, &tsStart);
-	// @todo use a "start of day" function?
-	tsStart = tsStart - 86400; // 24*60*60 = 86400 include current day.
-	UnixTimeToFileTime(tsStart, &m_ftStart);
+	/* 86400: include current day. */
+	UnixTimeToFileTime(FileTimeToUnixTime(m_ftStart) - 86400, &m_ftStart);
 	return lpFBUpdate->SaveChanges(m_ftStart, m_ftEnd);
 }
 

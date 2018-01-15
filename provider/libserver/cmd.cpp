@@ -1004,7 +1004,6 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 	std::string		strQuery;
 	FILETIME		ft;
 	unsigned int	ulDeleteFlags = 0;
-	time_t			ulTime = 0;
 	ECListInt		lObjectIds;
 	unsigned int	ulFolders = 0, ulMessages = 0;
 	unsigned int	ulStores = 0;
@@ -1030,11 +1029,7 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 	ulDeleteFlags = EC_DELETE_CONTAINER | EC_DELETE_FOLDERS | EC_DELETE_MESSAGES | EC_DELETE_RECIPIENTS | EC_DELETE_ATTACHMENTS | EC_DELETE_HARD_DELETE;
 
 	GetSystemTimeAsFileTime(&ft);
-	FileTimeToUnixTime(ft, &ulTime);
-
-	ulTime -= ulLifetime;
-
-	UnixTimeToFileTime(ulTime, &ft);
+	UnixTimeToFileTime(FileTimeToUnixTime(ft) - ulLifetime, &ft);
 
 	// Select softdeleted stores (ignore softdelete_lifetime setting because a store can't be restored anyway)
 	strQuery = "SELECT id FROM hierarchy WHERE parent IS NULL AND (flags&"+stringify(MSGFLAG_DELETED)+")="+stringify(MSGFLAG_DELETED)+" AND type="+stringify(MAPI_STORE);

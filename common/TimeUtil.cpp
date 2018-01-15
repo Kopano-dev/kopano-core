@@ -36,17 +36,15 @@ static time_t getDateByYearMonthWeekDayHour(WORD year, WORD month, WORD week,
     WORD day, WORD hour)
 {
 	struct tm tm = {0};
-	time_t date;
 
 	// get first day of month
 	tm.tm_year = year;
 	tm.tm_mon = month-1;
 	tm.tm_mday = 1;
-	date = timegm(&tm);
+	auto date = timegm(&tm);
 
 	// convert back to struct to get wday info
-	gmtime_safe(&date, &tm);
-
+	gmtime_safe(date, &tm);
 	date -= tm.tm_wday * 24 * 60 * 60; // back up to start of week
 	date += week * 7 * 24 * 60 * 60;   // go to correct week nr
 	date += day * 24 * 60 * 60;
@@ -54,8 +52,7 @@ static time_t getDateByYearMonthWeekDayHour(WORD year, WORD month, WORD week,
 
 	// if we are in the next month, then back up a week, because week '5' means
 	// 'last week of month'
-	gmtime_safe(&date, &tm);
-
+	gmtime_safe(date, &tm);
 	if (tm.tm_mon != month-1)
 		date -= 7 * 24 * 60 * 60;
 
@@ -70,9 +67,7 @@ static LONG getTZOffset(time_t date, TIMEZONE_STRUCT sTimeZone)
 
 	if (sTimeZone.lStdBias == sTimeZone.lDstBias || sTimeZone.stDstDate.wMonth == 0 || sTimeZone.stStdDate.wMonth == 0)
 		return -(sTimeZone.lBias) * 60;
-
-	gmtime_safe(&date, &tm);
-
+	gmtime_safe(date, &tm);
 	dststart = getDateByYearMonthWeekDayHour(tm.tm_year, sTimeZone.stDstDate.wMonth, sTimeZone.stDstDate.wDay, sTimeZone.stDstDate.wDayOfWeek, sTimeZone.stDstDate.wHour);
 	dstend = getDateByYearMonthWeekDayHour(tm.tm_year, sTimeZone.stStdDate.wMonth, sTimeZone.stStdDate.wDay, sTimeZone.stStdDate.wDayOfWeek, sTimeZone.stStdDate.wHour);
 

@@ -84,8 +84,6 @@ HRESULT HrGetFbInfo(icalcomponent *lpFbcomp, time_t *lptStart, time_t *lptEnd, s
 HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time_t tDtEnd, const std::string &strOrganiser, const std::string &strUser, const std::string &strUID, icalcomponent **lpicFbComponent)
 {
 	icalperiodtype icalPeriod;
-	time_t tStart = 0;
-	time_t tEnd = 0;
 
 	auto lpFbComp = icalcomponent_new(ICAL_VFREEBUSY_COMPONENT);
 	if (lpFbComp == NULL)
@@ -151,11 +149,8 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 		lpicProp = icalproperty_new(ICAL_FREEBUSY_PROPERTY);
 		if (lpicProp == NULL)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
-		RTimeToUnixTime(lpsFbblk[i].m_tmStart, &tStart);
-		RTimeToUnixTime(lpsFbblk[i].m_tmEnd, &tEnd);
-		icalPeriod.start = icaltime_from_timet_with_zone(tStart, false, icaltimezone_get_utc_timezone());
-		icalPeriod.end = icaltime_from_timet_with_zone(tEnd, false, icaltimezone_get_utc_timezone());
-	
+		icalPeriod.start = icaltime_from_timet_with_zone(RTimeToUnixTime(lpsFbblk[i].m_tmStart), false, icaltimezone_get_utc_timezone());
+		icalPeriod.end = icaltime_from_timet_with_zone(RTimeToUnixTime(lpsFbblk[i].m_tmEnd), false, icaltimezone_get_utc_timezone());
 		icalproperty_set_freebusy(lpicProp, icalPeriod);
 
 		switch (lpsFbblk[i].m_fbstatus)

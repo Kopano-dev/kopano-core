@@ -147,8 +147,6 @@ HRESULT iCal::HrHandleIcalPost()
 	std::string strIcal;
 	
 	eIcalType etype = VEVENT;
-	FILETIME ftModTime;
-	time_t tUnixModTime;
 	std::map<std::string, int> mpIcalEntries;
 	std::map<std::string, FILETIME> mpSrvTimes;
 	std::map<std::string, SBinary> mpSrvEntries;
@@ -251,10 +249,7 @@ HRESULT iCal::HrHandleIcalPost()
 			{
 
 				lpICalToMapi->GetItemInfo(mpIterI->second, &etype, &tLastMod, &sbEid);
-				ftModTime =  mpSrvTimes[mpIterJ->first];
-				FileTimeToUnixTime(ftModTime, &tUnixModTime);
-				if(tUnixModTime != tLastMod && etype == VEVENT)
-				{
+				if (etype == VEVENT && FileTimeToUnixTime(mpSrvTimes[mpIterJ->first]) != tLastMod) {
 					hr = HrModify(lpICalToMapi.get(), mpIterJ->second, mpIterI->second, blCensorPrivate);
 					if(hr != hrSuccess)
 					{

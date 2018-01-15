@@ -379,11 +379,8 @@ bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 	SPropValuePtr ptrLastModTime;
 
 	if (lpProp != nullptr &&
-	    HrGetOneProp(lpProp, PR_LAST_MODIFICATION_TIME, &~ptrLastModTime) == hrSuccess) {
-		time_t stamp;
-		FileTimeToUnixTime(ptrLastModTime->Value.ft, &stamp);
-		strValue = stringify_int64(stamp, false);
-	}
+	    HrGetOneProp(lpProp, PR_LAST_MODIFICATION_TIME, &~ptrLastModTime) == hrSuccess)
+		strValue = stringify_int64(FileTimeToUnixTime(ptrLastModTime->Value.ft), false);
 
 	if (HrGetHeaderValue("If-Match", &strIf) == hrSuccess) {
 		if (strIf.compare("*") == 0 && !ptrLastModTime)
@@ -737,7 +734,6 @@ HRESULT Http::HrFlushHeaders()
 	HRESULT hr = hrSuccess;
 	std::string strOutput;
 	char lpszChar[128];
-	time_t tmCurrenttime = time(NULL);
 	std::string strConnection;
 
 	HrGetHeaderValue("Connection", &strConnection);
@@ -745,8 +741,7 @@ HRESULT Http::HrFlushHeaders()
 	// Add misc. headers
 	HrResponseHeader("Server","Kopano");
 	struct tm dummy;
-	strftime(lpszChar, 127, "%a, %d %b %Y %H:%M:%S GMT", gmtime_safe(&tmCurrenttime, &dummy));
-
+	strftime(lpszChar, 127, "%a, %d %b %Y %H:%M:%S GMT", gmtime_safe(time(nullptr), &dummy));
 	HrResponseHeader("Date", lpszChar);
 	if (m_ulKeepAlive != 0 && strcasecmp(strConnection.c_str(), "keep-alive") == 0) {
 		HrResponseHeader("Connection", "Keep-Alive");
