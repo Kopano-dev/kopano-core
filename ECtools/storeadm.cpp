@@ -39,6 +39,7 @@
 using namespace KCHL;
 
 static int opt_create_store, opt_create_public, opt_detach_store;
+static int opt_copytopublic;
 static const char *opt_attach_store, *opt_remove_store;
 static const char *opt_config_file, *opt_host;
 static const char *opt_entity_name, *opt_entity_type;
@@ -55,6 +56,7 @@ static constexpr const struct poptOption adm_options[] = {
 	{nullptr, 'h', POPT_ARG_STRING, &opt_host, 0, "URI for server"},
 	{nullptr, 'k', POPT_ARG_STRING, &opt_companyname, 0, "Name of the company for creating a public store in a multi-tenant setup"},
 	{nullptr, 'n', POPT_ARG_STRING, &opt_entity_name, 0, "User/group/company account to work on for -A,-C,-D"},
+	{nullptr, 'p', POPT_ARG_NONE, &opt_copytopublic, 0, "Copy an orphaned store's root to a subfolder in the public store"},
 	{nullptr, 't', POPT_ARG_STRING, &opt_entity_type, 0, "Store type for the -n argument (user, archive, group, company)"},
 	POPT_AUTOHELP
 	{nullptr}
@@ -109,6 +111,72 @@ static HRESULT adm_resolve_entity(IECServiceAdmin *svcadm,
 }
 
 /**
+ * Parse a server store entryid to client store entryid.
+ *
+ * This is a hack to open an orphan store. It will convert a server store
+ * entryid, which does not include a server url and is not wrapped by the
+ * support object, to a client side store entryid.
+ *
+ * @url:	ServerURL for open the orphan store.
+ * @eid_size:	Size of the unwrapped orphan store entryid.
+ * @eid:	Unwrapped orphan store entryid without server URL.
+ * @wrapeid_size:	Size of the wrapped orphan store entryid.
+ * @wrapeid:	Pointer to the wrapped entryid from the orphan store entryid.
+ */
+static HRESULT adm_create_orphan_eid(const char *url, const ENTRYID *eid,
+    ULONG eid_size, ENTRYID **wrapeid, ULONG *wrapeid_size)
+{
+	if (url == nullptr || eid == nullptr || wrapeid == nullptr ||
+	    wrapeid_size == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
+	ULONG url_len = strlen(url), neweid_size = eid_size + url_len;
+	memory_ptr<ENTRYID> neweid;
+	auto ret = MAPIAllocateBuffer(neweid_size, &~neweid);
+	if (ret != hrSuccess)
+		return ret;
+	memcpy(neweid, eid, eid_size);
+	memcpy(reinterpret_cast<unsigned char *>(neweid.get()) + eid_size - 4, url, url_len + 4);
+	return WrapStoreEntryID(0, reinterpret_cast<const TCHAR *>("zarafa6client.dll"),
+	       neweid_size, neweid, wrapeid_size, wrapeid);
+}
+
+static HRESULT adm_orphan_store_info(IECServiceAdmin *svcadm, const GUID &store,
+    const char *url, std::wstring &user, std::wstring &company,
+    ULONG *eid_size, ENTRYID **eid)
+{
+	object_ptr<IMAPITable> table;
+	rowset_ptr rowset;
+	auto ret = svcadm->OpenUserStoresTable(MAPI_UNICODE, &~table);
+	if (ret != hrSuccess)
+		return ret;
+	SPropValue stguid;
+	stguid.ulPropTag     = PR_EC_STOREGUID;
+	stguid.Value.bin.cb  = sizeof(GUID);
+	stguid.Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<GUID *>(&store));
+	ret = ECPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, &stguid, ECRestriction::Cheap)
+	      .FindRowIn(table, BOOKMARK_BEGINNING, 0);
+	if (ret != hrSuccess)
+		return ret;
+	ret = table->QueryRows(1, 0, &~rowset);
+	if (ret != hrSuccess)
+		return ret;
+	if (rowset.empty())
+		return MAPI_E_NOT_FOUND;
+	auto name = rowset[0].cfind(PR_DISPLAY_NAME_W);
+	if (name != nullptr)
+		user = name->Value.lpszW;
+	name = rowset[0].cfind(PR_EC_COMPANY_NAME_W);
+	if (name != nullptr)
+		company = name->Value.lpszW;
+	auto eidprop = rowset[0].cfind(PR_STORE_ENTRYID);
+	if (eidprop == nullptr)
+		return MAPI_E_NOT_FOUND;
+	return adm_create_orphan_eid(url, reinterpret_cast<ENTRYID *>(eidprop->Value.bin.lpb),
+	       eidprop->Value.bin.cb, eid, eid_size);
+}
+
+/**
  * Get the public store from a company or just the default public store. If a
  * company name is given it will try to open the companies store. if it fails
  * it will not fall back to the default store.
@@ -135,6 +203,156 @@ static HRESULT adm_get_public_store(IMAPISession *ses,
 	if (ret != hrSuccess)
 		return ret;
 	return ses->OpenMsgStore(0, eid_size, eid, &iid_of(*pub), MDB_WRITE, pub);
+}
+
+/**
+ * Open/create deleted stores folder in the public store.
+ *
+ * Open the deleted admin folder in a public store. If the folder does not exist, it
+ * will be created. First, it creates a folder called "Admin" in the top-level
+ * tree (IPM_SUBTREE). The permissions on the folder are set to "Everyone" -WTF- can
+ * not read the folder except an admin. A second folder 'Deleted stores' will
+ * create without permissions because the inheritance of the permissions.
+ *
+ * @store:	Public store where to open/create the "Deleted Stores" folder
+ * @dsfld:	Pointer to a pointer of folder 'Deleted stores'.
+ */
+static HRESULT adm_open_dsfolder(IMsgStore *store,
+    IMAPIFolder **dsfld)
+{
+	if (store == nullptr || dsfld == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
+	memory_ptr<SPropValue> pv;
+	auto ret = HrGetOneProp(store, PR_MDB_PROVIDER, &~pv);
+	if (ret != hrSuccess)
+		return kc_perror("HrGetOneProp", ret);
+
+	/* Workaround for companies, because a company is a delegate store! */
+	auto pt = pv->Value.bin.cb == sizeof(MAPIUID) &&
+	          memcmp(pv->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID)) == 0 ?
+	          PR_IPM_PUBLIC_FOLDERS_ENTRYID : PR_IPM_SUBTREE_ENTRYID;
+	ret = HrGetOneProp(store, pt, &~pv);
+	if (ret != hrSuccess)
+		return kc_perror("HrGetOneProp", ret);
+	ULONG obj_type = 0;
+	object_ptr<IMAPIFolder> ipm;
+	ret = store->OpenEntry(pv->Value.bin.cb, reinterpret_cast<ENTRYID *>(pv->Value.bin.lpb),
+	      &iid_of(ipm), MAPI_MODIFY, &obj_type, &~ipm);
+	if (ret != hrSuccess)
+		return kc_perror("OpenEntry", ret);
+	/*
+	 * Create/open a folder called "Admin", and below that, one called
+	 * "Deleted Stores".
+	 */
+	object_ptr<IMAPIFolder> adm_folder, ds_folder;
+	ret = ipm->CreateFolder(FOLDER_GENERIC, reinterpret_cast<const TCHAR *>("Admin"), nullptr, nullptr, 0, &~adm_folder);
+	if (ret == hrSuccess) {
+		/* Set permissions */
+		object_ptr<IECSecurity> sec;
+		ret = GetECObject(adm_folder, iid_of(sec), &~sec);
+		if (ret != hrSuccess)
+			return kc_perror("GetECObject", ret);
+		ECPERMISSION perm = {0};
+		perm.ulRights = 0; /* No rights, only for admin */
+		perm.sUserId.lpb = g_lpEveryoneEid; /* group: everyone */
+		perm.sUserId.cb = g_cbEveryoneEid;
+		perm.ulState = RIGHT_NEW | RIGHT_AUTOUPDATE_DENIED;
+		perm.ulType = ACCESS_TYPE_GRANT;
+		ret = sec->SetPermissionRules(1, &perm);
+	} else if (ret == MAPI_E_COLLISION) {
+		ret = ipm->CreateFolder(FOLDER_GENERIC, reinterpret_cast<const TCHAR *>("Admin"),
+		      nullptr, nullptr, OPEN_IF_EXISTS, &~adm_folder);
+	}
+	if (ret != hrSuccess)
+		return ret;
+	return adm_folder->CreateFolder(FOLDER_GENERIC, reinterpret_cast<const TCHAR *>("Deleted stores"),
+	       nullptr, &iid_of(*dsfld), OPEN_IF_EXISTS, dsfld);
+}
+
+static HRESULT adm_copy_to_public(KServerContext &kadm,
+    const std::string &hexguid, const GUID &binguid)
+{
+	const char *path = opt_host;
+	if (path == nullptr)
+		path = adm_config->GetSetting("server_socket");
+
+	/* Find store entryid */
+	ULONG eid_size = 0;
+	memory_ptr<ENTRYID> eid;
+	std::wstring user, company;
+	auto ret = adm_orphan_store_info(kadm.m_svcadm, binguid, path,
+	           user, company, &eid_size, &~eid);
+	if (ret != hrSuccess)
+		return kc_perror("GetOrphanStoreInfo", ret);
+
+	/* Open the orphan store */
+	object_ptr<IMsgStore> usr_store;
+	ret = kadm.m_session->OpenMsgStore(0, eid_size, eid.get(),
+	      nullptr, MAPI_BEST_ACCESS, &~usr_store);
+	if (ret != hrSuccess)
+		return kc_perror("Unable to open orphaned store", ret);
+
+	/* Open the root container for copying folders */
+	object_ptr<IMAPIFolder> root_fld;
+	ULONG root_type = 0;
+	ret = usr_store->OpenEntry(0, nullptr, &iid_of(root_fld),
+	      MAPI_BEST_ACCESS, &root_type, &~root_fld);
+	if (ret != hrSuccess)
+		return kc_perror("Unable to open root folder of the orphaned store", ret);
+	memory_ptr<SPropValue> pv;
+	ret = HrGetOneProp(usr_store, PR_IPM_SUBTREE_ENTRYID, &~pv);
+	if (ret != hrSuccess)
+		return kc_perror("Orphan store has no IPM_SUBTREE", ret);
+
+	/* Open the public store */
+	object_ptr<IMsgStore> pub_store;
+	ret = adm_get_public_store(kadm.m_session, usr_store, company, &~pub_store);
+	if (ret != hrSuccess)
+		return kc_perror("Unable to open the public store", ret);
+
+	/* Open/create folders admin/stores */
+	object_ptr<IMAPIFolder> ds_fld;
+	ret = adm_open_dsfolder(pub_store, &~ds_fld);
+	if (ret != hrSuccess)
+		return kc_perror("Unable to open the folder \"Deleted Stores\"", ret);
+
+	/* Copy everything to public */
+	std::wstring store_name = L"Deleted User - ";
+	if (store_name.empty())
+		store_name += convert_to<std::wstring>(hexguid);
+	else
+		store_name += user;
+
+	auto stname_tmp = store_name;
+	unsigned int folder_id = 0;
+	printf("Copying the orphan store to the public store folder \"%s\"\n",
+	       convert_to<std::string>(store_name).c_str());
+	while (true) {
+		ret = root_fld->CopyFolder(pv->Value.bin.cb,
+		      reinterpret_cast<const ENTRYID *>(pv->Value.bin.lpb), nullptr, ds_fld,
+		      reinterpret_cast<const TCHAR *>(stname_tmp.c_str()), 0,
+		      nullptr, COPY_SUBFOLDERS | MAPI_UNICODE);
+		if (ret == MAPI_E_COLLISION) {
+			if (folder_id >= 1000) {
+				fprintf(stderr, "Unable to copy the store to the public, maximum folder collisions exceeded\n");
+				return MAPI_E_CALL_FAILED;
+			}
+			stname_tmp = store_name + std::to_wstring(++folder_id);
+			fprintf(stderr, "Folder already exists, retrying with foldername \"%s\"\n",
+			        convert_to<std::string>(stname_tmp).c_str());
+			continue;
+		} else if (FAILED(ret)) {
+			return kc_perror("Unable to copy the store to public", ret);
+		} else if (ret != hrSuccess) {
+			fprintf(stderr, "The copy succeeded, but not all entries "
+			"were copied (%s)\n", GetMAPIErrorMessage(ret));
+			break;
+		}
+		printf("Copy succeeded\n");
+		break;
+	}
+	return hrSuccess;
 }
 
 static HRESULT adm_hook_check_server(IECServiceAdmin *svcadm,
@@ -202,6 +420,8 @@ static HRESULT adm_attach_store(KServerContext &kadm, const char *hexguid)
 	auto ret = adm_hex2bin(hexguid, binguid);
 	if (ret != hrSuccess)
 		return ret;
+	if (opt_copytopublic)
+		return adm_copy_to_public(kadm, hexguid, binguid);
 	return adm_hook_to_normal(kadm.m_svcadm, binguid);
 }
 
@@ -383,8 +603,8 @@ static bool adm_parse_options(int &argc, char **&argv)
 	} else if (act == 0) {
 		fprintf(stderr, "One of -A, -C, -D, -P, -R or -? must be specified.\n");
 		return false;
-	} else if (opt_attach_store != nullptr && opt_entity_name != nullptr) {
-		fprintf(stderr, "-A needs -n\n");
+	} else if (opt_attach_store != nullptr && ((opt_entity_name != nullptr) == !!opt_copytopublic)) {
+		fprintf(stderr, "-A needs exactly one of -n or -p\n");
 		return false;
 	} else if ((opt_create_store || opt_detach_store) && opt_entity_name == nullptr) {
 		fprintf(stderr, "-C/-D need the -n option\n");
