@@ -2883,7 +2883,7 @@ static HRESULT AddProblemToArray(const SPropProblem *lpProblem,
 	return hrSuccess;
 }
 
-static HRESULT qi_void_to_imapiprop(void *p, const IID &iid, IMAPIProp **pptr)
+HRESULT qi_void_to_imapiprop(void *p, const IID &iid, IMAPIProp **pptr)
 {
 #define R(Tp) do { return static_cast<Tp *>(p)->QueryInterface(IID_IMAPIProp, reinterpret_cast<void **>(pptr)); } while (false)
 	if (iid == IID_IMAPIProp)		R(IMAPIProp);
