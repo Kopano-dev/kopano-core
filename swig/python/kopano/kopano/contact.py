@@ -19,6 +19,9 @@ from MAPI.Tags import (
 )
 
 from .address import Address
+from .compat import (
+    fake_unicode as _unicode,
+)
 
 PidLidEmail1AddressType = 'PT_UNICODE:PSETID_Address:0x8082'
 PidLidEmail1DisplayName = 'PT_UNICODE:PSETID_Address:0x8080'
@@ -42,8 +45,10 @@ class Contact(object):
         if self.address1:
             return self.address1.email
 
+    # TODO name1 (setter) etc..?
+
     @email1.setter
-    def email1(self, addr):
+    def email1(self, addr): # TODO should be email address?
         self.address1 = addr
 
     @property
@@ -65,6 +70,9 @@ class Contact(object):
         self[PidLidEmail1DisplayName] = pr_dispname
         self[PidLidEmail1EmailAddress] = pr_email
         self[PidLidEmail1OriginalEntryId] = pr_entryid
+
+    def addresses(self): # TODO multiple
+        yield self.address1
 
     @property
     def photo(self):

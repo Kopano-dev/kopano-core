@@ -58,7 +58,7 @@ from MAPI.Tags import (
     PR_START_DATE, PR_END_DATE, PR_OWNER_APPT_ID, PR_RESPONSE_REQUESTED,
     PR_SENT_REPRESENTING_SEARCH_KEY, PR_ATTACHMENT_FLAGS,
     PR_ATTACHMENT_HIDDEN, PR_ATTACHMENT_LINKID, PR_ATTACH_FLAGS,
-    PR_NORMALIZED_SUBJECT_W,
+    PR_NORMALIZED_SUBJECT_W, PR_INTERNET_MESSAGE_ID_W, PR_CONVERSATION_ID,
 )
 
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
@@ -414,7 +414,7 @@ class Item(Properties, Contact, Appointment):
     def importance(self):
         """ Importance """
 
-        # TODO: userfriendly repr of value
+        warnings.warn('item.importance is deprecated (use item.urgency)', _DeprecationWarning)
         try:
             return self.prop(PR_IMPORTANCE).value
         except NotFoundError:
@@ -429,8 +429,23 @@ class Item(Properties, Contact, Appointment):
         PR_IMPORTANCE_HIGH
         """
 
+        warnings.warn('item.importance is deprecated (use item.urgency)', _DeprecationWarning)
         self.mapiobj.SetProps([SPropValue(PR_IMPORTANCE, value)])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+
+    @property
+    def urgency(self): # TODO rename back to 'importance' with core 9?
+        """Urgency ('low', 'normal' or 'high')"""
+        try:
+            return {
+                0: 'low',
+                1: 'normal',
+                2: 'high'
+            }[self[PR_IMPORTANCE]]
+        except NotFoundError:
+            pass
+
+    # TODO urgency setter
 
     @property
     def private(self):
@@ -456,6 +471,17 @@ class Item(Properties, Contact, Appointment):
     @reminder.setter
     def reminder(self, value):
         return self.create_prop('common:34051', value, proptype=PT_BOOLEAN)
+
+    @property
+    def messageid(self):
+        return self.get(PR_INTERNET_MESSAGE_ID_W)
+
+    @property
+    def conversationid(self):
+        try:
+            return _benc(self[PR_CONVERSATION_ID])
+        except NotFoundError:
+            pass
 
     def attachments(self, embedded=False, page_start=None, page_limit=None,
             order=None
