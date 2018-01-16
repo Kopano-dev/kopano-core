@@ -306,7 +306,9 @@ exit:
 	return hr;
 }
 
-HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom, LPENTRYID lpEntryFrom, ULONG cbEntryDest, LPENTRYID lpEntryDest, const utf8string &strNewFolderName, ULONG ulFlags, ULONG ulSyncId)
+HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom,
+    const ENTRYID *lpEntryFrom, ULONG cbEntryDest, const ENTRYID *lpEntryDest,
+    const utf8string &strNewFolderName, ULONG ulFlags, ULONG ulSyncId)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;

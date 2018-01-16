@@ -576,7 +576,9 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
 }
 
 // @note if you change this function please look also at ECMAPIFolderPublic::CopyFolder
-HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, LPVOID lpDestFolder, LPTSTR lpszNewFolderName, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
+HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    const IID *lpInterface, void *lpDestFolder, const TCHAR *lpszNewFolderName,
+    ULONG_PTR ulUIParam, IMAPIProgress *lpProgress, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpMapiFolder;
