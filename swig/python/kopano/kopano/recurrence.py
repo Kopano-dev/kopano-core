@@ -64,24 +64,15 @@ else:
 
 SHORT, LONG = 2, 4
 
-PidLidSideEffects = "PT_LONG:common:0x8510"
-PidLidSmartNoAttach = "PT_BOOLEAN:common:0x8514"
-PidLidReminderDelta = 'PT_LONG:common:0x8501'
-PidLidReminderSet = "PT_BOOLEAN:common:0x8503"
-PidLidReminderSignalTime = "PT_SYSTIME:common:0x8560"
-PidLidReminderDelta = "PT_LONG:common:0x8501"
-PidLidBusyStatus = "PT_LONG:appointment:0x8205"
-PidLidExceptionReplaceTime = "PT_SYSTIME:appointment:0x8228"
-PidLidAppointmentSubType = "PT_BOOLEAN:appointment:0x8215"
-PidLidResponseStatus = "PT_LONG:appointment:0x8218"
-PidLidTimeZoneStruct = "PT_BINARY:PSETID_Appointment:0x8233"
-PidLidAppointmentRecur = "PT_BINARY:PSETID_Appointment:0x8216"
-PidLidLocation = "PT_UNICODE:PSETID_Appointment:0x8208" # XXX PT_STRING8 doesn't work?
-PidLidAppointmentSubType = "PT_BOOLEAN:PSETID_Appointment:0x8215"
-PidLidAppointmentColor = "PT_LONG:PSETID_Appointment:0x8214"
-PidLidIntendedBusyStatus = "PT_LONG:PSETID_Appointment:0x8224"
-PidLidAppointmentStartWhole = "PT_SYSTIME:PSETID_Appointment:0x820D"
-PidLidAppointmentEndWhole = "PT_SYSTIME:PSETID_Appointment:0x820E"
+from .pidlid import (
+    PidLidSideEffects, PidLidSmartNoAttach, PidLidReminderDelta,
+    PidLidReminderSet, PidLidReminderSignalTime, PidLidReminderDelta,
+    PidLidBusyStatus, PidLidExceptionReplaceTime, PidLidAppointmentSubType,
+    PidLidResponseStatus, PidLidTimeZoneStruct, PidLidAppointmentRecur,
+    PidLidLocation, PidLidAppointmentSubType, PidLidAppointmentColor,
+    PidLidIntendedBusyStatus, PidLidAppointmentStartWhole,
+    PidLidAppointmentEndWhole,
+)
 
 PATTERN_DAILY = 0
 PATTERN_WEEKLY = 1
@@ -407,22 +398,41 @@ class Recurrence(object):
 
     @property
     def weekdays(self):
-        rrule_weekdays = {0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday'}
-        days = []
-        for index, week in rrule_weekdays.items():
-            if (self.pattern_type_specific[0] >> index ) & 1:
-                days.append(week)
-        return days
+        if self.pattern_type in (1, 3, 0xB):
+            weekdays = {0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday'}
+            days = []
+            for index, week in weekdays.items():
+                if (self.pattern_type_specific[0] >> index ) & 1:
+                    days.append(week)
+            return days
+
+    @property
+    def first_weekday(self):
+        weekdays = {0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday'}
+        return weekdays[self.first_dow]
+
+    @property
+    def monthday(self):
+        if self.pattern_type in (2, 0xA):
+            return self.pattern_type_specific[0]
 
     @property
     def index(self):
-        return {
-            1: u'first',
-            2: u'second',
-            3: u'third',
-            4: u'fourth',
-            5: u'last',
-        }[self.pattern_type_specific[1]]
+        if self.pattern_type in (3, 0xB):
+            return {
+                1: u'first',
+                2: u'second',
+                3: u'third',
+                4: u'fourth',
+                5: u'last',
+            }[self.pattern_type_specific[1]]
+
+    @property
+    def interval(self):
+        if self.pattern_type == PATTERN_DAILY:
+            return self.period//(24*60)
+        else:
+            return self.period
 
     @property
     def recurrences(self):

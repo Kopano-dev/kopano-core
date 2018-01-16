@@ -22,7 +22,6 @@ for user in server.users():
         for filename in args:
             data = open(filename, 'rb').read()
             if filename.endswith('.eml'):
-                print('yep', folder, filename)
                 folder.create_item(eml=data)
             elif filename.endswith('.ics'):
                 folder.create_item(ics=data)

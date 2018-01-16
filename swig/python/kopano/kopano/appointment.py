@@ -17,8 +17,9 @@ from .attendee import Attendee
 from .errors import NotFoundError
 from .recurrence import Recurrence, Occurrence
 
-PidLidReminderSet = "PT_BOOLEAN:PSETID_Common:0x8503"
-PidLidReminderDelta = "PT_LONG:PSETID_Common:0x8501"
+from .pidlid import (
+    PidLidReminderSet, PidLidReminderDelta,
+)
 
 class Appointment(object):
     """Appointment mixin class"""
