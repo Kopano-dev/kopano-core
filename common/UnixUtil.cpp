@@ -166,7 +166,7 @@ void unix_coredump_enable(const char *mode)
 		return;
 	}
 	if (linux_sysctl1("/proc/sys/fs/suid_dumpable") == '0')
-		ec_log_err("Coredumps will not be generated: kopano-server requires the fs.suid_dumpable sysctl to contain the value 2, not 0.");
+		ec_log_err("Coredumps will not be generated: kopano-server requires the fs.suid_dumpable sysctl to contain the value 2, not 0. See kopano-coredump(5) for details.");
 	else if (linux_sysctl1("/proc/sys/kernel/core_pattern") == '\0')
 		ec_log_err("Coredumps are not enabled in the OS: sysctl kernel.core_pattern is empty.");
 	limit.rlim_cur = RLIM_INFINITY;
