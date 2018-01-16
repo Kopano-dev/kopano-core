@@ -2264,17 +2264,19 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	HRESULT hr = hrSuccess;
+	object_ptr<IMAPIProp> destiprop;
 	object_ptr<IUnknown> lpECUnknown;
 	memory_ptr<SPropValue> lpECObject;
 	object_ptr<ECMAPIProp> lpECMAPIProp;
 	GUID sDestServerGuid = {0};
 	GUID sSourceServerGuid = {0};
 
-	if (lpDestObj == nullptr)
+	if (lpInterface == nullptr || lpDestObj == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Wrap mapi object to kopano object
-	if (HrGetOneProp((LPMAPIPROP)lpDestObj, PR_EC_OBJECT, &~lpECObject) == hrSuccess)
+	if (qi_void_to_imapiprop(lpDestObj, *lpInterface, &~destiprop) == hrSuccess &&
+	    HrGetOneProp(destiprop, PR_EC_OBJECT, &~lpECObject) == hrSuccess)
 		lpECUnknown.reset(reinterpret_cast<IUnknown *>(lpECObject->Value.lpszA));
 
 	// Deny copying within the same object. This is not allowed in exchange either and is required to deny
