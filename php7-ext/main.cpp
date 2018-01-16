@@ -687,16 +687,6 @@ static void _php_free_mapi_rowset(zend_resource *rsrc TSRMLS_DC)
 	if (pRowSet) FreeProws(pRowSet);
 }
 
-static HRESULT GetECObject(IMAPIProp *obj, const IID &intf, void **iup)
-{
-	memory_ptr<SPropValue> pv;
-	auto ret = HrGetOneProp(obj, PR_EC_OBJECT, &~pv);
-	if (ret != hrSuccess)
-		return ret;
-	auto ecobj = reinterpret_cast<IUnknown *>(pv->Value.lpszA);
-	return ecobj->QueryInterface(intf, iup);
-}
-
 /***************************************************************
 * Custom Code
 ***************************************************************/

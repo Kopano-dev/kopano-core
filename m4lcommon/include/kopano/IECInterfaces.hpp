@@ -268,5 +268,6 @@ IID_OF2(KC::IECMultiStoreTable, IECMultiStoreTable)
 IID_OF2(KC::IECSecurity, IECSecurity)
 IID_OF2(KC::IECServiceAdmin, IECServiceAdmin)
 IID_OF2(KC::IECSingleInstance, IECSingleInstance)
+IID_OF2(KC::IECSpooler, IECSpooler)
 
 #endif /* IECINTERFACES_HPP */

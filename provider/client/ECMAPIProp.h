@@ -95,5 +95,6 @@ private:
 public:
 	const ECMAPIProp *m_lpRoot; // Points to the 'root' object that was opened by OpenEntry; normally points to 'this' except for Attachments and Submessages
 };
+IID_OF(ECMAPIProp)
 
 #endif // ECMAPIPROP_H
