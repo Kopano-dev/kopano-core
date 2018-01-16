@@ -154,11 +154,9 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 	
 	pEcAdvise->lpKey = NULL;
 	pEcAdvise->cbKey = cbKey;
-
-	hr = MAPIAllocateMore(cbKey, pEcAdvise, (LPVOID*)&pEcAdvise->lpKey);
+	hr = KAllocCopy(lpKey, cbKey, reinterpret_cast<void **>(&pEcAdvise->lpKey), pEcAdvise);
 	if (hr != hrSuccess)
 		return hr;
-	memcpy(pEcAdvise->lpKey, lpKey, cbKey);
 	pEcAdvise->lpAdviseSink.reset(lpAdviseSink);
 	pEcAdvise->ulEventMask	= ulEventMask;
 	pEcAdvise->ulSupportConnection = 0;

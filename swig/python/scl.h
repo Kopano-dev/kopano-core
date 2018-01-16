@@ -159,9 +159,8 @@ namespace priv {
 		}
 		PyString_AsStringAndSize(value, &data, &size);
 		lpResult->cb = size;
-		if (MAPIAllocateMore(size, lpBase, reinterpret_cast<void **>(&lpResult->lpb)) != hrSuccess)
+		if (KAllocCopy(data, size, reinterpret_cast<void **>(&lpResult->lpb), lpBase) != hrSuccess)
 			throw std::bad_alloc();
-		memcpy(lpResult->lpb, data, size);
 	}
 
 	/**

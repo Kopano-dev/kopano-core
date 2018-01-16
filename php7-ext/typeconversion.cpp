@@ -112,11 +112,9 @@ HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray
 	for (i = 0; i < count; ++i) {
 		pentry = zend_hash_get_current_data(target_hash);
 		convert_to_string_ex(pentry);
-		
-		MAPI_G(hr) = MAPIAllocateMore(pentry->value.str->len, lpBase, (void **) &lpBinaryArray->lpbin[n].lpb);
+		MAPI_G(hr) = KAllocCopy(pentry->value.str->val, pentry->value.str->len, reinterpret_cast<void **>(&lpBinaryArray->lpbin[n].lpb), lpBase);
 		if(MAPI_G(hr) != hrSuccess)
 			return MAPI_G(hr);
-		memcpy(lpBinaryArray->lpbin[n].lpb, pentry->value.str->val, pentry->value.str->len);
 		lpBinaryArray->lpbin[n++].cb = pentry->value.str->len;
 		zend_hash_move_forward(target_hash);
 	}
@@ -377,10 +375,9 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			convert_to_string_ex(entry);
 
 			// Allocate and copy data
-			MAPI_G(hr) = MAPIAllocateMore(entry->value.str->len, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.bin.lpb);
+			MAPI_G(hr) = KAllocCopy(entry->value.str->val, entry->value.str->len, reinterpret_cast<void **>(&lpPropValue[cvalues].Value.bin.lpb), lpBase != nullptr ? lpBase : lpPropValue);
 			if (MAPI_G(hr) != hrSuccess)
 				goto exit;
-			memcpy(lpPropValue[cvalues].Value.bin.lpb, entry->value.str->val, entry->value.str->len);
 			lpPropValue[cvalues++].Value.bin.cb =  entry->value.str->len;
 			break;
 		case PT_STRING8:
@@ -403,10 +400,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 				MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 				goto exit;
 			}
-			MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID), lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.lpguid);
+			MAPI_G(hr) = KAllocCopy(entry->value.str->val, sizeof(GUID), reinterpret_cast<void **>(&lpPropValue[cvalues].Value.lpguid), lpBase != nullptr ? lpBase : lpPropValue);
 			if (MAPI_G(hr) != hrSuccess)
 				goto exit;
-			memcpy(lpPropValue[cvalues++].Value.lpguid, entry->value.str->val, sizeof(GUID));
+			++cvalues;
 			break;
 
 #define GET_MV_HASH() \
@@ -486,10 +483,10 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 				dataEntry = zend_hash_get_current_data(dataHash);
 				convert_to_string_ex(dataEntry);
 				lpPropValue[cvalues].Value.MVbin.lpbin[h].cb = dataEntry->value.str->len;
-				MAPI_G(hr) = MAPIAllocateMore(dataEntry->value.str->len, lpBase ? lpBase : lpPropValue, (void **)&lpPropValue[cvalues].Value.MVbin.lpbin[h].lpb);
+				MAPI_G(hr) = KAllocCopy(dataEntry->value.str->val, dataEntry->value.str->len, reinterpret_cast<void **>(&lpPropValue[cvalues].Value.MVbin.lpbin[h].lpb), lpBase != nullptr ? lpBase : lpPropValue);
 				if (MAPI_G(hr) != hrSuccess)
 					goto exit;
-				memcpy(lpPropValue[cvalues].Value.MVbin.lpbin[h++].lpb, dataEntry->value.str->val, dataEntry->value.str->len);
+				++h;
 				zend_hash_move_forward(dataHash);
 			}
 			lpPropValue[cvalues++].Value.MVbin.cValues = h;
@@ -601,10 +598,9 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 
 					convert_to_string_ex(dataEntry);
 					lpActions->lpAction[j].actMoveCopy.cbStoreEntryId = dataEntry->value.str->len;
-					MAPI_G(hr) = MAPIAllocateMore(dataEntry->value.str->len, lpBase ? lpBase : lpPropValue, (void **)&lpActions->lpAction[j].actMoveCopy.lpStoreEntryId);
+					MAPI_G(hr) = KAllocCopy(dataEntry->value.str->val, dataEntry->value.str->len, reinterpret_cast<void **>(&lpActions->lpAction[j].actMoveCopy.lpStoreEntryId), lpBase != nullptr ? lpBase : lpPropValue);
 					if (MAPI_G(hr) != hrSuccess)
 						goto exit;
-					memcpy(lpActions->lpAction[j].actMoveCopy.lpStoreEntryId, dataEntry->value.str->val, dataEntry->value.str->len);
 					if ((dataEntry = zend_hash_find(actionHash, str_folderentryid)) == NULL) {
 						php_error_docref(NULL TSRMLS_CC, E_WARNING, "OP_COPY/OP_MOVE but no folderentryid entry");
 						MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -612,10 +608,9 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 					}
 					convert_to_string_ex(dataEntry);
 					lpActions->lpAction[j].actMoveCopy.cbFldEntryId = dataEntry->value.str->len;
-					MAPI_G(hr) = MAPIAllocateMore(dataEntry->value.str->len, lpBase ? lpBase : lpPropValue, (void **)&lpActions->lpAction[j].actMoveCopy.lpFldEntryId);
+					MAPI_G(hr) = KAllocCopy(dataEntry->value.str->val, dataEntry->value.str->len, reinterpret_cast<void **>(&lpActions->lpAction[j].actMoveCopy.lpFldEntryId), lpBase != nullptr ? lpBase : lpPropValue);
 					if (MAPI_G(hr) != hrSuccess)
 						goto exit;
-					memcpy(lpActions->lpAction[j].actMoveCopy.lpFldEntryId, dataEntry->value.str->val, dataEntry->value.str->len);
 					break;
 
 				case OP_REPLY:
@@ -627,10 +622,9 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 					}
 					convert_to_string_ex(dataEntry);
 					lpActions->lpAction[j].actReply.cbEntryId = dataEntry->value.str->len;
-					MAPI_G(hr) = MAPIAllocateMore(dataEntry->value.str->len, lpBase ? lpBase : lpPropValue, (void **)&lpActions->lpAction[j].actReply.lpEntryId);
+					MAPI_G(hr) = KAllocCopy(dataEntry->value.str->val, dataEntry->value.str->len, reinterpret_cast<void **>(&lpActions->lpAction[j].actReply.lpEntryId), lpBase != nullptr ? lpBase : lpPropValue);
 					if (MAPI_G(hr) != hrSuccess)
 						goto exit;
-					memcpy(lpActions->lpAction[j].actReply.lpEntryId, dataEntry->value.str->val, dataEntry->value.str->len);
 
 					// optional field
 					if ((dataEntry = zend_hash_find(actionHash, str_replyguid)) != NULL) {
@@ -653,10 +647,9 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 					}
 					convert_to_string_ex(dataEntry);
 					lpActions->lpAction[j].actDeferAction.cbData = dataEntry->value.str->len;
-					MAPI_G(hr) = MAPIAllocateMore(dataEntry->value.str->len, lpBase ? lpBase : lpPropValue, (void **)&lpActions->lpAction[j].actDeferAction.pbData);
+					MAPI_G(hr) = KAllocCopy(dataEntry->value.str->val, dataEntry->value.str->len, reinterpret_cast<void **>(&lpActions->lpAction[j].actDeferAction.pbData), lpBase != nullptr ? lpBase : lpPropValue);
 					if (MAPI_G(hr) != hrSuccess)
 						goto exit;
-					memcpy(lpActions->lpAction[j].actDeferAction.pbData, dataEntry->value.str->val, dataEntry->value.str->len);
 					break;
 
 				case OP_BOUNCE:
@@ -1228,10 +1221,9 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 			case PT_BINARY:
 				convert_to_string_ex(valueEntry);
 				lpProp->Value.bin.cb = valueEntry->value.str->len;
-				MAPI_G(hr) = MAPIAllocateMore(valueEntry->value.str->len, lpBase, (void **) &lpProp->Value.bin.lpb);
+				MAPI_G(hr) = KAllocCopy(valueEntry->value.str->val, valueEntry->value.str->len, reinterpret_cast<void **>(&lpProp->Value.bin.lpb), lpBase);
 				if (MAPI_G(hr) != hrSuccess)
 					return MAPI_G(hr);
-				memcpy(lpProp->Value.bin.lpb, valueEntry->value.str->val, valueEntry->value.str->len);
 				break;
 			case PT_APPTIME:
 				convert_to_double_ex(valueEntry);
@@ -1243,8 +1235,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 					php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid value for PT_CLSID property in proptag 0x%08X", lpProp->ulPropTag);
 					return MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 				}
-				MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID), lpBase, (void **)&lpProp->Value.lpguid);
-				memcpy(lpProp->Value.lpguid, valueEntry->value.str->val, sizeof(GUID));
+				MAPI_G(hr) = KAllocCopy(valueEntry->value.str->val, sizeof(GUID), reinterpret_cast<void **>(&lpProp->Value.lpguid), lpBase);
 				break;
 			default:
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "RES_PROPERTY or RES_CONTENT, field VALUE no backward compatibility support");
@@ -1912,11 +1903,9 @@ HRESULT PHPArraytoReadStateArray(zval *zvalReadStates, void *lpBase, ULONG *lpcV
 		
 		convert_to_string_ex(valueEntry);
 		
-		MAPI_G(hr) = MAPIAllocateMore(valueEntry->value.str->len, lpBase ? lpBase : lpReadStates, (void **) &lpReadStates[n].pbSourceKey);
+		MAPI_G(hr) = KAllocCopy(valueEntry->value.str->val, valueEntry->value.str->len, reinterpret_cast<void **>(&lpReadStates[n].pbSourceKey), lpBase != nullptr ? lpBase : lpReadStates);
 		if(MAPI_G(hr) != hrSuccess)
 			goto exit;
-			
-		memcpy(lpReadStates[n].pbSourceKey, valueEntry->value.str->val, valueEntry->value.str->len);
 		lpReadStates[n].cbSourceKey = valueEntry->value.str->len;
 		
 		if((valueEntry = zend_hash_find(HASH_OF(pentry), str_flags)) == NULL) {

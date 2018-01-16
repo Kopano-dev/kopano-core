@@ -767,10 +767,9 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 			continue;
 		}
 		lpUsers[cUsers].m_cbEid = lpEntryID->Value.bin.cb;
-		hr = MAPIAllocateMore(lpEntryID->Value.bin.cb, lpUsers, (void**)&lpUsers[cUsers].m_lpEid);
+		hr = KAllocCopy(lpEntryID->Value.bin.lpb, lpEntryID->Value.bin.cb, reinterpret_cast<void **>(&lpUsers[cUsers].m_lpEid), lpUsers);
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(lpUsers[cUsers].m_lpEid, lpEntryID->Value.bin.lpb, lpEntryID->Value.bin.cb);
 	}
 
 	hr = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void **)&lppFBData);

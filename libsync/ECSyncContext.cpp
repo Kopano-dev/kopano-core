@@ -498,10 +498,9 @@ HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 	memset(lpSyncStatusProp, 0, sizeof *lpSyncStatusProp);
 
 	lpSyncStatusProp->Value.bin.cb = strSyncStatus.size();
-	hr = MAPIAllocateMore(strSyncStatus.size(), lpSyncStatusProp, (void**)&lpSyncStatusProp->Value.bin.lpb);
+	hr = KAllocCopy(strSyncStatus.data(), strSyncStatus.size(), reinterpret_cast<void **>(&lpSyncStatusProp->Value.bin.lpb), lpSyncStatusProp);
 	if (hr != hrSuccess)
 		return hr;
-	memcpy(lpSyncStatusProp->Value.bin.lpb, strSyncStatus.data(), strSyncStatus.size());
 	*lppSyncStatusProp = lpSyncStatusProp.release();
 	return hrSuccess;
 }

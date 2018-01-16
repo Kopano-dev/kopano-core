@@ -120,14 +120,7 @@ class BinWriter _kc_final {
 public:
     void GetData(char **lppData, unsigned int *lpulLen, void *base) {
         char *lpData;
-
-	HRESULT hr = hrSuccess;
-
-		if (base)
-			hr = MAPIAllocateMore(m_strData.size(), base, (void **)&lpData);
-		else
-			hr = MAPIAllocateBuffer(m_strData.size(), (void **)&lpData);
-
+		auto hr = MAPIAllocateMore(m_strData.size(), base, reinterpret_cast<void **>(&lpData));
 	if (hr == hrSuccess)
 		memcpy(lpData, m_strData.c_str(), m_strData.size());
         

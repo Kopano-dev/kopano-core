@@ -510,10 +510,9 @@ HRESULT WSTableView::HrGetCollapseState(BYTE **lppCollapseState, ULONG *lpcbColl
 	}
 	END_SOAP_CALL
 
-	if ((hr = MAPIAllocateBuffer(sResponse.sCollapseState.__size, (void **)lppCollapseState)) != hrSuccess)
+	hr = KAllocCopy(sResponse.sCollapseState.__ptr, sResponse.sCollapseState.__size, reinterpret_cast<void **>(lppCollapseState));
+	if (hr != hrSuccess)
 		goto exit;
-
-	memcpy(*lppCollapseState, sResponse.sCollapseState.__ptr, sResponse.sCollapseState.__size);
 	*lpcbCollapseState = sResponse.sCollapseState.__size;
 		
 exit:

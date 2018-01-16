@@ -681,12 +681,10 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolder(LPTSTR lpszName, L
 	hr = HrGetOneProp(lpConflictFolder, PR_ENTRYID, &~lpEntryId);
 	if(hr != hrSuccess)
 		return hr;
-	hr = MAPIAllocateMore(lpEntryId->Value.bin.cb, lpAdditionalREN, (LPVOID*)&lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].lpb);
+	lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].cb = lpEntryId->Value.bin.cb;
+	hr = KAllocCopy(lpEntryId->Value.bin.lpb, lpEntryId->Value.bin.cb, reinterpret_cast<void **>(&lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].lpb), lpAdditionalREN);
 	if(hr != hrSuccess)
 		return hr;
-	memcpy(lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].lpb, lpEntryId->Value.bin.lpb, lpEntryId->Value.bin.cb);
-	lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].cb = lpEntryId->Value.bin.cb;
-
 	if(lppConflictFolder)
 		*lppConflictFolder = lpConflictFolder.release();
 	return hrSuccess;

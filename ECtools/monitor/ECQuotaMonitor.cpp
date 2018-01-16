@@ -674,29 +674,20 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RCVD_REPRESENTING_EMAIL_ADDRESS_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (lpecToUser->lpszMailAddress ? (LPSTR)lpecToUser->lpszMailAddress : (LPSTR)"");
-
-	hr = MAPIAllocateMore(cbToEntryid, lpPropArray,
-						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
+	hr = KAllocCopy(lpToEntryid, cbToEntryid, reinterpret_cast<void **>(&lpPropArray[ulPropArrayCur].Value.bin.lpb), lpPropArray);
 	if (hr != hrSuccess)
 		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RCVD_REPRESENTING_ENTRYID;
-	lpPropArray[ulPropArrayCur].Value.bin.cb = cbToEntryid;
-	memcpy(lpPropArray[ulPropArrayCur++].Value.bin.lpb,
-		   lpToEntryid, cbToEntryid);
-
+	lpPropArray[ulPropArrayCur++].Value.bin.cb = cbToEntryid;
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RCVD_REPRESENTING_NAME_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (lpecToUser->lpszFullName ? (LPSTR)lpecToUser->lpszFullName : (LPSTR)"");
-
-	hr = MAPIAllocateMore(cbToSearchKey, lpPropArray,
-						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
+	hr = KAllocCopy(lpToSearchKey, cbToSearchKey, reinterpret_cast<void **>(&lpPropArray[ulPropArrayCur].Value.bin.lpb), lpPropArray);
 	if (hr != hrSuccess)
 		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RCVD_REPRESENTING_SEARCH_KEY;
-	lpPropArray[ulPropArrayCur].Value.bin.cb = cbToSearchKey;
-	memcpy(lpPropArray[ulPropArrayCur++].Value.bin.lpb,
-		   lpToSearchKey, cbToSearchKey);
+	lpPropArray[ulPropArrayCur++].Value.bin.cb = cbToSearchKey;
 
 	/* RECEIVED_BY_* properties */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RECEIVED_BY_ADDRTYPE_A;
@@ -704,29 +695,20 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RECEIVED_BY_EMAIL_ADDRESS_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (lpecToUser->lpszMailAddress ? (LPSTR)lpecToUser->lpszMailAddress : (LPSTR)"");
-
-	hr = MAPIAllocateMore(cbToEntryid, lpPropArray,
-						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
+	hr = KAllocCopy(lpToEntryid, cbToEntryid, reinterpret_cast<void **>(&lpPropArray[ulPropArrayCur].Value.bin.lpb), lpPropArray);
 	if (hr != hrSuccess)
 		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RECEIVED_BY_ENTRYID;
-	lpPropArray[ulPropArrayCur].Value.bin.cb = cbToEntryid;
-	memcpy(lpPropArray[ulPropArrayCur++].Value.bin.lpb,
-		   lpToEntryid, cbToEntryid);
-
+	lpPropArray[ulPropArrayCur++].Value.bin.cb = cbToEntryid;
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RECEIVED_BY_NAME_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (lpecToUser->lpszFullName ? (LPSTR)lpecToUser->lpszFullName : (LPSTR)"");
-
-	hr = MAPIAllocateMore(cbToSearchKey, lpPropArray,
-						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
+	hr = KAllocCopy(lpToSearchKey, cbToSearchKey, reinterpret_cast<void **>(&lpPropArray[ulPropArrayCur].Value.bin.lpb), lpPropArray);
 	if (hr != hrSuccess)
 		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RECEIVED_BY_SEARCH_KEY;
-	lpPropArray[ulPropArrayCur].Value.bin.cb = cbToSearchKey;
-	memcpy(lpPropArray[ulPropArrayCur++].Value.bin.lpb,
-		   lpToSearchKey, cbToSearchKey);
+	lpPropArray[ulPropArrayCur++].Value.bin.cb = cbToSearchKey;
 
 	/* System user, PR_SENDER* */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENDER_ADDRTYPE_A;
@@ -734,29 +716,19 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENDER_EMAIL_ADDRESS_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (lpecFromUser->lpszMailAddress ? (LPSTR)lpecFromUser->lpszMailAddress : (LPSTR)"");
-
-	hr = MAPIAllocateMore(cbFromEntryid, lpPropArray,
-						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
+	hr = KAllocCopy(lpFromEntryid, cbFromEntryid, reinterpret_cast<void **>(&lpPropArray[ulPropArrayCur].Value.bin.lpb), lpPropArray);
 	if (hr != hrSuccess)
 		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENDER_ENTRYID;
-	lpPropArray[ulPropArrayCur].Value.bin.cb = cbFromEntryid;
-	memcpy(lpPropArray[ulPropArrayCur++].Value.bin.lpb,
-		   lpFromEntryid, cbFromEntryid);
-
+	lpPropArray[ulPropArrayCur++].Value.bin.cb = cbFromEntryid;
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENDER_NAME_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (lpecFromUser->lpszFullName ? (LPSTR)lpecFromUser->lpszFullName : (LPSTR)"kopano-system");
-
-	hr = MAPIAllocateMore(cbFromSearchKey, lpPropArray,
-						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
+	hr = KAllocCopy(lpFromSearchKey, cbFromSearchKey, reinterpret_cast<void **>(&lpPropArray[ulPropArrayCur].Value.bin.lpb), lpPropArray);
 	if (hr != hrSuccess)
 		return hr;
-
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENDER_SEARCH_KEY;
-	lpPropArray[ulPropArrayCur].Value.bin.cb = cbFromSearchKey;
-	memcpy(lpPropArray[ulPropArrayCur++].Value.bin.lpb,
-		   lpFromSearchKey, cbFromSearchKey);
+	lpPropArray[ulPropArrayCur++].Value.bin.cb = cbFromSearchKey;
 
 	/* System user, PR_SENT_REPRESENTING* */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE_A;
@@ -764,29 +736,20 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (lpecFromUser->lpszMailAddress ? (LPSTR)lpecFromUser->lpszMailAddress : (LPSTR)"");
-
-	hr = MAPIAllocateMore(cbFromEntryid, lpPropArray,
-						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
+	hr = KAllocCopy(lpFromEntryid, cbFromEntryid, reinterpret_cast<void **>(&lpPropArray[ulPropArrayCur].Value.bin.lpb), lpPropArray);
 	if (hr != hrSuccess)
 		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
-	lpPropArray[ulPropArrayCur].Value.bin.cb = cbFromEntryid;
-	memcpy(lpPropArray[ulPropArrayCur++].Value.bin.lpb,
-		   lpFromEntryid, cbFromEntryid);
-
+	lpPropArray[ulPropArrayCur++].Value.bin.cb = cbFromEntryid;
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENT_REPRESENTING_NAME_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (lpecFromUser->lpszFullName ? (LPSTR)lpecFromUser->lpszFullName : (LPSTR)"kopano-system");
-
-	hr = MAPIAllocateMore(cbFromSearchKey, lpPropArray,
-						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
+	hr = KAllocCopy(lpFromSearchKey, cbFromSearchKey, reinterpret_cast<void **>(&lpPropArray[ulPropArrayCur].Value.bin.lpb), lpPropArray);
 	if (hr != hrSuccess)
 		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
-	lpPropArray[ulPropArrayCur].Value.bin.cb = cbFromSearchKey;
-	memcpy(lpPropArray[ulPropArrayCur++].Value.bin.lpb,
-		   lpFromSearchKey, cbFromSearchKey);
+	lpPropArray[ulPropArrayCur++].Value.bin.cb = cbFromSearchKey;
 
 	/* Get the time to add to the message as PR_CLIENT_SUBMIT_TIME */
 	GetSystemTimeAsFileTime(&ft);
@@ -862,25 +825,16 @@ HRESULT ECQuotaMonitor::CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers,
 
 		lpAddrList->aEntries[i].rgPropVals[4].ulPropTag = PR_ADDRTYPE_A;
 		lpAddrList->aEntries[i].rgPropVals[4].Value.lpszA = const_cast<char *>("SMTP");
-
-		hr = MAPIAllocateMore(cbUserEntryid, lpAddrList->aEntries[i].rgPropVals,
-							  (void**)&lpAddrList->aEntries[i].rgPropVals[5].Value.bin.lpb);
-		if (hr != hrSuccess)
-			return hr;
-
 		lpAddrList->aEntries[i].rgPropVals[5].ulPropTag = PR_ENTRYID;
 		lpAddrList->aEntries[i].rgPropVals[5].Value.bin.cb = cbUserEntryid;
-		memcpy(lpAddrList->aEntries[i].rgPropVals[5].Value.bin.lpb,
-			   lpUserEntryid, cbUserEntryid);
-
-		hr = MAPIAllocateMore(cbUserSearchKey, lpAddrList->aEntries[i].rgPropVals,
-							  (void**)&lpAddrList->aEntries[i].rgPropVals[6].Value.bin.lpb);
+		hr = KAllocCopy(lpUserEntryid, cbUserEntryid, reinterpret_cast<void **>(&lpAddrList->aEntries[i].rgPropVals[5].Value.bin.lpb), lpAddrList->aEntries[i].rgPropVals);
 		if (hr != hrSuccess)
 			return hr;
 		lpAddrList->aEntries[i].rgPropVals[6].ulPropTag = PR_SEARCH_KEY;
 		lpAddrList->aEntries[i].rgPropVals[6].Value.bin.cb = cbUserSearchKey;
-		memcpy(lpAddrList->aEntries[i].rgPropVals[6].Value.bin.lpb,
-			   lpUserSearchKey, cbUserSearchKey);
+		hr = KAllocCopy(lpUserSearchKey, cbUserSearchKey, reinterpret_cast<void **>(&lpAddrList->aEntries[i].rgPropVals[6].Value.bin.lpb), lpAddrList->aEntries[i].rgPropVals);
+		if (hr != hrSuccess)
+			return hr;
 	}
 
 	*lppAddrList = lpAddrList.release();

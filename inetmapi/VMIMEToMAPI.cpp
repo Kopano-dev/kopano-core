@@ -1278,34 +1278,25 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
 		if (hr != hrSuccess)
 			return hr;
-
-		hr = MAPIAllocateMore(cbEntryID, prop,
-		     reinterpret_cast<void **>(&prop[3].Value.bin.lpb));
+		prop[3].Value.bin.cb = cbEntryID;
+		hr = KAllocCopy(lpEntryID, cbEntryID, reinterpret_cast<void **>(&prop[3].Value.bin.lpb), prop);
 		if (hr != hrSuccess)
 			return hr;
-
-		prop[3].Value.bin.cb = cbEntryID;
-		memcpy(prop[3].Value.bin.lpb, lpEntryID, cbEntryID);
-
 		prop[4].ulPropTag = PR_ADDRTYPE_W;
 		prop[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 
 		strSearch = strToUpper("SMTP:" + strEmail);
 		prop[5].ulPropTag = PR_SEARCH_KEY;
 		prop[5].Value.bin.cb = strSearch.size() + 1; // we include the trailing 0 as MS does this also
-		hr = MAPIAllocateMore(strSearch.size() + 1, prop,
-		     reinterpret_cast<void **>(&prop[5].Value.bin.lpb));
+		hr = KAllocCopy(strSearch.c_str(), strSearch.size() + 1, reinterpret_cast<void **>(&prop[5].Value.bin.lpb), prop);
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(prop[5].Value.bin.lpb, strSearch.c_str(), strSearch.size() + 1);
 
 		// Add Email address
 		prop[6].ulPropTag = PR_EMAIL_ADDRESS_A;
-		hr = MAPIAllocateMore(strEmail.size() + 1, prop,
-		     reinterpret_cast<void **>(&prop[6].Value.lpszA));
+		hr = KAllocCopy(strEmail.c_str(), strEmail.size() + 1, reinterpret_cast<void **>(&prop[6].Value.lpszA), prop);
 		if (hr != hrSuccess)
 			return hr;
-		strcpy(prop[6].Value.lpszA, strEmail.c_str());
 
 		// Add display type
 		prop[7].ulPropTag = PR_DISPLAY_TYPE;

@@ -306,17 +306,12 @@ HRESULT ECMAPITable::SortTable(const SSortOrderSet *lpSortCriteria,
 		return MAPI_E_INVALID_PARAMETER;
 
 	scoped_rlock lock(m_hLock);
-
-	HRESULT hr = MAPIAllocateBuffer(CbSSortOrderSet(lpSortCriteria), &~lpsSortOrderSet);
+	auto hr = KAllocCopy(lpSortCriteria, CbSSortOrderSet(lpSortCriteria), &~lpsSortOrderSet);
 	if (hr != hrSuccess)
 		return hr;
-
-	memcpy(lpsSortOrderSet, lpSortCriteria, CbSSortOrderSet(lpSortCriteria));
-	hr = MAPIAllocateBuffer(CbSSortOrderSet(lpSortCriteria), &~m_lpSortTable);
+	hr = KAllocCopy(lpSortCriteria, CbSSortOrderSet(lpSortCriteria), &~m_lpSortTable);
 	if (hr != hrSuccess)
 		return hr;
-    memcpy(m_lpSortTable, lpSortCriteria, CbSSortOrderSet(lpSortCriteria));
-
 	if (!(ulFlags & TBL_BATCH))
 		hr = FlushDeferred();
 	return hr;

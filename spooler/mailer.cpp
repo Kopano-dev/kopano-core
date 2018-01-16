@@ -1073,11 +1073,9 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 		ec_log_err("Offset %d not found in contact", lpContabEntryID->email_offset);
 		return MAPI_E_NOT_FOUND;
 	}
-
-	hr = MAPIAllocateBuffer(lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb, (void**)eidp);
+	hr = KAllocCopy(lpEntryIds[lpContabEntryID->email_offset].Value.bin.lpb, lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb, reinterpret_cast<void **>(eidp));
 	if (hr != hrSuccess)
 		return kc_perror("No memory for contact EID", hr);
-	memcpy(*eidp, lpEntryIds[lpContabEntryID->email_offset].Value.bin.lpb, lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb);
 	*eid_size = lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb;
 	return hrSuccess;
 }
@@ -1124,10 +1122,9 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 		kc_perror("PpropFindProp failed", hr);
 		return hrSuccess;
 	}
-	hr = MAPIAllocateBuffer(lpSpoofEID->Value.bin.cb, (void**)&lpSpoofBin);
+	hr = KAllocCopy(lpSpoofEID->Value.bin.lpb, lpSpoofEID->Value.bin.cb, reinterpret_cast<void **>(&lpSpoofBin));
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed", hr);
-	memcpy(lpSpoofBin, lpSpoofEID->Value.bin.lpb, lpSpoofEID->Value.bin.cb);
 	*eidp = lpSpoofBin;
 	*eid_size = lpSpoofEID->Value.bin.cb;
 	return hrSuccess;

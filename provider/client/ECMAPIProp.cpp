@@ -550,12 +550,7 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 
 	strAclData = os.str();
 	lpsPropValue->Value.bin.cb = strAclData.size();
-	hr = MAPIAllocateMore(lpsPropValue->Value.bin.cb, lpBase, (LPVOID*)&lpsPropValue->Value.bin.lpb);
-	if (hr != hrSuccess)
-		return hr;
-	memcpy(lpsPropValue->Value.bin.lpb, strAclData.data(), lpsPropValue->Value.bin.cb);
-
-	return hr;
+	return KAllocCopy(strAclData.data(), lpsPropValue->Value.bin.cb, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb), lpBase);
 }
 
 HRESULT ECMAPIProp::SetSerializedACLData(const SPropValue *lpsPropValue)
@@ -848,11 +843,10 @@ HRESULT ECMAPIProp::SetParentID(ULONG cbParentID, LPENTRYID lpParentID)
 	assert(m_lpParentID == NULL);
 	if (lpParentID == NULL || cbParentID == 0)
 		return MAPI_E_INVALID_PARAMETER;
-	auto hr = MAPIAllocateBuffer(cbParentID, &~m_lpParentID);
+	auto hr = KAllocCopy(lpParentID, cbParentID, &~m_lpParentID);
 	if (hr != hrSuccess)
 		return hr;
 
 	m_cbParentID = cbParentID;
-	memcpy(m_lpParentID, lpParentID, cbParentID);
 	return hrSuccess;
 }

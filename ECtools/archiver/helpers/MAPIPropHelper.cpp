@@ -350,16 +350,13 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 	iArchive = lstArchives.cbegin();
 	for (ULONG i = 0; i < cValues; ++i, ++iArchive) {
 		ptrPropArray[0].Value.MVbin.lpbin[i].cb = iArchive->sStoreEntryId.size();
-		hr = MAPIAllocateMore(iArchive->sStoreEntryId.size(), ptrPropArray, (LPVOID*)&ptrPropArray[0].Value.MVbin.lpbin[i].lpb);
+		hr = KAllocCopy(iArchive->sStoreEntryId, iArchive->sStoreEntryId.size(), reinterpret_cast<void **>(&ptrPropArray[0].Value.MVbin.lpbin[i].lpb), ptrPropArray);
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(ptrPropArray[0].Value.MVbin.lpbin[i].lpb, iArchive->sStoreEntryId, iArchive->sStoreEntryId.size());
-		
 		ptrPropArray[1].Value.MVbin.lpbin[i].cb = iArchive->sItemEntryId.size();
-		hr = MAPIAllocateMore(iArchive->sItemEntryId.size(), ptrPropArray, (LPVOID*)&ptrPropArray[1].Value.MVbin.lpbin[i].lpb);
+		hr = KAllocCopy(iArchive->sItemEntryId, iArchive->sItemEntryId.size(), reinterpret_cast<void **>(&ptrPropArray[1].Value.MVbin.lpbin[i].lpb), ptrPropArray);
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(ptrPropArray[1].Value.MVbin.lpbin[i].lpb, iArchive->sItemEntryId, iArchive->sItemEntryId.size());
 	}
 
 	/**

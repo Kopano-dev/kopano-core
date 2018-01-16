@@ -72,11 +72,7 @@ HRESULT HrCopyString(void *base, const wchar_t *src, wchar_t **dst)
 	if (src == nullptr)
 		src = L"";
 	auto len = (wcslen(src) + 1) * sizeof(*src);
-	HRESULT hr = MAPIAllocateMore(len, base, reinterpret_cast<void **>(dst));
-	if (hr != hrSuccess)
-		return hr;
-	memcpy(*dst, src, len);
-	return hrSuccess;
+	return KAllocCopy(src, len, reinterpret_cast<void **>(dst), base);
 }
 
 /**
@@ -325,21 +321,19 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 
 		//Create EntryID by using mapped names, ical data might not have names.
 		if (lpFlagList->ulFlag[ulRecpCnt] == MAPI_RESOLVED && lpMappedProp) {
-			hr = MAPIAllocateMore(lpMappedProp->Value.bin.cb, base, (void**)&icalRecipient.lpEntryID);
+			icalRecipient.cbEntryID = lpMappedProp->Value.bin.cb;
+			hr = KAllocCopy(lpMappedProp->Value.bin.lpb, lpMappedProp->Value.bin.cb, reinterpret_cast<void **>(&icalRecipient.lpEntryID), base);
 			if (hr != hrSuccess)
 				return hr;
-			icalRecipient.cbEntryID = lpMappedProp->Value.bin.cb;
-			memcpy(icalRecipient.lpEntryID, lpMappedProp->Value.bin.lpb, lpMappedProp->Value.bin.cb);
 		} else {
 			memory_ptr<ENTRYID> lpEID;
 			hr = ECCreateOneOff((LPTSTR)icalRecipient.strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)icalRecipient.strEmail.c_str(), MAPI_UNICODE, &cbEID, &~lpEID);
 			if (hr == hrSuccess) {
 				// realloc on lpIcalItem
-				hr = MAPIAllocateMore(cbEID, base, (void**)&icalRecipient.lpEntryID);
+				icalRecipient.cbEntryID = cbEID;
+				hr = KAllocCopy(lpEID, cbEID, reinterpret_cast<void **>(&icalRecipient.lpEntryID), base);
 				if (hr != hrSuccess)
 					return hr;
-				icalRecipient.cbEntryID = cbEID;
-				memcpy(icalRecipient.lpEntryID, lpEID, cbEID);
 			}
 		}
 
@@ -463,12 +457,7 @@ HRESULT VConverter::HrHandleExceptionGuid(icalcomponent *lpiEvent, void *base, S
 	auto strBinUid = hex2bin(strUid);
 
 	lpsProp->Value.bin.cb = strBinUid.size();
-	HRESULT hr = MAPIAllocateMore(strBinUid.size(), base,
-	             reinterpret_cast<void **>(&lpsProp->Value.bin.lpb));
-	if (hr != hrSuccess)
-		return hr;
-	memcpy(lpsProp->Value.bin.lpb, strBinUid.data(), lpsProp->Value.bin.cb);
-	return hrSuccess;
+	return KAllocCopy(strBinUid.data(), strBinUid.size(), reinterpret_cast<void **>(&lpsProp->Value.bin.lpb), base);
 }
 
 /**
@@ -892,11 +881,10 @@ HRESULT VConverter::HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalIt
 
 	int i = 0;
 	for (const auto &cat : vCategories) {
-		int length = cat.length() + 1;
-		hr = MAPIAllocateMore(length, lpIcalItem->base, (void **) &sPropVal.Value.MVszA.lppszA[i]);
+		hr = KAllocCopy(cat.c_str(), cat.length() + 1, reinterpret_cast<void **>(&sPropVal.Value.MVszA.lppszA[i]), lpIcalItem->base);
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(sPropVal.Value.MVszA.lppszA[i++], cat.c_str(), length);
+		++i;
 	}
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_KEYWORDS], PT_MV_STRING8);
@@ -1035,13 +1023,10 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 		}
 
 		// add the organiser to the recipient list
-		hr = MAPIAllocateMore(cbEntryID, lpIcalItem->base, (void**)&icrAttendee.lpEntryID);
+		icrAttendee.cbEntryID = cbEntryID;
+		hr = KAllocCopy(lpEntryID, cbEntryID, reinterpret_cast<void **>(&icrAttendee.lpEntryID), lpIcalItem->base);
 		if (hr != hrSuccess)
 			return hr;
-		
-		memcpy(icrAttendee.lpEntryID, lpEntryID, cbEntryID);
-		icrAttendee.cbEntryID = cbEntryID;
-
 		icrAttendee.strEmail = strEmail;
 		icrAttendee.strName = strName;
 		icrAttendee.ulRecipientType = MAPI_ORIG;
@@ -1279,12 +1264,9 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 			string rtf = base64_decode(icalvalue_get_x(lpicValue));
 			sPropVal.ulPropTag = PR_RTF_COMPRESSED;
 			sPropVal.Value.bin.cb = rtf.size();
-			
-			hr = MAPIAllocateMore(sPropVal.Value.bin.cb,
-			     lpIcalItem->base, reinterpret_cast<void **>(&sPropVal.Value.bin.lpb));
+			hr = KAllocCopy(rtf.c_str(), sPropVal.Value.bin.cb, reinterpret_cast<void **>(&sPropVal.Value.bin.lpb), lpIcalItem->base);
 			if (hr != hrSuccess)
 				return hr;
-			memcpy(sPropVal.Value.bin.lpb, (LPBYTE)rtf.c_str(), sPropVal.Value.bin.cb);
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
 		}
@@ -2808,11 +2790,9 @@ HRESULT VConverter::HrAddTimeZone(icalproperty *lpicProp, icalitem *lpIcalItem)
 		
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONEDATA], PT_BINARY);
 	sPropVal.Value.bin.cb = sizeof(TIMEZONE_STRUCT);
-
-	HRESULT hr = MAPIAllocateMore(sizeof(TIMEZONE_STRUCT), lpIcalItem->base, (void**)&sPropVal.Value.bin.lpb);
+	auto hr = KAllocCopy(&m_iCurrentTimeZone->second, sizeof(TIMEZONE_STRUCT), reinterpret_cast<void **>(&sPropVal.Value.bin.lpb), lpIcalItem->base);
 	if (hr != hrSuccess)
 		return hr;
-	memcpy(sPropVal.Value.bin.lpb, &m_iCurrentTimeZone->second, sizeof(TIMEZONE_STRUCT));
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	// save timezone in icalitem
 	lpIcalItem->tTZinfo = m_iCurrentTimeZone->second;

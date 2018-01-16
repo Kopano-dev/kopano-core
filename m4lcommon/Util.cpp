@@ -1652,10 +1652,7 @@ HRESULT Util::HrMAPIErrorToText(HRESULT hr, LPTSTR *lppszError, void *lpBase)
 		break;
 	}
 
-	if (lpBase == NULL)
-		hr = MAPIAllocateBuffer((_tcslen(lpszError) + 1) * sizeof *lpszError, (void**)lppszError);
-	else
-		hr = MAPIAllocateMore((_tcslen(lpszError) + 1) * sizeof *lpszError, lpBase, (void**)lppszError);
+	hr = MAPIAllocateMore((_tcslen(lpszError) + 1) * sizeof(*lpszError), lpBase, reinterpret_cast<void **>(lppszError));
 	if (hr != hrSuccess)
 		return hr;
 	_tcscpy(*lppszError, lpszError);

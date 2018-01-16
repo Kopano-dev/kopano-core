@@ -124,9 +124,9 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 		if(hr != hrSuccess)
 			return hr;
 		lpsPropValue->ulPropTag = PR_EMSMDB_SECTION_UID;
-		if ((hr = MAPIAllocateMore(sizeof(GUID), lpBase, (void **) &lpsPropValue->Value.bin.lpb)) != hrSuccess)
+		hr = KAllocCopy(lpSectionUid->Value.bin.lpb, sizeof(GUID), reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb), lpBase);
+		if (hr != hrSuccess)
 			return hr;
-		memcpy(lpsPropValue->Value.bin.lpb, lpSectionUid->Value.bin.lpb, sizeof(GUID));
 		lpsPropValue->Value.bin.cb = sizeof(GUID);
 		break;
 		}
@@ -212,12 +212,8 @@ HRESULT ECABContainer::TableRowGetProp(void* lpProvider, struct propVal *lpsProp
 		else
 			return MAPI_E_NOT_FOUND;
 		size = (wcslen(lpszW) + 1) * sizeof(WCHAR);
-		hr = MAPIAllocateMore(size, lpBase, (void **)&lpsPropValDst->Value.lpszW);
-		if (hr != hrSuccess)
-			return hr;
-		memcpy(lpsPropValDst->Value.lpszW, lpszW, size);
 		lpsPropValDst->ulPropTag = lpsPropValSrc->ulPropTag;
-		break;
+		return KAllocCopy(lpszW, size, reinterpret_cast<void **>(&lpsPropValDst->Value.lpszW), lpBase);
 	}
 	case PR_ACCOUNT_A:
 	case PR_NORMALIZED_SUBJECT_A:
@@ -233,12 +229,8 @@ HRESULT ECABContainer::TableRowGetProp(void* lpProvider, struct propVal *lpsProp
 		else
 			return MAPI_E_NOT_FOUND;
 		size = (strlen(lpszA) + 1) * sizeof(CHAR);
-		hr = MAPIAllocateMore(size, lpBase, (void **)&lpsPropValDst->Value.lpszA);
-		if (hr != hrSuccess)
-			return hr;
-		memcpy(lpsPropValDst->Value.lpszA, lpszA, size);
 		lpsPropValDst->ulPropTag = lpsPropValSrc->ulPropTag;
-		break;
+		return KAllocCopy(lpszA, size, reinterpret_cast<void **>(&lpsPropValDst->Value.lpszA), lpBase);
 	}
 	default:
 		hr = MAPI_E_NOT_FOUND;

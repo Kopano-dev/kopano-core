@@ -2977,10 +2977,9 @@ int main(int argc, char* argv[])
 	case MODE_CREATE_PUBLIC:
 		if (companyname == nullptr) {
 			cbCompanyId = g_cbEveryoneEid;
-			hr = MAPIAllocateBuffer(g_cbEveryoneEid, &~lpCompanyId);
+			hr = KAllocCopy(g_lpEveryoneEid, g_cbEveryoneEid, &~lpCompanyId);
 			if (hr != hrSuccess)
 				goto exit;
-			memcpy(lpCompanyId, g_lpEveryoneEid, g_cbEveryoneEid);
 			break;
 		}
 		/* fallthrough */
@@ -3850,10 +3849,9 @@ int main(int argc, char* argv[])
 		}
 
 		cbUserId = lpECUser[1].sUserId.cb;
-		hr = MAPIAllocateBuffer(cbUserId, &~lpUserId);
+		hr = KAllocCopy(lpECUser[1].sUserId.lpb, cbUserId, &~lpUserId);
 		if (hr != hrSuccess)
 			goto exit;
-		memcpy(lpUserId, lpECUser[1].sUserId.lpb, cbUserId);
 		hr = lpServiceAdmin->GetQuotaRecipients(cbUserId, lpUserId, 0, &cUsers, &~lpECUser);
 		if (hr != hrSuccess) {
 			cerr << "Failed to get quota recipient list" << endl;

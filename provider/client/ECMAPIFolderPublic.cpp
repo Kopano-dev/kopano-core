@@ -233,12 +233,10 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 	case PROP_ID(PR_ORIGINAL_ENTRYID):
 		// entryid on the server (only used for "Public Folders" folder)
 		if (lpFolder->m_lpEntryId) {
-			if ((hr = MAPIAllocateMore(lpFolder->m_cbEntryId, lpBase, (LPVOID*)&lpsPropValue->Value.bin.lpb)) != hrSuccess)
-				return hr;
-			memcpy(lpsPropValue->Value.bin.lpb, lpFolder->m_lpEntryId, lpFolder->m_cbEntryId);
-
 			lpsPropValue->Value.bin.cb = lpFolder->m_cbEntryId;
-
+			hr = KAllocCopy(lpFolder->m_lpEntryId, lpFolder->m_cbEntryId, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb), lpBase);
+			if (hr != hrSuccess)
+				return hr;
 			hr = hrSuccess;
 		} else {
 			hr = MAPI_E_NOT_FOUND;
@@ -382,11 +380,9 @@ HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, const ENTRYID *eid,
 {
 	unsigned int ulObjType = 0;
 	memory_ptr<ENTRYID> lpEntryID;
-	auto hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryID);
+	auto hr = KAllocCopy(eid, cbEntryID, &~lpEntryID);
 	if (hr != hrSuccess)
 		return hr;
-	memcpy(lpEntryID, eid, cbEntryID);
-
 	if (cbEntryID > 0)
 	{
 		hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<BYTE *>(lpEntryID.get()), &ulObjType);

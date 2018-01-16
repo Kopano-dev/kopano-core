@@ -723,11 +723,9 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 			key = strToUpper(key);
 
 			recip->sSearchKey.cb = key.size() + 1; // + terminating 0
-			if (MAPIAllocateBuffer(recip->sSearchKey.cb, reinterpret_cast<void **>(&recip->sSearchKey.lpb)) != hrSuccess) {
+			if (KAllocCopy(key.c_str(), recip->sSearchKey.cb,
+			    reinterpret_cast<void **>(&recip->sSearchKey.lpb)) != hrSuccess)
 				++ulRCPT;
-				continue;
-			}
-			memcpy(recip->sSearchKey.lpb, key.c_str(), recip->sSearchKey.cb);
 		}
 
 		auto lpFeatureList = lpAdrList->aEntries[ulRCPT].cfind(PR_EC_ENABLED_FEATURES_A);

@@ -75,18 +75,16 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 
 		// Set the PR_PROVIDER_DISPLAY property:
 		lpspvStatusRow[cCurVal].ulPropTag = PR_PROVIDER_DISPLAY_A;
-		hResult = MAPIAllocateMore(size, lpspvStatusRow, (void**)&lpspvStatusRow[cCurVal].Value.lpszA);
+		hResult = KAllocCopy(lpszProviderDisplay, size, reinterpret_cast<void **>(&lpspvStatusRow[cCurVal].Value.lpszA), lpspvStatusRow);
 		if(hResult != hrSuccess)
 			return hResult;
-		memcpy(lpspvStatusRow[cCurVal].Value.lpszA, lpszProviderDisplay, size);
 		++cCurVal;
 
 	// Set the PR_DISPLAY_NAME property
 		lpspvStatusRow[cCurVal].ulPropTag = PR_DISPLAY_NAME_A;
-		hResult = MAPIAllocateMore(size, lpspvStatusRow, (void**)&lpspvStatusRow[cCurVal].Value.lpszA);
+		hResult = KAllocCopy(lpszProviderDisplay, size, reinterpret_cast<void **>(&lpspvStatusRow[cCurVal].Value.lpszA), lpspvStatusRow);
 		if(hResult != hrSuccess)
 			return hResult;
-		memcpy(lpspvStatusRow[cCurVal].Value.lpszA, lpszProviderDisplay, size);
 		++cCurVal;
 	}
 
@@ -152,42 +150,37 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 	strProfileSenderSearchKey = strToUpper(tstring(TRANSPORT_ADDRESS_TYPE_ZARAFA) + KC_T(":") + lpUser->lpszMailAddress);
 	lpIdentityProps[XPID_EID].ulPropTag = PR_SENDER_ENTRYID;
 	lpIdentityProps[XPID_EID].Value.bin.cb = lpUser->sUserId.cb;
-	hr = MAPIAllocateMore(lpUser->sUserId.cb, (LPVOID)lpIdentityProps, (void**)&lpIdentityProps[XPID_EID].Value.bin.lpb);
+	hr = KAllocCopy(lpUser->sUserId.lpb, lpUser->sUserId.cb, reinterpret_cast<void **>(&lpIdentityProps[XPID_EID].Value.bin.lpb), lpIdentityProps);
 	if (hr != hrSuccess)
 		return hr;
-	memcpy(lpIdentityProps[XPID_EID].Value.bin.lpb, lpUser->sUserId.lpb, lpUser->sUserId.cb);
 
 	// Create the PR_SENDER_NAME property value.
 	lpIdentityProps[XPID_NAME].ulPropTag = PR_SENDER_NAME;
 	ulSize = sizeof(TCHAR) * (_tcslen(lpUser->lpszFullName) + 1);
-	hr = MAPIAllocateMore(ulSize, (LPVOID)lpIdentityProps , (void**)&lpIdentityProps[XPID_NAME].Value.LPSZ);
+	hr = KAllocCopy(lpUser->lpszFullName, ulSize, reinterpret_cast<void **>(&lpIdentityProps[XPID_NAME].Value.LPSZ), lpIdentityProps);
 	if (hr != hrSuccess)
 		return hr;
-	memcpy(lpIdentityProps[XPID_NAME].Value.LPSZ, lpUser->lpszFullName, ulSize);
 
 	// Create the PR_SENDER_SEARCH_KEY value. 
 	lpIdentityProps[XPID_SEARCH_KEY].ulPropTag = PR_SENDER_SEARCH_KEY;
 	lpIdentityProps[XPID_SEARCH_KEY].Value.bin.cb = strProfileSenderSearchKey.size()+1;
-	hr = MAPIAllocateMore(lpIdentityProps[XPID_SEARCH_KEY].Value.bin.cb, (LPVOID)lpIdentityProps , (void**)&lpIdentityProps[XPID_SEARCH_KEY].Value.bin.lpb);
+	hr = KAllocCopy(strProfileSenderSearchKey.c_str(), lpIdentityProps[XPID_SEARCH_KEY].Value.bin.cb, reinterpret_cast<void **>(&lpIdentityProps[XPID_SEARCH_KEY].Value.bin.lpb), lpIdentityProps);
 	if (hr != hrSuccess)
 		return hr;
-	memcpy(lpIdentityProps[XPID_SEARCH_KEY].Value.bin.lpb, strProfileSenderSearchKey.c_str(), lpIdentityProps[XPID_SEARCH_KEY].Value.bin.cb);
 
 	// PR_SENDER_EMAIL_ADDRESS
 	lpIdentityProps[XPID_ADDRESS].ulPropTag = PR_SENDER_EMAIL_ADDRESS;
 	ulSize = sizeof(TCHAR) * (_tcslen(lpUser->lpszMailAddress) + 1);
-	hr = MAPIAllocateMore(ulSize, (LPVOID)lpIdentityProps , (void**)&lpIdentityProps[XPID_ADDRESS].Value.LPSZ);
+	hr = KAllocCopy(lpUser->lpszMailAddress, ulSize, reinterpret_cast<void **>(&lpIdentityProps[XPID_ADDRESS].Value.LPSZ), lpIdentityProps);
 	if (hr != hrSuccess)
 		return hr;
-	memcpy(lpIdentityProps[XPID_ADDRESS].Value.LPSZ, lpUser->lpszMailAddress, ulSize);
 
 	// PR_SENDER_ADDRTYPE
 	lpIdentityProps[XPID_ADDRTYPE].ulPropTag = PR_SENDER_ADDRTYPE;
 	ulSize = sizeof(TCHAR) * (_tcslen(TRANSPORT_ADDRESS_TYPE_ZARAFA) + 1);
-	hr = MAPIAllocateMore(ulSize, (LPVOID)lpIdentityProps , (void**)&lpIdentityProps[XPID_ADDRTYPE].Value.LPSZ);
+	hr = KAllocCopy(TRANSPORT_ADDRESS_TYPE_ZARAFA, ulSize, reinterpret_cast<void **>(&lpIdentityProps[XPID_ADDRTYPE].Value.LPSZ), lpIdentityProps);
 	if (hr != hrSuccess)
 		return hr;
-	memcpy(lpIdentityProps[XPID_ADDRTYPE].Value.LPSZ, TRANSPORT_ADDRESS_TYPE_ZARAFA, ulSize);
 
 	//PR_OWN_STORE_ENTRYID
 	// Get the default store for this user, not an issue if it fails when not on home server
@@ -197,10 +190,9 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 			return hr;
 		lpIdentityProps[XPID_STORE_EID].ulPropTag = PR_OWN_STORE_ENTRYID;
 		lpIdentityProps[XPID_STORE_EID].Value.bin.cb = cbEID;
-		hr = MAPIAllocateMore(cbEID, (LPVOID)lpIdentityProps , (void**)&lpIdentityProps[XPID_STORE_EID].Value.bin.lpb);
+		hr = KAllocCopy(lpEID.get(), cbEID, reinterpret_cast<void **>(&lpIdentityProps[XPID_STORE_EID].Value.bin.lpb), lpIdentityProps);
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(lpIdentityProps[XPID_STORE_EID].Value.bin.lpb, lpEID.get(), cbEID);
 	}
 	
 	// Set the identity in the global provider identity
@@ -420,12 +412,12 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	if (HAVE(CONVERSATION_INDEX) &&
 	    ScCreateConversationIndex(spv[RR_CONVERSATION_INDEX].Value.bin.cb, spv[RR_CONVERSATION_INDEX].Value.bin.lpb, &cbTmp, &~lpByteTmp) == hrSuccess)
 	{
-		hr = MAPIAllocateMore(cbTmp, dpv, reinterpret_cast<void **>(&dpv[dval].Value.bin.lpb));
+		dpv[dval].ulPropTag = PR_CONVERSATION_INDEX;
+		dpv[dval].Value.bin.cb = cbTmp;
+		hr = KAllocCopy(lpByteTmp, cbTmp, reinterpret_cast<void **>(&dpv[dval].Value.bin.lpb), dpv);
 		if(hr != hrSuccess)
 			return hr;
-		dpv[dval].Value.bin.cb = cbTmp;
-		memcpy(dpv[dval].Value.bin.lpb, lpByteTmp, cbTmp);
-		dpv[dval++].ulPropTag = PR_CONVERSATION_INDEX;
+		++dval;
 	}
 	if (HAVE(IMPORTANCE)) {
 		dpv[dval].ulPropTag = PR_IMPORTANCE;
@@ -656,10 +648,9 @@ HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSe
 		return hr;
 
 	if(lpsPropValue[0].Value.bin.cb > 0){
-		hr = MAPIAllocateBuffer(lpsPropValue[0].Value.bin.cb, &~lpDelegateStores);
+		hr = KAllocCopy(lpsPropValue[0].Value.bin.lpb, lpsPropValue[0].Value.bin.cb, &~lpDelegateStores);
 		if(hr != hrSuccess)
 			return hr;
-		memcpy(lpDelegateStores, lpsPropValue[0].Value.bin.lpb, lpsPropValue[0].Value.bin.cb);
 	}
 
 	*lpcDelegates = lpsPropValue[0].Value.bin.cb;
@@ -830,16 +821,9 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID,
 		return MAPI_E_INVALID_PARAMETER;
 
 	cbEntryID = CbEID(&eid);
-
-	if (lpBase)
-		hr = MAPIAllocateMore(cbEntryID, lpBase, (void**)&lpEntryID);
-	else
-		hr = MAPIAllocateBuffer(cbEntryID, (void**)&lpEntryID);
+	hr = KAllocCopy(&eid, cbEntryID, reinterpret_cast<void **>(&lpEntryID), lpBase);
 	if (hr != hrSuccess)
 		return hr;
-
-	memcpy(lpEntryID, &eid, cbEntryID);
-
 	*lpcbEntryID = cbEntryID;
 	*lppEntryID = lpEntryID;
 	return hrSuccess;
