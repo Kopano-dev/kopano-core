@@ -88,7 +88,7 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	auto strwPassword = converter.convert_to<std::wstring>(lpPassword);
 	if (!verbose)
 		ec_log_get()->SetLoglevel(0);
-	auto hr = HrOpenECSession(&~lpSession, "passwd", PROJECT_VERSION,
+	auto hr = HrOpenECSession(&~lpSession, PROJECT_VERSION, "passwd",
 	          strwUsername.c_str(), strwPassword.c_str(), lpPath,
 	          EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
 	          nullptr, nullptr);

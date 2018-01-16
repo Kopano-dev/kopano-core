@@ -1991,7 +1991,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
     const WCHAR *szUsername, IMAPISession **lppSession, bool bSuppress = false)
 {
-	auto hr = HrOpenECSession(lppSession, "dagent", PROJECT_VERSION,
+	auto hr = HrOpenECSession(lppSession, PROJECT_VERSION, "dagent",
 	          szUsername, L"", lpArgs->strPath.c_str(), 0,
 	          g_lpConfig->GetSetting("sslkey_file", "", nullptr),
 	          g_lpConfig->GetSetting("sslkey_pass", "", nullptr));
@@ -2046,8 +2046,8 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 	object_ptr<IMAPISession> lpUserSession;
 	SPropValuePtr ptrProp;
 
-	auto hr = HrOpenECSession(&~lpUserSession, "dagent:delivery",
-	          PROJECT_VERSION, lpRecip->wstrUsername.c_str(), L"",
+	auto hr = HrOpenECSession(&~lpUserSession, PROJECT_VERSION,
+	          "dagent:delivery", lpRecip->wstrUsername.c_str(), L"",
 	          lpArgs->strPath.c_str(), EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
 	          g_lpConfig->GetSetting("sslkey_file", "", nullptr),
 	          g_lpConfig->GetSetting("sslkey_pass", "", nullptr));
@@ -2312,8 +2312,8 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 			else {
 				const char *server = g_lpConfig->GetSetting("server_socket");
 				server = GetServerUnixSocket(server); // let environment override if present
-				hr = HrOpenECAdminSession(&~ptrAdminSession, "dagent:system",
-				     PROJECT_VERSION, server, EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
+				hr = HrOpenECAdminSession(&~ptrAdminSession, PROJECT_VERSION,
+				     "dagent:system", server, EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
 				     g_lpConfig->GetSetting("sslkey_file", "", nullptr),
 				     g_lpConfig->GetSetting("sslkey_pass", "", nullptr));
 			}
@@ -2418,8 +2418,8 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 	if (lpUserSession)
 		hr = lpUserSession->QueryInterface(IID_IMAPISession, &~lpSession);
 	else
-		hr = HrOpenECAdminSession(&~lpSession, "dagent/delivery:system",
-		     PROJECT_VERSION, strServer.c_str(),
+		hr = HrOpenECAdminSession(&~lpSession, PROJECT_VERSION,
+		     "dagent/delivery:system", strServer.c_str(),
 		     EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
 		     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 		     g_lpConfig->GetSetting("sslkey_pass", "", NULL));

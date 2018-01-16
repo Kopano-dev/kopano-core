@@ -328,7 +328,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 		strwPassword = convert_to<std::wstring>(strPass);
 	if (strAltUser)
 		strwAltUsername = convert_to<std::wstring>(strAltUser);
-	hr = HrOpenECSession(&~lpSession, "fsck", PROJECT_VERSION,
+	hr = HrOpenECSession(&~lpSession, PROJECT_VERSION, "fsck",
 	     strwUsername.c_str(), strwPassword.c_str(), strHost, 0, NULL, NULL);
 	if(hr != hrSuccess) {
 		cout << "Wrong username or password." << endl;

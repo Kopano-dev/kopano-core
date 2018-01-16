@@ -31,6 +31,7 @@
 #include <kopano/charset/convert.h>
 #include <kopano/ECMemTable.h>
 #include <kopano/automapi.hpp>
+#include <kopano/ecversion.h>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/IECInterfaces.hpp>
@@ -118,8 +119,8 @@ int mpt_job::init()
 static int mpt_basic_open(object_ptr<IMAPISession> &ses,
     object_ptr<IMsgStore> &store)
 {
-	auto ret = HrOpenECSession(&~ses, "mapitime", "", mpt_user, mpt_pass,
-	           mpt_socket, NO_NOTIFY, nullptr, nullptr);
+	auto ret = HrOpenECSession(&~ses, PROJECT_VERSION, "mapitime", mpt_user,
+	           mpt_pass, mpt_socket, NO_NOTIFY, nullptr, nullptr);
 	if (ret != hrSuccess) {
 		fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
 		sleep(1);
