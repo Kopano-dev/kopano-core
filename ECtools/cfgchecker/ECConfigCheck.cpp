@@ -353,8 +353,6 @@ MonitorConfigCheck::MonitorConfigCheck(const char *lpszConfigFile) :
 void MonitorConfigCheck::loadChecks()
 {
 	addCheck("companyquota_warning_template", CONFIG_MANDATORY | CONFIG_HOSTED_USED, &testFile);
-	addCheck("companyquota_soft_template", CONFIG_MANDATORY | CONFIG_HOSTED_USED, &testFile);
-	addCheck("companyquota_hard_template", CONFIG_MANDATORY | CONFIG_HOSTED_USED, &testFile);
 	addCheck("userquota_warning_template", CONFIG_MANDATORY, &testFile);
 	addCheck("userquota_soft_template", CONFIG_MANDATORY, &testFile);
 	addCheck("userquota_hard_template", CONFIG_MANDATORY, &testFile);
