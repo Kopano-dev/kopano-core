@@ -164,7 +164,7 @@ void ConsoleTable::PrintRow(const std::vector<std::wstring> &vRow)
 	size_t nCol = 0;
 	size_t longest, ntabs;
 
-	cout << '\t';
+	cout << m_lead;
 	for (const auto &col : vRow) {
 		// cout can't print wstring, and wcout is not allowed to mix with cout.
 		printf("%ls\t", col.c_str());
@@ -211,7 +211,7 @@ void ConsoleTable::PrintTable()
 			total += m_vMaxLengths[nCol];
 
 		total += (m_iColumns -1) * 8;
-		cout << "\t" << std::string(total, '-') << endl;
+		cout << m_lead << std::string(total, '-') << endl;
 	}
 
 	for (size_t nRow = 0; nRow < m_nRow; ++nRow)
