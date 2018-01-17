@@ -3400,6 +3400,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		} else if (strDataItem.compare("INTERNALDATE") == 0) {
 			setProps.emplace(PR_MESSAGE_DELIVERY_TIME);
 			setProps.emplace(PR_CLIENT_SUBMIT_TIME);
+			setProps.emplace(PR_CREATION_TIME);
 		} else if (strDataItem.compare("BODY") == 0) {
 			setProps.emplace(PR_EC_IMAP_BODY);
 		} else if (strDataItem.compare("BODYSTRUCTURE") == 0) {
