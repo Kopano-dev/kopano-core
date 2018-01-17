@@ -2136,8 +2136,8 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	}
 
 	// The Admin session is used for checking delegates and archiving
-	hr = HrOpenECAdminSession(&~lpAdminSession, "mailer:admin",
-	     PROJECT_VERSION, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	hr = HrOpenECAdminSession(&~lpAdminSession, PROJECT_VERSION,
+	     "mailer:admin", szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
 	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
@@ -2153,9 +2153,8 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	 * usersession for email sending we will let the server handle all
 	 * permissions and can correctly resolve everything.
 	 */
-	hr = HrOpenECSession(&~lpUserSession, "mailer",
-	     PROJECT_VERSION, szUsername, L"", szPath,
-	     EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	hr = HrOpenECSession(&~lpUserSession, PROJECT_VERSION, "mailer",
+	     szUsername, L"", szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
 	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {

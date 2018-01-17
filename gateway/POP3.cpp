@@ -710,7 +710,7 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 
 	if (!parseBool(lpConfig->GetSetting("bypass_auth")))
 		flags |= EC_PROFILE_FLAGS_NO_UID_AUTH;
-	hr = HrOpenECSession(&~lpSession, "gateway/pop3", PROJECT_VERSION,
+	hr = HrOpenECSession(&~lpSession, PROJECT_VERSION, "gateway/pop3",
 	     strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(),
 	     flags, NULL, NULL);
 	if (hr != hrSuccess) {

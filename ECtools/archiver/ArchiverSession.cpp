@@ -146,8 +146,8 @@ HRESULT ArchiverSession::Init(ECConfig *lpConfig)
  */
 HRESULT ArchiverSession::Init(const char *lpszServerPath, const char *lpszSslPath, const char *lpszSslPass)
 {
-	auto hr = HrOpenECAdminSession(&~m_ptrSession, "archiver:system",
-	          PROJECT_VERSION, const_cast<char *>(lpszServerPath),
+	auto hr = HrOpenECAdminSession(&~m_ptrSession, PROJECT_VERSION,
+	          "archiver:system", const_cast<char *>(lpszServerPath),
 	          EC_PROFILE_FLAGS_NO_NOTIFICATIONS, const_cast<char *>(lpszSslPath),
 	          const_cast<char *>(lpszSslPass));
 	if (hr != hrSuccess) {

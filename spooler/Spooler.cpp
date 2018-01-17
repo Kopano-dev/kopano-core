@@ -648,8 +648,8 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	static constexpr const SizedSSortOrderSet(1, sSort) =
 		{1, 0, 0, {{PR_EC_HIERARCHYID, TABLE_SORT_ASCEND}}};
 
-	auto hr = HrOpenECAdminSession(&~lpAdminSession, "spooler:system",
-	          PROJECT_VERSION, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	auto hr = HrOpenECAdminSession(&~lpAdminSession, PROJECT_VERSION,
+	          "spooler:system", szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
 	          g_lpConfig->GetSetting("sslkey_file", "", nullptr),
 	          g_lpConfig->GetSetting("sslkey_pass", "", nullptr));
 	if (hr != hrSuccess) {

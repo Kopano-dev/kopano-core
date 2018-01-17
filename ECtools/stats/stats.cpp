@@ -647,7 +647,7 @@ int main(int argc, char *argv[])
 
 	auto strwUsername = convert_to<std::wstring>(user ? user : "SYSTEM");
 	auto strwPassword = convert_to<std::wstring>(pass ? pass : "");
-	hr = HrOpenECSession(&~lpSession, "stats", PROJECT_VERSION,
+	hr = HrOpenECSession(&~lpSession, PROJECT_VERSION, "stats",
 	     strwUsername.c_str(), strwPassword.c_str(), host,
 	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE);
 	if (hr != hrSuccess) {

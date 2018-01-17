@@ -87,8 +87,8 @@ void* ECQuotaMonitor::Create(void* lpVoid)
 	lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Quota monitor starting");
 
 	//Open admin session
-	auto hr = HrOpenECAdminSession(&~lpMAPIAdminSession, "monitor:create",
-	          PROJECT_VERSION, lpPath, 0,
+	auto hr = HrOpenECAdminSession(&~lpMAPIAdminSession, PROJECT_VERSION,
+	          "monitor:create", lpPath, 0,
 	          lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", nullptr),
 	          lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", nullptr));
 	if (hr != hrSuccess) {
@@ -300,8 +300,8 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 				continue;
 			}
 		} else {
-			hr = HrOpenECAdminSession(&~lpSession, "monitor:check-company",
-			     PROJECT_VERSION, lpszConnection, 0,
+			hr = HrOpenECAdminSession(&~lpSession, PROJECT_VERSION,
+			     "monitor:check-company", lpszConnection, 0,
 			     m_lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", nullptr),
 			     m_lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", nullptr));
 			if (hr != hrSuccess) {
