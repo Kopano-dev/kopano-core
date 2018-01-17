@@ -49,7 +49,7 @@ namespace KC {
 static void ec_log_bt(unsigned int, const char *, ...);
 
 static const char *const ll_names[] = {
-	" notice",
+	"=======",
 	"crit   ",
 	"error  ",
 	"warning",
