@@ -238,7 +238,7 @@ ZEND_END_ARG_INFO()
 
 #define PMEASURE_FUNC pmeasure __pmobject(__PRETTY_FUNCTION__);
 
-using namespace KCHL;
+using namespace KC;
 
 class pmeasure {
 public:
@@ -247,7 +247,7 @@ public:
 
 private:
 	std::string what;
-	KC::time_point start_ts;
+	time_point start_ts;
 };
 
 using namespace std;
@@ -7159,7 +7159,7 @@ ZEND_FUNCTION(kc_session_save)
 	IMAPISession *ses;
 	ZEND_FETCH_RESOURCE_C(ses, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
 	std::string data;
-	MAPI_G(hr) = KC::kc_session_save(ses, data);
+	MAPI_G(hr) = kc_session_save(ses, data);
 	if (MAPI_G(hr) == hrSuccess) {
 		ZVAL_DEREF(outstr);
 		ZVAL_STRINGL(outstr, data.c_str(), data.size());
@@ -7182,7 +7182,7 @@ ZEND_FUNCTION(kc_session_restore)
 		return;
 	}
 	object_ptr<IMAPISession> ses = nullptr;
-	MAPI_G(hr) = KC::kc_session_restore(std::string(Z_STRVAL_P(data), Z_STRLEN_P(data)), &~ses);
+	MAPI_G(hr) = kc_session_restore(std::string(Z_STRVAL_P(data), Z_STRLEN_P(data)), &~ses);
 	if (MAPI_G(hr) == hrSuccess) {
 		ZVAL_DEREF(res);
 		ZEND_REGISTER_RESOURCE(res, ses.release(), le_mapi_session);
