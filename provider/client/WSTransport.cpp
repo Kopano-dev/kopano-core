@@ -846,8 +846,6 @@ HRESULT WSTransport::HrNotify(LPNOTIFICATION lpNotification)
 	struct notification	sNotification; 
 	int ulSize = 0;
 
-	memset(&sNotification, 0, sizeof(struct notification));
-
 	LockSoap();
 
 	//FIMXE: also notify other types ?

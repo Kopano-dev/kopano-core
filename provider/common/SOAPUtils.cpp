@@ -1483,9 +1483,7 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 
 	if (lpNotification == NULL)
 		return KCERR_INVALID_PARAMETER;
-
-	memset(&rNotifyTo, 0, sizeof(rNotifyTo));
-
+	rNotifyTo = notification();
 	rNotifyTo.ulEventType	= lpNotification->ulEventType;
 	rNotifyTo.ulConnection	= lpNotification->ulConnection;
 

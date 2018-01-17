@@ -419,7 +419,6 @@ HRESULT ECNotifyClient::NotifyReload()
 	struct notificationTable table;
 	NOTIFYLIST notifications;
 
-	memset(&notif, 0, sizeof(notif));
 	memset(&table, 0, sizeof(table));
 
 	notif.ulEventType = fnevTableModified;
