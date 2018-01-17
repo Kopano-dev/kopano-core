@@ -26,8 +26,6 @@
 #include <mapi.h>
 #include <mapix.h>
 
-using namespace KCHL;
-
 namespace KC {
 
 /**

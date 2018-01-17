@@ -46,7 +46,7 @@ private:
 
 	std::mutex m_hMutex;
 	std::condition_variable m_hCond;
-	std::list<KCHL::memory_ptr<NOTIFICATION>> m_lstNotifs;
+	std::list<memory_ptr<NOTIFICATION>> m_lstNotifs;
 	bool m_bExit = false;
 	unsigned int m_cRef = 0;
 	ALLOC_WRAP_FRIEND;

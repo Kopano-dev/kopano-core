@@ -42,8 +42,6 @@
 // needed for htons()
 #include <netdb.h>
 
-using namespace KCHL;
-
 namespace KC {
 
 static constexpr const SizedSSortOrderSet(1, sSortDefault) = { 0, 0, 0, {} } ;

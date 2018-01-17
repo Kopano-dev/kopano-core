@@ -56,8 +56,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-using namespace KCHL;
-
 namespace KC {
 
 #define PROFILEPREFIX		"ec-adm-"
