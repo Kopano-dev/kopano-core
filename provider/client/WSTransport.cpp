@@ -1557,7 +1557,8 @@ HRESULT WSTransport::HrAbortSubmit(ULONG cbEntryID, const ENTRYID *lpEntryID)
 	return hr;
 }
 
-HRESULT WSTransport::HrResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
+HRESULT WSTransport::HrResolveStore(const GUID *lpGuid, ULONG *lpulUserID,
+    ULONG *lpcbStoreID, ENTRYID **lppStoreID)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -1767,7 +1768,7 @@ HRESULT WSTransport::HrCreateUser(ECUSER *lpECUser, ULONG ulFlags,
  * @param[out]	lppECUser	Pointer to an ECUSER object that contains the user details
  * @return		HRESULT		MAPI error code.
  */
-HRESULT WSTransport::HrGetUser(ULONG cbUserID, LPENTRYID lpUserID,
+HRESULT WSTransport::HrGetUser(ULONG cbUserID, const ENTRYID *lpUserID,
     ULONG ulFlags, ECUSER **lppECUser)
 {
 	HRESULT	hr = hrSuccess;
@@ -1889,7 +1890,9 @@ HRESULT WSTransport::HrSetUser(ECUSER *lpECUser, ULONG ulFlags)
  * @retval MAPI_E_NOT_FOUND User described in lpUserID does not exist
  * @retval MAPI_E_COLLISION Store already exists
  */
-HRESULT WSTransport::HrCreateStore(ULONG ulStoreType, ULONG cbUserID, LPENTRYID lpUserID, ULONG cbStoreID, LPENTRYID lpStoreID, ULONG cbRootID, LPENTRYID lpRootID, ULONG ulFlags)
+HRESULT WSTransport::HrCreateStore(ULONG ulStoreType, ULONG cbUserID,
+    const ENTRYID *lpUserID, ULONG cbStoreID, const ENTRYID *lpStoreID,
+    ULONG cbRootID, const ENTRYID *lpRootID, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -1924,7 +1927,8 @@ HRESULT WSTransport::HrCreateStore(ULONG ulStoreType, ULONG cbUserID, LPENTRYID 
 	return hr;
 }
 
-HRESULT WSTransport::HrHookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid, ULONG ulSyncId)
+HRESULT WSTransport::HrHookStore(ULONG ulStoreType, ULONG cbUserId,
+    const ENTRYID *lpUserId, const GUID *lpGuid, ULONG ulSyncId)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
@@ -1956,7 +1960,8 @@ HRESULT WSTransport::HrHookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lp
 	return hr;
 }
 
-HRESULT WSTransport::HrUnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG ulSyncId)
+HRESULT WSTransport::HrUnhookStore(ULONG ulStoreType, ULONG cbUserId,
+    const ENTRYID *lpUserId, ULONG ulSyncId)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
@@ -1984,7 +1989,7 @@ HRESULT WSTransport::HrUnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID 
 	return hr;
 }
 
-HRESULT WSTransport::HrRemoveStore(LPGUID lpGuid, ULONG ulSyncId)
+HRESULT WSTransport::HrRemoveStore(const GUID *lpGuid, ULONG ulSyncId)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
@@ -2212,7 +2217,7 @@ HRESULT WSTransport::HrSetGroup(ECGROUP *lpECGroup, ULONG ulFlags)
  * @param[out]	lppECGroup	Pointer to an ECGROUP object that contains the group details
  * @return		HRESULT		MAPI error code.
  */
-HRESULT WSTransport::HrGetGroup(ULONG cbGroupID, LPENTRYID lpGroupID,
+HRESULT WSTransport::HrGetGroup(ULONG cbGroupID, const ENTRYID *lpGroupID,
     ULONG ulFlags, ECGROUP **lppECGroup)
 {
 	ECRESULT er = erSuccess;
@@ -2895,7 +2900,7 @@ HRESULT WSTransport::HrSetCompany(ECCOMPANY *lpECCompany, ULONG ulFlags)
  * @param[out]	lppECCompany	Pointer to an ECOMPANY object that contains the company details
  * @return		HRESULT			MAPI error code.
  */
-HRESULT WSTransport::HrGetCompany(ULONG cbCompanyId, LPENTRYID lpCompanyId,
+HRESULT WSTransport::HrGetCompany(ULONG cbCompanyId, const ENTRYID *lpCompanyId,
     ULONG ulFlags, ECCOMPANY **lppECCompany)
 {
 	ECRESULT er = erSuccess;

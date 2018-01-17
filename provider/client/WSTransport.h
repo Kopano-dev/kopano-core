@@ -150,7 +150,7 @@ public:
 	virtual HRESULT HrAbortSubmit(ULONG eid_size, const ENTRYID *);
 
 	// Get user information
-	virtual HRESULT HrResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
+	virtual HRESULT HrResolveStore(const GUID *, ULONG *user_id, ULONG *store_size, ENTRYID **store_eid);
 	virtual HRESULT HrResolveUserStore(const utf8string &strUserName, ULONG ulFlags, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID, std::string *lpstrRedirServer = NULL);
 	virtual HRESULT HrResolveTypedStore(const utf8string &strUserName, ULONG ulStoreType, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
 
@@ -158,13 +158,11 @@ public:
 	virtual HRESULT HrCreateUser(ECUSER *lpECUser, ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId);
 	virtual HRESULT HrDeleteUser(ULONG cbUserId, LPENTRYID lpUserId);
 	virtual HRESULT HrSetUser(ECUSER *lpECUser, ULONG ulFlags);
-	virtual HRESULT HrGetUser(ULONG cbUserID, LPENTRYID lpUserID, ULONG ulFlags, ECUSER **lpECUser);
-
-	virtual HRESULT HrCreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG cbStoreID, LPENTRYID lpStoreID, ULONG cbRootID, LPENTRYID lpRootID, ULONG ulFLags);
-	virtual HRESULT HrHookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid, ULONG ulSyncId);
-	virtual HRESULT HrUnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG ulSyncId);
-	virtual HRESULT HrRemoveStore(LPGUID lpGuid, ULONG ulSyncId);
-
+	virtual HRESULT HrGetUser(ULONG eid_size, const ENTRYID *user_eid, ULONG flags, ECUSER **);
+	virtual HRESULT HrCreateStore(ULONG store_type, ULONG user_size, const ENTRYID *user_eid, ULONG store_size, const ENTRYID *store_eid, ULONG root_size, const ENTRYID *root_eid, ULONG flags);
+	virtual HRESULT HrHookStore(ULONG store_type, ULONG user_size, const ENTRYID *user_eid, const GUID *, ULONG sync_id);
+	virtual HRESULT HrUnhookStore(ULONG store_type, ULONG user_size, const ENTRYID *user_eid, ULONG sync_id);
+	virtual HRESULT HrRemoveStore(const GUID *, ULONG sync_id);
 	virtual HRESULT HrGetUserList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers);
 	virtual HRESULT HrResolveUserName(LPCTSTR lpszUserName, ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId);
 
@@ -197,7 +195,7 @@ public:
 
 	virtual HRESULT HrCreateGroup(ECGROUP *lpECGroup, ULONG ulFlags, ULONG *lpcbGroupId, LPENTRYID *lppGroupId);
 	virtual HRESULT HrSetGroup(ECGROUP *lpECGroup, ULONG ulFlags);
-	virtual HRESULT HrGetGroup(ULONG cbGroupID, LPENTRYID lpGroupID, ULONG ulFlags, ECGROUP **lppECGroup);
+	virtual HRESULT HrGetGroup(ULONG grp_size, const ENTRYID *grp_eid, ULONG flags, ECGROUP **);
 	virtual HRESULT HrDeleteGroup(ULONG cbGroupId, LPENTRYID lpGroupId);
 	virtual HRESULT HrGetGroupList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcGroups, ECGROUP **lppsGroups);
 
@@ -211,7 +209,7 @@ public:
 	virtual HRESULT HrCreateCompany(ECCOMPANY *lpECCompany, ULONG ulFlags, ULONG *lpcbCompanyId, LPENTRYID *lppCompanyId);
 	virtual HRESULT HrDeleteCompany(ULONG cbCompanyId, LPENTRYID lpCompanyId);
 	virtual HRESULT HrSetCompany(ECCOMPANY *lpECCompany, ULONG ulFlags);
-	virtual HRESULT HrGetCompany(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ECCOMPANY **lppECCompany);
+	virtual HRESULT HrGetCompany(ULONG cmp_size, const ENTRYID *cmp_eid, ULONG flags, ECCOMPANY **);
 	virtual HRESULT HrResolveCompanyName(LPCTSTR lpszCompanyName, ULONG ulFlags, ULONG *lpcbCompanyId, LPENTRYID *lppCompanyId);
 	virtual HRESULT HrGetCompanyList(ULONG ulFlags, ULONG *lpcCompanies, ECCOMPANY **lppsCompanies);
 	virtual HRESULT HrAddCompanyToRemoteViewList(ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId, ULONG cbCompanyId, LPENTRYID lpCompanyId);
