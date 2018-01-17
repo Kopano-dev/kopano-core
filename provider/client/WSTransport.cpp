@@ -63,7 +63,7 @@
 #	include <gssapi/gssapi.h>
 #endif
 
-using namespace KCHL;
+using namespace KC;
 
 /*
  *

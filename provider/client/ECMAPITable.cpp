@@ -31,7 +31,7 @@
 
 #include <kopano/ECDebug.h>
 
-using namespace KCHL;
+using namespace KC;
 
 ECMAPITable::ECMAPITable(const std::string &strName, ECNotifyClient *nc,
     ULONG f) :

@@ -31,6 +31,6 @@ class client_delete {
 	void operator()(void *x) const { ECFreeBuffer(x); }
 };
 
-template<typename T> using ecmem_ptr = KCHL::memory_ptr<T, client_delete>;
+template<typename T> using ecmem_ptr = KC::memory_ptr<T, client_delete>;
 
 #endif // MEM_H

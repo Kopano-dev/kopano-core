@@ -38,7 +38,7 @@
 #include "pcutil.hpp"
 #include <kopano/ECGetText.h>
 
-using namespace KCHL;
+using namespace KC;
 
 ECABProvider::ECABProvider(ULONG ulFlags, const char *szClassName) :
 	ECUnknown(szClassName), m_ulFlags(ulFlags)

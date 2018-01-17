@@ -50,7 +50,7 @@
 #include <librosie.h>
 #include "config.h"
 
-using namespace KCHL;
+using namespace KC;
 
 #define MAX_TABLE_PROPSIZE 8192
 
@@ -2566,8 +2566,7 @@ HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
 	hr = WrapCompressedRTFStream(ptrRtfCompressedStream, 0, &~ptrRtfUncompressedStream);
 	if(hr != hrSuccess)
 	{
-		KCHL::object_ptr<ECMemStream> ptrEmptyMemStream;
-
+		object_ptr<ECMemStream> ptrEmptyMemStream;
 		// Broken RTF, fallback on empty stream
 		hr = ECMemStream::Create(nullptr, 0, 0, nullptr, nullptr, nullptr, &~ptrEmptyMemStream);
 		if (hr != hrSuccess)

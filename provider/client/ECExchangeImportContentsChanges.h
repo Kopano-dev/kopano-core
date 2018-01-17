@@ -71,9 +71,9 @@ private:
 	ULONG m_ulFlags = 0;
 	ULONG m_ulSyncId = 0;
 	ULONG m_ulChangeId = 0;
-	KCHL::memory_ptr<SPropValue> m_lpSourceKey;
-	KCHL::object_ptr<ECLogger> m_lpLogger;
-	KCHL::object_ptr<ECMAPIFolder> m_lpFolder;
+	KC::memory_ptr<SPropValue> m_lpSourceKey;
+	KC::object_ptr<ECLogger> m_lpLogger;
+	KC::object_ptr<ECMAPIFolder> m_lpFolder;
 };
 
 #endif // ECEXCHANGEIMPORTCONTENTSCHANGES_H

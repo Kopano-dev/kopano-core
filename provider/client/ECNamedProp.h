@@ -37,7 +37,7 @@ public:
 	virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags);
 
 private:
-	KCHL::object_ptr<WSTransport> lpTransport;
+	KC::object_ptr<WSTransport> lpTransport;
 	std::map<MAPINAMEID *,ULONG,ltmap>		mapNames;
 
 	HRESULT			ResolveLocal(MAPINAMEID *lpName, ULONG *ulId);

@@ -44,7 +44,7 @@
 #include <kopano/ECGetText.h>
 #include "SOAPSock.h"
 
-using namespace KCHL;
+using namespace KC;
 
 #define CONVERT_TO(_context, _charset, ...) ((_context) ? (_context)->convert_to<_charset>(__VA_ARGS__) : convert_to<_charset>(__VA_ARGS__))
 
@@ -1244,8 +1244,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 	HRESULT hr = hrSuccess;
 	struct restrictTable *lpDst = NULL;
 	unsigned int i=0;
-
-	auto laters = KCHL::make_scope_success([&]() {
+	auto laters = make_scope_success([&]() {
 		if(hr != hrSuccess && lpDst != NULL)
 			FreeRestrictTable(lpDst);
 	});

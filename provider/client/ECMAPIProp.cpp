@@ -45,14 +45,14 @@
 
 #include <sstream>
 
-using namespace KCHL;
+using namespace KC;
 
 struct STREAMDATA {
 	ULONG ulPropTag;
 	ECMAPIProp *lpProp;
 };
 
-typedef KCHL::memory_ptr<ECPERMISSION> ECPermissionPtr;
+typedef memory_ptr<ECPERMISSION> ECPermissionPtr;
 
 static struct rights ECPermToRightsCheap(const ECPERMISSION &p)
 {

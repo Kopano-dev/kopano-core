@@ -33,7 +33,7 @@
 #include <kopano/stringutil.h>
 #include "pcutil.hpp"
 
-using namespace KCHL;
+using namespace KC;
 
 ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport *lpTransport,
     ULONG ulProfileFlags, const GUID *lpGUID) :

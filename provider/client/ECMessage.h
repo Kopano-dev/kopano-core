@@ -170,8 +170,8 @@ private:
 
 public:
 	ULONG m_cbParentID = 0;
-	KCHL::object_ptr<ECMemTable> lpAttachments, lpRecips;
-	KCHL::memory_ptr<ENTRYID> m_lpParentID;
+	KC::object_ptr<ECMemTable> lpAttachments, lpRecips;
+	KC::memory_ptr<ENTRYID> m_lpParentID;
 	ULONG ulNextRecipUniqueId = 0, ulNextAttUniqueId = 0;
 	ALLOC_WRAP_FRIEND;
 };

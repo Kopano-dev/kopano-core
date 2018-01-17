@@ -66,7 +66,7 @@ private:
 	ECSessionGroupInfo	m_ecSessionGroupInfo;
 
 	/* Notification information */
-	KCHL::object_ptr<ECNotifyMaster> m_lpNotifyMaster;
+	KC::object_ptr<ECNotifyMaster> m_lpNotifyMaster;
 
 	/* Mutex */
 	std::recursive_mutex m_hMutex;

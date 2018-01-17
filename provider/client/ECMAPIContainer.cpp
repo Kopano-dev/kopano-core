@@ -27,7 +27,7 @@
 #include <kopano/mapiext.h>
 #include <mapiutil.h>
 
-using namespace KCHL;
+using namespace KC;
 
 ECMAPIContainer::ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG ulObjType,
     BOOL fModify, const char *szClassName) :

@@ -90,7 +90,7 @@ public:
 private:
 	BOOL m_bICSObject = false; // coming from the ICS system
 	ULONG m_ulSyncId = 0, m_cbParentID = 0;
-	KCHL::memory_ptr<ENTRYID> m_lpParentID; /* Overrides the parentid from the server */
+	KC::memory_ptr<ENTRYID> m_lpParentID; /* Overrides the parentid from the server */
 
 public:
 	const ECMAPIProp *m_lpRoot; // Points to the 'root' object that was opened by OpenEntry; normally points to 'this' except for Attachments and Submessages

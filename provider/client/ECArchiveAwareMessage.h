@@ -82,7 +82,7 @@ private:
 	PROPMAP_DEF_NAMED_ID(DIRTY)
 	PROPMAP_DEF_NAMED_ID(ORIGINAL_SOURCE_KEY)
 
-	typedef KCHL::memory_ptr<SPropValue> SPropValuePtr;
+	typedef KC::memory_ptr<SPropValue> SPropValuePtr;
 	SPropValuePtr	m_ptrStoreEntryIDs;
 	SPropValuePtr	m_ptrItemEntryIDs;
 
@@ -94,7 +94,7 @@ private:
 	};
 	eMode	m_mode;
 	bool	m_bChanged;
-	KCHL::object_ptr<ECMessage> m_ptrArchiveMsg;
+	KC::object_ptr<ECMessage> m_ptrArchiveMsg;
 	ALLOC_WRAP_FRIEND;
 };
 

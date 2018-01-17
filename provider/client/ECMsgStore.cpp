@@ -64,11 +64,10 @@
 #include "ECExchangeModifyTable.h"
 
 #include <kopano/mapi_ptr.h>
-typedef KCHL::object_ptr<WSTransport> WSTransportPtr;
-
 #include <kopano/charset/convstring.h>
 
-using namespace KCHL;
+using namespace KC;
+typedef object_ptr<WSTransport> WSTransportPtr;
 
 // FIXME: from libserver/ECMAPI.h
 #define MSGFLAG_DELETED                           ((ULONG) 0x00000400)

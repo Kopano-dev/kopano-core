@@ -145,8 +145,8 @@ public:
 	ULONG m_cbEntryId = 0;
 	std::recursive_mutex m_hMutexMAPIObject; /* Mutex for locking the MAPIObject */
 	BOOL m_bReload = false, m_bLoading = false;
-	KCHL::memory_ptr<ENTRYID> m_lpEntryId;
-	KCHL::object_ptr<IECPropStorage> lpStorage;
+	KC::memory_ptr<ENTRYID> m_lpEntryId;
+	KC::object_ptr<IECPropStorage> lpStorage;
 	std::unique_ptr<MAPIOBJECT> m_sMapiObject;
 };
 
