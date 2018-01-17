@@ -294,7 +294,7 @@ ECRESULT ECUserStoreTable::Load() {
 
 		sUserStore.tModTime = 0;
 		if (lpDBRow[MODTIME_HI] != nullptr && lpDBRow[MODTIME_LO] != nullptr)
-			sUserStore.tModTime = FileTimeToUnixTime({atoui(lpDBRow[MODTIME_HI]), atoui(lpDBRow[MODTIME_LO])});
+			sUserStore.tModTime = FileTimeToUnixTime({atoui(lpDBRow[MODTIME_LO]), atoui(lpDBRow[MODTIME_HI])});
 		if(lpDBRow[STORESIZE])
 			sUserStore.ullStoreSize = atoll(lpDBRow[STORESIZE]);
 		else
