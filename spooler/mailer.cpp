@@ -58,11 +58,11 @@
 #include <algorithm>
 #include "fileutil.h"
 
-using namespace KCHL;
+using namespace KC;
 using std::list;
 using std::string;
 using std::wstring;
-extern KC::ECConfig *g_lpConfig;
+extern ECConfig *g_lpConfig;
 
 /**
  * Expand all rows in the lpTable to normal user recipient
