@@ -63,8 +63,7 @@ WSTableMultiStore::WSTableMultiStore(ULONG ulFlags, KCmd *lpCmd,
 	WSStoreTableView(MAPI_MESSAGE, ulFlags, lpCmd, lpDataLock, ecSessionId,
 	    cbEntryId, lpEntryId, lpMsgStore, lpTransport)
 {
-    memset(&m_sEntryList, 0, sizeof(m_sEntryList));
-
+	m_sEntryList = entryList();
 	m_ulTableType = TABLETYPE_MULTISTORE;
 	ulTableId = 0;
 }

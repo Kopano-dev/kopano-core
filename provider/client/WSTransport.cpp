@@ -820,8 +820,6 @@ HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, LPENTRYLIST lpMsgList, ULONG
 	struct entryList sEntryList;
 
 	LockSoap();
-	memset(&sEntryList, 0, sizeof(struct entryList));
-
 	if(lpMsgList->cValues == 0)
 		goto exitm;
 	hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, &sEntryList);
