@@ -64,7 +64,7 @@
 #include <kopano/ECFeatures.hpp>
 #include <kopano/mapi_ptr.h>
 #include "IMAP.h"
-using namespace KCHL;
+using namespace KC;
 using std::list;
 using std::string;
 using std::swap;

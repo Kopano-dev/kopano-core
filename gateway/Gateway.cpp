@@ -235,7 +235,7 @@ static void *Handler(void *lpArg)
 		try {
 			/* Process IMAP command */
 			hr = client->HrProcessCommand(inBuffer);
-		} catch (const KCHL::KMAPIError &e) {
+		} catch (const KC::KMAPIError &e) {
 			hr = e.code();
 		}
 
