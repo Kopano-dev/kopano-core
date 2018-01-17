@@ -47,7 +47,7 @@ public:
 private:
 	LPADRBOOK m_lpAdrBook;
 	std::string m_strCharset;
-	KCHL::memory_ptr<SPropTagArray> m_lpNamedProps;
+	memory_ptr<SPropTagArray> m_lpNamedProps;
 	/* since we don't want depending projects to add include paths for libical, this is only in the implementation version */
 	icalcomp_ptr m_lpicCalender;
 	icalproperty_method m_icMethod = ICAL_METHOD_NONE;
@@ -114,7 +114,7 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 	std::unique_ptr<VConverter> lpVEC;
 	std::list<icalcomponent*> lstEvents;
 	icalproperty_method icMethod = ICAL_METHOD_NONE;
-	KCHL::memory_ptr<SPropValue> lpMessageClass;
+	memory_ptr<SPropValue> lpMessageClass;
 	TIMEZONE_STRUCT ttTZinfo = {0};
 	bool blCensor = false;
 

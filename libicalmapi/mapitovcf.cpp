@@ -32,8 +32,6 @@
 #include "mapitovcf.hpp"
 #include "icaluid.h"
 
-using namespace KCHL;
-
 namespace KC {
 
 class mapitovcf_impl _kc_final : public mapitovcf {

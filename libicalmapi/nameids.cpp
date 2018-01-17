@@ -122,7 +122,7 @@ MAPINAMEID mnNamedProps[SIZE_NAMEDPROPS] = {
  */
 HRESULT HrLookupNames(IMAPIProp *lpPropObj, LPSPropTagArray *lppNamedProps)
 {
-	KCHL::memory_ptr<MAPINAMEID *> lppNameIds;
+	memory_ptr<MAPINAMEID *> lppNameIds;
 	LPSPropTagArray lpNamedProps = NULL;
 
 	auto hr = MAPIAllocateBuffer(sizeof(MAPINAMEID *) * SIZE_NAMEDPROPS, &~lppNameIds);

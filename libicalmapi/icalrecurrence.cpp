@@ -31,8 +31,6 @@
 #include "freebusy.h"
 #include "icalcompat.hpp"
 
-using namespace KCHL;
-
 static bool operator ==(const SPropValue &spv, ULONG ulPropTag)
 {
 	return spv.ulPropTag == ulPropTag;

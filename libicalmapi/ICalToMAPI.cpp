@@ -39,8 +39,6 @@
 #include <mapi.h>
 #include "icalmem.hpp"
 
-using namespace KCHL;
-
 namespace KC {
 
 class ICalToMapiImpl _kc_final : public ICalToMapi {
