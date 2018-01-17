@@ -24,7 +24,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
 #include <kopano/userutil.h>
-
+#include <kopano/ecversion.h>
 #include <kopano/charset/utf8string.h>
 #include <kopano/charset/convert.h>
 #include <kopano/ECDefs.h>
@@ -362,9 +362,9 @@ HRESULT GetMailboxDataPerServer(const char *lpszPath, const char *lpSSLKey,
     const char *lpSSLPass, DataCollector *lpCollector)
 {
 	MAPISessionPtr  ptrSessionServer;
-	HRESULT hr = HrOpenECAdminSession(&~ptrSessionServer, "userutil.cpp",
-	             "GetMailboxDataPerServer", lpszPath, 0, lpSSLKey,
-	             lpSSLPass);
+	auto hr = HrOpenECAdminSession(&~ptrSessionServer, PROJECT_VERSION,
+	          "userutil.cpp:GetMailboxDataPerServer", lpszPath, 0, lpSSLKey,
+	          lpSSLPass);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to open admin session on server \"%s\": 0x%08X", lpszPath, hr);
 		return hr;

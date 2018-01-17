@@ -321,7 +321,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	}
 
 	// input from commandline is current locale
-	hr = HrOpenECSession(&~lpSession, "fsck", PROJECT_VERSION,
+	hr = HrOpenECSession(&~lpSession, PROJECT_VERSION, "fsck",
 	     strUser, strPass, strHost, 0, nullptr, nullptr);
 	if(hr != hrSuccess) {
 		cout << "Wrong username or password." << endl;

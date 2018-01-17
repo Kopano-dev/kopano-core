@@ -84,7 +84,7 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	memory_ptr<ECUSER> lpECUser;
 	if (!verbose)
 		ec_log_get()->SetLoglevel(0);
-	auto hr = HrOpenECSession(&~lpSession, "passwd", PROJECT_VERSION,
+	auto hr = HrOpenECSession(&~lpSession, PROJECT_VERSION, "passwd",
 	          lpUsername, lpPassword, lpPath,
 	          EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
 	          nullptr, nullptr);

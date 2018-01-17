@@ -2900,7 +2900,7 @@ int main(int argc, char* argv[])
 		path = GetServerUnixSocket(path);
 	}
 
-	hr = HrOpenECAdminSession(&~lpSession, "admin", PROJECT_VERSION,
+	hr = HrOpenECAdminSession(&~lpSession, PROJECT_VERSION, "admin",
 	     path, EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
 	     lpsConfig->GetSetting("sslkey_file", "", NULL),
 	     lpsConfig->GetSetting("sslkey_pass", "", NULL));

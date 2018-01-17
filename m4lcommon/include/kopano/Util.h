@@ -159,6 +159,8 @@ template<typename T> class alloc_wrap {
 
 #define ALLOC_WRAP_FRIEND template<typename T> friend class ::KC::alloc_wrap
 
+extern _kc_export HRESULT qi_void_to_imapiprop(void *, const IID &, IMAPIProp **);
+
 } /* namespace */
 
 #endif // UTIL_H
