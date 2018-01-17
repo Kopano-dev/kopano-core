@@ -54,7 +54,7 @@ static pthread_t			mainthread;
 
 static HRESULT running_service(void)
 {
-	KCHL::AutoMAPI mapiinit;
+	KC::AutoMAPI mapiinit;
 	auto hr = mapiinit.Initialize(nullptr);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize MAPI");
