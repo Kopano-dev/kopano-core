@@ -30,6 +30,8 @@
 #define LOG_SQL_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SQL, _msg, ##__VA_ARGS__)
 
+namespace KC {
+
 DB_RESULT::~DB_RESULT(void)
 {
 	if (m_res == nullptr)
@@ -577,3 +579,5 @@ ECRESULT kd_trans::rollback()
 	m_done = true;
 	return ret;
 }
+
+} /* namespace */

@@ -23,6 +23,8 @@
 
 #include <kopano/ECLogger.h>
 
+namespace KC {
+
 ECSyncSettings::ECSyncSettings(void) :
 	m_ulSyncLogLevel(EC_LOGLEVEL_INFO)
 {
@@ -137,3 +139,5 @@ ULONG ECSyncSettings::SetStreamBatchSize(ULONG ulBatchSize) {
 
 std::mutex ECSyncSettings::s_hMutex;
 ECSyncSettings ECSyncSettings::instance;
+
+} /* namespace */
