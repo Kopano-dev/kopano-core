@@ -406,9 +406,9 @@ static void showtop(LPMDB lpStore)
 				ofs += cols[5];
 			}
 			if (bColumns[5]) {
-				std::string dummy = ses.strClientApp + "/" +
-					ses.strClientAppVersion + "/" +
-					ses.strClientAppMisc;
+				auto dummy = ses.strClientAppMisc + "/" +
+					ses.strClientAppVersion + "(" +
+					ses.strClientApp + ")";
 				if (dummy.size() >= cols[6])
 					dummy = dummy.substr(0, cols[6] - 1);
 				wmove(win, 5 + line, ofs);
