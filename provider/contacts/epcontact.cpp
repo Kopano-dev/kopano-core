@@ -23,7 +23,7 @@
 #include "ZCABProvider.h"
 #include "EntryPoint.h"
 
-using namespace KCHL;
+using namespace KC;
 
 HRESULT MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
     LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags, ULONG ulContext,

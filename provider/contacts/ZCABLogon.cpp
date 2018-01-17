@@ -28,7 +28,7 @@
 #include <mapix.h>
 #include <edkmdb.h>
 
-using namespace KCHL;
+using namespace KC;
 
 ZCABLogon::ZCABLogon(IMAPISupport *lpMAPISup, ULONG ulProfileFlags,
     const GUID *lpGUID) :
