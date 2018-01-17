@@ -48,8 +48,6 @@
 #include "ECDBDef.h"
 #include "cmdutil.hpp"
 
-using namespace KCHL;
-
 namespace KC {
 
 #define MAX_PARENT_LIMIT 64

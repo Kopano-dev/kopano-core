@@ -46,8 +46,6 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 
-using namespace KCHL;
-
 namespace KC {
 
 void FreeRowSet(struct rowSet *lpRowSet, bool bBasePointerDel);

@@ -55,8 +55,6 @@
   - license
 */
 
-using namespace KCHL;
-
 namespace KC {
 
 void (*kopano_get_server_stats)(unsigned int *qlen, double *qage, unsigned int *nthr, unsigned int *idlthr) = [](unsigned int *, double *, unsigned int *, unsigned int *) {};

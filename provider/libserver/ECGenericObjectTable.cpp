@@ -71,8 +71,6 @@
        
 #include "ECSession.h"
 
-using namespace KCHL;
-
 namespace KC {
 
 static struct sortOrderArray sDefaultSortOrder{__gszeroinit};

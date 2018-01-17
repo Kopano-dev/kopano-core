@@ -58,7 +58,6 @@
 #endif
 
 using namespace std;
-using namespace KCHL;
 
 namespace KC {
 

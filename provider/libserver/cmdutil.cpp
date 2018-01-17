@@ -51,8 +51,6 @@
 #define FIELD_NR_NAMESTR	(FIELD_NR_MAX + 2)
 #define FIELD_NR_NAMEGUID	(FIELD_NR_MAX + 3)
 
-using namespace KCHL;
-
 namespace KC {
 
 extern ECSessionManager*    g_lpSessionManager; // FIXME: remove this global and change the depended source code!
