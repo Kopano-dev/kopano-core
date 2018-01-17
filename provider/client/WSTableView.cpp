@@ -573,8 +573,6 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags, LPSPropTagArray lpsPropTagAr
 	struct tableOpenRequest sOpen{__gszeroinit};
 	unsigned int i;
 	
-	memset(&sRequest, 0, sizeof(sRequest));
-	
 	if(ulTableId == 0) {
 	    sOpen.sEntryId = m_sEntryId;
 	    sOpen.ulTableType = m_ulTableType;

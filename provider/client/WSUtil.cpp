@@ -54,7 +54,7 @@ HRESULT CopyMAPIPropValToSOAPPropVal(propVal *dp, const SPropValue *sp,
 	HRESULT hr = hrSuccess;
 
 	dp->ulPropTag = sp->ulPropTag;
-	memset(&dp->Value, 0, sizeof(propValData));
+	dp->Value = propValData();
 
 	switch(PROP_TYPE(sp->ulPropTag)) {
 	case PT_I2:

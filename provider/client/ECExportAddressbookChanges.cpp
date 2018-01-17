@@ -93,8 +93,6 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 
 	// ulFlags ignored
 	m_lpImporter.reset(lpCollector);
-	memset(&abeid, 0, sizeof(ABEID));
-	
 	abeid.ulType = MAPI_ABCONT;
 	memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
 	abeid.ulId = 1; // 1 is the first container

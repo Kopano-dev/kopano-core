@@ -218,8 +218,7 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 	signal(SIGPIPE, SIG_IGN);
 
 	while (!pNotifyMaster->m_bThreadExit) {
-		memset(&notifications, 0, sizeof(notifications));
-
+		notifications = notifyResponse();
 		if (pNotifyMaster->m_bThreadExit)
 			return nullptr;
 
