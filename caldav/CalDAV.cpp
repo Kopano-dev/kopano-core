@@ -586,7 +586,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	std::string strCharset;
 	std::string strUserAgent, strUserAgentVersion;
 	std::unique_ptr<ProtocolBase> lpBase;
-	KCHL::object_ptr<IMAPISession> lpSession;
+	KC::object_ptr<IMAPISession> lpSession;
 	Http lpRequest(lpChannel, g_lpConfig);
 	ULONG ulFlag = 0;
 

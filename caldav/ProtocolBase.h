@@ -32,17 +32,17 @@ public:
 	
 protected:
 	Http *m_lpRequest = nullptr;
-	KCHL::object_ptr<IMAPISession> m_lpSession;
+	KC::object_ptr<IMAPISession> m_lpSession;
 	std::string m_strSrvTz;
 	std::string m_strCharset;
-	KCHL::object_ptr<IMsgStore> m_lpDefStore; //!< We always need the store of the user that is logged in.
-	KCHL::object_ptr<IMsgStore> m_lpActiveStore; //!< The store we're acting on
-	KCHL::object_ptr<IAddrBook> m_lpAddrBook;
-	KCHL::object_ptr<IMailUser> m_lpLoginUser; //!< the logged in user
-	KCHL::object_ptr<IMailUser> m_lpActiveUser; //!< the owner of m_lpActiveStore
-	KCHL::object_ptr<IMAPIFolder> m_lpUsrFld; //!< The active folder (calendar, inbox, outbox)
-	KCHL::object_ptr<IMAPIFolder> m_lpIPMSubtree; //!< IPMSubtree of active store, used for CopyFolder/CreateFolder
-	KCHL::memory_ptr<SPropTagArray> m_lpNamedProps; //!< named properties of the active store
+	KC::object_ptr<IMsgStore> m_lpDefStore; //!< We always need the store of the user that is logged in.
+	KC::object_ptr<IMsgStore> m_lpActiveStore; //!< The store we're acting on
+	KC::object_ptr<IAddrBook> m_lpAddrBook;
+	KC::object_ptr<IMailUser> m_lpLoginUser; //!< the logged in user
+	KC::object_ptr<IMailUser> m_lpActiveUser; //!< the owner of m_lpActiveStore
+	KC::object_ptr<IMAPIFolder> m_lpUsrFld; //!< The active folder (calendar, inbox, outbox)
+	KC::object_ptr<IMAPIFolder> m_lpIPMSubtree; //!< IPMSubtree of active store, used for CopyFolder/CreateFolder
+	KC::memory_ptr<SPropTagArray> m_lpNamedProps; //!< named properties of the active store
 	std::wstring m_wstrFldOwner;   //!< url owner part
 	std::wstring m_wstrFldName;	   //!< url foldername part
 

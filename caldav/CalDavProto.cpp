@@ -27,7 +27,7 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/MAPIErrors.h>
 
-using namespace KCHL;
+using namespace KC;
 
 /**
  * Maping of caldav properties to Mapi properties

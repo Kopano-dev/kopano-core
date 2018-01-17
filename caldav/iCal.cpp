@@ -33,7 +33,7 @@
 
 #include <kopano/mapi_ptr.h>
 
-using namespace KCHL;
+using namespace KC;
 
 iCal::iCal(Http *lpRequest, IMAPISession *lpSession,
     const std::string &strSrvTz, const std::string &strCharset) :
