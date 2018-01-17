@@ -262,7 +262,7 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
  */
 class _kc_export_dycast ECLogger_Syslog _kc_final : public ECLogger {
 	private:
-	std::unique_ptr<char[], KCHL::cstdlib_deleter> m_ident;
+	std::unique_ptr<char[], cstdlib_deleter> m_ident;
 	static const int levelmap[16]; /* converts to syslog levels */
 
 	public:
@@ -306,7 +306,7 @@ extern _kc_export ECLogger *StartLoggerProcess(ECConfig *, ECLogger *file_logger
  */
 class _kc_export ECLogger_Tee _kc_final : public ECLogger {
 	private:
-	std::list<KCHL::object_ptr<ECLogger>> m_loggers;
+	std::list<object_ptr<ECLogger>> m_loggers;
 
 	public:
 		ECLogger_Tee();

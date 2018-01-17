@@ -59,7 +59,7 @@ private:
 	_kc_hidden static void *ScheduleThread(void *tmp_scheduler);
 
 	ECScheduleList		m_listScheduler;
-	KCHL::object_ptr<ECLogger> m_lpLogger;
+	object_ptr<ECLogger> m_lpLogger;
 	bool m_bExit = false;
 	std::mutex m_hExitMutex; /* Mutex needed for the release signal */
 	std::condition_variable m_hExitSignal; /* Signal that should be sent to the Scheduler when to exit */

@@ -202,7 +202,7 @@ double timespec2dbl(const struct timespec &t)
 int CreatePath(const char *createpath)
 {
 	struct stat s;
-	std::unique_ptr<char[], KCHL::cstdlib_deleter> path(strdup(createpath));
+	std::unique_ptr<char[], cstdlib_deleter> path(strdup(createpath));
 
 	// Remove trailing slashes
 	size_t len = strlen(path.get());

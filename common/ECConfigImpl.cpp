@@ -37,8 +37,6 @@
 
 #include <kopano/charset/convert.h>
 
-using namespace KCHL;
-
 namespace KC {
 
 using std::string;
