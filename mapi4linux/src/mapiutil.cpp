@@ -40,7 +40,7 @@
 
 #include <kopano/charset/convstring.h>
 
-using namespace KCHL;
+using namespace KC;
 
 SPropValue *PpropFindProp(SPropValue *lpPropArray, ULONG cValues,
     ULONG ulPropTag)

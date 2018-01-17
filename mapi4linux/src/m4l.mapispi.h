@@ -63,7 +63,7 @@ struct findKey {
 
 class M4LMAPIGetSession : public M4LUnknown, public IMAPIGetSession {
 private:
-	KCHL::object_ptr<IMAPISession> session;
+	KC::object_ptr<IMAPISession> session;
 
 public:
 	M4LMAPIGetSession(LPMAPISESSION new_session);

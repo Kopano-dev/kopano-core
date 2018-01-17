@@ -132,8 +132,8 @@ public:
 struct abEntry {
 	MAPIUID muid;
 	std::string displayname;
-	KCHL::object_ptr<IABProvider> lpABProvider;
-	KCHL::object_ptr<IABLogon> lpABLogon;
+	KC::object_ptr<IABProvider> lpABProvider;
+	KC::object_ptr<IABLogon> lpABLogon;
 };
 
 class M4LABContainer _kc_final : public IABContainer, public M4LMAPIContainer {
