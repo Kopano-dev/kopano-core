@@ -1,5 +1,5 @@
-#ifndef _KCHL_HPP
-#define _KCHL_HPP 1
+#ifndef _KC_HL_HPP
+#define _KC_HL_HPP 1
 
 #include <kopano/zcdefs.h>
 #include <kopano/memory.hpp>
@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace KCHL {
+namespace KC {
 
 class _kc_export_throw KMAPIError _kc_final : public std::exception {
 	public:
@@ -20,6 +20,6 @@ class _kc_export_throw KMAPIError _kc_final : public std::exception {
 	std::string m_message;
 };
 
-} /* namespace KCHL */
+} /* namespace */
 
-#endif /* _KCHL_HPP */
+#endif /* _KC_HL_HPP */

@@ -1,9 +1,9 @@
-#ifndef _KCHL_TIE_HPP
-#define _KCHL_TIE_HPP 1
+#ifndef _KC_TIE_HPP
+#define _KC_TIE_HPP 1
 
 #include <memory>
 
-namespace KCHL {
+namespace KC {
 
 /*
  * For functions which return their result through an arugment pointer,
@@ -28,6 +28,6 @@ unique_tie(std::unique_ptr<T, D> &u)
 	return unique_proxy<T, D>(u);
 }
 
-} /* namespace KCHL */
+} /* namespace */
 
-#endif /* _KCHL_TIE_HPP */
+#endif /* _KC_TIE_HPP */

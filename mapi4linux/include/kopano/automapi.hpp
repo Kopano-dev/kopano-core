@@ -24,7 +24,7 @@
 #include <kopano/zcdefs.h>
 #include <mapix.h>
 
-namespace KCHL {
+namespace KC {
 
 class AutoMAPI _kc_final {
 public:
