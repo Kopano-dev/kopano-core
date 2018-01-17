@@ -181,8 +181,14 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 		if (HrGetOneProp(lpMessage, PR_CLIENT_SUBMIT_TIME, &~lpTime) == hrSuccess)
 			lpVMMessage->getHeader()->Date()->setValue(FiletimeTovmimeDatetime(lpTime->Value.ft));
 		// else, try PR_MESSAGE_DELIVERY_TIME, maybe other timestamps?
+
+		vmime::messageId msgid;
 		if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &~lpMessageId) == hrSuccess)
-			lpVMMessage->getHeader()->MessageId()->setValue(lpMessageId->Value.lpszA);
+			msgid = lpMessageId->Value.lpszA;
+		else
+			msgid = vmime::messageId(generateRandomMessageId(), vmime::platform::getHandler()->getHostName());
+		lpVMMessage->getHeader()->MessageId()->setValue(msgid);
+
 		lpVMMessage->generate(adapter);
 	}
 	catch (vmime::exception&) {
