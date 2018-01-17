@@ -27,7 +27,7 @@
 #include "pymem.hpp"
 #include "scl.h"
 
-using namespace KCHL;
+using namespace KC;
 
 // From Structs.py
 static PyObject *PyTypeSPropValue;

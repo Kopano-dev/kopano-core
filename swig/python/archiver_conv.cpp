@@ -18,7 +18,7 @@
 #include "archiver_conv.h"
 #include "pymem.hpp"
 
-using KCHL::pyobj_ptr;
+using KC::pyobj_ptr;
 
 PyObject* PyObject_from_Iterator(const ArchiveList::const_iterator &i) {
 	return Py_BuildValue("(sssi)", i->StoreName.c_str(), i->FolderName.c_str(), i->StoreOwner.c_str(), i->Rights);

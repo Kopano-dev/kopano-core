@@ -52,7 +52,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 }
 
 // Input
-%typemap(in) 				(ULONG, MAPIARRAY) (KCHL::memory_ptr< std::remove_const< std::remove_pointer< $2_type >::type >::type > tmp)
+%typemap(in) (ULONG, MAPIARRAY) (KC::memory_ptr<std::remove_const<std::remove_pointer<$2_type>::type>::type> tmp)
 {
 	ULONG len;
 	tmp.reset(const_cast<std::add_pointer< std::remove_const< std::remove_pointer< $2_type >::type >::type >::type>(List_to$2_mangle($input, &len)));
@@ -69,14 +69,14 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 	if(PyErr_Occurred()) goto fail;
 }
 
-%typemap(in)				MAPILIST *INPUT (KCHL::memory_ptr< std::remove_pointer<$*type>::type > tmp)
+%typemap(in) MAPILIST *INPUT (KC::memory_ptr<std::remove_pointer<$*type>::type> tmp)
 {
 	tmp.reset(List_to$*mangle($input));
 	if(PyErr_Occurred()) goto fail;
 	$1 = &+tmp;
 }
 
-%typemap(in)				MAPILIST (KCHL::memory_ptr< std::remove_const< std::remove_pointer<$1_type>::type >::type > tmp)
+%typemap(in) MAPILIST (KC::memory_ptr<std::remove_const<std::remove_pointer<$1_type>::type>::type> tmp)
 {
 	tmp.reset(List_to$mangle($input));
 	if(PyErr_Occurred()) goto fail;
@@ -85,21 +85,21 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 
 // use adrlist_ptr for adrlists
 
-%typemap(in) ADRLIST *INPUT (KCHL::adrlist_ptr tmp), LPADRLIST INOUT (KCHL::adrlist_ptr tmp)
+%typemap(in) ADRLIST *INPUT (KC::adrlist_ptr tmp), LPADRLIST INOUT (KC::adrlist_ptr tmp)
 {
         tmp.reset(List_to$mangle($input));
         if(PyErr_Occurred()) goto fail;
         $1 = tmp;
 }
 
-%typemap(in)				LPROWLIST (KCHL::rowlist_ptr tmp)
+%typemap(in) LPROWLIST (KC::rowlist_ptr tmp)
 {
 	tmp.reset(List_to_LPROWLIST($input));
 	if(PyErr_Occurred()) goto fail;
 	$1 = tmp;
 }
 
-%typemap(in)				MAPISTRUCT (KCHL::memory_ptr<std::remove_const<std::remove_pointer<$type>::type>::type> tmp)
+%typemap(in) MAPISTRUCT (KC::memory_ptr<std::remove_const<std::remove_pointer<$type>::type>::type> tmp)
 {
         tmp.reset(Object_to$mangle($input));
 	if(PyErr_Occurred()) goto fail;
@@ -119,7 +119,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
        tmpobj = $input;
 }
 
-%typemap(check)                                MAPISTRUCT_W_FLAGS (KCHL::memory_ptr<std::remove_const<std::remove_pointer<$type>::type>::type> tmp)
+%typemap(check) MAPISTRUCT_W_FLAGS (KC::memory_ptr<std::remove_const<std::remove_pointer<$type>::type>::type> tmp)
 {
        tmp.reset(Object_to$mangle(tmpobj$argnum, ulFlags));
        if(PyErr_Occurred()) {
