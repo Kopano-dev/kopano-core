@@ -36,7 +36,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/ECLogger.h>
 
-using namespace KCHL;
+using namespace KC;
 using std::cerr;
 using std::cout;
 using std::endl;

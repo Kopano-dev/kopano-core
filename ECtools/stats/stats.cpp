@@ -42,7 +42,7 @@
 #include <kopano/mapi_ptr.h>
 #include "ConsoleTable.h"
 
-using namespace KCHL;
+using namespace KC;
 using std::cerr;
 using std::cout;
 using std::endl;
@@ -203,7 +203,7 @@ static void showtop(LPMDB lpStore)
 	std::set<std::string> setHosts;
 	char date[64];
 	int wx, wy, key;
-	KC::time_point dblLast;
+	time_point dblLast;
 
 	// columns in sizes, not literal offsets
 	static const unsigned int cols[] = {0, 4, 21, 8, 25, 16, 20, 8, 8, 7, 7, 5};

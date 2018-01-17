@@ -39,12 +39,12 @@
 #endif
 #define NO_NOTIFY EC_PROFILE_FLAGS_NO_NOTIFICATIONS
 
-struct mpt_stat_entry {
-	KC::time_point start, stop;
-};
-
-using namespace KCHL;
+using namespace KC;
 using clk = std::chrono::steady_clock;
+
+struct mpt_stat_entry {
+	time_point start, stop;
+};
 
 class mpt_job {
 	public:

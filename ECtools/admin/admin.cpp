@@ -61,7 +61,7 @@
 
 #include <kopano/MAPIErrors.h> // for declaration of GetMAPIErrorMessage()
 
-using namespace KCHL;
+using namespace KC;
 using std::cerr;
 using std::cin;
 using std::cout;
