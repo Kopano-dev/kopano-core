@@ -740,6 +740,17 @@ class Item(Properties, Contact, Appointment):
         args = [self.get_prop(p).value if self.get_prop(p) else None for p in addrprops]
         return Address(self.server, *args)
 
+    @sender.setter
+    def sender(self, addr):
+        pr_addrtype, pr_dispname, pr_email, pr_entryid = self._addr_props(addr)
+        self.mapiobj.SetProps([
+            SPropValue(PR_SENDER_ADDRTYPE_W, _unicode(pr_addrtype)), # XXX pr_addrtype should be unicode already
+            SPropValue(PR_SENDER_NAME_W, pr_dispname),
+            SPropValue(PR_SENDER_EMAIL_ADDRESS_W, pr_email),
+            SPropValue(PR_SENDER_ENTRYID, pr_entryid),
+        ])
+        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+
     @property
     def from_(self):
         """ From :class:`Address` """
@@ -757,6 +768,11 @@ class Item(Properties, Contact, Appointment):
             SPropValue(PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, pr_email),
             SPropValue(PR_SENT_REPRESENTING_ENTRYID, pr_entryid),
         ])
+
+        # XXX Hack around missing sender
+        if not self.sender.email:
+            self.sender = addr
+
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def table(self, name, restriction=None, order=None, columns=None):
