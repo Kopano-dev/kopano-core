@@ -31,7 +31,7 @@
 
 HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 {
-	KCHL::memory_ptr<SPropValue> lpPropertyArray;
+	memory_ptr<SPropValue> lpPropertyArray;
 
 	enum {
 		E_SUBJECT,

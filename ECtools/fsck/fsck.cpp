@@ -42,7 +42,7 @@
 #include <kopano/ECLogger.h>
 #include "fsck.h"
 
-using namespace KCHL;
+using namespace KC;
 using std::cin;
 using std::cout;
 using std::endl;
