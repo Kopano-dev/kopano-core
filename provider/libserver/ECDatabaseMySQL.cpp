@@ -210,9 +210,9 @@ static const STOREDPROCS stored_procedures[] = {
 
 std::string zcp_versiontuple::stringify(char sep) const
 {
-	return ::stringify(v_major) + sep + ::stringify(v_minor) + sep +
-	       ::stringify(v_micro) + sep + ::stringify(v_rev) + sep +
-	       ::stringify(v_schema);
+	return KC::stringify(v_major) + sep + KC::stringify(v_minor) + sep +
+	       KC::stringify(v_micro) + sep + KC::stringify(v_rev) + sep +
+	       KC::stringify(v_schema);
 }
 
 int zcp_versiontuple::compare(const zcp_versiontuple &rhs) const

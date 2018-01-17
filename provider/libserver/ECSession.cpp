@@ -133,7 +133,7 @@ ECRESULT BTSession::ValidateOriginator(struct soap *soap)
 {
 	if (!m_bCheckIP)
 		return erSuccess;
-	const char *s = ::GetSourceAddr(soap);
+	auto s = KC::GetSourceAddr(soap);
 	if (strcmp(m_strSourceAddr.c_str(), s) == 0)
 		return erSuccess;
 	ec_log_err("Denying access to session from source \"%s\" due to unmatched establishing source \"%s\"",
