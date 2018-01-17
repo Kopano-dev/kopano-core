@@ -768,6 +768,11 @@ class Item(Properties, Contact, Appointment):
             SPropValue(PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, pr_email),
             SPropValue(PR_SENT_REPRESENTING_ENTRYID, pr_entryid),
         ])
+
+        # XXX Hack around missing sender
+        if not self.sender.email:
+            self.sender = addr
+
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def table(self, name, restriction=None, order=None, columns=None):
