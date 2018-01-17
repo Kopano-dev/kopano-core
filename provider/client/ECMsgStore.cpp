@@ -1596,7 +1596,9 @@ HRESULT ECMsgStore::CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
 	return AddRenAdditionalFolder(lpInboxFolder, ulType, &lpPropValueEID->Value.bin);
 }
 
-HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID *lppRootId)
+HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
+    const ENTRYID *lpUserId, ULONG *lpcbStoreId, ENTRYID **lppStoreId,
+    ULONG *lpcbRootId, ENTRYID **lppRootId)
 {
 	HRESULT				hr				= hrSuccess;
 	object_ptr<WSTransport> lpTempTransport;
@@ -1979,7 +1981,9 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
  * lpcbStoreId, lppStoreId, lpcbRootId and lppRootId are optional. But if a root id is specified, the store id must
  * also be specified. A store id however may be passed without passing a root id.
  */
-HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID* lppRootId)
+HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId,
+    const ENTRYID *lpUserId, ULONG ulFlags, ULONG *lpcbStoreId,
+    ENTRYID **lppStoreId, ULONG *lpcbRootId, ENTRYID **lppRootId)
 {
 	HRESULT hr = hrSuccess;
 	ULONG cbStoreId = 0;
@@ -2067,22 +2071,25 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYI
 	return hr;
 }
 
-HRESULT ECMsgStore::HookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid)
+HRESULT ECMsgStore::HookStore(ULONG ulStoreType, ULONG cbUserId,
+    const ENTRYID *lpUserId, const GUID *lpGuid)
 {
 	return lpTransport->HrHookStore(ulStoreType, cbUserId, lpUserId, lpGuid, 0);
 }
 
-HRESULT ECMsgStore::UnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId)
+HRESULT ECMsgStore::UnhookStore(ULONG ulStoreType, ULONG cbUserId,
+    const ENTRYID *lpUserId)
 {
 	return lpTransport->HrUnhookStore(ulStoreType, cbUserId, lpUserId, 0);
 }
 
-HRESULT ECMsgStore::RemoveStore(LPGUID lpGuid)
+HRESULT ECMsgStore::RemoveStore(const GUID *lpGuid)
 {
 	return lpTransport->HrRemoveStore(lpGuid, 0);
 }
 
-HRESULT ECMsgStore::ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
+HRESULT ECMsgStore::ResolveStore(const GUID *lpGuid, ULONG *lpulUserID,
+    ULONG *lpcbStoreID, ENTRYID **lppStoreID)
 {
 	ULONG			cbStoreEntryID = 0;
 	memory_ptr<ENTRYID> lpStoreEntryID;
@@ -2210,8 +2217,8 @@ HRESULT ECMsgStore::SetUser(ECUSER *lpECUser, ULONG ulFlags)
 	return lpTransport->HrSetUser(lpECUser, ulFlags);
 }
 
-HRESULT ECMsgStore::GetUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags,
-    ECUSER **lppECUser)
+HRESULT ECMsgStore::GetUser(ULONG cbUserId, const ENTRYID *lpUserId,
+    ULONG ulFlags, ECUSER **lppECUser)
 {
 	return lpTransport->HrGetUser(cbUserId, lpUserId, ulFlags, lppECUser);
 }
@@ -2281,7 +2288,7 @@ HRESULT ECMsgStore::SetGroup(ECGROUP *lpECGroup, ULONG ulFlags)
 	return lpTransport->HrSetGroup(lpECGroup, ulFlags);
 }
 
-HRESULT ECMsgStore::GetGroup(ULONG cbGroupId, LPENTRYID lpGroupId,
+HRESULT ECMsgStore::GetGroup(ULONG cbGroupId, const ENTRYID *lpGroupId,
     ULONG ulFlags, ECGROUP **lppECGroup)
 {
 	return lpTransport->HrGetGroup(cbGroupId, lpGroupId, ulFlags, lppECGroup);
@@ -2331,7 +2338,7 @@ HRESULT ECMsgStore::SetCompany(ECCOMPANY *lpECCompany, ULONG ulFlags)
 	return lpTransport->HrSetCompany(lpECCompany, ulFlags);
 }
 
-HRESULT ECMsgStore::GetCompany(ULONG cbCompanyId, LPENTRYID lpCompanyId,
+HRESULT ECMsgStore::GetCompany(ULONG cbCompanyId, const ENTRYID *lpCompanyId,
     ULONG ulFlags, ECCOMPANY **lppECCompany)
 {
 	return lpTransport->HrGetCompany(cbCompanyId, lpCompanyId, ulFlags, lppECCompany);
