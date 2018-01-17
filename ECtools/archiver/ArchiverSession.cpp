@@ -91,7 +91,7 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECLogger *lpLo
  */
 HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
 {
-	KCHL::object_ptr<ECLogger> lpLocalLogger;
+	object_ptr<ECLogger> lpLocalLogger;
 	const char *lpszSslKeyFile = NULL;
 	const char *lpszSslKeyPass = NULL;
 

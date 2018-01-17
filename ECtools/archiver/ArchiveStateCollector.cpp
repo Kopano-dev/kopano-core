@@ -45,7 +45,7 @@ namespace details {
 
 	private:
 		ArchiveStateCollector::ArchiveInfoMap &m_mapArchiveInfo;
-		KCHL::object_ptr<ECLogger> m_lpLogger;
+		object_ptr<ECLogger> m_lpLogger;
 	};
 
 	MailboxDataCollector::MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap &mapArchiveInfo, ECLogger *lpLogger): m_mapArchiveInfo(mapArchiveInfo), m_lpLogger(lpLogger)

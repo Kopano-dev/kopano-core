@@ -42,7 +42,7 @@ private:
 	ECArchiverLogger(const ECArchiverLogger &) = delete;
 	ECArchiverLogger &operator=(const ECArchiverLogger &) = delete;
 
-	KCHL::object_ptr<ECLogger> m_lpLogger;
+	object_ptr<ECLogger> m_lpLogger;
 	tstring		m_strUser;
 	tstring		m_strFolder;
 };

@@ -167,7 +167,7 @@ private:
 
 	ArchiverSessionPtr m_ptrSession;
 	ECConfig *m_lpConfig = nullptr;
-	KCHL::object_ptr<ECArchiverLogger> m_lpLogger;
+	object_ptr<ECArchiverLogger> m_lpLogger;
 	FILETIME m_ftCurrent = {0, 0};
 	bool m_bArchiveEnable = true;
 	int m_ulArchiveAfter = 30;

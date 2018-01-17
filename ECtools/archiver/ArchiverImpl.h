@@ -44,10 +44,10 @@ private:
 	configsetting_t* ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2);
 	unsigned CountSettings(const configsetting_t *lpSettings);
 
-	KCHL::AutoMAPI m_MAPI;
+	AutoMAPI m_MAPI;
 	std::unique_ptr<ECConfig> m_lpsConfig;
-	KCHL::object_ptr<ECLogger> m_lpLogger;
-	KCHL::object_ptr<ECLogger> m_lpLogLogger; // Logs only to the log specified in the config
+	object_ptr<ECLogger> m_lpLogger;
+	object_ptr<ECLogger> m_lpLogLogger; // Logs only to the log specified in the config
 	ArchiverSessionPtr 		m_ptrSession;
 	std::unique_ptr<configsetting_t[]> m_lpDefaults;
 };

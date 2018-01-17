@@ -64,7 +64,7 @@ private:
 
 	MAPISessionPtr	m_ptrSession;
 	MsgStorePtr		m_ptrAdminStore;
-	KCHL::object_ptr<ECLogger> m_lpLogger;
+	object_ptr<ECLogger> m_lpLogger;
 	std::string		m_strSslPath;
 	std::string		m_strSslPass;
 };

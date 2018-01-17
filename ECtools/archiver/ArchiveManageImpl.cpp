@@ -762,7 +762,7 @@ exit:
 HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights)
 {
 	SPropValuePtr ptrName;
-	KCHL::object_ptr<IExchangeModifyTable> ptrACLModifyTable;
+	object_ptr<IExchangeModifyTable> ptrACLModifyTable;
 	MAPITablePtr ptrACLTable;
 	SPropValue sPropUser;
 	SRowSetPtr ptrRows;
