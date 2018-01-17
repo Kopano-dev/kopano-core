@@ -249,10 +249,13 @@ Default:
 \fI/var/lib/kopano/dagent/plugins\fR
 .SS default_charset
 .PP
-Some emails do not contain any charset information or specify us\-ascii even though it isn\*(Aqt. In both cases, dagent will assume the following charset is used. Note that this implies that the given charset should be a superset of us\-ascii (most charsets are).
+Some emails do not contain any charset information or specify US\-ASCII even
+though it is not. In both cases, dagent will assume the following charset is
+used. The given charset must be a superset of US\-ASCII (many charsets are),
+and it must not be a charset where ASCII bytes get a new meaning due to state
+shifting, ruling out ISO\-2022\-JP.
 .PP
-Default:
-\fIiso\-8859\-15\fR
+Default: \fIus\-ascii\fP
 .SS set_rule_headers
 .PP
 Enable the addition of X\-Kopano\-Rule\-Action headers on messages that have been forwarded or replied by a rule.
