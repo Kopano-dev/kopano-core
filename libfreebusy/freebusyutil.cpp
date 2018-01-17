@@ -31,8 +31,6 @@
 #include <edkmdb.h>
 #include "recurrence.h"
 
-using namespace KCHL;
-
 namespace KC {
 
 /**

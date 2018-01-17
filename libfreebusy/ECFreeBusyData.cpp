@@ -57,8 +57,7 @@ HRESULT ECFreeBusyData::QueryInterface(REFIID refiid, void** lppInterface)
 
 HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd)
 {
-	KCHL::object_ptr<ECEnumFBBlock> lpECEnumFBBlock;
-
+	object_ptr<ECEnumFBBlock> lpECEnumFBBlock;
 	if(ppenumfb == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	auto hr = m_fbBlockList.Restrict(FileTimeToRTime(ftmStart), FileTimeToRTime(ftmEnd));

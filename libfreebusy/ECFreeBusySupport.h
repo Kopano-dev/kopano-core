@@ -82,9 +82,9 @@ public:
 		_kc_hidden virtual HRESULT PushDelegateInfoToWorkspace(void) { return E_NOTIMPL; }
 
 private:
-	KCHL::object_ptr<IMAPISession> m_lpSession;
-	KCHL::object_ptr<IMsgStore> m_lpPublicStore, m_lpUserStore;
-	KCHL::object_ptr<IMAPIFolder> m_lpFreeBusyFolder;
+	object_ptr<IMAPISession> m_lpSession;
+	object_ptr<IMsgStore> m_lpPublicStore, m_lpUserStore;
+	object_ptr<IMAPIFolder> m_lpFreeBusyFolder;
 	unsigned int	m_ulOutlookVersion;
 	ALLOC_WRAP_FRIEND;
 };
