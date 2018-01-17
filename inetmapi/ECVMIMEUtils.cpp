@@ -41,8 +41,6 @@
 #include <kopano/mapi_ptr.h>
 #include <vmime/base.hpp>
 
-using namespace KCHL;
-
 namespace KC {
 
 class mapiTimeoutHandler : public vmime::net::timeoutHandler {

@@ -53,8 +53,6 @@
 
 #include "tnef.h"
 
-using namespace KCHL;
-
 namespace KC {
 
 enum {
@@ -1371,7 +1369,7 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID,
     return hrSuccess;
 }
 
-static inline bool is_embedded_msg(const std::list<KCHL::memory_ptr<SPropValue>> &proplist)
+static inline bool is_embedded_msg(const std::list<memory_ptr<SPropValue>> &proplist)
 {
 	for (const auto &pp : proplist)
 		if (pp->ulPropTag == PR_ATTACH_METHOD &&

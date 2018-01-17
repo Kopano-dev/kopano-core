@@ -73,7 +73,7 @@ public:
 private:
 	delivery_options m_dopt;
 	IAddrBook *m_lpAdrBook = nullptr;
-	KCHL::object_ptr<IABContainer> m_lpDefaultDir;
+	object_ptr<IABContainer> m_lpDefaultDir;
 	sMailState m_mailState;
 	convert_context m_converter;
 

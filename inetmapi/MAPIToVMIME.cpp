@@ -61,7 +61,6 @@
 // icalmapi
 #include "MAPIToICal.h"
 
-using namespace KCHL;
 using std::min;
 using std::string;
 using std::wstring;

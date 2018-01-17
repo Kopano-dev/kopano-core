@@ -80,7 +80,7 @@
 #include "serviceRegistration.inl"
 REGISTER_SERVICE(smtp::MAPISMTPTransport, mapismtp, TYPE_TRANSPORT);
 
-using namespace KCHL;
+using namespace KC;
 
 namespace vmime {
 namespace net {

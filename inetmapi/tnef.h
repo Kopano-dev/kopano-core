@@ -72,9 +72,9 @@ private:
 	HRESULT HrWriteWord(IStream *lpStream, unsigned short ulData);
 	HRESULT HrWriteByte(IStream *lpStream, unsigned char ulData);
 	HRESULT HrWriteData(IStream *, const void *, size_t);
-	HRESULT HrWritePropStream(IStream *lpStream, std::list<KCHL::memory_ptr<SPropValue>> &proplist);
+	HRESULT HrWritePropStream(IStream *lpStream, std::list<memory_ptr<SPropValue>> &proplist);
 	HRESULT HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp);
-	HRESULT HrReadPropStream(const char *buf, ULONG size, std::list<KCHL::memory_ptr<SPropValue>> &proplist);
+	HRESULT HrReadPropStream(const char *buf, ULONG size, std::list<memory_ptr<SPropValue>> &proplist);
 	HRESULT HrReadSingleProp(const char *buf, ULONG size, ULONG *have_read, LPSPropValue *out);
 	HRESULT HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum);
 	ULONG GetChecksum(const char *data, unsigned int ulLen) const;
@@ -87,12 +87,12 @@ private:
 	ULONG ulFlags;
     
 	// Accumulator for properties from AddProps and SetProps
-	std::list<KCHL::memory_ptr<SPropValue>> lstProps;
+	std::list<memory_ptr<SPropValue>> lstProps;
 
 	struct tnefattachment {
-		std::list<KCHL::memory_ptr<SPropValue>> lstProps;
+		std::list<memory_ptr<SPropValue>> lstProps;
 		ULONG size = 0;
-		KCHL::memory_ptr<unsigned char> data;
+		memory_ptr<unsigned char> data;
 		AttachRendData rdata;
 	};
 	std::list<std::unique_ptr<tnefattachment>> lstAttachments;
