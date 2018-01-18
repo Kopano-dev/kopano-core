@@ -39,7 +39,7 @@
 using namespace KCHL;
 
 static int opt_create_store, opt_create_public, opt_detach_store;
-static int opt_copytopublic, opt_list_orphan;
+static int opt_copytopublic, opt_list_orphan, opt_show_version;
 static const char *opt_attach_store, *opt_remove_store;
 static const char *opt_config_file, *opt_host;
 static const char *opt_entity_name, *opt_entity_type;
@@ -53,6 +53,7 @@ static constexpr const struct poptOption adm_options[] = {
 	{nullptr, 'O', POPT_ARG_NONE, &opt_list_orphan, 0, "List orphaned stores"},
 	{nullptr, 'P', POPT_ARG_NONE, &opt_create_public, 0, "Create a public store"},
 	{nullptr, 'R', POPT_ARG_STRING, &opt_remove_store, 0, "Remove an orphaned store by GUID"},
+	{nullptr, 'V', POPT_ARG_NONE, &opt_show_version, 0, "Show the program version"},
 	{nullptr, 'c', POPT_ARG_STRING, &opt_config_file, 'c', "Specify alternate config file"},
 	{nullptr, 'h', POPT_ARG_STRING, &opt_host, 0, "URI for server"},
 	{nullptr, 'k', POPT_ARG_STRING, &opt_companyname, 0, "Name of the company for creating a public store in a multi-tenant setup"},
@@ -664,6 +665,10 @@ static HRESULT adm_remove_store(IECServiceAdmin *svcadm, const char *hexguid)
 
 static HRESULT adm_perform()
 {
+	if (opt_show_version) {
+		printf("kopano-storeadm " PROJECT_VERSION "\n");
+		return hrSuccess;
+	}
 	KServerContext srvctx;
 	srvctx.m_app_misc = "storeadm";
 	if (opt_host == nullptr)
@@ -708,12 +713,13 @@ static bool adm_parse_options(int &argc, char **&argv)
 		return false;
 	}
 	auto act = !!opt_attach_store + !!opt_detach_store + !!opt_create_store +
-	           !!opt_remove_store + !!opt_create_public + !!opt_list_orphan;
+	           !!opt_remove_store + !!opt_create_public + !!opt_list_orphan +
+	           !!opt_show_version;
 	if (act > 1) {
-		fprintf(stderr, "-A, -C, -D, -O, -P and -R are mutually exclusive.\n");
+		fprintf(stderr, "-A, -C, -D, -O, -P, -R and -V are mutually exclusive.\n");
 		return false;
 	} else if (act == 0) {
-		fprintf(stderr, "One of -A, -C, -D, -O, -P, -R or -? must be specified.\n");
+		fprintf(stderr, "One of -A, -C, -D, -O, -P, -R, -V or -? must be specified.\n");
 		return false;
 	} else if (opt_attach_store != nullptr && ((opt_entity_name != nullptr) == !!opt_copytopublic)) {
 		fprintf(stderr, "-A needs exactly one of -n or -p\n");
