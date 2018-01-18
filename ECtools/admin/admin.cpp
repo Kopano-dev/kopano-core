@@ -21,6 +21,7 @@
 #include <list>
 #include <set>
 #include <string>
+#include <vector>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -83,7 +84,7 @@ enum modes {
 	MODE_ADD_USERQUOTA_RECIPIENT, MODE_DEL_USERQUOTA_RECIPIENT, MODE_LIST_USERQUOTA_RECIPIENT,
 	MODE_ADD_COMPANYQUOTA_RECIPIENT, MODE_DEL_COMPANYQUOTA_RECIPIENT, MODE_LIST_COMPANYQUOTA_RECIPIENT,
 	MODE_SYNC_USERS, MODE_DETAILS, MODE_LIST_SENDAS, MODE_HELP,
-	MODE_SYSTEM_ADMIN, MODE_PURGE_SOFTDELETE, MODE_PURGE_DEFERRED, MODE_CLEAR_CACHE, MODE_LIST_ORPHANS,
+	MODE_SYSTEM_ADMIN, MODE_PURGE_SOFTDELETE, MODE_PURGE_DEFERRED, MODE_CLEAR_CACHE,
 	MODE_FORCE_RESYNC, MODE_USER_COUNT, MODE_RESET_FOLDER_COUNT
 };
 
@@ -392,24 +393,6 @@ static char *get_password(void)
 static int parse_yesno(const char *opt)
 {
 	return opt[0] == 'y' || opt[0] == '1';
-}
-
-/**
- * Filetime to string
- *
- * @param ft time to convert to string
- *
- * @return time string "m / %d / %y %T"
- */
-static std::string FiletimeToString(FILETIME ft)
-{
-	tm local;
-	char d[64];
-	auto timestamp = FileTimeToUnixTime(ft);
-	localtime_r(&timestamp, &local);
-	strftime(d, sizeof(d), "%x %X", &local);
-
-	return d;
 }
 
 static std::string UnixtimeToString(time_t timestamp)
@@ -1143,130 +1126,6 @@ static HRESULT GetPublicStore(LPMAPISESSION lpSession, LPMDB lpMsgStore,
 	if (hr != hrSuccess)
 		return hr;
 	return lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, lppPublicStore);
-}
-
-static const char *StoreTypeToString(ULONG ulStoreType)
-{
-	switch (ulStoreType) {
-	case ECSTORE_TYPE_PRIVATE:
-		return "private";
-	case ECSTORE_TYPE_ARCHIVE:
-		return "archive";
-	case ECSTORE_TYPE_PUBLIC:
-		return "public";
-	default:
-		return "unknown";
-	};
-}
-
-/**
- * List users without a store, and stores without a user.
- *
- * Gets a list of users and stores. Because of the sorting chosen,
- * stores without a user will be printed first, until the first user
- * without a store is found. Then those are printed, until the first
- * user with a store is found.
- *
- * @param[in]	lpServiceAdmin	Kopano Administrator service object
- * @result		HRESULT			MAPI Error code
- */
-static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
-{
-	object_ptr<IMAPITable> lpTable;
-	std::string strUsername;
-	bool bHeader = true;
-	ConsoleTable ct(50, 5);
-	static constexpr const SizedSSortOrderSet(2, tableSort) =
-	{ 2, 0, 0,
-		{
-			{ PR_EC_USERNAME, TABLE_SORT_ASCEND },
-			{ PR_EC_STOREGUID, TABLE_SORT_ASCEND },
-		}
-	};
-
-	auto hr = lpServiceAdmin->OpenUserStoresTable(0, &~lpTable);
-	if (hr != hrSuccess) {
-		cerr << "Unable to open user/stores table" << endl;
-		return hr;
-	}
-	hr = lpTable->SortTable(tableSort, 0);
-	if (hr != hrSuccess) {
-		cerr << "Unable to sort user/stores table" << endl;
-		return hr;
-	}
-
-	ct.SetHeader(0, "Store guid");
-	ct.SetHeader(1, "Guessed username");
-	ct.SetHeader(2, "Last login");
-	ct.SetHeader(3, "Store size");
-	ct.SetHeader(4, "Store type");
-
-	// Because of the sort, we start with these stores
-	cout << "Stores without users:" << endl;
-
-	while(TRUE) {
-		rowset_ptr lpRowSet;
-		hr = lpTable->QueryRows(50, 0, &~lpRowSet);
-		if(hr != hrSuccess) {
-			cerr << "Unable to load user/stores table" << endl;
-			return hr;
-		}
-
-		if(lpRowSet->cRows == 0)
-			break;
-
-		for (ULONG i = 0; i < lpRowSet->cRows; ++i) {
-			auto lpStoreGuid = lpRowSet[i].cfind(PR_EC_STOREGUID);
-			auto lpUserName  = lpRowSet[i].cfind(PR_EC_USERNAME_A);
-			auto lpModTime   = lpRowSet[i].cfind(PR_LAST_MODIFICATION_TIME);
-			auto lpStoreSize = lpRowSet[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
-			auto lpStoreType = lpRowSet[i].cfind(PR_EC_STORETYPE);
-			if (lpStoreGuid && lpUserName)
-				continue;
-
-			if (!lpUserName) {
-				// find "guessed" named
-				lpUserName = lpRowSet[i].cfind(PR_DISPLAY_NAME_A);
-				if (lpUserName)
-					strUsername = lpUserName->Value.lpszA;
-				else
-					strUsername = "<unknown>";
-			} else {
-				// we had all stores without users, now the users without stores
-				if (bHeader) {
-					ct.PrintTable();
-					ct.Resize(50, 1);
-					ct.SetHeader(0, "Username");
-
-					cout << endl << "Users without stores:" << endl;
-					bHeader = false;
-				}
-
-				strUsername = lpUserName->Value.lpszA;
-			}
-			if (lpStoreGuid == nullptr) {
-				ct.AddColumn(0, strUsername);
-				continue;
-			}
-			ct.AddColumn(0, bin2hex(lpStoreGuid->Value.bin));
-			ct.AddColumn(1, strUsername);
-			if (lpModTime)
-				ct.AddColumn(2, FiletimeToString(lpModTime->Value.ft));
-			else
-				ct.AddColumn(2, "<unknown>");
-			if (lpStoreSize)
-				ct.AddColumn(3, str_storage(lpStoreSize->Value.li.QuadPart, false));
-			else
-				ct.AddColumn(3, "<unknown>");
-			if (lpStoreType)
-				ct.AddColumn(4, StoreTypeToString(lpStoreType->Value.ul));
-			else
-				ct.AddColumn(4, "<unknown>");
-		}
-	}
-
-	ct.PrintTable();
-	return hrSuccess;
 }
 
 static LPMVPROPMAPENTRY FindMVPropmapEntry(ECUSER *lpUser, ULONG ulPropTag)
@@ -2104,6 +1963,30 @@ static void missing_quota(int hard, int warn, int soft)
 		cerr << " soft quota (--qs)";
 }
 
+static int fexec(const std::string &admin, std::vector<std::string> cmd)
+{
+	/*
+	 * Run @cmd[0] with the directory contained in @admin (if any),
+	 * so that the redirect also works in just-built trees.
+	 */
+	auto pos = admin.rfind('/');
+	if (pos != std::string::npos)
+		cmd[0] = admin.substr(0, pos + 1) + cmd[0];
+	cerr << "The selected option is deprecated in this utility.\n";
+	cerr << "\e[1;33m""Forwarding call to: `" << kc_join(cmd, " ") << "`.\e[0m\n";
+	std::unique_ptr<const char *[]> argv(new(std::nothrow) const char *[cmd.size()+1]);
+	int argc = 0;
+	if (argv == nullptr) {
+		perror("new");
+		return EXIT_FAILURE;
+	}
+	for (const auto &e : cmd)
+		argv[argc++] = e.c_str();
+	argv[argc] = nullptr;
+	execvp(argv[0], const_cast<char * const *>(argv.get()));
+	return EXIT_FAILURE;
+}
+
 int main(int argc, char* argv[])
 {
 	AutoMAPI mapiinit;
@@ -2474,8 +2357,7 @@ int main(int argc, char* argv[])
 			mode = MODE_PURGE_DEFERRED;
 			break;
 		case OPT_LIST_ORPHANS:
-			mode = MODE_LIST_ORPHANS;
-			break;
+			return fexec(argv[0], {"kopano-storeadm", "-O"});
 		case OPT_CONFIG:
 			szConfig = validateInput(optarg);
 			bExplicitConfig = true;
@@ -3014,12 +2896,6 @@ int main(int argc, char* argv[])
 		if (hr != hrSuccess)
 			goto exit;
 		break;
-	case MODE_LIST_ORPHANS:
-		hr = list_orphans(lpServiceAdmin);
-		if (hr != hrSuccess)
-			goto exit;
-		break;
-
 	case MODE_DETAILS:
 		if (detailstype == NULL || strcasecmp(detailstype, "user") == 0)
 			ulClass = ACTIVE_USER;
