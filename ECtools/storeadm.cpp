@@ -43,7 +43,7 @@ static int opt_copytopublic, opt_list_orphan, opt_show_version;
 static const char *opt_attach_store, *opt_remove_store;
 static const char *opt_config_file, *opt_host;
 static const char *opt_entity_name, *opt_entity_type;
-static const char *opt_companyname;
+static const char *opt_companyname, *opt_lang;
 static std::unique_ptr<ECConfig> adm_config;
 
 static constexpr const struct poptOption adm_options[] = {
@@ -57,6 +57,7 @@ static constexpr const struct poptOption adm_options[] = {
 	{nullptr, 'c', POPT_ARG_STRING, &opt_config_file, 'c', "Specify alternate config file"},
 	{nullptr, 'h', POPT_ARG_STRING, &opt_host, 0, "URI for server"},
 	{nullptr, 'k', POPT_ARG_STRING, &opt_companyname, 0, "Name of the company for creating a public store in a multi-tenant setup"},
+	{nullptr, 'l', POPT_ARG_STRING, &opt_lang, 0, "Use given locale for selecting folder names"},
 	{nullptr, 'n', POPT_ARG_STRING, &opt_entity_name, 0, "User/group/company account to work on for -A,-C,-D"},
 	{nullptr, 'p', POPT_ARG_NONE, &opt_copytopublic, 0, "Copy an orphaned store's root to a subfolder in the public store"},
 	{nullptr, 't', POPT_ARG_STRING, &opt_entity_type, 0, "Store type for the -n argument (user, archive, group, company)"},
@@ -727,6 +728,9 @@ static bool adm_parse_options(int &argc, char **&argv)
 	} else if ((opt_create_store || opt_detach_store) && opt_entity_name == nullptr) {
 		fprintf(stderr, "-C/-D need the -n option\n");
 		return false;
+	} else if (opt_lang != nullptr && !opt_create_store && !opt_create_public) {
+		fprintf(stderr, "-l can only be used with -C or -P.\n");
+		return false;
 	}
 	return true;
 }
@@ -737,5 +741,9 @@ int main(int argc, char **argv)
 	ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);
 	if (!adm_parse_options(argc, argv))
 		return EXIT_FAILURE;
+	if (opt_lang != nullptr && setlocale(LC_MESSAGES, opt_lang) == nullptr) {
+		fprintf(stderr, "Your system does not have the \"%s\" locale available.\n", opt_lang);
+		return EXIT_FAILURE;
+	}
 	return adm_perform() == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
 }
