@@ -54,8 +54,8 @@ HRESULT		 	PHPArraytoSBinaryArray(zval * entryid_array, void *lpBase, LPENTRYLIS
 extern HRESULT PHPArraytoSRestriction(zval *, void *base, SRestriction * TSRMLS_DC) __attribute__((nonnull(2)));
 
 /* imtoinet, imtomapi options */
-HRESULT			PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT);
-HRESULT			PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT);
+extern HRESULT PHPArraytoSendingOptions(zval *, KC::sending_options *);
+extern HRESULT PHPArraytoDeliveryOptions(zval *, KC::delivery_options *);
 
 /*
  * MAPI -> PHP
