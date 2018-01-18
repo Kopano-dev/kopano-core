@@ -950,35 +950,6 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
 	return hrSuccess;
 }
 
-/**
- * Get the public store
- *
- * Get the public store from a company or just the default public store. If a company name is given
- * it will try to open the companies store. if it fails it won't fall back to the default store.
- *
- * @param[in] lpSession Pointer to a mapi session.
- * @param[in] lpMsgStore Pointer to a random store to open the ExchangeManageStore object.
- * @param[in] strCompanyname name whose belongs the public store. If empty it opens the default public store.
- * @param[out] lppPublicStore Pointer to the public store
- */
-static HRESULT GetPublicStore(LPMAPISESSION lpSession, LPMDB lpMsgStore,
-    const wstring &strCompanyname, LPMDB *lppPublicStore)
-{
-	ULONG cbEntryID = 0;
-	memory_ptr<ENTRYID> lpEntryID;
-	object_ptr<IExchangeManageStore> lpIEMS;
-
-	if (strCompanyname.empty())
-		return HrOpenECPublicStore(lpSession, lppPublicStore);
-	auto hr = lpMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
-	if (hr != hrSuccess)
-		return hr;
-	hr = lpIEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(L""), reinterpret_cast<const TCHAR *>(strCompanyname.c_str()), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
-	if (hr != hrSuccess)
-		return hr;
-	return lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, lppPublicStore);
-}
-
 static LPMVPROPMAPENTRY FindMVPropmapEntry(ECUSER *lpUser, ULONG ulPropTag)
 {
 	for (unsigned i = 0; i < lpUser->sMVPropmap.cEntries; ++i)
@@ -1861,8 +1832,6 @@ int main(int argc, char* argv[])
 	memory_ptr<ECUSER> lpECUser, lpSenders;
 	ULONG cbStoreId = 0;
 	ULONG cbRootId = 0;
-	ULONG cbUnWrappedEntry = 0;
-
 	ECGROUP		sECGroup;
 	memory_ptr<ECGROUP> lpECGroups;
 	ULONG		cCompanies = 0;
@@ -2850,90 +2819,10 @@ int main(int argc, char* argv[])
 		if (bCopyToPublic == true)
 			return fexec(argv[0], {"kopano-storeadm", "-A", storeguid, "-p"});
 		return fexec(argv[0], {"kopano-storeadm", "-A", storeguid, "-n", username});
-	case MODE_UNHOOK_STORE: {
-		ULONG ulStoreType;
-
+	case MODE_UNHOOK_STORE:
 		if (detailstype == NULL)
-			detailstype = "user";
-
-		if (strcmp(detailstype, "user") == 0) {
-			ulStoreType = ECSTORE_TYPE_PRIVATE;
-			hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-		} else if (strcmp(detailstype, "archive") == 0) {
-			ulStoreType = ECSTORE_TYPE_ARCHIVE;
-			hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-		} else if (strcmp(detailstype, "group") == 0) {
-			ulStoreType = ECSTORE_TYPE_PUBLIC;
-			hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-		} else if (strcmp(detailstype, "company") == 0) {
-			ulStoreType = ECSTORE_TYPE_PUBLIC;
-			strCompanyName = convert_to<wstring>(username);
-			hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-		} else {
-			cerr << "Unknown store type: '" << detailstype << "'." << endl;
-			goto exit;
-		}
-		if (hr != hrSuccess) {
-			cerr << "Unable to find " << detailstype << ": " << getMapiCodeString(hr, username) << endl;
-			goto exit;
-		}
-
-		if (ulStoreType != ECSTORE_TYPE_PUBLIC) {
-			if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
-				hr = lpServiceAdmin->GetArchiveStoreEntryID(reinterpret_cast<LPTSTR>(username), NULL, 0, &cbStoreId, &~lpStoreId);
-				if (hr != hrSuccess) {
-					cout << "Unable to unhook store, unable to retrieve store entryid: " << getMapiCodeString(hr, "entryid") << endl;
-					goto exit;
-				}
-			} else {
-				hr = lpMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
-				if (hr != hrSuccess)
-					goto exit;
-
-				// do not redirect to another server, unhook works on the server it's connected to
-				hr = lpIEMS->CreateStoreEntryID(nullptr, reinterpret_cast<const TCHAR *>(username), OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~lpStoreId);
-				if (hr != hrSuccess) {
-					if (hr == MAPI_E_NOT_FOUND)
-						cout << "Unable to unhook store. User '" << username << "' has no store attached." << endl;
-					else
-						cout << "Unable to unhook store. Can not create store entryid: " << getMapiCodeString(hr, "store") << endl;
-					goto exit;
-				}
-			}
-
-			hr = UnWrapStoreEntryID(cbStoreId, lpStoreId, &cbUnWrappedEntry, &~lpUnWrappedEntry);
-			if (hr != hrSuccess) {
-				cout << "Unable to unhook store. Unable to unwrap the store entryid: " << getMapiCodeString(hr, "entryid") << endl;
-				goto exit;
-			}
-		} else {
-			// ns__resolveUserStore (CreateStoreEntryID) does not work with normal (non-company) public store
-			hr = GetPublicStore(lpSession, lpMsgStore, strCompanyName, &~lpPublicStore);
-			if (hr != hrSuccess) {
-				cerr << "Unable to open public store: " << getMapiCodeString(hr, "public") << endl;
-				goto exit;
-			}
-			hr = HrGetOneProp(lpPublicStore, PR_STORE_ENTRYID, &~lpPropValue);
-			if (hr != hrSuccess) {
-				cerr << "Unable to get public store entryid: " << getMapiCodeString(hr, "store") << endl;
-				goto exit;
-			}
-			hr = UnWrapStoreEntryID(lpPropValue->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropValue->Value.bin.lpb), &cbUnWrappedEntry, &~lpUnWrappedEntry);
-			if (hr != hrSuccess) {
-				cout << "Unable to unhook store. Unable to unwrap the store entryid: " << getMapiCodeString(hr, "entryid") << endl;
-				goto exit;
-			}
-		}
-
-		hr = lpServiceAdmin->UnhookStore(ulStoreType, cbUserId, lpUserId);
-		if (hr != hrSuccess) {
-			cerr << "Unable to unhook store: " << getMapiCodeString(hr) << endl;
-			goto exit;
-		}
-
-		cout << "Store unhooked. Store guid is " << bin2hex(sizeof(GUID), lpUnWrappedEntry->ab) << endl;
-		break;
-	}
+			return fexec(argv[0], {"kopano-storeadm", "-Dn", username});
+		return fexec(argv[0], {"kopano-storeadm", "-Dn", username, "-t", detailstype});
 	case MODE_REMOVE_STORE:
 		hr = Util::hex2bin(storeguid, sizeof(GUID)*2, &cbGUID, (&~lpGUID).as<unsigned char>());
 		if (hr != hrSuccess) {
