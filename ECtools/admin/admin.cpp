@@ -2847,79 +2847,9 @@ int main(int argc, char* argv[])
 		// happy compiler
 		break;
 	case MODE_HOOK_STORE:
-		hr = Util::hex2bin(storeguid, sizeof(GUID)*2, &cbGUID, (&~lpGUID).as<unsigned char>());
-		if (hr != hrSuccess) {
-			cerr << "Incorrect store guid '" << storeguid << "'" << endl;
-			goto exit;
-		}
-
-		if (bCopyToPublic == true) {
+		if (bCopyToPublic == true)
 			return fexec(argv[0], {"kopano-storeadm", "-A", storeguid, "-p"});
-		} else {
-			ULONG ulStoreType;
-
-			if (detailstype == NULL)
-				detailstype = "user";
-			if (strcmp(detailstype, "user") == 0) {
-				ulStoreType = ECSTORE_TYPE_PRIVATE;
-				hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-			} else if (strcmp(detailstype, "archive") == 0) {
-				ulStoreType = ECSTORE_TYPE_ARCHIVE;
-				hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-			} else if (strcmp(detailstype, "group") == 0) {
-				ulStoreType = ECSTORE_TYPE_PUBLIC;
-				hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-			} else if (strcmp(detailstype, "company") == 0) {
-				ulStoreType = ECSTORE_TYPE_PUBLIC;
-				hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-			} else {
-				cerr << "Unknown store type: '" << detailstype << "'." << endl;
-				goto exit;
-			}
-			if (hr != hrSuccess) {
-				cerr << "Unable to find " << detailstype << ": " << getMapiCodeString(hr, username) << endl;
-				goto exit;
-			}
-
-			if (strcmp(detailstype, "user") == 0) {
-				// check if this user should exist on the connected server. depending on --force, print a warning or an error
-				hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
-				if (hr != hrSuccess) {
-					cerr << "Unable to load details: " << getMapiCodeString(hr, username) << endl;
-					goto exit;
-				}
-
-				// homeserver on single server installations is empty
-				if (lpECUser->lpszServername != NULL && *reinterpret_cast<LPSTR>(lpECUser->lpszServername) != '\0') {
-					// note, this has to be mapi allocated because GetServerDetails does a More allocation on this base pointer
-					if (MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), &~lpsServer) != hrSuccess ||
-					    MAPIAllocateMore(sizeof(LPTSTR), lpsServer, (void**)&lpsServer->lpszaServer) != hrSuccess) {
-						hr = MAPI_E_NOT_ENOUGH_MEMORY;
-						cerr << "Unable to allocate memory for server details" << endl;
-						goto exit;
-					}
-					lpsServer->cServers = 1;
-					lpsServer->lpszaServer[0] = lpECUser->lpszServername;
-					hr = lpServiceAdmin->GetServerDetails(lpsServer, 0, &~lpServerDetails);
-					if (hr != hrSuccess) {
-						cerr << "Unable to load server details: " << getMapiCodeString(hr, (char*)lpECUser->lpszServername) << endl;
-						goto exit;
-					}
-					if ((lpServerDetails->lpsaServer[0].ulFlags & EC_SDFLAG_IS_PEER) == 0)
-						// since we don't know which server we're connected to, don't print a server name.
-						cerr << "WARNING: Hooking store on non-homeserver of " << username << endl;
-				}
-			}
-
-			// the server won't let you hook public stores to users and vice-versa.
-			hr = lpServiceAdmin->HookStore(ulStoreType, cbUserId, lpUserId, lpGUID);
-			if (hr != hrSuccess) {
-				cerr << "Unable to hook store: " << getMapiCodeString(hr) << endl;
-				goto exit;
-			}
-			cout << "Store hooked." << endl;
-		}
-		break;
+		return fexec(argv[0], {"kopano-storeadm", "-A", storeguid, "-n", username});
 	case MODE_UNHOOK_STORE: {
 		ULONG ulStoreType;
 
