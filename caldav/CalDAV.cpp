@@ -50,6 +50,8 @@
 #include <unicode/uclean.h>
 #include <openssl/ssl.h>
 
+using namespace KC;
+
 struct HandlerArgs {
     ECChannel *lpChannel;
 	bool bUseSSL;

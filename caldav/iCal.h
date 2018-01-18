@@ -38,8 +38,8 @@ private:
 
 	HRESULT HrGetContents(IMAPITable **lppTable);
 	HRESULT HrGetIcal(LPMAPITABLE lpTable, bool blCensorPrivate, std::string *strIcal);
-	HRESULT HrModify(ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, bool blCensor);
-	HRESULT HrAddMessage(ICalToMapi *lpIcal2Mapi, ULONG ulPos);
+	HRESULT HrModify(KC::ICalToMapi *, SBinary srv_eid, ULONG pos, bool censor);
+	HRESULT HrAddMessage(KC::ICalToMapi *, ULONG pos);
 	HRESULT HrDelMessage(SBinary sbEid, bool blCensor);
 };
 

@@ -46,7 +46,7 @@ HRESULT HrParseURL(const std::string &stUrl, ULONG *lpulFlag, std::string *lpstr
 
 class Http _kc_final {
 public:
-	Http(ECChannel *lpChannel, ECConfig *lpConfig);
+	Http(KC::ECChannel *, KC::ECConfig *);
 	HRESULT HrReadHeaders();
 	HRESULT HrValidateReq();
 	HRESULT HrReadBody();
@@ -77,8 +77,8 @@ public:
 	bool CheckIfMatch(LPMAPIPROP lpProp);
 
 private:
-	ECChannel *m_lpChannel;
-	ECConfig *m_lpConfig;
+	KC::ECChannel *m_lpChannel;
+	KC::ECConfig *m_lpConfig;
 
 	/* request */
 	std::string m_strAction;	//!< full 1st-line
@@ -102,8 +102,7 @@ private:
 	std::string m_strRespBody;
 	ULONG m_ulRetCode;
 	int m_ulKeepAlive;
-
-	convert_context m_converter;
+	KC::convert_context m_converter;
 
 	HRESULT HrParseHeaders();
 

@@ -24,6 +24,8 @@
 #include <kopano/CommonUtil.h>
 #include <libical/ical.h>
 
+using namespace KC;
+
 /**
  * @param[in]	lpRequest	Pointer to http Request object
  * @param[in]	lpSession	Pointer to mapi session of the user
