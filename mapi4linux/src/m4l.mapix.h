@@ -197,6 +197,6 @@ public:
 	HRESULT addProvider(const std::string &profilename, const std::string &displayname, LPMAPIUID lpUID, LPABPROVIDER newProvider);
 };
 
-extern ECConfig *m4l_lpConfig;
+extern KC::ECConfig *m4l_lpConfig;
 
 #endif

@@ -41,6 +41,7 @@
 #define PR_SERVICE_SO_NAME_W                       PROP_TAG( PT_UNICODE,   0x3D13)
 #define PR_SERVICE_SO_NAME_A                       PROP_TAG( PT_STRING8,   0x3D13)
 
+using namespace KC;
 using std::cerr;
 using std::cout;
 using std::endl;
