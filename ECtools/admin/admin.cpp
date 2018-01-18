@@ -1825,7 +1825,6 @@ int main(int argc, char* argv[])
 	ULONG cbSetCompanyId = 0;
 	ULONG ulDays = 0;
 	memory_ptr<SPropValue> lpPropValue;
-	ULONG cbGUID = 0;
 	memory_ptr<GUID> lpGUID;
 
 	ECUSER sECUser;
@@ -2808,18 +2807,7 @@ int main(int argc, char* argv[])
 			return fexec(argv[0], {"kopano-storeadm", "-Dn", username});
 		return fexec(argv[0], {"kopano-storeadm", "-Dn", username, "-t", detailstype});
 	case MODE_REMOVE_STORE:
-		hr = Util::hex2bin(storeguid, sizeof(GUID)*2, &cbGUID, (&~lpGUID).as<unsigned char>());
-		if (hr != hrSuccess) {
-			cerr << "Incorrect store guid '" << storeguid << "'" << endl;
-			goto exit;
-		}
-		hr = lpServiceAdmin->RemoveStore(lpGUID);
-		if (hr != hrSuccess) {
-			cerr << "Unable to remove store: " << getMapiCodeString(hr) << endl;
-			goto exit;
-		}
-		cout << "Store removed." << endl;
-		break;
+		return fexec(argv[0], {"kopano-storeadm", "-R", storeguid});
 	case MODE_UPDATE_USER:
 		if (new_username) {
 			memory_ptr<ENTRYID> userid;
