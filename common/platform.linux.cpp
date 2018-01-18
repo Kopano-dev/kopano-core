@@ -121,7 +121,7 @@ void GetSystemTimeAsFileTime(FILETIME *ft) {
  * @return length used or what would've been required if it would fit in lpBuffer
  */
 DWORD GetTempPath(DWORD inLen, char *lpBuffer) {
-	auto outLen = snprintf(lpBuffer, inLen, "%s/", TmpPath::instance.getTempPath().c_str());
+	auto outLen = snprintf(lpBuffer, inLen, "%s/", KC::TmpPath::instance.getTempPath().c_str());
 	if (outLen > inLen)
 		return 0;
 

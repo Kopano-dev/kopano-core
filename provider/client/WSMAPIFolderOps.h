@@ -38,6 +38,8 @@ class utf8string;
 class KCmdProxy;
 class WSTransport;
 
+using namespace KC;
+
 class WSMAPIFolderOps _kc_final : public ECUnknown {
 protected:
 	WSMAPIFolderOps(KCmdProxy *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *);

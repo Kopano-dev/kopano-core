@@ -62,8 +62,6 @@
 #	define gcc5_make_move_iterator(x) std::make_move_iterator(x)
 #endif
 
-/* Don't like touching all cpp files just yet... */
 namespace KC {}
-using namespace KC;
 
 #endif /* ZCOMMON_DEFS_H */
