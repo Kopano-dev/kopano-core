@@ -2647,15 +2647,6 @@ int main(int argc, char* argv[])
 	}
 
 	switch (mode) {
-	case MODE_CREATE_PUBLIC:
-		if (companyname == nullptr) {
-			cbCompanyId = g_cbEveryoneEid;
-			hr = KAllocCopy(g_lpEveryoneEid, g_cbEveryoneEid, &~lpCompanyId);
-			if (hr != hrSuccess)
-				goto exit;
-			break;
-		}
-		/* fallthrough */
 	case MODE_UPDATE_COMPANY:
 	case MODE_DELETE_COMPANY:
 	case MODE_ADD_VIEW:
@@ -2735,16 +2726,9 @@ int main(int argc, char* argv[])
 		break;
 
 	case MODE_CREATE_PUBLIC:
-		/* The public store is created for a particular company, to do this correctly we will
-		 * pass the company id as the group id for the store. */
-		hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PUBLIC, cbCompanyId, lpCompanyId, &cbStoreId, &~lpStoreId, &cbRootId, &~lpRootId);
-		if(hr != hrSuccess) {
-			cerr << "Unable to create store: " << getMapiCodeString(hr, "public") << endl;
-			goto exit;
-		}
-		cout << "Public created." << endl;
-		break;
-
+		if (companyname == nullptr)
+			return fexec(argv[0], {"kopano-storeadm", "-P"});
+		return fexec(argv[0], {"kopano-storeadm", "-Pk", companyname});
 	case MODE_CREATE_USER:
 		memset(&sECUser, 0, sizeof(sECUser));
 
