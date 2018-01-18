@@ -830,7 +830,7 @@ class Item(Properties, Contact, Appointment):
             addr = _unicode(addr)
             pr_addrtype = 'SMTP'
             pr_dispname, pr_email = email.utils.parseaddr(addr)
-            pr_dispname = pr_dispname or u'nobody'
+            pr_dispname = pr_dispname or addr
             pr_entryid = self.server.ab.CreateOneOff(pr_dispname, u'SMTP', _unicode(pr_email), MAPI_UNICODE)
         return pr_addrtype, pr_dispname, pr_email, pr_entryid
 
