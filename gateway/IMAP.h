@@ -183,7 +183,6 @@ private:
 	HRESULT HrCmdSubscribe(const std::string &tag, const std::vector<std::string> &args, bool subscribe);
 	template<bool> HRESULT HrCmdList(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdList(const std::string &tag, const std::vector<std::string> &args, bool sub_only);
-	HRESULT get_recent_uidnext2(IMAPIFolder *folder, ULONG &recent, ULONG &uidnext, const ULONG &messages);
 	HRESULT get_recent_uidnext(IMAPIFolder *folder, const std::string &tag, ULONG &recent, ULONG &uidnext, const ULONG &messages);
 	HRESULT HrCmdStatus(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdAppend(const std::string &tag, const std::string &folder, const std::string &data, std::string flags = {}, const std::string &time = {});

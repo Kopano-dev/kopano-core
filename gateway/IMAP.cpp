@@ -1427,13 +1427,17 @@ IMAP::HrCmdList(const std::string &tag, const std::vector<std::string> &args)
 	return HrCmdList(tag, args, sub_only);
 }
 
-HRESULT IMAP::get_recent_uidnext2(IMAPIFolder *folder, ULONG &recent, ULONG &uidnext, const ULONG &messages)
+HRESULT IMAP::get_recent_uidnext(IMAPIFolder *folder, const std::string &tag, ULONG &recent, ULONG &uidnext, const ULONG &messages)
 {
 	static constexpr const SizedSSortOrderSet(1, sortuid) =
 		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_DESCEND}}};
 	static constexpr const SizedSPropTagArray(1, cols) = {1, {PR_EC_IMAP_ID}};
 	memory_ptr<SPropValue> max_id;
 	auto ret = HrGetOneProp(folder, PR_EC_IMAP_MAX_ID, &~max_id);
+	auto laters = make_scope_success([&]() {
+		if (ret != hrSuccess)
+			HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
+	});
 	if (ret != hrSuccess && ret != MAPI_E_NOT_FOUND)
 		return kc_perror("K-2390", ret);
 
@@ -1475,15 +1479,6 @@ HRESULT IMAP::get_recent_uidnext2(IMAPIFolder *folder, ULONG &recent, ULONG &uid
 		uidnext = 1;
 
 	return hrSuccess;
-}
-
-HRESULT IMAP::get_recent_uidnext(IMAPIFolder *folder, const std::string &tag,
-    ULONG &recent, ULONG &uidnext, const ULONG &messages)
-{
-	auto ret = get_recent_uidnext2(folder, recent, uidnext, messages);
-	if (ret != hrSuccess)
-		HrResponse(RESP_TAGGED_NO, tag, "STATUS error getting contents");
-	return ret;
 }
 
 /** 
