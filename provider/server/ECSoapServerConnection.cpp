@@ -36,11 +36,6 @@
 #	include <unistd.h>
 #	include <kopano/UnixUtil.h>
 
-struct soap_connection_thread {
-	ECSoapServerConnection*	lpSoapConnClass;
-	struct soap*			lpSoap;
-};
-
 /** 
  * Creates a AF_UNIX socket in a given location and starts to listen
  * on that socket.
