@@ -44,6 +44,7 @@
 	case x: \
 		return #x;
 
+using namespace KC;
 using std::string;
 
 static string GetSoapError(int err)

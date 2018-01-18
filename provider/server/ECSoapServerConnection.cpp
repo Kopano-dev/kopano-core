@@ -36,6 +36,8 @@
 #	include <unistd.h>
 #	include <kopano/UnixUtil.h>
 
+using namespace KC;
+
 /** 
  * Creates a AF_UNIX socket in a given location and starts to listen
  * on that socket.

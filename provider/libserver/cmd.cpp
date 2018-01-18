@@ -105,7 +105,7 @@
 #define LOG_SOAP_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SOAP, "soap: " _msg, ##__VA_ARGS__)
 
-namespace KC {
+using namespace KC;
 
 class ECFifoSerializer _kc_final : public ECSerializer {
 	public:
@@ -125,9 +125,6 @@ class ECFifoSerializer _kc_final : public ECSerializer {
 	eMode m_mode;
 	ULONG m_ulRead = 0, m_ulWritten = 0;
 };
-
-extern ECSessionManager*	g_lpSessionManager;
-extern ECStatsCollector*	g_lpStatsCollector;
 
 // Hold the status of the softdelete purge system
 static bool g_bPurgeSoftDeleteStatus = FALSE;
@@ -539,7 +536,8 @@ ECRESULT ECFifoSerializer::Stat(ULONG *lpcbRead, ULONG *lpcbWrite)
  * @param[out] lpstrServerPath Output path of server (URL)
  * @return result
  */
-ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std::string &strServerName, std::string *lpstrServerPath)
+static ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession,
+    const std::string &strServerName, std::string *lpstrServerPath)
 {
 	ECRESULT er;
 	std::string	strServerPath;
@@ -616,8 +614,6 @@ ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std:
 	*lpstrServerPath = std::move(strServerPath);
 	return erSuccess;
 }
-
-} /* namespace */
 
 // exception: This function does internal Begin + Commit/Rollback
 static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lplObjectIds, unsigned int ulDestFolderId, unsigned int ulSyncId);

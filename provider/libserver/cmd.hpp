@@ -22,7 +22,6 @@
 
 namespace KC {
 
-extern _kc_export ECRESULT GetBestServerPath(struct soap *, ECSession *, const std::string &, std::string *);
 extern _kc_export void *SoftDeleteRemover(void *);
 
 } /* namespace */
