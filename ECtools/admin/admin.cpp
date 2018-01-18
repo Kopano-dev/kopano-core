@@ -1829,8 +1829,6 @@ int main(int argc, char* argv[])
 
 	ECUSER sECUser;
 	memory_ptr<ECUSER> lpECUser, lpSenders;
-	ULONG cbStoreId = 0;
-	ULONG cbRootId = 0;
 	ECGROUP		sECGroup;
 	memory_ptr<ECGROUP> lpECGroups;
 	ULONG		cCompanies = 0;
@@ -2672,7 +2670,6 @@ int main(int argc, char* argv[])
 	}
 
 	switch (mode) {
-	case MODE_CREATE_STORE:
 	case MODE_DELETE_USER:
 	case MODE_UPDATE_USER:
 	case MODE_ADDUSER_GROUP:
@@ -2775,16 +2772,10 @@ int main(int argc, char* argv[])
 		}
 		cout << "User created." << endl;
 		break;
-
 	case MODE_CREATE_STORE:
-		hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PRIVATE, cbUserId, lpUserId, &cbStoreId, &~lpStoreId, &cbRootId, &~lpRootId);
-		if (hr != hrSuccess) {
-			cerr << "Unable to create store: " << getMapiCodeString(hr, "store") << endl;
-			goto exit;
-		}
-		cout << "User store '" << username << "' created." << endl;
-		break;
-
+		if (lang == nullptr)
+			return fexec(argv[0], {"kopano-admin", "-Cn", username});
+		return fexec(argv[0], {"kopano-admin", "-Cn", username, "-l", lang});
 	case MODE_DELETE_USER:
 		hr = lpServiceAdmin->DeleteUser(cbUserId, lpUserId);
 		if (hr != hrSuccess) {
