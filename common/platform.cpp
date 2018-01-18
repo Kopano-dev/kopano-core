@@ -84,7 +84,7 @@ void RTimeToFileTime(LONG rtime, FILETIME *pft)
 	pft->dwHighDateTime = q >> 32;
 }
  
-void FileTimeToRTime(const FILETIME *pft, LONG *prtime)
+LONG FileTimeToRTime(const FILETIME *pft)
 {
 	// assert(pft != NULL);
 	// assert(prtime != NULL);
@@ -94,7 +94,7 @@ void FileTimeToRTime(const FILETIME *pft, LONG *prtime)
 
 	q += UnitsPerHalfMinute;
 	q /= UnitsPerMinute;
-	*prtime = q & 0x7FFFFFFF;
+	return q & 0x7FFFFFFF;
 }
 
 time_t RTimeToUnixTime(LONG rtime)
@@ -104,15 +104,11 @@ time_t RTimeToUnixTime(LONG rtime)
 	return FileTimeToUnixTime(ft);
 }
 
-HRESULT UnixTimeToRTime(time_t unixtime, LONG *rtime)
+LONG UnixTimeToRTime(time_t unixtime)
 {
 	FILETIME ft;
-
-	if (rtime == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 	UnixTimeToFileTime(unixtime, &ft);
-	FileTimeToRTime(&ft, rtime);
-	return hrSuccess;
+	return FileTimeToRTime(&ft);
 }
 
 /* The 'IntDate' and 'IntTime' date and time encoding are used for some CDO calculations. They

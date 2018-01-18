@@ -5984,9 +5984,6 @@ ZEND_FUNCTION(mapi_freebusydata_setrange)
 	LOG_BEGIN();
 	IFreeBusyData*		lpFBData = NULL;
 	zval*				resFBData = NULL;
-
-	LONG				rtmStart;
-	LONG				rtmEnd;
 	time_t				ulUnixStart = 0;
 	time_t				ulUnixEnd = 0;
 
@@ -5996,11 +5993,7 @@ ZEND_FUNCTION(mapi_freebusydata_setrange)
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll", &resFBData, &ulUnixStart, &ulUnixEnd) == FAILURE) return;
 
 	ZEND_FETCH_RESOURCE_C(lpFBData, IFreeBusyData*, &resFBData, -1, name_fb_data, le_freebusy_data);
-
-	UnixTimeToRTime(ulUnixStart, &rtmStart);
-	UnixTimeToRTime(ulUnixEnd, &rtmEnd);
-
-	MAPI_G(hr) = lpFBData->SetFBRange(rtmStart, rtmEnd);
+	MAPI_G(hr) = lpFBData->SetFBRange(UnixTimeToRTime(ulUnixStart), UnixTimeToRTime(ulUnixEnd));
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
@@ -6182,28 +6175,24 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 		data = HASH_OF(entry);
 		zend_hash_internal_pointer_reset(data);
 
-		if ((value = zend_hash_find(data, str_start)) != NULL) {
-			UnixTimeToRTime(Z_LVAL_P(value), &lpBlocks[i].m_tmStart);
-		} else {
+		value = zend_hash_find(data, str_start);
+		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
-
-		if ((value = zend_hash_find(data, str_end)) != NULL ) {
-			UnixTimeToRTime(Z_LVAL_P(value), &lpBlocks[i].m_tmEnd);
-		} else {
+		lpBlocks[i].m_tmStart = UnixTimeToRTime(Z_LVAL_P(value));
+		value = zend_hash_find(data, str_end);
+		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
-
-		if ((value = zend_hash_find(data, str_status)) != NULL) {
-			lpBlocks[i].m_fbstatus = (enum FBStatus)Z_LVAL_P(value);
-		} else {
+		lpBlocks[i].m_tmEnd = UnixTimeToRTime(Z_LVAL_P(value));
+		value = zend_hash_find(data, str_status);
+		if (value == nullptr) {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
-		++i;
-
+		lpBlocks[i++].m_fbstatus = (enum FBStatus)Z_LVAL_P(value);
 	} ZEND_HASH_FOREACH_END();
 	MAPI_G(hr) = lpFBUpdate->PublishFreeBusy(lpBlocks, cBlocks);
 	if(MAPI_G(hr) != hrSuccess)

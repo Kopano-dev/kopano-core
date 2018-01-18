@@ -67,12 +67,9 @@ HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
 	ULONG			cProps = 0;
 	ULONG			ulMonths;
 	memory_ptr<SPropValue> lpPropArray, lpPropFBDataArray;
-	LONG			rtmStart = 0;
-	LONG			rtmEnd = 0;
 	FILETIME		ft;	
 	struct tm		tmStart;
 	struct tm		tmEnd;
-
 	static constexpr const SizedSPropTagArray(8, sPropsFBDelete) = {
 		8,
 		{
@@ -86,9 +83,8 @@ HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
 			PR_FREEBUSY_TENTATIVE_MONTHS
 		}
 	};
-
-	FileTimeToRTime(&ftStart, &rtmStart);
-	FileTimeToRTime(&ftEnd, &rtmEnd);
+	auto rtmStart = FileTimeToRTime(&ftStart);
+	auto rtmEnd   = FileTimeToRTime(&ftEnd);
 
 	if(m_lpMessage == NULL)
 	{
