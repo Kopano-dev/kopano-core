@@ -168,20 +168,20 @@ private:
 
 	// All IMAP4rev1 commands
 	HRESULT HrCmdCapability(const std::string &tag);
-	template<bool> HRESULT HrCmdNoop(const std::string &tag);
+	template<bool check> HRESULT HrCmdNoop(const std::string &tag) { return HrCmdNoop(tag, check); }
 	HRESULT HrCmdNoop(const std::string &tag, bool check);
 	HRESULT HrCmdLogout(const std::string &tag);
 	HRESULT HrCmdStarttls(const std::string &tag);
 	HRESULT HrCmdAuthenticate(const std::string &tag, std::string auth_method, const std::string &auth_data);
 	HRESULT HrCmdLogin(const std::string &tag, const std::vector<std::string> &args);
-	template<bool> HRESULT HrCmdSelect(const std::string &tag, const std::vector<std::string> &args);
+	template<bool read_only> HRESULT HrCmdSelect(const std::string &tag, const std::vector<std::string> &args) { return HrCmdSelect(tag, args, read_only); }
 	HRESULT HrCmdSelect(const std::string &tag, const std::vector<std::string> &args, bool read_only);
 	HRESULT HrCmdCreate(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdDelete(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdRename(const std::string &tag, const std::vector<std::string> &args);
-	template<bool> HRESULT HrCmdSubscribe(const std::string &tag, const std::vector<std::string> &args);
+	template<bool subscribe> HRESULT HrCmdSubscribe(const std::string &tag, const std::vector<std::string> &args) { return HrCmdSubscribe(tag, args, subscribe); }
 	HRESULT HrCmdSubscribe(const std::string &tag, const std::vector<std::string> &args, bool subscribe);
-	template<bool> HRESULT HrCmdList(const std::string &tag, const std::vector<std::string> &args);
+	template<bool sub_only> HRESULT HrCmdList(const std::string &tag, const std::vector<std::string> &args) { return HrCmdList(tag, args, sub_only); }
 	HRESULT HrCmdList(const std::string &tag, const std::vector<std::string> &args, bool sub_only);
 	HRESULT get_recent_uidnext(IMAPIFolder *folder, const std::string &tag, ULONG &recent, ULONG &uidnext, const ULONG &messages);
 	HRESULT HrCmdStatus(const std::string &tag, const std::vector<std::string> &args);
@@ -190,11 +190,11 @@ private:
 	HRESULT HrCmdExpunge(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdSearch(const std::string &tag, std::vector<std::string> &search_crit, bool uid_mode);
 	HRESULT HrCmdFetch(const std::string &tag, const std::vector<std::string> &args, bool uid_mode);
-	template <bool uid> HRESULT HrCmdFetch(const std::string &strTag, const std::vector<std::string> &args);
+	template <bool uid> HRESULT HrCmdFetch(const std::string &strTag, const std::vector<std::string> &args) { return HrCmdFetch(strTag, args, uid); }
 	HRESULT HrCmdStore(const std::string &tag, const std::vector<std::string> &args, bool uid_mode);
-	template <bool uid> HRESULT HrCmdStore(const std::string &strTag, const std::vector<std::string> &args);
+	template <bool uid> HRESULT HrCmdStore(const std::string &strTag, const std::vector<std::string> &args) { return HrCmdStore(strTag, args, uid); }
 	HRESULT HrCmdCopy(const std::string &tag, const std::vector<std::string> &args, bool uid_mode);
-	template <bool uid> HRESULT HrCmdCopy(const std::string &strTag, const std::vector<std::string> &args);
+	template <bool uid> HRESULT HrCmdCopy(const std::string &strTag, const std::vector<std::string> &args) { return HrCmdCopy(strTag, args, uid); }
 	HRESULT HrCmdUidXaolMove(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdIdle(const std::string &tag);
 	HRESULT HrCmdNamespace(const std::string &tag);
