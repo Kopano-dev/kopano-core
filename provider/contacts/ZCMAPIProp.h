@@ -25,7 +25,7 @@
 
 #include <map>
 
-class ZCMAPIProp _no_final : public ECUnknown, public IMailUser {
+class ZCMAPIProp _no_final : public KC::ECUnknown, public IMailUser {
 protected:
 	ZCMAPIProp(ULONG ulObjType, const char *szClassName = NULL);
 	virtual ~ZCMAPIProp();
@@ -35,7 +35,7 @@ protected:
 	HRESULT ConvertProps(IMAPIProp *contact, ULONG eid_size, const ENTRYID *eid, ULONG index);
 
 	/* getprops helper */
-	HRESULT CopyOneProp(convert_context &converter, ULONG ulFlags, const std::map<short, SPropValue>::const_iterator &i, LPSPropValue lpProp, LPSPropValue lpBase);
+	HRESULT CopyOneProp(KC::convert_context &, ULONG flags, const std::map<short, SPropValue>::const_iterator &, SPropValue *prop, SPropValue *base);
 
 public:
 	static HRESULT Create(IMAPIProp *lpContact, ULONG eid_size, const ENTRYID *eid, ZCMAPIProp **);

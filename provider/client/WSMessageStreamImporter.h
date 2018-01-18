@@ -27,6 +27,7 @@
 #include <kopano/ECThreadPool.h>
 #include "WSTransport.h"
 
+using namespace KC;
 class ECMAPIFolder;
 class WSMessageStreamImporter;
 

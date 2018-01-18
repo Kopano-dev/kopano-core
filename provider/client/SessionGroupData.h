@@ -28,6 +28,7 @@
 #include <kopano/memory.hpp>
 #include "ClientUtil.h"
 
+using namespace KC;
 class ECNotifyMaster;
 class WSTransport;
 

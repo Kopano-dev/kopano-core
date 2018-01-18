@@ -34,6 +34,7 @@ namespace KC {
 class ECLogger;
 }
 
+using namespace KC;
 class ECMsgStore;
 
 /**

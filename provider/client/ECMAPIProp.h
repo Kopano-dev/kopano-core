@@ -28,6 +28,7 @@
 #define SET         1
 #define UNSET       2
 
+using namespace KC;
 class ECMsgStore;
 
 class ECMAPIProp : public ECGenericProp, public IECSecurity {

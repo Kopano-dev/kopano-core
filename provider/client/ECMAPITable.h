@@ -27,6 +27,8 @@
 #include <set>
 #include <kopano/memory.hpp>
 
+using namespace KC;
+
 /*
  * This is the superclass which contains common code for the Hierarchy and Contents
  * tables implementations

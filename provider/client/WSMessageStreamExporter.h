@@ -25,6 +25,7 @@
 #include <string>
 #include <map>
 
+using namespace KC;
 class WSTransport;
 class WSSerializedMessage;
 

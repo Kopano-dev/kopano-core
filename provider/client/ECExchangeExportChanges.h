@@ -32,6 +32,8 @@
 #include <kopano/memory.hpp>
 #include "WSMessageStreamExporter.h"
 
+using namespace KC;
+
 class ECExchangeExportChanges _kc_final :
     public ECUnknown, public IECExportChanges {
 protected:

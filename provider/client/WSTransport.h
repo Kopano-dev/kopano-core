@@ -310,7 +310,7 @@ protected:
 
 private:
 	std::recursive_mutex m_ResolveResultCacheMutex;
-	ECCache<ECMapResolveResults>	m_ResolveResultCache;
+	ECCache<ECMapResolveResults> m_ResolveResultCache;
 	bool m_has_session;
 
 friend class WSMessageStreamExporter;

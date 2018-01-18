@@ -25,6 +25,8 @@
 #include "soapStub.h"
 #include <string>
 
+using namespace KC;
+
 /**
  * This object represents one exported message stream. It is responsible for requesting the MTOM attachments from soap.
  */

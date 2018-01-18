@@ -30,6 +30,7 @@
 #include <map>
 #include <set>
 
+using namespace KC;
 // These are the callback functions called when a software-handled property is requested
 typedef HRESULT (*SetPropCallBack)(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
 typedef HRESULT (* GetPropCallBack)(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);

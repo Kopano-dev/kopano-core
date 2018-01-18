@@ -21,6 +21,8 @@
 #include "Mem.h"
 #include <kopano/charset/convert.h>
 
+using namespace KC;
+
 //
 // ECPropertyEntry
 //

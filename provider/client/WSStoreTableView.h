@@ -23,6 +23,8 @@
 #include <kopano/Util.h>
 #include "WSTableView.h"
 
+using namespace KC;
+
 class WSStoreTableView : public WSTableView {
 protected:
 	WSStoreTableView(ULONG type, ULONG flags, KCmdProxy *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *);

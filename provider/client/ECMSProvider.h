@@ -26,6 +26,8 @@
 
 #include <string>
 
+using namespace KC;
+
 class ECMSProvider _kc_final : public ECUnknown, public IMSProvider {
 protected:
 	ECMSProvider(ULONG ulFlags, const char *szClassName);

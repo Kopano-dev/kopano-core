@@ -30,6 +30,8 @@
 #include <kopano/charset/utf8string.h>
 #include "soapKCmdProxy.h"
 
+using namespace KC;
+
 // we cannot patch http_post now (see external/gsoap/*.diff), so we redefine it
 static int
 #if GSOAP_VERSION >= 20850

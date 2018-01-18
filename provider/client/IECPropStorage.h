@@ -71,7 +71,7 @@ struct MAPIOBJECT {
 		bDelete(s.bDelete), ulUniqueId(s.ulUniqueId),
 		ulObjId(s.ulObjId), ulObjType(s.ulObjType)
 	{
-		Util::HrCopyEntryId(s.cbInstanceID, reinterpret_cast<const ENTRYID *>(s.lpInstanceID),
+		KC::Util::HrCopyEntryId(s.cbInstanceID, reinterpret_cast<const ENTRYID *>(s.lpInstanceID),
 							&this->cbInstanceID, (LPENTRYID *)&this->lpInstanceID);
 		for (const auto &i : s.lstChildren)
 			this->lstChildren.emplace(new MAPIOBJECT(*i));
