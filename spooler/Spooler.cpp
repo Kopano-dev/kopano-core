@@ -598,20 +598,13 @@ exit:
 static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
     IECSpooler **lppSpooler)
 {
-	object_ptr<IECSpooler> lpSpooler;
 	object_ptr<IMsgStore> lpMDB;
-	memory_ptr<SPropValue> lpsProp;
-
 	auto hr = HrOpenDefaultStore(lpAdminSession, &~lpMDB);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open default store for system account", hr);
-	hr = HrGetOneProp(lpMDB, PR_EC_OBJECT, &~lpsProp);
+	hr = GetECObject(lpMDB, iid_of(*lppSpooler), reinterpret_cast<void **>(lppSpooler));
 	if (hr != hrSuccess)
 		return kc_perror("Unable to get Kopano internal object", hr);
-	hr = reinterpret_cast<IUnknown *>(lpsProp->Value.lpszA)->QueryInterface(IID_IECSpooler, &~lpSpooler);
-	if (hr != hrSuccess)
-		return kc_perror("Spooler interface not supported", hr);
-	*lppSpooler = lpSpooler.release();
 	return hr;
 }
 

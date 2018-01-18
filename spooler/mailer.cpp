@@ -1612,15 +1612,10 @@ static HRESULT CopyDelegateMessageToSentItems(LPMESSAGE lpMessage,
 static HRESULT PostSendProcessing(ULONG cbEntryId, const ENTRYID *lpEntryId,
     IMsgStore *lpMsgStore)
 {
-	memory_ptr<SPropValue> lpObject;
 	object_ptr<IECSpooler> lpSpooler;
-	
-	auto hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpObject);
+	auto hr = GetECObject(lpMsgStore, iid_of(lpSpooler), &~lpSpooler);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to get PR_EC_OBJECT in post-send processing", hr);
-	hr = reinterpret_cast<IUnknown *>(lpObject->Value.lpszA)->QueryInterface(IID_IECSpooler, &~lpSpooler);
-	if (hr != hrSuccess)
-		return kc_perror("Unable to get spooler interface for message", hr);
 	hr = lpSpooler->DeleteFromMasterOutgoingTable(cbEntryId, lpEntryId, EC_SUBMIT_MASTER);
 	if (hr != hrSuccess)
 		ec_log_warn("Could not remove invalid message from queue: %s (%x)",
@@ -2163,19 +2158,12 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 		kc_perror("Unable to open default store of user", hr);
 		goto exit;
 	}
-	hr = HrGetOneProp(lpUserStore, PR_EC_OBJECT, &~lpsProp);
-	if (hr != hrSuccess) {
-		kc_perror("Unable to get Kopano internal object", hr);
-		goto exit;
-	}
-
-	// NOTE: object is placed in Value.lpszA, not Value.x
-	hr = reinterpret_cast<IUnknown *>(lpsProp->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
+	hr = GetECObject(lpUserStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
 	if (hr != hrSuccess) {
 		kc_perror("ServiceAdmin interface not supported", hr);
 		goto exit;
 	}
-	hr = reinterpret_cast<IUnknown *>(lpsProp->Value.lpszA)->QueryInterface(IID_IECSecurity, &~lpSecurity);
+	hr = GetECObject(lpUserStore, iid_of(lpSecurity), &~lpSecurity);
 	if (hr != hrSuccess) {
 		kc_perror("IID_IECSecurity not supported by store", hr);
 		goto exit;

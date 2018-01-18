@@ -848,14 +848,9 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 	if (hr != hrSuccess)
 		// HrLogon() failed .. try again later
 		return kc_perror("Unable to open default store for system account", hr);
-	hr = HrGetOneProp(lpAdminStore, PR_EC_OBJECT, &~lpsObject);
+	hr = GetECObject(lpAdminStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to get internal object", hr);
-
-	// NOTE: object is placed in Value.lpszA, not Value.x
-	hr = reinterpret_cast<IUnknown *>(lpsObject->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
-	if (hr != hrSuccess)
-		return kc_perror("Unable to get service admin", hr);
 	hr = MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), &~lpSrvNameList);
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed", hr);

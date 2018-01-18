@@ -296,9 +296,11 @@ HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, 
 	return hr;
 }
 
-HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, ULONG cbEntryID, LPENTRYID lpEntryID,
-								   LPCIID lpDestInterface, LPVOID lpDestFolder, LPTSTR lpszNewFolderName, ULONG ulUIParam,
-								   LPMAPIPROGRESS lpProgress, ULONG ulFlags) {
+HRESULT M4LMAPISupport::CopyFolder(const IID *lpSrcInterface, void *lpSrcFolder,
+    ULONG cbEntryID, const ENTRYID *lpEntryID, const IID *lpDestInterface,
+    void *lpDestFolder, const TCHAR *lpszNewFolderName, ULONG_PTR ulUIParam,
+    IMAPIProgress *lpProgress, ULONG ulFlags)
+{
 	HRESULT hr = hrSuccess;
 	IMAPIFolder *lpSource, *lpDest;
 	object_ptr<IMAPIFolder> lpFolder, lpSubFolder;

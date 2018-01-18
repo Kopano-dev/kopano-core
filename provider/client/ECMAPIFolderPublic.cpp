@@ -404,7 +404,10 @@ HRESULT ECMAPIFolderPublic::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId
 }
 
 // @note if you change this function please look also at ECMAPIFolder::CopyFolder
-HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, LPVOID lpDestFolder, LPTSTR lpszNewFolderName, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
+HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, const IID *lpInterface, void *lpDestFolder,
+    const TCHAR *lpszNewFolderName, ULONG_PTR ulUIParam,
+    IMAPIProgress *lpProgress, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulResult = 0;
@@ -436,7 +439,7 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 	// Check if it's  the same store of kopano so we can copy/move fast
 	if (!IsKopanoEntryId(cbEntryID, (LPBYTE)lpEntryID) ||
 	    !IsKopanoEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb) ||
-	    HrGetStoreGuidFromEntryId(cbEntryID, reinterpret_cast<BYTE *>(lpEntryID), &guidFrom) != hrSuccess ||
+	    HrGetStoreGuidFromEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), &guidFrom) != hrSuccess ||
 	    HrGetStoreGuidFromEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb, &guidDest) != hrSuccess ||
 	    memcmp(&guidFrom, &guidDest, sizeof(GUID)) != 0 ||
 	    lpFolderOps == nullptr)

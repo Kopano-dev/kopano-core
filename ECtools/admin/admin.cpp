@@ -938,20 +938,14 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
  * @return		MAPI error code
  */
 static HRESULT print_archive_details(LPMAPISESSION lpSession,
-    IUnknown *lpECMsgStore, const char *lpszName)
+    IECServiceAdmin *ptrServiceAdmin, const char *lpszName)
 {
-	ECServiceAdminPtr ptrServiceAdmin;
 	ULONG cbArchiveId = 0;
 	EntryIdPtr ptrArchiveId;
 	MsgStorePtr ptrArchive;
 	SPropValuePtr ptrArchiveSize;
 
-	auto hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, &~ptrServiceAdmin);
-	if (hr != hrSuccess) {
-		cerr << "Unable to get admin interface." << endl;
-		return hr;
-	}
-	hr = ptrServiceAdmin->GetArchiveStoreEntryID((LPCTSTR)lpszName, NULL, 0, &cbArchiveId, &~ptrArchiveId);
+	auto hr = ptrServiceAdmin->GetArchiveStoreEntryID(LPCTSTR(lpszName), nullptr, 0, &cbArchiveId, &~ptrArchiveId);
 	if (hr != hrSuccess) {
 		cerr << "No archive found for user '" << lpszName << "'." << endl;
 		return hr;
@@ -1101,14 +1095,7 @@ static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
 	hr = lpFolderSubTree->CreateFolder(FOLDER_GENERIC, (LPTSTR)"Admin", nullptr, nullptr, 0, &~lpFolderAdmin);
 	if (hr == hrSuccess) {
 		// Set permissions
-		hr = HrGetOneProp(lpFolderAdmin, PR_EC_OBJECT, &~lpPropValue);
-		if(hr != hrSuccess)
-			return hr;
-		auto lpECFolder = reinterpret_cast<IUnknown *>(lpPropValue->Value.lpszA);
-		hr = lpECFolder->QueryInterface(IID_IECSecurity, &~lpSecurity);
-		if (hr != hrSuccess)
-			return hr;
-
+		hr = GetECObject(lpFolderAdmin, iid_of(lpSecurity), &~lpSecurity);
 		sPermission.ulRights = 0;// No rights, only for admin
 		sPermission.sUserId.lpb = g_lpEveryoneEid; // group everyone
 		sPermission.sUserId.cb = g_cbEveryoneEid;
@@ -1302,8 +1289,9 @@ static LPMVPROPMAPENTRY FindMVPropmapEntry(ECUSER *lpUser, ULONG ulPropTag)
  * @param[in]	lpszName		Name to resolve, using type in ulClass
  * @return		MAPI error code
  */
-static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
-    objectclass_t ulClass, const char *lpszName)
+static HRESULT print_details(LPMAPISESSION lpSession,
+    IECServiceAdmin *lpServiceAdmin, objectclass_t ulClass,
+    const char *lpszName)
 {
 	memory_ptr<ECUSER> lpECUser;
 	memory_ptr<ECGROUP> lpECGroup, lpECGroups;
@@ -1315,7 +1303,6 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 	memory_ptr<ENTRYID> lpEntryID;
 	object_ptr<IMsgStore> lpStore;
 	object_ptr<IExchangeManageStore> lpIEMS;
-	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	bool bAutoAccept = false, bDeclineConflict = false, bDeclineRecurring = false;
 	ULONG cbObjectId = 0;
 	memory_ptr<ENTRYID> lpObjectId;
@@ -1323,12 +1310,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 	ArchiveList lstArchives;
 	memory_ptr<ECUSERCLIENTUPDATESTATUS> lpECUCUS;
 	convert_context converter;
-
-	auto hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
-	if (hr != hrSuccess) {
-		cerr << "Unable to get admin interface." << endl;
-		return hr;
-	}
+	HRESULT hr = hrSuccess;
 
 	switch (ulClass) {
 	case OBJECTCLASS_CONTAINER:
@@ -1344,7 +1326,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 			cerr << "Unable to show company details: " << getMapiCodeString(hr) << endl;
 			return hr;
 		}
-		hr = lpECMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
+		hr = lpServiceAdmin->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 		if (hr != hrSuccess) {
 			cerr << "Unable to get admin interface." << endl;
 			return hr;
@@ -1417,7 +1399,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 			cerr << "Unable to show user details: " << getMapiCodeString(hr) << endl;
 			return hr;
 		}
-		hr = lpECMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
+		hr = lpServiceAdmin->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 		if (hr != hrSuccess) {
 			cerr << "Unable to get admin interface." << endl;
 			return hr;
@@ -1525,7 +1507,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 		return hr;
 
 	MsgStorePtr ptrAdminStore;
-	hr = lpECMsgStore->QueryInterface(IID_IMsgStore, &~ptrAdminStore);
+	hr = lpServiceAdmin->QueryInterface(IID_IMsgStore, &~ptrAdminStore);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1543,14 +1525,13 @@ static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
 				")" << endl;
 			continue;
 		}
-		hr = HrGetOneProp(ptrRemoteAdminStore, PR_EC_OBJECT, &~ptrPropValue);
-		if (hr != hrSuccess || !ptrPropValue || !ptrPropValue->Value.lpszA) {
+		object_ptr<IECServiceAdmin> svcadm;
+		hr = GetECObject(ptrRemoteAdminStore, iid_of(svcadm), &~svcadm);
+		if (hr != hrSuccess) {
 			cerr << "Admin object not found." << endl;
 			return hr;
 		}
-
-		auto lpECRemoteAdminStore = reinterpret_cast<IUnknown *>(ptrPropValue->Value.lpszA);
-		print_archive_details(lpSession, lpECRemoteAdminStore, lpszName);
+		print_archive_details(lpSession, svcadm, lpszName);
 		cout << endl;
 	}
 	return hr;
@@ -2127,7 +2108,6 @@ int main(int argc, char* argv[])
 {
 	AutoMAPI mapiinit;
 	object_ptr<IMAPISession> lpSession;
-	object_ptr<IUnknown> lpECMsgStore;
 	object_ptr<IMsgStore> lpMsgStore;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ULONG cbUserId = 0;
@@ -2960,16 +2940,9 @@ int main(int argc, char* argv[])
 		lpMsgStore.reset(ptrRemoteStore.release(), false);
 	}
 
-	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpPropValue);
-	if(hr != hrSuccess || !lpPropValue || !lpPropValue->Value.lpszA) {
+	hr = GetECObject(lpMsgStore, iid_of(lpServiceAdmin), &~lpServiceAdmin);
+	if (hr != hrSuccess) {
 		cerr << "Admin object not found." << endl;
-		goto exit;
-	}
-
-	lpECMsgStore.reset(reinterpret_cast<IUnknown *>(lpPropValue->Value.lpszA));
-	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
-	if(hr != hrSuccess) {
-		cerr << "Admin object query error." << endl;
 		goto exit;
 	}
 
@@ -3060,9 +3033,9 @@ int main(int argc, char* argv[])
 			goto exit;
 		}
 		if (detailstype && strcasecmp(detailstype, "archive") == 0)
-			hr = print_archive_details(lpSession, lpECMsgStore, username);
+			hr = print_archive_details(lpSession, lpServiceAdmin, username);
 		else
-			hr = print_details(lpSession, lpECMsgStore, ulClass, username);
+			hr = print_details(lpSession, lpServiceAdmin, ulClass, username);
 		if (hr != hrSuccess)
 			goto exit;
 		break;
@@ -3494,7 +3467,7 @@ int main(int argc, char* argv[])
 
 		if (mr_accept != -1 || mr_decline_conflict != -1 || mr_decline_recurring != -1)
 		{
-			hr = lpECMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
+			hr = lpServiceAdmin->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 			if (hr != hrSuccess) {
 				cerr << "Unable to get admin interface." << endl;
 				goto exit;

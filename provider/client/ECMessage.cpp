@@ -2257,23 +2257,17 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIProp> destiprop;
-	object_ptr<IUnknown> lpECUnknown;
-	memory_ptr<SPropValue> lpECObject;
 	object_ptr<ECMAPIProp> lpECMAPIProp;
+	memory_ptr<SPropValue> lpECObject;
 	GUID sDestServerGuid = {0};
 	GUID sSourceServerGuid = {0};
 
 	if (lpInterface == nullptr || lpDestObj == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-
-	// Wrap mapi object to kopano object
-	if (qi_void_to_imapiprop(lpDestObj, *lpInterface, &~destiprop) == hrSuccess &&
-	    HrGetOneProp(destiprop, PR_EC_OBJECT, &~lpECObject) == hrSuccess)
-		lpECUnknown.reset(reinterpret_cast<IUnknown *>(lpECObject->Value.lpszA));
-
 	// Deny copying within the same object. This is not allowed in exchange either and is required to deny
 	// creating large recursive objects.
-	if(lpECUnknown && lpECUnknown->QueryInterface(IID_ECMAPIProp, &~lpECMAPIProp) == hrSuccess) {
+	if (qi_void_to_imapiprop(lpDestObj, *lpInterface, &~destiprop) == hrSuccess &&
+	    GetECObject(destiprop, iid_of(lpECMAPIProp), &~lpECMAPIProp) == hrSuccess) {
 		// Find the top-level objects for both source and destination objects
 		auto lpDestTop = lpECMAPIProp->m_lpRoot;
 		auto lpSourceTop = this->m_lpRoot;
