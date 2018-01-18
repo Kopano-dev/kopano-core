@@ -35,6 +35,8 @@
 #include "DBUserPlugin.h"
 #include <kopano/ecversion.h>
 
+using namespace KC;
+
 extern "C" {
 
 UserPlugin *getUserPluginInstance(std::mutex &pluginlock,
