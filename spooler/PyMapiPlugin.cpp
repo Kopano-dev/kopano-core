@@ -50,7 +50,8 @@
 	}\
 }
 
-typedef KC::pyobj_ptr PyObjectAPtr;
+using namespace KC;
+typedef pyobj_ptr PyObjectAPtr;
 
 class PyMapiPlugin _kc_final : public pym_plugin_intf {
 	public:
@@ -70,7 +71,7 @@ class PyMapiPlugin _kc_final : public pym_plugin_intf {
 
 	private:
 	PyObjectAPtr m_ptrMapiPluginManager{nullptr};
-	KC::object_ptr<ECLogger> m_lpLogger;
+	object_ptr<ECLogger> m_lpLogger;
 
 	/* Inhibit (accidental) copying */
 	PyMapiPlugin(const PyMapiPlugin &) = delete;

@@ -22,7 +22,7 @@
 #include <inetmapi/inetmapi.h>
 #include <kopano/ECDefs.h>
 
-extern HRESULT SendUndeliverable(ECSender *, IMsgStore *, IMessage *);
+extern HRESULT SendUndeliverable(KC::ECSender *, IMsgStore *, IMessage *);
 HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP, int ulPort, const char *szPath, ULONG cbMsgEntryId, LPENTRYID lpMsgEntryId, bool bDoSentMail);
 
 #endif

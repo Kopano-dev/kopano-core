@@ -28,7 +28,7 @@ enum LMTP_Command {LMTP_Command_LHLO, LMTP_Command_MAIL_FROM, LMTP_Command_RCPT_
 
 class LMTP _kc_final {
 public:
-	LMTP(ECChannel *, const char *path, ECConfig *);
+	LMTP(KC::ECChannel *, const char *path, KC::ECConfig *);
 	HRESULT HrGetCommand(const std::string &strCommand, LMTP_Command &eCommand);
 	HRESULT HrResponse(const std::string &strResponse);
 
@@ -40,8 +40,8 @@ public:
 private:
 	HRESULT HrParseAddress(const std::string &strAddress, std::string *strEmail);
 
-	ECChannel		*m_lpChannel;
-	ECConfig		*m_lpConfig;
+	KC::ECChannel *m_lpChannel;
+	KC::ECConfig *m_lpConfig;
 	std::string		m_strPath;
 };
 

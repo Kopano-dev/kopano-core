@@ -40,6 +40,7 @@
 #include <kopano/stringutil.h>
 #include "fileutil.h"
 
+using namespace KC;
 using std::string;
 
 LMTP::LMTP(ECChannel *lpChan, const char *szServerPath, ECConfig *lpConf) :
