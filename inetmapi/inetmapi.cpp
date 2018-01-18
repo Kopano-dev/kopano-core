@@ -86,15 +86,21 @@ static void InitializeVMime()
 	vmimeInitialized = true;
 }
 
-static string generateRandomMessageId()
+static std::string generate_message_id(IMessage *msg)
 {
 #define IDLEN 38
-	char id[IDLEN] = {0};
-	// the same format as the vmime generator, but with more randomness
-	snprintf(id, IDLEN, "kcim.%lx.%x.%08x%08x",
-		static_cast<unsigned long>(time(NULL)), getpid(),
-		rand_mt(), rand_mt());
-	return string(id, strlen(id));
+	memory_ptr<SPropValue> prop;
+	auto hr = HrGetOneProp(msg, PR_SEARCH_KEY, &~prop);
+	if (hr != hrSuccess) {
+		char id[IDLEN] = {0};
+		// Fallback: the same format as the vmime generator
+		// but with more randomness
+		snprintf(id, IDLEN, "kcim.%lx.%x.%08x%08x",
+			static_cast<unsigned long>(time(NULL)), getpid(),
+			rand_mt(), rand_mt());
+		return string(id, strlen(id));
+	}
+	return "kcis." + bin2hex(prop->Value.bin);
 #undef IDLEN
 }
 
@@ -186,7 +192,7 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 		if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &~lpMessageId) == hrSuccess)
 			msgid = lpMessageId->Value.lpszA;
 		else
-			msgid = vmime::messageId(generateRandomMessageId(), vmime::platform::getHandler()->getHostName());
+			msgid = vmime::messageId(generate_message_id(lpMessage), vmime::platform::getHandler()->getHostName());
 		lpVMMessage->getHeader()->MessageId()->setValue(msgid);
 
 		lpVMMessage->generate(adapter);
@@ -235,7 +241,7 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 			msgId = ptrProps[1].Value.lpszA;
 		else
 			// vmime::messageId::generateId() is not random enough since we use forking in the spooler
-			msgId = vmime::messageId(generateRandomMessageId(), vmime::platform::getHandler()->getHostName());
+			msgId = vmime::messageId(generate_message_id(lpMessage), vmime::platform::getHandler()->getHostName());
 		vmMessage->getHeader()->MessageId()->setValue(msgId);
 		ec_log_debug("Sending message with Message-ID: " + msgId.getId());
 	}
