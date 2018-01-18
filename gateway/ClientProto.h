@@ -28,7 +28,7 @@
 
 class ClientProto {
 public:
-	ClientProto(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig) :
+	ClientProto(const char *szServerPath, KC::ECChannel *lpChannel, KC::ECLogger *lpLogger, KC::ECConfig *lpConfig) :
 	m_strPath(szServerPath), lpChannel(lpChannel), lpLogger(lpLogger), lpConfig(lpConfig), m_ulFailedLogins(0)
 	{};
 	virtual ~ClientProto(void) = default;
@@ -43,9 +43,9 @@ public:
 
 protected:
 	std::string	m_strPath;
-	ECChannel	*lpChannel;
-	ECLogger	*lpLogger;
-	ECConfig	*lpConfig;
+	KC::ECChannel *lpChannel;
+	KC::ECLogger *lpLogger;
+	KC::ECConfig *lpConfig;
 	ULONG		m_ulFailedLogins;
 };
 

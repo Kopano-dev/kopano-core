@@ -64,6 +64,7 @@
  * @{
  */
 
+using namespace KC;
 using std::cout;
 using std::endl;
 
