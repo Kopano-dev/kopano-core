@@ -584,7 +584,7 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
     vmime::shared_ptr<vmime::message> *lpvmMessage, unsigned int flags)
 {
 	HRESULT					hr					= hrSuccess;
-	memory_ptr<SPropValue> lpDeliveryDate, lpTransportHeaders;
+	memory_ptr<SPropValue> lpDeliveryDate, lpTransportHeaders, prop;
 	vmime::messageBuilder   vmMessageBuilder;
 	vmime::shared_ptr<vmime::message> vmMessage;
 
@@ -621,6 +621,8 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 		// If we're sending a msg-in-msg, use the original date of that message
 		if (sopt.msg_in_msg && HrGetOneProp(lpMessage, PR_MESSAGE_DELIVERY_TIME, &~lpDeliveryDate) == hrSuccess)
 			vmHeader->Date()->setValue(FiletimeTovmimeDatetime(lpDeliveryDate->Value.ft));
+		else if (HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &~prop) == hrSuccess)
+			vmHeader->Date()->setValue(FiletimeTovmimeDatetime(prop->Value.ft));
 		
 		// Regenerate some headers if available (basically a copy of the headers in
 		// PR_TRANSPORT_MESSAGE_HEADERS)
