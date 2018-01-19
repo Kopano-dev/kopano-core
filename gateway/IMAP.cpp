@@ -3643,10 +3643,12 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 			bSkipOpen = PCpropFindProp(lpProps, cValues, m_lpsIMAPTags->aulPropTag[0]) != NULL;
 		else if (iFetch->compare("RFC822.SIZE") == 0)
 			bSkipOpen = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE) != NULL;
-		else if (strstr(iFetch->c_str(), "HEADER") != NULL)
+		else if (strstr(iFetch->c_str(), "HEADER") != NULL) {
 			// we can only use PR_TRANSPORT_MESSAGE_HEADERS when we have the full email.
-			bSkipOpen = (PCpropFindProp(lpProps, cValues, PR_TRANSPORT_MESSAGE_HEADERS_A) != NULL &&
-						 PCpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE) != NULL);
+			auto headers = PCpropFindProp(lpProps, cValues, PR_TRANSPORT_MESSAGE_HEADERS_A);
+			auto size = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE);
+			bSkipOpen = (headers != nullptr && strlen(headers->Value.lpszA) > 0 && size != nullptr);
+		}
 		// full/partial body fetches, or size
 		else if (Prefix(*iFetch, "BODY") || Prefix(*iFetch, "RFC822"))
 			bSkipOpen = false;
