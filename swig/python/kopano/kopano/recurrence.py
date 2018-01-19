@@ -406,6 +406,25 @@ class Recurrence(object):
         return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self.end_date)) + datetime.timedelta(minutes=self.endtime_offset)# XXX local time..
 
     @property
+    def weekdays(self):
+        rrule_weekdays = {0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday'}
+        days = []
+        for index, week in rrule_weekdays.items():
+            if (self.pattern_type_specific[0] >> index ) & 1:
+                days.append(week)
+        return days
+
+    @property
+    def index(self):
+        return {
+            1: u'first',
+            2: u'second',
+            3: u'third',
+            4: u'fourth',
+            5: u'last',
+        }[self.pattern_type_specific[1]]
+
+    @property
     def recurrences(self):
         rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
         rule = rruleset()

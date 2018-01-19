@@ -10,7 +10,7 @@ import sys
 from MAPI.Tags import (
     PR_EC_HIERARCHYID, PR_ATTACH_NUM, PR_ATTACH_MIME_TAG_W, PR_RECORD_KEY,
     PR_ATTACH_LONG_FILENAME_W, PR_ATTACH_SIZE, PR_ATTACH_DATA_BIN, PR_ENTRYID,
-    IID_IAttachment
+    PR_LAST_MODIFICATION_TIME, IID_IAttachment,
 )
 from MAPI.Defs import HrGetOneProp
 from MAPI.Struct import MAPIErrorNotFound
@@ -112,6 +112,11 @@ class Attachment(Properties):
     @property
     def name(self):
         return self.filename
+
+    @property
+    def last_modified(self):
+        """Last modification time."""
+        return self.get(PR_LAST_MODIFICATION_TIME)
 
     def __unicode__(self):
         return u'Attachment("%s")' % self.name

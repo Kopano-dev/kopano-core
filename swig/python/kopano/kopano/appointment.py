@@ -9,8 +9,16 @@ from MAPI import (
     PT_SYSTIME,
 )
 
+from MAPI.Tags import (
+    PR_MESSAGE_RECIPIENTS,
+)
+
+from .attendee import Attendee
 from .errors import NotFoundError
 from .recurrence import Recurrence, Occurrence
+
+PidLidReminderSet = "PT_BOOLEAN:PSETID_Common:0x8503"
+PidLidReminderDelta = "PT_LONG:PSETID_Common:0x8501"
 
 class Appointment(object):
     """Appointment mixin class"""
@@ -71,8 +79,23 @@ class Appointment(object):
                 yield Occurrence(self, start, end)
 
     @property
+    def reminder(self):
+        """Is reminder set."""
+        return self.get(PidLidReminderSet, False)
+
+    @property
+    def reminder_minutes(self):
+        """Reminder minutes before appointment."""
+        return self.get(PidLidReminderDelta)
+
+    @property
     def rrule(self): # XXX including timezone!
         if self.recurring: # XXX rrule for non-recurring makes sense?
             return self.recurrence.recurrences
 
     # XXX rrule setter!
+
+    # TODO merge with item.recipients?
+    def attendees(self):
+        for row in self.table(PR_MESSAGE_RECIPIENTS):
+            yield Attendee(self.server, row)

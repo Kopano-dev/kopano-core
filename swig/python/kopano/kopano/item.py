@@ -40,7 +40,7 @@ from MAPI.Struct import (
 )
 from MAPI.Tags import (
     PR_BODY, PR_DISPLAY_NAME_W, PR_MESSAGE_CLASS_W, PR_CHANGE_KEY,
-    PR_CONTAINER_CLASS, PR_ENTRYID, PR_EC_HIERARCHYID, PR_HASATTACH,
+    PR_CONTAINER_CLASS_W, PR_ENTRYID, PR_EC_HIERARCHYID, PR_HASATTACH,
     PR_SOURCE_KEY, PR_SUBJECT_W, PR_ATTACH_LONG_FILENAME_W,
     PR_MESSAGE_SIZE, PR_BODY_W, PR_CREATION_TIME, PR_CLIENT_SUBMIT_TIME,
     PR_MESSAGE_DELIVERY_TIME, PR_LAST_MODIFICATION_TIME,
@@ -59,6 +59,8 @@ from MAPI.Tags import (
     PR_SENT_REPRESENTING_SEARCH_KEY, PR_ATTACHMENT_FLAGS,
     PR_ATTACHMENT_HIDDEN, PR_ATTACHMENT_LINKID, PR_ATTACH_FLAGS,
     PR_NORMALIZED_SUBJECT_W, PR_INTERNET_MESSAGE_ID_W, PR_CONVERSATION_ID,
+    PR_READ_RECEIPT_REQUESTED, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED,
+    PR_REPLY_RECIPIENT_ENTRIES,
 )
 
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
@@ -182,7 +184,7 @@ class Item(Properties, Contact, Appointment):
                 self.loads(loads, attachments=attachments)
             else:
                 try:
-                    container_class = HrGetOneProp(self.folder.mapiobj, PR_CONTAINER_CLASS).Value
+                    container_class = HrGetOneProp(self.folder.mapiobj, PR_CONTAINER_CLASS_W).Value
                 except MAPIErrorNotFound:
                     self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Note')])
                 else:
@@ -370,6 +372,8 @@ class Item(Properties, Contact, Appointment):
         except MAPIErrorNotFound:
             return False
 
+    # TODO draft status, how to determine? GetMessageStatus?
+
     @property
     def read(self):
         """Item is read."""
@@ -381,6 +385,16 @@ class Item(Properties, Contact, Appointment):
             self.mapiobj.SetReadFlag(0)
         else:
             self.mapiobj.SetReadFlag(CLEAR_READ_FLAG)
+
+    @property
+    def read_receipt(self):
+        """A read receipt was requested."""
+        return self.get(PR_READ_RECEIPT_REQUESTED, False)
+
+    @property
+    def delivery_receipt(self):
+        """A delivery receipt was requested."""
+        return self.get(PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED, False)
 
     @property
     def categories(self):
@@ -574,7 +588,7 @@ class Item(Properties, Contact, Appointment):
         try:
             return _utils.stream(self._arch_item, PR_HTML)
         except MAPIErrorNotFound:
-            return ''
+            return b''
 
     @html.setter
     def html(self, x):
@@ -587,7 +601,7 @@ class Item(Properties, Contact, Appointment):
         try:
             return _utils.stream(self._arch_item, PR_RTF_COMPRESSED)
         except MAPIErrorNotFound:
-            return ''
+            return b''
 
     @rtf.setter
     def rtf(self, x):
@@ -810,6 +824,34 @@ class Item(Properties, Contact, Appointment):
     @property
     def bcc(self):
         return self.recipients(_type=MAPI_BCC)
+
+    @property
+    def replyto(self):
+        try:
+            entries = self[PR_REPLY_RECIPIENT_ENTRIES]
+        except NotFoundError:
+            return
+
+        # specs say addressbook eids, but they are one-offs?
+        # TODO use ECParseOneOff
+        count = _utils.unpack_long(entries, 0)
+        pos = 8
+        for i in range(count):
+            size = _utils.unpack_long(entries, pos)
+            content = entries[pos+4+24:pos+4+24+size]
+
+            start = sos = 0
+            info = []
+            while True:
+                if content[sos:sos+2] == b'\x00\x00':
+                    info.append(content[start:sos].decode('utf-16-le'))
+                    if len(info) == 3:
+                        yield Address(self.server, info[1], info[0], info[2])
+                        break
+                    start = sos+2
+                sos += 2
+
+            pos += 4+size
 
     @property
     def meetingrequest(self):

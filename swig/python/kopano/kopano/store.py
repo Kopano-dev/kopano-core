@@ -32,7 +32,7 @@ from MAPI.Tags import (
     PR_IPM_OL2007_ENTRYIDS, PR_MESSAGE_SIZE_EXTENDED,
     PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME, IID_IExchangeModifyTable,
     PR_MAILBOX_OWNER_ENTRYID, PR_EC_STOREGUID, PR_EC_STORETYPE,
-    PR_EC_USERNAME_W, PR_EC_COMPANY_NAME_W, PR_MESSAGE_CLASS,
+    PR_EC_USERNAME_W, PR_EC_COMPANY_NAME_W, PR_MESSAGE_CLASS_W,
     PR_SUBJECT, PR_WLINK_FLAGS, PR_WLINK_ORDINAL,
     PR_WLINK_STORE_ENTRYID, PR_WLINK_TYPE, PR_WLINK_ENTRYID,
     PR_EXTENDED_FOLDER_FLAGS, PR_WB_SF_ID, PR_FREEBUSY_ENTRYIDS,
@@ -634,12 +634,16 @@ class Store(Properties):
     def favorites(self):
         """Returns all favorite folders"""
 
+        restriction = Restriction(SPropertyRestriction(
+            RELOP_EQ, PR_MESSAGE_CLASS_W,
+            SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Microsoft.WunderBar.Link')
+        ))
+
         table = Table(
             self.server,
             self.mapiobj,
             self.common_views.mapiobj.GetContentsTable(MAPI_ASSOCIATED),
-            restriction=Restriction(SPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS,
-                                    SPropValue(PR_MESSAGE_CLASS, b"IPM.Microsoft.WunderBar.Link"))),
+            restriction=restriction,
             columns=[PR_WLINK_ENTRYID, PR_WLINK_STORE_ENTRYID],
         )
         for entryid, store_entryid in table:
@@ -679,8 +683,12 @@ class Store(Properties):
         # XXX why not just use PR_WLINK_ENTRYID??
         # match common_views SFInfo records against these guids
         table = self.common_views.mapiobj.GetContentsTable(MAPI_ASSOCIATED)
-        table.SetColumns([PR_MESSAGE_CLASS, PR_WB_SF_ID], MAPI_UNICODE)
-        table.Restrict(SPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, SPropValue(PR_MESSAGE_CLASS, "IPM.Microsoft.WunderBar.SFInfo")), TBL_BATCH)
+
+        table.SetColumns([PR_MESSAGE_CLASS_W, PR_WB_SF_ID], MAPI_UNICODE)
+        table.Restrict(SPropertyRestriction(
+            RELOP_EQ, PR_MESSAGE_CLASS_W,
+            SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Microsoft.WunderBar.SFInfo')),
+            TBL_BATCH)
 
         for row in table.QueryRows(-1, 0):
             try:
