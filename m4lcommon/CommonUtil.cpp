@@ -2192,11 +2192,11 @@ HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept, bool bDec
 	SPropValue FBProps[6];
 
 	// Meaning of these values are unknown, but are always TRUE in cases seen until now
-	FBProps[0].ulPropTag = PROP_TAG(PT_BOOLEAN, 0x6842); // PR_SCHDINFO_BOSS_WANTS_COPY
+	FBProps[0].ulPropTag = PR_SCHDINFO_BOSS_WANTS_COPY;
 	FBProps[0].Value.b = TRUE;
-	FBProps[1].ulPropTag = PROP_TAG(PT_BOOLEAN, 0x6843); //PR_SCHDINFO_DONT_MAIL_DELEGATES
+	FBProps[1].ulPropTag = PR_SCHDINFO_DONT_MAIL_DELEGATES;
 	FBProps[1].Value.b = TRUE;
-	FBProps[2].ulPropTag = PROP_TAG(PT_BOOLEAN, 0x684B); // PR_SCHDINFO_BOSS_WANTS_INFO
+	FBProps[2].ulPropTag = PR_SCHDINFO_BOSS_WANTS_INFO;
 	FBProps[2].Value.b = TRUE;
 
 	FBProps[3].ulPropTag = PR_PROCESS_MEETING_REQUESTS;
