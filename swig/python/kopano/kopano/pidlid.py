@@ -61,3 +61,7 @@ PidLidSmartNoAttach = "PT_BOOLEAN:common:0x8514"
 PidLidReminderSignalTime = "PT_SYSTIME:common:0x8560"
 PidLidAppointmentSubType = "PT_BOOLEAN:PSETID_Appointment:0x8215"
 PidLidAppointmentColor = "PT_LONG:PSETID_Appointment:0x8214"
+PidLidYomiFirstName = 'PT_UNICODE:PSETID_Address:0x802C'
+PidLidYomiLastName = 'PT_UNICODE:PSETID_Address:0x802D'
+PidLidYomiCompanyName = 'PT_UNICODE:PSETID_Address:0x802E'
+PidLidFileUnder = 'PT_UNICODE:PSETID_Address:0x8005'

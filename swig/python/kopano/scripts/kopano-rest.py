@@ -1,11 +1,11 @@
 import base64
 import dateutil.parser
 import json
+import os
 try:
     import urlparse
 except ImportError:
     import urllib.parse as urlparse
-import types
 
 from MAPI.Util import kc_session_save, kc_session_restore, GetDefaultStore
 
@@ -25,17 +25,20 @@ PREFIX = '/api/gc/v0'
 #      which _is_ used by graph for contact photos, interestingly
 # TODO bulk copy/move/delete?
 # TODO childFolders recursion/relative paths
-# TODO Message.{bodyPreview, isDraft, webLink, inferenceClassification}?
-# TODO Event.{bodyPreview, webLink, onlineMeetingUrl}?
+# TODO Message.{isDraft, webLink, inferenceClassification}?
+# TODO Event.{webLink, onlineMeetingUrl, uniqueBody}?
 # TODO Attachment.{contentId, contentLocation}?
 # TODO /me/{contactFolders,calendars} -> which folders exactly?
 # TODO @odata.context: check exact structure
-# TODO overlapping class functionality (eg MessageResource, EventResource)
 # TODO delta: delete requires entryid.. finally fix ICS?
 # TODO ICS, filters etc & pagination?
+# TODO calendarresource fields
+# TODO $count seems broken for ms graph?
+# TODO orderby: asc/dec
+# TODO $filter, $search, $expand items
 
 def _server(req):
-    userid = req.get_header('X-Kopano-UserEntryID', required=True)
+    userid = os.getenv('KOPANO_REST_USERID') or req.get_header('X-Kopano-UserEntryID', required=True)
     if userid in userid_sessiondata:
         sessiondata = userid_sessiondata[userid]
         mapisession = kc_session_restore(sessiondata)
@@ -56,6 +59,8 @@ def _store(server, userid):
                             mapiobj=GetDefaultStore(server.mapisession))
 
 def _date(d, local=False):
+    if d is None:
+        return '0001-01-01T00:00:00Z'
     fmt = '%Y-%m-%dT%H:%M:%S'
     if d.microsecond:
         fmt += '.%f'
@@ -65,30 +70,26 @@ def _date(d, local=False):
 
 class Resource(object):
     def get_fields(self, obj, fields, all_fields):
-        if isinstance(obj, kopano.Attachment) and obj.embedded: # TODO
-            fields = [f for f in fields if f != 'contentBytes']
+        fields = fields or all_fields or self.fields
         result = {f: all_fields[f](obj) for f in fields if f in all_fields}
-        # TODO move to resp. resource classes
-        if (isinstance(obj, kopano.Item) and \
-            # TODO pyko shortcut
-            obj.message_class.startswith('IPM.Schedule.Meeting.')):
-            result['@odata.type'] = '#microsoft.graph.eventMessage'
-        elif isinstance(obj, kopano.Attachment):
-            if obj.embedded:
-                result['@odata.type'] = '#microsoft.graph.itemAttachment'
-            else:
-                result['@odata.type'] = '#microsoft.graph.fileAttachment'
+        # TODO do not handle here
+        if '@odata.type' in result and not result['@odata.type']:
+            del result['@odata.type']
         return result
 
-    def json(self, req, obj, fields, all_fields, multi=False):
+    def json(self, req, obj, fields, all_fields, multi=False, expand=None):
         data = self.get_fields(obj, fields, all_fields)
         if not multi:
             data['@odata.context'] = req.path
+        if expand:
+            data.update(expand)
         return json.dumps(data, indent=2, separators=(',', ': '))
 
-    def json_multi(self, req, obj, fields, all_fields, top, skip, count, deltalink):
+    def json_multi(self, req, obj, fields, all_fields, top, skip, count, deltalink, add_count=False):
         header = b'{\n'
         header += b'  "@odata.context": "%s",\n' % req.path.encode('utf-8')
+        if add_count:
+              header += b'  "@odata.count": "%d",\n' % count
         if deltalink:
               header += b'  "@odata.deltaLink": "%s",\n' % deltalink
         elif skip+top < count:
@@ -97,6 +98,9 @@ class Resource(object):
         yield header
         first = True
         for o in obj:
+            if isinstance(o, tuple):
+                o, resource = o
+                all_fields = resource.fields
             if not first:
                 yield b',\n'
             first = False
@@ -107,19 +111,37 @@ class Resource(object):
     def respond(self, req, resp, obj, all_fields=None, deltalink=None):
         # determine fields
         args = urlparse.parse_qs(req.query_string)
-        fields = all_fields or self.fields
         if '$select' in args:
             fields = set(args['$select'][0].split(',') + ['@odata.type', '@odata.etag', 'id'])
         else:
-            fields = set(fields.keys())
+            fields = None
 
-        # jsonify result (as stream)
         resp.content_type = "application/json"
+
+        # multiple objects: stream
         if isinstance(obj, tuple):
             obj, top, skip, count = obj
-            resp.stream = self.json_multi(req, obj, fields, all_fields or self.fields, top, skip, count, deltalink)
+            add_count = '$count' in args and args['$count'][0] == 'true'
+
+            resp.stream = self.json_multi(req, obj, fields, all_fields or self.fields, top, skip, count, deltalink, add_count)
+
+        # single object
         else:
-            resp.body = self.json(req, obj, fields, all_fields or self.fields)
+            # expand sub-objects # TODO stream?
+            expand = None
+            if '$expand' in args:
+                expand = {}
+                for field in args['$expand'][0].split(','):
+                    if hasattr(self, 'relations') and field in self.relations:
+                        objs, resource = self.relations[field](obj)
+                        expand[field] = [self.get_fields(obj2, resource.fields, resource.fields) for obj2 in objs()]
+
+                    elif hasattr(self, 'expansions') and field in self.expansions:
+                        obj2, resource = self.expansions[field](obj)
+                        # TODO item@odata.context, @odata.type..
+                        expand[field.split('/')[1]] = self.get_fields(obj2, resource.fields, resource.fields)
+
+            resp.body = self.json(req, obj, fields, all_fields or self.fields, expand=expand)
 
     def generator(self, req, generator, count=0):
         # determine pagination and ordering
@@ -172,7 +194,7 @@ class UserResource(Resource):
             def yielder(**kwargs):
                 yield store.contacts # TODO which folders exactly?
             data = self.generator(req, yielder, 1)
-            self.respond(req, resp, data, MailFolderResource.fields)
+            self.respond(req, resp, data, ContactFolderResource.fields)
 
         elif method == 'calendars':
             def yielder(**kwargs):
@@ -229,14 +251,41 @@ class UserResource(Resource):
             folder = store.create_folder(fields['displayName']) # TODO exception on conflict
             self.respond(req, resp, folder, MailFolderResource.fields)
 
-class MailFolderResource(Resource):
+class FolderResource(Resource):
     fields = {
         'id': lambda folder: folder.entryid,
+    }
+
+    def on_delete(self, req, resp, userid=None, folderid=None):
+        server = _server(req)
+        store = _store(server, userid)
+        folder = store.folder(entryid=folderid)
+
+        store.delete(folder)
+
+class ItemResource(Resource):
+    fields = {
+        '@odata.etag': lambda item: 'W/"'+item.changekey+'"',
+        'id': lambda item: item.entryid,
+        'changeKey': lambda item: item.changekey,
+        'createdDateTime': lambda item: _date(item.created),
+        'lastModifiedDateTime': lambda item: _date(item.last_modified),
+        'categories': lambda item: item.categories,
+    }
+
+class MailFolderResource(FolderResource):
+    fields = FolderResource.fields.copy()
+    fields.update({
         'parentFolderId': lambda folder: folder.parent.entryid,
         'displayName': lambda folder: folder.name,
         'unreadItemCount': lambda folder: folder.unread,
         'totalItemCount': lambda folder: folder.count,
         'childFolderCount': lambda folder: folder.subfolder_count,
+    })
+
+    relations = {
+        'childFolders': lambda folder: (folder.folders, MailFolderResource),
+        'messages': lambda folder: (folder.items, MessageResource) # TODO event msgs
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, method=None):
@@ -289,18 +338,11 @@ class MailFolderResource(Resource):
             else:
                 folder.parent.move(folder, to_folder)
 
-    def on_delete(self, req, resp, userid=None, folderid=None):
-        server = _server(req)
-        store = _store(server, userid)
-        folder = store.folder(entryid=folderid)
-
-        store.delete(folder)
-
-class CalendarResource(Resource):
-    fields = {
-        'id': lambda folder: folder.entryid,
+class CalendarResource(FolderResource):
+    fields = FolderResource.fields.copy()
+    fields.update({
         'displayName': lambda folder: folder.name,
-    }
+    })
 
     def on_get(self, req, resp, userid=None, folderid=None, method=None):
         server = _server(req)
@@ -365,21 +407,32 @@ class Importer:
     def update(self, item, flags):
         self.updates.append(item)
 
-class MessageResource(Resource):
-    fields = {
-        '@odata.etag': lambda item: 'W/"'+item.changekey+'"',
-        'id': lambda item: item.entryid,
-        'createdDateTime': lambda item: _date(item.created),
-        'categories': lambda item: item.categories,
-        'changeKey': lambda item: item.changekey,
+def get_body(item):
+    if item.body_type == 'text':
+        return {'contentType': 'text', 'content': item.text}
+    else:
+        return {'contentType': 'html', 'content': item.html.decode('utf8')}, # TODO if not utf8?
+
+def get_attachments(item):
+    for attachment in item.attachments(embedded=True):
+        if attachment.embedded:
+            yield (attachment, ItemAttachmentResource)
+        else:
+            yield (attachment, FileAttachmentResource)
+
+class MessageResource(ItemResource):
+    fields = ItemResource.fields.copy()
+    fields.update({
+        # TODO pyko shortcut for event messages
+        # TODO eventMessage resource?
+        '@odata.type': lambda item: '#microsoft.graph.eventMessage' if item.message_class.startswith('IPM.Schedule.Meeting.') else None,
         'subject': lambda item: item.subject,
-        'body': lambda item: {'contentType': 'html', 'content': item.html.decode('utf8')}, # TODO if not utf8?
+        'body': lambda item: get_body(item),
         'from': lambda item: {'emailAddress': {'name': item.from_.name, 'address': item.from_.email} },
         'sender': lambda item: {'emailAddress': {'name': item.sender.name, 'address': item.sender.email} },
         'toRecipients': lambda item: [{'emailAddress': {'name': to.name, 'address': to.email}} for to in item.to],
         'ccRecipients': lambda item: [{'emailAddress': {'name': cc.name, 'address': cc.email}} for cc in item.cc],
         'bccRecipients': lambda item: [{'emailAddress': {'name': bcc.name, 'address': bcc.email}} for bcc in item.bcc],
-        'lastModifiedDateTime': lambda item: _date(item.last_modified),
         'sentDateTime': lambda item: _date(item.sent) if item.sent else None,
         'receivedDateTime': lambda item: _date(item.received) if item.received else None,
         'hasAttachments': lambda item: item.has_attachments,
@@ -391,7 +444,8 @@ class MessageResource(Resource):
         'isReadReceiptRequested': lambda item: item.read_receipt,
         'isDeliveryReceiptRequested': lambda item: item.read_receipt,
         'replyTo': lambda item: [{'emailAddress': {'name': to.name, 'address': to.email}} for to in item.replyto],
-    }
+        'bodyPreview': lambda item: item.text[:255],
+    })
 
     set_fields = {
         'subject': lambda item, arg: setattr(item, 'subject', arg),
@@ -425,9 +479,9 @@ class MessageResource(Resource):
             item = folder.item(messageid)
 
         if method == 'attachments':
-            attachments = item.attachments(embedded=True)
-            data = (attachments, TOP, 0, attachments)
-            self.respond(req, resp, data, AttachmentResource.fields)
+            attachments = list(get_attachments(item))
+            data = (attachments, TOP, 0, len(attachments))
+            self.respond(req, resp, data)
             return
 
         elif method in ('copy', 'move'):
@@ -467,15 +521,26 @@ class MessageResource(Resource):
 
         store.delete(item)
 
+class EmbeddedMessageResource(MessageResource):
+    fields = MessageResource.fields.copy()
+    fields.update({
+        'id': lambda item: '',
+    })
+    del fields['parentFolderId'] # TODO more?
+
 class AttachmentResource(Resource):
     fields = {
         'id': lambda attachment: attachment.entryid,
         'name': lambda attachment: attachment.name,
-        'contentBytes': lambda attachment: base64.urlsafe_b64encode(attachment.data).decode('ascii'),
         'lastModifiedDateTime': lambda attachment: _date(attachment.last_modified),
         'size': lambda attachment: attachment.size,
         'isInline': lambda attachment: False, # TODO
         'contentType': lambda attachment: attachment.mimetype,
+    }
+
+    # TODO to ItemAttachmentResource
+    expansions = {
+        'microsoft.graph.itemAttachment/item': lambda attachment: (attachment.item, EmbeddedMessageResource),
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, messageid=None, eventid=None, attachmentid=None, method=None):
@@ -500,7 +565,11 @@ class AttachmentResource(Resource):
             resp.content_type = data.mimetype
             resp.data = data.data
         else:
-            self.respond(req, resp, data)
+            if data.embedded:
+                all_fields = ItemAttachmentResource.fields # TODO to sub resource
+            else:
+                all_fields = FileAttachmentResource.fields
+            self.respond(req, resp, data, all_fields=all_fields)
 
     def on_delete(self, req, resp, userid=None, folderid=None, messageid=None, eventid=None, attachmentid=None, method=None):
         server = _server(req)
@@ -511,11 +580,26 @@ class AttachmentResource(Resource):
 
         item.delete(attachment)
 
+class FileAttachmentResource(AttachmentResource):
+    fields = AttachmentResource.fields.copy()
+    fields.update({
+        '@odata.type': lambda attachment: '#microsoft.graph.fileAttachment',
+        'contentBytes': lambda attachment: base64.urlsafe_b64encode(attachment.data).decode('ascii'),
+    })
+
+class ItemAttachmentResource(AttachmentResource):
+    fields = AttachmentResource.fields.copy()
+    fields.update({
+        '@odata.type': lambda attachment: '#microsoft.graph.itemAttachment',
+    })
+
 pattern_map = {
-    'monthly': 'absoluteMonthly',
-    'monthnth': 'relativeMonthly',
-    'daily': 'daily',
-    'weekly': 'weekly'
+    'month': 'absoluteMonthly',
+    'month_rel': 'relativeMonthly',
+    'day': 'daily',
+    'week': 'weekly',
+    'year': 'absoluteYearly',
+    'year_rel': 'relativeYearly',
 }
 
 def recurrence_json(item):
@@ -526,7 +610,7 @@ def recurrence_json(item):
             'pattern': {
                 'type': pattern_map[recurrence.pattern],
                 'interval': recurrence.interval,
-                'month': 0,
+                'month': recurrence.month or 0,
                 'dayOfMonth': recurrence.monthday or 0,
                 'index': recurrence.index or 'first',
                 'firstDayOfWeek': recurrence.first_weekday,
@@ -546,25 +630,25 @@ def attendees_json(item):
     result = []
     for attendee in item.attendees():
         address = attendee.address
-        result.append({'emailAddress': {'name': address.name, 'address': address.email}})
+        result.append({
+            # TODO map response field names
+            'status': {'response': attendee.response or 'none', 'time': _date(attendee.response_time)},
+            'type': attendee.type,
+            'emailAddress': {'name': address.name, 'address': address.email},
+        })
     return result
 
 def setdate(item, field, arg):
     date = dateutil.parser.parse(arg['dateTime'])
     setattr(item, field, date)
 
-class EventResource(Resource):
-    fields = {
-        '@odata.etag': lambda item: 'W/"'+item.changekey+'"',
-        'id': lambda item: item.entryid,
+class EventResource(ItemResource):
+    fields = ItemResource.fields.copy()
+    fields.update({
         'subject': lambda item: item.subject,
         'recurrence': recurrence_json,
         'start': lambda item: {'dateTime': _date(item.start, True), 'timeZone': 'UTC'} if item.start else None,
         'end': lambda item: {'dateTime': _date(item.end, True), 'timeZone': 'UTC'} if item.end else None,
-        'createdDateTime': lambda item: _date(item.created),
-        'lastModifiedDateTime': lambda item: _date(item.last_modified),
-        'categories': lambda item: item.categories,
-        'changeKey': lambda item: item.changekey,
         'location': lambda item: { 'displayName': item.location, 'address': {}}, # TODO
         'importance': lambda item: item.urgency,
         'hasAttachments': lambda item: item.has_attachments,
@@ -572,7 +656,8 @@ class EventResource(Resource):
         'isReminderOn': lambda item: item.reminder,
         'reminderMinutesBeforeStart': lambda item: item.reminder_minutes,
         'attendees': lambda item: attendees_json(item),
-    }
+        'bodyPreview': lambda item: item.text[:255],
+    })
 
     set_fields = {
         'subject': lambda item, arg: setattr(item, 'subject', arg),
@@ -592,8 +677,8 @@ class EventResource(Resource):
         item = folder.item(eventid)
 
         if method == 'attachments':
-            attachments = item.attachments(embedded=True)
-            data = (attachments, TOP, 0, attachments)
+            attachments = list(item.attachments(embedded=True))
+            data = (attachments, TOP, 0, len(attachments))
             self.respond(req, resp, data, AttachmentResource.fields)
             return
 
@@ -622,12 +707,12 @@ class EventResource(Resource):
         item = store.item(eventid)
         store.delete(item)
 
-class ContactFolderResource(Resource):
-    fields = {
-        'id': lambda folder: folder.entryid,
+class ContactFolderResource(FolderResource):
+    fields = FolderResource.fields.copy()
+    fields.update({
         'displayName': lambda folder: folder.name,
         'parentFolderId': lambda folder: folder.parent.entryid,
-    }
+    })
 
     def on_get(self, req, resp, userid=None, folderid=None, method=None):
         server = _server(req)
@@ -665,27 +750,30 @@ class ContactFolderResource(Resource):
 def set_email_addresses(item, arg): # TODO multiple via pyko
     item.address1 = '%s <%s>' % (arg[0]['name'], arg[0]['address'])
 
-class ContactResource(Resource):
-    fields = {
-        '@odata.etag': lambda item: 'W/"'+item.changekey+'"',
-        'id': lambda item: item.entryid,
-        'createdDateTime': lambda item: _date(item.created),
-        'lastModifiedDateTime': lambda item: _date(item.last_modified),
+class ContactResource(ItemResource):
+    fields = ItemResource.fields.copy()
+    fields.update({
         'displayName': lambda item: item.name,
         'emailAddresses': lambda item: [{'name': a.name, 'address': a.email} for a in item.addresses()],
-        'categories': lambda item: item.categories,
-        'changeKey': lambda item: item.changekey,
         'parentFolderId': lambda item: item.folder.entryid,
-        'givenName': lambda item: item.given_name,
-        'middleName': lambda item: item.middle_name,
-        'surname': lambda item: item.surname,
-        'nickName': lambda item: item.nickname,
-        'title': lambda item: item.title,
-        'companyName': lambda item: item.company_name,
-        'mobilePhone': lambda item: item.mobile_phone,
+        'givenName': lambda item: item.first_name or None,
+        'middleName': lambda item: item.middle_name or None,
+        'surname': lambda item: item.last_name or None,
+        'nickName': lambda item: item.nickname or None,
+        'title': lambda item: item.title or None,
+        'companyName': lambda item: item.company_name or None,
+        'mobilePhone': lambda item: item.mobile_phone or None,
         'personalNotes': lambda item: item.text,
-        'generation': lambda item: item.generation,
-    }
+        'generation': lambda item: item.generation or None,
+        'children': lambda item: item.children,
+        'spouseName': lambda item: item.spouse or None,
+        'birthday': lambda item: _date(item.birthday),
+        'initials': lambda item: item.initials or None,
+        'yomiGivenName': lambda item: item.yomi_first_name or None,
+        'yomiSurname': lambda item: item.yomi_last_name or None,
+        'yomiCompanyName': lambda item: item.yomi_company_name or None,
+        'fileAs': lambda item: item.file_as,
+    })
 
     set_fields = {
         'displayName': lambda item, arg: setattr(item, 'name', arg),

@@ -17,15 +17,18 @@ from MAPI import (
 from MAPI.Tags import (
     PR_ATTACHMENT_CONTACTPHOTO, PR_GIVEN_NAME_W, PR_MIDDLE_NAME_W,
     PR_SURNAME_W, PR_NICKNAME_W, PR_GENERATION_W, PR_TITLE_W, PR_GENERATION_W,
-    PR_COMPANY_NAME_W, PR_MOBILE_TELEPHONE_NUMBER_W,
+    PR_COMPANY_NAME_W, PR_MOBILE_TELEPHONE_NUMBER_W, PR_CHILDRENS_NAMES_W,
+    PR_BIRTHDAY, PR_SPOUSE_NAME_W, PR_INITIALS_W,
 )
 
 from .pidlid import (
     PidLidEmail1AddressType, PidLidEmail1DisplayName, PidLidEmail1EmailAddress,
-    PidLidEmail1OriginalEntryId,
+    PidLidEmail1OriginalEntryId, PidLidYomiFirstName, PidLidYomiLastName,
+    PidLidYomiCompanyName, PidLidFileUnder,
 )
 
 from .address import Address
+from .errors import NotFoundError
 from .compat import (
     fake_unicode as _unicode,
 )
@@ -94,36 +97,70 @@ class Contact(object):
         # XXX shouldn't be needed?
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
+    @property
+    def initials(self):
+        return self.get(PR_INITIALS_W, u'')
 
     @property
-    def given_name(self):
-        return self.get(PR_GIVEN_NAME_W)
+    def first_name(self):
+        return self.get(PR_GIVEN_NAME_W, u'')
 
     @property
     def middle_name(self):
-        return self.get(PR_MIDDLE_NAME_W)
+        return self.get(PR_MIDDLE_NAME_W, u'')
 
     @property
-    def surname(self):
-        return self.get(PR_SURNAME_W)
+    def last_name(self):
+        return self.get(PR_SURNAME_W, u'')
 
     @property
     def nickname(self):
-        return self.get(PR_NICKNAME_W)
+        return self.get(PR_NICKNAME_W, u'')
 
     @property
     def title(self):
         # TODO webapp uses PR_DISPLAY_NAME_PREFIX_W..?
-        return self.get(PR_TITLE_W)
+        return self.get(PR_TITLE_W, u'')
 
     @property
     def generation(self):
-        return self.get(PR_GENERATION_W)
+        return self.get(PR_GENERATION_W, u'')
 
     @property
     def company_name(self):
-        return self.get(PR_COMPANY_NAME_W)
+        return self.get(PR_COMPANY_NAME_W, u'')
 
     @property
     def mobile_phone(self):
-        return self.get(PR_MOBILE_TELEPHONE_NUMBER_W)
+        return self.get(PR_MOBILE_TELEPHONE_NUMBER_W, u'')
+
+    @property
+    def children(self):
+        try:
+            return self[PR_CHILDRENS_NAMES_W]
+        except NotFoundError:
+            return []
+
+    @property
+    def spouse(self):
+        return self.get(PR_SPOUSE_NAME_W, u'')
+
+    @property
+    def birthday(self):
+        return self.get(PR_BIRTHDAY)
+
+    @property
+    def yomi_first_name(self):
+        return self.get(PidLidYomiFirstName, u'')
+
+    @property
+    def yomi_last_name(self):
+        return self.get(PidLidYomiLastName, u'')
+
+    @property
+    def yomi_company_name(self):
+        return self.get(PidLidYomiCompanyName, u'')
+
+    @property
+    def file_as(self):
+        return self.get(PidLidFileUnder, u'')

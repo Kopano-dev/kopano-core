@@ -518,13 +518,13 @@ class Item(Properties, Contact, Appointment):
 
         for row in table.rows():
             if row[1].value == ATTACH_BY_VALUE or (embedded and row[1].value == ATTACH_EMBEDDED_MSG):
-                yield Attachment(mapiitem, row[0].value)
+                yield Attachment(self, mapiitem, row[0].value)
 
     def attachment(self, entryid):
         # TODO can we use something existing for entryid, like PR_ENTRYID? check exchange?
 
         # TODO performance, restriction on PR_RECORD_KEY part?
-        for attachment in self.attachments():
+        for attachment in self.attachments(embedded=True):
             if attachment.entryid == entryid:
                 return attachment
         else:
@@ -547,7 +547,7 @@ class Item(Properties, Contact, Appointment):
         stream.Commit(0)
         attach.SaveChanges(KEEP_OPEN_READWRITE)
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
-        return Attachment(mapiobj=attach)
+        return Attachment(self, mapiobj=attach)
 
     @property
     def has_attachments(self):
