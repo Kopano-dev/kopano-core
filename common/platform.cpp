@@ -34,15 +34,10 @@
 
 namespace KC {
 
-HRESULT UnixTimeToFileTime(time_t t, FILETIME *ft)
+FILETIME UnixTimeToFileTime(time_t t)
 {
-    __int64 l;
-
-    l = (__int64)t * 10000000 + NANOSECS_BETWEEN_EPOCHS;
-    ft->dwLowDateTime = (unsigned int)l;
-    ft->dwHighDateTime = (unsigned int)(l >> 32);
-
-	return hrSuccess;
+	auto l = static_cast<int64_t>(t) * 10000000 + NANOSECS_BETWEEN_EPOCHS;
+	return {static_cast<DWORD>(l), static_cast<DWORD>(l >> 32)};
 }
 
 time_t FileTimeToUnixTime(const FILETIME &ft)
@@ -75,23 +70,17 @@ void UnixTimeToFileTime(time_t t, int *hi, unsigned int *lo)
 static const LONGLONG UnitsPerMinute = 600000000;
 static const LONGLONG UnitsPerHalfMinute = 300000000;
 
-void RTimeToFileTime(LONG rtime, FILETIME *pft)
+static FILETIME RTimeToFileTime(LONG rtime)
 {
-	// assert(pft != NULL);
-	ULONGLONG q = rtime;
-	q *= UnitsPerMinute;
-	pft->dwLowDateTime  = q & 0xFFFFFFFF;
-	pft->dwHighDateTime = q >> 32;
+	auto q = static_cast<ULONGLONG>(rtime) * UnitsPerMinute;
+	return {static_cast<DWORD>(q & 0xFFFFFFFF), static_cast<DWORD>(q >> 32)};
 }
  
-LONG FileTimeToRTime(const FILETIME *pft)
+LONG FileTimeToRTime(const FILETIME &pft)
 {
-	// assert(pft != NULL);
-	// assert(prtime != NULL);
-	ULONGLONG q = pft->dwHighDateTime;
+	ULONGLONG q = pft.dwHighDateTime;
 	q <<= 32;
-	q |= pft->dwLowDateTime;
-
+	q |= pft.dwLowDateTime;
 	q += UnitsPerHalfMinute;
 	q /= UnitsPerMinute;
 	return q & 0x7FFFFFFF;
@@ -99,16 +88,14 @@ LONG FileTimeToRTime(const FILETIME *pft)
 
 time_t RTimeToUnixTime(LONG rtime)
 {
-	FILETIME ft;
-	RTimeToFileTime(rtime, &ft);
-	return FileTimeToUnixTime(ft);
+	return FileTimeToUnixTime(RTimeToFileTime(rtime));
 }
 
 LONG UnixTimeToRTime(time_t unixtime)
 {
 	FILETIME ft;
-	UnixTimeToFileTime(unixtime, &ft);
-	return FileTimeToRTime(&ft);
+	ft = UnixTimeToFileTime(unixtime);
+	return FileTimeToRTime(ft);
 }
 
 /* The 'IntDate' and 'IntTime' date and time encoding are used for some CDO calculations. They

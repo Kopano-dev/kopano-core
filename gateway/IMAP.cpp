@@ -5149,7 +5149,8 @@ HRESULT IMAP::HrGetBodyStructure(bool bExtended, string &strBodyStructure, const
  * 
  * @return date/time in string format
  */
-string IMAP::FileTimeToString(FILETIME sFileTime) {
+std::string IMAP::FileTimeToString(const FILETIME &sFileTime)
+{
 	char szBuffer[31];
 	struct tm ptr;
 
@@ -5173,7 +5174,8 @@ string IMAP::FileTimeToString(FILETIME sFileTime) {
  * 
  * @return MAPI FILETIME structure
  */
-FILETIME IMAP::StringToFileTime(string strTime, bool bDateOnly) {
+FILETIME IMAP::StringToFileTime(string strTime, bool bDateOnly)
+{
 	FILETIME sFileTime;
 	struct tm sTm;
 	ULONG ulMonth;
@@ -5238,7 +5240,7 @@ FILETIME IMAP::StringToFileTime(string strTime, bool bDateOnly) {
 
 done:
 	sTime = timegm(&sTm);
-	UnixTimeToFileTime(sTime, &sFileTime);
+	sFileTime = UnixTimeToFileTime(sTime);
 	return sFileTime;
 }
 
@@ -5249,11 +5251,12 @@ done:
  * 
  * @return Input + 24 hours
  */
-FILETIME IMAP::AddDay(FILETIME sFileTime) {
+FILETIME IMAP::AddDay(const FILETIME &sFileTime)
+{
 	FILETIME sFT;
 
 	// add 24 hour in seconds = 24*60*60 seconds
-	UnixTimeToFileTime(FileTimeToUnixTime(sFileTime) + 24 * 60 * 60, &sFT);
+	sFT = UnixTimeToFileTime(FileTimeToUnixTime(sFileTime) + 24 * 60 * 60);
 	return sFT;
 }
 
@@ -5363,13 +5366,13 @@ HRESULT IMAP::IMAP2MAPICharset(const string& input, wstring& output) {
  * 
  * @return whether folder matches
  */
-bool IMAP::MatchFolderPath(wstring strFolder, const wstring& strPattern)
+bool IMAP::MatchFolderPath(const std::wstring &in_folder,
+    const std::wstring &strPattern)
 {
     bool bMatch = false;
     int f = 0;
     int p = 0;
-    
-    strFolder = strToUpper(strFolder);
+	auto strFolder = strToUpper(in_folder);
     
     while(1) {
         if (f == static_cast<int>(strFolder.size()) &&

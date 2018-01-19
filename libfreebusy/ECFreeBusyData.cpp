@@ -61,7 +61,7 @@ HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, F
 
 	if(ppenumfb == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	auto hr = m_fbBlockList.Restrict(FileTimeToRTime(&ftmStart), FileTimeToRTime(&ftmEnd));
+	auto hr = m_fbBlockList.Restrict(FileTimeToRTime(ftmStart), FileTimeToRTime(ftmEnd));
 	if(hr != hrSuccess)
 		return hr;
 	hr = ECEnumFBBlock::Create(&m_fbBlockList, &~lpECEnumFBBlock);

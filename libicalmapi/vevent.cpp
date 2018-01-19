@@ -184,7 +184,7 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 		// time(NULL) returns UTC time as libical sets application to UTC time.
 		auto tNow = time(nullptr);
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTREPLYTIME], PT_SYSTIME);
-		UnixTimeToFileTime(tNow, &sPropVal.Value.ft);
+		sPropVal.Value.ft  = UnixTimeToFileTime(tNow);
 		lstMsgProps->emplace_back(sPropVal);
 
 		// Publish is used when mixed events are in the vcalendar
@@ -300,13 +300,13 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 
 			// set new proposal start
 			timeDTStartUTC = ICalTimeTypeToUTC(lpicEventRoot, lpicDTStartProp);
-			UnixTimeToFileTime(timeDTStartUTC, &sPropVal.Value.ft);
+			sPropVal.Value.ft  = UnixTimeToFileTime(timeDTStartUTC);
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PROPOSEDSTART], PT_SYSTIME);
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
 			// set new proposal end
 			timeDTEndUTC = ICalTimeTypeToUTC(lpicEventRoot, lpicDTEndProp);
-			UnixTimeToFileTime(timeDTEndUTC, &sPropVal.Value.ft);
+			sPropVal.Value.ft  = UnixTimeToFileTime(timeDTEndUTC);
 			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PROPOSEDEND], PT_SYSTIME);
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
@@ -332,9 +332,9 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 	timeStartOffset = timeDTStartUTC - timeDTStartLocal;
 
 	if (bIsAllday)
-		UnixTimeToFileTime(timeDTStartLocal, &sPropVal.Value.ft);
+		sPropVal.Value.ft = UnixTimeToFileTime(timeDTStartLocal);
 	else
-		UnixTimeToFileTime(timeDTStartUTC, &sPropVal.Value.ft);
+		sPropVal.Value.ft = UnixTimeToFileTime(timeDTStartUTC);
 
 	// Set 0x820D / ApptStartWhole
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
@@ -375,9 +375,9 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 	timeEndOffset = timeDTEndUTC - timeDTEndLocal;
 
 	if (bIsAllday)
-		UnixTimeToFileTime(timeDTEndLocal, &sPropVal.Value.ft);
+		sPropVal.Value.ft = UnixTimeToFileTime(timeDTEndLocal);
 	else
-		UnixTimeToFileTime(timeDTEndUTC, &sPropVal.Value.ft);
+		sPropVal.Value.ft = UnixTimeToFileTime(timeDTEndUTC);
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.emplace_back(sPropVal);

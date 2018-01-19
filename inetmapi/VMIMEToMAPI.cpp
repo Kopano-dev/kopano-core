@@ -3039,12 +3039,12 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 
 			if(lpProps[2].ulPropTag != PROP_ATTENDEECRITICALCHANGE) {
 				lpProps[2].ulPropTag = PROP_ATTENDEECRITICALCHANGE;
-				UnixTimeToFileTime(time(NULL), &lpProps[2].Value.ft);
+				lpProps[2].Value.ft  = UnixTimeToFileTime(time(nullptr));
 			}
 
 			if(lpProps[3].ulPropTag != PROP_OWNERCRITICALCHANGE) {
 				lpProps[3].ulPropTag = PROP_OWNERCRITICALCHANGE;
-				UnixTimeToFileTime(time(NULL), &lpProps[3].Value.ft);
+				lpProps[3].Value.ft  = UnixTimeToFileTime(time(nullptr));
 			}
 
 			if(lpProps[4].ulPropTag != PR_OWNER_APPT_ID) {

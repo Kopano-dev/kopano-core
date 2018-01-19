@@ -137,8 +137,8 @@ PublishFreeBusy::PublishFreeBusy(IMAPISession *lpSession, IMsgStore *lpDefStore,
 	m_lpSession(lpSession), m_lpDefStore(lpDefStore), m_tsStart(tsStart),
 	m_tsEnd(tsStart + ulMonths * 30 * 24 * 60 * 60), m_propmap(7)
 {
-	UnixTimeToFileTime(m_tsStart, &m_ftStart);
-	UnixTimeToFileTime(m_tsEnd , &m_ftEnd);
+	m_ftStart = UnixTimeToFileTime(m_tsStart);
+	m_ftEnd   = UnixTimeToFileTime(m_tsEnd);
 }
 
 /** 
@@ -275,9 +275,9 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 				OccrInfo sOccrBlock;
 
 				if (lpRowSet[i].lpProps[0].ulPropTag == PROP_APPT_STARTWHOLE)
-					sOccrBlock.fbBlock.m_tmStart = FileTimeToRTime(&lpRowSet[i].lpProps[0].Value.ft);
+					sOccrBlock.fbBlock.m_tmStart = FileTimeToRTime(lpRowSet[i].lpProps[0].Value.ft);
 				if (lpRowSet[i].lpProps[1].ulPropTag == PROP_APPT_ENDWHOLE) {
-					sOccrBlock.fbBlock.m_tmEnd = FileTimeToRTime(&lpRowSet[i].lpProps[1].Value.ft);
+					sOccrBlock.fbBlock.m_tmEnd = FileTimeToRTime(lpRowSet[i].lpProps[1].Value.ft);
 					sOccrBlock.tBaseDate = FileTimeToUnixTime(lpRowSet[i].lpProps[1].Value.ft);
 				}
 				if (lpRowSet[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)
@@ -448,7 +448,7 @@ HRESULT PublishFreeBusy::HrPublishFBblocks(const FBBlock_1 *lpfbBlocks, ULONG cV
 	if(hr != hrSuccess)
 		return hr;
 	/* 86400: include current day. */
-	UnixTimeToFileTime(FileTimeToUnixTime(m_ftStart) - 86400, &m_ftStart);
+	m_ftStart = UnixTimeToFileTime(FileTimeToUnixTime(m_ftStart) - 86400);
 	return lpFBUpdate->SaveChanges(m_ftStart, m_ftEnd);
 }
 

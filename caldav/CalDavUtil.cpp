@@ -781,10 +781,8 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	hr = lpFBSupport->LoadFreeBusyData(cUsers, lpUsers, lppFBData, NULL, &cFBData);
 	if (hr != hrSuccess)
 		goto exit;
-
-	UnixTimeToFileTime(lpFbInfo->tStart, &ftStart);
-	UnixTimeToFileTime(lpFbInfo->tEnd, &ftEnd);
-
+	ftStart = UnixTimeToFileTime(lpFbInfo->tStart);
+	ftEnd   = UnixTimeToFileTime(lpFbInfo->tEnd);
 	itUsers = lplstUsers->cbegin();
 	// iterate through all users
 	for (ULONG i = 0; i < cUsers; ++i) {
