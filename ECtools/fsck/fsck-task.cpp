@@ -28,7 +28,7 @@
 #include <kopano/namedprops.h>
 #include "fsck.h"
 
-using namespace KCHL;
+using namespace KC;
 
 HRESULT FsckTask::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 {

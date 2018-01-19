@@ -58,7 +58,7 @@ private:
 	_kc_hidden HRESULT PopulateFromContainer(LPABCONT container);
 
 	ArchiverSessionPtr m_ptrSession;
-	KCHL::object_ptr<ECArchiverLogger> m_lpLogger;
+	object_ptr<ECArchiverLogger> m_lpLogger;
 	ArchiveInfoMap	m_mapArchiveInfo;
 };
 

@@ -26,7 +26,7 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 
-using namespace KCHL;
+using namespace KC;
 
 /**
  * Open MAPI session

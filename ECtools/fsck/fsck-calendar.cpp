@@ -33,7 +33,7 @@
 #include <kopano/RecurrenceState.h>
 #include "fsck.h"
 
-using namespace KCHL;
+using namespace KC;
 
 HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 {

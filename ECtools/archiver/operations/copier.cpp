@@ -275,7 +275,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 			AttachPtr ptrSourceAttach;
 			SPropValuePtr ptrAttachMethod;
 			AttachPtr ptrDestAttach;
-			KCHL::object_ptr<IECSingleInstance> ptrInstance;
+			object_ptr<IECSingleInstance> ptrInstance;
 			ULONG cbSourceSIID;
 			EntryIdPtr ptrSourceSIID;
 			ULONG cbDestSIID;

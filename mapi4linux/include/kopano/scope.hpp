@@ -1,10 +1,10 @@
-#ifndef _KCHL_SCOPE_HPP
-#define _KCHL_SCOPE_HPP 1
+#ifndef _KC_SCOPE_HPP
+#define _KC_SCOPE_HPP 1
 
 #include <stdexcept>
 #include <utility>
 
-namespace KCHL {
+namespace KC {
 
 /* P0052r5 (C++2020) */
 template<typename F> class scope_success {
@@ -23,6 +23,6 @@ template<typename F> scope_success<F> make_scope_success(F &&f)
 	return scope_success<F>(std::move(f));
 }
 
-} /* namespace KCHL */
+} /* namespace */
 
-#endif /* _KCHL_SCOPE_HPP */
+#endif /* _KC_SCOPE_HPP */

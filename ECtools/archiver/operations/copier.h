@@ -107,7 +107,7 @@ public:
 		ArchiveFolderMap m_mapArchiveFolders;
 
 		ArchiverSessionPtr m_ptrSession;
-		KCHL::object_ptr<ECLogger> m_lpLogger;
+		object_ptr<ECLogger> m_lpLogger;
 		const SPropTagArray *m_lpExcludeProps;
 		MAPIFolderPtr m_ptrFolder;
 		InstanceIdMapperPtr m_ptrMapper;

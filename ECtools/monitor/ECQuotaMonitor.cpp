@@ -53,7 +53,7 @@
 
 #include <set>
 #include <string>
-using namespace KCHL;
+using namespace KC;
 using std::set;
 using std::string;
 

@@ -31,7 +31,7 @@
 #include <kopano/stringutil.h>
 #include "fsck.h"
 
-using namespace KCHL;
+using namespace KC;
 using std::endl;
 using std::cin;
 using std::cout;

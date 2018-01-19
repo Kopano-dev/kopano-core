@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef _KCHL_MEMORY_HPP
-#define _KCHL_MEMORY_HPP 1
+#ifndef _KC_MEMORY_HPP
+#define _KC_MEMORY_HPP 1
 
 #include <kopano/zcdefs.h>
 #include <type_traits> /* std::is_base_of */
@@ -26,8 +26,7 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECTags.h>
 
-namespace KCHL {
-using namespace KC;
+namespace KC {
 
 template<typename T> class memory_proxy _kc_final {
 	public:
@@ -105,7 +104,7 @@ class default_delete {
 };
 
 /**
- * The KCHL memory_ptr works a lot like std::unique_ptr, with the
+ * memory_ptr works a lot like std::unique_ptr, with the
  * additional differences:
  *  - operator& is defined (this is why we cannot use/derive from unique_ptr)
  *  - the deleter is fixed (for now…)
@@ -313,19 +312,11 @@ swap(object_ptr<T> &x, object_ptr<T> &y) noexcept
 	x.swap(y);
 }
 
-} /* namespace KCHL */
-
-namespace KC {
-
 template<typename U> static inline constexpr const IID &
-iid_of(const KCHL::object_ptr<U> &)
+iid_of(const object_ptr<U> &)
 {
 	return iid_of(static_cast<const U *>(nullptr));
 }
-
-} /* namespace KC */
-
-namespace KCHL {
 
 template<typename T > template<typename U>
 HRESULT object_ptr<T>::QueryInterface(U &result)
@@ -353,7 +344,7 @@ HRESULT object_ptr<T>::QueryInterface(U &result)
 	 */
 	else if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED &&
 	    std::is_base_of<IMAPIProp, T>::value) {
-		KCHL::memory_ptr<SPropValue> pv;
+		memory_ptr<SPropValue> pv;
 		if (HrGetOneProp(m_ptr, PR_EC_OBJECT, &~pv) != hrSuccess)
 			return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
 		auto unk = reinterpret_cast<IUnknown *>(pv->Value.lpszA);
@@ -371,6 +362,6 @@ template<typename T> template<typename P> P object_ptr<T>::as(void)
 	return tmp;
 }
 
-} /* namespace KCHL */
+} /* namespace */
 
-#endif /* _KCHL_MEMORY_HPP */
+#endif /* _KC_MEMORY_HPP */

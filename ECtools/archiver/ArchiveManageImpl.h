@@ -53,7 +53,7 @@ private:
 	ArchiverSessionPtr	m_ptrSession;
 	ECConfig	*m_lpConfig;
 	tstring	m_strUser;
-	KCHL::object_ptr<ECArchiverLogger> m_lpLogger;
+	object_ptr<ECArchiverLogger> m_lpLogger;
 	MsgStorePtr	m_ptrUserStore;
 };
 

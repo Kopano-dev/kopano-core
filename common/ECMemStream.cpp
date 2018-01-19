@@ -334,7 +334,7 @@ HRESULT ECMemStream::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pc
 
 HRESULT ECMemStream::Commit(DWORD grfCommitFlags)
 {
-	KCHL::object_ptr<IStream> lpClonedStream;
+	object_ptr<IStream> lpClonedStream;
 	auto hr = lpMemBlock->Commit();
 	if(hr != hrSuccess)
 		return hr;

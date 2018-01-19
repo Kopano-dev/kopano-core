@@ -438,7 +438,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	PROPMAP_INIT_NAMED_ID(DIRTY, PT_BOOLEAN, PSETID_Archive, dispidDirty)
 	PROPMAP_INIT(ptrUserStore)
 
-	auto laters = KCHL::make_scope_success([&]() {
+	auto laters = make_scope_success([&]() {
 		if (hr == hrSuccess && bHaveErrors)
 			hr = MAPI_W_PARTIAL_COMPLETION;
 	});
@@ -648,7 +648,7 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 {
 	MAPITablePtr ptrTable;
 	SRestrictionPtr ptrRestriction;
-	KCHL::memory_ptr<SSortOrderSet> ptrSortOrder;
+	memory_ptr<SSortOrderSet> ptrSortOrder;
 	SRowSetPtr ptrRowSet;
 	MessagePtr ptrMessage;
 	bool bHaveErrors = false;
@@ -726,7 +726,7 @@ exit:
 HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 {
 	bool bErrorOccurred = false;
-	KCHL::memory_ptr<SRestriction> lpRestriction;
+	memory_ptr<SRestriction> lpRestriction;
 	SPropValue sPropCreationTime;
 	ULARGE_INTEGER li;
 	SRowSetPtr ptrRowSet;

@@ -71,5 +71,6 @@
 /* Don't like touching all cpp files just yet... */
 namespace KC {}
 using namespace KC;
+namespace KCHL = KC;
 
 #endif /* ZCOMMON_DEFS_H */

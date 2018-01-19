@@ -339,11 +339,11 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 {
 	HRESULT hr;
 	MAPIFolderPtr ptrFolder;
-	KCHL::object_ptr<IExchangeModifyTable> ptrEMT;
+	object_ptr<IExchangeModifyTable> ptrEMT;
 	MAPITablePtr ptrTable;
 	SPropValue sUserProps[2];
 	SPropValue sOtherProps[2];
-	KCHL::memory_ptr<ROWLIST> ptrRowList;
+	memory_ptr<ROWLIST> ptrRowList;
 	StoreHelperPtr ptrStoreHelper;
 	
 	hr = MAPIAllocateBuffer(CbNewROWLIST(2), &~ptrRowList);

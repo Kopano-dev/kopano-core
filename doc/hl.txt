@@ -1,4 +1,5 @@
-libkchl - C++ API for shorter code doing MAPI
+Kopano C++ API for writing MAPI a bit shorter
+(formerly known as KCHL)
 
 
 == What is encompassed by KCHL ==
@@ -17,11 +18,10 @@ libkchl - C++ API for shorter code doing MAPI
 * <kopano/tie.hpp>: unique_tie: glue function to bind a std::unique_ptr<T> to a
   function taking T*.
 
-* <kopano/automapi.hpp>: AutoMAPI: Wrapepr class to invoke
+* <kopano/automapi.hpp>: AutoMAPI: Wrapper class to invoke
   MAPIUninitialize at destruction time.
 
-* <kopano/hl.hpp>: K* classes: Exception-based wrapper classes for MAPI
-  object pointers.
+* <kopano/hl.hpp>: Exception-based wrapper classes.
 
 
 == ECRestriction ==
@@ -53,7 +53,7 @@ thereof).
 
 == memory_ptr ==
 
-KCHL::memory_ptr works much like a std::unique_ptr made to use MAPIFreeBuffer,
+memory_ptr works much like a std::unique_ptr made to use MAPIFreeBuffer,
 but has a number of extensions for source-code compatibility such as implicit
 conversions. The use of unique_ptr/memory_ptr allows for shorter
 code.

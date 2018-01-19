@@ -49,7 +49,7 @@ private:
 	_kc_hidden HRESULT FindArchiveEntry(const tstring &archive, const tstring &folder, SObjectEntry *obj_entry);
 
 	ArchiverSessionPtr	m_ptrSession;
-	KCHL::object_ptr<ECLogger> m_lpLogger;
+	object_ptr<ECLogger> m_lpLogger;
 	ArchiveInfoMap	m_mapArchiveInfo;
 };
 

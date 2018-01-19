@@ -62,8 +62,8 @@ private:
 	HRESULT Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany, ECQUOTASTATUS *lpecQuotaStatus, LPMDB lpStore);
 
 	ECTHREADMONITOR *m_lpThreadMonitor;
-	KCHL::object_ptr<IMAPISession> m_lpMAPIAdminSession;
-	KCHL::object_ptr<IMsgStore> m_lpMDBAdmin;
+	KC::object_ptr<IMAPISession> m_lpMAPIAdminSession;
+	KC::object_ptr<IMsgStore> m_lpMDBAdmin;
 	ULONG m_ulProcessed = 0, m_ulFailed = 0;
 };
 
