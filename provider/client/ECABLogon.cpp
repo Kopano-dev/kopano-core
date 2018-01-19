@@ -124,7 +124,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		cbEntryID = CbABEID(&lpABeid);
 		lpEntryID = reinterpret_cast<ENTRYID *>(&lpABeid);
 	} else {
-		if (cbEntryID == 0 || lpEntryID == nullptr)
+		if (cbEntryID == 0 || lpEntryID == nullptr || cbEntryID < sizeof(ABEID))
 			return MAPI_E_UNKNOWN_ENTRYID;
 		hr = KAllocCopy(lpEntryID, cbEntryID, &~lpEntryIDServer);
 		if(hr != hrSuccess)
