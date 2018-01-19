@@ -85,7 +85,7 @@ enum modes {
 	MODE_ADD_USERQUOTA_RECIPIENT, MODE_DEL_USERQUOTA_RECIPIENT, MODE_LIST_USERQUOTA_RECIPIENT,
 	MODE_ADD_COMPANYQUOTA_RECIPIENT, MODE_DEL_COMPANYQUOTA_RECIPIENT, MODE_LIST_COMPANYQUOTA_RECIPIENT,
 	MODE_SYNC_USERS, MODE_DETAILS, MODE_LIST_SENDAS, MODE_HELP,
-	MODE_SYSTEM_ADMIN, MODE_PURGE_SOFTDELETE, MODE_PURGE_DEFERRED, MODE_CLEAR_CACHE,
+	MODE_SYSTEM_ADMIN, MODE_PURGE_DEFERRED, MODE_CLEAR_CACHE,
 	MODE_FORCE_RESYNC, MODE_USER_COUNT, MODE_RESET_FOLDER_COUNT
 };
 
@@ -1818,7 +1818,6 @@ int main(int argc, char* argv[])
 	ULONG cbSenderId = 0;
 	ULONG cbCompanyId = 0;
 	ULONG cbSetCompanyId = 0;
-	ULONG ulDays = 0;
 	memory_ptr<SPropValue> lpPropValue;
 	memory_ptr<GUID> lpGUID;
 
@@ -2155,9 +2154,7 @@ int main(int argc, char* argv[])
 			mode = MODE_LIST_COMPANYQUOTA_RECIPIENT;
 			break;
 		case OPT_PURGE_SOFTDELETE:
-			ulDays = atoui(optarg);
-			mode = MODE_PURGE_SOFTDELETE;
-			break;
+			return fexech(argv[0], {"kopano-srvadm", "--purge-softdelete", optarg}, path);
 		case OPT_CLEAR_CACHE:
 			mode = MODE_CLEAR_CACHE;
 			if (optarg)
@@ -3313,18 +3310,6 @@ int main(int argc, char* argv[])
 
 		cout << "Send-as list ("<< cSenders <<") for " << detailstype << " " << username << ":" << endl;
 		print_users(cSenders, lpSenders);
-		break;
-	case MODE_PURGE_SOFTDELETE:
-		hr = lpServiceAdmin->PurgeSoftDelete(ulDays);
-		if (hr == MAPI_E_BUSY) {
-			cout << "Softdelete purge already running." << endl;
-			hr = hrSuccess;
-			break;
-		} else if (hr != hrSuccess) {
-			cerr << "Softdelete purge failed: " << getMapiCodeString(hr) << endl;
-			goto exit;
-		}
-		cout << "Softdelete purge done." << endl;
 		break;
 	case MODE_CLEAR_CACHE:
 		hr = lpServiceAdmin->PurgeCache(ulCachePurgeMode);

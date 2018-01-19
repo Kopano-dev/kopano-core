@@ -1,0 +1,14 @@
+.TH kopano\-srvadm 8 "2018-01-19" "Kopano 8" "Kopano Groupware Core reference"
+.SH Name
+kopano\-srvadm \(em server management utility
+.SH Synopsis
+\fBkopano\-srvadm\fP {\fB\-\-purge\-softdelete\fP \fIdays\fP}
+.SH Description
+.PP
+This tool is used to control certain aspects of the Kopano server, specifically
+internal state.
+.SH Options
+.TP
+\fB\-\-purge\-softdelete\fP \fIdays\fP
+Starts a softdelete purge on the server, removing all soft-deleted items which
+have been deleted and which are older than the specified number of days.
