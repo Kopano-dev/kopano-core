@@ -2177,8 +2177,8 @@ PyObject *Object_from_LPECUSER(ECUSER *lpUser, ULONG ulFlags)
 	pyobj_ptr userid(PyBytes_FromStringAndSize(reinterpret_cast<const char *>(lpUser->sUserId.lpb), lpUser->sUserId.cb));
 
 	if (ulFlags & MAPI_UNICODE)
-		return PyObject_CallFunction(PyTypeECUser, "(uuuuullllOO)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, userid.get(), MVProps.get());
-	return PyObject_CallFunction(PyTypeECUser, "(sssssllllOO)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, userid.get(), MVProps.get());
+		return PyObject_CallFunction(PyTypeECUser, "(uuuuuIIIIOO)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, userid.get(), MVProps.get());
+	return PyObject_CallFunction(PyTypeECUser, "(sssssIIIIOO)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, userid.get(), MVProps.get());
 }
 
 PyObject *List_from_LPECUSER(ECUSER *lpUser, ULONG cElements, ULONG ulFlags)
@@ -2233,8 +2233,8 @@ PyObject *Object_from_LPECGROUP(ECGROUP *lpGroup, ULONG ulFlags)
 	pyobj_ptr groupid(PyBytes_FromStringAndSize(reinterpret_cast<const char *>(lpGroup->sGroupId.lpb), lpGroup->sGroupId.cb));
 
 	if(ulFlags & MAPI_UNICODE)
-		return PyObject_CallFunction(PyTypeECGroup, "(uuulOO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid.get(), MVProps.get());
-	return PyObject_CallFunction(PyTypeECGroup, "(ssslOO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid.get(), MVProps.get());
+		return PyObject_CallFunction(PyTypeECGroup, "(uuuIOO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid.get(), MVProps.get());
+	return PyObject_CallFunction(PyTypeECGroup, "(sssIOO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid.get(), MVProps.get());
 }
 
 PyObject *List_from_LPECGROUP(ECGROUP *lpGroup, ULONG cElements, ULONG ulFlags)
@@ -2291,8 +2291,8 @@ PyObject *Object_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG ulFlags)
 	pyobj_ptr adminid(PyBytes_FromStringAndSize(reinterpret_cast<const char *>(lpCompany->sAdministrator.lpb), lpCompany->sAdministrator.cb));
 
         if(ulFlags & MAPI_UNICODE)
-		return PyObject_CallFunction(PyTypeECCompany, "(uulOOO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid.get(), MVProps.get(), adminid.get());
-	return PyObject_CallFunction(PyTypeECCompany, "(sslOOO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid.get(), MVProps.get(), adminid.get());
+		return PyObject_CallFunction(PyTypeECCompany, "(uuIOOO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid.get(), MVProps.get(), adminid.get());
+	return PyObject_CallFunction(PyTypeECCompany, "(ssIOOO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid.get(), MVProps.get(), adminid.get());
 }
 
 PyObject *List_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG cElements,
