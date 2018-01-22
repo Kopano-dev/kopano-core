@@ -569,11 +569,6 @@ HRESULT IMAP::HrCmdNoop(const std::string &strTag, bool check)
 	return hrSuccess;
 }
 
-template<bool check> HRESULT IMAP::HrCmdNoop(const std::string &strTag)
-{
-	return HrCmdNoop(strTag, check);
-}
-
 /** 
  * @brief Handles the LOGOUT command
  * 
@@ -899,13 +894,6 @@ HRESULT IMAP::HrCmdSelect(const std::string &strTag,
 		HrResponse(RESP_TAGGED_OK, strTag, "[READ-WRITE] SELECT completed");
 
 	return hrSuccess;
-}
-
-template<bool read_only>
-HRESULT IMAP::HrCmdSelect(const std::string &strTag,
-    const std::vector<std::string> &args)
-{
-	return HrCmdSelect(strTag, args, read_only);
 }
 
 /** 
@@ -1282,13 +1270,6 @@ HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
 	return hrSuccess;
 }
 
-template<bool subscribe>
-HRESULT IMAP::HrCmdSubscribe(const std::string &tag,
-    const std::vector<std::string> &args)
-{
-	return HrCmdSubscribe(tag, args, subscribe);
-}
-
 /** 
  * @brief Handles the LIST and LSUB commands
  * 
@@ -1419,12 +1400,6 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 	}
 	HrResponse(RESP_TAGGED_OK, strTag, strAction + " completed");
 	return hrSuccess;
-}
-
-template<bool sub_only> HRESULT
-IMAP::HrCmdList(const std::string &tag, const std::vector<std::string> &args)
-{
-	return HrCmdList(tag, args, sub_only);
 }
 
 HRESULT IMAP::get_recent_uidnext(IMAPIFolder *folder, const std::string &tag, ULONG &recent, ULONG &uidnext, const ULONG &messages)
@@ -2051,11 +2026,6 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &a
 	return hr;
 }
 
-template <bool uid> HRESULT IMAP::HrCmdFetch(const std::string &strTag, const std::vector<std::string> &args)
-{
-	return HrCmdFetch(strTag, args, uid);
-}
-
 /** 
  * @brief Handles the STORE command
  * 
@@ -2133,12 +2103,6 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const std::vector<std::string> &a
 	return hr;
 }
 
-template <bool uid> HRESULT IMAP::HrCmdStore(const std::string &strTag, const std::vector<std::string> &args)
-{
-	return HrCmdStore(strTag, args, uid);
-}
-
-
 /** 
  * @brief Handles the COPY command
  * 
@@ -2187,11 +2151,6 @@ HRESULT IMAP::HrCmdCopy(const string &strTag, const std::vector<std::string> &ar
 
 	HrResponse(RESP_TAGGED_OK, strTag, strMode + "COPY completed");
 	return hr;
-}
-
-template <bool uid> HRESULT IMAP::HrCmdCopy(const std::string &strTag, const std::vector<std::string> &args)
-{
-	return HrCmdCopy(strTag, args, uid);
 }
 
 /** 
