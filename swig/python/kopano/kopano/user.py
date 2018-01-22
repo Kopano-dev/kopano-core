@@ -369,3 +369,6 @@ class User(Properties):
             setattr(self.store, x, val)
         else:
             super(User, self).__setattr__(x, val)
+
+    def __dir__(self):
+        return list(User.__dict__) + list(Store.__dict__)
