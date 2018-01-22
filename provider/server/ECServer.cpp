@@ -898,7 +898,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "loginname_format",			"%u" },
 
 		// internal server contols
-		{ "softdelete_lifetime",		"0", CONFIGSETTING_RELOADABLE },	// time expressed in days, 0 == never delete anything
+		{ "softdelete_lifetime",		"30", CONFIGSETTING_RELOADABLE },	// time expressed in days, 0 == never delete anything
 		{ "cache_cell_size",			"16M", CONFIGSETTING_SIZE },	// default 16 Mb, default in config 256M
 		{ "cache_object_size",		"16M", CONFIGSETTING_SIZE },
 		{ "cache_indexedobject_size",	"32M", CONFIGSETTING_SIZE },
@@ -906,7 +906,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "cache_quota_lifetime",		"1" },							// 1 minute
 		{ "cache_user_size",			"1M", CONFIGSETTING_SIZE },		// 48 bytes per struct, can hold 21k+ users, allocated 2x (user and ueid cache)
 		{ "cache_userdetails_size",		"25M", CONFIGSETTING_SIZE },		// 120 bytes per struct, can hold 21k+ users (was 2.5Mb, no float in size)
-		{ "cache_userdetails_lifetime", "5" },							// 5 minutes
+		{ "cache_userdetails_lifetime", "0" },							// 0 minutes - forever
 		{ "cache_acl_size",				"1M", CONFIGSETTING_SIZE },		// 1Mb, acl table cache
 		{ "cache_store_size",			"1M", CONFIGSETTING_SIZE },		// 1Mb, store table cache (storeid, storeguid), 40 bytes
 		{ "cache_server_size",			"1M", CONFIGSETTING_SIZE },		// 1Mb
@@ -919,14 +919,14 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "companyquota_soft",		"0", CONFIGSETTING_UNUSED },
 		{ "companyquota_hard",		"0", CONFIGSETTING_UNUSED },
 		{ "session_timeout",		"300", CONFIGSETTING_RELOADABLE },		// 5 minutes
-		{ "sync_lifetime",			"365", CONFIGSETTING_RELOADABLE },		// 1 year
+		{ "sync_lifetime",			"90", CONFIGSETTING_RELOADABLE },		// 90 days
 		{"sync_log_all_changes", "default", CONFIGSETTING_UNUSED}, // Log All ICS changes
 		{ "auth_method",			"plugin", CONFIGSETTING_RELOADABLE },		// plugin (default), pam, kerberos
 		{ "pam_service",			"passwd", CONFIGSETTING_RELOADABLE },		// pam service, found in /etc/pam.d/
 		{ "enable_sso_ntlmauth",	"no", CONFIGSETTING_UNUSED },			// default disables ntlm_auth, so we don't log errors on useless things
 		{ "enable_sso",				"no", CONFIGSETTING_RELOADABLE },			// autodetect between Kerberos and NTLM
 		{ "session_ip_check",		"yes", CONFIGSETTING_RELOADABLE },			// check session id comes from same ip address (or not)
-		{ "hide_everyone",			"yes", CONFIGSETTING_RELOADABLE },			// whether internal group Everyone should be removed for users
+		{ "hide_everyone",			"no", CONFIGSETTING_RELOADABLE },			// whether internal group Everyone should be removed for users
 		{ "hide_system",			"yes", CONFIGSETTING_RELOADABLE },			// whether internal user SYSTEM should be removed for users
 		{ "enable_gab",				"yes", CONFIGSETTING_RELOADABLE },			// whether the GAB is enabled
         { "enable_enhanced_ics",    "yes", CONFIGSETTING_RELOADABLE },			// (dis)allow enhanced ICS operations (stream and notifications)
