@@ -2400,4 +2400,29 @@ HRESULT GetECObject(IMAPIProp *obj, const IID &intf, void **iup)
 	return ecobj->QueryInterface(intf, iup);
 }
 
+HRESULT KServerContext::logon(const char *user, const char *pass)
+{
+	auto ret = m_mapi.Initialize();
+	if (ret != hrSuccess)
+		return kc_perror("MAPIInitialize", ret);
+	if (user == nullptr)
+		user = pass = KOPANO_SYSTEM_USER;
+	ret = HrOpenECSession(&~m_session, "storeadm", PROJECT_VERSION,
+	      user, pass, m_host, m_ses_flags, m_ssl_keyfile, m_ssl_keypass);
+	if (ret != hrSuccess)
+		return kc_perror("OpenECSession", ret);
+	ret = HrOpenDefaultStore(m_session, &~m_admstore);
+	if (ret != hrSuccess)
+		return kc_perror("HrOpenDefaultStore", ret);
+	memory_ptr<SPropValue> props;
+	ret = HrGetOneProp(m_admstore, PR_EC_OBJECT, &~props);
+	if (ret != hrSuccess)
+		return kc_perror("HrGetOneProp PR_EC_OBJECT", ret);
+	m_ecobject.reset(reinterpret_cast<IUnknown *>(props->Value.lpszA));
+	ret = m_ecobject->QueryInterface(IID_IECServiceAdmin, &~m_svcadm);
+	if (ret != hrSuccess)
+		return kc_perror("QueryInterface IECServiceAdmin", ret);
+	return hrSuccess;
+}
+
 } /* namespace */

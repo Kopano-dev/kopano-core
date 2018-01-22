@@ -285,7 +285,7 @@ AS_IF([test "$with_php" != "no"], [
 ])
 AM_CONDITIONAL([WITH_PHP5], [test "$with_php" = 5])
 AM_CONDITIONAL([WITH_PHP7], [test "$with_php" = 7])
-
+PKG_CHECK_MODULES([popt], [popt])
 PKG_CHECK_MODULES([XML2], [libxml-2.0])
 
 # Checks for MySQL 4.1 or better

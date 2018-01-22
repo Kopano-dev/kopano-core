@@ -1,0 +1,95 @@
+.TH kopano\-storeadm 8 "2018-01-11" "Kopano 8" "Kopano Groupware Core reference"
+.SH Name
+kopano\-storeadm \(em store management utility
+.SH Synopsis
+\fBkopano\-storeadm\fP {\fB\-A\fP
+\fIguid\fP|\fB\-C\fP|\fB\-D\fP|\fB\-O\fP|\fB\-P\fP|\fB\-R\fP \fIguid\fP}
+[\fB\-c\fP \fIfile\fP] [\fB\-h\fP \fIuri\fP] [\fB\-k\fP \fIcompany\fP]
+[\fB\-n\fP \fIname\fP] [\fB\-p\fP] [\fB\-t\fP
+{\fBuser\fP|\fBarchive\fP|\fBgroup\fP|\fBcompany\fP}]
+.SH Description
+.PP
+This tool is used to manage message stores on the Kopano server. Specifically,
+it allows to create, delete, attach, detach such stores. The storage server
+must be running for kopano-storeadm to work.
+.SH Options
+.TP
+\fB\-A\fP \fIguid\fP
+Does one of two things. With \fB\-n\fP, an orphaned store is attached (hooked)
+to the account specified with \fB\-n\fP. If the target user already has a store
+attached, that one will be detached first.
+Alternatively, when \fB\-p\fP is used, an orphaned store is copied. See the
+\fB\-p\fP option for details.
+.TP
+\fB\-C\fP
+Create a new store and attach it to the user account specified with \fB\-n\fP.
+That account must not have an associated store yet.
+.TP
+\fB\-D\fP
+Detach (unhook) the store from the user account specified with \fB\-n\fP.
+.TP
+\fB\-O\fP
+Shows a list of stores that are not hooked to any user. The GUIDs shown in the
+output can be passed to \fB\-A\fP or \fB\-R\fP.
+.TP
+\fB\-P\fP
+Create a public store. Only one public store can be created.
+.TP
+\fB\-R\fP \fIguid\fP
+Remove an orphaned store. It actually only marks it as deleted in the database
+and the softdelete mechanism will remove it later on.
+.TP
+\fB\-c\fP \fIfile\fP
+Read config file.
+.TP
+\fB\-h\fP \fIuri\fP
+Specify an alternate URI for connecting to a Kopano server.
+.TP
+\fB\-k\fP \fIcompany-name\fP
+This sets the company name for the \fB\-P\fP action. This option is only
+available for multi-tenancy Kopano.
+.TP
+\fB\-n\fP \fIentity-name\fP
+For \fB\-C\fP and \fB\-D\fP, specifies the user to work on.
+For \fB\-A\fP, specifies the user name, group name or company name to operate
+on. The store type may need to be specified with \fB\-t\fP if the implicit
+default "\fBuser\fP" is not appropriate.
+.TP
+\fB\-p\fP
+For use with \fB\-A\fP. Rather than attaching an orphaned store to a user
+account, copy the orphaned store's contents are copied into "Public
+Store\\Admin\\Deleted User - username". The orphaned store is left unmodified.
+.TP
+\fB\-t\fP {\fBuser\fP|\fBarchive\fP|\fBgroup\fP|\fBcompany\fP}
+The store type for the entity specified with \fB\-n\fP. If not specified,
+\fB\-t user\fP is implicitly assumed.
+.SH Examples
+.IP \(bu 4
+Create new store for user: kopano\-storeadm \-Cn user1
+.IP \(bu 4
+Attach orphaned store to user: kopano\-storeadm \-A 24680B \-n user2
+.IP \(bu 4
+Copy orphaned store to public: kopano\-storeadm \-A 24680B \-p
+.IP \(bu 4
+Detach store from user: kopano\-storeadm \-Dn user2
+.IP \(bu 4
+Remove store: kopano\-storeadm \-R 24680B
+.IP \(bu 4
+Create pubilc store: kopano\-storeadm \-P
+.SH Configuration file
+.PP
+Normally, no configuration file is used or required. If the file
+\fB/etc/kopano/admin.cfg\fP exists, it is used. The following options can be
+set in the configuration file:
+.SS server_socket
+.PP
+URI for the connection to the Kopano server.
+.PP
+Default: (localhost connection via socket)
+.SS sslkey_file
+.PP
+Use this file as key to logon to the server. This is only used when server_socket is set to
+an HTTPS transport. See the kopano-server(8) manual page on how to setup SSL keys.
+.SS sslkey_pass
+.PP
+The password of the SSL key file that is set in sslkey_file.
