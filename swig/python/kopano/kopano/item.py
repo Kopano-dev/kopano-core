@@ -65,6 +65,10 @@ from MAPI.Tags import (
 
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
 
+from .pidlid import (
+    PidLidAppointmentStateFlags,
+)
+
 from .compat import (
     unhex as _unhex, is_str as _is_str, repr as _repr,
     pickle_load as _pickle_load, pickle_loads as _pickle_loads,
@@ -109,7 +113,6 @@ else:
     import utils as _utils
     import property_ as _prop
 
-PidLidAppointmentStateFlags = 'PT_LONG:appointment:0x8217'
 
 class PersistentList(list):
     def __init__(self, mapiobj, proptag, *args, **kwargs):

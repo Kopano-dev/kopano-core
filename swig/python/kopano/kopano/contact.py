@@ -15,19 +15,20 @@ from MAPI import (
 )
 
 from MAPI.Tags import (
-    PR_ATTACHMENT_CONTACTPHOTO,
+    PR_ATTACHMENT_CONTACTPHOTO, PR_GIVEN_NAME_W, PR_MIDDLE_NAME_W,
+    PR_SURNAME_W, PR_NICKNAME_W, PR_GENERATION_W, PR_TITLE_W, PR_GENERATION_W,
+    PR_COMPANY_NAME_W, PR_MOBILE_TELEPHONE_NUMBER_W,
+)
+
+from .pidlid import (
+    PidLidEmail1AddressType, PidLidEmail1DisplayName, PidLidEmail1EmailAddress,
+    PidLidEmail1OriginalEntryId,
 )
 
 from .address import Address
 from .compat import (
     fake_unicode as _unicode,
 )
-
-PidLidEmail1AddressType = 'PT_UNICODE:PSETID_Address:0x8082'
-PidLidEmail1DisplayName = 'PT_UNICODE:PSETID_Address:0x8080'
-PidLidEmail1EmailAddress = 'PT_UNICODE:PSETID_Address:0x8083'
-PidLidEmail1OriginalEntryId = 'PT_BINARY:PSETID_Address:0x8085'
-#PidLidEmail1OriginalDisplayName = 'PT_UNICODE:PSETID_Address:0x8084'
 
 class Contact(object):
     """Contact mixin class"""
@@ -92,3 +93,37 @@ class Contact(object):
         attachment[PR_ATTACHMENT_CONTACTPHOTO] = True
         # XXX shouldn't be needed?
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+
+
+    @property
+    def given_name(self):
+        return self.get(PR_GIVEN_NAME_W)
+
+    @property
+    def middle_name(self):
+        return self.get(PR_MIDDLE_NAME_W)
+
+    @property
+    def surname(self):
+        return self.get(PR_SURNAME_W)
+
+    @property
+    def nickname(self):
+        return self.get(PR_NICKNAME_W)
+
+    @property
+    def title(self):
+        # TODO webapp uses PR_DISPLAY_NAME_PREFIX_W..?
+        return self.get(PR_TITLE_W)
+
+    @property
+    def generation(self):
+        return self.get(PR_GENERATION_W)
+
+    @property
+    def company_name(self):
+        return self.get(PR_COMPANY_NAME_W)
+
+    @property
+    def mobile_phone(self):
+        return self.get(PR_MOBILE_TELEPHONE_NUMBER_W)

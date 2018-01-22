@@ -58,55 +58,28 @@ else:
 
 # XXX move all pidlids into separate definition file, plus short description of their meanings
 
-PidLidReminderDelta = "PT_LONG:PSETID_Common:0x8501"
-PidLidReminderSet = "PT_BOOLEAN:PSETID_Common:0x8503"
-PidLidCommonStart = "PT_SYSTIME:PSETID_Common:0x8516"
-PidLidCommonEnd ="PT_SYSTIME:PSETID_Common:0x8517"
-PidLidUseTnef = "PT_BOOLEAN:PSETID_Common:0x8582"
-PidLidAttendeeCriticalChange = "PT_SYSTIME:PSETID_Meeting:0x1"
-PidLidWhere = "PT_STRING8:PSETID_Meeting:0x2"
-PidLidGlobalObjectId = "PT_BINARY:PSETID_Meeting:0x3"
-PidLidIsSilent = "PT_LONG:PSETID_Meeting:0x4"
-PidLidIsRecurring = "PT_BOOLEAN:PSETID_Meeting:0x5"
-PidLidIsException = "PT_BOOLEAN:PSETID_Meeting:0xA"
-PidLidStartRecurrenceDate = "PT_LONG:PSETID_Meeting:0xD"
-PidLidStartRecurrenceTime = "PT_LONG:PSETID_Meeting:0xE"
-PidLidEndRecurrenceDate = "PT_LONG:PSETID_Meeting:0xF"
-PidLidEndRecurrenceTime = "PT_LONG:PSETID_Meeting:0x10"
-PidLidOwnerCriticalChange = "PT_SYSTIME:PSETID_Meeting:0x1A"
-PidLidCleanGlobalObjectId = "PT_BINARY:PSETID_Meeting:0x23"
-PidLidAppointmentMessageClass = "PT_STRING8:PSETID_Meeting:0x24"
-PidLidMeetingType = "PT_LONG:PSETID_Meeting:0x26"
-PidLidAppointmentSequence = "PT_LONG:PSETID_Appointment:0x8201"
-PidLidAppointmentSequenceTime = "PT_LONG:PSETID_Appointment:0x8202"
-PidLidAppointmentLastSequence = "PT_LONG:PSETID_Appointment:0x8203"
-PidLidBusyStatus = "PT_LONG:PSETID_Appointment:0x8205"
-PidLidLocation = "PT_STRING8:PSETID_Appointment:0x8208"
-PidLidAppointmentStartWhole = "PT_SYSTIME:PSETID_Appointment:0x820D"
-PidLidAppointmentEndWhole = "PT_SYSTIME:PSETID_Appointment:0x820E"
-PidLidAppointmentRecur = "PT_BINARY:PSETID_Appointment:0x8216"
-PidLidAppointmentStateFlags = "PT_LONG:PSETID_Appointment:0x8217"
-PidLidResponseStatus = "PT_LONG:PSETID_Appointment:0x8218"
-PidLidSendAsIcal = "PT_BOOLEAN:PSETID_Appointment:0x8200" # XXX undocumented?
-PidLidAppointmentReplyTime = "PT_SYSTIME:PSETID_Appointment:0x8220"
-PidLidRecurring = "PT_BOOLEAN:PSETID_Appointment:0x8223"
-PidLidIntendedBusyStatus = "PT_LONG:PSETID_Appointment:0x8224"
-PidLidExceptionReplaceTime = "PT_SYSTIME:PSETID_Appointment:0x8228"
-PidLidFInvited = "PT_BOOLEAN:PSETID_Appointment:0x8229"
-PidLidAppointmentReplyName = "PT_STRING8:PSETID_Appointment:0x8230"
-PidLidRecurrencePattern = "PT_STRING8:PSETID_Appointment:0x8232"
-PidLidTimeZoneStruct = "PT_BINARY:PSETID_Appointment:0x8233"
-PidLidTimeZoneDescription = "PT_STRING8:PSETID_Appointment:0x8234"
-PidLidClipStart = "PT_SYSTIME:PSETID_Appointment:0x8235"
-PidLidClipEnd = "PT_SYSTIME:PSETID_Appointment:0x8236"
-PidLidToAttendeesString = "PT_STRING8:PSETID_Appointment:0x823B"
-PidLidCcAttendeesString = "PT_STRING8:PSETID_Appointment:0x823C"
-PidLidAppointmentProposedStartWhole = "PT_SYSTIME:PSETID_Appointment:0x8250"
-PidLidAppointmentProposedEndWhole = "PT_SYSTIME:PSETID_Appointment:0x8251"
-PidLidAppointmentProposedDuration = "PT_LONG:PSETID_Appointment:0x8256"
-PidLidAppointmentCounterProposal = "PT_BOOLEAN:PSETID_Appointment:0x8257"
+from .pidlid import (
+    PidLidReminderDelta, PidLidReminderSet, PidLidCommonStart, PidLidCommonEnd,
+    PidLidUseTnef, PidLidAttendeeCriticalChange, PidLidWhere,
+    PidLidGlobalObjectId, PidLidIsSilent, PidLidIsRecurring, PidLidIsException,
+    PidLidStartRecurrenceDate, PidLidStartRecurrenceTime,
+    PidLidEndRecurrenceDate, PidLidEndRecurrenceTime,
+    PidLidOwnerCriticalChange, PidLidCleanGlobalObjectId,
+    PidLidAppointmentMessageClass, PidLidMeetingType,
+    PidLidAppointmentSequence, PidLidAppointmentSequenceTime,
+    PidLidAppointmentLastSequence, PidLidBusyStatus, PidLidLocation,
+    PidLidAppointmentStartWhole, PidLidAppointmentEndWhole,
+    PidLidAppointmentRecur, PidLidAppointmentStateFlags, PidLidResponseStatus,
+    PidLidAppointmentReplyTime, PidLidRecurring, PidLidIntendedBusyStatus,
+    PidLidExceptionReplaceTime, PidLidFInvited, PidLidAppointmentReplyName,
+    PidLidRecurrencePattern, PidLidTimeZoneStruct, PidLidTimeZoneDescription,
+    PidLidClipStart, PidLidClipEnd, PidLidToAttendeesString,
+    PidLidCcAttendeesString, PidLidAppointmentProposedStartWhole,
+    PidLidAppointmentProposedEndWhole, PidLidAppointmentProposedDuration,
+    PidLidAppointmentCounterProposal, PidLidSendAsIcal,
+)
 
-# all of the above
+# all of the above # TODO redundant
 PROPTAGS = [
     PidLidReminderDelta, PidLidReminderSet, PidLidCommonStart, PidLidCommonEnd,
     PidLidUseTnef, PidLidAttendeeCriticalChange, PidLidWhere,

@@ -36,7 +36,7 @@ from MAPI.Time import (
     unixtime
 )
 
-from .compat import unhex as _unhex, hex as _hex
+from .compat import benc as _benc, bdec as _bdec
 
 if sys.hexversion >= 0x03000000:
     from . import item as _item
@@ -61,14 +61,14 @@ class TrackingHierarchyImporter(ECImportHierarchyChanges):
         self.importer = importer
 
     def ImportFolderChange(self, props):
-        eid = _hex(PpropFindProp(props, PR_ENTRYID).Value)
+        eid = _benc(PpropFindProp(props, PR_ENTRYID).Value)
         folder = self.importer.store.folder(entryid=eid)
         self.importer.update(folder)
 
     def ImportFolderDeletion(self, flags, sourcekeys):
         for sourcekey in sourcekeys:
             folder = _folder.Folder(self.importer.store)
-            folder._sourcekey = _hex(sourcekey)
+            folder._sourcekey = _benc(sourcekey)
             self.importer.delete(folder, flags)
 
     def UpdateState(self, stream):
@@ -104,15 +104,15 @@ class TrackingContentsImporter(ECImportContentsChanges):
                 item.mapiobj = _utils.openentry_raw(mapistore, entryid.Value, 0)
                 props = item.mapiobj.GetProps([PR_EC_HIERARCHYID, PR_EC_PARENT_HIERARCHYID, PR_STORE_RECORD_KEY], 0) # XXX properties don't exist?
                 item.docid = props[0].Value
-                item.storeid = _hex(props[2].Value)
+                item.storeid = _benc(props[2].Value)
                 if hasattr(self.importer, 'update'):
                     self.importer.update(item, flags)
             except (MAPIErrorNotFound, MAPIErrorNoAccess): # XXX, mail already deleted, can we do this in a cleaner way?
                 if self.log:
-                    self.log.debug('received change for entryid %s, but it could not be opened' % _hex(entryid.Value))
+                    self.log.debug('received change for entryid %s, but it could not be opened' % _benc(entryid.Value))
         except Exception:
             if self.log:
-                self.log.error('could not process change for entryid %s (%r):' % (_hex(entryid.Value), props))
+                self.log.error('could not process change for entryid %s (%r):' % (_benc(entryid.Value), props))
                 self.log.error(traceback.format_exc())
             else:
                 traceback.print_exc()
@@ -127,12 +127,12 @@ class TrackingContentsImporter(ECImportContentsChanges):
             for entry in entries:
                 item = _item.Item()
                 item.server = self.server
-                item._sourcekey = _hex(entry)
+                item._sourcekey = _benc(entry)
                 if hasattr(self.importer, 'delete'):
                     self.importer.delete(item, flags)
         except Exception:
             if self.log:
-                self.log.error('could not process delete for entries: %s' % [_hex(entry) for entry in entries])
+                self.log.error('could not process delete for entries: %s' % [_benc(entry) for entry in entries])
                 self.log.error(traceback.format_exc())
             else:
                 traceback.print_exc()
@@ -157,14 +157,14 @@ def state(mapiobj, associated=False):
     stream = IStream()
     exporter.UpdateState(stream)
     stream.Seek(0, STREAM_SEEK_SET)
-    return _hex(stream.Read(0xFFFFF))
+    return _benc(stream.Read(0xFFFFF))
 
 def hierarchy_sync(server, syncobj, importer, state, log=None, stats=None):
     importer = TrackingHierarchyImporter(server, importer, log, stats)
     exporter = syncobj.OpenProperty(PR_HIERARCHY_SYNCHRONIZER, IID_IExchangeExportChanges, 0, 0)
 
     stream = IStream()
-    stream.Write(_unhex(state))
+    stream.Write(_bdec(state))
     stream.Seek(0, STREAM_SEEK_SET)
 
     flags = SYNC_NORMAL | SYNC_UNICODE
@@ -179,14 +179,14 @@ def hierarchy_sync(server, syncobj, importer, state, log=None, stats=None):
     exporter.UpdateState(stream)
 
     stream.Seek(0, STREAM_SEEK_SET)
-    return _hex(stream.Read(0xFFFFF))
+    return _benc(stream.Read(0xFFFFF))
 
 def sync(server, syncobj, importer, state, log, max_changes, associated=False, window=None, begin=None, end=None, stats=None):
     importer = TrackingContentsImporter(server, importer, log, stats)
     exporter = syncobj.OpenProperty(PR_CONTENTS_SYNCHRONIZER, IID_IExchangeExportChanges, 0, 0)
 
     stream = IStream()
-    stream.Write(_unhex(state))
+    stream.Write(_bdec(state))
     stream.Seek(0, STREAM_SEEK_SET)
 
     restriction = None
@@ -217,7 +217,7 @@ def sync(server, syncobj, importer, state, log, max_changes, associated=False, w
         if log:
             log.warn("Sync state does not exist on server (anymore); requesting new one")
 
-        syncid, changeid = struct.unpack('<II', _unhex(state))
+        syncid, changeid = struct.unpack('<II', _bdec(state))
         stream = IStream()
         stream.Write(struct.pack('<II', 0, changeid))
         stream.Seek(0, STREAM_SEEK_SET)
@@ -264,4 +264,4 @@ def sync(server, syncobj, importer, state, log, max_changes, associated=False, w
     exporter.UpdateState(stream)
 
     stream.Seek(0, STREAM_SEEK_SET)
-    return _hex(stream.Read(0xFFFFF))
+    return _benc(stream.Read(0xFFFFF))

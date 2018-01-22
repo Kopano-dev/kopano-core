@@ -10,7 +10,8 @@ import sys
 from MAPI.Tags import (
     PR_EC_HIERARCHYID, PR_ATTACH_NUM, PR_ATTACH_MIME_TAG_W, PR_RECORD_KEY,
     PR_ATTACH_LONG_FILENAME_W, PR_ATTACH_SIZE, PR_ATTACH_DATA_BIN, PR_ENTRYID,
-    PR_LAST_MODIFICATION_TIME, IID_IAttachment,
+    PR_LAST_MODIFICATION_TIME, IID_IAttachment, PR_ATTACH_METHOD,
+    ATTACH_EMBEDDED_MSG,
 )
 from MAPI.Defs import HrGetOneProp
 from MAPI.Struct import MAPIErrorNotFound
@@ -82,6 +83,14 @@ class Attachment(Properties):
             return HrGetOneProp(self.mapiobj, PR_ATTACH_LONG_FILENAME_W).Value
         except MAPIErrorNotFound:
             return u''
+
+    @property
+    def embedded(self):
+        """Is attachment an embedded message."""
+        try:
+            return self[PR_ATTACH_METHOD] == ATTACH_EMBEDDED_MSG
+        except MAPIErrorNotFound:
+            return False
 
     @property
     def size(self):
