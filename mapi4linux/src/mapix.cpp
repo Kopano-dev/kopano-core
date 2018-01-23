@@ -1666,7 +1666,11 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		lpCont->SetProps(1, &sPropObjectType, NULL);
 
 		*lpulObjType = MAPI_ABCONT;
-	} else if (lpEntryID) {
+	} else if (lpEntryID == nullptr) {
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
+	} else if (cbEntryID < 4 + sizeof(MAPIUID)) {
+		return MAPI_E_UNKNOWN_ENTRYID;
+	} else {
 		std::list<abEntry>::const_iterator i;
 
 		hr = MAPI_E_UNKNOWN_ENTRYID;
@@ -1675,9 +1679,6 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 				break;
 		if (i != m_lABProviders.cend())
 			hr = i->lpABLogon->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-	} else {
-		// lpEntryID == NULL
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	}
 	return hr;
 }
