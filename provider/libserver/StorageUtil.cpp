@@ -111,10 +111,8 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	ECDatabaseAttachment *lpDatabaseStorage = NULL;
 
 	*lpulSize = 0;
-	//	strQuery = "SELECT SUM(16 + IF(val_ulong, 4, 0)+IF(val_double||val_longint||val_hi||val_lo, 8, 0)+ LENGTH(IFNULL(val_string, 0))+length(IFNULL(val_binary, 0))) FROM properties WHERE hierarchyid=" + stringify(objid);
-
 	// SQLite doesn't support IF-type statements, so we're now using a slightly simpler construct ..
-	strQuery = "SELECT (SELECT SUM(20 + LENGTH(IFNULL(val_string, 0))+length(IFNULL(val_binary, 0))) FROM properties WHERE hierarchyid=" + stringify(objid) + ") + IFNULL( (SELECT SUM(LENGTH(lob.val_binary)) FROM `lob` JOIN `singleinstances` ON singleinstances.instanceid = lob.instanceid WHERE singleinstances.hierarchyid=" + stringify(objid) + "), 0)";
+	strQuery = "SELECT (SELECT SUM(20 + LENGTH(IFNULL(val_string, ''))+length(IFNULL(val_binary, ''))) FROM properties WHERE hierarchyid=" + stringify(objid) + ") + IFNULL( (SELECT SUM(LENGTH(lob.val_binary)) FROM `lob` JOIN `singleinstances` ON singleinstances.instanceid = lob.instanceid WHERE singleinstances.hierarchyid=" + stringify(objid) + "), '')";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
@@ -140,7 +138,7 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	}
 
 	// Calculate also mv-props
-	strQuery = "SELECT SUM(20 + LENGTH(IFNULL(val_string, 0))+length(IFNULL(val_binary, 0))) FROM mvproperties WHERE hierarchyid=" + stringify(objid);
+	strQuery = "SELECT SUM(20 + LENGTH(IFNULL(val_string, ''))+length(IFNULL(val_binary, ''))) FROM mvproperties WHERE hierarchyid=" + stringify(objid);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
