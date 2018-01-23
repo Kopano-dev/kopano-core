@@ -797,7 +797,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	MessagePtr ptrContact;
 	object_ptr<ZCMAPIProp> lpZCMAPIProp;
 
-	if (cbEntryID < cbNewCABEntryID ||
+	if (cbEntryID < cbNewCABEntryID || lpEntryID == nullptr ||
 	    memcmp(&lpCABEntryID->muid, &MUIDZCSAB, sizeof(MAPIUID)) != 0)
 		return MAPI_E_UNKNOWN_ENTRYID;
 
