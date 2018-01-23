@@ -11,7 +11,9 @@ from MAPI.Util import kc_session_save, kc_session_restore, GetDefaultStore
 
 import falcon
 import kopano
+
 kopano.set_bin_encoding('base64')
+kopano.set_missing_none()
 
 TOP = 10
 PREFIX = '/api/gc/v0'
@@ -28,14 +30,13 @@ PREFIX = '/api/gc/v0'
 # TODO Message.{isDraft, webLink, inferenceClassification}?
 # TODO Event.{webLink, onlineMeetingUrl, uniqueBody}?
 # TODO Attachment.{contentId, contentLocation}?
-# TODO /me/{contactFolders,calendars} -> which folders exactly?
-# TODO @odata.context: check exact structure
+# TODO /me/{mailFolders,contactFolders,calendars} -> which folders exactly?
+# TODO @odata.context: check exact structure?
 # TODO delta: delete requires entryid.. finally fix ICS?
-# TODO ICS, filters etc & pagination?
+# TODO ICS, filters etc & pagination?.. ugh
 # TODO calendarresource fields
 # TODO $count seems broken for ms graph?
-# TODO orderby: asc/dec
-# TODO $filter, $search, $expand items
+# TODO $filter, $search
 
 def _server(req):
     userid = os.getenv('KOPANO_REST_USERID') or req.get_header('X-Kopano-UserEntryID', required=True)
@@ -58,10 +59,12 @@ def _store(server, userid):
         return kopano.Store(server=server,
                             mapiobj=GetDefaultStore(server.mapisession))
 
-def _date(d, local=False):
+def _date(d, local=False, time=True):
     if d is None:
         return '0001-01-01T00:00:00Z'
-    fmt = '%Y-%m-%dT%H:%M:%S'
+    fmt = '%Y-%m-%d'
+    if time:
+        fmt += 'T%H:%M:%S'
     if d.microsecond:
         fmt += '.%f'
     if not local:
@@ -148,8 +151,9 @@ class Resource(object):
         args = urlparse.parse_qs(req.query_string)
         top = int(args['$top'][0]) if '$top' in args else TOP
         skip = int(args['$skip'][0]) if '$skip' in args else 0
-        order = tuple(args['$orderby'][0].split(',')) if '$orderby' in args else None
-
+        order = args['$orderby'][0].split(',') if '$orderby' in args else None
+        if order:
+            order = tuple(('-' if len(o.split()) > 1 and o.split()[1] == 'desc' else '')+o.split()[0] for o in order)
         return (generator(page_start=skip, page_limit=top, order=order), top, skip, count)
 
     def create_message(self, folder, fields, all_fields=None):
@@ -187,19 +191,15 @@ class UserResource(Resource):
             self.respond(req, resp, data)
 
         elif method == 'mailFolders':
-            data = self.generator(req, store.folders, store.subtree.subfolder_count_recursive)
+            data = self.generator(req, store.mail_folders, 0)
             self.respond(req, resp, data, MailFolderResource.fields)
 
         elif method == 'contactFolders':
-            def yielder(**kwargs):
-                yield store.contacts # TODO which folders exactly?
-            data = self.generator(req, yielder, 1)
+            data = self.generator(req, store.contacts.folders, 0)
             self.respond(req, resp, data, ContactFolderResource.fields)
 
         elif method == 'calendars':
-            def yielder(**kwargs):
-                yield store.calendar # TODO which folders exactly?
-            data = self.generator(req, yielder, 1)
+            data = self.generator(req, store.calendars, 0)
             self.respond(req, resp, data, CalendarResource.fields)
 
         elif method == 'calendar':
@@ -514,6 +514,27 @@ class MessageResource(ItemResource):
             if fields['@odata.type'] == '#microsoft.graph.fileAttachment':
                 item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
 
+    def on_patch(self, req, resp, userid=None, folderid=None, messageid=None, method=None):
+        server = _server(req)
+        store = _store(server, userid)
+
+        if folderid:
+            if folderid == 'inbox': # XXX more
+                folder = store.inbox
+            else:
+                folder = store.folder(entryid=folderid)
+        else:
+            folder = store.inbox # TODO messages from all folders?
+
+        item = folder.item(messageid)
+        fields = json.loads(req.stream.read().decode('utf-8'))
+
+        for field, value in fields.items():
+            if field in self.set_fields:
+                self.set_fields[field](item, value)
+
+        self.respond(req, resp, item, MessageResource.fields)
+
     def on_delete(self, req, resp, userid=None, folderid=None, messageid=None):
         server = _server(req)
         store = _store(server, userid)
@@ -602,6 +623,12 @@ pattern_map = {
     'year_rel': 'relativeYearly',
 }
 
+range_end_map = {
+    'end_date': 'endDate',
+    'occ_count': 'numberOfOccurrences',
+    'no_end': 'noEnd',
+}
+
 def recurrence_json(item):
     if isinstance(item, kopano.Item) and item.recurring:
         recurrence = item.recurrence
@@ -616,10 +643,11 @@ def recurrence_json(item):
                 'firstDayOfWeek': recurrence.first_weekday,
             },
             'range': {
-                'type': 'endDate', # TODO
-                'startDate': _date(recurrence._start, True), # TODO .start?
-                'endDate': _date(recurrence._end, True), # TODO .start?
-                # TODO timezone
+                'type': range_end_map[recurrence.range_type],
+                'startDate': _date(recurrence._start, True, False), # TODO .start?
+                'endDate': _date(recurrence._end, True, False) if recurrence.range_type != 'no_end' else '0001-01-01',
+                'numberOfOccurrences': recurrence.occurrence_count if recurrence.range_type == 'occ_count' else 0,
+                'recurrenceTimeZone': "", # TODO
             },
         }
         if recurrence.weekdays:
@@ -750,6 +778,16 @@ class ContactFolderResource(FolderResource):
 def set_email_addresses(item, arg): # TODO multiple via pyko
     item.address1 = '%s <%s>' % (arg[0]['name'], arg[0]['address'])
 
+def _phys_address(addr):
+    data = {
+        'street': addr.street,
+        'city': addr.city,
+        'postalCode': addr.postal_code,
+        'state': addr.state,
+        'countryOrRegion': addr.country
+    }
+    return {a:b for (a,b) in data.items() if b}
+
 class ContactResource(ItemResource):
     fields = ItemResource.fields.copy()
     fields.update({
@@ -773,6 +811,20 @@ class ContactResource(ItemResource):
         'yomiSurname': lambda item: item.yomi_last_name or None,
         'yomiCompanyName': lambda item: item.yomi_company_name or None,
         'fileAs': lambda item: item.file_as,
+        'jobTitle': lambda item: item.job_title or None,
+        'department': lambda item: item.department or None,
+        'officeLocation': lambda item: item.office_location or None,
+        'profession': lambda item: item.profession or None,
+        'manager': lambda item: item.manager or None,
+        'assistantName': lambda item: item.assistant or None,
+        'businessHomePage': lambda item: item.business_homepage or None,
+        'homePhones': lambda item: item.home_phones,
+        'businessPhones': lambda item: item.business_phones,
+        'imAddresses': lambda item: item.im_addresses,
+        'homeAddress': lambda item: _phys_address(item.home_address),
+        'businessAddress': lambda item: _phys_address(item.business_address),
+        'otherAddress': lambda item: _phys_address(item.business_address),
+        'otherAddress': lambda item: _phys_address(item.other_address),
     })
 
     set_fields = {
