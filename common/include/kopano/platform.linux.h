@@ -470,16 +470,11 @@ typedef void * DLIB;
 
 namespace KC {
 
-// unavailable in linux
-#define _dstbias 0
-
 extern _kc_export time_t GetProcessTime(void);
 
-#define OutputDebugStringA(dstr) fprintf(stderr,"%s",dstr)
 #define GetTickCount() 0L
 
 #define TICKS_PER_SEC (sysconf(_SC_CLK_TCK))
-#define localemask(_cat) (_cat ## _MASK)
 #define createlocale(_cat, _loc) newlocale(_cat ## _MASK, _loc, NULL)
 #define createlocale_real(_cat, _loc) newlocale(_cat, _loc, NULL)
 
