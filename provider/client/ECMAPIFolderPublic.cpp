@@ -403,10 +403,9 @@ HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, const ENTRYID *eid,
 	auto hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryID);
 	if (hr != hrSuccess)
 		return hr;
-	memcpy(lpEntryID, eid, cbEntryID);
-
-	if (cbEntryID > 0)
-	{
+	if (eid != nullptr)
+		memcpy(lpEntryID, eid, cbEntryID);
+	if (cbEntryID > 0) {
 		hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<BYTE *>(lpEntryID.get()), &ulObjType);
 		if(hr != hrSuccess)
 			return hr;
