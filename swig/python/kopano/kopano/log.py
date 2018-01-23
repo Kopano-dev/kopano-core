@@ -138,7 +138,7 @@ class QueueListener(object):
 
         while True:
             try:
-                record = self.queue.get(True, 0.01) # block, timeout 0.01 sec
+                record = self.queue.get(True, 1) # block, timeout 1 sec
                 self.handle(record)
                 if has_task_done:
                     q.task_done()
