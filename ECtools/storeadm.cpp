@@ -384,15 +384,11 @@ static HRESULT adm_open_dsfolder(IMsgStore *store,
 static HRESULT adm_copy_to_public(KServerContext &kadm,
     const std::string &hexguid, const GUID &binguid)
 {
-	const char *path = opt_host;
-	if (path == nullptr)
-		path = adm_config->GetSetting("server_socket");
-
 	/* Find store entryid */
 	ULONG eid_size = 0;
 	memory_ptr<ENTRYID> eid;
 	std::wstring user, company;
-	auto ret = adm_orphan_store_info(kadm.m_svcadm, binguid, path,
+	auto ret = adm_orphan_store_info(kadm.m_svcadm, binguid, opt_host,
 	           user, company, &eid_size, &~eid);
 	if (ret != hrSuccess)
 		return kc_perror("GetOrphanStoreInfo", ret);
@@ -670,6 +666,9 @@ static HRESULT adm_perform()
 {
 	KServerContext srvctx;
 	srvctx.m_app_misc = "storeadm";
+	if (opt_host == nullptr)
+		opt_host = GetServerUnixSocket(adm_config->GetSetting("server_socket"));
+	srvctx.m_host = opt_host;
 	auto ret = srvctx.logon();
 	if (ret != hrSuccess)
 		return kc_perror("KServerContext::logon", ret);
