@@ -37,11 +37,20 @@ from MAPI.Struct import (
 )
 
 from MAPI.Tags import (
-    PR_EC_BACKUP_SOURCE_KEY, PR_EC_WEBACCESS_SETTINGS_JSON, PR_EC_OUTOFOFFICE,
+    PR_EC_BACKUP_SOURCE_KEY, PR_EC_OUTOFOFFICE,
     PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG, PR_EC_OUTOFOFFICE_FROM,
     PR_EC_OUTOFOFFICE_UNTIL, IID_IExchangeModifyTable, PR_CONTAINER_CLASS_W,
     PR_SOURCE_KEY, PR_ACL_TABLE, PR_STORE_RECORD_KEY, PR_RULES_DATA,
     PR_FREEBUSY_ENTRYIDS, PR_SCHDINFO_DELEGATE_ENTRYIDS, PT_TSTRING,
+    PR_EC_WEBACCESS_SETTINGS_W, PR_EC_RECIPIENT_HISTORY_W,
+    PR_EC_WEBACCESS_SETTINGS_JSON_W, PR_EC_RECIPIENT_HISTORY_JSON_W,
+    PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON_W
+)
+
+WEBAPP_SETTINGS = (
+    PR_EC_WEBACCESS_SETTINGS_W, PR_EC_RECIPIENT_HISTORY_W,
+    PR_EC_WEBACCESS_SETTINGS_JSON_W, PR_EC_RECIPIENT_HISTORY_JSON_W,
+    PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON_W,
 )
 
 import kopano
@@ -200,10 +209,21 @@ class BackupWorker(kopano.Worker):
             # return statistics in output queue
             self.oqueue.put(stats)
 
+    def _store_props(self, store):
+        props = list(store.props())
+
+        for proptag in WEBAPP_SETTINGS:
+            if not [prop for prop in props if prop.proptag == proptag]:
+                prop = store.get_prop(proptag)
+                if prop:
+                    props.append(prop)
+
+        return props
+
     def backup_hierarchy(self, path, stats, options, store, user, server, config):
         # backup user and store properties
         if not options.folders:
-            open(path+'/store', 'wb').write(dump_props(store.props(), stats, self.log))
+            open(path+'/store', 'wb').write(dump_props(self._store_props(store), stats, self.log))
             if user:
                 open(path+'/user', 'wb').write(dump_props(user.props(), stats, self.log))
                 if not options.skip_meta:
@@ -477,13 +497,14 @@ class Service(kopano.Service):
         if user and not self.options.folders and not self.options.restore_root and not self.options.skip_meta:
             if os.path.exists('%s/store' % data_path):
                 storeprops = pickle_loads(open('%s/store' % data_path, 'rb').read())
-                for proptag in (PR_EC_WEBACCESS_SETTINGS_JSON, PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG,
+                for proptag in WEBAPP_SETTINGS + (PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG,
                                 PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL):
                     if PROP_TYPE(proptag) == PT_TSTRING:
                         proptag = CHANGE_PROP_TYPE(proptag, PT_UNICODE)
                     value = storeprops.get(proptag)
-                    if value:
-                        store.mapiobj.SetProps([SPropValue(proptag, value)])
+                    if not value:
+                        continue
+                    store.mapiobj.SetProps([SPropValue(proptag, value)])
                 store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
             if os.path.exists('%s/delegates' % data_path):
                 load_delegates(user, self.server, open('%s/delegates' % data_path, 'rb').read(), stats, self.log)
