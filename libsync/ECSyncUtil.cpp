@@ -23,8 +23,6 @@
 #include <kopano/memory.hpp>
 #include <mapix.h>
 
-using namespace KCHL;
-
 namespace KC {
 
 HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpulChangeId, PROCESSEDCHANGESSET *lpSetProcessChanged)

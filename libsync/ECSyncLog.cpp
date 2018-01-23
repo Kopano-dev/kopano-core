@@ -91,7 +91,7 @@ HRESULT ECSyncLog::SetLogger(ECLogger *lpLogger)
 }
 
 std::mutex ECSyncLog::s_hMutex;
-KCHL::object_ptr<ECLogger> ECSyncLog::s_lpLogger;
+object_ptr<ECLogger> ECSyncLog::s_lpLogger;
 
 ECSyncLog::initializer::~initializer()
 {

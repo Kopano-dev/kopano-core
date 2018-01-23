@@ -239,15 +239,15 @@ private:
 		bool operator==(ULONG ulUid) const noexcept { return this->ulUid == ulUid; }
 	};
 
-	KCHL::object_ptr<IMAPISession> lpSession;
-	KCHL::object_ptr<IAddrBook> lpAddrBook;
-	KCHL::memory_ptr<SPropTagArray> m_lpsIMAPTags;
+	KC::object_ptr<IMAPISession> lpSession;
+	KC::object_ptr<IAddrBook> lpAddrBook;
+	KC::memory_ptr<SPropTagArray> m_lpsIMAPTags;
 
 	// current folder name
-	KCHL::object_ptr<IMAPIFolder> current_folder;
+	KC::object_ptr<IMAPIFolder> current_folder;
 	std::pair<std::wstring, bool> current_folder_state;
 	std::wstring strCurrentFolder;
-	KCHL::object_ptr<IMAPITable> m_lpTable; /* current contents table */
+	KC::object_ptr<IMAPITable> m_lpTable; /* current contents table */
 	std::vector<std::string> m_vTableDataColumns; /* current dataitems that caused the setcolumns on the table */
 
 	// true if folder is opened with examine
@@ -255,7 +255,7 @@ private:
 
 	// vector of mails in the current folder. The index is used for mail number.
 	std::vector<SMail> lstFolderMailEIDs;
-	KCHL::object_ptr<IMsgStore> lpStore, lpPublicStore;
+	KC::object_ptr<IMsgStore> lpStore, lpPublicStore;
 
 	enum { PR_IPM_FAKEJUNK_ENTRYID = PR_ADDITIONAL_REN_ENTRYIDS };
 	// special folder entryids (not able to move/delete inbox and such ...)
@@ -274,10 +274,10 @@ private:
 
 	// Idle mode variables
 	bool m_bIdleMode = false;
-	KCHL::object_ptr<IMAPIAdviseSink> m_lpIdleAdviseSink;
+	KC::object_ptr<IMAPIAdviseSink> m_lpIdleAdviseSink;
 	ULONG m_ulIdleAdviseConnection = 0;
 	std::string m_strIdleTag;
-	KCHL::object_ptr<IMAPITable> m_lpIdleTable;
+	KC::object_ptr<IMAPITable> m_lpIdleTable;
 	std::mutex m_mIdleLock;
 	ULONG m_ulLastUid = 0, m_ulErrors = 0;
 	std::wstring m_strwUsername;
@@ -339,7 +339,7 @@ private:
 	void HrParseHeaders(const std::string &, std::list<std::pair<std::string, std::string> > &);
 	void HrGetSubString(std::string &output, const std::string &input, const std::string &begin, const std::string &end);
 	HRESULT HrExpungeDeleted(const std::string &tag, const std::string &cmd, std::unique_ptr<ECRestriction> &&);
-	HRESULT HrGetCurrentFolder(KCHL::object_ptr<IMAPIFolder> &);
+	HRESULT HrGetCurrentFolder(KC::object_ptr<IMAPIFolder> &);
 };
 
 /** @} */

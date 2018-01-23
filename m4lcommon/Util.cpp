@@ -51,9 +51,6 @@
 #include "HtmlToTextParser.h"
 #include <kopano/ECLogger.h>
 #include "HtmlEntity.h"
-
-using namespace KCHL;
-
 #include <kopano/ECGetText.h>
 
 namespace KC {

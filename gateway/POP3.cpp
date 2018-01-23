@@ -44,7 +44,7 @@
 #include <kopano/charset/utf8string.h>
 #include <kopano/ECFeatures.hpp>
 #include "POP3.h"
-using namespace KCHL;
+using namespace KC;
 using std::string;
 
 /**

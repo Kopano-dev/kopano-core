@@ -37,8 +37,6 @@
 #include <kopano/CommonUtil.h>
 #include "freebusy.h"
 
-using namespace KCHL;
-
 namespace KC {
 
 class PublishFreeBusy _kc_final {

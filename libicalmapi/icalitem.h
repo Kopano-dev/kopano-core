@@ -41,7 +41,7 @@ struct icalrecip {
 };
 
 struct icalitem {
-	KCHL::memory_ptr<char> base; /* pointer on which we use MAPIAllocateMore, to only need to free this pointer */
+	memory_ptr<char> base; /* pointer on which we use MAPIAllocateMore, to only need to free this pointer */
 	eIcalType eType;
 	time_t tLastModified;
 	SPropValue sBinGuid;

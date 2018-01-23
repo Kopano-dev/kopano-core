@@ -214,8 +214,8 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 
 	std::set<servername>	listServers;
 	convert_context		converter;
-	KCHL::memory_ptr<ECSVRNAMELIST> lpSrvNameList;
-	KCHL::memory_ptr<ECSERVERLIST> lpSrvList;
+	memory_ptr<ECSVRNAMELIST> lpSrvNameList;
+	memory_ptr<ECSERVERLIST> lpSrvList;
 	static constexpr const SizedSPropTagArray(1, sCols) = {1, {PR_ENTRYID}};
 
 	if (lpMapiSession == nullptr || lpCollector == nullptr)

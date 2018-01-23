@@ -309,12 +309,12 @@ private:	// methods
 	 */
 	HRESULT HrReleaseChangeAdvisor();
 
-	KCHL::object_ptr<ECLogger> m_lpLogger;
-	KCHL::object_ptr<IMsgStore> m_lpStore;
+	object_ptr<ECLogger> m_lpLogger;
+	object_ptr<IMsgStore> m_lpStore;
 	ECSyncSettings			*m_lpSettings;
-	KCHL::object_ptr<IECChangeAdviseSink> m_lpChangeAdviseSink;
-	KCHL::object_ptr<IECChangeAdvisor> m_lpChangeAdvisor;
-	std::map<std::string, KCHL::object_ptr<IStream>> m_mapSyncStatus;
+	object_ptr<IECChangeAdviseSink> m_lpChangeAdviseSink;
+	object_ptr<IECChangeAdvisor> m_lpChangeAdvisor;
+	std::map<std::string, object_ptr<IStream>> m_mapSyncStatus;
 	SyncStateMap			m_mapStates;
 	NotifiedSyncIdMap		m_mapNotifiedSyncIds;
 	std::mutex m_hMutex;

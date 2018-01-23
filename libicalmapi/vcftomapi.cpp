@@ -36,8 +36,6 @@
 #include "icaluid.h"
 #include "nameids.h"
 
-using namespace KCHL;
-
 namespace KC {
 
 class vcftomapi_impl _kc_final : public vcftomapi {

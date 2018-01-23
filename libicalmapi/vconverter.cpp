@@ -38,8 +38,6 @@
 #include "icalcompat.hpp"
 #include "icalmem.hpp"
 
-using namespace KCHL;
-
 namespace KC {
 
 using std::string;

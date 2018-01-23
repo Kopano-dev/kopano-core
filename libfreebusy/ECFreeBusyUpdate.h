@@ -60,7 +60,7 @@ public:
 	virtual HRESULT Intersect(void) { return S_OK; }
 
 private:
-	KCHL::object_ptr<IMessage> m_lpMessage; /**< Pointer to the free/busy message received from GetFreeBusyMessage */
+	object_ptr<IMessage> m_lpMessage; /**< Pointer to the free/busy message received from GetFreeBusyMessage */
 	ECFBBlockList	m_fbBlockList; /**< Freebusy time blocks */
 	ALLOC_WRAP_FRIEND;
 };

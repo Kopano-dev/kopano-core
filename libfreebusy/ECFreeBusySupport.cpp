@@ -28,8 +28,6 @@
 #include "freebusyutil.h"
 #include <kopano/mapi_ptr.h>
 
-using namespace KCHL;
-
 namespace KC {
 
 ECFreeBusySupport::ECFreeBusySupport(void)

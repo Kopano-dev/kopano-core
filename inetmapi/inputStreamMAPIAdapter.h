@@ -37,7 +37,7 @@ public:
 
 private:
 	bool ateof = false;
-	KCHL::object_ptr<IStream> lpStream;
+	object_ptr<IStream> lpStream;
 };
 
 class outputStreamMAPIAdapter _kc_final : public vmime::utility::outputStream {
@@ -47,7 +47,7 @@ class outputStreamMAPIAdapter _kc_final : public vmime::utility::outputStream {
 	virtual void flush(void) _kc_override;
 
 	private:
-	KCHL::object_ptr<IStream> lpStream;
+	object_ptr<IStream> lpStream;
 };
 
 } /* namespace */

@@ -22,8 +22,6 @@
 
 #include "freebusyutil.h"
 
-using namespace KCHL;
-
 namespace KC {
 
 ECFreeBusyUpdate::ECFreeBusyUpdate(IMessage *lpMessage) :

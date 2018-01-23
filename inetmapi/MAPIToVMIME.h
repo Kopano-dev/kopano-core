@@ -51,8 +51,8 @@ public:
 
 private:
 	sending_options sopt;
-	KCHL::object_ptr<IAddrBook> m_lpAdrBook;
-	KCHL::object_ptr<IMAPISession> m_lpSession;
+	object_ptr<IAddrBook> m_lpAdrBook;
+	object_ptr<IMAPISession> m_lpSession;
 	std::wstring m_strError;
 	convert_context m_converter;
 	vmime::charset m_vmCharset;		//!< charset to use in email

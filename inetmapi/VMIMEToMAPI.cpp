@@ -70,7 +70,6 @@
 #include "ICalToMAPI.h"
 #include "config.h"
 
-using namespace KCHL;
 using std::list;
 using std::string;
 using std::vector;

@@ -33,7 +33,7 @@ public:
 
 private:
 	static std::mutex s_hMutex;
-	static KCHL::object_ptr<ECLogger> s_lpLogger;
+	static object_ptr<ECLogger> s_lpLogger;
 
 	struct _kc_hidden initializer _kc_final {
 		~initializer();

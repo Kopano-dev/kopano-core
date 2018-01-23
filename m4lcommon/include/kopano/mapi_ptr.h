@@ -29,28 +29,28 @@
 
 namespace KC {
 
-typedef KCHL::object_ptr<IABContainer> ABContainerPtr;
-typedef KCHL::object_ptr<IAddrBook> AddrBookPtr;
-typedef KCHL::object_ptr<IECServiceAdmin> ECServiceAdminPtr;
-typedef KCHL::object_ptr<IExchangeManageStore> ExchangeManageStorePtr;
-typedef KCHL::object_ptr<IMAPIFolder> MAPIFolderPtr;
-typedef KCHL::object_ptr<IMAPIProp> MAPIPropPtr;
-typedef KCHL::object_ptr<IMAPISession> MAPISessionPtr;
-typedef KCHL::object_ptr<IMAPITable> MAPITablePtr;
-typedef KCHL::object_ptr<IMailUser> MailUserPtr;
-typedef KCHL::object_ptr<IMessage> MessagePtr;
-typedef KCHL::object_ptr<IMsgStore> MsgStorePtr;
-typedef KCHL::object_ptr<IStream> StreamPtr;
-typedef KCHL::object_ptr<IAttach> AttachPtr;
+typedef object_ptr<IABContainer> ABContainerPtr;
+typedef object_ptr<IAddrBook> AddrBookPtr;
+typedef object_ptr<IECServiceAdmin> ECServiceAdminPtr;
+typedef object_ptr<IExchangeManageStore> ExchangeManageStorePtr;
+typedef object_ptr<IMAPIFolder> MAPIFolderPtr;
+typedef object_ptr<IMAPIProp> MAPIPropPtr;
+typedef object_ptr<IMAPISession> MAPISessionPtr;
+typedef object_ptr<IMAPITable> MAPITablePtr;
+typedef object_ptr<IMailUser> MailUserPtr;
+typedef object_ptr<IMessage> MessagePtr;
+typedef object_ptr<IMsgStore> MsgStorePtr;
+typedef object_ptr<IStream> StreamPtr;
+typedef object_ptr<IAttach> AttachPtr;
 
-typedef KCHL::memory_ptr<ENTRYID> EntryIdPtr;
-typedef KCHL::memory_ptr<ENTRYLIST> EntryListPtr;
-typedef KCHL::memory_ptr<SPropValue> SPropValuePtr;
-typedef KCHL::memory_ptr<SPropTagArray> SPropTagArrayPtr;
-typedef KCHL::memory_ptr<SRestriction> SRestrictionPtr;
+typedef memory_ptr<ENTRYID> EntryIdPtr;
+typedef memory_ptr<ENTRYLIST> EntryListPtr;
+typedef memory_ptr<SPropValue> SPropValuePtr;
+typedef memory_ptr<SPropTagArray> SPropTagArrayPtr;
+typedef memory_ptr<SRestriction> SRestrictionPtr;
 
-typedef KCHL::memory_ptr<SPropValue> SPropArrayPtr;
-typedef KCHL::rowset_ptr SRowSetPtr;
+typedef memory_ptr<SPropValue> SPropArrayPtr;
+typedef rowset_ptr SRowSetPtr;
 
 } /* namespace */
 
