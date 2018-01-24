@@ -2699,7 +2699,8 @@ SCODE KAllocCopy(const void *src, size_t z, void **dst, void *base)
 	auto ret = MAPIAllocateMore(z, base, dst);
 	if (ret != hrSuccess)
 		return ret;
-	memcpy(*dst, src, z);
+	if (src != nullptr)
+		memcpy(*dst, src, z);
 	return hrSuccess;
 }
 
