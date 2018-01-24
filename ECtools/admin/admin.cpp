@@ -85,7 +85,7 @@ enum modes {
 	MODE_ADD_USERQUOTA_RECIPIENT, MODE_DEL_USERQUOTA_RECIPIENT, MODE_LIST_USERQUOTA_RECIPIENT,
 	MODE_ADD_COMPANYQUOTA_RECIPIENT, MODE_DEL_COMPANYQUOTA_RECIPIENT, MODE_LIST_COMPANYQUOTA_RECIPIENT,
 	MODE_SYNC_USERS, MODE_DETAILS, MODE_LIST_SENDAS, MODE_HELP,
-	MODE_SYSTEM_ADMIN, MODE_PURGE_DEFERRED, MODE_CLEAR_CACHE,
+	MODE_SYSTEM_ADMIN, MODE_CLEAR_CACHE,
 	MODE_FORCE_RESYNC, MODE_USER_COUNT, MODE_RESET_FOLDER_COUNT
 };
 
@@ -2161,8 +2161,7 @@ int main(int argc, char* argv[])
 				ulCachePurgeMode = strtol(optarg, NULL, 0);
 			break;
 		case OPT_PURGE_DEFERRED:
-			mode = MODE_PURGE_DEFERRED;
-			break;
+			return fexech(argv[0], {"kopano-srvadm", "--purge-deferred"}, path);
 		case OPT_LIST_ORPHANS:
 			return fexech(argv[0], {"kopano-storeadm", "-O"}, path);
 		case OPT_CONFIG:
@@ -3321,21 +3320,6 @@ int main(int argc, char* argv[])
 			cout << "Cache cleared with flags " << ulCachePurgeMode << endl;
 		else
 			cout << "Cache cleared." << endl;
-		break;
-	case MODE_PURGE_DEFERRED:
-		while(1) {
-			ULONG ulRemaining;
-			hr = lpServiceAdmin->PurgeDeferredUpdates(&ulRemaining);
-			if(hr == MAPI_E_NOT_FOUND)
-				break;
-			if(hr != hrSuccess) {
-				cerr << "Purge failed." << endl;
-				break;
-			}
-			cerr << "Remaining deferred records: " << ulRemaining << "       \r";
-		}
-		cerr << endl;
-		cerr << "Done." << endl;
 		break;
 	case MODE_FORCE_RESYNC:
 		if (lstUsernames.empty())

@@ -25,11 +25,12 @@
 #include <kopano/MAPIErrors.h>
 
 using namespace KC;
-static int opt_purge_softdelete;
+static int opt_purge_deferred, opt_purge_softdelete;
 static const char *opt_config_file, *opt_host;
 static std::unique_ptr<ECConfig> adm_config;
 
 static constexpr const struct poptOption adm_options[] = {
+	{"purge-deferred", 0, POPT_ARG_NONE, &opt_purge_deferred, 0, "Purge all items in the deferred update table"},
 	{"purge-softdelete", 0, POPT_ARG_INT, &opt_purge_softdelete, 0, "Purge softdeleted items older than N days"},
 	{nullptr, 'c', POPT_ARG_STRING, &opt_config_file, 'c', "Specify alternate config file"},
 	{nullptr, 'h', POPT_ARG_STRING, &opt_host, 0, "URI for server"},
@@ -43,6 +44,26 @@ static constexpr const configsetting_t adm_config_defaults[] = {
 	{"sslkey_pass", ""},
 	{nullptr},
 };
+
+static HRESULT adm_purge_deferred(IECServiceAdmin *svcadm)
+{
+	while (true) {
+		ULONG rem;
+		auto ret = svcadm->PurgeDeferredUpdates(&rem);
+		if (ret == MAPI_E_NOT_FOUND)
+			break;
+		else if (ret != hrSuccess)
+			return kc_perror("Purge failed", ret);
+		if (isatty(STDERR_FILENO))
+			fprintf(stderr, "\r\e[2K""Remaining deferred records: %u", rem); // ]
+		else
+			fprintf(stderr, "Remaining deferred records: %u\n", rem);
+	}
+	if (isatty(STDERR_FILENO))
+		fprintf(stderr, "\r\e[2K"); // ]
+	fprintf(stderr, "Deferred records processed.\n");
+	return hrSuccess;
+}
 
 static HRESULT adm_purge_softdelete(IECServiceAdmin *svcadm)
 {
@@ -67,6 +88,8 @@ static HRESULT adm_perform()
 	auto ret = srvctx.logon();
 	if (ret != hrSuccess)
 		return kc_perror("KServerContext::logon", ret);
+	if (opt_purge_deferred)
+		return adm_purge_deferred(srvctx.m_svcadm);
 	if (opt_purge_softdelete)
 		return adm_purge_softdelete(srvctx.m_svcadm);
 	return MAPI_E_CALL_FAILED;

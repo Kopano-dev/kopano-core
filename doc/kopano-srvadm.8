@@ -2,12 +2,20 @@
 .SH Name
 kopano\-srvadm \(em server management utility
 .SH Synopsis
-\fBkopano\-srvadm\fP {\fB\-\-purge\-softdelete\fP \fIdays\fP}
+\fBkopano\-srvadm\fP {\fB\-\-purge\-deferred\fP|\fB\-\-purge\-softdelete\fP
+\fIdays\fP}
 .SH Description
 .PP
 This tool is used to control certain aspects of the Kopano server, specifically
 internal state.
 .SH Options
+.TP
+\fB\-\-purge\-deferred\fP
+The server has an optimization in which changes to the "tproperties" table are
+not writted directly, but delayed for a more efficient write at a later time.
+The server auto-purges these regularly. This command allows you to manually
+start a purge of all pending changes. It may be useful to run this during low
+I/O load of your server, e.g. at night.
 .TP
 \fB\-\-purge\-softdelete\fP \fIdays\fP
 Starts a softdelete purge on the server, removing all soft-deleted items which
