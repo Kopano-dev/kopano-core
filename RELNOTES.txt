@@ -5,6 +5,7 @@ Fixes:
 * libserver: store size for orphaned stores was reported incorrectly [KC-984]
 * client: have OpenEntry check for NULL entryids and entryids too
   short [KC-932]
+* dagent, client: fix nonfunctional HTML filter [KC-953]
 
 
 Release notes for 8.4.5 (2017-12-15)
