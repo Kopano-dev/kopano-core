@@ -172,10 +172,9 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = ZCABContainer::Create(nullptr, nullptr, m_lpMAPISup, this, &~lpRootContainer);
 		if (hr != hrSuccess)
 			return hr;
+	} else if (cbEntryID < 4 + sizeof(GUID) || lpEntryID == nullptr) {
+		return MAPI_E_UNKNOWN_ENTRYID;
 	} else {
-		if (cbEntryID == 0 || lpEntryID == nullptr)
-			return MAPI_E_UNKNOWN_ENTRYID;
-
 		// you can only open the top level container
 		if (memcmp((LPBYTE)lpEntryID +4, &MUIDZCSAB, sizeof(GUID)) != 0)
 			return MAPI_E_UNKNOWN_ENTRYID;

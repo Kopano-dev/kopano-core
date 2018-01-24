@@ -569,7 +569,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if(ulFlags & MAPI_BEST_ACCESS)
 		fModifyObject = fModify;
 
-	if(cbEntryID == 0) {
+	if (cbEntryID == 0 || lpEntryID == nullptr) {
 		hr = lpTransport->HrGetStore(m_cbEntryId, m_lpEntryId, 0, NULL, &cbRootEntryID, &~lpRootEntryID);
 		if(hr != hrSuccess)
 			return hr;

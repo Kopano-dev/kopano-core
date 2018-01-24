@@ -43,6 +43,8 @@ Release notes for 8.4.6
 Fixes:
 * common: restore support for binary data in RTF [KC-969]
 * libserver: store size for orphaned stores was reported incorrectly [KC-984]
+* client: have OpenEntry check for NULL entryids and entryids too
+  short [KC-932]
 
 
 Release notes for 8.4.5 (2017-12-15)
