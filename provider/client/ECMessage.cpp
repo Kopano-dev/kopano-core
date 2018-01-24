@@ -2089,10 +2089,11 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 #ifdef HAVE_TIDY_H
 	case PROP_ID(PR_EC_BODY_FILTERED): {
 		// does it already exist? (e.g. inserted by dagent/gateway)
-		hr = lpMessage->GetSyncedBodyProp(PR_EC_BODY_FILTERED, ulFlags, lpBase, lpsPropValue);
+		hr = lpMessage->HrGetRealProp(PR_EC_BODY_FILTERED, ulFlags, lpBase, lpsPropValue);
 		if (hr == hrSuccess) // yes, then use that
 			break;
 
+		lpsPropValue->ulPropTag = PR_EC_BODY_FILTERED;
 		// else generate it on the fly
 		memory_ptr<SPropValue> tprop;
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~tprop);
@@ -2105,7 +2106,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		}
 
 		std::string fltblk, memblk(reinterpret_cast<const char *>(tprop->Value.bin.lpb), tprop->Value.bin.cb);
-		std::copy_if(fltblk.cbegin(), fltblk.cend(), std::back_inserter(fltblk), [](char x) { return x != '\0'; });
+		std::copy_if(memblk.cbegin(), memblk.cend(), std::back_inserter(fltblk), [](char x) { return x != '\0'; });
 		std::string result;
 		std::vector<std::string> errors;
 		bool rc = rosie_clean_html(fltblk, &result, &errors);
@@ -2114,10 +2115,10 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		if (rc) {
 			ULONG ulSize = result.size();
 
-			hr = ECAllocateMore(ulSize + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
+			hr = ECAllocateMore(ulSize + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 			if (hr == hrSuccess) {
-				memcpy(lpsPropValue->Value.lpszA, result.c_str(), ulSize);
-				lpsPropValue->Value.lpszA[ulSize] = '\0';
+				memcpy(lpsPropValue->Value.bin.lpb, result.c_str(), ulSize);
+				lpsPropValue->Value.bin.lpb[ulSize] = '\0';
 				// FIXME store in database if that is what the SysOp wants
 			} else {
 				ulSize = 0;
