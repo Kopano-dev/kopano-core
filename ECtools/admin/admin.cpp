@@ -85,7 +85,7 @@ enum modes {
 	MODE_ADD_USERQUOTA_RECIPIENT, MODE_DEL_USERQUOTA_RECIPIENT, MODE_LIST_USERQUOTA_RECIPIENT,
 	MODE_ADD_COMPANYQUOTA_RECIPIENT, MODE_DEL_COMPANYQUOTA_RECIPIENT, MODE_LIST_COMPANYQUOTA_RECIPIENT,
 	MODE_SYNC_USERS, MODE_DETAILS, MODE_LIST_SENDAS, MODE_HELP,
-	MODE_SYSTEM_ADMIN, MODE_CLEAR_CACHE,
+	MODE_SYSTEM_ADMIN,
 	MODE_FORCE_RESYNC, MODE_USER_COUNT, MODE_RESET_FOLDER_COUNT
 };
 
@@ -1804,6 +1804,34 @@ static int fexech(const std::string &prog, std::vector<std::string> &&cmd, const
 	return fexec(prog, std::move(cmd));
 }
 
+static int clearcache(const char *arg0, const char *path, const char *s_mode)
+{
+	unsigned int mode = PURGE_CACHE_ALL;
+	std::vector<std::string> v;
+	if (s_mode != nullptr)
+		mode = strtoul(s_mode, nullptr, 0);
+	if (mode == PURGE_CACHE_ALL) {
+		v.push_back("all");
+	} else {
+#define E(m, s) if (mode & m) v.push_back(s)
+		E(PURGE_CACHE_QUOTA, "quota");
+		E(PURGE_CACHE_QUOTADEFAULT, "quotadefault");
+		E(PURGE_CACHE_OBJECTS, "object");
+		E(PURGE_CACHE_STORES, "store");
+		E(PURGE_CACHE_ACL, "acl");
+		E(PURGE_CACHE_CELL, "cell");
+		E(PURGE_CACHE_INDEX1, "index1");
+		E(PURGE_CACHE_INDEX2, "index2");
+		E(PURGE_CACHE_INDEXEDPROPERTIES, "indexedproperty");
+		E(PURGE_CACHE_USEROBJECT, "userobject");
+		E(PURGE_CACHE_EXTERNID, "externid");
+		E(PURGE_CACHE_USERDETAILS, "userdetail");
+		E(PURGE_CACHE_SERVER, "server");
+#undef E
+	}
+	return fexech(arg0, {"kopano-srvadm", "--clear-cache", kc_join(v, ",").c_str()}, path);
+}
+
 int main(int argc, char* argv[])
 {
 	AutoMAPI mapiinit;
@@ -1881,7 +1909,6 @@ int main(int argc, char* argv[])
 	wstring strStorenameTMP;
 	wstring strCompanyName;
 	object_ptr<IMAPIFolder> lpDeletedStoresFolder, lpRootFolder;
-	ULONG ulCachePurgeMode = PURGE_CACHE_ALL;
 	unsigned int loglevel = EC_LOGLEVEL_NONE;
 	object_ptr<ECLogger> lpLogger;
 	const configsetting_t lpDefaults[] = {
@@ -2155,11 +2182,9 @@ int main(int argc, char* argv[])
 			break;
 		case OPT_PURGE_SOFTDELETE:
 			return fexech(argv[0], {"kopano-srvadm", "--purge-softdelete", optarg}, path);
+
 		case OPT_CLEAR_CACHE:
-			mode = MODE_CLEAR_CACHE;
-			if (optarg)
-				ulCachePurgeMode = strtol(optarg, NULL, 0);
-			break;
+			return clearcache(argv[0], path, optarg);
 		case OPT_PURGE_DEFERRED:
 			return fexech(argv[0], {"kopano-srvadm", "--purge-deferred"}, path);
 		case OPT_LIST_ORPHANS:
@@ -3309,17 +3334,6 @@ int main(int argc, char* argv[])
 
 		cout << "Send-as list ("<< cSenders <<") for " << detailstype << " " << username << ":" << endl;
 		print_users(cSenders, lpSenders);
-		break;
-	case MODE_CLEAR_CACHE:
-		hr = lpServiceAdmin->PurgeCache(ulCachePurgeMode);
-		if (hr != hrSuccess) {
-			cerr << "Cache clear failed" << endl;
-			goto exit;
-		}
-		if (ulCachePurgeMode != PURGE_CACHE_ALL)
-			cout << "Cache cleared with flags " << ulCachePurgeMode << endl;
-		else
-			cout << "Cache cleared." << endl;
 		break;
 	case MODE_FORCE_RESYNC:
 		if (lstUsernames.empty())

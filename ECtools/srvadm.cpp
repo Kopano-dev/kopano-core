@@ -14,7 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include <map>
 #include <memory>
+#include <utility>
+#include <string>
 #include <cstdlib>
 #include <popt.h>
 #include <mapidefs.h>
@@ -23,13 +26,16 @@
 #include <kopano/ECLogger.h>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/MAPIErrors.h>
+#include <kopano/stringutil.h>
 
 using namespace KC;
 static int opt_purge_deferred, opt_purge_softdelete;
-static const char *opt_config_file, *opt_host;
+static unsigned int opt_cache_bits;
+static const char *opt_config_file, *opt_host, *opt_clear_cache;
 static std::unique_ptr<ECConfig> adm_config;
 
 static constexpr const struct poptOption adm_options[] = {
+	{"clear-cache", 0, POPT_ARG_STRING, &opt_clear_cache, 0, "Clear one or more caches"},
 	{"purge-deferred", 0, POPT_ARG_NONE, &opt_purge_deferred, 0, "Purge all items in the deferred update table"},
 	{"purge-softdelete", 0, POPT_ARG_INT, &opt_purge_softdelete, 0, "Purge softdeleted items older than N days"},
 	{nullptr, 'c', POPT_ARG_STRING, &opt_config_file, 'c', "Specify alternate config file"},
@@ -44,6 +50,15 @@ static constexpr const configsetting_t adm_config_defaults[] = {
 	{"sslkey_pass", ""},
 	{nullptr},
 };
+
+static HRESULT adm_clear_cache(IECServiceAdmin *svcadm)
+{
+	auto ret = svcadm->PurgeCache(opt_cache_bits);
+	if (ret != hrSuccess)
+		kc_perror("Clearing caches failed", ret);
+	printf("Caches have been cleared.\n");
+	return hrSuccess;
+}
 
 static HRESULT adm_purge_deferred(IECServiceAdmin *svcadm)
 {
@@ -88,11 +103,47 @@ static HRESULT adm_perform()
 	auto ret = srvctx.logon();
 	if (ret != hrSuccess)
 		return kc_perror("KServerContext::logon", ret);
+	if (opt_clear_cache)
+		return adm_clear_cache(srvctx.m_svcadm);
 	if (opt_purge_deferred)
 		return adm_purge_deferred(srvctx.m_svcadm);
 	if (opt_purge_softdelete)
 		return adm_purge_softdelete(srvctx.m_svcadm);
 	return MAPI_E_CALL_FAILED;
+}
+
+static unsigned int adm_parse_cache(const char *arglist)
+{
+	if (*arglist == '\0') {
+		fprintf(stderr, "No caches were selected, nothing will be done.\n");
+		return 0;
+	}
+	static const std::map<std::string, unsigned int> map = {
+		{"all", PURGE_CACHE_ALL},
+		{"quota", PURGE_CACHE_QUOTA},
+		{"quotadefault", PURGE_CACHE_QUOTADEFAULT},
+		{"object", PURGE_CACHE_OBJECTS},
+		{"store", PURGE_CACHE_STORES},
+		{"acl", PURGE_CACHE_ACL},
+		{"cell", PURGE_CACHE_CELL},
+		{"index1", PURGE_CACHE_INDEX1},
+		{"index2", PURGE_CACHE_INDEX2},
+		{"indexedproperty", PURGE_CACHE_INDEXEDPROPERTIES},
+		{"userobject", PURGE_CACHE_USEROBJECT},
+		{"externid", PURGE_CACHE_EXTERNID},
+		{"userdetail", PURGE_CACHE_USERDETAILS},
+		{"server", PURGE_CACHE_SERVER},
+	};
+	unsigned int bits = 0;
+	for (const auto &arg : tokenize(arglist, ",")) {
+		auto e = map.find(arg);
+		if (e == map.cend()) {
+			fprintf(stderr, "Unknown cache: \"%s\"\n", arg.c_str());
+			return 0;
+		}
+		bits |= e->second;
+	}
+	return bits;
 }
 
 static bool adm_parse_options(int &argc, char **&argv)
@@ -115,6 +166,10 @@ static bool adm_parse_options(int &argc, char **&argv)
 		poptPrintHelp(ctx, stderr, 0);
 		return false;
 	}
+	if (opt_clear_cache != nullptr)
+		opt_cache_bits = adm_parse_cache(opt_clear_cache);
+	if (opt_cache_bits == 0)
+		return false;
 	return true;
 }
 
