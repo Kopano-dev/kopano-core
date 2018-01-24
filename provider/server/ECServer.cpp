@@ -899,7 +899,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 		// internal server contols
 		{ "softdelete_lifetime",		"30", CONFIGSETTING_RELOADABLE },	// time expressed in days, 0 == never delete anything
-		{ "cache_cell_size",			"16M", CONFIGSETTING_SIZE },	// default 16 Mb, default in config 256M
+		{ "cache_cell_size",			"256M", CONFIGSETTING_SIZE },	// default 256 Mb
 		{ "cache_object_size",		"16M", CONFIGSETTING_SIZE },
 		{ "cache_indexedobject_size",	"32M", CONFIGSETTING_SIZE },
 		{ "cache_quota_size",			"1M", CONFIGSETTING_SIZE },		// 1Mb
