@@ -2493,7 +2493,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 	else
 		swap(strHTML, m_mailState.strHTMLBody);
 	if (m_dopt.html_safety_filter)
-		filter_html(lpMessage, lpHTMLStream, ulFlags, strHTML);
+		filter_html(lpMessage, lpHTMLStream, ulFlags, m_mailState.strHTMLBody);
 	return hrSuccess;
 }
 

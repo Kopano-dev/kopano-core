@@ -383,8 +383,7 @@ HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, const ENTRYID *eid,
 	auto hr = KAllocCopy(eid, cbEntryID, &~lpEntryID);
 	if (hr != hrSuccess)
 		return hr;
-	if (cbEntryID > 0)
-	{
+	if (cbEntryID > 0) {
 		hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<BYTE *>(lpEntryID.get()), &ulObjType);
 		if(hr != hrSuccess)
 			return hr;
