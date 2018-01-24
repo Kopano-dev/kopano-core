@@ -614,12 +614,11 @@ AC_CHECK_FUNCS([gettext], INTL_LIBS="", dnl gettext in libc
 AC_SUBST(INTL_LIBS)
 
 # check epoll support
-AC_ARG_ENABLE([epoll], AS_HELP_STRING([--enable-epoll], [enable building epoll socket handling]), [want_epoll=${enableval}], [want_epoll=no])
+AC_ARG_ENABLE([epoll], AS_HELP_STRING([--disable-epoll], [disable epoll and fallback to select]), [want_epoll=${enableval}], [want_epoll=yes])
 AM_CONDITIONAL(WITH_EPOLL, test "$want_epoll" = "yes")
-if test "$want_epoll" = "yes"; then
-AC_CHECK_FUNCS([epoll_create])
-ZCPPFLAGS="$ZCPPFLAGS -DUSE_EPOLL"
-fi
+AS_IF([test "$BUILDOS" = linux && test "$want_epoll" = "yes"], [
+	AC_CHECK_FUNCS([epoll_create], [ZCPPFLAGS="$ZCPPFLAGS -DUSE_EPOLL"])
+])
 
 tidy_CPPFLAGS="-I/usr/include/tidy"
 CPPFLAGS="$CPPFLAGS $tidy_CPPFLAGS"
