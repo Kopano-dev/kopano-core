@@ -60,7 +60,7 @@ from MAPI.Tags import (
     PR_ATTACHMENT_HIDDEN, PR_ATTACHMENT_LINKID, PR_ATTACH_FLAGS,
     PR_NORMALIZED_SUBJECT_W, PR_INTERNET_MESSAGE_ID_W, PR_CONVERSATION_ID,
     PR_READ_RECEIPT_REQUESTED, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED,
-    PR_REPLY_RECIPIENT_ENTRIES,
+    PR_REPLY_RECIPIENT_ENTRIES, PR_EC_BODY_FILTERED
 )
 
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
@@ -596,6 +596,14 @@ class Item(Properties, Contact, Appointment):
     @html.setter
     def html(self, x):
         self.create_prop(PR_HTML, x)
+
+    @property
+    def filtered_html(self):
+        """ Filtered HTML representation """
+        try:
+            return self.prop(PR_EC_BODY_FILTERED).value
+        except NotFoundError:
+            pass
 
     @property
     def rtf(self):
