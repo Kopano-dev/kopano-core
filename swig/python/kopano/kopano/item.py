@@ -33,11 +33,16 @@ from MAPI import (
     MAPI_E_NOT_ENOUGH_MEMORY, PT_SYSTIME, MAPI_ASSOCIATED,
     WrapCompressedRTFStream
 )
-from MAPI.Defs import HrGetOneProp, CHANGE_PROP_TYPE, bin2hex
+
+from MAPI.Defs import (
+    HrGetOneProp, CHANGE_PROP_TYPE,
+)
+
 from MAPI.Struct import (
     SPropValue, MAPIErrorNotFound, MAPIErrorUnknownEntryid,
     MAPIErrorInterfaceNotSupported, MAPIErrorUnconfigured, MAPIErrorNoAccess,
 )
+
 from MAPI.Tags import (
     PR_BODY, PR_DISPLAY_NAME_W, PR_MESSAGE_CLASS_W, PR_CHANGE_KEY,
     PR_CONTAINER_CLASS_W, PR_ENTRYID, PR_EC_HIERARCHYID, PR_HASATTACH,
@@ -63,7 +68,9 @@ from MAPI.Tags import (
     PR_REPLY_RECIPIENT_ENTRIES, PR_EC_BODY_FILTERED, PR_SENSITIVITY,
 )
 
-from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
+from MAPI.Tags import (
+    IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage,
+)
 
 from .pidlid import (
     PidLidAppointmentStateFlags,
@@ -254,7 +261,7 @@ class Item(Properties, Contact, Appointment):
         """ Item sourcekey """
 
         if not hasattr(self, '_sourcekey'): # XXX more general caching solution
-            self._sourcekey = bin2hex(HrGetOneProp(self.mapiobj, PR_SOURCE_KEY).Value)
+            self._sourcekey = _benc(self[PR_SOURCE_KEY])
         return self._sourcekey
 
     @property

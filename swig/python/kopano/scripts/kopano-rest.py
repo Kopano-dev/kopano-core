@@ -1,12 +1,21 @@
 import base64
+import codecs
+from contextlib import closing
 import dateutil.parser
+import fcntl
 import json
 import os
+import sys
 from threading import Thread
 try:
     import urlparse
 except ImportError:
     import urllib.parse as urlparse
+
+if sys.hexversion >= 0x03000000:
+    import bsddb3 as bsddb
+else:
+    import bsddb
 
 from MAPI.Util import kc_session_save, kc_session_restore, GetDefaultStore
 
@@ -38,10 +47,25 @@ PREFIX = '/api/gc/v0'
 # TODO calendarresource fields
 # TODO $count seems broken for ms graph?
 # TODO $filter, $search
+# TODO gab syncing not supported via SWIG bindings (client/ECExportAddressbookChanges?)
+
+def db_get(key):
+    with closing(bsddb.hashopen('mapping_db', 'c')) as db:
+        return codecs.decode(db.get(codecs.encode(key, 'ascii')), 'ascii')
+
+def db_put(key, value):
+    with open('mapping_db.lock', 'w') as lockfile:
+        fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
+        with closing(bsddb.hashopen('mapping_db', 'c')) as db:
+            db[codecs.encode(key, 'ascii')] = codecs.encode(value, 'ascii')
 
 def _server(req):
-    userid = os.getenv('DEBUG_KOPANO_REST_USERID') or req.get_header('X-Kopano-UserEntryID', required=True)
-    if userid in userid_sessiondata:
+    auth_header = req.get_header('Authorization')
+    userid = req.get_header('X-Kopano-UserEntryID')
+    if auth_header:
+        user, passwd = codecs.decode(codecs.encode(auth_header[6:], 'ascii'), 'base64').split(b':')
+        server = kopano.Server(auth_user=user, auth_pass=passwd)
+    elif userid in userid_sessiondata:
         sessiondata = userid_sessiondata[userid]
         mapisession = kc_session_restore(sessiondata)
         server = kopano.Server(mapisession=mapisession, parse_args=False)
@@ -54,7 +78,7 @@ def _server(req):
     return server
 
 def _server_notif(req):
-    userid = os.getenv('DEBUG_KOPANO_REST_USERID') or req.get_header('X-Kopano-UserEntryID', required=True)
+    userid = req.get_header('X-Kopano-UserEntryID', required=True)
     username = admin_server.user(userid=userid).name
     return kopano.Server(auth_user=username, auth_pass='',
                            parse_args=False, store_cache=False, notifications=True)
@@ -65,6 +89,25 @@ def _store(server, userid):
     else:
         return kopano.Store(server=server,
                             mapiobj=GetDefaultStore(server.mapisession))
+
+def _get_folder(store, folderid):
+    name = folderid.lower()
+    if name == 'inbox':
+        return store.inbox
+    elif name == 'drafts':
+        return store.drafts
+    elif name == 'calendar':
+        return store.calendar
+    elif name == 'contacts':
+        return store.contacts
+    elif name == 'deleteditems':
+        return store.wastebasket
+    elif name == 'junkemail':
+        return store.junk
+    elif name == 'sentitems':
+        return store.sentmail
+    else:
+        return store.folder(entryid=folderid)
 
 def _date(d, local=False, time=True):
     if d is None:
@@ -82,11 +125,15 @@ class Resource(object):
     def get_fields(self, req, obj, fields, all_fields):
         fields = fields or all_fields or self.fields
         result = {}
-        for f in all_fields:
+        for f in fields:
             try:
                 result[f] = all_fields[f](obj)
-            except TypeError: # TODO
-                result[f] = all_fields[f](req, obj)
+            except (TypeError, KeyError): # TODO
+                try:
+                    result[f] = all_fields[f](req, obj)
+                except KeyError: # TODO
+                    pass
+
         # TODO do not handle here
         if '@odata.type' in result and not result['@odata.type']:
             del result['@odata.type']
@@ -279,7 +326,7 @@ class FolderResource(Resource):
     def on_delete(self, req, resp, userid=None, folderid=None):
         server = _server(req)
         store = _store(server, userid)
-        folder = store.folder(entryid=folderid)
+        folder = _get_folder(store, folderid)
 
         store.delete(folder)
 
@@ -292,6 +339,19 @@ class ItemResource(Resource):
         'lastModifiedDateTime': lambda item: _date(item.last_modified),
         'categories': lambda item: item.categories,
     }
+
+    def delta(self, req, resp, folder):
+        args = urlparse.parse_qs(req.query_string)
+        token = args['$deltatoken'][0] if '$deltatoken' in args else None
+        importer = Importer()
+        newstate = folder.sync(importer, token)
+        changes = [(o, MessageResource) for o in importer.updates] + \
+            [(o, DeletedMessageResource) for o in importer.deletes]
+        data = (changes, TOP, 0, len(changes))
+        deltalink = b"%s?$deltatoken=%s" % (req.path.encode('utf-8'), codecs.encode(newstate, 'ascii'))
+        self.respond(req, resp, data, MessageResource.fields, deltalink=deltalink)
+
+    # TODO more common functionality
 
 class MailFolderResource(FolderResource):
     fields = FolderResource.fields.copy()
@@ -313,12 +373,7 @@ class MailFolderResource(FolderResource):
         store = _store(server, userid)
 
         if folderid:
-            if folderid == 'inbox': # XXX more
-                data = store.inbox
-            elif folderid == 'drafts':
-                data = store.drafts
-            else:
-                data = store.folder(entryid=folderid)
+            data = _get_folder(store, folderid)
         else:
             data = self.generator(req, store.folders, store.subtree.subfolder_count_recursive)
 
@@ -345,11 +400,7 @@ class MailFolderResource(FolderResource):
         server = _server(req)
         store = _store(server, userid)
 
-        if folderid == 'inbox': # XXX more
-            folder = store.inbox
-        else:
-            folder = store.folder(entryid=folderid)
-
+        folder = _get_folder(store, folderid)
         fields = json.loads(req.stream.read().decode('utf-8'))
 
         if method == 'messages':
@@ -386,12 +437,7 @@ class CalendarResource(FolderResource):
         if path.split('/')[-1] == 'calendars':
             data = self.generator(req, store.calendars)
         else:
-            if folderid == 'calendar':
-                folder = store.calendar
-            elif folderid:
-                folder = store.folder(entryid=folderid)
-            else:
-                folder = store.calendar
+            folder = _get_folder(store, folderid or 'calendar')
 
             if method == 'calendarView':
                 args = urlparse.parse_qs(req.query_string)
@@ -435,12 +481,22 @@ def set_body(item, arg):
 def set_torecipients(item, arg):
     item.to = ';'.join('%s <%s>' % (a['name'], a['address']) for a in arg)
 
+class DeletedItem(object):
+    pass
+
 class Importer:
     def __init__(self):
         self.updates = []
+        self.deletes = []
 
     def update(self, item, flags):
         self.updates.append(item)
+        db_put(item.sourcekey, item.entryid)
+
+    def delete(self, item, flags):
+        d = DeletedItem()
+        d.entryid = db_get(item.sourcekey)
+        self.deletes.append(d)
 
 def get_attachments(item):
     for attachment in item.attachments(embedded=True):
@@ -485,24 +541,10 @@ class MessageResource(ItemResource):
     def on_get(self, req, resp, userid=None, folderid=None, messageid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
-
-        if folderid:
-            if folderid == 'inbox': # XXX more
-                folder = store.inbox
-            else:
-                folder = store.folder(entryid=folderid)
-        else:
-            folder = store.inbox # TODO messages from all folders?
+        folder = _get_folder(store, folderid or 'inbox') # TODO all folders?
 
         if messageid == 'delta': # TODO move to MailFolder resource somehow?
-            # TODO deletes
-            args = urlparse.parse_qs(req.query_string)
-            token = args['$deltatoken'][0] if '$deltatoken' in args else None
-            importer = Importer()
-            newstate = folder.sync(importer, token)
-            data = (importer.updates, TOP, 0, len(importer.updates))
-            deltalink = "%s?deltatoken=%s" % (req.path.encode('utf-8'), newstate)
-            self.respond(req, resp, data, MessageResource.fields, deltalink=deltalink)
+            self.delta(req, resp, folder)
             return
         else:
             item = folder.item(messageid)
@@ -527,15 +569,7 @@ class MessageResource(ItemResource):
     def on_post(self, req, resp, userid=None, folderid=None, messageid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
-
-        if folderid:
-            if folderid == 'inbox': # XXX more
-                folder = store.inbox
-            else:
-                folder = store.folder(entryid=folderid)
-        else:
-            folder = store.inbox # TODO messages from all folders?
-
+        folder = _get_folder(store, folderid or 'inbox') # TODO all folders?
         item = folder.item(messageid)
 
         if method == 'attachments':
@@ -546,16 +580,9 @@ class MessageResource(ItemResource):
     def on_patch(self, req, resp, userid=None, folderid=None, messageid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
-
-        if folderid:
-            if folderid == 'inbox': # XXX more
-                folder = store.inbox
-            else:
-                folder = store.folder(entryid=folderid)
-        else:
-            folder = store.inbox # TODO messages from all folders?
-
+        folder = _get_folder(store, folderid or 'inbox') # TODO all folders?
         item = folder.item(messageid)
+
         fields = json.loads(req.stream.read().decode('utf-8'))
 
         for field, value in fields.items():
@@ -570,6 +597,13 @@ class MessageResource(ItemResource):
         item = store.item(messageid)
 
         store.delete(item)
+
+class DeletedMessageResource(ItemResource):
+    fields = {
+        '@odata.type': lambda item: '#microsoft.graph.message', # TODO
+        'id': lambda item: item.entryid,
+        '@removed': lambda item: {'reason': 'deleted'} # TODO soft deletes
+    }
 
 class EmbeddedMessageResource(MessageResource):
     fields = MessageResource.fields.copy()
@@ -598,7 +632,7 @@ class AttachmentResource(Resource):
         store = _store(server, userid)
 
         if folderid:
-            folder = store.folder(entryid=folderid)
+            folder = _get_folder(store, folderid)
         elif eventid:
             folder = store.calendar
         else:
@@ -624,7 +658,6 @@ class AttachmentResource(Resource):
     def on_delete(self, req, resp, userid=None, folderid=None, messageid=None, eventid=None, attachmentid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
-
         item = store.item(messageid or eventid)
         attachment = item.attachment(attachmentid)
 
@@ -741,15 +774,12 @@ class EventResource(ItemResource):
         'end': lambda item, arg: setdate(item, 'end', arg),
     }
 
+    # TODO delta functionality seems to include expanding recurrences!? check with MSGE
+
     def on_get(self, req, resp, userid=None, folderid=None, eventid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
-
-        if folderid:
-            folder = store.folder(entryid=folderid)
-        else:
-            folder = store.calendar
-
+        folder = _get_folder(store, folderid or 'calendar')
         item = folder.item(eventid)
 
         if method == 'attachments':
@@ -763,12 +793,7 @@ class EventResource(ItemResource):
     def on_post(self, req, resp, userid=None, folderid=None, eventid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
-
-        if folderid:
-            folder = store.folder(entryid=folderid)
-        else:
-            folder = store.calendar
-
+        folder = _get_folder(store, folderid or 'calendar')
         item = folder.item(eventid)
 
         if method == 'attachments':
@@ -779,8 +804,8 @@ class EventResource(ItemResource):
     def on_delete(self, req, resp, userid=None, folderid=None, eventid=None):
         server = _server(req)
         store = _store(server, userid)
-
         item = store.item(eventid)
+
         store.delete(item)
 
 class ContactFolderResource(FolderResource):
@@ -793,11 +818,7 @@ class ContactFolderResource(FolderResource):
     def on_get(self, req, resp, userid=None, folderid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
-
-        if folderid == 'contacts':
-            folder = store.contacts
-        else:
-            folder = store.folder(entryid=folderid)
+        folder = _get_folder(store, folderid)
 
         if method == 'contacts':
             data = self.generator(req, folder.items, folder.count)
@@ -811,11 +832,7 @@ class ContactFolderResource(FolderResource):
     def on_post(self, req, resp, userid=None, folderid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
-
-        if folderid == 'contacts':
-            folder = store.contacts
-        else:
-            folder = store.folder(entryid=folderid)
+        folder = _get_folder(store, folderid)
 
         if method == 'contacts':
             fields = json.loads(req.stream.read().decode('utf-8'))
@@ -880,28 +897,19 @@ class ContactResource(ItemResource):
         'emailAddresses': set_email_addresses,
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, contactid=None, method=None, value=None):
+    def on_get(self, req, resp, userid=None, folderid=None, contactid=None):
         server = _server(req)
         store = _store(server, userid)
+        folder = _get_folder(store, folderid or 'contacts') # TODO all folders?
 
-        if folderid:
-            folder = store.folder(entryid=folderid)
-        else:
-            folder = store.contacts # TODO contacts from all folders?
+        if contactid == 'delta':
+            self.delta(req, resp, folder)
+            return
 
         if contactid:
             data = folder.item(contactid)
         else:
             data = self.generator(req, folder.items, folder.count)
-
-        if method == 'photo':
-            photo = data.photo
-            if value == '$value':
-                resp.content_type = photo.mimetype
-                resp.data = photo.data
-            else:
-                self.respond(req, resp, photo, ProfilePhotoResource.fields)
-            return
 
         self.respond(req, resp, data)
 
@@ -918,7 +926,28 @@ class ProfilePhotoResource(Resource):
 
     }
 
-    # TODO so empty..
+    def on_get(self, req, resp, userid=None, folderid=None, contactid=None, method=None):
+        server = _server(req)
+        store = _store(server, userid)
+        folder = _get_folder(store, folderid or 'contacts')
+        photo = folder.item(contactid).photo
+
+        if method == '$value':
+            resp.content_type = photo.mimetype
+            resp.data = photo.data
+        else:
+            self.respond(req, resp, photo)
+
+    def on_patch(self, *args, **kwargs):
+        self.on_put(*args, **kwargs)
+
+    def on_put(self, req, resp, userid=None, folderid=None, contactid=None, method=None):
+        server = _server(req)
+        store = _store(server, userid)
+        folder = _get_folder(store, folderid or 'contacts')
+        contact = folder.item(contactid)
+
+        contact.set_photo('noname', req.stream.read(), req.get_header('Content-Type'))
 
 class NotificationThread(Thread):
     def __init__(self, store, url):
@@ -954,6 +983,7 @@ events = EventResource()
 contactfolders = ContactFolderResource()
 contacts = ContactResource()
 subscriptions = SubscriptionResource()
+photos = ProfilePhotoResource()
 
 app = falcon.API()
 
@@ -1005,5 +1035,10 @@ for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
 
     # contacts
     app.add_route(user+'/contacts/{contactid}', contacts)
-    app.add_route(user+'/contacts/{contactid}/{method}', contacts)
-    app.add_route(user+'/contacts/{contactid}/{method}/{value}', contacts) # TODO
+    app.add_route(user+'/contactFolders/{folderid}/contacts/{contactid}', contacts)
+
+    # profile photos
+    app.add_route(user+'/contacts/{contactid}/photo', photos)
+    app.add_route(user+'/contacts/{contactid}/photo/{method}', photos)
+    app.add_route(user+'/contactFolders/{folderid}/contacts/{contactid}/photo', photos)
+    app.add_route(user+'/contactFolders/{folderid}/contacts/{contactid}/photo/{method}', photos)
