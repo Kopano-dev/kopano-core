@@ -33,7 +33,7 @@ else:
 from .properties import Properties
 
 from .compat import (
-    benc as _benc
+    benc as _benc, fake_unicode as _unicode,
 )
 
 if sys.hexversion >= 0x03000000:
@@ -90,6 +90,10 @@ class Attachment(Properties):
             return HrGetOneProp(self.mapiobj, PR_ATTACH_MIME_TAG_W).Value
         except MAPIErrorNotFound:
             return u''
+
+    @mimetype.setter
+    def mimetype(self, m):
+        self[PR_ATTACH_MIME_TAG_W] = _unicode(m)
 
     @property
     def filename(self):

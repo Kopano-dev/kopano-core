@@ -5,11 +5,6 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
 Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
-
 from MAPI import (
     KEEP_OPEN_READWRITE,
 )
@@ -110,20 +105,17 @@ class Contact(object):
     def photo(self):
         for attachment in self.attachments():
             if attachment.get(PR_ATTACHMENT_CONTACTPHOTO):
-                s = StringIO(attachment.data)
-                s.name = attachment.name
-                return s
+                return attachment
 
-    @photo.setter
-    def photo(self, f):
-        name, data = f.name, f.read()
+    def set_photo(self, name, data, mimetype):
         for attachment in self.attachments():
             if attachment.get(PR_ATTACHMENT_CONTACTPHOTO):
                 self.delete(attachment)
         attachment = self.create_attachment(name, data)
         attachment[PR_ATTACHMENT_CONTACTPHOTO] = True
-        # XXX shouldn't be needed?
+        attachment.mimetype = mimetype
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        return attachment
 
     @property
     def initials(self):

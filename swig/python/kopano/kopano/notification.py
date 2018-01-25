@@ -6,7 +6,15 @@ Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
 
 import sys
 from .compat import  hex as _hex
-from MAPI import MAPI_MESSAGE
+
+from MAPI import (
+    MAPI_MESSAGE,
+    MAPINotifSink, fnevObjectModified, fnevObjectCreated,
+    fnevObjectMoved, fnevObjectDeleted,
+)
+from MAPI.Struct import (
+    MAPIErrorNoSupport,
+)
 
 if sys.hexversion >= 0x03000000:
     from . import folder as _folder
@@ -14,6 +22,8 @@ if sys.hexversion >= 0x03000000:
 else:
     import folder as _folder
     import item as _item
+
+from .compat import bdec as _bdec
 
 class Notification:
     def __init__(self, store, mapiobj):
@@ -41,12 +51,22 @@ class Notification:
 
         return None
 
-class Sink:
-    def __init__(self, store, mapiobj):
-        self.store = store
-        self.mapiobj = mapiobj
+def _notifications(store, entryid, time):
+    flags = fnevObjectModified | fnevObjectCreated \
+        | fnevObjectMoved | fnevObjectDeleted
 
-    def notifications(self, time=1000):
-        mapi_notifications = self.mapiobj.GetNotifications(False, time)
-        for notification in mapi_notifications:
-            yield Notification(self.store, notification)
+    sink = MAPINotifSink()
+    try:
+        if entryid:
+            store.mapiobj.Advise(_bdec(entryid), flags, sink)
+        else:
+            store.mapiobj.Advise(None, flags, sink)
+    except MAPIErrorNoSupport:
+        raise NotSupportedError(
+            "No support for advise, please use"
+            "kopano.Server(notifications=True)"
+        )
+
+    mapi_notifications = sink.GetNotifications(False, time*1000)
+    for notification in mapi_notifications:
+        yield Notification(store, notification)
