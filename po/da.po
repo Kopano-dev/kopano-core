@@ -1386,7 +1386,7 @@ msgstr ""
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/libserver/ECGenProps.cpp:905
 msgid "Public Folders"
-msgstr "Offentlige Mapper:"
+msgstr "Offentlige Mapper"
 
 #: provider/client/EntryPoint.cpp:969
 msgid "Unknown username"
