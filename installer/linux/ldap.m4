@@ -50,14 +50,14 @@ ldap_user_search_filter = ifelse(TYPE,`OPENLDAP',`',`(objectCategory=Person)')
 # unique user id for find the user
 # Required
 # For active directory, use:
-#    objectGuid ** WARNING: This WAS: objectSid ** Updates *WILL* fail! **
+#    objectGUID ** WARNING: This WAS: objectSid ** Updates *WILL* fail! **
 # For LDAP with posixAccount, use:
 #    uidNumber
 ifelse(TYPE,`OPENLDAP',`dnl
 # Note: contacts also use this field for uniqueness. If you change this,
 # you might need to update the kopano.schema file too, and change
 # the MUST uidNumber to whatever you set here.')dnl
-ldap_user_unique_attribute = ifelse(TYPE,`OPENLDAP',`uidNumber',`objectGuid')
+ldap_user_unique_attribute = ifelse(TYPE,`OPENLDAP',`uidNumber',`objectGUID')
 
 # Type of unique user id
 # default: text
