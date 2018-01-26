@@ -193,113 +193,15 @@ msgstr ""
 msgid "Do you wish to continue?"
 msgstr ""
 
-#: provider/ECProps/Addin.cpp:483 provider/ECProps/PropPage.cpp:232
-#: provider/ECProps/ECDelegatePropPage.cpp:178
-msgid "Unable to get session"
-msgstr ""
-
-#: provider/ECProps/Addin.cpp:549 provider/ECProps/SyncBar.cpp:326
-msgid "Configure"
-msgstr "Konfigurer"
-
-#: provider/ECProps/Addin.cpp:551 provider/ECProps/SyncBar.cpp:318
-msgid "Synchronize"
-msgstr "Synkroniser"
-
-#: provider/ECProps/Addin.cpp:553
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:28
-msgid "Open Shared Folders..."
-msgstr "Åbn delte mapper..."
-
-#: provider/ECProps/Addin.cpp:555 provider/ECProps/Addin.cpp:598
-#: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:19
-#: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:20
-msgid "Recover Deleted Items..."
-msgstr "Gendan slettede emner..."
-
-#: provider/ECProps/Addin.cpp:557 provider/ECProps/Addin.cpp:600
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:20
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:21
-msgid "Out of Office Assistant..."
-msgstr "Autosvar..."
-
-# 75%
-#: provider/ECProps/Addin.cpp:559 provider/ECProps/Addin.cpp:602
-#, fuzzy
-msgid "Delegates..."
-msgstr "Delegerede"
-
-#: provider/ECProps/Addin.cpp:563
-msgid "Offline"
-msgstr "Offline"
-
-#: provider/ECProps/Addin.cpp:592 provider/ECProps/SyncBar.cpp:328
-#, fuzzy
-msgid "Configure offline synchronization"
-msgstr "Konfigurer Kopano offline-synkronisering"
-
-#: provider/ECProps/Addin.cpp:594 provider/ECProps/SyncBar.cpp:320
-#, fuzzy
-msgid "Start offline synchronization"
-msgstr "Start Kopano offline-synkronisering"
-
-#: provider/ECProps/Addin.cpp:596
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:29
-msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
-msgstr "Åbn anden brugers delte mapper (Kalender, E-mail, m.m.)"
-
-#: provider/ECProps/Addin.cpp:713
-msgid "Out of Office currently on. Would you like to turn it off?"
-msgstr "Autosvar er aktiveret. Ønsker de at deaktivere?"
-
-#: provider/ECProps/Addin.cpp:713
-msgid "Out Of Office Turned On"
-msgstr "Autosvar aktiveret"
-
-#: provider/ECProps/Addin.cpp:719
-msgid "Unable to save Out of Office status"
-msgstr "Kan ikke gemme ikke tilstede på kontor Status"
-
-#: provider/ECProps/Addin.cpp:820 provider/ECProps/ECDelegateDlg.cpp:299
-msgid "Delegates"
-msgstr "Delegerede"
-
 #: provider/ECProps/Addin.cpp:957 provider/client/ECMsgStorePublic.cpp:547
 #: provider/client/ECMAPIFolderPublic.cpp:164
 msgid "Favorites"
 msgstr "Foretrukne"
 
-#: provider/ECProps/Addin.cpp:969 provider/ECProps/PropPage.cpp:436
-msgid "Permissions"
-msgstr "Tilladelser"
-
-#: provider/ECProps/Addin.cpp:1180 provider/ECProps/Addin.cpp:1181
-msgid "Add to Public Favorites Folder"
-msgstr "Føj til Offentlige Foretrukne Mapper"
-
-#: provider/ECProps/Addin.cpp:1265
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:89
-#: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:97
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:108
-msgid "Unable to open MAPI session."
-msgstr "Kunne ikke åbne MAPI-sessionen."
-
 #: provider/ECProps/Addin.cpp:1269 provider/ECProps/ECFavoritePropPage.cpp:110
 #: provider/client/ECMsgStore.cpp:2403
 msgid "Shortcut"
 msgstr "Genvej"
-
-#: provider/ECProps/Addin.cpp:1269 provider/ECProps/ECFavoritePropPage.cpp:110
-msgid "Shortcut folder"
-msgstr "Genvejsmappe"
-
-#: provider/ECProps/Addin.cpp:1271
-msgid "Unable to get shortcut folder."
-msgstr "Kunne ikke finde genvejsmappen."
-
-#: provider/ECProps/PropPage.cpp:33
-msgid "Full control"
-msgstr "Fuld kontrol"
 
 #: provider/ECProps/PropPage.cpp:34
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:165
@@ -307,133 +209,9 @@ msgstr "Fuld kontrol"
 msgid "Owner"
 msgstr "Ejer"
 
-#: provider/ECProps/PropPage.cpp:35
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:164
-msgid "Secretary"
-msgstr "Sekretær"
-
-#: provider/ECProps/PropPage.cpp:36
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:163
-msgid "Only read"
-msgstr "Kun læse"
-
-#: provider/ECProps/PropPage.cpp:37
-msgid "No rights"
-msgstr "Ingen tilladelser"
-
-#: provider/ECProps/PropPage.cpp:193
-msgid "You have insufficient permissions to set permissions"
-msgstr "Du har utilstrækkelige tilladelser til at angive tilladelser"
-
-#: provider/ECProps/PropPage.cpp:196
-msgid ""
-"Unable to set some permissions. Permissions are only allowed on users and "
-"security groups."
-msgstr ""
-
-#: provider/ECProps/PropPage.cpp:199
-#, fuzzy
-msgid "Unable to set all permissions."
-msgstr "Kunne ikke indstille tilladelser."
-
-#: provider/ECProps/PropPage.cpp:238 provider/ECProps/MapOtherUserDlg.cpp:273
-#: provider/ECProps/ECDelegatePropPage.cpp:184
-#: provider/ECProps/ECDelegateDlg.cpp:294
-msgid "Unable to get addressbook"
-msgstr ""
-
-#: provider/ECProps/PropPage.cpp:245
-msgid "Unable to get user store"
-msgstr ""
-
-#: provider/ECProps/PropPage.cpp:388
-#: provider/ECProps/ECFavoritePropPage.cpp:254
-#: provider/ECProps/ECDelegatePropPage.cpp:168
-msgid "Unable to get property page site"
-msgstr ""
-
-#: provider/ECProps/PropPage.cpp:403
-#: provider/ECProps/ECFavoritePropPage.cpp:262
-msgid "Unable to receive store and folder information"
-msgstr ""
-
 #: provider/ECProps/PropPage.cpp:418 provider/client/ECDisplayTable.cpp:28
 msgid "Name"
 msgstr "Navn"
-
-#: provider/ECProps/PropPage.cpp:422
-msgid "Permission Level"
-msgstr "Tilladelsesniveau"
-
-#: provider/ECProps/PropPage.cpp:426
-msgid "A&dd"
-msgstr "T&ilføj"
-
-#: provider/ECProps/PropPage.cpp:430
-msgid "Remo&ve"
-msgstr "S&let"
-
-#: provider/ECProps/PropPage.cpp:432
-msgid "&Properties"
-msgstr "&Egenskaber"
-
-#: provider/ECProps/PropPage.cpp:438
-msgid "Profile"
-msgstr "Profil"
-
-#: provider/ECProps/PropPage.cpp:443
-msgid "&Create items"
-msgstr "&Opret emner"
-
-#: provider/ECProps/PropPage.cpp:444
-msgid "Read &items"
-msgstr "L&æs emner"
-
-#: provider/ECProps/PropPage.cpp:446
-msgid "Create &subfolders"
-msgstr "Opret &undermapper"
-
-#: provider/ECProps/PropPage.cpp:447
-msgid "Folder pe&rmissions"
-msgstr "M&appetilladelser"
-
-#: provider/ECProps/PropPage.cpp:448
-msgid "Folder visi&ble"
-msgstr "Sy&nlig mappe"
-
-#: provider/ECProps/PropPage.cpp:449
-msgid "F&older contact"
-msgstr "Mappeko&ntakt"
-
-#: provider/ECProps/PropPage.cpp:450
-msgid "&Edit items"
-msgstr "R&ediger emner"
-
-#: provider/ECProps/PropPage.cpp:451
-msgid "De&lete items"
-msgstr "S&let emner"
-
-#: provider/ECProps/PropPage.cpp:452 provider/ECProps/PropPage.cpp:455
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:162
-#: provider/ECProps/SyncConfigDlg.cpp:105
-msgid "None"
-msgstr "Ingen"
-
-#: provider/ECProps/PropPage.cpp:453 provider/ECProps/PropPage.cpp:456
-msgid "Own"
-msgstr "Ejen"
-
-#: provider/ECProps/PropPage.cpp:454 provider/ECProps/PropPage.cpp:457
-msgid "All"
-msgstr "Alle"
-
-#: provider/ECProps/PropPage.cpp:535
-msgid "<Unknown user or group>"
-msgstr "<Ukendt bruger eller gruppe>"
-
-#: provider/ECProps/PropPage.cpp:568 provider/ECProps/PropPage.cpp:1059
-msgid "Other"
-msgstr "Andre"
 
 #: provider/ECProps/PropPage.cpp:717 provider/ECProps/ECFavoritesDlg.cpp:48
 #: provider/ECProps/ECDelegatePropPage.cpp:249
@@ -450,58 +228,10 @@ msgstr "Tilføj"
 msgid "Global Address Book"
 msgstr "Global Adressekartotek"
 
-#: provider/ECProps/PropPage.cpp:749 provider/ECProps/PropPage.cpp:764
-msgid "One or more users cannot be added to the folder access list."
-msgstr ""
-
-#: provider/ECProps/PropPage.cpp:749
-msgid "Non-local users cannot be given rights on this server."
-msgstr ""
-
-#: provider/ECProps/PropPage.cpp:764
-msgid "One or more users are already specified."
-msgstr ""
-
-#: provider/ECProps/MapOtherUserDlg.cpp:35
-msgid "Entire Inbox (Permanent)"
-msgstr "Hele indbakken (Permanent)"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:36
-msgid "Calendar (Temporary)"
-msgstr "Kalender (Midlertidigt)"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:37
-msgid "Notes (Temporary)"
-msgstr "Noter (Midlertidigt)"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:38
-msgid "Tasks (Temporary)"
-msgstr "Opgaver (Midlertidig)"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:39
-msgid "Contacts (Temporary)"
-msgstr "Kontaktpersoner (Midlertidig)"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:40
-msgid "Inbox (Temporary)"
-msgstr "Indbakke (Midlertidig)"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:114
-msgid "User could not be resolved (GAB is unavailable)."
-msgstr ""
-
 #: provider/ECProps/MapOtherUserDlg.cpp:131
 #: provider/client/SettingsPropPageAdvance.cpp:171
 msgid "User could not be resolved."
 msgstr "Brugeren kunne ikke findes"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:142
-msgid "Select a folder type or cancel."
-msgstr "Vælg en mappetype eller annullér."
-
-#: provider/ECProps/MapOtherUserDlg.cpp:249
-msgid "Folder of other user"
-msgstr "Anden brugers mappe"
 
 #: provider/ECProps/MapOtherUserDlg.cpp:251
 #: provider/client/SettingsDlg.cpp:132
@@ -509,14 +239,6 @@ msgstr "Anden brugers mappe"
 #: provider/client/PasswordDlg.cpp:87
 msgid "Username"
 msgstr "Brugernavn"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:255
-msgid "Foldertype"
-msgstr "Mappetype"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:259
-msgid "Ok"
-msgstr "OK"
 
 #: provider/ECProps/MapOtherUserDlg.cpp:260
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:132
@@ -532,27 +254,6 @@ msgstr "Annullér"
 #: provider/client/SettingsPropPageAdvance.cpp:106
 msgid "Name..."
 msgstr "Navn..."
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:118
-msgid "<Unknown>"
-msgstr "<Ukendt>"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:120
-msgid "Multiple Delegates"
-msgstr "Flere delegerede"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:123
-msgid "Delegate permissions"
-msgstr "Delegeredes tilladelser"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:131
-#: provider/ECProps/SyncConfigDlg.cpp:119
-msgid "OK"
-msgstr "OK"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:133
-msgid "This delegate has the following permissions"
-msgstr "Denne delegerede har følgende tilladelser"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:134
 #: provider/client/ECMsgStore.cpp:2480
@@ -584,403 +285,24 @@ msgstr "Noter"
 msgid "Journal"
 msgstr "Journal"
 
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:140
-msgid "Delegate receives copies of meeting-related messages sent to me"
-msgstr ""
-"Delegerede modtager kopier af møde-relaterede meddelelser sendt til mig"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:141
-msgid "Automatically send a message to delegate summarizing these permissions"
-msgstr "Send automatisk en besked til delegerede med disse tilladelser"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:142
-msgid "Delegate can see my private items"
-msgstr "Delegerede kan se mine private emner"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:41
-msgid "Add to favorites"
-msgstr "Føj til foretrukne"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:46
-#: provider/ECProps/ECFavoritePropPage.cpp:268
-msgid "Favorite folder name"
-msgstr "Foretrukne mappenavn"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:47
-#: provider/ECProps/ECFavoritePropPage.cpp:269
-msgid "Public folder name"
-msgstr "Navn på offentlige mappe"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:53
-#: provider/ECProps/ECFavoritePropPage.cpp:270
-msgid "Subfolders"
-msgstr "Undermappe"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:54
-#: provider/ECProps/ECFavoritePropPage.cpp:271
-msgid "Add subfolders of this folder"
-msgstr "Tilføj undermapper til denne mappe"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:55
-#: provider/ECProps/ECFavoritePropPage.cpp:272
-msgid "Add all subfolders"
-msgstr "Tilføj alle undermapper"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:56
-#: provider/ECProps/ECFavoritePropPage.cpp:273
-msgid "Add immediate subfolders only"
-msgstr "Tilføj kun direkte undermapper"
-
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:107
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:136
-#, fuzzy
-msgid ""
-"You are currently offline. To use this command, connect to the online server."
-msgstr ""
-"Du er i øjeblikket offline. For at bruge denne kommando skal du oprette "
-"forbindelse til Kopano-serveren."
-
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:109
-msgid "Unable to open store, access denied."
-msgstr "Kan ikke åbne lager, adgang nægtet"
-
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:111
-msgid "Unable to open store."
-msgstr "Kunne ikke åbne lager"
-
-#: provider/ECProps/SyncConfigDlg.cpp:69
-msgid "Configure synchronization"
-msgstr "Konfigurer synkronisering"
-
-#: provider/ECProps/SyncConfigDlg.cpp:71
-msgid "Time between synchronizations:"
-msgstr "Tid mellem synkroniseringer:"
-
-#: provider/ECProps/SyncConfigDlg.cpp:79
-msgid "1 minute"
-msgstr "1 minut"
-
-#: provider/ECProps/SyncConfigDlg.cpp:81
-msgid "5 minutes"
-msgstr "5 minutter"
-
-#: provider/ECProps/SyncConfigDlg.cpp:83
-msgid "15 minutes"
-msgstr "15 minutter"
-
-#: provider/ECProps/SyncConfigDlg.cpp:85
-msgid "1 half hour"
-msgstr "1 halv time"
-
-#: provider/ECProps/SyncConfigDlg.cpp:87
-msgid "1 hour"
-msgstr "1 time"
-
-#: provider/ECProps/SyncConfigDlg.cpp:97
-msgid "Also start synchronization when:"
-msgstr "Start også synkroniseringen når:"
-
-#: provider/ECProps/SyncConfigDlg.cpp:107
-msgid "Receive mail"
-msgstr "Modtag post"
-
-#: provider/ECProps/SyncConfigDlg.cpp:109
-msgid "Any change"
-msgstr "Alle ændringer"
-
-#: provider/ECProps/SyncConfigDlg.cpp:171
-msgid "Error saving synchronization settings"
-msgstr "Fejl ved lagring af synkroniseringsindstillinger"
-
-#: provider/ECProps/ECFavoritePropPage.cpp:162
-msgid "Unable to add folder to favorites"
-msgstr "Kunne ikke tilføje mappen til foretrukne"
-
-#: provider/ECProps/ECFavoritePropPage.cpp:267
-msgid "Add to favorite folder"
-msgstr "Føj til foretrukne mapper"
-
-#: provider/ECProps/ECFavoritePropPage.cpp:300
-msgid "Unable to get folder data"
-msgstr "Kan ikke hente mappendata"
-
-#: provider/ECProps/ECDelegatePropPage.cpp:134
-#: provider/ECProps/ECDelegateDlg.cpp:70
-msgid "Saving changes failed."
-msgstr ""
-
-#: provider/ECProps/ECDelegatePropPage.cpp:137
-#: provider/ECProps/ECDelegateDlg.cpp:73
-msgid "Saving rules failed: "
-msgstr ""
-
-#: provider/ECProps/ECDelegatePropPage.cpp:189
-#: provider/ECProps/ECDelegateDlg.cpp:300
-msgid "Add..."
-msgstr "Tilføj..."
-
-#: provider/ECProps/ECDelegatePropPage.cpp:190
-#: provider/ECProps/ECDelegateDlg.cpp:301
-msgid "Remove..."
-msgstr "Fjern..."
-
-#: provider/ECProps/ECDelegatePropPage.cpp:191
-#: provider/ECProps/ECDelegateDlg.cpp:302
-msgid "Permissions..."
-msgstr "Tilladelser..."
-
-#: provider/ECProps/ECDelegatePropPage.cpp:192
-#: provider/ECProps/ECDelegateDlg.cpp:303
-msgid ""
-"Delegates can send items on your behalf. To grant permission to others to "
-"access your folders without also giving them send-on-behalf-of privileges, "
-"go to properties for each folder and change the options on the Permissions "
-"tab."
-msgstr ""
-"Delegerede kan sende mails på dine vegne. For at give andre tilladelse til "
-"at få adgang til dine mapper uden også at give dem sende-på-vegne-af "
-"privilegier, gå til egenskaber for hver mappe og ændr indstillinger på "
-"Tilladelser-fanen."
-
-#: provider/ECProps/ECDelegatePropPage.cpp:193
-#: provider/ECProps/ECDelegateDlg.cpp:304
-msgid "Send meeting requests and response only to my delegates, not to me"
-msgstr ""
-
-#: provider/ECProps/ECDelegatePropPage.cpp:200
-#: provider/ECProps/ECDelegateDlg.cpp:311
-msgid ""
-"The server is not available. Either there are network problems or server is "
-"down for maintenance."
-msgstr ""
-
-#: provider/ECProps/ECDelegatePropPage.cpp:202
-#: provider/ECProps/ECDelegateDlg.cpp:313
-msgid ""
-"Could not initialize delegation window\n"
-"Please contact your administrator."
-msgstr ""
-"Kunne ikke initialisere delegationsvinduet. Kontakt venligst din "
-"administrator."
-
-#: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:130
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:279
-msgid "You have insufficient permissions to open this store."
-msgstr "Du har utilstrækkelige tilladelser til at åbne denne.\r"
-
-#: provider/ECProps/SyncStatusDlg.cpp:65
-msgid "Synchronization Status"
-msgstr "Synkroniseringsstatus"
-
-#: provider/ECProps/SyncStatusDlg.cpp:68
-#: provider/ECProps/SyncStatusDlg.cpp:122
-msgid "Hide"
-msgstr "Skjul"
-
-#: provider/ECProps/SyncStatusDlg.cpp:126
-msgid "Close"
-msgstr "Luk"
-
 #: provider/ECProps/SyncStatusDlg.cpp:132
 #: provider/libserver/ECDBUpdateProgress.cpp:56
 msgid "Your offline cache database is being upgraded..."
 msgstr ""
 
-#: provider/ECProps/SyncStatusDlg.cpp:134
-msgid "Connection error"
-msgstr "Forbindelsesfejl"
-
-#: provider/ECProps/SyncStatusDlg.cpp:146
-msgid "Username or password incorrect. Please update your MAPI profile."
-msgstr ""
-
-#: provider/ECProps/SyncStatusDlg.cpp:146
-msgid "Logon error"
-msgstr ""
-
-#: provider/ECProps/SyncStatusDlg.cpp:149
-msgid "synchronization done"
-msgstr "synkronisering færdig"
-
-#: provider/ECProps/SyncStatusDlg.cpp:154
-msgid "Synchronizing folders ..."
-msgstr "Synkroniserer mapper ..."
-
-#: provider/ECProps/SyncStatusDlg.cpp:156
-msgid "Looking for changes ..."
-msgstr "Lefter efter ændringer ..."
-
-#: provider/ECProps/SyncStatusDlg.cpp:158
-msgid "Synchronizing messages ..."
-msgstr "Synkroniserer beskeder ..."
-
-#: provider/ECProps/SyncStatusDlg.cpp:160
-msgid "Logging in ..."
-msgstr "Logger på ..."
-
-#: provider/ECProps/SyncStatusDlg.cpp:162
-msgid "Synchronizing ..."
-msgstr "Synkroniserer ..."
-
-#: provider/ECProps/OutOfOfficeDlg.cpp:78
-msgid "I am currently Out of the Office"
-msgstr "Jeg er p.t. ude af huset"
-
-#: provider/ECProps/OutOfOfficeDlg.cpp:80
-msgid "Out of Office Assistant"
-msgstr "Autosvar"
-
-#: provider/ECProps/OutOfOfficeDlg.cpp:81
-msgid "I am currently In the Office"
-msgstr "Jeg er p.t. på kontoret"
-
-#: provider/ECProps/OutOfOfficeDlg.cpp:83
-msgid "AutoReply only once to each sender with the following text:"
-msgstr "Autosvar kun en gang til hver afsender, med følgende tekst:"
-
 #: provider/ECProps/OutOfOfficeDlg.cpp:84 provider/client/ClientUtil.cpp:341
 msgid "Subject:"
 msgstr "Emne:"
-
-#: provider/ECProps/OutOfOfficeDlg.cpp:85
-msgid "&Save"
-msgstr "&Gem"
-
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:138
-msgid "Unable to open default store in MAPI session."
-msgstr "Kunne ikke åbne standardlageret i MAPI-sessionen."
 
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:165
 #: provider/client/SettingsPropPageAdvance.cpp:189
 msgid "Refusing to add primary store as shared store."
 msgstr "Nægtet at tilføje prinær lager som delt lager"
 
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:174
-msgid "Unable to open this store."
-msgstr "Kunne ikke åbne denne."
-
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:279
-msgid "Access Denied"
-msgstr "Adgang Nægtet"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:198
-msgid "Recover Deleted Items"
-msgstr "Gendan slettede emner:"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:204
-msgid "Delete"
-msgstr "Slet"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:205
-msgid "Restore"
-msgstr "Gendan"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:235
-msgid "Messages"
-msgstr "Meddelelser"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:240
-msgid "Folders"
-msgstr "Mapper"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:267
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:390
-msgid "Loading..."
-msgstr "Læser..."
-
 #: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:270
 #: php-ext/include/mapi/class.taskrequest.php:880
 msgid "Subject"
 msgstr "Emne"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:271
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:394
-msgid "Deleted On"
-msgstr "Slettet den"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:272
-msgid "From"
-msgstr "Fra"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:273
-msgid "Received"
-msgstr "Modtaget"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:333
-#, fuzzy
-msgid "<Unknown Subject>"
-msgstr "<Ukendt Emne>"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:393
-msgid "Foldername"
-msgstr "Mappenavn"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:395
-msgid "Itemcount"
-msgstr "Antal emner"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:431
-msgid "<Unknown foldername>"
-msgstr "<Ukendt mappenavn>"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:590
-msgid "item"
-msgstr "emne"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:590
-msgid "items"
-msgstr "emner"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:592
-msgid "folder"
-msgstr "mappe"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:592
-msgid "folders"
-msgstr "mapper"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:629
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:641
-msgid "Restore items..."
-msgstr "Gendan emner..."
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:633
-msgid "Restoring items"
-msgstr "Gendanner emner"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:723
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:883
-msgid "Done"
-msgstr "Færdig"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:737
-msgid "Unknown error"
-msgstr "Ukendt fejl"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:796
-msgid ""
-"The selected items will be permanently deleted from this folder.\n"
-"If you continue, you will not be able to recover these items."
-msgstr ""
-"De valgte emner vil blive slettet permanent fra denne mappe.\n"
-"Hvis du fortsætter, vil du ikke være i stand til at gendanne disse emner."
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:800
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:812
-msgid "Remove items..."
-msgstr "Slette emner..."
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:804
-msgid "Removing items"
-msgstr "Sletter emner"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:893
-msgid "The call succeeded, not all of the entries were successfully deleted."
-msgstr "Kaldet lykkedes, ikke alle emner blev slettet med succes."
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:895
-msgid "The folder and/or messages can not be deleted."
-msgstr "Mappen og/eller meddelelserne kunne ikke slettes."
 
 #: provider/client/SettingsDlg.cpp:38 provider/client/SettingsDlg.cpp:127
 #: provider/client/ECDisplayTable.cpp:27 provider/client/ECDisplayTable.cpp:73

@@ -204,114 +204,15 @@ msgstr ""
 msgid "Do you wish to continue?"
 msgstr "Möchten Sie fortfahren?"
 
-#: provider/ECProps/Addin.cpp:483 provider/ECProps/PropPage.cpp:232
-#: provider/ECProps/ECDelegatePropPage.cpp:178
-msgid "Unable to get session"
-msgstr "Es konnte keine Sitzung hergestellt werden"
-
-#: provider/ECProps/Addin.cpp:549 provider/ECProps/SyncBar.cpp:326
-msgid "Configure"
-msgstr "Eigenschaften"
-
-#: provider/ECProps/Addin.cpp:551 provider/ECProps/SyncBar.cpp:318
-msgid "Synchronize"
-msgstr "Synchronisieren"
-
-#: provider/ECProps/Addin.cpp:553
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:28
-msgid "Open Shared Folders..."
-msgstr "Gemeinsame Ordner öffnen..."
-
-#: provider/ECProps/Addin.cpp:555 provider/ECProps/Addin.cpp:598
-#: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:19
-#: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:20
-msgid "Recover Deleted Items..."
-msgstr "Gelöschte Objekte wiederherstellen..."
-
-#: provider/ECProps/Addin.cpp:557 provider/ECProps/Addin.cpp:600
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:20
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:21
-msgid "Out of Office Assistant..."
-msgstr "Abwesenheitsassistent..."
-
-# 75%
-#: provider/ECProps/Addin.cpp:559 provider/ECProps/Addin.cpp:602
-msgid "Delegates..."
-msgstr "Stellvertreter..."
-
-#: provider/ECProps/Addin.cpp:563
-msgid "Offline"
-msgstr "Offline"
-
-#: provider/ECProps/Addin.cpp:592 provider/ECProps/SyncBar.cpp:328
-msgid "Configure offline synchronization"
-msgstr "Offline Synchronisation konfigurieren"
-
-#: provider/ECProps/Addin.cpp:594 provider/ECProps/SyncBar.cpp:320
-msgid "Start offline synchronization"
-msgstr "Starte Offline Synchronisation"
-
-#: provider/ECProps/Addin.cpp:596
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:29
-msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
-msgstr ""
-"Die freigegebenen Ordner eines anderen Benutzers öffnen (Kalender, E-Mail, "
-"etc.)"
-
-#: provider/ECProps/Addin.cpp:713
-msgid "Out of Office currently on. Would you like to turn it off?"
-msgstr ""
-"Die Abwesenheitsbenachrichtigung ist momentan aktiv. Möchten Sie diese jetzt "
-"abschalten?"
-
-#: provider/ECProps/Addin.cpp:713
-msgid "Out Of Office Turned On"
-msgstr "Die Abwesenheitsbenachrichtigung wurde eingeschaltet"
-
-#: provider/ECProps/Addin.cpp:719
-msgid "Unable to save Out of Office status"
-msgstr "Die Abwesenheitsbenachrichtigung konnte nicht gespeichert werden"
-
-#: provider/ECProps/Addin.cpp:820 provider/ECProps/ECDelegateDlg.cpp:299
-msgid "Delegates"
-msgstr "Stellvertreter"
-
 #: provider/ECProps/Addin.cpp:957 provider/client/ECMsgStorePublic.cpp:547
 #: provider/client/ECMAPIFolderPublic.cpp:164
 msgid "Favorites"
 msgstr "Favoriten"
 
-#: provider/ECProps/Addin.cpp:969 provider/ECProps/PropPage.cpp:436
-msgid "Permissions"
-msgstr "Berechtigungen"
-
-#: provider/ECProps/Addin.cpp:1180 provider/ECProps/Addin.cpp:1181
-msgid "Add to Public Favorites Folder"
-msgstr "Dem öffentlichen Favoritenordner hinzufügen"
-
-#: provider/ECProps/Addin.cpp:1265
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:89
-#: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:97
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:108
-msgid "Unable to open MAPI session."
-msgstr "Eine MAPI-Verbindung kann nicht hergestellt werden."
-
 #: provider/ECProps/Addin.cpp:1269 provider/ECProps/ECFavoritePropPage.cpp:110
 #: provider/client/ECMsgStore.cpp:2403
 msgid "Shortcut"
 msgstr "Verknüpfung"
-
-#: provider/ECProps/Addin.cpp:1269 provider/ECProps/ECFavoritePropPage.cpp:110
-msgid "Shortcut folder"
-msgstr "Favoriten Ordner"
-
-#: provider/ECProps/Addin.cpp:1271
-msgid "Unable to get shortcut folder."
-msgstr "Favoritenordner konnte nicht geöffnet werden"
-
-#: provider/ECProps/PropPage.cpp:33
-msgid "Full control"
-msgstr "Alle Rechte"
 
 #: provider/ECProps/PropPage.cpp:34
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:165
@@ -319,134 +220,9 @@ msgstr "Alle Rechte"
 msgid "Owner"
 msgstr "Besitzer"
 
-#: provider/ECProps/PropPage.cpp:35
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:164
-msgid "Secretary"
-msgstr "SekretärIn"
-
-#: provider/ECProps/PropPage.cpp:36
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:163
-msgid "Only read"
-msgstr "Nur Lesezugriff"
-
-#: provider/ECProps/PropPage.cpp:37
-msgid "No rights"
-msgstr "Keine Benutzerrechte"
-
-#: provider/ECProps/PropPage.cpp:193
-msgid "You have insufficient permissions to set permissions"
-msgstr "Sie haben nicht genügend Berechtigungen um die Aktion auszuführen"
-
-#: provider/ECProps/PropPage.cpp:196
-msgid ""
-"Unable to set some permissions. Permissions are only allowed on users and "
-"security groups."
-msgstr ""
-"Die Berechtigungen konnten nicht gesetzt werden. Berechtigungen sind nur auf "
-"Benutzern und Sicherheitsgruppen erlaubt."
-
-#: provider/ECProps/PropPage.cpp:199
-msgid "Unable to set all permissions."
-msgstr "Die Berechtigungen konnten nicht gesetzt werden."
-
-#: provider/ECProps/PropPage.cpp:238 provider/ECProps/MapOtherUserDlg.cpp:273
-#: provider/ECProps/ECDelegatePropPage.cpp:184
-#: provider/ECProps/ECDelegateDlg.cpp:294
-msgid "Unable to get addressbook"
-msgstr "Konnte das Adressbuch nicht abrufen"
-
-#: provider/ECProps/PropPage.cpp:245
-msgid "Unable to get user store"
-msgstr "Das Postfach des Benutzers konnte nicht abgerufen werden"
-
-#: provider/ECProps/PropPage.cpp:388
-#: provider/ECProps/ECFavoritePropPage.cpp:254
-#: provider/ECProps/ECDelegatePropPage.cpp:168
-msgid "Unable to get property page site"
-msgstr "Konnte die Seiteneigenschaften nicht abrufen"
-
-#: provider/ECProps/PropPage.cpp:403
-#: provider/ECProps/ECFavoritePropPage.cpp:262
-msgid "Unable to receive store and folder information"
-msgstr "Konnte die Konto- und Ordnerinformationen nicht abrufen"
-
 #: provider/ECProps/PropPage.cpp:418 provider/client/ECDisplayTable.cpp:28
 msgid "Name"
 msgstr "Name"
-
-#: provider/ECProps/PropPage.cpp:422
-msgid "Permission Level"
-msgstr "Umfang der Zugriffsrechte"
-
-#: provider/ECProps/PropPage.cpp:426
-msgid "A&dd"
-msgstr "&Hinzufügen"
-
-#: provider/ECProps/PropPage.cpp:430
-msgid "Remo&ve"
-msgstr "Ent&fernen"
-
-#: provider/ECProps/PropPage.cpp:432
-msgid "&Properties"
-msgstr "Eigenschaften"
-
-#: provider/ECProps/PropPage.cpp:438
-msgid "Profile"
-msgstr "Profil"
-
-#: provider/ECProps/PropPage.cpp:443
-msgid "&Create items"
-msgstr "Einträge &anlegen"
-
-#: provider/ECProps/PropPage.cpp:444
-msgid "Read &items"
-msgstr "Einträge &lesen"
-
-#: provider/ECProps/PropPage.cpp:446
-msgid "Create &subfolders"
-msgstr "&Unterordner erstellen"
-
-#: provider/ECProps/PropPage.cpp:447
-msgid "Folder pe&rmissions"
-msgstr "Be&rechtigungen für Ordner"
-
-#: provider/ECProps/PropPage.cpp:448
-msgid "Folder visi&ble"
-msgstr "Ordner an&zeigen"
-
-#: provider/ECProps/PropPage.cpp:449
-msgid "F&older contact"
-msgstr "&Besitzer"
-
-#: provider/ECProps/PropPage.cpp:450
-msgid "&Edit items"
-msgstr "&Einträge ändern"
-
-#: provider/ECProps/PropPage.cpp:451
-msgid "De&lete items"
-msgstr "Einträge &löschen"
-
-#: provider/ECProps/PropPage.cpp:452 provider/ECProps/PropPage.cpp:455
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:162
-#: provider/ECProps/SyncConfigDlg.cpp:105
-msgid "None"
-msgstr "Kein/e"
-
-#: provider/ECProps/PropPage.cpp:453 provider/ECProps/PropPage.cpp:456
-msgid "Own"
-msgstr "Eigene/r"
-
-#: provider/ECProps/PropPage.cpp:454 provider/ECProps/PropPage.cpp:457
-msgid "All"
-msgstr "Alle"
-
-#: provider/ECProps/PropPage.cpp:535
-msgid "<Unknown user or group>"
-msgstr "<Unbekannter Benutzer oder Gruppe>"
-
-#: provider/ECProps/PropPage.cpp:568 provider/ECProps/PropPage.cpp:1059
-msgid "Other"
-msgstr "Andere/r"
 
 #: provider/ECProps/PropPage.cpp:717 provider/ECProps/ECFavoritesDlg.cpp:48
 #: provider/ECProps/ECDelegatePropPage.cpp:249
@@ -463,61 +239,10 @@ msgstr "Hinzufügen"
 msgid "Global Address Book"
 msgstr "Globales Adressbuch"
 
-#: provider/ECProps/PropPage.cpp:749 provider/ECProps/PropPage.cpp:764
-msgid "One or more users cannot be added to the folder access list."
-msgstr ""
-"Einer oder mehrere Benutzer können nicht der Liste der Ordnerberechtigungen "
-"hinzugefügt werden."
-
-#: provider/ECProps/PropPage.cpp:749
-msgid "Non-local users cannot be given rights on this server."
-msgstr ""
-"Externen Benutzern können keine Rechte auf diesem Server zugewiesen werden."
-
-#: provider/ECProps/PropPage.cpp:764
-msgid "One or more users are already specified."
-msgstr "Einer oder mehrere Benutzer sind bereits ausgewählt."
-
-#: provider/ECProps/MapOtherUserDlg.cpp:35
-msgid "Entire Inbox (Permanent)"
-msgstr "Gesamter Posteingang (dauerhaft)"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:36
-msgid "Calendar (Temporary)"
-msgstr "Kalender (vorübergehend)"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:37
-msgid "Notes (Temporary)"
-msgstr "Notizen (vorübergehend)"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:38
-msgid "Tasks (Temporary)"
-msgstr "Aufgaben (vorübergehend)"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:39
-msgid "Contacts (Temporary)"
-msgstr "Kontakte (vorübergehend)"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:40
-msgid "Inbox (Temporary)"
-msgstr "Posteingang (vorübergehend)"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:114
-msgid "User could not be resolved (GAB is unavailable)."
-msgstr "Der Name kann nicht aufgelöst werden (GAB ist nicht verfügbar)."
-
 #: provider/ECProps/MapOtherUserDlg.cpp:131
 #: provider/client/SettingsPropPageAdvance.cpp:171
 msgid "User could not be resolved."
 msgstr "Der Name kann nicht aufgelöst werden."
-
-#: provider/ECProps/MapOtherUserDlg.cpp:142
-msgid "Select a folder type or cancel."
-msgstr "Bitte wählen Sie einen Ordnertyp oder brechen Sie diesen Vorgang ab."
-
-#: provider/ECProps/MapOtherUserDlg.cpp:249
-msgid "Folder of other user"
-msgstr "Ordner eines anderen Benutzers"
 
 #: provider/ECProps/MapOtherUserDlg.cpp:251
 #: provider/client/SettingsDlg.cpp:132
@@ -525,14 +250,6 @@ msgstr "Ordner eines anderen Benutzers"
 #: provider/client/PasswordDlg.cpp:87
 msgid "Username"
 msgstr "Benutzername"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:255
-msgid "Foldertype"
-msgstr "Ordnertyp"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:259
-msgid "Ok"
-msgstr "Ok"
 
 #: provider/ECProps/MapOtherUserDlg.cpp:260
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:132
@@ -548,27 +265,6 @@ msgstr "Abbrechen"
 #: provider/client/SettingsPropPageAdvance.cpp:106
 msgid "Name..."
 msgstr "Name..."
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:118
-msgid "<Unknown>"
-msgstr "<Unbekannt>"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:120
-msgid "Multiple Delegates"
-msgstr "mehrere Freigaben"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:123
-msgid "Delegate permissions"
-msgstr "Stellvertreterberechtigungen"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:131
-#: provider/ECProps/SyncConfigDlg.cpp:119
-msgid "OK"
-msgstr "OK"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:133
-msgid "This delegate has the following permissions"
-msgstr "Der Stellvertreter hat folgende Berechtigungen"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:134
 #: provider/client/ECMsgStore.cpp:2480
@@ -600,277 +296,14 @@ msgstr "Notizen"
 msgid "Journal"
 msgstr "Journal"
 
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:140
-msgid "Delegate receives copies of meeting-related messages sent to me"
-msgstr "Der Stellvertreter erhält Kopien über terminrelevante Anfragen an mich"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:141
-msgid "Automatically send a message to delegate summarizing these permissions"
-msgstr ""
-"Die Übersicht der Berechtigungen automatisch an den Stellvertreter schicken"
-
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:142
-msgid "Delegate can see my private items"
-msgstr "Der Stellvertreter darf meine privaten Elemente sehen"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:41
-msgid "Add to favorites"
-msgstr "Den Favoriten hinzufügen"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:46
-#: provider/ECProps/ECFavoritePropPage.cpp:268
-msgid "Favorite folder name"
-msgstr "Favoritenordnername"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:47
-#: provider/ECProps/ECFavoritePropPage.cpp:269
-msgid "Public folder name"
-msgstr "Name des öffentlichen Ordners"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:53
-#: provider/ECProps/ECFavoritePropPage.cpp:270
-msgid "Subfolders"
-msgstr "Unterordner"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:54
-#: provider/ECProps/ECFavoritePropPage.cpp:271
-msgid "Add subfolders of this folder"
-msgstr "Unterordner diesem Ordner hinzufügen"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:55
-#: provider/ECProps/ECFavoritePropPage.cpp:272
-msgid "Add all subfolders"
-msgstr "Alle Unterordner hinzufügen"
-
-#: provider/ECProps/ECFavoritesDlg.cpp:56
-#: provider/ECProps/ECFavoritePropPage.cpp:273
-msgid "Add immediate subfolders only"
-msgstr "Nur direkte Unterordner hinzufügen"
-
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:107
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:136
-msgid ""
-"You are currently offline. To use this command, connect to the online server."
-msgstr ""
-"Sie sind derzeit offline. Um diesen Befehl nutzen zu können müssen Sie sich "
-"mit dem Kopano-Server verbinden."
-
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:109
-msgid "Unable to open store, access denied."
-msgstr "Das Postfach konnte nicht geöffnet werden, Zugriff verweigert."
-
-#: provider/ECProps/CommandBarButtonOutOfOffice.cpp:111
-msgid "Unable to open store."
-msgstr "Das Postfach konnte nicht geöffnet werden."
-
-#: provider/ECProps/SyncConfigDlg.cpp:69
-msgid "Configure synchronization"
-msgstr "Eigenschaften der Synchronisation"
-
-#: provider/ECProps/SyncConfigDlg.cpp:71
-msgid "Time between synchronizations:"
-msgstr "Zeit zwischen 2 Abgleichen:"
-
-#: provider/ECProps/SyncConfigDlg.cpp:79
-msgid "1 minute"
-msgstr "1 Minute"
-
-#: provider/ECProps/SyncConfigDlg.cpp:81
-msgid "5 minutes"
-msgstr "5 Minuten"
-
-#: provider/ECProps/SyncConfigDlg.cpp:83
-msgid "15 minutes"
-msgstr "15 Minuten"
-
-#: provider/ECProps/SyncConfigDlg.cpp:85
-msgid "1 half hour"
-msgstr "30 Minuten"
-
-#: provider/ECProps/SyncConfigDlg.cpp:87
-msgid "1 hour"
-msgstr "60 Minuten"
-
-#: provider/ECProps/SyncConfigDlg.cpp:97
-msgid "Also start synchronization when:"
-msgstr "Synchronisation auch starten, wenn:"
-
-#: provider/ECProps/SyncConfigDlg.cpp:107
-msgid "Receive mail"
-msgstr "E-Mail Eingang"
-
-#: provider/ECProps/SyncConfigDlg.cpp:109
-msgid "Any change"
-msgstr "Allen Änderungen"
-
-#: provider/ECProps/SyncConfigDlg.cpp:171
-msgid "Error saving synchronization settings"
-msgstr "Fehler beim Speichern der Synchronisationseigenschaften"
-
-#: provider/ECProps/ECFavoritePropPage.cpp:162
-msgid "Unable to add folder to favorites"
-msgstr "Das Hinzufügen des Ordners zu den Favoriten war nicht möglich"
-
-#: provider/ECProps/ECFavoritePropPage.cpp:267
-msgid "Add to favorite folder"
-msgstr "Zum Favoritenordner hinzufügen"
-
-#: provider/ECProps/ECFavoritePropPage.cpp:300
-msgid "Unable to get folder data"
-msgstr "Keine Ordnerinhalte gefunden"
-
-#: provider/ECProps/ECDelegatePropPage.cpp:134
-#: provider/ECProps/ECDelegateDlg.cpp:70
-msgid "Saving changes failed."
-msgstr "Die Änderungen konnten nicht gespeichert werden"
-
-#: provider/ECProps/ECDelegatePropPage.cpp:137
-#: provider/ECProps/ECDelegateDlg.cpp:73
-msgid "Saving rules failed: "
-msgstr "Die Regel konnte nicht gespeichert werden: "
-
-#: provider/ECProps/ECDelegatePropPage.cpp:189
-#: provider/ECProps/ECDelegateDlg.cpp:300
-msgid "Add..."
-msgstr "Hinzufügen..."
-
-#: provider/ECProps/ECDelegatePropPage.cpp:190
-#: provider/ECProps/ECDelegateDlg.cpp:301
-msgid "Remove..."
-msgstr "Entfernen..."
-
-#: provider/ECProps/ECDelegatePropPage.cpp:191
-#: provider/ECProps/ECDelegateDlg.cpp:302
-msgid "Permissions..."
-msgstr "Berechtigungen..."
-
-#: provider/ECProps/ECDelegatePropPage.cpp:192
-#: provider/ECProps/ECDelegateDlg.cpp:303
-msgid ""
-"Delegates can send items on your behalf. To grant permission to others to "
-"access your folders without also giving them send-on-behalf-of privileges, "
-"go to properties for each folder and change the options on the Permissions "
-"tab."
-msgstr ""
-"Stellvertreter können in Ihrem Auftrag Emails versenden. Um anderen "
-"Benutzern Zugriff auf Ihre Ordner ohne Stellvertreterberechtigung zu geben "
-"müssen Sie dies für jeden Ordner über den Berechtigungsreiter in den "
-"Eigenschaften festlegen."
-
-#: provider/ECProps/ECDelegatePropPage.cpp:193
-#: provider/ECProps/ECDelegateDlg.cpp:304
-msgid "Send meeting requests and response only to my delegates, not to me"
-msgstr ""
-"Besprechungsanfrage senden und nur meinen Stellvertretern antworten, nicht "
-"mir."
-
-#: provider/ECProps/ECDelegatePropPage.cpp:200
-#: provider/ECProps/ECDelegateDlg.cpp:311
-msgid ""
-"The server is not available. Either there are network problems or server is "
-"down for maintenance."
-msgstr ""
-"Der Server ist nicht erreichbar. Entweder es existiert ein Netzwerkproblem "
-"oder der Server ist wegen Wartungsarbeiten nicht erreichbar."
-
-#: provider/ECProps/ECDelegatePropPage.cpp:202
-#: provider/ECProps/ECDelegateDlg.cpp:313
-msgid ""
-"Could not initialize delegation window\n"
-"Please contact your administrator."
-msgstr ""
-"Das Berechtigungsfenster kann nicht angezeigt werden.\n"
-"Kontaktieren Sie Ihren Administrator."
-
-#: provider/ECProps/CommandBarButtonRecoverDeletedItems.cpp:130
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:279
-msgid "You have insufficient permissions to open this store."
-msgstr "Sie haben nicht die Berechtigung, dieses Postfach zu öffnen."
-
-#: provider/ECProps/SyncStatusDlg.cpp:65
-msgid "Synchronization Status"
-msgstr "Status der Synchronisation"
-
-#: provider/ECProps/SyncStatusDlg.cpp:68
-#: provider/ECProps/SyncStatusDlg.cpp:122
-msgid "Hide"
-msgstr "Ausblenden"
-
-#: provider/ECProps/SyncStatusDlg.cpp:126
-msgid "Close"
-msgstr "Schließen"
-
 #: provider/ECProps/SyncStatusDlg.cpp:132
 #: provider/libserver/ECDBUpdateProgress.cpp:56
 msgid "Your offline cache database is being upgraded..."
 msgstr "Ihr Offline-Cache wird aktualisiert..."
 
-#: provider/ECProps/SyncStatusDlg.cpp:134
-msgid "Connection error"
-msgstr "Verbindungsfehler"
-
-#: provider/ECProps/SyncStatusDlg.cpp:146
-msgid "Username or password incorrect. Please update your MAPI profile."
-msgstr ""
-"Der Benutzername oder das Passwort ist falsch. Aktualisieren Sie bitte Ihr "
-"MAPI Profil."
-
-#: provider/ECProps/SyncStatusDlg.cpp:146
-msgid "Logon error"
-msgstr "Login Fehler"
-
-#: provider/ECProps/SyncStatusDlg.cpp:149
-msgid "synchronization done"
-msgstr "Synchronisation beendet"
-
-#: provider/ECProps/SyncStatusDlg.cpp:154
-msgid "Synchronizing folders ..."
-msgstr "Synchronisiere Ordner ..."
-
-#: provider/ECProps/SyncStatusDlg.cpp:156
-msgid "Looking for changes ..."
-msgstr "Suche nach Änderungen ..."
-
-#: provider/ECProps/SyncStatusDlg.cpp:158
-msgid "Synchronizing messages ..."
-msgstr "Synchronisiere Nachrichten ..."
-
-#: provider/ECProps/SyncStatusDlg.cpp:160
-msgid "Logging in ..."
-msgstr "Anmelden ..."
-
-#: provider/ECProps/SyncStatusDlg.cpp:162
-msgid "Synchronizing ..."
-msgstr "Synchronisieren ..."
-
-#: provider/ECProps/OutOfOfficeDlg.cpp:78
-msgid "I am currently Out of the Office"
-msgstr "Ich bin derzeit nicht im Büro"
-
-#: provider/ECProps/OutOfOfficeDlg.cpp:80
-msgid "Out of Office Assistant"
-msgstr "Abwesenheitsassistent"
-
-#: provider/ECProps/OutOfOfficeDlg.cpp:81
-msgid "I am currently In the Office"
-msgstr "Ich bin derzeit im Büro"
-
-#: provider/ECProps/OutOfOfficeDlg.cpp:83
-msgid "AutoReply only once to each sender with the following text:"
-msgstr ""
-"Nur einmal automatisch antworten an jeden Sender mit dem folgenden Text:"
-
 #: provider/ECProps/OutOfOfficeDlg.cpp:84 provider/client/ClientUtil.cpp:341
 msgid "Subject:"
 msgstr "Betreff:"
-
-#: provider/ECProps/OutOfOfficeDlg.cpp:85
-msgid "&Save"
-msgstr "&Speichern"
-
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:138
-msgid "Unable to open default store in MAPI session."
-msgstr "Der Standardordner kann nicht geöffnet werden."
 
 #: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:165
 #: provider/client/SettingsPropPageAdvance.cpp:189
@@ -878,134 +311,10 @@ msgid "Refusing to add primary store as shared store."
 msgstr ""
 "Das primäre Postfach kann nicht als gemeinsames Postfach eingebunden werden."
 
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:174
-msgid "Unable to open this store."
-msgstr "Das Postfach kann nicht geöffnet werden."
-
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:279
-msgid "Access Denied"
-msgstr "Zugriff verweigert"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:198
-msgid "Recover Deleted Items"
-msgstr "Gelöschte Objekte wiederherstellen"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:204
-msgid "Delete"
-msgstr "Löschen"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:205
-msgid "Restore"
-msgstr "Wiederherstellen"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:235
-msgid "Messages"
-msgstr "Nachrichten"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:240
-msgid "Folders"
-msgstr "Ordner"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:267
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:390
-msgid "Loading..."
-msgstr "Laden..."
-
 #: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:270
 #: php-ext/include/mapi/class.taskrequest.php:880
 msgid "Subject"
 msgstr "Betreff"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:271
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:394
-msgid "Deleted On"
-msgstr "Gelöscht am"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:272
-msgid "From"
-msgstr "Von"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:273
-msgid "Received"
-msgstr "Empfangen"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:333
-msgid "<Unknown Subject>"
-msgstr "<Unbekannter Betreff>"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:393
-msgid "Foldername"
-msgstr "Ordnername"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:395
-msgid "Itemcount"
-msgstr "Anzahl der Objekte"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:431
-msgid "<Unknown foldername>"
-msgstr "<Unbekannter Ordnername>"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:590
-msgid "item"
-msgstr "Element"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:590
-msgid "items"
-msgstr "Elemente"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:592
-msgid "folder"
-msgstr "Ordner"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:592
-msgid "folders"
-msgstr "Ordner"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:629
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:641
-msgid "Restore items..."
-msgstr "Objekte wiederherstellen..."
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:633
-msgid "Restoring items"
-msgstr "Objekte werden wiederhergestellt"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:723
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:883
-msgid "Done"
-msgstr "Fertig"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:737
-msgid "Unknown error"
-msgstr "Unbekannter Fehler"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:796
-msgid ""
-"The selected items will be permanently deleted from this folder.\n"
-"If you continue, you will not be able to recover these items."
-msgstr ""
-"Die gewählten Elemente werden endgültig aus diesem Ordner gelöscht.\n"
-"Wenn Sie fortfahren, können diese Elemente nicht wieder hergestellt werden."
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:800
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:812
-msgid "Remove items..."
-msgstr "Objekte löschen..."
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:804
-msgid "Removing items"
-msgstr "Objekte werden gelöscht"
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:893
-msgid "The call succeeded, not all of the entries were successfully deleted."
-msgstr ""
-"Die Anweisung wurde ausgeführt.\n"
-"Allerdings konnten nicht alle Vorgänge erfolgreich abgeschlossen werden."
-
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:895
-msgid "The folder and/or messages can not be deleted."
-msgstr ""
-"Der Ordner und/oder diese Nachrichten kann/können nicht gelöscht werden."
 
 #: provider/client/SettingsDlg.cpp:38 provider/client/SettingsDlg.cpp:127
 #: provider/client/ECDisplayTable.cpp:27 provider/client/ECDisplayTable.cpp:73
