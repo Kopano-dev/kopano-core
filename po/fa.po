@@ -136,50 +136,6 @@ msgstr ""
 msgid "MAPI error code:"
 msgstr ""
 
-#: libsync/ECSync.cpp:1970
-msgid ""
-"The synchronization of a folder failed. Press retry to continue or ignore to "
-"supress all errors.\r\n"
-"\r\n"
-"Please contact the system administrator if this problem persists."
-msgstr ""
-
-#: libsync/ECSync.cpp:1972
-msgid "Error codes: "
-msgstr ""
-
-#: provider/common/SOAPSock.cpp:540
-msgid "Unable to get SSL object from store"
-msgstr ""
-
-#: provider/common/SOAPSock.cpp:548
-msgid "Unable to get SSL context from SSL object"
-msgstr ""
-
-#: provider/common/SOAPSock.cpp:571
-msgid "No certificate found in connection"
-msgstr ""
-
-#: provider/common/SOAPSock.cpp:586
-msgid "Unable to convert OpenSSL to WinCrypt"
-msgstr ""
-
-#: provider/common/SOAPSock.cpp:708
-msgid "The certificate is not trusted and could not be verified."
-msgstr ""
-
-#: provider/common/SOAPSock.cpp:710
-msgid "The certificate is not trusted."
-msgstr ""
-
-#: provider/common/SOAPSock.cpp:713
-msgid "The certificate is trusted but does not verify correctly."
-msgstr ""
-
-#: provider/common/SOAPSock.cpp:716
-msgid "Do you wish to continue?"
-msgstr ""
-
 #: provider/ECProps/Addin.cpp:957 provider/client/ECMsgStorePublic.cpp:547
 #: provider/client/ECMAPIFolderPublic.cpp:164
 msgid "Favorites"
@@ -196,50 +152,12 @@ msgstr "میان بر"
 msgid "Owner"
 msgstr ""
 
-#: provider/ECProps/PropPage.cpp:417 provider/client/ECDisplayTable.cpp:28
-msgid "Name"
-msgstr ""
-
-#: provider/ECProps/PropPage.cpp:716 provider/ECProps/ECFavoritesDlg.cpp:48
-#: provider/ECProps/ECDelegatePropPage.cpp:248
-#: provider/ECProps/ECDelegateDlg.cpp:102
-#: provider/client/SettingsPropPageAdvance.cpp:105
-msgid "Add"
-msgstr ""
-
 #: provider/ECProps/PropPage.cpp:723 provider/ECProps/MapOtherUserDlg.cpp:186
 #: provider/ECProps/ECDelegatePropPage.cpp:263
 #: provider/ECProps/ECDelegateDlg.cpp:117
 #: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:245
 msgid "Global Address Book"
-msgstr ""
-
-#: provider/ECProps/MapOtherUserDlg.cpp:131
-#: provider/client/SettingsPropPageAdvance.cpp:171
-msgid "User could not be resolved."
-msgstr ""
-
-#: provider/ECProps/MapOtherUserDlg.cpp:251
-#: provider/client/SettingsDlg.cpp:132
-#: provider/client/SettingsTabConnection.cpp:85
-#: provider/client/PasswordDlg.cpp:87
-msgid "Username"
-msgstr ""
-
-#: provider/ECProps/MapOtherUserDlg.cpp:260
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:132
-#: provider/ECProps/SyncConfigDlg.cpp:120
-#: provider/ECProps/SyncStatusDlg.cpp:67
-#: provider/ECProps/OutOfOfficeDlg.cpp:86
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:630
-#: provider/client/ProviderUtil.cpp:151
-msgid "Cancel"
-msgstr ""
-
-#: provider/ECProps/MapOtherUserDlg.cpp:261
-#: provider/client/SettingsPropPageAdvance.cpp:106
-msgid "Name..."
 msgstr ""
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:134
@@ -272,79 +190,13 @@ msgstr ""
 msgid "Journal"
 msgstr ""
 
-#: provider/ECProps/SyncStatusDlg.cpp:132
-#: provider/libserver/ECDBUpdateProgress.cpp:56
-msgid "Your offline cache database is being upgraded..."
-msgstr ""
-
 #: provider/ECProps/OutOfOfficeDlg.cpp:84 provider/client/ClientUtil.cpp:341
 msgid "Subject:"
-msgstr ""
-
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:165
-#: provider/client/SettingsPropPageAdvance.cpp:189
-msgid "Refusing to add primary store as shared store."
 msgstr ""
 
 #: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:270
 #: php-ext/include/mapi/class.taskrequest.php:880
 msgid "Subject"
-msgstr ""
-
-#: provider/client/SettingsDlg.cpp:38 provider/client/SettingsDlg.cpp:127
-#: provider/client/ECDisplayTable.cpp:27 provider/client/ECDisplayTable.cpp:73
-msgid "General"
-msgstr ""
-
-#: provider/client/SettingsDlg.cpp:128
-msgid "Server settings"
-msgstr ""
-
-#: provider/client/SettingsDlg.cpp:129
-msgid "Server"
-msgstr ""
-
-#: provider/client/SettingsDlg.cpp:130
-#: provider/client/SettingsTabConnection.cpp:84
-msgid "Port"
-msgstr ""
-
-#: provider/client/SettingsDlg.cpp:131
-msgid "Enable encryption (HTTPS)"
-msgstr ""
-
-#: provider/client/SettingsDlg.cpp:133
-#: provider/client/SettingsTabConnection.cpp:86
-#: provider/client/PasswordDlg.cpp:88
-msgid "Password"
-msgstr ""
-
-#: provider/client/SettingsDlg.cpp:134
-#: provider/client/SettingsTabConnection.cpp:36
-msgid "Connection"
-msgstr ""
-
-#: provider/client/SettingsDlg.cpp:135
-msgid "Connection type"
-msgstr ""
-
-#: provider/client/SettingsDlg.cpp:161
-msgid "Online"
-msgstr ""
-
-#: provider/client/SettingsDlg.cpp:164
-msgid "Cached Mode"
-msgstr ""
-
-#: provider/client/SettingsDlg.cpp:167
-msgid "Detect at startup"
-msgstr ""
-
-#: provider/client/SettingsDlg.cpp:236
-msgid ""
-"Offline or cached mode for Outlook XP and Outlook 2002 is not supported. If "
-"you wish to use offline functionality, please use Outlook 2000, 2003, 2007 "
-"or later."
 msgstr ""
 
 #: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
@@ -353,196 +205,6 @@ msgstr ""
 
 #: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
 msgid "All Address Lists"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:29
-msgid "First:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:30
-msgid "Initials:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:31
-msgid "Last:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:32
-msgid "Display:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:33
-msgid "Alias:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:34
-msgid "Address:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:35
-msgid "City:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:36
-msgid "State:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:37
-msgid "Zip code:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:38
-msgid "Country/Region:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:39
-msgid "Title:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:40
-msgid "Company:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:41
-msgid "Department:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:42
-msgid "Office:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:43 provider/client/ECDisplayTable.cpp:52
-msgid "Assistant:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:44
-msgid "Phone:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:47
-msgid "Phone/Notes"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:48
-msgid "Phone numbers"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:49
-msgid "Business:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:50
-msgid "Business 2:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:51
-msgid "Fax:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:53
-msgid "Home:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:54
-msgid "Home 2:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:55
-msgid "Mobile:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:56
-msgid "Pager:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:57 provider/client/ECDisplayTable.cpp:77
-msgid "Notes:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:60
-msgid "Organization"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:61
-msgid "Manager:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:62
-msgid "Direct reports:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:65 provider/client/ECDisplayTable.cpp:82
-msgid "Member Of"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:66 provider/client/ECDisplayTable.cpp:83
-msgid "Group membership:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:69
-msgid "E-mail Addresses"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:70
-msgid "E-mail addresses:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:74
-msgid "Display name:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:75
-msgid "Alias name:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:76
-msgid "Owner:"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:78
-msgid "Members"
-msgstr ""
-
-#: provider/client/ECDisplayTable.cpp:79
-msgid "Modify members..."
-msgstr ""
-
-#: provider/client/SettingsPropPageAdvance.cpp:54
-#: provider/client/SettingsPropPageAdvance.cpp:103
-#: provider/client/SettingsTabConnection.cpp:80
-msgid "Advanced"
-msgstr ""
-
-#: provider/client/SettingsPropPageAdvance.cpp:104
-msgid "MailBox"
-msgstr ""
-
-#: provider/client/SettingsPropPageAdvance.cpp:107
-msgid "Remove"
-msgstr ""
-
-#: provider/client/SettingsPropPageAdvance.cpp:199
-msgid "User already exists."
-msgstr ""
-
-#: provider/client/SettingsTabConnection.cpp:81
-msgid "Proxy"
-msgstr ""
-
-#: provider/client/SettingsTabConnection.cpp:82
-msgid "Use proxyserver"
-msgstr ""
-
-#: provider/client/SettingsTabConnection.cpp:83
-msgid "Proxy server"
-msgstr ""
-
-#: provider/client/SettingsTabConnection.cpp:87
-msgid "Use compression"
-msgstr ""
-
-#: provider/client/SettingsTabConnection.cpp:88
-msgid "Seconds Until Server Connection timeout"
 msgstr ""
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:797
@@ -559,29 +221,6 @@ msgstr ""
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:815
 msgid "Server Failures"
-msgstr ""
-
-#: provider/client/ECMSProviderSwitch.cpp:236
-msgid ""
-"Unable to connect to the online server. If you continue, no new connections "
-"will be attempted until you disable the 'Work offline' option in the 'File' "
-"menu."
-msgstr ""
-
-#: provider/client/ECMSProviderSwitch.cpp:272
-#: provider/client/ECABProviderSwitch.cpp:136
-msgid ""
-"Your offline cache database is being upgraded. Outlook will start in online "
-"mode for this session."
-msgstr ""
-
-#: provider/client/ECMSProviderSwitch.cpp:379
-#: provider/client/ECABProviderSwitch.cpp:209
-msgid "Unable to work online! Do you want to switch to offline mode?"
-msgstr ""
-
-#: provider/client/PasswordDlg.cpp:83
-msgid "Trying to connect to"
 msgstr ""
 
 #: provider/client/ClientUtil.cpp:81
@@ -618,20 +257,6 @@ msgstr ""
 
 #: provider/client/ClientUtil.cpp:349
 msgid "Sent on:"
-msgstr ""
-
-#: provider/client/ECABProviderSwitch.cpp:279
-#: provider/client/ECMSProvider.cpp:247 provider/client/EntryPoint.cpp:1102
-msgid ""
-"Cannot use the profile because you are over the license limit. To continue, "
-"you must purchase additional client licenses."
-msgstr ""
-
-#: provider/client/ECABProviderSwitch.cpp:284
-#: provider/client/ECMSProvider.cpp:251 provider/client/EntryPoint.cpp:1108
-msgid ""
-"Cannot use the profile because the server was unable to contact the license "
-"server. Please consult your system administrator."
 msgstr ""
 
 #: provider/client/ECArchiveAwareMessage.cpp:471
@@ -677,58 +302,6 @@ msgstr ""
 msgid "Public Folders"
 msgstr ""
 
-#: provider/client/EntryPoint.cpp:969
-msgid "Unknown username"
-msgstr ""
-
-#: provider/client/EntryPoint.cpp:1071
-msgid "Connecting to the server..."
-msgstr ""
-
-#: provider/client/EntryPoint.cpp:1091
-msgid ""
-"Unable to reach the server.\n"
-"Do you want to save the settings (OK) or (Cancel) and re-enter the settings?"
-msgstr ""
-
-#: provider/client/EntryPoint.cpp:1186
-msgid "Incorrect username and/or password."
-msgstr ""
-
-#: provider/client/EntryPoint.cpp:1188
-msgid ""
-"Incorrect servername and/or port\n"
-"Check if the server is running."
-msgstr ""
-
-#: provider/client/EntryPoint.cpp:1190
-msgid "Incorrect version."
-msgstr ""
-
-#: provider/client/EntryPoint.cpp:1192
-msgid ""
-"An unknown failure has occurred.\n"
-"Please contact your administrator."
-msgstr ""
-
-#: provider/client/EntryPoint.cpp:1218
-msgid "You should restart Outlook for the changes to take effect."
-msgstr ""
-
-#: provider/client/ProviderUtil.cpp:132
-msgid ""
-"Unable to work online! The first time you need a network connection. Retry "
-"if you have the network connection."
-msgstr ""
-
-#: provider/client/ProviderUtil.cpp:150
-msgid "First Folder Sync..."
-msgstr ""
-
-#: provider/client/ProviderUtil.cpp:155
-msgid "Sync folder items"
-msgstr ""
-
 #: provider/client/ECMsgStore.cpp:2451
 msgid "Outbox"
 msgstr ""
@@ -769,52 +342,12 @@ msgstr ""
 msgid "Suggested Contacts"
 msgstr ""
 
-#: provider/client/CertificateDlg.cpp:63
-msgid "Certificate summary"
-msgstr ""
-
-#: provider/client/CertificateDlg.cpp:64
-msgid "View certificate"
-msgstr ""
-
-#: provider/client/CertificateDlg.cpp:65
-msgid "Remember my choice for this certificate"
-msgstr ""
-
-#: provider/client/CertificateDlg.cpp:67
-msgid "Hostname"
-msgstr ""
-
-#: provider/client/CertificateDlg.cpp:68
-msgid "Holder"
-msgstr ""
-
-#: provider/client/CertificateDlg.cpp:69
-msgid "Issuer"
-msgstr ""
-
-#: provider/client/CertificateDlg.cpp:70
-msgid "Expiration"
-msgstr ""
-
-#: provider/client/CertificateDlg.cpp:112
-msgid "Unable to open registry key for SSL certificate storage"
-msgstr ""
-
-#: provider/client/CertificateDlg.cpp:117
-msgid "Unable to store SSL certificate in registry key."
-msgstr ""
-
 #: provider/contacts/ZCABContainer.cpp:785
 msgid "Kopano Contacts Folders"
 msgstr ""
 
 #: provider/libserver/ECGenProps.cpp:944
 msgid "Archive"
-msgstr ""
-
-#: provider/libserver/ECDBUpdateProgress.cpp:93
-msgid "Upgrade: "
 msgstr ""
 
 #: spooler/Spooler.cpp:484

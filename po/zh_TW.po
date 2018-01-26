@@ -142,53 +142,6 @@ msgstr "沒有描述"
 msgid "MAPI error code:"
 msgstr "MAPI錯誤碼:"
 
-#: libsync/ECSync.cpp:1970
-msgid ""
-"The synchronization of a folder failed. Press retry to continue or ignore to "
-"supress all errors.\r\n"
-"\r\n"
-"Please contact the system administrator if this problem persists."
-msgstr ""
-"同步資料夾錯誤。請重試或忽略錯誤\r\n"
-"如果持續發生，請聯絡系統管理員"
-
-# 84%
-#: libsync/ECSync.cpp:1972
-msgid "Error codes: "
-msgstr "錯誤碼:"
-
-#: provider/common/SOAPSock.cpp:540
-msgid "Unable to get SSL object from store"
-msgstr "無法以SSL取得物件"
-
-#: provider/common/SOAPSock.cpp:548
-msgid "Unable to get SSL context from SSL object"
-msgstr "無法以SSL物件取得SSL內文"
-
-#: provider/common/SOAPSock.cpp:571
-msgid "No certificate found in connection"
-msgstr "在連接上沒有找到憑證"
-
-#: provider/common/SOAPSock.cpp:586
-msgid "Unable to convert OpenSSL to WinCrypt"
-msgstr "無法轉換OpenSSL到WinCrypt"
-
-#: provider/common/SOAPSock.cpp:708
-msgid "The certificate is not trusted and could not be verified."
-msgstr "此憑證不被信任，也無法得到確認"
-
-#: provider/common/SOAPSock.cpp:710
-msgid "The certificate is not trusted."
-msgstr "此憑證不被信任"
-
-#: provider/common/SOAPSock.cpp:713
-msgid "The certificate is trusted but does not verify correctly."
-msgstr "此憑證被信任但是沒有正確驗證"
-
-#: provider/common/SOAPSock.cpp:716
-msgid "Do you wish to continue?"
-msgstr "你要繼續嗎?"
-
 #: provider/ECProps/Addin.cpp:957 provider/client/ECMsgStorePublic.cpp:547
 #: provider/client/ECMAPIFolderPublic.cpp:164
 msgid "Favorites"
@@ -205,17 +158,6 @@ msgstr "捷徑"
 msgid "Owner"
 msgstr "擁有者"
 
-#: provider/ECProps/PropPage.cpp:417 provider/client/ECDisplayTable.cpp:28
-msgid "Name"
-msgstr "名稱"
-
-#: provider/ECProps/PropPage.cpp:716 provider/ECProps/ECFavoritesDlg.cpp:48
-#: provider/ECProps/ECDelegatePropPage.cpp:248
-#: provider/ECProps/ECDelegateDlg.cpp:102
-#: provider/client/SettingsPropPageAdvance.cpp:105
-msgid "Add"
-msgstr "新增"
-
 #: provider/ECProps/PropPage.cpp:723 provider/ECProps/MapOtherUserDlg.cpp:186
 #: provider/ECProps/ECDelegatePropPage.cpp:263
 #: provider/ECProps/ECDelegateDlg.cpp:117
@@ -223,33 +165,6 @@ msgstr "新增"
 #: provider/client/SettingsPropPageAdvance.cpp:245
 msgid "Global Address Book"
 msgstr "全域通訊錄"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:131
-#: provider/client/SettingsPropPageAdvance.cpp:171
-msgid "User could not be resolved."
-msgstr "使用者不能得到解決"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:251
-#: provider/client/SettingsDlg.cpp:132
-#: provider/client/SettingsTabConnection.cpp:85
-#: provider/client/PasswordDlg.cpp:87
-msgid "Username"
-msgstr "使用者名稱"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:260
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:132
-#: provider/ECProps/SyncConfigDlg.cpp:120
-#: provider/ECProps/SyncStatusDlg.cpp:67
-#: provider/ECProps/OutOfOfficeDlg.cpp:86
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:630
-#: provider/client/ProviderUtil.cpp:151
-msgid "Cancel"
-msgstr "取消"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:261
-#: provider/client/SettingsPropPageAdvance.cpp:106
-msgid "Name..."
-msgstr "名稱..."
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:134
 #: provider/client/ECMsgStore.cpp:2481
@@ -281,77 +196,9 @@ msgstr "記事"
 msgid "Journal"
 msgstr "日誌"
 
-#: provider/ECProps/SyncStatusDlg.cpp:132
-#: provider/libserver/ECDBUpdateProgress.cpp:56
-msgid "Your offline cache database is being upgraded..."
-msgstr "你的離線暫存資料庫正在升級中..."
-
 #: provider/ECProps/OutOfOfficeDlg.cpp:84 provider/client/ClientUtil.cpp:341
 msgid "Subject:"
 msgstr "主旨:"
-
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:165
-#: provider/client/SettingsPropPageAdvance.cpp:189
-msgid "Refusing to add primary store as shared store."
-msgstr "拒絕新增共用儲存作為主要儲存"
-
-#: provider/client/SettingsDlg.cpp:38 provider/client/SettingsDlg.cpp:127
-#: provider/client/ECDisplayTable.cpp:27 provider/client/ECDisplayTable.cpp:73
-msgid "General"
-msgstr "一般"
-
-#: provider/client/SettingsDlg.cpp:128
-msgid "Server settings"
-msgstr "伺服器設定"
-
-#: provider/client/SettingsDlg.cpp:129
-msgid "Server"
-msgstr "伺服器"
-
-#: provider/client/SettingsDlg.cpp:130
-#: provider/client/SettingsTabConnection.cpp:84
-msgid "Port"
-msgstr "Port"
-
-#: provider/client/SettingsDlg.cpp:131
-msgid "Enable encryption (HTTPS)"
-msgstr "啟用加密(HTTPS)"
-
-#: provider/client/SettingsDlg.cpp:133
-#: provider/client/SettingsTabConnection.cpp:86
-#: provider/client/PasswordDlg.cpp:88
-msgid "Password"
-msgstr "密碼"
-
-#: provider/client/SettingsDlg.cpp:134
-#: provider/client/SettingsTabConnection.cpp:36
-msgid "Connection"
-msgstr "連線"
-
-#: provider/client/SettingsDlg.cpp:135
-msgid "Connection type"
-msgstr "連線類型"
-
-#: provider/client/SettingsDlg.cpp:161
-msgid "Online"
-msgstr "線上"
-
-#: provider/client/SettingsDlg.cpp:164
-msgid "Cached Mode"
-msgstr "暫存模式"
-
-#: provider/client/SettingsDlg.cpp:167
-msgid "Detect at startup"
-msgstr "在啟動時檢查"
-
-#: provider/client/SettingsDlg.cpp:236
-msgid ""
-"Offline or cached mode for Outlook XP and Outlook 2002 is not supported. If "
-"you wish to use offline functionality, please use Outlook 2000, 2003, 2007 "
-"or later."
-msgstr ""
-"離線或Outlook XP和Outlook 2002暫存模式沒有支援.如果你想使用離線功能，請使用"
-"Outlook 2000、2003、2007、2010或更高的版本"
 
 #: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
 msgid "Global Address Lists"
@@ -360,196 +207,6 @@ msgstr "全域通訊錄"
 #: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
 msgid "All Address Lists"
 msgstr "所有地址"
-
-#: provider/client/ECDisplayTable.cpp:29
-msgid "First:"
-msgstr "名字:"
-
-#: provider/client/ECDisplayTable.cpp:30
-msgid "Initials:"
-msgstr "縮寫:"
-
-#: provider/client/ECDisplayTable.cpp:31
-msgid "Last:"
-msgstr "姓:"
-
-#: provider/client/ECDisplayTable.cpp:32
-msgid "Display:"
-msgstr "顯示名稱:"
-
-#: provider/client/ECDisplayTable.cpp:33
-msgid "Alias:"
-msgstr "別名:"
-
-#: provider/client/ECDisplayTable.cpp:34
-msgid "Address:"
-msgstr "地址:"
-
-#: provider/client/ECDisplayTable.cpp:35
-msgid "City:"
-msgstr "城市:"
-
-#: provider/client/ECDisplayTable.cpp:36
-msgid "State:"
-msgstr "州:"
-
-#: provider/client/ECDisplayTable.cpp:37
-msgid "Zip code:"
-msgstr "郵遞區號:"
-
-#: provider/client/ECDisplayTable.cpp:38
-msgid "Country/Region:"
-msgstr "國家/地區:"
-
-#: provider/client/ECDisplayTable.cpp:39
-msgid "Title:"
-msgstr "職稱:"
-
-#: provider/client/ECDisplayTable.cpp:40
-msgid "Company:"
-msgstr "公司:"
-
-#: provider/client/ECDisplayTable.cpp:41
-msgid "Department:"
-msgstr "部門:"
-
-#: provider/client/ECDisplayTable.cpp:42
-msgid "Office:"
-msgstr "辦公室:"
-
-#: provider/client/ECDisplayTable.cpp:43 provider/client/ECDisplayTable.cpp:52
-msgid "Assistant:"
-msgstr "助理:"
-
-#: provider/client/ECDisplayTable.cpp:44
-msgid "Phone:"
-msgstr "電話:"
-
-#: provider/client/ECDisplayTable.cpp:47
-msgid "Phone/Notes"
-msgstr "電話/筆記"
-
-#: provider/client/ECDisplayTable.cpp:48
-msgid "Phone numbers"
-msgstr "電話號碼"
-
-#: provider/client/ECDisplayTable.cpp:49
-msgid "Business:"
-msgstr "公司:"
-
-#: provider/client/ECDisplayTable.cpp:50
-msgid "Business 2:"
-msgstr "公司 2:"
-
-#: provider/client/ECDisplayTable.cpp:51
-msgid "Fax:"
-msgstr "傳真:"
-
-#: provider/client/ECDisplayTable.cpp:53
-msgid "Home:"
-msgstr "住家:"
-
-#: provider/client/ECDisplayTable.cpp:54
-msgid "Home 2:"
-msgstr "住家 2:"
-
-#: provider/client/ECDisplayTable.cpp:55
-msgid "Mobile:"
-msgstr "手機:"
-
-#: provider/client/ECDisplayTable.cpp:56
-msgid "Pager:"
-msgstr "呼叫器:"
-
-#: provider/client/ECDisplayTable.cpp:57 provider/client/ECDisplayTable.cpp:77
-msgid "Notes:"
-msgstr "筆記:"
-
-#: provider/client/ECDisplayTable.cpp:60
-msgid "Organization"
-msgstr "組織"
-
-#: provider/client/ECDisplayTable.cpp:61
-msgid "Manager:"
-msgstr "經理:"
-
-#: provider/client/ECDisplayTable.cpp:62
-msgid "Direct reports:"
-msgstr "直接報告:"
-
-#: provider/client/ECDisplayTable.cpp:65 provider/client/ECDisplayTable.cpp:82
-msgid "Member Of"
-msgstr "成員"
-
-#: provider/client/ECDisplayTable.cpp:66 provider/client/ECDisplayTable.cpp:83
-msgid "Group membership:"
-msgstr "群組成員:"
-
-#: provider/client/ECDisplayTable.cpp:69
-msgid "E-mail Addresses"
-msgstr "電子郵件地址"
-
-#: provider/client/ECDisplayTable.cpp:70
-msgid "E-mail addresses:"
-msgstr "電子郵件地址:"
-
-#: provider/client/ECDisplayTable.cpp:74
-msgid "Display name:"
-msgstr "顯示名稱:"
-
-#: provider/client/ECDisplayTable.cpp:75
-msgid "Alias name:"
-msgstr "別名:"
-
-#: provider/client/ECDisplayTable.cpp:76
-msgid "Owner:"
-msgstr "擁有者:"
-
-#: provider/client/ECDisplayTable.cpp:78
-msgid "Members"
-msgstr "成員"
-
-#: provider/client/ECDisplayTable.cpp:79
-msgid "Modify members..."
-msgstr "修改成員..."
-
-#: provider/client/SettingsPropPageAdvance.cpp:54
-#: provider/client/SettingsPropPageAdvance.cpp:103
-#: provider/client/SettingsTabConnection.cpp:80
-msgid "Advanced"
-msgstr "進階"
-
-#: provider/client/SettingsPropPageAdvance.cpp:104
-msgid "MailBox"
-msgstr "郵箱"
-
-#: provider/client/SettingsPropPageAdvance.cpp:107
-msgid "Remove"
-msgstr "刪除"
-
-#: provider/client/SettingsPropPageAdvance.cpp:199
-msgid "User already exists."
-msgstr "使用者已存在"
-
-#: provider/client/SettingsTabConnection.cpp:81
-msgid "Proxy"
-msgstr "代理"
-
-#: provider/client/SettingsTabConnection.cpp:82
-msgid "Use proxyserver"
-msgstr "使用代理伺服器"
-
-#: provider/client/SettingsTabConnection.cpp:83
-msgid "Proxy server"
-msgstr "代理伺服器"
-
-#: provider/client/SettingsTabConnection.cpp:87
-msgid "Use compression"
-msgstr "使用壓縮"
-
-#: provider/client/SettingsTabConnection.cpp:88
-msgid "Seconds Until Server Connection timeout"
-msgstr "伺服器連線超過...秒後"
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:797
 msgid "Sync Issues"
@@ -566,30 +223,6 @@ msgstr "本地錯誤"
 #: provider/client/ECExchangeImportContentsChanges.cpp:815
 msgid "Server Failures"
 msgstr "伺服器錯誤"
-
-#: provider/client/ECMSProviderSwitch.cpp:236
-msgid ""
-"Unable to connect to the online server. If you continue, no new connections "
-"will be attempted until you disable the 'Work offline' option in the 'File' "
-"menu."
-msgstr ""
-"無法連線到伺服器，如果繼續，你將切換到離線工作直到你選擇中止\"離線工作\""
-
-#: provider/client/ECMSProviderSwitch.cpp:272
-#: provider/client/ECABProviderSwitch.cpp:136
-msgid ""
-"Your offline cache database is being upgraded. Outlook will start in online "
-"mode for this session."
-msgstr "你的離線暫存資料庫正在升級。Outlook會開始使用線上工作"
-
-#: provider/client/ECMSProviderSwitch.cpp:379
-#: provider/client/ECABProviderSwitch.cpp:209
-msgid "Unable to work online! Do you want to switch to offline mode?"
-msgstr "無法使用線上工作! 你想要切換到離線工作嗎?"
-
-#: provider/client/PasswordDlg.cpp:83
-msgid "Trying to connect to"
-msgstr "嘗試連線到"
 
 #: provider/client/ClientUtil.cpp:81
 msgid "Available"
@@ -626,21 +259,6 @@ msgstr "副本:"
 #: provider/client/ClientUtil.cpp:349
 msgid "Sent on:"
 msgstr "已在..傳送:"
-
-#: provider/client/ECABProviderSwitch.cpp:279
-#: provider/client/ECMSProvider.cpp:247 provider/client/EntryPoint.cpp:1102
-msgid ""
-"Cannot use the profile because you are over the license limit. To continue, "
-"you must purchase additional client licenses."
-msgstr ""
-"不能使用此配置文件，因為已超過授權限制，如果要繼續，你必須購買額外的授權"
-
-#: provider/client/ECABProviderSwitch.cpp:284
-#: provider/client/ECMSProvider.cpp:251 provider/client/EntryPoint.cpp:1108
-msgid ""
-"Cannot use the profile because the server was unable to contact the license "
-"server. Please consult your system administrator."
-msgstr "不能使用的設定文件，因為伺服器無法連線授權伺服器。請與系統管理員聯絡"
 
 #: provider/client/ECArchiveAwareMessage.cpp:471
 #: provider/client/ECArchiveAwareMessage.cpp:529
@@ -685,60 +303,6 @@ msgstr "離線工作無法使用封存標記"
 msgid "Public Folders"
 msgstr "公用資料夾"
 
-#: provider/client/EntryPoint.cpp:969
-msgid "Unknown username"
-msgstr "不明的使用者名稱"
-
-#: provider/client/EntryPoint.cpp:1071
-msgid "Connecting to the server..."
-msgstr "正在連線到伺服器..."
-
-#: provider/client/EntryPoint.cpp:1091
-msgid ""
-"Unable to reach the server.\n"
-"Do you want to save the settings (OK) or (Cancel) and re-enter the settings?"
-msgstr ""
-
-#: provider/client/EntryPoint.cpp:1186
-msgid "Incorrect username and/or password."
-msgstr "錯誤的使用者名稱或密碼"
-
-#: provider/client/EntryPoint.cpp:1188
-msgid ""
-"Incorrect servername and/or port\n"
-"Check if the server is running."
-msgstr "錯誤的伺服器名稱或port.請檢查伺服器是否執行中"
-
-#: provider/client/EntryPoint.cpp:1190
-msgid "Incorrect version."
-msgstr "不正確的版本"
-
-#: provider/client/EntryPoint.cpp:1192
-msgid ""
-"An unknown failure has occurred.\n"
-"Please contact your administrator."
-msgstr ""
-"發生不明的錯誤.\n"
-"請聯絡系統管理員"
-
-#: provider/client/EntryPoint.cpp:1218
-msgid "You should restart Outlook for the changes to take effect."
-msgstr "你應該重新啟動Outlook以使更改生效"
-
-#: provider/client/ProviderUtil.cpp:132
-msgid ""
-"Unable to work online! The first time you need a network connection. Retry "
-"if you have the network connection."
-msgstr "無法線上工作!第一次你需要一個網路連線，如果你有網路連線，請重試"
-
-#: provider/client/ProviderUtil.cpp:150
-msgid "First Folder Sync..."
-msgstr "第一個資料夾同步..."
-
-#: provider/client/ProviderUtil.cpp:155
-msgid "Sync folder items"
-msgstr "同步資料夾項目"
-
 #: provider/client/ECMsgStore.cpp:2451
 msgid "Outbox"
 msgstr "寄件匣"
@@ -779,42 +343,6 @@ msgstr "快速設定步驟"
 msgid "Suggested Contacts"
 msgstr "最近聯絡人"
 
-#: provider/client/CertificateDlg.cpp:63
-msgid "Certificate summary"
-msgstr "憑證摘要"
-
-#: provider/client/CertificateDlg.cpp:64
-msgid "View certificate"
-msgstr "檢視憑證"
-
-#: provider/client/CertificateDlg.cpp:65
-msgid "Remember my choice for this certificate"
-msgstr "記住我選擇的憑證"
-
-#: provider/client/CertificateDlg.cpp:67
-msgid "Hostname"
-msgstr "主機名"
-
-#: provider/client/CertificateDlg.cpp:68
-msgid "Holder"
-msgstr "持有人"
-
-#: provider/client/CertificateDlg.cpp:69
-msgid "Issuer"
-msgstr "發行人"
-
-#: provider/client/CertificateDlg.cpp:70
-msgid "Expiration"
-msgstr "過期"
-
-#: provider/client/CertificateDlg.cpp:112
-msgid "Unable to open registry key for SSL certificate storage"
-msgstr "無法開啟註冊表給SSL憑證儲存"
-
-#: provider/client/CertificateDlg.cpp:117
-msgid "Unable to store SSL certificate in registry key."
-msgstr "無法儲存SSL憑證到註冊表"
-
 #: provider/contacts/ZCABContainer.cpp:785
 msgid "Kopano Contacts Folders"
 msgstr "Kopano聯絡人資料夾"
@@ -822,10 +350,6 @@ msgstr "Kopano聯絡人資料夾"
 #: provider/libserver/ECGenProps.cpp:944
 msgid "Archive"
 msgstr "封存"
-
-#: provider/libserver/ECDBUpdateProgress.cpp:93
-msgid "Upgrade: "
-msgstr "升級:"
 
 #: spooler/Spooler.cpp:484
 msgid ""

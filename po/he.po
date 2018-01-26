@@ -147,52 +147,6 @@ msgstr "אין תיאור"
 msgid "MAPI error code:"
 msgstr "שגיאת MAPI מספר:"
 
-#: libsync/ECSync.cpp:1961
-msgid ""
-"The synchronization of a folder failed. Press retry to continue or ignore to "
-"supress all errors.\r\n"
-"\r\n"
-"Please contact the system administrator if this problem persists."
-msgstr ""
-
-# 84%
-#: libsync/ECSync.cpp:1963
-#, fuzzy
-msgid "Error codes: "
-msgstr "שגיאה:"
-
-#: provider/common/SOAPSock.cpp:484
-msgid "Unable to get SSL object from store"
-msgstr "לא ניתן לקבל אוביקט SSL מהאחסון"
-
-#: provider/common/SOAPSock.cpp:492
-msgid "Unable to get SSL context from SSL object"
-msgstr "לא ניתן לקבל הקשר לSSL מאובייקט SSL"
-
-#: provider/common/SOAPSock.cpp:515
-msgid "No certificate found in connection"
-msgstr "לא נמצא אישור בהתחברות"
-
-#: provider/common/SOAPSock.cpp:530
-msgid "Unable to convert OpenSSL to WinCrypt"
-msgstr "לא ניתן להמיר OpenSSL ל WinCrypt"
-
-#: provider/common/SOAPSock.cpp:652
-msgid "The certificate is not trusted and could not be verified."
-msgstr "לא ניתן לבטוח באישור כמו כן לא ניתן לאמת אותו."
-
-#: provider/common/SOAPSock.cpp:654
-msgid "The certificate is not trusted."
-msgstr "האישור אינו אמין."
-
-#: provider/common/SOAPSock.cpp:657
-msgid "The certificate is trusted but does not verify correctly."
-msgstr "ניתן לבטוח באישור אך לא ניתן לאמת אותו כהלכה."
-
-#: provider/common/SOAPSock.cpp:660
-msgid "Do you wish to continue?"
-msgstr "האם ברצונך להמשיך?"
-
 #: provider/ECProps/Addin.cpp:957 provider/client/ECMsgStorePublic.cpp:547
 #: provider/client/ECMAPIFolderPublic.cpp:164
 msgid "Favorites"
@@ -209,17 +163,6 @@ msgstr "קיצור"
 msgid "Owner"
 msgstr "בעלים"
 
-#: provider/ECProps/PropPage.cpp:418 provider/client/ECDisplayTable.cpp:28
-msgid "Name"
-msgstr "שם"
-
-#: provider/ECProps/PropPage.cpp:717 provider/ECProps/ECFavoritesDlg.cpp:48
-#: provider/ECProps/ECDelegatePropPage.cpp:249
-#: provider/ECProps/ECDelegateDlg.cpp:103
-#: provider/client/SettingsPropPageAdvance.cpp:105
-msgid "Add"
-msgstr "הוסף"
-
 #: provider/ECProps/PropPage.cpp:724 provider/ECProps/MapOtherUserDlg.cpp:186
 #: provider/ECProps/ECDelegatePropPage.cpp:264
 #: provider/ECProps/ECDelegateDlg.cpp:118
@@ -227,33 +170,6 @@ msgstr "הוסף"
 #: provider/client/SettingsPropPageAdvance.cpp:245
 msgid "Global Address Book"
 msgstr "ספר כתובות גלובאלי"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:131
-#: provider/client/SettingsPropPageAdvance.cpp:171
-msgid "User could not be resolved."
-msgstr "לא ניתן לאתר את המשתמש."
-
-#: provider/ECProps/MapOtherUserDlg.cpp:251
-#: provider/client/SettingsDlg.cpp:132
-#: provider/client/SettingsTabConnection.cpp:85
-#: provider/client/PasswordDlg.cpp:87
-msgid "Username"
-msgstr "שם משתמש"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:260
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:132
-#: provider/ECProps/SyncConfigDlg.cpp:120
-#: provider/ECProps/SyncStatusDlg.cpp:67
-#: provider/ECProps/OutOfOfficeDlg.cpp:86
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:630
-#: provider/client/ProviderUtil.cpp:151
-msgid "Cancel"
-msgstr "ביטול"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:261
-#: provider/client/SettingsPropPageAdvance.cpp:106
-msgid "Name..."
-msgstr "שם..."
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:134
 #: provider/client/ECMsgStore.cpp:2480
@@ -285,82 +201,14 @@ msgstr "פתקים"
 msgid "Journal"
 msgstr "יומן"
 
-#: provider/ECProps/SyncStatusDlg.cpp:132
-#: provider/libserver/ECDBUpdateProgress.cpp:56
-msgid "Your offline cache database is being upgraded..."
-msgstr ""
-
 #: provider/ECProps/OutOfOfficeDlg.cpp:84 provider/client/ClientUtil.cpp:341
 msgid "Subject:"
 msgstr "נושא:"
-
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:165
-#: provider/client/SettingsPropPageAdvance.cpp:189
-msgid "Refusing to add primary store as shared store."
-msgstr ""
 
 #: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:270
 #: php-ext/include/mapi/class.taskrequest.php:880
 msgid "Subject"
 msgstr "נושא"
-
-#: provider/client/SettingsDlg.cpp:38 provider/client/SettingsDlg.cpp:127
-#: provider/client/ECDisplayTable.cpp:27 provider/client/ECDisplayTable.cpp:73
-msgid "General"
-msgstr "כללי"
-
-#: provider/client/SettingsDlg.cpp:128
-msgid "Server settings"
-msgstr "הגדרות שרת"
-
-#: provider/client/SettingsDlg.cpp:129
-msgid "Server"
-msgstr "שרת"
-
-#: provider/client/SettingsDlg.cpp:130
-#: provider/client/SettingsTabConnection.cpp:84
-msgid "Port"
-msgstr "יציאה"
-
-#: provider/client/SettingsDlg.cpp:131
-msgid "Enable encryption (HTTPS)"
-msgstr "אפשר הצפנה (HTTP)"
-
-#: provider/client/SettingsDlg.cpp:133
-#: provider/client/SettingsTabConnection.cpp:86
-#: provider/client/PasswordDlg.cpp:88
-msgid "Password"
-msgstr "סיסמא"
-
-#: provider/client/SettingsDlg.cpp:134
-#: provider/client/SettingsTabConnection.cpp:36
-msgid "Connection"
-msgstr "חיבור "
-
-#: provider/client/SettingsDlg.cpp:135
-msgid "Connection type"
-msgstr "סוג חיבור"
-
-#: provider/client/SettingsDlg.cpp:161
-msgid "Online"
-msgstr "מחובר"
-
-#: provider/client/SettingsDlg.cpp:164
-msgid "Cached Mode"
-msgstr "מצב מוטמן"
-
-#: provider/client/SettingsDlg.cpp:167
-msgid "Detect at startup"
-msgstr "זהה בזמן אתחול"
-
-#: provider/client/SettingsDlg.cpp:236
-msgid ""
-"Offline or cached mode for Outlook XP and Outlook 2002 is not supported. If "
-"you wish to use offline functionality, please use Outlook 2000, 2003, 2007 "
-"or later."
-msgstr ""
-"מצב מוטמן או מנותק ל אאוטלוק .XP ו אאוטלוק 2002 לא נתמך. אם ברצונך להשתמש "
-"במצב מנותק אנא השתמש באאוטלוק 2000, 2003, 2007 או חדש יותר."
 
 #: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
 msgid "Global Address Lists"
@@ -369,196 +217,6 @@ msgstr "רשימות כתובות גלובאליות"
 #: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
 msgid "All Address Lists"
 msgstr "כל רשימות הכתובות"
-
-#: provider/client/ECDisplayTable.cpp:29
-msgid "First:"
-msgstr "שם פרטי:"
-
-#: provider/client/ECDisplayTable.cpp:30
-msgid "Initials:"
-msgstr "ראשי תיבות:"
-
-#: provider/client/ECDisplayTable.cpp:31
-msgid "Last:"
-msgstr "שם משפחה:"
-
-#: provider/client/ECDisplayTable.cpp:32
-msgid "Display:"
-msgstr "תצוגה:"
-
-#: provider/client/ECDisplayTable.cpp:33
-msgid "Alias:"
-msgstr "כינוי:"
-
-#: provider/client/ECDisplayTable.cpp:34
-msgid "Address:"
-msgstr "כתובת:"
-
-#: provider/client/ECDisplayTable.cpp:35
-msgid "City:"
-msgstr "עיר:"
-
-#: provider/client/ECDisplayTable.cpp:36
-msgid "State:"
-msgstr "מדינה:"
-
-#: provider/client/ECDisplayTable.cpp:37
-msgid "Zip code:"
-msgstr "מיקוד:"
-
-#: provider/client/ECDisplayTable.cpp:38
-msgid "Country/Region:"
-msgstr "ארץ/איזור:"
-
-#: provider/client/ECDisplayTable.cpp:39
-msgid "Title:"
-msgstr "כותרת:"
-
-#: provider/client/ECDisplayTable.cpp:40
-msgid "Company:"
-msgstr "חברה:"
-
-#: provider/client/ECDisplayTable.cpp:41
-msgid "Department:"
-msgstr "מחלקה:"
-
-#: provider/client/ECDisplayTable.cpp:42
-msgid "Office:"
-msgstr "משרד:"
-
-#: provider/client/ECDisplayTable.cpp:43 provider/client/ECDisplayTable.cpp:52
-msgid "Assistant:"
-msgstr "עוזר:"
-
-#: provider/client/ECDisplayTable.cpp:44
-msgid "Phone:"
-msgstr "טלפון:"
-
-#: provider/client/ECDisplayTable.cpp:47
-msgid "Phone/Notes"
-msgstr "טלפון\\היערות"
-
-#: provider/client/ECDisplayTable.cpp:48
-msgid "Phone numbers"
-msgstr "מספרי טלפון"
-
-#: provider/client/ECDisplayTable.cpp:49
-msgid "Business:"
-msgstr "עסקי:"
-
-#: provider/client/ECDisplayTable.cpp:50
-msgid "Business 2:"
-msgstr "עסקי 2:"
-
-#: provider/client/ECDisplayTable.cpp:51
-msgid "Fax:"
-msgstr "פקס:"
-
-#: provider/client/ECDisplayTable.cpp:53
-msgid "Home:"
-msgstr "בית:"
-
-#: provider/client/ECDisplayTable.cpp:54
-msgid "Home 2:"
-msgstr "בית 2:"
-
-#: provider/client/ECDisplayTable.cpp:55
-msgid "Mobile:"
-msgstr "נייד:"
-
-#: provider/client/ECDisplayTable.cpp:56
-msgid "Pager:"
-msgstr "איתורית:"
-
-#: provider/client/ECDisplayTable.cpp:57 provider/client/ECDisplayTable.cpp:77
-msgid "Notes:"
-msgstr "פתקים:"
-
-#: provider/client/ECDisplayTable.cpp:60
-msgid "Organization"
-msgstr "ארגון"
-
-#: provider/client/ECDisplayTable.cpp:61
-msgid "Manager:"
-msgstr "מנהל:"
-
-#: provider/client/ECDisplayTable.cpp:62
-msgid "Direct reports:"
-msgstr "דיווחים ישירים:"
-
-#: provider/client/ECDisplayTable.cpp:65 provider/client/ECDisplayTable.cpp:82
-msgid "Member Of"
-msgstr "חבר ב"
-
-#: provider/client/ECDisplayTable.cpp:66 provider/client/ECDisplayTable.cpp:83
-msgid "Group membership:"
-msgstr "קבוצת חברות:"
-
-#: provider/client/ECDisplayTable.cpp:69
-msgid "E-mail Addresses"
-msgstr "כתובות דואר אלקטרוני"
-
-#: provider/client/ECDisplayTable.cpp:70
-msgid "E-mail addresses:"
-msgstr "כתובות דואר אלקטרוני:"
-
-#: provider/client/ECDisplayTable.cpp:74
-msgid "Display name:"
-msgstr "שם תצוגה:"
-
-#: provider/client/ECDisplayTable.cpp:75
-msgid "Alias name:"
-msgstr "שם נוסף:"
-
-#: provider/client/ECDisplayTable.cpp:76
-msgid "Owner:"
-msgstr "בעלים:"
-
-#: provider/client/ECDisplayTable.cpp:78
-msgid "Members"
-msgstr "חברים:"
-
-#: provider/client/ECDisplayTable.cpp:79
-msgid "Modify members..."
-msgstr "שנה חברים..."
-
-#: provider/client/SettingsPropPageAdvance.cpp:54
-#: provider/client/SettingsPropPageAdvance.cpp:103
-#: provider/client/SettingsTabConnection.cpp:80
-msgid "Advanced"
-msgstr "מתקדם"
-
-#: provider/client/SettingsPropPageAdvance.cpp:104
-msgid "MailBox"
-msgstr "תיבת דואר"
-
-#: provider/client/SettingsPropPageAdvance.cpp:107
-msgid "Remove"
-msgstr "הסר"
-
-#: provider/client/SettingsPropPageAdvance.cpp:199
-msgid "User already exists."
-msgstr "המשתמש כבר קיים."
-
-#: provider/client/SettingsTabConnection.cpp:81
-msgid "Proxy"
-msgstr "פרוקסי"
-
-#: provider/client/SettingsTabConnection.cpp:82
-msgid "Use proxyserver"
-msgstr "השתמש בשרת פרוקסי"
-
-#: provider/client/SettingsTabConnection.cpp:83
-msgid "Proxy server"
-msgstr "שרת פרוקסי"
-
-#: provider/client/SettingsTabConnection.cpp:87
-msgid "Use compression"
-msgstr "השתמש בדחיסה"
-
-#: provider/client/SettingsTabConnection.cpp:88
-msgid "Seconds Until Server Connection timeout"
-msgstr "שניות עד להפסקת החיבור לשרת"
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:842
 msgid "Sync Issues"
@@ -575,31 +233,6 @@ msgstr "כשלון מקומי"
 #: provider/client/ECExchangeImportContentsChanges.cpp:860
 msgid "Server Failures"
 msgstr "כשלונות שרת"
-
-#: provider/client/ECMSProviderSwitch.cpp:236
-msgid ""
-"Unable to connect to the online server. If you continue, no new connections "
-"will be attempted until you disable the 'Work offline' option in the 'File' "
-"menu."
-msgstr ""
-"לא ניתן להתחבר לשרת הפעיל. אם תמשיך, לא יתקיימו נסיונות חדשים עד אשר תסיר את "
-"אפשרות 'עבוד במצב מנותק' בתפריט ה'קובץ'."
-
-#: provider/client/ECMSProviderSwitch.cpp:272
-#: provider/client/ECABProviderSwitch.cpp:136
-msgid ""
-"Your offline cache database is being upgraded. Outlook will start in online "
-"mode for this session."
-msgstr ""
-
-#: provider/client/ECMSProviderSwitch.cpp:379
-#: provider/client/ECABProviderSwitch.cpp:209
-msgid "Unable to work online! Do you want to switch to offline mode?"
-msgstr "לא ניתן לעבוד במצב מחובר! האם ברצונך לעבור למצב מנותק?"
-
-#: provider/client/PasswordDlg.cpp:83
-msgid "Trying to connect to"
-msgstr "מנסה להתחבר ל"
 
 #: provider/client/ClientUtil.cpp:81
 msgid "Available"
@@ -636,24 +269,6 @@ msgstr "עותק נוסף:"
 #: provider/client/ClientUtil.cpp:349
 msgid "Sent on:"
 msgstr "נשלח ב:"
-
-#: provider/client/ECABProviderSwitch.cpp:279
-#: provider/client/ECMSProvider.cpp:247 provider/client/EntryPoint.cpp:1102
-msgid ""
-"Cannot use the profile because you are over the license limit. To continue, "
-"you must purchase additional client licenses."
-msgstr ""
-"לא ניתן להשתמש בפרופיל כיוון שעברת את הגבלת הרישיון. בכדי להמשיך עליך לרכוש "
-"רשיון משתמש נוסף."
-
-#: provider/client/ECABProviderSwitch.cpp:284
-#: provider/client/ECMSProvider.cpp:251 provider/client/EntryPoint.cpp:1108
-msgid ""
-"Cannot use the profile because the server was unable to contact the license "
-"server. Please consult your system administrator."
-msgstr ""
-"לא ניתן להשתמש בפרופיל זה כיוון שהשרת לא הצליח ליצור קשר עם שרת הרשיון. אנא "
-"התייעץ עם מנהל המערכת שלך."
 
 # 93%
 #: provider/client/ECArchiveAwareMessage.cpp:471
@@ -699,62 +314,6 @@ msgstr ""
 msgid "Public Folders"
 msgstr "תיקיות ציבוריות"
 
-#: provider/client/EntryPoint.cpp:969
-msgid "Unknown username"
-msgstr "שם משתמש לא ידוע"
-
-#: provider/client/EntryPoint.cpp:1071
-msgid "Connecting to the server..."
-msgstr "מתחבר לשרת..."
-
-#: provider/client/EntryPoint.cpp:1091
-msgid ""
-"Unable to reach the server.\n"
-"Do you want to save the settings or cancel and re-enter the settings?"
-msgstr ""
-"לא ניתן להשיג את השרת. n\\ האם ברצונך לשמור את ההגדרות או לבטל ולהכניס מחדש "
-"את ההגדרות?"
-
-#: provider/client/EntryPoint.cpp:1186
-msgid "Incorrect username and/or password."
-msgstr "שם משתמש ו/או סיסמא שגוי."
-
-#: provider/client/EntryPoint.cpp:1188
-msgid ""
-"Incorrect servername and/or port\n"
-"Check if the server is running."
-msgstr "שם סרבר ו/או פורט שגוי n\\ אנא בדוק אם השרת פעיל."
-
-#: provider/client/EntryPoint.cpp:1190
-msgid "Incorrect version."
-msgstr "גירסא שגויה."
-
-#: provider/client/EntryPoint.cpp:1192
-msgid ""
-"An unknown failure has occurred.\n"
-"Please contact your administrator."
-msgstr "אירע כשלון לא ידוע. n\\ אנא צור קשר עם המנהל שלך."
-
-#: provider/client/EntryPoint.cpp:1218
-msgid "You should restart Outlook for the changes to take effect."
-msgstr "עליך להפעיל מחדש את אאוטלוק על מנת שהשינויים יכנסו לתוקף."
-
-#: provider/client/ProviderUtil.cpp:132
-msgid ""
-"Unable to work online! The first time you need a network connection. Retry "
-"if you have the network connection."
-msgstr ""
-"לא ניתן לעבוד בצורה מחוברת! בפעם הראשונה הנך צריך חיבור רשת. נסה שוב אם יש "
-"ברשותך חיבור רשת."
-
-#: provider/client/ProviderUtil.cpp:150
-msgid "First Folder Sync..."
-msgstr "סנכרון תיקיה ראשון..."
-
-#: provider/client/ProviderUtil.cpp:155
-msgid "Sync folder items"
-msgstr "סנכרון פריטי תיקייה"
-
 #: provider/client/ECMsgStore.cpp:2450
 msgid "Outbox"
 msgstr "תיבת דואר יוצא"
@@ -795,42 +354,6 @@ msgstr "הגדרות מהירות"
 msgid "Suggested Contacts"
 msgstr "נמענים מוצעים"
 
-#: provider/client/CertificateDlg.cpp:63
-msgid "Certificate summary"
-msgstr "סיכום האישור"
-
-#: provider/client/CertificateDlg.cpp:64
-msgid "View certificate"
-msgstr "הצג אישור"
-
-#: provider/client/CertificateDlg.cpp:65
-msgid "Remember my choice for this certificate"
-msgstr "זכור את הבחירה שלי במסמך זה"
-
-#: provider/client/CertificateDlg.cpp:67
-msgid "Hostname"
-msgstr "שם המארח"
-
-#: provider/client/CertificateDlg.cpp:68
-msgid "Holder"
-msgstr "מחזיק"
-
-#: provider/client/CertificateDlg.cpp:69
-msgid "Issuer"
-msgstr "מנפיק"
-
-#: provider/client/CertificateDlg.cpp:70
-msgid "Expiration"
-msgstr "תאריך תפוגה"
-
-#: provider/client/CertificateDlg.cpp:112
-msgid "Unable to open registry key for SSL certificate storage"
-msgstr "לא ניתן לפתוח רג'יסטרי קי לאחסנת אישור SSL"
-
-#: provider/client/CertificateDlg.cpp:117
-msgid "Unable to store SSL certificate in registry key."
-msgstr "לא ניתן לאחסן אישור SSL במפתח הרישום"
-
 #: provider/contacts/ZCABContainer.cpp:761
 msgid "Kopano Contacts Folders"
 msgstr "תיקיית אנשי קשר"
@@ -838,10 +361,6 @@ msgstr "תיקיית אנשי קשר"
 #: provider/libserver/ECGenProps.cpp:949
 msgid "Archive"
 msgstr "ארכיון"
-
-#: provider/libserver/ECDBUpdateProgress.cpp:93
-msgid "Upgrade: "
-msgstr "שדרג:"
 
 #: spooler/Spooler.cpp:485
 msgid ""

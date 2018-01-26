@@ -154,55 +154,6 @@ msgstr "Kirjeldus puudub."
 msgid "MAPI error code:"
 msgstr "MAPI error code:"
 
-#: libsync/ECSync.cpp:1961
-msgid ""
-"The synchronization of a folder failed. Press retry to continue or ignore to "
-"supress all errors.\r\n"
-"\r\n"
-"Please contact the system administrator if this problem persists."
-msgstr ""
-"Sünkroniseerimine nurjus. Vajutage uuesti jätkata või eirata, et Võitluses "
-"kõik vigu. \\ R \\ n \\ r \\ nPalun kontakteeru süsteemi administraatoriga, "
-"kui see probleem ei lahene."
-
-# 84%
-#: libsync/ECSync.cpp:1963
-#, fuzzy
-msgid "Error codes: "
-msgstr "Error code:"
-
-#: provider/common/SOAPSock.cpp:484
-msgid "Unable to get SSL object from store"
-msgstr "Suutnud saada SSL objekti kauplus"
-
-#: provider/common/SOAPSock.cpp:492
-msgid "Unable to get SSL context from SSL object"
-msgstr "Suutnud saada SSL kontekstis SSL objekti"
-
-#: provider/common/SOAPSock.cpp:515
-msgid "No certificate found in connection"
-msgstr "Sertifikaati ei leitud seos"
-
-#: provider/common/SOAPSock.cpp:530
-msgid "Unable to convert OpenSSL to WinCrypt"
-msgstr "Ei saa teisendada OpenSSL et WinCrypt"
-
-#: provider/common/SOAPSock.cpp:652
-msgid "The certificate is not trusted and could not be verified."
-msgstr "Sertifikaati ei usaldata ja ei olnud võimalik kontrollida."
-
-#: provider/common/SOAPSock.cpp:654
-msgid "The certificate is not trusted."
-msgstr "Sertifikaati ei usaldata."
-
-#: provider/common/SOAPSock.cpp:657
-msgid "The certificate is trusted but does not verify correctly."
-msgstr "Usaldusväärne sertifikaat, kuid ei kontrolli korralikult."
-
-#: provider/common/SOAPSock.cpp:660
-msgid "Do you wish to continue?"
-msgstr "Kas soovite jätkata?"
-
 #: provider/ECProps/Addin.cpp:957 provider/client/ECMsgStorePublic.cpp:547
 #: provider/client/ECMAPIFolderPublic.cpp:164
 msgid "Favorites"
@@ -219,17 +170,6 @@ msgstr "Otsetee"
 msgid "Owner"
 msgstr "Omanik"
 
-#: provider/ECProps/PropPage.cpp:418 provider/client/ECDisplayTable.cpp:28
-msgid "Name"
-msgstr "Nimi"
-
-#: provider/ECProps/PropPage.cpp:717 provider/ECProps/ECFavoritesDlg.cpp:48
-#: provider/ECProps/ECDelegatePropPage.cpp:249
-#: provider/ECProps/ECDelegateDlg.cpp:103
-#: provider/client/SettingsPropPageAdvance.cpp:105
-msgid "Add"
-msgstr "Lisa"
-
 #: provider/ECProps/PropPage.cpp:724 provider/ECProps/MapOtherUserDlg.cpp:186
 #: provider/ECProps/ECDelegatePropPage.cpp:264
 #: provider/ECProps/ECDelegateDlg.cpp:118
@@ -237,33 +177,6 @@ msgstr "Lisa"
 #: provider/client/SettingsPropPageAdvance.cpp:245
 msgid "Global Address Book"
 msgstr "Üldine aadressiraamat"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:131
-#: provider/client/SettingsPropPageAdvance.cpp:171
-msgid "User could not be resolved."
-msgstr "Kasutaja ei suudetud lahendada."
-
-#: provider/ECProps/MapOtherUserDlg.cpp:251
-#: provider/client/SettingsDlg.cpp:132
-#: provider/client/SettingsTabConnection.cpp:85
-#: provider/client/PasswordDlg.cpp:87
-msgid "Username"
-msgstr "Kasutajanimi"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:260
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:132
-#: provider/ECProps/SyncConfigDlg.cpp:120
-#: provider/ECProps/SyncStatusDlg.cpp:67
-#: provider/ECProps/OutOfOfficeDlg.cpp:86
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:630
-#: provider/client/ProviderUtil.cpp:151
-msgid "Cancel"
-msgstr "Tühista"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:261
-#: provider/client/SettingsPropPageAdvance.cpp:106
-msgid "Name..."
-msgstr "Nimi ..."
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:134
 #: provider/client/ECMsgStore.cpp:2480
@@ -295,83 +208,14 @@ msgstr "Märkused"
 msgid "Journal"
 msgstr "Ajakiri"
 
-#: provider/ECProps/SyncStatusDlg.cpp:132
-#: provider/libserver/ECDBUpdateProgress.cpp:56
-msgid "Your offline cache database is being upgraded..."
-msgstr "Sinu offline cache andmebaasi uuendatakse ..."
-
 #: provider/ECProps/OutOfOfficeDlg.cpp:84 provider/client/ClientUtil.cpp:341
 msgid "Subject:"
 msgstr "Teema:"
-
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:165
-#: provider/client/SettingsPropPageAdvance.cpp:189
-msgid "Refusing to add primary store as shared store."
-msgstr ""
 
 #: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:270
 #: php-ext/include/mapi/class.taskrequest.php:880
 msgid "Subject"
 msgstr "Teema"
-
-#: provider/client/SettingsDlg.cpp:38 provider/client/SettingsDlg.cpp:127
-#: provider/client/ECDisplayTable.cpp:27 provider/client/ECDisplayTable.cpp:73
-msgid "General"
-msgstr "Üldine"
-
-#: provider/client/SettingsDlg.cpp:128
-msgid "Server settings"
-msgstr "Serveri seaded"
-
-#: provider/client/SettingsDlg.cpp:129
-msgid "Server"
-msgstr "Server"
-
-#: provider/client/SettingsDlg.cpp:130
-#: provider/client/SettingsTabConnection.cpp:84
-msgid "Port"
-msgstr "Sadam"
-
-#: provider/client/SettingsDlg.cpp:131
-msgid "Enable encryption (HTTPS)"
-msgstr "Luba krüpteerimine (HTTPS)"
-
-#: provider/client/SettingsDlg.cpp:133
-#: provider/client/SettingsTabConnection.cpp:86
-#: provider/client/PasswordDlg.cpp:88
-msgid "Password"
-msgstr "Salasõna"
-
-#: provider/client/SettingsDlg.cpp:134
-#: provider/client/SettingsTabConnection.cpp:36
-msgid "Connection"
-msgstr "Ühendus"
-
-#: provider/client/SettingsDlg.cpp:135
-msgid "Connection type"
-msgstr "Ühenduse liik:"
-
-#: provider/client/SettingsDlg.cpp:161
-msgid "Online"
-msgstr "Online"
-
-#: provider/client/SettingsDlg.cpp:164
-msgid "Cached Mode"
-msgstr "Cached Mode"
-
-#: provider/client/SettingsDlg.cpp:167
-msgid "Detect at startup"
-msgstr "Avastada käivitamisel"
-
-#: provider/client/SettingsDlg.cpp:236
-msgid ""
-"Offline or cached mode for Outlook XP and Outlook 2002 is not supported. If "
-"you wish to use offline functionality, please use Outlook 2000, 2003, 2007 "
-"or later."
-msgstr ""
-"Offline või vahemälurežiim Outlook XP ja Outlook 2002 ei toetata. Kui "
-"soovite kasutada offline funktsionaalsus, palun kasuta Outlook 2000, 2003, "
-"2007 või hiljem."
 
 #: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
 msgid "Global Address Lists"
@@ -380,196 +224,6 @@ msgstr "Global Address nimekirjad"
 #: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
 msgid "All Address Lists"
 msgstr "Kõik aadressiloendid"
-
-#: provider/client/ECDisplayTable.cpp:29
-msgid "First:"
-msgstr "Esiteks:"
-
-#: provider/client/ECDisplayTable.cpp:30
-msgid "Initials:"
-msgstr "Lühenditest:"
-
-#: provider/client/ECDisplayTable.cpp:31
-msgid "Last:"
-msgstr "Viimane:"
-
-#: provider/client/ECDisplayTable.cpp:32
-msgid "Display:"
-msgstr "kuvatud:"
-
-#: provider/client/ECDisplayTable.cpp:33
-msgid "Alias:"
-msgstr "Alias:"
-
-#: provider/client/ECDisplayTable.cpp:34
-msgid "Address:"
-msgstr "Aadress:"
-
-#: provider/client/ECDisplayTable.cpp:35
-msgid "City:"
-msgstr "Linn:"
-
-#: provider/client/ECDisplayTable.cpp:36
-msgid "State:"
-msgstr "Riik:"
-
-#: provider/client/ECDisplayTable.cpp:37
-msgid "Zip code:"
-msgstr "Sihtnumber:"
-
-#: provider/client/ECDisplayTable.cpp:38
-msgid "Country/Region:"
-msgstr "Riik / piirkond:"
-
-#: provider/client/ECDisplayTable.cpp:39
-msgid "Title:"
-msgstr "*{title}*"
-
-#: provider/client/ECDisplayTable.cpp:40
-msgid "Company:"
-msgstr "Firma:"
-
-#: provider/client/ECDisplayTable.cpp:41
-msgid "Department:"
-msgstr "Osakond:"
-
-#: provider/client/ECDisplayTable.cpp:42
-msgid "Office:"
-msgstr "Office:"
-
-#: provider/client/ECDisplayTable.cpp:43 provider/client/ECDisplayTable.cpp:52
-msgid "Assistant:"
-msgstr "Assistent:"
-
-#: provider/client/ECDisplayTable.cpp:44
-msgid "Phone:"
-msgstr "Telefon:"
-
-#: provider/client/ECDisplayTable.cpp:47
-msgid "Phone/Notes"
-msgstr "Telefon / märkused"
-
-#: provider/client/ECDisplayTable.cpp:48
-msgid "Phone numbers"
-msgstr "Telefoninumbrid"
-
-#: provider/client/ECDisplayTable.cpp:49
-msgid "Business:"
-msgstr "Äri:"
-
-#: provider/client/ECDisplayTable.cpp:50
-msgid "Business 2:"
-msgstr "Äri 2:"
-
-#: provider/client/ECDisplayTable.cpp:51
-msgid "Fax:"
-msgstr "Faks:"
-
-#: provider/client/ECDisplayTable.cpp:53
-msgid "Home:"
-msgstr "Koduleht"
-
-#: provider/client/ECDisplayTable.cpp:54
-msgid "Home 2:"
-msgstr "Kodu 2:"
-
-#: provider/client/ECDisplayTable.cpp:55
-msgid "Mobile:"
-msgstr "Mobiil:"
-
-#: provider/client/ECDisplayTable.cpp:56
-msgid "Pager:"
-msgstr "Piipar:"
-
-#: provider/client/ECDisplayTable.cpp:57 provider/client/ECDisplayTable.cpp:77
-msgid "Notes:"
-msgstr "Märkused:"
-
-#: provider/client/ECDisplayTable.cpp:60
-msgid "Organization"
-msgstr "Organisatsioon"
-
-#: provider/client/ECDisplayTable.cpp:61
-msgid "Manager:"
-msgstr "Juht:"
-
-#: provider/client/ECDisplayTable.cpp:62
-msgid "Direct reports:"
-msgstr "Otsene aruanded:"
-
-#: provider/client/ECDisplayTable.cpp:65 provider/client/ECDisplayTable.cpp:82
-msgid "Member Of"
-msgstr "Liige"
-
-#: provider/client/ECDisplayTable.cpp:66 provider/client/ECDisplayTable.cpp:83
-msgid "Group membership:"
-msgstr "Grupi liikmeskond:"
-
-#: provider/client/ECDisplayTable.cpp:69
-msgid "E-mail Addresses"
-msgstr "E-posti aadressid"
-
-#: provider/client/ECDisplayTable.cpp:70
-msgid "E-mail addresses:"
-msgstr "E-posti aadressi:"
-
-#: provider/client/ECDisplayTable.cpp:74
-msgid "Display name:"
-msgstr "Näita nimi:"
-
-#: provider/client/ECDisplayTable.cpp:75
-msgid "Alias name:"
-msgstr "Alias ​​nimi:"
-
-#: provider/client/ECDisplayTable.cpp:76
-msgid "Owner:"
-msgstr "Omanik:"
-
-#: provider/client/ECDisplayTable.cpp:78
-msgid "Members"
-msgstr "Liikmed"
-
-#: provider/client/ECDisplayTable.cpp:79
-msgid "Modify members..."
-msgstr "Muuda kohal ..."
-
-#: provider/client/SettingsPropPageAdvance.cpp:54
-#: provider/client/SettingsPropPageAdvance.cpp:103
-#: provider/client/SettingsTabConnection.cpp:80
-msgid "Advanced"
-msgstr "Kaugelearenenud"
-
-#: provider/client/SettingsPropPageAdvance.cpp:104
-msgid "MailBox"
-msgstr "Postkast"
-
-#: provider/client/SettingsPropPageAdvance.cpp:107
-msgid "Remove"
-msgstr "Eemalda"
-
-#: provider/client/SettingsPropPageAdvance.cpp:199
-msgid "User already exists."
-msgstr "Kasutaja on juba olemas."
-
-#: provider/client/SettingsTabConnection.cpp:81
-msgid "Proxy"
-msgstr "Volikiri"
-
-#: provider/client/SettingsTabConnection.cpp:82
-msgid "Use proxyserver"
-msgstr "Kasutage proxyserver"
-
-#: provider/client/SettingsTabConnection.cpp:83
-msgid "Proxy server"
-msgstr "Proksiserver"
-
-#: provider/client/SettingsTabConnection.cpp:87
-msgid "Use compression"
-msgstr "Kasuta kompressiooni"
-
-#: provider/client/SettingsTabConnection.cpp:88
-msgid "Seconds Until Server Connection timeout"
-msgstr "Sekundit, kuni Server Connection timeout"
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:842
 msgid "Sync Issues"
@@ -586,33 +240,6 @@ msgstr "Kohalikud tõrked"
 #: provider/client/ECExchangeImportContentsChanges.cpp:860
 msgid "Server Failures"
 msgstr "Serveri Vead"
-
-#: provider/client/ECMSProviderSwitch.cpp:236
-msgid ""
-"Unable to connect to the online server. If you continue, no new connections "
-"will be attempted until you disable the 'Work offline' option in the 'File' "
-"menu."
-msgstr ""
-"Ei saa ühendust Interneti server. Kui jätkad, ei uusi ühendusi üritatakse "
-"kuni jätad  variant  menüüs."
-
-#: provider/client/ECMSProviderSwitch.cpp:272
-#: provider/client/ECABProviderSwitch.cpp:136
-msgid ""
-"Your offline cache database is being upgraded. Outlook will start in online "
-"mode for this session."
-msgstr ""
-"Sinu offline cache andmebaasi uuendatakse. Outlook algab online-režiimis "
-"käesoleva sessiooni ajal."
-
-#: provider/client/ECMSProviderSwitch.cpp:379
-#: provider/client/ECABProviderSwitch.cpp:209
-msgid "Unable to work online! Do you want to switch to offline mode?"
-msgstr "Ei saa tööd internetis! Kas sa tahad minna võrguta režiimis?"
-
-#: provider/client/PasswordDlg.cpp:83
-msgid "Trying to connect to"
-msgstr "Proovin ühendada"
 
 #: provider/client/ClientUtil.cpp:81
 msgid "Available"
@@ -649,24 +276,6 @@ msgstr "Koopia:"
 #: provider/client/ClientUtil.cpp:349
 msgid "Sent on:"
 msgstr "Saadeti:"
-
-#: provider/client/ECABProviderSwitch.cpp:279
-#: provider/client/ECMSProvider.cpp:247 provider/client/EntryPoint.cpp:1102
-msgid ""
-"Cannot use the profile because you are over the license limit. To continue, "
-"you must purchase additional client licenses."
-msgstr ""
-"Ei saa kasutada profiili, sest olete üle litsentsi piirini. Jätkamiseks "
-"peate ostma täiendavaid kliendi litsentsid."
-
-#: provider/client/ECABProviderSwitch.cpp:284
-#: provider/client/ECMSProvider.cpp:251 provider/client/EntryPoint.cpp:1108
-msgid ""
-"Cannot use the profile because the server was unable to contact the license "
-"server. Please consult your system administrator."
-msgstr ""
-"Ei saa kasutada profiili, kuna server ei saanud ühendust litsentsi server. "
-"Palun konsulteerige oma süsteemi administraatoriga."
 
 #: provider/client/ECArchiveAwareMessage.cpp:471
 #: provider/client/ECArchiveAwareMessage.cpp:529
@@ -711,63 +320,6 @@ msgstr "Arhiiv ei saa destubbed kui töötate võrguühenduseta."
 msgid "Public Folders"
 msgstr "Ühiskaustu"
 
-#: provider/client/EntryPoint.cpp:969
-msgid "Unknown username"
-msgstr "Tundmatu kasutajanimi"
-
-#: provider/client/EntryPoint.cpp:1071
-msgid "Connecting to the server..."
-msgstr "Ühendamine server ..."
-
-#: provider/client/EntryPoint.cpp:1091
-msgid ""
-"Unable to reach the server.\n"
-"Do you want to save the settings or cancel and re-enter the settings?"
-msgstr ""
-"Jõua server. \\ NKas soovite seaded salvestada või tühistada ja uuesti "
-"sisestada?"
-
-#: provider/client/EntryPoint.cpp:1186
-msgid "Incorrect username and/or password."
-msgstr "Vale kasutajanimi ja / või parool."
-
-#: provider/client/EntryPoint.cpp:1188
-msgid ""
-"Incorrect servername and/or port\n"
-"Check if the server is running."
-msgstr "Vale serverinimi ja / või sadama \\ nKontrolli kui server töötab."
-
-#: provider/client/EntryPoint.cpp:1190
-msgid "Incorrect version."
-msgstr "Vale versioon."
-
-#: provider/client/EntryPoint.cpp:1192
-msgid ""
-"An unknown failure has occurred.\n"
-"Please contact your administrator."
-msgstr ""
-"Tundmatu rike on toimunud. \\ NPalun võtke ühendust oma administraatoriga."
-
-#: provider/client/EntryPoint.cpp:1218
-msgid "You should restart Outlook for the changes to take effect."
-msgstr "Sa peaksid taaskäivitage Outlook, et muudatused jõustuvad."
-
-#: provider/client/ProviderUtil.cpp:132
-msgid ""
-"Unable to work online! The first time you need a network connection. Retry "
-"if you have the network connection."
-msgstr ""
-"Ei saa tööd internetis! Esimene kord pead võrguühendust. Uuesti, kui teil on "
-"võrguühendus."
-
-#: provider/client/ProviderUtil.cpp:150
-msgid "First Folder Sync..."
-msgstr "Esimene Folder Sync ..."
-
-#: provider/client/ProviderUtil.cpp:155
-msgid "Sync folder items"
-msgstr "Sync kausta kirjed"
-
 #: provider/client/ECMsgStore.cpp:2450
 msgid "Outbox"
 msgstr "Saatmiseks"
@@ -808,42 +360,6 @@ msgstr "Quick-Step Seaded"
 msgid "Suggested Contacts"
 msgstr "Soovitatud kontaktid"
 
-#: provider/client/CertificateDlg.cpp:63
-msgid "Certificate summary"
-msgstr "Sertifikaadi kokkuvõte"
-
-#: provider/client/CertificateDlg.cpp:64
-msgid "View certificate"
-msgstr "Vaata sertifikaat"
-
-#: provider/client/CertificateDlg.cpp:65
-msgid "Remember my choice for this certificate"
-msgstr "Mäleta mu valikut selle sertifikaadi"
-
-#: provider/client/CertificateDlg.cpp:67
-msgid "Hostname"
-msgstr "Masinanimi"
-
-#: provider/client/CertificateDlg.cpp:68
-msgid "Holder"
-msgstr "Omanik"
-
-#: provider/client/CertificateDlg.cpp:69
-msgid "Issuer"
-msgstr "Emitent"
-
-#: provider/client/CertificateDlg.cpp:70
-msgid "Expiration"
-msgstr "Aegumine"
-
-#: provider/client/CertificateDlg.cpp:112
-msgid "Unable to open registry key for SSL certificate storage"
-msgstr "Ei saa avada registri võti SSL sertifikaadi hoidmine"
-
-#: provider/client/CertificateDlg.cpp:117
-msgid "Unable to store SSL certificate in registry key."
-msgstr "Ei saa salvestada SSL sertifikaat registri võti."
-
 #: provider/contacts/ZCABContainer.cpp:761
 msgid "Kopano Contacts Folders"
 msgstr "Kopano Kontaktid kaustad"
@@ -851,10 +367,6 @@ msgstr "Kopano Kontaktid kaustad"
 #: provider/libserver/ECGenProps.cpp:949
 msgid "Archive"
 msgstr "Arhiiv"
-
-#: provider/libserver/ECDBUpdateProgress.cpp:93
-msgid "Upgrade: "
-msgstr "Upgrade: "
 
 #: spooler/Spooler.cpp:485
 msgid ""

@@ -155,57 +155,6 @@ msgstr "Описание недоступно."
 msgid "MAPI error code:"
 msgstr "Код ошибки MAPI:"
 
-#: libsync/ECSync.cpp:1961
-msgid ""
-"The synchronization of a folder failed. Press retry to continue or ignore to "
-"supress all errors.\r\n"
-"\r\n"
-"Please contact the system administrator if this problem persists."
-msgstr ""
-"Синхронизация каталога не удалась. Нажмите «Повторить» для продолжения или "
-"«Игнорировать» для пропуска всех ошибок.\r\n"
-"\r\n"
-"Обратитесь к вашему системному администратору в случае повтора проблемы."
-
-# 84%
-#: libsync/ECSync.cpp:1963
-#, fuzzy
-msgid "Error codes: "
-msgstr "Код ошибки:"
-
-#: provider/common/SOAPSock.cpp:484
-msgid "Unable to get SSL object from store"
-msgstr "Не удалось получить объект SSL с хранилища"
-
-#: provider/common/SOAPSock.cpp:492
-msgid "Unable to get SSL context from SSL object"
-msgstr "Не удалось получить содержание SSL с объекта SSL"
-
-#: provider/common/SOAPSock.cpp:515
-msgid "No certificate found in connection"
-msgstr "Не найдено сертификатов в соединении"
-
-#: provider/common/SOAPSock.cpp:530
-msgid "Unable to convert OpenSSL to WinCrypt"
-msgstr "Невозможно превратить OpenSSL в WinCrypt"
-
-#: provider/common/SOAPSock.cpp:652
-msgid "The certificate is not trusted and could not be verified."
-msgstr ""
-"Этот сертификат не является доверенным, поэтому его невозможно проверить."
-
-#: provider/common/SOAPSock.cpp:654
-msgid "The certificate is not trusted."
-msgstr "Сертификат является недоверенным."
-
-#: provider/common/SOAPSock.cpp:657
-msgid "The certificate is trusted but does not verify correctly."
-msgstr "Сертификат является доверенным, однако его не удалось проверить."
-
-#: provider/common/SOAPSock.cpp:660
-msgid "Do you wish to continue?"
-msgstr "Вы действительно хотите продолжить?"
-
 #: provider/ECProps/Addin.cpp:957 provider/client/ECMsgStorePublic.cpp:547
 #: provider/client/ECMAPIFolderPublic.cpp:164
 msgid "Favorites"
@@ -222,17 +171,6 @@ msgstr "Ярлык"
 msgid "Owner"
 msgstr "Владелец"
 
-#: provider/ECProps/PropPage.cpp:418 provider/client/ECDisplayTable.cpp:28
-msgid "Name"
-msgstr "Имя"
-
-#: provider/ECProps/PropPage.cpp:717 provider/ECProps/ECFavoritesDlg.cpp:48
-#: provider/ECProps/ECDelegatePropPage.cpp:249
-#: provider/ECProps/ECDelegateDlg.cpp:103
-#: provider/client/SettingsPropPageAdvance.cpp:105
-msgid "Add"
-msgstr "Добавить"
-
 #: provider/ECProps/PropPage.cpp:724 provider/ECProps/MapOtherUserDlg.cpp:186
 #: provider/ECProps/ECDelegatePropPage.cpp:264
 #: provider/ECProps/ECDelegateDlg.cpp:118
@@ -240,33 +178,6 @@ msgstr "Добавить"
 #: provider/client/SettingsPropPageAdvance.cpp:245
 msgid "Global Address Book"
 msgstr "Глобальная адресная книга"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:131
-#: provider/client/SettingsPropPageAdvance.cpp:171
-msgid "User could not be resolved."
-msgstr "Невозможно обнаружить пользователя."
-
-#: provider/ECProps/MapOtherUserDlg.cpp:251
-#: provider/client/SettingsDlg.cpp:132
-#: provider/client/SettingsTabConnection.cpp:85
-#: provider/client/PasswordDlg.cpp:87
-msgid "Username"
-msgstr "Имя пользователя"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:260
-#: provider/ECProps/ECDelegatePermissionDlg.cpp:132
-#: provider/ECProps/SyncConfigDlg.cpp:120
-#: provider/ECProps/SyncStatusDlg.cpp:67
-#: provider/ECProps/OutOfOfficeDlg.cpp:86
-#: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:630
-#: provider/client/ProviderUtil.cpp:151
-msgid "Cancel"
-msgstr "Отмена"
-
-#: provider/ECProps/MapOtherUserDlg.cpp:261
-#: provider/client/SettingsPropPageAdvance.cpp:106
-msgid "Name..."
-msgstr "Имя..."
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:134
 #: provider/client/ECMsgStore.cpp:2480
@@ -298,83 +209,14 @@ msgstr "Заметки"
 msgid "Journal"
 msgstr "Журнал"
 
-#: provider/ECProps/SyncStatusDlg.cpp:132
-#: provider/libserver/ECDBUpdateProgress.cpp:56
-msgid "Your offline cache database is being upgraded..."
-msgstr "Обновляется локальная база данных..."
-
 #: provider/ECProps/OutOfOfficeDlg.cpp:84 provider/client/ClientUtil.cpp:341
 msgid "Subject:"
 msgstr "Тема:"
-
-#: provider/ECProps/CommandBarButtonOpenSharedStore.cpp:165
-#: provider/client/SettingsPropPageAdvance.cpp:189
-msgid "Refusing to add primary store as shared store."
-msgstr "Запрет на добавление основного хранилища в качестве общего хранилища."
 
 #: provider/ECProps/ECDeletedMessageRecoveryDlg.cpp:270
 #: php-ext/include/mapi/class.taskrequest.php:880
 msgid "Subject"
 msgstr "Тема"
-
-#: provider/client/SettingsDlg.cpp:38 provider/client/SettingsDlg.cpp:127
-#: provider/client/ECDisplayTable.cpp:27 provider/client/ECDisplayTable.cpp:73
-msgid "General"
-msgstr "Общие"
-
-#: provider/client/SettingsDlg.cpp:128
-msgid "Server settings"
-msgstr "Настройки сервера"
-
-#: provider/client/SettingsDlg.cpp:129
-msgid "Server"
-msgstr "Сервер"
-
-#: provider/client/SettingsDlg.cpp:130
-#: provider/client/SettingsTabConnection.cpp:84
-msgid "Port"
-msgstr "Порт"
-
-#: provider/client/SettingsDlg.cpp:131
-msgid "Enable encryption (HTTPS)"
-msgstr "Исп. шифрование (HTTPS)"
-
-#: provider/client/SettingsDlg.cpp:133
-#: provider/client/SettingsTabConnection.cpp:86
-#: provider/client/PasswordDlg.cpp:88
-msgid "Password"
-msgstr "Пароль"
-
-#: provider/client/SettingsDlg.cpp:134
-#: provider/client/SettingsTabConnection.cpp:36
-msgid "Connection"
-msgstr "Соединение"
-
-#: provider/client/SettingsDlg.cpp:135
-msgid "Connection type"
-msgstr "Тип соединения"
-
-#: provider/client/SettingsDlg.cpp:161
-msgid "Online"
-msgstr "Онлайн"
-
-#: provider/client/SettingsDlg.cpp:164
-msgid "Cached Mode"
-msgstr "Кэширующий режим"
-
-#: provider/client/SettingsDlg.cpp:167
-msgid "Detect at startup"
-msgstr "Выбрать при запуске"
-
-#: provider/client/SettingsDlg.cpp:236
-msgid ""
-"Offline or cached mode for Outlook XP and Outlook 2002 is not supported. If "
-"you wish to use offline functionality, please use Outlook 2000, 2003, 2007 "
-"or later."
-msgstr ""
-"Кэширующий режим не поддержимается в Outlook версии XP и 2002. Если вы "
-"желаете использовать кэширующий режим, воспользуйтесь Outlook версии 2000, "
-"2003, 2007 и выше."
 
 #: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
 msgid "Global Address Lists"
@@ -383,196 +225,6 @@ msgstr "Глобальная адресная книга"
 #: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
 msgid "All Address Lists"
 msgstr "Все адресные списки"
-
-#: provider/client/ECDisplayTable.cpp:29
-msgid "First:"
-msgstr "Имя:"
-
-#: provider/client/ECDisplayTable.cpp:30
-msgid "Initials:"
-msgstr "Инициалы:"
-
-#: provider/client/ECDisplayTable.cpp:31
-msgid "Last:"
-msgstr "Фамилия:"
-
-#: provider/client/ECDisplayTable.cpp:32
-msgid "Display:"
-msgstr "Отобр. имя:"
-
-#: provider/client/ECDisplayTable.cpp:33
-msgid "Alias:"
-msgstr "Псевдоним:"
-
-#: provider/client/ECDisplayTable.cpp:34
-msgid "Address:"
-msgstr "Адрес:"
-
-#: provider/client/ECDisplayTable.cpp:35
-msgid "City:"
-msgstr "Город:"
-
-#: provider/client/ECDisplayTable.cpp:36
-msgid "State:"
-msgstr "Регион:"
-
-#: provider/client/ECDisplayTable.cpp:37
-msgid "Zip code:"
-msgstr "Индекс:"
-
-#: provider/client/ECDisplayTable.cpp:38
-msgid "Country/Region:"
-msgstr "Страна:"
-
-#: provider/client/ECDisplayTable.cpp:39
-msgid "Title:"
-msgstr "Должность:"
-
-#: provider/client/ECDisplayTable.cpp:40
-msgid "Company:"
-msgstr "Организация:"
-
-#: provider/client/ECDisplayTable.cpp:41
-msgid "Department:"
-msgstr "Отдел:"
-
-#: provider/client/ECDisplayTable.cpp:42
-msgid "Office:"
-msgstr "Офис:"
-
-#: provider/client/ECDisplayTable.cpp:43 provider/client/ECDisplayTable.cpp:52
-msgid "Assistant:"
-msgstr "Помощник:"
-
-#: provider/client/ECDisplayTable.cpp:44
-msgid "Phone:"
-msgstr "Телефон:"
-
-#: provider/client/ECDisplayTable.cpp:47
-msgid "Phone/Notes"
-msgstr "Телефон/Заметки"
-
-#: provider/client/ECDisplayTable.cpp:48
-msgid "Phone numbers"
-msgstr "Номера телефонов"
-
-#: provider/client/ECDisplayTable.cpp:49
-msgid "Business:"
-msgstr "Рабочий:"
-
-#: provider/client/ECDisplayTable.cpp:50
-msgid "Business 2:"
-msgstr "Рабочий 2:"
-
-#: provider/client/ECDisplayTable.cpp:51
-msgid "Fax:"
-msgstr "Факс:"
-
-#: provider/client/ECDisplayTable.cpp:53
-msgid "Home:"
-msgstr "Домашний:"
-
-#: provider/client/ECDisplayTable.cpp:54
-msgid "Home 2:"
-msgstr "Домашний 2:"
-
-#: provider/client/ECDisplayTable.cpp:55
-msgid "Mobile:"
-msgstr "Сотовый:"
-
-#: provider/client/ECDisplayTable.cpp:56
-msgid "Pager:"
-msgstr "Пейджер:"
-
-#: provider/client/ECDisplayTable.cpp:57 provider/client/ECDisplayTable.cpp:77
-msgid "Notes:"
-msgstr "Заметки:"
-
-#: provider/client/ECDisplayTable.cpp:60
-msgid "Organization"
-msgstr "Организация"
-
-#: provider/client/ECDisplayTable.cpp:61
-msgid "Manager:"
-msgstr "Руководитель:"
-
-#: provider/client/ECDisplayTable.cpp:62
-msgid "Direct reports:"
-msgstr "Прямые доклады:"
-
-#: provider/client/ECDisplayTable.cpp:65 provider/client/ECDisplayTable.cpp:82
-msgid "Member Of"
-msgstr "Группы"
-
-#: provider/client/ECDisplayTable.cpp:66 provider/client/ECDisplayTable.cpp:83
-msgid "Group membership:"
-msgstr "Вы участник в группах:"
-
-#: provider/client/ECDisplayTable.cpp:69
-msgid "E-mail Addresses"
-msgstr "Адреса эл. почты"
-
-#: provider/client/ECDisplayTable.cpp:70
-msgid "E-mail addresses:"
-msgstr "Адреса эл. почты:"
-
-#: provider/client/ECDisplayTable.cpp:74
-msgid "Display name:"
-msgstr "Отобр. имя:"
-
-#: provider/client/ECDisplayTable.cpp:75
-msgid "Alias name:"
-msgstr "Псевдоним:"
-
-#: provider/client/ECDisplayTable.cpp:76
-msgid "Owner:"
-msgstr "Владелец:"
-
-#: provider/client/ECDisplayTable.cpp:78
-msgid "Members"
-msgstr "Участники"
-
-#: provider/client/ECDisplayTable.cpp:79
-msgid "Modify members..."
-msgstr "Управление участниками..."
-
-#: provider/client/SettingsPropPageAdvance.cpp:54
-#: provider/client/SettingsPropPageAdvance.cpp:103
-#: provider/client/SettingsTabConnection.cpp:80
-msgid "Advanced"
-msgstr "Расширенные"
-
-#: provider/client/SettingsPropPageAdvance.cpp:104
-msgid "MailBox"
-msgstr "MailBox"
-
-#: provider/client/SettingsPropPageAdvance.cpp:107
-msgid "Remove"
-msgstr "Удалить"
-
-#: provider/client/SettingsPropPageAdvance.cpp:199
-msgid "User already exists."
-msgstr "Пользователь уже существует."
-
-#: provider/client/SettingsTabConnection.cpp:81
-msgid "Proxy"
-msgstr "Прокси"
-
-#: provider/client/SettingsTabConnection.cpp:82
-msgid "Use proxyserver"
-msgstr "Использовать прокси-сервер"
-
-#: provider/client/SettingsTabConnection.cpp:83
-msgid "Proxy server"
-msgstr "Прокси-сервер"
-
-#: provider/client/SettingsTabConnection.cpp:87
-msgid "Use compression"
-msgstr "Использовать сжатие"
-
-#: provider/client/SettingsTabConnection.cpp:88
-msgid "Seconds Until Server Connection timeout"
-msgstr "Время ожидания подключения к серверу в сек."
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:842
 msgid "Sync Issues"
@@ -589,35 +241,6 @@ msgstr "Локальные ошибки"
 #: provider/client/ECExchangeImportContentsChanges.cpp:860
 msgid "Server Failures"
 msgstr "Ошибки сервера"
-
-#: provider/client/ECMSProviderSwitch.cpp:236
-msgid ""
-"Unable to connect to the online server. If you continue, no new connections "
-"will be attempted until you disable the 'Work offline' option in the 'File' "
-"menu."
-msgstr ""
-"Не удалось соединиться с онлайн-сервером. Пока вы не выключите функцию "
-"«Работать автономно» в меню «Файл», новые соединения создаваться не будут."
-
-#: provider/client/ECMSProviderSwitch.cpp:272
-#: provider/client/ECABProviderSwitch.cpp:136
-msgid ""
-"Your offline cache database is being upgraded. Outlook will start in online "
-"mode for this session."
-msgstr ""
-"Локальная база данных была обновлена. Outlook в этом сеансе запустится в "
-"режиме прямого подключения."
-
-#: provider/client/ECMSProviderSwitch.cpp:379
-#: provider/client/ECABProviderSwitch.cpp:209
-msgid "Unable to work online! Do you want to switch to offline mode?"
-msgstr ""
-"Невозможно работать в режиме «Online»! Хотите переключиться в автоновный "
-"режим?"
-
-#: provider/client/PasswordDlg.cpp:83
-msgid "Trying to connect to"
-msgstr "Попытка соединения к"
 
 #: provider/client/ClientUtil.cpp:81
 msgid "Available"
@@ -654,24 +277,6 @@ msgstr "Копия:"
 #: provider/client/ClientUtil.cpp:349
 msgid "Sent on:"
 msgstr "Отправить в:"
-
-#: provider/client/ECABProviderSwitch.cpp:279
-#: provider/client/ECMSProvider.cpp:247 provider/client/EntryPoint.cpp:1102
-msgid ""
-"Cannot use the profile because you are over the license limit. To continue, "
-"you must purchase additional client licenses."
-msgstr ""
-"Невозможно использовать этот профиль, так как вы превысили ограничение "
-"лицензии. Для продолжения вам необходимо расширить вашу лицензию."
-
-#: provider/client/ECABProviderSwitch.cpp:284
-#: provider/client/ECMSProvider.cpp:251 provider/client/EntryPoint.cpp:1108
-msgid ""
-"Cannot use the profile because the server was unable to contact the license "
-"server. Please consult your system administrator."
-msgstr ""
-"Невозможно использовать этот профиль, так как не удалось подключиться к "
-"серверу лицензий. Обратитесь к вашему системному администратору."
 
 #: provider/client/ECArchiveAwareMessage.cpp:471
 #: provider/client/ECArchiveAwareMessage.cpp:529
@@ -716,66 +321,6 @@ msgstr ""
 msgid "Public Folders"
 msgstr "Общие каталоги"
 
-#: provider/client/EntryPoint.cpp:969
-msgid "Unknown username"
-msgstr "Неизвестное имя пользователя"
-
-#: provider/client/EntryPoint.cpp:1071
-msgid "Connecting to the server..."
-msgstr "Соединение с сервером..."
-
-#: provider/client/EntryPoint.cpp:1091
-msgid ""
-"Unable to reach the server.\n"
-"Do you want to save the settings or cancel and re-enter the settings?"
-msgstr ""
-"Не удалось обнаружить сервер.\n"
-"Вы хотите сохранить настройки или необходимо их отменить и ввести снова?"
-
-#: provider/client/EntryPoint.cpp:1186
-msgid "Incorrect username and/or password."
-msgstr "Неправильное имя/некорректный пароль."
-
-#: provider/client/EntryPoint.cpp:1188
-msgid ""
-"Incorrect servername and/or port\n"
-"Check if the server is running."
-msgstr ""
-"Неправильное имя сервера и/или номер порта\n"
-"Проверьте работу сервера."
-
-#: provider/client/EntryPoint.cpp:1190
-msgid "Incorrect version."
-msgstr "Некорретная версия."
-
-#: provider/client/EntryPoint.cpp:1192
-msgid ""
-"An unknown failure has occurred.\n"
-"Please contact your administrator."
-msgstr ""
-"Произошла неизвестная ошибка.\n"
-"Обратитесь к вашему системному администратору."
-
-#: provider/client/EntryPoint.cpp:1218
-msgid "You should restart Outlook for the changes to take effect."
-msgstr "Вы должны перезапустить Outlook для принятия изменений."
-
-#: provider/client/ProviderUtil.cpp:132
-msgid ""
-"Unable to work online! The first time you need a network connection. Retry "
-"if you have the network connection."
-msgstr ""
-"Невозможно работать в режиме «Online»! В начале вам необходимо сетевое "
-"соединение. Повторите, если сеть правильно работает."
-
-#: provider/client/ProviderUtil.cpp:150
-msgid "First Folder Sync..."
-msgstr "Первое обновление каталогов..."
-
-#: provider/client/ProviderUtil.cpp:155
-msgid "Sync folder items"
-msgstr "Обновление элементов каталога"
-
 #: provider/client/ECMsgStore.cpp:2450
 msgid "Outbox"
 msgstr "Исходящие"
@@ -816,44 +361,6 @@ msgstr "Быстрая настройка"
 msgid "Suggested Contacts"
 msgstr "Предлагаемые контакты"
 
-#: provider/client/CertificateDlg.cpp:63
-msgid "Certificate summary"
-msgstr "Данные о сертификате"
-
-#: provider/client/CertificateDlg.cpp:64
-msgid "View certificate"
-msgstr "Просмотр сертификата"
-
-#: provider/client/CertificateDlg.cpp:65
-msgid "Remember my choice for this certificate"
-msgstr "Запомнить мой выбор для этого сертификата"
-
-#: provider/client/CertificateDlg.cpp:67
-msgid "Hostname"
-msgstr "Имя узла"
-
-# 85%
-# 83%
-#: provider/client/CertificateDlg.cpp:68
-msgid "Holder"
-msgstr "Владелец"
-
-#: provider/client/CertificateDlg.cpp:69
-msgid "Issuer"
-msgstr "Издатель"
-
-#: provider/client/CertificateDlg.cpp:70
-msgid "Expiration"
-msgstr "Временное ограничение"
-
-#: provider/client/CertificateDlg.cpp:112
-msgid "Unable to open registry key for SSL certificate storage"
-msgstr "Не удалось открыть ключ реестра для хранилища сертификатов SSL"
-
-#: provider/client/CertificateDlg.cpp:117
-msgid "Unable to store SSL certificate in registry key."
-msgstr "Не удалось сохранить сертификат SSL в ключе реестра."
-
 #: provider/contacts/ZCABContainer.cpp:761
 msgid "Kopano Contacts Folders"
 msgstr "Каталог контактов Kopano"
@@ -861,10 +368,6 @@ msgstr "Каталог контактов Kopano"
 #: provider/libserver/ECGenProps.cpp:949
 msgid "Archive"
 msgstr "Архив"
-
-#: provider/libserver/ECDBUpdateProgress.cpp:93
-msgid "Upgrade: "
-msgstr "Обновлено: "
 
 #: spooler/Spooler.cpp:485
 msgid ""
