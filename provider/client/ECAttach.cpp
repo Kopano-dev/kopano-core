@@ -27,7 +27,7 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECDebug.h>
 
-using namespace KCHL;
+using namespace KC;
 
 HRESULT ECAttachFactory::Create(ECMsgStore *lpMsgStore, ULONG ulObjType,
     BOOL fModify, ULONG ulAttachNum, const ECMAPIProp *lpRoot,

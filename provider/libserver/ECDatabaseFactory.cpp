@@ -23,8 +23,6 @@
 
 #include "ECServerEntrypoint.h"
 
-using namespace KCHL;
-
 namespace KC {
 
 // The ECDatabaseFactory creates database objects connected to the server database. Which

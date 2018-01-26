@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <kopano/mapi_ptr.h>
 
-using namespace KCHL;
+using namespace KC;
 
 M4LMAPIGetSession::M4LMAPIGetSession(IMAPISession *new_session) :
 	session(new_session)
@@ -114,7 +114,7 @@ HRESULT M4LMAPISupport::Unsubscribe(ULONG ulConnection) {
 }
 
 HRESULT M4LMAPISupport::Notify(LPNOTIFKEY lpKey, ULONG cNotification, LPNOTIFICATION lpNotifications, ULONG * lpulFlags) {
-	KCHL::object_ptr<IMAPIAdviseSink> lpAdviseSink;
+	object_ptr<IMAPIAdviseSink> lpAdviseSink;
 	ulock_normal l_adv(m_advises_mutex);
 
 	auto iter = find_if(m_advises.cbegin(), m_advises.cend(), findKey(lpKey));
@@ -231,7 +231,7 @@ HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, 
 	LPMAPIFOLDER lpSource = NULL;
 	LPMAPIFOLDER lpDest = NULL;
 	ULONG ulObjType;
-	KCHL::memory_ptr<ENTRYLIST> lpDeleteEntries;
+	memory_ptr<ENTRYLIST> lpDeleteEntries;
 	bool bPartial = false;
 	ULONG i;
 
@@ -304,7 +304,7 @@ HRESULT M4LMAPISupport::CopyFolder(const IID *lpSrcInterface, void *lpSrcFolder,
 	HRESULT hr = hrSuccess;
 	IMAPIFolder *lpSource, *lpDest;
 	object_ptr<IMAPIFolder> lpFolder, lpSubFolder;
-	KCHL::memory_ptr<SPropValue> lpSourceName;
+	memory_ptr<SPropValue> lpSourceName;
 	ULONG ulObjType  = 0;
 	ULONG ulFolderFlags = 0;
 	static constexpr const SizedSPropTagArray (1, sExcludeProps) = {1, {PR_DISPLAY_NAME_A}};

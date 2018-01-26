@@ -88,8 +88,7 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 	ECMsgStore *lpMsgStore;
 
 	m_bLoading = true;
-	auto laters = KCHL::make_scope_success([&]() { m_bLoading = false; });
-
+	auto laters = KC::make_scope_success([&]() { m_bLoading = false; });
 	hr = ECMessage::HrLoadProps();
 	if (hr != hrSuccess)
 		return hr;
@@ -391,8 +390,7 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDelet
 	ULARGE_INTEGER liZero = {{0, 0}};
 
 	this->fModify = TRUE;
-	auto laters = KCHL::make_scope_success([&]() { this->fModify = FALSE; });
-
+	auto laters = KC::make_scope_success([&]() { this->fModify = FALSE; });
 	hr = DeleteProps(lpptaDeleteProps, NULL);
 	if (hr != hrSuccess)
 		return hr;
@@ -457,7 +455,7 @@ std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 				    << _("You don't have sufficient access to the archive.")
 					<< KC_T("</P>");
 	} else {
-		KCHL::memory_ptr<TCHAR> lpszDescription;
+		KC::memory_ptr<TCHAR> lpszDescription;
 		HRESULT hr = Util::HrMAPIErrorToText(hResult, &~lpszDescription);
 		if (hr == hrSuccess)
 			ossHtmlBody << KC_T("<P>")

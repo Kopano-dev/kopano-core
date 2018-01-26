@@ -55,10 +55,10 @@ private:
 	typedef std::map<ULONG, StreamInfo*>	StreamInfoMap;
 
 	ULONG m_ulExpectedIndex = 0, m_ulMaxIndex = 0;
-	KCHL::object_ptr<WSTransport> m_ptrTransport;
+	KC::object_ptr<WSTransport> m_ptrTransport;
 	StreamInfoMap	m_mapStreamInfo;
 };
 
-typedef KCHL::object_ptr<WSMessageStreamExporter> WSMessageStreamExporterPtr;
+typedef KC::object_ptr<WSMessageStreamExporter> WSMessageStreamExporterPtr;
 
 #endif // ndef ECMessageStreamExporter_INCLUDED

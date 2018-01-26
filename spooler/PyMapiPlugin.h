@@ -57,7 +57,7 @@ private:
 	struct pym_factory_priv *m_priv;
 	bool m_bEnablePlugin = false;
 	std::string m_strPluginPath;
-	KCHL::object_ptr<ECLogger> m_lpLogger;
+	KC::object_ptr<ECLogger> m_lpLogger;
 
 	// Inhibit (accidental) copying
 	PyMapiPluginFactory(const PyMapiPluginFactory &) = delete;

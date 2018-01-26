@@ -168,7 +168,7 @@ HRESULT ECNotifyMaster::StartNotifyWatch()
 
 HRESULT ECNotifyMaster::StopNotifyWatch()
 {
-	KCHL::object_ptr<WSTransport> lpTransport;
+	KC::object_ptr<WSTransport> lpTransport;
 	ulock_rec biglock(m_hMutex, std::defer_lock_t());
 
 	/* Thread was already halted, or connection is broken */

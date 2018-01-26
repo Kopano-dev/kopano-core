@@ -39,7 +39,7 @@ public:
 	virtual HRESULT ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList);
 
 private:
-	KCHL::object_ptr<ECMAPIFolder> m_lpFolder;
+	KC::object_ptr<ECMAPIFolder> m_lpFolder;
 	IStream *m_lpStream = nullptr;
 	ULONG m_ulFlags = 0;
 	ULONG m_ulSyncId = 0;

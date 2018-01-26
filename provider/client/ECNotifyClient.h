@@ -32,8 +32,8 @@
 
 struct ECADVISE;
 struct ECCHANGEADVISE;
-typedef std::map<int, KCHL::memory_ptr<ECADVISE>> ECMAPADVISE;
-typedef std::map<int, KCHL::memory_ptr<ECCHANGEADVISE>> ECMAPCHANGEADVISE;
+typedef std::map<int, KC::memory_ptr<ECADVISE>> ECMAPADVISE;
+typedef std::map<int, KC::memory_ptr<ECCHANGEADVISE>> ECMAPCHANGEADVISE;
 typedef std::list<std::pair<syncid_t,connection_t> > ECLISTCONNECTION;
 
 class SessionGroupData;
@@ -69,11 +69,11 @@ public:
 private:
 	ECMAPADVISE				m_mapAdvise;		// Map of all advise request from the client (outlook)
 	ECMAPCHANGEADVISE		m_mapChangeAdvise;	// ExchangeChangeAdvise(s)
-	KCHL::object_ptr<SessionGroupData> m_lpSessionGroup;
+	KC::object_ptr<SessionGroupData> m_lpSessionGroup;
 	/* weak ptr: ECNotifyMaster is already owned by SessionGroupData */
 	ECNotifyMaster*			m_lpNotifyMaster;
-	KCHL::object_ptr<WSTransport> m_lpTransport;
-	KCHL::object_ptr<IMAPISupport> m_lpSupport;
+	KC::object_ptr<WSTransport> m_lpTransport;
+	KC::object_ptr<IMAPISupport> m_lpSupport;
 	void*					m_lpProvider;
 	ULONG					m_ulProviderType;
 	std::recursive_mutex m_hMutex;

@@ -125,7 +125,6 @@
 #include <execinfo.h>
 
 using namespace KC;
-using namespace KCHL;
 using std::cerr;
 using std::cout;
 using std::endl;

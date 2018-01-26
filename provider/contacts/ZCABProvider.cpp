@@ -28,7 +28,7 @@
 #include <kopano/ECDebug.h>
 #include <kopano/memory.hpp>
 
-using namespace KCHL;
+using namespace KC;
 
 ZCABProvider::ZCABProvider(ULONG ulFlags, const char *szClassName) :
     ECUnknown(szClassName)

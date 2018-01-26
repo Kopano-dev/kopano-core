@@ -49,10 +49,10 @@ private:
 	ULONG m_ulChanges = 0;
 	ULONG m_ulMaxChangeId =0;
 	std::set<ULONG>				m_setProcessed;
-	KCHL::object_ptr<ECLogger> m_lpLogger;
-	KCHL::object_ptr<IECImportAddressbookChanges> m_lpImporter;
-	KCHL::memory_ptr<ICSCHANGE> m_lpChanges; /* Same data as @m_lpRawChanges, but sorted (users, then groups) */
-	KCHL::memory_ptr<ICSCHANGE> m_lpRawChanges; /* Raw data from server */
+	KC::object_ptr<ECLogger> m_lpLogger;
+	KC::object_ptr<IECImportAddressbookChanges> m_lpImporter;
+	KC::memory_ptr<ICSCHANGE> m_lpChanges; /* Same data as @m_lpRawChanges, but sorted (users, then groups) */
+	KC::memory_ptr<ICSCHANGE> m_lpRawChanges; /* Raw data from server */
 };
 
 #endif

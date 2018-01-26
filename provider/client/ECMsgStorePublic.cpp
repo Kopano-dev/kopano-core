@@ -35,7 +35,7 @@
 
 #include <kopano/ECGuid.h>
 
-using namespace KCHL;
+using namespace KC;
 
 ECMsgStorePublic::ECMsgStorePublic(const char *lpszProfname,
     IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,

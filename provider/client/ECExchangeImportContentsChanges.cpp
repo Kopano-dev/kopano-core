@@ -45,7 +45,7 @@
 
 #include <list>
 
-using namespace KCHL;
+using namespace KC;
 
 ECExchangeImportContentsChanges::ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder) :
 	m_lpFolder(lpFolder)

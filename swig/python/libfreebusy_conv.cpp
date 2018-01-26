@@ -19,7 +19,7 @@
 #include "libfreebusy_conv.h"
 #include "pymem.hpp"
 
-using KCHL::pyobj_ptr;
+using KC::pyobj_ptr;
 
 static PyObject *PyTypeFreeBusyBlock;
 
@@ -34,7 +34,7 @@ void InitFreebusy() {
 }
 
 LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
-	KCHL::memory_ptr<FBUser> lpFbUsers;
+	KC::memory_ptr<FBUser> lpFbUsers;
 	LPENTRYID entryid = nullptr;
 	pyobj_ptr iter;
 	char *buf = 0 ;
@@ -74,7 +74,7 @@ LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 }
 
 LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
-	KCHL::memory_ptr<FBBlock_1> lpFBBlocks;
+	KC::memory_ptr<FBBlock_1> lpFBBlocks;
 	pyobj_ptr iter;
 	size_t i, len;
 

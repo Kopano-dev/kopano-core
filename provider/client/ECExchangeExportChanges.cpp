@@ -47,7 +47,7 @@
 #include <arpa/inet.h>
 #include <kopano/charset/convert.h>
 
-using namespace KCHL;
+using namespace KC;
 
 ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore,
     const std::string &sk, const wchar_t *szDisplay, unsigned int ulSyncType) :

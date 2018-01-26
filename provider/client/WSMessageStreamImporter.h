@@ -83,14 +83,13 @@ private:
 	entryId m_sFolderEntryId;
 	bool m_bNewMessage;
 	propVal m_sConflictItems;
-	KCHL::object_ptr<WSTransport> m_ptrTransport;
-
+	KC::object_ptr<WSTransport> m_ptrTransport;
 	HRESULT m_hr = hrSuccess;
 	ECFifoBuffer m_fifoBuffer;
 	ECThreadPool m_threadPool;
 	ULONG m_ulTimeout;
 };
 
-typedef KCHL::object_ptr<WSMessageStreamImporter> WSMessageStreamImporterPtr;
+typedef KC::object_ptr<WSMessageStreamImporter> WSMessageStreamImporterPtr;
 
 #endif // ndef WSMessageStreamImporter_INCLUDED

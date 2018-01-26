@@ -84,8 +84,8 @@ public:
 	virtual HRESULT UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppsStreamImporter);
 
 protected:
-	KCHL::object_ptr<IMAPIAdviseSink> m_lpFolderAdviseSink;
-	KCHL::object_ptr<WSMAPIFolderOps> lpFolderOps;
+	KC::object_ptr<IMAPIAdviseSink> m_lpFolderAdviseSink;
+	KC::object_ptr<WSMAPIFolderOps> lpFolderOps;
 	ULONG m_ulConnection = 0;
 
 	friend class		ECExchangeImportHierarchyChanges;	// Allowed access to lpFolderOps

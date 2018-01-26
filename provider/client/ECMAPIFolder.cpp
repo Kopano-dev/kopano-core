@@ -50,7 +50,7 @@
 
 #include <kopano/charset/convstring.h>
 
-using namespace KCHL;
+using namespace KC;
 
 static LONG AdviseECFolderCallback(void *lpContext, ULONG cNotif,
     LPNOTIFICATION lpNotif)

@@ -92,7 +92,7 @@ private:
 
 protected:
 	ECSession			*m_lpSession;
-	KCHL::object_ptr<ECLogger> m_lpAudit;
+	object_ptr<ECLogger> m_lpAudit;
 	ECConfig			*m_lpConfig;
 
 	unsigned int m_ulUserID = 0; // current user id

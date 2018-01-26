@@ -209,7 +209,7 @@ protected:
 	unsigned long long m_ulSeqIMAP = 0;
 	unsigned int m_ulSeqIMAPQueue = 0;
 
-	KCHL::object_ptr<ECLogger> m_lpAudit;
+	object_ptr<ECLogger> m_lpAudit;
 	std::unique_ptr<GUID> m_lpServerGuid;
 	std::unique_ptr<ECPluginFactory> m_lpPluginFactory;
 	std::unique_ptr<ECSearchFolders> m_lpSearchFolders;

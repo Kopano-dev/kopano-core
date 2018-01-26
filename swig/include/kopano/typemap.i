@@ -111,7 +111,8 @@
 (ULONG cbEIDContainer, LPENTRYID lpEIDContainer), (ULONG cbEIDNewEntryTpl, LPENTRYID lpEIDNewEntryTpl), (ULONG cbUserEntryID, LPENTRYID lpUserEntryID) };
 
 // Output
-%typemap(in,numinputs=0) (ULONG *OUTPUT, LPENTRYID *OUTPUT) (ULONG cbEntryID = 0, KCHL::memory_ptr< std::remove_pointer<$*2_type>::type > lpEntryID) {
+%typemap(in,numinputs=0) (ULONG *OUTPUT, LPENTRYID *OUTPUT) (ULONG cbEntryID = 0, KC::memory_ptr<std::remove_pointer<$*2_type>::type> lpEntryID)
+{
   $1 = &cbEntryID; $2 = &~lpEntryID;
 }
 %typemap(argout,fragment="SWIG_FromCharPtrAndSize") (ULONG *OUTPUT, LPENTRYID *OUTPUT)
@@ -123,7 +124,8 @@
 %apply (ULONG *OUTPUT, LPENTRYID *OUTPUT) {(ULONG* lpcbStoreId, LPENTRYID* lppStoreId), (ULONG* lpcbRootId, LPENTRYID *lppRootId), (ULONG *lpulOutput, LPBYTE *lpOutput)};
 
 // Optional In & Output
-%typemap(in) (ULONG *OPTINOUT, LPENTRYID *OPTINOUT) (int res, char *buf = NULL, size_t size, int alloc = 0, ULONG cbEntryID = 0, KCHL::memory_ptr<ENTRYID> tmp) {
+%typemap(in) (ULONG *OPTINOUT, LPENTRYID *OPTINOUT) (int res, char *buf = NULL, size_t size, int alloc = 0, ULONG cbEntryID = 0, KC::memory_ptr<ENTRYID> tmp)
+{
   $1 = &cbEntryID;
 
   res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
@@ -335,7 +337,7 @@
 	"$1 = NULL;"
 
 // Output
-%typemap(in,numinputs=0)	MAPILIST * (KCHL::memory_ptr< std::remove_pointer<$basetype>::type > temp), MAPISTRUCT * (KCHL::memory_ptr< std::remove_pointer<$basetype>::type > temp)
+%typemap(in,numinputs=0) MAPILIST * (KC::memory_ptr<std::remove_pointer<$basetype>::type> temp), MAPISTRUCT * (KC::memory_ptr<std::remove_pointer<$basetype>::type> temp)
 {
         $1 = &~temp;
 }
@@ -353,7 +355,7 @@
 // MAPIARRAY (List of objects)
 
 // Output
-%typemap(in,numinputs=0)	(ULONG *,MAPIARRAY *) (ULONG c, KCHL::memory_ptr< std::remove_pointer< std::remove_pointer< $2_type >::type >::type > tmp)
+%typemap(in,numinputs=0) (ULONG *, MAPIARRAY *) (ULONG c, KC::memory_ptr<std::remove_pointer<std::remove_pointer<$2_type>::type>::type> tmp)
 {
         $2 = &~tmp;
         c = 0; $1 = &c;
@@ -418,12 +420,12 @@
 
 // Specialization of MAPILIST * for rowset and adrlist types
 
-%typemap(in, numinputs=0) LPADRLIST *OUTPUT (KCHL::adrlist_ptr temp)
+%typemap(in, numinputs=0) LPADRLIST *OUTPUT (KC::adrlist_ptr temp)
 {
        $1 = &~temp;
 }
 
-%typemap(in, numinputs=0) LPSRowSet *OUTPUT (KCHL::rowset_ptr temp)
+%typemap(in, numinputs=0) LPSRowSet *OUTPUT (KC::rowset_ptr temp)
 {
         $1 = &~temp;
 }

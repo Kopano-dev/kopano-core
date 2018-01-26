@@ -42,8 +42,6 @@
 #include <edkmdb.h>
 #include "logontime.hpp"
 
-using namespace KCHL;
-
 namespace KC {
 
 ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,

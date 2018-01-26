@@ -68,8 +68,6 @@
 	  <message>
 */
 
-using namespace KCHL;
-
 static inline bool operator<(const GUID &lhs, const GUID &rhs)
 {
 	return memcmp(&lhs, &rhs, sizeof(GUID)) < 0;

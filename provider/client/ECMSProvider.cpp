@@ -51,7 +51,7 @@
 #include <csignal>
 #include <kopano/charset/convstring.h>
 
-using namespace KCHL;
+using namespace KC;
 
 ECMSProvider::ECMSProvider(ULONG ulFlags, const char *szClassName) :
 	ECUnknown(szClassName), m_ulFlags(ulFlags)
@@ -393,8 +393,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	ULONG			cbStoreID = 0;
 
 	convstring			tstrProfileName(lpszProfileName, ulFlags);
-
-	auto laters = KCHL::make_scope_success([&]() {
+	auto laters = make_scope_success([&]() {
 		if (lppMAPIError != nullptr)
 			*lppMAPIError = nullptr;
 	});
@@ -547,8 +546,7 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
 	object_ptr<IMsgStore> lpMDB;
 	object_ptr<IMSLogon> lpMSLogon;
 	object_ptr<ECMsgStore> lpecMDB;
-
-	auto laters = KCHL::make_scope_success([&]() {
+	auto laters = make_scope_success([&]() {
 		if (lppMAPIError != nullptr)
 			*lppMAPIError = nullptr;
 	});

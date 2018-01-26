@@ -42,7 +42,7 @@
 
 #include <set>
 
-using namespace KCHL;
+using namespace KC;
 
 // ---
 // IMAPIProp

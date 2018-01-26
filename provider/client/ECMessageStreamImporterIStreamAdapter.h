@@ -59,7 +59,7 @@ private:
 	~ECMessageStreamImporterIStreamAdapter();
 
 	WSMessageStreamImporterPtr	m_ptrStreamImporter;
-	KCHL::object_ptr<WSMessageStreamSink> m_ptrSink;
+	KC::object_ptr<WSMessageStreamSink> m_ptrSink;
 	ALLOC_WRAP_FRIEND;
 };
 

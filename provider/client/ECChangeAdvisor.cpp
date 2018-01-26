@@ -26,7 +26,7 @@
 #include "ECChangeAdvisor.h"
 #include "ECMsgStore.h"
 
-using namespace KCHL;
+using namespace KC;
 
 ECChangeAdvisor::SyncStateMap::value_type ECChangeAdvisor::ConvertSyncState(const SSyncState &sSyncState)
 {

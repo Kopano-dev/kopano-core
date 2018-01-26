@@ -73,17 +73,17 @@ public:
 
 private:
 	std::recursive_mutex m_hLock;
-	KCHL::object_ptr<WSTableView> lpTableOps;
-	KCHL::object_ptr<ECNotifyClient> lpNotifyClient;
-	KCHL::memory_ptr<SSortOrderSet> lpsSortOrderSet;
+	KC::object_ptr<WSTableView> lpTableOps;
+	KC::object_ptr<ECNotifyClient> lpNotifyClient;
+	KC::memory_ptr<SSortOrderSet> lpsSortOrderSet;
 	ULONG				ulFlags; // Currently unused
 	std::set<ULONG>		m_ulConnectionList;
 	std::recursive_mutex m_hMutexConnectionList;
 	
 	// Deferred calls
-	KCHL::memory_ptr<SPropTagArray> m_lpSetColumns;
-	KCHL::memory_ptr<SRestriction> m_lpRestrict;
-	KCHL::memory_ptr<SSortOrderSet> m_lpSortTable;
+	KC::memory_ptr<SPropTagArray> m_lpSetColumns;
+	KC::memory_ptr<SRestriction> m_lpRestrict;
+	KC::memory_ptr<SSortOrderSet> m_lpSortTable;
 	ULONG m_ulDeferredFlags = 0, m_ulRowCount = 0;
 	ULONG m_ulFlags = 0; /* Flags from queryrows */
 	std::string			m_strName;

@@ -26,7 +26,7 @@
 
 #include <string>
 
-using namespace KCHL;
+using namespace KC;
 
 #include "util.h"
 

@@ -39,7 +39,7 @@
 #include <iostream>
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
-using namespace KCHL;
+using namespace KC;
 
 ZCABContainer::ZCABContainer(const std::vector<zcabFolderEntry> *lpFolders,
     IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void *lpProvider,
@@ -188,7 +188,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 	// named properties
 	SPropTagArrayPtr ptrNameTags;
-	KCHL::memory_ptr<MAPINAMEID *> lppNames;
+	memory_ptr<MAPINAMEID *> lppNames;
 	ULONG ulNames = (6 * 5) + 2;
 	ULONG ulType = (ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8;
 	MAPINAMEID mnNamedProps[(6 * 5) + 2] = {
@@ -465,7 +465,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 	ULONG cValues;
 	SPropArrayPtr ptrProps;
 	SPropValue sKey;
-	KCHL::object_ptr<ZCMAPIProp> ptrZCMAPIProp;
+	object_ptr<ZCMAPIProp> ptrZCMAPIProp;
 
 	Util::proptag_change_unicode(ulFlags, sptaCols);
 	hr = ECMemTable::Create(sptaCols, PR_ROWID, &~lpTable);
@@ -622,7 +622,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		// create hierarchy with folders from user stores
 		for (const auto &folder : *m_lpFolders) {
 			std::string strName;
-			KCHL::memory_ptr<cabEntryID> lpEntryID;
+			memory_ptr<cabEntryID> lpEntryID;
 			ULONG cbEntryID = CbNewCABENTRYID(folder.cbFolder);
 
 			hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryID);

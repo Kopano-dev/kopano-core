@@ -41,20 +41,20 @@ class SessionRestorer;
 struct providerEntry {
 	MAPIUID uid;
 	std::string servicename; // this provider belongs to service 'servicename'
-	KCHL::object_ptr<M4LProfSect> profilesection;
+	KC::object_ptr<M4LProfSect> profilesection;
 };
 
 struct serviceEntry {
     MAPIUID muid;
 	std::string servicename, displayname;
-	KCHL::object_ptr<M4LProviderAdmin> provideradmin;
+	KC::object_ptr<M4LProviderAdmin> provideradmin;
 	bool bInitialize;
 	SVCService* service;
 };
 
 struct profEntry {
 	std::string profname, password;
-	KCHL::object_ptr<M4LMsgServiceAdmin> serviceadmin;
+	KC::object_ptr<M4LMsgServiceAdmin> serviceadmin;
 };
 
 class M4LProfAdmin _kc_final : public M4LUnknown, public IProfAdmin {
@@ -85,7 +85,7 @@ class M4LMsgServiceAdmin _kc_final : public M4LUnknown, public IMsgServiceAdmin2
 private:
 	std::list<std::unique_ptr<providerEntry> > providers;
 	std::list<std::unique_ptr<serviceEntry> > services;
-	KCHL::object_ptr<M4LProfSect> profilesection; // Global Profile Section
+	KC::object_ptr<M4LProfSect> profilesection; // Global Profile Section
 	/* guards content in service (and provider) list */
 	std::recursive_mutex m_mutexserviceadmin;
 
@@ -126,7 +126,7 @@ class M4LMAPISession _kc_final : public M4LUnknown, public IMAPISession {
 private:
 	// variables
 	std::string profileName;
-	KCHL::object_ptr<M4LMsgServiceAdmin> serviceAdmin;
+	KC::object_ptr<M4LMsgServiceAdmin> serviceAdmin;
 
 public:
 	M4LMAPISession(const TCHAR *profname, M4LMsgServiceAdmin *);
@@ -152,10 +152,10 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 
 private:
-	std::map<GUID, KCHL::object_ptr<IMsgStore>> mapStores;
+	std::map<GUID, KC::object_ptr<IMsgStore>> mapStores;
 	/* @todo need a status row per provider */
 	ULONG m_cValuesStatus = 0;
-	KCHL::memory_ptr<SPropValue> m_lpPropsStatus;
+	KC::memory_ptr<SPropValue> m_lpPropsStatus;
 	std::mutex m_mutexStatusRow;
 
 public:
@@ -188,7 +188,7 @@ public:
 
 private:
 	// variables
-	KCHL::object_ptr<IMAPISupport> m_lpMAPISup;
+	KC::object_ptr<IMAPISupport> m_lpMAPISup;
 	std::list<abEntry> m_lABProviders;
 	SRowSet *m_lpSavedSearchPath = nullptr;
 	HRESULT getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath);

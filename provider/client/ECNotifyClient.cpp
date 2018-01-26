@@ -35,7 +35,7 @@
 
 #define MAX_NOTIFS_PER_CALL 64
 
-using namespace KCHL;
+using namespace KC;
 
 struct ECADVISE {
 	ULONG cbKey;

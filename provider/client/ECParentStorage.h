@@ -66,10 +66,10 @@ private:
 	virtual IECPropStorage* GetServerStorage();
 
 private:
-	KCHL::object_ptr<ECGenericProp> m_lpParentObject;
+	KC::object_ptr<ECGenericProp> m_lpParentObject;
 	ULONG m_ulObjId;
 	ULONG m_ulUniqueId;
-	KCHL::object_ptr<IECPropStorage> m_lpServerStorage;
+	KC::object_ptr<IECPropStorage> m_lpServerStorage;
 	ALLOC_WRAP_FRIEND;
 };
 

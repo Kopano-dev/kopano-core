@@ -48,12 +48,12 @@ public:
 	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
 
 protected:	
-	KCHL::memory_ptr<ENTRYID> m_lpIPMSubTreeID, m_lpIPMFavoritesID;
-	KCHL::memory_ptr<ENTRYID> m_lpIPMPublicFoldersID;
+	KC::memory_ptr<ENTRYID> m_lpIPMSubTreeID, m_lpIPMFavoritesID;
+	KC::memory_ptr<ENTRYID> m_lpIPMPublicFoldersID;
 	ULONG m_cIPMSubTreeID = 0, m_cIPMFavoritesID = 0;
 	ULONG m_cIPMPublicFoldersID = 0;
-	KCHL::object_ptr<ECMemTable> m_lpIPMSubTree; /* Built-in IPM subtree */
-	KCHL::object_ptr<IMsgStore> m_lpDefaultMsgStore;
+	KC::object_ptr<ECMemTable> m_lpIPMSubTree; /* Built-in IPM subtree */
+	KC::object_ptr<IMsgStore> m_lpDefaultMsgStore;
 
 	HRESULT BuildIPMSubTree();
 	// entryid : level

@@ -39,8 +39,6 @@
 #include "soapH.h"
 #include "SOAPUtils.h"
 
-using namespace KCHL;
-
 namespace KC {
 
 extern ECSessionManager*	g_lpSessionManager;

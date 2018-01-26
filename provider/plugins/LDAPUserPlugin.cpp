@@ -89,12 +89,12 @@ class ldap_delete {
 	void operator()(struct berval **x) const { ldap_value_free_len(x); }
 };
 
-typedef KCHL::memory_ptr<char, ldap_delete> auto_free_ldap_attribute;
-typedef KCHL::memory_ptr<BerElement, ldap_delete> auto_free_ldap_berelement;
-typedef KCHL::memory_ptr<LDAPMessage, ldap_delete> auto_free_ldap_message;
-typedef KCHL::memory_ptr<LDAPControl, ldap_delete> auto_free_ldap_control;
-typedef KCHL::memory_ptr<LDAPControl *, ldap_delete> auto_free_ldap_controls;
-typedef KCHL::memory_ptr<struct berval *, ldap_delete> auto_free_ldap_berval;
+typedef memory_ptr<char, ldap_delete> auto_free_ldap_attribute;
+typedef memory_ptr<BerElement, ldap_delete> auto_free_ldap_berelement;
+typedef memory_ptr<LDAPMessage, ldap_delete> auto_free_ldap_message;
+typedef memory_ptr<LDAPControl, ldap_delete> auto_free_ldap_control;
+typedef memory_ptr<LDAPControl *, ldap_delete> auto_free_ldap_controls;
+typedef memory_ptr<struct berval *, ldap_delete> auto_free_ldap_berval;
 
 #define LDAP_DATA_TYPE_DN			"dn"	// data in attribute like cn=piet,cn=user,dc=localhost,dc=com
 #define LDAP_DATA_TYPE_BINARY		"binary"

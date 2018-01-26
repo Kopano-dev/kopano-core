@@ -56,8 +56,6 @@
 #define _MAPI_MEM_DEBUG 0
 #define _MAPI_MEM_MORE_DEBUG 0
 
-using namespace KCHL;
-
 namespace KC {
 
 class SessionRestorer _kc_final {
@@ -72,7 +70,7 @@ class SessionRestorer _kc_final {
 	std::string::const_iterator m_input;
 	size_t m_left = 0;
 	std::string m_profname;
-	KCHL::object_ptr<M4LMsgServiceAdmin> m_svcadm;
+	object_ptr<M4LMsgServiceAdmin> m_svcadm;
 };
 
 class SessionSaver _kc_final {

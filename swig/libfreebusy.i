@@ -144,7 +144,7 @@ public:
         %extend {
                 IFreeBusySupport() {
                     HRESULT hr = hrSuccess;
-                    KCHL::object_ptr<ECFreeBusySupport> lpFreeBusySup;
+					KC::object_ptr<ECFreeBusySupport> lpFreeBusySup;
                        IFreeBusySupport *lpFreeBusySupport = NULL;
 
                     hr = ECFreeBusySupport::Create(&~lpFreeBusySup);

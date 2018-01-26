@@ -43,7 +43,7 @@
 #include <kopano/charset/convstring.h>
 #include "EntryPoint.h"
 
-using namespace KCHL;
+using namespace KC;
 
 // profile properties
 static constexpr const SizedSPropTagArray(22, sptaKopanoProfile) =

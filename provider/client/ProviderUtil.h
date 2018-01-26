@@ -26,8 +26,8 @@
 #define CT_OFFLINE			0x02
 
 struct PROVIDER_INFO {
-	KCHL::object_ptr<IMSProvider> lpMSProviderOnline;
-	KCHL::object_ptr<IABProvider> lpABProviderOnline;
+	KC::object_ptr<IMSProvider> lpMSProviderOnline;
+	KC::object_ptr<IABProvider> lpABProviderOnline;
 	ULONG		ulProfileFlags;	//  Profile flags when you start the first time
 	ULONG		ulConnectType; // CT_* values, The type of connection when you start the first time
 };

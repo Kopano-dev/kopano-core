@@ -47,9 +47,9 @@ public:
 	virtual HRESULT GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable);
 	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList);
 
-	KCHL::object_ptr<IMAPISupport> m_lpMAPISup;
-	KCHL::object_ptr<WSTransport> m_lpTransport;
-	KCHL::object_ptr<ECNotifyClient> m_lpNotifyClient;
+	KC::object_ptr<IMAPISupport> m_lpMAPISup;
+	KC::object_ptr<WSTransport> m_lpTransport;
+	KC::object_ptr<ECNotifyClient> m_lpNotifyClient;
 	GUID				m_guid;
 	GUID				m_ABPGuid;
 	ALLOC_WRAP_FRIEND;

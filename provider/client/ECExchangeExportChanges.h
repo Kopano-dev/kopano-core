@@ -88,14 +88,14 @@ private:
 	ULONG m_ulChanges = 0, m_ulMaxChangeId = 0;
 	clock_t m_clkStart = 0;
 	struct tms			m_tmsStart;
-	KCHL::object_ptr<ECLogger> m_lpLogger;
-	KCHL::memory_ptr<SRestriction> m_lpRestrict;
-	KCHL::object_ptr<IExchangeImportHierarchyChanges> m_lpImportHierarchy;
-	KCHL::object_ptr<IECImportContentsChanges> m_lpImportStreamedContents;
-	KCHL::object_ptr<IExchangeImportContentsChanges> m_lpImportContents;
-	KCHL::object_ptr<IStream> m_lpStream;
-	KCHL::object_ptr<ECMsgStore> m_lpStore;
-	KCHL::memory_ptr<ICSCHANGE> m_lpChanges;
+	KC::object_ptr<ECLogger> m_lpLogger;
+	KC::memory_ptr<SRestriction> m_lpRestrict;
+	KC::object_ptr<IExchangeImportHierarchyChanges> m_lpImportHierarchy;
+	KC::object_ptr<IECImportContentsChanges> m_lpImportStreamedContents;
+	KC::object_ptr<IExchangeImportContentsChanges> m_lpImportContents;
+	KC::object_ptr<IStream> m_lpStream;
+	KC::object_ptr<ECMsgStore> m_lpStore;
+	KC::memory_ptr<ICSCHANGE> m_lpChanges;
 	
 	HRESULT AddProcessedChanges(ChangeList &lstChanges);
 	ALLOC_WRAP_FRIEND;

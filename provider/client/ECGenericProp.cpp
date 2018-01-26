@@ -377,7 +377,7 @@ HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR 
 {
 	HRESULT		hr = hrSuccess;
 	ecmem_ptr<MAPIERROR> lpMapiError;
-	KCHL::memory_ptr<TCHAR> lpszErrorMsg;
+	KC::memory_ptr<TCHAR> lpszErrorMsg;
 	
 	hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &~lpszErrorMsg);
 	if (hr != hrSuccess)
@@ -630,8 +630,7 @@ HRESULT ECGenericProp::HrLoadProps()
 		lstProps.clear();
 		m_setDeletedProps.clear();
 	}
-
-	hr = lpStorage->HrLoadObject(&KCHL::unique_tie(m_sMapiObject));
+	hr = lpStorage->HrLoadObject(&KC::unique_tie(m_sMapiObject));
 	if (hr != hrSuccess)
 		goto exit;
 	m_props_loaded = true;

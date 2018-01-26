@@ -55,7 +55,7 @@
 
 #include <kopano/charset/convstring.h>
 
-using namespace KCHL;
+using namespace KC;
 
 extern LPMALLOC _pmalloc;
 extern LPALLOCATEBUFFER _pfnAllocBuf;
@@ -67,7 +67,7 @@ struct initprov {
 	IProviderAdmin *provadm;
 	MAPIUID *provuid;
 	IProfSect *profsect;
-	KCHL::object_ptr<WSTransport> transport;
+	object_ptr<WSTransport> transport;
 	unsigned int count, eid_size, wrap_eid_size;
 	SPropValue prop[6];
 	EntryIdPtr eid;
@@ -77,7 +77,7 @@ struct initprov {
 	memory_ptr<ABEID> abe_id;
 };
 
-typedef KCHL::object_ptr<IProfSect> ProfSectPtr;
+typedef object_ptr<IProfSect> ProfSectPtr;
 
 static const uint32_t MAPI_S_SPECIAL_OK = MAKE_MAPI_S(0x900);
 
@@ -303,7 +303,7 @@ static HRESULT initprov_storearc(struct initprov &d)
 		return MAPI_S_SPECIAL_OK;
 	}
 
-	KCHL::object_ptr<WSTransport> alt_transport;
+	object_ptr<WSTransport> alt_transport;
 	ret = GetTransportToNamedServer(d.transport, server->Value.LPSZ,
 	      (PROP_TYPE(name->ulPropTag) == PT_STRING8 ? 0 : MAPI_UNICODE),
 	      &~alt_transport);

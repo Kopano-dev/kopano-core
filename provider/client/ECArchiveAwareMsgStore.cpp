@@ -23,7 +23,7 @@
 #include <kopano/ECGuid.h>
 #include <kopano/mapi_ptr.h>
 
-using namespace KCHL;
+using namespace KC;
 
 ECArchiveAwareMsgStore::ECArchiveAwareMsgStore(const char *lpszProfname,
     IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,

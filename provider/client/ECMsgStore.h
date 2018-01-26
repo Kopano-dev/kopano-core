@@ -236,10 +236,10 @@ public:
 	} m_xMsgStoreProxy;
 	
 public:
-	KCHL::object_ptr<IMAPISupport> lpSupport;
-	KCHL::object_ptr<WSTransport> lpTransport;
+	KC::object_ptr<IMAPISupport> lpSupport;
+	KC::object_ptr<WSTransport> lpTransport;
 	ECNamedProp lpNamedProp;
-	KCHL::object_ptr<ECNotifyClient> m_lpNotifyClient;
+	KC::object_ptr<ECNotifyClient> m_lpNotifyClient;
 	ULONG				m_ulProfileFlags;
 	MAPIUID				m_guidMDB_Provider;
 	unsigned int m_ulClientVersion = 0;

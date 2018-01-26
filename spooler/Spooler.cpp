@@ -82,7 +82,7 @@
 
 #include <map>
 
-using namespace KCHL;
+using namespace KC;
 using std::cout;
 using std::endl;
 using std::map;
@@ -435,7 +435,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 			object_ptr<IMsgStore> lpUserStore;
 			object_ptr<IMessage> lpMessage;
 
-			hr = GetErrorObjects(sSendData, lpAdminSession, &~lpAddrBook, &KCHL::unique_tie(lpMailer), &~lpUserStore, &~lpMessage);
+			hr = GetErrorObjects(sSendData, lpAdminSession, &~lpAddrBook, &unique_tie(lpMailer), &~lpUserStore, &~lpMessage);
 			if (hr == hrSuccess) {
 				lpMailer->setError(_("A fatal error occurred while processing your message, and Kopano is unable to send your email."));
 				hr = SendUndeliverable(lpMailer.get(), lpUserStore, lpMessage);

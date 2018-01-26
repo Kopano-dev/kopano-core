@@ -42,7 +42,7 @@
 #include <kopano/charset/convert.h>
 #include "utf8/unchecked.h"
 
-using namespace KCHL;
+using namespace KC;
 
 static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase, convert_context *lpConverter)
 {

@@ -27,8 +27,6 @@
 #include "cmdutil.hpp"
 #include <edkmdb.h>
 
-using namespace KCHL;
-
 namespace KC {
 
 // External objects

@@ -38,10 +38,10 @@
 #include <kopano/IECInterfaces.hpp>
 #include "PyMapiPlugin.h"
 
-using namespace KCHL;
+using namespace KC;
 using std::string;
 using std::wstring;
-extern KC::ECConfig *g_lpConfig;
+extern ECConfig *g_lpConfig;
 
 static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
     std::wstring &wstrCc, std::wstring &wstrBcc)
