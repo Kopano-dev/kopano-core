@@ -34,7 +34,7 @@
 struct ECADVISE;
 struct ECCHANGEADVISE;
 typedef std::map<int, std::unique_ptr<ECADVISE>> ECMAPADVISE;
-typedef std::map<int, KCHL::memory_ptr<ECCHANGEADVISE>> ECMAPCHANGEADVISE;
+typedef std::map<int, std::unique_ptr<ECCHANGEADVISE>> ECMAPCHANGEADVISE;
 typedef std::list<std::pair<syncid_t,connection_t> > ECLISTCONNECTION;
 
 class SessionGroupData;

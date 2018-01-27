@@ -48,12 +48,12 @@ struct ECADVISE {
 };
 
 struct ECCHANGEADVISE {
-	ULONG ulSyncId;
-	ULONG ulChangeId;
-	ULONG ulEventMask;
+	ULONG ulSyncId = 0;
+	ULONG ulChangeId = 0;
+	ULONG ulEventMask = 0;
+	ULONG ulConnection = 0;
 	object_ptr<IECChangeAdviseSink> lpAdviseSink;
-	ULONG ulConnection;
-	GUID guid;
+	GUID guid{};
 };
 
 static inline std::pair<ULONG,ULONG> SyncAdviseToConnection(const SSyncAdvise &sSyncAdvise) {
@@ -201,16 +201,11 @@ HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
     IECChangeAdviseSink *lpChangeAdviseSink, ULONG *lpulConnection)
 {
 	HRESULT			hr = MAPI_E_NO_SUPPORT;
-	memory_ptr<ECCHANGEADVISE> pEcAdvise;
 	ULONG			ulConnection = 0;
-
-	hr = MAPIAllocateBuffer(sizeof(ECCHANGEADVISE), &~pEcAdvise);
-	if (hr != hrSuccess)
-		return hr;
+	std::unique_ptr<ECCHANGEADVISE> pEcAdvise(new(std::nothrow) ECCHANGEADVISE);
+	if (pEcAdvise == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	*lpulConnection = 0;
-
-	memset(pEcAdvise, 0, sizeof(ECCHANGEADVISE));
-	
 	pEcAdvise->ulSyncId = ulSyncId;
 	pEcAdvise->ulChangeId = ulChangeId;
 	pEcAdvise->lpAdviseSink.reset(lpChangeAdviseSink);
