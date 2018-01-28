@@ -115,11 +115,6 @@ HRESULT ECMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-ECMsgStore *ECMAPIProp::GetMsgStore() const
-{
-	return (ECMsgStore*)lpProvider;
-}
-
 // Loads the properties of the saved message for use
 HRESULT ECMAPIProp::HrLoadProps()
 {

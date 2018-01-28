@@ -102,8 +102,3 @@ HRESULT ECABProp::TableRowGetProp(void *lpProvider,
 
 	return hr;
 }
-
-ECABLogon* ECABProp::GetABStore()
-{
-	return (ECABLogon*)lpProvider;
-}

@@ -85,7 +85,7 @@ protected:
 	virtual HRESULT SetPermissionRules(ULONG cPermissions, ECPERMISSION *lpECPermissions);
 
 public:
-	ECMsgStore *GetMsgStore() const;
+	ECMsgStore *GetMsgStore() const { return static_cast<ECMsgStore *>(lpProvider); }
 
 private:
 	BOOL m_bICSObject = false; // coming from the ICS system

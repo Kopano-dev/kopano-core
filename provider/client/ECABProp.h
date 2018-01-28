@@ -35,7 +35,7 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	static HRESULT DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
-	ECABLogon* GetABStore();
+	ECABLogon *GetABStore() const { return static_cast<ECABLogon *>(lpProvider); }
 };
 
 #endif
