@@ -131,7 +131,8 @@ exit:
 	return hr;
 }
 
-HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, struct saveObject *lpSaveObj, convert_context *lpConverter)
+HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObject,
+    struct saveObject *lpSaveObj, convert_context *lpConverter)
 {
 	HRESULT hr = hrSuccess;
 	unsigned int size;
@@ -226,7 +227,8 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, s
 	return hr;
 } 
 
-HRESULT WSMAPIPropStorage::HrUpdateSoapObject(MAPIOBJECT *lpsMapiObject, struct saveObject *lpsSaveObj, convert_context *lpConverter)
+HRESULT WSMAPIPropStorage::HrUpdateSoapObject(const MAPIOBJECT *lpsMapiObject,
+    struct saveObject *lpsSaveObj, convert_context *lpConverter)
 {
 	HRESULT hr;
 	std::list<ECProperty>::const_iterator iterProps;
@@ -310,14 +312,16 @@ void WSMAPIPropStorage::DeleteSoapObject(struct saveObject *lpSaveObj)
 		FreeEntryList(lpSaveObj->lpInstanceIds, true);
 }
 
-ECRESULT WSMAPIPropStorage::EcFillPropTags(struct saveObject *lpsSaveObj, MAPIOBJECT *lpsMapiObj)
+ECRESULT WSMAPIPropStorage::EcFillPropTags(const struct saveObject *lpsSaveObj,
+    MAPIOBJECT *lpsMapiObj)
 {
 	for (gsoap_size_t i = 0; i < lpsSaveObj->delProps.__size; ++i)
 		lpsMapiObj->lstAvailable.emplace_back(lpsSaveObj->delProps.__ptr[i]);
 	return erSuccess;
 }
 
-ECRESULT WSMAPIPropStorage::EcFillPropValues(struct saveObject *lpsSaveObj, MAPIOBJECT *lpsMapiObj)
+ECRESULT WSMAPIPropStorage::EcFillPropValues(const struct saveObject *lpsSaveObj,
+     MAPIOBJECT *lpsMapiObj)
 {
 	ECRESULT ec = erSuccess;
 	convert_context	context;
@@ -340,7 +344,8 @@ ECRESULT WSMAPIPropStorage::EcFillPropValues(struct saveObject *lpsSaveObj, MAPI
 // sets the ulObjId from the server in the object (hierarchyid)
 // removes deleted sub-objects from memory
 // removes current list of del/mod props, and sets server changes in the lists
-HRESULT WSMAPIPropStorage::HrUpdateMapiObject(MAPIOBJECT *lpClientObj, struct saveObject *lpsServerObj)
+HRESULT WSMAPIPropStorage::HrUpdateMapiObject(MAPIOBJECT *lpClientObj,
+    const struct saveObject *lpsServerObj)
 {
 	lpClientObj->ulObjId = lpsServerObj->ulServerId;
 
@@ -455,7 +460,9 @@ exit:
 	return hr;
 }
 
-ECRESULT WSMAPIPropStorage::ECSoapObjectToMapiObject(struct saveObject *lpsSaveObj, MAPIOBJECT *lpsMapiObject) {
+ECRESULT WSMAPIPropStorage::ECSoapObjectToMapiObject(const struct saveObject *lpsSaveObj,
+    MAPIOBJECT *lpsMapiObject)
+{
 	MAPIOBJECT *mo = NULL;
 	ULONG ulAttachUniqueId = 0;
 	ULONG ulRecipUniqueId = 0;

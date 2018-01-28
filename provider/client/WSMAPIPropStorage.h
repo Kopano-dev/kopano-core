@@ -58,7 +58,7 @@ private:
 	virtual HRESULT HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue);
 
 	// Save complete object to server
-	virtual HRESULT HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);
+	virtual HRESULT HrSaveObject(ULONG flags, MAPIOBJECT *lpSavedObjects);
 
 	// Load complete object from server
 	virtual HRESULT HrLoadObject(MAPIOBJECT **lppsMapiObject);
@@ -66,15 +66,13 @@ private:
 	virtual IECPropStorage* GetServerStorage();
 
 	/* very private */
-	virtual ECRESULT EcFillPropTags(struct saveObject *lpsSaveObj, MAPIOBJECT *lpsMapiObj);
-	virtual ECRESULT EcFillPropValues(struct saveObject *lpsSaveObj, MAPIOBJECT *lpsMapiObj);
-	virtual HRESULT HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, struct saveObject *lpSaveObj, convert_context *lpConverter);
-	virtual HRESULT HrUpdateSoapObject(MAPIOBJECT *lpsMapiObject, struct saveObject *lpsSaveObj, convert_context *lpConverter);
+	virtual ECRESULT EcFillPropTags(const struct saveObject *, MAPIOBJECT *);
+	virtual ECRESULT EcFillPropValues(const struct saveObject *, MAPIOBJECT *);
+	virtual HRESULT HrMapiObjectToSoapObject(const MAPIOBJECT *, struct saveObject *, convert_context *);
+	virtual HRESULT HrUpdateSoapObject(const MAPIOBJECT *, struct saveObject *, convert_context *);
 	virtual void    DeleteSoapObject(struct saveObject *lpSaveObj);
-	virtual HRESULT HrUpdateMapiObject(MAPIOBJECT *lpClientObj, struct saveObject *lpsServerObj);
-
-	virtual ECRESULT ECSoapObjectToMapiObject(struct saveObject *lpsSaveObj, MAPIOBJECT *lpsMapiObject);
-
+	virtual HRESULT HrUpdateMapiObject(MAPIOBJECT *, const struct saveObject *);
+	virtual ECRESULT ECSoapObjectToMapiObject(const struct saveObject *, MAPIOBJECT *);
 	virtual HRESULT LockSoap();
 	virtual HRESULT UnLockSoap();
 
