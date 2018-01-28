@@ -835,7 +835,7 @@ HRESULT ECMAPIProp::GetCompanyList(ULONG ulFlags, ULONG *lpcCompanies,
 	return GetMsgStore()->lpTransport->HrGetCompanyList(ulFlags, lpcCompanies, lppsCompanies);
 }
 
-HRESULT ECMAPIProp::SetParentID(ULONG cbParentID, LPENTRYID lpParentID)
+HRESULT ECMAPIProp::SetParentID(ULONG cbParentID, const ENTRYID *lpParentID)
 {
 	assert(m_lpParentID == NULL);
 	if (lpParentID == NULL || cbParentID == 0)

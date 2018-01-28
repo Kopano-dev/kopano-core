@@ -61,9 +61,7 @@ public:
 	virtual HRESULT GetIDsFromNames(ULONG cNames, LPMAPINAMEID * ppNames, ULONG ulFlags, LPSPropTagArray * pptaga);
 
 	virtual HRESULT HrSetSyncId(ULONG ulSyncId);
-
-	virtual HRESULT SetParentID(ULONG cbParentID, LPENTRYID lpParentID);
-
+	virtual HRESULT SetParentID(ULONG eid, const ENTRYID *eid_size);
 	virtual HRESULT SetICSObject(BOOL bICSObject);
 	virtual BOOL IsICSObject();
 
