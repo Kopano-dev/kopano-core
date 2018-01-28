@@ -242,7 +242,7 @@ class IECServiceAdmin : public virtual IECSecSvcAdm_base {
 class IECSingleInstance : public virtual IUnknown {
 	public:
 	virtual HRESULT GetSingleInstanceId(ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID) = 0;
-	virtual HRESULT SetSingleInstanceId(ULONG cbInstanceID, LPENTRYID lpInstanceID) = 0;
+	virtual HRESULT SetSingleInstanceId(ULONG eid_size, const ENTRYID *eid) = 0;
 };
 
 // This is our special spooler interface

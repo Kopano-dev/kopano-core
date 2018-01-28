@@ -96,7 +96,7 @@ protected: ///?
 
 	// For IECSingleInstance
 	virtual HRESULT GetSingleInstanceId(ULONG *id_size, ENTRYID **id);
-	virtual HRESULT SetSingleInstanceId(ULONG id_size, ENTRYID *id);
+	virtual HRESULT SetSingleInstanceId(ULONG eid_size, const ENTRYID *eid) override;
 
 public:
 	// From IMAPIProp
