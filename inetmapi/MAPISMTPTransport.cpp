@@ -288,14 +288,14 @@ void MAPISMTPTransport::authenticate()
 			{
 				// Can't fallback on normal authentication
 				internalDisconnect();
-				throw e;
+				throw;
 			}
 			/* else: Ignore, will try normal authentication */
 		}
 		catch (exception& e)
 		{
 			internalDisconnect();
-			throw e;
+			throw;
 		}
 	}
 #endif // VMIME_HAVE_SASL_SUPPORT
