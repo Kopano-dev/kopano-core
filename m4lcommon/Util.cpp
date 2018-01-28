@@ -1811,7 +1811,7 @@ HRESULT Util::HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::w
 
 	try {
 		wstrOutput->assign(converter.convert_to<std::wstring>(CHARSET_WCHAR"//IGNORE", data, rawsize(data), lpszCharset));
-	} catch (std::exception &) {
+	} catch (const std::exception &) {
 		return MAPI_E_INVALID_PARAMETER;
 	}
 	return hrSuccess;

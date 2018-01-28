@@ -349,7 +349,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 		bool ok = false;
 		try {
 			vmTransport->connect();
-		} catch (vmime::exception &e) {
+		} catch (const vmime::exception &e) {
 			// special error, smtp server not respoding, so try later again
 			ec_log_err("Connect to SMTP: %s. E-Mail will be tried again later.", e.what());
 			return MAPI_W_NO_SERVICE;
@@ -359,8 +359,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 			vmTransport->send(expeditor, recipients, isAdapter, str.length(), NULL);
 			vmTransport->disconnect();
 			ok = true;
-		}
-		catch (vmime::exceptions::command_error& e) {
+		} catch (const vmime::exceptions::command_error &e) {
 			if (mapiTransport != NULL) {
 				mPermanentFailedRecipients = mapiTransport->getPermanentFailedRecipients();
 				mTemporaryFailedRecipients = mapiTransport->getTemporaryFailedRecipients();
@@ -370,8 +369,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 			error = convert_to<std::wstring>(e.response());
 			// message should be cancelled, unsendable, test by smtp result code.
 			return MAPI_W_CANCEL_MESSAGE;
-		} 
-		catch (vmime::exceptions::no_recipient& e) {
+		} catch (const vmime::exceptions::no_recipient &e) {
 			if (mapiTransport != NULL) {
 				mPermanentFailedRecipients = mapiTransport->getPermanentFailedRecipients();
 				mTemporaryFailedRecipients = mapiTransport->getTemporaryFailedRecipients();
@@ -381,8 +379,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 			//error = convert_to<std::wstring>(e.response());
 			// message should be cancelled, unsendable, test by smtp result code.
 			return MAPI_W_CANCEL_MESSAGE;
-		} 
-		catch (vmime::exception &e) {
+		} catch (const vmime::exception &e) {
 		}
 
 		if (mapiTransport != NULL) {
@@ -409,14 +406,12 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 				return MAPI_W_NO_SERVICE;
 			}
 		}
-	}
-	catch (vmime::exception& e) {
+	} catch (const vmime::exception &e) {
 		// connection_greeting_error, ...?
 		ec_log_err("%s", e.what());
 		error = convert_to<std::wstring>(e.what());
 		return MAPI_E_NETWORK_ERROR;
-	}
-	catch (std::exception& e) {
+	} catch (const std::exception &e) {
 		ec_log_err("%s", e.what());
 		error = convert_to<std::wstring>(e.what());
 		return MAPI_E_NETWORK_ERROR;

@@ -219,7 +219,8 @@ void *ECWorkerThread::Work(void *lpParam)
             } else {
                 try {
                     err = soap_serve_request(lpWorkItem->soap);
-                } catch(int) {
+				} catch (const int &) {
+					/* matching part is in cmd.cpp: "throw SOAP_NULL;" (23) */
                     // Reply processing is handled by the callee, totally ignore the rest of processing for this item
                     delete lpWorkItem;
                     continue;

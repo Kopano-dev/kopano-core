@@ -871,7 +871,7 @@ signatures_t LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn,
 
 			try {
 				objectid = GetObjectIdForEntry(entry);
-			} catch(data_error &e) {
+			} catch (const data_error &e) {
 				ec_log_warn("Unable to get object id: %s", e.what());
 				continue;
 			}
@@ -1244,14 +1244,14 @@ LDAPUserPlugin::objectDNtoObjectSignatures(objectclass_t objclass,
 	for (const auto &i : dn) {
 		try {
 			signatures.emplace_back(objectDNtoObjectSignature(objclass, i));
-		} catch (objectnotfound &e) {
+		} catch (const objectnotfound &e) {
 			// resolve failed, drop entry
 			continue;
-		} catch (ldap_error &e) {
+		} catch (const ldap_error &e) {
 			if(LDAP_NAME_ERROR(e.GetLDAPError()))
 				continue;
 			throw;
-		} catch (std::exception &e) {
+		} catch (const std::exception &e) {
 			// query failed, drop entry
 			continue;
 		}
@@ -1463,7 +1463,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, c
 		 */
 		auto dn = objectUniqueIDtoObjectDN(signature.id, false);
 		ld = ConnectLDAP(dn.c_str(), m_iconvrev->convert(password).c_str());
-	} catch (std::exception &e) {
+	} catch (const std::exception &e) {
 		throw login_error((string)"Trying to authenticate failed: " + e.what() + (string)"; username = " + username);
 	}
 	if (ld == nullptr)
@@ -2105,10 +2105,10 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				}
 				for (const auto &sig : lstSignatures)
 					o->second.AddPropObject(p.propname, sig.id);
-			} catch (ldap_error &e) {
+			} catch (const ldap_error &e) {
 				if(!LDAP_NAME_ERROR(e.GetLDAPError()))
 					throw;
-			} catch (std::exception &e) {
+			} catch (const std::exception &e) {
 				ec_log_err("Unable to resolve object from relational attribute type \"%s\"", p.relAttr);
 			}
 		} else {
@@ -2120,10 +2120,10 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				    // String type
 				    try {
 						o->second.SetPropString(p.propname, objectUniqueIDtoAttributeData(signature.id, p.result_attr.c_str()));
-                    } catch (ldap_error &e) {
+					} catch (const ldap_error &e) {
                         if(!LDAP_NAME_ERROR(e.GetLDAPError()))
                             throw;
-                    } catch (std::exception &e) {
+					} catch (const std::exception &e) {
                         ec_log_err("Unable to get attribute \"%s\" for relation \"%s\" for object \"%s\"", p.result_attr.c_str(), p.ldap_attr.c_str(), o->second.GetPropString(OB_PROP_S_LOGIN).c_str());
                     }
 				} else {
@@ -2133,10 +2133,10 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	    			else
 					ec_log_err("Unable to find relation \"%s\" in attribute \"%s\"", p.ldap_attr.c_str(), p.relAttr);
                 }
-			} catch (ldap_error &e) {
+			} catch (const ldap_error &e) {
 				if(!LDAP_NAME_ERROR(e.GetLDAPError()))
 					throw;
-			} catch (std::exception &e) {
+			} catch (const std::exception &e) {
 				ec_log_err("Unable to resolve object from relational attribute type \"%s\"", p.relAttr);
 			}
 		}

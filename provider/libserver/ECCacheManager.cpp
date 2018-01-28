@@ -1731,7 +1731,7 @@ ECRESULT ECCacheManager::GetObjectFromEntryId(const entryId *lpEntryId,
 	EntryId eid(lpEntryId);
 	try {
 		eid.setFlags(0);
-	} catch (std::runtime_error &e) {
+	} catch (const std::runtime_error &e) {
 		ec_log_err("K-1573: eid.setFlags: %s\n", e.what());
 		/*
 		 * The subsequent functions will catch the too-small eid.size
@@ -1752,7 +1752,7 @@ ECRESULT ECCacheManager::SetObjectEntryId(const entryId *lpEntryId,
     EntryId eid(lpEntryId);
 	try {
 		eid.setFlags(0);
-	} catch (std::runtime_error &e) {
+	} catch (const std::runtime_error &e) {
 		ec_log_err("K-1574: eid.setFlags: %s\n", e.what());
 		/* ignore exception - the following functions will catch the too-small eid.size */
 	}

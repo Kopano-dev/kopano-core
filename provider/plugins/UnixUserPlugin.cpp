@@ -241,13 +241,13 @@ objectsignature_t UnixUserPlugin::resolveName(objectclass_t objclass, const stri
 		// we have a duplicate entry.
 		try {
 			user = resolveUserName(name);
-		} catch (std::exception &e) {
+		} catch (const std::exception &e) {
 			// object is not a user
 		}
 
 		try {
 			group = resolveGroupName(name);
-		} catch (std::exception &e) {
+		} catch (const std::exception &e) {
 			// object is not a group
 		}
 
@@ -650,7 +650,7 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	try {
 		findGroupID(tostring(pws.pw_gid), &grs, buffer);
 		objectlist.emplace_back(objectid_t(tostring(grs.gr_gid), DISTLIST_SECURITY), grs.gr_name);
-	} catch (std::exception &e) {
+	} catch (const std::exception &e) {
 		// Ignore error
 	}	
 
@@ -713,7 +713,7 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	for (unsigned int i = 0; grp.gr_mem[i] != NULL; ++i)
 		try {
 			objectlist.emplace_back(resolveUserName(grp.gr_mem[i]));
-		} catch (std::exception &e) {
+		} catch (const std::exception &e) {
 			// Ignore error
 		}
 
@@ -790,7 +790,7 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 				continue;
 			objectlist.emplace_back(sig.id, sig.signature + pw->pw_gecos + pw->pw_name);
 		}
-	} catch (objectnotfound &e) {
+	} catch (const objectnotfound &e) {
 			// Ignore exception, we will check lObjects.empty() later.
 	} // All other exceptions should be thrown further up the chain.
 
@@ -828,8 +828,7 @@ UnixUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	for (const auto &id : objectids) {
 		try {
 			mapdetails[id] = this->getObjectDetails(id);
-		}
-		catch (objectnotfound &e) {
+		} catch (const objectnotfound &e) {
 			// ignore not found error
 		}
 	}

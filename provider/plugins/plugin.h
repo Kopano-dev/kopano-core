@@ -586,7 +586,7 @@ public:
 #endif
 	}
 
-	int GetLDAPError() {return m_ldaperror;}
+	int GetLDAPError() const { return m_ldaperror; }
 };
 
 /**

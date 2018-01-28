@@ -2112,7 +2112,7 @@ SCODE MAPIAllocateBuffer(ULONG cbSize, LPVOID *lppBuffer)
 	try {
 		new(bfr) struct mapibuf_head; /* init mutex */
 		bfr->child = nullptr;
-	} catch (std::exception &e) {
+	} catch (const std::exception &e) {
 		fprintf(stderr, "MAPIAllocateBuffer: %s\n", e.what());
 		free(bfr);
 		return MAKE_MAPI_E(1);
@@ -2259,9 +2259,9 @@ HRESULT MAPILogonEx(ULONG_PTR ulUIParam, const TCHAR *lpszProfileName,
 		// since a profilename can only be us-ascii, convert
 		try {
 			strProfname = convert_to<std::string>(reinterpret_cast<const wchar_t *>(lpszProfileName));
-		} catch (illegal_sequence_exception &) {
+		} catch (const illegal_sequence_exception &) {
 			return MAPI_E_INVALID_PARAMETER;
-		} catch (unknown_charset_exception &) {
+		} catch (const unknown_charset_exception &) {
 			return MAPI_E_CALL_FAILED;
 		}
 	} else {

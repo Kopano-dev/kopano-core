@@ -112,7 +112,7 @@ ECRESULT kopano_init(ECConfig *lpConfig, ECLogger *lpAudit, bool bHostedKopano, 
 		return KCERR_NOT_INITIALIZED;
 	try {
 		g_lpSessionManager = new ECSessionManager(lpConfig, lpAudit, bHostedKopano, bDistributedKopano);
-	} catch (KMAPIError &e) {
+	} catch (const KMAPIError &e) {
 		return e.code();
 	}
 	return g_lpSessionManager->LoadSettings();
