@@ -42,7 +42,7 @@ protected:
 public:
 	static HRESULT Create(ECSESSIONID, ULONG eid_size, const ENTRYID *, ECMsgStore *, WSTransport *, WSTableOutGoingQueue **);
 	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
-	virtual HRESULT HrOpenTable();
+	virtual HRESULT HrOpenTable() override;
 	ALLOC_WRAP_FRIEND;
 };
 

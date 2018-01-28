@@ -37,16 +37,16 @@ protected:
 public:
 	static  HRESULT Create(IMAPISupport *, WSTransport *, ULONG profile_flags, const GUID *, ECABLogon **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
-	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT Logoff(ULONG ulFlags);
-	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
-	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result);
+	virtual HRESULT GetLastError(HRESULT, ULONG flags, MAPIERROR **) override;
+	virtual HRESULT Logoff(ULONG flags) override;
+	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **) override;
+	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result) override;
 	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
-	virtual HRESULT Unadvise(ULONG ulConnection);
-	virtual HRESULT OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPMAPISTATUS * lppMAPIStatus);
+	virtual HRESULT Unadvise(ULONG conn) override;
+	virtual HRESULT OpenStatusEntry(const IID *intf, ULONG flags, ULONG *objtype, IMAPIStatus **) override;
 	virtual HRESULT OpenTemplateID(ULONG tpl_size, const ENTRYID *tpl_eid, ULONG tpl_flags, IMAPIProp *propdata, const IID *intf, IMAPIProp **propnew, IMAPIProp *sibling) override;
-	virtual HRESULT GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable);
-	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList);
+	virtual HRESULT GetOneOffTable(ULONG flags, IMAPITable **) override;
+	virtual HRESULT PrepareRecips(ULONG flags, const SPropTagArray *, ADRLIST *recips) override;
 
 	KC::object_ptr<IMAPISupport> m_lpMAPISup;
 	KC::object_ptr<WSTransport> m_lpTransport;

@@ -52,19 +52,19 @@ public:
 	 * \return hrSuccess on success.
 	 */
 	_kc_hidden static HRESULT Create(ECArchiveAwareMsgStore *store, BOOL fNew, BOOL modify, ULONG flags, ECMessage **);
-	_kc_hidden virtual HRESULT HrLoadProps(void);
-	_kc_hidden virtual HRESULT HrSetRealProp(const SPropValue *);
-	_kc_hidden virtual HRESULT OpenProperty(ULONG proptag, LPCIID lpiid, ULONG iface_opts, ULONG flags, LPUNKNOWN *);
-	_kc_hidden virtual HRESULT OpenAttach(ULONG atnum, LPCIID iface, ULONG flags, LPATTACH *ret);
-	_kc_hidden virtual HRESULT CreateAttach(LPCIID iface, ULONG flags, ULONG *atnum, LPATTACH *ret);
-	_kc_hidden virtual HRESULT DeleteAttach(ULONG atnum, ULONG ui_param, LPMAPIPROGRESS, ULONG flags);
-	_kc_hidden virtual HRESULT ModifyRecipients(ULONG flags, const ADRLIST *mods);
-	_kc_hidden virtual HRESULT SaveChanges(ULONG flags);
+	_kc_hidden virtual HRESULT HrLoadProps() override;
+	_kc_hidden virtual HRESULT HrSetRealProp(const SPropValue *) override;
+	_kc_hidden virtual HRESULT OpenProperty(ULONG proptag, const IID *intf, ULONG iface_opts, ULONG flags, IUnknown **) override;
+	_kc_hidden virtual HRESULT OpenAttach(ULONG atnum, const IID *iface, ULONG flags, IAttach **) override;
+	_kc_hidden virtual HRESULT CreateAttach(const IID *intf, ULONG flags, ULONG *atnum, IAttach **) override;
+	_kc_hidden virtual HRESULT DeleteAttach(ULONG atnum, ULONG ui_param, IMAPIProgress *, ULONG flags) override;
+	_kc_hidden virtual HRESULT ModifyRecipients(ULONG flags, const ADRLIST *mods) override;
+	_kc_hidden virtual HRESULT SaveChanges(ULONG flags) override;
 	_kc_hidden static HRESULT SetPropHandler(ULONG proptag, void *prov, const SPropValue *, void *param);
 	_kc_hidden bool IsLoading(void) const { return m_bLoading; }
 
 protected:
-	_kc_hidden virtual HRESULT HrDeleteRealProp(ULONG proptag, BOOL overwrite_ro);
+	_kc_hidden virtual HRESULT HrDeleteRealProp(ULONG proptag, BOOL overwrite_ro) override;
 
 private:
 	_kc_hidden HRESULT MapNamedProps(void);

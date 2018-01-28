@@ -54,12 +54,12 @@ public:
 	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
 
 	// IMAPIProp override
-	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
-	virtual HRESULT SaveChanges(ULONG ulFlags);
-	virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
-	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
+	virtual HRESULT OpenProperty(ULONG tag, const IID *intf, ULONG iface_opts, ULONG flags, IUnknown **) override;
+	virtual HRESULT SaveChanges(ULONG flags) override;
+	virtual HRESULT CopyTo(ULONG nexcl, const IID *excl, const SPropTagArray *exclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **) override;
+	virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **) override;
 	virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *, ULONG flags, ULONG *nvals, MAPINAMEID ***names) override;
-	virtual HRESULT GetIDsFromNames(ULONG cNames, LPMAPINAMEID * ppNames, ULONG ulFlags, LPSPropTagArray * pptaga);
+	virtual HRESULT GetIDsFromNames(ULONG n, MAPINAMEID **, ULONG flags, SPropTagArray **) override;
 
 	virtual HRESULT HrSetSyncId(ULONG ulSyncId);
 	virtual HRESULT SetParentID(ULONG eid, const ENTRYID *eid_size);
@@ -67,20 +67,19 @@ public:
 	virtual BOOL IsICSObject();
 
 protected:
-	HRESULT HrLoadProps();
-	virtual HRESULT HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);
-
+	HRESULT HrLoadProps() override;
+	virtual HRESULT HrSaveChild(ULONG flags, MAPIOBJECT *) override;
 	HRESULT GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValue);
 	HRESULT SetSerializedACLData(const SPropValue *lpsPropValue);
 	HRESULT	UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms);
 
 	// IECServiceAdmin and IECSecurity
-	virtual HRESULT GetUserList(ULONG eid_size, const ENTRYID *comp_eid, ULONG flags, ULONG *nusers, ECUSER **);
-	virtual HRESULT GetGroupList(ULONG eid_size, const ENTRYID *comp_eid, ULONG flags, ULONG *ngrps, ECGROUP **);
-	virtual HRESULT GetCompanyList(ULONG ulFlags, ULONG *lpcCompanies, ECCOMPANY **lppsCompanies);
+	virtual HRESULT GetUserList(ULONG eid_size, const ENTRYID *comp_eid, ULONG flags, ULONG *nusers, ECUSER **) override;
+	virtual HRESULT GetGroupList(ULONG eid_size, const ENTRYID *comp_eid, ULONG flags, ULONG *ngrps, ECGROUP **) override;
+	virtual HRESULT GetCompanyList(ULONG flags, ULONG *ncomp, ECCOMPANY **) override;
 	// IECSecurity
-	virtual HRESULT GetOwner(ULONG *lpcbOwner, LPENTRYID *lppOwner);
-	virtual HRESULT GetPermissionRules(int ulType, ULONG* lpcPermissions, ECPERMISSION **lppECPermissions);
+	virtual HRESULT GetOwner(ULONG *id_size, ENTRYID **) override;
+	virtual HRESULT GetPermissionRules(int type, ULONG *nperm, ECPERMISSION **) override;
 	virtual HRESULT SetPermissionRules(ULONG n, const ECPERMISSION *) override;
 
 public:

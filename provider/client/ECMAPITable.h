@@ -46,31 +46,29 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual BOOL IsDeferred();
 	virtual HRESULT FlushDeferred(LPSRowSet *lppRowSet = NULL);
-
-	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG * lpulConnection);
-	virtual HRESULT Unadvise(ULONG ulConnection);
-	virtual HRESULT GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType);
-	virtual HRESULT SetColumns(const SPropTagArray *lpPropTagArray, ULONG ulFlags);
-	virtual HRESULT QueryColumns(ULONG ulFlags, LPSPropTagArray *lpPropTagArray);
-	virtual HRESULT GetRowCount(ULONG ulFlags, ULONG *lpulCount);
-	virtual HRESULT SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought) ;
-	virtual HRESULT SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator);
-	virtual HRESULT QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *lpulDenominator);
+	virtual HRESULT GetLastError(HRESULT, ULONG flags, MAPIERROR **) override;
+	virtual HRESULT Advise(ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
+	virtual HRESULT Unadvise(ULONG conn) override;
+	virtual HRESULT GetStatus(ULONG *tbl_status, ULONG *tbl_type) override;
+	virtual HRESULT SetColumns(const SPropTagArray *, ULONG flags) override;
+	virtual HRESULT QueryColumns(ULONG flags, SPropTagArray **) override;
+	virtual HRESULT GetRowCount(ULONG flags, ULONG *count) override;
+	virtual HRESULT SeekRow(BOOKMARK origin, LONG rows, LONG *sought) override;
+	virtual HRESULT SeekRowApprox(ULONG num, ULONG denom) override;
+	virtual HRESULT QueryPosition(ULONG *row, ULONG *num, ULONG *denom) override;
 	virtual HRESULT FindRow(const SRestriction *, BOOKMARK origin, ULONG flags) override;
 	virtual HRESULT Restrict(const SRestriction *, ULONG flags) override;
-	virtual HRESULT CreateBookmark(BOOKMARK* lpbkPosition);
-	virtual HRESULT FreeBookmark(BOOKMARK bkPosition);
-	virtual HRESULT SortTable(const SSortOrderSet *, ULONG flags);
-	virtual HRESULT QuerySortOrder(LPSSortOrderSet *lppSortCriteria);
-	virtual HRESULT QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows);
-	virtual HRESULT Abort();
-	virtual HRESULT ExpandRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulRowCount, ULONG ulFlags, LPSRowSet * lppRows, ULONG *lpulMoreRows);
-	virtual HRESULT CollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulFlags, ULONG *lpulRowCount);
-	virtual HRESULT WaitForCompletion(ULONG ulFlags, ULONG ulTimeout, ULONG *lpulTableStatus);
-	virtual HRESULT GetCollapseState(ULONG ulFlags, ULONG cbInstanceKey, LPBYTE lpbInstanceKey, ULONG *lpcbCollapseState, LPBYTE *lppbCollapseState);
-	virtual HRESULT SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation);
-
+	virtual HRESULT CreateBookmark(BOOKMARK *pos) override;
+	virtual HRESULT FreeBookmark(BOOKMARK pos) override;
+	virtual HRESULT SortTable(const SSortOrderSet *, ULONG flags) override;
+	virtual HRESULT QuerySortOrder(SSortOrderSet **crit) override;
+	virtual HRESULT QueryRows(LONG rows, ULONG flags, SRowSet **) override;
+	virtual HRESULT Abort() override;
+	virtual HRESULT ExpandRow(ULONG ik_size, BYTE *instance_key, ULONG rows, ULONG flags, SRowSet **, ULONG *more) override;
+	virtual HRESULT CollapseRow(ULONG ik_size, BYTE *instance_key, ULONG flags, ULONG *rows) override;
+	virtual HRESULT WaitForCompletion(ULONG flags, ULONG timeout, ULONG *tbl_status) override;
+	virtual HRESULT GetCollapseState(ULONG flags, ULONG ik_size, BYTE *instance_key, ULONG *state_size, BYTE **state) override;
+	virtual HRESULT SetCollapseState(ULONG flags, ULONG state_size, BYTE *state, BOOKMARK *loc) override;
 	static HRESULT Reload(void *lpParam);
 
 private:
