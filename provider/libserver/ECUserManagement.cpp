@@ -3127,7 +3127,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsign
 	struct propVal *lpPropVal;
 	unsigned int ulOrder = 0;
 	ECSecurity *lpSecurity = NULL;
-	struct propValArray sPropVals{__gszeroinit};
+	struct propValArray sPropVals;
 	struct propValArray *lpPropVals = &sPropVals;
 	ULONG ulMapiType = 0;
 

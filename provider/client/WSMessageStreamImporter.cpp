@@ -84,7 +84,7 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId, ULONG cbE
 {
 	HRESULT hr = hrSuccess;
 	entryId sEntryId, sFolderEntryId;
-	struct propVal sConflictItems{__gszeroinit};
+	struct propVal sConflictItems;
 	WSMessageStreamImporterPtr ptrStreamImporter;
 	ECSyncSettings* lpSyncSettings = NULL;
 

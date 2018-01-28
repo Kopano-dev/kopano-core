@@ -283,8 +283,8 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 
 ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syncIds, unsigned int ulChangeId, unsigned int ulChangeType)
 {
-	notification notifyItem{__gszeroinit};
-	notificationICS ics{__gszeroinit};
+	notification notifyItem;
+	notificationICS ics;
 	entryId syncStateBin;
 	notifySyncState	syncState;
 	std::map<ECSESSIONID,unsigned int> mapInserted;
@@ -329,8 +329,8 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 
 ECRESULT ECSessionGroup::AddChangeNotification(ECSESSIONID ulSessionId, unsigned int ulConnection, unsigned int ulSyncId, unsigned long ulChangeId)
 {
-	notification notifyItem{__gszeroinit};
-	notificationICS ics{__gszeroinit};
+	notification notifyItem;
+	notificationICS ics;
 	entryId syncStateBin;
 	notifySyncState	syncState;
 

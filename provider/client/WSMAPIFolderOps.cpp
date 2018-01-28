@@ -452,7 +452,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, L
 	ECRESULT	er = erSuccess;
 	entryId sEntryId;
 	KC::memory_ptr<SPropValue> lpSPropValPCL, lpSPropValCK;
-	getChangeInfoResponse sChangeInfo{__gszeroinit};
+	getChangeInfoResponse sChangeInfo;
 
 	LockSoap();
 

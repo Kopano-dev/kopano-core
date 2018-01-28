@@ -563,14 +563,13 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags, LPSPropTagArray lpsPropTagAr
 {
     HRESULT hr = hrSuccess;
     ECRESULT er = erSuccess;
-    
-	struct propTagArray sColumns{__gszeroinit};
-	struct tableMultiRequest sRequest{__gszeroinit};
-	struct tableMultiResponse sResponse{__gszeroinit};
+	struct propTagArray sColumns;
+	struct tableMultiRequest sRequest;
+	struct tableMultiResponse sResponse;
 	struct restrictTable *lpsRestrictTable = NULL;
-	struct tableQueryRowsRequest sQueryRows{__gszeroinit};
-	struct tableSortRequest sSort{__gszeroinit};
-	struct tableOpenRequest sOpen{__gszeroinit};
+	struct tableQueryRowsRequest sQueryRows;
+	struct tableSortRequest sSort;
+	struct tableOpenRequest sOpen;
 	unsigned int i;
 	
 	if(ulTableId == 0) {

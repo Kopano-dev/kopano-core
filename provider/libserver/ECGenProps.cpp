@@ -327,10 +327,9 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 	unsigned int	ulFlags = 0;
 	unsigned int	ulUserId = 0;
 	char*			lpStoreName = NULL;
-	struct propVal sPropVal{__gszeroinit};
-
-	struct propValArray sPropValArray{__gszeroinit};
-	struct propTagArray sPropTagArray{__gszeroinit};
+	struct propVal sPropVal;
+	struct propValArray sPropValArray;
+	struct propTagArray sPropTagArray;
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 	auto usrmgt = lpSession->GetUserManagement();
 	auto sec = lpSession->GetSecurity();
@@ -752,8 +751,8 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 {
 	unsigned int		ulUserId = 0;
 	unsigned int	    ulCompanyId = 0;
-	struct propValArray sPropValArray{__gszeroinit};
-	struct propTagArray sPropTagArray{__gszeroinit};
+	struct propValArray sPropValArray;
+	struct propTagArray sPropTagArray;
 	std::string strFormat;
 	char*				lpStoreName = NULL;
 
