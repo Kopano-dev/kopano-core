@@ -27,7 +27,7 @@
 class ECDistList _kc_final : public ECABContainer, public IDistList {
 	public:
 	static HRESULT Create(void *provider, BOOL modify, ECDistList **);
-	static HRESULT TableRowGetProp(void *provider, struct propVal *src, SPropValue *dst, void **base, ULONG type);
+	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 
 	// Override IMAPIProp
 	virtual HRESULT CopyTo(ULONG nexcl, const IID *excl, const SPropTagArray *exclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **);
@@ -48,8 +48,7 @@ private:
 
 public:
 	static HRESULT Create(void* lpProvider, BOOL fModify, ECMailUser** lppMailUser);
-
-	static HRESULT TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType);
+	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 	static HRESULT DefaultGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;

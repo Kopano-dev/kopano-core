@@ -33,7 +33,7 @@ public:
 	static HRESULT	Create(void* lpProvider, ULONG ulObjType, BOOL fModify, ECABContainer **lppABContainer);
 
 	static HRESULT	DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFLags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
-	static HRESULT TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType);
+	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 
 	// IUnknown
 	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;

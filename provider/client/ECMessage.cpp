@@ -1942,7 +1942,9 @@ HRESULT ECMessage::DeleteProps(const SPropTagArray *lpPropTagArray,
 	return hrSuccess;
 }
 
-HRESULT ECMessage::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
+HRESULT ECMessage::TableRowGetProp(void *lpProvider,
+    const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
+    void **lpBase, ULONG ulType)
 {
 	HRESULT hr = hrSuccess;
 	auto lpMsgStore = static_cast<ECMsgStore *>(lpProvider);

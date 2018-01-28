@@ -51,7 +51,7 @@ HRESULT ECDistList::Create(void *lpProvider, BOOL fModify,
 	return alloc_wrap<ECDistList>(lpProvider, fModify).put(lppDistList);
 }
 
-HRESULT ECDistList::TableRowGetProp(void *provider, struct propVal *src,
+HRESULT ECDistList::TableRowGetProp(void *provider, const struct propVal *src,
     SPropValue *dst, void **base, ULONG type)
 {
 	return MAPI_E_NOT_FOUND;
@@ -105,7 +105,8 @@ HRESULT	ECMailUser::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT ECMailUser::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
+HRESULT ECMailUser::TableRowGetProp(void *lpProvider, const struct propVal *src,
+    SPropValue *dst, void **base, ULONG type)
 {
 	return MAPI_E_NOT_FOUND;
 }

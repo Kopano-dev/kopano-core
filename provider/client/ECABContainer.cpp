@@ -192,7 +192,9 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 	return hr;
 }
 
-HRESULT ECABContainer::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
+HRESULT ECABContainer::TableRowGetProp(void *lpProvider,
+    const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
+    void **lpBase, ULONG ulType)
 {
 	HRESULT hr = hrSuccess;
 	ULONG size = 0;

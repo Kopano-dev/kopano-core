@@ -80,7 +80,9 @@ HRESULT	ECABProp::DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 	return hr;
 }
 
-HRESULT ECABProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
+HRESULT ECABProp::TableRowGetProp(void *lpProvider,
+    const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
+    void **lpBase, ULONG ulType)
 {
 	HRESULT hr = hrSuccess;
 

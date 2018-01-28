@@ -124,7 +124,7 @@ public:
 	virtual HRESULT HrLoadProps();
 
 	// Our table-row getprop handler (handles client-side generation of table columns)
-	static HRESULT TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType);
+	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 
 	// RTF overrides
 	virtual HRESULT HrSetRealProp(const SPropValue *lpsPropValue);

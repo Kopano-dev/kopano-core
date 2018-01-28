@@ -288,7 +288,9 @@ HRESULT ECMAPIProp::SetPropHandler(ULONG ulPropTag, void *lpProvider,
 	return hr;
 }
 
-HRESULT ECMAPIProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
+HRESULT ECMAPIProp::TableRowGetProp(void *lpProvider,
+    const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
+    void **lpBase, ULONG ulType)
 {
 	HRESULT hr = hrSuccess;
 	auto lpMsgStore = static_cast<ECMsgStore *>(lpProvider);
