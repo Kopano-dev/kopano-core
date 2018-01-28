@@ -800,7 +800,7 @@ HRESULT ECMAPIProp::GetPermissionRules(int ulType, ULONG *lpcPermissions,
 }
 
 HRESULT ECMAPIProp::SetPermissionRules(ULONG cPermissions,
-    ECPERMISSION *lpECPermissions)
+    const ECPERMISSION *lpECPermissions)
 {
 	if (m_lpEntryId == NULL)
 		return MAPI_E_NO_ACCESS;

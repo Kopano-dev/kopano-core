@@ -3308,8 +3308,9 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 	return hr;
 }
 
-HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID, LPENTRYID lpEntryID,
-    ULONG cPermissions, ECPERMISSION *lpECPermissions)
+HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, ULONG cPermissions,
+    const ECPERMISSION *lpECPermissions)
 {
 	ECRESULT		er = erSuccess;
 	HRESULT			hr = hrSuccess;

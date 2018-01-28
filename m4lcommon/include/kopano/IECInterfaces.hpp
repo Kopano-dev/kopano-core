@@ -166,7 +166,7 @@ class IECSecurity : public virtual IECSecSvcAdm_base {
 	public:
 	virtual HRESULT GetOwner(ULONG *lpcbOwner, LPENTRYID *lppOwner) = 0;
 	virtual HRESULT GetPermissionRules(int ulType, ULONG* lpcPermissions, ECPERMISSION **lppECPermissions) = 0;
-	virtual HRESULT SetPermissionRules(ULONG cPermissions, ECPERMISSION *lpECPermissions) = 0;
+	virtual HRESULT SetPermissionRules(ULONG nperm, const ECPERMISSION *) = 0;
 };
 
 class IECServiceAdmin : public virtual IECSecSvcAdm_base {

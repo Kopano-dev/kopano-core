@@ -82,7 +82,7 @@ protected:
 	// IECSecurity
 	virtual HRESULT GetOwner(ULONG *lpcbOwner, LPENTRYID *lppOwner);
 	virtual HRESULT GetPermissionRules(int ulType, ULONG* lpcPermissions, ECPERMISSION **lppECPermissions);
-	virtual HRESULT SetPermissionRules(ULONG cPermissions, ECPERMISSION *lpECPermissions);
+	virtual HRESULT SetPermissionRules(ULONG n, const ECPERMISSION *) override;
 
 public:
 	ECMsgStore *GetMsgStore() const { return static_cast<ECMsgStore *>(lpProvider); }
