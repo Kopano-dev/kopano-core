@@ -25,9 +25,11 @@
 #include "ECABLogon.h"
 #include "WSTransport.h"
 
+class ECABLogon;
+
 class ECABProp : public ECGenericProp {
 protected:
-	ECABProp(void* lpProvider, ULONG ulObjType, BOOL fModify, const char *szClassName = NULL);
+	ECABProp(ECABLogon *prov, ULONG obj_type, BOOL modify, const char *cls = nullptr);
 	virtual ~ECABProp(void) = default;
 public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;

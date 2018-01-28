@@ -75,7 +75,7 @@ static ECPERMISSION RightsToECPermCheap(const struct rights r)
 	return p;
 }
 
-ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
+ECMAPIProp::ECMAPIProp(ECMsgStore *lpProvider, ULONG ulObjType, BOOL fModify,
     const ECMAPIProp *lpRoot, const char *szClassName) :
 	ECGenericProp(lpProvider, ulObjType, fModify, szClassName),
 	/*

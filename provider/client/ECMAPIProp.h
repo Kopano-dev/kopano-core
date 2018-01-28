@@ -32,7 +32,7 @@ class ECMsgStore;
 
 class ECMAPIProp : public ECGenericProp, public IECSecurity {
 protected:
-	ECMAPIProp(void *provider, ULONG obj_type, BOOL modify, const ECMAPIProp *root, const char *class_name = nullptr);
+	ECMAPIProp(ECMsgStore *prov, ULONG obj_type, BOOL modify, const ECMAPIProp *root, const char *cls = nullptr);
 	virtual ~ECMAPIProp() = default;
 
 public:

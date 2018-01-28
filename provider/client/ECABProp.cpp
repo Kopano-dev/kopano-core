@@ -24,7 +24,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECDebug.h>
 
-ECABProp::ECABProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
+ECABProp::ECABProp(ECABLogon *lpProvider, ULONG ulObjType, BOOL fModify,
     const char *szClassName) :
 	ECGenericProp(lpProvider, ulObjType, fModify, szClassName)
 {
