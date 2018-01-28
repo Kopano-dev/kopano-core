@@ -76,8 +76,8 @@ protected:
 	HRESULT	UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms);
 
 	// IECServiceAdmin and IECSecurity
-	virtual HRESULT GetUserList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers);
-	virtual HRESULT GetGroupList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcGroups, ECGROUP **lppsGroups);
+	virtual HRESULT GetUserList(ULONG eid_size, const ENTRYID *comp_eid, ULONG flags, ULONG *nusers, ECUSER **);
+	virtual HRESULT GetGroupList(ULONG eid_size, const ENTRYID *comp_eid, ULONG flags, ULONG *ngrps, ECGROUP **);
 	virtual HRESULT GetCompanyList(ULONG ulFlags, ULONG *lpcCompanies, ECCOMPANY **lppsCompanies);
 	// IECSecurity
 	virtual HRESULT GetOwner(ULONG *lpcbOwner, LPENTRYID *lppOwner);

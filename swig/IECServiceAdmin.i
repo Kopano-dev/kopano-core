@@ -1,6 +1,6 @@
 %include "typemaps.i"
 
-%apply (ULONG cbEntryID, LPENTRYID lpEntryID) {(ULONG cbUserId, LPENTRYID lpUserId), (ULONG cbStoreId, LPENTRYID lpStoreId), (ULONG cbRootId, LPENTRYID lpRootId), (ULONG cbCompanyId, LPENTRYID lpCompanyId), (ULONG cbGroupId, LPENTRYID lpGroupId), (ULONG cbSenderId, LPENTRYID lpSenderId), (ULONG cbRecipientId, LPENTRYID lpRecipientId), (ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId)};
+%apply (ULONG cbEntryID, LPENTRYID lpEntryID) {(ULONG cbUserId, LPENTRYID lpUserId), (ULONG cbStoreId, LPENTRYID lpStoreId), (ULONG cbRootId, LPENTRYID lpRootId), (ULONG cbCompanyId, LPENTRYID lpCompanyId), (ULONG cbCompanyId, ENTRYID *lpCompanyId), (ULONG cbGroupId, LPENTRYID lpGroupId), (ULONG cbSenderId, LPENTRYID lpSenderId), (ULONG cbRecipientId, LPENTRYID lpRecipientId), (ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId)};
 
 %apply (ULONG *, MAPIARRAY *) {(ULONG *OUTPUT, LPECUSER *OUTPUT), (ULONG *OUTPUT, LPECGROUP *OUTPUT), (ULONG *OUTPUT, LPECCOMPANY *OUTPUT)};
 %apply MAPISTRUCT_W_FLAGS {LPECUSER, LPECCOMPANY, LPECGROUP};
@@ -58,7 +58,7 @@ public:
 	virtual HRESULT SetUser(LPECUSER lpECUser, ULONG ulFlags) = 0;
 	virtual HRESULT GetUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, LPECUSER *OUTPUT /*lppECUser*/) = 0;
 	virtual HRESULT ResolveUserName(LPTSTR lpszUserName, ULONG ulFlags, ULONG *OUTPUT, LPENTRYID *OUTPUT) = 0;
-	virtual HRESULT GetUserList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *OUTPUT /*lpcUsers*/, LPECUSER *OUTPUT /*lppsUsers*/) = 0;
+	virtual HRESULT GetUserList(ULONG cbCompanyId, const ENTRYID *lpCompanyId, ULONG ulFlags, ULONG *OUTPUT /*lpcUsers*/, LPECUSER *OUTPUT /*lppsUsers*/) = 0;
 	virtual HRESULT GetSendAsList(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG *OUTPUT /*lpcSenders*/, LPECUSER *OUTPUT /*lppSenders*/) = 0;
 	virtual HRESULT AddSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId) = 0;
 	virtual HRESULT DelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId) = 0;
@@ -71,7 +71,7 @@ public:
 	virtual HRESULT SetGroup(LPECGROUP lpECGroup, ULONG ulFlags) = 0;
 	virtual HRESULT GetGroup(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG ulFlags, LPECGROUP *OUTPUT/*lppECGroup*/) = 0;
 	virtual HRESULT ResolveGroupName(LPTSTR lpszGroupName, ULONG ulFlags, ULONG *OUTPUT, LPENTRYID *OUTPUT) = 0;
-	virtual HRESULT GetGroupList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *OUTPUT /*lpcGroups*/, LPECGROUP *OUTPUT /*lppsGroups*/) = 0;
+	virtual HRESULT GetGroupList(ULONG cbCompanyId, const ENTRYID *lpCompanyId, ULONG ulFlags, ULONG *OUTPUT /*lpcGroups*/, LPECGROUP *OUTPUT /*lppsGroups*/) = 0;
 
 	virtual HRESULT DeleteGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG cbUserId, LPENTRYID lpUserId) = 0;
 	virtual HRESULT AddGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG cbUserId, LPENTRYID lpUserId) = 0;
