@@ -3253,7 +3253,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 		{1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
 
 	object_ptr<IMAPITable> table;
-	auto hr = folder->GetHierarchyTable(CONVENIENT_DEPTH, &~table);
+	auto hr = folder->GetHierarchyTable(CONVENIENT_DEPTH | MAPI_DEFERRED_ERRORS, &~table);
 	if (hr != hrSuccess)
 		return kc_perror("K-2394", hr);
 	hr = table->SetColumns(cols, TBL_BATCH);
