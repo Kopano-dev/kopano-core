@@ -287,7 +287,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	 * interpreter with global state (as it is being said), we cannot thread.
 	 */
 	if (pid == 0) {
-		execv(argv[0], const_cast<char *const *>(argv));
+		execvp(argv[0], const_cast<char *const *>(argv));
 #ifdef SPOOLER_FORK_DEBUG
 		_exit(EXIT_WAIT);
 #else
