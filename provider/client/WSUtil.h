@@ -22,14 +22,13 @@
 #include <mapicode.h>
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
-
-#include "soapKCmdProxy.h"
-
 #include "ECMsgStore.h"
 
 namespace KC {
 class convert_context;
 }
+
+class KCmd;
 
 HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst, const SPropValue *lpPropValSrc, convert_context *lpConverter = NULL);
 HRESULT CopySOAPPropValToMAPIPropVal(LPSPropValue lpPropValDst, const struct propVal *lpPropValSrc, void *lpBase, convert_context *lpConverter = NULL);

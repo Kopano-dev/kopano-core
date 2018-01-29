@@ -21,6 +21,7 @@
 #include <kopano/ECGuid.h>
 #include "SOAPUtils.h"
 #include "WSUtil.h"
+#include "soapKCmdProxy.h"
 
 WSStoreTableView::WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,

@@ -19,7 +19,8 @@
 #define SOAPSOCK_H
 
 #include <openssl/ssl.h>
-#include "soapKCmdProxy.h"
+
+class KCmd;
 
 int ssl_verify_callback_kopano_silent(int ok, X509_STORE_CTX *store);
 int ssl_verify_callback_kopano(int ok, X509_STORE_CTX *store);

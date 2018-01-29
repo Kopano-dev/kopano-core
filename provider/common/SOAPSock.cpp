@@ -28,6 +28,7 @@
 
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
+#include "soapKCmdProxy.h"
 
 // we cannot patch http_post now (see external/gsoap/*.diff), so we redefine it
 static int

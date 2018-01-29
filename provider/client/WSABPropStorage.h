@@ -28,10 +28,10 @@
 #include "ECABLogon.h"
 #include "WSTableView.h"
 #include "WSTransport.h"
-#include "soapKCmdProxy.h"
-
 #include <mapi.h>
 #include <mapispi.h>
+
+class KCmd;
 
 class WSABPropStorage _kc_final : public ECUnknown, public IECPropStorage {
 protected:

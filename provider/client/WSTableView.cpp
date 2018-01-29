@@ -21,6 +21,7 @@
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 #include <kopano/charset/convert.h>
+#include "soapKCmdProxy.h"
 
 /*
  * TableView operations for WS transport

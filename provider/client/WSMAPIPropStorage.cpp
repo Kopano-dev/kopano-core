@@ -23,6 +23,7 @@
 #include <kopano/Util.h>
 #include "pcutil.hpp"
 #include <kopano/charset/convert.h>
+#include "soapKCmdProxy.h"
 
 /*
  *

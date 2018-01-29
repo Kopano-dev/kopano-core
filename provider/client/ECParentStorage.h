@@ -32,8 +32,6 @@
 #include "WSMAPIPropStorage.h"
 
 #include <kopano/kcodes.h>
-#include "soapKCmdProxy.h"
-
 #include <mapi.h>
 #include <mapispi.h>
 

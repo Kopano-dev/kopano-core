@@ -20,12 +20,14 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <mutex>
+#include "soapH.h"
 #include "kcore.hpp"
 
 #include <kopano/kcodes.h>
 #include <mapi.h>
 #include <mapispi.h>
-#include "soapKCmdProxy.h"
+
+class KCmd;
 class WSTransport;
 
 typedef HRESULT (*RELOADCALLBACK)(void *lpParam);

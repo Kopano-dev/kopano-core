@@ -24,17 +24,18 @@
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
 #include <kopano/Util.h>
-#include "soapKCmdProxy.h"
 #include "ics_client.hpp"
 #include <vector>
 
 #include <mapi.h>
 #include <mapispi.h>
+#include "soapStub.h"
 
 namespace KC {
 class utf8string;
 }
 
+class KCmd;
 class WSTransport;
 
 class WSMAPIFolderOps _kc_final : public ECUnknown {

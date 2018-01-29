@@ -25,7 +25,6 @@
 #include "IECPropStorage.h"
 
 #include <kopano/kcodes.h>
-#include "soapKCmdProxy.h"
 #include "WSTransport.h"
 
 #include <mapi.h>
@@ -34,6 +33,8 @@
 namespace KC {
 class convert_context;
 }
+
+class KCmd;
 
 class WSMAPIPropStorage _kc_final : public ECUnknown, public IECPropStorage {
 protected:

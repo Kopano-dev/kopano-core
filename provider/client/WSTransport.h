@@ -26,8 +26,6 @@
 #include <mutex>
 #include "kcore.hpp"
 #include "ECMAPIProp.h"
-#include "soapKCmdProxy.h"
-
 #include <kopano/kcodes.h>
 #include <kopano/Util.h>
 #include "WSStoreTableView.h"
@@ -43,6 +41,7 @@ namespace KC {
 class utf8string;
 }
 
+class KCmd;
 class WSMessageStreamExporter;
 class WSMessageStreamImporter;
 

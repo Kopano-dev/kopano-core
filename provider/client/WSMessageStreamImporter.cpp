@@ -21,6 +21,7 @@
 #include "WSMessageStreamImporter.h"
 #include "WSUtil.h"
 #include "ECSyncSettings.h"
+#include "soapKCmdProxy.h"
 
 /**
  * Create a new WSMessageStreamSink instance

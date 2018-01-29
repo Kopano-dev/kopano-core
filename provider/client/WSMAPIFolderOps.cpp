@@ -28,6 +28,7 @@
 #include "WSUtil.h"
 
 #include <kopano/charset/utf8string.h>
+#include "soapKCmdProxy.h"
 
 #define START_SOAP_CALL retry:
 #define END_SOAP_CALL 	\
