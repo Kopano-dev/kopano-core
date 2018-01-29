@@ -291,9 +291,8 @@ class Recurrence(object):
 
         data += struct.pack('<I', self.end_type)
 
-        # XXX check specs, php seems wrong
         if self.end_type == 0x2021: # stop after date
-            occurrence_count = 0xa
+            occurrence_count = 0xa # TODO is this really needed (default occ count from webapp!)
         elif self.end_type == 0x2022: # stop after N occurrences
             occurrence_count = self.occurrence_count
         else:
@@ -456,6 +455,15 @@ class Recurrence(object):
             return self.period//(24*60)
         else:
             return self.period
+
+    @property
+    def range_type(self):
+        if self.end_type == 0x2021:
+            return 'end_date'
+        elif self.end_type == 0x2022:
+            return 'occ_count'
+        else:
+            return 'no_end'
 
     @property
     def recurrences(self):

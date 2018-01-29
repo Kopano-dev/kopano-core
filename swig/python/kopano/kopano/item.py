@@ -74,6 +74,7 @@ from .compat import (
     pickle_load as _pickle_load, pickle_loads as _pickle_loads,
     fake_unicode as _unicode, is_file as _is_file,
     encode as _encode, benc as _benc, bdec as _bdec,
+    default as _default,
 )
 
 from .defs import (
@@ -266,11 +267,16 @@ class Item(Properties, Contact, Appointment):
     def subject(self):
         """ Item subject """
 
-        return self._get_fast(PR_SUBJECT_W, u'')
+        return self._get_fast(PR_SUBJECT_W, _default(u''))
 
     @subject.setter
     def subject(self, x):
-        self._set_fast(PR_SUBJECT_W, _unicode(x))
+        if x is None:
+            prop = self.get_prop(PR_SUBJECT_W)
+            if prop:
+                self.delete(prop)
+        else:
+            self._set_fast(PR_SUBJECT_W, _unicode(x))
 
     @property
     def name(self):

@@ -27,6 +27,7 @@ import io
 import sys
 
 _BIN_ENCODING = 'hex'
+_MISSING_NONE = False
 
 # Python 3
 if sys.hexversion >= 0x03000000:
@@ -128,5 +129,14 @@ else:
         return unicode(u)
 
 def set_bin_encoding(encoding):
+    """Override encoding to use for binary identifiers (hex or base64)."""
     global _BIN_ENCODING
     _BIN_ENCODING = encoding
+
+def set_missing_none():
+    """When properties are missing, return *None* instead of default."""
+    global _MISSING_NONE
+    _MISSING_NONE = True
+
+def default(value):
+    return None if _MISSING_NONE else value

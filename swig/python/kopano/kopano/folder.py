@@ -237,7 +237,7 @@ class Folder(Properties):
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
-    def container_class(self):
+    def container_class(self): # TODO return '' by default?
         """
         Property which describes the type of items a folder holds, possible values
         * IPF.Appointment

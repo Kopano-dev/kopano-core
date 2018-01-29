@@ -62,7 +62,7 @@ from .attachment import Attachment
 from .autoaccept import AutoAccept
 from .body import Body
 from .company import Company
-from .compat import set_bin_encoding
+from .compat import set_bin_encoding, set_missing_none
 from .delegation import Delegation
 from .folder import Folder
 from .freebusy import FreeBusyBlock, FreeBusy
@@ -84,6 +84,8 @@ from .parser import parser
 from .service import Service, Worker, server_socket, client_socket
 
 # interactive shortcuts
+
+# TODO add kopano.servers?
 
 class Module(object):
     def __init__(self, module):

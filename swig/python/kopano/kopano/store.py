@@ -416,6 +416,18 @@ class Store(Properties):
             for folder in self.subtree.folders(recurse=recurse, **kwargs):
                 yield folder
 
+    def mail_folders(self, **kwargs):
+        # TODO restriction
+        for folder in self.folders():
+            if folder.container_class in (None, 'IPF.Note'):
+                yield folder
+
+    def contact_folders(self, **kwargs):
+        # TODO restriction
+        for folder in self.folders():
+            if folder.container_class == 'IPF.Contact':
+                yield folder
+
     def calendars(self, **kwargs):
         # TODO restriction
         for folder in self.folders():
