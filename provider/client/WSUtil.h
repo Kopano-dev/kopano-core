@@ -28,7 +28,7 @@ namespace KC {
 class convert_context;
 }
 
-class KCmd;
+class KCmdProxy;
 
 HRESULT CopyMAPIPropValToSOAPPropVal(propVal *lpPropValDst, const SPropValue *lpPropValSrc, convert_context *lpConverter = NULL);
 HRESULT CopySOAPPropValToMAPIPropVal(LPSPropValue lpPropValDst, const struct propVal *lpPropValSrc, void *lpBase, convert_context *lpConverter = NULL);
@@ -66,8 +66,7 @@ HRESULT SoapCompanyToCompany(const struct company *lpCompany, ULONG ulFLags, ECC
 
 HRESULT SvrNameListToSoapMvString8(ECSVRNAMELIST *lpSvrNameList, ULONG ulFLags, struct mv_string8 **lppsSvrNameList);
 HRESULT SoapServerListToServerList(const struct serverList *lpsServerList, ULONG ulFLags, ECSERVERLIST **lppServerList);
-HRESULT CreateSoapTransport(ULONG ulUIFlags, const sGlobalProfileProps &sProfileProps, KCmd **const lppCmd);
-
+extern HRESULT CreateSoapTransport(ULONG ulUIFlags, const sGlobalProfileProps &sProfileProps, KCmdProxy **);
 extern HRESULT WrapServerClientStoreEntry(const char *server_name, const entryId *store_id, ULONG *sid_size, ENTRYID **sid);
 extern HRESULT UnWrapServerClientStoreEntry(ULONG sid_size, const ENTRYID *sid, ULONG *unwrap_sid_size, ENTRYID **unwrap_sid);
 extern HRESULT UnWrapServerClientABEntry(ULONG abid_size, const ENTRYID *abid, ULONG *unwrap_abid_size, ENTRYID **unwrap_abid);

@@ -42,7 +42,7 @@
 
 WSMAPIPropStorage::WSMAPIPropStorage(ULONG cbParentEntryId,
     LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID lpEntryId,
-    ULONG ulFlags, KCmd *cmd, std::recursive_mutex &data_lock,
+    ULONG ulFlags, KCmdProxy *cmd, std::recursive_mutex &data_lock,
     ECSESSIONID sid, unsigned int sc, WSTransport *tp) :
 	ECUnknown("WSMAPIPropStorage"), lpCmd(cmd), lpDataLock(data_lock),
 	ecSessionId(sid), ulServerCapabilities(sc),
@@ -60,7 +60,7 @@ WSMAPIPropStorage::~WSMAPIPropStorage()
 		ECRESULT er = erSuccess;
 
 		LockSoap();		
-		lpCmd->ns__notifyUnSubscribe(ecSessionId, m_ulConnection, &er);
+		lpCmd->notifyUnSubscribe(ecSessionId, m_ulConnection, &er);
 		UnLockSoap();
 	}
 	
@@ -79,7 +79,7 @@ HRESULT WSMAPIPropStorage::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT WSMAPIPropStorage::Create(ULONG cbParentEntryId,
     LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID lpEntryId,
-    ULONG ulFlags, KCmd *lpCmd, std::recursive_mutex &lpDataLock,
+    ULONG ulFlags, KCmdProxy *lpCmd, std::recursive_mutex &lpDataLock,
     ECSESSIONID ecSessionId, unsigned int ulServerCapabilities,
     WSTransport *lpTransport, WSMAPIPropStorage **lppPropStorage)
 {
@@ -105,7 +105,7 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != lpCmd->ns__loadProp(ecSessionId, m_sEntryId, ulObjId, ulPropTag, &sResponse))
+		if (lpCmd->loadProp(ecSessionId, m_sEntryId, ulObjId, ulPropTag, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -425,7 +425,7 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	// ulFlags == object flags, e.g. MAPI_ASSOCIATE for messages, FOLDER_SEARCH on folders...
 	START_SOAP_CALL
 	{
-		if (SOAP_OK != lpCmd->ns__saveObject(ecSessionId, m_sParentEntryId, m_sEntryId, &sSaveObj, ulFlags, m_ulSyncId, &sResponse))
+		if (lpCmd->saveObject(ecSessionId, m_sParentEntryId, m_sEntryId, &sSaveObj, ulFlags, m_ulSyncId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -564,7 +564,7 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 
 	START_SOAP_CALL
 	{
-		if (SOAP_OK != lpCmd->ns__loadObject(ecSessionId, m_sEntryId, ((m_ulConnection == 0) || m_bSubscribed)?NULL:&sNotSubscribe, m_ulFlags | 0x80000000, &sResponse))
+		if (lpCmd->loadObject(ecSessionId, m_sEntryId, (m_ulConnection == 0 || m_bSubscribed) ? nullptr : &sNotSubscribe, m_ulFlags | 0x80000000, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;

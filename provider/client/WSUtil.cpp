@@ -1976,7 +1976,7 @@ HRESULT SoapServerListToServerList(const struct serverList *lpsServerList,
 }
 
 HRESULT CreateSoapTransport(ULONG ulUIFlags, const sGlobalProfileProps
-    &sProfileProps, KCmd **const lppCmd)
+    &sProfileProps, KCmdProxy **const lppCmd)
 {
 	return CreateSoapTransport(ulUIFlags,
 		sProfileProps.strServerPath.c_str(),

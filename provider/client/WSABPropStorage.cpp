@@ -38,7 +38,7 @@
  */
 
 WSABPropStorage::WSABPropStorage(ULONG cbEntryId, LPENTRYID lpEntryId,
-    KCmd *cmd, std::recursive_mutex &data_lock, ECSESSIONID sid,
+    KCmdProxy *cmd, std::recursive_mutex &data_lock, ECSESSIONID sid,
     WSTransport *lpTransport) :
 	ECUnknown("WSABPropStorage"), lpCmd(cmd), lpDataLock(data_lock),
 	ecSessionId(sid), m_lpTransport(lpTransport)
@@ -65,7 +65,7 @@ HRESULT WSABPropStorage::QueryInterface(REFIID refiid, void **lppInterface)
 }
 
 HRESULT WSABPropStorage::Create(ULONG cbEntryId, LPENTRYID lpEntryId,
-    KCmd *lpCmd, std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId,
+    KCmdProxy *lpCmd, std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId,
     WSTransport *lpTransport, WSABPropStorage **lppPropStorage)
 {
 	return alloc_wrap<WSABPropStorage>(cbEntryId, lpEntryId, lpCmd,
@@ -97,7 +97,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	START_SOAP_CALL
 	{
     	// Read the properties from the server
-    	if(SOAP_OK != lpCmd->ns__readABProps(ecSessionId, m_sEntryId, &sResponse))
+		if (lpCmd->readABProps(ecSessionId, m_sEntryId, &sResponse) != SOAP_OK)
     		er = KCERR_NETWORK_ERROR;
     	else
     		er = sResponse.er;
@@ -169,7 +169,7 @@ HRESULT WSABPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
 	return hrSuccess;
 }
 
-WSABTableView::WSABTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
+WSABTableView::WSABTableView(ULONG ulType, ULONG ulFlags, KCmdProxy *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
     LPENTRYID lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport) :
 	WSTableView(ulType, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId,
@@ -179,7 +179,7 @@ WSABTableView::WSABTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
 	m_ulTableType = TABLETYPE_AB;
 }
 
-HRESULT WSABTableView::Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
+HRESULT WSABTableView::Create(ULONG ulType, ULONG ulFlags, KCmdProxy *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
     LPENTRYID lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport,
     WSTableView **lppTableView)

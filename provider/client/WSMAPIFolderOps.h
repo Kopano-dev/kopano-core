@@ -35,16 +35,16 @@ namespace KC {
 class utf8string;
 }
 
-class KCmd;
+class KCmdProxy;
 class WSTransport;
 
 class WSMAPIFolderOps _kc_final : public ECUnknown {
 protected:
-	WSMAPIFolderOps(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *);
+	WSMAPIFolderOps(KCmdProxy *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *);
 	virtual ~WSMAPIFolderOps();
 
 public:
-	static HRESULT Create(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *, WSMAPIFolderOps **);
+	static HRESULT Create(KCmdProxy *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *, WSMAPIFolderOps **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	
 	// Creates a folder object with only a PR_DISPLAY_NAME and type
@@ -84,7 +84,7 @@ private:
 	virtual HRESULT UnLockSoap();
 
 	entryId			m_sEntryId;		// Entryid of the folder
-	KCmd*		lpCmd;			// command object
+	KCmdProxy *lpCmd; // command object
 	std::recursive_mutex &lpDataLock;
 	ECSESSIONID		ecSessionId;	// Id of the session
 	ULONG			m_ulSessionReloadCallback;

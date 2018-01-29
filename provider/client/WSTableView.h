@@ -27,14 +27,14 @@
 #include <mapi.h>
 #include <mapispi.h>
 
-class KCmd;
+class KCmdProxy;
 class WSTransport;
 
 typedef HRESULT (*RELOADCALLBACK)(void *lpParam);
 
 class WSTableView : public ECUnknown {
 protected:
-	WSTableView(ULONG type, ULONG flags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *eid, WSTransport *, const char *cls_name = nullptr);
+	WSTableView(ULONG type, ULONG flags, KCmdProxy *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *eid, WSTransport *, const char *cls_name = nullptr);
 	virtual ~WSTableView();
 
 public:
@@ -69,7 +69,7 @@ protected:
 	virtual HRESULT LockSoap();
 	virtual HRESULT UnLockSoap();
 
-	KCmd*		lpCmd;
+	KCmdProxy *lpCmd;
 	std::recursive_mutex &lpDataLock;
 	ECSESSIONID		ecSessionId;
 	entryId			m_sEntryId;

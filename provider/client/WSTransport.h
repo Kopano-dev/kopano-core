@@ -41,7 +41,7 @@ namespace KC {
 class utf8string;
 }
 
-class KCmd;
+class KCmdProxy;
 class WSMessageStreamExporter;
 class WSMessageStreamImporter;
 
@@ -288,13 +288,13 @@ private:
 	virtual HRESULT UnLockSoap();
 
 	//TODO: Move this function to the right file
-	static ECRESULT TrySSOLogon(KCmd *, const char *server, const utf8string &user, const utf8string &imp_user, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
+	static ECRESULT TrySSOLogon(KCmdProxy *, const char *server, const utf8string &user, const utf8string &imp_user, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
 
 	// Returns name of calling application (eg 'program.exe' or 'httpd')
 	std::string GetAppName();
 
 protected:
-	KCmd *m_lpCmd = nullptr;
+	KCmdProxy *m_lpCmd = nullptr;
 	std::recursive_mutex m_hDataLock;
 	ECSESSIONID m_ecSessionId = 0;
 	ECSESSIONGROUPID m_ecSessionGroupId = 0;

@@ -8,6 +8,7 @@ global:
 		ns__*;
 
 		KC::*;
+		KCmdService::*;
 		typeinfo*;
 		vtable*;
 		VTT*;

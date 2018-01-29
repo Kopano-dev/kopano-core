@@ -87,6 +87,7 @@
 
 #include "cmdutil.hpp"
 #include <kopano/ECThreadPool.h>
+#include "soapKCmdService.h"
 #include "cmd.hpp"
 #include "logontime.hpp"
 
@@ -630,9 +631,9 @@ using steady_clock = std::chrono::steady_clock;
 /**
  * logon: log on and create a session with provided credentials
  */
-int ns__logon(struct soap *soap, const char *user, const char *pass,
+int KCmdService::logon(const char *user, const char *pass,
     const char *impersonate, const char *clientVersion, unsigned int clientCaps,
-    unsigned int logonFlags, struct xsd__base64Binary sLicenseRequest,
+    unsigned int logonFlags, const struct xsd__base64Binary &sLicenseRequest,
     ULONG64 ullSessionGroup, const char *szClientApp,
     const char *szClientAppVersion, const char *szClientAppMisc,
     struct logonResponse *lpsResponse)
@@ -734,10 +735,10 @@ exit:
 /**
  * logon: log on and create a session with provided credentials
  */
-int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, const char *szUsername,
+int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
     const char *szImpersonateUser, struct xsd__base64Binary *lpInput,
     const char *szClientVersion, unsigned int clientCaps,
-    struct xsd__base64Binary sLicenseRequest, ULONG64 ullSessionGroup,
+    const struct xsd__base64Binary &sLicenseRequest, ULONG64 ullSessionGroup,
     const char *szClientApp, const char *szClientAppVersion,
     const char *szClientAppMisc, struct ssoLogonResponse *lpsResponse)
 {
@@ -764,7 +765,7 @@ int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, const char *szUsername,
 	lpsResponse->lpszVersion = const_cast<char *>("0," PROJECT_VERSION_COMMIFIED);
 	lpsResponse->ulCapabilities = KOPANO_LATEST_CAPABILITIES;
 
-	/* See ns__logon for comments. */
+	/* See KCmdService::logon for comments. */
 	if (zcp_peerfd_is_local(soap->socket) <= 0 && (clientCaps & KOPANO_CAP_COMPRESSION)) {
 		lpsResponse->ulCapabilities |= KOPANO_CAP_COMPRESSION;
 		// (ECSessionManager::ValidateSession() will do this for all other functions)
@@ -895,7 +896,7 @@ nosso:
 /**
  * logoff: invalidate the session and close all notifications and memory held by the session
  */
-int ns__logoff(struct soap *soap, ULONG64 ulSessionId, unsigned int *result)
+int KCmdService::logoff(ULONG64 ulSessionId, unsigned int *result)
 {
 	ECRESULT	er = erSuccess;
 	ECSession 	*lpecSession = NULL;
@@ -961,7 +962,7 @@ __soapentry_exit: \
     return SOAP_OK;
 
 #define SOAP_ENTRY_START(fname,resultvar,...) \
-int ns__##fname(struct soap *soap, ULONG64 ulSessionId, ##__VA_ARGS__) \
+int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 { \
     SOAP_ENTRY_FUNCTION_HEADER(resultvar, fname) \
     er = [&]() -> int {
@@ -1384,7 +1385,8 @@ SOAP_ENTRY_END()
 /**
  * getStoreName: get the PR_DISPLAY_NAME of the store specified in sEntryId
  */
-SOAP_ENTRY_START(getStoreName, lpsResponse->er, entryId sEntryId, struct getStoreNameResponse *lpsResponse)
+SOAP_ENTRY_START(getStoreName, lpsResponse->er, const entryId &sEntryId,
+    struct getStoreNameResponse *lpsResponse)
 {
 	unsigned int	ulObjId = 0;
 	unsigned int	ulStoreType = 0;
@@ -1404,7 +1406,8 @@ SOAP_ENTRY_START(getStoreName, lpsResponse->er, entryId sEntryId, struct getStor
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getStoreType, lpsResponse->er, entryId sEntryId, struct getStoreTypeResponse *lpsResponse)
+SOAP_ENTRY_START(getStoreType, lpsResponse->er, const entryId &sEntryId,
+    struct getStoreTypeResponse *lpsResponse)
 {
 	unsigned int	ulObjId = 0;
 
@@ -1609,7 +1612,9 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
  * loadProp: Reads a single, large property from the database. No size limit.
  *   this can also be a complete attachment
  */
-SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObjId, unsigned int ulPropTag, struct loadPropResponse *lpsResponse)
+SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
+    unsigned int ulObjId, unsigned int ulPropTag,
+    struct loadPropResponse *lpsResponse)
 {
 	USE_DATABASE();
 
@@ -2652,7 +2657,10 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	return er;
 }
 
-SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, entryId sEntryId, struct saveObject *lpsSaveObj, unsigned int ulFlags, unsigned int ulSyncId, struct loadObjectResponse *lpsLoadObjectResponse)
+SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
+    const entryId &sParentEntryId, const entryId &sEntryId,
+    struct saveObject *lpsSaveObj, unsigned int ulFlags, unsigned int ulSyncId,
+    struct loadObjectResponse *lpsLoadObjectResponse)
 {
 	USE_DATABASE();
 	unsigned int	ulStoreId = 0;
@@ -3047,7 +3055,9 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	return er;
 }
 
-SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct notifySubscribe *lpsNotSubscribe, unsigned int ulFlags, struct loadObjectResponse *lpsLoadObjectResponse)
+SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, const entryId &sEntryId,
+    struct notifySubscribe *lpsNotSubscribe, unsigned int ulFlags,
+    struct loadObjectResponse *lpsLoadObjectResponse)
 {
 	unsigned int	ulObjId = 0;
 	unsigned int	ulObjFlags = 0;
@@ -3416,10 +3426,10 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
  *
  */
 
-SOAP_ENTRY_START(createFolder, lpsResponse->er, entryId sParentId,
+SOAP_ENTRY_START(createFolder, lpsResponse->er, const entryId &sParentId,
     entryId *lpsNewEntryId, unsigned int ulType, const char *szName,
     const char *szComment, bool fOpenIfExists, unsigned int ulSyncId,
-    struct xsd__base64Binary sOrigSourceKey,
+    const struct xsd__base64Binary &sOrigSourceKey,
     struct createFolderResponse *lpsResponse)
 {
 	unsigned int	ulParentId = 0;
@@ -3575,7 +3585,9 @@ static ECRESULT OpenTable(ECSession *lpecSession, entryId sEntryId,
 	return erSuccess;
 }
 
-SOAP_ENTRY_START(tableOpen, lpsTableOpenResponse->er, entryId sEntryId, unsigned int ulTableType, unsigned ulType, unsigned int ulFlags, struct tableOpenResponse *lpsTableOpenResponse)
+SOAP_ENTRY_START(tableOpen, lpsTableOpenResponse->er, const entryId &sEntryId,
+    unsigned int ulTableType, unsigned ulType, unsigned int ulFlags,
+    struct tableOpenResponse *lpsTableOpenResponse)
 {
 	unsigned int ulTableId = 0;
     
@@ -3599,7 +3611,9 @@ SOAP_ENTRY_END()
 /**
  * tableSetSearchCritieria: set search criteria for a searchfolder
  */
-SOAP_ENTRY_START(tableSetSearchCriteria, *result, entryId sEntryId, struct restrictTable *lpRestrict, struct entryList *lpFolders, unsigned int ulFlags, unsigned int *result)
+SOAP_ENTRY_START(tableSetSearchCriteria, *result, const entryId &sEntryId,
+    struct restrictTable *lpRestrict, struct entryList *lpFolders,
+    unsigned int ulFlags, unsigned int *result)
 {
 	unsigned int	ulStoreId = 0;
 	unsigned int	ulParent = 0;
@@ -3642,7 +3656,8 @@ SOAP_ENTRY_END()
 /**
  * tableGetSearchCriteria: get the search criteria for a searchfolder previously called with tableSetSearchCriteria
  */
-SOAP_ENTRY_START(tableGetSearchCriteria, lpsResponse->er,  entryId sEntryId, struct tableGetSearchCriteriaResponse *lpsResponse)
+SOAP_ENTRY_START(tableGetSearchCriteria, lpsResponse->er,
+    const entryId &sEntryId, struct tableGetSearchCriteriaResponse *lpsResponse)
 {
 	unsigned int	ulFlags = 0;
 	unsigned int	ulStoreId = 0;
@@ -3872,7 +3887,9 @@ SOAP_ENTRY_START(tableFreeBookmark, *result, unsigned int ulTableId, unsigned in
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(tableExpandRow, lpsResponse->er, unsigned int ulTableId, xsd__base64Binary sInstanceKey, unsigned int ulRowCount, unsigned int ulFlags, tableExpandRowResponse* lpsResponse)
+SOAP_ENTRY_START(tableExpandRow, lpsResponse->er, unsigned int ulTableId,
+    const struct xsd__base64Binary &sInstanceKey, unsigned int ulRowCount,
+    unsigned int ulFlags, tableExpandRowResponse *lpsResponse)
 {
 	object_ptr<ECGenericObjectTable> lpTable;
 	struct rowSet	*lpRowSet = NULL;
@@ -3896,7 +3913,9 @@ SOAP_ENTRY_START(tableExpandRow, lpsResponse->er, unsigned int ulTableId, xsd__b
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(tableCollapseRow, lpsResponse->er, unsigned int ulTableId, xsd__base64Binary sInstanceKey, unsigned int ulFlags, tableCollapseRowResponse* lpsResponse)
+SOAP_ENTRY_START(tableCollapseRow, lpsResponse->er, unsigned int ulTableId,
+    const struct xsd__base64Binary &sInstanceKey, unsigned int ulFlags,
+    tableCollapseRowResponse *lpsResponse)
 {
 	object_ptr<ECGenericObjectTable> lpTable;
 	unsigned int ulRows = 0;
@@ -3912,7 +3931,9 @@ SOAP_ENTRY_START(tableCollapseRow, lpsResponse->er, unsigned int ulTableId, xsd_
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(tableGetCollapseState, lpsResponse->er, unsigned int ulTableId, struct xsd__base64Binary sBookmark, tableGetCollapseStateResponse *lpsResponse)
+SOAP_ENTRY_START(tableGetCollapseState, lpsResponse->er, unsigned int ulTableId,
+    const struct xsd__base64Binary &sBookmark,
+    tableGetCollapseStateResponse *lpsResponse)
 {
 	object_ptr<ECGenericObjectTable> lpTable;
 
@@ -3923,7 +3944,9 @@ SOAP_ENTRY_START(tableGetCollapseState, lpsResponse->er, unsigned int ulTableId,
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(tableSetCollapseState, lpsResponse->er, unsigned int ulTableId, struct xsd__base64Binary sCollapseState, struct tableSetCollapseStateResponse *lpsResponse);
+SOAP_ENTRY_START(tableSetCollapseState, lpsResponse->er, unsigned int ulTableId,
+    const struct xsd__base64Binary &sCollapseState,
+    struct tableSetCollapseStateResponse *lpsResponse);
 {
 	object_ptr<ECGenericObjectTable> lpTable;
 
@@ -3959,7 +3982,9 @@ SOAP_ENTRY_START(tableSetMultiStoreEntryIDs, *result, unsigned int ulTableId, st
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(tableMulti, lpsResponse->er, struct tableMultiRequest sRequest, struct tableMultiResponse *lpsResponse)
+SOAP_ENTRY_START(tableMulti, lpsResponse->er,
+    const struct tableMultiRequest &sRequest,
+    struct tableMultiResponse *lpsResponse)
 {
     unsigned int ulTableId = sRequest.ulTableId;
 	object_ptr<ECGenericObjectTable> lpTable;
@@ -4037,7 +4062,8 @@ SOAP_ENTRY_END()
 // Delete everything in a folder, but not the folder itself
 // Quirk: this works with messages also, deleting attachments and recipients, but not the message itself.
 //FIXME: michel? what with associated messages ?
-SOAP_ENTRY_START(emptyFolder, *result, entryId sEntryId, unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result)
+SOAP_ENTRY_START(emptyFolder, *result, const entryId &sEntryId,
+    unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result)
 {
 	unsigned int		ulDeleteFlags = 0;
 	unsigned int		ulId = 0;
@@ -4074,7 +4100,8 @@ SOAP_ENTRY_END()
  */
 
 // Deletes a complete folder, with optional recursive subfolder and submessage deletion
-SOAP_ENTRY_START(deleteFolder, *result,  entryId sEntryId, unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result)
+SOAP_ENTRY_START(deleteFolder, *result, const entryId &sEntryId,
+    unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result)
 {
 	unsigned int		ulDeleteFlags = 0;
 	unsigned int		ulId = 0;
@@ -4210,7 +4237,8 @@ SOAP_ENTRY_END()
  * all notifications of a session group via any session on that group. The request itself is handled by the
  * ECNotificationManager class since you don't want to block the calling thread while waiting for notifications.
  */
-int ns__notifyGetItems(struct soap *soap, ULONG64 ulSessionId, struct notifyResponse *notifications)
+int KCmdService::notifyGetItems(ULONG64 ulSessionId,
+    struct notifyResponse *notifications)
 {
 	ECRESULT er = erSuccess;
 	ECSession *lpSession = NULL;
@@ -4235,7 +4263,8 @@ int ns__notifyGetItems(struct soap *soap, ULONG64 ulSessionId, struct notifyResp
     throw SOAP_NULL;
 }
 
-SOAP_ENTRY_START(getRights, lpsRightResponse->er, entryId sEntryId, int ulType, struct rightsResponse *lpsRightResponse)
+SOAP_ENTRY_START(getRights, lpsRightResponse->er, const entryId &sEntryId,
+    int ulType, struct rightsResponse *lpsRightResponse)
 {
 	unsigned int	ulobjid = 0;
 
@@ -4264,7 +4293,8 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(setRights, *result, entryId sEntryId, struct rightsArray *lpsRightsArray, unsigned int *result)
+SOAP_ENTRY_START(setRights, *result, const entryId &sEntryId,
+    struct rightsArray *lpsRightsArray, unsigned int *result)
 {
 	unsigned int	ulObjId = 0;
 
@@ -4282,7 +4312,8 @@ SOAP_ENTRY_START(setRights, *result, entryId sEntryId, struct rightsArray *lpsRi
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getOwner, lpsResponse->er, entryId sEntryId, struct getOwnerResponse *lpsResponse)
+SOAP_ENTRY_START(getOwner, lpsResponse->er, const entryId &sEntryId,
+    struct getOwnerResponse *lpsResponse)
 {
 	unsigned int	ulobjid = 0;
 
@@ -4429,8 +4460,9 @@ SOAP_ENTRY_START(getNamesFromIDs, lpsResponse->er, struct propTagArray *lpPropTa
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er, entryId sStoreId,
-    const char *msg_class, struct receiveFolderResponse *lpsReceiveFolder)
+SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er,
+    const entryId &sStoreId, const char *msg_class,
+    struct receiveFolderResponse *lpsReceiveFolder)
 {
 	const char *lpszMessageClass = msg_class;
 	unsigned int	ulStoreid = 0;
@@ -4487,7 +4519,7 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er, entryId sStoreId,
 SOAP_ENTRY_END()
 
 // FIXME: should be able to delete an entry too
-SOAP_ENTRY_START(setReceiveFolder, *result, entryId sStoreId,
+SOAP_ENTRY_START(setReceiveFolder, *result, const entryId &sStoreId,
     entryId *lpsEntryId, const char *msg_class, unsigned int *result)
 {
 	const char *lpszMessageClass = msg_class;
@@ -5039,7 +5071,8 @@ SOAP_ENTRY_START(setUser, *result, struct user *lpsUser, unsigned int *result)
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getUser, lpsGetUserResponse->er, unsigned int ulUserId, entryId sUserId, struct getUserResponse *lpsGetUserResponse)
+SOAP_ENTRY_START(getUser, lpsGetUserResponse->er, unsigned int ulUserId,
+    const entryId &sUserId, struct getUserResponse *lpsGetUserResponse)
 {
 	objectdetails_t	details;
 	entryId sTmpUserId;
@@ -5079,7 +5112,8 @@ SOAP_ENTRY_START(getUser, lpsGetUserResponse->er, unsigned int ulUserId, entryId
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId, entryId sCompanyId, struct userListResponse *lpsUserList)
+SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId,
+    const entryId &sCompanyId, struct userListResponse *lpsUserList)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
 	entryId sUserEid;
@@ -5129,7 +5163,8 @@ SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId, entryId
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getSendAsList, lpsUserList->er, unsigned int ulUserId, entryId sUserId, struct userListResponse *lpsUserList)
+SOAP_ENTRY_START(getSendAsList, lpsUserList->er, unsigned int ulUserId,
+    const entryId &sUserId, struct userListResponse *lpsUserList)
 {
 	objectdetails_t userDetails, senderDetails;
 	entryId sSenderEid;
@@ -5178,7 +5213,9 @@ SOAP_ENTRY_START(getSendAsList, lpsUserList->er, unsigned int ulUserId, entryId 
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(addSendAsUser, *result, unsigned int ulUserId, entryId sUserId, unsigned int ulSenderId, entryId sSenderId, unsigned int *result)
+SOAP_ENTRY_START(addSendAsUser, *result, unsigned int ulUserId,
+    const entryId &sUserId, unsigned int ulSenderId, const entryId &sSenderId,
+    unsigned int *result)
 {
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess) {
@@ -5218,7 +5255,9 @@ SOAP_ENTRY_START(addSendAsUser, *result, unsigned int ulUserId, entryId sUserId,
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(delSendAsUser, *result, unsigned int ulUserId, entryId sUserId, unsigned int ulSenderId, entryId sSenderId, unsigned int *result)
+SOAP_ENTRY_START(delSendAsUser, *result, unsigned int ulUserId,
+    const entryId &sUserId, unsigned int ulSenderId, const entryId &sSenderId,
+    unsigned int *result)
 {
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
@@ -5291,7 +5330,9 @@ SOAP_ENTRY_END()
 
 //Create a store
 // Info: Userid can also be a group id ('everyone' for public store)
-SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType, unsigned int ulUserId, entryId sUserId, entryId sStoreId, entryId sRootId, unsigned int ulFlags, unsigned int *result)
+SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
+    unsigned int ulUserId, const entryId &sUserId, const entryId &sStoreId,
+    const entryId &sRootId, unsigned int ulFlags, unsigned int *result)
 {
 	unsigned int	ulStoreId = 0;
 	unsigned int	ulRootMapId = 0;
@@ -5578,7 +5619,8 @@ SOAP_ENTRY_START(setGroup, *result, struct group *lpsGroup, unsigned int *result
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getGroup, lpsResponse->er, unsigned int ulGroupId, entryId sGroupId, struct getGroupResponse *lpsResponse)
+SOAP_ENTRY_START(getGroup, lpsResponse->er, unsigned int ulGroupId,
+    const entryId &sGroupId, struct getGroupResponse *lpsResponse)
 {
 	objectdetails_t details;
 	entryId sTmpGroupId;
@@ -5613,7 +5655,8 @@ SOAP_ENTRY_START(getGroup, lpsResponse->er, unsigned int ulGroupId, entryId sGro
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entryId sCompanyId, struct groupListResponse *lpsGroupList)
+SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId,
+    const entryId &sCompanyId, struct groupListResponse *lpsGroupList)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpGroups;
 	entryId	sGroupEid;
@@ -5659,7 +5702,8 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entry
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(groupDelete, *result, unsigned int ulGroupId, entryId sGroupId, unsigned int *result)
+SOAP_ENTRY_START(groupDelete, *result, unsigned int ulGroupId,
+    const entryId &sGroupId, unsigned int *result)
 {
 	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
@@ -5719,7 +5763,9 @@ SOAP_ENTRY_START(resolveGroupname, lpsResponse->er, const char *lpszGroupname,
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(deleteGroupUser, *result, unsigned int ulGroupId, entryId sGroupId, unsigned int ulUserId, entryId sUserId, unsigned int *result)
+SOAP_ENTRY_START(deleteGroupUser, *result, unsigned int ulGroupId,
+    const entryId &sGroupId, unsigned int ulUserId, const entryId &sUserId,
+    unsigned int *result)
 {
 	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
@@ -5736,7 +5782,9 @@ SOAP_ENTRY_START(deleteGroupUser, *result, unsigned int ulGroupId, entryId sGrou
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(addGroupUser, *result, unsigned int ulGroupId, entryId sGroupId, unsigned int ulUserId, entryId sUserId, unsigned int *result)
+SOAP_ENTRY_START(addGroupUser, *result, unsigned int ulGroupId,
+    const entryId &sGroupId, unsigned int ulUserId, const entryId &sUserId,
+    unsigned int *result)
 {
 	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
 	if (er != erSuccess)
@@ -5755,7 +5803,8 @@ SOAP_ENTRY_END()
 
 // not only returns users of a group anymore
 // TODO resolve group in group here on the fly?
-SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId, entryId sGroupId, struct userListResponse *lpsUserList)
+SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId,
+    const entryId &sGroupId, struct userListResponse *lpsUserList)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
 	entryId sUserEid;
@@ -5799,7 +5848,8 @@ SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId, en
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId, entryId sUserId, struct groupListResponse *lpsGroupList)
+SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId,
+    const entryId &sUserId, struct groupListResponse *lpsGroupList)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpGroups;
 	entryId sGroupEid;
@@ -5877,7 +5927,8 @@ SOAP_ENTRY_START(createCompany, lpsResponse->er, struct company *lpsCompany, str
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(deleteCompany, *result, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result)
+SOAP_ENTRY_START(deleteCompany, *result, unsigned int ulCompanyId,
+    const entryId &sCompanyId, unsigned int *result)
 {
 	if (!g_lpSessionManager->IsHostedSupported())
 		return KCERR_NO_SUPPORT;
@@ -5941,7 +5992,8 @@ SOAP_ENTRY_START(setCompany, *result, struct company *lpsCompany, unsigned int *
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId, entryId sCompanyId, struct getCompanyResponse *lpsResponse)
+SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId,
+    const entryId &sCompanyId, struct getCompanyResponse *lpsResponse)
 {
 	objectdetails_t details;
 	unsigned int ulAdmin = 0;
@@ -6061,7 +6113,9 @@ SOAP_ENTRY_START(getCompanyList, lpsCompanyList->er, struct companyListResponse 
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(addCompanyToRemoteViewList, *result, unsigned int ulSetCompanyId, entryId sSetCompanyId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result)
+SOAP_ENTRY_START(addCompanyToRemoteViewList, *result,
+    unsigned int ulSetCompanyId, const entryId &sSetCompanyId,
+    unsigned int ulCompanyId, const entryId &sCompanyId, unsigned int *result)
 {
 	if (!g_lpSessionManager->IsHostedSupported())
 		return KCERR_NO_SUPPORT;
@@ -6080,7 +6134,9 @@ SOAP_ENTRY_START(addCompanyToRemoteViewList, *result, unsigned int ulSetCompanyI
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(delCompanyFromRemoteViewList, *result, unsigned int ulSetCompanyId, entryId sSetCompanyId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result)
+SOAP_ENTRY_START(delCompanyFromRemoteViewList, *result,
+    unsigned int ulSetCompanyId, const entryId &sSetCompanyId,
+    unsigned int ulCompanyId, const entryId &sCompanyId, unsigned int *result)
 {
 	if (!g_lpSessionManager->IsHostedSupported())
 		return KCERR_NO_SUPPORT;
@@ -6099,7 +6155,9 @@ SOAP_ENTRY_START(delCompanyFromRemoteViewList, *result, unsigned int ulSetCompan
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId, entryId sCompanyId, struct companyListResponse *lpsCompanyList)
+SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er,
+    unsigned int ulCompanyId, const entryId &sCompanyId,
+    struct companyListResponse *lpsCompanyList)
 {
 	unsigned int	ulAdmin = 0;
 	entryId sCompanyEid, sAdminEid;
@@ -6157,7 +6215,9 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(addUserToRemoteAdminList, *result, unsigned int ulUserId, entryId sUserId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result)
+SOAP_ENTRY_START(addUserToRemoteAdminList, *result, unsigned int ulUserId,
+    const entryId &sUserId, unsigned int ulCompanyId, const entryId &sCompanyId,
+    unsigned int *result)
 {
 	if (!g_lpSessionManager->IsHostedSupported())
 		return KCERR_NO_SUPPORT;
@@ -6176,7 +6236,9 @@ SOAP_ENTRY_START(addUserToRemoteAdminList, *result, unsigned int ulUserId, entry
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(delUserFromRemoteAdminList, *result, unsigned int ulUserId, entryId sUserId, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result)
+SOAP_ENTRY_START(delUserFromRemoteAdminList, *result, unsigned int ulUserId,
+    const entryId &sUserId, unsigned int ulCompanyId, const entryId &sCompanyId,
+    unsigned int *result)
 {
 	if (!g_lpSessionManager->IsHostedSupported())
 		return KCERR_NO_SUPPORT;
@@ -6195,7 +6257,8 @@ SOAP_ENTRY_START(delUserFromRemoteAdminList, *result, unsigned int ulUserId, ent
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, entryId sCompanyId, struct userListResponse *lpsUserList)
+SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId,
+    const entryId &sCompanyId, struct userListResponse *lpsUserList)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
 	entryId sUserEid;
@@ -6252,7 +6315,8 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(submitMessage, *result, entryId sEntryId, unsigned int ulFlags, unsigned int *result)
+SOAP_ENTRY_START(submitMessage, *result, const entryId &sEntryId,
+    unsigned int ulFlags, unsigned int *result)
 {
 	unsigned int	ulParentId	= 0;
 	unsigned int	ulObjId = 0;
@@ -6359,7 +6423,8 @@ SOAP_ENTRY_START(submitMessage, *result, entryId sEntryId, unsigned int ulFlags,
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(finishedMessage, *result,  entryId sEntryId, unsigned int ulFlags, unsigned int *result)
+SOAP_ENTRY_START(finishedMessage, *result, const entryId &sEntryId,
+    unsigned int ulFlags, unsigned int *result)
 {
 	unsigned int	ulParentId	= 0;
 	unsigned int	ulGrandParentId = 0;
@@ -6497,7 +6562,8 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(abortSubmit, *result, entryId sEntryId, unsigned int *result)
+SOAP_ENTRY_START(abortSubmit, *result, const entryId &sEntryId,
+    unsigned int *result)
 {
 	unsigned int	ulParentId	= 0;
 	unsigned int	ulStoreId	= 0;
@@ -6590,7 +6656,9 @@ SOAP_ENTRY_START(abortSubmit, *result, entryId sEntryId, unsigned int *result)
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(resolveStore, lpsResponse->er, struct xsd__base64Binary sStoreGuid, struct resolveUserStoreResponse *lpsResponse)
+SOAP_ENTRY_START(resolveStore, lpsResponse->er,
+    const struct xsd__base64Binary &sStoreGuid,
+    struct resolveUserStoreResponse *lpsResponse)
 {
 	USE_DATABASE();
 
@@ -7836,7 +7904,9 @@ exit:
 /**
  * Copy one or more messages to a destenation
  */
-SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages, entryId sDestFolderId, unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result)
+SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
+    const entryId &sDestFolderId, unsigned int ulFlags, unsigned int ulSyncId,
+    unsigned int *result)
 {
 	bool			bPartialCompletion = false;
 	unsigned int	ulGrandParent=0;
@@ -7931,9 +8001,9 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages, entryId sDes
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId,
-    const char *lpszNewFolderName, unsigned int ulFlags, unsigned int ulSyncId,
-    unsigned int *result)
+SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
+    const entryId &sDestFolderId, const char *lpszNewFolderName,
+    unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result)
 {
 	unsigned int	ulAffRows = 0;
 	unsigned int	ulOldParent = 0;
@@ -8235,7 +8305,8 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId,
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(notify, *result, struct notification sNotification, unsigned int *result)
+SOAP_ENTRY_START(notify, *result, const struct notification &sNotification,
+    unsigned int *result)
 {
 	unsigned int ulKey = 0;
 	USE_DATABASE();
@@ -8255,14 +8326,14 @@ SOAP_ENTRY_START(notify, *result, struct notification sNotification, unsigned in
 	er = lpecSession->GetObjectFromEntryId(sNotification.newmail->pParentId, &ulKey);
 	if(er != erSuccess)
 		return er;
-
-	sNotification.ulConnection = ulKey;
-	return g_lpSessionManager->AddNotification(&sNotification, ulKey);
+	auto newnot = sNotification;
+	newnot.ulConnection = ulKey;
+	return g_lpSessionManager->AddNotification(&newnot, ulKey);
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er,
-    entryId sStoreId, struct receiveFolderTableResponse *lpsReceiveFolderTable)
+    const entryId &sStoreId, struct receiveFolderTableResponse *lpsReceiveFolderTable)
 {
 	int				ulRows = 0;
 	int				i;
@@ -8310,7 +8381,8 @@ SOAP_ENTRY_START(getReceiveFolderTable, lpsReceiveFolderTable->er,
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(deleteUser, *result, unsigned int ulUserId, entryId sUserId, unsigned int *result)
+SOAP_ENTRY_START(deleteUser, *result, unsigned int ulUserId,
+    const entryId &sUserId, unsigned int *result)
 {
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
@@ -8324,7 +8396,8 @@ SOAP_ENTRY_START(deleteUser, *result, unsigned int ulUserId, entryId sUserId, un
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType, entryId sUserId, unsigned int ulSyncId, unsigned int *result)
+SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType,
+    const entryId &sUserId, unsigned int ulSyncId, unsigned int *result)
 {
 	unsigned int	ulUserId = 0;
 	unsigned int	ulAffected = 0;
@@ -8383,7 +8456,9 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result)
+SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType,
+    const entryId &sUserId, const struct xsd__base64Binary &sStoreGuid,
+    unsigned int ulSyncId, unsigned int *result)
 {
 	unsigned int	ulUserId = 0;
 	unsigned int	ulAffected = 0;
@@ -8508,7 +8583,8 @@ exit:
 }
 SOAP_ENTRY_END()
 
-int ns__deleteStore(struct soap *, ULONG64, unsigned int, unsigned int, unsigned int *result)
+int KCmdService::deleteStore(ULONG64, unsigned int, unsigned int,
+    unsigned int *result)
 {
 	/*
 	 * Used to move the store to the public, but this is not
@@ -8521,7 +8597,9 @@ int ns__deleteStore(struct soap *, ULONG64, unsigned int, unsigned int, unsigned
 }
 
 // softdelete the store from the database, so this function returns quickly
-SOAP_ENTRY_START(removeStore, *result, struct xsd__base64Binary sStoreGuid, unsigned int ulSyncId, unsigned int *result)
+SOAP_ENTRY_START(removeStore, *result,
+    const struct xsd__base64Binary &sStoreGuid, unsigned int ulSyncId,
+    unsigned int *result)
 {
 	unsigned int	ulCompanyId = 0;
 	unsigned int	ulStoreHierarchyId = 0;
@@ -8665,7 +8743,8 @@ exit:
 
 } /* namespace */
 
-SOAP_ENTRY_START(checkExistObject, *result, entryId sEntryId, unsigned int ulFlags, unsigned int *result)
+SOAP_ENTRY_START(checkExistObject, *result, const entryId &sEntryId,
+    unsigned int ulFlags, unsigned int *result)
 {
 	unsigned int	ulObjId = 0;
 	unsigned int	ulObjType = 0;
@@ -8687,7 +8766,8 @@ SOAP_ENTRY_START(checkExistObject, *result, entryId sEntryId, unsigned int ulFla
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct readPropsResponse *readPropsResponse)
+SOAP_ENTRY_START(readABProps, readPropsResponse->er, const entryId &sEntryId,
+    struct readPropsResponse *readPropsResponse)
 {
 	// FIXME: when props are PT_ERROR, they should not be sent to the client
 	// now we have properties in the client which are MAPI_E_NOT_ENOUGH_MEMORY,
@@ -8829,8 +8909,6 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 SOAP_ENTRY_END()
 
 /**
- * ns__abResolveNames
- *
  * @param[in]	lpaPropTag	SOAP proptag array containing requested properties.
  * @param[in]	lpsRowSet	Rows with possible search request, if matching flag in lpaFlags is MAPI_UNRESOLVED.
  * @param[in]	lpaFlags	Status of row.
@@ -8916,14 +8994,17 @@ SOAP_ENTRY_END()
  * 
  * @return soap error code
  */
-SOAP_ENTRY_START(syncUsers, *result, unsigned int ulCompanyId, entryId sCompanyId, unsigned int *result)
+SOAP_ENTRY_START(syncUsers, *result, unsigned int ulCompanyId,
+    const entryId &sCompanyId, unsigned int *result)
 {
 	er = lpecSession->GetUserManagement()->SyncAllObjects();
 }
 SOAP_ENTRY_END()
 
 // Quota
-SOAP_ENTRY_START(GetQuota, lpsQuota->er, unsigned int ulUserid, entryId sUserId, bool bGetUserDefault, struct quotaResponse* lpsQuota)
+SOAP_ENTRY_START(GetQuota, lpsQuota->er, unsigned int ulUserid,
+    const entryId &sUserId, bool bGetUserDefault,
+    struct quotaResponse *lpsQuota)
 {
 	quotadetails_t	quotadetails;
 
@@ -8948,7 +9029,8 @@ SOAP_ENTRY_START(GetQuota, lpsQuota->er, unsigned int ulUserid, entryId sUserId,
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(SetQuota, *result, unsigned int ulUserid, entryId sUserId, struct quota* lpsQuota, unsigned int *result)
+SOAP_ENTRY_START(SetQuota, *result, unsigned int ulUserid,
+    const entryId &sUserId, struct quota *lpsQuota, unsigned int *result)
 {
 	quotadetails_t	quotadetails;
 
@@ -8971,7 +9053,9 @@ SOAP_ENTRY_START(SetQuota, *result, unsigned int ulUserid, entryId sUserId, stru
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(AddQuotaRecipient, *result, unsigned int ulCompanyid, entryId sCompanyId, unsigned int ulRecipientId, entryId sRecipientId, unsigned int ulType, unsigned int *result);
+SOAP_ENTRY_START(AddQuotaRecipient, *result, unsigned int ulCompanyid,
+    const entryId &sCompanyId, unsigned int ulRecipientId,
+    const entryId &sRecipientId, unsigned int ulType, unsigned int *result)
 {
 	er = GetLocalId(sCompanyId, ulCompanyid, &ulCompanyid, NULL);
 	if (er != erSuccess)
@@ -8991,7 +9075,9 @@ SOAP_ENTRY_START(AddQuotaRecipient, *result, unsigned int ulCompanyid, entryId s
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(DeleteQuotaRecipient, *result, unsigned int ulCompanyid, entryId sCompanyId, unsigned int ulRecipientId, entryId sRecipientId, unsigned int ulType, unsigned int *result);
+SOAP_ENTRY_START(DeleteQuotaRecipient, *result, unsigned int ulCompanyid,
+    const entryId &sCompanyId, unsigned int ulRecipientId,
+    const entryId &sRecipientId, unsigned int ulType, unsigned int *result)
 {
 	er = GetLocalId(sCompanyId, ulCompanyid, &ulCompanyid, NULL);
 	if (er != erSuccess)
@@ -9011,7 +9097,8 @@ SOAP_ENTRY_START(DeleteQuotaRecipient, *result, unsigned int ulCompanyid, entryI
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, entryId sUserId, struct userListResponse *lpsUserList)
+SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid,
+    const entryId &sUserId, struct userListResponse *lpsUserList)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
 	objectid_t sExternId;
@@ -9126,7 +9213,8 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(GetQuotaStatus, lpsQuotaStatus->er, unsigned int ulUserid, entryId sUserId, struct quotaStatus* lpsQuotaStatus)
+SOAP_ENTRY_START(GetQuotaStatus, lpsQuotaStatus->er, unsigned int ulUserid,
+    const entryId &sUserId, struct quotaStatus *lpsQuotaStatus)
 {
 	quotadetails_t	quotadetails;
 	long long		llStoreSize = 0;
@@ -9182,7 +9270,8 @@ SOAP_ENTRY_START(GetQuotaStatus, lpsQuotaStatus->er, unsigned int ulUserid, entr
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getMessageStatus, lpsStatus->er, entryId sEntryId, unsigned int ulFlags, struct messageStatus* lpsStatus)
+SOAP_ENTRY_START(getMessageStatus, lpsStatus->er, const entryId &sEntryId,
+    unsigned int ulFlags, struct messageStatus *lpsStatus)
 {
 	unsigned int	ulMsgStatus = 0;
 	unsigned int	ulId = 0;
@@ -9218,7 +9307,9 @@ SOAP_ENTRY_START(getMessageStatus, lpsStatus->er, entryId sEntryId, unsigned int
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(setMessageStatus, lpsOldStatus->er, entryId sEntryId, unsigned int ulNewStatus, unsigned int ulNewStatusMask, unsigned int ulSyncId, struct messageStatus* lpsOldStatus)
+SOAP_ENTRY_START(setMessageStatus, lpsOldStatus->er, const entryId &sEntryId,
+    unsigned int ulNewStatus, unsigned int ulNewStatusMask,
+    unsigned int ulSyncId, struct messageStatus *lpsOldStatus)
 {
 	unsigned int	ulOldMsgStatus = 0;
 	unsigned int	ulNewMsgStatus = 0;
@@ -9305,7 +9396,11 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getChanges, lpsChangesResponse->er, struct xsd__base64Binary sSourceKeyFolder, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct restrictTable *lpsRestrict, struct icsChangeResponse* lpsChangesResponse)
+SOAP_ENTRY_START(getChanges, lpsChangesResponse->er,
+    const struct xsd__base64Binary &sSourceKeyFolder, unsigned int ulSyncId,
+    unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags,
+    struct restrictTable *lpsRestrict,
+    struct icsChangeResponse *lpsChangesResponse)
 {
 	icsChangesArray *lpChanges = NULL;
 	SOURCEKEY		sSourceKey(sSourceKeyFolder.__size, (char *)sSourceKeyFolder.__ptr);
@@ -9318,7 +9413,10 @@ SOAP_ENTRY_START(getChanges, lpsChangesResponse->er, struct xsd__base64Binary sS
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(setSyncStatus, lpsResponse->er, struct xsd__base64Binary sSourceKeyFolder, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct setSyncStatusResponse *lpsResponse)
+SOAP_ENTRY_START(setSyncStatus, lpsResponse->er,
+    const struct xsd__base64Binary &sSourceKeyFolder, unsigned int ulSyncId,
+    unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags,
+    struct setSyncStatusResponse *lpsResponse)
 {
 	SOURCEKEY		sSourceKey(sSourceKeyFolder.__size, (char *)sSourceKeyFolder.__ptr);
 	unsigned int	ulFolderId = 0, dummy = 0;
@@ -9405,7 +9503,10 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er, entryId sStoreId, struct xsd__base64Binary folderSourceKey, struct xsd__base64Binary messageSourceKey, struct getEntryIDFromSourceKeyResponse *lpsResponse)
+SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er,
+    const entryId &sStoreId, const struct xsd__base64Binary &folderSourceKey,
+    const struct xsd__base64Binary &messageSourceKey,
+    struct getEntryIDFromSourceKeyResponse *lpsResponse)
 {
 	unsigned int	ulObjType = 0;
 	unsigned int	ulObjId = 0;
@@ -9477,13 +9578,15 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getSyncStates, lpsResponse->er, struct mv_long ulaSyncId, struct getSyncStatesReponse *lpsResponse)
+SOAP_ENTRY_START(getSyncStates, lpsResponse->er,
+    const struct mv_long &ulaSyncId, struct getSyncStatesReponse *lpsResponse)
 {
 	er = GetSyncStates(soap, lpecSession, ulaSyncId, &lpsResponse->sSyncStates);
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getLicenseAuth, r->er, struct xsd__base64Binary, struct getLicenseAuthResponse *r)
+SOAP_ENTRY_START(getLicenseAuth, r->er, const struct xsd__base64Binary &,
+    struct getLicenseAuthResponse *r)
 {
 	/* Called by ZCP 7.2.6 */
 	r->sAuthResponse.__ptr = nullptr;
@@ -9523,7 +9626,9 @@ SOAP_ENTRY_START(resolvePseudoUrl, lpsResponse->er, const char *lpszPseudoUrl,
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getServerDetails, lpsResponse->er, struct mv_string8 szaSvrNameList, unsigned int ulFlags, struct getServerDetailsResponse* lpsResponse)
+SOAP_ENTRY_START(getServerDetails, lpsResponse->er,
+    const struct mv_string8 &szaSvrNameList, unsigned int ulFlags,
+    struct getServerDetailsResponse *lpsResponse)
 {
 	serverdetails_t	sDetails;
 	std::string		strServerPath;
@@ -9583,15 +9688,14 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er, struct mv_string8 szaSvrName
 SOAP_ENTRY_END()
 
 // legacy calls required for 6.30 clients
-int ns__getServerBehavior(struct soap *, ULONG64,
-    struct getServerBehaviorResponse *r)
+int KCmdService::getServerBehavior(ULONG64, struct getServerBehaviorResponse *r)
 { 
 	r->ulBehavior = 1;
 	r->er = 0;
 	return SOAP_OK;
 } 
  
-int ns__setServerBehavior(struct soap *, ULONG64, unsigned int, unsigned int *r)
+int KCmdService::setServerBehavior(ULONG64, unsigned int, unsigned int *r)
 { 
 	*r = KCERR_NO_SUPPORT;
 	return SOAP_OK;
@@ -9742,7 +9846,10 @@ static void MTOMSessionDone(struct soap *soap, void *param)
 	delete lpInfo;
 }
 
-SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulFlags, struct propTagArray sPropTags, struct sourceKeyPairArray sSourceKeyPairs, unsigned int ulPropTag, exportMessageChangesAsStreamResponse *lpsResponse)
+SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
+    unsigned int ulFlags, const struct propTagArray &sPropTags,
+    const struct sourceKeyPairArray &sSourceKeyPairs, unsigned int ulPropTag,
+    exportMessageChangesAsStreamResponse *lpsResponse)
 {
 	LPMTOMStreamInfo	lpStreamInfo = NULL;
 	unsigned int		ulObjectId = 0;
@@ -10019,7 +10126,10 @@ static void MTOMWriteClose(struct soap *soap, void *handle)
 	}
 }
 
-SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigned int ulSyncId, entryId sFolderEntryId, entryId sEntryId, bool bIsNew, struct propVal *lpsConflictItems, struct xsd__Binary sStreamData, unsigned int *result)
+SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
+    unsigned int ulSyncId, const entryId &sFolderEntryId,
+    const entryId &sEntryId, bool bIsNew, struct propVal *lpsConflictItems,
+    const struct xsd__Binary &sStreamData, unsigned int *result)
 {
 	MTOMStreamInfo	*lpsStreamInfo = NULL;
 	unsigned int	ulObjectId = 0;
@@ -10294,7 +10404,8 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, entryId sEntryId, struct getChangeInfoResponse *lpsResponse)
+SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, const entryId &sEntryId,
+    struct getChangeInfoResponse *lpsResponse)
 {
 	unsigned int	ulObjId = 0;
 
@@ -10384,7 +10495,7 @@ SOAP_ENTRY_START(purgeDeferredUpdates, lpsResponse->er, struct purgeDeferredUpda
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(testPerform, *result, const char *szCommand,
-    struct testPerformArgs sPerform, unsigned int *result)
+    const struct testPerformArgs &sPerform, unsigned int *result)
 {
     if(parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_test_protocol")))
         er = TestPerform(soap, lpecSession, szCommand, sPerform.__size, sPerform.__ptr);
@@ -10413,7 +10524,8 @@ SOAP_ENTRY_START(testGet, lpsResponse->er, const char *szVarName,
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(setLockState, *result, entryId sEntryId, bool bLocked, unsigned int *result)
+SOAP_ENTRY_START(setLockState, *result, const entryId &sEntryId, bool bLocked,
+    unsigned int *result)
 {
 	unsigned int ulObjId = 0;
 	unsigned int ulOwner = 0;
@@ -10443,20 +10555,21 @@ SOAP_ENTRY_START(setLockState, *result, entryId sEntryId, bool bLocked, unsigned
 }
 SOAP_ENTRY_END()
 
-int ns__getUserClientUpdateStatus(struct soap *, ULONG64, entryId,
+int KCmdService::getUserClientUpdateStatus(ULONG64, const entryId &,
     struct userClientUpdateStatusResponse *r)
 {
 	r->er = KCERR_NO_SUPPORT;
 	return SOAP_OK;
 }
 
-int ns__removeAllObjects(struct soap *, ULONG64, entryId, unsigned int *r)
+int KCmdService::removeAllObjects(ULONG64, const entryId &, unsigned int *r)
 {
 	*r = KCERR_NO_SUPPORT;
 	return SOAP_OK;
 }
 
-SOAP_ENTRY_START(resetFolderCount, lpsResponse->er, entryId sEntryId, struct resetFolderCountResponse *lpsResponse)
+SOAP_ENTRY_START(resetFolderCount, lpsResponse->er, const entryId &sEntryId,
+    struct resetFolderCountResponse *lpsResponse)
 {
 	unsigned int ulObjId = 0;
 	unsigned int ulOwner = 0;
@@ -10477,14 +10590,14 @@ SOAP_ENTRY_START(resetFolderCount, lpsResponse->er, entryId sEntryId, struct res
 }
 SOAP_ENTRY_END()
 
-int ns__getClientUpdate(struct soap *, struct clientUpdateInfoRequest,
+int KCmdService::getClientUpdate(const struct clientUpdateInfoRequest &,
     struct clientUpdateResponse *r)
 {
 	r->er = KCERR_NO_SUPPORT;
 	return SOAP_OK;
 }
 
-int ns__setClientUpdateStatus(struct soap *, struct clientUpdateStatusRequest,
+int KCmdService::setClientUpdateStatus(const struct clientUpdateStatusRequest &,
     struct clientUpdateStatusResponse *r)
 {
 	r->er = KCERR_NO_SUPPORT;
