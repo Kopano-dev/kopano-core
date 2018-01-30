@@ -2602,7 +2602,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 		try {
 			strLocation = vmime::dynamicCast<vmime::text>(vmHeader->ContentLocation()->getValue())->getConvertedText(MAPI_CHARSET);
 		}
-		catch (vmime::exceptions::charset_conv_error) { }
+		catch (const vmime::exceptions::charset_conv_error &) { }
 		if (!strLocation.empty()) {
 			attProps[nProps].ulPropTag = PR_ATTACH_CONTENT_LOCATION_A;
 			attProps[nProps++].Value.lpszA = (char*)strLocation.c_str();

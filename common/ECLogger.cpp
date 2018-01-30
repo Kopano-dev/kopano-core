@@ -616,7 +616,17 @@ void ECLogger_Pipe::LogVA(unsigned int loglevel, const char *format, va_list& va
 	 * Write as one block to get it to the real logger.
 	 * (Atomicity actually only guaranteed up to PIPE_BUF number of bytes.)
 	 */
-	write(m_fd, msgbuffer, off);
+	if (write(m_fd, msgbuffer, off) >= 0)
+		return;
+	if (errno != EPIPE) {
+		fprintf(stderr, "%s: write: %s\n", __func__, strerror(errno));
+		return;
+	}
+	static bool pipe_broke;
+	if (!pipe_broke)
+		fprintf(stderr, "%s: write: %s. Switching to stderr.\n", __func__, strerror(errno));
+	pipe_broke = true;
+	fprintf(stderr, "%s\n", msgbuffer);
 }
 
 /**
