@@ -7,7 +7,9 @@ tmpfilesdir = ${dcprefix}@tmpfilesdir@
 dist_systemunit_DATA = kopano-dagent.service kopano-gateway.service \
                   kopano-ical.service kopano-monitor.service \
                   kopano-presence.service kopano-search.service \
-                  kopano-server.service kopano-spooler.service
+                  kopano-server.service kopano-spooler.service \
+                  kopano-spamd.service
+
 dist_sysusers_DATA = kopano-sysusers.conf
 dist_tmpfiles_DATA = kopano-tmpfiles.conf
 dist_pkgdata_DATA = ldap.active-directory.cfg ldap.openldap.cfg ldap.propmap.cfg
@@ -22,7 +24,7 @@ rhel_initscript_files = \
 	kopano-server.init.rhel kopano-spooler.init.rhel \
 	kopano-gateway.init.rhel kopano-monitor.init.rhel \
 	kopano-ical.init.rhel kopano-dagent.init.rhel kopano-search.init.rhel \
-	kopano-presence.init.rhel
+	kopano-presence.init.rhel kopano-spamd.init.rhel
 
 data_configdir = ${docdir}/example-config
 dist_data_config_DATA = ${config_files} ldap.cfg
