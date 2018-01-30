@@ -682,8 +682,7 @@ ECRESULT ECDatabase::CreateDatabase(void)
 	auto er = KDatabase::CreateDatabase(m_lpConfig, false);
 	if (er != erSuccess)
 		return er;
-
-	er = KDatabase::CreateTables();
+	er = KDatabase::CreateTables(m_lpConfig);
 	if (er != erSuccess)
 		return er;
 

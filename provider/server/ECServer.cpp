@@ -862,6 +862,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "mysql_password",				"",	CONFIGSETTING_EXACT },
 		{ "mysql_database",				"kopano" },
 		{ "mysql_socket",				"" },
+		{ "mysql_engine",				"InnoDB"},
 		{ "attachment_storage",			"files" },
 #ifdef HAVE_LIBS3_H
 		{"attachment_s3_hostname", ""},

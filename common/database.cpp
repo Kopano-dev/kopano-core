@@ -191,7 +191,7 @@ ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 		return KCERR_DATABASE_ERROR;
 	}
 	ec_log_notice("Create database %s", dbname);
-	er = IsEngineSupported("InnoDB");
+	er = IsEngineSupported(cfg->GetSetting("mysql_engine"));
 	if (er != erSuccess)
 		return er;
 
@@ -211,9 +211,12 @@ ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 	return erSuccess;
 }
 
-ECRESULT KDatabase::CreateTables(void)
+ECRESULT KDatabase::CreateTables(ECConfig *cfg)
 {
 	auto tables = GetDatabaseDefs();
+	auto engine = cfg->GetSetting("mysql_engine");
+	if (engine == nullptr)
+		engine = "InnoDB";
 
 	for (size_t i = 0; tables[i].lpSQL != nullptr; ++i) {
 		DB_RESULT result;
@@ -230,7 +233,7 @@ ECRESULT KDatabase::CreateTables(void)
 		}
 
 		ec_log_info("Create table: %s", tables[i].lpComment);
-		er = DoInsert(format(tables[i].lpSQL, "InnoDB"));
+		er = DoInsert(format(tables[i].lpSQL, engine));
 		if (er != erSuccess)
 			return er;
 	}

@@ -104,7 +104,7 @@ class _kc_export KDatabase {
 	ECRESULT Close(void);
 	virtual ECRESULT Connect(ECConfig *, bool, unsigned int, unsigned int);
 	virtual ECRESULT CreateDatabase(ECConfig *, bool);
-	virtual ECRESULT CreateTables(void);
+	virtual ECRESULT CreateTables(ECConfig *);
 	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affect = nullptr);
 	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affect = nullptr);
 	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *, bool stream = false);
