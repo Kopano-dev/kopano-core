@@ -138,8 +138,9 @@ digraph {
 	IECImportContentsChanges -> IExchangeImportContentsChanges;
 	IECMultiStoreTable -> IUnknown;
 	IECPropStorage -> IUnknown;
-	IECSecurity -> IUnknown;
-	IECServiceAdmin -> IUnknown;
+	IECSecSvcAdm_base -> IUnknown;
+	IECSecurity -> IECSecSvcAdm_base;
+	IECServiceAdmin -> IECSecSvcAdm_base;
 	IECSingleInstance -> IUnknown;
 	IECSpooler -> IUnknown;
 	IECTestProtocol -> IUnknown;

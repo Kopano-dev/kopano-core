@@ -2227,18 +2227,6 @@ HRESULT ECMsgStore::DeleteUser(ULONG cbUserId, LPENTRYID lpUserId)
 	return lpTransport->HrDeleteUser(cbUserId, lpUserId);
 }
 
-HRESULT ECMsgStore::GetUserList(ULONG company_size, ENTRYID *company_eid,
-    ULONG flags, ULONG *nusers, ECUSER **out)
-{
-	return ECMAPIProp::GetUserList(company_size, company_eid, flags, nusers, out);
-}
-
-HRESULT ECMsgStore::GetGroupList(ULONG company_size, ENTRYID *company_eid,
-    ULONG flags, ULONG *ngroups, ECGROUP **out)
-{
-	return ECMAPIProp::GetGroupList(company_size, company_eid, flags, ngroups, out);
-}
-
 HRESULT ECMsgStore::ResolveUserName(LPCTSTR lpszUserName, ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId)
 {
 	return lpTransport->HrResolveUserName(lpszUserName, ulFlags, lpcbUserId, lppUserId);
@@ -2346,12 +2334,6 @@ HRESULT ECMsgStore::GetCompany(ULONG cbCompanyId, const ENTRYID *lpCompanyId,
 HRESULT ECMsgStore::ResolveCompanyName(LPCTSTR lpszCompanyName, ULONG ulFlags, ULONG *lpcbCompanyId, LPENTRYID *lppCompanyId)
 {
 	return lpTransport->HrResolveCompanyName(lpszCompanyName, ulFlags, lpcbCompanyId, lppCompanyId);
-}
-
-HRESULT ECMsgStore::GetCompanyList(ULONG ulFlags, ULONG *lpcCompanies,
-    ECCOMPANY **lppsCompanies)
-{
-	return lpTransport->HrGetCompanyList(ulFlags, lpcCompanies, lppsCompanies);
 }
 
 HRESULT ECMsgStore::AddCompanyToRemoteViewList(ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId, ULONG cbCompanyId, LPENTRYID lpCompanyId)

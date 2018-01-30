@@ -2051,8 +2051,9 @@ HRESULT WSTransport::HrDeleteUser(ULONG cbUserId, LPENTRYID lpUserId)
  * @param[out]	lppsUsers		Array of ECUSER objects.
  * @return		HRESULT			MAPI error code.
  */
-HRESULT WSTransport::HrGetUserList(ULONG cbCompanyId, LPENTRYID lpCompanyId,
-    ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers)
+HRESULT WSTransport::HrGetUserList(ULONG cbCompanyId,
+    const ENTRYID *lpCompanyId, ULONG ulFlags, ULONG *lpcUsers,
+    ECUSER **lppsUsers)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
@@ -2550,8 +2551,9 @@ HRESULT WSTransport::HrResolveGroupName(LPCTSTR lpszGroupName, ULONG ulFlags, UL
  * @param[out]	lppsGroups		Array of ECGROUP objects.
  * @return		HRESULT			MAPI error code.
  */
-HRESULT WSTransport::HrGetGroupList(ULONG cbCompanyId, LPENTRYID lpCompanyId,
-    ULONG ulFlags, ULONG *lpcGroups, ECGROUP **lppsGroups)
+HRESULT WSTransport::HrGetGroupList(ULONG cbCompanyId,
+    const ENTRYID *lpCompanyId, ULONG ulFlags, ULONG *lpcGroups,
+    ECGROUP **lppsGroups)
 {
 	ECRESULT	er = erSuccess;
 	HRESULT		hr = hrSuccess;
