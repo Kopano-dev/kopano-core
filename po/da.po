@@ -322,7 +322,7 @@ msgstr ""
 #: provider/client/ECMAPIFolderPublic.cpp:162
 #: provider/libserver/ECGenProps.cpp:905
 msgid "Public Folders"
-msgstr "Offentlige Mapper:"
+msgstr "Offentlige Mapper"
 
 #: provider/client/ECMsgStore.cpp:2450
 msgid "Outbox"
