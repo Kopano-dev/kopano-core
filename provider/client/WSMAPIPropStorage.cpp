@@ -42,9 +42,10 @@
 WSMAPIPropStorage::WSMAPIPropStorage(ULONG cbParentEntryId,
     LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID lpEntryId,
     ULONG ulFlags, KCmd *cmd, std::recursive_mutex &data_lock,
-    ECSESSIONID sid, unsigned int ulServerCapabilities, WSTransport *tp) :
+    ECSESSIONID sid, unsigned int sc, WSTransport *tp) :
 	ECUnknown("WSMAPIPropStorage"), lpCmd(cmd), lpDataLock(data_lock),
-	ecSessionId(sid), m_ulFlags(ulFlags), m_lpTransport(tp)
+	ecSessionId(sid), ulServerCapabilities(sc),
+	m_ulFlags(ulFlags), m_lpTransport(tp)
 {
 	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
 	CopyMAPIEntryIdToSOAPEntryId(cbParentEntryId, lpParentEntryId, &m_sParentEntryId);

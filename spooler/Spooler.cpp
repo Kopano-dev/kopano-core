@@ -284,7 +284,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	 * interpreter with global state (as it is being said), we cannot thread.
 	 */
 	if (pid == 0) {
-		execv(argv[0], const_cast<char *const *>(argv));
+		execvp(argv[0], const_cast<char *const *>(argv));
 #ifdef SPOOLER_FORK_DEBUG
 		_exit(EXIT_WAIT);
 #else
@@ -294,7 +294,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 
 	ec_log_info("Spooler process started on PID %d", pid);
 	// process is started, place in map
-	mapSendData[pid] = sSendData;
+	mapSendData[pid] = std::move(sSendData);
 	return hrSuccess;
 }
 
@@ -361,7 +361,6 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
     IECSpooler *lpSpooler)
 {
 	HRESULT hr = hrSuccess;
-	SendData sSendData;
 	bool bErrorMail;
 	int status;
 	// error message creation
@@ -376,12 +375,15 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 	auto finished = std::move(mapFinished);
 	mapFinished.clear();
 	lock.unlock();
-	ec_log_debug("Cleaning %zu messages from queue", finished.size());
+	ec_log_debug("Cleaning %zu subprocesses from queue", finished.size());
 
 	// process finished entries
 	for (const auto &i : finished) {
-		sSendData = mapSendData[i.first];
-
+		auto sdi = mapSendData.find(i.first);
+		if (sdi == mapSendData.cend())
+			/* not a mail worker subprocess */
+			continue;
+		auto sSendData = sdi->second;
 		/* Find exit status, and decide to remove mail from queue or not */
 		status = i.second;
 

@@ -6,6 +6,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import atexit
+import gc
 import datetime
 import functools
 import os
@@ -130,6 +131,29 @@ def instance_method_lru_cache(*cache_args, **cache_kwargs):
             return instance_cache(*args, **kwargs)
         return cache_factory
     return cache_decorator
+
+# python does not always seem to release modules at shutdown:
+#
+# https://bugs.python.org/issue9072
+#
+# this seems to cause arbitrary stuff kept in memory (referenced by these
+# modules), in our case causing non-zero reference counts on the C side,
+# finally making valgrind go nuts.
+#
+# so for now we just clear all server/store internals, to try and clean up all
+# open mapi stores before final shutdown, but only in development mode, as it's
+# just a shutdown issue.
+#
+# TODO investigate further; check python3
+
+def _cleanup_mapistores():
+    for obj in gc.get_objects():
+        if isinstance(obj, (Server, _store.Store)):
+            obj.__dict__.clear()
+    gc.collect()
+
+if os.getenv('ZCPSRCDIR'):
+    atexit.register(_cleanup_mapistores)
 
 class Server(object):
     """Server class"""
