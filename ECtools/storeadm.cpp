@@ -36,7 +36,7 @@
 #include "ConsoleTable.h"
 #include "kcore.hpp"
 
-using namespace KCHL;
+using namespace KC;
 
 static int opt_create_store, opt_create_public, opt_detach_store;
 static int opt_copytopublic, opt_list_orphan, opt_show_version;

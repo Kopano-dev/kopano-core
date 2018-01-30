@@ -136,13 +136,13 @@ class _kc_export KServerContext {
 	unsigned int m_ses_flags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS;
 
 	private:
-	KCHL::AutoMAPI m_mapi;
+	AutoMAPI m_mapi;
 
 	public:
-	KCHL::object_ptr<IMAPISession> m_session;
-	KCHL::object_ptr<IMsgStore> m_admstore;
-	KCHL::object_ptr<IUnknown> m_ecobject;
-	KCHL::object_ptr<IECServiceAdmin> m_svcadm;
+	object_ptr<IMAPISession> m_session;
+	object_ptr<IMsgStore> m_admstore;
+	object_ptr<IUnknown> m_ecobject;
+	object_ptr<IECServiceAdmin> m_svcadm;
 };
 
 } /* namespace */
