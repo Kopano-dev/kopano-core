@@ -63,9 +63,6 @@ dist_sbin_SCRIPTS = kopano-autorespond kopano-mr-accept kopano-mr-process
 sysconf_rotatedir = ${sysconfdir}/logrotate.d
 dist_sysconf_rotate_DATA = kopano.logrotate
 
-sysconf_crondir = ${sysconfdir}/cron.daily
-dist_sysconf_cron_SCRIPTS = kopano-client-update.cron
-
 sysconf_bcdir = ${sysconfdir}/bash_completion.d
 dist_sysconf_bc_DATA = kopano-bash-completion.sh
 
@@ -75,7 +72,6 @@ EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 \
 install-data-hook:
 	install -d -m 755 ${DESTDIR}/${sysconfdir}/kopano/license
 	mv -v ${DESTDIR}${sysconf_rotatedir}/kopano.logrotate ${DESTDIR}${sysconf_rotatedir}/kopano
-	mv -v ${DESTDIR}${sysconf_crondir}/kopano-client-update.cron ${DESTDIR}${sysconf_crondir}/kopano-client-update
 	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
 		mv -v ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.txt ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.kopano; \
 	elif test ${DISTRO} = "rhel"; then \
@@ -87,8 +83,7 @@ install-data-hook:
 	done
 
 uninstall-local:
-	rm -f "${DESTDIR}${sysconf_rotatedir}/kopano" \
-		"${DESTDIR}${sysconf_crondir}/kopano-client-update"
+	rm -f "${DESTDIR}${sysconf_rotatedir}/kopano"
 	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
 		rm -f "${DESTDIR}${sysconf_sysconfigdir}/sysconfig.kopano"; \
 	elif test ${DISTRO} = "rhel"; then \
