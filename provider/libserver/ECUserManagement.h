@@ -152,8 +152,8 @@ public:
 	_kc_hidden virtual ECRESULT GetProps(struct soap *, unsigned int obj_id, struct propTagArray *, struct propValArray *);
 	_kc_hidden virtual ECRESULT GetContainerProps(struct soap *, unsigned int obj_id, struct propTagArray *, struct propValArray *);
 	// Do the same for a whole set of items
-	_kc_hidden virtual ECRESULT QueryContentsRowData(struct soap *, ECObjectTableList *rowlist, struct propTagArray *, struct rowSet **);
-	_kc_hidden virtual ECRESULT QueryHierarchyRowData(struct soap *, ECObjectTableList *rowlist, struct propTagArray *, struct rowSet **);
+	_kc_hidden virtual ECRESULT QueryContentsRowData(struct soap *, const ECObjectTableList *, const struct propTagArray *, struct rowSet **);
+	_kc_hidden virtual ECRESULT QueryHierarchyRowData(struct soap *, const ECObjectTableList *, const struct propTagArray *, struct rowSet **);
 	_kc_hidden virtual ECRESULT GetUserCount(usercount_t *);
 	_kc_hidden virtual ECRESULT GetCachedUserCount(usercount_t *);
 	_kc_hidden virtual ECRESULT GetPublicStoreDetails(objectdetails_t *);
@@ -212,11 +212,11 @@ private:
 	// Converts anonymous Object Detail to property. */
 	_kc_hidden ECRESULT ConvertAnonymousObjectDetailToProp(struct soap *, objectdetails_t *, unsigned int tag, struct propVal *);
 	// Converts the data in user/group/company details fields into property value array for content tables and MAPI_MAILUSER and MAPI_DISTLIST objects
-	_kc_hidden ECRESULT ConvertObjectDetailsToProps(struct soap *, unsigned int id, objectdetails_t *, struct propTagArray *proptags, struct propValArray *propvals);
+	_kc_hidden ECRESULT ConvertObjectDetailsToProps(struct soap *, unsigned int id, objectdetails_t *, const struct propTagArray *proptags, struct propValArray *propvals);
 	// Converts the data in company/addresslist details fields into property value array for hierarchy tables and MAPI_ABCONT objects
-	_kc_hidden ECRESULT ConvertContainerObjectDetailsToProps(struct soap *, unsigned int id, objectdetails_t *, struct propTagArray *proptags, struct propValArray *propvals);
+	_kc_hidden ECRESULT ConvertContainerObjectDetailsToProps(struct soap *, unsigned int id, objectdetails_t *, const struct propTagArray *proptags, struct propValArray *propvals);
 	// Create GlobalAddressBook properties
-	_kc_hidden ECRESULT ConvertABContainerToProps(struct soap *, unsigned int id, struct propTagArray *, struct propValArray *);
+	_kc_hidden ECRESULT ConvertABContainerToProps(struct soap *, unsigned int id, const struct propTagArray *, struct propValArray *);
 
 	_kc_hidden ECRESULT MoveOrCreateLocalObject(const objectsignature_t &signature, unsigned int *obj_id, bool *moved);
 	_kc_hidden ECRESULT CreateLocalObjectSimple(const objectsignature_t &signature, unsigned int pref_id);

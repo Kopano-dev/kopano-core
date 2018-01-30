@@ -52,7 +52,7 @@ class _kc_export_dycast ECUserStoreTable _kc_final :
 
 public:
 	_kc_hidden static ECRESULT Create(ECSession *, unsigned int flags, const ECLocale &, ECUserStoreTable **ret);
-	_kc_hidden static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, ECObjectTableList *rowlist, struct propTagArray *, const void *priv, struct rowSet **rowset, bool cache_table_data, bool table_limit);
+	_kc_hidden static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, const ECObjectTableList *, const struct propTagArray *, const void *priv, struct rowSet **rowset, bool cache_table_data, bool table_limit);
 	_kc_hidden virtual ECRESULT Load(void);
 
 private:

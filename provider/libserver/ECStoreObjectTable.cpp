@@ -263,8 +263,8 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 
 // Interface to main row engine (bSubObjects is false)
 ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
-    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
-    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct soap *soap, ECSession *lpSession, const ECObjectTableList *lpRowList,
+    const struct propTagArray *lpsPropTagArray, const void *lpObjectData,
     struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	return ECStoreObjectTable::QueryRowData(lpThis, soap, lpSession, lpRowList, lpsPropTagArray, lpObjectData, lppRowSet, bCacheTableData, bTableLimit, false);
@@ -272,8 +272,8 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 // Direct interface
 ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
-    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
-    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct soap *soap, ECSession *lpSession, const ECObjectTableList *lpRowList,
+    const struct propTagArray *lpsPropTagArray, const void *lpObjectData,
     struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit,
     bool bSubObjects)
 {
@@ -1211,7 +1211,8 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId
 /**
  * Get all deferred changes for a specific folder
  */
-ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, ECObjectTableList* lpRowList, std::list<unsigned int> *lpDeferred)
+ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase,
+    const ECObjectTableList *lpRowList, std::list<unsigned int> *lpDeferred)
 {
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;

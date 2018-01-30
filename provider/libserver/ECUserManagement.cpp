@@ -1663,7 +1663,9 @@ done:
 	return er;
 }
 
-ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTableList *lpRowList, struct propTagArray *lpPropTagArray, struct rowSet **lppRowSet)
+ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
+    const ECObjectTableList *lpRowList,
+    const struct propTagArray *lpPropTagArray, struct rowSet **lppRowSet)
 {
 	int i = 0;
 	struct rowSet *lpsRowSet = NULL;
@@ -1808,7 +1810,9 @@ exit:
 	return er;
 }
 
-ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap, ECObjectTableList *lpRowList, struct propTagArray *lpPropTagArray, struct rowSet **lppRowSet)
+ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap,
+    const ECObjectTableList *lpRowList,
+    const struct propTagArray *lpPropTagArray, struct rowSet **lppRowSet)
 {
 	ECRESULT er = erSuccess;
 	unsigned int i = 0;
@@ -3110,7 +3114,9 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
  *
  * @todo	make sure all strings in lpszA are valid UTF-8
  */
-ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsigned int ulId, objectdetails_t *lpDetails, struct propTagArray *lpPropTags, struct propValArray *lpPropValsRet)
+ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
+    unsigned int ulId, objectdetails_t *lpDetails,
+    const struct propTagArray *lpPropTags, struct propValArray *lpPropValsRet)
 {
 	struct propVal *lpPropVal;
 	unsigned int ulOrder = 0;
@@ -3629,7 +3635,9 @@ exit:
 }
 
 // Convert a userdetails_t to a set of MAPI properties
-ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soap, unsigned int ulId, objectdetails_t *lpDetails, struct propTagArray *lpPropTags, struct propValArray *lpPropVals)
+ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soap,
+    unsigned int ulId, objectdetails_t *lpDetails,
+    const struct propTagArray *lpPropTags, struct propValArray *lpPropVals)
 {
 	struct propVal *lpPropVal;
 	unsigned int ulOrder = 0;
@@ -3841,7 +3849,9 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 	return er;
 }
 
-ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned int ulId, struct propTagArray *lpPropTagArray, struct propValArray *lpPropValArray)
+ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
+    unsigned int ulId, const struct propTagArray *lpPropTagArray,
+    struct propValArray *lpPropValArray)
 {
 	std::string strName;
 	ABEID abeid;

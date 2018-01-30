@@ -50,7 +50,7 @@ public:
 	//Overrides
 	virtual ECRESULT GetColumnsAll(ECListInt *props) override;
 	virtual ECRESULT Load() override;
-	static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, ECObjectTableList *, struct propTagArray *, const void *priv, struct rowSet **, bool table_data, bool table_limit);
+	static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, const ECObjectTableList *, const struct propTagArray *, const void *priv, struct rowSet **, bool table_data, bool table_limit);
 
 protected:
 	/* Load hierarchy objects */
