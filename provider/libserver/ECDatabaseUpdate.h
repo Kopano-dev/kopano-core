@@ -28,6 +28,7 @@ ECRESULT InsertServerGUID(ECDatabase *lpDatabase);
 ECRESULT UpdateVersionsTbl(ECDatabase *db);
 ECRESULT UpdateChangesTbl(ECDatabase *db);
 ECRESULT UpdateABChangesTbl(ECDatabase *db);
+ECRESULT DropClientUpdateStatusTbl(ECDatabase *db);
 
 extern _kc_export bool searchfolder_restart_required;
 
