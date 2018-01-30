@@ -182,8 +182,6 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 	ECRESULT		er = erSuccess;
 	struct entryList sEntryList;
 
-	memset(&sEntryList, 0, sizeof(struct entryList));
-
 	LockSoap();
 
 	if(lpMsgList) {
@@ -346,8 +344,6 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest, 
 	struct entryList sEntryList;
 	entryId			sEntryDest;	//Do not free, cheap copy
 
-	memset(&sEntryList, 0, sizeof(struct entryList));
-
 	LockSoap();
 
 	if(lpMsgList->cValues == 0)
@@ -456,7 +452,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, L
 	ECRESULT	er = erSuccess;
 	entryId sEntryId;
 	KC::memory_ptr<SPropValue> lpSPropValPCL, lpSPropValCK;
-	getChangeInfoResponse sChangeInfo{__gszeroinit};
+	getChangeInfoResponse sChangeInfo;
 
 	LockSoap();
 

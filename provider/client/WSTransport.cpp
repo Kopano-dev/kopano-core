@@ -820,8 +820,6 @@ HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, LPENTRYLIST lpMsgList, ULONG
 	struct entryList sEntryList;
 
 	LockSoap();
-	memset(&sEntryList, 0, sizeof(struct entryList));
-
 	if(lpMsgList->cValues == 0)
 		goto exitm;
 	hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, &sEntryList);
@@ -847,8 +845,6 @@ HRESULT WSTransport::HrNotify(LPNOTIFICATION lpNotification)
 	ECRESULT er = erSuccess;
 	struct notification	sNotification; 
 	int ulSize = 0;
-
-	memset(&sNotification, 0, sizeof(struct notification));
 
 	LockSoap();
 
@@ -900,7 +896,7 @@ HRESULT WSTransport::HrSubscribe(ULONG cbKey, LPBYTE lpKey, ULONG ulConnection, 
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	notifySubscribe notSubscribe{__gszeroinit};
+	notifySubscribe notSubscribe;
 
 	LockSoap();
 
@@ -926,7 +922,7 @@ HRESULT WSTransport::HrSubscribe(ULONG ulSyncId, ULONG ulChangeId, ULONG ulConne
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	notifySubscribe notSubscribe{__gszeroinit};
+	notifySubscribe notSubscribe;
 
 	LockSoap();
 
@@ -952,7 +948,7 @@ HRESULT WSTransport::HrSubscribeMulti(const ECLISTSYNCADVISE &lstSyncAdvises, UL
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	notifySubscribeArray notSubscribeArray{__gszeroinit};
+	notifySubscribeArray notSubscribeArray;
 	unsigned	i = 0;
 	
 	LockSoap();
@@ -1056,7 +1052,7 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
 	memory_ptr<sourceKeyPairArray> ptrsSourceKeyPairs;
 	WSMessageStreamExporterPtr ptrStreamExporter;
 	propTagArray sPropTags = {0, 0};
-	exportMessageChangesAsStreamResponse sResponse{__gszeroinit};
+	exportMessageChangesAsStreamResponse sResponse;
 
 	if (lpChanges == NULL || lpsProps == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -1712,7 +1708,7 @@ HRESULT WSTransport::HrCreateUser(ECUSER *lpECUser, ULONG ulFlags,
 {
 	HRESULT	hr = hrSuccess;
 	ECRESULT er = erSuccess;
-	struct user sUser{__gszeroinit};
+	struct user sUser;
 	struct setUserResponse sResponse;
 	convert_context converter;
 
@@ -1823,7 +1819,7 @@ HRESULT WSTransport::HrSetUser(ECUSER *lpECUser, ULONG ulFlags)
 {
 	HRESULT	hr = hrSuccess;
 	ECRESULT er = erSuccess;
-	struct user sUser{__gszeroinit};
+	struct user sUser;
 	unsigned int result = 0;
 	convert_context	converter;
 
@@ -2112,7 +2108,7 @@ HRESULT WSTransport::HrCreateGroup(ECGROUP *lpECGroup, ULONG ulFlags,
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	struct group sGroup{__gszeroinit};
+	struct group sGroup;
 	struct setGroupResponse sResponse;
 	convert_context converter;
 
@@ -2169,7 +2165,7 @@ HRESULT WSTransport::HrSetGroup(ECGROUP *lpECGroup, ULONG ulFlags)
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	convert_context converter;
-	struct group sGroup{__gszeroinit};
+	struct group sGroup;
 
 	LockSoap();
 
@@ -2765,7 +2761,7 @@ HRESULT WSTransport::HrCreateCompany(ECCOMPANY *lpECCompany, ULONG ulFlags,
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	struct company sCompany{__gszeroinit};
+	struct company sCompany;
 	struct setCompanyResponse sResponse;
 	convert_context	converter;
 
@@ -2847,7 +2843,7 @@ HRESULT WSTransport::HrSetCompany(ECCOMPANY *lpECCompany, ULONG ulFlags)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	struct company sCompany{__gszeroinit};
+	struct company sCompany;
 	convert_context converter;
 
 	LockSoap();
@@ -3821,7 +3817,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 {
 	ECRESULT						er = erSuccess;
 	HRESULT							hr = hrSuccess;
-	struct resolvePseudoUrlResponse sResponse{__gszeroinit};
+	struct resolvePseudoUrlResponse sResponse;
 	char							*lpszServerPath = NULL;
 	unsigned int					ulLen = 0;
 	ECsResolveResult				*lpCachedResult = NULL;
@@ -3891,7 +3887,7 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 {
 	ECRESULT						er = erSuccess;
 	HRESULT							hr = hrSuccess;
-	struct getServerDetailsResponse sResponse{__gszeroinit};
+	struct getServerDetailsResponse sResponse;
 	ecmem_ptr<struct mv_string8> lpsSvrNameList;
 
 	LockSoap();
@@ -4072,7 +4068,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	HRESULT							hr = hrSuccess;
 	ECRESULT						er = erSuccess;
 	mv_long ulaSyncId;
-	getSyncStatesReponse sResponse{__gszeroinit};
+	getSyncStatesReponse sResponse;
 	SSyncState						sSyncState = {0};
 
 	assert(lplstSyncState != NULL);
@@ -4399,7 +4395,7 @@ HRESULT WSTransport::HrResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, UL
 	HRESULT hr = hrSuccess;
     ECRESULT er = erSuccess;
 	entryId eidFolder;
-	resetFolderCountResponse sResponse{__gszeroinit};
+	resetFolderCountResponse sResponse;
 
 	LockSoap();
 

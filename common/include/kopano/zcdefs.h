@@ -55,12 +55,6 @@
 /* Mark classes which explicitly must not be final in the C++ side… for SWIG */
 #define _no_final
 
-/*
- * This is a marker for structs where we expect gsoap 2.8.30 or ourselves to
- * actually zero it.
- */
-#define __gszeroinit
-
 #if defined(__GNUG__) && __GNUG__ < 5
 	/* std::set::insert(it, it) has a problem with move_iterators */
 #	define gcc5_make_move_iterator(x) (x)

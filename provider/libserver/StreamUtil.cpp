@@ -902,8 +902,7 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	unsigned int	ulCount = 0;
 
 	struct soap		*soap = NULL;
-	struct propVal sPropVal{__gszeroinit};
-
+	struct propVal sPropVal;
 	DB_ROW 			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
 	DB_RESULT lpDBResult;
