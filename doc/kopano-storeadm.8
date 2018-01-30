@@ -3,9 +3,9 @@
 kopano\-storeadm \(em store management utility
 .SH Synopsis
 \fBkopano\-storeadm\fP {\fB\-A\fP
-\fIguid\fP|\fB\-C\fP|\fB\-D\fP|\fB\-O\fP|\fB\-P\fP|\fB\-R\fP \fIguid\fP}
-[\fB\-c\fP \fIfile\fP] [\fB\-h\fP \fIuri\fP] [\fB\-k\fP \fIcompany\fP]
-[\fB\-n\fP \fIname\fP] [\fB\-p\fP] [\fB\-t\fP
+\fIguid\fP|\fB\-C\fP|\fB\-D\fP|\fB\-O\fP|\fB\-P\fP|\fB\-R\fP
+\fIguid\fP|\fB\-V\fP} [\fB\-c\fP \fIfile\fP] [\fB\-h\fP \fIuri\fP] [\fB\-k\fP
+\fIcompany\fP] [\fB\-n\fP \fIname\fP] [\fB\-p\fP] [\fB\-t\fP
 {\fBuser\fP|\fBarchive\fP|\fBgroup\fP|\fBcompany\fP}]
 .SH Description
 .PP
@@ -39,6 +39,9 @@ Create a public store. Only one public store can be created.
 Remove an orphaned store. It actually only marks it as deleted in the database
 and the softdelete mechanism will remove it later on.
 .TP
+\fB\-V\fP
+Display the program version.
+.TP
 \fB\-c\fP \fIfile\fP
 Read config file.
 .TP
@@ -48,6 +51,14 @@ Specify an alternate URI for connecting to a Kopano server.
 \fB\-k\fP \fIcompany-name\fP
 This sets the company name for the \fB\-P\fP action. This option is only
 available for multi-tenancy Kopano.
+.TP
+\fB\-l\fP \fIlocale\fP
+When creating a new store with \fB\-C\fP or \fB\-P\fP, the standard folders
+like Inbox, Drafts, Sent Items, etc. will be translated into the chosen
+language. A locale name is typically of the form
+\fIlanguage\fP[\fB_\fP\fIterritory\fP], where \fIlanguage\fP is an ISO-639
+language code, and \fIterritory\fP is an ISO-3166 country code, but inherently
+these are system-specific. On Linux systems, see locale(1) for details.
 .TP
 \fB\-n\fP \fIentity-name\fP
 For \fB\-C\fP and \fB\-D\fP, specifies the user to work on.
@@ -66,6 +77,8 @@ The store type for the entity specified with \fB\-n\fP. If not specified,
 .SH Examples
 .IP \(bu 4
 Create new store for user: kopano\-storeadm \-Cn user1
+.IP \(bu 4
+Create new store with German names: kopano\-storeadm \-Cn user1 \-l de_DE
 .IP \(bu 4
 Attach orphaned store to user: kopano\-storeadm \-A 24680B \-n user2
 .IP \(bu 4

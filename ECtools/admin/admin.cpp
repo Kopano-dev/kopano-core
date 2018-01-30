@@ -21,6 +21,7 @@
 #include <list>
 #include <set>
 #include <string>
+#include <vector>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -83,7 +84,7 @@ enum modes {
 	MODE_ADD_USERQUOTA_RECIPIENT, MODE_DEL_USERQUOTA_RECIPIENT, MODE_LIST_USERQUOTA_RECIPIENT,
 	MODE_ADD_COMPANYQUOTA_RECIPIENT, MODE_DEL_COMPANYQUOTA_RECIPIENT, MODE_LIST_COMPANYQUOTA_RECIPIENT,
 	MODE_SYNC_USERS, MODE_DETAILS, MODE_LIST_SENDAS, MODE_HELP,
-	MODE_SYSTEM_ADMIN, MODE_PURGE_SOFTDELETE, MODE_PURGE_DEFERRED, MODE_CLEAR_CACHE, MODE_LIST_ORPHANS,
+	MODE_SYSTEM_ADMIN, MODE_PURGE_SOFTDELETE, MODE_PURGE_DEFERRED, MODE_CLEAR_CACHE,
 	MODE_FORCE_RESYNC, MODE_USER_COUNT, MODE_RESET_FOLDER_COUNT
 };
 
@@ -392,24 +393,6 @@ static char *get_password(void)
 static int parse_yesno(const char *opt)
 {
 	return opt[0] == 'y' || opt[0] == '1';
-}
-
-/**
- * Filetime to string
- *
- * @param ft time to convert to string
- *
- * @return time string "m / %d / %y %T"
- */
-static std::string FiletimeToString(FILETIME ft)
-{
-	tm local;
-	char d[64];
-	auto timestamp = FileTimeToUnixTime(ft);
-	localtime_r(&timestamp, &local);
-	strftime(d, sizeof(d), "%x %X", &local);
-
-	return d;
 }
 
 static std::string UnixtimeToString(time_t timestamp)
@@ -968,155 +951,6 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
 }
 
 /**
- * Parse a server store entryid to client store entryid.
- *
- * This is a hack to open an orphan store. It will convert a server store entryid,
- * which doesn't include a server url and is not wrapped by the support object, to
- * a client side store entryid.
- *
- * @param[in] lpServerUrl	ServerURL for open the orphan store.
- * @param[in] cbEntryID		Size of the unwrapped orphan store entryid.
- * @param[in] lpEntryID		unwrapped orphan store entryid without server URL.
- * @param[out] lpcbEntryID	Size of the wrapped orphan store entryid.
- * @param[out] lppEntryID	Pointer to the wrapped entryid from the orphan store entryid.
- */
-static HRESULT CreateOrphanStoreEntryID(const char *lpServerUrl,
-    ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpcbEntryID,
-    LPENTRYID *lppEntryID)
-{
-	memory_ptr<ENTRYID> lpNewEntryID;
-
-	if (lpServerUrl == nullptr || lpEntryID == nullptr ||
-	    lpcbEntryID == nullptr || lppEntryID == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-
-	ULONG cbServerURL = strlen(lpServerUrl);
-	ULONG cbNewEntryID = cbEntryID + cbServerURL;
-	auto hr = MAPIAllocateBuffer(cbNewEntryID, &~lpNewEntryID);
-	if (hr != hrSuccess)
-		return hr;
-	memcpy(lpNewEntryID, lpEntryID, cbEntryID);
-	memcpy(reinterpret_cast<unsigned char *>(lpNewEntryID.get()) + cbEntryID - 4, lpServerUrl, cbServerURL + 4);
-	return WrapStoreEntryID(0, reinterpret_cast<const TCHAR *>("zarafa6client.dll"),
-	       cbNewEntryID, lpNewEntryID, lpcbEntryID, lppEntryID);
-}
-
-/**
- * Get the information for an orphan store
- *
- * @param[in] lpServiceAdmin	Pointer to the service admin.
- * @param[in] lpStoreGuid		Indentifier to the orphan store.
- * @param[in] lpServerUrl		ServerURL for open the orphan store.
- * @param[out] strUsername		A guess of the user name belongs to the orphan store.
- * @param[out] strCompanyName	Company name belongs to the orphan store.
- * @param[out] lpcbEntryID		The orphan store entryid size.
- * @param[out] lppEntryID		Pointer to the entry of the orphan store.
- */
-static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
-    GUID *lpStoreGuid, const char *lpServerUrl, wstring &strUsername,
-    wstring &strCompanyName, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
-{
-	MAPITablePtr ptrTable;
-	SRowSetPtr ptrRowSet;
-	SPropValue sStoreGuid;
-	auto hr = lpServiceAdmin->OpenUserStoresTable(MAPI_UNICODE, &~ptrTable);
-	if (hr != hrSuccess)
-		return hr;
-	sStoreGuid.ulPropTag = PR_EC_STOREGUID;
-	sStoreGuid.Value.bin.cb = sizeof(GUID);
-	sStoreGuid.Value.bin.lpb = (BYTE*)lpStoreGuid;
-
-	hr = ECPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, &sStoreGuid, ECRestriction::Cheap)
-	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
-	if (hr != hrSuccess)
-		return hr;
-	hr = ptrTable->QueryRows(1, 0, &~ptrRowSet);
-	if (hr != hrSuccess)
-		return hr;
-	if (ptrRowSet.empty())
-		return MAPI_E_NOT_FOUND;
-	auto lpsName = ptrRowSet[0].cfind(PR_DISPLAY_NAME_W);
-	if (lpsName != nullptr)
-		strUsername = lpsName->Value.lpszW;
-	lpsName = ptrRowSet[0].cfind(PR_EC_COMPANY_NAME_W);
-	if (lpsName != nullptr)
-		strCompanyName = lpsName->Value.lpszW;
-	auto lpsPropEntryId = ptrRowSet[0].cfind(PR_STORE_ENTRYID);
-	if (lpsPropEntryId == NULL)
-		return MAPI_E_NOT_FOUND;
-
-	return CreateOrphanStoreEntryID(lpServerUrl,lpsPropEntryId->Value.bin.cb,
-		reinterpret_cast<LPENTRYID>(lpsPropEntryId->Value.bin.lpb),
-		lpcbEntryID, lppEntryID);
-}
-
-/**
- * Open/create deleted stores folder in the public store.
- *
- * Open the deleted admin folder in a public store, if the folder not exist it will create the folder.
- * First it creates a folder 'Admin' in the top-level tree (IPM_SUBTREE). The permissions on the folder
- * are set to 'everyone' can not read the folder except an admin. A second folder 'Deleted stores' will
- * create without permissions because the inheritance of the permissions.
- *
- * @param[in] lpPublicStore	Public store to open or create the 'deleted stores' folder
- * @param[out] Pointer to a pointer of folder 'Deleted stores'.
- */
-static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
-    LPMAPIFOLDER *lppFolderStores)
-{
-	object_ptr<IMAPIFolder> lpFolderSubTree, lpFolderAdmin, lpFolderDeletedStores;
-	memory_ptr<SPropValue> lpsPropSubTree, lpPropValue, lpsPropMDB;
-	ULONG ulObjType;
-	ECPERMISSION sPermission = {0};
-	object_ptr<IECSecurity> lpSecurity;
-	ULONG ulPropTagSubtree = 0;
-
-	if (lpPublicStore == nullptr || lppFolderStores == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-	auto hr = HrGetOneProp(lpPublicStore, PR_MDB_PROVIDER, &~lpsPropMDB);
-	if (hr != hrSuccess)
-		return hr;
-
-	// Workaround for companies, because a company is a delegate store!
-	if (lpsPropMDB->Value.bin.cb == sizeof(MAPIUID) && memcmp(lpsPropMDB->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID)) == 0)
-		ulPropTagSubtree = PR_IPM_PUBLIC_FOLDERS_ENTRYID;
-	else
-		ulPropTagSubtree = PR_IPM_SUBTREE_ENTRYID;
-
-	// Open IPM_subtree
-	hr = HrGetOneProp(lpPublicStore, ulPropTagSubtree, &~lpsPropSubTree);
-	if (hr != hrSuccess)
-		return hr;
-	hr = lpPublicStore->OpenEntry(lpsPropSubTree->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpsPropSubTree->Value.bin.lpb), &iid_of(lpFolderSubTree), MAPI_MODIFY, &ulObjType, &~lpFolderSubTree);
-	if (hr != hrSuccess)
-		return hr;
-
-	// Create/open folder Admin
-	hr = lpFolderSubTree->CreateFolder(FOLDER_GENERIC, (LPTSTR)"Admin", nullptr, nullptr, 0, &~lpFolderAdmin);
-	if (hr == hrSuccess) {
-		// Set permissions
-		hr = GetECObject(lpFolderAdmin, iid_of(lpSecurity), &~lpSecurity);
-		sPermission.ulRights = 0;// No rights, only for admin
-		sPermission.sUserId.lpb = g_lpEveryoneEid; // group everyone
-		sPermission.sUserId.cb = g_cbEveryoneEid;
-		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
-		sPermission.ulType = ACCESS_TYPE_GRANT;
-
-		hr = lpSecurity->SetPermissionRules(1, &sPermission);
-	} else if (hr == MAPI_E_COLLISION) {
-		hr = lpFolderSubTree->CreateFolder(FOLDER_GENERIC, (LPTSTR)"Admin", nullptr, nullptr, OPEN_IF_EXISTS, &~lpFolderAdmin);
-	}
-	if (hr != hrSuccess)
-		return hr;
-
-	// Create/open folder Deleted Stores
-	hr = lpFolderAdmin->CreateFolder(FOLDER_GENERIC, (LPTSTR)"Deleted stores", nullptr, nullptr, OPEN_IF_EXISTS, &~lpFolderDeletedStores);
-	if (hr != hrSuccess)
-		return hr;
-	return lpFolderDeletedStores->QueryInterface(IID_IMAPIFolder, (void**)lppFolderStores);
-}
-
-/**
  * Get the public store
  *
  * Get the public store from a company or just the default public store. If a company name is given
@@ -1143,130 +977,6 @@ static HRESULT GetPublicStore(LPMAPISESSION lpSession, LPMDB lpMsgStore,
 	if (hr != hrSuccess)
 		return hr;
 	return lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, lppPublicStore);
-}
-
-static const char *StoreTypeToString(ULONG ulStoreType)
-{
-	switch (ulStoreType) {
-	case ECSTORE_TYPE_PRIVATE:
-		return "private";
-	case ECSTORE_TYPE_ARCHIVE:
-		return "archive";
-	case ECSTORE_TYPE_PUBLIC:
-		return "public";
-	default:
-		return "unknown";
-	};
-}
-
-/**
- * List users without a store, and stores without a user.
- *
- * Gets a list of users and stores. Because of the sorting chosen,
- * stores without a user will be printed first, until the first user
- * without a store is found. Then those are printed, until the first
- * user with a store is found.
- *
- * @param[in]	lpServiceAdmin	Kopano Administrator service object
- * @result		HRESULT			MAPI Error code
- */
-static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
-{
-	object_ptr<IMAPITable> lpTable;
-	std::string strUsername;
-	bool bHeader = true;
-	ConsoleTable ct(50, 5);
-	static constexpr const SizedSSortOrderSet(2, tableSort) =
-	{ 2, 0, 0,
-		{
-			{ PR_EC_USERNAME, TABLE_SORT_ASCEND },
-			{ PR_EC_STOREGUID, TABLE_SORT_ASCEND },
-		}
-	};
-
-	auto hr = lpServiceAdmin->OpenUserStoresTable(0, &~lpTable);
-	if (hr != hrSuccess) {
-		cerr << "Unable to open user/stores table" << endl;
-		return hr;
-	}
-	hr = lpTable->SortTable(tableSort, 0);
-	if (hr != hrSuccess) {
-		cerr << "Unable to sort user/stores table" << endl;
-		return hr;
-	}
-
-	ct.SetHeader(0, "Store guid");
-	ct.SetHeader(1, "Guessed username");
-	ct.SetHeader(2, "Last login");
-	ct.SetHeader(3, "Store size");
-	ct.SetHeader(4, "Store type");
-
-	// Because of the sort, we start with these stores
-	cout << "Stores without users:" << endl;
-
-	while(TRUE) {
-		rowset_ptr lpRowSet;
-		hr = lpTable->QueryRows(50, 0, &~lpRowSet);
-		if(hr != hrSuccess) {
-			cerr << "Unable to load user/stores table" << endl;
-			return hr;
-		}
-
-		if(lpRowSet->cRows == 0)
-			break;
-
-		for (ULONG i = 0; i < lpRowSet->cRows; ++i) {
-			auto lpStoreGuid = lpRowSet[i].cfind(PR_EC_STOREGUID);
-			auto lpUserName  = lpRowSet[i].cfind(PR_EC_USERNAME_A);
-			auto lpModTime   = lpRowSet[i].cfind(PR_LAST_MODIFICATION_TIME);
-			auto lpStoreSize = lpRowSet[i].cfind(PR_MESSAGE_SIZE_EXTENDED);
-			auto lpStoreType = lpRowSet[i].cfind(PR_EC_STORETYPE);
-			if (lpStoreGuid && lpUserName)
-				continue;
-
-			if (!lpUserName) {
-				// find "guessed" named
-				lpUserName = lpRowSet[i].cfind(PR_DISPLAY_NAME_A);
-				if (lpUserName)
-					strUsername = lpUserName->Value.lpszA;
-				else
-					strUsername = "<unknown>";
-			} else {
-				// we had all stores without users, now the users without stores
-				if (bHeader) {
-					ct.PrintTable();
-					ct.Resize(50, 1);
-					ct.SetHeader(0, "Username");
-
-					cout << endl << "Users without stores:" << endl;
-					bHeader = false;
-				}
-
-				strUsername = lpUserName->Value.lpszA;
-			}
-			if (lpStoreGuid == nullptr) {
-				ct.AddColumn(0, strUsername);
-				continue;
-			}
-			ct.AddColumn(0, bin2hex(lpStoreGuid->Value.bin));
-			ct.AddColumn(1, strUsername);
-			if (lpModTime)
-				ct.AddColumn(2, FiletimeToString(lpModTime->Value.ft));
-			else
-				ct.AddColumn(2, "<unknown>");
-			if (lpStoreSize)
-				ct.AddColumn(3, str_storage(lpStoreSize->Value.li.QuadPart, false));
-			else
-				ct.AddColumn(3, "<unknown>");
-			if (lpStoreType)
-				ct.AddColumn(4, StoreTypeToString(lpStoreType->Value.ul));
-			else
-				ct.AddColumn(4, "<unknown>");
-		}
-	}
-
-	ct.PrintTable();
-	return hrSuccess;
 }
 
 static LPMVPROPMAPENTRY FindMVPropmapEntry(ECUSER *lpUser, ULONG ulPropTag)
@@ -2104,6 +1814,30 @@ static void missing_quota(int hard, int warn, int soft)
 		cerr << " soft quota (--qs)";
 }
 
+static int fexec(const std::string &admin, std::vector<std::string> cmd)
+{
+	/*
+	 * Run @cmd[0] with the directory contained in @admin (if any),
+	 * so that the redirect also works in just-built trees.
+	 */
+	auto pos = admin.rfind('/');
+	if (pos != std::string::npos)
+		cmd[0] = admin.substr(0, pos + 1) + cmd[0];
+	cerr << "The selected option is deprecated in this utility.\n";
+	cerr << "\e[1;33m""Forwarding call to: `" << kc_join(cmd, " ") << "`.\e[0m\n";
+	std::unique_ptr<const char *[]> argv(new(std::nothrow) const char *[cmd.size()+1]);
+	int argc = 0;
+	if (argv == nullptr) {
+		perror("new");
+		return EXIT_FAILURE;
+	}
+	for (const auto &e : cmd)
+		argv[argc++] = e.c_str();
+	argv[argc] = nullptr;
+	execvp(argv[0], const_cast<char * const *>(argv.get()));
+	return EXIT_FAILURE;
+}
+
 int main(int argc, char* argv[])
 {
 	AutoMAPI mapiinit;
@@ -2176,7 +1910,6 @@ int main(int argc, char* argv[])
 	modes mode = MODE_INVALID;
 	int passprompt = 0;
 	bool bCopyToPublic = false;
-	int nFolderId = 0;
 	std::list<std::string> lstUsernames;
 
 	bool bAutoAccept = false, bDeclineConflict = false, bDeclineRecurring = false;
@@ -2188,7 +1921,6 @@ int main(int argc, char* argv[])
 	wstring strStorenameTMP;
 	wstring strCompanyName;
 	object_ptr<IMAPIFolder> lpDeletedStoresFolder, lpRootFolder;
-	ULONG ulObjType = 0;
 	ULONG ulCachePurgeMode = PURGE_CACHE_ALL;
 	unsigned int loglevel = EC_LOGLEVEL_NONE;
 	object_ptr<ECLogger> lpLogger;
@@ -2474,8 +2206,7 @@ int main(int argc, char* argv[])
 			mode = MODE_PURGE_DEFERRED;
 			break;
 		case OPT_LIST_ORPHANS:
-			mode = MODE_LIST_ORPHANS;
-			break;
+			return fexec(argv[0], {"kopano-storeadm", "-O"});
 		case OPT_CONFIG:
 			szConfig = validateInput(optarg);
 			bExplicitConfig = true;
@@ -3014,12 +2745,6 @@ int main(int argc, char* argv[])
 		if (hr != hrSuccess)
 			goto exit;
 		break;
-	case MODE_LIST_ORPHANS:
-		hr = list_orphans(lpServiceAdmin);
-		if (hr != hrSuccess)
-			goto exit;
-		break;
-
 	case MODE_DETAILS:
 		if (detailstype == NULL || strcasecmp(detailstype, "user") == 0)
 			ulClass = ACTIVE_USER;
@@ -3129,82 +2854,7 @@ int main(int argc, char* argv[])
 		}
 
 		if (bCopyToPublic == true) {
-			// Find store entryid
-			hr = GetOrphanStoreInfo(lpServiceAdmin, lpGUID, path, strUsername, strCompanyName, &cbEntryID, &~lpEntryID);
-			if (hr != hrSuccess) {
-				cerr << "Unable to get the store information. store guid '" << storeguid << "'" << endl;
-				goto exit;
-			}
-
-			// Open store the orphan store
-			hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, nullptr, MAPI_BEST_ACCESS, &~lpUserStore);
-			if (hr != hrSuccess) {
-				cerr << "Unable to open the orphan store: " << getMapiCodeString(hr) << endl;
-				goto exit;
-			}
-
-			// Open the root container for copy the folders
-			hr = lpUserStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_BEST_ACCESS, &ulObjType, &~lpRootFolder);
-			if (hr != hrSuccess) {
-				cerr << "Unable to open root folder of the orphan store: " << getMapiCodeString(hr) << endl;
-				goto exit;
-			}
-
-			hr = HrGetOneProp(lpUserStore, PR_IPM_SUBTREE_ENTRYID, &~lpPropValue);
-			if (hr != hrSuccess) {
-				cerr << "Unable to open the orphans store sub-entry: " << getMapiCodeString(hr) << endl;
-				goto exit;
-			}
-
-			// Open the public store
-			hr = GetPublicStore(lpSession, lpUserStore, strCompanyName, &~lpPublicStore);
-			if (hr != hrSuccess) {
-				cerr << "Unable to open the public store: " << getMapiCodeString(hr) << endl;
-				goto exit;
-			}
-
-			// open/create folders admin/stores
-			hr = OpenDeletedStoresFolder(lpPublicStore, &~lpDeletedStoresFolder);
-			if (hr != hrSuccess) {
-				cerr << "Unable to open the folder \"deleted stores\": " << getMapiCodeString(hr) << endl;
-				goto exit;
-			}
-
-			// Copy everything to the public
-			strStorename = L"Deleted User - ";
-			if (strUsername.empty())
-				strStorename += convert_to<wstring>(storeguid);
-			else
-				strStorename += strUsername;
-
-			cerr << "Start to copy the orphan store to the public store to the folder '" << convert_to<string>(strStorename) << "'" << endl;
-
-			strStorenameTMP = strStorename;
-			nFolderId = 1;
-			while (true)
-			{
-				hr = lpRootFolder->CopyFolder(lpPropValue->Value.bin.cb, (LPENTRYID)lpPropValue->Value.bin.lpb,
-					NULL, lpDeletedStoresFolder, (LPTSTR)strStorenameTMP.c_str(), 0, NULL, COPY_SUBFOLDERS | MAPI_UNICODE);
-
-				if (hr == MAPI_E_COLLISION) {
-					if (nFolderId >= 1000) {
-						cerr << "Unable to copy the store to the public, maximum folder collisions exceeded" << endl;
-						goto exit;
-					}
-					strStorenameTMP = strStorename + std::to_wstring(nFolderId);
-					++nFolderId;
-					cerr << "Folder already exist, retrying with foldername '" << convert_to<string>(strStorenameTMP) << "'" << endl;
-				} else if (FAILED(hr)) {
-					cerr << "Unable to copy the store to the public," << getMapiCodeString(hr) << endl;
-					goto exit;
-				} else if (hr != hrSuccess) {
-					cerr << "Warning: the copy succeeded, but not all entries were copied (" << getMapiCodeString(hr) << ")" << endl;
-					break;
-				} else {
-					cerr << "Copy succeeded" << endl;
-					break;
-				}
-			}
+			return fexec(argv[0], {"kopano-storeadm", "-A", storeguid, "-p"});
 		} else {
 			ULONG ulStoreType;
 

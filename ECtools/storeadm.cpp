@@ -39,11 +39,11 @@
 using namespace KCHL;
 
 static int opt_create_store, opt_create_public, opt_detach_store;
-static int opt_copytopublic, opt_list_orphan;
+static int opt_copytopublic, opt_list_orphan, opt_show_version;
 static const char *opt_attach_store, *opt_remove_store;
 static const char *opt_config_file, *opt_host;
 static const char *opt_entity_name, *opt_entity_type;
-static const char *opt_companyname;
+static const char *opt_companyname, *opt_lang;
 static std::unique_ptr<ECConfig> adm_config;
 
 static constexpr const struct poptOption adm_options[] = {
@@ -53,9 +53,11 @@ static constexpr const struct poptOption adm_options[] = {
 	{nullptr, 'O', POPT_ARG_NONE, &opt_list_orphan, 0, "List orphaned stores"},
 	{nullptr, 'P', POPT_ARG_NONE, &opt_create_public, 0, "Create a public store"},
 	{nullptr, 'R', POPT_ARG_STRING, &opt_remove_store, 0, "Remove an orphaned store by GUID"},
+	{nullptr, 'V', POPT_ARG_NONE, &opt_show_version, 0, "Show the program version"},
 	{nullptr, 'c', POPT_ARG_STRING, &opt_config_file, 'c', "Specify alternate config file"},
 	{nullptr, 'h', POPT_ARG_STRING, &opt_host, 0, "URI for server"},
 	{nullptr, 'k', POPT_ARG_STRING, &opt_companyname, 0, "Name of the company for creating a public store in a multi-tenant setup"},
+	{nullptr, 'l', POPT_ARG_STRING, &opt_lang, 0, "Use given locale for selecting folder names"},
 	{nullptr, 'n', POPT_ARG_STRING, &opt_entity_name, 0, "User/group/company account to work on for -A,-C,-D"},
 	{nullptr, 'p', POPT_ARG_NONE, &opt_copytopublic, 0, "Copy an orphaned store's root to a subfolder in the public store"},
 	{nullptr, 't', POPT_ARG_STRING, &opt_entity_type, 0, "Store type for the -n argument (user, archive, group, company)"},
@@ -384,15 +386,11 @@ static HRESULT adm_open_dsfolder(IMsgStore *store,
 static HRESULT adm_copy_to_public(KServerContext &kadm,
     const std::string &hexguid, const GUID &binguid)
 {
-	const char *path = opt_host;
-	if (path == nullptr)
-		path = adm_config->GetSetting("server_socket");
-
 	/* Find store entryid */
 	ULONG eid_size = 0;
 	memory_ptr<ENTRYID> eid;
 	std::wstring user, company;
-	auto ret = adm_orphan_store_info(kadm.m_svcadm, binguid, path,
+	auto ret = adm_orphan_store_info(kadm.m_svcadm, binguid, opt_host,
 	           user, company, &eid_size, &~eid);
 	if (ret != hrSuccess)
 		return kc_perror("GetOrphanStoreInfo", ret);
@@ -668,8 +666,15 @@ static HRESULT adm_remove_store(IECServiceAdmin *svcadm, const char *hexguid)
 
 static HRESULT adm_perform()
 {
+	if (opt_show_version) {
+		printf("kopano-storeadm " PROJECT_VERSION "\n");
+		return hrSuccess;
+	}
 	KServerContext srvctx;
 	srvctx.m_app_misc = "storeadm";
+	if (opt_host == nullptr)
+		opt_host = GetServerUnixSocket(adm_config->GetSetting("server_socket"));
+	srvctx.m_host = opt_host;
 	auto ret = srvctx.logon();
 	if (ret != hrSuccess)
 		return kc_perror("KServerContext::logon", ret);
@@ -709,18 +714,22 @@ static bool adm_parse_options(int &argc, char **&argv)
 		return false;
 	}
 	auto act = !!opt_attach_store + !!opt_detach_store + !!opt_create_store +
-	           !!opt_remove_store + !!opt_create_public + !!opt_list_orphan;
+	           !!opt_remove_store + !!opt_create_public + !!opt_list_orphan +
+	           !!opt_show_version;
 	if (act > 1) {
-		fprintf(stderr, "-A, -C, -D, -O, -P and -R are mutually exclusive.\n");
+		fprintf(stderr, "-A, -C, -D, -O, -P, -R and -V are mutually exclusive.\n");
 		return false;
 	} else if (act == 0) {
-		fprintf(stderr, "One of -A, -C, -D, -O, -P, -R or -? must be specified.\n");
+		fprintf(stderr, "One of -A, -C, -D, -O, -P, -R, -V or -? must be specified.\n");
 		return false;
 	} else if (opt_attach_store != nullptr && ((opt_entity_name != nullptr) == !!opt_copytopublic)) {
 		fprintf(stderr, "-A needs exactly one of -n or -p\n");
 		return false;
 	} else if ((opt_create_store || opt_detach_store) && opt_entity_name == nullptr) {
 		fprintf(stderr, "-C/-D need the -n option\n");
+		return false;
+	} else if (opt_lang != nullptr && !opt_create_store && !opt_create_public) {
+		fprintf(stderr, "-l can only be used with -C or -P.\n");
 		return false;
 	}
 	return true;
@@ -732,5 +741,9 @@ int main(int argc, char **argv)
 	ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);
 	if (!adm_parse_options(argc, argv))
 		return EXIT_FAILURE;
+	if (opt_lang != nullptr && setlocale(LC_MESSAGES, opt_lang) == nullptr) {
+		fprintf(stderr, "Your system does not have the \"%s\" locale available.\n", opt_lang);
+		return EXIT_FAILURE;
+	}
 	return adm_perform() == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
 }
