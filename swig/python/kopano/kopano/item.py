@@ -61,6 +61,7 @@ from MAPI.Tags import (
     PR_NORMALIZED_SUBJECT_W, PR_INTERNET_MESSAGE_ID_W, PR_CONVERSATION_ID,
     PR_READ_RECEIPT_REQUESTED, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED,
     PR_REPLY_RECIPIENT_ENTRIES, PR_EC_BODY_FILTERED, PR_SENSITIVITY,
+    PR_SEARCH_KEY
 )
 
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
@@ -256,6 +257,14 @@ class Item(Properties, Contact, Appointment):
         if not hasattr(self, '_sourcekey'): # XXX more general caching solution
             self._sourcekey = bin2hex(HrGetOneProp(self.mapiobj, PR_SOURCE_KEY).Value)
         return self._sourcekey
+
+    @property
+    def searchkey(self):
+        """ Item searchkey """
+
+        if not hasattr(self, '_searchkey'): # XXX more general caching solution
+            self._searchkey = bin2hex(HrGetOneProp(self.mapiobj, PR_SEARCH_KEY).Value)
+        return self._searchkey
 
     @property
     def changekey(self):
