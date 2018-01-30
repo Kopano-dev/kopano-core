@@ -100,9 +100,7 @@ MAPISMTPTransport::~MAPISMTPTransport()
 			disconnect();
 		else if (m_socket)
 			internalDisconnect();
-	}
-	catch (vmime::exception&)
-	{
+	} catch (const vmime::exception &) {
 		// Ignore
 	}
 }
@@ -173,10 +171,8 @@ void MAPISMTPTransport::connect()
 		try
 		{
 			startTLS();
-		}
-		// Non-fatal error
-		catch (exceptions::command_error&)
-		{
+		} catch (const exceptions::command_error &) {
+			/* Non-fatal error */
 			if (tlsRequired)
 				throw;
 			/* else: TLS is not required, so do not bother */
@@ -281,21 +277,17 @@ void MAPISMTPTransport::authenticate()
 
 			m_authentified = true;
 			return;
-		}
-		catch (exceptions::authentication_error& e)
-		{
+		} catch (const exceptions::authentication_error &e) {
 			if (!GET_PROPERTY(bool, PROPERTY_OPTIONS_SASL_FALLBACK))
 			{
 				// Can't fallback on normal authentication
 				internalDisconnect();
-				throw e;
+				throw;
 			}
 			/* else: Ignore, will try normal authentication */
-		}
-		catch (exception& e)
-		{
+		} catch (const exception &e) {
 			internalDisconnect();
-			throw e;
+			throw;
 		}
 	}
 #endif // VMIME_HAVE_SASL_SUPPORT
@@ -327,9 +319,7 @@ void MAPISMTPTransport::authenticateSASL()
 		try
 		{
 			mechList.emplace_back(saslContext->createMechanism(saslMechs[i]));
-		}
-		catch (exceptions::no_such_mechanism&)
-		{
+		} catch (const exceptions::no_such_mechanism &) {
 			// Ignore mechanism
 		}
 	}
@@ -381,9 +371,7 @@ void MAPISMTPTransport::authenticateSASL()
 					saslSession->evaluateChallenge(challenge.get(), challengeLen, &unique_tie(resp), &respLen);
 					// Send response
 					sendRequest(saslContext->encodeB64(resp.get(), respLen));
-				}
-				catch (exceptions::sasl_exception& e)
-				{
+				} catch (const exceptions::sasl_exception &e) {
 					// Cancel SASL exchange
 					sendRequest("*");
 				}
@@ -423,14 +411,10 @@ void MAPISMTPTransport::startTLS()
 		m_secured = true;
 		m_cntInfos = vmime::make_shared<tls::TLSSecuredConnectionInfos>
 			(m_cntInfos->getHost(), m_cntInfos->getPort(), tlsSession, tlsSocket);
-	}
-	catch (exceptions::command_error&)
-	{
+	} catch (const exceptions::command_error &) {
 		// Non-fatal error
 		throw;
-	}
-	catch (exception&)
-	{
+	} catch (const exception &) {
 		// Fatal error
 		internalDisconnect();
 		throw;
@@ -457,9 +441,7 @@ void MAPISMTPTransport::internalDisconnect()
 	try
 	{
 		sendRequest("QUIT");
-	}
-	catch (exception&)
-	{
+	} catch (const exception &) {
 		// Not important
 	}
 

@@ -1907,7 +1907,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 				setMessages.emplace(ulId);
 			else
 				assert(false);
-		} catch (std::runtime_error &e) {
+		} catch (const std::runtime_error &e) {
 			ec_log_err("eid.type(): %s\n", e.what());
 			return MAPI_E_CORRUPT_DATA;
 		}
@@ -2019,7 +2019,7 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid, unsign
 	try {
 		if (entryid.type() == MAPI_STORE)
 			return lpDatabase->Begin();
-	} catch (std::runtime_error &e) {
+	} catch (const std::runtime_error &e) {
 		ec_log_err("entryid.type(): %s\n", e.what());
 		return KCERR_INVALID_PARAMETER;
 	}

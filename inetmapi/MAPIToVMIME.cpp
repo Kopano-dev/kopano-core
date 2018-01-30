@@ -256,12 +256,10 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 			lpVMMessageBuilder->getRecipients().appendAddress(undisclosed);
 		}
 			
-	}
-	catch (vmime::exception& e) {
+	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception: %s", e.what());
 		return MAPI_E_CALL_FAILED;
-	}
-	catch (std::exception& e) {
+	} catch (const std::exception &e) {
 		ec_log_err("STD exception on recipients: %s", e.what());
 		return MAPI_E_CALL_FAILED;
 	}
@@ -441,12 +439,10 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 				               vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(), szFilename, rawsize(szFilename), CHARSET_WCHAR), m_vmCharset));
 				lpVMMessageBuilder->appendAttachment(vmMapiAttach);
 			}
-		}
-		catch (vmime::exception& e) {
+		} catch (const vmime::exception &e) {
 			ec_log_err("VMIME exception: %s", e.what());
 			return MAPI_E_CALL_FAILED;
-		}
-		catch (std::exception& e) {
+		} catch (const std::exception &e) {
 			ec_log_err("STD exception on attachment: %s", e.what());
 			return MAPI_E_CALL_FAILED;
 		}
@@ -650,7 +646,7 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 						// Just append at the end of this list, order is not important
 						vmHeader->appendField(vmime::dynamicCast<vmime::headerField>(vmField->clone()));
 				}
-			} catch (vmime::exception& e) {
+			} catch (const vmime::exception &e) {
 				ec_log_warn("VMIME exception adding extra headers: %s", e.what());
 			}
 			catch(...) { 
@@ -669,12 +665,10 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 
 		// no hr checking
 		handleXHeaders(lpMessage, vmHeader, flags);
-	}
-	catch (vmime::exception& e) {
+	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception: %s", e.what());
 		return MAPI_E_CALL_FAILED; // set real error
-	}
-	catch (std::exception& e) {
+	} catch (const std::exception &e) {
 		ec_log_err("STD exception on note message: %s", e.what());
 		return MAPI_E_CALL_FAILED; // set real error
 	}
@@ -837,13 +831,10 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 			else
 				vmMessage->getHeader()->From()->setValue(vmime::mailbox(getVmimeTextFromWide(strRepName), m_converter.convert_to<string>(strRepEmailAdd)));
 		}
-
-	}
-	catch (vmime::exception& e) {
+	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception: %s", e.what());
 		return MAPI_E_CALL_FAILED; // set real error
-	}
-	catch (std::exception& e) {
+	} catch (const std::exception &e) {
 		ec_log_err("STD exception on MDN message: %s", e.what());
 		return MAPI_E_CALL_FAILED; // set real error
 	}
@@ -1126,12 +1117,10 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 		else
 			lpVMMessageBuilder->setExpeditor(vmime::mailbox(m_converter.convert_to<string>(strEmAdd)));
 		// sender and reply-to is set elsewhere because it can only be done on a message object...
-	}
-	catch (vmime::exception& e) {
+	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception: %s", e.what());
 		return MAPI_E_CALL_FAILED; // set real error
-	}
-	catch (std::exception& e) {
+	} catch (const std::exception &e) {
 		ec_log_err("STD exception on fill message: %s", e.what());
 		return MAPI_E_CALL_FAILED; // set real error
 	}
@@ -1314,13 +1303,11 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 			lpVMMessageBuilder->getTextPart()->setCharset(m_vmCharset);
 			vmime::dynamicCast<vmime::mapiTextPart>(lpVMMessageBuilder->getTextPart())->setPlainText(vmime::make_shared<vmime::stringContentHandler>(outString, bodyEncoding));
 		}
-	}
-	catch (vmime::exception& e) {
+	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
-	}
-	catch (std::exception& e) {
+	} catch (const std::exception &e) {
 		ec_log_err("STD exception on text part: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
@@ -2058,12 +2045,10 @@ tnef_anyway:
 				lpVMMessageBuilder->appendAttachment(vmTNEFAtt); 
 			}
 		}
-	}
-	catch (vmime::exception& e) {
+	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception: %s", e.what());
 		return MAPI_E_CALL_FAILED; // set real error
-	}
-	catch (std::exception& e) {
+	} catch (const std::exception &e) {
 		ec_log_err("STD exception on fill message: %s", e.what());
 		return MAPI_E_CALL_FAILED; // set real error
 	}

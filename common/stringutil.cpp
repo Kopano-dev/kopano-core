@@ -73,7 +73,7 @@ std::string stringify_double(double x, int prec, bool bLocale) {
 		try {
 			std::locale l("");
 			s.imbue(l);
-		} catch (std::runtime_error &) {
+		} catch (const std::runtime_error &) {
 			// locale not available, print in C
 		}
 		s << x;

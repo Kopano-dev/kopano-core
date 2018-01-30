@@ -70,8 +70,7 @@ static void InitializeVMime()
 	scoped_lock l_vm(vmInitLock);
 	try {
 		vmime::platform::getHandler();
-	}
-	catch (vmime::exceptions::no_platform_handler &) {
+	} catch (const vmime::exceptions::no_platform_handler &) {
 		vmime::platform::setHandler<vmime::platforms::posix::posixHandler>();
 	}
 	if (vmimeInitialized)
@@ -195,11 +194,9 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 		lpVMMessage->getHeader()->MessageId()->setValue(msgid);
 
 		lpVMMessage->generate(adapter);
-	}
-	catch (vmime::exception&) {
+	} catch (const vmime::exception &) {
 		return MAPI_E_NOT_FOUND;
-	}
-	catch (std::exception&) {
+	} catch (const std::exception &) {
 		return MAPI_E_NOT_FOUND;
 	}
 	return hrSuccess;
@@ -243,12 +240,10 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 			msgId = vmime::messageId(generate_message_id(lpMessage), vmime::platform::getHandler()->getHostName());
 		vmMessage->getHeader()->MessageId()->setValue(msgId);
 		ec_log_debug("Sending message with Message-ID: " + msgId.getId());
-	}
-	catch (vmime::exception& e) {
+	} catch (const vmime::exception &e) {
 		mailer->setError(e.what());
 		return MAPI_E_NOT_FOUND;
-	}
-	catch (std::exception& e) {
+	} catch (const std::exception &e) {
 		mailer->setError(e.what());
 		return MAPI_E_NOT_FOUND;
 	}

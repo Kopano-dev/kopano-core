@@ -102,7 +102,7 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
 	try {
 		lpPlugin = m_getUserPluginInstance(m_plugin_lock, m_shareddata);
 		lpPlugin->InitPlugin();
-	} catch (std::exception &e) {
+	} catch (const std::exception &e) {
 		ec_log_crit("Cannot instantiate user plugin: %s", e.what());
 		return KCERR_NOT_FOUND;
 	}
