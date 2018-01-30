@@ -6,7 +6,6 @@ import os
 import time
 import kopano
 import grp
-from MAPI.Defs import bin2hex
 from kopano import Config, log_exc
 from contextlib import closing
 
@@ -95,18 +94,27 @@ class Checker(object):
             with closing(open(emlfilename, "wb")) as fh:
                 fh.write(spameml)
 
-            uid = os.getuid()
-            gid = grp.getgrnam(self.sagroup).gr_gid
-            os.chown(emlfilename, uid, gid)
-            os.chmod(emlfilename, 0o660)
-
-            if spam:
-                self.mark_spam(searchkey)
         except Exception as e:
             self.log.error(
                 'Exception happend during learning: %s, entryid: %s' %
                 (e, item.entryid)
             )
+            return
+
+        try:
+            uid = os.getuid()
+            gid = grp.getgrnam(self.sagroup).gr_gid
+            os.chown(emlfilename, uid, gid)
+            os.chmod(emlfilename, 0o660)
+        except Exception as e:
+            self.log.warning(
+                'Unable to set ownership: %s, entryid %s' %
+                (e, item.entryid)
+            )
+
+        if spam:
+            self.mark_spam(searchkey)
+
 
 def main():
     parser = kopano.parser('ckpsFl')  # select common cmd-line options
