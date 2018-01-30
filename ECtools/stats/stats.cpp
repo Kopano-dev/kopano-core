@@ -642,12 +642,10 @@ int main(int argc, char *argv[])
 	}
 	if (user == nullptr)
 		user = KOPANO_SYSTEM_USER;
-	if (pass == nullptr)
-		pass = "";
 	hr = HrOpenECSession(&~lpSession, PROJECT_VERSION, "stats", user, pass,
 	     host, EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE);
 	if (hr != hrSuccess) {
-		cout << "Cannot open admin session on host " << (host ? host : "localhost") << ", username " << (user ? user : "SYSTEM") << endl;
+		cout << "Cannot open admin session on host " << (host ? host : "localhost") << ", username " << user << endl;
 		return EXIT_FAILURE;
 	}
 	hr = HrOpenDefaultStore(lpSession, &~lpStore);
