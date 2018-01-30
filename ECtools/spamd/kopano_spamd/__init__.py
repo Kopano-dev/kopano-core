@@ -68,7 +68,7 @@ class Checker(object):
         if item.folder == item.store.junk and \
            item.header('x-spam-flag') != 'YES':
 
-            fn = os.path.join(self.hamdir, searchkey)
+            fn = os.path.join(self.hamdir, searchkey + '.eml')
             if os.path.isfile(fn):
                 os.unlink(fn)
 
@@ -77,7 +77,7 @@ class Checker(object):
         elif item.folder == item.store.inbox and \
              self.learnham and self.was_spam(searchkey):
 
-            fn = os.path.join(self.spamdir, searchkey)
+            fn = os.path.join(self.spamdir, searchkey + '.eml')
             if os.path.isfile(fn):
                 os.unlink(fn)
 
@@ -88,7 +88,7 @@ class Checker(object):
             searchkey = item.searchkey
             spameml = item.eml()
             dir = spam and self.spamdir or self.hamdir
-            emlfilename = os.path.join(dir, searchkey)
+            emlfilename = os.path.join(dir, searchkey + '.eml')
 
             with closing(open(emlfilename, "wb")) as fh:
                 fh.write(spameml)
