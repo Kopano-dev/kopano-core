@@ -23,7 +23,8 @@ CONFIG = {
     'spam_dir': Config.string(default="/var/lib/kopano/spamd/spam"),
     'ham_dir': Config.string(default="/var/lib/kopano/spamd/ham"),
     'spam_db': Config.string(default="/var/lib/kopano/spamd/spam.db"),
-    'sa_group': Config.string(default="amavis")
+    'sa_group': Config.string(default="amavis"),
+    'learn_ham': Config.boolean(default=True)
 }
 
 
@@ -48,6 +49,7 @@ class Checker(object):
         self.spamdir = service.config['spam_dir']
         self.hamdir = service.config['ham_dir']
         self.sagroup = service.config['sa_group']
+        self.learnham = service.config['learn_ham']
 
     def mark_spam(self, searchkey):
         with closing(bsddb.btopen(self.spamdb, 'c')) as db:
@@ -72,8 +74,8 @@ class Checker(object):
 
             self.learn(item, True)
 
-        elif item.folder != item.store.junk and \
-                self.was_spam(searchkey):
+        elif item.folder == item.store.inbox and \
+             self.learnham and self.was_spam(searchkey):
 
             fn = os.path.join(self.spamdir, searchkey)
             if os.path.isfile(fn):
