@@ -72,15 +72,17 @@ class Checker(object):
             if os.path.isfile(fn):
                 os.unlink(fn)
 
+            self.log.info("Learning message as SPAM, entryid: %s" % item.entryid)
             self.learn(item, True)
 
         elif item.folder == item.store.inbox and \
-             self.learnham and self.was_spam(searchkey):
+                self.learnham and self.was_spam(searchkey):
 
             fn = os.path.join(self.spamdir, searchkey + '.eml')
             if os.path.isfile(fn):
                 os.unlink(fn)
 
+            self.log.info("Learning message as HAM, entryid: %s" % item.entryid)
             self.learn(item, False)
 
     def learn(self, item, spam):
@@ -102,12 +104,12 @@ class Checker(object):
                 self.mark_spam(searchkey)
         except Exception as e:
             self.log.error(
-                'Exception happend during learning: [%s] [%s]' %
+                'Exception happend during learning: %s, entryid: %s' %
                 (e, item.entryid)
             )
 
 def main():
-    parser = kopano.parser('ckpsF')  # select common cmd-line options
+    parser = kopano.parser('ckpsFl')  # select common cmd-line options
     options, args = parser.parse_args()
     service = Service('spamd', config=CONFIG, options=options)
     service.start()
