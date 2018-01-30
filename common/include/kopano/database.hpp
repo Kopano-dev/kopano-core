@@ -146,7 +146,7 @@ class _kc_export KDatabase {
 	unsigned int GetInsertId(void);
 	ECRESULT InitEngine(bool reconnect);
 	bool isConnected(void) const { return m_bConnected; }
-	ECRESULT IsInnoDBSupported(void);
+	ECRESULT IsEngineSupported(const char *);
 	virtual ECRESULT Query(const std::string &q);
 	ECRESULT I_Update(const std::string &q, unsigned int *affected);
 

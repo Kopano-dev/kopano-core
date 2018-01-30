@@ -183,25 +183,26 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
 	generic_sigsegv_handler(g_lpLogger, "kopano-server", PROJECT_VERSION, signr, si, uc);
 }
 
-static ECRESULT check_database_innodb(ECDatabase *lpDatabase)
+static ECRESULT check_database_engine(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
 	string strQuery;
 	DB_RESULT lpResult;
 	DB_ROW lpRow = NULL;
 
+	auto engine = g_lpConfig->GetSetting("mysql_engine");
 	// Only supported from mysql 5.0
-	er = lpDatabase->DoSelect("SHOW TABLE STATUS WHERE engine != 'InnoDB'", &lpResult);
+	er = lpDatabase->DoSelect(format("SHOW TABLE STATUS WHERE engine != '%s'", engine), &lpResult);
 	if (er != erSuccess)
 		return er;
 	while ((lpRow = lpResult.fetch_row()) != nullptr) {
-		ec_log_crit("Database table '%s' not in InnoDB format: %s", lpRow[0] ? lpRow[0] : "unknown table", lpRow[1] ? lpRow[1] : "unknown engine");
+		ec_log_crit("Database table '%s' not in %s format: %s", lpRow[0] ? lpRow[0] : "unknown table", engine, lpRow[1] ? lpRow[1] : "unknown engine");
 		er = KCERR_DATABASE_ERROR;
 	}
 
 	if (er != erSuccess) {
-		ec_log_crit("Your database was incorrectly created. Please upgrade all tables to the InnoDB format using this query:");
-		ec_log_crit("  ALTER TABLE <table name> ENGINE='InnoDB';");
+		ec_log_crit("Your database was incorrectly created. Please upgrade all tables to the %s format using this query:", engine);
+		ec_log_crit("  ALTER TABLE <table name> ENGINE='%s';", engine);
 		ec_log_crit("This process may take a very long time, depending on the size of your database.");
 	}
 	return er;
@@ -1206,8 +1207,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		restart_searches = 1;
 	}
 
-	// check database for MyISAM tables
-	er = check_database_innodb(lpDatabase);
+	// check database tables for requested engine
+	er = check_database_engine(lpDatabase);
 	if (er != erSuccess)
 		goto exit;
 
