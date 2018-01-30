@@ -77,6 +77,7 @@ static const sUpdateList_t sUpdateList[] = {
 	// New in 8.1.0 / 7.2.4, MySQL 5.7 compatibility
 	{ Z_UPDATE_ABCHANGES_PKEY, 0, "Updating abchanges table", UpdateABChangesTbl },
 	{ Z_UPDATE_CHANGES_PKEY, 0, "Updating changes table", UpdateChangesTbl },
+	{ Z_DROP_CLIENTUPDATESTATUS_PKEY, 0, "Drop clientupdatestatus table", DropClientUpdateStatusTbl }
 };
 
 static const char *const server_groups[] = {
