@@ -12,7 +12,6 @@ The Datbase has the following tables:
 | abchanges          |
 | acl                |
 | changes            |
-| clientupdatestatus |
 | deferredupdate     |
 | hierarchy          |
 | indexedproperties  |
@@ -58,10 +57,6 @@ deny was never implemented in the Kopano server) Columns:
 
 Has a journal of all mailbox changes -> messages in folders added, deleted,
 modified - exposed via ICA.
-
-## clientupdatestatus
-
-Has a list of all the reported statuses of client updates
 
 ## deferredupdate
 

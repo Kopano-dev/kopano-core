@@ -957,7 +957,6 @@ static constexpr const sSQLDatabase_t kcsrv_tables[] = {
 	{"singleinstances", Z_TABLEDEF_REFERENCES},
 	{"abchanges", Z_TABLEDEF_ABCHANGES},
 	{"syncedmessages", Z_TABLEDEFS_SYNCEDMESSAGES},
-	{"clientupdatestatus", Z_TABLEDEF_CLIENTUPDATESTATUS},
 	{nullptr, nullptr},
 };
 
