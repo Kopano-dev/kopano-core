@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/python
 #
 # Copyright (c) 2014, Dionach Ltd.
 # All rights reserved.

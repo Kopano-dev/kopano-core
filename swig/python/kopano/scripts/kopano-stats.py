@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # replacement for regular kopano-stats (practically complete)
 

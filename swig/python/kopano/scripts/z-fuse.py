@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # experimental mounting of users/folders/item in filesystem
 
