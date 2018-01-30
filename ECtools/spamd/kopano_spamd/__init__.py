@@ -7,7 +7,6 @@ import time
 import kopano
 import grp
 from MAPI.Defs import bin2hex
-from MAPI.Tags import PR_SEARCH_KEY
 from kopano import Config, log_exc
 from contextlib import closing
 
@@ -50,33 +49,33 @@ class Checker(object):
         self.hamdir = service.config['ham_dir']
         self.sagroup = service.config['sa_group']
 
-    def mark_spam(self, search_key):
+    def mark_spam(self, searchkey):
         with closing(bsddb.btopen(self.spamdb, 'c')) as db:
-            db[search_key] = ''
+            db[searchkey] = ''
 
-    def was_spam(self, search_key):
+    def was_spam(self, searchkey):
         with closing(bsddb.btopen(self.spamdb, 'c')) as db:
-            return search_key in db
+            return searchkey in db
 
     def update(self, item, flags):
         if item.message_class != 'IPM.Note':
             return
 
-        search_key = bin2hex(item.prop(PR_SEARCH_KEY).value)
+        searchkey = item.searchkey
 
         if item.folder == item.store.junk and \
            item.header('x-spam-flag') != 'YES':
 
-            fn = os.path.join(self.hamdir, search_key)
+            fn = os.path.join(self.hamdir, searchkey)
             if os.path.isfile(fn):
                 os.unlink(fn)
 
             self.learn(item, True)
 
         elif item.folder != item.store.junk and \
-                self.was_spam(search_key):
+                self.was_spam(searchkey):
 
-            fn = os.path.join(self.spamdir, search_key)
+            fn = os.path.join(self.spamdir, searchkey)
             if os.path.isfile(fn):
                 os.unlink(fn)
 
@@ -84,10 +83,10 @@ class Checker(object):
 
     def learn(self, item, spam):
         try:
-            search_key = bin2hex(item.prop(PR_SEARCH_KEY).value)
+            searchkey = item.searchkey
             spameml = item.eml()
             dir = spam and self.spamdir or self.hamdir
-            emlfilename = os.path.join(dir, search_key)
+            emlfilename = os.path.join(dir, searchkey)
 
             with closing(open(emlfilename, "wb")) as fh:
                 fh.write(spameml)
@@ -98,7 +97,7 @@ class Checker(object):
             os.chmod(emlfilename, 0o660)
 
             if spam:
-                self.mark_spam(search_key)
+                self.mark_spam(searchkey)
         except Exception as e:
             self.log.error(
                 'Exception happend during learning: [%s] [%s]' %
