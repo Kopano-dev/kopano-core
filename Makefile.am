@@ -578,7 +578,7 @@ libkcmapi_la_SOURCES = \
 	common/ECABEntryID.cpp common/ECDebug.cpp \
 	common/ECGuid.cpp common/ECKeyTable.cpp common/ECMemStream.cpp \
 	common/ECUnknown.cpp common/HtmlEntity.cpp common/HtmlToTextParser.cpp \
-	common/IStreamAdapter.cpp common/MAPIErrors.cpp common/kcodes.cpp \
+	common/IStreamAdapter.cpp common/kcodes.cpp \
 	common/codepage.cpp common/rtfutil.cpp
 libkcmapi_la_LIBADD = libkcutil.la -lpthread
 libkcmapi_la_SYFLAGS = -Wl,--version-script=common/libkcmapi.sym
@@ -660,7 +660,7 @@ libkcutil_la_SOURCES = \
 	common/ConsoleTable.cpp common/ECACL.cpp common/ECCache.cpp \
 	common/ECConfig.cpp common/ECConfigImpl.cpp common/ECFifoBuffer.cpp \
 	common/ECGetText.cpp common/ECIConv.cpp common/ECLogger.cpp \
-	common/ECScheduler.cpp common/ECThreadPool.cpp \
+	common/ECScheduler.cpp common/ECThreadPool.cpp common/MAPIErrors.cpp \
 	common/StatsClient.cpp common/SymmetricCrypt.cpp common/TimeUtil.cpp \
 	common/TmpPath.cpp common/UnixUtil.cpp \
 	common/fileutil.cpp common/my_getopt.cpp common/platform.cpp \

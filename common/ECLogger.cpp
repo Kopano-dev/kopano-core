@@ -43,6 +43,7 @@
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <kopano/ECConfig.h>
+#include <kopano/MAPIErrors.h>
 
 namespace KC {
 
@@ -155,6 +156,18 @@ int ECLogger::snprintf(char *str, size_t size, const char *format, ...) {
 	va_end(va);
 
 	return len;
+}
+
+HRESULT ECLogger::perr(const char *text, HRESULT code)
+{
+	Log(EC_LOGLEVEL_ERROR, "%s: %s (%x)", text, GetMAPIErrorMessage(code), code);
+	return code;
+}
+
+HRESULT ECLogger::pwarn(const char *text, HRESULT code)
+{
+	Log(EC_LOGLEVEL_WARNING, "%s: %s (%x)", text, GetMAPIErrorMessage(code), code);
+	return code;
 }
 
 ECLogger_Null::ECLogger_Null() : ECLogger(EC_LOGLEVEL_NONE) {}
