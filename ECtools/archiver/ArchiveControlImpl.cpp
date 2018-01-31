@@ -34,7 +34,7 @@
 #include <kopano/ECConfig.h>
 #include "ECIterators.h"
 #include <kopano/ECRestriction.h>
-#include "HrException.h"
+#include <kopano/hl.hpp>
 #include "ArchiveManage.h"
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
@@ -1019,8 +1019,8 @@ HRESULT ArchiveControlImpl::GetAllReferences(LPMDB lpUserStore, LPGUID lpArchive
 				return hr;
 			}
 		}
-	} catch (const HrException &he) {
-		hr = he.hr();
+	} catch (const KMAPIError &e) {
+		hr = e.code();
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to iterate primary folders. (hr=0x%08x)", hr);
 		return hr;
 	}
@@ -1138,8 +1138,8 @@ HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPM
 				return hr;
 			}
 		}
-	} catch (const HrException &he) {
-		hr = he.hr();
+	} catch (const KMAPIError &e) {
+		hr = e.code();
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to iterate archive folders. (hr=0x%08x)", hr);
 		return hr;
 	}
@@ -1431,8 +1431,8 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
 			if (hr != hrSuccess)
 				m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to clean reference of subfolder.");
 		}
-	} catch (const HrException &he) {
-		hr = he.hr();
+	} catch (const KMAPIError &e) {
+		hr = e.code();
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to iterate folders. (hr=0x%08x)", hr);
 		return hr;
 	}
