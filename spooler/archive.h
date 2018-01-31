@@ -28,11 +28,11 @@
 
 class ArchiveResult _kc_final {
 public:
-	void AddMessage(MessagePtr ptrMessage);
+	void AddMessage(KC::MessagePtr ptrMessage);
 	void Undo(IMAPISession *lpSession);
 
 private:
-	std::list<MessagePtr> m_lstMessages;
+	std::list<KC::MessagePtr> m_lstMessages;
 };
 
 
@@ -56,8 +56,8 @@ private:
 	Archive(const Archive &) = delete;
 	Archive &operator=(const Archive &) = delete;
 
-	MAPISessionPtr	m_ptrSession;
-	tstring			m_strErrorMessage;
+	KC::MAPISessionPtr m_ptrSession;
+	KC::tstring m_strErrorMessage;
 };
 
 

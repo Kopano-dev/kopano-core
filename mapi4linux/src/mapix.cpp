@@ -80,6 +80,8 @@ class SessionSaver _kc_final {
 
 } /* namespace */
 
+using namespace KC;
+
 enum mapibuf_ident {
 	/*
 	 * Arbitrary values chosen. At least 62100 sticks out from

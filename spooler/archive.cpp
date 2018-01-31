@@ -40,6 +40,7 @@
 #include <kopano/ECDebug.h>
 #include "PyMapiPlugin.h"
 
+using namespace KC;
 using namespace KC::helpers;
 using namespace KC::operations;
 using std::endl;

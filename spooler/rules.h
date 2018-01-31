@@ -26,6 +26,6 @@
 
 class PyMapiPlugin;
 
-extern HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *, IMAPISession *, IAddrBook *, IMsgStore *orig_store, IMAPIFolder *orig_inbox, IMessage **out, StatsClient *);
+extern HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *, IMAPISession *, IAddrBook *, IMsgStore *orig_store, IMAPIFolder *orig_inbox, IMessage **out, KC::StatsClient *);
 
 #endif

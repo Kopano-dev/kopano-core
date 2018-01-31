@@ -143,7 +143,7 @@ public:
 // FLAGS: \Seen \Answered \Flagged \Deleted \Draft \Recent
 class IMAP _kc_final : public ClientProto {
 public:
-	IMAP(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig);
+	IMAP(const char *path, KC::ECChannel *, KC::ECLogger *, KC::ECConfig *);
 	~IMAP();
 
 	// getTimeoutMinutes: 30 min when logged in otherwise 1 min
@@ -281,7 +281,7 @@ private:
 	std::mutex m_mIdleLock;
 	ULONG m_ulLastUid = 0, m_ulErrors = 0;
 	std::wstring m_strwUsername;
-	delivery_options dopt;
+	KC::delivery_options dopt;
 
 	HRESULT HrPrintQuotaRoot(const std::string &tag);
 	HRESULT HrFindFolder(const std::wstring &folder, bool readonly, IMAPIFolder **, ULONG * = nullptr, ENTRYID ** = nullptr);
@@ -313,7 +313,7 @@ private:
 	ULONG LastOrNumber(const char *szNr, bool bUID);
 	HRESULT HrParseSeqSet(const std::string &seq, std::list<ULONG> &mails);
 	HRESULT HrParseSeqUidSet(const std::string &seq, std::list<ULONG> &mails);
-	HRESULT HrSeqUidSetToRestriction(const std::string &seq, std::unique_ptr<ECRestriction> &);
+	HRESULT HrSeqUidSetToRestriction(const std::string &seq, std::unique_ptr<KC::ECRestriction> &);
 	HRESULT HrStore(const std::list<ULONG> &mails, std::string msgdata_itemname, std::string msgdata_itemvalue, bool *do_del);
 	HRESULT HrCopy(const std::list<ULONG> &mails, const std::string &folder, bool move);
 	HRESULT HrSearchNU(const std::vector<std::string> &cond, ULONG startcond, std::list<ULONG> &mailnr);
@@ -338,7 +338,7 @@ private:
 	std::string PropsToFlags(LPSPropValue props, unsigned int nprops, bool recent, bool read);
 	void HrParseHeaders(const std::string &, std::list<std::pair<std::string, std::string> > &);
 	void HrGetSubString(std::string &output, const std::string &input, const std::string &begin, const std::string &end);
-	HRESULT HrExpungeDeleted(const std::string &tag, const std::string &cmd, std::unique_ptr<ECRestriction> &&);
+	HRESULT HrExpungeDeleted(const std::string &tag, const std::string &cmd, std::unique_ptr<KC::ECRestriction> &&);
 	HRESULT HrGetCurrentFolder(KC::object_ptr<IMAPIFolder> &);
 };
 
