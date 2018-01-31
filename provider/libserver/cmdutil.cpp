@@ -1464,7 +1464,7 @@ ECRESULT CreateNotifications(ULONG ulObjId, ULONG ulObjType, ULONG ulParentId, U
 	return erSuccess;
 }
 
-ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulFolderId, struct propVal *lpPropVal, bool bColumnProp, unsigned int ulMaxQuerySize, std::string &strInsertQuery)
+ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulFolderId, struct propVal *lpPropVal, bool bColumnProp, unsigned int ulMaxQuerySize, std::string &strInsertQuery, bool replace)
 {
 	ECRESULT er;
 	std::string		strColData;
@@ -1478,9 +1478,9 @@ ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned 
 	if (!strInsertQuery.empty())
 		strQueryAppend = ",";
 	else if (bColumnProp)
-		strQueryAppend = "REPLACE INTO tproperties (hierarchyid,tag,type,folderid," + (std::string)PROPCOLVALUEORDER(tproperties) + ") VALUES";
+		strQueryAppend = std::string(replace ? "REPLACE" : "INSERT") + " INTO tproperties (hierarchyid,tag,type,folderid," + (std::string)PROPCOLVALUEORDER(tproperties) + ") VALUES";
 	else
-		strQueryAppend = "REPLACE INTO properties (hierarchyid,tag,type," + (std::string)PROPCOLVALUEORDER(properties) + ") VALUES";
+		strQueryAppend = std::string(replace ? "REPLACE" : "INSERT") + " INTO properties (hierarchyid,tag,type," + (std::string)PROPCOLVALUEORDER(properties) + ") VALUES";
 		
 	strQueryAppend += "(" + stringify(ulObjId) + "," +
 							stringify(PROP_ID(lpPropVal->ulPropTag)) + "," +
@@ -1507,19 +1507,19 @@ ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned 
 	return erSuccess;
 }
 
-ECRESULT WriteProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulParentId, struct propVal *lpPropVal) {
+ECRESULT WriteProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulParentId, struct propVal *lpPropVal, bool replace) {
 	ECRESULT er;
 	std::string strQuery;
 	
 	strQuery.clear();
-	WriteSingleProp(lpDatabase, ulObjId, ulParentId, lpPropVal, false, 0, strQuery);
+	WriteSingleProp(lpDatabase, ulObjId, ulParentId, lpPropVal, false, 0, strQuery, replace);
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		return er;
 	
 	if(ulParentId > 0) {
 		strQuery.clear();
-		WriteSingleProp(lpDatabase, ulObjId, ulParentId, lpPropVal, true, 0, strQuery);
+		WriteSingleProp(lpDatabase, ulObjId, ulParentId, lpPropVal, true, 0, strQuery, replace);
 		er = lpDatabase->DoInsert(strQuery);
 		if(er != erSuccess)
 			return er;

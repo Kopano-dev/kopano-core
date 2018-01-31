@@ -3130,9 +3130,9 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 
 		// avoid reminders from shared stores by detecting that we are opening non-owned reminders folder
 		if((ulObjFlags & FOLDER_SEARCH) &&
+		   (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("shared_reminders"))) &&
 		   (lpecSession->GetSecurity()->IsStoreOwner(ulObjId) == KCERR_NO_ACCESS) &&
-		   (lpecSession->GetSecurity()->GetAdminLevel() == 0) &&
-		   (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("shared_reminders"))))
+		   (lpecSession->GetSecurity()->GetAdminLevel() == 0))
 		{
 			strQuery = "SELECT val_string FROM properties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(PR_CONTAINER_CLASS)) + " LIMIT 1";
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -3297,7 +3297,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 			sProp.__union = SOAP_UNION_propValData_ul;
 			sProp.Value.ul = 0;
 			
-			er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp);
+			er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
 			if(er != erSuccess)
 				return er;
 		}
@@ -3307,7 +3307,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		sProp.__union = SOAP_UNION_propValData_b;
 		sProp.Value.b = false;
 		
-		er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp);
+		er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
 		if(er != erSuccess)
 			return er;
 			
@@ -3316,7 +3316,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		sProp.__union = SOAP_UNION_propValData_ul;
 		sProp.Value.ul = type;
 
-		er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp);
+		er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
 		if(er != erSuccess)
 			return er;
 
@@ -3325,7 +3325,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		    sProp.ulPropTag = PR_COMMENT_A;
 		    sProp.__union = SOAP_UNION_propValData_lpszA;
 			sProp.Value.lpszA = const_cast<char *>(comment);
-		    er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp);
+		    er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
 			if(er != erSuccess)
 				return er;
 		}
@@ -3338,7 +3338,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		    sProp.Value.hilo = &sHilo;
 		    UnixTimeToFileTime(now, &sProp.Value.hilo->hi, &sProp.Value.hilo->lo);
 		    
-		    er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp);
+		    er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
 			if(er != erSuccess)
 				return er;
 		}
