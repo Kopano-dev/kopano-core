@@ -25,6 +25,8 @@
 
 #include <kopano/ECConfig.h>
 
+using namespace KC;
+
 /** 
  * Parse the incoming URL into known pieces:
  *

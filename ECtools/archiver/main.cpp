@@ -203,6 +203,8 @@ static inline const char *yesno(bool bValue) { return bValue ? "yes" : "no"; }
 
 } /* namespace */
 
+using namespace KC;
+
 /**
  * Program entry point
  */

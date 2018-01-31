@@ -23,7 +23,7 @@
 #include <kopano/Util.h>
 #include <mapidefs.h>
 
-class ECRulesTableProxy _kc_final : public ECUnknown, public IMAPITable {
+class ECRulesTableProxy _kc_final : public KC::ECUnknown, public IMAPITable {
 protected:
 	ECRulesTableProxy(LPMAPITABLE lpTable);
 	virtual ~ECRulesTableProxy();

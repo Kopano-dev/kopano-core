@@ -44,6 +44,7 @@
 #include <kopano/ecversion.h>
 #include "charset/localeutil.h"
 
+using namespace KC;
 using std::cout;
 using std::endl;
 
@@ -54,7 +55,7 @@ static pthread_t			mainthread;
 
 static HRESULT running_service(void)
 {
-	KC::AutoMAPI mapiinit;
+	AutoMAPI mapiinit;
 	auto hr = mapiinit.Initialize(nullptr);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize MAPI");

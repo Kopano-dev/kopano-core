@@ -29,6 +29,8 @@
 #include <kopano/namedprops.h>
 #include "fsck.h"
 
+using namespace KC;
+
 HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 {
 	memory_ptr<SPropValue> lpPropertyArray;

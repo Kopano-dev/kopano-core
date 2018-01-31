@@ -408,17 +408,15 @@ inline unsigned int IPRSHash(const ECsIndexProp &_Keyval1) noexcept
 
 namespace std {
 	// hash function for type ECsIndexProp
-	template<>
-	struct hash<ECsIndexProp> {
+	template<> struct hash<KC::ECsIndexProp> {
 		public:
-		size_t operator()(const ECsIndexProp &value) const noexcept { return IPRSHash(value); }
+		size_t operator()(const KC::ECsIndexProp &value) const noexcept { return KC::IPRSHash(value); }
 	};
 
 	// hash function for type ECsIndexObject
-	template<>
-	struct hash<ECsIndexObject> {
+	template<> struct hash<KC::ECsIndexObject> {
 		public:
-		size_t operator()(const ECsIndexObject &value) const noexcept
+		size_t operator()(const KC::ECsIndexObject &value) const noexcept
 		{
 					hash<unsigned int> hasher;
 					// @TODO check the hash function!

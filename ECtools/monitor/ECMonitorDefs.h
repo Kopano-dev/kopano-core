@@ -24,8 +24,8 @@
 #include <kopano/memory.hpp>
 
 struct ECTHREADMONITOR {
-	KC::object_ptr<ECLogger> lpLogger;
-	std::unique_ptr<ECConfig> lpConfig;
+	KC::object_ptr<KC::ECLogger> lpLogger;
+	std::unique_ptr<KC::ECConfig> lpConfig;
 	bool bShutdown = false;
 };
 

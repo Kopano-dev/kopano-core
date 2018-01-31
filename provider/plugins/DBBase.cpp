@@ -30,6 +30,7 @@
 #include <mapidefs.h>
 #include "ECServerEntrypoint.h"
 
+using namespace KC;
 using std::runtime_error;
 using std::string;
 

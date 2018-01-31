@@ -21,6 +21,8 @@
 #include "LDAPUserPlugin.h"
 #include <kopano/stringutil.h>
 
+using namespace KC;
+
 bool LDAPCache::isObjectTypeCached(objectclass_t objclass)
 {
 	scoped_rlock biglock(m_hMutex);

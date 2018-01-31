@@ -54,6 +54,8 @@
  */
 #define PWBUFSIZE 16384
 
+using namespace KC;
+
 extern "C" {
 
 UserPlugin *getUserPluginInstance(std::mutex &pluginlock,
@@ -939,4 +941,3 @@ void UnixUserPlugin::errnoCheck(const std::string &user, int e) const
 		throw runtime_error(string("unable to query for user ") + user + string(". Error: ") + retbuf);
 	};
 }
-

@@ -58,6 +58,8 @@ extern "C" {
 #define MAPI_FREE(lpbase, lpp) \
 	do { if (lpBase == nullptr) MAPIFreeBuffer(lpp); } while (false)
 
+using namespace KC;
+
 ZEND_EXTERN_MODULE_GLOBALS(mapi)
 
 static LONG PropTagToPHPTag(ULONG ulPropTag) {

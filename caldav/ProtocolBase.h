@@ -50,7 +50,7 @@ protected:
 	bool m_blFolderAccess = true; //!< can we delete the current folder
 	ULONG m_ulUrlFlag = 0;
 	ULONG m_ulFolderFlag = 0;
-	convert_context m_converter;
+	KC::convert_context m_converter;
 
 	std::string W2U(const std::wstring&); //!< convert widestring to UTF-8
 	std::string W2U(const WCHAR* lpwWideChar);

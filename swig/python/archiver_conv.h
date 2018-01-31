@@ -21,7 +21,7 @@
 #include "Archiver.h"
 #include <Python.h>
 
-PyObject *		List_from_ArchiveList(const ArchiveList &lst);
-PyObject *		List_from_UserList(const UserList &lst);
+extern PyObject *List_from_ArchiveList(const KC::ArchiveList &lst);
+extern PyObject *List_from_UserList(const KC::UserList &lst);
 
 #endif // ndef ARCHIVER_CONV_H

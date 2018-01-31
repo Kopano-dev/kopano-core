@@ -72,6 +72,7 @@
 // have to go with the safe value which is for 64-bit.
 #define MYSQL_MIN_THREAD_STACK (256*1024)
 
+using namespace KC;
 using std::cout;
 using std::endl;
 using std::string;

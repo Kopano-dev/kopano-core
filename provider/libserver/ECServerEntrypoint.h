@@ -28,6 +28,12 @@
 #define KOPANO_SERVER_INIT_SERVER		0
 #define KOPANO_SERVER_INIT_OFFLINE		1
 
+#define SOAP_CONNECTION_TYPE(s) (soap_info(s)->ulConnectionType)
+
+struct soap;
+
+namespace KC {
+
 static inline bool SOAP_CONNECTION_TYPE_NAMED_PIPE(struct soap *soap)
 {
 	if (soap == nullptr || soap->user == nullptr)
@@ -36,12 +42,6 @@ static inline bool SOAP_CONNECTION_TYPE_NAMED_PIPE(struct soap *soap)
 	return si->ulConnectionType == CONNECTION_TYPE_NAMED_PIPE ||
 	       si->ulConnectionType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY;
 }
-
-#define SOAP_CONNECTION_TYPE(s) (soap_info(s)->ulConnectionType)
-
-struct soap;
-
-namespace KC {
 
 extern _kc_export ECRESULT kopano_init(ECConfig *, ECLogger *audit, bool hosted_kopano, bool distr_kopano);
 extern _kc_export ECRESULT kopano_exit(void);

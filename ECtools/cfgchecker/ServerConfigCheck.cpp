@@ -19,6 +19,8 @@
 #include "ECConfigCheck.h"
 #include <kopano/stringutil.h>
 
+using namespace KC;
+
 ServerConfigCheck::ServerConfigCheck(const char *lpszConfigFile) : ECConfigCheck("Server Configuration file", lpszConfigFile)
 {
 	std::string setting = getSetting("enable_hosted_kopano");

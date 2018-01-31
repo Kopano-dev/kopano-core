@@ -33,7 +33,14 @@
  * @ingroup userplugin
  * @{
  */
-namespace KC {
+using KC::objectclass_t;
+using KC::objectdetails_t;
+using KC::objectid_t;
+using KC::objectsignature_t;
+using KC::serverdetails_t;
+using KC::serverlist_t;
+using KC::signatures_t;
+using KC::userobject_relation_t;
 
 /**
  * UNIX user plugin
@@ -47,7 +54,7 @@ namespace KC {
  * Extra attributes, such as email addresses, are stored in the objectproperty
  * tables, which are always present. It's exactly the same as the DBUserPlugin.
  */
-class UnixUserPlugin final : public DBPlugin {
+class UnixUserPlugin final : public KC::DBPlugin {
 public:
     /**
 	 * @param[in]	pluginlock
@@ -57,7 +64,7 @@ public:
 	 * @throw runtime_error When configuration file could not be loaded
 	 * @throw notsupported When multi-server or multi-company support is enabled.
 	 */
-	UnixUserPlugin(std::mutex &, ECPluginSharedData *lpSharedData);
+	UnixUserPlugin(std::mutex &, KC::ECPluginSharedData *lpSharedData);
 
     /**
 	 * Initialize plugin
@@ -310,7 +317,7 @@ public:
 										 const objectid_t &parentobject, const objectid_t &childobject);
 
 private:
-	std::unique_ptr<ECIConv> m_iconv;
+	std::unique_ptr<KC::ECIConv> m_iconv;
 
 	/**
 	 * Find a user with specific name
@@ -477,13 +484,13 @@ private:
 	void errnoCheck(const std::string &, int) const;
 };
 
-} /* namespace */
 
 extern "C" {
-	extern _kc_export UserPlugin *getUserPluginInstance(std::mutex &, ECPluginSharedData *);
-	extern _kc_export void deleteUserPluginInstance(UserPlugin *);
+	extern _kc_export KC::UserPlugin *getUserPluginInstance(std::mutex &, KC::ECPluginSharedData *);
+	extern _kc_export void deleteUserPluginInstance(KC::UserPlugin *);
 	extern _kc_export unsigned long getUserPluginVersion(void);
 	extern _kc_export const char kcsrv_plugin_version[];
 }
+
 /** @} */
 #endif

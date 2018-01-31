@@ -32,15 +32,22 @@
  * @ingroup userplugin
  * @{
  */
-
-namespace KC {
+using KC::objectclass_t;
+using KC::objectdetails_t;
+using KC::objectid_t;
+using KC::objectsignature_t;
+using KC::quotadetails_t;
+using KC::serverdetails_t;
+using KC::serverlist_t;
+using KC::signatures_t;
+using KC::userobject_relation_t;
 
 /**
  * Build-in database user plugin.
  *
  * User management based on Mysql. This is the build-in user management system
  */
-class DBUserPlugin _kc_final : public DBPlugin {
+class DBUserPlugin _kc_final : public KC::DBPlugin {
 public:
     /**
 	 * @param[in]	pluginlock
@@ -49,7 +56,7 @@ public:
 	 *					The singleton shared plugin data.
 	 * @throw notsupported When multi-server support is enabled
 	 */
-	DBUserPlugin(std::mutex &, ECPluginSharedData *shareddata);
+	DBUserPlugin(std::mutex &, KC::ECPluginSharedData *shareddata);
     /**
 	 * Initialize plugin
 	 *
@@ -185,11 +192,9 @@ public:
 									  const objectid_t &parentobject, const objectid_t &childobject);
 };
 
-} /* namespace */
-
 extern "C" {
-	extern _kc_export UserPlugin *getUserPluginInstance(std::mutex &, ECPluginSharedData *);
-	extern _kc_export void deleteUserPluginInstance(UserPlugin *);
+	extern _kc_export KC::UserPlugin *getUserPluginInstance(std::mutex &, KC::ECPluginSharedData *);
+	extern _kc_export void deleteUserPluginInstance(KC::UserPlugin *);
 	extern _kc_export unsigned long getUserPluginVersion(void);
 	extern _kc_export const char kcsrv_plugin_version[];
 }

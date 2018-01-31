@@ -30,6 +30,8 @@
 #include "SOAPUtils.h"
 #include "soapH.h"
 
+using KC::ECRESULT;
+
 /*
  * A single work item - it doesn't contain much since we defer all processing, including XML
  * parsing until a worker thread starts processing
@@ -134,13 +136,13 @@ private:
  */
 class ECWatchDog _kc_final {
 public:
-	ECWatchDog(ECConfig *, ECDispatcher *, ECThreadManager *);
+	ECWatchDog(KC::ECConfig *, ECDispatcher *, ECThreadManager *);
     ~ECWatchDog();
 private:
     // Main watch thread
     static void *Watch(void *);
     
-    ECConfig *			m_lpConfig;
+	KC::ECConfig *m_lpConfig;
     ECDispatcher *		m_lpDispatcher;
     ECThreadManager*	m_lpThreadManager;
     pthread_t			m_thread;
@@ -158,7 +160,7 @@ typedef SOAP_SOCKET (*CREATEPIPESOCKETCALLBACK)(void *lpParam);
 
 class ECDispatcher {
 public:
-	ECDispatcher(ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
+	ECDispatcher(KC::ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
 	virtual ~ECDispatcher(void) = default;
     
     // Statistics
@@ -195,7 +197,7 @@ public:
     virtual ECRESULT MainLoop() = 0;
     
 protected:
-    ECConfig *				m_lpConfig;
+	KC::ECConfig *m_lpConfig;
 	ECThreadManager *m_lpThreadManager = nullptr;
 
 	std::mutex m_mutexItems;
@@ -224,7 +226,7 @@ private:
     int			m_fdRescanWrite;
 
 public:
-	ECDispatcherSelect(ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
+	ECDispatcherSelect(KC::ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
     virtual ECRESULT MainLoop();
 
     virtual ECRESULT ShutDown();
@@ -239,7 +241,7 @@ private:
 	int m_epFD;
 
 public:
-	ECDispatcherEPoll(ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
+	ECDispatcherEPoll(KC::ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
     virtual ~ECDispatcherEPoll();
 
     virtual ECRESULT MainLoop();

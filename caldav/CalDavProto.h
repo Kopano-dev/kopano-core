@@ -43,9 +43,8 @@ protected:
 	/* HRESULT HrPropPatch(); */
 	HRESULT HrPut();
 	HRESULT HrMove();
-	HRESULT HrHandleMeeting(ICalToMapi *lpIcalToMapi);
-	HRESULT HrHandleFreebusy(ICalToMapi *lpIcalToMapi);
-
+	HRESULT HrHandleMeeting(KC::ICalToMapi *);
+	HRESULT HrHandleFreebusy(KC::ICalToMapi *);
 	virtual HRESULT HrHandlePropfind(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lpsDavMulStatus) _kc_override;
 	virtual HRESULT HrListCalEntries(WEBDAVREQSTPROPS *sWebRCalQry,WEBDAVMULTISTATUS *sWebMStatus) _kc_override; // Used By both PROPFIND & Report Calendar-query
 	virtual	HRESULT HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus) _kc_override;
@@ -63,9 +62,8 @@ private:
 	
 	HRESULT CreateAndGetGuid(SBinary sbEid, ULONG ulPropTag, std::string *lpstrGuid);
 	HRESULT HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lpsMulStatus);
-
-	HRESULT HrConvertToIcal(const SPropValue *lpEid, MapiToICal *lpMtToIcal, ULONG ulFlags, std::string *strIcal);
-	HRESULT HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG ulPropCount, MapiToICal *lpMtIcal, ULONG ulFlags, bool bPropsFirst, std::list<WEBDAVPROPERTY> *lstDavProps, WEBDAVRESPONSE *lpsResponse);
+	HRESULT HrConvertToIcal(const SPropValue *eid, KC::MapiToICal *, ULONG flags, std::string *out);
+	HRESULT HrMapValtoStruct(IMAPIProp *obj, SPropValue *props, ULONG nprops, KC::MapiToICal *, ULONG flags, bool props_first, std::list<WEBDAVPROPERTY> *davprops, WEBDAVRESPONSE *);
 	HRESULT	HrGetCalendarOrder(SBinary sbEid, std::string *lpstrCalendarOrder);
 };
 

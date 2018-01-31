@@ -40,9 +40,6 @@
 #include <kopano/memory.hpp>
 #include "ECStatsCollector.h"
 #include <kopano/stringutil.h>
-
-using namespace KC;
-
 #include "LDAPUserPlugin.h"
 #include "ldappasswords.h"
 #include <kopano/ecversion.h>
@@ -51,6 +48,8 @@ using namespace KC;
 // from mapidefs.h
 	#define PROP_ID(ulPropTag)		(((ULONG)(ulPropTag))>>16)
 #endif
+
+using namespace KC;
 
 extern "C" {
 
@@ -73,13 +72,11 @@ const char kcsrv_plugin_version[] = PROJECT_VERSION;
 
 } /* extern "C" */
 
-namespace KC {
-
 using std::list;
 using std::runtime_error;
 using std::string;
 
-class ldap_delete {
+class ldap_deleter {
 	public:
 	void operator()(void *x) const { ldap_memfree(x); }
 	void operator()(BerElement *x) const { ber_free(x, 0); }
@@ -89,12 +86,12 @@ class ldap_delete {
 	void operator()(struct berval **x) const { ldap_value_free_len(x); }
 };
 
-typedef memory_ptr<char, ldap_delete> auto_free_ldap_attribute;
-typedef memory_ptr<BerElement, ldap_delete> auto_free_ldap_berelement;
-typedef memory_ptr<LDAPMessage, ldap_delete> auto_free_ldap_message;
-typedef memory_ptr<LDAPControl, ldap_delete> auto_free_ldap_control;
-typedef memory_ptr<LDAPControl *, ldap_delete> auto_free_ldap_controls;
-typedef memory_ptr<struct berval *, ldap_delete> auto_free_ldap_berval;
+typedef memory_ptr<char, ldap_deleter> auto_free_ldap_attribute;
+typedef memory_ptr<BerElement, ldap_deleter> auto_free_ldap_berelement;
+typedef memory_ptr<LDAPMessage, ldap_deleter> auto_free_ldap_message;
+typedef memory_ptr<LDAPControl, ldap_deleter> auto_free_ldap_control;
+typedef memory_ptr<LDAPControl *, ldap_deleter> auto_free_ldap_controls;
+typedef memory_ptr<struct berval *, ldap_deleter> auto_free_ldap_berval;
 
 #define LDAP_DATA_TYPE_DN			"dn"	// data in attribute like cn=piet,cn=user,dc=localhost,dc=com
 #define LDAP_DATA_TYPE_BINARY		"binary"
@@ -2870,5 +2867,3 @@ void LDAPUserPlugin::removeAllObjects(objectid_t except)
 {
     throw notimplemented("removeAllObjects is not implemented in the LDAP user plugin.");
 }
-
-} /* namespace */

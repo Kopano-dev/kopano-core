@@ -25,6 +25,8 @@
 
 #include <mapix.h>
 
+using namespace KC;
+
 /* conversion from unicode to string8 for rules table data */
 static HRESULT ConvertUnicodeToString8(LPSRestriction lpRes, void *base, convert_context &converter);
 static HRESULT ConvertUnicodeToString8(const ACTIONS *lpActions, void *base, convert_context &converter);
