@@ -762,19 +762,6 @@ static string ClassToString(objectclass_t eClass)
 	};
 }
 
-static int FileTimeToTimestamp(const FILETIME &ft, time_t& ts, char* buf, size_t size) {
-	struct tm *tm;
-
-	ts = FileTimeToUnixTime(ft);
-	if ((tm = localtime(&ts)) == NULL) {
-		perror("localtime");
-		return -1;
-	}
-	strftime(buf, size, "%F %T", tm);
-
-	return 0;
-}
-
 static void adm_oof_status(const SPropValue *const prop)
 {
 	char start_buf[64] = {'\0'}, end_buf[64] = {'\0'};

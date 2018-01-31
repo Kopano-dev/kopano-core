@@ -67,6 +67,17 @@ void UnixTimeToFileTime(time_t t, int *hi, unsigned int *lo)
 	*hi = (unsigned int)(ll >> 32);
 }
 
+/* Convert from FILETIME to time_t *and* string repr */
+int FileTimeToTimestamp(const FILETIME &ft, time_t &ts, char *buf, size_t size)
+{
+	ts = FileTimeToUnixTime(ft);
+	auto tm = localtime(&ts);
+	if (tm == nullptr)
+		return -1;
+	strftime(buf, size, "%F %T", tm);
+	return 0;
+}
+
 static const LONGLONG UnitsPerMinute = 600000000;
 static const LONGLONG UnitsPerHalfMinute = 300000000;
 
