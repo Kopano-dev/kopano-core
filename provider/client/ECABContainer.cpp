@@ -38,7 +38,7 @@
 
 using namespace KC;
 
-ECABContainer::ECABContainer(void *lpProvider, ULONG ulObjType, BOOL fModify,
+ECABContainer::ECABContainer(ECABLogon *lpProvider, ULONG ulObjType, BOOL fModify,
     const char *szClassName) :
 	ECABProp(lpProvider, ulObjType, fModify, szClassName)
 {
@@ -65,7 +65,8 @@ HRESULT	ECABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT	ECABContainer::Create(void* lpProvider, ULONG ulObjType, BOOL fModify, ECABContainer **lppABContainer)
+HRESULT ECABContainer::Create(ECABLogon *lpProvider, ULONG ulObjType,
+    BOOL fModify, ECABContainer **lppABContainer)
 {
 	return alloc_wrap<ECABContainer>(lpProvider, ulObjType, fModify, "IABContainer")
 	       .put(lppABContainer);
@@ -192,7 +193,9 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 	return hr;
 }
 
-HRESULT ECABContainer::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
+HRESULT ECABContainer::TableRowGetProp(void *lpProvider,
+    const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
+    void **lpBase, ULONG ulType)
 {
 	HRESULT hr = hrSuccess;
 	ULONG size = 0;

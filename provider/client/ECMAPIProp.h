@@ -32,7 +32,7 @@ class ECMsgStore;
 
 class ECMAPIProp : public ECGenericProp, public IECSecurity {
 protected:
-	ECMAPIProp(void *provider, ULONG obj_type, BOOL modify, const ECMAPIProp *root, const char *class_name = nullptr);
+	ECMAPIProp(ECMsgStore *prov, ULONG obj_type, BOOL modify, const ECMAPIProp *root, const char *cls = nullptr);
 	virtual ~ECMAPIProp() = default;
 
 public:
@@ -42,7 +42,7 @@ public:
 	 * See ECUnkown::QueryInterface.
 	 */
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
-	static HRESULT TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType);
+	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 
 	// Callback for Commit() on streams
 	static HRESULT	HrStreamCommit(IStream *lpStream, void *lpData);
@@ -85,7 +85,7 @@ protected:
 	virtual HRESULT SetPermissionRules(ULONG cPermissions, ECPERMISSION *lpECPermissions);
 
 public:
-	ECMsgStore *GetMsgStore() const;
+	ECMsgStore *GetMsgStore() const { return static_cast<ECMsgStore *>(lpProvider); }
 
 private:
 	BOOL m_bICSObject = false; // coming from the ICS system

@@ -25,15 +25,16 @@
 #include "ECABLogon.h"
 #include "ECABProp.h"
 
+class ECABLogon;
+
 class ECABContainer : public ECABProp, public IABContainer {
 protected:
-	ECABContainer(void* lpProvider, ULONG ulObjType, BOOL fModify, const char *szClassName);
+	ECABContainer(ECABLogon *prov, ULONG obj_type, BOOL modify, const char *cls);
 	virtual ~ECABContainer() = default;
 public:
-	static HRESULT	Create(void* lpProvider, ULONG ulObjType, BOOL fModify, ECABContainer **lppABContainer);
-
+	static HRESULT Create(ECABLogon *prov, ULONG obj_type, BOOL modify, ECABContainer **);
 	static HRESULT	DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFLags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
-	static HRESULT TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType);
+	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 
 	// IUnknown
 	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;

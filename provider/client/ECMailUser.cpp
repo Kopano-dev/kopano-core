@@ -25,7 +25,7 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECDebug.h>
 
-ECDistList::ECDistList(void *lpProvider, BOOL fModify) :
+ECDistList::ECDistList(ECABLogon *lpProvider, BOOL fModify) :
 	ECABContainer(lpProvider, MAPI_DISTLIST, fModify, "IDistList")
 {
 	// since we have no OpenProperty / abLoadProp, remove the 8k prop limit
@@ -45,13 +45,13 @@ HRESULT ECDistList::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT ECDistList::Create(void *lpProvider, BOOL fModify,
+HRESULT ECDistList::Create(ECABLogon *lpProvider, BOOL fModify,
     ECDistList **lppDistList)
 {
 	return alloc_wrap<ECDistList>(lpProvider, fModify).put(lppDistList);
 }
 
-HRESULT ECDistList::TableRowGetProp(void *provider, struct propVal *src,
+HRESULT ECDistList::TableRowGetProp(void *provider, const struct propVal *src,
     SPropValue *dst, void **base, ULONG type)
 {
 	return MAPI_E_NOT_FOUND;
@@ -83,13 +83,15 @@ HRESULT ECDistList::CopyProps(const SPropTagArray *lpIncludeProps,
 	       lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
-ECMailUser::ECMailUser(void* lpProvider, BOOL fModify) : ECABProp(lpProvider, MAPI_MAILUSER, fModify, "IMailUser")
+ECMailUser::ECMailUser(ECABLogon *lpProvider, BOOL fModify) :
+    ECABProp(lpProvider, MAPI_MAILUSER, fModify, "IMailUser")
 {
 	// since we have no OpenProperty / abLoadProp, remove the 8k prop limit
 	this->m_ulMaxPropSize = 0;
 }
 
-HRESULT ECMailUser::Create(void* lpProvider, BOOL fModify, ECMailUser** lppMailUser)
+HRESULT ECMailUser::Create(ECABLogon *lpProvider, BOOL fModify,
+    ECMailUser **lppMailUser)
 {
 	return alloc_wrap<ECMailUser>(lpProvider, fModify).put(lppMailUser);
 }
@@ -105,7 +107,8 @@ HRESULT	ECMailUser::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT ECMailUser::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
+HRESULT ECMailUser::TableRowGetProp(void *lpProvider, const struct propVal *src,
+    SPropValue *dst, void **base, ULONG type)
 {
 	return MAPI_E_NOT_FOUND;
 }

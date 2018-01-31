@@ -321,7 +321,9 @@ HRESULT	ECGenericProp::DefaultSetPropIgnore(ULONG tag, void *provider,
 	return hrSuccess;
 }
 
-HRESULT ECGenericProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
+HRESULT ECGenericProp::TableRowGetProp(void *lpProvider,
+    const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
+    void **lpBase, ULONG ulType)
 {
 	HRESULT hr = hrSuccess;
 

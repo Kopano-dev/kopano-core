@@ -24,7 +24,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECDebug.h>
 
-ECABProp::ECABProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
+ECABProp::ECABProp(ECABLogon *lpProvider, ULONG ulObjType, BOOL fModify,
     const char *szClassName) :
 	ECGenericProp(lpProvider, ulObjType, fModify, szClassName)
 {
@@ -80,7 +80,9 @@ HRESULT	ECABProp::DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 	return hr;
 }
 
-HRESULT ECABProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
+HRESULT ECABProp::TableRowGetProp(void *lpProvider,
+    const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
+    void **lpBase, ULONG ulType)
 {
 	HRESULT hr = hrSuccess;
 
@@ -99,9 +101,4 @@ HRESULT ECABProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSr
 	}
 
 	return hr;
-}
-
-ECABLogon* ECABProp::GetABStore()
-{
-	return (ECABLogon*)lpProvider;
 }

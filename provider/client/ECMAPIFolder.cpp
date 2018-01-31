@@ -172,7 +172,10 @@ HRESULT	ECMAPIFolder::SetPropHandler(ULONG ulPropTag, void *lpProvider,
 
 // This is similar to GetPropHandler, but works is a static function, and therefore cannot access
 // an open ECMAPIFolder object. (The folder is most probably also not open, so ...
-HRESULT ECMAPIFolder::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType) {
+HRESULT ECMAPIFolder::TableRowGetProp(void *lpProvider,
+    const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
+    void **lpBase, ULONG ulType)
+{
 	HRESULT hr = hrSuccess;
 
 	switch(lpsPropValSrc->ulPropTag) {

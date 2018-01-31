@@ -75,7 +75,7 @@ static ECPERMISSION RightsToECPermCheap(const struct rights r)
 	return p;
 }
 
-ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
+ECMAPIProp::ECMAPIProp(ECMsgStore *lpProvider, ULONG ulObjType, BOOL fModify,
     const ECMAPIProp *lpRoot, const char *szClassName) :
 	ECGenericProp(lpProvider, ulObjType, fModify, szClassName),
 	/*
@@ -113,11 +113,6 @@ HRESULT ECMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(IUnknown, this);
 	REGISTER_INTERFACE2(IECSecurity, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
-}
-
-ECMsgStore *ECMAPIProp::GetMsgStore() const
-{
-	return (ECMsgStore*)lpProvider;
 }
 
 // Loads the properties of the saved message for use
@@ -288,7 +283,9 @@ HRESULT ECMAPIProp::SetPropHandler(ULONG ulPropTag, void *lpProvider,
 	return hr;
 }
 
-HRESULT ECMAPIProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType)
+HRESULT ECMAPIProp::TableRowGetProp(void *lpProvider,
+    const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
+    void **lpBase, ULONG ulType)
 {
 	HRESULT hr = hrSuccess;
 	auto lpMsgStore = static_cast<ECMsgStore *>(lpProvider);

@@ -24,10 +24,12 @@
 #include "ECABContainer.h"
 #include "ECABProp.h"
 
+class ECABLogon;
+
 class ECDistList _kc_final : public ECABContainer, public IDistList {
 	public:
-	static HRESULT Create(void *provider, BOOL modify, ECDistList **);
-	static HRESULT TableRowGetProp(void *provider, struct propVal *src, SPropValue *dst, void **base, ULONG type);
+	static HRESULT Create(ECABLogon *prov, BOOL modify, ECDistList **);
+	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 
 	// Override IMAPIProp
 	virtual HRESULT CopyTo(ULONG nexcl, const IID *excl, const SPropTagArray *exclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **);
@@ -38,18 +40,17 @@ class ECDistList _kc_final : public ECABContainer, public IDistList {
 	virtual HRESULT OpenProperty(ULONG proptag, const IID *, ULONG iface_opts, ULONG flags, IUnknown **);
 
 	protected:
-	ECDistList(void *provider, BOOL modify);
+	ECDistList(ECABLogon *prov, BOOL modify);
 	ALLOC_WRAP_FRIEND;
 };
 
 class ECMailUser _kc_final : public ECABProp, public IMailUser {
 private:
-	ECMailUser(void* lpProvider, BOOL fModify);
+	ECMailUser(ECABLogon *prov, BOOL modify);
 
 public:
-	static HRESULT Create(void* lpProvider, BOOL fModify, ECMailUser** lppMailUser);
-
-	static HRESULT TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType);
+	static HRESULT Create(ECABLogon *prov, BOOL modify, ECMailUser **);
+	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 	static HRESULT DefaultGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
