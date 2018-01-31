@@ -16,6 +16,7 @@
  */
 #include <iostream>
 #include <new>
+#include <stdexcept>
 #include <string>
 #include <cerrno>
 #include <cstring>
@@ -696,8 +697,12 @@ int main(int argc, char* argv[])
 			break;
 		};
 	}
-	nReturn = running_server(argv[0], config, exp_config, argc, argv,
-	          argc - optind, &argv[optind]);
+	try {
+		nReturn = running_server(argv[0], config, exp_config, argc, argv,
+		          argc - optind, &argv[optind]);
+	} catch (const std::exception &e) {
+		ec_log_err("Exception caught: %s\n", e.what());
+	}
 	return nReturn;
 }
 
