@@ -61,11 +61,8 @@ HRESULT Copier::Helper::CreateArchivedMessage(LPMESSAGE lpSource, const SObjectE
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrArchiveFolder->CreateMessage(&iid_of(ptrNewMessage), fMapiDeferredErrors, &~ptrNewMessage);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create archive message. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to create archive message", hr);
 	hr = ArchiveMessage(lpSource, &refMsgEntry, ptrNewMessage, &ptrPSAction);
 	if (hr != hrSuccess)
 		return hr;
@@ -96,10 +93,8 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 		if (hr != hrSuccess)
 			return hr;
 		hr = ptrArchiveHelper->GetArchiveFolderFor(m_ptrFolder, m_ptrSession, &~ptrArchiveFolder);
-		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive folder. (hr=%s)", stringify(hr, true).c_str());
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return m_lpLogger->perr("Failed to get archive folder", hr);
 		m_mapArchiveFolders.emplace(archiveEntry.sStoreEntryId, ptrArchiveFolder);
 	} else {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder found in cache");
@@ -139,14 +134,11 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 	
 	hr = lpSource->CopyTo(0, NULL, m_lpExcludeProps, 0, NULL, &IID_IMessage, lpDest, 0, NULL);
 	// @todo: What to do with warnings?
-	if (FAILED(hr)) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to copy message. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (FAILED(hr))
+		return m_lpLogger->perr("Failed to copy message", hr);
 	hr = UpdateIIDs(lpSource, lpDest, &ptrPSAction);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to update single instance IDs, continuing with copies. (hr=0x%08x)", hr);
+		m_lpLogger->perr("Failed to update single instance IDs, continuing with copies.", hr);
 		hr = hrSuccess;
 	}
 
@@ -154,23 +146,15 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 	sPropArchFlags.Value.ul = ARCH_NEVER_DELETE | ARCH_NEVER_STUB;
 
 	hr = lpDest->SetProps(1, &sPropArchFlags, NULL);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set flags on archive message. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to set flags on archive message", hr);
 	hr = MAPIPropHelper::Create(MAPIPropPtr(lpDest, true), &ptrMsgHelper);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create prop helper. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to create prop helper", hr);
 	if (lpMsgEntry) {
 		hr = ptrMsgHelper->SetReference(*lpMsgEntry);
-		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set reference to original message. (hr=%s)", stringify(hr, true).c_str());
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return m_lpLogger->perr("Failed to set reference to original message", hr);
 	}
 	*lpptrPSAction = std::move(ptrPSAction);
 	return hr;
@@ -192,58 +176,37 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 	if (lpSource == NULL || lpDest == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	hr = HrGetOneProp(lpSource, PR_EC_SERVER_UID, &~ptrSourceServerUID);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get source server UID, hr=0x%08x", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to get source server UID", hr);
 	hr = HrGetOneProp(lpDest, PR_EC_SERVER_UID, &~ptrDestServerUID);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get dest server UID, hr=0x%08x", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to get dest server UID", hr);
 	if (Util::CompareSBinary(ptrSourceServerUID->Value.bin, ptrDestServerUID->Value.bin) == 0) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Source and destination live on the same server, no explicit deduplication required.");
 		return hr;
 	}
 	hr = lpSource->GetAttachmentTable(0, &~ptrSourceTable);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get source attachment table. hr=0x%08x", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to get source attachment table", hr);
 	hr = ptrSourceTable->SetColumns(sptaAttachProps, TBL_BATCH);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to set source attachment columns. hr=0x%08x", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to set source attachment columns", hr);
 	hr = ptrSourceTable->GetRowCount(0, &ulSourceRows);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get source attachment count. hr=0x%08x", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to get source attachment count", hr);
 	if (ulSourceRows == 0) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No attachments in source message, nothing to deduplicate.");
 		return hr;
 	}
 	hr = lpDest->GetAttachmentTable(0, &~ptrDestTable);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get dest attachment table. hr=0x%08x", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to get dest attachment table", hr);
 	hr = ptrDestTable->SetColumns(sptaAttachProps, TBL_BATCH);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to set dest attachment columns. hr=0x%08x", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to set dest attachment columns", hr);
 	hr = ptrDestTable->GetRowCount(0, &ulDestRows);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get dest attachment count. hr=0x%08x", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to get dest attachment count", hr);
 	if (ulSourceRows != ulDestRows) {
 		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Source has %u attachments, destination has %u. No idea how to match them...", ulSourceRows, ulDestRows);
 		return MAPI_E_NO_SUPPORT;
@@ -256,19 +219,13 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 		SRowSetPtr ptrDestRows;
 
 		hr = ptrSourceTable->QueryRows(16, 0, &~ptrSourceRows);
-		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to query source rows. hr=0x%08x", hr);
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return m_lpLogger->perr("Failed to query source rows", hr);
 		if (ptrSourceRows.empty())
 			break;
 		hr = ptrDestTable->QueryRows(16, 0, &~ptrDestRows);
-		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to query source rows. hr=0x%08x", hr);
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return m_lpLogger->perr("Failed to query source rows", hr);
 		assert(ptrSourceRows.size() == ptrDestRows.size());
 		for (SRowSetPtr::size_type i = 0; i < ptrSourceRows.size(); ++i) {
 			HRESULT hrTmp = hrSuccess;
@@ -465,11 +422,8 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 	refObjectEntry.sItemEntryId = lpEntryId->Value.bin;
 	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin).c_str());
 	hr = CurrentFolder()->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IECMessageRaw, MAPI_MODIFY|fMapiDeferredErrors, &ulType, &~ptrMessageRaw);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open message. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to open message", hr);
 	hr = VerifyRestriction(ptrMessageRaw);
 	if (hr == MAPI_E_NOT_FOUND) {
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Ignoring message because it doesn't match the criteria for begin archived.");
@@ -481,22 +435,15 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 		// We could process subrestrictions for this message, but that will be picked up at a later stage anyway.
 		return hr;
 	} else if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_WARNING, "Failed to verify message criteria. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
+		return Logger()->pwarn("Failed to verify message criteria", hr);
 	}
 	
 	hr = MAPIPropHelper::Create(ptrMessageRaw.as<MAPIPropPtr>(), &ptrMsgHelper);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to create prop helper. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to create prop helper", hr);
 	hr = ptrMsgHelper->GetMessageState(m_ptrSession, &state);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to determine message state. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to determine message state", hr);
 	if (state.isCopy() || state.isMove()) {
 		Logger()->Log(EC_LOGLEVEL_INFO, "Found %s archive, treating it as a new message.", (state.isCopy() ? "copied" : "moved"));
 
@@ -504,10 +451,8 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 		// will be used as source for creating the new archive message. Note that
 		// we leave the ptrMsgHelper as is, operating on the raw message.
 		hr = CurrentFolder()->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IMessage, fMapiDeferredErrors, &ulType, &~ptrMessage);
-		if (hr != hrSuccess) {
-			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to reopen message. (hr=%s)", stringify(hr, true).c_str());
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return Logger()->perr("Failed to reopen message", hr);
 	} else
 		ptrMessage = ptrMessageRaw;
 
@@ -519,7 +464,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 				Logger()->Log(EC_LOGLEVEL_ERROR, "Existing list of archives is corrupt, skipping message.");
 				hr = hrSuccess;
 			} else
-				Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get list of archives. (hr=%s)", stringify(hr, true).c_str());
+				Logger()->perr("Failed to get list of archives", hr);
 			return hr;
 		}
 	}
@@ -590,13 +535,13 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 		RollbackPtr ptrRollback;
 		hr = ta->SaveChanges(m_ptrSession, &ptrRollback);
 		if (FAILED(hr)) {
-			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to save changes into archive, Rolling back. hr=0x%08x", hr);
+			Logger()->perr("Failed to save changes into archive, rolling back", hr);
 
 			// Rollback
 			for (const auto &rb : lstRollbacks) {
 				HRESULT hrTmp = rb->Execute(m_ptrSession);
 				if (hrTmp != hrSuccess)
-					Logger()->Log(EC_LOGLEVEL_ERROR, "Failed to rollback transaction. The archive is consistent, but possibly cluttered. hr=0x%08x", hrTmp);
+					Logger()->perr("Failed to rollback transaction. The archive is consistent, but possibly cluttered.", hrTmp);
 			}
 			return hr;
 		}
@@ -617,19 +562,16 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 	lstNewMsgArchives.unique();
 
 	hr = ptrMsgHelper->SetArchiveList(lstNewMsgArchives, true);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to save list of archives for this message. (hr=0x%08x)", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to save list of archives for this message", hr);
 	for (const auto &ta : lstTransactions) {
 		HRESULT hrTmp = ta->PurgeDeletes(m_ptrSession, m_ptrTransaction);
 		if (hrTmp != hrSuccess)
-			Logger()->Log(EC_LOGLEVEL_ERROR, "Failed to remove old archives. (hr=0x%08x)", hrTmp);
+			Logger()->perr("Failed to remove old archives", hrTmp);
 	}
 	hrTemp = ExecuteSubOperations(ptrMessageRaw, CurrentFolder(), proprow);
 	if (hrTemp != hrSuccess)
-		Logger()->Log(EC_LOGLEVEL_WARNING, "Unable to execute next operation, hr=%08x. The operation is postponed, not cancelled", hrTemp);
+		Logger()->pwarn("Unable to execute next operation - the operation is postponed, not cancelled.", hrTemp);
 	return hrSuccess;
 }
 
@@ -658,20 +600,16 @@ HRESULT Copier::DoInitialArchive(LPMESSAGE lpMessage, const SObjectEntry &archiv
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrNewArchive, PR_ENTRYID, &~ptrEntryId);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get entry id of archive message. (hr=0x%08x", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to get entry id of archive message", hr);
 
 	// Update the list of archive messages for this message.
 	objectEntry.sStoreEntryId = archiveRootEntry.sStoreEntryId;
 	objectEntry.sItemEntryId = ptrEntryId->Value.bin;
 	ptrTransaction.reset(new Transaction(objectEntry));
 	hr = ptrTransaction->Save(ptrNewArchive, true, ptrPSAction);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to add archive message to transaction. (hr=0x%08x", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to add archive message to transaction", hr);
 	*lpptrTransaction = std::move(ptrTransaction);
 	return hrSuccess;
 }
@@ -694,38 +632,26 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrNewArchive, PR_ENTRYID, &~ptrEntryId);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get entry id of archive message. (hr=0x%08x)", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to get entry id of archive message", hr);
 
 	// Create the transaction, which is needed by CopyToHistory, now.
 	newArchiveEntry.sStoreEntryId = archiveRootEntry.sStoreEntryId;
 	newArchiveEntry.sItemEntryId = ptrEntryId->Value.bin;
 	ptrTransaction.reset(new Transaction(newArchiveEntry));
 	hr = MoveToHistory(archiveRootEntry, archiveMsgEntry, ptrTransaction, &movedEntry, &~ptrMovedMessage);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_ERROR, "Failed to move old archive to history folder. (hr=0x%08x)", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to move old archive to history folder", hr);
 
 	hr = MAPIPropHelper::Create(ptrNewArchive.as<MAPIPropPtr>(), &ptrMsgHelper);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to create prop helper. (hr=0x%08x)", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to create prop helper", hr);
 	hr = ptrMsgHelper->ReferencePrevious(movedEntry);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to set reference to previous archive. (hr=0x%08x)", hr);
-		return hr;
-	}
-	
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to set reference to previous archive", hr);
 	hr = ptrTransaction->Save(ptrNewArchive, true, ptrPSAction);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to add new archive message to transaction. (hr=0x%08x", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to add new archive message to transaction", hr);
 
 	if (bUpdateHistory) {
 		assert(ptrMovedMessage);
@@ -734,17 +660,11 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 		// be updated through UpdateHistoryRefs.
 
 		hr = MAPIPropHelper::Create(ptrMovedMessage.as<MAPIPropPtr>(), &ptrMsgHelper);
-		if (hr != hrSuccess) {
-			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to create prop helper. (hr=0x%08x)", hr);
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return Logger()->perr("Failed to create prop helper", hr);
 		hr = ptrMsgHelper->SetReference(refMsgEntry);
-		if (hr != hrSuccess) {
-			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to set reference. (hr=0x%08x)", hr);
-			return hr;
-		}
-		
+		if (hr != hrSuccess)
+			return Logger()->perr("Failed to set reference", hr);
 		hr = UpdateHistoryRefs(ptrMovedMessage, refMsgEntry, ptrTransaction);
 		if (hr != hrSuccess)
 			return hr;
@@ -766,11 +686,8 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 	assert(lpMessage != NULL);
 	assert(lpptrTransaction != NULL);
 	hr = m_ptrSession->OpenStore(archiveMsgEntry.sStoreEntryId, &~ptrArchiveStore);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open archive store. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to open archive store", hr);
 	/**
 	 * We used to get the raw message here to ensure we're not getting the extra destubbing layer here. However, the messages
 	 * in the archive should never be stubbed, so there's no problem.
@@ -778,44 +695,27 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 	 * @todo Should we verify if the item is really not stubbed?
 	 */
 	hr = ptrArchiveStore->OpenEntry(archiveMsgEntry.sItemEntryId.size(), archiveMsgEntry.sItemEntryId, &iid_of(ptrArchivedMsg), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrArchivedMsg);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open existing archived message. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to open existing archived message", hr);
 	hr = ptrArchivedMsg->GetPropList(fMapiUnicode, &~ptrPropList);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get property list. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to get property list", hr);
 	hr = ptrArchivedMsg->DeleteProps(ptrPropList, NULL);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to delete properties. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to delete properties", hr);
 	hr = Util::HrDeleteAttachments(ptrArchivedMsg);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to delete attachments. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to delete attachments", hr);
 	hr = Util::HrDeleteRecipients(ptrArchivedMsg);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to delete recipients. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to delete recipients", hr);
 	hr = m_ptrHelper->ArchiveMessage(lpMessage, &refMsgEntry, ptrArchivedMsg, &ptrPSAction);
 	if (hr != hrSuccess)
 		return hr;
-
 	ptrTransaction.reset(new Transaction(archiveMsgEntry));
 	hr = ptrTransaction->Save(ptrArchivedMsg, false, ptrPSAction);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to add archive message to transaction. (hr=0x%08x", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to add archive message to transaction", hr);
 	*lpptrTransaction = std::move(ptrTransaction);
 	return hrSuccess;
 }
@@ -856,10 +756,8 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrArchiveCopy, PR_ENTRYID, &~ptrEntryId);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get entry id of archive message. (hr=0x%08x)", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to get entry id of archive message", hr);
 
 	// Create the transaction, which is needed by CopyToHistory, now.
 	objectEntry.sStoreEntryId = archiveRootEntry.sStoreEntryId;
@@ -897,9 +795,8 @@ HRESULT Copier::ExecuteSubOperations(IMessage *lpMessage,
 			Logger()->Log(EC_LOGLEVEL_DEBUG, "Executing delete operation.");
 			hr = m_ptrDeleteOp->ProcessEntry(lpFolder, proprow);
 			if (hr != hrSuccess)
-				Logger()->Log(EC_LOGLEVEL_WARNING, "Delete operation failed, postponing next attempt. hr=0x%08x", hr);
-			else
-				Logger()->Log(EC_LOGLEVEL_DEBUG, "Delete operation executed.");
+				return Logger()->pwarn("Delete operation failed, postponing next attempt", hr);
+			Logger()->Log(EC_LOGLEVEL_DEBUG, "Delete operation executed.");
 			return hr; /* No point in trying to stub a deleted message. */
 		} else if (hr != MAPI_E_NOT_FOUND)
 			return hr;
@@ -915,7 +812,7 @@ HRESULT Copier::ExecuteSubOperations(IMessage *lpMessage,
 			Logger()->Log(EC_LOGLEVEL_DEBUG, "Executing stub operation.");
 			hr = m_ptrStubOp->ProcessEntry(lpMessage);
 			if (hr != hrSuccess)
-				Logger()->Log(EC_LOGLEVEL_WARNING, "Stub operation failed, postponing next attempt. hr=0x%08x", hr);
+				Logger()->pwarn("Stub operation failed, postponing next attempt", hr);
 			else
 				Logger()->Log(EC_LOGLEVEL_DEBUG, "Stub operation executed.");
 		} else if (hr == MAPI_E_NOT_FOUND) {
