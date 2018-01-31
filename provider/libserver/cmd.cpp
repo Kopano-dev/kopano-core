@@ -3301,7 +3301,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 			sProp.__union = SOAP_UNION_propValData_ul;
 			sProp.Value.ul = 0;
 			
-			er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp);
+			er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
 			if(er != erSuccess)
 				return er;
 		}
@@ -3311,7 +3311,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		sProp.__union = SOAP_UNION_propValData_b;
 		sProp.Value.b = false;
 		
-		er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp);
+		er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
 		if(er != erSuccess)
 			return er;
 			
@@ -3320,7 +3320,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		sProp.__union = SOAP_UNION_propValData_ul;
 		sProp.Value.ul = type;
 
-		er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp);
+		er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
 		if(er != erSuccess)
 			return er;
 
@@ -3329,7 +3329,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		    sProp.ulPropTag = PR_COMMENT_A;
 		    sProp.__union = SOAP_UNION_propValData_lpszA;
 			sProp.Value.lpszA = const_cast<char *>(comment);
-		    er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp);
+		    er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
 			if(er != erSuccess)
 				return er;
 		}
@@ -3342,7 +3342,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		    sProp.Value.hilo = &sHilo;
 		    UnixTimeToFileTime(now, &sProp.Value.hilo->hi, &sProp.Value.hilo->lo);
 		    
-		    er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp);
+		    er = WriteProp(lpDatabase, ulLastId, ulParentId, &sProp, false);
 			if(er != erSuccess)
 				return er;
 		}
