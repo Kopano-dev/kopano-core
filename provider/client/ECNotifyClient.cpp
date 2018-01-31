@@ -38,22 +38,22 @@
 using namespace KC;
 
 struct ECADVISE {
-	ULONG cbKey;
-	BYTE *lpKey;
-	ULONG ulEventMask;
+	ULONG cbKey = 0;
+	ULONG ulEventMask = 0;
+	memory_ptr<BYTE> lpKey;
 	object_ptr<IMAPIAdviseSink> lpAdviseSink;
-	ULONG ulConnection;
-	GUID guid;
-	ULONG ulSupportConnection;
+	ULONG ulConnection = 0;
+	GUID guid{};
+	ULONG ulSupportConnection = 0;
 };
 
 struct ECCHANGEADVISE {
-	ULONG ulSyncId;
-	ULONG ulChangeId;
-	ULONG ulEventMask;
+	ULONG ulSyncId = 0;
+	ULONG ulChangeId = 0;
+	ULONG ulEventMask = 0;
+	ULONG ulConnection = 0;
 	object_ptr<IECChangeAdviseSink> lpAdviseSink;
-	ULONG ulConnection;
-	GUID guid;
+	GUID guid{};
 };
 
 static inline std::pair<ULONG,ULONG> SyncAdviseToConnection(const SSyncAdvise &sSyncAdvise) {
@@ -140,27 +140,21 @@ HRESULT ECNotifyClient::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, bool bSynchronous, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection)
 {
 	HRESULT		hr = MAPI_E_NO_SUPPORT;
-	memory_ptr<ECADVISE> pEcAdvise;
 	ULONG		ulConnection = 0;
 
 	if (lpKey == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = MAPIAllocateBuffer(sizeof(ECADVISE), &~pEcAdvise);
-	if (hr != hrSuccess)
-		return hr;
+	std::unique_ptr<ECADVISE> pEcAdvise(new(std::nothrow) ECADVISE);
+	if (pEcAdvise == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	*lpulConnection = 0;
-
-	memset(pEcAdvise, 0, sizeof(ECADVISE));
-	
 	pEcAdvise->lpKey = NULL;
 	pEcAdvise->cbKey = cbKey;
-	hr = KAllocCopy(lpKey, cbKey, reinterpret_cast<void **>(&pEcAdvise->lpKey), pEcAdvise);
+	hr = KAllocCopy(lpKey, cbKey, &~pEcAdvise->lpKey);
 	if (hr != hrSuccess)
 		return hr;
 	pEcAdvise->lpAdviseSink.reset(lpAdviseSink);
-	pEcAdvise->ulEventMask	= ulEventMask;
-	pEcAdvise->ulSupportConnection = 0;
-
+	pEcAdvise->ulEventMask = ulEventMask;
 	/*
 	 * Request unique connection id from Master.
 	 */
@@ -206,16 +200,11 @@ HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
     IECChangeAdviseSink *lpChangeAdviseSink, ULONG *lpulConnection)
 {
 	HRESULT			hr = MAPI_E_NO_SUPPORT;
-	memory_ptr<ECCHANGEADVISE> pEcAdvise;
 	ULONG			ulConnection = 0;
-
-	hr = MAPIAllocateBuffer(sizeof(ECCHANGEADVISE), &~pEcAdvise);
-	if (hr != hrSuccess)
-		return hr;
+	std::unique_ptr<ECCHANGEADVISE> pEcAdvise(new(std::nothrow) ECCHANGEADVISE);
+	if (pEcAdvise == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	*lpulConnection = 0;
-
-	memset(pEcAdvise, 0, sizeof(ECCHANGEADVISE));
-	
 	pEcAdvise->ulSyncId = ulSyncId;
 	pEcAdvise->ulChangeId = ulChangeId;
 	pEcAdvise->lpAdviseSink.reset(lpChangeAdviseSink);
@@ -383,15 +372,16 @@ HRESULT ECNotifyClient::Reregister(ULONG ulConnection, ULONG cbKey, LPBYTE lpKey
 		return MAPI_E_NOT_FOUND;
 
 	if(cbKey) {
-		// Update key if required, when the new key is equal or smaller
-		// then the previous key we don't need to allocate anything.
-		// Note that we cannot do MAPIFreeBuffer() since iter->second->lpKey
-		// was allocated with MAPIAllocateMore().
+		/*
+		 * Update key if required. When the new key is equal or smaller
+		 * than the previous key, we do not need to allocate anything.
+		 */
 		if (cbKey > iter->second->cbKey) {
-			HRESULT hr = MAPIAllocateMore(cbKey, iter->second,
-				reinterpret_cast<void **>(&iter->second->lpKey));
+			memory_ptr<BYTE> newkey;
+			auto hr = MAPIAllocateBuffer(cbKey, &~newkey);
 			if (hr != hrSuccess)
 				return hr;
+			iter->second->lpKey.reset(newkey);
 		}
 
 		memcpy(iter->second->lpKey, lpKey, cbKey);

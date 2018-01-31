@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 import fcntl
 import glob
 import grp

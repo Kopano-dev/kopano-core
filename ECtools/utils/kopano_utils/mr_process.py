@@ -1,3 +1,4 @@
+#!@PYTHON@
 from datetime import datetime, timedelta
 import sys
 import kopano

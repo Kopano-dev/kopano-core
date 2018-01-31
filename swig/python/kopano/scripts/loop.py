@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # basic looping examples (users, items, properties, folders, attachments, companies..)
 

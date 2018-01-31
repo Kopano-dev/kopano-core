@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # client-side rule, which moves incoming mails with 'spam' in the subject to the junk folder
 

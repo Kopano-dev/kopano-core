@@ -1,4 +1,4 @@
-#!/usr/bin/env @PYTHON@
+#!@PYTHON@
 import sys
 import kopano_search
 from kopano_search import __version__

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # generate graphs, containing e.g. the store size for each user
 

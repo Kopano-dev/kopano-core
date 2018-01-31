@@ -1,3 +1,4 @@
+#!@PYTHON@
 import collections
 from datetime import datetime, timedelta
 import sys

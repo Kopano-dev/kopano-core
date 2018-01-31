@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 import magic
 import mimetypes
 import os.path

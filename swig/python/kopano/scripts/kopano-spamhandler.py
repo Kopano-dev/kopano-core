@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # call (learning) "spam command" for items in junk folders, optionally deleting them
 

@@ -18,6 +18,7 @@
 #ifndef ECNOTIFYCLIENT_H
 #define ECNOTIFYCLIENT_H
 
+#include <memory>
 #include <mutex>
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
@@ -32,8 +33,8 @@
 
 struct ECADVISE;
 struct ECCHANGEADVISE;
-typedef std::map<int, KC::memory_ptr<ECADVISE>> ECMAPADVISE;
-typedef std::map<int, KC::memory_ptr<ECCHANGEADVISE>> ECMAPCHANGEADVISE;
+typedef std::map<int, std::unique_ptr<ECADVISE>> ECMAPADVISE;
+typedef std::map<int, std::unique_ptr<ECCHANGEADVISE>> ECMAPCHANGEADVISE;
 typedef std::list<std::pair<syncid_t,connection_t> > ECLISTCONNECTION;
 
 class SessionGroupData;

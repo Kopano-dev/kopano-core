@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 from copy import deepcopy
 import hashlib
 import hmac

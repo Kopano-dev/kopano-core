@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # display calendar occurrences in familiar calendar widget (slow as we don't filter on range yet)
 

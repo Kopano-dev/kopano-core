@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # Dumps all attachments for a given user to files.
 # This can be used to verify that attachments did not
