@@ -133,7 +133,7 @@ class Folder(Properties):
             return self._mapiobj
 
         try:
-            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY)
+            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | MAPI_DEFERRED_ERRORS)
         except (MAPIErrorNotFound, MAPIErrorInvalidEntryid):
             try:
                 self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
