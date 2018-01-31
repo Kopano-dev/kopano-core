@@ -98,4 +98,10 @@ ECRESULT UpdateABChangesTbl(ECDatabase *db)
 		"modify change_type int(11) unsigned not null default 0");
 }
 
+/* Edit no. 67 */
+ECRESULT DropClientUpdateStatusTbl(ECDatabase *db)
+{
+	return db->DoUpdate("drop table if exists `clientupdatestatus`");
+}
+
 } /* namespace */

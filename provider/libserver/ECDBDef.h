@@ -28,7 +28,6 @@
  * abchanges         | All addressbook changes
  * acl               | User permission objects
  * changes           | Object changes
- * clientupdatestatus| Update status of the kopano client, only used with auto updater
  * hierarchy         | The hiearchy between the mapi objects
  * indexedproperties | Mapi object entryid and sourcekey
  * lob               | Attachment data. Only when the setting attachment in database is enabled
@@ -306,18 +305,6 @@
 										PRIMARY KEY  (`name`) \
 									) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
-#define Z_TABLEDEF_CLIENTUPDATESTATUS "CREATE TABLE clientupdatestatus ( \
-										`userid` int(11) unsigned NOT NULL, \
-										`trackid` int(11) unsigned NOT NULL, \
-										`updatetime` DATETIME NOT NULL, \
-										`currentversion` varchar(50) binary NOT NULL, \
-										`latestversion` varchar(50) binary NOT NULL, \
-										`computername` varchar(255) binary NOT NULL, \
-										`status` int(11) unsigned NOT NULL, \
-										PRIMARY KEY (`userid`), \
-										UNIQUE KEY (`trackid`) \
-										)  ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;"
-
 // Default mysql table data
 #define Z_TABLEDATA_ACL				"INSERT INTO `acl` VALUES (2, 2, 2, 1531), \
 										(2, 1, 2, 1531), \
@@ -351,6 +338,7 @@
 #define Z_UPDATE_VERSIONTBL_MICRO 64
 #define Z_UPDATE_CHANGES_PKEY 65
 #define Z_UPDATE_ABCHANGES_PKEY 66
+#define Z_DROP_CLIENTUPDATESTATUS_PKEY 67
 
 /*
  * The first population of the SQL tables can use both create-type and
@@ -358,9 +346,9 @@
  * version that can be reached with creates only.
  * (This is never less than %Z_UPDATE_LAST.)
  */
-#define Z_UPDATE_RELEASE_ID 66
+#define Z_UPDATE_RELEASE_ID 67
 
 // This is the last update ID always update this to the last ID
-#define Z_UPDATE_LAST 66
+#define Z_UPDATE_LAST 67
 
 #endif
