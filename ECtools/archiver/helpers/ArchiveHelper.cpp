@@ -100,13 +100,13 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession, const SObjectEntry 
 	hr = ptrSession->OpenStore(archiveEntry.sStoreEntryId, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
 		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open archive store. (hr=%s)", stringify(hr, true).c_str());
+			lpLogger->perr("Failed to open archive store", hr);
 		return hr;
 	}
 	hr = ptrArchiveStore->OpenEntry(archiveEntry.sItemEntryId.size(), archiveEntry.sItemEntryId, &iid_of(ptrArchiveRootFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrArchiveRootFolder);
 	if (hr != hrSuccess) {
 		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open archive root folder. (hr=%s)", stringify(hr, true).c_str());
+			lpLogger->perr("Failed to open archive root folder", hr);
 		return hr;
 	}
 	
@@ -117,7 +117,7 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession, const SObjectEntry 
 	hr = ArchiveHelper::Create(ptrArchiveStore, ptrArchiveRootFolder, NULL, &ptrArchiveHelper);
 	if (hr != hrSuccess) {
 		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create archive helper. (hr=%s)", stringify(hr, true).c_str());
+			lpLogger->perr("Failed to create archive helper", hr);
 		return hr;
 	}
 	*lpptrArchiveHelper = std::move(ptrArchiveHelper);
@@ -884,20 +884,20 @@ HRESULT ArchiveHelper::PrepareForFirstUse(ECLogger *lpLogger)
 	hr = StoreHelper::Create(m_ptrArchiveStore, &ptrStoreHelper);
 	if (hr != hrSuccess) {
 		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create store helper (hr=0x%08x).", hr);
+			lpLogger->perr("Failed to create store helper", hr);
 		return hr;
 	}
 	hr = ptrStoreHelper->GetIpmSubtree(&~ptrIpmSubtree);
 	if (hr != hrSuccess) {
 		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive IPM subtree (hr=0x%08x).", hr);
+			lpLogger->perr("Failed to get archive IPM subtree", hr);
 		return hr;
 	}
 
 	hr = ptrIpmSubtree->EmptyFolder(0, NULL, DEL_ASSOCIATED|DELETE_HARD_DELETE);
 	if (FAILED(hr)) {
 		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to empty archive IPM subtree (hr=0x%08x).", hr);
+			lpLogger->perr("Failed to empty archive IPM subtree", hr);
 		return hr;
 	} else if (hr != hrSuccess) {
 		if (lpLogger)
@@ -910,7 +910,7 @@ HRESULT ArchiveHelper::PrepareForFirstUse(ECLogger *lpLogger)
 	sEntryId.Value.bin.lpb = NULL;
 	hr = HrSetOneProp(m_ptrArchiveStore, &sEntryId);
 	if (hr != hrSuccess && lpLogger != nullptr)
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to clear wasebasket entryid (hr=0x%08x)", hr);
+		lpLogger->perr("Failed to clear wasebasket entryid", hr);
 	return hr;
 }
 

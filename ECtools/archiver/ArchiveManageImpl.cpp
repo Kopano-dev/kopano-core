@@ -116,7 +116,8 @@ HRESULT ArchiveManageImpl::Init()
 {
 	auto hr = m_ptrSession->OpenStoreByName(m_strUser, &~m_ptrUserStore);
 	if (hr != hrSuccess)
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open user store '" TSTRING_PRINTF "' (hr=%s).", m_strUser.c_str(), stringify(hr, true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open user store \"" TSTRING_PRINTF "\": %s (%x)",
+			m_strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 	return hr;
 }
 
@@ -154,7 +155,8 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 	// Resolve the requested user.
 	auto hr = m_ptrSession->GetUserInfo(m_strUser, &sUserEntryId, &strFoldername, nullptr);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to resolve user information for '" TSTRING_PRINTF "' (hr=%s).", m_strUser.c_str(), stringify(hr, true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to resolve user information for \"" TSTRING_PRINTF "\": %s (%x)",
+			m_strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -166,7 +168,8 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 	if (lpszArchiveServer) {
 		hr = m_ptrSession->CreateRemote(lpszArchiveServer, m_lpLogger, &ptrRemoteSession);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to connect to archive server '%s' (hr=%s).", lpszArchiveServer, stringify(hr, true).c_str());
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to connect to archive server \"%s\": %s (%x)",
+				lpszArchiveServer, GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 		
@@ -176,7 +179,8 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 	// Find the requested archive.
 	hr = ptrArchiveSession->OpenStoreByName(lpszArchive, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open archive store '" TSTRING_PRINTF "' (hr=%s).", lpszArchive, stringify(hr, true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open archive store \"" TSTRING_PRINTF "\": %s (%x)",
+			lpszArchive, GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -198,31 +202,21 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	
 	// Check if we're not trying to attach a store to itself.
 	auto hr = m_ptrSession->CompareStoreIds(m_ptrUserStore, lpArchiveStore, &bEqual);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to compare user and archive store (hr=%s).", stringify(hr, true).c_str());
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to compare user and archive store", hr);
 	if (bEqual) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "User and archive store are the same.");
 		return MAPI_E_INVALID_PARAMETER;
 	}
 	hr = HrGetOneProp(lpArchiveStore, PR_ENTRYID, &~ptrArchiveStoreId);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive store entryid (hr=%s).", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to get archive store entryid", hr);
 	hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create store helper (hr=%s).", stringify(hr, true).c_str());
-		return hr;
-	}
-	
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to create store helper", hr);
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive list (hr=%s).", stringify(hr, true).c_str());
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to get archive list", hr);
 
 	// Find ptrArchiveStoreId in lstArchives
 	for (const auto &arc : lstArchives) {
@@ -234,26 +228,20 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	}
 
 	hr = ArchiveHelper::Create(lpArchiveStore, strFoldername, lpszArchiveServer, &ptrArchiveHelper);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create archive helper (hr=%s).", stringify(hr, true).c_str());
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to create archive helper", hr);
 
 	// Check if the archive is usable for the requested type
 	hr = ptrArchiveHelper->GetArchiveType(&aType, NULL);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive type (hr=%s).", stringify(hr, true).c_str());
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to get archive type", hr);
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive Type: %d", (int)aType);
 	if (aType == UndefArchive) {
 		m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Preparing archive for first use");
 		hr = ptrArchiveHelper->PrepareForFirstUse(m_lpLogger);
-		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to prepare archive (hr=0x%08x).", hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return m_lpLogger->perr("Failed to prepare archive", hr);
 	} else if (aType == SingleArchive && !strFoldername.empty()) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Attempted to create an archive folder in an archive store that has an archive in its root.");
 		return MAPI_E_COLLISION;
@@ -279,53 +267,42 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 
 		return MAPI_E_COLLISION;
 	} else if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get attached user for the requested archive (hr=%s).", stringify(hr, true).c_str());
-		return hr;
+		return m_lpLogger->perr("Failed to get attached user for the requested archive", hr);
 	}
 		
 	// Add new archive to list of archives.
 	hr = ptrArchiveHelper->GetArchiveEntry(true, &objectEntry);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive entry (hr=%s).", stringify(hr, true).c_str());
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to get archive entry", hr);
 	lstArchives.emplace_back(std::move(objectEntry));
 	lstArchives.sort();
 	lstArchives.unique();
 	
 	hr = ptrStoreHelper->SetArchiveList(lstArchives);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to update archive list (hr=%s).", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to update archive list", hr);
 	hr = ptrArchiveHelper->SetAttachedUser(sUserEntryId);
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to mark archive used (hr=%s).", stringify(hr, true).c_str());
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to mark archive used", hr);
 	hr = ptrArchiveHelper->SetArchiveType(strFoldername.empty() ? SingleArchive : MultiArchive, attachType);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set archive type to %d (hr=%s).", (int)(strFoldername.empty() ? SingleArchive : MultiArchive), stringify(hr, true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set archive type to %d: %s (%x)",
+			static_cast<int>(strFoldername.empty() ? SingleArchive : MultiArchive),
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	
 	// Update permissions
 	if (!lpszArchiveServer) {	// No need to set permissions on a remote archive.
 		hr = ptrArchiveHelper->SetPermissions(sUserEntryId, (ulFlags & Writable) == Writable);
-		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set permissions on archive (hr=%s).", stringify(hr, true).c_str());
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return m_lpLogger->perr("Failed to set permissions on archive", hr);
 	}
 
 	// Create search folder
 	hr = ptrStoreHelper->UpdateSearchFolders();
-	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set search folders (hr=%s).", stringify(hr, true).c_str());
-		return hr;	
-	}
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to set search folders", hr);
 	hr = HrGetOneProp(lpArchiveStore, PR_DISPLAY_NAME, &~ptrArchiveName);
 	if (hr != hrSuccess)
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Successfully attached '" TSTRING_PRINTF "' in 'Unknown' for user '" TSTRING_PRINTF "'.", strFoldername.empty() ? KC_T("Root") : strFoldername.c_str(), m_strUser.c_str());
@@ -366,20 +343,21 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 
 	auto hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create store helper (hr=%s).", stringify(hr, true).c_str());
+		m_lpLogger->perr("Failed to create store helper", hr);
 		return MAPIErrorToArchiveError(hr);
 	}
 	
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive list (hr=%s).", stringify(hr, true).c_str());
+		m_lpLogger->perr("Failed to get archive list", hr);
 		return MAPIErrorToArchiveError(hr);
 	}
 
 	if (lpszArchiveServer) {
 		hr = m_ptrSession->CreateRemote(lpszArchiveServer, m_lpLogger, &ptrRemoteSession);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to connect to archive server '%s' (hr=%s).", lpszArchiveServer, stringify(hr, true).c_str());
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to connect to archive server \"%s\": %s (%x)",
+				lpszArchiveServer, GetMAPIErrorMessage(hr), hr);
 			return MAPIErrorToArchiveError(hr);
 		}
 		
@@ -388,12 +366,13 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 
 	hr = ptrArchiveSession->OpenStoreByName(lpszArchive, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open archive store '" TSTRING_PRINTF "' (hr=%s).", lpszArchive, stringify(hr, true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open archive store \"" TSTRING_PRINTF "\": %s (%x)",
+			lpszArchive, GetMAPIErrorMessage(hr), hr);
 		return MAPIErrorToArchiveError(hr);
 	}
 	hr = HrGetOneProp(ptrArchiveStore, PR_ENTRYID, &~ptrArchiveStoreEntryId);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive entryid (hr=%s).", stringify(hr, true).c_str());
+		m_lpLogger->perr("Failed to get archive entryid", hr);
 		return MAPIErrorToArchiveError(hr);
 	}
 
@@ -420,12 +399,12 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 		while (iArchive != lstArchives.end()) {
 			hr = ptrArchiveStore->OpenEntry(iArchive->sItemEntryId.size(), iArchive->sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
 			if (hr != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open archive folder (hr=%s).", stringify(hr, true).c_str());
+				m_lpLogger->perr("Failed to open archive folder", hr);
 				return MAPIErrorToArchiveError(hr);
 			}
 			hr = HrGetOneProp(ptrArchiveFolder, PR_DISPLAY_NAME, &~ptrDisplayName);
 			if (hr != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive folder name (hr=%s).", stringify(hr, true).c_str());
+				m_lpLogger->perr("Failed to get archive folder name", hr);
 				return MAPIErrorToArchiveError(hr);
 			}
 			
@@ -446,14 +425,14 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	
 	hr = ptrStoreHelper->SetArchiveList(lstArchives);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to update archive list (hr=%s).", stringify(hr, true).c_str());
+		m_lpLogger->perr("Failed to update archive list", hr);
 		return MAPIErrorToArchiveError(hr);
 	}
 
 	// Update search folders
 	hr = ptrStoreHelper->UpdateSearchFolders();
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set search folders (hr=%s).", stringify(hr, true).c_str());
+		m_lpLogger->perr("Failed to set search folders", hr);
 		return MAPIErrorToArchiveError(hr);
 	}
 
@@ -479,13 +458,13 @@ eResult ArchiveManageImpl::DetachFrom(unsigned int ulArchive)
 
 	auto hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create store helper (hr=%s).", stringify(hr, true).c_str());
+		m_lpLogger->perr("Failed to create store helper", hr);
 		return MAPIErrorToArchiveError(hr);
 	}
 
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get archive list (hr=%s).", stringify(hr, true).c_str());
+		m_lpLogger->perr("Failed to get archive list", hr);
 		return MAPIErrorToArchiveError(hr);
 	}
 
@@ -500,14 +479,14 @@ eResult ArchiveManageImpl::DetachFrom(unsigned int ulArchive)
 
 	hr = ptrStoreHelper->SetArchiveList(lstArchives);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to update archive list (hr=%s).", stringify(hr, true).c_str());
+		m_lpLogger->perr("Failed to update archive list", hr);
 		return MAPIErrorToArchiveError(hr);
 	}
 
 	// Update search folders
 	hr = ptrStoreHelper->UpdateSearchFolders();
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set search folders (hr=%s).", stringify(hr, true).c_str());
+		m_lpLogger->perr("Failed to set search folders", hr);
 		return MAPIErrorToArchiveError(hr);
 	}
 
@@ -586,7 +565,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 
 		auto hrTmp = m_ptrSession->OpenStore(arc.sStoreEntryId, &~ptrArchiveStore);
 		if (hrTmp != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open store (hr=%s)", stringify(hrTmp, true).c_str());
+			m_lpLogger->perr("Failed to open store", hrTmp);
 			entry.StoreName = "Failed id=" + arc.sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
 			lstEntries.emplace_back(std::move(entry));
 			continue;
@@ -626,7 +605,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 					        (LPENTRYID)ptrStoreProps[IDX_IPM_SUBTREE_ENTRYID].Value.bin.lpb,
 					        0, &ulCompareResult);
 				if (hrTmp != hrSuccess) {
-					m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to compare entry ids (hr=%s)", stringify(hrTmp, true).c_str());
+					m_lpLogger->perr("Failed to compare entry ids", hrTmp);
 					ulCompareResult = FALSE;	// Let's assume it's not the IPM Subtree.
 				}
 			}
@@ -636,7 +615,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 
 		hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
 		if (hrTmp != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open folder (hr=%s)", stringify(hrTmp, true).c_str());
+			m_lpLogger->perr("Failed to open folder", hrTmp);
 			entry.FolderName = "Failed id=" + arc.sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
 			lstEntries.emplace_back(std::move(entry));
 			continue;
@@ -656,7 +635,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		if (bAclCapable && !arc.sStoreEntryId.isWrapped()) {
 			hrTmp = GetRights(ptrArchiveFolder, &entry.Rights);
 			if (hrTmp != hrSuccess)
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive rights (hr=%s)", stringify(hrTmp, true).c_str());
+				m_lpLogger->perr("Failed to get archive rights", hrTmp);
 		} else
 			entry.Rights = ARCHIVE_RIGHTS_ABSENT;
 
