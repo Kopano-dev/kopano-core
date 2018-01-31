@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # example of using Service class, in the form of an (incomplete) python version of kopano-monitor
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 from .version import __version__
 
 import os

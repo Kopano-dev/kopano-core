@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # simple html-based viewer (users, folders, items)
 

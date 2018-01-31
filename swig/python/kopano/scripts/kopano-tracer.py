@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # traces ICS events of a user and displays the changed/new MAPI properties
 
