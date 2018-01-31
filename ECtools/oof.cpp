@@ -35,7 +35,7 @@
 #include <kopano/scope.hpp>
 #include "common/fileutil.h"
 
-using namespace KCHL;
+using namespace KC;
 
 static char *oof_from, *oof_until, *oof_subject, *oof_msgfile;
 static char *oof_host, *oof_user, *oof_pass, *oof_sslkey, *oof_sslpass;
