@@ -897,6 +897,7 @@ dist_man_MANS = \
 	doc/kopano-search.8 doc/kopano-search.cfg.5 \
 	doc/kopano-server.8 doc/kopano-server.cfg.5 \
 	doc/kopano-set-oof.1 \
+	doc/kopano-spamd.8 doc/kopano-spamd.cfg.5 \
 	doc/kopano-spooler.8 doc/kopano-spooler.cfg.5 \
 	doc/kopano-backup.8 doc/kopano-backup.cfg.5 \
 	doc/kopano-stats.1 doc/kopano-storeadm.8 \
