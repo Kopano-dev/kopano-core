@@ -150,20 +150,15 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(IMAPIFolder *lpFolder,
 		int nResult = 0;
 		// @todo: Create correct locale.
 		hr = Util::CompareProp(m_ptrCurFolderEntryId, lpFolderEntryId, createLocaleFromName(""), &nResult);
-		if (hr != hrSuccess) {
-			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to compare current and new entryid. (hr=%s)", stringify(hr, true).c_str());
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return Logger()->perr("Failed to compare current and new entryid", hr);
 		
 		if (nResult != 0) {
 			Logger()->Log(EC_LOGLEVEL_DEBUG, "Leaving folder (%s)", bin2hex(m_ptrCurFolderEntryId->Value.bin).c_str());
 			Logger()->SetFolder(KC_T(""));
 			hr = LeaveFolder();
-			if (hr != hrSuccess) {
-				Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to leave folder. (hr=%s)", stringify(hr, true).c_str());
-				return hr;
-			}
-				
+			if (hr != hrSuccess)
+				return Logger()->perr("Failed to leave folder", hr);
 			bReloadFolder = true;
 		}
 	}
@@ -177,10 +172,8 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(IMAPIFolder *lpFolder,
 	     reinterpret_cast<ENTRYID *>(lpFolderEntryId->Value.bin.lpb),
 	     &iid_of(m_ptrCurFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors,
 	     &ulType, &~m_ptrCurFolder);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open folder. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to open folder", hr);
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~m_ptrCurFolderEntryId);
 	if (hr != hrSuccess)
 		return hr;
@@ -191,12 +184,9 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(IMAPIFolder *lpFolder,
 		Logger()->SetFolder(ptrPropValue->Value.LPSZ);
 	else
 		Logger()->SetFolder(KC_T("<Unnamed>"));
-
 	hr = EnterFolder(m_ptrCurFolder);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to enter folder. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to enter folder", hr);
 	return DoProcessEntry(proprow);
 }
 

@@ -18,7 +18,7 @@
 #include <kopano/platform.h>
 #include "ECIterators.h"
 #include <kopano/ECRestriction.h>
-#include "HrException.h"
+#include <kopano/hl.hpp>
 
 namespace KC {
 
@@ -49,7 +49,7 @@ void ECHierarchyIteratorBase::increment()
 		}			
 		hr = m_ptrContainer->GetHierarchyTable(m_ulDepth == 1 ? 0 : CONVENIENT_DEPTH, &~m_ptrTable);
 		if (hr != hrSuccess)
-			throw HrException(hr);
+			throw KMAPIError(hr);
 
 		if (m_ulDepth > 1) {
 			SPropValue sPropDepth;
@@ -59,17 +59,17 @@ void ECHierarchyIteratorBase::increment()
 			hr = ECPropertyRestriction(RELOP_LE, PR_DEPTH, &sPropDepth, ECRestriction::Cheap)
 			     .RestrictTable(m_ptrTable, TBL_BATCH);
 			if (hr != hrSuccess)
-				throw HrException(hr);
+				throw KMAPIError(hr);
 		}
 		hr = m_ptrTable->SetColumns(sptaColumnProps, TBL_BATCH);
 		if (hr != hrSuccess)
-			throw HrException(hr);
+			throw KMAPIError(hr);
 	}
 
 	if (!m_ptrRows.get()) {
 		auto hr = m_ptrTable->QueryRows(32, 0, &~m_ptrRows);
 		if (hr != hrSuccess)
-			throw HrException(hr);
+			throw KMAPIError(hr);
 		if (m_ptrRows.empty()) {
 			m_ptrCurrent.reset();
 			return;
@@ -83,7 +83,7 @@ void ECHierarchyIteratorBase::increment()
 	          reinterpret_cast<ENTRYID *>(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb),
 	          &iid_of(m_ptrCurrent), m_ulFlags, &ulType, &~m_ptrCurrent);
 	if (hr != hrSuccess)
-		throw HrException(hr);
+		throw KMAPIError(hr);
 	if (++m_ulRowIndex == m_ptrRows.size())
 		m_ptrRows.reset();
 }

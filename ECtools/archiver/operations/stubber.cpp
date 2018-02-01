@@ -81,10 +81,8 @@ HRESULT Stubber::ProcessEntry(IMAPIFolder * lpFolder, const SRow &proprow)
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Failed to open message. This can happen if the search folder is lagging.");
 		return hrSuccess;
 	} else if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open message. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
+		return Logger()->perr("Failed to open message", hr);
 	}
-
 	return ProcessEntry(ptrMessage);
 }
 
@@ -112,24 +110,20 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		Logger()->Log(EC_LOGLEVEL_WARNING, "This can happen when huge amounts of message are being processed.");
 		return hrSuccess;
 	} else if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_WARNING, "Failed to verify message criteria. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
+		return Logger()->pwarn("Failed to verify message criteria", hr);
 	}
 
 	// Verify if we have at least one archive that's in the current multi-server cluster.
 	hr = MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrMsgHelper);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to create prop helper. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-	
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to create prop helper", hr);
 	hr = ptrMsgHelper->GetArchiveList(&lstMsgArchives);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_CORRUPT_DATA) {
 			Logger()->Log(EC_LOGLEVEL_ERROR, "Existing list of archives is corrupt, skipping message.");
 			hr = hrSuccess;
 		} else
-			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get list of archives. (hr=%s)", stringify(hr, true).c_str());
+			Logger()->perr("Failed to get list of archives", hr);
 		return hr;
 	}
 
@@ -147,21 +141,15 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	sProps[2].Value.l = 2;
 
 	hr = lpMessage->SetProps(3, sProps, NULL);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to set properties. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to set properties", hr);
 	hr = lpMessage->GetAttachmentTable(fMapiDeferredErrors, &~ptrAttTable);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get attachment table. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to get attachment table", hr);
 	hr = HrQueryAllRows(ptrAttTable, sptaTableProps, nullptr, nullptr, 0, &~ptrRowSet);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get attachment numbers. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
-	
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to get attachment numbers", hr);
+
 	if (!ptrRowSet.empty()) {
 		Logger()->Log(EC_LOGLEVEL_INFO, "Removing %u attachments", ptrRowSet.size());
 		for (ULONG i = 0; i < ptrRowSet.size(); ++i) {
@@ -174,31 +162,21 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		
 		Logger()->Log(EC_LOGLEVEL_INFO, "Adding placeholder attachment");		
 		hr = lpMessage->CreateAttach(&iid_of(ptrAttach), 0, &ulAttachNum, &~ptrAttach);
-		if (hr != hrSuccess) {
-			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to create attachment. (hr=%s)", stringify(hr, true).c_str());
-			return hr;
-		}
-		
+		if (hr != hrSuccess)
+			return Logger()->perr("Failed to create attachment", hr);
 		sProp.ulPropTag = PR_ATTACH_FILENAME;
 		sProp.Value.LPSZ = const_cast<TCHAR *>(KC_T("dummy"));
 		hr = ptrAttach->SetProps(1, &sProp, NULL);
-		if (hr != hrSuccess) {
-			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to set attachment properties. (hr=%s)", stringify(hr, true).c_str());
-			return hr;
-		}
-		
+		if (hr != hrSuccess)
+			return Logger()->perr("Failed to set attachment properties", hr);
 		hr = ptrAttach->SaveChanges(0);
-		if (hr != hrSuccess) {
-			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to save attachment. (hr=%s)", stringify(hr, true).c_str());
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return Logger()->perr("Failed to save attachment", hr);
 	}
 	
 	hr = lpMessage->SaveChanges(0);
-	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to save stubbed message. (hr=%s)", stringify(hr, true).c_str());
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return Logger()->perr("Failed to save stubbed message", hr);
 	return hrSuccess;
 }
 

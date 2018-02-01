@@ -185,6 +185,8 @@ class _kc_export ECLogger {
 		 * @param	format		formatted string for the parameter list
 		 */
 		_kc_hidden virtual void Log(unsigned int level, const char *fmt, ...) KC_LIKE_PRINTF(3, 4) = 0;
+		HRESULT perr(const char *text, HRESULT);
+		HRESULT pwarn(const char *text, HRESULT);
 
 		/**
 		 * Log a message on a specified loglevel using char* format
