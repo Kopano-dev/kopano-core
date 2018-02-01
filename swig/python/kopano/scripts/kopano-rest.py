@@ -2,6 +2,7 @@ import base64
 import dateutil.parser
 import json
 import os
+from threading import Thread
 try:
     import urlparse
 except ImportError:
@@ -39,7 +40,7 @@ PREFIX = '/api/gc/v0'
 # TODO $filter, $search
 
 def _server(req):
-    userid = os.getenv('KOPANO_REST_USERID') or req.get_header('X-Kopano-UserEntryID', required=True)
+    userid = os.getenv('DEBUG_KOPANO_REST_USERID') or req.get_header('X-Kopano-UserEntryID', required=True)
     if userid in userid_sessiondata:
         sessiondata = userid_sessiondata[userid]
         mapisession = kc_session_restore(sessiondata)
@@ -51,6 +52,12 @@ def _server(req):
         sessiondata = kc_session_save(server.mapisession)
         userid_sessiondata[userid] = sessiondata
     return server
+
+def _server_notif(req):
+    userid = os.getenv('DEBUG_KOPANO_REST_USERID') or req.get_header('X-Kopano-UserEntryID', required=True)
+    username = admin_server.user(userid=userid).name
+    return kopano.Server(auth_user=username, auth_pass='',
+                           parse_args=False, store_cache=False, notifications=True)
 
 def _store(server, userid):
     if userid:
@@ -72,16 +79,21 @@ def _date(d, local=False, time=True):
     return d.strftime(fmt)
 
 class Resource(object):
-    def get_fields(self, obj, fields, all_fields):
+    def get_fields(self, req, obj, fields, all_fields):
         fields = fields or all_fields or self.fields
-        result = {f: all_fields[f](obj) for f in fields if f in all_fields}
+        result = {}
+        for f in all_fields:
+            try:
+                result[f] = all_fields[f](obj)
+            except TypeError: # TODO
+                result[f] = all_fields[f](req, obj)
         # TODO do not handle here
         if '@odata.type' in result and not result['@odata.type']:
             del result['@odata.type']
         return result
 
     def json(self, req, obj, fields, all_fields, multi=False, expand=None):
-        data = self.get_fields(obj, fields, all_fields)
+        data = self.get_fields(req, obj, fields, all_fields)
         if not multi:
             data['@odata.context'] = req.path
         if expand:
@@ -137,12 +149,12 @@ class Resource(object):
                 for field in args['$expand'][0].split(','):
                     if hasattr(self, 'relations') and field in self.relations:
                         objs, resource = self.relations[field](obj)
-                        expand[field] = [self.get_fields(obj2, resource.fields, resource.fields) for obj2 in objs()]
+                        expand[field] = [self.get_fields(req, obj2, resource.fields, resource.fields) for obj2 in objs()]
 
                     elif hasattr(self, 'expansions') and field in self.expansions:
                         obj2, resource = self.expansions[field](obj)
                         # TODO item@odata.context, @odata.type..
-                        expand[field.split('/')[1]] = self.get_fields(obj2, resource.fields, resource.fields)
+                        expand[field.split('/')[1]] = self.get_fields(req, obj2, resource.fields, resource.fields)
 
             resp.body = self.json(req, obj, fields, all_fields or self.fields, expand=expand)
 
@@ -208,7 +220,15 @@ class UserResource(Resource):
 
         elif method == 'messages':
             inbox = store.inbox
-            data = self.generator(req, inbox.items, inbox.count)
+            args = urlparse.parse_qs(req.query_string) # TODO generalize
+            if '$search' in args:
+                text = args['$search'][0]
+                def yielder(**kwargs):
+                    for item in inbox.search(text):
+                        yield item
+                data = self.generator(req, yielder, 0)
+            else:
+                data = self.generator(req, inbox.items, inbox.count)
             self.respond(req, resp, data, MessageResource.fields)
 
         elif method == 'contacts':
@@ -306,7 +326,16 @@ class MailFolderResource(FolderResource):
             data = self.generator(req, data.folders, data.subfolder_count_recursive)
 
         elif method == 'messages':
-            data = self.generator(req, data.items, data.count)
+            args = urlparse.parse_qs(req.query_string) # TODO generalize
+            if '$search' in args:
+                text = args['$search'][0]
+                folder = data
+                def yielder(**kwargs):
+                    for item in folder.search(text):
+                        yield item
+                data = self.generator(req, yielder, 0)
+            else:
+                data = self.generator(req, data.items, data.count)
             self.respond(req, resp, data, MessageResource.fields)
             return
 
@@ -391,6 +420,12 @@ class CalendarResource(FolderResource):
             item = self.create_message(folder, fields, EventResource.set_fields)
             self.respond(req, resp, item, EventResource.fields)
 
+def get_body(req, item):
+    if req.get_header('Prefer') == 'outlook.body-content-type="text"' or item.body_type == 'text':
+        return {'contentType': 'text', 'content': item.text}
+    else:
+        return {'contentType': 'html', 'content': item.html.decode('utf8')}, # TODO if not utf8?
+
 def set_body(item, arg):
     if arg['contentType'] == 'text':
         item.text = arg['content']
@@ -407,12 +442,6 @@ class Importer:
     def update(self, item, flags):
         self.updates.append(item)
 
-def get_body(item):
-    if item.body_type == 'text':
-        return {'contentType': 'text', 'content': item.text}
-    else:
-        return {'contentType': 'html', 'content': item.html.decode('utf8')}, # TODO if not utf8?
-
 def get_attachments(item):
     for attachment in item.attachments(embedded=True):
         if attachment.embedded:
@@ -427,7 +456,7 @@ class MessageResource(ItemResource):
         # TODO eventMessage resource?
         '@odata.type': lambda item: '#microsoft.graph.eventMessage' if item.message_class.startswith('IPM.Schedule.Meeting.') else None,
         'subject': lambda item: item.subject,
-        'body': lambda item: get_body(item),
+        'body': lambda req, item: get_body(req, item),
         'from': lambda item: {'emailAddress': {'name': item.from_.name, 'address': item.from_.email} },
         'sender': lambda item: {'emailAddress': {'name': item.sender.name, 'address': item.sender.email} },
         'toRecipients': lambda item: [{'emailAddress': {'name': to.name, 'address': to.email}} for to in item.to],
@@ -629,6 +658,22 @@ range_end_map = {
     'no_end': 'noEnd',
 }
 
+sensitivity_map = {
+    'normal': 'Normal',
+    'personal': 'Personal',
+    'private': 'Private',
+    'confidential': 'Confidential',
+}
+
+show_as_map = {
+    'free': 'Free',
+    'tentative': 'Tentative',
+    'busy': 'Busy',
+    'out_of_office': 'Oof',
+    'working_elsewhere': 'WorkingElsewhere',
+    'unknown': 'Unknown',
+}
+
 def recurrence_json(item):
     if isinstance(item, kopano.Item) and item.recurring:
         recurrence = item.recurrence
@@ -679,12 +724,15 @@ class EventResource(ItemResource):
         'end': lambda item: {'dateTime': _date(item.end, True), 'timeZone': 'UTC'} if item.end else None,
         'location': lambda item: { 'displayName': item.location, 'address': {}}, # TODO
         'importance': lambda item: item.urgency,
+        'sensitivity': lambda item: sensitivity_map[item.sensitivity],
         'hasAttachments': lambda item: item.has_attachments,
         'body': lambda item: {'contentType': 'html', 'content': item.html.decode('utf8')}, # TODO if not utf8?
         'isReminderOn': lambda item: item.reminder,
         'reminderMinutesBeforeStart': lambda item: item.reminder_minutes,
         'attendees': lambda item: attendees_json(item),
         'bodyPreview': lambda item: item.text[:255],
+        'isAllDay': lambda item: item.all_day,
+        'showAs': lambda item: show_as_map[item.show_as],
     })
 
     set_fields = {
@@ -832,7 +880,7 @@ class ContactResource(ItemResource):
         'emailAddresses': set_email_addresses,
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, contactid=None):
+    def on_get(self, req, resp, userid=None, folderid=None, contactid=None, method=None, value=None):
         server = _server(req)
         store = _store(server, userid)
 
@@ -846,6 +894,15 @@ class ContactResource(ItemResource):
         else:
             data = self.generator(req, folder.items, folder.count)
 
+        if method == 'photo':
+            photo = data.photo
+            if value == '$value':
+                resp.content_type = photo.mimetype
+                resp.data = photo.data
+            else:
+                self.respond(req, resp, photo, ProfilePhotoResource.fields)
+            return
+
         self.respond(req, resp, data)
 
     def on_delete(self, req, resp, userid=None, folderid=None, contactid=None):
@@ -854,6 +911,36 @@ class ContactResource(ItemResource):
         item = store.item(contactid)
 
         store.delete(item)
+
+class ProfilePhotoResource(Resource):
+    fields = {
+        '@odata.mediaContentType': lambda photo: photo.mimetype,
+
+    }
+
+    # TODO so empty..
+
+class NotificationThread(Thread):
+    def __init__(self, store, url):
+        Thread.__init__(self)
+
+        self.store = store
+        self.url = url
+
+    def run(self):
+        sink = self.store.advise()
+        for n in sink.notifications(time=1000000):
+            print('notify URL:', self.url)
+
+class SubscriptionResource(Resource):
+
+    def on_post(self, req, resp):
+        server = _server_notif(req)
+        store = _store(server, None)
+
+        fields = json.loads(req.stream.read().decode('utf-8'))
+
+        NotificationThread(store, fields['notificationUrl']).start()
 
 admin_server = kopano.Server(parse_args=False, store_cache=False)
 userid_sessiondata = {}
@@ -866,10 +953,12 @@ calendars = CalendarResource()
 events = EventResource()
 contactfolders = ContactFolderResource()
 contacts = ContactResource()
+subscriptions = SubscriptionResource()
 
 app = falcon.API()
 
 # users (method=mailFolders,contactFolders,calendar,calendars,messages,contacts,events,sendMail)
+app.add_route(PREFIX+'/subscriptions', subscriptions)
 app.add_route(PREFIX+'/me', users)
 app.add_route(PREFIX+'/me/{method}', users)
 app.add_route(PREFIX+'/users', users)
@@ -916,3 +1005,5 @@ for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
 
     # contacts
     app.add_route(user+'/contacts/{contactid}', contacts)
+    app.add_route(user+'/contacts/{contactid}/{method}', contacts)
+    app.add_route(user+'/contacts/{contactid}/{method}/{value}', contacts) # TODO

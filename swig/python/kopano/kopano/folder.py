@@ -18,7 +18,7 @@ from MAPI import (
     DEL_ASSOCIATED, DEL_FOLDERS, DEL_MESSAGES,
     BOOKMARK_BEGINNING, ROW_REMOVE, MESSAGE_MOVE, FOLDER_MOVE,
     FOLDER_GENERIC, MAPI_UNICODE, FL_SUBSTRING, FL_IGNORECASE,
-    SEARCH_RECURSIVE, SEARCH_REBUILD, PT_MV_BINARY, PT_BINARY
+    SEARCH_RECURSIVE, SEARCH_REBUILD, PT_MV_BINARY, PT_BINARY,
 )
 from MAPI.Tags import (
     PR_ENTRYID, IID_IMAPIFolder, SHOW_SOFT_DELETES, PR_SOURCE_KEY,
@@ -82,12 +82,17 @@ if sys.hexversion >= 0x03000000:
         from . import ics as _ics
     except ImportError:
         _ics = sys.modules[__package__+'.ics']
+    try:
+        from . import notification as _notification
+    except ImportError:
+        _notification = sys.modules[__package__+'.notification']
 else:
     import user as _user
     import store as _store
     import item as _item
     import utils as _utils
     import ics as _ics
+    import notification as _notification
 
 # TODO generalize, autogenerate basic item getters/setters?
 PROPMAP = {
@@ -857,6 +862,10 @@ class Folder(Properties):
     @property
     def last_modified(self):
         return self._get_fast(PR_LAST_MODIFICATION_TIME)
+
+    def notifications(self, time=24*3600):
+        for n in _notification._notifications(self.store, self.entryid, time):
+            yield n
 
     def __eq__(self, f): # XXX check same store?
         if isinstance(f, Folder):

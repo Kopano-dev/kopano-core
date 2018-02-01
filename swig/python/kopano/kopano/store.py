@@ -13,8 +13,6 @@ from MAPI import (
     MAPI_UNICODE, MAPI_MODIFY, KEEP_OPEN_READWRITE, PT_MV_BINARY,
     RELOP_EQ, TBL_BATCH, ECSTORE_TYPE_PUBLIC, FOLDER_SEARCH,
     MAPI_ASSOCIATED, MAPI_DEFERRED_ERRORS, ROW_REMOVE,
-    MAPINotifSink, fnevObjectModified, fnevObjectCreated,
-    fnevObjectMoved, fnevObjectDeleted
 )
 from MAPI.Defs import (
     bin2hex, HrGetOneProp, CHANGE_PROP_TYPE, PpropFindProp
@@ -60,7 +58,8 @@ from .permission import Permission
 from .freebusy import FreeBusy
 from .table import Table
 from .restriction import Restriction
-from .notification import Sink, Notification
+
+from . import notification as _notification
 
 from .compat import (
     encode as _encode, repr as _repr, bdec as _bdec, benc as _benc
@@ -730,20 +729,9 @@ class Store(Properties):
             return self.guid == s.guid
         return False
 
-    def advise(self):
-        flags = fnevObjectModified | fnevObjectCreated \
-            | fnevObjectMoved | fnevObjectDeleted
-
-        sink = MAPINotifSink()
-        try:
-            self.mapiobj.Advise(None, flags, sink)
-        except MAPIErrorNoSupport:
-            raise NotSupportedError(
-                "No support for advise, please you use"
-                "server(notifications=True)"
-            )
-
-        return Sink(self, sink)
+    def notifications(self, time=24*3600):
+        for n in _notification._notifications(self, None, time):
+            yield n
 
     def __ne__(self, s):
         return not self == s

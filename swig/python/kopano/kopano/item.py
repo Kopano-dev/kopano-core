@@ -60,7 +60,7 @@ from MAPI.Tags import (
     PR_ATTACHMENT_HIDDEN, PR_ATTACHMENT_LINKID, PR_ATTACH_FLAGS,
     PR_NORMALIZED_SUBJECT_W, PR_INTERNET_MESSAGE_ID_W, PR_CONVERSATION_ID,
     PR_READ_RECEIPT_REQUESTED, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED,
-    PR_REPLY_RECIPIENT_ENTRIES, PR_EC_BODY_FILTERED
+    PR_REPLY_RECIPIENT_ENTRIES, PR_EC_BODY_FILTERED, PR_SENSITIVITY,
 )
 
 from MAPI.Tags import IID_IAttachment, IID_IStream, IID_IMAPITable, IID_IMailUser, IID_IMessage
@@ -461,14 +461,27 @@ class Item(Properties, Contact, Appointment):
         """Urgency ('low', 'normal' or 'high')"""
         try:
             return {
-                0: 'low',
-                1: 'normal',
-                2: 'high'
+                0: u'low',
+                1: u'normal',
+                2: u'high'
             }[self[PR_IMPORTANCE]]
         except NotFoundError:
-            pass
+            return u'normal'
 
     # TODO urgency setter
+
+    @property
+    def sensitivity(self):
+        """Sensitivity ('normal', 'personal', 'private' or 'confidential')."""
+        try:
+            return {
+                0: u'normal',
+                1: u'personal',
+                2: u'private',
+                3: u'confidential',
+            }[self[PR_SENSITIVITY]]
+        except NotFoundError:
+            return u'normal'
 
     @property
     def private(self):

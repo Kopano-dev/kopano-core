@@ -18,11 +18,29 @@ from .errors import NotFoundError
 from .recurrence import Recurrence, Occurrence
 
 from .pidlid import (
-    PidLidReminderSet, PidLidReminderDelta,
+    PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
+    PidLidBusyStatus,
 )
 
 class Appointment(object):
     """Appointment mixin class"""
+
+    @property
+    def all_day(self):
+        return self.get(PidLidAppointmentSubType, False)
+
+    @property
+    def show_as(self):
+        try:
+            return {
+                0: u'free',
+                1: u'tentative',
+                2: u'busy',
+                3: u'out_of_office',
+                4: u'working_elsewhere'
+            }[self[PidLidBusyStatus]]
+        except NotFoundError:
+            return u'unknown'
 
     @property
     def start(self): # XXX optimize, guid
