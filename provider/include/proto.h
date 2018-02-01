@@ -598,7 +598,7 @@ struct user {
 	char		*lpszMailAddress;
 	char		*lpszFullName;
 	char		*lpszServername;
-	unsigned int 	ulIsNonActive; // unused
+	unsigned int 	ulIsNonActive; /* was used for 6.40 clients */
 	unsigned int 	ulIsAdmin;
 	unsigned int	ulIsABHidden;
 	unsigned int	ulCapacity;
