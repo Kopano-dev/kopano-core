@@ -1,5 +1,5 @@
 AC_PREREQ(2.60)
-AC_INIT([kopano], [8.4.5], [development@kopano.io])
+AC_INIT([kopano], [8.4.6], [development@kopano.io])
 PACKAGE_ABI=8.4
 AC_CONFIG_SRCDIR([provider/server/ECServer.cpp])
 AC_CONFIG_HEADERS([common/config.h])
