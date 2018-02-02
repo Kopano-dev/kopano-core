@@ -258,6 +258,12 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 		auto vmMessage = vmime::make_shared<vmime::message>();
 		vmMessage->parse(input);
 
+		if (m_dopt.header_strict_rfc) {
+			auto vmHeader = vmMessage->getHeader();
+			if (!vmHeader->hasField(vmime::fields::FROM) && !vmHeader->hasField(vmime::fields::DATE))
+				return MAPI_E_CALL_FAILED;
+		}
+
 		// save imap data first, seems vmMessage may be altered in the rest of the code.
 		if (m_dopt.add_imap_data)
 			createIMAPBody(input, vmMessage, lpMessage);
@@ -3788,6 +3794,7 @@ void imopt_default_delivery_options(delivery_options *dopt) {
 	dopt->ascii_upgrade = nullptr;
 	dopt->html_safety_filter = false;
 	dopt->indexed_headers = {"X-"}; // per default save all X- headers
+	dopt->header_strict_rfc = false;
 }
 
 /**

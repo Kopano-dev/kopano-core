@@ -43,6 +43,7 @@ struct delivery_options {
 	bool html_safety_filter;
 	std::map<std::string, std::string> cset_subst; /* custom substitutions for broken charsets */
 	std::vector<std::string> indexed_headers; /* the headers we want to index in the PS_INTERNET_HEADERS namespace */
+	bool header_strict_rfc;
 };
 
 struct sending_options {
