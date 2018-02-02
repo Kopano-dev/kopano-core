@@ -18,14 +18,17 @@ Enhancements:
 * dagent: a Python version of kopano-autorespond is available [KC-861]
 * kopano-spamd: new program [KC-666]
 * icalmapi: support URL, NICKNAME, PRODID in vcards
+* php: extend mapi_feature with ST_ONLY_WHEN_OOF [KC-970]
 Fixes:
 * gateway: generate envelope using inetmapi if not present yet [KC-607]
 * spooler: only evaluate rules that are explicitly enabled using
   PR_RULE_STATE [KC-963]
+* search: supply a HOME environment (tmpdir) when running
+  conversion tools [KC-331]
 Changes:
 * Support for Debian 7 ended [KC-736]
 * /etc/kopano is no longer prepopulated, create .cfg manually if you need to
-  override anything [KC-681]
+  override anything [KC-681, KC-978]
 * server: remove support for upgrading databases older than ZCP 7.2 [KC-839]
 * gateway: use threaded mode for reduced memory usage on many-user systems
   (new installs only) [KC-768]
