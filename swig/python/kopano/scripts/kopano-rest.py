@@ -987,58 +987,30 @@ photos = ProfilePhotoResource()
 
 app = falcon.API()
 
-# users (method=mailFolders,contactFolders,calendar,calendars,messages,contacts,events,sendMail)
-app.add_route(PREFIX+'/subscriptions', subscriptions)
-app.add_route(PREFIX+'/me', users)
-app.add_route(PREFIX+'/me/{method}', users)
-app.add_route(PREFIX+'/users', users)
-app.add_route(PREFIX+'/users/{userid}', users)
-app.add_route(PREFIX+'/users/{userid}/{method}', users)
+def route(app, path, resource, method=True):
+    app.add_route(path, resource)
+    if method: # TODO make optional in a better way?
+        app.add_route(path+'/{method}', resource)
 
-# TODO avoid duplication for {method}?
+route(app, PREFIX+'/users', users, method=False) # TODO method == ugly
+route(app, PREFIX+'/me', users)
+route(app, PREFIX+'/users/{userid}', users)
+route(app, PREFIX+'/subscriptions', subscriptions)
 
 for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
-    # mailFolders (method=childFolders,messages,copy,move)
-    app.add_route(user+'/mailFolders/{folderid}', folders)
-    app.add_route(user+'/mailFolders/{folderid}/{method}', folders)
-
-    # messages (method=copy,move,attachments)
-    app.add_route(user+'/messages/{messageid}', messages)
-    app.add_route(user+'/messages/{messageid}/{method}', messages)
-    app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}', messages)
-    app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/{method}', messages)
-
-    # calendars (method=calendarView,events)
-    app.add_route(user+'/calendar/{method}', calendars)
-    app.add_route(user+'/calendars/{folderid}', calendars)
-    app.add_route(user+'/calendars/{folderid}/{method}', calendars)
-
-    # events (method=attachments)
-    app.add_route(user+'/events/{eventid}', events)
-    app.add_route(user+'/events/{eventid}/{method}', events)
-    app.add_route(user+'/calendar/events/{eventid}', events)
-    app.add_route(user+'/calendar/events/{eventid}/{method}', events)
-    app.add_route(user+'/calendars/{folderid}/events/{eventid}', events)
-    app.add_route(user+'/calendars/{folderid}/events/{eventid}/{method}', events)
-
-    # attachments
-    app.add_route(user+'/messages/{messageid}/attachments/{attachmentid}', attachments)
-    app.add_route(user+'/messages/{messageid}/attachments/{attachmentid}/{method}', attachments)
-    app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments/{attachmentid}', attachments)
-    app.add_route(user+'/mailFolders/{folderid}/messages/{messageid}/attachments/{attachmentid}/{method}', attachments)
-    app.add_route(user+'/events/{eventid}/attachments/{attachmentid}', attachments)
-    app.add_route(user+'/events/{eventid}/attachments/{attachmentid}/{method}', attachments)
-
-    # contactFolders (method=contacts)
-    app.add_route(user+'/contactFolders/{folderid}', contactfolders)
-    app.add_route(user+'/contactFolders/{folderid}/{method}', contactfolders)
-
-    # contacts
-    app.add_route(user+'/contacts/{contactid}', contacts)
-    app.add_route(user+'/contactFolders/{folderid}/contacts/{contactid}', contacts)
-
-    # profile photos
-    app.add_route(user+'/contacts/{contactid}/photo', photos)
-    app.add_route(user+'/contacts/{contactid}/photo/{method}', photos)
-    app.add_route(user+'/contactFolders/{folderid}/contacts/{contactid}/photo', photos)
-    app.add_route(user+'/contactFolders/{folderid}/contacts/{contactid}/photo/{method}', photos)
+    route(app, user+'/mailFolders/{folderid}', folders)
+    route(app, user+'/messages/{messageid}', messages)
+    route(app, user+'/mailFolders/{folderid}/messages/{messageid}', messages)
+    route(app, user+'/calendar', calendars)
+    route(app, user+'/calendars/{folderid}', calendars)
+    route(app, user+'/events/{eventid}', events)
+    route(app, user+'/calendar/events/{eventid}', events)
+    route(app, user+'/calendars/{folderid}/events/{eventid}', events)
+    route(app, user+'/messages/{messageid}/attachments/{attachmentid}', attachments)
+    route(app, user+'/mailFolders/{folderid}/messages/{messageid}/attachments/{attachmentid}', attachments)
+    route(app, user+'/events/{eventid}/attachments/{attachmentid}', attachments)
+    route(app, user+'/contactFolders/{folderid}', contactfolders)
+    route(app, user+'/contacts/{contactid}', contacts)
+    route(app, user+'/contactFolders/{folderid}/contacts/{contactid}', contacts)
+    route(app, user+'/contacts/{contactid}/photo', photos)
+    route(app, user+'/contactFolders/{folderid}/contacts/{contactid}/photo', photos)
