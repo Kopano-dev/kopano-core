@@ -66,232 +66,178 @@ Include and process
 Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF THE SERVER SETTINGS PARAMETERS"
-.TP
-\fBserver_listen\fP
+.SS server_listen
+.PP
 A space-separated list of address:port specifiers for where the server should
 listen for unencrypted connections. IPv6 addresses need to be enclosed in
 brackets (as in \fB[2a01:db1::]:236\fP), and the asterisk is the multi-protocol
 address wildcard.
-.TP
-\fBserver_bind\fR
+.SS server_bind
+.PP
 This historic directive specifies a single IPv4/IPv6 address to bind to. Its
 use is discouraged in favor of \fBserver_listen\fP and \fBserver_listen_tls\fP.
-.TP
-\fBserver_tcp_enabled\fP, \fBserver_tcp_port\fP
+.SS server_tcp_enabled, server_tcp_port
 These historic directive specify the single port to bind to for unencrypted
 connections. Their use is discouraged in favor of \fBserver_listen\fP. The
 address is mandated by \fBserver_bind\fP.
+.SS server_pipe_enabled
 .PP
-\fBserver_pipe_enabled\fR
-.RS 4
 Enable Unix pipe connections. Should not be disabled.
-.sp
+.PP
 Default:
 \fIyes\fR
-.RE
+.SS server_recv_timeout
 .PP
-\fBserver_recv_timeout\fR
-.RS 4
 TCP and SSL receive timeout in seconds. This is the time that a TCP connection may be idle (between requests) before the TCP connection is closed from the server. Settings this high makes it less necessary for clients to re\-connect, but increases the total number of concurrent open sockets in the server. You normally needn\*(Aqt change the default value.
-.sp
+.PP
 Default:
 \fI5\fR
-.RE
+.SP server_read_timeout
 .PP
-\fBserver_read_timeout\fR
-.RS 4
 TCP and SSL read timeout in seconds. The read timeout is the amount of time that the server will wait to read more data from a socket, after processing of the request has started. This needn\*(Aqt be changed in most cases.
-.sp
+.PP
 Default:
 \fI60\fR
-.RE
+.SS server_send_timeout
 .PP
-\fBserver_send_timeout\fR
-.RS 4
 TCP and SSL send timeout in seconds. The send timeout is the amount of time that the server will wait to write data to a socket, analogous to server_read_timeout.
-.sp
+.PP
 Default:
 \fI60\fR
-.RE
+.SS server_pipe_name
 .PP
-\fBserver_pipe_name\fR
-.RS 4
 Unix socket to listen on.
-.sp
+.PP
 Default:
 \fI/var/run/kopano/server.sock\fR
-.RE
+.SS server_pipe_priority
 .PP
-\fBserver_pipe_priority\fR
-.RS 4
 Priority unix socket to listen on. This socket should only be used by prioritized services such as kopano\-stats.
-.sp
+.PP
 Default:
 \fI/var/run/kopano/prio.sock\fR
-.RE
+.SS server_name
 .PP
-\fBserver_name\fR
-.RS 4
 Unique name for identifying the server in a multi\-server environment.
-.sp
+.PP
 Default:
 \fIKopano\fR
-.RE
+.SS server_hostname
 .PP
-\fBserver_hostname\fR
-.RS 4
 DNS name of the server. This is used for the Kerberos single sign\-on environment. If empty (default), the FQDN or hostname will be used.
-.sp
-Default:
-.RE
 .PP
-\fBdatabase_engine\fR
-.RS 4
+Default:
+.SS database_engine
+.PP
 The database engine to use. Values can be:
-.PP
-\fImysql\fR
-.RS 4
+.TP
+\fBmysql\fP
 Use MySQL.
-.RE
-.sp
+.PP
 Default:
 \fImysql\fR
-.RE
+.SS allow_local_users
 .PP
-\fBallow_local_users\fR
-.RS 4
 Named Unix users which connect through the unix socket (server_pipe_name) which are added here, those users will become the internal SYSTEM user in Kopano, and have administrative rights. Normally, this is only \*(Aqroot\*(Aq, so the unix root user can use the kopano\-admin tool. You can add a generic user to be used by the kopano\-dagent here. This user is most likely called \*(Aqvmail\*(Aq. Note that the field is SPACE separated.
-.sp
+.PP
 Default:
 \fIroot\fR
-.RE
+.SS system_email_address
 .PP
-\fBsystem_email_address\fR
-.RS 4
 This is the e\-mail address of the SYSTEM user. When people receive mail from the quota monitor, or receive fallback deliveries from the kopano\-dagent, the From email address is this field. You might want to change this field so people can reply to this address.
-.sp
+.PP
 Default:
 \fIpostmaster@localhost\fR
-.RE
+.SS run_as_user
 .PP
-\fBrun_as_user\fR
-.RS 4
 After correctly starting, the server process will become this user, dropping root privileges. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation. This can also be achieved by setting the correct group and permissions.
-.sp
+.PP
 Default value is empty, not changing the user after starting.
-.RE
+.SS run_as_group
 .PP
-\fBrun_as_group\fR
-.RS 4
 After correctly starting, the server process will become this group, dropping root privileges.
-.sp
-Default value is empty, not changing the group after starting.
-.RE
 .PP
-\fBpid_file\fR
-.RS 4
+Default value is empty, not changing the group after starting.
+.SS pid_file
+.PP
 Write the process ID number to this file. This is used by the init.d script to correctly stop/restart the service.
-.sp
+.PP
 Default:
 \fI/var/run/kopano/server.pid\fR
-.RE
+.SS running_path
 .PP
-\fBrunning_path\fR
-.RS 4
 Change directory to this path when running in daemonize mode. When using the \-F switch to run in the foreground the directory will not be changed.
-.sp
+.PP
 Default:
 \fI/\fR
-.RE
+.SS coredump_enabled
 .PP
-\fBcoredump_enabled\fR
-.RS 4
 When a crash occurs or an assertion fails, a coredump file can be generated.
 This file should be sent along with the crash report. It is turned on by
 default in Kopano, but your system may have it disabled. For details, see the
 \fBkopano\-coredump\fP(5) manpage.
-.RE
+.SS session_timeout
 .PP
-\fBsession_timeout\fR
-.RS 4
 The session timeout specifies how many seconds must elapse without any activity from a client before the server counts the session as dead. The client sends keepalive requests every 60 seconds, so the session timeout can never be below 60. In fact, if you specify a timeout below 300, 300 will be taken as the session timeout instead. This makes sure you can never timeout your session while the Kopano client is running.
-.sp
+.PP
 Setting the session timeout low will keep the session count and therefore the memory usage on the server low, but may also timeout sessions of client that have lost network connectivity temporarily. For example, some clients with powersaving modes will disable the ethernet card during the screensaver. When this happens, you must set the session_timeout to a value that is higher than the time that it takes for the network connection to come back. This could be anything ranging up to several hours.
-.sp
+.PP
 Default:
 \fI300\fR
-.RE
+.SS session_ip_check
 .PP
-\fBsession_ip_check\fR
-.RS 4
 Normally, a session is linked to an IP\-address, so this check is enabled. You may want to disable this check when you have laptop\*(Aqs which can get multiple ip\-adresses through wired and wireless networks. It is highly recommended to leave this check enabled, since the session id can be used by other machines, and thus introduces a large security risc. The session id is 64 bits.
-.sp
+.PP
 Default:
 \fIyes\fR
-.RE
+.SS hide_everyone
 .PP
-\fBhide_everyone\fR
-.RS 4
 If this option is set to \*(Aqyes\*(Aq, the internal group Everyone (which always contains all users) will be hidden from the Global Addressbook. Thus, users will not be able to send e\-mail to this group anymore, and also will not be able to set access rights on folders for this group. Administrators will still be able to see and use the group.
-.sp
+.PP
 Default:
 \fIno\fR
-.RE
+.SS hide_system
 .PP
-\fBhide_system\fR
-.RS 4
 If this option is set to \*(Aqyes\*(Aq, the internal user SYSTEM will be hidden from the Global Addressbook. Thus, users will not be able to send e\-mail to this user anymore. Administrators will still be able to see and use the user.
-.sp
+.PP
 Default:
 \fIyes\fR
-.RE
+.SS allocator_library
 .PP
-\fBallocator_library\fR
-.RS 4
 This setting allows one to preload a special library (such as an allocator). On startup, the server will set the LD_PRELOAD environment variable for itself and then re\-execute itself to get it loaded with high priority. If this option is empty, the default system allocator (from libc) will be used instead, which is probably a better choice when debugging with gdb, valgrind or ASAN/UBSAN. The environment variable KC_ALLOCATOR_DONE may also be set to a non\-empty value to disable re\-exec.
-.sp
+.PP
 Default:
 \fIlibtcmalloc_minimal.so.4\fR
-.RE
 .SH "EXPLANATION OF THE LOGGING SETTINGS PARAMETERS"
+.SS log_method
 .PP
-\fBlog_method\fR
-.RS 4
 The method which should be used for logging. Valid values are:
-.PP
-\fIsyslog\fR
-.RS 4
+.TP
+\fBsyslog\fP
 Use the Linux system log. All messages will be written to the mail facility. See also
 \fBsyslog.conf\fR(5).
-.RE
-.PP
+.TP
 \fIfile\fR
-.RS 4
 Log to a file. The filename will be specified in
 \fBlog_file\fR.
-.RE
-.sp
+.PP
 Default:
 \fIfile\fR
-.RE
+.SS log_file
 .PP
-\fBlog_file\fR
-.RS 4
 When logging to a file, specify the filename in this parameter. Use
 \fI\-\fR
 (minus sign) for stderr output.
-.sp
+.PP
 Default:
 \fI/var/log/kopano/server.log\fR
-.RE
+.SS log_level
 .PP
-\fBlog_level\fR
-.RS 4
 The level of output for logging in the range from 0 to 5. 0 means no logging, 5 means full logging.
-.sp
+.PP
 Default:
 \fI2\fR
-.sp
+.PP
 Extended logging per component is available for development and can be combined to log multiple components at the same time.
 .TS
 allbox;
@@ -304,239 +250,192 @@ USERCACHE	0x00080000
 SOAP	0x00100000
 ICS	0x00200000
 .TE
-.RE
+.SS log_timestamp
 .PP
-\fBlog_timestamp\fR
-.RS 4
 Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode.
-.sp
+.PP
 Default:
 \fI1\fR
-.RE
+.SS log_buffer_size
 .PP
-\fBlog_buffer_size\fR
-.RS 4
 Buffer logging in what sized blocks. The special value 0 selects line buffering.
-.sp
+.PP
 Default:
 \fI0\fR
-.RE
 .SH "EXPLANATION OF THE SECURITY LOGGING SETTINGS PARAMETERS"
+.SS audit_log_enabled
 .PP
-\fBaudit_log_enabled\fR
-.RS 4
 Whether the security logging feature should be enabled.
-.sp
+.PP
 Default:
 \fIno\fR
-.RE
+.SS audit_log_method
 .PP
-\fBaudit_log_method\fR
-.RS 4
 The method which should be used for logging. Valid values are:
-.PP
+.TP
 \fIsyslog\fR
-.RS 4
 Use the Linux system log. All messages will be written to the authpriv facility. See also
 \fBsyslog.conf\fR(5).
-.RE
-.PP
+.TP
 \fIfile\fR
-.RS 4
 Log to a file. The filename will be specified in
 \fBlog_file\fR.
-.RE
-.sp
+.PP
 Default:
 \fIsyslog\fR
-.RE
+.SS audit_log_file
 .PP
-\fBaudit_log_file\fR
-.RS 4
 When logging to a file, specify the filename in this parameter. Use
 \fI\-\fR
 (minus sign) for stderr output.
-.sp
+.PP
 Default:
 \fI\-\fR
-.RE
+.SS audit_log_level
 .PP
-\fBaudit_log_level\fR
-.RS 4
 The level of output for logging in the range from 0 to 1. 0 means no logging, 1 means full logging.
-.sp
+.PP
 Default:
 \fI1\fR
-.RE
+.SS audit_log_timestamp
 .PP
-\fBaudit_log_timestamp\fR
-.RS 4
 Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode.
-.sp
+.PP
 Default:
 \fI1\fR
-.RE
 .SH "EXPLANATION OF THE MYSQL SETTINGS PARAMETERS"
+.SS mysql_host
 .PP
-\fBmysql_host\fR
-.RS 4
 The hostname of the MySQL server to use.
-.sp
+.PP
 Default:
 \fIlocalhost\fR
-.RE
+.SS mysql_port
 .PP
-\fBmysql_port\fR
-.RS 4
 The port of the MySQL server to use.
-.sp
+.PP
 Default:
 \fI3306\fR
-.RE
+.SS mysql_user
 .PP
-\fBmysql_user\fR
-.RS 4
 The user under which we connect with MySQL.
-.sp
+.PP
 Default:
 \fIroot\fR
-.RE
+.SS mysql_password
 .PP
-\fBmysql_password\fR
-.RS 4
 The password to use for MySQL. Leave empty for no password.
-.sp
-Default:
-.RE
 .PP
-\fBmysql_socket\fR
-.RS 4
+Default:
+.SS mysql_socket
+.PP
 The socket of the MySQL server to use. This option can be used to override the default mysql socket. To use the socket, the mysql_host value must be empty or \*(Aqlocalhost\*(Aq
-.sp
-Default:
-.RE
 .PP
-\fBmysql_database\fR
-.RS 4
+Default:
+.SS mysql_database
+.PP
 The MySQL database to connect to.
-.sp
+.PP
 Default:
 \fIkopano\fR
-.RE
+.SS mysql_engine
 .PP
-\fBmysql_engine\fP
-.RS 4
 The MySQL engine to use. By default, this is InnoDB, which is the only
 officially supported database engine. Because Kopano Groupware Core relies on
 transactions, it is not advised to use a non-transactional engine such as
 MyISAM, Aria, etc.
-.sp
-Default: \fIInnoDB\fP
-.RE
 .PP
-\fBmysql_group_concat_max_len\fR
-.RS 4
+Default: \fIInnoDB\fP
+.SS mysql_group_concat_max_len
+.PP
 The group_concat_max_len used to set for MySQL. If you have large distribution lists (more than 150 members), it is useful to set this value higher. On the other hand, some MySQL versions are known to break with a value higher than 21844.
-.sp
+.PP
 Default:
 \fI21844\fR
-.RE
+.SS attachment_storage
 .PP
-\fBattachment_storage\fR
-.RS 4
 The location where attachments are stored. This can be in the MySQL database, or as separate files. The drawback of \*(Aqdatabase\*(Aq is that the large data of attachment will push useful data from the MySQL cache. The drawback of separate files is that a mysqldump is not enough for a full disaster recovery.
-.sp
+.PP
 Default:
 \fIfiles\fR
-.RE
+.SS attachment_path
 .PP
-\fBattachment_path\fR
-.RS 4
 When the attachment_storage option is \*(Aqfiles\*(Aq, this option sets the location of the attachments on disk. Note that the server runs as the \*(Aqrun_as_user\*(Aq user and \*(Aqrun_as_group\*(Aq group, which will require write access to this directory.
-.sp
+.PP
 Default:
 \fI/var/lib/kopano/attachments\fR
-.RE
+.SS attachment_compression
 .PP
-\fBattachment_compression\fR
-.RS 4
 When the attachment_storage option is \*(Aqfiles\*(Aq, this option controls the compression level for the attachments. Higher compression levels will compress data better, but at the cost of CPU usage. Lower compression levels will require less CPU but will compress data less. Setting the compression level to 0 will effectively disable compression completely.
-.sp
+.PP
 Changing the compression level, or switching it on or off, will not affect any existing attachments, and will remain accessible as normal.
-.sp
+.PP
 Set to
 \fI0\fR
 to disable compression completely. The maximum compression level is
 \fI9\fR
-.sp
+.PP
 Default:
 \fI6\fR
-.RE
 .SH "EXPLANATION OF THE SSL SETTINGS PARAMETERS"
-.TP
-\fBserver_listen_tls\fP
+.SS server_listen_tls
+.PP
 A space-separated list of address:port specifiers for where the server should
 listen for TLS connections, similar to the \fBserver_listen\fP directive. The
 default value is empty, which means no ports will be listened on for TLS. When
 this option is used, you must set the SSL key options correctly, otherwise the
 server not start.
-.TP
-\fBserver_ssl_enabled\fP, \fBserver_ssl_port\fP
+.SS server_ssl_enabled, server_ssl_port
 These historic directive specify the single port to bind to for SSL
 connections. Their use is discouraged in favor of \fBserver_listen_tls\fP. The
 address is mandated by \fBserver_bind\fP.
+.SS server_ssl_key_file
 .PP
-\fBserver_ssl_key_file\fR
-.RS 4
 The file containing the private key and certificate. Please read the SSL section in the
 \fBkopano-server\fR(8)
 manual on how to create this file.
-.sp
+.PP
 Default:
 \fI/etc/kopano/ssl/server.pem\fR
-.RE
+.SS server_ssl_key_pass
 .PP
-\fBserver_ssl_key_pass\fR
-.RS 4
 Enter your password here when your key file contains a password to be readable.
-.sp
-No default set.
-.RE
 .PP
-\fBserver_ssl_ca_file\fR
-.RS 4
+No default set.
+.SS server_ssl_ca_file
+.PP
 The CA file which was used to sign client SSL certificates. This CA will be trusted. This value must be set for clients to login with an SSL Key. Their public key must be present in the sslkeys_path directory.
-.sp
-No default set.
-.RE
 .PP
-\fBserver_ssl_ca_path\fR
-.RS 4
+No default set.
+.SS server_ssl_ca_path
+.PP
 When you have multiple CA\*(Aqs to trust, you may use this option. Set this to a directory which contains all your trusted CA certificates. The name of the certificate needs to be the hash of the certificate. You can get the hash value of the certificate with the following command:
-.sp
-\fB openssl x509 \-hash \-noout \-in cacert.pem \fR
-.sp
-Create a symbolic link to the certificate with the hashname like this:
-.sp
-\fB ln \-s cacert.pem `openssl x509 \-hash \-noout \-in cacert.pem`.0 \fR
-.sp
-If you have several certificates which result in the same hash, use .1, .2, etc. in the end of the filename.
-.sp
-No default set.
+.RS 4
+.nf
+\fBopenssl x509 \-hash \-noout \-in cacert.pem \fR
+.fi
 .RE
 .PP
-\fBsslkeys_path\fR
+Create a symbolic link to the certificate with the hashname like this:
 .RS 4
+.nf
+\fBln \-s cacert.pem `openssl x509 \-hash \-noout \-in cacert.pem`.0 \fR
+.fi
+.RE
+.PP
+If you have several certificates which result in the same hash, use .1, .2, etc. in the end of the filename.
+.PP
+No default set.
+.SS sslkeys_path
+.PP
 The path which contains public keys of clients which can login over SSL using their key. Please read the SSL section in the
 \fBkopano-server\fR(8)
 manual on how to create these files.
-.sp
+.PP
 Default:
 \fI/etc/kopano/sslkeys\fR
-.RE
+.SS server_ssl_protocols
 .PP
-\fBserver_ssl_protocols\fR
-.RS 4
 Disabled or enabled protocol names. Supported protocol names are
 \fISSLv3\fR
 and
@@ -547,321 +446,246 @@ and
 \fBserver_ssl_protocols\fR
 to
 \fI!SSLv3 !TLSv1\fR.
-.sp
-Default: SSLv2 being disabled
-.RE
 .PP
-\fBserver_ssl_ciphers\fR
-.RS 4
+Default: SSLv2 being disabled
+.SS server_ssl_ciphers
+.PP
 SSL ciphers to use, set to
 \fIALL\fR
 for backward compatibility.
-.sp
+.PP
 Default:
 \fIALL:!LOW:!SSLv2:!EXP:!aNULL\fR
-.RE
+.SS server_ssl_prefer_server_ciphers
 .PP
-\fBserver_ssl_prefer_server_ciphers\fR
-.RS 4
 Prefer the server\*(Aqs order of SSL ciphers over client\*(Aqs.
-.sp
+.PP
 Default:
 \fIno\fR
-.RE
 .SH "EXPLANATION OF THE THREADING PARAMETERS"
+.SS threads
 .PP
-\fBthreads\fR
-.RS 4
 Number of server threads.
-.sp
+.PP
 Default:
 \fI8\fR
-.RE
+.SS watchdog_frequency
 .PP
-\fBwatchdog_frequency\fR
-.RS 4
 Watchdog frequency. The number of watchdog checks per second.
-.sp
+.PP
 Default:
 \fI1\fR
-.RE
+.SS watchdog_max_age
 .PP
-\fBwatchdog_max_age\fR
-.RS 4
 Watchdog max age. The maximum age in ms of a task before a new thread is started.
-.sp
+.PP
 Default:
 \fI500\fR
-.RE
+.SS server_recv_timeout
 .PP
-\fBserver_recv_timeout\fR
-.RS 4
 SOAP recv timeout value.
-.sp
+.PP
 Default:
 \fI5\fR
-.RE
+.SS server_send_timeout
 .PP
-\fBserver_send_timeout\fR
-.RS 4
 SOAP send timeout value.
-.sp
+.PP
 Default:
 \fI60\fR
-.RE
 .SH "EXPLANATION OF THE OTHER SETTINGS PARAMETERS"
+.SS softdelete_lifetime
 .PP
-\fBsoftdelete_lifetime\fR
-.RS 4
 Softdelete clean cycle, in days. 0 means never. Items older than this setting will be removed from the database.
-.sp
+.PP
 Default:
 \fI0\fR
-.RE
+.SS sync_lifetime
 .PP
-\fBsync_lifetime\fR
-.RS 4
 Synchronization clean cycle, in days. 0 means never. Synchronizations older than this setting will be removed from the database.
-.sp
+.PP
 Default:
 \fI90\fR
-.RE
+.SS enable_sso
 .PP
-\fBenable_sso\fR
-.RS 4
 When you configured your system for single sign\-on, you can enable this by setting the value to
 \fIyes\fR. The server can autodetect between NTLM and Kerberos. For NTLM authentication you will need the ntlm_auth program from Samba. Please see the server installation manual on howto enable your system for single sign\-on.
-.sp
+.PP
 Default:
 \fIno\fR
-.RE
+.SS enable_gab
 .PP
-\fBenable_gab\fR
-.RS 4
 Enables viewing of the Global Address Book (GAB) by users. Disabling the GAB will show an empty list in the GAB, which may be required for some installations. Resolving addresses is not affected by this option.
-.sp
+.PP
 Users with administrator rights are also not affected by this option and always have access to the GAB.
-.sp
+.PP
 Default:
 \fIyes\fR
-.RE
+.SS auth_method
 .PP
-\fBauth_method\fR
-.RS 4
 Authentication is normally done in the user plugin. In case your plugin cannot provide the authentication, you may set this to pam, and set the pam_service to authenticate through pam. Another choice is kerberos. The user password will be verified using the kerberos service. Note that is not a single\-signon method, since the server requires the user password.
-.sp
+.PP
 Default:
 \fIplugin\fR
-.RE
+.SS restrict_admin_permissions
 .PP
-\fBrestrict_admin_permissions\fR
-.RS 4
 Normally, admin users are granted all permissions on all stores in the server, or for stores in the tenant\*(Aqs company (in multi\-tenant mode). Enabling this option restricts permissions to folder operations: Folder viewing, folder creation and importantly, folder permissions. This means that an administrator can grant himself full permissions on a folder. However, in combination with auditing, it provides an extra level of security protection against unwanted access.
-.sp
+.PP
 Note that some applications may require full access to all stores, which would be restricted by this option. Also, this option cannot be reset by sending a HUP signal, so a full server restart is required to change the setting.
-.sp
+.PP
 Default:
 \fIno\fR
-.RE
+.SS embedded_attachment_limit
 .PP
-\fBembedded_attachment_limit\fR
-.RS 4
 Defines the number of attachment\-in\-attachment\-in\-attachment levels allowed when saving and replicating a MAPI object. This limit can be made higher if needed, but will also require you to increase the stack_size in mysql to allow for correct exporting for replication.
-.sp
+.PP
 Default:
 \fIno\fR
-.RE
+.SS pam_service
 .PP
-\fBpam_service\fR
-.RS 4
 This is the pam service name. Pam services can be found in /etc/pam.d/.
-.sp
+.PP
 Default:
 \fIpasswd\fR
-.RE
+.SS max_deferred_records
 .PP
-\fBmax_deferred_records\fR
-.RS 4
 The server has a list of deferred writes to the tproperties table, to improve overall I/O performance. The number of deferred writes is kept below this value; setting it high will allow writes to be more efficient by grouping more writes together, but may slow down reading, and setting it low will force writes to complete directly, but speed up reading of tables.
-.sp
+.PP
 Default:
 \fI0 (off)\fR
-.RE
+.SS max_deferred_records_folder
 .PP
-\fBmax_deferred_records_folder\fR
-.RS 4
 Same as the max_deferred_records variable, but per folder instead of total.
-.sp
+.PP
 Default:
 \fI20\fR
-.RE
+.SS disabled_features
 .PP
-\fBdisabled_features\fR
-.RS 4
 In this list you can disable certain features for users. Normally all features are enabled for all users, making it possible through the user plugin to disable specific features for specific users. To set the default of a feature to disabled, add it here to the list, making it possible through the user plugin to enable a specific user for specific users.
-.sp
+.PP
 This list is space separated, and currently may contain the following features: imap, pop3.
-.sp
+.PP
 Default:
 \fIimap pop3\fR
-.RE
 .SH "EXPLANATION OF THE CACHE SETTINGS PARAMETERS"
+.SS cache_cell_size
 .PP
-\fBcache_cell_size\fR
-.RS 4
 Size in bytes of the cell cache. This is the main cache used in Kopano. It caches all data that comes into view in tables (ie the view of your inbox, or any other folder). In an ideal situation, all cells would be cached, so that the database does not need to be queried for data when browsing through folders, but this would require around 1.5K per message item (e\-mail, appointment task, etc) in the entire server. If you can afford it, set this value as high as possible, up to 50% of your total RAM capacity. Make sure this doesn\*(Aqt lead to swapping though. This value may contain a k, m or g multiplier.
-.sp
+.PP
 Default:
 \fI256M\fR
-.RE
+.SS cache_object_size
 .PP
-\fBcache_object_size\fR
-.RS 4
 This caches objects and their respective hierarchy of folders. You can calculate the size with a simple equation:
-.sp
+.PP
 concurrent users * max items in a folder * 24
-.sp
+.PP
 This value may contain a k, m or g multiplier.
-.sp
+.PP
 Default:
 \fI5M\fR
-.RE
+.SS cache_indexedobject_size
 .PP
-\fBcache_indexedobject_size\fR
-.RS 4
 This cache contains unique IDs of objects. This cache is used twice, also by the index2 cache, which is the inverse of the index1 cache. This value may contain a k, m or g multiplier.
-.sp
+.PP
 Default:
 \fI16M\fR
-.RE
+.SS cache_quota_size
 .PP
-\fBcache_quota_size\fR
-.RS 4
 This cache contains quota values of users. This value may contain a k, m or g multiplier.
-.sp
+.PP
 Default:
 \fI1M\fR
-.RE
+.SS cache_quota_lifetime
 .PP
-\fBcache_quota_lifetime\fR
-.RS 4
 This sets the lifetime for quota details inside the cache. If quota details weren\*(Aqt queried during this period it is removed from the cache making room for more often requested quota details. Set to 0 to never expire, or \-1 to disable this cache.
-.sp
+.PP
 Default:
 \fI1\fR
 (1 minute)
-.RE
+.SS cache_acl_size
 .PP
-\fBcache_acl_size\fR
-.RS 4
 This cache contains Access Control List values. Folders who are opened in other stores than your own are listed in the ACL table, and will be cached. This value may contain a k, m or g multiplier.
-.sp
+.PP
 Default:
 \fI1M\fR
-.RE
+.SS cache_store_size
 .PP
-\fBcache_store_size\fR
-.RS 4
 This cache contains store id values. This value may contain a k, m or g multiplier.
-.sp
+.PP
 Default:
 \fI1M\fR
-.RE
+.SS cache_user_size
 .PP
-\fBcache_user_size\fR
-.RS 4
 This cache contains user id values. This cache is used twice, also by the externid cache, which is the inverse of this cache. This value may contain a k, m or g multiplier.
-.sp
+.PP
 Default:
 \fI1M\fR
-.RE
+.SS cache_userdetails_size
 .PP
-\fBcache_userdetails_size\fR
-.RS 4
 This cache contains the details of users. This value may contain a k, m or g multiplier.
-.sp
+.PP
 Default:
 \fI3M\fR
-.RE
+.SS cache_userdetails_lifetime
 .PP
-\fBcache_userdetails_lifetime\fR
-.RS 4
 This sets the lifetime for user details inside the cache. If user details weren\*(Aqt queried during this period it is removed from the cache making room for more often requested user details. Set to 0 to never expire, or \-1 to disable this cache.
-.sp
+.PP
 Default:
 \fI0\fR
 (never expire)
-.RE
+.SS cache_server_size
 .PP
-\fBcache_server_size\fR
-.RS 4
 This cache contains server locations. This cache is only used in multiserver mode. This value may contain a k, m or g multiplier.
-.sp
+.PP
 Default:
 \fI1M\fR
-.RE
+.SS cache_server_lifetime
 .PP
-\fBcache_server_lifetime\fR
-.RS 4
 This sets the lifetime for server location details inside the cache. If server details weren\*(Aqt queried during this period it is removed from the cache making room for more often requested server details. Set to 0 to never expire, or \-1 to disable this cache.
-.sp
+.PP
 Default:
 \fI30\fR
 (30 minutes)
-.RE
 .SH "EXPLANATION OF THE QUOTA SETTINGS PARAMETERS"
+.SS quota_warn
 .PP
-\fBquota_warn\fR
-.RS 4
 Size in Mb of de default quota warning level. Use 0 to disable this quota level.
-.sp
+.PP
 Default:
 \fI0\fR
-.RE
+.SS quota_soft
 .PP
-\fBquota_soft\fR
-.RS 4
 Size in Mb of de default quota soft level. Use 0 to disable this quota level.
-.sp
+.PP
 Default:
 \fI0\fR
-.RE
+.SS quota_hard
 .PP
-\fBquota_hard\fR
-.RS 4
 Size in Mb of de default quota hard level. Use 0 to disable this quota level.
-.sp
+.PP
 Default:
 \fI0\fR
-.RE
+.SS companyquota_warn
 .PP
-\fBcompanyquota_warn\fR
-.RS 4
 Size in Mb of de default quota warning level for multitenant public stores. Use 0 to disable this quota level.
-.sp
+.PP
 Default:
 \fI0\fR
-.RE
 .SH "EXPLANATION OF THE USER PLUGIN SETTINGS PARAMETERS"
+.SS user_plugin
 .PP
-\fBuser_plugin\fR
-.RS 4
 The source of the user base. Possible values are:
-.PP
+.TP
 \fIdb\fR
-.RS 4
 Retrieve the users from the Kopano database. Use the kopano\-admin tool to create users and groups. There are no additional settings for this plugin.
-.RE
-.PP
+.TP
 \fIldap\fR
-.RS 4
 Retrieve the users and groups information from an LDAP server. All additional LDAP settings are set in a separate config file, which will be defined by the
 \fBuser_plugin_config\fR. See also
 \fBkopano-ldap.cfg\fR(5).
-.RE
-.PP
+.TP
 \fIunix\fR
-.RS 4
 Retrieve the users and groups information from the Linux password files. User information will be read the /etc/passwd file. Passwords will be checked against /etc/shadow. Group information will read from /etc/group. Use the
 \fBkopano-admin\fR(8)
 tool to set Kopano specific attributes on a user.
@@ -870,317 +694,241 @@ All additional Unix settings are set in a separate config file, which will be de
 \fBuser_plugin_config\fR. See also
 \fBkopano-unix.cfg\fR(5)
 .
-.RE
-.sp
+.PP
 Default:
 \fIdb\fR
-.RE
+.SS createuser_script, deleteuser_script, creategroup_script, deletegroup_script, createcompany_script, deletecompany_script
 .PP
-\fBcreateuser_script\fR, \fBdeleteuser_script\fR, \fBcreategroup_script\fR, \fBdeletegroup_script\fR, \fBcreatecompany_script\fR, \fBdeletecompany_script\fR
-.RS 4
 These scripts are called by the server when the external user source, like LDAP, is different from the users, groups and companies which are known to Kopano. The script uses a environment variable to see which user, group or tenant is affected. The following parameter is used for the script:
+.SS createuser_script
 .PP
-\fBcreateuser_script\fR
-.RS 4
 \fIKOPANO_USER\fR
 contains the new username. The script should at least call
 \fBkopano\-admin\fR
 \fI\-\-create\-store\fR
 \fI"${KOPANO_USER}"\fR
 to correctly create the store for the new user.
-.sp
+.PP
 Default:
 \fI/etc/kopano/userscripts/createuser\fR
-.RE
+.SS deleteuser_script
 .PP
-\fBdeleteuser_script\fR
-.RS 4
 \fIKOPANO_STOREID\fR
 contains the old id of the store of the removed user.
-.sp
+.PP
 Default:
 \fI/etc/kopano/userscripts/deleteuser\fR
-.RE
+.SS creategroup_script
 .PP
-\fBcreategroup_script\fR
-.RS 4
 \fIKOPANO_GROUP\fR
 contains the new groupname. No action is currently needed by the script.
-.sp
+.PP
 Default:
 \fI/etc/kopano/userscripts/creategroup\fR
-.RE
+.SS deletegroup_script
 .PP
-\fBdeletegroup_script\fR
-.RS 4
 \fIKOPANO_GROUPID\fR
 contains the old id of the group. No action is currently needed by the script.
-.sp
+.PP
 Default:
 \fI/etc/kopano/userscripts/deletegroup\fR
-.RE
+.SS createcompany_script
 .PP
-\fBcreatecompany_script\fR
-.RS 4
 \fIKOPANO_COMPANY\fR
 contains the new companyname. No action is currently needed by the script.
-.sp
+.PP
 Default:
 \fI/etc/kopano/userscripts/createcompany\fR
-.RE
+.SS deletecompany_script
 .PP
-\fBdeletecompany_script\fR
-.RS 4
 \fIKOPANO_COMPANYID\fR
 contains the old id of the company. No action is currently needed by the script.
-.sp
+.PP
 Default:
 \fI/etc/kopano/userscripts/deletecompany\fR
-.RE
-.RE
+.SS user_safe_mode
 .PP
-\fBuser_safe_mode\fR
-.RS 4
 If enabled, the storage server will only log when create, delete and move actions are done on an user object. This might be useful when you are testing changes to your plugin configuration.
-.sp
+.PP
 Default:
 \fIno\fR
-.RE
 .SH "EXPLANATION OF S3 PARAMETERS"
+.SS attachment_s3_hostname
 .PP
-\fBattachment_s3_hostname\fR
-.RS 4
 The hostname of the entry point to the S3 cloud where the bucket is located.
-.sp
+.PP
 If you are using minio or another S3 compatible implementation that is using another port, you can specify the port with hostname:port.
-.RE
+.SS attachment_s3_region
 .PP
-\fBattachment_s3_region\fR
-.RS 4
 The region where the bucket is located
-.RE
+.SS attachment_s3_protocol
 .PP
-\fBattachment_s3_protocol\fR
-.RS 4
 The protocol that should be used to connect to S3, "http" or "https" (preferred).
-.RE
+.SS attachment_s3_uristyle
 .PP
-\fBattachment_s3_uristyle\fR
-.RS 4
 The URL style of the bucket, "virtualhost" or "path".
-.RE
+.SS attachment_s3_accesskeyid
 .PP
-\fBattachment_s3_accesskeyid\fR
-.RS 4
 The access key id of your S3 account.
-.RE
+.SS attachment_s3_secretaccesskey
 .PP
-\fBattachment_s3_secretaccesskey\fR
-.RS 4
 The secret access key of your S3 account.
-.RE
+.SS attachment_s3_bucketname
 .PP
-\fBattachment_s3_bucketname\fR
-.RS 4
 The bucket name in which the files will be stored.
-.RE
 .SH "EXPLANATION OF MISCELLEANIOUS PARAMETERS"
+.SS enable_hosted_kopano
 .PP
-\fBenable_hosted_kopano\fR
-.RS 4
 Enable multi\-tenancy environment.
-.sp
+.PP
 When set to true it is possible to create companies within the kopano instance and assign all users and groups to particular companies.
-.sp
+.PP
 When set to false, the normal single\-tenancy environment is created.
-.sp
+.PP
 Default:
 \fIfalse\fR
-.RE
+.SS enable_distributed_kopano
 .PP
-\fBenable_distributed_kopano\fR
-.RS 4
 Enable multi\-server environment.
-.sp
+.PP
 When set to true it is possible to place users and companies on specific servers.
-.sp
+.PP
 When set to false, the normal single\-server environment is created.
-.sp
+.PP
 Default:
 \fIfalse\fR
-.RE
+.SS storename_format
 .PP
-\fBstorename_format\fR
-.RS 4
 Display format of store name.
-.sp
+.PP
 Allowed variables:
-.PP
+.TP
 \fB%u\fR
-.RS 4
 Username
-.RE
-.PP
+.TP
 \fB%f\fR
-.RS 4
 Fullname
-.RE
-.PP
+.TP
 \fB%c\fR
-.RS 4
 Companyname
-.RE
-.sp
+.PP
 Default:
 \fI%f\fR
-.RE
+.SS loginname_format
 .PP
-\fBloginname_format\fR
-.RS 4
 Loginname format (for multi\-tenancy installations). When the user does not login through a system\-wide unique username (like the email address) a unique name has created by combining the username and the tenancyname. With the this configuration option you can set how the loginname should be build up.
-.sp
+.PP
 Allowed variables:
-.PP
+.TP
 \fB%u\fR
-.RS 4
 Username
-.RE
-.PP
+.TP
 \fB%c\fR
-.RS 4
 Companyname
-.RE
-.sp
+.PP
 Default:
 \fI%u\fR
-.RE
+.SS client_update_enabled
 .PP
-\fBclient_update_enabled\fR
-.RS 4
 Enable client updates.
-.sp
+.PP
 You can place the Kopano Outlook Client installer in the client_update_path directory, and enable this option. Windows clients which have the automatic updater program installed will be able to download the latest client from the storage server.
-.sp
+.PP
 Default:
 \fIfalse\fR
-.RE
+.SS client_update_path
 .PP
-\fBclient_update_path\fR
-.RS 4
 This is the path where you will place the Kopano Outlook Client MSI install program for Windows clients to download. You need the
 \fBclient_update_enabled\fR
 option set to
 \fItrue\fR
 for clients to actually download this file through the storage server.
-.sp
+.PP
 Default:
 \fI/var/lib/kopano/client\fR
-.RE
+.SS client_update_log_level
 .PP
-\fBclient_update_log_level\fR
-.RS 4
 Receive the log information from the client auto update service.
-.sp
+.PP
 Options: 0 disable, 1 sent only with errors, 2 always sent
-.sp
+.PP
 Default:
 \fI1\fR
-.RE
+.SS client_update_log_path
 .PP
-\fBclient_update_log_path\fR
-.RS 4
 Log location for the client auto update files
-.sp
+.PP
 You need the
 \fBclient_update_log_level\fR
 option set to non\-zero value to receive log files from the client.
-.sp
+.PP
 Default:
 \fI/var/log/kopano/autoupdate\fR
-.RE
+.SS search_enabled
 .PP
-\fBsearch_enabled\fR
-.RS 4
 Use the kopano\-search indexing service for faster searching. Enabling this option requires the
 \fBkopano-search\fR(8)
 service to be running.
-.sp
+.PP
 Default:
 \fIyes\fR
-.RE
+.SS search_socket
 .PP
-\fBsearch_socket\fR
-.RS 4
 Path to the
 \fBkopano-search\fR(8)
 service, this option is only required if the server is going to make use of the indexing service.
-.sp
+.PP
 Default:
 \fIfile:///var/run/kopano/search.sock\fR
-.RE
+.SS search_timeout
 .PP
-\fBsearch_timeout\fR
-.RS 4
 Time (in seconds) to wait for a connection to the
 \fBkopano-search\fR(8)
 before terminating the indexed search request.
-.sp
+.PP
 Default:
 \fI10\fR
-.RE
+.SS enable_enhanced_ics
 .PP
-\fBenable_enhanced_ics\fR
-.RS 4
 Allow enhanced ICS operations to speedup synchronization with cached profiles. Only disable this option for debugging purposes.
-.sp
+.PP
 Default:
 \fIyes\fR
-.RE
+.SS enable_sql_procedures
 .PP
-\fBenable_sql_procedures\fR
-.RS 4
 SQL Procedures allow for some optimized queries when streaming with enhanced ICS. This is default disabled because you must set \*(Aqthread_stack = 256k\*(Aq in your MySQL server config under the [mysqld] tag and restart your MySQL server.
-.sp
+.PP
 Default:
 \fIno\fR
-.RE
+.SS folder_max_items
 .PP
-\fBfolder_max_items\fR
-.RS 4
 Limits the amount of items (messages or folders) in a single folder. This makes sure that the server will not attempt to load folders that are so large that it would require huge amounts of memory just to show the data. In practice, folders of over 1000000 items are usually created by runaway processes which are therefore useless anyway.
-.sp
+.PP
 Default:
 \fI1000000\fR
-.RE
+.SS sync_gab_realtime
 .PP
-\fBsync_gab_realtime\fR
-.RS 4
 When set to \*(Aqyes\*(Aq, kopano will synchronize the local user list whenever a list of users is requested (eg during kopano\-admin \-l or when opening the addressbook). When setting this value to \*(Aqno\*(Aq, synchronization will only occur during kopano\-admin \-\-sync. This is useful for setups which have large addressbooks (more than 1000 entries in the addressbook).
-.sp
+.PP
 This option is forced to \*(Aqyes\*(Aq when using the \*(Aqdb\*(Aq plugin since synchronization is implicit in that case.
-.sp
+.PP
 Default:
 \fIyes\fR
-.RE
+.SS proxy_header
 .PP
-\fBproxy_header\fR
-.RS 4
 In normal operation, a cluster of kopano\-server nodes is served by sending redirections back to the clients requesting information. The redirection URL is built from the server\*(Aqs information in the LDAP database. However, in some cases it is useful to place the kopano\-server instances behind a reverse HTTP proxy. In this case the redirected URL returned to the client cannot be the \*(Aqnormal\*(Aq hostname, but must be a URL that is handled by the proxy.
-.sp
-However, internal (\*(Aqbehind\*(Aq the proxy) redirections must *not* be redirected to the proxy since this is not necessary. The strategy is that kopano\-server will redirect to the proxy URL if the connection that initiated the redirect passed through a proxy. The way that this is detected is by examining an HTTP header. If the header specified by this option is found, then redirections will be to the proxy. If it is not, then redirections will be to the internal host. If the special value \*(Aq*\*(Aq is specified for this option, then the proxy URL will always be used. Specifying an empty value disables proxy detection.
-.sp
-Another effect of this option is that when a proxy connection is detected, kopano\-server attempts to use the \*(AqX\-Forwarded\-For\*(Aq header to determine the originating IP address. This is used for logging and session binding (a session initiated on a certain IP address may not be accessed from another IP address).
-.sp
-Default:
-.RE
 .PP
-\fBshared_reminders\fR
-.RS 4
+However, internal (\*(Aqbehind\*(Aq the proxy) redirections must *not* be redirected to the proxy since this is not necessary. The strategy is that kopano\-server will redirect to the proxy URL if the connection that initiated the redirect passed through a proxy. The way that this is detected is by examining an HTTP header. If the header specified by this option is found, then redirections will be to the proxy. If it is not, then redirections will be to the internal host. If the special value \*(Aq*\*(Aq is specified for this option, then the proxy URL will always be used. Specifying an empty value disables proxy detection.
+.PP
+Another effect of this option is that when a proxy connection is detected, kopano\-server attempts to use the \*(AqX\-Forwarded\-For\*(Aq header to determine the originating IP address. This is used for logging and session binding (a session initiated on a certain IP address may not be accessed from another IP address).
+.PP
+Default:
+.SS shared_reminders
+.PP
 Enable/disable reminders for shared stores.
-.sp
+.PP
 Default:
 \fIyes\fR
-.RE
 .SH "RELOADING"
 .PP
 The following options are reloadable by sending the kopano\-server process a HUP signal or reload the process by the initscript
