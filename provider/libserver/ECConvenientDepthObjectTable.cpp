@@ -187,8 +187,8 @@ ECRESULT ECConvenientDepthABObjectTable::Create(ECSession *lpSession,
  * here.
  */
 ECRESULT ECConvenientDepthABObjectTable::QueryRowData(ECGenericObjectTable *lpGenTable,
-    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
-    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct soap *soap, ECSession *lpSession, const ECObjectTableList *lpRowList,
+    const struct propTagArray *lpsPropTagArray, const void *lpObjectData,
     struct rowSet **lppRowSet, bool bTableData, bool bTableLimit)
 {
 	unsigned int n = 0;

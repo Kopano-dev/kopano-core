@@ -24,7 +24,8 @@
 
 WSStoreTableView::WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
-    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) :
+    const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore,
+    WSTransport *lpTransport) :
 	WSTableView(ulType, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId,
 	    lpEntryId, lpTransport, "WSStoreTableView")
 {
@@ -42,7 +43,7 @@ WSStoreTableView::WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
 
 HRESULT WSStoreTableView::Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
-    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
+    const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
     WSTableView **lppTableView)
 {
 	return alloc_wrap<WSStoreTableView>(ulType, ulFlags, lpCmd, lpDataLock,
@@ -59,7 +60,8 @@ HRESULT WSStoreTableView::QueryInterface(REFIID refiid, void **lppInterface)
 // WSTableMultiStore view
 WSTableMultiStore::WSTableMultiStore(ULONG ulFlags, KCmd *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
-    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) :
+    const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore,
+    WSTransport *lpTransport) :
 	WSStoreTableView(MAPI_MESSAGE, ulFlags, lpCmd, lpDataLock, ecSessionId,
 	    cbEntryId, lpEntryId, lpMsgStore, lpTransport)
 {
@@ -75,7 +77,7 @@ WSTableMultiStore::~WSTableMultiStore()
 
 HRESULT WSTableMultiStore::Create(ULONG ulFlags, KCmd *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
-    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
+    const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
     WSTableMultiStore **lppTableMultiStore)
 {
 	return alloc_wrap<WSTableMultiStore>(ulFlags, lpCmd, lpDataLock,
@@ -120,7 +122,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTableMultiStore::HrSetEntryIDs(LPENTRYLIST lpMsgList)
+HRESULT WSTableMultiStore::HrSetEntryIDs(const ENTRYLIST *lpMsgList)
 {
 	// Not really a transport function, but this is the best place for it for now
 
@@ -133,7 +135,8 @@ HRESULT WSTableMultiStore::HrSetEntryIDs(LPENTRYLIST lpMsgList)
 */
 WSTableMisc::WSTableMisc(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
-    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) :
+    const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore,
+    WSTransport *lpTransport) :
 	// is MAPI_STATUS even valid here?
 	WSStoreTableView(MAPI_STATUS, ulFlags, lpCmd, lpDataLock, ecSessionId,
 	    cbEntryId, lpEntryId, lpMsgStore, lpTransport)
@@ -144,7 +147,7 @@ WSTableMisc::WSTableMisc(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd,
 
 HRESULT WSTableMisc::Create(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
-    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
+    const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
     WSTableMisc **lppTableMisc)
 {
 	return alloc_wrap<WSTableMisc>(ulTableType, ulFlags, lpCmd, lpDataLock,

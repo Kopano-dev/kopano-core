@@ -64,13 +64,13 @@ public:
 	// you either lock the passed arguments or all arguments are from the local stack.
 
 	static ECRESULT CopyEmptyCellToSOAPPropVal(struct soap *soap, unsigned int ulPropTag, struct propVal *lpPropVal);
-	static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, ECObjectTableList *, struct propTagArray *, const void *priv, struct rowSet **, bool cache_table_data, bool table_limit);
-	static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, ECObjectTableList *, struct propTagArray *, const void *priv, struct rowSet **, bool cache_table_data, bool table_limit, bool sub_objects);
+	static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, const ECObjectTableList *, const struct propTagArray *, const void *priv, struct rowSet **, bool cache_table_data, bool table_limit);
+	static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, const ECObjectTableList *, const struct propTagArray *, const void *priv, struct rowSet **, bool cache_table_data, bool table_limit, bool sub_objects);
 
 protected:
 	virtual ECRESULT AddRowKey(ECObjectTableList *rows, unsigned int *loaded, unsigned int flags, bool first_load, bool override, struct restrictTable *override_tbl) override;
-	static ECRESULT QueryRowDataByColumn(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSesion, const std::multimap<unsigned int, unsigned int> &mapColumns, unsigned int ulFolderId, const std::map<sObjectTableKey, unsigned int> &mapObjIds, struct rowSet *lpRowSet);
-	static ECRESULT QueryRowDataByRow(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, const sObjectTableKey &sKey, unsigned int ulRowNum, std::multimap<unsigned int, unsigned int> &mapColumns, bool bTableLimit, struct rowSet *lpsRowSet);
+	static ECRESULT QueryRowDataByColumn(ECGenericObjectTable *, struct soap *, ECSession *, const std::multimap<unsigned int, unsigned int> &columns, unsigned int folder, const std::map<sObjectTableKey, unsigned int> &objids, struct rowSet *);
+	static ECRESULT QueryRowDataByRow(ECGenericObjectTable *, struct soap *, ECSession *, const sObjectTableKey &, unsigned int rownum, std::multimap<unsigned int, unsigned int> &columns, bool table_limit, struct rowSet *);
 
 private:
 	static ECRESULT GetMVRowCountHelper(ECDatabase *db, std::string query, std::list<unsigned int> &ids, std::map<unsigned int, unsigned int> &count);
@@ -84,7 +84,7 @@ private:
 };
 
 ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId, std::list<unsigned int> *lpDeferred);
-ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, ECObjectTableList* lpRowList, std::list<unsigned int> *lpDeferred);
+extern ECRESULT GetDeferredTableUpdates(ECDatabase *, const ECObjectTableList *, std::list<unsigned int> *deferred);
 
 } /* namespace */
 

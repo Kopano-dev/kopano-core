@@ -152,7 +152,7 @@ class IECImportHierarchyChanges : public IExchangeImportHierarchyChanges {
 class IECMultiStoreTable : public virtual IUnknown {
 	public:
 	/* ulFlags is currently unused */
-	virtual HRESULT OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
+	virtual HRESULT OpenMultiStoreTable(const ENTRYLIST *msglist, ULONG flags, IMAPITable **) = 0;
 };
 
 class IECSecSvcAdm_base : public virtual IUnknown {
@@ -166,7 +166,7 @@ class IECSecurity : public virtual IECSecSvcAdm_base {
 	public:
 	virtual HRESULT GetOwner(ULONG *lpcbOwner, LPENTRYID *lppOwner) = 0;
 	virtual HRESULT GetPermissionRules(int ulType, ULONG* lpcPermissions, ECPERMISSION **lppECPermissions) = 0;
-	virtual HRESULT SetPermissionRules(ULONG cPermissions, ECPERMISSION *lpECPermissions) = 0;
+	virtual HRESULT SetPermissionRules(ULONG nperm, const ECPERMISSION *) = 0;
 };
 
 class IECServiceAdmin : public virtual IECSecSvcAdm_base {
@@ -242,7 +242,7 @@ class IECServiceAdmin : public virtual IECSecSvcAdm_base {
 class IECSingleInstance : public virtual IUnknown {
 	public:
 	virtual HRESULT GetSingleInstanceId(ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID) = 0;
-	virtual HRESULT SetSingleInstanceId(ULONG cbInstanceID, LPENTRYID lpInstanceID) = 0;
+	virtual HRESULT SetSingleInstanceId(ULONG eid_size, const ENTRYID *eid) = 0;
 };
 
 // This is our special spooler interface

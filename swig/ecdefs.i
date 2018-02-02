@@ -47,7 +47,7 @@ public:
 class IECSingleInstance : public virtual IUnknown {
 public:
 	virtual HRESULT GetSingleInstanceId(ULONG *OUTPUT /*lpcbInstanceID*/, LPENTRYID *OUTPUT /*lppInstanceID*/) = 0;
-	virtual HRESULT SetSingleInstanceId(ULONG cbInstanceID, LPENTRYID lpInstanceID) = 0;
+	virtual HRESULT SetSingleInstanceId(ULONG eid_size, const ENTRYID *eid) = 0;
 	%extend {
 		virtual ~IECSingleInstance() { self->Release(); }
 	}

@@ -138,7 +138,7 @@ public:
 private:
 	_kc_hidden HRESULT GetBinarySortKey(const SPropValue *pv, ECSortCol &);
 	_kc_hidden HRESULT ModifyRowKey(sObjectTableKey *row_item, sObjectTableKey *prev_row, ULONG *action);
-	_kc_hidden HRESULT QueryRowData(ECObjectTableList *row_list, LPSRowSet *rows);
+	_kc_hidden HRESULT QueryRowData(const ECObjectTableList *row_list, SRowSet **rows);
 	_kc_hidden HRESULT Notify(ULONG table_event, sObjectTableKey *row_item, sObjectTableKey *prev_row);
 
 	ECKeyTable lpKeyTable;

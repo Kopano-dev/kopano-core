@@ -992,7 +992,7 @@ HRESULT ECGenericProp::GetSingleInstanceId(ULONG *lpcbInstanceID,
 }
 
 HRESULT ECGenericProp::SetSingleInstanceId(ULONG cbInstanceID,
-    ENTRYID *lpInstanceID)
+    const ENTRYID *lpInstanceID)
 {
 	scoped_rlock lock(m_hMutexMAPIObject);
 

@@ -403,7 +403,7 @@
 
 // Input
 %apply (ULONG, MAPIARRAY) {(ULONG cValues, SPropValue *lpProps), (ULONG cValues, LPSPropValue lpProps), (ULONG cPropNames, LPMAPINAMEID* lppPropNames), (ULONG cInterfaces, LPCIID lpInterfaces), (ULONG cValuesConversion, SPropValue *lpPropArrayConversion), (ULONG cValuesConversion, LPSPropValue lpPropArrayConversion)};
-%apply MAPILIST {SPropTagArray *, LPSPropTagArray, LPENTRYLIST, ADRLIST *, LPADRLIST, LPFlagList};
+%apply MAPILIST {SPropTagArray *, LPSPropTagArray, LPENTRYLIST, ENTRYLIST *, ADRLIST *, LPADRLIST, LPFlagList};
 %apply MAPILIST *INPUT {SPropTagArray **, LPSPropTagArray *};
 %apply MAPISTRUCT {SRestriction *, LPSRestriction, SSortOrderSet *, SPropValue *, LPSPropValue, LPNOTIFICATION};
 

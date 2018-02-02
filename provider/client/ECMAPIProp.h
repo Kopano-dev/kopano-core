@@ -61,9 +61,7 @@ public:
 	virtual HRESULT GetIDsFromNames(ULONG cNames, LPMAPINAMEID * ppNames, ULONG ulFlags, LPSPropTagArray * pptaga);
 
 	virtual HRESULT HrSetSyncId(ULONG ulSyncId);
-
-	virtual HRESULT SetParentID(ULONG cbParentID, LPENTRYID lpParentID);
-
+	virtual HRESULT SetParentID(ULONG eid, const ENTRYID *eid_size);
 	virtual HRESULT SetICSObject(BOOL bICSObject);
 	virtual BOOL IsICSObject();
 
@@ -82,7 +80,7 @@ protected:
 	// IECSecurity
 	virtual HRESULT GetOwner(ULONG *lpcbOwner, LPENTRYID *lppOwner);
 	virtual HRESULT GetPermissionRules(int ulType, ULONG* lpcPermissions, ECPERMISSION **lppECPermissions);
-	virtual HRESULT SetPermissionRules(ULONG cPermissions, ECPERMISSION *lpECPermissions);
+	virtual HRESULT SetPermissionRules(ULONG n, const ECPERMISSION *) override;
 
 public:
 	ECMsgStore *GetMsgStore() const { return static_cast<ECMsgStore *>(lpProvider); }

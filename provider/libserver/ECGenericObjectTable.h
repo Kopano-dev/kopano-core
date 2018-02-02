@@ -100,7 +100,7 @@ struct LEAFINFO {
 typedef std::map<sObjectTableKey, ECCategory *> ECCategoryMap;
 typedef std::map<sObjectTableKey, LEAFINFO> ECLeafMap;
 class ECGenericObjectTable;
-typedef ECRESULT (*QueryRowDataCallBack)(ECGenericObjectTable *, struct soap *, ECSession *, ECObjectTableList *, struct propTagArray *, const void *priv, struct rowSet **, bool table_data, bool table_limit);
+typedef ECRESULT (*QueryRowDataCallBack)(ECGenericObjectTable *, struct soap *, ECSession *, const ECObjectTableList *, const struct propTagArray *, const void *priv, struct rowSet **, bool table_data, bool table_limit);
 
 /*
  * ECGenericObjectTable

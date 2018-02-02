@@ -153,7 +153,7 @@ public:
 	virtual HRESULT UnwrapNoRef(LPVOID *ppvObject);
 
 	// ECMultiStoreTable
-	virtual HRESULT OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, LPMAPITABLE *lppTable);
+	virtual HRESULT OpenMultiStoreTable(const ENTRYLIST *msglist, ULONG flags, IMAPITable **);
 
     // ECTestProtocol
 	virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **argv);
@@ -226,7 +226,7 @@ public:
 		virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *lppProblems) _kc_override;
 		virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) override;
 		virtual HRESULT GetIDsFromNames(ULONG cNames, LPMAPINAMEID *ppNames, ULONG flags, LPSPropTagArray *pptaga) _kc_override;
-		virtual HRESULT OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG flags, LPMAPITABLE *lppTable) _kc_override;
+		virtual HRESULT OpenMultiStoreTable(const ENTRYLIST *msglist, ULONG flags, IMAPITable **table) override;
 		virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **args) _kc_override;
 		virtual HRESULT TestSet(const char *name, const char *value) _kc_override;
 		virtual HRESULT TestGet(const char *name, char **value) _kc_override;

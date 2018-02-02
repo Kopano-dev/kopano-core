@@ -45,8 +45,8 @@ ECRESULT ECUserStoreTable::Create(ECSession *lpSession, unsigned int ulFlags, co
 }
 
 ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
-    struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList,
-    struct propTagArray *lpsPropTagArray, const void *lpObjectData,
+    struct soap *soap, ECSession *lpSession, const ECObjectTableList *lpRowList,
+    const struct propTagArray *lpsPropTagArray, const void *lpObjectData,
     struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	auto pThis = dynamic_cast<ECUserStoreTable *>(lpThis);

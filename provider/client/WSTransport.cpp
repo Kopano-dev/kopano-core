@@ -3308,8 +3308,9 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 	return hr;
 }
 
-HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID, LPENTRYID lpEntryID,
-    ULONG cPermissions, ECPERMISSION *lpECPermissions)
+HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, ULONG cPermissions,
+    const ECPERMISSION *lpECPermissions)
 {
 	ECRESULT		er = erSuccess;
 	HRESULT			hr = hrSuccess;
@@ -4112,7 +4113,9 @@ bool WSTransport::IsConnected()
 	return m_lpCmd != NULL;
 }
 
-HRESULT WSTransport::HrOpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECMsgStore *lpMsgStore, WSTableView **lppTableView)
+HRESULT WSTransport::HrOpenMultiStoreTable(const ENTRYLIST *lpMsgList,
+    ULONG ulFlags, ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ECMsgStore *lpMsgStore, WSTableView **lppTableView)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<WSTableMultiStore> lpMultiStoreTable;

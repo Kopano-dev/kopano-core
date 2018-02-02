@@ -25,20 +25,20 @@
 
 class WSStoreTableView : public WSTableView {
 protected:
-	WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *);
+	WSStoreTableView(ULONG type, ULONG flags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *);
 	virtual ~WSStoreTableView(void) = default;
 public:
-	static HRESULT Create(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *, WSTableView **);
+	static HRESULT Create(ULONG type, ULONG flags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *, WSTableView **);
 	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	ALLOC_WRAP_FRIEND;
 };
 
 class WSTableOutGoingQueue _kc_final : public WSStoreTableView {
 protected:
-	WSTableOutGoingQueue(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *);
+	WSTableOutGoingQueue(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *, ECMsgStore *, WSTransport *);
 
 public:
-	static HRESULT Create(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *, WSTableOutGoingQueue **);
+	static HRESULT Create(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *, ECMsgStore *, WSTransport *, WSTableOutGoingQueue **);
 	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT HrOpenTable();
 	ALLOC_WRAP_FRIEND;
@@ -46,14 +46,13 @@ public:
 
 class WSTableMultiStore _kc_final : public WSStoreTableView {
 protected:
-	WSTableMultiStore(ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *);
+	WSTableMultiStore(ULONG flags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *);
     virtual ~WSTableMultiStore();
 
 public:
-	static HRESULT Create(ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *, WSTableMultiStore **);
+	static HRESULT Create(ULONG flags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *, WSTableMultiStore **);
 	virtual HRESULT HrOpenTable();
-
-	virtual HRESULT HrSetEntryIDs(LPENTRYLIST lpMsgList);
+	virtual HRESULT HrSetEntryIDs(const ENTRYLIST *msglist);
 private:
     struct entryList m_sEntryList;
 	ALLOC_WRAP_FRIEND;
@@ -62,10 +61,10 @@ private:
 /* not really store tables, but the code is the same.. */
 class WSTableMisc _kc_final : public WSStoreTableView {
 protected:
-	WSTableMisc(ULONG ulTableType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *);
+	WSTableMisc(ULONG type, ULONG flags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *);
 
 public:
-	static HRESULT Create(ULONG ulTableType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *, WSTableMisc **);
+	static HRESULT Create(ULONG type, ULONG flags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *, WSTableMisc **);
 	virtual HRESULT HrOpenTable();
 
 private:

@@ -987,7 +987,8 @@ HRESULT ECMemTableView::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppR
 	return QueryRowData(&sRowList, lppRows);
 }
 
-HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *lppRows)
+HRESULT ECMemTableView::QueryRowData(const ECObjectTableList *lpsRowList,
+    SRowSet **lppRows)
 {
 	HRESULT hr = hrSuccess;
 	unsigned int i=0,j=0;
