@@ -82,6 +82,7 @@ const configsetting_t* Archiver::GetConfigDefaults()
 		{ "mysql_password",	"",	CONFIGSETTING_EXACT },
 		{ "mysql_database",	"kopano-archiver" },
 		{ "mysql_socket",	"" },
+		{"mysql_engine", "InnoDB"},
 		{ "purge-soft-deleted", "no" },
 
 		{ NULL, NULL },

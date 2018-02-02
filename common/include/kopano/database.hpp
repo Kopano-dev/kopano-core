@@ -104,7 +104,7 @@ class _kc_export KDatabase {
 	ECRESULT Close(void);
 	virtual ECRESULT Connect(ECConfig *, bool, unsigned int, unsigned int);
 	virtual ECRESULT CreateDatabase(ECConfig *, bool);
-	virtual ECRESULT CreateTables(void);
+	virtual ECRESULT CreateTables(ECConfig *);
 	virtual ECRESULT DoDelete(const std::string &query, unsigned int *affect = nullptr);
 	virtual ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = nullptr, unsigned int *affect = nullptr);
 	virtual ECRESULT DoSelect(const std::string &query, DB_RESULT *, bool stream = false);
@@ -146,7 +146,7 @@ class _kc_export KDatabase {
 	unsigned int GetInsertId(void);
 	ECRESULT InitEngine(bool reconnect);
 	bool isConnected(void) const { return m_bConnected; }
-	ECRESULT IsInnoDBSupported(void);
+	ECRESULT IsEngineSupported(const char *);
 	virtual ECRESULT Query(const std::string &q);
 	ECRESULT I_Update(const std::string &q, unsigned int *affected);
 

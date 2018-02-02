@@ -263,6 +263,14 @@ The MySQL database to connect to.
 Default:
 \fIkopano\fR
 .RE
+.SS mysql_engine
+.PP
+The MySQL engine to use. By default, this is InnoDB, which is the only
+officially supported database engine. Because Kopano Groupware Core relies on
+transactions, it is not advised to use a non-transactional engine such as
+MyISAM, Aria, etc.
+.PP
+Default: \fIInnoDB\fP
 .SH "FILES"
 .PP
 /etc/kopano/archiver.cfg
