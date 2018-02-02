@@ -1,0 +1,221 @@
+'\" t
+.\"     Title: kopano-spamd.cfg
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: November 2016
+.\"    Manual: Kopano Core user reference
+.\"    Source: Kopano 8
+.\"  Language: English
+.\"
+.TH "KOPANO\-SPAMD.CFG" "5" "February 2018" "Kopano 8" "Kopano Core user reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+kopano-spamd.cfg \- The Kopano Spamd configuration file
+.SH "SYNOPSIS"
+.PP
+\fBspamd.cfg\fR
+.SH "DESCRIPTION"
+.PP
+The
+spamd.cfg
+is a configuration file for the Kopano Spamd Service.
+spamd.cfg
+contains instructions for the software to set up the connection, indexing and logging systems.
+.SH "FILE FORMAT"
+.PP
+The file consists of one big section, but parameters can be grouped by functionality.
+.PP
+The parameters are written in the form:
+.PP
+\fBname\fR
+=
+\fIvalue\fR
+.PP
+The file is line\-based. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano. Parameter names are case sensitive. Lines beginning with `!\*(Aq are directives.
+.PP
+Directives are written in the form:
+.PP
+!\fBdirective\fR
+\fI[argument(s)] \fR
+.PP
+The following directives exist:
+.PP
+\fBinclude\fR
+.RS 4
+Include and process
+\fIargument\fR
+.sp
+Example: !include common.cfg
+.RE
+.SH "EXPLANATION OF THE SERVICE SETTINGS PARAMETERS"
+.PP
+\fBrun_as_user\fR
+.RS 4
+After correctly starting, the server process will become this user, dropping root privileges. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation. This can also be achieved by setting the correct group and permissions.
+.sp
+Default value is empty, not changing the user after starting.
+.RE
+.PP
+\fBrun_as_group\fR
+.RS 4
+After correctly starting, the server process will become this group, dropping root privileges.
+.sp
+Default value is empty, not changing the group after starting.
+.RE
+.PP
+\fBpid_file\fR
+.RS 4
+Write the process ID number to this file. This is used by the init.d script to correctly stop/restart the service.
+.sp
+Default:
+\fI/var/run/kopano/spamd.pid\fR
+.RE
+.PP
+\fBrunning_path\fR
+.RS 4
+Change directory to this path when running in daemonize mode. When using the \-F switch to run in the foreground the directory will not be changed.
+.sp
+Default:
+\fI/\fR
+.RE
+.SH "EXPLANATION OF THE SERVER SETTINGS PARAMETERS"
+.PP
+\fBserver_socket\fR
+.RS 4
+Socket to find the connection to the Kopano server.
+.sp
+Default:
+\fIfile:///var/run/kopano/server.sock\fR
+.RE
+.PP
+\fBssl_key_file\fR
+.RS 4
+The file containing the private key and certificate. Please read the SSL section in the
+\fBkopano-server\fR(8)
+manual on how to create this file.
+.sp
+Default:
+\fI/etc/kopano/ssl/spamd.pem\fR
+.RE
+.PP
+\fBssl_key_pass\fR
+.RS 4
+Enter your password here when your key file contains a password to be readable.
+.sp
+No default set.
+.RE
+.SH "EXPLANATION OF THE LOG SETTINGS PARAMETERS"
+.PP
+\fBlog_method\fR
+.RS 4
+The method which should be used for logging. Valid values are:
+.PP
+\fIsyslog\fR
+.RS 4
+Use the Linux system log. All messages will be written to the mail facility. See also
+\fBsyslog.conf\fR(5).
+.RE
+.PP
+\fIfile\fR
+.RS 4
+Log to a file. The filename will be specified in
+\fBlog_file\fR.
+.RE
+.sp
+Default:
+\fIfile\fR
+.RE
+.PP
+\fBlog_level\fR
+.RS 4
+The level of output for logging in the range from 0 to 5. 0 means no logging, 5 means full logging.
+.sp
+Default:
+\fI3\fR
+.RE
+.PP
+\fBlog_file\fR
+.RS 4
+When logging to a file, specify the filename in this parameter. Use
+\fI\-\fR
+(minus sign) for stderr output.
+.sp
+Default:
+\fI/var/log/kopano/spamd.log\fR
+.RE
+.PP
+\fBlog_timestamp\fR
+.RS 4
+Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode.
+.sp
+Default:
+\fI1\fR
+.RE
+.PP
+\fBlog_buffer_size\fR
+.RS 4
+Buffer logging in what sized blocks. The special value 0 selects line buffering.
+.sp
+Default:
+\fI0\fR
+.RE
+.SH "EXPLANATION OF THE ADVANCED SETTINGS PARAMETERS"
+.PP
+\fBspam_dir\fR
+.RS 4
+The dir where spam mails are written to which are later picked up by the sa-learn program.
+.sp
+Default: \fI/var/lib/kopano/spamd/spam\fR
+.RE
+.PP
+\fBspam_db\fR
+.RS 4
+Location for the database containing metadata on learned spam.
+.sp
+Default: \fI/var/lib/kopano/spamd/spam.db\fR
+.RE
+.PP
+\fBlearn_ham\fR
+.RS 4
+Learn ham, when the user moves emails from junk to inbox, enabled by default.
+.sp
+Default: \fIyes\fR
+.RE
+.PP
+\fBham_dir\fR
+.RS 4
+The dir where ham mails are written to which are later picked up by the sa-learn program
+.sp
+Default: \fI/var/lib/kopano/spamd/ham\fR
+.RE
+.PP
+\fBsa_group\fR
+.RS 4
+Spamassassin group
+.sp
+Default: \fIamavis\fR
+.RE
+.SH "AUTHOR"
+.PP
+Written by Kopano.
+.SH "SEE ALSO"
+.PP
+\fBkopano-spamd\fR(8)

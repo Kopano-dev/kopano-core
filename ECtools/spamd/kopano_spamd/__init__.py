@@ -6,8 +6,6 @@ import os
 import time
 import kopano
 import grp
-from MAPI.Defs import bin2hex
-from MAPI.Tags import PR_SEARCH_KEY
 from kopano import Config, log_exc
 from contextlib import closing
 
@@ -24,7 +22,8 @@ CONFIG = {
     'spam_dir': Config.string(default="/var/lib/kopano/spamd/spam"),
     'ham_dir': Config.string(default="/var/lib/kopano/spamd/ham"),
     'spam_db': Config.string(default="/var/lib/kopano/spamd/spam.db"),
-    'sa_group': Config.string(default="amavis")
+    'sa_group': Config.string(default="amavis"),
+    'learn_ham': Config.boolean(default=True)
 }
 
 
@@ -49,64 +48,76 @@ class Checker(object):
         self.spamdir = service.config['spam_dir']
         self.hamdir = service.config['ham_dir']
         self.sagroup = service.config['sa_group']
+        self.learnham = service.config['learn_ham']
 
-    def mark_spam(self, search_key):
+    def mark_spam(self, searchkey):
         with closing(bsddb.btopen(self.spamdb, 'c')) as db:
-            db[search_key] = ''
+            db[searchkey] = ''
 
-    def was_spam(self, search_key):
+    def was_spam(self, searchkey):
         with closing(bsddb.btopen(self.spamdb, 'c')) as db:
-            return search_key in db
+            return searchkey in db
 
     def update(self, item, flags):
         if item.message_class != 'IPM.Note':
             return
 
-        search_key = bin2hex(item.prop(PR_SEARCH_KEY).value)
+        searchkey = item.searchkey
 
         if item.folder == item.store.junk and \
            item.header('x-spam-flag') != 'YES':
 
-            fn = os.path.join(self.hamdir, search_key)
+            fn = os.path.join(self.hamdir, searchkey + '.eml')
             if os.path.isfile(fn):
                 os.unlink(fn)
 
+            self.log.info("Learning message as SPAM, entryid: %s" % item.entryid)
             self.learn(item, True)
 
-        elif item.folder != item.store.junk and \
-                self.was_spam(search_key):
+        elif item.folder == item.store.inbox and \
+                self.learnham and self.was_spam(searchkey):
 
-            fn = os.path.join(self.spamdir, search_key)
+            fn = os.path.join(self.spamdir, searchkey + '.eml')
             if os.path.isfile(fn):
                 os.unlink(fn)
 
+            self.log.info("Learning message as HAM, entryid: %s" % item.entryid)
             self.learn(item, False)
 
     def learn(self, item, spam):
         try:
-            search_key = bin2hex(item.prop(PR_SEARCH_KEY).value)
+            searchkey = item.searchkey
             spameml = item.eml()
             dir = spam and self.spamdir or self.hamdir
-            emlfilename = os.path.join(dir, search_key)
+            emlfilename = os.path.join(dir, searchkey + '.eml')
 
             with closing(open(emlfilename, "wb")) as fh:
                 fh.write(spameml)
 
+        except Exception as e:
+            self.log.error(
+                'Exception happend during learning: %s, entryid: %s' %
+                (e, item.entryid)
+            )
+            return
+
+        try:
             uid = os.getuid()
             gid = grp.getgrnam(self.sagroup).gr_gid
             os.chown(emlfilename, uid, gid)
             os.chmod(emlfilename, 0o660)
-
-            if spam:
-                self.mark_spam(search_key)
         except Exception as e:
-            self.log.error(
-                'Exception happend during learning: [%s] [%s]' %
+            self.log.warning(
+                'Unable to set ownership: %s, entryid %s' %
                 (e, item.entryid)
             )
 
+        if spam:
+            self.mark_spam(searchkey)
+
+
 def main():
-    parser = kopano.parser('ckpsF')  # select common cmd-line options
+    parser = kopano.parser('ckpsFl')  # select common cmd-line options
     options, args = parser.parse_args()
     service = Service('spamd', config=CONFIG, options=options)
     service.start()
