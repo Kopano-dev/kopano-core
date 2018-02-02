@@ -19,6 +19,7 @@ from MAPI import (
     BOOKMARK_BEGINNING, ROW_REMOVE, MESSAGE_MOVE, FOLDER_MOVE,
     FOLDER_GENERIC, MAPI_UNICODE, FL_SUBSTRING, FL_IGNORECASE,
     SEARCH_RECURSIVE, SEARCH_REBUILD, PT_MV_BINARY, PT_BINARY,
+    MAPI_DEFERRED_ERRORS
 )
 from MAPI.Tags import (
     PR_ENTRYID, IID_IMAPIFolder, SHOW_SOFT_DELETES, PR_SOURCE_KEY,
@@ -132,7 +133,7 @@ class Folder(Properties):
             return self._mapiobj
 
         try:
-            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY)
+            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | MAPI_DEFERRED_ERRORS)
         except (MAPIErrorNotFound, MAPIErrorInvalidEntryid):
             try:
                 self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
@@ -187,7 +188,7 @@ class Folder(Properties):
         """Number of subfolders (recursive)"""
 
         # TODO faster?
-        flags = MAPI_UNICODE | self.content_flag | CONVENIENT_DEPTH
+        flags = MAPI_UNICODE | self.content_flag | CONVENIENT_DEPTH | MAPI_DEFERRED_ERRORS
         mapitable = self.mapiobj.GetHierarchyTable(flags)
 
         table = Table(
@@ -280,7 +281,7 @@ class Folder(Properties):
         # resolve sourcekey to entryid
         if sourcekey is not None:
             restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY, SPropValue(PR_SOURCE_KEY, _bdec(sourcekey)))
-            table = self.mapiobj.GetContentsTable(0)
+            table = self.mapiobj.GetContentsTable(MAPI_DEFERRED_ERRORS)
             table.SetColumns([PR_ENTRYID, PR_SOURCE_KEY], 0)
             table.Restrict(restriction, 0)
             rows = list(table.QueryRows(-1, 0))
@@ -322,7 +323,7 @@ class Folder(Properties):
             table = Table(
                 self.server,
                 self.mapiobj,
-                self.mapiobj.GetContentsTable(self.content_flag),
+                self.mapiobj.GetContentsTable(self.content_flag | MAPI_DEFERRED_ERRORS),
                 PR_CONTAINER_CONTENTS,
                 columns=columns,
                 restriction=restriction,
@@ -378,7 +379,7 @@ class Folder(Properties):
             table = Table(
                 self.server,
                 self.mapiobj,
-                self.mapiobj.GetContentsTable(0),
+                self.mapiobj.GetContentsTable(MAPI_DEFERRED_ERRORS),
                 PR_CONTAINER_CONTENTS,
                 columns=[PR_ENTRYID],
             )
@@ -423,7 +424,7 @@ class Folder(Properties):
             table = Table(
                 self.server,
                 self.mapiobj,
-                self.mapiobj.GetContentsTable(self.content_flag),
+                self.mapiobj.GetContentsTable(self.content_flag | MAPI_DEFERRED_ERRORS),
                 PR_CONTAINER_CONTENTS,
                 columns=[PR_MESSAGE_SIZE],
             )
@@ -573,7 +574,7 @@ class Folder(Properties):
 
         flags = MAPI_UNICODE | self.content_flag
         if recurse:
-            flags |= CONVENIENT_DEPTH
+            flags |= CONVENIENT_DEPTH | MAPI_DEFERRED_ERRORS
 
         try:
             mapitable = self.mapiobj.GetHierarchyTable(flags)
