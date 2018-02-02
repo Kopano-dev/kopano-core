@@ -538,16 +538,16 @@ class MessageResource(ItemResource):
         'toRecipients': set_torecipients,
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, messageid=None, method=None):
+    def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
         folder = _get_folder(store, folderid or 'inbox') # TODO all folders?
 
-        if messageid == 'delta': # TODO move to MailFolder resource somehow?
+        if itemid == 'delta': # TODO move to MailFolder resource somehow?
             self.delta(req, resp, folder)
             return
         else:
-            item = folder.item(messageid)
+            item = folder.item(itemid)
 
         if method == 'attachments':
             attachments = list(get_attachments(item))
@@ -566,22 +566,22 @@ class MessageResource(ItemResource):
 
         self.respond(req, resp, item)
 
-    def on_post(self, req, resp, userid=None, folderid=None, messageid=None, method=None):
+    def on_post(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
         folder = _get_folder(store, folderid or 'inbox') # TODO all folders?
-        item = folder.item(messageid)
+        item = folder.item(itemid)
 
         if method == 'attachments':
             fields = json.loads(req.stream.read().decode('utf-8'))
             if fields['@odata.type'] == '#microsoft.graph.fileAttachment':
                 item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
 
-    def on_patch(self, req, resp, userid=None, folderid=None, messageid=None, method=None):
+    def on_patch(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
         folder = _get_folder(store, folderid or 'inbox') # TODO all folders?
-        item = folder.item(messageid)
+        item = folder.item(itemid)
 
         fields = json.loads(req.stream.read().decode('utf-8'))
 
@@ -591,10 +591,10 @@ class MessageResource(ItemResource):
 
         self.respond(req, resp, item, MessageResource.fields)
 
-    def on_delete(self, req, resp, userid=None, folderid=None, messageid=None):
+    def on_delete(self, req, resp, userid=None, folderid=None, itemid=None):
         server = _server(req)
         store = _store(server, userid)
-        item = store.item(messageid)
+        item = store.item(itemid)
 
         store.delete(item)
 
@@ -627,22 +627,18 @@ class AttachmentResource(Resource):
         'microsoft.graph.itemAttachment/item': lambda attachment: (attachment.item, EmbeddedMessageResource),
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, messageid=None, eventid=None, attachmentid=None, method=None):
+    def on_get(self, req, resp, userid=None, folderid=None, itemid=None, attachmentid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
 
         if folderid:
             folder = _get_folder(store, folderid)
-        elif eventid:
+        elif itemid:
             folder = store.calendar
         else:
             folder = store.inbox # TODO messages from all folders?
 
-        if eventid:
-            item = folder.item(eventid)
-        else:
-            item = folder.item(messageid)
-
+        item = folder.item(itemid)
         data = item.attachment(attachmentid)
 
         if method == '$value': # TODO graph doesn't do this?
@@ -655,10 +651,10 @@ class AttachmentResource(Resource):
                 all_fields = FileAttachmentResource.fields
             self.respond(req, resp, data, all_fields=all_fields)
 
-    def on_delete(self, req, resp, userid=None, folderid=None, messageid=None, eventid=None, attachmentid=None, method=None):
+    def on_delete(self, req, resp, userid=None, folderid=None, itemid=None, attachmentid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
-        item = store.item(messageid or eventid)
+        item = store.item(itemid)
         attachment = item.attachment(attachmentid)
 
         item.delete(attachment)
@@ -776,11 +772,11 @@ class EventResource(ItemResource):
 
     # TODO delta functionality seems to include expanding recurrences!? check with MSGE
 
-    def on_get(self, req, resp, userid=None, folderid=None, eventid=None, method=None):
+    def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
         folder = _get_folder(store, folderid or 'calendar')
-        item = folder.item(eventid)
+        item = folder.item(itemid)
 
         if method == 'attachments':
             attachments = list(item.attachments(embedded=True))
@@ -790,21 +786,21 @@ class EventResource(ItemResource):
 
         self.respond(req, resp, item)
 
-    def on_post(self, req, resp, userid=None, folderid=None, eventid=None, method=None):
+    def on_post(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
         folder = _get_folder(store, folderid or 'calendar')
-        item = folder.item(eventid)
+        item = folder.item(itemid)
 
         if method == 'attachments':
             fields = json.loads(req.stream.read().decode('utf-8'))
             if fields['@odata.type'] == '#microsoft.graph.fileAttachment':
                 item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
 
-    def on_delete(self, req, resp, userid=None, folderid=None, eventid=None):
+    def on_delete(self, req, resp, userid=None, folderid=None, itemid=None):
         server = _server(req)
         store = _store(server, userid)
-        item = store.item(eventid)
+        item = store.item(itemid)
 
         store.delete(item)
 
@@ -897,26 +893,26 @@ class ContactResource(ItemResource):
         'emailAddresses': set_email_addresses,
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, contactid=None):
+    def on_get(self, req, resp, userid=None, folderid=None, itemid=None):
         server = _server(req)
         store = _store(server, userid)
         folder = _get_folder(store, folderid or 'contacts') # TODO all folders?
 
-        if contactid == 'delta':
+        if itemid == 'delta':
             self.delta(req, resp, folder)
             return
 
-        if contactid:
-            data = folder.item(contactid)
+        if itemid:
+            data = folder.item(itemid)
         else:
             data = self.generator(req, folder.items, folder.count)
 
         self.respond(req, resp, data)
 
-    def on_delete(self, req, resp, userid=None, folderid=None, contactid=None):
+    def on_delete(self, req, resp, userid=None, folderid=None, itemid=None):
         server = _server(req)
         store = _store(server, userid)
-        item = store.item(contactid)
+        item = store.item(itemid)
 
         store.delete(item)
 
@@ -926,11 +922,11 @@ class ProfilePhotoResource(Resource):
 
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, contactid=None, method=None):
+    def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
         folder = _get_folder(store, folderid or 'contacts')
-        photo = folder.item(contactid).photo
+        photo = folder.item(itemid).photo
 
         if method == '$value':
             resp.content_type = photo.mimetype
@@ -941,11 +937,11 @@ class ProfilePhotoResource(Resource):
     def on_patch(self, *args, **kwargs):
         self.on_put(*args, **kwargs)
 
-    def on_put(self, req, resp, userid=None, folderid=None, contactid=None, method=None):
+    def on_put(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server = _server(req)
         store = _store(server, userid)
         folder = _get_folder(store, folderid or 'contacts')
-        contact = folder.item(contactid)
+        contact = folder.item(itemid)
 
         contact.set_photo('noname', req.stream.read(), req.get_header('Content-Type'))
 
@@ -999,18 +995,18 @@ route(app, PREFIX+'/subscriptions', subscriptions)
 
 for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
     route(app, user+'/mailFolders/{folderid}', folders)
-    route(app, user+'/messages/{messageid}', messages)
-    route(app, user+'/mailFolders/{folderid}/messages/{messageid}', messages)
+    route(app, user+'/messages/{itemid}', messages)
+    route(app, user+'/mailFolders/{folderid}/messages/{itemid}', messages)
     route(app, user+'/calendar', calendars)
     route(app, user+'/calendars/{folderid}', calendars)
-    route(app, user+'/events/{eventid}', events)
-    route(app, user+'/calendar/events/{eventid}', events)
-    route(app, user+'/calendars/{folderid}/events/{eventid}', events)
-    route(app, user+'/messages/{messageid}/attachments/{attachmentid}', attachments)
-    route(app, user+'/mailFolders/{folderid}/messages/{messageid}/attachments/{attachmentid}', attachments)
-    route(app, user+'/events/{eventid}/attachments/{attachmentid}', attachments)
+    route(app, user+'/events/{itemid}', events)
+    route(app, user+'/calendar/events/{itemid}', events)
+    route(app, user+'/calendars/{folderid}/events/{itemid}', events)
+    route(app, user+'/messages/{itemid}/attachments/{attachmentid}', attachments)
+    route(app, user+'/mailFolders/{folderid}/messages/{itemid}/attachments/{attachmentid}', attachments)
+    route(app, user+'/events/{itemid}/attachments/{attachmentid}', attachments)
     route(app, user+'/contactFolders/{folderid}', contactfolders)
-    route(app, user+'/contacts/{contactid}', contacts)
-    route(app, user+'/contactFolders/{folderid}/contacts/{contactid}', contacts)
-    route(app, user+'/contacts/{contactid}/photo', photos)
-    route(app, user+'/contactFolders/{folderid}/contacts/{contactid}/photo', photos)
+    route(app, user+'/contacts/{itemid}', contacts)
+    route(app, user+'/contactFolders/{folderid}/contacts/{itemid}', contacts)
+    route(app, user+'/contacts/{itemid}/photo', photos)
+    route(app, user+'/contactFolders/{folderid}/contacts/{itemid}/photo', photos)
