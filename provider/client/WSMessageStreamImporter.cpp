@@ -21,6 +21,7 @@
 #include "WSMessageStreamImporter.h"
 #include "WSUtil.h"
 #include "ECSyncSettings.h"
+#include "soapKCmdProxy.h"
 
 /**
  * Create a new WSMessageStreamSink instance
@@ -208,7 +209,9 @@ void WSMessageStreamImporter::run()
 	lpSoap->fmimereadclose = &StaticMTOMReadClose;
 
 	m_hr = hrSuccess;
-	if (m_ptrTransport->m_lpCmd->ns__importMessageFromStream(m_ptrTransport->m_ecSessionId, m_ulFlags, m_ulSyncId, m_sFolderEntryId, m_sEntryId, m_bNewMessage, lpsConflictItems, sStreamData, &ulResult) != SOAP_OK)
+	if (m_ptrTransport->m_lpCmd->importMessageFromStream(m_ptrTransport->m_ecSessionId,
+	    m_ulFlags, m_ulSyncId, m_sFolderEntryId, m_sEntryId, m_bNewMessage,
+	    lpsConflictItems, sStreamData, &ulResult) != SOAP_OK)
 		m_hr = MAPI_E_NETWORK_ERROR;
 	else if (m_hr == hrSuccess) // Could be set from callback
 		m_hr = kcerr_to_mapierr(ulResult, MAPI_E_NOT_FOUND);

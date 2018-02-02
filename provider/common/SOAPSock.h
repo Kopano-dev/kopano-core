@@ -19,7 +19,8 @@
 #define SOAPSOCK_H
 
 #include <openssl/ssl.h>
-#include "soapKCmdProxy.h"
+
+class KCmdProxy;
 
 int ssl_verify_callback_kopano_silent(int ok, X509_STORE_CTX *store);
 int ssl_verify_callback_kopano(int ok, X509_STORE_CTX *store);
@@ -39,8 +40,8 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	ULONG ulProxyFlags,
 	int				iSoapiMode,
 	int				iSoapoMode,
-	KCmd **lppCmd);
+	KCmdProxy **lppCmd);
 
+extern void DestroySoapTransport(KCmdProxy *lpCmd);
 
-VOID DestroySoapTransport(KCmd *lpCmd);
 #endif

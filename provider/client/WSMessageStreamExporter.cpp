@@ -24,6 +24,7 @@
 #include "WSTransport.h"
 #include <kopano/charset/convert.h>
 #include "WSUtil.h"
+#include "soapKCmdProxy.h"
 
 /**
  * Create a WSMessageStreamExporter instance.

@@ -158,7 +158,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	unsigned int	ulLogonFlags = 0;
 	unsigned int	ulServerCapabilities = 0;
 	ECSESSIONID	ecSessionId = 0;
-	KCmd*	lpCmd = NULL;
+	KCmdProxy *lpCmd = nullptr;
 	bool		bPipeConnection = false;
 	unsigned int	ulServerVersion = 0;
 	struct logonResponse sResponse;
@@ -209,7 +209,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		goto auth;
 	
 	// Login with username and password
-	if (lpCmd->ns__logon(strUserName.c_str(), strPassword.c_str(),
+	if (lpCmd->logon(strUserName.c_str(), strPassword.c_str(),
 	    strImpersonateUser.c_str(), PROJECT_VERSION, ulCapabilities,
 	    ulLogonFlags, sLicenseRequest, m_ecSessionGroupId,
 	    GetAppName().c_str(), sProfileProps.strClientAppVersion.c_str(),
@@ -354,7 +354,7 @@ HRESULT WSTransport::HrReLogon()
 	return hrSuccess;
 }
 
-ECRESULT WSTransport::TrySSOLogon(KCmd* lpCmd, const char *szServer,
+ECRESULT WSTransport::TrySSOLogon(KCmdProxy *lpCmd, const char *szServer,
     const utf8string &strUsername, const utf8string &strImpersonateUser,
     unsigned int ulCapabilities, ECSESSIONGROUPID ecSessionGroupId,
     const char *szAppName, ECSESSIONID *lpSessionId,
@@ -396,7 +396,7 @@ ECRESULT WSTransport::TrySSOLogon(KCmd* lpCmd, const char *szServer,
 		sso_data.__ptr = reinterpret_cast<unsigned char *>(secbufout.value);
 		sso_data.__size = secbufout.length;
 
-		if (lpCmd->ns__ssoLogon(resp.ulSessionId, strUsername.c_str(),
+		if (lpCmd->ssoLogon(resp.ulSessionId, strUsername.c_str(),
 		    strImpersonateUser.c_str(), &sso_data, PROJECT_VERSION,
 		    ulCapabilities, licreq, ecSessionGroupId, szAppName,
 		    appVersion.c_str(), appMisc.c_str(), &resp) != SOAP_OK)
@@ -447,7 +447,7 @@ HRESULT WSTransport::HrGetPublicStore(ULONG ulFlags, ULONG *lpcbStoreID,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getPublicStore(m_ecSessionId, ulFlags, &sResponse))
+		if (m_lpCmd->getPublicStore(m_ecSessionId, ulFlags, &sResponse) != SOAP_OK)
 			er = KCERR_SERVER_NOT_RESPONDING;
 		else
 			er = sResponse.er;
@@ -499,7 +499,7 @@ HRESULT WSTransport::HrGetStore(ULONG cbMasterID, ENTRYID *lpMasterID,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getStore(m_ecSessionId, (lpMasterID)?&sEntryId:NULL, &sResponse))
+		if (m_lpCmd->getStore(m_ecSessionId, lpMasterID != nullptr ? &sEntryId : nullptr, &sResponse) != SOAP_OK)
 			er = KCERR_SERVER_NOT_RESPONDING;
 		else
 			er = sResponse.er;
@@ -561,7 +561,7 @@ HRESULT WSTransport::HrGetStoreName(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG 
 	
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getStoreName(m_ecSessionId, sEntryId, &sResponse))
+		if (m_lpCmd->getStoreName(m_ecSessionId, sEntryId, &sResponse) != SOAP_OK)
 			er = KCERR_SERVER_NOT_RESPONDING;
 		else
 			er = sResponse.er;
@@ -599,7 +599,7 @@ HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG 
 	
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getStoreType(m_ecSessionId, sEntryId, &sResponse))
+		if (m_lpCmd->getStoreType(m_ecSessionId, sEntryId, &sResponse) != SOAP_OK)
 			er = KCERR_SERVER_NOT_RESPONDING;
 		else
 			er = sResponse.er;
@@ -621,7 +621,7 @@ HRESULT WSTransport::HrLogOff()
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__logoff(m_ecSessionId, &er) )
+		if (m_lpCmd->logoff(m_ecSessionId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			m_has_session = false;
@@ -644,7 +644,7 @@ HRESULT WSTransport::logoff_nd(void)
 	LockSoap();
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->ns__logoff(m_ecSessionId, &er) != SOAP_OK)
+		if (m_lpCmd->logoff(m_ecSessionId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			m_has_session = false;
@@ -674,9 +674,8 @@ HRESULT WSTransport::HrCheckExistObject(ULONG cbEntryID,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__checkExistObject(m_ecSessionId, sEntryId, ulFlags, &er))
+		if (m_lpCmd->checkExistObject(m_ecSessionId, sEntryId, ulFlags, &er) != SOAP_OK)
 			er = KCERR_SERVER_NOT_RESPONDING;
-
 	}
 	END_SOAP_CALL
  exitm:
@@ -827,7 +826,7 @@ HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, LPENTRYLIST lpMsgList, ULONG
 		goto exitm;
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__deleteObjects(m_ecSessionId, ulFlags, &sEntryList, ulSyncId, &er))
+		if (m_lpCmd->deleteObjects(m_ecSessionId, ulFlags, &sEntryList, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -879,9 +878,8 @@ HRESULT WSTransport::HrNotify(LPNOTIFICATION lpNotification)
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__notify(m_ecSessionId, sNotification, &er)) {
+		if (m_lpCmd->notify(m_ecSessionId, sNotification, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-		}
 	}
 	END_SOAP_CALL
  exitm:
@@ -907,9 +905,8 @@ HRESULT WSTransport::HrSubscribe(ULONG cbKey, LPBYTE lpKey, ULONG ulConnection, 
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__notifySubscribe(m_ecSessionId, &notSubscribe, &er))
+		if (m_lpCmd->notifySubscribe(m_ecSessionId, &notSubscribe, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-
 	}
 	END_SOAP_CALL
  exitm:
@@ -933,9 +930,8 @@ HRESULT WSTransport::HrSubscribe(ULONG ulSyncId, ULONG ulChangeId, ULONG ulConne
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__notifySubscribe(m_ecSessionId, &notSubscribe, &er))
+		if (m_lpCmd->notifySubscribe(m_ecSessionId, &notSubscribe, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-
 	}
 	END_SOAP_CALL
  exitm:
@@ -969,9 +965,8 @@ HRESULT WSTransport::HrSubscribeMulti(const ECLISTSYNCADVISE &lstSyncAdvises, UL
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__notifySubscribeMulti(m_ecSessionId, &notSubscribeArray, &er))
+		if (m_lpCmd->notifySubscribeMulti(m_ecSessionId, &notSubscribeArray, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-
 	}
 	END_SOAP_CALL
  exitm:
@@ -990,9 +985,8 @@ HRESULT WSTransport::HrUnSubscribe(ULONG ulConnection)
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__notifyUnSubscribe(m_ecSessionId, ulConnection, &er) )
+		if (m_lpCmd->notifyUnSubscribe(m_ecSessionId, ulConnection, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-
 	}
 	END_SOAP_CALL
  exitm:
@@ -1016,9 +1010,8 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__notifyUnSubscribeMulti(m_ecSessionId, &ulConnArray, &er) )
+		if (m_lpCmd->notifyUnSubscribeMulti(m_ecSessionId, &ulConnArray, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-
 	}
 	END_SOAP_CALL
  exitm:
@@ -1075,7 +1068,7 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
 
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->ns__exportMessageChangesAsStream(m_ecSessionId, ulFlags, sPropTags, *ptrsSourceKeyPairs, ulPropTag, &sResponse) != SOAP_OK)
+		if (m_lpCmd->exportMessageChangesAsStream(m_ecSessionId, ulFlags, sPropTags, *ptrsSourceKeyPairs, ulPropTag, &sResponse) != SOAP_OK)
 			er = MAPI_E_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -1164,11 +1157,10 @@ HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames,
 	// Send the call off the the server
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getIDsFromNames(m_ecSessionId, &sNamedProps, ulFlags, &sResponse))
+		if (m_lpCmd->getIDsFromNames(m_ecSessionId, &sNamedProps, ulFlags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
-
 	}
 	END_SOAP_CALL
 
@@ -1208,11 +1200,10 @@ HRESULT WSTransport::HrGetNamesFromIDs(SPropTagArray *lpsPropTags,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getNamesFromIDs(m_ecSessionId, &sPropTags, &sResponse))
+		if (m_lpCmd->getNamesFromIDs(m_ecSessionId, &sPropTags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
-
 	}
 	END_SOAP_CALL
 
@@ -1284,11 +1275,10 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 	// Get ReceiveFolder information from the server
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getReceiveFolderTable(m_ecSessionId, sEntryId, &sReceiveFolders))
+		if (m_lpCmd->getReceiveFolderTable(m_ecSessionId, sEntryId, &sReceiveFolders) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sReceiveFolders.er;
-
 	}
 	END_SOAP_CALL
 
@@ -1385,7 +1375,7 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID,
 	// Get ReceiveFolder information from the server
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->ns__getReceiveFolder(m_ecSessionId, sEntryId,
+		if (m_lpCmd->getReceiveFolder(m_ecSessionId, sEntryId,
 		    strMessageClass.c_str(), &sReceiveFolderTable) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
@@ -1440,7 +1430,7 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
 		goto exitm;
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->ns__setReceiveFolder(m_ecSessionId, sStoreId,
+		if (m_lpCmd->setReceiveFolder(m_ecSessionId, sStoreId,
 		    lpEntryID != nullptr ? &sEntryId : nullptr,
 		    strMessageClass.c_str(), &result) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
@@ -1471,9 +1461,8 @@ HRESULT WSTransport::HrSetReadFlag(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG u
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__setReadFlags(m_ecSessionId, ulFlags, NULL, &sEntryList, ulSyncId, &er))
+		if (m_lpCmd->setReadFlags(m_ecSessionId, ulFlags, nullptr, &sEntryList, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-
 	}
 	END_SOAP_CALL
  exitm:
@@ -1496,7 +1485,7 @@ HRESULT WSTransport::HrSubmitMessage(ULONG cbMessageID, LPENTRYID lpMessageID, U
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__submitMessage(m_ecSessionId, sEntryId, ulFlags, &er))
+		if (m_lpCmd->submitMessage(m_ecSessionId, sEntryId, ulFlags, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -1520,7 +1509,7 @@ HRESULT WSTransport::HrFinishedMessage(ULONG cbEntryID,
 	
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__finishedMessage(m_ecSessionId, sEntryId, ulFlags, &er))
+		if (m_lpCmd->finishedMessage(m_ecSessionId, sEntryId, ulFlags, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -1543,7 +1532,7 @@ HRESULT WSTransport::HrAbortSubmit(ULONG cbEntryID, const ENTRYID *lpEntryID)
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__abortSubmit(m_ecSessionId, sEntryId, &er))
+		if (m_lpCmd->abortSubmit(m_ecSessionId, sEntryId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -1572,11 +1561,10 @@ HRESULT WSTransport::HrResolveStore(const GUID *lpGuid, ULONG *lpulUserID,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__resolveStore(m_ecSessionId, sStoreGuid, &sResponse))
+		if (m_lpCmd->resolveStore(m_ecSessionId, sStoreGuid, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
-
 	}
 	END_SOAP_CALL
 
@@ -1610,7 +1598,7 @@ HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulF
 
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->ns__resolveUserStore(m_ecSessionId, strUserName.c_str(),
+		if (m_lpCmd->resolveUserStore(m_ecSessionId, strUserName.c_str(),
 		    ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC,
 		    ulFlags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
@@ -1673,7 +1661,7 @@ HRESULT WSTransport::HrResolveTypedStore(const utf8string &strUserName, ULONG ul
 
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->ns__resolveUserStore(m_ecSessionId,
+		if (m_lpCmd->resolveUserStore(m_ecSessionId,
 		    strUserName.c_str(), 1 << ulStoreType, 0,
 		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
@@ -1738,11 +1726,10 @@ HRESULT WSTransport::HrCreateUser(ECUSER *lpECUser, ULONG ulFlags,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__createUser(m_ecSessionId, &sUser, &sResponse))
+		if (m_lpCmd->createUser(m_ecSessionId, &sUser, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
-
 	}
 	END_SOAP_CALL
 
@@ -1790,7 +1777,7 @@ HRESULT WSTransport::HrGetUser(ULONG cbUserID, const ENTRYID *lpUserID,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getUser(m_ecSessionId, ulUserId, sUserId, &sResponse))
+		if (m_lpCmd->getUser(m_ecSessionId, ulUserId, sUserId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -1851,11 +1838,10 @@ HRESULT WSTransport::HrSetUser(ECUSER *lpECUser, ULONG ulFlags)
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__setUser(m_ecSessionId, &sUser, &result))
+		if (m_lpCmd->setUser(m_ecSessionId, &sUser, &result) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = result;
-
 	}
 	END_SOAP_CALL
  exitm:
@@ -1912,9 +1898,8 @@ HRESULT WSTransport::HrCreateStore(ULONG ulStoreType, ULONG cbUserID,
 
 	START_SOAP_CALL
 	{
-	  if(SOAP_OK != m_lpCmd->ns__createStore(m_ecSessionId, ulStoreType, ABEID_ID(lpUserID), sUserId, sStoreId, sRootId, ulFlags, &er))
+		if (m_lpCmd->createStore(m_ecSessionId, ulStoreType, ABEID_ID(lpUserID), sUserId, sStoreId, sRootId, ulFlags, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-
 	}
 	END_SOAP_CALL
  exitm:
@@ -1946,7 +1931,7 @@ HRESULT WSTransport::HrHookStore(ULONG ulStoreType, ULONG cbUserId,
 	
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__hookStore(m_ecSessionId, ulStoreType, sUserId, sStoreGuid, ulSyncId, &er))
+		if (m_lpCmd->hookStore(m_ecSessionId, ulStoreType, sUserId, sStoreGuid, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -1975,7 +1960,7 @@ HRESULT WSTransport::HrUnhookStore(ULONG ulStoreType, ULONG cbUserId,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__unhookStore(m_ecSessionId, ulStoreType, sUserId, ulSyncId, &er))
+		if (m_lpCmd->unhookStore(m_ecSessionId, ulStoreType, sUserId, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2002,7 +1987,7 @@ HRESULT WSTransport::HrRemoveStore(const GUID *lpGuid, ULONG ulSyncId)
 	
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__removeStore(m_ecSessionId, sStoreGuid, ulSyncId, &er))
+		if (m_lpCmd->removeStore(m_ecSessionId, sStoreGuid, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2030,9 +2015,8 @@ HRESULT WSTransport::HrDeleteUser(ULONG cbUserId, LPENTRYID lpUserId)
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__deleteUser(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &er))
+		if (m_lpCmd->deleteUser(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-	
 	}
 	END_SOAP_CALL
  exitm:
@@ -2077,7 +2061,7 @@ HRESULT WSTransport::HrGetUserList(ULONG cbCompanyId,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getUserList(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, &sResponse))
+		if (m_lpCmd->getUserList(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -2135,7 +2119,7 @@ HRESULT WSTransport::HrCreateGroup(ECGROUP *lpECGroup, ULONG ulFlags,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__createGroup(m_ecSessionId, &sGroup, &sResponse))
+		if (m_lpCmd->createGroup(m_ecSessionId, &sGroup, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -2192,9 +2176,8 @@ HRESULT WSTransport::HrSetGroup(ECGROUP *lpECGroup, ULONG ulFlags)
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__setGroup(m_ecSessionId, &sGroup, &er))
+		if (m_lpCmd->setGroup(m_ecSessionId, &sGroup, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-
 	}
 	END_SOAP_CALL
  exitm:
@@ -2237,7 +2220,7 @@ HRESULT WSTransport::HrGetGroup(ULONG cbGroupID, const ENTRYID *lpGroupID,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getGroup(m_ecSessionId, ABEID_ID(lpGroupID), sGroupId, &sResponse))
+		if (m_lpCmd->getGroup(m_ecSessionId, ABEID_ID(lpGroupID), sGroupId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -2272,7 +2255,7 @@ HRESULT WSTransport::HrDeleteGroup(ULONG cbGroupId, LPENTRYID lpGroupId)
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__groupDelete(m_ecSessionId, ABEID_ID(lpGroupId), sGroupId, &er))
+		if (m_lpCmd->groupDelete(m_ecSessionId, ABEID_ID(lpGroupId), sGroupId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2312,7 +2295,7 @@ HRESULT WSTransport::HrGetSendAsList(ULONG cbUserId, LPENTRYID lpUserId,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getSendAsList(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sResponse))
+		if (m_lpCmd->getSendAsList(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -2350,7 +2333,7 @@ HRESULT WSTransport::HrAddSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG c
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__addSendAsUser(m_ecSessionId, ABEID_ID(lpUserId), sUserId, ABEID_ID(lpSenderId), sSenderId, &er))
+		if (m_lpCmd->addSendAsUser(m_ecSessionId, ABEID_ID(lpUserId), sUserId, ABEID_ID(lpSenderId), sSenderId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	
 	}
@@ -2383,7 +2366,7 @@ HRESULT WSTransport::HrDelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG c
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__delSendAsUser(m_ecSessionId, ABEID_ID(lpUserId), sUserId, ABEID_ID(lpSenderId), sSenderId, &er))
+		if (m_lpCmd->delSendAsUser(m_ecSessionId, ABEID_ID(lpUserId), sUserId, ABEID_ID(lpSenderId), sSenderId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2414,7 +2397,7 @@ HRESULT WSTransport::HrGetUserClientUpdateStatus(ULONG cbUserId,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getUserClientUpdateStatus(m_ecSessionId, sUserId, &sResponse) )
+		if (m_lpCmd->getUserClientUpdateStatus(m_ecSessionId, sUserId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2447,7 +2430,7 @@ HRESULT WSTransport::HrRemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId)
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__removeAllObjects(m_ecSessionId, sUserId, &er))
+		if (m_lpCmd->removeAllObjects(m_ecSessionId, sUserId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2482,13 +2465,12 @@ HRESULT WSTransport::HrResolveUserName(LPCTSTR lpszUserName, ULONG ulFlags, ULON
 	//Resolve userid from username
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->ns__resolveUsername(m_ecSessionId,
+		if (m_lpCmd->resolveUsername(m_ecSessionId,
 		    convstring(lpszUserName, ulFlags).u8_str(),
 		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
-	
 	}
 	END_SOAP_CALL
 
@@ -2524,13 +2506,12 @@ HRESULT WSTransport::HrResolveGroupName(LPCTSTR lpszGroupName, ULONG ulFlags, UL
 	//Resolve groupid from groupname
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->ns__resolveGroupname(m_ecSessionId,
+		if (m_lpCmd->resolveGroupname(m_ecSessionId,
 		    convstring(lpszGroupName, ulFlags).u8_str(),
 		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
-	
 	}
 	END_SOAP_CALL
 
@@ -2575,7 +2556,7 @@ HRESULT WSTransport::HrGetGroupList(ULONG cbCompanyId,
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__getGroupList(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, &sResponse))
+		if (m_lpCmd->getGroupList(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -2613,7 +2594,7 @@ HRESULT WSTransport::HrDeleteGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULO
 	// Remove group
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__deleteGroupUser(m_ecSessionId, ABEID_ID(lpGroupId), sGroupId, ABEID_ID(lpUserId), sUserId, &er))
+		if (m_lpCmd->deleteGroupUser(m_ecSessionId, ABEID_ID(lpGroupId), sGroupId, ABEID_ID(lpUserId), sUserId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2645,7 +2626,7 @@ HRESULT WSTransport::HrAddGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG 
 	// Remove group
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__addGroupUser(m_ecSessionId, ABEID_ID(lpGroupId), sGroupId, ABEID_ID(lpUserId), sUserId, &er))
+		if (m_lpCmd->addGroupUser(m_ecSessionId, ABEID_ID(lpGroupId), sGroupId, ABEID_ID(lpUserId), sUserId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2686,7 +2667,7 @@ HRESULT WSTransport::HrGetUserListOfGroup(ULONG cbGroupId, LPENTRYID lpGroupId,
 	// Get an userlist of a group
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__getUserListOfGroup(m_ecSessionId, ABEID_ID(lpGroupId), sGroupId, &sResponse))
+		if (m_lpCmd->getUserListOfGroup(m_ecSessionId, ABEID_ID(lpGroupId), sGroupId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -2733,7 +2714,7 @@ HRESULT WSTransport::HrGetGroupListOfUser(ULONG cbUserId, LPENTRYID lpUserId,
 	// Get a grouplist of an user
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__getGroupListOfUser(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sResponse))
+		if (m_lpCmd->getGroupListOfUser(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -2787,7 +2768,7 @@ HRESULT WSTransport::HrCreateCompany(ECCOMPANY *lpECCompany, ULONG ulFlags,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__createCompany(m_ecSessionId, &sCompany, &sResponse))
+		if (m_lpCmd->createCompany(m_ecSessionId, &sCompany, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -2822,7 +2803,7 @@ HRESULT WSTransport::HrDeleteCompany(ULONG cbCompanyId, LPENTRYID lpCompanyId)
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__deleteCompany(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, &er))
+		if (m_lpCmd->deleteCompany(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2877,7 +2858,7 @@ HRESULT WSTransport::HrSetCompany(ECCOMPANY *lpECCompany, ULONG ulFlags)
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__setCompany(m_ecSessionId, &sCompany, &er))
+		if (m_lpCmd->setCompany(m_ecSessionId, &sCompany, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -2920,7 +2901,7 @@ HRESULT WSTransport::HrGetCompany(ULONG cbCompanyId, const ENTRYID *lpCompanyId,
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__getCompany(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, &sResponse))
+		if (m_lpCmd->getCompany(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -2963,7 +2944,7 @@ HRESULT WSTransport::HrResolveCompanyName(LPCTSTR lpszCompanyName, ULONG ulFlags
 	//Resolve companyid from companyname
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->ns__resolveCompanyname(m_ecSessionId,
+		if (m_lpCmd->resolveCompanyname(m_ecSessionId,
 		    convstring(lpszCompanyName, ulFlags).u8_str(),
 		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
@@ -3006,7 +2987,7 @@ HRESULT WSTransport::HrGetCompanyList(ULONG ulFlags, ULONG *lpcCompanies,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getCompanyList(m_ecSessionId, &sResponse))
+		if (m_lpCmd->getCompanyList(m_ecSessionId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -3045,7 +3026,7 @@ HRESULT WSTransport::HrAddCompanyToRemoteViewList(ULONG cbSetCompanyId, LPENTRYI
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__addCompanyToRemoteViewList(m_ecSessionId, ABEID_ID(lpSetCompanyId), sSetCompanyId, ABEID_ID(lpCompanyId), sCompanyId, &er))
+		if (m_lpCmd->addCompanyToRemoteViewList(m_ecSessionId, ABEID_ID(lpSetCompanyId), sSetCompanyId, ABEID_ID(lpCompanyId), sCompanyId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -3077,7 +3058,7 @@ HRESULT WSTransport::HrDelCompanyFromRemoteViewList(ULONG cbSetCompanyId, LPENTR
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__delCompanyFromRemoteViewList(m_ecSessionId, ABEID_ID(lpSetCompanyId), sSetCompanyId, ABEID_ID(lpCompanyId), sCompanyId, &er))
+		if (m_lpCmd->delCompanyFromRemoteViewList(m_ecSessionId, ABEID_ID(lpSetCompanyId), sSetCompanyId, ABEID_ID(lpCompanyId), sCompanyId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -3120,7 +3101,7 @@ HRESULT WSTransport::HrGetRemoteViewList(ULONG cbCompanyId,
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__getRemoteViewList(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, &sResponse))
+		if (m_lpCmd->getRemoteViewList(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -3158,7 +3139,7 @@ HRESULT WSTransport::HrAddUserToRemoteAdminList(ULONG cbUserId, LPENTRYID lpUser
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__addUserToRemoteAdminList(m_ecSessionId, ABEID_ID(lpUserId), sUserId, ABEID_ID(lpCompanyId), sCompanyId, &er))
+		if (m_lpCmd->addUserToRemoteAdminList(m_ecSessionId, ABEID_ID(lpUserId), sUserId, ABEID_ID(lpCompanyId), sCompanyId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -3190,7 +3171,7 @@ HRESULT WSTransport::HrDelUserFromRemoteAdminList(ULONG cbUserId, LPENTRYID lpUs
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__delUserFromRemoteAdminList(m_ecSessionId, ABEID_ID(lpUserId), sUserId, ABEID_ID(lpCompanyId), sCompanyId, &er))
+		if (m_lpCmd->delUserFromRemoteAdminList(m_ecSessionId, ABEID_ID(lpUserId), sUserId, ABEID_ID(lpCompanyId), sCompanyId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -3232,7 +3213,7 @@ HRESULT WSTransport::HrGetRemoteAdminList(ULONG cbCompanyId,
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__getRemoteAdminList(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, &sResponse))
+		if (m_lpCmd->getRemoteAdminList(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -3278,7 +3259,7 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getRights(m_ecSessionId, sEntryId, ulType, &sRightResponse))
+		if (m_lpCmd->getRights(m_ecSessionId, sEntryId, ulType, &sRightResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sRightResponse.er;
@@ -3363,9 +3344,8 @@ HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__setRights(m_ecSessionId, sEntryId, &rArray, &er))
+		if (m_lpCmd->setRights(m_ecSessionId, sEntryId, &rArray, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-
 	}
 	END_SOAP_CALL
  exitm:
@@ -3400,11 +3380,10 @@ HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpc
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getOwner(m_ecSessionId, sEntryId, &sResponse))
+		if (m_lpCmd->getOwner(m_ecSessionId, sEntryId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
-
 	}
 	END_SOAP_CALL
 
@@ -3453,11 +3432,10 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__abResolveNames(m_ecSessionId, &aPropTag, lpsRowSet, &aFlags, ulFlags, &sResponse))
+		if (m_lpCmd->abResolveNames(m_ecSessionId, &aPropTag, lpsRowSet, &aFlags, ulFlags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
-
 	}
 	END_SOAP_CALL
 	
@@ -3513,7 +3491,7 @@ HRESULT WSTransport::HrSyncUsers(ULONG cbCompanyId, LPENTRYID lpCompanyId)
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__syncUsers(m_ecSessionId, ulCompanyId, sCompanyId, &sResponse))
+		if (m_lpCmd->syncUsers(m_ecSessionId, ulCompanyId, sCompanyId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse;
@@ -3546,7 +3524,7 @@ HRESULT WSTransport::GetQuota(ULONG cbUserId, LPENTRYID lpUserId,
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__GetQuota(m_ecSessionId, ABEID_ID(lpUserId), sUserId, bGetUserDefault, &sResponse))
+		if (m_lpCmd->GetQuota(m_ecSessionId, ABEID_ID(lpUserId), sUserId, bGetUserDefault, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -3596,7 +3574,7 @@ HRESULT WSTransport::SetQuota(ULONG cbUserId, LPENTRYID lpUserId,
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__SetQuota(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sQuota, &sResponse))
+		if (m_lpCmd->SetQuota(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sQuota, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse;
@@ -3630,7 +3608,7 @@ HRESULT WSTransport::AddQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompanyId,
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__AddQuotaRecipient(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, ABEID_ID(lpRecipientId), sRecipientId, ulType, &er))
+		if (m_lpCmd->AddQuotaRecipient(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, ABEID_ID(lpRecipientId), sRecipientId, ulType, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -3661,7 +3639,7 @@ HRESULT WSTransport::DeleteQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompany
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__DeleteQuotaRecipient(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, ABEID_ID(lpRecipientId), sRecipientId, ulType, &er))
+		if (m_lpCmd->DeleteQuotaRecipient(m_ecSessionId, ABEID_ID(lpCompanyId), sCompanyId, ABEID_ID(lpRecipientId), sRecipientId, ulType, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -3694,7 +3672,7 @@ HRESULT WSTransport::GetQuotaRecipients(ULONG cbUserId, LPENTRYID lpUserId,
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__GetQuotaRecipients(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sResponse))
+		if (m_lpCmd->GetQuotaRecipients(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -3731,7 +3709,7 @@ HRESULT WSTransport::GetQuotaStatus(ULONG cbUserId, LPENTRYID lpUserId,
 
 	START_SOAP_CALL
 	{
-    	if(SOAP_OK != m_lpCmd->ns__GetQuotaStatus(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sResponse))
+		if (m_lpCmd->GetQuotaStatus(m_ecSessionId, ABEID_ID(lpUserId), sUserId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -3760,9 +3738,8 @@ HRESULT WSTransport::HrPurgeSoftDelete(ULONG ulDays)
     
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__purgeSoftDelete(m_ecSessionId, ulDays, &er))
+		if (m_lpCmd->purgeSoftDelete(m_ecSessionId, ulDays, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-        
 	}
 	END_SOAP_CALL
  exitm:
@@ -3780,9 +3757,8 @@ HRESULT WSTransport::HrPurgeCache(ULONG ulFlags)
     
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__purgeCache(m_ecSessionId, ulFlags, &er))
+		if (m_lpCmd->purgeCache(m_ecSessionId, ulFlags, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-        
 	}
 	END_SOAP_CALL
  exitm:
@@ -3801,7 +3777,7 @@ HRESULT WSTransport::HrPurgeDeferredUpdates(ULONG *lpulRemaining)
     
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__purgeDeferredUpdates(m_ecSessionId, &sResponse))
+		if (m_lpCmd->purgeDeferredUpdates(m_ecSessionId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
         else
             er = sResponse.er;
@@ -3852,8 +3828,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 
 	START_SOAP_CALL
 	{
-		if (m_lpCmd->ns__resolvePseudoUrl(m_ecSessionId, lpszPseudoUrl,
-		    &sResponse) != SOAP_OK)
+		if (m_lpCmd->resolvePseudoUrl(m_ecSessionId, lpszPseudoUrl, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -3906,7 +3881,7 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 
 	START_SOAP_CALL
 	{
-    	if( SOAP_OK != m_lpCmd->ns__getServerDetails(m_ecSessionId, *lpsSvrNameList, ulFlags & ~MAPI_UNICODE, &sResponse))
+		if (m_lpCmd->getServerDetails(m_ecSessionId, *lpsSvrNameList, ulFlags & ~MAPI_UNICODE, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -3942,7 +3917,7 @@ HRESULT WSTransport::HrGetChanges(const std::string& sourcekey, ULONG ulSyncId, 
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getChanges(m_ecSessionId, sSourceKey, ulSyncId, ulChangeId, ulSyncType, ulFlags, lpsSoapRestrict, &sResponse))
+		if (m_lpCmd->getChanges(m_ecSessionId, sSourceKey, ulSyncId, ulChangeId, ulSyncType, ulFlags, lpsSoapRestrict, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -4002,7 +3977,7 @@ HRESULT WSTransport::HrSetSyncStatus(const std::string& sourcekey, ULONG ulSyncI
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__setSyncStatus(m_ecSessionId, sSourceKey, ulSyncId, ulChangeId, ulSyncType, ulFlags, &sResponse))
+		if (m_lpCmd->setSyncStatus(m_ecSessionId, sSourceKey, ulSyncId, ulChangeId, ulSyncType, ulFlags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -4051,7 +4026,7 @@ HRESULT WSTransport::HrEntryIDFromSourceKey(ULONG cbStoreID, LPENTRYID lpStoreID
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getEntryIDFromSourceKey(m_ecSessionId, sStoreId, folderSourceKey, messageSourceKey, &sResponse))
+		if (m_lpCmd->getEntryIDFromSourceKey(m_ecSessionId, sStoreId, folderSourceKey, messageSourceKey, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -4085,7 +4060,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 
 	START_SOAP_CALL
 	{
-		if(SOAP_OK != m_lpCmd->ns__getSyncStates(m_ecSessionId, ulaSyncId, &sResponse))
+		if (m_lpCmd->getSyncStates(m_ecSessionId, ulaSyncId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -4169,7 +4144,7 @@ HRESULT WSTransport::HrSetLockState(ULONG cbEntryID, const ENTRYID *lpEntryID, b
 
 	START_SOAP_CALL
 	{
-		if (SOAP_OK != m_lpCmd->ns__setLockState(m_ecSessionId, eidMessage, bLocked, &er))
+		if (m_lpCmd->setLockState(m_ecSessionId, eidMessage, bLocked, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		/* else: er is already set and good to use */
 	}
@@ -4203,7 +4178,7 @@ HRESULT WSTransport::HrTestPerform(const char *szCommand, unsigned int ulArgs,
     
     START_SOAP_CALL
     {
-        if(SOAP_OK != m_lpCmd->ns__testPerform(m_ecSessionId, szCommand, sTestPerform, &er))
+		if (m_lpCmd->testPerform(m_ecSessionId, szCommand, sTestPerform, &er) != SOAP_OK)
             er = KCERR_NETWORK_ERROR;
     }
     END_SOAP_CALL;
@@ -4222,7 +4197,7 @@ HRESULT WSTransport::HrTestSet(const char *szName, const char *szValue)
     
     START_SOAP_CALL
     {
-		if (m_lpCmd->ns__testSet(m_ecSessionId, szName, szValue, &er) != SOAP_OK)
+		if (m_lpCmd->testSet(m_ecSessionId, szName, szValue, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
     }
     END_SOAP_CALL
@@ -4244,7 +4219,7 @@ HRESULT WSTransport::HrTestGet(const char *szName, char **lpszValue)
     
     START_SOAP_CALL
     {
-		if (m_lpCmd->ns__testGet(m_ecSessionId, szName, &sResponse) != SOAP_OK)
+		if (m_lpCmd->testGet(m_ecSessionId, szName, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
         else
                 er = sResponse.er;
@@ -4353,7 +4328,7 @@ HRESULT WSTransport::HrGetNotify(struct notificationArray **lppsArrayNotificatio
 	
 	LockSoap();
 
-	if(SOAP_OK != m_lpCmd->ns__notifyGetItems(m_ecSessionId, &sNotifications))
+	if (m_lpCmd->notifyGetItems(m_ecSessionId, &sNotifications) != SOAP_OK)
 		er = KCERR_NETWORK_ERROR;
 	else
 		er = sNotifications.er;	// hrSuccess or KCWARN_KEEP_ALIVE only
@@ -4410,7 +4385,7 @@ HRESULT WSTransport::HrResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, UL
 
 	START_SOAP_CALL
 	{
-		if (SOAP_OK != m_lpCmd->ns__resetFolderCount(m_ecSessionId, eidFolder, &sResponse))
+		if (m_lpCmd->resetFolderCount(m_ecSessionId, eidFolder, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;

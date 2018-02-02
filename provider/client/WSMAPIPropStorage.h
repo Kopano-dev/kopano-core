@@ -25,7 +25,6 @@
 #include "IECPropStorage.h"
 
 #include <kopano/kcodes.h>
-#include "soapKCmdProxy.h"
 #include "WSTransport.h"
 
 #include <mapi.h>
@@ -35,13 +34,15 @@ namespace KC {
 class convert_context;
 }
 
+class KCmdProxy;
+
 class WSMAPIPropStorage _kc_final : public ECUnknown, public IECPropStorage {
 protected:
-	WSMAPIPropStorage(ULONG cbParentEntryId, LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, unsigned int ulServerCapabilities, WSTransport *);
+	WSMAPIPropStorage(ULONG cbParentEntryId, LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID, ULONG ulFlags, KCmdProxy *, std::recursive_mutex &, ECSESSIONID, unsigned int ulServerCapabilities, WSTransport *);
 	virtual ~WSMAPIPropStorage();
 
 public:
-	static HRESULT Create(ULONG cbParentEntryId, LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID, ULONG ulFlags, KCmd * , std::recursive_mutex &, ECSESSIONID, unsigned int ulServerCapabilities, WSTransport *, WSMAPIPropStorage **);
+	static HRESULT Create(ULONG cbParentEntryId, LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID, ULONG ulFlags, KCmdProxy * , std::recursive_mutex &, ECSESSIONID, unsigned int ulServerCapabilities, WSTransport *, WSMAPIPropStorage **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	// For ICS
@@ -84,7 +85,7 @@ private:
 private:
 	entryId			m_sEntryId;
 	entryId			m_sParentEntryId;
-	KCmd*		lpCmd;
+	KCmdProxy *lpCmd;
 	std::recursive_mutex &lpDataLock;
 	ECSESSIONID		ecSessionId;
 	unsigned int	ulServerCapabilities;

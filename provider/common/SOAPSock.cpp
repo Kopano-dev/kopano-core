@@ -28,6 +28,7 @@
 
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
+#include "soapKCmdProxy.h"
 
 // we cannot patch http_post now (see external/gsoap/*.diff), so we redefine it
 static int
@@ -117,19 +118,14 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	ULONG ulProxyFlags,
 	int				iSoapiMode,
 	int				iSoapoMode,
-	KCmd **lppCmd)
+	KCmdProxy **lppCmd)
 {
-	KCmd*	lpCmd = NULL;
-
 	if (strServerPath == NULL || *strServerPath == '\0' || lppCmd == NULL)
 		return E_INVALIDARG;
-
-	lpCmd = new KCmd();
-
+	auto lpCmd = new KCmdProxy();
 	soap_set_imode(lpCmd->soap, iSoapiMode);
 	soap_set_omode(lpCmd->soap, iSoapoMode);
-
-	lpCmd->endpoint = strdup(strServerPath);
+	lpCmd->soap_endpoint = strdup(strServerPath);
 	lpCmd->soap->sndbuf = lpCmd->soap->rcvbuf = 0;
 	lpCmd->soap->maxoccurs = SIZE_MAX; // override default limit of 100000, as this breaks ICS for large folders at least
 
@@ -137,14 +133,14 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	lpCmd->soap->ctx = SSL_CTX_new(SSLv23_method());
 
 #ifdef WITH_OPENSSL
-	if (strncmp("https:", lpCmd->endpoint, 6) == 0) {
+	if (strncmp("https:", lpCmd->soap_endpoint, 6) == 0) {
 		// no need to add certificates to call, since soap also calls SSL_CTX_set_default_verify_paths()
 		if (soap_ssl_client_context(lpCmd->soap, SOAP_SSL_DEFAULT,
 								strSSLKeyFile != NULL && *strSSLKeyFile != '\0' ? strSSLKeyFile : NULL,
 								strSSLKeyPass != NULL && *strSSLKeyPass != '\0' ? strSSLKeyPass : NULL,
 								NULL, NULL,
 								NULL)) {
-			free(const_cast<char *>(lpCmd->endpoint));
+			free(const_cast<char *>(lpCmd->soap_endpoint));
 			delete lpCmd;
 			return E_INVALIDARG;
 		}
@@ -153,8 +149,7 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 		SSL_CTX_set_verify(lpCmd->soap->ctx, SSL_VERIFY_PEER, lpCmd->soap->fsslverify);
 	}
 #endif
-
-	if(strncmp("file:", lpCmd->endpoint, 5) == 0) {
+	if(strncmp("file:", lpCmd->soap_endpoint, 5) == 0) {
 		lpCmd->soap->fconnect = gsoap_connect_pipe;
 		lpCmd->soap->fpost = http_post;
 	} else {
@@ -174,13 +169,13 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	return hrSuccess;
 }
 
-VOID DestroySoapTransport(KCmd *lpCmd)
+void DestroySoapTransport(KCmdProxy *lpCmd)
 {
 	if (!lpCmd)
 		return;
 
 	/* strdup'd all of them earlier */
-	free(const_cast<char *>(lpCmd->endpoint));
+	free(const_cast<char *>(lpCmd->soap_endpoint));
 	free(const_cast<char *>(lpCmd->soap->proxy_host));
 	free(const_cast<char *>(lpCmd->soap->proxy_userid));
 	free(const_cast<char *>(lpCmd->soap->proxy_passwd));

@@ -38,6 +38,7 @@
 #include "ECStatsCollector.h"
 #include "ECServerEntrypoint.h"
 #include "ECSoapServerConnection.h"
+#include "soapKCmdService.h"
 
 // errors from stdsoap2.h, differs per gSOAP release
 #define RETURN_CASE(x) \
@@ -219,7 +220,7 @@ void *ECWorkerThread::Work(void *lpParam)
                 err = lpWorkItem->soap->error;
             } else {
                 try {
-                    err = soap_serve_request(lpWorkItem->soap);
+					err = KCmdService(lpWorkItem->soap).dispatch();
 				} catch (const int &) {
 					/* matching part is in cmd.cpp: "throw SOAP_NULL;" (23) */
                     // Reply processing is handled by the callee, totally ignore the rest of processing for this item

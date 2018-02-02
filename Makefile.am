@@ -266,7 +266,7 @@ kopano_server_SOURCES = \
 	provider/server/ECServer.cpp \
 	provider/server/ECSoapServerConnection.cpp provider/server/ECSoapServerConnection.h \
 	provider/server/ECThreadManager.cpp provider/server/ECThreadManager.h \
-	provider/soap/soapServer.cpp
+	provider/soap/soapKCmdService.h provider/soap/soapKCmdService.cpp
 kopano_server_LDADD = \
 	libkcutil.la libkcmapi.la libkcssl.la \
 	libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
@@ -394,7 +394,7 @@ libkcclient_la_SOURCES = \
 	provider/client/epclient.cpp \
 	provider/client/resource.h \
 	provider/common/SOAPSock.cpp provider/common/SOAPSock.h \
-	provider/soap/soapClient.cpp
+	provider/soap/soapKCmdProxy.h provider/soap/soapKCmdProxy.cpp
 libkcclient_la_LIBADD = \
 	libkcmapi.la libkcssl.la libkcutil.la libkcfreebusy.la libkcsync.la \
 	libmapi.la ${COND_libkcrosie_la} libkcsoap.la -lstdc++ \
@@ -811,21 +811,19 @@ spooler/PythonSWIGRuntime.h:
 # soap generators
 #
 SOAPHEADER = provider/include/proto.h
-SOAP_NS = provider/soap/KCmd.nsmap provider/soap/KCmd.wsdl
-SOAP_H_FILES = provider/soap/soapH.h provider/soap/soapStub.h
-SOAP_CPP_CLIENT = provider/soap/soapClient.cpp provider/soap/soapC.cpp
-SOAP_LIB_FILES = provider/soap/soapClientLib.cpp provider/soap/soapServerLib.cpp \
-	provider/soap/soapKCmdObject.h
-SOAP_CPP_SRC = ${SOAP_CPP_CLIENT} provider/soap/soapServer.cpp ${SOAP_H_FILES} \
-	${SOAP_NS} ${SOAP_LIB_FILES}
+SOAP_OUT = \
+	provider/soap/soapC.cpp provider/soap/soapH.h \
+	provider/soap/soapKCmdProxy.cpp provider/soap/soapKCmdProxy.h \
+	provider/soap/soapKCmdService.cpp provider/soap/soapKCmdService.h \
+	provider/soap/soapStub.h
 
-${SOAP_CPP_SRC}: provider/soap/ns.xsd
-provider/soap/ns.xsd: ${SOAPHEADER}
+${SOAP_OUT}: provider/soap/KCmd.nsmap
+provider/soap/KCmd.nsmap: ${SOAPHEADER}
 	${MKDIR_P} provider/soap
-	soapcpp2 -z1 -x -Iinclude/ -d provider/soap/ $<
+	soapcpp2 -jxw -Iinclude/ -d provider/soap/ $<
 
-BUILT_SOURCES += provider/soap/ns.xsd ${SOAP_CPP_SRC}
-CLEANFILES += ${SOAP_CPP_SRC} provider/soap/*
+BUILT_SOURCES += provider/soap/KCmd.nsmap ${SOAP_OUT}
+CLEANFILES += ${SOAP_OUT} provider/soap/*
 
 
 #
