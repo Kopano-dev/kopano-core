@@ -253,13 +253,17 @@ HRESULT HrOpenECSession(IMAPISession **ses, const char *appver,
 {
 	const wchar_t *u = nullptr, *p = nullptr;
 	std::wstring wu, wp;
-	if (user != nullptr) {
-		wu = convert_to<std::wstring>(user);
-		u = wu.c_str();
-	}
-	if (pass != nullptr) {
-		wp = convert_to<std::wstring>(pass);
-		p = wp.c_str();
+	try {
+		if (user != nullptr) {
+			wu = convert_to<std::wstring>(user);
+			u = wu.c_str();
+		}
+		if (pass != nullptr) {
+			wp = convert_to<std::wstring>(pass);
+			p = wp.c_str();
+		}
+	} catch (const convert_exception &) {
+		return MAPI_E_BAD_CHARWIDTH;
 	}
 	return HrOpenECSession(ses, appver, appmisc, u, p, path, flags,
 	       sslkey, sslpass, profname);
