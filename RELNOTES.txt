@@ -1,5 +1,5 @@
-Release notes for 8.5.0
-=======================
+Release notes for 8.5.0 (2018-02-05)
+====================================
 Enhancements:
 * server: new "server_listen" directive replacing "server_bind" [KC-645]
 * server: stronger keep-alive [KC-888,KC-890]
