@@ -74,12 +74,6 @@ def _server(req):
         userid_sessiondata[userid] = sessiondata
     return server
 
-def _server_notif(req):
-    userid = req.get_header('X-Kopano-UserEntryID', required=True)
-    username = admin_server.user(userid=userid).name
-    return kopano.Server(auth_user=username, auth_pass='',
-                           parse_args=False, store_cache=False, notifications=True)
-
 def _store(server, userid):
     if userid:
         return server.user(userid=userid).store
@@ -530,7 +524,7 @@ class MessageResource(ItemResource):
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
-        server, store = _server_store(req)
+        server, store = _server_store(req, userid)
         folder = _folder(store, folderid or 'inbox') # TODO all folders?
 
         if itemid == 'delta': # TODO move to MailFolder resource somehow?
@@ -917,26 +911,6 @@ class ProfilePhotoResource(Resource):
 
         contact.set_photo('noname', req.stream.read(), req.get_header('Content-Type'))
 
-class NotificationThread(Thread):
-    def __init__(self, store, url):
-        Thread.__init__(self)
-        self.store = store
-        self.url = url
-
-    def run(self):
-        sink = self.store.advise()
-        for n in sink.notifications(time=1000000):
-            print('notify URL:', self.url)
-
-class SubscriptionResource(Resource):
-
-    def on_post(self, req, resp):
-        server = _server_notif(req)
-        store = _store(server, None)
-        fields = json.loads(req.stream.read().decode('utf-8'))
-
-        NotificationThread(store, fields['notificationUrl']).start()
-
 admin_server = kopano.Server(parse_args=False, store_cache=False)
 userid_sessiondata = {}
 
@@ -948,7 +922,6 @@ calendars = CalendarResource()
 events = EventResource()
 contactfolders = ContactFolderResource()
 contacts = ContactResource()
-subscriptions = SubscriptionResource()
 photos = ProfilePhotoResource()
 
 app = falcon.API()
@@ -961,7 +934,6 @@ def route(app, path, resource, method=True):
 route(app, PREFIX+'/users', users, method=False) # TODO method == ugly
 route(app, PREFIX+'/me', users)
 route(app, PREFIX+'/users/{userid}', users)
-route(app, PREFIX+'/subscriptions', subscriptions)
 
 for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
     route(app, user+'/mailFolders/{folderid}', folders)
