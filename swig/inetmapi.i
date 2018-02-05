@@ -76,6 +76,7 @@ struct delivery_options {
 	bool parse_smime_signed;        // Parse actual S/MIME content instead of just writing out the S/MIME data to a single attachment
         /* LPSBinary user_entryid;         // If not NULL, specifies the entryid of the user for whom we are delivering. If set, allows generating PR_MESSAGE_*_ME properties. */
 	char *ascii_upgrade;
+	bool header_strict_rfc;
 
         %extend {
             delivery_options() {

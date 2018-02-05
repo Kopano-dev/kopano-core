@@ -1,5 +1,5 @@
-Release notes for 8.5.0
-=======================
+Release notes for 8.5.0 (2018-02-05)
+====================================
 Enhancements:
 * server: new "server_listen" directive replacing "server_bind" [KC-645]
 * server: stronger keep-alive [KC-888,KC-890]
@@ -18,14 +18,17 @@ Enhancements:
 * dagent: a Python version of kopano-autorespond is available [KC-861]
 * kopano-spamd: new program [KC-666]
 * icalmapi: support URL, NICKNAME, PRODID in vcards
+* php: extend mapi_feature with ST_ONLY_WHEN_OOF [KC-970]
 Fixes:
 * gateway: generate envelope using inetmapi if not present yet [KC-607]
 * spooler: only evaluate rules that are explicitly enabled using
   PR_RULE_STATE [KC-963]
+* search: supply a HOME environment (tmpdir) when running
+  conversion tools [KC-331]
 Changes:
 * Support for Debian 7 ended [KC-736]
 * /etc/kopano is no longer prepopulated, create .cfg manually if you need to
-  override anything [KC-681]
+  override anything [KC-681, KC-978]
 * server: remove support for upgrading databases older than ZCP 7.2 [KC-839]
 * gateway: use threaded mode for reduced memory usage on many-user systems
   (new installs only) [KC-768]
@@ -38,14 +41,16 @@ Packager notes:
 * libical 3.x support [KC-920]
 
 
-Release notes for 8.4.6
-=======================
+Release notes for 8.4.6 (2018-02-02)
+====================================
 Fixes:
 * common: restore support for binary data in RTF [KC-969]
 * libserver: store size for orphaned stores was reported incorrectly [KC-984]
 * client: have OpenEntry check for NULL entryids and entryids too
   short [KC-932]
 * dagent, client: fix nonfunctional HTML filter [KC-953]
+* common: switch logging to stderr when pipe dies [KC-815]
+* spooler: avoid printing garbage when non-worker child exits [KC-815]
 
 
 Release notes for 8.4.5 (2017-12-15)
