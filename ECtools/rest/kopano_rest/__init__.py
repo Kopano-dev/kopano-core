@@ -1,3 +1,5 @@
+from .version import __version__
+
 import base64
 import codecs
 from contextlib import closing
