@@ -689,6 +689,15 @@ AC_SUBST([ZCXXFLAGS])
 AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
+AS_IF([test -n "$PYTHON"], [
+	dnl Expand e.g. PYTHON="python3 -B" to PYTHON="/usr/bin/python3 -B"
+	dnl (for embedding into #!), but keep unresolvable values as-is.
+	set -- $PYTHON
+	PYTHON=$(which "$1" 2>/dev/null)
+	AS_IF([test -z "$PYTHON"], [PYTHON="$1"])
+	shift
+	PYTHON=$(echo "$PYTHON $@")
+])
 AH_TEMPLATE([ENABLE_PYTHON], [Build dagent/spooler with Python plugin support])
 AC_ARG_ENABLE([python], [AS_HELP_STRING([--enable-python], [Enable building of Python bindings (default: auto)])],
 	[want_python="$enableval"], [want_python=auto])
