@@ -2156,6 +2156,9 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 		} else if (strcmp(keyIndex->val, "default_charset") == 0) {
 			convert_to_string_ex(entry);
 			lpDOPT->ascii_upgrade = Z_STRVAL_P(entry);
+		} else if (strcmp(keyIndex->val, "header_strict_rfc") == 0) {
+			convert_to_boolean_ex(entry);
+			lpDOPT->header_strict_rfc = (Z_TYPE_P(entry) == TRUE);
 		} else {
 			// user_entryid not supported, others unknown
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown or disallowed delivery option %s", keyIndex->val);
