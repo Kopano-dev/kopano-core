@@ -330,9 +330,13 @@ bool ECConfigImpl::InitDefaults(unsigned int ulFlags)
 			/* Aliases are only initialized once */
 			if (ulFlags & LOADSETTING_INITIALIZING)
 				AddAlias(&m_lpDefaults[i]);
-		} else
-			AddSetting(&m_lpDefaults[i], ulFlags);
-		++i;
+			++i;
+			continue;
+		}
+		auto f = ulFlags | LOADSETTING_MARK_DEFAULT;
+		if (m_lpDefaults[i].ulFlags & CONFIGSETTING_UNUSED)
+			f |= LOADSETTING_MARK_UNUSED;
+		AddSetting(&m_lpDefaults[i++], f);
 	}
 
 	return true;
@@ -582,6 +586,12 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 			return false;
 		}
 	}
+	if (ulFlags & LOADSETTING_MARK_DEFAULT)
+		s.ulFlags |= LOADSETTING_MARK_DEFAULT;
+	else
+		s.ulFlags &= ~LOADSETTING_MARK_DEFAULT;
+	if (ulFlags & LOADSETTING_MARK_UNUSED)
+		s.ulFlags |= LOADSETTING_MARK_UNUSED;
 	InsertOrReplace(&m_mapSettings, s, lpsConfig->szValue, s.ulFlags & CONFIGSETTING_SIZE);
 	return true;
 }
@@ -610,6 +620,21 @@ bool ECConfigImpl::HasErrors() {
 			if (!s.second || strlen(s.second) == 0)
 				errors.emplace_back("Option '" + std::string(s.first.s) + "' cannot be empty!");
 	return !errors.empty();
+}
+
+int ECConfigImpl::dump_config(FILE *fp)
+{
+	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);
+	for (const auto &p : m_mapSettings) {
+		if (p.first.ulFlags & LOADSETTING_MARK_UNUSED)
+			continue;
+		if (p.first.ulFlags & LOADSETTING_MARK_DEFAULT)
+			fprintf(fp, "# ");
+		auto ret = fprintf(fp, "%s = %s\n", p.first.s, p.second);
+		if (ret < 0)
+			return ret;
+	}
+	return 0;
 }
 
 } /* namespace */

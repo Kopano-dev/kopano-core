@@ -60,6 +60,8 @@ struct directive_t {
 #define LOADSETTING_OVERWRITE_GROUP		0x0008	/* Same as CONFIG_LOAD_OVERWRITE but only if options are in the same group */
 #define LOADSETTING_OVERWRITE_RELOAD	0x0010	/* Same as CONFIG_LOAD_OVERWRITE but only if option is marked reloadable */
 #define LOADSETTING_CMDLINE_PARAM		0x0020	/* This setting is being set from commandline parameters. Sets the option non-reloadable */
+#define LOADSETTING_MARK_DEFAULT                0x0040  /* This setting is at its default value */
+#define LOADSETTING_MARK_UNUSED                 0x0080  /* This setting has no effect */
 
 class ECConfigImpl _kc_final : public ECConfig {
 public:
@@ -80,6 +82,7 @@ public:
 	const std::list<std::string> *GetWarnings(void) _kc_override { return &warnings; }
 	bool HasErrors(void) _kc_override;
 	const std::list<std::string> *GetErrors(void) _kc_override { return &errors; }
+	int dump_config(FILE *) override;
 
 private:
 	bool	InitDefaults(unsigned int ulFlags);

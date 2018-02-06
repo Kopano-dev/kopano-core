@@ -63,6 +63,7 @@ public:
 	_kc_hidden virtual const std::list<std::string> *GetWarnings(void) = 0;
 	_kc_hidden virtual bool	HasErrors(void) = 0;
 	_kc_hidden virtual const std::list<std::string> *GetErrors(void) = 0;
+	_kc_hidden virtual int dump_config(FILE *) = 0;
 };
 
 } /* namespace */
