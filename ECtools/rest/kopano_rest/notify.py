@@ -58,7 +58,15 @@ class SubscriptionResource:
         user = _user(req)
         store = user.store
         fields = json.loads(req.stream.read().decode('utf-8'))
-        folder = utils._folder(store, 'inbox')
+
+        resource = fields['resource'].split('/')
+        if (len(resource) == 4 and \
+            resource[0] == 'me' and resource[1] == 'mailFolders' and resource[3] == 'messages'):
+            folderid = resource[2]
+
+        # TODO store-level, hierarchy?
+
+        folder = utils._folder(store, folderid)
 
         sink = AdviseSink(store)
         flags = fnevObjectModified | fnevObjectCreated | fnevObjectMoved | fnevObjectDeleted
