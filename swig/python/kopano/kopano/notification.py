@@ -6,14 +6,21 @@ Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
 
 import sys
 from .compat import  hex as _hex
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
 
 from MAPI import (
-    MAPI_MESSAGE,
-    MAPINotifSink, fnevObjectModified, fnevObjectCreated,
+    MAPI_MESSAGE, MAPI_FOLDER,
+    MAPIAdviseSink, fnevObjectModified, fnevObjectCreated,
     fnevObjectMoved, fnevObjectDeleted,
 )
 from MAPI.Struct import (
     MAPIErrorNoSupport,
+)
+from MAPI.Tags import (
+    IID_IMAPIAdviseSink,
 )
 
 if sys.hexversion >= 0x03000000:
@@ -24,6 +31,17 @@ else:
     import item as _item
 
 from .compat import bdec as _bdec
+
+class AdviseSink(MAPIAdviseSink):
+    def __init__(self, q):
+        MAPIAdviseSink.__init__(self, [IID_IMAPIAdviseSink])
+        self.q = q
+
+    def OnNotify(self, notifications):
+        for n in notifications:
+            self.q.put(n)
+
+        return 0
 
 class Notification:
     def __init__(self, store, mapiobj):
@@ -41,21 +59,22 @@ class Notification:
                 store=self.store, entryid=_hex(self._parent_entryid)
             )
 
-        return None
-
     @property
     def object(self):
         # TODO support more types
         if self.object_type == MAPI_MESSAGE:
-            return _item.Item(parent=self.store, entryid=self._entryid)
+            return self.store.item(entryid=_hex(self._entryid))
 
-        return None
+        elif self.object_type == MAPI_FOLDER:
+            return self.store.folder(entryid=_hex(self._entryid))
 
-def _notifications(store, entryid, time):
+def _notifications(store, entryid):
     flags = fnevObjectModified | fnevObjectCreated \
-        | fnevObjectMoved | fnevObjectDeleted
+        | fnevObjectMoved | fnevObjectDeleted # TODO more?
 
-    sink = MAPINotifSink()
+    q = Queue()
+    sink = AdviseSink(q)
+
     try:
         if entryid:
             store.mapiobj.Advise(_bdec(entryid), flags, sink)
@@ -67,6 +86,5 @@ def _notifications(store, entryid, time):
             "kopano.Server(notifications=True)"
         )
 
-    mapi_notifications = sink.GetNotifications(False, time*1000)
-    for notification in mapi_notifications:
-        yield Notification(store, notification)
+    while True:
+        yield Notification(store, q.get())
