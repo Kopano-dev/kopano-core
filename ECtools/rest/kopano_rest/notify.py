@@ -34,6 +34,7 @@ def _user(req):
 
 # TODO don't block on sending updates
 # TODO restarting app/server
+# TODO expiration
 # TODO handshake/call webhook
 
 class Processor(Thread):
@@ -80,24 +81,27 @@ class SubscriptionResource:
         folder.subscribe(sink)
 
         id_ = str(uuid.uuid4())
-        subscription = {
-            'id': id_,
-            'resource': fields['resource'],
-        }
-        SUBSCRIPTIONS[id_] = (subscription, sink)
+        fields['id'] = id_
+        SUBSCRIPTIONS[id_] = (fields, sink)
+
+        resp.content_type = "application/json"
+        resp.body = json.dumps(fields, indent=2, separators=(',', ': '))
+
+    def on_get(self, req, resp, subscriptionid):
+        subscription, sink = SUBSCRIPTIONS[subscriptionid]
 
         resp.content_type = "application/json"
         resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
 
-    def on_delete(self, req, resp, subscriptionid=None):
+    def on_delete(self, req, resp, subscriptionid):
         user = _user(req)
         store = user.store
-        fields = json.loads(req.stream.read().decode('utf-8'))
 
-        subscription, sink = SUBSCRIPTIONS[fields['id']]
+        subscription, sink = SUBSCRIPTIONS[subscriptionid]
         folder = _get_folder(store, subscription['resource'])
 
         folder.unsubscribe(sink)
+        del SUBSCRIPTIONS[subscriptionid]
 
 app = falcon.API()
 
