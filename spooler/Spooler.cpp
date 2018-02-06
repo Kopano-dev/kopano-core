@@ -104,6 +104,7 @@ static bool sp_exp_config;
 extern ECConfig *g_lpConfig;
 ECConfig *g_lpConfig = NULL;
 static ECLogger *g_lpLogger;
+static bool g_dump_config;
 
 // notification
 static bool bMessagesWaiting = false;
@@ -889,7 +890,8 @@ int main(int argc, char *argv[]) {
 		OPT_SEND_USERNAME,
 		OPT_LOGFD,
 		OPT_DO_SENTMAIL,
-		OPT_PORT
+		OPT_PORT,
+		OPT_DUMP_CONFIG,
 	};
 	static const struct option long_options[] = {
 		{ "help", 0, NULL, OPT_HELP },		// help text
@@ -903,6 +905,7 @@ int main(int argc, char *argv[]) {
 		{ "do-sentmail", 0, NULL, OPT_DO_SENTMAIL },
 		{ "port", 1, NULL, OPT_PORT },
 		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
+		{"dump-config", 0, nullptr, OPT_DUMP_CONFIG},
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -998,6 +1001,9 @@ int main(int argc, char *argv[]) {
 		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
 			bIgnoreUnknownConfigOptions = true;
 			break;
+		case OPT_DUMP_CONFIG:
+			g_dump_config = true;
+			break;
 		case 'V':
 			cout << "kopano-spooler " PROJECT_VERSION << endl;
 			return 1;
@@ -1052,6 +1058,8 @@ int main(int argc, char *argv[]) {
 	ec_log_set(g_lpLogger);
 	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig);
+	if (g_dump_config)
+		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 	if (!TmpPath::instance.OverridePath(g_lpConfig))
 		ec_log_err("Ignoring invalid path setting!");
 
