@@ -1,4 +1,3 @@
-# foo <foo@bar.foobar>, 2005.
 msgid ""
 msgstr ""
 "Project-Id-Version: KC-8\n"
@@ -45,12 +44,10 @@ msgstr "Ausgehend"
 msgid "This folder contains archives of all outgoing messages."
 msgstr "Dieser Ordner beinhaltet Archive aller ausgehenden Nachrichten."
 
-# 85%
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:938
 msgid "Deleted"
 msgstr "Gelöscht"
 
-# 98%
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:939
 msgid "This folder contains archives of messages that have been deleted."
 msgstr "Der Ordner beinhaltet Archive gelöschter Nachrichten."
@@ -220,13 +217,10 @@ msgstr "Betreff:"
 msgid "Subject"
 msgstr "Betreff"
 
-# 75%
 #: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
 msgid "Global Address Lists"
 msgstr "Globale Adresslisten"
 
-# 75%
-# 80%
 #: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
 msgid "All Address Lists"
 msgstr "Zusätzliche Adresslisten"
@@ -283,7 +277,6 @@ msgstr "Cc:"
 msgid "Sent on:"
 msgstr "Gesendet am:"
 
-# 93%
 #: provider/client/ECArchiveAwareMessage.cpp:471
 #: provider/client/ECArchiveAwareMessage.cpp:529
 msgid "Kopano Archiver"
@@ -577,7 +570,6 @@ msgstr "Unter Vorbehalt"
 msgid "New Time Proposed"
 msgstr "Neue Zeit vorgeschlagen"
 
-# 75%
 #: php-ext/include/mapi/class.meetingrequest.php:2692
 msgid "Canceled"
 msgstr "Abgebrochen"
@@ -611,7 +603,6 @@ msgstr "Das Element konnte nicht gefunden werden."
 msgid "Unknown MAPI Error: %s"
 msgstr "Unbekannter MAPI-Fehler: %s"
 
-# 50%
 #: php-ext/include/mapi/class.taskrequest.php:881
 msgid "Start Date"
 msgstr "Startdatum"
