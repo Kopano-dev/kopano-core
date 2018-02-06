@@ -716,6 +716,18 @@ def setdate(item, field, arg):
     date = dateutil.parser.parse(arg['dateTime'])
     setattr(item, field, date)
 
+def event_type(item):
+    if isinstance(item, kopano.Item):
+        if item.recurring:
+            return 'SeriesMaster'
+        else:
+            return 'SingleInstance'
+    else:
+        return 'Occurrence' # TODO Exception
+
+# TODO fix id for occurrences (embed datetime?)
+# TODO split: OccurrenceResource?
+
 class EventResource(ItemResource):
     fields = ItemResource.fields.copy()
     fields.update({
@@ -734,6 +746,8 @@ class EventResource(ItemResource):
         'bodyPreview': lambda item: item.text[:255],
         'isAllDay': lambda item: item.all_day,
         'showAs': lambda item: show_as_map[item.show_as],
+        'seriesMasterId': lambda item: item.entryid if isinstance(item, kopano.Occurrence) else None,
+        'type': lambda item: event_type(item),
     })
 
     set_fields = {
