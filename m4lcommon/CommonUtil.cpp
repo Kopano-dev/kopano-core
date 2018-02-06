@@ -174,15 +174,14 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 	sProps[i].ulPropTag = PR_EC_PATH;
 	sProps[i].Value.lpszA = const_cast<char *>(path != NULL && *path != '\0' ? path : "default:");
 	++i;
-
-	sProps[i].ulPropTag = PR_EC_USERNAME_W;
-	sProps[i].Value.lpszW = (WCHAR*)username;
-	++i;
-
-	sProps[i].ulPropTag = PR_EC_USERPASSWORD_W;
-	sProps[i].Value.lpszW = (WCHAR*)password;
-	++i;
-
+	if (username != nullptr) {
+		sProps[i].ulPropTag = PR_EC_USERNAME_W;
+		sProps[i++].Value.lpszW = const_cast<wchar_t *>(username);
+	}
+	if (password != nullptr) {
+		sProps[i].ulPropTag = PR_EC_USERPASSWORD_W;
+		sProps[i++].Value.lpszW = const_cast<wchar_t *>(password);
+	}
 	sProps[i].ulPropTag = PR_EC_FLAGS;
 	sProps[i].Value.ul = ulProfileFlags;
 	++i;
@@ -252,10 +251,22 @@ HRESULT HrOpenECSession(IMAPISession **ses, const char *appver,
     const char *appmisc, const char *user, const char *pass, const char *path,
     ULONG flags, const char *sslkey, const char *sslpass, const char *profname)
 {
-	return HrOpenECSession(ses, appver, appmisc,
-	       convert_to<std::wstring>(user).c_str(),
-	       convert_to<std::wstring>(pass).c_str(),
-	       path, flags, sslkey, sslpass, profname);
+	const wchar_t *u = nullptr, *p = nullptr;
+	std::wstring wu, wp;
+	try {
+		if (user != nullptr) {
+			wu = convert_to<std::wstring>(user);
+			u = wu.c_str();
+		}
+		if (pass != nullptr) {
+			wp = convert_to<std::wstring>(pass);
+			p = wp.c_str();
+		}
+	} catch (const convert_exception &) {
+		return MAPI_E_BAD_CHARWIDTH;
+	}
+	return HrOpenECSession(ses, appver, appmisc, u, p, path, flags,
+	       sslkey, sslpass, profname);
 }
 
 HRESULT HrOpenECSession(IMAPISession **lppSession,
