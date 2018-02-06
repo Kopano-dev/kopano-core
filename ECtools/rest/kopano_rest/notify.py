@@ -1,3 +1,4 @@
+import base64
 import codecs
 import falcon
 import json
@@ -16,6 +17,8 @@ from MAPI.Tags import IID_IMAPIAdviseSink
 
 import kopano
 
+from . import utils
+
 PREFIX = '/api/gc/v0'
 
 def _user(req):
@@ -28,7 +31,7 @@ def _user(req):
         return SERVER.user(userid=userid)
 
 # TODO don't block on sending updates
-# TODO multiple clients subscribe on resource, unsubscribe one.. :-)
+# TODO restarting app/server
 
 class Processor(Thread):
     def __init__(self):
@@ -55,10 +58,11 @@ class SubscriptionResource:
         user = _user(req)
         store = user.store
         fields = json.loads(req.stream.read().decode('utf-8'))
+        folder = utils._folder(store, 'inbox')
 
         sink = AdviseSink(store)
         flags = fnevObjectModified | fnevObjectCreated | fnevObjectMoved | fnevObjectDeleted
-        conn = store.mapiobj.Advise(codecs.decode(user.inbox.entryid, 'hex'), flags, sink)
+        conn = store.mapiobj.Advise(base64.urlsafe_b64decode(folder.entryid), flags, sink)
 
         id_ = str(uuid.uuid4())
         subscription = {

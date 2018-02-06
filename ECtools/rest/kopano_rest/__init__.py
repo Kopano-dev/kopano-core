@@ -27,6 +27,9 @@ import kopano
 kopano.set_bin_encoding('base64')
 kopano.set_missing_none()
 
+from . import utils
+from . import notify
+
 TOP = 10
 PREFIX = '/api/gc/v0'
 
@@ -85,25 +88,6 @@ def _server_store(req, userid):
     server = _server(req)
     store = _store(server, userid)
     return server, store
-
-def _folder(store, folderid):
-    name = folderid.lower()
-    if name == 'inbox':
-        return store.inbox
-    elif name == 'drafts':
-        return store.drafts
-    elif name == 'calendar':
-        return store.calendar
-    elif name == 'contacts':
-        return store.contacts
-    elif name == 'deleteditems':
-        return store.wastebasket
-    elif name == 'junkemail':
-        return store.junk
-    elif name == 'sentitems':
-        return store.sentmail
-    else:
-        return store.folder(entryid=folderid)
 
 def _date(d, local=False, time=True):
     if d is None:
@@ -319,7 +303,7 @@ class FolderResource(Resource):
 
     def on_delete(self, req, resp, userid=None, folderid=None):
         server, store = _server_store(req, userid)
-        folder = _folder(store, folderid)
+        folder = utils._folder(store, folderid)
         store.delete(folder)
 
 class ItemResource(Resource):
@@ -364,7 +348,7 @@ class MailFolderResource(FolderResource):
         server, store = _server_store(req, userid)
 
         if folderid:
-            data = _folder(store, folderid)
+            data = utils._folder(store, folderid)
         else:
             data = self.generator(req, store.folders, store.subtree.subfolder_count_recursive)
 
@@ -389,7 +373,7 @@ class MailFolderResource(FolderResource):
 
     def on_post(self, req, resp, userid=None, folderid=None, method=None):
         server, store = _server_store(req, userid)
-        folder = _folder(store, folderid)
+        folder = utils._folder(store, folderid)
         fields = json.loads(req.stream.read().decode('utf-8'))
 
         if method == 'messages':
@@ -424,7 +408,7 @@ class CalendarResource(FolderResource):
         if path.split('/')[-1] == 'calendars':
             data = self.generator(req, store.calendars)
         else:
-            folder = _folder(store, folderid or 'calendar')
+            folder = utils._folder(store, folderid or 'calendar')
 
             if method == 'calendarView':
                 args = urlparse.parse_qs(req.query_string)
@@ -525,7 +509,7 @@ class MessageResource(ItemResource):
 
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid)
-        folder = _folder(store, folderid or 'inbox') # TODO all folders?
+        folder = utils._folder(store, folderid or 'inbox') # TODO all folders?
 
         if itemid == 'delta': # TODO move to MailFolder resource somehow?
             self.delta(req, resp, folder)
@@ -552,7 +536,7 @@ class MessageResource(ItemResource):
 
     def on_post(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid)
-        folder = _folder(store, folderid or 'inbox') # TODO all folders?
+        folder = utils._folder(store, folderid or 'inbox') # TODO all folders?
         item = folder.item(itemid)
 
         if method == 'attachments':
@@ -562,7 +546,7 @@ class MessageResource(ItemResource):
 
     def on_patch(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid)
-        folder = _folder(store, folderid or 'inbox') # TODO all folders?
+        folder = utils._folder(store, folderid or 'inbox') # TODO all folders?
         item = folder.item(itemid)
 
         fields = json.loads(req.stream.read().decode('utf-8'))
@@ -611,7 +595,7 @@ class AttachmentResource(Resource):
         server, store = _server_store(req, userid)
 
         if folderid:
-            folder = _folder(store, folderid)
+            folder = utils._folder(store, folderid)
         elif itemid:
             folder = store.calendar
         else:
@@ -751,7 +735,7 @@ class EventResource(ItemResource):
 
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid)
-        folder = _folder(store, folderid or 'calendar')
+        folder = utils._folder(store, folderid or 'calendar')
         item = folder.item(itemid)
 
         if method == 'attachments':
@@ -764,7 +748,7 @@ class EventResource(ItemResource):
 
     def on_post(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid)
-        folder = _folder(store, folderid or 'calendar')
+        folder = utils._folder(store, folderid or 'calendar')
         item = folder.item(itemid)
 
         if method == 'attachments':
@@ -786,7 +770,7 @@ class ContactFolderResource(FolderResource):
 
     def on_get(self, req, resp, userid=None, folderid=None, method=None):
         server, store = _server_store(req, userid)
-        folder = _folder(store, folderid)
+        folder = utils._folder(store, folderid)
 
         if method == 'contacts':
             data = self.generator(req, folder.items, folder.count)
@@ -799,7 +783,7 @@ class ContactFolderResource(FolderResource):
 
     def on_post(self, req, resp, userid=None, folderid=None, method=None):
         server, store = _server_store(req, userid)
-        folder = _folder(store, folderid)
+        folder = utils._folder(store, folderid)
 
         if method == 'contacts':
             fields = json.loads(req.stream.read().decode('utf-8'))
@@ -866,7 +850,7 @@ class ContactResource(ItemResource):
 
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None):
         server, store = _server_store(req, userid)
-        folder = _folder(store, folderid or 'contacts') # TODO all folders?
+        folder = utils._folder(store, folderid or 'contacts') # TODO all folders?
 
         if itemid == 'delta':
             self.delta(req, resp, folder)
@@ -892,7 +876,7 @@ class ProfilePhotoResource(Resource):
 
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid)
-        folder = _folder(store, folderid or 'contacts')
+        folder = utils._folder(store, folderid or 'contacts')
         photo = folder.item(itemid).photo
 
         if method == '$value':
@@ -906,7 +890,7 @@ class ProfilePhotoResource(Resource):
 
     def on_put(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid)
-        folder = _folder(store, folderid or 'contacts')
+        folder = utils._folder(store, folderid or 'contacts')
         contact = folder.item(itemid)
 
         contact.set_photo('noname', req.stream.read(), req.get_header('Content-Type'))
@@ -952,3 +936,5 @@ for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
     route(app, user+'/contactFolders/{folderid}/contacts/{itemid}', contacts)
     route(app, user+'/contacts/{itemid}/photo', photos)
     route(app, user+'/contactFolders/{folderid}/contacts/{itemid}/photo', photos)
+
+notify_app = notify.app
