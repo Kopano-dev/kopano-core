@@ -9,12 +9,6 @@ except ImportError:
     from Queue import Queue
 from threading import Thread
 
-from MAPI import (
-    MAPIAdviseSink, fnevObjectModified, fnevObjectCreated, fnevObjectMoved,
-    fnevObjectDeleted,
-)
-from MAPI.Tags import IID_IMAPIAdviseSink
-
 import kopano
 
 from . import utils
@@ -32,6 +26,7 @@ def _user(req):
 
 # TODO don't block on sending updates
 # TODO restarting app/server
+# TODO handshake/call webhook
 
 class Processor(Thread):
     def __init__(self):
@@ -43,40 +38,38 @@ class Processor(Thread):
             store, notification = QUEUE.get()
             print('call webhook!', store, notification)
 
-class AdviseSink(MAPIAdviseSink): # TODO hide behind pyko
+class Sink:
     def __init__(self, store):
-        MAPIAdviseSink.__init__(self, [IID_IMAPIAdviseSink])
         self.store = store
 
-    def OnNotify(self, notifications):
-        for n in notifications:
-            QUEUE.put((self.store, n))
-        return 0
+    def update(self, notification):
+        QUEUE.put((self.store, notification))
+
+def _get_folder(store, resource):
+    resource = resource.split('/')
+    if (len(resource) == 4 and \
+        resource[0] == 'me' and resource[1] == 'mailFolders' and resource[3] == 'messages'):
+        folderid = resource[2]
+    return utils._folder(store, folderid)
 
 class SubscriptionResource:
     def on_post(self, req, resp):
         user = _user(req)
         store = user.store
         fields = json.loads(req.stream.read().decode('utf-8'))
+        folder = _get_folder(store, fields['resource'])
 
-        resource = fields['resource'].split('/')
-        if (len(resource) == 4 and \
-            resource[0] == 'me' and resource[1] == 'mailFolders' and resource[3] == 'messages'):
-            folderid = resource[2]
+        # TODO store-level, hierarchy.. ?
 
-        # TODO store-level, hierarchy?
-
-        folder = utils._folder(store, folderid)
-
-        sink = AdviseSink(store)
-        flags = fnevObjectModified | fnevObjectCreated | fnevObjectMoved | fnevObjectDeleted
-        conn = store.mapiobj.Advise(base64.urlsafe_b64decode(folder.entryid), flags, sink)
+        sink = Sink(store)
+        folder.subscribe(sink)
 
         id_ = str(uuid.uuid4())
         subscription = {
             'id': id_,
+            'resource': fields['resource'],
         }
-        SUBSCRIPTIONS[id_] = (subscription, conn)
+        SUBSCRIPTIONS[id_] = (subscription, sink)
 
         resp.content_type = "application/json"
         resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
@@ -86,9 +79,10 @@ class SubscriptionResource:
         store = user.store
         fields = json.loads(req.stream.read().decode('utf-8'))
 
-        subscription, conn = SUBSCRIPTIONS[fields['id']]
+        subscription, sink = SUBSCRIPTIONS[fields['id']]
+        folder = _get_folder(store, subscription['resource'])
 
-        store.mapiobj.Unadvise(conn)
+        folder.unsubscribe(sink)
 
 SERVER = kopano.Server(notifications=True)
 SUBSCRIPTIONS = {}
