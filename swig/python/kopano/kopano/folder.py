@@ -57,7 +57,6 @@ from .defs import (
     ENGLISH_FOLDER_MAP, NAME_RIGHT, NAMED_PROPS_ARCHIVER
 )
 from .errors import NotFoundError, Error, _DeprecationWarning
-import notification as _notification
 
 from .compat import (
     fake_unicode as _unicode, bdec as _bdec, benc as _benc

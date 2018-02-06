@@ -24,7 +24,7 @@ from MAPI.Tags import (
     IID_IMAPIAdviseSink,
 )
 
-from .compat import  benc as _benc
+from .compat import  benc as _benc, bdec as _bdec
 
 if sys.hexversion >= 0x03000000:
     from . import folder as _folder
@@ -32,17 +32,6 @@ if sys.hexversion >= 0x03000000:
 else:
     import folder as _folder
     import item as _item
-
-class AdviseSink(MAPIAdviseSink):
-    def __init__(self, q):
-        MAPIAdviseSink.__init__(self, [IID_IMAPIAdviseSink])
-        self.q = q
-
-    def OnNotify(self, notifications):
-        for n in notifications:
-            self.q.put(n)
-
-        return 0
 
 class Notification:
     def __init__(self, store, mapiobj):
@@ -81,6 +70,16 @@ class AdviseSink(MAPIAdviseSink):
                 self.sink.update(Notification(self.store, n))
         return 0
 
+class AdviseSinkQueue(MAPIAdviseSink):
+    def __init__(self, q):
+        MAPIAdviseSink.__init__(self, [IID_IMAPIAdviseSink])
+        self.q = q
+
+    def OnNotify(self, notifications):
+        for n in notifications:
+            self.q.put(n)
+        return 0
+
 def subscribe(store, folder, sink):
     flags = fnevObjectModified | fnevObjectCreated \
         | fnevObjectMoved | fnevObjectDeleted
@@ -101,7 +100,7 @@ def _notifications(store, entryid):
         | fnevObjectMoved | fnevObjectDeleted # TODO more?
 
     q = Queue()
-    sink = AdviseSink(q)
+    sink = AdviseSinkQueue(q)
 
     try:
         if entryid:
