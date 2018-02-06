@@ -35,8 +35,7 @@ namespace KC {
 
 struct settingkey_t {
 	char s[256];
-	unsigned short ulFlags;
-	unsigned short ulGroup;
+	unsigned short ulFlags, ulGroup;
 	bool operator<(const settingkey_t &o) const noexcept { return strcmp(s, o.s) < 0; }
 };
 
@@ -100,8 +99,8 @@ private:
 	void	AddAlias(const configsetting_t *lpsAlias);
 
 	void	CleanupMap(settingmap_t *lpMap);
-	bool	CopyConfigSetting(const configsetting_t *lpsSetting, settingkey_t *lpsKey);
-	bool	CopyConfigSetting(const settingkey_t *lpsKey, const char *szValue, configsetting_t *lpsSetting);
+	static bool CopyConfigSetting(const configsetting_t *, settingkey_t *);
+	static bool CopyConfigSetting(const settingkey_t *, const char *value, configsetting_t *);
 
 	const configsetting_t	*m_lpDefaults;
 	const char *m_szConfigFile = nullptr;

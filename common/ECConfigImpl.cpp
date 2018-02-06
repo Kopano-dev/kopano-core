@@ -340,15 +340,11 @@ bool ECConfigImpl::InitDefaults(unsigned int ulFlags)
 
 bool ECConfigImpl::InitConfigFile(unsigned int ulFlags)
 {
-	bool bResult = false;
-
 	assert(m_readFiles.empty());
 
 	if (!m_szConfigFile)
 		return false;
-
-	bResult = ReadConfigFile(m_szConfigFile, ulFlags);
-
+	auto bResult = ReadConfigFile(m_szConfigFile, ulFlags);
 	m_readFiles.clear();
 
 	return bResult;
@@ -358,10 +354,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
     unsigned int ulFlags, unsigned int ulGroup)
 {
 	char cBuffer[MAXLINELEN] = {0};
-	string strFilename;
-	string strLine;
-	string strName;
-	string strValue;
+	std::string strFilename, strLine, strName, strValue;
 	size_t pos;
 
 	std::unique_ptr<char, cstdlib_deleter> normalized_file(realpath(file.c_str(), nullptr));
@@ -467,10 +460,9 @@ bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ulFlags)
 
 bool ECConfigImpl::HandleInclude(const char *lpszArgs, unsigned int ulFlags)
 {
-	string strValue;
-	std::string file;
-	
-	file = (strValue = trim(lpszArgs, " \t\r\n"));
+	auto strValue = trim(lpszArgs, " \t\r\n");
+	auto file = strValue;
+
 	if (file[0] != PATH_SEPARATOR) {
 		// Rebuild the path. m_currentFile is always a normalized path.
 		auto pos = m_currentFile.find_last_of(PATH_SEPARATOR);
@@ -484,13 +476,8 @@ bool ECConfigImpl::HandleInclude(const char *lpszArgs, unsigned int ulFlags)
 
 bool ECConfigImpl::HandlePropMap(const char *lpszArgs, unsigned int ulFlags)
 {
-	string	strValue;
-	bool	bResult;
-
-	strValue = trim(lpszArgs, " \t\r\n");
-	bResult = ReadConfigFile(strValue.c_str(), LOADSETTING_UNKNOWN | LOADSETTING_OVERWRITE_GROUP, CONFIGGROUP_PROPMAP);
-
-	return bResult;
+	return ReadConfigFile(trim(lpszArgs, " \t\r\n").c_str(),
+	       LOADSETTING_UNKNOWN | LOADSETTING_OVERWRITE_GROUP, CONFIGGROUP_PROPMAP);
 }
 
 bool ECConfigImpl::CopyConfigSetting(const configsetting_t *lpsSetting, settingkey_t *lpsKey)
@@ -521,16 +508,13 @@ bool ECConfigImpl::CopyConfigSetting(const settingkey_t *lpsKey, const char *szV
 
 bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulFlags)
 {
-	settingmap_t::const_iterator iterSettings;
 	settingkey_t s;
 	char *valid = NULL;
-	const char *szAlias = NULL;
-
 	if (!CopyConfigSetting(lpsConfig, &s))
 		return false;
 
 	// Lookup name as alias
-	szAlias = GetAlias(lpsConfig->szName);
+	auto szAlias = GetAlias(lpsConfig->szName);
 	if (szAlias) {
 		if (!(ulFlags & LOADSETTING_INITIALIZING))
 			warnings.emplace_back("Option '" + std::string(lpsConfig->szName) + "' is deprecated! New name for option is '" + szAlias + "'.");
@@ -538,8 +522,7 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 	}
 
 	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);
-	iterSettings = m_mapSettings.find(s);
-
+	auto iterSettings = m_mapSettings.find(s);
 	if (iterSettings == m_mapSettings.cend()) {
 		// new items from file are illegal, add error
 		if (!(ulFlags & LOADSETTING_UNKNOWN)) {
