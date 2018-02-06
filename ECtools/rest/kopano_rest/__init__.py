@@ -448,7 +448,11 @@ def set_body(item, arg):
         item.html = arg['content']
 
 def set_torecipients(item, arg):
-    item.to = ';'.join('%s <%s>' % (a['name'], a['address']) for a in arg)
+    addrs = []
+    for a in arg:
+        a = a['emailAddress']
+        addrs.append('%s <%s>' % (a.get('name', a['address']), a['address']))
+    item.to = ';'.join(addrs)
 
 class DeletedItem(object):
     pass
