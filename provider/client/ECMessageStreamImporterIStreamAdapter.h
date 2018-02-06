@@ -24,6 +24,8 @@
 #include <kopano/Util.h>
 #include "WSMessageStreamImporter.h"
 
+using namespace KC;
+
 /**
  * This class wraps a WSMessageStreamImporter object and exposes it as an IStream.
  * The actual import callto the server will be initiated by the first write to the

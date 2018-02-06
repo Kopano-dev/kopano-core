@@ -26,6 +26,7 @@
 #include "ECNotifyClient.h"
 #include "WSTransport.h"
 
+using namespace KC;
 class WSTransport;
 
 class ECABLogon _kc_final : public ECUnknown, public IABLogon {

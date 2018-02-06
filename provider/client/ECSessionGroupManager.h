@@ -28,6 +28,7 @@
 #include "SessionGroupData.h"
 #include "ClientUtil.h"
 
+using namespace KC;
 typedef std::map<ECSessionGroupInfo, ECSESSIONGROUPID> SESSIONGROUPIDMAP;
 typedef std::map<ECSessionGroupInfo, SessionGroupData*> SESSIONGROUPMAP;
 

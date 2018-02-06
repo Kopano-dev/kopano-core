@@ -23,7 +23,7 @@
 #include <kopano/Util.h>
 #include <mapispi.h>
 
-class ZCABProvider _kc_final : public ECUnknown, public IABProvider {
+class ZCABProvider _kc_final : public KC::ECUnknown, public IABProvider {
 protected:
 	ZCABProvider(ULONG ulFlags, const char *szClassName);
 

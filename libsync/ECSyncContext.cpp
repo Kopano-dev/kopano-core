@@ -41,7 +41,8 @@
 
 #include <kopano/mapi_ptr.h>
 
-typedef KC::object_ptr<IECChangeAdvisor> ECChangeAdvisorPtr;
+using namespace KC;
+typedef object_ptr<IECChangeAdvisor> ECChangeAdvisorPtr;
 //DEFINEMAPIPTR(ECChangeAdvisor);
 
 #define EC_SYNC_STATUS_VERSION			1

@@ -32,6 +32,8 @@
 #include <kopano/namedprops.h>
 #include <kopano/mapiguidext.h>
 
+using namespace KC;
+
 ZCMAPIProp::ZCMAPIProp(ULONG ulObjType, const char *szClassName) :
     ECUnknown(szClassName), m_ulObject(ulObjType)
 {

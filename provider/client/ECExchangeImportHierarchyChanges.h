@@ -25,6 +25,8 @@
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
 
+using namespace KC;
+
 class ECExchangeImportHierarchyChanges _kc_final :
     public ECUnknown, public IExchangeImportHierarchyChanges {
 protected:

@@ -41,6 +41,7 @@ class convstring;
 class utf8string;
 }
 
+using namespace KC;
 class ECMessage;
 class ECMAPIFolder;
 

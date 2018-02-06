@@ -35,6 +35,8 @@
 #include <mapi.h>
 #include <mapispi.h>
 
+using namespace KC;
+
 class ECParentStorage _kc_final : public ECUnknown, public IECPropStorage {
 	/*
 	  lpParentObject:	The property object of the parent (e.g. ECMessage for ECAttach)

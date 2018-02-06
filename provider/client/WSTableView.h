@@ -31,6 +31,7 @@ class KCmdProxy;
 class WSTransport;
 
 typedef HRESULT (*RELOADCALLBACK)(void *lpParam);
+using namespace KC;
 
 class WSTableView : public ECUnknown {
 protected:

@@ -31,6 +31,7 @@
 #include <kopano/kcodes.h>
 #include <kopano/memory.hpp>
 
+using namespace KC;
 class ECNotifyClient;
 class ECNotifyMaster;
 class WSTransport;

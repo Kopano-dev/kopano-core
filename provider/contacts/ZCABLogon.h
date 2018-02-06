@@ -32,7 +32,7 @@ struct zcabFolderEntry {
 	std::wstring strwDisplayName;
 };
 
-class ZCABLogon _kc_final : public ECUnknown, public IABLogon {
+class ZCABLogon _kc_final : public KC::ECUnknown, public IABLogon {
 protected:
 	ZCABLogon(IMAPISupport *, ULONG profile_flags, const GUID *);
 	virtual ~ZCABLogon();

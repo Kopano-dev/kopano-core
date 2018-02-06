@@ -26,6 +26,8 @@
 #include <edkmdb.h>
 #include <kopano/IECInterfaces.hpp>
 
+using namespace KC;
+
 class ECExchangeModifyTable _kc_final :
     public ECUnknown, public IECExchangeModifyTable {
 public:

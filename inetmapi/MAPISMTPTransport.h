@@ -87,8 +87,8 @@ public:
 	vmime::shared_ptr<connectionInfos> getConnectionInfos(void) const { return m_cntInfos; }
 
 	// additional functions
-	const std::vector<sFailedRecip> &getPermanentFailedRecipients(void) const { return mPermanentFailedRecipients; }
-	const std::vector<sFailedRecip> &getTemporaryFailedRecipients(void) const { return mTemporaryFailedRecipients; }
+	const std::vector<KC::sFailedRecip> &getPermanentFailedRecipients(void) const { return mPermanentFailedRecipients; }
+	const std::vector<KC::sFailedRecip> &getTemporaryFailedRecipients(void) const { return mTemporaryFailedRecipients; }
 	void requestDSN(BOOL bRequest, const std::string &strTrackid);
 
 private:
@@ -123,8 +123,8 @@ private:
 	static SMTPServiceInfos sm_infos;
 
 	// additional data
-	std::vector<sFailedRecip> mTemporaryFailedRecipients;
-	std::vector<sFailedRecip> mPermanentFailedRecipients;
+	std::vector<KC::sFailedRecip> mTemporaryFailedRecipients;
+	std::vector<KC::sFailedRecip> mPermanentFailedRecipients;
 	bool m_bDSNRequest = false;
 	std::string m_strDSNTrackid;
 	SMTPResponse::state m_response_state;

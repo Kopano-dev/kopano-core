@@ -31,6 +31,7 @@
 #include <list>
 #include <mapispi.h>
 
+using namespace KC;
 struct ECADVISE;
 struct ECCHANGEADVISE;
 typedef std::map<int, std::unique_ptr<ECADVISE>> ECMAPADVISE;

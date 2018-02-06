@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	delete[] buffer;
 
 	std::vector<std::string> errors;
-	fprintf(stderr, "result code: %d\n", rosie_clean_html(html_in, &html_out, &errors));
+	fprintf(stderr, "result code: %d\n", KC::rosie_clean_html(html_in, &html_out, &errors));
 	for (unsigned int i=0; i<errors.size(); i++)
 		fprintf(stderr, "\t%s\n", errors.at(i).c_str());
 	printf("%s", html_out.c_str());

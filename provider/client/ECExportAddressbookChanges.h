@@ -30,6 +30,8 @@ class ECLogger;
 
 }
 
+using namespace KC;
+
 class ECExportAddressbookChanges _kc_final :
     public ECUnknown, public IECExportAddressbookChanges {
 public:

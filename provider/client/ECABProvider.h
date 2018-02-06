@@ -22,6 +22,8 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 
+using namespace KC;
+
 class ECABProvider _kc_final : public ECUnknown, public IABProvider {
 protected:
 	ECABProvider(ULONG ulFlags, const char *szClassName);

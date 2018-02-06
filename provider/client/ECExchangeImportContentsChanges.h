@@ -29,6 +29,8 @@ namespace KC {
 class ECLogger;
 }
 
+using namespace KC;
+
 class ECExchangeImportContentsChanges _kc_final :
     public ECUnknown, public IECImportContentsChanges {
 protected:
