@@ -32,9 +32,10 @@
 #include <sys/stat.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include "ECConfigImpl.h"
-
+#include "fileutil.h"
 #include <kopano/charset/convert.h>
 
 namespace KC {
@@ -356,8 +357,6 @@ bool ECConfigImpl::InitConfigFile(unsigned int ulFlags)
 bool ECConfigImpl::ReadConfigFile(const std::string &file,
     unsigned int ulFlags, unsigned int ulGroup)
 {
-	FILE *fp = NULL;
-	bool bReturn = false;
 	char cBuffer[MAXLINELEN] = {0};
 	string strFilename;
 	string strLine;
@@ -383,25 +382,22 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 	// Store the path of the previous file in case we're recursively processing files.
 	// We need to keep track of the current path so we can handle relative includes in HandleInclude
 	std::string prevFile = m_currentFile;
+	auto cleanup = make_scope_success([&]() { m_currentFile = std::move(prevFile); });
 	m_currentFile = normalized_file.get();
 
 	/* Check if we read this file before. */
-	if (std::find(m_readFiles.cbegin(), m_readFiles.cend(), m_currentFile) != m_readFiles.cend()) {
-		bReturn = true;
-		goto exit;
-	}
-
+	if (std::find(m_readFiles.cbegin(), m_readFiles.cend(), m_currentFile) != m_readFiles.cend())
+		return true;
 	m_readFiles.emplace(m_currentFile);
-	fp = fopen(file.c_str(), "rt");
+	std::unique_ptr<FILE, file_deleter> fp(fopen(file.c_str(), "rt"));
 	if (fp == nullptr) {
 		errors.emplace_back("Unable to open config file \"" + file + "\"");
-		goto exit;
+		return false;
 	}
 
-	while (!feof(fp)) {
+	while (!feof(fp.get())) {
 		memset(&cBuffer, 0, sizeof(cBuffer));
-
-		if (!fgets(cBuffer, sizeof(cBuffer), fp))
+		if (!fgets(cBuffer, sizeof(cBuffer), fp.get()))
 			continue;
 
 		strLine = string(cBuffer);
@@ -413,7 +409,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 		/* Handle special directives which start with '!' */
 		if (strLine[0] == '!') {
 			if (!HandleDirective(strLine, ulFlags))
-				goto exit;
+				return false;
 			continue;
 		}
 
@@ -444,16 +440,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 			AddSetting(&setting, ulFlags);
 		}
 	}
-
-	bReturn = true;
-
-exit:
-	if(fp) 
-		fclose(fp);
-
-	// Restore the path of the previous file.
-	m_currentFile = std::move(prevFile);
-	return bReturn;
+	return true;
 }
 
 bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ulFlags)
