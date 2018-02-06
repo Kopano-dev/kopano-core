@@ -7,6 +7,7 @@ try:
     from queue import Queue
 except ImportError:
     from Queue import Queue
+import requests
 from threading import Thread
 
 import kopano
@@ -44,12 +45,23 @@ class Processor(Thread):
 
     def run(self):
         while True:
-            store, notification = QUEUE.get()
-            print('call webhook!', store, notification)
+            store, notification, subscription = QUEUE.get()
+
+            data = {
+                'subscriptionId': subscription['id'],
+                'clientState': subscription['clientState'],
+                'changeType': 'created', # TODO from notification
+                'resource': subscription['resource'],
+                'resourceData': {
+                    # TODO fill in
+                }
+            }
+            requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10)
 
 class Sink:
-    def __init__(self, store):
+    def __init__(self, store, subscription):
         self.store = store
+        self.subscription = subscription
 
     def update(self, notification):
         global QUEUE
@@ -77,15 +89,17 @@ class SubscriptionResource:
 
         # TODO store-level, hierarchy.. ?
 
-        sink = Sink(store)
+        id_ = str(uuid.uuid4())
+        subscription = fields
+        subscription['id'] = id_
+
+        sink = Sink(store, subscription)
         folder.subscribe(sink)
 
-        id_ = str(uuid.uuid4())
-        fields['id'] = id_
-        SUBSCRIPTIONS[id_] = (fields, sink)
+        SUBSCRIPTIONS[id_] = (subscription, sink)
 
         resp.content_type = "application/json"
-        resp.body = json.dumps(fields, indent=2, separators=(',', ': '))
+        resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
 
     def on_get(self, req, resp, subscriptionid):
         subscription, sink = SUBSCRIPTIONS[subscriptionid]
