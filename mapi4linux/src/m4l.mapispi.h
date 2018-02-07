@@ -98,7 +98,7 @@ public:
 
 	virtual HRESULT SpoolerYield(ULONG ulFlags);
 	virtual HRESULT SpoolerNotify(ULONG ulFlags, LPVOID lpvData);
-	virtual HRESULT CreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
+	virtual HRESULT CreateOneOff(const TCHAR *name, const TCHAR *addrtype, const TCHAR *addr, ULONG flags, ULONG *eid_size, ENTRYID **) override;
 	virtual HRESULT SetProviderUID(LPMAPIUID lpProviderID, ULONG ulFlags);
 	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result);
 	virtual HRESULT OpenTemplateID(ULONG cbTemplateID, LPENTRYID lpTemplateID, ULONG ulTemplateFlags, LPMAPIPROP lpMAPIPropData, LPCIID lpInterface, LPMAPIPROP *lppMAPIPropNew, LPMAPIPROP lpMAPIPropSibling);
