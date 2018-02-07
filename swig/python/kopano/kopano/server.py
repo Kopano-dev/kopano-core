@@ -33,7 +33,7 @@ from MAPI.Tags import (
     PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_COMPANY,
     PR_EC_STATSTABLE_SERVERS, PR_EC_STATS_SERVER_HTTPSURL,
     PR_STORE_ENTRYID, EC_PROFILE_FLAGS_NO_UID_AUTH,
-    EC_PROFILE_FLAGS_NO_NOTIFICATIONS
+    EC_PROFILE_FLAGS_NO_NOTIFICATIONS, EC_PROFILE_FLAGS_OIDC
 )
 from MAPI.Tags import (
     IID_IMsgStore, IID_IMAPITable, IID_IExchangeManageStore,
@@ -158,7 +158,7 @@ if os.getenv('ZCPSRCDIR'):
 class Server(object):
     """Server class"""
 
-    def __init__(self, options=None, config=None, sslkey_file=None, sslkey_pass=None, server_socket=None, auth_user=None, auth_pass=None, log=None, service=None, mapisession=None, parse_args=True, notifications=False, store_cache=True):
+    def __init__(self, options=None, config=None, sslkey_file=None, sslkey_pass=None, server_socket=None, auth_user=None, auth_pass=None, log=None, service=None, mapisession=None, parse_args=True, notifications=False, store_cache=True, oidc=False):
         """
         Create Server instance.
 
@@ -234,6 +234,9 @@ class Server(object):
             # (OpenECSession will not check password unless this parameter is provided)
             if self.auth_user and self.auth_pass:
                 flags |= EC_PROFILE_FLAGS_NO_UID_AUTH
+
+            if oidc:
+                flags |= EC_PROFILE_FLAGS_OIDC
 
             while True:
                 try:
