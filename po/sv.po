@@ -4,15 +4,16 @@ msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-12 00:03+0100\n"
-"PO-Revision-Date: 2010-08-19 15:51+0200\n"
-"Last-Translator: Cies <cies@kopano.com>\n"
-"Language-Team: sv_SE <sv@li.org>\n"
+"PO-Revision-Date: 2018-02-07 12:19+0000\n"
+"Last-Translator: jengelh <jengelh@inai.de>\n"
+"Language-Team: Swedish <http://translate.kopano.io/projects/kopano/kopano-"
+"core/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Pootle 2.1.5\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 2.4\n"
 "X-Poedit-KeywordsList: _;KC_A;KC_W\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -20,38 +21,37 @@ msgstr ""
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:922
 msgid "Kopano Archive"
-msgstr ""
+msgstr "Kopano arkiv"
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:923
 msgid "This folder contains the special archive folders."
-msgstr ""
+msgstr "Denna mappen innehåller de spesiella arkivmappar."
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:928
 msgid "History"
-msgstr ""
+msgstr "Historie"
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:929
 msgid ""
 "This folder contains archives that have been replaced by a newer version."
-msgstr ""
+msgstr "Denna mappen innehåller arkiver som blev avlöst av nya versioner."
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:933
 msgid "Outgoing"
-msgstr ""
+msgstr "Utgående"
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:934
 msgid "This folder contains archives of all outgoing messages."
-msgstr ""
+msgstr "Denna mappen innehåller arkiver av alla utgående meddelande."
 
 # 85%
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:938
-#, fuzzy
 msgid "Deleted"
-msgstr "Ta bort"
+msgstr "Raderat"
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:939
 msgid "This folder contains archives of messages that have been deleted."
-msgstr ""
+msgstr "Denna mappen innehåller arkiver av meddelanden som blev raderad."
 
 #: common/Util.cpp:1783
 msgid "End of Session"
@@ -75,7 +75,7 @@ msgstr ""
 "Kan inte flytta eller kopiera mappar. Kan inte kopiera mappen. En mapp kan "
 "inte bli kopierad till nån av sina undermappar. Eller, har du inte "
 "tillräckliga rättigheter på mappen. För att kontrollera dina rättigheter på "
-"mappen, högerklicka på mappen och välj Egenskaper i menyn."
+"mappen, välj \"Egenskaper\" i kontextmenyen (högerklick på mappen)."
 
 #: common/Util.cpp:1795
 msgid ""
@@ -85,14 +85,14 @@ msgid ""
 msgstr ""
 "Meddelande mappen har nått sin storleksgräns. För att minska mängden data i "
 "meddelande mappen, välj saker du inte längre behöver och ta permanent bort "
-"dessa genom att trycka SHIFT + DELETE."
+"dessa (genom att trycka Shift+Delete)."
 
 #: common/Util.cpp:1798
 msgid ""
 "The user canceled the operation, typically by clicking the Cancel button in "
 "a dialog box."
 msgstr ""
-"Användaren har avbrytit operationen, vanligtvis genom att klicka på Avbryt "
+"Användaren har avbrytit operationen, vanligtvis genom att velga \"Avbryt\" "
 "knappen i en dialogruta."
 
 #: common/Util.cpp:1801
@@ -114,7 +114,7 @@ msgid ""
 "The operation succeeded, but not all entries were successfully processed, "
 "copied, deleted or moved"
 msgstr ""
-"Operationen har lyckats, men alla poster vart inte processerade, kopierade, "
+"Operationen har lyktes, men alla poster vart inte processerade, kopierade, "
 "borttagna eller flyttade"
 
 #: common/Util.cpp:1810
@@ -135,23 +135,23 @@ msgstr ""
 
 #: common/Util.cpp:1816
 msgid "A database error or I/O error has occurred."
-msgstr ""
+msgstr "En database eller I/O fel har hänt."
 
 #: common/Util.cpp:1819
 msgid "The subfolder being deleted contains subfolders."
-msgstr ""
+msgstr "Undermappen som ska raderas innehåller ytterlige undermappar."
 
 #: common/Util.cpp:1822
 msgid "The subfolder being deleted contains messages."
-msgstr ""
+msgstr "Undermappen som ska raderas innehåller meddelande."
 
 #: common/Util.cpp:1825
 msgid "No description available."
-msgstr ""
+msgstr "Ingen beskrivning är tillgänglig."
 
 #: common/Util.cpp:1827
 msgid "MAPI error code:"
-msgstr ""
+msgstr "MAPI felkod:"
 
 #: provider/ECProps/Addin.cpp:957 provider/client/ECMsgStorePublic.cpp:547
 #: provider/client/ECMAPIFolderPublic.cpp:164
@@ -175,7 +175,7 @@ msgstr "Ägare"
 #: provider/client/ECABContainer.cpp:244 provider/client/ECABContainer.cpp:299
 #: provider/client/SettingsPropPageAdvance.cpp:245
 msgid "Global Address Book"
-msgstr "Värld Adress Bok"
+msgstr "Globale Adressbok"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:134
 #: provider/client/ECMsgStore.cpp:2480
@@ -213,20 +213,18 @@ msgstr "Ämne:"
 
 # 75%
 #: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
-#, fuzzy
 msgid "Global Address Lists"
-msgstr "Värld Adress Bok"
+msgstr "Globale Adresslistor"
 
 # 75%
 # 80%
 #: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
-#, fuzzy
 msgid "All Address Lists"
-msgstr "Värld Adress Bok"
+msgstr "Globale Adresslistor"
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:842
 msgid "Sync Issues"
-msgstr "Sync Problem"
+msgstr "Synkroniseringsproblem"
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:848
 msgid "Conflicts"
@@ -238,11 +236,11 @@ msgstr "Lokalt Fel"
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:860
 msgid "Server Failures"
-msgstr "Server Fel"
+msgstr "Serverfel"
 
 #: provider/client/ClientUtil.cpp:81
 msgid "Available"
-msgstr ""
+msgstr "Tillgänglig"
 
 #: provider/client/ClientUtil.cpp:301
 msgid "Not read:"
@@ -279,7 +277,7 @@ msgstr "Skickat:"
 #: provider/client/ECArchiveAwareMessage.cpp:471
 #: provider/client/ECArchiveAwareMessage.cpp:529
 msgid "Kopano Archiver"
-msgstr ""
+msgstr "Kopano Archiver"
 
 #: provider/client/ECArchiveAwareMessage.cpp:473
 msgid "An error has occurred while fetching the message from the archive."
@@ -291,15 +289,15 @@ msgstr ""
 
 #: provider/client/ECArchiveAwareMessage.cpp:478 spooler/archive.cpp:335
 msgid "Error code:"
-msgstr ""
+msgstr "Felkod:"
 
 #: provider/client/ECArchiveAwareMessage.cpp:487
 msgid "It seems no valid archiver license is installed."
-msgstr ""
+msgstr "Det synas att ingen giltig arkivlicens är installerad."
 
 #: provider/client/ECArchiveAwareMessage.cpp:491
 msgid "The archive could not be found."
-msgstr ""
+msgstr "Arkiven kunde inte finnes."
 
 #: provider/client/ECArchiveAwareMessage.cpp:495
 msgid "You don't have sufficient access to the archive."
@@ -307,7 +305,7 @@ msgstr ""
 
 #: provider/client/ECArchiveAwareMessage.cpp:502 spooler/archive.cpp:339
 msgid "Error description:"
-msgstr ""
+msgstr "Felbeskrivning:"
 
 #: provider/client/ECArchiveAwareMessage.cpp:531
 msgid "Archives can not be destubbed when working offline."
@@ -349,23 +347,23 @@ msgstr "RSS Feed kommentar"
 
 #: provider/client/ECMsgStore.cpp:2564
 msgid "Conversation Action Settings"
-msgstr ""
+msgstr "Konversationsinställningar"
 
 #: provider/client/ECMsgStore.cpp:2568
 msgid "Quick Step Settings"
-msgstr ""
+msgstr "Snabbstäginställningar"
 
 #: provider/client/ECMsgStore.cpp:2572
 msgid "Suggested Contacts"
-msgstr ""
+msgstr "Föreslagna Kontakter"
 
 #: provider/contacts/ZCABContainer.cpp:761
 msgid "Kopano Contacts Folders"
-msgstr ""
+msgstr "Kopano kontaktmappar"
 
 #: provider/libserver/ECGenProps.cpp:949
 msgid "Archive"
-msgstr ""
+msgstr "Arkiv"
 
 #: spooler/Spooler.cpp:485
 msgid ""
@@ -558,9 +556,8 @@ msgstr ""
 
 # 75%
 #: php-ext/include/mapi/class.meetingrequest.php:2692
-#, fuzzy
 msgid "Canceled"
-msgstr "Avbryt"
+msgstr "Annullerat"
 
 #: php-ext/include/mapi/class.mapiexception.php:24
 msgid "You have insufficient privileges to open this object."
