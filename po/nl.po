@@ -1,4 +1,3 @@
-# foo <foo@bar.foobar>, 2005.
 msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
@@ -44,7 +43,6 @@ msgstr "Uitgaand"
 msgid "This folder contains archives of all outgoing messages."
 msgstr "Deze folder bevat archieven van alle uitgaande berichten."
 
-# 85%
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:938
 msgid "Deleted"
 msgstr "Verwijderd "
@@ -218,13 +216,10 @@ msgstr "Onderwerp:"
 msgid "Subject"
 msgstr "Onderwerp"
 
-# 75%
 #: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
 msgid "Global Address Lists"
 msgstr "Algemene adreslijst"
 
-# 75%
-# 80%
 #: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
 msgid "All Address Lists"
 msgstr "Alle adreslijsten"
@@ -281,7 +276,6 @@ msgstr "Cc:"
 msgid "Sent on:"
 msgstr "Verzonden op:"
 
-# 93%
 #: provider/client/ECArchiveAwareMessage.cpp:471
 #: provider/client/ECArchiveAwareMessage.cpp:529
 msgid "Kopano Archiver"
@@ -571,7 +565,6 @@ msgstr "Voorlopig geaccepteerd"
 msgid "New Time Proposed"
 msgstr "Nieuw tijd voor gesteld"
 
-# 75%
 #: php-ext/include/mapi/class.meetingrequest.php:2692
 msgid "Canceled"
 msgstr "Geannuleerd"
