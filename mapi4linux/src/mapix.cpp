@@ -1914,7 +1914,8 @@ no_hierarchy:
 	return hrSuccess;
 }
 
-HRESULT M4LAddrBook::SetDefaultDir(ULONG cbEntryID, LPENTRYID lpEntryID) {
+HRESULT M4LAddrBook::SetDefaultDir(ULONG eid_size, const ENTRYID *)
+{
 	ec_log_err("not implemented M4LAddrBook::SetDefaultDir");
 	return MAPI_E_NO_SUPPORT;
 }

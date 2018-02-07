@@ -180,7 +180,7 @@ public:
 	virtual HRESULT GetPAB(ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 	virtual HRESULT SetPAB(ULONG cbEntryID, LPENTRYID lpEntryID);
 	virtual HRESULT GetDefaultDir(ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
-	virtual HRESULT SetDefaultDir(ULONG cbEntryID, LPENTRYID lpEntryID);
+	virtual HRESULT SetDefaultDir(ULONG eid_size, const ENTRYID *) override;
 	virtual HRESULT GetSearchPath(ULONG ulFlags, LPSRowSet *lppSearchPath);
 	virtual HRESULT SetSearchPath(ULONG ulFlags, LPSRowSet lpSearchPath);
 	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList);
