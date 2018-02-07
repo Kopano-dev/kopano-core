@@ -1345,10 +1345,10 @@ HRESULT M4LMAPISession::AdminServices(ULONG ulFlags, LPSERVICEADMIN* lppServiceA
 	return hr;
 }
 
-HRESULT M4LMAPISession::ShowForm(ULONG_PTR ulUIParam, LPMDB lpMsgStore,
-    LPMAPIFOLDER lpParentFolder, LPCIID lpInterface, ULONG ulMessageToken,
-    LPMESSAGE lpMessageSent, ULONG ulFlags, ULONG ulMessageStatus,
-    ULONG ulMessageFlags, ULONG ulAccess, LPSTR lpszMessageClass)
+HRESULT M4LMAPISession::ShowForm(ULONG_PTR ui_param, IMsgStore *,
+    IMAPIFolder *parent, const IID *intf, ULONG msg_token, IMessage *sent,
+    ULONG flags, ULONG msg_status, ULONG msg_flags, ULONG access,
+    const char *msg_class)
 {
 	ec_log_err("M4LMAPISession::ShowForm(): not implemented");
 	return MAPI_E_NO_SUPPORT;
