@@ -33,6 +33,7 @@
 #include <kopano/lockhelper.hpp>
 #include <kopano/UnixUtil.h>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include "ECSession.h"
 #include "ECSessionManager.h"
 #include "ECUserManagement.h"
@@ -47,6 +48,10 @@
 #include "ECICS.h"
 #include <kopano/ECIConv.h>
 #include "versions.h"
+
+#ifdef HAVE_KCOIDC_H
+#include <kcoidc.h>
+#endif
 
 #define WHITESPACE " \t\n\r"
 
@@ -960,6 +965,8 @@ ECRESULT ECAuthSession::ValidateSSOData(struct soap* soap, const char* lpszName,
 	// first NTLM package starts with that signature, continues are detected by the filedescriptor
 	if (m_NTLM_pid != -1 || strncmp((const char*)lpInput->__ptr, "NTLM", 4) == 0)
 		er = ValidateSSOData_NTLM(soap, lpszName, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpInput, lppOutput);
+	else if(strncmp(reinterpret_cast<const char *>(lpInput->__ptr), "KCOIDC", 6) == 0)
+		er = ValidateSSOData_KCOIDC(soap, lpszName, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpInput, lppOutput);
 	else
 		er = ValidateSSOData_KRB5(soap, lpszName, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpInput, lppOutput);
 	if (er != erSuccess)
@@ -1012,6 +1019,48 @@ ECRESULT ECAuthSession::LogKRB5Error(const char* msg, OM_uint32 major, OM_uint32
 	return LogKRB5Error_2(msg, minor, GSS_C_MECH_CODE);
 }
 #endif
+
+
+ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* name, const char* cl_ver, const char* cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary* input, struct xsd__base64Binary** output)
+{
+#ifdef HAVE_KCOIDC_H
+	auto input_str = std::string(reinterpret_cast<char *>(input->__ptr + 6), input->__size - 6);
+	auto res = kcoidc_validate_token_s(const_cast<char *>(input_str.c_str()));
+	auto laters = make_scope_success([&]() {
+		if (res.r0)
+			free(res.r0);
+		if (res.r3)
+			free(res.r3);
+		if (res.r4)
+			free(res.r4);
+	});
+	if (res.r1 != 0) {
+		ec_log_err("KCOIDC validate error %d", static_cast<unsigned int>(res.r1));
+		return KCERR_LOGON_FAILED;
+	}
+	if (res.r2 != KCOIDC_TOKEN_TYPE_KCACCESS) {
+		ec_log_err("KCOIDC token is not access %d", res.r2);
+		return KCERR_LOGON_FAILED;
+	}
+
+	// TODO: validate user entryid
+	// auto username_entryid = std::string(res.r0);
+	auto username = std::string(name);
+	auto er = m_lpUserManagement->ResolveObjectAndSync(ACTIVE_USER, username.c_str(), &m_ulUserID);
+	if (er != erSuccess)
+		return er;
+
+	ec_log_info("KCOIDC Single Sign-On: User \"%s\" authenticated", username.c_str());
+	ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate ok user='%s' from='%s' method='kcoidc sso' program='%s'", username.c_str(), soap->host, cl_app);
+
+	m_bValidated = true;
+	m_ulValidationMethod = METHOD_SSO;
+	*output = nullptr;
+	return erSuccess;
+#else
+	return KCERR_NO_SUPPORT;
+#endif
+}
 
 ECRESULT ECAuthSession::ValidateSSOData_KRB5(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput)
 {
