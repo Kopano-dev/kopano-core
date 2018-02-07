@@ -1333,7 +1333,8 @@ HRESULT M4LMAPISession::Logoff(ULONG_PTR ulUIParam, ULONG ulFlags,
 	return hrSuccess;
 }
 
-HRESULT M4LMAPISession::SetDefaultStore(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) {
+HRESULT M4LMAPISession::SetDefaultStore(ULONG flags, ULONG eid_size, const ENTRYID *)
+{
 	ec_log_err("M4LMAPISession::SetDefaultStore(): not implemented");
 	return MAPI_E_NO_SUPPORT;
 }
