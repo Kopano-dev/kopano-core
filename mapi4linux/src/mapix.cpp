@@ -1621,10 +1621,9 @@ HRESULT M4LAddrBook::CreateOneOff(const TCHAR *lpszName,
 	return ECCreateOneOff(lpszName, lpszAdrType, lpszAddress, ulFlags, lpcbEntryID, lppEntryID);
 }
 
-HRESULT M4LAddrBook::NewEntry(ULONG_PTR ulUIParam, ULONG ulFlags,
-    ULONG cbEIDContainer, LPENTRYID lpEIDContainer, ULONG cbEIDNewEntryTpl,
-    LPENTRYID lpEIDNewEntryTpl, ULONG *lpcbEIDNewEntry,
-    LPENTRYID *lppEIDNewEntry)
+HRESULT M4LAddrBook::NewEntry(ULONG_PTR ui_param, ULONG flags,
+    ULONG eid_size, const ENTRYID *eid_cont, ULONG tpl_size,
+    const ENTRYID *tpl, ULONG *new_size, ENTRYID **new_eid)
 {
 	ec_log_err("M4LAddrBook::NewEntry not implemented");
 	return MAPI_E_NO_SUPPORT;
