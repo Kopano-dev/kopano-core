@@ -1,4 +1,3 @@
-# foo <foo@bar.foobar>, 2005.
 msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
@@ -44,7 +43,6 @@ msgstr "Utgående"
 msgid "This folder contains archives of all outgoing messages."
 msgstr "Denna mappen innehåller arkiver av alla utgående meddelande."
 
-# 85%
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:938
 msgid "Deleted"
 msgstr "Raderat"
@@ -211,13 +209,10 @@ msgstr "Dagbok"
 msgid "Subject:"
 msgstr "Ämne:"
 
-# 75%
 #: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
 msgid "Global Address Lists"
 msgstr "Globale Adresslistor"
 
-# 75%
-# 80%
 #: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
 msgid "All Address Lists"
 msgstr "Globale Adresslistor"
@@ -554,7 +549,6 @@ msgstr ""
 msgid "New Time Proposed"
 msgstr ""
 
-# 75%
 #: php-ext/include/mapi/class.meetingrequest.php:2692
 msgid "Canceled"
 msgstr "Annullerat"
