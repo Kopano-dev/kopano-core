@@ -1610,8 +1610,10 @@ HRESULT M4LAddrBook::Unadvise(ULONG ulConnection) {
  *
  * @return	HRESULT
  */
-HRESULT M4LAddrBook::CreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, ULONG ulFlags, ULONG* lpcbEntryID,
-								  LPENTRYID* lppEntryID) {
+HRESULT M4LAddrBook::CreateOneOff(const TCHAR *lpszName,
+    const TCHAR *lpszAdrType, const TCHAR *lpszAddress, ULONG ulFlags,
+    ULONG *lpcbEntryID, ENTRYID **lppEntryID)
+{
 	return ECCreateOneOff(lpszName, lpszAdrType, lpszAddress, ulFlags, lpcbEntryID, lppEntryID);
 }
 
