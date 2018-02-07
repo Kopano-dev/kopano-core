@@ -4140,7 +4140,8 @@ ECRESULT ECUserManagement::GetServerDetails(const std::string &strServer, server
 	try {
 		details = lpPlugin->getServerDetails(strServer);
 		cache->SetServerDetails(strServer, details);
-	} catch (objectnotfound &) {
+	} catch (const objectnotfound &e) {
+		ec_log_warn("K-1543: Unable to get server details for \"%s\": %s", strServer.c_str(), e.what());
 		return KCERR_NOT_FOUND;
 	} catch (notsupported &) {
 		return KCERR_NO_SUPPORT;
