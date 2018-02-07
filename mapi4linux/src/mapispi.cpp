@@ -138,8 +138,10 @@ HRESULT M4LMAPISupport::OpenProfileSection(const MAPIUID *lpUid, ULONG ulFlags,
 	return session->OpenProfileSection(lpUid, nullptr, ulFlags, lppProfileObj);
 }
 
-HRESULT M4LMAPISupport::RegisterPreprocessor(LPMAPIUID lpMuid, LPTSTR lpszAdrType, LPTSTR lpszDLLName, LPSTR lpszPreprocess,
-											 LPSTR lpszRemovePreprocessInfo, ULONG ulFlags) {
+HRESULT M4LMAPISupport::RegisterPreprocessor(const MAPIUID *,
+    const TCHAR *addrtype, const TCHAR *dllname, const char *preprocess,
+    const char *remove_pp_info, ULONG flags)
+{
     return MAPI_E_NO_SUPPORT;
 }
 
