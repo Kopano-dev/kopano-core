@@ -1287,19 +1287,22 @@ HRESULT M4LMAPISession::Unadvise(ULONG ulConnection) {
 	return hr;
 }
 
-HRESULT M4LMAPISession::MessageOptions(ULONG_PTR ulUIParam, ULONG ulFlags,
-    LPTSTR lpszAdrType, LPMESSAGE lpMessage)
+HRESULT M4LMAPISession::MessageOptions(ULONG_PTR ui_param, ULONG flags,
+    const TCHAR *addrtype, IMessage *)
 {
 	ec_log_err("M4LMAPISessionM4LMAPISession::MessageOptions not implemented");
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISession::QueryDefaultMessageOpt(LPTSTR lpszAdrType, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppOptions) {
+HRESULT M4LMAPISession::QueryDefaultMessageOpt(const TCHAR *addrtype,
+    ULONG flags, ULONG *nvals, SPropValue **opts)
+{
 	ec_log_err("M4LMAPISession::QueryDefaultMessageOpt not implemented");
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISession::EnumAdrTypes(ULONG ulFlags, ULONG* lpcAdrTypes, LPTSTR** lpppszAdrTypes) {
+HRESULT M4LMAPISession::EnumAdrTypes(ULONG flags, ULONG *ntypes, TCHAR ***types)
+{
 	ec_log_err("M4LMAPISession::EnumAdrTypes not implemented");
 	return MAPI_E_NO_SUPPORT;
 }
@@ -1816,7 +1819,9 @@ HRESULT M4LAddrBook::RecipOptions(ULONG_PTR ulUIParam, ULONG ulFlags,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LAddrBook::QueryDefaultRecipOpt(LPTSTR lpszAdrType, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppOptions) {
+HRESULT M4LAddrBook::QueryDefaultRecipOpt(const TCHAR *addrtype, ULONG flags,
+    ULONG *nvals, SPropValue **opts)
+{
 	ec_log_err("not implemented: M4LAddrBook::QueryDefaultRecipOpt");
 	return MAPI_E_NO_SUPPORT;
 }
