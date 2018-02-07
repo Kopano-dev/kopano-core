@@ -590,10 +590,6 @@ exit:
 	return hr;
 }
 
-IECPropStorage* WSMAPIPropStorage::GetServerStorage() {
-	return this; /* I am the server storage */
-}
-
 //FIXME: one lock/unlock function
 HRESULT WSMAPIPropStorage::LockSoap()
 {

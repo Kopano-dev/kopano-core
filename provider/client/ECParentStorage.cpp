@@ -88,7 +88,3 @@ HRESULT ECParentStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	*lppsMapiObject = new MAPIOBJECT(**iterSObj);
 	return hr;
 }
-
-IECPropStorage* ECParentStorage::GetServerStorage() {
-	return m_lpServerStorage;
-}

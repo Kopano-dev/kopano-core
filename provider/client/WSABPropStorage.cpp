@@ -141,11 +141,6 @@ exit:
 	return hr;
 }
 
-IECPropStorage* WSABPropStorage::GetServerStorage()
-{
-	return this;
-}
-
 HRESULT WSABPropStorage::LockSoap()
 {
 	lpDataLock.lock();
