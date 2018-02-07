@@ -287,6 +287,7 @@ private:
 	virtual HRESULT LockSoap();
 	virtual HRESULT UnLockSoap();
 
+	static ECRESULT KCOIDCLogon(KCmdProxy *, const char *server, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
 	//TODO: Move this function to the right file
 	static ECRESULT TrySSOLogon(KCmdProxy *, const char *server, const utf8string &user, const utf8string &imp_user, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
 

@@ -203,6 +203,12 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		ulLogonFlags |= KOPANO_LOGON_NO_UID_AUTH;
 	}
 
+	if (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_OIDC) {
+		er = KCOIDCLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, strImpersonateUser, strPassword, ulCapabilities, m_ecSessionGroupId, GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid, sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
+		if (er == erSuccess)
+			goto auth;
+	}
+
 	// try single signon logon
 	er = TrySSOLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, strImpersonateUser, ulCapabilities, m_ecSessionGroupId, (char *)GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid, sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
 	if (er == erSuccess)
@@ -352,6 +358,33 @@ HRESULT WSTransport::HrReLogon()
 	for (const auto &p : m_mapSessionReload)
 		p.second.second(p.second.first, this->m_ecSessionId);
 	return hrSuccess;
+}
+
+ECRESULT WSTransport::KCOIDCLogon(KCmdProxy *cmd, const char *server, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID ses_grp_id, const char *app_name, ECSESSIONID *ses_id, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc)
+{
+	struct xsd__base64Binary sso_data, licreq;
+	struct ssoLogonResponse resp;
+
+	resp.ulSessionId = 0;
+	auto token = "KCOIDC" + std::string(password.c_str());
+
+	sso_data.__ptr = reinterpret_cast<unsigned char *>(const_cast<char *>(token.c_str()));
+	sso_data.__size = token.length();
+
+	if (cmd->ssoLogon(resp.ulSessionId, user.c_str(),
+	    imp_user.c_str(), &sso_data, PROJECT_VERSION,
+	    caps, licreq, ses_grp_id, app_name,
+	    cl_app_ver.c_str(), cl_app_misc.c_str(), &resp) != SOAP_OK)
+		return KCERR_LOGON_FAILED;
+
+	*ses_id = resp.ulSessionId;
+	*srv_caps = resp.ulCapabilities;
+
+	if (resp.sServerGuid.__ptr != nullptr &&
+	    resp.sServerGuid.__size == sizeof(*srv_guid))
+		memcpy(srv_guid, resp.sServerGuid.__ptr, sizeof(*srv_guid));
+
+	return resp.er;
 }
 
 ECRESULT WSTransport::TrySSOLogon(KCmdProxy *lpCmd, const char *szServer,

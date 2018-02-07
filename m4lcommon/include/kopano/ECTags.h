@@ -270,6 +270,7 @@
 #define EC_PROFILE_FLAGS_CACHE_PUBLIC			0x0000400
 #define EC_PROFILE_FLAGS_TRUNCATE_SOURCEKEY		0x0000800		// Truncate PR_SOURCE_KEY to 22 bytes (from 24 bytes)
 #define EC_PROFILE_FLAGS_NO_UID_AUTH			0x0001000		// Don't grant access based on the uid of the connecting process (Unix socket only)
+#define EC_PROFILE_FLAGS_OIDC                   0x0004000
 
 // Kopano internal flags
 #define EC_PROVIDER_OFFLINE				0x0F00000
