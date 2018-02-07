@@ -1647,7 +1647,7 @@ HRESULT M4LAddrBook::NewEntry(ULONG_PTR ui_param, ULONG flags,
  */
 // should use PR_AB_SEARCH_PATH
 HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
-    LPTSTR lpszNewEntryTitle, LPADRLIST lpAdrList)
+    const TCHAR *lpszNewEntryTitle, ADRLIST *lpAdrList)
 {
 	HRESULT hr = hrSuccess;
 	ULONG objType;
