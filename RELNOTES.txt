@@ -1,3 +1,24 @@
+8.6
+===
+Enhancements:
+* spooler: rules support testing for out-of-office flag [KC-119]
+* kopano-spamd: new daemon for spam learning in Kopano/SpamAssasin [KC-666]
+* kopano-oof: new utility for Out Of Office [KC-981]
+* kopano-storeadm: new utility replacing the store functions
+  of kopano-admin [KC-982]
+* server: JSON Web Token support via OpenID Connect [KC-898]
+* daemons: added the --dump-config option [KC-1023]
+* inetmapi: ensure all generated messages has a Message-ID [KC-989]
+* gateway: handle a zero-length PR_TRANSPORT_MESSAGE_HEADERS property
+  as if it was absent [KC-979]
+Changes:
+* gateway: generate Internet headers if missing [KC-979]
+* inetmapi: ensure all messages have a Message-Id [KC-989]
+Fixes:
+* monitor: changed inconsistency in soft/hard template for
+  user/company [KC-795]
+
+
 8.5.2
 =====
 Fixes:
