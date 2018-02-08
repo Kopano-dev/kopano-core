@@ -2,7 +2,7 @@
 
 # traces ICS events of a user and displays the changed/new MAPI properties
 
-# usage: ./kopano-tracer.py -U username -P password -f foldername
+# usage: ./kopano-tracer.py -u username -f foldername
 
 import time, sys, difflib
 
@@ -75,12 +75,12 @@ def sync_folders(folders):
 
 
 def main():
-    options, _ = kopano.parser().parse_args()
+    options, _ = kopano.parser('suf').parse_args()
     server = kopano.Server(options)
-    # TODO: use optparse to figure this out?
-    if not server.options.auth_user:
+    if not server.options.users:
         print('No user specified')
-    user = kopano.Server().user(server.options.auth_user)
+        sys.exit(1)
+    user = server.user(server.options.users[0])
 
     if not server.options.folders:
         folders = list(user.store.folders())
