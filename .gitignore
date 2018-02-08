@@ -69,6 +69,7 @@ stamp-h2
 /ECtools/utils/kopano-autorespond.py
 /ECtools/search/kopano_search/version.py
 /ECtools/backup/kopano_backup/version.py
+/ECtools/rest/kopano_rest/version.py
 /ECtools/cli/kopano_cli/version.py
 /ECtools/spamd/kopano_spamd/version.py
 /ECtools/utils/kopano_utils/version.py
