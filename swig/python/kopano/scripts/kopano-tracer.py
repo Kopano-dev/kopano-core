@@ -54,30 +54,41 @@ class Importer:
             print('\033[1;41mEnd Delete\033[1;m\n')
             del ITEM_MAPPING[rm_item.sourcekey]
 
+def item_mapping(folder):
+    print('Monitoring folder %s of %s for update and delete events' % (folder, folder.store.user.fullname))
+    # Create mapping
+    for item in folder.items():
+        ITEM_MAPPING[item.sourcekey] = item
+    print('Mapping of items and sourcekey complete')
+
+
+def sync_folders(folders):
+    [item_mapping(folder) for folder in folders]
+    states = {folder.name: folder.state for folder in folders}
+    while True:
+        for folder in folders:
+            folder_state = states[folder.name]
+            new_state = folder.sync(Importer(), folder_state) # from last known state
+            if new_state != folder_state:
+                states[folder.name] = new_state
+        time.sleep(1)
+
+
 def main():
     options, _ = kopano.parser().parse_args()
     server = kopano.Server(options)
     # TODO: use optparse to figure this out?
     if not server.options.auth_user:
         print('No user specified')
-    if not server.options.folders:
-        print('No folder specified')
-    else:
-        user = kopano.Server().user(server.options.auth_user)
-        folder = next(user.store.folders()) # First Folder
-        print('Monitoring folder %s of %s for update and delete events' % (folder, user.fullname))
-        # Create mapping
-        for item in folder.items():
-            ITEM_MAPPING[item.sourcekey] = item
-        print('Mapping of items and sourcekey complete')
+    user = kopano.Server().user(server.options.auth_user)
 
-        folder_state = folder.state
-        new_state = folder.sync(Importer(), folder_state) # from last known state
-        while True:
-            new_state = folder.sync(Importer(), folder_state) # from last known state
-            if new_state != folder_state:
-                folder_state = new_state
-            time.sleep(1)
+    if not server.options.folders:
+        folders = list(user.store.folders())
+    else:
+        folders = [next(user.store.folders())]
+
+    sync_folders(folders)
+
 
 if __name__ == '__main__':
     main()
