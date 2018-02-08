@@ -29,9 +29,10 @@ kopano.set_missing_none()
 
 from . import utils
 from . import notify
+from .config import PREFIX
 
 TOP = 10
-PREFIX = '/api/gc/v0'
+SESSIONDATA = {}
 
 # TODO /me/{messages,events,contacts} are not store-wide
 # TODO result collection class?
@@ -60,21 +61,26 @@ def db_put(key, value):
             db[codecs.encode(key, 'ascii')] = codecs.encode(value, 'ascii')
 
 def _server(req):
+    global SERVER
     auth_header = req.get_header('Authorization')
     userid = req.get_header('X-Kopano-UserEntryID')
-    if auth_header:
+    if auth_header and auth_header.startswith('Basic '):
         user, passwd = codecs.decode(codecs.encode(auth_header[6:], 'ascii'), 'base64').split(b':')
         server = kopano.Server(auth_user=user, auth_pass=passwd)
-    elif userid in userid_sessiondata:
-        sessiondata = userid_sessiondata[userid]
+    elif userid in SESSIONDATA:
+        sessiondata = SESSIONDATA[userid]
         mapisession = kc_session_restore(sessiondata)
         server = kopano.Server(mapisession=mapisession, parse_args=False)
     else:
-        username = admin_server.user(userid=userid).name
+        try:
+            SERVER
+        except NameError:
+            SERVER = kopano.Server(parse_args=False, store_cache=False)
+        username = SERVER.user(userid=userid).name
         server = kopano.Server(auth_user=username, auth_pass='',
                                parse_args=False, store_cache=False)
         sessiondata = kc_session_save(server.mapisession)
-        userid_sessiondata[userid] = sessiondata
+        SESSIONDATA[userid] = sessiondata
     return server
 
 def _store(server, userid):
@@ -899,8 +905,7 @@ class ProfilePhotoResource(Resource):
 
         contact.set_photo('noname', req.stream.read(), req.get_header('Content-Type'))
 
-admin_server = kopano.Server(parse_args=False, store_cache=False)
-userid_sessiondata = {}
+app = falcon.API()
 
 users = UserResource()
 messages = MessageResource()
@@ -911,8 +916,6 @@ events = EventResource()
 contactfolders = ContactFolderResource()
 contacts = ContactResource()
 photos = ProfilePhotoResource()
-
-app = falcon.API()
 
 def route(app, path, resource, method=True):
     app.add_route(path, resource)

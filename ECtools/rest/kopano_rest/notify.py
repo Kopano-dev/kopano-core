@@ -12,12 +12,20 @@ from threading import Thread
 import kopano
 
 from . import utils
+from .config import PREFIX
 
-PREFIX = '/api/gc/v0'
+SUBSCRIPTIONS = {}
 
 def _user(req):
+    global SERVER
+    try:
+        SERVER
+    except NameError:
+        SERVER = kopano.Server(notifications=True, parse_args=False)
+
     auth_header = req.get_header('Authorization')
     userid = req.get_header('X-Kopano-UserEntryID')
+
     if auth_header:
         user, passwd = codecs.decode(codecs.encode(auth_header[6:], 'ascii'), 'base64').split(b':')
         return SERVER.user(codecs.decode(user, 'utf8'))
@@ -43,6 +51,13 @@ class Sink:
         self.store = store
 
     def update(self, notification):
+        global QUEUE
+        try:
+            QUEUE
+        except NameError:
+            QUEUE = Queue()
+            Processor().start()
+
         QUEUE.put((self.store, notification))
 
 def _get_folder(store, resource):
@@ -84,13 +99,8 @@ class SubscriptionResource:
 
         folder.unsubscribe(sink)
 
-SERVER = kopano.Server(notifications=True)
-SUBSCRIPTIONS = {}
-QUEUE = Queue()
+app = falcon.API()
 
 subscriptions = SubscriptionResource()
-app = falcon.API()
 app.add_route(PREFIX+'/subscriptions', subscriptions)
 app.add_route(PREFIX+'/subscriptions/{subscriptionid}', subscriptions)
-
-Processor().start()
