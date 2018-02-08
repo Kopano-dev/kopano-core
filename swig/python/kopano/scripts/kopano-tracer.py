@@ -4,7 +4,9 @@
 
 # usage: ./kopano-tracer.py -u username -f foldername
 
-import time, sys, difflib
+import difflib
+import sys
+import time
 
 from MAPI.Tags import SYNC_NEW_MESSAGE
 import kopano
