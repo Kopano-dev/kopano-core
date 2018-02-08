@@ -80,14 +80,14 @@ FREQ_MONTH = 0x200C
 FREQ_YEAR = 0x200D
 
 # TODO shouldn't we handle pattern 4, 0xC, and what about the Hj stuff?
-DAILY = 0
-WEEKLY = 1
-MONTHLY = 2
-MONTHNTH = 3
-MONTHEND = 4
-HJMONTHLY = 0xA
-HJMONTHNTH = 0xB
-HJMONTHEND = 0xC
+PATTERN_DAILY = 0
+PATTERN_WEEKLY = 1
+PATTERN_MONTHLY = 2
+PATTERN_MONTHNTH = 3
+PATTERN_MONTHEND = 4
+PATTERN_HJMONTHLY = 0xA
+PATTERN_HJMONTHNTH = 0xB
+PATTERN_HJMONTHEND = 0xC
 
 # see MS-OXOCAL, section 2.2.1.44.5, "AppointmentRecurrencePattern Structure"
 
@@ -119,10 +119,10 @@ class Recurrence(object):
         pos = 5 * SHORT + 3 * LONG
 
         self.pattern_type_specific = []
-        if self.pattern_type != DAILY:
+        if self.pattern_type != PATTERN_DAILY:
             self.pattern_type_specific.append(_utils.unpack_long(value, pos))
             pos += LONG
-            if self.pattern_type in (MONTHNTH, HJMONTHNTH):
+            if self.pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
                 self.pattern_type_specific.append(_utils.unpack_long(value, pos))
                 pos += LONG
 
@@ -400,20 +400,20 @@ class Recurrence(object):
     def pattern(self):
         if self.recur_frequency == FREQ_YEAR:
             return {
-                MONTHLY: 'year',
-                MONTHNTH: 'year_rel',
+                PATTERN_MONTHLY: 'year',
+                PATTERN_MONTHNTH: 'year_rel',
             }[self.pattern_type]
         else:
             return {
-                DAILY: 'day',
-                WEEKLY: 'week',
-                MONTHLY: 'month',
-                MONTHNTH: 'month_rel',
+                PATTERN_DAILY: 'day',
+                PATTERN_WEEKLY: 'week',
+                PATTERN_MONTHLY: 'month',
+                PATTERN_MONTHNTH: 'month_rel',
             }[self.pattern_type]
 
     @property
     def weekdays(self):
-        if self.pattern_type in (WEEKLY, MONTHNTH, HJMONTHNTH):
+        if self.pattern_type in (PATTERN_WEEKLY, PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
             weekdays = {0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday'}
             days = []
             for index, week in weekdays.items():
@@ -433,12 +433,12 @@ class Recurrence(object):
 
     @property
     def monthday(self):
-        if self.pattern_type in (MONTHLY, HJMONTHLY):
+        if self.pattern_type in (PATTERN_MONTHLY, PATTERN_HJMONTHLY):
             return self.pattern_type_specific[0]
 
     @property
     def index(self):
-        if self.pattern_type in (MONTHNTH, HJMONTHNTH):
+        if self.pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
             return {
                 1: u'first',
                 2: u'second',
@@ -451,7 +451,7 @@ class Recurrence(object):
     def interval(self):
         if self.recur_frequency == FREQ_YEAR:
             return self.period//12
-        elif self.pattern_type == DAILY:
+        elif self.pattern_type == PATTERN_DAILY:
             return self.period//(24*60)
         else:
             return self.period
@@ -470,10 +470,10 @@ class Recurrence(object):
         rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
         rule = rruleset()
 
-        if self.pattern_type == DAILY:
+        if self.pattern_type == PATTERN_DAILY:
             rule.rrule(rrule(DAILY, dtstart=self._start, until=self._end, interval=self.period//(24*60)))
 
-        if self.pattern_type == WEEKLY:
+        if self.pattern_type == PATTERN_WEEKLY:
             byweekday = () # Set
             for index, week in rrule_weekdays.items():
                 if (self.pattern_type_specific[0] >> index ) & 1:
@@ -482,13 +482,13 @@ class Recurrence(object):
             # But the recurrence is on 8:00 that day and we should include it.
             rule.rrule(rrule(WEEKLY, wkst = self._start.weekday(), dtstart=self._start, until=self._end + timedelta(days=1), byweekday=byweekday, interval=self.period))
 
-        elif self.pattern_type == MONTHLY:
+        elif self.pattern_type == PATTERN_MONTHLY:
             # X Day of every Y month(s)
             # The Xnd Y (day) of every Z Month(s)
             rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, bymonthday=self.pattern_type_specific[0], interval=self.period))
             # self.pattern_type_specific[0] is either day of month or
 
-        elif self.pattern_type == MONTHNTH:
+        elif self.pattern_type == PATTERN_MONTHNTH:
             byweekday = () # Set
             for index, week in rrule_weekdays.items():
                 if (self.pattern_type_specific[0] >> index ) & 1:
@@ -499,7 +499,7 @@ class Recurrence(object):
             # Yearly, the last XX of YY
             rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, interval=self.period, byweekday=byweekday))
 
-        elif self.pattern_type != DAILY: # XXX check 0
+        elif self.pattern_type != PATTERN_DAILY: # XXX check 0
             raise NotSupportedError('Unsupported recurrence pattern: %d' % self.pattern_type)
 
         # add exceptions
