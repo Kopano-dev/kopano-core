@@ -66,7 +66,7 @@ from MAPI.Tags import (
     PR_NORMALIZED_SUBJECT_W, PR_INTERNET_MESSAGE_ID_W, PR_CONVERSATION_ID,
     PR_READ_RECEIPT_REQUESTED, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED,
     PR_REPLY_RECIPIENT_ENTRIES, PR_EC_BODY_FILTERED, PR_SENSITIVITY,
-    PR_SEARCH_KEY
+    PR_SEARCH_KEY, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME
 )
 
 from MAPI.Tags import (
@@ -734,10 +734,54 @@ class Item(Properties, Contact, Appointment):
         item.create_prop('meeting:35', goid, PT_BINARY)
         return item
 
+    def _generate_reply_body(self):
+        # XXX: HTML formatted text
+        template = "{}\nFrom: {}\nSent: {}\nTo: {}\nSubject: {}\n\n{}"
+        return template.format('-' * 72, self.from_.name,
+                               self.sent, "".join(t.name for t in self.to),
+                               self.subject, self.text)
+
+
+    def reply(self, folder=None, all=False):
+        # XXX: support reply all.
+        if not folder:
+            folder = self.store.drafts
+        subject = 'RE: {}'.format(self.subject)
+        body = self._generate_reply_body()
+        # XXX: pass Address in to?
+        item = folder.create_item(subject=subject, body=body, from_=self.store.user,
+                                  to=self.from_.email, message_class=self.message_class)
+
+        # Set source message info, value of the record, based on action type
+        # (reply, replyall, forward) and add 48byte entryid at the end.
+        # replyall = "0501000067000000" / forward = "0601000068000000"
+        reply = "0501000066000000"
+        source_message_info = "01000E000C000000" + reply + "0200000030000000" + self.entryid;
+        item.create_prop('common:0x85CE', source_message_info, PT_BINARY)
+
+        return item
+
+
     def send(self, copy_to_sentmail=True):
         item = self
         if self.message_class == 'IPM.Appointment':
             item = self._send_meeting_request()
+
+        icon_index = {
+                '66': 261,  # reply
+                '67': 261,  # reply all
+                '68': 262,  # forward
+        }
+        # XXX: check if property exists?
+        try:
+            source_message = item.prop('common:0x85CE').value
+            msgtype = source_message[24:26]
+            orig = self.store.item(entryid=source_message[48:])
+            orig.create_prop(PR_ICON_INDEX, icon_index[msgtype])
+            orig.create_prop(PR_LAST_VERB_EXECUTED, int(msgtype, 16))
+            orig.create_prop(PR_LAST_VERB_EXECUTION_TIME, datetime.datetime.now())
+        except NotFoundError:
+            pass
 
         props = []
 
