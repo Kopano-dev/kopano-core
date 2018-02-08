@@ -8,6 +8,8 @@ import difflib
 import sys
 import time
 
+from contextlib import contextmanager
+
 from MAPI.Tags import SYNC_NEW_MESSAGE
 import kopano
 
@@ -36,25 +38,35 @@ def diffitems(item, old_item=[], delete=False):
     for line in difflib.unified_diff(oldprops, newprops, tofile=new_name, fromfile=old_name):
         sys.stdout.write(line)
 
+@contextmanager
+def print_action(item, action='Update'):
+    fmt = '\033[1;41m{}: subject: {} folder: {} sender: {} ({})\033[1;m'
+    print(fmt.format(action, item.subject, item.folder,
+                     item.sender.email, time.strftime('%a %b %d %H:%M:%S %Y')))
+    yield
+    print('\033[1;41mEnd {}\033[1;m\n'.format(action))
+
+
 class Importer:
     def update(self, item, flags):
-        print('\033[1;41mUpdate: subject: %s folder: %s sender: %s (%s)\033[1;m' % (item.subject, item.folder, item.sender.email, time.strftime('%a %b %d %H:%M:%S %Y')))
-        if not flags & SYNC_NEW_MESSAGE:
-            old_item = ITEM_MAPPING[item.sourcekey]
-        else:
-            ITEM_MAPPING[item.sourcekey] = item
-            old_item = False
+        with print_action(item):
+            if not flags & SYNC_NEW_MESSAGE:
+                old_item = ITEM_MAPPING[item.sourcekey]
+            else:
+                ITEM_MAPPING[item.sourcekey] = item
+                old_item = False
 
-        diffitems(item, old_item)
-        print('\033[1;41mEnd Update\033[1;m\n')
+            diffitems(item, old_item)
 
     def delete(self, item, flags): # only item.sourcekey is available here!
         rm_item = ITEM_MAPPING[item.sourcekey]
-        if rm_item:
-            print('\033[1;41mBegin Delete: subject: %s folder: %s sender: %s (%s)\033[1;m' % (rm_item.subject, rm_item.folder, rm_item.sender.email, time.strftime('%a %b %d %H:%M:%S %Y')))
+        if not rm_item:
+            return
+
+        with print_action(rm_item, 'Delete'):
             diffitems(rm_item, delete=True)
-            print('\033[1;41mEnd Delete\033[1;m\n')
             del ITEM_MAPPING[rm_item.sourcekey]
+
 
 def item_mapping(folder):
     print('Monitoring folder %s of %s for update and delete events' % (folder, folder.store.user.fullname))
