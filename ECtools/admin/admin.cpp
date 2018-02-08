@@ -2761,8 +2761,8 @@ int main(int argc, char* argv[])
 		break;
 	case MODE_CREATE_STORE:
 		if (lang == nullptr)
-			return fexec(argv[0], {"kopano-admin", "-Cn", username});
-		return fexec(argv[0], {"kopano-admin", "-Cn", username, "-l", lang});
+			return fexec(argv[0], {"kopano-storeadm", "-Cn", username});
+		return fexec(argv[0], {"kopano-storeadm", "-Cn", username, "-l", lang});
 	case MODE_DELETE_USER:
 		hr = lpServiceAdmin->DeleteUser(cbUserId, lpUserId);
 		if (hr != hrSuccess) {
