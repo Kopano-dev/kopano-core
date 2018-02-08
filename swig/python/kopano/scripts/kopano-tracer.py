@@ -41,7 +41,7 @@ def diffitems(item, old_item=[], delete=False):
 @contextmanager
 def print_action(item, action='Update'):
     fmt = '\033[1;41m{}: subject: {} folder: {} sender: {} ({})\033[1;m'
-    print(fmt.format(action, item.subject, item.folder,
+    print(fmt.format(action, item.subject, item.folder.name,
                      item.sender.email, time.strftime('%a %b %d %H:%M:%S %Y')))
     yield
     print('\033[1;41mEnd {}\033[1;m\n'.format(action))
@@ -69,7 +69,7 @@ class Importer:
 
 
 def item_mapping(folder):
-    print('Monitoring folder %s of %s for update and delete events' % (folder, folder.store.user.fullname))
+    print('Monitoring folder %s of %s for update and delete events' % (folder.name, folder.store.user.fullname))
     # Create mapping
     for item in folder.items():
         ITEM_MAPPING[item.sourcekey] = item
