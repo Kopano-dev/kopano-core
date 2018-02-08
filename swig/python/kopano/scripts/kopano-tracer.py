@@ -14,11 +14,11 @@ import kopano
 ITEM_MAPPING = {}
 
 def proplist(item):
-    biggest = max((len(prop.strid or 'None') for prop in item.props()))
+    biggest = max((len(prop.strid or 'None') for prop in item))
     props = []
-    for prop in item.props():
+    for prop in item:
         offset = biggest - len(prop.strid or 'None')
-        props.append('%s %s%s\n' % (prop.strid, ' ' * offset,  prop.strval))
+        props.append('%s %s%s\n' % (prop.strid, ' ' * offset, prop.strval))
     return props
 
 def diffitems(item, old_item=[], delete=False):
