@@ -550,7 +550,13 @@ class MessageResource(ItemResource):
         folder = utils._folder(store, folderid or 'inbox') # TODO all folders?
         item = folder.item(itemid)
 
-        if method == 'attachments':
+        if method == 'createReply':
+            self.respond(req, resp, item.reply())
+
+        elif method == 'createReplyAll':
+            self.respond(req, resp, item.reply(all=True))
+
+        elif method == 'attachments':
             fields = json.loads(req.stream.read().decode('utf-8'))
             if fields['@odata.type'] == '#microsoft.graph.fileAttachment':
                 item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
