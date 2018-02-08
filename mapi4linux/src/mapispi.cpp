@@ -223,9 +223,10 @@ HRESULT M4LMAPISupport::Address(ULONG * lpulUIParam, LPADRPARM lpAdrParms, LPADR
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::Details(ULONG * lpulUIParam, LPFNDISMISS lpfnDismiss, LPVOID lpvDismissContext, ULONG cbEntryID,
-								LPENTRYID lpEntryID, LPFNBUTTON lpfButtonCallback, LPVOID lpvButtonContext, LPTSTR lpszButtonText,
-								ULONG ulFlags) {
+HRESULT M4LMAPISupport::Details(ULONG_PTR *ui_param, DISMISSMODELESS *dsfunc,
+    void *dismiss_ctx, ULONG cbEntryID, const ENTRYID *lpEntryID,
+    LPFNBUTTON callback, void *btn_ctx, const TCHAR *btn_text, ULONG flags)
+{
     return MAPI_E_NO_SUPPORT;
 }
 
