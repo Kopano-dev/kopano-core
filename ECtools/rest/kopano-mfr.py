@@ -39,7 +39,7 @@ def opt_args():
 
 def run_app(socket_path, n):
     app = kopano_rest.app
-    unix_socket = 'unix:' + os.path.join(socket_path, 'mfr%d.sock' % n)
+    unix_socket = 'unix:' + os.path.join(socket_path, 'rest%d.sock' % n)
     bjoern.run(app, unix_socket)
 
 def run_notify(socket_path):
@@ -73,7 +73,7 @@ def main():
     finally:
         for n in range(nworkers):
             try:
-                unix_socket = os.path.join(socket_path, 'mfr%d.sock' % n)
+                unix_socket = os.path.join(socket_path, 'rest%d.sock' % n)
                 os.unlink(unix_socket)
             except OSError as e:
                 pass
