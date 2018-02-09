@@ -1817,8 +1817,8 @@ HRESULT M4LAddrBook::Details(ULONG_PTR *ui_param, DISMISSMODELESS *dsfunc,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LAddrBook::RecipOptions(ULONG_PTR ulUIParam, ULONG ulFlags,
-    LPADRENTRY lpRecip)
+HRESULT M4LAddrBook::RecipOptions(ULONG_PTR ui_param, ULONG flags,
+    const ADRENTRY *recip)
 {
 	ec_log_err("not implemented: M4LAddrBook::RecipOptions");
 	return MAPI_E_NO_SUPPORT;
