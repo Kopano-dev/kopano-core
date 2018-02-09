@@ -77,7 +77,7 @@ public:
         virtual HRESULT RemoveAppt() = 0;
         virtual HRESULT ResetPublishedFreeBusy() = 0;
         virtual HRESULT ChangeAppt() = 0;
-        virtual HRESULT SaveChanges(FILETIME ftBegin, FILETIME ftEnd) = 0;
+        virtual HRESULT SaveChanges(const FILETIME &start, const FILETIME &end) = 0;
         virtual HRESULT GetFBTimes() = 0;
         virtual HRESULT Intersect() = 0;
         %extend {

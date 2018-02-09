@@ -58,7 +58,8 @@ HRESULT ECFreeBusyUpdate::ResetPublishedFreeBusy()
 	return S_OK;
 }
 
-HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
+HRESULT ECFreeBusyUpdate::SaveChanges(const FILETIME &ftStart,
+    const FILETIME &ftEnd)
 {
 	HRESULT			hr = hrSuccess;
 	ULONG			cValues = 0;
