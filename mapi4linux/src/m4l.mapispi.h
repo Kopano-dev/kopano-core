@@ -46,21 +46,6 @@ struct M4LSUPPORTADVISE {
 
 typedef std::map<ULONG, M4LSUPPORTADVISE> M4LSUPPORTADVISES;
 
-struct findKey {
-	LPNOTIFKEY m_lpKey;
-
-	findKey(LPNOTIFKEY lpKey) 
-	{
-		m_lpKey = lpKey;
-	}
-
-	bool operator()(const M4LSUPPORTADVISES::value_type &entry) const
-	{
-		return (entry.second.lpKey->cb == m_lpKey->cb) &&
-			   (memcmp(entry.second.lpKey->ab, m_lpKey->ab, m_lpKey->cb) == 0);
-	}
-};
-
 class M4LMAPIGetSession : public M4LUnknown, public IMAPIGetSession {
 private:
 	KC::object_ptr<IMAPISession> session;

@@ -118,7 +118,11 @@ HRESULT M4LMAPISupport::Notify(LPNOTIFKEY lpKey, ULONG cNotification, LPNOTIFICA
 	object_ptr<IMAPIAdviseSink> lpAdviseSink;
 	ulock_normal l_adv(m_advises_mutex);
 
-	auto iter = find_if(m_advises.cbegin(), m_advises.cend(), findKey(lpKey));
+	auto iter = find_if(m_advises.cbegin(), m_advises.cend(),
+		[=](const M4LSUPPORTADVISES::value_type &entry) {
+			return entry.second.lpKey->cb == lpKey->cb &&
+			       memcmp(entry.second.lpKey->ab, lpKey->ab, lpKey->cb) == 0;
+		});
 	if (iter == m_advises.cend())
 		/* Should this be reported as error? */
 		return hrSuccess;
