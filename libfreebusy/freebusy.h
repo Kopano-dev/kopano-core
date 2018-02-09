@@ -487,7 +487,7 @@ public:
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT GetDelegateInfo(FBUser, void *) = 0;
+	virtual HRESULT GetDelegateInfo(const FBUser &, void *) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
@@ -579,7 +579,7 @@ public:
 	 * @todo change type of prtmStart and prtmEnd from unsigned int to LONG
 	 * @todo change type lpulStatus to void or the right struct
 	 */
-	virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *prtmStart, unsigned int *prtmEnd) = 0;
+	virtual HRESULT GetDelegateInfoEx(const FBUser &, unsigned int *status, unsigned int *start, unsigned int *end) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
@@ -624,7 +624,7 @@ public:
 	virtual HRESULT CommitChanges() = 0;
 
 	/*! @copydoc IFreeBusySupport::GetDelegateInfo */
-	virtual HRESULT GetDelegateInfo(FBUser, void *) = 0;
+	virtual HRESULT GetDelegateInfo(const FBUser &, void *) = 0;
 
 	/*! @copydoc IFreeBusySupport::SetDelegateInfo */
 	virtual HRESULT SetDelegateInfo(void *) = 0;
@@ -673,7 +673,7 @@ public:
 	//virtual HRESULT CleanTombstone() = 0;
 
 	/*! @copydoc IFreeBusySupport::GetDelegateInfoEx */
-	virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *prtmStart, unsigned int *prtmEnd) = 0;
+	virtual HRESULT GetDelegateInfoEx(const FBUser &, unsigned int *status, unsigned int *start, unsigned int *end) = 0;
 
 	/*! @copydoc IFreeBusySupport::PushDelegateInfoToWorkspace */
 	virtual HRESULT PushDelegateInfoToWorkspace() = 0;

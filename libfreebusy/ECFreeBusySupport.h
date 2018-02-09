@@ -63,7 +63,7 @@ public:
 		_kc_hidden virtual HRESULT LoadFreeBusyData(ULONG max, FBUser *fbuser, IFreeBusyData **fbdata, HRESULT *status, ULONG *have_read);
 		_kc_hidden virtual HRESULT LoadFreeBusyUpdate(ULONG nusers, FBUser *users, IFreeBusyUpdate **fbup, ULONG *nfbup, void *data4);
 		_kc_hidden virtual HRESULT CommitChanges(void) { return S_OK; }
-		_kc_hidden virtual HRESULT GetDelegateInfo(FBUser, void *) { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT GetDelegateInfo(const FBUser &, void *) override { return E_NOTIMPL; }
 		_kc_hidden virtual HRESULT SetDelegateInfo(void *) { return E_NOTIMPL; }
 		_kc_hidden virtual HRESULT AdviseFreeBusy(void *) { return E_NOTIMPL; }
 		_kc_hidden virtual HRESULT Reload(void *) { return E_NOTIMPL; }
@@ -78,7 +78,7 @@ public:
 		_kc_hidden virtual HRESULT GetFBPublishMonthRange(void *) { return E_NOTIMPL; }
 		_kc_hidden virtual HRESULT PublishRangeChanged(void) { return E_NOTIMPL; }
 		_kc_hidden virtual HRESULT CleanTombstone(void) { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT GetDelegateInfoEx(FBUser, unsigned int *status, unsigned int *start, unsigned int *end) { return E_NOTIMPL; }
+	_kc_hidden virtual HRESULT GetDelegateInfoEx(const FBUser &, unsigned int *status, unsigned int *start, unsigned int *end) override { return E_NOTIMPL; }
 		_kc_hidden virtual HRESULT PushDelegateInfoToWorkspace(void) { return E_NOTIMPL; }
 
 private:

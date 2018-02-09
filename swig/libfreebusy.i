@@ -124,7 +124,7 @@ public:
         virtual HRESULT LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeBusyData **prgfbdata, HRESULT *phrStatus, ULONG *pcRead) = 0;
         virtual HRESULT LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4) = 0;
         virtual HRESULT CommitChanges() = 0;
-        virtual HRESULT GetDelegateInfo(FBUser, void *) = 0;
+        virtual HRESULT GetDelegateInfo(const FBUser &, void *) = 0;
         virtual HRESULT SetDelegateInfo(void *) = 0;
         virtual HRESULT AdviseFreeBusy(void *) = 0;
         virtual HRESULT Reload(void *) = 0;
@@ -139,7 +139,7 @@ public:
         virtual HRESULT GetFBPublishMonthRange(void *) = 0;
         virtual HRESULT PublishRangeChanged() = 0;
         virtual HRESULT CleanTombstone() = 0;
-        virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *prtmStart, unsigned int *prtmEnd) = 0;
+        virtual HRESULT GetDelegateInfoEx(const FBUser &, unsigned int *status, unsigned int *start, unsigned int *end) = 0;
         virtual HRESULT PushDelegateInfoToWorkspace() = 0;
         %extend {
                 IFreeBusySupport() {
