@@ -278,11 +278,6 @@ msgstr "Копия:"
 msgid "Sent on:"
 msgstr "Отправить в:"
 
-#: provider/client/ECArchiveAwareMessage.cpp:471
-#: provider/client/ECArchiveAwareMessage.cpp:529
-msgid "Kopano Archiver"
-msgstr "Архиватор Kopano"
-
 #: provider/client/ECArchiveAwareMessage.cpp:473
 msgid "An error has occurred while fetching the message from the archive."
 msgstr "Произошла ошибка при получении письма с архива."

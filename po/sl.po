@@ -281,11 +281,6 @@ msgstr "Kp:"
 msgid "Sent on:"
 msgstr "Poslano dne:"
 
-#: provider/client/ECArchiveAwareMessage.cpp:471
-#: provider/client/ECArchiveAwareMessage.cpp:529
-msgid "Kopano Archiver"
-msgstr "Kopano arhiviranje"
-
 #: provider/client/ECArchiveAwareMessage.cpp:473
 msgid "Failed to fetch this message from archive."
 msgstr ""

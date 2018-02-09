@@ -261,13 +261,6 @@ msgstr "Cc:"
 msgid "Sent on:"
 msgstr ""
 
-# 93%
-#: provider/client/ECArchiveAwareMessage.cpp:471
-#: provider/client/ECArchiveAwareMessage.cpp:529
-#, fuzzy
-msgid "Kopano Archiver"
-msgstr "Kopanoアーカイブ"
-
 #: provider/client/ECArchiveAwareMessage.cpp:473
 msgid "An error has occurred while fetching the message from the archive."
 msgstr ""

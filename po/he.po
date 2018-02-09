@@ -270,12 +270,6 @@ msgstr "עותק נוסף:"
 msgid "Sent on:"
 msgstr "נשלח ב:"
 
-# 93%
-#: provider/client/ECArchiveAwareMessage.cpp:471
-#: provider/client/ECArchiveAwareMessage.cpp:529
-msgid "Kopano Archiver"
-msgstr "ארכיון "
-
 #: provider/client/ECArchiveAwareMessage.cpp:473
 msgid "An error has occurred while fetching the message from the archive."
 msgstr "תקלה התאחשה בזמן ביצוע הפעולה מהארכיון"

@@ -260,11 +260,6 @@ msgstr "副本:"
 msgid "Sent on:"
 msgstr "已在..傳送:"
 
-#: provider/client/ECArchiveAwareMessage.cpp:471
-#: provider/client/ECArchiveAwareMessage.cpp:529
-msgid "Kopano Archiver"
-msgstr "Kopano Archiver"
-
 #: provider/client/ECArchiveAwareMessage.cpp:473
 msgid "Failed to fetch this message from archive."
 msgstr ""
