@@ -133,7 +133,9 @@ HRESULT M4LMAPISupport::Notify(const NOTIFKEY *lpKey, ULONG cNotification,
 	return lpAdviseSink->OnNotify(cNotification, lpNotifications);
 }
 
-HRESULT M4LMAPISupport::ModifyStatusRow(ULONG cValues, LPSPropValue lpColumnVals, ULONG ulFlags) {
+HRESULT M4LMAPISupport::ModifyStatusRow(ULONG cValues,
+    const SPropValue *lpColumnVals, ULONG ulFlags)
+{
 	return static_cast<M4LMAPISession *>(this->session)->setStatusRow(cValues, lpColumnVals);
 }
 

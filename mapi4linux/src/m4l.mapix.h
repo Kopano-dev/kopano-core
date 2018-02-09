@@ -159,7 +159,7 @@ private:
 	std::mutex m_mutexStatusRow;
 
 public:
-	HRESULT setStatusRow(ULONG cValues, LPSPropValue lpProps);
+	HRESULT setStatusRow(ULONG nvals, const SPropValue *);
 };
 
 class M4LAddrBook _kc_final : public M4LMAPIProp, public IAddrBook {

@@ -167,7 +167,7 @@ public:
 	virtual HRESULT Subscribe(const NOTIFKEY *key, ULONG evt_mask, ULONG flags, IMAPIAdviseSink *, ULONG *conn) = 0;
     virtual HRESULT Unsubscribe(ULONG ulConnection) = 0; 
 	virtual HRESULT Notify(const NOTIFKEY *key, ULONG nnotifs, NOTIFICATION *, ULONG *flags) = 0;
-    virtual HRESULT ModifyStatusRow(ULONG cValues, LPSPropValue lpColumnVals, ULONG ulFlags) = 0; 
+	virtual HRESULT ModifyStatusRow(ULONG nvals, const SPropValue *, ULONG flags) = 0;
 	virtual HRESULT OpenProfileSection(const MAPIUID *uid, ULONG flags, IProfSect **) = 0; 
 	virtual HRESULT RegisterPreprocessor(const MAPIUID *, const TCHAR *addrtype, const TCHAR *dllname, const char *preprocess, const char *remove_pp_info, ULONG flags) = 0;
     virtual HRESULT NewUID(LPMAPIUID lpMuid) = 0; 
