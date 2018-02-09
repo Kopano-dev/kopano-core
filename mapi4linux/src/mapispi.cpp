@@ -540,7 +540,8 @@ HRESULT M4LMAPISupport::Preprocess(ULONG flags, ULONG eid_size, const ENTRYID *)
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::CompleteMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) {
+HRESULT M4LMAPISupport::CompleteMsg(ULONG flags, ULONG eid_size, const ENTRYID *)
+{
     return MAPI_E_NO_SUPPORT;
 }
 
