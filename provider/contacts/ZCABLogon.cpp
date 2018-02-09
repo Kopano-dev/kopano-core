@@ -240,7 +240,8 @@ HRESULT ZCABLogon::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ZCABLogon::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection)
+HRESULT ZCABLogon::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ULONG evt_mask, IMAPIAdviseSink *lpAdviseSink, ULONG *lpulConnection)
 {
 	if (lpAdviseSink == NULL || lpulConnection == NULL)
 		return MAPI_E_INVALID_PARAMETER;
