@@ -70,7 +70,7 @@ using std::endl;
 
 static int daemonize = 1;
 int quit = 0;
-static bool bThreads = false;
+static bool bThreads, g_dump_config;
 static const char *szPath;
 static ECLogger *g_lpLogger = NULL;
 static ECConfig *g_lpConfig = NULL;
@@ -375,7 +375,8 @@ int main(int argc, char *argv[]) {
 		OPT_HOST,
 		OPT_CONFIG,
 		OPT_FOREGROUND,
-		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS
+		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS,
+		OPT_DUMP_CONFIG,
 	};
 	static const struct option long_options[] = {
 		{"help", 0, NULL, OPT_HELP},
@@ -383,6 +384,7 @@ int main(int argc, char *argv[]) {
 		{"config", 1, NULL, OPT_CONFIG},
 		{"foreground", 1, NULL, OPT_FOREGROUND},
 		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
+		{"dump-config", no_argument, nullptr, OPT_DUMP_CONFIG},
 		{NULL, 0, NULL, 0}
 	};
 
@@ -413,6 +415,9 @@ int main(int argc, char *argv[]) {
 		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
 			bIgnoreUnknownConfigOptions = true;
 			break;
+		case OPT_DUMP_CONFIG:
+			g_dump_config = true;
+			break;
 		case 'V':
 			cout << "kopano-gateway " PROJECT_VERSION << endl;
 			return 1;
@@ -438,6 +443,8 @@ int main(int argc, char *argv[]) {
 		hr = E_FAIL;
 		goto exit;
 	}
+	if (g_dump_config)
+		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 
 	// Setup logging
 	g_lpLogger = CreateLogger(g_lpConfig, argv[0], "KopanoGateway");

@@ -36,6 +36,7 @@ public:
 	enum {
 		RequireConfig		= 0x00000001,
 		AttachStdErr		= 0x00000002,
+		DumpConfig              = 0x00000004,
 		InhibitErrorLogging	= 0x40000000	// To silence Init errors in the unit test.
 	};
 

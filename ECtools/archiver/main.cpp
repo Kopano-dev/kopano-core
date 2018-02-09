@@ -45,7 +45,8 @@ enum modes {
     MODE_LIST_ARCHUSER,
     MODE_ARCHIVE,
     MODE_CLEANUP,
-    MODE_AUTO_ATTACH
+    MODE_AUTO_ATTACH,
+	MODE_TEST,
 };
 
 static const char *modename(modes mode)
@@ -174,7 +175,8 @@ enum cmdOptions {
     OPT_LOCAL,
     OPT_WRITABLE,
     OPT_FORCE_CLEANUP,
-    OPT_HELP
+    OPT_HELP,
+	OPT_DUMP_CONFIG,
 };
 
 static const struct option long_options[] = {
@@ -195,6 +197,7 @@ static const struct option long_options[] = {
     { "config", 		   required_argument, 	NULL, OPT_CONFIG 	       },
     { "writable",		   required_argument,	NULL, OPT_WRITABLE	       },
     { "force-cleanup",	   no_argument,		    NULL, OPT_FORCE_CLEANUP    },
+	{"dump-config", no_argument, nullptr, OPT_DUMP_CONFIG},
     { NULL, 			   no_argument, 		NULL, 0				       }
 };
 
@@ -376,7 +379,10 @@ int main(int argc, char *argv[])
         case OPT_FORCE_CLEANUP:
             bForceCleanup = true;
             break;
-
+		case OPT_DUMP_CONFIG:
+			ulFlags |= Archiver::DumpConfig;
+			mode = MODE_TEST;
+			break;
         case OPT_HELP:
             print_help(cout, argv[0]);
             return 1;
@@ -440,6 +446,8 @@ int main(int argc, char *argv[])
 
     ulFlags |= Archiver::AttachStdErr;
     r = ptrArchiver->Init(argv[0], lpszConfig, lpDefaults, ulFlags);
+	if (ulFlags & Archiver::DumpConfig)
+		return r;
     if (r == FileNotFound) {
         cerr << "Unable to open configuration file " << lpszConfig << endl;
         return 1;
@@ -571,6 +579,7 @@ int main(int argc, char *argv[])
     break;
 
     case MODE_INVALID:
+	case MODE_TEST:
         filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: invalid");
         break;
     }

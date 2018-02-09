@@ -85,6 +85,8 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 	ec_log_set(m_lpLogger);
 	if (m_lpsConfig->HasWarnings())
 		LogConfigErrors(m_lpsConfig.get());
+	if (ulFlags & DumpConfig)
+		return m_lpsConfig->dump_config(stdout) == 0 ? Success : Failure;
 	if (m_MAPI.Initialize(&sMapiInit) != hrSuccess)
 		return Failure;
 	if (ArchiverSession::Create(m_lpsConfig.get(), m_lpLogger, &m_ptrSession) != hrSuccess)

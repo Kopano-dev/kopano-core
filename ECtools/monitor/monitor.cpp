@@ -52,6 +52,7 @@ static std::unique_ptr<ECTHREADMONITOR> m_lpThreadMonitor;
 static std::mutex m_hExitMutex;
 static std::condition_variable m_hExitSignal;
 static pthread_t			mainthread;
+static bool g_dump_config;
 
 static HRESULT running_service(void)
 {
@@ -174,7 +175,8 @@ int main(int argc, char *argv[]) {
 		OPT_HOST,
 		OPT_CONFIG,
 		OPT_FOREGROUND,
-		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS
+		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS,
+		OPT_DUMP_CONFIG,
 	};
 	static const struct option long_options[] = {
 		{ "help", 0, NULL, OPT_HELP },
@@ -182,6 +184,7 @@ int main(int argc, char *argv[]) {
 		{ "config", 1, NULL, OPT_CONFIG },
 		{ "foreground", 1, NULL, OPT_FOREGROUND },
 		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
+		{"dump-config", no_argument, nullptr, OPT_DUMP_CONFIG},
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -211,6 +214,9 @@ int main(int argc, char *argv[]) {
 			break;
 		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
 			bIgnoreUnknownConfigOptions = true;
+			break;
+		case OPT_DUMP_CONFIG:
+			g_dump_config = true;
 			break;
 		case 'V':
 			cout << "kopano-monitor " PROJECT_VERSION << endl;
@@ -243,6 +249,8 @@ int main(int argc, char *argv[]) {
 		hr = E_FAIL;
 		goto exit;
 	}
+	if (g_dump_config)
+		return m_lpThreadMonitor->lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 
 	mainthread = pthread_self();
 
