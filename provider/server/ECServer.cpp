@@ -96,6 +96,7 @@ static ECLogger *g_lpAudit = nullptr;
 static ECScheduler *g_lpScheduler = nullptr;
 static ECSoapServerConnection *g_lpSoapServerConn = nullptr;
 static bool m_bDatabaseUpdateIgnoreSignals = false;
+static bool g_dump_config;
 
 static int running_server(char *, const char *, bool, int, char **, int, char **);
 
@@ -629,7 +630,8 @@ int main(int argc, char* argv[])
 		OPT_OVERRIDE_DISTRIBUTED_LOCK,
 		OPT_FORCE_DATABASE_UPGRADE,
 		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS,
-		OPT_IGNORE_DB_THREAD_STACK_SIZE
+		OPT_IGNORE_DB_THREAD_STACK_SIZE,
+		OPT_DUMP_CONFIG,
 	};
 	static const struct option long_options[] = {
 		{ "help", 0, NULL, OPT_HELP },	// help text
@@ -641,6 +643,7 @@ int main(int argc, char* argv[])
 		{ "force-database-upgrade", 0, NULL, OPT_FORCE_DATABASE_UPGRADE },
 		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS },
 		{ "ignore-db-thread-stack-size", 0, NULL, OPT_IGNORE_DB_THREAD_STACK_SIZE },
+		{"dump-config", 0, nullptr, OPT_DUMP_CONFIG},
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -696,6 +699,9 @@ int main(int argc, char* argv[])
 			break;
 		case OPT_IGNORE_DB_THREAD_STACK_SIZE:
 			m_bIgnoreDbThreadStackSize = true;
+			break;
+		case OPT_DUMP_CONFIG:
+			g_dump_config = true;
 			break;
 		};
 	}
@@ -1006,7 +1012,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		er = MAPI_E_UNCONFIGURED;
 		goto exit;
 	}
-
+	if (g_dump_config)
+		return g_lpConfig->dump_config(stdout) == 0 ? hrSuccess : MAPI_E_CALL_FAILED;
 	kc_reexec_with_allocator(argv, g_lpConfig->GetSetting("allocator_library"));
 
 	// setup logging

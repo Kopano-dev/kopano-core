@@ -32,9 +32,10 @@
 #include <sys/stat.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include "ECConfigImpl.h"
-
+#include "fileutil.h"
 #include <kopano/charset/convert.h>
 
 namespace KC {
@@ -329,9 +330,13 @@ bool ECConfigImpl::InitDefaults(unsigned int ulFlags)
 			/* Aliases are only initialized once */
 			if (ulFlags & LOADSETTING_INITIALIZING)
 				AddAlias(&m_lpDefaults[i]);
-		} else
-			AddSetting(&m_lpDefaults[i], ulFlags);
-		++i;
+			++i;
+			continue;
+		}
+		auto f = ulFlags | LOADSETTING_MARK_DEFAULT;
+		if (m_lpDefaults[i].ulFlags & CONFIGSETTING_UNUSED)
+			f |= LOADSETTING_MARK_UNUSED;
+		AddSetting(&m_lpDefaults[i++], f);
 	}
 
 	return true;
@@ -339,15 +344,11 @@ bool ECConfigImpl::InitDefaults(unsigned int ulFlags)
 
 bool ECConfigImpl::InitConfigFile(unsigned int ulFlags)
 {
-	bool bResult = false;
-
 	assert(m_readFiles.empty());
 
 	if (!m_szConfigFile)
 		return false;
-
-	bResult = ReadConfigFile(m_szConfigFile, ulFlags);
-
+	auto bResult = ReadConfigFile(m_szConfigFile, ulFlags);
 	m_readFiles.clear();
 
 	return bResult;
@@ -356,13 +357,8 @@ bool ECConfigImpl::InitConfigFile(unsigned int ulFlags)
 bool ECConfigImpl::ReadConfigFile(const std::string &file,
     unsigned int ulFlags, unsigned int ulGroup)
 {
-	FILE *fp = NULL;
-	bool bReturn = false;
 	char cBuffer[MAXLINELEN] = {0};
-	string strFilename;
-	string strLine;
-	string strName;
-	string strValue;
+	std::string strFilename, strLine, strName, strValue;
 	size_t pos;
 
 	std::unique_ptr<char, cstdlib_deleter> normalized_file(realpath(file.c_str(), nullptr));
@@ -383,25 +379,22 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 	// Store the path of the previous file in case we're recursively processing files.
 	// We need to keep track of the current path so we can handle relative includes in HandleInclude
 	std::string prevFile = m_currentFile;
+	auto cleanup = make_scope_success([&]() { m_currentFile = std::move(prevFile); });
 	m_currentFile = normalized_file.get();
 
 	/* Check if we read this file before. */
-	if (std::find(m_readFiles.cbegin(), m_readFiles.cend(), m_currentFile) != m_readFiles.cend()) {
-		bReturn = true;
-		goto exit;
-	}
-
+	if (std::find(m_readFiles.cbegin(), m_readFiles.cend(), m_currentFile) != m_readFiles.cend())
+		return true;
 	m_readFiles.emplace(m_currentFile);
-	fp = fopen(file.c_str(), "rt");
+	std::unique_ptr<FILE, file_deleter> fp(fopen(file.c_str(), "rt"));
 	if (fp == nullptr) {
 		errors.emplace_back("Unable to open config file \"" + file + "\"");
-		goto exit;
+		return false;
 	}
 
-	while (!feof(fp)) {
+	while (!feof(fp.get())) {
 		memset(&cBuffer, 0, sizeof(cBuffer));
-
-		if (!fgets(cBuffer, sizeof(cBuffer), fp))
+		if (!fgets(cBuffer, sizeof(cBuffer), fp.get()))
 			continue;
 
 		strLine = string(cBuffer);
@@ -413,7 +406,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 		/* Handle special directives which start with '!' */
 		if (strLine[0] == '!') {
 			if (!HandleDirective(strLine, ulFlags))
-				goto exit;
+				return false;
 			continue;
 		}
 
@@ -444,16 +437,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 			AddSetting(&setting, ulFlags);
 		}
 	}
-
-	bReturn = true;
-
-exit:
-	if(fp) 
-		fclose(fp);
-
-	// Restore the path of the previous file.
-	m_currentFile = std::move(prevFile);
-	return bReturn;
+	return true;
 }
 
 bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ulFlags)
@@ -480,10 +464,9 @@ bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ulFlags)
 
 bool ECConfigImpl::HandleInclude(const char *lpszArgs, unsigned int ulFlags)
 {
-	string strValue;
-	std::string file;
-	
-	file = (strValue = trim(lpszArgs, " \t\r\n"));
+	auto strValue = trim(lpszArgs, " \t\r\n");
+	auto file = strValue;
+
 	if (file[0] != PATH_SEPARATOR) {
 		// Rebuild the path. m_currentFile is always a normalized path.
 		auto pos = m_currentFile.find_last_of(PATH_SEPARATOR);
@@ -497,13 +480,8 @@ bool ECConfigImpl::HandleInclude(const char *lpszArgs, unsigned int ulFlags)
 
 bool ECConfigImpl::HandlePropMap(const char *lpszArgs, unsigned int ulFlags)
 {
-	string	strValue;
-	bool	bResult;
-
-	strValue = trim(lpszArgs, " \t\r\n");
-	bResult = ReadConfigFile(strValue.c_str(), LOADSETTING_UNKNOWN | LOADSETTING_OVERWRITE_GROUP, CONFIGGROUP_PROPMAP);
-
-	return bResult;
+	return ReadConfigFile(trim(lpszArgs, " \t\r\n").c_str(),
+	       LOADSETTING_UNKNOWN | LOADSETTING_OVERWRITE_GROUP, CONFIGGROUP_PROPMAP);
 }
 
 bool ECConfigImpl::CopyConfigSetting(const configsetting_t *lpsSetting, settingkey_t *lpsKey)
@@ -534,16 +512,13 @@ bool ECConfigImpl::CopyConfigSetting(const settingkey_t *lpsKey, const char *szV
 
 bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulFlags)
 {
-	settingmap_t::const_iterator iterSettings;
 	settingkey_t s;
 	char *valid = NULL;
-	const char *szAlias = NULL;
-
 	if (!CopyConfigSetting(lpsConfig, &s))
 		return false;
 
 	// Lookup name as alias
-	szAlias = GetAlias(lpsConfig->szName);
+	auto szAlias = GetAlias(lpsConfig->szName);
 	if (szAlias) {
 		if (!(ulFlags & LOADSETTING_INITIALIZING))
 			warnings.emplace_back("Option '" + std::string(lpsConfig->szName) + "' is deprecated! New name for option is '" + szAlias + "'.");
@@ -551,8 +526,7 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 	}
 
 	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);
-	iterSettings = m_mapSettings.find(s);
-
+	auto iterSettings = m_mapSettings.find(s);
 	if (iterSettings == m_mapSettings.cend()) {
 		// new items from file are illegal, add error
 		if (!(ulFlags & LOADSETTING_UNKNOWN)) {
@@ -612,6 +586,12 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 			return false;
 		}
 	}
+	if (ulFlags & LOADSETTING_MARK_DEFAULT)
+		s.ulFlags |= LOADSETTING_MARK_DEFAULT;
+	else
+		s.ulFlags &= ~LOADSETTING_MARK_DEFAULT;
+	if (ulFlags & LOADSETTING_MARK_UNUSED)
+		s.ulFlags |= LOADSETTING_MARK_UNUSED;
 	InsertOrReplace(&m_mapSettings, s, lpsConfig->szValue, s.ulFlags & CONFIGSETTING_SIZE);
 	return true;
 }
@@ -640,6 +620,21 @@ bool ECConfigImpl::HasErrors() {
 			if (!s.second || strlen(s.second) == 0)
 				errors.emplace_back("Option '" + std::string(s.first.s) + "' cannot be empty!");
 	return !errors.empty();
+}
+
+int ECConfigImpl::dump_config(FILE *fp)
+{
+	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);
+	for (const auto &p : m_mapSettings) {
+		if (p.first.ulFlags & LOADSETTING_MARK_UNUSED)
+			continue;
+		if (p.first.ulFlags & LOADSETTING_MARK_DEFAULT)
+			fprintf(fp, "# ");
+		auto ret = fprintf(fp, "%s = %s\n", p.first.s, p.second);
+		if (ret < 0)
+			return ret;
+	}
+	return 0;
 }
 
 } /* namespace */

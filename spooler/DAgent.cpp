@@ -261,6 +261,7 @@ static unsigned int g_nLMTPThreads = 0;
 static ECLogger *g_lpLogger;
 extern ECConfig *g_lpConfig;
 ECConfig *g_lpConfig = NULL;
+static bool g_dump_config;
 
 class sortRecipients {
 public:
@@ -3331,7 +3332,8 @@ int main(int argc, char *argv[]) {
 		OPT_PUBLIC,
 		OPT_CREATE,
 		OPT_MARKREAD,
-		OPT_NEWMAIL
+		OPT_NEWMAIL,
+		OPT_DUMP_CONFIG,
 	};
 	static const struct option long_options[] = {
 		{ "help", 0, NULL, OPT_HELP },	// help text
@@ -3347,6 +3349,7 @@ int main(int argc, char *argv[]) {
 		{ "read", 0, NULL, OPT_MARKREAD },	// mark mail as read on delivery
 		{ "do-not-notify", 0, NULL, OPT_NEWMAIL },	// do not send new mail notification
 		{ "ignore-unknown-config-options", 0, NULL, OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS }, // ignore unknown settings
+		{"dump-config", 0, nullptr, OPT_DUMP_CONFIG},
 		{ NULL, 0, NULL, 0 }
 	};
 
@@ -3495,7 +3498,9 @@ int main(int argc, char *argv[]) {
 		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
 			bIgnoreUnknownConfigOptions = true;
 			break;
-
+		case OPT_DUMP_CONFIG:
+			g_dump_config = true;
+			break;
 		case 'V':
 			cout << "kopano-dagent " PROJECT_VERSION << endl;
 			return EX_USAGE;
@@ -3533,7 +3538,6 @@ int main(int argc, char *argv[]) {
 		// options are parsed.
 		optind += argidx;
 	}
-
 	if (!bListenLMTP && optind == argc) {
 		cerr << "Not enough options given, need at least the username" << endl;
 		return EX_USAGE;
@@ -3569,6 +3573,8 @@ int main(int argc, char *argv[]) {
 		hr = E_FAIL;
 		goto exit;
 	}
+	if (g_dump_config)
+		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 
 	/* When path wasn't provided through commandline, resolve it from config file */
 	if (sDeliveryArgs.strPath.empty())
