@@ -114,7 +114,9 @@ HRESULT M4LMAPISupport::Unsubscribe(ULONG ulConnection) {
 	return hrSuccess;
 }
 
-HRESULT M4LMAPISupport::Notify(LPNOTIFKEY lpKey, ULONG cNotification, LPNOTIFICATION lpNotifications, ULONG * lpulFlags) {
+HRESULT M4LMAPISupport::Notify(const NOTIFKEY *lpKey, ULONG cNotification,
+    NOTIFICATION *lpNotifications, ULONG *lpulFlags)
+{
 	object_ptr<IMAPIAdviseSink> lpAdviseSink;
 	ulock_normal l_adv(m_advises_mutex);
 
