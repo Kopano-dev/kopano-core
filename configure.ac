@@ -589,6 +589,12 @@ AC_CHECK_HEADERS([libs3.h])
 AC_SEARCH_LIBS([S3_initialize], [s3], [s3_LIBS="-ls3"; LIBS="$LIBS_system"])
 AC_SUBST([s3_LIBS])
 
+# Check for kcoidc
+LIBS_system="$LIBS"
+AC_CHECK_HEADERS([kcoidc.h])
+AC_SEARCH_LIBS([kcoidc_initialize], [kcoidc], [kcoidc_LIBS="-lkcoidc"; LIBS="$LIBS_system"])
+AC_SUBST([kcoidc_LIBS])
+
 AC_CHECK_FUNCS([uuid_create], UUID_LIBS="",	dnl uuid_create is in libc on FreeBSD
   AC_CHECK_LIB([uuid], [uuid_create],
     UUID_LIBS="-luuid"
@@ -822,6 +828,7 @@ Pam libs	:	$PAM_LIBS
 Krb5 libs	:	$KRB5_LIBS
 TCMalloc lib	:	$TCMALLOC_LIBS
 S3 lib		:	$s3_LIBS
+KCOIDC lib	:	$kcoidc_LIBS
 ICU libs	:	$icu_uc_LIBS $icu_i18n_LIBS
 Python flags	:	$PYTHON_CFLAGS
 Python libs	:	$PYTHON_LIBS

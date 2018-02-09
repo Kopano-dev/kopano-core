@@ -221,6 +221,7 @@ private:
 	/* SSO */
 	_kc_hidden ECRESULT ValidateSSOData_NTLM(struct soap *, const char *name, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **out);
 	_kc_hidden ECRESULT ValidateSSOData_KRB5(struct soap *, const char *name, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **out);
+	_kc_hidden ECRESULT ValidateSSOData_KCOIDC(struct soap *, const char *name, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **output);
 #ifdef HAVE_GSSAPI
 	_kc_hidden ECRESULT LogKRB5Error(const char *msg, OM_uint32 major, OM_uint32 minor);
 #endif

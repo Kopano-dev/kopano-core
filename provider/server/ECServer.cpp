@@ -63,6 +63,10 @@
 #include "ECICS.h"
 #include <openssl/ssl.h>
 
+#ifdef HAVE_KCOIDC_H
+#include <kcoidc.h>
+#endif
+
 // The following value is based on:
 // http://dev.mysql.com/doc/refman/5.0/en/server-system-variables.html#sysvar_thread_stack
 // Since the remote MySQL server can be 32 or 64 bit we'll just go with the value specified
@@ -802,6 +806,12 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	bool			hosted = false;
 	bool			distributed = false;
 
+#ifdef HAVE_KCOIDC_H
+	int res;
+	bool kcoidc_initialized = false;
+	const char *issuer;
+#endif
+
 	// SIGSEGV backtrace support
 	stack_t st = {0};
 	struct sigaction act;
@@ -982,6 +992,10 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "attachment_files_fsync", "yes", 0 },
 		{ "tmp_path", "/tmp" },
 		{ "shared_reminders", "yes", CONFIGSETTING_RELOADABLE }, // enable/disable reminders for shared stores
+#ifdef HAVE_KCOIDC_H
+		{ "kcoidc_issuer_identifier", "", 0},
+		{ "kcoidc_insecure_skip_verify", "no", 0},
+#endif
 		{ NULL, NULL },
 	};
 
@@ -1086,6 +1100,28 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
     soap_ssl_init(); // Always call this in the main thread once!
 
     ssl_threading_setup();
+
+#ifdef HAVE_KCOIDC_H
+	if (parseBool(g_lpConfig->GetSetting("kcoidc_insecure_skip_verify"))) {
+		res = kcoidc_insecure_skip_verify(1);
+		if (res != 0) {
+			ec_log_err("KCOIDC: insecure_skip_verify failed: 0x%x\n", res);
+			goto exit;
+		}
+	}
+	issuer = g_lpConfig->GetSetting("kcoidc_issuer_identifier");
+	res = kcoidc_initialize(const_cast<char *>(issuer));
+	if (res != 0) {
+		ec_log_err("KCOIDC: initialize failed: 0x%x\n", res);
+		goto exit;
+	}
+	res = kcoidc_wait_until_ready(10);
+	if (res != 0) {
+		ec_log_err("KCOIDC: wait_until_ready failed: 0x%x\n", res);
+		goto exit;
+	}
+	kcoidc_initialized = true;
+#endif
 
 	// setup connection handler
 	g_lpSoapServerConn = new ECSoapServerConnection(g_lpConfig);
@@ -1315,6 +1351,15 @@ exit:
 	ssl_threading_cleanup();
 
 	SSL_library_cleanup(); //cleanup memory so valgrind is happy
+
+#ifdef HAVE_KCOIDC_H
+	if (kcoidc_initialized) {
+		res = kcoidc_uninitialize();
+		if (res != 0) {
+			ec_log_always("Error: failed to uninitialize: 0x%x\n", res);
+		}
+	}
+#endif
 	kopano_unloadlibrary();
 	delete g_lpConfig;
 
