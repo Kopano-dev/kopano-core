@@ -1955,7 +1955,8 @@ HRESULT M4LAddrBook::GetSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath) {
 	return hrSuccess;
 }
 
-HRESULT M4LAddrBook::SetSearchPath(ULONG ulFlags, LPSRowSet lpSearchPath) {
+HRESULT M4LAddrBook::SetSearchPath(ULONG ulFlags, const SRowSet *lpSearchPath)
+{
 	HRESULT hr = hrSuccess;
 
 	if (m_lpSavedSearchPath) {

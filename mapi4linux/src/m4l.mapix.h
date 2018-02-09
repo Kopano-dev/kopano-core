@@ -182,7 +182,7 @@ public:
 	virtual HRESULT GetDefaultDir(ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 	virtual HRESULT SetDefaultDir(ULONG eid_size, const ENTRYID *) override;
 	virtual HRESULT GetSearchPath(ULONG ulFlags, LPSRowSet *lppSearchPath);
-	virtual HRESULT SetSearchPath(ULONG ulFlags, LPSRowSet lpSearchPath);
+	virtual HRESULT SetSearchPath(ULONG flags, const SRowSet *) override;
 	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 
