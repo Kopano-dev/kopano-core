@@ -180,7 +180,8 @@ HRESULT M4LMAPISupport::CreateOneOff(const TCHAR *lpszName,
 	       lpcbEntryID, lppEntryID);
 }
 
-HRESULT M4LMAPISupport::SetProviderUID(LPMAPIUID lpProviderID, ULONG ulFlags) {
+HRESULT M4LMAPISupport::SetProviderUID(const MAPIUID *, ULONG flags)
+{
     return hrSuccess;
 }
 
