@@ -26,7 +26,7 @@
 #include <kopano/ECChannel.h>
 #include <kopano/ecversion.h>
 #include <kopano/stringutil.h>
-
+#include <kopano/scope.hpp>
 #include "soapH.h"
 
 #include "ECDatabase.h"
@@ -793,6 +793,50 @@ static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 	return erSuccess;
 }
 
+#ifdef HAVE_KCOIDC_H
+	bool kcoidc_initialized = false;
+#endif
+
+static void cleanup(HRESULT er) {
+	if (er != erSuccess) {
+		auto msg = format("An error occurred (%x).", er);
+		if (g_lpConfig)
+			msg += format(" Please check logfile \"%s\" for details.", g_lpConfig->GetSetting("log_file"));
+		else
+			msg += " Please check logfile for details.";
+
+		fprintf(stderr, "\n%s\n\n", msg.c_str());
+	}
+
+	if (g_lpAudit)
+		g_lpAudit->Log(EC_LOGLEVEL_ALWAYS, "server shutdown in progress");
+
+	kopano_exit();
+	ssl_threading_cleanup();
+	SSL_library_cleanup(); //cleanup memory so valgrind is happy
+
+#ifdef HAVE_KCOIDC_H
+	if (kcoidc_initialized) {
+		auto res = kcoidc_uninitialize();
+		if (res != 0) {
+			ec_log_always("Error: failed to uninitialize: 0x%x\n", res);
+		}
+	}
+#endif
+	kopano_unloadlibrary();
+	delete g_lpConfig;
+
+	if (g_lpLogger) {
+		ec_log_always("Server shutdown complete.");
+		g_lpLogger->Release();
+	}
+	if (g_lpAudit)
+		g_lpAudit->Release();
+	// cleanup ICU data so valgrind is happy
+	u_cleanup();
+
+}
+
 static int running_server(char *szName, const char *szConfig, bool exp_config,
     int argc, char **argv, int trim_argc, char **trim_argv)
 {
@@ -805,12 +849,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	// Connections
 	bool			hosted = false;
 	bool			distributed = false;
-
-#ifdef HAVE_KCOIDC_H
-	int res;
-	bool kcoidc_initialized = false;
-	const char *issuer;
-#endif
 
 	// SIGSEGV backtrace support
 	stack_t st = {0};
@@ -1009,9 +1047,9 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	setlocale(LC_ALL, "");
 	InitBindTextDomain();
 
+	auto laters = make_scope_success([&]() { cleanup(er); });
 	// Load settings
 	g_lpConfig = ECConfig::Create(lpDefaults);
-	
 	if (!g_lpConfig->LoadSettings(szConfig, !exp_config) ||
 	    g_lpConfig->ParseParams(trim_argc, trim_argv) < 0 ||
 	    (!m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) ) {
@@ -1019,12 +1057,12 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		g_lpLogger = new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);
 		if (g_lpLogger == nullptr) {
 			er = MAPI_E_NOT_ENOUGH_MEMORY;
-			goto exit;
+			return retval;
 		}
 		ec_log_set(g_lpLogger);
 		LogConfigErrors(g_lpConfig);
 		er = MAPI_E_UNCONFIGURED;
-		goto exit;
+		return retval;
 	}
 	if (g_dump_config)
 		return g_lpConfig->dump_config(stdout) == 0 ? hrSuccess : MAPI_E_CALL_FAILED;
@@ -1035,7 +1073,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	if (!g_lpLogger) {
 		fprintf(stderr, "Error in log configuration, unable to resume.\n");
 		er = MAPI_E_UNCONFIGURED;
-		goto exit;
+		return retval;
 	}
 	ec_log_set(g_lpLogger);
 	if (m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())
@@ -1058,24 +1096,24 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		if (CreatePath(g_lpConfig->GetSetting("attachment_path")) != 0) {
 			ec_log_err("Unable to create attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
 			er = KCERR_DATABASE_ERROR;
-			goto exit;
+			return retval;
 		}
 		if (stat(g_lpConfig->GetSetting("attachment_path"), &dir) != 0) {
 			ec_log_err("Unable to stat attachment directory '%s', error: %s", g_lpConfig->GetSetting("attachment_path"), strerror(errno));
 			er = KCERR_DATABASE_ERROR;
-			goto exit;
+			return retval;
 		}
 		runasUser = getpwnam(g_lpConfig->GetSetting("run_as_user","","root"));
 		if (runasUser == NULL) {
 			ec_log_err("Fatal: run_as_user '%s' is unknown", g_lpConfig->GetSetting("run_as_user","","root"));
 			er = MAPI_E_UNCONFIGURED;
-			goto exit;
+			return retval;
 		}
 		if (runasUser->pw_uid != dir.st_uid) {
 			if (unix_chown(g_lpConfig->GetSetting("attachment_path"), g_lpConfig->GetSetting("run_as_user"), g_lpConfig->GetSetting("run_as_group")) != 0) {
 				ec_log_err("Unable to change ownership for attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
 				er = KCERR_DATABASE_ERROR;
-				goto exit;
+				return retval;
 			}
 		}
 #ifdef HAVE_LIBS3_H
@@ -1103,22 +1141,22 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 #ifdef HAVE_KCOIDC_H
 	if (parseBool(g_lpConfig->GetSetting("kcoidc_insecure_skip_verify"))) {
-		res = kcoidc_insecure_skip_verify(1);
+		auto res = kcoidc_insecure_skip_verify(1);
 		if (res != 0) {
 			ec_log_err("KCOIDC: insecure_skip_verify failed: 0x%x\n", res);
-			goto exit;
+			return retval;
 		}
 	}
-	issuer = g_lpConfig->GetSetting("kcoidc_issuer_identifier");
-	res = kcoidc_initialize(const_cast<char *>(issuer));
+	auto issuer = g_lpConfig->GetSetting("kcoidc_issuer_identifier");
+	auto res = kcoidc_initialize(const_cast<char *>(issuer));
 	if (res != 0) {
 		ec_log_err("KCOIDC: initialize failed: 0x%x\n", res);
-		goto exit;
+		return retval;
 	}
 	res = kcoidc_wait_until_ready(10);
 	if (res != 0) {
 		ec_log_err("KCOIDC: wait_until_ready failed: 0x%x\n", res);
-		goto exit;
+		return retval;
 	}
 	kcoidc_initialized = true;
 #endif
@@ -1127,7 +1165,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	g_lpSoapServerConn.reset(new(std::nothrow) ECSoapServerConnection(g_lpConfig));
 	er = ksrv_listen_inet(g_lpSoapServerConn.get(), g_lpConfig);
 	if (er != erSuccess)
-		goto exit;
+		return retval;
 
 	struct rlimit limit;
 	limit.rlim_cur = KC_DESIRED_FILEDES;
@@ -1140,11 +1178,11 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 	if (unix_runas(g_lpConfig)) {
 		er = MAPI_E_CALL_FAILED;
-		goto exit;
+		return retval;
 	}
 	er = ksrv_listen_pipe(g_lpSoapServerConn.get(), g_lpConfig);
 	if (er != erSuccess)
-		goto exit;
+		return retval;
 	// Test database settings
 	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig));
 
@@ -1153,14 +1191,16 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	if(er == KCERR_DATABASE_NOT_FOUND) {
 		er = lpDatabaseFactory->CreateDatabase();
 		if (er != erSuccess)
-			goto exit;
+			return retval;
 		er = lpDatabaseFactory->CreateDatabaseObject(&lpDatabase, dbError);
 	}
 
 	if(er != erSuccess) {
 		ec_log_crit("Unable to connect to database: %s", dbError.c_str());
-		goto exit;
+		return retval;
 	}
+	auto laters_db = make_scope_success([&]() { delete lpDatabase; });
+
 	ec_log_notice("Connection to database '%s' succeeded", g_lpConfig->GetSetting("mysql_database"));
 
 	hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_kopano"));
@@ -1169,7 +1209,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	// this must be done before we do anything with pthreads
 	if (daemonize && unix_daemonize(g_lpConfig)) {
 		er = MAPI_E_CALL_FAILED;
-		goto exit;
+		return retval;
 	}
 	if (!daemonize)
 		setsid();
@@ -1183,6 +1223,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	st.ss_sp = malloc(65536);
 	st.ss_flags = 0;
 	st.ss_size = 65536;
+
+	auto laters_st = make_scope_success([&]() { free(st.ss_sp); });
 
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
@@ -1231,18 +1273,18 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		if(m_bIgnoreDatabaseVersionConflict == false) {
 			ec_log_warn("   You can force the server to start with --ignore-database-version-conflict");
 			ec_log_warn("   Warning, you can lose data! If you don't know what you're doing, you shouldn't be using this option!");
-			goto exit;
+			return retval;
 		}
 	}else if(er != erSuccess) {
 		if (er != KCERR_USER_CANCEL)
 			ec_log_err("Can't update the database: %s", dbError.c_str());
-		goto exit;
+		return retval;
 	}
 	
 	er = lpDatabase->InitializeDBState();
 	if(er != erSuccess) {
 		ec_log_err("Can't initialize database settings");
-		goto exit;
+		return retval;
 	}
 	
 	m_bDatabaseUpdateIgnoreSignals = false;
@@ -1254,46 +1296,46 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	// check database tables for requested engine
 	er = check_database_engine(lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return retval;
 
 	// check attachment database started with, and maybe reject startup
 	er = check_database_attachments(lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return retval;
 
 	// check you can write into the file attachment storage
 	er = check_attachment_storage_permissions();
 	if (er != erSuccess)
-		goto exit;
+		return retval;
 
 	// check upgrade problem with wrong sequence in tproperties table primary key
 	er = check_database_tproperties_key(lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return retval;
 
 	// check whether the thread_stack is large enough.
 	er = check_database_thread_stack(lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return retval;
 
 	//Init the main system, now you can use the values like session manager
 	// This also starts several threads, like SessionCleaner, NotificationThread and TPropsPurge.
 	er = kopano_init(g_lpConfig, g_lpAudit, hosted, distributed);
 	if (er != erSuccess) { // create SessionManager
 		ec_log_err("Unable to initialize kopano session manager");
-		goto exit;
+		return retval;
 	}
 
 	// check for conflicting settings in local config and LDAP, after kopano_init since this needs the sessionmanager.
 	er = check_server_configuration();
 	if (er != erSuccess)
-		goto exit;
+		return retval;
 
 	// Load search folders from disk
 	er = g_lpSessionManager->GetSearchFolders()->LoadSearchFolders();
 	if (er != erSuccess) {
 		ec_log_err("Unable to load searchfolders");
-		goto exit;
+		return retval;
 	}
 	
 	if (restart_searches) // restart_searches if specified
@@ -1325,48 +1367,5 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 	// Close All sessions
 	kopano_removeallsessions();
-exit:
-	if (er != erSuccess) {
-		auto msg = format("An error occurred (%x).", er);
-		if (g_lpConfig)
-			msg += format(" Please check logfile \"%s\" for details.", g_lpConfig->GetSetting("log_file"));
-		else
-			msg += " Please check logfile for details.";
-
-		fprintf(stderr, "\n%s\n\n", msg.c_str());
-	}
-
-	if (g_lpAudit)
-		g_lpAudit->Log(EC_LOGLEVEL_ALWAYS, "server shutdown in progress");
-
-
-	free(st.ss_sp);
-	delete lpDatabase;
-
-	kopano_exit();
-
-	ssl_threading_cleanup();
-
-	SSL_library_cleanup(); //cleanup memory so valgrind is happy
-
-#ifdef HAVE_KCOIDC_H
-	if (kcoidc_initialized) {
-		res = kcoidc_uninitialize();
-		if (res != 0) {
-			ec_log_always("Error: failed to uninitialize: 0x%x\n", res);
-		}
-	}
-#endif
-	kopano_unloadlibrary();
-	delete g_lpConfig;
-
-	if (g_lpLogger) {
-		ec_log_always("Server shutdown complete.");
-		g_lpLogger->Release();
-	}
-	if (g_lpAudit)
-		g_lpAudit->Release();
-	// cleanup ICU data so valgrind is happy
-	u_cleanup();
 	return retval;
 }
