@@ -170,15 +170,13 @@ public:
     virtual HRESULT Notify(LPNOTIFKEY lpKey, ULONG cNotification, LPNOTIFICATION lpNotifications, ULONG * lpulFlags) = 0; 
     virtual HRESULT ModifyStatusRow(ULONG cValues, LPSPropValue lpColumnVals, ULONG ulFlags) = 0; 
 	virtual HRESULT OpenProfileSection(const MAPIUID *uid, ULONG flags, IProfSect **) = 0; 
-    virtual HRESULT RegisterPreprocessor(LPMAPIUID lpMuid, LPTSTR lpszAdrType, LPTSTR lpszDLLName, LPSTR lpszPreprocess,
-					 LPSTR lpszRemovePreprocessInfo, ULONG ulFlags) = 0; 
+	virtual HRESULT RegisterPreprocessor(const MAPIUID *, const TCHAR *addrtype, const TCHAR *dllname, const char *preprocess, const char *remove_pp_info, ULONG flags) = 0;
     virtual HRESULT NewUID(LPMAPIUID lpMuid) = 0; 
     virtual HRESULT MakeInvalid(ULONG ulFlags, LPVOID lpObject, ULONG ulRefCount, ULONG cMethods) = 0;
 
     virtual HRESULT SpoolerYield(ULONG ulFlags) = 0; 
     virtual HRESULT SpoolerNotify(ULONG ulFlags, LPVOID lpvData) = 0; 
-    virtual HRESULT CreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, ULONG ulFlags,
-				 ULONG * lpcbEntryID, LPENTRYID * lppEntryID) = 0; 
+	virtual HRESULT CreateOneOff(const TCHAR *name, const TCHAR *addrtype, const TCHAR *addr, ULONG flags, ULONG *eid_size, ENTRYID **) = 0;
     virtual HRESULT SetProviderUID(LPMAPIUID lpProviderID, ULONG ulFlags) = 0; 
 	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result) = 0;
     virtual HRESULT OpenTemplateID(ULONG cbTemplateID, LPENTRYID lpTemplateID, ULONG ulTemplateFlags, LPMAPIPROP lpMAPIPropData,
