@@ -237,8 +237,10 @@ HRESULT M4LMAPISupport::NewEntry(ULONG_PTR ui_param, ULONG flags,
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::DoConfigPropsheet(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszTitle, LPMAPITABLE lpDisplayTable,
-										  LPMAPIPROP lpCOnfigData, ULONG ulTopPage) {
+HRESULT M4LMAPISupport::DoConfigPropsheet(ULONG_PTR ui_param, ULONG flags,
+    const TCHAR *title, IMAPITable *disp_tbl, IMAPIProp *cfg_data,
+    ULONG top_page)
+{
     return MAPI_E_NO_SUPPORT;
 }
 
