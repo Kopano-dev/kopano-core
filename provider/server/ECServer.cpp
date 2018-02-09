@@ -819,7 +819,7 @@ static void cleanup(HRESULT er) {
 	if (kcoidc_initialized) {
 		auto res = kcoidc_uninitialize();
 		if (res != 0) {
-			ec_log_always("Error: failed to uninitialize: 0x%x\n", res);
+			ec_log_always("KCOIDC: failed to uninitialize: 0x%llx\n", res);
 		}
 	}
 #endif
@@ -1143,7 +1143,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	if (parseBool(g_lpConfig->GetSetting("kcoidc_insecure_skip_verify"))) {
 		auto res = kcoidc_insecure_skip_verify(1);
 		if (res != 0) {
-			ec_log_err("KCOIDC: insecure_skip_verify failed: 0x%x\n", res);
+			ec_log_err("KCOIDC: insecure_skip_verify failed: 0x%llx\n", res);
 			return retval;
 		}
 	}
@@ -1151,12 +1151,12 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	if (issuer && strlen(issuer) > 0) {
 		auto res = kcoidc_initialize(const_cast<char *>(issuer));
 		if (res != 0) {
-			ec_log_err("KCOIDC: initialize failed: 0x%x\n", res);
+			ec_log_err("KCOIDC: initialize failed: 0x%llx\n", res);
 			return retval;
 		}
 		res = kcoidc_wait_until_ready(10);
 		if (res != 0) {
-			ec_log_err("KCOIDC: wait_until_ready failed: 0x%x\n", res);
+			ec_log_err("KCOIDC: wait_until_ready failed: 0x%llx\n", res);
 			return retval;
 		}
 		kcoidc_initialized = true;
