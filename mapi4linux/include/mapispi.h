@@ -199,7 +199,7 @@ public:
 	virtual HRESULT Preprocess(ULONG flags, ULONG cbEntryID, const ENTRYID *lpEntryID) = 0;
 	virtual HRESULT CompleteMsg(ULONG flags, ULONG cbEntryID, const ENTRYID *lpEntryID) = 0;
     virtual HRESULT StoreLogoffTransports(ULONG * lpulFlags) = 0; 
-    virtual HRESULT StatusRecips(LPMESSAGE lpMessage, LPADRLIST lpRecipList) = 0; 
+	virtual HRESULT StatusRecips(IMessage *, const ADRLIST *recips) = 0;
 	virtual HRESULT WrapStoreEntryID(ULONG cbOrigEntry, const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry,ENTRYID **lppWrappedEntry) = 0;
     virtual HRESULT ModifyProfile(ULONG ulFlags) = 0; 
 

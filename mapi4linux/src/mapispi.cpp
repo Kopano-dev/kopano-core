@@ -549,7 +549,8 @@ HRESULT M4LMAPISupport::StoreLogoffTransports(ULONG * lpulFlags) {
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::StatusRecips(LPMESSAGE lpMessage, LPADRLIST lpRecipList) {
+HRESULT M4LMAPISupport::StatusRecips(IMessage *, const ADRLIST *recips)
+{
     return MAPI_E_NO_SUPPORT;
 }
 
