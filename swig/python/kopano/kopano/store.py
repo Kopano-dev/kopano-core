@@ -729,19 +729,14 @@ class Store(Properties):
             return self.guid == s.guid
         return False
 
-    def notify(self, sink):
-        flags = fnevObjectModified | fnevObjectCreated | \
-                fnevObjectMoved | fnevObjectDeleted # TODO more?
-        try:
-            self.mapiobj.Advise(None, flags, sink)
-        except MAPIErrorNoSupport:
-            raise NotSupportedError(
-                "No support for advise, please you use"
-                "server(notifications=True)"
-            )
+    def subscribe(self, sink):
+        _notification.subscribe(self, None, sink)
 
-    def notifications(self):
-        for n in _notification._notifications(self, None):
+    def unsubscribe(self, sink):
+        _notification.unsubscribe(self, sink)
+
+    def notifications(self, time=24*3600):
+        for n in _notification._notifications(self, None, time):
             yield n
 
     def __ne__(self, s):

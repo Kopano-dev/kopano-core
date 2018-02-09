@@ -57,7 +57,6 @@ from .defs import (
     ENGLISH_FOLDER_MAP, NAME_RIGHT, NAMED_PROPS_ARCHIVER
 )
 from .errors import NotFoundError, Error, _DeprecationWarning
-import notification as _notification
 
 from .compat import (
     fake_unicode as _unicode, bdec as _bdec, benc as _benc
@@ -865,19 +864,14 @@ class Folder(Properties):
     def last_modified(self):
         return self._get_fast(PR_LAST_MODIFICATION_TIME)
 
-    def notify(self, sink):
-        flags = fnevObjectModified | fnevObjectCreated | \
-                fnevObjectMoved | fnevObjectDeleted # TODO more?
-        try:
-            self.mapiobj.Advise(_bdec(self.entryid), flags, sink)
-        except MAPIErrorNoSupport:
-            raise NotSupportedError(
-                "No support for advise, please you use"
-                "server(notifications=True)"
-            )
+    def subscribe(self, sink):
+        _notification.subscribe(self.store, self, sink)
 
-    def notifications(self):
-        for n in _notification._notifications(self.store, self.entryid):
+    def unsubscribe(self, sink):
+        _notification.unsubscribe(self.store, sink)
+
+    def notifications(self, time=24*3600):
+        for n in _notification._notifications(self.store, self.entryid, time):
             yield n
 
     def __eq__(self, f): # XXX check same store?
