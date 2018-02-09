@@ -192,7 +192,7 @@ public:
 	virtual HRESULT RecipOptions(ULONG_PTR ui_param, ULONG flags, const ADRENTRY *recip) = 0;
 	virtual HRESULT QueryDefaultRecipOpt(const TCHAR *addrtype, ULONG flags, ULONG *nvals, SPropValue **opts) = 0;
     virtual HRESULT GetPAB(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) = 0;
-    virtual HRESULT SetPAB(ULONG cbEntryID, LPENTRYID lpEntryID) = 0;
+	virtual HRESULT SetPAB(ULONG cbEntryID, const ENTRYID *lpEntryID) = 0;
     virtual HRESULT GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) = 0;
 	virtual HRESULT SetDefaultDir(ULONG cbEntryID, const ENTRYID *lpEntryID) = 0;
     virtual HRESULT GetSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath) = 0;

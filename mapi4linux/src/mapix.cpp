@@ -1838,7 +1838,8 @@ HRESULT M4LAddrBook::GetPAB(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 }
 
 // Set Personal AddressBook
-HRESULT M4LAddrBook::SetPAB(ULONG cbEntryID, LPENTRYID lpEntryID) {
+HRESULT M4LAddrBook::SetPAB(ULONG eid_size, const ENTRYID *)
+{
 	ec_log_err("not implemented: M4LAddrBook::SetPAB");
 	return MAPI_E_NO_SUPPORT;
 }

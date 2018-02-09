@@ -178,7 +178,7 @@ public:
 	virtual HRESULT RecipOptions(ULONG_PTR ui_param, ULONG flags, const ADRENTRY *recip) override;
 	virtual HRESULT QueryDefaultRecipOpt(const TCHAR *addrtype, ULONG flags, ULONG *nvals, SPropValue **opts) override;
 	virtual HRESULT GetPAB(ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
-	virtual HRESULT SetPAB(ULONG cbEntryID, LPENTRYID lpEntryID);
+	virtual HRESULT SetPAB(ULONG eid_size, const ENTRYID *) override;
 	virtual HRESULT GetDefaultDir(ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 	virtual HRESULT SetDefaultDir(ULONG eid_size, const ENTRYID *) override;
 	virtual HRESULT GetSearchPath(ULONG ulFlags, LPSRowSet *lppSearchPath);
