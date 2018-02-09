@@ -536,6 +536,7 @@ class MessageResource(ItemResource):
         'subject': lambda item, arg: setattr(item, 'subject', arg),
         'body': set_body,
         'toRecipients': set_torecipients,
+        'isRead': lambda item, arg: setattr(item, 'read', arg),
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, messageid=None, method=None):
