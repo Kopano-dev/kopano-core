@@ -1148,17 +1148,19 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		}
 	}
 	auto issuer = g_lpConfig->GetSetting("kcoidc_issuer_identifier");
-	auto res = kcoidc_initialize(const_cast<char *>(issuer));
-	if (res != 0) {
-		ec_log_err("KCOIDC: initialize failed: 0x%x\n", res);
-		return retval;
+	if (issuer && strlen(issuer) > 0) {
+		auto res = kcoidc_initialize(const_cast<char *>(issuer));
+		if (res != 0) {
+			ec_log_err("KCOIDC: initialize failed: 0x%x\n", res);
+			return retval;
+		}
+		res = kcoidc_wait_until_ready(10);
+		if (res != 0) {
+			ec_log_err("KCOIDC: wait_until_ready failed: 0x%x\n", res);
+			return retval;
+		}
+		kcoidc_initialized = true;
 	}
-	res = kcoidc_wait_until_ready(10);
-	if (res != 0) {
-		ec_log_err("KCOIDC: wait_until_ready failed: 0x%x\n", res);
-		return retval;
-	}
-	kcoidc_initialized = true;
 #endif
 
 	// setup connection handler
