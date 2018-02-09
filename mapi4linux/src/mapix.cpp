@@ -1592,7 +1592,9 @@ HRESULT M4LAddrBook::CompareEntryIDs(ULONG cbEntryID1,
 	return hr;
 }
 
-HRESULT M4LAddrBook::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG* lpulConnection) {
+HRESULT M4LAddrBook::Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask,
+    IMAPIAdviseSink *, ULONG *conn)
+{
 	ec_log_err("M4LAddrBook::Advise not implemented");
 	return MAPI_E_NO_SUPPORT;
 }
