@@ -111,3 +111,15 @@
 			killall -HUP kopano-spooler 2> /dev/null || true
         endscript
 }
+
+/var/log/kopano/spamd.log {
+        weekly
+        missingok
+        rotate 52
+        compress
+        delaycompress
+        notifempty
+        postrotate
+			killall -HUP kopano-spamd 2> /dev/null || true
+        endscript
+}
