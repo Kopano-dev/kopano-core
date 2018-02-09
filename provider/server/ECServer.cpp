@@ -97,8 +97,8 @@ ECConfig*			g_lpConfig = NULL;
 static bool g_listen_http, g_listen_https, g_listen_pipe;
 static ECLogger *g_lpLogger = nullptr;
 static ECLogger *g_lpAudit = nullptr;
-static ECScheduler *g_lpScheduler = nullptr;
-static ECSoapServerConnection *g_lpSoapServerConn = nullptr;
+static std::unique_ptr<ECScheduler> g_lpScheduler;
+static std::unique_ptr<ECSoapServerConnection> g_lpSoapServerConn;
 static bool m_bDatabaseUpdateIgnoreSignals = false;
 static bool g_dump_config;
 
@@ -798,7 +798,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 {
 	int retval = -1;
 	ECRESULT		er = erSuccess;
-	ECDatabaseFactory*	lpDatabaseFactory = NULL;
+	std::unique_ptr<ECDatabaseFactory> lpDatabaseFactory;
 	ECDatabase*		lpDatabase = NULL;
 	std::string		dbError;
 
@@ -1124,8 +1124,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 #endif
 
 	// setup connection handler
-	g_lpSoapServerConn = new ECSoapServerConnection(g_lpConfig);
-	er = ksrv_listen_inet(g_lpSoapServerConn, g_lpConfig);
+	g_lpSoapServerConn.reset(new(std::nothrow) ECSoapServerConnection(g_lpConfig));
+	er = ksrv_listen_inet(g_lpSoapServerConn.get(), g_lpConfig);
 	if (er != erSuccess)
 		goto exit;
 
@@ -1142,11 +1142,11 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		er = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-	er = ksrv_listen_pipe(g_lpSoapServerConn, g_lpConfig);
+	er = ksrv_listen_pipe(g_lpSoapServerConn.get(), g_lpConfig);
 	if (er != erSuccess)
 		goto exit;
 	// Test database settings
-	lpDatabaseFactory = new ECDatabaseFactory(g_lpConfig);
+	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig));
 
 	// open database
 	er = lpDatabaseFactory->CreateDatabaseObject(&lpDatabase, dbError);
@@ -1300,7 +1300,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		g_lpSessionManager->GetSearchFolders()->RestartSearches();
 
 	// Create scheduler system
-	g_lpScheduler = new ECScheduler(g_lpLogger);
+	g_lpScheduler.reset(new(std::nothrow) ECScheduler(g_lpLogger));
 	// Add a task on the scheduler
 	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 00, &SoftDeleteRemover, (void*)&g_Quit);
 
@@ -1339,12 +1339,9 @@ exit:
 	if (g_lpAudit)
 		g_lpAudit->Log(EC_LOGLEVEL_ALWAYS, "server shutdown in progress");
 
-	delete g_lpSoapServerConn;
 
-	delete g_lpScheduler;
 	free(st.ss_sp);
 	delete lpDatabase;
-	delete lpDatabaseFactory;
 
 	kopano_exit();
 
