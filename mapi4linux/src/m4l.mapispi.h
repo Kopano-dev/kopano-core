@@ -104,7 +104,7 @@ public:
 	virtual HRESULT UpdatePAB(ULONG ulFlags, LPMESSAGE lpMessage);
 	virtual HRESULT DoSentMail(ULONG ulFlags, LPMESSAGE lpMessage);
 	virtual HRESULT OpenAddressBook(LPCIID lpInterface, ULONG ulFlags, LPADRBOOK *lppAdrBook);
-	virtual HRESULT Preprocess(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID);
+	virtual HRESULT Preprocess(ULONG flags, ULONG eid_size, const ENTRYID *) override;
 	virtual HRESULT CompleteMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID);
 	virtual HRESULT StoreLogoffTransports(ULONG *lpulFlags);
 	virtual HRESULT StatusRecips(LPMESSAGE lpMessage, LPADRLIST lpRecipList);
