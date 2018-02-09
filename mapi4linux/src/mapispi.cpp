@@ -244,8 +244,11 @@ HRESULT M4LMAPISupport::DoConfigPropsheet(ULONG_PTR ui_param, ULONG flags,
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, LPENTRYLIST lpMsgList, LPCIID lpDestInterface,
-									 LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) {
+HRESULT M4LMAPISupport::CopyMessages(const IID *lpSrcInterface,
+    void *lpSrcFolder, const ENTRYLIST *lpMsgList, const IID *lpDestInterface,
+    void *lpDestFolder, ULONG_PTR ulUIParam, IMAPIProgress *lpProgress,
+    ULONG ulFlags)
+{
 	HRESULT hr = hrSuccess;
 	LPMAPIFOLDER lpSource = NULL;
 	LPMAPIFOLDER lpDest = NULL;
