@@ -102,7 +102,7 @@ public:
 class IFreeBusyData {
 public:
         virtual HRESULT Reload(void*) = 0;
-        virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd) = 0;
+        virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, const FILETIME &start, const FILETIME &end) = 0;
         virtual HRESULT Merge(void *) = 0;
         virtual HRESULT GetDelegateInfo(void *) = 0;
         virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *) = 0;

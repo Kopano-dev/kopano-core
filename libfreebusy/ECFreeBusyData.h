@@ -46,7 +46,7 @@ public:
 	static HRESULT Create(LONG start, LONG end, const ECFBBlockList &, ECFreeBusyData **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT Reload(void *) { return E_NOTIMPL; }
-	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd);
+	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, const FILETIME &start, const FILETIME &end) override;
 	virtual HRESULT Merge(void *) { return E_NOTIMPL; }
 	virtual HRESULT GetDelegateInfo(void *) { return E_NOTIMPL; }
 	virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *);

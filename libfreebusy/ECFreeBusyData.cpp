@@ -55,7 +55,8 @@ HRESULT ECFreeBusyData::QueryInterface(REFIID refiid, void** lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd)
+HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb,
+    const FILETIME &ftmStart, const FILETIME &ftmEnd)
 {
 	object_ptr<ECEnumFBBlock> lpECEnumFBBlock;
 	if(ppenumfb == NULL)

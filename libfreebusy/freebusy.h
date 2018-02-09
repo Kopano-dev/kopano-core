@@ -321,7 +321,7 @@ public:
 	 * A free/busy provider can also subsequently use the returned IEnumFBBlock interface
 	 * to access the enumeration.
 	 */
-	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd) = 0;
+	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, const FILETIME &start, const FILETIME &end) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
