@@ -93,7 +93,7 @@ public:
         virtual HRESULT Skip(LONG celt) = 0;
         virtual HRESULT Reset() = 0;
         virtual HRESULT Clone(IEnumFBBlock **ppclone) = 0;
-        virtual HRESULT Restrict(FILETIME ftmStart, FILETIME ftmEnd) = 0;
+        virtual HRESULT Restrict(const FILETIME &start, const FILETIME &end) = 0;
         %extend {
                 ~IEnumFBBlock() { self->Release(); }
         }

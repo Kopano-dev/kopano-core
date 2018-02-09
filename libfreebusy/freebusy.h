@@ -279,8 +279,7 @@ public:
 	 *
 	 * @note This method also resets the enumeration.
 	 */
-	virtual HRESULT Restrict(FILETIME ftmStart, FILETIME ftmEnd) = 0;
-
+	virtual HRESULT Restrict(const FILETIME &start, const FILETIME &end) = 0;
 };
 
 
