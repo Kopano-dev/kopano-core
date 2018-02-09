@@ -29,6 +29,7 @@ namespace KC {
 
 static std::recursive_mutex *ssl_locks;
 
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
 static void ssl_lock(int mode, int n, const char *file, int line)
 {
 	if (mode & CRYPTO_LOCK)
@@ -41,6 +42,7 @@ static unsigned long ssl_id_function(void)
 {
     return ((unsigned long) pthread_self());
 }
+#endif
 
 void ssl_threading_setup() {
 	if (ssl_locks)
