@@ -83,8 +83,9 @@ HRESULT M4LMAPISupport::GetMemAllocRoutines(LPALLOCATEBUFFER * lpAllocateBuffer,
 	return hrSuccess;
 }
 
-HRESULT M4LMAPISupport::Subscribe(LPNOTIFKEY lpKey, ULONG ulEventMask, ULONG ulFlags, LPMAPIADVISESINK lpAdviseSink,
-								  ULONG * lpulConnection) {
+HRESULT M4LMAPISupport::Subscribe(const NOTIFKEY *lpKey, ULONG ulEventMask,
+    ULONG ulFlags, IMAPIAdviseSink *lpAdviseSink, ULONG *lpulConnection)
+{
 	LPNOTIFKEY lpNewKey = NULL;
 	ulock_normal l_adv(m_advises_mutex, std::defer_lock_t());
 

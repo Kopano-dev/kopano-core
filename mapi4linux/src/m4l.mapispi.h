@@ -87,7 +87,7 @@ public:
 	virtual ~M4LMAPISupport();
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT GetMemAllocRoutines(LPALLOCATEBUFFER *lpAllocateBuffer, LPALLOCATEMORE *lpAllocateMore, LPFREEBUFFER *lpFreeBuffer);
-	virtual HRESULT Subscribe(LPNOTIFKEY lpKey, ULONG ulEventMask, ULONG ulFlags, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection);
+	virtual HRESULT Subscribe(const NOTIFKEY *key, ULONG evt_mask, ULONG flags, IMAPIAdviseSink *, ULONG *conn) override;
 	virtual HRESULT Unsubscribe(ULONG ulConnection);
 	virtual HRESULT Notify(LPNOTIFKEY lpKey, ULONG cNotification, LPNOTIFICATION lpNotifications, ULONG *lpulFlags);
 	virtual HRESULT ModifyStatusRow(ULONG cValues, LPSPropValue lpColumnVals, ULONG ulFlags);
