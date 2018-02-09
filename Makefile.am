@@ -903,7 +903,7 @@ dist_man_MANS = \
 	doc/kopano-migration-pst.8 doc/kopano-migration-pst.cfg.5 \
 	doc/kopano-archiver-aclsync.8 \
 	doc/kopano-archiver-aclset.8 \
-	doc/kopano-archiver-restore.8
+	doc/kopano-archiver-restore.8 doc/mapi.7
 
 #
 # build infrastructure

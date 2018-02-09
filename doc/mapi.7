@@ -1,0 +1,32 @@
+.TH mapi 7 2017-11-18 "Kopano 8" "Kopano Core developer reference"
+.SH Name
+.PP
+mapi \(em Message Application Programming Interface
+.SH Description
+.PP
+MAPI is a programming language API for storing and exchanging messages,
+contacts and calendars.
+.SH Data model
+.PP
+The MAPI data model is a hierarchial one, similar to LDAP or a filesystem.
+.PP
+A store is a container for a tree-based hierarchy of objects, similar
+to a filesystem. Each object in the hierarchy has an identifier by
+which it can be referred to, the so-called entry ID. The entry ID is
+unique within the scope of a store and can be thought of something
+like a filesystem's inode number.
+.PP
+Each object can have a number of attributes (key-value pairs), so-called
+properties.
+.SH
+Differences between MSMAPI and MAPI4Linux
+.IP \(bu 4
+MAPI4Linux is a C++-only implementation. It is not binary compatible to MSMAPI,
+but it does remain source compatible to it, so that MAPI programs can, with
+little extra code, compile with both MSMAPI and M4L.
+.IP \(bu 4
+M4L uses multiple virtual inheritance.
+.IP \(bu 4
+Many MAPI functions in M4L have additional "const" qualifiers that MSMAPI is
+lacking. This allows programs to be sure memory is not unexpectedly modified
+behind the scenes and allows them to pass pointers to read-only memory as well.
