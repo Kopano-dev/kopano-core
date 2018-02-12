@@ -1,3 +1,9 @@
+Release notes for 8.4.7
+=======================
+Fixes:
+* php: do return true when AbortSubmit succeeded [KW-2087]
+
+
 Release notes for 8.4.6 (2018-02-02)
 ====================================
 Fixes:
