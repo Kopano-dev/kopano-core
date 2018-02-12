@@ -428,7 +428,7 @@ std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 				   KC_T("SPAN#errmsg {display: inline;font-style: italic;}")
 				   KC_T("DIV.indented {margin-left: 4em;}")
 				   KC_T("</STYLE></HEAD><BODY><H1>")
-				<< _("Kopano Archiver")
+				<< "Kopano Archiver"
 				<< KC_T("</H1><P>")
 				<< _("An error has occurred while fetching the message from the archive.")
 				<< KC_T(" ")
@@ -484,7 +484,7 @@ std::string ECArchiveAwareMessage::CreateOfflineWarnBodyUtf8()
 				   KC_T("SPAN#errmsg {display: inline;font-style: italic;}")
 				   KC_T("DIV.indented {margin-left: 4em;}")
 				   KC_T("</STYLE></HEAD><BODY><H1>")
-				<< _("Kopano Archiver")
+				<< "Kopano Archiver"
 				<< KC_T("</H1><P>")
 				<< _("Archives can not be destubbed when working offline.")
 				<< KC_T("</P></BODY></HTML>");

@@ -285,12 +285,6 @@ msgstr "Cc:"
 msgid "Sent on:"
 msgstr "Elküldve:"
 
-# 93%
-#: provider/client/ECArchiveAwareMessage.cpp:471
-#: provider/client/ECArchiveAwareMessage.cpp:529
-msgid "Kopano Archiver"
-msgstr "Kopano Archiváló"
-
 #: provider/client/ECArchiveAwareMessage.cpp:473
 msgid "An error has occurred while fetching the message from the archive."
 msgstr "Hiba történt a levél archívumból történő betöltésekor."

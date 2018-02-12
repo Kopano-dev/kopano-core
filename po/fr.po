@@ -1,18 +1,18 @@
-# foo <foo@bar.foobar>, 2005.
 msgid ""
 msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-12 00:03+0100\n"
-"PO-Revision-Date: 2012-08-11 14:15+0200\n"
-"Last-Translator: Pierrick <pierrick@kopano.com>\n"
-"Language-Team: fr_FR <fr@li.org>\n"
+"PO-Revision-Date: 2018-02-09 09:14+0000\n"
+"Last-Translator: jengelh <jengelh@inai.de>\n"
+"Language-Team: French <http://translate.kopano.io/projects/kopano/kopano-"
+"core/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Pootle 2.1.5\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 2.4\n"
 "X-Poedit-KeywordsList: _;KC_A;KC_W\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -44,12 +44,10 @@ msgstr "Courrier sortant"
 msgid "This folder contains archives of all outgoing messages."
 msgstr "Ce dossier contient les archives de l'ensemble du courrier sortant."
 
-# 85%
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:938
 msgid "Deleted"
 msgstr "Supprimé"
 
-# 98%
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:939
 msgid "This folder contains archives of messages that have been deleted."
 msgstr "Ce répertoire contient des messages archivés qui ont été supprimés."
@@ -96,8 +94,8 @@ msgid ""
 "The user canceled the operation, typically by clicking the Cancel button in "
 "a dialog box."
 msgstr ""
-"L'utilisateur a annulé l'opération, probablement en cliquant sur le bouton "
-"Annuler d'une boîte de dialogue."
+"L'utilisateur a annulé l'opération, probablement en cliquant sur le bouton \""
+"Annuler\" d'une boîte de dialogue."
 
 #: common/Util.cpp:1801
 msgid "A logon session could not be established."
@@ -223,7 +221,6 @@ msgstr "Sujet :"
 msgid "Subject"
 msgstr "Sujet"
 
-# 75%
 #: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
 msgid "Global Address Lists"
 msgstr "Carnet d'adresses global"
@@ -283,12 +280,6 @@ msgstr "Cc :"
 #: provider/client/ClientUtil.cpp:349
 msgid "Sent on:"
 msgstr "Envoyé le :"
-
-# 93%
-#: provider/client/ECArchiveAwareMessage.cpp:471
-#: provider/client/ECArchiveAwareMessage.cpp:529
-msgid "Kopano Archiver"
-msgstr "Gestionnaire d'archive Kopano"
 
 #: provider/client/ECArchiveAwareMessage.cpp:473
 msgid "An error has occurred while fetching the message from the archive."
@@ -571,7 +562,7 @@ msgstr "Accepté"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1663
 msgid "Declined"
-msgstr "Décliné"
+msgstr "Refusé"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1667
 msgid "Tentatively accepted"
@@ -581,7 +572,6 @@ msgstr "Provisoirement accepté"
 msgid "New Time Proposed"
 msgstr "Nouvel horaire proposé"
 
-# 75%
 #: php-ext/include/mapi/class.meetingrequest.php:2692
 msgid "Canceled"
 msgstr "Annulé"
@@ -616,11 +606,11 @@ msgstr "La recherche de cet objet a échouée."
 #: php-ext/include/mapi/class.mapiexception.php:47
 #, php-format
 msgid "Unknown MAPI Error: %s"
-msgstr "Erreur MAPI inconnue: %s"
+msgstr "Erreur MAPI inconnue : %s"
 
 #: php-ext/include/mapi/class.taskrequest.php:881
 msgid "Start Date"
-msgstr "Date de départ"
+msgstr "Date de début"
 
 #: php-ext/include/mapi/class.taskrequest.php:881
 #: php-ext/include/mapi/class.taskrequest.php:882
@@ -682,4 +672,4 @@ msgstr "Éléments de facturation"
 
 #: php-ext/include/mapi/class.taskrequest.php:912
 msgid "Mileage"
-msgstr "Kilométrage"
+msgstr "Progrès"

@@ -281,11 +281,6 @@ msgstr "Cc:"
 msgid "Sent on:"
 msgstr "Sendt den:"
 
-#: provider/client/ECArchiveAwareMessage.cpp:471
-#: provider/client/ECArchiveAwareMessage.cpp:529
-msgid "Kopano Archiver"
-msgstr ""
-
 #: provider/client/ECArchiveAwareMessage.cpp:473
 msgid "An error has occurred while fetching the message from the archive."
 msgstr ""
