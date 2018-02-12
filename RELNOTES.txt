@@ -1,3 +1,9 @@
+Release notes for 8.5.1 (2018-02-13)
+====================================
+Enhancements:
+* server: emit log message when LDAP is missing server info objects [KC-1021]
+
+
 Release notes for 8.5.0 (2018-02-05)
 ====================================
 Enhancements:
