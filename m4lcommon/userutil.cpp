@@ -22,6 +22,7 @@
 #include <mapi.h>
 #include <mapiutil.h>
 #include <kopano/ECLogger.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
 #include <kopano/userutil.h>
 #include <kopano/ecversion.h>
@@ -221,42 +222,27 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	if (lpMapiSession == nullptr || lpCollector == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	hr = lpMapiSession->OpenAddressBook(0, &IID_IAddrBook, 0, &~ptrAdrBook);
-	if(hr != hrSuccess) {
-		ec_log_crit("Unable to open addressbook: 0x%08X", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to open addressbook", hr);
 	hr = ptrAdrBook->GetDefaultDir(&cbDDEntryID, &~ptrDDEntryID);
-	if(hr != hrSuccess) {
-		ec_log_crit("Unable to open default addressbook: 0x%08X", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to open default addressbook", hr);
 	hr = ptrAdrBook->OpenEntry(cbDDEntryID, ptrDDEntryID,
 	     &iid_of(ptrDefaultDir), 0, &ulObj, &~ptrDefaultDir);
-	if(hr != hrSuccess) {
-		ec_log_crit("Unable to open GAB: 0x%08X", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Unable to open GAB", hr);
 	/* Open Hierarchy Table to see if we are running in multi-tenancy mode or not */
 	hr = ptrDefaultDir->GetHierarchyTable(0, &~ptrHierarchyTable);
-	if (hr != hrSuccess) {
-		ec_log_crit("Unable to open hierarchy table: 0x%08X", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Unable to open hierarchy table", hr);
 	hr = ptrHierarchyTable->GetRowCount(0, &ulCompanyCount);
-	if(hr != hrSuccess) {
-		ec_log_crit("Unable to get hierarchy row count: 0x%08X", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to get hierarchy row count", hr);
 
 	if( ulCompanyCount > 0) {
 		hr = ptrHierarchyTable->SetColumns(sCols, TBL_BATCH);
-		if(hr != hrSuccess) {
-			ec_log_crit("Unable to set set columns on user table: 0x%08X", hr);
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return kc_perror("Unable to set set columns on user table", hr);
 		/* multi-tenancy, loop through all subcontainers to find all users */
 		hr = ptrHierarchyTable->QueryRows(ulCompanyCount, 0, &~ptrRows);
 		if (hr != hrSuccess)
@@ -270,11 +256,8 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 			hr = ptrAdrBook->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb,
 			     reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb),
 			     &iid_of(ptrCompanyDir), 0, &ulObj, &~ptrCompanyDir);
-			if (hr != hrSuccess) {
-				ec_log_crit("Unable to open tenancy Address Book: 0x%08X", hr);
-				return hr;
-			}
-
+			if (hr != hrSuccess)
+				return kc_perror("Unable to open tenancy address book", hr);
 			hr = UpdateServerList(ptrCompanyDir, listServers);
 			if(hr != hrSuccess) {
 				ec_log_crit("Unable to create tenancy server list");
@@ -290,11 +273,8 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	}
 
 	hr = HrOpenDefaultStore(lpMapiSession, &~ptrStore);
-	if(hr != hrSuccess) {
-		ec_log_crit("Unable to open default store: 0x%08X", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Unable to open default store", hr);
 	//@todo use PT_OBJECT to queryinterface
 	hr = ptrStore->QueryInterface(IID_IECServiceAdmin, &~ptrServiceAdmin);
 	if (hr != hrSuccess)
@@ -315,7 +295,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		//support single server
 		return GetMailboxDataPerServer(lpMapiSession, "", lpCollector);
 	} else if (FAILED(hr)) {
-		ec_log_err("Unable to get server details: 0x%08X", hr);
+		kc_perror("Unable to get server details", hr);
 		if (hr == MAPI_E_NOT_FOUND) {
 			ec_log_err("Details for one or more requested servers was not found.");
 			ec_log_err("This usually indicates a misconfigured home server for a user.");
@@ -351,7 +331,8 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		}
 		hr = GetMailboxDataPerServer(converter.convert_to<char *>(wszPath), lpSSLKey, lpSSLPass, lpCollector);
 		if(FAILED(hr)) {
-			ec_log_err("Failed to collect data from server: \"%ls\", hr: 0x%08x", wszPath, hr);
+			ec_log_err("Failed to collect data from server: \"%ls\": %s (%x)",
+				wszPath, GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 	}
@@ -366,7 +347,8 @@ HRESULT GetMailboxDataPerServer(const char *lpszPath, const char *lpSSLKey,
 	          "userutil.cpp:GetMailboxDataPerServer", lpszPath, 0, lpSSLKey,
 	          lpSSLPass);
 	if(hr != hrSuccess) {
-		ec_log_crit("Unable to open admin session on server \"%s\": 0x%08X", lpszPath, hr);
+		ec_log_err("Unable to open admin session on server \"%s\": %s (%x)",
+			lpszPath, GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	return GetMailboxDataPerServer(ptrSessionServer, lpszPath, lpCollector);
@@ -392,7 +374,8 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
 
 	HRESULT hr = HrOpenDefaultStore(lpSession, &~ptrStoreAdmin);
 	if(hr != hrSuccess) {
-		ec_log_crit("Unable to open default store on server \"%s\": 0x%08X", lpszPath, hr);
+		ec_log_err("Unable to open default store on server \"%s\": %s (%x)",
+			lpszPath, GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -444,25 +427,18 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 	sPropUser.Value.ul = MAPI_MAILUSER;
 
 	HRESULT hr = lpContainer->GetContentsTable(MAPI_DEFERRED_ERRORS, &~ptrTable);
-	if(hr != hrSuccess) {
-		ec_log_crit("Unable to open contents table: 0x%08X", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to open contents table", hr);
 	hr = ptrTable->SetColumns(sCols, TBL_BATCH);
-	if(hr != hrSuccess) {
-		ec_log_crit("Unable to set set columns on user table: 0x%08X", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Unable to set set columns on user table", hr);
 	// Restrict to users (not groups) 
 	hr = ECAndRestriction(
 		ECPropertyRestriction(RELOP_NE, PR_DISPLAY_TYPE, &sPropDisplayType, ECRestriction::Cheap) +
 		ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &sPropUser, ECRestriction::Cheap))
 	.RestrictTable(ptrTable, TBL_BATCH);
-	if (hr != hrSuccess) {
-		ec_log_crit("Unable to get total user count: 0x%08X", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to get total user count", hr);
 
 	while (true) {
 		hr = ptrTable->QueryRows(50, 0, &~ptrRows);

@@ -1569,27 +1569,20 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 	if(bIsPublic)
 	{
 		hr = HrGetOneProp(lpMDB, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~lpPropIPMSubtree);
-		if (hr != hrSuccess) {
-			ec_log_crit("Unable to find PR_IPM_PUBLIC_FOLDERS_ENTRYID object, error code: 0x%08X", hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("Unable to find PR_IPM_PUBLIC_FOLDERS_ENTRYID object", hr);
 	}
 	else
 	{
 		hr = HrGetOneProp(lpMDB, PR_IPM_SUBTREE_ENTRYID, &~lpPropIPMSubtree);
-		if (hr != hrSuccess) {
-			ec_log_crit("Unable to find IPM_SUBTREE object, error code: 0x%08X", hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return kc_perror("Unable to find IPM_SUBTREE object", hr);
 	}
 
 	hr = lpMDB->OpenEntry(lpPropIPMSubtree->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropIPMSubtree->Value.bin.lpb),
 	     &IID_IMAPIFolder, 0, &ulObjType, &~lpFoundFolder);
-	if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
-		ec_log_crit("Unable to open IPM_SUBTREE object, error code: 0x%08X", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess || ulObjType != MAPI_FOLDER)
+		return kc_perror("Unable to open IPM_SUBTREE object", hr);
 	// correctly return IPM subtree as found folder
 	if (!folder)
 		goto found;
@@ -1606,16 +1599,14 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 			subfld = folder;
 		folder = ptr ? ptr+1 : NULL;
 		hr = lpFoundFolder->GetHierarchyTable(0, &~lpTable);
-		if (hr != hrSuccess) {
-			ec_log_crit("Unable to view folder, error code: 0x%08X", hr);
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return kc_perror("Unable to view folder", hr);
 		hr = FindFolder(lpTable, subfld.c_str(), &~lpPropFolder);
 		if (hr == MAPI_E_NOT_FOUND && bCreateFolder) {
 			hr = lpFoundFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)subfld.c_str(), (LPTSTR)L"Auto-created by Kopano", &IID_IMAPIFolder, MAPI_UNICODE | OPEN_IF_EXISTS, &lpNewFolder);
 			if (hr != hrSuccess) {
-				ec_log_crit("Unable to create folder \"%ls\", error code: 0x%08X", subfld.c_str(), hr);
+				ec_log_err("Unable to create folder \"%ls\": %s (%x)",
+					subfld.c_str(), GetMAPIErrorMessage(hr), hr);
 				return hr;
 			}
 		} else if (hr != hrSuccess)
@@ -1628,7 +1619,8 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 			hr = lpMDB->OpenEntry(lpPropFolder->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropFolder->Value.bin.lpb),
 			     &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFoundFolder);
 			if (hr != hrSuccess) {
-				ec_log_crit("Unable to open folder \"%ls\", error code: 0x%08X", subfld.c_str(), hr);
+				ec_log_err("Unable to open folder \"%ls\": %s (%x)",
+					subfld.c_str(), GetMAPIErrorMessage(hr), hr);
 				return hr;
 			}
 		}
@@ -1806,27 +1798,16 @@ HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, LPMAPIFOLDER *lppFolder)
 	//open Root Container.
 	hr = lpMsgStore->OpenEntry(0, nullptr, &iid_of(lpRootFld), 0, &ulType, &~lpRootFld);
 	if (hr != hrSuccess || ulType != MAPI_FOLDER) 
-	{
-		ec_log_crit("Unable to open Root Container, error code: 0x%08X", hr);
-		return hr;
-	}
-
+		return kc_perror("Unable to open root container", hr);
 	//retrive Entryid of Default Calendar Folder.
 	hr = HrGetOneProp(lpRootFld, PR_IPM_APPOINTMENT_ENTRYID, &~lpPropDefFld);
 	if (hr != hrSuccess) 
-	{
-		ec_log_crit("Unable to find PR_IPM_APPOINTMENT_ENTRYID, error code: 0x%08X", hr);
-		return hr;
-	}
+		return kc_perror("Unable to find PR_IPM_APPOINTMENT_ENTRYID", hr);
 	hr = lpMsgStore->OpenEntry(lpPropDefFld->Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(lpPropDefFld->Value.bin.lpb),
 	     &iid_of(lpDefaultFolder), MAPI_MODIFY, &ulType, &~lpDefaultFolder);
 	if (hr != hrSuccess || ulType != MAPI_FOLDER) 
-	{
-		ec_log_crit("Unable to open IPM_SUBTREE object, error code: 0x%08X", hr);
-		return hr;
-	}
-
+		return kc_perror("Unable to open IPM_SUBTREE object", hr);
 	*lppFolder = lpDefaultFolder.release();
 	return hrSuccess;
 }
