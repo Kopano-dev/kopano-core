@@ -335,6 +335,7 @@ extern _kc_export void ec_log(unsigned int level, const std::string &msg);
 #define ec_log_debug(...)   ec_log(EC_LOGLEVEL_DEBUG, __VA_ARGS__)
 #define kc_perror(s, r)     (ec_log(EC_LOGLEVEL_ERROR, s ": %s (%x)", GetMAPIErrorMessage(r), (r)), (r))
 #define kc_perrorf(s, r)    (ec_log(EC_LOGLEVEL_ERROR, "%s: " s ": %s (%x)", __PRETTY_FUNCTION__, GetMAPIErrorMessage(r), (r)), (r))
+#define kc_pwarn(s, r)      (ec_log(EC_LOGLEVEL_WARNING, s ": %s (%x)", GetMAPIErrorMessage(r), (r)), (r))
 
 extern _kc_export ECLogger *CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
 extern _kc_export int DeleteLogger(ECLogger *);

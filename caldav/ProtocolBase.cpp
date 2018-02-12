@@ -22,6 +22,7 @@
 #include "ProtocolBase.h"
 #include <kopano/stringutil.h>
 #include <kopano/CommonUtil.h>
+#include <kopano/MAPIErrors.h>
 #include "CalDavUtil.h"
 #include <kopano/mapi_ptr.h>
 
@@ -80,16 +81,13 @@ HRESULT ProtocolBase::HrInitializeClass()
 
 	hr = m_lpSession->OpenAddressBook(0, NULL, 0, &~m_lpAddrBook);
 	if(hr != hrSuccess)
-	{
-		ec_log_err("Error opening addressbook, error code: 0x%08X", hr);
-		return hr;
-	}
-
+		return kc_perror("Error opening addressbook", hr);
 	// default store required for various actions (delete, freebusy, ...)
 	hr = HrOpenDefaultStore(m_lpSession, &~m_lpDefStore);
 	if(hr != hrSuccess)
 	{
-		ec_log_err("Error opening default store of user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+		ec_log_err("Error opening default store of user \"%ls\": %s (%x)",
+			m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -105,14 +103,16 @@ HRESULT ProtocolBase::HrInitializeClass()
 		// open public
 		hr = HrOpenECPublicStore(m_lpSession, &~m_lpActiveStore);
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to open public store with user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+			ec_log_err("Unable to open public store with user \"%ls\": %s (%x)",
+				m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 	} else if (wcscasecmp(m_wstrUser.c_str(), m_wstrFldOwner.c_str())) {
 		// open shared store
 		hr = HrOpenUserMsgStore(m_lpSession, (WCHAR*)m_wstrFldOwner.c_str(), &~m_lpActiveStore);
 		if (hr != hrSuccess) {
-			ec_log_err("Unable to open store of user %ls with user %ls, error code: 0x%08X", m_wstrFldOwner.c_str(), m_wstrUser.c_str(), hr);
+			ec_log_err("Unable to open store of user \"%ls\" with user \"%ls\": %s (%x)",
+				m_wstrFldOwner.c_str(), m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 		m_ulFolderFlag |= SHARED_FOLDER;
@@ -142,7 +142,8 @@ HRESULT ProtocolBase::HrInitializeClass()
 	hr = OpenSubFolder(m_lpActiveStore, NULL, '/', bIsPublic, false, &~m_lpIPMSubtree);
 	if(hr != hrSuccess)
 	{
-		ec_log_err("Error opening IPM SUBTREE, using user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+		ec_log_err("Error opening IPM SUBTREE using user \"%ls\": %s (%x)",
+			m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -150,7 +151,8 @@ HRESULT ProtocolBase::HrInitializeClass()
 	hr = m_lpActiveStore->OpenEntry(0, nullptr, &iid_of(lpRoot), 0, &ulType, &~lpRoot);
 	if(hr != hrSuccess)
 	{
-		ec_log_err("Error opening root container, using user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+		ec_log_err("Error opening root container using user \"%ls\": %s (%x)",
+			m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -159,7 +161,8 @@ HRESULT ProtocolBase::HrInitializeClass()
 		hr = HrGetOneProp(lpRoot, PR_IPM_APPOINTMENT_ENTRYID, &~lpDefaultProp);
 		if(hr != hrSuccess)
 		{
-			ec_log_err("Error retrieving Entry id of Default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+			ec_log_err("Error retrieving entryid of default calendar for user \"%ls\": %s (%x)",
+				m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 	}
@@ -174,7 +177,8 @@ HRESULT ProtocolBase::HrInitializeClass()
 		     false, &~m_lpUsrFld);
 		if(hr != hrSuccess)
 		{
-			ec_log_err("Error opening IPM_SUBTREE folder of user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+			ec_log_err("Error opening IPM_SUBTREE folder of user \"%ls\": %s (%x)",
+				m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 	}
@@ -184,7 +188,8 @@ HRESULT ProtocolBase::HrInitializeClass()
 		hr = HrFindFolder(m_lpActiveStore, m_lpIPMSubtree, m_lpNamedProps, m_wstrFldName, &~m_lpUsrFld);
 		if(hr != hrSuccess)
 		{
-			ec_log_err("Error opening named folder of user %ls, folder %ls, error code: 0x%08X", m_wstrUser.c_str(), m_wstrFldName.c_str(), hr);
+			ec_log_err("Error opening named folder of user \"%ls\", folder \"%ls\": %s (%x)",
+				m_wstrUser.c_str(), m_wstrFldName.c_str(), GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 		m_ulFolderFlag |= SINGLE_FOLDER;
@@ -212,7 +217,8 @@ HRESULT ProtocolBase::HrInitializeClass()
 		     &iid_of(m_lpUsrFld), MAPI_BEST_ACCESS, &ulType, &~m_lpUsrFld);
 		if (hr != hrSuccess)
 		{
-			ec_log_err("Unable to open default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+			ec_log_err("Unable to open default calendar for user \"%ls\": %s (%x)",
+				m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 		// we already know we don't want to delete this folder
