@@ -7206,6 +7206,10 @@ ZEND_FUNCTION(mapi_msgstore_abortsubmit)
 		return;
 	ZEND_FETCH_RESOURCE_C(store, IMsgStore *, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
 	MAPI_G(hr) = store->AbortSubmit(eid_size, eid, 0);
+	if (FAILED(MAPI_G(hr)))
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to abort submit: %s (%x)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
+	else
+		RETVAL_TRUE;
 	LOG_END();
 	THROW_ON_ERROR();
 }

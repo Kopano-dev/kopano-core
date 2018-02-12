@@ -2147,7 +2147,7 @@ objectdetails_t LDAPUserPlugin::getObjectDetails(const objectid_t &id)
 	auto mapDetails = getObjectDetails(std::list<objectid_t>{id});
 	auto iterDetails = mapDetails.find(id);
 	if (iterDetails == mapDetails.cend())
-		throw objectnotfound("No details for "+id.id);
+		throw objectnotfound("No details for \"" + id.id + "\"");
 	return iterDetails->second;
 }
 
@@ -2702,7 +2702,7 @@ serverdetails_t LDAPUserPlugin::getServerDetails(const std::string &server)
 
 	switch (ldap_count_entries(m_ldap, res)) {
 	case 0:
-		throw objectnotfound("No results from ldap for "+server);
+		throw objectnotfound("No results from LDAP for \"" + server + "\"");
 	case 1:
 		break;
 	default:
@@ -2813,8 +2813,7 @@ quotadetails_t LDAPUserPlugin::getQuota(const objectid_t &id,
 
 	/* LDAP filter empty, object does not exist */
 	if (ldap_filter.empty())
-		throw objectnotfound("no ldap filter for "+id.id);
-
+		throw objectnotfound("No LDAP filter for \"" + id.id + "\"");
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 
 	// Do a search request to get all attributes for this user. The
