@@ -227,7 +227,7 @@ public:
 	std::wstring wstrCompany;
 	std::wstring wstrEmail;
 	std::wstring wstrServerDisplayName;
-	std::wstring wstrDeliveryStatus;
+	std::string wstrDeliveryStatus;
 	ULONG ulDisplayType = 0;
 	ULONG ulAdminLevel = 0;
 	std::string strAddrType;
@@ -2351,7 +2351,7 @@ static void RespondMessageExpired(recipients_t::const_iterator iter,
 	convert_context converter;
 	ec_log_warn("Message was expired, not delivering");
 	for (; iter != end; ++iter)
-		(*iter)->wstrDeliveryStatus = L"250 2.4.7 %ls Delivery time expired";
+		(*iter)->wstrDeliveryStatus = "250 2.4.7 %s Delivery time expired";
 }
 
 /** 
@@ -2407,7 +2407,7 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 		// notify LMTP client soft error to try again later
 		for (const auto &recip : listRecipients)
 			// error will be shown in postqueue status in postfix, probably too in other serves and mail syslog service
-			recip->wstrDeliveryStatus = L"450 4.5.0 %ls network or permissions error to storage server: " + wstringify(hr, true);
+			recip->wstrDeliveryStatus = "450 4.5.0 %s network or permissions error to storage server: " + stringify(hr, true);
 		return hr;
 	}
 
@@ -2439,7 +2439,7 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 			}
 			// cancel already logged.
 			hr = hrSuccess;
-			recip->wstrDeliveryStatus = L"250 2.1.5 %ls Ok";
+			recip->wstrDeliveryStatus = "250 2.1.5 %s Ok";
 		} else if (hr == MAPI_W_CANCEL_MESSAGE) {
 			/* Loop through all remaining recipients and start responding the status to LMTP */
 			RespondMessageExpired(iter, listRecipients.cend());
@@ -2449,9 +2449,9 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 				recip->wstrUsername.c_str(), GetMAPIErrorMessage(hr), hr);
 			/* LMTP requires different notification when Quota for user was exceeded */
 			if (hr == MAPI_E_STORE_FULL)
-				recip->wstrDeliveryStatus = L"552 5.2.2 %ls Quota exceeded";
+				recip->wstrDeliveryStatus = "552 5.2.2 %s Quota exceeded";
 			else
-				recip->wstrDeliveryStatus = L"450 4.2.0 %ls Mailbox temporarily unavailable";
+				recip->wstrDeliveryStatus = "450 4.2.0 %s Mailbox temporarily unavailable";
 		}
 
 		if (lpMessageTmp) {
@@ -2861,8 +2861,7 @@ static void *HandlerLMTP(void *lpArg)
 			hr = ResolveUser(lpAddrDir, lpRecipient);
 			if (hr == hrSuccess) {
 				// This is the status until it is delivered or some other error occurs
-				lpRecipient->wstrDeliveryStatus = L"450 4.2.0 %ls Mailbox temporarily unavailable";
-
+				lpRecipient->wstrDeliveryStatus = "450 4.2.0 %s Mailbox temporarily unavailable";
 				hr = AddServerRecipient(&mapRCPT, &lpRecipient);
 				if (hr != hrSuccess)
 					lmtp.HrResponse("503 5.1.1 Failed to add user to recipients");
@@ -2946,12 +2945,11 @@ static void *HandlerLMTP(void *lpArg)
 			for (const auto &company : mapRCPT)
 				for (const auto &server : company.second)
 					for (const auto &recip : server.second) {
-						WCHAR wbuffer[4096];
+						char wbuffer[4096];
 						for (const auto i : recip->vwstrRecipients) {
-							swprintf(wbuffer, ARRAY_SIZE(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
-							mapRecipientResults.emplace(converter.convert_to<std::string>(i),
-								// rawsize([N]) returns N, not contents len, so cast to fix
-								converter.convert_to<std::string>(CHARSET_CHAR, wbuffer, rawsize(reinterpret_cast<WCHAR *>(wbuffer)), CHARSET_WCHAR));
+							static_assert(std::is_same<decltype(recip->wstrDeliveryStatus.c_str()), decltype(i.c_str())>::value, "need compatible types");
+							snprintf(wbuffer, ARRAY_SIZE(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
+							mapRecipientResults.emplace(converter.convert_to<std::string>(i), wbuffer);
 							if (save_all)
 								continue;
 							auto save_username = converter.convert_to<std::string>(recip->wstrUsername);
