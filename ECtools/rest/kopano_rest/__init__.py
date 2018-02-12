@@ -107,6 +107,12 @@ def _date(d, local=False, time=True):
         fmt += 'Z'
     return d.strftime(fmt)
 
+def _start_end(req):
+    args = urlparse.parse_qs(req.query_string)
+    start = dateutil.parser.parse(args['startDateTime'][0])
+    end = dateutil.parser.parse(args['endDateTime'][0])
+    return start, end
+
 class Resource(object):
     def get_fields(self, req, obj, fields, all_fields):
         fields = fields or all_fields or self.fields
@@ -417,9 +423,7 @@ class CalendarResource(FolderResource):
             folder = utils._folder(store, folderid or 'calendar')
 
             if method == 'calendarView':
-                args = urlparse.parse_qs(req.query_string)
-                start = dateutil.parser.parse(args['startDateTime'][0])
-                end = dateutil.parser.parse(args['endDateTime'][0])
+                start, end = _start_end(req)
                 data = (folder.occurrences(start, end), TOP, 0, 0)
                 fields = EventResource.fields
 
@@ -755,7 +759,7 @@ class EventResource(ItemResource):
         'seriesMasterId': lambda item: item.entryid if isinstance(item, kopano.Occurrence) else None,
         'type': lambda item: event_type(item),
         'responseRequested': lambda item: item.response_requested,
-        'iCalUId': lambda item: kopano.hex(kopano.bdec(item.icaluid)) if item else None, # graph uses hex!?
+        'iCalUId': lambda item: kopano.hex(kopano.bdec(item.icaluid)) if item.icaluid else None, # graph uses hex!?
     })
 
     set_fields = {
@@ -775,9 +779,14 @@ class EventResource(ItemResource):
             attachments = list(item.attachments(embedded=True))
             data = (attachments, TOP, 0, len(attachments))
             self.respond(req, resp, data, AttachmentResource.fields)
-            return
 
-        self.respond(req, resp, item)
+        elif method == 'instances':
+            start, end = _start_end(req)
+            data = (item.occurrences(start, end), TOP, 0, 0)
+            self.respond(req, resp, data)
+
+        else:
+            self.respond(req, resp, item)
 
     def on_post(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid)
