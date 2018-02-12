@@ -154,11 +154,10 @@ check-syntax:
 		-fsyntax-only -fmessage-length=0 ${CHK_SOURCES} -Wall -Wformat=2
 
 install-exec-local:
-	test "$(DISTRO)" = "suse" -o "$(DISTRO)" = "sles" && pyrpm="--record-rpm=INSTALLED_FILES"; \
 	cd ${srcdir} && ${PYTHON} setup.py \
 		build --build-base="${abs_builddir}/build" \
 		install -f $${DESTDIR+--root=${DESTDIR}} \
-		--prefix="${prefix}" --install-purelib ${pythondir} $${pyrpm}
+		--prefix="${prefix}" --install-purelib ${pythondir}
 	rm -Rf build
 
 uninstall-local:
