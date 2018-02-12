@@ -992,7 +992,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 		     lpArgs->szPathSeparator, bPublicStore,
 		     lpArgs->bCreateFolder, &~lpSubFolder);
 		if (hr != hrSuccess) {
-			ec_log_warn("Subfolder not found, using normal Inbox. Error code 0x%08X", hr);
+			kc_pwarn("Subfolder not found, using normal Inbox", hr);
 			// folder not found, use inbox
 			lpDeliveryFolder = lpInbox;
 			lpDeliveryStore = lpUserStore;
@@ -1073,10 +1073,8 @@ static HRESULT FallbackDelivery(LPMESSAGE lpMessage, const string &msg)
 
 	// Add the original message into the errorMessage
 	hr = lpMessage->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
-	if (hr != hrSuccess) {
-		ec_log_warn("Unable to create attachment, error code: 0x%08X", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_pwarn("Unable to create attachment", hr);
 	hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpStream);
 	if (hr != hrSuccess)
 		return kc_perrorf("lpAttach->OpenProperty failed", hr);
@@ -1516,7 +1514,7 @@ static HRESULT HrCreateMessage(IMAPIFolder *lpFolder,
 
 	auto hr = lpFolder->CreateMessage(nullptr, 0, &~lpMessage);
 	if (hr != hrSuccess && lpFallbackFolder) {
-		ec_log_warn("Unable to create new message in subfolder, using regular inbox. Error code: %08X", hr);
+		kc_pwarn("Unable to create new message in subfolder, using regular inbox", hr);
 		lpFolder = lpFallbackFolder;
 		hr = lpFolder->CreateMessage(nullptr, 0, &~lpMessage);
 	}
@@ -1559,7 +1557,7 @@ static HRESULT HrStringToMAPIMessage(const string &strMail,
 	// Set the properties on the object
 	auto hr = IMToMAPI(lpSession, lpMsgStore, lpAdrBook, lpMessage, strMail, lpArgs->sDeliveryOpts);
 	if (hr != hrSuccess) {
-		ec_log_warn("E-mail parsing failed: 0x%08X. Starting fallback delivery.", hr);
+		kc_pwarn("E-mail parsing failed; starting fallback delivery.", hr);
 
 		// create new message
 		hr = lpDeliveryFolder->CreateMessage(nullptr, 0, &~lpFallbackMessage);
@@ -1987,7 +1985,8 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
 	case MAPI_E_LOGON_FAILED: {
 		// running dagent as Unix user != lpRecip->strUsername and ! listed in local_admin_user, which gives this error too
 		if (!bSuppress)
-			ec_log_err("Access denied or connection failed for user %ls, using socket: \"%s\", error code: 0x%08X", szUsername, lpArgs->strPath.c_str(), hr);
+			ec_log_err("Access denied or connection failed for user \"%ls\", using socket: \"%s\": %s (%x)",
+				szUsername, lpArgs->strPath.c_str(), GetMAPIErrorMessage(hr), hr);
 		// so also log userid we're running as
 		auto pwd = getpwuid(getuid());
 		std::string strUnixUser = (pwd != nullptr && pwd->pw_name != nullptr) ? pwd->pw_name : stringify(getuid());
@@ -1997,7 +1996,8 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
 	}
 	default:
 		if (!bSuppress)
-			ec_log_err("Unable to login for user %ls, error code: 0x%08X", szUsername, hr);
+			ec_log_err("Unable to login for user \"%ls\": %s (%x)",
+				szUsername, GetMAPIErrorMessage(hr), hr);
 		break;
 	}
 	return hr;
@@ -2065,7 +2065,7 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 		if (hr == MAPI_E_CANCEL)
 			ec_log_notice("Message canceled by rule");
 		else if (hr != hrSuccess)
-			ec_log_warn("Unable to process rules, error code: 0x%08X",hr);
+			kc_pwarn("Unable to process rules", hr);
 		// continue, still send possible out-of-office message
 	}
 
@@ -2322,7 +2322,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 			if (ulNewMailNotify == true) {
 				hr = HrNewMailNotification(lpTargetStore, lpDeliveryMessage);
 				if (hr != hrSuccess)
-					ec_log_warn("Unable to send 'New Mail' notification, error code: 0x%08X", hr);
+					kc_pwarn("Unable to send \"New Mail\" notification", hr);
 				else
 					ec_log_debug("Send 'New Mail' notification");
 
@@ -2445,8 +2445,8 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 			RespondMessageExpired(iter, listRecipients.cend());
 			return MAPI_W_CANCEL_MESSAGE;
 		} else {
-			ec_log_err("Unable to deliver message to \"%ls\", error code: 0x%08X", recip->wstrUsername.c_str(), hr);
-				
+			ec_log_err("Unable to deliver message to \"%ls\": %s (%x)",
+				recip->wstrUsername.c_str(), GetMAPIErrorMessage(hr), hr);
 			/* LMTP requires different notification when Quota for user was exceeded */
 			if (hr == MAPI_E_STORE_FULL)
 				recip->wstrDeliveryStatus = L"552 5.2.2 %ls Quota exceeded";
@@ -2619,7 +2619,8 @@ FindLowestAdminLevelSession(const serverrecipients_t *lpServerRecips,
 					goto found;
 				}
 				// remove found entry, so higher admin levels can be found too if a lower cannot login
-				ec_log_debug("Login on user %ls for addressbook resolves failed: 0x%08X", lpRecip->wstrUsername.c_str(), hr);
+				ec_log_debug("Login on user \"%ls\" for addressbook resolves failed: %s (%x)",
+					lpRecip->wstrUsername.c_str(), GetMAPIErrorMessage(hr), hr);
 				lpRecip = NULL;
 			}
 		}

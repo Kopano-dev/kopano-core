@@ -451,8 +451,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 			// remove mail from queue
 			hr = lpSpooler->DeleteFromMasterOutgoingTable(sSendData.cbMessageEntryId, (LPENTRYID)sSendData.lpMessageEntryId, sSendData.ulFlags);
 			if (hr != hrSuccess)
-				ec_log_warn("Could not remove invalid message from queue, error code: 0x%08X", hr);
-
+				kc_pwarn("Could not remove invalid message from queue", hr);
 			// move mail to sent items folder
 			if (sSendData.ulFlags & EC_SUBMIT_DOSENTMAIL && lpMessage) {
 				hr = DoSentMail(lpAdminSession, lpUserStore, 0, std::move(lpMessage));
@@ -549,7 +548,7 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 				ec_log_warn("Removing invalid entry from OutgoingQueue");
 				hr = lpSpooler->DeleteFromMasterOutgoingTable(lpsRowSet[0].lpProps[2].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpsRowSet[0].lpProps[2].Value.bin.lpb), lpsRowSet[0].lpProps[3].Value.ul);
 				if (hr != hrSuccess) {
-					ec_log_warn("Could not remove invalid message from queue, error code: 0x%08X", hr);
+					kc_pwarn("Could not remove invalid message from queue", hr);
 					// since we have an error, we will reconnect to the server to fully reload the table
 					goto exit;
 				}

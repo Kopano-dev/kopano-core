@@ -1225,8 +1225,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	}
  exit:
 	if (hr != hrSuccess && hr != MAPI_E_CANCEL)
-		ec_log_info("Error while processing rules: 0x%08X", hr);
-
+		kc_perror("Error while processing rules", hr);
 	// The message was moved to another folder(s), do not save it in the inbox anymore, so cancel it.
 	if (hr == hrSuccess && bMoved)
 		hr = MAPI_E_CANCEL;
