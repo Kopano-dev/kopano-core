@@ -10,16 +10,19 @@ from MAPI import (
 )
 
 from MAPI.Tags import (
-    PR_MESSAGE_RECIPIENTS,
+    PR_MESSAGE_RECIPIENTS, PR_RESPONSE_REQUESTED,
 )
 
 from .attendee import Attendee
 from .errors import NotFoundError
 from .recurrence import Recurrence, Occurrence
 
+from .compat import (
+    benc as _benc,
+)
 from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
-    PidLidBusyStatus,
+    PidLidBusyStatus, PidLidGlobalObjectId,
 )
 
 class Appointment(object):
@@ -118,3 +121,14 @@ class Appointment(object):
     def attendees(self):
         for row in self.table(PR_MESSAGE_RECIPIENTS):
             yield Attendee(self.server, row)
+
+    @property
+    def response_requested(self):
+        return self.get(PR_RESPONSE_REQUESTED, False)
+
+    @property
+    def icaluid(self):
+        try:
+            return _benc(self[PidLidGlobalObjectId])
+        except NotFoundError:
+            pass

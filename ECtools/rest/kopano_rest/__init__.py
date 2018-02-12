@@ -319,7 +319,7 @@ class ItemResource(Resource):
         'changeKey': lambda item: item.changekey,
         'createdDateTime': lambda item: _date(item.created),
         'lastModifiedDateTime': lambda item: _date(item.last_modified),
-        'categories': lambda item: item.categories,
+        'categories': lambda item: [codecs.decode(c, 'ascii') for c in item.categories], # TODO b''!
     }
 
     def delta(self, req, resp, folder):
@@ -745,7 +745,7 @@ class EventResource(ItemResource):
         'importance': lambda item: item.urgency,
         'sensitivity': lambda item: sensitivity_map[item.sensitivity],
         'hasAttachments': lambda item: item.has_attachments,
-        'body': lambda item: {'contentType': 'html', 'content': item.html.decode('utf8')}, # TODO if not utf8?
+        'body': lambda req, item: get_body(req, item),
         'isReminderOn': lambda item: item.reminder,
         'reminderMinutesBeforeStart': lambda item: item.reminder_minutes,
         'attendees': lambda item: attendees_json(item),
@@ -754,6 +754,8 @@ class EventResource(ItemResource):
         'showAs': lambda item: show_as_map[item.show_as],
         'seriesMasterId': lambda item: item.entryid if isinstance(item, kopano.Occurrence) else None,
         'type': lambda item: event_type(item),
+        'responseRequested': lambda item: item.response_requested,
+        'iCalUId': lambda item: kopano.hex(kopano.bdec(item.icaluid)) if item else None, # graph uses hex!?
     })
 
     set_fields = {
