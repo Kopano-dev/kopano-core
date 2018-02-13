@@ -23,12 +23,6 @@ config_files = \
 data_configdir = ${docdir}/example-config
 dist_data_config_DATA = ${config_files} ldap.cfg
 
-rhel_sysconfig_path = ${sysconfdir}/sysconfig
-suse_sysconfig_path = ${localstatedir}/adm/fillup-templates
-sles_sysconfig_path = ${localstatedir}/adm/fillup-templates
-sysconf_sysconfigdir = ${@DISTRO@_sysconfig_path}
-sysconf_sysconfig_DATA = sysconfig.txt
-
 dist_doc_DATA = \
 	db-calc-storesize db-convert-attachments-to-files \
 	createuser.dotforward ssl-certificates.sh ldap-switch-sendas.pl \
@@ -68,16 +62,6 @@ EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 sysconfig.txt \
 install-data-hook:
 	install -d -m 755 ${DESTDIR}/${sysconfdir}/kopano/license
 	mv -v ${DESTDIR}${sysconf_rotatedir}/kopano.logrotate ${DESTDIR}${sysconf_rotatedir}/kopano
-	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
-		mv -v ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.txt ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.kopano; \
-	elif test ${DISTRO} = "rhel"; then \
-		mv -v ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.txt ${DESTDIR}${sysconf_sysconfigdir}/kopano; \
-	fi
 
 uninstall-local:
 	rm -f "${DESTDIR}${sysconf_rotatedir}/kopano"
-	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
-		rm -f "${DESTDIR}${sysconf_sysconfigdir}/sysconfig.kopano"; \
-	elif test ${DISTRO} = "rhel"; then \
-		rm -f "${DESTDIR}${sysconf_sysconfigdir}/kopano"; \
-	fi
