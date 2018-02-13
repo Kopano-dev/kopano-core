@@ -735,12 +735,10 @@ def event_type(item):
     else:
         return 'Occurrence' # TODO Exception
 
-# TODO fix id for occurrences (embed datetime?)
-# TODO split: OccurrenceResource?
-
 class EventResource(ItemResource):
     fields = ItemResource.fields.copy()
     fields.update({
+        'id': lambda item: item.eventid,
         'subject': lambda item: item.subject,
         'recurrence': recurrence_json,
         'start': lambda item: {'dateTime': _date(item.start, True), 'timeZone': 'UTC'} if item.start else None,
@@ -756,7 +754,7 @@ class EventResource(ItemResource):
         'bodyPreview': lambda item: item.text[:255],
         'isAllDay': lambda item: item.all_day,
         'showAs': lambda item: show_as_map[item.show_as],
-        'seriesMasterId': lambda item: item.entryid if isinstance(item, kopano.Occurrence) else None,
+        'seriesMasterId': lambda item: item.item.eventid if isinstance(item, kopano.Occurrence) else None,
         'type': lambda item: event_type(item),
         'responseRequested': lambda item: item.response_requested,
         'iCalUId': lambda item: kopano.hex(kopano.bdec(item.icaluid)) if item.icaluid else None, # graph uses hex!?
@@ -773,20 +771,20 @@ class EventResource(ItemResource):
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid)
         folder = utils._folder(store, folderid or 'calendar')
-        item = folder.item(itemid)
+        event = folder.event(itemid)
 
         if method == 'attachments':
-            attachments = list(item.attachments(embedded=True))
+            attachments = list(event.attachments(embedded=True))
             data = (attachments, TOP, 0, len(attachments))
             self.respond(req, resp, data, AttachmentResource.fields)
 
         elif method == 'instances':
             start, end = _start_end(req)
-            data = (item.occurrences(start, end), TOP, 0, 0)
+            data = (event.occurrences(start, end), TOP, 0, 0)
             self.respond(req, resp, data)
 
         else:
-            self.respond(req, resp, item)
+            self.respond(req, resp, event)
 
     def on_post(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid)
@@ -800,8 +798,9 @@ class EventResource(ItemResource):
 
     def on_delete(self, req, resp, userid=None, folderid=None, itemid=None):
         server, store = _server_store(req, userid)
-        item = store.item(itemid)
-        store.delete(item)
+        folder = utils._folder(store, folderid or 'calendar')
+        event = folder.event(itemid)
+        folder.delete(event)
 
 class ContactFolderResource(FolderResource):
     fields = FolderResource.fields.copy()
@@ -881,7 +880,6 @@ class ContactResource(ItemResource):
         'imAddresses': lambda item: item.im_addresses,
         'homeAddress': lambda item: _phys_address(item.home_address),
         'businessAddress': lambda item: _phys_address(item.business_address),
-        'otherAddress': lambda item: _phys_address(item.business_address),
         'otherAddress': lambda item: _phys_address(item.other_address),
     })
 

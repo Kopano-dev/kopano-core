@@ -94,7 +94,8 @@ from .errors import Error, NotFoundError, _DeprecationWarning
 from .attachment import Attachment
 from .body import Body
 from .properties import Properties
-from .meetingrequest import MeetingRequest
+from .recurrence import Occurrence
+from .meetingrequest import MeetingRequest, _copytags
 from .address import Address
 from .table import Table
 from .contact import Contact
@@ -1011,11 +1012,14 @@ class Item(Properties, Contact, Appointment):
 
         :param objects: The object(s) to delete
         """
-        objects = _utils.arg_objects(objects, (Attachment, _prop.Property), 'Item.delete')
+        objects = _utils.arg_objects(objects, (Attachment, _prop.Property, Occurrence), 'Item.delete')
         # XXX embedded items?
 
         attach_ids = [item.number for item in objects if isinstance(item, Attachment)]
         proptags = [item.proptag for item in objects if isinstance(item, _prop.Property)]
+        occs = [item for item in objects if isinstance(item, Occurrence)]
+        for occ in occs:
+            self.recurrence.delete_exception(occ.start, self, _copytags(self.mapiobj))
         if proptags:
             self.mapiobj.DeleteProps(proptags)
         for attach_id in attach_ids:
