@@ -66,6 +66,8 @@ HRESULT InstanceIdMapper::Init(ECConfig *lpConfig)
 	if (er == KCERR_DATABASE_NOT_FOUND) {
 		ec_log_info("Database not found, creating database.");
 		er = m_ptrDatabase->CreateDatabase(lpConfig, true);
+		if (er == erSuccess)
+			er = m_ptrDatabase->CreateTables();
 	}
 	
 	if (er != erSuccess)
