@@ -81,6 +81,9 @@ def unpack_short(s, pos):
 def unpack_long(s, pos):
     return struct.unpack_from('<L', s, pos)[0]
 
+def pack_short(i):
+    return struct.pack('<H', i)
+
 def pack_long(i):
     return struct.pack('<L', i)
 

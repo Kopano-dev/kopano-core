@@ -18,12 +18,13 @@ from .errors import NotFoundError
 from .recurrence import Recurrence, Occurrence
 
 from .compat import (
-    benc as _benc,
+    benc as _benc, bdec as _bdec,
 )
 from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
     PidLidBusyStatus, PidLidGlobalObjectId,
 )
+from . import utils as _utils
 
 class Appointment(object):
     """Appointment mixin class"""
@@ -99,6 +100,13 @@ class Appointment(object):
                 start = max(self.start, start) if start else self.start
                 end = min(self.end, end) if end else self.end
                 yield Occurrence(self, start, end)
+
+    def occurrence(self, entryid):
+        if self.recurring:
+            return self.recurrence.occurrence(entryid)
+        else:
+            # TODO check id matches
+            return Occurrence(self)
 
     @property
     def reminder(self):

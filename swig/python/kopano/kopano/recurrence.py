@@ -44,7 +44,9 @@ from dateutil.rrule import (
 )
 from datetime import timedelta
 
-from .compat import repr as _repr
+from .compat import (
+    repr as _repr, benc as _benc, bdec as _bdec,
+)
 from .errors import NotSupportedError
 from .defs import (
     ARO_SUBJECT, ARO_MEETINGTYPE, ARO_REMINDERDELTA, ARO_REMINDERSET,
@@ -851,6 +853,19 @@ class Recurrence(object):
             if (not start or occ.end > start) and (not end or occ.start < end):
                 yield occ
 
+    def occurrence(self, entryid):
+        # TODO use original start date, or entryid changes when moving start date
+        # TODO check that date is (still) valid
+        entryid = _bdec(entryid)
+        pos = 1 + 2 + _utils.unpack_short(entryid, 1) + 2
+        year, month, day = struct.unpack_from('>HBB', entryid, pos)
+        d = datetime.datetime(year, month, day)
+        return Occurrence(
+            self.item,
+            d + datetime.timedelta(minutes=self.starttime_offset),
+            d + datetime.timedelta(minutes=self.endtime_offset)
+        )
+
     def __unicode__(self):
         return u'Recurrence(start=%s - end=%s)' % (self.start, self.end)
 
@@ -861,14 +876,36 @@ class Recurrence(object):
 class Occurrence(object):
     """Occurrence class"""
 
-    def __init__(self, item, start, end, subject=None, location=None):
+    def __init__(self, item, start=None, end=None, subject=None, location=None):
         self.item = item
-        self.start = start
-        self.end = end
+        if start:
+            self.start = start
+        if end:
+            self.end = end
         if subject is not None:
             self.subject = subject
         if location is not None:
             self.location = location
+
+    @property
+    def entryid(self):
+        # occurrence entryid, own format
+        parts = []
+        # occurrence level
+        parts.append(b'\x01')
+        # entryid
+        eid = _bdec(self.item.entryid)
+        parts.append(_utils.pack_short(len(eid)))
+        parts.append(eid)
+        # occurrence date (zeroes if not recurring)
+        if self.item.recurring:
+            year, month, day = self.start.year, self.start.month, self.start.day
+        else:
+            year, month, day = 0, 0, 0
+        date = struct.pack('>HBB', year, month, day)
+        parts.append(_utils.pack_short(len(date)))
+        parts.append(date)
+        return _benc(b''.join(parts))
 
     def __getattr__(self, x):
         return getattr(self.item, x)
