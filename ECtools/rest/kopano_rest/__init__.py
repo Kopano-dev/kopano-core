@@ -488,6 +488,9 @@ def get_attachments(item):
         else:
             yield (attachment, FileAttachmentResource)
 
+def get_email(addr):
+    return {'emailAddress': {'name': addr.name, 'address': addr.email} }
+
 class MessageResource(ItemResource):
     fields = ItemResource.fields.copy()
     fields.update({
@@ -496,11 +499,11 @@ class MessageResource(ItemResource):
         '@odata.type': lambda item: '#microsoft.graph.eventMessage' if item.message_class.startswith('IPM.Schedule.Meeting.') else None,
         'subject': lambda item: item.subject,
         'body': lambda req, item: get_body(req, item),
-        'from': lambda item: {'emailAddress': {'name': item.from_.name, 'address': item.from_.email} },
-        'sender': lambda item: {'emailAddress': {'name': item.sender.name, 'address': item.sender.email} },
-        'toRecipients': lambda item: [{'emailAddress': {'name': to.name, 'address': to.email}} for to in item.to],
-        'ccRecipients': lambda item: [{'emailAddress': {'name': cc.name, 'address': cc.email}} for cc in item.cc],
-        'bccRecipients': lambda item: [{'emailAddress': {'name': bcc.name, 'address': bcc.email}} for bcc in item.bcc],
+        'from': lambda item: get_email(item.from_),
+        'sender': lambda item: get_email(item.sender),
+        'toRecipients': lambda item: [get_email(to) for to in item.to],
+        'ccRecipients': lambda item: [get_email(cc) for cc in item.cc],
+        'bccRecipients': lambda item: [get_email(bcc) for bcc in item.bcc],
         'sentDateTime': lambda item: _date(item.sent) if item.sent else None,
         'receivedDateTime': lambda item: _date(item.received) if item.received else None,
         'hasAttachments': lambda item: item.has_attachments,
@@ -511,7 +514,7 @@ class MessageResource(ItemResource):
         'isRead': lambda item: item.read,
         'isReadReceiptRequested': lambda item: item.read_receipt,
         'isDeliveryReceiptRequested': lambda item: item.read_receipt,
-        'replyTo': lambda item: [{'emailAddress': {'name': to.name, 'address': to.email}} for to in item.replyto],
+        'replyTo': lambda item: [get_email(to) for to in item.replyto],
         'bodyPreview': lambda item: item.text[:255],
     })
 
@@ -714,12 +717,13 @@ def attendees_json(item):
     result = []
     for attendee in item.attendees():
         address = attendee.address
-        result.append({
+        data = {
             # TODO map response field names
             'status': {'response': attendee.response or 'none', 'time': _date(attendee.response_time)},
             'type': attendee.type,
-            'emailAddress': {'name': address.name, 'address': address.email},
-        })
+        }
+        data.update(get_email(address))
+        result.append(data)
     return result
 
 def setdate(item, field, arg):
@@ -743,7 +747,7 @@ class EventResource(ItemResource):
         'recurrence': recurrence_json,
         'start': lambda item: {'dateTime': _date(item.start, True), 'timeZone': 'UTC'} if item.start else None,
         'end': lambda item: {'dateTime': _date(item.end, True), 'timeZone': 'UTC'} if item.end else None,
-        'location': lambda item: { 'displayName': item.location, 'address': {}}, # TODO
+        'location': lambda item: {'displayName': item.location, 'address': {}}, # TODO
         'importance': lambda item: item.urgency,
         'sensitivity': lambda item: sensitivity_map[item.sensitivity],
         'hasAttachments': lambda item: item.has_attachments,
@@ -758,7 +762,7 @@ class EventResource(ItemResource):
         'type': lambda item: event_type(item),
         'responseRequested': lambda item: item.response_requested,
         'iCalUId': lambda item: kopano.hex(kopano.bdec(item.icaluid)) if item.icaluid else None, # graph uses hex!?
-        'organizer': lambda item: {'emailAddress': {'name': item.from_.name, 'address': item.from_.email} },
+        'organizer': lambda item: get_email(item.from_),
         'isOrganizer': lambda item: item.from_.email == item.sender.email,
     })
 
@@ -851,7 +855,7 @@ class ContactResource(ItemResource):
     fields = ItemResource.fields.copy()
     fields.update({
         'displayName': lambda item: item.name,
-        'emailAddresses': lambda item: [{'name': a.name, 'address': a.email} for a in item.addresses()],
+        'emailAddresses': lambda item: [get_email(a) for a in item.addresses()],
         'parentFolderId': lambda item: item.folder.entryid,
         'givenName': lambda item: item.first_name or None,
         'middleName': lambda item: item.middle_name or None,
