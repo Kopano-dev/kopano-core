@@ -325,7 +325,7 @@ class ItemResource(Resource):
         'changeKey': lambda item: item.changekey,
         'createdDateTime': lambda item: _date(item.created),
         'lastModifiedDateTime': lambda item: _date(item.last_modified),
-        'categories': lambda item: [codecs.decode(c, 'ascii') for c in item.categories], # TODO b''!
+        'categories': lambda item: item.categories,
     }
 
     def delta(self, req, resp, folder):

@@ -26,7 +26,7 @@ import icalmapi
 
 from MAPI import (
     KEEP_OPEN_READWRITE, PT_MV_BINARY, PT_BOOLEAN, MSGFLAG_READ,
-    CLEAR_READ_FLAG, PT_MV_STRING8, PT_BINARY, PT_LONG,
+    CLEAR_READ_FLAG, PT_MV_UNICODE, PT_BINARY, PT_LONG,
     MAPI_CREATE, MAPI_MODIFY, MAPI_DEFERRED_ERRORS,
     ATTACH_BY_VALUE, ATTACH_EMBEDDED_MSG, STGM_WRITE, STGM_TRANSACTED,
     MAPI_UNICODE, MAPI_TO, MAPI_CC, MAPI_BCC, MAPI_E_NOT_FOUND,
@@ -426,7 +426,7 @@ class Item(Properties, Contact, Appointment):
     def categories(self):
         """Categories."""
         proptag = self.mapiobj.GetIDsFromNames([NAMED_PROP_CATEGORY], MAPI_CREATE)[0]
-        proptag = CHANGE_PROP_TYPE(proptag, PT_MV_STRING8)
+        proptag = CHANGE_PROP_TYPE(proptag, PT_MV_UNICODE)
         try:
             value = self.prop(proptag).value
         except NotFoundError:
@@ -436,7 +436,7 @@ class Item(Properties, Contact, Appointment):
     @categories.setter
     def categories(self, value):
         proptag = self.mapiobj.GetIDsFromNames([NAMED_PROP_CATEGORY], MAPI_CREATE)[0]
-        proptag = CHANGE_PROP_TYPE(proptag, PT_MV_STRING8)
+        proptag = CHANGE_PROP_TYPE(proptag, PT_MV_UNICODE)
         self.mapiobj.SetProps([SPropValue(proptag, list(value))])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
