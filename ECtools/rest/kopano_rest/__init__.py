@@ -41,7 +41,7 @@ SESSIONDATA = {}
 # TODO bulk copy/move/delete?
 # TODO childFolders recursion/relative paths
 # TODO Message.{isDraft, webLink, inferenceClassification}?
-# TODO Event.{webLink, onlineMeetingUrl, uniqueBody}?
+# TODO Event.{webLink, onlineMeetingUrl, uniqueBody, responseStatus, isCancelled}?
 # TODO Attachment.{contentId, contentLocation}?
 # TODO /me/{mailFolders,contactFolders,calendars} -> which folders exactly?
 # TODO @odata.context: check exact structure?
@@ -758,6 +758,8 @@ class EventResource(ItemResource):
         'type': lambda item: event_type(item),
         'responseRequested': lambda item: item.response_requested,
         'iCalUId': lambda item: kopano.hex(kopano.bdec(item.icaluid)) if item.icaluid else None, # graph uses hex!?
+        'organizer': lambda item: {'emailAddress': {'name': item.from_.name, 'address': item.from_.email} },
+        'isOrganizer': lambda item: item.from_.email == item.sender.email,
     })
 
     set_fields = {
