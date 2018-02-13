@@ -874,6 +874,15 @@ class Folder(Properties):
         for n in _notification._notifications(self.store, self.entryid, time):
             yield n
 
+    def event(self, eventid):
+        eventid = _bdec(eventid)
+        leid = _utils.unpack_short(eventid, 1)
+        item = self.item(_benc(eventid[3:3+leid]))
+        if eventid[0] == 0:
+            return item
+        else:
+            return item.occurrence(_benc(eventid[1:]))
+
     def __eq__(self, f): # XXX check same store?
         if isinstance(f, Folder):
             return self._entryid == f._entryid

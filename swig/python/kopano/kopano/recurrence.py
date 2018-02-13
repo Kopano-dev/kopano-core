@@ -857,7 +857,7 @@ class Recurrence(object):
         # TODO use original start date, or entryid changes when moving start date
         # TODO check that date is (still) valid
         entryid = _bdec(entryid)
-        pos = 1 + 2 + _utils.unpack_short(entryid, 1) + 2
+        pos = 2 + _utils.unpack_short(entryid, 0) + 2
         year, month, day = struct.unpack_from('>HBB', entryid, pos)
         d = datetime.datetime(year, month, day)
         return Occurrence(
@@ -889,10 +889,8 @@ class Occurrence(object):
 
     @property
     def entryid(self):
-        # occurrence entryid, own format
+        # entryid, occurrence date..
         parts = []
-        # occurrence level
-        parts.append(b'\x01')
         # entryid
         eid = _bdec(self.item.entryid)
         parts.append(_utils.pack_short(len(eid)))
@@ -906,6 +904,13 @@ class Occurrence(object):
         parts.append(_utils.pack_short(len(date)))
         parts.append(date)
         return _benc(b''.join(parts))
+
+    @property
+    def eventid(self):
+        # msgraph has both appointments and expanded appointments under
+        # /events, so we need an identier which can be used for both.
+        eid = _bdec(self.entryid)
+        return _benc(b'\x01'+eid)
 
     def __getattr__(self, x):
         return getattr(self.item, x)

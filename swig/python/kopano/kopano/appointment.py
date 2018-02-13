@@ -140,3 +140,10 @@ class Appointment(object):
             return _benc(self[PidLidGlobalObjectId])
         except NotFoundError:
             pass
+
+    @property
+    def eventid(self):
+        # msgraph has both appointments and expanded appointments under
+        # /events, so we need an identier which can be used for both.
+        eid = _bdec(self.entryid)
+        return _benc(b'\x00' + _utils.pack_short(len(eid)) + eid)
