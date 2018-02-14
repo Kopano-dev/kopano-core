@@ -64,21 +64,6 @@ struct ECStat {
 	const char *name;
 	const char *description;
 	std::mutex lock;
-#if defined(__GNUG__) && __GNUG__ == 4 && \
-    defined(__GNUC_MINOR__) && __GNUC_MINOR__ <= 7
-	/*
-	 * g++-4.7 does not have std::map emplace support yet, so it just
-	 * attempts to use copy constructors when inserting an element.
-	 * However, a default copy ctor is not available for ECStat because
-	 * std::mutex is uncopyable. So we provide one.
-	 */
-	ECStat(const ECStat &o) :
-		data(o.data), avginc(o.avginc), type(o.type), name(o.name),
-		description(o.description), lock()
-	{}
-	/* and if we define one ctor, we have to name all of them: */
-	ECStat(void) = default;
-#endif
 };
 
 typedef std::map<SCName, ECStat> SCMap;
