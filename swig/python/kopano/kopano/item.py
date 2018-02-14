@@ -739,9 +739,9 @@ class Item(Properties, Contact, Appointment):
         # TODO(jelle): HTML formatted text support.
         body = u"\r\n".join(u"> " + line for line in self.text.split('\r\n'))
         return u"\r\nOn {} at {}, {} wrote:\r\n{}".format(self.sent.strftime('%d-%m-%Y'),
-                                                  self.sent.strftime('%H:%M'),
-                                                  self.from_.name,
-                                                  body)
+                                                          self.sent.strftime('%H:%M'),
+                                                          self.from_.name,
+                                                          body)
 
 
     def _create_source_message_info(self, action):
