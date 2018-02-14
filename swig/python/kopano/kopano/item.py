@@ -768,7 +768,7 @@ class Item(Properties, Contact, Appointment):
         # TODO(jelle): support reply all.
         if not folder:
             folder = self.store.drafts
-        subject = 'RE: {}'.format(self.subject)
+        subject = 'Re: {}'.format(self.subject)
         body = self._generate_reply_body()
         # TODO(jelle): pass Address in to?
         item = folder.create_item(subject=subject, body=body, from_=self.store.user,
