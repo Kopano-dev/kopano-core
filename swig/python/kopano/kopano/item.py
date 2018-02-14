@@ -735,11 +735,13 @@ class Item(Properties, Contact, Appointment):
         return item
 
     def _generate_reply_body(self):
-        # TODO(jelle): HTML formatted text
-        template = u"{}\nFrom: {}\nSent: {}\nTo: {}\nSubject: {}\n\n{}"
-        return template.format(u'-' * 72, self.from_.name,
-                               self.sent, u"".join(t.name for t in self.to),
-                               self.subject, self.text)
+        """Create a reply body"""
+        # TODO(jelle): HTML formatted text support.
+        body = u"\r\n".join(u"> " + line for line in self.text.split('\r\n'))
+        return u"\r\nOn {} at {}, {} wrote:\r\n{}".format(self.sent.strftime('%d-%m-%Y'),
+                                                  self.sent.strftime('%H:%M'),
+                                                  self.from_.name,
+                                                  body)
 
 
     def _create_source_message_info(self, action):
@@ -768,9 +770,10 @@ class Item(Properties, Contact, Appointment):
         # TODO(jelle): support reply all.
         if not folder:
             folder = self.store.drafts
+        # TODO(jelle): Remove multiple Re:'s, should only be one Re: <subject> left
         subject = 'Re: {}'.format(self.subject)
         body = self._generate_reply_body()
-        # TODO(jelle): pass Address in to?
+        # TODO(jelle): pass an Address in to?
         item = folder.create_item(subject=subject, body=body, from_=self.store.user,
                                   to=self.from_.email, message_class=self.message_class)
 
