@@ -735,28 +735,46 @@ class Item(Properties, Contact, Appointment):
         return item
 
     def _generate_reply_body(self):
-        # XXX: HTML formatted text
-        template = "{}\nFrom: {}\nSent: {}\nTo: {}\nSubject: {}\n\n{}"
-        return template.format('-' * 72, self.from_.name,
-                               self.sent, "".join(t.name for t in self.to),
+        # TODO(jelle): HTML formatted text
+        template = u"{}\nFrom: {}\nSent: {}\nTo: {}\nSubject: {}\n\n{}"
+        return template.format(u'-' * 72, self.from_.name,
+                               self.sent, u"".join(t.name for t in self.to),
                                self.subject, self.text)
 
 
+    def _create_source_message_info(self, action):
+        """Create source message info, value of the record, based on action
+        type (reply, replyall, forward) and add 48byte entryid at the end.
+
+        :param action: the reply action
+        :type action: str
+        :return:
+        :rtype: str
+        """
+
+        id_map = {
+            'reply': '0501000066000000',
+            'replyall': '0501000067000000',
+            'forward': '0601000068000000',
+        }
+
+        try:
+            return "01000E000C000000{0}0200000030000000{1}".format(id_map[action], self.entryid)
+        except KeyError:
+            return ""
+
+
     def reply(self, folder=None, all=False):
-        # XXX: support reply all.
+        # TODO(jelle): support reply all.
         if not folder:
             folder = self.store.drafts
         subject = 'RE: {}'.format(self.subject)
         body = self._generate_reply_body()
-        # XXX: pass Address in to?
+        # TODO(jelle): pass Address in to?
         item = folder.create_item(subject=subject, body=body, from_=self.store.user,
                                   to=self.from_.email, message_class=self.message_class)
 
-        # Set source message info, value of the record, based on action type
-        # (reply, replyall, forward) and add 48byte entryid at the end.
-        # replyall = "0501000067000000" / forward = "0601000068000000"
-        reply = "0501000066000000"
-        source_message_info = "01000E000C000000" + reply + "0200000030000000" + self.entryid;
+        source_message_info = self._create_source_message_info('reply')
         item.create_prop('common:0x85CE', source_message_info, PT_BINARY)
 
         return item
@@ -768,11 +786,11 @@ class Item(Properties, Contact, Appointment):
             item = self._send_meeting_request()
 
         icon_index = {
-                '66': 261,  # reply
-                '67': 261,  # reply all
-                '68': 262,  # forward
+            '66': 261,  # reply
+            '67': 261,  # reply all
+            '68': 262,  # forward
         }
-        # XXX: check if property exists?
+        # TOOD(jelle): check if property exists?
         try:
             source_message = item.prop('common:0x85CE').value
             msgtype = source_message[24:26]
