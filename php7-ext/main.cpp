@@ -29,6 +29,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
 #include <kopano/MAPIErrors.h>
 #include <ICalToMAPI.h>
@@ -427,6 +428,7 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_freebusyenumblock_next, NULL)
 	ZEND_FE(mapi_freebusyenumblock_skip, NULL)
 	ZEND_FE(mapi_freebusyenumblock_restrict, NULL)
+	ZEND_FE(mapi_freebusyenumblock_ical, NULL)
 
 	ZEND_FE(mapi_freebusyupdate_publish, NULL)
 	ZEND_FE(mapi_freebusyupdate_reset, NULL)
@@ -6127,6 +6129,59 @@ ZEND_FUNCTION(mapi_freebusyenumblock_restrict)
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
+}
+
+ZEND_FUNCTION(mapi_freebusyenumblock_ical)
+{
+	PMEASURE_FUNC;
+	LOG_BEGIN();
+	RETVAL_FALSE;
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
+	long req_count = 0;
+	php_stringsize_t organizer_len, user_len, uid_len;
+	char *organizer_cstr = nullptr, *user_cstr = nullptr;
+	char *uid_cstr = nullptr;
+	zval *res_addrbook = nullptr, *res_enumblock = nullptr;
+	time_t start = 0, end = 0;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrlllsss", &res_addrbook, &res_enumblock, &req_count, &start, &end, &organizer_cstr, &organizer_len, &user_cstr, &user_len, &uid_cstr, &uid_len) == FAILURE)
+		return;
+
+	IAddrBook *addrbook = nullptr;
+	ZEND_FETCH_RESOURCE_C(addrbook, IAddrBook *, &res_addrbook, -1, name_mapi_addrbook, le_mapi_addrbook);
+
+	IEnumFBBlock *enumblock = nullptr;
+	ZEND_FETCH_RESOURCE_C(enumblock, IEnumFBBlock*, &res_enumblock, -1, name_fb_enumblock, le_freebusy_enumblock);
+
+	memory_ptr<FBBlock_1> blk;
+	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(FBBlock_1)*req_count, &~blk);
+	if (MAPI_G(hr) != hrSuccess)
+		return;
+
+	LONG count = 0;
+	MAPI_G(hr) = enumblock->Next(req_count, blk, &count);
+	if (MAPI_G(hr) != hrSuccess)
+		return;
+
+	std::unique_ptr<MapiToICal> mapiical;
+	CreateMapiToICal(addrbook, "utf-8", &unique_tie(mapiical));
+	if (mapiical == nullptr) {
+		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
+		return;
+	}
+
+	std::string organizer(organizer_cstr, organizer_len);
+	std::string user(user_cstr, user_len);
+	std::string uid(uid_cstr, uid_len);
+	MAPI_G(hr) = mapiical->AddBlocks(blk, count, start, end, organizer, user, uid);
+	if (MAPI_G(hr) != hrSuccess)
+		return;
+
+	std::string strical, method;
+	MAPI_G(hr) = mapiical->Finalize(0, &method, &strical);
+	RETVAL_STRING(strical.c_str());
 }
 
 ZEND_FUNCTION(mapi_freebusyupdate_publish)

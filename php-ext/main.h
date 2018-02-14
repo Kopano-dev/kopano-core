@@ -261,6 +261,7 @@ ZEND_FUNCTION(mapi_freebusyenumblock_reset);
 ZEND_FUNCTION(mapi_freebusyenumblock_next);
 ZEND_FUNCTION(mapi_freebusyenumblock_skip);
 ZEND_FUNCTION(mapi_freebusyenumblock_restrict);
+ZEND_FUNCTION(mapi_freebusyenumblock_ical);
 
 // freebusy update
 ZEND_FUNCTION(mapi_freebusyupdate_publish);
