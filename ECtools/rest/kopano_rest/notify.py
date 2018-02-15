@@ -2,6 +2,7 @@ import base64
 import codecs
 import falcon
 import json
+import traceback
 import uuid
 try:
     from queue import Queue
@@ -56,7 +57,10 @@ class Processor(Thread):
                     # TODO fill in
                 }
             }
-            requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10)
+            try:
+                requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10)
+            except Exception:
+                traceback.print_exc()
 
 class Sink:
     def __init__(self, store, subscription):
@@ -71,7 +75,7 @@ class Sink:
             QUEUE = Queue()
             Processor().start()
 
-        QUEUE.put((self.store, notification))
+        QUEUE.put((self.store, notification, self.subscription))
 
 def _get_folder(store, resource):
     resource = resource.split('/')

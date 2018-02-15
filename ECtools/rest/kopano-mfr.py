@@ -71,11 +71,15 @@ def main():
         for worker in workers:
             worker.terminate()
     finally:
+        sockets = []
         for n in range(nworkers):
+            sockets.append('rest%d.sock' % n)
+        sockets.append('notify.sock')
+        for socket in sockets:
             try:
-                unix_socket = os.path.join(socket_path, 'rest%d.sock' % n)
+                unix_socket = os.path.join(socket_path, socket)
                 os.unlink(unix_socket)
-            except OSError as e:
+            except OSError:
                 pass
 
 if __name__ == '__main__':
