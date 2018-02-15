@@ -53,6 +53,18 @@
 	%append_output(SWIG_FromCharPtrAndSize($1->c_str(), $1->length()));
 }
 
+%typemap(in) (const std::string &strIcal) (std::string temp, char *buf=NULL, Py_ssize_t size)
+{
+    if(PyBytes_AsStringAndSize($input, &buf, &size) == -1)
+        %argument_fail(SWIG_ERROR,"$type",$symname, $argnum);
+
+    temp = std::string(buf, size);
+    $1 = &temp;
+}
+
+%typemap(freearg) (const std::string &strIcal) {
+}
+
 /* defines for the eIcalType */
 #define VEVENT 0
 #define VTODO 1
