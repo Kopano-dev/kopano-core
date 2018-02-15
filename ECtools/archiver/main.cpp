@@ -150,11 +150,14 @@ static std::string kc_join(int argc, const char *const *argv, const char *sep)
 	std::string s;
 	if (argc == 0)
 		return s;
-	for (int k = 0; k < argc; ++k) {
-		s += argv[0];
+	int k = 0;
+	for (; k < argc; ++k) {
+		s += argv[k];
 		s += sep;
 	}
-	s.erase(s.size() - 2, 2);
+	if (k > 0)
+		/* Did at least one iteration, so must be a sep in s. */
+		s.erase(s.size() - strlen(sep), strlen(sep));
 	return s;
 }
 
@@ -456,7 +459,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-	ec_log_crit("Startup command: %s", kc_join(argc, argv, "\" \"").c_str());
+	ec_log_info("Startup command: \"%s\"", kc_join(argc, argv, "\" \"").c_str());
 	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Version %s", PROJECT_VERSION);
 	auto lSettings = ptrArchiver->GetConfig()->GetAllSettings();
     ECLogger* filelogger = ptrArchiver->GetLogger(Archiver::LogOnly);

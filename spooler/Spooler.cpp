@@ -782,7 +782,6 @@ static void process_signal(int sig)
 	case SIGINT: {
 		bQuit = true;
 		// Trigger condition so we force wakeup the queue thread
-		std::lock_guard<std::mutex> lk(hMutexMessagesWaiting);
 		hCondMessagesWaiting.notify_one();
 		break;
 	}
@@ -793,7 +792,6 @@ static void process_signal(int sig)
 			mapFinished[pid] = stat;
 		finlock.unlock();
 		// Trigger condition so the messages get cleaned from the queue
-		std::lock_guard<std::mutex> mwlock(hMutexMessagesWaiting);
 		hCondMessagesWaiting.notify_one();
 		break;
 	}

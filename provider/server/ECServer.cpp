@@ -504,7 +504,8 @@ static ECRESULT check_server_configuration(void)
 		}
 		
 		ulPort = atoui(g_lpConfig->GetSetting("server_tcp_port"));
-		if (sServerDetails.GetHttpPort() != ulPort) {
+		if (sServerDetails.GetHttpPort() != ulPort &&
+		    strcmp(g_lpConfig->GetSetting("server_tcp_enabled"), "yes") == 0) {
 			ec_log_warn("WARNING: 'server_tcp_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetHttpPort());
 			bHaveErrors = true;
 		}
@@ -520,7 +521,8 @@ static ECRESULT check_server_configuration(void)
 		}
 		
 		ulPort = atoui(g_lpConfig->GetSetting("server_ssl_port"));
-		if (sServerDetails.GetSslPort() != ulPort) {
+		if (sServerDetails.GetSslPort() != ulPort &&
+		    strcmp(g_lpConfig->GetSetting("server_ssl_enabled"), "yes") == 0) {
 			ec_log_warn("WARNING: 'server_ssl_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetSslPort());
 			bHaveErrors = true;
 		}

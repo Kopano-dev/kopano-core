@@ -6948,7 +6948,7 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	zval *resStore;
 	zval *resAddrBook;
 	zval *resMessage;
-	zend_bool *noRecipients;
+	zend_bool noRecipients;
 	php_stringsize_t cbString = 0;
 	char *szString = nullptr;
 	IMAPISession *lpMAPISession = nullptr;
