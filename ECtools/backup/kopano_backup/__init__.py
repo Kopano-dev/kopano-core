@@ -617,8 +617,7 @@ class Service(kopano.Service):
             for company in self.server.companies():
                 companyname = company.name if company.name != 'Default' else ''
                 for user in company.users():
-                    if user.store and \
-                       (not servers or user.store.home_server in servers):
+                    if (not servers or user.home_server in servers) and user.store:
                         jobs.append((user.store, user.name, os.path.join(output_dir, companyname, user.name)))
                 public_store = company.public_store
                 if public_store and not self.options.skip_public and \
