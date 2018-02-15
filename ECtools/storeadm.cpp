@@ -477,7 +477,7 @@ static HRESULT adm_hook_check_server(IECServiceAdmin *svcadm,
 
 	/* Home server on single server installations is empty */
 	if (user->lpszServername == nullptr ||
-	    *reinterpret_cast<TCHAR *>(user->lpszServername) == '\0')
+	    *reinterpret_cast<const char *>(user->lpszServername) == '\0')
 		return hrSuccess;
 	/* GetServerDetails uses AllocateMore, so this needs MAPIAllocate. */
 	memory_ptr<ECSVRNAMELIST> srvlist;
