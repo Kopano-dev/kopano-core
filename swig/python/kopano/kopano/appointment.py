@@ -4,6 +4,7 @@ Part of the high-level python bindings for Kopano
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
 Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
+import datetime
 
 from MAPI import (
     PT_SYSTIME,
@@ -101,11 +102,20 @@ class Appointment(object):
                 end = min(self.end, end) if end else self.end
                 yield Occurrence(self, start, end)
 
-    def occurrence(self, entryid):
+    def occurrence(self, id_=None):
         if self.recurring:
-            return self.recurrence.occurrence(entryid)
+            if isinstance(id_, datetime.datetime):
+                # TODO optimize
+                for occ in self.occurrences():
+                    if occ.start == id_:
+                        return occ
+                        break
+                else:
+                    raise NotFoundError('no occurrence for date: %s' % id_)
+            else:
+                return self.recurrence.occurrence(id_)
         else:
-            # TODO check id matches
+            # TODO check if matches args
             return Occurrence(self)
 
     @property

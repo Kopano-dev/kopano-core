@@ -889,7 +889,7 @@ class Occurrence(object):
 
     @property
     def entryid(self):
-        # entryid, occurrence date..
+        # cal item entryid plus occurrence date
         parts = []
         # entryid
         eid = _bdec(self.item.entryid)
