@@ -22,6 +22,7 @@
 #include "WebDav.h"
 #include <kopano/stringutil.h>
 #include <kopano/CommonUtil.h>
+#include <kopano/MAPIErrors.h>
 #include <libical/ical.h>
 
 using namespace KC;
@@ -140,7 +141,7 @@ HRESULT WebDav::HrPropfind()
 	hr = RespStructToXml(&sDavMStatus, &strXml);
 	if (hr != hrSuccess)
 	{
-		ec_log_debug("Unable to convert response to xml: 0x%08X", hr);
+		ec_log_debug("Unable to convert response to XML: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 	
@@ -472,7 +473,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 exit:
 	if (hr != hrSuccess)
 	{
-		ec_log_debug("Unable to process report calendar query: 0x%08X", hr);
+		ec_log_debug("Unable to process report calendar query: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
 	}
 
@@ -576,7 +577,7 @@ HRESULT WebDav::HrHandleRptMulGet()
 exit:
 	if(hr != hrSuccess)
 	{
-		ec_log_debug("Unable to process report multi-get: 0x%08X", hr);
+		ec_log_debug("Unable to process report multi-get: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
 	}
 	
@@ -678,7 +679,7 @@ HRESULT WebDav::HrPropertySearch()
 exit:
 	if(hr != hrSuccess)
 	{
-		ec_log_debug("Unable to process report multi-get: 0x%08X", hr);
+		ec_log_debug("Unable to process report multi-get: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
 	}
 	
@@ -1325,7 +1326,7 @@ HRESULT WebDav::HrPropPatch()
 	hr = RespStructToXml(&sDavMStatus, &strXml);
 	if (hr != hrSuccess)
 	{
-		ec_log_debug("Unable to convert response to xml: 0x%08X", hr);
+		ec_log_debug("Unable to convert response to XML: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 

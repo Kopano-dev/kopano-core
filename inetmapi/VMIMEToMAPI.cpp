@@ -1871,9 +1871,9 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			if (hr == hrSuccess) {
 				hr = tnef.Finish();
 				if (hr != hrSuccess)
-					ec_log_warn("TNEF attachment saving failed: 0x%08X", hr);
+					ec_log_err("TNEF attachment saving failed: %s (%x)", GetMAPIErrorMessage(hr), hr);
 			} else {
-				ec_log_warn("TNEF attachment parsing failed: 0x%08X", hr);
+				ec_log_err("TNEF attachment parsing failed: %s (%x)", GetMAPIErrorMessage(hr), hr);
 			}
 			hr = hrSuccess;
 		} else if (mt->getType() == vmime::mediaTypes::TEXT && mt->getSubType() == "calendar") {

@@ -22,6 +22,7 @@
 #include <kopano/ECRestriction.h>
 #include "CalDavUtil.h"
 #include <kopano/EMSAbTag.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
@@ -167,11 +168,8 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	// Hack Alert #47 -- get Inbox and Outbox as special folders
 	if (wstrFldId.compare(L"Inbox") == 0) {
 		hr = lpMsgStore->GetReceiveFolder(KC_T("IPM"), fMapiUnicode, &cbEntryID, &~lpEntryID, nullptr);
-		if (hr != hrSuccess) {
-			ec_log_err("Cannot open Inbox Folder, no Receive Folder EntryID: 0x%08X", hr);
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return kc_perror("Cannot open Inbox folder, no receive folder entryID", hr);
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~folder);
 		if (hr != hrSuccess)
 			return hr;
@@ -182,17 +180,15 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	} else if (wstrFldId.compare(L"Outbox") == 0) {
 		memory_ptr<SPropValue> lpOutbox;
 		hr = HrGetOneProp(lpMsgStore, PR_IPM_OUTBOX_ENTRYID, &~lpOutbox);
-		if (hr != hrSuccess) {
-			ec_log_err("Cannot open Outbox Folder, no PR_IPM_OUTBOX_ENTRYID: 0x%08X", hr);
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return kc_perror("Cannot open Outbox folder, no PR_IPM_OUTBOX_ENTRYID", hr);
 		folder = std::move(lpOutbox);
 	}
 	if (folder) {
 		hr = lpMsgStore->OpenEntry(folder->Value.bin.cb, reinterpret_cast<ENTRYID *>(folder->Value.bin.lpb), &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)lppUsrFld);
 		if (hr != hrSuccess)
-			ec_log_err("Cannot open %ls Folder: 0x%08X", wstrFldId.c_str(), hr);
+			ec_log_err("Cannot open folder \"%ls\": %s (%x)",
+				wstrFldId.c_str(), GetMAPIErrorMessage(hr), hr);
 		// we're done either way
 		return hr;
 	}
