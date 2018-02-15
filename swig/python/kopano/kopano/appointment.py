@@ -5,6 +5,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
 Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 import datetime
+import sys
 
 from MAPI import (
     PT_SYSTIME,
@@ -25,7 +26,10 @@ from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
     PidLidBusyStatus, PidLidGlobalObjectId,
 )
-from . import utils as _utils
+if sys.hexversion >= 0x03000000:
+    from . import utils as _utils
+else:
+    import utils as _utils
 
 class Appointment(object):
     """Appointment mixin class"""
