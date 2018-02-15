@@ -125,7 +125,7 @@ int StatsClient::startup(const std::string &collectorSocket)
 
 	if (pthread_create(&countsSubmitThread, NULL, submitThread, this) == 0)
 		thread_running = true;
-
+	set_thread_name(countsSubmitThread, "StatsClient");
 	logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient thread started");
 	return 0;
 }
