@@ -778,7 +778,7 @@ class Recurrence(object):
         enddate_val = _utils.unixtime_to_rectime(time.mktime(enddate.timetuple()))
 
         for i, exception in enumerate(self.exceptions):
-            if exception['original_start_date'] == basedate_val:
+            if exception['original_start_date'] == basedate_val: # TODO offset, as below?
                 current_startdate_val = exception['start_datetime'] - self.starttime_offset
 
                 for j, val in enumerate(self.modified_instance_dates):
@@ -794,6 +794,32 @@ class Recurrence(object):
 
         # update calitem
         self._update_calitem(item)
+
+    def modify_exception2(self, basedate, subject):
+        # TODO merge with modify_exception
+        tz = self.item.get(PidLidTimeZoneStruct)
+
+        # update embedded item
+        for message in self.item.items(): # XXX no cal_item? to helper
+            replacetime = message.get(PidLidExceptionReplaceTime)
+            if replacetime and replacetime.date() == basedate.date():
+                message.subject = subject
+                message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
+                break
+
+        # update blob
+        basedate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(basedate, tz).timetuple()))
+
+        for i, exception in enumerate(self.exceptions):
+            if exception['original_start_date'] in (basedate_val, basedate_val - self.starttime_offset): # TODO pick one
+                extended_exception = self.extended_exceptions[i]
+                break
+
+        exception['override_flags'] |= ARO_SUBJECT
+        exception['subject'] = subject.encode('cp1252', 'replace')
+        extended_exception['subject'] = subject
+
+        self._save()
 
     def delete_exception(self, basedate, item, copytags):
         tz = item.get(PidLidTimeZoneStruct)
@@ -882,10 +908,20 @@ class Occurrence(object):
             self.start = start
         if end:
             self.end = end
-        if subject is not None:
-            self.subject = subject
+        self._subject = subject
         if location is not None:
             self.location = location
+
+    @property
+    def subject(self):
+        return self._subject or self.item.subject
+
+    @subject.setter
+    def subject(self, value):
+        rec = self.item.recurrence
+        # TODO orig date
+        if rec.is_exception(self.start):
+            rec.modify_exception2(self.start, subject=value)
 
     @property
     def entryid(self):
