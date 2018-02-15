@@ -479,8 +479,7 @@ bool ECLogger_Tee::Log(unsigned int loglevel)
 	bool bResult = false;
 
 	for (auto log : m_loggers)
-		bResult = log->Log(loglevel);
-
+		bResult |= log->Log(loglevel);
 	return bResult;
 }
 
