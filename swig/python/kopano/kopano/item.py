@@ -66,7 +66,7 @@ from MAPI.Tags import (
     PR_NORMALIZED_SUBJECT_W, PR_INTERNET_MESSAGE_ID_W, PR_CONVERSATION_ID,
     PR_READ_RECEIPT_REQUESTED, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED,
     PR_REPLY_RECIPIENT_ENTRIES, PR_EC_BODY_FILTERED, PR_SENSITIVITY,
-    PR_SEARCH_KEY
+    PR_SEARCH_KEY, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME
 )
 
 from MAPI.Tags import (
@@ -734,10 +734,75 @@ class Item(Properties, Contact, Appointment):
         item.create_prop('meeting:35', goid, PT_BINARY)
         return item
 
+    def _generate_reply_body(self):
+        """Create a reply body"""
+        # TODO(jelle): HTML formatted text support.
+        body = u"\r\n".join(u"> " + line for line in self.text.split('\r\n'))
+        return u"\r\nOn {} at {}, {} wrote:\r\n{}".format(self.sent.strftime('%d-%m-%Y'),
+                                                          self.sent.strftime('%H:%M'),
+                                                          self.from_.name,
+                                                          body)
+
+
+    def _create_source_message_info(self, action):
+        """Create source message info, value of the record, based on action
+        type (reply, replyall, forward) and add 48byte entryid at the end.
+
+        :param action: the reply action
+        :type action: str
+        :return:
+        :rtype: str
+        """
+
+        id_map = {
+            'reply': '0501000066000000',
+            'replyall': '0501000067000000',
+            'forward': '0601000068000000',
+        }
+
+        try:
+            return "01000E000C000000{0}0200000030000000{1}".format(id_map[action], self.entryid)
+        except KeyError:
+            return ""
+
+
+    def reply(self, folder=None, all=False):
+        # TODO(jelle): support reply all.
+        if not folder:
+            folder = self.store.drafts
+        # TODO(jelle): Remove multiple Re:'s, should only be one Re: <subject> left
+        subject = 'Re: {}'.format(self.subject)
+        body = self._generate_reply_body()
+        # TODO(jelle): pass an Address in to?
+        item = folder.create_item(subject=subject, body=body, from_=self.store.user,
+                                  to=self.from_.email, message_class=self.message_class)
+
+        source_message_info = self._create_source_message_info('reply')
+        item.create_prop('common:0x85CE', source_message_info, PT_BINARY)
+
+        return item
+
+
     def send(self, copy_to_sentmail=True):
         item = self
         if self.message_class == 'IPM.Appointment':
             item = self._send_meeting_request()
+
+        icon_index = {
+            '66': 261,  # reply
+            '67': 261,  # reply all
+            '68': 262,  # forward
+        }
+        # TOOD(jelle): check if property exists?
+        try:
+            source_message = item.prop('common:0x85CE').value
+            msgtype = source_message[24:26]
+            orig = self.store.item(entryid=source_message[48:])
+            orig.create_prop(PR_ICON_INDEX, icon_index[msgtype])
+            orig.create_prop(PR_LAST_VERB_EXECUTED, int(msgtype, 16))
+            orig.create_prop(PR_LAST_VERB_EXECUTION_TIME, datetime.datetime.now())
+        except NotFoundError:
+            pass
 
         props = []
 
