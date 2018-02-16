@@ -51,7 +51,7 @@ public:
 	virtual HRESULT Skip(LONG celt) { return m_FBBlock.Skip(celt); }
 	virtual HRESULT Reset() { return m_FBBlock.Reset(); }
 	virtual HRESULT Clone(IEnumFBBlock **) { return E_NOTIMPL; }
-	virtual HRESULT Restrict(FILETIME ftmStart, FILETIME ftmEnd);
+	virtual HRESULT Restrict(const FILETIME &start, const FILETIME &end) override;
 
 	ECFBBlockList	m_FBBlock; /**< Freebusy time blocks */
 	ALLOC_WRAP_FRIEND;

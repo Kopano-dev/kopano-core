@@ -55,7 +55,7 @@ public:
 	virtual HRESULT RemoveAppt(void) { return S_OK; }
 	virtual HRESULT ResetPublishedFreeBusy();
 	virtual HRESULT ChangeAppt(void) { return S_OK; }
-	virtual HRESULT SaveChanges(FILETIME ftStart, FILETIME ftEnd);
+	virtual HRESULT SaveChanges(const FILETIME &start, const FILETIME &end) override;
 	virtual HRESULT GetFBTimes(void) { return S_OK; }
 	virtual HRESULT Intersect(void) { return S_OK; }
 

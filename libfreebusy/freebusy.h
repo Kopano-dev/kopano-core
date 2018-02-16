@@ -190,7 +190,7 @@ public:
 	/**
 	 * Save the freebusydata with time frame between the begintime and endtime.
 	 */
-	virtual HRESULT SaveChanges(FILETIME ftBegin, FILETIME ftEnd) = 0;
+	virtual HRESULT SaveChanges(const FILETIME &start, const FILETIME &end) = 0;
 
 	/**
 	 * Unknown function, this member not supported
@@ -279,8 +279,7 @@ public:
 	 *
 	 * @note This method also resets the enumeration.
 	 */
-	virtual HRESULT Restrict(FILETIME ftmStart, FILETIME ftmEnd) = 0;
-
+	virtual HRESULT Restrict(const FILETIME &start, const FILETIME &end) = 0;
 };
 
 
@@ -322,7 +321,7 @@ public:
 	 * A free/busy provider can also subsequently use the returned IEnumFBBlock interface
 	 * to access the enumeration.
 	 */
-	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd) = 0;
+	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, const FILETIME &start, const FILETIME &end) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
@@ -488,7 +487,7 @@ public:
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT GetDelegateInfo(FBUser, void *) = 0;
+	virtual HRESULT GetDelegateInfo(const FBUser &, void *) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
@@ -580,7 +579,7 @@ public:
 	 * @todo change type of prtmStart and prtmEnd from unsigned int to LONG
 	 * @todo change type lpulStatus to void or the right struct
 	 */
-	virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *prtmStart, unsigned int *prtmEnd) = 0;
+	virtual HRESULT GetDelegateInfoEx(const FBUser &, unsigned int *status, unsigned int *start, unsigned int *end) = 0;
 
 	/**
 	 * This member not supported must return E_NOTIMPL.
@@ -625,7 +624,7 @@ public:
 	virtual HRESULT CommitChanges() = 0;
 
 	/*! @copydoc IFreeBusySupport::GetDelegateInfo */
-	virtual HRESULT GetDelegateInfo(FBUser, void *) = 0;
+	virtual HRESULT GetDelegateInfo(const FBUser &, void *) = 0;
 
 	/*! @copydoc IFreeBusySupport::SetDelegateInfo */
 	virtual HRESULT SetDelegateInfo(void *) = 0;
@@ -674,7 +673,7 @@ public:
 	//virtual HRESULT CleanTombstone() = 0;
 
 	/*! @copydoc IFreeBusySupport::GetDelegateInfoEx */
-	virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *prtmStart, unsigned int *prtmEnd) = 0;
+	virtual HRESULT GetDelegateInfoEx(const FBUser &, unsigned int *status, unsigned int *start, unsigned int *end) = 0;
 
 	/*! @copydoc IFreeBusySupport::PushDelegateInfoToWorkspace */
 	virtual HRESULT PushDelegateInfoToWorkspace() = 0;

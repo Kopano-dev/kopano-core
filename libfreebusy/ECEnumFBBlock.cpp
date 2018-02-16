@@ -83,7 +83,8 @@ HRESULT ECEnumFBBlock::Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch)
 }
 
 /*! @copydoc IEnumFBBlock::Restrict */
-HRESULT ECEnumFBBlock::Restrict(FILETIME ftmStart, FILETIME ftmEnd)
+HRESULT ECEnumFBBlock::Restrict(const FILETIME &ftmStart,
+    const FILETIME &ftmEnd)
 {
 	return m_FBBlock.Restrict(FileTimeToRTime(ftmStart), FileTimeToRTime(ftmEnd));
 }

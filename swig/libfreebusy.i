@@ -77,7 +77,7 @@ public:
         virtual HRESULT RemoveAppt() = 0;
         virtual HRESULT ResetPublishedFreeBusy() = 0;
         virtual HRESULT ChangeAppt() = 0;
-        virtual HRESULT SaveChanges(FILETIME ftBegin, FILETIME ftEnd) = 0;
+        virtual HRESULT SaveChanges(const FILETIME &start, const FILETIME &end) = 0;
         virtual HRESULT GetFBTimes() = 0;
         virtual HRESULT Intersect() = 0;
         %extend {
@@ -93,7 +93,7 @@ public:
         virtual HRESULT Skip(LONG celt) = 0;
         virtual HRESULT Reset() = 0;
         virtual HRESULT Clone(IEnumFBBlock **ppclone) = 0;
-        virtual HRESULT Restrict(FILETIME ftmStart, FILETIME ftmEnd) = 0;
+        virtual HRESULT Restrict(const FILETIME &start, const FILETIME &end) = 0;
         %extend {
                 ~IEnumFBBlock() { self->Release(); }
         }
@@ -102,7 +102,7 @@ public:
 class IFreeBusyData {
 public:
         virtual HRESULT Reload(void*) = 0;
-        virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd) = 0;
+        virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, const FILETIME &start, const FILETIME &end) = 0;
         virtual HRESULT Merge(void *) = 0;
         virtual HRESULT GetDelegateInfo(void *) = 0;
         virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *) = 0;
@@ -124,7 +124,7 @@ public:
         virtual HRESULT LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeBusyData **prgfbdata, HRESULT *phrStatus, ULONG *pcRead) = 0;
         virtual HRESULT LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4) = 0;
         virtual HRESULT CommitChanges() = 0;
-        virtual HRESULT GetDelegateInfo(FBUser, void *) = 0;
+        virtual HRESULT GetDelegateInfo(const FBUser &, void *) = 0;
         virtual HRESULT SetDelegateInfo(void *) = 0;
         virtual HRESULT AdviseFreeBusy(void *) = 0;
         virtual HRESULT Reload(void *) = 0;
@@ -139,7 +139,7 @@ public:
         virtual HRESULT GetFBPublishMonthRange(void *) = 0;
         virtual HRESULT PublishRangeChanged() = 0;
         virtual HRESULT CleanTombstone() = 0;
-        virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *prtmStart, unsigned int *prtmEnd) = 0;
+        virtual HRESULT GetDelegateInfoEx(const FBUser &, unsigned int *status, unsigned int *start, unsigned int *end) = 0;
         virtual HRESULT PushDelegateInfoToWorkspace() = 0;
         %extend {
                 IFreeBusySupport() {
