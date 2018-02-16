@@ -63,7 +63,7 @@ private:
 	virtual HRESULT HrLoadObject(MAPIOBJECT **lppsMapiObject);
 	
 	// Returns the correct storage which can connect to the server
-	virtual IECPropStorage* GetServerStorage();
+	virtual IECPropStorage *GetServerStorage() override { return m_lpServerStorage; }
 
 private:
 	KC::object_ptr<ECGenericProp> m_lpParentObject;

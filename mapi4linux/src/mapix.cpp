@@ -2327,11 +2327,8 @@ HRESULT MAPIInitialize(LPVOID lpMapiInit)
 	// Loads the mapisvc.inf, and finds all providers and entry point functions
 	m4l_lpMAPISVC = new MAPISVC();
 	auto hr = m4l_lpMAPISVC->Init();
-	if (hr != hrSuccess) {
-		ec_log_crit("MAPIInitialize(): MAPISVC::Init fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("MAPISVC::Init fail", hr);
 	if (!localProfileAdmin) {
 		localProfileAdmin = new M4LProfAdmin;
 		if (localProfileAdmin == nullptr)

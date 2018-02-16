@@ -63,8 +63,7 @@ private:
 
 	// Load complete object from server
 	virtual HRESULT HrLoadObject(MAPIOBJECT **lppsMapiObject);
-
-	virtual IECPropStorage* GetServerStorage();
+	virtual IECPropStorage *GetServerStorage() override { return this; }
 
 	/* very private */
 	virtual ECRESULT EcFillPropTags(const struct saveObject *, MAPIOBJECT *);

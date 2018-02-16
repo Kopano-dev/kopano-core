@@ -143,32 +143,21 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 
 //-- create profile
 	hr = MAPIAdminProfiles(0, &~lpProfAdmin);
-	if (hr != hrSuccess) {
-		ec_log_crit("CreateProfileTemp(): MAPIAdminProfiles failed %x: %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("MAPIAdminProfiles failed", hr);
 	lpProfAdmin->DeleteProfile(reinterpret_cast<const TCHAR *>(szProfName), 0);
 	hr = lpProfAdmin->CreateProfile(reinterpret_cast<const TCHAR *>(szProfName), reinterpret_cast<const TCHAR *>(""), 0, 0);
-	if (hr != hrSuccess) {
-		ec_log_crit("CreateProfileTemp(): CreateProfile failed %x: %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("CreateProfile failed", hr);
 	hr = lpProfAdmin->AdminServices(reinterpret_cast<const TCHAR *>(szProfName), reinterpret_cast<const TCHAR *>(""), 0, 0, &~lpServiceAdmin1);
-	if (hr != hrSuccess) {
-		ec_log_crit("CreateProfileTemp(): AdminServices failed %x: %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("AdminServices failed", hr);
 	hr = lpServiceAdmin1->QueryInterface(IID_IMsgServiceAdmin2, &~lpServiceAdmin);
-	if (hr != hrSuccess) {
-		ec_log_crit("CreateProfileTemp(): QueryInterface failed: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("QueryInterface failed", hr);
 	hr = lpServiceAdmin->CreateMsgServiceEx("ZARAFA6", "", 0, 0, &service_uid);
-	if (hr != hrSuccess) {
-		ec_log_crit("CreateProfileTemp(): CreateMsgService ZARAFA6 failed: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("CreateMsgService ZARAFA6 failed", hr);
 	// Get the PR_SERVICE_UID from the row
 	i = 0;
 	sProps[i].ulPropTag = PR_EC_PATH;
@@ -216,7 +205,7 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 	}
 	hr = lpServiceAdmin->ConfigureMsgService(&service_uid, 0, 0, i, sProps);
 	if (hr != hrSuccess)
-		ec_log_crit("CreateProfileTemp(): ConfigureMsgService failed %x: %s", hr, GetMAPIErrorMessage(hr));
+		return kc_perrorf("ConfigureMsgService failed", hr);
 	return hr;
 }
 
@@ -291,7 +280,7 @@ HRESULT HrOpenECSession(IMAPISession **lppSession,
 	if (sslkey_file != NULL) {
 		FILE *ssltest = fopen(sslkey_file, "r");
 		if (!ssltest) {
-			ec_log_crit("Cannot access %s: %s", sslkey_file, strerror(errno));
+			ec_log_crit("Cannot access SSL key file \"%s\": %s", sslkey_file, strerror(errno));
 
 			// do not pass sslkey if the file does not exist
 			// otherwise normal connections do not work either
@@ -306,14 +295,14 @@ HRESULT HrOpenECSession(IMAPISession **lppSession,
 
 	hr = CreateProfileTemp(szUsername, szPassword, szPath, szProfName.get(), ulProfileFlags, sslkey_file, sslkey_password, app_version, app_misc);
 	if (hr != hrSuccess) {
-		ec_log_warn("CreateProfileTemp failed: %x: %s", hr, GetMAPIErrorMessage(hr));
+		kc_perror("CreateProfileTemp failed", hr);
 		goto exit;
 	}
 
 	// Log on the the profile
 	hr = MAPILogonEx(0, (LPTSTR)szProfName.get(), (LPTSTR)"", MAPI_EXTENDED | MAPI_NEW_SESSION | MAPI_NO_MAIL, &lpMAPISession);
 	if (hr != hrSuccess) {
-		ec_log_warn("MAPILogonEx failed: %x: %s", hr, GetMAPIErrorMessage(hr));
+		kc_perror("MAPILogonEx failed", hr);
 		goto exit;
 	}
 
