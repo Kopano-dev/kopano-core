@@ -9666,13 +9666,13 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er,
 			// note: "contains a public of a company" is also a possibility
 			if (!strPublicServer.empty() && strcasecmp(sDetails.GetServerName().c_str(), strPublicServer.c_str()) == 0)
 				lpsResponse->sServerList.__ptr[i].ulFlags |= EC_SDFLAG_HAS_PUBLIC;
-			if (!(ulFlags & EC_SERVERDETAIL_NO_NAME))
+			if (!(ulFlags & EC_SERVERDETAIL_NO_NAME) && !sDetails.GetServerName().empty())
 				lpsResponse->sServerList.__ptr[i].lpszName = STROUT_FIX_CPY(sDetails.GetServerName().c_str());
-			if (ulFlags & EC_SERVERDETAIL_FILEPATH)
+			if (ulFlags & EC_SERVERDETAIL_FILEPATH && !sDetails.GetFilePath().empty())
 				lpsResponse->sServerList.__ptr[i].lpszFilePath = STROUT_FIX_CPY(sDetails.GetFilePath().c_str());
-			if (ulFlags & EC_SERVERDETAIL_HTTPPATH)
+			if (ulFlags & EC_SERVERDETAIL_HTTPPATH && sDetails.GetHttpPort() != 0)
 				lpsResponse->sServerList.__ptr[i].lpszHttpPath = STROUT_FIX_CPY(sDetails.GetHttpPath().c_str());
-			if (ulFlags & EC_SERVERDETAIL_SSLPATH)
+			if (ulFlags & EC_SERVERDETAIL_SSLPATH && sDetails.GetSslPort() != 0)
 				lpsResponse->sServerList.__ptr[i].lpszSslPath = STROUT_FIX_CPY(sDetails.GetSslPath().c_str());
 			if (ulFlags & EC_SERVERDETAIL_PREFEREDPATH &&
 			    GetBestServerPath(soap, lpecSession, sDetails.GetServerName(), &strServerPath) == erSuccess)
