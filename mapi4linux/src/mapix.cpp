@@ -1592,7 +1592,9 @@ HRESULT M4LAddrBook::CompareEntryIDs(ULONG cbEntryID1,
 	return hr;
 }
 
-HRESULT M4LAddrBook::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG* lpulConnection) {
+HRESULT M4LAddrBook::Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask,
+    IMAPIAdviseSink *, ULONG *conn)
+{
 	ec_log_err("M4LAddrBook::Advise not implemented");
 	return MAPI_E_NO_SUPPORT;
 }
@@ -1621,10 +1623,9 @@ HRESULT M4LAddrBook::CreateOneOff(const TCHAR *lpszName,
 	return ECCreateOneOff(lpszName, lpszAdrType, lpszAddress, ulFlags, lpcbEntryID, lppEntryID);
 }
 
-HRESULT M4LAddrBook::NewEntry(ULONG_PTR ulUIParam, ULONG ulFlags,
-    ULONG cbEIDContainer, LPENTRYID lpEIDContainer, ULONG cbEIDNewEntryTpl,
-    LPENTRYID lpEIDNewEntryTpl, ULONG *lpcbEIDNewEntry,
-    LPENTRYID *lppEIDNewEntry)
+HRESULT M4LAddrBook::NewEntry(ULONG_PTR ui_param, ULONG flags,
+    ULONG eid_size, const ENTRYID *eid_cont, ULONG tpl_size,
+    const ENTRYID *tpl, ULONG *new_size, ENTRYID **new_eid)
 {
 	ec_log_err("M4LAddrBook::NewEntry not implemented");
 	return MAPI_E_NO_SUPPORT;
@@ -1646,7 +1647,7 @@ HRESULT M4LAddrBook::NewEntry(ULONG_PTR ulUIParam, ULONG ulFlags,
  */
 // should use PR_AB_SEARCH_PATH
 HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
-    LPTSTR lpszNewEntryTitle, LPADRLIST lpAdrList)
+    const TCHAR *lpszNewEntryTitle, ADRLIST *lpAdrList)
 {
 	HRESULT hr = hrSuccess;
 	ULONG objType;
@@ -1808,13 +1809,16 @@ HRESULT M4LAddrBook::Address(ULONG_PTR *lpulUIParam, LPADRPARM lpAdrParms,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LAddrBook::Details(ULONG* lpulUIParam, LPFNDISMISS lpfnDismiss, LPVOID lpvDismissContext, ULONG cbEntryID, LPENTRYID lpEntryID, LPFNBUTTON lpfButtonCallback, LPVOID lpvButtonContext, LPTSTR lpszButtonText, ULONG ulFlags) {
+HRESULT M4LAddrBook::Details(ULONG_PTR *ui_param, DISMISSMODELESS *dsfunc,
+    void *dismiss_ctx, ULONG cbEntryID, const ENTRYID *lpEntryID,
+    LPFNBUTTON callback, void *btn_ctx, const TCHAR *btn_text, ULONG flags)
+{
 	ec_log_err("not implemented: M4LAddrBook::Details");
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LAddrBook::RecipOptions(ULONG_PTR ulUIParam, ULONG ulFlags,
-    LPADRENTRY lpRecip)
+HRESULT M4LAddrBook::RecipOptions(ULONG_PTR ui_param, ULONG flags,
+    const ADRENTRY *recip)
 {
 	ec_log_err("not implemented: M4LAddrBook::RecipOptions");
 	return MAPI_E_NO_SUPPORT;
@@ -1834,7 +1838,8 @@ HRESULT M4LAddrBook::GetPAB(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 }
 
 // Set Personal AddressBook
-HRESULT M4LAddrBook::SetPAB(ULONG cbEntryID, LPENTRYID lpEntryID) {
+HRESULT M4LAddrBook::SetPAB(ULONG eid_size, const ENTRYID *)
+{
 	ec_log_err("not implemented: M4LAddrBook::SetPAB");
 	return MAPI_E_NO_SUPPORT;
 }
@@ -1950,7 +1955,8 @@ HRESULT M4LAddrBook::GetSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath) {
 	return hrSuccess;
 }
 
-HRESULT M4LAddrBook::SetSearchPath(ULONG ulFlags, LPSRowSet lpSearchPath) {
+HRESULT M4LAddrBook::SetSearchPath(ULONG ulFlags, const SRowSet *lpSearchPath)
+{
 	HRESULT hr = hrSuccess;
 
 	if (m_lpSavedSearchPath) {

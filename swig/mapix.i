@@ -145,7 +145,7 @@ public:
 			 LPENTRYID* OUTPUT /*lppEntryID*/) = 0;
 	virtual HRESULT NewEntry(ULONG_PTR ulUIParam, ULONG ulFlags, ULONG cbEIDContainer, LPENTRYID lpEIDContainer, ULONG cbEIDNewEntryTpl, LPENTRYID lpEIDNewEntryTpl, ULONG *OUTPUT /*lpcbEIDNewEntry*/, LPENTRYID *OUTPUT /*lppEIDNewEntry*/) = 0;
 	virtual HRESULT ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags, LPTSTR lpszNewEntryTitle, LPADRLIST INOUT /*lpAdrList*/) = 0;
-    virtual HRESULT Details(ULONG* lpulUIParam, LPFNDISMISS lpfnDismiss, LPVOID lpvDismissContext, ULONG cbEntryID, LPENTRYID lpEntryID, LPFNBUTTON lpfButtonCallback, LPVOID lpvButtonContext, LPTSTR lpszButtonText, ULONG ulFlags) = 0;
+	virtual HRESULT Details(ULONG_PTR *lpulUIParam, LPFNDISMISS lpfnDismiss, LPVOID lpvDismissContext, ULONG cbEntryID, LPENTRYID lpEntryID, LPFNBUTTON lpfButtonCallback, LPVOID lpvButtonContext, LPTSTR lpszButtonText, ULONG ulFlags) = 0;
     virtual HRESULT QueryDefaultRecipOpt(LPTSTR lpszAdrType, ULONG ulFlags, ULONG* OUTPUT /*lpcValues*/, LPSPropValue* OUTPUT /*lppOptions*/) = 0;
     virtual HRESULT GetPAB(ULONG* OUTPUT /*lpcbEntryID*/, LPENTRYID* OUTPUT /*lppEntryID*/) = 0;
     virtual HRESULT SetPAB(ULONG cbEntryID, LPENTRYID lpEntryID) = 0;

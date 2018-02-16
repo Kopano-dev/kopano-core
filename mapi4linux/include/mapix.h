@@ -182,22 +182,21 @@ class IAddrBook : public virtual IMAPIProp {
 public:
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **) = 0;
 	virtual HRESULT CompareEntryIDs(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b, ULONG cmp_flags, ULONG *result) = 0;
-    virtual HRESULT Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG* lpulConnection) = 0;
+	virtual HRESULT Advise(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) = 0;
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
 	virtual HRESULT CreateOneOff(const TCHAR *name, const TCHAR *addrtype, const TCHAR *addr, ULONG flags, ULONG *eid_size, ENTRYID **) = 0;
-	virtual HRESULT NewEntry(ULONG_PTR ulUIParam, ULONG ulFlags, ULONG cbEIDContainer, LPENTRYID lpEIDContainer, ULONG cbEIDNewEntryTpl, LPENTRYID lpEIDNewEntryTpl, ULONG *lpcbEIDNewEntry, LPENTRYID *lppEIDNewEntry) = 0;
-	virtual HRESULT ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags, LPTSTR lpszNewEntryTitle, LPADRLIST lpAdrList) = 0;
+	virtual HRESULT NewEntry(ULONG_PTR ui_param, ULONG flags, ULONG cbEIDContainer, const ENTRYID *lpEIDContainer, ULONG cbEIDNewEntryTpl, const ENTRYID *lpEIDNewEntryTpl, ULONG *lpcbEIDNewEntry, ENTRYID **lppEIDNewEntry) = 0;
+	virtual HRESULT ResolveName(ULONG_PTR ui_param, ULONG flags, const TCHAR *new_title, ADRLIST *lpAdrList) = 0;
 	virtual HRESULT Address(ULONG_PTR *lpulUIParam, LPADRPARM lpAdrParms, LPADRLIST *lppAdrList) = 0;
-    virtual HRESULT Details(ULONG* lpulUIParam, LPFNDISMISS lpfnDismiss, LPVOID lpvDismissContext, ULONG cbEntryID, LPENTRYID lpEntryID,
-		    LPFNBUTTON lpfButtonCallback, LPVOID lpvButtonContext, LPTSTR lpszButtonText, ULONG ulFlags) = 0;
-	virtual HRESULT RecipOptions(ULONG_PTR ulUIParam, ULONG ulFlags, LPADRENTRY lpRecip) = 0;
+	virtual HRESULT Details(ULONG_PTR *ui_param, DISMISSMODELESS *, void *dism_ctx, ULONG cbEntryID, const ENTRYID *lpEntryID, LPFNBUTTON callback, void *btn_ctx, const TCHAR *btn_text, ULONG flags) = 0;
+	virtual HRESULT RecipOptions(ULONG_PTR ui_param, ULONG flags, const ADRENTRY *recip) = 0;
 	virtual HRESULT QueryDefaultRecipOpt(const TCHAR *addrtype, ULONG flags, ULONG *nvals, SPropValue **opts) = 0;
     virtual HRESULT GetPAB(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) = 0;
-    virtual HRESULT SetPAB(ULONG cbEntryID, LPENTRYID lpEntryID) = 0;
+	virtual HRESULT SetPAB(ULONG cbEntryID, const ENTRYID *lpEntryID) = 0;
     virtual HRESULT GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) = 0;
 	virtual HRESULT SetDefaultDir(ULONG cbEntryID, const ENTRYID *lpEntryID) = 0;
     virtual HRESULT GetSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath) = 0;
-    virtual HRESULT SetSearchPath(ULONG ulFlags, LPSRowSet lpSearchPath) = 0;
+	virtual HRESULT SetSearchPath(ULONG flags, const SRowSet *lpSearchPath) = 0;
 	virtual HRESULT PrepareRecips(ULONG ulFlags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList) = 0;
 };
 IID_OF(IAddrBook)
