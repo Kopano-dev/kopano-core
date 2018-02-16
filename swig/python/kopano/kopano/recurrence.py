@@ -586,7 +586,7 @@ class Recurrence(object):
             extended_exception['end_datetime'] = enddate_val
             extended_exception['original_start_date'] = basedate_val
 
-    def _update_calitem(self, item):
+    def _update_calitem(self):
         cal_item = self.item
 
         cal_item[PidLidSideEffects] = 3441 # XXX spec, check php
@@ -727,7 +727,7 @@ class Recurrence(object):
         self._save()
 
         # update calitem
-        self._update_calitem(item)
+        self._update_calitem()
 
     def modify_exception(self, basedate, item, copytags=None): # XXX 'item' too MR specific
         tz = item.get(PidLidTimeZoneStruct)
@@ -793,7 +793,37 @@ class Recurrence(object):
         self._save()
 
         # update calitem
-        self._update_calitem(item)
+        self._update_calitem()
+
+    def create_exception2(self, basedate):
+        # TODO merge with create_exception
+        tz = self.item.get(PidLidTimeZoneStruct)
+
+        basedate = _utils._from_gmt(basedate, tz)
+        basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate.timetuple())) - self.starttime_offset
+
+        # update blob
+        self.deleted_instance_count += 1
+        self.deleted_instance_dates.append(basedate_val)
+        self.deleted_instance_dates.sort()
+
+        self.modified_instance_count += 1
+        self.modified_instance_dates.append(basedate_val)
+        self.modified_instance_dates.sort()
+
+        exception = {
+            'start_datetime': basedate_val + self.starttime_offset,
+            'end_datetime': basedate_val + self.starttime_offset + 30, # TODO
+            'original_start_date': basedate_val,
+            'override_flags': 0,
+        }
+        self.exceptions.append(exception) # no evidence of sorting
+        self.extended_exceptions.append({})
+
+        self._save()
+
+        # update calitem
+        self._update_calitem()
 
     def modify_exception2(self, basedate, subject):
         # TODO merge with modify_exception
@@ -817,7 +847,11 @@ class Recurrence(object):
 
         exception['override_flags'] |= ARO_SUBJECT
         exception['subject'] = subject.encode('cp1252', 'replace')
+
         extended_exception['subject'] = subject
+        extended_exception['start_datetime'] = exception['start_datetime']
+        extended_exception['end_datetime'] = exception['end_datetime']
+        extended_exception['original_start_date'] = exception['original_start_date']
 
         self._save()
 
@@ -847,7 +881,7 @@ class Recurrence(object):
             self.deleted_instance_dates.sort()
 
         self._save()
-        self._update_calitem(item)
+        self._update_calitem()
 
     def occurrences(self, start=None, end=None): # XXX fit-to-period
         tz = self.item.get(PidLidTimeZoneStruct)
@@ -921,6 +955,9 @@ class Occurrence(object):
         rec = self.item.recurrence
         # TODO orig date
         if rec.is_exception(self.start):
+            rec.modify_exception2(self.start, subject=value)
+        else:
+            rec.create_exception2(self.start)
             rec.modify_exception2(self.start, subject=value)
 
     @property
