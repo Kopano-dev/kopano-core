@@ -1,10 +1,11 @@
-8.5.2
-=====
+Release notes for 8.5.2 (2018-02-16)
+====================================
 Fixes:
 * spooler: avoid deadlock due to double mutex acquisition within
   one thread [KC-815]
 * php: mapi_icaltomapi did not copy the iCal recipients to the MAPI object
 * archiver erroneously forgot to create its SQL tables on first use
+* server: stop complaining about server_tcp_port when that is not specified [KC-1038]
 
 
 Release notes for 8.5.1 (2018-02-13)
