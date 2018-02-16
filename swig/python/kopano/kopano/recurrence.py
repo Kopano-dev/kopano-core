@@ -904,26 +904,36 @@ class Recurrence(object):
                 minutes = exc['end_datetime'] - startdatetime_val
                 subject = ext.get('subject', subject)
                 location = ext.get('location', location)
+                basedate_val = exc['original_start_date']
             else:
                 minutes = self.endtime_offset - self.starttime_offset
+                basedate_val = startdatetime_val
 
             d = _utils._to_gmt(d, tz, align_dst=True)
 
-            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes), subject, location)
+            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes), subject, location, basedate_val=basedate_val)
             if (not start or occ.end > start) and (not end or occ.start < end):
                 yield occ
 
     def occurrence(self, entryid):
-        # TODO use original start date, or entryid changes when moving start date
-        # TODO check that date is (still) valid
         entryid = _bdec(entryid)
-        pos = 2 + _utils.unpack_short(entryid, 0) + 2
-        year, month, day = struct.unpack_from('>HBB', entryid, pos)
-        d = datetime.datetime(year, month, day)
+        pos = 2 + _utils.unpack_short(entryid, 0)
+        basedate_val = _utils.unpack_long(entryid, pos)
+
+        for exc in self.exceptions: # TODO subject etc
+            if exc['original_start_date'] in (basedate_val, basedate_val - self.starttime_offset): # TODO pick one
+                start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exc['start_datetime']))
+                start = _utils._to_gmt(start, self.tz)
+                break
+        else:
+            # TODO check that date is (still) valid
+            start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(basedate_val))
+            start = _utils._to_gmt(start, self.tz)
+
         return Occurrence(
             self.item,
-            d + datetime.timedelta(minutes=self.starttime_offset),
-            d + datetime.timedelta(minutes=self.endtime_offset)
+            start,
+            start + datetime.timedelta(minutes=self.endtime_offset-self.starttime_offset)
         )
 
     def __unicode__(self):
@@ -936,15 +946,25 @@ class Recurrence(object):
 class Occurrence(object):
     """Occurrence class"""
 
-    def __init__(self, item, start=None, end=None, subject=None, location=None):
+    def __init__(self, item, start=None, end=None, subject=None, location=None, basedate_val=None):
         self.item = item
-        if start:
-            self.start = start
-        if end:
-            self.end = end
+        self._start = start
+        self._end = end
         self._subject = subject
-        if location is not None:
-            self.location = location
+        self._location = location
+        self._basedate_val = basedate_val
+
+    @property
+    def start(self):
+        return self._start or self.item.start
+
+    @property
+    def end(self):
+        return self._end or self.item.end
+
+    @property
+    def location(self):
+        return self._location or self.item.location
 
     @property
     def subject(self):
@@ -952,30 +972,31 @@ class Occurrence(object):
 
     @subject.setter
     def subject(self, value):
-        rec = self.item.recurrence
-        # TODO orig date
-        if rec.is_exception(self.start):
-            rec.modify_exception2(self.start, subject=value)
+        if self.item.recurring:
+            rec = self.item.recurrence
+            basedate = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
+            basedate = _utils._to_gmt(basedate, rec.tz)
+
+            if rec.is_exception(basedate):
+                rec.modify_exception2(basedate, subject=value)
+            else:
+                rec.create_exception2(basedate)
+                rec.modify_exception2(basedate, subject=value)
         else:
-            rec.create_exception2(self.start)
-            rec.modify_exception2(self.start, subject=value)
+            self.item.subject = value
 
     @property
     def entryid(self):
-        # cal item entryid plus occurrence date
+        # cal item entryid plus basedate (zero if not recurring)
         parts = []
-        # entryid
+
         eid = _bdec(self.item.entryid)
         parts.append(_utils.pack_short(len(eid)))
         parts.append(eid)
-        # occurrence date (zeroes if not recurring)
-        if self.item.recurring:
-            year, month, day = self.start.year, self.start.month, self.start.day
-        else:
-            year, month, day = 0, 0, 0
-        date = struct.pack('>HBB', year, month, day)
-        parts.append(_utils.pack_short(len(date)))
-        parts.append(date)
+
+        basedate_val = self._basedate_val or 0
+        parts.append(_utils.pack_long(basedate_val))
+
         return _benc(b''.join(parts))
 
     @property
