@@ -240,7 +240,8 @@ HRESULT ZCABLogon::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ZCABLogon::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection)
+HRESULT ZCABLogon::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ULONG evt_mask, IMAPIAdviseSink *lpAdviseSink, ULONG *lpulConnection)
 {
 	if (lpAdviseSink == NULL || lpulConnection == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -259,7 +260,9 @@ HRESULT ZCABLogon::OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG *lpu
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ZCABLogon::OpenTemplateID(ULONG cbTemplateID, LPENTRYID lpTemplateID, ULONG ulTemplateFlags, LPMAPIPROP lpMAPIPropData, LPCIID lpInterface, LPMAPIPROP * lppMAPIPropNew, LPMAPIPROP lpMAPIPropSibling)
+HRESULT ZCABLogon::OpenTemplateID(ULONG tpl_size, const ENTRYID *tpl_eid,
+    ULONG tpl_flags, IMAPIProp *propdata, const IID *intf, IMAPIProp **propnew,
+    IMAPIProp *sibling)
 {
 	return MAPI_E_NO_SUPPORT;
 }
