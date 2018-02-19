@@ -1372,7 +1372,7 @@ HRESULT M4LMAPISession::QueryInterface(REFIID refiid, void **lpvoid) {
 	return hrSuccess;
 }
 
-HRESULT M4LMAPISession::setStatusRow(ULONG cValues, LPSPropValue lpProps)
+HRESULT M4LMAPISession::setStatusRow(ULONG cValues, const SPropValue *lpProps)
 {
 	scoped_lock l_status(m_mutexStatusRow);
 	m_cValuesStatus = 0;

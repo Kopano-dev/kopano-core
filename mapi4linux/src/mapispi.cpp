@@ -83,8 +83,9 @@ HRESULT M4LMAPISupport::GetMemAllocRoutines(LPALLOCATEBUFFER * lpAllocateBuffer,
 	return hrSuccess;
 }
 
-HRESULT M4LMAPISupport::Subscribe(LPNOTIFKEY lpKey, ULONG ulEventMask, ULONG ulFlags, LPMAPIADVISESINK lpAdviseSink,
-								  ULONG * lpulConnection) {
+HRESULT M4LMAPISupport::Subscribe(const NOTIFKEY *lpKey, ULONG ulEventMask,
+    ULONG ulFlags, IMAPIAdviseSink *lpAdviseSink, ULONG *lpulConnection)
+{
 	LPNOTIFKEY lpNewKey = NULL;
 	ulock_normal l_adv(m_advises_mutex, std::defer_lock_t());
 
@@ -113,11 +114,17 @@ HRESULT M4LMAPISupport::Unsubscribe(ULONG ulConnection) {
 	return hrSuccess;
 }
 
-HRESULT M4LMAPISupport::Notify(LPNOTIFKEY lpKey, ULONG cNotification, LPNOTIFICATION lpNotifications, ULONG * lpulFlags) {
+HRESULT M4LMAPISupport::Notify(const NOTIFKEY *lpKey, ULONG cNotification,
+    NOTIFICATION *lpNotifications, ULONG *lpulFlags)
+{
 	object_ptr<IMAPIAdviseSink> lpAdviseSink;
 	ulock_normal l_adv(m_advises_mutex);
 
-	auto iter = find_if(m_advises.cbegin(), m_advises.cend(), findKey(lpKey));
+	auto iter = find_if(m_advises.cbegin(), m_advises.cend(),
+		[=](const M4LSUPPORTADVISES::value_type &entry) {
+			return entry.second.lpKey->cb == lpKey->cb &&
+			       memcmp(entry.second.lpKey->ab, lpKey->ab, lpKey->cb) == 0;
+		});
 	if (iter == m_advises.cend())
 		/* Should this be reported as error? */
 		return hrSuccess;
@@ -126,7 +133,9 @@ HRESULT M4LMAPISupport::Notify(LPNOTIFKEY lpKey, ULONG cNotification, LPNOTIFICA
 	return lpAdviseSink->OnNotify(cNotification, lpNotifications);
 }
 
-HRESULT M4LMAPISupport::ModifyStatusRow(ULONG cValues, LPSPropValue lpColumnVals, ULONG ulFlags) {
+HRESULT M4LMAPISupport::ModifyStatusRow(ULONG cValues,
+    const SPropValue *lpColumnVals, ULONG ulFlags)
+{
 	return static_cast<M4LMAPISession *>(this->session)->setStatusRow(cValues, lpColumnVals);
 }
 
@@ -171,7 +180,8 @@ HRESULT M4LMAPISupport::CreateOneOff(const TCHAR *lpszName,
 	       lpcbEntryID, lppEntryID);
 }
 
-HRESULT M4LMAPISupport::SetProviderUID(LPMAPIUID lpProviderID, ULONG ulFlags) {
+HRESULT M4LMAPISupport::SetProviderUID(const MAPIUID *, ULONG flags)
+{
     return hrSuccess;
 }
 
@@ -190,8 +200,10 @@ HRESULT M4LMAPISupport::CompareEntryIDs(ULONG cbEntry1, const ENTRYID *lpEntry1,
 	return hrSuccess;
 }
 
-HRESULT M4LMAPISupport::OpenTemplateID(ULONG cbTemplateID, LPENTRYID lpTemplateID, ULONG ulTemplateFlags, LPMAPIPROP lpMAPIPropData,
-									   LPCIID lpInterface, LPMAPIPROP * lppMAPIPropNew, LPMAPIPROP lpMAPIPropSibling) {
+HRESULT M4LMAPISupport::OpenTemplateID(ULONG tpl_size, const ENTRYID *tpl_eid,
+    ULONG tpl_flags, IMAPIProp *propdata, const IID *intf, IMAPIProp **propnew,
+    IMAPIProp *sibling)
+{
     return MAPI_E_NO_SUPPORT;
 }
 
@@ -217,9 +229,9 @@ HRESULT M4LMAPISupport::Details(ULONG * lpulUIParam, LPFNDISMISS lpfnDismiss, LP
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::NewEntry(ULONG_PTR ulUIParam, ULONG ulFlags,
-    ULONG cbEIDContainer, ENTRYID *lpEIDContainer, ULONG cbEIDNewEntryTpl,
-    ENTRYID *lpEIDNewEntryTpl, ULONG *lpcbEIDNewEntry, ENTRYID **lppEIDNewEntry)
+HRESULT M4LMAPISupport::NewEntry(ULONG_PTR ui_param, ULONG flags,
+    ULONG eid_size, const ENTRYID *eid_cont, ULONG tpl_size, const ENTRYID *tpl,
+    ULONG *new_size, ENTRYID **new_eid)
 {
     return MAPI_E_NO_SUPPORT;
 }
