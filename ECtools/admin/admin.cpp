@@ -21,6 +21,7 @@
 #include <list>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 #include <climits>
 #include <cstdio>
@@ -1772,7 +1773,7 @@ static void missing_quota(int hard, int warn, int soft)
 		cerr << " soft quota (--qs)";
 }
 
-static int fexec(const std::string &admin, std::vector<std::string> cmd)
+static int fexec(const std::string &admin, std::vector<std::string> &&cmd)
 {
 	/*
 	 * Run @cmd[0] with the directory contained in @admin (if any),
@@ -1794,6 +1795,13 @@ static int fexec(const std::string &admin, std::vector<std::string> cmd)
 	argv[argc] = nullptr;
 	execvp(argv[0], const_cast<char * const *>(argv.get()));
 	return EXIT_FAILURE;
+}
+
+static int fexech(const std::string &prog, std::vector<std::string> &&cmd, const char *path)
+{
+	if (path != nullptr && *path != '\0' && cmd.size() > 0)
+		cmd.insert(std::next(cmd.begin()), {"-h", path});
+	return fexec(prog, std::move(cmd));
 }
 
 int main(int argc, char* argv[])
@@ -2159,7 +2167,7 @@ int main(int argc, char* argv[])
 			mode = MODE_PURGE_DEFERRED;
 			break;
 		case OPT_LIST_ORPHANS:
-			return fexec(argv[0], {"kopano-storeadm", "-O"});
+			return fexech(argv[0], {"kopano-storeadm", "-O"}, path);
 		case OPT_CONFIG:
 			szConfig = validateInput(optarg);
 			bExplicitConfig = true;
@@ -2710,8 +2718,8 @@ int main(int argc, char* argv[])
 
 	case MODE_CREATE_PUBLIC:
 		if (companyname == nullptr)
-			return fexec(argv[0], {"kopano-storeadm", "-P"});
-		return fexec(argv[0], {"kopano-storeadm", "-Pk", companyname});
+			return fexech(argv[0], {"kopano-storeadm", "-P"}, path);
+		return fexech(argv[0], {"kopano-storeadm", "-Pk", companyname}, path);
 	case MODE_CREATE_USER:
 		memset(&sECUser, 0, sizeof(sECUser));
 
@@ -2761,8 +2769,8 @@ int main(int argc, char* argv[])
 		break;
 	case MODE_CREATE_STORE:
 		if (lang == nullptr)
-			return fexec(argv[0], {"kopano-storeadm", "-Cn", username});
-		return fexec(argv[0], {"kopano-storeadm", "-Cn", username, "-l", lang});
+			return fexech(argv[0], {"kopano-storeadm", "-Cn", username}, path);
+		return fexech(argv[0], {"kopano-storeadm", "-Cn", username, "-l", lang}, path);
 	case MODE_DELETE_USER:
 		hr = lpServiceAdmin->DeleteUser(cbUserId, lpUserId);
 		if (hr != hrSuccess) {
@@ -2778,14 +2786,14 @@ int main(int argc, char* argv[])
 		break;
 	case MODE_HOOK_STORE:
 		if (bCopyToPublic == true)
-			return fexec(argv[0], {"kopano-storeadm", "-A", storeguid, "-p"});
-		return fexec(argv[0], {"kopano-storeadm", "-A", storeguid, "-n", username});
+			return fexech(argv[0], {"kopano-storeadm", "-A", storeguid, "-p"}, path);
+		return fexech(argv[0], {"kopano-storeadm", "-A", storeguid, "-n", username}, path);
 	case MODE_UNHOOK_STORE:
 		if (detailstype == NULL)
-			return fexec(argv[0], {"kopano-storeadm", "-Dn", username});
-		return fexec(argv[0], {"kopano-storeadm", "-Dn", username, "-t", detailstype});
+			return fexech(argv[0], {"kopano-storeadm", "-Dn", username}, path);
+		return fexech(argv[0], {"kopano-storeadm", "-Dn", username, "-t", detailstype}, path);
 	case MODE_REMOVE_STORE:
-		return fexec(argv[0], {"kopano-storeadm", "-R", storeguid});
+		return fexech(argv[0], {"kopano-storeadm", "-R", storeguid}, path);
 	case MODE_UPDATE_USER:
 		if (new_username) {
 			memory_ptr<ENTRYID> userid;
