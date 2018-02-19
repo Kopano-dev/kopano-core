@@ -994,3 +994,6 @@ for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
     route(app, user+'/contactFolders/{folderid}/contacts/{itemid}/photo', photos)
 
 notify_app = notify.app
+
+def config(insecure=False):
+    notify.INSECURE = insecure
