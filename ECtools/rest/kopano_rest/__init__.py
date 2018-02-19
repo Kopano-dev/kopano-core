@@ -795,12 +795,25 @@ class EventResource(ItemResource):
     def on_post(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid)
         folder = utils._folder(store, folderid or 'calendar')
-        item = folder.item(itemid)
+        item = folder.event(itemid)
 
         if method == 'attachments':
             fields = json.loads(req.stream.read().decode('utf-8'))
             if fields['@odata.type'] == '#microsoft.graph.fileAttachment':
                 item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
+
+    def on_patch(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
+        server, store = _server_store(req, userid)
+        folder = utils._folder(store, folderid or 'calendar')
+        item = folder.event(itemid)
+
+        fields = json.loads(req.stream.read().decode('utf-8'))
+
+        for field, value in fields.items():
+            if field in self.set_fields:
+                self.set_fields[field](item, value)
+
+        self.respond(req, resp, item, EventResource.fields)
 
     def on_delete(self, req, resp, userid=None, folderid=None, itemid=None):
         server, store = _server_store(req, userid)

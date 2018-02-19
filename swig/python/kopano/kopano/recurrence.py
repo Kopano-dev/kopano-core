@@ -869,6 +869,10 @@ class Recurrence(object):
             exception['end_datetime'] = enddate_val
             extended_exception['end_datetime'] = enddate_val
 
+        extended_exception['start_datetime'] = exception['start_datetime'] # TODO on creation?
+        extended_exception['end_datetime'] = exception['end_datetime']
+        extended_exception['original_start_date'] = exception['original_start_date']
+
         self._save()
 
         # update calitem
@@ -952,7 +956,8 @@ class Recurrence(object):
         return Occurrence(
             self.item,
             start,
-            start + datetime.timedelta(minutes=self.endtime_offset-self.starttime_offset)
+            start + datetime.timedelta(minutes=self.endtime_offset-self.starttime_offset),
+            basedate_val = basedate_val,
         )
 
     def __unicode__(self):
@@ -980,6 +985,7 @@ class Occurrence(object):
     @start.setter
     def start(self, value):
         self._update(start=value)
+        self._start = value
 
     @property
     def end(self):
@@ -988,6 +994,7 @@ class Occurrence(object):
     @end.setter
     def end(self, value):
         self._update(end=value)
+        self._end = value
 
     @property
     def location(self):
@@ -996,6 +1003,7 @@ class Occurrence(object):
     @location.setter
     def location(self, value):
         self._update(location=value)
+        self._location = value
 
     @property
     def subject(self):
@@ -1004,6 +1012,7 @@ class Occurrence(object):
     @subject.setter
     def subject(self, value):
         self._update(subject=value)
+        self._subject = value
 
     def _update(self, **kwargs):
         if self.item.recurring:
