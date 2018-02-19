@@ -36,6 +36,19 @@ public:
 	}
 };
 
+class IECImportAddressbookChanges : public virtual IUnknown {
+public:
+	virtual HRESULT GetLastError(HRESULT hr, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
+	virtual HRESULT Config(IStream * lpStream, ULONG ulFlags) = 0;
+	virtual HRESULT UpdateState(IStream * lpStream) = 0;
+	virtual HRESULT ImportABChange(ULONG type, ULONG cbEntryID, LPENTRYID lpEntryID) = 0;
+	virtual HRESULT ImportABDeletion(ULONG type, ULONG cbEntryID, LPENTRYID lpEntryID) = 0;
+
+	%extend {
+		virtual ~IECImportAddressbookChanges() { self->Release(); }
+	}
+};
+
 class IECImportHierarchyChanges : public IExchangeImportHierarchyChanges {
 public:
 	virtual HRESULT ImportFolderChangeEx(ULONG cValues, LPSPropValue lpProps, BOOL fNew) = 0;
@@ -60,6 +73,7 @@ public:
 typedef IUnknownImplementor<IECChangeAdviseSink> ECChangeAdviseSink;
 typedef IUnknownImplementor<IECImportContentsChanges> ECImportContentsChanges;
 typedef IUnknownImplementor<IECImportHierarchyChanges> ECImportHierarchyChanges;
+typedef IUnknownImplementor<IECImportAddressbookChanges> ECImportAddressbookChanges;
 %}
 
 %feature("director") ECChangeAdviseSink;
@@ -89,6 +103,16 @@ public:
 	ECImportHierarchyChanges(ULONG cInterfaces, LPCIID lpInterfaces);
 	%extend {
 		virtual ~ECImportHierarchyChanges() { delete self; }
+	}
+};
+
+%feature("director") ECImportAddressbookChanges;
+%feature("nodirector") ECImportAddressbookChanges::QueryInterface;
+class ECImportAddressbookChanges : public IECImportAddressbookChanges {
+public:
+	ECImportAddressbookChanges(ULONG cInterfaces, LPCIID lpInterfaces);
+	%extend {
+		virtual ~ECImportAddressbookChanges() { delete self; }
 	}
 };
 

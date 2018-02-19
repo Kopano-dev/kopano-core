@@ -12,3 +12,4 @@ public:
 		~IECExportChanges() { self->Release(); };
 	}
 };
+

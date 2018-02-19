@@ -438,7 +438,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 %typemap(directorin) (ULONG cbEntryID, LPENTRYID lpEntryID)
 {
   if ($1_name > 0 && $2_name != NULL)
-    $input = SWIG_FromCharPtrAndSize((char*)$2_name, $1_name);
+    $input = PyBytes_FromStringAndSize((char*)$2_name, $1_name);
 }
 
 %apply (ULONG, MAPIARRAY) {(ULONG cElements, LPREADSTATE lpReadState), (ULONG cNotif, LPNOTIFICATION lpNotifications)};
