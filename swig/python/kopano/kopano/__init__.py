@@ -62,7 +62,7 @@ from .attachment import Attachment
 from .autoaccept import AutoAccept
 from .body import Body
 from .company import Company
-from .compat import set_bin_encoding, set_missing_none
+from .compat import set_bin_encoding, set_missing_none, hex, unhex, benc, bdec
 from .delegation import Delegation
 from .folder import Folder
 from .freebusy import FreeBusyBlock, FreeBusy

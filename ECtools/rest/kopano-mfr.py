@@ -7,6 +7,7 @@ import sys
 import time
 
 import bjoern
+import kopano_rest
 
 """
 Master Fleet Runner
@@ -37,8 +38,13 @@ def opt_args():
     return options, args
 
 def run_app(socket_path, n):
-    app = __import__('kopano-rest').app
-    unix_socket = 'unix:' + os.path.join(socket_path, 'mfr%d.sock' % n)
+    app = kopano_rest.app
+    unix_socket = 'unix:' + os.path.join(socket_path, 'rest%d.sock' % n)
+    bjoern.run(app, unix_socket)
+
+def run_notify(socket_path):
+    app = kopano_rest.notify_app
+    unix_socket = 'unix:' + os.path.join(socket_path, 'notify.sock')
     bjoern.run(app, unix_socket)
 
 def main():
@@ -51,6 +57,9 @@ def main():
         process = Process(target=run_app, args=(socket_path, n))
         workers.append(process)
 
+    notify_process = Process(target=run_notify, args=(socket_path,))
+    workers.append(notify_process)
+
     for worker in workers:
         worker.daemon = True
         worker.start()
@@ -62,13 +71,16 @@ def main():
         for worker in workers:
             worker.terminate()
     finally:
+        sockets = []
         for n in range(nworkers):
+            sockets.append('rest%d.sock' % n)
+        sockets.append('notify.sock')
+        for socket in sockets:
             try:
-                unix_socket = os.path.join(socket_path, 'mfr%d.sock' % n)
+                unix_socket = os.path.join(socket_path, socket)
                 os.unlink(unix_socket)
-            except OSError as e:
+            except OSError:
                 pass
 
 if __name__ == '__main__':
     main()
-

@@ -2,11 +2,13 @@ import base64
 import codecs
 import falcon
 import json
+import traceback
 import uuid
 try:
     from queue import Queue
 except ImportError:
     from Queue import Queue
+import requests
 from threading import Thread
 
 import kopano
@@ -34,6 +36,7 @@ def _user(req):
 
 # TODO don't block on sending updates
 # TODO restarting app/server
+# TODO expiration
 # TODO handshake/call webhook
 
 class Processor(Thread):
@@ -43,12 +46,26 @@ class Processor(Thread):
 
     def run(self):
         while True:
-            store, notification = QUEUE.get()
-            print('call webhook!', store, notification)
+            store, notification, subscription = QUEUE.get()
+
+            data = {
+                'subscriptionId': subscription['id'],
+                'clientState': subscription['clientState'],
+                'changeType': 'created', # TODO from notification
+                'resource': subscription['resource'],
+                'resourceData': {
+                    # TODO fill in
+                }
+            }
+            try:
+                requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10)
+            except Exception:
+                traceback.print_exc()
 
 class Sink:
-    def __init__(self, store):
+    def __init__(self, store, subscription):
         self.store = store
+        self.subscription = subscription
 
     def update(self, notification):
         global QUEUE
@@ -58,7 +75,7 @@ class Sink:
             QUEUE = Queue()
             Processor().start()
 
-        QUEUE.put((self.store, notification))
+        QUEUE.put((self.store, notification, self.subscription))
 
 def _get_folder(store, resource):
     resource = resource.split('/')
@@ -76,28 +93,33 @@ class SubscriptionResource:
 
         # TODO store-level, hierarchy.. ?
 
-        sink = Sink(store)
+        id_ = str(uuid.uuid4())
+        subscription = fields
+        subscription['id'] = id_
+
+        sink = Sink(store, subscription)
         folder.subscribe(sink)
 
-        id_ = str(uuid.uuid4())
-        subscription = {
-            'id': id_,
-            'resource': fields['resource'],
-        }
         SUBSCRIPTIONS[id_] = (subscription, sink)
 
         resp.content_type = "application/json"
         resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
 
-    def on_delete(self, req, resp, subscriptionid=None):
+    def on_get(self, req, resp, subscriptionid):
+        subscription, sink = SUBSCRIPTIONS[subscriptionid]
+
+        resp.content_type = "application/json"
+        resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
+
+    def on_delete(self, req, resp, subscriptionid):
         user = _user(req)
         store = user.store
-        fields = json.loads(req.stream.read().decode('utf-8'))
 
-        subscription, sink = SUBSCRIPTIONS[fields['id']]
+        subscription, sink = SUBSCRIPTIONS[subscriptionid]
         folder = _get_folder(store, subscription['resource'])
 
         folder.unsubscribe(sink)
+        del SUBSCRIPTIONS[subscriptionid]
 
 app = falcon.API()
 

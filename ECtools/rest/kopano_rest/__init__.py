@@ -319,7 +319,7 @@ class ItemResource(Resource):
         'changeKey': lambda item: item.changekey,
         'createdDateTime': lambda item: _date(item.created),
         'lastModifiedDateTime': lambda item: _date(item.last_modified),
-        'categories': lambda item: item.categories,
+        'categories': lambda item: [codecs.decode(c, 'ascii') for c in item.categories], # TODO b''!
     }
 
     def delta(self, req, resp, folder):
@@ -550,7 +550,13 @@ class MessageResource(ItemResource):
         folder = utils._folder(store, folderid or 'inbox') # TODO all folders?
         item = folder.item(itemid)
 
-        if method == 'attachments':
+        if method == 'createReply':
+            self.respond(req, resp, item.reply())
+
+        elif method == 'createReplyAll':
+            self.respond(req, resp, item.reply(all=True))
+
+        elif method == 'attachments':
             fields = json.loads(req.stream.read().decode('utf-8'))
             if fields['@odata.type'] == '#microsoft.graph.fileAttachment':
                 item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
@@ -716,6 +722,18 @@ def setdate(item, field, arg):
     date = dateutil.parser.parse(arg['dateTime'])
     setattr(item, field, date)
 
+def event_type(item):
+    if isinstance(item, kopano.Item):
+        if item.recurring:
+            return 'SeriesMaster'
+        else:
+            return 'SingleInstance'
+    else:
+        return 'Occurrence' # TODO Exception
+
+# TODO fix id for occurrences (embed datetime?)
+# TODO split: OccurrenceResource?
+
 class EventResource(ItemResource):
     fields = ItemResource.fields.copy()
     fields.update({
@@ -727,13 +745,17 @@ class EventResource(ItemResource):
         'importance': lambda item: item.urgency,
         'sensitivity': lambda item: sensitivity_map[item.sensitivity],
         'hasAttachments': lambda item: item.has_attachments,
-        'body': lambda item: {'contentType': 'html', 'content': item.html.decode('utf8')}, # TODO if not utf8?
+        'body': lambda req, item: get_body(req, item),
         'isReminderOn': lambda item: item.reminder,
         'reminderMinutesBeforeStart': lambda item: item.reminder_minutes,
         'attendees': lambda item: attendees_json(item),
         'bodyPreview': lambda item: item.text[:255],
         'isAllDay': lambda item: item.all_day,
         'showAs': lambda item: show_as_map[item.show_as],
+        'seriesMasterId': lambda item: item.entryid if isinstance(item, kopano.Occurrence) else None,
+        'type': lambda item: event_type(item),
+        'responseRequested': lambda item: item.response_requested,
+        'iCalUId': lambda item: kopano.hex(kopano.bdec(item.icaluid)) if item else None, # graph uses hex!?
     })
 
     set_fields = {
