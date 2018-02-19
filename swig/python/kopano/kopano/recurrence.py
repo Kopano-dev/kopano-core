@@ -797,6 +797,8 @@ class Recurrence(object):
 
     def create_exception2(self, basedate):
         # TODO merge with create_exception
+        # TODO create embedded item
+
         tz = self.item.get(PidLidTimeZoneStruct)
 
         basedate = _utils._from_gmt(basedate, tz)
@@ -825,7 +827,7 @@ class Recurrence(object):
         # update calitem
         self._update_calitem()
 
-    def modify_exception2(self, basedate, subject):
+    def modify_exception2(self, basedate, subject=None, start=None, end=None, location=None):
         # TODO merge with modify_exception
         tz = self.item.get(PidLidTimeZoneStruct)
 
@@ -833,7 +835,9 @@ class Recurrence(object):
         for message in self.item.items(): # XXX no cal_item? to helper
             replacetime = message.get(PidLidExceptionReplaceTime)
             if replacetime and replacetime.date() == basedate.date():
-                message.subject = subject
+                if subject is not None:
+                    message.subject = subject
+                # TODO set other args
                 message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
                 break
 
@@ -845,15 +849,30 @@ class Recurrence(object):
                 extended_exception = self.extended_exceptions[i]
                 break
 
-        exception['override_flags'] |= ARO_SUBJECT
-        exception['subject'] = subject.encode('cp1252', 'replace')
+        if subject is not None:
+            exception['override_flags'] |= ARO_SUBJECT
+            exception['subject'] = subject.encode('cp1252', 'replace')
+            extended_exception['subject'] = subject
 
-        extended_exception['subject'] = subject
-        extended_exception['start_datetime'] = exception['start_datetime']
-        extended_exception['end_datetime'] = exception['end_datetime']
-        extended_exception['original_start_date'] = exception['original_start_date']
+        if location is not None:
+            exception['override_flags'] |= ARO_LOCATION
+            exception['location'] = location.encode('cp1252', 'replace')
+            extended_exception['location'] = location
+
+        if start:
+            startdate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(start, tz).timetuple()))
+            exception['start_datetime'] = startdate_val
+            extended_exception['start_datetime'] = startdate_val
+
+        if end:
+            enddate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(end, tz).timetuple()))
+            exception['end_datetime'] = enddate_val
+            extended_exception['end_datetime'] = enddate_val
 
         self._save()
+
+        # update calitem
+        self._update_calitem()
 
     def delete_exception(self, basedate, item, copytags):
         tz = item.get(PidLidTimeZoneStruct)
@@ -958,13 +977,25 @@ class Occurrence(object):
     def start(self):
         return self._start or self.item.start
 
+    @start.setter
+    def start(self, value):
+        self._update(start=value)
+
     @property
     def end(self):
         return self._end or self.item.end
 
+    @end.setter
+    def end(self, value):
+        self._update(end=value)
+
     @property
     def location(self):
         return self._location or self.item.location
+
+    @location.setter
+    def location(self, value):
+        self._update(location=value)
 
     @property
     def subject(self):
@@ -972,18 +1003,22 @@ class Occurrence(object):
 
     @subject.setter
     def subject(self, value):
+        self._update(subject=value)
+
+    def _update(self, **kwargs):
         if self.item.recurring:
             rec = self.item.recurrence
             basedate = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
             basedate = _utils._to_gmt(basedate, rec.tz)
 
             if rec.is_exception(basedate):
-                rec.modify_exception2(basedate, subject=value)
+                rec.modify_exception2(basedate, **kwargs)
             else:
                 rec.create_exception2(basedate)
-                rec.modify_exception2(basedate, subject=value)
+                rec.modify_exception2(basedate, **kwargs)
         else:
-            self.item.subject = value
+            for (k, v) in kwargs.items():
+                setattr(self.item, k, v)
 
     @property
     def entryid(self):
