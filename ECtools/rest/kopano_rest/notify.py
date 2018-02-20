@@ -17,7 +17,6 @@ from . import utils
 from .config import PREFIX
 
 SUBSCRIPTIONS = {}
-INSECURE = False
 
 def _user(req):
     global SERVER
@@ -41,8 +40,9 @@ def _user(req):
 # TODO handshake/call webhook
 
 class Processor(Thread):
-    def __init__(self):
+    def __init__(self, api):
         Thread.__init__(self)
+        self.api = api
         self.daemon = True
 
     def run(self):
@@ -58,13 +58,15 @@ class Processor(Thread):
                     # TODO fill in
                 }
             }
+            verify = not self.api.options or not self.api.options.insecure
             try:
-                requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10, verify=not INSECURE)
+                requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10, verify=verify)
             except Exception:
                 traceback.print_exc()
 
 class Sink:
-    def __init__(self, store, subscription):
+    def __init__(self, api, store, subscription):
+        self.api = api
         self.store = store
         self.subscription = subscription
 
@@ -74,7 +76,7 @@ class Sink:
             QUEUE
         except NameError:
             QUEUE = Queue()
-            Processor().start()
+            Processor(self.api).start()
 
         QUEUE.put((self.store, notification, self.subscription))
 
@@ -86,6 +88,9 @@ def _get_folder(store, resource):
     return utils._folder(store, folderid)
 
 class SubscriptionResource:
+    def __init__(self, api):
+        self.api = api
+
     def on_post(self, req, resp):
         user = _user(req)
         store = user.store
@@ -98,7 +103,7 @@ class SubscriptionResource:
         subscription = fields
         subscription['id'] = id_
 
-        sink = Sink(store, subscription)
+        sink = Sink(self.api, store, subscription)
         folder.subscribe(sink)
 
         SUBSCRIPTIONS[id_] = (subscription, sink)
@@ -122,8 +127,12 @@ class SubscriptionResource:
         folder.unsubscribe(sink)
         del SUBSCRIPTIONS[subscriptionid]
 
-app = falcon.API()
+class NotifyAPI(falcon.API):
+    def __init__(self, options=None):
+        super().__init__(media_type=None)
+        self.options = options
 
-subscriptions = SubscriptionResource()
-app.add_route(PREFIX+'/subscriptions', subscriptions)
-app.add_route(PREFIX+'/subscriptions/{subscriptionid}', subscriptions)
+        subscriptions = SubscriptionResource(self)
+
+        self.add_route(PREFIX+'/subscriptions', subscriptions)
+        self.add_route(PREFIX+'/subscriptions/{subscriptionid}', subscriptions)
