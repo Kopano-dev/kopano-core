@@ -49,6 +49,7 @@ from MAPI.Time import unixtime
 from .properties import Properties
 from .permission import Permission
 from .restriction import Restriction
+from .recurrence import Occurrence
 from .rule import Rule
 from .table import Table
 from .property_ import Property
@@ -459,7 +460,8 @@ class Folder(Properties):
         folder_entryids = [_bdec(item.entryid) for item in items if isinstance(item, Folder)]
         perms = [item for item in items if isinstance(item, Permission)]
         props = [item for item in items if isinstance(item, Property)]
-        return item_entryids, folder_entryids, perms, props
+        occs = [item for item in items if isinstance(item, Occurrence)]
+        return item_entryids, folder_entryids, perms, props, occs
 
     def delete(self, objects, soft=False): # XXX associated
         """Delete items, subfolders, properties or permissions from folder.
@@ -467,8 +469,8 @@ class Folder(Properties):
         :param objects: The object(s) to delete
         :param soft: In case of items or folders, are they soft-deleted
         """
-        objects = _utils.arg_objects(objects, (_item.Item, Folder, Permission, Property), 'Folder.delete')
-        item_entryids, folder_entryids, perms, props = self._get_entryids(objects)
+        objects = _utils.arg_objects(objects, (_item.Item, Folder, Permission, Property, Occurrence), 'Folder.delete')
+        item_entryids, folder_entryids, perms, props, occs = self._get_entryids(objects)
         if item_entryids:
             if soft:
                 self.mapiobj.DeleteMessages(item_entryids, 0, None, 0)
@@ -484,6 +486,8 @@ class Folder(Properties):
             acl_table.ModifyTable(0, [ROWENTRY(ROW_REMOVE, [SPropValue(PR_MEMBER_ID, perm.mapirow[PR_MEMBER_ID])])])
         if props:
             self.mapiobj.DeleteProps([prop.proptag for prop in props])
+        for occ in occs:
+            occ.item.delete(occ)
 
     def copy(self, objects, folder, _delete=False):
         """Copy items or subfolders to folder.
@@ -492,7 +496,7 @@ class Folder(Properties):
         :param folder: The target folder
         """
         objects = _utils.arg_objects(objects, (_item.Item, Folder), 'Folder.copy')
-        item_entryids, folder_entryids, _, _ = self._get_entryids(objects) # XXX copy/move perms?? XXX error for perms/props
+        item_entryids, folder_entryids, _, _, _ = self._get_entryids(objects) # XXX copy/move perms?? XXX error for perms/props
         if item_entryids:
             self.mapiobj.CopyMessages(item_entryids, IID_IMAPIFolder, folder.mapiobj, 0, None, (MESSAGE_MOVE if _delete else 0))
         for entryid in folder_entryids:
@@ -873,6 +877,15 @@ class Folder(Properties):
     def notifications(self, time=24*3600):
         for n in _notification._notifications(self.store, self.entryid, time):
             yield n
+
+    def event(self, eventid):
+        eventid = _bdec(eventid)
+        leid = _utils.unpack_short(eventid, 1)
+        item = self.item(_benc(eventid[3:3+leid]))
+        if eventid[0] == 0:
+            return item
+        else:
+            return item.occurrence(_benc(eventid[1:]))
 
     def __eq__(self, f): # XXX check same store?
         if isinstance(f, Folder):

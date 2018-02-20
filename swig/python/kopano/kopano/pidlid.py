@@ -4,6 +4,8 @@ Part of the high-level python bindings for Kopano
 Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
 """
 
+#TODO PT_STRING8 -> PT_UNICODE
+
 PidLidEmail1AddressType = 'PT_UNICODE:PSETID_Address:0x8082'
 PidLidEmail1DisplayName = 'PT_UNICODE:PSETID_Address:0x8080'
 PidLidEmail1EmailAddress = 'PT_UNICODE:PSETID_Address:0x8083'
@@ -32,7 +34,7 @@ PidLidAppointmentSequence = "PT_LONG:PSETID_Appointment:0x8201"
 PidLidAppointmentSequenceTime = "PT_LONG:PSETID_Appointment:0x8202"
 PidLidAppointmentLastSequence = "PT_LONG:PSETID_Appointment:0x8203"
 PidLidBusyStatus = "PT_LONG:PSETID_Appointment:0x8205"
-PidLidLocation = "PT_STRING8:PSETID_Appointment:0x8208"
+PidLidLocation = "PT_UNICODE:PSETID_Appointment:0x8208"
 PidLidAppointmentStartWhole = "PT_SYSTIME:PSETID_Appointment:0x820D"
 PidLidAppointmentEndWhole = "PT_SYSTIME:PSETID_Appointment:0x820E"
 PidLidAppointmentRecur = "PT_BINARY:PSETID_Appointment:0x8216"

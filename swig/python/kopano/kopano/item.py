@@ -26,7 +26,7 @@ import icalmapi
 
 from MAPI import (
     KEEP_OPEN_READWRITE, PT_MV_BINARY, PT_BOOLEAN, MSGFLAG_READ,
-    CLEAR_READ_FLAG, PT_MV_STRING8, PT_BINARY, PT_LONG,
+    CLEAR_READ_FLAG, PT_MV_UNICODE, PT_BINARY, PT_LONG,
     MAPI_CREATE, MAPI_MODIFY, MAPI_DEFERRED_ERRORS,
     ATTACH_BY_VALUE, ATTACH_EMBEDDED_MSG, STGM_WRITE, STGM_TRANSACTED,
     MAPI_UNICODE, MAPI_TO, MAPI_CC, MAPI_BCC, MAPI_E_NOT_FOUND,
@@ -94,7 +94,8 @@ from .errors import Error, NotFoundError, _DeprecationWarning
 from .attachment import Attachment
 from .body import Body
 from .properties import Properties
-from .meetingrequest import MeetingRequest
+from .recurrence import Occurrence
+from .meetingrequest import MeetingRequest, _copytags
 from .address import Address
 from .table import Table
 from .contact import Contact
@@ -425,7 +426,7 @@ class Item(Properties, Contact, Appointment):
     def categories(self):
         """Categories."""
         proptag = self.mapiobj.GetIDsFromNames([NAMED_PROP_CATEGORY], MAPI_CREATE)[0]
-        proptag = CHANGE_PROP_TYPE(proptag, PT_MV_STRING8)
+        proptag = CHANGE_PROP_TYPE(proptag, PT_MV_UNICODE)
         try:
             value = self.prop(proptag).value
         except NotFoundError:
@@ -435,7 +436,7 @@ class Item(Properties, Contact, Appointment):
     @categories.setter
     def categories(self, value):
         proptag = self.mapiobj.GetIDsFromNames([NAMED_PROP_CATEGORY], MAPI_CREATE)[0]
-        proptag = CHANGE_PROP_TYPE(proptag, PT_MV_STRING8)
+        proptag = CHANGE_PROP_TYPE(proptag, PT_MV_UNICODE)
         self.mapiobj.SetProps([SPropValue(proptag, list(value))])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
@@ -1011,11 +1012,14 @@ class Item(Properties, Contact, Appointment):
 
         :param objects: The object(s) to delete
         """
-        objects = _utils.arg_objects(objects, (Attachment, _prop.Property), 'Item.delete')
+        objects = _utils.arg_objects(objects, (Attachment, _prop.Property, Occurrence), 'Item.delete')
         # XXX embedded items?
 
         attach_ids = [item.number for item in objects if isinstance(item, Attachment)]
         proptags = [item.proptag for item in objects if isinstance(item, _prop.Property)]
+        occs = [item for item in objects if isinstance(item, Occurrence)]
+        for occ in occs:
+            self.recurrence.delete_exception(occ.start, self, _copytags(self.mapiobj))
         if proptags:
             self.mapiobj.DeleteProps(proptags)
         for attach_id in attach_ids:

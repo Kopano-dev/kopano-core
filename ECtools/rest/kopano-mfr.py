@@ -30,6 +30,8 @@ def opt_args():
                       help="parent directory for unix sockets", metavar="PATH")
     parser.add_option("-w", "--workers", dest="workers", type='int',
                       help="number of workers (unix sockets)", metavar="N")
+    parser.add_option("", "--insecure", dest='insecure', action='store_true', default=False,
+                      help="allow insecure connections")
 
     options, args = parser.parse_args()
     if args:
@@ -51,6 +53,8 @@ def main():
     options, args = opt_args()
     socket_path = options.socket_path or SOCKET_PATH
     nworkers = options.workers if options.workers is not None else WORKERS
+
+    kopano_rest.config(insecure=options.insecure) # TODO so ugly it hurts
 
     workers = []
     for n in range(nworkers):

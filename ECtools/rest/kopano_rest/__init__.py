@@ -41,7 +41,7 @@ SESSIONDATA = {}
 # TODO bulk copy/move/delete?
 # TODO childFolders recursion/relative paths
 # TODO Message.{isDraft, webLink, inferenceClassification}?
-# TODO Event.{webLink, onlineMeetingUrl, uniqueBody}?
+# TODO Event.{webLink, onlineMeetingUrl, uniqueBody, responseStatus, isCancelled}?
 # TODO Attachment.{contentId, contentLocation}?
 # TODO /me/{mailFolders,contactFolders,calendars} -> which folders exactly?
 # TODO @odata.context: check exact structure?
@@ -106,6 +106,12 @@ def _date(d, local=False, time=True):
     if not local:
         fmt += 'Z'
     return d.strftime(fmt)
+
+def _start_end(req):
+    args = urlparse.parse_qs(req.query_string)
+    start = dateutil.parser.parse(args['startDateTime'][0])
+    end = dateutil.parser.parse(args['endDateTime'][0])
+    return start, end
 
 class Resource(object):
     def get_fields(self, req, obj, fields, all_fields):
@@ -319,7 +325,7 @@ class ItemResource(Resource):
         'changeKey': lambda item: item.changekey,
         'createdDateTime': lambda item: _date(item.created),
         'lastModifiedDateTime': lambda item: _date(item.last_modified),
-        'categories': lambda item: [codecs.decode(c, 'ascii') for c in item.categories], # TODO b''!
+        'categories': lambda item: item.categories,
     }
 
     def delta(self, req, resp, folder):
@@ -417,9 +423,7 @@ class CalendarResource(FolderResource):
             folder = utils._folder(store, folderid or 'calendar')
 
             if method == 'calendarView':
-                args = urlparse.parse_qs(req.query_string)
-                start = dateutil.parser.parse(args['startDateTime'][0])
-                end = dateutil.parser.parse(args['endDateTime'][0])
+                start, end = _start_end(req)
                 data = (folder.occurrences(start, end), TOP, 0, 0)
                 fields = EventResource.fields
 
@@ -484,6 +488,9 @@ def get_attachments(item):
         else:
             yield (attachment, FileAttachmentResource)
 
+def get_email(addr):
+    return {'emailAddress': {'name': addr.name, 'address': addr.email} }
+
 class MessageResource(ItemResource):
     fields = ItemResource.fields.copy()
     fields.update({
@@ -492,11 +499,11 @@ class MessageResource(ItemResource):
         '@odata.type': lambda item: '#microsoft.graph.eventMessage' if item.message_class.startswith('IPM.Schedule.Meeting.') else None,
         'subject': lambda item: item.subject,
         'body': lambda req, item: get_body(req, item),
-        'from': lambda item: {'emailAddress': {'name': item.from_.name, 'address': item.from_.email} },
-        'sender': lambda item: {'emailAddress': {'name': item.sender.name, 'address': item.sender.email} },
-        'toRecipients': lambda item: [{'emailAddress': {'name': to.name, 'address': to.email}} for to in item.to],
-        'ccRecipients': lambda item: [{'emailAddress': {'name': cc.name, 'address': cc.email}} for cc in item.cc],
-        'bccRecipients': lambda item: [{'emailAddress': {'name': bcc.name, 'address': bcc.email}} for bcc in item.bcc],
+        'from': lambda item: get_email(item.from_),
+        'sender': lambda item: get_email(item.sender),
+        'toRecipients': lambda item: [get_email(to) for to in item.to],
+        'ccRecipients': lambda item: [get_email(cc) for cc in item.cc],
+        'bccRecipients': lambda item: [get_email(bcc) for bcc in item.bcc],
         'sentDateTime': lambda item: _date(item.sent) if item.sent else None,
         'receivedDateTime': lambda item: _date(item.received) if item.received else None,
         'hasAttachments': lambda item: item.has_attachments,
@@ -507,7 +514,7 @@ class MessageResource(ItemResource):
         'isRead': lambda item: item.read,
         'isReadReceiptRequested': lambda item: item.read_receipt,
         'isDeliveryReceiptRequested': lambda item: item.read_receipt,
-        'replyTo': lambda item: [{'emailAddress': {'name': to.name, 'address': to.email}} for to in item.replyto],
+        'replyTo': lambda item: [get_email(to) for to in item.replyto],
         'bodyPreview': lambda item: item.text[:255],
     })
 
@@ -710,12 +717,13 @@ def attendees_json(item):
     result = []
     for attendee in item.attendees():
         address = attendee.address
-        result.append({
+        data = {
             # TODO map response field names
             'status': {'response': attendee.response or 'none', 'time': _date(attendee.response_time)},
             'type': attendee.type,
-            'emailAddress': {'name': address.name, 'address': address.email},
-        })
+        }
+        data.update(get_email(address))
+        result.append(data)
     return result
 
 def setdate(item, field, arg):
@@ -731,17 +739,15 @@ def event_type(item):
     else:
         return 'Occurrence' # TODO Exception
 
-# TODO fix id for occurrences (embed datetime?)
-# TODO split: OccurrenceResource?
-
 class EventResource(ItemResource):
     fields = ItemResource.fields.copy()
     fields.update({
+        'id': lambda item: item.eventid,
         'subject': lambda item: item.subject,
         'recurrence': recurrence_json,
         'start': lambda item: {'dateTime': _date(item.start, True), 'timeZone': 'UTC'} if item.start else None,
         'end': lambda item: {'dateTime': _date(item.end, True), 'timeZone': 'UTC'} if item.end else None,
-        'location': lambda item: { 'displayName': item.location, 'address': {}}, # TODO
+        'location': lambda item: {'displayName': item.location, 'address': {}}, # TODO
         'importance': lambda item: item.urgency,
         'sensitivity': lambda item: sensitivity_map[item.sensitivity],
         'hasAttachments': lambda item: item.has_attachments,
@@ -752,10 +758,12 @@ class EventResource(ItemResource):
         'bodyPreview': lambda item: item.text[:255],
         'isAllDay': lambda item: item.all_day,
         'showAs': lambda item: show_as_map[item.show_as],
-        'seriesMasterId': lambda item: item.entryid if isinstance(item, kopano.Occurrence) else None,
+        'seriesMasterId': lambda item: item.item.eventid if isinstance(item, kopano.Occurrence) else None,
         'type': lambda item: event_type(item),
         'responseRequested': lambda item: item.response_requested,
-        'iCalUId': lambda item: kopano.hex(kopano.bdec(item.icaluid)) if item else None, # graph uses hex!?
+        'iCalUId': lambda item: kopano.hex(kopano.bdec(item.icaluid)) if item.icaluid else None, # graph uses hex!?
+        'organizer': lambda item: get_email(item.from_),
+        'isOrganizer': lambda item: item.from_.email == item.sender.email,
     })
 
     set_fields = {
@@ -769,30 +777,49 @@ class EventResource(ItemResource):
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid)
         folder = utils._folder(store, folderid or 'calendar')
-        item = folder.item(itemid)
+        event = folder.event(itemid)
 
         if method == 'attachments':
-            attachments = list(item.attachments(embedded=True))
+            attachments = list(event.attachments(embedded=True))
             data = (attachments, TOP, 0, len(attachments))
             self.respond(req, resp, data, AttachmentResource.fields)
-            return
 
-        self.respond(req, resp, item)
+        elif method == 'instances':
+            start, end = _start_end(req)
+            data = (event.occurrences(start, end), TOP, 0, 0)
+            self.respond(req, resp, data)
+
+        else:
+            self.respond(req, resp, event)
 
     def on_post(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid)
         folder = utils._folder(store, folderid or 'calendar')
-        item = folder.item(itemid)
+        item = folder.event(itemid)
 
         if method == 'attachments':
             fields = json.loads(req.stream.read().decode('utf-8'))
             if fields['@odata.type'] == '#microsoft.graph.fileAttachment':
                 item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
 
+    def on_patch(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
+        server, store = _server_store(req, userid)
+        folder = utils._folder(store, folderid or 'calendar')
+        item = folder.event(itemid)
+
+        fields = json.loads(req.stream.read().decode('utf-8'))
+
+        for field, value in fields.items():
+            if field in self.set_fields:
+                self.set_fields[field](item, value)
+
+        self.respond(req, resp, item, EventResource.fields)
+
     def on_delete(self, req, resp, userid=None, folderid=None, itemid=None):
         server, store = _server_store(req, userid)
-        item = store.item(itemid)
-        store.delete(item)
+        folder = utils._folder(store, folderid or 'calendar')
+        event = folder.event(itemid)
+        folder.delete(event)
 
 class ContactFolderResource(FolderResource):
     fields = FolderResource.fields.copy()
@@ -841,7 +868,7 @@ class ContactResource(ItemResource):
     fields = ItemResource.fields.copy()
     fields.update({
         'displayName': lambda item: item.name,
-        'emailAddresses': lambda item: [{'name': a.name, 'address': a.email} for a in item.addresses()],
+        'emailAddresses': lambda item: [get_email(a) for a in item.addresses()],
         'parentFolderId': lambda item: item.folder.entryid,
         'givenName': lambda item: item.first_name or None,
         'middleName': lambda item: item.middle_name or None,
@@ -872,7 +899,6 @@ class ContactResource(ItemResource):
         'imAddresses': lambda item: item.im_addresses,
         'homeAddress': lambda item: _phys_address(item.home_address),
         'businessAddress': lambda item: _phys_address(item.business_address),
-        'otherAddress': lambda item: _phys_address(item.business_address),
         'otherAddress': lambda item: _phys_address(item.other_address),
     })
 
@@ -968,3 +994,6 @@ for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
     route(app, user+'/contactFolders/{folderid}/contacts/{itemid}/photo', photos)
 
 notify_app = notify.app
+
+def config(insecure=False):
+    notify.INSECURE = insecure

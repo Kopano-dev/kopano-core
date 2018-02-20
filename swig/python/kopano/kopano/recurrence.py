@@ -44,7 +44,9 @@ from dateutil.rrule import (
 )
 from datetime import timedelta
 
-from .compat import repr as _repr
+from .compat import (
+    repr as _repr, benc as _benc, bdec as _bdec,
+)
 from .errors import NotSupportedError
 from .defs import (
     ARO_SUBJECT, ARO_MEETINGTYPE, ARO_REMINDERDELTA, ARO_REMINDERSET,
@@ -584,7 +586,7 @@ class Recurrence(object):
             extended_exception['end_datetime'] = enddate_val
             extended_exception['original_start_date'] = basedate_val
 
-    def _update_calitem(self, item):
+    def _update_calitem(self):
         cal_item = self.item
 
         cal_item[PidLidSideEffects] = 3441 # XXX spec, check php
@@ -725,7 +727,7 @@ class Recurrence(object):
         self._save()
 
         # update calitem
-        self._update_calitem(item)
+        self._update_calitem()
 
     def modify_exception(self, basedate, item, copytags=None): # XXX 'item' too MR specific
         tz = item.get(PidLidTimeZoneStruct)
@@ -776,7 +778,7 @@ class Recurrence(object):
         enddate_val = _utils.unixtime_to_rectime(time.mktime(enddate.timetuple()))
 
         for i, exception in enumerate(self.exceptions):
-            if exception['original_start_date'] == basedate_val:
+            if exception['original_start_date'] == basedate_val: # TODO offset, as below?
                 current_startdate_val = exception['start_datetime'] - self.starttime_offset
 
                 for j, val in enumerate(self.modified_instance_dates):
@@ -791,7 +793,90 @@ class Recurrence(object):
         self._save()
 
         # update calitem
-        self._update_calitem(item)
+        self._update_calitem()
+
+    def create_exception2(self, basedate):
+        # TODO merge with create_exception
+        # TODO create embedded item
+
+        tz = self.item.get(PidLidTimeZoneStruct)
+
+        basedate = _utils._from_gmt(basedate, tz)
+        basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate.timetuple())) - self.starttime_offset
+
+        # update blob
+        self.deleted_instance_count += 1
+        self.deleted_instance_dates.append(basedate_val)
+        self.deleted_instance_dates.sort()
+
+        self.modified_instance_count += 1
+        self.modified_instance_dates.append(basedate_val)
+        self.modified_instance_dates.sort()
+
+        exception = {
+            'start_datetime': basedate_val + self.starttime_offset,
+            'end_datetime': basedate_val + self.starttime_offset + 30, # TODO
+            'original_start_date': basedate_val,
+            'override_flags': 0,
+        }
+        self.exceptions.append(exception) # no evidence of sorting
+        self.extended_exceptions.append({})
+
+        self._save()
+
+        # update calitem
+        self._update_calitem()
+
+    def modify_exception2(self, basedate, subject=None, start=None, end=None, location=None):
+        # TODO merge with modify_exception
+        tz = self.item.get(PidLidTimeZoneStruct)
+
+        # update embedded item
+        for message in self.item.items(): # XXX no cal_item? to helper
+            replacetime = message.get(PidLidExceptionReplaceTime)
+            if replacetime and replacetime.date() == basedate.date():
+                if subject is not None:
+                    message.subject = subject
+                # TODO set other args
+                message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
+                break
+
+        # update blob
+        basedate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(basedate, tz).timetuple()))
+
+        for i, exception in enumerate(self.exceptions):
+            if exception['original_start_date'] in (basedate_val, basedate_val - self.starttime_offset): # TODO pick one
+                extended_exception = self.extended_exceptions[i]
+                break
+
+        if subject is not None:
+            exception['override_flags'] |= ARO_SUBJECT
+            exception['subject'] = subject.encode('cp1252', 'replace')
+            extended_exception['subject'] = subject
+
+        if location is not None:
+            exception['override_flags'] |= ARO_LOCATION
+            exception['location'] = location.encode('cp1252', 'replace')
+            extended_exception['location'] = location
+
+        if start:
+            startdate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(start, tz).timetuple()))
+            exception['start_datetime'] = startdate_val
+            extended_exception['start_datetime'] = startdate_val
+
+        if end:
+            enddate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(end, tz).timetuple()))
+            exception['end_datetime'] = enddate_val
+            extended_exception['end_datetime'] = enddate_val
+
+        extended_exception['start_datetime'] = exception['start_datetime'] # TODO on creation?
+        extended_exception['end_datetime'] = exception['end_datetime']
+        extended_exception['original_start_date'] = exception['original_start_date']
+
+        self._save()
+
+        # update calitem
+        self._update_calitem()
 
     def delete_exception(self, basedate, item, copytags):
         tz = item.get(PidLidTimeZoneStruct)
@@ -819,7 +904,7 @@ class Recurrence(object):
             self.deleted_instance_dates.sort()
 
         self._save()
-        self._update_calitem(item)
+        self._update_calitem()
 
     def occurrences(self, start=None, end=None): # XXX fit-to-period
         tz = self.item.get(PidLidTimeZoneStruct)
@@ -842,14 +927,38 @@ class Recurrence(object):
                 minutes = exc['end_datetime'] - startdatetime_val
                 subject = ext.get('subject', subject)
                 location = ext.get('location', location)
+                basedate_val = exc['original_start_date']
             else:
                 minutes = self.endtime_offset - self.starttime_offset
+                basedate_val = startdatetime_val
 
             d = _utils._to_gmt(d, tz, align_dst=True)
 
-            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes), subject, location)
+            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes), subject, location, basedate_val=basedate_val)
             if (not start or occ.end > start) and (not end or occ.start < end):
                 yield occ
+
+    def occurrence(self, entryid):
+        entryid = _bdec(entryid)
+        pos = 2 + _utils.unpack_short(entryid, 0)
+        basedate_val = _utils.unpack_long(entryid, pos)
+
+        for exc in self.exceptions: # TODO subject etc
+            if exc['original_start_date'] in (basedate_val, basedate_val - self.starttime_offset): # TODO pick one
+                start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exc['start_datetime']))
+                start = _utils._to_gmt(start, self.tz)
+                break
+        else:
+            # TODO check that date is (still) valid
+            start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(basedate_val))
+            start = _utils._to_gmt(start, self.tz)
+
+        return Occurrence(
+            self.item,
+            start,
+            start + datetime.timedelta(minutes=self.endtime_offset-self.starttime_offset),
+            basedate_val = basedate_val,
+        )
 
     def __unicode__(self):
         return u'Recurrence(start=%s - end=%s)' % (self.start, self.end)
@@ -861,14 +970,85 @@ class Recurrence(object):
 class Occurrence(object):
     """Occurrence class"""
 
-    def __init__(self, item, start, end, subject=None, location=None):
+    def __init__(self, item, start=None, end=None, subject=None, location=None, basedate_val=None):
         self.item = item
-        self.start = start
-        self.end = end
-        if subject is not None:
-            self.subject = subject
-        if location is not None:
-            self.location = location
+        self._start = start
+        self._end = end
+        self._subject = subject
+        self._location = location
+        self._basedate_val = basedate_val
+
+    @property
+    def start(self):
+        return self._start or self.item.start
+
+    @start.setter
+    def start(self, value):
+        self._update(start=value)
+        self._start = value
+
+    @property
+    def end(self):
+        return self._end or self.item.end
+
+    @end.setter
+    def end(self, value):
+        self._update(end=value)
+        self._end = value
+
+    @property
+    def location(self):
+        return self._location or self.item.location
+
+    @location.setter
+    def location(self, value):
+        self._update(location=value)
+        self._location = value
+
+    @property
+    def subject(self):
+        return self._subject or self.item.subject
+
+    @subject.setter
+    def subject(self, value):
+        self._update(subject=value)
+        self._subject = value
+
+    def _update(self, **kwargs):
+        if self.item.recurring:
+            rec = self.item.recurrence
+            basedate = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
+            basedate = _utils._to_gmt(basedate, rec.tz)
+
+            if rec.is_exception(basedate):
+                rec.modify_exception2(basedate, **kwargs)
+            else:
+                rec.create_exception2(basedate)
+                rec.modify_exception2(basedate, **kwargs)
+        else:
+            for (k, v) in kwargs.items():
+                setattr(self.item, k, v)
+
+    @property
+    def entryid(self):
+        # cal item entryid plus basedate (zero if not recurring)
+        parts = []
+
+        eid = _bdec(self.item.entryid)
+        parts.append(_utils.pack_short(len(eid)))
+        parts.append(eid)
+
+        basedate_val = self._basedate_val or 0
+        parts.append(_utils.pack_long(basedate_val))
+
+        return _benc(b''.join(parts))
+
+    @property
+    def eventid(self):
+        # msgraph has both appointments and expanded appointments under
+        # /events, so we need an identier which can be used for both.
+        eid = _bdec(self.entryid)
+        return _benc(b'\x01'+eid)
 
     def __getattr__(self, x):
         return getattr(self.item, x)

@@ -81,6 +81,9 @@ def unpack_short(s, pos):
 def unpack_long(s, pos):
     return struct.unpack_from('<L', s, pos)[0]
 
+def pack_short(i):
+    return struct.pack('<H', i)
+
 def pack_long(i):
     return struct.pack('<L', i)
 
@@ -171,6 +174,8 @@ def _in_dst(date, dststartmonth, dststartweek, dststarthour, dstendmonth, dstend
         if data < dstend or data > dststart:
             return True
 
+    return False
+
 # XXX check doc for exact format, check php version
 def _get_timezone(date, tz_data, align_dst=False):
     if tz_data is None:
@@ -181,9 +186,9 @@ def _get_timezone(date, tz_data, align_dst=False):
     dst = _in_dst(date, dststartmonth, dststartweek, dststarthour, dstendmonth, dstendweek, dstendhour)
 
     # TODO use DST-aware datetimes?
-    if align_dst and not _in_dst(datetime.datetime.now(),
+    if align_dst and _in_dst(datetime.datetime.now(),
        dststartmonth, dststartweek, dststarthour,
-       dstendmonth, dstendweek, dstendhour):
+       dstendmonth, dstendweek, dstendhour) != dst:
         dst = not dst
 
     if dst:

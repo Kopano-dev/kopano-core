@@ -4,6 +4,8 @@ Part of the high-level python bindings for Kopano
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
 Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
+import datetime
+import sys
 
 from MAPI import (
     PT_SYSTIME,
@@ -18,12 +20,16 @@ from .errors import NotFoundError
 from .recurrence import Recurrence, Occurrence
 
 from .compat import (
-    benc as _benc,
+    benc as _benc, bdec as _bdec,
 )
 from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
     PidLidBusyStatus, PidLidGlobalObjectId,
 )
+if sys.hexversion >= 0x03000000:
+    from . import utils as _utils
+else:
+    import utils as _utils
 
 class Appointment(object):
     """Appointment mixin class"""
@@ -100,6 +106,22 @@ class Appointment(object):
                 end = min(self.end, end) if end else self.end
                 yield Occurrence(self, start, end)
 
+    def occurrence(self, id_=None):
+        if self.recurring:
+            if isinstance(id_, datetime.datetime):
+                # TODO optimize
+                for occ in self.occurrences():
+                    if occ.start == id_:
+                        return occ
+                        break
+                else:
+                    raise NotFoundError('no occurrence for date: %s' % id_)
+            else:
+                return self.recurrence.occurrence(id_)
+        else:
+            # TODO check if matches args
+            return Occurrence(self)
+
     @property
     def reminder(self):
         """Is reminder set."""
@@ -132,3 +154,10 @@ class Appointment(object):
             return _benc(self[PidLidGlobalObjectId])
         except NotFoundError:
             pass
+
+    @property
+    def eventid(self):
+        # msgraph has both appointments and expanded appointments under
+        # /events, so we need an identier which can be used for both.
+        eid = _bdec(self.entryid)
+        return _benc(b'\x00' + _utils.pack_short(len(eid)) + eid)

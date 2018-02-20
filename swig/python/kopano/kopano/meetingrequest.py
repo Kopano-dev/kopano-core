@@ -143,6 +143,19 @@ def _organizer_props(cal_item, item):
             SPropValue(PR_SEARCH_KEY, item.prop(PR_SENT_REPRESENTING_SEARCH_KEY).value),
         ]
 
+def _copytags(mapiobj):
+    copytags = [_prop._name_to_proptag(tag, mapiobj)[0] for tag in PROPTAGS]
+    copytags.extend([
+        PR_SUBJECT_W,
+        PR_SENT_REPRESENTING_NAME_W,
+        PR_SENT_REPRESENTING_ADDRTYPE_W,
+        PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
+        PR_SENT_REPRESENTING_ENTRYID,
+        PR_SENT_REPRESENTING_SEARCH_KEY,
+        PR_RCVD_REPRESENTING_NAME_W,
+    ])
+    return copytags
+
 class MeetingRequest(object):
     """MeetingRequest class"""
 
@@ -405,17 +418,7 @@ class MeetingRequest(object):
         if basedate:
             if cal_item.recurring:
                 recurrence = cal_item.recurrence
-
-                copytags = [_prop._name_to_proptag(tag, cal_item.mapiobj)[0] for tag in PROPTAGS]
-                copytags.extend([
-                    PR_SUBJECT_W,
-                    PR_SENT_REPRESENTING_NAME_W,
-                    PR_SENT_REPRESENTING_ADDRTYPE_W,
-                    PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
-                    PR_SENT_REPRESENTING_ENTRYID,
-                    PR_SENT_REPRESENTING_SEARCH_KEY,
-                    PR_RCVD_REPRESENTING_NAME_W,
-                ])
+                copytags = _copytags(cal_item.mapiobj)
 
                 if delete:
                     recurrence.delete_exception(basedate, self.item, copytags)

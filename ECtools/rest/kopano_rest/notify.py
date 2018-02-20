@@ -17,6 +17,7 @@ from . import utils
 from .config import PREFIX
 
 SUBSCRIPTIONS = {}
+INSECURE = False
 
 def _user(req):
     global SERVER
@@ -28,7 +29,7 @@ def _user(req):
     auth_header = req.get_header('Authorization')
     userid = req.get_header('X-Kopano-UserEntryID')
 
-    if auth_header:
+    if auth_header and auth_header.startswith('Basic '):
         user, passwd = codecs.decode(codecs.encode(auth_header[6:], 'ascii'), 'base64').split(b':')
         return SERVER.user(codecs.decode(user, 'utf8'))
     elif userid:
@@ -58,7 +59,7 @@ class Processor(Thread):
                 }
             }
             try:
-                requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10)
+                requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10, verify=not INSECURE)
             except Exception:
                 traceback.print_exc()
 
