@@ -17,9 +17,7 @@ enum {
   #include <kopano/platform.linux.h>
 #include <chrono>
 #include <mutex>
-#if __cplusplus >= 201400L
-#	include <shared_mutex>
-#endif
+#include <shared_mutex>
 #include <string>
 #include <type_traits>
 #include <cassert>
@@ -128,85 +126,15 @@ template<typename T> static constexpr inline double dur2dbl(const T &t)
 
 #if __cplusplus >= 201700L
 using shared_mutex = std::shared_mutex;
-#elif __cplusplus >= 201400L
+#else
 using shared_mutex = std::shared_timed_mutex;
-#else
-class shared_mutex {
-	public:
-	~shared_mutex(void) { pthread_rwlock_destroy(&mtx); }
-	void lock(void) { pthread_rwlock_wrlock(&mtx); }
-	void unlock(void) { pthread_rwlock_unlock(&mtx); }
-	void lock_shared(void) { pthread_rwlock_rdlock(&mtx); }
-	void unlock_shared(void) { pthread_rwlock_unlock(&mtx); }
-
-	private:
-	pthread_rwlock_t mtx = PTHREAD_RWLOCK_INITIALIZER;
-};
 #endif
 
-#if __cplusplus >= 201400L
 template<class Mutex> using shared_lock = std::shared_lock<Mutex>;
-#else
-template<class Mutex> class shared_lock {
-	public:
-	shared_lock(Mutex &m) : mtx(m), locked(true)
-	{
-		mtx.lock_shared();
-	}
-	~shared_lock(void)
-	{
-		if (locked)
-			mtx.unlock_shared();
-	}
-	void lock(void)
-	{
-		assert(!locked);
-		mtx.lock_shared();
-		locked = true;
-	}
-	void unlock(void)
-	{
-		assert(locked);
-		mtx.unlock_shared();
-		locked = false;
-	}
-	private:
-	Mutex &mtx;
-	bool locked = false;
-};
-#endif
-
 typedef std::lock_guard<std::mutex> scoped_lock;
 typedef std::lock_guard<std::recursive_mutex> scoped_rlock;
 typedef std::unique_lock<std::mutex> ulock_normal;
 typedef std::unique_lock<std::recursive_mutex> ulock_rec;
-
-namespace chrono_literals {
-
-#if __cplusplus >= 201400L
-using namespace std::chrono_literals;
-#else
-#	pragma GCC diagnostic push
-#	pragma GCC diagnostic ignored "-Wliteral-suffix"
-static constexpr inline std::chrono::seconds operator"" s(unsigned long long x) { return std::chrono::seconds{x}; }
-#	pragma GCC diagnostic pop
-#endif
-
-}
-
-namespace string_literals {
-
-#if __cplusplus >= 201400L
-using namespace std::string_literals;
-#else
-#	pragma GCC diagnostic push
-#	pragma GCC diagnostic ignored "-Wliteral-suffix"
-static inline std::string operator"" s(const char *str, std::size_t len) { return std::string(str, len); }
-static inline std::wstring operator"" s(const wchar_t *str, std::size_t len) { return std::wstring(str, len); }
-#	pragma GCC diagnostic pop
-#endif
-
-}
 
 class _kc_export KAlternateStack {
 	public:

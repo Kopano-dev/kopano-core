@@ -63,7 +63,7 @@
 #define MYSQL_MIN_THREAD_STACK (256*1024)
 
 using namespace KC;
-using namespace KC::string_literals;
+using namespace std::string_literals;
 using std::cout;
 using std::endl;
 using std::string;

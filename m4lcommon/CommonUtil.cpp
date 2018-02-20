@@ -38,7 +38,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-using namespace KC::string_literals;
+using namespace std::string_literals;
 
 namespace KC {
 

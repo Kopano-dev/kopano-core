@@ -38,7 +38,7 @@
 #include <openssl/ssl.h>
 
 using namespace KC;
-using namespace KC::string_literals;
+using namespace std::string_literals;
 
 struct HandlerArgs {
     ECChannel *lpChannel;

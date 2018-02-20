@@ -14,7 +14,7 @@
 #include "SOAPUtils.h"
 #include "soapH.h"
 
-using namespace KC::chrono_literals;
+using namespace std::chrono_literals;
 
 namespace KC {
 

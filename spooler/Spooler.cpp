@@ -73,7 +73,7 @@
 #include <map>
 
 using namespace KC;
-using namespace KC::chrono_literals;
+using namespace std::chrono_literals;
 using std::cout;
 using std::endl;
 using std::map;

@@ -9,7 +9,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/stringutil.h>
 
-using namespace KC::string_literals;
+using namespace std::string_literals;
 
 namespace KC {
 

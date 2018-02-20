@@ -1,7 +1,7 @@
 
 Mandatory build-time dependencies and their minimum versions (if any):
 
-	* g++ 4.8 or clang++ 3.8
+	* g++ 5.x or clang++ 3.8
 	* binutils 2.22
 	* pkg-config
 	* gsoap 2.8.49, generator and library

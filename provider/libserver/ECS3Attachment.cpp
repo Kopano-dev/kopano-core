@@ -19,7 +19,7 @@
 #include "ECS3Attachment.h"
 #include "StreamUtil.h"
 
-using namespace KC::chrono_literals;
+using namespace std::chrono_literals;
 using steady_clock = std::chrono::steady_clock;
 
 namespace KC {

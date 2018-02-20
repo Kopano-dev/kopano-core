@@ -78,7 +78,7 @@ HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpu
 		*lpulChangeId = ulChangeId;
 
 	if (lpSetProcessChanged)
-		lpSetProcessChanged->insert(gcc5_make_move_iterator(setProcessedChanged.begin()), gcc5_make_move_iterator(setProcessedChanged.end()));
+		lpSetProcessChanged->insert(std::make_move_iterator(setProcessedChanged.begin()), std::make_move_iterator(setProcessedChanged.end()));
 	return hrSuccess;
 }
 

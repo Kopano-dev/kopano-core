@@ -41,7 +41,7 @@
 #define AB_UNICODE_OK ((ULONG) 0x00000040)
 #endif
 
-using namespace KC::string_literals;
+using namespace std::string_literals;
 
 namespace KC {
 
@@ -2071,8 +2071,8 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 		defaultDisabled.emplace(s);
 	}
 
-	userEnabled.assign(gcc5_make_move_iterator(defaultEnabled.begin()), gcc5_make_move_iterator(defaultEnabled.end()));
-	userDisabled.assign(gcc5_make_move_iterator(defaultDisabled.begin()), gcc5_make_move_iterator(defaultDisabled.end()));
+	userEnabled.assign(std::make_move_iterator(defaultEnabled.begin()), std::make_move_iterator(defaultEnabled.end()));
+	userDisabled.assign(std::make_move_iterator(defaultDisabled.begin()), std::make_move_iterator(defaultDisabled.end()));
 	// save lists back to user details
 	lpDetails->SetPropListString((property_key_t)PR_EC_ENABLED_FEATURES_A, userEnabled);
 	lpDetails->SetPropListString((property_key_t)PR_EC_DISABLED_FEATURES_A, userDisabled);
