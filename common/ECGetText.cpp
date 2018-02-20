@@ -16,7 +16,6 @@
  */
 
 #include <kopano/zcdefs.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/platform.h>
 #include <kopano/ECGetText.h>
 #include <kopano/charset/convert.h>

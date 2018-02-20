@@ -21,7 +21,6 @@
 #include <new>
 #include <string>
 #include <utility>
-#include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include "m4l.mapidefs.h"
 #include "m4l.mapix.h"

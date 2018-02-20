@@ -25,7 +25,6 @@
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/MAPIErrors.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/hl.hpp>
 #include <kopano/tie.hpp>
 #include "ECMAPI.h"

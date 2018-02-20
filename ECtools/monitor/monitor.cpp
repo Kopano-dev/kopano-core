@@ -33,7 +33,6 @@
 #include <mapiguid.h>
 
 #include <kopano/ECScheduler.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/automapi.hpp>
 #include <kopano/my_getopt.h>
 #include "ECMonitorDefs.h"

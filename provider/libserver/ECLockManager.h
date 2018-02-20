@@ -24,7 +24,6 @@
 #include <map>
 #include <memory>
 #include <pthread.h>
-#include <kopano/lockhelper.hpp>
 
 namespace KC {
 

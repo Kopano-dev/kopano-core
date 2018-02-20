@@ -22,7 +22,6 @@
 #include <string>
 #include <utility>
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapiutil.h>

@@ -30,7 +30,7 @@
 #include <mutex>
 #include <set>
 #include <pthread.h>
-#include <kopano/lockhelper.hpp>
+#include <kopano/platform.h>
 #include "ECAttachmentStorage.h"
 #include "ECUserManagement.h"
 #include "ECSearchFolders.h"

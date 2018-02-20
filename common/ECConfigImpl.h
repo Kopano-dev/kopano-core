@@ -29,7 +29,6 @@
 #include <pthread.h>
 #include <iostream>
 #include <fstream>
-#include <kopano/lockhelper.hpp>
 
 namespace KC {
 

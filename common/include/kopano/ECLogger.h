@@ -30,7 +30,6 @@
 #include <cstdarg>
 #include <cstdio>
 #include <string>
-#include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #ifndef KC_LIKE_PRINTF
 #	define KC_LIKE_PRINTF(_fmt, _va)

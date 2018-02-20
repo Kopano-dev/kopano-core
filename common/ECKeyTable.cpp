@@ -20,7 +20,6 @@
 #include <utility>
 #include <cassert>
 #include <kopano/ECKeyTable.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/ustringutil.h>
 
 namespace KC {

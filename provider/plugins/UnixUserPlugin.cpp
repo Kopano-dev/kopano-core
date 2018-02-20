@@ -43,7 +43,6 @@
 #include <kopano/ECDefs.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/stringutil.h>
 #include "UnixUserPlugin.h"
 #include <kopano/ecversion.h>

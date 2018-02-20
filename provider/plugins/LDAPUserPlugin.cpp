@@ -36,7 +36,6 @@
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include "ECStatsCollector.h"
 #include <kopano/stringutil.h>

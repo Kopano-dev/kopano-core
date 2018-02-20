@@ -19,7 +19,6 @@
 #include <mutex>
 #include <pthread.h>
 #include <kopano/ECLogger.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/hl.hpp>
 #include "ECDatabase.h"
 #include "ECSessionManager.h"

@@ -18,7 +18,6 @@
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
-#include <kopano/lockhelper.hpp>
 
 namespace KC {
 

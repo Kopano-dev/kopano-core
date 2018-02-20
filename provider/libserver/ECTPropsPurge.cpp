@@ -16,7 +16,6 @@
  */
 
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>

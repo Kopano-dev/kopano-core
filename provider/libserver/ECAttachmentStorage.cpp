@@ -25,7 +25,6 @@
 #include <cerrno>
 
 #include <algorithm>
-#include <kopano/lockhelper.hpp>
 #include <fcntl.h>
 
 #include <zlib.h>

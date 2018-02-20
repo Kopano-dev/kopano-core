@@ -42,7 +42,6 @@
 #include <kopano/ECIConv.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/Util.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/scope.hpp>
 #include <inetmapi/inetmapi.h>
 #include <kopano/mapiext.h>

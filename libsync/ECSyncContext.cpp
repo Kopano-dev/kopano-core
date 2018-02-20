@@ -21,7 +21,6 @@
 #include <utility>
 #include <cstdint>
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include "ECSyncContext.h"
 #include "ECSyncUtil.h"

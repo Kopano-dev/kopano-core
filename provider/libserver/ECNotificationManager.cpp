@@ -17,7 +17,6 @@
 
 #include <kopano/platform.h>
 #include <chrono>
-#include <kopano/lockhelper.hpp>
 #include <pthread.h>
 #include "ECMAPI.h"
 #include "ECNotification.h"

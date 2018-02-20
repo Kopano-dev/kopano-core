@@ -17,7 +17,6 @@
 
 #include <kopano/platform.h>
 #include <utility>
-#include <kopano/lockhelper.hpp>
 #include <kopano/scope.hpp>
 #include <pthread.h>
 #include <mapidefs.h>

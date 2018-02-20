@@ -16,7 +16,6 @@
  */
 
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include "m4l.mapispi.h"
 #include "m4l.mapix.h"

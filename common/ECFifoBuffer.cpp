@@ -17,7 +17,6 @@
 
 #include <chrono>
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include "ECFifoBuffer.h"
 
 namespace KC {

@@ -16,7 +16,6 @@
  */
 #include <new>
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include <mapicode.h>
 #include <mapix.h>
 
