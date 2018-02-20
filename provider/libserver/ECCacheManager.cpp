@@ -491,7 +491,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 
 	for (size_t i = 0; i < lpdata.size(); ++i) {
 		if (QueryObjectFromProp(ulTag, cbdata[i], lpdata[i], &objid) == erSuccess) {
-			ECsIndexProp p(PROP_ID(ulTag), lpdata[i], cbdata[i]);
+			ECsIndexProp p(ulTag, lpdata[i], cbdata[i]);
 			mapObjects[std::move(p)] = objid;
 		} else {
 			uncached.emplace_back(i);
@@ -505,7 +505,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 
 		strQuery = "SELECT hierarchyid, val_binary FROM indexedproperties FORCE INDEX(bin) WHERE tag="+stringify(ulTag)+" AND val_binary IN(";
 		for (size_t j = 0; j < uncached.size(); ++j) {
-			strQuery += lpDatabase->EscapeBinary(lpdata[j], cbdata[j]);
+			strQuery += lpDatabase->EscapeBinary(lpdata[uncached[j]], cbdata[uncached[j]]);
 			strQuery += ",";
 		}
 		strQuery.resize(strQuery.size() - 1);
@@ -516,7 +516,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 
 		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			lpDBLen = lpDBResult.fetch_row_lengths();
-			ECsIndexProp p(PROP_ID(ulTag), reinterpret_cast<unsigned char *>(lpDBRow[1]), lpDBLen[1]);
+			ECsIndexProp p(ulTag, reinterpret_cast<unsigned char *>(lpDBRow[1]), lpDBLen[1]);
 			mapObjects[std::move(p)] = atoui(lpDBRow[0]);
 		}
 	}
