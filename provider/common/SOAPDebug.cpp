@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <string>
 #include <kopano/platform.h>
 #include "SOAPDebug.h"
 #include <kopano/kcodes.h>
@@ -23,6 +23,8 @@
 #include <edkmdb.h>
 #include <mapidefs.h>
 #include <kopano/stringutil.h>
+
+using namespace KC::string_literals;
 
 namespace KC {
 
@@ -222,7 +224,7 @@ std::string PropValueToString(const propVal *lpPropValue)
 		//strResult = "PT_SYSTIME: fth="+stringify(lpPropValue->Value.hilo->hi)+" ftl="+stringify(lpPropValue->Value.hilo->lo);
 		{
 			auto t = FileTimeToUnixTime({lpPropValue->Value.hilo->lo, static_cast<DWORD>(lpPropValue->Value.hilo->hi)});
-			return (std::string)"PT_SYSTIME: " + ctime(&t);
+			return "PT_SYSTIME: "s + ctime(&t);
 		}
 		break;
 	case PT_I8:

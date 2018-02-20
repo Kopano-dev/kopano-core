@@ -58,6 +58,8 @@
 #define AB_UNICODE_OK ((ULONG) 0x00000040)
 #endif
 
+using namespace KC::string_literals;
+
 namespace KC {
 
 extern ECSessionManager*	g_lpSessionManager;
@@ -3226,7 +3228,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 				break;
 			}
 			case PR_SEARCH_KEY: {
-				std::string strSearchKey = (std::string)"ZARAFA:" + strToUpper(lpDetails->GetPropString(OB_PROP_S_EMAIL));
+				std::string strSearchKey = "ZARAFA:"s + strToUpper(lpDetails->GetPropString(OB_PROP_S_EMAIL));
 				lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, strSearchKey.size()+1);
 				lpPropVal->Value.bin->__size = strSearchKey.size()+1;
@@ -3411,7 +3413,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 				break;
 			}
 			case PR_SEARCH_KEY: {
-				std::string strSearchKey = (std::string)"ZARAFA:" + strToUpper(lpDetails->GetPropString(OB_PROP_S_FULLNAME));
+				std::string strSearchKey = "ZARAFA:"s + strToUpper(lpDetails->GetPropString(OB_PROP_S_FULLNAME));
 				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, strSearchKey.size()+1);
 				lpPropVal->Value.bin->__size = strSearchKey.size()+1;

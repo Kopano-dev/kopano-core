@@ -194,6 +194,20 @@ typedef std::lock_guard<std::recursive_mutex> scoped_rlock;
 typedef std::unique_lock<std::mutex> ulock_normal;
 typedef std::unique_lock<std::recursive_mutex> ulock_rec;
 
+namespace string_literals {
+
+#if __cplusplus >= 201400L
+using namespace std::string_literals;
+#else
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wliteral-suffix"
+static inline std::string operator""s(const char *str, std::size_t len) { return std::string(str, len); }
+static inline std::wstring operator""s(const wchar_t *str, std::size_t len) { return std::wstring(str, len); }
+#	pragma GCC diagnostic pop
+#endif
+
+}
+
 } /* namespace */
 
 #define IID_OF(T) namespace KC { template<> inline constexpr const IID &iid_of<T>() { return IID_ ## T; } }

@@ -20,6 +20,8 @@
 #include "HtmlEntity.h"
 #include <kopano/charset/convert.h>
 
+using namespace KC::string_literals;
+
 namespace KC {
 
 static const struct HTMLEntity_t {
@@ -597,7 +599,7 @@ bool CHtmlEntity::CharToHtmlEntity(WCHAR c, std::wstring &strHTML)
 		const WCHAR *lpChar = CHtmlEntity::toName(c);
 		if (lpChar == nullptr)
 			break;
-		strHTML = std::wstring(L"&") + lpChar + L";";
+		strHTML = L"&"s + lpChar + L";";
 		bHTML = true;
 		break;
 	}

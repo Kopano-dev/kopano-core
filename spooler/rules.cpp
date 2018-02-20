@@ -39,6 +39,7 @@
 #include "PyMapiPlugin.h"
 
 using namespace KC;
+using namespace KC::string_literals;
 using std::string;
 using std::wstring;
 extern ECConfig *g_lpConfig;
@@ -842,7 +843,7 @@ static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 
 		memory_ptr<SPropValue> lpPropRule;
 		if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &~lpPropRule) == hrSuccess) {
-			ec_log_warn((std::string)"Rule " + rule + ": FORWARD loop protection. Message will not be forwarded or redirected because it includes header \"x-kopano-rule-action\"");
+			ec_log_warn("Rule "s + rule + ": FORWARD loop protection. Message will not be forwarded or redirected because it includes header \"x-kopano-rule-action\"");
 			return 0;
 		}
 	}
@@ -1014,8 +1015,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			ec_log_info("Rule %s doesn't match: 0x%08x", strRule.c_str(), hr);
 			continue;
 		}	
-
-		ec_log_info((std::string)"Rule " + strRule + " matches");
+		ec_log_info("Rule "s + strRule + " matches");
 		sc -> countAdd("rules", "n_actions", int64_t(lpActions->cActions));
 
 		for (ULONG n = 0; n < lpActions->cActions; ++n) {
@@ -1142,7 +1142,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 				// 1. make copy of lpMessage, needs CopyTo() function
 				// 2. copy From: to To:
 				// 3. SubmitMessage()
-				ec_log_warn((std::string)"Rule "+strRule+": BOUNCE actions are currently unsupported");
+				ec_log_warn("Rule "s + strRule + ": BOUNCE actions are currently unsupported");
 				break;
 
 			case OP_DELEGATE:
@@ -1182,12 +1182,12 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			case OP_DEFER_ACTION:
 				sc -> countInc("rules", "defer");
 				// DAM crud, but outlook doesn't check these messages... yet
-				ec_log_warn((std::string)"Rule "+strRule+": DEFER client actions are currently unsupported");
+				ec_log_warn("Rule "s + strRule + ": DEFER client actions are currently unsupported");
 				break;
 			case OP_TAG:
 				sc -> countInc("rules", "tag");
 				// sure. WHEN YOU STOP WITH THE FRIGGIN' DEFER ACTION MESSAGES!!
-				ec_log_warn((std::string)"Rule "+strRule+": TAG actions are currently unsupported");
+				ec_log_warn("Rule "s + strRule + ": TAG actions are currently unsupported");
 				break;
 			case OP_DELETE:
 				sc -> countInc("rules", "delete");
@@ -1201,7 +1201,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			case OP_MARK_AS_READ:
 				sc -> countInc("rules", "mark_read");
 				// add prop read
-				ec_log_warn((std::string)"Rule "+strRule+": MARK AS READ actions are currently unsupported");
+				ec_log_warn("Rule "s + strRule + ": MARK AS READ actions are currently unsupported");
 				break;
 			};
 		} // end action loop

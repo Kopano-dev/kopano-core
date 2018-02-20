@@ -56,6 +56,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+using namespace KC::string_literals;
+
 namespace KC {
 
 #define PROFILEPREFIX		"ec-adm-"
@@ -2267,10 +2269,10 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 	if (hr != hrSuccess)
 		return hr;
 	if (ulFlags & MAPI_UNICODE) {
-		std::wstring strMsgStoreDN = std::wstring(L"cn=") + (LPCWSTR)lpszServerName + L"/cn=Microsoft Private MDB";
+		std::wstring strMsgStoreDN = L"cn="s + (LPCWSTR)lpszServerName + L"/cn=Microsoft Private MDB";
 		hr = ptrEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(strMsgStoreDN.c_str()), reinterpret_cast<const TCHAR *>(L"SYSTEM"), MAPI_UNICODE | OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);
 	} else {
-		std::string strMsgStoreDN = std::string("cn=") + (LPCSTR)lpszServerName + "/cn=Microsoft Private MDB";
+		std::string strMsgStoreDN = "cn="s + (LPCSTR)lpszServerName + "/cn=Microsoft Private MDB";
 		hr = ptrEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(strMsgStoreDN.c_str()), reinterpret_cast<const TCHAR *>("SYSTEM"), OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);
 	}
 	if (hr != hrSuccess)
