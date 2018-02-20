@@ -20,23 +20,8 @@ config_files = \
 	autorespond archiver.cfg backup.cfg migration-pst.cfg \
 	autorespond.cfg
 
-rhel_initscript_files = \
-	kopano-server.init.rhel kopano-spooler.init.rhel \
-	kopano-gateway.init.rhel kopano-monitor.init.rhel \
-	kopano-ical.init.rhel kopano-dagent.init.rhel kopano-search.init.rhel \
-	kopano-presence.init.rhel kopano-spamd.init.rhel
-
 data_configdir = ${docdir}/example-config
 dist_data_config_DATA = ${config_files} ldap.cfg
-
-sysconf_initdir=${sysconfdir}/init.d
-sysconf_init_SCRIPTS = ${@DISTRO@_initscript_files}
-
-rhel_sysconfig_path = ${sysconfdir}/sysconfig
-suse_sysconfig_path = ${localstatedir}/adm/fillup-templates
-sles_sysconfig_path = ${localstatedir}/adm/fillup-templates
-sysconf_sysconfigdir = ${@DISTRO@_sysconfig_path}
-sysconf_sysconfig_DATA = sysconfig.txt
 
 dist_doc_DATA = \
 	db-calc-storesize db-convert-attachments-to-files \
@@ -68,30 +53,15 @@ dist_sysconf_rotate_DATA = kopano.logrotate
 sysconf_bcdir = ${sysconfdir}/bash_completion.d
 dist_sysconf_bc_DATA = kopano-bash-completion.sh
 
-EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 \
-	$(rhel_initscript_files) sysconfig.txt
+EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 sysconfig.txt \
+	kopano-server.init.rhel kopano-spooler.init.rhel \
+	kopano-gateway.init.rhel kopano-monitor.init.rhel \
+	kopano-ical.init.rhel kopano-dagent.init.rhel kopano-search.init.rhel \
+	kopano-presence.init.rhel kopano-spamd.init.rhel
 
 install-data-hook:
 	install -d -m 755 ${DESTDIR}/${sysconfdir}/kopano/license
 	mv -v ${DESTDIR}${sysconf_rotatedir}/kopano.logrotate ${DESTDIR}${sysconf_rotatedir}/kopano
-	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
-		mv -v ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.txt ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.kopano; \
-	elif test ${DISTRO} = "rhel"; then \
-		mv -v ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.txt ${DESTDIR}${sysconf_sysconfigdir}/kopano; \
-	fi
-	for f in ${sysconf_init_SCRIPTS}; do \
-		newf=`echo "$$f" | sed -e 's/\(kopano-.*\).init.*/\1/'`; \
-		mv -v "${DESTDIR}${sysconf_initdir}/$$f" "${DESTDIR}${sysconf_initdir}/$$newf"; \
-	done
 
 uninstall-local:
 	rm -f "${DESTDIR}${sysconf_rotatedir}/kopano"
-	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
-		rm -f "${DESTDIR}${sysconf_sysconfigdir}/sysconfig.kopano"; \
-	elif test ${DISTRO} = "rhel"; then \
-		rm -f "${DESTDIR}${sysconf_sysconfigdir}/kopano"; \
-	fi
-	for f in ${sysconf_init_SCRIPTS}; do \
-		newf=$$(echo "$$f" | sed -e 's/\(kopano-.*\).init.*/\1/'); \
-		rm -f "${DESTDIR}${sysconf_initdir}/$$newf"; \
-	done

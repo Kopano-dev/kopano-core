@@ -130,22 +130,6 @@ ZCPPFLAGS="$ZCPPFLAGS -DUNICODE"
 SWIG_FLAGS="-DUNICODE "
 AC_SUBST([SWIG_FLAGS])
 
-AS_IF([test "$BUILDOS" = "linux"], [
-AC_MSG_CHECKING([specified Linux distribution name])
-AC_ARG_WITH([distro], AS_HELP_STRING([--with-distro], [set distribution name, used for sysconfig and initscripts only. available: rhel, suse or sles]),
-  [with_distro=${withval}],[with_distro=rhel])
-if test "$with_distro" != "rhel" -a "$with_distro" != "suse" -a \
-   "$with_distro" != "sles"; then
-	AC_MSG_ERROR([no initscript for $with_distro known])
-else
-	AC_MSG_RESULT([$with_distro])
-fi
-DISTRO=$with_distro
-],
-[test "$BUILDOS" = "openbsd"], [DISTRO="openbsd"]
-)
-AC_SUBST(DISTRO)
-
 dnl These are the only two I will allow to edit LIBS
 AC_ARG_WITH([asan], AS_HELP_STRING([--with-asan], [Activate Address Sanitizer]),
 	[ZCXXFLAGS="$ZCXXFLAGS -fsanitize=address"])
