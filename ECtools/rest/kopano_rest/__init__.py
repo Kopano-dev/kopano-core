@@ -288,6 +288,7 @@ class UserResource(Resource):
             # TODO save in sent items?
             self.create_message(store.outbox, fields['message'],
                 MessageResource.set_fields).send()
+            resp.status = falcon.HTTP_202
 
         elif method == 'contacts':
             item = self.create_message(store.contacts, fields,
@@ -954,7 +955,7 @@ class ProfilePhotoResource(Resource):
 
         contact.set_photo('noname', req.stream.read(), req.get_header('Content-Type'))
 
-app = falcon.API()
+app = falcon.API(media_type=None)
 
 users = UserResource()
 messages = MessageResource()
