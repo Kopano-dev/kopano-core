@@ -49,7 +49,8 @@ dist_bin_SCRIPTS = ECtools/migration-imap/kopano-migration-imap \
 	ECtools/utils/kopano-set-oof
 sbin_PROGRAMS = \
 	kopano-admin kopano-archiver kopano-dagent kopano-gateway kopano-ical \
-	kopano-monitor kopano-server kopano-spooler kopano-storeadm
+	kopano-monitor kopano-server kopano-spooler \
+	kopano-srvadm kopano-storeadm
 dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 	ECtools/archiver/scripts/kopano-archiver-aclset \
 	ECtools/archiver/scripts/kopano-archiver-aclsync \
@@ -242,6 +243,10 @@ kopano_spooler_LDADD = \
 if ENABLE_PYTHON
 kopano_spooler_LDADD += libkcpyplug.la
 endif
+
+
+kopano_srvadm_SOURCES = ECtools/srvadm.cpp
+kopano_srvadm_LDADD = ${popt_LIBS} libmapi.la libkcutil.la
 
 
 #
@@ -898,7 +903,7 @@ dist_man_MANS = \
 	doc/kopano-spamd.8 doc/kopano-spamd.cfg.5 \
 	doc/kopano-spooler.8 doc/kopano-spooler.cfg.5 \
 	doc/kopano-backup.8 doc/kopano-backup.cfg.5 \
-	doc/kopano-stats.1 doc/kopano-storeadm.8 \
+	doc/kopano-srvadm.8 doc/kopano-stats.1 doc/kopano-storeadm.8 \
 	doc/kopano-unix.cfg.5 \
 	doc/kopano-migration-pst.8 doc/kopano-migration-pst.cfg.5 \
 	doc/kopano-archiver-aclsync.8 \

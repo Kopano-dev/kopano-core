@@ -1,0 +1,33 @@
+.TH kopano\-srvadm 8 "2018-01-19" "Kopano 8" "Kopano Groupware Core reference"
+.SH Name
+kopano\-srvadm \(em server management utility
+.SH Synopsis
+\fBkopano\-srvadm\fP {\fB\-\-clear\-cache\fP
+\fItype\fP|\fB\-\-purge\-deferred\fP|\fB\-\-purge\-softdelete\fP \fIdays\fP}
+.SH Description
+.PP
+This tool is used to control certain aspects of the Kopano server, specifically
+internal state.
+.SH Options
+.TP
+\fB\-\-clear\-cache \fP\fIpool\fP[\fB,\fP\fIpool\fP...]
+Flushes one or more of the server's cache pools. The argument shall be a
+comma-separated list of pool names, which can be: \fBquota\fP,
+\fBquotadefault\fP, \fBobject\fP, \fBstore\fP, \fBacl\fP, \fBcell\fP,
+\fBindex1\fP, \fBindex2\fP, \fBindexedproperty\fP, \fBuserobject\fP,
+\fBexternid\fP, \fBuserdetail\fP, \fBserver\fP, or the magic value \fBall\fP.
+Although this operation never causes any data loss, it can affect the
+performance of the server, since any data requested after the cache has been
+cleared needs to be re-requested from the database or LDAP server. Normally,
+this option is never needed; it is mostly used as a diagnostic.
+.TP
+\fB\-\-purge\-deferred\fP
+The server has an optimization in which changes to the "tproperties" table are
+not writted directly, but delayed for a more efficient write at a later time.
+The server auto-purges these regularly. This command allows you to manually
+start a purge of all pending changes. It may be useful to run this during low
+I/O load of your server, e.g. at night.
+.TP
+\fB\-\-purge\-softdelete\fP \fIdays\fP
+Starts a softdelete purge on the server, removing all soft-deleted items which
+have been deleted and which are older than the specified number of days.
