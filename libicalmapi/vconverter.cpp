@@ -916,7 +916,7 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 		return hr;
 	lplstMsgProps->emplace_back(sPropVal);
 
-	sPropVal.ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE;
+	sPropVal.ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE_W;
 	lplstMsgProps->emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENDER_EMAIL_ADDRESS_W;
@@ -925,7 +925,7 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 		return hr;
 	lplstMsgProps->emplace_back(sPropVal);
 
-	sPropVal.ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS;
+	sPropVal.ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS_W;
 	lplstMsgProps->emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENDER_NAME_W;
@@ -934,7 +934,7 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 		return hr;
 	lplstMsgProps->emplace_back(sPropVal);
 
-	sPropVal.ulPropTag = PR_SENT_REPRESENTING_NAME;
+	sPropVal.ulPropTag = PR_SENT_REPRESENTING_NAME_W;
 	lplstMsgProps->emplace_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENDER_SEARCH_KEY;

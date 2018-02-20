@@ -1492,7 +1492,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	MAPITablePtr ptrSystemTable;
 	SPropValue sPropDisplayName;
 	SRowSetPtr ptrRows;
-	ULONG ulLicensedUsers = (ULONG)-1;	//!< active users allowed by license
+	ULONG ulLicensedUsers = 0;
 	ULONG ulActiveUsers = (ULONG)-1;	//!< used active users
 	ULONG ulNonActiveTotal = (ULONG)-1;	//!< used non-active users
 	ULONG ulNonActiveUsers = (ULONG)-1;	//!< used shared stores, subset of used non-active users

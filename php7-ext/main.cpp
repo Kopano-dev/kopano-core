@@ -7003,7 +7003,7 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	zval *resStore;
 	zval *resAddrBook;
 	zval *resMessage;
-	zend_bool noRecipients;
+	zend_bool noRecipients = false;
 	php_stringsize_t cbString = 0;
 	char *szString = nullptr;
 	IMAPISession *lpMAPISession = nullptr;
@@ -7024,6 +7024,16 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
 
 	std::string icalMsg(szString, cbString);
+	memory_ptr<SPropValue> prop;
+	object_ptr<IMailUser> mailuser;
+	ULONG objtype;
+	MAPI_G(hr) = HrGetOneProp(lpMsgStore, PR_MAILBOX_OWNER_ENTRYID, &~prop);
+	if (MAPI_G(hr) != hrSuccess)
+		goto exit;
+
+	MAPI_G(hr) = lpMAPISession->OpenEntry(prop->Value.bin.cb, reinterpret_cast<ENTRYID *>(prop->Value.bin.lpb), &iid_of(mailuser), MAPI_BEST_ACCESS, &objtype, &~mailuser);
+	if (MAPI_G(hr) != hrSuccess)
+		goto exit;
 
 	// noRecpients, skip recipients from ical.
 	// Used for DAgent, which uses the mail recipients
@@ -7034,7 +7044,7 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	}
 	// Set the default timezone to UTC if none is set, replicating the
 	// behaviour of VMIMEToMAPI.
-	MAPI_G(hr) = lpIcalToMapi->ParseICal(icalMsg, "utf-8", "UTC", nullptr, 0);
+	MAPI_G(hr) = lpIcalToMapi->ParseICal(icalMsg, "utf-8", "UTC", mailuser, 0);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 	MAPI_G(hr) = lpIcalToMapi->GetItem(0, 0, lpMessage);
