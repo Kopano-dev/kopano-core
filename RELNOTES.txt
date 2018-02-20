@@ -1,3 +1,15 @@
+8.5.3
+=====
+Fixes:
+* php: pass mailuser to ParseICal; this is needed to deduce
+  the organizer address
+* php: fix wrong initialization of a bool variable
+* admin: --user-count failed to print user counts [KC-1048]
+* server: fix broken cache handling for ICS bulk restriction matching [KC-912]
+Enhancements:
+* php: add "ignore_missing_attachments" to sending_options [KC-704]
+
+
 Release notes for 8.5.2 (2018-02-16)
 ====================================
 Fixes:
