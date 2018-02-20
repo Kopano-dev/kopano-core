@@ -2090,6 +2090,9 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 		} else if (strcmp(keyIndex, "allow_send_to_everyone") == 0) {
 			convert_to_boolean_ex(entry);
 			lpSOPT->allow_send_to_everyone = Z_BVAL_PP(entry);
+		} else if (strcmp(keyIndex, "ignore_missing_attachments") == 0) {
+			convert_to_boolean_ex(entry);
+			lpSOPT->ignore_missing_attachments = Z_BVAL_PP(entry);
 		} else {
 			// msg_in_msg and enable_dsn not allowed, others unknown
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown or disallowed sending option %s", keyIndex);
