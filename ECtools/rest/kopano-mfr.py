@@ -39,13 +39,13 @@ def opt_args():
         sys.exit(-1)
     return options, args
 
-def run_app(socket_path, n):
-    app = kopano_rest.app
+def run_app(socket_path, n, options):
+    app = kopano_rest.RestAPI(options)
     unix_socket = 'unix:' + os.path.join(socket_path, 'rest%d.sock' % n)
     bjoern.run(app, unix_socket)
 
-def run_notify(socket_path):
-    app = kopano_rest.notify_app
+def run_notify(socket_path, options):
+    app = kopano_rest.NotifyAPI(options)
     unix_socket = 'unix:' + os.path.join(socket_path, 'notify.sock')
     bjoern.run(app, unix_socket)
 
@@ -54,14 +54,12 @@ def main():
     socket_path = options.socket_path or SOCKET_PATH
     nworkers = options.workers if options.workers is not None else WORKERS
 
-    kopano_rest.config(insecure=options.insecure) # TODO so ugly it hurts
-
     workers = []
     for n in range(nworkers):
-        process = Process(target=run_app, args=(socket_path, n))
+        process = Process(target=run_app, args=(socket_path, n, options))
         workers.append(process)
 
-    notify_process = Process(target=run_notify, args=(socket_path,))
+    notify_process = Process(target=run_notify, args=(socket_path, options))
     workers.append(notify_process)
 
     for worker in workers:

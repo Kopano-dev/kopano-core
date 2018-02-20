@@ -955,46 +955,47 @@ class ProfilePhotoResource(Resource):
 
         contact.set_photo('noname', req.stream.read(), req.get_header('Content-Type'))
 
-app = falcon.API(media_type=None)
+class RestAPI(falcon.API):
+    def __init__(self, options=None):
+        super().__init__(media_type=None)
+        self.options = options
 
-users = UserResource()
-messages = MessageResource()
-attachments = AttachmentResource()
-folders = MailFolderResource()
-calendars = CalendarResource()
-events = EventResource()
-contactfolders = ContactFolderResource()
-contacts = ContactResource()
-photos = ProfilePhotoResource()
+        users = UserResource()
+        messages = MessageResource()
+        attachments = AttachmentResource()
+        folders = MailFolderResource()
+        calendars = CalendarResource()
+        events = EventResource()
+        contactfolders = ContactFolderResource()
+        contacts = ContactResource()
+        photos = ProfilePhotoResource()
 
-def route(app, path, resource, method=True):
-    app.add_route(path, resource)
-    if method: # TODO make optional in a better way?
-        app.add_route(path+'/{method}', resource)
+        def route(path, resource, method=True):
+            self.add_route(path, resource)
+            if method: # TODO make optional in a better way?
+                self.add_route(path+'/{method}', resource)
 
-route(app, PREFIX+'/users', users, method=False) # TODO method == ugly
-route(app, PREFIX+'/me', users)
-route(app, PREFIX+'/users/{userid}', users)
+        route(PREFIX+'/users', users, method=False) # TODO method == ugly
+        route(PREFIX+'/me', users)
+        route(PREFIX+'/users/{userid}', users)
 
-for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
-    route(app, user+'/mailFolders/{folderid}', folders)
-    route(app, user+'/messages/{itemid}', messages)
-    route(app, user+'/mailFolders/{folderid}/messages/{itemid}', messages)
-    route(app, user+'/calendar', calendars)
-    route(app, user+'/calendars/{folderid}', calendars)
-    route(app, user+'/events/{itemid}', events)
-    route(app, user+'/calendar/events/{itemid}', events)
-    route(app, user+'/calendars/{folderid}/events/{itemid}', events)
-    route(app, user+'/messages/{itemid}/attachments/{attachmentid}', attachments)
-    route(app, user+'/mailFolders/{folderid}/messages/{itemid}/attachments/{attachmentid}', attachments)
-    route(app, user+'/events/{itemid}/attachments/{attachmentid}', attachments)
-    route(app, user+'/contactFolders/{folderid}', contactfolders)
-    route(app, user+'/contacts/{itemid}', contacts)
-    route(app, user+'/contactFolders/{folderid}/contacts/{itemid}', contacts)
-    route(app, user+'/contacts/{itemid}/photo', photos)
-    route(app, user+'/contactFolders/{folderid}/contacts/{itemid}/photo', photos)
+        for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
+            route(user+'/mailFolders/{folderid}', folders)
+            route(user+'/messages/{itemid}', messages)
+            route(user+'/mailFolders/{folderid}/messages/{itemid}', messages)
+            route(user+'/calendar', calendars)
+            route(user+'/calendars/{folderid}', calendars)
+            route(user+'/events/{itemid}', events)
+            route(user+'/calendar/events/{itemid}', events)
+            route(user+'/calendars/{folderid}/events/{itemid}', events)
+            route(user+'/messages/{itemid}/attachments/{attachmentid}', attachments)
+            route(user+'/mailFolders/{folderid}/messages/{itemid}/attachments/{attachmentid}', attachments)
+            route(user+'/events/{itemid}/attachments/{attachmentid}', attachments)
+            route(user+'/contactFolders/{folderid}', contactfolders)
+            route(user+'/contacts/{itemid}', contacts)
+            route(user+'/contactFolders/{folderid}/contacts/{itemid}', contacts)
+            route(user+'/contacts/{itemid}/photo', photos)
+            route(user+'/contactFolders/{folderid}/contacts/{itemid}/photo', photos)
 
-notify_app = notify.app
-
-def config(insecure=False):
-    notify.INSECURE = insecure
+app = RestAPI() # gunicorn
+notify_app = notify.NotifyAPI()
