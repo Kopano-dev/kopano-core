@@ -147,7 +147,7 @@ public:
 	virtual HRESULT Logoff(ULONG_PTR ulUIParam, ULONG ulFlags, ULONG ulReserved);
 	virtual HRESULT SetDefaultStore(ULONG flags, ULONG eid_size, const ENTRYID *) override;
 	virtual HRESULT AdminServices(ULONG ulFlags, LPSERVICEADMIN *lppServiceAdmin);
-	virtual HRESULT ShowForm(ULONG_PTR ulUIParam, LPMDB lpMsgStore, LPMAPIFOLDER lpParentFolder, LPCIID lpInterface, ULONG ulMessageToken, LPMESSAGE lpMessageSent, ULONG ulFlags, ULONG ulMessageStatus, ULONG ulMessageFlags, ULONG ulAccess, LPSTR lpszMessageClass);
+	virtual HRESULT ShowForm(ULONG_PTR ui_param, IMsgStore *, IMAPIFolder *parent, const IID *intf, ULONG msg_token, IMessage *sesnt, ULONG flags, ULONG msg_status, ULONG msg_flags, ULONG access, const char *msg_class) override;
 	virtual HRESULT PrepareForm(LPCIID lpInterface, LPMESSAGE lpMessage, ULONG *lpulMessageToken);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 

@@ -223,9 +223,10 @@ HRESULT M4LMAPISupport::Address(ULONG * lpulUIParam, LPADRPARM lpAdrParms, LPADR
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::Details(ULONG * lpulUIParam, LPFNDISMISS lpfnDismiss, LPVOID lpvDismissContext, ULONG cbEntryID,
-								LPENTRYID lpEntryID, LPFNBUTTON lpfButtonCallback, LPVOID lpvButtonContext, LPTSTR lpszButtonText,
-								ULONG ulFlags) {
+HRESULT M4LMAPISupport::Details(ULONG_PTR *ui_param, DISMISSMODELESS *dsfunc,
+    void *dismiss_ctx, ULONG cbEntryID, const ENTRYID *lpEntryID,
+    LPFNBUTTON callback, void *btn_ctx, const TCHAR *btn_text, ULONG flags)
+{
     return MAPI_E_NO_SUPPORT;
 }
 
@@ -236,13 +237,18 @@ HRESULT M4LMAPISupport::NewEntry(ULONG_PTR ui_param, ULONG flags,
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::DoConfigPropsheet(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszTitle, LPMAPITABLE lpDisplayTable,
-										  LPMAPIPROP lpCOnfigData, ULONG ulTopPage) {
+HRESULT M4LMAPISupport::DoConfigPropsheet(ULONG_PTR ui_param, ULONG flags,
+    const TCHAR *title, IMAPITable *disp_tbl, IMAPIProp *cfg_data,
+    ULONG top_page)
+{
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, LPENTRYLIST lpMsgList, LPCIID lpDestInterface,
-									 LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) {
+HRESULT M4LMAPISupport::CopyMessages(const IID *lpSrcInterface,
+    void *lpSrcFolder, const ENTRYLIST *lpMsgList, const IID *lpDestInterface,
+    void *lpDestFolder, ULONG_PTR ulUIParam, IMAPIProgress *lpProgress,
+    ULONG ulFlags)
+{
 	HRESULT hr = hrSuccess;
 	LPMAPIFOLDER lpSource = NULL;
 	LPMAPIFOLDER lpDest = NULL;
@@ -529,11 +535,13 @@ HRESULT M4LMAPISupport::OpenAddressBook(LPCIID lpInterface, ULONG ulFlags, LPADR
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::Preprocess(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) {
+HRESULT M4LMAPISupport::Preprocess(ULONG flags, ULONG eid_size, const ENTRYID *)
+{
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::CompleteMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) {
+HRESULT M4LMAPISupport::CompleteMsg(ULONG flags, ULONG eid_size, const ENTRYID *)
+{
     return MAPI_E_NO_SUPPORT;
 }
 
@@ -541,7 +549,8 @@ HRESULT M4LMAPISupport::StoreLogoffTransports(ULONG * lpulFlags) {
     return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPISupport::StatusRecips(LPMESSAGE lpMessage, LPADRLIST lpRecipList) {
+HRESULT M4LMAPISupport::StatusRecips(IMessage *, const ADRLIST *recips)
+{
     return MAPI_E_NO_SUPPORT;
 }
 
