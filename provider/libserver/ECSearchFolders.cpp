@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <utility>
 #include <kopano/lockhelper.hpp>
+#include <kopano/scope.hpp>
 #include <pthread.h>
 #include <mapidefs.h>
 #include <mapitags.h>
@@ -966,7 +967,16 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
     }
         
     lpSession->Lock();
-
+	auto cleanup = make_scope_success([&]() {
+		if (lpDatabase != nullptr && er != erSuccess)
+			lpDatabase->Rollback();
+		lpSession->Unlock();
+		m_lpSessionManager->RemoveSessionInternal(lpSession);
+		if (lpPropTags != nullptr)
+			FreePropTagArray(lpPropTags);
+		if (lpAdditionalRestrict != nullptr)
+			FreeRestrictTable(lpAdditionalRestrict);
+	});
 	er = lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::Search() GetDatabase failed: 0x%x", er);
@@ -1146,15 +1156,6 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
     SetStatus(ulFolderId, EC_SEARCHFOLDER_STATUS_RUNNING);
     
 exit:
-	if (lpDatabase && er != erSuccess)
-		lpDatabase->Rollback();
-	lpSession->Unlock();
-	m_lpSessionManager->RemoveSessionInternal(lpSession);
-    if(lpPropTags)
-        FreePropTagArray(lpPropTags);
-    if (lpAdditionalRestrict)
-        FreeRestrictTable(lpAdditionalRestrict);
-
     return er;
 }
 
@@ -1243,7 +1244,10 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulFolderId)
 		ec_log_err("ECSearchFolders::ResetResults(): BEGIN failed 0x%x", er);
 		return er;
 	}
-	
+	auto cleanup = make_scope_success([&]() {
+		if (er != erSuccess)
+			lpDatabase->Rollback();
+	});
 	er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
 	if (er != erSuccess) {
 		ec_log_err("ECSearchFolders::ResetResults(): SELECT failed 0x%x", er);
@@ -1281,9 +1285,6 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulFolderId)
 		ec_log_err("ECSearchFolders::ResetResults(): database commit failed 0x%x", er);
 		
 exit:
-	if (er != erSuccess)
-		lpDatabase->Rollback();
-        
     return er;
 }
 
@@ -1574,7 +1575,10 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulFolderId, struct sea
 		ec_log_err("ECSearchFolders::SaveSearchCriteria(): BEGIN failed 0x%x", er);
 		return er;
 	}
-
+	auto cleanup = make_scope_success([&]() {
+		if (er != erSuccess)
+			lpDatabase->Rollback();
+	});
 	er = SaveSearchCriteria(lpDatabase, ulFolderId, lpSearchCriteria);
 	if(er != hrSuccess) {
 		ec_log_err("ECSearchFolders::SaveSearchCriteria(): SaveSearchCriteria failed 0x%x", er);
@@ -1586,8 +1590,6 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulFolderId, struct sea
 		ec_log_err("ECSearchFolders::SaveSearchCriteria(): commit failed 0x%x", er);
 
 exit:
-	if (er != erSuccess)
-		lpDatabase->Rollback();
     return er;
 }
 

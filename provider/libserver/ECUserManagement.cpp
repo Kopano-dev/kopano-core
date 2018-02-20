@@ -28,6 +28,7 @@
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
+#include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
 #include <map>
 #include <memory>
@@ -2742,6 +2743,10 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 	er = lpDatabase->Begin();
 	if(er != erSuccess)
 		return er;
+	auto cleanup = make_scope_success([&]() {
+		if (bTransaction && er != erSuccess)
+			lpDatabase->Rollback();
+	});
 	/*
 	 * Moving a user to a different company consists of the following tasks:
 	 * 1) Change 'company' column in 'users' table
@@ -2785,9 +2790,6 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 		goto exit;
 
 exit:
-	if (bTransaction && er != erSuccess)
-		lpDatabase->Rollback();
-
 	return er;
 }
 
@@ -2803,7 +2805,14 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	bool bTransaction = false;
 	SOURCEKEY sSourceKey;
 	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
-
+	auto cleanup = make_scope_success([&]() {
+		if (er != 0)
+			ec_log_info("Auto-deleting %s %d done. Error code 0x%08X", ObjectClassToName(objclass), ulObjectId, er);
+		else
+			ec_log_info("Auto-deleting %s %d done.", ObjectClassToName(objclass), ulObjectId);
+		if (lpDatabase != nullptr && bTransaction && er != erSuccess)
+			lpDatabase->Rollback();
+	});
 	if(IsInternalObject(ulObjectId)) {
 		er = KCERR_NO_ACCESS;
 		goto exit;
@@ -2946,12 +2955,6 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 		break;
 	}
 exit:
-	if (er)
-		ec_log_info("Auto-deleting %s %d done. Error code 0x%08X", ObjectClassToName(objclass), ulObjectId, er);
-	else
-		ec_log_info("Auto-deleting %s %d done.", ObjectClassToName(objclass), ulObjectId);
-	if (lpDatabase != nullptr && bTransaction && er != erSuccess)
-		lpDatabase->Rollback();
 	return er;
 }
 

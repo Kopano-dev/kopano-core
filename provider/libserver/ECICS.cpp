@@ -19,6 +19,7 @@
 #include <list>
 #include <memory>
 #include <utility>
+#include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
 #include "kcore.hpp"
 #include <mapidefs.h>
@@ -461,6 +462,10 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
     er = lpDatabase->Begin();
     if (er != erSuccess)
 		return er;
+	auto cleanup = make_scope_success([&]() {
+		if (er != erSuccess)
+			lpDatabase->Rollback();
+	});
 
     // CHeck if the client understands the new ABEID.
 	if (lpSession->GetCapabilities() & KOPANO_CAP_MULTI_SERVER)
@@ -977,8 +982,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	*lppChanges = lpChanges;
 
 exit:
-	if (er != erSuccess)
-		lpDatabase->Rollback();
 	return er;
 }
 

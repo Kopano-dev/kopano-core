@@ -22,6 +22,7 @@
 #include <utility>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
+#include <kopano/scope.hpp>
 #include "instanceidmapper.h"
 #include "Archiver.h"
 #include <kopano/stringutil.h>
@@ -131,6 +132,10 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 	std::string strQuery;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
+	auto cleanup = make_scope_success([&]() {
+		if (er != erSuccess)
+			m_ptrDatabase->Rollback();
+	});
 
 	if (cbSourceInstanceID == 0 || lpSourceInstanceID == NULL || cbDestInstanceID == 0 || lpDestInstanceID == NULL) {
 		er = KCERR_INVALID_PARAMETER;
@@ -177,9 +182,6 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 	er = m_ptrDatabase->Commit();
 
 exit:
-	if (er != erSuccess)
-		m_ptrDatabase->Rollback();
-
 	return kcerr_to_mapierr(er);
 }
 

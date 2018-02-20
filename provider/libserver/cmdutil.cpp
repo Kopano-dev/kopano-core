@@ -29,6 +29,7 @@
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
 #include <kopano/EMSAbTag.h>
+#include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
 #include <edkmdb.h>
 #include "ECMAPI.h"
@@ -612,6 +613,10 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 	
 	std::map<unsigned int, PARENTINFO> mapFolderCounts;
 	int i;
+	auto cleanup = make_scope_success([&]() {
+		if (er != erSuccess && !bNoTransaction)
+			lpDatabase->Rollback();
+	});
 
 	if(!(ulFlags & EC_DELETE_HARD_DELETE)) {
 		er = KCERR_INVALID_PARAMETER;
@@ -786,8 +791,6 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 	} // while iterDeleteItems != end()
 
 exit:
-	if (er != erSuccess && !bNoTransaction)
-		lpDatabase->Rollback();
 	return er;
 }
 
@@ -1001,6 +1004,12 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 	ECListDeleteItems lstDeleted;
 	ECSearchFolders *lpSearchFolders = NULL;
 	ECSessionManager *lpSessionManager = NULL;
+	auto cleanup = make_scope_success([&]() {
+		if (er != erSuccess && lpDatabase != NULL && !bNoTransaction &&
+		    !(ulFlags & EC_DELETE_HARD_DELETE))
+			lpDatabase->Rollback();
+		FreeDeletedItems(&lstDeleteItems);
+	});
 	
 	if (lpSession == NULL || lpDatabase == NULL || lpsObjectList == NULL) {
 		er = KCERR_INVALID_PARAMETER;
@@ -1103,12 +1112,6 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 	if (!(ulFlags&EC_DELETE_STORE))
 		DeleteObjectNotifications(lpSession, ulFlags, lstDeleted);
 exit:
-	if (er != erSuccess && lpDatabase != NULL && !bNoTransaction &&
-	    !(ulFlags & EC_DELETE_HARD_DELETE))
-		lpDatabase->Rollback();
-
-	FreeDeletedItems(&lstDeleteItems);
-
 	return er;
 }
 
@@ -1613,6 +1616,15 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	auto sesmgr = lpSession->GetSessionManager();
 	auto cache = sesmgr->GetCacheManager();
 	ECDatabase *lpDatabase = NULL;
+	auto cleanup = make_scope_success([&]() {
+		if (er != erSuccess) {
+			lpDatabase->Rollback();
+		} else {
+			lpDatabase->Commit();
+			if (lpulUpdates != nullptr)
+				*lpulUpdates = ulAffected;
+		}
+	});
 
 	er = lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
@@ -1734,14 +1746,6 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
     	
 	
 exit:
-	if(er != erSuccess)
-		lpDatabase->Rollback();
-	else {
-		lpDatabase->Commit();
-		if (lpulUpdates)
-			*lpulUpdates = ulAffected;
-	}
-		
 	return er;	
 }
 
