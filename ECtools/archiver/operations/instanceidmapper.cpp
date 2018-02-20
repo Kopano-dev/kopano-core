@@ -137,27 +137,23 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 			m_ptrDatabase->Rollback();
 	});
 
-	if (cbSourceInstanceID == 0 || lpSourceInstanceID == NULL || cbDestInstanceID == 0 || lpDestInstanceID == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (cbSourceInstanceID == 0 || lpSourceInstanceID == nullptr ||
+	    cbDestInstanceID == 0 || lpDestInstanceID == nullptr)
+		return kcerr_to_mapierr(er = KCERR_INVALID_PARAMETER);
 	er = m_ptrDatabase->Begin();
 	if (er != erSuccess)
-		goto exit;
-
+		return kcerr_to_mapierr(er);
 	// Make sure the server entries exist.
 	strQuery = "INSERT IGNORE INTO za_servers (guid) VALUES (" + m_ptrDatabase->EscapeBinary(sourceServerUID) + "),(" +  m_ptrDatabase->EscapeBinary(destServerUID) + ")";
 	er = m_ptrDatabase->DoInsert(strQuery, NULL, NULL);
 	if (er != erSuccess)
-		goto exit;
-
+		return kcerr_to_mapierr(er);
 	// Now first see if the source instance is available.
 	strQuery = "SELECT instance_id FROM za_mappings AS m JOIN za_servers AS s ON m.server_id = s.id AND s.guid = " + m_ptrDatabase->EscapeBinary(sourceServerUID) + " "
 	           "WHERE m.val_binary = " + m_ptrDatabase->EscapeBinary(lpSourceInstanceID, cbSourceInstanceID) + " AND tag = " + stringify(PROP_ID(ulPropTag)) + " LIMIT 1";
 	er = m_ptrDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
-		goto exit;
+		return kcerr_to_mapierr(er);
 
 	lpDBRow = lpResult.fetch_row();
 	if (lpDBRow == NULL) {
@@ -166,8 +162,7 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 		strQuery = "INSERT INTO za_instances (tag) VALUES (" + stringify(PROP_ID(ulPropTag)) + ")";
 		er = m_ptrDatabase->DoInsert(strQuery, &ulNewId, NULL);
 		if (er != erSuccess)
-			goto exit;
-
+			return kcerr_to_mapierr(er);
 		strQuery = "INSERT IGNORE INTO za_mappings (server_id, val_binary, tag, instance_id) VALUES "
 		           "((SELECT id FROM za_servers WHERE guid = " + m_ptrDatabase->EscapeBinary(sourceServerUID) + ")," + m_ptrDatabase->EscapeBinary(lpSourceInstanceID, cbSourceInstanceID) + "," + stringify(PROP_ID(ulPropTag)) + "," + stringify(ulNewId) + "),"
 		           "((SELECT id FROM za_servers WHERE guid = " + m_ptrDatabase->EscapeBinary(destServerUID) + ")," + m_ptrDatabase->EscapeBinary(lpDestInstanceID, cbDestInstanceID) + "," + stringify(PROP_ID(ulPropTag)) + "," + stringify(ulNewId) + ")";
@@ -177,12 +172,8 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 	}
 	er = m_ptrDatabase->DoInsert(strQuery, NULL, NULL);
 	if (er != erSuccess)
-		goto exit;
-
-	er = m_ptrDatabase->Commit();
-
-exit:
-	return kcerr_to_mapierr(er);
+		return kcerr_to_mapierr(er);
+	return m_ptrDatabase->Commit();
 }
 
 }} /* namespace */

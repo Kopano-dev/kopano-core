@@ -473,10 +473,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 	if(ulChangeType != ICS_SYNC_AB) {
         // You must first register your sync via setSyncStatus()
-        if(ulSyncId == 0) {
-            er = KCERR_INVALID_PARAMETER;
-            goto exit;
-        }
+		if (ulSyncId == 0)
+			return er = KCERR_INVALID_PARAMETER;
 
         // Add change key and predecessor change list
         if(ulChangeId > 0) {
@@ -489,29 +487,23 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
             er = lpDatabase->DoSelect(strQuery, &lpDBResult);
             if(er != erSuccess)
-                goto exit;
-			if (lpDBResult.get_num_rows() == 0) {
-                er = KCERR_NOT_FOUND;
-                goto exit;
-            }
-
+				return er;
+			if (lpDBResult.get_num_rows() == 0)
+				return er = KCERR_NOT_FOUND;
             lpDBRow = lpDBResult.fetch_row();
 			if (lpDBRow == nullptr) {
 				ec_log_err("K-1201: No row retrievable"); /* despite get_num_rows>0! */
-				er = KCERR_DATABASE_ERROR;
-				goto exit;
+				return er = KCERR_DATABASE_ERROR;
 			}
             lpDBLen = lpDBResult.fetch_row_lengths();
 			if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr || lpDBRow[2] == nullptr) {
-                er = KCERR_DATABASE_ERROR; // this should never happen
 				ec_log_err("K-1202: NULL values were returned from SQL");
-                goto exit;
+				return er = KCERR_DATABASE_ERROR; /* this should never happen */
             }
 
             if((dummy = atoui(lpDBRow[2])) != ulChangeType){
-			er = KCERR_COLLISION;
 				ec_log_err("K-1203: unexpected change type %u/%u", dummy, ulChangeType);
-			goto exit;
+				return er = KCERR_COLLISION;
             }
 
 		} else {
@@ -522,25 +514,22 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 				"WHERE id=" + stringify(ulSyncId) + " FOR UPDATE";
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 			if(er != erSuccess)
-				goto exit;
-
+				return er;
 			lpDBRow = lpDBResult.fetch_row();
 			lpDBLen = lpDBResult.fetch_row_lengths();
 			if (lpDBRow == nullptr) {
 				std::string username;
 
 				er = lpSession->GetSecurity()->GetUsername(&username);
-				er = KCERR_DATABASE_ERROR;
 				ec_log_warn("K-1204: The sync ID %u does not exist. Session user name: %s.",
 					ulSyncId, username.c_str());
-				goto exit;
+				return er = KCERR_DATABASE_ERROR;
 			} else if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr) {
 				std::string username;
 				er = lpSession->GetSecurity()->GetUsername(&username);
 				ec_log_warn("K-1205: Received NULL values from SQL for sync id %u. Session username: %s.",
 					ulSyncId, username.c_str());
-				er = KCERR_DATABASE_ERROR;
-				goto exit;
+				return er = KCERR_DATABASE_ERROR;
 			}
 		}
 
@@ -550,7 +539,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
         if(!sFolderSourceKey.empty()) {
 			er = gcache->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), sFolderSourceKey.size(), sFolderSourceKey, &ulFolderId);
             if(er != erSuccess)
-                goto exit;
+				return er;
         } else {
             ulFolderId = 0;
         }
@@ -568,7 +557,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
         }
         
         if(er != erSuccess)
-            goto exit;
+			return er;
 	}
 
 	if(ulChangeType == ICS_SYNC_CONTENTS){
@@ -576,11 +565,10 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		     lpDatabase, sFolderSourceKey, ulSyncId, ulChangeId,
 		     ulFlags, lpsRestrict, &unique_tie(lpHelper));
 		if (er != erSuccess)
-			goto exit;
-		
+			return er;
 		er = lpHelper->QueryDatabase(&lpDBResult);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		std::vector<DB_ROW> db_rows;
 		std::vector<DB_LENGTHS> db_lengths;
@@ -598,16 +586,15 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			++length_counter;
 
 			if (lpDBRow[icsSourceKey] == NULL || lpDBRow[icsParentSourceKey] == NULL) {
-				er = KCERR_DATABASE_ERROR;
 				ec_log_err("K-1206: Received NULL values from SQL");
-				goto exit;
+				return er = KCERR_DATABASE_ERROR;
 			}
 			db_rows.emplace_back(lpDBRow);
 			db_lengths.emplace_back(lpDBLen);
 			if (db_rows.size() == 1000) {
 				er = lpHelper->ProcessRows(db_rows, db_lengths);
 				if (er != erSuccess)
-					goto exit;
+					return er;
 				db_rows.clear();
 				db_lengths.clear();
 				length_counter = 0;
@@ -617,17 +604,15 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		if (!db_rows.empty()) {
 			er = lpHelper->ProcessRows(db_rows, db_lengths);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 		
 		er = lpHelper->ProcessResidualMessages();
 		if (er != erSuccess)
-			goto exit;
-			
+			return er;
 		er = lpHelper->Finalize(&ulMaxChange, &lpChanges);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		// Do stuff with lppChanges etc.
 
 	}else if(ulChangeType == ICS_SYNC_HIERARCHY){
@@ -640,10 +625,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		// Recursive loop through all folders
 		for (auto folder_id : lstFolderIds) {
 			if (folder_id == 0) {
-			    if(lpSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN) {
-			        er = KCERR_NO_ACCESS;
-			        goto exit;
-                }
+				if (lpSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN)
+					return er = KCERR_NO_ACCESS;
             } else if (lpSession->GetSecurity()->CheckPermission(folder_id, ecSecurityFolderVisible) != erSuccess) {
                 // We cannot traverse folders that we have no permission to. This means that changes under the inaccessible folder
                 // will disappear - this will cause the sync peer to go out-of-sync. Fix would be to remember changes in security
@@ -670,13 +653,12 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 				if(er != erSuccess)
-					goto exit;
+					return er;
 
 				while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 					if (lpDBRow[0] == nullptr) {
-						er = KCERR_DATABASE_ERROR; // this should never happen
 						ec_log_err("K-1207: Received NULL values from SQL");
-						goto exit;
+						return er = KCERR_DATABASE_ERROR; /* this should never happen */
 					}
 					lstChanges.emplace_back(atoui(lpDBRow[0]));
 				}
@@ -690,13 +672,12 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
                 er = lpDatabase->DoSelect(strQuery, &lpDBResult);
                 if(er != erSuccess)
-                    goto exit;
+					return er;
 
                 while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 					if (lpDBRow[0] == nullptr) {
-                        er = KCERR_DATABASE_ERROR; // this should never happen
 						ec_log_err("K-1208: Received NULL values from SQL");
-                        goto exit;
+						return er = KCERR_DATABASE_ERROR; /* this should never happen */
                     }
 					lstFolderIds.emplace_back(atoui(lpDBRow[0]));
                 }
@@ -709,12 +690,9 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		// We now have both a list of all folders, and and list of changes.
 
 		if(ulChangeId == 0) {
-		    if(ulFolderId == 0 && (ulFlags & SYNC_CATCHUP) == 0) {
+		    if (ulFolderId == 0 && (ulFlags & SYNC_CATCHUP) == 0)
 		        // Do not allow initial sync of all server folders
-		        er = KCERR_NO_SUPPORT;
-		        goto exit;
-            }
-            
+				return er = KCERR_NO_SUPPORT;
 			// New sync, just return all the folders as changes
 			lpChanges = (icsChangesArray *)soap_malloc(soap, sizeof(icsChangesArray));
 			lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * lstFolderIds.size());
@@ -723,12 +701,11 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			strQuery = "SELECT MAX(id) FROM changes";
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 			lpDBRow = lpDBResult.fetch_row();
 			if( lpDBRow == NULL){
-				er = KCERR_DATABASE_ERROR; // this should never happen
 				ec_log_err("K-1209: The \"changes\" table seems to be empty");
-				goto exit;
+				return er = KCERR_DATABASE_ERROR; /* this should never happen */
 			}
 			ulMaxChange = (lpDBRow[0] == NULL ? 0 : atoui(lpDBRow[0]));
 
@@ -747,7 +724,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
                     er = lpDatabase->DoSelect(strQuery, &lpDBResult);
                     if(er != erSuccess)
-                        goto exit;
+						return er;
                     lpDBRow = lpDBResult.fetch_row();
                     lpDBLen = lpDBResult.fetch_row_lengths();
                     if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL)
@@ -782,17 +759,15 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 				if(er != erSuccess)
-					goto exit;
+					return er;
 				lpDBRow = lpDBResult.fetch_row();
 				lpDBLen = lpDBResult.fetch_row_lengths();
 				if (lpDBRow == nullptr) {
 					ec_log_err("K-1210: changes.id %d not found", chg_id);
-					er = KCERR_DATABASE_ERROR;
-					goto exit;
+					return er = KCERR_DATABASE_ERROR;
 				} else if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr || lpDBRow[2] == nullptr || lpDBRow[3] == nullptr) {
-					er = KCERR_DATABASE_ERROR;
 					ec_log_err("K-1211: Received NULL values from SQL");
-					goto exit;
+					return er = KCERR_DATABASE_ERROR;
 				}
 
 				lpChanges->__ptr[i].ulChangeId = atoui(lpDBRow[0]);
@@ -837,20 +812,18 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
             er = lpDatabase->DoSelect(strQuery, &lpDBResult, true);
             if(er != erSuccess)
-                goto exit;
+				return er;
 
 			while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 				lpDBLen = lpDBResult.fetch_row_lengths();
 				if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr || lpDBRow[2] == nullptr || lpDBRow[3] == nullptr) {
-                    er = KCERR_DATABASE_ERROR; // this should never happen
 					ec_log_err("K-1212: Received NULL values from SQL");
-                    goto exit;
+					return er = KCERR_DATABASE_ERROR; /* this should never happen */
                 }
 
 				if (lpDBLen[1] < CbNewABEID("")) {
-                    er = KCERR_DATABASE_ERROR; // this should never happen
 					ec_log_err("K-1213: invalid size for ab entryid %lu", static_cast<unsigned long>(lpDBLen[1]));
-                    goto exit;
+					return er = KCERR_DATABASE_ERROR; /* this should never happen */
 				}
 				lstChanges.emplace_back(atoui(lpDBRow[0]), std::string(lpDBRow[1], lpDBLen[1]), std::string(lpDBRow[2], lpDBLen[2]), atoui(lpDBRow[3]));
 				sUserIds.emplace(reinterpret_cast<ABEID *>(lpDBRow[1])->ulId);
@@ -859,7 +832,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			if (!sUserIds.empty() && ulCompanyId != 0 && (lpSession->GetCapabilities() & KOPANO_CAP_MAX_ABCHANGEID)) {
 				er = FilterUserIdsByCompany(lpDatabase, sUserIds, ulCompanyId, &sUserIds);
 				if (er != erSuccess)
-					goto exit;
+					return er;
 			}
 
 			// We'll reserve enough space for all the changes. We just might not use it all
@@ -902,7 +875,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             strQuery = "SELECT max(id) FROM abchanges";
             er = lpDatabase->DoSelect(strQuery, &lpDBResult);
             if (er != erSuccess)
-                goto exit;
+				return er;
             lpDBRow = lpDBResult.fetch_row();
             if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
                 // You *should* always have something there if you have more than 0 users. However, just to make us compatible with
@@ -922,8 +895,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             
             er = lpDatabase->DoSelect(strQuery, &lpDBResult);
             if (er != erSuccess)
-                goto exit;
-                
+				return er;
             ulChanges = lpDBResult.get_num_rows();
             lpChanges = (icsChangesArray *)soap_malloc(soap, sizeof(icsChangesArray));
             lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * ulChanges);
@@ -944,9 +916,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                     break;
                     
                 if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
-                    er = KCERR_DATABASE_ERROR;
 					ec_log_err("K-1214: Received NULL values from SQL");
-                    goto exit;
+					return er = KCERR_DATABASE_ERROR;
                 }
                 
                 id.id.assign(lpDBRow[2], lpDBLen[2]);
@@ -954,15 +925,14 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                 
                 er = TypeToMAPIType((objectclass_t)atoui(lpDBRow[1]), (ULONG *)&ulType);
                 if(er != erSuccess)
-                    goto exit;
-
+					return er;
                 lpChanges->__ptr[i].ulChangeId = ulMaxChange;
 				er = usrmgt->CreateABEntryID(soap,
                      bAcceptABEID ? 1 : 0, atoui(lpDBRow[0]), ulType, &id,
                      &lpChanges->__ptr[i].sSourceKey.__size,
                      reinterpret_cast<ABEID **>(&lpChanges->__ptr[i].sSourceKey.__ptr));
                 if (er != erSuccess)
-                    goto exit;
+					return er;
                 lpChanges->__ptr[i].sParentSourceKey.__size = sizeof(eid);
                 lpChanges->__ptr[i].sParentSourceKey.__ptr = s_alloc<unsigned char>(soap, sizeof(eid));
                 memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, &eid, sizeof(eid));
@@ -976,12 +946,9 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 	er = lpDatabase->Commit();
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	*lpulMaxChangeId = ulMaxChange;
 	*lppChanges = lpChanges;
-
-exit:
 	return er;
 }
 

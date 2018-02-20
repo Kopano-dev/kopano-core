@@ -980,21 +980,21 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	er = lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::Search() GetDatabase failed: 0x%x", er);
-		goto exit;
+		return er;
 	}
 
     // Get target folders
 	er = cache->GetEntryListToObjectList(lpSearchCrit->lpFolders, &lstFolders);
 	if (er != erSuccess) {
 		ec_log_crit("ECSearchFolders::Search() GetEntryListToObjectList failed: 0x%x", er);
-		goto exit;
+		return er;
 	}
     
     // Reset search results in database
     er = ResetResults(ulFolderId);
 	if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::Search() ResetResults failed: 0x%x", er);
-		goto exit;
+		return er;
 	}
 
 	// Expand target folders if recursive
@@ -1016,7 +1016,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	// Check if we can use indexed search
 	er = m_lpSessionManager->GetServerGUID(&guidServer);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 	
 	if (GetIndexerResults(lpDatabase, m_lpSessionManager->GetConfig(), cache,
 	    &guidServer, &guidStore, lstFolders, lpSearchCrit->lpRestrict,
@@ -1026,21 +1026,21 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 		er = lpDatabase->DoInsert(strQuery);
 		if(er != erSuccess) {
 			ec_log_err("ECSearchFolders::Search(): could not add suggestion");
-			goto exit;
+			return er;
 		}
 
 		// Get the additional restriction properties ready
 		er = ECGenericObjectTable::GetRestrictPropTags(lpAdditionalRestrict, &lstPrefix, &lpPropTags);
 		if(er != erSuccess) {
 			ec_log_err("ECSearchFolders::Search() ECGenericObjectTable::GetRestrictPropTags failed: 0x%x", er);
-			goto exit;
+			return er;
 		}
 
         // Since an indexed search should be fast, do the entire query as a single transaction, and notify after Commit()
 		er = lpDatabase->Begin();
 		if (er != erSuccess) {
 			ec_log_err("ECSearchFolders::Search() database begin failed: 0x%x", er);
-			goto exit;
+			return er;
 		}
 
         auto iterResults = lstIndexerResults.cbegin();
@@ -1063,14 +1063,14 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
             er = ProcessCandidateRows(lpDatabase, lpSession, lpAdditionalRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, locale);
             if (er != erSuccess) {
 			ec_log_err("ECSearchFolders::Search() ProcessCandidateRows failed: 0x%x", er);
-			goto exit;
+				return er;
         }            
         }            
 		
 		er = lpDatabase->Commit();
 		if (er != erSuccess) {
 			ec_log_err("ECSearchFolders::Search() database commit failed: 0x%x", er);
-			goto exit;
+			return er;
 		}
 
 		// Notify the search folder and his parent
@@ -1089,7 +1089,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 		er = ECGenericObjectTable::GetRestrictPropTags(lpSearchCrit->lpRestrict, &lstPrefix, &lpPropTags);
 		if(er != erSuccess) {
 			ec_log_err("ECSearchFolders::Search() ECGenericObjectTable::GetRestrictPropTags failed: 0x%x", er);
-			goto exit;
+			return er;
 		}
 
 		// If we needn't notify, we don't need to commit each message before notifying, so Begin() here
@@ -1140,7 +1140,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 
 				if (er != erSuccess) {
 					ec_log_err("ECSearchFolders::Search() ProcessCandidateRows failed: 0x%x", er);
-					goto exit;
+					return er;
 				}
 			}
 		}
@@ -1154,9 +1154,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
     
     // Save this information in the database.
     SetStatus(ulFolderId, EC_SEARCHFOLDER_STATUS_RUNNING);
-    
-exit:
-    return er;
+    return erSuccess;
 }
 
 // Return whether we are stopped (no entry found), active (no thread found), or rebuilding (thread active)
@@ -1251,41 +1249,39 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulFolderId)
 	er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
 	if (er != erSuccess) {
 		ec_log_err("ECSearchFolders::ResetResults(): SELECT failed 0x%x", er);
-		goto exit;
+		return er;
 	}
         
     strQuery = "DELETE FROM searchresults WHERE folderid = " + stringify(ulFolderId);
     er = lpDatabase->DoDelete(strQuery);
     if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::ResetResults(): DELETE failed 0x%x", er);
-		goto exit;
+		return er;
 	}
         
 	strQuery = "UPDATE properties SET val_ulong = 0 WHERE hierarchyid = " + stringify(ulFolderId) + " AND tag IN(" + stringify(PROP_ID(PR_CONTENT_COUNT)) + "," + stringify(PROP_ID(PR_CONTENT_UNREAD)) + ") AND type = " + stringify(PROP_TYPE(PR_CONTENT_COUNT));
 	er = lpDatabase->DoUpdate(strQuery);
 	if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::ResetResults(): DoUpdate failed 0x%x", er);
-		goto exit;
+		return er;
 	}
 
 	er = UpdateTProp(lpDatabase, PR_CONTENT_COUNT, ulParentId, ulFolderId);
 	if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::ResetResults(): UpdateTProp failed(1) 0x%x", er);
-		goto exit;		
+		return er;
 	}
 		
 	er = UpdateTProp(lpDatabase, PR_CONTENT_UNREAD, ulParentId, ulFolderId);
 	if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::ResetResults(): UpdateTProp failed(2) 0x%x", er);
-		goto exit;
+		return er;
 	}
 	
 	er = lpDatabase->Commit();
 	if (er != erSuccess)
 		ec_log_err("ECSearchFolders::ResetResults(): database commit failed 0x%x", er);
-		
-exit:
-    return er;
+	return erSuccess;
 }
 
 // Add a single search result message (eg one match in a search folder)
@@ -1582,15 +1578,13 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulFolderId, struct sea
 	er = SaveSearchCriteria(lpDatabase, ulFolderId, lpSearchCriteria);
 	if(er != hrSuccess) {
 		ec_log_err("ECSearchFolders::SaveSearchCriteria(): SaveSearchCriteria failed 0x%x", er);
-		goto exit;
+		return er;
 	}
 
 	er = lpDatabase->Commit();
 	if (er != hrSuccess)
 		ec_log_err("ECSearchFolders::SaveSearchCriteria(): commit failed 0x%x", er);
-
-exit:
-    return er;
+	return erSuccess;
 }
 
 // Serialize and save the search criteria for a certain folder. The property is saved as a PR_EC_SEARCHCRIT property
