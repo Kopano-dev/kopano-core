@@ -41,6 +41,8 @@
 #include <edkmdb.h>
 #include "logontime.hpp"
 
+using namespace KC::chrono_literals;
+
 namespace KC {
 
 ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
@@ -676,8 +678,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 			l_exit.unlock();
 			break;
 		}
-		if (lpSessionManager->m_hExitSignal.wait_for(l_exit,
-		    std::chrono::seconds(5)) != std::cv_status::timeout)
+		if (lpSessionManager->m_hExitSignal.wait_for(l_exit, 5s) != std::cv_status::timeout)
 			break;
 	}
 	return NULL;

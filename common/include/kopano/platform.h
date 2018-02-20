@@ -194,6 +194,19 @@ typedef std::lock_guard<std::recursive_mutex> scoped_rlock;
 typedef std::unique_lock<std::mutex> ulock_normal;
 typedef std::unique_lock<std::recursive_mutex> ulock_rec;
 
+namespace chrono_literals {
+
+#if __cplusplus >= 201400L
+using namespace std::chrono_literals;
+#else
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wliteral-suffix"
+static constexpr inline std::chrono::seconds operator""s(unsigned long long x) { return std::chrono::seconds{x}; }
+#	pragma GCC diagnostic pop
+#endif
+
+}
+
 namespace string_literals {
 
 #if __cplusplus >= 201400L

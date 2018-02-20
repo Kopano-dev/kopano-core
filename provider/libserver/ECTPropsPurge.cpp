@@ -27,6 +27,8 @@
 
 #include "ECTPropsPurge.h"
 
+using namespace KC::chrono_literals;
+
 namespace KC {
 
 extern ECStatsCollector*     g_lpStatsCollector;
@@ -100,7 +102,7 @@ ECRESULT ECTPropsPurge::PurgeThread()
             
 			if (m_bExit)
 				break;
-			m_hCondExit.wait_for(l_exit, std::chrono::seconds(10));
+			m_hCondExit.wait_for(l_exit, 10s);
 			if (m_bExit)
 				break;
         }
