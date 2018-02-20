@@ -288,6 +288,7 @@ class UserResource(Resource):
             # TODO save in sent items?
             self.create_message(store.outbox, fields['message'],
                 MessageResource.set_fields).send()
+            resp.status = falcon.HTTP_202
 
         elif method == 'contacts':
             item = self.create_message(store.contacts, fields,
