@@ -923,9 +923,9 @@ AM_DISTCHECK_CONFIGURE_FLAGS = --with-dcprefix='$${prefix}'
 source-moved-check:
 	@${top_srcdir}/pwdcheck.sh "${abs_top_builddir}"
 
-version:
-	echo "@PACKAGE_VERSION@" >version
+.version:
+	echo "@PACKAGE_VERSION@" >$@
 
-common/include/kopano/ecversion.h: version versionheader.sh
+common/include/kopano/ecversion.h: .version versionheader.sh
 	${MKDIR_P} common/include/kopano
 	sh ${top_srcdir}/versionheader.sh >$@
