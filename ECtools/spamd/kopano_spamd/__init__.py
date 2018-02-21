@@ -15,6 +15,8 @@ kopano-spamd - ICS driven spam learning daemon for Kopano / SpamAssasin
 CONFIG = {
     'spam_dir': Config.string(default="/var/lib/kopano/spamd/spam"),
     'sa_group': Config.string(default="amavis")
+    'run_as_user': Config.string(default="kopano"),
+    'run_as_group': Config.string(default="kopano"),
 }
 
 
