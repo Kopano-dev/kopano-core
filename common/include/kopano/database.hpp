@@ -78,8 +78,8 @@ class kt_completion {
 /**
  * kd_trans is an explicit variable wrapper around a database transaction.
  * The transaction's scope is bounded by the scope of a certain kd_trans.
- * Essentially, this gives the programmer an implicit rollback whenever
- * a kd_trans did not have commit() called.
+ * Essentially, this gives the programmer an implicit commit/rollback,
+ * depending on whether the ECRESULT was erSuccess at the time of ~kd_trans.
  */
 class _kc_export kd_trans final {
 	public:
