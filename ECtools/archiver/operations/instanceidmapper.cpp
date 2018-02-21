@@ -132,15 +132,11 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 	std::string strQuery;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
-	auto cleanup = make_scope_success([&]() {
-		if (er != erSuccess)
-			m_ptrDatabase->Rollback();
-	});
 
 	if (cbSourceInstanceID == 0 || lpSourceInstanceID == nullptr ||
 	    cbDestInstanceID == 0 || lpDestInstanceID == nullptr)
 		return kcerr_to_mapierr(er = KCERR_INVALID_PARAMETER);
-	er = m_ptrDatabase->Begin();
+	auto dtx = m_ptrDatabase->Begin(er);
 	if (er != erSuccess)
 		return kcerr_to_mapierr(er);
 	// Make sure the server entries exist.
@@ -173,7 +169,7 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 	er = m_ptrDatabase->DoInsert(strQuery, NULL, NULL);
 	if (er != erSuccess)
 		return kcerr_to_mapierr(er);
-	return m_ptrDatabase->Commit();
+	return dtx.commit();
 }
 
 }} /* namespace */

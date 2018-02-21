@@ -616,8 +616,6 @@ static ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession,
 	return erSuccess;
 }
 
-// exception: This function does internal Begin + Commit/Rollback
-static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lplObjectIds, unsigned int ulDestFolderId, unsigned int ulSyncId);
 // these functions don't do Begin + Commit/Rollback
 static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, struct saveObject *lpsSaveObj, unsigned int ulObjId, bool fNewItem, unsigned int ulSyncId, struct saveObject *lpsReturnObj, bool *lpfHaveChangeKey, FILETIME *ftCreated, FILETIME *ftModified);
 static ECRESULT DoNotifySubscribe(ECSession *lpecSession, unsigned long long ulSessionId, struct notifySubscribe *notifySubscribe);
@@ -2684,7 +2682,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 	auto atx = lpAttachmentStorage->Begin(er);
 	if (er != erSuccess)
 		return er;
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
 
@@ -2900,8 +2898,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 	er = atx.commit();
 	if (er != erSuccess)
 		return er;
-
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != erSuccess)
 		return er;
 
@@ -3065,13 +3062,11 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, const entryId &sEntryId,
 	USE_DATABASE();
 
 	struct saveObject sSavedObject;
-
-	er = BeginLockFolders(lpDatabase, EntryId(sEntryId), LOCK_SHARED);
+	kd_trans dtx;
+	er = BeginLockFolders(lpDatabase, EntryId(sEntryId), LOCK_SHARED, dtx, er);
 	if(er != erSuccess)
 		return er;
-
-	auto laters = make_scope_success([&]() { lpDatabase->Commit(); });
-
+	auto laters = make_scope_success([&]() { dtx.commit(); });
 	/*
 	 * 2 Reasons to send KCERR_UNABLE_TO_COMPLETE (and have the client try to open the store elsewhere):
 	 *  1. We can't find the object based on the entryid.
@@ -3437,8 +3432,7 @@ SOAP_ENTRY_START(createFolder, lpsResponse->er, const entryId &sParentId,
 	// Fixup the input strings
 	szName = STRIN_FIX(szName);
 	szComment = STRIN_FIX(szComment);
-
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
 
@@ -3451,8 +3445,7 @@ SOAP_ENTRY_START(createFolder, lpsResponse->er, const entryId &sParentId,
 	er = CreateFolder(lpecSession, lpDatabase, ulParentId, lpsNewEntryId, ulType, szName, szComment, fOpenIfExists, true, ulSyncId, &sOrigSourceKey, &ulFolderId, NULL);
 	if (er != erSuccess)
 		return er;
-
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != erSuccess)
 		return er;
 
@@ -4397,7 +4390,7 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 		lpsResponse->lpsPropTags.__size = lpsNamedProps->__size;
 		return erSuccess;
 	}
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
 
@@ -4433,7 +4426,7 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 		lpsResponse->lpsPropTags.__ptr[i] = ulLastId+1; // offset one because 0 is 'not found'
 	}
 
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != erSuccess)
 		return er;
 	// Everything is done, now set the size
@@ -4526,13 +4519,9 @@ SOAP_ENTRY_START(setReceiveFolder, *result, const entryId &sStoreId,
 	USE_DATABASE();
 
 	lpszMessageClass = STRIN_FIX(lpszMessageClass);
-
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
-
-	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
-
 	// Check, lpsEntryId and lpszMessageClass can't both be empty or 0
 	if (lpsEntryId == NULL && (lpszMessageClass == NULL || *lpszMessageClass == '\0'))
 		return KCERR_INVALID_TYPE;
@@ -4630,8 +4619,7 @@ SOAP_ENTRY_START(setReceiveFolder, *result, const entryId &sStoreId,
 
 	if(er != erSuccess)
 		return er;
-
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != erSuccess)
 		return er;
 }
@@ -4701,12 +4689,9 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	if (ulFlagsRemove == 0 && ulFlagsAdd == 0)
 		// Nothing to update
 		return er;
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
-
-	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
-
 	if(lpMessageList == NULL) {
 	    // No message list passed, so 'mark all items (un)read'
         er = lpecSession->GetObjectFromEntryId(lpsEntryId, &ulFolderId);
@@ -4746,7 +4731,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	} else {
 		if(lHierarchyIDs.empty()) {
 			// Nothing to do
-			lpDatabase->Commit();
+			dtx.commit();
 			return er;
 		}
 		
@@ -4801,7 +4786,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	
 	// Check if there is anything to do
 	if(lObjectIds.empty()) {
-		lpDatabase->Commit();
+		dtx.commit();
 		return er;
 	}
 
@@ -4874,7 +4859,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 			return er;
 	}
 	
-	er = lpDatabase->Commit();
+	er = dtx.commit();
     if(er != erSuccess)
 	    return er;
 
@@ -5373,8 +5358,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 	}
 
 	ec_log_info("Started to create store (userid=%d, type=%d)", ulUserId, ulStoreType);
-
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
 	// Check permission
@@ -5499,7 +5483,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 			return er;
 	}
 
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != erSuccess)
 		return er;
 	ec_log_info("Finished create store (userid=%d, storeid=%d, type=%d)", ulUserId, ulStoreId, ulStoreType);
@@ -6336,11 +6320,9 @@ SOAP_ENTRY_START(submitMessage, *result, const entryId &sEntryId,
 		return er;
 	if (QuotaStatus == QUOTA_SOFTLIMIT || QuotaStatus == QUOTA_HARDLIMIT)
 		return KCERR_STORE_FULL;
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if(er != erSuccess)
 		return er;
-
-	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
 
 	// Set PR_MESSAGE_FLAGS to MSGFLAG_SUBMIT|MSGFLAG_UNSENT
 	if(!(ulFlags & EC_SUBMIT_MASTER)) {
@@ -6370,8 +6352,7 @@ SOAP_ENTRY_START(submitMessage, *result, const entryId &sEntryId,
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		return er;
-
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if(er != erSuccess)
 		return er;
 
@@ -6406,11 +6387,9 @@ SOAP_ENTRY_START(finishedMessage, *result, const entryId &sEntryId,
 	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
 
 	USE_DATABASE();
-
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if(er != erSuccess)
 		return er;
-	auto cleanup = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulObjId);
 	if(er != erSuccess)
 		return er;
@@ -6497,7 +6476,7 @@ table:
 	er = lpDatabase->DoDelete(strQuery, &ulAffectedRows);
 	if(er != erSuccess)
 		return er;
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if(er != erSuccess)
 		return er;
 	// Remove messge from the outgoing queue
@@ -6551,12 +6530,9 @@ SOAP_ENTRY_START(abortSubmit, *result, const entryId &sEntryId,
 	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulObjId, &ulStoreId, NULL);
 	if(er != erSuccess)
 		return er;
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if(er != erSuccess)
 		return er;
-
-	auto laters = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
-
 	// Get storeid and check if the message into the queue
 	strQuery = "SELECT store_id, flags FROM outgoingqueue WHERE hierarchy_id="+stringify(ulObjId) + " LIMIT 2";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -6596,8 +6572,7 @@ SOAP_ENTRY_START(abortSubmit, *result, const entryId &sEntryId,
 	GetSourceKey(ulParentId, &sParentSourceKey);
 
 	AddChange(lpecSession, 0, sSourceKey, sParentSourceKey, ICS_MESSAGE_CHANGE);
-    
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if(er != erSuccess)
 		return er;
 
@@ -6802,11 +6777,11 @@ struct COPYITEM {
 };
 
 // Move one or more messages and/or moved a softdeleted message to a normal message
+// exception: This function does internal Begin + Commit/Rollback
 static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
-    ECListInt* lplObjectIds, unsigned int ulDestFolderId,
-    unsigned int ulSyncId)
+    kd_trans &dtx, ECRESULT &er, ECListInt *lplObjectIds,
+    unsigned int ulDestFolderId, unsigned int ulSyncId)
 {
-	ECRESULT		er = erSuccess;
 	bool			bPartialCompletion = false;
 	unsigned int	ulGrandParent = 0;
 	COPYITEM		sItem;
@@ -7166,7 +7141,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 			cop.sNewEntryId.size(), cop.sNewEntryId, cop.ulId);
 	}
     
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != erSuccess) {
 		ec_log_debug("MoveObjects: database commit failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		return er;
@@ -7280,10 +7255,8 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 
 	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
 	std::unique_ptr<ECAttachmentStorage> lpInternalAttachmentStorage;
-	kd_trans atx;
+	kd_trans atx, dtx;
 	auto cleanup = make_scope_success([&]() {
-		if (er != erSuccess)
-			lpDatabase->Rollback();
 		if (lpsNewEntryId != nullptr)
 			FreeEntryId(lpsNewEntryId, true);
 	});
@@ -7338,8 +7311,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 				ec_log_err("CopyObject: starting transaction in attachment storage failed: %s (%x)", GetMAPIErrorMessage(er), er);
 				return er;
 			}
-
-			er = lpDatabase->Begin();
+			dtx = lpDatabase->Begin(er);
 			if (er != erSuccess) {
 				ec_log_err("CopyObject: starting transaction in database failed: %s (%x)", GetMAPIErrorMessage(er), er);
 				return er;
@@ -7547,8 +7519,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 				ec_log_err("CopyObject: attachmentstorage commit failed: %s (%x)", GetMAPIErrorMessage(er), er);
 				return er;
 			}
-
-			er = lpDatabase->Commit();
+			er = dtx.commit();
 			if (er != erSuccess) {
 				ec_log_err("CopyObject: database commit failed: %s (%x)", GetMAPIErrorMessage(er), er);
 				return er;
@@ -7654,13 +7625,7 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		ec_log_err("CopyFolderObjects: Begin() on attachment storage failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		return er;
 	}
-	auto cleanup = make_scope_success([&]() {
-		if (lpDatabase != nullptr && er != erSuccess && er != KCWARN_PARTIAL_COMPLETION) {
-			lpDatabase->Rollback();
-			atx.rollback();
-		}
-	});
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: Begin() on database failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		return er;
@@ -7775,8 +7740,7 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		ec_log_err("CopyFolderObjects: ECTPropsPurge::AddDeferredUpdate failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		return er;
 	}
-
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: database commit failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		return er;
@@ -7856,9 +7820,6 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
 	USE_DATABASE();
 
 	const EntryId dstEntryId(&sDestFolderId);
-
-	auto laters = make_scope_success([&]() { lpDatabase->Commit(); });
-
 	if(aMessages == NULL) {
 		ec_log_err("SOAP::copyObjects: list of messages (entryList) missing");
 		return KCERR_INVALID_PARAMETER;
@@ -7867,12 +7828,13 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
 	for (unsigned int i = 0; i < aMessages->__size; ++i)
 		setEntryIds.emplace(aMessages->__ptr[i]);
 	setEntryIds.emplace(sDestFolderId);
-	er = BeginLockFolders(lpDatabase, setEntryIds, LOCK_EXCLUSIVE);
+	kd_trans dtx;
+	er = BeginLockFolders(lpDatabase, setEntryIds, LOCK_EXCLUSIVE, dtx, er);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyObjects: failed locking folders: %s (%x)", GetMAPIErrorMessage(er), er);
 		return er;
 	}
-
+	auto cleanup = make_scope_success([&]() { dtx.commit(); });
 	er = lpecSession->GetObjectFromEntryId(&sDestFolderId, &ulDestFolderId);
 	if (er != erSuccess) {
 		std::string dstEntryIdStr = dstEntryId;
@@ -7894,7 +7856,7 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
 
 	//check copy or a move
 	if(ulFlags & FOLDER_MOVE ) { // A move
-		er = MoveObjects(lpecSession, lpDatabase, &lObjectIds, ulDestFolderId, ulSyncId);
+		er = MoveObjects(lpecSession, lpDatabase, dtx, er, &lObjectIds, ulDestFolderId, ulSyncId);
 		if (er != erSuccess) {
 			ec_log_err("SOAP::copyObjects: MoveObjects failed: %s (%x)", GetMAPIErrorMessage(er), er);
 			return er;
@@ -8128,7 +8090,7 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 
 	// Get grandParent of the old folder
 	gcache->GetParent(ulOldParent, &ulOldGrandParent);
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyFolder(): cannot start transaction: %s (%x)", GetMAPIErrorMessage(er), er);
 		return er;
@@ -8138,13 +8100,12 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	// FIXME update modtime
 	strQuery = "UPDATE hierarchy SET parent="+stringify(ulDestFolderId)+", flags=flags&"+stringify(~MSGFLAG_DELETED)+" WHERE id="+stringify(ulFolderId);
 	if ((er = lpDatabase->DoUpdate(strQuery, &ulAffRows)) != erSuccess) {
-		lpDatabase->Rollback();
 		ec_log_err("SOAP::copyFolder(): update of modification time failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		return KCERR_DATABASE_ERROR;
 	}
 
 	if(ulAffRows != 1) {
-	    lpDatabase->Rollback();
+		dtx.rollback();
 		ec_log_err("SOAP::copyFolder(): unexpected number of affected rows (expected: 1, got: %u)", ulAffRows);
 		return KCERR_DATABASE_ERROR;
 	}
@@ -8154,7 +8115,6 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	strQuery = "UPDATE properties SET val_string = '" + lpDatabase->Escape(lpszNewFolderName) + "' WHERE tag=" + stringify(KOPANO_TAG_DISPLAY_NAME) + " AND hierarchyid="+stringify(ulFolderId) + " AND type=" + stringify(PT_STRING8);
 	if ((er = lpDatabase->DoUpdate(strQuery, &ulAffRows)) != erSuccess) {
 		ec_log_err("SOAP::copyFolder(): actual move of folder %s failed: %s (%x)", lpszNewFolderName, GetMAPIErrorMessage(er), er);
-		lpDatabase->Rollback();
 		return KCERR_DATABASE_ERROR;
 	}
 
@@ -8163,7 +8123,6 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	er = lpDatabase->DoDelete(strQuery);
 	if (er != erSuccess) {
 		ec_log_err("SOAP::copyFolder(): cannot remove PR_DELETED_ON property for %u: %s (%x)", ulFolderId, GetMAPIErrorMessage(er), er);
-		lpDatabase->Rollback();
 		return KCERR_DATABASE_ERROR;
 	}
 
@@ -8210,10 +8169,9 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 		ec_log_err("SOAP::copyFolder(): ECTPropsPurge::AddDeferredUpdate failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		return er;
 	}
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if(er != erSuccess) {
 		ec_log_err("SOAP::copyFolder(): database commit failed: %s (%x)", GetMAPIErrorMessage(er), er);
-		lpDatabase->Rollback();
 		return er;
 	}
 
@@ -8356,7 +8314,7 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType,
 		return er;
 	if (ulUserId == 0 || ulUserId == KOPANO_UID_SYSTEM || !ECSTORE_TYPE_ISVALID(ulStoreType))
 		return KCERR_INVALID_PARAMETER;
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
 
@@ -8382,7 +8340,7 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType,
 		ec_log_err("unhookStore(): more than expected");
 		return er = KCERR_COLLISION;
 	}
-	return lpDatabase->Commit();
+	return dtx.commit();
 }
 SOAP_ENTRY_END()
 
@@ -8445,7 +8403,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType,
 	// lpDBRow[2] is the old user id, which is now orphaned. We'll use this id to make the other store orphaned, so we "trade" user IDs.
 
 	// update user with new store id
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
 	// remove previous user of store
@@ -8484,8 +8442,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType,
 		ec_log_err("hookStore(): owned by multiple users (3)");
 		return er = KCERR_COLLISION;
 	}
-
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != erSuccess)
 		return er;
 	// remove store cache item
@@ -8560,7 +8517,7 @@ SOAP_ENTRY_START(removeStore, *result,
 	if (er != erSuccess)
 		return er;
 	ec_log_info("Started to remove store (%s) with storename \"%s\"", bin2hex(lpDBLen[1], lpDBRow[1]).c_str(), lpDBRow[4]);
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if(er != hrSuccess)
 		return er;
 	// Soft delete store
@@ -8583,8 +8540,7 @@ SOAP_ENTRY_START(removeStore, *result,
 	if(er != erSuccess)
 		return er;
 	// TODO: acl cache!
-
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if(er != erSuccess)
 		return er;
 	ec_log_info("Finished remove store (%s)", bin2hex(lpDBLen[1], lpDBRow[1]).c_str());
@@ -9237,10 +9193,9 @@ SOAP_ENTRY_START(setMessageStatus, lpsOldStatus->er, const entryId &sEntryId,
 	er = lpecSession->GetSecurity()->CheckPermission(ulId, ecSecurityEdit);
 	if(er != erSuccess)
 		return er;
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if(er != erSuccess)
 		return er;
-	auto cleanup = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
 	er = g_lpSessionManager->GetCacheManager()->GetObject(ulId, &ulParent, NULL, &ulObjFlags);
 	if(er != erSuccess)
 		return er;
@@ -9285,8 +9240,7 @@ SOAP_ENTRY_START(setMessageStatus, lpsOldStatus->er, const entryId &sEntryId,
 	GetSourceKey(ulParent, &sParentSourceKey);
 
 	AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey, ICS_MESSAGE_CHANGE);
-
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if(er != erSuccess)
 		return er;
 
@@ -9323,11 +9277,9 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er,
 	SOURCEKEY		sSourceKey(sSourceKeyFolder.__size, (char *)sSourceKeyFolder.__ptr);
 	unsigned int	ulFolderId = 0, dummy = 0;
 	USE_DATABASE();
-
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
-	auto cleanup = make_scope_success([&]() { ROLLBACK_ON_ERROR(); });
     if(sSourceKey.size()) {
     	er = g_lpSessionManager->GetCacheManager()->GetObjectFromProp(PROP_ID(PR_SOURCE_KEY), sSourceKey.size(), sSourceKey, &ulFolderId);
     	if(er != erSuccess)
@@ -9356,7 +9308,7 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er,
 		strQuery = "INSERT INTO syncs (change_id, sourcekey, sync_type, sync_time) VALUES (1, " + lpDatabase->EscapeBinary(sSourceKey) + ", '" + stringify(ulChangeType) + "', FROM_UNIXTIME(" + stringify(time(nullptr)) + "))";
 		er = lpDatabase->DoInsert(strQuery, &ulSyncId);
 		if (er == erSuccess) {
-			er = lpDatabase->Commit();
+			er = dtx.commit();
 			lpsResponse->ulSyncId = ulSyncId;
 		}
 		return er;
@@ -9390,7 +9342,7 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er,
 	er = lpDatabase->DoUpdate(strQuery);
 	if(er != erSuccess)
 		return er;
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != erSuccess)
 		return er;
 	lpsResponse->ulSyncId = ulSyncId;
@@ -9413,10 +9365,11 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er,
 	EID				eid;
 	
 	USE_DATABASE();
-	auto cleanup = make_scope_success([&]() { lpDatabase->Commit(); });
-	er = BeginLockFolders(lpDatabase, SOURCEKEY(folderSourceKey), LOCK_SHARED);
+	kd_trans dtx;
+	er = BeginLockFolders(lpDatabase, SOURCEKEY(folderSourceKey), LOCK_SHARED, dtx, er);
 	if(er != erSuccess)
 		return er;
+	auto cleanup = make_scope_success([&]() { dtx.commit(); });
 	er = lpecSession->GetObjectFromEntryId(&sStoreId, &ulStoreId);
 	if(er != erSuccess)
 		return er;
@@ -9761,24 +9714,25 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 	auto sec = lpecSession->GetSecurity();
 	std::shared_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	USE_DATABASE();
+	kd_trans dtx;
 
 	if(ulPropTag == PR_ENTRYID) {
 		std::set<EntryId>	setEntryIDs;
 
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
 			setEntryIDs.emplace(sSourceKeyPairs.__ptr[i].sObjectKey);
-    	er = BeginLockFolders(lpDatabase, setEntryIDs, LOCK_SHARED);
+		er = BeginLockFolders(lpDatabase, setEntryIDs, LOCK_SHARED, dtx, er);
 	} else if (ulPropTag == PR_SOURCE_KEY) {
 		std::set<SOURCEKEY> setParentSourcekeys;
 
 	for (gsoap_size_t i = 0; i < sSourceKeyPairs.__size; ++i)
 			setParentSourcekeys.emplace(sSourceKeyPairs.__ptr[i].sParentKey);
-    	er = BeginLockFolders(lpDatabase, setParentSourcekeys, LOCK_SHARED);
+		er = BeginLockFolders(lpDatabase, setParentSourcekeys, LOCK_SHARED, dtx, er);
     } else
 		er = KCERR_INVALID_PARAMETER;
 
 	auto cleanup = make_scope_success([&]() {
-		lpDatabase->Commit();
+		dtx.commit();
 		if (er != erSuccess)
 			/* Do not output any streams */
 			lpsResponse->sMsgStreams.__size = 0;
@@ -10061,7 +10015,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 	auto atx = lpAttachmentStorage->Begin(er);
 	if (er != erSuccess)
 		return er;
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
 	// Get the parent object id.
@@ -10257,7 +10211,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 	er = atx.commit();
 	if (er != erSuccess)
 		return er;
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != erSuccess)
 		return er;
 

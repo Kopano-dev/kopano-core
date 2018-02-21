@@ -471,8 +471,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 			if (folder.second->lpSearchCriteria->lpFolders == NULL ||
 			    folder.second->lpSearchCriteria->lpRestrict == NULL)
 				continue;
-				
-			er = lpDatabase->Begin();
+			auto dtx = lpDatabase->Begin(er);
 			if (er != erSuccess)
 				goto exit;
 			
@@ -486,7 +485,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					ec_log_err("ECSearchFolders::ProcessMessageChange(): select failed");
 					goto exit;
 				}
-				er = lpDatabase->Rollback();
+				er = dtx.rollback();
 				if (er != erSuccess) {
 					ec_log_crit("ECSearchFolders::ProcessMessageChange(): database rollback failed %d", er);
 					goto exit;
@@ -684,7 +683,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					DB_ERROR dberr = lpDatabase->GetLastError();
 					if (dberr == DB_E_LOCK_WAIT_TIMEOUT || dberr == DB_E_LOCK_DEADLOCK) {
 						ec_log_crit("ECSearchFolders::ProcessMessageChange(): database error(1) %d", dberr);
-						er = lpDatabase->Rollback();
+						er = dtx.rollback();
 						if (er != erSuccess) {
 							ec_log_crit("ECSearchFolders::ProcessMessageChange(): database rollback failed(1) %d", er);
 							goto exit;
@@ -705,12 +704,12 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 				er = erSuccess; // Ignore errors
 			}        
 			
-			er = lpDatabase->Commit();
+			er = dtx.commit();
 			if (er == KCERR_DATABASE_ERROR) {
 				DB_ERROR dberr = lpDatabase->GetLastError();
 				if (dberr == DB_E_LOCK_WAIT_TIMEOUT || dberr == DB_E_LOCK_DEADLOCK) {
 					ec_log_crit("ECSearchFolders::ProcessMessageChange(): database error(2) %d", dberr);
-					er = lpDatabase->Rollback();
+					er = dtx.rollback();
 					if (er != erSuccess) {
 						ec_log_crit("ECSearchFolders::ProcessMessageChange(): database rollback failed(2) %d", er);
 						goto exit;
@@ -756,31 +755,25 @@ ECRESULT ECSearchFolders::ProcessCandidateRowsNotify(ECDatabase *lpDatabase,
 {
 	unsigned int ulParent = 0;
 	auto cache = m_lpSessionManager->GetCacheManager();
-
-	auto er = lpDatabase->Begin();
+	ECRESULT er = erSuccess;
+	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess) {
 		ec_log_err("ECSearchFolders::ProcessCandidateRows() BEGIN failed %d", er);
-		lpDatabase->Rollback();
 		return er;
 	}
 	er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
 	if (er != erSuccess) {
 		ec_log_err("ECSearchFolders::ProcessCandidateRows() SELECT failed %d", er);
-		lpDatabase->Rollback();
 		return er;
 	}
 
 	std::list<unsigned int> lst;
 	er = ProcessCandidateRows(lpDatabase, lpSession, lpRestrict, lpbCancel, ulStoreId, ulFolderId, lpODStore, ecRows, lpPropTags, locale, lst);
-	if (er != erSuccess) {
-		lpDatabase->Rollback();
+	if (er != erSuccess)
 		return er;
-	}
-
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != erSuccess) {
 		ec_log_err("ECSearchFolders::ProcessCandidateRows() DB commit failed %d", er);
-		lpDatabase->Rollback();
 		return er;
 	}
 
@@ -968,8 +961,6 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
         
     lpSession->Lock();
 	auto cleanup = make_scope_success([&]() {
-		if (lpDatabase != nullptr && er != erSuccess)
-			lpDatabase->Rollback();
 		lpSession->Unlock();
 		m_lpSessionManager->RemoveSessionInternal(lpSession);
 		if (lpPropTags != nullptr)
@@ -1037,7 +1028,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 		}
 
         // Since an indexed search should be fast, do the entire query as a single transaction, and notify after Commit()
-		er = lpDatabase->Begin();
+		auto dtx = lpDatabase->Begin(er);
 		if (er != erSuccess) {
 			ec_log_err("ECSearchFolders::Search() database begin failed: 0x%x", er);
 			return er;
@@ -1067,7 +1058,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
         }            
         }            
 		
-		er = lpDatabase->Commit();
+		er = dtx.commit();
 		if (er != erSuccess) {
 			ec_log_err("ECSearchFolders::Search() database commit failed: 0x%x", er);
 			return er;
@@ -1093,8 +1084,9 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 		}
 
 		// If we needn't notify, we don't need to commit each message before notifying, so Begin() here
+		kd_trans dtx;
 		if(!bNotify)
-			lpDatabase->Begin();
+			dtx = lpDatabase->Begin(er);
 
 		// lstFolders now contains all folders to search through
 		for (auto iterFolders = lstFolders.cbegin();
@@ -1148,8 +1140,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 		// Search done
 		// If we needn't notify, we don't need to commit each message before notifying, so Commit() here
 		if(!bNotify)
-			lpDatabase->Commit();
-
+			dtx.commit();
 	} //if(!bUseIndexer)
     
     // Save this information in the database.
@@ -1236,16 +1227,11 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulFolderId)
 		ec_log_crit("ECSearchFolders::ResetResults(): GetThreadLocalDatabase failed 0x%x", er);
 		return er;
 	}
-        
-    er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
     if (er != erSuccess) {
 		ec_log_err("ECSearchFolders::ResetResults(): BEGIN failed 0x%x", er);
 		return er;
 	}
-	auto cleanup = make_scope_success([&]() {
-		if (er != erSuccess)
-			lpDatabase->Rollback();
-	});
 	er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulFolderId) + " FOR UPDATE", NULL);
 	if (er != erSuccess) {
 		ec_log_err("ECSearchFolders::ResetResults(): SELECT failed 0x%x", er);
@@ -1277,8 +1263,7 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulFolderId)
 		ec_log_err("ECSearchFolders::ResetResults(): UpdateTProp failed(2) 0x%x", er);
 		return er;
 	}
-	
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != erSuccess)
 		ec_log_err("ECSearchFolders::ResetResults(): database commit failed 0x%x", er);
 	return erSuccess;
@@ -1565,23 +1550,17 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulFolderId, struct sea
 		ec_log_crit("ECSearchFolders::SaveSearchCriteria(): GetThreadLocalDatabase failed 0x%x", er);
 		return er;
 	}
-  
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if(er != hrSuccess) {
 		ec_log_err("ECSearchFolders::SaveSearchCriteria(): BEGIN failed 0x%x", er);
 		return er;
 	}
-	auto cleanup = make_scope_success([&]() {
-		if (er != erSuccess)
-			lpDatabase->Rollback();
-	});
 	er = SaveSearchCriteria(lpDatabase, ulFolderId, lpSearchCriteria);
 	if(er != hrSuccess) {
 		ec_log_err("ECSearchFolders::SaveSearchCriteria(): SaveSearchCriteria failed 0x%x", er);
 		return er;
 	}
-
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != hrSuccess)
 		ec_log_err("ECSearchFolders::SaveSearchCriteria(): commit failed 0x%x", er);
 	return erSuccess;

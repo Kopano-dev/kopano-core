@@ -528,6 +528,11 @@ ECRESULT KDatabase::I_Update(const std::string &q, unsigned int *aff)
 	return erSuccess;
 }
 
+kd_trans KDatabase::Begin(ECRESULT &res)
+{
+	return Query("BEGIN") == 0 ? kd_trans(*this, res) : kd_trans();
+}
+
 class kd_noop_trans final : public kt_completion {
 	public:
 	ECRESULT Commit() override { return 0; }

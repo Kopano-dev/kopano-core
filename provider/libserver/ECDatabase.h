@@ -34,8 +34,7 @@ public:
 	virtual ~ECDatabase(void);
 	static ECRESULT	InitLibrary(const char *dir, const char *config_file);
 	static void UnloadLibrary(void);
-
-	virtual ECRESULT Begin(void) _kc_override;
+	virtual kd_trans Begin(ECRESULT &) _kc_override;
 	virtual ECRESULT Commit(void) _kc_override;
 	ECRESULT Connect(void);
 	ECRESULT CreateDatabase(void);

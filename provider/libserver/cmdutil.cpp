@@ -613,10 +613,6 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 	
 	std::map<unsigned int, PARENTINFO> mapFolderCounts;
 	int i;
-	auto cleanup = make_scope_success([&]() {
-		if (er != erSuccess && !bNoTransaction)
-			lpDatabase->Rollback();
-	});
 
 	if (!(ulFlags & EC_DELETE_HARD_DELETE))
 		return er = KCERR_INVALID_PARAMETER;
@@ -693,12 +689,12 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 		}
 
 		// Start transaction
-		kd_trans atx;
+		kd_trans atx, dtx;
 		if (!bNoTransaction) {
 			atx = lpAttachmentStorage->Begin(er);
 			if (er != erSuccess)
 				return er;
-			er = lpDatabase->Begin();
+			dtx = lpDatabase->Begin(er);
 			if (er != erSuccess)
 				return er;
 		}
@@ -766,7 +762,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 			er = atx.commit();
 			if (er != erSuccess)
 				return er;
-			er = lpDatabase->Commit();
+			er = dtx.commit();
 			if(er != erSuccess)
 				return er;
 		}
@@ -988,12 +984,7 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 	ECListDeleteItems lstDeleted;
 	ECSearchFolders *lpSearchFolders = NULL;
 	ECSessionManager *lpSessionManager = NULL;
-	auto cleanup = make_scope_success([&]() {
-		if (er != erSuccess && lpDatabase != NULL && !bNoTransaction &&
-		    !(ulFlags & EC_DELETE_HARD_DELETE))
-			lpDatabase->Rollback();
-		FreeDeletedItems(&lstDeleteItems);
-	});
+	auto cleanup = make_scope_success([&]() { FreeDeletedItems(&lstDeleteItems); });
 	
 	if (lpSession == nullptr || lpDatabase == nullptr || lpsObjectList == nullptr)
 		return er = KCERR_INVALID_PARAMETER;
@@ -1011,8 +1002,9 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 		return er = KCERR_INVALID_PARAMETER;
 	}
 
+	kd_trans dtx;
 	if(!(ulFlags & EC_DELETE_HARD_DELETE) && !bNoTransaction) {
-		er = lpDatabase->Begin();
+		dtx = lpDatabase->Begin(er);
 		if (er != erSuccess)
 			return er;
 	}
@@ -1081,7 +1073,7 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 	
 	// Finish transaction
 	if(!(ulFlags & EC_DELETE_HARD_DELETE) && !bNoTransaction) {
-		er = lpDatabase->Commit();
+		er = dtx.commit();
 		if (er != erSuccess)
 			return er;
 	}
@@ -1597,19 +1589,14 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	auto cache = sesmgr->GetCacheManager();
 	ECDatabase *lpDatabase = NULL;
 	auto cleanup = make_scope_success([&]() {
-		if (er != erSuccess) {
-			lpDatabase->Rollback();
-		} else {
-			lpDatabase->Commit();
-			if (lpulUpdates != nullptr)
-				*lpulUpdates = ulAffected;
-		}
+		if (er == erSuccess && lpulUpdates != nullptr)
+			*lpulUpdates = ulAffected;
 	});
 
 	er = lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
 		return er;
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if(er != erSuccess)
 		return er;
 
@@ -1845,7 +1832,8 @@ static ECRESULT LockFolders(ECDatabase *lpDatabase, bool bShared,
 }
 
 static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
-    const std::set<std::string> &setIds, unsigned int ulFlags)
+    const std::set<std::string> &setIds, unsigned int ulFlags, kd_trans &dtx,
+    ECRESULT &dtxerr)
 {
     ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
@@ -1949,10 +1937,10 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     // Query objectid -> parentid for messages
     if (setFolders.empty())
         // No objects found that we can lock, fail.
-        return KCERR_NOT_FOUND;
-    er = lpDatabase->Begin();
-    if(er != erSuccess)
-        return er;
+		return KCERR_NOT_FOUND;
+	dtx = lpDatabase->Begin(dtxerr);
+	if (dtxerr != erSuccess)
+		return dtxerr;
     return LockFolders(lpDatabase, ulFlags & LOCK_SHARED, setFolders);
 }
 
@@ -1962,12 +1950,15 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
  * Sourcekey of folders should be passed in setFolders.
  *
  */
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const std::set<SOURCEKEY>& setFolders, unsigned int ulFlags)
+ECRESULT BeginLockFolders(ECDatabase *lpDatabase,
+    const std::set<SOURCEKEY> &setFolders, unsigned int ulFlags,
+    kd_trans &dtx, ECRESULT &dtxerr)
 {
     std::set<std::string> setIds;
     
     std::copy(setFolders.begin(), setFolders.end(), std::inserter(setIds, setIds.begin()));
-    return BeginLockFolders(lpDatabase, PROP_ID(PR_SOURCE_KEY), setIds, ulFlags);
+	return BeginLockFolders(lpDatabase, PROP_ID(PR_SOURCE_KEY), setIds,
+	       ulFlags, dtx, dtxerr);
 }
 
 /**
@@ -1976,33 +1967,41 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const std::set<SOURCEKEY>& set
  * EntryID of messages and folders to lock can be passed in setEntryIds. In practice, only the folders
  * in which the messages reside are locked.
  */
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const std::set<EntryId>& setEntryIds, unsigned int ulFlags)
+ECRESULT BeginLockFolders(ECDatabase *lpDatabase,
+    const std::set<EntryId> &setEntryIds, unsigned int ulFlags,
+    kd_trans &dtx, ECRESULT &dtxerr)
 {
     std::set<std::string> setIds;
     
     std::copy(setEntryIds.begin(), setEntryIds.end(), std::inserter(setIds, setIds.begin()));
-    return BeginLockFolders(lpDatabase, PROP_ID(PR_ENTRYID), setIds, ulFlags);
+	return BeginLockFolders(lpDatabase, PROP_ID(PR_ENTRYID), setIds,
+	       ulFlags, dtx, dtxerr);
 }
 
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid, unsigned int ulFlags)
+ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid,
+    unsigned int ulFlags, kd_trans &dtx, ECRESULT &dtxerr)
 {
     std::set<EntryId> set;
     
     // No locking needed for stores
 	try {
-		if (entryid.type() == MAPI_STORE)
-			return lpDatabase->Begin();
+		if (entryid.type() == MAPI_STORE) {
+			dtx = lpDatabase->Begin(dtxerr);
+			return dtxerr;
+		}
 	} catch (const std::runtime_error &e) {
 		ec_log_err("entryid.type(): %s\n", e.what());
 		return KCERR_INVALID_PARAMETER;
 	}
 	set.emplace(entryid);
-    return BeginLockFolders(lpDatabase, set, ulFlags);
+    return BeginLockFolders(lpDatabase, set, ulFlags, dtx, dtxerr);
 }
 
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const SOURCEKEY &sourcekey, unsigned int ulFlags)
+ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const SOURCEKEY &sourcekey,
+    unsigned int ulFlags, kd_trans &dtx, ECRESULT &dtxerr)
 {
-	return BeginLockFolders(lpDatabase, std::set<SOURCEKEY>({sourcekey}), ulFlags);
+	return BeginLockFolders(lpDatabase, std::set<SOURCEKEY>({sourcekey}),
+	       ulFlags, dtx, dtxerr);
 }
 
 // Prepares child property data. This can be passed to ReadProps(). This allows the properties of child objects of object ulObjId to be

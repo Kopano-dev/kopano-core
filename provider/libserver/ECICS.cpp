@@ -459,13 +459,9 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	auto er = lpSession->GetDatabase(&lpDatabase);
     if (er != erSuccess)
 		return er;
-    er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
     if (er != erSuccess)
 		return er;
-	auto cleanup = make_scope_success([&]() {
-		if (er != erSuccess)
-			lpDatabase->Rollback();
-	});
 
     // CHeck if the client understands the new ABEID.
 	if (lpSession->GetCapabilities() & KOPANO_CAP_MULTI_SERVER)
@@ -944,12 +940,12 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
         }
 	}
 
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if (er != erSuccess)
 		return er;
 	*lpulMaxChangeId = ulMaxChange;
 	*lppChanges = lpChanges;
-	return er;
+	return erSuccess;
 }
 
 ECRESULT AddABChange(BTSession *lpSession, unsigned int ulChange, SOURCEKEY sSourceKey, SOURCEKEY sParentSourceKey)

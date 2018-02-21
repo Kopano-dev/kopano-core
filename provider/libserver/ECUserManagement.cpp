@@ -2739,14 +2739,9 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 	if(er != erSuccess)
 		return er;
 	bTransaction = true;
-
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if(er != erSuccess)
 		return er;
-	auto cleanup = make_scope_success([&]() {
-		if (bTransaction && er != erSuccess)
-			lpDatabase->Rollback();
-	});
 	/*
 	 * Moving a user to a different company consists of the following tasks:
 	 * 1) Change 'company' column in 'users' table
@@ -2775,7 +2770,7 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 	er = AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
 	if(er != erSuccess)
 		return er;
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if(er != erSuccess)
 		return er;
 	bTransaction = false;
@@ -2799,8 +2794,6 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 			ec_log_info("Auto-deleting %s %d done. Error code 0x%08X", ObjectClassToName(objclass), ulObjectId, er);
 		else
 			ec_log_info("Auto-deleting %s %d done.", ObjectClassToName(objclass), ulObjectId);
-		if (lpDatabase != nullptr && bTransaction && er != erSuccess)
-			lpDatabase->Rollback();
 	});
 	if (IsInternalObject(ulObjectId))
 		return er = KCERR_NO_ACCESS;
@@ -2846,8 +2839,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	}
 
 	bTransaction = true;
-
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if(er != erSuccess)
 		return er;
 	// Request source key before deleting the entry
@@ -2871,7 +2863,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 
 	// Object didn't exist locally, so no delete has occurred
 	if (ulDeletedRows == 0) {
-		er = lpDatabase->Commit();
+		er = dtx.commit();
 		if (er != erSuccess)
 			return er;
 		return cache->UpdateUser(ulObjectId);
@@ -2882,7 +2874,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	er = AddABChange(m_lpSession, ICS_AB_DELETE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
 	if(er != erSuccess)
 		return er;
-	er = lpDatabase->Commit();
+	er = dtx.commit();
 	if(er != erSuccess)
 		return er;
 	bTransaction = false;

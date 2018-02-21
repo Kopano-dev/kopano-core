@@ -136,20 +136,16 @@ ECRESULT ECTPropsPurge::PurgeOverflowDeferred(ECDatabase *lpDatabase)
 			return er;
 		if (ulCount < ulMaxDeferred)
 			break;
-		er = lpDatabase->Begin();
+		auto dtx = lpDatabase->Begin(er);
 		if (er != erSuccess)
 			return er;
 		er = GetLargestFolderId(lpDatabase, &ulFolderId);
-		if (er != erSuccess) {
-			lpDatabase->Rollback();
+		if (er != erSuccess)
 			return er;
-		}
 		er = PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
-		if (er != erSuccess) {
-			lpDatabase->Rollback();
+		if (er != erSuccess)
 			return er;
-		}
-		er = lpDatabase->Commit();
+		er = dtx.commit();
 		if (er != erSuccess)
 			return er;
 	}
