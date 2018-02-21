@@ -7,11 +7,12 @@ if test -z "$acver"; then
 	exit 1
 fi
 version=$(cat version 2>/dev/null)
-if test "${version:0:${#acver}}" != "$acver"; then
+if test -z "$version"; then version="$acver"; fi
+if perl -e 'exit!($ARGV[1]!~/^\Q$ARGV[0]\E\b/)' "$acver" "$version"; then
 	echo "You can only append, not override, the version specified in AC_INIT."
 	exit 1
 fi
-set -- $(sed -e 's/ .*//g;s/[^0-9a-z][^0-9a-z]*/ /g' <version 2>/dev/null)
+set -- $(echo "$version" | sed -e 's/ .*//g;s/[^0-9a-z][^0-9a-z]*/ /g' 2>/dev/null)
 major_version="$1"
 minor_version="$2"
 micro_version="$3"
