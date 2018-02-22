@@ -316,6 +316,14 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		return hr;
 	}
 
+	hr = HrGetOneProp(lpMessage, PR_PRIMARY_TELEPHONE_NUMBER, &~msgprop);
+	if (hr == hrSuccess) {
+		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+		to_prop(node, "TYPE", L"MAIN");
+	} else if (hr != MAPI_E_NOT_FOUND) {
+		return hr;
+	}
+
 	hr = HrGetOneProp(lpMessage, PR_HOME_TELEPHONE_NUMBER, &~msgprop);
 	if (hr == hrSuccess) {
 		auto node = to_prop(root, VCTelephoneProp, *msgprop);
@@ -340,6 +348,41 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		return hr;
 	}
 
+	hr = HrGetOneProp(lpMessage, PR_PAGER_TELEPHONE_NUMBER, &~msgprop);
+	if (hr == hrSuccess) {
+		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+		to_prop(node, "TYPE", L"PAGER");
+	} else if (hr != MAPI_E_NOT_FOUND) {
+		return hr;
+	}
+
+	hr = HrGetOneProp(lpMessage, PR_PRIMARY_FAX_NUMBER, &~msgprop);
+	if (hr == hrSuccess) {
+		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+		to_prop(node, "TYPE", L"MAIN");
+		to_prop(node, "TYPE", L"FAX");
+	} else if (hr != MAPI_E_NOT_FOUND) {
+		return hr;
+	}
+
+	hr = HrGetOneProp(lpMessage, PR_HOME_FAX_NUMBER, &~msgprop);
+	if (hr == hrSuccess) {
+		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+		to_prop(node, "TYPE", L"HOME");
+		to_prop(node, "TYPE", L"FAX");
+	} else if (hr != MAPI_E_NOT_FOUND) {
+		return hr;
+	}
+
+	hr = HrGetOneProp(lpMessage, PR_BUSINESS_FAX_NUMBER, &~msgprop);
+	if (hr == hrSuccess) {
+		auto node = to_prop(root, VCTelephoneProp, *msgprop);
+		to_prop(node, "TYPE", L"WORK");
+		to_prop(node, "TYPE", L"FAX");
+	} else if (hr != MAPI_E_NOT_FOUND) {
+		return hr;
+	}
+
 	hr = add_adr(lpMessage, root);
 	if (hr != hrSuccess)
 		return hr;
@@ -354,6 +397,12 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 
 	hr = add_url(lpMessage, root);
 	if (hr != hrSuccess)
+		return hr;
+
+	hr = HrGetOneProp(lpMessage, PR_BODY, &~msgprop);
+	if (hr == hrSuccess)
+		to_prop(root, "NOTE", *msgprop);
+	else if (hr != MAPI_E_NOT_FOUND)
 		return hr;
 
 	/* Write memobject */
