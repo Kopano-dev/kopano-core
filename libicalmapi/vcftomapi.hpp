@@ -18,6 +18,8 @@ class vcftomapi {
 	protected:
 	IMAPIProp *m_propobj;
 	std::list<SPropValue> props;
+	std::string photo;
+	enum { PHOTO_NONE, PHOTO_JPEG, PHOTO_PNG, PHOTO_GIF } phototype = PHOTO_NONE;
 };
 
 extern _kc_export HRESULT create_vcftomapi(IMAPIProp *, vcftomapi **);
