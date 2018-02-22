@@ -166,10 +166,11 @@ static bool adm_parse_options(int &argc, char **&argv)
 		poptPrintHelp(ctx, stderr, 0);
 		return false;
 	}
-	if (opt_clear_cache != nullptr)
+	if (opt_clear_cache != nullptr) {
 		opt_cache_bits = adm_parse_cache(opt_clear_cache);
-	if (opt_cache_bits == 0)
-		return false;
+		if (opt_cache_bits == 0)
+			return false;
+	}
 	return true;
 }
 
