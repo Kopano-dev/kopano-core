@@ -5,7 +5,6 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
-import codecs
 import struct
 import sys
 import traceback
@@ -160,13 +159,13 @@ class TrackingGABImporter(ECImportAddressbookChanges):
 
     def ImportABChange(self, type_, entryid):
         if hasattr(self.importer, 'update') and type_ == MAPI_MAILUSER:
-            user = self.server.user(userid=codecs.encode(entryid, 'hex'))
+            user = self.server.user(userid=_benc(entryid))
             self.importer.update(user)
 
     def ImportABDeletion(self, type_, entryid):
         if hasattr(self.importer, 'delete') and type_ == MAPI_MAILUSER:
             user = _user.User(server=self.server)
-            user._userid = entryid
+            user._userid = _benc(entryid)
             self.importer.delete(user)
 
     def UpdateState(self, stream):
