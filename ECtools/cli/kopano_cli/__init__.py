@@ -538,6 +538,9 @@ def check_options(options, server):
 
     options.details = False
     updates = [name for name in sum(UPDATE_MATRIX, ()) if getattr(options, name) not in (None, [])]
+
+    if not (actions or updates or objtypes):
+        return False
     if not (actions or updates):
         options.details = True
 
@@ -555,6 +558,8 @@ def check_options(options, server):
             if getattr(options, opt) is not None:
                 raise Exception('%s option requires --company for multitenant setup' % orig_option(opt))
 
+    return True
+
 def main():
     try:
         parser, options, args = parser_opt_args()
@@ -562,7 +567,10 @@ def main():
             raise Exception("extra argument '%s' specified" % args[0])
 
         server = kopano.Server(options)
-        check_options(options, server)
+        got_args = check_options(options, server)
+        if not got_args:
+            parser.print_help()
+            sys.exit(1)
 
         global_options(options, server)
         for c in options.companies:
