@@ -12,7 +12,7 @@ import kopano
 from kopano.parser import _true, _int, _name, _guid, _bool, _list_name, _date, _path
 
 def parser_opt_args():
-    parser = kopano.parser('skpcuGCfVUP')
+    parser = kopano.parser('skpcuGCfVUPS')
     parser.add_option('--debug', help='Debug mode', **_true())
     parser.add_option('--lang', help='Create folders in this language')
     parser.add_option('--create', help='Create object', **_true())
@@ -122,7 +122,7 @@ UPDATE_MATRIX = {
     ('ooo', 'ooo_clear', 'ooo_subject', 'ooo_message', 'ooo_from', 'ooo_until'): ('users',),
     ('add_feature', 'remove_feature', 'add_delegation', 'remove_delegation'): ('users',),
     ('send_only_to_delegates',): ('users',),
-    ('add_permission', 'remove_permission'): ('global', 'companies', 'users'),
+    ('add_permission', 'remove_permission'): ('global', 'companies', 'users', 'stores'),
     ('add_user', 'remove_user'): ('groups',),
     ('quota_override', 'quota_hard', 'quota_soft', 'quota_warn'): ('global', 'companies', 'users'),
     ('create_store', 'unhook_store', 'hook_store'): ('global', 'companies', 'users'),
@@ -139,7 +139,7 @@ else:
         return s.encode(sys.stdout.encoding or 'utf8')
 
 def orig_option(o):
-    OBJ_OPT = {'users': '--user', 'groups': '--group', 'companies': '--company'}
+    OBJ_OPT = {'users': '--user', 'groups': '--group', 'companies': '--company', 'stores': '--store'}
     return OBJ_OPT.get(o) or '--'+o.replace('_', '-')
 
 def yesno(x):
@@ -288,6 +288,12 @@ def company_details(company, server):
         print(fmt.format('Userquota-recipient list:', ', '.join(_encode(u.name) for u in user.quota.recipients() if u.name != 'SYSTEM')))
         print(fmt.format('Companyquota-recipient list:', ', '.join(_encode(u.name) for u in company.quota.recipients() if u.name != 'SYSTEM')))
     list_permissions(company.public_store)
+
+def store_details(store, server):
+    fmt = '{:<30}{:<}'
+    print(fmt.format('GUID:', store.guid))
+    print(fmt.format('Size:', '%.2f MB' % (store.size / 2**20)))
+    list_permissions(store)
 
 def shared_options(obj, options, server):
     if options.name:
@@ -470,8 +476,6 @@ def company_update_options(company, options, server):
     for user in options.remove_companyquota_recipient:
         company.quota.remove_recipient(server.user(user), company=True)
 
-    permission_options(company.public_store, options, server)
-
     for user in company.users(): # there are only server-wide settings
         quota_options(user, options)
 
@@ -494,6 +498,14 @@ def company_options(name, options, server):
 
     if options.delete:
         server.delete(company)
+
+def store_options(name, options, server):
+    store = server.store(name)
+
+    if options.details:
+        store_details(store, server)
+
+    permission_options(store, options, server)
 
 def global_options(options, server):
     if options.lang:
@@ -519,16 +531,14 @@ def global_options(options, server):
     if options.user_count:
         user_counts(server)
 
-    if not (options.companies or options.groups or options.users):
-        companies = list(server.companies(parse=False))
-        for i, company in enumerate(companies):
-            company_overview_options(company, options, server)
-            if i < len(companies)-1:
-                print
-        company_update_options(server.company('Default'), options, server)
+    if (not server.multitenant and \
+        not (options.companies or options.groups or options.users or options.stores)):
+        company = server.company('Default')
+        company_overview_options(company, options, server)
+        company_update_options(company, options, server)
 
-def check_options(options, server):
-    objtypes = [name for name in ('companies', 'groups', 'users') if getattr(options, name)]
+def check_options(parser, options, server):
+    objtypes = [name for name in ('companies', 'groups', 'users', 'stores') if getattr(options, name)]
     if len(objtypes) > 1:
         raise Exception('cannot combine options: %s' % ', '.join(orig_option(o) for o in objtypes))
 
@@ -543,6 +553,10 @@ def check_options(options, server):
         return False
     if not (actions or updates):
         options.details = True
+
+    if not (objtypes or actions or updates):
+        parser.print_help()
+        sys.exit(1)
 
     for opts, legaltypes in list(ACTION_MATRIX.items()) + list(UPDATE_MATRIX.items()):
         for opt in opts:
@@ -567,10 +581,7 @@ def main():
             raise Exception("extra argument '%s' specified" % args[0])
 
         server = kopano.Server(options)
-        got_args = check_options(options, server)
-        if not got_args:
-            parser.print_help()
-            sys.exit(1)
+        check_options(parser, options, server)
 
         global_options(options, server)
         for c in options.companies:
@@ -579,6 +590,8 @@ def main():
             group_options(g, options, server)
         for u in options.users:
             user_options(u, options, server)
+        for s in options.stores:
+            store_options(s, options, server)
 
     except Exception as e:
         if 'options' in locals() and options.debug:
