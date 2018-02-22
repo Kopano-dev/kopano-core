@@ -284,7 +284,7 @@ def company_details(company, server):
     if server.multitenant:
         print(fmt.format('Remote-admin list:', ', '.join(_encode(u.name) for u in company.admins())))
         print(fmt.format('Remote-view list:', ', '.join(_encode(c.name) for c in company.views())))
-        user = company.users().next()
+        user = next(company.users())
         print(fmt.format('Userquota-recipient list:', ', '.join(_encode(u.name) for u in user.quota.recipients() if u.name != 'SYSTEM')))
         print(fmt.format('Companyquota-recipient list:', ', '.join(_encode(u.name) for u in company.quota.recipients() if u.name != 'SYSTEM')))
     list_permissions(company.public_store)
