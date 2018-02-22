@@ -52,7 +52,7 @@ from .group import Group
 from .property_ import _proptag_to_name
 
 from .compat import (
-    unhex as _unhex, repr as _repr, is_str as _is_str,
+    unhex as _unhex, repr as _repr, is_str as _is_str, benc as _benc,
     fake_unicode as _unicode, lru_cache as _lru_cache
 )
 
@@ -713,6 +713,11 @@ class Server(object):
         """
         importer.store = None
         return _ics.sync(self, self.mapistore, importer, state, log or self.log, max_changes, window=window, begin=begin, end=end, stats=stats)
+
+    def sync_gab(self, importer, state=None):
+        if state is None:
+            state = _benc(8 * b'\0')
+        return _ics.sync_gab(self, self.mapistore, importer, state)
 
     @_timed_cache(minutes=60)
     def _resolve_email(self, entryid=None):

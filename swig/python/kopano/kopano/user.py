@@ -49,17 +49,19 @@ class User(Properties):
         userid=None
     ):
         self.server = server or _server.Server()
+        self._ecuser = None
+        self._name = None
 
         if ecuser:
             self._ecuser = ecuser
-            self._name = ecuser.Username
+
         elif userid:
             try:
                 self._ecuser = self.server.sa.GetUser(_bdec(userid), MAPI_UNICODE)
             except MAPIErrorNotFound:
                 raise NotFoundError("no user found with userid '%s'" % userid)
-            self._name = self._ecuser.Username
-        else:
+
+        elif email or name:
             if email:
                 try:
                     self._name = _unicode(self.server.gab.ResolveNames([PR_EMAIL_ADDRESS_W], MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, [[SPropValue(PR_DISPLAY_NAME_W, _unicode(email))]], [MAPI_UNRESOLVED])[0][0][1].Value)
@@ -72,6 +74,10 @@ class User(Properties):
                 self._ecuser = self.server.sa.GetUser(self.server.sa.ResolveUserName(self._name, MAPI_UNICODE), MAPI_UNICODE)
             except (MAPIErrorNotFound, MAPIErrorInvalidParameter): # multi-tenant, but no '@' in username..
                 raise NotFoundError("no such user: '%s'" % self.name)
+
+        if self._ecuser:
+            self._name = self._ecuser.Username
+            self._userid = _benc(self._ecuser.UserID)
 
         self._mapiobj = None
 
@@ -200,8 +206,7 @@ class User(Properties):
     @property
     def userid(self):
         """ Userid """
-
-        return _benc(self._ecuser.UserID)
+        return self._userid
 
     @property
     def company(self):
@@ -321,7 +326,7 @@ class User(Properties):
         return not self == u
 
     def __unicode__(self):
-        return u"User('%s')" % self._name
+        return u"User(%s)" % (self._name or u'')
 
     def _update(self, **kwargs):
         username = kwargs.get('username', self.name)
