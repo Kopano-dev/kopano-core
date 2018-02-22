@@ -31,6 +31,8 @@ from . import utils
 from . import notify
 from .config import PREFIX
 
+NotifyAPI = notify.NotifyAPI
+
 TOP = 10
 SESSIONDATA = {}
 
