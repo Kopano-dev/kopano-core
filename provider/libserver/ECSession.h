@@ -90,8 +90,8 @@ public:
 	_kc_hidden virtual void SetClientMeta(const char *cl_vers, const char *cl_misc);
 	_kc_hidden virtual void GetClientApplicationVersion(std::string *);
 	_kc_hidden virtual void GetClientApplicationMisc(std::string *);
-	virtual void Lock(void);
-	virtual void Unlock(void);
+	virtual void lock();
+	virtual void unlock();
 	_kc_hidden virtual bool IsLocked(void) const _kc_final { return m_ulRefCount > 0; }
 	_kc_hidden virtual void RecordRequest(struct soap *);
 	_kc_hidden virtual unsigned int GetRequests(void);

@@ -472,9 +472,7 @@ static ECRESULT check_server_configuration(void)
 		ec_log_crit("Internal error 0x%08x while checking distributed configuration", er);
 		return er;
 	}
-
-	lpecSession->Lock();
-	
+	lpecSession->lock();
 	er = lpecSession->GetUserManagement()->GetServerDetails(strServerName, &sServerDetails);
 	if (er != erSuccess) {
 		ec_log_crit("ERROR: Unable to find server information on LDAP for '%s', error 0x%08X. Check your server name.", strServerName.c_str(), er);
@@ -532,7 +530,7 @@ static ECRESULT check_server_configuration(void)
 	}	
 	
 exit:
-	lpecSession->Unlock();
+	lpecSession->unlock();
 	g_lpSessionManager->RemoveSessionInternal(lpecSession);
 	// we could return an error when bHaveErrors is set, but we currently find this not fatal as a sysadmin might be smarter than us.
 	if (bHaveErrors)

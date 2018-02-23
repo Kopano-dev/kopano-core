@@ -362,9 +362,7 @@ void* CleanupSyncsTable(void* lpTmpMain){
 	er = g_lpSessionManager->CreateSessionInternal(&lpSession);
 	if(er != erSuccess)
 		goto exit;
-
-	lpSession->Lock();
-
+	lpSession->lock();
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		goto exit;
@@ -381,7 +379,7 @@ exit:
 		ec_log_info("syncs table clean up failed: error 0x%08X, removed syncs: %d", er, ulDeletedSyncs);
 
 	if(lpSession) {
-		lpSession->Unlock(); // Lock the session
+		lpSession->unlock();
 		g_lpSessionManager->RemoveSessionInternal(lpSession);
 	}
 
@@ -401,9 +399,7 @@ void *CleanupSyncedMessagesTable(void *lpTmpMain)
 	auto er = g_lpSessionManager->CreateSessionInternal(&lpSession);
 	if(er != erSuccess)
 		goto exit;
-
-	lpSession->Lock();
-
+	lpSession->lock();
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		goto exit;
@@ -423,7 +419,7 @@ exit:
 		ec_log_info("syncedmessages table clean up failed, error: 0x%08X, %d entries removed", er, ulDeleted);
 
 	if(lpSession) {
-		lpSession->Unlock(); // Lock the session
+		lpSession->unlock();
 		g_lpSessionManager->RemoveSessionInternal(lpSession);
 	}
 

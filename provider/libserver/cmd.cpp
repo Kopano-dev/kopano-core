@@ -713,8 +713,7 @@ int KCmdService::logon(const char *user, const char *pass,
 	
 exit:
 	if (lpecSession)
-		lpecSession->Unlock();
-
+		lpecSession->unlock();
 	lpsResponse->er = er;
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
@@ -816,8 +815,7 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 	}
 
 		// delete authsession
-		lpecAuthSession->Unlock();
-		
+		lpecAuthSession->unlock();
 		g_lpSessionManager->RemoveSession(ulSessionId);
 		lpecAuthSession = NULL;
 
@@ -826,8 +824,7 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 
 	} else {
 		// delete authsession
-		lpecAuthSession->Unlock();
-
+		lpecAuthSession->unlock();
 		g_lpSessionManager->RemoveSession(ulSessionId);
 		lpecAuthSession = NULL;
 
@@ -867,10 +864,9 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 
 exit:
 	if (lpecAuthSession != NULL)
-		lpecAuthSession->Unlock();
+		lpecAuthSession->unlock();
 	if (lpecSession)
-		lpecSession->Unlock();
-        
+		lpecSession->unlock();
 	if (er == erSuccess)
 		g_lpStatsCollector->Increment(SCN_LOGIN_SSO);
 	else if (er != KCERR_SSO_CONTINUE)
@@ -906,9 +902,7 @@ int KCmdService::logoff(ULONG64 ulSessionId, unsigned int *result)
 	if (lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD ||
 	    lpecSession->GetAuthMethod() == ECSession::METHOD_SSO)
 		record_logon_time(lpecSession, false);
-
-	lpecSession->Unlock();
-
+	lpecSession->unlock();
     // lpecSession is discarded. It is not locked, so we can do that. We only did the 'validatesession'
     // call to see if the session id existed in the first place, and the request is coming from the correct
     // IP address. Another logoff() call called at the same time may remove the session *here*, in which case the following call
@@ -951,7 +945,7 @@ __soapentry_exit: \
 		LOG_SOAP_DEBUG("%020" PRIu64 ": E %s 0x%08x %f %f", ulSessionId, szFname, er, timespec2dbl(endTimes) - timespec2dbl(startTimes), \
 			dur2dbl(decltype(dblStart)::clock::now() - dblStart)); \
 		lpecSession->UpdateBusyState(pthread_self(), SESSION_STATE_SENDING); \
-        lpecSession->Unlock(); \
+		lpecSession->unlock(); \
     } \
     return SOAP_OK;
 
@@ -4242,7 +4236,7 @@ int KCmdService::notifyGetItems(ULONG64 ulSessionId,
 	}
 	
 	// discard lpSession
-	lpSession->Unlock();
+	lpSession->unlock();
 	lpSession = NULL;
 	
     g_lpSessionManager->DeferNotificationProcessing(ulSessionId, soap);
@@ -8573,10 +8567,7 @@ void *SoftDeleteRemover(void *lpTmpMain)
 	er = g_lpSessionManager->CreateSessionInternal(&lpecSession);
 	if(er != erSuccess)
 		goto exit;
-
-	// Lock the session
-	lpecSession->Lock();
-
+	lpecSession->lock();
 	ec_log_info("Start scheduled softdelete clean up");
 
 	er = PurgeSoftDelete(lpecSession, ulDeleteTime, &ulMessages, &ulFolders, &ulStores, (bool*)lpTmpMain);
@@ -8592,7 +8583,7 @@ exit:
 	}
 
 	if(lpecSession) {
-		lpecSession->Unlock(); 
+		lpecSession->unlock();
 		g_lpSessionManager->RemoveSessionInternal(lpecSession);
 	}
 
@@ -9538,8 +9529,8 @@ typedef ECDeferredFunc<ECRESULT, ECRESULT(*)(void*), void*> task_type;
 struct MTOMStreamInfo;
 
 struct MTOMSessionInfo {
-	MTOMSessionInfo(ECSession *s) : lpecSession(s) { s->Lock(); }
-	~MTOMSessionInfo() { lpecSession->Unlock(); }
+	MTOMSessionInfo(ECSession *s) : lpecSession(s) { s->lock(); }
+	~MTOMSessionInfo() { lpecSession->unlock(); }
 
 	ECSession		*lpecSession;
 	std::unique_ptr<ECDatabase> lpSharedDatabase;

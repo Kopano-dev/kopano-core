@@ -248,7 +248,7 @@ void *ECNotificationManager::Work() {
                             // No notifications - this means we have to wait. This can happen if the session was marked active since
                             // the request was just made, and there may have been notifications still waiting for us
 							l_req.unlock();
-                            lpecSession->Unlock();
+							lpecSession->unlock();
                             continue; // Totally ignore this item == wait
                         } else {
                             // No notifications and we're out of time, just respond OK with 0 notifications
@@ -265,8 +265,7 @@ void *ECNotificationManager::Work() {
 					}
 						
                     notifications.er = er;
-                    
-                    lpecSession->Unlock();
+					lpecSession->unlock();
                 } else {
                     // The session is dead
                     notifications.er = KCERR_END_OF_SESSION;

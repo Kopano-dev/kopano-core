@@ -208,7 +208,7 @@ BTSession* ECSessionManager::GetSession(ECSESSIONID sessionID, bool fLockSession
 		lpSession->UpdateSessionTime();
 		
 		if(fLockSession)
-			lpSession->Lock();
+			lpSession->lock();
 	}else{
 		//EC_SESSION_LOST
 	}
@@ -331,7 +331,7 @@ ECRESULT ECSessionManager::ValidateBTSession(struct soap *soap, ECSESSIONID sess
 	auto er = lpSession->ValidateOriginator(soap);
 	if (er != erSuccess) {
 		if (fLockSession)
-			lpSession->Unlock();
+			lpSession->unlock();
 		lpSession = NULL;
 		return er;
 	}
@@ -364,7 +364,7 @@ ECRESULT ECSessionManager::CreateAuthSession(struct soap *soap, unsigned int ulC
 	if (lpAuthSession == NULL)
 		return KCERR_NOT_ENOUGH_MEMORY;
 	if (bLockSession)
-	        lpAuthSession->Lock();
+	        lpAuthSession->lock();
 	if (bRegisterSession) {
 		std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 		m_mapSessions.emplace(newSessionID, lpAuthSession);
@@ -474,8 +474,7 @@ ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession,
 		return er;
 
 	if (fLockSession)
-		lpSession->Lock();
-
+		lpSession->lock();
 	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	m_mapSessions.emplace(newSID, lpSession);
 	l_cache.unlock();
@@ -744,14 +743,14 @@ ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
 			continue;
 		auto lpSession = dynamic_cast<ECSession *>(lpBTSession);
 		if (lpSession == NULL) {
-			lpBTSession->Unlock();
+			lpBTSession->unlock();
 			continue;
 		}
 		if (sSubscription.ulType == TABLE_ENTRY::TABLE_TYPE_GENERIC)
 			lpSession->GetTableManager()->UpdateTables(ulType, sSubscription.ulObjectFlags, sSubscription.ulRootObjectId, lstChildId, sSubscription.ulObjectType);
 		else if (sSubscription.ulType == TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE)
 			lpSession->GetTableManager()->UpdateOutgoingTables(ulType, sSubscription.ulRootObjectId, lstChildId, sSubscription.ulObjectFlags, sSubscription.ulObjectType);
-		lpBTSession->Unlock();
+		lpBTSession->unlock();
 	}
 	return erSuccess;
 }
@@ -1399,8 +1398,7 @@ ECRESULT ECSessionManager::RemoveBusyState(ECSESSIONID ecSessionId, pthread_t th
 	
 exit:
 	if(lpSession)
-		lpSession->Unlock();
-		
+		lpSession->unlock();
 	return er;
 }
 
