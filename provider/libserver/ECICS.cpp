@@ -366,7 +366,7 @@ void* CleanupSyncsTable(void* lpTmpMain){
 		kc_perror("syncs table clean up failed", er);
 		return nullptr;
 	}
-	lpSession->lock();
+	std::unique_lock<ECSession> holder(*lpSession);
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess) {
 		kc_perror("syncs table clean up failed", er);
@@ -380,7 +380,7 @@ void* CleanupSyncsTable(void* lpTmpMain){
 		ec_log_err("syncs table clean up failed: %s (%x), removed syncs: %d",
 			GetMAPIErrorMessage(kcerr_to_mapierr(er)), er, ulDeletedSyncs);
 	if(lpSession) {
-		lpSession->unlock();
+		holder.unlock();
 		g_lpSessionManager->RemoveSessionInternal(lpSession);
 	}
 
@@ -402,7 +402,7 @@ void *CleanupSyncedMessagesTable(void *lpTmpMain)
 		kc_perror("syncedmessages table clean up failed", er);
 		return nullptr;
 	}
-	lpSession->lock();
+	std::unique_lock<ECSession> holder(*lpSession);
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess) {
 		kc_perror("syncedmessages table clean up failed", er);
@@ -420,7 +420,7 @@ void *CleanupSyncedMessagesTable(void *lpTmpMain)
 			GetMAPIErrorMessage(kcerr_to_mapierr(er)), er, ulDeleted);
 
 	if(lpSession) {
-		lpSession->unlock();
+		holder.unlock();
 		g_lpSessionManager->RemoveSessionInternal(lpSession);
 	}
 

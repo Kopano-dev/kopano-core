@@ -8568,7 +8568,7 @@ void *SoftDeleteRemover(void *lpTmpMain)
 		kc_perror("Softdelete thread: CreateSessionInternal", er);
 		return new(std::nothrow) ECRESULT(er);
 	}
-	lpecSession->lock();
+	std::unique_lock<ECSession> holder(*lpecSession);
 	ec_log_info("Start scheduled softdelete clean up");
 
 	er = PurgeSoftDelete(lpecSession, ulDeleteTime, &ulMessages, &ulFolders, &ulStores, (bool*)lpTmpMain);
@@ -8579,7 +8579,7 @@ void *SoftDeleteRemover(void *lpTmpMain)
 	else
 		ec_log_err("Softdelete failed: removed %d stores, %d folders, and %d messages", ulStores, ulFolders, ulMessages);
 	if(lpecSession) {
-		lpecSession->unlock();
+		holder.unlock();
 		g_lpSessionManager->RemoveSessionInternal(lpecSession);
 	}
 
@@ -9525,8 +9525,7 @@ typedef ECDeferredFunc<ECRESULT, ECRESULT(*)(void*), void*> task_type;
 struct MTOMStreamInfo;
 
 struct MTOMSessionInfo {
-	MTOMSessionInfo(ECSession *s) : lpecSession(s) { s->lock(); }
-	~MTOMSessionInfo() { lpecSession->unlock(); }
+	MTOMSessionInfo(ECSession *s) : lpecSession(s), holder(*s) {}
 
 	ECSession		*lpecSession;
 	std::unique_ptr<ECDatabase> lpSharedDatabase;
@@ -9534,6 +9533,7 @@ struct MTOMSessionInfo {
 	std::shared_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	ECRESULT er;
 	std::unique_ptr<ECThreadPool> lpThreadPool;
+	std::lock_guard<ECSession> holder;
 	MTOMStreamInfo	*lpCurrentWriteStream; /* This is only tracked for cleanup at session exit */
 	MTOMStreamInfo	*lpCurrentReadStream; /* This is only tracked for cleanup at session exit */
 };

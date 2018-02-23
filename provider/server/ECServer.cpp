@@ -473,13 +473,12 @@ static ECRESULT check_server_configuration(void)
 		return er;
 	}
 	auto cleanup = make_scope_success([&]() {
-		lpecSession->unlock();
 		g_lpSessionManager->RemoveSessionInternal(lpecSession);
 		// we could return an error when bHaveErrors is set, but we currently find this not fatal as a sysadmin might be smarter than us.
 		if (bHaveErrors)
 			ec_log_warn("WARNING: Inconsistencies detected between local and LDAP based configuration.");
 	});
-	lpecSession->lock();
+	std::lock_guard<ECSession> holder(*lpecSession);
 	er = lpecSession->GetUserManagement()->GetServerDetails(strServerName, &sServerDetails);
 	if (er != erSuccess) {
 		ec_log_crit("ERROR: Unable to find server information on LDAP for '%s', error 0x%08X. Check your server name.", strServerName.c_str(), er);
