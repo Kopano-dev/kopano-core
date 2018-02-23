@@ -309,9 +309,9 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 	lpSession->GetBusyStates(&sd.busystates);
 	lpSession->GetClientVersion(&sd.version);
 	lpSession->GetClientApp(&sd.clientapp);
-	lpSession->GetClientPort(&sd.port);
-	lpSession->GetRequestURL(&sd.url);
-	lpSession->GetProxyHost(&sd.proxyhost);
+	sd.port = lpSession->GetClientPort();
+	sd.url = lpSession->GetRequestURL();
+	sd.proxyhost = lpSession->GetProxyHost();
 	lpSession->GetClientApplicationVersion(&sd.client_application_version);
 	lpSession->GetClientApplicationMisc(&sd.client_application_misc);
 	sd.requests = lpSession->GetRequests();

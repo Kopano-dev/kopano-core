@@ -207,22 +207,22 @@ unsigned int BTSession::GetRequests()
     return m_ulRequests;
 }
 
-void BTSession::GetRequestURL(std::string *lpstrClientURL)
+std::string BTSession::GetRequestURL()
 {
 	scoped_lock lock(m_hRequestStats);
-	lpstrClientURL->assign(m_strLastRequestURL);
+	return m_strLastRequestURL;
 }
 
-void BTSession::GetProxyHost(std::string *lpstrProxyHost)
+std::string BTSession::GetProxyHost()
 {
 	scoped_lock lock(m_hRequestStats);
-	lpstrProxyHost->assign(m_strProxyHost);
+	return m_strProxyHost;
 }
 
-void BTSession::GetClientPort(unsigned int *lpulPort)
+unsigned int BTSession::GetClientPort()
 {
 	scoped_lock lock(m_hRequestStats);
-	*lpulPort = m_ulLastRequestPort;
+	return m_ulLastRequestPort;
 }
 
 size_t BTSession::GetInternalObjectSize()
