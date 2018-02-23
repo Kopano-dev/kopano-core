@@ -9538,12 +9538,15 @@ typedef ECDeferredFunc<ECRESULT, ECRESULT(*)(void*), void*> task_type;
 struct MTOMStreamInfo;
 
 struct MTOMSessionInfo {
+	MTOMSessionInfo(ECSession *s) : lpecSession(s) { s->Lock(); }
+	~MTOMSessionInfo() { lpecSession->Unlock(); }
+
 	ECSession		*lpecSession;
-	ECDatabase		*lpSharedDatabase;
+	std::unique_ptr<ECDatabase> lpSharedDatabase;
 	ECDatabase		*lpDatabase;
 	std::shared_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	ECRESULT er;
-	ECThreadPool	*lpThreadPool;
+	std::unique_ptr<ECThreadPool> lpThreadPool;
 	MTOMStreamInfo	*lpCurrentWriteStream; /* This is only tracked for cleanup at session exit */
 	MTOMStreamInfo	*lpCurrentReadStream; /* This is only tracked for cleanup at session exit */
 };
@@ -9574,7 +9577,11 @@ static ECRESULT SerializeObject(void *arg)
 	lpStreamInfo->lpSessionInfo->lpSharedDatabase->ThreadInit();
 
 	lpSink = new ECFifoSerializer(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::serialize);
-	er = SerializeMessage(lpStreamInfo->lpSessionInfo->lpecSession, lpStreamInfo->lpSessionInfo->lpSharedDatabase, lpStreamInfo->lpSessionInfo->lpAttachmentStorage.get(), NULL, lpStreamInfo->ulObjectId, MAPI_MESSAGE, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink, true);
+	er = SerializeMessage(lpStreamInfo->lpSessionInfo->lpecSession,
+	     lpStreamInfo->lpSessionInfo->lpSharedDatabase.get(),
+	     lpStreamInfo->lpSessionInfo->lpAttachmentStorage.get(), nullptr,
+	     lpStreamInfo->ulObjectId, MAPI_MESSAGE, lpStreamInfo->ulStoreId,
+	     &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink, true);
 	delete lpSink;
 
 	lpStreamInfo->lpSessionInfo->lpSharedDatabase->ThreadEnd();
@@ -9600,7 +9607,7 @@ static void *MTOMReadOpen(struct soap *soap, void *handle, const char *id,
 
 	if (strncmp(id, "emcas-", 6) == 0) {
 		std::unique_ptr<task_type> ptrTask(new task_type(SerializeObject, lpStreamInfo));
-		if (ptrTask->dispatchOn(lpStreamInfo->lpSessionInfo->lpThreadPool) == false) {
+		if (!ptrTask->dispatchOn(lpStreamInfo->lpSessionInfo->lpThreadPool.get())) {
 			ec_log_err("Failed to dispatch serialization task for \"%s\"", id);
 			soap->error = SOAP_FATAL_ERROR;
 
@@ -9670,12 +9677,6 @@ static void MTOMSessionDone(struct soap *soap, void *param)
 	else if (lpInfo->lpCurrentReadStream != NULL)
         // Same but for MTOMReadClose()
 		MTOMReadClose(soap, lpInfo->lpCurrentReadStream);
-
-    // We can now safely remove sessions, etc since nobody is using them.
-	lpInfo->lpecSession->Unlock();
-	
-	delete lpInfo->lpSharedDatabase;
-	delete lpInfo->lpThreadPool;
 	delete lpInfo;
 }
 
@@ -9695,7 +9696,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 	ECObjectTableList	rows;
 	struct rowSet		*lpRowSet = NULL; // Do not free, used in response data
 	ECODStore			ecODStore;
-	ECDatabase 			*lpBatchDB;
+	std::unique_ptr<ECDatabase> lpBatchDB;
 	unsigned int		ulDepth = 20;
 	unsigned int		ulMode = 0;
 	MTOMSessionInfo		*lpMTOMSessionInfo = NULL;
@@ -9751,7 +9752,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 		return er;
 
 	ulDepth = atoui(lpecSession->GetSessionManager()->GetConfig()->GetSetting("embedded_attachment_limit")) + 1;
-	er = lpecSession->GetAdditionalDatabase(&lpBatchDB);
+	er = lpecSession->GetAdditionalDatabase(&unique_tie(lpBatchDB));
 	if (er != erSuccess)
 		return er;
 	    
@@ -9760,15 +9761,13 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 	lpAttachmentStorage.reset(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
 	if (lpAttachmentStorage == nullptr)
 		return er = KCERR_NOT_ENOUGH_MEMORY;
-	lpMTOMSessionInfo = new MTOMSessionInfo;
+	lpMTOMSessionInfo = new MTOMSessionInfo(lpecSession);
 	lpMTOMSessionInfo->lpCurrentWriteStream = NULL;
 	lpMTOMSessionInfo->lpCurrentReadStream = NULL;
 	lpMTOMSessionInfo->lpAttachmentStorage = lpAttachmentStorage;
-	lpMTOMSessionInfo->lpecSession = lpecSession; // Should be unlocked after MTOM is done
-	lpMTOMSessionInfo->lpecSession->Lock();
-	lpMTOMSessionInfo->lpSharedDatabase = lpBatchDB;
+	lpMTOMSessionInfo->lpSharedDatabase = std::move(lpBatchDB);
 	lpMTOMSessionInfo->er = erSuccess;
-	lpMTOMSessionInfo->lpThreadPool = new ECThreadPool(1);
+	lpMTOMSessionInfo->lpThreadPool.reset(new ECThreadPool(1));
 	soap_info(soap)->fdone = MTOMSessionDone;
 	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 	lpsResponse->sMsgStreams.__ptr = s_alloc<messageStream>(soap, sSourceKeyPairs.__size);
@@ -9847,7 +9846,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
                     
     // The results of this query will be consumed by the MTOMRead function
     if(!strQuery.empty()) {
-        er = lpBatchDB->DoSelectMulti(strQuery);
+		er = lpMTOMSessionInfo->lpSharedDatabase->DoSelectMulti(strQuery);
         if(er != erSuccess)
 			return er;
     }
@@ -9899,7 +9898,7 @@ static void *MTOMWriteOpen(struct soap *soap, void *handle,
 	lpStreamInfo->lpFifoBuffer = new ECFifoBuffer();
 
 	std::unique_ptr<task_type> ptrTask(new task_type(DeserializeObject, lpStreamInfo));
-	if (ptrTask->dispatchOn(lpStreamInfo->lpSessionInfo->lpThreadPool) == false) {
+	if (!ptrTask->dispatchOn(lpStreamInfo->lpSessionInfo->lpThreadPool.get())) {
 		ec_log_err("Failed to dispatch deserialization task");
 		lpStreamInfo->lpSessionInfo->er = KCERR_UNABLE_TO_COMPLETE;
 		soap->error = SOAP_FATAL_ERROR;
@@ -9986,17 +9985,14 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 	std::shared_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
 	if (lpAttachmentStorage == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
-
-	lpMTOMSessionInfo = new MTOMSessionInfo;
+	lpMTOMSessionInfo = new MTOMSessionInfo(lpecSession);
 	lpMTOMSessionInfo->lpCurrentWriteStream = NULL;
 	lpMTOMSessionInfo->lpCurrentReadStream = NULL;
 	lpMTOMSessionInfo->lpAttachmentStorage = lpAttachmentStorage;
-	lpMTOMSessionInfo->lpecSession = lpecSession; // Should be unlocked after MTOM is done
-	lpMTOMSessionInfo->lpecSession->Lock();
 	lpMTOMSessionInfo->lpDatabase = lpDatabase;
 	lpMTOMSessionInfo->lpSharedDatabase = NULL;
 	lpMTOMSessionInfo->er = erSuccess;
-	lpMTOMSessionInfo->lpThreadPool = new ECThreadPool(1);
+	lpMTOMSessionInfo->lpThreadPool.reset(new ECThreadPool(1));
 	soap_info(soap)->fdone = MTOMSessionDone;
 	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 
