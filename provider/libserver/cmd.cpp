@@ -8562,26 +8562,22 @@ void *SoftDeleteRemover(void *lpTmpMain)
 		ulDeleteTime = atoi(lpszSetting) * 24 * 60 * 60;
 
 	if(ulDeleteTime == 0)
-		goto exit;
-
+		return new(std::nothrow) ECRESULT(erSuccess);
 	er = g_lpSessionManager->CreateSessionInternal(&lpecSession);
-	if(er != erSuccess)
-		goto exit;
+	if (er != erSuccess) {
+		kc_perror("Softdelete thread: CreateSessionInternal", er);
+		return new(std::nothrow) ECRESULT(er);
+	}
 	lpecSession->lock();
 	ec_log_info("Start scheduled softdelete clean up");
 
 	er = PurgeSoftDelete(lpecSession, ulDeleteTime, &ulMessages, &ulFolders, &ulStores, (bool*)lpTmpMain);
-
-exit:
-	if(ulDeleteTime > 0) {
-		if (er == erSuccess)
-			ec_log_info("Softdelete done: removed %d stores, %d folders, and %d messages", ulStores, ulFolders, ulMessages);
-		else if (er == KCERR_BUSY)
-			ec_log_info("Softdelete already running");
-		else
-			ec_log_info("Softdelete failed: removed %d stores, %d folders, and %d messages", ulStores, ulFolders, ulMessages);
-	}
-
+	if (er == erSuccess)
+		ec_log_info("Softdelete done: removed %d stores, %d folders, and %d messages", ulStores, ulFolders, ulMessages);
+	else if (er == KCERR_BUSY)
+		ec_log_info("Softdelete already running");
+	else
+		ec_log_err("Softdelete failed: removed %d stores, %d folders, and %d messages", ulStores, ulFolders, ulMessages);
 	if(lpecSession) {
 		lpecSession->unlock();
 		g_lpSessionManager->RemoveSessionInternal(lpecSession);
