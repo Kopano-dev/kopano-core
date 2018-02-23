@@ -13,7 +13,8 @@ import time
 from MAPI import (
     ECImportContentsChanges, SYNC_E_IGNORE, WrapStoreEntryID,
     SYNC_NORMAL, SYNC_ASSOCIATED, SYNC_CATCHUP, SYNC_UNICODE, IStream,
-    STREAM_SEEK_SET, RELOP_GE, RELOP_LT, ECImportHierarchyChanges
+    STREAM_SEEK_SET, RELOP_GE, RELOP_LT, ECImportHierarchyChanges,
+    ECImportAddressbookChanges, MAPI_MAILUSER,
 )
 from MAPI.Defs import (
     PpropFindProp
@@ -21,7 +22,8 @@ from MAPI.Defs import (
 from MAPI.Tags import (
     PR_ENTRYID, PR_STORE_ENTRYID, PR_EC_PARENT_HIERARCHYID,
     PR_EC_HIERARCHYID, PR_STORE_RECORD_KEY, PR_CONTENTS_SYNCHRONIZER,
-    PR_MESSAGE_DELIVERY_TIME, PR_HIERARCHY_SYNCHRONIZER
+    PR_MESSAGE_DELIVERY_TIME, PR_HIERARCHY_SYNCHRONIZER,
+    IID_IECImportAddressbookChanges, IID_IECExportAddressbookChanges,
 )
 from MAPI.Tags import (
     IID_IExchangeImportContentsChanges, IID_IECImportContentsChanges,
@@ -41,6 +43,7 @@ from .compat import benc as _benc, bdec as _bdec
 if sys.hexversion >= 0x03000000:
     from . import item as _item
     from . import folder as _folder
+    from . import user as _user
     try:
         from . import store as _store
     except ImportError:
@@ -54,6 +57,7 @@ else:
     import folder as _folder
     import store as _store
     import utils as _utils
+    import user as _user
 
 class TrackingHierarchyImporter(ECImportHierarchyChanges):
     def __init__(self, server, importer, log, stats):
@@ -61,15 +65,17 @@ class TrackingHierarchyImporter(ECImportHierarchyChanges):
         self.importer = importer
 
     def ImportFolderChange(self, props):
-        eid = _benc(PpropFindProp(props, PR_ENTRYID).Value)
-        folder = self.importer.store.folder(entryid=eid)
-        self.importer.update(folder)
+        if hasattr(self.importer, 'update'):
+            eid = _benc(PpropFindProp(props, PR_ENTRYID).Value)
+            folder = self.importer.store.folder(entryid=eid)
+            self.importer.update(folder)
 
     def ImportFolderDeletion(self, flags, sourcekeys):
-        for sourcekey in sourcekeys:
-            folder = _folder.Folder(self.importer.store)
-            folder._sourcekey = _benc(sourcekey)
-            self.importer.delete(folder, flags)
+        if hasattr(self.importer, 'delete'):
+            for sourcekey in sourcekeys:
+                folder = _folder.Folder(self.importer.store)
+                folder._sourcekey = _benc(sourcekey)
+                self.importer.delete(folder, flags)
 
     def UpdateState(self, stream):
         pass
@@ -141,6 +147,26 @@ class TrackingContentsImporter(ECImportContentsChanges):
 
     def ImportPerUserReadStateChange(self, states):
         pass
+
+    def UpdateState(self, stream):
+        pass
+
+class TrackingGABImporter(ECImportAddressbookChanges):
+    def __init__(self, server, importer):
+        ECImportAddressbookChanges.__init__(self, [IID_IECImportAddressbookChanges])
+        self.server = server
+        self.importer = importer
+
+    def ImportABChange(self, type_, entryid):
+        if hasattr(self.importer, 'update') and type_ == MAPI_MAILUSER:
+            user = self.server.user(userid=_benc(entryid))
+            self.importer.update(user)
+
+    def ImportABDeletion(self, type_, entryid):
+        if hasattr(self.importer, 'delete') and type_ == MAPI_MAILUSER:
+            user = _user.User(server=self.server)
+            user._userid = _benc(entryid)
+            self.importer.delete(user)
 
     def UpdateState(self, stream):
         pass
@@ -261,6 +287,25 @@ def sync(server, syncobj, importer, state, log, max_changes, associated=False, w
 
                 retry = 0
 
+    exporter.UpdateState(stream)
+
+    stream.Seek(0, STREAM_SEEK_SET)
+    return _benc(stream.Read(0xFFFFF))
+
+def sync_gab(server, mapistore, importer, state):
+    stream = IStream()
+    stream.Write(_bdec(state))
+    stream.Seek(0, STREAM_SEEK_SET)
+
+    importer = TrackingGABImporter(server, importer)
+    exporter = mapistore.OpenProperty(PR_CONTENTS_SYNCHRONIZER, IID_IECExportAddressbookChanges, 0, 0)
+
+    exporter.Config(stream, 0, importer)
+    steps, step = None, 0
+    while steps != step:
+        steps, step = exporter.Synchronize(step)
+
+    stream = IStream()
     exporter.UpdateState(stream)
 
     stream.Seek(0, STREAM_SEEK_SET)

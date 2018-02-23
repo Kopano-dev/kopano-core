@@ -44,6 +44,17 @@ public:
 	}
 };
 
+class IECExportAddressbookChanges : public IUnknown {
+public:
+	virtual HRESULT Config(IStream * lpStream, ULONG ulFlags, IECImportAddressbookChanges *lpUnk);
+	virtual HRESULT Synchronize(ULONG* lpulSteps, ULONG *INOUT /*lpulProgress*/) = 0;
+	virtual HRESULT UpdateState(IStream * lpStream) = 0;
+
+	%extend {
+		~IECExportAddressbookChanges() { self->Release(); };
+	}
+};
+
 class IExchangeManageStore : public virtual IUnknown {
 public:
 	virtual HRESULT CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *OUTPUT,	LPENTRYID *OUTPUT) = 0;

@@ -31,6 +31,8 @@ from . import utils
 from . import notify
 from .config import PREFIX
 
+NotifyAPI = notify.NotifyAPI
+
 TOP = 10
 SESSIONDATA = {}
 
@@ -217,6 +219,17 @@ class Resource(object):
 
         return item
 
+class UserImporter:
+    def __init__(self):
+        self.updates = []
+        self.deletes = []
+
+    def update(self, user):
+        self.updates.append(user)
+
+    def delete(self, user):
+        self.deletes.append(user)
+
 class UserResource(Resource):
     fields = {
         'id': lambda user: user.userid,
@@ -224,9 +237,20 @@ class UserResource(Resource):
         'mail': lambda user: user.email,
     }
 
+    def delta(self, req, resp, server):
+        args = urlparse.parse_qs(req.query_string)
+        token = args['$deltatoken'][0] if '$deltatoken' in args else None
+        importer = UserImporter()
+        newstate = server.sync_gab(importer, token)
+        changes = [(o, UserResource) for o in importer.updates] + \
+            [(o, DeletedUserResource) for o in importer.deletes]
+        data = (changes, TOP, 0, len(changes))
+        deltalink = b"%s?$deltatoken=%s" % (req.path.encode('utf-8'), codecs.encode(newstate, 'ascii'))
+        self.respond(req, resp, data, UserResource.fields, deltalink=deltalink)
+
     # TODO redirect to other resources?
     def on_get(self, req, resp, userid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid if userid != 'delta' else None)
 
         if not method:
             if req.path.split('/')[-1] == 'me':
@@ -234,7 +258,11 @@ class UserResource(Resource):
                     mapiobj = GetDefaultStore(server.mapisession)).user.userid
 
             if userid:
-                data = server.user(userid=userid)
+                if userid == 'delta':
+                    self.delta(req, resp, server)
+                    return
+                else:
+                    data = server.user(userid=userid)
             else:
                 data = self.generator(req, server.users)
 
@@ -309,6 +337,13 @@ class UserResource(Resource):
             folder = store.create_folder(fields['displayName']) # TODO exception on conflict
             self.respond(req, resp, folder, MailFolderResource.fields)
 
+class DeletedUserResource(Resource):
+    fields = {
+        'id': lambda user: user.userid,
+#        '@odata.type': lambda item: '#microsoft.graph.message', # TODO
+        '@removed': lambda item: {'reason': 'deleted'} # TODO soft deletes
+    }
+
 class FolderResource(Resource):
     fields = {
         'id': lambda folder: folder.entryid,
@@ -332,7 +367,7 @@ class ItemResource(Resource):
     def delta(self, req, resp, folder):
         args = urlparse.parse_qs(req.query_string)
         token = args['$deltatoken'][0] if '$deltatoken' in args else None
-        importer = Importer()
+        importer = ItemImporter()
         newstate = folder.sync(importer, token)
         changes = [(o, MessageResource) for o in importer.updates] + \
             [(o, DeletedMessageResource) for o in importer.deletes]
@@ -468,7 +503,7 @@ def set_torecipients(item, arg):
 class DeletedItem(object):
     pass
 
-class Importer:
+class ItemImporter:
     def __init__(self):
         self.updates = []
         self.deletes = []

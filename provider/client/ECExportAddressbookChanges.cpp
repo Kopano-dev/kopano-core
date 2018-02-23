@@ -213,10 +213,12 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgress)
 {	
     HRESULT hr = hrSuccess;
-    
+
     // Check if we're already done
-	if (m_ulThisChange >= m_ulChanges)
+	if (m_ulThisChange >= m_ulChanges) {
+		*lpulSteps = m_ulChanges;
 		return hrSuccess;
+	}
     
 	if (m_lpChanges[m_ulThisChange].sSourceKey.cb < sizeof(ABEID))
 		return MAPI_E_INVALID_PARAMETER;

@@ -13,7 +13,7 @@ except ImportError:
 from MAPI import (
     MAPI_MESSAGE, MAPI_FOLDER,
     MAPIAdviseSink, fnevObjectModified, fnevObjectCreated,
-    fnevObjectMoved, fnevObjectDeleted,
+    fnevObjectMoved, fnevObjectCopied, fnevObjectDeleted,
 )
 
 from MAPI.Struct import (
@@ -36,27 +36,49 @@ else:
 class Notification:
     def __init__(self, store, mapiobj):
         self.store = store
-        self.event_type = mapiobj.ulEventType
-        self.object_type = mapiobj.ulObjType
-        self._parent_entryid = mapiobj.lpParentID
-        self._entryid = mapiobj.lpEntryID
-
-    @property
-    def parent(self):
-        # TODO support more types
-        if self.object_type == MAPI_MESSAGE:
-            return _folder.Folder(
-                store=self.store, entryid=_benc(self._parent_entryid)
-            )
+        self.mapiobj = mapiobj
 
     @property
     def object(self):
-        # TODO support more types
-        if self.object_type == MAPI_MESSAGE:
-            return self.store.item(entryid=_benc(self._entryid))
+        if self.mapiobj.ulObjType == MAPI_MESSAGE:
+            item = _item.Item()
+            item.store = self.store
+            item.server = self.store.server
+            item._entryid = self.mapiobj.lpEntryID
+            return item
 
-        elif self.object_type == MAPI_FOLDER:
-            return self.store.folder(entryid=_benc(self._entryid))
+    @property
+    def old_object(self):
+        if self.mapiobj.ulObjType == MAPI_MESSAGE and self.mapiobj.lpOldID:
+            item = _item.Item()
+            item.store = self.store
+            item.server = self.store.server
+            item._entryid = self.mapiobj.lpOldID
+            return item
+
+    @property
+    def parent(self):
+        if self.mapiobj.ulObjType == MAPI_MESSAGE:
+            return _folder.Folder(
+                store=self.store, entryid=_benc(self.mapiobj.lpParentID)
+            )
+
+    @property
+    def old_parent(self):
+        if self.mapiobj.ulObjType == MAPI_MESSAGE and self.mapiobj.lpOldParentID:
+            return _folder.Folder(
+                store=self.store, entryid=_benc(self.mapiobj.lpOldParentID)
+            )
+
+    @property
+    def event_type(self):
+        return {
+            fnevObjectCreated: 'create',
+            fnevObjectCopied: 'copy',
+            fnevObjectMoved: 'move',
+            fnevObjectModified: 'update',
+            fnevObjectDeleted: 'delete',
+        }[self.mapiobj.ulEventType]
 
 class AdviseSink(MAPIAdviseSink):
     def __init__(self, store, sink):
@@ -82,7 +104,7 @@ class AdviseSinkQueue(MAPIAdviseSink):
 
 def subscribe(store, folder, sink):
     flags = fnevObjectModified | fnevObjectCreated \
-        | fnevObjectMoved | fnevObjectDeleted
+        | fnevObjectMoved | fnevObjectCopied | fnevObjectDeleted
 
     sink._store = store
     sink2 = AdviseSink(store, sink)
@@ -97,7 +119,7 @@ def unsubscribe(store, sink):
 
 def _notifications(store, entryid):
     flags = fnevObjectModified | fnevObjectCreated \
-        | fnevObjectMoved | fnevObjectDeleted # TODO more?
+        | fnevObjectMoved | fnevObjectCopied | fnevObjectDeleted
 
     q = Queue()
     sink = AdviseSinkQueue(q)

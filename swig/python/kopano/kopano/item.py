@@ -245,6 +245,8 @@ class Item(Properties, Contact, Appointment):
     @property
     def entryid(self):
         """ Item entryid """
+        if self._entryid:
+            return _benc(self._entryid)
 
         return _benc(self._get_fast(PR_ENTRYID, must_exist=True))
 

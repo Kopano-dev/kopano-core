@@ -11,7 +11,9 @@ except ImportError:
 import requests
 from threading import Thread
 
+from MAPI import MAPI_MESSAGE # TODO
 import kopano
+kopano.set_bin_encoding('base64')
 
 from . import utils
 from .config import PREFIX
@@ -37,7 +39,7 @@ def _user(req):
 # TODO don't block on sending updates
 # TODO restarting app/server
 # TODO expiration
-# TODO handshake/call webhook
+# TODO handshake with webhook
 
 class Processor(Thread):
     def __init__(self, api):
@@ -45,24 +47,42 @@ class Processor(Thread):
         self.api = api
         self.daemon = True
 
+    def _notification(self, subscription, changetype, obj):
+        return {
+            'subscriptionId': subscription['id'],
+            'clientState': subscription['clientState'],
+            'changeType': changetype,
+            'resource': subscription['resource'],
+            'resourceData': {
+                '@data.type': '#Microsoft.Graph.Message',
+                'id': obj.entryid,
+            }
+        }
+
     def run(self):
         while True:
             store, notification, subscription = QUEUE.get()
 
-            data = {
-                'subscriptionId': subscription['id'],
-                'clientState': subscription['clientState'],
-                'changeType': 'created', # TODO from notification
-                'resource': subscription['resource'],
-                'resourceData': {
-                    # TODO fill in
-                }
-            }
-            verify = not self.api.options or not self.api.options.insecure
-            try:
-                requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10, verify=verify)
-            except Exception:
-                traceback.print_exc()
+            if notification.mapiobj.ulObjType == MAPI_MESSAGE:
+
+                if notification.event_type == 'update':
+                    changetype = 'updated'
+                elif notification.event_type in ('create', 'copy', 'move'):
+                    changetype = 'created'
+                elif notification.event_type == 'delete':
+                    changetype = 'deleted'
+
+                data = self._notification(subscription, changetype, notification.object)
+
+                if notification.event_type == 'move':
+                    old_data = self._notification(subscription, 'deleted', notification.old_object)
+                    data = {'value': [old_data, data]}
+
+                verify = not self.api.options or not self.api.options.insecure
+                try:
+                    requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10, verify=verify)
+                except Exception:
+                    traceback.print_exc()
 
 class Sink:
     def __init__(self, api, store, subscription):
@@ -80,12 +100,12 @@ class Sink:
 
         QUEUE.put((self.store, notification, self.subscription))
 
-def _get_folder(store, resource):
-    resource = resource.split('/')
-    if (len(resource) == 4 and \
-        resource[0] == 'me' and resource[1] == 'mailFolders' and resource[3] == 'messages'):
-        folderid = resource[2]
-    return utils._folder(store, folderid)
+#def _get_folder(store, resource):
+#    resource = resource.split('/')
+#    if (len(resource) == 4 and \
+#        resource[0] == 'me' and resource[1] == 'mailFolders' and resource[3] == 'messages'):
+#        folderid = resource[2]
+#    return utils._folder(store, folderid)
 
 class SubscriptionResource:
     def __init__(self, api):
@@ -95,16 +115,16 @@ class SubscriptionResource:
         user = _user(req)
         store = user.store
         fields = json.loads(req.stream.read().decode('utf-8'))
-        folder = _get_folder(store, fields['resource'])
+#        folder = _get_folder(store, fields['resource'])
 
-        # TODO store-level, hierarchy.. ?
+        # TODO folder-level, hierarchy.. ?
 
         id_ = str(uuid.uuid4())
         subscription = fields
         subscription['id'] = id_
 
         sink = Sink(self.api, store, subscription)
-        folder.subscribe(sink)
+        store.subscribe(sink)
 
         SUBSCRIPTIONS[id_] = (subscription, sink)
 
@@ -122,9 +142,9 @@ class SubscriptionResource:
         store = user.store
 
         subscription, sink = SUBSCRIPTIONS[subscriptionid]
-        folder = _get_folder(store, subscription['resource'])
+        #folder = _get_folder(store, subscription['resource'])
 
-        folder.unsubscribe(sink)
+        store.unsubscribe(sink)
         del SUBSCRIPTIONS[subscriptionid]
 
 class NotifyAPI(falcon.API):
