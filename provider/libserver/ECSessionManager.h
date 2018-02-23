@@ -171,7 +171,7 @@ public:
 
 protected:
 	_kc_hidden BTSession *GetSession(ECSESSIONID, bool lock_ses = false);
-	_kc_hidden ECRESULT ValidateBTSession(struct soap *, ECSESSIONID, BTSession **, bool lock_ses = false);
+	_kc_hidden ECRESULT ValidateBTSession(struct soap *, ECSESSIONID, BTSession **);
 	_kc_hidden BOOL IsSessionPersistent(ECSESSIONID );
 	_kc_hidden ECRESULT UpdateSubscribedTables(ECKeyTable::UpdateType, TABLESUBSCRIPTION, std::list<unsigned int> &child_id);
 	_kc_hidden ECRESULT SaveSourceKeyAutoIncrement(unsigned long long new_src_key_autoincr);

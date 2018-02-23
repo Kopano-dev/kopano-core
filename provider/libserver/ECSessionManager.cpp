@@ -299,7 +299,7 @@ ECRESULT ECSessionManager::ValidateSession(struct soap *soap,
     ECSESSIONID sessionID, ECAuthSession **lppSession)
 {
 	BTSession *lpSession = NULL;
-	auto er = this->ValidateBTSession(soap, sessionID, &lpSession, true);
+	auto er = this->ValidateBTSession(soap, sessionID, &lpSession);
 	if (er != erSuccess)
 		return er;
 	*lppSession = dynamic_cast<ECAuthSession*>(lpSession);
@@ -310,18 +310,19 @@ ECRESULT ECSessionManager::ValidateSession(struct soap *soap,
     ECSESSIONID sessionID, ECSession **lppSession)
 {
 	BTSession *lpSession = NULL;
-	auto er = this->ValidateBTSession(soap, sessionID, &lpSession, true);
+	auto er = this->ValidateBTSession(soap, sessionID, &lpSession);
 	if (er != erSuccess)
 		return er;
 	*lppSession = dynamic_cast<ECSession*>(lpSession);
 	return erSuccess;
 }
 
-ECRESULT ECSessionManager::ValidateBTSession(struct soap *soap, ECSESSIONID sessionID, BTSession **lppSession, bool fLockSession)
+ECRESULT ECSessionManager::ValidateBTSession(struct soap *soap,
+    ECSESSIONID sessionID, BTSession **lppSession)
 {
 	// Read lock
 	KC::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
-	auto lpSession = GetSession(sessionID, fLockSession);
+	auto lpSession = GetSession(sessionID, true);
 	l_cache.unlock();
 
 	if (lpSession == NULL)
@@ -330,8 +331,7 @@ ECRESULT ECSessionManager::ValidateBTSession(struct soap *soap, ECSESSIONID sess
 
 	auto er = lpSession->ValidateOriginator(soap);
 	if (er != erSuccess) {
-		if (fLockSession)
-			lpSession->unlock();
+		lpSession->unlock();
 		lpSession = NULL;
 		return er;
 	}
