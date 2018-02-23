@@ -76,6 +76,21 @@ HRESULT create_vcftomapi(IMAPIProp *prop, vcftomapi **ret)
 	return *ret != nullptr ? hrSuccess : MAPI_E_NOT_ENOUGH_MEMORY;
 }
 
+static bool date_string_to_filetime(const std::string &date_string, FILETIME &filetime)
+{
+	struct tm t;
+	memset(&t, 0, sizeof(struct tm));
+	auto s = strptime(date_string.c_str(), "%Y-%m-%d", &t);
+	if (s == nullptr || *s != '\0')
+		s = strptime(date_string.c_str(), "%Y%m%d", &t);
+	if (s == nullptr || *s != '\0')
+		return false;
+
+	auto utime = timegm(&t);
+	UnixTimeToFileTime(utime, &filetime);
+	return true;
+}
+
 HRESULT vcftomapi_impl::handle_N(VObject *v)
 {
 	VObjectIterator tt;
@@ -359,6 +374,16 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 			auto hr = vobject_to_prop(v, s, PR_BODY);
 			if (hr != hrSuccess)
 				return hr;
+			props.emplace_back(s);
+		} else if (strcmp(name, "BDAY") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			FILETIME filetime;
+			auto input = convert_to<std::string>(vObjectUStringZValue(v));
+			auto res = date_string_to_filetime(input, filetime);
+			if (!res)
+				continue;
+
+			s.ulPropTag = PR_BIRTHDAY;
+			s.Value.ft = filetime;
 			props.emplace_back(s);
 		} else if (strcmp(name, VCOrgProp) == 0) {
 			auto hr = handle_ORG(v);

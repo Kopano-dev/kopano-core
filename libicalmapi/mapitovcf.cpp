@@ -76,6 +76,18 @@ VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
 		auto str = bin2hex(s.Value.bin);
 		setVObjectStringZValue(newnode, str.c_str());
 	}
+	else if (PROP_TYPE(s.ulPropTag) == PT_SYSTIME) {
+		time_t utime;
+		struct tm t;
+		char buf[21];
+		FileTimeToUnixTime(s.Value.ft, &utime);
+		gmtime_safe(&utime, &t);
+		if (t.tm_hour == 0 && t.tm_min == 0 && t.tm_sec == 0)
+			strftime(buf, 21, "%Y-%m-%d", &t);
+		else
+			strftime(buf, 21, "%Y-%m-%dT%H:%M:%SZ", &t);
+		setVObjectStringZValue(newnode, buf);
+	}
 	return newnode;
 }
 
@@ -402,6 +414,18 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 	hr = HrGetOneProp(lpMessage, PR_BODY, &~msgprop);
 	if (hr == hrSuccess)
 		to_prop(root, "NOTE", *msgprop);
+	else if (hr != MAPI_E_NOT_FOUND)
+		return hr;
+
+	hr = HrGetOneProp(lpMessage, PR_BIRTHDAY, &~msgprop);
+	if (hr == hrSuccess)
+		to_prop(root, "BDAY", *msgprop);
+	else if (hr != MAPI_E_NOT_FOUND)
+		return hr;
+
+	hr = HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &~msgprop);
+	if (hr == hrSuccess)
+		to_prop(root, "REV", *msgprop);
 	else if (hr != MAPI_E_NOT_FOUND)
 		return hr;
 
