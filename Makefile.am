@@ -873,7 +873,7 @@ dist_man_MANS = \
 	doc/kopano-admin.8 \
 	doc/kopano-cli.8 \
 	doc/kopano-archiver.8 doc/kopano-archiver.cfg.5 \
-	doc/kopano-autorespond.8 \
+	doc/kopano-autorespond.8 doc/kopano-cachestat.8 \
 	doc/kopano-cfgchecker.8 doc/kopano-coredump.5 \
 	doc/kopano-dagent.8 doc/kopano-dagent.cfg.5 \
 	doc/kopano-mr-accept.8 doc/kopano-mr-process.8 \
