@@ -778,7 +778,7 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 		// when the first validate fails, remove the correct sessionid
 		ulSessionId = newSessionID;
 	} else {
-		er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecAuthSession, true);
+		er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecAuthSession);
 		if (er != erSuccess)
 			goto exit;
 	}
@@ -895,7 +895,7 @@ int KCmdService::logoff(ULONG64 ulSessionId, unsigned int *result)
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
 	LOG_SOAP_DEBUG("%020" PRIu64 ": S logoff", ulSessionId);
-	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, true);
+	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession);
 	if(er != erSuccess)
 		goto exit;
 
@@ -928,7 +928,7 @@ exit:
 	const char *szFname = #fname; \
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes); \
 	LOG_SOAP_DEBUG("%020" PRIu64 ": S %s", ulSessionId, szFname); \
-	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, true);\
+	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession); \
 	const bool bSupportUnicode = (er == erSuccess ? (lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE) != 0 : false); \
 	const ECStringCompat stringCompat(bSupportUnicode); \
 	if(er != erSuccess) \
@@ -4227,7 +4227,7 @@ int KCmdService::notifyGetItems(ULONG64 ulSessionId,
 	ECSession *lpSession = NULL;
 	
 	// Check if the session exists, and discard result
-	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpSession, true);
+	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpSession);
 	if(er != erSuccess) {
 		// Directly return with error in er
 		notifications->er = er;

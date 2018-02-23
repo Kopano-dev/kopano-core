@@ -295,22 +295,22 @@ ECRESULT ECSessionManager::ForEachSession(void(*callback)(ECSession*, void*), vo
 // having the session call a 'cancel' request to long-running calls, which makes the calls
 // exit prematurely.
 //
-ECRESULT ECSessionManager::ValidateSession(struct soap *soap, ECSESSIONID sessionID, ECAuthSession **lppSession, bool fLockSession)
+ECRESULT ECSessionManager::ValidateSession(struct soap *soap,
+    ECSESSIONID sessionID, ECAuthSession **lppSession)
 {
 	BTSession *lpSession = NULL;
-
-	auto er = this->ValidateBTSession(soap, sessionID, &lpSession, fLockSession);
+	auto er = this->ValidateBTSession(soap, sessionID, &lpSession, true);
 	if (er != erSuccess)
 		return er;
 	*lppSession = dynamic_cast<ECAuthSession*>(lpSession);
 	return erSuccess;
 }
 
-ECRESULT ECSessionManager::ValidateSession(struct soap *soap, ECSESSIONID sessionID, ECSession **lppSession, bool fLockSession)
+ECRESULT ECSessionManager::ValidateSession(struct soap *soap,
+    ECSESSIONID sessionID, ECSession **lppSession)
 {
 	BTSession *lpSession = NULL;
-
-	auto er = this->ValidateBTSession(soap, sessionID, &lpSession, fLockSession);
+	auto er = this->ValidateBTSession(soap, sessionID, &lpSession, true);
 	if (er != erSuccess)
 		return er;
 	*lppSession = dynamic_cast<ECSession*>(lpSession);

@@ -239,7 +239,7 @@ void *ECNotificationManager::Work() {
             if (iterRequest != m_mapRequests.cend()) {
                 // Reset notification response to default values
                 soap_default_notifyResponse(iterRequest->second.soap, &notifications);
-                if(g_lpSessionManager->ValidateSession(iterRequest->second.soap, ses, &lpecSession, true) == erSuccess) {
+                if (g_lpSessionManager->ValidateSession(iterRequest->second.soap, ses, &lpecSession) == erSuccess) {
                     // Get the notifications from the session
 					auto er = lpecSession->GetNotifyItems(iterRequest->second.soap, &notifications);
                     
