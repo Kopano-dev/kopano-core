@@ -76,8 +76,8 @@ public:
 	/*
 	 * Thread safety handlers
 	 */
-	virtual void Lock();
-	virtual void Unlock();
+	virtual void lock();
+	virtual void unlock();
 	virtual bool IsLocked(void) const _kc_final { return m_ulRefCount > 0; }
 
 	/*
