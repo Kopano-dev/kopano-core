@@ -24,7 +24,7 @@ from .compat import (
 )
 from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
-    PidLidBusyStatus, PidLidGlobalObjectId,
+    PidLidBusyStatus, PidLidGlobalObjectId, PidLidRecurring,
 )
 if sys.hexversion >= 0x03000000:
     from . import utils as _utils
@@ -86,10 +86,14 @@ class Appointment(object):
 
     @property
     def recurring(self):
-        try:
-            return self.prop('appointment:33315').value
-        except NotFoundError:
-            return False
+        return self.get(PidLidRecurring, False)
+
+    @recurring.setter
+    def recurring(self, value):
+        # TODO cleanup on False?
+        if value and not self.recurring:
+            Recurrence._init(self)
+        self[PidLidRecurring] = value
 
     @property
     def recurrence(self):

@@ -2,6 +2,7 @@ from .version import __version__
 
 import base64
 import codecs
+from collections import OrderedDict
 from contextlib import closing
 import dateutil.parser
 import fcntl
@@ -211,11 +212,11 @@ class Resource(object):
 
     def create_message(self, folder, fields, all_fields=None):
         # TODO item.update and/or only save in the end
-
         item = folder.create_item()
-        for field, value in fields.items():
-            if field in (all_fields or self.set_fields):
-                (all_fields or self.set_fields)[field](item, value)
+
+        for field in (all_fields or self.set_fields):
+            if field in fields:
+                (all_fields or self.set_fields)[field](item, fields[field])
 
         return item
 
@@ -694,19 +695,21 @@ class ItemAttachmentResource(AttachmentResource):
     })
 
 pattern_map = {
-    'month': 'absoluteMonthly',
-    'month_rel': 'relativeMonthly',
-    'day': 'daily',
-    'week': 'weekly',
-    'year': 'absoluteYearly',
-    'year_rel': 'relativeYearly',
+    'monthly': 'absoluteMonthly',
+    'monthly_rel': 'relativeMonthly',
+    'daily': 'daily',
+    'weekly': 'weekly',
+    'yearly': 'absoluteYearly',
+    'yearly_rel': 'relativeYearly',
 }
+pattern_map_rev = dict((b,a) for (a,b) in pattern_map.items())
 
 range_end_map = {
     'end_date': 'endDate',
-    'occ_count': 'numberOfOccurrences',
+    'occurrence_count': 'numberOfOccurrences',
     'no_end': 'noEnd',
 }
+range_end_map_rev = dict((b,a) for (a,b) in range_end_map.items())
 
 sensitivity_map = {
     'normal': 'Normal',
@@ -739,15 +742,35 @@ def recurrence_json(item):
             },
             'range': {
                 'type': range_end_map[recurrence.range_type],
-                'startDate': _date(recurrence._start, True, False), # TODO .start?
+                'startDate': _date(recurrence._start, True, False), # TODO hidden
                 'endDate': _date(recurrence._end, True, False) if recurrence.range_type != 'no_end' else '0001-01-01',
-                'numberOfOccurrences': recurrence.occurrence_count if recurrence.range_type == 'occ_count' else 0,
+                'numberOfOccurrences': recurrence.occurrence_count if recurrence.range_type == 'occurrence_count' else 0,
                 'recurrenceTimeZone': "", # TODO
             },
         }
         if recurrence.weekdays:
             j['pattern']['daysOfWeek'] = recurrence.weekdays
         return j
+
+def recurrence_set(item, arg):
+    if arg is None:
+        item.recurring = False # TODO pyko checks.. cleanup?
+    else:
+        item.recurring = True
+        rec = item.recurrence
+
+        rec.pattern = pattern_map_rev[arg['pattern']['type']]
+        rec.interval = arg['pattern']['interval']
+
+        rec.range_type = range_end_map_rev[arg['range']['type']]
+        rec.occurrence_count = arg['range']['numberOfOccurrences']
+
+        # TODO don't use hidden vars
+
+        rec._start = dateutil.parser.parse(arg['range']['startDate'])
+        rec._end = dateutil.parser.parse(arg['range']['endDate'])
+
+        rec._save()
 
 def attendees_json(item):
     result = []
@@ -802,11 +825,11 @@ class EventResource(ItemResource):
         'isOrganizer': lambda item: item.from_.email == item.sender.email,
     })
 
-    set_fields = {
-        'subject': lambda item, arg: setattr(item, 'subject', arg),
-        'start': lambda item, arg: setdate(item, 'start', arg),
-        'end': lambda item, arg: setdate(item, 'end', arg),
-    }
+    set_fields = OrderedDict()
+    set_fields['subject'] = lambda item, arg: setattr(item, 'subject', arg)
+    set_fields['start'] = lambda item, arg: setdate(item, 'start', arg)
+    set_fields['end'] = lambda item, arg: setdate(item, 'end', arg)
+    set_fields['recurrence'] = recurrence_set
 
     # TODO delta functionality seems to include expanding recurrences!? check with MSGE
 
