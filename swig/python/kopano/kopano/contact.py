@@ -27,10 +27,13 @@ from MAPI.Tags import (
 
 from .pidlid import (
     PidLidEmail1AddressType, PidLidEmail1DisplayName, PidLidEmail1EmailAddress,
-    PidLidEmail1OriginalEntryId, PidLidYomiFirstName, PidLidYomiLastName,
-    PidLidYomiCompanyName, PidLidFileUnder, PidLidInstantMessagingAddress,
-    PidLidWorkAddressStreet, PidLidWorkAddressCity, PidLidWorkAddressState,
-    PidLidWorkAddressPostalCode, PidLidWorkAddressCountry,
+    PidLidEmail1OriginalEntryId,PidLidEmail2AddressType, PidLidEmail2DisplayName,
+    PidLidEmail2EmailAddress, PidLidEmail2OriginalEntryId, PidLidYomiFirstName,
+    PidLidEmail3AddressType, PidLidEmail3DisplayName, PidLidEmail3EmailAddress,
+    PidLidEmail3OriginalEntryId, PidLidYomiLastName, PidLidYomiCompanyName,
+    PidLidFileUnder, PidLidInstantMessagingAddress, PidLidWorkAddressStreet,
+    PidLidWorkAddressCity, PidLidWorkAddressState, PidLidWorkAddressPostalCode,
+    PidLidWorkAddressCountry,
 )
 
 from .compat import repr as _repr
@@ -100,6 +103,64 @@ class Contact(object):
 
     def addresses(self): # TODO multiple
         yield self.address1
+
+    @property
+    def email2(self):
+        if self.address1:
+            return self.address2.email
+
+    @email2.setter
+    def email2(self, addr):  # TODO should be email address?
+        self.address2 = addr
+
+    @property
+    def address2(self):
+        return Address(
+            self.server,
+            self.get(PidLidEmail2AddressType),
+            self.get(PidLidEmail2DisplayName),
+            self.get(PidLidEmail2EmailAddress),
+            self.get(PidLidEmail2OriginalEntryId),
+        )
+
+    @address2.setter
+    def address2(self, addr):
+        pr_addrtype, pr_dispname, pr_email, pr_entryid = \
+            self._addr_props(addr)
+
+        self[PidLidEmail2AddressType] = _unicode(pr_addrtype)
+        self[PidLidEmail2DisplayName] = pr_dispname
+        self[PidLidEmail2EmailAddress] = pr_email
+        self[PidLidEmail2OriginalEntryId] = pr_entryid
+
+    @property
+    def email3(self):
+        if self.address3:
+            return self.address3.email
+
+    @email3.setter
+    def email3(self, addr):  # TODO should be email address?
+        self.address3 = addr
+
+    @property
+    def address3(self):
+        return Address(
+            self.server,
+            self.get(PidLidEmail3AddressType),
+            self.get(PidLidEmail3DisplayName),
+            self.get(PidLidEmail3EmailAddress),
+            self.get(PidLidEmail3OriginalEntryId),
+        )
+
+    @address2.setter
+    def address2(self, addr):
+        pr_addrtype, pr_dispname, pr_email, pr_entryid = \
+            self._addr_props(addr)
+
+        self[PidLidEmail3AddressType] = _unicode(pr_addrtype)
+        self[PidLidEmail3DisplayName] = pr_dispname
+        self[PidLidEmail3EmailAddress] = pr_email
+        self[PidLidEmail3OriginalEntryId] = pr_entryid
 
     @property
     def photo(self):
