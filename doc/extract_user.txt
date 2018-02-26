@@ -1,0 +1,95 @@
+SQL dump a single user's mail
+=============================
+
+
+== Customer ==
+
+Replace database name "kopano" below as needed to select the right source.
+Replace database name "x" below as needed to avoid nameclashes.
+
+
+0.
+Run `kopano-srvadm --purge-deferred` on/for the server holding
+the user's store.
+
+
+1.
+mysql>
+	SELECT user_id FROM kopano.stores WHERE user_name="foo";
+
+Replace the number 42 in the statements below by the id just obtained.
+
+
+2.
+Create a copy of database parts pertaining to the user. It is, as far as we
+could determine, not possible to directly use `mysqldump --where` when joins
+are involved, nor is the use of table views.
+
+mysql>
+	CREATE DATABASE x;
+	CREATE TABLE x.deferredupdate SELECT * FROM kopano.deferredupdate;
+	CREATE TABLE x.names SELECT * FROM kopano.names;
+	CREATE TABLE x.hierarchy SELECT * FROM kopano.hierarchy WHERE owner=42;
+	CREATE TABLE x.stores SELECT * FROM kopano.stores WHERE user_id=42;
+	CREATE TABLE x.receivefolder SELECT p.* FROM kopano.receivefolder AS p INNER JOIN kopano.hierarchy AS h ON p.objid=h.id AND h.owner=42;
+	CREATE TABLE x.indexedproperties SELECT p.* FROM kopano.indexedproperties AS p INNER JOIN kopano.hierarchy AS h ON p.hierarchyid=h.id AND h.owner=42;
+	CREATE TABLE x.mvproperties SELECT p.* FROM kopano.mvproperties AS p INNER JOIN kopano.hierarchy AS h ON p.hierarchyid=h.id AND h.owner=42;
+	CREATE TABLE x.properties SELECT p.* FROM kopano.properties AS p INNER JOIN kopano.hierarchy AS h ON p.hierarchyid=h.id AND h.owner=42;
+	CREATE TABLE x.tproperties SELECT p.* FROM kopano.tproperties AS p INNER JOIN kopano.hierarchy AS h ON p.hierarchyid=h.id AND h.owner=42;
+
+
+3.
+Dump and pack up.
+
+	mysqldump x | xz -9 >x.sql.xz
+
+Optionally, delete the temporary "x" database again.
+
+
+== Developer side ==
+
+1.
+Decompress and import dump into the target system, into a blank database:
+
+mysql>
+	CREATE DATABASE x;
+	USE x;
+	\. x.sql
+
+
+2.
+Prepare a fresh kopano database with no users and no stores, e.g.:
+
+mysql>
+	DROP DATABASE kopano;
+	CREATE DATABASE kopano;
+
+Start kopano-server and let it create tables and basic data (such as the
+SYSTEM and the target user, etc.) Stop kopano-server again.
+
+
+3.
+Merge row data:
+
+mysql>
+	INSERT INTO kopano.deferredupdate SELECT * FROM x.deferredupdate;
+	INSERT INTO kopano.names SELECT * FROM x.names;
+	INSERT INTO kopano.hierarchy SELECT * FROM x.hierarchy;
+	INSERT INTO kopano.stores SELECT * FROM x.stores;
+	INSERT INTO kopano.receivefolder SELECT * FROM x.receivefolder;
+	INSERT INTO kopano.indexedproperties SELECT * FROM x.indexedproperties;
+	INSERT INTO kopano.mvproperties SELECT * FROM x.mvproperties;
+	INSERT INTO kopano.properties SELECT * FROM x.properties;
+	INSERT INTO kopano.tproperties SELECT * FROM x.tproperties;
+
+
+4.
+Inspect orphaned stores and attach:
+
+# kopano-storeadm -O
+Stores without users:
+Store GUID                              Guessed username        Last login      Store size      Store type
+--------------------------------------------------------------------------------------------------------------
+8586e426e779430b831004782470a41f        sb9138                  <unknown>       0.00 MB         private
+
+# kopano-storeadm -A 8586e426e779430b831004782470a41f -n foo
