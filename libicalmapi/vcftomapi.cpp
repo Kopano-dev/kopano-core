@@ -83,9 +83,7 @@ static bool date_string_to_filetime(const std::string &date_string, FILETIME &fi
 		s = strptime(date_string.c_str(), "%Y%m%d", &t);
 	if (s == nullptr || *s != '\0')
 		return false;
-
-	auto utime = timegm(&t);
-	UnixTimeToFileTime(utime, &filetime);
+	filetime = UnixTimeToFileTime(timegm(&t));
 	return true;
 }
 

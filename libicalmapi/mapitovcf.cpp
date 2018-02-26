@@ -75,11 +75,9 @@ VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
 		setVObjectStringZValue(newnode, str.c_str());
 	}
 	else if (PROP_TYPE(s.ulPropTag) == PT_SYSTIME) {
-		time_t utime;
 		struct tm t;
 		char buf[21];
-		FileTimeToUnixTime(s.Value.ft, &utime);
-		gmtime_safe(&utime, &t);
+		gmtime_safe(FileTimeToUnixTime(s.Value.ft), &t);
 		if (t.tm_hour == 0 && t.tm_min == 0 && t.tm_sec == 0)
 			strftime(buf, 21, "%Y-%m-%d", &t);
 		else
