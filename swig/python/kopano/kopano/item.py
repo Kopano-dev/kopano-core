@@ -780,7 +780,7 @@ class Item(Properties, Contact, Appointment):
         item = folder.create_item(subject=subject, body=body, from_=self.store.user,
                                   to=self.from_.email, message_class=self.message_class)
 
-        source_message_info = self._create_source_message_info('reply')
+        source_message_info = self._create_source_message_info('reply').encode('ascii')
         item.create_prop('common:0x85CE', source_message_info, PT_BINARY)
 
         return item
@@ -792,9 +792,9 @@ class Item(Properties, Contact, Appointment):
             item = self._send_meeting_request()
 
         icon_index = {
-            '66': 261,  # reply
-            '67': 261,  # reply all
-            '68': 262,  # forward
+            b'66': 261,  # reply
+            b'67': 261,  # reply all
+            b'68': 262,  # forward
         }
         # TOOD(jelle): check if property exists?
         try:
