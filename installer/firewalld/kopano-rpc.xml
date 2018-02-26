@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+	<short>Kopano Storage Server</short>
+	<description>Standard TCP port used by kopano-server for unencrypted
+		connections.</description>
+	<port protocol="tcp" port="236"/>
+</service>
