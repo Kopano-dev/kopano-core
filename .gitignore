@@ -13,6 +13,7 @@ stamp-h1
 stamp-h2
 
 # /
+/.version
 /@
 /aclocal.m4
 /autom4te.cache/
@@ -23,7 +24,6 @@ stamp-h2
 /configure
 /libtool
 /python-config
-/version
 
 /default.sym
 

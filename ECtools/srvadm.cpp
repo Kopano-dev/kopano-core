@@ -62,6 +62,8 @@ static HRESULT adm_clear_cache(IECServiceAdmin *svcadm)
 
 static HRESULT adm_purge_deferred(IECServiceAdmin *svcadm)
 {
+	using namespace std::chrono;
+	auto last = steady_clock::now() - seconds(1);
 	while (true) {
 		ULONG rem;
 		auto ret = svcadm->PurgeDeferredUpdates(&rem);
@@ -69,10 +71,15 @@ static HRESULT adm_purge_deferred(IECServiceAdmin *svcadm)
 			break;
 		else if (ret != hrSuccess)
 			return kc_perror("Purge failed", ret);
+		auto now = decltype(last)::clock::now();
+		if (last + seconds(1) > now)
+			continue;
+		last = now;
 		if (isatty(STDERR_FILENO))
 			fprintf(stderr, "\r\e[2K""Remaining deferred records: %u", rem); // ]
 		else
 			fprintf(stderr, "Remaining deferred records: %u\n", rem);
+		fflush(stderr);
 	}
 	if (isatty(STDERR_FILENO))
 		fprintf(stderr, "\r\e[2K"); // ]
@@ -166,10 +173,11 @@ static bool adm_parse_options(int &argc, char **&argv)
 		poptPrintHelp(ctx, stderr, 0);
 		return false;
 	}
-	if (opt_clear_cache != nullptr)
+	if (opt_clear_cache != nullptr) {
 		opt_cache_bits = adm_parse_cache(opt_clear_cache);
-	if (opt_cache_bits == 0)
-		return false;
+		if (opt_cache_bits == 0)
+			return false;
+	}
 	return true;
 }
 

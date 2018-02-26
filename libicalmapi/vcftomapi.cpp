@@ -74,6 +74,19 @@ HRESULT create_vcftomapi(IMAPIProp *prop, vcftomapi **ret)
 	return *ret != nullptr ? hrSuccess : MAPI_E_NOT_ENOUGH_MEMORY;
 }
 
+static bool date_string_to_filetime(const std::string &date_string, FILETIME &filetime)
+{
+	struct tm t;
+	memset(&t, 0, sizeof(struct tm));
+	auto s = strptime(date_string.c_str(), "%Y-%m-%d", &t);
+	if (s == nullptr || *s != '\0')
+		s = strptime(date_string.c_str(), "%Y%m%d", &t);
+	if (s == nullptr || *s != '\0')
+		return false;
+	filetime = UnixTimeToFileTime(timegm(&t));
+	return true;
+}
+
 HRESULT vcftomapi_impl::handle_N(VObject *v)
 {
 	VObjectIterator tt;
@@ -103,27 +116,56 @@ HRESULT vcftomapi_impl::handle_TEL(VObject *v)
 	VObjectIterator t;
 
 	for (initPropIterator(&t, v); moreIteration(&t); ) {
-		auto vv = nextVObject(&t);
-		auto name = vObjectName(vv);
+		std::vector<std::string> tokens;
+		while (true) {
+			auto vv = nextVObject(&t);
+			auto name = vv ? vObjectName(vv) : nullptr;
+			if (vv == nullptr || name == nullptr)
+				break;
+			auto namep = strcasecmp(name, "TYPE") == 0 ? vObjectStringZValue(vv) : name;
+			auto tokenized = tokenize(namep, ",");
+			tokens.insert(tokens.end(), tokenized.cbegin(), tokenized.cend());
+		}
+
 		SPropValue s;
-		const char *namep = strcmp(name, "TYPE") == 0 ? vObjectStringZValue(vv) : name;
-		auto tokens = tokenize(namep, ',');
+		bool is_fax = std::find(tokens.cbegin(), tokens.cend(), "FAX") != tokens.cend();
 
 		for (auto const &token : tokens) {
 			if (strcasecmp(token.c_str(), "HOME") == 0) {
-				auto ret = vobject_to_prop(v, s, PR_HOME_TELEPHONE_NUMBER);
+				auto prop = is_fax ? PR_HOME_FAX_NUMBER : PR_HOME_TELEPHONE_NUMBER;
+				auto ret = vobject_to_prop(v, s, prop);
 				if (ret != hrSuccess)
 					return ret;
 				props.emplace_back(s);
 			}
-			if (strcasecmp(token.c_str(), "MOBILE") == 0) {
+			if (strcasecmp(token.c_str(), "MOBILE") == 0 || strcasecmp(token.c_str(), "CELL") == 0) {
+				if (is_fax)
+					continue;
+
 				auto ret = vobject_to_prop(v, s, PR_MOBILE_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
 				props.emplace_back(s);
 			}
 			if (strcasecmp(token.c_str(), "WORK") == 0) {
-				auto ret = vobject_to_prop(v, s, PR_BUSINESS_TELEPHONE_NUMBER);
+				auto prop = is_fax ? PR_BUSINESS_FAX_NUMBER : PR_BUSINESS_TELEPHONE_NUMBER;
+				auto ret = vobject_to_prop(v, s, prop);
+				if (ret != hrSuccess)
+					return ret;
+				props.emplace_back(s);
+			}
+			if (strcasecmp(token.c_str(), "MAIN") == 0) {
+				auto prop = is_fax ? PR_PRIMARY_FAX_NUMBER : PR_PRIMARY_TELEPHONE_NUMBER;
+				auto ret = vobject_to_prop(v, s, prop);
+				if (ret != hrSuccess)
+					return ret;
+				props.emplace_back(s);
+			}
+			if (strcasecmp(token.c_str(), "PAGER") == 0) {
+				if (is_fax)
+					continue;
+
+				auto ret = vobject_to_prop(v, s, PR_PAGER_TELEPHONE_NUMBER);
 				if (ret != hrSuccess)
 					return ret;
 				props.emplace_back(s);
@@ -320,6 +362,21 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 			auto hr = vobject_to_prop(v, s, PR_NICKNAME);
 			if (hr != hrSuccess)
 				return hr;
+			props.emplace_back(s);
+		} else if (strcmp(name, "NOTE") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			auto hr = vobject_to_prop(v, s, PR_BODY);
+			if (hr != hrSuccess)
+				return hr;
+			props.emplace_back(s);
+		} else if (strcmp(name, "BDAY") == 0 && vObjectValueType(v) != VCVT_NOVALUE) {
+			FILETIME filetime;
+			auto input = convert_to<std::string>(vObjectUStringZValue(v));
+			auto res = date_string_to_filetime(input, filetime);
+			if (!res)
+				continue;
+
+			s.ulPropTag = PR_BIRTHDAY;
+			s.Value.ft = filetime;
 			props.emplace_back(s);
 		} else if (strcmp(name, VCOrgProp) == 0) {
 			auto hr = handle_ORG(v);

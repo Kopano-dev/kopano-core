@@ -886,7 +886,7 @@ dist_man_MANS = \
 	doc/kopano-admin.8 \
 	doc/kopano-cli.8 \
 	doc/kopano-archiver.8 doc/kopano-archiver.cfg.5 \
-	doc/kopano-autorespond.8 \
+	doc/kopano-autorespond.8 doc/kopano-cachestat.8 \
 	doc/kopano-cfgchecker.8 doc/kopano-coredump.5 \
 	doc/kopano-dagent.8 doc/kopano-dagent.cfg.5 \
 	doc/kopano-mr-accept.8 doc/kopano-mr-process.8 \
@@ -937,9 +937,9 @@ AM_DISTCHECK_CONFIGURE_FLAGS = --with-dcprefix='$${prefix}'
 source-moved-check:
 	@${top_srcdir}/pwdcheck.sh "${abs_top_builddir}"
 
-version:
-	echo "@PACKAGE_VERSION@" >version
+.version:
+	echo "@PACKAGE_VERSION@" >$@
 
-common/include/kopano/ecversion.h: version versionheader.sh
+common/include/kopano/ecversion.h: .version versionheader.sh
 	${MKDIR_P} common/include/kopano
 	sh ${top_srcdir}/versionheader.sh >$@

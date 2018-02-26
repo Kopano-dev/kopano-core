@@ -15,12 +15,10 @@ INNER JOIN properties AS p2
 ON p1.hierarchyid=p2.hierarchyid AND p1.tag=12289 AND p2.tag=13834
 WHERE p1.val_string="FINDER_ROOT";
 
-# Show distribution
+# Show top 25 of stores with the most number of immediate search folders
 #
-SELECT p2.val_ulong
-FROM properties AS p1
-INNER JOIN properties AS p2
-ON p1.hierarchyid=p2.hierarchyid AND p1.tag=12289 AND p2.tag=13834
-WHERE p1.val_string="FINDER_ROOT"
-ORDER BY p2.val_ulong DESC
-LIMIT 25;
+SELECT hp.id, COUNT(*) AS c
+FROM hierarchy AS hp
+INNER JOIN hierarchy AS hs
+ON hp.id=hs.parent AND hp.type=3 AND hs.type=3 AND hp.flags=1 and hs.flags=2
+GROUP BY hp.id ORDER BY c DESC LIMIT 25;
