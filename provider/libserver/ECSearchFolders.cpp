@@ -187,6 +187,10 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
     SEARCHFOLDER *lpSearchFolder = NULL;    
     unsigned int ulParent = 0;
 	ulock_rec l_sf(m_mutexMapSearchFolders, std::defer_lock_t());
+	auto cleanup = make_scope_success([&]() {
+		if (lpCriteria != nullptr)
+			FreeSearchCriteria(lpCriteria);
+	});
 
     if(lpSearchCriteria == NULL) {
         er = LoadSearchCriteria(ulFolderId, &lpCriteria);
@@ -206,7 +210,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
         // Remove any results for this folder if we're restarting the search
         er = ResetResults(ulFolderId);
         if(er != erSuccess)
-            goto exit;
+			return er;
     }
         
     // Tell tables that we've reset:
@@ -217,13 +221,12 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
     // 2. Send reset table contents notification
     er = m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE, 0, ulFolderId, 0, MAPI_MESSAGE);
     if(er != erSuccess)
-        goto exit;
-        
+		return er;
     // 3. Send change tables viewing us (hierarchy tables)
 	if (cache->GetParent(ulFolderId, &ulParent) == erSuccess) {
         er = m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER);
         if(er != erSuccess)
-            goto exit;
+			return er;
     }
 
     lpSearchFolder = new SEARCHFOLDER(ulStoreId, ulFolderId);
@@ -231,7 +234,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
     er = CopySearchCriteria(NULL, lpSearchCriteria, &lpSearchFolder->lpSearchCriteria);
     if(er != erSuccess) {
         delete lpSearchFolder;
-        goto exit;
+		return er;
     }
 
     // Get searches for this store, or add it to the list.
@@ -262,10 +265,6 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
 	set_thread_name(lpSearchFolder->sThreadId, "SearchFolders:Folder");
     }
 	l_sf.unlock();
-exit:
-    if (lpCriteria)
-        FreeSearchCriteria(lpCriteria);
-
     return er;
 }
 
@@ -838,17 +837,21 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
     
     // Get the row data for the search
+	auto cleanup = make_scope_success([&]() {
+		if (lpRowSet != nullptr)
+			FreeRowSet(lpRowSet, true);
+	});
     er = ECStoreObjectTable::QueryRowData(NULL, NULL, lpSession, &ecRows, lpPropTags, lpODStore, &lpRowSet, false, false);
 	if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::ProcessCandidateRows() ECStoreObjectTable::QueryRowData failed %d", er);
-		goto exit;
+		return er;
 	}
         
     // Get the subrestriction results for the search
     er = RunSubRestrictions(lpSession, lpODStore, lpRestrict, &ecRows, locale, sub_results);
 	if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::ProcessCandidateRows() RunSubRestrictions failed %d", er);
-		goto exit;
+		return er;
 	}
     
     // Loop through the results data                
@@ -873,25 +876,19 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
     er = AddResults(ulFolderId, lstMatches, lstFlags, &lCount, &lUnreadCount);
 	if (er != erSuccess) {
 		ec_log_err("ECSearchFolders::ProcessCandidateRows() AddResults failed %d", er);
-		goto exit;
+		return er;
 	}
 
     if(lCount || lUnreadCount) {
         er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_COUNT, lCount);
 		if (er != erSuccess) {
 			ec_log_crit("ECSearchFolders::ProcessCandidateRows() UpdateFolderCount failed(1) %d", er);
-			goto exit;
+			return er;
 		}
 		er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_UNREAD, lUnreadCount);
 		if (er != erSuccess)
 			ec_log_crit("ECSearchFolders::ProcessCandidateRows() UpdateFolderCount failed(2) %d", er);
 	}
-
-exit:    
-    if(lpRowSet) {
-        FreeRowSet(lpRowSet, true);
-        lpRowSet = NULL;
-    }
     return er;
 }    
 
