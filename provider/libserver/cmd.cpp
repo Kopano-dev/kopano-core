@@ -2437,211 +2437,194 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	// ------
 	// the following code is only for objects that still exist
 	// ------
-	{
-
-		// Do not delete properties if this is a new object: this avoids any delete queries that cause unnecessary locks on the tables
-		if (lpsSaveObj->delProps.__size > 0 && !fNewItem) {
-			er = DeleteProps(lpecSession, lpDatabase, lpsReturnObj->ulServerId, &lpsSaveObj->delProps, lpAttachmentStorage);
-			if (er != erSuccess)
-				return er;
-		}
-
-		if (lpsSaveObj->modProps.__size > 0) {
-			er = WriteProps(soap, lpecSession, lpDatabase, lpAttachmentStorage, lpsSaveObj, lpsReturnObj->ulServerId, fNewItem, ulSyncId, lpsReturnObj, lpfHaveChangeKey, &ftCreated, &ftModified);
-			if (er != erSuccess)
-				return er;
-		}
-
-		// check children
-		if (lpsSaveObj->__size > 0) {
-			lpsReturnObj->__size = lpsSaveObj->__size;
-			lpsReturnObj->__ptr = s_alloc<struct saveObject>(soap, lpsReturnObj->__size);
-
-			for (gsoap_size_t i = 0; i < lpsSaveObj->__size; ++i) {
-				er = SaveObject(soap, lpecSession, lpDatabase, lpAttachmentStorage, ulStoreId, /*myself as parent*/lpsReturnObj->ulServerId, lpsReturnObj->ulObjType, 0, ulSyncId, &lpsSaveObj->__ptr[i], &lpsReturnObj->__ptr[i], lpsReturnObj->ulObjType == MAPI_MESSAGE ? ulLevel-1 : ulLevel);
-				if (er != erSuccess)
-					return er;
-			}
-		}
-		
-		if (lpsReturnObj->ulObjType == MAPI_MESSAGE) {
-			// Generate properties that we need to generate (PR_HASATTACH, PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME)
-			if (fNewItem) {
-				// We have to write PR_HASTTACH since it is a new object
-				fGenHasAttach = true;
-				// We can generate PR_HASATTACH from the passed object data
-				for (gsoap_size_t i = 0; i < lpsSaveObj->__size; ++i)
-					if(lpsSaveObj->__ptr[i].ulObjType == MAPI_ATTACH) {
-						fHasAttach = true;
-						break;
-					}
-			} else {
-				// Modified object. Only change PR_HASATTACH if something has changed
-				for (gsoap_size_t i = 0; i < lpsSaveObj->__size; ++i)
-					if(lpsSaveObj->__ptr[i].ulObjType == MAPI_ATTACH && (lpsSaveObj->__ptr[i].bDelete || lpsSaveObj->__ptr[i].ulServerId == 0)) {
-						// An attachment was deleted or added in this call
-						fGenHasAttach = true;
-						break;
-					}
-				if(fGenHasAttach) {
-					// An attachment was added or deleted, check the database to see if any attachments are left.
-					strQuery = "SELECT id FROM hierarchy WHERE parent=" + stringify(lpsReturnObj->ulServerId) + " AND type=" + stringify(MAPI_ATTACH) + " LIMIT 1";
-					
-					er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-					if(er != erSuccess)
-						return er;
-					fHasAttach = lpDBResult.get_num_rows() > 0;
-				}
-			}
-			
-			if(fGenHasAttach) {
-				// We have to generate/update PR_HASATTACH
-				unsigned int ulParentTmp, ulOwnerTmp, ulFlagsTmp, ulTypeTmp;
-				
-				sObjectTableKey key(lpsReturnObj->ulServerId, 0);
-				struct propVal sPropHasAttach;
-				sPropHasAttach.ulPropTag = PR_HASATTACH;
-				sPropHasAttach.Value.b = fHasAttach;
-				sPropHasAttach.__union = SOAP_UNION_propValData_b;
-		
-				// Write in properties		
-				strQuery.clear();
-				WriteSingleProp(lpDatabase, lpsReturnObj->ulServerId, ulParentObjId, &sPropHasAttach, false, 0, strQuery);
-				er = lpDatabase->DoInsert(strQuery);
-				if(er != erSuccess)
-					return er;
-					
-				// Write in tproperties
-				strQuery.clear();
-				WriteSingleProp(lpDatabase, lpsReturnObj->ulServerId, ulParentObjId, &sPropHasAttach, true, 0, strQuery);
-				er = lpDatabase->DoInsert(strQuery);
-				if(er != erSuccess)
-					return er;
-				
-				// Update cache, since it may have been written before by WriteProps with a possibly wrong value
-				g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_HASATTACH, &sPropHasAttach);
-				
-				// Update MSGFLAG_HASATTACH in the same way. We can assume PR_MESSAGE_FLAGS is already available, so we
-				// just do an update (instead of REPLACE INTO)
-				strQuery = std::string("UPDATE properties SET val_ulong = val_ulong ") + (fHasAttach ? " | 16 " : " & ~16") + " WHERE hierarchyid = " + stringify(lpsReturnObj->ulServerId) + " AND tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
-				er = lpDatabase->DoUpdate(strQuery);
-				if(er != erSuccess)
-					return er;
-					
-				// Update cache if it's actually in the cache
-				if(g_lpSessionManager->GetCacheManager()->GetCell(&key, PR_MESSAGE_FLAGS, &sPropHasAttach, soap, false) == erSuccess) {
-					sPropHasAttach.Value.ul &= ~MSGFLAG_HASATTACH;
-					sPropHasAttach.Value.ul |= fHasAttach ? MSGFLAG_HASATTACH : 0;
-					g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_MESSAGE_FLAGS, &sPropHasAttach);
-				}
-
-				// More cache
-				/* All this seems to be doing is getting the object into the cache (if not already there), or updating the cache entry timestamp. Suspicious. */
-				if (g_lpSessionManager->GetCacheManager()->GetObject(lpsReturnObj->ulServerId, &ulParentTmp, &ulOwnerTmp, &ulFlagsTmp, &ulTypeTmp) == erSuccess)
-					g_lpSessionManager->GetCacheManager()->SetObject(lpsReturnObj->ulServerId, ulParentTmp, ulOwnerTmp, ulFlagsTmp, ulTypeTmp);
-			}
-		}
-		// 1. calc size of object, now that all children are saved.
-
-		if (lpsReturnObj->ulObjType == MAPI_MESSAGE || lpsReturnObj->ulObjType == MAPI_ATTACH) {
-			// Remove old size
-			if (fNewItem != true && lpsReturnObj->ulObjType == MAPI_MESSAGE && ulParentType == MAPI_FOLDER) {
-				if (GetObjectSize(lpDatabase, lpsReturnObj->ulServerId, &ulSize) == erSuccess)
-					er = UpdateObjectSize(lpDatabase, ulStoreId, MAPI_STORE, UPDATE_SUB, ulSize);
-				if (er != erSuccess)
-					return er;
-			}
-
-			// Add new size
-			er = CalculateObjectSize(lpDatabase, lpsReturnObj->ulServerId, lpsReturnObj->ulObjType, &ulSize);
-			if (er != erSuccess)
-				return er;
-
-			er = UpdateObjectSize(lpDatabase, lpsReturnObj->ulServerId, lpsReturnObj->ulObjType, UPDATE_SET, ulSize);
-			if (er != erSuccess)
-				return er;
-
-			if (lpsReturnObj->ulObjType == MAPI_MESSAGE && ulParentType == MAPI_FOLDER) {
-				er = UpdateObjectSize(lpDatabase, ulStoreId, MAPI_STORE, UPDATE_ADD, ulSize);
-				if (er != erSuccess)
-					return er;
-			}
-		}
-
-		// 2. find props to return
-
-		// the server returns the following 4 properties, when the item is new:
-		//   PR_CREATION_TIME, (PR_PARENT_SOURCE_KEY, PR_SOURCE_KEY /type==5|3) (PR_RECORD_KEY /type==7|5|3)
-		// TODO: recipients: PR_INSTANCE_KEY
-		// it always sends the following property:
-		//   PR_LAST_MODIFICATION_TIME
-		// currently, it always sends them all
-		// we also can't send the PR_MESSAGE_SIZE and PR_MESSAGE_FLAGS, since the recursion is the wrong way around: attachments come later than the actual message
-		// we can skip PR_ACCESS and PR_ACCESS_LEVEL because the client already inherited those from the parent
-		// we need to alloc 2 properties for PR_CHANGE_KEY and PR_PREDECESSOR_CHANGE_LIST
-		lpsReturnObj->delProps.__size = 8;
-		lpsReturnObj->delProps.__ptr = s_alloc<unsigned int>(soap, lpsReturnObj->delProps.__size);
-		lpsReturnObj->modProps.__size = 8;
-		lpsReturnObj->modProps.__ptr = s_alloc<struct propVal>(soap, lpsReturnObj->modProps.__size);
-
-		n = 0;
-
-		// set the PR_RECORD_KEY
-		// New clients generate the instance key, old clients don't. See if one was provided.
-		if (lpsSaveObj->ulObjType == MAPI_ATTACH || lpsSaveObj->ulObjType == MAPI_MESSAGE || lpsSaveObj->ulObjType == MAPI_FOLDER) {
-			bool bSkip = false;
-			if (lpsSaveObj->ulObjType == MAPI_ATTACH) {
-				for (gsoap_size_t i = 0; !bSkip && i < lpsSaveObj->modProps.__size; ++i)
-					bSkip = lpsSaveObj->modProps.__ptr[i].ulPropTag == PR_RECORD_KEY;
-				// @todo if we don't have a pr_record_key for an attachment, generate a guid for it like the client does
-			}
-			if (!bSkip && ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_RECORD_KEY, lpsSaveObj->ulServerId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess)
-				lpsReturnObj->delProps.__ptr[n++] = PR_RECORD_KEY;
-		}
-
-		if (lpsSaveObj->ulObjType != MAPI_STORE) {
-			er = g_lpSessionManager->GetCacheManager()->GetObject(ulParentObjId, NULL, NULL, NULL, &ulParentObjType);
-			if(er != erSuccess)
-				return er;
-		}
-
-		//PR_PARENT_SOURCE_KEY for folders and messages
-		if (lpsSaveObj->ulObjType == MAPI_FOLDER || (lpsSaveObj->ulObjType == MAPI_MESSAGE && ulParentObjType == MAPI_FOLDER))
-		{
-			if(ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_PARENT_SOURCE_KEY, ulObjId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess)
-				lpsReturnObj->delProps.__ptr[n++] = PR_PARENT_SOURCE_KEY;
-			if(ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_SOURCE_KEY, ulObjId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess)
-				lpsReturnObj->delProps.__ptr[n++] = PR_SOURCE_KEY;
-		}
-
-		// PR_LAST_MODIFICATION_TIME
-		lpsReturnObj->delProps.__ptr[n] = PR_LAST_MODIFICATION_TIME;
-
-		lpsReturnObj->modProps.__ptr[n].__union = SOAP_UNION_propValData_hilo;
-		lpsReturnObj->modProps.__ptr[n].ulPropTag = PR_LAST_MODIFICATION_TIME;
-		lpsReturnObj->modProps.__ptr[n].Value.hilo = s_alloc<hiloLong>(soap);
-
-		lpsReturnObj->modProps.__ptr[n].Value.hilo->hi = ftModified.dwHighDateTime;
-		lpsReturnObj->modProps.__ptr[n].Value.hilo->lo = ftModified.dwLowDateTime;
-		++n;
-		if (fNewItem)
-		{
-			lpsReturnObj->delProps.__ptr[n] = PR_CREATION_TIME;
-
-			lpsReturnObj->modProps.__ptr[n].__union = SOAP_UNION_propValData_hilo;
-			lpsReturnObj->modProps.__ptr[n].ulPropTag = PR_CREATION_TIME;
-			lpsReturnObj->modProps.__ptr[n].Value.hilo = s_alloc<hiloLong>(soap);
-
-			lpsReturnObj->modProps.__ptr[n].Value.hilo->hi = ftCreated.dwHighDateTime;
-			lpsReturnObj->modProps.__ptr[n].Value.hilo->lo = ftCreated.dwLowDateTime;
-			++n;
-		}
-
-		// set actual array size
-		lpsReturnObj->delProps.__size = n;
-		lpsReturnObj->modProps.__size = n;
+	// Do not delete properties if this is a new object: this avoids any delete queries that cause unnecessary locks on the tables
+	if (lpsSaveObj->delProps.__size > 0 && !fNewItem) {
+		er = DeleteProps(lpecSession, lpDatabase, lpsReturnObj->ulServerId, &lpsSaveObj->delProps, lpAttachmentStorage);
+		if (er != erSuccess)
+			return er;
+	}
+	if (lpsSaveObj->modProps.__size > 0) {
+		er = WriteProps(soap, lpecSession, lpDatabase, lpAttachmentStorage, lpsSaveObj, lpsReturnObj->ulServerId, fNewItem, ulSyncId, lpsReturnObj, lpfHaveChangeKey, &ftCreated, &ftModified);
+		if (er != erSuccess)
+			return er;
 	}
 
+	// check children
+	if (lpsSaveObj->__size > 0) {
+		lpsReturnObj->__size = lpsSaveObj->__size;
+		lpsReturnObj->__ptr = s_alloc<struct saveObject>(soap, lpsReturnObj->__size);
+		for (gsoap_size_t i = 0; i < lpsSaveObj->__size; ++i) {
+			er = SaveObject(soap, lpecSession, lpDatabase, lpAttachmentStorage, ulStoreId, /*myself as parent*/lpsReturnObj->ulServerId, lpsReturnObj->ulObjType, 0, ulSyncId, &lpsSaveObj->__ptr[i], &lpsReturnObj->__ptr[i], lpsReturnObj->ulObjType == MAPI_MESSAGE ? ulLevel-1 : ulLevel);
+			if (er != erSuccess)
+				return er;
+		}
+	}
+
+	if (lpsReturnObj->ulObjType == MAPI_MESSAGE) {
+		// Generate properties that we need to generate (PR_HASATTACH, PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME)
+		if (fNewItem) {
+			// We have to write PR_HASTTACH since it is a new object
+			fGenHasAttach = true;
+			// We can generate PR_HASATTACH from the passed object data
+			for (gsoap_size_t i = 0; i < lpsSaveObj->__size; ++i)
+				if (lpsSaveObj->__ptr[i].ulObjType == MAPI_ATTACH) {
+					fHasAttach = true;
+					break;
+				}
+		} else {
+			// Modified object. Only change PR_HASATTACH if something has changed
+			for (gsoap_size_t i = 0; i < lpsSaveObj->__size; ++i)
+				if (lpsSaveObj->__ptr[i].ulObjType == MAPI_ATTACH && (lpsSaveObj->__ptr[i].bDelete || lpsSaveObj->__ptr[i].ulServerId == 0)) {
+					// An attachment was deleted or added in this call
+					fGenHasAttach = true;
+					break;
+				}
+			if (fGenHasAttach) {
+				// An attachment was added or deleted, check the database to see if any attachments are left.
+				strQuery = "SELECT id FROM hierarchy WHERE parent=" + stringify(lpsReturnObj->ulServerId) + " AND type=" + stringify(MAPI_ATTACH) + " LIMIT 1";
+				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+				if (er != erSuccess)
+					return er;
+				fHasAttach = lpDBResult.get_num_rows() > 0;
+			}
+		}
+
+		if (fGenHasAttach) {
+			// We have to generate/update PR_HASATTACH
+			unsigned int ulParentTmp, ulOwnerTmp, ulFlagsTmp, ulTypeTmp;
+			sObjectTableKey key(lpsReturnObj->ulServerId, 0);
+			struct propVal sPropHasAttach;
+			sPropHasAttach.ulPropTag = PR_HASATTACH;
+			sPropHasAttach.Value.b = fHasAttach;
+			sPropHasAttach.__union = SOAP_UNION_propValData_b;
+
+			// Write in properties
+			strQuery.clear();
+			WriteSingleProp(lpDatabase, lpsReturnObj->ulServerId, ulParentObjId, &sPropHasAttach, false, 0, strQuery);
+			er = lpDatabase->DoInsert(strQuery);
+			if (er != erSuccess)
+				return er;
+
+			// Write in tproperties
+			strQuery.clear();
+			WriteSingleProp(lpDatabase, lpsReturnObj->ulServerId, ulParentObjId, &sPropHasAttach, true, 0, strQuery);
+			er = lpDatabase->DoInsert(strQuery);
+			if (er != erSuccess)
+				return er;
+
+			// Update cache, since it may have been written before by WriteProps with a possibly wrong value
+			g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_HASATTACH, &sPropHasAttach);
+
+			// Update MSGFLAG_HASATTACH in the same way. We can assume PR_MESSAGE_FLAGS is already available, so we
+			// just do an update (instead of REPLACE INTO)
+			strQuery = std::string("UPDATE properties SET val_ulong = val_ulong ") + (fHasAttach ? " | 16 " : " & ~16") + " WHERE hierarchyid = " + stringify(lpsReturnObj->ulServerId) + " AND tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
+			er = lpDatabase->DoUpdate(strQuery);
+			if (er != erSuccess)
+				return er;
+
+			// Update cache if it's actually in the cache
+			if (g_lpSessionManager->GetCacheManager()->GetCell(&key, PR_MESSAGE_FLAGS, &sPropHasAttach, soap, false) == erSuccess) {
+				sPropHasAttach.Value.ul &= ~MSGFLAG_HASATTACH;
+				sPropHasAttach.Value.ul |= fHasAttach ? MSGFLAG_HASATTACH : 0;
+				g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_MESSAGE_FLAGS, &sPropHasAttach);
+			}
+
+			// More cache
+			/* All this seems to be doing is getting the object into the cache (if not already there), or updating the cache entry timestamp. Suspicious. */
+			if (g_lpSessionManager->GetCacheManager()->GetObject(lpsReturnObj->ulServerId, &ulParentTmp, &ulOwnerTmp, &ulFlagsTmp, &ulTypeTmp) == erSuccess)
+				g_lpSessionManager->GetCacheManager()->SetObject(lpsReturnObj->ulServerId, ulParentTmp, ulOwnerTmp, ulFlagsTmp, ulTypeTmp);
+		}
+	}
+
+	// 1. calc size of object, now that all children are saved.
+	if (lpsReturnObj->ulObjType == MAPI_MESSAGE || lpsReturnObj->ulObjType == MAPI_ATTACH) {
+		// Remove old size
+		if (fNewItem != true && lpsReturnObj->ulObjType == MAPI_MESSAGE && ulParentType == MAPI_FOLDER) {
+			if (GetObjectSize(lpDatabase, lpsReturnObj->ulServerId, &ulSize) == erSuccess)
+				er = UpdateObjectSize(lpDatabase, ulStoreId, MAPI_STORE, UPDATE_SUB, ulSize);
+			if (er != erSuccess)
+				return er;
+		}
+
+		// Add new size
+		er = CalculateObjectSize(lpDatabase, lpsReturnObj->ulServerId, lpsReturnObj->ulObjType, &ulSize);
+		if (er != erSuccess)
+			return er;
+		er = UpdateObjectSize(lpDatabase, lpsReturnObj->ulServerId, lpsReturnObj->ulObjType, UPDATE_SET, ulSize);
+		if (er != erSuccess)
+			return er;
+		if (lpsReturnObj->ulObjType == MAPI_MESSAGE && ulParentType == MAPI_FOLDER) {
+			er = UpdateObjectSize(lpDatabase, ulStoreId, MAPI_STORE, UPDATE_ADD, ulSize);
+			if (er != erSuccess)
+				return er;
+		}
+	}
+
+	// 2. find props to return
+	// the server returns the following 4 properties, when the item is new:
+	//   PR_CREATION_TIME, (PR_PARENT_SOURCE_KEY, PR_SOURCE_KEY /type==5|3) (PR_RECORD_KEY /type==7|5|3)
+	// TODO: recipients: PR_INSTANCE_KEY
+	// it always sends the following property:
+	//   PR_LAST_MODIFICATION_TIME
+	// currently, it always sends them all
+	// we also can't send the PR_MESSAGE_SIZE and PR_MESSAGE_FLAGS, since the recursion is the wrong way around: attachments come later than the actual message
+	// we can skip PR_ACCESS and PR_ACCESS_LEVEL because the client already inherited those from the parent
+	// we need to alloc 2 properties for PR_CHANGE_KEY and PR_PREDECESSOR_CHANGE_LIST
+	lpsReturnObj->delProps.__size = 8;
+	lpsReturnObj->delProps.__ptr = s_alloc<unsigned int>(soap, lpsReturnObj->delProps.__size);
+	lpsReturnObj->modProps.__size = 8;
+	lpsReturnObj->modProps.__ptr = s_alloc<struct propVal>(soap, lpsReturnObj->modProps.__size);
+	n = 0;
+
+	// set the PR_RECORD_KEY
+	// New clients generate the instance key, old clients don't. See if one was provided.
+	if (lpsSaveObj->ulObjType == MAPI_ATTACH || lpsSaveObj->ulObjType == MAPI_MESSAGE || lpsSaveObj->ulObjType == MAPI_FOLDER) {
+		bool bSkip = false;
+		if (lpsSaveObj->ulObjType == MAPI_ATTACH) {
+			for (gsoap_size_t i = 0; !bSkip && i < lpsSaveObj->modProps.__size; ++i)
+				bSkip = lpsSaveObj->modProps.__ptr[i].ulPropTag == PR_RECORD_KEY;
+			// @todo if we don't have a pr_record_key for an attachment, generate a guid for it like the client does
+		}
+		if (!bSkip && ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_RECORD_KEY, lpsSaveObj->ulServerId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess)
+			lpsReturnObj->delProps.__ptr[n++] = PR_RECORD_KEY;
+	}
+	if (lpsSaveObj->ulObjType != MAPI_STORE) {
+		er = g_lpSessionManager->GetCacheManager()->GetObject(ulParentObjId, NULL, NULL, NULL, &ulParentObjType);
+		if (er != erSuccess)
+			return er;
+	}
+
+	//PR_PARENT_SOURCE_KEY for folders and messages
+	if (lpsSaveObj->ulObjType == MAPI_FOLDER || (lpsSaveObj->ulObjType == MAPI_MESSAGE && ulParentObjType == MAPI_FOLDER))
+	{
+		if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_PARENT_SOURCE_KEY, ulObjId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess)
+			lpsReturnObj->delProps.__ptr[n++] = PR_PARENT_SOURCE_KEY;
+		if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_SOURCE_KEY, ulObjId, 0, 0, ulParentObjId, lpsSaveObj->ulObjType, &lpsReturnObj->modProps.__ptr[n]) == erSuccess)
+			lpsReturnObj->delProps.__ptr[n++] = PR_SOURCE_KEY;
+	}
+
+	// PR_LAST_MODIFICATION_TIME
+	lpsReturnObj->delProps.__ptr[n] = PR_LAST_MODIFICATION_TIME;
+	lpsReturnObj->modProps.__ptr[n].__union = SOAP_UNION_propValData_hilo;
+	lpsReturnObj->modProps.__ptr[n].ulPropTag = PR_LAST_MODIFICATION_TIME;
+	lpsReturnObj->modProps.__ptr[n].Value.hilo = s_alloc<hiloLong>(soap);
+	lpsReturnObj->modProps.__ptr[n].Value.hilo->hi = ftModified.dwHighDateTime;
+	lpsReturnObj->modProps.__ptr[n].Value.hilo->lo = ftModified.dwLowDateTime;
+	++n;
+	if (fNewItem)
+	{
+		lpsReturnObj->delProps.__ptr[n] = PR_CREATION_TIME;
+		lpsReturnObj->modProps.__ptr[n].__union = SOAP_UNION_propValData_hilo;
+		lpsReturnObj->modProps.__ptr[n].ulPropTag = PR_CREATION_TIME;
+		lpsReturnObj->modProps.__ptr[n].Value.hilo = s_alloc<hiloLong>(soap);
+		lpsReturnObj->modProps.__ptr[n].Value.hilo->hi = ftCreated.dwHighDateTime;
+		lpsReturnObj->modProps.__ptr[n].Value.hilo->lo = ftCreated.dwLowDateTime;
+		++n;
+	}
+
+	// set actual array size
+	lpsReturnObj->delProps.__size = n;
+	lpsReturnObj->modProps.__size = n;
 	return er;
 }
 
@@ -3619,20 +3602,17 @@ SOAP_ENTRY_START(tableSetSearchCriteria, *result, const entryId &sEntryId,
 	// If a STOP was requested, then that's all we need to do
 	if(ulFlags & STOP_SEARCH) {
 		return lpecSession->GetSessionManager()->GetSearchFolders()->SetSearchCriteria(ulStoreId, ulParent, nullptr);
-	} else {
-		struct searchCriteria sSearchCriteria;
-
-		if (!bSupportUnicode) {
-			er = FixRestrictionEncoding(soap, stringCompat, In, lpRestrict);
-			if (er != erSuccess)
-				return er;
-		}
-
-		sSearchCriteria.lpRestrict = lpRestrict;
-		sSearchCriteria.lpFolders = lpFolders;
-		sSearchCriteria.ulFlags = ulFlags;
-		return lpecSession->GetSessionManager()->GetSearchFolders()->SetSearchCriteria(ulStoreId, ulParent, &sSearchCriteria);
 	}
+	struct searchCriteria sSearchCriteria;
+	if (!bSupportUnicode) {
+		er = FixRestrictionEncoding(soap, stringCompat, In, lpRestrict);
+		if (er != erSuccess)
+			return er;
+	}
+	sSearchCriteria.lpRestrict = lpRestrict;
+	sSearchCriteria.lpFolders = lpFolders;
+	sSearchCriteria.ulFlags = ulFlags;
+	return lpecSession->GetSessionManager()->GetSearchFolders()->SetSearchCriteria(ulStoreId, ulParent, &sSearchCriteria);
 }
 SOAP_ENTRY_END()
 
@@ -6477,19 +6457,18 @@ table:
 	g_lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_DELETE, ulStoreId, ulObjId, ulFlags, MAPI_MESSAGE);
 
 	// The flags have changed, so we have to send a modified 
-	if (bMessageChanged) {
-		cache->Update(fnevObjectModified, ulObjId);
-		g_lpSessionManager->NotificationModified(MAPI_MESSAGE, ulObjId, ulParentId);
-
-		if (gcache->GetParent(ulObjId, &ulParentId) == erSuccess) {
-			gcache->Update(fnevObjectModified, ulParentId);
-			g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
-	        
-			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParentId, ulObjId, MAPI_MESSAGE);
-			if (gcache->GetParent(ulParentId, &ulGrandParentId) == erSuccess)
-				g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParentId, ulParentId, MAPI_FOLDER);
-		}
-	}
+	if (!bMessageChanged)
+		return erSuccess;
+	cache->Update(fnevObjectModified, ulObjId);
+	g_lpSessionManager->NotificationModified(MAPI_MESSAGE, ulObjId, ulParentId);
+	if (gcache->GetParent(ulObjId, &ulParentId) != erSuccess)
+		return erSuccess;
+	gcache->Update(fnevObjectModified, ulParentId);
+	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
+	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParentId, ulObjId, MAPI_MESSAGE);
+	if (gcache->GetParent(ulParentId, &ulGrandParentId) != erSuccess)
+		return erSuccess;
+	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParentId, ulParentId, MAPI_FOLDER);
 	return erSuccess;
 }
 SOAP_ENTRY_END()
@@ -6571,16 +6550,16 @@ SOAP_ENTRY_START(abortSubmit, *result, const entryId &sEntryId,
 		return er;
 
 	g_lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_DELETE, ulStoreId, ulObjId, ulSubmitFlags, MAPI_MESSAGE);
-	if (gcache->GetParent(ulObjId, &ulParentId) == erSuccess) {
-		gcache->Update(fnevObjectModified, ulObjId);
-		g_lpSessionManager->NotificationModified(MAPI_MESSAGE, ulObjId, ulParentId);
-		gcache->Update(fnevObjectModified, ulParentId);
-		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
-
-		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParentId, ulObjId, MAPI_MESSAGE);
-		if (gcache->GetParent(ulParentId, &ulGrandParentId) == erSuccess)
-			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParentId, ulParentId, MAPI_FOLDER);
-	}
+	if (gcache->GetParent(ulObjId, &ulParentId) != erSuccess)
+		return erSuccess;
+	gcache->Update(fnevObjectModified, ulObjId);
+	g_lpSessionManager->NotificationModified(MAPI_MESSAGE, ulObjId, ulParentId);
+	gcache->Update(fnevObjectModified, ulParentId);
+	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
+	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParentId, ulObjId, MAPI_MESSAGE);
+	if (gcache->GetParent(ulParentId, &ulGrandParentId) != erSuccess)
+		return erSuccess;
+	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParentId, ulParentId, MAPI_FOLDER);
 }
 SOAP_ENTRY_END()
 
@@ -7543,17 +7522,15 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 
 	g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulDestFolderId);
 
-	if(bDoNotification){
-		// Update destenation folder
-		if (bDoTableNotification)
-			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulDestFolderId, ulNewObjectId, MAPI_MESSAGE);
-
-		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId);
-
-		// Notify object is copied
-		g_lpSessionManager->NotificationCopied(MAPI_MESSAGE, ulNewObjectId, ulDestFolderId, ulObjId, ulParent);
-	}
-	return er;
+	if (!bDoNotification)
+		return erSuccess;
+	// Update destenation folder
+	if (bDoTableNotification)
+		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulDestFolderId, ulNewObjectId, MAPI_MESSAGE);
+	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId);
+	// Notify object is copied
+	g_lpSessionManager->NotificationCopied(MAPI_MESSAGE, ulNewObjectId, ulDestFolderId, ulObjId, ulParent);
+	return erSuccess;
 }
 
 /**
@@ -9475,33 +9452,31 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er,
 	if (ulFlags == 0)
 		ulFlags = EC_SERVERDETAIL_FILEPATH|EC_SERVERDETAIL_HTTPPATH|EC_SERVERDETAIL_SSLPATH	|EC_SERVERDETAIL_PREFEREDPATH;
 	
-	if (szaSvrNameList.__size > 0 && szaSvrNameList.__ptr != NULL) {
-		lpsResponse->sServerList.__size = szaSvrNameList.__size;
-		lpsResponse->sServerList.__ptr = s_alloc<struct server>(soap, szaSvrNameList.__size);
-		memset(lpsResponse->sServerList.__ptr, 0, szaSvrNameList.__size * sizeof *lpsResponse->sServerList.__ptr);
-		
-		for (gsoap_size_t i = 0; i < szaSvrNameList.__size; ++i) {
-			er = usrmgt->GetServerDetails(STRIN_FIX(szaSvrNameList.__ptr[i]), &sDetails);
-			if (er != erSuccess)
-				return er;
-			if (strcasecmp(sDetails.GetServerName().c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0)
-				lpsResponse->sServerList.__ptr[i].ulFlags |= EC_SDFLAG_IS_PEER;
-
-			// note: "contains a public of a company" is also a possibility
-			if (!strPublicServer.empty() && strcasecmp(sDetails.GetServerName().c_str(), strPublicServer.c_str()) == 0)
-				lpsResponse->sServerList.__ptr[i].ulFlags |= EC_SDFLAG_HAS_PUBLIC;
-			if (!(ulFlags & EC_SERVERDETAIL_NO_NAME) && !sDetails.GetServerName().empty())
-				lpsResponse->sServerList.__ptr[i].lpszName = STROUT_FIX_CPY(sDetails.GetServerName().c_str());
-			if (ulFlags & EC_SERVERDETAIL_FILEPATH && !sDetails.GetFilePath().empty())
-				lpsResponse->sServerList.__ptr[i].lpszFilePath = STROUT_FIX_CPY(sDetails.GetFilePath().c_str());
-			if (ulFlags & EC_SERVERDETAIL_HTTPPATH && sDetails.GetHttpPort() != 0)
-				lpsResponse->sServerList.__ptr[i].lpszHttpPath = STROUT_FIX_CPY(sDetails.GetHttpPath().c_str());
-			if (ulFlags & EC_SERVERDETAIL_SSLPATH && sDetails.GetSslPort() != 0)
-				lpsResponse->sServerList.__ptr[i].lpszSslPath = STROUT_FIX_CPY(sDetails.GetSslPath().c_str());
-			if (ulFlags & EC_SERVERDETAIL_PREFEREDPATH &&
-			    GetBestServerPath(soap, lpecSession, sDetails.GetServerName(), &strServerPath) == erSuccess)
-				lpsResponse->sServerList.__ptr[i].lpszPreferedPath = STROUT_FIX_CPY(strServerPath.c_str());
-		}
+	if (szaSvrNameList.__size == 0 || szaSvrNameList.__ptr == nullptr)
+		return erSuccess;
+	lpsResponse->sServerList.__size = szaSvrNameList.__size;
+	lpsResponse->sServerList.__ptr = s_alloc<struct server>(soap, szaSvrNameList.__size);
+	memset(lpsResponse->sServerList.__ptr, 0, szaSvrNameList.__size * sizeof *lpsResponse->sServerList.__ptr);
+	for (gsoap_size_t i = 0; i < szaSvrNameList.__size; ++i) {
+		er = usrmgt->GetServerDetails(STRIN_FIX(szaSvrNameList.__ptr[i]), &sDetails);
+		if (er != erSuccess)
+			return er;
+		if (strcasecmp(sDetails.GetServerName().c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0)
+			lpsResponse->sServerList.__ptr[i].ulFlags |= EC_SDFLAG_IS_PEER;
+		// note: "contains a public of a company" is also a possibility
+		if (!strPublicServer.empty() && strcasecmp(sDetails.GetServerName().c_str(), strPublicServer.c_str()) == 0)
+			lpsResponse->sServerList.__ptr[i].ulFlags |= EC_SDFLAG_HAS_PUBLIC;
+		if (!(ulFlags & EC_SERVERDETAIL_NO_NAME) && !sDetails.GetServerName().empty())
+			lpsResponse->sServerList.__ptr[i].lpszName = STROUT_FIX_CPY(sDetails.GetServerName().c_str());
+		if (ulFlags & EC_SERVERDETAIL_FILEPATH && !sDetails.GetFilePath().empty())
+			lpsResponse->sServerList.__ptr[i].lpszFilePath = STROUT_FIX_CPY(sDetails.GetFilePath().c_str());
+		if (ulFlags & EC_SERVERDETAIL_HTTPPATH && sDetails.GetHttpPort() != 0)
+			lpsResponse->sServerList.__ptr[i].lpszHttpPath = STROUT_FIX_CPY(sDetails.GetHttpPath().c_str());
+		if (ulFlags & EC_SERVERDETAIL_SSLPATH && sDetails.GetSslPort() != 0)
+			lpsResponse->sServerList.__ptr[i].lpszSslPath = STROUT_FIX_CPY(sDetails.GetSslPath().c_str());
+		if (ulFlags & EC_SERVERDETAIL_PREFEREDPATH &&
+		    GetBestServerPath(soap, lpecSession, sDetails.GetServerName(), &strServerPath) == erSuccess)
+			lpsResponse->sServerList.__ptr[i].lpszPreferedPath = STROUT_FIX_CPY(strServerPath.c_str());
 	}
 	return erSuccess;
 }
