@@ -1374,15 +1374,15 @@ ECRESULT CreateNotifications(ULONG ulObjId, ULONG ulObjType, ULONG ulParentId, U
 {
 	unsigned int ulObjFlags = 0;
 	unsigned int ulParentFlags = 0;
-	bool kk = !((ulObjType == MAPI_ATTACH || ulObjType == MAPI_MESSAGE) && ulObjType == MAPI_STORE) &&
-		(ulObjType == MAPI_MESSAGE || ulObjType == MAPI_FOLDER || ulObjType == MAPI_STORE);
-	if (!kk)
+	if (ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER &&
+	    ulObjType != MAPI_STORE)
 		return erSuccess;
-	g_lpSessionManager->GetCacheManager()->GetObjectFlags(ulObjId, &ulObjFlags);
+	auto cache = g_lpSessionManager->GetCacheManager();
+	cache->GetObjectFlags(ulObjId, &ulObjFlags);
 	// update PR_LOCAL_COMMIT_TIME_MAX in cache for disconnected clients who want to know if the folder contents changed
 	if (lpvCommitTime) {
 		sObjectTableKey key(ulParentId, 0);
-		g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_LOCAL_COMMIT_TIME_MAX, lpvCommitTime);
+		cache->SetCell(&key, PR_LOCAL_COMMIT_TIME_MAX, lpvCommitTime);
 	}
 
 	if (bNewItem) {
@@ -1391,17 +1391,17 @@ ECRESULT CreateNotifications(ULONG ulObjId, ULONG ulObjType, ULONG ulParentId, U
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, ulObjFlags & MSGFLAG_NOTIFY_FLAGS, ulParentId, ulObjId, ulObjType);
 		// Notify that the folder in which the message resided has changed (PR_CONTENT_COUNT, PR_CONTENT_UNREAD)
 		if (ulObjFlags & MAPI_ASSOCIATED)
-			g_lpSessionManager->GetCacheManager()->UpdateCell(ulParentId, PR_ASSOC_CONTENT_COUNT, 1);
+			cache->UpdateCell(ulParentId, PR_ASSOC_CONTENT_COUNT, 1);
 		else {
-			g_lpSessionManager->GetCacheManager()->UpdateCell(ulParentId, PR_CONTENT_COUNT, 1);
+			cache->UpdateCell(ulParentId, PR_CONTENT_COUNT, 1);
 			struct propVal *lpPropMessageFlags = FindProp(lpModProps, PR_MESSAGE_FLAGS);
 			if (lpPropMessageFlags && (lpPropMessageFlags->Value.ul & MSGFLAG_READ) == 0)
 				// Unread message
-				g_lpSessionManager->GetCacheManager()->UpdateCell(ulParentId, PR_CONTENT_UNREAD, 1);
+				cache->UpdateCell(ulParentId, PR_CONTENT_UNREAD, 1);
 		}
 		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
 		if (ulGrandParentId) {
-			g_lpSessionManager->GetCacheManager()->GetObjectFlags(ulParentId, &ulParentFlags);
+			cache->GetObjectFlags(ulParentId, &ulParentFlags);
 			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, ulParentFlags & MSGFLAG_NOTIFY_FLAGS, ulGrandParentId, ulParentId, MAPI_FOLDER);
 		}
 	} else if (ulObjType == MAPI_STORE) {
