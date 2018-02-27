@@ -2338,11 +2338,8 @@ static ECRESULT DeleteProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		}			
 
 		// Remove eml attachment
-		if (lpsPropTags->__ptr[i] == PR_EC_IMAP_EMAIL) {
-			std::list<ULONG> at_list;
-			at_list.emplace_back(ulObjId);
-			at_storage->DeleteAttachments(at_list);
-		}
+		if (lpsPropTags->__ptr[i] == PR_EC_IMAP_EMAIL)
+			at_storage->DeleteAttachments({ulObjId});
 
 		// Update cache with NOT_FOUND for this property
 		key.ulObjId = ulObjId;
@@ -4636,9 +4633,10 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	if (lpMessageList == nullptr && lpsEntryId == nullptr)
         // Bad input
 		return KCERR_INVALID_PARAMETER;
+	auto cache = g_lpSessionManager->GetCacheManager();
 	if (lpMessageList != nullptr)
 		// Ignore errors
-		g_lpSessionManager->GetCacheManager()->GetEntryListToObjectList(lpMessageList, &lHierarchyIDs);
+		cache->GetEntryListToObjectList(lpMessageList, &lHierarchyIDs);
 
 	strQuery = "UPDATE properties SET ";
 
@@ -4714,7 +4712,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		for (auto hier_id : lHierarchyIDs) {
 			// Get the parent object. Note that the cache will hold this information so the loop below with GetObject() will
 			// be done directly from the cache (assuming it's not too large)
-			if (g_lpSessionManager->GetCacheManager()->GetObject(hier_id, &ulParent, NULL, NULL) != erSuccess)
+			if (cache->GetObject(hier_id, &ulParent, nullptr, nullptr) != erSuccess)
 			    continue;
 			setParents.emplace(ulParent);
         }
@@ -4798,7 +4796,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
             SOURCEKEY		sSourceKey;
             SOURCEKEY		sParentSourceKey;
 
-		if (g_lpSessionManager->GetCacheManager()->GetObject(op.first, &ulParent, NULL, NULL) != erSuccess)
+		if (cache->GetObject(op.first, &ulParent, nullptr, nullptr) != erSuccess)
 			    continue;
 		GetSourceKey(op.first, &sSourceKey);
             GetSourceKey(ulParent, &sParentSourceKey);
@@ -4811,7 +4809,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 
     // Update counters, by counting the number of changes per folder
 	for (const auto &op : lObjectIds) {
-		er = g_lpSessionManager->GetCacheManager()->GetObject(op.first, &ulParent, NULL, NULL);
+		er = cache->GetObject(op.first, &ulParent, nullptr, nullptr);
 		if (er != erSuccess)
 			return er;
 		mapParents.emplace(ulParent, 0);
@@ -4825,7 +4823,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	for (const auto &p : mapParents) {
 		if (p.second == 0)
 			continue;
-		er = g_lpSessionManager->GetCacheManager()->GetParent(p.first, &ulGrandParent);
+		er = cache->GetParent(p.first, &ulGrandParent);
 		if(er != erSuccess)
 			return er;
 		er = UpdateFolderCount(lpDatabase, p.first, PR_CONTENT_UNREAD, p.second);
@@ -4844,13 +4842,10 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
     // Loop through the messages, updating each
 	for (const auto &op : lObjectIds) {
 		// Remove the item from the cache 
-		g_lpSessionManager->GetCacheManager()->UpdateCell(op.first,
-			PR_MESSAGE_FLAGS,
+		cache->UpdateCell(op.first, PR_MESSAGE_FLAGS,
 			(ulFlagsAdd | ulFlagsRemove) & MSGFLAG_READ,
 			ulFlagsAdd & MSGFLAG_READ);
-
-		if (g_lpSessionManager->GetCacheManager()->GetObject(op.first,
-		    &ulParent, NULL, &ulFlagsNotify) != erSuccess) {
+		if (cache->GetObject(op.first, &ulParent, nullptr, &ulFlagsNotify) != erSuccess) {
             ulParent = 0;
             ulFlagsNotify = 0;
 		}
@@ -4868,12 +4863,11 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
     // Loop through all the parent folders of the objects, sending notifications for them
 	for (const auto &p : mapParents) {
         // The parent has changed its PR_CONTENT_UNREAD
-		g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, p.first);
+		cache->Update(fnevObjectModified, p.first);
 		g_lpSessionManager->NotificationModified(MAPI_FOLDER, p.first);
 
         // The grand parent's table view of the parent has changed
-		if (g_lpSessionManager->GetCacheManager()->GetObject(p.first,
-		    &ulGrandParent, NULL, &ulFlagsNotify) == erSuccess)
+		if (cache->GetObject(p.first, &ulGrandParent, nullptr, &ulFlagsNotify) == erSuccess)
 			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY,
 				ulFlagsNotify & MSGFLAG_NOTIFY_FLAGS,
 				ulGrandParent, p.first, MAPI_FOLDER);
@@ -7835,11 +7829,10 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
 	}else { // A copy
 
 		cObjectItems = lObjectIds.size();
-		for (iObjectId = lObjectIds.begin();
-		     iObjectId != lObjectIds.end(); ++iObjectId) {
-			er = CopyObject(lpecSession, NULL, *iObjectId, ulDestFolderId, true, true, cObjectItems < EC_TABLE_CHANGE_THRESHOLD, ulSyncId);
+		for (auto objid : lObjectIds) {
+			er = CopyObject(lpecSession, nullptr, objid, ulDestFolderId, true, true, cObjectItems < EC_TABLE_CHANGE_THRESHOLD, ulSyncId);
 			if(er != erSuccess) {
-				ec_log_err("SOAP::copyObjects: failed copying object %u: %s (%x)", *iObjectId, GetMAPIErrorMessage(er), er);
+				ec_log_err("SOAP::copyObjects: failed copying object %u: %s (%x)", objid, GetMAPIErrorMessage(er), er);
 				bPartialCompletion = true;
 				er = erSuccess;
 			}
@@ -8525,7 +8518,6 @@ void *SoftDeleteRemover(void *lpTmpMain)
 {
 	kcsrv_blocksigs();
 	ECRESULT		er = erSuccess;
-	ECRESULT*		lper = NULL;
 	const char *lpszSetting = NULL;
 	unsigned int	ulDeleteTime = 0;
 	unsigned int	ulFolders = 0;
@@ -8561,10 +8553,7 @@ void *SoftDeleteRemover(void *lpTmpMain)
 	}
 
 	// Exit with the error result
-	lper = new ECRESULT;
-	*lper = er;
-
-	return (void *)lper;
+	return new ECRESULT(er);
 }
 
 } /* namespace */
