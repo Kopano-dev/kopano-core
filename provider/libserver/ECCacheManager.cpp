@@ -25,6 +25,7 @@
 #include <utility>
 #include <mapidefs.h>
 #include <mapitags.h>
+#include <kopano/scope.hpp>
 #include "ECDatabase.h"
 #include "ECSessionManager.h"
 #include "ECDatabaseUtils.h"
@@ -342,14 +343,10 @@ ECRESULT ECCacheManager::GetOwner(unsigned int ulObjId, unsigned int *ulOwner)
 	ECRESULT	er = erSuccess;
 	bool bCacheResult = false;
 
-	if (I_GetObject(ulObjId, NULL, ulOwner, NULL, NULL) == erSuccess) {
+	if (I_GetObject(ulObjId, nullptr, ulOwner, nullptr, nullptr) == erSuccess)
 		bCacheResult = true;
-		goto exit;
-	}
-
-	er = GetObject(ulObjId, NULL, ulOwner, NULL);
-
-exit:
+	else
+		er = GetObject(ulObjId, NULL, ulOwner, NULL);
 	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get Owner for id %d error 0x%08X", ulObjId, er);
 	else
@@ -1365,11 +1362,7 @@ ECRESULT ECCacheManager::SetCell(const sObjectTableKey *lpsRowItem,
         sNewCell.AddPropVal(ulPropTag, lpSrc);
         
 		er = m_CellCache.AddCacheItem(lpsRowItem->ulObjId, sNewCell);
-    	if(er != erSuccess)
-    	    goto exit;
     }
-
-exit:
 	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Set cell object %d tag 0x%08X error 0x%08X", lpsRowItem->ulObjId, ulPropTag, er);
 	else
@@ -1387,10 +1380,7 @@ ECRESULT ECCacheManager::SetComplete(unsigned int ulObjId)
         sCell->SetComplete(true);
     } else {
         er = KCERR_NOT_FOUND;
-        goto exit;
     }
-
-exit:
 	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Set cell complete for object %d failed cell not found", ulObjId);
 	else
@@ -1408,10 +1398,7 @@ ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag
         sCell->UpdatePropVal(ulPropTag, lDelta);
     } else {
         er = KCERR_NOT_FOUND;
-        goto exit;
     }
-
-exit:
 	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, delta %d failed cell not found", ulObjId, ulPropTag, lDelta);
 	else
@@ -1429,10 +1416,7 @@ ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag
         sCell->UpdatePropVal(ulPropTag, ulMask, ulValue);
     } else {
         er = KCERR_NOT_FOUND;
-        goto exit;
     }
-
-exit:
 	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, mask 0x%08X, value %d failed cell not found", ulObjId, ulPropTag, ulMask, ulValue);
 	else
@@ -1688,10 +1672,8 @@ ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cb
 	ECsIndexProp	sObject;
 	ECsIndexObject	*sIndexObject;
 
-	if(lpData == NULL || lpulObjId == NULL || cbData == 0) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpData == nullptr || lpulObjId == nullptr || cbData == 0)
+		return KCERR_INVALID_PARAMETER;
 
 	sObject.ulTag = ulTag;
 	sObject.cbData = cbData;
@@ -1700,13 +1682,9 @@ ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cb
 	{
 		scoped_rlock lock(m_hCacheIndPropMutex);
 		er = m_PropToObjectCache.GetCacheItem(sObject, &sIndexObject);
-		if(er != erSuccess)
-		    goto exit;
-		    
-		*lpulObjId = sIndexObject->ulObjId;
+		if (er == erSuccess)
+			*lpulObjId = sIndexObject->ulObjId;
 	}
-	
-exit:
 	sObject.lpData = NULL;
     return er;
 }
