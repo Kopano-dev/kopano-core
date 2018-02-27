@@ -18,6 +18,7 @@
 #include <new>
 #include <string>
 #include <kopano/platform.h>
+#include <kopano/scope.hpp>
 
 /* Returns the rows for a contents- or hierarchytable
  *
@@ -311,11 +312,15 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
+	auto cleanup = make_scope_success([&] {
+		if (soap == nullptr && lpsRowSet != nullptr)
+			FreeRowSet(lpsRowSet, true);
+	});
 
 	if (lpRowList == nullptr || lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
 		lpsRowSet = NULL;
-		goto exit; // success
+		return erSuccess;
 	}
 
     if (lpODStore->ulFlags & EC_TABLE_NOCAP)
@@ -419,7 +424,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 			else
 				er = GetDeferredTableUpdates(lpDatabase, lpRowList, &lstDeferred);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 				
 			// Build list of rows that are incomplete (not in cache) AND deferred
 			for (auto dfr : lstDeferred) {
@@ -458,7 +463,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
             // Get actual data
             er = QueryRowDataByRow(lpThis, soap, lpSession, const_cast<sObjectTableKey &>(rowp.first), rowp.second, mapColumns, bTableLimit, lpsRowSet);
             if(er != erSuccess)
-                goto exit;
+				return er;
         }
     }
 
@@ -536,7 +541,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 				// Un-truncate this value
 				er = QueryRowDataByRow(lpThis, soap, lpSession, row, i, mapColumns, false, lpsRowSet);
 				if (er != erSuccess)
-					goto exit;
+					return er;
 				++i;
 			}
 		}
@@ -563,11 +568,6 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
     
     *lppRowSet = lpsRowSet;
 	lpsRowSet = NULL;
-
-exit:
-	if (soap == NULL && lpsRowSet)
-		FreeRowSet(lpsRowSet, true);
-		
     return er;
 }
 
