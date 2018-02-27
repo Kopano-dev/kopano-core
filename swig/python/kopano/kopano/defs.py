@@ -225,3 +225,11 @@ RIGHT_NAME = {
 }
 
 NAME_RIGHT = dict((b, a) for (a, b) in RIGHT_NAME.items())
+
+URGENCY = {
+    0: u'low',
+    1: u'normal',
+    2: u'high'
+}
+
+REV_URGENCY = dict((b, a) for (a, b) in URGENCY.items())

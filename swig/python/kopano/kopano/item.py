@@ -87,7 +87,7 @@ from .compat import (
 
 from .defs import (
     NAMED_PROPS_ARCHIVER, NAMED_PROP_CATEGORY, ADDR_PROPS,
-    PSETID_Archive
+    PSETID_Archive, URGENCY, REV_URGENCY
 )
 from .errors import Error, NotFoundError, _DeprecationWarning
 
@@ -479,15 +479,14 @@ class Item(Properties, Contact, Appointment):
     def urgency(self): # TODO rename back to 'importance' with core 9?
         """Urgency ('low', 'normal' or 'high')"""
         try:
-            return {
-                0: u'low',
-                1: u'normal',
-                2: u'high'
-            }[self[PR_IMPORTANCE]]
+            return URGENCY[self[PR_IMPORTANCE]]
         except NotFoundError:
             return u'normal'
 
     # TODO urgency setter
+    @urgency.setter
+    def urgency(self, value):
+        self.create_prop(PR_IMPORTANCE, REV_URGENCY[value])
 
     @property
     def sensitivity(self):
