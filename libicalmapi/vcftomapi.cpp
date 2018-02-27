@@ -186,6 +186,16 @@ HRESULT vcftomapi_impl::handle_EMAIL(VObject *v)
 	vobject_to_named_prop(v, s, prop_id);
 	props.emplace_back(s);
 
+	prop_id = 0x8084 + (email_count * 0x10);
+	vobject_to_named_prop(v, s, prop_id);
+	props.emplace_back(s);
+
+	// add email as displayname
+	prop_id = 0x8080 + (email_count * 0x10);
+	auto dname = std::wstring(L"(") + vObjectUStringZValue(v) + std::wstring(L")");
+	unicode_to_named_prop(dname.c_str(), s, prop_id);
+	props.emplace_back(s);
+
 	prop_id = 0x8082 + (email_count * 0x10);
 	auto ret = unicode_to_named_prop(L"SMTP", s, prop_id);
 	if (ret != hrSuccess)
@@ -483,6 +493,22 @@ HRESULT vcftomapi_impl::get_item(IMessage *msg)
 	HRESULT hr = HrSetOneProp(msg, &s);
 	if (hr != hrSuccess)
 		return hr;
+
+	MAPINAMEID name;
+	MAPINAMEID *namep = &name;
+	memory_ptr<SPropTagArray> proptag;
+
+	name.lpguid = const_cast<GUID *>(&PSETID_Common);
+	name.ulKind = MNID_ID;
+	name.Kind.lID = 0x8514;
+
+	hr = msg->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptag);
+	if (hr != hrSuccess)
+		return hr;
+	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BOOLEAN);
+	s.Value.b = true;
+	props.emplace_back(s);
+
 	return save_props(props, msg);
 }
 
