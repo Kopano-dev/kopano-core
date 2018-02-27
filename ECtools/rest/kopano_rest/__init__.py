@@ -790,13 +790,16 @@ def setdate(item, field, arg):
     setattr(item, field, date)
 
 def event_type(item):
-    if isinstance(item, kopano.Item):
-        if item.recurring:
-            return 'SeriesMaster'
+    if item.recurring:
+        if isinstance(item, kopano.Occurrence):
+            if item.exception:
+                return 'exception'
+            else:
+                return 'occurrence'
         else:
-            return 'SingleInstance'
+            return 'seriesMaster'
     else:
-        return 'Occurrence' # TODO Exception
+        return 'singleInstance'
 
 class EventResource(ItemResource):
     fields = ItemResource.fields.copy()

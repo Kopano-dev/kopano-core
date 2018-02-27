@@ -211,19 +211,21 @@ class Recurrence(object):
 
             subject = self.item.subject
             location = self.item.location
+            exception = False
             if startdatetime_val in start_exc_ext:
                 exc, ext = start_exc_ext[startdatetime_val]
                 minutes = exc['end_datetime'] - startdatetime_val
                 subject = ext.get('subject', subject)
                 location = ext.get('location', location)
                 basedate_val = exc['original_start_date']
+                exception = True
             else:
                 minutes = self.endtime_offset - self.starttime_offset
                 basedate_val = startdatetime_val
 
             d = _utils._to_gmt(d, tz, align_dst=True)
 
-            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes), subject, location, basedate_val=basedate_val)
+            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes), subject, location, basedate_val=basedate_val, exception=exception)
             if (not start or occ.end > start) and (not end or occ.start < end):
                 yield occ
 
@@ -1037,13 +1039,14 @@ class Recurrence(object):
 class Occurrence(object):
     """Occurrence class"""
 
-    def __init__(self, item, start=None, end=None, subject=None, location=None, basedate_val=None):
+    def __init__(self, item, start=None, end=None, subject=None, location=None, basedate_val=None, exception=False):
         self.item = item
         self._start = start
         self._end = end
         self._subject = subject
         self._location = location
         self._basedate_val = basedate_val
+        self.exception = exception
 
     @property
     def start(self):
