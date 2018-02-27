@@ -48,7 +48,7 @@ extern ECSessionManager*	g_lpSessionManager;
 class IDbQueryCreator {
 public:
 	virtual ~IDbQueryCreator(void) = default;
-	virtual std::string CreateQuery() = 0;
+	virtual std::string CreateQuery() const = 0;
 };
 
 /**
@@ -60,11 +60,11 @@ public:
 	CommonQueryCreator(unsigned int ulFlags);
 	
 	// IDbQueryCreator
-	std::string CreateQuery(void) _kc_override;
+	std::string CreateQuery() const override;
 	
 private:
-	virtual std::string CreateBaseQuery() = 0;
-	virtual std::string CreateOrderQuery() = 0;
+	virtual std::string CreateBaseQuery() const = 0;
+	virtual std::string CreateOrderQuery() const = 0;
 	
 	unsigned int m_ulFlags;
 };
@@ -73,7 +73,7 @@ CommonQueryCreator::CommonQueryCreator(unsigned int ulFlags)
 	: m_ulFlags(ulFlags)
 { }
 
-std::string CommonQueryCreator::CreateQuery()
+std::string CommonQueryCreator::CreateQuery() const
 {
 	std::string strQuery = CreateBaseQuery();
 	
@@ -101,8 +101,8 @@ public:
 	IncrementalQueryCreator(ECDatabase *lpDatabase, unsigned int ulSyncId, unsigned int ulChangeId, const SOURCEKEY &sFolderSourceKey, unsigned int ulFlags);
 	
 private:
-	std::string CreateBaseQuery(void) _kc_override;
-	std::string CreateOrderQuery(void) _kc_override;
+	std::string CreateBaseQuery() const override;
+	std::string CreateOrderQuery() const override;
 	
 	ECDatabase		*m_lpDatabase;
 	unsigned int	m_ulSyncId;
@@ -120,7 +120,7 @@ IncrementalQueryCreator::IncrementalQueryCreator(ECDatabase *lpDatabase, unsigne
 	, m_ulFlags(ulFlags)
 { }
 	
-std::string IncrementalQueryCreator::CreateBaseQuery()
+std::string IncrementalQueryCreator::CreateBaseQuery() const
 {
 	std::string strQuery;
 
@@ -148,7 +148,7 @@ std::string IncrementalQueryCreator::CreateBaseQuery()
 	return strQuery;
 }
 
-std::string IncrementalQueryCreator::CreateOrderQuery()
+std::string IncrementalQueryCreator::CreateOrderQuery() const
 {
 	return " ORDER BY changes.id";
 }
@@ -163,8 +163,8 @@ public:
 	FullQueryCreator(ECDatabase *lpDatabase, const SOURCEKEY &sFolderSourceKey, unsigned int ulFlags, unsigned int ulFilteredSourceSync = 0);
 	
 private:
-	std::string CreateBaseQuery(void) _kc_override;
-	std::string CreateOrderQuery(void) _kc_override;
+	std::string CreateBaseQuery() const override;
+	std::string CreateOrderQuery() const override;
 	
 	ECDatabase		*m_lpDatabase;
 	const SOURCEKEY	&m_sFolderSourceKey;
@@ -178,7 +178,7 @@ FullQueryCreator::FullQueryCreator(ECDatabase *lpDatabase, const SOURCEKEY &sFol
 	, m_ulFilteredSourceSync(ulFilteredSourceSync)
 { }
 	
-std::string FullQueryCreator::CreateBaseQuery()
+std::string FullQueryCreator::CreateBaseQuery() const
 {
 	std::string strQuery;
 
@@ -197,7 +197,7 @@ std::string FullQueryCreator::CreateBaseQuery()
 	return strQuery;
 }
 
-std::string FullQueryCreator::CreateOrderQuery()
+std::string FullQueryCreator::CreateOrderQuery() const
 {
 	return " ORDER BY hierarchy.id DESC";
 }
@@ -212,19 +212,19 @@ public:
 	NullQueryCreator();
 	
 private:
-	std::string CreateBaseQuery(void) _kc_override;
-	std::string CreateOrderQuery(void) _kc_override;
+	std::string CreateBaseQuery() const override;
+	std::string CreateOrderQuery() const override;
 };
 
 NullQueryCreator::NullQueryCreator() : CommonQueryCreator(SYNC_CATCHUP)
 { }
 	
-std::string NullQueryCreator::CreateBaseQuery()
+std::string NullQueryCreator::CreateBaseQuery() const
 {
 	return std::string();
 }
 
-std::string NullQueryCreator::CreateOrderQuery()
+std::string NullQueryCreator::CreateOrderQuery() const
 {
 	return std::string();
 }

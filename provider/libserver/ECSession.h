@@ -100,7 +100,7 @@ public:
 	_kc_hidden virtual std::string GetProxyHost();
 	_kc_hidden size_t GetInternalObjectSize(void);
 	_kc_hidden virtual size_t GetObjectSize(void) = 0;
-	_kc_hidden time_t GetIdleTime(void);
+	_kc_hidden time_t GetIdleTime() const;
 	_kc_hidden const std::string &GetSourceAddr(void) const { return m_strSourceAddr; }
 
 	enum AUTHMETHOD {

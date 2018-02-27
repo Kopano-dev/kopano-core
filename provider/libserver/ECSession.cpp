@@ -185,7 +185,7 @@ void BTSession::unlock()
 		m_hThreadReleased.notify_one();
 }
 
-time_t BTSession::GetIdleTime()
+time_t BTSession::GetIdleTime() const
 {
 	return GetProcessTime() - m_sessionTime;
 }
