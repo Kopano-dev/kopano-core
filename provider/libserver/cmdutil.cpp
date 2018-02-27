@@ -198,6 +198,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 
 	lpSessionManager = lpSession->GetSessionManager();
 	lpCacheManager = lpSessionManager->GetCacheManager();
+	auto cleanup = make_scope_success([&]() { FreeDeletedItems(&lstDeleteItems); });
 
 	// First, put all the root objects in the list
 	for (iListObjectId = lpsObjectList->begin();
@@ -207,16 +208,14 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 		/* Lock the root records' parent counter to maintain locking order (counters/content/storesize/committimemax) */
 		er  = lpCacheManager->GetObject(*iListObjectId, &ulParent, NULL, NULL, NULL);
 		if(er != erSuccess)
-		    goto exit;
-		    
+			return er;
         er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulParent) + " FOR UPDATE", NULL);
         if(er != erSuccess)
-            goto exit;
-
+			return er;
         // Lock the root records to make sure that we don't interfere with modifies or deletes on the same record
         er = lpDatabase->DoSelect("SELECT hierarchy.flags FROM hierarchy WHERE id = " + stringify(*iListObjectId) + " FOR UPDATE", NULL);
         if(er != erSuccess)
-            goto exit;
+			return er;
                 
 		strQuery = "SELECT h.id, h.parent, h.type, h.flags, p.type, properties.val_ulong, (SELECT hierarchy_id FROM outgoingqueue WHERE outgoingqueue.hierarchy_id = h.id LIMIT 1) FROM hierarchy as h LEFT JOIN properties ON properties.hierarchyid=h.id AND properties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND properties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " LEFT JOIN hierarchy AS p ON h.parent=p.id WHERE ";
 		if((ulFlags & EC_DELETE_CONTAINER) == 0)
@@ -231,7 +230,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			// No type or flags exist
@@ -267,7 +266,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			// Validate deleted object, if not valid, break directly
 			er = ValidateDeleteObject(lpSession, bCheckPermission, ulFlags, sItem);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 
 			// Get extended data
 			if(sItem.ulObjType == MAPI_STORE || sItem.ulObjType == MAPI_FOLDER || sItem.ulObjType == MAPI_MESSAGE) {
@@ -294,7 +293,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 			// No id, type or flags exist
@@ -323,7 +322,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			// Validate deleted object, if no valid, break directly
 			er = ValidateDeleteObject(lpSession, bCheckPermission, ulFlags, sItem);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 
 			if(sItem.ulObjType == MAPI_STORE || sItem.ulObjType == MAPI_FOLDER || (sItem.ulObjType == MAPI_MESSAGE && sItem.ulParentType == MAPI_FOLDER) ) {
 			
@@ -341,10 +340,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	
 	// Move list
 	std::swap(lstDeleteItems, *lplstDeleteItems);
-
-exit:
-	FreeDeletedItems(&lstDeleteItems);
-	return er;
+	return erSuccess;
 }
 
 /*
