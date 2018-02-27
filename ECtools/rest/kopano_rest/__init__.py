@@ -277,15 +277,7 @@ class UserResource(Resource):
             data = self.generator(req, store.contacts.folders, 0)
             self.respond(req, resp, data, ContactFolderResource.fields)
 
-        elif method == 'calendars':
-            data = self.generator(req, store.calendars, 0)
-            self.respond(req, resp, data, CalendarResource.fields)
-
-        elif method == 'calendar':
-            data = store.calendar
-            self.respond(req, resp, data, CalendarResource.fields)
-
-        elif method == 'messages':
+        elif method == 'messages': # TODO store-wide?
             inbox = store.inbox
             args = urlparse.parse_qs(req.query_string) # TODO generalize
             if '$search' in args:
@@ -303,9 +295,22 @@ class UserResource(Resource):
             data = self.generator(req, contacts.items, contacts.count)
             self.respond(req, resp, data, ContactResource.fields)
 
-        elif method == 'events':
+        elif method == 'calendar':
+            data = store.calendar
+            self.respond(req, resp, data, CalendarResource.fields)
+
+        elif method == 'calendars':
+            data = self.generator(req, store.calendars, 0)
+            self.respond(req, resp, data, CalendarResource.fields)
+
+        elif method == 'events': # TODO multiple calendars?
             calendar = store.calendar
             data = self.generator(req, calendar.items, calendar.count)
+            self.respond(req, resp, data, EventResource.fields)
+
+        elif method == 'calendarView': # TODO multiple calendars?
+            start, end = _start_end(req)
+            data = (store.calendar.occurrences(start, end), TOP, 0, 0)
             self.respond(req, resp, data, EventResource.fields)
 
     # TODO redirect to other resources?
