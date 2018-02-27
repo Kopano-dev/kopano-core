@@ -305,17 +305,15 @@ ECRESULT ECSession::AddChangeAdvise(unsigned int ulConnection, notifySyncState *
 	ULONG			ulChangeId = 0;
 
 	lock();
-	if (!m_lpSessionGroup) {
-		er = KCERR_NOT_INITIALIZED;
-		goto exit;
-	}
+	auto cleanup = make_scope_success([&]() { unlock(); });
+	if (m_lpSessionGroup == nullptr)
+		return KCERR_NOT_INITIALIZED;
 	er = m_lpSessionGroup->AddChangeAdvise(m_sessionID, ulConnection, lpSyncState);
 	if (er != hrSuccess)
-		goto exit;
+		return er;
 	er = GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	strQuery =	"SELECT c.id FROM changes AS c JOIN syncs AS s "
 					"ON s.sourcekey=c.parentsourcekey "
 				"WHERE s.id=" + stringify(lpSyncState->ulSyncId) + " "
@@ -327,20 +325,16 @@ ECRESULT ECSession::AddChangeAdvise(unsigned int ulConnection, notifySyncState *
 				"LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != hrSuccess)
-		goto exit;
+		return er;
 	if (lpDBResult.get_num_rows() == 0)
-		goto exit;
+		return erSuccess;
 	lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECSession::AddChangeAdvise(): row or column null");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 	ulChangeId = strtoul(lpDBRow[0], NULL, 0);
-	er = m_lpSessionGroup->AddChangeNotification(m_sessionID, ulConnection, lpSyncState->ulSyncId, ulChangeId);
-exit:
-	unlock();
-	return er;
+	return m_lpSessionGroup->AddChangeNotification(m_sessionID, ulConnection, lpSyncState->ulSyncId, ulChangeId);
 }
 
 ECRESULT ECSession::DelAdvise(unsigned int ulConnection)
