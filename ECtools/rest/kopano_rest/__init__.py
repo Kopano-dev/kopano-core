@@ -175,6 +175,10 @@ class Resource(object):
 
         resp.content_type = "application/json"
 
+        pref_body_type = _header_sub_arg(req, 'Prefer', 'outlook.body-content-type')
+        if pref_body_type in ('text', 'html'):
+            resp.set_header('Preference-Applied', 'outlook.body-content-type='+pref_body_type) # TODO graph doesn't do this actually?
+
         # multiple objects: stream
         if isinstance(obj, tuple):
             obj, top, skip, count = obj
@@ -487,8 +491,24 @@ class CalendarResource(FolderResource):
             item = self.create_message(folder, fields, EventResource.set_fields)
             self.respond(req, resp, item, EventResource.fields)
 
+def _header_args(req, name):
+    d = {}
+    header = req.get_header(name)
+    if header:
+        for arg in header.split(';'):
+            k, v = arg.split('=')
+            d[k] = v
+    return d
+
+def _header_sub_arg(req, name, arg):
+    args = _header_args(req, name)
+    if args:
+        return args[arg].strip('"')
+
 def get_body(req, item):
-    if req.get_header('Prefer') == 'outlook.body-content-type="text"' or item.body_type == 'text':
+    type_ = _header_sub_arg(req, 'Prefer', 'outlook.body-content-type') or item.body_type
+
+    if type_ == 'text':
         return {'contentType': 'text', 'content': item.text}
     else:
         return {'contentType': 'html', 'content': item.html.decode('utf8')}, # TODO if not utf8?
