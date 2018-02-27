@@ -1078,10 +1078,8 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 	 */
 	if (m_ulCompanyID == ulCompanyId) {
 		if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) != 0)
-			er = erSuccess;
-		else
-			er = KCERR_NO_ACCESS;
-		return er;
+			return erSuccess;
+		return KCERR_NO_ACCESS;
 	}
 
 	if (!m_lpAdminCompanies) {
@@ -1393,16 +1391,13 @@ ECRESULT ECSecurity::GetUsername(std::string *lpstrUsername) const
  */
 ECRESULT ECSecurity::GetImpersonator(std::string *lpstrImpersonator) const
 {
-	ECRESULT er = erSuccess;
-
 	if (m_ulImpersonatorID == EC_NO_IMPERSONATOR)
-		er = KCERR_NOT_FOUND;
+		return KCERR_NOT_FOUND;
 	else if (m_ulImpersonatorID)
 		*lpstrImpersonator = m_impersonatorDetails.GetPropString(OB_PROP_S_LOGIN);
 	else
 		*lpstrImpersonator = KOPANO_SYSTEM_USER;
-
-	return er;
+	return erSuccess;
 }
 
 /**

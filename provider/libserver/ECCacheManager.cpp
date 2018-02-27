@@ -1786,8 +1786,6 @@ ECRESULT ECCacheManager::GetObjectFromEntryId(const entryId *lpEntryId,
 ECRESULT ECCacheManager::SetObjectEntryId(const entryId *lpEntryId,
     unsigned int ulObjId)
 {
-    ECRESULT 	er = erSuccess;
-    
     // MAke sure flags is 0 when saving in DB
 	if (lpEntryId == nullptr)
 		ec_log_err("K-1576: null entryid passed to %s", __func__);
@@ -1798,9 +1796,7 @@ ECRESULT ECCacheManager::SetObjectEntryId(const entryId *lpEntryId,
 		ec_log_err("K-1574: eid.setFlags: %s\n", e.what());
 		/* ignore exception - the following functions will catch the too-small eid.size */
 	}
-    er = SetObjectProp( PROP_ID(PR_ENTRYID), eid.size(), eid, ulObjId);
-
-    return er;
+	return SetObjectProp(PROP_ID(PR_ENTRYID), eid.size(), eid, ulObjId);
 }
 
 /**
