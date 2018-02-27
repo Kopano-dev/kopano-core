@@ -419,6 +419,10 @@ class Item(Properties, Contact, Appointment):
         """A read receipt was requested."""
         return self.get(PR_READ_RECEIPT_REQUESTED, False)
 
+    @read_receipt.setter
+    def read_receipt(self, value):
+        self.create_prop(PR_READ_RECEIPT_REQUESTED, value)
+
     @property
     def delivery_receipt(self):
         """A delivery receipt was requested."""
