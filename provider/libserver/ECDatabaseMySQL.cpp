@@ -767,7 +767,7 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 		if(er != erSuccess)
 			return er;
 
-		for (lpDBRow = lpResult.fetch_row(); lpDBRow != nullptr; lpDBRow = lpResult.fetch_row()) {
+		while ((lpDBRow = lpResult.fetch_row()) != nullptr) {
 			if (lpDBRow[0] != NULL && strcasecmp(lpDBRow[0], "storeid") == 0) {
 				dbv->v_major  = 5;
 				dbv->v_minor  = 0;
