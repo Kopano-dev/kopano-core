@@ -2242,7 +2242,6 @@ static ECRESULT DeleteProps(ECSession *lpecSession, ECDatabase *lpDatabase,
     ULONG ulObjId, struct propTagArray *lpsPropTags,
     ECAttachmentStorage *at_storage)
 {
-	ECRESULT er;
 	std::string		strQuery;
 	sObjectTableKey key;
 	struct propVal  sPropVal;
@@ -2259,8 +2258,7 @@ static ECRESULT DeleteProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 			strQuery = "DELETE FROM properties WHERE hierarchyid="+stringify(ulObjId)+" AND tag="+stringify(PROP_ID(lpsPropTags->__ptr[i]));
 		else // mvprops
 			strQuery = "DELETE FROM mvproperties WHERE hierarchyid="+stringify(ulObjId)+" AND tag="+stringify(PROP_ID(lpsPropTags->__ptr[i]) );
-
-		er = lpDatabase->DoDelete(strQuery);
+		auto er = lpDatabase->DoDelete(strQuery);
 		if(er != erSuccess)
 			return er;
 			
@@ -2299,16 +2297,10 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	ECRESULT er = erSuccess;
 	ALLOC_DBRESULT();
 	int n;
-	unsigned int ulParentObjType = 0;
-	unsigned int ulSize = 0;
-	unsigned int ulObjId = 0;
-	bool fNewItem = false;
-	bool fHasAttach = false;
-	bool fGenHasAttach = false;
-	ECListDeleteItems lstDeleteItems;
-	ECListDeleteItems lstDeleted;
-	FILETIME ftCreated = { 0,0 };
-	FILETIME ftModified = { 0,0 };
+	unsigned int ulParentObjType = 0, ulSize = 0, ulObjId = 0;
+	bool fNewItem = false, fHasAttach = false, fGenHasAttach = false;
+	ECListDeleteItems lstDeleteItems, lstDeleted;
+	FILETIME ftCreated = {0}, ftModified = {0};
 
 	if (ulLevel <= 0)
 		return KCERR_TOO_COMPLEX;
@@ -2362,9 +2354,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 		er = DeleteObjectStoreSize(lpecSession, lpDatabase, ulDelFlags, lstDeleted);
 		if (er != erSuccess)
 			return er;
-
-		er = DeleteObjectCacheUpdate(lpecSession, ulDelFlags, lstDeleted);
-		return er;
+		return DeleteObjectCacheUpdate(lpecSession, ulDelFlags, lstDeleted);
 	}
 
 	// ------
@@ -2567,24 +2557,15 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
     struct loadObjectResponse *lpsLoadObjectResponse)
 {
 	USE_DATABASE();
-	unsigned int	ulStoreId = 0;
-	unsigned int	ulGrandParent = 0;
-	unsigned int	ulGrandParentType = 0;
-	unsigned int	ulParentObjId = 0;
-	unsigned int	ulParentObjType = 0;
-	unsigned int	ulObjType = lpsSaveObj->ulObjType;
-	unsigned int	ulObjFlags = 0;
-	unsigned int	ulPrevReadState = 0;
-	unsigned int	ulNewReadState = 0;
-	SOURCEKEY		sSourceKey;
-	SOURCEKEY		sParentSourceKey;
+	unsigned int ulStoreId = 0, ulGrandParent = 0, ulGrandParentType = 0;
+	unsigned int ulParentObjId = 0, ulParentObjType = 0, ulObjId = 0;
+	unsigned int ulObjType = lpsSaveObj->ulObjType;
+	unsigned int ulObjFlags = 0, ulPrevReadState = 0, ulNewReadState = 0;
+	SOURCEKEY sSourceKey, sParentSourceKey;
 	struct saveObject sReturnObject;
-	std::string		strChangeKey;
-	std::string		strChangeList;
-
+	std::string strChangeKey, strChangeList;
 	BOOL			fNewItem = false;
 	bool			fHaveChangeKey = false;
-	unsigned int	ulObjId = 0;
 	struct propVal	*pvCommitTime = NULL;
 	std::unique_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
 	if (lpAttachmentStorage == nullptr)
@@ -2962,13 +2943,8 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, const entryId &sEntryId,
     struct notifySubscribe *lpsNotSubscribe, unsigned int ulFlags,
     struct loadObjectResponse *lpsLoadObjectResponse)
 {
-	unsigned int	ulObjId = 0;
-	unsigned int	ulObjFlags = 0;
-	unsigned int	ulObjType = 0;
-	unsigned int	ulParentId = 0;
-	unsigned int	ulParentObjType = 0;
-	unsigned int	ulOwnerId = 0;
-	unsigned int	ulEidFlags = 0;
+	unsigned int ulObjId = 0, ulObjFlags = 0, ulObjType = 0, ulParentId = 0;
+	unsigned int ulParentObjType = 0, ulOwnerId = 0, ulEidFlags = 0;
 	USE_DATABASE();
 
 	struct saveObject sSavedObject;
@@ -3107,18 +3083,12 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 {
 	ECRESULT		er = erSuccess;
 	ALLOC_DBRESULT();
-
-	unsigned int	ulFolderId = 0;
-	unsigned int	ulLastId = 0;
-	unsigned int	ulStoreId = 0;
-	unsigned int	ulGrandParent = 0;
-	bool			bExist = false;
-	bool			bFreeNewEntryId = false;
+	unsigned int ulFolderId = 0, ulLastId = 0, ulStoreId = 0, ulGrandParent = 0;
+	bool bExist = false, bFreeNewEntryId = false;
 	GUID			guid;
 	SOURCEKEY		sSourceKey;
 	static constexpr const unsigned int tags[] = {PR_CONTENT_COUNT, PR_CONTENT_UNREAD, PR_ASSOC_CONTENT_COUNT, PR_DELETED_MSG_COUNT, PR_DELETED_FOLDER_COUNT, PR_DELETED_ASSOC_MSG_COUNT, PR_FOLDER_CHILD_COUNT};
 	static constexpr const unsigned int timeTags[] = {PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME};
-	time_t			now = 0;
 	struct propVal  sProp;
     struct hiloLong sHilo;
 
@@ -3246,7 +3216,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		}
 		
 		// Create PR_LAST_MODIFICATION_TIME and PR_CREATION_TIME
-		now = time(NULL);
+		auto now = time(nullptr);
 		for (size_t i = 0; i < ARRAY_SIZE(timeTags); ++i) {
 		    sProp.ulPropTag = timeTags[i];
 		    sProp.__union = SOAP_UNION_propValData_hilo;
@@ -3333,8 +3303,7 @@ SOAP_ENTRY_START(createFolder, lpsResponse->er, const entryId &sParentId,
     const struct xsd__base64Binary &sOrigSourceKey,
     struct createFolderResponse *lpsResponse)
 {
-	unsigned int	ulParentId = 0;
-	unsigned int	ulFolderId = 0;
+	unsigned int ulParentId = 0, ulFolderId = 0;
 	USE_DATABASE();
 
 	if (szName == nullptr)
@@ -3405,9 +3374,7 @@ static ECRESULT OpenTable(ECSession *lpecSession, entryId sEntryId,
 {
 	ECRESULT er;
 	objectid_t	sExternId;
-	unsigned int	ulTableId = 0;
-	unsigned int	ulId = 0;
-	unsigned int	ulTypeId = 0;
+	unsigned int ulTableId = 0, ulId = 0, ulTypeId = 0;
 
 	switch (ulTableType) {
 	case TABLETYPE_MS:
@@ -3514,8 +3481,7 @@ SOAP_ENTRY_START(tableSetSearchCriteria, *result, const entryId &sEntryId,
     struct restrictTable *lpRestrict, struct entryList *lpFolders,
     unsigned int ulFlags, unsigned int *result)
 {
-	unsigned int	ulStoreId = 0;
-	unsigned int	ulParent = 0;
+	unsigned int ulStoreId = 0, ulParent = 0;
 
 	if (!(ulFlags & STOP_SEARCH) &&
 	    (lpRestrict == nullptr || lpFolders == nullptr))
@@ -3555,9 +3521,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(tableGetSearchCriteria, lpsResponse->er,
     const entryId &sEntryId, struct tableGetSearchCriteriaResponse *lpsResponse)
 {
-	unsigned int	ulFlags = 0;
-	unsigned int	ulStoreId = 0;
-	unsigned int	ulId = 0;
+	unsigned int ulFlags = 0, ulStoreId = 0, ulId = 0;
 	struct searchCriteria *lpSearchCriteria = NULL;
 
 	er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulId);
@@ -3961,7 +3925,6 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(emptyFolder, *result, const entryId &sEntryId,
     unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result)
 {
-	unsigned int		ulDeleteFlags = 0;
 	unsigned int		ulId = 0;
 	ECListInt			lObjectIds;
 	USE_DATABASE();
@@ -3977,7 +3940,7 @@ SOAP_ENTRY_START(emptyFolder, *result, const entryId &sEntryId,
 
 	// Add object into the list
 	lObjectIds.emplace_back(ulId);
-	ulDeleteFlags = EC_DELETE_MESSAGES | EC_DELETE_FOLDERS | EC_DELETE_RECIPIENTS | EC_DELETE_ATTACHMENTS;
+	unsigned int ulDeleteFlags = EC_DELETE_MESSAGES | EC_DELETE_FOLDERS | EC_DELETE_RECIPIENTS | EC_DELETE_ATTACHMENTS;
 	if (ulFlags & DELETE_HARD_DELETE)
 		ulDeleteFlags |= EC_DELETE_HARD_DELETE;
 
@@ -3999,9 +3962,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(deleteFolder, *result, const entryId &sEntryId,
     unsigned int ulFlags, unsigned int ulSyncId, unsigned int *result)
 {
-	unsigned int		ulDeleteFlags = 0;
-	unsigned int		ulId = 0;
-	unsigned int		ulFolderFlags = 0;
+	unsigned int ulId = 0, ulFolderFlags = 0;
 	ECListInt			lObjectIds;
 	USE_DATABASE();
 
@@ -4019,7 +3980,7 @@ SOAP_ENTRY_START(deleteFolder, *result, const entryId &sEntryId,
 
 	// insert objectid into the delete list
 	lObjectIds.emplace_back(ulId);
-	ulDeleteFlags = EC_DELETE_CONTAINER;
+	unsigned int ulDeleteFlags = EC_DELETE_CONTAINER;
 
 	if(ulFlags & DEL_FOLDERS)
 		ulDeleteFlags |= EC_DELETE_FOLDERS;
@@ -4111,8 +4072,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(notifyUnSubscribeMulti, *result, struct mv_long *ulConnectionArray, unsigned int *result)
 {
-	unsigned int erTmp = erSuccess;
-	unsigned int erFirst = erSuccess;
+	unsigned int erTmp = erSuccess, erFirst = erSuccess;
 
 	if (ulConnectionArray == nullptr)
 		return KCERR_INVALID_PARAMETER;
@@ -4136,11 +4096,10 @@ SOAP_ENTRY_END()
 int KCmdService::notifyGetItems(ULONG64 ulSessionId,
     struct notifyResponse *notifications)
 {
-	ECRESULT er = erSuccess;
 	ECSession *lpSession = NULL;
 	
 	// Check if the session exists, and discard result
-	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpSession);
+	auto er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpSession);
 	if(er != erSuccess) {
 		// Directly return with error in er
 		notifications->er = er;
@@ -4225,8 +4184,6 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNamedProps, unsigned int ulFlags, struct getIDsFromNamesResponse *lpsResponse)
 {
-	std::string		strEscapedString;
-	std::string		strEscapedGUID;
 	unsigned int	ulLastId = 0;
     USE_DATABASE();
 
@@ -4246,17 +4203,13 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 
 		// String, then add STRING where clause
 		else if(lpsNamedProps->__ptr[i].lpString != NULL) {
-			strEscapedString = lpDatabase->Escape(lpsNamedProps->__ptr[i].lpString);
-
-			strQuery += "namestring='" + strEscapedString + "' ";
+			strQuery += "namestring='" + lpDatabase->Escape(lpsNamedProps->__ptr[i].lpString) + "' ";
 		}
 		/* else { Handle this, it will break the SQL query, iff guid is present } */
 
 		// Add a GUID specifier if there
 		if(lpsNamedProps->__ptr[i].lpguid != NULL) {
-			strEscapedGUID = lpDatabase->EscapeBinary(lpsNamedProps->__ptr[i].lpguid->__ptr, lpsNamedProps->__ptr[i].lpguid->__size);
-
-			strQuery += "AND guid=" + strEscapedGUID;
+			strQuery += "AND guid=" + lpDatabase->EscapeBinary(lpsNamedProps->__ptr[i].lpguid->__ptr, lpsNamedProps->__ptr[i].lpguid->__size);
 		}
 
 		strQuery += ")";
@@ -4317,15 +4270,13 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 
 		strQuery += ",";
 		if (lpsNamedProps->__ptr[i].lpString != nullptr) {
-			strEscapedString = lpDatabase->Escape(lpsNamedProps->__ptr[i].lpString);
-			strQuery += "'" + strEscapedString + "'";
+			strQuery += "'" + lpDatabase->Escape(lpsNamedProps->__ptr[i].lpString) + "'";
 		} else {
 			strQuery += "null";
 		}
 
 		strQuery += ",";
-		strEscapedGUID = lpDatabase->EscapeBinary(lpsNamedProps->__ptr[i].lpguid->__ptr, lpsNamedProps->__ptr[i].lpguid->__size);
-		strQuery += strEscapedGUID;
+		strQuery += lpDatabase->EscapeBinary(lpsNamedProps->__ptr[i].lpguid->__ptr, lpsNamedProps->__ptr[i].lpguid->__size);
 		strQuery += ")";
 		er = lpDatabase->DoInsert(strQuery, &ulLastId);
 		if (er != erSuccess)
@@ -4362,7 +4313,6 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er,
 {
 	const char *lpszMessageClass = msg_class;
 	unsigned int	ulStoreid = 0;
-	const char *lpDest;
 	USE_DATABASE();
 
 	lpszMessageClass = STRIN_FIX(lpszMessageClass);
@@ -4379,7 +4329,7 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er,
 
 	strQuery += "messageclass='"+lpDatabase->Escape(lpszMessageClass)+"'";
 
-	lpDest = lpszMessageClass;
+	auto lpDest = lpszMessageClass;
 	do {
 		lpDest = strchr(lpDest, '.');
 
@@ -4419,10 +4369,7 @@ SOAP_ENTRY_START(setReceiveFolder, *result, const entryId &sStoreId,
     entryId *lpsEntryId, const char *msg_class, unsigned int *result)
 {
 	const char *lpszMessageClass = msg_class;
-	bool			bIsUpdate = false;
-	unsigned int	ulCheckStoreId = 0;
-	unsigned int	ulStoreid = 0;
-	unsigned int	ulId = 0;
+	unsigned int ulCheckStoreId = 0, ulStoreid = 0, ulId = 0;
 	USE_DATABASE();
 
 	lpszMessageClass = STRIN_FIX(lpszMessageClass);
@@ -4489,7 +4436,7 @@ SOAP_ENTRY_START(setReceiveFolder, *result, const entryId &sStoreId,
 	if(er != erSuccess)
 		return er;
 
-	bIsUpdate = false;
+	bool bIsUpdate = false;
 	// If ok, item already exists, return ok
 	if (lpDBResult.get_num_rows() == 1) {
 		lpDBRow = lpDBResult.fetch_row();
@@ -4546,17 +4493,9 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 {
 	std::list<unsigned int> lHierarchyIDs;
 	std::list<std::pair<unsigned int, unsigned int>	> lObjectIds;
-	std::string		strQueryCache;
 	USE_DATABASE();
-
-	unsigned int	i = 0;
-	unsigned int	ulParent = 0;
-	unsigned int	ulGrandParent = 0;
-	unsigned int	ulFlagsNotify = 0;
-	unsigned int	ulFlagsRemove = 0;
-	unsigned int	ulFlagsAdd = 0;
-	unsigned int	ulFolderId = 0;
-	size_t			cObjectSize = 0;
+	unsigned int i = 0, ulParent = 0, ulGrandParent = 0, ulFolderId = 0;
+	unsigned int ulFlagsNotify = 0, ulFlagsRemove = 0, ulFlagsAdd = 0;
 	
 	// List of unique parents
 	std::map<unsigned int, int> mapParents;
@@ -4621,7 +4560,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		// Get all items MAPI_MESSAGE exclude items with flags MSGFLAG_DELETED AND MSGFLAG_ASSOCIATED of which we will be changing flags
 		
 		// Note we use FOR UPDATE which locks the records in the hierarchy (and in tproperties as a sideeffect), which serializes access to the rows, avoiding deadlocks
-		strQueryCache = "SELECT id, tproperties.val_ulong FROM hierarchy FORCE INDEX(parenttypeflags) JOIN tproperties FORCE INDEX(PRIMARY) ON tproperties.hierarchyid=hierarchy.id AND tproperties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND tproperties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE parent="+ stringify(ulFolderId) + " AND hierarchy.type=5 AND flags = 0 AND (tproperties.val_ulong & " + stringify(ulFlagsRemove) + " OR tproperties.val_ulong & " + stringify(ulFlagsAdd) + " != " + stringify(ulFlagsAdd) + ") AND tproperties.folderid = " + stringify(ulFolderId) + " FOR UPDATE";
+		auto strQueryCache = "SELECT id, tproperties.val_ulong FROM hierarchy FORCE INDEX(parenttypeflags) JOIN tproperties FORCE INDEX(PRIMARY) ON tproperties.hierarchyid=hierarchy.id AND tproperties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND tproperties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE parent="+ stringify(ulFolderId) + " AND hierarchy.type=5 AND flags = 0 AND (tproperties.val_ulong & " + stringify(ulFlagsRemove) + " OR tproperties.val_ulong & " + stringify(ulFlagsAdd) + " != " + stringify(ulFlagsAdd) + ") AND tproperties.folderid = " + stringify(ulFolderId) + " FOR UPDATE";
 		er = lpDatabase->DoSelect(strQueryCache, &lpDBResult);
 		if(er != erSuccess)
 			return er;
@@ -4668,7 +4607,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
         }
         
         // Now find all messages that will actually change
-		strQueryCache = "SELECT id, properties.val_ulong FROM hierarchy JOIN properties ON hierarchy.id=properties.hierarchyid AND properties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND properties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE hierarchy.type=5 AND flags = 0 AND (properties.val_ulong & " + stringify(ulFlagsRemove) + " OR properties.val_ulong & " + stringify(ulFlagsAdd) + " != " + stringify(ulFlagsAdd) + ") AND hierarchyid IN (";
+		auto strQueryCache = "SELECT id, properties.val_ulong FROM hierarchy JOIN properties ON hierarchy.id=properties.hierarchyid AND properties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND properties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE hierarchy.type=5 AND flags = 0 AND (properties.val_ulong & " + stringify(ulFlagsRemove) + " OR properties.val_ulong & " + stringify(ulFlagsAdd) + " != " + stringify(ulFlagsAdd) + ") AND hierarchyid IN (";
 		for (auto hier = lHierarchyIDs.cbegin();
 		     hier != lHierarchyIDs.cend(); ++hier) {
 			if (hier != lHierarchyIDs.cbegin())
@@ -4729,8 +4668,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		if (!read)
 			continue;
             // Only save ICS change when the actual readflag has changed
-            SOURCEKEY		sSourceKey;
-            SOURCEKEY		sParentSourceKey;
+		SOURCEKEY sSourceKey, sParentSourceKey;
 
 		if (cache->GetObject(op.first, &ulParent, nullptr, nullptr) != erSuccess)
 			    continue;
@@ -4772,8 +4710,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	    return er;
 
 	// Now, update cache and send the notifications
-
-	cObjectSize = lObjectIds.size();
+	auto cObjectSize = lObjectIds.size();
 
     // Loop through the messages, updating each
 	for (const auto &op : lObjectIds) {
@@ -4858,8 +4795,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(setUser, *result, struct user *lpsUser, unsigned int *result)
 {
-	objectdetails_t		details;
-	objectdetails_t		oldDetails;
+	objectdetails_t oldDetails;
 	unsigned int		ulUserId = 0;
 	objectid_t			sExternId;
 
@@ -4942,7 +4878,7 @@ SOAP_ENTRY_START(setUser, *result, struct user *lpsUser, unsigned int *result)
 		return KCERR_NO_ACCESS;
 	}
 
-	details = objectdetails_t(ACTIVE_USER);
+	objectdetails_t details(ACTIVE_USER);
 
 	// construct new details
 	er = CopyUserDetailsFromSoap(lpsUser, &sExternId.id, &details, soap);
@@ -5170,9 +5106,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(purgeSoftDelete, *result, unsigned int ulDays, unsigned int *result)
 {
-    unsigned int	ulFolders = 0;
-    unsigned int	ulMessages = 0;
-	unsigned int	ulStores = 0;
+	unsigned int ulFolders = 0, ulMessages = 0, ulStores = 0;
 
     // Only system-admins may run this
     if (lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN)
@@ -5219,15 +5153,12 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
     unsigned int ulUserId, const entryId &sUserId, const entryId &sStoreId,
     const entryId &sRootId, unsigned int ulFlags, unsigned int *result)
 {
-	unsigned int	ulStoreId = 0;
-	unsigned int	ulRootMapId = 0;
+	unsigned int ulStoreId = 0, ulRootMapId = 0, ulCompanyId = 0;
 	objectdetails_t userDetails;
-	unsigned int	ulCompanyId = 0;
 	bool			bHasLocalStore = false;
 
 	SOURCEKEY		sSourceKey;
 	GUID			guidStore;
-	time_t			now;
 	static constexpr const unsigned int timeProps[] = {PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME};
 	struct propVal 	sProp;
 	struct hiloLong sHilo;
@@ -5342,7 +5273,7 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 	if(er != erSuccess)
 		return er;
 		
-    now = time(NULL);
+	auto now = time(nullptr);
     for (size_t i = 0; i < ARRAY_SIZE(timeProps); ++i) {
         sProp.ulPropTag = timeProps[i];
         sProp.__union = SOAP_UNION_propValData_hilo;
@@ -5435,7 +5366,6 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(setGroup, *result, struct group *lpsGroup, unsigned int *result)
 {
-	objectdetails_t details;
 	unsigned int	ulGroupId = 0;
 	objectid_t		sExternId;
 	
@@ -5461,8 +5391,7 @@ SOAP_ENTRY_START(setGroup, *result, struct group *lpsGroup, unsigned int *result
 	if(er != erSuccess)
 		return er;
 
-	details = objectdetails_t(DISTLIST_GROUP);
-
+	objectdetails_t details(DISTLIST_GROUP);
 	er = CopyGroupDetailsFromSoap(lpsGroup, &sExternId.id, &details, soap);
 	if (er != erSuccess)
 		return er;
@@ -5801,9 +5730,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(setCompany, *result, struct company *lpsCompany, unsigned int *result)
 {
-	objectdetails_t details;
-	unsigned int	ulCompanyId = 0;
-	unsigned int	ulAdministrator = 0;
+	unsigned int ulCompanyId = 0, ulAdministrator = 0;
 	objectid_t		sExternId;
 	
 	if (lpsCompany == nullptr)
@@ -5834,8 +5761,7 @@ SOAP_ENTRY_START(setCompany, *result, struct company *lpsCompany, unsigned int *
 	if(er != erSuccess)
 		return er;
 
-	details = objectdetails_t(CONTAINER_COMPANY);
-
+	objectdetails_t details(CONTAINER_COMPANY);
 	er = CopyCompanyDetailsFromSoap(lpsCompany, &sExternId.id, ulAdministrator, &details, soap);
 	if (er != erSuccess)
 		return er;
@@ -5851,7 +5777,6 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId,
     const entryId &sCompanyId, struct getCompanyResponse *lpsResponse)
 {
 	objectdetails_t details;
-	unsigned int ulAdmin = 0;
 	entryId sAdminEid, sTmpCompanyId;
 
 	if (!g_lpSessionManager->IsHostedSupported())
@@ -5875,7 +5800,7 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId,
 	if (details.GetClass() != CONTAINER_COMPANY)
 		return KCERR_NOT_FOUND;
 
-	ulAdmin = details.GetPropInt(OB_PROP_I_SYSADMIN);
+	auto ulAdmin = details.GetPropInt(OB_PROP_I_SYSADMIN);
 	er = sec->IsUserObjectVisible(ulAdmin);
 	if (er != erSuccess)
 		return er;
