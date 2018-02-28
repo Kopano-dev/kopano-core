@@ -1316,8 +1316,7 @@ ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStore
 
 ECRESULT CreateNotifications(ULONG ulObjId, ULONG ulObjType, ULONG ulParentId, ULONG ulGrandParentId, bool bNewItem, propValArray *lpModProps, struct propVal *lpvCommitTime)
 {
-	unsigned int ulObjFlags = 0;
-	unsigned int ulParentFlags = 0;
+	unsigned int ulObjFlags = 0, ulParentFlags = 0;
 	if (ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER &&
 	    ulObjType != MAPI_STORE)
 		return erSuccess;
@@ -1364,13 +1363,11 @@ ECRESULT CreateNotifications(ULONG ulObjId, ULONG ulObjType, ULONG ulParentId, U
 
 ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulFolderId, struct propVal *lpPropVal, bool bColumnProp, unsigned int ulMaxQuerySize, std::string &strInsertQuery, bool replace)
 {
-	ECRESULT er;
-	std::string		strColData;
-	std::string		strQueryAppend;
+	std::string strColData, strQueryAppend;
 	unsigned int ulColId = 0;
 	
 	assert(PROP_TYPE(lpPropVal->ulPropTag) != PT_UNICODE);
-	er = CopySOAPPropValToDatabasePropVal(lpPropVal, &ulColId, strColData, lpDatabase, bColumnProp);
+	auto er = CopySOAPPropValToDatabasePropVal(lpPropVal, &ulColId, strColData, lpDatabase, bColumnProp);
 	if(er != erSuccess)
 		return erSuccess; // Data from client was bogus, ignore it.
 	if (!strInsertQuery.empty())
@@ -1406,41 +1403,31 @@ ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned 
 }
 
 ECRESULT WriteProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulParentId, struct propVal *lpPropVal, bool replace) {
-	ECRESULT er;
 	std::string strQuery;
 	
 	strQuery.clear();
 	WriteSingleProp(lpDatabase, ulObjId, ulParentId, lpPropVal, false, 0, strQuery, replace);
-	er = lpDatabase->DoInsert(strQuery);
+	auto er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		return er;
 	if (ulParentId == 0)
 		return erSuccess;
 	strQuery.clear();
 	WriteSingleProp(lpDatabase, ulObjId, ulParentId, lpPropVal, true, 0, strQuery, replace);
-	er = lpDatabase->DoInsert(strQuery);
-	if (er != erSuccess)
-		return er;
-	return erSuccess;
+	return lpDatabase->DoInsert(strQuery);
 }
 
 ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propTagArray *lpPropTags, struct namedPropArray *lpsNames)
 {
-    ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
-    DB_ROW lpDBRow = NULL;
-    DB_LENGTHS lpDBLen = NULL;
-    std::string strQuery;
-
 	// Allocate memory for return object
 	lpsNames->__ptr = s_alloc<namedProp>(soap, lpPropTags->__size);
 	lpsNames->__size = lpPropTags->__size;
 	memset(lpsNames->__ptr, 0, sizeof(struct namedProp) * lpPropTags->__size);
 
 	for (gsoap_size_t i = 0; i < lpPropTags->__size; ++i) {
-		strQuery = "SELECT nameid, namestring, guid FROM names WHERE id=" + stringify(lpPropTags->__ptr[i]-1) + " LIMIT 1";
-
-		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+		auto strQuery = "SELECT nameid, namestring, guid FROM names WHERE id=" + stringify(lpPropTags->__ptr[i]-1) + " LIMIT 1";
+		auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
 			return er;
 
@@ -1451,8 +1438,8 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 			lpsNames->__ptr[i].lpString = NULL;
 			continue;
 		}
-		lpDBRow = lpDBResult.fetch_row();
-		lpDBLen = lpDBResult.fetch_row_lengths();
+		auto lpDBRow = lpDBResult.fetch_row();
+		auto lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == nullptr) {
 			ec_log_crit("GetNamesFromIDs(): row/col NULL");
 			return KCERR_DATABASE_ERROR;
@@ -1497,14 +1484,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 {
 	ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
-	DB_ROW lpDBRow = NULL;
-	/*
-	 * Content count, assoc. content count, deleted message count,
-	 * child folder count, deleted folder count, content unread.
-	 */
-	std::string strQuery, strCC, strACC, strDMC, strDAC, strCFC, strDFC, strCU;
-	unsigned int ulAffected = 0;
-	unsigned int ulParent = 0;
+	unsigned int ulAffected = 0, ulParent = 0;
 	auto sesmgr = lpSession->GetSessionManager();
 	auto cache = sesmgr->GetCacheManager();
 	ECDatabase *lpDatabase = NULL;
@@ -1522,7 +1502,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 
     // Lock the counters now since the locking order is normally counters/foldercontent/storesize/localcommittimemax. So our lock order
     // is now counters/foldercontent/counters which is compatible (*cough* in theory *cough*)
-	strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid = " + stringify(ulObjId) + " FOR UPDATE";
+	auto strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid = " + stringify(ulObjId) + " FOR UPDATE";
 	er = lpDatabase->DoSelect(strQuery, NULL); // don't care about the result
 	if (er != erSuccess)
 		return er;
@@ -1533,18 +1513,18 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-	lpDBRow = lpDBResult.fetch_row();
+	auto lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL || lpDBRow[4] == NULL) {
 		ec_log_crit("ResetFolderCount(): row/col NULL (1)");
 		return er = KCERR_DATABASE_ERROR;
 	}
-	
-	strCC = lpDBRow[0];
-	strACC = lpDBRow[1];
-	strDMC = lpDBRow[2];
-	strDAC = lpDBRow[3];
-	strCFC = lpDBRow[4];
-	strDFC = lpDBRow[5];
+	/*
+	 * Content count, assoc. content count, deleted message count,
+	 * child folder count, deleted folder count, content unread.
+	 */
+	std::string strCC = lpDBRow[0], strACC = lpDBRow[1];
+	std::string strDMC = lpDBRow[2], strDAC = lpDBRow[3];
+	std::string strCFC = lpDBRow[4], strDFC = lpDBRow[5];
 	
 	// Gets unread counters from hierarchy / properties / tproperties
 	strQuery = "SELECT "
@@ -1563,7 +1543,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 		return er = KCERR_DATABASE_ERROR;
 	}
 	
-	strCU = lpDBRow[0];
+	std::string strCU = lpDBRow[0];
     strQuery = "UPDATE properties SET val_ulong = CASE tag "
       " WHEN " + stringify(PROP_ID(PR_CONTENT_COUNT)) + " THEN + " + strCC +
       " WHEN " + stringify(PROP_ID(PR_ASSOC_CONTENT_COUNT)) + " THEN + " + strACC +
@@ -1645,19 +1625,15 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
  */
 ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned char *lpData, unsigned int cbSize)
 {
-	ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
-	DB_ROW lpDBRow = NULL;
-	std::string strQuery;
-	unsigned int ulObjId = 0;
-	unsigned int ulStoreId = 0;
+	unsigned int ulObjId = 0, ulStoreId = 0;
 	bool bStale = false;
 
-	strQuery = "SELECT hierarchyid FROM indexedproperties WHERE tag= " + stringify(PROP_ID(ulPropTag)) + " AND val_binary=" + lpDatabase->EscapeBinary(lpData, cbSize) + " LIMIT 1";
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	auto strQuery = "SELECT hierarchyid FROM indexedproperties WHERE tag= " + stringify(PROP_ID(ulPropTag)) + " AND val_binary=" + lpDatabase->EscapeBinary(lpData, cbSize) + " LIMIT 1";
+	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-	lpDBRow = lpDBResult.fetch_row();
+	auto lpDBRow = lpDBResult.fetch_row();
     if(!lpDBRow || lpDBRow[0] == NULL)
 		return er; /* Nothing there, no need to do anything */
         
@@ -1696,9 +1672,7 @@ ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, 
 static ECRESULT ApplyFolderCounts(ECDatabase *lpDatabase,
     unsigned int ulFolderId, const PARENTINFO &pi)
 {
-	ECRESULT er;
-    
-	er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_COUNT,    			pi.lItems);
+	auto er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_COUNT, pi.lItems);
 	if (er == erSuccess)
 		er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_UNREAD,   		pi.lUnread);
 	if (er == erSuccess)
@@ -1718,11 +1692,9 @@ static ECRESULT ApplyFolderCounts(ECDatabase *lpDatabase,
 }
 
 ECRESULT ApplyFolderCounts(ECDatabase *lpDatabase, const std::map<unsigned int, PARENTINFO> &mapFolderCounts) {
-	ECRESULT er;
-    
 	// Update folder counts
 	for (const auto &p : mapFolderCounts) {
-		er = ApplyFolderCounts(lpDatabase, p.first, p.second);
+		auto er = ApplyFolderCounts(lpDatabase, p.first, p.second);
 		if (er != erSuccess)
 			return er;
 	}
@@ -1732,12 +1704,9 @@ ECRESULT ApplyFolderCounts(ECDatabase *lpDatabase, const std::map<unsigned int, 
 static ECRESULT LockFolders(ECDatabase *lpDatabase, bool bShared,
     const std::set<unsigned int> &setParents)
 {
-    std::string strQuery;
     if(setParents.empty())
 		return erSuccess;
-    
-    strQuery = "SELECT 1 FROM properties WHERE hierarchyid IN(";
-    
+	std::string strQuery = "SELECT 1 FROM properties WHERE hierarchyid IN(";
 	for (auto pa_id : setParents) {
 		strQuery += stringify(pa_id);
         strQuery += ",";
@@ -1760,10 +1729,8 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
     DB_ROW lpDBRow = NULL;
-    std::set<unsigned int> setMessages;
-    std::set<unsigned int> setFolders;
+    std::set<unsigned int> setMessages, setFolders, setUncachedMessages;
     std::set<std::string> setUncached;
-    std::set<unsigned int> setUncachedMessages;
     unsigned int ulId;
     std::string strQuery;
     
@@ -1931,16 +1898,12 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const SOURCEKEY &sourcekey,
 // children of an object.
 ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQuery, bool fUnicode, unsigned int ulObjId, unsigned int ulParentId, unsigned int ulMaxSize, ChildPropsMap *lpChildProps, NamedPropDefMap *lpNamedPropDefs)
 {
-    ECRESULT er = erSuccess;
 	unsigned int ulSize;
 	struct propVal sPropVal;
-    unsigned int ulChildId;
 	ECStringCompat stringCompat(fUnicode);
 	std::string strQuery;
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
-	DB_LENGTHS lpDBLen = NULL;
-
 	static const std::set<ULONG> excluded_properties = { PR_EC_WEBACCESS_SETTINGS, PR_EC_RECIPIENT_HISTORY, PR_EC_WEBACCESS_SETTINGS_JSON, PR_EC_RECIPIENT_HISTORY_JSON, PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON };
 
 	if (ulObjId == 0 && ulParentId == 0)
@@ -1964,27 +1927,23 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 		else
 			strQuery += "WHERE hierarchy.parent=" + stringify(ulParentId);
 		strQuery += " AND (tag <= 34048 OR names.id IS NOT NULL)";
-
-        er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+		auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
 			return er;
     } else {
-        er = lpDatabase->GetNextResult(&lpDBResult);
+		auto er = lpDatabase->GetNextResult(&lpDBResult);
         if(er != erSuccess)
 			return er;
     }
 
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-        unsigned int ulPropTag;
-        
-		lpDBLen = lpDBResult.fetch_row_lengths();
+		auto lpDBLen = lpDBResult.fetch_row_lengths();
         if(lpDBLen == NULL) {
 		ec_log_crit("PrepareReadProps(): FetchRowLengths failed");
 			return KCERR_DATABASE_ERROR; /* this should never happen */
         }
 
-        ulPropTag = PROP_TAG(atoi(lpDBRow[FIELD_NR_TYPE]),atoi(lpDBRow[FIELD_NR_TAG]));
-        
+		auto ulPropTag = PROP_TAG(atoi(lpDBRow[FIELD_NR_TYPE]),atoi(lpDBRow[FIELD_NR_TAG]));
         if (PROP_ID(ulPropTag) > 0x8500 && lpNamedPropDefs) {
 			auto resInsert = lpNamedPropDefs->emplace(ulPropTag, NAMEDPROPDEF());
             if (resInsert.second) {
@@ -2015,8 +1974,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 				ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_MV_UNICODE);
 		}
 
-        ulChildId = atoui(lpDBRow[FIELD_NR_MAX]);
-
+		auto ulChildId = atoui(lpDBRow[FIELD_NR_MAX]);
 		auto iterChild = lpChildProps->find(ulChildId);
 		if (iterChild == lpChildProps->cend()) {
             CHILDPROPS sChild;
@@ -2028,7 +1986,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 			iterChild = lpChildProps->emplace(ulChildId, sChild).first;
         }
         
-        er = iterChild->second.lpPropTags->AddPropTag(ulPropTag);
+		auto er = iterChild->second.lpPropTags->AddPropTag(ulPropTag);
         if(er != erSuccess)
 			return er;
 
@@ -2072,18 +2030,18 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 				" AND (tag <= 34048 OR names.id IS NOT NULL) "
 				"GROUP BY tag, mvproperties.type";
 
-        er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+		auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
 			return er;
     } else {
-        er = lpDatabase->GetNextResult(&lpDBResult);
+		auto er = lpDatabase->GetNextResult(&lpDBResult);
         if(er != erSuccess)
 			return er;
     }
     
     // Do MV props
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-		lpDBLen = lpDBResult.fetch_row_lengths();
+		auto lpDBLen = lpDBResult.fetch_row_lengths();
         if(lpDBLen == NULL) {
 			ec_log_crit("PrepareReadProps(): FetchRowLengths failed(2)");
 			return KCERR_DATABASE_ERROR; /* this should never happen */
@@ -2114,8 +2072,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
             }
         }
 
-        ulChildId = atoui(lpDBRow[FIELD_NR_MAX]);
-
+		auto ulChildId = atoui(lpDBRow[FIELD_NR_MAX]);
 		auto iterChild = lpChildProps->find(ulChildId);
 		if (iterChild == lpChildProps->cend()) {
             CHILDPROPS sChild;
@@ -2127,7 +2084,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 			iterChild = lpChildProps->emplace(ulChildId, sChild).first;
         }
         
-        er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);
+		auto er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);
         if(er != erSuccess)
             continue;
 
