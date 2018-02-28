@@ -61,11 +61,10 @@ static void FreeDeleteItem(DELETEITEM *);
 
 ECRESULT GetSourceKey(unsigned int ulObjId, SOURCEKEY *lpSourceKey)
 {
-	ECRESULT er = erSuccess;
 	unsigned char *lpData = NULL;
 	unsigned int cbData = 0;
-
-	er = g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), ulObjId, NULL, &cbData, &lpData);
+	auto er = g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY),
+	          ulObjId, nullptr, &cbData, &lpData);
 	if (er == erSuccess)
 		*lpSourceKey = SOURCEKEY(cbData, reinterpret_cast<const char *>(lpData));
 	s_free(nullptr, lpData);
@@ -113,14 +112,12 @@ ECRESULT GetSourceKey(unsigned int ulObjId, SOURCEKEY *lpSourceKey)
 static ECRESULT ValidateDeleteObject(ECSession *lpSession,
     bool bCheckPermission, unsigned int ulFlags, const DELETEITEM &sItem)
 {
-	ECRESULT er;
-
 	if (lpSession == NULL)
 		return KCERR_INVALID_PARAMETER;
 
 	// Check permission for each folder and messages
 	if (bCheckPermission && ((sItem.ulObjType == MAPI_MESSAGE && sItem.ulParentType == MAPI_FOLDER) || sItem.ulObjType == MAPI_FOLDER)) {
-		er = lpSession->GetSecurity()->CheckPermission(sItem.ulId, ecSecurityDelete);
+		auto er = lpSession->GetSecurity()->CheckPermission(sItem.ulId, ecSecurityDelete);
 		if(er != erSuccess)
 			return er;
 	}
@@ -178,50 +175,41 @@ static ECRESULT ValidateDeleteObject(ECSession *lpSession,
  */
 ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *lpsObjectList, unsigned int ulFlags, bool bCheckPermission, ECListDeleteItems *lplstDeleteItems)
 {
-	ECRESULT er = erSuccess;
-	
-	ECListIntIterator	iListObjectId;
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
-	std::string strQuery;
 	std::set<unsigned int> setIDs;
-	ECListDeleteItems lstDeleteItems;
-	ECListDeleteItems lstContainerItems;
+	ECListDeleteItems lstDeleteItems, lstContainerItems;
 	DELETEITEM sItem;
-	ECSessionManager *lpSessionManager = NULL;
-	ECCacheManager *lpCacheManager = NULL;
 	unsigned int ulParent = 0;
 	
 	if (lpSession == nullptr || lpDatabase == nullptr ||
 	    lpsObjectList == nullptr || lplstDeleteItems == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
-	lpSessionManager = lpSession->GetSessionManager();
-	lpCacheManager = lpSessionManager->GetCacheManager();
+	auto lpSessionManager = lpSession->GetSessionManager();
+	auto lpCacheManager = lpSessionManager->GetCacheManager();
 	auto cleanup = make_scope_success([&]() { FreeDeletedItems(&lstDeleteItems); });
 
 	// First, put all the root objects in the list
-	for (iListObjectId = lpsObjectList->begin();
-	     iListObjectId != lpsObjectList->end(); ++iListObjectId)
-	{
+	for (const auto &elem : *lpsObjectList) {
 		sItem.fRoot = true;
 		/* Lock the root records' parent counter to maintain locking order (counters/content/storesize/committimemax) */
-		er  = lpCacheManager->GetObject(*iListObjectId, &ulParent, NULL, NULL, NULL);
+		auto er = lpCacheManager->GetObject(elem, &ulParent, nullptr, nullptr, nullptr);
 		if(er != erSuccess)
 			return er;
         er = lpDatabase->DoSelect("SELECT properties.val_ulong FROM properties WHERE hierarchyid = " + stringify(ulParent) + " FOR UPDATE", NULL);
         if(er != erSuccess)
 			return er;
         // Lock the root records to make sure that we don't interfere with modifies or deletes on the same record
-        er = lpDatabase->DoSelect("SELECT hierarchy.flags FROM hierarchy WHERE id = " + stringify(*iListObjectId) + " FOR UPDATE", NULL);
+		er = lpDatabase->DoSelect("SELECT hierarchy.flags FROM hierarchy WHERE id = " + stringify(elem) + " FOR UPDATE", nullptr);
         if(er != erSuccess)
 			return er;
                 
-		strQuery = "SELECT h.id, h.parent, h.type, h.flags, p.type, properties.val_ulong, (SELECT hierarchy_id FROM outgoingqueue WHERE outgoingqueue.hierarchy_id = h.id LIMIT 1) FROM hierarchy as h LEFT JOIN properties ON properties.hierarchyid=h.id AND properties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND properties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " LEFT JOIN hierarchy AS p ON h.parent=p.id WHERE ";
+		auto strQuery = "SELECT h.id, h.parent, h.type, h.flags, p.type, properties.val_ulong, (SELECT hierarchy_id FROM outgoingqueue WHERE outgoingqueue.hierarchy_id = h.id LIMIT 1) FROM hierarchy as h LEFT JOIN properties ON properties.hierarchyid=h.id AND properties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND properties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " LEFT JOIN hierarchy AS p ON h.parent=p.id WHERE ";
 		if((ulFlags & EC_DELETE_CONTAINER) == 0)
-			strQuery += "h.parent=" + stringify(*iListObjectId);
+			strQuery += "h.parent=" + stringify(elem);
 		else
-			strQuery += "h.id=" + stringify(*iListObjectId);
+			strQuery += "h.id=" + stringify(elem);
 
 		if((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
 			strQuery += " AND (h.flags&"+stringify(MSGFLAG_DELETED)+") !="+stringify(MSGFLAG_DELETED);
@@ -286,12 +274,11 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	// Now, run through the list, adding children to the bottom of the list. This means
 	// we're actually running width-first, and don't have to do anything recursive.
 	for (const auto &di : lstDeleteItems) {
-		strQuery = "SELECT id, type, flags, (SELECT hierarchy_id FROM outgoingqueue WHERE outgoingqueue.hierarchy_id = hierarchy.id LIMIT 1) FROM hierarchy WHERE parent=" +
+		auto strQuery = "SELECT id, type, flags, (SELECT hierarchy_id FROM outgoingqueue WHERE outgoingqueue.hierarchy_id = hierarchy.id LIMIT 1) FROM hierarchy WHERE parent=" +
 			stringify(di.ulId);
 		if((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
 			strQuery += " AND (flags&"+stringify(MSGFLAG_DELETED)+") !="+stringify(MSGFLAG_DELETED);
-
-		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+		auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
 			return er;
 
@@ -358,8 +345,6 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 static ECRESULT DeleteObjectUpdateICS(ECSession *lpSession,
     unsigned int ulFlags, ECListDeleteItems &lstDeleted, unsigned int ulSyncId)
 {
-	ECRESULT er = erSuccess;
-
 	for (const auto &di : lstDeleted)
 		// ICS update
 		if (di.ulObjType == MAPI_MESSAGE &&
@@ -368,8 +353,7 @@ static ECRESULT DeleteObjectUpdateICS(ECSession *lpSession,
 		else if (di.ulObjType == MAPI_FOLDER &&
 		    !(di.ulFlags & FOLDER_SEARCH))
 			AddChange(lpSession, ulSyncId, di.sSourceKey, di.sParentSourceKey, ulFlags & EC_DELETE_HARD_DELETE ? ICS_FOLDER_HARD_DELETE : ICS_FOLDER_SOFT_DELETE);
-
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -385,11 +369,9 @@ static ECRESULT DeleteObjectUpdateICS(ECSession *lpSession,
 static ECRESULT CheckICSDeleteScope(ECDatabase *lpDatabase,
     ECListDeleteItems &lstDeleted, unsigned int ulSyncId)
 {
-	ECRESULT er;
-
 	for (auto iterDeleteItems = lstDeleted.begin();
 	     iterDeleteItems != lstDeleted.end(); ) {
-		er = CheckWithinLastSyncedMessagesSet(lpDatabase, ulSyncId, iterDeleteItems->sSourceKey);
+		auto er = CheckWithinLastSyncedMessagesSet(lpDatabase, ulSyncId, iterDeleteItems->sSourceKey);
 		if (er == KCERR_NOT_FOUND) {
 			/* Ignore deletion of message. */
 			ec_log_debug("Message not in sync scope, ignoring delete");
@@ -463,14 +445,8 @@ static ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase,
     unsigned int ulFlags, ECListDeleteItems &lstDeleteItems,
     ECListDeleteItems &lstDeleted)
 {
-	ECRESULT er;
 	FILETIME ft;
-	std::string strInclauseOQQ;
-	std::string strInclause;
-	std::string strQuery;
-	
-	PARENTINFO pi;
-	
+	std::string strInclauseOQQ, strInclause;
 	std::map<unsigned int, PARENTINFO> mapFolderCounts;
 
 	// Build where condition
@@ -518,8 +494,8 @@ static ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase,
 	if (!strInclauseOQQ.empty())
 	{
 		// Remove any entries in the outgoing queue for deleted items
-		strQuery = "DELETE FROM outgoingqueue WHERE hierarchy_id IN ( " + strInclauseOQQ + ")";
-		er = lpDatabase->DoDelete(strQuery);
+		auto strQuery = "DELETE FROM outgoingqueue WHERE hierarchy_id IN ( " + strInclauseOQQ + ")";
+		auto er = lpDatabase->DoDelete(strQuery);
 		if(er!= erSuccess)
 			return er;
 		
@@ -533,8 +509,8 @@ static ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase,
 	if(!strInclause.empty())
 	{
 		// Mark item as deleted
-		strQuery = "UPDATE hierarchy SET flags=flags|"+stringify(MSGFLAG_DELETED)+" WHERE id IN(" + strInclause + ")";
-		er = lpDatabase->DoUpdate(strQuery);
+		auto strQuery = "UPDATE hierarchy SET flags=flags|" + stringify(MSGFLAG_DELETED) + " WHERE id IN(" + strInclause + ")";
+		auto er = lpDatabase->DoUpdate(strQuery);
 		if(er!= erSuccess)
 			return er;
 
@@ -546,7 +522,7 @@ static ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase,
 			return er;
 	}
 
-	er = ApplyFolderCounts(lpDatabase, mapFolderCounts);
+	auto er = ApplyFolderCounts(lpDatabase, mapFolderCounts);
 	if(er != erSuccess)
 		return er;
 
@@ -560,7 +536,7 @@ static ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase,
 			di.ulObjType == MAPI_STORE);
 		if (!k)
 			continue;
-		strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_lo, val_hi) VALUES(" +
+		auto strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_lo, val_hi) VALUES(" +
 			stringify(di.ulId) + "," +
 			stringify(PROP_ID(PR_DELETED_ON)) + "," +
 			stringify(PROP_TYPE(PR_DELETED_ON)) + "," +
@@ -785,14 +761,10 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
  */
 ECRESULT DeleteObjectCacheUpdate(ECSession *lpSession, unsigned int ulFlags, ECListDeleteItems &lstDeleted)
 {
-	ECSessionManager *lpSessionManager = NULL;
-	ECCacheManager *lpCacheManager = NULL;
-
 	if (lpSession == NULL)
 		return KCERR_INVALID_PARAMETER;
-
-	lpSessionManager = lpSession->GetSessionManager();
-	lpCacheManager = lpSessionManager->GetCacheManager();
+	auto lpSessionManager = lpSession->GetSessionManager();
+	auto lpCacheManager = lpSessionManager->GetCacheManager();
 
 	// Remove items from cache and update the outgoing queue
 	for (const auto &di : lstDeleted) {
@@ -817,7 +789,6 @@ ECRESULT DeleteObjectCacheUpdate(ECSession *lpSession, unsigned int ulFlags, ECL
 static ECRESULT DeleteObjectNotifications(ECSession *lpSession,
     unsigned int ulFlags, ECListDeleteItems &lstDeleted)
 {
-	ECSessionManager *lpSessionManager = NULL;
 	std::list<unsigned int> lstParent;
 	ECMapTableChangeNotifications mapTableChangeNotifications;
 	//std::set<unsigned int>	setFolderParents;
@@ -826,8 +797,7 @@ static ECRESULT DeleteObjectNotifications(ECSession *lpSession,
 
 	if (lpSession == NULL)
 		return KCERR_INVALID_PARAMETER;
-
-	lpSessionManager = lpSession->GetSessionManager();
+	auto lpSessionManager = lpSession->GetSessionManager();
 
 	// Now, send the notifications for MAPI_MESSAGE and MAPI_FOLDER types
 	for (auto &di : lstDeleted) {
@@ -908,26 +878,20 @@ static ECRESULT DeleteObjectNotifications(ECSession *lpSession,
  */
 ECRESULT MarkStoreAsDeleted(ECSession *lpSession, ECDatabase *lpDatabase, unsigned int ulStoreHierarchyId, unsigned int ulSyncId)
 {
-	ECRESULT er;
-	std::string strQuery;
-	ECSessionManager *lpSessionManager = NULL;
-	ECSearchFolders *lpSearchFolders = NULL;
-	ECCacheManager *lpCacheManager = NULL;
 	FILETIME ft;
 
 	if (lpSession == NULL || lpDatabase == NULL)
 		return KCERR_INVALID_PARAMETER;
-
-	lpSessionManager = lpSession->GetSessionManager();
-	lpSearchFolders = lpSessionManager->GetSearchFolders();
-	lpCacheManager = lpSessionManager->GetCacheManager();
+	auto lpSessionManager = lpSession->GetSessionManager();
+	auto lpSearchFolders = lpSessionManager->GetSearchFolders();
+	auto lpCacheManager = lpSessionManager->GetCacheManager();
 
 	// Remove search results for deleted store
 	lpSearchFolders->RemoveSearchFolder(ulStoreHierarchyId);
 
 	// Mark item as deleted
-	strQuery = "UPDATE hierarchy SET flags=flags|"+stringify(MSGFLAG_DELETED)+" WHERE id="+stringify(ulStoreHierarchyId);
-	er = lpDatabase->DoUpdate(strQuery);
+	auto strQuery = "UPDATE hierarchy SET flags=flags|"+stringify(MSGFLAG_DELETED)+" WHERE id="+stringify(ulStoreHierarchyId);
+	auto er = lpDatabase->DoUpdate(strQuery);
 	if(er!= erSuccess)
 		return er;
 
@@ -982,10 +946,7 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, unsigned in
 ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *lpsObjectList, unsigned int ulFlags, unsigned int ulSyncId, bool bNoTransaction, bool bCheckPermission)
 {
 	ECRESULT er = erSuccess;
-	ECListDeleteItems lstDeleteItems;
-	ECListDeleteItems lstDeleted;
-	ECSearchFolders *lpSearchFolders = NULL;
-	ECSessionManager *lpSessionManager = NULL;
+	ECListDeleteItems lstDeleteItems, lstDeleted;
 	auto cleanup = make_scope_success([&]() { FreeDeletedItems(&lstDeleteItems); });
 	
 	if (lpSession == nullptr || lpDatabase == nullptr || lpsObjectList == nullptr)
@@ -994,9 +955,8 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 	// Make sure we're only deleting things once
 	lpsObjectList->sort();
 	lpsObjectList->unique();
-
-	lpSessionManager = lpSession->GetSessionManager();
-	lpSearchFolders = lpSessionManager->GetSearchFolders();
+	auto lpSessionManager = lpSession->GetSessionManager();
+	auto lpSearchFolders = lpSessionManager->GetSearchFolders();
 
 	if ((bNoTransaction && (ulFlags & EC_DELETE_HARD_DELETE)) || 
 		(bNoTransaction && (ulFlags&EC_DELETE_STORE)) ) {
@@ -1106,9 +1066,7 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 // @todo add parameter to pass ulFolderIdType, to check that it contains MAPI_FOLDER.
 ECRESULT WriteLocalCommitTimeMax(struct soap *soap, ECDatabase *lpDatabase, unsigned int ulFolderId, propVal **ppvTime)
 {
-	ECRESULT er;
 	FILETIME ftNow;
-	std::string strQuery;
 	propVal *pvTime = NULL;
 
 	GetSystemTimeAsFileTime(&ftNow);
@@ -1122,12 +1080,11 @@ ECRESULT WriteLocalCommitTimeMax(struct soap *soap, ECDatabase *lpDatabase, unsi
 		pvTime->Value.hilo->lo = ftNow.dwLowDateTime;
 	}
 
-	strQuery = "INSERT INTO properties (hierarchyid, tag, type, val_hi, val_lo) VALUES ("
+	auto strQuery = "INSERT INTO properties (hierarchyid, tag, type, val_hi, val_lo) VALUES ("
 		+stringify(ulFolderId)+","+stringify(PROP_ID(PR_LOCAL_COMMIT_TIME_MAX))+","+stringify(PROP_TYPE(PR_LOCAL_COMMIT_TIME_MAX))+","
 		+stringify(ftNow.dwHighDateTime)+","+stringify(ftNow.dwLowDateTime)+")"+
 		" ON DUPLICATE KEY UPDATE val_hi="+stringify(ftNow.dwHighDateTime)+",val_lo="+stringify(ftNow.dwLowDateTime);
-
-	er = lpDatabase->DoInsert(strQuery);
+	auto er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		return er;
 	if (ppvTime)
@@ -1160,12 +1117,11 @@ void FreeDeletedItems(ECListDeleteItems *lplstDeleteItems)
  * @return result
  */
 ECRESULT UpdateTProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned int ulFolderId, ECListInt *lpObjectIDs) {
-    std::string strQuery;
     if(lpObjectIDs->empty())
 		return erSuccess; // Nothing to do
 
     // Update tproperties by taking value from properties
-    strQuery = "UPDATE tproperties JOIN properties on properties.hierarchyid=tproperties.hierarchyid AND properties.tag=tproperties.tag AND properties.type=tproperties.type SET tproperties.val_ulong = properties.val_ulong "
+	auto strQuery = "UPDATE tproperties JOIN properties on properties.hierarchyid=tproperties.hierarchyid AND properties.tag=tproperties.tag AND properties.type=tproperties.type SET tproperties.val_ulong = properties.val_ulong "
     			"WHERE properties.tag = " + stringify(PROP_ID(ulPropTag)) + " AND properties.type = " + stringify(PROP_TYPE(ulPropTag)) + " AND tproperties.folderid = " + stringify(ulFolderId) + " AND properties.hierarchyid IN (";
     			
     for (auto iObjectid = lpObjectIDs->cbegin(); iObjectid != lpObjectIDs->cend(); ++iObjectid) {
@@ -1211,15 +1167,11 @@ ECRESULT UpdateTProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned in
  */
 ECRESULT UpdateFolderCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int ulPropTag, int lDelta)
 {
-	ECRESULT er;
-	std::string strQuery;
-	unsigned int ulParentId;
-	unsigned int ulType;
+	unsigned int ulParentId, ulType;
 	
 	if(lDelta == 0)
 		return erSuccess; // No change
-
-	er = g_lpSessionManager->GetCacheManager()->GetObject(ulFolderId, &ulParentId, NULL, NULL, &ulType);
+	auto er = g_lpSessionManager->GetCacheManager()->GetObject(ulFolderId, &ulParentId, NULL, NULL, &ulType);
 	if(er != erSuccess)
 		return er;
 	if (ulType != MAPI_FOLDER) {
@@ -1228,7 +1180,7 @@ ECRESULT UpdateFolderCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsi
 		return erSuccess;
 	}
 
-	strQuery = "UPDATE properties SET val_ulong = ";
+	std::string strQuery = "UPDATE properties SET val_ulong = ";
 	// make sure val_ulong stays a positive number
 	if (lDelta < 0)
 		strQuery += "IF (val_ulong >= " + stringify(abs(lDelta),false,true) + ", val_ulong + " + stringify(lDelta,false,true) + ", 0)";
@@ -1243,11 +1195,10 @@ ECRESULT UpdateFolderCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsi
 
 ECRESULT CheckQuota(ECSession *lpecSession, ULONG ulStoreId)
 {
-	ECRESULT er;
 	long long llStoreSize = 0;
 	eQuotaStatus QuotaStatus = QUOTA_OK;
 	
-	er = lpecSession->GetSecurity()->GetStoreSize(ulStoreId, &llStoreSize);
+	auto er = lpecSession->GetSecurity()->GetStoreSize(ulStoreId, &llStoreSize);
 	if (er != erSuccess)
 		return er;
 	er = lpecSession->GetSecurity()->CheckQuota(ulStoreId, llStoreSize, &QuotaStatus);
@@ -1260,15 +1211,12 @@ ECRESULT CheckQuota(ECSession *lpecSession, ULONG ulStoreId)
 
 ECRESULT MapEntryIdToObjectId(ECSession *lpecSession, ECDatabase *lpDatabase, ULONG ulObjId, const entryId &sEntryId)
 {
-	ECRESULT er;
-	std::string	strQuery;
-
-	er = RemoveStaleIndexedProp(lpDatabase, PR_ENTRYID, sEntryId.__ptr, sEntryId.__size);
+	auto er = RemoveStaleIndexedProp(lpDatabase, PR_ENTRYID, sEntryId.__ptr, sEntryId.__size);
 	if(er != erSuccess) {
 		ec_log_crit("ERROR: Collision detected while setting entryid. objectid=%u, entryid=%s, user=%u", ulObjId, bin2hex(sEntryId.__size, sEntryId.__ptr).c_str(), lpecSession->GetSecurity()->GetUserId());
 		return KCERR_DATABASE_ERROR;
 	}
-	strQuery = "INSERT INTO indexedproperties (hierarchyid,tag,val_binary) VALUES(" + stringify(ulObjId) + ", 4095, " + lpDatabase->EscapeBinary(sEntryId.__ptr, sEntryId.__size) + ")";
+	auto strQuery = "INSERT INTO indexedproperties (hierarchyid,tag,val_binary) VALUES(" + stringify(ulObjId) + ", 4095, " + lpDatabase->EscapeBinary(sEntryId.__ptr, sEntryId.__size) + ")";
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		return er;
@@ -1307,16 +1255,12 @@ ECRESULT UpdateFolderCounts(ECDatabase *lpDatabase, ULONG ulParentId, ULONG ulFl
  */
 ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStoreId, ULONG ulObjId, bool bNewItem, propValArray *lpModProps)
 {
-	ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
-	std::string	strQuery;
-	struct propVal *lpPropMessageFlags = NULL;	// non-free
 	ULONG ulPrevSubmitFlag = 0;
 	
 	// If the messages was saved by an ICS syncer, then we need to sync the PR_MESSAGE_FLAGS for MSGFLAG_SUBMIT if it
 	// was included in the save.
-	lpPropMessageFlags = FindProp(lpModProps, PR_MESSAGE_FLAGS);
-
+	auto lpPropMessageFlags = FindProp(lpModProps, PR_MESSAGE_FLAGS);
 	if (ulSyncId == 0 || lpPropMessageFlags == nullptr)
 		return erSuccess;
 	if (bNewItem) {
@@ -1324,8 +1268,8 @@ ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStore
 		ulPrevSubmitFlag = 0;
 	} else {
 		// Existing item. Check its current submit flag by looking at the outgoing queue.
-		strQuery = "SELECT hierarchy_id FROM outgoingqueue WHERE hierarchy_id=" + stringify(ulObjId) + " AND flags & " + stringify(EC_SUBMIT_MASTER) + " = 0 LIMIT 1";
-		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+		auto strQuery = "SELECT hierarchy_id FROM outgoingqueue WHERE hierarchy_id=" + stringify(ulObjId) + " AND flags & " + stringify(EC_SUBMIT_MASTER) + " = 0 LIMIT 1";
+		auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess)
 			return er;
 		// Item is (1)/is not (0) in the outgoing queue at the moment
@@ -1334,8 +1278,8 @@ ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStore
 
 	if ((lpPropMessageFlags->Value.ul & MSGFLAG_SUBMIT) && ulPrevSubmitFlag == 0) {
 		// Message was previously not submitted, but it is now, so add it to the outgoing queue and set the correct flags.
-		strQuery = "INSERT INTO outgoingqueue (store_id, hierarchy_id, flags) VALUES("+stringify(ulStoreId)+", "+stringify(ulObjId)+"," + stringify(EC_SUBMIT_LOCAL) + ")";
-		er = lpDatabase->DoInsert(strQuery);
+		auto strQuery = "INSERT INTO outgoingqueue (store_id, hierarchy_id, flags) VALUES("+stringify(ulStoreId)+", "+stringify(ulObjId)+"," + stringify(EC_SUBMIT_LOCAL) + ")";
+		auto er = lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
 			return er;
 		strQuery = "UPDATE properties SET val_ulong = val_ulong | " + stringify(MSGFLAG_SUBMIT) +
@@ -1351,8 +1295,8 @@ ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStore
 		g_lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_ADD, ulStoreId, ulObjId, EC_SUBMIT_LOCAL, MAPI_MESSAGE);
 	} else if ((lpPropMessageFlags->Value.ul & MSGFLAG_SUBMIT) == 0 && ulPrevSubmitFlag == 1) {
 		// Message was previously submitted, but is not submitted any more. Remove it from the outgoing queue and remove the flags.
-		strQuery = "DELETE FROM outgoingqueue WHERE hierarchy_id = " + stringify(ulObjId);
-		er = lpDatabase->DoDelete(strQuery);
+		auto strQuery = "DELETE FROM outgoingqueue WHERE hierarchy_id = " + stringify(ulObjId);
+		auto er = lpDatabase->DoDelete(strQuery);
 		if (er != erSuccess)
 			return er;
 		strQuery = "UPDATE properties SET val_ulong = val_ulong & ~" + stringify(MSGFLAG_SUBMIT) +
