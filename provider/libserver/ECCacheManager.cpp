@@ -447,12 +447,9 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 {
 	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
-	std::string strQuery;
 	ECDatabase	*lpDatabase = NULL;
-	unsigned int	ulObjId = 0;
 	sObjectTableKey key;
-	ECsObjects  *lpsObject = NULL;
-	ECsObjects	sObject;
+	ECsObjects sObject, *lpsObject = nullptr;
 	std::set<sObjectTableKey> setUncached;
 
 	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
@@ -472,8 +469,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 
     if(!setUncached.empty()) {
         // Get uncached items from SQL
-        strQuery = "SELECT id, parent, owner, flags, type FROM hierarchy WHERE id IN(";
-        
+		std::string strQuery = "SELECT id, parent, owner, flags, type FROM hierarchy WHERE id IN(";
 		for (const auto &key : setUncached) {
 			strQuery += stringify(key.ulObjId);
             strQuery += ",";
@@ -489,9 +485,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
         while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
             if(!lpDBRow[0] || !lpDBRow[1] || !lpDBRow[2] || !lpDBRow[3])
                 continue;
-                
-            ulObjId = atoui(lpDBRow[0]);
-                
+			auto ulObjId = atoui(lpDBRow[0]);
             sObject.ulParent = atoui(lpDBRow[1]);
             sObject.ulOwner = atoui(lpDBRow[2]);
             sObject.ulFlags = atoui(lpDBRow[3]);
@@ -522,10 +516,8 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 {
 	ECRESULT er = erSuccess;
 	ECDatabase *lpDatabase = NULL;
-	std::string strQuery;
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
-	DB_LENGTHS lpDBLen = NULL;
 	unsigned int objid;
 	std::vector<size_t> uncached;
 
@@ -542,8 +534,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 		er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
 		if (er != erSuccess)
 			goto exit;
-
-		strQuery = "SELECT hierarchyid, val_binary FROM indexedproperties FORCE INDEX(bin) WHERE tag="+stringify(ulTag)+" AND val_binary IN(";
+		auto strQuery = "SELECT hierarchyid, val_binary FROM indexedproperties FORCE INDEX(bin) WHERE tag=" + stringify(ulTag) + " AND val_binary IN(";
 		for (size_t j = 0; j < uncached.size(); ++j) {
 			strQuery += lpDatabase->EscapeBinary(lpdata[uncached[j]], cbdata[uncached[j]]);
 			strQuery += ",";
@@ -555,7 +546,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 			goto exit;
 
 		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-			lpDBLen = lpDBResult.fetch_row_lengths();
+			auto lpDBLen = lpDBResult.fetch_row_lengths();
 			ECsIndexProp p(ulTag, reinterpret_cast<unsigned char *>(lpDBRow[1]), lpDBLen[1]);
 			mapObjects[std::move(p)] = atoui(lpDBRow[0]);
 		}
@@ -582,12 +573,8 @@ ECRESULT ECCacheManager::GetStore(unsigned int ulObjId, unsigned int *lpulStore,
 ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpulStore, GUID *lpGuid, unsigned int *lpulType, unsigned int maxdepth)
 {
 	DB_RESULT lpDBResult;
-	DB_ROW		lpDBRow = NULL;
-	std::string strQuery;
 	ECDatabase	*lpDatabase = NULL;
-	unsigned int ulSubObjId = 0;
-	unsigned int ulStore = 0;
-	unsigned int ulType = 0;
+	unsigned int ulSubObjId = 0, ulStore = 0, ulType = 0;
 	GUID guid;
 	bool bCacheResult = false;
 	
@@ -607,7 +594,7 @@ ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpu
     // Get our parent folder
 	if(GetParent(ulObjId, &ulSubObjId) != erSuccess) {
 	    // No parent, this must be the top-level item, get the store data from here
-       strQuery = "SELECT hierarchy_id, guid, type FROM stores WHERE hierarchy_id = " + stringify(ulObjId) + " LIMIT 1";
+		auto strQuery = "SELECT hierarchy_id, guid, type FROM stores WHERE hierarchy_id = " + stringify(ulObjId) + " LIMIT 1";
     	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
     	if(er != erSuccess)
 			goto exit;
@@ -615,8 +602,7 @@ ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpu
     		er = KCERR_NOT_FOUND;
     		goto exit;
     	}
-
-		lpDBRow = lpDBResult.fetch_row();
+		auto lpDBRow = lpDBResult.fetch_row();
     	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
     		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECCacheManager::GetStoreAndType(): NULL in columns");
@@ -658,12 +644,10 @@ ECRESULT ECCacheManager::GetUserObject(unsigned int ulUserId, objectid_t *lpExte
 	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
-	std::string	strQuery;
 	ECDatabase	*lpDatabase = NULL;
 	objectclass_t ulClass;
 	unsigned int ulCompanyId;
-	std::string externid;
-	std::string signature;
+	std::string externid, signature;
 	bool bCacheResult = false;
 
 	// first check the cache if we already know the external id for this user
@@ -747,8 +731,7 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 	DB_LENGTHS	lpDBLen = NULL;
 	std::string	strQuery;
 	ECDatabase	*lpDatabase = NULL;
-	unsigned int ulCompanyId;
-	unsigned int ulUserId;
+	unsigned int ulCompanyId, ulUserId;
 	std::string signature;
 	objectclass_t objclass = sExternId.objclass;
 	bool bCacheResult = false;
@@ -820,16 +803,12 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 {
 	ECRESULT er = erSuccess;
 	DB_RESULT lpDBResult;
-	DB_ROW lpDBRow = NULL;
-	DB_LENGTHS lpDBLen = NULL;
 	std::string strQuery;
 	ECDatabase *lpDatabase = NULL;
 	std::list<objectid_t> lstExternIds;
 	decltype(lstExternIds)::const_iterator iter;
 	objectid_t sExternId;
 	std::string strSignature;
-	unsigned int ulLocalId = 0;
-	unsigned int ulCompanyId;
 
 	// Collect as many objects from cache as possible,
 	// everything we couldn't find must be collected from the database
@@ -837,6 +816,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 		lstExternObjIds.size());
 
 	for (const auto &objid : lstExternObjIds) {
+		unsigned int ulLocalId;
 		LOG_USERCACHE_DEBUG(" Get user objects from externid \"%s\", class %d",
 			bin2hex(objid.id).c_str(), objid.objclass);
 		if (I_GetUEIdObject(objid.id, objid.objclass, NULL, &ulLocalId, NULL) == erSuccess)
@@ -873,16 +853,15 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 	}
 
 	while (TRUE) {
-		lpDBRow = lpDBResult.fetch_row();
-		lpDBLen = lpDBResult.fetch_row_lengths();
+		auto lpDBRow = lpDBResult.fetch_row();
+		auto lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL || lpDBRow[4] == NULL)
 			break;
-
-		ulLocalId = atoi(lpDBRow[0]);
+		auto ulLocalId = atoi(lpDBRow[0]);
 		sExternId.id.assign(lpDBRow[1], lpDBLen[1]);
 		sExternId.objclass = (objectclass_t)atoi(lpDBRow[2]);
 		strSignature.assign(lpDBRow[3], lpDBLen[3]);
-		ulCompanyId = atoi(lpDBRow[4]);
+		auto ulCompanyId = atoi(lpDBRow[4]);
 		lpmapLocalObjIds->insert({sExternId, ulLocalId});
 		I_AddUEIdObject(sExternId.id, sExternId.objclass, ulCompanyId, ulLocalId, strSignature);
 		LOG_USERCACHE_DEBUG(" Get user objects result company %d, userid %d, signature '%s'", ulCompanyId, ulLocalId, bin2hex(strSignature).c_str());
@@ -1053,12 +1032,7 @@ ECRESULT ECCacheManager::I_DelUEIdObject(const std::string &strExternId,
 ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppRights)
 {
 	DB_RESULT lpResult;
-    DB_ROW		lpRow = NULL;
     ECDatabase *lpDatabase = NULL;
-    std::string strQuery;
-    struct rightsArray *lpRights = NULL;
-    unsigned int ulRows = 0;
-
 	LOG_USERCACHE_DEBUG("Get ACLs for objectid %d", ulObjId);
 
 	/* Try cache first */
@@ -1069,15 +1043,13 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
 	if(er != erSuccess)
 		return er;
-
-    strQuery = "SELECT id, type, rights FROM acl WHERE hierarchy_id=" + stringify(ulObjId);
-
+	auto strQuery = "SELECT id, type, rights FROM acl WHERE hierarchy_id=" + stringify(ulObjId);
     er = lpDatabase->DoSelect(strQuery, &lpResult);
     if(er != erSuccess)
 		return er;
 
-	ulRows = lpResult.get_num_rows();
-	lpRights = s_alloc<rightsArray>(nullptr);
+	auto ulRows = lpResult.get_num_rows();
+	auto lpRights = s_alloc<rightsArray>(nullptr);
     if (ulRows > 0)
     {
 	    lpRights->__size = ulRows;
@@ -1085,7 +1057,7 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 		memset(lpRights->__ptr, 0, sizeof(struct rights) * ulRows);
 
 		for (unsigned int i = 0; i < ulRows; ++i) {
-			lpRow = lpResult.fetch_row();
+			auto lpRow = lpResult.fetch_row();
 			if(lpRow == NULL || lpRow[0] == NULL || lpRow[1] == NULL || lpRow[2] == NULL) {
 				s_free(nullptr, lpRights->__ptr);
 				s_free(nullptr, lpRights);
@@ -1111,15 +1083,13 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 ECRESULT ECCacheManager::I_GetACLs(unsigned int ulObjId, struct rightsArray **lppRights)
 {
     ECsACLs *sACL;
-    struct rightsArray *lpRights = NULL;
-
 	scoped_rlock lock(m_hCacheMutex);
 
 	auto er = m_AclCache.GetCacheItem(ulObjId, &sACL);
 	if(er != erSuccess)
 		return er;
 
-	lpRights = s_alloc<rightsArray>(nullptr);
+	auto lpRights = s_alloc<rightsArray>(nullptr);
     if (sACL->ulACLs > 0)
     {
         lpRights->__size = sACL->ulACLs;
@@ -1659,7 +1629,6 @@ exit:
 
 ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId)
 {
-	ECRESULT		er = erSuccess;
 	ECsIndexProp	sObject;
 	ECsIndexObject	*sIndexObject;
 
@@ -1671,7 +1640,7 @@ ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cb
 	sObject.lpData = lpData; // Cheap copy, Set this item on NULL before you exit
 
 	scoped_rlock lock(m_hCacheIndPropMutex);
-	er = m_PropToObjectCache.GetCacheItem(sObject, &sIndexObject);
+	auto er = m_PropToObjectCache.GetCacheItem(sObject, &sIndexObject);
 	if (er == erSuccess)
 		*lpulObjId = sIndexObject->ulObjId;
 	sObject.lpData = NULL;
@@ -1680,8 +1649,6 @@ ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cb
 
 ECRESULT ECCacheManager::SetObjectProp(unsigned int ulTag, unsigned int cbData, unsigned char *lpData, unsigned int ulObjId)
 {
-    ECRESULT er = erSuccess;
-
     ECsIndexObject sObject;
     ECsIndexProp sProp;
 
@@ -1689,17 +1656,15 @@ ECRESULT ECCacheManager::SetObjectProp(unsigned int ulTag, unsigned int cbData, 
     sObject.ulObjId = ulObjId;
     
     sProp.SetValue(ulTag, lpData, cbData);
-	er = I_AddIndexData(sObject, sProp);
+	auto er = I_AddIndexData(sObject, sProp);
 	LOG_CACHE_DEBUG("Set object prop tag 0x%04X, data %s, objectid %d", ulTag, bin2hex(cbData, lpData).c_str(), ulObjId);
     return er;
 }
 
 ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId** lppEntryId)
 {
-	ECRESULT	er = erSuccess;
 	entryId*	lpEntryId = s_alloc<entryId>(soap);
-
-	er = GetEntryIdFromObject(ulObjId, soap, ulFlags, lpEntryId);
+	auto er = GetEntryIdFromObject(ulObjId, soap, ulFlags, lpEntryId);
 	if (er != erSuccess) {
 		s_free(nullptr, lpEntryId);
 		return er;
@@ -1712,9 +1677,7 @@ ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap 
 
 ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId* lpEntryId)
 {
-	ECRESULT er;
-
-	er = GetPropFromObject( PROP_ID(PR_ENTRYID), ulObjId, soap, (unsigned int*)&lpEntryId->__size, &lpEntryId->__ptr);
+	auto er = GetPropFromObject(PROP_ID(PR_ENTRYID), ulObjId, soap, reinterpret_cast<unsigned int *>(&lpEntryId->__size), &lpEntryId->__ptr);
 	if (er != erSuccess)
 		return er;
 	// Set flags in entryid
@@ -1772,7 +1735,6 @@ ECRESULT ECCacheManager::SetObjectEntryId(const entryId *lpEntryId,
  */
 ECRESULT ECCacheManager::GetEntryListToObjectList(struct entryList *lpEntryList, ECListInt* lplObjectList)
 {
-	ECRESULT		er = erSuccess;
 	unsigned int	ulId = 0;
 	bool			bPartialCompletion = false;
 
@@ -1788,9 +1750,8 @@ ECRESULT ECCacheManager::GetEntryListToObjectList(struct entryList *lpEntryList,
 	}
 
 	if(bPartialCompletion)
-		er = KCWARN_PARTIAL_COMPLETION;
-
-	return er;
+		return KCWARN_PARTIAL_COMPLETION;
+	return erSuccess;
 }
 
 /**
