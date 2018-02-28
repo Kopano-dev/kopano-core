@@ -38,14 +38,16 @@
 namespace KC {
 
 struct CONTAINERINFO {
-	unsigned int ulId;
-	unsigned int ulDepth;
+	unsigned int ulId, ulDepth;
 	std::string strPath;
 };
 
-ECConvenientDepthObjectTable::ECConvenientDepthObjectTable(ECSession *lpSession, unsigned int ulStoreId, LPGUID lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) : ECStoreObjectTable(lpSession, ulStoreId, lpGuid, 0, ulObjType, ulFlags, 0, locale) {
-    m_ulFolderId = ulFolderId;
-}
+ECConvenientDepthObjectTable::ECConvenientDepthObjectTable(ECSession *lpSession,
+    unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId,
+    unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) :
+	ECStoreObjectTable(lpSession, ulStoreId, lpGuid, 0, ulObjType, ulFlags, 0, locale),
+	m_ulFolderId(ulFolderId)
+{}
 
 /*
  * Loads an entire multi-depth hierarchy table recursively.
@@ -73,15 +75,9 @@ ECRESULT ECConvenientDepthObjectTable::Create(ECSession *lpSession,
 ECRESULT ECConvenientDepthObjectTable::Load() {
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
-	DB_ROW		lpDBRow = NULL;
 	auto lpData = static_cast<const ECODStore *>(m_lpObjectData);
-	sObjectTableKey		sRowItem;
-	unsigned int ulDepth = 0;
-
-	std::list<unsigned int> lstFolders;	// The list of folders
-	std::list<unsigned int> lstObjIds;
-
-	unsigned int ulFlags = lpData->ulFlags;
+	std::list<unsigned int> lstFolders, lstObjIds;
+	unsigned int ulDepth = 0, ulFlags = lpData->ulFlags;
 
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 	auto er = lpSession->GetDatabase(&lpDatabase);
@@ -108,7 +104,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 			return er;
 
 		while (1) {
-			lpDBRow = lpDBResult.fetch_row();
+			auto lpDBRow = lpDBResult.fetch_row();
 			if (lpDBRow == NULL)
 				break;
 
@@ -223,30 +219,23 @@ ECRESULT ECConvenientDepthABObjectTable::QueryRowData(ECGenericObjectTable *lpGe
 ECRESULT ECConvenientDepthABObjectTable::Load()
 {
 	auto lpODAB = static_cast<const ECODAB *>(m_lpObjectData);
-	sObjectTableKey	sRowItem;
 	std::list<CONTAINERINFO> lstObjects;
-	CONTAINERINFO root;
 
 	if (lpODAB->ulABType != MAPI_ABCONT)
 		return KCERR_INVALID_PARAMETER;
 
-	// Load this container
-	root.ulId = lpODAB->ulABParentId;
-	root.ulDepth = -1; // Our children are at depth 0, so the root object is depth -1. Note that this object is not actually added as a row in the end.
-	lstObjects.emplace_back(std::move(root));
+	// Load this (abparentid) container
+	// Our children are at depth 0, so the root object is depth -1. Note that this object is not actually added as a row in the end.
+	lstObjects.emplace_back(CONTAINERINFO{lpODAB->ulABParentId, static_cast<unsigned int>(-1)});
 
 	// 'Recursively' loop through all our containers and add each of those children to our object list
 	for (const auto &obj : lstObjects) {
 		std::unique_ptr<std::list<localobjectdetails_t> > lpSubObjects;
 		if (LoadHierarchyContainer(obj.ulId, 0, &unique_tie(lpSubObjects)) != erSuccess)
 			continue;
-		for (const auto &subobj : *lpSubObjects) {
-			CONTAINERINFO folder;
-			folder.ulId = subobj.ulId;
-			folder.ulDepth = obj.ulDepth + 1;
-			folder.strPath = obj.strPath + "/" + subobj.GetPropString(OB_PROP_S_LOGIN);
-			lstObjects.emplace_back(std::move(folder));
-		}
+		for (const auto &subobj : *lpSubObjects)
+			lstObjects.emplace_back(CONTAINERINFO{subobj.ulId, obj.ulDepth + 1,
+				obj.strPath + "/" + subobj.GetPropString(OB_PROP_S_LOGIN)});
 	}
 
 	// Add all the rows into the row engine, except the root object (the folder itself does not show in its own hierarchy table)
