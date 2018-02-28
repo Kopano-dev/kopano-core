@@ -618,9 +618,9 @@ bool ECDatabase::SuppressLockErrorLogging(bool bSuppress)
 	return bSuppress;
 }
 
-ECRESULT ECDatabase::Begin(void)
+kd_trans ECDatabase::Begin(ECRESULT &res)
 {
-	auto er = KDatabase::Begin();
+	auto dtx = KDatabase::Begin(res);
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
 	ec_log_debug("%08X: BEGIN", &m_lpMySQL);
@@ -631,8 +631,7 @@ ECRESULT ECDatabase::Begin(void)
 	m_ulTransactionState = 1;
 #endif
 #endif
-	
-	return er;
+	return dtx;
 }
 
 ECRESULT ECDatabase::Commit(void)
@@ -869,8 +868,7 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 			continue;
 
 		ec_log_info("Start: %s", sUpdateList[i].lpszLogComment);
-
-		er = Begin();
+		auto dtx = Begin(er);
 		if(er != erSuccess)
 			return er;
 
@@ -882,7 +880,6 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 		} else if (er == KCERR_USER_CANCEL) {
 			return er; // Reason should be logged in the update itself.
 		} else if (er != hrSuccess) {
-			Rollback();
 			ec_log_err("Failed: Rollback database");
 			return er;
 		}
@@ -890,7 +887,7 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 		er = UpdateDatabaseVersion(sUpdateList[i].ulVersion);
 		if(er != erSuccess)
 			return er;
-		er = Commit();
+		er = dtx.commit();
 		if(er != erSuccess)
 			return er;
 		ec_log_notice("%s: %s", bSkipped ? "Skipped" : "Done", sUpdateList[i].lpszLogComment);

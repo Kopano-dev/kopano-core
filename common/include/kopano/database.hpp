@@ -78,8 +78,8 @@ class kt_completion {
 /**
  * kd_trans is an explicit variable wrapper around a database transaction.
  * The transaction's scope is bounded by the scope of a certain kd_trans.
- * Essentially, this gives the programmer an implicit rollback whenever
- * a kd_trans did not have commit() called.
+ * Essentially, this gives the programmer an implicit commit/rollback,
+ * depending on whether the ECRESULT was erSuccess at the time of ~kd_trans.
  */
 class _kc_export kd_trans final {
 	public:
@@ -97,7 +97,7 @@ class _kc_export kd_trans final {
 	bool m_done = false;
 };
 
-class _kc_export KDatabase {
+class _kc_export KDatabase : public kt_completion {
 	public:
 	KDatabase(void);
 	virtual ~KDatabase(void) = default;
@@ -126,9 +126,9 @@ class _kc_export KDatabase {
 	 * or UPDATE will automatically be a single transaction, causing an
 	 * fsync after each write-query, which is not fast to say the least.
 	 */
-	virtual ECRESULT Begin(void) { return Query("BEGIN") == 0 ? erSuccess : KCERR_DATABASE_ERROR; }
-	virtual ECRESULT Commit(void) { return Query("COMMIT") == 0 ? erSuccess : KCERR_DATABASE_ERROR; }
-	virtual ECRESULT Rollback(void) { return Query("ROLLBACK") == 0 ? erSuccess : KCERR_DATABASE_ERROR; }
+	virtual kd_trans Begin(ECRESULT &);
+	virtual ECRESULT Commit() override { return Query("COMMIT") == 0 ? erSuccess : KCERR_DATABASE_ERROR; }
+	virtual ECRESULT Rollback() override { return Query("ROLLBACK") == 0 ? erSuccess : KCERR_DATABASE_ERROR; }
 
 	protected:
 	class autolock : private std::unique_lock<std::recursive_mutex> {

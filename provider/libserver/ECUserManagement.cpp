@@ -28,6 +28,7 @@
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
+#include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
 #include <map>
 #include <memory>
@@ -2738,8 +2739,7 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 	if(er != erSuccess)
 		return er;
 	bTransaction = true;
-
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if(er != erSuccess)
 		return er;
 	/*
@@ -2754,8 +2754,7 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 		"WHERE id=" + stringify(ulObjectId);
 	er = lpDatabase->DoUpdate(strQuery);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	strQuery =
 		"UPDATE stores "
 		"SET company=" + stringify(ulCompanyId) + ", "
@@ -2763,32 +2762,19 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 		"WHERE user_id=" + stringify(ulObjectId);
 	er = lpDatabase->DoUpdate(strQuery);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	/* Log the change to ICS */
 	er = GetABSourceKeyV1(ulObjectId, &sSourceKey);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
 	if(er != erSuccess)
-		goto exit;
-
-	er = lpDatabase->Commit();
+		return er;
+	er = dtx.commit();
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	bTransaction = false;
-
-	er = m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulObjectId);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	if (bTransaction && er != erSuccess)
-		lpDatabase->Rollback();
-
-	return er;
+	return m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulObjectId);
 }
 
 // Delete a local user with the specified id
@@ -2803,23 +2789,24 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	bool bTransaction = false;
 	SOURCEKEY sSourceKey;
 	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
-
-	if(IsInternalObject(ulObjectId)) {
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
-
+	auto cleanup = make_scope_success([&]() {
+		if (er != 0)
+			ec_log_info("Auto-deleting %s %d done. Error code 0x%08X", ObjectClassToName(objclass), ulObjectId, er);
+		else
+			ec_log_info("Auto-deleting %s %d done.", ObjectClassToName(objclass), ulObjectId);
+	});
+	if (IsInternalObject(ulObjectId))
+		return er = KCERR_NO_ACCESS;
 	if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
 		ec_log_crit("user_safe_mode: Would delete %s %d", ObjectClassToName(objclass), ulObjectId);
 		if (objclass == CONTAINER_COMPANY)
 			ec_log_crit("user_safe_mode: Would delete all objects from company %d", ulObjectId);
-		goto exit;
+		return er = erSuccess;
 	}
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	ec_log_info("Auto-deleting %s %d from external source", ObjectClassToName(objclass), ulObjectId);
 
 	if (objclass == CONTAINER_COMPANY) {
@@ -2832,8 +2819,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 			"WHERE company = " + stringify(ulObjectId);
 		er = lpDatabase->DoSelect(strQuery, &lpResult);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		ec_log_info("Start auto-deleting %s members", ObjectClassToName(objclass));
 
 		while (1) {
@@ -2844,7 +2830,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 			/* Perhaps the user was moved to a different company */
 			er = MoveOrDeleteLocalObject(atoui(lpRow[0]), (objectclass_t)atoui(lpRow[1]));
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 
 		lpRow = NULL;
@@ -2853,60 +2839,50 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	}
 
 	bTransaction = true;
-
-	er = lpDatabase->Begin();
+	auto dtx = lpDatabase->Begin(er);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	// Request source key before deleting the entry
 	er = GetABSourceKeyV1(ulObjectId, &sSourceKey);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	strQuery =
 		"DELETE FROM users "
 		"WHERE id=" + stringify(ulObjectId) + " "
 		"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", objclass);
 	er = lpDatabase->DoDelete(strQuery, &ulDeletedRows);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	/* Delete the user ACLs */
 	strQuery =
 		"DELETE FROM acl "
 		"WHERE id=" + stringify(ulObjectId);
 	er = lpDatabase->DoDelete(strQuery);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Object didn't exist locally, so no delete has occurred
 	if (ulDeletedRows == 0) {
-		er = lpDatabase->Commit();
+		er = dtx.commit();
 		if (er != erSuccess)
-			goto exit;
-		er = cache->UpdateUser(ulObjectId);
-		if (er != erSuccess)
-			goto exit;
-
+			return er;
+		return cache->UpdateUser(ulObjectId);
 		// Done, no ICS change, no userscript action required
-		goto exit;
 	}
 
 	// Log the change to ICS
 	er = AddABChange(m_lpSession, ICS_AB_DELETE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
 	if(er != erSuccess)
-		goto exit;
-
-	er = lpDatabase->Commit();
+		return er;
+	er = dtx.commit();
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	bTransaction = false;
 
 	// Purge the usercache because we also need to remove sendas relations
 	er = cache->PurgeCache(PURGE_CACHE_USEROBJECT | PURGE_CACHE_EXTERNID | PURGE_CACHE_USERDETAILS);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	switch (objclass) {
 	case ACTIVE_USER:
@@ -2916,15 +2892,14 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 		strQuery = "SELECT HEX(guid) FROM stores WHERE user_id=" + stringify(ulObjectId);
 		er = lpDatabase->DoSelect(strQuery, &lpResult);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 		lpRow = lpResult.fetch_row();
 		if(lpRow == NULL) {
 			ec_log_info("User script not executed. No store exists.");
-			goto exit;
+			return erSuccess;
 		} else if (lpRow[0] == NULL) {
-			er = KCERR_DATABASE_ERROR;
 			ec_log_err("ECUserManagement::DeleteLocalObject(): column null");
-			goto exit;
+			return KCERR_DATABASE_ERROR; /* setting er, has effect for ~kd_trans */
 		}
 
 		execute_script(m_lpConfig->GetSetting("deleteuser_script"),
@@ -2945,14 +2920,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	default:
 		break;
 	}
-exit:
-	if (er)
-		ec_log_info("Auto-deleting %s %d done. Error code 0x%08X", ObjectClassToName(objclass), ulObjectId, er);
-	else
-		ec_log_info("Auto-deleting %s %d done.", ObjectClassToName(objclass), ulObjectId);
-	if (lpDatabase != nullptr && bTransaction && er != erSuccess)
-		lpDatabase->Rollback();
-	return er;
+	return erSuccess;
 }
 
 bool ECUserManagement::IsInternalObject(unsigned int ulUserId) const

@@ -213,10 +213,10 @@ ECRESULT ApplyFolderCounts(ECDatabase *lpDatabase, const std::map<unsigned int, 
 #define LOCK_EXCLUSIVE	0x00000002
 
 // Lock folders and start transaction: 
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const std::set<SOURCEKEY>& setObjects, unsigned int ulFlags); // may be mixed list of folders and messages
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const std::set<EntryId>& setObjects, unsigned int ulFlags);	// may be mixed list of folders and messages
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid, unsigned int ulFlags);				// single entryid, folder or message
-ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const SOURCEKEY &sourcekey, unsigned int ulFlags);			// single sourcekey, folder or message
+extern ECRESULT BeginLockFolders(ECDatabase *, const std::set<SOURCEKEY> &, unsigned int flags, kd_trans &, ECRESULT &); /* may be mixed list of folders and messages */
+extern ECRESULT BeginLockFolders(ECDatabase *, const std::set<EntryId> &, unsigned int flags, kd_trans &, ECRESULT &); /* may be mixed list of folders and messages */
+extern ECRESULT BeginLockFolders(ECDatabase *, const SOURCEKEY &, unsigned int flags, kd_trans &, ECRESULT &); /* single sourcekey, folder or message */
+extern ECRESULT BeginLockFolders(ECDatabase *, const EntryId &, unsigned int flags, kd_trans &, ECRESULT &); /* single entryid, folder or message */
 
 struct NAMEDPROPDEF {
     GUID			guid;
