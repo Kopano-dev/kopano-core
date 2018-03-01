@@ -120,7 +120,6 @@ def _start_end(req):
     args = urlparse.parse_qs(req.query_string)
     start = _naive_utc(dateutil.parser.parse(args['startDateTime'][0]))
     end = _naive_utc(dateutil.parser.parse(args['endDateTime'][0]))
-    print(start, end)
     return start, end
 
 class Resource(object):

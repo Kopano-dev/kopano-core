@@ -33,7 +33,7 @@ from MAPI.Tags import (
     PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME,
     CONVENIENT_DEPTH, PR_DEPTH, PR_CONTENT_COUNT, PR_ASSOC_CONTENT_COUNT,
     PR_DELETED_MSG_COUNT, PR_LAST_MODIFICATION_TIME,
-    PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID,
+    PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, PR_CHANGE_KEY,
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE
@@ -360,11 +360,12 @@ class Folder(Properties):
             endstamp = time.mktime(end.timetuple())
 
             # XXX use shortcuts and default type (database) to avoid MAPI snake wrestling
-            NAMED_PROPS = [MAPINAMEID(PSETID_Appointment, MNID_ID, x) for x in (33293, 33294, 33315)]
+            NAMED_PROPS = [MAPINAMEID(PSETID_Appointment, MNID_ID, x) for x in (33293, 33294, 33315, 33301)]
             ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS, 0)
             startdate = ids[0] | PT_SYSTIME
             enddate = ids[1] | PT_SYSTIME
             recurring = ids[2] | PT_BOOLEAN
+            all_day = ids[3] | PT_BOOLEAN
 
             # only look at non-recurring items which overlap and all recurring items
             restriction = SOrRestriction([
@@ -377,17 +378,33 @@ class Folder(Properties):
                 ])
             ])
 
+            columns = [
+                PR_ENTRYID,
+                PR_SUBJECT_W, # watch out: table unicode data is max 255 chars
+                PR_LAST_MODIFICATION_TIME,
+                PR_CHANGE_KEY,
+                startdate,
+                enddate,
+                recurring,
+                all_day,
+            ]
+
             table = Table(
                 self.server,
                 self.mapiobj,
                 self.mapiobj.GetContentsTable(MAPI_DEFERRED_ERRORS),
                 PR_CONTAINER_CONTENTS,
-                columns=[PR_ENTRYID],
+                columns=columns,
             )
             table.mapitable.Restrict(restriction, 0)
             for row in table.rows():
-                entryid = _benc(row[0].value)
-                for occurrence in self.item(entryid).occurrences(start, end):
+                item = _item.Item(
+                    self,
+                    entryid=row[0].value,
+                    content_flag=self.content_flag,
+                    cache=dict(zip(columns, row))
+                )
+                for occurrence in item.occurrences(start, end):
                     yield occurrence
 
         else:
