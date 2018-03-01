@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+	<short>Kopano Storage Server (SSL)</short>
+	<description>Standard TCP port used by kopano-server for implicit
+		SSL connections.</description>
+	<port protocol="tcp" port="237"/>
+</service>

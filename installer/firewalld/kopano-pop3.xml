@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+	<short>kopano-gateway POP3</short>
+	<description>TCP port used by POP3 services.</description>
+	<port protocol="tcp" port="110"/>
+</service>
