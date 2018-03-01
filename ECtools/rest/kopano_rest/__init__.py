@@ -50,7 +50,7 @@ SESSIONDATA = {}
 # TODO @odata.context: check exact structure?
 # TODO ICS, filters etc & pagination?.. ugh
 # TODO calendarresource fields
-# TODO $filter, $search
+# TODO $filter, $search (events?$search doesn't work in graph?)
 # TODO gab syncing not supported via SWIG bindings (client/ECExportAddressbookChanges?)
 
 def db_get(key):
@@ -224,6 +224,17 @@ class Resource(object):
 
         return item
 
+    def folder_gen(self, req, folder):
+        args = urlparse.parse_qs(req.query_string) # TODO generalize
+        if '$search' in args:
+            text = args['$search'][0]
+            def yielder(**kwargs):
+                for item in folder.search(text):
+                    yield item
+            return self.generator(req, yielder, 0)
+        else:
+            return self.generator(req, folder.items, folder.count)
+
 class UserImporter:
     def __init__(self):
         self.updates = []
@@ -282,21 +293,11 @@ class UserResource(Resource):
             self.respond(req, resp, data, ContactFolderResource.fields)
 
         elif method == 'messages': # TODO store-wide?
-            inbox = store.inbox
-            args = urlparse.parse_qs(req.query_string) # TODO generalize
-            if '$search' in args:
-                text = args['$search'][0]
-                def yielder(**kwargs):
-                    for item in inbox.search(text):
-                        yield item
-                data = self.generator(req, yielder, 0)
-            else:
-                data = self.generator(req, inbox.items, inbox.count)
+            data = self.folder_gen(req, store.inbox)
             self.respond(req, resp, data, MessageResource.fields)
 
         elif method == 'contacts':
-            contacts = store.contacts
-            data = self.generator(req, contacts.items, contacts.count)
+            data = self.folder_gen(req, store.contacts)
             self.respond(req, resp, data, ContactResource.fields)
 
         elif method == 'calendar':
@@ -414,20 +415,11 @@ class MailFolderResource(FolderResource):
             data = self.generator(req, data.folders, data.subfolder_count_recursive)
 
         elif method == 'messages':
-            args = urlparse.parse_qs(req.query_string) # TODO generalize
-            if '$search' in args:
-                text = args['$search'][0]
-                folder = data
-                def yielder(**kwargs):
-                    for item in folder.search(text):
-                        yield item
-                data = self.generator(req, yielder, 0)
-            else:
-                data = self.generator(req, data.items, data.count)
+            data = self.folder_gen(req, data)
             self.respond(req, resp, data, MessageResource.fields)
-            return
 
-        self.respond(req, resp, data)
+        else:
+            self.respond(req, resp, data)
 
     def on_post(self, req, resp, userid=None, folderid=None, method=None):
         server, store = _server_store(req, userid)
@@ -491,7 +483,7 @@ class CalendarResource(FolderResource):
             item = self.create_message(folder, fields, EventResource.set_fields)
             self.respond(req, resp, item, EventResource.fields)
 
-def _header_args(req, name):
+def _header_args(req, name): # TODO use urlparse.parse_qs or similar..?
     d = {}
     header = req.get_header(name)
     if header:
@@ -920,7 +912,7 @@ class ContactFolderResource(FolderResource):
         folder = utils._folder(store, folderid)
 
         if method == 'contacts':
-            data = self.generator(req, folder.items, folder.count)
+            data = self.folder_gen(req, folder)
             fields = ContactResource.fields
         else:
             data = folder
