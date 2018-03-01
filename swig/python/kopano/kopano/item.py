@@ -335,7 +335,7 @@ class Item(Properties, Contact, Appointment):
 
     @property
     def message_class(self):
-        return self.prop(PR_MESSAGE_CLASS_W).value
+        return self._get_fast(PR_MESSAGE_CLASS_W, must_exist=True)
 
     @message_class.setter
     def message_class(self, messageclass):
