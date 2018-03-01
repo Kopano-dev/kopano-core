@@ -2,6 +2,7 @@ from .version import __version__
 
 import base64
 import codecs
+from collections import OrderedDict
 from contextlib import closing
 import dateutil.parser
 import fcntl
@@ -49,8 +50,7 @@ SESSIONDATA = {}
 # TODO @odata.context: check exact structure?
 # TODO ICS, filters etc & pagination?.. ugh
 # TODO calendarresource fields
-# TODO $filter, $search
-# TODO gab syncing not supported via SWIG bindings (client/ECExportAddressbookChanges?)
+# TODO $filter, $search (events?$search doesn't work in graph?)
 
 def db_get(key):
     with closing(bsddb.hashopen('mapping_db', 'c')) as db:
@@ -174,6 +174,10 @@ class Resource(object):
 
         resp.content_type = "application/json"
 
+        pref_body_type = _header_sub_arg(req, 'Prefer', 'outlook.body-content-type')
+        if pref_body_type in ('text', 'html'):
+            resp.set_header('Preference-Applied', 'outlook.body-content-type='+pref_body_type) # TODO graph doesn't do this actually?
+
         # multiple objects: stream
         if isinstance(obj, tuple):
             obj, top, skip, count = obj
@@ -211,13 +215,24 @@ class Resource(object):
 
     def create_message(self, folder, fields, all_fields=None):
         # TODO item.update and/or only save in the end
-
         item = folder.create_item()
-        for field, value in fields.items():
-            if field in (all_fields or self.set_fields):
-                (all_fields or self.set_fields)[field](item, value)
+
+        for field in (all_fields or self.set_fields):
+            if field in fields:
+                (all_fields or self.set_fields)[field](item, fields[field])
 
         return item
+
+    def folder_gen(self, req, folder):
+        args = urlparse.parse_qs(req.query_string) # TODO generalize
+        if '$search' in args:
+            text = args['$search'][0]
+            def yielder(**kwargs):
+                for item in folder.search(text):
+                    yield item
+            return self.generator(req, yielder, 0)
+        else:
+            return self.generator(req, folder.items, folder.count)
 
 class UserImporter:
     def __init__(self):
@@ -276,35 +291,30 @@ class UserResource(Resource):
             data = self.generator(req, store.contacts.folders, 0)
             self.respond(req, resp, data, ContactFolderResource.fields)
 
-        elif method == 'calendars':
-            data = self.generator(req, store.calendars, 0)
-            self.respond(req, resp, data, CalendarResource.fields)
+        elif method == 'messages': # TODO store-wide?
+            data = self.folder_gen(req, store.inbox)
+            self.respond(req, resp, data, MessageResource.fields)
+
+        elif method == 'contacts':
+            data = self.folder_gen(req, store.contacts)
+            self.respond(req, resp, data, ContactResource.fields)
 
         elif method == 'calendar':
             data = store.calendar
             self.respond(req, resp, data, CalendarResource.fields)
 
-        elif method == 'messages':
-            inbox = store.inbox
-            args = urlparse.parse_qs(req.query_string) # TODO generalize
-            if '$search' in args:
-                text = args['$search'][0]
-                def yielder(**kwargs):
-                    for item in inbox.search(text):
-                        yield item
-                data = self.generator(req, yielder, 0)
-            else:
-                data = self.generator(req, inbox.items, inbox.count)
-            self.respond(req, resp, data, MessageResource.fields)
+        elif method == 'calendars':
+            data = self.generator(req, store.calendars, 0)
+            self.respond(req, resp, data, CalendarResource.fields)
 
-        elif method == 'contacts':
-            contacts = store.contacts
-            data = self.generator(req, contacts.items, contacts.count)
-            self.respond(req, resp, data, ContactResource.fields)
-
-        elif method == 'events':
+        elif method == 'events': # TODO multiple calendars?
             calendar = store.calendar
             data = self.generator(req, calendar.items, calendar.count)
+            self.respond(req, resp, data, EventResource.fields)
+
+        elif method == 'calendarView': # TODO multiple calendars?
+            start, end = _start_end(req)
+            data = (store.calendar.occurrences(start, end), TOP, 0, 0)
             self.respond(req, resp, data, EventResource.fields)
 
     # TODO redirect to other resources?
@@ -404,20 +414,11 @@ class MailFolderResource(FolderResource):
             data = self.generator(req, data.folders, data.subfolder_count_recursive)
 
         elif method == 'messages':
-            args = urlparse.parse_qs(req.query_string) # TODO generalize
-            if '$search' in args:
-                text = args['$search'][0]
-                folder = data
-                def yielder(**kwargs):
-                    for item in folder.search(text):
-                        yield item
-                data = self.generator(req, yielder, 0)
-            else:
-                data = self.generator(req, data.items, data.count)
+            data = self.folder_gen(req, data)
             self.respond(req, resp, data, MessageResource.fields)
-            return
 
-        self.respond(req, resp, data)
+        else:
+            self.respond(req, resp, data)
 
     def on_post(self, req, resp, userid=None, folderid=None, method=None):
         server, store = _server_store(req, userid)
@@ -481,8 +482,24 @@ class CalendarResource(FolderResource):
             item = self.create_message(folder, fields, EventResource.set_fields)
             self.respond(req, resp, item, EventResource.fields)
 
+def _header_args(req, name): # TODO use urlparse.parse_qs or similar..?
+    d = {}
+    header = req.get_header(name)
+    if header:
+        for arg in header.split(';'):
+            k, v = arg.split('=')
+            d[k] = v
+    return d
+
+def _header_sub_arg(req, name, arg):
+    args = _header_args(req, name)
+    if args:
+        return args[arg].strip('"')
+
 def get_body(req, item):
-    if req.get_header('Prefer') == 'outlook.body-content-type="text"' or item.body_type == 'text':
+    type_ = _header_sub_arg(req, 'Prefer', 'outlook.body-content-type') or item.body_type
+
+    if type_ == 'text':
         return {'contentType': 'text', 'content': item.text}
     else:
         return {'contentType': 'html', 'content': item.html.decode('utf8')}, # TODO if not utf8?
@@ -694,19 +711,21 @@ class ItemAttachmentResource(AttachmentResource):
     })
 
 pattern_map = {
-    'month': 'absoluteMonthly',
-    'month_rel': 'relativeMonthly',
-    'day': 'daily',
-    'week': 'weekly',
-    'year': 'absoluteYearly',
-    'year_rel': 'relativeYearly',
+    'monthly': 'absoluteMonthly',
+    'monthly_rel': 'relativeMonthly',
+    'daily': 'daily',
+    'weekly': 'weekly',
+    'yearly': 'absoluteYearly',
+    'yearly_rel': 'relativeYearly',
 }
+pattern_map_rev = dict((b,a) for (a,b) in pattern_map.items())
 
 range_end_map = {
     'end_date': 'endDate',
-    'occ_count': 'numberOfOccurrences',
+    'occurrence_count': 'numberOfOccurrences',
     'no_end': 'noEnd',
 }
+range_end_map_rev = dict((b,a) for (a,b) in range_end_map.items())
 
 sensitivity_map = {
     'normal': 'Normal',
@@ -739,15 +758,35 @@ def recurrence_json(item):
             },
             'range': {
                 'type': range_end_map[recurrence.range_type],
-                'startDate': _date(recurrence._start, True, False), # TODO .start?
+                'startDate': _date(recurrence._start, True, False), # TODO hidden
                 'endDate': _date(recurrence._end, True, False) if recurrence.range_type != 'no_end' else '0001-01-01',
-                'numberOfOccurrences': recurrence.occurrence_count if recurrence.range_type == 'occ_count' else 0,
+                'numberOfOccurrences': recurrence.occurrence_count if recurrence.range_type == 'occurrence_count' else 0,
                 'recurrenceTimeZone': "", # TODO
             },
         }
         if recurrence.weekdays:
             j['pattern']['daysOfWeek'] = recurrence.weekdays
         return j
+
+def recurrence_set(item, arg):
+    if arg is None:
+        item.recurring = False # TODO pyko checks.. cleanup?
+    else:
+        item.recurring = True
+        rec = item.recurrence
+
+        rec.pattern = pattern_map_rev[arg['pattern']['type']]
+        rec.interval = arg['pattern']['interval']
+
+        rec.range_type = range_end_map_rev[arg['range']['type']]
+        rec.occurrence_count = arg['range']['numberOfOccurrences']
+
+        # TODO don't use hidden vars
+
+        rec._start = dateutil.parser.parse(arg['range']['startDate'])
+        rec._end = dateutil.parser.parse(arg['range']['endDate'])
+
+        rec._save()
 
 def attendees_json(item):
     result = []
@@ -767,13 +806,16 @@ def setdate(item, field, arg):
     setattr(item, field, date)
 
 def event_type(item):
-    if isinstance(item, kopano.Item):
-        if item.recurring:
-            return 'SeriesMaster'
+    if item.recurring:
+        if isinstance(item, kopano.Occurrence):
+            if item.exception:
+                return 'exception'
+            else:
+                return 'occurrence'
         else:
-            return 'SingleInstance'
+            return 'seriesMaster'
     else:
-        return 'Occurrence' # TODO Exception
+        return 'singleInstance'
 
 class EventResource(ItemResource):
     fields = ItemResource.fields.copy()
@@ -802,11 +844,11 @@ class EventResource(ItemResource):
         'isOrganizer': lambda item: item.from_.email == item.sender.email,
     })
 
-    set_fields = {
-        'subject': lambda item, arg: setattr(item, 'subject', arg),
-        'start': lambda item, arg: setdate(item, 'start', arg),
-        'end': lambda item, arg: setdate(item, 'end', arg),
-    }
+    set_fields = OrderedDict()
+    set_fields['subject'] = lambda item, arg: setattr(item, 'subject', arg)
+    set_fields['start'] = lambda item, arg: setdate(item, 'start', arg)
+    set_fields['end'] = lambda item, arg: setdate(item, 'end', arg)
+    set_fields['recurrence'] = recurrence_set
 
     # TODO delta functionality seems to include expanding recurrences!? check with MSGE
 
@@ -869,7 +911,7 @@ class ContactFolderResource(FolderResource):
         folder = utils._folder(store, folderid)
 
         if method == 'contacts':
-            data = self.generator(req, folder.items, folder.count)
+            data = self.folder_gen(req, folder)
             fields = ContactResource.fields
         else:
             data = folder

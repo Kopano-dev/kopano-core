@@ -800,6 +800,7 @@ class Folder(Properties):
             SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_SUBJECT_W, SPropValue(PR_SUBJECT_W, _unicode(text))),
             SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_BODY_W, SPropValue(PR_BODY_W, _unicode(text))),
             SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_DISPLAY_TO_W, SPropValue(PR_DISPLAY_TO_W, _unicode(text))),
+            SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_DISPLAY_NAME_W, SPropValue(PR_DISPLAY_NAME_W, _unicode(text))),
             # XXX add all default fields.. BUT perform full-text search by default!
         ])
         if isinstance(folders, Folder):
