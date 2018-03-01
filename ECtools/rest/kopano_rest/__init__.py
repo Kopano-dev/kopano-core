@@ -4,6 +4,7 @@ import base64
 import codecs
 from collections import OrderedDict
 from contextlib import closing
+import datetime
 import dateutil.parser
 import fcntl
 import json
@@ -109,10 +110,17 @@ def _date(d, local=False, time=True):
         fmt += 'Z'
     return d.strftime(fmt)
 
+def _naive_utc(d): # TODO make pyko not assume naive UTC..
+    if d.tzinfo is not None:
+        return d.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+    else:
+        return d
+
 def _start_end(req):
     args = urlparse.parse_qs(req.query_string)
-    start = dateutil.parser.parse(args['startDateTime'][0])
-    end = dateutil.parser.parse(args['endDateTime'][0])
+    start = _naive_utc(dateutil.parser.parse(args['startDateTime'][0]))
+    end = _naive_utc(dateutil.parser.parse(args['endDateTime'][0]))
+    print(start, end)
     return start, end
 
 class Resource(object):
