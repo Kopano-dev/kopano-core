@@ -51,7 +51,6 @@ SESSIONDATA = {}
 # TODO ICS, filters etc & pagination?.. ugh
 # TODO calendarresource fields
 # TODO $filter, $search (events?$search doesn't work in graph?)
-# TODO gab syncing not supported via SWIG bindings (client/ECExportAddressbookChanges?)
 
 def db_get(key):
     with closing(bsddb.hashopen('mapping_db', 'c')) as db:
