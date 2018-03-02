@@ -31,9 +31,6 @@ namespace KC {
 static void submitThreadDo(void *p)
 {
 	auto psc = static_cast<StatsClient *>(p);
-
-	psc -> getLogger() -> Log(EC_LOGLEVEL_DEBUG, "Push data");
-
 	time_t now = time(NULL);
 
 	scoped_lock l_map(psc->mapsLock);
