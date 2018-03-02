@@ -1486,15 +1486,11 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int cb
 	sObject.cbData = cbData;
 	sObject.lpData = lpData; // Cheap copy, Set this item on NULL before you exit
 
-	{
-		scoped_rlock lock(m_hCacheIndPropMutex);
-
+	scoped_rlock lock(m_hCacheIndPropMutex);
         if(m_PropToObjectCache.GetCacheItem(sObject, &sObjectId) == erSuccess) {
             m_ObjectToPropCache.RemoveCacheItem(*sObjectId);
             m_PropToObjectCache.RemoveCacheItem(sObject);
         }
-	}
-
     // Make sure there's no delete when it goes out of scope	
 	sObject.lpData = NULL;
 	return erSuccess;
@@ -1509,16 +1505,11 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int ul
 	sObject.ulObjId = ulObjId;
 
 	LOG_CACHE_DEBUG("Remove index data proptag 0x%08X, objectid %d", ulPropTag, ulObjId);
-
-	{
-		scoped_rlock lock(m_hCacheIndPropMutex);
-
-        if(m_ObjectToPropCache.GetCacheItem(sObject, &sObjectId) == erSuccess) {
+	scoped_rlock lock(m_hCacheIndPropMutex);
+       if(m_ObjectToPropCache.GetCacheItem(sObject, &sObjectId) == erSuccess) {
             m_PropToObjectCache.RemoveCacheItem(*sObjectId);
             m_ObjectToPropCache.RemoveCacheItem(sObject);
         }
-	}
-
 	return erSuccess;
 }
 
@@ -1679,12 +1670,10 @@ ECRESULT ECCacheManager::QueryObjectFromProp(unsigned int ulTag, unsigned int cb
 	sObject.cbData = cbData;
 	sObject.lpData = lpData; // Cheap copy, Set this item on NULL before you exit
 
-	{
-		scoped_rlock lock(m_hCacheIndPropMutex);
-		er = m_PropToObjectCache.GetCacheItem(sObject, &sIndexObject);
-		if (er == erSuccess)
-			*lpulObjId = sIndexObject->ulObjId;
-	}
+	scoped_rlock lock(m_hCacheIndPropMutex);
+	er = m_PropToObjectCache.GetCacheItem(sObject, &sIndexObject);
+	if (er == erSuccess)
+		*lpulObjId = sIndexObject->ulObjId;
 	sObject.lpData = NULL;
     return er;
 }
