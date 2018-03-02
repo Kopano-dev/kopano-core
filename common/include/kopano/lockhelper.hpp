@@ -32,9 +32,9 @@ class shared_mutex {
 #if __cplusplus >= 201400L
 template<class Mutex> using shared_lock = std::shared_lock<Mutex>;
 #else
-template<class _Mutex> class shared_lock {
+template<class Mutex> class shared_lock {
 	public:
-	shared_lock(_Mutex &m) : mtx(m), locked(true)
+	shared_lock(Mutex &m) : mtx(m), locked(true)
 	{
 		mtx.lock_shared();
 	}
@@ -56,7 +56,7 @@ template<class _Mutex> class shared_lock {
 		locked = false;
 	}
 	private:
-	_Mutex &mtx;
+	Mutex &mtx;
 	bool locked = false;
 };
 #endif
