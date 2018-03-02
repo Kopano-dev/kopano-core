@@ -47,8 +47,7 @@ extern ECSessionManager*	g_lpSessionManager;
 
 struct ABChangeRecord {
 	ULONG id;
-	std::string strItem;
-	std::string strParent;
+	std::string strItem, strParent;
 	ULONG change_type;
 
 	ABChangeRecord(ULONG id, const std::string &strItem, const std::string &strParent, ULONG change_type);
@@ -101,10 +100,9 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 		return erSuccess;
 	}
 
-	DB_ROW lpDBRow = NULL;
 	std::set<unsigned int> sFilteredIds;
 	for (unsigned int i = 0; i < ulRows; ++i) {
-		lpDBRow = lpDBResult.fetch_row();
+		auto lpDBRow = lpDBResult.fetch_row();
 		if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
 			return KCERR_DATABASE_ERROR;
@@ -188,9 +186,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLen = NULL;
-	unsigned int	changeid = 0;
-	unsigned int	ulObjId = 0;
-
+	unsigned int changeid = 0, ulObjId = 0;
 	char			szChangeKey[20];
 	std::string		strChangeList;
 
@@ -216,7 +212,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 			return er;
 
 		while (true) {
-			lpDBRow = lpDBResult.fetch_row();
+			auto lpDBRow = lpDBResult.fetch_row();
 			if (lpDBRow == NULL)
 				break;
 			unsigned int ulTmp = atoui((char*)lpDBRow[0]);
@@ -348,8 +344,6 @@ exit:
 
 void* CleanupSyncsTable(void* lpTmpMain){
 	kcsrv_blocksigs();
-	ECRESULT		er = erSuccess;
-	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
 	ECSession*		lpSession = NULL;
 	unsigned int	ulDeletedSyncs = 0;
@@ -361,7 +355,7 @@ void* CleanupSyncsTable(void* lpTmpMain){
 		ec_log_info("syncs table clean up done: removed syncs: 0");
 		return nullptr;
 	}
-	er = g_lpSessionManager->CreateSessionInternal(&lpSession);
+	auto er = g_lpSessionManager->CreateSessionInternal(&lpSession);
 	if (er != erSuccess) {
 		kc_perror("syncs table clean up failed", er);
 		return nullptr;
@@ -372,7 +366,7 @@ void* CleanupSyncsTable(void* lpTmpMain){
 		kc_perror("syncs table clean up failed", er);
 		return nullptr;
 	}
-	strQuery = "DELETE FROM syncs WHERE sync_time < DATE_SUB(FROM_UNIXTIME("+stringify(time(NULL))+"), INTERVAL " + stringify(ulSyncLifeTime) + " DAY)";
+	auto strQuery = "DELETE FROM syncs WHERE sync_time < DATE_SUB(FROM_UNIXTIME(" + stringify(time(nullptr)) + "), INTERVAL " + stringify(ulSyncLifeTime) + " DAY)";
 	er = lpDatabase->DoDelete(strQuery, &ulDeletedSyncs);
 	if(er == erSuccess)
 		ec_log_info("syncs table clean up done: removed syncs: %d", ulDeletedSyncs);
@@ -391,7 +385,6 @@ void* CleanupSyncsTable(void* lpTmpMain){
 void *CleanupSyncedMessagesTable(void *lpTmpMain)
 {
 	kcsrv_blocksigs();
-	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
 	ECSession*		lpSession = NULL;
 	unsigned int ulDeleted = 0;
@@ -408,7 +401,7 @@ void *CleanupSyncedMessagesTable(void *lpTmpMain)
 		kc_perror("syncedmessages table clean up failed", er);
 		return nullptr;
 	}
-    strQuery =  "DELETE syncedmessages.* FROM syncedmessages "
+	auto strQuery = "DELETE syncedmessages.* FROM syncedmessages "
                  "LEFT JOIN syncs ON syncs.id = syncedmessages.sync_id " 	/* join with syncs */
                  "WHERE syncs.id IS NULL";									/* with no existing sync, and therefore not being tracked */
 
@@ -438,11 +431,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow;
 	DB_LENGTHS		lpDBLen;
-	unsigned int	ulMaxChange = 0;
-	unsigned int	i = 0;
-	unsigned int	ulChanges = 0;
-	std::string		strQuery;
-	unsigned int	ulFolderId = 0;
+	unsigned int ulMaxChange = 0, ulFolderId = 0;
 	icsChangesArray*lpChanges = NULL;
 	bool			bAcceptABEID = false;
 	unsigned int	cbSourceKeyData = 0;
@@ -473,7 +462,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
         if(ulChangeId > 0) {
             // Change ID > 0, which means we will be doing a real differential sync starting from the
             // given change ID.
-            strQuery = 
+			auto strQuery =
 				"SELECT change_id,sourcekey,sync_type "
 				"FROM syncs "
 				"WHERE id=" + stringify(ulSyncId) + " FOR UPDATE";
@@ -500,8 +489,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             }
 
 		} else {
-
-			strQuery = 
+			auto strQuery =
 				"SELECT change_id,sourcekey "
 				"FROM syncs "
 				"WHERE id=" + stringify(ulSyncId) + " FOR UPDATE";
@@ -633,9 +621,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 					continue; // Item is hard deleted?
 
 				// Search folder changed folders
-				strQuery = 	"SELECT changes.id "
-							"FROM changes "
-							"WHERE "
+				auto strQuery = "SELECT changes.id FROM changes WHERE "
 							"  changes.id > " + stringify(ulChangeId) + 									// Change ID is N or later
 							"  AND changes.change_type >= " + stringify(ICS_FOLDER) +						// query optimizer
 							"  AND changes.change_type & " + stringify(ICS_FOLDER) + " != 0" +				// Change is a folder change
@@ -659,7 +645,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 			if (folder_id != 0) {
                 // Get subfolders for recursion
-                strQuery = "SELECT id FROM hierarchy WHERE parent = " + stringify(folder_id) + " AND type = " + stringify(MAPI_FOLDER) + " AND flags = " + stringify(FOLDER_GENERIC);
+				auto strQuery = "SELECT id FROM hierarchy WHERE parent = " + stringify(folder_id) + " AND type = " + stringify(MAPI_FOLDER) + " AND flags = " + stringify(FOLDER_GENERIC);
                 if (ulFlags & SYNC_NO_SOFT_DELETIONS)
                     strQuery += " AND hierarchy.flags & 1024 = 0";
 
@@ -691,7 +677,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * lstFolderIds.size());
 
 			// Search folder changed folders
-			strQuery = "SELECT MAX(id) FROM changes";
+			std::string strQuery = "SELECT MAX(id) FROM changes";
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 			if(er != erSuccess)
 				return er;
@@ -701,9 +687,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 				return er = KCERR_DATABASE_ERROR; /* this should never happen */
 			}
 			ulMaxChange = (lpDBRow[0] == NULL ? 0 : atoui(lpDBRow[0]));
+			unsigned int i = 0;
 
-			i = 0;
-			
 			if((ulFlags & SYNC_CATCHUP) == 0) {
                 for (auto folder_id : lstFolderIds) {
                     if (folder_id == ulFolderId)
@@ -745,11 +730,10 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			lpChanges = (icsChangesArray *)soap_malloc(soap, sizeof(icsChangesArray));
 			lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * lstChanges.size());
 			lpChanges->__size = lstChanges.size();
+			unsigned int i = 0;
 
-			i = 0;
 			for (auto chg_id : lstChanges) {
-				strQuery = "SELECT changes.id, changes.sourcekey, changes.parentsourcekey, changes.change_type, changes.flags FROM changes WHERE changes.id=" + stringify(chg_id) + " LIMIT 1";
-
+				auto strQuery = "SELECT changes.id, changes.sourcekey, changes.parentsourcekey, changes.change_type, changes.flags FROM changes WHERE changes.id=" + stringify(chg_id) + " LIMIT 1";
 				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 				if(er != erSuccess)
 					return er;
@@ -801,8 +785,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			ABChangeRecordList lstChanges;
 
 			// sourcekey is actually an entryid .. don't let the naming confuse you
-            strQuery = "SELECT id, sourcekey, parentsourcekey, change_type FROM abchanges WHERE change_type & " + stringify(ICS_AB) + " AND id > " + stringify(ulChangeId) + " ORDER BY id";
-
+			auto strQuery = "SELECT id, sourcekey, parentsourcekey, change_type FROM abchanges WHERE change_type & " + stringify(ICS_AB) + " AND id > " + stringify(ulChangeId) + " ORDER BY id";
             er = lpDatabase->DoSelect(strQuery, &lpDBResult, true);
             if(er != erSuccess)
 				return er;
@@ -829,15 +812,14 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			}
 
 			// We'll reserve enough space for all the changes. We just might not use it all
-            ulChanges = lstChanges.size();
-
+			auto ulChanges = lstChanges.size();
             lpChanges = (icsChangesArray *)soap_malloc(soap, sizeof(icsChangesArray));
             lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * ulChanges);
             lpChanges->__size = 0;
 
             memset(lpChanges->__ptr, 0, sizeof(icsChange) * ulChanges);
+			unsigned int i = 0;
 
-            i=0;
 			for (const auto &iter : lstChanges) {
 				unsigned int ulUserId = reinterpret_cast<const ABEID *>(iter.strItem.data())->ulId;
 
@@ -864,8 +846,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
         } else {
             // During initial sync, just get all the current users from the database and output them as ICS_AB_NEW changes
             ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
-            
-            strQuery = "SELECT max(id) FROM abchanges";
+			std::string strQuery = "SELECT max(id) FROM abchanges";
             er = lpDatabase->DoSelect(strQuery, &lpDBResult);
             if (er != erSuccess)
 				return er;
@@ -889,15 +870,13 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             er = lpDatabase->DoSelect(strQuery, &lpDBResult);
             if (er != erSuccess)
 				return er;
-            ulChanges = lpDBResult.get_num_rows();
+			auto ulChanges = lpDBResult.get_num_rows();
             lpChanges = (icsChangesArray *)soap_malloc(soap, sizeof(icsChangesArray));
             lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * ulChanges);
             lpChanges->__size = 0;
 
             memset(lpChanges->__ptr, 0, sizeof(icsChange) * ulChanges);
-
-            i=0;
-                
+			unsigned int i = 0;
 			auto usrmgt = lpSession->GetUserManagement();
             while(1) {
                 objectid_t id;

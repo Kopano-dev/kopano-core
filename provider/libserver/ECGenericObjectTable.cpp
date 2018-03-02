@@ -200,10 +200,8 @@ ECRESULT ECGenericObjectTable::SeekRow(unsigned int ulBookmark, int lSeekTo, int
 ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsigned int ulBookmark, unsigned int ulFlags)
 {
 	bool			fMatch = false;
-	int				ulSeeked = 0;
-	unsigned int	ulRow = 0;
-	unsigned int	ulCount = 0;
-	int				ulTraversed = 0;
+	int ulSeeked = 0, ulTraversed = 0;
+	unsigned int ulRow = 0, ulCount = 0;
 	struct propTagArray	*lpPropTags = NULL;
 	struct rowSet		*lpRowSet = NULL;
 
@@ -404,9 +402,7 @@ ECRESULT ECGenericObjectTable::GetColumnsAll(ECListInt* lplstProps)
 ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 {
 	ECRESULT			er = erSuccess;
-	bool				bMVColsNew = false;
-	bool				bMVSortNew = false;
-
+	bool bMVColsNew = false, bMVSortNew = false;
 	ECObjectTableList			listRows;
 	ECListInt					listMVPropTag;
 	scoped_rlock biglock(m_hLock);
@@ -819,11 +815,9 @@ ECRESULT ECGenericObjectTable::Restrict(struct restrictTable *lpsRestrict)
 ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bLoad, bool bOverride, struct restrictTable *lpOverrideRestrict)
 {
 	ECRESULT		er = erSuccess;
-	bool			fMatch = true;
 	gsoap_size_t ulFirstCol = 0, n = 0;
 	unsigned int	ulLoaded = 0;
-	bool			bExist;
-	bool			fHidden = false;
+	bool bExist, fMatch = true, fHidden = false;
 	ECObjectTableList sQueryRows;
 
 	struct propTagArray	sPropTagArray = {0, 0};
@@ -1092,8 +1086,7 @@ ECRESULT ECGenericObjectTable::FreeBookmark(unsigned int ulbkPosition)
 // Expand the category identified by sInstanceKey
 ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sInstanceKey, unsigned int ulRowCount, unsigned int ulFlags, struct rowSet **lppRowSet, unsigned int *lpulRowsLeft)
 {
-    sObjectTableKey sKey;
-    sObjectTableKey sPrevRow;
+	sObjectTableKey sKey, sPrevRow;
     ECCategoryMap::const_iterator iterCategory;
     ECCategory *lpCategory = NULL;
     ECObjectTableList lstUnhidden;
@@ -1158,8 +1151,7 @@ ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sI
 // Collapse the category row identified by sInstanceKey
 ECRESULT ECGenericObjectTable::CollapseRow(xsd__base64Binary sInstanceKey, unsigned int ulFlags, unsigned int *lpulRows)
 {
-    sObjectTableKey sKey;
-    sObjectTableKey sPrevRow;
+	sObjectTableKey sKey, sPrevRow;
     ECCategoryMap::const_iterator iterCategory;
     ECCategory *lpCategory = NULL;
     ECObjectTableList lstHidden;
@@ -1417,14 +1409,9 @@ ECRESULT ECGenericObjectTable::LoadRows(std::list<unsigned int> *lstObjId, unsig
 ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigned int> *lstObjId, unsigned int ulFlags, bool bLoad)
 {
 	ECRESULT				er = erSuccess;
-	unsigned int			ulRead = 0;
-	unsigned int			cMVOld = 0,
-							cMVNew = 1;
-	unsigned int			i;
+	unsigned int ulRead = 0;
 	std::list<unsigned int> lstFilteredIds;
-	
-	ECObjectTableList		ecRowsItem;
-	ECObjectTableList		ecRowsDeleted;
+	ECObjectTableList ecRowsItem, ecRowsDeleted;
 	sObjectTableKey		sRow;
 	scoped_rlock biglock(m_hLock);
 
@@ -1495,9 +1482,9 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 
 		for (const auto &pair : count) {
 			auto obj_id = pair.first;
-			cMVNew = pair.second;
+			auto cMVNew = pair.second;
 			// get old mvprops count
-			cMVOld = 0;
+			auto cMVOld = 0;
 			for (auto iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
 			     iterMapObject != this->mapObjects.cend();
 			     ++iterMapObject) {
@@ -1515,7 +1502,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 				RemoveCategoryAfterRemoveRow(sRow, ulFlags);
 			}
 			sRow = sObjectTableKey(obj_id, 0);
-			for (i = 1; i < cMVNew; ++i) { // 0 already added
+			for (unsigned int i = 1; i < cMVNew; ++i) { // 0 already added
 				sRow.ulOrderId = i;
 				ecRowsItem.emplace_back(sRow);
 			}
@@ -2577,13 +2564,11 @@ exit:
 ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObjKey, unsigned int ulFlags)
 {
     ECRESULT er = erSuccess;
-    sObjectTableKey sCatRow;
-    sObjectTableKey sPrevRow(0,0);
+	sObjectTableKey sCatRow, sPrevRow(0,0);
     ECLeafMap::const_iterator iterLeafs;
     ECKeyTable::UpdateType ulAction;
     ECCategory *lpParent = NULL;
-    bool fModified = false;
-    bool fHidden = false;
+	bool fModified = false, fHidden = false;
     unsigned int ulDepth = 0;
 	struct propVal sProp;
 	
@@ -2886,10 +2871,7 @@ ECRESULT ECCategory::UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, s
 {
 	bool fModified = false;
 	int result = 0;
-	struct propVal *lpOldValue;
-	struct propVal *lpNew;
-	
-	lpOldValue = &m_lpProps[i];
+	struct propVal *lpOldValue = &m_lpProps[i], *lpNew;
 	
 	if(PROP_TYPE(lpOldValue->ulPropTag) != PT_ERROR && PROP_TYPE(lpOldValue->ulPropTag) != PT_NULL) {
 		// Compare old with new
