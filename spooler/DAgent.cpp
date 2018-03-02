@@ -3572,7 +3572,8 @@ int main(int argc, char *argv[]) {
 	else 
 		g_lpLogger = CreateLogger(g_lpConfig, argv[0], "KopanoDAgent");
 	ec_log_set(g_lpLogger);
-	if (!bExplicitConfig && loglevel)
+	if (!g_lpLogger->Log(loglevel))
+		/* raise loglevel if there are more -v on the command line than in dagent.cfg */
 		g_lpLogger->SetLoglevel(loglevel);
 
 	/* Warn users that we are using the default configuration */
