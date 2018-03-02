@@ -784,12 +784,12 @@ def recurrence_set(item, arg):
 
         rec.pattern = pattern_map_rev[arg['pattern']['type']]
         rec.interval = arg['pattern']['interval']
+        if 'daysOfWeek' in arg['pattern']:
+            rec.weekdays = arg['pattern']['daysOfWeek']
 
         rec.range_type = range_end_map_rev[arg['range']['type']]
         rec.occurrence_count = arg['range']['numberOfOccurrences']
-
         # TODO don't use hidden vars
-
         rec._start = dateutil.parser.parse(arg['range']['startDate'])
         rec._end = dateutil.parser.parse(arg['range']['endDate'])
 
