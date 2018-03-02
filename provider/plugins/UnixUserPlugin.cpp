@@ -771,8 +771,8 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 
 	ulock_normal biglock(m_plugin_lock);
-	objectlist.merge(getAllUserObjects());
-	objectlist.merge(getAllGroupObjects());
+	objectlist.merge(getAllUserObjects(match, ulFlags));
+	objectlist.merge(getAllGroupObjects(match, ulFlags));
 	biglock.unlock();
 
 	// See if we get matches based on database details as well
