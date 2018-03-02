@@ -638,7 +638,12 @@ Default:
 .PP
 \fBauth_method\fR
 .RS 4
-Authentication is normally done in the user plugin. In case your plugin cannot provide the authentication, you may set this to pam, and set the pam_service to authenticate through pam. Another choice is kerberos. The user password will be verified using the kerberos service. Note that is not a single\-signon method, since the server requires the user password.
+Authentication is normally done in the user plugin, selectable with
+auth_method=\fBplugin\fP. In case your plugin cannot provide the
+authentication, you may set this to "\fBpam\fP", and set the pam_service to
+authenticate through pam. Another choice is "\fBkerberos\fP". The user password
+will be verified using the Kerberos service. Note that is not a single\-signon
+method, since the server requires the user password.
 .sp
 Default:
 \fIplugin\fR
@@ -664,7 +669,11 @@ Default:
 .PP
 \fBpam_service\fR
 .RS 4
-This is the pam service name. Pam services can be found in /etc/pam.d/.
+This is the PAM service name. PAM services can be found in /etc/pam.d/.
+When choosing a PAM service which is configured to use a plugin - such as
+pam_unix - doing direct file I/O to e.g. /etc/shadow, kopano-server will need
+to be run with a suitable run_as_group/run_as_user values or otherwise have
+read permissions.
 .sp
 Default:
 \fIpasswd\fR
