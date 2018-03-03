@@ -20,8 +20,8 @@ class PluginManager(object):
 
         directory = os.path.abspath(self.plugindir)
         if not os.path.isdir(directory):
-            self.logger.logWarn(
-                "! Plugins directory '%s' doesn't exists."
+            self.logger.logInfo(
+                "! Plugins directory \"%s\" does not exist."
                 "Plugins not loaded." % directory
             )
             return 0
