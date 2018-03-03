@@ -3819,12 +3819,24 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 					assert(lpMessage);
 					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Generating message");
 
-					if (oss.tellp() == std::ostringstream::pos_type(0) && // already converted in previous loop?
-					    (lpMessage == NULL || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt) != hrSuccess)) {
-						vProps.emplace_back(item);
-						vProps.emplace_back("NIL");
-						lpLogger->Log(EC_LOGLEVEL_WARNING, "Error in generating message %d for user %ls in folder %ls", ulMailnr+1, m_strwUsername.c_str(), strCurrentFolder.c_str());
-						continue;
+					if (oss.tellp() == std::ostringstream::pos_type(0)) {
+						// already converted in previous loop?
+						if (lpMessage == NULL) {
+							vProps.emplace_back(item);
+							vProps.emplace_back("NIL");
+							lpLogger->Log(EC_LOGLEVEL_WARNING, "K-1579: No message to pass to IMToINet. (user \"%ls\" folder \"%ls\" message %d)",
+								m_strwUsername.c_str(), strCurrentFolder.c_str(), ulMailnr + 1);
+							continue;
+						}
+						hr = IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt);
+						if (hr != hrSuccess) {
+							vProps.emplace_back(item);
+							vProps.emplace_back("NIL");
+							lpLogger->Log(EC_LOGLEVEL_WARNING, "K-1580: IMToInet (user \"%ls\" folder \"%ls\" message %d): %s (%x)",
+								m_strwUsername.c_str(), strCurrentFolder.c_str(), ulMailnr + 1,
+								GetMAPIErrorMessage(hr), hr);
+							continue;
+						}
 					}
 					strMessage = oss.str();
 
