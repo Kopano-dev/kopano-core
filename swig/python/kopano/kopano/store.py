@@ -38,7 +38,7 @@ from MAPI.Tags import (
     PR_DELEGATE_FLAGS, PR_MAPPING_SIGNATURE, PR_EC_WEBACCESS_SETTINGS_JSON
 )
 from MAPI.Struct import (
-    SPropertyRestriction, SPropValue, ROWENTRY,
+    SPropertyRestriction, SPropValue, ROWENTRY, MAPINAMEID,
     MAPIErrorNotFound, MAPIErrorInvalidEntryid,
     MAPIErrorNoSupport
 )
@@ -102,6 +102,8 @@ class Store(Properties):
         self.mapiobj = mapiobj
         # XXX: fails if store is orphaned and guid is given..
         self.__root = None
+
+        self._name_id_cache = {}
 
     @property
     def _root(self):
@@ -723,6 +725,14 @@ class Store(Properties):
     def freebusy(self):
         """Return :class:`freebusy <Freebusy>` information."""
         return FreeBusy(self)
+
+    def _name_id(self, name_tuple):
+        id_ = self._name_id_cache.get(name_tuple)
+        if id_ is None:
+            named_props = [MAPINAMEID(*name_tuple)]
+            id_ = self.mapiobj.GetIDsFromNames(named_props, 0)[0]
+            self._name_id_cache[name_tuple] = id_
+        return id_
 
     def __eq__(self, s): # XXX check same server?
         if isinstance(s, Store):

@@ -14,9 +14,6 @@ from MAPI import (
 from MAPI.Tags import (
     PR_MESSAGE_RECIPIENTS, PR_RESPONSE_REQUESTED,
 )
-from MAPI.Struct import (
-    MAPINAMEID,
-)
 
 from .attendee import Attendee
 from .errors import NotFoundError
@@ -37,15 +34,18 @@ if sys.hexversion >= 0x03000000:
 else:
     import utils as _utils
 
+ALL_DAY_NAME = (PSETID_Appointment, MNID_ID, 0x8215)
+START_NAME = (PSETID_Appointment, MNID_ID, 33293) # TODO use pidlid instead
+END_NAME = (PSETID_Appointment, MNID_ID, 33294)
+RECURRING_NAME = (PSETID_Appointment, MNID_ID, 33315)
+
 class Appointment(object):
     """Appointment mixin class"""
 
     @property
     def all_day(self):
-        named_props = [MAPINAMEID(PSETID_Appointment, MNID_ID, 0x8215)] # TODO factor out
-        ids = self.store.mapiobj.GetIDsFromNames(named_props, 0)
-        proptag = ids[0] | PT_BOOLEAN
-        return self._get_fast(proptag, False)
+        proptag = self.store._name_id(ALL_DAY_NAME) | PT_BOOLEAN
+        return self._get_fast(proptag)
 
     @property
     def show_as(self):
@@ -62,9 +62,7 @@ class Appointment(object):
 
     @property
     def start(self):
-        named_props = [MAPINAMEID(PSETID_Appointment, MNID_ID, 33293)] # TODO factor out
-        ids = self.store.mapiobj.GetIDsFromNames(named_props, 0)
-        proptag = ids[0] | PT_SYSTIME
+        proptag = self.store._name_id(START_NAME) | PT_SYSTIME
         return self._get_fast(proptag)
 
     @start.setter
@@ -75,9 +73,7 @@ class Appointment(object):
 
     @property
     def end(self):
-        named_props = [MAPINAMEID(PSETID_Appointment, MNID_ID, 33294)] # TODO factor out
-        ids = self.store.mapiobj.GetIDsFromNames(named_props, 0)
-        proptag = ids[0] | PT_SYSTIME
+        proptag = self.store._name_id(END_NAME) | PT_SYSTIME
         return self._get_fast(proptag)
 
     @end.setter
@@ -95,10 +91,8 @@ class Appointment(object):
 
     @property
     def recurring(self):
-        named_props = [MAPINAMEID(PSETID_Appointment, MNID_ID, 33315)] # TODO factor out
-        ids = self.store.mapiobj.GetIDsFromNames(named_props, 0)
-        proptag = ids[0] | PT_BOOLEAN
-        return self._get_fast(proptag, False)
+        proptag = self.store._name_id(RECURRING_NAME) | PT_BOOLEAN
+        return self._get_fast(proptag)
 
     @recurring.setter
     def recurring(self, value): # TODO update/invalidate cache
