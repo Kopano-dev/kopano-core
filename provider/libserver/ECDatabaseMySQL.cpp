@@ -715,9 +715,9 @@ ECRESULT ECDatabase::CreateDatabase(void)
 		return er;
 
 	// Loop throught the update list
-	for (size_t i = Z_UPDATE_RELEASE_ID;
-	     i < ARRAY_SIZE(sUpdateList); ++i)
-	{
+	for (size_t i = 0; i < ARRAY_SIZE(sUpdateList); ++i) {
+		if (sUpdateList[i].ulVersion <= Z_UPDATE_RELEASE_ID)
+			continue;
 		er = UpdateDatabaseVersion(sUpdateList[i].ulVersion);
 		if(er != erSuccess)
 			return er;

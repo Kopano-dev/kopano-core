@@ -880,7 +880,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		// If there's a pr_body, outlook will display that, and not the 'default' outlook error report
 
 		// Message error
-		newbody = L"Unfortunately, I was unable to deliver your mail.\nThe error given was:\n\n";
+		newbody = L"Unfortunately, kopano-spooler was unable to deliver your mail.\nThe error given was:\n\n";
 		newbody.append(lpMailer->getErrorString());
 		newbody.append(L"\n\nYou may need to contact your e-mail administrator to solve this problem.\n");
 
@@ -901,7 +901,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	else if (ulRows > 0)
 	{
 		convert_context converter;
-		newbody = L"Unfortunately, I was unable to deliver your mail to the/some of the recipient(s).\n";
+		newbody = L"Unfortunately, kopano-spooler was unable to deliver your mail to the/some of the recipient(s).\n";
 		newbody.append(L"You may need to contact your e-mail administrator to solve this problem.\n");
 
 		if (!temporaryFailedRecipients.empty()) {

@@ -291,6 +291,7 @@ private:
 	bool IsMailFolder(IMAPIFolder *) const;
 	HRESULT HrOpenParentFolder(IMAPIFolder *lpFolder, IMAPIFolder **lppFolder);
 	HRESULT HrGetFolderList(std::list<SFolder> &);
+	int check_mboxname_with_resp(const std::wstring &name, const std::string &tag, const std::string &cmd);
 
 	/* subscribed folders */
 	std::vector<BinaryArray> m_vSubscriptions;
@@ -315,7 +316,7 @@ private:
 	HRESULT HrParseSeqUidSet(const std::string &seq, std::list<ULONG> &mails);
 	HRESULT HrSeqUidSetToRestriction(const std::string &seq, std::unique_ptr<KC::ECRestriction> &);
 	HRESULT HrStore(const std::list<ULONG> &mails, std::string msgdata_itemname, std::string msgdata_itemvalue, bool *do_del);
-	HRESULT HrCopy(const std::list<ULONG> &mails, const std::string &folder, bool move);
+	HRESULT HrCopy(const std::list<ULONG> &mails, const std::wstring &folder, bool move);
 	HRESULT HrSearchNU(const std::vector<std::string> &cond, ULONG startcond, std::list<ULONG> &mailnr);
 	HRESULT HrSearch(std::vector<std::string> &&cond, ULONG startcond, std::list<ULONG> &mailnr);
 	HRESULT HrGetBodyStructure(bool ext, std::string &body_structure, const std::string &msg);
