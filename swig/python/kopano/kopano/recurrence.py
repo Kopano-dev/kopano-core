@@ -1139,8 +1139,13 @@ class Occurrence(object):
 
     @property
     def entryid(self):
+        return self._entryid()
+
+    def _entryid(self, event=False):
         # cal item entryid plus basedate (zero if not recurring)
         parts = []
+        if event:
+            parts.append(b'\x01')
 
         eid = _bdec(self.item.entryid)
         parts.append(_utils.pack_short(len(eid)))
@@ -1155,8 +1160,7 @@ class Occurrence(object):
     def eventid(self):
         # msgraph has both appointments and expanded appointments under
         # /events, so we need an identier which can be used for both.
-        eid = _bdec(self.entryid)
-        return _benc(b'\x01'+eid)
+        return self._entryid(True)
 
     def __getattr__(self, x):
         return getattr(self.item, x)
