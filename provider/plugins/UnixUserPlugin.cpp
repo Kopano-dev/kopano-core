@@ -75,7 +75,6 @@ unsigned long getUserPluginVersion()
 
 using std::runtime_error;
 using std::string;
-//using std::vector;
 
 UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
     ECPluginSharedData *shareddata) :
@@ -471,7 +470,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 		return objectlist;
 	}
 
-	// check if we have obsolute objects
+	/* check if we have obsolete objects */
 	ulRows = lpResult.get_num_rows();
 	if (!ulRows)
 		return objectlist;
@@ -513,7 +512,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 		strSubQuery += "(o.externid IN (" + iterStrings->second + ") AND o.objectclass = " + stringify(iterStrings->first) + ")";
 	}
 
-	// remove obsolute object properties
+	/* remove obsolete object properties */
 	strQuery =
 		"DELETE FROM " + (string)DB_OBJECTPROPERTY_TABLE + " "
 		"WHERE objectid IN (" + strSubQuery + ")";
@@ -772,8 +771,8 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 
 	ulock_normal biglock(m_plugin_lock);
-	objectlist.merge(getAllUserObjects());
-	objectlist.merge(getAllGroupObjects());
+	objectlist.merge(getAllUserObjects(match, ulFlags));
+	objectlist.merge(getAllGroupObjects(match, ulFlags));
 	biglock.unlock();
 
 	// See if we get matches based on database details as well
