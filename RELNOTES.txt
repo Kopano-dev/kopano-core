@@ -24,7 +24,9 @@ Fixes:
 Fixes:
 * unixplugin: fix email resolving to multiple users [KC-1066]
 * dagent: loglevel was erroneously reduced [KC-1030]
-
+* gateway: check for illegal folder names that crashed the process [KC-1064]
+* gateway: slightly improve error reporting around IMToINet
+* spooler: reduce harmless plugindir warning to info
 
 
 8.5.4 (2018-02-28)
