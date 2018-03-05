@@ -15,7 +15,7 @@ from MAPI import (
     MAPI_ASSOCIATED, MAPI_DEFERRED_ERRORS, ROW_REMOVE,
 )
 from MAPI.Defs import (
-    bin2hex, HrGetOneProp, CHANGE_PROP_TYPE, PpropFindProp
+    HrGetOneProp, CHANGE_PROP_TYPE, PpropFindProp
 )
 from MAPI.Tags import (
     PR_ENTRYID, PR_MDB_PROVIDER, ZARAFA_STORE_PUBLIC_GUID,
@@ -112,7 +112,7 @@ class Store(Properties):
     @property
     def entryid(self):
         """Store entryid"""
-        return bin2hex(self.prop(PR_ENTRYID).value)
+        return _benc(self.prop(PR_ENTRYID).value)
 
     @property
     def public(self):
@@ -122,7 +122,7 @@ class Store(Properties):
     @property
     def guid(self):
         """Store GUID"""
-        return bin2hex(self.prop(PR_STORE_RECORD_KEY).value)
+        return _benc(self.prop(PR_STORE_RECORD_KEY).value)
 
     @property
     def name(self):

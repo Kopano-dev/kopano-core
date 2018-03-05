@@ -11,7 +11,7 @@ from MAPI import (
     MAPI_UNICODE, RELOP_EQ, TBL_BATCH, ECSTORE_TYPE_PUBLIC,
     WrapStoreEntryID
 )
-from MAPI.Defs import bin2hex, PpropFindProp
+from MAPI.Defs import PpropFindProp
 from MAPI.Struct import (
     MAPIErrorNotFound, SPropertyRestriction, SPropValue,
     MAPIErrorCollision
@@ -28,7 +28,7 @@ from .errors import (
     NotFoundError, DuplicateError
 )
 from .compat import (
-    hex as _hex, unhex as _unhex, repr as _repr, fake_unicode as _unicode
+    benc as _benc, bdec as _bdec, repr as _repr, fake_unicode as _unicode,
 )
 
 if sys.hexversion >= 0x03000000:
@@ -79,7 +79,7 @@ class Company(Properties):
     @property
     def companyid(self): # XXX single-tenant case
         if self._name != u'Default':
-            return bin2hex(self._eccompany.CompanyID)
+            return _benc(self._eccompany.CompanyID)
 
     @property
     def admin(self):
@@ -137,7 +137,7 @@ class Company(Properties):
             for row in table.QueryRows(-1, 0):
                 prop = PpropFindProp(row, PR_EC_STOREGUID)
                 if prop:
-                    yield _store.Store(_hex(prop.Value), self.server)
+                    yield _store.Store(_benc(prop.Value), self.server)
         else:
             for store in self.server.stores():
                 yield store
@@ -158,7 +158,7 @@ class Company(Properties):
                 except MAPIErrorNotFound:
                     self._public_store = None
                 else:
-                    self._public_store = _store.Store(entryid=_hex(entryid), server=self.server)
+                    self._public_store = _store.Store(entryid=_benc(entryid), server=self.server)
 
         return self._public_store
 
@@ -177,7 +177,7 @@ class Company(Properties):
 
         store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', storeid_rootid[0][:-4]) + self.server.pseudo_url + b'\x00'
 
-        self._public_store = _store.Store(entryid=_hex(store_entryid), server=self.server)
+        self._public_store = _store.Store(entryid=_benc(store_entryid), server=self.server)
         return self._public_store
 
     def hook_public_store(self, store):
@@ -187,12 +187,12 @@ class Company(Properties):
         """
         if self._name == u'Default':
             try:
-                self.server.sa.HookStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE, _unhex(store.guid))
+                self.server.sa.HookStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE, _bdec(store.guid))
             except MAPIErrorCollision:
                 raise DuplicateError("hooked public store already exists")
         else:
             try:
-                self.server.sa.HookStore(ECSTORE_TYPE_PUBLIC, _unhex(self.companyid), _unhex(store.guid))
+                self.server.sa.HookStore(ECSTORE_TYPE_PUBLIC, _bdec(self.companyid), _bdec(store.guid))
             except MAPIErrorCollision:
                 raise DuplicateError("hooked public store already exists for company '%s'" % self.name)
 
@@ -207,7 +207,7 @@ class Company(Properties):
                 raise NotFoundError("no hooked public store")
         else:
             try:
-                self.server.sa.UnhookStore(ECSTORE_TYPE_PUBLIC, _unhex(self.companyid))
+                self.server.sa.UnhookStore(ECSTORE_TYPE_PUBLIC, _bdec(self.companyid))
             except MAPIErrorNotFound:
                 raise NotFoundError("no hooked public store for company '%s'" % self.name)
         self._public_store = None

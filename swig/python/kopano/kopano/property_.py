@@ -19,7 +19,7 @@ from MAPI import (
     MAPI_E_NOT_FOUND, MNID_ID, KEEP_OPEN_READWRITE, MAPI_UNICODE,
 )
 from MAPI.Defs import (
-    PROP_ID, PROP_TAG, PROP_TYPE, HrGetOneProp, bin2hex,
+    PROP_ID, PROP_TAG, PROP_TYPE, HrGetOneProp,
     CHANGE_PROP_TYPE,
 )
 from MAPI.Struct import (
@@ -36,7 +36,7 @@ from .defs import (
     REV_TAG, REV_TYPE, GUID_NAMESPACE, MAPINAMEID, NAMESPACE_GUID, STR_GUID,
 )
 from .compat import (
-    repr as _repr, fake_unicode as _unicode, is_int as _is_int, hex as _hex,
+    benc as _benc, repr as _repr, fake_unicode as _unicode, is_int as _is_int,
     is_str as _is_str,
 )
 from .errors import Error, NotFoundError
@@ -308,7 +308,7 @@ class Property(object):
             try:
                 lpname = self._parent_mapiobj.GetNamesFromIDs([self.proptag], None, 0)[0]
                 if lpname:
-                    self.guid = bin2hex(lpname.guid)
+                    self.guid = _benc(lpname.guid)
                     self.namespace = GUID_NAMESPACE.get(lpname.guid)
                     self.name = lpname.id
                     self.kind = lpname.kind
@@ -361,7 +361,7 @@ class Property(object):
             elif v is None:
                 return u''
             elif self.type_ in (PT_BINARY, PT_MV_BINARY) or isinstance(v, bytes):
-                return _hex(v)
+                return _benc(v)
             else:
                 return _unicode(v)
         return flatten(self.value)

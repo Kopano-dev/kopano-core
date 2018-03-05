@@ -26,7 +26,7 @@ from MAPI.Struct import (
     MAPIErrorNoAccess
 )
 
-from .compat import unhex as _unhex, hex as _hex
+from .compat import bdec as _bdec
 from .errors import Error, NotFoundError
 
 if sys.hexversion >= 0x03000000:
@@ -119,7 +119,7 @@ def permission(obj, member, create):
                 memberid = member.groupid
             else:
                 memberid = member.companyid
-            acl_table.ModifyTable(0, [ROWENTRY(ROW_ADD, [SPropValue(PR_MEMBER_ENTRYID, _unhex(memberid)), SPropValue(PR_MEMBER_RIGHTS, 0)])])
+            acl_table.ModifyTable(0, [ROWENTRY(ROW_ADD, [SPropValue(PR_MEMBER_ENTRYID, _bdec(memberid)), SPropValue(PR_MEMBER_RIGHTS, 0)])])
             return obj.permission(member)
         else:
             raise NotFoundError("no permission entry for '%s'" % member.name)
