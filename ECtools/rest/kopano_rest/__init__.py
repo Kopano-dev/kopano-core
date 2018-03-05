@@ -24,6 +24,12 @@ if sys.hexversion >= 0x03000000:
 else:
     import bsddb
 
+INDENT = True
+try:
+    json.dumps({}, indent=True) # ujson 1.33 doesn't support 'indent'
+except TypeError:
+    INDENT = False
+
 from MAPI.Util import kc_session_save, kc_session_restore, GetDefaultStore
 
 import falcon
@@ -149,7 +155,10 @@ class Resource(object):
             data['@odata.context'] = req.path
         if expand:
             data.update(expand)
-        return json.dumps(data, indent=2)
+        if INDENT:
+            return json.dumps(data, indent=2)
+        else:
+            return json.dumps(data)
 
     def json_multi(self, req, obj, fields, all_fields, top, skip, count, deltalink, add_count=False):
         header = b'{\n'
