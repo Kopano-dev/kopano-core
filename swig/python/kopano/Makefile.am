@@ -12,7 +12,7 @@ EXTRA_DIST = setup.py		\
 install-exec-local:
 	rm -Rf staging
 	${MKDIR_P} staging
-	cp -a ${srcdir}/setup.py ${srcdir}/kopano staging/
+	cp -a ${srcdir}/setup.py ${srcdir}/setup.cfg ${srcdir}/kopano staging/
 	cp -a kopano/version.py staging/kopano/
 	cd staging/ && ${PYTHON} setup.py \
 		build --build-base="${abs_builddir}/build" \
@@ -22,4 +22,4 @@ install-exec-local:
 
 uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/kopano \
-		${DESTDIR}${pythondir}/kopano-0*.egg-info
+		${DESTDIR}${pythondir}/kopano-*.egg-info
