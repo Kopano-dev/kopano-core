@@ -7,7 +7,10 @@ from contextlib import closing
 import datetime
 import dateutil.parser
 import fcntl
-import json
+try:
+    import ujson as json
+except ImportError:
+    import json
 import os
 import sys
 from threading import Thread
@@ -146,7 +149,7 @@ class Resource(object):
             data['@odata.context'] = req.path
         if expand:
             data.update(expand)
-        return json.dumps(data, indent=2, separators=(',', ': '))
+        return json.dumps(data, indent=2)
 
     def json_multi(self, req, obj, fields, all_fields, top, skip, count, deltalink, add_count=False):
         header = b'{\n'
