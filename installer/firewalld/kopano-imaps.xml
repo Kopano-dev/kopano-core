@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+	<short>kopano-gateway IMAPS</short>
+	<description>TCP port used by IMAP services.</description>
+	<port protocol="tcp" port="993"/>
+</service>

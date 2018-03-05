@@ -3260,6 +3260,16 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 
 				memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
 				break;
+			case PR_EMS_AB_HOME_MDB: {
+				/* Make OL2010 happy */
+				auto serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
+				if (serverName.empty())
+					serverName = "Unknown";
+				auto hostname = "/o=Domain/ou=Location/cn=Configuration/cn=Servers/cn=" + serverName + "/cn=Microsoft Private MDB";
+				lpPropVal->Value.lpszA = s_strcpy(soap, hostname.c_str());
+				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+				break;
+			}
 			case PR_ACCOUNT:
 			case PR_EMAIL_ADDRESS:
 				// Dont use login name for NONACTIVE_CONTACT since it doesn't have a login name
