@@ -786,6 +786,7 @@ def recurrence_set(item, arg):
         rec.interval = arg['pattern']['interval']
         if 'daysOfWeek' in arg['pattern']:
             rec.weekdays = arg['pattern']['daysOfWeek']
+        rec.monthday = arg['pattern']['dayOfMonth']
 
         rec.range_type = range_end_map_rev[arg['range']['type']]
         rec.occurrence_count = arg['range']['numberOfOccurrences']

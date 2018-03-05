@@ -124,13 +124,24 @@ class Recurrence(object):
 
     @pattern.setter
     def pattern(self, value):
-        if value == 'daily':
+        if value == 'daily': # TODO use mapping
             self.recur_frequency = FREQ_DAY
             self.pattern_type = PATTERN_DAILY
         elif value == 'weekly':
             self.recur_frequency = FREQ_WEEK
             self.pattern_type = PATTERN_WEEKLY
-        # TODO fill in
+        elif value == 'monthly':
+            self.recur_frequency = FREQ_MONTH
+            self.pattern_type = PATTERN_MONTHLY
+        elif value == 'monthly_rel':
+            self.recur_frequency = FREQ_MONTH
+            self.pattern_type = PATTERN_MONTHNTH
+        elif value == 'yearly':
+            self.recur_frequency = FREQ_YEAR
+            self.pattern_type = PATTERN_MONTHLY
+        elif value == 'yearly_rel':
+            self.recur_frequency = FREQ_YEAR
+            self.pattern_type = PATTERN_MONTHNTH
 
     @property
     def weekdays(self):
@@ -144,12 +155,15 @@ class Recurrence(object):
 
     @weekdays.setter
     def weekdays(self, value):
-        if self.pattern_type == PATTERN_WEEKLY:
+        if self.pattern_type in (PATTERN_WEEKLY, PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
             weekdays = {'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4, 'friday': 5, 'saturday': 6}
             pts = 0
             for weekday in value:
                 pts |= (1 << weekdays[weekday])
             self.pattern_type_specific = [pts]
+
+            if self.pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
+                self.pattern_type_specific.append(5) # TODO
 
         # TODO fill in
 
@@ -167,6 +181,11 @@ class Recurrence(object):
     def monthday(self):
         if self.pattern_type in (PATTERN_MONTHLY, PATTERN_HJMONTHLY):
             return self.pattern_type_specific[0]
+
+    @monthday.setter
+    def monthday(self, value):
+        if self.pattern_type in (PATTERN_MONTHLY, PATTERN_HJMONTHLY):
+            self.pattern_type_specific = [value]
 
     @property
     def index(self):
