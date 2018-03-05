@@ -905,7 +905,7 @@ include global.am
 
 
 #OLD TOPLEVEL FM
-EXTRA_DIST += version versionheader.sh \
+EXTRA_DIST += .version versionheader.sh \
 	AGPL-3 LICENSE.txt RELNOTES.txt \
 	bootstrap.sh lddcheck global.am pwdcheck.sh \
 	common/include/kopano/ecversion.h
@@ -924,7 +924,7 @@ source-moved-check:
 	@${top_srcdir}/pwdcheck.sh "${abs_top_builddir}"
 
 .version:
-	echo "@PACKAGE_VERSION@" >$@
+	echo "${PACKAGE_VERSION}" >$@
 
 common/include/kopano/ecversion.h: .version versionheader.sh
 	${MKDIR_P} common/include/kopano
