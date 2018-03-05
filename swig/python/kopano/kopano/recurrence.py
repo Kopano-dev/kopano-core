@@ -1143,18 +1143,16 @@ class Occurrence(object):
 
     def _entryid(self, event=False):
         # cal item entryid plus basedate (zero if not recurring)
-        parts = []
-        if event:
-            parts.append(b'\x01')
-
-        eid = _bdec(self.item.entryid)
-        parts.append(_utils.pack_short(len(eid)))
-        parts.append(eid)
-
+        flag = b'\x01' if event else b''
+        eid = self.item._entryid or _bdec(self.item.entryid)
         basedate_val = self._basedate_val or 0
-        parts.append(_utils.pack_long(basedate_val))
 
-        return _benc(b''.join(parts))
+        return _benc(
+            flag + \
+            _utils.pack_short(len(eid)) + \
+            eid + \
+            _utils.pack_long(basedate_val)
+        )
 
     @property
     def eventid(self):
