@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+	<short>Kopano Delivery Agent</short>
+	<description>Standard TCP port used by the kopano-dagent LMTP
+		service.</description>
+	<port protocol="tcp" port="2003"/>
+</service>
