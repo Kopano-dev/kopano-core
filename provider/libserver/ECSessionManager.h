@@ -127,8 +127,8 @@ public:
 	_kc_hidden ECRESULT NotificationDeleted(unsigned int obj_type, unsigned int obj_id, unsigned int store_id, entryId *eid, unsigned int folder_id, unsigned int flags);
 	_kc_hidden ECRESULT NotificationSearchComplete(unsigned int obj_id, unsigned int store_id);
 	_kc_hidden ECRESULT NotificationChange(const std::set<unsigned int> &sync_ids, unsigned int change_id, unsigned int change_type);
-	_kc_hidden ECRESULT ValidateSession(struct soap *, ECSESSIONID, ECAuthSession **, bool lock_ses = false);
-	_kc_hidden ECRESULT ValidateSession(struct soap *, ECSESSIONID, ECSession **, bool lock_ses = false);
+	_kc_hidden ECRESULT ValidateSession(struct soap *, ECSESSIONID, ECAuthSession **);
+	_kc_hidden ECRESULT ValidateSession(struct soap *, ECSESSIONID, ECSession **);
 	_kc_hidden ECRESULT AddSessionClocks(ECSESSIONID, double user, double system, double real);
 	ECRESULT RemoveBusyState(ECSESSIONID ecSessionID, pthread_t thread);
 	_kc_hidden static void *SessionCleaner(void *tmp_ses_mgr);
@@ -171,7 +171,7 @@ public:
 
 protected:
 	_kc_hidden BTSession *GetSession(ECSESSIONID, bool lock_ses = false);
-	_kc_hidden ECRESULT ValidateBTSession(struct soap *, ECSESSIONID, BTSession **, bool lock_ses = false);
+	_kc_hidden ECRESULT ValidateBTSession(struct soap *, ECSESSIONID, BTSession **);
 	_kc_hidden BOOL IsSessionPersistent(ECSESSIONID );
 	_kc_hidden ECRESULT UpdateSubscribedTables(ECKeyTable::UpdateType, TABLESUBSCRIPTION, std::list<unsigned int> &child_id);
 	_kc_hidden ECRESULT SaveSourceKeyAutoIncrement(unsigned long long new_src_key_autoincr);

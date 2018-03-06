@@ -90,14 +90,14 @@ public:
 	_kc_hidden virtual void SetClientMeta(const char *cl_vers, const char *cl_misc);
 	_kc_hidden virtual void GetClientApplicationVersion(std::string *);
 	_kc_hidden virtual void GetClientApplicationMisc(std::string *);
-	virtual void Lock(void);
-	virtual void Unlock(void);
+	virtual void lock();
+	virtual void unlock();
 	_kc_hidden virtual bool IsLocked(void) const _kc_final { return m_ulRefCount > 0; }
 	_kc_hidden virtual void RecordRequest(struct soap *);
 	_kc_hidden virtual unsigned int GetRequests(void);
-	_kc_hidden virtual void GetClientPort(unsigned int *);
-	_kc_hidden virtual void GetRequestURL(std::string *);
-	_kc_hidden virtual void GetProxyHost(std::string *);
+	_kc_hidden virtual unsigned int GetClientPort();
+	_kc_hidden virtual std::string GetRequestURL();
+	_kc_hidden virtual std::string GetProxyHost();
 	_kc_hidden size_t GetInternalObjectSize(void);
 	_kc_hidden virtual size_t GetObjectSize(void) = 0;
 	_kc_hidden time_t GetIdleTime(void);

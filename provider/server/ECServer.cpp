@@ -472,14 +472,19 @@ static ECRESULT check_server_configuration(void)
 		ec_log_crit("Internal error 0x%08x while checking distributed configuration", er);
 		return er;
 	}
-
-	lpecSession->Lock();
-	
+	auto cleanup = make_scope_success([&]() {
+		g_lpSessionManager->RemoveSessionInternal(lpecSession);
+		// we could return an error when bHaveErrors is set, but we currently find this not fatal as a sysadmin might be smarter than us.
+		if (bHaveErrors)
+			ec_log_warn("WARNING: Inconsistencies detected between local and LDAP based configuration.");
+	});
+	std::lock_guard<ECSession> holder(*lpecSession);
 	er = lpecSession->GetUserManagement()->GetServerDetails(strServerName, &sServerDetails);
 	if (er != erSuccess) {
 		ec_log_crit("ERROR: Unable to find server information on LDAP for '%s', error 0x%08X. Check your server name.", strServerName.c_str(), er);
 		// unable to check anything else if we have no details, skip other tests
-		goto exit;
+		// we do return er, since if that is set GetServerDetails() does not work and that is quite vital to work in distributed systems.
+		return er;
 	}
 		
 	// Check the various connection parameters for consistency
@@ -530,16 +535,7 @@ static ECRESULT check_server_configuration(void)
 		ec_log_warn("WARNING: 'server_ssl_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetSslPath().c_str());
 		bHaveErrors = true;
 	}	
-	
-exit:
-	lpecSession->Unlock();
-	g_lpSessionManager->RemoveSessionInternal(lpecSession);
-	// we could return an error when bHaveErrors is set, but we currently find this not fatal as a sysadmin might be smarter than us.
-	if (bHaveErrors)
- 		ec_log_warn("WARNING: Inconsistencies detected between local and LDAP based configuration.");
-
-	// we do return er, since if that is set GetServerDetails() does not work and that is quite vital to work in distributed systems.
-	return er;
+	return erSuccess;
 }
 
 /**

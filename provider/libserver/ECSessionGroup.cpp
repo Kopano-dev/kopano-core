@@ -21,6 +21,7 @@
 #include <mapitags.h>
 
 #include <algorithm>
+#include <mutex>
 #include <kopano/lockhelper.hpp>
 
 #include "ECSession.h"
@@ -60,14 +61,14 @@ ECSessionGroup::~ECSessionGroup()
 		m_lpSessionManager->UnsubscribeObjectEvents(p.second, m_sessionGroupId);
 }
 
-void ECSessionGroup::Lock()
+void ECSessionGroup::lock()
 {
 	/* Increase our refcount by one */
 	scoped_lock lock(m_hThreadReleasedMutex);
 	++m_ulRefCount;
 }
 
-void ECSessionGroup::Unlock()
+void ECSessionGroup::unlock()
 {
 	// Decrease our refcount by one, signal ThreadReleased if RefCount == 0
 	scoped_lock lock(m_hThreadReleasedMutex);
@@ -219,7 +220,7 @@ ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int 
 ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned int ulType, unsigned int ulObjType, unsigned int ulTableId,
 											  sObjectTableKey* lpsChildRow, sObjectTableKey* lpsPrevRow, struct propValArray *lpRow)
 {
-	Lock();
+	std::lock_guard<ECSessionGroup> holder(*this);
 	auto lpNotify = s_alloc<notification>(nullptr);
 	memset(lpNotify, 0, sizeof(notification));
 	lpNotify->tab = s_alloc<notificationTable>(nullptr);
@@ -276,8 +277,6 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 
 	//Free struct
 	FreeNotificationStruct(lpNotify);
-
-	Unlock();
 	return erSuccess;
 }
 
@@ -297,7 +296,7 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 	notifyItem.ics->pSyncState->__ptr = (unsigned char*)&syncState;
 	notifyItem.ics->ulChangeType = ulChangeType;
 
-	Lock();
+	std::lock_guard<ECSessionGroup> holder(*this);
 	ulock_normal l_note(m_hNotificationLock);
 	// Iterate through all sync ids
 	for (auto sync_id : syncIds) {
@@ -323,7 +322,6 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 	for (const auto &p : m_mapSessions)
 		m_lpSessionManager->NotifyNotificationReady(p.second.lpSession->GetSessionId());
 	l_ses.unlock();
-	Unlock();
 	return erSuccess;
 }
 
@@ -342,7 +340,7 @@ ECRESULT ECSessionGroup::AddChangeNotification(ECSESSIONID ulSessionId, unsigned
 	notifyItem.ics->pSyncState->__size = sizeof(syncState);
 	notifyItem.ics->pSyncState->__ptr = (unsigned char*)&syncState;
 
-	Lock();
+	std::lock_guard<ECSessionGroup> holder(*this);
 	ulock_normal l_note(m_hNotificationLock);
 	// create ECNotification
 	ECNotification notify(notifyItem);
@@ -356,17 +354,15 @@ ECRESULT ECSessionGroup::AddChangeNotification(ECSESSIONID ulSessionId, unsigned
 	for (const auto &p : m_mapSessions)
 		m_lpSessionManager->NotifyNotificationReady(p.second.lpSession->GetSessionId());
 	l_ses.unlock();
-	Unlock();
 	return erSuccess;
 }
 
 ECRESULT ECSessionGroup::GetNotifyItems(struct soap *soap, ECSESSIONID ulSessionId, struct notifyResponse *notifications)
 {
 	ECRESULT		er = erSuccess;
+	std::lock_guard<ECSessionGroup> holder(*this);
 
 	/* Start waiting for notifications */
-	Lock();
-
 	/*
 	 * Store the session which requested the notifications.
 	 * We need this in case the session is removed and the
@@ -403,9 +399,6 @@ ECRESULT ECSessionGroup::GetNotifyItems(struct soap *soap, ECSESSIONID ulSession
 
 	/* Reset GetNotifySession */
 	m_getNotifySession = 0;
-
-	Unlock();
-
 	return er;
 }
 

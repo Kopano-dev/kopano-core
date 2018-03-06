@@ -170,14 +170,14 @@ ECRESULT BTSession::GetNewSourceKey(SOURCEKEY* lpSourceKey){
 	return m_lpSessionManager->GetNewSourceKey(lpSourceKey);
 }
 
-void BTSession::Lock()
+void BTSession::lock()
 {
 	// Increase our refcount by one
 	scoped_lock lock(m_hThreadReleasedMutex);
 	++this->m_ulRefCount;
 }
 
-void BTSession::Unlock()
+void BTSession::unlock()
 {
 	// Decrease our refcount by one, signal ThreadReleased if RefCount == 0
 	scoped_lock lock(m_hThreadReleasedMutex);
@@ -207,22 +207,22 @@ unsigned int BTSession::GetRequests()
     return m_ulRequests;
 }
 
-void BTSession::GetRequestURL(std::string *lpstrClientURL)
+std::string BTSession::GetRequestURL()
 {
 	scoped_lock lock(m_hRequestStats);
-	lpstrClientURL->assign(m_strLastRequestURL);
+	return m_strLastRequestURL;
 }
 
-void BTSession::GetProxyHost(std::string *lpstrProxyHost)
+std::string BTSession::GetProxyHost()
 {
 	scoped_lock lock(m_hRequestStats);
-	lpstrProxyHost->assign(m_strProxyHost);
+	return m_strProxyHost;
 }
 
-void BTSession::GetClientPort(unsigned int *lpulPort)
+unsigned int BTSession::GetClientPort()
 {
 	scoped_lock lock(m_hRequestStats);
-	*lpulPort = m_ulLastRequestPort;
+	return m_ulLastRequestPort;
 }
 
 size_t BTSession::GetInternalObjectSize()
@@ -313,16 +313,12 @@ ECRESULT ECSession::Shutdown(unsigned int ulTimeout)
 ECRESULT ECSession::AddAdvise(unsigned int ulConnection, unsigned int ulKey, unsigned int ulEventMask)
 {
 	ECRESULT		hr = erSuccess;
-
-	Lock();
-
+	lock();
 	if (m_lpSessionGroup)
 		hr = m_lpSessionGroup->AddAdvise(m_sessionID, ulConnection, ulKey, ulEventMask);
 	else
 		hr = KCERR_NOT_INITIALIZED;
-
-	Unlock();
-
+	unlock();
 	return hr;
 }
 
@@ -335,8 +331,7 @@ ECRESULT ECSession::AddChangeAdvise(unsigned int ulConnection, notifySyncState *
 	DB_ROW			lpDBRow;
 	ULONG			ulChangeId = 0;
 
-	Lock();
-
+	lock();
 	if (!m_lpSessionGroup) {
 		er = KCERR_NOT_INITIALIZED;
 		goto exit;
@@ -376,56 +371,43 @@ ECRESULT ECSession::AddChangeAdvise(unsigned int ulConnection, notifySyncState *
 	er = m_lpSessionGroup->AddChangeNotification(m_sessionID, ulConnection, lpSyncState->ulSyncId, ulChangeId);
 
 exit:
-	Unlock();
-
+	unlock();
 	return er;
 }
 
 ECRESULT ECSession::DelAdvise(unsigned int ulConnection)
 {
 	ECRESULT hr = erSuccess;
-
-	Lock();
-
+	lock();
 	if (m_lpSessionGroup)
 		hr = m_lpSessionGroup->DelAdvise(m_sessionID, ulConnection);
 	else
 		hr = KCERR_NOT_INITIALIZED;
-
-	Unlock();
-
+	unlock();
 	return hr;
 }
 
 ECRESULT ECSession::AddNotificationTable(unsigned int ulType, unsigned int ulObjType, unsigned int ulTableId, sObjectTableKey* lpsChildRow, sObjectTableKey* lpsPrevRow, struct propValArray *lpRow)
 {
 	ECRESULT		hr = hrSuccess;
-
-	Lock();
-
+	lock();
 	if (m_lpSessionGroup)
 		hr = m_lpSessionGroup->AddNotificationTable(m_sessionID, ulType, ulObjType, ulTableId, lpsChildRow, lpsPrevRow, lpRow);
 	else
 		hr = KCERR_NOT_INITIALIZED;
-
-	Unlock();
-
+	unlock();
 	return hr;
 }
 
 ECRESULT ECSession::GetNotifyItems(struct soap *soap, struct notifyResponse *notifications)
 {
 	ECRESULT		hr = erSuccess;
-
-	Lock();
-
+	lock();
 	if (m_lpSessionGroup)
 		hr = m_lpSessionGroup->GetNotifyItems(soap, m_sessionID, notifications);
 	else
 		hr = KCERR_NOT_INITIALIZED;
-
-	Unlock();
-
+	unlock();
 	return hr;
 }
 

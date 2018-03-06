@@ -19,6 +19,7 @@
 #include <list>
 #include <memory>
 #include <utility>
+#include <kopano/MAPIErrors.h>
 #include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
 #include "kcore.hpp"
@@ -356,32 +357,30 @@ void* CleanupSyncsTable(void* lpTmpMain){
 	ec_log_info("Start syncs table clean up");
 
 	auto ulSyncLifeTime = atoui(g_lpSessionManager->GetConfig()->GetSetting("sync_lifetime"));
-	if(ulSyncLifeTime == 0)
-		goto exit;
-
+	if (ulSyncLifeTime == 0) {
+		ec_log_info("syncs table clean up done: removed syncs: 0");
+		return nullptr;
+	}
 	er = g_lpSessionManager->CreateSessionInternal(&lpSession);
-	if(er != erSuccess)
-		goto exit;
-
-	lpSession->Lock();
-
+	if (er != erSuccess) {
+		kc_perror("syncs table clean up failed", er);
+		return nullptr;
+	}
+	std::unique_lock<ECSession> holder(*lpSession);
 	er = lpSession->GetDatabase(&lpDatabase);
-	if (er != erSuccess)
-		goto exit;
-	
+	if (er != erSuccess) {
+		kc_perror("syncs table clean up failed", er);
+		return nullptr;
+	}
 	strQuery = "DELETE FROM syncs WHERE sync_time < DATE_SUB(FROM_UNIXTIME("+stringify(time(NULL))+"), INTERVAL " + stringify(ulSyncLifeTime) + " DAY)";
 	er = lpDatabase->DoDelete(strQuery, &ulDeletedSyncs);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
 	if(er == erSuccess)
 		ec_log_info("syncs table clean up done: removed syncs: %d", ulDeletedSyncs);
 	else
-		ec_log_info("syncs table clean up failed: error 0x%08X, removed syncs: %d", er, ulDeletedSyncs);
-
+		ec_log_err("syncs table clean up failed: %s (%x), removed syncs: %d",
+			GetMAPIErrorMessage(kcerr_to_mapierr(er)), er, ulDeletedSyncs);
 	if(lpSession) {
-		lpSession->Unlock(); // Lock the session
+		holder.unlock();
 		g_lpSessionManager->RemoveSessionInternal(lpSession);
 	}
 
@@ -399,31 +398,29 @@ void *CleanupSyncedMessagesTable(void *lpTmpMain)
 
 	ec_log_info("Start syncedmessages table clean up");
 	auto er = g_lpSessionManager->CreateSessionInternal(&lpSession);
-	if(er != erSuccess)
-		goto exit;
-
-	lpSession->Lock();
-
+	if (er != erSuccess) {
+		kc_perror("syncedmessages table clean up failed", er);
+		return nullptr;
+	}
+	std::unique_lock<ECSession> holder(*lpSession);
 	er = lpSession->GetDatabase(&lpDatabase);
-	if (er != erSuccess)
-		goto exit;
-
+	if (er != erSuccess) {
+		kc_perror("syncedmessages table clean up failed", er);
+		return nullptr;
+	}
     strQuery =  "DELETE syncedmessages.* FROM syncedmessages "
                  "LEFT JOIN syncs ON syncs.id = syncedmessages.sync_id " 	/* join with syncs */
                  "WHERE syncs.id IS NULL";									/* with no existing sync, and therefore not being tracked */
 
 	er = lpDatabase->DoDelete(strQuery, &ulDeleted);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
 	if(er == erSuccess)
 		ec_log_info("syncedmessages table clean up done, %d entries removed", ulDeleted);
 	else
-		ec_log_info("syncedmessages table clean up failed, error: 0x%08X, %d entries removed", er, ulDeleted);
+		ec_log_err("syncedmessages table clean up failed: %s (%x), %d entries removed",
+			GetMAPIErrorMessage(kcerr_to_mapierr(er)), er, ulDeleted);
 
 	if(lpSession) {
-		lpSession->Unlock(); // Lock the session
+		holder.unlock();
 		g_lpSessionManager->RemoveSessionInternal(lpSession);
 	}
 

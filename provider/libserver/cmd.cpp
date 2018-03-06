@@ -713,8 +713,7 @@ int KCmdService::logon(const char *user, const char *pass,
 	
 exit:
 	if (lpecSession)
-		lpecSession->Unlock();
-
+		lpecSession->unlock();
 	lpsResponse->er = er;
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
@@ -779,7 +778,7 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 		// when the first validate fails, remove the correct sessionid
 		ulSessionId = newSessionID;
 	} else {
-		er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecAuthSession, true);
+		er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecAuthSession);
 		if (er != erSuccess)
 			goto exit;
 	}
@@ -816,8 +815,7 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 	}
 
 		// delete authsession
-		lpecAuthSession->Unlock();
-		
+		lpecAuthSession->unlock();
 		g_lpSessionManager->RemoveSession(ulSessionId);
 		lpecAuthSession = NULL;
 
@@ -826,8 +824,7 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 
 	} else {
 		// delete authsession
-		lpecAuthSession->Unlock();
-
+		lpecAuthSession->unlock();
 		g_lpSessionManager->RemoveSession(ulSessionId);
 		lpecAuthSession = NULL;
 
@@ -867,10 +864,9 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 
 exit:
 	if (lpecAuthSession != NULL)
-		lpecAuthSession->Unlock();
+		lpecAuthSession->unlock();
 	if (lpecSession)
-		lpecSession->Unlock();
-        
+		lpecSession->unlock();
 	if (er == erSuccess)
 		g_lpStatsCollector->Increment(SCN_LOGIN_SSO);
 	else if (er != KCERR_SSO_CONTINUE)
@@ -899,16 +895,14 @@ int KCmdService::logoff(ULONG64 ulSessionId, unsigned int *result)
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes);
 	LOG_SOAP_DEBUG("%020" PRIu64 ": S logoff", ulSessionId);
-	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, true);
+	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession);
 	if(er != erSuccess)
 		goto exit;
 
 	if (lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD ||
 	    lpecSession->GetAuthMethod() == ECSession::METHOD_SSO)
 		record_logon_time(lpecSession, false);
-
-	lpecSession->Unlock();
-
+	lpecSession->unlock();
     // lpecSession is discarded. It is not locked, so we can do that. We only did the 'validatesession'
     // call to see if the session id existed in the first place, and the request is coming from the correct
     // IP address. Another logoff() call called at the same time may remove the session *here*, in which case the following call
@@ -934,7 +928,7 @@ exit:
 	const char *szFname = #fname; \
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTimes); \
 	LOG_SOAP_DEBUG("%020" PRIu64 ": S %s", ulSessionId, szFname); \
-	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession, true);\
+	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpecSession); \
 	const bool bSupportUnicode = (er == erSuccess ? (lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE) != 0 : false); \
 	const ECStringCompat stringCompat(bSupportUnicode); \
 	if(er != erSuccess) \
@@ -951,7 +945,7 @@ __soapentry_exit: \
 		LOG_SOAP_DEBUG("%020" PRIu64 ": E %s 0x%08x %f %f", ulSessionId, szFname, er, timespec2dbl(endTimes) - timespec2dbl(startTimes), \
 			dur2dbl(decltype(dblStart)::clock::now() - dblStart)); \
 		lpecSession->UpdateBusyState(pthread_self(), SESSION_STATE_SENDING); \
-        lpecSession->Unlock(); \
+		lpecSession->unlock(); \
     } \
     return SOAP_OK;
 
@@ -4233,7 +4227,7 @@ int KCmdService::notifyGetItems(ULONG64 ulSessionId,
 	ECSession *lpSession = NULL;
 	
 	// Check if the session exists, and discard result
-	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpSession, true);
+	er = g_lpSessionManager->ValidateSession(soap, ulSessionId, &lpSession);
 	if(er != erSuccess) {
 		// Directly return with error in er
 		notifications->er = er;
@@ -4242,7 +4236,7 @@ int KCmdService::notifyGetItems(ULONG64 ulSessionId,
 	}
 	
 	// discard lpSession
-	lpSession->Unlock();
+	lpSession->unlock();
 	lpSession = NULL;
 	
     g_lpSessionManager->DeferNotificationProcessing(ulSessionId, soap);
@@ -8568,31 +8562,24 @@ void *SoftDeleteRemover(void *lpTmpMain)
 		ulDeleteTime = atoi(lpszSetting) * 24 * 60 * 60;
 
 	if(ulDeleteTime == 0)
-		goto exit;
-
+		return new(std::nothrow) ECRESULT(erSuccess);
 	er = g_lpSessionManager->CreateSessionInternal(&lpecSession);
-	if(er != erSuccess)
-		goto exit;
-
-	// Lock the session
-	lpecSession->Lock();
-
+	if (er != erSuccess) {
+		kc_perror("Softdelete thread: CreateSessionInternal", er);
+		return new(std::nothrow) ECRESULT(er);
+	}
+	std::unique_lock<ECSession> holder(*lpecSession);
 	ec_log_info("Start scheduled softdelete clean up");
 
 	er = PurgeSoftDelete(lpecSession, ulDeleteTime, &ulMessages, &ulFolders, &ulStores, (bool*)lpTmpMain);
-
-exit:
-	if(ulDeleteTime > 0) {
-		if (er == erSuccess)
-			ec_log_info("Softdelete done: removed %d stores, %d folders, and %d messages", ulStores, ulFolders, ulMessages);
-		else if (er == KCERR_BUSY)
-			ec_log_info("Softdelete already running");
-		else
-			ec_log_info("Softdelete failed: removed %d stores, %d folders, and %d messages", ulStores, ulFolders, ulMessages);
-	}
-
+	if (er == erSuccess)
+		ec_log_info("Softdelete done: removed %d stores, %d folders, and %d messages", ulStores, ulFolders, ulMessages);
+	else if (er == KCERR_BUSY)
+		ec_log_info("Softdelete already running");
+	else
+		ec_log_err("Softdelete failed: removed %d stores, %d folders, and %d messages", ulStores, ulFolders, ulMessages);
 	if(lpecSession) {
-		lpecSession->Unlock(); 
+		holder.unlock();
 		g_lpSessionManager->RemoveSessionInternal(lpecSession);
 	}
 
@@ -9538,12 +9525,15 @@ typedef ECDeferredFunc<ECRESULT, ECRESULT(*)(void*), void*> task_type;
 struct MTOMStreamInfo;
 
 struct MTOMSessionInfo {
+	MTOMSessionInfo(ECSession *s) : lpecSession(s), holder(*s) {}
+
 	ECSession		*lpecSession;
-	ECDatabase		*lpSharedDatabase;
+	std::unique_ptr<ECDatabase> lpSharedDatabase;
 	ECDatabase		*lpDatabase;
 	std::shared_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	ECRESULT er;
-	ECThreadPool	*lpThreadPool;
+	std::unique_ptr<ECThreadPool> lpThreadPool;
+	std::lock_guard<ECSession> holder;
 	MTOMStreamInfo	*lpCurrentWriteStream; /* This is only tracked for cleanup at session exit */
 	MTOMStreamInfo	*lpCurrentReadStream; /* This is only tracked for cleanup at session exit */
 };
@@ -9574,7 +9564,11 @@ static ECRESULT SerializeObject(void *arg)
 	lpStreamInfo->lpSessionInfo->lpSharedDatabase->ThreadInit();
 
 	lpSink = new ECFifoSerializer(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::serialize);
-	er = SerializeMessage(lpStreamInfo->lpSessionInfo->lpecSession, lpStreamInfo->lpSessionInfo->lpSharedDatabase, lpStreamInfo->lpSessionInfo->lpAttachmentStorage.get(), NULL, lpStreamInfo->ulObjectId, MAPI_MESSAGE, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink, true);
+	er = SerializeMessage(lpStreamInfo->lpSessionInfo->lpecSession,
+	     lpStreamInfo->lpSessionInfo->lpSharedDatabase.get(),
+	     lpStreamInfo->lpSessionInfo->lpAttachmentStorage.get(), nullptr,
+	     lpStreamInfo->ulObjectId, MAPI_MESSAGE, lpStreamInfo->ulStoreId,
+	     &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink, true);
 	delete lpSink;
 
 	lpStreamInfo->lpSessionInfo->lpSharedDatabase->ThreadEnd();
@@ -9600,7 +9594,7 @@ static void *MTOMReadOpen(struct soap *soap, void *handle, const char *id,
 
 	if (strncmp(id, "emcas-", 6) == 0) {
 		std::unique_ptr<task_type> ptrTask(new task_type(SerializeObject, lpStreamInfo));
-		if (ptrTask->dispatchOn(lpStreamInfo->lpSessionInfo->lpThreadPool) == false) {
+		if (!ptrTask->dispatchOn(lpStreamInfo->lpSessionInfo->lpThreadPool.get())) {
 			ec_log_err("Failed to dispatch serialization task for \"%s\"", id);
 			soap->error = SOAP_FATAL_ERROR;
 
@@ -9670,12 +9664,6 @@ static void MTOMSessionDone(struct soap *soap, void *param)
 	else if (lpInfo->lpCurrentReadStream != NULL)
         // Same but for MTOMReadClose()
 		MTOMReadClose(soap, lpInfo->lpCurrentReadStream);
-
-    // We can now safely remove sessions, etc since nobody is using them.
-	lpInfo->lpecSession->Unlock();
-	
-	delete lpInfo->lpSharedDatabase;
-	delete lpInfo->lpThreadPool;
 	delete lpInfo;
 }
 
@@ -9695,7 +9683,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 	ECObjectTableList	rows;
 	struct rowSet		*lpRowSet = NULL; // Do not free, used in response data
 	ECODStore			ecODStore;
-	ECDatabase 			*lpBatchDB;
+	std::unique_ptr<ECDatabase> lpBatchDB;
 	unsigned int		ulDepth = 20;
 	unsigned int		ulMode = 0;
 	MTOMSessionInfo		*lpMTOMSessionInfo = NULL;
@@ -9751,7 +9739,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 		return er;
 
 	ulDepth = atoui(lpecSession->GetSessionManager()->GetConfig()->GetSetting("embedded_attachment_limit")) + 1;
-	er = lpecSession->GetAdditionalDatabase(&lpBatchDB);
+	er = lpecSession->GetAdditionalDatabase(&unique_tie(lpBatchDB));
 	if (er != erSuccess)
 		return er;
 	    
@@ -9760,15 +9748,13 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 	lpAttachmentStorage.reset(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
 	if (lpAttachmentStorage == nullptr)
 		return er = KCERR_NOT_ENOUGH_MEMORY;
-	lpMTOMSessionInfo = new MTOMSessionInfo;
+	lpMTOMSessionInfo = new MTOMSessionInfo(lpecSession);
 	lpMTOMSessionInfo->lpCurrentWriteStream = NULL;
 	lpMTOMSessionInfo->lpCurrentReadStream = NULL;
 	lpMTOMSessionInfo->lpAttachmentStorage = lpAttachmentStorage;
-	lpMTOMSessionInfo->lpecSession = lpecSession; // Should be unlocked after MTOM is done
-	lpMTOMSessionInfo->lpecSession->Lock();
-	lpMTOMSessionInfo->lpSharedDatabase = lpBatchDB;
+	lpMTOMSessionInfo->lpSharedDatabase = std::move(lpBatchDB);
 	lpMTOMSessionInfo->er = erSuccess;
-	lpMTOMSessionInfo->lpThreadPool = new ECThreadPool(1);
+	lpMTOMSessionInfo->lpThreadPool.reset(new ECThreadPool(1));
 	soap_info(soap)->fdone = MTOMSessionDone;
 	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 	lpsResponse->sMsgStreams.__ptr = s_alloc<messageStream>(soap, sSourceKeyPairs.__size);
@@ -9847,7 +9833,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
                     
     // The results of this query will be consumed by the MTOMRead function
     if(!strQuery.empty()) {
-        er = lpBatchDB->DoSelectMulti(strQuery);
+		er = lpMTOMSessionInfo->lpSharedDatabase->DoSelectMulti(strQuery);
         if(er != erSuccess)
 			return er;
     }
@@ -9899,7 +9885,7 @@ static void *MTOMWriteOpen(struct soap *soap, void *handle,
 	lpStreamInfo->lpFifoBuffer = new ECFifoBuffer();
 
 	std::unique_ptr<task_type> ptrTask(new task_type(DeserializeObject, lpStreamInfo));
-	if (ptrTask->dispatchOn(lpStreamInfo->lpSessionInfo->lpThreadPool) == false) {
+	if (!ptrTask->dispatchOn(lpStreamInfo->lpSessionInfo->lpThreadPool.get())) {
 		ec_log_err("Failed to dispatch deserialization task");
 		lpStreamInfo->lpSessionInfo->er = KCERR_UNABLE_TO_COMPLETE;
 		soap->error = SOAP_FATAL_ERROR;
@@ -9986,17 +9972,14 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 	std::shared_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
 	if (lpAttachmentStorage == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
-
-	lpMTOMSessionInfo = new MTOMSessionInfo;
+	lpMTOMSessionInfo = new MTOMSessionInfo(lpecSession);
 	lpMTOMSessionInfo->lpCurrentWriteStream = NULL;
 	lpMTOMSessionInfo->lpCurrentReadStream = NULL;
 	lpMTOMSessionInfo->lpAttachmentStorage = lpAttachmentStorage;
-	lpMTOMSessionInfo->lpecSession = lpecSession; // Should be unlocked after MTOM is done
-	lpMTOMSessionInfo->lpecSession->Lock();
 	lpMTOMSessionInfo->lpDatabase = lpDatabase;
 	lpMTOMSessionInfo->lpSharedDatabase = NULL;
 	lpMTOMSessionInfo->er = erSuccess;
-	lpMTOMSessionInfo->lpThreadPool = new ECThreadPool(1);
+	lpMTOMSessionInfo->lpThreadPool.reset(new ECThreadPool(1));
 	soap_info(soap)->fdone = MTOMSessionDone;
 	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 

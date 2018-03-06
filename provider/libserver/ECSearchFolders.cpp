@@ -550,8 +550,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 						ec_log_crit("ECSearchFolders::ProcessMessageChange(): CreateSessionInternal failed %d", er);
 						goto exit;
 					}
-						
-					lpSession->Lock();
+					lpSession->lock();
 				}
 				
 				ecOBStore.ulStoreId = ulStoreId;
@@ -738,7 +737,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
         FreePropTagArray(lpPropTags);
         
     if(lpSession) {
-        lpSession->Unlock();
+		lpSession->unlock();
         m_lpSessionManager->RemoveSessionInternal(lpSession);
     }
     if(lpRowSet)
@@ -959,9 +958,9 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 		return er;
     }
         
-    lpSession->Lock();
+	lpSession->lock();
 	auto cleanup = make_scope_success([&]() {
-		lpSession->Unlock();
+		lpSession->unlock();
 		m_lpSessionManager->RemoveSessionInternal(lpSession);
 		if (lpPropTags != nullptr)
 			FreePropTagArray(lpPropTags);
