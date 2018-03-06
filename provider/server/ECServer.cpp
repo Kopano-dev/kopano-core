@@ -959,13 +959,13 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 		// internal server contols
 		{ "softdelete_lifetime",		"30", CONFIGSETTING_RELOADABLE },	// time expressed in days, 0 == never delete anything
-		{ "cache_cell_size",			"256M", CONFIGSETTING_SIZE },	// default 256 Mb
-		{ "cache_object_size",		"16M", CONFIGSETTING_SIZE },
-		{ "cache_indexedobject_size",	"32M", CONFIGSETTING_SIZE },
-		{ "cache_quota_size",			"1M", CONFIGSETTING_SIZE },		// 1Mb
+		{ "cache_cell_size",			"0", CONFIGSETTING_SIZE },
+		{ "cache_object_size",		"0", CONFIGSETTING_SIZE },
+		{ "cache_indexedobject_size",	"0", CONFIGSETTING_SIZE },
+		{ "cache_quota_size",			"0", CONFIGSETTING_SIZE },
 		{ "cache_quota_lifetime",		"1" },							// 1 minute
 		{ "cache_user_size",			"1M", CONFIGSETTING_SIZE },		// 48 bytes per struct, can hold 21k+ users, allocated 2x (user and ueid cache)
-		{ "cache_userdetails_size",		"25M", CONFIGSETTING_SIZE },		// 120 bytes per struct, can hold 21k+ users (was 2.5Mb, no float in size)
+		{ "cache_userdetails_size",		"0", CONFIGSETTING_SIZE },
 		{ "cache_userdetails_lifetime", "0" },							// 0 minutes - forever
 		{ "cache_acl_size",				"1M", CONFIGSETTING_SIZE },		// 1Mb, acl table cache
 		{ "cache_store_size",			"1M", CONFIGSETTING_SIZE },		// 1Mb, store table cache (storeid, storeguid), 40 bytes
