@@ -21,8 +21,8 @@ try:
 except FileNotFoundError:
     try:
         v = subprocess.check_output(['../../tools/describe_version']).decode('utf-8').strip()[11:]
-    except FileNotFoundError:
-        v = 'dev'
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        v = '0.0.dev0'
 
     metadata = {
         'version': v,
