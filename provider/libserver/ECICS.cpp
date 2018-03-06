@@ -499,15 +499,13 @@ static ECRESULT getchanges_nab(ECSession *lpSession, ECDatabase *lpDatabase,
 	if (ulFolderId == 0) {
 		if (lpSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN)
 			return KCERR_NO_ACCESS;
-	} else {
-		if (ulChangeType == ICS_SYNC_CONTENTS)
-			return lpSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityRead);
-		else if (ulChangeType == ICS_SYNC_HIERARCHY)
-			return lpSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityFolderVisible);
-		else
-			return KCERR_INVALID_TYPE;
+		return erSuccess;
 	}
-	return erSuccess;
+	if (ulChangeType == ICS_SYNC_CONTENTS)
+		return lpSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityRead);
+	else if (ulChangeType == ICS_SYNC_HIERARCHY)
+		return lpSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityFolderVisible);
+	return KCERR_INVALID_TYPE;
 }
 
 static ECRESULT getchanges_contents(struct soap *soap, ECSession *lpSession, ECDatabase *lpDatabase, const SOURCEKEY &sFolderSourceKey, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulFlags, const struct restrictTable *lpsRestrict, unsigned int &ulMaxChange, icsChangesArray *&lpChanges)
@@ -588,34 +586,37 @@ static ECRESULT getchanges_hier1(struct soap *soap, ECDatabase *lpDatabase, cons
 	unsigned int i = 0;
 
 	if ((ulFlags & SYNC_CATCHUP) == 0) {
-		for (auto folder_id : lstFolderIds) {
-			if (folder_id == ulFolderId)
-				/* Do not send the folder itself as a change */
-				continue;
+		lpChanges->__size = 0;
+		return erSuccess;
+	}
 
-			strQuery = "SELECT sourcekey.val_binary, parentsourcekey.val_binary "
-			            "FROM hierarchy "
-			            "JOIN indexedproperties AS sourcekey ON hierarchy.id=sourcekey.hierarchyid AND sourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
-			            "JOIN indexedproperties AS parentsourcekey ON hierarchy.parent=parentsourcekey.hierarchyid AND parentsourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
-			            "WHERE hierarchy.id=" + stringify(folder_id) + " LIMIT 1";
-			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-			if (er != erSuccess)
-				return er;
-			lpDBRow = lpDBResult.fetch_row();
-			auto lpDBLen = lpDBResult.fetch_row_lengths();
-			if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL)
-				continue;
-			lpChanges->__ptr[i].ulChangeId = ulMaxChange; // All items have the latest change ID because this is an initial sync
-			lpChanges->__ptr[i].sSourceKey.__ptr = (unsigned char *)soap_malloc(soap, lpDBLen[0]);
-			lpChanges->__ptr[i].sSourceKey.__size = lpDBLen[0];
-			memcpy(lpChanges->__ptr[i].sSourceKey.__ptr, lpDBRow[0], lpDBLen[0]);
-			lpChanges->__ptr[i].sParentSourceKey.__ptr = (unsigned char *)soap_malloc(soap, lpDBLen[1]);
-			lpChanges->__ptr[i].sParentSourceKey.__size = lpDBLen[1];
-			memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, lpDBRow[1], lpDBLen[1]);
-			lpChanges->__ptr[i].ulChangeType = ICS_FOLDER_NEW;
-			lpChanges->__ptr[i].ulFlags = 0;
-			++i;
-		}
+	for (auto folder_id : lstFolderIds) {
+		if (folder_id == ulFolderId)
+			/* Do not send the folder itself as a change */
+			continue;
+
+		strQuery = "SELECT sourcekey.val_binary, parentsourcekey.val_binary "
+		            "FROM hierarchy "
+		            "JOIN indexedproperties AS sourcekey ON hierarchy.id=sourcekey.hierarchyid AND sourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
+		            "JOIN indexedproperties AS parentsourcekey ON hierarchy.parent=parentsourcekey.hierarchyid AND parentsourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
+		            "WHERE hierarchy.id=" + stringify(folder_id) + " LIMIT 1";
+		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+		if (er != erSuccess)
+			return er;
+		lpDBRow = lpDBResult.fetch_row();
+		auto lpDBLen = lpDBResult.fetch_row_lengths();
+		if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL)
+			continue;
+		lpChanges->__ptr[i].ulChangeId = ulMaxChange; // All items have the latest change ID because this is an initial sync
+		lpChanges->__ptr[i].sSourceKey.__ptr = (unsigned char *)soap_malloc(soap, lpDBLen[0]);
+		lpChanges->__ptr[i].sSourceKey.__size = lpDBLen[0];
+		memcpy(lpChanges->__ptr[i].sSourceKey.__ptr, lpDBRow[0], lpDBLen[0]);
+		lpChanges->__ptr[i].sParentSourceKey.__ptr = (unsigned char *)soap_malloc(soap, lpDBLen[1]);
+		lpChanges->__ptr[i].sParentSourceKey.__size = lpDBLen[1];
+		memcpy(lpChanges->__ptr[i].sParentSourceKey.__ptr, lpDBRow[1], lpDBLen[1]);
+		lpChanges->__ptr[i].ulChangeType = ICS_FOLDER_NEW;
+		lpChanges->__ptr[i].ulFlags = 0;
+		++i;
 	}
 	lpChanges->__size = i;
 	return erSuccess;
@@ -728,24 +729,23 @@ static ECRESULT getchanges_hier(struct soap *soap, ECSession *lpSession,
 			}
 		}
 
-		if (folder_id != 0) {
-			/* Get subfolders for recursion */
-			auto strQuery = "SELECT id FROM hierarchy WHERE parent = " + stringify(folder_id) + " AND type = " + stringify(MAPI_FOLDER) + " AND flags = " + stringify(FOLDER_GENERIC);
-			if (ulFlags & SYNC_NO_SOFT_DELETIONS)
-				strQuery += " AND hierarchy.flags & 1024 = 0";
-			DB_RESULT lpDBResult;
-			DB_ROW lpDBRow;
-			auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-			if (er != erSuccess)
-				return er;
-
-			while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-				if (lpDBRow[0] == nullptr) {
-					ec_log_err("K-1208: Received NULL values from SQL");
-					return KCERR_DATABASE_ERROR; /* this should never happen */
-				}
-				lstFolderIds.emplace_back(atoui(lpDBRow[0]));
+		if (folder_id == 0)
+			continue;
+		/* Get subfolders for recursion */
+		auto strQuery = "SELECT id FROM hierarchy WHERE parent = " + stringify(folder_id) + " AND type = " + stringify(MAPI_FOLDER) + " AND flags = " + stringify(FOLDER_GENERIC);
+		if (ulFlags & SYNC_NO_SOFT_DELETIONS)
+			strQuery += " AND hierarchy.flags & 1024 = 0";
+		DB_RESULT lpDBResult;
+		DB_ROW lpDBRow;
+		auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+		if (er != erSuccess)
+			return er;
+		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
+			if (lpDBRow[0] == nullptr) {
+				ec_log_err("K-1208: Received NULL values from SQL");
+				return KCERR_DATABASE_ERROR; /* this should never happen */
 			}
+			lstFolderIds.emplace_back(atoui(lpDBRow[0]));
 		}
 	}
 
@@ -753,12 +753,9 @@ static ECRESULT getchanges_hier(struct soap *soap, ECSession *lpSession,
 	lstChanges.unique();
 
 	/* We now have both a list of all folders, and and list of changes. */
-	if (ulChangeId == 0) {
+	if (ulChangeId == 0)
 		return getchanges_hier1(soap, lpDatabase, lstFolderIds, ulFolderId, ulFlags, ulMaxChange, lpChanges);
-	} else {
-		return getchanges_hier2(soap, lpDatabase, lstChanges, ulMaxChange, lpChanges);
-	}
-	return erSuccess;
+	return getchanges_hier2(soap, lpDatabase, lstChanges, ulMaxChange, lpChanges);
 }
 
 static ECRESULT getchanges_ab1(struct soap *soap, ECSession *lpSession,
@@ -929,12 +926,9 @@ static ECRESULT getchanges_ab(struct soap *soap, ECSession *lpSession,
 	 * filter correctly does not filter anything.
 	 */
 	lpSession->GetSecurity()->GetUserCompany(&ulCompanyId);
-	if (ulChangeId > 0) {
+	if (ulChangeId > 0)
 		return getchanges_ab1(soap, lpSession, lpDatabase, ulChangeId, ulCompanyId, bAcceptABEID, ulMaxChange, lpChanges);
-	} else {
-		return getchanges_ab2(soap, lpSession, lpDatabase, ulCompanyId, bAcceptABEID, ulMaxChange, lpChanges);
-	}
-	return erSuccess;
+	return getchanges_ab2(soap, lpSession, lpDatabase, ulCompanyId, bAcceptABEID, ulMaxChange, lpChanges);
 }
 
 ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSourceKey, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct restrictTable *lpsRestrict, unsigned int *lpulMaxChangeId, icsChangesArray **lppChanges){
