@@ -426,17 +426,10 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		public:
 		void operator()(void *x) const { s_free(nullptr, x); }
 	};
-	unsigned int dummy;
 	ECDatabase*		lpDatabase = NULL;
-	DB_RESULT lpDBResult;
-	DB_ROW			lpDBRow;
-	DB_LENGTHS		lpDBLen;
 	unsigned int ulMaxChange = 0, ulFolderId = 0;
 	icsChangesArray*lpChanges = NULL;
 	bool			bAcceptABEID = false;
-	unsigned int	cbSourceKeyData = 0;
-	std::list<unsigned int> lstFolderIds, lstChanges;
-	std::unique_ptr<ECGetContentChangesHelper> lpHelper;
 	
 	ec_log(EC_LOGLEVEL_ICS, "K-1200: sourcekey=%s, syncid=%d, changetype=%d, flags=%d", bin2hex(sFolderSourceKey).c_str(), ulSyncId, ulChangeType, ulFlags);
 	auto gcache = g_lpSessionManager->GetCacheManager();
@@ -454,11 +447,15 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		bAcceptABEID = true;
 
 	if(ulChangeType != ICS_SYNC_AB) {
-		er = [&]() -> ECRESULT {
+		er = [](ECSession *lpSession, ECDatabase *lpDatabase, ECCacheManager *gcache, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int &ulMaxChange, SOURCEKEY &sFolderSourceKey, unsigned int &ulFolderId) -> ECRESULT {
+		ECRESULT er;
         // You must first register your sync via setSyncStatus()
 		if (ulSyncId == 0)
 			return er = KCERR_INVALID_PARAMETER;
 
+		DB_RESULT lpDBResult;
+		DB_ROW lpDBRow = nullptr;
+		DB_LENGTHS lpDBLen = nullptr;
         // Add change key and predecessor change list
         if(ulChangeId > 0) {
             // Change ID > 0, which means we will be doing a real differential sync starting from the
@@ -473,18 +470,18 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 				return er;
 			if (lpDBResult.get_num_rows() == 0)
 				return er = KCERR_NOT_FOUND;
-            lpDBRow = lpDBResult.fetch_row();
+			lpDBRow = lpDBResult.fetch_row();
 			if (lpDBRow == nullptr) {
 				ec_log_err("K-1201: No row retrievable"); /* despite get_num_rows>0! */
 				return er = KCERR_DATABASE_ERROR;
 			}
-            lpDBLen = lpDBResult.fetch_row_lengths();
+			lpDBLen = lpDBResult.fetch_row_lengths();
 			if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr || lpDBRow[2] == nullptr) {
 				ec_log_err("K-1202: NULL values were returned from SQL");
 				return er = KCERR_DATABASE_ERROR; /* this should never happen */
             }
-
-            if((dummy = atoui(lpDBRow[2])) != ulChangeType){
+			auto dummy = atoui(lpDBRow[2]);
+			if (dummy != ulChangeType) {
 				ec_log_err("K-1203: unexpected change type %u/%u", dummy, ulChangeType);
 				return er = KCERR_COLLISION;
             }
@@ -538,18 +535,22 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                 er = KCERR_INVALID_TYPE;
         }
 		return er;
-		}();
+		}(lpSession, lpDatabase, gcache, ulSyncId, ulChangeId, ulChangeType, ulMaxChange, sFolderSourceKey, ulFolderId);
 		if (er != erSuccess)
 			return er;
 	}
 
 	if(ulChangeType == ICS_SYNC_CONTENTS){
-		er = [&]() -> ECRESULT {
+		er = [](struct soap *soap, ECSession *lpSession, ECDatabase *lpDatabase, const SOURCEKEY &sFolderSourceKey, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulFlags, const struct restrictTable *lpsRestrict, unsigned int &ulMaxChange, icsChangesArray *&lpChanges) -> ECRESULT {
+		std::unique_ptr<ECGetContentChangesHelper> lpHelper;
+		ECRESULT er;
 		er = ECGetContentChangesHelper::Create(soap, lpSession,
 		     lpDatabase, sFolderSourceKey, ulSyncId, ulChangeId,
 		     ulFlags, lpsRestrict, &unique_tie(lpHelper));
 		if (er != erSuccess)
 			return er;
+		DB_RESULT lpDBResult;
+		DB_ROW lpDBRow;
 		er = lpHelper->QueryDatabase(&lpDBResult);
 		if (er != erSuccess)
 			return er;
@@ -562,7 +563,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		unsigned int length_counter = 0;
 
 		while (lpDBResult && (lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-			lpDBLen = lpDBResult.fetch_row_lengths();
+			auto lpDBLen = lpDBResult.fetch_row_lengths();
 			if (lpDBLen == NULL)
 				continue;
 			memcpy(&col_lengths[length_counter*ncols], lpDBLen, ncols * sizeof(*col_lengths));
@@ -595,17 +596,18 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		if (er != erSuccess)
 			return er;
 		return lpHelper->Finalize(&ulMaxChange, &lpChanges);
-		}();
+		}(soap, lpSession, lpDatabase, sFolderSourceKey, ulSyncId, ulChangeId, ulFlags, lpsRestrict, ulMaxChange, lpChanges);
 		if (er != erSuccess)
 			return er;
 		// Do stuff with lppChanges etc.
 
 	}else if(ulChangeType == ICS_SYNC_HIERARCHY){
-
-		er = [&]() -> ECRESULT {
+		er = [](struct soap *soap, ECSession *lpSession, ECCacheManager *gcache, ECDatabase *lpDatabase, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulFolderId, unsigned int ulFlags, unsigned int &ulMaxChange, struct icsChangesArray *&lpChanges) -> ECRESULT {
+		ECRESULT er;
 		// We traverse the tree by just looking at the current hierarchy. This means we will not traverse into deleted
 		// folders and changes within those deleted folders will therefore never reach whoever is requesting changes. In
 		// practice this shouldn't matter because the folder above will be deleted correctly.
+		std::list<unsigned int> lstFolderIds, lstChanges;
 		lstFolderIds.emplace_back(ulFolderId);
 
 		// Recursive loop through all folders
@@ -622,6 +624,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 			if(ulChangeId != 0){
 				std::unique_ptr<unsigned char[], sfree_delete> lpSourceKeyData;
+				ULONG cbSourceKeyData;
 				if (folder_id != 0 && gcache->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), folder_id, nullptr, &cbSourceKeyData, &unique_tie(lpSourceKeyData)) != erSuccess)
 					continue; // Item is hard deleted?
 
@@ -634,7 +637,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 							
                 if (folder_id != 0)
 					strQuery += "  AND parentsourcekey=" + lpDatabase->EscapeBinary(lpSourceKeyData.get(), cbSourceKeyData);
-
+				DB_RESULT lpDBResult;
+				DB_ROW lpDBRow;
 				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 				if(er != erSuccess)
 					return er;
@@ -653,7 +657,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 				auto strQuery = "SELECT id FROM hierarchy WHERE parent = " + stringify(folder_id) + " AND type = " + stringify(MAPI_FOLDER) + " AND flags = " + stringify(FOLDER_GENERIC);
                 if (ulFlags & SYNC_NO_SOFT_DELETIONS)
                     strQuery += " AND hierarchy.flags & 1024 = 0";
-
+				DB_RESULT lpDBResult;
+				DB_ROW lpDBRow;
                 er = lpDatabase->DoSelect(strQuery, &lpDBResult);
                 if(er != erSuccess)
 					return er;
@@ -674,7 +679,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		// We now have both a list of all folders, and and list of changes.
 
 		if(ulChangeId == 0) {
-			er = [&]() -> ECRESULT {
+			er = [](struct soap *soap, ECDatabase *lpDatabase, const std::list<unsigned int> &lstFolderIds, unsigned int ulFolderId, unsigned int ulFlags, unsigned int &ulMaxChange, struct icsChangesArray *&lpChanges) -> ECRESULT {
+			ECRESULT er;
 		    if (ulFolderId == 0 && (ulFlags & SYNC_CATCHUP) == 0)
 		        // Do not allow initial sync of all server folders
 				return er = KCERR_NO_SUPPORT;
@@ -684,10 +690,11 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 			// Search folder changed folders
 			std::string strQuery = "SELECT MAX(id) FROM changes";
+			DB_RESULT lpDBResult;
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 			if(er != erSuccess)
 				return er;
-			lpDBRow = lpDBResult.fetch_row();
+			auto lpDBRow = lpDBResult.fetch_row();
 			if( lpDBRow == NULL){
 				ec_log_err("K-1209: The \"changes\" table seems to be empty");
 				return er = KCERR_DATABASE_ERROR; /* this should never happen */
@@ -710,7 +717,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                     if(er != erSuccess)
 						return er;
                     lpDBRow = lpDBResult.fetch_row();
-                    lpDBLen = lpDBResult.fetch_row_lengths();
+					auto lpDBLen = lpDBResult.fetch_row_lengths();
                     if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL)
                         continue;
 
@@ -732,11 +739,11 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             }
 			lpChanges->__size = i;
 			return erSuccess;
-			}();
+			}(soap, lpDatabase, lstFolderIds, ulFolderId, ulFlags, ulMaxChange, lpChanges);
 			if (er != erSuccess)
 				return er;
 		} else {
-			er = [&]() -> ECRESULT {
+			er = [](struct soap *soap, ECDatabase *lpDatabase, const std::list<unsigned int> &lstChanges, unsigned int &ulMaxChange, struct icsChangesArray *&lpChanges) -> ECRESULT {
 			// Return all the found changes
 			lpChanges = (icsChangesArray *)soap_malloc(soap, sizeof(icsChangesArray));
 			lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * lstChanges.size());
@@ -745,11 +752,12 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 			for (auto chg_id : lstChanges) {
 				auto strQuery = "SELECT changes.id, changes.sourcekey, changes.parentsourcekey, changes.change_type, changes.flags FROM changes WHERE changes.id=" + stringify(chg_id) + " LIMIT 1";
-				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+				DB_RESULT lpDBResult;
+				auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 				if(er != erSuccess)
 					return er;
-				lpDBRow = lpDBResult.fetch_row();
-				lpDBLen = lpDBResult.fetch_row_lengths();
+				auto lpDBRow = lpDBResult.fetch_row();
+				auto lpDBLen = lpDBResult.fetch_row_lengths();
 				if (lpDBRow == nullptr) {
 					ec_log_err("K-1210: changes.id %d not found", chg_id);
 					return er = KCERR_DATABASE_ERROR;
@@ -780,16 +788,16 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			}
 			lpChanges->__size = i;
 			return erSuccess;
-			}();
+			}(soap, lpDatabase, lstChanges, ulMaxChange, lpChanges);
 			if (er != erSuccess)
 				return er;
 		}
 		return erSuccess;
-		}();
+		}(soap, lpSession, gcache, lpDatabase, ulSyncId, ulChangeId, ulFolderId, ulFlags, ulMaxChange, lpChanges);
 		if (er != erSuccess)
 			return er;
 	} else if(ulChangeType == ICS_SYNC_AB) {
-		er = [&]() -> ECRESULT {
+		er = [](struct soap *soap, ECSession *lpSession, ECDatabase *lpDatabase, unsigned int ulChangeId, bool bAcceptABEID, unsigned int &ulMaxChange, struct icsChangesArray *&lpChanges) -> ECRESULT {
 		// filter on the current logged on company (0 when non-hosted server)
 		// since we need to filter, we can't filter on "viewable
 		// companies" because after updating the allowed viewable, we
@@ -801,18 +809,20 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		lpSession->GetSecurity()->GetUserCompany(&ulCompanyId);
 
 	    if(ulChangeId > 0) {
-			er = [&]() -> ECRESULT {
+			ECRESULT er = [](struct soap *soap, ECSession *lpSession, ECDatabase *lpDatabase, unsigned int ulChangeId, unsigned int ulCompanyId, bool bAcceptABEID, unsigned int &ulMaxChange, struct icsChangesArray *&lpChanges) -> ECRESULT {
 			std::set<unsigned int> sUserIds;
 			ABChangeRecordList lstChanges;
 
 			// sourcekey is actually an entryid .. don't let the naming confuse you
 			auto strQuery = "SELECT id, sourcekey, parentsourcekey, change_type FROM abchanges WHERE change_type & " + stringify(ICS_AB) + " AND id > " + stringify(ulChangeId) + " ORDER BY id";
-            er = lpDatabase->DoSelect(strQuery, &lpDBResult, true);
+			DB_RESULT lpDBResult;
+			DB_ROW lpDBRow;
+			auto er = lpDatabase->DoSelect(strQuery, &lpDBResult, true);
             if(er != erSuccess)
 				return er;
 
 			while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-				lpDBLen = lpDBResult.fetch_row_lengths();
+				auto lpDBLen = lpDBResult.fetch_row_lengths();
 				if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr || lpDBRow[2] == nullptr || lpDBRow[3] == nullptr) {
 					ec_log_err("K-1212: Received NULL values from SQL");
 					return er = KCERR_DATABASE_ERROR; /* this should never happen */
@@ -865,18 +875,19 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
             lpChanges->__size = i;
 			return erSuccess;
-			}();
+			}(soap, lpSession, lpDatabase, ulChangeId, ulCompanyId, bAcceptABEID, ulMaxChange, lpChanges);
 			if (er != erSuccess)
 				return er;
         } else {
-			er = [&]() -> ECRESULT {
+			ECRESULT er = [](struct soap *soap, ECSession *lpSession, ECDatabase *lpDatabase, unsigned int ulCompanyId, bool bAcceptABEID, unsigned int &ulMaxChange, struct icsChangesArray *&lpChanges) -> ECRESULT {
             // During initial sync, just get all the current users from the database and output them as ICS_AB_NEW changes
             ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 			std::string strQuery = "SELECT max(id) FROM abchanges";
-            er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+			DB_RESULT lpDBResult;
+            auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
             if (er != erSuccess)
 				return er;
-            lpDBRow = lpDBResult.fetch_row();
+			auto lpDBRow = lpDBResult.fetch_row();
             if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
                 // You *should* always have something there if you have more than 0 users. However, just to make us compatible with
                 // people truncating the table and then doing a resync, we'll go to change ID 0. This means that at the next sync,
@@ -909,7 +920,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                 unsigned int ulType;
                 
                 lpDBRow = lpDBResult.fetch_row();
-                lpDBLen = lpDBResult.fetch_row_lengths();
+				auto lpDBLen = lpDBResult.fetch_row_lengths();
                 if(lpDBRow == NULL)
                     break;
                     
@@ -940,12 +951,12 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             
             lpChanges->__size = i;
 			return erSuccess;
-			}();
+			}(soap, lpSession, lpDatabase, ulCompanyId, bAcceptABEID, ulMaxChange, lpChanges);
 			if (er != erSuccess)
 				return er;
         }
 		return erSuccess;
-		}();
+		}(soap, lpSession, lpDatabase, ulChangeId, bAcceptABEID, ulMaxChange, lpChanges);
 		if (er != erSuccess)
 			return er;
 	}
