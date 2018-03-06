@@ -883,6 +883,13 @@ HRESULT IMAP::HrCmdSelect(const std::string &strTag,
 	if (hr != hrSuccess)
 		return hr;
 
+	bCurrentFolderReadOnly = bReadOnly;
+	hr = HrRefreshFolderMails(true, !bCurrentFolderReadOnly, &ulUnseen, &ulUIDValidity);
+	if (hr != hrSuccess) {
+		HrResponse(RESP_TAGGED_NO, strTag, command + " error getting mails in folder");
+		return hr;
+	}
+
 	// \Seen = PR_MESSAGE_FLAGS MSGFLAG_READ
 	// \Answered = PR_MSG_STATUS MSGSTATUS_ANSWERED  //PR_LAST_VERB_EXECUTED EXCHIVERB_REPLYTOSENDER EXCHIVERB_REPLYTOALL
 	// \Draft = PR_MSG_STATUS MSGSTATUS_DRAFT        //PR_MESSAGE_FLAGS MSGFLAG_UNSENT
