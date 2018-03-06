@@ -538,7 +538,12 @@ ECRESULT FirstSyncProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
 /**
  * ECGetContentChangesHelper definitions
  **/
-ECRESULT ECGetContentChangesHelper::Create(struct soap *soap, ECSession *lpSession, ECDatabase *lpDatabase, const SOURCEKEY &sFolderSourceKey, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulFlags, struct restrictTable *lpsRestrict, ECGetContentChangesHelper **lppHelper)
+ECRESULT ECGetContentChangesHelper::Create(struct soap *soap,
+    ECSession *lpSession, ECDatabase *lpDatabase,
+    const SOURCEKEY &sFolderSourceKey, unsigned int ulSyncId,
+    unsigned int ulChangeId, unsigned int ulFlags,
+    const struct restrictTable *lpsRestrict,
+    ECGetContentChangesHelper **lppHelper)
 {
 	std::unique_ptr<ECGetContentChangesHelper> lpHelper(
 		new(std::nothrow) ECGetContentChangesHelper(soap, lpSession, lpDatabase,
@@ -557,7 +562,7 @@ ECGetContentChangesHelper::ECGetContentChangesHelper(struct soap *soap,
     ECSession *lpSession, ECDatabase *lpDatabase,
     const SOURCEKEY &sFolderSourceKey, unsigned int ulSyncId,
     unsigned int ulChangeId, unsigned int ulFlags,
-    struct restrictTable *lpsRestrict) :
+    const struct restrictTable *lpsRestrict) :
 	m_soap(soap), m_lpSession(lpSession), m_lpDatabase(lpDatabase),
 	m_lpsRestrict(lpsRestrict), m_sFolderSourceKey(sFolderSourceKey),
 	m_ulSyncId(ulSyncId), m_ulChangeId(ulChangeId), m_ulFlags(ulFlags)
@@ -929,7 +934,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 
 ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> &db_rows,
     const std::vector<DB_LENGTHS> &db_lengths,
-    struct restrictTable *restrict, std::set<SOURCEKEY> *matches_p)
+    const struct restrictTable *restrict, std::set<SOURCEKEY> *matches_p)
 {
 	unsigned int ulObjId = 0;
 	ECObjectTableList lstRows;

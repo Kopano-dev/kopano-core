@@ -1530,7 +1530,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 	return er;
 }
 
-ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable *lpsRestrict,
+ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(const struct restrictTable *lpsRestrict,
     std::list<ULONG> *lpPropTags, ULONG ulLevel)
 {
 	ECRESULT		er = erSuccess;
@@ -1621,7 +1621,7 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable
  * @param[out] lppPropTags PropTagArray with proptags from lpsRestrict and lstPrefix
  * @return ECRESULT
  */
-ECRESULT ECGenericObjectTable::GetRestrictPropTags(struct restrictTable *lpsRestrict,
+ECRESULT ECGenericObjectTable::GetRestrictPropTags(const struct restrictTable *lpsRestrict,
     std::list<ULONG> *lstPrefix, struct propTagArray **lppPropTags)
 {
 	struct propTagArray *lpPropTagArray;
@@ -1652,7 +1652,7 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTags(struct restrictTable *lpsRest
 // Simply matches the restriction with the given data. Make sure you pass all the data
 // needed for the restriction in lpPropVals. (missing columns do not match, ever.)
 ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
-    propValArray *lpPropVals, restrictTable *lpsRestrict,
+    propValArray *lpPropVals, const struct restrictTable *lpsRestrict,
     const SUBRESTRICTIONRESULTS *lpSubResults, const ECLocale &locale,
     bool *lpfMatch, unsigned int *lpulSubRestriction)
 {
