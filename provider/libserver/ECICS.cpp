@@ -454,6 +454,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		bAcceptABEID = true;
 
 	if(ulChangeType != ICS_SYNC_AB) {
+		er = [&]() -> ECRESULT {
         // You must first register your sync via setSyncStatus()
 		if (ulSyncId == 0)
 			return er = KCERR_INVALID_PARAMETER;
@@ -536,12 +537,14 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             else
                 er = KCERR_INVALID_TYPE;
         }
-        
-        if(er != erSuccess)
+		return er;
+		}();
+		if (er != erSuccess)
 			return er;
 	}
 
 	if(ulChangeType == ICS_SYNC_CONTENTS){
+		er = [&]() -> ECRESULT {
 		er = ECGetContentChangesHelper::Create(soap, lpSession,
 		     lpDatabase, sFolderSourceKey, ulSyncId, ulChangeId,
 		     ulFlags, lpsRestrict, &unique_tie(lpHelper));
@@ -591,13 +594,15 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		er = lpHelper->ProcessResidualMessages();
 		if (er != erSuccess)
 			return er;
-		er = lpHelper->Finalize(&ulMaxChange, &lpChanges);
+		return lpHelper->Finalize(&ulMaxChange, &lpChanges);
+		}();
 		if (er != erSuccess)
 			return er;
 		// Do stuff with lppChanges etc.
 
 	}else if(ulChangeType == ICS_SYNC_HIERARCHY){
 
+		er = [&]() -> ECRESULT {
 		// We traverse the tree by just looking at the current hierarchy. This means we will not traverse into deleted
 		// folders and changes within those deleted folders will therefore never reach whoever is requesting changes. In
 		// practice this shouldn't matter because the folder above will be deleted correctly.
@@ -669,6 +674,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		// We now have both a list of all folders, and and list of changes.
 
 		if(ulChangeId == 0) {
+			er = [&]() -> ECRESULT {
 		    if (ulFolderId == 0 && (ulFlags & SYNC_CATCHUP) == 0)
 		        // Do not allow initial sync of all server folders
 				return er = KCERR_NO_SUPPORT;
@@ -725,7 +731,12 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
                 }
             }
 			lpChanges->__size = i;
+			return erSuccess;
+			}();
+			if (er != erSuccess)
+				return er;
 		} else {
+			er = [&]() -> ECRESULT {
 			// Return all the found changes
 			lpChanges = (icsChangesArray *)soap_malloc(soap, sizeof(icsChangesArray));
 			lpChanges->__ptr = (icsChange *)soap_malloc(soap, sizeof(icsChange) * lstChanges.size());
@@ -768,8 +779,17 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 				++i;
 			}
 			lpChanges->__size = i;
+			return erSuccess;
+			}();
+			if (er != erSuccess)
+				return er;
 		}
+		return erSuccess;
+		}();
+		if (er != erSuccess)
+			return er;
 	} else if(ulChangeType == ICS_SYNC_AB) {
+		er = [&]() -> ECRESULT {
 		// filter on the current logged on company (0 when non-hosted server)
 		// since we need to filter, we can't filter on "viewable
 		// companies" because after updating the allowed viewable, we
@@ -781,6 +801,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		lpSession->GetSecurity()->GetUserCompany(&ulCompanyId);
 
 	    if(ulChangeId > 0) {
+			er = [&]() -> ECRESULT {
 			std::set<unsigned int> sUserIds;
 			ABChangeRecordList lstChanges;
 
@@ -843,7 +864,12 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             }
 
             lpChanges->__size = i;
+			return erSuccess;
+			}();
+			if (er != erSuccess)
+				return er;
         } else {
+			er = [&]() -> ECRESULT {
             // During initial sync, just get all the current users from the database and output them as ICS_AB_NEW changes
             ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 			std::string strQuery = "SELECT max(id) FROM abchanges";
@@ -913,7 +939,15 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             }
             
             lpChanges->__size = i;
+			return erSuccess;
+			}();
+			if (er != erSuccess)
+				return er;
         }
+		return erSuccess;
+		}();
+		if (er != erSuccess)
+			return er;
 	}
 
 	er = dtx.commit();
