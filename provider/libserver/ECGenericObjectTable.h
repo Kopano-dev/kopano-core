@@ -74,12 +74,10 @@ public:
 	size_t GetObjectSize(void) const;
 
     struct propVal *m_lpProps;
-    unsigned int m_cProps;
     ECCategory *m_lpParent;
-    unsigned int m_ulDepth;
-    unsigned int m_ulCategory;
-    bool m_fExpanded;
+	unsigned int m_cProps, m_ulDepth, m_ulCategory;
 	unsigned int m_ulUnread = 0, m_ulLeafs = 0;
+	bool m_fExpanded;
 	const ECLocale& m_locale;
 
 	std::map<sObjectTableKey, struct propVal *> m_mapMinMax;

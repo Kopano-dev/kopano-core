@@ -2762,7 +2762,7 @@ size_t ECGenericObjectTable::GetObjectSize(void)
 ECCategory::ECCategory(unsigned int ulCategory, struct propVal *lpProps,
     unsigned int cProps, unsigned int nProps, ECCategory *lpParent,
     unsigned int ulDepth, bool fExpanded, const ECLocale &locale) :
-	m_cProps(nProps), m_lpParent(lpParent), m_ulDepth(ulDepth),
+	m_lpParent(lpParent), m_cProps(nProps), m_ulDepth(ulDepth),
 	m_ulCategory(ulCategory), m_fExpanded(fExpanded), m_locale(locale)
 {
     unsigned int i;
