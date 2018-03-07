@@ -54,7 +54,7 @@ class IMessageProcessor;
 
 class ECGetContentChangesHelper _kc_final {
 public:
-	static ECRESULT Create(struct soap *soap, ECSession *lpSession, ECDatabase *lpDatabase, const SOURCEKEY &sFolderSourceKey, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulFlags, struct restrictTable *lpsRestrict, ECGetContentChangesHelper **lppHelper);
+	static ECRESULT Create(struct soap *, ECSession *, ECDatabase *, const SOURCEKEY &folder, unsigned int sync_id, unsigned int change_id, unsigned int flags, const struct restrictTable *, ECGetContentChangesHelper **);
 	~ECGetContentChangesHelper();
 	
 	ECRESULT QueryDatabase(DB_RESULT *lppDBResult);
@@ -63,10 +63,9 @@ public:
 	ECRESULT Finalize(unsigned int *lpulMaxChange, icsChangesArray **lppChanges);
 	
 private:
-	ECGetContentChangesHelper(struct soap *soap, ECSession *lpSession, ECDatabase *lpDatabase, const SOURCEKEY &sFolderSourceKey, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulFlags, struct restrictTable *lpsRestrict);
+	ECGetContentChangesHelper(struct soap *, ECSession *, ECDatabase *, const SOURCEKEY &folder, unsigned int sync_id, unsigned int change_id, unsigned int flags, const struct restrictTable *);
 	ECRESULT Init();
-	
-	ECRESULT MatchRestrictions(const std::vector<DB_ROW> &db_rows, const std::vector<DB_LENGTHS> &db_lengths, struct restrictTable *lpsRestrict, std::set<SOURCEKEY> *matches);
+	ECRESULT MatchRestrictions(const std::vector<DB_ROW> &db_rows, const std::vector<DB_LENGTHS> &db_lengths, const struct restrictTable *lpsRestrict, std::set<SOURCEKEY> *matches);
 	ECRESULT GetSyncedMessages(unsigned int ulSyncId, unsigned int ulChangeId, LPMESSAGESET lpsetMessages);
 	static bool CompareMessageEntry(const MESSAGESET::value_type &lhs, const MESSAGESET::value_type &rhs);
 	bool MessageSetsDiffer() const;
@@ -79,7 +78,7 @@ private:
 	soap			*m_soap;
 	ECSession		*m_lpSession;
 	ECDatabase		*m_lpDatabase;
-	restrictTable	*m_lpsRestrict;
+	const struct restrictTable *m_lpsRestrict;
 	icsChangesArray *m_lpChanges = nullptr;
 	const SOURCEKEY	&m_sFolderSourceKey;
 	unsigned int	m_ulSyncId;

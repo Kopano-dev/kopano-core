@@ -172,10 +172,9 @@ public:
 	virtual ECRESULT	UpdateRow(unsigned int ulType, unsigned int ulObjId, unsigned int ulFlags);
 	virtual ECRESULT	UpdateRows(unsigned int ulType, std::list<unsigned int> *lstObjId, unsigned int ulFlags, bool bInitialLoad);
 	virtual ECRESULT	LoadRows(std::list<unsigned int> *lstObjId, unsigned int ulFlags);
-
-	static ECRESULT	GetRestrictPropTagsRecursive(struct restrictTable *lpsRestrict, std::list<ULONG> *lpPropTags, ULONG ulLevel);
-	static ECRESULT	GetRestrictPropTags(struct restrictTable *lpsRestrict, std::list<ULONG> *lpPrefixTags, struct propTagArray **lppPropTags);
-	static ECRESULT	MatchRowRestrict(ECCacheManager *, struct propValArray *, struct restrictTable *, const SUBRESTRICTIONRESULTS *, const ECLocale &, bool *match, unsigned int *nsubr = nullptr);
+	static ECRESULT	GetRestrictPropTagsRecursive(const struct restrictTable *, std::list<ULONG> *tags, ULONG level);
+	static ECRESULT	GetRestrictPropTags(const struct restrictTable *, std::list<ULONG> *tags, struct propTagArray **);
+	static ECRESULT	MatchRowRestrict(ECCacheManager *, struct propValArray *, const struct restrictTable *, const SUBRESTRICTIONRESULTS *, const ECLocale &, bool *match, unsigned int *nsubr = nullptr);
 	virtual ECRESULT GetComputedDepth(struct soap *soap, ECSession *lpSession, unsigned int ulObjId, struct propVal *lpProp);
 
 	bool IsMVSet();

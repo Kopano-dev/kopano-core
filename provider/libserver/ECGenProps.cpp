@@ -321,11 +321,8 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
     unsigned int ulParentId, unsigned int ulObjType, struct propVal *lpPropVal)
 {
 	ECRESULT		er = erSuccess;
-	unsigned int	ulRights = 0;
-	bool			bOwner = false;
-	bool			bAdmin = false;
-	unsigned int	ulFlags = 0;
-	unsigned int	ulUserId = 0;
+	bool bOwner = false, bAdmin = false;
+	unsigned int ulRights = 0, ulFlags = 0, ulUserId = 0;
 	char*			lpStoreName = NULL;
 	struct propVal sPropVal;
 	struct propValArray sPropValArray;
@@ -749,8 +746,7 @@ ECRESULT ECGenProps::IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, b
  */
 ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsigned int ulStoreId, unsigned int ulStoreType, char** lppStoreName)
 {
-	unsigned int		ulUserId = 0;
-	unsigned int	    ulCompanyId = 0;
+	unsigned int ulUserId = 0, ulCompanyId = 0;
 	struct propValArray sPropValArray;
 	struct propTagArray sPropTagArray;
 	std::string strFormat;

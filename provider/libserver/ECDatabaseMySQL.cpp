@@ -821,8 +821,7 @@ ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
  */
 ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 {
-	bool			bUpdated = false;
-	bool			bSkipped = false;
+	bool bUpdated = false, bSkipped = false;
 	unsigned int	ulDatabaseRevisionMin = 0;
 	zcp_versiontuple stored_ver;
 	zcp_versiontuple program_ver(PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_MICRO, PROJECT_VERSION_REVISION, Z_UPDATE_LAST);
