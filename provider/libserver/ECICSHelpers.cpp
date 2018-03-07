@@ -77,17 +77,13 @@ std::string CommonQueryCreator::CreateQuery()
 {
 	std::string strQuery = CreateBaseQuery();
 	
-	if(!strQuery.empty()) {
-		
-		if ((m_ulFlags & SYNC_ASSOCIATED) == 0)
-			strQuery += " AND (ISNULL(hierarchy.flags) OR hierarchy.flags & " + stringify(MSGFLAG_ASSOCIATED) + " = 0) ";
-
-		if ((m_ulFlags & SYNC_NORMAL) == 0)
-			strQuery += " AND (ISNULL(hierarchy.flags) OR hierarchy.flags & " + stringify(MSGFLAG_ASSOCIATED) + " = " + stringify(MSGFLAG_ASSOCIATED) + ") ";
-
-		strQuery += CreateOrderQuery();
-	}
-		
+	if (strQuery.empty())
+		return strQuery;
+	if ((m_ulFlags & SYNC_ASSOCIATED) == 0)
+		strQuery += " AND (ISNULL(hierarchy.flags) OR hierarchy.flags & " + stringify(MSGFLAG_ASSOCIATED) + " = 0) ";
+	if ((m_ulFlags & SYNC_NORMAL) == 0)
+		strQuery += " AND (ISNULL(hierarchy.flags) OR hierarchy.flags & " + stringify(MSGFLAG_ASSOCIATED) + " = " + stringify(MSGFLAG_ASSOCIATED) + ") ";
+	strQuery += CreateOrderQuery();
 	return strQuery;
 }
 
