@@ -24,4 +24,4 @@ install-data-local:
 
 uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/kopano_search \
-		${DESTDIR}${pythondir}/kopano_search-0*.egg-info
+		${DESTDIR}${pythondir}/kopano_search-*.egg-info

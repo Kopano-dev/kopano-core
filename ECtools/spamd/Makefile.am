@@ -18,4 +18,4 @@ install-exec-local:
 
 uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/kopano_spamd \
-		${DESTDIR}${pythondir}/kopano_spamd-0*.egg-info
+		${DESTDIR}${pythondir}/kopano_spamd-*.egg-info

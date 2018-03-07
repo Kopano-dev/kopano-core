@@ -18,4 +18,4 @@ install-exec-local:
 
 uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/kopano_cli \
-		${DESTDIR}${pythondir}/kopano_cli-0*.egg-info
+		${DESTDIR}${pythondir}/kopano_cli-*.egg-info

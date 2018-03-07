@@ -14,4 +14,4 @@ install-exec-local:
 
 uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/kopano_presence \
-		${DESTDIR}${pythondir}/kopano_presence-0*.egg-info
+		${DESTDIR}${pythondir}/kopano_presence-*.egg-info

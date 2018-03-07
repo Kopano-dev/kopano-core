@@ -162,6 +162,6 @@ install-exec-local:
 
 uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/MAPI \
-		${DESTDIR}${pythondir}/MAPI-1*.egg-info
+		${DESTDIR}${pythondir}/MAPI-*.egg-info
 
 include ../../global.am
