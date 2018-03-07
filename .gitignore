@@ -75,6 +75,7 @@ stamp-h2
 /ECtools/spamd/kopano_spamd/version.py
 /ECtools/utils/kopano_utils/version.py
 /swig/python/kopano/kopano/version.py
+/swig/python/MAPI/version.py
 
 # /autoconf/
 /autoconf/ltsugar.m4
