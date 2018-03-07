@@ -81,12 +81,9 @@ private:
 	const struct restrictTable *m_lpsRestrict;
 	icsChangesArray *m_lpChanges = nullptr;
 	const SOURCEKEY	&m_sFolderSourceKey;
-	unsigned int	m_ulSyncId;
-	unsigned int	m_ulChangeId;
+	unsigned int m_ulSyncId, m_ulChangeId, m_ulFlags;
 	unsigned int m_ulChangeCnt = 0, m_ulMaxFolderChange = 0;
-	unsigned int	m_ulFlags;
-	MESSAGESET		m_setLegacyMessages;
-	MESSAGESET		m_setNewMessages;
+	MESSAGESET m_setLegacyMessages, m_setNewMessages;
 };
 
 } /* namespace */
