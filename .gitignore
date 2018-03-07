@@ -74,6 +74,7 @@ stamp-h2
 /ECtools/cli/kopano_cli/version.py
 /ECtools/spamd/kopano_spamd/version.py
 /ECtools/utils/kopano_utils/version.py
+/ECtools/presence/kopano_presence/version.py
 /swig/python/kopano/kopano/version.py
 /swig/python/MAPI/version.py
 
