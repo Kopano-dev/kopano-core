@@ -49,13 +49,15 @@ class vcftomapi_impl _kc_final : public vcftomapi {
 	HRESULT get_item(IMessage *) _kc_override;
 
 	private:
-	HRESULT save_props(const std::list<SPropValue> &, IMAPIProp *);
+	HRESULT save_photo(IMessage *);
+	HRESULT save_props(const std::list<SPropValue> &, IMessage *);
 	HRESULT handle_N(VObject *);
 	HRESULT handle_TEL(VObject *);
 	HRESULT handle_EMAIL(VObject *);
 	HRESULT handle_ADR(VObject *);
 	HRESULT handle_UID(VObject *);
 	HRESULT handle_ORG(VObject *);
+	HRESULT handle_PHOTO(VObject *);
 	HRESULT vobject_to_prop(VObject *, SPropValue &, ULONG proptype);
 	HRESULT vobject_to_named_prop(VObject *, SPropValue &, ULONG named_proptype);
 	HRESULT unicode_to_named_prop(const wchar_t *, SPropValue &, ULONG named_proptype);
@@ -331,6 +333,42 @@ HRESULT vcftomapi_impl::handle_ORG(VObject *v)
 	return hrSuccess;
 }
 
+HRESULT vcftomapi_impl::handle_PHOTO(VObject *v)
+{
+	phototype = PHOTO_NONE;
+	bool base64 = false;
+
+	VObjectIterator t;
+	for (initPropIterator(&t, v); moreIteration(&t); ) {
+		auto vv = nextVObject(&t);
+		auto name = vObjectName(vv);
+		std::string value;
+		if(vObjectValueType(vv) == VCVT_USTRINGZ)
+			value = convert_to<std::string>(vObjectUStringZValue(vv));
+		else if(vObjectValueType(vv) == VCVT_STRINGZ)
+			value = convert_to<std::string>(vObjectStringZValue(vv));
+
+		if ((strcmp(name, "TYPE") == 0 && strcmp(value.c_str(), "JPEG") == 0) || strcmp(name, "JPEG") == 0)
+			phototype = PHOTO_JPEG;
+		else if ((strcmp(name, "TYPE") == 0 && strcmp(value.c_str(), "PNG") == 0) || strcmp(name, "PNG") == 0)
+			phototype = PHOTO_PNG;
+		else if ((strcmp(name, "TYPE") == 0 && strcmp(value.c_str(), "GIF") == 0) || strcmp(name, "PNG") == 0)
+			phototype = PHOTO_GIF;
+		else if (strcmp(name, "ENCODING") == 0 && (strcmp(value.c_str(), "b") == 0 || strcmp(value.c_str(), "BASE64")))
+			base64 = true;
+	}
+
+	if (!base64 || vObjectValueType(v) != VCVT_USTRINGZ)
+		phototype = PHOTO_NONE;
+
+	if (phototype == PHOTO_NONE)
+		return hrSuccess;
+
+	auto tmp = convert_to<std::string>(vObjectUStringZValue(v));
+	std::copy_if(tmp.cbegin(), tmp.cend(), std::back_inserter(photo), [&](char c) { return c != ' '; });
+	return hrSuccess;
+}
+
 /**
  * Parses an ICal string (with a certain charset) and converts the
  * data in memory. The real MAPI object can be retrieved using
@@ -406,6 +444,10 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 				return hr;
 		} else if (strcmp(name, "UID") == 0) {
 			auto hr = handle_UID(v);
+			if (hr != hrSuccess)
+				return hr;
+		} else if (strcmp(name, "PHOTO") == 0) {
+			auto hr = handle_PHOTO(v);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -512,6 +554,74 @@ HRESULT vcftomapi_impl::get_item(IMessage *msg)
 	return save_props(props, msg);
 }
 
+HRESULT vcftomapi_impl::save_photo(IMessage *mapiprop)
+{
+	auto bytes = base64_decode(photo);
+	ULONG tmp = 0;
+	object_ptr<IAttach> att;
+	auto hr = mapiprop->CreateAttach(nullptr, 0, &tmp, &~att);
+	if (hr != hrSuccess)
+		return hr;
+
+	object_ptr<IStream> stream;
+	hr = att->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~stream);
+	if (hr != hrSuccess)
+		return hr;
+
+	ULONG written = 0;
+	hr = stream->Write(bytes.c_str(), bytes.size(), &written);
+	if (hr != hrSuccess)
+		return hr;
+
+	if (written != bytes.size())
+		return MAPI_E_CALL_FAILED;
+
+	hr = stream->Commit(0);
+	if (hr != hrSuccess)
+		return hr;
+
+	std::wstring filename, mimetype;
+	switch (phototype) {
+	case PHOTO_JPEG:
+		filename = L"image.jpeg";
+		mimetype = L"image/jpeg";
+		break;
+	case PHOTO_PNG:
+		filename = L"image.png";
+		mimetype = L"image/png";
+		break;
+	case PHOTO_GIF:
+		filename = L"image.gif";
+		mimetype = L"image/gif";
+		break;
+	default:
+		filename = L"unknown";
+		break;
+	}
+
+	SPropValue props[5];
+	props[0].ulPropTag = PR_ATTACHMENT_CONTACTPHOTO;
+	props[0].Value.b = true;
+	props[1].ulPropTag = PR_ATTACH_METHOD;
+	props[1].Value.ul = ATTACH_BY_VALUE;
+	props[2].ulPropTag = PR_ATTACH_LONG_FILENAME_W;
+	props[2].Value.lpszW = const_cast<wchar_t *>(filename.c_str());
+	props[3].ulPropTag = PR_ATTACH_MIME_TAG_W;
+	props[3].Value.lpszW = const_cast<wchar_t *>(mimetype.c_str());
+	props[4].ulPropTag = PR_ATTACHMENT_HIDDEN;
+	props[4].Value.b = true;
+
+	hr = att->SetProps(5, props, nullptr);
+	if (hr != hrSuccess)
+		return hr;
+
+	hr = att->SaveChanges(KEEP_OPEN_READWRITE);
+	if (hr != hrSuccess)
+		return hr;
+
+	return hrSuccess;
+}
+
 /**
  * Helper function for GetItem. Saves all properties converted from
  * ICal to MAPI in the MAPI object. Does not call SaveChanges.
@@ -522,7 +632,7 @@ HRESULT vcftomapi_impl::get_item(IMessage *msg)
  * @return MAPI error code
  */
 HRESULT vcftomapi_impl::save_props(const std::list<SPropValue> &proplist,
-    IMAPIProp *mapiprop)
+    IMessage *mapiprop)
 {
 	memory_ptr<SPropValue> propvals;
 	HRESULT hr = MAPIAllocateBuffer(proplist.size() * sizeof(SPropValue),
@@ -542,6 +652,13 @@ HRESULT vcftomapi_impl::save_props(const std::list<SPropValue> &proplist,
 		else if (PROP_TYPE(prop.ulPropTag) == PT_BINARY)
 			MAPIFreeBuffer(prop.Value.bin.lpb);
 	}
+
+	if (ret != hrSuccess)
+		return ret;
+
+	if (phototype != PHOTO_NONE)
+		ret = save_photo(mapiprop);
+
 	return ret;
 }
 
