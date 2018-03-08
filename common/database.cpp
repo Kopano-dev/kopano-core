@@ -306,7 +306,7 @@ ECRESULT KDatabase::DoSelect(const std::string &q, DB_RESULT *res_p,
 	autolock alk(*this);
 
 	if (Query(q) != erSuccess) {
-		ec_log_err("KDatabase::DoSelect(): query failed: %s: %s", q.c_str(), GetError());
+		ec_log_err("KDatabase::DoSelect(): query failed: \"%s\", query: %s", GetError(), q.c_str());
 		return KCERR_DATABASE_ERROR;
 	}
 
@@ -511,8 +511,8 @@ ECRESULT KDatabase::Query(const std::string &q)
 ECRESULT KDatabase::I_Update(const std::string &q, unsigned int *aff)
 {
 	if (Query(q) != 0) {
-		ec_log_err("KDatabase::I_Update() query failed: %s: %s",
-			q.c_str(), GetError());
+		ec_log_err("KDatabase::I_Update() query failed: \"%s\", query: %s",
+			GetError(), q.c_str());
 		return KCERR_DATABASE_ERROR;
 	}
 	if (aff != nullptr)
