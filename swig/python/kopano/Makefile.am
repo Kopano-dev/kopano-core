@@ -1,4 +1,4 @@
-EXTRA_DIST = setup.py		\
+EXTRA_DIST = setup.cfg setup.py \
 	kopano/__init__.py \
 	kopano/lockfile.py \
 	kopano/daemon/LICENSE \
