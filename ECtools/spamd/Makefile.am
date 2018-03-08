@@ -3,6 +3,7 @@
 dist_sbin_SCRIPTS = kopano-spamd
 
 EXTRA_DIST = setup.py \
+	setup.cfg \
 	kopano_spamd/__init__.py
 
 install-exec-local:

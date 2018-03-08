@@ -2,7 +2,7 @@
 
 dist_sbin_SCRIPTS = kopano-presence
 
-EXTRA_DIST = setup.py kopano_presence/__init__.py kopano_presence/version.py \
+EXTRA_DIST = setup.py setup.cfg kopano_presence/__init__.py kopano_presence/version.py \
              kopano_presence/plugin_xmpp.py kopano_presence/plugin_spreed.py
 
 install-exec-local:

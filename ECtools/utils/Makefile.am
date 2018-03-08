@@ -3,6 +3,7 @@
 dist_sbin_SCRIPTS = kopano-autorespond.py kopano-mr-accept.py kopano-mr-process.py 
 
 EXTRA_DIST = setup.py \
+	setup.cfg \
 	kopano_utils/__init__.py \
 	kopano_utils/autorespond.py \
 	kopano_utils/mr_accept.py \

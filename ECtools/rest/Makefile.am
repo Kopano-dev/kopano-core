@@ -1,6 +1,7 @@
 # -*- Makefile -*-
 
 EXTRA_DIST = setup.py \
+	setup.cfg \
 	kopano_rest/__init__.py
 
 install-exec-local:

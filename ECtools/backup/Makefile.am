@@ -3,6 +3,7 @@
 dist_sbin_SCRIPTS = kopano-backup
 
 EXTRA_DIST = setup.py \
+	setup.cfg \
 	kopano_backup/__init__.py
 
 install-exec-local:
