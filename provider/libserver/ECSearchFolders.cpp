@@ -879,16 +879,16 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 		return er;
 	}
 
-    if(lCount || lUnreadCount) {
-        er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_COUNT, lCount);
-		if (er != erSuccess) {
-			ec_log_crit("ECSearchFolders::ProcessCandidateRows() UpdateFolderCount failed(1) %d", er);
-			return er;
-		}
-		er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_UNREAD, lUnreadCount);
-		if (er != erSuccess)
-			ec_log_crit("ECSearchFolders::ProcessCandidateRows() UpdateFolderCount failed(2) %d", er);
+	if (lCount == 0 && lUnreadCount == 0)
+		return erSuccess;
+	er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_COUNT, lCount);
+	if (er != erSuccess) {
+		ec_log_crit("ECSearchFolders::ProcessCandidateRows() UpdateFolderCount failed(1) %d", er);
+		return er;
 	}
+	er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_UNREAD, lUnreadCount);
+	if (er != erSuccess)
+		ec_log_crit("ECSearchFolders::ProcessCandidateRows() UpdateFolderCount failed(2) %d", er);
     return er;
 }    
 
@@ -1426,23 +1426,18 @@ ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStat
                                stringify(ulStatus) + ")";
 
         er = lpDatabase->DoInsert(strQuery);
-        if(er != erSuccess) {
-		ec_log_err("ECSearchFolders::SetStatus(): DoInsert failed 0x%x", er);
+		if (er != erSuccess)
+			ec_log_err("ECSearchFolders::SetStatus(): DoInsert failed 0x%x", er);
 		return er;
 	}
-    } else {
-		std::string strQuery = "DELETE FROM properties "
+	std::string strQuery = "DELETE FROM properties "
 					"WHERE hierarchyid=" + stringify(ulFolderId) +
 					" AND tag=" + stringify(PROP_ID(PR_EC_SEARCHFOLDER_STATUS)) +
 					" AND type=" + stringify(PROP_TYPE(PR_EC_SEARCHFOLDER_STATUS));
-
-		er = lpDatabase->DoDelete(strQuery);
-		if (er != erSuccess) {
-			ec_log_err("ECSearchFolders::SetStatus(): DELETE failed 0x%x", er);
-			return er;
-		}
-	}
-	return erSuccess;
+	er = lpDatabase->DoDelete(strQuery);
+	if (er != erSuccess)
+		ec_log_err("ECSearchFolders::SetStatus(): DELETE failed 0x%x", er);
+	return er;
 }
 
 // Get all results of a certain search folder in a list of hierarchy IDs
@@ -1701,18 +1696,17 @@ ECRESULT ECSearchFolders::FlushEvents()
 		lstObjectIDs.emplace_back(sRow);
     }
 
-    // Flush last set
-    if(!lstObjectIDs.empty()) {
-        // This is important: make the events unique. We need to do this because the ECStoreObjectTable
-        // row engine does not support requesting the exact same row twice within the same call. If we have
-        // duplicates here, this will filter through to the row engine and cause all kinds of nastiness, mainly
-        // causing the item to be deleted from search folders irrespective of whether it should have been deleted
-        // or added.
-        lstObjectIDs.sort();
-        lstObjectIDs.unique();
-        ProcessMessageChange(ulStoreId, ulFolderId, &lstObjectIDs, ulType);
-    }    
-    
+	if (lstObjectIDs.empty())
+		return erSuccess;
+	// Flush last set
+	// This is important: make the events unique. We need to do this because the ECStoreObjectTable
+	// row engine does not support requesting the exact same row twice within the same call. If we have
+	// duplicates here, this will filter through to the row engine and cause all kinds of nastiness, mainly
+	// causing the item to be deleted from search folders irrespective of whether it should have been deleted
+	// or added.
+	lstObjectIDs.sort();
+	lstObjectIDs.unique();
+	ProcessMessageChange(ulStoreId, ulFolderId, &lstObjectIDs, ulType);
     return erSuccess;
 }
 
