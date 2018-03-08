@@ -56,12 +56,11 @@ ECRESULT ECObjectLock::Unlock()
 	ECRESULT er = erSuccess;
 
 	ECLockManagerPtr ptrLockManager = m_ptrLockManager.lock();
-	if (ptrLockManager) {
-		er = ptrLockManager->UnlockObject(m_ulObjId, m_sessionId);
-		if (er == erSuccess)
-			m_ptrLockManager.reset();
-	}
-
+	if (ptrLockManager == nullptr)
+		return erSuccess;
+	er = ptrLockManager->UnlockObject(m_ulObjId, m_sessionId);
+	if (er == erSuccess)
+		m_ptrLockManager.reset();
 	return er;
 }
 
