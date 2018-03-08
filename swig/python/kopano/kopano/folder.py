@@ -32,8 +32,9 @@ from MAPI.Tags import (
     PR_FOLDER_ASSOCIATED_CONTENTS, PR_CONTAINER_HIERARCHY,
     PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME,
     CONVENIENT_DEPTH, PR_DEPTH, PR_CONTENT_COUNT, PR_ASSOC_CONTENT_COUNT,
-    PR_DELETED_MSG_COUNT, PR_LAST_MODIFICATION_TIME,
-    PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, PR_CHANGE_KEY,
+    PR_DELETED_MSG_COUNT, PR_LAST_MODIFICATION_TIME, PR_MESSAGE_ATTACHMENTS,
+    PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, PR_CHANGE_KEY, PR_EXCEPTION_STARTTIME,
+    PR_EXCEPTION_ENDTIME,
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE
@@ -42,7 +43,7 @@ from MAPI.Struct import (
     MAPIErrorNoAccess, MAPIErrorNotFound, MAPIErrorNoSupport,
     MAPIErrorInvalidEntryid, MAPIErrorCollision, SPropValue,
     MAPINAMEID, SOrRestriction, SAndRestriction, SPropertyRestriction,
-    SContentRestriction, ROWENTRY
+    SSubRestriction, SContentRestriction, ROWENTRY
 )
 from MAPI.Time import unixtime
 
@@ -369,14 +370,21 @@ class Folder(Properties):
             recurring = ids[2] | PT_BOOLEAN
             all_day = ids[3] | PT_BOOLEAN
 
-            # only look at non-recurring items which overlap and all recurring items
             restriction = SOrRestriction([
+                # start/end whole (both recurring and non-recurring appointments)
                 SAndRestriction([
                     SPropertyRestriction(RELOP_GT, enddate, SPropValue(enddate, unixtime(startstamp))),
                     SPropertyRestriction(RELOP_LT, startdate, SPropValue(startdate, unixtime(endstamp))),
                 ]),
+                # exceptions (to recurring appointment)
                 SAndRestriction([
-                    SPropertyRestriction(RELOP_EQ, recurring, SPropValue(recurring, True))
+                    SPropertyRestriction(RELOP_EQ, recurring, SPropValue(recurring, True)),
+                    SSubRestriction(PR_MESSAGE_ATTACHMENTS,
+                        SAndRestriction([
+                            SPropertyRestriction(RELOP_LT, PR_EXCEPTION_STARTTIME, SPropValue(PR_EXCEPTION_STARTTIME, unixtime(endstamp))),
+                            SPropertyRestriction(RELOP_GT, PR_EXCEPTION_ENDTIME, SPropValue(PR_EXCEPTION_ENDTIME, unixtime(startstamp))),
+                        ])
+                    )
                 ])
             ])
 
