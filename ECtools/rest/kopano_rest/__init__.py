@@ -11,6 +11,7 @@ try:
     import ujson as json
 except ImportError:
     import json
+import jwt
 import os
 import sys
 from threading import Thread
@@ -78,7 +79,12 @@ def _server(req):
     userid = req.get_header('X-Kopano-UserEntryID')
     if auth_header and auth_header.startswith('Basic '):
         user, passwd = codecs.decode(codecs.encode(auth_header[6:], 'ascii'), 'base64').split(b':')
-        server = kopano.Server(auth_user=user, auth_pass=passwd)
+        server = kopano.Server(auth_user=user, auth_pass=passwd, parse_args=False)
+    elif auth_header and auth_header.startswith('Bearer '):
+        token = codecs.encode(auth_header[7:], 'ascii')
+        # TODO passing user should not be necessary
+        user = jwt.decode(token, verify=False)['kc.identity']['kc.i.un']
+        server = kopano.Server(auth_user=user, auth_pass=token, parse_args=False, oidc=True)
     elif userid in SESSIONDATA:
         sessiondata = SESSIONDATA[userid]
         mapisession = kc_session_restore(sessiondata)
