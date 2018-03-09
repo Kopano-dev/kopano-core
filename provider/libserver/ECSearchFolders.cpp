@@ -1653,17 +1653,12 @@ void * ECSearchFolders::ProcessThread(void *lpSearchFolders)
     return NULL;
 }
 
-struct FOLDERSORT {
-    bool operator () (const EVENT &a, const EVENT &b) { return a.ulFolderId < b.ulFolderId; } 
-};
-
 // Process all waiting events in an efficient order
 ECRESULT ECSearchFolders::FlushEvents()
 {
     std::list<EVENT> lstEvents;
     ECObjectTableList lstObjectIDs;
     sObjectTableKey sRow;
-    FOLDERSORT sort;
     
     // We do a copy-remove-process cycle here to keep the event queue locked for the least time as possible with
     // 500 events at a time
@@ -1678,7 +1673,7 @@ ECRESULT ECSearchFolders::FlushEvents()
     
     // Sort the items by folder. The order of DELETE and ADDs will remain unchanged. This is important
     // because the order of the incoming ADD or DELETE is obviously important for the final result.
-    lstEvents.sort(sort);
+	lstEvents.sort([](const EVENT &a, const EVENT &b) { return a.ulFolderId < b.ulFolderId; });
     
     // Send the changes grouped by folder (and therefore also by store)
 	unsigned int ulStoreId = 0, ulFolderId = 0;

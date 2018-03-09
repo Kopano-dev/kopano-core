@@ -29,23 +29,6 @@
 
 namespace KC {
 
-class FindChangeAdvise {
-public:
-	FindChangeAdvise(ECSESSIONID ulSession, unsigned int ulConnection)
-		: m_ulSession(ulSession)
-		, m_ulConnection(ulConnection)
-	{ }
-
-	bool operator()(const CHANGESUBSCRIBEMAP::value_type &rhs) const
-	{
-		return rhs.second.ulSession == m_ulSession && rhs.second.ulConnection == m_ulConnection;
-	}
-
-private:
-	ECSESSIONID		m_ulSession;
-	unsigned int	m_ulConnection;
-};
-
 ECSessionGroup::ECSessionGroup(ECSESSIONGROUPID sessionGroupId,
     ECSessionManager *lpSessionManager) :
 	m_sessionGroupId(sessionGroupId), m_lpSessionManager(lpSessionManager)
@@ -170,7 +153,10 @@ ECRESULT ECSessionGroup::DelAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 		// Apparently the connection was used for change notifications.
 		auto iterItem = find_if(m_mapChangeSubscribe.cbegin(),
 			m_mapChangeSubscribe.cend(),
-			FindChangeAdvise(ulSessionId, ulConnection));
+			[&](const CHANGESUBSCRIBEMAP::value_type &r) -> bool {
+				return r.second.ulSession == ulSessionId &&
+				       r.second.ulConnection == ulConnection;
+			});
 		if (iterItem != m_mapChangeSubscribe.cend())
 			m_mapChangeSubscribe.erase(iterItem);
 	} else {
