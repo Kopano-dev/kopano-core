@@ -2721,7 +2721,6 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 	ECDatabase *lpDatabase = NULL;
 	std::string strQuery;
 	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
-	bool bTransaction = false;
 	SOURCEKEY sSourceKey;
 
 	if (IsInternalObject(ulObjectId))
@@ -2738,7 +2737,6 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
 		return er;
-	bTransaction = true;
 	auto dtx = lpDatabase->Begin(er);
 	if(er != erSuccess)
 		return er;
@@ -2773,7 +2771,6 @@ ECRESULT ECUserManagement::MoveLocalObject(unsigned int ulObjectId, objectclass_
 	er = dtx.commit();
 	if(er != erSuccess)
 		return er;
-	bTransaction = false;
 	return m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulObjectId);
 }
 
@@ -2786,7 +2783,6 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	unsigned int ulDeletedRows = 0;
 	std::string strQuery;
 	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
-	bool bTransaction = false;
 	SOURCEKEY sSourceKey;
 	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
 	auto cleanup = make_scope_success([&]() {
@@ -2838,7 +2834,6 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 		ec_log_info("Done auto-deleting %s members", ObjectClassToName(objclass));
 	}
 
-	bTransaction = true;
 	auto dtx = lpDatabase->Begin(er);
 	if(er != erSuccess)
 		return er;
@@ -2877,7 +2872,6 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	er = dtx.commit();
 	if(er != erSuccess)
 		return er;
-	bTransaction = false;
 
 	// Purge the usercache because we also need to remove sendas relations
 	er = cache->PurgeCache(PURGE_CACHE_USEROBJECT | PURGE_CACHE_EXTERNID | PURGE_CACHE_USERDETAILS);
