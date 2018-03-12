@@ -360,126 +360,124 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 		auto iterSD = lpThis->m_mapSessionData.find(row.ulObjId);
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			// default is error prop
-			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
-			lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;
-			lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-
+			auto &m = lpsRowSet->__ptr[i].__ptr[k];
+			m.ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
+			m.Value.ul = KCERR_NOT_FOUND;
+			m.__union = SOAP_UNION_propValData_ul;
 			if (iterSD == lpThis->m_mapSessionData.cend())
 				continue;		// broken; should never happen
 
 			switch (PROP_ID(lpsPropTagArray->__ptr[k])) {
 			case PROP_ID(PR_INSTANCE_KEY):
 				// generate key 
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_bin;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin = s_alloc<xsd__base64Binary>(soap);
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__size = sizeof(sObjectTableKey);
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
-				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &row, sizeof(sObjectTableKey));
+				m.__union = SOAP_UNION_propValData_bin;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
+				m.Value.bin->__size = sizeof(sObjectTableKey);
+				m.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
+				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 
 			case PROP_ID(PR_EC_USERNAME): {
 				std::string strTemp = iterSD->second.username;
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strTemp.length()+1);
-				strcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strTemp.c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_alloc<char>(soap, strTemp.length() + 1);
+				strcpy(m.Value.lpszA, strTemp.c_str());
 				break;
 			}
 			case PROP_ID(PR_EC_STATS_SESSION_ID):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.li = iterSD->second.sessionid;
+				m.__union = SOAP_UNION_propValData_li;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.li = iterSD->second.sessionid;
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_GROUP_ID):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.li = iterSD->second.sessiongroupid;
+				m.__union = SOAP_UNION_propValData_li;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.li = iterSD->second.sessiongroupid;
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_PEER_PID):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.ul = iterSD->second.peerpid;
+				m.__union = SOAP_UNION_propValData_ul;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.ul = iterSD->second.peerpid;
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_CLIENT_VERSION):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, iterSD->second.version.c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, iterSD->second.version.c_str());
 				break;
 		        case PROP_ID(PR_EC_STATS_SESSION_CLIENT_APPLICATION):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, iterSD->second.clientapp.c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, iterSD->second.clientapp.c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_IPADDRESS):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, iterSD->second.srcaddress.c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, iterSD->second.srcaddress.c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_PORT):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.ul = iterSD->second.port;
+				m.__union = SOAP_UNION_propValData_ul;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.ul = iterSD->second.port;
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_URL):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, iterSD->second.url.c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, iterSD->second.url.c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_PROXY):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, iterSD->second.proxyhost.c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, iterSD->second.proxyhost.c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_IDLETIME):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.ul = iterSD->second.idletime;
+				m.__union = SOAP_UNION_propValData_ul;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.ul = iterSD->second.idletime;
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_CAPABILITY):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.ul = iterSD->second.capability;
+				m.__union = SOAP_UNION_propValData_ul;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.ul = iterSD->second.capability;
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_LOCKED):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_b;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.b = iterSD->second.locked;
+				m.__union = SOAP_UNION_propValData_b;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.b = iterSD->second.locked;
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_CPU_USER):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_dbl;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.dbl = iterSD->second.dblUser;
+				m.__union = SOAP_UNION_propValData_dbl;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.dbl = iterSD->second.dblUser;
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_CPU_SYSTEM):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_dbl;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.dbl = iterSD->second.dblSystem;
+				m.__union = SOAP_UNION_propValData_dbl;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.dbl = iterSD->second.dblSystem;
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_CPU_REAL):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_dbl;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.dbl = iterSD->second.dblReal;
+				m.__union = SOAP_UNION_propValData_dbl;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.dbl = iterSD->second.dblReal;
 				break;
 
 			case PROP_ID(PR_EC_STATS_SESSION_BUSYSTATES): {
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_mvszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-
-				lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__size = iterSD->second.busystates.size();
-				lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr = s_alloc<char*>(soap, iterSD->second.busystates.size());
+				m.__union = SOAP_UNION_propValData_mvszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.mvszA.__size = iterSD->second.busystates.size();
+				m.Value.mvszA.__ptr = s_alloc<char *>(soap, iterSD->second.busystates.size());
 
 				gsoap_size_t j = 0;
 				for (const auto &bs : iterSD->second.busystates)
-					lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr[j++] = s_strcpy(soap, bs.fname);
+					m.Value.mvszA.__ptr[j++] = s_strcpy(soap, bs.fname);
 				break;
 			}
 			case PROP_ID(PR_EC_STATS_SESSION_PROCSTATES): {
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_mvszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-
-				lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__size = iterSD->second.busystates.size();
-				lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr = s_alloc<char*>(soap, iterSD->second.busystates.size());
+				m.__union = SOAP_UNION_propValData_mvszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.mvszA.__size = iterSD->second.busystates.size();
+				m.Value.mvszA.__ptr = s_alloc<char *>(soap, iterSD->second.busystates.size());
 
 				gsoap_size_t j = 0;
 				for (const auto &bs : iterSD->second.busystates) {
@@ -490,24 +488,24 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 						szState = "S";
 					else
 						assert(false);
-					lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr[j++] = s_strcpy(soap, szState);
+					m.Value.mvszA.__ptr[j++] = s_strcpy(soap, szState);
 				}
 				break;
 			}
 			case PROP_ID(PR_EC_STATS_SESSION_REQUESTS):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.ul = iterSD->second.requests;
+				m.__union = SOAP_UNION_propValData_ul;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.ul = iterSD->second.requests;
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, iterSD->second.client_application_version.c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, iterSD->second.client_application_version.c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, iterSD->second.client_application_misc.c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, iterSD->second.client_application_misc.c_str());
 				break;
 			}
 		}
@@ -636,19 +634,20 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			// default is error prop
-			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
-			lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;
-			lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
+			auto &m = lpsRowSet->__ptr[i].__ptr[k];
+			m.ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
+			m.Value.ul = KCERR_NOT_FOUND;
+			m.__union = SOAP_UNION_propValData_ul;
 
 			switch (PROP_ID(lpsPropTagArray->__ptr[k])) {
 			case PROP_ID(PR_INSTANCE_KEY):
 				// generate key 
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_bin;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin = s_alloc<xsd__base64Binary>(soap);
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__size = sizeof(sObjectTableKey);
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
-				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &row, sizeof(sObjectTableKey));
+				m.__union = SOAP_UNION_propValData_bin;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
+				m.Value.bin->__size = sizeof(sObjectTableKey);
+				m.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
+				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 
 			case PROP_ID(PR_EC_COMPANY_NAME): {
@@ -656,10 +655,10 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 					break;
 				auto strData = companyDetails.GetPropString(OB_PROP_S_FULLNAME);
 				// do we have a default copy function??
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
-				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_alloc<char>(soap, strData.length() + 1);
+				memcpy(m.Value.lpszA, strData.data(), strData.length() + 1);
 				break;
 			}
 			case PROP_ID(PR_EC_USERNAME): {
@@ -667,10 +666,10 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 					break;
 				auto strData = objectDetails.GetPropString(OB_PROP_S_LOGIN);
 				// do we have a default copy function??
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
-				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_alloc<char>(soap, strData.length() + 1);
+				memcpy(m.Value.lpszA, strData.data(), strData.length() + 1);
 				break;
 			}
 			case PROP_ID(PR_DISPLAY_NAME): {
@@ -678,10 +677,10 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 					break;
 				auto strData = objectDetails.GetPropString(OB_PROP_S_FULLNAME);
 				// do we have a default copy function??
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
-				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_alloc<char>(soap, strData.length() + 1);
+				memcpy(m.Value.lpszA, strData.data(), strData.length() + 1);
 				break;
 			}
 			case PROP_ID(PR_SMTP_ADDRESS): {
@@ -689,23 +688,23 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 					break;
 				auto strData = objectDetails.GetPropString(OB_PROP_S_EMAIL);
 				// do we have a default copy function??
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
-				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_alloc<char>(soap, strData.length() + 1);
+				memcpy(m.Value.lpszA, strData.data(), strData.length() + 1);
 				break;
 			}
 			case PROP_ID(PR_EC_NONACTIVE):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_b;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.b =
+				m.__union = SOAP_UNION_propValData_b;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.b =
 					(OBJECTCLASS_TYPE(objectDetails.GetClass()) == OBJECTTYPE_MAILUSER) &&
 					(objectDetails.GetClass() != ACTIVE_USER);
 				break;
 			case PROP_ID(PR_EC_ADMINISTRATOR):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.ul = objectDetails.GetPropInt(OB_PROP_I_ADMINLEVEL);
+				m.__union = SOAP_UNION_propValData_ul;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.ul = objectDetails.GetPropInt(OB_PROP_I_ADMINLEVEL);
 				break;
 			case PROP_ID(PR_EC_HOMESERVER_NAME): {
 				// should always be this servername, see ::Load()
@@ -713,33 +712,33 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 					break;
 				auto strData = objectDetails.GetPropString(OB_PROP_S_SERVERNAME);
 				// do we have a default copy function??
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
-				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_alloc<char>(soap, strData.length() + 1);
+				memcpy(m.Value.lpszA, strData.data(), strData.length() + 1);
 				break;
 			}
 			case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):
 				if (llStoreSize <= 0)
 					break;
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.li = llStoreSize;
+				m.__union = SOAP_UNION_propValData_li;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.li = llStoreSize;
 				break;
 			case PROP_ID(PR_QUOTA_WARNING_THRESHOLD):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.ul = quotaDetails.llWarnSize / 1024;
+				m.__union = SOAP_UNION_propValData_ul;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.ul = quotaDetails.llWarnSize / 1024;
 				break;
 			case PROP_ID(PR_QUOTA_SEND_THRESHOLD):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.ul = quotaDetails.llSoftSize / 1024;
+				m.__union = SOAP_UNION_propValData_ul;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.ul = quotaDetails.llSoftSize / 1024;
 				break;
 			case PROP_ID(PR_QUOTA_RECEIVE_THRESHOLD):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.ul = quotaDetails.llHardSize / 1024;
+				m.__union = SOAP_UNION_propValData_ul;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.ul = quotaDetails.llHardSize / 1024;
 				break;
 			case PROP_ID(PR_LAST_LOGON_TIME):
 			case PROP_ID(PR_LAST_LOGOFF_TIME):
@@ -759,11 +758,11 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				if (lpDBResult.get_num_rows() == 0)
 					break;
 				auto lpDBRow = lpDBResult.fetch_row();
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.hilo = s_alloc<hiloLong>(soap);
-				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->hi = atoi(lpDBRow[0]);
-				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = atoi(lpDBRow[1]);
+				m.__union = SOAP_UNION_propValData_hilo;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.hilo = s_alloc<hiloLong>(soap);
+				m.Value.hilo->hi = atoi(lpDBRow[0]);
+				m.Value.hilo->lo = atoi(lpDBRow[1]);
 				break;
 			}
 			case PROP_ID(PR_EC_OUTOFOFFICE): {
@@ -779,13 +778,13 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 					er = erSuccess;
 					break;
 				}
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_b;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				m.__union = SOAP_UNION_propValData_b;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				if (lpDBResult.get_num_rows() > 0) {
 					auto lpDBRow = lpDBResult.fetch_row();
-					lpsRowSet->__ptr[i].__ptr[k].Value.b = atoi(lpDBRow[0]);
+					m.Value.b = atoi(lpDBRow[0]);
 				} else {
-					lpsRowSet->__ptr[i].__ptr[k].Value.b = 0;
+					m.Value.b = 0;
 				}
 				break;
 			}
@@ -875,59 +874,60 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			// default is error prop
-			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
-			lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;
-			lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
+			auto &m = lpsRowSet->__ptr[i].__ptr[k];
+			m.ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
+			m.Value.ul = KCERR_NOT_FOUND;
+			m.__union = SOAP_UNION_propValData_ul;
 
 			switch (PROP_ID(lpsPropTagArray->__ptr[k])) {
 			case PROP_ID(PR_INSTANCE_KEY):
 				// generate key 
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_bin;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin = s_alloc<xsd__base64Binary>(soap);
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__size = sizeof(sObjectTableKey);
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
-				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &row, sizeof(sObjectTableKey));
+				m.__union = SOAP_UNION_propValData_bin;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
+				m.Value.bin->__size = sizeof(sObjectTableKey);
+				m.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
+				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 
 			case PROP_ID(PR_EC_COMPANY_NAME): {
 				if (bNoCompanyDetails)
 					break;
 				auto strData = companyDetails.GetPropString(OB_PROP_S_FULLNAME);
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, strData.data());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, strData.data());
 				break;
 			}
 			case PROP_ID(PR_EC_COMPANY_ADMIN): {
 				auto strData = companyDetails.GetPropObject(OB_PROP_O_SYSADMIN).id;
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, strData.data());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, strData.data());
 				break;
 			}
 			case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):
 				if (llStoreSize <= 0)
 					break;
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.li = llStoreSize;
+				m.__union = SOAP_UNION_propValData_li;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.li = llStoreSize;
 				break;
 
 			case PROP_ID(PR_QUOTA_WARNING_THRESHOLD):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k]; // set type to I8 ?
-				lpsRowSet->__ptr[i].__ptr[k].Value.li = quotaDetails.llWarnSize;
+				m.__union = SOAP_UNION_propValData_li;
+				m.ulPropTag = lpsPropTagArray->__ptr[k]; // set type to I8 ?
+				m.Value.li = quotaDetails.llWarnSize;
 				break;
 			case PROP_ID(PR_QUOTA_SEND_THRESHOLD):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.li = quotaDetails.llSoftSize;
+				m.__union = SOAP_UNION_propValData_li;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.li = quotaDetails.llSoftSize;
 				break;
 			case PROP_ID(PR_QUOTA_RECEIVE_THRESHOLD):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.li = quotaDetails.llHardSize;
+				m.__union = SOAP_UNION_propValData_li;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.li = quotaDetails.llHardSize;
 				break;
 			case PROP_ID(PR_EC_QUOTA_MAIL_TIME): {
 				// last mail time ... property in the store of the company (=public)...
@@ -946,11 +946,11 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				if (lpDBResult.get_num_rows() == 0)
 					break;
 				auto lpDBRow = lpDBResult.fetch_row();
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.hilo = s_alloc<hiloLong>(soap);
-				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->hi = atoi(lpDBRow[0]);
-				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = atoi(lpDBRow[1]);
+				m.__union = SOAP_UNION_propValData_hilo;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.hilo = s_alloc<hiloLong>(soap);
+				m.Value.hilo->hi = atoi(lpDBRow[0]);
+				m.Value.hilo->lo = atoi(lpDBRow[1]);
 				break;
 			}
 			};
@@ -1032,59 +1032,60 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 		
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			// default is error prop
-			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
-			lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;
-			lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
+			auto &m = lpsRowSet->__ptr[i].__ptr[k];
+			m.ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
+			m.Value.ul = KCERR_NOT_FOUND;
+			m.__union = SOAP_UNION_propValData_ul;
 
 			switch (PROP_ID(lpsPropTagArray->__ptr[k])) {
 			case PROP_ID(PR_INSTANCE_KEY):
 				// generate key 
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_bin;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin = s_alloc<xsd__base64Binary>(soap);
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__size = sizeof(sObjectTableKey);
-				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
-				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &row, sizeof(sObjectTableKey));
+				m.__union = SOAP_UNION_propValData_bin;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
+				m.Value.bin->__size = sizeof(sObjectTableKey);
+				m.Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
+				memcpy(m.Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 			case PROP_ID(PR_EC_STATS_SERVER_NAME):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, lpStats->m_mapServers[row.ulObjId].c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, lpStats->m_mapServers[row.ulObjId].c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SERVER_HTTPPORT):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.ul = details.GetHttpPort();
+				m.__union = SOAP_UNION_propValData_ul;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.ul = details.GetHttpPort();
 				break;
 			case PROP_ID(PR_EC_STATS_SERVER_SSLPORT):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.ul = details.GetSslPort();
+				m.__union = SOAP_UNION_propValData_ul;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.ul = details.GetSslPort();
 				break;
 			case PROP_ID(PR_EC_STATS_SERVER_HOST):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, details.GetHostAddress().c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, details.GetHostAddress().c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SERVER_PROXYURL):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, details.GetProxyPath().c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, details.GetProxyPath().c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SERVER_HTTPURL):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, details.GetHttpPath().c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, details.GetHttpPath().c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SERVER_HTTPSURL):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, details.GetSslPath().c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, details.GetSslPath().c_str());
 				break;
 			case PROP_ID(PR_EC_STATS_SERVER_FILEURL):
-				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, details.GetFilePath().c_str());
+				m.__union = SOAP_UNION_propValData_lpszA;
+				m.ulPropTag = lpsPropTagArray->__ptr[k];
+				m.Value.lpszA = s_strcpy(soap, details.GetFilePath().c_str());
 				break;
 			};
 		}
