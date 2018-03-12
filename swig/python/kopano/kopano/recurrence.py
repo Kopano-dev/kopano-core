@@ -94,6 +94,7 @@ PATTERN_HJMONTHEND = 0xC
 # see MS-OXOCAL, section 2.2.1.44.5, "AppointmentRecurrencePattern Structure"
 
 # TODO hide low-level variables (self._pattern_type etc)
+# TODO ability to set attributes in any order
 
 class Recurrence(object):
     """Recurrence class"""
@@ -221,16 +222,17 @@ class Recurrence(object):
             return 'end_date'
         elif self.end_type == 0x2022:
             return 'occurrence_count'
-        else:
+        elif self.end_type in (0x2023, 0xFFFFFFFF):
             return 'no_end'
 
     @range_type.setter
     def range_type(self, value):
-        if value == 'occurrence_count':
-            self.end_type = 0x2022
-        elif value == 'end_date':
+        if value == 'end_date':
             self.end_type = 0x2021
-        #TODO fill in
+        elif value == 'occurrence_count':
+            self.end_type = 0x2022
+        elif value == 'no_end':
+            self.end_type = 0x2023
 
     def occurrences(self, start=None, end=None): # XXX fit-to-period
         tz = self.item.get(PidLidTimeZoneStruct)
