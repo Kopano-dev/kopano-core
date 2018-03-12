@@ -1031,6 +1031,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 #ifdef HAVE_KCOIDC_H
 		{ "kcoidc_issuer_identifier", "", 0},
 		{ "kcoidc_insecure_skip_verify", "no", 0},
+		{ "kcoidc_initialize_timeout", "60", 0 },
 #endif
 		{ NULL, NULL },
 	};
@@ -1152,10 +1153,13 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 			ec_log_err("KCOIDC: initialize failed: 0x%llx\n", res);
 			return retval;
 		}
-		res = kcoidc_wait_until_ready(10);
-		if (res != 0) {
-			ec_log_err("KCOIDC: wait_until_ready failed: 0x%llx\n", res);
-			return retval;
+		auto kcoidc_initialize_timeout = atoi(g_lpConfig->GetSetting("kcoidc_initialize_timeout"));
+		if (kcoidc_initialize_timeout > 0) {
+			res = kcoidc_wait_until_ready(kcoidc_initialize_timeout);
+			if (res != 0) {
+				ec_log_err("KCOIDC: wait_until_ready failed: 0x%llx\n", res);
+				return retval;
+			}
 		}
 		kcoidc_initialized = true;
 	}
