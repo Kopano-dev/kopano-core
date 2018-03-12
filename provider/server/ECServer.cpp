@@ -1192,7 +1192,16 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		er = lpDatabaseFactory->CreateDatabase();
 		if (er != erSuccess)
 			return retval;
+	}
+
+	auto attempts = 0;
+	while(attempts < 10) {
 		er = lpDatabaseFactory->CreateDatabaseObject(&lpDatabase, dbError);
+		if (er == erSuccess)
+			break;
+		ec_log_info("Unable to connect, retrying in 10s");
+		sleep(10);
+		attempts++;
 	}
 
 	if(er != erSuccess) {
