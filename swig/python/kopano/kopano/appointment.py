@@ -8,11 +8,14 @@ import datetime
 import sys
 
 from MAPI import (
-    PT_SYSTIME,
+    PT_SYSTIME, MNID_ID, PT_BOOLEAN,
 )
 
 from MAPI.Tags import (
     PR_MESSAGE_RECIPIENTS, PR_RESPONSE_REQUESTED,
+)
+from MAPI.Struct import (
+    MAPINAMEID,
 )
 
 from .attendee import Attendee
@@ -21,6 +24,9 @@ from .recurrence import Recurrence, Occurrence
 
 from .compat import (
     benc as _benc, bdec as _bdec,
+)
+from .defs import (
+    PSETID_Appointment,
 )
 from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
@@ -36,7 +42,10 @@ class Appointment(object):
 
     @property
     def all_day(self):
-        return self.get(PidLidAppointmentSubType, False)
+        named_props = [MAPINAMEID(PSETID_Appointment, MNID_ID, 0x8215)] # TODO factor out
+        ids = self.store.mapiobj.GetIDsFromNames(named_props, 0)
+        proptag = ids[0] | PT_BOOLEAN
+        return self._get_fast(proptag, False)
 
     @property
     def show_as(self):
@@ -52,29 +61,29 @@ class Appointment(object):
             return u'unknown'
 
     @property
-    def start(self): # XXX optimize, guid
-        try:
-            return self.prop('common:34070').value
-        except NotFoundError:
-            pass
+    def start(self):
+        named_props = [MAPINAMEID(PSETID_Appointment, MNID_ID, 33293)] # TODO factor out
+        ids = self.store.mapiobj.GetIDsFromNames(named_props, 0)
+        proptag = ids[0] | PT_SYSTIME
+        return self._get_fast(proptag)
 
     @start.setter
-    def start(self, val):
+    def start(self, val): # TODO update/invalidate cache
         # XXX check if exists?
-        self.create_prop('common:34070', val, PT_SYSTIME)
+        self.create_prop('common:34070', val, PT_SYSTIME) # props are identical
         self.create_prop('appointment:33293', val, PT_SYSTIME)
 
     @property
-    def end(self): # XXX optimize, guid
-        try:
-            return self.prop('common:34071').value
-        except NotFoundError:
-            pass
+    def end(self):
+        named_props = [MAPINAMEID(PSETID_Appointment, MNID_ID, 33294)] # TODO factor out
+        ids = self.store.mapiobj.GetIDsFromNames(named_props, 0)
+        proptag = ids[0] | PT_SYSTIME
+        return self._get_fast(proptag)
 
     @end.setter
-    def end(self, val):
+    def end(self, val): # TODO update/invalidate cache
         # XXX check if exists?
-        self.create_prop('common:34071', val, PT_SYSTIME)
+        self.create_prop('common:34071', val, PT_SYSTIME) # props are identical
         self.create_prop('appointment:33294', val, PT_SYSTIME)
 
     @property
@@ -86,10 +95,13 @@ class Appointment(object):
 
     @property
     def recurring(self):
-        return self.get(PidLidRecurring, False)
+        named_props = [MAPINAMEID(PSETID_Appointment, MNID_ID, 33315)] # TODO factor out
+        ids = self.store.mapiobj.GetIDsFromNames(named_props, 0)
+        proptag = ids[0] | PT_BOOLEAN
+        return self._get_fast(proptag, False)
 
     @recurring.setter
-    def recurring(self, value):
+    def recurring(self, value): # TODO update/invalidate cache
         # TODO cleanup on False?
         if value and not self.recurring:
             Recurrence._init(self)

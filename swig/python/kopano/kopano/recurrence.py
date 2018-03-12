@@ -124,10 +124,24 @@ class Recurrence(object):
 
     @pattern.setter
     def pattern(self, value):
-        if value == 'daily':
+        if value == 'daily': # TODO use mapping
             self.recur_frequency = FREQ_DAY
             self.pattern_type = PATTERN_DAILY
-        # TODO fill in
+        elif value == 'weekly':
+            self.recur_frequency = FREQ_WEEK
+            self.pattern_type = PATTERN_WEEKLY
+        elif value == 'monthly':
+            self.recur_frequency = FREQ_MONTH
+            self.pattern_type = PATTERN_MONTHLY
+        elif value == 'monthly_rel':
+            self.recur_frequency = FREQ_MONTH
+            self.pattern_type = PATTERN_MONTHNTH
+        elif value == 'yearly':
+            self.recur_frequency = FREQ_YEAR
+            self.pattern_type = PATTERN_MONTHLY
+        elif value == 'yearly_rel':
+            self.recur_frequency = FREQ_YEAR
+            self.pattern_type = PATTERN_MONTHNTH
 
     @property
     def weekdays(self):
@@ -138,6 +152,20 @@ class Recurrence(object):
                 if (self.pattern_type_specific[0] >> index ) & 1:
                     days.append(week)
             return days
+
+    @weekdays.setter
+    def weekdays(self, value):
+        if self.pattern_type in (PATTERN_WEEKLY, PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
+            weekdays = {'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4, 'friday': 5, 'saturday': 6}
+            pts = 0
+            for weekday in value:
+                pts |= (1 << weekdays[weekday])
+            self.pattern_type_specific = [pts]
+
+            if self.pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
+                self.pattern_type_specific.append(5) # TODO
+
+        # TODO fill in
 
     @property
     def first_weekday(self):
@@ -153,6 +181,11 @@ class Recurrence(object):
     def monthday(self):
         if self.pattern_type in (PATTERN_MONTHLY, PATTERN_HJMONTHLY):
             return self.pattern_type_specific[0]
+
+    @monthday.setter
+    def monthday(self, value):
+        if self.pattern_type in (PATTERN_MONTHLY, PATTERN_HJMONTHLY):
+            self.pattern_type_specific = [value]
 
     @property
     def index(self):
@@ -178,6 +211,8 @@ class Recurrence(object):
     def interval(self, value):
         if self.pattern_type == PATTERN_DAILY:
             self.period = value*(24*60)
+        else:
+            self.period = value
         # TODO fill in
 
     @property
@@ -193,6 +228,8 @@ class Recurrence(object):
     def range_type(self, value):
         if value == 'occurrence_count':
             self.end_type = 0x2022
+        elif value == 'end_date':
+            self.end_type = 0x2021
         #TODO fill in
 
     def occurrences(self, start=None, end=None): # XXX fit-to-period
@@ -251,8 +288,6 @@ class Recurrence(object):
             basedate_val = basedate_val,
         )
 
-    # TODO functionality below here should be refactored or not visible
-
     @staticmethod
     def _init(item):
         rec = Recurrence(item, parse=False)
@@ -309,6 +344,7 @@ class Recurrence(object):
 
         self.end_type = _utils.unpack_long(value, pos)
         pos += LONG
+
         self.occurrence_count = _utils.unpack_long(value, pos)
         pos += LONG
         self.first_dow = _utils.unpack_long(value, pos)
@@ -588,6 +624,8 @@ class Recurrence(object):
         self.end_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
         end = self.item.end
         self.endtime_offset = end.hour*60 + end.minute
+
+    # TODO functionality below here should be refactored or not visible
 
     @property
     def recurrences(self):

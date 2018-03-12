@@ -148,7 +148,7 @@ class Item(Properties, Contact, Appointment):
         loads=None, attachments=True, create=False, mapiobj=None,
         entryid=None, content_flag=None, cache={}, save=True
     ):
-        self.emlfile = None
+        self._eml = None
         self._architem = None
         self._folder = None
         self.mapiobj = mapiobj
@@ -176,12 +176,12 @@ class Item(Properties, Contact, Appointment):
             if _is_file(vcf):
                 vcf = vcf.read()
 
-            self.emlfile = eml
+            self._eml = eml
 
             if eml is not None:
                 # options for CreateMessage: 0 / MAPI_ASSOCIATED
                 dopt = inetmapi.delivery_options()
-                inetmapi.IMToMAPI(server.mapisession, self.folder.store.mapiobj, None, self.mapiobj, self.emlfile, dopt)
+                inetmapi.IMToMAPI(server.mapisession, self.folder.store.mapiobj, None, self.mapiobj, self._eml, dopt)
                 pass
             elif ics is not None:
                 icm = icalmapi.CreateICalToMapi(self.mapiobj, server.ab, False)
@@ -280,7 +280,7 @@ class Item(Properties, Contact, Appointment):
     def changekey(self):
         """ Item changekey """
 
-        return _benc(self[PR_CHANGE_KEY])
+        return _benc(self._get_fast(PR_CHANGE_KEY))
 
     @property
     def subject(self):
@@ -335,7 +335,7 @@ class Item(Properties, Contact, Appointment):
 
     @property
     def message_class(self):
-        return self.prop(PR_MESSAGE_CLASS_W).value
+        return self._get_fast(PR_MESSAGE_CLASS_W, must_exist=True)
 
     @message_class.setter
     def message_class(self, messageclass):
@@ -689,12 +689,12 @@ class Item(Properties, Contact, Appointment):
         if not stored:
             return self._generate_eml(received_date)
 
-        if self.emlfile is None:
+        if self._eml is None:
             try:
-                self.emlfile = _utils.stream(self.mapiobj, PR_EC_IMAP_EMAIL)
+                self._eml = _utils.stream(self.mapiobj, PR_EC_IMAP_EMAIL)
             except MAPIErrorNotFound:
-                self.emlfile = self._generate_eml(received_date)
-        return self.emlfile
+                self._eml = self._generate_eml(received_date)
+        return self._eml
 
     def vcf(self): # XXX don't we have this builtin somewhere? very basic for now
         vic = icalmapi.create_mapitovcf()
