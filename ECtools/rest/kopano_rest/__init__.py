@@ -1,6 +1,7 @@
 from .version import __version__
 
 import base64
+import calendar
 import codecs
 from collections import OrderedDict
 from contextlib import closing
@@ -15,6 +16,7 @@ import jwt
 import os
 import sys
 from threading import Thread
+import time
 try:
     import urlparse
 except ImportError:
@@ -113,19 +115,28 @@ def _server_store(req, userid):
     store = _store(server, userid)
     return server, store
 
-def _date(d, local=False, time=True):
+def _date(d, local=False, show_time=True):
     if d is None:
         return '0001-01-01T00:00:00Z'
     fmt = '%Y-%m-%d'
-    if time:
+    if show_time:
         fmt += 'T%H:%M:%S'
     if d.microsecond:
         fmt += '.%f'
     if not local:
         fmt += 'Z'
+    # TODO make pyko not assume naive localtime..
+    seconds = time.mktime(d.timetuple())
+    d = datetime.datetime.utcfromtimestamp(seconds)
     return d.strftime(fmt)
 
-def _naive_utc(d): # TODO make pyko not assume naive UTC..
+def set_date(item, field, arg):
+    d = dateutil.parser.parse(arg['dateTime'])
+    seconds = calendar.timegm(d.timetuple())
+    d = datetime.datetime.fromtimestamp(seconds)
+    setattr(item, field, d)
+
+def _naive_local(d): # TODO make pyko not assume naive localtime..
     if d.tzinfo is not None:
         return d.astimezone(datetime.timezone.utc).replace(tzinfo=None)
     else:
@@ -133,8 +144,8 @@ def _naive_utc(d): # TODO make pyko not assume naive UTC..
 
 def _start_end(req):
     args = urlparse.parse_qs(req.query_string)
-    start = _naive_utc(dateutil.parser.parse(args['startDateTime'][0]))
-    end = _naive_utc(dateutil.parser.parse(args['endDateTime'][0]))
+    start = _naive_local(dateutil.parser.parse(args['startDateTime'][0]))
+    end = _naive_local(dateutil.parser.parse(args['endDateTime'][0]))
     return start, end
 
 class Resource(object):
@@ -828,10 +839,6 @@ def attendees_json(item):
         result.append(data)
     return result
 
-def setdate(item, field, arg):
-    date = dateutil.parser.parse(arg['dateTime'])
-    setattr(item, field, date)
-
 def event_type(item):
     if item.recurring:
         if isinstance(item, kopano.Occurrence):
@@ -873,8 +880,8 @@ class EventResource(ItemResource):
 
     set_fields = OrderedDict()
     set_fields['subject'] = lambda item, arg: setattr(item, 'subject', arg)
-    set_fields['start'] = lambda item, arg: setdate(item, 'start', arg)
-    set_fields['end'] = lambda item, arg: setdate(item, 'end', arg)
+    set_fields['start'] = lambda item, arg: set_date(item, 'start', arg)
+    set_fields['end'] = lambda item, arg: set_date(item, 'end', arg)
     set_fields['recurrence'] = recurrence_set
 
     # TODO delta functionality seems to include expanding recurrences!? check with MSGE
