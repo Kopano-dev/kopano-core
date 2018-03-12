@@ -158,10 +158,8 @@ private:
 	AUTHMETHOD		m_ulAuthMethod;
 	int			m_ulConnectingPid;
 	ECSESSIONGROUPID m_ecSessionGroupId;
-	std::string		m_strClientVersion;
+	std::string m_strClientVersion, m_strClientApp, m_strUsername;
 	unsigned int		m_ulClientVersion;
-	std::string		m_strClientApp;
-	std::string		m_strUsername;
 
 	typedef std::map<unsigned int, ECObjectLock>	LockMap;
 	std::mutex m_hLocksLock;

@@ -505,14 +505,12 @@ void ECSessionManager::RemoveSessionInternal(ECSession *lpSession)
 }
 
 ECRESULT ECSessionManager::RemoveSession(ECSESSIONID sessionID){
-	BTSession	*lpSession	= NULL;
-
 	m_stats->inc(SCN_SESSIONS_DELETED);
 
 	// Make sure no other thread can read or write the sessions list
 	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	// Get a session, don't lock it ourselves
-	lpSession = GetSession(sessionID, false);
+	auto lpSession = GetSession(sessionID, false);
 	// Remove the session from the list. No other threads can start new
 	// requests on the session after this point
 	m_mapSessions.erase(sessionID);
@@ -1270,10 +1268,9 @@ ECLocale ECSessionManager::GetSortLocale(ULONG ulStoreId)
 ECRESULT ECSessionManager::RemoveBusyState(ECSESSIONID ecSessionId, pthread_t thread)
 {
 	ECRESULT er = erSuccess;
-	BTSession *lpSession = NULL;
 	ECSession *lpECSession = NULL;
 	std::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
-	lpSession = GetSession(ecSessionId, true);
+	auto lpSession = GetSession(ecSessionId, true);
 	l_cache.unlock();
 	if(!lpSession)
 		goto exit;
