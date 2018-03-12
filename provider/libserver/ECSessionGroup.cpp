@@ -320,7 +320,7 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 			// create ECNotification
 			ECNotification notify(notifyItem);
 			notify.SetConnection(iterItem->second.ulConnection);
-			m_listNotification.emplace_back(notify);
+			m_listNotification.emplace_back(std::move(notify));
 			mapInserted[iterItem->second.ulSession]++;
 		}
 	}
@@ -355,7 +355,7 @@ ECRESULT ECSessionGroup::AddChangeNotification(ECSESSIONID ulSessionId, unsigned
 	// create ECNotification
 	ECNotification notify(notifyItem);
 	notify.SetConnection(ulConnection);
-	m_listNotification.emplace_back(notify);
+	m_listNotification.emplace_back(std::move(notify));
 	l_note.unlock();
 
 	// Since we now have a notification ready to send, tell the session manager that we have something to send. Since
