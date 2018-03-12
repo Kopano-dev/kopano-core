@@ -38,6 +38,10 @@
 
 #include <algorithm>
 
+#ifdef LINUX
+#include <sys/sysinfo.h>
+#endif
+
 namespace KC {
 
 #define LOG_CACHE_DEBUG(_msg, ...) \
@@ -90,6 +94,45 @@ ECCacheManager::ECCacheManager(ECConfig *lpConfig,
 , m_PropToObjectCache("index1", atoll(lpConfig->GetSetting("cache_indexedobject_size")), 0)
 , m_ObjectToPropCache("index2", atoll(lpConfig->GetSetting("cache_indexedobject_size")), 0)
 {
+	if (atoll(lpConfig->GetSetting("cache_cell_size")) == 0) {
+		#ifdef LINUX
+		struct sysinfo s;
+		auto res = sysinfo(&s);
+		if (res == 0)
+			m_CellCache.AddToSize(256 * 1000 * 1024);
+		m_CellCache.AddToSize(std::max(size_t(1 * 1000 * 1000 * 1024), reinterpret_cast<size_t>(s.totalram / 4)));
+		#else
+		m_CellCache.AddToSize(256 * 1000 * 1024);
+		#endif
+		ec_log_info("Setting cell cache size: %lu", m_CellCache.Size());
+	}
+
+	auto cell_cache_size = m_CellCache.Size();
+
+	if (atoll(lpConfig->GetSetting("cache_object_size")) == 0) {
+		m_ObjectsCache.AddToSize(std::min(size_t(16 * 1000 * 1024), cell_cache_size / 16));
+		ec_log_info("Setting object cache size: %lu", m_ObjectsCache.Size());
+	}
+
+	if (atoll(lpConfig->GetSetting("cache_indexedobject_size")) == 0) {
+		m_PropToObjectCache.AddToSize(std::min(size_t(32 * 1000 * 1024), cell_cache_size / 8));
+		m_ObjectToPropCache.AddToSize(std::min(size_t(32 * 1000 * 1024), cell_cache_size / 8));
+		ec_log_info("Setting indexedobject cache size: %lu", m_PropToObjectCache.Size());
+	}
+
+	if (atoll(lpConfig->GetSetting("cache_quota_size")) == 0) {
+		m_QuotaCache.AddToSize(std::min(size_t(1 * 1000 * 1024), cell_cache_size / 256));
+		m_QuotaUserDefaultCache.AddToSize(std::min(size_t(1 * 1000 * 1024), cell_cache_size / 256));
+		ec_log_info("Setting quota cache size: %lu", m_QuotaCache.Size());
+	}
+
+	if (atoll(lpConfig->GetSetting("cache_userdetails_size")) == 0) {
+		m_UserObjectCache.AddToSize(std::min(size_t(25 * 1000 * 1024), cell_cache_size / 10));
+		m_UEIdObjectCache.AddToSize(std::min(size_t(25 * 1000 * 1024), cell_cache_size / 10));
+		m_UserObjectDetailsCache.AddToSize(std::min(size_t(25 * 1000 * 1024), cell_cache_size / 10));
+		ec_log_info("Setting userdetails cache size: %lu", m_UserObjectCache.Size());
+	}
+
 	/* Initial cleaning/initialization of cache */
 	PurgeCache(PURGE_CACHE_ALL);
 }
