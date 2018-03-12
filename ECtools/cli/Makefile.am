@@ -3,6 +3,7 @@
 dist_sbin_SCRIPTS = kopano-cli
 
 EXTRA_DIST = setup.py \
+	setup.cfg \
 	kopano_cli/__init__.py
 
 install-exec-local:
@@ -18,4 +19,4 @@ install-exec-local:
 
 uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/kopano_cli \
-		${DESTDIR}${pythondir}/kopano_cli-0*.egg-info
+		${DESTDIR}${pythondir}/kopano_cli-*.egg-info

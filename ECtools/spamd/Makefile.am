@@ -3,6 +3,7 @@
 dist_sbin_SCRIPTS = kopano-spamd
 
 EXTRA_DIST = setup.py \
+	setup.cfg \
 	kopano_spamd/__init__.py
 
 install-exec-local:
@@ -18,4 +19,4 @@ install-exec-local:
 
 uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/kopano_spamd \
-		${DESTDIR}${pythondir}/kopano_spamd-0*.egg-info
+		${DESTDIR}${pythondir}/kopano_spamd-*.egg-info

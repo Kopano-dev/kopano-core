@@ -1,6 +1,7 @@
 # -*- Makefile -*-
 
 EXTRA_DIST = setup.py \
+	setup.cfg \
 	kopano_rest/__init__.py
 
 install-exec-local:
@@ -16,4 +17,4 @@ install-exec-local:
 
 uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/kopano_rest \
-		${DESTDIR}${pythondir}/kopano_rest-0*.egg-info
+		${DESTDIR}${pythondir}/kopano_rest-*.egg-info

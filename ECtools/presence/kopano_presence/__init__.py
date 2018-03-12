@@ -1,4 +1,6 @@
 #!/usr/bin/python
+from .version import __version__
+
 from copy import deepcopy
 import hashlib
 import hmac

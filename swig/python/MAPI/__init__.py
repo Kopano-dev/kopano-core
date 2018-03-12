@@ -2,6 +2,8 @@ import sys
 
 from MAPICore import *
 
+from .version import __version__
+
 unicode = False
 
 mod_struct = sys.modules.get('MAPI.Struct')

@@ -2,7 +2,7 @@
 
 dist_sbin_SCRIPTS = kopano-presence
 
-EXTRA_DIST = setup.py kopano_presence/__init__.py \
+EXTRA_DIST = setup.py setup.cfg kopano_presence/__init__.py kopano_presence/version.py \
              kopano_presence/plugin_xmpp.py kopano_presence/plugin_spreed.py
 
 install-exec-local:
@@ -14,4 +14,4 @@ install-exec-local:
 
 uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/kopano_presence \
-		${DESTDIR}${pythondir}/kopano_presence-0*.egg-info
+		${DESTDIR}${pythondir}/kopano_presence-*.egg-info

@@ -3,6 +3,7 @@
 dist_sbin_SCRIPTS = kopano-backup
 
 EXTRA_DIST = setup.py \
+	setup.cfg \
 	kopano_backup/__init__.py
 
 install-exec-local:
@@ -18,4 +19,4 @@ install-exec-local:
 
 uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/kopano_backup \
-		${DESTDIR}${pythondir}/kopano_backup-0*.egg-info
+		${DESTDIR}${pythondir}/kopano_backup-*.egg-info

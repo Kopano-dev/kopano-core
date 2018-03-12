@@ -1,4 +1,6 @@
 #!/usr/bin/python
+from .version import __version__
+
 import csv
 import time
 import sys
