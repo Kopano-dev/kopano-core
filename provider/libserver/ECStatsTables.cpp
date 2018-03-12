@@ -172,8 +172,6 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
     struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	auto lpThis = static_cast<ECSystemStatsTable *>(lpGenericThis);
-	gsoap_size_t i;
-
 	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
@@ -189,13 +187,13 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
 
 	// Allocate memory for all rows
-	for (i = 0; i < lpsRowSet->__size; ++i) {
+	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
 		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
 		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
-	i = 0;
+	gsoap_size_t i = 0;
 	for (const auto &row : *lpRowList) {
 		auto iterSD = lpThis->m_mapStatData.find(row.ulObjId);
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
@@ -274,15 +272,13 @@ ECRESULT ECSessionStatsTable::Load()
 {
 	sObjectTableKey sRowItem;
 	ECSessionManager *lpSessionManager = lpSession->GetSessionManager();
-	unsigned int i;
-
 	id = 0;
 	// get all data items available
 	// since the table is too volatile, collect all the data at once, and not in QueryRowData
 	lpSessionManager->ForEachSession(this->GetSessionData, (void*)this);
 
 	// add all items to the keytable
-	for (i = 0; i < id; ++i)
+	for (unsigned int i = 0; i < id; ++i)
 		// Use MAPI_STATUS as ulObjType for the key table .. this param may be removed in the future..?
 		UpdateRow(ECKeyTable::TABLE_ROW_ADD, i, 0);
 	return erSuccess;
@@ -338,9 +334,6 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
     struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	auto lpThis = static_cast<ECSessionStatsTable *>(lpGenericThis);
-	gsoap_size_t i;
-	std::string strTemp;
-
 	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
@@ -356,17 +349,16 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
 
 	// Allocate memory for all rows
-	for (i = 0; i < lpsRowSet->__size; ++i) {
+	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
 		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
 		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
-	i = 0;
+	gsoap_size_t i = 0;
 	for (const auto &row : *lpRowList) {
 		auto iterSD = lpThis->m_mapSessionData.find(row.ulObjId);
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
-			gsoap_size_t j;
 			// default is error prop
 			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
 			lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;
@@ -386,13 +378,14 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 
-			case PROP_ID(PR_EC_USERNAME):
-				strTemp = iterSD->second.username;
+			case PROP_ID(PR_EC_USERNAME): {
+				std::string strTemp = iterSD->second.username;
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strTemp.length()+1);
 				strcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strTemp.c_str());
 				break;
+			}
 			case PROP_ID(PR_EC_STATS_SESSION_ID):
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
@@ -469,25 +462,26 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				lpsRowSet->__ptr[i].__ptr[k].Value.dbl = iterSD->second.dblReal;
 				break;
 
-			case PROP_ID(PR_EC_STATS_SESSION_BUSYSTATES):
+			case PROP_ID(PR_EC_STATS_SESSION_BUSYSTATES): {
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_mvszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 
 				lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__size = iterSD->second.busystates.size();
 				lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr = s_alloc<char*>(soap, iterSD->second.busystates.size());
 
-				j = 0;
+				gsoap_size_t j = 0;
 				for (const auto &bs : iterSD->second.busystates)
 					lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr[j++] = s_strcpy(soap, bs.fname);
 				break;
-			case PROP_ID(PR_EC_STATS_SESSION_PROCSTATES):
+			}
+			case PROP_ID(PR_EC_STATS_SESSION_PROCSTATES): {
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_mvszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 
 				lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__size = iterSD->second.busystates.size();
 				lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr = s_alloc<char*>(soap, iterSD->second.busystates.size());
 
-				j = 0;
+				gsoap_size_t j = 0;
 				for (const auto &bs : iterSD->second.busystates) {
 					const char *szState = "";
 					if (bs.state == SESSION_STATE_PROCESSING)
@@ -499,6 +493,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 					lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr[j++] = s_strcpy(soap, szState);
 				}
 				break;
+			}
 			case PROP_ID(PR_EC_STATS_SESSION_REQUESTS):
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
@@ -593,18 +588,12 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
     const struct propTagArray *lpsPropTagArray, const void *lpObjectData,
     struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	gsoap_size_t i;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	ECDatabase *lpDatabase = NULL;
 	long long llStoreSize = 0;
-	objectdetails_t objectDetails;
-	objectdetails_t companyDetails;
+	objectdetails_t objectDetails, companyDetails;
 	quotadetails_t quotaDetails;
-	bool bNoObjectDetails = false;
-	bool bNoQuotaDetails = false;
-	std::string strData;
 	DB_RESULT lpDBResult;
-	std::string strQuery;
 
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
@@ -625,15 +614,15 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
 
 	// Allocate memory for all rows
-	for (i = 0; i < lpsRowSet->__size; ++i) {
+	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
 		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
 		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
-	i = 0;
+	gsoap_size_t i = 0;
 	for (const auto &row : *lpRowList) {
-		bNoObjectDetails = bNoQuotaDetails = false;
+		bool bNoObjectDetails = false, bNoQuotaDetails = false;
 
 		if (lpUserManagement->GetObjectDetails(row.ulObjId, &objectDetails) != erSuccess)
 			// user gone missing since first list, all props should be set to ignore
@@ -662,46 +651,50 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 
-			case PROP_ID(PR_EC_COMPANY_NAME):
+			case PROP_ID(PR_EC_COMPANY_NAME): {
 				if (bNoObjectDetails || lpUserManagement->GetObjectDetails(objectDetails.GetPropInt(OB_PROP_I_COMPANYID), &companyDetails) != erSuccess)
 					break;
-				strData = companyDetails.GetPropString(OB_PROP_S_FULLNAME);
+				auto strData = companyDetails.GetPropString(OB_PROP_S_FULLNAME);
 				// do we have a default copy function??
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
 				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
 				break;
-			case PROP_ID(PR_EC_USERNAME):
+			}
+			case PROP_ID(PR_EC_USERNAME): {
 				if (bNoObjectDetails)
 					break;
-				strData = objectDetails.GetPropString(OB_PROP_S_LOGIN);
+				auto strData = objectDetails.GetPropString(OB_PROP_S_LOGIN);
 				// do we have a default copy function??
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
 				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
 				break;
-			case PROP_ID(PR_DISPLAY_NAME):
+			}
+			case PROP_ID(PR_DISPLAY_NAME): {
 				if (bNoObjectDetails)
 					break;
-				strData = objectDetails.GetPropString(OB_PROP_S_FULLNAME);
+				auto strData = objectDetails.GetPropString(OB_PROP_S_FULLNAME);
 				// do we have a default copy function??
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
 				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
 				break;
-			case PROP_ID(PR_SMTP_ADDRESS):
+			}
+			case PROP_ID(PR_SMTP_ADDRESS): {
 				if (bNoObjectDetails)
 					break;
-				strData = objectDetails.GetPropString(OB_PROP_S_EMAIL);
+				auto strData = objectDetails.GetPropString(OB_PROP_S_EMAIL);
 				// do we have a default copy function??
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
 				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
 				break;
+			}
 			case PROP_ID(PR_EC_NONACTIVE):
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_b;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
@@ -714,17 +707,18 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].Value.ul = objectDetails.GetPropInt(OB_PROP_I_ADMINLEVEL);
 				break;
-			case PROP_ID(PR_EC_HOMESERVER_NAME):
+			case PROP_ID(PR_EC_HOMESERVER_NAME): {
 				// should always be this servername, see ::Load()
 				if (bNoObjectDetails || !lpSession->GetSessionManager()->IsDistributedSupported())
 					break;
-				strData = objectDetails.GetPropString(OB_PROP_S_SERVERNAME);
+				auto strData = objectDetails.GetPropString(OB_PROP_S_SERVERNAME);
 				// do we have a default copy function??
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
 				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
 				break;
+			}
 			case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):
 				if (llStoreSize <= 0)
 					break;
@@ -751,7 +745,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 			case PROP_ID(PR_LAST_LOGOFF_TIME):
 			case PROP_ID(PR_EC_QUOTA_MAIL_TIME): {
 				// last mail time ... property in the store of the user...
-				strQuery = "SELECT val_hi, val_lo FROM properties JOIN hierarchy ON properties.hierarchyid=hierarchy.id JOIN stores ON hierarchy.id=stores.hierarchy_id WHERE stores.user_id=" +
+				auto strQuery = "SELECT val_hi, val_lo FROM properties JOIN hierarchy ON properties.hierarchyid=hierarchy.id JOIN stores ON hierarchy.id=stores.hierarchy_id WHERE stores.user_id=" +
 				           stringify(row.ulObjId) + " AND properties.tag=" +
 				           stringify(PROP_ID(lpsPropTagArray->__ptr[k])) +
 				           " AND properties.type=" +
@@ -772,8 +766,8 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = atoi(lpDBRow[1]);
 				break;
 			}
-			case PROP_ID(PR_EC_OUTOFOFFICE):
-				strQuery = "SELECT val_ulong FROM properties JOIN stores ON properties.hierarchyid=stores.hierarchy_id WHERE stores.user_id=" +
+			case PROP_ID(PR_EC_OUTOFOFFICE): {
+				auto strQuery = "SELECT val_ulong FROM properties JOIN stores ON properties.hierarchyid=stores.hierarchy_id WHERE stores.user_id=" +
 				           stringify(row.ulObjId) +
 				           " AND properties.tag=" +
 				           stringify(PROP_ID(PR_EC_OUTOFOFFICE)) +
@@ -794,6 +788,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 					lpsRowSet->__ptr[i].__ptr[k].Value.b = 0;
 				}
 				break;
+			}
 			};
 		}
 		++i;
@@ -833,17 +828,12 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
     const struct propTagArray *lpsPropTagArray, const void *lpObjectData,
     struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	gsoap_size_t i;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	ECDatabase *lpDatabase = NULL;
 	long long llStoreSize = 0;
 	objectdetails_t companyDetails;
 	quotadetails_t quotaDetails;
-	bool bNoCompanyDetails = false;
-	bool bNoQuotaDetails = false;
-	std::string strData;
 	DB_RESULT lpDBResult;
-	std::string strQuery;
 
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
@@ -864,15 +854,15 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
 
 	// Allocate memory for all rows
-	for (i = 0; i < lpsRowSet->__size; ++i) {
+	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
 		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
 		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
-	i = 0;
+	gsoap_size_t i = 0;
 	for (const auto &row : *lpRowList) {
-		bNoCompanyDetails = bNoQuotaDetails = false;
+		bool bNoCompanyDetails = false, bNoQuotaDetails = false;
 
 		if (lpUserManagement->GetObjectDetails(row.ulObjId, &companyDetails) != erSuccess)
 			bNoCompanyDetails = true;
@@ -900,20 +890,22 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 
-			case PROP_ID(PR_EC_COMPANY_NAME):
+			case PROP_ID(PR_EC_COMPANY_NAME): {
 				if (bNoCompanyDetails)
 					break;
-				strData = companyDetails.GetPropString(OB_PROP_S_FULLNAME);
+				auto strData = companyDetails.GetPropString(OB_PROP_S_FULLNAME);
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, strData.data());
 				break;
-			case PROP_ID(PR_EC_COMPANY_ADMIN):
-				strData = companyDetails.GetPropObject(OB_PROP_O_SYSADMIN).id;
+			}
+			case PROP_ID(PR_EC_COMPANY_ADMIN): {
+				auto strData = companyDetails.GetPropObject(OB_PROP_O_SYSADMIN).id;
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, strData.data());
 				break;
+			}
 			case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):
 				if (llStoreSize <= 0)
 					break;
@@ -937,9 +929,9 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].Value.li = quotaDetails.llHardSize;
 				break;
-			case PROP_ID(PR_EC_QUOTA_MAIL_TIME):
+			case PROP_ID(PR_EC_QUOTA_MAIL_TIME): {
 				// last mail time ... property in the store of the company (=public)...
-				strQuery = "SELECT val_hi, val_lo FROM properties JOIN hierarchy ON properties.hierarchyid=hierarchy.id JOIN stores ON hierarchy.id=stores.hierarchy_id WHERE stores.user_id=" +
+				auto strQuery = "SELECT val_hi, val_lo FROM properties JOIN hierarchy ON properties.hierarchyid=hierarchy.id JOIN stores ON hierarchy.id=stores.hierarchy_id WHERE stores.user_id=" +
 				           stringify(row.ulObjId) +
 				           " AND properties.tag=" +
 				           stringify(PROP_ID(PR_EC_QUOTA_MAIL_TIME)) +
@@ -960,6 +952,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->hi = atoi(lpDBRow[0]);
 				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = atoi(lpDBRow[1]);
 				break;
+			}
 			};
 		}
 		++i;
@@ -1006,7 +999,6 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
     const struct propTagArray *lpsPropTagArray, const void *lpObjectData,
     struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	gsoap_size_t i;
 	struct rowSet *lpsRowSet = NULL;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	serverdetails_t details;
@@ -1027,13 +1019,13 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
 
 	// Allocate memory for all rows
-	for (i = 0; i < lpsRowSet->__size; ++i) {
+	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
 		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
 		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
-	i = 0;
+	gsoap_size_t i = 0;
 	for (const auto &row : *lpRowList) {
 		if (lpUserManagement->GetServerDetails(lpStats->m_mapServers[row.ulObjId], &details) != erSuccess)
 			details = serverdetails_t();
