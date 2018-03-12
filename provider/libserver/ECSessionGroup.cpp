@@ -22,8 +22,6 @@
 
 #include <algorithm>
 #include <mutex>
-#include <kopano/lockhelper.hpp>
-
 #include "ECSession.h"
 #include "ECSessionGroup.h"
 #include "ECSessionManager.h"

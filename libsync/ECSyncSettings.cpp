@@ -17,7 +17,6 @@
 
 #include <kopano/platform.h>
 #include <mutex>
-#include <kopano/lockhelper.hpp>
 #include "ECSyncSettings.h"
 #include <mapix.h>
 

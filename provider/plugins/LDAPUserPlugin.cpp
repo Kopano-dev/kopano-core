@@ -36,7 +36,6 @@
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include "ECStatsCollector.h"
 #include <kopano/stringutil.h>
@@ -50,6 +49,7 @@
 #endif
 
 using namespace KC;
+using namespace KC::string_literals;
 
 extern "C" {
 
@@ -650,12 +650,12 @@ std::string LDAPUserPlugin::GetObjectClassFilter(const char *lpszObjectClassAttr
 		return "";
 	}
 	else if(lstObjectClasses.size() == 1) {
-		return (std::string)"(" + lpszObjectClassAttr + "=" + lstObjectClasses.front() + ")";
+		return "("s + lpszObjectClassAttr + "=" + lstObjectClasses.front() + ")";
 	}
 	else {
 		std::string filter = "(&";
 		for (const auto &cls : lstObjectClasses)
-			filter += (std::string)"(" + lpszObjectClassAttr + "=" + cls + ")";
+			filter += "("s + lpszObjectClassAttr + "=" + cls + ")";
 		filter += ")";
 		return filter;
 	}

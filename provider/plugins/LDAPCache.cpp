@@ -16,7 +16,6 @@
  */
 
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include "LDAPCache.h"
 #include "LDAPUserPlugin.h"
 #include <kopano/stringutil.h>

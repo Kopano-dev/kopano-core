@@ -30,7 +30,6 @@
 #include <sys/stat.h>
 #include <mapidefs.h>
 #include <mapitags.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/UnixUtil.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>

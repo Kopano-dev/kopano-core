@@ -19,7 +19,6 @@
 
 #include <algorithm>
 #include <new>
-#include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/ECLogger.h>
 #include <mapidefs.h>

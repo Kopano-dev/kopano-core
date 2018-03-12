@@ -20,7 +20,6 @@
 #include <memory>
 #include <new>
 #include "kcore.hpp"
-#include <kopano/lockhelper.hpp>
 #include <kopano/kcodes.h>
 #include <kopano/tie.hpp>
 

@@ -17,7 +17,6 @@
 
 #include <kopano/platform.h>
 #include <chrono>
-#include <kopano/lockhelper.hpp>
 #include <pthread.h>
 #include "ECMAPI.h"
 #include "ECNotification.h"
@@ -27,6 +26,8 @@
 #include "ECStringCompat.h"
 #include "SOAPUtils.h"
 #include "soapH.h"
+
+using namespace KC::chrono_literals;
 
 namespace KC {
 
@@ -221,8 +222,7 @@ void *ECNotificationManager::Work() {
 		if (m_bExit)
 			break;
 		if (m_setActiveSessions.size() == 0)
-			/* Wait for events for maximum of 1 sec */
-			m_condSessions.wait_for(l_ses, std::chrono::seconds(1));
+			m_condSessions.wait_for(l_ses, 1s);
         
         // Make a copy of the session list so we can release the lock ASAP
         setActiveSessions = m_setActiveSessions;

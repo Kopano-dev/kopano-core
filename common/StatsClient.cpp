@@ -22,7 +22,6 @@
 #include <cstring>
 #include <ctime>
 #include <unistd.h>
-#include <kopano/lockhelper.hpp>
 #include "StatsClient.h"
 #include "TmpPath.h"
 

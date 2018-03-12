@@ -41,6 +41,8 @@
 #include <kopano/mapi_ptr.h>
 #include <vmime/base.hpp>
 
+using namespace KC::string_literals;
+
 namespace KC {
 
 class mapiTimeoutHandler : public vmime::net::timeoutHandler {
@@ -126,7 +128,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 			
 			if (EntryIdIsEveryone(lpGroupEntryID->Value.bin.cb, (LPENTRYID)lpGroupEntryID->Value.bin.lpb, &bEveryone) == hrSuccess && bEveryone) {
 				ec_log_err("Denying send to Everyone");
-				error = std::wstring(L"You are not allowed to send to the 'Everyone' group");
+				error = L"You are not allowed to send to the \"Everyone\" group"s;
 				return MAPI_E_NO_ACCESS;
 			}
 		}
@@ -141,7 +143,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 			} else if (hr != hrSuccess) {
 				// e.g. MAPI_E_NOT_FOUND
 				ec_log_err("Error while expanding group. Group: %ls, error: 0x%08x", lpGroupName->Value.lpszW, hr);
-				error = std::wstring(L"Error in group '") + lpGroupName->Value.lpszW + L"', unable to send e-mail";
+				error = L"Error in group \""s + lpGroupName->Value.lpszW + L"\", unable to send e-mail";
 				return hr;
 			}
 		} else if (setRecips.find(strEmail) == setRecips.end()) {

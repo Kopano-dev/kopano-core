@@ -16,7 +16,6 @@
  */
 #include <memory>
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/tie.hpp>
 #include <mapidefs.h>

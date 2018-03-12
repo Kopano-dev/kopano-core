@@ -27,7 +27,6 @@
 #include <cstddef>
 #include <cstring>
 #include <kopano/ECLogger.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/Util.h>
 #include "m4l.mapix.h"

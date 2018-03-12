@@ -16,7 +16,6 @@
  */
 #include <new>
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/Util.h>
 #include "ECSecurity.h"
 #include "ECDatabase.h"

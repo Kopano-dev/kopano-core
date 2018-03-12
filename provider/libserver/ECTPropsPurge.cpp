@@ -16,7 +16,6 @@
  */
 
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
@@ -27,6 +26,8 @@
 #include <kopano/kcodes.h>
 
 #include "ECTPropsPurge.h"
+
+using namespace KC::chrono_literals;
 
 namespace KC {
 
@@ -101,7 +102,7 @@ ECRESULT ECTPropsPurge::PurgeThread()
             
 			if (m_bExit)
 				break;
-			m_hCondExit.wait_for(l_exit, std::chrono::seconds(10));
+			m_hCondExit.wait_for(l_exit, 10s);
 			if (m_bExit)
 				break;
         }

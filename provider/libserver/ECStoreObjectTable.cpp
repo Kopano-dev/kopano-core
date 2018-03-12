@@ -18,7 +18,6 @@
 #include <new>
 #include <string>
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 
 /* Returns the rows for a contents- or hierarchytable
  *

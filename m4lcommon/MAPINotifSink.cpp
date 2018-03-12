@@ -18,7 +18,6 @@
 #include <chrono>
 #include <new>
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include "MAPINotifSink.h"
 
 #include <kopano/Util.h>

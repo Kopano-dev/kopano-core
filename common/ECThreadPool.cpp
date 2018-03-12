@@ -20,7 +20,6 @@
 #include <utility>
 #include <kopano/platform.h>
 #include <kopano/ECThreadPool.h>
-#include <kopano/lockhelper.hpp>
 #include <algorithm>
 
 namespace KC {

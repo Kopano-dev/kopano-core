@@ -25,7 +25,6 @@
 #include <cerrno>
 
 #include <algorithm>
-#include <kopano/lockhelper.hpp>
 #include <fcntl.h>
 
 #include <zlib.h>
@@ -44,6 +43,8 @@
 #include <kopano/stringutil.h>
 #include "StreamUtil.h"
 #include "ECS3Attachment.h"
+
+using namespace KC::string_literals;
 
 namespace KC {
 
@@ -932,7 +933,7 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstance
  */
 ECRESULT ECDatabaseAttachment::DeleteAttachmentInstances(const std::list<ext_siid> &lstDeleteInstances, bool bReplace)
 {
-	std::string strQuery = (std::string)"DELETE FROM lob WHERE instanceid IN (";
+	auto strQuery = "DELETE FROM lob WHERE instanceid IN ("s;
 	for (auto iterDel = lstDeleteInstances.cbegin();
 	     iterDel != lstDeleteInstances.cend(); ++iterDel) {
 		if (iterDel != lstDeleteInstances.cbegin())

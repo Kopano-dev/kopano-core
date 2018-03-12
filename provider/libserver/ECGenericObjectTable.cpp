@@ -19,7 +19,6 @@
 #include <list>
 #include <memory>
 #include <string>
-#include <kopano/lockhelper.hpp>
 #include <kopano/tie.hpp>
 
 /* Returns the rows for a contents- or hierarchytable

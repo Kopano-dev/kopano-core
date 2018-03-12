@@ -19,7 +19,6 @@
 #include <utility>
 #include <cstdint>
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECLogger.h>

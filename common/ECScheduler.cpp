@@ -18,7 +18,6 @@
 #include <kopano/platform.h>
 #include <utility>
 #include <kopano/ECScheduler.h>
-#include <kopano/lockhelper.hpp>
 #include <cerrno>
 #define SCHEDULER_POLL_FREQUENCY	5
 

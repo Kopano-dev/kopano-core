@@ -20,7 +20,6 @@
 #include <kopano/platform.h>
 #include <kopano/zcdefs.h>
 #include "ECLockManager.h"
-#include <kopano/lockhelper.hpp>
 
 namespace KC {
 

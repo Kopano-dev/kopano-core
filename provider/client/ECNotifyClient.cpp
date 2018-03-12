@@ -17,7 +17,6 @@
 #include <new>
 #include <stdexcept>
 #include <utility>
-#include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include <mapispi.h>
 #include <mapix.h>

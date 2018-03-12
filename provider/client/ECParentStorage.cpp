@@ -16,7 +16,6 @@
  */
 #include <new>
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include "ECParentStorage.h"
 
 #include "Mem.h"

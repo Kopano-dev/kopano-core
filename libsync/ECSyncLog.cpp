@@ -18,8 +18,6 @@
 #include <kopano/platform.h>
 #include <mutex>
 #include <kopano/ecversion.h>
-#include <kopano/lockhelper.hpp>
-
 #include "ECSyncLog.h"
 #include "ECSyncSettings.h"
 #include <kopano/stringutil.h>

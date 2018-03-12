@@ -91,9 +91,9 @@ ZCXXFLAGS="-Wall -Wmissing-declarations"
 LFS_CFLAGS=`getconf LFS_CFLAGS`
 ZCPPFLAGS="$ZCPPFLAGS $LFS_CFLAGS"
 
-AC_MSG_CHECKING([for C++2011 support])
+AC_MSG_CHECKING([available C++ standard])
 cxxmode=""
-for i in "c++11" "c++0x"; do
+for i in "c++17" "c++14" "c++11" "c++0x"; do
 	CXXFLAGS="$CXXFLAGS_system -std=$i"
 	AC_COMPILE_IFELSE([AC_LANG_SOURCE([])], [cxxmode="$i"])
 	AS_IF([test -n "$cxxmode"], [break])

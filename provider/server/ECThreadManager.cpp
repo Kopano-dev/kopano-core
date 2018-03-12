@@ -26,7 +26,6 @@
 #include <algorithm>
 #include <poll.h>
 #include <unistd.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/stringutil.h>
 
 #ifdef HAVE_EPOLL_CREATE

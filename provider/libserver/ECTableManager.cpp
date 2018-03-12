@@ -21,7 +21,6 @@
 #include <kopano/memory.hpp>
 #include <mapidefs.h>
 #include <mapitags.h>
-#include <kopano/lockhelper.hpp>
 #include "ECMAPI.h"
 #include "ECGenericObjectTable.h"
 #include "ECSearchObjectTable.h"

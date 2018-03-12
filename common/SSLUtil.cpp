@@ -16,7 +16,6 @@
  */
 #include <mutex>
 #include <kopano/platform.h>
-#include <kopano/lockhelper.hpp>
 #include "SSLUtil.h"
 #include <pthread.h>
 #include <openssl/bn.h>

@@ -17,7 +17,6 @@
 #include "config.h"
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
-#include <kopano/lockhelper.hpp>
 #include <algorithm>
 #include <mutex>
 #include <string>

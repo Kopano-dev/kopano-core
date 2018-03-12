@@ -30,7 +30,6 @@
 #include <algorithm>
 #include <cassert>
 #include <sys/stat.h>
-#include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>

@@ -19,6 +19,7 @@
 #include "ECS3Attachment.h"
 #include "StreamUtil.h"
 
+using namespace KC::chrono_literals;
 using steady_clock = std::chrono::steady_clock;
 
 namespace KC {
@@ -29,8 +30,8 @@ namespace KC {
 /* Number of seconds to sleep before trying again */
 #define S3_SLEEP_DELAY 1
 
-#define now_positive() (std::chrono::steady_clock::now() + std::chrono::seconds(600))
-#define now_negative() (std::chrono::steady_clock::now() + std::chrono::seconds(60))
+#define now_positive() (steady_clock::now() + 600s)
+#define now_negative() (steady_clock::now() + 60s)
 
 /* callback data */
 struct s3_cd {
