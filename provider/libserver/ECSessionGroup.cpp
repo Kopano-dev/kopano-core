@@ -173,22 +173,22 @@ ECRESULT ECSessionGroup::DelAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 			FindChangeAdvise(ulSessionId, ulConnection));
 		if (iterItem != m_mapChangeSubscribe.cend())
 			m_mapChangeSubscribe.erase(iterItem);
-	} else {
-		if(iterSubscription->second.ulEventMask & (fnevObjectModified | fnevObjectCreated | fnevObjectCopied | fnevObjectDeleted | fnevObjectMoved)) {
-			// Object notification - remove our subscription to the store
-			scoped_lock lock(m_mutexSubscribedStores);
-			// Find the store that the key was subscribed for
-			auto iterSubscribed = m_mapSubscribedStores.find(iterSubscription->second.ulKey);
-			if (iterSubscribed != m_mapSubscribedStores.cend()) {
-				// Unsubscribe the store
-				m_lpSessionManager->UnsubscribeObjectEvents(iterSubscribed->second, this->m_sessionGroupId);
-				// Remove from our list
-				m_mapSubscribedStores.erase(iterSubscribed);
-			} else
-				assert(false); // Unsubscribe for something that was not subscribed
-		}
-		m_mapSubscribe.erase(iterSubscription);
+		return hrSuccess;
 	}
+	if (iterSubscription->second.ulEventMask & (fnevObjectModified | fnevObjectCreated | fnevObjectCopied | fnevObjectDeleted | fnevObjectMoved)) {
+		// Object notification - remove our subscription to the store
+		scoped_lock lock(m_mutexSubscribedStores);
+		// Find the store that the key was subscribed for
+		auto iterSubscribed = m_mapSubscribedStores.find(iterSubscription->second.ulKey);
+		if (iterSubscribed != m_mapSubscribedStores.cend()) {
+			// Unsubscribe the store
+			m_lpSessionManager->UnsubscribeObjectEvents(iterSubscribed->second, this->m_sessionGroupId);
+			// Remove from our list
+			m_mapSubscribedStores.erase(iterSubscribed);
+		} else
+			assert(false); // Unsubscribe for something that was not subscribed
+	}
+	m_mapSubscribe.erase(iterSubscription);
 	return hrSuccess;
 }
 
