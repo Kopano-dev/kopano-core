@@ -31,8 +31,6 @@ Query Parameters:
 
 [(Resource)](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/resources/calendar.md)
 
-[List calendars](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/user_list_calendars.md)
-
 [Get calendar](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/calendar_get.md)
 
 [List calendarView](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/calendar_list_calendarview.md)
@@ -40,6 +38,26 @@ Query Parameters:
 [List events](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/calendar_list_events.md)
 
 [Create event](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/calendar_post_events.md)
+
+## contact Resource
+
+[(Resource)](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/resources/contact.md)
+
+[Get contact](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/contact_get.md)
+
+[Delete contact](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/contact_delete.md)
+
+[delta](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/contact_delta.md)
+
+## contactFolder Resource
+
+[(Resource)](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/resources/contactfolder.md)
+
+[Get contactFolder](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/contactfolder_get.md)
+
+[List contacts](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/contactfolder_list_contacts.md)
+
+[Create contact](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/contactfolder_post_contacts.md)
 
 ## event Resource
 
@@ -99,6 +117,14 @@ Query Parameters:
 
 [delta](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/message_delta.md)
 
+## profilePhoto Resource
+
+[(Resource)](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/resources/profilephoto.md)
+
+[Get profilePhoto](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/profilephoto_get.md)
+
+[Update profilePhoto](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/profilephoto_update.md)
+
 ## subscription Resource
 
 [(Resource)](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/resources/subscription.md)
@@ -132,6 +158,8 @@ Query Parameters:
 [Create event](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/user_post_events.md)
 
 [List contactFolders](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/user_list_contactfolders.md)
+
+[List calendars](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/user_list_calendars.md)
 
 [List calendarView](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/user_list_calendarview.md)
 
