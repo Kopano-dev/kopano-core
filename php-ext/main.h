@@ -245,6 +245,7 @@ ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist);
 ZEND_FUNCTION(mapi_zarafa_getpermissionrules);
 ZEND_FUNCTION(mapi_zarafa_setpermissionrules);
 
+ZEND_FUNCTION(mapi_freebusy_openmsg);
 //Freebusy support functions
 ZEND_FUNCTION(mapi_freebusysupport_open);
 ZEND_FUNCTION(mapi_freebusysupport_close);
