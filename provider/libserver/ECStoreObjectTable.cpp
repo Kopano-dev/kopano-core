@@ -872,27 +872,27 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 			     iterColumns != mapColumns.cend() && CompareDBPropTag(iterColumns->first, PROP_TAG(ulType, ulTag));
 			     ++iterColumns) {
 				// free prop if we're not allocing by soap
-				if(soap == NULL && lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag != 0) {
-					FreePropVal(&lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second], false);
-					memset(&lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second], 0, sizeof(lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]));
+				auto &m = lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second];
+				if (soap == nullptr && m.ulPropTag != 0) {
+					FreePropVal(&m, false);
+					memset(&m, 0, sizeof(m));
 				}
 
 				// Handle requesting the same tag multiple times; the data is returned only once, so we need to copy it to all the columns in which it was
 				// requested. Note that requesting the same ROW more than once is not supported (it is a map, not a multimap)
-				if (CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]) != erSuccess)
-					CopyEmptyCellToSOAPPropVal(soap, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
+				if (CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &m) != erSuccess)
+					CopyEmptyCellToSOAPPropVal(soap, iterColumns->first, &m);
 				
 				// Update propval to correct value. We have to do this because we may have requested PT_UNICODE while the database
 				// contains PT_STRING8.
-				if (PROP_TYPE(lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag) == PT_ERROR)
-					lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(iterColumns->first));
+				if (PROP_TYPE(m.ulPropTag) == PT_ERROR)
+					m.ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(iterColumns->first));
 				else
-					lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag = iterColumns->first;
-
-				if ((lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag & MV_FLAG) == 0)
-					cache->SetCell((sObjectTableKey*)&iterObjIds->first, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
-				else if ((lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag & MVI_FLAG) == MVI_FLAG)
-					lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag &= ~MVI_FLAG;
+					m.ulPropTag = iterColumns->first;
+				if ((m.ulPropTag & MV_FLAG) == 0)
+					cache->SetCell(const_cast<sObjectTableKey *>(&iterObjIds->first), iterColumns->first, &m);
+				else if ((m.ulPropTag & MVI_FLAG) == MVI_FLAG)
+					m.ulPropTag &= ~MVI_FLAG;
 				setDone.emplace(iterObjIds->second, iterColumns->second);
 			}
 			
