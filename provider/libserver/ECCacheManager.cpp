@@ -99,37 +99,37 @@ ECCacheManager::ECCacheManager(ECConfig *lpConfig,
 		auto res = sysinfo(&s);
 		if (res == 0)
 			m_CellCache.AddToSize(256 * 1000 * 1024);
-		m_CellCache.AddToSize(std::max(size_t(1 * 1000 * 1000 * 1024), reinterpret_cast<size_t>(s.totalram / 4)));
+		m_CellCache.SetMaxSize(std::max(size_t(1 * 1000 * 1000 * 1024), reinterpret_cast<size_t>(s.totalram / 4)));
 		#else
-		m_CellCache.AddToSize(256 * 1000 * 1024);
+		m_CellCache.SetMaxSize(256 * 1000 * 1024);
 		#endif
-		ec_log_info("Setting cell cache size: %lu", m_CellCache.Size());
+		ec_log_info("Setting cell cache size: %lu", m_CellCache.MaxSize());
 	}
 
-	auto cell_cache_size = m_CellCache.Size();
+	auto cell_cache_size = m_CellCache.MaxSize();
 
 	if (atoll(lpConfig->GetSetting("cache_object_size")) == 0) {
-		m_ObjectsCache.AddToSize(std::min(size_t(16 * 1000 * 1024), cell_cache_size / 16));
-		ec_log_info("Setting object cache size: %lu", m_ObjectsCache.Size());
+		m_ObjectsCache.SetMaxSize(std::min(size_t(16 * 1000 * 1024), cell_cache_size / 16));
+		ec_log_info("Setting object cache size: %lu", m_ObjectsCache.MaxSize());
 	}
 
 	if (atoll(lpConfig->GetSetting("cache_indexedobject_size")) == 0) {
-		m_PropToObjectCache.AddToSize(std::min(size_t(32 * 1000 * 1024), cell_cache_size / 8));
-		m_ObjectToPropCache.AddToSize(std::min(size_t(32 * 1000 * 1024), cell_cache_size / 8));
-		ec_log_info("Setting indexedobject cache size: %lu", m_PropToObjectCache.Size());
+		m_PropToObjectCache.SetMaxSize(std::min(size_t(32 * 1000 * 1024), cell_cache_size / 8));
+		m_ObjectToPropCache.SetMaxSize(std::min(size_t(32 * 1000 * 1024), cell_cache_size / 8));
+		ec_log_info("Setting indexedobject cache size: %lu", m_PropToObjectCache.MaxSize());
 	}
 
 	if (atoll(lpConfig->GetSetting("cache_quota_size")) == 0) {
-		m_QuotaCache.AddToSize(std::min(size_t(1 * 1000 * 1024), cell_cache_size / 256));
-		m_QuotaUserDefaultCache.AddToSize(std::min(size_t(1 * 1000 * 1024), cell_cache_size / 256));
-		ec_log_info("Setting quota cache size: %lu", m_QuotaCache.Size());
+		m_QuotaCache.SetMaxSize(std::min(size_t(1 * 1000 * 1024), cell_cache_size / 256));
+		m_QuotaUserDefaultCache.SetMaxSize(std::min(size_t(1 * 1000 * 1024), cell_cache_size / 256));
+		ec_log_info("Setting quota cache size: %lu", m_QuotaCache.MaxSize());
 	}
 
 	if (atoll(lpConfig->GetSetting("cache_userdetails_size")) == 0) {
-		m_UserObjectCache.AddToSize(std::min(size_t(25 * 1000 * 1024), cell_cache_size / 10));
-		m_UEIdObjectCache.AddToSize(std::min(size_t(25 * 1000 * 1024), cell_cache_size / 10));
-		m_UserObjectDetailsCache.AddToSize(std::min(size_t(25 * 1000 * 1024), cell_cache_size / 10));
-		ec_log_info("Setting userdetails cache size: %lu", m_UserObjectCache.Size());
+		m_UserObjectCache.SetMaxSize(std::min(size_t(25 * 1000 * 1024), cell_cache_size / 10));
+		m_UEIdObjectCache.SetMaxSize(std::min(size_t(25 * 1000 * 1024), cell_cache_size / 10));
+		m_UserObjectDetailsCache.SetMaxSize(std::min(size_t(25 * 1000 * 1024), cell_cache_size / 10));
+		ec_log_info("Setting userdetails cache size: %lu", m_UserObjectCache.MaxSize());
 	}
 
 	/* Initial cleaning/initialization of cache */
