@@ -38,6 +38,16 @@
 #define CLIENT_VERSION_OLK2010			14
 #define CLIENT_VERSION_LATEST			CLIENT_VERSION_OLK2010 /* UPDATE ME */
 
+/**
+ * An enumeration for getting the localfreebusy from the calendar or from the free/busy data folder.
+ *
+ * @note it's also the array position of property PR_FREEBUSY_ENTRYIDS
+ */
+enum DGMessageType {
+	dgAssociated = 0,	/**< Localfreebusy message in default associated calendar folder */
+	dgFreebusydata = 1	/**< Localfreebusy message in Free/busy data folder */
+};
+
 /* darn, no sane place because of depend include on mapidefs.h */
 extern _kc_export bool operator==(const SBinary &, const SBinary &) noexcept;
 extern _kc_export bool operator<(const SBinary &, const SBinary &) noexcept;
@@ -75,6 +85,8 @@ extern _kc_export std::string ToQuotedBase64Header(const std::wstring &);
 extern HRESULT TestRestriction(const SRestriction *cond, ULONG nvals, const SPropValue *props, const ECLocale &, ULONG level = 0);
 extern _kc_export HRESULT TestRestriction(const SRestriction *cond, IMAPIProp *msg, const ECLocale &, ULONG level = 0);
 extern _kc_export HRESULT HrOpenUserMsgStore(LPMAPISESSION, const wchar_t *user, LPMDB *store);
+extern _kc_export HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType, IMsgStore *lpMsgStore, bool bCreateIfMissing, IMessage **lppFBMessage);
+
 // Auto-accept settings
 extern _kc_export HRESULT SetAutoAcceptSettings(IMsgStore *, bool auto_accept, bool decline_conflict, bool decline_recurring);
 extern _kc_export HRESULT GetAutoAcceptSettings(IMsgStore *, bool *auto_accept, bool *decline_conflict, bool *decline_recurring);
