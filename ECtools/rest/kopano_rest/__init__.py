@@ -796,7 +796,7 @@ def recurrence_json(item):
                 'type': range_end_map[recurrence.range_type],
                 'startDate': _date(recurrence._start, True, False), # TODO hidden
                 'endDate': _date(recurrence._end, True, False) if recurrence.range_type != 'no_end' else '0001-01-01',
-                'numberOfOccurrences': recurrence.occurrence_count if recurrence.range_type == 'occurrence_count' else 0,
+                'numberOfOccurrences': recurrence._occurrence_count if recurrence.range_type == 'occurrence_count' else 0,
                 'recurrenceTimeZone': "", # TODO
             },
         }
@@ -818,7 +818,7 @@ def recurrence_set(item, arg):
         rec.monthday = arg['pattern']['dayOfMonth']
 
         rec.range_type = range_end_map_rev[arg['range']['type']]
-        rec.occurrence_count = arg['range']['numberOfOccurrences']
+        rec._occurrence_count = arg['range']['numberOfOccurrences']
         # TODO don't use hidden vars
         rec._start = dateutil.parser.parse(arg['range']['startDate'])
         if arg['range']['type'] != 'noEnd': # TODO resilient: set anyway
