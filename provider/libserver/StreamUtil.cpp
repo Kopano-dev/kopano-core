@@ -45,6 +45,8 @@
 #include <map>
 #include <string>
 
+using namespace KC::string_literals;
+
 /*
 	streams are as follows:
 	  <version>
@@ -278,12 +280,7 @@ NamedPropertyMapper::NamedPropertyMapper(ECDatabase *lpDatabase)
 
 ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, unsigned int *lpulId)
 {
-	ECRESULT er = erSuccess;
-
-	std::string strQuery;
 	DB_RESULT lpResult;
-	DB_ROW lpRow = NULL;
-
 	nameidkey_t key(guid, ulNameId);
 	nameidmap_t::const_iterator i = m_mapNameIds.find(key);
 	if (i != m_mapNameIds.cend()) {
@@ -292,16 +289,14 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 	}
 
 	// Check the database
-	strQuery = 
+	auto strQuery =
 		"SELECT id FROM names "
 		"WHERE nameid=" + stringify(ulNameId) +
 		" AND guid=" + m_lpDatabase->EscapeBinary(&guid, sizeof(guid));
-
-	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
+	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		return er;
-
-	lpRow = lpResult.fetch_row();
+	auto lpRow = lpResult.fetch_row();
 	if (lpRow != nullptr) {
 		if (lpRow[0] == NULL) {
 			ec_log_err("NamedPropertyMapper::GetId(): column null");
@@ -327,12 +322,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 
 ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strNameString, unsigned int *lpulId)
 {
-	ECRESULT er = erSuccess;
-
-	std::string strQuery;
 	DB_RESULT lpResult;
-	DB_ROW lpRow = NULL;
-
 	namestringkey_t key(guid, strNameString);
 	namestringmap_t::const_iterator i = m_mapNameStrings.find(key);
 	if (i != m_mapNameStrings.cend()) {
@@ -341,15 +331,14 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 	}
 
 	// Check the database
-	strQuery = 
+	auto strQuery =
 		"SELECT id FROM names "
 		"WHERE namestring='" + m_lpDatabase->Escape(strNameString) + "'"
 		" AND guid=" + m_lpDatabase->EscapeBinary(&guid, sizeof(guid));
-	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
+	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		return er;
-
-	lpRow = lpResult.fetch_row();
+	auto lpRow = lpResult.fetch_row();
 	if (lpRow != nullptr) {
 		if (lpRow[0] == NULL) {
 			ec_log_err("NamedPropertyMapper::GetId(): column null");
@@ -379,30 +368,12 @@ static ECRESULT GetValidatedPropType(DB_ROW, unsigned int *type);
 static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
     DB_ROW lpRow, DB_LENGTHS lpLen, ECSerializer *lpSink)
 {
-	ECRESULT er = erSuccess;
-	unsigned int type = 0;
-	unsigned int ulPropTag = 0;
-	unsigned int ulCount;
-	unsigned int ulLen;
-	unsigned int ulLastPos;
-	unsigned int ulLastPos2;
-	std::string	strData;
-
-	unsigned int ulKind;
-	unsigned int ulNameId;
-	std::string strNameString;
+	unsigned int type = 0, ulPropTag = 0;
+	std::string strData, strNameString;
 	locale_t loc = createlocale(LC_NUMERIC, "C");
 	convert_context converter;
-
-	short i;
-	unsigned int ul;
-	float flt;
-	unsigned char b;
-	double dbl;
 	hiloLong hilo;
-	long long li;
-
-	er = GetValidatedPropType(lpRow, &type);
+	auto er = GetValidatedPropType(lpRow, &type);
 	if (er == KCERR_DATABASE_ERROR) {
 		er = erSuccess;
 		goto exit;
@@ -417,47 +388,52 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 		goto exit;
 
 	switch (type) {
-	case PT_I2:
+	case PT_I2: {
 		if (lpRow[FIELD_NR_ULONG] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		i = (short)atoi(lpRow[FIELD_NR_ULONG]);
+		short i = atoi(lpRow[FIELD_NR_ULONG]);
 		er = lpSink->Write(&i, sizeof(i), 1);
 		break;
-	case PT_LONG:
+	}
+	case PT_LONG: {
 		if (lpRow[FIELD_NR_ULONG] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		ul = atoui(lpRow[FIELD_NR_ULONG]);
+		unsigned int ul = atoui(lpRow[FIELD_NR_ULONG]);
 		er = lpSink->Write(&ul, sizeof(ul), 1);
 		break;
-	case PT_R4:
+	}
+	case PT_R4: {
 		if (lpRow[FIELD_NR_DOUBLE] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		flt = (float)strtod_l(lpRow[FIELD_NR_DOUBLE], NULL, loc);
+		float flt = strtod_l(lpRow[FIELD_NR_DOUBLE], nullptr, loc);
 		er = lpSink->Write(&flt, sizeof(flt), 1);
 		break;
-	case PT_BOOLEAN:
+	}
+	case PT_BOOLEAN: {
 		if (lpRow[FIELD_NR_ULONG] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		b = (atoi(lpRow[FIELD_NR_ULONG]) ? 1 : 0);
+		unsigned char b = atoi(lpRow[FIELD_NR_ULONG]) ? 1 : 0;
 		er = lpSink->Write(&b, sizeof(b), 1);
 		break;
+	}
 	case PT_DOUBLE:
-	case PT_APPTIME:
+	case PT_APPTIME: {
 		if (lpRow[FIELD_NR_DOUBLE] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		dbl = strtod_l(lpRow[FIELD_NR_DOUBLE], NULL, loc);
+		double dbl = strtod_l(lpRow[FIELD_NR_DOUBLE], nullptr, loc);
 		er = lpSink->Write(&dbl, sizeof(dbl), 1);
 		break;
+	}
 	case PT_CURRENCY:
 	case PT_SYSTIME:
 		if (lpRow[FIELD_NR_HI] == NULL || lpRow[FIELD_NR_LO] == NULL) {
@@ -470,14 +446,15 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 		if (er == erSuccess)
 			er = lpSink->Write(&hilo.lo, sizeof(hilo.lo), 1);
 		break;
-	case PT_I8:
+	case PT_I8: {
 		if (lpRow[FIELD_NR_LONGINT] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		li = atoll(lpRow[FIELD_NR_LONGINT]);
+		auto li = atoll(lpRow[FIELD_NR_LONGINT]);
 		er = lpSink->Write(&li, sizeof(li), 1);
 		break;
+	}
 	case PT_STRING8:
 	case PT_UNICODE:
 		if (lpRow[FIELD_NR_STRING] == NULL) {
@@ -485,100 +462,96 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 			goto exit;
 		}
 		if (lpStreamCaps->bSupportUnicode) {
-			ulLen = lpLen[FIELD_NR_STRING];
+			unsigned int ulLen = lpLen[FIELD_NR_STRING];
 			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(lpRow[FIELD_NR_STRING], 1, lpLen[FIELD_NR_STRING]);
 		} else {
 			const std::string strEncoded = converter.convert_to<std::string>(CHARSET_WIN1252, lpRow[FIELD_NR_STRING], lpLen[FIELD_NR_STRING], "UTF-8");
-			ulLen = strEncoded.length();
+			unsigned int ulLen = strEncoded.length();
 			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(strEncoded.data(), 1, ulLen);
 		}
 		break;
 	case PT_CLSID:
-	case PT_BINARY:
+	case PT_BINARY: {
 		if (lpRow[FIELD_NR_BINARY] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		ulLen = lpLen[FIELD_NR_BINARY];
+		unsigned int ulLen = lpLen[FIELD_NR_BINARY];
 		er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 		if (er == erSuccess)
 			er = lpSink->Write(lpRow[FIELD_NR_BINARY], 1, lpLen[FIELD_NR_BINARY]);
 		break;
-	case PT_MV_I2:
+	}
+	case PT_MV_I2: {
 		if (lpRow[FIELD_NR_ULONG] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-
-		ulCount = atoi(lpRow[FIELD_NR_ID]);
+		unsigned int ulCount = atoi(lpRow[FIELD_NR_ID]), ulLastPos = 0;
 		er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
-		ulLastPos = 0;
 		for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
 			ParseMVProp(lpRow[FIELD_NR_ULONG], lpLen[FIELD_NR_ULONG], &ulLastPos, &strData);
-			i = (short)atoi(strData.c_str());
+			short i = atoi(strData.c_str());
 			er = lpSink->Write(&i, sizeof(i), 1);
 		}
 		break;
-	case PT_MV_LONG:
+	}
+	case PT_MV_LONG: {
 		if (lpRow[FIELD_NR_ULONG] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
 
-		ulCount = atoi(lpRow[FIELD_NR_ID]);
+		unsigned int ulCount = atoi(lpRow[FIELD_NR_ID]), ulLastPos = 0;
 		er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
-		ulLastPos = 0;
 		for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
 			ParseMVProp(lpRow[FIELD_NR_ULONG], lpLen[FIELD_NR_ULONG], &ulLastPos, &strData);
-			ul = atoui((char*)strData.c_str());
+			auto ul = atoui(strData.c_str());
 			er = lpSink->Write(&ul, sizeof(ul), 1);
 		}
 		break;
-	case PT_MV_R4:
+	}
+	case PT_MV_R4: {
 		if (lpRow[FIELD_NR_DOUBLE] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-
-		ulCount = atoi(lpRow[FIELD_NR_ID]);
+		unsigned int ulCount = atoi(lpRow[FIELD_NR_ID]), ulLastPos = 0;
 		er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
-		ulLastPos = 0;
 		for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
 			ParseMVProp(lpRow[FIELD_NR_DOUBLE], lpLen[FIELD_NR_DOUBLE], &ulLastPos, &strData);
-			flt = (float)strtod_l(strData.c_str(), NULL, loc);
+			float flt = strtod_l(strData.c_str(), nullptr, loc);
 			er = lpSink->Write(&flt, sizeof(flt), 1);
 		}
 		break;
+	}
 	case PT_MV_DOUBLE:
-	case PT_MV_APPTIME:
+	case PT_MV_APPTIME: {
 		if (lpRow[FIELD_NR_DOUBLE] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-
-		ulCount = atoi(lpRow[FIELD_NR_ID]);
+		unsigned int ulCount = atoi(lpRow[FIELD_NR_ID]), ulLastPos = 0;
 		er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
-		ulLastPos = 0;
 		for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
 			ParseMVProp(lpRow[FIELD_NR_DOUBLE], lpLen[FIELD_NR_DOUBLE], &ulLastPos, &strData);
-			dbl = strtod_l(strData.c_str(), NULL, loc);
+			double dbl = strtod_l(strData.c_str(), nullptr, loc);
 			er = lpSink->Write(&dbl, sizeof(dbl), 1);
 		}
 		break;
+	}
 	case PT_MV_CURRENCY:
-	case PT_MV_SYSTIME:
+	case PT_MV_SYSTIME: {
 		if (lpRow[FIELD_NR_HI] == NULL || lpRow[FIELD_NR_LO] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		ulCount = atoi(lpRow[FIELD_NR_ID]);
+		unsigned int ulCount = atoi(lpRow[FIELD_NR_ID]), ulLastPos = 0, ulLastPos2 = 0;
 		er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
-		ulLastPos = 0;
-		ulLastPos2 = 0;
 		for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
 			ParseMVProp(lpRow[FIELD_NR_LO], lpLen[FIELD_NR_LO], &ulLastPos, &strData);
 			hilo.lo = atoui((char*)strData.c_str());
@@ -589,63 +562,63 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 				er = lpSink->Write(&hilo.lo, sizeof(hilo.lo), 1);
 		}
 		break;
+	}
 	case PT_MV_BINARY:
-	case PT_MV_CLSID:
+	case PT_MV_CLSID: {
 		if (lpRow[FIELD_NR_BINARY] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		ulCount = atoi(lpRow[FIELD_NR_ID]);
+		unsigned int ulCount = atoi(lpRow[FIELD_NR_ID]), ulLastPos = 0;
 		er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
-		ulLastPos = 0;
 		for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
 			ParseMVProp(lpRow[FIELD_NR_BINARY], lpLen[FIELD_NR_BINARY], &ulLastPos, &strData);
-			ulLen = (unsigned int)strData.size();
+			unsigned int ulLen = strData.size();
 			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(strData.c_str(), 1, ulLen);
 		}
 		break;
+	}
 	case PT_MV_STRING8:
-	case PT_MV_UNICODE:
+	case PT_MV_UNICODE: {
 		if (lpRow[FIELD_NR_STRING] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		ulCount = atoi(lpRow[FIELD_NR_ID]);
+		unsigned int ulCount = atoi(lpRow[FIELD_NR_ID]), ulLastPos = 0;
 		er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
-		ulLastPos = 0;
 		for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
 			ParseMVProp(lpRow[FIELD_NR_STRING], lpLen[FIELD_NR_STRING], &ulLastPos, &strData);
 			if (lpStreamCaps->bSupportUnicode) {
-				ulLen = (unsigned int)strData.size();
+				unsigned int ulLen = strData.size();
 				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 				if (er == erSuccess)
 					er = lpSink->Write(strData.c_str(), 1, ulLen);
 			} else {
 				const std::string strEncoded = converter.convert_to<std::string>(CHARSET_WIN1252, strData, rawsize(strData), "UTF-8");
-				ulLen = (unsigned int)strEncoded.size();
+				unsigned int ulLen = strEncoded.size();
 				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 				if (er == erSuccess)
 					er = lpSink->Write(strEncoded.c_str(), 1, ulLen);
 			}
 		}
 		break;
-	case PT_MV_I8:
+	}
+	case PT_MV_I8: {
 		if (lpRow[FIELD_NR_LONGINT] == NULL) {
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-
-		ulCount = atoi(lpRow[FIELD_NR_ID]);
+		unsigned int ulCount = atoi(lpRow[FIELD_NR_ID]), ulLastPos = 0;
 		er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
-		ulLastPos = 0;
 		for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
 			ParseMVProp(lpRow[FIELD_NR_LONGINT], lpLen[FIELD_NR_LONGINT], &ulLastPos, &strData);
-			li = atoll(strData.c_str());
+			auto li = atoll(strData.c_str());
 			er = lpSink->Write(&li, sizeof(li), 1);
 		}
 		break;
+	}
 	default:
 		er = KCERR_INVALID_TYPE;
 		goto exit;
@@ -657,17 +630,13 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 		er = lpSink->Write(lpRow[FIELD_NR_NAMEGUID], 1, lpLen[FIELD_NR_NAMEGUID]);
 
 		if (er == erSuccess && lpRow[FIELD_NR_NAMEID] != NULL) {
-			ulKind = MNID_ID;
-			ulNameId = atoui((char*)lpRow[FIELD_NR_NAMEID]);
-
+			unsigned int ulKind = MNID_ID, ulNameId = atoui(lpRow[FIELD_NR_NAMEID]);
 			er = lpSink->Write(&ulKind, sizeof(ulKind), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(&ulNameId, sizeof(ulNameId), 1);
 
 		} else if (er == erSuccess && lpRow[FIELD_NR_NAMESTR] != NULL) {
-			ulKind = MNID_STRING;
-			ulLen = lpLen[FIELD_NR_NAMESTR];
-
+			unsigned int ulKind = MNID_STRING, ulLen = lpLen[FIELD_NR_NAMESTR];
 			er = lpSink->Write(&ulKind, sizeof(ulKind), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
@@ -687,10 +656,7 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
     const struct propVal &sPropVal, ECSerializer *lpSink,
     const NamedPropDefMap *lpNamedPropDefs)
 {
-	ECRESULT er;
 	unsigned int type = PROP_TYPE(sPropVal.ulPropTag);
-	unsigned int ulLen;
-	unsigned char b;
 	unsigned int ulPropTag = sPropVal.ulPropTag;
 	convert_context converter;
 	NamedPropDefMap::const_iterator iNamedPropDef;
@@ -710,8 +676,7 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
 		if (iNamedPropDef == lpNamedPropDefs->cend())
 			return KCERR_NOT_FOUND;
 	}
-	
-	er = lpSink->Write((unsigned char *)&ulPropTag, sizeof(ulPropTag), 1);
+	auto er = lpSink->Write((unsigned char *)&ulPropTag, sizeof(ulPropTag), 1);
 	if (er != erSuccess)
 		return er;
 
@@ -725,10 +690,11 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
 	case PT_R4:
 		er = lpSink->Write(&sPropVal.Value.flt, sizeof(sPropVal.Value.flt), 1);
 		break;
-	case PT_BOOLEAN:
-		b = (sPropVal.Value.b ? 1 : 0);
+	case PT_BOOLEAN: {
+		unsigned char b = sPropVal.Value.b ? 1 : 0;
 		er = lpSink->Write(&b, sizeof(b), 1);
 		break;
+	}
 	case PT_DOUBLE:
 	case PT_APPTIME:
 		er = lpSink->Write(&sPropVal.Value.dbl, sizeof(sPropVal.Value.dbl), 1);
@@ -745,13 +711,13 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
 	case PT_STRING8:
 	case PT_UNICODE:
 		if (lpStreamCaps->bSupportUnicode) {
-			ulLen = (unsigned)strlen(sPropVal.Value.lpszA);
+			unsigned int ulLen = strlen(sPropVal.Value.lpszA);
 			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(sPropVal.Value.lpszA, 1, ulLen);
 		} else {
 			const std::string strEncoded = converter.convert_to<std::string>(CHARSET_WIN1252, sPropVal.Value.lpszA, rawsize(sPropVal.Value.lpszA), "UTF-8");
-			ulLen = strEncoded.length();
+			unsigned int ulLen = strEncoded.length();
 			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(strEncoded.data(), 1, ulLen);
@@ -807,14 +773,14 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
 		er = lpSink->Write(&sPropVal.Value.mvszA.__size, sizeof(sPropVal.Value.mvszA.__size), 1);
 		for (gsoap_size_t x = 0; er == erSuccess && x < sPropVal.Value.mvszA.__size; ++x) {
 			if (lpStreamCaps->bSupportUnicode) {
-				ulLen = (unsigned)strlen(sPropVal.Value.mvszA.__ptr[x]);
+				unsigned int ulLen = strlen(sPropVal.Value.mvszA.__ptr[x]);
 				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 				if (er == erSuccess)
 					er = lpSink->Write(sPropVal.Value.mvszA.__ptr[x], 1, ulLen);
 				continue;
 			}
 			const std::string strEncoded = converter.convert_to<std::string>(CHARSET_WIN1252, sPropVal.Value.mvszA.__ptr[x], rawsize(sPropVal.Value.mvszA.__ptr[x]), "UTF-8");
-			ulLen = strEncoded.length();
+			unsigned int ulLen = strEncoded.length();
 			er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(strEncoded.data(), 1, ulLen);
@@ -858,12 +824,8 @@ static ECRESULT SerializeProps(struct propValArray *lpPropVals,
     LPCSTREAMCAPS lpStreamCaps, ECSerializer *lpSink,
     const NamedPropDefMap *lpNamedPropDefs)
 {
-	ECRESULT er;
-	unsigned int	ulCount = 0;
-
-	ulCount = lpPropVals->__size;
-	
-    er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
+	unsigned int ulCount = lpPropVals->__size;
+	auto er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
 	if (er != erSuccess)
 		return er;
     	
@@ -878,14 +840,12 @@ static ECRESULT SerializeProps(struct propValArray *lpPropVals,
 static ECRESULT GetBestBody(ECDatabase *lpDatabase, unsigned int ulObjId,
     std::string *lpstrBestBody)
 {
-	ECRESULT er = erSuccess;
-	DB_ROW 			lpDBRow = NULL;
 	DB_RESULT lpDBResult;
 	auto strQuery = "SELECT tag FROM properties WHERE hierarchyid=" + stringify(ulObjId) + " AND tag IN (4105, 4115) ORDER BY tag LIMIT 1";
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-	lpDBRow = lpDBResult.fetch_row();
+	auto lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow && lpDBRow[0])
 		*lpstrBestBody = lpDBRow[0];
 	else
@@ -898,15 +858,12 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
     unsigned int ulObjId, unsigned int ulObjType, unsigned int ulStoreId,
     GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
 {
-	ECRESULT		er = erSuccess;
 	unsigned int	ulCount = 0;
 
 	struct soap		*soap = NULL;
 	struct propVal sPropVal;
 	DB_ROW 			lpDBRow = NULL;
-	DB_LENGTHS		lpDBLen = NULL;
 	DB_RESULT lpDBResult;
-	std::string		strQuery;
 	object_ptr<ECMemStream> lpStream;
 	object_ptr<IStream> lpIStream;
 	ECStreamSerializer *	lpTempSink = NULL;
@@ -915,7 +872,7 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	std::list<struct propVal> sPropValList;
 
 	assert(lpStreamCaps != NULL);
-	er = ECMemStream::Create(nullptr, 0, STGM_SHARE_EXCLUSIVE | STGM_WRITE, nullptr, nullptr, nullptr, &~lpStream);
+	auto er = ECMemStream::Create(nullptr, 0, STGM_SHARE_EXCLUSIVE | STGM_WRITE, nullptr, nullptr, nullptr, &~lpStream);
 	if (er != erSuccess)
 		goto exit;
 	er = lpStream->QueryInterface(IID_IStream, &~lpIStream);
@@ -948,8 +905,7 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 				goto exit;
 		} else if(ulFlags & SYNC_LIMITED_IMESSAGE)
 			strMode = "2";
-		
-		strQuery = "SELECT " PROPCOLORDER ", 0, names.nameid, names.namestring, names.guid FROM properties "
+		auto strQuery = "SELECT " PROPCOLORDER ", 0, names.nameid, names.namestring, names.guid FROM properties "
 			"LEFT JOIN names ON properties.tag-34049=names.id WHERE hierarchyid=" + stringify(ulObjId) + " AND (tag <= 34048 OR names.id IS NOT NULL) "
 			"AND (tag NOT IN (4105, 4115) OR " + strMode + " = 0 OR (" + strMode + " = 1 AND tag = " + strBestBody + ")) "
 			"UNION "
@@ -964,7 +920,7 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 	// Properties
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-		lpDBLen = lpDBResult.fetch_row_lengths();
+		auto lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBLen == NULL) {
 			er = KCERR_DATABASE_ERROR;
 			ec_log_err("SerializeProps(): fetchrow/fetchrowlengths failed");
@@ -1029,16 +985,10 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 {
 	ECRESULT		er = erSuccess;
 	unsigned int	ulStreamVersion = STREAM_VERSION;
-	unsigned int	ulSubObjId = 0;
-	unsigned int	ulSubObjType = 0;
 	unsigned int	ulCount = 0;
 	ChildPropsMap	mapChildProps;
 	NamedPropDefMap	mapNamedPropDefs;
-
-	DB_ROW 			lpDBRow = NULL;
-	DB_LENGTHS		lpDBLen = NULL;
 	DB_RESULT lpDBResult, lpDBResultAttachment;
-	std::string		strQuery;
 	bool			bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
 
 	if (ulObjType != MAPI_MESSAGE) {
@@ -1074,7 +1024,7 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 		er = lpStreamDatabase->GetNextResult(&lpDBResult);
 	} else {
 		// begin of loop part
-		strQuery = "SELECT id,hierarchy.type FROM hierarchy WHERE parent=" + stringify(ulObjId);
+		auto strQuery = "SELECT id,hierarchy.type FROM hierarchy WHERE parent=" + stringify(ulObjId);
 		er = lpStreamDatabase->DoSelect(strQuery, &lpDBResult);
 	}
 	if (er != erSuccess)
@@ -1085,8 +1035,8 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 		goto exit;
 
 	for (unsigned i = 0; i < ulCount; ++i) {
-		lpDBRow = lpDBResult.fetch_row();
-		lpDBLen = lpDBResult.fetch_row_lengths();
+		auto lpDBRow = lpDBResult.fetch_row();
+		auto lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL || lpDBLen == NULL) {
 			er = KCERR_DATABASE_ERROR;
 			ec_log_err("SerializeMessage(): fetchrow/fetchrowlengths failed");
@@ -1096,12 +1046,11 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 		// ulSubObjType should be MAPI_MAILUSER, MAPI_DISTLIST or MAPI_ATTACH. But in reality
 		// it can be anything. We'll send the 'wrong' type so the receiver can also return
 		// the wrong type that might be expected by a client.
-		ulSubObjType = atoi(lpDBRow[1]);
+		auto ulSubObjType = atoi(lpDBRow[1]);
 		er = lpSink->Write(&ulSubObjType, sizeof(ulSubObjType), 1);
 		if (er != erSuccess)
 			goto exit;
-
-		ulSubObjId = atoi(lpDBRow[0]);
+		auto ulSubObjId = atoi(lpDBRow[0]);
 		er = lpSink->Write(&ulSubObjId, sizeof(ulSubObjId), 1);
 		if (er != erSuccess)
 			goto exit;
@@ -1151,7 +1100,7 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 		if (bUseSQLMulti) {
 			er = lpStreamDatabase->GetNextResult(&lpDBResultAttachment);
 		} else {
-			strQuery = "SELECT id, hierarchy.type FROM hierarchy WHERE parent = " + stringify(ulSubObjId) + " LIMIT 1";
+			auto strQuery = "SELECT id, hierarchy.type FROM hierarchy WHERE parent = " + stringify(ulSubObjId) + " LIMIT 1";
 			er = lpStreamDatabase->DoSelect(strQuery, &lpDBResultAttachment);
 		}
 		if (er != erSuccess)
@@ -1198,22 +1147,15 @@ static ECRESULT DeserializePropVal(struct soap *soap,
     LPCSTREAMCAPS lpStreamCaps, NamedPropertyMapper &namedPropertyMapper,
     propVal **lppsPropval, ECSerializer *lpSource)
 {
-	ECRESULT er;
 	gsoap_size_t ulCount;
-	unsigned int	ulLen;
-	propVal			*lpsPropval = NULL;
+	unsigned int ulLen, ulKind = 0, ulNameId = 0, ulLocalId = 0;
 	unsigned char	b;
-
 	GUID			guid = {0};
-	unsigned int	ulKind = 0;
-	unsigned int	ulNameId = 0;
 	std::string		strNameString;
-	unsigned int	ulLocalId = 0;
-
 	convert_context	converter;
 
-	lpsPropval = s_alloc<propVal>(soap);
-	er = lpSource->Read(&lpsPropval->ulPropTag, sizeof(lpsPropval->ulPropTag), 1);
+	auto lpsPropval = s_alloc<propVal>(soap);
+	auto er = lpSource->Read(&lpsPropval->ulPropTag, sizeof(lpsPropval->ulPropTag), 1);
 	if (er != erSuccess)
 		return er;
 
@@ -1424,25 +1366,14 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
     struct propValArray **lppPropValArray)
 {
 	ECRESULT		er = erSuccess;
-	unsigned int	ulCount = 0;
-	unsigned int	ulFlags = 0;
-	unsigned int	ulParentId = 0;
-	unsigned int	ulOwner = 0;
-	unsigned int	ulParentType = 0;
+	unsigned int ulCount = 0, ulFlags = 0, ulParentId = 0, ulOwner = 0;
+	unsigned int ulParentType = 0, ulAffected = 0, ulLen = 0;
 	gsoap_size_t nMVItems = 0;
-	unsigned int	ulAffected = 0;
-	unsigned int	ulLen = 0;
 	propVal			*lpsPropval = NULL;
 	struct soap		*soap = NULL;
 	struct propValArray *lpPropValArray = NULL;
 	NamedPropertyMapper namedPropertyMapper(lpDatabase);
-
-	std::string		strQuery;
-	std::string		strInsertQuery;
-	std::string		strInsertTProp;
-	std::string		strColData;
-	std::string		strColName;
-
+	std::string strQuery, strInsertQuery, strInsertTProp, strColData, strColName;
 	SOURCEKEY		sSourceKey;
 	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
@@ -1654,14 +1585,9 @@ exit:
 ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamCaps, unsigned int ulObjId, unsigned int ulStoreId, GUID *lpsGuid, bool bNewItem, unsigned long long ullIMAP, ECSerializer *lpSource, struct propValArray **lppPropValArray)
 {
 	ECRESULT		er = erSuccess;
-	unsigned int	ulStreamVersion = 0;
-	unsigned int	ulObjType = 0;
-	unsigned int	ulRealObjType = 0;
-	unsigned int	ulParentId = 0;
-	unsigned int	ulParentType = 0;
-	unsigned int	ulSize =0 ;
+	unsigned int ulStreamVersion = 0, ulObjType = 0, ulRealObjType = 0;
+	unsigned int ulParentId = 0, ulParentType = 0, ulSize = 0;
 	struct propValArray *lpPropValArray = NULL;
-	std::string		strQuery;
 	auto gcache = g_lpSessionManager->GetCacheManager();
 
 	if (!lpDatabase) {
@@ -1708,8 +1634,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			if (er != erSuccess)
 				goto exit;
 		}
-
-		strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_ulong) VALUES(" +
+		auto strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_ulong) VALUES(" +
 						stringify(ulObjId) + "," +
 						stringify(PROP_ID(PR_EC_IMAP_ID)) + "," +
 						stringify(PROP_TYPE(PR_EC_IMAP_ID)) + "," +
@@ -1727,9 +1652,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 	}
 
 	if (ulRealObjType == MAPI_MESSAGE || ulRealObjType == MAPI_ATTACH) {
-		unsigned int	ulSubObjCount = 0;
-		unsigned int	ulSubObjId = 0;
-		unsigned int	ulSubObjType = 0;
+		unsigned int ulSubObjCount = 0, ulSubObjId = 0, ulSubObjType = 0;
 		BOOL			fHasAttach = FALSE;
 		
 		er = lpSource->Read(&ulSubObjCount, sizeof(ulSubObjCount), 1);
@@ -1842,12 +1765,9 @@ exit:
 static ECRESULT GetValidatedPropType(DB_ROW lpRow, unsigned int *lpulType)
 {
 	ECRESULT er = KCERR_DATABASE_ERROR;
-	unsigned int ulType = 0;
-
 	if (lpRow == NULL || lpulType == NULL)
 		return KCERR_INVALID_PARAMETER;
-
-	ulType = atoi(lpRow[FIELD_NR_TYPE]);
+	auto ulType = atoi(lpRow[FIELD_NR_TYPE]);
 	switch (ulType) {
 	case PT_I2:
 		if (lpRow[FIELD_NR_ULONG] == NULL)
