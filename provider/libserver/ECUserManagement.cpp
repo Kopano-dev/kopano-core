@@ -4026,11 +4026,9 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
 	if (lpUserCount)
 		lpUserCount->assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
 
-	{
-		std::lock_guard<std::recursive_mutex> lock(m_hMutex);
-		m_userCount.assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
-		m_usercount_ts = time(NULL);
-	}
+	std::lock_guard<std::recursive_mutex> lock(m_hMutex);
+	m_userCount.assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
+	m_usercount_ts = time(NULL);
 	return erSuccess;
 }
 
@@ -4244,25 +4242,21 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, sizeof(ABEID)));
 		memset(lpEid, 0, sizeof(ABEID));
 		ulSize = sizeof(ABEID);
+	} else if (ulVersion == 0) {
+		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, sizeof(ABEID)));
+		memset(lpEid, 0, sizeof(ABEID));
+		ulSize = sizeof(ABEID);
+	} else if(ulVersion == 1) {
+		if (lpExternId == NULL)
+			return KCERR_INVALID_PARAMETER;
+		strEncExId = base64_encode(lpExternId->id.c_str(), lpExternId->id.size());
+		ulSize = CbNewABEID(strEncExId.c_str());
+		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
+		memset(lpEid, 0, ulSize);
+		// avoid FORTIFY_SOURCE checks in strcpy to an address that the compiler thinks is 1 size large
+		memcpy(lpEid->szExId, strEncExId.c_str(), strEncExId.length()+1);
 	} else {
-		if(ulVersion == 0) {
-			lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, sizeof(ABEID)));
-			
-			memset(lpEid, 0, sizeof(ABEID));
-			ulSize = sizeof(ABEID);
-		} else if(ulVersion == 1) {
-			if (lpExternId == NULL)
-				return KCERR_INVALID_PARAMETER;
-			strEncExId = base64_encode(lpExternId->id.c_str(), lpExternId->id.size());
-			ulSize = CbNewABEID(strEncExId.c_str());
-			lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
-			memset(lpEid, 0, ulSize);
-
-			// avoid FORTIFY_SOURCE checks in strcpy to an address that the compiler thinks is 1 size large
-			memcpy(lpEid->szExId, strEncExId.c_str(), strEncExId.length()+1);
-		} else {
-			throw std::runtime_error("Unknown user entry version " + stringify(ulVersion));
-		}
+		throw std::runtime_error("Unknown user entry version " + stringify(ulVersion));
 	}
 
 	lpEid->ulVersion = ulVersion;
