@@ -182,46 +182,33 @@ ECRESULT UpdateObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned
 
 		if(er != erSuccess)
 			return er;
-
-		if(ulObjType == MAPI_MESSAGE) {
-			// Update cell cache for new size
-			sObjectTableKey key;
-			struct propVal sPropVal;
-			
-			key.ulObjId = ulObjId;
-			key.ulOrderId = 0;
-			sPropVal.ulPropTag = PR_MESSAGE_SIZE;
-			sPropVal.Value.ul = llSize;
-			sPropVal.__union = SOAP_UNION_propValData_ul;
-			er = gcache->SetCell(&key, PR_MESSAGE_SIZE, &sPropVal);
-			if(er != erSuccess)
-				return er;
-		}
-	} else {
-		strQuery = "UPDATE properties SET "+strField+"=";
-
-		if(updateAction == UPDATE_ADD)
-			strQuery += strField+"+";
-		else if(updateAction == UPDATE_SUB)
-			strQuery += strField+"-";
-
-		strQuery += stringify_int64(llSize) +" WHERE tag="+stringify(PROP_ID(ulPropTag))+" AND type="+stringify(PROP_TYPE(ulPropTag)) + " AND hierarchyid="+stringify(ulObjId);
-		if(updateAction == UPDATE_SUB)
-			strQuery += " AND "+strField+" >="+stringify_int64(llSize);
-
-		er = lpDatabase->DoUpdate(strQuery, &ulAffRows);
-		
-		if(er != erSuccess) 
-			return er;
-		
-		if(ulObjType == MAPI_MESSAGE) {
-			// Update cell cache
-			er = gcache->UpdateCell(ulObjId, PR_MESSAGE_SIZE, (updateAction == UPDATE_ADD ? llSize : -llSize));
-			if(er != erSuccess)
-				return er;
-		}
+		if (ulObjType != MAPI_MESSAGE)
+			return erSuccess;
+		// Update cell cache for new size
+		sObjectTableKey key;
+		struct propVal sPropVal;
+		key.ulObjId = ulObjId;
+		key.ulOrderId = 0;
+		sPropVal.ulPropTag = PR_MESSAGE_SIZE;
+		sPropVal.Value.ul = llSize;
+		sPropVal.__union = SOAP_UNION_propValData_ul;
+		return gcache->SetCell(&key, PR_MESSAGE_SIZE, &sPropVal);
 	}
-	return erSuccess;
+	strQuery = "UPDATE properties SET " + strField + "=";
+	if (updateAction == UPDATE_ADD)
+		strQuery += strField+"+";
+	else if (updateAction == UPDATE_SUB)
+		strQuery += strField+"-";
+	strQuery += stringify_int64(llSize) +" WHERE tag="+stringify(PROP_ID(ulPropTag))+" AND type="+stringify(PROP_TYPE(ulPropTag)) + " AND hierarchyid="+stringify(ulObjId);
+	if (updateAction == UPDATE_SUB)
+		strQuery += " AND "+strField+" >="+stringify_int64(llSize);
+	er = lpDatabase->DoUpdate(strQuery, &ulAffRows);
+	if (er != erSuccess)
+		return er;
+	if (ulObjType != MAPI_MESSAGE)
+		return erSuccess;
+	// Update cell cache
+	return gcache->UpdateCell(ulObjId, PR_MESSAGE_SIZE, (updateAction == UPDATE_ADD ? llSize : -llSize));
 }
 
 } /* namespace */
