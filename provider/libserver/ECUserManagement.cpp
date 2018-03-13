@@ -67,7 +67,6 @@ extern ECSessionManager*	g_lpSessionManager;
 static bool execute_script(const char *scriptname, ...)
 {
 	va_list v;
-	char *envname;
 	const char *env[32];
 	std::list<std::string> lstEnv;
 	std::string strEnv;
@@ -76,7 +75,7 @@ static bool execute_script(const char *scriptname, ...)
 	va_start(v, scriptname);
 	/* Set environment */
 	for (;;) {
-		envname = va_arg(v, char *);
+		auto envname = va_arg(v, char *);
 		if (!envname)
 			break;
 		auto envval = va_arg(v, char *);
@@ -2268,8 +2267,7 @@ ECRESULT ECUserManagement::UpdateUserDetailsFromClient(objectdetails_t *lpDetail
 ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature, unsigned int *lpulObjectId) {
 	ECDatabase *lpDatabase = NULL;
 	objectdetails_t details;
-	unsigned int ulId;
-	unsigned int ulCompanyId;
+	unsigned int ulId, ulCompanyId;
 	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	SOURCEKEY sSourceKey;
 	UserPlugin *lpPlugin = NULL;
@@ -2405,11 +2403,10 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 ECRESULT ECUserManagement::CreateLocalObjectSimple(const objectsignature_t &signature, unsigned int ulPreferredId) {
 	ECDatabase *lpDatabase = NULL;
 	objectdetails_t details;
-	std::string strQuery;
+	std::string strQuery, strUserId;
 	unsigned int ulCompanyId;
 	UserPlugin *lpPlugin = NULL;
 	DB_RESULT lpResult;
-	std::string strUserId;
 	bool bLocked = false;
 
 	auto er = m_lpSession->GetDatabase(&lpDatabase);
@@ -2559,8 +2556,7 @@ ECRESULT ECUserManagement::MoveOrCreateLocalObject(const objectsignature_t &sign
 {
 	ECRESULT er;
 	objectdetails_t details;
-	unsigned int ulObjectId = 0;
-	unsigned int ulNewCompanyId = 0;
+	unsigned int ulObjectId = 0, ulNewCompanyId = 0;
 	bool bMoved = false;
 
 	/*
@@ -2931,7 +2927,6 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 	std::string strValue;
 	std::list<std::string> lstrValues;
 	std::list<objectid_t> lobjValues;
-	unsigned int i = 0;
 	unsigned int ulGetPropTag;
 
 	// Force PT_STRING8 versions for anonymous getprops
@@ -2962,7 +2957,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 		lpPropVal->ulPropTag = ulPropTag;
 		return erSuccess;
 	case 0x80081102: /* PR_EMS_AB_IS_MEMBER_OF_DL	| PT_MV_BINARY */
-	case 0x800E1102: /* PR_EMS_AB_REPORTS			| PT_MV_BINARY */
+	case 0x800E1102: { /* PR_EMS_AB_REPORTS | PT_MV_BINARY */
 		lobjValues = lpDetails->GetPropListObject((property_key_t)ulPropTag);
 
 		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
@@ -2970,7 +2965,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 		lpPropVal->Value.mvbin.__size = 0;
 		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, lobjValues.size());
 
-		i = 0;
+		unsigned int i = 0;
 		for (const auto &obj : lobjValues) {
 			er = CreateABEntryID(soap, obj, &sPropVal);
 			if (er != erSuccess)
@@ -2981,6 +2976,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 		}
 		lpPropVal->Value.mvbin.__size = i;
 		return erSuccess;
+	}
 	default:
 		break;
 	}
@@ -3013,15 +3009,16 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
 	case PT_MV_STRING8:
-	case PT_MV_UNICODE:
+	case PT_MV_UNICODE: {
 		lpPropVal->ulPropTag = ulPropTag;
 		lpPropVal->Value.mvszA.__size = lstrValues.size();		
 		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, lstrValues.size());
-		i = 0;
+		unsigned int i = 0;
 		for (const auto &val : lstrValues)
 			lpPropVal->Value.mvszA.__ptr[i++] = s_strcpy(soap, val.c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_mvszA;
 		break;
+	}
 	case PT_BINARY:
 		lpPropVal->ulPropTag = ulPropTag;
 		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
@@ -3030,11 +3027,11 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 		memcpy(lpPropVal->Value.bin->__ptr, strValue.data(), strValue.size());
 		lpPropVal->__union = SOAP_UNION_propValData_bin;
 		break;
-	case PT_MV_BINARY:
+	case PT_MV_BINARY: {
 		lpPropVal->ulPropTag = ulPropTag;
 		lpPropVal->Value.mvbin.__size = lstrValues.size();		
 		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, lstrValues.size());
-		i = 0;
+		unsigned int i = 0;
 		for (const auto &val : lstrValues) {
 			lpPropVal->Value.mvbin.__ptr[i].__size = val.size();
 			lpPropVal->Value.mvbin.__ptr[i].__ptr = s_alloc<unsigned char>(soap, val.size());
@@ -3042,6 +3039,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
 		break;
+	}
 	default:
 		return KCERR_UNKNOWN;
 	}
@@ -3981,12 +3979,8 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpResult;
     DB_ROW lpRow = NULL;
-    unsigned int ulActive = 0;
-    unsigned int ulNonActiveUser = 0;
-    unsigned int ulRoom = 0;
-    unsigned int ulEquipment = 0;
-    unsigned int ulContact = 0;
-
+	unsigned int ulActive = 0, ulNonActiveUser = 0;
+	unsigned int ulRoom = 0, ulEquipment = 0, ulContact = 0;
 	auto er = m_lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
@@ -4312,8 +4306,7 @@ ECRESULT ECUserManagement::GetSecurity(ECSecurity **lppSecurity)
 ECRESULT ECUserManagement::SyncAllObjects()
 {
 	ECCacheManager *lpCacheManager = m_lpSession->GetSessionManager()->GetCacheManager();	// Don't delete
-	std::unique_ptr<std::list<localobjectdetails_t> > lplstCompanyObjects;
-	std::unique_ptr<std::list<localobjectdetails_t> > lplstUserObjects;
+	std::unique_ptr<std::list<localobjectdetails_t>> lplstCompanyObjects, lplstUserObjects;
 	static const unsigned int ulFlags = USERMANAGEMENT_IDS_ONLY | USERMANAGEMENT_FORCE_SYNC;
 	
 	/*
