@@ -52,7 +52,6 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 	auto pThis = dynamic_cast<ECUserStoreTable *>(lpThis);
 	if (pThis == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	gsoap_size_t i;
 	static constexpr const GUID sZeroGuid = {0};
 	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
@@ -69,13 +68,13 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 	memset(lpsRowSet->__ptr, 0, sizeof(propValArray) * lpsRowSet->__size);
 
 	// Allocate memory for all rows
-	for (i = 0; i < lpsRowSet->__size; ++i) {
+	for (gsoap_size_t i = 0; i < lpsRowSet->__size; ++i) {
 		lpsRowSet->__ptr[i].__size = lpsPropTagArray->__size;
 		lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpsPropTagArray->__size);
 		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
-	i = 0;
+	gsoap_size_t i = 0;
 	for (const auto &row : *lpRowList) {
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PT_ERROR, lpsPropTagArray->__ptr[k]);
@@ -148,8 +147,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 			case PROP_ID(PR_LAST_MODIFICATION_TIME): {
 				if (pThis->m_mapUserStoreData[row.ulObjId].tModTime == 0)
 					break;
-				FILETIME ftTmp;
-				ftTmp = UnixTimeToFileTime(pThis->m_mapUserStoreData[row.ulObjId].tModTime);
+				auto ftTmp = UnixTimeToFileTime(pThis->m_mapUserStoreData[row.ulObjId].tModTime);
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
 				lpsRowSet->__ptr[i].__ptr[k].Value.hilo = s_alloc<struct hiloLong>(soap);
@@ -185,10 +183,8 @@ ECRESULT ECUserStoreTable::Load() {
 	ECUserStore sUserStore;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	ECSecurity *lpSecurity = lpSession->GetSecurity();
-	objectdetails_t sUserDetails;
-	GUID sZeroGuid = {0};
+	objectdetails_t sUserDetails, sDetails;
 	objectclass_t objclass = OBJECTCLASS_UNKNOWN;
-	objectdetails_t sDetails;
 
 	enum cols { USERID = 0, EXTERNID, OBJCLASS, UCOMPANY, STOREGUID, STORETYPE, USERNAME, SCOMPANY, HIERARCHYID, STORESIZE, MODTIME_HI, MODTIME_LO };
 
@@ -264,7 +260,7 @@ ECRESULT ECUserStoreTable::Load() {
 			sUserStore.strUsername = sUserDetails.GetPropString(OB_PROP_S_LOGIN);
 		}
 
-		sUserStore.sGuid = sZeroGuid;
+		sUserStore.sGuid = GUID{0};
 		if (lpDBRow[STOREGUID])
 			memcpy(&sUserStore.sGuid, lpDBRow[STOREGUID], lpDBLength[STOREGUID]);
 
