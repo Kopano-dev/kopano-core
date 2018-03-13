@@ -663,44 +663,44 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				break;
 
 			case PROP_ID(PR_EC_COMPANY_NAME):
-				if (!bNoObjectDetails && lpUserManagement->GetObjectDetails(objectDetails.GetPropInt(OB_PROP_I_COMPANYID), &companyDetails) == erSuccess) {
-					strData = companyDetails.GetPropString(OB_PROP_S_FULLNAME);
-					// do we have a default copy function??
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
-					memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
-				}
+				if (bNoObjectDetails || lpUserManagement->GetObjectDetails(objectDetails.GetPropInt(OB_PROP_I_COMPANYID), &companyDetails) != erSuccess)
+					break;
+				strData = companyDetails.GetPropString(OB_PROP_S_FULLNAME);
+				// do we have a default copy function??
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
+				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
 				break;
 			case PROP_ID(PR_EC_USERNAME):
-				if (!bNoObjectDetails) {
-					strData = objectDetails.GetPropString(OB_PROP_S_LOGIN);
-					// do we have a default copy function??
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
-					memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
-				}
+				if (bNoObjectDetails)
+					break;
+				strData = objectDetails.GetPropString(OB_PROP_S_LOGIN);
+				// do we have a default copy function??
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
+				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
 				break;
 			case PROP_ID(PR_DISPLAY_NAME):
-				if (!bNoObjectDetails) {
-					strData = objectDetails.GetPropString(OB_PROP_S_FULLNAME);
-					// do we have a default copy function??
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
-					memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
-				}
+				if (bNoObjectDetails)
+					break;
+				strData = objectDetails.GetPropString(OB_PROP_S_FULLNAME);
+				// do we have a default copy function??
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
+				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
 				break;
 			case PROP_ID(PR_SMTP_ADDRESS):
-				if (!bNoObjectDetails) {
-					strData = objectDetails.GetPropString(OB_PROP_S_EMAIL);
-					// do we have a default copy function??
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
-					memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
-				}
+				if (bNoObjectDetails)
+					break;
+				strData = objectDetails.GetPropString(OB_PROP_S_EMAIL);
+				// do we have a default copy function??
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
+				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
 				break;
 			case PROP_ID(PR_EC_NONACTIVE):
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_b;
@@ -716,21 +716,21 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				break;
 			case PROP_ID(PR_EC_HOMESERVER_NAME):
 				// should always be this servername, see ::Load()
-				if (!bNoObjectDetails && lpSession->GetSessionManager()->IsDistributedSupported()) {
-					strData = objectDetails.GetPropString(OB_PROP_S_SERVERNAME);
-					// do we have a default copy function??
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
-					memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
-				}
+				if (bNoObjectDetails || !lpSession->GetSessionManager()->IsDistributedSupported())
+					break;
+				strData = objectDetails.GetPropString(OB_PROP_S_SERVERNAME);
+				// do we have a default copy function??
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_alloc<char>(soap, strData.length()+1);
+				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, strData.data(), strData.length()+1);
 				break;
 			case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):
-				if (llStoreSize > 0) {
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].Value.li = llStoreSize;
-				}
+				if (llStoreSize <= 0)
+					break;
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.li = llStoreSize;
 				break;
 			case PROP_ID(PR_QUOTA_WARNING_THRESHOLD):
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
@@ -749,7 +749,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				break;
 			case PROP_ID(PR_LAST_LOGON_TIME):
 			case PROP_ID(PR_LAST_LOGOFF_TIME):
-			case PROP_ID(PR_EC_QUOTA_MAIL_TIME):
+			case PROP_ID(PR_EC_QUOTA_MAIL_TIME): {
 				// last mail time ... property in the store of the user...
 				strQuery = "SELECT val_hi, val_lo FROM properties JOIN hierarchy ON properties.hierarchyid=hierarchy.id JOIN stores ON hierarchy.id=stores.hierarchy_id WHERE stores.user_id=" +
 				           stringify(row.ulObjId) + " AND properties.tag=" +
@@ -762,15 +762,16 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 					er = erSuccess;
 					break;
 				}
-				if (lpDBResult.get_num_rows() > 0) {
-					auto lpDBRow = lpDBResult.fetch_row();
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].Value.hilo = s_alloc<hiloLong>(soap);
-					lpsRowSet->__ptr[i].__ptr[k].Value.hilo->hi = atoi(lpDBRow[0]);
-					lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = atoi(lpDBRow[1]);
-				}
+				if (lpDBResult.get_num_rows() == 0)
+					break;
+				auto lpDBRow = lpDBResult.fetch_row();
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].Value.hilo = s_alloc<hiloLong>(soap);
+				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->hi = atoi(lpDBRow[0]);
+				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = atoi(lpDBRow[1]);
 				break;
+			}
 			case PROP_ID(PR_EC_OUTOFOFFICE):
 				strQuery = "SELECT val_ulong FROM properties JOIN stores ON properties.hierarchyid=stores.hierarchy_id WHERE stores.user_id=" +
 				           stringify(row.ulObjId) +
