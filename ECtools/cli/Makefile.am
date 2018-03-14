@@ -9,7 +9,7 @@ EXTRA_DIST = setup.py \
 install-exec-local:
 	rm -Rf staging
 	${MKDIR_P} staging
-	cp -a ${srcdir}/setup.py ${srcdir}/kopano_cli staging/
+	cp -a ${srcdir}/setup.py ${srcdir}/setup.cfg ${srcdir}/kopano_cli staging/
 	cp -a kopano_cli/version.py staging/kopano_cli/
 	cd staging/ && ${PYTHON} setup.py \
 		build --build-base="${abs_builddir}/build" \

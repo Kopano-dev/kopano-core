@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 
-dist_sbin_SCRIPTS = kopano-autorespond.py kopano-mr-accept.py kopano-mr-process.py 
+dist_sbin_SCRIPTS = kopano-autorespond.py kopano-mr-accept.py kopano-mr-process.py
 
 EXTRA_DIST = setup.py \
 	setup.cfg \
@@ -12,7 +12,7 @@ EXTRA_DIST = setup.py \
 install-exec-local:
 	rm -Rf staging
 	${MKDIR_P} staging
-	cp -a ${srcdir}/setup.py ${srcdir}/kopano_utils staging/
+	cp -a ${srcdir}/setup.py ${srcdir}/setup.cfg ${srcdir}/kopano_utils staging/
 	cp -a kopano_utils/version.py staging/kopano_utils/
 	cd staging/ && ${PYTHON} setup.py \
 		build --build-base="${abs_builddir}/build" \

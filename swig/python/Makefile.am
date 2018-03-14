@@ -122,8 +122,27 @@ _archiver_la_SOURCES = archiver_wrap.cxx archiver_conv.h archiver_conv.cpp
 _RecurrenceState_la_SOURCES = RecurrenceState_wrap.cxx
 _libfreebusy_la_SOURCES = libfreebusy_wrap.cxx libfreebusy_conv.h libfreebusy_conv.cpp
 
+EXTRA_DIST = helpers_python.i \
+	setup.py \
+	setup.cfg \
+	$(BUILT_SOURCES) \
+	MAPICore.py \
+	inetmapi.py \
+	icalmapi.py \
+	libfreebusy.py \
+	MAPI/Defs.py \
+	MAPI/__init__.py \
+	MAPI/version.py \
+	MAPI/Struct.py \
+	MAPI/Tags.py \
+	MAPI/Time.py \
+	MAPI/Util/__init__.py \
+	MAPI/Util/Generators.py \
+	MAPI/Util/Iterators.py \
+	MAPI/Util/AddressBook.py \
+	MAPI/Util/codepage.py \
+	archiver_python.i
 
-EXTRA_DIST = helpers_python.i setup.py setup.cfg $(BUILT_SOURCES) MAPICore.py inetmapi.py icalmapi.py libfreebusy.py MAPI/Defs.py  MAPI/__init__.py  MAPI/version.py  MAPI/Struct.py  MAPI/Tags.py  MAPI/Time.py MAPI/Util/__init__.py MAPI/Util/Generators.py MAPI/Util/Iterators.py MAPI/Util/AddressBook.py MAPI/Util/codepage.py archiver_python.i
 datadir = ${pythondir}
 data_DATA = MAPICore.py inetmapi.py icalmapi.py libfreebusy.py
 noinst_datadir = RecurrenceState.py
@@ -154,7 +173,11 @@ check-syntax:
 		-fsyntax-only -fmessage-length=0 ${CHK_SOURCES} -Wall -Wformat=2
 
 install-exec-local:
-	cd ${srcdir} && ${PYTHON} setup.py \
+	rm -Rf staging
+	${MKDIR_P} staging
+	cp -a ${srcdir}/setup.py ${srcdir}/setup.cfg ${srcdir}/MAPI staging/
+	cp -a MAPI/version.py staging/MAPI/
+	cd staging/ && ${PYTHON} setup.py \
 		build --build-base="${abs_builddir}/build" \
 		install -f $${DESTDIR+--root=${DESTDIR}} \
 		--prefix="${prefix}" --install-purelib ${pythondir}
