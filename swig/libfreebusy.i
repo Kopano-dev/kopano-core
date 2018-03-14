@@ -77,7 +77,7 @@ public:
         virtual HRESULT RemoveAppt() = 0;
         virtual HRESULT ResetPublishedFreeBusy() = 0;
         virtual HRESULT ChangeAppt() = 0;
-        virtual HRESULT SaveChanges(const FILETIME &start, const FILETIME &end) = 0;
+        virtual HRESULT SaveChanges(const FILETIME start, const FILETIME end) = 0;
         virtual HRESULT GetFBTimes() = 0;
         virtual HRESULT Intersect() = 0;
         %extend {
@@ -93,7 +93,7 @@ public:
         virtual HRESULT Skip(LONG celt) = 0;
         virtual HRESULT Reset() = 0;
         virtual HRESULT Clone(IEnumFBBlock **ppclone) = 0;
-        virtual HRESULT Restrict(const FILETIME &start, const FILETIME &end) = 0;
+        virtual HRESULT Restrict(const FILETIME start, const FILETIME end) = 0;
         %extend {
                 ~IEnumFBBlock() { self->Release(); }
         }
@@ -102,7 +102,7 @@ public:
 class IFreeBusyData {
 public:
         virtual HRESULT Reload(void*) = 0;
-        virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, const FILETIME &start, const FILETIME &end) = 0;
+        virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, const FILETIME start, const FILETIME end) = 0;
         virtual HRESULT Merge(void *) = 0;
         virtual HRESULT GetDelegateInfo(void *) = 0;
         virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *) = 0;
