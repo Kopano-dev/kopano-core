@@ -94,31 +94,28 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 				break;
 
 			case PROP_ID(PR_EC_USERNAME):
-				if (!pThis->m_mapUserStoreData[row.ulObjId].strUsername.empty()) {
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, const_cast<char *>(pThis->m_mapUserStoreData[row.ulObjId].strUsername.c_str()));
-				}
+				if (pThis->m_mapUserStoreData[row.ulObjId].strUsername.empty())
+					break;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, const_cast<char *>(pThis->m_mapUserStoreData[row.ulObjId].strUsername.c_str()));
 				break;
 			case PROP_ID(PR_DISPLAY_NAME):
-				if (!pThis->m_mapUserStoreData[row.ulObjId].strGuessname.empty()) {
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, const_cast<char *>(pThis->m_mapUserStoreData[row.ulObjId].strGuessname.c_str()));
-				}
+				if (pThis->m_mapUserStoreData[row.ulObjId].strGuessname.empty())
+					break;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, const_cast<char *>(pThis->m_mapUserStoreData[row.ulObjId].strGuessname.c_str()));
 				break;
 			case PROP_ID(PR_EC_STOREGUID):
-				if (pThis->m_mapUserStoreData[row.ulObjId].sGuid != sZeroGuid) {
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_bin;
-					lpsRowSet->__ptr[i].__ptr[k].Value.bin = s_alloc<xsd__base64Binary>(soap);
-					lpsRowSet->__ptr[i].__ptr[k].Value.bin->__size = sizeof(GUID);
-					lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
-					memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &pThis->m_mapUserStoreData[row.ulObjId].sGuid, sizeof(GUID));
-				}
+				if (pThis->m_mapUserStoreData[row.ulObjId].sGuid == sZeroGuid)
+					break;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_bin;
+				lpsRowSet->__ptr[i].__ptr[k].Value.bin = s_alloc<xsd__base64Binary>(soap);
+				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__size = sizeof(GUID);
+				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &pThis->m_mapUserStoreData[row.ulObjId].sGuid, sizeof(GUID));
 				break;
 			case PROP_ID(PR_EC_STORETYPE):
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
@@ -127,20 +124,18 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 				lpsRowSet->__ptr[i].__ptr[k].Value.ul = pThis->m_mapUserStoreData[row.ulObjId].ulStoreType;
 				break;
 			case PROP_ID(PR_EC_COMPANYID):
-				if (pThis->m_mapUserStoreData[row.ulObjId].ulCompanyId != 0) {
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-					lpsRowSet->__ptr[i].__ptr[k].Value.ul = pThis->m_mapUserStoreData[row.ulObjId].ulCompanyId;
-				}
+				if (pThis->m_mapUserStoreData[row.ulObjId].ulCompanyId == 0)
+					break;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
+				lpsRowSet->__ptr[i].__ptr[k].Value.ul = pThis->m_mapUserStoreData[row.ulObjId].ulCompanyId;
 				break;
 			case PROP_ID(PR_EC_COMPANY_NAME):
-				if (!pThis->m_mapUserStoreData[row.ulObjId].strCompanyName.empty()) {
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, const_cast<char *>(pThis->m_mapUserStoreData[row.ulObjId].strCompanyName.c_str()));
-				}
+				if (pThis->m_mapUserStoreData[row.ulObjId].strCompanyName.empty())
+					break;
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
+				lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, const_cast<char *>(pThis->m_mapUserStoreData[row.ulObjId].strCompanyName.c_str()));
 				break;
 			case PROP_ID(PR_STORE_ENTRYID):
 				// ignore errors
@@ -150,18 +145,18 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 					0, pThis->m_mapUserStoreData[row.ulObjId].ulObjId,
 					0, MAPI_STORE, &lpsRowSet->__ptr[i].__ptr[k]);
 				break;
-			case PROP_ID(PR_LAST_MODIFICATION_TIME):
-				if (pThis->m_mapUserStoreData[row.ulObjId].tModTime != 0) {
-					FILETIME ftTmp;
-					ftTmp = UnixTimeToFileTime(pThis->m_mapUserStoreData[row.ulObjId].tModTime);
-
-					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
-					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
-					lpsRowSet->__ptr[i].__ptr[k].Value.hilo = s_alloc<struct hiloLong>(soap);
-					lpsRowSet->__ptr[i].__ptr[k].Value.hilo->hi = ftTmp.dwHighDateTime;
-					lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = ftTmp.dwLowDateTime;
-				}
+			case PROP_ID(PR_LAST_MODIFICATION_TIME): {
+				if (pThis->m_mapUserStoreData[row.ulObjId].tModTime == 0)
+					break;
+				FILETIME ftTmp;
+				ftTmp = UnixTimeToFileTime(pThis->m_mapUserStoreData[row.ulObjId].tModTime);
+				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
+				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
+				lpsRowSet->__ptr[i].__ptr[k].Value.hilo = s_alloc<struct hiloLong>(soap);
+				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->hi = ftTmp.dwHighDateTime;
+				lpsRowSet->__ptr[i].__ptr[k].Value.hilo->lo = ftTmp.dwLowDateTime;
 				break;
+			}
 			case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;

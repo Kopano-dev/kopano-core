@@ -274,10 +274,10 @@ ECSession::~ECSession()
 	 * using the object since there are now 0 threads on this session (except this thread)
 	 * Afterwards tell the session manager that the sessiongroup may be an orphan now.
 	 */
-	if (m_lpSessionGroup) {
-		m_lpSessionGroup->ReleaseSession(this);
-    	m_lpSessionManager->DeleteIfOrphaned(m_lpSessionGroup);
-	}
+	if (m_lpSessionGroup == nullptr)
+		return;
+	m_lpSessionGroup->ReleaseSession(this);
+	m_lpSessionManager->DeleteIfOrphaned(m_lpSessionGroup);
 }
 
 /**
@@ -594,50 +594,44 @@ ECAuthSession::ECAuthSession(const char *src_addr, ECSESSIONID sessionID,
 ECAuthSession::~ECAuthSession()
 {
 #ifdef HAVE_GSSAPI
-	OM_uint32 status;
-
+	OM_uint32 omstatus;
 	if (m_gssServerCreds)
-		gss_release_cred(&status, &m_gssServerCreds);
-
+		gss_release_cred(&omstatus, &m_gssServerCreds);
 	if (m_gssContext)
-		gss_delete_sec_context(&status, &m_gssContext, GSS_C_NO_BUFFER);
+		gss_delete_sec_context(&omstatus, &m_gssContext, GSS_C_NO_BUFFER);
 #endif
 
 	/* Wait until all locks have been closed */
 	std::unique_lock<std::mutex> l_thread(m_hThreadReleasedMutex);
 	m_hThreadReleased.wait(l_thread, [this](void) { return !IsLocked(); });
 	l_thread.unlock();
-
-	if (m_NTLM_pid != -1) {
-		int status;
-
-		// close I/O to make ntlm_auth exit
-		close(m_stdin);
-		close(m_stdout);
-		close(m_stderr);
-
-		// wait for process status
-		waitpid(m_NTLM_pid, &status, 0);
-		ec_log_info("Removing ntlm_auth on pid %d. Exitstatus: %d", m_NTLM_pid, status);
-		if (status == -1) {
-			ec_log_err(std::string("System call waitpid failed: ") + strerror(errno));
-		} else {
-#ifdef WEXITSTATUS
-				if(WIFEXITED(status)) { /* Child exited by itself */
-					if(WEXITSTATUS(status))
-						ec_log_notice("ntlm_auth exited with non-zero status %d", WEXITSTATUS(status));
-				} else if(WIFSIGNALED(status)) {        /* Child was killed by a signal */
-					ec_log_err("ntlm_auth was killed by signal %d", WTERMSIG(status));
-
-				} else {                        /* Something strange happened */
-					ec_log_err("ntlm_auth terminated abnormally");
-				}
-#else
-				if (status)
-					ec_log_notice("ntlm_auth exited with status %d", status);
-#endif
-		}
+	if (m_NTLM_pid == -1)
+		return;
+	int status;
+	// close I/O to make ntlm_auth exit
+	close(m_stdin);
+	close(m_stdout);
+	close(m_stderr);
+	// wait for process status
+	waitpid(m_NTLM_pid, &status, 0);
+	ec_log_info("Removing ntlm_auth on pid %d. Exitstatus: %d", m_NTLM_pid, status);
+	if (status == -1) {
+		ec_log_err(std::string("System call waitpid failed: ") + strerror(errno));
+		return;
 	}
+#ifdef WEXITSTATUS
+	if (WIFEXITED(status)) { /* Child exited by itself */
+		if (WEXITSTATUS(status))
+			ec_log_notice("ntlm_auth exited with non-zero status %d", WEXITSTATUS(status));
+	} else if (WIFSIGNALED(status)) { /* Child was killed by a signal */
+		ec_log_err("ntlm_auth was killed by signal %d", WTERMSIG(status));
+	} else { /* Something strange happened */
+		ec_log_err("ntlm_auth terminated abnormally");
+	}
+#else
+	if (status)
+		ec_log_notice("ntlm_auth exited with status %d", status);
+#endif
 }
 
 ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,

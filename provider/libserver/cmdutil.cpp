@@ -1286,15 +1286,12 @@ ECRESULT UpdateFolderCounts(ECDatabase *lpDatabase, ULONG ulParentId, ULONG ulFl
 	ECRESULT er = erSuccess;
 	
 	if (ulFlags & MAPI_ASSOCIATED)
-		er = UpdateFolderCount(lpDatabase, ulParentId, PR_ASSOC_CONTENT_COUNT, 1);
-	else {
-		er = UpdateFolderCount(lpDatabase, ulParentId, PR_CONTENT_COUNT, 1);
-		struct propVal *lpPropMessageFlags = NULL;
-		lpPropMessageFlags = FindProp(lpModProps, PR_MESSAGE_FLAGS);
-		if (er == erSuccess && (!lpPropMessageFlags || (lpPropMessageFlags->Value.ul & MSGFLAG_READ) == 0))
-			er = UpdateFolderCount(lpDatabase, ulParentId, PR_CONTENT_UNREAD, 1);
-	}
-
+		return UpdateFolderCount(lpDatabase, ulParentId, PR_ASSOC_CONTENT_COUNT, 1);
+	er = UpdateFolderCount(lpDatabase, ulParentId, PR_CONTENT_COUNT, 1);
+	struct propVal *lpPropMessageFlags = NULL;
+	lpPropMessageFlags = FindProp(lpModProps, PR_MESSAGE_FLAGS);
+	if (er == erSuccess && (!lpPropMessageFlags || (lpPropMessageFlags->Value.ul & MSGFLAG_READ) == 0))
+		er = UpdateFolderCount(lpDatabase, ulParentId, PR_CONTENT_UNREAD, 1);
 	return er;
 }
 
@@ -1324,62 +1321,55 @@ ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStore
 	// was included in the save.
 	lpPropMessageFlags = FindProp(lpModProps, PR_MESSAGE_FLAGS);
 
-	if (ulSyncId > 0 && lpPropMessageFlags) {
-		if (bNewItem) {
-			// Item is new, so it's not in the queue at the moment
-			ulPrevSubmitFlag = 0;
-		} else {
-			// Existing item. Check its current submit flag by looking at the outgoing queue.
-			strQuery = "SELECT hierarchy_id FROM outgoingqueue WHERE hierarchy_id=" + stringify(ulObjId) + " AND flags & " + stringify(EC_SUBMIT_MASTER) + " = 0 LIMIT 1";
-			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-			if (er != erSuccess)
-				return er;
-			// Item is (1)/is not (0) in the outgoing queue at the moment
-			ulPrevSubmitFlag = lpDBResult.get_num_rows() > 0;
-		}
+	if (ulSyncId == 0 || lpPropMessageFlags == nullptr)
+		return erSuccess;
+	if (bNewItem) {
+		// Item is new, so it's not in the queue at the moment
+		ulPrevSubmitFlag = 0;
+	} else {
+		// Existing item. Check its current submit flag by looking at the outgoing queue.
+		strQuery = "SELECT hierarchy_id FROM outgoingqueue WHERE hierarchy_id=" + stringify(ulObjId) + " AND flags & " + stringify(EC_SUBMIT_MASTER) + " = 0 LIMIT 1";
+		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+		if (er != erSuccess)
+			return er;
+		// Item is (1)/is not (0) in the outgoing queue at the moment
+		ulPrevSubmitFlag = lpDBResult.get_num_rows() > 0;
+	}
 
-		if ((lpPropMessageFlags->Value.ul & MSGFLAG_SUBMIT) && ulPrevSubmitFlag == 0) {
-			// Message was previously not submitted, but it is now, so add it to the outgoing queue and set the correct flags.
-
-			strQuery = "INSERT INTO outgoingqueue (store_id, hierarchy_id, flags) VALUES("+stringify(ulStoreId)+", "+stringify(ulObjId)+"," + stringify(EC_SUBMIT_LOCAL) + ")";
-			er = lpDatabase->DoInsert(strQuery);
-			if (er != erSuccess)
-				return er;
-
-			strQuery = "UPDATE properties SET val_ulong = val_ulong | " + stringify(MSGFLAG_SUBMIT) +
-							" WHERE hierarchyid = " + stringify(ulObjId) +
-							" AND type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) +
-							" AND tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS));
-			er = lpDatabase->DoUpdate(strQuery);
-			if (er != erSuccess)
-				return er;
-
-			// The object has changed, update the cache.
-		    g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulObjId);
-			// Update in-memory outgoing tables
-			g_lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_ADD, ulStoreId, ulObjId, EC_SUBMIT_LOCAL, MAPI_MESSAGE);
-
-		} else if ((lpPropMessageFlags->Value.ul & MSGFLAG_SUBMIT) == 0 && ulPrevSubmitFlag == 1) {
-			// Message was previously submitted, but is not submitted any more. Remove it from the outgoing queue and remove the flags.
-
-			strQuery = "DELETE FROM outgoingqueue WHERE hierarchy_id = " + stringify(ulObjId);
-			er = lpDatabase->DoDelete(strQuery);
-			if (er != erSuccess)
-				return er;
-
-			strQuery = "UPDATE properties SET val_ulong = val_ulong & ~" + stringify(MSGFLAG_SUBMIT) +
-							" WHERE hierarchyid = " + stringify(ulObjId) +
-							" AND type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) +
-							" AND tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS));
-			er = lpDatabase->DoUpdate(strQuery);
-			if (er != erSuccess)
-				return er;
-
-			// The object has changed, update the cache.
-		    g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulObjId);
-			// Update in-memory outgoing tables
-			g_lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_DELETE, ulStoreId, ulObjId, EC_SUBMIT_LOCAL, MAPI_MESSAGE);
-		}
+	if ((lpPropMessageFlags->Value.ul & MSGFLAG_SUBMIT) && ulPrevSubmitFlag == 0) {
+		// Message was previously not submitted, but it is now, so add it to the outgoing queue and set the correct flags.
+		strQuery = "INSERT INTO outgoingqueue (store_id, hierarchy_id, flags) VALUES("+stringify(ulStoreId)+", "+stringify(ulObjId)+"," + stringify(EC_SUBMIT_LOCAL) + ")";
+		er = lpDatabase->DoInsert(strQuery);
+		if (er != erSuccess)
+			return er;
+		strQuery = "UPDATE properties SET val_ulong = val_ulong | " + stringify(MSGFLAG_SUBMIT) +
+			" WHERE hierarchyid = " + stringify(ulObjId) +
+			" AND type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) +
+			" AND tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS));
+		er = lpDatabase->DoUpdate(strQuery);
+		if (er != erSuccess)
+			return er;
+		// The object has changed, update the cache.
+		g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulObjId);
+		// Update in-memory outgoing tables
+		g_lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_ADD, ulStoreId, ulObjId, EC_SUBMIT_LOCAL, MAPI_MESSAGE);
+	} else if ((lpPropMessageFlags->Value.ul & MSGFLAG_SUBMIT) == 0 && ulPrevSubmitFlag == 1) {
+		// Message was previously submitted, but is not submitted any more. Remove it from the outgoing queue and remove the flags.
+		strQuery = "DELETE FROM outgoingqueue WHERE hierarchy_id = " + stringify(ulObjId);
+		er = lpDatabase->DoDelete(strQuery);
+		if (er != erSuccess)
+			return er;
+		strQuery = "UPDATE properties SET val_ulong = val_ulong & ~" + stringify(MSGFLAG_SUBMIT) +
+			" WHERE hierarchyid = " + stringify(ulObjId) +
+			" AND type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) +
+			" AND tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS));
+		er = lpDatabase->DoUpdate(strQuery);
+		if (er != erSuccess)
+			return er;
+		// The object has changed, update the cache.
+		g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulObjId);
+		// Update in-memory outgoing tables
+		g_lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_DELETE, ulStoreId, ulObjId, EC_SUBMIT_LOCAL, MAPI_MESSAGE);
 	}
 	return erSuccess;
 }
@@ -1388,60 +1378,47 @@ ECRESULT CreateNotifications(ULONG ulObjId, ULONG ulObjType, ULONG ulParentId, U
 {
 	unsigned int ulObjFlags = 0;
 	unsigned int ulParentFlags = 0;
-	
-	if(!((ulObjType == MAPI_ATTACH || ulObjType == MAPI_MESSAGE) && ulObjType == MAPI_STORE) &&
-		(ulObjType == MAPI_MESSAGE || ulObjType == MAPI_FOLDER || ulObjType == MAPI_STORE))
-
-	{
-		g_lpSessionManager->GetCacheManager()->GetObjectFlags(ulObjId, &ulObjFlags);
-
-		// update PR_LOCAL_COMMIT_TIME_MAX in cache for disconnected clients who want to know if the folder contents changed
-		if (lpvCommitTime) {
-			sObjectTableKey key(ulParentId, 0);
-			g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_LOCAL_COMMIT_TIME_MAX, lpvCommitTime);
-		}
-
-		if (bNewItem) {
-			// Notify that the message has been created
-
-			g_lpSessionManager->NotificationCreated(ulObjType, ulObjId, ulParentId);
-
-			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, ulObjFlags & MSGFLAG_NOTIFY_FLAGS, ulParentId, ulObjId, ulObjType);
-
-			// Notify that the folder in which the message resided has changed (PR_CONTENT_COUNT, PR_CONTENT_UNREAD)
-			
-			if(ulObjFlags & MAPI_ASSOCIATED)
-				g_lpSessionManager->GetCacheManager()->UpdateCell(ulParentId, PR_ASSOC_CONTENT_COUNT, 1);
-			else {
-				g_lpSessionManager->GetCacheManager()->UpdateCell(ulParentId, PR_CONTENT_COUNT, 1);
-
-				struct propVal *lpPropMessageFlags = FindProp(lpModProps, PR_MESSAGE_FLAGS);			
-				if (lpPropMessageFlags && (lpPropMessageFlags->Value.ul & MSGFLAG_READ) == 0)
-					// Unread message
-					g_lpSessionManager->GetCacheManager()->UpdateCell(ulParentId, PR_CONTENT_UNREAD, 1);
-			}
-			
-			g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
-			if (ulGrandParentId) {
-				g_lpSessionManager->GetCacheManager()->GetObjectFlags(ulParentId, &ulParentFlags);
-				g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, ulParentFlags & MSGFLAG_NOTIFY_FLAGS, ulGrandParentId, ulParentId, MAPI_FOLDER);
-			}
-
-		} else if (ulObjType == MAPI_STORE) {
-			g_lpSessionManager->NotificationModified(ulObjType, ulObjId);
-		} else {
-			// Notify that the message has been modified
-			if (ulObjType == MAPI_MESSAGE)
-				g_lpSessionManager->NotificationModified(ulObjType, ulObjId, ulParentId);
-			else
-				g_lpSessionManager->NotificationModified(ulObjType, ulObjId);
-
-			if (ulParentId)
-				g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, ulObjFlags & MSGFLAG_NOTIFY_FLAGS, ulParentId, ulObjId, ulObjType);
-
-		}
+	bool kk = !((ulObjType == MAPI_ATTACH || ulObjType == MAPI_MESSAGE) && ulObjType == MAPI_STORE) &&
+		(ulObjType == MAPI_MESSAGE || ulObjType == MAPI_FOLDER || ulObjType == MAPI_STORE);
+	if (!kk)
+		return erSuccess;
+	g_lpSessionManager->GetCacheManager()->GetObjectFlags(ulObjId, &ulObjFlags);
+	// update PR_LOCAL_COMMIT_TIME_MAX in cache for disconnected clients who want to know if the folder contents changed
+	if (lpvCommitTime) {
+		sObjectTableKey key(ulParentId, 0);
+		g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_LOCAL_COMMIT_TIME_MAX, lpvCommitTime);
 	}
 
+	if (bNewItem) {
+		// Notify that the message has been created
+		g_lpSessionManager->NotificationCreated(ulObjType, ulObjId, ulParentId);
+		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, ulObjFlags & MSGFLAG_NOTIFY_FLAGS, ulParentId, ulObjId, ulObjType);
+		// Notify that the folder in which the message resided has changed (PR_CONTENT_COUNT, PR_CONTENT_UNREAD)
+		if (ulObjFlags & MAPI_ASSOCIATED)
+			g_lpSessionManager->GetCacheManager()->UpdateCell(ulParentId, PR_ASSOC_CONTENT_COUNT, 1);
+		else {
+			g_lpSessionManager->GetCacheManager()->UpdateCell(ulParentId, PR_CONTENT_COUNT, 1);
+			struct propVal *lpPropMessageFlags = FindProp(lpModProps, PR_MESSAGE_FLAGS);
+			if (lpPropMessageFlags && (lpPropMessageFlags->Value.ul & MSGFLAG_READ) == 0)
+				// Unread message
+				g_lpSessionManager->GetCacheManager()->UpdateCell(ulParentId, PR_CONTENT_UNREAD, 1);
+		}
+		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
+		if (ulGrandParentId) {
+			g_lpSessionManager->GetCacheManager()->GetObjectFlags(ulParentId, &ulParentFlags);
+			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, ulParentFlags & MSGFLAG_NOTIFY_FLAGS, ulGrandParentId, ulParentId, MAPI_FOLDER);
+		}
+	} else if (ulObjType == MAPI_STORE) {
+		g_lpSessionManager->NotificationModified(ulObjType, ulObjId);
+	} else {
+		// Notify that the message has been modified
+		if (ulObjType == MAPI_MESSAGE)
+			g_lpSessionManager->NotificationModified(ulObjType, ulObjId, ulParentId);
+		else
+			g_lpSessionManager->NotificationModified(ulObjType, ulObjId);
+		if (ulParentId)
+			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, ulObjFlags & MSGFLAG_NOTIFY_FLAGS, ulParentId, ulObjId, ulObjType);
+	}
 	return erSuccess;
 }
 
@@ -1497,14 +1474,13 @@ ECRESULT WriteProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ul
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		return er;
-	
-	if(ulParentId > 0) {
-		strQuery.clear();
-		WriteSingleProp(lpDatabase, ulObjId, ulParentId, lpPropVal, true, 0, strQuery, replace);
-		er = lpDatabase->DoInsert(strQuery);
-		if(er != erSuccess)
-			return er;
-	}
+	if (ulParentId == 0)
+		return erSuccess;
+	strQuery.clear();
+	WriteSingleProp(lpDatabase, ulObjId, ulParentId, lpPropVal, true, 0, strQuery, replace);
+	er = lpDatabase->DoInsert(strQuery);
+	if (er != erSuccess)
+		return er;
 	return erSuccess;
 }
 
@@ -1528,37 +1504,35 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 		if(er != erSuccess)
 			return er;
 
-		if (lpDBResult.get_num_rows() == 1) {
-			lpDBRow = lpDBResult.fetch_row();
-			lpDBLen = lpDBResult.fetch_row_lengths();
-			if(lpDBRow != NULL) {
-				if(lpDBRow[0] != NULL) {
-					// It's an ID type
-					lpsNames->__ptr[i].lpId = s_alloc<unsigned int>(soap);
-					*lpsNames->__ptr[i].lpId = atoi(lpDBRow[0]);
-				} else if(lpDBRow[1] != NULL) {
-					// It's a String type
-					lpsNames->__ptr[i].lpString = s_alloc<char>(soap, strlen(lpDBRow[1])+1);
-					strcpy(lpsNames->__ptr[i].lpString, lpDBRow[1]);
-				}
-
-				if(lpDBRow[2] != NULL) {
-					// Got a GUID (should always do so ...)
-					lpsNames->__ptr[i].lpguid = s_alloc<struct xsd__base64Binary>(soap);
-					lpsNames->__ptr[i].lpguid->__size = lpDBLen[2];
-					lpsNames->__ptr[i].lpguid->__ptr = s_alloc<unsigned char>(soap, lpDBLen[2]);
-					memcpy(lpsNames->__ptr[i].lpguid->__ptr, lpDBRow[2], lpDBLen[2]);
-				}
-			} else {
-				ec_log_crit("GetNamesFromIDs(): row/col NULL");
-				return KCERR_DATABASE_ERROR;
-			}
-		} else {
+		if (lpDBResult.get_num_rows() != 1) {
 			// No entry
 			lpsNames->__ptr[i].lpguid = NULL;
 			lpsNames->__ptr[i].lpId = NULL;
 			lpsNames->__ptr[i].lpString = NULL;
+			continue;
 		}
+		lpDBRow = lpDBResult.fetch_row();
+		lpDBLen = lpDBResult.fetch_row_lengths();
+		if (lpDBRow == nullptr) {
+			ec_log_crit("GetNamesFromIDs(): row/col NULL");
+			return KCERR_DATABASE_ERROR;
+		}
+		if (lpDBRow[0] != NULL) {
+			// It's an ID type
+			lpsNames->__ptr[i].lpId = s_alloc<unsigned int>(soap);
+			*lpsNames->__ptr[i].lpId = atoi(lpDBRow[0]);
+		} else if (lpDBRow[1] != NULL) {
+			// It's a String type
+			lpsNames->__ptr[i].lpString = s_alloc<char>(soap, strlen(lpDBRow[1]) + 1);
+			strcpy(lpsNames->__ptr[i].lpString, lpDBRow[1]);
+		}
+		if (lpDBRow[2] == nullptr)
+			continue;
+		// Got a GUID (should always do so ...)
+		lpsNames->__ptr[i].lpguid = s_alloc<struct xsd__base64Binary>(soap);
+		lpsNames->__ptr[i].lpguid->__size = lpDBLen[2];
+		lpsNames->__ptr[i].lpguid->__ptr = s_alloc<unsigned char>(soap, lpDBLen[2]);
+		memcpy(lpsNames->__ptr[i].lpguid->__ptr, lpDBRow[2], lpDBLen[2]);
 	}
 	return erSuccess;
 }
