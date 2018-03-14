@@ -47,7 +47,7 @@ ECNotification::ECNotification(const ECNotification &x)
 	*this = x;
 }
 
-ECNotification::ECNotification(notification &notification)
+ECNotification::ECNotification(const notification &notification)
 {
 	Init();
 	*this = notification;

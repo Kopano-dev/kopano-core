@@ -57,6 +57,8 @@ namespace KC {
 extern ECSessionManager*    g_lpSessionManager; // FIXME: remove this global and change the depended source code!
 extern ECStatsCollector* 	g_lpStatsCollector;
 
+static void FreeDeleteItem(DELETEITEM *);
+
 ECRESULT GetSourceKey(unsigned int ulObjId, SOURCEKEY *lpSourceKey)
 {
 	ECRESULT er = erSuccess;
@@ -108,7 +110,8 @@ ECRESULT GetSourceKey(unsigned int ulObjId, SOURCEKEY *lpSourceKey)
  *
  * @return Kopano error code
  */
-ECRESULT ValidateDeleteObject(ECSession *lpSession, bool bCheckPermission, unsigned int ulFlags, const DELETEITEM &sItem)
+static ECRESULT ValidateDeleteObject(ECSession *lpSession,
+    bool bCheckPermission, unsigned int ulFlags, const DELETEITEM &sItem)
 {
 	ECRESULT er;
 
@@ -356,7 +359,8 @@ exit:
  * @param[in] ulSyncId ???
  *
  */
-ECRESULT DeleteObjectUpdateICS(ECSession *lpSession, unsigned int ulFlags, ECListDeleteItems &lstDeleted, unsigned int ulSyncId)
+static ECRESULT DeleteObjectUpdateICS(ECSession *lpSession,
+    unsigned int ulFlags, ECListDeleteItems &lstDeleted, unsigned int ulSyncId)
 {
 	ECRESULT er = erSuccess;
 
@@ -459,7 +463,9 @@ ECRESULT DeleteObjectStoreSize(ECSession *lpSession, ECDatabase *lpDatabase, uns
  * @param[out] lstDeleted List with deleted objects.
  *
  */
-ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase, unsigned int ulFlags, ECListDeleteItems &lstDeleteItems, ECListDeleteItems &lstDeleted)
+static ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase,
+    unsigned int ulFlags, ECListDeleteItems &lstDeleteItems,
+    ECListDeleteItems &lstDeleted)
 {
 	ECRESULT er;
 	FILETIME ft;
@@ -812,8 +818,8 @@ ECRESULT DeleteObjectCacheUpdate(ECSession *lpSession, unsigned int ulFlags, ECL
  * @param[in] ulFlags Bitmask of flags that controls how the objects will deleted.
  * @param[in] lstDeleted List with deleted objects.
  */
-
-ECRESULT DeleteObjectNotifications(ECSession *lpSession, unsigned int ulFlags, ECListDeleteItems &lstDeleted)
+static ECRESULT DeleteObjectNotifications(ECSession *lpSession,
+    unsigned int ulFlags, ECListDeleteItems &lstDeleted)
 {
 	ECSessionManager *lpSessionManager = NULL;
 	std::list<unsigned int> lstParent;
@@ -1133,7 +1139,7 @@ ECRESULT WriteLocalCommitTimeMax(struct soap *soap, ECDatabase *lpDatabase, unsi
 	return erSuccess;
 }
 
-void FreeDeleteItem(DELETEITEM *src)
+static void FreeDeleteItem(DELETEITEM *src)
 {
 	s_free(nullptr, src->sEntryId.__ptr);
 }
@@ -1773,7 +1779,9 @@ ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, 
 	return erSuccess;
 }
 
-ECRESULT ApplyFolderCounts(ECDatabase *lpDatabase, unsigned int ulFolderId, const PARENTINFO &pi) {
+static ECRESULT ApplyFolderCounts(ECDatabase *lpDatabase,
+    unsigned int ulFolderId, const PARENTINFO &pi)
+{
 	ECRESULT er;
     
 	er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_COUNT,    			pi.lItems);

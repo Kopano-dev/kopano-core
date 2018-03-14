@@ -61,16 +61,11 @@ class ECCategory _kc_final {
 public:
     ECCategory(unsigned int ulCategory, struct propVal *lpProps, unsigned int cProps, unsigned int nProps, ECCategory *lpParent, unsigned int ulDepth, bool fExpanded, const ECLocale &locale);
     virtual ~ECCategory();
-
-    void IncLeaf();
-    void DecLeaf();
-    void IncUnread();
-    void DecUnread();
-    
+	void IncLeaf() { ++m_ulLeafs; }
+	void DecLeaf() { --m_ulLeafs; }
+	void IncUnread() { ++m_ulUnread; }
+	void DecUnread() { --m_ulUnread; }
 	unsigned int GetCount(void) const { return m_ulLeafs; }
-    
-    ECCategory* GetParent();
-    
     ECRESULT GetProp(struct soap* soap, unsigned int ulPropTag, struct propVal *lpPropVal);
     ECRESULT SetProp(unsigned int i, struct propVal *lpPropVal);
     ECRESULT UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, struct propVal *lpPropVal, bool fMax, bool *lpfModified);

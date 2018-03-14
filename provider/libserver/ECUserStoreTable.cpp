@@ -53,8 +53,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 	if (pThis == nullptr)
 		return KCERR_INVALID_PARAMETER;
 	gsoap_size_t i;
-	GUID sZeroGuid = {0};
-
+	static constexpr const GUID sZeroGuid = {0};
 	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;

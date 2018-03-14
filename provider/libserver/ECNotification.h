@@ -35,8 +35,7 @@ public:
 	virtual ~ECNotification();
 	ECNotification(const ECNotification &x);
 	ECNotification& operator=(const ECNotification &x);
-
-	ECNotification(notification &notification);
+	ECNotification(const notification &);
 	ECNotification& operator=(const notification &srcNotification);
 
 	void SetConnection(unsigned int ulConnection);

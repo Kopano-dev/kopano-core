@@ -2816,16 +2816,6 @@ ECCategory::~ECCategory()
 	s_free(nullptr, m_lpProps);
 }
 
-void ECCategory::IncLeaf()
-{
-	++m_ulLeafs;
-}
-
-void ECCategory::DecLeaf()
-{
-	--m_ulLeafs;
-}
-
 ECRESULT ECCategory::GetProp(struct soap *soap, unsigned int ulPropTag, struct propVal* lpPropVal)
 {
     ECRESULT er = erSuccess;
@@ -2946,14 +2936,6 @@ ECRESULT ECCategory::UpdateMinMaxRemove(const sObjectTableKey &sKey, unsigned in
 	if(lpfModified)
 		*lpfModified = fModified;
 	return erSuccess;
-}
-
-void ECCategory::DecUnread() {
-	--m_ulUnread;
-}
-
-void ECCategory::IncUnread() {
-	++m_ulUnread;
 }
 
 /**
