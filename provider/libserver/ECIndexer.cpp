@@ -91,36 +91,32 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
 		return erSuccess;
         
     for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i) {
-        if(lpRestrict->lpAnd->__ptr[i]->ulType == RES_AND) {
-            // First, flatten our subchild
-			auto er = NormalizeRestrictionNestedAnd(lpRestrict->lpAnd->__ptr[i]);
-            if (er != erSuccess)
-				return er;
-
-            // Now, get all the clauses from the child AND-clause and push them to this AND-clause
-            for (gsoap_size_t j = 0; j < lpRestrict->lpAnd->__ptr[i]->lpAnd->__size; ++j)
-				lstClauses.emplace_back(lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr[j]);
-
-			s_free(nullptr, lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr);
-			s_free(nullptr, lpRestrict->lpAnd->__ptr[i]->lpAnd);
-			s_free(nullptr, lpRestrict->lpAnd->__ptr[i]);
-            bModified = true;
-        } else {
+		if (lpRestrict->lpAnd->__ptr[i]->ulType != RES_AND) {
 			lstClauses.emplace_back(lpRestrict->lpAnd->__ptr[i]);
-        }
+			continue;
+		}
+		// First, flatten our subchild
+		auto er = NormalizeRestrictionNestedAnd(lpRestrict->lpAnd->__ptr[i]);
+		if (er != erSuccess)
+			return er;
+		// Now, get all the clauses from the child AND-clause and push them to this AND-clause
+		for (gsoap_size_t j = 0; j < lpRestrict->lpAnd->__ptr[i]->lpAnd->__size; ++j)
+			lstClauses.emplace_back(lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr[j]);
+		s_free(nullptr, lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr);
+		s_free(nullptr, lpRestrict->lpAnd->__ptr[i]->lpAnd);
+		s_free(nullptr, lpRestrict->lpAnd->__ptr[i]);
+		bModified = true;
     }
         
-    if(bModified) {
-        // We changed something, free the previous toplevel data and create a new list of children
-		s_free(nullptr, lpRestrict->lpAnd->__ptr);
-        lpRestrict->lpAnd->__ptr = s_alloc<restrictTable *>(NULL, lstClauses.size());
-        
-        int n = 0;
-		for (const auto rt : lstClauses)
-			lpRestrict->lpAnd->__ptr[n++] = rt;
-        
-        lpRestrict->lpAnd->__size = n;
-    }
+	if (!bModified)
+		return erSuccess;
+	// We changed something, free the previous toplevel data and create a new list of children
+	s_free(nullptr, lpRestrict->lpAnd->__ptr);
+	lpRestrict->lpAnd->__ptr = s_alloc<restrictTable *>(NULL, lstClauses.size());
+	int n = 0;
+	for (const auto rt : lstClauses)
+		lpRestrict->lpAnd->__ptr[n++] = rt;
+	lpRestrict->lpAnd->__size = n;
 	return erSuccess;
 }
 
