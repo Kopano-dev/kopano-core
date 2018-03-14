@@ -745,7 +745,7 @@ exit:
         zend_string_release(str_code);
         zend_string_release(str_adrlist);
         zend_string_release(str_proptag);
-	if(MAPI_G(hr) != hrSuccess)
+	if(MAPI_G(hr) != hrSuccess && lpBase == nullptr)
 		MAPIFreeBuffer(lpPropValue);
 	return MAPI_G(hr);
 }
