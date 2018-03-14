@@ -76,6 +76,12 @@ public:
 	// Dump statistics
 	void DumpStats(void) const;
 
+	void SetMaxSize(size_type ulMaxSize)
+	{
+		m_ulMaxSize = ulMaxSize;
+	}
+
+
 protected:
 	ECCacheBase(const std::string &strCachename, size_type ulMaxSize, long lMaxAge);
 	_kc_hidden void IncrementHitCount(void) { ++m_ulCacheHit; }
@@ -84,7 +90,7 @@ protected:
 
 private:
 	const std::string	m_strCachename;
-	const size_type		m_ulMaxSize;
+	size_type		m_ulMaxSize;
 	const long			m_lMaxAge;
 	size_type m_ulCacheHit = 0, m_ulCacheValid = 0;
 };
