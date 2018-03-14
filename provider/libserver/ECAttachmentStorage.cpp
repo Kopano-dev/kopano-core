@@ -683,12 +683,9 @@ ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId, bo
 	/*
 	 * Check if the attachment can be permanently deleted.
 	 */
-	if (IsOrphanedSingleInstance(ulInstanceId, &bOrphan) == erSuccess && bOrphan) {
-		er = DeleteAttachmentInstance(ulInstanceId, bReplace);
-		if (er != erSuccess)
-			return er;
-	}
-	return erSuccess;
+	if (IsOrphanedSingleInstance(ulInstanceId, &bOrphan) != erSuccess || !bOrphan)
+		return erSuccess;
+	return DeleteAttachmentInstance(ulInstanceId, bReplace);
 }
 
 /** 
@@ -1845,35 +1842,32 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstance(const ext_siid &ulInstanceId
 	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
    
 	if(m_bTransaction) {
-		if (bReplace) {
-			er = MarkAttachmentForDeletion(ulInstanceId);
-			if (er != erSuccess && er != KCERR_NOT_FOUND) {
-				assert(false);
-				return er;
-			} else if(er != KCERR_NOT_FOUND) {
-				 m_setMarkedAttachment.emplace(ulInstanceId);
-			}
-
-			er = erSuccess;
-		} else {
+		if (!bReplace) {
 			m_setDeletedAttachment.emplace(ulInstanceId);
+			return er;
 		}
-		return er;
+		er = MarkAttachmentForDeletion(ulInstanceId);
+		if (er != erSuccess && er != KCERR_NOT_FOUND) {
+			assert(false);
+			return er;
+		} else if (er != KCERR_NOT_FOUND) {
+			 m_setMarkedAttachment.emplace(ulInstanceId);
+		}
+		return erSuccess;
 	}
 
-	if (unlink(filename.c_str()) != 0) {
-		if (errno == ENOENT){
-			filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
-			if (unlink(filename.c_str()) == 0)
-				return erSuccess;
-		}
-
-		if (errno == EACCES || errno == EPERM)
-			er = KCERR_NO_ACCESS;
-		else if (errno != ENOENT) { // ignore "file not found" error
-			er = KCERR_DATABASE_ERROR;
-			ec_log_err("ECFileAttachment::DeleteAttachmentInstance() id %u fail", ulInstanceId.siid);
-		}
+	if (unlink(filename.c_str()) == 0)
+		return er;
+	if (errno == ENOENT) {
+		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
+		if (unlink(filename.c_str()) == 0)
+			return erSuccess;
+	}
+	if (errno == EACCES || errno == EPERM)
+		er = KCERR_NO_ACCESS;
+	else if (errno != ENOENT) { // ignore "file not found" error
+		er = KCERR_DATABASE_ERROR;
+		ec_log_err("ECFileAttachment::DeleteAttachmentInstance() id %u fail", ulInstanceId.siid);
 	}
 	return er;
 }
