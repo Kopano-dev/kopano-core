@@ -23,6 +23,7 @@
 #include "ECFreeBusyData.h"
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
+#include <kopano/ECLogger.h>
 #include <mapiutil.h>
 
 #include "freebusyutil.h"
@@ -58,8 +59,8 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 #ifdef DEBUG
 	if (lpMsgStore) {
 		memory_ptr<SPropValue> lpPropArray;
-		HrGetOneProp(lpMsgStore, PR_DISPLAY_NAME_A, &lpPropArray);
-		ec_log_debug("ECFreeBusySupport::Open", "Storename=%s", (lpPropArray && lpPropArray->ulPropTag == PR_DISPLAY_NAME_A) ? lpPropArray->Value.lpszA : "Error");
+		HrGetOneProp(lpMsgStore, PR_DISPLAY_NAME_A, &~lpPropArray);
+		ec_log_debug("ECFreeBusySupport::Open Storename=%s", (lpPropArray && lpPropArray->ulPropTag == PR_DISPLAY_NAME_A) ? lpPropArray->Value.lpszA : "Error");
 	}
 #endif
 
