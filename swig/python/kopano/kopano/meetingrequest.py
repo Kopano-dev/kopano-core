@@ -301,10 +301,10 @@ class MeetingRequest(object):
             # update existing recurrence
             if cal_item and cal_item.recurring:
                 recurrence = cal_item.recurrence
-                if recurrence.is_exception(basedate):
-                    recurrence.modify_exception(basedate, self.item)
+                if recurrence._is_exception(basedate):
+                    recurrence._modify_exception(basedate, self.item)
                 else:
-                    recurrence.create_exception(basedate, self.item)
+                    recurrence._create_exception(basedate, self.item)
 
             # otherwise replace calendar item
             else:
@@ -342,7 +342,7 @@ class MeetingRequest(object):
                 merge = True
                 rec = cal_item.recurrence
                 for item in existing_items:
-                    rec.create_exception(item.meetingrequest.basedate, item, merge=True)
+                    rec._create_exception(item.meetingrequest.basedate, item, merge=True)
 
             calendar.delete(existing_items)
 
@@ -421,14 +421,14 @@ class MeetingRequest(object):
                 copytags = _copytags(cal_item.mapiobj)
 
                 if delete:
-                    recurrence.delete_exception(basedate, self.item, copytags)
+                    recurrence._delete_exception(basedate, self.item, copytags)
                 else:
-                    if recurrence.is_exception(basedate):
-                        recurrence.modify_exception(basedate, self.item, copytags)
+                    if recurrence._is_exception(basedate):
+                        recurrence._modify_exception(basedate, self.item, copytags)
                     else:
-                        recurrence.create_exception(basedate, self.item, copytags)
+                        recurrence._create_exception(basedate, self.item, copytags)
 
-                    message = recurrence.exception_message(basedate)
+                    message = recurrence._exception_message(basedate)
                     message[PidLidBusyStatus] = libfreebusy.fbFree
                     message[PR_MESSAGE_FLAGS] = MSGFLAG_UNSENT | MSGFLAG_READ
 
@@ -464,8 +464,8 @@ class MeetingRequest(object):
 
                 recurrence._update_calitem(self.item) # XXX via create/modify exception
 
-                if recurrence.is_exception(basedate):
-                    message = recurrence.exception_message(basedate)
+                if recurrence._is_exception(basedate):
+                    message = recurrence._exception_message(basedate)
 
                     owner_appt_id = self.item.get(PR_OWNER_APPT_ID)
                     if owner_appt_id is not None:

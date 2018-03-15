@@ -1022,7 +1022,7 @@ class Item(Properties, Contact, Appointment):
         proptags = [item.proptag for item in objects if isinstance(item, _prop.Property)]
         occs = [item for item in objects if isinstance(item, Occurrence)]
         for occ in occs:
-            self.recurrence.delete_exception(occ.start, self, _copytags(self.mapiobj))
+            self.recurrence._delete_exception(occ.start, self, _copytags(self.mapiobj))
         if proptags:
             self.mapiobj.DeleteProps(proptags)
         for attach_id in attach_ids:

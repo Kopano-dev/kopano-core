@@ -103,7 +103,7 @@ class Recurrence(object):
         # XXX add check if we actually have a recurrence, otherwise we throw a mapi exception which might not be desirable
 
         self.item = item
-        self.tz = item.get(PidLidTimeZoneStruct)
+        self._tz = item.get(PidLidTimeZoneStruct)
 
         if parse:
             self._parse()
@@ -276,12 +276,12 @@ class Recurrence(object):
         for exc in self._exceptions: # TODO subject etc
             if exc['original_start_date'] in (basedate_val, basedate_val - self._starttime_offset): # TODO pick one
                 start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exc['start_datetime']))
-                start = _utils._to_gmt(start, self.tz)
+                start = _utils._to_gmt(start, self._tz)
                 break
         else:
             # TODO check that date is (still) valid
             start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(basedate_val))
-            start = _utils._to_gmt(start, self.tz)
+            start = _utils._to_gmt(start, self._tz)
 
         return Occurrence(
             self.item,
@@ -306,7 +306,7 @@ class Recurrence(object):
         rec._end_type = 0
         rec._occurrence_count = 0
         rec._first_dow = 0
-        rec._deleted_instance_count = 0
+        rec.deleted_instance_count = 0
         rec._deleted_instance_dates = []
         rec._modified_instance_count = 0
         rec._modified_instance_dates = []
@@ -352,10 +352,10 @@ class Recurrence(object):
         self._first_dow = _utils.unpack_long(value, pos)
         pos += LONG
 
-        self._deleted_instance_count = _utils.unpack_long(value, pos)
+        self.deleted_instance_count = _utils.unpack_long(value, pos)
         pos += LONG
         self._deleted_instance_dates = []
-        for _ in range(0, self._deleted_instance_count):
+        for _ in range(0, self.deleted_instance_count):
             self._deleted_instance_dates.append(_utils.unpack_long(value, pos))
             pos += LONG
 
@@ -381,7 +381,7 @@ class Recurrence(object):
         pos += LONG
         self._endtime_offset = _utils.unpack_long(value, pos)
         pos += LONG
-        self.exception_count = _utils.unpack_short(value, pos)
+        self.exception_count = _utils.unpack_short(value, pos) # TODO rename to _exception_count?
         pos += SHORT
 
         # ExceptionInfo
@@ -520,7 +520,7 @@ class Recurrence(object):
 
         data += struct.pack('<I', self._first_dow)
 
-        data += struct.pack('<I', self._deleted_instance_count)
+        data += struct.pack('<I', self.deleted_instance_count)
         for val in self._deleted_instance_dates:
             data += struct.pack('<I', val)
 
@@ -630,7 +630,7 @@ class Recurrence(object):
     # TODO functionality below here should be refactored or not visible
 
     @property
-    def recurrences(self):
+    def recurrences(self): # TODO rename to _recurrences and/or rrule?
         rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
         rule = rruleset()
 
@@ -682,14 +682,14 @@ class Recurrence(object):
 
         return rule
 
-    def exception_message(self, basedate):
+    def _exception_message(self, basedate):
         for message in self.item.items():
             replacetime = message.get(PidLidExceptionReplaceTime)
             if replacetime and replacetime.date() == basedate.date():
                 return message
 
-    def is_exception(self, basedate):
-        return self.exception_message(basedate) is not None
+    def _is_exception(self, basedate):
+        return self._exception_message(basedate) is not None
 
     def _update_exceptions(self, cal_item, item, startdate_val, enddate_val, basedate_val, exception, extended_exception, copytags, create=False): # XXX kill copytags, create args, just pass all properties as in php
         exception['start_datetime'] = startdate_val
@@ -800,12 +800,12 @@ class Recurrence(object):
 
         start = message.get(PidLidAppointmentStartWhole)
         if start is not None:
-            start_local = unixtime(time.mktime(_utils._from_gmt(start, self.tz).timetuple())) # XXX why local??
+            start_local = unixtime(time.mktime(_utils._from_gmt(start, self._tz).timetuple())) # XXX why local??
             props.append(SPropValue(PR_EXCEPTION_STARTTIME, start_local))
 
         end = message.prop(PidLidAppointmentEndWhole).value
         if end is not None:
-            end_local = unixtime(time.mktime(_utils._from_gmt(end, self.tz).timetuple())) # XXX why local??
+            end_local = unixtime(time.mktime(_utils._from_gmt(end, self._tz).timetuple())) # XXX why local??
             props.append(SPropValue(PR_EXCEPTION_ENDTIME, end_local))
 
         message._attobj.SetProps(props)
@@ -816,7 +816,7 @@ class Recurrence(object):
         message.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
         message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
 
-    def create_exception(self, basedate, item, copytags=None, merge=False):
+    def _create_exception(self, basedate, item, copytags=None, merge=False):
         tz = item.get(PidLidTimeZoneStruct)
         cal_item = self.item
 
@@ -860,7 +860,7 @@ class Recurrence(object):
         # XXX attachments?
 
         # update blob
-        self._deleted_instance_count += 1
+        self.deleted_instance_count += 1
         deldate = _utils._from_gmt(basedate, tz)
         deldate_val = _utils.unixtime_to_rectime(time.mktime(deldate.timetuple()))
         self._deleted_instance_dates.append(deldate_val)
@@ -891,7 +891,7 @@ class Recurrence(object):
         # update calitem
         self._update_calitem()
 
-    def modify_exception(self, basedate, item, copytags=None): # XXX 'item' too MR specific
+    def _modify_exception(self, basedate, item, copytags=None): # XXX 'item' too MR specific
         tz = item.get(PidLidTimeZoneStruct)
         cal_item = self.item
 
@@ -957,7 +957,7 @@ class Recurrence(object):
         # update calitem
         self._update_calitem()
 
-    def create_exception2(self, basedate):
+    def _create_exception2(self, basedate):
         # TODO merge with create_exception
         # TODO create embedded item
 
@@ -967,7 +967,7 @@ class Recurrence(object):
         basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate.timetuple())) - self._starttime_offset
 
         # update blob
-        self._deleted_instance_count += 1
+        self.deleted_instance_count += 1
         self._deleted_instance_dates.append(basedate_val)
         self._deleted_instance_dates.sort()
 
@@ -989,7 +989,7 @@ class Recurrence(object):
         # update calitem
         self._update_calitem()
 
-    def modify_exception2(self, basedate, subject=None, start=None, end=None, location=None):
+    def _modify_exception2(self, basedate, subject=None, start=None, end=None, location=None):
         # TODO merge with modify_exception
         tz = self.item.get(PidLidTimeZoneStruct)
 
@@ -1040,14 +1040,14 @@ class Recurrence(object):
         # update calitem
         self._update_calitem()
 
-    def delete_exception(self, basedate, item, copytags):
+    def _delete_exception(self, basedate, item, copytags):
         tz = item.get(PidLidTimeZoneStruct)
 
         basedate2 = _utils._from_gmt(basedate, tz)
         basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate2.timetuple()))
 
-        if self.is_exception(basedate):
-            self.modify_exception(basedate, item, copytags)
+        if self._is_exception(basedate):
+            self._modify_exception(basedate, item, copytags)
 
             for i, exc in enumerate(self._exceptions):
                 if exc['original_start_date'] == basedate_val:
@@ -1060,7 +1060,7 @@ class Recurrence(object):
             del self._extended_exceptions[i]
 
         else:
-            self._deleted_instance_count += 1
+            self.deleted_instance_count += 1
 
             self._deleted_instance_dates.append(basedate_val)
             self._deleted_instance_dates.sort()
@@ -1128,13 +1128,13 @@ class Occurrence(object):
         if self.item.recurring:
             rec = self.item.recurrence
             basedate = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
-            basedate = _utils._to_gmt(basedate, rec.tz)
+            basedate = _utils._to_gmt(basedate, rec._tz)
 
-            if rec.is_exception(basedate):
-                rec.modify_exception2(basedate, **kwargs)
+            if rec._is_exception(basedate):
+                rec._modify_exception2(basedate, **kwargs)
             else:
-                rec.create_exception2(basedate)
-                rec.modify_exception2(basedate, **kwargs)
+                rec._create_exception2(basedate)
+                rec._modify_exception2(basedate, **kwargs)
         else:
             for (k, v) in kwargs.items():
                 setattr(self.item, k, v)
