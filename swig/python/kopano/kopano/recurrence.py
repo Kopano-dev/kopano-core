@@ -822,7 +822,7 @@ class Recurrence(object):
         message_flags = MSGFLAG_READ
         if item.get(PR_MESSAGE_FLAGS) == 0: # XXX wut/php compat
             message_flags |= MSGFLAG_UNSENT
-        message = cal_item.create_item(message_flags)
+        message = cal_item.create_item(message_flags, hidden=True)
 
         self._update_embedded(basedate, message, item, copytags, create=True)
 

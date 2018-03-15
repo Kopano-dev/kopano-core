@@ -1203,7 +1203,7 @@ class Item(Properties, Contact, Appointment):
     def embedded(self): # XXX deprecate?
         return next(self.items())
 
-    def create_item(self, message_flags=None):
+    def create_item(self, message_flags=None, hidden=False, **kwargs):
         """ Create embedded :class:`item <Item>` """
 
         (id_, attach) = self.mapiobj.CreateAttach(None, 0)
@@ -1211,22 +1211,30 @@ class Item(Properties, Contact, Appointment):
         attach.SetProps([
             SPropValue(PR_ATTACH_METHOD, ATTACH_EMBEDDED_MSG),
             SPropValue(PR_ATTACHMENT_FLAGS, 2),
-            SPropValue(PR_ATTACHMENT_HIDDEN, True),
+            SPropValue(PR_ATTACHMENT_HIDDEN, hidden),
             SPropValue(PR_ATTACHMENT_LINKID, 0),
             SPropValue(PR_ATTACH_FLAGS, 0),
         ])
+        if kwargs.get('subject'):
+            attach.SetProps([
+                SPropValue(PR_DISPLAY_NAME_W, kwargs.get('subject')),
+            ])
 
         msg = attach.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
         if message_flags is not None:
             msg.SetProps([SPropValue(PR_MESSAGE_FLAGS, message_flags)])
 
+        item = Item(mapiobj=msg)
+        item.server = self.server
+        item._attobj = attach
+
+        for key, val in kwargs.items():
+            setattr(item, key, val)
+
         msg.SaveChanges(KEEP_OPEN_READWRITE)
         attach.SaveChanges(KEEP_OPEN_READWRITE)
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
 
-        item = Item(mapiobj=msg)
-        item.server = self.server
-        item._attobj = attach
         return item
 
     def items(self, recurse=True):
