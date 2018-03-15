@@ -385,7 +385,7 @@ int ECS3Attachment::put_obj(int bufferSize, char *buffer, void *cbdata)
 	int remaining = data->size - data->processed;
 	if (remaining <= 0) {
 		ec_log_debug("S3: putting data using callback: Remaining bytes to put: %d - We processed all the data, but S3 expects more", remaining);
-		return toRead;
+		return 0;
 	}
 	int toRead = remaining > bufferSize ? bufferSize : remaining;
 	ec_log_debug("S3: Putting data using callback: "
