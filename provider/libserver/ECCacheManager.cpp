@@ -100,7 +100,7 @@ ECCacheManager::ECCacheManager(ECConfig *lpConfig,
 		if (res != 0)
 			m_CellCache.SetMaxSize(256 << 20);
 		else
-			m_CellCache.SetMaxSize(std::max(size_t(1 << 30), reinterpret_cast<size_t>(s.totalram / 4)));
+			m_CellCache.SetMaxSize(std::max(static_cast<uint64_t>(1) << 30, static_cast<uint64_t>(s.totalram) / 4));
 		#else
 		m_CellCache.SetMaxSize(256 << 20);
 		#endif
