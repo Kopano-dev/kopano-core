@@ -50,10 +50,7 @@ namespace KC {
  
 static BOOL NormalizeRestrictionIsFalse(const struct restrictTable *lpRestrict)
 {
-    std::set<unsigned int> setExist;
-    std::set<unsigned int> setNotExist;
-    std::set<unsigned int> setBoth;
-    
+	std::set<unsigned int> setExist, setNotExist, setBoth;
     if(lpRestrict->ulType != RES_AND)
 		return false;
         
