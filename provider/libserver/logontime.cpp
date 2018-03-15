@@ -20,8 +20,7 @@ static std::mutex ltm_ontime_mutex, ltm_offtime_mutex;
 static ECRESULT ltm_sync_time(ECDatabase *db,
     const std::pair<unsigned int, time_t> &e, bool dir)
 {
-	FILETIME ft;
-	ft = UnixTimeToFileTime(e.second);
+	auto ft = UnixTimeToFileTime(e.second);
 	std::string query = "SELECT hierarchy_id FROM stores WHERE stores.user_id=" + stringify(e.first) + " LIMIT 1";
 	DB_RESULT result;
 	ECRESULT ret = db->DoSelect(query, &result);

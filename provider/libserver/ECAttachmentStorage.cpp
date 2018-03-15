@@ -166,7 +166,6 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceId(ULONG ulObjId, ULONG ulTag,
     ext_siid *esid)
 {	
 	DB_RESULT lpDBResult;
-	DB_ROW lpDBRow = NULL;
 	std::string strQuery =
 		"SELECT `instanceid` "
 		"FROM `singleinstances` "
@@ -177,8 +176,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceId(ULONG ulObjId, ULONG ulTag,
 		ec_log_err("ECAttachmentStorage::GetSingleInstanceId(): DoSelect() failed %x", er);
 		return er;
 	}
-
-	lpDBRow = lpDBResult.fetch_row();
+	auto lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
 		// ec_log_err("ECAttachmentStorage::GetSingleInstanceId(): FetchRow() failed %x", er);
 		return KCERR_NOT_FOUND;
@@ -277,7 +275,6 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceParents(ULONG ulInstanceId,
 ECRESULT ECAttachmentStorage::IsOrphanedSingleInstance(const ext_siid &ulInstanceId, bool *bOrphan)
 {
 	DB_RESULT lpDBResult;
-	DB_ROW lpDBRow = NULL;
 	std::string strQuery =
 		"SELECT `instanceid` "
 		"FROM `singleinstances` "
@@ -286,7 +283,7 @@ ECRESULT ECAttachmentStorage::IsOrphanedSingleInstance(const ext_siid &ulInstanc
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
-	lpDBRow = lpDBResult.fetch_row();
+	auto lpDBRow = lpDBResult.fetch_row();
 	/*
 	 * No results: Single Instance ID has been cleared (refcount = 0)
 	 */
@@ -732,12 +729,8 @@ ECDatabaseAttachment::ECDatabaseAttachment(ECDatabase *lpDatabase) :
 ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap,
     const ext_siid &ulInstanceId, size_t *lpiSize, unsigned char **lppData)
 {
-	size_t iSize = 0;
 	size_t iReadSize = 0;
-	unsigned char *lpData = NULL;
 	DB_RESULT lpDBResult;
-	DB_ROW lpDBRow = NULL;
-	DB_LENGTHS lpDBLen = NULL;
 
 	// we first need to know the complete size of the attachment (some old databases don't have the correct chunk size)
 	auto strQuery = "SELECT SUM(LENGTH(val_binary)) FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid);
@@ -746,15 +739,13 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap,
 		ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect failed %x", er);
 		return er;
 	}
-
-	lpDBRow = lpDBResult.fetch_row();
+	auto lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 		ec_log_err("ECDatabaseAttachment::LoadAttachmentInstance(): no row returned");
 		return KCERR_DATABASE_ERROR;
 	}
 
-	iSize = strtoul(lpDBRow[0], NULL, 0);
-
+	size_t iSize = strtoul(lpDBRow[0], NULL, 0);
 	// get all chunks
 	strQuery = "SELECT val_binary FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid) + " ORDER BY chunkid";
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -763,7 +754,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap,
 		return er;
 	}
 
-	lpData = s_alloc<unsigned char>(soap, iSize);
+	auto lpData = s_alloc<unsigned char>(soap, iSize);
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL) {
 			// broken attachment!
@@ -771,8 +762,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap,
 			ec_log_err("ECDatabaseAttachment::LoadAttachmentInstance(): column contained NULL");
 			goto exit;
 		}
-
-		lpDBLen = lpDBResult.fetch_row_lengths();
+		auto lpDBLen = lpDBResult.fetch_row_lengths();
 		memcpy(lpData + iReadSize, lpDBRow[0], lpDBLen[0]);
 		iReadSize += lpDBLen[0];
 	}
@@ -801,7 +791,6 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(const ext_siid &ulInstance
 	size_t iReadSize = 0;
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
-	DB_LENGTHS lpDBLen = NULL;
 
 	// get all chunks
 	auto strQuery = "SELECT val_binary FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid) + " ORDER BY chunkid";
@@ -817,7 +806,7 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(const ext_siid &ulInstance
 			ec_log_err("ECDatabaseAttachment::LoadAttachmentInstance(): column contained NULL");
 			return KCERR_DATABASE_ERROR;
 		}
-		lpDBLen = lpDBResult.fetch_row_lengths();
+		auto lpDBLen = lpDBResult.fetch_row_lengths();
 		er = lpSink->Write(lpDBRow[0], 1, lpDBLen[0]);
 		if (er != erSuccess) {
 			ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): Write failed %x", er);
@@ -969,15 +958,13 @@ ECRESULT ECDatabaseAttachment::GetSizeInstance(const ext_siid &ulInstanceId,
     size_t *lpulSize, bool *lpbCompressed)
 {
 	DB_RESULT lpDBResult;
-	DB_ROW lpDBRow = NULL; 
 	auto strQuery = "SELECT SUM(LENGTH(val_binary)) FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult); 
 	if (er != erSuccess)  {
 		ec_log_err("ECAttachmentStorage::GetSizeInstance(): DoSelect failed %x", er);
 		return er;
 	}
-
-	lpDBRow = lpDBResult.fetch_row();
+	auto lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) { 
 		ec_log_err("ECDatabaseAttachment::GetSizeInstance(): now row or column contained NULL");
 		return KCERR_DATABASE_ERROR;
@@ -1162,13 +1149,12 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
     const ext_siid &ulInstanceId, size_t *lpiSize, unsigned char **lppData)
 {
 	ECRESULT er = erSuccess;
-	string filename;
 	unsigned char *lpData = NULL;
 	bool bCompressed = false;
 	gzFile gzfp = NULL;
 
 	*lpiSize = 0;
-	filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
+	auto filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
 	int fd = open(filename.c_str(), O_RDONLY);
 	if (fd < 0 && errno != ENOENT) {
 		/* Access problems */
@@ -1351,12 +1337,11 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
 	ECRESULT er = erSuccess;
 	bool bCompressed = false;
 	char buffer[CHUNK_SIZE];
-	int fd = -1;
 	gzFile gzfp = NULL;
 
 	*lpiSize = 0;
 	auto filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
-	fd = open(filename.c_str(), O_RDONLY);
+	auto fd = open(filename.c_str(), O_RDONLY);
 	if (fd < 0 && errno != ENOENT) {
 		/* Access problems */
 		ec_log_err("K-1563: cannot open attachment \"%s\": %s", filename.c_str(), strerror(errno));
