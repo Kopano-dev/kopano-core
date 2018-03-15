@@ -9,6 +9,7 @@ import datetime
 import email.parser
 import email.utils
 import functools
+import os
 import random
 import sys
 import struct
@@ -571,14 +572,18 @@ class Item(Properties, Contact, Appointment):
         else:
             raise NotFoundError("no attachment with entryid '%s'" % entryid)
 
-    def create_attachment(self, name, data):
+    def create_attachment(self, name=None, data=None, filename=None):
         """Create a new attachment
 
         :param name: the attachment name
         :param data: string containing the attachment data
+        :param filename: string 
         """
 
-        # XXX: use file object instead of data?
+        if filename:
+            data = open(filename, 'rb').read()
+            name = os.path.basename(filename)
+
         (id_, attach) = self.mapiobj.CreateAttach(None, 0)
         name = _unicode(name)
         props = [SPropValue(PR_ATTACH_LONG_FILENAME_W, name), SPropValue(PR_ATTACH_METHOD, ATTACH_BY_VALUE)]
