@@ -803,35 +803,32 @@ ZEND_FUNCTION(mapi_createoneoff)
 		&szType, &ulTypeLen,
 		&szEmailAddress, &ulEmailAddressLen, &ulFlags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	MAPI_G(hr) = TryConvert(szDisplayName, name);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "CreateOneOff name conversion failed");
-		goto exit;
+		return;
 	}
 
 	MAPI_G(hr) = TryConvert(szType, type);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "CreateOneOff type conversion failed");
-		goto exit;
+		return;
 	}
 
 	MAPI_G(hr) = TryConvert(szEmailAddress, email);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "CreateOneOff address conversion failed");
-		goto exit;
+		return;
 	}
 	MAPI_G(hr) = ECCreateOneOff((LPTSTR)name.c_str(), (LPTSTR)type.c_str(), (LPTSTR)email.c_str(), MAPI_UNICODE | ulFlags, &cbEntryID, &~lpEntryID);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "CreateOneOff failed");
-		goto exit;
+		return;
 	}
 
 	RETVAL_STRINGL(reinterpret_cast<const char *>(lpEntryID.get()), cbEntryID);
-
-exit:
-	// using RETVAL_* not RETURN_*, otherwise php will instantly return itself, and we won't be able to free...
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 ZEND_FUNCTION(mapi_parseoneoff)
@@ -855,11 +852,13 @@ ZEND_FUNCTION(mapi_parseoneoff)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &lpEntryID, &cbEntryID) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	MAPI_G(hr) = ECParseOneOff(lpEntryID, cbEntryID, wstrDisplayName, wstrType, wstrAddress);
 
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "ParseOneOff failed");
-		goto exit;
+		return;
 	}
 
 	array_init(return_value);
@@ -871,9 +870,6 @@ ZEND_FUNCTION(mapi_parseoneoff)
 	add_assoc_string(return_value, "name", (char*)strDisplayName.c_str());
 	add_assoc_string(return_value, "type", (char*)strType.c_str());
 	add_assoc_string(return_value, "address", (char*)strAddress.c_str());
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /*
@@ -925,6 +921,8 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 		&sslcert, &sslcert_len, &sslpass, &sslpass_len, &ulFlags,
 		&wa_version, &wa_version_len, &misc_version, &misc_version_len) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	if (!server) {
 		server = "http://localhost:236/";
 		server_len = strlen(server);
@@ -955,7 +953,7 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	MAPI_G(hr) = mapi_util_createprof(szProfName, "ZARAFA6", 8, sPropOur);
 	if (MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", mapi_util_getlasterror().c_str());
-		goto exit; // error already displayed in mapi_util_createprof
+		return;
 	}
 
 	// Logon to our new profile
@@ -966,20 +964,17 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	if (MAPI_G(hr) != hrSuccess) {
 		mapi_util_deleteprof(szProfName);
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to logon to profile");
-		goto exit;
+		return;
 	}
 
 	// Delete the profile (it will be deleted when we close our session)
 	MAPI_G(hr) = mapi_util_deleteprof(szProfName);
 	if (MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to delete profile");
-		goto exit;
+		return;
 	}
 
 	ZEND_REGISTER_RESOURCE(return_value, lpMAPISession.release(), le_mapi_session);
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -1008,34 +1003,32 @@ ZEND_FUNCTION(mapi_openentry)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|sl", &res, &lpEntryID, &cbEntryID, &ulFlags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
 	MAPI_G(hr) = lpSession->OpenEntry(cbEntryID, lpEntryID,
 	             &iid_of(lpUnknown), ulFlags, &ulObjType, &~lpUnknown);
 	if (FAILED(MAPI_G(hr)))
-		goto exit;
+		return;
 
 	if (ulObjType == MAPI_FOLDER) {
 		object_ptr<IMAPIFolder> fld;
 		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(fld), &~fld);
 		if (FAILED(MAPI_G(hr)))
-			goto exit;
+			return;
 		ZEND_REGISTER_RESOURCE(return_value, fld.release(), le_mapi_folder);
 	}
 	else if(ulObjType == MAPI_MESSAGE) {
 		object_ptr<IMessage> msg;
 		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(msg), &~msg);
 		if (FAILED(MAPI_G(hr)))
-			goto exit;
+			return;
 		ZEND_REGISTER_RESOURCE(return_value, msg.release(), le_mapi_message);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "EntryID is not a folder or a message.");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return;
 	}
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 // IMAPISession::OpenAddressBook()
@@ -1056,15 +1049,14 @@ ZEND_FUNCTION(mapi_openaddressbook)
 
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession*, &res, -1, name_mapi_session, le_mapi_session);
 
 	MAPI_G(hr) = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAddrBook);
 	if (MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 	ZEND_REGISTER_RESOURCE(return_value, lpAddrBook, le_mapi_addrbook);
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 ZEND_FUNCTION(mapi_ab_openentry) {
@@ -1085,10 +1077,12 @@ ZEND_FUNCTION(mapi_ab_openentry) {
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|sl", &res, &lpEntryID, &cbEntryID, &ulFlags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	if(Z_RES_P(res)->type != le_mapi_addrbook) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Resource is not a valid address book");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return;
 	}
 
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, LPADRBOOK, &res, -1, name_mapi_addrbook, le_mapi_addrbook);
@@ -1096,35 +1090,30 @@ ZEND_FUNCTION(mapi_ab_openentry) {
 	MAPI_G(hr) = lpAddrBook->OpenEntry(cbEntryID, lpEntryID,
 	             &iid_of(lpUnknown), ulFlags, &ulObjType, &~lpUnknown);
 	if (MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 
 	if (ulObjType == MAPI_MAILUSER) {
 		object_ptr<IMailUser> usr;
 		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(usr), &~usr);
 		if (FAILED(MAPI_G(hr)))
-			goto exit;
+			return;
 		ZEND_REGISTER_RESOURCE(return_value, usr.release(), le_mapi_mailuser);
 	} else if (ulObjType == MAPI_DISTLIST) {
 		object_ptr<IDistList> dl;
 		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(dl), &~dl);
 		if (FAILED(MAPI_G(hr)))
-			goto exit;
+			return;
 		ZEND_REGISTER_RESOURCE(return_value, dl.release(), le_mapi_distlist);
 	} else if (ulObjType == MAPI_ABCONT) {
 		object_ptr<IABContainer> ab;
 		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(ab), &~ab);
 		if (FAILED(MAPI_G(hr)))
-			goto exit;
+			return;
 		ZEND_REGISTER_RESOURCE(return_value, ab.release(), le_mapi_abcont);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "EntryID is not an AddressBook item");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		goto exit;
 	}
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 ZEND_FUNCTION(mapi_ab_resolvename) {
@@ -1146,11 +1135,13 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res, &array, &ulFlags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, LPADRBOOK, &res, -1, name_mapi_addrbook, le_mapi_addrbook);
 
 	MAPI_G(hr) = PHPArraytoAdrList(array, nullptr, &~lpAList TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 
 	MAPI_G(hr) = lpAddrBook->ResolveName(0, ulFlags, NULL, lpAList);
 	switch (MAPI_G(hr)) {
@@ -1164,10 +1155,6 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 	default:
 		break;
 	};
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 ZEND_FUNCTION(mapi_ab_getdefaultdir) {
@@ -1185,18 +1172,17 @@ ZEND_FUNCTION(mapi_ab_getdefaultdir) {
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, LPADRBOOK, &res, -1, name_mapi_addrbook, le_mapi_addrbook);
 
 	MAPI_G(hr) = lpAddrBook->GetDefaultDir(&cbEntryID, &~lpEntryID);
 	if (MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed GetDefaultDir  of the addressbook. Error code: 0x%08X", MAPI_G(hr));
-		goto exit;
+		return;
 	}
 
 	RETVAL_STRINGL(reinterpret_cast<const char *>(lpEntryID.get()), cbEntryID);
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -1219,18 +1205,17 @@ ZEND_FUNCTION(mapi_getmsgstorestable)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
 
 	MAPI_G(hr) = lpSession->GetMsgStoresTable(0, &lpTable);
 
 	if (FAILED(MAPI_G(hr))) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to fetch the message store table: 0x%08X", MAPI_G(hr));
-		goto exit;
+		return;
 	}
 	ZEND_REGISTER_RESOURCE(return_value, lpTable, le_mapi_table);
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -1257,18 +1242,17 @@ ZEND_FUNCTION(mapi_openmsgstore)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs",
 		&res, (char *)&lpEntryID, &cbEntryID) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
 
 	MAPI_G(hr) = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, 0, MAPI_BEST_ACCESS | MDB_NO_DIALOG, &pMDB);
 
 	if (FAILED(MAPI_G(hr))) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to open the messagestore: 0x%08X", MAPI_G(hr));
-		goto exit;
+		return;
 	}
 	ZEND_REGISTER_RESOURCE(return_value, pMDB, le_mapi_msgstore);
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /** 
@@ -1297,19 +1281,18 @@ ZEND_FUNCTION(mapi_openprofilesection)
 
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpUID, &uidlen) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	if (uidlen != sizeof(MAPIUID))
-		goto exit;
+		return;
 
 	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession*, &res, -1, name_mapi_session, le_mapi_session);
 
 	// yes, you can request any compatible interface, but the return pointer is LPPROFSECT .. ohwell.
 	MAPI_G(hr) = lpSession->OpenProfileSection(lpUID, &IID_IMAPIProp, 0, (LPPROFSECT*)&lpProfSectProp);
 	if (MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 	ZEND_REGISTER_RESOURCE(return_value, lpProfSectProp, le_mapi_property);
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -1334,6 +1317,8 @@ ZEND_FUNCTION(mapi_folder_gethierarchytable)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	type = Z_RES_P(res)->type;
 
 	if(type == le_mapi_folder) {
@@ -1351,16 +1336,14 @@ ZEND_FUNCTION(mapi_folder_gethierarchytable)
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Resource is not a valid IMAPIFolder or derivative");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return;
 	}
 
 	// return the returncode
 	if (FAILED(MAPI_G(hr)))
-		goto exit;
+		return;
+
 	ZEND_REGISTER_RESOURCE(return_value, lpTable, le_mapi_table);
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -1387,6 +1370,8 @@ ZEND_FUNCTION(mapi_folder_getcontentstable)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	type = Z_RES_P(res)->type;
 
 	if(type == le_mapi_folder) {
@@ -1404,15 +1389,13 @@ ZEND_FUNCTION(mapi_folder_getcontentstable)
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Resource is not a valid IMAPIContainer or derivative");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return;
 	}
 
 	if (FAILED(MAPI_G(hr)))
-		goto exit;
+		return;
+
 	ZEND_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -1436,16 +1419,16 @@ ZEND_FUNCTION(mapi_folder_createmessage)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(pFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
 
 	MAPI_G(hr) = pFolder->CreateMessage(NULL, ulFlags, &pMessage);
 
 	if (FAILED(MAPI_G(hr)))
-		goto exit;
+		return;
+
 	ZEND_REGISTER_RESOURCE(return_value, pMessage, le_mapi_message);
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -1470,22 +1453,21 @@ ZEND_FUNCTION(mapi_folder_deletemessages)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res, &entryid_array, &ulFlags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(pFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
 
 	MAPI_G(hr) = PHPArraytoSBinaryArray(entryid_array, NULL, &~lpEntryList TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Bad message list");
-		goto exit;
+		return;
 	}
 
 	MAPI_G(hr) = pFolder->DeleteMessages(lpEntryList, 0, NULL, ulFlags);
 	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 
 	RETVAL_TRUE;
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -1510,24 +1492,22 @@ ZEND_FUNCTION(mapi_folder_copymessages)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rar|l", &srcFolder, &msgArray, &destFolder, &flags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpSrcFolder, LPMAPIFOLDER, &srcFolder, -1, name_mapi_folder, le_mapi_folder);
 	ZEND_FETCH_RESOURCE_C(lpDestFolder, LPMAPIFOLDER, &destFolder, -1, name_mapi_folder, le_mapi_folder);
 
 	MAPI_G(hr) = PHPArraytoSBinaryArray(msgArray, NULL, &~lpEntryList TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Bad message list");
-		goto exit;
+		return;
 	}
 
 	MAPI_G(hr) = lpSrcFolder->CopyMessages(lpEntryList, NULL, lpDestFolder, 0, NULL, flags);
 	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 
 	RETVAL_TRUE;
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /*
@@ -1551,12 +1531,14 @@ ZEND_FUNCTION(mapi_folder_setreadflags)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res, &entryArray, &flags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
 
 	MAPI_G(hr) = PHPArraytoSBinaryArray(entryArray, NULL, &~lpEntryList TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Bad message list");
-		goto exit;
+		return;
 	}
 
 	// Special case: if an empty array was passed, treat it as NULL
@@ -1566,13 +1548,9 @@ ZEND_FUNCTION(mapi_folder_setreadflags)
         MAPI_G(hr) = lpFolder->SetReadFlags(NULL, 0, NULL, flags);
 
 	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 
 	RETVAL_TRUE;
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 ZEND_FUNCTION(mapi_folder_createfolder) {
@@ -1592,10 +1570,12 @@ ZEND_FUNCTION(mapi_folder_createfolder) {
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|sll", &srcFolder, &lpszFolderName, &FolderNameLen, &lpszFolderComment, &FolderCommentLen, &ulFlags, &folderType) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	if (FolderNameLen == 0) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Foldername cannot be empty");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return;
 	}
 	if (FolderCommentLen == 0)
 		lpszFolderComment = NULL;
@@ -1604,11 +1584,8 @@ ZEND_FUNCTION(mapi_folder_createfolder) {
 
 	MAPI_G(hr) = lpSrcFolder->CreateFolder(folderType, (LPTSTR)lpszFolderName, (LPTSTR)lpszFolderComment, NULL, ulFlags & ~MAPI_UNICODE, &lpNewFolder);
 	if (FAILED(MAPI_G(hr)))
-		goto exit;
+		return;
 	ZEND_REGISTER_RESOURCE(return_value, lpNewFolder, le_mapi_folder);
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 ZEND_FUNCTION(mapi_folder_deletefolder)
@@ -1627,17 +1604,15 @@ ZEND_FUNCTION(mapi_folder_deletefolder)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|l", &res, &lpEntryID, &cbEntryID, &ulFlags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
 
 	MAPI_G(hr) = lpFolder->DeleteFolder(cbEntryID, lpEntryID, 0, NULL, ulFlags);
 	if (FAILED(MAPI_G(hr)))
-		goto exit;
+		return;
 
 	RETVAL_TRUE;
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 ZEND_FUNCTION(mapi_folder_emptyfolder)
@@ -1654,17 +1629,16 @@ ZEND_FUNCTION(mapi_folder_emptyfolder)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
 
 	MAPI_G(hr) = lpFolder->EmptyFolder(0, NULL, ulFlags);
 
 	if (FAILED(MAPI_G(hr)))
-		goto exit;
+		return;
 
 	RETVAL_TRUE;
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -1690,13 +1664,15 @@ ZEND_FUNCTION(mapi_folder_copyfolder)
 	// Params: (SrcFolder, entryid, DestFolder, (opt) New foldername, (opt) Flags)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsr|sl", &zvalSrcFolder, &lpEntryID, &cbEntryID, &zvalDestFolder, &lpszNewFolderName, &cbNewFolderNameLen, &ulFlags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpSrcFolder, LPMAPIFOLDER, &zvalSrcFolder, -1, name_mapi_folder, le_mapi_folder);
 	ZEND_FETCH_RESOURCE_C(lpDestFolder, LPMAPIFOLDER, &zvalDestFolder, -1, name_mapi_folder, le_mapi_folder);
 
 	if (lpEntryID == NULL) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "EntryID must not be empty.");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return;
 	}
 
 	// If php input is NULL, lpszNewFolderName ="" but you expect a NULL string
@@ -1705,12 +1681,9 @@ ZEND_FUNCTION(mapi_folder_copyfolder)
 
 	MAPI_G(hr) = lpSrcFolder->CopyFolder(cbEntryID, lpEntryID, NULL, lpDestFolder, lpszNewFolderName, 0, NULL, ulFlags);
 	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 
 	RETVAL_TRUE;
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -1741,22 +1714,20 @@ ZEND_FUNCTION(mapi_msgstore_createentryid)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &sMailboxDN, &lMailboxDN) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
 
 	MAPI_G(hr) = pMDB->QueryInterface(IID_IExchangeManageStore, &~lpEMS);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "IExchangeManageStore interface was not supported by given store.");
-		goto exit;
+		return;
 	}
 	MAPI_G(hr) = lpEMS->CreateStoreEntryID(reinterpret_cast<const TCHAR *>(""), reinterpret_cast<const TCHAR *>(sMailboxDN), 0, &cbEntryID, &~lpEntryID);
 	if (MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 
 	RETVAL_STRINGL(reinterpret_cast<const char *>(lpEntryID.get()), cbEntryID);
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -1789,22 +1760,20 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &res, &sUser, &lUser, &sServer, &lServer) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
 
 	MAPI_G(hr) = pMDB->QueryInterface(iid_of(ptrSA), &~ptrSA);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "IECServiceAdmin interface was not supported by given store.");
-		goto exit;
+		return;
 	}
 	MAPI_G(hr) = ptrSA->GetArchiveStoreEntryID((LPTSTR)sUser, (LPTSTR)sServer, 0, &cbEntryID, &~ptrEntryID);
 	if (MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 
 	RETVAL_STRINGL((char *)ptrEntryID.get(), cbEntryID);
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -1833,36 +1802,33 @@ ZEND_FUNCTION(mapi_msgstore_openentry)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|sl", &res, &lpEntryID, &cbEntryID, &ulFlags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
 
 	// returns a folder
 	MAPI_G(hr) = pMDB->OpenEntry(cbEntryID, lpEntryID, &iid_of(lpUnknown),
 	             ulFlags, &ulObjType, &~lpUnknown);
 	if (FAILED(MAPI_G(hr)))
-		goto exit;
+		return;
 
 	if (ulObjType == MAPI_FOLDER) {
 		object_ptr<IMAPIFolder> fld;
 		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(fld), &~fld);
 		if (FAILED(MAPI_G(hr)))
-			goto exit;
+			return;
 		ZEND_REGISTER_RESOURCE(return_value, fld.release(), le_mapi_folder);
 	}
 	else if(ulObjType == MAPI_MESSAGE) {
 		object_ptr<IMessage> msg;
 		MAPI_G(hr) = lpUnknown->QueryInterface(iid_of(msg), &~msg);
 		if (FAILED(MAPI_G(hr)))
-			goto exit;
+			return;
 		ZEND_REGISTER_RESOURCE(return_value, msg.release(), le_mapi_message);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "EntryID is not a folder or a message.");
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
-		goto exit;
 	}
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 ZEND_FUNCTION(mapi_msgstore_entryidfromsourcekey)
@@ -1883,19 +1849,18 @@ ZEND_FUNCTION(mapi_msgstore_entryidfromsourcekey)
 
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|s", &resStore, &lpSourceKeyFolder, &cbSourceKeyFolder, &lpSourceKeyMessage, &cbSourceKeyMessage) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
 
 	MAPI_G(hr) = lpMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 	MAPI_G(hr) = lpIEMS->EntryIDFromSourceKey(cbSourceKeyFolder, lpSourceKeyFolder, cbSourceKeyMessage, lpSourceKeyMessage, &cbEntryId, &~lpEntryId);
 	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 
 	RETVAL_STRINGL(reinterpret_cast<const char *>(lpEntryId.get()), cbEntryId);
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 ZEND_FUNCTION(mapi_msgstore_advise)
@@ -1916,6 +1881,8 @@ ZEND_FUNCTION(mapi_msgstore_advise)
 
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rslr", &resStore, &lpEntryId, &cbEntryId, &ulMask, &resSink) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
 	ZEND_FETCH_RESOURCE_C(lpSink, MAPINotifSink *, &resSink, -1, name_mapi_advisesink, le_mapi_advisesink);
 
@@ -1924,13 +1891,9 @@ ZEND_FUNCTION(mapi_msgstore_advise)
 
 	MAPI_G(hr) = lpMsgStore->Advise(cbEntryId, lpEntryId, ulMask, lpSink, &ulConnection);
 	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 
 	RETVAL_LONG(ulConnection);
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 ZEND_FUNCTION(mapi_msgstore_unadvise)
@@ -1946,17 +1909,15 @@ ZEND_FUNCTION(mapi_msgstore_unadvise)
 
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &resStore, &ulConnection) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
 
 	MAPI_G(hr) = lpMsgStore->Unadvise(ulConnection);
 	if(MAPI_G(hr) != hrSuccess)
-		goto exit;
+		return;
 
 	RETVAL_TRUE;
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 ZEND_FUNCTION(mapi_sink_create)
@@ -1987,23 +1948,21 @@ ZEND_FUNCTION(mapi_sink_timedwait)
 
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &resSink, &ulTime) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpSink, MAPINotifSink *, &resSink, -1, name_mapi_advisesink, le_mapi_advisesink);
 	
 	MAPI_G(hr) = lpSink->GetNotifications(&cNotifs, &~lpNotifs, false, ulTime);
 	if(MAPI_G(hr) != hrSuccess)
-	    goto exit;
+		return;
 	    
 	MAPI_G(hr) = NotificationstoPHPArray(cNotifs, lpNotifs, &notifications TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The notifications could not be converted to a PHP array");
-		goto exit;
+		return;
 	}
 
 	RETVAL_ZVAL(&notifications, 0, 0);
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -2033,18 +1992,20 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|aa", &res, &tagArray, &restrictionArray) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
 
 	if (restrictionArray != NULL) {
 		// create restrict array
 		MAPI_G(hr) = MAPIAllocateBuffer(sizeof(SRestriction), &~lpRestrict);
 		if (MAPI_G(hr) != hrSuccess)
-			goto exit;
+			return;
 
 		MAPI_G(hr) = PHPArraytoSRestriction(restrictionArray, /* result */lpRestrict, /* Base */lpRestrict TSRMLS_CC);
 		if (MAPI_G(hr) != hrSuccess) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed to convert the PHP srestriction array");
-			goto exit;
+			return;
 		}
 	}
 
@@ -2053,7 +2014,7 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 		MAPI_G(hr) = PHPArraytoPropTagArray(tagArray, NULL, &~lpTagArray TSRMLS_CC);
 		if (MAPI_G(hr) != hrSuccess) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed to convert the PHP proptag array");
-			goto exit;
+			return;
 		}
 	}
 
@@ -2062,18 +2023,14 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 
 	// return the returncode
 	if (FAILED(MAPI_G(hr)))
-		goto exit;
+		return;
 
 	MAPI_G(hr) = RowSettoPHPArray(pRowSet, &rowset TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The resulting rowset could not be converted to a PHP array");
-		goto exit;
+		return;
 	}
 	RETVAL_ZVAL(&rowset, 0, 0);
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -2103,20 +2060,22 @@ ZEND_FUNCTION(mapi_table_queryrows)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a!ll", &res, &tagArray, &start, &lRowCount) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
 
 	if (tagArray != NULL) {
 		MAPI_G(hr) = PHPArraytoPropTagArray(tagArray, NULL, &~lpTagArray TSRMLS_CC);
 		if (MAPI_G(hr) != hrSuccess) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed to convert the PHP Array");
-			goto exit;
+			return;
 		}
 
 		MAPI_G(hr) = lpTable->SetColumns(lpTagArray, TBL_BATCH);
 
 		if (FAILED(MAPI_G(hr))) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "SetColumns failed. Error code %08X", MAPI_G(hr));
-			goto exit;
+			return;
 		}
 	}
 
@@ -2126,25 +2085,21 @@ ZEND_FUNCTION(mapi_table_queryrows)
 
 		if (FAILED(MAPI_G(hr))) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Seekrow failed. Error code %08X", MAPI_G(hr));
-			goto exit;
+			return;
 		}
 	}
 
 	MAPI_G(hr) = lpTable->QueryRows(lRowCount, 0, &~pRowSet);
 	if (FAILED(MAPI_G(hr)))
-		goto exit;
+		return;
 
 	MAPI_G(hr) = RowSettoPHPArray(pRowSet, &rowset TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The resulting rowset could not be converted to a PHP array");
-		goto exit;
+		return;
 	}
 
 	RETVAL_ZVAL(&rowset, 0, 0);
-
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
@@ -2171,25 +2126,24 @@ ZEND_FUNCTION(mapi_table_setcolumns)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra|l", &res, &tagArray, &lFlags) == FAILURE) return;
 
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
 	ZEND_FETCH_RESOURCE_C(lpTable, LPMAPITABLE, &res, -1, name_mapi_table, le_mapi_table);
 
 	MAPI_G(hr) = PHPArraytoPropTagArray(tagArray, NULL, &~lpTagArray TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed to convert the PHP Array");
-		goto exit;
+		return;
 	}
 
 	MAPI_G(hr) = lpTable->SetColumns(lpTagArray, lFlags);
 
 	if (FAILED(MAPI_G(hr))) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "SetColumns failed. Error code %08X", MAPI_G(hr));
-		goto exit;
+		return;
 	}
 
 	RETVAL_TRUE;
-exit:
-	LOG_END();
-	THROW_ON_ERROR();
 }
 
 /**
