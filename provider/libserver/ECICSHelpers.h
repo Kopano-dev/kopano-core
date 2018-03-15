@@ -57,8 +57,8 @@ private:
 	bool MessageSetsDiffer() const;
 
 	// Interfaces for delegated processing
-	IDbQueryCreator *m_lpQueryCreator = nullptr;
-	IMessageProcessor *m_lpMsgProcessor = nullptr;
+	std::unique_ptr<IDbQueryCreator> m_lpQueryCreator;
+	std::unique_ptr<IMessageProcessor> m_lpMsgProcessor;
 
 	// Internal variables
 	soap			*m_soap;
