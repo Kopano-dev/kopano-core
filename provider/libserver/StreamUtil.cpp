@@ -1128,10 +1128,16 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 			continue;
 
 		unsigned int ulLen = 0;
-		if (lpAttachmentStorage->ExistAttachment(ulSubObjId, PROP_ID(PR_ATTACH_DATA_BIN))) {
-			unsigned char *data = NULL;
-			size_t temp = 0;
+		unsigned char *data = nullptr;
+		size_t temp = 0;
+		/*
+		 * Handle DB/FS corruption where the db cache says it
+		 * exists but Load says it does not.
+		 */
+		er = lpAttachmentStorage->ExistAttachment(ulSubObjId, PROP_ID(PR_ATTACH_DATA_BIN)) ? erSuccess : KCERR_NOT_FOUND;
+		if (er == erSuccess)
 			er = lpAttachmentStorage->LoadAttachment(NULL, ulSubObjId, PROP_ID(PR_ATTACH_DATA_BIN), &temp, &data);
+		if (er != KCERR_NOT_FOUND) {
 			if (er != erSuccess)
 				goto exit;
 			ulLen = (unsigned int)temp;
