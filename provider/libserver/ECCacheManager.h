@@ -44,17 +44,15 @@ class ECSessionManager;
 
 class ECsStores _kc_final : public ECsCacheEntry {
 public:
-	unsigned int	ulStore;
+	unsigned int	ulStore, ulType;
 	GUID			guidStore;
-	unsigned int	ulType;
 };
 
 class ECsUserObject _kc_final : public ECsCacheEntry {
 public:
 	objectclass_t		ulClass;
-	std::string			strExternId;
+	std::string strExternId, strSignature;
 	unsigned int		ulCompanyId;
-	std::string			strSignature;
 };
 
 /* same as objectid_t, join? */
@@ -75,8 +73,7 @@ inline bool operator <(const ECsUEIdKey &a, const ECsUEIdKey &b)
 /* Intern Id cache */
 class ECsUEIdObject _kc_final : public ECsCacheEntry {
 public:
-	unsigned int		ulCompanyId;
-	unsigned int		ulUserId;
+	unsigned int ulCompanyId, ulUserId;
 	std::string			strSignature;
 };
 
@@ -92,10 +89,7 @@ public:
 
 class ECsObjects _kc_final : public ECsCacheEntry {
 public:
-	unsigned int	ulParent;
-	unsigned int	ulOwner;
-	unsigned int	ulFlags;
-	unsigned int	ulType;
+	unsigned int ulParent, ulOwner, ulFlags, ulType;
 };
 
 class ECsQuota _kc_final : public ECsCacheEntry {
@@ -123,8 +117,7 @@ public:
 		return false;
 	}
 
-	unsigned int ulObjId;
-	unsigned int ulTag;
+	unsigned int ulObjId, ulTag;
 };
 
 class ECsIndexProp _kc_final : public ECsCacheEntry {
@@ -141,7 +134,7 @@ public:
     }
 
 	ECsIndexProp(ECsIndexProp &&o) :
-		ulTag(o.ulTag), lpData(o.lpData), cbData(o.cbData)
+		ulTag(o.ulTag), cbData(o.cbData), lpData(o.lpData)
 	{
 		o.lpData = nullptr;
 		o.cbData = 0;
@@ -235,9 +228,8 @@ protected:
 		dst->ulTag = src->ulTag;
 	}
 public:
-	unsigned int ulTag = 0;
+	unsigned int ulTag = 0, cbData = 0;
 	unsigned char *lpData = nullptr;
-	unsigned int cbData = 0;
 };
 
 class ECsCells _kc_final : public ECsCacheEntry {
@@ -322,9 +314,7 @@ public:
         this->m_bComplete = bComplete;
     }
     
-    bool GetComplete() {
-        return this->m_bComplete;
-    }
+    bool GetComplete() const { return this->m_bComplete; }
 
     // Gets the amount of memory used by this object    
     size_t GetSize() const {
@@ -378,9 +368,7 @@ public:
     };
 	unsigned int ulACLs = 0;
     struct ACL {
-        unsigned int ulType;
-        unsigned int ulMask;
-        unsigned int ulUserId;
+		unsigned int ulType, ulMask, ulUserId;
     };
 	std::unique_ptr<ACL[]> aACL;
 };
@@ -392,10 +380,7 @@ struct ECsSortKeyKey {
 
 inline unsigned int IPRSHash(const ECsIndexProp &_Keyval1) noexcept
 {
-	unsigned int b    = 378551;
-	unsigned int a    = 63689;
-	unsigned int hash = 0;
-
+	unsigned int b = 378551, a = 63689, hash = 0;
 	for (std::size_t i = 0; i < _Keyval1.cbData; ++i) {
 		hash = hash * a + _Keyval1.lpData[i];
 		a *= b;
