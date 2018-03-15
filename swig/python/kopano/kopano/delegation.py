@@ -25,7 +25,7 @@ from MAPI.Struct import (
     SExistRestriction,
 )
 from .compat import (
-    hex as _hex, unhex as _unhex, repr as _repr,
+    bdec as _bdec, repr as _repr,
 )
 from .defs import *
 from .errors import NotFoundError
@@ -52,14 +52,14 @@ class Delegation(object):
     @property
     def see_private(self):
         fbmsg, (entryids, names, flags) = self.store._fbmsg_delgs()
-        pos = entryids.Value.index(_unhex(self.user.userid))
+        pos = entryids.Value.index(_bdec(self.user.userid))
 
         return bool(flags.Value[pos] & 1)
 
     @see_private.setter
     def see_private(self, b):
         fbmsg, (entryids, names, flags) = self.store._fbmsg_delgs()
-        pos = entryids.Value.index(_unhex(self.user.userid))
+        pos = entryids.Value.index(_bdec(self.user.userid))
 
         if b:
             flags.Value[pos] |= 1
@@ -132,15 +132,15 @@ class Delegation(object):
     def send_copy(self):
         """Delegate receives copies of meeting requests."""
         userids, deletion = self._parse_rule(self.store)
-        return _unhex(self.user.userid) in userids
+        return _bdec(self.user.userid) in userids
 
     @send_copy.setter
     def send_copy(self, value):
         userids, deletion = self._parse_rule(self.store)
         if value:
-            userids.append(_unhex(self.user.userid)) # XXX dupe
+            userids.append(_bdec(self.user.userid)) # XXX dupe
         else:
-            userids = [u for u in userids if u != _unhex(self.user.userid)]
+            userids = [u for u in userids if u != _bdec(self.user.userid)]
         self._save_rule(self.store, userids, deletion)
 
     @property
@@ -173,7 +173,7 @@ class Delegation(object):
 
         fbmsg, (entryids, names, flags) = self.store._fbmsg_delgs()
         try:
-            pos = entryids.Value.index(_unhex(self.user.userid))
+            pos = entryids.Value.index(_bdec(self.user.userid))
         except ValueError:
             raise NotFoundError("no delegation for user '%s'" % self.user.name)
 

@@ -17,6 +17,46 @@ Query Parameters:
 2. Support for $search is very preliminary (no support for [KQL](https://docs.microsoft.com/en-us/sharepoint/dev/general-development/keyword-query-language-kql-syntax-reference) or anything).
 3. Support for $expand and $count is preliminary.
 
+## attachment Resource
+
+[(Resource)](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/resources/attachment.md)
+
+[Get attachment](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/attachment_get.md)
+
+(Extension: use attachment/id/$value to get attachment in binary.)
+
+[Delete attachment](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/attachment_delete.md)
+
+## calendar Resource
+
+[(Resource)](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/resources/calendar.md)
+
+[List calendars](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/user_list_calendars.md)
+
+[Get calendar](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/calendar_get.md)
+
+[List calendarView](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/calendar_list_calendarview.md)
+
+[List events](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/calendar_list_events.md)
+
+[Create event](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/calendar_post_events.md)
+
+## event Resource
+
+[(Resource)](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/resources/event.md)
+
+[Get event](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/event_get.md)
+
+[Update event](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/event_update.md)
+
+[Delete event](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/event_delete.md)
+
+[List instances](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/event_list_instances.md)
+
+[List attachments](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/event_list_attachments.md)
+
+[Add attachment](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/event_post_attachments.md)
+
 ## mailFolder Resource
 
 [(Resource)](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/resources/mailfolder.md)
@@ -39,7 +79,23 @@ Query Parameters:
 
 [(Resource)](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/resources/message.md)
 
+[Get message](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/message_get.md)
+
+[Update message](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/message_update.md)
+
+[Delete message](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/message_delete.md)
+
 [createReply](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/message_createreply.md)
+
+[createReplyAll](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/message_createreplyall.md)
+
+[List attachments](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/message_list_attachments.md)
+
+[Add attachment](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/message_post_attachments.md)
+
+[copy](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/message_copy.md)
+
+[move](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/message_move.md)
 
 [delta](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/message_delta.md)
 

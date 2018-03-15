@@ -78,10 +78,9 @@ from .pidlid import (
 )
 
 from .compat import (
-    unhex as _unhex, is_str as _is_str, repr as _repr,
-    pickle_load as _pickle_load, pickle_loads as _pickle_loads,
-    fake_unicode as _unicode, is_file as _is_file,
-    encode as _encode, benc as _benc, bdec as _bdec,
+    is_str as _is_str, repr as _repr, pickle_load as _pickle_load,
+    pickle_loads as _pickle_loads, fake_unicode as _unicode,
+    is_file as _is_file, encode as _encode, benc as _benc, bdec as _bdec,
     default as _default,
 )
 
@@ -273,7 +272,7 @@ class Item(Properties, Contact, Appointment):
         """ Item searchkey """
 
         if not hasattr(self, '_searchkey'): # XXX more general caching solution
-            self._searchkey = bin2hex(HrGetOneProp(self.mapiobj, PR_SEARCH_KEY).Value)
+            self._searchkey = _benc(HrGetOneProp(self.mapiobj, PR_SEARCH_KEY).Value)
         return self._searchkey
 
     @property
@@ -847,8 +846,7 @@ class Item(Properties, Contact, Appointment):
             return int(t) * 10000000 + NANOSECS_BETWEEN_EPOCH
 
         # byte array id
-        classid = '040000008200e00074c5b7101a82e008'
-        goid = _unhex(classid)
+        goid = b'\x04\x00\x00\x00\x82\x00\xe0\x00t\xc5\xb7\x10\x1a\x82\xe0\x08'
         # YEARHIGH, YEARLOW, MONTH, DATE
         goid += struct.pack('>H2B', 0, 0, 0)
         # Creation time, lowdatetime, highdatetime

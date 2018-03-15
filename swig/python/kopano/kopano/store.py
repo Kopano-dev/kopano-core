@@ -15,7 +15,7 @@ from MAPI import (
     MAPI_ASSOCIATED, MAPI_DEFERRED_ERRORS, ROW_REMOVE,
 )
 from MAPI.Defs import (
-    bin2hex, HrGetOneProp, CHANGE_PROP_TYPE, PpropFindProp
+    HrGetOneProp, CHANGE_PROP_TYPE, PpropFindProp
 )
 from MAPI.Tags import (
     PR_ENTRYID, PR_MDB_PROVIDER, ZARAFA_STORE_PUBLIC_GUID,
@@ -38,7 +38,7 @@ from MAPI.Tags import (
     PR_DELEGATE_FLAGS, PR_MAPPING_SIGNATURE, PR_EC_WEBACCESS_SETTINGS_JSON
 )
 from MAPI.Struct import (
-    SPropertyRestriction, SPropValue, ROWENTRY,
+    SPropertyRestriction, SPropValue, ROWENTRY, MAPINAMEID,
     MAPIErrorNotFound, MAPIErrorInvalidEntryid,
     MAPIErrorNoSupport
 )
@@ -103,6 +103,8 @@ class Store(Properties):
         # XXX: fails if store is orphaned and guid is given..
         self.__root = None
 
+        self._name_id_cache = {}
+
     @property
     def _root(self):
         if self.__root is None:
@@ -112,7 +114,7 @@ class Store(Properties):
     @property
     def entryid(self):
         """Store entryid"""
-        return bin2hex(self.prop(PR_ENTRYID).value)
+        return _benc(self.prop(PR_ENTRYID).value)
 
     @property
     def public(self):
@@ -122,7 +124,7 @@ class Store(Properties):
     @property
     def guid(self):
         """Store GUID"""
-        return bin2hex(self.prop(PR_STORE_RECORD_KEY).value)
+        return _benc(self.prop(PR_STORE_RECORD_KEY).value)
 
     @property
     def name(self):
@@ -723,6 +725,14 @@ class Store(Properties):
     def freebusy(self):
         """Return :class:`freebusy <Freebusy>` information."""
         return FreeBusy(self)
+
+    def _name_id(self, name_tuple):
+        id_ = self._name_id_cache.get(name_tuple)
+        if id_ is None:
+            named_props = [MAPINAMEID(*name_tuple)]
+            id_ = self.mapiobj.GetIDsFromNames(named_props, 0)[0]
+            self._name_id_cache[name_tuple] = id_
+        return id_
 
     def __eq__(self, s): # XXX check same server?
         if isinstance(s, Store):

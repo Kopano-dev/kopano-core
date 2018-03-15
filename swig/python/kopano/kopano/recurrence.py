@@ -94,6 +94,7 @@ PATTERN_HJMONTHEND = 0xC
 # see MS-OXOCAL, section 2.2.1.44.5, "AppointmentRecurrencePattern Structure"
 
 # TODO hide low-level variables (self._pattern_type etc)
+# TODO ability to set attributes in any order
 
 class Recurrence(object):
     """Recurrence class"""
@@ -221,16 +222,17 @@ class Recurrence(object):
             return 'end_date'
         elif self.end_type == 0x2022:
             return 'occurrence_count'
-        else:
+        elif self.end_type in (0x2023, 0xFFFFFFFF):
             return 'no_end'
 
     @range_type.setter
     def range_type(self, value):
-        if value == 'occurrence_count':
-            self.end_type = 0x2022
-        elif value == 'end_date':
+        if value == 'end_date':
             self.end_type = 0x2021
-        #TODO fill in
+        elif value == 'occurrence_count':
+            self.end_type = 0x2022
+        elif value == 'no_end':
+            self.end_type = 0x2023
 
     def occurrences(self, start=None, end=None): # XXX fit-to-period
         tz = self.item.get(PidLidTimeZoneStruct)
@@ -1139,24 +1141,26 @@ class Occurrence(object):
 
     @property
     def entryid(self):
+        return self._entryid()
+
+    def _entryid(self, event=False):
         # cal item entryid plus basedate (zero if not recurring)
-        parts = []
-
-        eid = _bdec(self.item.entryid)
-        parts.append(_utils.pack_short(len(eid)))
-        parts.append(eid)
-
+        flag = b'\x01' if event else b''
+        eid = self.item._entryid or _bdec(self.item.entryid)
         basedate_val = self._basedate_val or 0
-        parts.append(_utils.pack_long(basedate_val))
 
-        return _benc(b''.join(parts))
+        return _benc(
+            flag + \
+            _utils.pack_short(len(eid)) + \
+            eid + \
+            _utils.pack_long(basedate_val)
+        )
 
     @property
     def eventid(self):
         # msgraph has both appointments and expanded appointments under
         # /events, so we need an identier which can be used for both.
-        eid = _bdec(self.entryid)
-        return _benc(b'\x01'+eid)
+        return self._entryid(True)
 
     def __getattr__(self, x):
         return getattr(self.item, x)

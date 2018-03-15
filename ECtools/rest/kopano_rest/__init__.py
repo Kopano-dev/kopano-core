@@ -7,7 +7,11 @@ from contextlib import closing
 import datetime
 import dateutil.parser
 import fcntl
-import json
+try:
+    import ujson as json
+except ImportError:
+    import json
+import jwt
 import os
 import sys
 from threading import Thread
@@ -20,6 +24,12 @@ if sys.hexversion >= 0x03000000:
     import bsddb3 as bsddb
 else:
     import bsddb
+
+INDENT = True
+try:
+    json.dumps({}, indent=True) # ujson 1.33 doesn't support 'indent'
+except TypeError:
+    INDENT = False
 
 from MAPI.Util import kc_session_save, kc_session_restore, GetDefaultStore
 
@@ -69,7 +79,12 @@ def _server(req):
     userid = req.get_header('X-Kopano-UserEntryID')
     if auth_header and auth_header.startswith('Basic '):
         user, passwd = codecs.decode(codecs.encode(auth_header[6:], 'ascii'), 'base64').split(b':')
-        server = kopano.Server(auth_user=user, auth_pass=passwd)
+        server = kopano.Server(auth_user=user, auth_pass=passwd, parse_args=False)
+    elif auth_header and auth_header.startswith('Bearer '):
+        token = codecs.encode(auth_header[7:], 'ascii')
+        # TODO passing user should not be necessary
+        user = jwt.decode(token, verify=False)['kc.identity']['kc.i.un']
+        server = kopano.Server(auth_user=user, auth_pass=token, parse_args=False, oidc=True)
     elif userid in SESSIONDATA:
         sessiondata = SESSIONDATA[userid]
         mapisession = kc_session_restore(sessiondata)
@@ -146,7 +161,10 @@ class Resource(object):
             data['@odata.context'] = req.path
         if expand:
             data.update(expand)
-        return json.dumps(data, indent=2, separators=(',', ': '))
+        if INDENT:
+            return json.dumps(data, indent=2)
+        else:
+            return json.dumps(data)
 
     def json_multi(self, req, obj, fields, all_fields, top, skip, count, deltalink, add_count=False):
         header = b'{\n'
@@ -792,7 +810,8 @@ def recurrence_set(item, arg):
         rec.occurrence_count = arg['range']['numberOfOccurrences']
         # TODO don't use hidden vars
         rec._start = dateutil.parser.parse(arg['range']['startDate'])
-        rec._end = dateutil.parser.parse(arg['range']['endDate'])
+        if arg['range']['type'] != 'noEnd': # TODO resilient: set anyway
+            rec._end = dateutil.parser.parse(arg['range']['endDate'])
 
         rec._save()
 

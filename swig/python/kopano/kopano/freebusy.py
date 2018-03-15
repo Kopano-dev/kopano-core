@@ -22,7 +22,7 @@ from MAPI.Time import (
 import MAPI.Struct
 
 from .compat import (
-    unhex as _unhex, repr as _repr
+    bdec as _bdec, repr as _repr
 )
 
 # XXX to utils.py?
@@ -72,7 +72,7 @@ class FreeBusy(object):
         :param end: end of period
         """
 
-        eid = _unhex(self.store.user.userid)
+        eid = _bdec(self.store.user.userid)
         if start:
             ftstart = datetime_to_filetime(start)
         else:
@@ -105,7 +105,7 @@ class FreeBusy(object):
         :param start: start of period
         :param end: end of period
         """
-        eid = _unhex(self.store.user.userid) # XXX merge with blocks
+        eid = _bdec(self.store.user.userid) # XXX merge with blocks
         ftstart, ftend = datetime_to_filetime(start), datetime_to_filetime(end) # XXX tz?
 
         fb = libfreebusy.IFreeBusySupport()

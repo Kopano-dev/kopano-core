@@ -2,6 +2,7 @@ import base64
 import codecs
 import falcon
 import json
+import jwt
 import traceback
 import uuid
 try:
@@ -33,6 +34,10 @@ def _user(req):
     if auth_header and auth_header.startswith('Basic '):
         user, passwd = codecs.decode(codecs.encode(auth_header[6:], 'ascii'), 'base64').split(b':')
         return SERVER.user(codecs.decode(user, 'utf8'))
+    elif auth_header and auth_header.startswith('Bearer '):
+        token = codecs.encode(auth_header[7:], 'ascii')
+        user = jwt.decode(token, verify=False)['kc.identity']['kc.i.un']
+        return SERVER.user(user)
     elif userid:
         return SERVER.user(userid=userid)
 

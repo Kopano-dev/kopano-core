@@ -97,9 +97,11 @@ class Properties(object):
     # TODO generalize for any property?
     def _get_fast(self, proptag, default=None, must_exist=False):
         # in cache
-        if proptag in self._cache:
-            proptype = PROP_TYPE(self._cache[proptag].proptag)
-            value = self._cache[proptag].value
+
+        prop = self._cache.get(proptag)
+        if prop is not None:
+            proptype = PROP_TYPE(prop.proptag)
+            value = prop.value
 
             if proptype == PT_ERROR and value == MAPI_E_NOT_FOUND:
                 return default

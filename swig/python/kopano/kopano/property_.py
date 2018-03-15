@@ -19,7 +19,7 @@ from MAPI import (
     MAPI_E_NOT_FOUND, MNID_ID, KEEP_OPEN_READWRITE, MAPI_UNICODE,
 )
 from MAPI.Defs import (
-    PROP_ID, PROP_TAG, PROP_TYPE, HrGetOneProp, bin2hex,
+    PROP_ID, PROP_TAG, PROP_TYPE, HrGetOneProp,
     CHANGE_PROP_TYPE,
 )
 from MAPI.Struct import (
@@ -36,7 +36,7 @@ from .defs import (
     REV_TAG, REV_TYPE, GUID_NAMESPACE, MAPINAMEID, NAMESPACE_GUID, STR_GUID,
 )
 from .compat import (
-    repr as _repr, fake_unicode as _unicode, is_int as _is_int, hex as _hex,
+    benc as _benc, repr as _repr, fake_unicode as _unicode, is_int as _is_int,
     is_str as _is_str,
 )
 from .errors import Error, NotFoundError
@@ -265,9 +265,8 @@ class SPropDelayedValue(SPropValue):
 class Property(object):
     """Property class"""
 
-    def __init__(self, parent_mapiobj, mapiobj): # XXX rethink attributes, names.. add guidname..?
+    def __init__(self, parent_mapiobj, mapiobj):
         self._parent_mapiobj = parent_mapiobj
-        #: Property tag, e.g. 0x37001f for PR_SUBJECT
         self.proptag = mapiobj.ulPropTag
 
         if PROP_TYPE(mapiobj.ulPropTag) == PT_ERROR and mapiobj.Value == MAPI_E_NOT_ENOUGH_MEMORY:
@@ -290,32 +289,70 @@ class Property(object):
                     except MAPIErrorNotFound:
                         pass
 
-        self.id_ = self.proptag >> 16
         self.mapiobj = mapiobj
+
         self._value = None
+        self.__lpname = None
 
-        self.idname = REV_TAG.get(self.proptag)
-        self.type_ = PROP_TYPE(self.proptag)
-        self.typename = REV_TYPE.get(self.type_)
-        self.named = False
-        self.kind = None
-        self.kindname = None
-        self.guid = None
-        self.name = None
-        self.namespace = None
+    @property
+    def id_(self):
+        return PROP_ID(self.proptag)
 
-        if self.id_ >= 0x8000: # possible named prop
+    @property
+    def idname(self):
+        return REV_TAG.get(self.proptag)
+
+    @property
+    def type_(self):
+        return PROP_TYPE(self.proptag)
+
+    @property
+    def typename(self):
+        return REV_TYPE.get(self.type_)
+
+    @property
+    def _lpname(self):
+        if self.__lpname is None and self.id_ >= 0x8000:
             try:
-                lpname = self._parent_mapiobj.GetNamesFromIDs([self.proptag], None, 0)[0]
-                if lpname:
-                    self.guid = bin2hex(lpname.guid)
-                    self.namespace = GUID_NAMESPACE.get(lpname.guid)
-                    self.name = lpname.id
-                    self.kind = lpname.kind
-                    self.kindname = 'MNID_STRING' if lpname.kind == MNID_STRING else 'MNID_ID'
-                    self.named = True
+                self.__lpname = self._parent_mapiobj.GetNamesFromIDs([self.proptag], None, 0)[0]
             except MAPIErrorNoSupport: # XXX user.props()?
                 pass
+        return self.__lpname
+
+    @property
+    def named(self):
+        lpname = self._lpname
+        return bool(lpname)
+
+    @property
+    def guid(self):
+        lpname = self._lpname
+        if lpname:
+            return _benc(lpname.guid)
+
+    @property
+    def namespace(self):
+        lpname = self._lpname
+        if lpname:
+            return GUID_NAMESPACE.get(lpname.guid)
+
+    @property
+    def name(self):
+        lpname = self._lpname
+        if lpname:
+            return lpname.id
+
+    @property
+    def kind(self):
+        lpname = self._lpname
+        if lpname:
+            return lpname.kind
+
+    @property
+    def kindname(self):
+        lpname = self._lpname
+        if lpname:
+            return u'MNID_STRING' if lpname.kind == MNID_STRING else u'MNID_ID'
 
     @property
     def value(self):
@@ -361,7 +398,7 @@ class Property(object):
             elif v is None:
                 return u''
             elif self.type_ in (PT_BINARY, PT_MV_BINARY) or isinstance(v, bytes):
-                return _hex(v)
+                return _benc(v)
             else:
                 return _unicode(v)
         return flatten(self.value)

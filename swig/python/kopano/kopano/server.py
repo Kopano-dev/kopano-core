@@ -19,7 +19,7 @@ from MAPI import (
     TBL_BATCH, ECSTORE_TYPE_PRIVATE, MAPI_DEFERRED_ERRORS
 )
 from MAPI.Util import GetDefaultStore, OpenECSession
-from MAPI.Defs import HrGetOneProp, bin2hex
+from MAPI.Defs import HrGetOneProp
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue, ECCOMPANY, ECGROUP, ECUSER,
     MAPIErrorNotFound, MAPIErrorNoSupport, MAPIErrorCollision,
@@ -52,8 +52,8 @@ from .group import Group
 from .property_ import _proptag_to_name
 
 from .compat import (
-    unhex as _unhex, repr as _repr, is_str as _is_str, benc as _benc,
-    fake_unicode as _unicode, lru_cache as _lru_cache
+    repr as _repr, is_str as _is_str, benc as _benc, benc as _benc,
+    bdec as _bdec, fake_unicode as _unicode, lru_cache as _lru_cache
 )
 
 if sys.hexversion >= 0x03000000:
@@ -343,7 +343,7 @@ class Server(object):
     @property
     def guid(self):
         """Server GUID."""
-        return bin2hex(HrGetOneProp(self.mapistore, PR_MAPPING_SIGNATURE).Value)
+        return _benc(HrGetOneProp(self.mapistore, PR_MAPPING_SIGNATURE).Value)
 
     def user(self, name=None, email=None, create=False, userid=None):
         """Return :class:`user <User>` with given name or email address.
@@ -424,7 +424,7 @@ class Server(object):
             user = self.user(name)
         if create_store:
             try:
-                self.sa.CreateStore(ECSTORE_TYPE_PRIVATE, _unhex(user.userid))
+                self.sa.CreateStore(ECSTORE_TYPE_PRIVATE, _bdec(user.userid))
             except MAPIErrorCollision:
                 pass # create-user userscript may already create store
         return user
@@ -522,7 +522,7 @@ class Server(object):
         if len(guid) != 32:
             raise Error("invalid store id: '%s'" % guid)
         try:
-            storeid = _unhex(guid)
+            storeid = _bdec(guid)
         except:
             raise Error("invalid store id: '%s'" % guid)
         table = self.ems.GetMailboxTable(None, 0) # XXX merge with Store.__init__
@@ -653,7 +653,7 @@ class Server(object):
 
     def remove_store(self, store):
         try:
-            self.sa.RemoveStore(_unhex(store.guid))
+            self.sa.RemoveStore(_bdec(store.guid))
         except MAPIErrorCollision:
             raise Error("cannot remove store with GUID '%s'" % store.guid)
 

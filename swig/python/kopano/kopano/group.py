@@ -12,11 +12,9 @@ from MAPI.Struct import (
     ECGROUP, MAPIErrorNotFound, MAPIErrorInvalidParameter,
     MAPIErrorCollision
 )
-from MAPI.Defs import bin2hex
-
 from .properties import Properties
 from .errors import NotFoundError, DuplicateError
-from .compat import fake_unicode as _unicode
+from .compat import fake_unicode as _unicode, benc as _benc
 
 if sys.hexversion >= 0x03000000:
     try:
@@ -54,7 +52,7 @@ class Group(Properties):
     def groupid(self):
         """Group identifier."""
 
-        return bin2hex(self._ecgroup.GroupID)
+        return _benc(self._ecgroup.GroupID)
 
     def users(self): # XXX recurse?
         """Return all :class:`users <User>` in group."""
