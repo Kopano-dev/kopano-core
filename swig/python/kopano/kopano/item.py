@@ -32,7 +32,8 @@ from MAPI import (
     ATTACH_BY_VALUE, ATTACH_EMBEDDED_MSG, STGM_WRITE, STGM_TRANSACTED,
     MAPI_UNICODE, MAPI_TO, MAPI_CC, MAPI_BCC, MAPI_E_NOT_FOUND,
     MAPI_E_NOT_ENOUGH_MEMORY, PT_SYSTIME, MAPI_ASSOCIATED,
-    WrapCompressedRTFStream
+    WrapCompressedRTFStream, MODRECIP_ADD, MODRECIP_REMOVE,
+    RELOP_EQ
 )
 
 from MAPI.Defs import (
@@ -42,6 +43,7 @@ from MAPI.Defs import (
 from MAPI.Struct import (
     SPropValue, MAPIErrorNotFound, MAPIErrorUnknownEntryid,
     MAPIErrorInterfaceNotSupported, MAPIErrorUnconfigured, MAPIErrorNoAccess,
+    SPropertyRestriction
 )
 
 from MAPI.Tags import (
@@ -67,7 +69,8 @@ from MAPI.Tags import (
     PR_NORMALIZED_SUBJECT_W, PR_INTERNET_MESSAGE_ID_W, PR_CONVERSATION_ID,
     PR_READ_RECEIPT_REQUESTED, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED,
     PR_REPLY_RECIPIENT_ENTRIES, PR_EC_BODY_FILTERED, PR_SENSITIVITY,
-    PR_SEARCH_KEY, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME
+    PR_SEARCH_KEY, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME,
+    PR_ROWID
 )
 
 from MAPI.Tags import (
@@ -96,6 +99,7 @@ from .attachment import Attachment
 from .body import Body
 from .properties import Properties
 from .recurrence import Occurrence
+from .restriction import Restriction
 from .meetingrequest import MeetingRequest, _copytags
 from .address import Address
 from .table import Table
@@ -998,8 +1002,27 @@ class Item(Properties, Contact, Appointment):
             pr_entryid = self.server.ab.CreateOneOff(pr_dispname, u'SMTP', _unicode(pr_email), MAPI_UNICODE)
         return pr_addrtype, pr_dispname, pr_email, pr_entryid
 
-    @to.setter
-    def to(self, addrs):
+    def _recipients(self, reciptype, addrs):
+        """Sets the recipient table according to the type and given addresses.
+
+        Since the recipienttable contains to, cc and bcc addresses, and item.to
+        = [] should only set the to recipients (not append), the to recipients
+        are first removed and then added again. This approach works but seems
+        suboptimal, since it queries the MAPI_TO items, removes them and adds
+        the new entries while leaving the other recipients intact.
+
+        :param reciptype: MAPI_TO, MAPI_CC or MAPI_BCC
+        :param addrs: list of addresses to set.
+        """
+
+        restriction = Restriction(SPropertyRestriction(RELOP_EQ,
+                                                       PR_RECIPIENT_TYPE,
+                                                       SPropValue(PR_RECIPIENT_TYPE, reciptype)))
+        table = self.table(PR_MESSAGE_RECIPIENTS, columns=[PR_ROWID], restriction=restriction)
+        rows = [[SPropValue(PR_ROWID, row[PR_ROWID])] for row in table.dict_rows()]
+        if rows:
+            self.mapiobj.ModifyRecipients(MODRECIP_REMOVE, rows)
+
         if _is_str(addrs):
             addrs = _unicode(addrs).split(';')
         elif isinstance(addrs, _user.User):
@@ -1008,14 +1031,26 @@ class Item(Properties, Contact, Appointment):
         for addr in addrs:
             pr_addrtype, pr_dispname, pr_email, pr_entryid = self._addr_props(addr)
             names.append([
-                SPropValue(PR_RECIPIENT_TYPE, MAPI_TO),
+                SPropValue(PR_RECIPIENT_TYPE, reciptype),
                 SPropValue(PR_DISPLAY_NAME_W, pr_dispname),
                 SPropValue(PR_ADDRTYPE_W, _unicode(pr_addrtype)),
                 SPropValue(PR_EMAIL_ADDRESS_W, _unicode(pr_email)),
                 SPropValue(PR_ENTRYID, pr_entryid),
             ])
-        self.mapiobj.ModifyRecipients(0, names)
+        self.mapiobj.ModifyRecipients(MODRECIP_ADD, names)
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
+
+    @to.setter
+    def to(self, addrs):
+        self._recipients(MAPI_TO, addrs)
+
+    @cc.setter
+    def cc(self, addrs):
+        self._recipients(MAPI_CC, addrs)
+
+    @bcc.setter
+    def bcc(self, addrs):
+        self._recipients(MAPI_BCC, addrs)
 
     def delete(self, objects):
         """Delete properties or attachments from item.
