@@ -36,6 +36,8 @@
 
 #include <kopano/ECLogger.h>
 
+using namespace KC::string_literals;
+
 namespace KC {
 
 extern ECLogger* g_lpLogger;
@@ -101,27 +103,23 @@ private:
 	std::string CreateOrderQuery() const override;
 	
 	ECDatabase		*m_lpDatabase;
-	unsigned int	m_ulSyncId;
-	unsigned int	m_ulChangeId;
 	const SOURCEKEY	&m_sFolderSourceKey;
-	unsigned int	m_ulFlags;
+	unsigned int m_ulSyncId, m_ulChangeId, m_ulFlags;
 };
 
 IncrementalQueryCreator::IncrementalQueryCreator(ECDatabase *lpDatabase, unsigned int ulSyncId, unsigned int ulChangeId, const SOURCEKEY &sFolderSourceKey, unsigned int ulFlags)
 	: CommonQueryCreator(ulFlags)
 	, m_lpDatabase(lpDatabase)
+	, m_sFolderSourceKey(sFolderSourceKey)
 	, m_ulSyncId(ulSyncId)
 	, m_ulChangeId(ulChangeId)
-	, m_sFolderSourceKey(sFolderSourceKey)
 	, m_ulFlags(ulFlags)
 { }
 	
 std::string IncrementalQueryCreator::CreateBaseQuery() const
 {
-	std::string strQuery;
-
-	strQuery =  "SELECT changes.id, changes.sourcekey, changes.parentsourcekey, changes.change_type, changes.flags, NULL, changes.sourcesync "
-				"FROM changes ";
+	auto strQuery = "SELECT changes.id, changes.sourcekey, changes.parentsourcekey, changes.change_type, changes.flags, NULL, changes.sourcesync "
+				"FROM changes "s;
 	if ((m_ulFlags & (SYNC_ASSOCIATED | SYNC_NORMAL)) != (SYNC_ASSOCIATED | SYNC_NORMAL))
 		strQuery +=	"LEFT JOIN indexedproperties ON indexedproperties.val_binary = changes.sourcekey AND indexedproperties.tag = " + stringify(PROP_ID(PR_SOURCE_KEY)) + " " +
 					"LEFT JOIN hierarchy ON hierarchy.id = indexedproperties.hierarchyid ";
@@ -176,10 +174,8 @@ FullQueryCreator::FullQueryCreator(ECDatabase *lpDatabase, const SOURCEKEY &sFol
 	
 std::string FullQueryCreator::CreateBaseQuery() const
 {
-	std::string strQuery;
-
 	assert(!m_sFolderSourceKey.empty());
-	strQuery =  "SELECT changes.id as id, sourcekey.val_binary as sourcekey, parentsourcekey.val_binary, " + stringify(ICS_MESSAGE_NEW) + ", NULL, hierarchy.flags, changes.sourcesync "
+	auto strQuery = "SELECT changes.id as id, sourcekey.val_binary as sourcekey, parentsourcekey.val_binary, " + stringify(ICS_MESSAGE_NEW) + ", NULL, hierarchy.flags, changes.sourcesync "
 				"FROM hierarchy "
 				"JOIN indexedproperties as sourcekey ON sourcekey.hierarchyid = hierarchy.id AND sourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
 				"JOIN indexedproperties as parentsourcekey ON parentsourcekey.hierarchyid = hierarchy.parent AND parentsourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) +
@@ -307,9 +303,7 @@ public:
 	unsigned int GetMaxChangeId(void) const _kc_override { return m_ulMaxChangeId; }
 	
 private:
-	unsigned int m_ulChangeId;
-	unsigned int m_ulSyncId;
-	unsigned int m_ulMaxChangeId;
+	unsigned int m_ulChangeId, m_ulSyncId, m_ulMaxChangeId;
 };
 
 NonLegacyFullProcessor::NonLegacyFullProcessor(unsigned int ulChangeId, unsigned int ulSyncId)
@@ -375,17 +369,14 @@ public:
 	unsigned int GetMaxChangeId(void) const _kc_override { return m_ulMaxChangeId; }
 	
 private:
-	unsigned int	m_ulSyncId;
 	MESSAGESET		m_setMessages;
-	unsigned int	m_ulMaxFolderChange;
-	unsigned int	m_ulMaxChangeId;
+	unsigned int m_ulSyncId, m_ulMaxFolderChange, m_ulMaxChangeId;
 };
 
-LegacyProcessor::LegacyProcessor(unsigned int ulChangeId, unsigned int ulSyncId, const MESSAGESET &setMessages, unsigned int ulMaxFolderChange)
-	: m_ulSyncId(ulSyncId)
-	, m_setMessages(setMessages)
-	, m_ulMaxFolderChange(ulMaxFolderChange)
-	, m_ulMaxChangeId(ulChangeId)
+LegacyProcessor::LegacyProcessor(unsigned int ulChangeId, unsigned int ulSyncId,
+    const MESSAGESET &setMessages, unsigned int ulMaxFolderChange) :
+	m_setMessages(setMessages), m_ulSyncId(ulSyncId),
+	m_ulMaxFolderChange(ulMaxFolderChange), m_ulMaxChangeId(ulChangeId)
 { 
 	/**
 	 * We'll never get an empty set when a restriction was used in the previous run. However it is
@@ -399,8 +390,6 @@ LegacyProcessor::LegacyProcessor(unsigned int ulChangeId, unsigned int ulSyncId,
 
 ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags)
 {
-	unsigned int			ulMsgFlags = 0;
-
 	// When we get here we're accepting a message that has matched the restriction (or if there was no
 	// restriction). However since we have legacy, this messages might be present already, in which
 	// case we need to do nothing unless its deleted or changed since the last check.
@@ -409,7 +398,7 @@ ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 	assert(atoui(lpDBRow[icsChangeType]) == ICS_MESSAGE_NEW);
 	
 	*lpulFlags = 0;
-	ulMsgFlags = atoui(lpDBRow[icsMsgFlags]);
+	auto ulMsgFlags = atoui(lpDBRow[icsMsgFlags]);
 	auto iterMessage = m_setMessages.find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]));
 	if (iterMessage == m_setMessages.cend()) {
 		// The message is not synced yet!
@@ -786,9 +775,7 @@ ECRESULT ECGetContentChangesHelper::ProcessResidualMessages()
 
 ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsChangesArray **lppChanges)
 {
-	ECRESULT					er = erSuccess;
-	unsigned int				ulMaxChange = 0;
-	unsigned int				ulNewChange = 0;
+	unsigned int ulMaxChange = 0, ulNewChange = 0;
 	DB_RESULT lpDBResult;
 	DB_ROW						lpDBRow;
 	
@@ -801,7 +788,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 
 	if (m_ulFlags & SYNC_NO_DB_CHANGES) {
 		*lpulMaxChange = ulMaxChange;
-		return er;
+		return erSuccess;
 	}
 	
 	// If there were no changes and this was not the initial sync, we only need to purge all too-new-syncedmessages.
@@ -828,7 +815,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		 */
 		// Bump the changeid
 		auto strQuery = "REPLACE INTO changes (sourcekey,parentsourcekey,sourcesync) VALUES (0, " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey) + "," + stringify(m_ulSyncId) + ")";
-		er = m_lpDatabase->DoInsert(strQuery, &ulNewChange);
+		auto er = m_lpDatabase->DoInsert(strQuery, &ulNewChange);
 		if (er != erSuccess)
 			return er;
 		assert(ulNewChange > ulMaxChange);
@@ -855,7 +842,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 
 	std::set<unsigned int> setChangeIds;
 	std::string strQuery = "SELECT DISTINCT change_id FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId);
-	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
+	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
 
@@ -942,9 +929,8 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 	struct propTagArray *lpPropTags = NULL;
 	struct rowSet *lpRowSet = NULL;
 	std::set<SOURCEKEY> matches;
-	std::vector<unsigned int> cbdata;
+	std::vector<unsigned int> cbdata, objectids;
 	std::vector<unsigned char *> lpdata;
-	std::vector<unsigned int> objectids;
 
 	memset(&sODStore, 0, sizeof(sODStore));
 

@@ -367,8 +367,7 @@ static void AuditStatsAccess(ECSession *lpSession, const char *access, const cha
 {
 	if (!lpSession->GetSessionManager()->GetAudit())
 		return;
-	std::string strUsername;
-	std::string strImpersonator;
+	std::string strUsername, strImpersonator;
 	auto sec = lpSession->GetSecurity();
 	sec->GetUsername(&strUsername);
 	auto audit = lpSession->GetSessionManager()->GetAudit();
@@ -605,8 +604,7 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 	sObjectTableKey	sRow;
 	scoped_rlock lock(hListMutex);
 	bool filter_private = false;
-	std::string strInQuery;
-	std::string strQuery;
+	std::string strInQuery, strQuery;
 	std::set<unsigned int> setObjIdPrivate;
 	std::list<unsigned int> lstChildId2;
 	ECDatabase *lpDatabase = NULL;
