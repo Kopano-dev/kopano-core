@@ -386,8 +386,11 @@ void ECLogger_File::Log(unsigned int loglevel, const char *format, ...) {
 
 void ECLogger_File::LogVA(unsigned int loglevel, const char *format, va_list& va) {
 	char msgbuffer[_LOG_BUFSIZE];
-	_vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va);
-
+	auto len = _vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va);
+	static const char tb[] = "(message truncated due to size)";
+	static_assert(_LOG_BUFSIZE >= sizeof(tb), "buffer too small for static message");
+	if (len >= _LOG_BUFSIZE)
+		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(tb), tb);
 	Log(loglevel, std::string(msgbuffer));
 }
 
