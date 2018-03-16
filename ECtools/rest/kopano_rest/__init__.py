@@ -62,8 +62,8 @@ SESSIONDATA = {}
 # TODO /me/{mailFolders,contactFolders,calendars} -> which folders exactly?
 # TODO @odata.context: check exact structure?
 # TODO ICS, filters etc & pagination?.. ugh
-# TODO calendarresource fields
-# TODO $filter, $search (events?$search doesn't work in graph?)
+# TODO user, calendarresource fields
+# TODO $filter, $search (events?$search=bert doesn't work in graph?)
 
 def db_get(key):
     with closing(bsddb.hashopen('mapping_db', 'c')) as db:
@@ -75,33 +75,39 @@ def db_put(key, value):
         with closing(bsddb.hashopen('mapping_db', 'c')) as db:
             db[codecs.encode(key, 'ascii')] = codecs.encode(value, 'ascii')
 
-def _server(req):
+def _server(req, options):
     global SERVER
     auth_header = req.get_header('Authorization')
-    userid = req.get_header('X-Kopano-UserEntryID')
-    if auth_header and auth_header.startswith('Basic '):
-        user, passwd = codecs.decode(codecs.encode(auth_header[6:], 'ascii'), 'base64').split(b':')
-        server = kopano.Server(auth_user=user, auth_pass=passwd, parse_args=False)
-    elif auth_header and auth_header.startswith('Bearer '):
+
+    if (auth_header and auth_header.startswith('Bearer ') and \
+        (not options or options.auth_bearer)):
         token = codecs.encode(auth_header[7:], 'ascii')
         # TODO passing user should not be necessary
         user = jwt.decode(token, verify=False)['kc.identity']['kc.i.un']
-        server = kopano.Server(auth_user=user, auth_pass=token, parse_args=False, oidc=True)
-    elif userid in SESSIONDATA:
-        sessiondata = SESSIONDATA[userid]
-        mapisession = kc_session_restore(sessiondata)
-        server = kopano.Server(mapisession=mapisession, parse_args=False)
-    else:
-        try:
-            SERVER
-        except NameError:
-            SERVER = kopano.Server(parse_args=False, store_cache=False)
-        username = SERVER.user(userid=userid).name
-        server = kopano.Server(auth_user=username, auth_pass='',
-                               parse_args=False, store_cache=False)
-        sessiondata = kc_session_save(server.mapisession)
-        SESSIONDATA[userid] = sessiondata
-    return server
+        return kopano.Server(auth_user=user, auth_pass=token, parse_args=False, oidc=True)
+
+    elif (auth_header and auth_header.startswith('Basic ') and \
+        (not options or options.auth_basic)):
+        user, passwd = codecs.decode(codecs.encode(auth_header[6:], 'ascii'), 'base64').split(b':')
+        return kopano.Server(auth_user=user, auth_pass=passwd, parse_args=False)
+
+    elif not options or options.auth_passthrough:
+        userid = req.get_header('X-Kopano-UserEntryID')
+        if userid in SESSIONDATA:
+            sessiondata = SESSIONDATA[userid]
+            mapisession = kc_session_restore(sessiondata)
+            server = kopano.Server(mapisession=mapisession, parse_args=False)
+        else:
+            try:
+                SERVER
+            except NameError:
+                SERVER = kopano.Server(parse_args=False, store_cache=False)
+            username = SERVER.user(userid=userid).name
+            server = kopano.Server(auth_user=username, auth_pass='',
+                                   parse_args=False, store_cache=False)
+            sessiondata = kc_session_save(server.mapisession)
+            SESSIONDATA[userid] = sessiondata
+        return server
 
 def _store(server, userid):
     if userid:
@@ -110,8 +116,8 @@ def _store(server, userid):
         return kopano.Store(server=server,
                             mapiobj=GetDefaultStore(server.mapisession))
 
-def _server_store(req, userid):
-    server = _server(req)
+def _server_store(req, userid, options):
+    server = _server(req, options)
     store = _store(server, userid)
     return server, store
 
@@ -149,6 +155,9 @@ def _start_end(req):
     return start, end
 
 class Resource(object):
+    def __init__(self, options):
+        self.options = options
+
     def get_fields(self, req, obj, fields, all_fields):
         fields = fields or all_fields or self.fields
         result = {}
@@ -301,7 +310,7 @@ class UserResource(Resource):
 
     # TODO redirect to other resources?
     def on_get(self, req, resp, userid=None, method=None):
-        server, store = _server_store(req, userid if userid != 'delta' else None)
+        server, store = _server_store(req, userid if userid != 'delta' else None, self.options)
 
         if not method:
             if req.path.split('/')[-1] == 'me':
@@ -355,7 +364,7 @@ class UserResource(Resource):
 
     # TODO redirect to other resources?
     def on_post(self, req, resp, userid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         fields = json.loads(req.stream.read().decode('utf-8'))
 
         if method == 'sendMail':
@@ -414,7 +423,7 @@ class FolderResource(Resource):
     }
 
     def on_delete(self, req, resp, userid=None, folderid=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid)
         store.delete(folder)
 
@@ -479,7 +488,7 @@ class MailFolderResource(FolderResource):
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
 
         if folderid == 'delta':
             self.delta(req, resp, store)
@@ -500,7 +509,7 @@ class MailFolderResource(FolderResource):
             self.respond(req, resp, data)
 
     def on_post(self, req, resp, userid=None, folderid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid)
         fields = json.loads(req.stream.read().decode('utf-8'))
 
@@ -526,7 +535,7 @@ class CalendarResource(FolderResource):
     })
 
     def on_get(self, req, resp, userid=None, folderid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         path = req.path
         fields = None
 
@@ -553,7 +562,7 @@ class CalendarResource(FolderResource):
         self.respond(req, resp, data, fields)
 
     def on_post(self, req, resp, userid=None, folderid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = store.calendar # TODO
 
         if method == 'events':
@@ -658,7 +667,7 @@ class MessageResource(ItemResource):
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid or 'inbox') # TODO all folders?
 
         if itemid == 'delta': # TODO move to MailFolder resource somehow?
@@ -685,7 +694,7 @@ class MessageResource(ItemResource):
         self.respond(req, resp, item)
 
     def on_post(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid or 'inbox') # TODO all folders?
         item = folder.item(itemid)
 
@@ -701,7 +710,7 @@ class MessageResource(ItemResource):
                 item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
 
     def on_patch(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid or 'inbox') # TODO all folders?
         item = folder.item(itemid)
 
@@ -714,7 +723,7 @@ class MessageResource(ItemResource):
         self.respond(req, resp, item, MessageResource.fields)
 
     def on_delete(self, req, resp, userid=None, folderid=None, itemid=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         item = store.item(itemid)
         store.delete(item)
 
@@ -748,7 +757,7 @@ class AttachmentResource(Resource):
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, attachmentid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
 
         if folderid:
             folder = utils._folder(store, folderid)
@@ -771,7 +780,7 @@ class AttachmentResource(Resource):
             self.respond(req, resp, data, all_fields=all_fields)
 
     def on_delete(self, req, resp, userid=None, folderid=None, itemid=None, attachmentid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         item = store.item(itemid)
         attachment = item.attachment(attachmentid)
         item.delete(attachment)
@@ -930,7 +939,7 @@ class EventResource(ItemResource):
     # TODO delta functionality seems to include expanding recurrences!? check with MSGE
 
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid or 'calendar')
         event = folder.event(itemid)
 
@@ -948,7 +957,7 @@ class EventResource(ItemResource):
             self.respond(req, resp, event)
 
     def on_post(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid or 'calendar')
         item = folder.event(itemid)
 
@@ -958,7 +967,7 @@ class EventResource(ItemResource):
                 item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
 
     def on_patch(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid or 'calendar')
         item = folder.event(itemid)
 
@@ -971,7 +980,7 @@ class EventResource(ItemResource):
         self.respond(req, resp, item, EventResource.fields)
 
     def on_delete(self, req, resp, userid=None, folderid=None, itemid=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid or 'calendar')
         event = folder.event(itemid)
         folder.delete(event)
@@ -984,7 +993,7 @@ class ContactFolderResource(FolderResource):
     })
 
     def on_get(self, req, resp, userid=None, folderid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid)
 
         if method == 'contacts':
@@ -997,7 +1006,7 @@ class ContactFolderResource(FolderResource):
         self.respond(req, resp, data, fields)
 
     def on_post(self, req, resp, userid=None, folderid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid)
 
         if method == 'contacts':
@@ -1063,7 +1072,7 @@ class ContactResource(ItemResource):
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid or 'contacts') # TODO all folders?
 
         if itemid == 'delta':
@@ -1078,7 +1087,7 @@ class ContactResource(ItemResource):
         self.respond(req, resp, data)
 
     def on_delete(self, req, resp, userid=None, folderid=None, itemid=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         item = store.item(itemid)
         store.delete(item)
 
@@ -1089,7 +1098,7 @@ class ProfilePhotoResource(Resource):
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid or 'contacts')
         photo = folder.item(itemid).photo
 
@@ -1103,7 +1112,7 @@ class ProfilePhotoResource(Resource):
         self.on_put(*args, **kwargs)
 
     def on_put(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
-        server, store = _server_store(req, userid)
+        server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid or 'contacts')
         contact = folder.item(itemid)
 
@@ -1114,15 +1123,15 @@ class RestAPI(falcon.API):
         super().__init__(media_type=None)
         self.options = options
 
-        users = UserResource()
-        messages = MessageResource()
-        attachments = AttachmentResource()
-        folders = MailFolderResource()
-        calendars = CalendarResource()
-        events = EventResource()
-        contactfolders = ContactFolderResource()
-        contacts = ContactResource()
-        photos = ProfilePhotoResource()
+        users = UserResource(options)
+        messages = MessageResource(options)
+        attachments = AttachmentResource(options)
+        folders = MailFolderResource(options)
+        calendars = CalendarResource(options)
+        events = EventResource(options)
+        contactfolders = ContactFolderResource(options)
+        contacts = ContactResource(options)
+        photos = ProfilePhotoResource(options)
 
         def route(path, resource, method=True):
             self.add_route(path, resource)
