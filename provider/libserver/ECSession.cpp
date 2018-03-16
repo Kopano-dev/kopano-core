@@ -47,6 +47,7 @@
 #include "ECICS.h"
 #include <kopano/ECIConv.h>
 #include "versions.h"
+#include <kopano/MAPIErrors.h>
 
 #ifdef HAVE_KCOIDC_H
 #include <kcoidc.h>
@@ -1018,26 +1019,32 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 		return KCERR_LOGON_FAILED;
 	}
 
-	auto entryid_bin = base64_decode(name);
 	auto username_abid = base64_decode(res.r0);
 
-	if (entryid_bin.size() > 0 && CompareABEID(entryid_bin.size(), reinterpret_cast<const ENTRYID *>(entryid_bin.c_str()), username_abid.size(), reinterpret_cast<const ENTRYID *>(username_abid.c_str())) == false)
-		return KCERR_LOGON_FAILED;
+	if (strlen(name) > 0) {
+		auto entryid_bin = base64_decode(name);
+		if (entryid_bin.size() > 0 && CompareABEID(entryid_bin.size(), reinterpret_cast<const ENTRYID *>(entryid_bin.c_str()), username_abid.size(), reinterpret_cast<const ENTRYID *>(username_abid.c_str())) == false) {
+			ec_log_info("RPC user entryid does not match token entryid, call:\"%s\", token: \"%s\"", name, res.r0);
+			return KCERR_LOGON_FAILED;
+		}
+	}
 
 	objectid_t extern_id;
 	unsigned int mapi_type;
 	auto er = ABEntryIDToID(static_cast<ULONG>(username_abid.size()), reinterpret_cast<const BYTE *>(username_abid.c_str()), &m_ulUserID, &extern_id, &mapi_type);
 	if (er != erSuccess)
-		return er;
+		return ec_perror("ABEntryIDToID", er);
 
 	objectdetails_t details;
 	er = m_lpUserManagement->GetObjectDetails(m_ulUserID, &details);
 	if (er != erSuccess)
-		return er;
+		return ec_perror("GetUserDetails", er);
 
 	auto username = details.GetPropString(OB_PROP_S_LOGIN);
-	if (username.size() == 0)
+	if (username.size() == 0) {
+		ec_log_err("UserDetails username size 0");
 		return KCERR_LOGON_FAILED;
+	}
 
 	ec_log_info("KCOIDC Single Sign-On: User \"%s\" authenticated", username.c_str());
 	ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate ok user='%s' from='%s' method='kcoidc sso' program='%s'", username.c_str(), soap->host, cl_app);
