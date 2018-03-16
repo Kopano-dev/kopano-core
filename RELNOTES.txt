@@ -1,3 +1,12 @@
+8.5.6
+=====
+Fixes:
+* backup: ignore error when server cannot find attachments [KC-1056]
+Enhancements:
+* server: reorder SQL log messages so the error is shown first,
+  and do say when the message was truncated [KC-1053]
+
+
 8.5.5 (2018-03-07)
 ==================
 Fixes:
