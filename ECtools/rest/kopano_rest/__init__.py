@@ -458,11 +458,18 @@ class ItemResource(Resource):
     def delta(self, req, resp, folder):
         args = urlparse.parse_qs(req.query_string)
         token = args['$deltatoken'][0] if '$deltatoken' in args else None
+        filter_ = args['$filter'][0] if '$filter' in args else None
+        begin = None
+        if filter_ and filter_.startswith('receivedDateTime ge '):
+            begin = dateutil.parser.parse(filter_[20:])
+            seconds = calendar.timegm(begin.timetuple())
+            begin = datetime.datetime.fromtimestamp(seconds)
         importer = ItemImporter()
-        newstate = folder.sync(importer, token)
+        newstate = folder.sync(importer, token, begin=begin)
         changes = [(o, MessageResource) for o in importer.updates] + \
             [(o, DeletedMessageResource) for o in importer.deletes]
         data = (changes, TOP, 0, len(changes))
+        # TODO include filter in token?
         deltalink = b"%s?$deltatoken=%s" % (req.path.encode('utf-8'), codecs.encode(newstate, 'ascii'))
         self.respond(req, resp, data, MessageResource.fields, deltalink=deltalink)
 
