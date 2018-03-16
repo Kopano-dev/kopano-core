@@ -1,18 +1,14 @@
 import codecs
 
-import jwt
-
 def _auth(req, options):
     auth_header = req.get_header('Authorization')
 
     if (auth_header and auth_header.startswith('Bearer ') and \
         (not options or options.auth_bearer)):
         token = codecs.encode(auth_header[7:], 'ascii')
-        # TODO passing user should not be necessary
-        user = jwt.decode(token, verify=False)['kc.identity']['kc.i.un']
         return {
             'method': 'bearer',
-            'user': user,
+            'user': req.get_header('X-Kopano-UserEntryID', ''),
             'token': token,
         }
 

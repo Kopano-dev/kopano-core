@@ -12,7 +12,6 @@ try:
     import ujson as json
 except ImportError:
     import json
-import jwt
 import os
 import sys
 from threading import Thread
