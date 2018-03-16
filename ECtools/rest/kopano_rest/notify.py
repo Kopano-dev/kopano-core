@@ -28,18 +28,14 @@ def _user(req, options):
     except NameError:
         SERVER = kopano.Server(notifications=True, parse_args=False)
 
-    auth_header = req.get_header('Authorization')
-    userid = req.get_header('X-Kopano-UserEntryID')
+    auth = utils._auth(req, options)
 
-    if auth_header and auth_header.startswith('Basic '):
-        user, passwd = codecs.decode(codecs.encode(auth_header[6:], 'ascii'), 'base64').split(b':')
-        return SERVER.user(codecs.decode(user, 'utf8'))
-    elif auth_header and auth_header.startswith('Bearer '):
-        token = codecs.encode(auth_header[7:], 'ascii')
-        user = jwt.decode(token, verify=False)['kc.identity']['kc.i.un']
-        return SERVER.user(user)
-    elif userid:
-        return SERVER.user(userid=userid)
+    if auth['method'] == 'bearer':
+        return SERVER.user(auth['user'])
+    elif auth['method'] == 'basic':
+        return SERVER.user(codecs.decode(auth['user'], 'utf8'))
+    elif auth['method'] == 'passthrough':
+        return SERVER.user(userid=auth['userid'])
 
 # TODO don't block on sending updates
 # TODO restarting app/server

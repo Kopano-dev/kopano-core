@@ -77,22 +77,18 @@ def db_put(key, value):
 
 def _server(req, options):
     global SERVER
-    auth_header = req.get_header('Authorization')
+    auth = utils._auth(req, options)
 
-    if (auth_header and auth_header.startswith('Bearer ') and \
-        (not options or options.auth_bearer)):
-        token = codecs.encode(auth_header[7:], 'ascii')
-        # TODO passing user should not be necessary
-        user = jwt.decode(token, verify=False)['kc.identity']['kc.i.un']
-        return kopano.Server(auth_user=user, auth_pass=token, parse_args=False, oidc=True)
+    if auth['method'] == 'bearer':
+        return kopano.Server(auth_user=auth['user'], auth_pass=auth['token'],
+            parse_args=False, oidc=True)
 
-    elif (auth_header and auth_header.startswith('Basic ') and \
-        (not options or options.auth_basic)):
-        user, passwd = codecs.decode(codecs.encode(auth_header[6:], 'ascii'), 'base64').split(b':')
-        return kopano.Server(auth_user=user, auth_pass=passwd, parse_args=False)
+    elif auth['method'] == 'basic':
+        return kopano.Server(auth_user=auth['user'], auth_pass=auth['password'],
+            parse_args=False)
 
-    elif not options or options.auth_passthrough:
-        userid = req.get_header('X-Kopano-UserEntryID')
+    elif auth['method'] == 'passthrough':
+        userid = auth['userid']
         if userid in SESSIONDATA:
             sessiondata = SESSIONDATA[userid]
             mapisession = kc_session_restore(sessiondata)
