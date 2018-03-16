@@ -117,13 +117,13 @@ ECRESULT ECSystemStatsTable::Load()
 	usercount_t userCount;
 
 	id = 0;
-	g_lpStatsCollector->ForEachString(this->GetStatsCollectorData, (void*)this);
-	g_lpStatsCollector->ForEachStat(this->GetStatsCollectorData, (void*)this);
+	g_lpStatsCollector->ForEachString(GetStatsCollectorData, this);
+	g_lpStatsCollector->ForEachStat(GetStatsCollectorData, this);
 	auto sesmgr = lpSession->GetSessionManager();
-	sesmgr->GetCacheManager()->ForEachCacheItem(this->GetStatsCollectorData, (void*)this);
+	sesmgr->GetCacheManager()->ForEachCacheItem(GetStatsCollectorData, this);
 
 	// Receive session stats
-	sesmgr->GetStats(this->GetStatsCollectorData, static_cast<void *>(this));
+	sesmgr->GetStats(GetStatsCollectorData, this);
 	kopano_get_server_stats(&ulQueueLen, &dblAge, &ulThreads, &ulIdleThreads);
 
 	GetStatsCollectorData("queuelen", "Current queue length", stringify(ulQueueLen), this);

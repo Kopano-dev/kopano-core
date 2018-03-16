@@ -174,8 +174,7 @@ void kopano_new_soap_connection(CONNECTION_TYPE ulType, struct soap *soap)
 	auto lpInfo = new SOAPINFO;
 	lpInfo->ulConnectionType = ulType;
 	lpInfo->bProxy = false;
-	soap->user = (void *)lpInfo;
-	
+	soap->user = lpInfo;
 	if (szProxy[0] == '\0')
 		return;
 	if (strcmp(szProxy, "*") == 0) {
@@ -198,7 +197,7 @@ void kopano_new_soap_listener(CONNECTION_TYPE ulType, struct soap *soap)
 	auto lpInfo = new SOAPINFO;
 	lpInfo->ulConnectionType = ulType;
 	lpInfo->bProxy = false;
-	soap->user = (void *)lpInfo;
+	soap->user = lpInfo;
 }
 
 void kopano_end_soap_listener(struct soap *soap)

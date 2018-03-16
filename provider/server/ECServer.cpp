@@ -1358,8 +1358,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	// Create scheduler system
 	g_lpScheduler.reset(new(std::nothrow) ECScheduler(g_lpLogger));
 	// Add a task on the scheduler
-	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 00, &SoftDeleteRemover, (void*)&g_Quit);
-
+	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 0, &SoftDeleteRemover, &g_Quit);
 	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 15, &CleanupSyncsTable);
 	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 16, &CleanupSyncedMessagesTable);
 

@@ -49,7 +49,7 @@ ECSearchFolders::ECSearchFolders(ECSessionManager *lpSessionManager,
     ECDatabaseFactory *lpFactory) :
 	m_lpDatabaseFactory(lpFactory), m_lpSessionManager(lpSessionManager)
 {
-    pthread_create(&m_threadProcess, NULL, ECSearchFolders::ProcessThread, (void *)this);
+	pthread_create(&m_threadProcess, nullptr, ECSearchFolders::ProcessThread, this);
     set_thread_name(m_threadProcess, "SearchFolders");
 }
 
@@ -250,9 +250,8 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
         pthread_attr_init(&attr);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
         pthread_attr_setstacksize(&attr, 512*1024); // 512KB stack space for search threads
-        int err = 0;
-        
-        if((err = pthread_create(&lpSearchFolder->sThreadId, &attr, ECSearchFolders::SearchThread, (void *)ti)) != 0) {
+		auto err = pthread_create(&lpSearchFolder->sThreadId, &attr, ECSearchFolders::SearchThread, ti);
+		if (err != 0) {
             ec_log_crit("Unable to spawn thread for search: %s", strerror(err));
             er = KCERR_NOT_ENOUGH_MEMORY;
         }

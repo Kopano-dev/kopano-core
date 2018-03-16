@@ -136,8 +136,7 @@ ECRESULT GetThreadLocalPlugin(ECPluginFactory *lpPluginFactory,
 			ec_log_crit("Unable to instantiate user plugin");
 			return er;
 		}
-
-		pthread_setspecific(plugin_key, (void *)lpPlugin);
+		pthread_setspecific(plugin_key, lpPlugin);
 	}
 
 	*lppPlugin = lpPlugin;

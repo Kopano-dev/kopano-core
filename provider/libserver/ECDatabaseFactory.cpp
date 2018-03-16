@@ -105,8 +105,7 @@ ECRESULT GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDa
 		
 		// Add database into a list, for close all database connections
 		AddDatabaseObject(lpDatabase);
-
-		pthread_setspecific(database_key, (void *)lpDatabase);
+		pthread_setspecific(database_key, lpDatabase);
 	}
 
 	*lppDatabase = lpDatabase;

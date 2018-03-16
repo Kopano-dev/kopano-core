@@ -38,7 +38,7 @@ ECTPropsPurge::ECTPropsPurge(ECConfig *lpConfig,
 	m_lpConfig(lpConfig), m_lpDatabaseFactory(lpDatabaseFactory)
 {
     // Start our purge thread
-    pthread_create(&m_hThread, NULL, Thread, (void *)this);
+	pthread_create(&m_hThread, nullptr, Thread, this);
     set_thread_name(m_hThread, "TPropsPurge");
 }
 

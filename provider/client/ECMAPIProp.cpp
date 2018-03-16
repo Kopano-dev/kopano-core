@@ -392,7 +392,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		lpStreamData->ulPropTag = ulPropTag;
 		lpStreamData->lpProp = this;
 		hr = ECMemStream::Create((char*)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb, ulInterfaceOptions,
-		     NULL, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+		     nullptr, ECMAPIProp::HrStreamCleanup, lpStreamData, &lpStream);
 		if (hr != hrSuccess)
 			return hr;
 		lpStream->QueryInterface(IID_IStream, (void **)lppUnk);
@@ -440,20 +440,20 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 
 	if (ulFlags & MAPI_CREATE) {
 		hr = ECMemStream::Create(NULL, 0, ulInterfaceOptions,
-		     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+		     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, lpStreamData, &lpStream);
 	} else {
 		switch (PROP_TYPE(lpsPropValue->ulPropTag)) {
 		case PT_STRING8:
 			hr = ECMemStream::Create(lpsPropValue->Value.lpszA, strlen(lpsPropValue->Value.lpszA), ulInterfaceOptions,
-			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, lpStreamData, &lpStream);
 			break;
 		case PT_UNICODE:
 			hr = ECMemStream::Create((char*)lpsPropValue->Value.lpszW, wcslen(lpsPropValue->Value.lpszW)*sizeof(WCHAR), ulInterfaceOptions,
-			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, lpStreamData, &lpStream);
 			break;
 		case PT_BINARY:
 			hr = ECMemStream::Create((char *)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb, ulInterfaceOptions,
-			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, lpStreamData, &lpStream);
 			break;
 		default:
 			assert(false);

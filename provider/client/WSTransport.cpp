@@ -3484,7 +3484,7 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 			     reinterpret_cast<void **>(&lpAdrList->aEntries[i].rgPropVals));
 			if (hr != hrSuccess)
 				goto exitm;
-			hr = CopySOAPRowToMAPIRow(&sResponse.sRowSet.__ptr[i], lpAdrList->aEntries[i].rgPropVals, (void*)lpAdrList->aEntries[i].rgPropVals, &converter);
+			hr = CopySOAPRowToMAPIRow(&sResponse.sRowSet.__ptr[i], lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].rgPropVals, &converter);
 			if(hr != hrSuccess)
 				goto exitm;
 

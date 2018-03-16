@@ -9330,8 +9330,7 @@ static void *MTOMReadOpen(struct soap *soap, void *handle, const char *id,
 	}
 	
 	lpStreamInfo->lpSessionInfo->lpCurrentReadStream = lpStreamInfo; // Track currently opened stream info
-	
-	return (void *)lpStreamInfo;
+	return lpStreamInfo;
 }
 
 static size_t MTOMRead(struct soap * /*soap*/, void *handle,
@@ -9817,7 +9816,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 		
 		// Flush remaining attachments (that shouldn't even be there)
 		while (true) {
-			content = soap_get_mime_attachment(soap, (void*)lpsStreamInfo);
+			content = soap_get_mime_attachment(soap, lpsStreamInfo);
 			if (!content)
 				break;
 		};
