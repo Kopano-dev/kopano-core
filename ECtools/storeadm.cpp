@@ -675,6 +675,8 @@ static HRESULT adm_perform()
 	if (opt_host == nullptr)
 		opt_host = GetServerUnixSocket(adm_config->GetSetting("server_socket"));
 	srvctx.m_host = opt_host;
+	srvctx.m_ssl_keyfile = adm_config->GetSetting("sslkey_file", "", nullptr);
+	srvctx.m_ssl_keypass = adm_config->GetSetting("sslkey_pass", "", nullptr);
 	auto ret = srvctx.logon();
 	if (ret != hrSuccess)
 		return kc_perror("KServerContext::logon", ret);
