@@ -89,7 +89,6 @@
 #include <kopano/ECThreadPool.h>
 #include "soapKCmdService.h"
 #include "cmd.hpp"
-#include "logontime.hpp"
 
 #if defined(HAVE_GPERFTOOLS_MALLOC_EXTENSION_H)
 #	include <gperftools/malloc_extension_c.h>

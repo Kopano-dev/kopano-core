@@ -14,8 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <memory>
+#include <mutex>
+#include <unordered_map>
+#include <cstdio>
 #include <kopano/platform.h>
+#include <kopano/kcodes.h>
 #include <kopano/memory.hpp>
 #include <kopano/tie.hpp>
 #include "StorageUtil.h"
@@ -31,6 +35,9 @@ namespace KC {
 
 // External objects
 extern ECSessionManager *g_lpSessionManager;	// ECServerEntrypoint.cpp
+
+static std::unordered_map<unsigned int, time_t> ltm_ontime_cache, ltm_offtime_cache;
+static std::mutex ltm_ontime_mutex, ltm_offtime_mutex;
 
 ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned int ulParentObjId, unsigned int ulParentType, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulObjId) 
 {
@@ -186,6 +193,72 @@ ECRESULT UpdateObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned
 		return erSuccess;
 	// Update cell cache
 	return gcache->UpdateCell(ulObjId, PR_MESSAGE_SIZE, (updateAction == UPDATE_ADD ? llSize : -llSize));
+}
+
+static ECRESULT ltm_sync_time(ECDatabase *db,
+    const std::pair<unsigned int, time_t> &e, bool dir)
+{
+	auto ft = UnixTimeToFileTime(e.second);
+	auto query = "SELECT hierarchy_id FROM stores WHERE stores.user_id=" + stringify(e.first) + " LIMIT 1";
+	DB_RESULT result;
+	auto ret = db->DoSelect(query, &result);
+	if (ret != erSuccess)
+		return ret;
+	if (result.get_num_rows() == 0)
+		return erSuccess;
+	auto row = result.fetch_row();
+	if (row == nullptr)
+		return erSuccess;
+	unsigned int store_id = strtoul(row[0], nullptr, 0);
+	unsigned int prop = dir ? PR_LAST_LOGON_TIME : PR_LAST_LOGOFF_TIME;
+	result = DB_RESULT();
+	query = "REPLACE INTO properties (tag, type, hierarchyid, val_hi, val_lo) VALUES(" +
+                stringify(PROP_ID(prop)) + "," + stringify(PROP_TYPE(prop)) + "," +
+                stringify(store_id) + "," + stringify(ft.dwHighDateTime) + "," +
+                stringify(ft.dwLowDateTime) + ")";
+	return db->DoInsert(query);
+}
+
+void sync_logon_times(ECDatabase *db)
+{
+	/*
+	 * Switchgrab the global map, so that we can run it to the database
+	 * without holdings locks.
+	 */
+	bool failed = false;
+	ltm_ontime_mutex.lock();
+	decltype(ltm_ontime_cache) logon_time;
+	std::swap(ltm_ontime_cache, logon_time);
+	ltm_ontime_mutex.unlock();
+	ltm_offtime_mutex.lock();
+	decltype(ltm_offtime_cache) logoff_time;
+	std::swap(ltm_offtime_cache, logoff_time);
+	ltm_offtime_mutex.unlock();
+	for (const auto &i : logon_time)
+		failed |= ltm_sync_time(db, i, 0) != erSuccess;
+	for (const auto &i : logoff_time)
+		failed |= ltm_sync_time(db, i, 1) != erSuccess;
+	if (failed)
+		ec_log_warn("Writeout of logon/off time cache unsuccessful");
+}
+
+/*
+ * Save the current time as the last logon time for the logged-on user of
+ * @ses.
+ */
+void record_logon_time(ECSession *ses, bool logon)
+{
+	unsigned int uid = ses->GetSecurity()->GetUserId();
+	auto now = time(nullptr);
+	if (logon) {
+		ltm_ontime_mutex.lock();
+		ltm_ontime_cache[uid] = now;
+		ltm_ontime_mutex.unlock();
+	} else {
+		ltm_offtime_mutex.lock();
+		ltm_offtime_cache[uid] = now;
+		ltm_offtime_mutex.unlock();
+	}
 }
 
 } /* namespace */

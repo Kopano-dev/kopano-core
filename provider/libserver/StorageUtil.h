@@ -34,6 +34,9 @@ ECRESULT GetObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned in
 ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigned int ulObjType, unsigned int* lpulSize);
 ECRESULT UpdateObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned int ulObjType, eSizeUpdateAction updateAction, long long llSize);
 
+extern void sync_logon_times(ECDatabase *);
+extern void record_logon_time(ECSession *, bool);
+
 /**
  * Get the corrected object type used to determine course of action.
  * MAPI_MESSAGE objects can contain only MAPI_ATTACH, MAPI_MAILUSER and MAPI_DISTLIST sub objects,
