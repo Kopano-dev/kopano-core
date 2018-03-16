@@ -14,9 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include <list>
 #include <new>
 #include <string>
 #include <utility>
+#include <kopano/database.hpp>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include <mapidefs.h>
@@ -40,12 +42,29 @@
 #include "SOAPUtils.h"
 #include <kopano/stringutil.h>
 #include "ECServerEntrypoint.h"
-#include "ECMailBoxTable.h"
-
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 
 namespace KC {
+
+class ECMailBoxTable final : public ECStoreObjectTable {
+	public:
+	static ECRESULT Create(ECSession *s, unsigned int flags, const ECLocale &l, ECMailBoxTable **p)
+	{
+		return alloc_wrap<ECMailBoxTable>(s, flags, l).put(p);
+	}
+	virtual ECRESULT Load();
+
+	protected:
+	ECMailBoxTable(ECSession *s, unsigned int f, const ECLocale &l) :
+		ECStoreObjectTable(s, 0, nullptr, 0, MAPI_STORE, f, TABLE_FLAG_OVERRIDE_HOME_MDB, l)
+	{}
+
+	private:
+	/* 0x01: user stores, 0x02: public stores */
+	unsigned int m_ulStoreTypes = 0x03;
+	ALLOC_WRAP_FRIEND;
+};
 
 void FreeRowSet(struct rowSet *lpRowSet, bool bBasePointerDel);
 
@@ -686,6 +705,32 @@ ECRESULT ECTableManager::GetStats(unsigned int *lpulTables, unsigned int *lpulOb
 
 	*lpulTables = ulTables;
 	*lpulObjectSize = ulSize;
+	return erSuccess;
+}
+
+ECRESULT ECMailBoxTable::Load()
+{
+	ECDatabase *lpDatabase = nullptr;
+	auto er = lpSession->GetDatabase(&lpDatabase);
+	if (er != erSuccess)
+		return er;
+	Clear();
+	/* @todo Load all stores depends on m_ulStoreTypes, 1. privates, 2. publics or both */
+	auto strQuery = "SELECT hierarchy_id FROM stores";
+	DB_RESULT lpDBResult;
+	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	if (er != erSuccess)
+		return er;
+	std::list<unsigned int> lstObjIds;
+	while (true) {
+		auto lpDBRow = lpDBResult.fetch_row();
+		if (lpDBRow == nullptr)
+			break;
+		if (lpDBRow[0] == nullptr)
+			continue; /* Broken store table? */
+		lstObjIds.emplace_back(atoui(lpDBRow[0]));
+	}
+	LoadRows(&lstObjIds, 0);
 	return erSuccess;
 }
 
