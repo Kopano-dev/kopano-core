@@ -43,10 +43,10 @@ ECMsgStorePublic::ECMsgStorePublic(const char *lpszProfname,
 	ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify,
 	    ulProfileFlags, fIsSpooler, false, bOfflineStore)
 {
-	HrAddPropHandlers(PR_IPM_SUBTREE_ENTRYID,			GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	HrAddPropHandlers(PR_IPM_PUBLIC_FOLDERS_ENTRYID,	GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	HrAddPropHandlers(PR_IPM_FAVORITES_ENTRYID,			GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	HrAddPropHandlers(PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID,	GetPropHandler, SetPropHandler,			(void*) this, FALSE, TRUE);
+	HrAddPropHandlers(PR_IPM_SUBTREE_ENTRYID, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_IPM_PUBLIC_FOLDERS_ENTRYID, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_IPM_FAVORITES_ENTRYID, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, GetPropHandler, SetPropHandler, this, false, true);
 }
 
 HRESULT ECMsgStorePublic::Create(const char *lpszProfname,

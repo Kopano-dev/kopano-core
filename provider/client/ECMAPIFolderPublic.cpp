@@ -46,24 +46,19 @@ ECMAPIFolderPublic::ECMAPIFolderPublic(ECMsgStore *lpMsgStore, BOOL fModify, WSM
 	ECMAPIFolder(lpMsgStore, fModify, lpFolderOps, "IMAPIFolderPublic"),
 	m_ePublicEntryID(ePublicEntryID)
 {
-	HrAddPropHandlers(PR_ACCESS,		GetPropHandler,		DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_ACCESS_LEVEL,	GetPropHandler,		DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_RIGHTS,		GetPropHandler,		DefaultSetPropComputed, (void *)this);
-
-	HrAddPropHandlers(PR_ENTRYID,		GetPropHandler,		DefaultSetPropComputed, (void *)this);
-	
+	HrAddPropHandlers(PR_ACCESS, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_ACCESS_LEVEL, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_RIGHTS, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_ENTRYID, GetPropHandler, DefaultSetPropComputed, this);
 	// FIXME: special for publicfolders, save in global profile
-	HrAddPropHandlers(PR_DISPLAY_NAME,	GetPropHandler,		SetPropHandler, (void *)this);
-	HrAddPropHandlers(PR_COMMENT,		GetPropHandler,		SetPropHandler, (void *)this);
-
-	HrAddPropHandlers(PR_RECORD_KEY,	GetPropHandler, 	DefaultSetPropComputed, (void*) this);
-	HrAddPropHandlers(PR_PARENT_ENTRYID,GetPropHandler, 	DefaultSetPropComputed, (void*) this);
-	HrAddPropHandlers(PR_FOLDER_TYPE,	GetPropHandler, 	DefaultSetPropSetReal, (void*) this);
-	
-	HrAddPropHandlers(PR_FOLDER_CHILD_COUNT,	GetPropHandler,		DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_SUBFOLDERS,			GetPropHandler,		DefaultSetPropComputed, (void *)this);
-
-	HrAddPropHandlers(PR_ORIGINAL_ENTRYID,		GetPropHandler,		DefaultSetPropComputed, (void *)this, FALSE, TRUE);
+	HrAddPropHandlers(PR_DISPLAY_NAME, GetPropHandler, SetPropHandler, this);
+	HrAddPropHandlers(PR_COMMENT, GetPropHandler, SetPropHandler, this);
+	HrAddPropHandlers(PR_RECORD_KEY, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_PARENT_ENTRYID,GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_FOLDER_TYPE, GetPropHandler, DefaultSetPropSetReal, this);
+	HrAddPropHandlers(PR_FOLDER_CHILD_COUNT, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_SUBFOLDERS, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_ORIGINAL_ENTRYID, GetPropHandler, DefaultSetPropComputed, this, false, true);
 }
 
 HRESULT	ECMAPIFolderPublic::QueryInterface(REFIID refiid, void **lppInterface)

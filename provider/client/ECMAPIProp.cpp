@@ -86,23 +86,22 @@ ECMAPIProp::ECMAPIProp(ECMsgStore *lpProvider, ULONG ulObjType, BOOL fModify,
 	 */
 	m_lpRoot(lpRoot != nullptr ? lpRoot : this)
 {
-	this->HrAddPropHandlers(PR_STORE_ENTRYID,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_STORE_RECORD_KEY,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_STORE_SUPPORT_MASK,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_STORE_UNICODE_MASK,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_MAPPING_SIGNATURE,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_PARENT_ENTRYID,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_MDB_PROVIDER,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_LAST_MODIFICATION_TIME,	DefaultMAPIGetProp,		DefaultSetPropSetReal,  (void*) this);
-	this->HrAddPropHandlers(PR_CREATION_TIME,			DefaultMAPIGetProp,		DefaultSetPropIgnore,   (void*) this);
-	this->HrAddPropHandlers(PR_ACCESS_LEVEL,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_PARENT_SOURCE_KEY,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_RECORD_KEY,				DefaultGetPropGetReal, 	DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_EC_SERVER_UID,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_EC_HIERARCHYID,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
-
+	HrAddPropHandlers(PR_STORE_ENTRYID, DefaultMAPIGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_STORE_RECORD_KEY, DefaultMAPIGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_STORE_SUPPORT_MASK, DefaultMAPIGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_STORE_UNICODE_MASK, DefaultMAPIGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_MAPPING_SIGNATURE, DefaultMAPIGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_PARENT_ENTRYID, DefaultMAPIGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_MDB_PROVIDER, DefaultMAPIGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_LAST_MODIFICATION_TIME, DefaultMAPIGetProp, DefaultSetPropSetReal, this);
+	HrAddPropHandlers(PR_CREATION_TIME, DefaultMAPIGetProp, DefaultSetPropIgnore, this);
+	HrAddPropHandlers(PR_ACCESS_LEVEL, DefaultMAPIGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_PARENT_SOURCE_KEY, DefaultMAPIGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_RECORD_KEY, DefaultGetPropGetReal, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_EC_SERVER_UID, DefaultMAPIGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_EC_HIERARCHYID, DefaultMAPIGetProp, DefaultSetPropComputed, this, false, true);
 	// ICS system
-	this->HrAddPropHandlers(PR_SOURCE_KEY,		DefaultMAPIGetProp	,SetPropHandler,		(void*) this, FALSE, FALSE);
+	HrAddPropHandlers(PR_SOURCE_KEY, DefaultMAPIGetProp, SetPropHandler, this, false, false);
 }
 
 HRESULT ECMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)

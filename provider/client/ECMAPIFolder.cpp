@@ -67,27 +67,23 @@ ECMAPIFolder::ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL fModify,
 	lpFolderOps(ops)
 {
 	// Folder counters
-	HrAddPropHandlers(PR_ASSOC_CONTENT_COUNT,		GetPropHandler,	DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_CONTENT_COUNT,				GetPropHandler,	DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_CONTENT_UNREAD,			GetPropHandler,	DefaultSetPropComputed,	(void *)this);
-	HrAddPropHandlers(PR_SUBFOLDERS,				GetPropHandler,	DefaultSetPropComputed,	(void *)this);
-	HrAddPropHandlers(PR_FOLDER_CHILD_COUNT,		GetPropHandler,	DefaultSetPropComputed,	(void *)this);
-	HrAddPropHandlers(PR_DELETED_MSG_COUNT,			GetPropHandler,	DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_DELETED_FOLDER_COUNT,		GetPropHandler,	DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_DELETED_ASSOC_MSG_COUNT,	GetPropHandler,	DefaultSetPropComputed, (void *)this);
-
-	HrAddPropHandlers(PR_CONTAINER_CONTENTS,		GetPropHandler,	DefaultSetPropIgnore, (void *)this, FALSE, FALSE);
-	HrAddPropHandlers(PR_FOLDER_ASSOCIATED_CONTENTS,GetPropHandler,	DefaultSetPropIgnore, (void *)this, FALSE, FALSE);
-	HrAddPropHandlers(PR_CONTAINER_HIERARCHY,		GetPropHandler,	DefaultSetPropIgnore, (void *)this, FALSE, FALSE);
-
-	HrAddPropHandlers(PR_ACCESS,			GetPropHandler,			DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_RIGHTS,			DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
-	HrAddPropHandlers(PR_MESSAGE_SIZE,		GetPropHandler,			DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	
-	HrAddPropHandlers(PR_FOLDER_TYPE,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
-
+	HrAddPropHandlers(PR_ASSOC_CONTENT_COUNT, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_CONTENT_COUNT, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_CONTENT_UNREAD, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_SUBFOLDERS, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_FOLDER_CHILD_COUNT, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_DELETED_MSG_COUNT, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_DELETED_FOLDER_COUNT, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_DELETED_ASSOC_MSG_COUNT, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_CONTAINER_CONTENTS, GetPropHandler, DefaultSetPropIgnore, this, false, false);
+	HrAddPropHandlers(PR_FOLDER_ASSOCIATED_CONTENTS, GetPropHandler, DefaultSetPropIgnore, this, false, false);
+	HrAddPropHandlers(PR_CONTAINER_HIERARCHY, GetPropHandler, DefaultSetPropIgnore, this, false, false);
+	HrAddPropHandlers(PR_ACCESS, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_RIGHTS, DefaultMAPIGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_MESSAGE_SIZE, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_FOLDER_TYPE, DefaultMAPIGetProp, DefaultSetPropComputed, this);
 	// ACLs are only offline
-	HrAddPropHandlers(PR_ACL_DATA,			GetPropHandler,			SetPropHandler,			(void*)this);
+	HrAddPropHandlers(PR_ACL_DATA, GetPropHandler, SetPropHandler, this);
 	this->isTransactedObject = FALSE;
 }
 

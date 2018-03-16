@@ -38,10 +38,10 @@ ECGenericProp::ECGenericProp(void *prov, ULONG type, BOOL mod,
     const char *szClassName) :
 	ECUnknown(szClassName), ulObjType(type), fModify(mod), lpProvider(prov)
 {
-	this->HrAddPropHandlers(PR_EC_OBJECT,				DefaultGetProp,			DefaultSetPropComputed, (void*) this, FALSE, TRUE);
-	this->HrAddPropHandlers(PR_NULL,					DefaultGetProp,			DefaultSetPropIgnore,	(void*) this, FALSE, TRUE);
-	this->HrAddPropHandlers(PR_OBJECT_TYPE,				DefaultGetProp,			DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_ENTRYID,					DefaultGetProp,			DefaultSetPropComputed, (void*) this);
+	HrAddPropHandlers(PR_EC_OBJECT, DefaultGetProp, DefaultSetPropComputed, this, false, true);
+	HrAddPropHandlers(PR_NULL, DefaultGetProp, DefaultSetPropIgnore, this, false, true);
+	HrAddPropHandlers(PR_OBJECT_TYPE, DefaultGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_ENTRYID, DefaultGetProp, DefaultSetPropComputed, this);
 }
 
 HRESULT ECGenericProp::QueryInterface(REFIID refiid, void **lppInterface)
