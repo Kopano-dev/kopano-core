@@ -24,6 +24,8 @@
 #include "ECDatabase.h"
 #include "ECGenericObjectTable.h"
 #include <kopano/kcodes.h>
+#include <kopano/Util.h>
+#include "ECStoreObjectTable.h"
 
 namespace KC {
 
@@ -96,6 +98,20 @@ private:
 	TABLEENTRYMAP							mapTable;
 	unsigned int ulNextTableId = 1;
 	std::recursive_mutex hListMutex;
+};
+
+class _kc_export_dycast ECMultiStoreTable final : public ECStoreObjectTable {
+	protected:
+	_kc_hidden ECMultiStoreTable(ECSession *, unsigned int obj_type, unsigned int flags, const ECLocale &);
+
+	public:
+	_kc_hidden static ECRESULT Create(ECSession *, unsigned int obj_type, unsigned int flags, const ECLocale &, ECMultiStoreTable **ret);
+	_kc_hidden virtual ECRESULT SetEntryIDs(ECListInt *obj_list);
+	_kc_hidden virtual ECRESULT Load(void);
+
+	private:
+	std::list<unsigned int> m_lstObjects;
+	ALLOC_WRAP_FRIEND;
 };
 
 } /* namespace */

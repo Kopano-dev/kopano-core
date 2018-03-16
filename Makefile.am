@@ -535,7 +535,6 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECKrbAuth.cpp provider/libserver/ECKrbAuth.h \
 	provider/libserver/ECLockManager.cpp provider/libserver/ECLockManager.h \
 	provider/libserver/ECMAPI.h \
-	provider/libserver/ECMultiStoreTable.cpp provider/libserver/ECMultiStoreTable.h \
 	provider/libserver/ECNotification.h \
 	provider/libserver/ECNotificationManager.cpp provider/libserver/ECNotificationManager.h \
 	provider/libserver/ECPluginFactory.cpp provider/libserver/ECPluginFactory.h \

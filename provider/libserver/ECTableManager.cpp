@@ -21,13 +21,14 @@
 #include <kopano/database.hpp>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
+#include <kopano/stringutil.h>
+#include <kopano/Util.h>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include "ECMAPI.h"
 #include "ECGenericObjectTable.h"
 #include "ECConvenientDepthObjectTable.h"
 #include "ECStoreObjectTable.h"
-#include "ECMultiStoreTable.h"
 #include "ECUserStoreTable.h"
 #include "ECABObjectTable.h"
 #include "ECStatsTables.h"
@@ -820,5 +821,27 @@ ECRESULT ECSearchObjectTable::Load()
 			objlist2.emplace_back(*i);
 	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, &objlist2, 0, true);
 }
+
+ECMultiStoreTable::ECMultiStoreTable(ECSession *lpSession, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) : ECStoreObjectTable(lpSession, 0, NULL, 0, ulObjType, ulFlags, 0, locale) {
+}
+
+ECRESULT ECMultiStoreTable::Create(ECSession *lpSession, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale, ECMultiStoreTable **lppTable)
+{
+	return alloc_wrap<ECMultiStoreTable>(lpSession, ulObjType,
+	       ulFlags, locale).put(lppTable);
+}
+
+ECRESULT ECMultiStoreTable::SetEntryIDs(ECListInt *lplObjectList) {
+	m_lstObjects = *lplObjectList;
+	return erSuccess;
+}
+
+ECRESULT ECMultiStoreTable::Load() {
+	Clear();
+	for (auto i = m_lstObjects.begin(); i != m_lstObjects.end(); ++i)
+		UpdateRow(ECKeyTable::TABLE_ROW_ADD, *i, 0);
+	return erSuccess;
+}
+
 
 } /* namespace */
