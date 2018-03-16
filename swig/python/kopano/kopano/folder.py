@@ -322,6 +322,7 @@ class Folder(Properties):
             PR_LAST_MODIFICATION_TIME,
             PR_CHANGE_KEY,
             PR_MESSAGE_CLASS_W,
+            PR_BODY_W, # body preview, not entire body!
         ]
 
         try:

@@ -327,6 +327,12 @@ class Item(Properties, Contact, Appointment):
         return Body(self) # XXX return None if no body..?
 
     @property
+    def body_preview(self):
+        """ Item body preview (plaintext, up to 255 characters) """
+
+        return self._get_fast(PR_BODY_W, capped=True)
+
+    @property
     def size(self):
         """ Item size """
 

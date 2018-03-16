@@ -652,7 +652,7 @@ class MessageResource(ItemResource):
         'isReadReceiptRequested': lambda item: item.read_receipt,
         'isDeliveryReceiptRequested': lambda item: item.read_receipt,
         'replyTo': lambda item: [get_email(to) for to in item.replyto],
-        'bodyPreview': lambda item: item.text[:255],
+        'bodyPreview': lambda item: item.body_preview,
     })
 
     set_fields = {
@@ -915,7 +915,7 @@ class EventResource(ItemResource):
         'isReminderOn': lambda item: item.reminder,
         'reminderMinutesBeforeStart': lambda item: item.reminder_minutes,
         'attendees': lambda item: attendees_json(item),
-        'bodyPreview': lambda item: item.text[:255],
+        'bodyPreview': lambda item: item.body_preview,
         'isAllDay': lambda item: item.all_day,
         'showAs': lambda item: show_as_map[item.show_as],
         'seriesMasterId': lambda item: item.item.eventid if isinstance(item, kopano.Occurrence) else None,
