@@ -25,7 +25,6 @@
 #include <mapitags.h>
 #include "ECMAPI.h"
 #include "ECGenericObjectTable.h"
-#include "ECSearchObjectTable.h"
 #include "ECConvenientDepthObjectTable.h"
 #include "ECStoreObjectTable.h"
 #include "ECMultiStoreTable.h"
@@ -63,6 +62,30 @@ class ECMailBoxTable final : public ECStoreObjectTable {
 	private:
 	/* 0x01: user stores, 0x02: public stores */
 	unsigned int m_ulStoreTypes = 0x03;
+	ALLOC_WRAP_FRIEND;
+};
+
+/*
+ * The search folders only differ from normal "store" tables in that they load
+ * the object list from the searchresults instead of from the hierarchy table.
+ */
+class ECSearchObjectTable final : public ECStoreObjectTable {
+	public:
+	static ECRESULT Create(ECSession *ses, unsigned int store,
+	    GUID *guid, unsigned int folder, unsigned int objtype,
+	    unsigned int flags, const ECLocale &loc, ECStoreObjectTable **out)
+	{
+		return alloc_wrap<ECSearchObjectTable>(ses, store, guid,
+		       folder, objtype, flags, loc).put(out);
+	}
+
+	virtual ECRESULT Load();
+
+	protected:
+	ECSearchObjectTable(ECSession *, unsigned int store, GUID *guid, unsigned int folder, unsigned int objtype, unsigned int flags, const ECLocale &);
+
+	private:
+	unsigned int m_ulFolderId, m_ulStoreId;
 	ALLOC_WRAP_FRIEND;
 };
 
@@ -732,6 +755,70 @@ ECRESULT ECMailBoxTable::Load()
 	}
 	LoadRows(&lstObjIds, 0);
 	return erSuccess;
+}
+
+ECSearchObjectTable::ECSearchObjectTable(ECSession *ses, unsigned int store,
+    GUID *guid, unsigned int folder, unsigned int objtype,
+    unsigned int flags, const ECLocale &locale) :
+	ECStoreObjectTable(ses, store, guid, 0, objtype, flags, 0, locale)
+{
+	/*
+	 * We don't pass ulFolderId to ECStoreObjectTable (see constructor
+	 * above passing '0'), because it will assume that all rows are in that
+	 * folder if we do that. But we still want to remember the folder ID
+	 * for our own use.
+	 */
+	m_ulFolderId = folder;
+	m_ulStoreId = store;
+}
+
+ECRESULT ECSearchObjectTable::Load()
+{
+	if (m_ulFolderId == 0)
+		return erSuccess;
+	/* Get the search results */
+	scoped_rlock biglock(m_hLock);
+	std::list<unsigned int> objlist, objlist2;
+	std::set<unsigned int> priv;
+	auto er = lpSession->GetSessionManager()->GetSearchFolders()->GetSearchResults(m_ulStoreId, m_ulFolderId, &objlist);
+	if (er != erSuccess)
+		return er;
+	if (lpSession->GetSecurity()->IsStoreOwner(m_ulFolderId) != KCERR_NO_ACCESS ||
+	    lpSession->GetSecurity()->GetAdminLevel() > 0 ||
+	    objlist.size() == 0)
+		return UpdateRows(ECKeyTable::TABLE_ROW_ADD, &objlist, 0, true);
+	/*
+	 * Outlook may show the subject of sensitive messages (e.g. in reminder
+	 * popup), so filter these from shared store searches.
+	 */
+	ECDatabase *db = nullptr;
+	er = lpSession->GetDatabase(&db);
+	if (er != erSuccess)
+		return er;
+	std::string in_query;
+	for (auto it = objlist.begin(); it != objlist.end(); ++it) {
+		if (it != objlist.begin())
+			in_query += ",";
+		in_query += stringify(*it);
+	}
+
+	auto query = "SELECT hierarchyid FROM properties WHERE hierarchyid IN (" +
+	             in_query + ") AND tag = " + stringify(PROP_ID(PR_SENSITIVITY)) +
+	             " AND val_ulong >= 2;";
+	DB_RESULT result;
+	DB_ROW row;
+	er = db->DoSelect(query, &result);
+	if (er != erSuccess)
+		return er;
+	while ((row = result.fetch_row()) != nullptr) {
+		if (row == nullptr || row[0] == nullptr)
+			continue;
+		priv.emplace(atoui(row[0]));
+	}
+	for (auto i = objlist.begin(); i != objlist.end(); ++i)
+		if (priv.find(*i) == priv.end())
+			objlist2.emplace_back(*i);
+	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, &objlist2, 0, true);
 }
 
 } /* namespace */
