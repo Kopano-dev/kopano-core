@@ -585,7 +585,7 @@ static ECRESULT getchanges_hier1(struct soap *soap, ECDatabase *lpDatabase, cons
 	ulMaxChange = (lpDBRow[0] == NULL ? 0 : atoui(lpDBRow[0]));
 	unsigned int i = 0;
 
-	if ((ulFlags & SYNC_CATCHUP) == 0) {
+	if ((ulFlags & SYNC_CATCHUP) != 0) {
 		lpChanges->__size = 0;
 		return erSuccess;
 	}
