@@ -697,6 +697,8 @@ static bool adm_parse_options(int &argc, char **&argv)
 {
 	adm_config.reset(ECConfig::Create(adm_config_defaults));
 	opt_config_file = ECConfig::GetDefaultPath("admin.cfg");
+	adm_config->LoadSettings(opt_config_file);
+
 	auto ctx = poptGetContext(nullptr, argc, const_cast<const char **>(argv), adm_options, 0);
 	int c;
 	while ((c = poptGetNextOpt(ctx)) >= 0) {
