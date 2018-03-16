@@ -1,10 +1,11 @@
 #include <tunables/global>
 
-/usr/sbin/kopano-search {
+/usr/sbin/kopano-search flags=(attach_disconnected) {
   #include <abstractions/base>
   #include <abstractions/nameservice>
   #include <abstractions/python>
   #include <abstractions/user-tmp>
+  #include <kopano-client.aa>
 
   capability chown,
   capability dac_override,
@@ -22,10 +23,9 @@
   # FIXME: it would be nice if search would use search- like pa
   /dev/shm/* rwl,
 
-  /etc/gss/mech.d/ r,
-  /etc/gss/mech.d/*.conf r,
-
-  /lib/x86_64-linux-gnu/ld-*.so mr,
+  /lib/ld-*.so mr,
+  /lib64/ld-*.so mr,
+  /lib/@{multiarch}/ld-*.so mr,
   /usr/bin/python2.7 ix,
   /usr/sbin/kopano-search r,
 
@@ -34,11 +34,6 @@
   /bin/dash Pix,
   /bin/rm Pix,
   /sbin/ldconfig Pix,
-
-  /etc/mapi.d/ r,
-  /etc/mapi.d/*.inf r,
-  /usr/lib/mapi.d/ r,
-  /usr/lib/mapi.d/*.inf r,
 
   /run/kopano/search.pid rw,
   /run/kopano/search.pid.lock lrw,

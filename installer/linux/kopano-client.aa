@@ -1,0 +1,10 @@
+  /etc/gai.conf r,
+  /etc/gss/mech.d/ r,
+  /etc/gss/mech.d/*.conf r,
+
+  /run/kopano/server.sock rw,
+
+  /etc/mapi/ r,
+  /etc/mapi/* r,
+  /usr/lib/mapi.d/ r,
+  /usr/lib/mapi.d/* r,

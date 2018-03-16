@@ -1,10 +1,12 @@
 #include <tunables/global>
 
-/usr/sbin/kopano-dagent {
+/usr/sbin/kopano-dagent flags=(attach_disconnected) {
   #include <abstractions/base>
   #include <abstractions/nameservice>
   #include <abstractions/user-tmp>
   #include <abstractions/python>
+  #include <kopano-client.aa>
+  #include <kopano-coredump.aa>
 
   capability chown,
   capability dac_override,
@@ -15,17 +17,13 @@
   @{PROC}/@{pid}/task/@{tid}/comm rw,
   @{PROC}/@{pid}/cmdline r,
 
-  /etc/gai.conf r,
-  /etc/gss/mech.d/ r,
-  /etc/gss/mech.d/*.conf r,
   /etc/kopano/dagent.cfg r,
+
+  /usr/sbin/kopano-dagent r,
 
   /usr/share/kopano-dagent/python/*.py{,c} r,
 
   /var/lib/kopano/dagent/plugins/ r,
-
-  /etc/mapi/ r,
-  /etc/mapi/* r,
 
   /run/kopano/dagent.pid rw,
   /var/log/kopano/dagent.log rw,

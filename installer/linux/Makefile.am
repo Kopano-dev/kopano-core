@@ -33,6 +33,7 @@ dist_kgwdoc_DATA = ${top_srcdir}/tools/python-scripts/optimize-imap.py
 
 sysconf_apparmordir = ${docdir}/example-config/apparmor.d
 dist_sysconf_apparmor_DATA = \
+	kopano-coredump.aa kopano-client.aa \
 	usr.sbin.kopano-dagent \
 	usr.sbin.kopano-search \
 	usr.sbin.kopano-server

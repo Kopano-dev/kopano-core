@@ -1,10 +1,11 @@
 #include <tunables/global>
 
-/usr/sbin/kopano-server {
+/usr/sbin/kopano-server flags=(attach_disconnected) {
   #include <abstractions/base>
   #include <abstractions/nameservice>
   #include <abstractions/user-tmp>
   #include <abstractions/mysql>
+  #include <kopano-coredump.aa>
 
   capability chown,
   capability dac_override,
@@ -16,6 +17,7 @@
 
   /etc/kopano/debian-db.cfg r,
   /etc/kopano/server.cfg r,
+  /usr/sbin/kopano-server r,
 
   @{PROC}/@{pid}/task/@{tid}/comm rw,
 
@@ -23,7 +25,9 @@
   /run/kopano/server.pid rw,
   /run/kopano/server.sock rw,
 
-  /usr/lib/x86_64-linux-gnu/kopano/*.so m,
+  /usr/lib/kopano/*.so m,
+  /usr/lib64/kopano/*.so m,
+  /usr/lib/@{multiarch}/kopano/*.so m,
 
   /var/lib/kopano/attachments/ r,
   /var/lib/kopano/attachments/** rw,
@@ -33,7 +37,7 @@
 
   # There's little we can do if the server is allowed to run
   # arbitrary scripts
-  profile kopano_userscripts {
+  profile kopano_userscripts flags=(attach_disconnected) {
     file,
     network,
   }
