@@ -251,7 +251,6 @@ HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
 }
 
 HRESULT ECNotifyClient::Advise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection){
-
 	ULONG		ulConnection = 0;
 	auto hr = RegisterAdvise(cbKey, lpKey, ulEventMask, false, lpAdviseSink, &ulConnection);
 	if (hr != hrSuccess)

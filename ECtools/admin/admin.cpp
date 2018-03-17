@@ -398,7 +398,6 @@ static int parse_yesno(const char *opt)
 
 static std::string UnixtimeToString(time_t timestamp)
 {
-
 	tm local;
 	char d[64];
 

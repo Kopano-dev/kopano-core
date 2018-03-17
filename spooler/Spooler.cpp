@@ -848,7 +848,6 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
 }
 
 int main(int argc, char *argv[]) {
-
 	HRESULT hr = hrSuccess;
 	const char *szPath = NULL;
 	const char *szSMTP = NULL;

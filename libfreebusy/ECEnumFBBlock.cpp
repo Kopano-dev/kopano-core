@@ -68,7 +68,6 @@ HRESULT ECEnumFBBlock::QueryInterface(REFIID refiid , void** lppInterface)
 /*! @copydoc IEnumFBBlock::Next */
 HRESULT ECEnumFBBlock::Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch)
 {
-
 	LONG cEltFound = 0;
 
 	for (LONG i = 0; i < celt; ++i) {

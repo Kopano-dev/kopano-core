@@ -532,7 +532,6 @@ ECRESULT ECGenericObjectTable::GetColumns(struct soap *soap, ULONG ulFlags, stru
 		lpsPropTags = s_alloc<propTagArray>(soap);
 
 		if(lpsPropTagArray) {
-
 			lpsPropTags->__size = lpsPropTagArray->__size;
 
 			lpsPropTags->__ptr = s_alloc<unsigned int>(soap, lpsPropTagArray->__size);
@@ -1008,7 +1007,6 @@ ECRESULT ECGenericObjectTable::QueryRows(struct soap *soap, unsigned int ulRowCo
 		lpRowSet->__size = 0;
 		lpRowSet->__ptr = NULL;
 	} else {
-		
 		// We now have the ordering of the rows, all we have to do now is get the data. 
 		er = m_lpfnQueryRowData(this, soap, lpSession, &ecRowList, lpsPropTagArray, m_lpObjectData, &lpRowSet, true, true);
 	}

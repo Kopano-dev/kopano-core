@@ -742,7 +742,6 @@ ECRESULT ECKeyTable::CurrentRow(ECTableRow *lpRow, unsigned int *lpulCurrentRow)
 		ulCurrentRow += lpRow->lpLeft->ulBranchCount;
 
 	while (lpRow && lpRow->lpParent != NULL && lpRow->lpParent != lpRoot) {
-		
 		if (!lpRow->fLeft)
 			ulCurrentRow += lpRow->lpParent->ulBranchCount - lpRow->ulBranchCount;
 
@@ -774,7 +773,6 @@ ECRESULT ECKeyTable::QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList
 	ulRows = ulRows > lpRoot->ulBranchCount ? lpRoot->ulBranchCount : ulRows;
 
 	while(ulRows && lpCurrent) {
-		
 		if(!lpCurrent->fHidden || bShowHidden) {
 			lpRowList->emplace_back(lpCurrent->sKey);
 		--ulRows;

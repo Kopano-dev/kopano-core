@@ -1521,7 +1521,6 @@ HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulF
 	if (lpulUserID != nullptr)
 		*lpulUserID = sResponse.ulUserId;
 	if(lpcbStoreID && lppStoreID) {
-
 		// Create a client store entry, add the servername
 		hr = WrapServerClientStoreEntry(sResponse.lpszServerPath ? sResponse.lpszServerPath : m_sProfileProps.strServerPath.c_str(), &sResponse.sStoreId, lpcbStoreID, lppStoreID);
 		if(hr != hrSuccess)

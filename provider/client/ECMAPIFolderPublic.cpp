@@ -79,7 +79,6 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 	auto lpFolder = static_cast<ECMAPIFolderPublic *>(lpParam);
 
 	switch(PROP_ID(ulPropTag)) {
-
 	case PROP_ID(PR_FOLDER_TYPE):
 		if (lpFolder->m_ePublicEntryID == ePE_PublicFolders || lpFolder->m_ePublicEntryID == ePE_IPMSubtree || lpFolder->m_ePublicEntryID == ePE_Favorites) {
 			lpsPropValue->ulPropTag = PR_FOLDER_TYPE;

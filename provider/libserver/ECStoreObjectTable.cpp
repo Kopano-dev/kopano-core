@@ -696,7 +696,6 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
             // means we have to loop through all the same-property columns and add the same data everywhere.
             for (auto iterColumns = mapColumns.lower_bound(NormalizeDBPropTag(ulPropTag));
                  iterColumns != mapColumns.cend() && CompareDBPropTag(iterColumns->first, ulPropTag); ) {
-
 				// free prop if we're not allocing by soap
 				if(soap == NULL && lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag != 0) {
 					FreePropVal(&lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second], false);

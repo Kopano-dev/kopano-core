@@ -1431,7 +1431,6 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 
 			// 5.0 client knows how to handle the PR_MAILBOX_OWNER_* properties
 			if(ulStoreOwner != KOPANO_UID_EVERYONE && ulStoreOwner != ulCompanyId )	{
-
 				if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_MAILBOX_OWNER_NAME, ulObjId, 0, ulObjId, 0, ulObjType, &sPropVal) == erSuccess) {
 					er = FixPropEncoding(soap, stringCompat, Out, &sPropVal);
 					if (er != erSuccess)
@@ -1597,7 +1596,6 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
 		if (er != erSuccess)
 			return er;
 	} else {
-
 		lpsResponse->lpPropVal = s_alloc<propVal>(soap);
 		memset(lpsResponse->lpPropVal,0,sizeof(struct propVal));
 
@@ -4686,7 +4684,6 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 
     lHierarchyIDs.clear();
     for (auto iObjectid = lObjectIds.cbegin(); iObjectid != lObjectIds.cend(); ++iObjectid) {
-
         if (iObjectid != lObjectIds.cbegin())
             strQuery += ",";
 
@@ -9844,7 +9841,6 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 
 	// Set PR_CONFLICT_ITEMS if available
 	if (lpsConflictItems != NULL && lpsConflictItems->ulPropTag == PR_CONFLICT_ITEMS) {
-
 		// Delete to be sure
 		strQuery = "DELETE FROM mvproperties WHERE hierarchyid=" + stringify(ulObjectId) + " AND tag=" + stringify(PROP_ID(PR_CONFLICT_ITEMS)) + " AND type=" + stringify(PROP_TYPE(PR_CONFLICT_ITEMS));
 		er = lpDatabase->DoDelete(strQuery);

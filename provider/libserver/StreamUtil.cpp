@@ -1568,7 +1568,6 @@ next_property:
 	}
 
 	if (RealObjType(ulObjType, ulParentType) == MAPI_ATTACH) {
-
 		er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 		if (er != erSuccess)
 			goto exit;

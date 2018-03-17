@@ -1677,7 +1677,6 @@ PyObject *		List_from_LPENTRYLIST(LPENTRYLIST lpEntryList)
 
 LPNOTIFICATION	List_to_LPNOTIFICATION(PyObject *, ULONG *lpcNotifs)
 {
-
 	return NULL;
 }
 

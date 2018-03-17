@@ -161,7 +161,6 @@ void CHtmlToTextParser::addChar(WCHAR c) {
 }
 
 void CHtmlToTextParser::addSpace(bool force) {
-	
 	if (force || (!strText.empty() && strText.back() != ' '))
 		addChar(' ');
 }
@@ -218,7 +217,6 @@ void CHtmlToTextParser::parseTag(const WCHAR* &lpwHTML)
 	while (*lpwHTML != 0 && !bTagEnd) 
 	{
 		if (bTagName && *lpwHTML == '!') {
-			
 			// HTML comment or doctype detect, ignore all the text
 			bool fCommentMode = false;
 			++lpwHTML;
@@ -294,7 +292,6 @@ void CHtmlToTextParser::parseAttributes(const WCHAR* &lpwHTML)
 			bAttrName = false;
 			bAttrValue = true;
 		} else if(*lpwHTML == ' ' && bAttrValue && firstQuote == 0) {
-
 			if (!attrValue.empty())
 				bAttrValue = false;
 			// ignore space

@@ -153,7 +153,6 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 		lpCmd->soap->fconnect = gsoap_connect_pipe;
 		lpCmd->soap->fpost = http_post;
 	} else {
-
 		if ((ulProxyFlags&0x0000001/*EC_PROFILE_PROXY_FLAGS_USE_PROXY*/) && strProxyHost != NULL && *strProxyHost != '\0') {
 			lpCmd->soap->proxy_host = strdup(strProxyHost);
 			lpCmd->soap->proxy_port = wProxyPort;

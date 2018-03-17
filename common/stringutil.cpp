@@ -455,7 +455,6 @@ void BufferLFtoCRLF(size_t size, const char *input, char *output, size_t *outsiz
  * @param[out] 	strOutput		return converted string
  */
 void StringTabtoSpaces(const std::wstring &strInput, std::wstring *lpstrOutput) {
-
 	std::wstring strOutput;
 	/*
 	 * With this reservation, at worst, when every input char is a tab,
@@ -484,7 +483,6 @@ void StringCRLFtoLF(const std::wstring &strInput, std::wstring *lpstrOutput) {
 	strOutput.reserve(strInput.length());
 
 	for (; iInput != strInput.end(); ++iInput) {
-		
 		// skips /r if /r/n found together in the text
 		if (*iInput == '\r' && (iInput + 1 != strInput.end() && *(iInput + 1) == '\n')) 
 			continue;

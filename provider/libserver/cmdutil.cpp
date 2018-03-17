@@ -257,7 +257,6 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 
 			// Get extended data
 			if(sItem.ulObjType == MAPI_STORE || sItem.ulObjType == MAPI_FOLDER || sItem.ulObjType == MAPI_MESSAGE) {
-			
 				lpCacheManager->GetStore(sItem.ulId, &sItem.ulStoreId , NULL); //CHECKme:"oude gaf geen errors
 				if (!(sItem.ulFlags & MSGFLAG_DELETED))
 					GetObjectSize(lpDatabase, sItem.ulId, &sItem.ulObjSize);
@@ -311,7 +310,6 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 				return er;
 
 			if(sItem.ulObjType == MAPI_STORE || sItem.ulObjType == MAPI_FOLDER || (sItem.ulObjType == MAPI_MESSAGE && sItem.ulParentType == MAPI_FOLDER) ) {
-			
 				lpCacheManager->GetStore(sItem.ulId, &sItem.ulStoreId , NULL); //CHECKme:"oude gaf geen errors
 				if (!(sItem.ulFlags & MSGFLAG_DELETED))
 					GetObjectSize(lpDatabase, sItem.ulId, &sItem.ulObjSize);
@@ -846,7 +844,6 @@ static ECRESULT DeleteObjectNotifications(ECSession *lpSession,
 	// hierarchy table has been changed.
 	for (auto pa_id : lstParent) {
 		if(cDeleteditems >= EC_TABLE_CHANGE_THRESHOLD) {
-
 			// Find the set of notifications to send for the current parent.
 			auto pn = mapTableChangeNotifications.find(pa_id);
 			if (pn != mapTableChangeNotifications.cend())

@@ -954,7 +954,6 @@ HRESULT CopySOAPEntryListToMAPIEntryList(const struct entryList *lpsEntryList,
 		lpMsgList->cValues = 0;
 		lpMsgList->lpbin = NULL;
 	} else {
-
 		hr = ECAllocateMore(lpsEntryList->__size * sizeof(SBinary), lpMsgList, (void**)&lpMsgList->lpbin);
 		if(hr != hrSuccess)
 			return hr;

@@ -1113,7 +1113,6 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 
 	// walk through all recipients
 	for (int iRecip = 0; iRecip < iAddressCount; ++iRecip) {
-		
 		try {
 			vmime::text vmText;
 

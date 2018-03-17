@@ -342,7 +342,6 @@ HRESULT ECMsgStore::InternalAdvise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 	assert(m_lpNotifyClient != nullptr && (lpEntryID != nullptr || m_lpEntryId != nullptr));
 	if(lpEntryID == NULL) {
-
 		// never sent the client store entry
 		hr = UnWrapServerClientStoreEntry(m_cbEntryId, m_lpEntryId, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 		if(hr != hrSuccess)
@@ -374,7 +373,6 @@ HRESULT ECMsgStore::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 	assert(m_lpNotifyClient != nullptr && (lpEntryID != nullptr || m_lpEntryId != nullptr));
 	if(lpEntryID == NULL) {
-
 		// never sent the client store entry
 		hr = UnWrapServerClientStoreEntry(m_cbEntryId, m_lpEntryId, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 		if(hr != hrSuccess)
@@ -485,7 +483,6 @@ HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 		return hrSuccess;
 
 	if(peid1->ulVersion == 0) {
-
 		if(cbEntryID1 != sizeof(EID_V0))
 			return hrSuccess;
 		if( ((EID_V0*)lpEntryID1)->ulId != ((EID_V0*)lpEntryID2)->ulId )
@@ -1205,7 +1202,6 @@ HRESULT ECMsgStore::GetMailboxTable(const TCHAR *lpszServerName,
 	const utf8string strUserName = convert_to<utf8string>("SYSTEM");
 	
 	if (!tstrServerName.null_or_empty()) {
-	
 		strPseudoUrl = "pseudo://"; 
 		strPseudoUrl += tstrServerName;
 		auto hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &~ptrServerPath, &bIsPeer);

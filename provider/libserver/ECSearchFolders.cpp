@@ -1067,12 +1067,10 @@ ECRESULT ECSearchFolders::GetState(unsigned int ulStoreId, unsigned int ulFolder
 	if (iterStore == m_mapSearchFolders.cend()) {
         ulState = 0;
     } else {
-        
 		auto iterFolder = iterStore->second.find(ulFolderId);
 		if (iterFolder == iterStore->second.cend()) {
             ulState = 0;
         } else {
-            
             ulState = SEARCH_RUNNING;
 			if (!iterFolder->second->bThreadFree)
                 ulState |= SEARCH_REBUILD;

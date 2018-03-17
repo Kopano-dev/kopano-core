@@ -401,7 +401,6 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 		return hr;
 
 	if (lpEntryID == NULL) {
-
 		// Try to initialize the provider
 		if (InitializeProvider(NULL, lpProfSect, sProfileProps, &cbStoreID, &~lpStoreID) != hrSuccess)
 			return MAPI_E_UNCONFIGURED;

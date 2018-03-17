@@ -1956,7 +1956,6 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 		lpPropFB->Value.MVbin.lpbin[eDGMsgType].lpb == NULL ||
 		lpMsgStore->OpenEntry(lpPropFB->Value.MVbin.lpbin[eDGMsgType].cb, (LPENTRYID)lpPropFB->Value.MVbin.lpbin[eDGMsgType].lpb, &IID_IMessage, MAPI_MODIFY, &ulType, (IUnknown **) &lpMessage) != hrSuccess)
 	   && bCreateIfMissing) {
-		
 		// Open the inbox
 		hr = lpMsgStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>(""), 0, &cbEntryIDInbox, &~lpEntryIDInbox, &~lpszExplicitClass);
 		if(hr != hrSuccess)
@@ -2005,7 +2004,6 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 			memset(lpPropFBNew->Value.MVbin.lpbin, 0, sizeof(SBinary) * 4);
 
 			if (eDGMsgType == dgFreebusydata) {
-
 				if(lpPropFB && lpPropFB->Value.MVbin.cValues > 0) {
 					lpPropFBNew->Value.MVbin.lpbin[0] = lpPropFB->Value.MVbin.lpbin[0];
 
@@ -2027,7 +2025,6 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 
 			lpPropFBRef = lpPropFBNew; // use this one later on
 		} else {
-
 			lpPropFB->Value.MVbin.lpbin[eDGMsgType].cb = lpEntryID->Value.bin.cb;
 			lpPropFB->Value.MVbin.lpbin[eDGMsgType].lpb = lpEntryID->Value.bin.lpb;
 

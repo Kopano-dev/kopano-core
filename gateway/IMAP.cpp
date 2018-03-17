@@ -3268,7 +3268,6 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 		if (!container_class.empty() &&
 			container_class.compare(0, 3, "IPM") != 0 &&
 			container_class.compare("IPF.NOTE") != 0) {
-
 			if (bOnlyMailFolders)
 				continue;
 			mailfolder = false;

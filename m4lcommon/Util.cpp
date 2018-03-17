@@ -2893,7 +2893,6 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 	// check message, folder, attach, recipients, stream, mapitable, ... ?
 
 	if (*lpSrcInterface == IID_IMAPIFolder) {
-
 		// MS MAPI does not perform this check
 		if (*lpDestInterface != IID_IMAPIFolder)
 			// on store, create folder and still go ?

@@ -652,7 +652,6 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 	if(lpSession->GetSecurity()->IsStoreOwner(ulObjId) == KCERR_NO_ACCESS &&
 	    lpSession->GetSecurity()->GetAdminLevel() == 0 &&
 	    lstChildId.size() != 0) {
-
 		er = lpSession->GetDatabase(&lpDatabase);
 		if (er != erSuccess)
 			return er;

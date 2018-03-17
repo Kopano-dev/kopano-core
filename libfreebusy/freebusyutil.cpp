@@ -462,7 +462,6 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 	while (lpfbBlockList->Next(&fbBlk) == hrSuccess &&
 	       iMonth < static_cast<LONG>(ulMonths))
 	{
-
 		if(fbBlk.m_fbstatus == fbStatus || fbStatus == fbKopanoAllBusy)
 		{
 			gmtime_safe(RTimeToUnixTime(fbBlk.m_tmStart), &tmStart);

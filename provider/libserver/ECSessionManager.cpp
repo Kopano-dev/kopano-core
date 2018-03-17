@@ -203,7 +203,6 @@ ECRESULT ECSessionManager::DeleteIfOrphaned(ECSessionGroup *lpGroup)
 }
 
 BTSession* ECSessionManager::GetSession(ECSESSIONID sessionID, bool fLockSession) {
-
 	BTSession *lpSession = NULL;
 		
 	auto iIterator = m_mapSessions.find(sessionID);
@@ -563,7 +562,6 @@ ECRESULT ECSessionManager::RemoveSession(ECSESSIONID sessionID){
  * @return Kopano error code
  */
 ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned int ulKey, unsigned int ulStore, unsigned int ulFolderId, unsigned int ulFlags) {
-	
 	std::set<ECSESSIONGROUPID> setGroups;
 	
 	if(ulStore == 0) {

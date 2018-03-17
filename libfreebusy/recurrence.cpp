@@ -612,7 +612,6 @@ time_t recurrence::calcStartDate() const
 				// Monthly, go to next occurrence in 'everyn' months
 				count = m_sRecState.ulPeriod;
 			} else if (m_sRecState.ulRecurFrequency == RF_YEARLY) {
-
 				if (getMonth() - 1 < tm.tm_mon || (getMonth() - 1 == tm.tm_mon && static_cast<int>(m_sRecState.ulDayOfMonth) < tm.tm_mday))
 					// Yearly, go to next occurrence in 'everyn' months minus difference in first occurence and original date
 					count = (m_sRecState.ulPeriod - (tm.tm_mon - (getMonth()-1)));
@@ -1112,7 +1111,6 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 			time_t tsDayNow = 0;
 
 			if(m_sRecState.ulDayOfMonth != 0) {
-				
 				ulDiffrence = 1;
 
 				if(m_sRecState.ulWeekDays == 0 && m_sRecState.ulDayOfMonth > ulDaysOfMonths)
@@ -1123,7 +1121,6 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 				if (m_sRecState.ulWeekNumber < 5) {
 					ulDayCounter = 0;
 					for (ULONG ulDay = 0; ulDay < DaysInMonth(YearFromTime(tsNow), MonthFromTime(tsNow)); ++ulDay) {
-
 						tsDayNow = tsNow + ulDay * 60 * 60 * 24;
 						if (m_sRecState.ulWeekDays & (1 << WeekDayFromTime(tsDayNow)))
 							++ulDayCounter;
@@ -1153,7 +1150,6 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 		break;// CASE : MONTHLY
 	}
 	case YEARLY: {
-		
 		if(m_sRecState.ulPeriod <= 0)
 			m_sRecState.ulPeriod = 12;
 		auto tsNow = StartOfYear(tsDayStart);
@@ -1163,7 +1159,6 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 			time_t tsDayNow = 0, tMonthStart = 0, tsMonthNow = 0;
 
 			if(m_sRecState.ulDayOfMonth != 0) {
-				
 				ulMonthDay = m_sRecState.ulDayOfMonth;
 				tMonthStart = tsNow + DaysTillMonth(tsNow, getMonth()-1) * 24 * 60 *60;
 
@@ -1172,11 +1167,9 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 
 				tsDayNow = tMonthStart + (ulMonthDay -1) * 24 * 60 * 60;				
 			} else if( m_sRecState.ulWeekNumber != 0 && m_sRecState.ulWeekDays != 0) {
-				
 				tsMonthNow = tsNow + DaysTillMonth(tsNow, getMonth()-1) * 24 * 60 * 60;
 				ec_log_debug("Checking yearly nth Weekday Occrrence ulMonthNow: %s", ctime(&tsMonthNow));
 				for (int ulDay = 0; ulDay < 7; ++ulDay) {
-
 					tsDayNow = tsMonthNow + ulDay * 60 * 60 * 24;
 					if (m_sRecState.ulWeekDays & (1 << WeekDayFromTime(tsDayNow))) {
 						ulValidDay = ulDay;

@@ -781,7 +781,6 @@ HRESULT CalDAV::HrHandleDelete()
 
 	wstrFldTmpName = wstrFldName;
 	while (true) {
-
 		hr = m_lpIPMSubtree->CopyFolder(sbEid.cb, (LPENTRYID)sbEid.lpb, NULL, lpWastBoxFld, (LPTSTR)wstrFldTmpName.c_str(), 0, NULL, MAPI_MOVE | MAPI_UNICODE);
 		if (hr == MAPI_E_COLLISION) {
 			// rename the folder if same folder name is present in Deleted items folder
@@ -1712,7 +1711,6 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 
 		lpFoundProp = PCpropFindProp(lpProps, ulPropCount, GetPropIDForXMLProp(lpObj, sWebProperty.sPropName, m_converter));
 		if (strProperty == "resourcetype") {
-			
 			// do not set resourcetype for REPORT request(ical data)
 			if(!lpMtIcal){
 				HrSetDavPropName(&(sWebVal.sPropName), "collection", WEBDAVNS);
@@ -1741,17 +1739,14 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 			sWebVal.strValue = std::string("mailto:") + ptrEmail->Value.lpszA;
 			sWebProperty.lstValues.emplace_back(sWebVal);
 		} else if (strProperty == "acl" || strProperty == "current-user-privilege-set") {
-			
 			HrBuildACL(&sWebProperty);
 		} else if (strProperty == "supported-report-set") {
-			
 			HrBuildReportSet(&sWebProperty);
 		} else if (lpFoundProp && 
 					(strProperty == "calendar-description" || 
 					 strProperty == "last-name" || 
 					 strProperty == "first-name")
 					) {
-			
 			sWebProperty.strValue = SPropValToString(lpFoundProp);
 		} else if (strProperty == "getctag" || strProperty == "getetag") {
 			// ctag and etag should always be present
@@ -1775,7 +1770,6 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 			sWebVal.strValue = strCurrentUserURL + "Outbox/";
 			sWebProperty.lstValues.emplace_back(sWebVal);
 		} else if (strProperty == "supported-calendar-component-set") {
-			
 			if (ulFolderType == CALENDAR_FOLDER) {
 				HrSetDavPropName(&(sWebVal.sPropName), "comp","name", "VEVENT", CALDAVNS);
 				sWebProperty.lstValues.emplace_back(sWebVal);
@@ -1802,7 +1796,6 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 
 			strIcal.clear();
 		} else if (strProperty == "calendar-order") {
-			
 			if (ulFolderType == CALENDAR_FOLDER) {
 				lpFoundProp = PCpropFindProp(lpProps, ulPropCount, PR_ENTRYID);
 				if (lpFoundProp)
@@ -1816,7 +1809,6 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 				sWebProperty.strValue = "2";
 			}
 		} else if (strProperty == "getcontenttype") {
-
 			sWebProperty.strValue = "text/calendar";
 		} else if (strProperty == "principal-collection-set") {
 			// DAV:
@@ -1835,13 +1827,11 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 			sWebVal.strValue = strPrincipalURL;
 			sWebProperty.lstValues.emplace_back(sWebVal);
 		} else if (strProperty == "owner") {
-
 			HrSetDavPropName(&(sWebVal.sPropName), "href", WEBDAVNS);
 			// always self
 			sWebVal.strValue = strOwnerURL;
 			sWebProperty.lstValues.emplace_back(sWebVal);
 		} else if (strProperty == "principal-URL") {
-
 			HrSetDavPropName(&(sWebVal.sPropName), "href", WEBDAVNS);
 			// self or delegate
 			sWebVal.strValue = strPrincipalURL;
@@ -1863,7 +1853,6 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 			if (SPropValToString(lpFoundProp) == "0")
 				sWebProperty.strValue = "INDIVIDUAL";
 		} else if (strProperty == "record-type"){
-
 			sWebProperty.strValue = "users";
 		} else if (lpFoundProp && lpFoundProp->ulPropTag != PR_NULL) {
 			sWebProperty.strValue.assign((char*)lpFoundProp->Value.bin.lpb, lpFoundProp->Value.bin.cb);

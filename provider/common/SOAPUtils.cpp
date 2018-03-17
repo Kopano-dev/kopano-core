@@ -172,7 +172,6 @@ private:
 
 void FreeSortOrderArray(struct sortOrderArray *lpsSortOrder)
 {
-
 	if(lpsSortOrder == NULL)
 		return;
 	s_free(nullptr, lpsSortOrder->__ptr);
@@ -225,7 +224,6 @@ ECRESULT CopyPropTagArray(struct soap *soap,
 
 void FreePropTagArray(struct propTagArray *lpsPropTags, bool bFreeBase)
 {
-
 	if(lpsPropTags == NULL)
 		return;
 	s_free(nullptr, lpsPropTags->__ptr);
@@ -1431,7 +1429,6 @@ ECRESULT FreeNotificationStruct(notification *lpNotification, bool bFreeBase)
 		return erSuccess;
 
 	if(lpNotification->obj != NULL){
-
 		FreePropTagArray(lpNotification->obj->pPropTagArray);
 
 		FreeEntryId(lpNotification->obj->pEntryId, true);
@@ -1487,7 +1484,6 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 	rNotifyTo.ulConnection	= lpNotification->ulConnection;
 
 	if(lpNotification->tab != NULL) {
-
 		rNotifyTo.tab =	s_alloc<notificationTable>(soap);
 
 		memset(rNotifyTo.tab, 0, sizeof(notificationTable));
@@ -1503,7 +1499,6 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 
 		rNotifyTo.tab->ulObjType = lpNotification->tab->ulObjType;
 	}else if(lpNotification->obj != NULL) {
-
 		rNotifyTo.obj = s_alloc<notificationObject>(soap);
 		memset(rNotifyTo.obj, 0, sizeof(notificationObject));
 
@@ -2248,7 +2243,6 @@ size_t NotificationStructSize(const notification *lpNotification)
 		ulSize += EntryIdSize(lpNotification->obj->pOldParentId);
 		ulSize += PropTagArraySize(lpNotification->obj->pPropTagArray);
 	}else if(lpNotification->newmail != NULL){
-
 		ulSize += sizeof(notificationNewMail);
 		ulSize += EntryIdSize(lpNotification->newmail->pEntryId);
 		ulSize += EntryIdSize(lpNotification->newmail->pParentId);

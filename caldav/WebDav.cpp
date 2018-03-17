@@ -584,7 +584,6 @@ HRESULT WebDav::HrPropertySearch()
 	//REPORT Multiget Request.
 	// xml data to structures
 	while (lpXmlNode) {
-		
 		// <property-search>
 		if (!lpXmlNode || !lpXmlNode->name || xmlStrcmp(lpXmlNode->name, (const xmlChar *)"property-search"))
 		{

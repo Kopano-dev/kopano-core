@@ -44,7 +44,6 @@ DBPlugin::DBPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :
 //}
 
 void DBPlugin::InitPlugin() {
-
 	if(GetDatabaseObject(&m_lpDatabase) != erSuccess)
 	    throw runtime_error(string("db_init: cannot get handle to database"));
 }
