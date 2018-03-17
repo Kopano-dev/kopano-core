@@ -99,8 +99,6 @@ static HRESULT CopyMAPIERROR(const MAPIERROR *lpSrc, void *lpBase,
 static HRESULT CopyNotification(const NOTIFICATION *lpSrc, void *lpBase,
     NOTIFICATION *lpDst)
 {
-    HRESULT hr;
-
     memset(lpDst, 0, sizeof(NOTIFICATION));
 
     lpDst->ulEventType = lpSrc->ulEventType;
@@ -150,7 +148,7 @@ static HRESULT CopyNotification(const NOTIFICATION *lpSrc, void *lpBase,
 		auto &dst = lpDst->info.tab;
 		dst.ulTableEvent = src.ulTableEvent;
 		dst.hResult = src.hResult;
-		hr = Util::HrCopyProperty(&dst.propPrior, &src.propPrior, lpBase);
+		auto hr = Util::HrCopyProperty(&dst.propPrior, &src.propPrior, lpBase);
 		if (hr != hrSuccess)
 			return hr;
 		hr = Util::HrCopyProperty(&dst.propIndex, &src.propIndex, lpBase);
@@ -169,7 +167,7 @@ static HRESULT CopyNotification(const NOTIFICATION *lpSrc, void *lpBase,
 		auto &src = lpSrc->info.statobj;
 		auto &dst = lpDst->info.statobj;
 		MAPICopyMem(src.cbEntryID, src.lpEntryID, lpBase, &dst.cbEntryID, reinterpret_cast<void **>(&dst.lpEntryID));
-		hr = MAPIAllocateMore(src.cValues * sizeof(SPropValue), lpBase, reinterpret_cast<void **>(&dst.lpPropVals));
+		auto hr = MAPIAllocateMore(src.cValues * sizeof(SPropValue), lpBase, reinterpret_cast<void **>(&dst.lpPropVals));
 		if (hr != hrSuccess)
 			return hr;
 		hr = Util::HrCopyPropertyArray(src.lpPropVals, src.cValues, dst.lpPropVals, lpBase);
@@ -215,7 +213,6 @@ ULONG MAPINotifSink::OnNotify(ULONG cNotifications, LPNOTIFICATION lpNotificatio
 // Get All notifications off the queue
 HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNotifications, BOOL fNonBlock, ULONG timeout)
 {
-    HRESULT hr = hrSuccess;
     ULONG cNotifs = 0;
 	auto limit = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
 
@@ -229,7 +226,7 @@ HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNoti
 	}
     
 	memory_ptr<NOTIFICATION> lpNotifications;
-	hr = MAPIAllocateBuffer(sizeof(NOTIFICATION) * m_lstNotifs.size(), &~lpNotifications);
+	auto hr = MAPIAllocateBuffer(sizeof(NOTIFICATION) * m_lstNotifs.size(), &~lpNotifications);
 	if (hr == hrSuccess)
 		for (auto const &n : m_lstNotifs)
 			if (CopyNotification(n, lpNotifications, &lpNotifications[cNotifs]) == 0)

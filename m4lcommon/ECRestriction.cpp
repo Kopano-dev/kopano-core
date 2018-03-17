@@ -83,12 +83,11 @@ HRESULT ECRestriction::FindRowIn(LPMAPITABLE lpTable, BOOKMARK BkOrigin, ULONG u
 HRESULT ECRestriction::CopyProp(SPropValue *lpPropSrc, void *lpBase,
     ULONG ulFlags, SPropValue **lppPropDst)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropDst;
 
 	if (lpPropSrc == nullptr || lppPropDst == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = MAPIAllocateMore(sizeof(*lpPropDst), lpBase, &~lpPropDst);
+	auto hr = MAPIAllocateMore(sizeof(*lpPropDst), lpBase, &~lpPropDst);
 	if (hr != hrSuccess)
 		return hr;
 	if (ulFlags & Shallow)
@@ -417,8 +416,6 @@ ECRawRestriction::ECRawRestriction(RawResPtr ptrRestriction)
 { }
 
 HRESULT ECRawRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
-	HRESULT hr = hrSuccess;
-
 	if (lpBase == NULL || lpRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	if (!m_ptrRestriction)
@@ -426,7 +423,7 @@ HRESULT ECRawRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 	if (!(ulFlags & (ECRestriction::Cheap | ECRestriction::Shallow)))
 		return Util::HrCopySRestriction(lpRestriction, m_ptrRestriction.get(), lpBase);
 	*lpRestriction = *m_ptrRestriction;
-	return hr;
+	return hrSuccess;
 }
 
 ECRestriction *ECRawRestriction::Clone(void) const &
