@@ -267,17 +267,13 @@ HRESULT HrOpenECSession(IMAPISession **lppSession,
     const char *profname)
 {
 	HRESULT		hr = hrSuccess;
-	ULONG		ulProfNum = 0;
 	std::unique_ptr<char[]> szProfName(new char[strlen(PROFILEPREFIX)+10+1]);
 	IMAPISession *lpMAPISession = NULL;
 
-	if (profname == NULL) {
-		ulProfNum = rand_mt();
-		snprintf(szProfName.get(), strlen(PROFILEPREFIX)+10+1, "%s%010u", PROFILEPREFIX, ulProfNum);
-	}
-	else {
+	if (profname == nullptr)
+		snprintf(szProfName.get(), strlen(PROFILEPREFIX)+10+1, "%s%010u", PROFILEPREFIX, rand_mt());
+	else
 		strcpy(szProfName.get(), profname);
-	}
 
 	if (sslkey_file != NULL) {
 		FILE *ssltest = fopen(sslkey_file, "r");
@@ -464,13 +460,9 @@ HRESULT ECCreateOneOff(const TCHAR *lpszName, const TCHAR *lpszAdrType,
 
 	if(ulFlags & MAPI_UNICODE)
 	{
-		std::wstring wstrName;
+		std::wstring wstrName(const_cast<wchar_t *>(lpszName != nullptr ? lpszName : lpszAddress));
 		std::u16string strUnicode;
 
-		if (lpszName)
-			wstrName = (WCHAR*)lpszName;
-		else
-			wstrName = (WCHAR*)lpszAddress;
 		strUnicode = convert_to<std::u16string>(wstrName);
 		strOneOff.append(reinterpret_cast<const char *>(strUnicode.c_str()), (strUnicode.length() + 1) * sizeof(char16_t));
 		strUnicode = convert_to<std::u16string>(reinterpret_cast<const wchar_t *>(lpszAdrType));
@@ -1182,8 +1174,7 @@ static HRESULT GetRestrictTagsRecursive(const SRestriction *lpRestriction,
 		}
 		break;
 	case RES_NOT:
-		hr = GetRestrictTagsRecursive(lpRestriction->res.resNot.lpRes, lpList, ulLevel+1);
-		break;
+		return GetRestrictTagsRecursive(lpRestriction->res.resNot.lpRes, lpList, ulLevel+1);
 	case RES_CONTENT:
 		lpList->emplace_back(lpRestriction->res.resContent.ulPropTag);
 		lpList->emplace_back(lpRestriction->res.resContent.lpProp->ulPropTag);
@@ -1207,12 +1198,10 @@ static HRESULT GetRestrictTagsRecursive(const SRestriction *lpRestriction,
 		break;
 	case RES_SUBRESTRICTION:
 		lpList->emplace_back(lpRestriction->res.resSub.ulSubObject);
-		break;
 	case RES_COMMENT:
-		hr = GetRestrictTagsRecursive(lpRestriction->res.resComment.lpRes, lpList, ulLevel+1);
-		break;
+		return GetRestrictTagsRecursive(lpRestriction->res.resComment.lpRes, lpList, ulLevel+1);
 	}
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT GetRestrictTags(const SRestriction *lpRestriction,

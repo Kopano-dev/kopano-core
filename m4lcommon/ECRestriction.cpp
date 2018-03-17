@@ -423,11 +423,9 @@ HRESULT ECRawRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 		return MAPI_E_INVALID_PARAMETER;
 	if (!m_ptrRestriction)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	if (ulFlags & (ECRestriction::Cheap | ECRestriction::Shallow))
-		*lpRestriction = *m_ptrRestriction;
-
-	else
-		hr = Util::HrCopySRestriction(lpRestriction, m_ptrRestriction.get(), lpBase);
+	if (!(ulFlags & (ECRestriction::Cheap | ECRestriction::Shallow)))
+		return Util::HrCopySRestriction(lpRestriction, m_ptrRestriction.get(), lpBase);
+	*lpRestriction = *m_ptrRestriction;
 	return hr;
 }
 
