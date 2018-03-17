@@ -503,7 +503,6 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 			lpExternSignatures.emplace_back(sil.first, sil.second.second);
 			mapExternIdToLocal.emplace(sil.first, sil.second.first);
 		}
-		
 	}
 
 	er = GetLocalObjectListFromSignatures(lpExternSignatures, mapExternIdToLocal, ulFlags, lpObjects.get());
@@ -3567,7 +3566,6 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 			}
 			break;
 		} // end case DISTLIST_GROUP
-
 		} // end switch(objclass)
 	}
 

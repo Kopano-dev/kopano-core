@@ -1393,7 +1393,6 @@ retry:
 		memcpy(lpOutput->__ptr, strDecoded.data(), strDecoded.length());
 
 		er = KCERR_SSO_CONTINUE;
-
 	} else if (buffer[0] == 'A' && buffer[1] == 'F') {
 		// Authentication Fine
 		// Samba default runs in UTF-8 and setting 'unix charset' to windows-1252 in the samba config will break ntlm_auth
@@ -1434,7 +1433,6 @@ retry:
 			ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate ok user='%s' from='%s' method='ntlm sso' program='%s'",
 				lpszName, soap->host, szClientApp);
 		}
-
 	} else if (buffer[0] == 'N' && buffer[1] == 'A') {
 		// Not Authenticated
 		ec_log_info("Requested user \"%s\" denied. Not authenticated: \"%s\"", lpszName, strAnswer.c_str());

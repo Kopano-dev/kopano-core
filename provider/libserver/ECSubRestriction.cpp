@@ -85,7 +85,6 @@ static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
 			++*lpulCount;
                     
             break;
-        
     }
 	return erSuccess;
 }

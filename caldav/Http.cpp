@@ -161,7 +161,6 @@ HRESULT Http::HrReadHeaders()
 		else
 			ec_log_debug("< "+strBuffer);
 		++n;
-
 	} while(hr == hrSuccess);
 
 	hr = HrParseHeaders();

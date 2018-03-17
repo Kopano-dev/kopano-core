@@ -171,7 +171,6 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 
 		folder->Value.bin.cb = cbEntryID;
 		folder->Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryID.get());
-
 	} else if (wstrFldId.compare(L"Outbox") == 0) {
 		memory_ptr<SPropValue> lpOutbox;
 		auto hr = HrGetOneProp(lpMsgStore, PR_IPM_OUTBOX_ENTRYID, &~lpOutbox);

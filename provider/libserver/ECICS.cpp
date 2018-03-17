@@ -955,7 +955,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		if (er != erSuccess)
 			return er;
 		// Do stuff with lppChanges etc.
-
 	}else if(ulChangeType == ICS_SYNC_HIERARCHY){
 		er = getchanges_hier(soap, lpSession, gcache, lpDatabase, ulSyncId, ulChangeId, ulFolderId, ulFlags, ulMaxChange, lpChanges);
 		if (er != erSuccess)

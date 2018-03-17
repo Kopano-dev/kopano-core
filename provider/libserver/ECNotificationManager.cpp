@@ -290,14 +290,12 @@ void *ECNotificationManager::Work() {
                 lpItem = iterRequest->second.soap;
                 
                 m_mapRequests.erase(iterRequest);
-                
             } else {
                 // Nobody was listening to this session, just ignore it
             }
 			l_req.unlock();
             if(lpItem)
                 kopano_notify_done(lpItem);
-            
         }
         
         /* Find all notification requests which have not received any data for m_ulTimeout seconds. This makes sure

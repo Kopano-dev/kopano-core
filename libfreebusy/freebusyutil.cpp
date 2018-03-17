@@ -356,7 +356,6 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 			PR_FREEBUSY_TENTATIVE_EVENTS,
 			PR_FREEBUSY_TENTATIVE_MONTHS,
 			PR_FREEBUSY_NUM_MONTHS
-
 		}
 	};
 

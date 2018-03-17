@@ -494,7 +494,6 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 				setCellDone.emplace(i, k);
                 ++i;
             }
-            
         }
 
         // FIXME could fill setColumns per set of items instead of the whole table request
@@ -1031,7 +1030,6 @@ ECRESULT ECStoreObjectTable::Load()
                 strQuery += " AND hierarchy.flags & "+stringify(MSGFLAG_ASSOCIATED)+" = " + stringify(ulFlags&MSGFLAG_ASSOCIATED) + " AND hierarchy.flags & "+stringify(MSGFLAG_DELETED)+" = 0";
             else
                 strQuery += " AND hierarchy.flags & "+stringify(MSGFLAG_ASSOCIATED)+" = " + stringify(ulFlags&MSGFLAG_ASSOCIATED) + " AND hierarchy.flags & "+stringify(MSGFLAG_DELETED)+" = " + stringify(MSGFLAG_DELETED);
-            
         }
 		else if(ulObjType == MAPI_FOLDER) {
             strQuery += " AND hierarchy.type = " +  stringify(ulObjType);
@@ -1158,7 +1156,6 @@ exit:
 	biglock.unlock();
 	FreeRestrictTable(lpNewRestrict);
 	return er;
-    
 }
 
 /**

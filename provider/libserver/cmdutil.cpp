@@ -746,7 +746,6 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 
 		// Deletes have been committed, add the deleted items to the list of items we have deleted
 		lstDeleted.splice(lstDeleted.begin(),lstToBeDeleted);
-
 	} // while iterDeleteItems != end()
 	return erSuccess;
 }

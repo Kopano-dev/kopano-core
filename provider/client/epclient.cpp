@@ -682,7 +682,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 				// hr = MAPI_E_UNCONFIGURED;
 				goto exit2;
 			}
-
 		}// while(1)
 
 		if(bInitStores) {

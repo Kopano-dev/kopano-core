@@ -844,7 +844,6 @@ static void cleanup(ECRESULT er)
 		g_lpAudit->Release();
 	// cleanup ICU data so valgrind is happy
 	u_cleanup();
-
 }
 
 static int running_server(char *szName, const char *szConfig, bool exp_config,

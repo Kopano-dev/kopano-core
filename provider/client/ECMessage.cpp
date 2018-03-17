@@ -1343,7 +1343,6 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 			// Sent CLEAR_NRN_PENDING and CLEAR_RN_PENDING  for remove those properties
 			ulFlags |= CLEAR_NRN_PENDING | CLEAR_RN_PENDING;
 		}
-
 	}
 
 	hr = GetMsgStore()->lpTransport->HrSetReadFlag(m_cbEntryId, m_lpEntryId, ulFlags, 0);

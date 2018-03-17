@@ -3504,7 +3504,6 @@ ZEND_FUNCTION(mapi_openproperty)
 		guidLen = sizeof(GUID);
 		interfaceflags = 0;
 		flags = 0;
-
 	} else if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlsll", &res, &proptag, &guidStr, &guidLen, &interfaceflags, &flags) == FAILURE) {
 		return;
 	}
@@ -4444,7 +4443,6 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_name)
 		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to resolve user: %s (%x)",
 			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		goto exit;
-
 	}
 	MAPI_G(hr) = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpUsers);
 	if (MAPI_G(hr) != hrSuccess) {

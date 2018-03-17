@@ -2920,7 +2920,6 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 			if (hr != hrSuccess)
 				bPartial = true;
 		}
-
 	} else if (*lpSrcInterface == IID_IMessage) {
 		// recipients & attachments
 		// this is done in CopyProps ()

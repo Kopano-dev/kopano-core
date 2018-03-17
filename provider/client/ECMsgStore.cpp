@@ -540,7 +540,6 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			return hr;
 		lpEntryID = lpRootEntryID;
 		cbEntryID = cbRootEntryID;
-
 	}else {
 		auto hr = HrCompareEntryIdWithStoreGuid(cbEntryID, lpEntryID, &GetStoreGuid());
 		if(hr != hrSuccess)

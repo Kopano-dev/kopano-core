@@ -537,7 +537,6 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 		if ((hr = TryConvert(str, addr)) != hrSuccess)
 			return hr;
 		lpBuffer += (str.length() + 1) * sizeof(unsigned short);
-		
 	} else {
 		/*
 		 * Assumption: This should be an old OneOffEntryID in the
@@ -2019,7 +2018,6 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 
 				lpPropFBNew->Value.MVbin.lpbin[3].cb = lpPVFBFolder->Value.bin.cb;
 				lpPropFBNew->Value.MVbin.lpbin[3].lpb = lpPVFBFolder->Value.bin.lpb;
-
 			} else if(eDGMsgType == dgAssociated) {
 				lpPropFBNew->Value.MVbin.lpbin[0].cb = lpEntryID->Value.bin.cb;
 				lpPropFBNew->Value.MVbin.lpbin[0].lpb = lpEntryID->Value.bin.lpb;
@@ -2028,7 +2026,6 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 			lpPropFBNew->Value.MVbin.cValues = 4; // no problem if the data is NULL
 
 			lpPropFBRef = lpPropFBNew; // use this one later on
-
 		} else {
 
 			lpPropFB->Value.MVbin.lpbin[eDGMsgType].cb = lpEntryID->Value.bin.cb;

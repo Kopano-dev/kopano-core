@@ -106,7 +106,6 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 		if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
 			return hr;
 		wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str());
-
 	} else {
 		std::string strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
 		std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
@@ -430,7 +429,6 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgre
 		hr = ExportMessageFlags();
 		if(hr != hrSuccess)
 			return hr;
-
 	}else if(m_ulSyncType == ICS_SYNC_HIERARCHY){
 		hr = ExportFolderChanges();
 		if(hr == SYNC_W_PROGRESS)
@@ -441,7 +439,6 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgre
 		hr = ExportFolderDeletes();
 		if(hr != hrSuccess)
 			return hr;
-
 	}else{
 		return MAPI_E_INVALID_PARAMETER;
 	}

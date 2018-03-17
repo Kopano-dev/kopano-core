@@ -269,7 +269,6 @@ HRESULT ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lpMods)
 		if(hr != hrSuccess)
 			return hr;
 		// FIXME: if username not exist, just resolve
-
 	} else {
 		assert(false);
 		return MAPI_E_CALL_FAILED;

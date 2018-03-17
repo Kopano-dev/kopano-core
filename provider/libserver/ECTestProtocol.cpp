@@ -53,7 +53,6 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession,
             if(er != erSuccess)
                 return er;
         }
-            
     } else if (strcasecmp(szCommand, "indexer_syncrun") == 0) {
 		if (parseBool(g_lpSessionManager->GetConfig()->GetSetting("search_enabled")))
 			er = ECSearchClient(
@@ -82,7 +81,6 @@ ECRESULT TestSet(struct soap *soap, ECSession *lpSession,
             g_lpSessionManager->GetCacheManager()->DisableCellCache();
         else
             g_lpSessionManager->GetCacheManager()->EnableCellCache();
-            
     } else if (strcasecmp(szVarName, "search_enabled") == 0) {
 		// Since there's no object that represents the indexer, it's probably cleanest to
 		// update the configuration.

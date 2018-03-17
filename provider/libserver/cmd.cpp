@@ -799,7 +799,6 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 
 		// return ecsession number
 		lpsResponse->lpOutput = NULL;
-
 	} else {
 		// delete authsession
 		lpecAuthSession->unlock();
@@ -1025,7 +1024,6 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		}
 
 		ec_log_info("Store purge done");
-
 	}
 	if (*lpbExit)
 		return KCERR_USER_CANCEL;
@@ -1060,7 +1058,6 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 		}
 
 		ec_log_info("Folder purge done");
-
 	}
 	if (*lpbExit)
 		return KCERR_USER_CANCEL;
@@ -2002,7 +1999,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				if(er != erSuccess)
 					return er;
 			}
-
 		} else {
             // Make sure string propvals are in UTF8 with tag PT_STRING8
             if (PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) == PT_STRING8 || PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) == PT_UNICODE) {
@@ -2030,7 +2026,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		}
 
 		setInserted.emplace(lpPropValArray->__ptr[i].ulPropTag);
-
 	} // for (i = 0; i < lpPropValArray->__size; ++i)
 
 	if(!strInsert.empty()) {
@@ -2121,7 +2116,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
             key.ulObjId = ulObjId;
             key.ulOrderId = 0;
 			g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_LAST_MODIFICATION_TIME, &sProp);
-			
 		}
 		
 		if(ulObjType == MAPI_MESSAGE) {
@@ -3019,7 +3013,6 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, const entryId &sEntryId,
 
 					if (strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0)
 						return KCERR_UNABLE_TO_COMPLETE;	// Reason 2
-
 				} else if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
 					// We allow an archive store to be opened by sysadmins even if it's not supposed
 					// to exist on this server for a particular user.
@@ -4393,7 +4386,6 @@ SOAP_ENTRY_START(getReceiveFolder, lpsReceiveFolder->er,
 			strQuery += " OR messageclass='" + lpDatabase->Escape(std::string(lpszMessageClass, lpDest - lpszMessageClass)) + "'";
 			++lpDest;
 		}
-
 	}while(lpDest);
 
 	if(strlen(lpszMessageClass) != 0)
@@ -4464,7 +4456,6 @@ SOAP_ENTRY_START(setReceiveFolder, *result, const entryId &sStoreId,
 		er = lpecSession->GetSecurity()->CheckDeletedParent(ulId);
 		if (er != erSuccess)
 			return er;
-
 	} else {
 		// Set MessageClass with the default of the store (that's the empty MessageClass)
 		strQuery = "SELECT objid FROM receivefolder WHERE storeid="+stringify(ulStoreid)+" AND messageclass='' LIMIT 2";
@@ -7557,7 +7548,6 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		//Update destination folder
 		gcache->Update(fnevObjectModified, ulNewDestFolderId);
 		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulNewDestFolderId);
-
 	}
 
 	gcache->GetParent(ulFolderFrom ,&ulGrandParent);
@@ -7681,7 +7671,6 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
 		//Update destination folder
 		gcache->Update(fnevObjectModified, ulDestFolderId);
 		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId);
-
 	}
 
 	if(bPartialCompletion && er == erSuccess)
@@ -9112,7 +9101,6 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er,
 			return er = KCERR_NOT_FOUND;
 		ulObjId = ulMessageId;
 		ulObjType = MAPI_MESSAGE;
-
 	} else {
 		ulObjId = ulFolderId;
 		ulObjType = MAPI_FOLDER;
@@ -9776,7 +9764,6 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 			assert(false);
 			return er;
 		}
-
 	}
 
 	// Create the message

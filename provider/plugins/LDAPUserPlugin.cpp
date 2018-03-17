@@ -806,7 +806,6 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 		}
 
 		object_uid = user_unique;
-
 	}
 
 	if (objclass == NONACTIVE_CONTACT)

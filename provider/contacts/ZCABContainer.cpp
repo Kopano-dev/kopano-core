@@ -542,7 +542,6 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 			hr = ptrZCMAPIProp->GetProps(sptaCols, 0, &cValues, &~ptrProps);
 			if (FAILED(hr))
 				continue;
-
 		} else {
 			hr = ptrUser->GetProps(sptaCols, 0, &cValues, &~ptrProps);
 			if (FAILED(hr))

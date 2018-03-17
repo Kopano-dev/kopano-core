@@ -1119,7 +1119,6 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 					ulDiffrence = m_sRecState.ulDayOfMonth - ulDaysOfMonths + 1;
 				
 				tsDayNow = tsNow + (m_sRecState.ulDayOfMonth - ulDiffrence) *24*60*60;
-
 			} else if( m_sRecState.ulWeekNumber != 0 && m_sRecState.ulWeekDays != 0) {
 				if (m_sRecState.ulWeekNumber < 5) {
 					ulDayCounter = 0;
@@ -1172,7 +1171,6 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 					ulMonthDay = DaysInMonth(YearFromTime(tMonthStart),MonthFromTime(tMonthStart));
 
 				tsDayNow = tMonthStart + (ulMonthDay -1) * 24 * 60 * 60;				
-				
 			} else if( m_sRecState.ulWeekNumber != 0 && m_sRecState.ulWeekDays != 0) {
 				
 				tsMonthNow = tsNow + DaysTillMonth(tsNow, getMonth()-1) * 24 * 60 * 60;
@@ -1198,7 +1196,6 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 			}
 	
 			tsNow += DaysTillMonth(tsNow, m_sRecState.ulPeriod) * 60 * 60 * 24;
-		
 		}
 		break;
 	}

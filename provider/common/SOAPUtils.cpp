@@ -1502,7 +1502,6 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 		CopyPropValArray(lpNotification->tab->pRow, &rNotifyTo.tab->pRow, soap);
 
 		rNotifyTo.tab->ulObjType = lpNotification->tab->ulObjType;
-
 	}else if(lpNotification->obj != NULL) {
 
 		rNotifyTo.obj = s_alloc<notificationObject>(soap);
@@ -1516,7 +1515,6 @@ ECRESULT CopyNotificationStruct(struct soap *soap,
 		CopyEntryId(soap, lpNotification->obj->pOldId, &rNotifyTo.obj->pOldId);
 		CopyEntryId(soap, lpNotification->obj->pOldParentId, &rNotifyTo.obj->pOldParentId);
 		CopyPropTagArray(soap, lpNotification->obj->pPropTagArray, &rNotifyTo.obj->pPropTagArray);
-
 	}else if(lpNotification->newmail != NULL){
 		rNotifyTo.newmail = s_alloc<notificationNewMail>(soap);
 
@@ -2249,7 +2247,6 @@ size_t NotificationStructSize(const notification *lpNotification)
 		ulSize += EntryIdSize(lpNotification->obj->pOldId);
 		ulSize += EntryIdSize(lpNotification->obj->pOldParentId);
 		ulSize += PropTagArraySize(lpNotification->obj->pPropTagArray);
-
 	}else if(lpNotification->newmail != NULL){
 
 		ulSize += sizeof(notificationNewMail);

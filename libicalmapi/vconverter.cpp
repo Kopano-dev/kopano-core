@@ -755,7 +755,6 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			sPropVal.Value.ft  = UnixTimeToFileTime(ttCritcalChange);
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
-
 		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE") == 0){
 			auto lpicValue = icalvalue_new_from_string(ICAL_DATETIME_VALUE, icalproperty_get_x(lpicProp));
 			if (lpicValue == nullptr)
@@ -765,7 +764,6 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			sPropVal.Value.ft  = UnixTimeToFileTime(ttCritcalChange);
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
-
 		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-OWNERAPPTID") == 0){
 			auto lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
 			if (lpicValue == nullptr)
@@ -775,7 +773,6 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			bOwnerApptID = true;
 			icalvalue_free(lpicValue);
-
 		}else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-APPT-SEQUENCE") == 0){
 			auto lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
 			if (lpicValue == nullptr)
@@ -783,7 +780,6 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			ulMaxCounter = std::max(ulMaxCounter, icalvalue_get_integer(lpicValue));
 			bHaveCounter = true;
 			icalvalue_free(lpicValue);
-
 		} else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MOZ-GENERATION") == 0) {
 			auto lpicValue = icalvalue_new_from_string(ICAL_INTEGER_VALUE, icalproperty_get_x(lpicProp));
 			if (lpicValue == nullptr)
@@ -791,7 +787,6 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
 			ulMaxCounter = std::max(ulMaxCounter, icalvalue_get_integer(lpicValue));
 			bHaveCounter = bMozGen = true;
 			icalvalue_free(lpicValue);
-
 		} else if (strcmp(icalproperty_get_x_name(lpicProp), "X-MOZ-SEND-INVITATIONS") == 0) {
 			auto lpicValue = icalvalue_new_from_string(ICAL_X_VALUE, icalproperty_get_x(lpicProp));
 			if (lpicValue == nullptr)
@@ -1243,7 +1238,6 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 			icalvalue_free(lpicValue);
 		}
-
 	}
 
 	if (bHasMozAck) { // save X-MOZ-LAST-ACK if found in request.
@@ -2404,7 +2398,6 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		ulRecurrenceStateTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_RECURRSTATE], PT_BINARY);
 		lpSPropRecVal = &lpSpropArray[5];
 		ulFlag = RECURRENCE_STATE_TASKS;
-
 	} else {
 		ulRecurrenceStateTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
 		lpSPropRecVal = &lpSpropArray[2];

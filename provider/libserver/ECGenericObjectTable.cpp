@@ -839,7 +839,6 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 			if (!bExist)
 				sPropTagArray.__ptr[n++] = lpsRestrictPropTagArray->__ptr[i];
 		}
-
 	}
 
 	sPropTagArray.__size = n;

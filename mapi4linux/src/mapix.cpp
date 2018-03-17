@@ -904,7 +904,6 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 			// Found it
 			memcpy(&sProviderUID, lpsRows[0].lpProps[1].Value.bin.lpb, sizeof(MAPIUID));
 			break;
-			
 		}
 	}
 	

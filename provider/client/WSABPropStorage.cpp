@@ -46,7 +46,6 @@ WSABPropStorage::WSABPropStorage(ULONG cbEntryId, const ENTRYID *lpEntryId,
 	if (ret != hrSuccess)
 		throw std::runtime_error("CopyMAPIEntryIdToSOAPEntryId");
     lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
-	    
 }
 
 WSABPropStorage::~WSABPropStorage()

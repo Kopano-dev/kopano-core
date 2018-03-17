@@ -299,7 +299,6 @@ void ECSearchFolders::DestroySearchFolder(std::shared_ptr<SEARCHFOLDER> &&lpFold
 	lpFolder.reset();
     // Set the search as stopped in the database
     SetStatus(ulFolderId, EC_SEARCHFOLDER_STATUS_STOPPED);
-
 }
 
 /**
@@ -587,7 +586,6 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 									// Send table notification
 									m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, folder.first, iterObjectIDs->ulObjId, MAPI_MESSAGE);
 								}
-								
 							} else {
 								// AddResults will return an error if the call didn't do anything (record was already in the table).
 								
@@ -994,7 +992,6 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 			if (cache->GetParent(ulFolderId, &ulParent) == erSuccess)
 				m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER); // PR_CONTENT_* has changed in tables too
 		}
-
 	} else {
 		// Get the restriction ready for this search folder
 		er = ECGenericObjectTable::GetRestrictPropTags(lpSearchCrit->lpRestrict, &lstPrefix, &lpPropTags);

@@ -165,7 +165,6 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		lpEntryIDIntern->abFlags[3] &= ~KOPANO_FAVORITE;
 
 		lpEntryID = lpEntryIDIntern;
-
 	}
 	
 	hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), &objtype);

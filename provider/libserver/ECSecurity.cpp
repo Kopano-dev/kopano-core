@@ -709,7 +709,6 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 				if(er != erSuccess)
 					return er;
 			}
-
 		}else{
 			// a Hacker ?
 		}

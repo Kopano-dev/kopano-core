@@ -53,7 +53,6 @@ HRESULT ECRulesTableProxy::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE2(IMAPITable, this);
 	REGISTER_INTERFACE2(IUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
 }
 
 HRESULT ECRulesTableProxy::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError)

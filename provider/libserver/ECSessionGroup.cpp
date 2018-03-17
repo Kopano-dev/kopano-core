@@ -289,7 +289,6 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 
 		memcpy(lpNotify->tab->propPrior.Value.bin->__ptr, &lpsPrevRow->ulObjId, sizeof(ULONG));
 		memcpy(lpNotify->tab->propPrior.Value.bin->__ptr+sizeof(ULONG), &lpsPrevRow->ulOrderId, sizeof(ULONG));
-
 	}else {
 		lpNotify->tab->propPrior.__union = SOAP_UNION_propValData_ul;
 		lpNotify->tab->propPrior.ulPropTag = PR_NULL;

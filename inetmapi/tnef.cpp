@@ -1379,7 +1379,6 @@ HRESULT ECTNEF::Finish()
 			    PROP_ID(p->ulPropTag) == PROP_ID(PR_INTERNET_CPID))
   				m_lpMessage->SetProps(1, p, NULL);
 			// else, Property already exists, do *not* overwrite it
-
 		}
 		// Add all found attachments to message
 		for (const auto &att : lstAttachments) {

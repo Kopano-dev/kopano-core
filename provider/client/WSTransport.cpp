@@ -719,7 +719,6 @@ HRESULT WSTransport::HrOpenFolderOps(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		return hr;
 	return WSMAPIFolderOps::Create(m_ecSessionId, cbUnWrapStoreID,
 	       lpUnWrapStoreID, this, lppFolderOps);
-
 }
 
 HRESULT WSTransport::HrOpenTableOps(ULONG ulType, ULONG ulFlags,
@@ -1389,7 +1388,6 @@ HRESULT WSTransport::HrSetReadFlag(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	END_SOAP_CALL
  exitm:
 	return hr;
-
 }
 
 HRESULT WSTransport::HrSubmitMessage(ULONG cbMessageID,
@@ -1977,7 +1975,6 @@ HRESULT WSTransport::HrCreateGroup(ECGROUP *lpECGroup, ULONG ulFlags,
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
-
 	}
 	END_SOAP_CALL
 
@@ -2171,7 +2168,6 @@ HRESULT WSTransport::HrAddSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
 	{
 		if (m_lpCmd->addSendAsUser(m_ecSessionId, ABEID_ID(lpUserId), sUserId, ABEID_ID(lpSenderId), sSenderId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
-	
 	}
 	END_SOAP_CALL
  exitm:
@@ -2564,7 +2560,6 @@ HRESULT WSTransport::HrCreateCompany(ECCOMPANY *lpECCompany, ULONG ulFlags,
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
-
 	}
 	END_SOAP_CALL
 
@@ -2726,7 +2721,6 @@ HRESULT WSTransport::HrResolveCompanyName(LPCTSTR lpszCompanyName, ULONG ulFlags
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
-
 	}
 	END_SOAP_CALL
 
@@ -2762,7 +2756,6 @@ HRESULT WSTransport::HrGetCompanyList(ULONG ulFlags, ULONG *lpcCompanies,
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
-
 	}
 	END_SOAP_CALL
 
@@ -3009,7 +3002,6 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sRightResponse.er;
-
 	}
 	END_SOAP_CALL
 
@@ -3485,7 +3477,6 @@ HRESULT WSTransport::HrPurgeDeferredUpdates(ULONG *lpulRemaining)
             er = sResponse.er;
             
         *lpulRemaining = sResponse.ulDeferredRemaining;
-        
 	}
 	END_SOAP_CALL
  exitm:
@@ -3646,7 +3637,6 @@ HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
 			lpChanges[i].sParentSourceKey.cb = sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size;
 			memcpy(lpChanges[i].sParentSourceKey.lpb, sResponse.sChangesArray.__ptr[i].sParentSourceKey.__ptr, sResponse.sChangesArray.__ptr[i].sParentSourceKey.__size);
 		}
-		
 	}
 	
 	*lpulMaxChangeId = sResponse.ulMaxChangeId;

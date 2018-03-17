@@ -2471,7 +2471,6 @@ PyObject *List_from_LPECSERVERLIST(ECSERVERLIST *lpServerList)
 		PyList_Append(list, item);
 	}
 	return list.release();
-
 }
 
 void Object_to_STATSTG(PyObject *object, STATSTG *stg)

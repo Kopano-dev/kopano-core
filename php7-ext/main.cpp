@@ -3435,7 +3435,6 @@ ZEND_FUNCTION(mapi_openproperty)
 		guidLen = sizeof(GUID);
 		interfaceflags = 0;
 		flags = 0;
-
 	} else if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlsll", &res, &proptag, &guidStr, &guidLen, &interfaceflags, &flags) == FAILURE) {
 		return;
 	}
@@ -4368,7 +4367,6 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_name)
 		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to resolve user: %s (%x)",
 			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
-
 	}
 	MAPI_G(hr) = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpUsers);
 	if (MAPI_G(hr) != hrSuccess) {
@@ -5553,7 +5551,6 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 			lpECPerms[j].ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
 		}
 		++j;
-
 	} ZEND_HASH_FOREACH_END();
 
 	MAPI_G(hr) = lpSecurity->SetPermissionRules(j, lpECPerms);
@@ -5701,7 +5698,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 		lpUsers[j].m_cbEid = Z_STRLEN_P(entry);
 		lpUsers[j].m_lpEid = (LPENTRYID)Z_STRVAL_P(entry);
 		++j;
-
 	} ZEND_HASH_FOREACH_END();
 
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void**)&lppFBData);
@@ -5776,7 +5772,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 		lpUsers[j].m_cbEid = Z_STRLEN_P(entry);
 		lpUsers[j].m_lpEid = (LPENTRYID)Z_STRVAL_P(entry);
 		++j;
-
 	} ZEND_HASH_FOREACH_END();
 
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyUpdate*)*cUsers, &~lppFBUpdate);

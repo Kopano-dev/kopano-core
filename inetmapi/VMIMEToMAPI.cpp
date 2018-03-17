@@ -1767,7 +1767,6 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 				if (hr != hrSuccess)
 					goto exit;
 			}
-		
 		} else if (mt->getType() == vmime::mediaTypes::MESSAGE) {
 			dissect_message(vmBody, lpMessage);
 		} else if(mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "ms-tnef") {
@@ -2509,7 +2508,6 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 
 			if (m_mailState.attachLevel < ATTACH_NORMAL)
 				m_mailState.attachLevel = ATTACH_INLINE;
-
 		} else {
 			attProps[nProps].ulPropTag = PR_ATTACHMENT_HIDDEN;
 			attProps[nProps++].Value.b = FALSE;

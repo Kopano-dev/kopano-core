@@ -396,7 +396,6 @@ void CHtmlToTextParser::parseTagBA()
 
 	if(!stackAttrs.empty())
 		stackAttrs.pop();
-
 }
 
 bool CHtmlToTextParser::addURLAttribute(const WCHAR *lpattr, bool bSpaces) {

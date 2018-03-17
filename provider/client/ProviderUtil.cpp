@@ -72,7 +72,6 @@ HRESULT CompareStoreIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 		if (reinterpret_cast<const EID_V0 *>(lpEntryID1)->ulId !=
 		    reinterpret_cast<const EID_V0 *>(lpEntryID2)->ulId)
 			goto exit;
-
 	}else {
 		if(cbEntryID1 < CbNewEID(""))
 			goto exit;

@@ -680,7 +680,6 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 					return hr;
 				}
 			}
-
 		}
 	}else {
 		hr = lpFolderOps->HrSetReadFlags(lpMsgList, ulFlags, 0);

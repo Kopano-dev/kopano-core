@@ -645,7 +645,6 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 			er = lpSink->Write(&ulKind, sizeof(ulKind), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(&ulNameId, sizeof(ulNameId), 1);
-
 		} else if (er == erSuccess && lpRow[FIELD_NR_NAMESTR] != NULL) {
 			unsigned int ulKind = MNID_STRING, ulLen = lpLen[FIELD_NR_NAMESTR];
 			er = lpSink->Write(&ulKind, sizeof(ulKind), 1);
@@ -653,7 +652,6 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(lpRow[FIELD_NR_NAMESTR], 1, ulLen);
-
 		} else if (er == erSuccess)
 			er = KCERR_INVALID_TYPE;
 	}
@@ -1757,7 +1755,6 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 				if (er != erSuccess)
 					goto exit;
 			}
-
 		} else {
 			assert(false);
 		}

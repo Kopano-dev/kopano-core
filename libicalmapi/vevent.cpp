@@ -362,7 +362,6 @@ HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent 
 	if (lpicDTEndProp) {
 		timeDTEndUTC = ICalTimeTypeToUTC(lpicEventRoot, lpicDTEndProp);
 		timeDTEndLocal = ICalTimeTypeToLocal(lpicDTEndProp);
-
 	} else {
 		// @note not so sure if the following comment is 100% true. It may also be used to complement a missing DTSTART or DTEND, according to MS specs.
 		// When DTEND is not in the ical, it should be a recurring message, which never ends!

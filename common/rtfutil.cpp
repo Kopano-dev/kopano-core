@@ -289,7 +289,6 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 				}else if(isRTFIgnoreCommand(szCommand)) {
 					sState[ulState].bInSkipTbl = true;
 				}
-
 			}
 			// Non-alnum after '\'
 			else if(*szInput == '\\') {
@@ -336,7 +335,6 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 					else
 						break;
 				}				
-
 			} else {
 				++szInput; // skip single character after '\'
 			}
@@ -872,7 +870,6 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 						++szInput;
 
 					sState[ulState].bInSkipTbl = true;
-
 				} else if (strcmp(szCommand, "endash") == 0) {
 					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
 					// windows-1252: 0x96, unicode 0x2013
@@ -904,7 +901,6 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 				} else if(isRTFIgnoreCommand(szCommand)) {
 					sState[ulState].bInSkipTbl = true;
 				}
-
 			}
 			// Non-alnum after '\'
 			else if(*szInput == '\\') {
@@ -956,7 +952,6 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 					else
 						break;
 				}
-
 			} else {
 				++szInput; // skip single character after '\'
 			}

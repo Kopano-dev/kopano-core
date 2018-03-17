@@ -474,7 +474,6 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 			// configuration dictates that old archives are linked. We won't do that though!
 			Logger()->logf(EC_LOGLEVEL_DEBUG, "Message not yet archived to archive (%s)", arc.sStoreEntryId.tostring().c_str());
 			hr = DoInitialArchive(ptrMessage, arc, refObjectEntry, &ptrTransaction);
-
 		} else if (state.isDirty()) {
 			// We found an archived version for the current message. However, the message is marked dirty...
 			// There are two things we can do:
@@ -494,7 +493,6 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 				// refObjectEntry is different than the stored reference it the most
 				// recent archive.
 				hr = DoTrackAndRearchive(ptrMessage, arc, *iArchivedMsg, refObjectEntry, state.isMove(), &ptrTransaction);
-
 			} else if (!state.isMove()) {
 				Logger()->Log(EC_LOGLEVEL_DEBUG, "Updating archived message.");
 				hr = DoUpdateArchive(ptrMessage, *iArchivedMsg, refObjectEntry, &ptrTransaction);
@@ -506,7 +504,6 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 				if (hr == hrSuccess)
 					hr = ptrTransaction->Delete(*iArchivedMsg);
 			}
-
 		} else if (!state.isMove()) {
 			Logger()->Log(EC_LOGLEVEL_WARNING, "Ignoring already archived message.");
 			ptrTransaction.reset(new Transaction(*iArchivedMsg));

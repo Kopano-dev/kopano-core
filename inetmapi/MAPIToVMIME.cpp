@@ -248,7 +248,6 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 			vmime::shared_ptr<vmime::mailboxGroup> undisclosed = vmime::make_shared<vmime::mailboxGroup>(vmime::text("undisclosed-recipients"));
 			lpVMMessageBuilder->getRecipients().appendAddress(undisclosed);
 		}
-			
 	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception: %s", e.what());
 		return MAPI_E_CALL_FAILED;
@@ -973,7 +972,6 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 			// vmime now encodes the body too, so I don't have to
 			vmMessage->getHeader()->appendField(vmime::headerFieldFactory::getInstance()->create(vmime::fields::CONTENT_TRANSFER_ENCODING, "base64"));
 		}
-
 	} else {
 normal:
 		// Create default
@@ -1888,7 +1886,6 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 				lpvmMapiText->setOtherContentEncoding(vmime::encoding(vmime::encodingTypes::EIGHT_BIT));
 				lpvmMapiText->setOtherMethod(method);
 				lpvmMapiText->setOtherCharset(vmime::charset("utf-8"));
-
 			} else {
 				if (lstOLEAttach.size())
 					ec_log_info("TNEF because of OLE attachments");

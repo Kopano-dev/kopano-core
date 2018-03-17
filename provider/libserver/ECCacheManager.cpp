@@ -440,7 +440,6 @@ exit:
 	else
 		LOG_CACHE_DEBUG("Get object id %d result [%s]: parent %d owner %d flags %d type %d", ulObjId, ((bCacheResult)?"C":"D"), ulParent, ulOwner, ulFlags, ulType);
 	return er;
-
 }
 
 ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects,
@@ -611,7 +610,6 @@ ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpu
     	ulStore = atoi(lpDBRow[0]);
         memcpy(&guid, lpDBRow[1], sizeof(GUID));
         ulType = atoi(lpDBRow[2]);
-
 	} else {
 	    // We have a parent, get the store for our parent by recursively calling ourselves
 	    er = GetStoreAndType(ulSubObjId, &ulStore, &guid, &ulType, maxdepth-1);

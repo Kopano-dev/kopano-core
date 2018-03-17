@@ -685,7 +685,6 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 			}
 			sWebMStatus->lstResp.emplace_back(sWebResponse);
 			sWebResponse.lstsPropStat.clear();
-
 		}
 	}
 
@@ -1730,14 +1729,12 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 				HrSetDavPropName(&(sWebVal.sPropName), "schedule-outbox", CALDAVNS);
 				sWebProperty.lstValues.emplace_back(sWebVal);
 			}
-
 		} else if (strProperty == "displayname" && (!bPropsFirst || lpFoundProp)) {
 			// foldername from given properties (propfind command) username from properties (propsearch command) or fullname of user ("root" props)
 			if (bPropsFirst)
 				sWebProperty.strValue = SPropValToString(lpFoundProp);
 			else if (ptrFullname != nullptr)
 				sWebProperty.strValue = W2U(ptrFullname->Value.lpszW);
-			
 		} else if (strProperty == "calendar-user-address-set" && (m_ulUrlFlag & REQ_PUBLIC) == 0 && !!ptrEmail) {
 			// rfc draft only: http://tools.ietf.org/html/draft-desruisseaux-caldav-sched-11
 			HrSetDavPropName(&(sWebVal.sPropName), "href", WEBDAVNS);
@@ -1746,11 +1743,9 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 		} else if (strProperty == "acl" || strProperty == "current-user-privilege-set") {
 			
 			HrBuildACL(&sWebProperty);
-
 		} else if (strProperty == "supported-report-set") {
 			
 			HrBuildReportSet(&sWebProperty);
-
 		} else if (lpFoundProp && 
 					(strProperty == "calendar-description" || 
 					 strProperty == "last-name" || 
@@ -1758,7 +1753,6 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 					) {
 			
 			sWebProperty.strValue = SPropValToString(lpFoundProp);
-
 		} else if (strProperty == "getctag" || strProperty == "getetag") {
 			// ctag and etag should always be present
 			if (lpFoundProp)
@@ -1807,14 +1801,12 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 			}
 
 			strIcal.clear();
-
 		} else if (strProperty == "calendar-order") {
 			
 			if (ulFolderType == CALENDAR_FOLDER) {
 				lpFoundProp = PCpropFindProp(lpProps, ulPropCount, PR_ENTRYID);
 				if (lpFoundProp)
 					HrGetCalendarOrder(lpFoundProp->Value.bin, &sWebProperty.strValue);
-
 			} else  {
 				// @todo leave not found for messages?
 
@@ -1823,11 +1815,9 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 				// if this value is left empty, ical.app tries to reset the order
 				sWebProperty.strValue = "2";
 			}
-
 		} else if (strProperty == "getcontenttype") {
 
 			sWebProperty.strValue = "text/calendar";
-
 		} else if (strProperty == "principal-collection-set") {
 			// DAV:
 			// This protected property of a resource contains a set of
@@ -1836,7 +1826,6 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 			// implements this resource.
 
 			sWebProperty.strValue = "/caldav/";
-
 		} else if (strProperty == "current-user-principal") {
 			// webdav rfc5397
 			// We should return the currently authenticated user principal url, but due to sharing, Mac iCal 10.8 gets confused

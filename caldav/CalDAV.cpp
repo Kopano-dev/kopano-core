@@ -346,7 +346,6 @@ exit:
 	// cleanup ICU data so valgrind is happy
 	u_cleanup();
 	return hr;
-
 }
 
 static HRESULT ical_listen(ECConfig *cfg)

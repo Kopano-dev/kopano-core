@@ -236,7 +236,6 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				strcpy(lpsRowSet->__ptr[i].__ptr[k].Value.lpszA, iterSD->second.value.c_str());
 				break;
 			}
-
 		}
 		++i;
 	}

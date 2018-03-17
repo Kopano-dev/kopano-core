@@ -967,7 +967,6 @@ HRESULT CopySOAPEntryListToMAPIEntryList(const struct entryList *lpsEntryList,
 		memcpy(lpMsgList->lpbin[i].lpb, lpsEntryList->__ptr[i].__ptr, lpsEntryList->__ptr[i].__size);
 
 		lpMsgList->lpbin[i].cb = lpsEntryList->__ptr[i].__size;
-
 	}
 
 	lpMsgList->cValues = i;

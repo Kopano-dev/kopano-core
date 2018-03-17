@@ -716,7 +716,6 @@ unsigned u8_len(const char *s)
 		++len;
 	}
 	return len;
-
 }
 
 static const struct localemap {

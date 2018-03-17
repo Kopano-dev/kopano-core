@@ -241,7 +241,6 @@ ECRESULT ECKeyTable::UpdateCounts(ECTableRow *lpRow)
 		lpRow->ulHeight += ulHeight;
 
 		lpRow = lpRow->lpParent;
-
 	}
 	return erSuccess;
 }
@@ -529,7 +528,6 @@ ECRESULT ECKeyTable::Clear()
 
 			// continue with parent
 			lpRow = lpParent;
-			
 		}
 	}
 	lpCurrent = lpRoot;

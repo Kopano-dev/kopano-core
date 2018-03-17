@@ -1742,7 +1742,6 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			lpPropVal->ulPropTag = PR_FOLLOWUP_ICON;
 			lpPropVal->Value.ul = 6;
 			HrSetOneProp(lpMessage, lpPropVal);
-
 		} else if (strFlag.compare("\\ANSWERED") == 0 || strFlag.compare("$FORWARDED") == 0) {
 			if (HrGetOneProp(lpMessage, PR_MSG_STATUS, &~lpPropVal) != hrSuccess) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
@@ -3211,7 +3210,6 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 		hr = lpStore->OpenEntry(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), &IID_IMAPIFolder, MAPI_DEFERRED_ERRORS, &obj_type, &~folder);
 		if (hr != hrSuccess)
 			return hr;
-
 	}
 
 	SFolder sfolder;
@@ -3922,7 +3920,6 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				vProps.emplace_back(szBuffer);
 				vProps.back() += strMessagePart;
 			}
-
 		} else {
 			// unknown item
 			vProps.emplace_back(item);
@@ -4108,7 +4105,6 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
         else
             // Swap to conserve memory: Original: strMessagePart = strMessage
             swap(strMessagePart, strMessage);
-
 	} else if (strPartName.compare("TEXT") == 0) {
 	    // Everything except for the headers
 		ulPos = strMessage.find("\r\n\r\n");
@@ -4587,7 +4583,6 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 					lpPropVal->ulPropTag = PR_FOLLOWUP_ICON;
 					lpPropVal->Value.ul = 0;
 					HrSetOneProp(lpMessage, lpPropVal);
-
 				} else if (lstFlags[ulCurrent].compare("\\ANSWERED") == 0 || lstFlags[ulCurrent].compare("$FORWARDED") == 0) {
 					hr = lpMessage->GetProps(proptags4, 0, &cValues, &~lpPropVal);
 					if (FAILED(hr))
@@ -5040,7 +5035,6 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 				ECExistRestriction(PR_SUBJECT) +
 				ECContentRestriction(flags, PR_SUBJECT, &pv, ECRestriction::Shallow));
             ulStartCriteria += 2;
-                
 		} else if (strSearchCriterium.compare("TEXT") == 0) {
 			unsigned int flags = lstSearchCriteria[ulStartCriteria+1].size() > 0 ? (FL_SUBSTRING | FL_IGNORECASE) : FL_FULLSTRING;
 			pv.ulPropTag   = PR_BODY_A;

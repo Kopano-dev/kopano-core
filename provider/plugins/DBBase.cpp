@@ -334,7 +334,6 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		auto er = m_lpDatabase->DoDelete(strDeleteQuery);
 		if(er != erSuccess)
 			throw runtime_error(string("db_query: ") + strerror(er));
-
 	}
 
 	auto strQuery = "REPLACE INTO " + std::string(DB_OBJECTPROPERTY_TABLE) + "(objectid, propname, value) VALUES ";

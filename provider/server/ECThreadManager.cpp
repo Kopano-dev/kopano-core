@@ -991,7 +991,6 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 					m_setSockets.emplace(sActive.soap->socket, sActive);
 					NotifyRestart(newsoap->socket);
 				}
-
 			} else {
 				// this is a new request from an existing client
 				iterSockets = m_setSockets.find(epevents[i].data.fd);

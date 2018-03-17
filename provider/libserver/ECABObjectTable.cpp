@@ -259,7 +259,6 @@ ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId,
 		lpObjects->emplace_back(KOPANO_UID_GLOBAL_ADDRESS_LISTS, CONTAINER_ADDRESSLIST);
 		if (!(m_ulUserManagementFlags & USERMANAGEMENT_IDS_ONLY))
 			lpObjects->back().SetPropString(OB_PROP_S_LOGIN, KOPANO_ACCOUNT_GLOBAL_ADDRESS_LISTS);
-
 	} else if (ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_BOOK) {
 		/*
 		 * Global Address Book
