@@ -362,7 +362,7 @@ HRESULT ScCreateConversationIndex(ULONG cbParent, LPBYTE lpbParent,
 	return hrSuccess;
 }
 
-FILETIME FtSubFt(FILETIME Minuend, FILETIME Subtrahend)
+FILETIME FtSubFt(const FILETIME &Minuend, const FILETIME &Subtrahend)
 {
 	FILETIME ft;
 	unsigned long long l = ((unsigned long long)Minuend.dwHighDateTime << 32) + Minuend.dwLowDateTime;
