@@ -479,14 +479,9 @@ HRESULT M4LMAPITable::QueryInterface(REFIID refiid, void **lpvoid) {
 // IProviderAdmin
 // ---
 M4LProviderAdmin::M4LProviderAdmin(M4LMsgServiceAdmin *new_msa,
-    const char *szService) :
-	msa(new_msa)
-{
-	if(szService)
-		this->szService = strdup(szService);
-	else
-		this->szService = NULL;
-}
+    const char *serv) :
+	msa(new_msa), szService(serv != nullptr ? strdup(serv) : nullptr)
+{}
 
 M4LProviderAdmin::~M4LProviderAdmin() {
 	free(szService);
@@ -651,17 +646,15 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 
 HRESULT M4LProviderAdmin::DeleteProvider(const MAPIUID *lpUID)
 {
-	HRESULT hr = MAPI_E_NOT_FOUND;	
 	decltype(msa->providers)::iterator i;
 	
 	for (i = msa->providers.begin(); i != msa->providers.end(); ++i) {
 		if(memcmp(&(*i)->uid, lpUID, sizeof(MAPIUID)) == 0) {
 			msa->providers.erase(i);
-			hr = hrSuccess;
-			break;
+			return hrSuccess;
 		}
 	}
-    return hr;
+	return MAPI_E_NOT_FOUND;
 }
 
 HRESULT M4LProviderAdmin::OpenProfileSection(const MAPIUID *lpUID,
@@ -745,7 +738,6 @@ HRESULT M4LMAPIContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction* lppRe
 }
 
 HRESULT M4LMAPIContainer::QueryInterface(REFIID refiid, void **lpvoid) {
-	HRESULT hr = hrSuccess;
 	if (refiid == IID_IMAPIContainer) {
 		AddRef();
 		*lpvoid = static_cast<IMAPIContainer *>(this);
@@ -756,9 +748,8 @@ HRESULT M4LMAPIContainer::QueryInterface(REFIID refiid, void **lpvoid) {
 		AddRef();
 		*lpvoid = static_cast<IUnknown *>(this);
 	} else
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-	return hr;
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
+	return hrSuccess;
 }
 
 // 

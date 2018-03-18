@@ -37,9 +37,7 @@ M4LMAPIGetSession::M4LMAPIGetSession(IMAPISession *new_session) :
 
 HRESULT M4LMAPIGetSession::GetMAPISession(LPUNKNOWN *lppSession)
 {
-	HRESULT hr;
-	hr = session->QueryInterface(IID_IMAPISession, (void**)lppSession);
-	return hr;
+	return session->QueryInterface(IID_IMAPISession, reinterpret_cast<void **>(lppSession));
 }
 
 HRESULT M4LMAPIGetSession::QueryInterface(REFIID refiid, void **lpvoid) {
@@ -154,8 +152,7 @@ HRESULT M4LMAPISupport::RegisterPreprocessor(const MAPIUID *,
 }
 
 HRESULT M4LMAPISupport::NewUID(LPMAPIUID lpMuid) {
-    HRESULT hr = CoCreateGuid((GUID*)lpMuid);
-	return hr;
+	return CoCreateGuid(reinterpret_cast<GUID *>(lpMuid));
 }
 
 HRESULT M4LMAPISupport::MakeInvalid(ULONG ulFlags, LPVOID lpObject, ULONG ulRefCount, ULONG cMethods) {
