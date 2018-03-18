@@ -31,6 +31,7 @@
 #include <kopano/ECTags.h>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
+#include <kopano/tie.hpp>
 #include <kopano/Util.h>
 
 #include "ECMemStream.h"
@@ -133,20 +134,17 @@ static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 	ULONG ulRead = 0;
 	ULONG ulWritten = 0;
 	unsigned int ulCompressedSize;
-	char *lpCompressed = NULL;
+	std::unique_ptr<char, cstdlib_deleter> lpCompressed;
 	ULARGE_INTEGER zero = {{0,0}};
 	LARGE_INTEGER front = {{0,0}};
 
 	hr = lpUncompressedStream->Stat(&sStatStg, STATFLAG_NONAME);
 
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	lpUncompressed.reset(new(std::nothrow) char[sStatStg.cbSize.LowPart]);
-	if(lpUncompressed == NULL) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
-
+	if (lpUncompressed == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	lpReadPtr = lpUncompressed.get();
 	while(1) {
 		hr = lpUncompressedStream->Read(lpReadPtr, 1024, &ulRead);
@@ -158,15 +156,10 @@ static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 	}
 
 	// We now have the complete uncompressed data in lpUncompressed
-	if (rtf_compress(&lpCompressed, &ulCompressedSize, lpUncompressed.get(), sStatStg.cbSize.LowPart) != 0) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
+	if (rtf_compress(&unique_tie(lpCompressed), &ulCompressedSize, lpUncompressed.get(), sStatStg.cbSize.LowPart) != 0)
+		return MAPI_E_CALL_FAILED;
 	// lpCompressed is the compressed RTF stream, write it to lpCompressedStream
-
-	lpReadPtr = lpCompressed;
-
+	lpReadPtr = lpCompressed.get();
 	lpCompressedStream->SetSize(zero);
 	lpCompressedStream->Seek(front,SEEK_SET,NULL);
 
@@ -174,15 +167,11 @@ static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 		hr = lpCompressedStream->Write(lpReadPtr, ulCompressedSize > 16384 ? 16384 : ulCompressedSize, &ulWritten);
 
 		if(hr != hrSuccess)
-			break;
-
+			return hr;
 		lpReadPtr += ulWritten;
 		ulCompressedSize -= ulWritten;
 	}
-
-exit:
-	free(lpCompressed);
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG ulFlags,
