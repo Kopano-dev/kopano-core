@@ -69,7 +69,6 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 	std::list<SPropValue *>::const_iterator i;
 	ULONG c;
 	memory_ptr<SPropValue> props;
-	HRESULT hr = hrSuccess;
 	SPropValue sConvert;
 	convert_context converter;
 	std::wstring unicode;
@@ -78,7 +77,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 
 	if (!lpPropTagArray) {
 		// all properties are requested
-		hr = MAPIAllocateBuffer(sizeof(SPropValue)*properties.size(), &~props);
+		auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * properties.size(), &~props);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -109,7 +108,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 		return hr;
 	}
 
-	hr = MAPIAllocateBuffer(sizeof(SPropValue)*lpPropTagArray->cValues, &~props);
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues, &~props);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -493,7 +492,6 @@ HRESULT M4LProviderAdmin::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERR
 }
 
 HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
-	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
@@ -507,7 +505,7 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 		PR_RESOURCE_TYPE, PR_PROVIDER_UID}};
 
 	Util::proptag_change_unicode(ulFlags, sptaProviderCols);
-	hr = ECMemTable::Create(sptaProviderCols, PR_ROWID, &~lpTable);
+	auto hr = ECMemTable::Create(sptaProviderCols, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
 	
@@ -559,8 +557,6 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	const SPropValue *lpResource = nullptr;
 	memory_ptr<SPropValue> lpsPropValProfileName;
 	std::unique_ptr<providerEntry> entry;
-	serviceEntry* lpService = NULL;
-	SVCProvider* lpProvider = NULL;
 	ULONG cProviderProps = 0;
 	LPSPropValue lpProviderProps = NULL;
 	HRESULT hr = hrSuccess;
@@ -568,10 +564,10 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 
 	if (szService == nullptr)
 		return MAPI_E_NO_ACCESS;
-	lpService = msa->findServiceAdmin((LPTSTR)szService);
+	auto lpService = msa->findServiceAdmin(reinterpret_cast<TCHAR *>(szService));
 	if (lpService == nullptr)
 		return MAPI_E_NO_ACCESS;
-	lpProvider = lpService->service->GetProvider(lpszProvider, ulFlags);
+	auto lpProvider = lpService->service->GetProvider(lpszProvider, ulFlags);
 	if (lpProvider == nullptr)
 		return MAPI_E_NO_ACCESS;
 	entry.reset(new(std::nothrow) providerEntry);
@@ -646,9 +642,7 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 
 HRESULT M4LProviderAdmin::DeleteProvider(const MAPIUID *lpUID)
 {
-	decltype(msa->providers)::iterator i;
-	
-	for (i = msa->providers.begin(); i != msa->providers.end(); ++i) {
+	for (auto i = msa->providers.begin(); i != msa->providers.end(); ++i) {
 		if(memcmp(&(*i)->uid, lpUID, sizeof(MAPIUID)) == 0) {
 			msa->providers.erase(i);
 			return hrSuccess;
@@ -660,13 +654,12 @@ HRESULT M4LProviderAdmin::DeleteProvider(const MAPIUID *lpUID)
 HRESULT M4LProviderAdmin::OpenProfileSection(const MAPIUID *lpUID,
     const IID *lpInterface, ULONG ulFlags, IProfSect **lppProfSect)
 {
-	providerEntry *provider = NULL;
 	scoped_rlock l_srv(msa->m_mutexserviceadmin);
 
 	// Special ID: the global guid opens the profile's global profile section instead of a local profile
 	if (memcmp(lpUID, &pbGlobalProfileSectionGuid, sizeof(*lpUID)) == 0)
 		return msa->OpenProfileSection(lpUID, lpInterface, ulFlags, lppProfSect);
-	provider = msa->findProvider(lpUID);
+	auto provider = msa->findProvider(lpUID);
 	if (provider == nullptr)
 		return MAPI_E_NOT_FOUND;
 	return provider->profilesection->QueryInterface(lpInterface != nullptr ?
@@ -788,10 +781,8 @@ HRESULT M4LABContainer::ResolveNames(const SPropTagArray *, ULONG flags,
  * @return 
  */
 HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
-	HRESULT hr = hrSuccess;
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
-	ULONG n = 0;
 
 	// make a list of all hierarchy tables, and create the combined column list
 	std::list<object_ptr<IMAPITable>> lHierarchies;
@@ -804,7 +795,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 		object_ptr<IMAPITable> lpABHierarchy;
 		memory_ptr<SPropTagArray> lpPropArray;
 
-		hr = abe.lpABLogon->OpenEntry(0, nullptr, &IID_IABContainer, 0,
+		auto hr = abe.lpABLogon->OpenEntry(0, nullptr, &IID_IABContainer, 0,
 		     &ulObjType, &~lpABContainer);
 		if (hr != hrSuccess)
 			continue;
@@ -821,7 +812,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 
 	// remove key row
 	stProps.erase(PR_ROWID);
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(stProps.size() + 1), &~lpColumns);
+	auto hr = MAPIAllocateBuffer(CbNewSPropTagArray(stProps.size() + 1), &~lpColumns);
 	if (hr != hrSuccess)
 		return hr;
 	lpColumns->cValues = stProps.size();
@@ -834,7 +825,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	// get enough columns from queryrows to add the PR_ROWID
 	++lpColumns->cValues;
 
-	n = 0;
+	unsigned int n = 0;
 	for (const auto &mt : lHierarchies) {
 		hr = mt->SetColumns(lpColumns, 0);
 		if (hr != hrSuccess)
