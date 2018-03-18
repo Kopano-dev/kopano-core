@@ -55,12 +55,8 @@ unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
 {
 	auto lpHeader = reinterpret_cast<const struct RTFHeader *>(lpSrc);
 	auto lpStart = lpSrc;
-	unsigned int ulFlags = 0;
-	unsigned int ulFlagNr = 0;
-	unsigned char c1 = 0;
-	unsigned char c2 = 0;
-	unsigned int ulOffset = 0;
-	unsigned int ulSize = 0;
+	unsigned int ulFlags = 0, ulFlagNr = 0, c1 = 0, c2 = 0;
+	unsigned int ulOffset = 0, ulSize = 0;
 	const unsigned int prebufSize = strlen(lpPrebuf);
 
 	// Check if we have a full header
@@ -129,9 +125,8 @@ unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
 unsigned int rtf_compress(char **dstp, unsigned int *dst_size,
     const char *src, unsigned int src_size)
 {
-	char *dst;
 	*dst_size = src_size + sizeof(RTFHeader);
-	*dstp = dst = reinterpret_cast<char *>(malloc(*dst_size));
+	char *dst = *dstp = reinterpret_cast<char *>(malloc(*dst_size));
 	if (dst == nullptr)
 		return 1;
 	auto hdr = reinterpret_cast<RTFHeader *>(dst);
