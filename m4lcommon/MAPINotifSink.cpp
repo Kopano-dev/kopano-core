@@ -246,7 +246,7 @@ HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNoti
 HRESULT MAPINotifSink::QueryInterface(REFIID iid, void **lpvoid) {
 	if (iid == IID_IMAPIAdviseSink) {
 	    AddRef();
-		*lpvoid = (LPVOID)this;
+		*lpvoid = this;
 		return hrSuccess;
 	}
     return MAPI_E_INTERFACE_NOT_SUPPORTED;

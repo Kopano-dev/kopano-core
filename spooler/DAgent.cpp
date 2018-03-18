@@ -406,7 +406,7 @@ static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
 	hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpMessageCopy);
 	if (hr != hrSuccess)
 		return kc_perrorf("CreateMessage failed", hr);
-	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpMessageCopy, 0, NULL);
+	hr = lpMessage->CopyTo(0, nullptr, nullptr, 0, nullptr, &IID_IMessage, lpMessageCopy, 0, nullptr);
 	if (hr != hrSuccess)
 		return kc_perrorf("CopyTo failed", hr);
 	hr = lpMessageCopy->SaveChanges(0);
@@ -468,7 +468,7 @@ static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
 	hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpMessageCopy);
 	if (hr != hrSuccess)
 		return kc_perrorf("CreateMessage failed", hr);
-	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpMessageCopy, 0, NULL);
+	hr = lpMessage->CopyTo(0, nullptr, nullptr, 0, nullptr, &IID_IMessage, lpMessageCopy, 0, nullptr);
 	if (hr != hrSuccess)
 		return kc_perrorf("CopyTo failed", hr);
 	hr = lpMessageCopy->SaveChanges(0);
