@@ -100,10 +100,8 @@ HRESULT M4LMAPISupport::Subscribe(const NOTIFKEY *lpKey, ULONG ulEventMask,
 }
 
 HRESULT M4LMAPISupport::Unsubscribe(ULONG ulConnection) {
-	M4LSUPPORTADVISES::iterator i;
 	scoped_lock l_adv(m_advises_mutex);
-
-	i = m_advises.find(ulConnection);
+	auto i = m_advises.find(ulConnection);
 	if (i == m_advises.cend())
 		return MAPI_E_NOT_FOUND;
 	MAPIFreeBuffer(i->second.lpKey);
@@ -245,13 +243,9 @@ HRESULT M4LMAPISupport::CopyMessages(const IID *lpSrcInterface,
     void *lpDestFolder, ULONG_PTR ulUIParam, IMAPIProgress *lpProgress,
     ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
-	LPMAPIFOLDER lpSource = NULL;
-	LPMAPIFOLDER lpDest = NULL;
 	ULONG ulObjType;
 	memory_ptr<ENTRYLIST> lpDeleteEntries;
 	bool bPartial = false;
-	ULONG i;
 
 	if (lpSrcInterface == nullptr || lpSrcFolder == nullptr ||
 	    lpDestFolder == nullptr || lpMsgList == nullptr)
@@ -260,9 +254,9 @@ HRESULT M4LMAPISupport::CopyMessages(const IID *lpSrcInterface,
 	    (lpDestInterface != nullptr && *lpDestInterface != IID_IMAPIFolder))
 		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	lpSource = (LPMAPIFOLDER)lpSrcFolder;
-	lpDest = (LPMAPIFOLDER)lpDestFolder;
-	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpDeleteEntries);
+	auto lpSource = static_cast<IMAPIFolder *>(lpSrcFolder);
+	auto lpDest = static_cast<IMAPIFolder *>(lpDestFolder);
+	auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpDeleteEntries);
 	if (hr != hrSuccess)
 		return hr;
 	hr = MAPIAllocateMore(sizeof(SBinary)*lpMsgList->cValues, lpDeleteEntries, (void**)&lpDeleteEntries->lpbin);
@@ -270,8 +264,7 @@ HRESULT M4LMAPISupport::CopyMessages(const IID *lpSrcInterface,
 		return hr;
 
 	lpDeleteEntries->cValues = 0;
-
-	for (i = 0; i < lpMsgList->cValues; ++i) {
+	for (unsigned int i = 0; i < lpMsgList->cValues; ++i) {
 		object_ptr<IMessage> lpSrcMessage, lpDestMessage;
 
 		hr = lpSource->OpenEntry(lpMsgList->lpbin[i].cb,
@@ -319,8 +312,6 @@ HRESULT M4LMAPISupport::CopyFolder(const IID *lpSrcInterface, void *lpSrcFolder,
     void *lpDestFolder, const TCHAR *lpszNewFolderName, ULONG_PTR ulUIParam,
     IMAPIProgress *lpProgress, ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
-	IMAPIFolder *lpSource, *lpDest;
 	object_ptr<IMAPIFolder> lpFolder, lpSubFolder;
 	memory_ptr<SPropValue> lpSourceName;
 	ULONG ulObjType  = 0;
@@ -339,9 +330,9 @@ HRESULT M4LMAPISupport::CopyFolder(const IID *lpSrcInterface, void *lpSrcFolder,
 	 */
 	if (lpDestInterface != nullptr && *lpDestInterface != IID_IMAPIFolder)
 		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-	lpSource = static_cast<IMAPIFolder *>(lpSrcFolder);
-	lpDest = static_cast<IMAPIFolder *>(lpDestFolder);
-	hr = lpSource->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpFolder);
+	auto lpSource = static_cast<IMAPIFolder *>(lpSrcFolder);
+	auto lpDest = static_cast<IMAPIFolder *>(lpDestFolder);
+	auto hr = lpSource->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpFolder);
 	if (hr != hrSuccess)
 		return hr;
 	if (!lpszNewFolderName) {
@@ -418,14 +409,13 @@ HRESULT M4LMAPISupport::PrepareSubmit(LPMESSAGE lpMessage, ULONG * lpulFlags) {
  * @return MAPI Error code
  */
 HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
-	HRESULT hr = hrSuccess;
 	MAPITablePtr ptrRecipientTable;
 	SRowSetPtr ptrRow;
 	AddrBookPtr ptrAddrBook;
 	std::set<std::string> setFilter;
 	SPropTagArrayPtr ptrColumns;
 
-	hr = session->OpenAddressBook(0, NULL, AB_NO_DIALOG, &~ptrAddrBook);
+	auto hr = session->OpenAddressBook(0, nullptr, AB_NO_DIALOG, &~ptrAddrBook);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpMessage->GetRecipientTable(fMapiUnicode | MAPI_DEFERRED_ERRORS, &~ptrRecipientTable);
@@ -439,8 +429,6 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		return hr;
 
 	while (true) {
-		const SPropValue *lpAddrType = NULL;
-		const SPropValue *lpDLEntryID = NULL;
 		ULONG ulObjType;
 		object_ptr<IDistList> ptrDistList;
 		MAPITablePtr ptrMemberTable;
@@ -451,12 +439,12 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 			return hr;
 		if (ptrRow.size() == 0)
 			break;
-		lpAddrType = ptrRow[0].cfind(PR_ADDRTYPE);
+		auto lpAddrType = ptrRow[0].cfind(PR_ADDRTYPE);
 		if (!lpAddrType)
 			continue;
 		if (_tcscmp(lpAddrType->Value.LPSZ, KC_T("MAPIPDL")))
 			continue;
-		lpDLEntryID = ptrRow[0].cfind(PR_ENTRYID);
+		auto lpDLEntryID = ptrRow[0].cfind(PR_ENTRYID);
 		if (!lpDLEntryID)
 			continue;
 
@@ -554,13 +542,10 @@ HRESULT M4LMAPISupport::WrapStoreEntryID(ULONG cbOrigEntry,
     const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry,
     ENTRYID **lppWrappedEntry)
 {
-	// get the dll name from SVCService
-	const SPropValue *lpDLLName = NULL;
-
 	if (service == nullptr)
 		// addressbook provider doesn't have the SVCService object
 		return MAPI_E_CALL_FAILED;
-	lpDLLName = service->GetProp(PR_SERVICE_DLL_NAME_A);
+	auto lpDLLName = service->GetProp(PR_SERVICE_DLL_NAME_A);
 	if (lpDLLName == nullptr || lpDLLName->Value.lpszA == nullptr)
 		return MAPI_E_NOT_FOUND;
 	// call mapiutil version
