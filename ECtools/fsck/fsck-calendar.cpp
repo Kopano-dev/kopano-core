@@ -35,6 +35,11 @@
 
 using namespace KC;
 
+static time_t operator-(const FILETIME &a, const FILETIME &b)
+{
+	return FileTimeToUnixTime(a) - FileTimeToUnixTime(b);
+}
+
 HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 {
 	memory_ptr<SPropValue> lpPropertyArray;

@@ -65,7 +65,6 @@ extern _kc_export bool operator >(const FILETIME &, const FILETIME &) noexcept;
 extern bool operator>=(const FILETIME &, const FILETIME &) noexcept;
 extern _kc_export bool operator <(const FILETIME &, const FILETIME &) noexcept;
 extern bool operator<=(const FILETIME &, const FILETIME &) noexcept;
-extern _kc_export time_t operator -(const FILETIME &, const FILETIME &);
 
 /* convert struct tm to time_t in timezone UTC0 (GM time) */
 #ifndef HAVE_TIMEGM
