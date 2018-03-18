@@ -33,11 +33,9 @@ ULONG M4LUnknown::Release() {
 }
 
 HRESULT M4LUnknown::QueryInterface(REFIID refiid, void **lpvoid) {
-    if(refiid == IID_IUnknown) {
-		AddRef();
-		*lpvoid = static_cast<IUnknown *>(this);
-		return hrSuccess;
-    }
-
-    return MAPI_E_INTERFACE_NOT_SUPPORTED;
+	if (refiid != IID_IUnknown)
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
+	AddRef();
+	*lpvoid = static_cast<IUnknown *>(this);
+	return hrSuccess;
 }
