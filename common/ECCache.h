@@ -53,7 +53,7 @@ public:
 class _kc_export ECCacheBase {
 public:
 	typedef unsigned long		count_type;
-		typedef uint64_t	size_type;
+	typedef size_t size_type;
 
 	_kc_hidden virtual ~ECCacheBase(void) = default;
 	_kc_hidden virtual count_type ItemCount(void) const = 0;
