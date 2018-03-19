@@ -140,7 +140,6 @@ template<typename T, typename Deleter = default_delete> class memory_ptr {
 	T *operator->(void) const noexcept { return m_ptr; }
 	T *get(void) const noexcept { return m_ptr; }
 	operator T *(void) const noexcept { return m_ptr; }
-	T *operator+(size_t n) const noexcept { return m_ptr + n; }
 	/* Modifiers */
 	T *release(void) noexcept
 	{
