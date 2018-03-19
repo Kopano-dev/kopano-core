@@ -1,0 +1,14 @@
+/me/{messages,events,contacts} are not store-wide
+result collection class?
+check https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters
+efficient attachment streaming? using our own $value approach for now..
+bulk copy/move/delete?
+childFolders recursion/relative paths
+Message.{isDraft, webLink, inferenceClassification}?
+Event.{webLink, onlineMeetingUrl, uniqueBody, responseStatus, isCancelled}?
+Attachment.{contentId, contentLocation}?
+/me/{mailFolders,contactFolders,calendars} -> which folders exactly?
+@odata.context: check exact structure?
+ICS, filters etc & pagination?.. ugh
+user, calendarresource fields
+$filter, $search (events?$search=bert doesn't work in graph?)
