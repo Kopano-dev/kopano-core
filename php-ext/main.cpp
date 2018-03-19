@@ -2045,8 +2045,7 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 	// return the returncode
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-
-	MAPI_G(hr) = RowSettoPHPArray(pRowSet, &rowset TSRMLS_CC);
+	MAPI_G(hr) = RowSettoPHPArray(pRowSet.get(), &rowset TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The resulting rowset could not be converted to a PHP array");
 		goto exit;
@@ -2116,8 +2115,7 @@ ZEND_FUNCTION(mapi_table_queryrows)
 	MAPI_G(hr) = lpTable->QueryRows(lRowCount, 0, &~pRowSet);
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-
-	MAPI_G(hr) = RowSettoPHPArray(pRowSet, &rowset TSRMLS_CC);
+	MAPI_G(hr) = RowSettoPHPArray(pRowSet.get(), &rowset TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The resulting rowset could not be converted to a PHP array");
 		goto exit;

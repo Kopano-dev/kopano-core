@@ -286,15 +286,30 @@ class rowset_delete {
 	void operator()(ROWLIST *x) const { FreeProws(reinterpret_cast<SRowSet *>(x)); }
 };
 
-class rowset_ptr : public memory_ptr<SRowSet, rowset_delete> {
+class rowset_ptr {
 	public:
 	typedef unsigned int size_type;
+	typedef SRowSet *pointer;
 	rowset_ptr() = default;
-	rowset_ptr(SRowSet *p) : memory_ptr(p) {}
+	rowset_ptr(SRowSet *p) : m_rp(p) {}
 	void operator&() = delete;
-	size_type size() const { return (*this)->cRows; }
-	const SRow &operator[](size_t i) const { return (*this)->aRow[i]; }
-	bool empty() const { return *this == nullptr || (*this)->cRows == 0; }
+	size_type size() const { return m_rp->cRows; }
+	const SRow &operator[](size_t i) const { return m_rp->aRow[i]; }
+	bool empty() const { return m_rp == nullptr || m_rp->cRows == 0; }
+	/*
+	 * rowset_ptr can only be turned back into a memory_ptr
+	 * subclass when memory_ptr loses its operator T*().
+	 */
+	SRowSet *operator->() { return m_rp.get(); }
+	memory_proxy2<SRowSet> operator~() { return ~m_rp; }
+	bool operator==(std::nullptr_t) const { return m_rp == nullptr; }
+	bool operator!=(std::nullptr_t) const { return m_rp != nullptr; }
+	SRowSet *get() { return m_rp.get(); }
+	SRowSet *release() { return m_rp.release(); }
+	void reset() { m_rp.reset(); }
+
+	protected:
+	memory_ptr<SRowSet, rowset_delete> m_rp;
 };
 
 typedef memory_ptr<ADRLIST, rowset_delete> adrlist_ptr;
