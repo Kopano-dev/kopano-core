@@ -373,11 +373,8 @@ void* CleanupSyncsTable(void* lpTmpMain){
 	else
 		ec_log_err("syncs table clean up failed: %s (%x), removed syncs: %d",
 			GetMAPIErrorMessage(kcerr_to_mapierr(er)), er, ulDeletedSyncs);
-	if(lpSession) {
-		holder.unlock();
-		g_lpSessionManager->RemoveSessionInternal(lpSession);
-	}
-
+	holder.unlock();
+	g_lpSessionManager->RemoveSessionInternal(lpSession);
 	// ECScheduler does nothing with the returned value
 	return NULL;
 }
@@ -411,12 +408,8 @@ void *CleanupSyncedMessagesTable(void *lpTmpMain)
 	else
 		ec_log_err("syncedmessages table clean up failed: %s (%x), %d entries removed",
 			GetMAPIErrorMessage(kcerr_to_mapierr(er)), er, ulDeleted);
-
-	if(lpSession) {
-		holder.unlock();
-		g_lpSessionManager->RemoveSessionInternal(lpSession);
-	}
-
+	holder.unlock();
+	g_lpSessionManager->RemoveSessionInternal(lpSession);
 	// ECScheduler does nothing with the returned value
 	return NULL;
 }
