@@ -78,18 +78,12 @@ class Attachment(Properties):
 
     @property
     def number(self):
-        try:
-            return HrGetOneProp(self.mapiobj, PR_ATTACH_NUM).Value
-        except MAPIErrorNotFound:
-            return 0
+        return self.get(PR_ATTACH_NUM, 0)
 
     @property
     def mimetype(self):
         """Mime-type"""
-        try:
-            return HrGetOneProp(self.mapiobj, PR_ATTACH_MIME_TAG_W).Value
-        except MAPIErrorNotFound:
-            return u''
+        return self.get(PR_ATTACH_MIME_TAG_W, u'')
 
     @mimetype.setter
     def mimetype(self, m):
@@ -98,10 +92,7 @@ class Attachment(Properties):
     @property
     def filename(self):
         """Filename"""
-        try:
-            return HrGetOneProp(self.mapiobj, PR_ATTACH_LONG_FILENAME_W).Value
-        except MAPIErrorNotFound:
-            return u''
+        return self.get(PR_ATTACH_LONG_FILENAME_W, u'')
 
     @property
     def embedded(self):
@@ -130,10 +121,7 @@ class Attachment(Properties):
         #     data
         # XXX (useful when calculating store size, for example.. sounds
         #     interesting to fix here)
-        try:
-            return int(HrGetOneProp(self.mapiobj, PR_ATTACH_SIZE).Value)
-        except MAPIErrorNotFound:
-            return 0 # XXX
+        return self.get(PR_ATTACH_SIZE, 0)
 
     def __len__(self):
         return self.size

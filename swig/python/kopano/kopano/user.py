@@ -36,6 +36,7 @@ from .errors import Error, NotFoundError, NotSupportedError, DuplicateError
 from .compat import (
     fake_unicode as _unicode, benc as _benc, bdec as _bdec, benc as _benc,
 )
+from .picture import Picture
 
 if sys.hexversion >= 0x03000000:
     from . import server as _server
@@ -151,7 +152,9 @@ class User(Properties):
     # TODO uniformize with contact.photo.. class Picture (filename, dimensions..)?
     @property
     def photo(self):
-        return self.get(PR_EMS_AB_THUMBNAIL_PHOTO)
+        data = self.get(PR_EMS_AB_THUMBNAIL_PHOTO)
+        if data is not None:
+            return Picture(data=data)
 
     @property
     def features(self):

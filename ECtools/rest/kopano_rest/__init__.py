@@ -285,11 +285,6 @@ class UserImporter:
     def delete(self, user):
         self.deletes.append(user)
 
-class Picture: # TODO to pyko
-    def __init__(self, data=None, mimetype=None):
-        self.data = data
-        self.mimetype = mimetype
-
 class UserResource(Resource):
     fields = {
         'id': lambda user: user.userid,
@@ -375,9 +370,9 @@ class UserResource(Resource):
 
         elif method == 'photo': # TODO merge with contact photo
             user = server.user(userid=userid)
-            photo = Picture(data=user.photo)
+            photo = user.photo
             if req.path.split('/')[-1] == '$value':
-                resp.content_type = '' # TODO
+                resp.content_type = photo.mimetype
                 resp.data = photo.data
             else:
                 self.respond(req, resp, photo, ProfilePhotoResource.fields)
@@ -1102,16 +1097,6 @@ class ContactResource(ItemResource):
         server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid or 'contacts') # TODO all folders?
 
-        if method == 'photo':
-            user = server.user(userid=userid)
-            photo = Picture(data=user.photo)
-            if req.path.split('/')[-1] == '$value':
-                resp.content_type = '' # TODO
-                resp.data = photo.data
-            else:
-                self.respond(req, resp, photo, ProfilePhotoResource.fields)
-            return
-
         if itemid == 'delta':
             self.delta(req, resp, folder)
             return
@@ -1120,6 +1105,17 @@ class ContactResource(ItemResource):
             data = folder.item(itemid)
         else:
             data = self.generator(req, folder.items, folder.count)
+
+        if method == 'photo':
+            user = server.user(userid=userid)
+            photo = data.photo
+            if req.path.split('/')[-1] == '$value':
+                resp.content_type = photo.mimetype
+                resp.data = photo.data
+            else:
+                self.respond(req, resp, photo, ProfilePhotoResource.fields)
+            return
+
 
         self.respond(req, resp, data)
 
