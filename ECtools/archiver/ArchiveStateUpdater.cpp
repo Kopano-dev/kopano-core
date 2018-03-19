@@ -395,7 +395,7 @@ HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std
 		return MAPI_E_CALL_FAILED;
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attaching %lu couplings", lstCouplings.size());
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attaching %zu couplings", lstCouplings.size());
 	for (const auto &i : lstCouplings) {
 		tstring strArchive;
 		tstring strFolder;
