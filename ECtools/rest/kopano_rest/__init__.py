@@ -285,6 +285,11 @@ class UserImporter:
     def delete(self, user):
         self.deletes.append(user)
 
+class Picture: # TODO to pyko
+    def __init__(self, data=None, mimetype=None):
+        self.data = data
+        self.mimetype = mimetype
+
 class UserResource(Resource):
     fields = {
         'id': lambda user: user.userid,
@@ -367,6 +372,15 @@ class UserResource(Resource):
             user = server.user(userid=userid)
             data = (user.groups(), TOP, 0, 0)
             self.respond(req, resp, data, GroupResource.fields)
+
+        elif method == 'photo': # TODO merge with contact photo
+            user = server.user(userid=userid)
+            photo = Picture(data=user.photo)
+            if req.path.split('/')[-1] == '$value':
+                resp.content_type = '' # TODO
+                resp.data = photo.data
+            else:
+                self.respond(req, resp, photo, ProfilePhotoResource.fields)
 
     # TODO redirect to other resources?
     def on_post(self, req, resp, userid=None, method=None):
@@ -1084,9 +1098,19 @@ class ContactResource(ItemResource):
         'emailAddresses': set_email_addresses,
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, itemid=None):
+    def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid, self.options)
         folder = utils._folder(store, folderid or 'contacts') # TODO all folders?
+
+        if method == 'photo':
+            user = server.user(userid=userid)
+            photo = Picture(data=user.photo)
+            if req.path.split('/')[-1] == '$value':
+                resp.content_type = '' # TODO
+                resp.data = photo.data
+            else:
+                self.respond(req, resp, photo, ProfilePhotoResource.fields)
+            return
 
         if itemid == 'delta':
             self.delta(req, resp, folder)
@@ -1110,26 +1134,17 @@ class ProfilePhotoResource(Resource):
 
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
-        server, store = _server_store(req, userid, self.options)
-        folder = utils._folder(store, folderid or 'contacts')
-        photo = folder.item(itemid).photo
+# TODO restore on_get etc here?
 
-        if method == '$value':
-            resp.content_type = photo.mimetype
-            resp.data = photo.data
-        else:
-            self.respond(req, resp, photo)
-
-    def on_patch(self, *args, **kwargs):
-        self.on_put(*args, **kwargs)
-
-    def on_put(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
-        server, store = _server_store(req, userid, self.options)
-        folder = utils._folder(store, folderid or 'contacts')
-        contact = folder.item(itemid)
-
-        contact.set_photo('noname', req.stream.read(), req.get_header('Content-Type'))
+#    def on_patch(self, *args, **kwargs):
+#        self.on_put(*args, **kwargs)
+#
+#    def on_put(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
+#        server, store = _server_store(req, userid, self.options)
+#        folder = utils._folder(store, folderid or 'contacts')
+#        contact = folder.item(itemid)
+#
+#        contact.set_photo('noname', req.stream.read(), req.get_header('Content-Type'))
 
 class GroupResource(Resource):
     fields = {
@@ -1196,8 +1211,9 @@ class RestAPI(falcon.API):
             route(user+'/contactFolders/{folderid}', contactfolders)
             route(user+'/contacts/{itemid}', contacts)
             route(user+'/contactFolders/{folderid}/contacts/{itemid}', contacts)
-            route(user+'/contacts/{itemid}/photo', photos)
-            route(user+'/contactFolders/{folderid}/contacts/{itemid}/photo', photos)
+
+            route(user+'/{method}/$value', users, method=False) # TODO ugly
+            route(user+'/contacts/{itemid}/{method}/$value', contacts, method=False) # TODO ugly
 
 app = RestAPI() # gunicorn
 notify_app = notify.NotifyAPI()
