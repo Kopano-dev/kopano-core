@@ -75,6 +75,14 @@ Query Parameters:
 
 [Add attachment](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/event_post_attachments.md)
 
+## group Resource
+
+[(Resource)](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/resources/group.md)
+
+[Get group](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/group_get.md)
+
+[List members](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/group_list_members.md)
+
 ## mailFolder Resource
 
 [(Resource)](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/resources/mailfolder.md)
@@ -168,6 +176,8 @@ Query Parameters:
 [List contacts](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/user_list_contacts.md)
 
 [Create contact](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/user_post_contacts.md)
+
+[List memberOf](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/user_list_memberof.md)
 
 [delta](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/user_delta.md)
 

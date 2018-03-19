@@ -307,11 +307,11 @@ class UserResource(Resource):
     def on_get(self, req, resp, userid=None, method=None):
         server, store = _server_store(req, userid if userid != 'delta' else None, self.options)
 
-        if not method:
-            if req.path.split('/')[-1] == 'me':
-                userid = kopano.Store(server=server,
-                    mapiobj = GetDefaultStore(server.mapisession)).user.userid
+        if not userid and req.path.split('/')[-1] != 'users':
+            userid = kopano.Store(server=server,
+                mapiobj = GetDefaultStore(server.mapisession)).user.userid
 
+        if not method:
             if userid:
                 if userid == 'delta':
                     self.delta(req, resp, server)
@@ -356,6 +356,11 @@ class UserResource(Resource):
             start, end = _start_end(req)
             data = (store.calendar.occurrences(start, end), TOP, 0, 0)
             self.respond(req, resp, data, EventResource.fields)
+
+        elif method == 'memberOf':
+            user = server.user(userid=userid)
+            data = (user.groups(), TOP, 0, 0)
+            self.respond(req, resp, data, GroupResource.fields)
 
     # TODO redirect to other resources?
     def on_post(self, req, resp, userid=None, method=None):
@@ -1120,12 +1125,36 @@ class ProfilePhotoResource(Resource):
 
         contact.set_photo('noname', req.stream.read(), req.get_header('Content-Type'))
 
+class GroupResource(Resource):
+    fields = {
+        'id': lambda group: group.groupid,
+        'displayName': lambda group: group.name,
+        'mail': lambda group: group.email,
+    }
+
+    def on_get(self, req, resp, userid=None, groupid=None, method=None):
+        server, store = _server_store(req, userid, self.options)
+
+        if groupid:
+            for group in server.groups(): # TODO server.group(groupid/entryid=..)
+                if group.groupid == groupid:
+                    data = group
+        else:
+            data = (server.groups(), TOP, 0, 0)
+
+        if method == 'members':
+            data = (group.users(), TOP, 0, 0)
+            self.respond(req, resp, data, UserResource.fields)
+        else:
+            self.respond(req, resp, data)
+
 class RestAPI(falcon.API):
     def __init__(self, options=None):
         super().__init__(media_type=None)
         self.options = options
 
         users = UserResource(options)
+        groups = GroupResource(options)
         messages = MessageResource(options)
         attachments = AttachmentResource(options)
         folders = MailFolderResource(options)
@@ -1140,9 +1169,11 @@ class RestAPI(falcon.API):
             if method: # TODO make optional in a better way?
                 self.add_route(path+'/{method}', resource)
 
-        route(PREFIX+'/users', users, method=False) # TODO method == ugly
         route(PREFIX+'/me', users)
+        route(PREFIX+'/users', users, method=False) # TODO method == ugly
         route(PREFIX+'/users/{userid}', users)
+        route(PREFIX+'/groups', groups, method=False)
+        route(PREFIX+'/groups/{groupid}', groups)
 
         for user in (PREFIX+'/me', PREFIX+'/users/{userid}'):
             route(user+'/mailFolders/{folderid}', folders)
