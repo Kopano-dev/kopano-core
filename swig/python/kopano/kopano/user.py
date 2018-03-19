@@ -20,7 +20,9 @@ from MAPI.Tags import (
     PR_EMAIL_ADDRESS_W, PR_DISPLAY_NAME_W, PR_EC_ENABLED_FEATURES_W,
     PR_EC_DISABLED_FEATURES_W, PR_EC_COMPANY_NAME_W,
     PR_MAPPING_SIGNATURE, PR_EC_ARCHIVE_SERVERS,
-    EMS_AB_ADDRESS_LOOKUP
+    EMS_AB_ADDRESS_LOOKUP, PR_GIVEN_NAME_W, PR_SURNAME_W,
+    PR_MOBILE_TELEPHONE_NUMBER_W, PR_OFFICE_LOCATION_W,
+    PR_TITLE_W
 )
 
 from .store import Store
@@ -216,6 +218,31 @@ class User(Properties):
             return _company.Company(HrGetOneProp(self.mapiobj, PR_EC_COMPANY_NAME_W).Value, self.server)
         except MAPIErrorNoSupport:
             return _company.Company(u'Default', self.server)
+
+    @property
+    def first_name(self):
+        """ First Name """
+        return self.get(PR_GIVEN_NAME_W, u'')
+
+    @property
+    def job_title(self):
+        """ Job Title """
+        return self.get(PR_TITLE_W, u'')
+
+    @property
+    def mobile_phone(self):
+        """ Mobile Phone Number """
+        return self.get(PR_MOBILE_TELEPHONE_NUMBER_W, u'')
+
+    @property
+    def office_location(self):
+        """ Office Location """
+        return self.get(PR_OFFICE_LOCATION_W, u'')
+
+    @property
+    def last_name(self):
+        """ Lastname """
+        return self.get(PR_SURNAME_W, u'')
 
     @property # XXX
     def local(self):

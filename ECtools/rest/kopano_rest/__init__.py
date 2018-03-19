@@ -273,8 +273,14 @@ class UserImporter:
 class UserResource(Resource):
     fields = {
         'id': lambda user: user.userid,
-        'userPrincipalName': lambda user: user.name,
+        'displayName': lambda user: user.fullname,
+        'jobTitle': lambda user: user.job_title,
+        'givenName': lambda user: user.first_name,
         'mail': lambda user: user.email,
+        'mobilePhone': lambda user: user.mobile_phone,
+        'officeLocation': lambda user: user.office_location,
+        'surname': lambda user: user.last_name,
+        'userPrincipalName': lambda user: user.name,
     }
 
     def delta(self, req, resp, server):
