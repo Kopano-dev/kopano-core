@@ -330,7 +330,7 @@ class Item(Properties, Contact, Appointment):
     def body_preview(self):
         """ Item body preview (plaintext, up to 255 characters) """
 
-        return self._get_fast(PR_BODY_W, capped=True)
+        return self._get_fast(PR_BODY_W, capped=True)[:255]
 
     @property
     def size(self):
