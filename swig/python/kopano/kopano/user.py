@@ -148,6 +148,11 @@ class User(Properties):
     def password(self, value):
         self._update(password=_unicode(value))
 
+    # TODO uniformize with contact.photo.. class Picture (filename, dimensions..)?
+    @property
+    def photo(self):
+        return self.get(PR_EMS_AB_THUMBNAIL_PHOTO)
+
     @property
     def features(self):
         """ Enabled features (pop3/imap/mobile) """

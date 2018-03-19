@@ -162,6 +162,7 @@ class Contact(object):
         self[PidLidEmail3EmailAddress] = pr_email
         self[PidLidEmail3OriginalEntryId] = pr_entryid
 
+    # XXX uniformize with user.photo? class Picture?
     @property
     def photo(self):
         for attachment in self.attachments():
