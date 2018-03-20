@@ -1199,8 +1199,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 			return retval;
 	}
 
-	auto attempts = 0;
-	while(attempts < 10) {
+	unsigned int attempts = 1;
+	while (lpDatabase == nullptr && attempts < 10) {
 		er = lpDatabaseFactory->CreateDatabaseObject(&lpDatabase, dbError);
 		if (er == erSuccess)
 			break;
