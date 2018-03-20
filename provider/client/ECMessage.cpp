@@ -68,52 +68,47 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL is_new, BOOL fModify,
 	this->ulObjFlags = ulFlags & MAPI_ASSOCIATED;
 
 	// proptag, getprop, setprops, class, bRemovable, bHidden
-
-	this->HrAddPropHandlers(PR_RTF_IN_SYNC,				GetPropHandler       ,DefaultSetPropIgnore,		(void*) this, TRUE,  FALSE);
-	this->HrAddPropHandlers(PR_HASATTACH,				GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	this->HrAddPropHandlers(PR_NORMALIZED_SUBJECT,		GetPropHandler		 ,DefaultSetPropIgnore,		(void*) this, FALSE, FALSE);
-	this->HrAddPropHandlers(PR_PARENT_ENTRYID,			GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	this->HrAddPropHandlers(PR_MESSAGE_SIZE,			GetPropHandler       ,SetPropHandler,		(void*) this, FALSE, FALSE);
-	this->HrAddPropHandlers(PR_DISPLAY_TO,				GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	this->HrAddPropHandlers(PR_DISPLAY_CC,				GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	this->HrAddPropHandlers(PR_DISPLAY_BCC,				GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	this->HrAddPropHandlers(PR_ACCESS,					GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-
-	this->HrAddPropHandlers(PR_MESSAGE_ATTACHMENTS,		GetPropHandler       ,DefaultSetPropIgnore,	(void*) this, FALSE, FALSE);
-	this->HrAddPropHandlers(PR_MESSAGE_RECIPIENTS,		GetPropHandler       ,DefaultSetPropIgnore,	(void*) this, FALSE, FALSE);
-
+	HrAddPropHandlers(PR_RTF_IN_SYNC, GetPropHandler, DefaultSetPropIgnore, this, true, false);
+	HrAddPropHandlers(PR_HASATTACH, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_NORMALIZED_SUBJECT, GetPropHandler, DefaultSetPropIgnore, this, false, false);
+	HrAddPropHandlers(PR_PARENT_ENTRYID, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_MESSAGE_SIZE, GetPropHandler, SetPropHandler, this, false, false);
+	HrAddPropHandlers(PR_DISPLAY_TO, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_DISPLAY_CC, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_DISPLAY_BCC, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_ACCESS, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_MESSAGE_ATTACHMENTS, GetPropHandler, DefaultSetPropIgnore, this, false, false);
+	HrAddPropHandlers(PR_MESSAGE_RECIPIENTS, GetPropHandler, DefaultSetPropIgnore, this, false, false);
 	// Handlers for the various body types
-	this->HrAddPropHandlers(PR_BODY,					GetPropHandler		 ,DefaultSetPropSetReal,	(void*) this, TRUE, FALSE);
-	this->HrAddPropHandlers(PR_RTF_COMPRESSED,			GetPropHandler		 ,DefaultSetPropSetReal,	(void*) this, FALSE, FALSE);
-
+	HrAddPropHandlers(PR_BODY, GetPropHandler, DefaultSetPropSetReal, this, true, false);
+	HrAddPropHandlers(PR_RTF_COMPRESSED, GetPropHandler, DefaultSetPropSetReal, this, false, false);
 	// Workaround for support html in outlook 2000/xp need SetPropHandler
-	this->HrAddPropHandlers(PR_HTML,					GetPropHandler		 ,SetPropHandler,			(void*) this, FALSE, FALSE);
-	this->HrAddPropHandlers(PR_EC_BODY_FILTERED, GetPropHandler, SetPropHandler, static_cast<void *>(this), false, false);
+	HrAddPropHandlers(PR_HTML, GetPropHandler, SetPropHandler, this, false, false);
+	HrAddPropHandlers(PR_EC_BODY_FILTERED, GetPropHandler, SetPropHandler, this, false, false);
 
 	// The property 0x10970003 is set by outlook when browsing in the 'unread mail' searchfolder. It is used to make sure
 	// that a message that you just read is not removed directly from view. It is set for each message which should be in the view
 	// even though it is 'read', and is removed when you leave the folder. When you try to export this property to a PST, you get
 	// an access denied error. We therefore hide this property, ie you can GetProps/SetProps it and use it in a restriction, but
 	// GetPropList will never list it (same as in a PST).
-	this->HrAddPropHandlers(0x10970003,					DefaultGetPropGetReal,DefaultSetPropSetReal,	(void*) this, TRUE, TRUE);
+	HrAddPropHandlers(0x10970003, DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
 
 	// Don't show the PR_EC_IMAP_ID, and mark it as computed and deletable. This makes sure that CopyTo() will not copy it to
 	// the other message.
-	this->HrAddPropHandlers(PR_EC_IMAP_ID,      		DefaultGetPropGetReal,DefaultSetPropComputed, 	(void*) this, TRUE, TRUE);
+	HrAddPropHandlers(PR_EC_IMAP_ID, DefaultGetPropGetReal, DefaultSetPropComputed, this, true, true);
 
 	// Make sure the MSGFLAG_HASATTACH flag gets added when needed.
-	this->HrAddPropHandlers(PR_MESSAGE_FLAGS,      		GetPropHandler		,SetPropHandler,		 	(void*) this, FALSE, FALSE);
+	HrAddPropHandlers(PR_MESSAGE_FLAGS, GetPropHandler, SetPropHandler, this, false, false);
 
 	// Make sure PR_SOURCE_KEY is available
-	this->HrAddPropHandlers(PR_SOURCE_KEY,				GetPropHandler		,SetPropHandler,			(void*) this, TRUE, FALSE);
+	HrAddPropHandlers(PR_SOURCE_KEY, GetPropHandler, SetPropHandler, this, true, false);
 
 	// IMAP complete email, removable and hidden. setprop ignore? use interface for single-instancing
-	this->HrAddPropHandlers(PR_EC_IMAP_EMAIL,			DefaultGetPropGetReal		,DefaultSetPropSetReal,			(void*) this, TRUE, TRUE);
-	this->HrAddPropHandlers(PR_EC_IMAP_EMAIL_SIZE,		DefaultGetPropGetReal		,DefaultSetPropSetReal,			(void*) this, TRUE, TRUE);
-	this->HrAddPropHandlers(CHANGE_PROP_TYPE(PR_EC_IMAP_BODY, PT_UNICODE),			DefaultGetPropGetReal		,DefaultSetPropSetReal,			(void*) this, TRUE, TRUE);
-	this->HrAddPropHandlers(CHANGE_PROP_TYPE(PR_EC_IMAP_BODYSTRUCTURE, PT_UNICODE),	DefaultGetPropGetReal		,DefaultSetPropSetReal,			(void*) this, TRUE, TRUE);
-
-	this->HrAddPropHandlers(PR_ASSOCIATED,				GetPropHandler,		DefaultSetPropComputed, 	(void *)this, TRUE, TRUE);
+	HrAddPropHandlers(PR_EC_IMAP_EMAIL, DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
+	HrAddPropHandlers(PR_EC_IMAP_EMAIL_SIZE, DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
+	HrAddPropHandlers(CHANGE_PROP_TYPE(PR_EC_IMAP_BODY, PT_UNICODE), DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
+	HrAddPropHandlers(CHANGE_PROP_TYPE(PR_EC_IMAP_BODYSTRUCTURE, PT_UNICODE), DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
+	HrAddPropHandlers(PR_ASSOCIATED, GetPropHandler, DefaultSetPropComputed, this, true, true);
 }
 
 HRESULT ECMessage::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify,

@@ -42,15 +42,14 @@ ECABContainer::ECABContainer(ECABLogon *lpProvider, ULONG ulObjType, BOOL fModif
     const char *szClassName) :
 	ECABProp(lpProvider, ulObjType, fModify, szClassName)
 {
-	this->HrAddPropHandlers(PR_AB_PROVIDER_ID,	DefaultABContainerGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_CONTAINER_FLAGS,	DefaultABContainerGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_DISPLAY_TYPE,	DefaultABContainerGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_EMSMDB_SECTION_UID,	DefaultABContainerGetProp,		DefaultSetPropComputed, (void*) this);
-	
-	this->HrAddPropHandlers(PR_ACCOUNT,	DefaultABContainerGetProp, DefaultSetPropIgnore, (void*) this);
-	this->HrAddPropHandlers(PR_NORMALIZED_SUBJECT,	DefaultABContainerGetProp, DefaultSetPropIgnore, (void*) this);
-	this->HrAddPropHandlers(PR_DISPLAY_NAME,	DefaultABContainerGetProp, DefaultSetPropIgnore, (void*) this);
-	this->HrAddPropHandlers(PR_TRANSMITABLE_DISPLAY_NAME,	DefaultABContainerGetProp, DefaultSetPropIgnore, (void*) this);
+	HrAddPropHandlers(PR_AB_PROVIDER_ID, DefaultABContainerGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_CONTAINER_FLAGS, DefaultABContainerGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_DISPLAY_TYPE, DefaultABContainerGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_EMSMDB_SECTION_UID, DefaultABContainerGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_ACCOUNT, DefaultABContainerGetProp, DefaultSetPropIgnore, this);
+	HrAddPropHandlers(PR_NORMALIZED_SUBJECT, DefaultABContainerGetProp, DefaultSetPropIgnore, this);
+	HrAddPropHandlers(PR_DISPLAY_NAME, DefaultABContainerGetProp, DefaultSetPropIgnore, this);
+	HrAddPropHandlers(PR_TRANSMITABLE_DISPLAY_NAME, DefaultABContainerGetProp, DefaultSetPropIgnore, this);
 }
 
 HRESULT	ECABContainer::QueryInterface(REFIID refiid, void **lppInterface)

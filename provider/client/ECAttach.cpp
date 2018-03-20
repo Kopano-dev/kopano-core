@@ -40,10 +40,10 @@ ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify,
 	ECMAPIProp(lpMsgStore, ulObjType, fModify, lpRoot, "IAttach"),
 	ulAttachNum(anum)
 {
-	this->HrAddPropHandlers(PR_ATTACH_DATA_OBJ,	GetPropHandler,	SetPropHandler,	(void*) this, TRUE,  FALSE);	// Includes PR_ATTACH_DATA_BIN as type is ignored
-	this->HrAddPropHandlers(PR_ATTACH_SIZE,		DefaultGetProp,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	this->HrAddPropHandlers(PR_ATTACH_NUM,		GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	this->HrAddPropHandlers(PR_ENTRYID,			GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
+	HrAddPropHandlers(PR_ATTACH_DATA_OBJ, GetPropHandler, SetPropHandler, this, true, false);
+	HrAddPropHandlers(PR_ATTACH_SIZE, DefaultGetProp, DefaultSetPropComputed,	this, false, false);
+	HrAddPropHandlers(PR_ATTACH_NUM, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_ENTRYID, GetPropHandler, DefaultSetPropComputed, this, false, false);
 }
 
 HRESULT ECAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify,

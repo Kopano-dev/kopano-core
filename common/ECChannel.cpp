@@ -540,8 +540,8 @@ char * ECChannel::fd_gets(char *buf, int *lpulLen) {
 
 			return NULL;
 		}
-
-		if ((newline = (char *)memchr((void *)bp, '\n', n)) != NULL)
+		newline = static_cast<char *>(memchr(bp, '\n', n));
+		if (newline != nullptr)
 			n = newline - bp + 1;
 
 	retry:
@@ -591,8 +591,8 @@ char * ECChannel::SSL_gets(char *buf, int *lpulLen) {
 		 */
 		if ((n = SSL_peek(lpSSL, bp, len)) <= 0)
 			return NULL;
-
-		if ((newline = (char *)memchr((void *)bp, '\n', n)) != NULL)
+		newline = static_cast<char *>(memchr(bp, '\n', n));
+		if (newline != nullptr)
 			n = newline - bp + 1;
 
 		if ((n = SSL_read(lpSSL, bp, n)) < 0)

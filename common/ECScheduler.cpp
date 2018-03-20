@@ -27,7 +27,7 @@ ECScheduler::ECScheduler(ECLogger *lpLogger) :
 	m_lpLogger(lpLogger)
 {
 	//Create Scheduler thread
-	pthread_create(&m_hMainThread, NULL, ScheduleThread, (void*)this);
+	pthread_create(&m_hMainThread, nullptr, ScheduleThread, this);
 	set_thread_name(m_hMainThread, "ECScheduler:main");
 }
 

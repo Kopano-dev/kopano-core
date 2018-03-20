@@ -37,8 +37,7 @@ WSStoreTableView::WSStoreTableView(ULONG ulType, ULONG ulFlags,
 	// upside-down in the layer model, but having the transport layer first deliver the properties,
 	// and have a different routine then go through all the properties is more memory intensive AND
 	// slower as we have 2 passes to fill the queried rows.
-
-	this->m_lpProvider = (void *)lpMsgStore;
+	m_lpProvider = lpMsgStore;
 	this->m_ulTableType = TABLETYPE_MS;
 }
 

@@ -505,7 +505,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 		//   0x80 default on, except for oneoff entryids
 
 		// either WAB_GUID or ONE_OFF_MUID
-		if (memcmp(ptrEntries->Value.MVbin.lpbin[i].lpb + sizeof(ULONG), (void*)&WAB_GUID, sizeof(GUID)) == 0) {
+		if (memcmp(ptrEntries->Value.MVbin.lpbin[i].lpb + sizeof(ULONG), &WAB_GUID, sizeof(GUID)) == 0) {
 			// handle wrapped entryids
 			ulOffset = sizeof(ULONG) + sizeof(GUID) + sizeof(BYTE);
 			cType = ptrEntries->Value.MVbin.lpbin[i].lpb[sizeof(ULONG) + sizeof(GUID)];

@@ -99,8 +99,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 			} else {
 				lpCopy = *i;
 			}
-
-			hr = Util::HrCopyProperty(&props[c], lpCopy, (void *)props);
+			hr = Util::HrCopyProperty(&props[c], lpCopy, props);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -179,7 +178,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 				// memory property is requested property
 				lpCopy = *i;
 			}
-			hr = Util::HrCopyProperty(&props[c], lpCopy, (void *)props);
+			hr = Util::HrCopyProperty(&props[c], lpCopy, props);
 			if (hr != hrSuccess)
 				return hr;
 			break;
@@ -247,7 +246,7 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 		if (hr != hrSuccess)
 			return hr;
 		memset(pv, 0, sizeof(SPropValue));
-		hr = Util::HrCopyProperty(pv, &lpPropArray[c], (void *)pv);
+		hr = Util::HrCopyProperty(pv, &lpPropArray[c], pv);
 		if (hr != hrSuccess) {
 			MAPIFreeBuffer(pv);
 			return hr;

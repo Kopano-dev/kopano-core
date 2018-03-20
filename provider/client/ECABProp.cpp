@@ -28,9 +28,8 @@ ECABProp::ECABProp(ECABLogon *lpProvider, ULONG ulObjType, BOOL fModify,
     const char *szClassName) :
 	ECGenericProp(lpProvider, ulObjType, fModify, szClassName)
 {
-
-	this->HrAddPropHandlers(PR_RECORD_KEY,		DefaultABGetProp,		DefaultSetPropComputed, (void*) this);
-	this->HrAddPropHandlers(PR_STORE_SUPPORT_MASK,	DefaultABGetProp,	DefaultSetPropComputed, (void*) this);
+	HrAddPropHandlers(PR_RECORD_KEY, DefaultABGetProp, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_STORE_SUPPORT_MASK, DefaultABGetProp, DefaultSetPropComputed, this);
 }
 
 HRESULT ECABProp::QueryInterface(REFIID refiid, void **lppInterface)

@@ -61,7 +61,7 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 	ssl_random_init();
 
 	//Create session clean up thread
-	auto err = pthread_create(&m_hSessionCleanerThread, NULL, SessionCleaner, (void*)this);
+	auto err = pthread_create(&m_hSessionCleanerThread, nullptr, SessionCleaner, this);
         set_thread_name(m_hSessionCleanerThread, "SessionCleanUp");
 	
 	if (err != 0)

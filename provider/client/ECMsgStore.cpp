@@ -85,45 +85,37 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, IMAPISupport *sup,
 	m_strProfname((lpszProfname != nullptr) ? lpszProfname : "")
 {
 	// Add our property handlers
-	HrAddPropHandlers(PR_ENTRYID,			GetPropHandler,			DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_RECORD_KEY,		GetPropHandler,			DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_SEARCH_KEY,		GetPropHandler,			DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_USER_NAME	,		GetPropHandler,			DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_USER_ENTRYID,		GetPropHandler,			DefaultSetPropComputed, (void *)this);
-
-	HrAddPropHandlers(PR_MAILBOX_OWNER_NAME,	GetPropHandler,		DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_MAILBOX_OWNER_ENTRYID,	GetPropHandler,		DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_USER_NAME,				GetPropHandler,		DefaultSetPropComputed, (void *)this);
-	HrAddPropHandlers(PR_USER_ENTRYID,			GetPropHandler,		DefaultSetPropComputed, (void *)this);
-
-	HrAddPropHandlers(PR_RECEIVE_FOLDER_SETTINGS,	GetPropHandler,		DefaultSetPropIgnore,	(void*) this, FALSE, FALSE);
-
-	HrAddPropHandlers(PR_MESSAGE_SIZE,				GetPropHandler,		DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	HrAddPropHandlers(PR_MESSAGE_SIZE_EXTENDED,		GetPropHandler,		DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-
-	HrAddPropHandlers(PR_QUOTA_WARNING_THRESHOLD,	GetPropHandler,		DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	HrAddPropHandlers(PR_QUOTA_SEND_THRESHOLD,		GetPropHandler,		DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	HrAddPropHandlers(PR_QUOTA_RECEIVE_THRESHOLD,	GetPropHandler,		DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-
-	HrAddPropHandlers(PR_STORE_OFFLINE,	GetPropHandler,		DefaultSetPropComputed, (void *)this);
+	HrAddPropHandlers(PR_ENTRYID, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_RECORD_KEY, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_SEARCH_KEY, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_USER_NAME, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_USER_ENTRYID, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_MAILBOX_OWNER_NAME, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_MAILBOX_OWNER_ENTRYID, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_USER_NAME, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_USER_ENTRYID, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_RECEIVE_FOLDER_SETTINGS, GetPropHandler, DefaultSetPropIgnore, this, false, false);
+	HrAddPropHandlers(PR_MESSAGE_SIZE, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_MESSAGE_SIZE_EXTENDED, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_QUOTA_WARNING_THRESHOLD, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_QUOTA_SEND_THRESHOLD, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_QUOTA_RECEIVE_THRESHOLD, GetPropHandler, DefaultSetPropComputed, this, false, false);
+	HrAddPropHandlers(PR_STORE_OFFLINE, GetPropHandler, DefaultSetPropComputed, this);
 
 	// only on admin store? how? .. now checked on server in ECTableManager
-	HrAddPropHandlers(PR_EC_STATSTABLE_SYSTEM,		GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
-	HrAddPropHandlers(PR_EC_STATSTABLE_SESSIONS,	GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
-	HrAddPropHandlers(PR_EC_STATSTABLE_USERS,		GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
-	HrAddPropHandlers(PR_EC_STATSTABLE_COMPANY,     GetPropHandler,     DefaultSetPropComputed, (void*) this, FALSE, TRUE);
-	HrAddPropHandlers(PR_EC_STATSTABLE_SERVERS,     GetPropHandler,     DefaultSetPropComputed, (void*) this, FALSE, TRUE);
-
-	HrAddPropHandlers(PR_TEST_LINE_SPEED,			GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
-	HrAddPropHandlers(PR_EMSMDB_SECTION_UID,		GetPropHandler,		DefaultSetPropComputed, (void*) this, FALSE, TRUE);
-
-	HrAddPropHandlers(PR_ACL_DATA,					GetPropHandler,		SetPropHandler,			(void*) this, FALSE, TRUE);
-
-	HrAddPropHandlers(PR_EC_WEBACCESS_SETTINGS, DefaultGetPropGetReal, DefaultSetPropSetReal, (void*) this, TRUE, TRUE);
-	HrAddPropHandlers(PR_EC_RECIPIENT_HISTORY, DefaultGetPropGetReal, DefaultSetPropSetReal, (void*) this, TRUE, TRUE);
-	HrAddPropHandlers(PR_EC_WEBACCESS_SETTINGS_JSON, DefaultGetPropGetReal, DefaultSetPropSetReal, (void*) this, TRUE, TRUE);
-	HrAddPropHandlers(PR_EC_RECIPIENT_HISTORY_JSON, DefaultGetPropGetReal, DefaultSetPropSetReal, (void*) this, TRUE, TRUE);
-	HrAddPropHandlers(PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON, DefaultGetPropGetReal, DefaultSetPropSetReal, (void*) this, TRUE, TRUE);
+	HrAddPropHandlers(PR_EC_STATSTABLE_SYSTEM, GetPropHandler, DefaultSetPropComputed, this, false, true);
+	HrAddPropHandlers(PR_EC_STATSTABLE_SESSIONS, GetPropHandler, DefaultSetPropComputed, this, false, true);
+	HrAddPropHandlers(PR_EC_STATSTABLE_USERS, GetPropHandler, DefaultSetPropComputed, this, false, true);
+	HrAddPropHandlers(PR_EC_STATSTABLE_COMPANY, GetPropHandler, DefaultSetPropComputed, this, false, true);
+	HrAddPropHandlers(PR_EC_STATSTABLE_SERVERS, GetPropHandler, DefaultSetPropComputed, this, false, true);
+	HrAddPropHandlers(PR_TEST_LINE_SPEED, GetPropHandler, DefaultSetPropComputed, this, false, true);
+	HrAddPropHandlers(PR_EMSMDB_SECTION_UID, GetPropHandler, DefaultSetPropComputed, this, false, true);
+	HrAddPropHandlers(PR_ACL_DATA, GetPropHandler, SetPropHandler, this, false, true);
+	HrAddPropHandlers(PR_EC_WEBACCESS_SETTINGS, DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
+	HrAddPropHandlers(PR_EC_RECIPIENT_HISTORY, DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
+	HrAddPropHandlers(PR_EC_WEBACCESS_SETTINGS_JSON, DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
+	HrAddPropHandlers(PR_EC_RECIPIENT_HISTORY_JSON, DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
+	HrAddPropHandlers(PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON, DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
 
 	// Basically a workaround because we can't pass 'this' in the superclass constructor.
 	SetProvider(this);
