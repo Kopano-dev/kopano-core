@@ -247,7 +247,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	const char *argv[18];
 	int argc = 0;
 	argv[argc++] = szCommand;
-	std::unique_ptr<char[]> bname(strdup(szCommand));
+	std::unique_ptr<char[], cstdlib_deleter> bname(strdup(szCommand));
 	argv[argc++] = basename(bname.get());
 	auto eidhex = bin2hex(cbMsgEntryId, lpMsgEntryId);
 	argv[argc++] = "--send-message-entryid";

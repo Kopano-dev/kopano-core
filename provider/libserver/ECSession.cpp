@@ -706,7 +706,7 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 	bool			allowLocalUsers = false;
 	int				pid = 0;
 	char			*ptr = NULL;
-	std::unique_ptr<char, cstdlib_deleter> localAdminUsers;
+	std::unique_ptr<char[], cstdlib_deleter> localAdminUsers;
 
     if (!lpszName)
     {

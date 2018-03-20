@@ -360,7 +360,7 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 	std::string strFilename, strLine, strName, strValue;
 	size_t pos;
 
-	std::unique_ptr<char, cstdlib_deleter> normalized_file(realpath(file.c_str(), nullptr));
+	std::unique_ptr<char[], cstdlib_deleter> normalized_file(realpath(file.c_str(), nullptr));
 	if (normalized_file == nullptr) {
 		errors.emplace_back("Cannot normalize path \"" + file + "\": " + strerror(errno));
 		return false;

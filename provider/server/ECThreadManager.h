@@ -161,7 +161,7 @@ typedef SOAP_SOCKET (*CREATEPIPESOCKETCALLBACK)(void *lpParam);
 class ECDispatcher {
 public:
 	ECDispatcher(KC::ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
-	virtual ~ECDispatcher(void) = default;
+	virtual ~ECDispatcher();
     
     // Statistics
     ECRESULT GetIdle(unsigned int *lpulIdle); 				// Idle threads

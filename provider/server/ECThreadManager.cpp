@@ -430,6 +430,14 @@ ECDispatcher::ECDispatcher(ECConfig *lpConfig,
 	m_lpCreatePipeSocketParam = lpParam;
 }
 
+ECDispatcher::~ECDispatcher()
+{
+	for (auto &s : m_setListenSockets) {
+		kopano_end_soap_listener(s.second);
+		soap_free(s.second);
+	}
+}
+
 ECRESULT ECDispatcher::GetThreadCount(unsigned int *lpulThreads, unsigned int *lpulIdleThreads)
 {
 	ECRESULT er = m_lpThreadManager->GetThreadCount(lpulThreads);
@@ -825,18 +833,13 @@ ECRESULT ECDispatcherSelect::MainLoop()
     while(!m_queueItems.empty()) { kopano_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
     while(!m_queuePrioItems.empty()) { kopano_end_soap_connection(m_queuePrioItems.front()->soap); soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
 	l_item.unlock();
-
-	// Close all listener sockets. 
-	for (const auto &p : m_setListenSockets) {
-		kopano_end_soap_listener(p.second);
-		soap_free(p.second);
-	}
 	// Close all sockets. This will cause all that we were listening on clients to get an EOF
 	ulock_normal l_sock(m_mutexSockets);
 	for (const auto &p : m_setSockets) {
 		kopano_end_soap_connection(p.second.soap);
 		soap_free(p.second.soap);
 	}
+	m_setSockets.clear();
 	l_sock.unlock();
     return er;
 }
@@ -1028,20 +1031,13 @@ ECRESULT ECDispatcherEPoll::MainLoop()
     while(!m_queueItems.empty()) { kopano_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
     while(!m_queuePrioItems.empty()) { kopano_end_soap_connection(m_queuePrioItems.front()->soap); soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
 	l_item.unlock();
-
-	// Close all listener sockets.
-	for (iterListenSockets = m_setListenSockets.begin();
-	     iterListenSockets != m_setListenSockets.end();
-	     ++iterListenSockets) {
-        kopano_end_soap_listener(iterListenSockets->second);
-        soap_free(iterListenSockets->second);
-    }
     // Close all sockets. This will cause all that we were listening on clients to get an EOF
 	ulock_normal l_sock(m_mutexSockets);
     for (iterSockets = m_setSockets.begin(); iterSockets != m_setSockets.end(); ++iterSockets) {
         kopano_end_soap_connection(iterSockets->second.soap);
         soap_free(iterSockets->second.soap);
     }
+	m_setSockets.clear();
 	l_sock.unlock();
 	delete [] epevents;
 	return er;

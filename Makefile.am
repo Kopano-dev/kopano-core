@@ -270,8 +270,7 @@ kopano_storeadm_LDADD = ${popt_LIBS} libmapi.la libkcmapi.la libkcutil.la
 kopano_server_SOURCES = \
 	provider/server/ECServer.cpp \
 	provider/server/ECSoapServerConnection.cpp provider/server/ECSoapServerConnection.h \
-	provider/server/ECThreadManager.cpp provider/server/ECThreadManager.h \
-	provider/soap/soapKCmdService.h provider/soap/soapKCmdService.cpp
+	provider/server/ECThreadManager.cpp provider/server/ECThreadManager.h
 kopano_server_LDADD = \
 	libkcutil.la libkcmapi.la libkcssl.la \
 	libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
@@ -561,7 +560,8 @@ libkcserver_la_SOURCES = \
 	provider/libserver/cmd.cpp provider/libserver/cmd.hpp \
 	provider/libserver/cmdutil.cpp provider/libserver/cmdutil.hpp \
 	provider/common/ECSearchClient.cpp provider/common/ECSearchClient.h \
-	provider/common/SOAPDebug.cpp provider/common/SOAPDebug.h
+	provider/common/SOAPDebug.cpp provider/common/SOAPDebug.h \
+	provider/soap/soapKCmdService.h provider/soap/soapKCmdService.cpp
 libkcserver_la_LIBADD = \
 	libkcutil.la libkcmapi.la libkcssl.la libkcsoap.la \
 	-lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \

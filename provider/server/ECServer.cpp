@@ -49,6 +49,7 @@
 #include <kopano/ECScheduler.h>
 #include <kopano/kcodes.h>
 #include <kopano/my_getopt.h>
+#include <kopano/tie.hpp>
 #include "cmd.hpp"
 
 #include "ECServerEntrypoint.h"
@@ -842,7 +843,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	int retval = -1;
 	ECRESULT		er = erSuccess;
 	std::unique_ptr<ECDatabaseFactory> lpDatabaseFactory;
-	ECDatabase*		lpDatabase = NULL;
+	std::unique_ptr<ECDatabase> lpDatabase;
 	std::string		dbError;
 
 	// Connections
@@ -1192,16 +1193,16 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig));
 
 	// open database
-	er = lpDatabaseFactory->CreateDatabaseObject(&lpDatabase, dbError);
+	er = lpDatabaseFactory->CreateDatabaseObject(&unique_tie(lpDatabase), dbError);
 	if(er == KCERR_DATABASE_NOT_FOUND) {
 		er = lpDatabaseFactory->CreateDatabase();
 		if (er != erSuccess)
 			return retval;
 	}
 
-	auto attempts = 0;
-	while(attempts < 10) {
-		er = lpDatabaseFactory->CreateDatabaseObject(&lpDatabase, dbError);
+	unsigned int attempts = 1;
+	while (lpDatabase == nullptr && attempts < 10) {
+		er = lpDatabaseFactory->CreateDatabaseObject(&unique_tie(lpDatabase), dbError);
 		if (er == erSuccess)
 			break;
 		ec_log_info("Unable to connect, retrying in 10s");
@@ -1213,7 +1214,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		ec_log_crit("Unable to connect to database: %s", dbError.c_str());
 		return retval;
 	}
-	auto laters_db = make_scope_success([&]() { delete lpDatabase; });
 
 	ec_log_notice("Connection to database '%s' succeeded", g_lpConfig->GetSetting("mysql_database"));
 
@@ -1308,12 +1308,12 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 
 	// check database tables for requested engine
-	er = check_database_engine(lpDatabase);
+	er = check_database_engine(lpDatabase.get());
 	if (er != erSuccess)
 		return retval;
 
 	// check attachment database started with, and maybe reject startup
-	er = check_database_attachments(lpDatabase);
+	er = check_database_attachments(lpDatabase.get());
 	if (er != erSuccess)
 		return retval;
 
@@ -1323,12 +1323,12 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		return retval;
 
 	// check upgrade problem with wrong sequence in tproperties table primary key
-	er = check_database_tproperties_key(lpDatabase);
+	er = check_database_tproperties_key(lpDatabase.get());
 	if (er != erSuccess)
 		return retval;
 
 	// check whether the thread_stack is large enough.
-	er = check_database_thread_stack(lpDatabase);
+	er = check_database_thread_stack(lpDatabase.get());
 	if (er != erSuccess)
 		return retval;
 
