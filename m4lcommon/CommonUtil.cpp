@@ -133,7 +133,6 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
     ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password,
     const char *app_version, const char *app_misc)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IProfAdmin> lpProfAdmin;
 	object_ptr<IMsgServiceAdmin> lpServiceAdmin1;
 	object_ptr<IMsgServiceAdmin2> lpServiceAdmin;
@@ -141,10 +140,9 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 	SPropValue sProps[9];	// server, username, password and profile -name and -flags, optional sslkey file with sslkey password
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
-	int i;
 
 //-- create profile
-	hr = MAPIAdminProfiles(0, &~lpProfAdmin);
+	auto hr = MAPIAdminProfiles(0, &~lpProfAdmin);
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAdminProfiles failed", hr);
 	lpProfAdmin->DeleteProfile(reinterpret_cast<const TCHAR *>(szProfName), 0);
@@ -161,7 +159,7 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 	if (hr != hrSuccess)
 		return kc_perrorf("CreateMsgService ZARAFA6 failed", hr);
 	// Get the PR_SERVICE_UID from the row
-	i = 0;
+	unsigned int i = 0;
 	sProps[i].ulPropTag = PR_EC_PATH;
 	sProps[i].Value.lpszA = const_cast<char *>(path != NULL && *path != '\0' ? path : "default:");
 	++i;
@@ -221,10 +219,8 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 static HRESULT DeleteProfileTemp(const char *szProfName)
 {
 	object_ptr<IProfAdmin> lpProfAdmin;
-	HRESULT hr = hrSuccess;
-
 	// Get the MAPI Profile administration object
-	hr = MAPIAdminProfiles(0, &~lpProfAdmin);
+	auto hr = MAPIAdminProfiles(0, &~lpProfAdmin);
 	if (hr != hrSuccess)
 		return hr;
 	return lpProfAdmin->DeleteProfile(reinterpret_cast<const TCHAR *>(szProfName), 0);
@@ -266,18 +262,13 @@ HRESULT HrOpenECSession(IMAPISession **lppSession,
     ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password,
     const char *profname)
 {
-	HRESULT		hr = hrSuccess;
-	ULONG		ulProfNum = 0;
 	std::unique_ptr<char[]> szProfName(new char[strlen(PROFILEPREFIX)+10+1]);
 	IMAPISession *lpMAPISession = NULL;
 
-	if (profname == NULL) {
-		ulProfNum = rand_mt();
-		snprintf(szProfName.get(), strlen(PROFILEPREFIX)+10+1, "%s%010u", PROFILEPREFIX, ulProfNum);
-	}
-	else {
+	if (profname == nullptr)
+		snprintf(szProfName.get(), strlen(PROFILEPREFIX)+10+1, "%s%010u", PROFILEPREFIX, rand_mt());
+	else
 		strcpy(szProfName.get(), profname);
-	}
 
 	if (sslkey_file != NULL) {
 		FILE *ssltest = fopen(sslkey_file, "r");
@@ -295,7 +286,7 @@ HRESULT HrOpenECSession(IMAPISession **lppSession,
 		}
 	}
 
-	hr = CreateProfileTemp(szUsername, szPassword, szPath, szProfName.get(), ulProfileFlags, sslkey_file, sslkey_password, app_version, app_misc);
+	auto hr = CreateProfileTemp(szUsername, szPassword, szPath, szProfName.get(), ulProfileFlags, sslkey_file, sslkey_password, app_version, app_misc);
 	if (hr != hrSuccess) {
 		kc_perror("CreateProfileTemp failed", hr);
 		goto exit;
@@ -323,14 +314,13 @@ exit:
 static HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession,
     BOOL bPublic, ULONG *lpcbEntryID, ENTRYID **lppEntryID)
 {
-	HRESULT			hr = hrSuccess;
 	rowset_ptr lpRows;
 	object_ptr<IMAPITable> lpStoreTable;
 	const SPropValue *lpEntryIDProp = nullptr;
 
 	// Get the default store by searching through the message store table and finding the
 	// store with PR_MDB_PROVIDER set to the kopano public store GUID
-	hr = lpMAPISession->GetMsgStoresTable(0, &~lpStoreTable);
+	auto hr = lpMAPISession->GetMsgStoresTable(0, &~lpStoreTable);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -365,7 +355,6 @@ HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, IMsgStore **lppMsgStore)
 
 static HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStore)
 {
-	HRESULT	hr = hrSuccess;
 	object_ptr<IProxyStoreObject> lpProxyStoreObject;
 	IUnknown *lpECMsgStore = nullptr;
 	memory_ptr<SPropValue> lpPropValue;
@@ -373,7 +362,7 @@ static HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStor
 	if (lpMsgStore == nullptr || lppMsgStore == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpMsgStore->QueryInterface(IID_IProxyStoreObject, &~lpProxyStoreObject) == hrSuccess) {
-		hr = lpProxyStoreObject->UnwrapNoRef((LPVOID*)lppMsgStore);
+		auto hr = lpProxyStoreObject->UnwrapNoRef((LPVOID*)lppMsgStore);
 		if (hr != hrSuccess)
 			return hr;
 		(*lppMsgStore)->AddRef();
@@ -407,10 +396,8 @@ HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, IMsgStore **lppMsgStore
 
 HRESULT HrOpenECPublicStoreOnline(IMAPISession *lpMAPISession, IMsgStore **lppMsgStore)
 {
-	HRESULT	hr = hrSuccess;
 	object_ptr<IMsgStore> lpMsgStore, lpProxedMsgStore;
-
-	hr = HrOpenECPublicStore(lpMAPISession, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &~lpMsgStore);
+	auto hr = HrOpenECPublicStore(lpMAPISession, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &~lpMsgStore);
 	if(hr != hrSuccess)
 		return hr;
 	hr = GetProxyStoreObject(lpMsgStore, &~lpProxedMsgStore);
@@ -464,14 +451,8 @@ HRESULT ECCreateOneOff(const TCHAR *lpszName, const TCHAR *lpszAdrType,
 
 	if(ulFlags & MAPI_UNICODE)
 	{
-		std::wstring wstrName;
-		std::u16string strUnicode;
-
-		if (lpszName)
-			wstrName = (WCHAR*)lpszName;
-		else
-			wstrName = (WCHAR*)lpszAddress;
-		strUnicode = convert_to<std::u16string>(wstrName);
+		std::wstring wstrName(const_cast<wchar_t *>(lpszName != nullptr ? lpszName : lpszAddress));
+		auto strUnicode = convert_to<std::u16string>(wstrName);
 		strOneOff.append(reinterpret_cast<const char *>(strUnicode.c_str()), (strUnicode.length() + 1) * sizeof(char16_t));
 		strUnicode = convert_to<std::u16string>(reinterpret_cast<const wchar_t *>(lpszAdrType));
 		strOneOff.append(reinterpret_cast<const char *>(strUnicode.c_str()), (strUnicode.length() + 1) * sizeof(char16_t));
@@ -511,13 +492,10 @@ HRESULT ECCreateOneOff(const TCHAR *lpszName, const TCHAR *lpszAdrType,
 HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
     std::wstring &strWName, std::wstring &strWType, std::wstring &strWAddress)
 {
-	HRESULT hr = hrSuccess;
 	MAPIUID		muidOneOff = {MAPI_ONE_OFF_UID};
 	auto lpBuffer = reinterpret_cast<const char *>(lpEntryID);
 	unsigned short usFlags;
-	std::wstring name;
-	std::wstring type;
-	std::wstring addr;
+	std::wstring name, type, addr;
 	uint16_t tmp2;
 	uint32_t tmp4;
 
@@ -547,7 +525,8 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 
 		str.assign(reinterpret_cast<std::u16string::const_pointer>(lpBuffer));
 		// can be 0 length
-		if ((hr = TryConvert(str, name)) != hrSuccess)
+		auto hr = TryConvert(str, name);
+		if (hr != hrSuccess)
 			return hr;
 		lpBuffer += (str.length() + 1) * sizeof(unsigned short);
 
@@ -572,7 +551,7 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 		 */
 		std::string str = lpBuffer;
 		// can be 0 length
-		hr = TryConvert(lpBuffer, rawsize(lpBuffer), "windows-1252", name);
+		auto hr = TryConvert(lpBuffer, rawsize(lpBuffer), "windows-1252", name);
 		if (hr != hrSuccess)
 			return hr;
 		lpBuffer += str.length() + 1;
@@ -625,15 +604,13 @@ std::string ToQuotedBase64Header(const std::wstring &input)
  */
 HRESULT HrNewMailNotification(IMsgStore* lpMDB, IMessage* lpMessage)
 {
-	HRESULT hr = hrSuccess;
-
 	// Newmail notify
 	ULONG			cNewMailValues = 0;
 	memory_ptr<SPropValue> lpNewMailPropArray;
 	NOTIFICATION	sNotification;
 
 	// Get notify properties
-	hr = lpMessage->GetProps(sPropNewMailColumns, 0, &cNewMailValues, &~lpNewMailPropArray);
+	auto hr = lpMessage->GetProps(sPropNewMailColumns, 0, &cNewMailValues, &~lpNewMailPropArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -673,18 +650,12 @@ static void strupr(char *a)
 HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
     const char *lpszEmail, ULONG *cb, LPBYTE *lppByte)
 {
-	HRESULT	hr = hrSuccess;
 	memory_ptr<BYTE> lpByte;
-	ULONG	size;
-	ULONG	sizeEmailType;
-	ULONG	sizeEmail;
-
-	size = 2; // : and \0
-	sizeEmailType = (lpszEmailType)?strlen(lpszEmailType) : 0;
-	sizeEmail = (lpszEmail)?strlen(lpszEmail) : 0;
-
+	unsigned int size = 2; // : and \0
+	unsigned int sizeEmailType = lpszEmailType != nullptr ? strlen(lpszEmailType) : 0;
+	unsigned int sizeEmail = lpszEmail != nullptr ? strlen(lpszEmail) : 0;
 	size = sizeEmailType + sizeEmail + 2; // : and \0
-	hr = MAPIAllocateBuffer(size, &~lpByte);
+	auto hr = MAPIAllocateBuffer(size, &~lpByte);
 	if(hr != hrSuccess)
 		return hr;
 	memcpy(lpByte, lpszEmailType, sizeEmailType);
@@ -745,14 +716,13 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
 HRESULT HrGetAddress(LPADRBOOK lpAdrBook, IMessage *lpMessage, ULONG ulPropTagEntryID, ULONG ulPropTagName, ULONG ulPropTagType, ULONG ulPropTagEmailAddress,
 					 std::wstring &strName, std::wstring &strType, std::wstring &strEmailAddress)
 {
-	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(4, sptaProps) = { 4, { ulPropTagEntryID, ulPropTagName, ulPropTagType, ulPropTagEmailAddress } };
 	ULONG cValues = 0;
 	memory_ptr<SPropValue> lpProps;
 
 	if (lpAdrBook == nullptr || lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &~lpProps);
+	auto hr = lpMessage->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if (FAILED(hr))
 		return hr;
 	return HrGetAddress(lpAdrBook, lpProps, cValues, ulPropTagEntryID,
@@ -778,14 +748,13 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
     const std::wstring &strResolve, unsigned int ulFlags,
     std::wstring &strSMTPAddress)
 {
-    HRESULT hr = hrSuccess;
 	adrlist_ptr lpAdrList;
 	const SPropValue *lpEntryID = NULL;
     ULONG ulType = 0;
 	object_ptr<IMAPIProp> lpMailUser;
 	memory_ptr<SPropValue> lpSMTPAddress, lpEmailAddress;
      
-	hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAdrList);
+	auto hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAdrList);
 	if (hr != hrSuccess)
 		return hr;
 	lpAdrList->cEntries = 0;
@@ -863,10 +832,8 @@ HRESULT HrGetAddress(IAddrBook *lpAdrBook, const SPropValue *lpProps,
     std::wstring &strType, std::wstring &strEmailAddress)
 {
 	HRESULT hr = hrSuccess;
-	const SPropValue *lpEntryID = NULL;
-	const SPropValue *lpName = NULL;
-	const SPropValue *lpType = NULL;
-	const SPropValue *lpAddress = NULL;
+	const SPropValue *lpEntryID = nullptr, *lpName = nullptr;
+	const SPropValue *lpType = nullptr, *lpAddress = nullptr;
 	std::wstring strSMTPAddress;
 	convert_context converter;
 
@@ -939,10 +906,8 @@ HRESULT HrGetAddress(IAddrBook *lpAdrBook, const ENTRYID *lpEntryID,
     ULONG cbEntryID, std::wstring &strName, std::wstring &strType,
     std::wstring &strEmailAddress)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMailUser> lpMailUser;
-	ULONG		ulType = 0;
-	ULONG		cMailUserValues = 0;
+	unsigned int ulType = 0, cMailUserValues = 0;
 	memory_ptr<SPropValue> lpMailUserProps;
 	static constexpr const SizedSPropTagArray(4, sptaAddressProps) =
 		{4, {PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W,
@@ -950,7 +915,7 @@ HRESULT HrGetAddress(IAddrBook *lpAdrBook, const ENTRYID *lpEntryID,
 
 	if (lpAdrBook == nullptr || lpEntryID == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = lpAdrBook->OpenEntry(cbEntryID, lpEntryID, &IID_IMailUser, 0, &ulType, &~lpMailUser);
+	auto hr = lpAdrBook->OpenEntry(cbEntryID, lpEntryID, &IID_IMailUser, 0, &ulType, &~lpMailUser);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpMailUser->GetProps(sptaAddressProps, MAPI_UNICODE, &cMailUserValues, &~lpMailUserProps);
@@ -973,15 +938,12 @@ HRESULT HrGetAddress(IAddrBook *lpAdrBook, const ENTRYID *lpEntryID,
 HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
     ULONG ulFlags, object_ptr<IMessage> lpMessage)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<IMsgStore> lpMDB;
 	object_ptr<IMAPIFolder> lpFolder;
 	ENTRYLIST		sMsgList;
 	SBinary			sEntryID;
 	memory_ptr<SPropValue> lpPropValue;
-	ULONG			cValues = 0;
-	ULONG			ulType = 0;
-	
+	unsigned int cValues = 0, ulType = 0;
 	enum esPropDoSentMail{ DSM_ENTRYID, DSM_PARENT_ENTRYID, DSM_SENTMAIL_ENTRYID, DSM_DELETE_AFTER_SUBMIT, DSM_STORE_ENTRYID};
 	static constexpr const SizedSPropTagArray(5, sPropDoSentMail) =
 		{5, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_SENTMAIL_ENTRYID,
@@ -994,7 +956,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 		return MAPI_E_INVALID_OBJECT;
 
 	// Get Sentmail properties
-	hr = lpMessage->GetProps(sPropDoSentMail, 0, &cValues, &~lpPropValue);
+	auto hr = lpMessage->GetProps(sPropDoSentMail, 0, &cValues, &~lpPropValue);
 	if(FAILED(hr) || 
 		(lpPropValue[DSM_SENTMAIL_ENTRYID].ulPropTag != PR_SENTMAIL_ENTRYID && 
 		lpPropValue[DSM_DELETE_AFTER_SUBMIT].ulPropTag != PR_DELETE_AFTER_SUBMIT)
@@ -1066,18 +1028,15 @@ public:
 	HRESULT SaveChanges(ULONG ulFlags) _kc_override { return MAPI_E_NO_SUPPORT; }
 	HRESULT GetProps(const SPropTagArray *lpTags, ULONG ulFlags, ULONG *lpcValues, SPropValue **lppProps) _kc_override
 	{
-		HRESULT hr = hrSuccess;
-		BOOL bError;
-		ULONG i = 0;
 		memory_ptr<SPropValue> lpProps;
 		convert_context converter;
 
-		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpTags->cValues, &~lpProps);
+		auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpTags->cValues, &~lpProps);
 		if (hr != hrSuccess)
 			return hr;
 
-		for (i = 0; i<lpTags->cValues; ++i) {
-			bError = FALSE;
+		for (unsigned int i = 0; i < lpTags->cValues; ++i) {
+			bool bError = false;
 			auto lpFind = PCpropFindProp(m_lpProps, m_cValues, CHANGE_PROP_TYPE(lpTags->aulPropTag[i], PT_UNSPECIFIED));
 			if (lpFind == nullptr || PROP_TYPE(lpFind->ulPropTag) == PT_ERROR) {
 				bError = true;
@@ -1160,30 +1119,26 @@ static HRESULT TestRelop(ULONG relop, int result, bool* fMatch)
 static HRESULT GetRestrictTagsRecursive(const SRestriction *lpRestriction,
     std::list<unsigned int> *lpList, ULONG ulLevel)
 {
-	HRESULT hr = hrSuccess;
-	ULONG i;
-
 	if(ulLevel > RESTRICT_MAX_RECURSE_LEVEL)
 		return MAPI_E_TOO_COMPLEX;
 
 	switch(lpRestriction->rt) {
 	case RES_AND:
-		for (i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
-			hr = GetRestrictTagsRecursive(&lpRestriction->res.resAnd.lpRes[i], lpList, ulLevel+1);
+		for (unsigned int i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
+			auto hr = GetRestrictTagsRecursive(&lpRestriction->res.resAnd.lpRes[i], lpList, ulLevel + 1);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		break;
 	case RES_OR:
-		for (i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
-			hr = GetRestrictTagsRecursive(&lpRestriction->res.resOr.lpRes[i], lpList, ulLevel+1);
+		for (unsigned int i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
+			auto hr = GetRestrictTagsRecursive(&lpRestriction->res.resOr.lpRes[i], lpList, ulLevel + 1);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		break;
 	case RES_NOT:
-		hr = GetRestrictTagsRecursive(lpRestriction->res.resNot.lpRes, lpList, ulLevel+1);
-		break;
+		return GetRestrictTagsRecursive(lpRestriction->res.resNot.lpRes, lpList, ulLevel+1);
 	case RES_CONTENT:
 		lpList->emplace_back(lpRestriction->res.resContent.ulPropTag);
 		lpList->emplace_back(lpRestriction->res.resContent.lpProp->ulPropTag);
@@ -1207,12 +1162,10 @@ static HRESULT GetRestrictTagsRecursive(const SRestriction *lpRestriction,
 		break;
 	case RES_SUBRESTRICTION:
 		lpList->emplace_back(lpRestriction->res.resSub.ulSubObject);
-		break;
 	case RES_COMMENT:
-		hr = GetRestrictTagsRecursive(lpRestriction->res.resComment.lpRes, lpList, ulLevel+1);
-		break;
+		return GetRestrictTagsRecursive(lpRestriction->res.resComment.lpRes, lpList, ulLevel+1);
 	}
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
@@ -1253,10 +1206,8 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
     const ECLocale &locale, ULONG ulLevel)
 {
 	HRESULT hr = hrSuccess;
-	ULONG c;
 	bool fMatch = false;
 	memory_ptr<SPropValue> lpProp, lpProp2;
-	ULONG ulPropType;
 	int result;
 	unsigned int ulSize;
 	object_ptr<IMAPITable> lpTable;
@@ -1271,7 +1222,7 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 	switch (lpCondition->rt) {
 	// loops
 	case RES_AND:
-		for (c = 0; c < lpCondition->res.resAnd.cRes; ++c) {
+		for (unsigned int c = 0; c < lpCondition->res.resAnd.cRes; ++c) {
 			hr = TestRestriction(&lpCondition->res.resAnd.lpRes[c], lpMessage, locale, ulLevel+1);
 			if (hr != hrSuccess) {
 				fMatch = false;
@@ -1281,7 +1232,7 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 		}
 		break;
 	case RES_OR:
-		for (c = 0; c < lpCondition->res.resAnd.cRes; ++c) {
+		for (unsigned int c = 0; c < lpCondition->res.resAnd.cRes; ++c) {
 			hr = TestRestriction(&lpCondition->res.resOr.lpRes[c], lpMessage, locale, ulLevel+1);
 			if (hr == hrSuccess) {
 				fMatch = true;
@@ -1308,7 +1259,7 @@ HRESULT TestRestriction(const SRestriction *lpCondition, IMAPIProp *lpMessage,
 			hr = MAPI_E_TOO_COMPLEX;
 			break;
 		}
-		ulPropType = PROP_TYPE(lpCondition->res.resContent.ulPropTag);
+		unsigned int ulPropType = PROP_TYPE(lpCondition->res.resContent.ulPropTag);
 		hr = HrGetOneProp(lpMessage, lpCondition->res.resContent.ulPropTag, &~lpProp);
 		if (hr != hrSuccess)
 			break;
@@ -1485,9 +1436,8 @@ exit:
 
 HRESULT GetClientVersion(unsigned int* ulVersion)
 {
-	HRESULT hr = hrSuccess;
 	*ulVersion = CLIENT_VERSION_LATEST;
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1509,12 +1459,10 @@ HRESULT GetClientVersion(unsigned int* ulVersion)
 static HRESULT FindFolder(IMAPITable *lpTable, const wchar_t *folder,
     SPropValue **lppFolderProp)
 {
-	HRESULT hr;
 	ULONG nValues;
 	static constexpr const SizedSPropTagArray(2, sptaName) =
 		{2, {PR_DISPLAY_NAME_W, PR_ENTRYID}};
-
-	hr = lpTable->SetColumns(sptaName, 0);
+	auto hr = lpTable->SetColumns(sptaName, 0);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1550,7 +1498,6 @@ static HRESULT FindFolder(IMAPITable *lpTable, const wchar_t *folder,
 HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
     bool bIsPublic, bool bCreateFolder, LPMAPIFOLDER *lppSubFolder)
 {
-	HRESULT			hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropIPMSubtree, lpPropFolder;
 	ULONG			ulObjType;
 	object_ptr<IMAPIFolder> lpFoundFolder;
@@ -1559,19 +1506,20 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 
 	if(bIsPublic)
 	{
-		hr = HrGetOneProp(lpMDB, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~lpPropIPMSubtree);
+		auto hr = HrGetOneProp(lpMDB, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~lpPropIPMSubtree);
 		if (hr != hrSuccess)
 			return kc_perror("Unable to find PR_IPM_PUBLIC_FOLDERS_ENTRYID object", hr);
 	}
 	else
 	{
-		hr = HrGetOneProp(lpMDB, PR_IPM_SUBTREE_ENTRYID, &~lpPropIPMSubtree);
+		auto hr = HrGetOneProp(lpMDB, PR_IPM_SUBTREE_ENTRYID, &~lpPropIPMSubtree);
 		if (hr != hrSuccess)
 			return kc_perror("Unable to find IPM_SUBTREE object", hr);
 	}
 
-	hr = lpMDB->OpenEntry(lpPropIPMSubtree->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropIPMSubtree->Value.bin.lpb),
-	     &IID_IMAPIFolder, 0, &ulObjType, &~lpFoundFolder);
+	auto hr = lpMDB->OpenEntry(lpPropIPMSubtree->Value.bin.cb,
+	          reinterpret_cast<ENTRYID *>(lpPropIPMSubtree->Value.bin.lpb),
+	          &IID_IMAPIFolder, 0, &ulObjType, &~lpFoundFolder);
 	if (hr != hrSuccess || ulObjType != MAPI_FOLDER)
 		return kc_perror("Unable to open IPM_SUBTREE object", hr);
 	// correctly return IPM subtree as found folder
@@ -1646,21 +1594,20 @@ HRESULT HrOpenUserMsgStore(IMAPISession *lpSession, const wchar_t *lpszUser,
 static HRESULT HrOpenUserMsgStore(IMAPISession *lpSession, IMsgStore *lpStore,
     const wchar_t *lpszUser, IMsgStore **lppStore)
 {
-	HRESULT					hr = hrSuccess;
 	object_ptr<IMsgStore> lpDefaultStore, lpMsgStore;
 	object_ptr<IExchangeManageStore> lpExchManageStore;
 	ULONG					cbStoreEntryID = 0;
 	memory_ptr<ENTRYID> lpStoreEntryID;
 
 	if (lpStore == NULL) {
-		hr = HrOpenDefaultStore(lpSession, &~lpDefaultStore);
+		auto hr = HrOpenDefaultStore(lpSession, &~lpDefaultStore);
 		if (hr != hrSuccess)
 			return hr;
 		lpStore = lpDefaultStore;
 	}
 
 	// Find and open the store for lpszUser.
-	hr = lpStore->QueryInterface(IID_IExchangeManageStore, &~lpExchManageStore);
+	auto hr = lpStore->QueryInterface(IID_IExchangeManageStore, &~lpExchManageStore);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpExchManageStore->CreateStoreEntryID(nullptr, reinterpret_cast<const TCHAR *>(lpszUser), MAPI_UNICODE, &cbStoreEntryID, &~lpStoreEntryID);
@@ -1744,10 +1691,7 @@ void ECPropMap::AddProp(ULONG *lpId, ULONG ulType, const ECPropMapEntry &entry)
 }
     
 HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
-    HRESULT hr = hrSuccess;
 	std::unique_ptr<MAPINAMEID *[]> lppNames;
-    std::vector<ULONG *>::const_iterator j;
-    std::vector<ULONG>::const_iterator k;
     int n = 0;
 	memory_ptr<SPropTagArray> lpPropTags;
 
@@ -1758,14 +1702,13 @@ HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
 	lppNames.reset(new MAPINAMEID *[lstNames.size()]);
 	for (auto &mapent : lstNames)
 		lppNames[n++] = mapent.GetMAPINameId();
-    
-	hr = lpMAPIProp->GetIDsFromNames(n, lppNames.get(), MAPI_CREATE, &~lpPropTags);
+	auto hr = lpMAPIProp->GetIDsFromNames(n, lppNames.get(), MAPI_CREATE, &~lpPropTags);
     if(hr != hrSuccess)
 		return hr;
     
     n = 0;
-    k = lstTypes.begin();
-    for (j = lstVars.begin(); j != lstVars.end(); ++j, ++k)
+	auto k = lstTypes.begin();
+	for (auto j = lstVars.begin(); j != lstVars.end(); ++j, ++k)
 		*(*j) = CHANGE_PROP_TYPE(lpPropTags->aulPropTag[n++], *k);
 	return hrSuccess;
 }
@@ -1781,13 +1724,12 @@ HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
  */
 HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, LPMAPIFOLDER *lppFolder)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropDefFld;
 	object_ptr<IMAPIFolder> lpRootFld, lpDefaultFolder;
 	ULONG ulType = 0;
 	
 	//open Root Container.
-	hr = lpMsgStore->OpenEntry(0, nullptr, &iid_of(lpRootFld), 0, &ulType, &~lpRootFld);
+	auto hr = lpMsgStore->OpenEntry(0, nullptr, &iid_of(lpRootFld), 0, &ulType, &~lpRootFld);
 	if (hr != hrSuccess || ulType != MAPI_FOLDER) 
 		return kc_perror("Unable to open root container", hr);
 	//retrive Entryid of Default Calendar Folder.
@@ -1821,7 +1763,6 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 	SPropArrayPtr lpProps;
 	ULONG cValues = 0;
 	StreamPtr lpStream;	
-	std::string strData;
 	void *lpData = NULL;
 	
 	HRESULT hr = lpProp->GetPropList(ulFlags, &~lpTags);
@@ -1838,7 +1779,7 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 			if(lpProp->OpenProperty(lpTags->aulPropTag[i], &IID_IStream, 0, 0, &~lpStream) != hrSuccess)
 				continue;
 				
-			strData.clear();
+			std::string strData;
 			if(Util::HrStreamToString(lpStream.get(), strData) != hrSuccess)
 				continue;
 				
@@ -1897,9 +1838,6 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 HRESULT UnWrapStoreEntryID(ULONG cbOrigEntry, const ENTRYID *lpOrigEntry,
     ULONG *lpcbUnWrappedEntry, ENTRYID **lppUnWrappedEntry)
 {
-	HRESULT hr = hrSuccess;
-	ULONG cbRemove = 0;
-	ULONG cbDLLName = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 
 	if (lpOrigEntry == nullptr || lpcbUnWrappedEntry == nullptr ||
@@ -1911,12 +1849,12 @@ HRESULT UnWrapStoreEntryID(ULONG cbOrigEntry, const ENTRYID *lpOrigEntry,
 	    memcmp(lpOrigEntry->ab, &muidStoreWrap, sizeof(GUID)) != 0)
 		return MAPI_E_INVALID_ENTRYID;
 
-	cbRemove = 4; // Flags
+	unsigned int cbRemove = 4; // Flags
 	cbRemove+= sizeof(GUID); //Wrapped identifier
 	cbRemove+= 2; // Unknown, Unicode flag?
 
 	// Dllname size
-	cbDLLName = (ULONG)strlen((LPCSTR)lpOrigEntry+cbRemove) + 1;
+	auto cbDLLName = strlen(reinterpret_cast<const char *>(lpOrigEntry) + cbRemove) + 1;
 	cbRemove+= cbDLLName;
 
 	cbRemove += (4 - (cbRemove & 0x03)) & 0x03;; // padding to 4byte block
@@ -1924,7 +1862,7 @@ HRESULT UnWrapStoreEntryID(ULONG cbOrigEntry, const ENTRYID *lpOrigEntry,
 		return MAPI_E_INVALID_ENTRYID;
 
 	// Create Unwrap entryid
-	hr = MAPIAllocateBuffer(cbOrigEntry - cbRemove, &~lpEntryID);
+	auto hr = MAPIAllocateBuffer(cbOrigEntry - cbRemove, &~lpEntryID);
 	if (hr != hrSuccess)
 		return hr;
 	memcpy(lpEntryID, ((LPBYTE)lpOrigEntry)+cbRemove, cbOrigEntry - cbRemove);
@@ -1963,15 +1901,12 @@ enum DGMessageType {
 static HRESULT CreateLocalFreeBusyMessage(LPMAPIFOLDER lpFolder, ULONG ulFlags,
     LPMESSAGE *lppMessage)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpMessage;
-	SPropValue sPropValMessage[6];
-	
-	memset(sPropValMessage, 0, sizeof(SPropValue) * 6);
+	SPropValue sPropValMessage[6] = {0};
 
 	if (lpFolder == nullptr || lppMessage == nullptr || (ulFlags & ~MAPI_ASSOCIATED) != 0)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = lpFolder->CreateMessage(&IID_IMessage, (ulFlags&MAPI_ASSOCIATED), &~lpMessage);
+	auto hr = lpFolder->CreateMessage(&IID_IMessage, ulFlags & MAPI_ASSOCIATED, &~lpMessage);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -2027,7 +1962,6 @@ static HRESULT CreateLocalFreeBusyMessage(LPMAPIFOLDER lpFolder, ULONG ulFlags,
 static HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
     IMsgStore *lpMsgStore, bool bCreateIfMissing, IMessage **lppFBMessage)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpRoot, lpInbox;
 	IMAPIFolder *lpFolder = NULL;
 	IMessage *lpMessage = NULL;
@@ -2040,7 +1974,7 @@ static HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 	memory_ptr<ENTRYID> lpEntryIDInbox;
 	memory_ptr<TCHAR> lpszExplicitClass;
 
-	hr = lpMsgStore->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_MODIFY, &ulType, &~lpRoot);
+	auto hr = lpMsgStore->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_MODIFY, &ulType, &~lpRoot);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -2168,7 +2102,6 @@ static HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
  */
 HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept, bool bDeclineConflict, bool bDeclineRecurring)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpLocalFBMessage;
 	SPropValue FBProps[6];
 
@@ -2188,7 +2121,7 @@ HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept, bool bDec
 	FBProps[5].Value.b = bDeclineRecurring ? TRUE : FALSE;
 
 	// Save localfreebusy settings
-	hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, true, &~lpLocalFBMessage);
+	auto hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, true, &~lpLocalFBMessage);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpLocalFBMessage->SetProps(6, FBProps, NULL);
@@ -2222,7 +2155,6 @@ HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept, bool bDec
  */
 HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *lpbDeclineConflict, bool *lpbDeclineRecurring)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpLocalFBMessage;
 	memory_ptr<SPropValue> lpProps;
 	static constexpr const SizedSPropTagArray(3, sptaFBProps) =
@@ -2235,7 +2167,7 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 	bool bDeclineConflict = false;
 	bool bDeclineRecurring = false;
 
-	hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, false, &~lpLocalFBMessage);
+	auto hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, false, &~lpLocalFBMessage);
 	if(hr == hrSuccess) {
 		hr = lpLocalFBMessage->GetProps(sptaFBProps, 0, &cValues, &~lpProps);
 		if(FAILED(hr))

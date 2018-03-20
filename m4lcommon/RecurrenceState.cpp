@@ -112,8 +112,7 @@ public:
     
 private:
 	const char *m_lpData;
-    unsigned int m_ulLen;
-    unsigned int m_ulCursor;
+	unsigned int m_ulLen, m_ulCursor;
 };
 
 class BinWriter _kc_final {
@@ -204,14 +203,12 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
     ULONG ulFlags)
 {
     HRESULT hr = hrSuccess;
-    unsigned int ulReservedBlock1Size;
-    unsigned int ulReservedBlock2Size;
+    unsigned int ulReservedBlock1Size, ulReservedBlock2Size;
     bool bReadValid = false; // Read is valid if first set of exceptions was read ok
 	bool bExtended = false;	 // false if we need to sync extended data from "normal" data
 	convert_context converter;
 
     BinReader data(lpData, ulLen);
-    unsigned int i;
 
 	lstDeletedInstanceDates.clear();
 	lstModifiedInstanceDates.clear();
@@ -242,16 +239,14 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
     READLONG(ulOccurrenceCount);
     READLONG(ulFirstDOW);
     READLONG(ulDeletedInstanceCount);
-
-    for (i = 0; i < ulDeletedInstanceCount; ++i) {
+	for (unsigned int i = 0; i < ulDeletedInstanceCount; ++i) {
         unsigned int ulDeletedInstanceDate;
         READLONG(ulDeletedInstanceDate);
 		lstDeletedInstanceDates.emplace_back(ulDeletedInstanceDate);
     }
     
     READLONG(ulModifiedInstanceCount);
-    
-    for (i = 0; i < ulModifiedInstanceCount; ++i) {
+	for (unsigned int i = 0; i < ulModifiedInstanceCount; ++i) {
         unsigned int ulModifiedInstanceDate;
         READLONG(ulModifiedInstanceDate);
 		lstModifiedInstanceDates.emplace_back(ulModifiedInstanceDate);
@@ -269,13 +264,9 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
     READLONG(ulEndTimeOffset);
 
     READSHORT(ulExceptionCount);
-    
-    for (i = 0; i < ulExceptionCount; ++i) {
-        unsigned int ulSubjectLength;
-        unsigned int ulSubjectLength2;
-        unsigned int ulLocationLength;
-        unsigned int ulLocationLength2;
-        
+	for (unsigned int i = 0; i < ulExceptionCount; ++i) {
+		unsigned int ulSubjectLength, ulSubjectLength2;
+		unsigned int ulLocationLength, ulLocationLength2;
         Exception sException;
         
         READLONG(sException.ulStartDateTime);
@@ -317,10 +308,8 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
 
     for (auto &exc : lstExceptions) {
         ExtendedException sExtendedException;
-        unsigned int ulReservedBlock1Size;
-        unsigned int ulReservedBlock2Size;
-        unsigned int ulWideCharSubjectLength;
-        unsigned int ulWideCharLocationLength;
+		unsigned int ulReservedBlock1Size, ulReservedBlock2Size;
+		unsigned int ulWideCharSubjectLength, ulWideCharLocationLength;
         unsigned int ulChangeHighlightSize;
         
         if(ulWriterVersion2 >= 0x00003009) {

@@ -825,7 +825,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpOriginalMessage);
 	if (hr != hrSuccess)
 		return kc_perrorf("OpenProperty failed", hr);
-	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpOriginalMessage, 0, NULL);
+	hr = lpMessage->CopyTo(0, nullptr, nullptr, 0, nullptr, &IID_IMessage, lpOriginalMessage, 0, nullptr);
 	if (hr != hrSuccess)
 		return kc_perrorf("CopyTo failed", hr);
 
@@ -1578,8 +1578,7 @@ static HRESULT CopyDelegateMessageToSentItems(LPMESSAGE lpMessage,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-
-	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpDestMsg, 0, NULL);
+	hr = lpMessage->CopyTo(0, nullptr, nullptr, 0, nullptr, &IID_IMessage, lpDestMsg, 0, nullptr);
 	if (FAILED(hr)) {
 		ec_log_warn("Unable to copy the representee's message: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);

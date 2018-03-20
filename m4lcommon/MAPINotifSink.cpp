@@ -99,85 +99,83 @@ static HRESULT CopyMAPIERROR(const MAPIERROR *lpSrc, void *lpBase,
 static HRESULT CopyNotification(const NOTIFICATION *lpSrc, void *lpBase,
     NOTIFICATION *lpDst)
 {
-    HRESULT hr;
-
     memset(lpDst, 0, sizeof(NOTIFICATION));
 
     lpDst->ulEventType = lpSrc->ulEventType;
     
     switch(lpSrc->ulEventType) {
-		case fnevCriticalError: {
-			auto &src = lpSrc->info.err;
-			auto &dst = lpDst->info.err;
-			MAPICopyMem(src.cbEntryID, src.lpEntryID, lpBase, &dst.cbEntryID, reinterpret_cast<void **>(&dst.lpEntryID));
-			dst.scode = src.scode;
-			dst.ulFlags = src.ulFlags;
-			CopyMAPIERROR(src.lpMAPIError, lpBase, &dst.lpMAPIError);
-			break;
-		}
-		case fnevNewMail: {
-			auto &src = lpSrc->info.newmail;
-			auto &dst = lpDst->info.newmail;
-			MAPICopyMem(src.cbEntryID,  src.lpEntryID,  lpBase, &dst.cbEntryID,  reinterpret_cast<void **>(&dst.lpEntryID));
-			MAPICopyMem(src.cbParentID, src.lpParentID, lpBase, &dst.cbParentID, reinterpret_cast<void **>(&dst.lpParentID));
-			dst.ulFlags = src.ulFlags;
-			if (src.ulFlags & MAPI_UNICODE)
-				MAPICopyUnicode(reinterpret_cast<const wchar_t *>(src.lpszMessageClass), lpBase, reinterpret_cast<wchar_t **>(&dst.lpszMessageClass));
-			else
-				MAPICopyString(reinterpret_cast<const char *>(src.lpszMessageClass), lpBase, reinterpret_cast<char **>(&dst.lpszMessageClass));
-			dst.ulMessageFlags = src.ulMessageFlags;
-			break;
-		}
-        case fnevObjectCreated:
-        case fnevObjectDeleted:
-        case fnevObjectModified:
-        case fnevObjectMoved:
-        case fnevObjectCopied:
-		case fnevSearchComplete: {
-			auto &src = lpSrc->info.obj;
-			auto &dst = lpDst->info.obj;
-			dst.ulObjType = src.ulObjType;
-			MAPICopyMem(src.cbEntryID,     src.lpEntryID,     lpBase, &dst.cbEntryID,     reinterpret_cast<void **>(&dst.lpEntryID));
-			MAPICopyMem(src.cbParentID,    src.lpParentID,    lpBase, &dst.cbParentID,    reinterpret_cast<void **>(&dst.lpParentID));
-			MAPICopyMem(src.cbOldID,       src.lpOldID,       lpBase, &dst.cbOldID,       reinterpret_cast<void **>(&dst.lpOldID));
-			MAPICopyMem(src.cbOldParentID, src.lpOldParentID, lpBase, &dst.cbOldParentID, reinterpret_cast<void **>(&dst.lpOldParentID));
-			if (src.lpPropTagArray != nullptr)
-				MAPICopyMem(CbSPropTagArray(src.lpPropTagArray), src.lpPropTagArray, lpBase, nullptr, reinterpret_cast<void **>(&dst.lpPropTagArray));
-			break;
-		}
-		case fnevTableModified: {
-			auto &src = lpSrc->info.tab;
-			auto &dst = lpDst->info.tab;
-			dst.ulTableEvent = src.ulTableEvent;
-			dst.hResult = src.hResult;
-			hr = Util::HrCopyProperty(&dst.propPrior, &src.propPrior, lpBase);
-			if (hr != hrSuccess)
-				return hr;
-			hr = Util::HrCopyProperty(&dst.propIndex, &src.propIndex, lpBase);
-			if (hr != hrSuccess)
-				return hr;
-			hr = MAPIAllocateMore(src.row.cValues * sizeof(SPropValue), lpBase, reinterpret_cast<void **>(&dst.row.lpProps));
-			if (hr != hrSuccess)
-				return hr;
-			hr = Util::HrCopyPropertyArray(src.row.lpProps, src.row.cValues, dst.row.lpProps, lpBase);
-			if (hr != hrSuccess)
-				return hr;
-			dst.row.cValues = src.row.cValues;
-			break;
-		}
-		case fnevStatusObjectModified: {
-			auto &src = lpSrc->info.statobj;
-			auto &dst = lpDst->info.statobj;
-			MAPICopyMem(src.cbEntryID, src.lpEntryID, lpBase, &dst.cbEntryID, reinterpret_cast<void **>(&dst.lpEntryID));
-			hr = MAPIAllocateMore(src.cValues * sizeof(SPropValue), lpBase, reinterpret_cast<void **>(&dst.lpPropVals));
-			if (hr != hrSuccess)
-				return hr;
-			hr = Util::HrCopyPropertyArray(src.lpPropVals, src.cValues, dst.lpPropVals, lpBase);
-			if (hr != hrSuccess)
-				return hr;
-			dst.cValues = src.cValues;
-			break;
-		}
+	case fnevCriticalError: {
+		auto &src = lpSrc->info.err;
+		auto &dst = lpDst->info.err;
+		MAPICopyMem(src.cbEntryID, src.lpEntryID, lpBase, &dst.cbEntryID, reinterpret_cast<void **>(&dst.lpEntryID));
+		dst.scode = src.scode;
+		dst.ulFlags = src.ulFlags;
+		CopyMAPIERROR(src.lpMAPIError, lpBase, &dst.lpMAPIError);
+		break;
+	}
+	case fnevNewMail: {
+		auto &src = lpSrc->info.newmail;
+		auto &dst = lpDst->info.newmail;
+		MAPICopyMem(src.cbEntryID,  src.lpEntryID,  lpBase, &dst.cbEntryID,  reinterpret_cast<void **>(&dst.lpEntryID));
+		MAPICopyMem(src.cbParentID, src.lpParentID, lpBase, &dst.cbParentID, reinterpret_cast<void **>(&dst.lpParentID));
+		dst.ulFlags = src.ulFlags;
+		if (src.ulFlags & MAPI_UNICODE)
+			MAPICopyUnicode(reinterpret_cast<const wchar_t *>(src.lpszMessageClass), lpBase, reinterpret_cast<wchar_t **>(&dst.lpszMessageClass));
+		else
+			MAPICopyString(reinterpret_cast<const char *>(src.lpszMessageClass), lpBase, reinterpret_cast<char **>(&dst.lpszMessageClass));
+		dst.ulMessageFlags = src.ulMessageFlags;
+		break;
+	}
+    case fnevObjectCreated:
+    case fnevObjectDeleted:
+    case fnevObjectModified:
+    case fnevObjectMoved:
+    case fnevObjectCopied:
+	case fnevSearchComplete: {
+		auto &src = lpSrc->info.obj;
+		auto &dst = lpDst->info.obj;
+		dst.ulObjType = src.ulObjType;
+		MAPICopyMem(src.cbEntryID,     src.lpEntryID,     lpBase, &dst.cbEntryID,     reinterpret_cast<void **>(&dst.lpEntryID));
+		MAPICopyMem(src.cbParentID,    src.lpParentID,    lpBase, &dst.cbParentID,    reinterpret_cast<void **>(&dst.lpParentID));
+		MAPICopyMem(src.cbOldID,       src.lpOldID,       lpBase, &dst.cbOldID,       reinterpret_cast<void **>(&dst.lpOldID));
+		MAPICopyMem(src.cbOldParentID, src.lpOldParentID, lpBase, &dst.cbOldParentID, reinterpret_cast<void **>(&dst.lpOldParentID));
+		if (src.lpPropTagArray != nullptr)
+			MAPICopyMem(CbSPropTagArray(src.lpPropTagArray), src.lpPropTagArray, lpBase, nullptr, reinterpret_cast<void **>(&dst.lpPropTagArray));
+		break;
+	}
+	case fnevTableModified: {
+		auto &src = lpSrc->info.tab;
+		auto &dst = lpDst->info.tab;
+		dst.ulTableEvent = src.ulTableEvent;
+		dst.hResult = src.hResult;
+		auto hr = Util::HrCopyProperty(&dst.propPrior, &src.propPrior, lpBase);
+		if (hr != hrSuccess)
+			return hr;
+		hr = Util::HrCopyProperty(&dst.propIndex, &src.propIndex, lpBase);
+		if (hr != hrSuccess)
+			return hr;
+		hr = MAPIAllocateMore(src.row.cValues * sizeof(SPropValue), lpBase, reinterpret_cast<void **>(&dst.row.lpProps));
+		if (hr != hrSuccess)
+			return hr;
+		hr = Util::HrCopyPropertyArray(src.row.lpProps, src.row.cValues, dst.row.lpProps, lpBase);
+		if (hr != hrSuccess)
+			return hr;
+		dst.row.cValues = src.row.cValues;
+		break;
+	}
+	case fnevStatusObjectModified: {
+		auto &src = lpSrc->info.statobj;
+		auto &dst = lpDst->info.statobj;
+		MAPICopyMem(src.cbEntryID, src.lpEntryID, lpBase, &dst.cbEntryID, reinterpret_cast<void **>(&dst.lpEntryID));
+		auto hr = MAPIAllocateMore(src.cValues * sizeof(SPropValue), lpBase, reinterpret_cast<void **>(&dst.lpPropVals));
+		if (hr != hrSuccess)
+			return hr;
+		hr = Util::HrCopyPropertyArray(src.lpPropVals, src.cValues, dst.lpPropVals, lpBase);
+		if (hr != hrSuccess)
+			return hr;
+		dst.cValues = src.cValues;
+		break;
+	}
 	}
 	return hrSuccess;
 }
@@ -215,7 +213,6 @@ ULONG MAPINotifSink::OnNotify(ULONG cNotifications, LPNOTIFICATION lpNotificatio
 // Get All notifications off the queue
 HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNotifications, BOOL fNonBlock, ULONG timeout)
 {
-    HRESULT hr = hrSuccess;
     ULONG cNotifs = 0;
 	auto limit = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
 
@@ -229,7 +226,7 @@ HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNoti
 	}
     
 	memory_ptr<NOTIFICATION> lpNotifications;
-	hr = MAPIAllocateBuffer(sizeof(NOTIFICATION) * m_lstNotifs.size(), &~lpNotifications);
+	auto hr = MAPIAllocateBuffer(sizeof(NOTIFICATION) * m_lstNotifs.size(), &~lpNotifications);
 	if (hr == hrSuccess)
 		for (auto const &n : m_lstNotifs)
 			if (CopyNotification(n, lpNotifications, &lpNotifications[cNotifs]) == 0)
@@ -244,12 +241,11 @@ HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNoti
 }
 
 HRESULT MAPINotifSink::QueryInterface(REFIID iid, void **lpvoid) {
-	if (iid == IID_IMAPIAdviseSink) {
-	    AddRef();
-		*lpvoid = (LPVOID)this;
-		return hrSuccess;
-	}
-    return MAPI_E_INTERFACE_NOT_SUPPORTED;
+	if (iid != IID_IMAPIAdviseSink)
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
+	AddRef();
+	*lpvoid = this;
+	return hrSuccess;
 }
 
 ULONG MAPINotifSink::AddRef()
