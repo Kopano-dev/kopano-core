@@ -19,6 +19,7 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
 
 /* Returns the rows for a contents- or hierarchytable
@@ -202,7 +203,6 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 	int ulSeeked = 0, ulTraversed = 0;
 	unsigned int ulRow = 0, ulCount = 0;
 	struct propTagArray	*lpPropTags = NULL;
-	struct rowSet		*lpRowSet = NULL;
 
 	ECObjectTableList	ecRowList;
 	sObjectTableKey		sRowItem;
@@ -213,20 +213,18 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 
 	ECRESULT er = Populate();
 	if(er != erSuccess)
-	    goto exit;
-	
+		return er;
 	/* We may need the table position later (ulCount is not used) */
 	er = lpKeyTable->GetRowCount(&ulCount, &ulRow);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	// Start searching at the right place
 	if (ulBookmark == BOOKMARK_END && ulFlags & DIR_BACKWARD)
 		er = SeekRow(ulBookmark, -1, NULL);
 	else
 		er = SeekRow(ulBookmark, 0, NULL);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Special optimisation case: if you're searching the PR_INSTANCE_KEY, we can
 	// look this up directly!
@@ -238,9 +236,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 	{
 		sRowItem.ulObjId = *(unsigned int *)lpsRestrict->lpProp->lpProp->Value.bin->__ptr;
 		sRowItem.ulOrderId = *(unsigned int *)(lpsRestrict->lpProp->lpProp->Value.bin->__ptr+sizeof(LONG));
-
-		er = this->lpKeyTable->SeekId(&sRowItem);
-		goto exit;
+		return this->lpKeyTable->SeekId(&sRowItem);
 	}
 
 	// We can do the same with PR_ENTRYID
@@ -254,19 +250,17 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 		sEntryId.__size = lpsRestrict->lpProp->lpProp->Value.bin->__size;
 		er = cache->GetObjectFromEntryId(&sEntryId, &sRowItem.ulObjId);
 		if(er != erSuccess)
-			goto exit;
-
+			return er;
 		sRowItem.ulOrderId = 0; // FIXME: this is incorrect when MV_INSTANCE is specified on a column, but this won't happen often.
-
-		er = this->lpKeyTable->SeekId(&sRowItem);
-		goto exit;
+		return this->lpKeyTable->SeekId(&sRowItem);
 	}
 
 	// Get the columns we will be needing for this search
+	auto cleanup = make_scope_success([&]() { FreePropTagArray(lpPropTags); });
 	er = GetRestrictPropTags(lpsRestrict, NULL, &lpPropTags);
 
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Loop through the rows, matching it with the search criteria
 	while(1) {
@@ -276,28 +270,27 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 		er = lpKeyTable->QueryRows(20, &ecRowList, (ulFlags & DIR_BACKWARD)?true:false, TBL_NOADVANCE);
 
 		if(er != erSuccess)
-			goto exit;
-
+			return er;
 		if(ecRowList.empty())
 			break;
 
 		// Get the rowdata from the QueryRowData function
+		struct rowSet *lpRowSet = nullptr;
+		auto rowset_clean = make_scope_success([&]() { FreeRowSet(lpRowSet, true); });
 		er = m_lpfnQueryRowData(this, NULL, lpSession, &ecRowList, lpPropTags, m_lpObjectData, &lpRowSet, true, false);
 		if(er != erSuccess)
-			goto exit;
-			
+			return er;
 		SUBRESTRICTIONRESULTS sub_results;
 		er = RunSubRestrictions(lpSession, m_lpObjectData, lpsRestrict, &ecRowList, m_locale, sub_results);
         if(er != erSuccess)
-            goto exit;
+			return er;
 
 		assert(lpRowSet->__size == static_cast<gsoap_size_t>(ecRowList.size()));
 		for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i) {
 			// Match the row
 			er = MatchRowRestrict(cache, &lpRowSet->__ptr[i], lpsRestrict, &sub_results, m_locale, &fMatch);
 			if(er != erSuccess)
-				goto exit;
-
+				return er;
 			if(fMatch)
 			{
 				// A Match, seek the cursor
@@ -314,26 +307,12 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 		// No advance possible, break the loop
 		if(ulSeeked == 0)
 			break;
-
-		// Free memory
-		FreeRowSet(lpRowSet, true);
-		lpRowSet = NULL;
 	}
 
 	if(!fMatch) {
 		er = KCERR_NOT_FOUND;
 		lpKeyTable->SeekRow(ECKeyTable::EC_SEEK_SET, ulRow, &ulTraversed);
     }
-
-exit:
-	biglock.unlock();
-	if(lpRowSet)
-		FreeRowSet(lpRowSet, true);
-
-	if(lpPropTags)
-		FreePropTagArray(lpPropTags);
-			
-
 	return er;
 }
 
@@ -1005,26 +984,19 @@ ECRESULT ECGenericObjectTable::AddTableNotif(ECKeyTable::UpdateType ulAction, sO
     
     if(ulAction == ECKeyTable::TABLE_ROW_ADD || ulAction == ECKeyTable::TABLE_ROW_MODIFY) {
 		lstItems.emplace_back(sRowItem);
+		auto cleanup = make_scope_success([&]() { FreeRowSet(lpRowSetNotif, true); });
         er = m_lpfnQueryRowData(this, NULL, lpSession, &lstItems, this->lpsPropTagArray, m_lpObjectData, &lpRowSetNotif, true, true);
         if(er != erSuccess)
-            goto exit;
-            
-        if(lpRowSetNotif->__size != 1) {
-            er = KCERR_NOT_FOUND;
-            goto exit;
-        }
-
+			return er;
+		if (lpRowSetNotif->__size != 1)
+			return KCERR_NOT_FOUND;
         lpSession->AddNotificationTable(ulAction, m_ulObjType, m_ulTableId, &sRowItem, lpsPrevRow, &lpRowSetNotif->__ptr[0]);
     } else if(ulAction == ECKeyTable::TABLE_ROW_DELETE) {
         lpSession->AddNotificationTable(ulAction, m_ulObjType, m_ulTableId, &sRowItem, NULL, NULL);
     } else {
 		return KCERR_NOT_FOUND;
     }
-        
-exit:
-    if(lpRowSetNotif)
-        FreeRowSet(lpRowSetNotif, true);
-    return er;
+    return erSuccess;
 }
 
 ECRESULT ECGenericObjectTable::QueryRows(struct soap *soap, unsigned int ulRowCount, unsigned int ulFlags, struct rowSet **lppRowSet)
@@ -2790,7 +2762,7 @@ size_t ECGenericObjectTable::GetObjectSize(void)
 ECCategory::ECCategory(unsigned int ulCategory, struct propVal *lpProps,
     unsigned int cProps, unsigned int nProps, ECCategory *lpParent,
     unsigned int ulDepth, bool fExpanded, const ECLocale &locale) :
-	m_cProps(nProps), m_lpParent(lpParent), m_ulDepth(ulDepth),
+	m_lpParent(lpParent), m_cProps(nProps), m_ulDepth(ulDepth),
 	m_ulCategory(ulCategory), m_fExpanded(fExpanded), m_locale(locale)
 {
     unsigned int i;
