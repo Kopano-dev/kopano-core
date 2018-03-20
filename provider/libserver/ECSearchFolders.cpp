@@ -1515,9 +1515,9 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulFolderId, struct sea
 		ec_log_err("ECSearchFolders::SaveSearchCriteria(): BEGIN failed 0x%x", er);
 		return er;
 	}
-	er = SaveSearchCriteria(lpDatabase, ulFolderId, lpSearchCriteria);
+	er = SaveSearchCriteriaRow(lpDatabase, ulFolderId, lpSearchCriteria);
 	if(er != hrSuccess) {
-		ec_log_err("ECSearchFolders::SaveSearchCriteria(): SaveSearchCriteria failed 0x%x", er);
+		ec_log_err("ECSearchFolders::SaveSearchCriteria(): SaveSearchCriteriaRow failed 0x%x", er);
 		return er;
 	}
 	er = dtx.commit();
@@ -1527,7 +1527,7 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulFolderId, struct sea
 }
 
 // Serialize and save the search criteria for a certain folder. The property is saved as a PR_EC_SEARCHCRIT property
-ECRESULT ECSearchFolders::SaveSearchCriteria(ECDatabase *lpDatabase, unsigned int ulFolderId, struct searchCriteria *lpSearchCriteria)
+ECRESULT ECSearchFolders::SaveSearchCriteriaRow(ECDatabase *lpDatabase, unsigned int ulFolderId, struct searchCriteria *lpSearchCriteria)
 {
 	struct soap				xmlsoap;
 	struct searchCriteria	sSearchCriteria;

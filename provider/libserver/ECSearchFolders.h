@@ -210,20 +210,6 @@ public:
     virtual ECRESULT RestartSearches();
     
 	/**
-	 * Save search criteria to the database
-	 *
-	 * Purely writes the given search criteria to the database without any further processing. This is really
-	 * a private function but it is used hackishly from ECDatabaseUpdate() when upgrading from really old (4.1)
-	 * versions of kopano which have a slightly different search criteria format. Do not use this function for
-	 * anything else!
-	 *
-	 * @param[in] lpDatabase Database handle
-	 * @param[in] ulFolderId Folder id (hierarchy id) of the searchfolder to write
-	 * @param[in] lpSearchCriteria Search criteria to write
-	 */
-	_kc_hidden static ECRESULT SaveSearchCriteria(ECDatabase *, unsigned int folder_id, struct searchCriteria *);
-
-	/**
 	 * Get the searchfolder statistics
 	 */
 	_kc_hidden virtual ECRESULT GetStats(sSearchFolderStats &);
@@ -393,6 +379,17 @@ private:
      * @param[in] lpSearchFolders Pointer to 'this' of search folder manager instance
      */
 	_kc_hidden static void *ProcessThread(void *search_folders);
+
+	/**
+	 * Save search criteria (row) to the database
+	 *
+	 * Purely writes the given search criteria to the database without any further processing.
+	 *
+	 * @param[in] lpDatabase Database handle
+	 * @param[in] ulFolderId Folder id (hierarchy id) of the searchfolder to write
+	 * @param[in] lpSearchCriteria Search criteria to write
+	 */
+	_kc_hidden static ECRESULT SaveSearchCriteriaRow(ECDatabase *, unsigned int folder_id, struct searchCriteria *);
 
     /**
      * Process candidate rows and add them to search folder results
