@@ -1,15 +1,11 @@
 import base64
-import calendar
-import codecs
-import datetime
-import dateutil
 
 from ..config import TOP
 from ..utils import (
-    _server_store, _folder, db_get, db_put,
+    _server_store, _folder,
 )
 from .resource import (
-    _date, urlparse, json
+    _date, json
 )
 from .item import (
     ItemResource, get_body, set_body, get_email, get_attachments,
@@ -22,22 +18,12 @@ def set_torecipients(item, arg):
         addrs.append('%s <%s>' % (a.get('name', a['address']), a['address']))
     item.to = ';'.join(addrs)
 
-class DeletedItem(object):
-    pass
-
-class ItemImporter:
-    def __init__(self):
-        self.updates = []
-        self.deletes = []
-
-    def update(self, item, flags):
-        self.updates.append(item)
-        db_put(item.sourcekey, item.entryid)
-
-    def delete(self, item, flags):
-        d = DeletedItem()
-        d.entryid = db_get(item.sourcekey)
-        self.deletes.append(d)
+class DeletedMessageResource(ItemResource):
+    fields = {
+        '@odata.type': lambda item: '#microsoft.graph.message', # TODO
+        'id': lambda item: item.entryid,
+        '@removed': lambda item: {'reason': 'deleted'} # TODO soft deletes
+    }
 
 class MessageResource(ItemResource):
     fields = ItemResource.fields.copy()
@@ -73,23 +59,7 @@ class MessageResource(ItemResource):
         'isRead': lambda item, arg: setattr(item, 'read', arg),
     }
 
-    def delta(self, req, resp, folder):
-        args = urlparse.parse_qs(req.query_string)
-        token = args['$deltatoken'][0] if '$deltatoken' in args else None
-        filter_ = args['$filter'][0] if '$filter' in args else None
-        begin = None
-        if filter_ and filter_.startswith('receivedDateTime ge '):
-            begin = dateutil.parser.parse(filter_[20:])
-            seconds = calendar.timegm(begin.timetuple())
-            begin = datetime.datetime.fromtimestamp(seconds)
-        importer = ItemImporter()
-        newstate = folder.sync(importer, token, begin=begin)
-        changes = [(o, MessageResource) for o in importer.updates] + \
-            [(o, DeletedMessageResource) for o in importer.deletes]
-        data = (changes, TOP, 0, len(changes))
-        # TODO include filter in token?
-        deltalink = b"%s?$deltatoken=%s" % (req.path.encode('utf-8'), codecs.encode(newstate, 'ascii'))
-        self.respond(req, resp, data, MessageResource.fields, deltalink=deltalink)
+    deleted_resource = DeletedMessageResource
 
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid, self.options)
@@ -151,13 +121,6 @@ class MessageResource(ItemResource):
         server, store = _server_store(req, userid, self.options)
         item = store.item(itemid)
         store.delete(item)
-
-class DeletedMessageResource(ItemResource):
-    fields = {
-        '@odata.type': lambda item: '#microsoft.graph.message', # TODO
-        'id': lambda item: item.entryid,
-        '@removed': lambda item: {'reason': 'deleted'} # TODO soft deletes
-    }
 
 class EmbeddedMessageResource(MessageResource):
     fields = MessageResource.fields.copy()
