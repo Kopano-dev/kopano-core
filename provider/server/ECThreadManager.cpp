@@ -839,6 +839,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 		kopano_end_soap_connection(p.second.soap);
 		soap_free(p.second.soap);
 	}
+	m_setSockets.clear();
 	l_sock.unlock();
     return er;
 }
@@ -1036,6 +1037,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
         kopano_end_soap_connection(iterSockets->second.soap);
         soap_free(iterSockets->second.soap);
     }
+	m_setSockets.clear();
 	l_sock.unlock();
 	delete [] epevents;
 	return er;
