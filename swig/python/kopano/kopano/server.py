@@ -223,7 +223,7 @@ class Server(object):
             self.sslkey_pass = sslkey_pass or getattr(self.options, 'sslkey_pass', None) or self.sslkey_pass
 
             # make actual connection. in case of service, wait until this succeeds.
-            self.auth_user = auth_user or getattr(self.options, 'auth_user', None) or 'SYSTEM' # XXX override with args
+            self.auth_user = auth_user or getattr(self.options, 'auth_user', None) or ''
             self.auth_pass = auth_pass or getattr(self.options, 'auth_pass', None) or ''
 
             flags = 0
@@ -237,6 +237,8 @@ class Server(object):
 
             if oidc:
                 flags |= EC_PROFILE_FLAGS_OIDC
+            elif not self.auth_user:
+                self.auth_user = "SYSTEM"
 
             while True:
                 try:
