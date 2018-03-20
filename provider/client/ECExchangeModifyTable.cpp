@@ -456,12 +456,12 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 
 	// we need to convert data from clients which save PT_STRING8 inside PT_SRESTRICTION and PT_ACTIONS structures,
 	// because unicode clients won't be able to understand those anymore.
-	hr = ConvertString8ToUnicode(lpRowSet);
+	hr = ConvertString8ToUnicode(lpRowSet.get());
 	if(hr != hrSuccess)
 		return hr;
 
 	// Convert to SOAP rows
-	hr = CopyMAPIRowSetToSOAPRowSet(lpRowSet, &lpSOAPRowSet);
+	hr = CopyMAPIRowSetToSOAPRowSet(lpRowSet.get(), &lpSOAPRowSet);
 	if(hr != hrSuccess)
 		return hr;
 

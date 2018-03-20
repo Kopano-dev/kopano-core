@@ -9244,15 +9244,15 @@ struct MTOMStreamInfo;
 struct MTOMSessionInfo {
 	MTOMSessionInfo(ECSession *s) : lpecSession(s), holder(*s) {}
 
-	ECSession		*lpecSession;
+	ECSession *lpecSession = nullptr;
 	std::unique_ptr<ECDatabase> lpSharedDatabase;
-	ECDatabase		*lpDatabase;
+	ECDatabase *lpDatabase = nullptr;
 	std::shared_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	ECRESULT er;
 	std::unique_ptr<ECThreadPool> lpThreadPool;
 	std::lock_guard<ECSession> holder;
-	MTOMStreamInfo	*lpCurrentWriteStream; /* This is only tracked for cleanup at session exit */
-	MTOMStreamInfo	*lpCurrentReadStream; /* This is only tracked for cleanup at session exit */
+	/* These are only tracked for cleanup at session exit */
+	MTOMStreamInfo *lpCurrentWriteStream = nullptr, *lpCurrentReadStream = nullptr;
 };
 
 struct MTOMStreamInfo {

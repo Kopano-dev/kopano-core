@@ -1916,7 +1916,7 @@ HRESULT M4LAddrBook::GetSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath) {
 	auto hr = MAPIAllocateBuffer(CbNewSRowSet(m_lpSavedSearchPath->cRows), &~lpSearchPath);
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed", hr);
-	hr = Util::HrCopySRowSet(lpSearchPath, m_lpSavedSearchPath, NULL);
+	hr = Util::HrCopySRowSet(lpSearchPath.get(), m_lpSavedSearchPath, nullptr);
 	if (hr != hrSuccess)
 		return kc_perrorf("Util::HrCopySRowSet failed", hr);
 	*lppSearchPath = lpSearchPath.release();
