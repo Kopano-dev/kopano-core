@@ -44,20 +44,9 @@ class FolderResource(Resource):
         if not token: # TODO initial sync broken??
             for f in store.subtree.folders():
                 importer.update(f)
-        changes = [(o, MailFolderResource) for o in importer.updates] + \
-            [(o, DeletedFolderResource) for o in importer.deletes]
+        changes = [(o, self) for o in importer.updates] + \
+            [(o, self.deleted_resource) for o in importer.deletes]
         changes = [c for c in changes if c[0].container_class in (None, 'IPF.Note')]
         data = (changes, TOP, 0, len(changes))
         deltalink = b"%s?$deltatoken=%s" % (req.path.encode('utf-8'), codecs.encode(newstate, 'ascii'))
-        self.respond(req, resp, data, MailFolderResource.fields, deltalink=deltalink)
-
-class DeletedFolderResource(FolderResource):
-    fields = {
-        '@odata.type': lambda folder: '#microsoft.graph.mailFolder', # TODO
-        'id': lambda folder: folder.entryid,
-        '@removed': lambda folder: {'reason': 'deleted'} # TODO soft deletes
-    }
-
-from .mailfolder import (
-    MailFolderResource,
-)
+        self.respond(req, resp, data, self.fields, deltalink=deltalink)

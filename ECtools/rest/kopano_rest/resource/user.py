@@ -28,6 +28,14 @@ class UserImporter:
     def delete(self, user):
         self.deletes.append(user)
 
+
+class DeletedUserResource(Resource):
+    fields = {
+        'id': lambda user: user.userid,
+#        '@odata.type': lambda item: '#microsoft.graph.message', # TODO
+        '@removed': lambda item: {'reason': 'deleted'} # TODO soft deletes
+    }
+
 class UserResource(Resource):
     fields = {
         'id': lambda user: user.userid,
@@ -143,10 +151,3 @@ class UserResource(Resource):
         elif method == 'mailFolders':
             folder = store.create_folder(fields['displayName']) # TODO exception on conflict
             self.respond(req, resp, folder, MailFolderResource.fields)
-
-class DeletedUserResource(Resource):
-    fields = {
-        'id': lambda user: user.userid,
-#        '@odata.type': lambda item: '#microsoft.graph.message', # TODO
-        '@removed': lambda item: {'reason': 'deleted'} # TODO soft deletes
-    }

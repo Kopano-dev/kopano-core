@@ -5,6 +5,13 @@ from ..utils import (
 from .message import MessageResource
 from .folder import FolderResource
 
+class DeletedMailFolderResource(FolderResource):
+    fields = {
+        '@odata.type': lambda folder: '#microsoft.graph.mailFolder', # TODO
+        'id': lambda folder: folder.entryid,
+        '@removed': lambda folder: {'reason': 'deleted'} # TODO soft deletes
+    }
+
 class MailFolderResource(FolderResource):
     fields = FolderResource.fields.copy()
     fields.update({
@@ -19,6 +26,8 @@ class MailFolderResource(FolderResource):
         'childFolders': lambda folder: (folder.folders, MailFolderResource),
         'messages': lambda folder: (folder.items, MessageResource) # TODO event msgs
     }
+
+    deleted_resource = DeletedMailFolderResource
 
     def on_get(self, req, resp, userid=None, folderid=None, method=None):
         server, store = _server_store(req, userid, self.options)
