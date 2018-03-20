@@ -103,136 +103,136 @@ class Recurrence(object):
         # XXX add check if we actually have a recurrence, otherwise we throw a mapi exception which might not be desirable
 
         self.item = item
-        self.tz = item.get(PidLidTimeZoneStruct)
+        self._tz = item.get(PidLidTimeZoneStruct)
 
         if parse:
             self._parse()
 
     @property
     def pattern(self):
-        if self.recur_frequency == FREQ_YEAR:
+        if self._recur_frequency == FREQ_YEAR:
             return {
                 PATTERN_MONTHLY: 'yearly',
                 PATTERN_MONTHNTH: 'yearly_rel',
-            }[self.pattern_type]
+            }[self._pattern_type]
         else:
             return {
                 PATTERN_DAILY: 'daily',
                 PATTERN_WEEKLY: 'weekly',
                 PATTERN_MONTHLY: 'monthly',
                 PATTERN_MONTHNTH: 'monthly_rel',
-            }[self.pattern_type]
+            }[self._pattern_type]
 
     @pattern.setter
     def pattern(self, value):
         if value == 'daily': # TODO use mapping
-            self.recur_frequency = FREQ_DAY
-            self.pattern_type = PATTERN_DAILY
+            self._recur_frequency = FREQ_DAY
+            self._pattern_type = PATTERN_DAILY
         elif value == 'weekly':
-            self.recur_frequency = FREQ_WEEK
-            self.pattern_type = PATTERN_WEEKLY
+            self._recur_frequency = FREQ_WEEK
+            self._pattern_type = PATTERN_WEEKLY
         elif value == 'monthly':
-            self.recur_frequency = FREQ_MONTH
-            self.pattern_type = PATTERN_MONTHLY
+            self._recur_frequency = FREQ_MONTH
+            self._pattern_type = PATTERN_MONTHLY
         elif value == 'monthly_rel':
-            self.recur_frequency = FREQ_MONTH
-            self.pattern_type = PATTERN_MONTHNTH
+            self._recur_frequency = FREQ_MONTH
+            self._pattern_type = PATTERN_MONTHNTH
         elif value == 'yearly':
-            self.recur_frequency = FREQ_YEAR
-            self.pattern_type = PATTERN_MONTHLY
+            self._recur_frequency = FREQ_YEAR
+            self._pattern_type = PATTERN_MONTHLY
         elif value == 'yearly_rel':
-            self.recur_frequency = FREQ_YEAR
-            self.pattern_type = PATTERN_MONTHNTH
+            self._recur_frequency = FREQ_YEAR
+            self._pattern_type = PATTERN_MONTHNTH
 
     @property
     def weekdays(self):
-        if self.pattern_type in (PATTERN_WEEKLY, PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
+        if self._pattern_type in (PATTERN_WEEKLY, PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
             weekdays = {0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday'}
             days = []
             for index, week in weekdays.items():
-                if (self.pattern_type_specific[0] >> index ) & 1:
+                if (self._pattern_type_specific[0] >> index ) & 1:
                     days.append(week)
             return days
 
     @weekdays.setter
     def weekdays(self, value):
-        if self.pattern_type in (PATTERN_WEEKLY, PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
+        if self._pattern_type in (PATTERN_WEEKLY, PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
             weekdays = {'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4, 'friday': 5, 'saturday': 6}
             pts = 0
             for weekday in value:
                 pts |= (1 << weekdays[weekday])
-            self.pattern_type_specific = [pts]
+            self._pattern_type_specific = [pts]
 
-            if self.pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
-                self.pattern_type_specific.append(5) # TODO
+            if self._pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
+                self._pattern_type_specific.append(5) # TODO
 
         # TODO fill in
 
     @property
     def first_weekday(self):
         weekdays = {0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 4: 'thursday', 5: 'friday', 6: 'saturday'}
-        return weekdays[self.first_dow]
+        return weekdays[self._first_dow]
 
     @property
     def month(self):
-        if self.recur_frequency == FREQ_YEAR:
+        if self._recur_frequency == FREQ_YEAR:
             return self._start.month # TODO isn't this stored explicitly!?
 
     @property
     def monthday(self):
-        if self.pattern_type in (PATTERN_MONTHLY, PATTERN_HJMONTHLY):
-            return self.pattern_type_specific[0]
+        if self._pattern_type in (PATTERN_MONTHLY, PATTERN_HJMONTHLY):
+            return self._pattern_type_specific[0]
 
     @monthday.setter
     def monthday(self, value):
-        if self.pattern_type in (PATTERN_MONTHLY, PATTERN_HJMONTHLY):
-            self.pattern_type_specific = [value]
+        if self._pattern_type in (PATTERN_MONTHLY, PATTERN_HJMONTHLY):
+            self._pattern_type_specific = [value]
 
     @property
     def index(self):
-        if self.pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
+        if self._pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
             return {
                 1: u'first',
                 2: u'second',
                 3: u'third',
                 4: u'fourth',
                 5: u'last',
-            }[self.pattern_type_specific[1]]
+            }[self._pattern_type_specific[1]]
 
     @property
     def interval(self):
-        if self.recur_frequency == FREQ_YEAR:
-            return self.period//12
-        elif self.pattern_type == PATTERN_DAILY:
-            return self.period//(24*60)
+        if self._recur_frequency == FREQ_YEAR:
+            return self._period//12
+        elif self._pattern_type == PATTERN_DAILY:
+            return self._period//(24*60)
         else:
-            return self.period
+            return self._period
 
     @interval.setter
     def interval(self, value):
-        if self.pattern_type == PATTERN_DAILY:
-            self.period = value*(24*60)
+        if self._pattern_type == PATTERN_DAILY:
+            self._period = value*(24*60)
         else:
-            self.period = value
+            self._period = value
         # TODO fill in
 
     @property
     def range_type(self):
-        if self.end_type == 0x2021:
+        if self._end_type == 0x2021:
             return 'end_date'
-        elif self.end_type == 0x2022:
+        elif self._end_type == 0x2022:
             return 'occurrence_count'
-        elif self.end_type in (0x2023, 0xFFFFFFFF):
+        elif self._end_type in (0x2023, 0xFFFFFFFF):
             return 'no_end'
 
     @range_type.setter
     def range_type(self, value):
         if value == 'end_date':
-            self.end_type = 0x2021
+            self._end_type = 0x2021
         elif value == 'occurrence_count':
-            self.end_type = 0x2022
+            self._end_type = 0x2022
         elif value == 'no_end':
-            self.end_type = 0x2023
+            self._end_type = 0x2023
 
     def occurrences(self, start=None, end=None): # XXX fit-to-period
         tz = self.item.get(PidLidTimeZoneStruct)
@@ -242,7 +242,7 @@ class Recurrence(object):
             recurrences = recurrences.between(_utils._from_gmt(start, tz), _utils._from_gmt(end, tz))
 
         start_exc_ext = {}
-        for exc, ext in zip(self.exceptions, self.extended_exceptions):
+        for exc, ext in zip(self._exceptions, self._extended_exceptions):
             start_exc_ext[exc['start_datetime']] = exc, ext
 
         for d in recurrences:
@@ -259,7 +259,7 @@ class Recurrence(object):
                 basedate_val = exc['original_start_date']
                 exception = True
             else:
-                minutes = self.endtime_offset - self.starttime_offset
+                minutes = self._endtime_offset - self._starttime_offset
                 basedate_val = startdatetime_val
 
             d = _utils._to_gmt(d, tz, align_dst=True)
@@ -273,20 +273,20 @@ class Recurrence(object):
         pos = 2 + _utils.unpack_short(entryid, 0)
         basedate_val = _utils.unpack_long(entryid, pos)
 
-        for exc in self.exceptions: # TODO subject etc
-            if exc['original_start_date'] in (basedate_val, basedate_val - self.starttime_offset): # TODO pick one
+        for exc in self._exceptions: # TODO subject etc
+            if exc['original_start_date'] in (basedate_val, basedate_val - self._starttime_offset): # TODO pick one
                 start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exc['start_datetime']))
-                start = _utils._to_gmt(start, self.tz)
+                start = _utils._to_gmt(start, self._tz)
                 break
         else:
             # TODO check that date is (still) valid
             start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(basedate_val))
-            start = _utils._to_gmt(start, self.tz)
+            start = _utils._to_gmt(start, self._tz)
 
         return Occurrence(
             self.item,
             start,
-            start + datetime.timedelta(minutes=self.endtime_offset-self.starttime_offset),
+            start + datetime.timedelta(minutes=self._endtime_offset-self._starttime_offset),
             basedate_val = basedate_val,
         )
 
@@ -294,28 +294,28 @@ class Recurrence(object):
     def _init(item):
         rec = Recurrence(item, parse=False)
 
-        rec.reader_version = 0x3004
-        rec.writer_version = 0x3004
-        rec.recur_frequency = 0
-        rec.pattern_type = 0
-        rec.calendar_type = 0
-        rec.first_datetime = 0
-        rec.period = 0
-        rec.sliding_flag = 0
-        rec.pattern_type_specific = []
-        rec.end_type = 0
-        rec.occurrence_count = 0
-        rec.first_dow = 0
+        rec._reader_version = 0x3004
+        rec._writer_version = 0x3004
+        rec._recur_frequency = 0
+        rec._pattern_type = 0
+        rec._calendar_type = 0
+        rec._first_datetime = 0
+        rec._period = 0
+        rec._sliding_flag = 0
+        rec._pattern_type_specific = []
+        rec._end_type = 0
+        rec._occurrence_count = 0
+        rec._first_dow = 0
         rec.deleted_instance_count = 0
-        rec.deleted_instance_dates = []
-        rec.modified_instance_count = 0
-        rec.modified_instance_dates = []
-        rec.start_date = 0
-        rec.end_date = 0
-        rec.starttime_offset = 0
-        rec.endtime_offset = 0
-        rec.exceptions = []
-        rec.extended_exceptions = []
+        rec._deleted_instance_dates = []
+        rec._modified_instance_count = 0
+        rec._modified_instance_dates = []
+        rec._start_date = 0
+        rec._end_date = 0
+        rec._starttime_offset = 0
+        rec._endtime_offset = 0
+        rec._exceptions = []
+        rec._extended_exceptions = []
 
         rec._save()
 
@@ -324,69 +324,69 @@ class Recurrence(object):
         value = self.item.prop(PidLidAppointmentRecur).value
 
         # RecurrencePattern
-        self.reader_version = _utils.unpack_short(value, 0)
-        self.writer_version = _utils.unpack_short(value, SHORT)
+        self._reader_version = _utils.unpack_short(value, 0)
+        self._writer_version = _utils.unpack_short(value, SHORT)
 
-        self.recur_frequency = _utils.unpack_short(value, 2 * SHORT)
-        self.pattern_type = _utils.unpack_short(value, 3 * SHORT)
-        self.calendar_type = _utils.unpack_short(value, 4 * SHORT)
-        self.first_datetime = _utils.unpack_long(value, 5 * SHORT)
-        self.period = _utils.unpack_long(value, 5 * SHORT + LONG)
-        self.sliding_flag = _utils.unpack_long(value, 5 * SHORT + 2 * LONG)
+        self._recur_frequency = _utils.unpack_short(value, 2 * SHORT)
+        self._pattern_type = _utils.unpack_short(value, 3 * SHORT)
+        self._calendar_type = _utils.unpack_short(value, 4 * SHORT)
+        self._first_datetime = _utils.unpack_long(value, 5 * SHORT)
+        self._period = _utils.unpack_long(value, 5 * SHORT + LONG)
+        self._sliding_flag = _utils.unpack_long(value, 5 * SHORT + 2 * LONG)
 
         pos = 5 * SHORT + 3 * LONG
 
-        self.pattern_type_specific = []
-        if self.pattern_type != PATTERN_DAILY:
-            self.pattern_type_specific.append(_utils.unpack_long(value, pos))
+        self._pattern_type_specific = []
+        if self._pattern_type != PATTERN_DAILY:
+            self._pattern_type_specific.append(_utils.unpack_long(value, pos))
             pos += LONG
-            if self.pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
-                self.pattern_type_specific.append(_utils.unpack_long(value, pos))
+            if self._pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
+                self._pattern_type_specific.append(_utils.unpack_long(value, pos))
                 pos += LONG
 
-        self.end_type = _utils.unpack_long(value, pos)
+        self._end_type = _utils.unpack_long(value, pos)
         pos += LONG
 
-        self.occurrence_count = _utils.unpack_long(value, pos)
+        self._occurrence_count = _utils.unpack_long(value, pos)
         pos += LONG
-        self.first_dow = _utils.unpack_long(value, pos)
+        self._first_dow = _utils.unpack_long(value, pos)
         pos += LONG
 
         self.deleted_instance_count = _utils.unpack_long(value, pos)
         pos += LONG
-        self.deleted_instance_dates = []
+        self._deleted_instance_dates = []
         for _ in range(0, self.deleted_instance_count):
-            self.deleted_instance_dates.append(_utils.unpack_long(value, pos))
+            self._deleted_instance_dates.append(_utils.unpack_long(value, pos))
             pos += LONG
 
-        self.modified_instance_count = _utils.unpack_long(value, pos)
+        self._modified_instance_count = _utils.unpack_long(value, pos)
         pos += LONG
 
-        self.modified_instance_dates = []
-        for _ in range(0, self.modified_instance_count):
-            self.modified_instance_dates.append(_utils.unpack_long(value, pos))
+        self._modified_instance_dates = []
+        for _ in range(0, self._modified_instance_count):
+            self._modified_instance_dates.append(_utils.unpack_long(value, pos))
             pos += LONG
 
-        self.start_date = _utils.unpack_long(value, pos)
+        self._start_date = _utils.unpack_long(value, pos)
         pos += LONG
-        self.end_date = _utils.unpack_long(value, pos)
+        self._end_date = _utils.unpack_long(value, pos)
         pos += LONG
 
         # AppointmentRecurrencePattern
-        self.reader_version2 = _utils.unpack_long(value, pos)
+        self._reader_version2 = _utils.unpack_long(value, pos)
         pos += LONG
-        self.writer_version2 = _utils.unpack_long(value, pos)
+        self._writer_version2 = _utils.unpack_long(value, pos)
         pos += LONG
-        self.starttime_offset = _utils.unpack_long(value, pos)
+        self._starttime_offset = _utils.unpack_long(value, pos)
         pos += LONG
-        self.endtime_offset = _utils.unpack_long(value, pos)
+        self._endtime_offset = _utils.unpack_long(value, pos)
         pos += LONG
-        self.exception_count = _utils.unpack_short(value, pos)
+        self.exception_count = _utils.unpack_short(value, pos) # TODO rename to _exception_count?
         pos += SHORT
 
         # ExceptionInfo
-        self.exceptions = []
-        for i in range(0, self.modified_instance_count): # using modcount, as PHP seems to not update exception_count? equal according to docs
+        self._exceptions = []
+        for i in range(0, self._modified_instance_count): # using modcount, as PHP seems to not update exception_count? equal according to docs
             exception = {}
 
             val = _utils.unpack_long(value, pos)
@@ -446,18 +446,18 @@ class Recurrence(object):
                 exception['appointment_color'] = _utils.unpack_long(value, pos)
                 pos += LONG
 
-            self.exceptions.append(exception)
+            self._exceptions.append(exception)
 
         # ReservedBlock1Size
         pos += _utils.unpack_long(value, pos) + LONG
 
         # ExtendedException
-        self.extended_exceptions = []
-        for exception in self.exceptions:
+        self._extended_exceptions = []
+        for exception in self._exceptions:
             extended_exception = {}
 
             # ChangeHighlight
-            if self.writer_version2 >= 0x3009:
+            if self._writer_version2 >= 0x3009:
                 change_highlight_size = _utils.unpack_long(value, pos)
                 pos += LONG
                 change_highlight_value = _utils.unpack_long(value, pos)
@@ -494,49 +494,49 @@ class Recurrence(object):
             if exception['override_flags'] & ARO_SUBJECT or exception['override_flags'] & ARO_LOCATION:
                 pos += _utils.unpack_long(value, pos) + LONG
 
-            self.extended_exceptions.append(extended_exception)
+            self._extended_exceptions.append(extended_exception)
 
     def _save(self):
         # AppointmentRecurrencePattern
 
         # RecurrencePattern
-        data = struct.pack('<HHHHH', self.reader_version, self.writer_version,
-            self.recur_frequency, self.pattern_type, self.calendar_type)
+        data = struct.pack('<HHHHH', self._reader_version, self._writer_version,
+            self._recur_frequency, self._pattern_type, self._calendar_type)
 
-        data += struct.pack('<III', self.first_datetime, self.period, self.sliding_flag)
+        data += struct.pack('<III', self._first_datetime, self._period, self._sliding_flag)
 
-        for i in self.pattern_type_specific:
+        for i in self._pattern_type_specific:
             data += struct.pack('<I', i)
 
-        data += struct.pack('<I', self.end_type)
+        data += struct.pack('<I', self._end_type)
 
-        if self.end_type == 0x2021: # stop after date
+        if self._end_type == 0x2021: # stop after date
             occurrence_count = 0xa # TODO is this really needed (default occ count from webapp!)
-        elif self.end_type == 0x2022: # stop after N occurrences
-            occurrence_count = self.occurrence_count
+        elif self._end_type == 0x2022: # stop after N occurrences
+            occurrence_count = self._occurrence_count
         else:
             occurrence_count = 0
         data += struct.pack('<I', occurrence_count)
 
-        data += struct.pack('<I', self.first_dow)
+        data += struct.pack('<I', self._first_dow)
 
         data += struct.pack('<I', self.deleted_instance_count)
-        for val in self.deleted_instance_dates:
+        for val in self._deleted_instance_dates:
             data += struct.pack('<I', val)
 
-        data += struct.pack('<I', self.modified_instance_count)
-        for val in self.modified_instance_dates:
+        data += struct.pack('<I', self._modified_instance_count)
+        for val in self._modified_instance_dates:
             data += struct.pack('<I', val)
 
-        data += struct.pack('<II', self.start_date, self.end_date)
+        data += struct.pack('<II', self._start_date, self._end_date)
 
         data += struct.pack('<II', 0x3006, 0x3008)
-        data += struct.pack('<II', self.starttime_offset, self.endtime_offset)
+        data += struct.pack('<II', self._starttime_offset, self._endtime_offset)
 
         # ExceptionInfo
-        data += struct.pack('<H', self.modified_instance_count)
+        data += struct.pack('<H', self._modified_instance_count)
 
-        for exception in self.exceptions:
+        for exception in self._exceptions:
             data += struct.pack('<I', exception['start_datetime'])
             data += struct.pack('<I', exception['end_datetime'])
             data += struct.pack('<I', exception['original_start_date'])
@@ -579,7 +579,7 @@ class Recurrence(object):
         data += struct.pack('<I', 0)
 
         # ExtendedException
-        for exception, extended_exception in zip(self.exceptions, self.extended_exceptions):
+        for exception, extended_exception in zip(self._exceptions, self._extended_exceptions):
             data += struct.pack('<I', 0)
 
             overrideflags = exception['override_flags']
@@ -609,72 +609,72 @@ class Recurrence(object):
 
     @property
     def _start(self):
-        return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self.start_date)) + datetime.timedelta(minutes=self.starttime_offset) # XXX local time..
+        return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self._start_date)) + datetime.timedelta(minutes=self._starttime_offset) # XXX local time..
 
     @_start.setter
     def _start(self, value):
-        self.start_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
+        self._start_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
         start = self.item.start
-        self.starttime_offset = start.hour*60 + start.minute
+        self._starttime_offset = start.hour*60 + start.minute
 
     @property
     def _end(self):
-        return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self.end_date)) + datetime.timedelta(minutes=self.endtime_offset)# XXX local time..
+        return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self._end_date)) + datetime.timedelta(minutes=self._endtime_offset)# XXX local time..
 
     @_end.setter
     def _end(self, value):
-        self.end_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
+        self._end_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
         end = self.item.end
-        self.endtime_offset = end.hour*60 + end.minute
+        self._endtime_offset = end.hour*60 + end.minute
 
     # TODO functionality below here should be refactored or not visible
 
     @property
-    def recurrences(self):
+    def recurrences(self): # TODO rename to _recurrences and/or rrule?
         rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
         rule = rruleset()
 
-        if self.pattern_type == PATTERN_DAILY:
-            rule.rrule(rrule(DAILY, dtstart=self._start, until=self._end, interval=self.period//(24*60)))
+        if self._pattern_type == PATTERN_DAILY:
+            rule.rrule(rrule(DAILY, dtstart=self._start, until=self._end, interval=self._period//(24*60)))
 
-        if self.pattern_type == PATTERN_WEEKLY:
+        if self._pattern_type == PATTERN_WEEKLY:
             byweekday = () # Set
             for index, week in rrule_weekdays.items():
-                if (self.pattern_type_specific[0] >> index ) & 1:
+                if (self._pattern_type_specific[0] >> index ) & 1:
                     byweekday += (week,)
             # FIXME: add one day, so that we don't miss the last recurrence, since the end date is for example 11-3-2015 on 1:00
             # But the recurrence is on 8:00 that day and we should include it.
-            rule.rrule(rrule(WEEKLY, wkst = self._start.weekday(), dtstart=self._start, until=self._end + timedelta(days=1), byweekday=byweekday, interval=self.period))
+            rule.rrule(rrule(WEEKLY, wkst = self._start.weekday(), dtstart=self._start, until=self._end + timedelta(days=1), byweekday=byweekday, interval=self._period))
 
-        elif self.pattern_type == PATTERN_MONTHLY:
+        elif self._pattern_type == PATTERN_MONTHLY:
             # X Day of every Y month(s)
             # The Xnd Y (day) of every Z Month(s)
-            rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, bymonthday=self.pattern_type_specific[0], interval=self.period))
-            # self.pattern_type_specific[0] is either day of month or
+            rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, bymonthday=self._pattern_type_specific[0], interval=self._period))
+            # self._pattern_type_specific[0] is either day of month or
 
-        elif self.pattern_type == PATTERN_MONTHNTH:
+        elif self._pattern_type == PATTERN_MONTHNTH:
             byweekday = () # Set
             for index, week in rrule_weekdays.items():
-                if (self.pattern_type_specific[0] >> index ) & 1:
-                    if self.pattern_type_specific[1] == 5:
+                if (self._pattern_type_specific[0] >> index ) & 1:
+                    if self._pattern_type_specific[1] == 5:
                         byweekday += (week(-1),) # last week of month
                     else:
-                        byweekday += (week(self.pattern_type_specific[1]),)
+                        byweekday += (week(self._pattern_type_specific[1]),)
             # Yearly, the last XX of YY
-            rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, interval=self.period, byweekday=byweekday))
+            rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, interval=self._period, byweekday=byweekday))
 
-        elif self.pattern_type != PATTERN_DAILY: # XXX check 0
-            raise NotSupportedError('Unsupported recurrence pattern: %d' % self.pattern_type)
+        elif self._pattern_type != PATTERN_DAILY: # XXX check 0
+            raise NotSupportedError('Unsupported recurrence pattern: %d' % self._pattern_type)
 
         # add exceptions
         exc_starts = set()
-        for exception in self.exceptions:
+        for exception in self._exceptions:
             exc_start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exception['start_datetime']))
             rule.rdate(exc_start)
             exc_starts.add(exc_start)
 
         # Remove deleted ocurrences (skip added exceptions)
-        for del_date_val in self.deleted_instance_dates:
+        for del_date_val in self._deleted_instance_dates:
             del_date = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(del_date_val))
             del_date = datetime.datetime(del_date.year, del_date.month, del_date.day, self._start.hour, self._start.minute)
             if del_date not in exc_starts:
@@ -682,14 +682,14 @@ class Recurrence(object):
 
         return rule
 
-    def exception_message(self, basedate):
+    def _exception_message(self, basedate):
         for message in self.item.items():
             replacetime = message.get(PidLidExceptionReplaceTime)
             if replacetime and replacetime.date() == basedate.date():
                 return message
 
-    def is_exception(self, basedate):
-        return self.exception_message(basedate) is not None
+    def _is_exception(self, basedate):
+        return self._exception_message(basedate) is not None
 
     def _update_exceptions(self, cal_item, item, startdate_val, enddate_val, basedate_val, exception, extended_exception, copytags, create=False): # XXX kill copytags, create args, just pass all properties as in php
         exception['start_datetime'] = startdate_val
@@ -768,7 +768,7 @@ class Recurrence(object):
                 cal_item.prop(PidLidReminderSignalTime).value = datetime.datetime.fromtimestamp(0x7ff00000)
 
     def _update_embedded(self, basedate, message, item, copytags=None, create=False):
-        basetime = basedate + datetime.timedelta(minutes=self.starttime_offset)
+        basetime = basedate + datetime.timedelta(minutes=self._starttime_offset)
         cal_item = self.item
 
         if copytags:
@@ -800,12 +800,12 @@ class Recurrence(object):
 
         start = message.get(PidLidAppointmentStartWhole)
         if start is not None:
-            start_local = unixtime(time.mktime(_utils._from_gmt(start, self.tz).timetuple())) # XXX why local??
+            start_local = unixtime(time.mktime(_utils._from_gmt(start, self._tz).timetuple())) # XXX why local??
             props.append(SPropValue(PR_EXCEPTION_STARTTIME, start_local))
 
         end = message.prop(PidLidAppointmentEndWhole).value
         if end is not None:
-            end_local = unixtime(time.mktime(_utils._from_gmt(end, self.tz).timetuple())) # XXX why local??
+            end_local = unixtime(time.mktime(_utils._from_gmt(end, self._tz).timetuple())) # XXX why local??
             props.append(SPropValue(PR_EXCEPTION_ENDTIME, end_local))
 
         message._attobj.SetProps(props)
@@ -816,7 +816,7 @@ class Recurrence(object):
         message.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
         message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
 
-    def create_exception(self, basedate, item, copytags=None, merge=False):
+    def _create_exception(self, basedate, item, copytags=None, merge=False):
         tz = item.get(PidLidTimeZoneStruct)
         cal_item = self.item
 
@@ -863,16 +863,16 @@ class Recurrence(object):
         self.deleted_instance_count += 1
         deldate = _utils._from_gmt(basedate, tz)
         deldate_val = _utils.unixtime_to_rectime(time.mktime(deldate.timetuple()))
-        self.deleted_instance_dates.append(deldate_val)
-        self.deleted_instance_dates.sort()
+        self._deleted_instance_dates.append(deldate_val)
+        self._deleted_instance_dates.sort()
 
-        self.modified_instance_count += 1
+        self._modified_instance_count += 1
         moddate = message.prop(PidLidAppointmentStartWhole).value
         daystart = moddate - datetime.timedelta(hours=moddate.hour, minutes=moddate.minute) # XXX different approach in php? seconds?
         localdaystart = _utils._from_gmt(daystart, tz)
         moddate_val = _utils.unixtime_to_rectime(time.mktime(localdaystart.timetuple()))
-        self.modified_instance_dates.append(moddate_val)
-        self.modified_instance_dates.sort()
+        self._modified_instance_dates.append(moddate_val)
+        self._modified_instance_dates.sort()
 
         startdate = _utils._from_gmt(message.prop(PidLidAppointmentStartWhole).value, tz)
         startdate_val = _utils.unixtime_to_rectime(time.mktime(startdate.timetuple()))
@@ -883,15 +883,15 @@ class Recurrence(object):
         exception = {}
         extended_exception = {}
         self._update_exceptions(cal_item, message, startdate_val, enddate_val, deldate_val, exception, extended_exception, copytags, create=True)
-        self.exceptions.append(exception) # no evidence of sorting
-        self.extended_exceptions.append(extended_exception)
+        self._exceptions.append(exception) # no evidence of sorting
+        self._extended_exceptions.append(extended_exception)
 
         self._save()
 
         # update calitem
         self._update_calitem()
 
-    def modify_exception(self, basedate, item, copytags=None): # XXX 'item' too MR specific
+    def _modify_exception(self, basedate, item, copytags=None): # XXX 'item' too MR specific
         tz = item.get(PidLidTimeZoneStruct)
         cal_item = self.item
 
@@ -939,17 +939,17 @@ class Recurrence(object):
         enddate = _utils._from_gmt(message.prop(PidLidAppointmentEndWhole).value, tz)
         enddate_val = _utils.unixtime_to_rectime(time.mktime(enddate.timetuple()))
 
-        for i, exception in enumerate(self.exceptions):
+        for i, exception in enumerate(self._exceptions):
             if exception['original_start_date'] == basedate_val: # TODO offset, as below?
-                current_startdate_val = exception['start_datetime'] - self.starttime_offset
+                current_startdate_val = exception['start_datetime'] - self._starttime_offset
 
-                for j, val in enumerate(self.modified_instance_dates):
+                for j, val in enumerate(self._modified_instance_dates):
                     if val == current_startdate_val:
-                        self.modified_instance_dates[j] = startdate_val - self.starttime_offset
-                        self.modified_instance_dates.sort()
+                        self._modified_instance_dates[j] = startdate_val - self._starttime_offset
+                        self._modified_instance_dates.sort()
                         break
 
-                extended_exception = self.extended_exceptions[i]
+                extended_exception = self._extended_exceptions[i]
                 self._update_exceptions(cal_item, message, startdate_val, enddate_val, basedate_val, exception, extended_exception, copytags, create=False)
 
         self._save()
@@ -957,39 +957,39 @@ class Recurrence(object):
         # update calitem
         self._update_calitem()
 
-    def create_exception2(self, basedate):
+    def _create_exception2(self, basedate):
         # TODO merge with create_exception
         # TODO create embedded item
 
         tz = self.item.get(PidLidTimeZoneStruct)
 
         basedate = _utils._from_gmt(basedate, tz)
-        basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate.timetuple())) - self.starttime_offset
+        basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate.timetuple())) - self._starttime_offset
 
         # update blob
         self.deleted_instance_count += 1
-        self.deleted_instance_dates.append(basedate_val)
-        self.deleted_instance_dates.sort()
+        self._deleted_instance_dates.append(basedate_val)
+        self._deleted_instance_dates.sort()
 
-        self.modified_instance_count += 1
-        self.modified_instance_dates.append(basedate_val)
-        self.modified_instance_dates.sort()
+        self._modified_instance_count += 1
+        self._modified_instance_dates.append(basedate_val)
+        self._modified_instance_dates.sort()
 
         exception = {
-            'start_datetime': basedate_val + self.starttime_offset,
-            'end_datetime': basedate_val + self.starttime_offset + 30, # TODO
+            'start_datetime': basedate_val + self._starttime_offset,
+            'end_datetime': basedate_val + self._starttime_offset + 30, # TODO
             'original_start_date': basedate_val,
             'override_flags': 0,
         }
-        self.exceptions.append(exception) # no evidence of sorting
-        self.extended_exceptions.append({})
+        self._exceptions.append(exception) # no evidence of sorting
+        self._extended_exceptions.append({})
 
         self._save()
 
         # update calitem
         self._update_calitem()
 
-    def modify_exception2(self, basedate, subject=None, start=None, end=None, location=None):
+    def _modify_exception2(self, basedate, subject=None, start=None, end=None, location=None):
         # TODO merge with modify_exception
         tz = self.item.get(PidLidTimeZoneStruct)
 
@@ -1006,9 +1006,9 @@ class Recurrence(object):
         # update blob
         basedate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(basedate, tz).timetuple()))
 
-        for i, exception in enumerate(self.exceptions):
-            if exception['original_start_date'] in (basedate_val, basedate_val - self.starttime_offset): # TODO pick one
-                extended_exception = self.extended_exceptions[i]
+        for i, exception in enumerate(self._exceptions):
+            if exception['original_start_date'] in (basedate_val, basedate_val - self._starttime_offset): # TODO pick one
+                extended_exception = self._extended_exceptions[i]
                 break
 
         if subject is not None:
@@ -1040,30 +1040,30 @@ class Recurrence(object):
         # update calitem
         self._update_calitem()
 
-    def delete_exception(self, basedate, item, copytags):
+    def _delete_exception(self, basedate, item, copytags):
         tz = item.get(PidLidTimeZoneStruct)
 
         basedate2 = _utils._from_gmt(basedate, tz)
         basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate2.timetuple()))
 
-        if self.is_exception(basedate):
-            self.modify_exception(basedate, item, copytags)
+        if self._is_exception(basedate):
+            self._modify_exception(basedate, item, copytags)
 
-            for i, exc in enumerate(self.exceptions):
+            for i, exc in enumerate(self._exceptions):
                 if exc['original_start_date'] == basedate_val:
                     break
 
-            self.modified_instance_count -= 1
-            self.modified_instance_dates = [m for m in self.modified_instance_dates if m != exc['start_datetime']]
+            self._modified_instance_count -= 1
+            self._modified_instance_dates = [m for m in self._modified_instance_dates if m != exc['start_datetime']]
 
-            del self.exceptions[i]
-            del self.extended_exceptions[i]
+            del self._exceptions[i]
+            del self._extended_exceptions[i]
 
         else:
             self.deleted_instance_count += 1
 
-            self.deleted_instance_dates.append(basedate_val)
-            self.deleted_instance_dates.sort()
+            self._deleted_instance_dates.append(basedate_val)
+            self._deleted_instance_dates.sort()
 
         self._save()
         self._update_calitem()
@@ -1128,13 +1128,13 @@ class Occurrence(object):
         if self.item.recurring:
             rec = self.item.recurrence
             basedate = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
-            basedate = _utils._to_gmt(basedate, rec.tz)
+            basedate = _utils._to_gmt(basedate, rec._tz)
 
-            if rec.is_exception(basedate):
-                rec.modify_exception2(basedate, **kwargs)
+            if rec._is_exception(basedate):
+                rec._modify_exception2(basedate, **kwargs)
             else:
-                rec.create_exception2(basedate)
-                rec.modify_exception2(basedate, **kwargs)
+                rec._create_exception2(basedate)
+                rec._modify_exception2(basedate, **kwargs)
         else:
             for (k, v) in kwargs.items():
                 setattr(self.item, k, v)

@@ -73,7 +73,7 @@ class TrackingHierarchyImporter(ECImportHierarchyChanges):
     def ImportFolderDeletion(self, flags, sourcekeys):
         if hasattr(self.importer, 'delete'):
             for sourcekey in sourcekeys:
-                folder = _folder.Folder(self.importer.store)
+                folder = _folder.Folder(self.importer.store, _check_mapiobj=False)
                 folder._sourcekey = _benc(sourcekey)
                 self.importer.delete(folder, flags)
 

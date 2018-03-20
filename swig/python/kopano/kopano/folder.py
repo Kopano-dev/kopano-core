@@ -211,7 +211,8 @@ class Folder(Properties):
         if name is not None:
             return name.replace('/', '\\/')
         else:
-            if self.entryid == self.store.root.entryid: # Root folder's PR_DISPLAY_NAME_W is never set
+            # root folder doesn't have PR_DISPLAY_NAME_W
+            if self.entryid == self.store.root.entryid:
                 return u'ROOT'
             else:
                 return u''
@@ -321,6 +322,7 @@ class Folder(Properties):
             PR_LAST_MODIFICATION_TIME,
             PR_CHANGE_KEY,
             PR_MESSAGE_CLASS_W,
+            PR_BODY_W, # body preview, not entire body!
         ]
 
         try:
@@ -936,4 +938,9 @@ class Folder(Properties):
         return self.__next__()
 
     def __unicode__(self): # XXX associated?
-        return u'Folder(%s)' % self.name
+        try: # folder deleted via ICS
+            name = self.name
+        except AttributeError:
+            name = u''
+
+        return u'Folder(%s)' % name

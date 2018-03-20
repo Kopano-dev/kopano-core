@@ -1,3 +1,34 @@
+import codecs
+
+def _auth(req, options):
+    auth_header = req.get_header('Authorization')
+
+    if (auth_header and auth_header.startswith('Bearer ') and \
+        (not options or options.auth_bearer)):
+        token = codecs.encode(auth_header[7:], 'ascii')
+        return {
+            'method': 'bearer',
+            'user': req.get_header('X-Kopano-UserEntryID', ''),
+            'token': token,
+        }
+
+    elif (auth_header and auth_header.startswith('Basic ') and \
+        (not options or options.auth_basic)):
+        user, password = codecs.decode(codecs.encode(auth_header[6:], 'ascii'),
+                             'base64').split(b':')
+        return {
+            'method': 'basic',
+            'user': user,
+            'password': password,
+        }
+
+    elif not options or options.auth_passthrough:
+        userid = req.get_header('X-Kopano-UserEntryID')
+        if userid:
+            return {
+                'method': 'passthrough',
+                'userid': userid,
+            }
 
 def _folder(store, folderid):
     name = folderid.lower()

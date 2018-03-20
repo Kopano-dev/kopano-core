@@ -21,25 +21,21 @@ from .config import PREFIX
 
 SUBSCRIPTIONS = {}
 
-def _user(req):
+def _user(req, options):
     global SERVER
     try:
         SERVER
     except NameError:
         SERVER = kopano.Server(notifications=True, parse_args=False)
 
-    auth_header = req.get_header('Authorization')
-    userid = req.get_header('X-Kopano-UserEntryID')
+    auth = utils._auth(req, options)
 
-    if auth_header and auth_header.startswith('Basic '):
-        user, passwd = codecs.decode(codecs.encode(auth_header[6:], 'ascii'), 'base64').split(b':')
-        return SERVER.user(codecs.decode(user, 'utf8'))
-    elif auth_header and auth_header.startswith('Bearer '):
-        token = codecs.encode(auth_header[7:], 'ascii')
-        user = jwt.decode(token, verify=False)['kc.identity']['kc.i.un']
-        return SERVER.user(user)
-    elif userid:
-        return SERVER.user(userid=userid)
+    if auth['method'] == 'bearer':
+        return SERVER.user(auth['user'])
+    elif auth['method'] == 'basic':
+        return SERVER.user(codecs.decode(auth['user'], 'utf8'))
+    elif auth['method'] == 'passthrough':
+        return SERVER.user(userid=auth['userid'])
 
 # TODO don't block on sending updates
 # TODO restarting app/server
@@ -47,9 +43,9 @@ def _user(req):
 # TODO handshake with webhook
 
 class Processor(Thread):
-    def __init__(self, api):
+    def __init__(self, options):
         Thread.__init__(self)
-        self.api = api
+        self.options = options
         self.daemon = True
 
     def _notification(self, subscription, changetype, obj):
@@ -83,7 +79,7 @@ class Processor(Thread):
                     old_data = self._notification(subscription, 'deleted', notification.old_object)
                     data = {'value': [old_data, data]}
 
-                verify = not self.api.options or not self.api.options.insecure
+                verify = not self.options or not self.options.insecure
                 try:
                     requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10, verify=verify)
                 except Exception:
@@ -91,7 +87,7 @@ class Processor(Thread):
 
 class Sink:
     def __init__(self, api, store, subscription):
-        self.api = api
+        self.options = options
         self.store = store
         self.subscription = subscription
 
@@ -101,7 +97,7 @@ class Sink:
             QUEUE
         except NameError:
             QUEUE = Queue()
-            Processor(self.api).start()
+            Processor(self.options).start()
 
         QUEUE.put((self.store, notification, self.subscription))
 
@@ -113,11 +109,11 @@ class Sink:
 #    return utils._folder(store, folderid)
 
 class SubscriptionResource:
-    def __init__(self, api):
-        self.api = api
+    def __init__(self, options):
+        self.options = options
 
     def on_post(self, req, resp):
-        user = _user(req)
+        user = _user(req, self.options)
         store = user.store
         fields = json.loads(req.stream.read().decode('utf-8'))
 #        folder = _get_folder(store, fields['resource'])
@@ -128,7 +124,7 @@ class SubscriptionResource:
         subscription = fields
         subscription['id'] = id_
 
-        sink = Sink(self.api, store, subscription)
+        sink = Sink(self.options, store, subscription)
         store.subscribe(sink)
 
         SUBSCRIPTIONS[id_] = (subscription, sink)
@@ -143,7 +139,7 @@ class SubscriptionResource:
         resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
 
     def on_delete(self, req, resp, subscriptionid):
-        user = _user(req)
+        user = _user(req, self.options)
         store = user.store
 
         subscription, sink = SUBSCRIPTIONS[subscriptionid]
@@ -157,7 +153,7 @@ class NotifyAPI(falcon.API):
         super().__init__(media_type=None)
         self.options = options
 
-        subscriptions = SubscriptionResource(self)
+        subscriptions = SubscriptionResource(options)
 
         self.add_route(PREFIX+'/subscriptions', subscriptions)
         self.add_route(PREFIX+'/subscriptions/{subscriptionid}', subscriptions)

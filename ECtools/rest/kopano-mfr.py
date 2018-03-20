@@ -32,6 +32,12 @@ def opt_args():
                       help="number of workers (unix sockets)", metavar="N")
     parser.add_option("", "--insecure", dest='insecure', action='store_true', default=False,
                       help="allow insecure connections")
+    parser.add_option("", "--enable-auth-basic", dest='auth_basic', action='store_true', default=False,
+                      help="enable basic authentication")
+    parser.add_option("", "--enable-auth-passthrough", dest='auth_passthrough', action='store_true', default=False,
+                      help="enable passthrough authentication (use with caution)")
+    parser.add_option("", "--disable-auth-bearer", dest='auth_bearer', action='store_false', default=True,
+                      help="disable bearer authentication")
 
     options, args = parser.parse_args()
     if args:

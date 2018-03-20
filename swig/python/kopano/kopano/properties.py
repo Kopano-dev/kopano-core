@@ -95,7 +95,7 @@ class Properties(object):
     # about 20 SQL statements _per item_ (!)
 
     # TODO generalize for any property?
-    def _get_fast(self, proptag, default=None, must_exist=False):
+    def _get_fast(self, proptag, default=None, must_exist=False, capped=False):
         # in cache
 
         prop = self._cache.get(proptag)
@@ -108,7 +108,7 @@ class Properties(object):
 
             # mapi table cells are limited to 255 characters/bytes
             # TODO check other types
-            if not (proptype == PT_UNICODE and len(value) >= 255):
+            if capped or not (proptype == PT_UNICODE and len(value) >= 255):
                 return value
 
         # fallback to (slow) lookup

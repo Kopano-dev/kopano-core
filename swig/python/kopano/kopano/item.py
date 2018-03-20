@@ -327,6 +327,12 @@ class Item(Properties, Contact, Appointment):
         return Body(self) # XXX return None if no body..?
 
     @property
+    def body_preview(self):
+        """ Item body preview (plaintext, up to 255 characters) """
+
+        return self._get_fast(PR_BODY_W, capped=True)[:255]
+
+    @property
     def size(self):
         """ Item size """
 
@@ -1022,7 +1028,7 @@ class Item(Properties, Contact, Appointment):
         proptags = [item.proptag for item in objects if isinstance(item, _prop.Property)]
         occs = [item for item in objects if isinstance(item, Occurrence)]
         for occ in occs:
-            self.recurrence.delete_exception(occ.start, self, _copytags(self.mapiobj))
+            self.recurrence._delete_exception(occ.start, self, _copytags(self.mapiobj))
         if proptags:
             self.mapiobj.DeleteProps(proptags)
         for attach_id in attach_ids:
