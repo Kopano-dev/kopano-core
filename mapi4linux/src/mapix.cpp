@@ -438,8 +438,8 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 		
 		if (ulFlags & MAPI_UNICODE) {
 			wDisplayName = converter.convert_to<std::wstring>(serv->displayname);
-			sProps[1].ulPropTag = PR_DISPLAY_NAME_W;
-			sProps[1].Value.lpszW = (WCHAR *) wDisplayName.c_str();
+			sProps[2].ulPropTag = PR_DISPLAY_NAME_W;
+			sProps[2].Value.lpszW = const_cast<wchar_t *>(wDisplayName.c_str());
 		} else {
 			sProps[2].ulPropTag = PR_DISPLAY_NAME_A;
 			sProps[2].Value.lpszA = const_cast<char *>(serv->displayname.c_str());
