@@ -371,16 +371,14 @@ union __UPV {
 };
 
 struct SPropValue {
-    ULONG       ulPropTag;
-    ULONG       dwAlignPad;
+	ULONG ulPropTag, dwAlignPad;
     union __UPV  Value;
 };
 typedef struct SPropValue *LPSPropValue;
 
 /* Property Problem and Property Problem Arrays */
 struct SPropProblem {
-    ULONG   ulIndex;
-    ULONG   ulPropTag;
+	ULONG ulIndex, ulPropTag;
     SCODE   scode;
 };
 typedef struct SPropProblem *LPSPropProblem;
@@ -419,8 +417,7 @@ typedef struct FLATENTRY *LPFLATENTRY;
 struct FLATENTRYLIST {
 	FLATENTRYLIST(void) = delete;
 	template<typename T> FLATENTRYLIST(std::initializer_list<T>) = delete;
-    ULONG       cEntries;
-    ULONG       cbEntries;
+	ULONG cEntries, cbEntries;
     BYTE        abEntries[MAPI_DIM];
 };
 typedef struct FLATENTRYLIST *LPFLATENTRYLIST;
@@ -436,8 +433,7 @@ typedef struct MTSID *LPMTSID;
 struct FLATMTSIDLIST {
 	FLATMTSIDLIST(void) = delete;
 	template<typename T> FLATMTSIDLIST(std::initializer_list<T>) = delete;
-    ULONG       cMTSIDs;
-    ULONG       cbMTSIDs;
+	ULONG cMTSIDs, cbMTSIDs;
     BYTE        abMTSIDs[MAPI_DIM];
 };
 typedef struct FLATMTSIDLIST *LPFLATMTSIDLIST;
@@ -454,8 +450,7 @@ typedef struct FLATMTSIDLIST *LPFLATMTSIDLIST;
 
 /* ADRENTRY, ADRLIST */
 struct ADRENTRY {
-    ULONG           ulReserved1;
-    ULONG           cValues;
+	ULONG ulReserved1, cValues;
     LPSPropValue    rgPropVals;
 	inline const SPropValue *cfind(ULONG tag) const;
 };
@@ -482,8 +477,7 @@ struct _ADRLIST_ ## _name { \
 
 /* SRow, SRowSet */
 struct SRow {
-    ULONG           ulAdrEntryPad;
-    ULONG           cValues;
+	ULONG ulAdrEntryPad, cValues;
     LPSPropValue    lpProps;
 	inline SPropValue *find(ULONG tag) const;
 	inline const SPropValue *cfind(ULONG tag) const;
@@ -576,10 +570,8 @@ typedef const IID* LPCIID;
 /* Extended MAPI Error Information */
 struct MAPIERROR {
     ULONG   ulVersion;
-    LPTSTR  lpszError;
-    LPTSTR  lpszComponent;
-    ULONG   ulLowLevelError;
-    ULONG   ulContext;
+	TCHAR *lpszError, *lpszComponent;
+	ULONG ulLowLevelError, ulContext;
 };
 typedef MAPIERROR *LPMAPIERROR;
 
@@ -840,8 +832,7 @@ struct NEWMAIL_NOTIFICATION {
 struct OBJECT_NOTIFICATION {
     ULONG               cbEntryID;
     LPENTRYID           lpEntryID;
-    ULONG               ulObjType;
-    ULONG               cbParentID;
+	ULONG ulObjType, cbParentID;
     LPENTRYID           lpParentID;
     ULONG               cbOldID;
     LPENTRYID           lpOldID;
@@ -860,8 +851,7 @@ struct TABLE_NOTIFICATION {
 };
 
 struct EXTENDED_NOTIFICATION {
-    ULONG       ulEvent;
-    ULONG       cb;
+	ULONG ulEvent, cb;
     LPBYTE      pbEventParameters;
 };
 
@@ -873,8 +863,7 @@ struct STATUS_OBJECT_NOTIFICATION {
 };
 
 struct NOTIFICATION {
-    ULONG   ulEventType;
-    ULONG   ulAlignPad;
+	ULONG ulEventType, ulAlignPad;
     union {
         ERROR_NOTIFICATION          err;
         NEWMAIL_NOTIFICATION        newmail;
@@ -992,9 +981,7 @@ typedef struct SSortOrderSet *LPSSortOrderSet;
     (UINT)((_lpset)->cSorts*sizeof(SSortOrder)))
 #define SizedSSortOrderSet(_csort, _name) \
 struct _SSortOrderSet_ ## _name { \
-    ULONG           cSorts;         \
-    ULONG           cCategories;    \
-    ULONG           cExpanded;      \
+	ULONG cSorts, cCategories, cExpanded; \
     SSortOrder      aSort[_csort];  \
 	operator const SSortOrderSet *(void) const { return reinterpret_cast<const SSortOrderSet *>(this); } \
 } _name
@@ -1353,39 +1340,29 @@ struct SNotRestriction {
 };
 
 struct SContentRestriction {
-    ULONG           ulFuzzyLevel;
-    ULONG           ulPropTag;
+	ULONG ulFuzzyLevel, ulPropTag;
     LPSPropValue    lpProp;
 };
 
 struct SBitMaskRestriction {
-    ULONG           relBMR;
-    ULONG           ulPropTag;
-    ULONG           ulMask;
+	ULONG relBMR, ulPropTag, ulMask;
 };
 
 struct SPropertyRestriction {
-    ULONG           relop;
-    ULONG           ulPropTag;
+	ULONG relop, ulPropTag;
     LPSPropValue    lpProp;
 };
 
 struct SComparePropsRestriction {
-    ULONG           relop;
-    ULONG           ulPropTag1;
-    ULONG           ulPropTag2;
+	ULONG relop, ulPropTag1, ulPropTag2;
 };
 
 struct SSizeRestriction {
-    ULONG           relop;
-    ULONG           ulPropTag;
-    ULONG           cb;
+	ULONG relop, ulPropTag, cb;
 };
 
 struct SExistRestriction {
-    ULONG           ulReserved1;
-    ULONG           ulPropTag;
-    ULONG           ulReserved2;
+	ULONG ulReserved1, ulPropTag, ulReserved2;
 };
 
 struct SSubRestriction {
@@ -1675,15 +1652,12 @@ struct ADRPARM {
     LPFNABSDI       lpfnABSDI;
     LPFNDISMISS     lpfnDismiss;
     LPVOID          lpvDismissContext;
-    LPTSTR          lpszCaption;
-    LPTSTR          lpszNewEntryTitle;
-    LPTSTR          lpszDestWellsTitle;
+	TCHAR *lpszCaption, *lpszNewEntryTitle, *lpszDestWellsTitle;
     ULONG           cDestFields;
     ULONG           nDestFieldFocus;
     LPTSTR *    lppszDestTitles;
     ULONG *     lpulDestComps;
-    LPSRestriction  lpContRestriction;
-    LPSRestriction  lpHierRestriction;
+	SRestriction *lpContRestriction, *lpHierRestriction;
 };
 typedef struct ADRPARM *LPADRPARM;
 
@@ -1748,8 +1722,7 @@ IID_OF(IMAPIControl)
 
 /* Labels */
 struct DTBLLABEL {
-    ULONG ulbLpszLabelName;
-    ULONG ulFlags;
+	ULONG ulbLpszLabelName, ulFlags;
 };
 typedef struct DTBLLABEL *LPDTBLLABEL;
 #define SizedDtblLabel(n,u) \
@@ -1760,10 +1733,7 @@ struct _DTBLLABEL_ ## u { \
 
 /*  Simple Text Edits  */
 struct DTBLEDIT {
-    ULONG ulbLpszCharsAllowed;
-    ULONG ulFlags;
-    ULONG ulNumCharsAllowed;
-    ULONG ulPropTag;
+	ULONG ulbLpszCharsAllowed, ulFlags, ulNumCharsAllowed, ulPropTag;
 };
 typedef struct DTBLEDIT *LPDTBLEDIT;
 #define SizedDtblEdit(n,u) \
@@ -1777,19 +1747,14 @@ struct _DTBLEDIT_ ## u { \
 #define MAPI_NO_VBAR        ((ULONG) 0x00000002)
 
 struct DTBLLBX {
-    ULONG ulFlags;
-    ULONG ulPRSetProperty;
-    ULONG ulPRTableName;
+	ULONG ulFlags, ulPRSetProperty, ulPRTableName;
 };
 typedef struct DTBLLBX *LPDTBLLBX;
 
 /*  Combo Box   */
 struct DTBLCOMBOBOX {
-    ULONG ulbLpszCharsAllowed;
-    ULONG ulFlags;
-    ULONG ulNumCharsAllowed;
-    ULONG ulPRPropertyName;
-    ULONG ulPRTableName;
+	ULONG ulbLpszCharsAllowed, ulFlags, ulNumCharsAllowed;
+	ULONG ulPRPropertyName, ulPRTableName;
 };
 typedef struct DTBLCOMBOBOX *LPDTBLCOMBOBOX;
 #define SizedDtblComboBox(n,u) \
@@ -1801,18 +1766,13 @@ struct _DTBLCOMBOBOX_ ## u { \
 
 /*  Drop Down   */
 struct DTBLDDLBX {
-    ULONG ulFlags;
-    ULONG ulPRDisplayProperty;
-    ULONG ulPRSetProperty;
-    ULONG ulPRTableName;
+	ULONG ulFlags, ulPRDisplayProperty, ulPRSetProperty, ulPRTableName;
 };
 typedef struct DTBLDDLBX *LPDTBLDDLBX;
 
 /*  Check Box   */
 struct DTBLCHECKBOX {
-    ULONG ulbLpszLabel;
-    ULONG ulFlags;
-    ULONG ulPRPropertyName;
+	ULONG ulbLpszLabel, ulFlags, ulPRPropertyName;
 };
 typedef struct DTBLCHECKBOX *LPDTBLCHECKBOX;
 #define SizedDtblCheckBox(n,u) \
@@ -1824,8 +1784,7 @@ struct _DTBLCHECKBOX_ ## u { \
 
 /*  Group Box   */
 struct DTBLGROUPBOX {
-    ULONG ulbLpszLabel;
-    ULONG ulFlags;
+	ULONG ulbLpszLabel, ulFlags;
 };
 typedef struct DTBLGROUPBOX *LPDTBLGROUPBOX;
 #define SizedDtblGroupBox(n,u) \
@@ -1837,9 +1796,7 @@ struct _DTBLGROUPBOX_ ## u { \
 
 /*  Button control   */
 struct DTBLBUTTON {
-    ULONG ulbLpszLabel;
-    ULONG ulFlags;
-    ULONG ulPRControl;
+	ULONG ulbLpszLabel, ulFlags, ulPRControl;
 };
 typedef struct DTBLBUTTON *LPDTBLBUTTON;
 #define SizedDtblButton(n,u) \
@@ -1851,10 +1808,7 @@ struct _DTBLBUTTON_ ## u { \
 
 /*  Pages   */
 struct DTBLPAGE {
-    ULONG ulbLpszLabel;
-    ULONG ulFlags;
-    ULONG ulbLpszComponent;
-    ULONG ulContext;
+	ULONG ulbLpszLabel, ulFlags, ulbLpszComponent, ulContext;
 };
 typedef struct DTBLPAGE *LPDTBLPAGE;
 #define SizedDtblPage(n,n1,u) \
@@ -1867,10 +1821,7 @@ struct _DTBLPAGE_ ## u { \
 
 /*  Radio button   */
 struct DTBLRADIOBUTTON {
-    ULONG ulbLpszLabel;
-    ULONG ulFlags;
-    ULONG ulcButtons;
-    ULONG ulPropTag;
+	ULONG ulbLpszLabel, ulFlags, ulcButtons, ulPropTag;
     long lReturnValue;
 };
 typedef struct DTBLRADIOBUTTON *LPDTBLRADIOBUTTON;
@@ -1883,15 +1834,13 @@ struct _DTBLRADIOBUTTON_ ## u { \
 
 /*  MultiValued listbox */
 struct DTBLMVLISTBOX {
-    ULONG ulFlags;
-    ULONG ulMVPropTag;
+	ULONG ulFlags, ulMVPropTag;
 };
 typedef struct DTBLMVLISTBOX *LPDTBLMVLISTBOX;
 
 /*  MultiValued dropdown */
 struct DTBLMVDDLBX {
-    ULONG ulFlags;
-    ULONG ulMVPropTag;
+	ULONG ulFlags, ulMVPropTag;
 };
 typedef struct DTBLMVDDLBX *LPDTBLMVDDLBX;
 

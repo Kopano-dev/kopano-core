@@ -31,6 +31,7 @@
 #include <kopano/ECTags.h>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
+#include <kopano/tie.hpp>
 #include <kopano/Util.h>
 
 #include "ECMemStream.h"
@@ -125,29 +126,22 @@ HRESULT HrAllocAdviseSink(LPNOTIFCALLBACK lpFunction, void *lpContext,
 // This is called when a user calls Commit() on a wrapped (uncompressed) RTF Stream
 static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 {
-	HRESULT hr = hrSuccess;
 	auto lpCompressedStream = static_cast<IStream *>(lpData);
 	STATSTG sStatStg;
-	std::unique_ptr<char[]> lpUncompressed;
-	char *lpReadPtr = NULL;
 	ULONG ulRead = 0;
 	ULONG ulWritten = 0;
 	unsigned int ulCompressedSize;
-	char *lpCompressed = NULL;
+	std::unique_ptr<char, cstdlib_deleter> lpCompressed;
 	ULARGE_INTEGER zero = {{0,0}};
 	LARGE_INTEGER front = {{0,0}};
 
-	hr = lpUncompressedStream->Stat(&sStatStg, STATFLAG_NONAME);
-
+	auto hr = lpUncompressedStream->Stat(&sStatStg, STATFLAG_NONAME);
 	if(hr != hrSuccess)
-		goto exit;
-	lpUncompressed.reset(new(std::nothrow) char[sStatStg.cbSize.LowPart]);
-	if(lpUncompressed == NULL) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
-
-	lpReadPtr = lpUncompressed.get();
+		return hr;
+	std::unique_ptr<char[]> lpUncompressed(new(std::nothrow) char[sStatStg.cbSize.LowPart]);
+	if (lpUncompressed == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	auto lpReadPtr = lpUncompressed.get();
 	while(1) {
 		hr = lpUncompressedStream->Read(lpReadPtr, 1024, &ulRead);
 
@@ -158,15 +152,10 @@ static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 	}
 
 	// We now have the complete uncompressed data in lpUncompressed
-	if (rtf_compress(&lpCompressed, &ulCompressedSize, lpUncompressed.get(), sStatStg.cbSize.LowPart) != 0) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
+	if (rtf_compress(&unique_tie(lpCompressed), &ulCompressedSize, lpUncompressed.get(), sStatStg.cbSize.LowPart) != 0)
+		return MAPI_E_CALL_FAILED;
 	// lpCompressed is the compressed RTF stream, write it to lpCompressedStream
-
-	lpReadPtr = lpCompressed;
-
+	lpReadPtr = lpCompressed.get();
 	lpCompressedStream->SetSize(zero);
 	lpCompressedStream->Seek(front,SEEK_SET,NULL);
 
@@ -174,15 +163,11 @@ static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 		hr = lpCompressedStream->Write(lpReadPtr, ulCompressedSize > 16384 ? 16384 : ulCompressedSize, &ulWritten);
 
 		if(hr != hrSuccess)
-			break;
-
+			return hr;
 		lpReadPtr += ulWritten;
 		ulCompressedSize -= ulWritten;
 	}
-
-exit:
-	free(lpCompressed);
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG ulFlags,
@@ -197,15 +182,13 @@ HRESULT WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG ulFlags,
 	// therefore is quite memory-hungry.
 
 	STATSTG sStatStg;
-	HRESULT hr = hrSuccess;
 	std::unique_ptr<char[]> lpCompressed, lpUncompressed;
 	char *lpReadPtr = NULL;
 	ULONG ulRead = 0;
 	object_ptr<ECMemStream> lpUncompressedStream;
 	ULONG ulUncompressedLen = 0;
 	
-	hr = lpCompressedRTFStream->Stat(&sStatStg, STATFLAG_NONAME);
-
+	auto hr = lpCompressedRTFStream->Stat(&sStatStg, STATFLAG_NONAME);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -318,12 +301,11 @@ BOOL FPropExists(LPMAPIPROP lpMapiProp, ULONG ulPropTag)
 HRESULT CreateStreamOnHGlobal(void *hGlobal, BOOL fDeleteOnRelease,
     IStream **lppStream)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<ECMemStream> lpStream;
 	
 	if (hGlobal != nullptr || fDeleteOnRelease != TRUE)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = ECMemStream::Create(nullptr, 0, STGM_WRITE, nullptr, nullptr, nullptr, &~lpStream); // NULLs: no callbacks and custom data
+	auto hr = ECMemStream::Create(nullptr, 0, STGM_WRITE, nullptr, nullptr, nullptr, &~lpStream); // NULLs: no callbacks and custom data
 	if(hr != hrSuccess) 
 		return hr;
 	return lpStream->QueryInterface(IID_IStream, reinterpret_cast<void **>(lppStream));
@@ -340,28 +322,25 @@ struct CONVERSATION_INDEX { /* 22 bytes */
 HRESULT ScCreateConversationIndex(ULONG cbParent, LPBYTE lpbParent,
     ULONG *lpcbConvIndex, LPBYTE *lppbConvIndex)
 {
-	HRESULT hr;
 	ULONG cbConvIndex = 0;
 	BYTE *pbConvIndex = NULL;
 
 	if(cbParent == 0) {
-		FILETIME ft;
-		if ((hr = MAPIAllocateBuffer(sizeof(CONVERSATION_INDEX), (void **)&pbConvIndex)) != hrSuccess)
+		auto hr = MAPIAllocateBuffer(sizeof(CONVERSATION_INDEX), reinterpret_cast<void **>(&pbConvIndex));
+		if (hr != hrSuccess)
 			return hr;
 		cbConvIndex = sizeof(CONVERSATION_INDEX);
 		auto ci = reinterpret_cast<CONVERSATION_INDEX *>(pbConvIndex);
 		ci->ulReserved1 = 1;
-		ft = UnixTimeToFileTime(time(nullptr));
+		auto ft = UnixTimeToFileTime(time(nullptr));
 		uint32_t tmp = cpu_to_le32(ft.dwLowDateTime);
 		memcpy(ci->ftTime, &tmp, sizeof(tmp));
 		ci->ftTime[4] = ft.dwHighDateTime;
 		CoCreateGuid(&ci->guid);
 	} else {
-		FILETIME now;
 		FILETIME parent;
-		FILETIME diff;
-
-		if ((hr = MAPIAllocateBuffer(cbParent + 5, (void **)&pbConvIndex)) != hrSuccess)
+		auto hr = MAPIAllocateBuffer(cbParent + 5, reinterpret_cast<void **>(&pbConvIndex));
+		if (hr != hrSuccess)
 			return hr;
 		cbConvIndex = cbParent+5;
 		memcpy(pbConvIndex, lpbParent, cbParent);
@@ -370,9 +349,8 @@ HRESULT ScCreateConversationIndex(ULONG cbParent, LPBYTE lpbParent,
 		memcpy(&parent.dwLowDateTime, &ci->ftTime, sizeof(DWORD));
 		parent.dwLowDateTime = le32_to_cpu(parent.dwLowDateTime);
 		parent.dwHighDateTime = lpbParent[4];
-		now = UnixTimeToFileTime(time(nullptr));
-
-		diff = FtSubFt(now, parent);
+		auto now = UnixTimeToFileTime(time(nullptr));
+		auto diff = FtSubFt(now, parent);
 		diff.dwLowDateTime = cpu_to_le32(diff.dwLowDateTime);
 		diff.dwHighDateTime = cpu_to_le32(diff.dwHighDateTime);
 		memcpy(pbConvIndex + sizeof(CONVERSATION_INDEX), &diff.dwLowDateTime, 4);
@@ -384,7 +362,7 @@ HRESULT ScCreateConversationIndex(ULONG cbParent, LPBYTE lpbParent,
 	return hrSuccess;
 }
 
-FILETIME FtSubFt(FILETIME Minuend, FILETIME Subtrahend)
+FILETIME FtSubFt(const FILETIME &Minuend, const FILETIME &Subtrahend)
 {
 	FILETIME ft;
 	unsigned long long l = ((unsigned long long)Minuend.dwHighDateTime << 32) + Minuend.dwLowDateTime;

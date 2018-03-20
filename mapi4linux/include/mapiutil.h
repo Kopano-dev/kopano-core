@@ -48,7 +48,7 @@ extern _kc_export void FreeProws(LPSRowSet rows);
 extern _kc_export HRESULT HrQueryAllRows(LPMAPITABLE table, const SPropTagArray *tags, LPSRestriction, const SSortOrderSet *, LONG rows_max, LPSRowSet *rows);
 
 /* 64-bit arithmetic with times */
-FILETIME FtSubFt(FILETIME ftMinuend, FILETIME ftSubtrahend);
+extern FILETIME FtSubFt(const FILETIME &ftMinuend, const FILETIME &ftSubtrahend);
 
 /* Message composition */
 extern _kc_export SCODE ScCreateConversationIndex(ULONG parent_size, LPBYTE parent, ULONG *conv_index_size, LPBYTE *conv_index);

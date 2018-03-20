@@ -79,8 +79,6 @@ INFLoader::INFLoader()
  */
 HRESULT INFLoader::LoadINFs()
 {
-	HRESULT hr;
-
 	for (const auto &path : GetINFPaths()) {
 		std::unique_ptr<DIR, fs_deleter> dh(opendir(path.c_str()));
 		if (dh == nullptr)
@@ -97,7 +95,7 @@ HRESULT INFLoader::LoadINFs()
 			if (pos == std::string::npos || strFilename.size() - pos != strlen(".inf"))
 				// silently skip files not ending in pos
 				continue;
-			hr = LoadINF(strFilename.c_str());
+			auto hr = LoadINF(strFilename.c_str());
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -116,29 +114,24 @@ HRESULT INFLoader::LoadINFs()
 #define MAXLINELEN 4096
 HRESULT INFLoader::LoadINF(const char *filename)
 {
-	HRESULT hr = hrSuccess;
-	FILE *fp = NULL;
-	char cBuffer[MAXLINELEN] = {0};
 	inf::iterator iSection = m_mapSections.end();
-	std::string strLine, strName, strValue;
-	size_t pos;
+	std::string strName, strValue;
 
-	fp = fopen(filename, "r");
+	auto fp = fopen(filename, "r");
 	if (fp == nullptr)
 		return MAPI_E_NOT_FOUND;
 
 	while (!feof(fp)) {
-		memset(&cBuffer, 0, sizeof(cBuffer));
-
+		char cBuffer[MAXLINELEN] = {0};
 		if (!fgets(cBuffer, sizeof(cBuffer), fp))
 			continue;
-		strLine = trim(cBuffer, " \t");
+		auto strLine = trim(cBuffer, " \t");
 		/* Skip empty lines any lines which start with # */
 		if (strLine.empty() || strLine[0] == '#')
  			continue;
 
 		/* Get setting name */
-		pos = strLine.find('=');
+		auto pos = strLine.find('=');
 		if (pos != std::string::npos) {
 			strName = strLine.substr(0, pos);
 			strValue = strLine.substr(pos + 1);
@@ -164,8 +157,7 @@ HRESULT INFLoader::LoadINF(const char *filename)
 
 	if (fp)
 		fclose(fp);
-
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -210,7 +202,6 @@ std::vector<std::string> INFLoader::GetINFPaths()
  */
 HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& strData, void *base, LPSPropValue lpProp) const
 {
-	HRESULT hr;
 	SPropValue sProp;
 
 	memset(&sProp, 0, sizeof(sProp));
@@ -227,17 +218,19 @@ HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& st
 	case PT_UNICODE:
 		sProp.ulPropTag = CHANGE_PROP_TYPE(sProp.ulPropTag, PT_STRING8);
 		/* fallthru */
-	case PT_STRING8:
-		hr = MAPIAllocateMore(strData.length() + 1, base, (void**)&sProp.Value.lpszA);
+	case PT_STRING8: {
+		auto hr = MAPIAllocateMore(strData.length() + 1, base, (void**)&sProp.Value.lpszA);
 		if (hr != hrSuccess)
 			return hr;
 		strcpy(sProp.Value.lpszA, strData.c_str());
 		break;
-	case PT_BINARY:
-		hr = Util::hex2bin(strData.data(), strData.length(), &sProp.Value.bin.cb, &sProp.Value.bin.lpb, base);
+	}
+	case PT_BINARY: {
+		auto hr = Util::hex2bin(strData.data(), strData.length(), &sProp.Value.bin.cb, &sProp.Value.bin.lpb, base);
 		if (hr != hrSuccess)
 			return hr;
 		break;
+	}
 	default:
 		return MAPI_E_INVALID_PARAMETER;
 	}
@@ -258,13 +251,12 @@ HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& st
 ULONG INFLoader::DefinitionFromString(const std::string& strDef, bool bProp) const
 {
 	char *end;
-	unsigned int hex;
 
 	std::map<std::string, unsigned int>::const_iterator i = m_mapDefs.find(strDef);
 	if (i != m_mapDefs.cend())
 		return i->second;
 	// parse strProp as hex
-	hex = strtoul(strDef.c_str(), &end, 16);
+	auto hex = strtoul(strDef.c_str(), &end, 16);
 	if (end < strDef.c_str()+strDef.length())
 		return bProp ? PR_NULL : 0;
 	return (ULONG)ntohl(hex);
@@ -325,12 +317,9 @@ SVCService::~SVCService()
  */
 HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 {
-	HRESULT hr;
-	const inf_section* infProvider = NULL;
-	void **cf;
 	char filename[PATH_MAX + 1];
 
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * infService->size(), (void**)&m_lpProps);
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * infService->size(), reinterpret_cast<void **>(&m_lpProps));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -341,7 +330,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 			// make new providers list
 			// *new function, new loop
 			for (const auto &i : tokenize(sp.second, ", \t")) {
-				infProvider = cINF.GetSection(i);
+				auto infProvider = cINF.GetSection(i);
 				auto prov = m_sProviders.emplace(i, new SVCProvider);
 				if (prov.second == false)
 					continue;	// already exists
@@ -372,7 +361,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 	}
 
 	// @todo use PR_SERVICE_ENTRY_NAME
-	cf = (void**)&m_fnMSGServiceEntry;
+	auto cf = reinterpret_cast<void **>(&m_fnMSGServiceEntry);
 	*cf = dlsym(m_dl, "MSGServiceEntry");
 	if (!m_fnMSGServiceEntry) {
 		// compulsary function in provider
@@ -452,20 +441,14 @@ MAPISVC::~MAPISVC()
 
 HRESULT MAPISVC::Init()
 {
-	HRESULT hr;
 	INFLoader inf;
-	const inf_section* infServices = NULL;
-	const inf_section* infService = NULL;
-
-	hr = inf.LoadINFs();
+	auto hr = inf.LoadINFs();
 	if (hr != hrSuccess)
 		return hr;
-
-	infServices = inf.GetSection("Services");
-
+	auto infServices = inf.GetSection("Services");
 	for (const auto &sp : *infServices) {
 		// ZARAFA6, ZCONTACTS
-		infService = inf.GetSection(sp.first);
+		auto infService = inf.GetSection(sp.first);
 		auto i = m_sServices.emplace(sp.first, new SVCService);
 		if (i.second == false)
 			continue;			// already exists
