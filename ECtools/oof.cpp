@@ -29,6 +29,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ecversion.h>
+#include <kopano/hl.hpp>
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
@@ -169,9 +170,8 @@ static int oof_delete(IMsgStore *store)
 
 static int oof_set(IMsgStore *store)
 {
-	SPropValue pv[5];
+	KPropbuffer<5> pv;
 	unsigned int c = 0;
-	std::wstring wsubj, wmsg;
 	if (oof_mode >= 0) {
 		pv[c].ulPropTag = PR_EC_OUTOFOFFICE;
 		pv[c++].Value.b = oof_mode > 0;
@@ -184,11 +184,8 @@ static int oof_set(IMsgStore *store)
 		pv[c].ulPropTag  = PR_EC_OUTOFOFFICE_UNTIL;
 		pv[c++].Value.ft = UnixTimeToFileTime(mktime(&oof_untiltm));
 	}
-	if (oof_subject != nullptr) {
-		wsubj = convert_to<std::wstring>(oof_subject);
-		pv[c].ulPropTag     = CHANGE_PROP_TYPE(PR_EC_OUTOFOFFICE_SUBJECT, PT_UNICODE);
-		pv[c++].Value.lpszW = const_cast<wchar_t *>(wsubj.c_str());
-	}
+	if (oof_subject != nullptr)
+		pv.set(c++, PR_EC_OUTOFOFFICE_SUBJECT, convert_to<std::wstring>(oof_subject));
 	if (oof_msgfile != nullptr) {
 		std::unique_ptr<FILE, file_deleter> fp(fopen(oof_msgfile, "r"));
 		if (fp == nullptr) {
@@ -199,13 +196,11 @@ static int oof_set(IMsgStore *store)
 		auto ret = HrMapFileToString(fp.get(), &msg, nullptr);
 		if (ret != hrSuccess)
 			return kc_perror("HrMapFileToString", ret);
-		wmsg = convert_to<std::wstring>(msg);
-		pv[c].ulPropTag     = CHANGE_PROP_TYPE(PR_EC_OUTOFOFFICE_MSG, PT_UNICODE);
-		pv[c++].Value.lpszW = const_cast<wchar_t *>(wmsg.c_str());
+		pv.set(c++, PR_EC_OUTOFOFFICE, convert_to<std::wstring>(msg));
 	}
 	if (c == 0)
 		return hrSuccess;
-	auto ret = store->SetProps(c, pv, nullptr);
+	auto ret = store->SetProps(c, pv.get(), nullptr);
 	if (ret != hrSuccess)
 		return kc_perror("SetProps", ret);
 	return oof_delete(store);
