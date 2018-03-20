@@ -675,6 +675,8 @@ static HRESULT adm_perform()
 	if (opt_host == nullptr)
 		opt_host = GetServerUnixSocket(adm_config->GetSetting("server_socket"));
 	srvctx.m_host = opt_host;
+	srvctx.m_ssl_keyfile = adm_config->GetSetting("sslkey_file", "", nullptr);
+	srvctx.m_ssl_keypass = adm_config->GetSetting("sslkey_pass", "", nullptr);
 	auto ret = srvctx.logon();
 	if (ret != hrSuccess)
 		return kc_perror("KServerContext::logon", ret);
@@ -697,6 +699,8 @@ static bool adm_parse_options(int &argc, char **&argv)
 {
 	adm_config.reset(ECConfig::Create(adm_config_defaults));
 	opt_config_file = ECConfig::GetDefaultPath("admin.cfg");
+	adm_config->LoadSettings(opt_config_file);
+
 	auto ctx = poptGetContext(nullptr, argc, const_cast<const char **>(argv), adm_options, 0);
 	int c;
 	while ((c = poptGetNextOpt(ctx)) >= 0) {
