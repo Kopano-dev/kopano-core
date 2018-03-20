@@ -5,12 +5,11 @@ import dateutil.parser
 import kopano
 
 from ..config import TOP
-from .base import json
 from ..utils import (
     _server_store, _folder
 )
-from .base import (
-    _date, set_date, _start_end
+from .resource import (
+    json, _date, set_date, _start_end
 )
 from .item import (
     ItemResource, get_email, get_body

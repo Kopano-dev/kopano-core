@@ -1,4 +1,4 @@
-from .base import (
+from .resource import (
     json, _start_end,
 )
 from .event import EventResource

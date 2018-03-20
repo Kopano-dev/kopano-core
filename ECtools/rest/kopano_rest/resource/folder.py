@@ -4,7 +4,7 @@ from ..config import TOP
 from ..utils import (
     _server_store, _folder, db_put, db_get
 )
-from .base import (
+from .resource import (
     Resource, urlparse
 )
 

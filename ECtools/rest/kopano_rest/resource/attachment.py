@@ -3,7 +3,7 @@ import base64
 from ..utils import (
     _server_store, _folder
 )
-from .base import (
+from .resource import (
     Resource, _date
 )
 

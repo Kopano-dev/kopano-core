@@ -1,4 +1,4 @@
-from .base import Resource
+from .resource import Resource
 
 class ProfilePhotoResource(Resource):
     fields = {

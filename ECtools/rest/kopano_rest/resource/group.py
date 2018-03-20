@@ -1,6 +1,6 @@
 from ..utils import _server_store
 from ..config import TOP
-from .base import Resource
+from .resource import Resource
 
 class GroupResource(Resource):
     fields = {

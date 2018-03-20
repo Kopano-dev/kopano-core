@@ -1,4 +1,4 @@
-from .base import json
+from .resource import json
 from ..utils import (
     _server_store, _folder
 )

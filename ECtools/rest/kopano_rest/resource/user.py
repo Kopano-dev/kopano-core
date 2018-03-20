@@ -2,7 +2,7 @@ import falcon
 
 from ..config import TOP
 from ..utils import _server_store
-from .base import (
+from .resource import (
     Resource, urlparse, _start_end, json
 )
 from .calendar import CalendarResource

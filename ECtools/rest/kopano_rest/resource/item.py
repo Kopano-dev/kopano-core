@@ -1,7 +1,7 @@
 import dateutil
 
 from ..config import TOP
-from .base import (
+from .resource import (
     Resource, _header_sub_arg, _date, urlparse
 )
 from .attachment import (
