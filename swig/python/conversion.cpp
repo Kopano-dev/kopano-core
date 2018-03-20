@@ -2075,6 +2075,10 @@ PyObject *Object_from_MVPROPMAP(MVPROPMAP propmap, ULONG ulFlags)
 	for (unsigned int i = 0; i < lpMVPropmap->cEntries; ++i) {
 		pyobj_ptr MVPropValues(PyList_New(0));
 
+		// TODO support other types
+		if(PROP_TYPE(lpMVPropmap->lpEntries[i].ulPropId) != PT_MV_UNICODE)
+			continue;
+
 		for (unsigned int j = 0; j < lpMVPropmap->lpEntries[i].cValues; ++j) {
 			LPTSTR strval = lpMVPropmap->lpEntries[i].lpszValues[j];
 			std::string str = reinterpret_cast<LPSTR>(strval);
