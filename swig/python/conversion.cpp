@@ -15,6 +15,7 @@
  *
  */
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include <kopano/platform.h>
 #include <mapix.h>
 #include <mapidefs.h>
@@ -660,14 +661,19 @@ SPropValue *List_to_p_SPropValue(PyObject *object, ULONG *cValues,
 		*cValues = 0;
 		return NULL;
 	}
+	auto laters = make_scope_success([&]() {
+		if (PyErr_Occurred() && lpBase == nullptr)
+			MAPIFreeBuffer(lpProps);
+	});
+
 	pyobj_ptr iter(PyObject_GetIter(object));
 	if(!iter)
-		goto exit;
+		return lpResult;
 
 	size = PyObject_Size(object);
 
 	if (MAPIAllocateMore(sizeof(SPropValue)*size, lpBase, reinterpret_cast<void**>(&lpProps)) != hrSuccess)
-		goto exit;
+		return lpResult;
 
 	memset(lpProps, 0, sizeof(SPropValue)*size);
 	do {
@@ -676,15 +682,12 @@ SPropValue *List_to_p_SPropValue(PyObject *object, ULONG *cValues,
 			break;
 		Object_to_LPSPropValue(elem, &lpProps[i], ulFlags, lpBase != nullptr? lpBase : lpProps);
 		if(PyErr_Occurred())
-			goto exit;
+			return lpResult;
 		++i;
 	} while (true);
 	lpResult = lpProps;
 	*cValues = size;
 
-exit:
-	if (PyErr_Occurred() && lpBase == nullptr)
-		MAPIFreeBuffer(lpProps);
 	return lpResult;
 }
 
@@ -1529,9 +1532,14 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 	ULONG ulKind = 0;
 	Py_ssize_t len = 0;
 
+	auto laters = make_scope_success([&]() {
+		if (PyErr_Occurred() && lpBase == nullptr)
+			MAPIFreeBuffer(lpName);
+	});
+
 	if (MAPIAllocateMore(sizeof(MAPINAMEID), lpBase, (void **)&lpName) != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
-		goto exit;
+		return;
 	}
 	memset(lpName, 0, sizeof(MAPINAMEID));
 	kind.reset(PyObject_GetAttrString(elem, "kind"));
@@ -1539,7 +1547,7 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 	guid.reset(PyObject_GetAttrString(elem, "guid"));
 	if(!guid || !id) {
 		PyErr_SetString(PyExc_RuntimeError, "Missing id or guid on MAPINAMEID object");
-		goto exit;
+		return;
 	}
 
 	if(!kind) {
@@ -1562,24 +1570,20 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 	} else {
 		if(!PyUnicode_Check(id)) {
 			PyErr_SetString(PyExc_RuntimeError, "Must pass unicode string for MNID_STRING ID part of MAPINAMEID");
-			goto exit;
+			return;
 		}
 		
 		CopyPyUnicode(&lpName->Kind.lpwstrName, id, lpBase);
 	}
 
 	if (PyString_AsStringAndSize(guid, reinterpret_cast<char **>(&lpName->lpguid), &len) == -1)
-		goto exit;
+		return;
 	if(len != sizeof(GUID)) {
 		PyErr_Format(PyExc_RuntimeError, "GUID parameter of MAPINAMEID must be exactly %d bytes", (int)sizeof(GUID));
-		goto exit;
+		return;
 	}
 
 	*lppName = lpName;
-
-exit:
-	if (PyErr_Occurred() && lpBase == nullptr)
-		MAPIFreeBuffer(lpName);
 }
 
 LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *list, ULONG *lpcNames, ULONG /*ulFlags*/)
@@ -2118,20 +2122,20 @@ ECUSER *Object_to_LPECUSER(PyObject *elem, ULONG ulFlags)
 	ECUSER *lpUser = NULL;
 
 	if (elem == Py_None)
-		goto exit;
+		return nullptr;
 
 	hr = MAPIAllocateBuffer(sizeof *lpUser, (LPVOID*)&lpUser);
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
-		goto exit;
+		return nullptr;
 	}
 	memset(lpUser, 0, sizeof *lpUser);
 	process_conv_out_array(lpUser, elem, conv_info, lpUser, ulFlags);
 	Object_to_MVPROPMAP(elem, lpUser, ulFlags);
-exit:
+
 	if (PyErr_Occurred()) {
 		MAPIFreeBuffer(lpUser);
-		lpUser = NULL;
+		return nullptr;
 	}
 
 	return lpUser;
@@ -2173,21 +2177,21 @@ ECGROUP *Object_to_LPECGROUP(PyObject *elem, ULONG ulFlags)
 	ECGROUP *lpGroup = NULL;
 
 	if (elem == Py_None)
-		goto exit;
+		return nullptr;
 
 	hr = MAPIAllocateBuffer(sizeof *lpGroup, (LPVOID*)&lpGroup);
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
-		goto exit;
+		return nullptr;
 	}
 	memset(lpGroup, 0, sizeof *lpGroup);
 
 	process_conv_out_array(lpGroup, elem, conv_info, lpGroup, ulFlags);
 	Object_to_MVPROPMAP(elem, lpGroup, ulFlags);
-exit:
+
 	if (PyErr_Occurred()) {
 		MAPIFreeBuffer(lpGroup);
-		lpGroup = NULL;
+		return nullptr;
 	}
 
 	return lpGroup;
@@ -2229,22 +2233,22 @@ ECCOMPANY *Object_to_LPECCOMPANY(PyObject *elem, ULONG ulFlags)
 	ECCOMPANY *lpCompany = NULL;
 
 	if (elem == Py_None)
-		goto exit;
+		return nullptr;
 
 	hr = MAPIAllocateBuffer(sizeof *lpCompany, (LPVOID*)&lpCompany);
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
-		goto exit;
+		return nullptr;
 	}
 	memset(lpCompany, 0, sizeof *lpCompany);
 
 	process_conv_out_array(lpCompany, elem, conv_info, lpCompany, ulFlags);
 
 	Object_to_MVPROPMAP(elem, lpCompany, ulFlags);
-exit:
+
 	if (PyErr_Occurred()) {
 		MAPIFreeBuffer(lpCompany);
-		lpCompany = NULL;
+		return nullptr;
 	}
 
 	return lpCompany;
@@ -2380,21 +2384,20 @@ ECQUOTA *Object_to_LPECQUOTA(PyObject *elem)
 	ECQUOTA *lpQuota = NULL;
 
 	if (elem == Py_None)
-		goto exit;
+		return nullptr;
 
 	hr = MAPIAllocateBuffer(sizeof *lpQuota, (LPVOID*)&lpQuota);
 	if (hr != hrSuccess) {
 		PyErr_SetString(PyExc_RuntimeError, "Out of memory");
-		goto exit;
+		return nullptr;
 	}
 	memset(lpQuota, 0, sizeof *lpQuota);
 
 	process_conv_out_array(lpQuota, elem, conv_info, lpQuota, 0);
 
-exit:
 	if (PyErr_Occurred()) {
 		MAPIFreeBuffer(lpQuota);
-		lpQuota = NULL;
+		return nullptr;
 	}
 
 	return lpQuota;
