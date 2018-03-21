@@ -43,21 +43,21 @@ LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 	int i = 0;
 
 	if (list == Py_None)
-		goto exit;
+		return nullptr;
 	iter.reset(PyObject_GetIter(list));
 	if (!iter)
-		goto exit;
+		return nullptr;
 
 	len = PyObject_Length(list);
 	if (MAPIAllocateBuffer(len * sizeof(FBUser), &~lpFbUsers) != hrSuccess)
-		goto exit;
+		return nullptr;
 	do {
 		pyobj_ptr elem(PyIter_Next(iter));
 		if (elem == nullptr)
 			break;
 		if (PyBytes_AsStringAndSize(elem, &buf, (Py_ssize_t *)&size) == -1) {
 			PyErr_SetString(PyExc_RuntimeError, "Entryid is missing");
-			goto exit;
+			return nullptr;
 		}
 
 		entryid = reinterpret_cast< LPENTRYID >(buf);
@@ -67,7 +67,7 @@ LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 		++i;
 	} while (true);
 	*cValues = i;
- exit:
+
 	if (PyErr_Occurred() && lpFbUsers != nullptr)
 		return nullptr;
 	return lpFbUsers.release();
@@ -79,14 +79,14 @@ LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
 	size_t i, len;
 
 	if (list == Py_None)
-		goto exit;
+		return nullptr;
 	iter.reset(PyObject_GetIter(list));
 	if (!iter)
-		goto exit;
+		return nullptr;
 
 	len = PyObject_Length(list);
 	if (MAPIAllocateBuffer(len * sizeof(FBBlock_1), &~lpFBBlocks) != hrSuccess)
-		goto exit;
+		return nullptr;
 
 	i=0;
 	do {
@@ -106,7 +106,6 @@ LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
 	} while (true);
 	*nBlocks = i;
 
- exit:
 	if (PyErr_Occurred() && lpFBBlocks != nullptr)
 		return nullptr;
 	return lpFBBlocks.release();
