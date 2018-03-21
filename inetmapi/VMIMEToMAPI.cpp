@@ -23,6 +23,7 @@
 #include "VMIMEToMAPI.h"
 #include <kopano/ECGuid.h>
 #include <kopano/ECLogger.h>
+#include <kopano/hl.hpp>
 #include <kopano/memory.hpp>
 #include <algorithm>
 #include <memory>
@@ -225,17 +226,13 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			bUnix = true;
 		}
 		if (posHeaderEnd != std::string::npos) {
-			SPropValue sPropHeaders;
 			std::string strHeaders = input.substr(0, posHeaderEnd);
-
+			KPropbuffer<1> prop;
 			// make sure we have US-ASCII headers
 			if (bUnix)
 				StringLFtoCRLF(strHeaders);
-
-			sPropHeaders.ulPropTag = PR_TRANSPORT_MESSAGE_HEADERS_A;
-			sPropHeaders.Value.lpszA = (char *) strHeaders.c_str();
-
-			HrSetOneProp(lpMessage, &sPropHeaders);
+			prop.set(0, PR_TRANSPORT_MESSAGE_HEADERS, std::move(strHeaders));
+			HrSetOneProp(lpMessage, prop.get());
 		}
 		/*
 		 * Add PR_MESSAGE_SIZE initially to the size of the RFC2822
@@ -396,8 +393,7 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
     IMessage *lpMessage)
 {
 	HRESULT	hr;
-	SPropValue sPropDefaults[3];
-
+	KPropbuffer<3> sPropDefaults;
 	sPropDefaults[0].ulPropTag = PR_MESSAGE_CLASS_W;
 	sPropDefaults[0].Value.lpszW = const_cast<wchar_t *>(L"IPM.Note");
 	sPropDefaults[1].ulPropTag = PR_MESSAGE_FLAGS;
@@ -412,8 +408,7 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 	// contains all characters.
 	sPropDefaults[2].ulPropTag = PR_INTERNET_CPID;
 	sPropDefaults[2].Value.ul = 65001;
-
-	hr = lpMessage->SetProps(3, sPropDefaults, NULL);
+	hr = lpMessage->SetProps(3, sPropDefaults.get(), nullptr);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to set default mail properties");
 		return hr;
@@ -487,12 +482,8 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 				sPropDefaults[0].ulPropTag = PR_MESSAGE_CLASS_W;
 				sPropDefaults[0].Value.lpszW = const_cast<wchar_t *>(L"REPORT.IPM.Note.IPNRN");
 			}
-
-			string strId = "<"+receivedMDN.getOriginalMessageId().getId()+">";
-			sPropDefaults[1].ulPropTag = 0x1046001E;	// ptagOriginalInetMessageID
-			sPropDefaults[1].Value.lpszA = (LPSTR)strId.c_str();
-
-			hr = lpMessage->SetProps(2, sPropDefaults, NULL);
+			sPropDefaults.set(1, 0x1046001E /* ptagOriginalInetMessageID */, "<" + receivedMDN.getOriginalMessageId().getId() + ">");
+			hr = lpMessage->SetProps(2, sPropDefaults.get(), nullptr);
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to set MDN mail properties");
 				return hr;
@@ -542,23 +533,16 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
     IMessage *lpMessage)
 {
 	HRESULT			hr = hrSuccess;
-	std::string		strInternetMessageId, strInReplyTos, strReferences;
-	std::wstring	wstrSubject;
-	std::wstring	wstrReplyTo, wstrReplyToMail;
 	std::string		strClientTime;
-	std::wstring	wstrFromName, wstrSenderName;
-	std::string		strFromEmail, strFromSearchKey;
-	std::string		strSenderEmail,	strSenderSearchKey;
 	ULONG			cbFromEntryID; // representing entry id
 	memory_ptr<ENTRYID> lpFromEntryID, lpSenderEntryID;
 	ULONG			cbSenderEntryID;
-	SPropValue		sConTopic;
 	// setprops
 	memory_ptr<FLATENTRY> lpEntry;
 	memory_ptr<FLATENTRYLIST> lpEntryList;
 	ULONG			cb = 0;
 	int				nProps = 0;
-	SPropValue		msgProps[22];
+	KPropbuffer<22> msgProps;
 	// temp
 	ULONG			cbEntryID;
 	memory_ptr<ENTRYID> lpEntryID;
@@ -582,47 +566,29 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 	try { 
 		// internet message ID
 		auto field = vmHeader->findField(vmime::fields::MESSAGE_ID);
-		if (field != nullptr) {
-			strInternetMessageId = field->getValue()->generate();
-			msgProps[nProps].ulPropTag = PR_INTERNET_MESSAGE_ID_A;
-			msgProps[nProps++].Value.lpszA = (char*)strInternetMessageId.c_str();
-		}
-
+		if (field != nullptr)
+			msgProps.set(nProps++, PR_INTERNET_MESSAGE_ID, field->getValue()->generate());
 		// In-Reply-To header
 		field = vmHeader->findField(vmime::fields::IN_REPLY_TO);
-		if (field != nullptr) {
-			strInReplyTos = field->getValue()->generate();
-			msgProps[nProps].ulPropTag = PR_IN_REPLY_TO_ID_A;
-			msgProps[nProps++].Value.lpszA = (char*)strInReplyTos.c_str();
-		}
-
+		if (field != nullptr)
+			msgProps.set(nProps++, PR_IN_REPLY_TO_ID, field->getValue()->generate());
 		// References header
 		field = vmHeader->findField(vmime::fields::REFERENCES);
-		if (field != nullptr) {
-			strReferences = field->getValue()->generate();
-			msgProps[nProps].ulPropTag = PR_INTERNET_REFERENCES_A;
-			msgProps[nProps++].Value.lpszA = (char*)strReferences.c_str();
-		}
-
+		if (field != nullptr)
+			msgProps.set(nProps++, PR_INTERNET_REFERENCES, field->getValue()->generate());
 		// set subject
 		field = vmHeader->findField(vmime::fields::SUBJECT);
-		if (field != nullptr) {
-			wstrSubject = getWideFromVmimeText(*vmime::dynamicCast<vmime::text>(field->getValue()));
-			msgProps[nProps].ulPropTag = PR_SUBJECT_W;
-			msgProps[nProps++].Value.lpszW = (WCHAR *)wstrSubject.c_str();
-		}
-
+		if (field != nullptr)
+			msgProps.set(nProps++, PR_SUBJECT, getWideFromVmimeText(*vmime::dynamicCast<vmime::text>(field->getValue())));
 		// set ReplyTo
 		if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue())->isEmpty()) {
 			// First, set PR_REPLY_RECIPIENT_NAMES
-			wstrReplyTo = getWideFromVmimeText(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue())->getName());
-			wstrReplyToMail = m_converter.convert_to<wstring>(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue())->getEmail().toString());
+			auto reply = vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue());
+			auto wstrReplyTo = getWideFromVmimeText(reply->getName());
+			auto wstrReplyToMail = m_converter.convert_to<wstring>(reply->getEmail().toString());
 			if (wstrReplyTo.empty())
 				wstrReplyTo = wstrReplyToMail;
-
-			msgProps[nProps].ulPropTag = PR_REPLY_RECIPIENT_NAMES_W;
-			msgProps[nProps++].Value.lpszW = (WCHAR *)wstrReplyTo.c_str();
-
+			msgProps.set(nProps++, PR_REPLY_RECIPIENT_NAMES, wstrReplyTo);
 			// Now, set PR_REPLY_RECIPIENT_ENTRIES (a FLATENTRYLIST)
 			hr = ECCreateOneOff((LPTSTR)wstrReplyTo.c_str(), (LPTSTR)L"SMTP", (LPTSTR)wstrReplyToMail.c_str(), MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
 			if (hr != hrSuccess)
@@ -696,6 +662,8 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		}
 
 		// The real sender of the mail
+		std::string strFromEmail, strFromSearchKey, strSenderSearchKey;
+		std::wstring wstrFromName, wstrSenderName;
 		if(vmHeader->hasField(vmime::fields::FROM)) {
 			strFromEmail = vmime::dynamicCast<vmime::mailbox>(vmHeader->From()->getValue())->getEmail().toString();
 			if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->From()->getValue())->getName().isEmpty())
@@ -711,13 +679,8 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			} else {
 				if (wstrFromName.empty())
 					wstrFromName = m_converter.convert_to<wstring>(strFromEmail);
-
-				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_NAME_W;
-				msgProps[nProps++].Value.lpszW = (WCHAR *)wstrFromName.c_str();
-
-				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS_A;
-				msgProps[nProps++].Value.lpszA = (char*)strFromEmail.c_str();
-
+				msgProps.set(nProps++, PR_SENT_REPRESENTING_NAME_W, wstrFromName);
+				msgProps.set(nProps++, PR_SENT_REPRESENTING_EMAIL_ADDRESS, strFromEmail);
 				strFromSearchKey = strToUpper("SMTP:" + strFromEmail);
 				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
 				msgProps[nProps].Value.bin.cb = strFromSearchKey.size()+1; // include string terminator
@@ -740,7 +703,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		
 		if (vmHeader->hasField(vmime::fields::SENDER) || vmHeader->hasField(vmime::fields::FROM)) {
 			// The original sender of the mail account (if non sender exist then the FROM)
-			strSenderEmail = vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getEmail().toString();
+			auto strSenderEmail = vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getEmail().toString();
 			if (vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName().isEmpty() &&
 			    (strSenderEmail.empty() || strSenderEmail == "@" || strSenderEmail == "invalid@invalid")) {
 				// Fallback on the original from address
@@ -760,12 +723,8 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				if (hr != hrSuccess)
 					return hr;
 			} else {
-				msgProps[nProps].ulPropTag = PR_SENDER_NAME_W;
-				msgProps[nProps++].Value.lpszW = (WCHAR *)wstrSenderName.c_str();
-
-				msgProps[nProps].ulPropTag = PR_SENDER_EMAIL_ADDRESS_A;
-				msgProps[nProps++].Value.lpszA = (char*)strSenderEmail.c_str();
-
+				msgProps.set(nProps++, PR_SENDER_NAME, wstrSenderName);
+				msgProps.set(nProps++, PR_SENDER_EMAIL_ADDRESS, strSenderEmail);
 				strSenderSearchKey = strToUpper("SMTP:" + strSenderEmail);
 				msgProps[nProps].ulPropTag = PR_SENDER_SEARCH_KEY;
 				msgProps[nProps].Value.bin.cb = strSenderSearchKey.size()+1; // include string terminator
@@ -783,23 +742,20 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				msgProps[nProps++].Value.bin.lpb = reinterpret_cast<unsigned char *>(lpSenderEntryID.get());
 			}
 		}
-		
-		hr = lpMessage->SetProps(nProps, msgProps, NULL);
+		hr = lpMessage->SetProps(nProps, msgProps.get(), nullptr);
 		if (hr != hrSuccess)
 			return hr;
 
 		//Conversation topic
 		if (vmHeader->hasField("Thread-Topic"))
 		{
-			wstring convTT = getWideFromVmimeText(*vmime::dynamicCast<vmime::text>(vmHeader->findField("Thread-Topic")->getValue()));
-
-			sConTopic.ulPropTag = PR_CONVERSATION_TOPIC_W;
-			sConTopic.Value.lpszW = (WCHAR *)convTT.c_str();
-
-			hr = lpMessage->SetProps(1, &sConTopic, NULL);
+			KPropbuffer<1> prop;
+			prop.set(0, PR_CONVERSATION_TOPIC, getWideFromVmimeText(*vmime::dynamicCast<vmime::text>(vmHeader->findField("Thread-Topic")->getValue())));
+			hr = lpMessage->SetProps(1, prop.get(), nullptr);
 			if (hr != hrSuccess)
 				return hr;
 		} else if (HrGetOneProp(lpMessage, PR_NORMALIZED_SUBJECT_W, &~lpPropNormalizedSubject) == hrSuccess) {
+			SPropValue sConTopic;
 			sConTopic.ulPropTag = PR_CONVERSATION_TOPIC_W;
 			sConTopic.Value.lpszW = lpPropNormalizedSubject->Value.lpszW;
 			
@@ -944,7 +900,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				if (hr != hrSuccess)
 					return hr;
 
-				SPropValue sRRProps[4];
+				KPropbuffer<4> sRRProps;
 				sRRProps[0].ulPropTag = PR_READ_RECEIPT_REQUESTED;
 				sRRProps[0].Value.b = true;
 				
@@ -954,10 +910,8 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				sRRProps[2].ulPropTag = PR_REPORT_ENTRYID;
 				sRRProps[2].Value.bin.cb = cbEntryID;
 				sRRProps[2].Value.bin.lpb = reinterpret_cast<unsigned char *>(lpEntryID.get());
-				sRRProps[3].ulPropTag = PR_REPORT_NAME_W;
-				sRRProps[3].Value.lpszW = (WCHAR *)wstrRREmail.c_str();
-
-				hr = lpMessage->SetProps(4, sRRProps, NULL);
+				sRRProps.set(3, PR_REPORT_NAME, std::move(wstrRREmail));
+				hr = lpMessage->SetProps(4, sRRProps.get(), nullptr);
 				if (hr != hrSuccess)
 					return hr;
 			}
@@ -1000,11 +954,9 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				continue;
 			}
 
-			SPropValue sProp;
-			value = field->getValue()->generate();
-			sProp.ulPropTag = PROP_TAG(PT_STRING8, PROP_ID(lpPropTags->aulPropTag[0]));
-			sProp.Value.lpszA = (char*)value.c_str();
-			lpMessage->SetProps(1, &sProp, nullptr);
+			KPropbuffer<1> prop;
+			prop.set(0, lpPropTags->aulPropTag[0], field->getValue()->generate());
+			lpMessage->SetProps(1, prop.get(), nullptr);
 			// in case of error: ignore this x-header as named props then
 		}
 	} catch (const vmime::exception &e) {
@@ -2507,13 +2459,11 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 	std::string	strId, strMimeType, strLocation, strTmp;
 	std::wstring strLongFilename;
 	int			nProps = 0;
-	SPropValue	attProps[12];
+	KPropbuffer<12> attProps;
 	vmime::shared_ptr<vmime::contentDispositionField> cdf;	// parameters of Content-Disposition header
 	vmime::shared_ptr<vmime::contentDisposition> cdv;		// value of Content-Disposition header
 	vmime::shared_ptr<vmime::contentTypeField> ctf;
 	vmime::shared_ptr<vmime::mediaType> mt;
-
-	memset(attProps, 0, sizeof(attProps));
 
 	// Create Attach
 	hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~lpAtt);
@@ -2570,21 +2520,17 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 
 		// vmHeader->ContentId() is headerField ->getValue() returns headerFieldValue, which messageId is.
 		strId = vmime::dynamicCast<vmime::messageId>(vmHeader->ContentId()->getValue())->getId();
-		if (!strId.empty()) {
+		if (!strId.empty())
 			// only set this property when string is present
 			// otherwise, you don't get the 'save attachments' list in the main menu of outlook
-			attProps[nProps].ulPropTag = PR_ATTACH_CONTENT_ID_A;
-			attProps[nProps++].Value.lpszA = (char*)strId.c_str();
-		}
+			attProps.set(nProps++, PR_ATTACH_CONTENT_ID, strId);
 
 		try {
 			strLocation = vmime::dynamicCast<vmime::text>(vmHeader->ContentLocation()->getValue())->getConvertedText(MAPI_CHARSET);
 		} catch (const vmime::exceptions::charset_conv_error &) {
 		}
-		if (!strLocation.empty()) {
-			attProps[nProps].ulPropTag = PR_ATTACH_CONTENT_LOCATION_A;
-			attProps[nProps++].Value.lpszA = (char*)strLocation.c_str();
-		}
+		if (!strLocation.empty())
+			attProps.set(nProps++, PR_ATTACH_CONTENT_LOCATION, strLocation);
 
 		// make hidden when inline, is an image or text, has a content id or location, is an HTML mail,
 		// has a CID reference in the HTML or has a location reference in the HTML.
@@ -2630,8 +2576,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 			strLongFilename += m_converter.convert_to<std::wstring>(ext);
 		}
 
-		attProps[nProps].ulPropTag = PR_ATTACH_LONG_FILENAME_W;
-		attProps[nProps++].Value.lpszW = (WCHAR*)strLongFilename.c_str();
+		attProps.set(nProps++, PR_ATTACH_LONG_FILENAME, strLongFilename);
 
 		// outlook internal rendering sequence in RTF bodies. When set
 		// to -1, outlook will ignore it, when set to 0 or higher,
@@ -2645,11 +2590,9 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 			// due to a bug in vmime 0.7, the continuation header text can be prefixed in the string, so strip it (easiest way to fix)
 			while (strMimeType[0] == '\r' || strMimeType[0] == '\n' || strMimeType[0] == '\t' || strMimeType[0] == ' ')
 				strMimeType.erase(0, 1);
-			attProps[nProps].ulPropTag = PR_ATTACH_MIME_TAG_A;
-			attProps[nProps++].Value.lpszA = (char*)strMimeType.c_str();
+			attProps.set(nProps++, PR_ATTACH_MIME_TAG, strMimeType);
 		}
-
-		hr = lpAtt->SetProps(nProps, attProps, NULL);
+		hr = lpAtt->SetProps(nProps, attProps.get(), nullptr);
 		if (hr != hrSuccess)
 			goto exit;
 	} catch (const vmime::exception &e) {
@@ -3294,21 +3237,13 @@ std::string VMIMEToMAPI::addressListToEnvelope(vmime::shared_ptr<vmime::addressL
 HRESULT VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vmMessage,
     IMessage *lpMessage)
 {
+	KPropbuffer<1> sEnvelope;
 	HRESULT hr = hrSuccess;
-	std::string buffer;
-	SPropValue sEnvelope;
-
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(ENVELOPE, PT_STRING8, PS_EC_IMAP, dispidIMAPEnvelope);
 	PROPMAP_INIT(lpMessage);
-
-	buffer = createIMAPEnvelope(vmMessage);
-
-	sEnvelope.ulPropTag = PROP_ENVELOPE;
-	sEnvelope.Value.lpszA = (char*)buffer.c_str();
-
-	hr = lpMessage->SetProps(1, &sEnvelope, NULL);
-	return hr;
+	sEnvelope.set(0, PROP_ENVELOPE, createIMAPEnvelope(vmMessage));
+	return lpMessage->SetProps(1, sEnvelope.get(), nullptr);
 }
 
 /** 
@@ -3432,7 +3367,7 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 HRESULT VMIMEToMAPI::createIMAPBody(const string &input,
     vmime::shared_ptr<vmime::message> vmMessage, IMessage *lpMessage)
 {
-	SPropValue sProps[4];
+	KPropbuffer<4> sProps;
 	string strBody;
 	string strBodyStructure;
 
@@ -3444,13 +3379,9 @@ HRESULT VMIMEToMAPI::createIMAPBody(const string &input,
 	sProps[1].ulPropTag = PR_EC_IMAP_EMAIL;
 	sProps[1].Value.bin.lpb = (BYTE*)input.c_str();
 	sProps[1].Value.bin.cb = input.length();
-
-	sProps[2].ulPropTag = PR_EC_IMAP_BODY;
-	sProps[2].Value.lpszA = (char*)strBody.c_str();
-
-	sProps[3].ulPropTag = PR_EC_IMAP_BODYSTRUCTURE;
-	sProps[3].Value.lpszA = (char*)strBodyStructure.c_str();
-	return lpMessage->SetProps(4, sProps, NULL);
+	sProps.set(2, PR_EC_IMAP_BODY, std::move(strBody));
+	sProps.set(3, PR_EC_IMAP_BODYSTRUCTURE, std::move(strBodyStructure));
+	return lpMessage->SetProps(4, sProps.get(), nullptr);
 }
 
 /** 

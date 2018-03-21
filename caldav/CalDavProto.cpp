@@ -1174,7 +1174,7 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 	object_ptr<IMAPIFolder> lpUsrFld;
 	SPropValue sPropValSet[2];
 	ULONG ulPropTag = 0;
-	std::string strContainerClass = "IPF.Appointment";
+	const char *strContainerClass = "IPF.Appointment";
 
 	// @todo handle other props as in proppatch command
 	for (const auto &p : lpsDavProp->lstProps) {
@@ -1202,7 +1202,7 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 	}
 	
 	sPropValSet[0].ulPropTag = PR_CONTAINER_CLASS_A;
-	sPropValSet[0].Value.lpszA = (char*)strContainerClass.c_str();
+	sPropValSet[0].Value.lpszA = const_cast<char *>(strContainerClass);
 	sPropValSet[1].ulPropTag = PR_COMMENT_A;
 	sPropValSet[1].Value.lpszA = const_cast<char *>("Created by CalDAV Gateway");
 

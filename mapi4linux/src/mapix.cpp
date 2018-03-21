@@ -27,6 +27,7 @@
 #include <cstddef>
 #include <cstring>
 #include <kopano/ECLogger.h>
+#include <kopano/hl.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/Util.h>
 #include "m4l.mapix.h"
@@ -139,9 +140,8 @@ HRESULT M4LProfAdmin::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* 
 HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
-	SPropValue sProps[3];
+	KPropbuffer<3> sProps;
 	int n = 0;
-	std::wstring wDisplayName;
 	SizedSPropTagArray(2, sptaProfileCols) = {2, {PR_DEFAULT_PROFILE, PR_DISPLAY_NAME}};
 
 	if (ulFlags & MAPI_UNICODE)
@@ -157,22 +157,15 @@ HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	for (auto &prof : profiles) {
 		sProps[0].ulPropTag = PR_DEFAULT_PROFILE;
 		sProps[0].Value.b = false; //FIXME: support setDefaultProfile
-
-		if (ulFlags & MAPI_UNICODE) {
-			wDisplayName = convert_to<std::wstring>(prof->profname);
-			sProps[1].ulPropTag = PR_DISPLAY_NAME_W;
-			sProps[1].Value.lpszW = (WCHAR *) wDisplayName.c_str();
-		} else {
-			sProps[1].ulPropTag = PR_DISPLAY_NAME_A;
-			sProps[1].Value.lpszA = const_cast<char *>(prof->profname.c_str());
-		}
-		
+		if (ulFlags & MAPI_UNICODE)
+			sProps.set(1, PR_DISPLAY_NAME, convert_to<std::wstring>(prof->profname));
+		else
+			sProps.set(1, PR_DISPLAY_NAME, prof->profname);
 		sProps[2].ulPropTag = PR_ROWID;
 		sProps[2].Value.ul = n++;
 
 		//TODO: PR_INSTANCE_KEY
-
-		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, sProps, 3);
+		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, nullptr, sProps.get(), 3);
 		if (hr != hrSuccess)
 			return kc_perrorf("HrModifyRow failed", hr);
 	}
@@ -408,7 +401,7 @@ HRESULT M4LMsgServiceAdmin::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIE
 HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
-	SPropValue sProps[4];
+	KPropbuffer<4> sProps;
 	int n = 0;
 	std::wstring wServiceName, wDisplayName;
 	convert_context converter;
@@ -426,29 +419,16 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 		sProps[0].ulPropTag = PR_SERVICE_UID;
 		sProps[0].Value.bin.lpb = reinterpret_cast<BYTE *>(&serv->muid);
 		sProps[0].Value.bin.cb = sizeof(GUID);
-
 		if (ulFlags & MAPI_UNICODE) {
-			wServiceName = converter.convert_to<std::wstring>(serv->servicename);
-			sProps[1].ulPropTag = PR_SERVICE_NAME_W;
-			sProps[1].Value.lpszW = (WCHAR *) wServiceName.c_str();
+			sProps.set(1, PR_SERVICE_NAME, converter.convert_to<std::wstring>(serv->servicename));
+			sProps.set(2, PR_DISPLAY_NAME, converter.convert_to<std::wstring>(serv->displayname));
 		} else {
-			sProps[1].ulPropTag = PR_SERVICE_NAME_A;
-			sProps[1].Value.lpszA = const_cast<char *>(serv->servicename.c_str());
-		}			
-		
-		if (ulFlags & MAPI_UNICODE) {
-			wDisplayName = converter.convert_to<std::wstring>(serv->displayname);
-			sProps[1].ulPropTag = PR_DISPLAY_NAME_W;
-			sProps[1].Value.lpszW = (WCHAR *) wDisplayName.c_str();
-		} else {
-			sProps[2].ulPropTag = PR_DISPLAY_NAME_A;
-			sProps[2].Value.lpszA = const_cast<char *>(serv->displayname.c_str());
+			sProps.set(1, PR_SERVICE_NAME, serv->servicename);
+			sProps.set(2, PR_DISPLAY_NAME, serv->displayname);
 		}
-		
 		sProps[3].ulPropTag = PR_ROWID;
 		sProps[3].Value.ul = n++;
-		
-		lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, sProps, 4);
+		lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, nullptr, sProps.get(), 4);
 	}
 	
 	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
