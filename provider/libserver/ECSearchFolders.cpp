@@ -261,16 +261,6 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
     return er;
 }
 
-// See if a folder is a search folder
-ECRESULT ECSearchFolders::IsSearchFolder(unsigned int ulFolderId)
-{
-	unsigned int flags = 0;
-	auto er = m_lpSessionManager->GetCacheManager()->GetObjectFlags(ulFolderId, &flags);
-	if (er != erSuccess || flags != FOLDER_SEARCH)
-		return KCERR_NOT_FOUND;
-	return erSuccess;
-}
-
 // Cancel a search: stop any rebuild thread and stop processing updates for this search folder
 ECRESULT ECSearchFolders::CancelSearchFolder(unsigned int ulStoreID, unsigned int ulFolderId)
 {
