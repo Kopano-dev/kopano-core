@@ -152,12 +152,11 @@ namespace priv {
 	void conv_out<ECENTRYID>(PyObject* value, LPVOID lpBase, ULONG /*ulFlags*/, ECENTRYID *lpResult) {
 		char *data;
 		Py_ssize_t size;
-		if(value == Py_None) {
+		if (value == Py_None || PyString_AsStringAndSize(value, &data, &size) < 0) {
 			lpResult->cb = 0;
 			lpResult->lpb = NULL;
 			return;
 		}
-		PyString_AsStringAndSize(value, &data, &size);
 		lpResult->cb = size;
 		if (KAllocCopy(data, size, reinterpret_cast<void **>(&lpResult->lpb), lpBase) != hrSuccess)
 			throw std::bad_alloc();
