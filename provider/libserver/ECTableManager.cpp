@@ -61,8 +61,6 @@ class ECMailBoxTable final : public ECStoreObjectTable {
 	{}
 
 	private:
-	/* 0x01: user stores, 0x02: public stores */
-	unsigned int m_ulStoreTypes = 0x03;
 	ALLOC_WRAP_FRIEND;
 };
 
@@ -741,7 +739,6 @@ ECRESULT ECMailBoxTable::Load()
 	if (er != erSuccess)
 		return er;
 	Clear();
-	/* @todo Load all stores depends on m_ulStoreTypes, 1. privates, 2. publics or both */
 	auto strQuery = "SELECT hierarchy_id FROM stores";
 	DB_RESULT lpDBResult;
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
