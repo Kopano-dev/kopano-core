@@ -166,13 +166,6 @@ public:
      * @param[in] ulType ECKeyTable::TABLE_ROW_ADD or TABLE_ROW_MODIFY or TABLE_ROW_DELETE
      */
 	_kc_hidden virtual ECRESULT UpdateSearchFolders(unsigned int store_id, unsigned int folder_id, unsigned int obj_id, ECKeyTable::UpdateType);
-    
-    /** 
-     * Returns erSuccess if the folder is a search folder
-     *
-     * @param[in] ulFolderId The folder id (hierarchyid) of the folder being queried
-     */
-	_kc_hidden virtual ECRESULT IsSearchFolder(unsigned int folder_id);
 
     /** 
      * Remove a search folder because it has been deleted. Cancels the search before removing the information. It will
