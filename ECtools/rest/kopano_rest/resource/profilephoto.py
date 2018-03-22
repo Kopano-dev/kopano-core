@@ -19,7 +19,6 @@ class ProfilePhotoResource(Resource):
             photo = server.user(userid=userid).photo
         elif itemid:
             folder = _folder(store, folderid or 'contacts')
-            print('heh', folder, itemid)
             photo = folder.item(itemid).photo
         else:
             userid = kopano.Store(server=server,
@@ -34,13 +33,11 @@ class ProfilePhotoResource(Resource):
             self.respond(req, resp, photo)
 
 
-#    def on_patch(self, *args, **kwargs):
-#        self.on_put(*args, **kwargs)
-#
-#    def on_put(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
-#        server, store = _server_store(req, userid, self.options)
-#        folder = utils._folder(store, folderid or 'contacts')
-#        contact = folder.item(itemid)
-#
-#        contact.set_photo('noname', req.stream.read(), req.get_header('Content-Type'))
+    def on_patch(self, *args, **kwargs):
+        self.on_put(*args, **kwargs)
 
+    def on_put(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
+        server, store = _server_store(req, userid, self.options)
+        folder = _folder(store, folderid or 'contacts')
+        contact = folder.item(itemid)
+        contact.set_photo('noname', req.stream.read(), req.get_header('Content-Type'))
