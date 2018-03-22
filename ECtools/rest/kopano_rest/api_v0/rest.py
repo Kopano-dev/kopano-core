@@ -13,7 +13,7 @@ from ..resource.event import EventResource
 from ..resource.contact import ContactResource
 from ..resource.profilephoto import ProfilePhotoResource
 
-class RestAPI(falcon.API):
+class RestAPIV0(falcon.API):
     def __init__(self, options=None):
         super().__init__(media_type=None)
         self.options = options

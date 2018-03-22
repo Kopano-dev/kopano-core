@@ -1,7 +1,7 @@
 import gunicorn.app.base
 
-from .api.rest import RestAPI
-from .api.notify import NotifyAPI
+from .api_v0.rest import RestAPIV0
+#from .api_v0.notify import NotifyAPIV0
 
 class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
@@ -23,7 +23,7 @@ options = {
     'bind': '%s:%s' % ('127.0.0.1', '8000'),
     'workers': 1,
 }
-StandaloneApplication(RestAPI(), options).run()
+StandaloneApplication(RestAPIV0(), options).run()
 
 #options = {
 #    'bind': '%s:%s' % ('127.0.0.1', '8001'),

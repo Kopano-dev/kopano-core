@@ -148,7 +148,7 @@ class SubscriptionResource:
         store.unsubscribe(sink)
         del SUBSCRIPTIONS[subscriptionid]
 
-class NotifyAPI(falcon.API):
+class NotifyAPIV0(falcon.API):
     def __init__(self, options=None):
         super().__init__(media_type=None)
         self.options = options

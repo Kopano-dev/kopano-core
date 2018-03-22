@@ -7,9 +7,9 @@ kopano.set_bin_encoding('base64')
 kopano.set_missing_none()
 # TODO set_timezone_aware?
 
-from .api import (
+from .api_v0 import (
     rest, notify
 )
 
-RestAPI = rest.RestAPI
-NotifyAPI = notify.NotifyAPI
+RestAPI = rest.RestAPIV0
+NotifyAPI = notify.NotifyAPIV0
