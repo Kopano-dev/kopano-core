@@ -1,32 +1,7 @@
-import gunicorn.app.base
-
 from .api_v0.rest import RestAPIV0
-#from .api_v0.notify import NotifyAPIV0
+from wsgiref.simple_server import make_server
 
-class StandaloneApplication(gunicorn.app.base.BaseApplication):
+app = RestAPIV0()
 
-    def __init__(self, app, options=None):
-        self.options = options or {}
-        self.application = app
-        super(StandaloneApplication, self).__init__()
-
-    def load_config(self):
-        config = dict([(key, value) for key, value in self.options.items()
-                       if key in self.cfg.settings and value is not None])
-        for key, value in config.items():
-            self.cfg.set(key.lower(), value)
-
-    def load(self):
-        return self.application
-
-options = {
-    'bind': '%s:%s' % ('127.0.0.1', '8000'),
-    'workers': 1,
-}
-StandaloneApplication(RestAPIV0(), options).run()
-
-#options = {
-#    'bind': '%s:%s' % ('127.0.0.1', '8001'),
-#    'workers': 1,
-#}
-#StandaloneApplication(NotifyAPI(), options).run()
+s = make_server('localhost', 8000, app)
+s.serve_forever()
