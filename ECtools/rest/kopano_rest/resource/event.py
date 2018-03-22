@@ -4,12 +4,11 @@ import dateutil.parser
 
 import kopano
 
-from ..config import TOP
 from ..utils import (
     _server_store, _folder
 )
 from .resource import (
-    json, _date, set_date, _start_end
+    DEFAULT_TOP, json, _date, set_date, _start_end
 )
 from .item import (
     ItemResource, get_email, get_body
@@ -162,12 +161,12 @@ class EventResource(ItemResource):
 
         if method == 'attachments':
             attachments = list(event.attachments(embedded=True))
-            data = (attachments, TOP, 0, len(attachments))
+            data = (attachments, DEFAULT_TOP, 0, len(attachments))
             self.respond(req, resp, data, AttachmentResource.fields)
 
         elif method == 'instances':
             start, end = _start_end(req)
-            data = (event.occurrences(start, end), TOP, 0, 0)
+            data = (event.occurrences(start, end), DEFAULT_TOP, 0, 0)
             self.respond(req, resp, data)
 
         else:

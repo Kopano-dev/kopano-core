@@ -17,7 +17,7 @@ import kopano
 kopano.set_bin_encoding('base64')
 
 from .. import utils
-from ..config import PREFIX
+from .config import PREFIX
 
 SUBSCRIPTIONS = {}
 

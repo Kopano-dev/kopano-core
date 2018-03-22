@@ -1,11 +1,10 @@
 from .resource import (
-    json, _start_end,
+    DEFAULT_TOP, json, _start_end,
 )
 from .event import EventResource
 from ..utils import (
     _server_store, _folder
 )
-from ..config import TOP
 from .folder import FolderResource
 
 class CalendarResource(FolderResource):
@@ -29,7 +28,7 @@ class CalendarResource(FolderResource):
 
             if method == 'calendarView':
                 start, end = _start_end(req)
-                data = (folder.occurrences(start, end), TOP, 0, 0)
+                data = (folder.occurrences(start, end), DEFAULT_TOP, 0, 0)
                 fields = EventResource.fields
 
             elif method == 'events':

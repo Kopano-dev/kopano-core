@@ -19,7 +19,7 @@ except TypeError:
 
 import dateutil.parser
 
-from ..config import TOP
+DEFAULT_TOP = 10
 
 def _header_args(req, name): # TODO use urlparse.parse_qs or similar..?
     d = {}
@@ -165,7 +165,7 @@ class Resource(object):
     def generator(self, req, generator, count=0):
         # determine pagination and ordering
         args = urlparse.parse_qs(req.query_string)
-        top = int(args['$top'][0]) if '$top' in args else TOP
+        top = int(args['$top'][0]) if '$top' in args else DEFAULT_TOP
         skip = int(args['$skip'][0]) if '$skip' in args else 0
         order = args['$orderby'][0].split(',') if '$orderby' in args else None
         if order:

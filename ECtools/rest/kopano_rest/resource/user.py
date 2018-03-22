@@ -1,9 +1,8 @@
 import falcon
 
-from ..config import TOP
 from ..utils import _server_store
 from .resource import (
-    Resource, urlparse, _start_end, json
+    DEFAULT_TOP, Resource, urlparse, _start_end, json
 )
 from .calendar import CalendarResource
 from .contact import ContactResource
@@ -49,7 +48,7 @@ class UserResource(Resource):
         newstate = server.sync_gab(importer, token)
         changes = [(o, UserResource) for o in importer.updates] + \
             [(o, DeletedUserResource) for o in importer.deletes]
-        data = (changes, TOP, 0, len(changes))
+        data = (changes, DEFAULT_TOP, 0, len(changes))
         deltalink = b"%s?$deltatoken=%s" % (req.path.encode('utf-8'), codecs.encode(newstate, 'ascii'))
         self.respond(req, resp, data, UserResource.fields, deltalink=deltalink)
 
@@ -104,12 +103,12 @@ class UserResource(Resource):
 
         elif method == 'calendarView': # TODO multiple calendars?
             start, end = _start_end(req)
-            data = (store.calendar.occurrences(start, end), TOP, 0, 0)
+            data = (store.calendar.occurrences(start, end), DEFAULT_TOP, 0, 0)
             self.respond(req, resp, data, EventResource.fields)
 
         elif method == 'memberOf':
             user = server.user(userid=userid)
-            data = (user.groups(), TOP, 0, 0)
+            data = (user.groups(), DEFAULT_TOP, 0, 0)
             self.respond(req, resp, data, GroupResource.fields)
 
     # TODO redirect to other resources?

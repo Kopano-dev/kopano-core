@@ -1,6 +1,7 @@
 from ..utils import _server_store
-from ..config import TOP
-from .resource import Resource
+from .resource import (
+    DEFAULT_TOP, Resource
+)
 
 class GroupResource(Resource):
     fields = {
@@ -17,10 +18,10 @@ class GroupResource(Resource):
                 if group.groupid == groupid:
                     data = group
         else:
-            data = (server.groups(), TOP, 0, 0)
+            data = (server.groups(), DEFAULT_TOP, 0, 0)
 
         if method == 'members':
-            data = (group.users(), TOP, 0, 0)
+            data = (group.users(), DEFAULT_TOP, 0, 0)
             self.respond(req, resp, data, UserResource.fields)
         else:
             self.respond(req, resp, data)

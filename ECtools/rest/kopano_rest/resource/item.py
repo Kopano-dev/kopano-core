@@ -6,9 +6,8 @@ import dateutil
 from ..utils import (
     db_get, db_put
 )
-from ..config import TOP
 from .resource import (
-    Resource, _header_sub_arg, _date, urlparse
+    DEFAULT_TOP, Resource, _header_sub_arg, _date, urlparse
 )
 from .attachment import (
     ItemAttachmentResource, FileAttachmentResource,
@@ -78,7 +77,7 @@ class ItemResource(Resource):
         newstate = folder.sync(importer, token, begin=begin)
         changes = [(o, self) for o in importer.updates] + \
             [(o, self.deleted_resource) for o in importer.deletes]
-        data = (changes, TOP, 0, len(changes))
+        data = (changes, DEFAULT_TOP, 0, len(changes))
         # TODO include filter in token?
         deltalink = b"%s?$deltatoken=%s" % (req.path.encode('utf-8'), codecs.encode(newstate, 'ascii'))
         self.respond(req, resp, data, self.fields, deltalink=deltalink)

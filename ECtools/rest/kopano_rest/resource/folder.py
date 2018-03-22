@@ -1,11 +1,10 @@
 import codecs
 
-from ..config import TOP
 from ..utils import (
     _server_store, _folder, db_put, db_get
 )
 from .resource import (
-    Resource, urlparse
+    DEFAULT_TOP, Resource, urlparse
 )
 
 class DeletedFolder(object):
@@ -47,6 +46,6 @@ class FolderResource(Resource):
         changes = [(o, self) for o in importer.updates] + \
             [(o, self.deleted_resource) for o in importer.deletes]
         changes = [c for c in changes if c[0].container_class in (None, 'IPF.Note')]
-        data = (changes, TOP, 0, len(changes))
+        data = (changes, DEFAULT_TOP, 0, len(changes))
         deltalink = b"%s?$deltatoken=%s" % (req.path.encode('utf-8'), codecs.encode(newstate, 'ascii'))
         self.respond(req, resp, data, self.fields, deltalink=deltalink)

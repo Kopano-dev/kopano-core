@@ -1,11 +1,10 @@
 import base64
 
-from ..config import TOP
 from ..utils import (
     _server_store, _folder,
 )
 from .resource import (
-    _date, json
+    DEFAULT_TOP, _date, json
 )
 from .item import (
     ItemResource, get_body, set_body, get_email, get_attachments,
@@ -73,7 +72,7 @@ class MessageResource(ItemResource):
 
         if method == 'attachments':
             attachments = list(get_attachments(item))
-            data = (attachments, TOP, 0, len(attachments))
+            data = (attachments, DEFAULT_TOP, 0, len(attachments))
             self.respond(req, resp, data)
             return
 

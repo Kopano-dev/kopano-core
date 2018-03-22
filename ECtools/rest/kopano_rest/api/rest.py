@@ -1,6 +1,6 @@
 import falcon
 
-from ..config import PREFIX
+from .config import PREFIX
 
 from ..resource.user import UserResource
 from ..resource.group import GroupResource
