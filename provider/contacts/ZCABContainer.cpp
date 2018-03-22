@@ -25,6 +25,7 @@
 #include <kopano/ECMemTable.h>
 #include <kopano/ECGuid.h>
 #include <kopano/CommonUtil.h>
+#include <kopano/hl.hpp>
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/memory.hpp>
@@ -595,11 +596,9 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	HRESULT			hr = hrSuccess;
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
-#define TCOLS 9
-	SizedSPropTagArray(TCOLS, sptaCols) = {TCOLS, {PR_ENTRYID, PR_STORE_ENTRYID, PR_DISPLAY_NAME_W, PR_OBJECT_TYPE, PR_CONTAINER_FLAGS, PR_DISPLAY_TYPE, PR_AB_PROVIDER_ID, PR_DEPTH, PR_INSTANCE_KEY}};
-	enum {XENTRYID = 0, STORE_ENTRYID, DISPLAY_NAME, OBJECT_TYPE, CONTAINER_FLAGS, DISPLAY_TYPE, AB_PROVIDER_ID, DEPTH, INSTANCE_KEY, ROWID};
+	SizedSPropTagArray(9, sptaCols) = {9, {PR_ENTRYID, PR_STORE_ENTRYID, PR_DISPLAY_NAME_W, PR_OBJECT_TYPE, PR_CONTAINER_FLAGS, PR_DISPLAY_TYPE, PR_AB_PROVIDER_ID, PR_DEPTH, PR_INSTANCE_KEY}};
+	enum { XENTRYID = 0, STORE_ENTRYID, DISPLAY_NAME, OBJECT_TYPE, CONTAINER_FLAGS, DISPLAY_TYPE, AB_PROVIDER_ID, DEPTH, INSTANCE_KEY, ROWID, XTCOLS };
 	ULONG ulInstance = 0;
-	SPropValue sProps[TCOLS + 1];
 	convert_context converter;
 
 	if ((ulFlags & MAPI_UNICODE) == 0)
@@ -620,9 +619,9 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	if (m_lpFolders) {
 		// create hierarchy with folders from user stores
 		for (const auto &folder : *m_lpFolders) {
-			std::string strName;
 			memory_ptr<cabEntryID> lpEntryID;
 			ULONG cbEntryID = CbNewCABENTRYID(folder.cbFolder);
+			KPropbuffer<XTCOLS> sProps;
 
 			hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryID);
 			if (hr != hrSuccess)
@@ -640,14 +639,10 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			sProps[STORE_ENTRYID].ulPropTag = CHANGE_PROP_TYPE(sptaCols.aulPropTag[STORE_ENTRYID], PT_ERROR);
 			sProps[STORE_ENTRYID].Value.err = MAPI_E_NOT_FOUND;
 
-			sProps[DISPLAY_NAME].ulPropTag = sptaCols.aulPropTag[DISPLAY_NAME];
-			if ((ulFlags & MAPI_UNICODE) == 0) {
-				sProps[DISPLAY_NAME].ulPropTag = PR_DISPLAY_NAME_A;
-				strName = converter.convert_to<std::string>(folder.strwDisplayName);
-				sProps[DISPLAY_NAME].Value.lpszA = (char*)strName.c_str();
-			} else {
-				sProps[DISPLAY_NAME].Value.lpszW = const_cast<wchar_t *>(folder.strwDisplayName.c_str());
-			}
+			if ((ulFlags & MAPI_UNICODE) == 0)
+				sProps.set(DISPLAY_NAME, PR_DISPLAY_NAME, converter.convert_to<std::string>(folder.strwDisplayName));
+			else
+				sProps.set(DISPLAY_NAME, sptaCols.aulPropTag[DISPLAY_NAME], folder.strwDisplayName);
 
 			sProps[OBJECT_TYPE].ulPropTag = sptaCols.aulPropTag[OBJECT_TYPE];
 			sProps[OBJECT_TYPE].Value.ul = MAPI_ABCONT;
@@ -671,8 +666,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 			sProps[ROWID].ulPropTag = PR_ROWID;
 			sProps[ROWID].Value.ul = ulInstance;
-
-			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, sProps, TCOLS + 1);
+			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, nullptr, sProps.get(), XTCOLS);
 			if (hr != hrSuccess)
 				return hr;
 			++ulInstance;
@@ -681,6 +675,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		// only if not using a contacts folder, which should make the contents table. so this would return an empty hierarchy table, which is true.
 		// create toplevel hierarchy. one entry: "Kopano Contacts Folders"
 		BYTE sEntryID[4 + sizeof(GUID)]; // minimum sized entryid. no extra info needed
+		SPropValue sProps[XTCOLS];
 
 		memset(sEntryID, 0, sizeof(sEntryID));
 		memcpy(sEntryID + 4, &MUIDZCSAB, sizeof(GUID));
@@ -722,8 +717,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 		sProps[ROWID].ulPropTag = PR_ROWID;
 		sProps[ROWID].Value.ul = ulInstance++;
-
-		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, sProps, TCOLS + 1);
+		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, nullptr, sProps, XTCOLS);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -765,7 +759,6 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		return hr;
 	return lpTableView->QueryInterface(IID_IMAPITable,
 	       reinterpret_cast<void **>(lppTable));
-#undef TCOLS
 }
 
 /** 
