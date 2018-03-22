@@ -1,4 +1,10 @@
+from ..utils import (
+    _server_store, _folder
+)
 from .resource import Resource
+
+from MAPI.Util import GetDefaultStore
+import kopano
 
 class ProfilePhotoResource(Resource):
     fields = {
@@ -6,7 +12,27 @@ class ProfilePhotoResource(Resource):
 
     }
 
-# TODO restore on_get etc here?
+    def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
+        server, store = _server_store(req, userid, self.options)
+
+        if userid:
+            photo = server.user(userid=userid).photo
+        elif itemid:
+            folder = _folder(store, folderid or 'contacts')
+            print('heh', folder, itemid)
+            photo = folder.item(itemid).photo
+        else:
+            userid = kopano.Store(server=server,
+                mapiobj = GetDefaultStore(server.mapisession)).user.userid
+            photo = server.user(userid=userid).photo
+
+        if method == '$value':
+            resp.content_type = photo.mimetype
+            resp.data = photo.data
+
+        else:
+            self.respond(req, resp, photo)
+
 
 #    def on_patch(self, *args, **kwargs):
 #        self.on_put(*args, **kwargs)

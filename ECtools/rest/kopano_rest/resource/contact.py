@@ -7,8 +7,6 @@ from .resource import (
 from .item import (
     ItemResource, get_email
 )
-from .profilephoto import ProfilePhotoResource
-
 def set_email_addresses(item, arg): # TODO multiple via pyko
     item.address1 = '%s <%s>' % (arg[0]['name'], arg[0]['address'])
 
@@ -77,17 +75,6 @@ class ContactResource(ItemResource):
             data = folder.item(itemid)
         else:
             data = self.generator(req, folder.items, folder.count)
-
-        if method == 'photo':
-            user = server.user(userid=userid)
-            photo = data.photo
-            if req.path.split('/')[-1] == '$value':
-                resp.content_type = photo.mimetype
-                resp.data = photo.data
-            else:
-                self.respond(req, resp, photo, ProfilePhotoResource.fields)
-            return
-
 
         self.respond(req, resp, data)
 

@@ -12,7 +12,6 @@ from .event import EventResource
 from .group import GroupResource
 from .mailfolder import MailFolderResource
 from .message import MessageResource
-from .profilephoto import ProfilePhotoResource
 
 from MAPI.Util import GetDefaultStore
 import kopano # TODO remove?
@@ -112,15 +111,6 @@ class UserResource(Resource):
             user = server.user(userid=userid)
             data = (user.groups(), TOP, 0, 0)
             self.respond(req, resp, data, GroupResource.fields)
-
-        elif method == 'photo': # TODO merge with contact photo
-            user = server.user(userid=userid)
-            photo = user.photo
-            if req.path.split('/')[-1] == '$value':
-                resp.content_type = photo.mimetype
-                resp.data = photo.data
-            else:
-                self.respond(req, resp, photo, ProfilePhotoResource.fields)
 
     # TODO redirect to other resources?
     def on_post(self, req, resp, userid=None, method=None):

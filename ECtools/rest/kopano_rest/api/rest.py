@@ -55,5 +55,6 @@ class RestAPI(falcon.API):
             route(user+'/contactFolders/{folderid}', contactfolders)
             route(user+'/contacts/{itemid}', contacts)
             route(user+'/contactFolders/{folderid}/contacts/{itemid}', contacts)
-            route(user+'/{method}/$value', users, method=False) # TODO ugly
-            route(user+'/contacts/{itemid}/{method}/$value', contacts, method=False) # TODO ugly
+            route(user+'/photo', photos)
+            route(user+'/contacts/{itemid}/photo', photos)
+            route(user+'/contactFolders/{folderid}/contacts/{itemid}/photo', photos)
