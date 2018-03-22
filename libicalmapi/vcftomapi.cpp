@@ -580,7 +580,7 @@ HRESULT vcftomapi_impl::save_photo(IMessage *mapiprop)
 	if (hr != hrSuccess)
 		return hr;
 
-	std::wstring filename, mimetype;
+	const wchar_t *filename, *mimetype;
 	switch (phototype) {
 	case PHOTO_JPEG:
 		filename = L"image.jpeg";
@@ -605,9 +605,9 @@ HRESULT vcftomapi_impl::save_photo(IMessage *mapiprop)
 	props[1].ulPropTag = PR_ATTACH_METHOD;
 	props[1].Value.ul = ATTACH_BY_VALUE;
 	props[2].ulPropTag = PR_ATTACH_LONG_FILENAME_W;
-	props[2].Value.lpszW = const_cast<wchar_t *>(filename.c_str());
+	props[2].Value.lpszW = const_cast<wchar_t *>(filename);
 	props[3].ulPropTag = PR_ATTACH_MIME_TAG_W;
-	props[3].Value.lpszW = const_cast<wchar_t *>(mimetype.c_str());
+	props[3].Value.lpszW = const_cast<wchar_t *>(mimetype);
 	props[4].ulPropTag = PR_ATTACHMENT_HIDDEN;
 	props[4].Value.b = true;
 
