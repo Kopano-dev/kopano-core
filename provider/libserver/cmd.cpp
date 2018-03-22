@@ -4364,7 +4364,9 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 
 			strQuery += "namestring='" + strEscapedString + "' ";
 		}
-		/* else { Handle this, it will break the SQL query, iff guid is present } */
+		else {
+			strQuery += "0 ";
+		}
 
 		// Add a GUID specifier if there
 		if(lpsNamedProps->__ptr[i].lpguid != NULL) {
