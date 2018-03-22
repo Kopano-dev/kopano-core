@@ -261,7 +261,8 @@ kopano_stats_LDADD = \
 
 
 kopano_storeadm_SOURCES = ECtools/storeadm.cpp
-kopano_storeadm_LDADD = ${popt_LIBS} libmapi.la libkcmapi.la libkcutil.la
+kopano_storeadm_LDADD = ${jsoncpp_LIBS} ${popt_LIBS} \
+	libmapi.la libkcmapi.la libkcutil.la
 
 
 #

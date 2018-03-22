@@ -3,7 +3,7 @@
 kopano\-storeadm \(em store management utility
 .SH Synopsis
 \fBkopano\-storeadm\fP {\fB\-A\fP
-\fIguid\fP|\fB\-C\fP|\fB\-D\fP|\fB\-O\fP|\fB\-P\fP|\fB\-R\fP
+\fIguid\fP|\fB\-C\fP|\fB\-D\fP|\fB\-M\fP|\fB\-O\fP|\fB\-P\fP|\fB\-R\fP
 \fIguid\fP|\fB\-V\fP} [\fB\-c\fP \fIfile\fP] [\fB\-h\fP \fIuri\fP] [\fB\-k\fP
 \fIcompany\fP] [\fB\-n\fP \fIname\fP] [\fB\-p\fP] [\fB\-t\fP
 {\fBuser\fP|\fBarchive\fP|\fBgroup\fP|\fBcompany\fP}]
@@ -27,6 +27,9 @@ That account must not have an associated store yet.
 .TP
 \fB\-D\fP
 Detach (unhook) the store from the user account specified with \fB\-n\fP.
+.TP
+\fB\-M\fP
+Lists all mailboxes (stores) the server knows about.
 .TP
 \fB\-O\fP
 Shows a list of stores that are not hooked to any user. The GUIDs shown in the
