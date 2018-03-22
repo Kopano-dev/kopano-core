@@ -56,7 +56,6 @@ public:
 	HRESULT SetClean();
 	HRESULT DetachFromArchives();
 	virtual HRESULT GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppFolder);
-	_kc_hidden static HRESULT GetArchiveList(MAPIPropPtr, LPSPropValue props, ULONG nprop, ObjectEntryList *archives);
 
 protected:
 	_kc_hidden MAPIPropHelper(MAPIPropPtr);
