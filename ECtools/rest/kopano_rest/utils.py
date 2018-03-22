@@ -8,6 +8,8 @@ if sys.hexversion >= 0x03000000:
 else:
     import bsddb
 
+import falcon
+
 from MAPI.Util import kc_session_save, kc_session_restore, GetDefaultStore
 import kopano
 
@@ -91,7 +93,10 @@ def _store(server, userid):
                             mapiobj=GetDefaultStore(server.mapisession))
 
 def _server_store(req, userid, options):
-    server = _server(req, options)
+    try:
+        server = _server(req, options)
+    except Exception:
+        raise falcon.HTTPForbidden('Unauthorized', None)
     store = _store(server, userid)
     return server, store
 
