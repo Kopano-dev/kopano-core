@@ -1,17 +1,17 @@
 import falcon
 
-from .config import PREFIX
+from ..config import PREFIX
 
-from .resource.user import UserResource
-from .resource.group import GroupResource
-from .resource.message import MessageResource
-from .resource.attachment import AttachmentResource
-from .resource.mailfolder import MailFolderResource
-from .resource.contactfolder import ContactFolderResource
-from .resource.calendar import CalendarResource
-from .resource.event import EventResource
-from .resource.contact import ContactResource
-from .resource.profilephoto import ProfilePhotoResource
+from ..resource.user import UserResource
+from ..resource.group import GroupResource
+from ..resource.message import MessageResource
+from ..resource.attachment import AttachmentResource
+from ..resource.mailfolder import MailFolderResource
+from ..resource.contactfolder import ContactFolderResource
+from ..resource.calendar import CalendarResource
+from ..resource.event import EventResource
+from ..resource.contact import ContactResource
+from ..resource.profilephoto import ProfilePhotoResource
 
 class RestAPI(falcon.API):
     def __init__(self, options=None):

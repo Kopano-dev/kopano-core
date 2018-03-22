@@ -16,8 +16,8 @@ from MAPI import MAPI_MESSAGE # TODO
 import kopano
 kopano.set_bin_encoding('base64')
 
-from . import utils
-from .config import PREFIX
+from .. import utils
+from ..config import PREFIX
 
 SUBSCRIPTIONS = {}
 
