@@ -1624,6 +1624,8 @@ static HRESULT HrMessageExpired(IMessage *lpMessage, bool *bExpired)
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpsExpiryTime;
 
+	auto laters = make_scope_success([&]() { sc->countInc("DAgent", *bExpired ? "msg_expired" : "msg_not_expired"); });
+
 	/*
 	 * If the message has an expiry date, and it is past that time,
 	 * skip delivering the email.
@@ -1635,14 +1637,10 @@ static HRESULT HrMessageExpired(IMessage *lpMessage, bool *bExpired)
 		*bExpired = true;
 		ec_log_warn("Message was expired, not delivering");
 		// TODO: if a read-receipt was requested, we need to send a non-read read-receipt
-		goto exit;
+		return hr;
 	}
 
 	*bExpired = false;
-
-exit:
-	sc -> countInc("DAgent", *bExpired ? "msg_expired" : "msg_not_expired");
-
 	return hr;
 }
 
@@ -2097,13 +2095,15 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	string match;
 	string strHeaders;
 
+	auto laters = make_scope_success([&]() { sc->countInc("DAgent", lpArgs->ulDeliveryMode == DM_JUNK ? "is_spam" : "is_ham"); });
+
 	if (!szHeader || !szValue)
-		goto exit;
+		return hr;
 
 	// find end of headers
 	end = strMail.find("\r\n\r\n");
 	if (end == string::npos)
-		goto exit;
+		return hr;
 	end += 2;
 
 	// copy headers in upper case, need to resize destination first
@@ -2114,7 +2114,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	// find header
 	pos = strHeaders.find(match.c_str());
 	if (pos == string::npos)
-		goto exit;
+		return hr;
 
 	// skip header and find end of line
 	pos += match.length();
@@ -2124,14 +2124,11 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	pos = strHeaders.find(match.c_str(), pos);
 
 	if (pos == string::npos || pos > end)
-		goto exit;
+		return hr;
 
 	// found, override delivery to junkmail folder
 	lpArgs->ulDeliveryMode = DM_JUNK;
 	ec_log_info("Spam marker found in e-mail, delivering to junk-mail folder");
-exit:
-	sc -> countInc("DAgent", lpArgs->ulDeliveryMode == DM_JUNK ? "is_spam" : "is_ham");
-
 	return hr;
 }
 
@@ -2746,6 +2743,11 @@ static void *HandlerLMTP(void *lpArg)
 	object_ptr<IAddrBook> lpAdrBook;
 	object_ptr<IABContainer> lpAddrDir;
 
+	auto laters = make_scope_success([&]() {
+		FreeServerRecipients(&mapRCPT);
+		ec_log_info("LMTP thread exiting");
+	});
+
 	sc -> countInc("DAgent::LMTP", "sessions");
 	ec_log_info("Starting worker for LMTP request pid %d", getpid());
 	const char *lpEnvGDB  = getenv("GDB");
@@ -2758,13 +2760,13 @@ static void *HandlerLMTP(void *lpArg)
 	if (hr != hrSuccess) {
 		kc_perrorf("HrGetSession failed", hr);
 		lmtp.HrResponse("421 internal error: GetSession failed");
-		goto exit;
+		return nullptr;
 	}
 	hr = OpenResolveAddrFolder(lpSession, &~lpAdrBook, &~lpAddrDir);
 	if (hr != hrSuccess) {
 		kc_perrorf("OpenResolveAddrFolder failed", hr);
 		lmtp.HrResponse("421 internal error: OpenResolveAddrFolder failed");
-		goto exit;
+		return nullptr;
 	}
 
 	// Send hello message
@@ -2999,9 +3001,6 @@ static void *HandlerLMTP(void *lpArg)
 		}
 	}
 
-exit:
-	FreeServerRecipients(&mapRCPT);
-	ec_log_info("LMTP thread exiting");
 	return NULL;
 }
 
@@ -3026,6 +3025,8 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	int nCloseFDs = 0, pCloseFDs[1] = {0};
 	struct pollfd pollfd;
 
+	auto laters = make_scope_success([&]() { ECChannel::HrFreeCtx(); });
+
 	nMaxThreads = atoui(g_lpConfig->GetSetting("lmtp_max_threads"));
 	if (nMaxThreads == 0 || nMaxThreads == INT_MAX)
 		nMaxThreads = 20;
@@ -3035,14 +3036,14 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	              atoi(g_lpConfig->GetSetting("lmtp_port")), &ulListenLMTP);
 	if (hr != hrSuccess) {
 		kc_perrorf("HrListen failed", hr);
-		goto exit;
+		return hr;
 	}
 		
 	err = zcp_bindtodevice(ulListenLMTP,
 	      g_lpConfig->GetSetting("server_bind_intf"));
 	if (err < 0) {
 		ec_log_err("SO_BINDTODEVICE: %s", strerror(-err));
-		goto exit;
+		return hr;
 	}
 	ec_log_info("Listening on port %s for LMTP", g_lpConfig->GetSetting("lmtp_port"));
 	pCloseFDs[nCloseFDs++] = ulListenLMTP;
@@ -3055,9 +3056,9 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
 	if (unix_runas(g_lpConfig))
-		goto exit;
+		return hr;
 	if (bDaemonize && unix_daemonize(g_lpConfig))
-		goto exit;
+		return hr;
 	
 	if (!bDaemonize)
 		setsid();
@@ -3070,7 +3071,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to initialize MAPI: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 	sc = new StatsClient(g_lpLogger);
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
@@ -3145,8 +3146,6 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		ec_log_info("LMTP service shutdown complete");
 	MAPIUninitialize();
 
-exit:
-	ECChannel::HrFreeCtx();
 	return hr;
 }
 
