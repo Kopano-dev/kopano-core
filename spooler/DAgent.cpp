@@ -3643,6 +3643,8 @@ int main(int argc, char *argv[]) {
 			goto exit;
 		}
 
+		auto uninit = make_scope_success([&]() { MAPIUninitialize(); });
+
 		sc = new StatsClient(g_lpLogger);
 		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 		hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
@@ -3650,15 +3652,13 @@ int main(int argc, char *argv[]) {
 			ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
 				GetMAPIErrorMessage(hr), hr);
 			hr = MAPI_E_CALL_FAILED;
-			goto nonlmtpexit;
+			goto exit;
 		}
 
 		hr = deliver_recipients(ptrPyMapiPlugin.get(), argc - optind, argv + optind, strip_email, fp, &sDeliveryArgs);
 		if (hr != hrSuccess)
 			kc_perrorf("deliver_recipient failed", hr);
 		fclose(fp);
- nonlmtpexit:
-		MAPIUninitialize();
 	}
 exit:
 	delete sc;
