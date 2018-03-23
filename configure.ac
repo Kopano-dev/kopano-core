@@ -7,7 +7,7 @@ dnl Development cycle: ABI changes frequently, don't bother with the tag
 dnl  -> versions 8.4.90 through 8.4.99 use ABI tag "8.4.90"
 dnl Maintenance cycle: ABI ought to not change, hence no tag change
 dnl  -> versions 8.5 through 8.5.89 use ABI tag "8.5"
-PACKAGE_ABI=8.5
+PACKAGE_ABI=8.5.6
 AC_CONFIG_SRCDIR([provider/server/ECServer.cpp])
 AC_CONFIG_HEADERS([common/config.h])
 AC_CONFIG_AUX_DIR([autoconf])

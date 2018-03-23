@@ -124,4 +124,36 @@ ECRESULT db_update_68(ECDatabase *db)
 	return db->DoUpdate("ALTER TABLE `users` MODIFY COLUMN `company` int(11) NOT NULL DEFAULT 0");
 }
 
+ECRESULT db_update_69(ECDatabase *db)
+{
+	/*
+	 * Add new indexes first to see if that runs afoul of the dataset. The
+	 * operation is atomic; either both indexes will exist afterwards, or
+	 * neither.
+	 */
+	auto ret = db->DoUpdate("ALTER TABLE `names` ADD UNIQUE INDEX `gni` (`guid`(16), `nameid`), ADD UNIQUE INDEX `gns` (`guid`(16), `namestring`), DROP INDEX `guidnameid`, DROP INDEX `guidnamestring`");
+	if (ret == hrSuccess)
+		return hrSuccess;
+
+	ec_log_err("K-1216: Cannot update to schema v69 because the \"names\" table contains unexpected rows.");
+	DB_RESULT res;
+	unsigned long long ai = ~0ULL;
+	ret = db->DoSelect("SELECT `AUTO_INCREMENT` FROM information_schema WHERE table_schema=\"" + db->Escape(db->get_dbname()) + "\" AND table_name=\"names\"", &res);
+	if (ret == erSuccess) {
+		auto row = res.fetch_row();
+		if (row != nullptr && row[0] != nullptr)
+			ai = strtoull(row[0], nullptr, 0);
+	}
+	if (ai == ~0ULL)
+		ec_log_err("K-1217: Table fill level is indeterminate.");
+	else
+		ec_log_err("K-1218: Table fill level is " + stringify(ai) + " of 31485.");
+	if (ai >= 31485)
+		ec_log_err("K-1219: K-1216 may have already caused a loss of data in other tables.");
+	else
+		ec_log_err("K-1220: Looks like K-1216 has not yet caused loss of data. The dataset should be repaired as soon as possible.");
+	ec_log_err("K-1221: Proceeding with --ignore-da and ignoring the schema update is technically possible, but data corruption may happen sooner or later.");
+	return KCERR_DATABASE_ERROR;
+}
+
 } /* namespace */

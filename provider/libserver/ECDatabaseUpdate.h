@@ -30,6 +30,7 @@ ECRESULT UpdateChangesTbl(ECDatabase *db);
 ECRESULT UpdateABChangesTbl(ECDatabase *db);
 ECRESULT DropClientUpdateStatusTbl(ECDatabase *db);
 ECRESULT db_update_68(ECDatabase *);
+ECRESULT db_update_69(ECDatabase *);
 
 extern _kc_export bool searchfolder_restart_required;
 
