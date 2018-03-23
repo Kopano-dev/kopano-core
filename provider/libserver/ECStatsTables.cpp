@@ -915,21 +915,29 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 				break;
 
 			case PROP_ID(PR_QUOTA_WARNING_THRESHOLD):
+				if (bNoQuotaDetails)
+					break;
 				m.__union = SOAP_UNION_propValData_li;
 				m.ulPropTag = lpsPropTagArray->__ptr[k]; // set type to I8 ?
 				m.Value.li = quotaDetails.llWarnSize;
 				break;
 			case PROP_ID(PR_QUOTA_SEND_THRESHOLD):
+				if (bNoQuotaDetails)
+					break;
 				m.__union = SOAP_UNION_propValData_li;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.li = quotaDetails.llSoftSize;
 				break;
 			case PROP_ID(PR_QUOTA_RECEIVE_THRESHOLD):
+				if (bNoQuotaDetails)
+					break;
 				m.__union = SOAP_UNION_propValData_li;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.li = quotaDetails.llHardSize;
 				break;
 			case PROP_ID(PR_EC_QUOTA_MAIL_TIME): {
+				if (bNoQuotaDetails)
+					break;
 				// last mail time ... property in the store of the company (=public)...
 				auto strQuery = "SELECT val_hi, val_lo FROM properties JOIN hierarchy ON properties.hierarchyid=hierarchy.id JOIN stores ON hierarchy.id=stores.hierarchy_id WHERE stores.user_id=" +
 				           stringify(row.ulObjId) +

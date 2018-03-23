@@ -596,6 +596,7 @@ HRESULT vcftomapi_impl::save_photo(IMessage *mapiprop)
 		break;
 	default:
 		filename = L"unknown";
+		mimetype = L"application/octet-stream";
 		break;
 	}
 
