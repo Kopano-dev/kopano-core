@@ -1338,7 +1338,9 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	}
 
 	snprintf(szTemp, PATH_MAX, "%s/autorespond.XXXXXX", TmpPath::instance.getTempPath().c_str());
+	auto mask = umask(S_IRWXO|S_IRWXG);
 	fd = mkstemp(szTemp);
+	umask(mask);
 	if (fd < 0) {
 		ec_log_warn("Unable to create temp file for out of office mail: %s", strerror(errno));
 		return MAPI_E_FAILURE;
