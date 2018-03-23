@@ -102,7 +102,10 @@ from .contact import Contact
 from .appointment import Appointment
 
 if sys.hexversion >= 0x03000000:
-    from . import folder as _folder
+    try:
+        from . import folder as _folder
+    except ImportError:
+        _folder = sys.modules[__package__+'.folder']
     try:
         from . import store as _store
     except ImportError:
