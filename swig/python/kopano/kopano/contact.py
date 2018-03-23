@@ -43,6 +43,7 @@ from .errors import NotFoundError
 from .compat import (
     fake_unicode as _unicode,
 )
+from .picture import Picture
 
 class PhysicalAddress(object):
     def __init__(self, item, proptags):
@@ -162,11 +163,12 @@ class Contact(object):
         self[PidLidEmail3EmailAddress] = pr_email
         self[PidLidEmail3OriginalEntryId] = pr_entryid
 
+    # XXX uniformize with user.photo? class Picture?
     @property
     def photo(self):
         for attachment in self.attachments():
             if attachment.get(PR_ATTACHMENT_CONTACTPHOTO):
-                return attachment
+                return Picture(data=attachment.data, name=attachment.name, mimetype=attachment.mimetype)
 
     def set_photo(self, name, data, mimetype):
         for attachment in self.attachments():

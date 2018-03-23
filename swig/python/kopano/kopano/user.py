@@ -22,7 +22,7 @@ from MAPI.Tags import (
     PR_MAPPING_SIGNATURE, PR_EC_ARCHIVE_SERVERS,
     EMS_AB_ADDRESS_LOOKUP, PR_GIVEN_NAME_W, PR_SURNAME_W,
     PR_MOBILE_TELEPHONE_NUMBER_W, PR_OFFICE_LOCATION_W,
-    PR_TITLE_W
+    PR_TITLE_W, PR_EMS_AB_THUMBNAIL_PHOTO,
 )
 
 from .store import Store
@@ -36,6 +36,7 @@ from .errors import Error, NotFoundError, NotSupportedError, DuplicateError
 from .compat import (
     fake_unicode as _unicode, benc as _benc, bdec as _bdec, benc as _benc,
 )
+from .picture import Picture
 
 if sys.hexversion >= 0x03000000:
     from . import server as _server
@@ -147,6 +148,13 @@ class User(Properties):
     @password.setter
     def password(self, value):
         self._update(password=_unicode(value))
+
+    # TODO uniformize with contact.photo.. class Picture (filename, dimensions..)?
+    @property
+    def photo(self):
+        data = self.get(PR_EMS_AB_THUMBNAIL_PHOTO)
+        if data is not None:
+            return Picture(data=data)
 
     @property
     def features(self):
