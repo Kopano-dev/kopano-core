@@ -60,6 +60,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
 #include "fileutil.h"
 #include "PyMapiPlugin.h"
@@ -1320,20 +1321,27 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 			fd = -1;
 		}
 	}
-	
+
+	auto laters = make_scope_success([&]() {
+		if (fd != -1)
+			close(fd);
+		if (szTemp[0] != 0)
+			unlink(szTemp);
+		if (!strTmpFile.empty())
+			unlink(strTmpFile.c_str());
+	});
 
 	hr = HrGetAddress(lpAdrBook, lpMessage, PR_SENDER_ENTRYID, PR_SENDER_NAME, PR_SENDER_ADDRTYPE, PR_SENDER_EMAIL_ADDRESS, strFromName, strFromType, strFromEmail);
 	if (hr != hrSuccess) {
 		kc_perror("Unable to get sender e-mail address for autoresponder", hr);
-		goto exit;
+		return hr;
 	}
 
 	snprintf(szTemp, PATH_MAX, "%s/autorespond.XXXXXX", getenv("TEMP") == NULL ? "/tmp" : getenv("TEMP"));
 	fd = mkstemp(szTemp);
 	if (fd < 0) {
 		ec_log_warn("Unable to create temp file for out of office mail: %s", strerror(errno));
-        hr = MAPI_E_FAILURE;
-		goto exit;
+		return MAPI_E_FAILURE;
 	}
 
 	// \n is on the beginning of the next header line because of snprintf and the requirement of the \n
@@ -1343,14 +1351,14 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
 		kc_perrorf("WriteOrLogError failed(1)", hr);
-		goto exit;
+		return hr;
 	}
 
 	snprintf(szHeader, PATH_MAX, "\nTo: %ls", strFromEmail.c_str());
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
 		kc_perrorf("WriteOrLogError failed(2)", hr);
-		goto exit;
+		return hr;
 	}
 
 	// add anti-loop header for Kopano
@@ -1358,7 +1366,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
 		kc_perrorf("WriteOrLogError failed(3)", hr);
-		goto exit;
+		return hr;
 	}
 
 	/*
@@ -1369,7 +1377,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
 		kc_perrorf("WriteOrLogError failed(4)", hr);
-		goto exit;
+		return hr;
 	}
 
 	/*
@@ -1381,7 +1389,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
 		kc_perrorf("WriteOrLogError failed(5)", hr);
-		goto exit;
+		return hr;
 	}
 
 	if (lpMessageProps[3].ulPropTag == PR_SUBJECT_W)
@@ -1394,49 +1402,47 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
 		kc_perrorf("WriteOrLogError failed(4)", hr);
-		goto exit;
+		return hr;
 	}
 
-	{
-		locale_t timelocale = createlocale(LC_TIME, "C");
-		time_t now = time(NULL);
-		tm local;
-		localtime_r(&now, &local);
-		strftime_l(szHeader, PATH_MAX, "\nDate: %a, %d %b %Y %T %z", &local, timelocale);
-		freelocale(timelocale);
-	}
+	locale_t timelocale = createlocale(LC_TIME, "C");
+	time_t now = time(NULL);
+	tm local;
+	localtime_r(&now, &local);
+	strftime_l(szHeader, PATH_MAX, "\nDate: %a, %d %b %Y %T %z", &local, timelocale);
+	freelocale(timelocale);
 
 	if (WriteOrLogError(fd, szHeader, strlen(szHeader)) != hrSuccess) {
 		kc_perrorf("WriteOrLogError failed(5)", hr);
-		goto exit;
+		return hr;
 	}
 
 	snprintf(szHeader, PATH_MAX, "\nContent-Type: text/plain; charset=utf-8; format=flowed");
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
 		kc_perrorf("WriteOrLogError failed(6)", hr);
-		goto exit;
+		return hr;
 	}
 
 	snprintf(szHeader, PATH_MAX, "\nContent-Transfer-Encoding: base64");
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
 		kc_perrorf("WriteOrLogError failed(7)", hr);
-		goto exit;
+		return hr;
 	}
 
 	snprintf(szHeader, PATH_MAX, "\nMime-Version: 1.0"); // add mime-version header, so some clients show high-characters correctly
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
 		kc_perrorf("WriteOrLogError failed(8)", hr);
-		goto exit;
+		return hr;
 	}
 
 	snprintf(szHeader, PATH_MAX, "\n\n"); // last header line has double \n
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess) {
 		kc_perrorf("WriteOrLogError failed(9)", hr);
-		goto exit;
+		return hr;
 	}
 
 	// write body
@@ -1445,7 +1451,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	hr = WriteOrLogError(fd, quoted.c_str(), quoted.length(), 76);
 	if (hr != hrSuccess) {
 		kc_perrorf("WriteOrLogError failed(10)", hr);
-		goto exit;
+		return hr;
 	}
 
 	close(fd);
@@ -1467,10 +1473,8 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 		s++;
 
 	env.reset(new(std::nothrow) const char *[s + 5]);
-	if(env == nullptr) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
+	if (env == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 
 	for (size_t i = 0; i < s && environ[i] != nullptr; ++i)
 		env[i] = environ[i];
@@ -1485,14 +1489,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	ec_log_info("Starting autoresponder for out-of-office message");
 	if (!unix_system(strBaseCommand.c_str(), cmdline, env.get()))
 		ec_log_err("Autoresponder failed");
-exit:
-	if (fd != -1)
-		close(fd);
 
-	if (szTemp[0] != 0)
-		unlink(szTemp);
-	if (!strTmpFile.empty())
-		unlink(strTmpFile.c_str());
 	return hr;
 }
 
