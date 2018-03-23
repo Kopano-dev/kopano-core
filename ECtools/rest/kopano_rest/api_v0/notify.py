@@ -21,21 +21,29 @@ from .config import PREFIX
 
 SUBSCRIPTIONS = {}
 
-def _user(req, options):
+def _server(auth_user, auth_pass):
+    # return global connection, using credentials from first user to
+    # authenticate, and use it for all notifications
     global SERVER
     try:
         SERVER
     except NameError:
-        SERVER = kopano.Server(notifications=True, parse_args=False)
+        SERVER = kopano.Server(auth_user=auth_user, auth_pass=auth_pass,
+            notifications=True, parse_args=False)
 
+def _user(req, options):
     auth = utils._auth(req, options)
 
     if auth['method'] == 'bearer':
-        return SERVER.user(auth['user'])
+        username = auth['user']
+        server = _server(username, auth['token'])
     elif auth['method'] == 'basic':
-        return SERVER.user(codecs.decode(auth['user'], 'utf8'))
+        username = codecs.decode(auth['user'], 'utf8')
+        server = _server(username, auth['password'])
     elif auth['method'] == 'passthrough':
-        return SERVER.user(userid=auth['userid'])
+        username = utils._username(auth['userid'])
+        server = _server(username, '')
+    return server.user(username)
 
 # TODO don't block on sending updates
 # TODO restarting app/server
