@@ -3787,7 +3787,6 @@ void imopt_default_delivery_options(delivery_options *dopt) {
 	dopt->parse_smime_signed = false;
 	dopt->ascii_upgrade = nullptr;
 	dopt->html_safety_filter = false;
-	dopt->indexed_headers = {"X-"}; // per default save all X- headers
 	dopt->header_strict_rfc = false;
 }
 
