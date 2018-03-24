@@ -302,12 +302,9 @@ which Outlook makes use of), such as From, To, and so on, are turned into MAPI
 properties. All others are generally discarded during the transformation of the
 e-mail to a MAPI message. If your organization needs certain fields to persist
 within the MAPI message, the indexed_headers directive may be used to list
-\fBprefixes\fP of header fields to keep.
+the header fields to keep.
 .PP
 Default: (empty)
-.PP
-Example: \fIX-\fP will cause all fields starting with X- to be added as named
-properties.
 .RE
 .SH "RELOADING"
 .PP

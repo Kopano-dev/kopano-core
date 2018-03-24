@@ -978,7 +978,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			const auto &ih = m_dopt.indexed_headers;
 			if (name == "X-Priority" ||
 			    std::find_if(ih.cbegin(), ih.cend(),
-			    [&](const std::string &item) { return kc_istarts_with(name, item); }) == ih.cend())
+			    [&](const std::string &item) { return strcasecmp(name.c_str(), item.c_str()) == 0; }) == ih.cend())
 				continue;
 
 			name = strToLower(name);
