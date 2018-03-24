@@ -86,12 +86,12 @@
 										`id` int(11) NOT NULL auto_increment, \
 										`nameid` int(11) default NULL, \
 										`namestring` varchar(255) binary default NULL, \
-										`guid` blob NOT NULL, \
+										`guid` binary(16) NOT NULL, \
 										PRIMARY KEY  (`id`), \
 										KEY `nameid` (`nameid`), \
 										KEY `namestring` (`namestring`), \
-										UNIQUE KEY `gni` (`guid`(16),`nameid`), \
-										UNIQUE KEY `gns` (`guid`(16),`namestring`) \
+										UNIQUE KEY `gni` (`guid`,`nameid`), \
+										UNIQUE KEY `gns` (`guid`,`namestring`) \
 									) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
 #define Z_TABLEDEF_MVPROPERTIES		"CREATE TABLE `mvproperties` ( \
@@ -360,9 +360,9 @@
  * version that can be reached with creates only.
  * (This is never less than %Z_UPDATE_LAST.)
  */
-#define Z_UPDATE_RELEASE_ID 69
+#define Z_UPDATE_RELEASE_ID 70
 
 // This is the last update ID always update this to the last ID
-#define Z_UPDATE_LAST 69
+#define Z_UPDATE_LAST 70
 
 #endif

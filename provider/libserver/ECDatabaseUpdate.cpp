@@ -156,4 +156,9 @@ ECRESULT db_update_69(ECDatabase *db)
 	return KCERR_DATABASE_ERROR;
 }
 
+ECRESULT db_update_70(ECDatabase *db)
+{
+	return db->DoUpdate("ALTER TABLE `names` CHANGE COLUMN `guid` `guid` binary(16) NOT NULL");
+}
+
 } /* namespace */
