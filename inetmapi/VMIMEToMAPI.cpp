@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <algorithm>
 #include <exception>
 #include <list>
 #include <utility>
@@ -974,18 +975,11 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			std::string value, name = field->getName();
 
 			// exclusion list?
-			if (name == "X-Priority")
+			const auto &ih = m_dopt.indexed_headers;
+			if (name == "X-Priority" ||
+			    std::find_if(ih.cbegin(), ih.cend(),
+			    [&](const std::string &item) { return kc_istarts_with(name, item); }) == ih.cend())
 				continue;
-
-			if (m_dopt.indexed_headers.size() > 0) {
-				bool found = false;
-				for (const auto &item : m_dopt.indexed_headers)
-					if (kc_istarts_with(name, item))
-						found = true;
-
-				if (!found)
-					continue;
-			}
 
 			name = strToLower(name);
 
