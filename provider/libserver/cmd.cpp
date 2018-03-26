@@ -4386,8 +4386,14 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i)
 		lpsResponse->lpsPropTags.__ptr[i] = 0;
 
+	auto old_client = !(lpecSession->GetCapabilities() & KOPANO_CAP_GIFN32);
 	/* For every result row, look for a named prop that can be filled. */
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
+		unsigned int tag = strtoul(lpDBRow[0], nullptr, 0) + 1;
+		if (tag >= 0x7AFF && old_client) {
+			ec_log_debug("K-1223: Not returning high namepropid (0x%x) to old client", tag);
+			continue;
+		}
 		for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
 			std::string nameid, namestring;
 
@@ -4401,7 +4407,7 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 				continue;
 			if ((nameid.size() > 0 && lpDBRow[1] && nameid.compare(lpDBRow[1]) == 0) ||
 			    (namestring.size() > 0 && lpDBRow[2] && namestring.compare(lpDBRow[2]) == 0)) {
-				lpsResponse->lpsPropTags.__ptr[i] = atoi(lpDBRow[0]) + 1;
+				lpsResponse->lpsPropTags.__ptr[i] = tag;
 				break;
 			}
 		}
