@@ -4380,7 +4380,7 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 			strQuery += " OR ";
 	}
 
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	er = lpDatabase->DoSelect(strQuery + " ORDER BY id", &lpDBResult);
 	if(er != erSuccess)
 		return er;
 	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i)
@@ -4397,6 +4397,9 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 		for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
 			std::string nameid, namestring;
 
+			if (lpsResponse->lpsPropTags.__ptr[i] != 0)
+				/* Do not re-update responses already filled. */
+				continue;
 			if (lpsNamedProps->__ptr[i].lpId != nullptr)
 				nameid = stringify(*lpsNamedProps->__ptr[i].lpId);
 			else if (lpsNamedProps->__ptr[i].lpString != nullptr)
