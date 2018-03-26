@@ -365,20 +365,27 @@ class Folder(Properties):
             endstamp = time.mktime(end.timetuple())
 
             # XXX use shortcuts and default type (database) to avoid MAPI snake wrestling
-            NAMED_PROPS = [MAPINAMEID(PSETID_Appointment, MNID_ID, x) for x in (33293, 33294, 33315, 33301)]
+            NAMED_PROPS = [MAPINAMEID(PSETID_Appointment, MNID_ID, x) for x in (33293, 33294, 33315, 33301, 33333, 33334)]
             ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS, 0)
             startdate = ids[0] | PT_SYSTIME
             enddate = ids[1] | PT_SYSTIME
             recurring = ids[2] | PT_BOOLEAN
             all_day = ids[3] | PT_BOOLEAN
+            clip_start = ids[4] | PT_SYSTIME
+            clip_end = ids[5] | PT_SYSTIME
 
             restriction = SOrRestriction([
-                # start/end whole (both recurring and non-recurring appointments)
+                # non-recurring: normal start/end
                 SAndRestriction([
                     SPropertyRestriction(RELOP_GT, enddate, SPropValue(enddate, unixtime(startstamp))),
                     SPropertyRestriction(RELOP_LT, startdate, SPropValue(startdate, unixtime(endstamp))),
                 ]),
-                # exceptions (to recurring appointment)
+                # recurring: range start/end
+                SAndRestriction([
+                    SPropertyRestriction(RELOP_GT, clip_end, SPropValue(clip_end, unixtime(startstamp))),
+                    SPropertyRestriction(RELOP_LT, clip_start, SPropValue(clip_start, unixtime(endstamp))),
+                ]),
+                # exceptions: exception start/end in attachment
                 SAndRestriction([
                     SPropertyRestriction(RELOP_EQ, recurring, SPropValue(recurring, True)),
                     SSubRestriction(PR_MESSAGE_ATTACHMENTS,
