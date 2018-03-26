@@ -417,7 +417,7 @@ class Store(Properties):
             for folder in self.subtree.folders(recurse=recurse, **kwargs):
                 yield folder
 
-    def mail_folders(self, **kwargs):
+    def mail_folders(self, **kwargs): # TODO def type, store.folders(type='contacts') etc..?
         # TODO restriction
         for folder in self.folders():
             if folder.container_class in (None, 'IPF.Note'):

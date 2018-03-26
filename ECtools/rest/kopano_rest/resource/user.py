@@ -77,7 +77,7 @@ class UserResource(Resource):
             self.respond(req, resp, data, MailFolderResource.fields)
 
         elif method == 'contactFolders':
-            data = self.generator(req, store.contacts.folders, 0)
+            data = self.generator(req, store.contact_folders, 0)
             self.respond(req, resp, data, ContactFolderResource.fields)
 
         elif method == 'messages': # TODO store-wide?
