@@ -462,7 +462,7 @@ class MeetingRequest(object):
             if cal_item.recurring:
                 recurrence = cal_item.recurrence
 
-                recurrence._update_calitem(self.item) # XXX via create/modify exception
+                recurrence._update_calitem() # XXX via create/modify exception
 
                 if recurrence._is_exception(basedate):
                     message = recurrence._exception_message(basedate)
