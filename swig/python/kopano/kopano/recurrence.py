@@ -760,6 +760,7 @@ class Recurrence(object):
             extended_exception['original_start_date'] = basedate_val
 
     def _update_calitem(self):
+        tz = self.item.get(PidLidTimeZoneStruct)
         cal_item = self.item
 
         cal_item[PidLidSideEffects] = 3441 # XXX spec, check php
@@ -767,16 +768,14 @@ class Recurrence(object):
 
         # reminder
         if cal_item.get(PidLidReminderSet) and cal_item.get(PidLidReminderDelta):
-            occs = list(cal_item.occurrences(datetime.datetime.now(), datetime.datetime(2038,1,1))) # XXX slow for daily?
-            occs.sort(key=lambda occ: occ.start)
-            for occ in occs: # XXX check default/reminder props
-                dueby = occ.start - datetime.timedelta(minutes=cal_item.get(PidLidReminderDelta))
-                if dueby > datetime.datetime.now():
-                    cal_item[PidLidReminderSignalTime] = dueby
-                    break
+            next_date = self.recurrences.after(datetime.datetime.now())
+            if next_date:
+                next_date = _utils._to_gmt(next_date, tz)
+                dueby = next_date - datetime.timedelta(minutes=cal_item.get(PidLidReminderDelta))
+                cal_item[PidLidReminderSignalTime] = dueby
             else:
-                cal_item.prop(PidLidReminderSet).value = False
-                cal_item.prop(PidLidReminderSignalTime).value = datetime.datetime.fromtimestamp(0x7ff00000)
+                cal_item[PidLidReminderSet] = False
+                cal_item[PidLidReminderSignalTime] = datetime.datetime.fromtimestamp(0x7ff00000)
 
     def _update_embedded(self, basedate, message, item, copytags=None, create=False):
         basetime = basedate + datetime.timedelta(minutes=self._starttime_offset)
