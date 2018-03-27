@@ -768,7 +768,7 @@ class Recurrence(object):
 
         # reminder
         if cal_item.get(PidLidReminderSet) and cal_item.get(PidLidReminderDelta):
-            next_date = self.recurrences.after(datetime.datetime.now())
+            next_date = self.recurrences.after(datetime.datetime.now()) # TODO different timezones!
             if next_date:
                 next_date = _utils._to_gmt(next_date, tz)
                 dueby = next_date - datetime.timedelta(minutes=cal_item.get(PidLidReminderDelta))
