@@ -60,6 +60,9 @@ class UserResource(Resource):
             userid = kopano.Store(server=server,
                 mapiobj = GetDefaultStore(server.mapisession)).user.userid
 
+        if method and not store:
+            raise falcon.HTTPNotFound(description="The user store has no store")
+
         if not method:
             if userid:
                 if userid == 'delta':

@@ -97,11 +97,14 @@ def _store(server, userid):
                             mapiobj=GetDefaultStore(server.mapisession))
 
 def _server_store(req, userid, options):
-#    try:
-    server = _server(req, options)
-#    except Exception:
-#        raise falcon.HTTPForbidden('Unauthorized', None)
-    store = _store(server, userid)
+    try:
+        server = _server(req, options)
+    except Exception:
+        raise falcon.HTTPForbidden('Unauthorized', None)
+    try:
+        store = _store(server, userid)
+    except Exception:
+        raise falcon.HTTPNotFound(description="The user wasn't found")
     return server, store
 
 def _folder(store, folderid):
