@@ -157,7 +157,7 @@ def name_flags(s):
 def list_users(intro, users):
     users = list(users)
     print(intro + ' (%d):' % len(users))
-    fmt = '{:>16}{:>20}{:>20}{:>40}'
+    fmt = '{0:>16}{1:>20}{2:>20}{3:>40}'
     print(fmt.format('User', 'Full Name', 'Homeserver', 'Store'))
     print(96*'-')
     for user in sorted(users, key=lambda u: u.name):
@@ -167,7 +167,7 @@ def list_users(intro, users):
 def list_groups(intro, groups):
     groups = list(groups)
     print(intro + ' (%d):' % len(groups))
-    fmt = '\t{:>16}'
+    fmt = '\t{0:>16}'
     print(fmt.format('Groupname'))
     print('\t'+16*'-')
     for group in sorted(groups, key=lambda g: g.name):
@@ -177,7 +177,7 @@ def list_groups(intro, groups):
 def list_companies(intro, companies):
     companies = list(companies)
     print(intro + ' (%d):' % len(companies))
-    fmt = '\t{:>32}{:>32}'
+    fmt = '\t{0:>32}{1:>32}'
     print(fmt.format('Companyname', 'System Administrator'))
     print('\t'+64*'-')
     for company in sorted(companies, key=lambda c: c.name):
@@ -185,7 +185,7 @@ def list_companies(intro, companies):
 
 def list_orphans(server):
     print('Stores without users:')
-    fmt = '\t{:>32}{:>20}{:>16}{:>16}{:>16}'
+    fmt = '\t{0:>32}{1:>20}{2:>16}{3:>16}{4:>16}'
     print(fmt.format('Store guid', 'Username', 'Last login', 'Store size', 'Store type'))
     print('\t'+100*'-')
     for store in server.stores():
@@ -212,7 +212,7 @@ def user_counts(server): # XXX allowed/available
     if sys.hexversion >= 0x03000000: # XXX shouldn't be necessary
         stats = dict([(s.decode('ascii'), stats[s].decode('ascii')) for s in stats])
     print('User counts:')
-    fmt = '\t{:>12}{:>10}'
+    fmt = '\t{0:>12}{1:>10}'
     print(fmt.format('', 'Used'))
     print('\t'+42*'-')
     print(fmt.format('Active', stats['usercnt_active']))
@@ -223,7 +223,7 @@ def user_counts(server): # XXX allowed/available
     print(fmt.format('Total', int(stats['usercnt_active'])+int(stats['usercnt_nonactive'])))
 
 def user_details(user):
-    fmt = '{:<30}{:<}'
+    fmt = '{0:<30}{1:<}'
     print(fmt.format('Name:', _encode(user.name)))
     print(fmt.format('Full name:', _encode(user.fullname)))
     print(fmt.format('Email address:', user.email))
@@ -265,7 +265,7 @@ def user_details(user):
     list_permissions(user.store)
 
 def group_details(group):
-    fmt = '{:<16}{:<}'
+    fmt = '{0:<16}{1:<}'
     print(fmt.format('Name:', _encode(group.name)))
     print(fmt.format('Email address:', group.email))
     print(fmt.format('Address Book:', ('hidden' if group.hidden else 'visible')))
@@ -273,7 +273,7 @@ def group_details(group):
     list_users('Users', group.users())
 
 def company_details(company, server):
-    fmt = '{:<30}{:<}'
+    fmt = '{0:<30}{1:<}'
     print(fmt.format('Name:', _encode(company.name)))
     if company.admin:
         print(fmt.format('Sysadmin:', _encode(company.admin.name)))
@@ -290,7 +290,7 @@ def company_details(company, server):
     list_permissions(company.public_store)
 
 def store_details(store, server):
-    fmt = '{:<30}{:<}'
+    fmt = '{0:<30}{1:<}'
     print(fmt.format('GUID:', store.guid))
     print(fmt.format('Size:', '%.2f MB' % (store.size / 2**20)))
     list_permissions(store)
