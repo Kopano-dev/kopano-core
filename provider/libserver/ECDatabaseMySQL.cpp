@@ -849,7 +849,7 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 	if (cmp == 0 && stored_ver.v_schema == Z_UPDATE_LAST) {
 		// up to date
 		return erSuccess;
-	} else if (cmp > 0) {
+	} else if (cmp > 0 || (cmp == 0 && stored_ver.v_schema > Z_UPDATE_LAST)) {
 		// Start a old server with a new database
 		strReport = "Database version (" + stored_ver.stringify(',') +
 		            ") is newer than the server version (" + program_ver.stringify(',') + ")";
