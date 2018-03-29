@@ -237,7 +237,6 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 	std::string strQuery;
 	struct propTagArray *lpsPropTags = NULL;
 	GUID sGuid;
-	sObjectTableKey sRowItem;
 	const ECLocale locale = lpSession->GetSessionManager()->GetSortLocale(ulStoreId);
 	ECDatabase *lpDatabase = NULL;
 
@@ -624,7 +623,6 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, unsigned ulStoreId, std::list<unsigned int> &lstObjId, unsigned int ulFlags, unsigned int ulObjType)
 {
 	ECRESULT er = erSuccess;
-	sObjectTableKey	sRow;
 	scoped_rlock lock(hListMutex);
 
 	for (const auto &t : mapTable) {
@@ -644,7 +642,6 @@ ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, uns
 ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned int ulObjId, std::list<unsigned int> &lstChildId, unsigned int ulObjType)
 {
 	ECRESULT er = erSuccess;
-	sObjectTableKey	sRow;
 	scoped_rlock lock(hListMutex);
 	bool filter_private = false;
 	std::string strInQuery, strQuery;

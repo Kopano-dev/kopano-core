@@ -350,7 +350,6 @@ ECRESULT ECABObjectTable::LoadContentsDistlist(unsigned int ulObjectId,
 ECRESULT ECABObjectTable::Load()
 {
 	auto lpODAB = static_cast<const ECODAB *>(m_lpObjectData);
-	sObjectTableKey sRowItem;
 
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	std::list<unsigned int> lstObjects;

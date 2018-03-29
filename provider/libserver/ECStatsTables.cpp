@@ -109,7 +109,6 @@ void ECSystemStatsTable::load_tcmalloc(void)
 
 ECRESULT ECSystemStatsTable::Load()
 {
-	sObjectTableKey sRowItem;
 	unsigned int ulQueueLen = 0;
 	double dblAge = 0;
 	unsigned int ulThreads = 0;
@@ -270,7 +269,6 @@ ECRESULT ECSessionStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
 
 ECRESULT ECSessionStatsTable::Load()
 {
-	sObjectTableKey sRowItem;
 	ECSessionManager *lpSessionManager = lpSession->GetSessionManager();
 	id = 0;
 	// get all data items available
@@ -559,7 +557,6 @@ ECRESULT ECUserStatsTable::Load()
 ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
-	sObjectTableKey sRowItem;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	auto sesmgr = lpSession->GetSessionManager();
 	bool bDistrib = sesmgr->IsDistributedSupported();
@@ -812,7 +809,6 @@ ECRESULT ECCompanyStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
 ECRESULT ECCompanyStatsTable::Load()
 {
 	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
-	sObjectTableKey sRowItem;
 
 	auto er = lpSession->GetSecurity()->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
 	if (er != erSuccess)
@@ -984,7 +980,6 @@ ECRESULT ECServerStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
 
 ECRESULT ECServerStatsTable::Load()
 {
-	sObjectTableKey sRowItem;
 	serverlist_t servers;
 	unsigned int i = 1;
 

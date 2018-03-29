@@ -289,7 +289,6 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 	std::list<unsigned int> lstDeferred, propList;
 	std::set<unsigned int> setColumnIDs;
 	ECObjectTableList lstRowOrder;
-	sObjectTableKey					sMapKey;
 	std::map<sObjectTableKey, ECsObjects> mapObjects;
 
 	ECListInt			listMVSortCols;//Other mvprops then normal column set
@@ -1002,7 +1001,6 @@ ECRESULT ECStoreObjectTable::Load()
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
 	auto lpData = static_cast<const ECODStore *>(m_lpObjectData);
-    sObjectTableKey		sRowItem;
     
     unsigned int ulFlags = lpData->ulFlags;
     unsigned int ulFolderId = lpData->ulFolderId;
