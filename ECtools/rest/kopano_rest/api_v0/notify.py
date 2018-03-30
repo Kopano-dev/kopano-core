@@ -30,6 +30,7 @@ def _server(auth_user, auth_pass):
     except NameError:
         SERVER = kopano.Server(auth_user=auth_user, auth_pass=auth_pass,
             notifications=True, parse_args=False)
+    return SERVER
 
 def _user(req, options):
     auth = utils._auth(req, options)
@@ -94,7 +95,7 @@ class Processor(Thread):
                     traceback.print_exc()
 
 class Sink:
-    def __init__(self, api, store, subscription):
+    def __init__(self, options, store, subscription):
         self.options = options
         self.store = store
         self.subscription = subscription
