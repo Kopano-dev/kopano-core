@@ -233,6 +233,7 @@ class Recurrence(object):
 
     def occurrences(self, start=None, end=None): # XXX fit-to-period
         tz = self.item.get(PidLidTimeZoneStruct)
+        tzinfo = self.item.timezone
 
         recurrences = self.recurrences
         if start and end:
@@ -259,7 +260,7 @@ class Recurrence(object):
                 minutes = self._endtime_offset - self._starttime_offset
                 basedate_val = startdatetime_val
 
-            d = _utils._to_gmt(d, tz, align_dst=True)
+            d = d.replace(tzinfo=tzinfo).astimezone().replace(tzinfo=None)
 
             occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes), subject, location, basedate_val=basedate_val, exception=exception)
             if (not start or occ.end > start) and (not end or occ.start < end):
@@ -606,7 +607,8 @@ class Recurrence(object):
 
     @property
     def _start(self):
-        return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self._start_date)) + datetime.timedelta(minutes=self._starttime_offset) # XXX local time..
+        # local to recurrence timezone!
+        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date)) + datetime.timedelta(minutes=self._starttime_offset)
 
     @_start.setter
     def _start(self, value):
@@ -616,7 +618,8 @@ class Recurrence(object):
 
     @property
     def _end(self):
-        return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self._end_date)) + datetime.timedelta(minutes=self._endtime_offset)# XXX local time..
+        # local to recurrence timezone!
+        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date)) + datetime.timedelta(minutes=self._endtime_offset)
 
     @_end.setter
     def _end(self, value):
@@ -666,13 +669,13 @@ class Recurrence(object):
         # add exceptions
         exc_starts = set()
         for exception in self._exceptions:
-            exc_start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exception['start_datetime']))
+            exc_start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(exception['start_datetime']))
             rule.rdate(exc_start)
             exc_starts.add(exc_start)
 
         # Remove deleted ocurrences (skip added exceptions)
         for del_date_val in self._deleted_instance_dates:
-            del_date = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(del_date_val))
+            del_date = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(del_date_val))
             del_date = datetime.datetime(del_date.year, del_date.month, del_date.day, self._start.hour, self._start.minute)
             if del_date not in exc_starts:
                 rule.exdate(del_date)
