@@ -761,6 +761,7 @@ class Recurrence(object):
 
     def _update_calitem(self):
         tz = self.item.get(PidLidTimeZoneStruct)
+        timezone = self.item.timezone
         cal_item = self.item
 
         cal_item[PidLidSideEffects] = 3441 # XXX spec, check php
@@ -768,9 +769,9 @@ class Recurrence(object):
 
         # reminder
         if cal_item.get(PidLidReminderSet) and cal_item.get(PidLidReminderDelta):
-            next_date = self.recurrences.after(datetime.datetime.now()) # TODO different timezones!
+            next_date = self.recurrences.after(datetime.datetime.now(timezone).replace(tzinfo=None))
             if next_date:
-                next_date = _utils._to_gmt(next_date, tz)
+                next_date = next_date.replace(tzinfo=timezone).astimezone().replace(tzinfo=None)
                 dueby = next_date - datetime.timedelta(minutes=cal_item.get(PidLidReminderDelta))
                 cal_item[PidLidReminderSignalTime] = dueby
             else:
