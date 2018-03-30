@@ -160,6 +160,38 @@ def human_to_bytes(s):
         prefix[s] = 1 << (i + 1) * 10
     return int(num * prefix[letter])
 
+class MAPITimezone(datetime.tzinfo):
+    def __init__(self, tzdata):
+        self.timezone, _, self.timezonedst, \
+        _, \
+        _, self.dstendmonth, _, self.dstendday, self.dstendhour, _, _, _, \
+        _, \
+        _, self.dststartmonth, _, self.dststartday, self.dststarthour, _, _, _ = struct.unpack('<lll H HHHHHHHH H HHHHHHHH', tzdata)
+
+    def dst(self, dt):
+        start = datetime.datetime(dt.year, self.dststartmonth, self.dststartday, self.dststarthour)
+        end = datetime.datetime(dt.year, self.dstendmonth, self.dstendday, self.dstendhour)
+
+        # Can't compare naive to aware objects, so strip the timezone from
+        # dt first.
+        # TODO end < start case!
+        dt = dt.replace(tzinfo=None)
+
+        if ((start < end and start < dt < end) or \
+            (start > end and not end < dt < start)):
+            return datetime.timedelta(minutes=-self.timezone)
+        else:
+            return datetime.timedelta(minutes=0)
+
+    def utcoffset(self, dt):
+        return datetime.timedelta(minutes=-self.timezone) + self.dst(dt)
+
+    def tzname(self, dt):
+        return 'MAPITimeZone()'
+
+    def __repr__(self):
+        return 'MAPITimeZone()'
+
 def _in_dst(date, dststartmonth, dststartday, dststarthour, dstendmonth, dstendday, dstendhour):
     dststart = datetime.datetime(date.year, dststartmonth, 1) + \
         datetime.timedelta(seconds=dststartday * 24 * 60 * 60 + dststarthour * 60 * 60)

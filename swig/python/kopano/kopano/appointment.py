@@ -27,7 +27,7 @@ from .defs import (
 )
 from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidBusyStatus,
-    PidLidGlobalObjectId, PidLidRecurring,
+    PidLidGlobalObjectId, PidLidRecurring, PidLidTimeZoneStruct,
 )
 if sys.hexversion >= 0x03000000:
     try:
@@ -174,3 +174,9 @@ class Appointment(object):
         # /events, so we need an identier which can be used for both.
         eid = _bdec(self.entryid)
         return _benc(b'\x00' + _utils.pack_short(len(eid)) + eid)
+
+    @property
+    def timezone(self):
+        tzdata = self.get(PidLidTimeZoneStruct)
+        if tzdata:
+            return _utils.MAPITimezone(tzdata)
