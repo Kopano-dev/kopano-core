@@ -692,7 +692,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 
 	if (m_lpsRestrict) {
 		assert(m_lpSession != NULL);
-		auto er = MatchRestrictions(db_rows, db_lengths, m_lpsRestrict, &matches);
+		er = MatchRestrictions(db_rows, db_lengths, m_lpsRestrict, &matches);
 		if (er != erSuccess)
 			return er;
 	}

@@ -59,7 +59,9 @@ namespace KC {
 
 void (*kopano_get_server_stats)(unsigned int *qlen, double *qage, unsigned int *nthr, unsigned int *idlthr) = [](unsigned int *, double *, unsigned int *, unsigned int *) {};
 
-ECSystemStatsTable::ECSystemStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, MAPI_STATUS, ulFlags, locale)
+ECSystemStatsTable::ECSystemStatsTable(ECSession *ses, unsigned int ulFlags,
+    const ECLocale &locale) :
+	ECGenericObjectTable(ses, MAPI_STATUS, ulFlags, locale)
 {
 	m_lpfnQueryRowData = QueryRowData;
 	id = 0;
@@ -255,7 +257,9 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
     - busystates
 */
 
-ECSessionStatsTable::ECSessionStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, MAPI_STATUS, ulFlags, locale)
+ECSessionStatsTable::ECSessionStatsTable(ECSession *ses, unsigned int ulFlags,
+    const ECLocale &locale) :
+	ECGenericObjectTable(ses, MAPI_STATUS, ulFlags, locale)
 {
 	m_lpfnQueryRowData = QueryRowData;
 	id = 0;
@@ -517,8 +521,9 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 /*
   User stats
 */
-
-ECUserStatsTable::ECUserStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, MAPI_STATUS, ulFlags, locale)
+ECUserStatsTable::ECUserStatsTable(ECSession *ses, unsigned int ulFlags,
+    const ECLocale &locale) :
+	ECGenericObjectTable(ses, MAPI_STATUS, ulFlags, locale)
 {
 	m_lpfnQueryRowData = QueryRowData;
 }
@@ -794,7 +799,9 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 	return er;
 }
 
-ECCompanyStatsTable::ECCompanyStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, MAPI_STATUS, ulFlags, locale)
+ECCompanyStatsTable::ECCompanyStatsTable(ECSession *ses, unsigned int ulFlags,
+    const ECLocale &locale) :
+	ECGenericObjectTable(ses, MAPI_STATUS, ulFlags, locale)
 {
 	m_lpfnQueryRowData = QueryRowData;
 	m_lpObjectData = this;
@@ -966,7 +973,9 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 	return er;
 }
 
-ECServerStatsTable::ECServerStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, MAPI_STATUS, ulFlags, locale)
+ECServerStatsTable::ECServerStatsTable(ECSession *ses, unsigned int ulFlags,
+    const ECLocale &locale) :
+	ECGenericObjectTable(ses, MAPI_STATUS, ulFlags, locale)
 {
 	m_lpfnQueryRowData = QueryRowData;
 	m_lpObjectData = this;

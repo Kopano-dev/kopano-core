@@ -42,10 +42,10 @@ struct CONTAINERINFO {
 	std::string strPath;
 };
 
-ECConvenientDepthObjectTable::ECConvenientDepthObjectTable(ECSession *lpSession,
+ECConvenientDepthObjectTable::ECConvenientDepthObjectTable(ECSession *ses,
     unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId,
     unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) :
-	ECStoreObjectTable(lpSession, ulStoreId, lpGuid, 0, ulObjType, ulFlags, 0, locale),
+	ECStoreObjectTable(ses, ulStoreId, lpGuid, 0, ulObjType, ulFlags, 0, locale),
 	m_ulFolderId(ulFolderId)
 {}
 
@@ -135,14 +135,15 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	return erSuccess;
 }
 
-ECRESULT ECConvenientDepthObjectTable::GetComputedDepth(struct soap *soap, ECSession* lpSession, unsigned int ulObjId, struct propVal *lpPropVal){
+ECRESULT ECConvenientDepthObjectTable::GetComputedDepth(struct soap *soap,
+    ECSession *ses, unsigned int ulObjId, struct propVal *lpPropVal)
+{
 	unsigned int ulObjType;
 
 	lpPropVal->ulPropTag = PR_DEPTH;
 	lpPropVal->__union = SOAP_UNION_propValData_ul;
 	lpPropVal->Value.ul = 0;
-
-	auto cache = lpSession->GetSessionManager()->GetCacheManager();
+	auto cache = ses->GetSessionManager()->GetCacheManager();
 	while(ulObjId != m_ulFolderId && lpPropVal->Value.ul < 50){
 		auto er = cache->GetObject(ulObjId, &ulObjId, nullptr, nullptr, &ulObjType);
 		if(er != erSuccess) {
@@ -157,10 +158,11 @@ ECRESULT ECConvenientDepthObjectTable::GetComputedDepth(struct soap *soap, ECSes
 	return erSuccess;
 }
 
-ECConvenientDepthABObjectTable::ECConvenientDepthABObjectTable(ECSession *lpSession,
+ECConvenientDepthABObjectTable::ECConvenientDepthABObjectTable(ECSession *ses,
     unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId,
     unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale) :
-	ECABObjectTable(lpSession, ulABId, ulABType, ulABParentId, ulABParentType, ulFlags, locale)
+	ECABObjectTable(ses, ulABId, ulABType, ulABParentId, ulABParentType,
+	    ulFlags, locale)
 {
 	m_lpfnQueryRowData = ECConvenientDepthABObjectTable::QueryRowData;
 	/* We require the details to construct the PR_EMS_AB_HIERARCHY_PATH */

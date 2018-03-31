@@ -163,7 +163,7 @@ ECRESULT ECSessionGroup::DelAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 	}
 	if (iterSubscription->second.ulEventMask & (fnevObjectModified | fnevObjectCreated | fnevObjectCopied | fnevObjectDeleted | fnevObjectMoved)) {
 		// Object notification - remove our subscription to the store
-		scoped_lock lock(m_mutexSubscribedStores);
+		scoped_lock slock(m_mutexSubscribedStores);
 		// Find the store that the key was subscribed for
 		auto iterSubscribed = m_mapSubscribedStores.find(iterSubscription->second.ulKey);
 		if (iterSubscribed != m_mapSubscribedStores.cend()) {

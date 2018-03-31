@@ -106,11 +106,11 @@ static bool IsTruncated(const struct propVal *lpsPropVal)
 	return false;		
 }
 
-ECStoreObjectTable::ECStoreObjectTable(ECSession *lpSession,
+ECStoreObjectTable::ECStoreObjectTable(ECSession *ses,
     unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId,
     unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags,
     const ECLocale &locale) :
-	ECGenericObjectTable(lpSession, ulObjType, ulFlags, locale)
+	ECGenericObjectTable(ses, ulObjType, ulFlags, locale)
 {
 	auto lpODStore = new ECODStore;
 	lpODStore->ulStoreId = ulStoreId;
@@ -673,10 +673,10 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
         for (const auto &col : mapColumns) {
 			if (ECGenProps::GetPropSubquery(col.first, strSubQuery) != erSuccess)
 				continue;
-			auto strPropColOrder = GetPropColOrder(col.first, strSubQuery);
+			auto co = GetPropColOrder(col.first, strSubQuery);
 			if (!strQuery.empty())
 				strQuery += " UNION ";
-			strQuery += " SELECT " + strPropColOrder +
+			strQuery += " SELECT " + co +
 				" FROM hierarchy WHERE hierarchy.id = " +
 				stringify(sKey.ulObjId);
         }

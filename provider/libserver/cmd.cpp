@@ -8495,15 +8495,14 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, const entryId &sEntryId,
 	readPropsResponse->aPropTag.__size = 0;
 	readPropsResponse->aPropTag.__ptr = s_alloc<unsigned int>(soap, ptaProps.__size);
 
-	for (gsoap_size_t i = 0; i < readPropsResponse->aPropVal.__size; ++i) {
+	for (gsoap_size_t j = 0; j < readPropsResponse->aPropVal.__size; ++j) {
 		if (!bSupportUnicode) {
-			er = FixPropEncoding(soap, stringCompat, Out, readPropsResponse->aPropVal.__ptr + i);
+			er = FixPropEncoding(soap, stringCompat, Out, readPropsResponse->aPropVal.__ptr + j);
 			if (er != erSuccess)
 				return er;
 		}
-
-		if(PROP_TYPE(readPropsResponse->aPropVal.__ptr[i].ulPropTag) != PT_ERROR)
-			readPropsResponse->aPropTag.__ptr[readPropsResponse->aPropTag.__size++] = readPropsResponse->aPropVal.__ptr[i].ulPropTag;
+		if (PROP_TYPE(readPropsResponse->aPropVal.__ptr[j].ulPropTag) != PT_ERROR)
+			readPropsResponse->aPropTag.__ptr[readPropsResponse->aPropTag.__size++] = readPropsResponse->aPropVal.__ptr[j].ulPropTag;
 	}
 	return erSuccess;
 }

@@ -212,7 +212,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 			return er;
 
 		while (true) {
-			auto lpDBRow = lpDBResult.fetch_row();
+			lpDBRow = lpDBResult.fetch_row();
 			if (lpDBRow == NULL)
 				break;
 			unsigned int ulTmp = atoui((char*)lpDBRow[0]);

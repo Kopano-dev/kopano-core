@@ -183,19 +183,16 @@ public:
 		return false;
 	}
 
-	void SetValue(unsigned int ulTag, const unsigned char *lpData, unsigned int cbData)
+	void SetValue(unsigned int tag, const unsigned char *data, unsigned int z)
 	{
-		if(lpData == NULL|| cbData == 0)
+		if (data == nullptr || z == 0)
 			return;
 
 		Free();
-
-		this->lpData = new unsigned char[cbData];
-		this->cbData = cbData;
-		this->ulTag = ulTag;
-
-		memcpy(this->lpData, lpData, (size_t)cbData);
-
+		lpData = new unsigned char[z];
+		cbData = z;
+		ulTag = tag;
+		memcpy(lpData, data, z);
 	}
 protected:
 	void Free() {

@@ -1665,7 +1665,6 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
 	std::list<objectid_t> lstObjects;
 	std::map<objectid_t, objectdetails_t> mapAllObjectDetails, mapExternObjectDetails;
 	std::map<objectid_t, unsigned int> mapExternIdToRowId, mapExternIdToObjectId;
-	objectdetails_t details;
 	UserPlugin *lpPlugin = NULL;
 	std::string signature;
 	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
@@ -3288,14 +3287,14 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 					lpPropVal->__union = SOAP_UNION_propValData_ul;
 					break;
 				}
-				unsigned int i = 0;
+				unsigned int j = 0;
 				lpPropVal->__union = SOAP_UNION_propValData_mvbin;
 				lpPropVal->Value.mvbin.__size = strCerts.size();
 				lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, strCerts.size());
 				for (const auto &cert : strCerts) {
-					lpPropVal->Value.mvbin.__ptr[i].__size = cert.size();
-					lpPropVal->Value.mvbin.__ptr[i].__ptr = s_alloc<unsigned char>(soap, cert.size());
-					memcpy(lpPropVal->Value.mvbin.__ptr[i++].__ptr, cert.data(), cert.size());
+					lpPropVal->Value.mvbin.__ptr[j].__size = cert.size();
+					lpPropVal->Value.mvbin.__ptr[j].__ptr = s_alloc<unsigned char>(soap, cert.size());
+					memcpy(lpPropVal->Value.mvbin.__ptr[j++].__ptr, cert.data(), cert.size());
 				}
 				break;
 			}
@@ -3307,20 +3306,19 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 					lpPropVal->__union = SOAP_UNION_propValData_ul;
 					break;
 				}
-				unsigned int i;
+				unsigned int j = 0;
 				struct propVal sPropVal;
 				lpPropVal->__union = SOAP_UNION_propValData_mvbin;
 				lpPropVal->Value.mvbin.__size = 0;
 				lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, userIds.size());
-				i = 0;
 				for (const auto &uid : userIds) {
 					er = CreateABEntryID(soap, uid, &sPropVal);
 					if (er != erSuccess)
 						continue;
-					lpPropVal->Value.mvbin.__ptr[i].__ptr = sPropVal.Value.bin->__ptr;
-					lpPropVal->Value.mvbin.__ptr[i++].__size = sPropVal.Value.bin->__size;
+					lpPropVal->Value.mvbin.__ptr[j].__ptr = sPropVal.Value.bin->__ptr;
+					lpPropVal->Value.mvbin.__ptr[j++].__size = sPropVal.Value.bin->__size;
 				}
-				lpPropVal->Value.mvbin.__size = i;
+				lpPropVal->Value.mvbin.__size = j;
 				break;
 			}
 			case PR_EMS_AB_PROXY_ADDRESSES: {
@@ -3328,23 +3326,21 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 				std::string strPrefix("SMTP:");
 				std::string address(lpDetails->GetPropString(OB_PROP_S_EMAIL));
 				std::list<std::string> lstAliases = lpDetails->GetPropListString(OB_PROP_LS_ALIASES);
-				ULONG nAliases = lstAliases.size();
-				ULONG i = 0;
+				unsigned int nAliases = lstAliases.size(), j = 0;
 
 				lpPropVal->__union = SOAP_UNION_propValData_mvszA;
 				lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, 1 + nAliases);
 
 				if (!address.empty()) {
 					address = strPrefix + address;
-					lpPropVal->Value.mvszA.__ptr[i++] = s_strcpy(soap, address.c_str());
+					lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, address.c_str());
 				}
 
 				// Use lower-case 'smtp' prefix for aliases
 				strPrefix = "smtp:";
 				for (const auto &alias : lstAliases)
-					lpPropVal->Value.mvszA.__ptr[i++] = s_strcpy(soap, (strPrefix + alias).c_str());
-				
-				lpPropVal->Value.mvszA.__size = i;
+					lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, (strPrefix + alias).c_str());
+				lpPropVal->Value.mvszA.__size = j;
 				break;
 			}
 			case PR_EC_EXCHANGE_DN: {
@@ -3513,20 +3509,19 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 					lpPropVal->__union = SOAP_UNION_propValData_ul;
 					break;
 				}
-				unsigned int i;
+				unsigned int j = 0;
 				struct propVal sPropVal;
 				lpPropVal->__union = SOAP_UNION_propValData_mvbin;
 				lpPropVal->Value.mvbin.__size = 0;
 				lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, userIds.size());
-				i = 0;
 				for (const auto &uid : userIds) {
 					er = CreateABEntryID(soap, uid, &sPropVal);
 					if (er != erSuccess)
 						continue;
-					lpPropVal->Value.mvbin.__ptr[i].__ptr = sPropVal.Value.bin->__ptr;
-					lpPropVal->Value.mvbin.__ptr[i++].__size = sPropVal.Value.bin->__size;
+					lpPropVal->Value.mvbin.__ptr[j].__ptr = sPropVal.Value.bin->__ptr;
+					lpPropVal->Value.mvbin.__ptr[j++].__size = sPropVal.Value.bin->__size;
 				}
-				lpPropVal->Value.mvbin.__size = i;
+				lpPropVal->Value.mvbin.__size = j;
 				break;
 			}
 			case PR_EMS_AB_PROXY_ADDRESSES: {
@@ -3534,23 +3529,21 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 				std::string strPrefix("SMTP:");
 				std::string address(lpDetails->GetPropString(OB_PROP_S_EMAIL));
 				std::list<std::string> lstAliases = lpDetails->GetPropListString(OB_PROP_LS_ALIASES);
-				ULONG nAliases = lstAliases.size();
-				ULONG i = 0;
+				unsigned int nAliases = lstAliases.size(), j = 0;
 
 				lpPropVal->__union = SOAP_UNION_propValData_mvszA;
 				lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, 1 + nAliases);
 
 				if (!address.empty()) {
 					address = strPrefix + address;
-					lpPropVal->Value.mvszA.__ptr[i++] = s_strcpy(soap, address.c_str());
+					lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, address.c_str());
 				}
 
 				// Use lower-case 'smtp' prefix for aliases
 				strPrefix = "smtp:";
 				for (const auto &alias : lstAliases)
-					lpPropVal->Value.mvszA.__ptr[i++] = s_strcpy(soap, (strPrefix + alias).c_str());
-
-				lpPropVal->Value.mvszA.__size = i;
+					lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, (strPrefix + alias).c_str());
+				lpPropVal->Value.mvszA.__size = j;
 				break;
 			}
 			case PR_EC_HOMESERVER_NAME: {
@@ -3944,17 +3937,15 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 		case PR_EMS_AB_PARENT_ENTRYID:
 		case PR_PARENT_ENTRYID:
 			if (ulId != KOPANO_UID_ADDRESS_BOOK) {
-				ABEID abeid;
-				abeid.ulType = MAPI_ABCONT;
-				abeid.ulId = KOPANO_UID_ADDRESS_BOOK;
-				memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
-
+				ABEID abeid2;
+				abeid2.ulType = MAPI_ABCONT;
+				abeid2.ulId = KOPANO_UID_ADDRESS_BOOK;
+				memcpy(&abeid2.guid, &MUIDECSAB, sizeof(GUID));
 				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
 				lpPropVal->Value.bin->__size = sizeof(ABEID);
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-				*(ABEID *)lpPropVal->Value.bin->__ptr = abeid;
+				*reinterpret_cast<ABEID *>(lpPropVal->Value.bin->__ptr) = abeid2;
 			} else { /* Kopano Address Book */
 				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->__ptr[i], PT_ERROR);
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;

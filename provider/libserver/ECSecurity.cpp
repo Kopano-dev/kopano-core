@@ -607,7 +607,6 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
  */
 ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRightsArray)
 {
-	std::string			strQueryNew, strQueryDelete;
 	unsigned int ulUserId = 0;
 	ECDatabase			*lpDatabase = NULL;
 	objectid_t			sExternId;
@@ -690,7 +689,7 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 				return er;
 
 			if(lpsRightsArray->__ptr[i].ulState & RIGHT_AUTOUPDATE_DENIED){
-				auto strQueryNew = "REPLACE INTO acl (id, hierarchy_id, type, rights) VALUES "
+				strQueryNew = "REPLACE INTO acl (id, hierarchy_id, type, rights) VALUES "
 					" (" + stringify(ulUserId) + "," + stringify(objid) + "," + stringify(ACCESS_TYPE_DENIED) + "," + stringify(ulDeniedRights) + ")";
 				er = lpDatabase->DoInsert(strQueryNew);
 				if(er != erSuccess)
@@ -1061,7 +1060,7 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 	}
 
 	if (!m_lpAdminCompanies) {
-		auto er = GetAdminCompanies(USERMANAGEMENT_IDS_ONLY, &unique_tie(m_lpAdminCompanies));
+		er = GetAdminCompanies(USERMANAGEMENT_IDS_ONLY, &unique_tie(m_lpAdminCompanies));
 		if (er != erSuccess)
 			return er;
 	}

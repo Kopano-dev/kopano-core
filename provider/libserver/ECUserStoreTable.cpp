@@ -32,8 +32,9 @@
 namespace KC {
 
 // 1 == MAPI_STORE.. does it even matter?
-ECUserStoreTable::ECUserStoreTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale) : 
-	ECGenericObjectTable(lpSession, 1, ulFlags, locale)
+ECUserStoreTable::ECUserStoreTable(ECSession *ses, unsigned int ulFlags,
+    const ECLocale &locale) :
+	ECGenericObjectTable(ses, 1, ulFlags, locale)
 {
 	// Set callback function for queryrowdata (again?)
 	m_lpfnQueryRowData = QueryRowData;

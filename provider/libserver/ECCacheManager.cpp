@@ -448,7 +448,6 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	ECDatabase	*lpDatabase = NULL;
-	sObjectTableKey key;
 	ECsObjects sObject, *lpsObject = nullptr;
 	std::set<sObjectTableKey> setUncached;
 
@@ -491,6 +490,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
             sObject.ulFlags = atoui(lpDBRow[3]);
             sObject.ulType = atoui(lpDBRow[4]);
             
+			sObjectTableKey key;
             key.ulObjId = ulObjId;
             key.ulOrderId = 0;
             
@@ -806,7 +806,6 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 	std::string strQuery;
 	ECDatabase *lpDatabase = NULL;
 	std::list<objectid_t> lstExternIds;
-	decltype(lstExternIds)::const_iterator iter;
 	objectid_t sExternId;
 	std::string strSignature;
 
