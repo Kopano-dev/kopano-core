@@ -42,8 +42,8 @@ public:
 	{
 	}
 
-	ECSessionGroupInfo(const std::string &strServer, const std::string &strProfile)
-		: strServer(strServer), strProfile(strProfile)
+	ECSessionGroupInfo(const std::string &server, const std::string &profile) :
+		strServer(server), strProfile(profile)
 	{
 	}
 };

@@ -60,9 +60,9 @@ HRESULT ECMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew,
 	return ECMessage::Create(lpMsgStore, fNew, fModify, ulFlags, bEmbedded, lpRoot, lpMessage);
 }
 
-ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL is_new, BOOL fModify,
+ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL is_new, BOOL modify,
     ULONG ulFlags, BOOL emb, const ECMAPIProp *lpRoot) :
-	ECMAPIProp(lpMsgStore, MAPI_MESSAGE, fModify, lpRoot, "IMessage"),
+	ECMAPIProp(lpMsgStore, MAPI_MESSAGE, modify, lpRoot, "IMessage"),
 	fNew(is_new), m_bEmbedded(emb)
 {
 	this->ulObjFlags = ulFlags & MAPI_ASSOCIATED;
@@ -961,7 +961,7 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 {
 	HRESULT				hr = hrSuccess;
 	SPropValue			sID;
-	object_ptr<IECPropStorage> lpStorage;
+	object_ptr<IECPropStorage> storage;
 
 	if(this->lpAttachments == NULL) {
 		object_ptr<IMAPITable> lpTable;
@@ -984,10 +984,10 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 		return hr;
 	sID.ulPropTag = PR_ATTACH_NUM;
 	sID.Value.ul = this->ulNextAttUniqueId;
-	hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, this->ulNextAttUniqueId, 0, NULL, &~lpStorage);
+	hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, this->ulNextAttUniqueId, 0, nullptr, &~storage);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpAttach->HrSetPropStorage(lpStorage, FALSE);
+	hr = lpAttach->HrSetPropStorage(storage, false);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpAttach->SetProps(1, &sID, NULL);
@@ -1351,9 +1351,7 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 	SPropValue		sProp;
 	object_ptr<IMAPIFolder> lpRootFolder;
 	object_ptr<IMessage> lpNewMessage, lpThisMessage;
-	ULONG			ulObjType = 0;
-	ULONG			cValues = 0;
-	ULONG			cbStoreID = 0;
+	unsigned int objtype = 0, cValues = 0, cbStoreID = 0;
 	memory_ptr<ENTRYID> lpStoreID;
 	object_ptr<IMsgStore> lpDefMsgStore;
 
@@ -1395,12 +1393,12 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 			hr = GetMsgStore()->CreateStoreEntryID(nullptr, lpsPropUserName->Value.LPSZ, fMapiUnicode, &cbStoreID, &~lpStoreID);
 			if (hr != hrSuccess)
 				return hr;
-			hr = GetMsgStore()->lpSupport->OpenEntry(cbStoreID, lpStoreID, &iid_of(lpDefMsgStore), MAPI_MODIFY, &ulObjType, &~lpDefMsgStore);
+			hr = GetMsgStore()->lpSupport->OpenEntry(cbStoreID, lpStoreID, &iid_of(lpDefMsgStore), MAPI_MODIFY, &objtype, &~lpDefMsgStore);
 			if (hr != hrSuccess)
 				return hr;
 
 			// Open the root folder of the default store to create a new message
-			hr = lpDefMsgStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, &ulObjType, &~lpRootFolder);
+			hr = lpDefMsgStore->OpenEntry(0, nullptr, &iid_of(lpRootFolder), MAPI_MODIFY, &objtype, &~lpRootFolder);
 			if (hr != hrSuccess)
 				return hr;
 			hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpNewMessage);
@@ -1649,7 +1647,9 @@ HRESULT ECMessage::SyncAttachments()
 	return lpAttachments->HrSetClean();
 }
 
-HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObjKeyProp) {
+HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG objtype,
+    ULONG ulObjKeyProp)
+{
 	HRESULT hr = hrSuccess;
 	SPropValue sKeyProp;
 	SPropValue sUniqueProp;
@@ -1666,7 +1666,7 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 	for (const auto &obj : m_sMapiObject->lstChildren) {
 		memory_ptr<SPropValue> lpProps, lpNewProps, lpAllProps;
 
-		if (obj->ulObjType != ulObjType)
+		if (obj->ulObjType != objtype)
 			continue;
 		sUniqueProp.ulPropTag = ulObjKeyProp;
 		sUniqueProp.Value.ul = obj->ulUniqueId;
@@ -1959,7 +1959,6 @@ HRESULT ECMessage::TableRowGetProp(void *lpProvider,
 HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
 {
 	HRESULT hr = hrSuccess;
-	unsigned int ulSize = 0;
 	LPBYTE	lpData = NULL;
 	auto lpMessage = static_cast<ECMessage *>(lpParam);
 
@@ -2129,7 +2128,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 #endif
 	case PROP_ID(PR_BODY):
 	case PROP_ID(PR_RTF_COMPRESSED):
-	case PROP_ID(PR_HTML):
+	case PROP_ID(PR_HTML): {
 		hr = lpMessage->GetSyncedBodyProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 		if (hr != hrSuccess)
 			break;
@@ -2142,7 +2141,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		}
 
 		lpsPropValue->ulPropTag = PR_BODY_HTML;
-		ulSize = lpsPropValue->Value.bin.cb;
+		unsigned int ulSize = lpsPropValue->Value.bin.cb;
 		lpData = lpsPropValue->Value.bin.lpb;
 		hr = ECAllocateMore(ulSize + 1, lpBase, (void**)&lpsPropValue->Value.lpszA);
 		if (hr != hrSuccess)
@@ -2153,6 +2152,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 			ulSize = 0;
 		lpsPropValue->Value.lpszA[ulSize] = 0;
 		break;
+	}
 	case PROP_ID(PR_SOURCE_KEY): {
 		std::string strServerGUID;
 		std::string strID;

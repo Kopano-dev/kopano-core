@@ -38,9 +38,9 @@
 using namespace KC;
 
 ECMsgStorePublic::ECMsgStorePublic(const char *lpszProfname,
-    IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,
+    IMAPISupport *sup, WSTransport *tp, BOOL modify,
     ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore) :
-	ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify,
+	ECMsgStore(lpszProfname, sup, tp, modify,
 	    ulProfileFlags, fIsSpooler, false, bOfflineStore)
 {
 	HrAddPropHandlers(PR_IPM_SUBTREE_ENTRYID, GetPropHandler, DefaultSetPropComputed, this, false, false);
@@ -119,7 +119,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     IUnknown **lppUnk)
 {
 	HRESULT				hr = hrSuccess;
-	unsigned int		ulObjType = 0;
+	unsigned int objtype = 0;
 	object_ptr<ECMAPIFolder> lpMAPIFolder;
 	BOOL				fModifyObject = FALSE;
 	enumPublicEntryID	ePublicEntryID = ePE_None;
@@ -171,16 +171,15 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 	}
 	
-	hr = HrGetObjTypeFromEntryId(cbEntryID, (LPBYTE)lpEntryID, &ulObjType);
+	hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), &objtype);
 	if(hr != hrSuccess)
 		return hr;
-
-	if (ulObjType != MAPI_FOLDER && ePublicEntryID != ePE_FavoriteSubFolder)
+	if (objtype != MAPI_FOLDER && ePublicEntryID != ePE_FavoriteSubFolder)
 		// Open online Messages.
 		// On success, message is open, now we can exit
 		return ECMsgStore::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 
-	switch( ulObjType ) {
+	switch (objtype) {
 	case MAPI_FOLDER:
 
 		if (ePublicEntryID == ePE_PublicFolders) {
