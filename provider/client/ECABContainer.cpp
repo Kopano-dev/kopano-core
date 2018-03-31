@@ -38,9 +38,9 @@
 
 using namespace KC;
 
-ECABContainer::ECABContainer(ECABLogon *lpProvider, ULONG ulObjType, BOOL fModify,
-    const char *szClassName) :
-	ECABProp(lpProvider, ulObjType, fModify, szClassName)
+ECABContainer::ECABContainer(ECABLogon *prov, ULONG objtype, BOOL modify,
+    const char *cls_name) :
+	ECABProp(prov, objtype, modify, cls_name)
 {
 	HrAddPropHandlers(PR_AB_PROVIDER_ID, DefaultABContainerGetProp, DefaultSetPropComputed, this);
 	HrAddPropHandlers(PR_CONTAINER_FLAGS, DefaultABContainerGetProp, DefaultSetPropComputed, this);

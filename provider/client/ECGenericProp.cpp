@@ -35,8 +35,8 @@
 #include "EntryPoint.h"
 
 ECGenericProp::ECGenericProp(void *prov, ULONG type, BOOL mod,
-    const char *szClassName) :
-	ECUnknown(szClassName), ulObjType(type), fModify(mod), lpProvider(prov)
+    const char *cls_name) :
+	ECUnknown(cls_name), ulObjType(type), fModify(mod), lpProvider(prov)
 {
 	HrAddPropHandlers(PR_EC_OBJECT, DefaultGetProp, DefaultSetPropComputed, this, false, true);
 	HrAddPropHandlers(PR_NULL, DefaultGetProp, DefaultSetPropIgnore, this, false, true);
@@ -52,12 +52,11 @@ HRESULT ECGenericProp::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT ECGenericProp::SetProvider(void* lpProvider)
+HRESULT ECGenericProp::SetProvider(void *prov)
 {
 	HRESULT hr = hrSuccess;
 	assert(this->lpProvider == NULL);
-	this->lpProvider = lpProvider;
-	
+	lpProvider = prov;
 	return hr;
 }
 
@@ -958,7 +957,7 @@ HRESULT ECGenericProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 }
 
 HRESULT ECGenericProp::CopyProps(const SPropTagArray *, ULONG ui_param,
-    LPMAPIPROGRESS, LPCIID intf, void *dest_obj, ULONG flags,
+    IMAPIProgress *, const IID *iface, void *dest_obj, ULONG flags,
     SPropProblemArray **)
 {
 	return MAPI_E_NO_SUPPORT;

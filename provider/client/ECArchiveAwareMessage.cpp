@@ -64,12 +64,11 @@ HRESULT ECArchiveAwareMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew,
 	return ECArchiveAwareMessage::Create(lpArchiveAwareStore, FALSE, fModify, ulFlags, lppMessage);
 }
 
-ECArchiveAwareMessage::ECArchiveAwareMessage(ECArchiveAwareMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags)
-: ECMessage(lpMsgStore, fNew, fModify, ulFlags, FALSE, NULL)
-, m_bLoading(false)
-, m_bNamedPropsMapped(false), m_propmap(5)
-, m_mode(MODE_UNARCHIVED)
-, m_bChanged(false)
+ECArchiveAwareMessage::ECArchiveAwareMessage(ECArchiveAwareMsgStore *lpMsgStore,
+    BOOL is_new, BOOL modify, ULONG ulFlags) :
+	ECMessage(lpMsgStore, is_new, modify, ulFlags, false, nullptr),
+	m_bLoading(false), m_bNamedPropsMapped(false), m_propmap(5),
+	m_mode(MODE_UNARCHIVED), m_bChanged(false)
 {
 	// Override the handler defined in ECMessage
 	HrAddPropHandlers(PR_MESSAGE_SIZE, ECMessage::GetPropHandler, SetPropHandler, this, false, false);

@@ -81,10 +81,10 @@ static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase, convert_context 
 }
 
 ECExchangeModifyTable::ECExchangeModifyTable(ULONG ulUniqueTag,
-    ECMemTable *table, ECMAPIProp *lpParent, ULONG ulStartUniqueId,
+    ECMemTable *table, ECMAPIProp *parent, ULONG ulStartUniqueId,
     ULONG ulFlags) :
 	m_ulUniqueId(ulStartUniqueId), m_ulUniqueTag(ulUniqueTag),
-	m_ulFlags(ulFlags), m_lpParent(lpParent), m_ecTable(table)
+	m_ulFlags(ulFlags), m_lpParent(parent), m_ecTable(table)
 {}
 
 HRESULT ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent,

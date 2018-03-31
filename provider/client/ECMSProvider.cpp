@@ -53,8 +53,8 @@
 
 using namespace KC;
 
-ECMSProvider::ECMSProvider(ULONG ulFlags, const char *szClassName) :
-	ECUnknown(szClassName), m_ulFlags(ulFlags)
+ECMSProvider::ECMSProvider(ULONG ulFlags, const char *cls_name) :
+	ECUnknown(cls_name), m_ulFlags(ulFlags)
 {
 }
 

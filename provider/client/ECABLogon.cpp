@@ -259,7 +259,7 @@ HRESULT ECABLogon::OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG *lpu
 }
 
 HRESULT ECABLogon::OpenTemplateID(ULONG tpl_size, const ENTRYID *tpl_eid,
-    ULONG tpl_flags, IMAPIProp *propdata, const IID *intf, IMAPIProp **propnew,
+    ULONG tpl_flags, IMAPIProp *propdata, const IID *iface, IMAPIProp **propnew,
     IMAPIProp *sibling)
 {
 	return MAPI_E_NO_SUPPORT;

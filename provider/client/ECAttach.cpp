@@ -35,9 +35,9 @@ HRESULT ECAttachFactory::Create(ECMsgStore *lpMsgStore, ULONG ulObjType,
 	return ECAttach::Create(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot, lppAttach);
 }
 
-ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify,
+ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG objtype, BOOL modify,
     ULONG anum, const ECMAPIProp *lpRoot) :
-	ECMAPIProp(lpMsgStore, ulObjType, fModify, lpRoot, "IAttach"),
+	ECMAPIProp(lpMsgStore, objtype, modify, lpRoot, "IAttach"),
 	ulAttachNum(anum)
 {
 	HrAddPropHandlers(PR_ATTACH_DATA_OBJ, GetPropHandler, SetPropHandler, this, true, false);

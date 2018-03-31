@@ -29,12 +29,10 @@
 
 using namespace KC;
 
-ECMAPIContainer::ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG ulObjType,
-    BOOL fModify, const char *szClassName) :
-	ECMAPIProp(lpMsgStore, ulObjType, fModify, NULL, szClassName)
-{
-
-}
+ECMAPIContainer::ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG obj_type,
+    BOOL modify, const char *cls_name) :
+	ECMAPIProp(lpMsgStore, obj_type, modify, nullptr, cls_name)
+{}
 
 HRESULT	ECMAPIContainer::QueryInterface(REFIID refiid, void **lppInterface)
 {

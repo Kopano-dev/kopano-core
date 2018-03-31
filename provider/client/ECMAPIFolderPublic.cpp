@@ -42,8 +42,9 @@
 
 using namespace KC;
 
-ECMAPIFolderPublic::ECMAPIFolderPublic(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, enumPublicEntryID ePublicEntryID) : 
-	ECMAPIFolder(lpMsgStore, fModify, lpFolderOps, "IMAPIFolderPublic"),
+ECMAPIFolderPublic::ECMAPIFolderPublic(ECMsgStore *lpMsgStore, BOOL modify,
+    WSMAPIFolderOps *ops, enumPublicEntryID ePublicEntryID) :
+	ECMAPIFolder(lpMsgStore, modify, ops, "IMAPIFolderPublic"),
 	m_ePublicEntryID(ePublicEntryID)
 {
 	HrAddPropHandlers(PR_ACCESS, GetPropHandler, DefaultSetPropComputed, this);
@@ -373,17 +374,16 @@ HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, const ENTRYID *eid,
     const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
     IUnknown **lppUnk)
 {
-	unsigned int ulObjType = 0;
+	unsigned int objtype = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 	auto hr = KAllocCopy(eid, cbEntryID, &~lpEntryID);
 	if (hr != hrSuccess)
 		return hr;
 	if (cbEntryID > 0) {
-		hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<BYTE *>(lpEntryID.get()), &ulObjType);
+		hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<BYTE *>(lpEntryID.get()), &objtype);
 		if(hr != hrSuccess)
 			return hr;
-
-		if (ulObjType == MAPI_FOLDER && m_ePublicEntryID == ePE_FavoriteSubFolder)
+		if (objtype == MAPI_FOLDER && m_ePublicEntryID == ePE_FavoriteSubFolder)
 			lpEntryID->abFlags[3] = KOPANO_FAVORITE;
 	}
 	return ECMAPIFolder::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);

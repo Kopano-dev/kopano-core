@@ -26,11 +26,10 @@
 using namespace KC;
 
 ECArchiveAwareMsgStore::ECArchiveAwareMsgStore(const char *lpszProfname,
-    IMAPISupport *lpSupport, WSTransport *lpTransport, BOOL fModify,
-    ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore,
-    BOOL bOfflineStore) :
-	ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify,
-	    ulProfileFlags, fIsSpooler, fIsDefaultStore, bOfflineStore)
+    IMAPISupport *sup, WSTransport *tp, BOOL modify, ULONG ulProfileFlags,
+    BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore) :
+	ECMsgStore(lpszProfname, sup, tp, modify, ulProfileFlags, fIsSpooler,
+	    fIsDefaultStore, bOfflineStore)
 { }
 
 HRESULT ECArchiveAwareMsgStore::Create(const char *lpszProfname,

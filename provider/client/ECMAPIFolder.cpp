@@ -61,9 +61,9 @@ static LONG AdviseECFolderCallback(void *lpContext, ULONG cNotif,
 	return S_OK;
 }
 
-ECMAPIFolder::ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL fModify,
-    WSMAPIFolderOps *ops, const char *szClassName) :
-	ECMAPIContainer(lpMsgStore, MAPI_FOLDER, fModify, szClassName),
+ECMAPIFolder::ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL modify,
+    WSMAPIFolderOps *ops, const char *cls_name) :
+	ECMAPIContainer(lpMsgStore, MAPI_FOLDER, modify, cls_name),
 	lpFolderOps(ops)
 {
 	// Folder counters
@@ -203,7 +203,7 @@ HRESULT	ECMAPIFolder::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT ECMAPIFolder::HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProps)
+HRESULT ECMAPIFolder::HrSetPropStorage(IECPropStorage *storage, BOOL fLoadProps)
 {
 	ULONG ulEventMask = fnevObjectModified  | fnevObjectDeleted | fnevObjectMoved | fnevObjectCreated;
 	object_ptr<WSMAPIPropStorage> lpMAPIPropStorage;
@@ -213,7 +213,7 @@ HRESULT ECMAPIFolder::HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProp
 	auto hr = HrAllocAdviseSink(AdviseECFolderCallback, this, &~m_lpFolderAdviseSink);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpStorage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage);
+	hr = storage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpMAPIPropStorage->GetEntryIDByRef(&cbEntryId, &lpEntryId);
@@ -226,8 +226,7 @@ HRESULT ECMAPIFolder::HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProp
 		return hr;
 	else
 		lpMAPIPropStorage->RegisterAdvise(ulEventMask, m_ulConnection);
-	
-	return ECGenericProp::HrSetPropStorage(lpStorage, fLoadProps);
+	return ECGenericProp::HrSetPropStorage(storage, fLoadProps);
 }
 
 HRESULT ECMAPIFolder::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
@@ -356,7 +355,7 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags
 	ULONG		cbNewEntryId = 0;
 	ecmem_ptr<ENTRYID> lpNewEntryId;
 	SPropValue	sPropValue[3];
-	object_ptr<IECPropStorage> lpStorage;
+	object_ptr<IECPropStorage> storage;
 
 	if (!fModify)
 		return MAPI_E_NO_ACCESS;
@@ -372,7 +371,7 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags
 		hr = lpMessage->SetEntryId(cbNewEntryId, lpNewEntryId);
 		if (hr != hrSuccess)
 			return hr;
-		hr = this->GetMsgStore()->lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbNewEntryId, lpNewEntryId, ulFlags & MAPI_ASSOCIATED, &~lpStorage);
+		hr = this->GetMsgStore()->lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbNewEntryId, lpNewEntryId, ulFlags & MAPI_ASSOCIATED, &~storage);
 		if(hr != hrSuccess)
 			return hr;
 	} else {
@@ -380,12 +379,12 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags
         hr = lpMessage->SetEntryId(cbEntryID, lpEntryID);
         if(hr != hrSuccess)
 			return hr;
-		hr = this->GetMsgStore()->lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbEntryID, lpEntryID, ulFlags & MAPI_ASSOCIATED, &~lpStorage);
+		hr = this->GetMsgStore()->lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbEntryID, lpEntryID, ulFlags & MAPI_ASSOCIATED, &~storage);
 		if(hr != hrSuccess)
 			return hr;
     }
 
-	hr = lpMessage->HrSetPropStorage(lpStorage, FALSE);
+	hr = lpMessage->HrSetPropStorage(storage, false);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -543,10 +542,9 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
     const IID *lpInterface, ULONG ulFlags, IMAPIFolder **lppFolder)
 {
 	HRESULT			hr = hrSuccess;
-	ULONG			cbEntryId = 0;
+	unsigned int cbEntryId = 0, objtype = 0;
 	ecmem_ptr<ENTRYID> lpEntryId;
 	object_ptr<IMAPIFolder> lpFolder;
-	ULONG			ulObjType = 0;
 
 	// SC TODO: new code:
 	// create new lpFolder object (load empty props ?)
@@ -567,7 +565,7 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType,
 		return hr;
 
 	// Open the folder we just created
-	hr = this->GetMsgStore()->OpenEntry(cbEntryId, lpEntryId, lpInterface, MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &ulObjType, &~lpFolder);
+	hr = this->GetMsgStore()->OpenEntry(cbEntryId, lpEntryId, lpInterface, MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &objtype, &~lpFolder);
 	if(hr != hrSuccess)
 		return hr;
 	*lppFolder = lpFolder.release();
@@ -634,7 +632,7 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 {
 	HRESULT		hr = hrSuccess;
 	BOOL		bError = FALSE;
-	ULONG		ulObjType = 0;
+	unsigned int objtype = 0;
 
 	// Progress bar
 	ULONG ulPGMin = 0;
@@ -661,7 +659,7 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 
 		for (ULONG i = 0; i < lpMsgList->cValues; ++i) {
 			object_ptr<IMessage> lpMessage;
-			if (OpenEntry(lpMsgList->lpbin[i].cb, reinterpret_cast<ENTRYID *>(lpMsgList->lpbin[i].lpb), &IID_IMessage, MAPI_MODIFY, &ulObjType, &~lpMessage) == hrSuccess) {
+			if (OpenEntry(lpMsgList->lpbin[i].cb, reinterpret_cast<ENTRYID *>(lpMsgList->lpbin[i].lpb), &IID_IMessage, MAPI_MODIFY, &objtype, &~lpMessage) == hrSuccess) {
 				if(lpMessage->SetReadFlag(ulFlags&~MESSAGE_DIALOG) != hrSuccess)
 					bError = TRUE;
 			}else
