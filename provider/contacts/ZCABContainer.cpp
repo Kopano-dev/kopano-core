@@ -29,8 +29,8 @@ using namespace KC;
 
 ZCABContainer::ZCABContainer(const std::vector<zcabFolderEntry> *lpFolders,
     IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void *lpProvider,
-    const char *szClassName) :
-	ECUnknown(szClassName), m_lpFolders(lpFolders),
+    const char *cls_name) :
+	ECUnknown(cls_name), m_lpFolders(lpFolders),
 	m_lpContactFolder(lpContacts), m_lpMAPISup(lpMAPISup),
 	m_lpProvider(lpProvider)
 {
@@ -507,7 +507,6 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 			EntryIdPtr ptrEntryID;
 			SPropValuePtr ptrPropEntryID;
 			ULONG ulObjOffset = 0;
-			ULONG ulObjType = 0;
 
 			hr = HrGetOneProp(ptrUser, PR_ENTRYID, &~ptrPropEntryID);
 			if (hr != hrSuccess)

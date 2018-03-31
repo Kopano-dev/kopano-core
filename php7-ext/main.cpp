@@ -455,7 +455,8 @@ zend_function_entry mapi_functions[] =
 };
 
 ZEND_DECLARE_MODULE_GLOBALS(mapi)
-static void php_mapi_init_globals(zend_mapi_globals *mapi_globals) {
+static void php_mapi_init_globals(zend_mapi_globals *)
+{
 	// seems to be empty ..
 }
 
@@ -584,10 +585,10 @@ PHP_MINIT_FUNCTION(mapi) {
 	le_mapi_exportchanges = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeExportChanges>, nullptr, const_cast<char *>(name_mapi_exportchanges), module_number);
 	le_mapi_importhierarchychanges = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeImportHierarchyChanges>, nullptr, const_cast<char *>(name_mapi_importhierarchychanges), module_number);
 	le_mapi_importcontentschanges = zend_register_list_destructors_ex(_php_free_mapi_object<IExchangeImportContentsChanges>, nullptr, const_cast<char *>(name_mapi_importcontentschanges), module_number);
-	MAPIINIT_0 MAPIINIT = { 0, MAPI_MULTITHREAD_NOTIFICATIONS };
+	MAPIINIT_0 mapiinit = {0, MAPI_MULTITHREAD_NOTIFICATIONS};
 
 	// There is also a MAPI_NT_SERVICE flag, see help page for MAPIInitialize
-	if (MAPIInitialize(&MAPIINIT) != hrSuccess)
+	if (MAPIInitialize(&mapiinit) != hrSuccess)
 		return FAILURE;
 
 	ZEND_INIT_MODULE_GLOBALS(mapi, php_mapi_init_globals, NULL);
@@ -3044,7 +3045,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	// return value
 	memory_ptr<SPropTagArray> lpPropTagArray;
 	// local
-	size_t hashTotal = 0, i = 0;
+	size_t hashTotal = 0;
 	memory_ptr<MAPINAMEID *> lppNamePropId;
 	zval		*entry = NULL, *guidEntry = NULL;
 	HashTable	*targetHash	= NULL,	*guidHash = NULL;
@@ -3082,7 +3083,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	if(guidHash)
 		zend_hash_internal_pointer_reset(guidHash);
 
-	for (i = 0; i < hashTotal; ++i) {
+	for (size_t i = 0; i < hashTotal; ++i) {
 		//	Gets the element that exist at the current pointer.
 		entry = zend_hash_get_current_data(targetHash);
 		if(guidHash)
@@ -3618,13 +3619,12 @@ ZEND_FUNCTION(mapi_getnamesfromids)
 			add_assoc_long(&prop, "id", pPropNames[count]->Kind.lID);
 		} else {
 			int slen;
-			char *buffer;
 			slen = wcstombs(NULL, pPropNames[count]->Kind.lpwstrName, 0);	// find string size
 			++slen;															// add terminator
-			buffer = new char[slen];										// alloc
-			wcstombs(buffer, pPropNames[count]->Kind.lpwstrName, slen);		// convert & terminate
-			add_assoc_string(&prop, "name", buffer);
-			delete [] buffer;
+			char *b2 = new char[slen];										// alloc
+			wcstombs(b2, pPropNames[count]->Kind.lpwstrName, slen); /* convert & terminate */
+			add_assoc_string(&prop, "name", b2);
+			delete[] b2;
 		}
 
 		add_assoc_zval(return_value, buffer, &prop);

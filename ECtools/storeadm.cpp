@@ -615,7 +615,7 @@ static HRESULT adm_detach_store(KServerContext &kadm)
 				return kc_perror("Unable to retrieve store entryid", ret);
 		} else {
 			object_ptr<IExchangeManageStore> ms;
-			auto ret = kadm.m_admstore->QueryInterface(IID_IExchangeManageStore, &~ms);
+			ret = kadm.m_admstore->QueryInterface(IID_IExchangeManageStore, &~ms);
 			if (ret != hrSuccess)
 				return kc_perror("QueryInterface", ret);
 			/*

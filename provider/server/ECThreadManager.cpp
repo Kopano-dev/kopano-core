@@ -420,7 +420,6 @@ ECRESULT ECDispatcherSelect::MainLoop()
 	int maxfds = getdtablesize();
 	if (maxfds < 0)
 		throw std::runtime_error("getrlimit failed");
-    char s = 0;
     time_t now;
 	CONNECTION_TYPE ulType;
 	auto pollfd = std::make_unique<struct pollfd[]>(maxfds);
@@ -493,6 +492,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 
 		// Activity on a TCP/pipe socket
 		// First, check for EOF
+			char s = 0;
 			if (recv(pollfd[i].fd, &s, 1, MSG_PEEK) == 0) {
 			// EOF occurred, just close the socket and remove it from the socket list
 			kopano_end_soap_connection(iterSockets->second.soap);

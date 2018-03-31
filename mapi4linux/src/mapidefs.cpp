@@ -129,12 +129,12 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 				hr = MAPIAllocateMore((*i)->Value.MVszA.cValues * sizeof(WCHAR*), props, (void**)&sConvert.Value.MVszW.lppszW);
 				if (hr != hrSuccess)
 					return hr;
-				for (ULONG c = 0; c < (*i)->Value.MVszA.cValues; ++c) {
-					unicode = converter.convert_to<std::wstring>((*i)->Value.MVszA.lppszA[c]);
-					hr = MAPIAllocateMore(unicode.length() * sizeof(WCHAR) + sizeof(WCHAR), props, (void**)&sConvert.Value.MVszW.lppszW[c]);
+				for (ULONG d = 0; d < (*i)->Value.MVszA.cValues; ++d) {
+					unicode = converter.convert_to<std::wstring>((*i)->Value.MVszA.lppszA[d]);
+					hr = MAPIAllocateMore(unicode.length() * sizeof(wchar_t) + sizeof(WCHAR), props, reinterpret_cast<void **>(&sConvert.Value.MVszW.lppszW[d]));
 					if (hr != hrSuccess)
 						return hr;
-					wcscpy(sConvert.Value.MVszW.lppszW[c], unicode.c_str());
+					wcscpy(sConvert.Value.MVszW.lppszW[d], unicode.c_str());
 				}
 				lpCopy = &sConvert;
 			}
@@ -148,12 +148,12 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 				hr = MAPIAllocateMore((*i)->Value.MVszW.cValues * sizeof(char*), props, (void**)&sConvert.Value.MVszA.lppszA);
 				if (hr != hrSuccess)
 					return hr;
-				for (ULONG c = 0; c < (*i)->Value.MVszW.cValues; ++c) {
-					ansi = converter.convert_to<std::string>((*i)->Value.MVszW.lppszW[c]);
-					hr = MAPIAllocateMore(ansi.length() + 1, props, (void**)&sConvert.Value.MVszA.lppszA[c]);
+				for (ULONG d = 0; d < (*i)->Value.MVszW.cValues; ++d) {
+					ansi = converter.convert_to<std::string>((*i)->Value.MVszW.lppszW[d]);
+					hr = MAPIAllocateMore(ansi.length() + 1, props, reinterpret_cast<void **>(&sConvert.Value.MVszA.lppszA[d]));
 					if (hr != hrSuccess)
 						return hr;
-					strcpy(sConvert.Value.MVszA.lppszA[c], ansi.c_str());
+					strcpy(sConvert.Value.MVszA.lppszA[d], ansi.c_str());
 				}
 				lpCopy = &sConvert;
 			} else {

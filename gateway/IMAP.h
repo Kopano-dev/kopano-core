@@ -214,9 +214,9 @@ private:
 		std::string strFlags;		// String of all flags, including \Recent
 
 		bool operator<(const SMail &sMail) const noexcept { return this->ulUid < sMail.ulUid; }
-		bool operator<(ULONG ulUid) const noexcept { return this->ulUid < ulUid; }
+		bool operator<(ULONG uid) const noexcept { return ulUid < uid; }
 		operator ULONG() const noexcept { return this->ulUid; }
-		bool operator==(ULONG ulUid) const noexcept { return this->ulUid == ulUid; }
+		bool operator==(ULONG uid) const noexcept { return ulUid == uid; }
 	};
 
 	KC::object_ptr<IMAPISession> lpSession;
