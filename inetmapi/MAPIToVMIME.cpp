@@ -156,11 +156,10 @@ MAPIToVMIME::MAPIToVMIME()
  * @param[in]	sopt		struct with optional settings to change conversion
  */
 MAPIToVMIME::MAPIToVMIME(IMAPISession *lpSession, IAddrBook *lpAddrBook,
-    sending_options sopt) :
-	m_lpSession(lpSession)
+    sending_options so) :
+	sopt(so), m_lpSession(lpSession)
 {
 	rand_init();
-	this->sopt = sopt;
 	if (lpSession != nullptr && lpAddrBook == nullptr)
 		lpSession->OpenAddressBook(0, nullptr, AB_NO_DIALOG, &~m_lpAdrBook);
 		// ignore error
