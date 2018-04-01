@@ -62,9 +62,6 @@ HRESULT WebDav::HrParseXml()
 	m_lpXmlDoc = xmlReadMemory((char *)strBody.c_str(),(int)strBody.length(), "PROVIDE_BASE.xml", NULL,  XML_PARSE_NOBLANKS);
 	if (m_lpXmlDoc == NULL)
 		hr = MAPI_E_INVALID_PARAMETER;
-
-	strBody.clear();
-
 	return hr;
 }
 
