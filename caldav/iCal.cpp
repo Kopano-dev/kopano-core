@@ -44,18 +44,13 @@ iCal::iCal(Http *lpRequest, IMAPISession *lpSession,
 
 HRESULT iCal::HrHandleCommand(const std::string &strMethod)
 {
-	HRESULT hr = hrSuccess;
-
 	if (!strMethod.compare("GET") || !strMethod.compare("HEAD"))
-		hr = HrHandleIcalGet(strMethod);
+		return HrHandleIcalGet(strMethod);
 	else if (!strMethod.compare("PUT"))
-		hr = HrHandleIcalPost();
+		return HrHandleIcalPost();
 	else if (!strMethod.compare("DELETE"))
-		hr = HrDelFolder();
-	else
-		hr = MAPI_E_CALL_FAILED;
-
-	return hr;	
+		return HrDelFolder();
+	return MAPI_E_CALL_FAILED;
 }
 
 /**
@@ -69,19 +64,13 @@ HRESULT iCal::HrHandleCommand(const std::string &strMethod)
  */
 HRESULT iCal::HrHandleIcalGet(const std::string &strMethod)
 {
-	HRESULT hr = hrSuccess;
-	std::string strIcal;
-	std::string strMsg;
-	std::string strModtime;
+	std::string strIcal, strMsg, strModtime;
 	memory_ptr<SPropValue> lpProp;
 	object_ptr<IMAPITable> lpContents;
-	bool blCensorFlag = 0;
-
-	if ((m_ulFolderFlag & SHARED_FOLDER) && !HasDelegatePerm(m_lpDefStore, m_lpActiveStore))
-		blCensorFlag = true;
+	bool blCensorFlag = m_ulFolderFlag & SHARED_FOLDER && !HasDelegatePerm(m_lpDefStore, m_lpActiveStore);
 	
 	// retrieve table and restrict as per request
-	hr = HrGetContents(&~lpContents);
+	auto hr = HrGetContents(&~lpContents);
 	if (hr != hrSuccess) {
 		kc_perror("Unable to retrieve contents of folder", hr);
 		goto exit;
@@ -137,24 +126,18 @@ HRESULT iCal::HrHandleIcalPost()
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpContTable;
-	SBinary sbEid = {0,0};
-	SBinary sbUid = {0,0};
+	SBinary sbEid = {0, 0}, sbUid = {0, 0};
 	ULONG ulItemCount = 0;
-	ULONG ulProptag = 0;
 	time_t tLastMod = 0;
 	bool blCensorPrivate = false;
-
-	std::string strUidString;
-	std::string strIcal;
-	
+	std::string strUidString, strIcal;
 	eIcalType etype = VEVENT;
 	std::map<std::string, int> mpIcalEntries;
 	std::map<std::string, FILETIME> mpSrvTimes;
 	std::map<std::string, SBinary> mpSrvEntries;
 	decltype(mpIcalEntries)::const_iterator mpIterI;
 	decltype(mpSrvEntries)::const_iterator mpIterJ;
-
-	ulProptag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
+	unsigned int ulProptag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 	SizedSPropTagArray(3, proptags) = {3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, ulProptag}};
 	//Include PR_ENTRYID,PR_LAST_MODIFICATION_TIME & Named Prop GlobalObjUid.
 	
@@ -322,10 +305,7 @@ HRESULT iCal::HrModify( ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, 
 {
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType=0;
-	ULONG ulTagPrivate = 0;
-
-	ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
-
+	unsigned int ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
 	HRESULT hr = m_lpUsrFld->OpenEntry(sbSrvEid.cb, reinterpret_cast<ENTRYID *>(sbSrvEid.lpb),
 	             &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if(hr != hrSuccess)
@@ -374,9 +354,7 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 	memory_ptr<ENTRYLIST> lpEntryList;
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
-	ULONG ulTagPrivate = 0;
-	
-	ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
+	unsigned int ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
 	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 	if (hr != hrSuccess)
 		return kc_perror("Error allocating memory", hr);
@@ -416,8 +394,6 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
  */
 HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 {
-	HRESULT hr = hrSuccess;
-	std::string strUid;
 	std::string strUrl;
 	memory_ptr<SRestriction> lpsRestriction;
 	MAPITablePtr ptrContents;	
@@ -426,14 +402,14 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 
 	if (m_lpUsrFld == nullptr)
 		return MAPI_E_NOT_FOUND;
-	hr = m_lpUsrFld->GetContentsTable(0, &~ptrContents);
+	auto hr = m_lpUsrFld->GetContentsTable(0, &~ptrContents);
 	if (hr != hrSuccess)
 		return kc_perror("Error retrieving calendar entries", hr);
 	hr = ptrContents->SetColumns(sPropEntryIdcol, 0);
 	if (hr != hrSuccess)
 		return hr;
 	m_lpRequest->HrGetUrl(&strUrl);
-	strUid = StripGuid(strUrl);
+	auto strUid = StripGuid(strUrl);
 	if (!strUid.empty()) {
 		// single item requested
 		hr = HrMakeRestriction(strUid, m_lpNamedProps, &~lpsRestriction);
@@ -461,17 +437,11 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
  */
 HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *lpstrIcal)
 {
-	HRESULT hr = hrSuccess;
-	SBinary sbEid = {0,0};
 	ULONG ulObjType = 0;
-	ULONG ulTagPrivate = 0;
-	ULONG ulFlag = 0;
-	bool blCensor = false;	
 	std::unique_ptr<MapiToICal> lpMtIcal;
 	std::string strical;
-	
-	ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
-	hr = CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
+	unsigned int ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
+	auto hr = CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
 	if (hr != hrSuccess) {
 		kc_perror("Error Creating MapiToIcal object", hr);
 		return hr;
@@ -487,12 +457,10 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 			break;
 
 		for (ULONG i = 0; i < lpRows->cRows; ++i) {
-			blCensor = blCensorPrivate; // reset censor flag for next message
-			ulFlag = 0;
+			bool blCensor = blCensorPrivate; // reset censor flag for next message
 			if (lpRows[i].lpProps[0].ulPropTag != PR_ENTRYID)
 				continue;
-			sbEid = lpRows[i].lpProps[0].Value.bin;
-
+			SBinary sbEid = lpRows[i].lpProps[0].Value.bin;
 			object_ptr<IMessage> lpMessage;
 			hr = m_lpUsrFld->OpenEntry(sbEid.cb, (LPENTRYID)sbEid.lpb,
 			     &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
@@ -505,13 +473,8 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 				hr = hrSuccess;
 				continue;
 			}
-			
-			if(blCensor && IsPrivate(lpMessage, ulTagPrivate))
-				ulFlag = M2IC_CENSOR_PRIVATE;
-			else
-				ulFlag = 0;
-
-			hr = lpMtIcal->AddMessage(lpMessage, m_strSrvTz, ulFlag);
+			hr = lpMtIcal->AddMessage(lpMessage, m_strSrvTz,
+			     blCensor && IsPrivate(lpMessage, ulTagPrivate) ? M2IC_CENSOR_PRIVATE : 0);
 			if (hr != hrSuccess)
 			{
 				ec_log_debug("Error converting mapi message to ical: %s (%x)",
