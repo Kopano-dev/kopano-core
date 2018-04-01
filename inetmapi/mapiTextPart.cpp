@@ -120,9 +120,7 @@ void mapiTextPart::generateIn(vmime::shared_ptr<bodyPart> /* message */,
 			auto objPart = vmime::make_shared<bodyPart>();
 			relPart->getBody()->appendPart(objPart);
 
-			std::string id = obj->getId();
-			std::string name = obj->getName();
-
+			std::string id = obj->getId(), name = obj->getName();
 			if (id.substr(0, 4) == "CID:")
 				id = id.substr(4);
 
@@ -212,9 +210,7 @@ void mapiTextPart::parse(vmime::shared_ptr<const vmime::bodyPart> message,
     vmime::shared_ptr<const vmime::bodyPart> text_part)
 {
 	// Search for possible embedded objects in the _whole_ message.
-	std::vector<vmime::shared_ptr<const vmime::bodyPart> > cidParts;
-	std::vector<vmime::shared_ptr<const vmime::bodyPart> > locParts;
-
+	std::vector<vmime::shared_ptr<const vmime::bodyPart>> cidParts, locParts;
 	findEmbeddedParts(*message, cidParts, locParts);
 
 	// Extract HTML text

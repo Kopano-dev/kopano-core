@@ -28,7 +28,6 @@ namespace KC {
 // Returns the FILETIME as GM-time
 FILETIME vmimeDatetimeToFiletime(const vmime::datetime &dt)
 {
-	FILETIME sFiletime;
 	struct tm when;
 	int iYear, iMonth, iDay, iHour, iMinute, iSecond, iZone;
 
@@ -43,8 +42,7 @@ FILETIME vmimeDatetimeToFiletime(const vmime::datetime &dt)
 	when.tm_year	= iYear - 1900;
 	when.tm_isdst	= -1;		// ignore dst
 	auto lTmpTime = timegm(&when);
-	sFiletime = UnixTimeToFileTime(lTmpTime);
-	return sFiletime;
+	return UnixTimeToFileTime(lTmpTime);
 }
 
 vmime::datetime FiletimeTovmimeDatetime(const FILETIME &ft)
@@ -55,8 +53,7 @@ vmime::datetime FiletimeTovmimeDatetime(const FILETIME &ft)
 }
 
 static constexpr const struct {
-	const char *ext;
-	const char *mime_type;
+	const char *ext, *mime_type;
 } mime_types[] = {
 	{"bin", "application/octet-stream"},
 	{"exe", "application/octet-stream"},
