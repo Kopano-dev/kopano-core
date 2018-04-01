@@ -45,14 +45,10 @@ ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession,
  */
 HRESULT ProtocolBase::HrInitializeClass()
 {
-	HRESULT hr = hrSuccess;
-	std::string strUrl;
-	std::string strMethod, strFldOwner, strFldName;
+	std::string strUrl, strMethod, strFldOwner, strFldName;
 	memory_ptr<SPropValue> lpDefaultProp, lpFldProp;
 	SPropValuePtr lpEntryID;
-	ULONG ulRes = 0;
-	bool bIsPublic = false;
-	ULONG ulType = 0;
+	ULONG ulRes = 0, ulType = 0;
 	MAPIFolderPtr lpRoot;
 
 	/* URLs
@@ -75,11 +71,10 @@ HRESULT ProtocolBase::HrInitializeClass()
 	HrParseURL(strUrl, &m_ulUrlFlag, &strFldOwner, &strFldName);
 	m_wstrFldOwner = U2W(strFldOwner);
 	m_wstrFldName = U2W(strFldName);
-	bIsPublic = m_ulUrlFlag & REQ_PUBLIC;
+	bool bIsPublic = m_ulUrlFlag & REQ_PUBLIC;
 	if (m_wstrFldOwner.empty())
 		m_wstrFldOwner = m_wstrUser;
-
-	hr = m_lpSession->OpenAddressBook(0, NULL, 0, &~m_lpAddrBook);
+	auto hr = m_lpSession->OpenAddressBook(0, nullptr, 0, &~m_lpAddrBook);
 	if(hr != hrSuccess)
 		return kc_perror("Error opening addressbook", hr);
 	// default store required for various actions (delete, freebusy, ...)
