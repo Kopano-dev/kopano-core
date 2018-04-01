@@ -471,11 +471,10 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 	std::string strical;
 	
 	ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
-	
-	CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
-	if (lpMtIcal == NULL) {
+	hr = CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
+	if (hr != hrSuccess) {
 		kc_perror("Error Creating MapiToIcal object", hr);
-		return E_FAIL;
+		return hr;
 	}
 
 	while (TRUE)

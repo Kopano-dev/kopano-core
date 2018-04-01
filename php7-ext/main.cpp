@@ -5994,11 +5994,9 @@ ZEND_FUNCTION(mapi_freebusyenumblock_ical)
 		return;
 
 	std::unique_ptr<MapiToICal> mapiical;
-	CreateMapiToICal(addrbook, "utf-8", &unique_tie(mapiical));
-	if (mapiical == nullptr) {
-		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
+	MAPI_G(hr) = CreateMapiToICal(addrbook, "utf-8", &unique_tie(mapiical));
+	if (MAPI_G(hr) != hrSuccess)
 		return;
-	}
 
 	std::string organizer(organizer_cstr, organizer_len);
 	std::string user(user_cstr, user_len);
@@ -6882,12 +6880,9 @@ ZEND_FUNCTION(mapi_mapitoical)
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, IAddrBook *, &resAddrBook, -1, name_mapi_addrbook, le_mapi_addrbook);
 	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
 
-	// set HR
-	CreateMapiToICal(lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
-	if (lpMtIcal == nullptr) {
-		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
+	MAPI_G(hr) = CreateMapiToICal(lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
+	if (MAPI_G(hr) != hrSuccess)
 		return;
-	}
 	MAPI_G(hr) = lpMtIcal->AddMessage(lpMessage, "", 0);
 	if (MAPI_G(hr) != hrSuccess)
 		return;

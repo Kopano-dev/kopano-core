@@ -356,9 +356,9 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 		return hr;
 
 	// @todo do we really need this converter, since we're only listing the items?
-	CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
-	if (!lpMtIcal)
-		return MAPI_E_CALL_FAILED;
+	hr = CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
+	if (hr != hrSuccess)
+		return hr;
 
 	while(1)
 	{
@@ -483,9 +483,9 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 
 	cbsize = (ULONG)sWebRMGet->lstWebVal.size();
 	ec_log_info("Requesting conversion of %u items", cbsize);
-	CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
-	if (!lpMtIcal)
-		return MAPI_E_CALL_FAILED;
+	hr = CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
+	if (hr != hrSuccess)
+		return hr;
 
 	for (i = 0; i < cbsize; ++i) {
 		WEBDAVVALUE sWebDavVal;
@@ -1567,9 +1567,9 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 		ec_log_debug("CalDAV::HrHandleFreebusy GetFreeBusyInfo failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
 	}
-	CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMapiToIcal));
-	if (lpMapiToIcal == nullptr)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
+	hr = CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMapiToIcal));
+	if (hr != hrSuccess)
+		return hr;
 	hr = ECFreeBusySupport::Create(&~lpecFBSupport);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandleFreebusy ECFreeBusySupport::Create failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));

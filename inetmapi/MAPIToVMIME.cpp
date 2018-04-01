@@ -33,6 +33,7 @@
 
 // mapi
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
@@ -1917,11 +1918,13 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 				// iCAL
 				string ical, method;
 				vmime::shared_ptr<mapiAttachment> vmAttach = NULL;
-				MapiToICal *tmp;
 
 				ec_log_info("Adding ICS attachment for extra information");
-				CreateMapiToICal(m_lpAdrBook, "utf-8", &tmp);
-				mapiical.reset(tmp);
+				hr = CreateMapiToICal(m_lpAdrBook, "utf-8", &unique_tie(mapiical));
+				if (hr != hrSuccess) {
+					kc_pwarn("Cannot create MAPIToICal object, sending as TNEF", hr);
+					goto tnef_anyway;
+				}
 				hr = mapiical->AddMessage(lpMessage, std::string(), 0);
 				if (hr != hrSuccess) {
 					ec_log_warn("Unable to create ical object, sending as TNEF");
