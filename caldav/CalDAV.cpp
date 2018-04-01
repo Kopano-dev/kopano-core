@@ -58,8 +58,7 @@ struct HandlerArgs {
 	bool bUseSSL;
 };
 
-static bool g_bDaemonize = true;
-static bool g_bQuit, g_bThreads, g_dump_config;
+static bool g_bDaemonize = true, g_bQuit, g_bThreads, g_dump_config;
 static ECLogger *g_lpLogger = NULL;
 static ECConfig *g_lpConfig = NULL;
 static pthread_t mainthread;
@@ -131,14 +130,12 @@ static void PrintVersion(void)
 
 int main(int argc, char **argv) {
 	HRESULT hr = hrSuccess;
-	int ulListenCalDAV = 0;
-	int ulListenCalDAVs = 0;
+	int ulListenCalDAV = 0, ulListenCalDAVs = 0;
 	bool bIgnoreUnknownConfigOptions = false;
     stack_t st = {0};
 	struct sigaction act;
 
 	// Configuration
-	int opt = 0;
 	const char *lpszCfg = ECConfig::GetDefaultPath("ical.cfg");
 	bool exp_config = false;
 	static const configsetting_t lpDefaults[] = {
@@ -194,8 +191,7 @@ int main(int argc, char **argv) {
 	setlocale(LC_CTYPE, "");
 
 	while (1) {
-		opt = my_getopt_long_permissive(argc, argv, "Fhc:V", long_options, NULL);
-
+		int opt = my_getopt_long_permissive(argc, argv, "Fhc:V", long_options, nullptr);
 		if (opt == -1)
 			break;
 
@@ -317,11 +313,9 @@ int main(int argc, char **argv) {
 
 	// in forked mode, send all children the exit signal
 	if (g_bThreads == false) {
-		int i;
-
 		signal(SIGTERM, SIG_IGN);
 		kill(0, SIGTERM);
-		i = 30;						// wait max 30 seconds
+		int i = 30; /* wait max 30 seconds */
 		while (nChildren && i) {
 			if (i % 5 == 0)
 				ec_log_notice("Waiting for %d processes to exit", nChildren);
@@ -357,24 +351,19 @@ exit:
 static HRESULT HrSetupListeners(int *lpulNormal, int *lpulSecure)
 {
 	HRESULT hr;
-	bool bListen;
-	bool bListenSecure;
-	int ulPortICal;
-	int ulPortICalS;
-	int ulNormalSocket = 0;
-	int ulSecureSocket = 0;
+	int ulNormalSocket = 0, ulSecureSocket = 0;
 
 	// setup sockets
-	bListenSecure = (strcasecmp(g_lpConfig->GetSetting("icals_enable"), "yes") == 0);
-	bListen = (strcasecmp(g_lpConfig->GetSetting("ical_enable"), "yes") == 0);
+	bool bListenSecure = strcasecmp(g_lpConfig->GetSetting("icals_enable"), "yes") == 0;
+	bool bListen = strcasecmp(g_lpConfig->GetSetting("ical_enable"), "yes") == 0;
 
 	if (!bListen && !bListenSecure) {
 		ec_log_crit("No ports to open for listening.");
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
-	ulPortICal = atoi(g_lpConfig->GetSetting("ical_port"));
-	ulPortICalS = atoi(g_lpConfig->GetSetting("icals_port"));
+	auto ulPortICal = atoi(g_lpConfig->GetSetting("ical_port"));
+	auto ulPortICalS = atoi(g_lpConfig->GetSetting("icals_port"));
 
 	// start listening on normal port
 	if (bListen) {
@@ -586,13 +575,9 @@ exit:
 
 static HRESULT HrHandleRequest(ECChannel *lpChannel)
 {
-	HRESULT hr = hrSuccess;
-	std::wstring wstrUser;
-	std::wstring wstrPass;
-	std::string strUrl;
-	std::string strMethod;
+	std::wstring wstrUser, wstrPass;
+	std::string strUrl, strMethod, strCharset;
 	std::string strServerTZ = g_lpConfig->GetSetting("server_timezone");
-	std::string strCharset;
 	std::string strUserAgent, strUserAgentVersion;
 	std::unique_ptr<ProtocolBase> lpBase;
 	KC::object_ptr<IMAPISession> lpSession;
@@ -600,7 +585,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	ULONG ulFlag = 0;
 
 	ec_log_debug("New Request");
-	hr = lpRequest.HrReadHeaders();
+	auto hr = lpRequest.HrReadHeaders();
 	if(hr != hrSuccess) {
 		hr = MAPI_E_USER_CANCEL; // connection is closed by client no data to be read
 		goto exit;
