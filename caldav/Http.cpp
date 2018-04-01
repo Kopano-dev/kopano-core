@@ -113,14 +113,9 @@ exit:
 	return hr;
 }
 
-Http::Http(ECChannel *lpChannel, ECConfig *lpConfig)
-{
-	m_lpChannel = lpChannel;
-	m_lpConfig = lpConfig;
-
-	m_ulKeepAlive = 0;
-	m_ulRetCode = 0;
-}
+Http::Http(ECChannel *lpChannel, ECConfig *lpConfig) :
+	m_lpChannel(lpChannel), m_lpConfig(lpConfig)
+{}
 
 /**
  * Reads the http headers from the channel and Parses them
