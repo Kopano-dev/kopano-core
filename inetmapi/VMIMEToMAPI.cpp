@@ -2896,195 +2896,172 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 	if (hr != hrSuccess)
 		return hr;
 
-	if (strncasecmp(lpMessageClass->Value.lpszA, "IPM.Schedule.Meeting.", strlen( "IPM.Schedule.Meeting." )) == 0)
-	{
-		// IPM.Schedule.Meeting.*
+	if (strncasecmp(lpMessageClass->Value.lpszA, "IPM.Schedule.Meeting.", strlen("IPM.Schedule.Meeting.")) != 0)
+		return hrSuccess;
 
-		SizedSPropTagArray(6, sptaMeetingReqProps) = {6, {PROP_RESPONSESTATUS, PROP_RECURRING, PROP_ATTENDEECRITICALCHANGE, PROP_OWNERCRITICALCHANGE, PR_OWNER_APPT_ID, PR_CONVERSATION_INDEX }};
+	// IPM.Schedule.Meeting.*
+	SizedSPropTagArray(6, sptaMeetingReqProps) = {6, {PROP_RESPONSESTATUS, PROP_RECURRING, PROP_ATTENDEECRITICALCHANGE, PROP_OWNERCRITICALCHANGE, PR_OWNER_APPT_ID, PR_CONVERSATION_INDEX}};
+	hr = lpMessage->GetProps(sptaMeetingReqProps, 0, &cValues, &~lpProps);
+	if (FAILED(hr))
+		return hr;
 
-		hr = lpMessage->GetProps(sptaMeetingReqProps, 0, &cValues, &~lpProps);
-		if(FAILED(hr))
+	// If hr is hrSuccess then all properties are available, and we don't need to do anything
+	if (hr != hrSuccess) {
+		hr = hrSuccess;
+		if (lpProps[0].ulPropTag != PROP_RESPONSESTATUS) {
+			lpProps[0].ulPropTag = PROP_RESPONSESTATUS;
+			lpProps[0].Value.ul = 0;
+		}
+		if (lpProps[1].ulPropTag != PROP_RECURRING) {
+			lpProps[1].ulPropTag = PROP_RECURRING;
+			lpProps[1].Value.b = false;
+		}
+		if (lpProps[2].ulPropTag != PROP_ATTENDEECRITICALCHANGE) {
+			lpProps[2].ulPropTag = PROP_ATTENDEECRITICALCHANGE;
+			lpProps[2].Value.ft  = UnixTimeToFileTime(time(nullptr));
+		}
+		if (lpProps[3].ulPropTag != PROP_OWNERCRITICALCHANGE) {
+			lpProps[3].ulPropTag = PROP_OWNERCRITICALCHANGE;
+			lpProps[3].Value.ft  = UnixTimeToFileTime(time(nullptr));
+		}
+		if (lpProps[4].ulPropTag != PR_OWNER_APPT_ID) {
+			lpProps[4].ulPropTag = PR_OWNER_APPT_ID;
+			lpProps[4].Value.ul = -1;
+		}
+		if (lpProps[5].ulPropTag != PR_CONVERSATION_INDEX) {
+			lpProps[5].ulPropTag = PR_CONVERSATION_INDEX;
+			hr = ScCreateConversationIndex(0, NULL, &cbConversationIndex, &~lpConversationIndex);
+			if(hr != hrSuccess)
+				return hr;
+			lpProps[5].Value.bin.cb = cbConversationIndex;
+			lpProps[5].Value.bin.lpb = lpConversationIndex;
+		}
+		hr = lpMessage->SetProps(6, lpProps, NULL);
+		if (hr != hrSuccess)
 			return hr;
-
-		// If hr is hrSuccess then all properties are available, and we don't need to do anything
-		if(hr != hrSuccess) {
-			hr = hrSuccess;
-
-			if(lpProps[0].ulPropTag != PROP_RESPONSESTATUS) {
-				lpProps[0].ulPropTag = PROP_RESPONSESTATUS;
-				lpProps[0].Value.ul = 0;
-			}
-
-			if(lpProps[1].ulPropTag != PROP_RECURRING) {
-				lpProps[1].ulPropTag = PROP_RECURRING;
-				lpProps[1].Value.b = false;
-			}
-
-			if(lpProps[2].ulPropTag != PROP_ATTENDEECRITICALCHANGE) {
-				lpProps[2].ulPropTag = PROP_ATTENDEECRITICALCHANGE;
-				lpProps[2].Value.ft  = UnixTimeToFileTime(time(nullptr));
-			}
-
-			if(lpProps[3].ulPropTag != PROP_OWNERCRITICALCHANGE) {
-				lpProps[3].ulPropTag = PROP_OWNERCRITICALCHANGE;
-				lpProps[3].Value.ft  = UnixTimeToFileTime(time(nullptr));
-			}
-
-			if(lpProps[4].ulPropTag != PR_OWNER_APPT_ID) {
-				lpProps[4].ulPropTag = PR_OWNER_APPT_ID;
-				lpProps[4].Value.ul = -1;
-			}
-
-			if(lpProps[5].ulPropTag != PR_CONVERSATION_INDEX) {
-				lpProps[5].ulPropTag = PR_CONVERSATION_INDEX;
-				hr = ScCreateConversationIndex(0, NULL, &cbConversationIndex, &~lpConversationIndex);
-				if(hr != hrSuccess)
-					return hr;
-
-				lpProps[5].Value.bin.cb = cbConversationIndex;
-				lpProps[5].Value.bin.lpb = lpConversationIndex;
-			}
-
-			hr = lpMessage->SetProps(6, lpProps, NULL);
-			if(hr != hrSuccess)
-				return hr;
-		}
-
-		// @todo
-		// this code should be in a separate function, which can easily
-		// do 'goto exit', and we can continue here with other fixes.
-		if(lpProps[1].Value.b)
-		{
-			// This is a recurring appointment. Generate the properties needed by CDO, which can be
-			// found in the recurrence state. Since these properties are completely redundant we always
-			// write them to correct any possible errors in the incoming message.
-			SPropValue sMeetingProps[14];
-			SizedSPropTagArray (3, sptaRecProps) =  { 3, { PROP_RECURRENCESTATE, PROP_CLIPSTART, PROP_CLIPEND } };
-			RecurrenceState rec;
-
-			// @todo, if all properties are not available: remove recurrence true marker
-			hr = lpMessage->GetProps(sptaRecProps, 0, &cRecProps, &~lpRecProps);
-			if(hr != hrSuccess) // Warnings not accepted
-				return hr;
-			
-			hr = rec.ParseBlob(reinterpret_cast<const char *>(lpRecProps[0].Value.bin.lpb),
-			     static_cast<unsigned int>(lpRecProps[0].Value.bin.cb), 0);
-			if(FAILED(hr))
-				return hr;
-			
-			// Ignore warnings	
-			hr = hrSuccess;
-			
-			sMeetingProps[0].ulPropTag = PROP_MEETING_STARTRECDATE;
-			sMeetingProps[0].Value.ul = FileTimeToIntDate(lpRecProps[1].Value.ft);
-			
-			sMeetingProps[1].ulPropTag = PROP_MEETING_STARTRECTIME;
-			sMeetingProps[1].Value.ul = SecondsToIntTime(rec.ulStartTimeOffset * 60);
-
-			if(rec.ulEndType != ET_NEVER) {
-				sMeetingProps[2].ulPropTag = PROP_MEETING_ENDRECDATE;
-				sMeetingProps[2].Value.ul = FileTimeToIntDate(lpRecProps[2].Value.ft);
-			} else {
-				sMeetingProps[2].ulPropTag = PR_NULL;
-			}
-			
-			sMeetingProps[3].ulPropTag = PROP_MEETING_ENDRECTIME;
-			sMeetingProps[3].Value.ul = SecondsToIntTime(rec.ulEndTimeOffset * 60);
-
-			// Default the following values to 0 and set them later if needed
-			sMeetingProps[4].ulPropTag = PROP_MEETING_DAYINTERVAL;
-			sMeetingProps[4].Value.i = 0;
-			sMeetingProps[5].ulPropTag = PROP_MEETING_WEEKINTERVAL;
-			sMeetingProps[5].Value.i = 0;
-			sMeetingProps[6].ulPropTag = PROP_MEETING_MONTHINTERVAL;
-			sMeetingProps[6].Value.i = 0;
-			sMeetingProps[7].ulPropTag = PROP_MEETING_YEARINTERVAL;
-			sMeetingProps[7].Value.i = 0;
-			
-			sMeetingProps[8].ulPropTag = PROP_MEETING_DOWMASK;
-			sMeetingProps[8].Value.ul = 0 ;
-
-			sMeetingProps[9].ulPropTag = PROP_MEETING_DOMMASK;
-			sMeetingProps[9].Value.ul = 0;
-			
-			sMeetingProps[10].ulPropTag = PROP_MEETING_MOYMASK;
-			sMeetingProps[10].Value.ul = 0;
-			
-			sMeetingProps[11].ulPropTag = PROP_MEETING_RECURRENCETYPE;
-			sMeetingProps[11].Value.ul = 0;
-			
-			sMeetingProps[12].ulPropTag = PROP_MEETING_DOWSTART;
-			sMeetingProps[12].Value.i = rec.ulFirstDOW;
-			
-			sMeetingProps[13].ulPropTag = PROP_MEETING_RECURRING;
-			sMeetingProps[13].Value.b = true;
-
-			// Set the values depending on the type
-			switch(rec.ulRecurFrequency) {
-			case RF_DAILY:
-				if (rec.ulPatternType == PT_DAY) {
-					// Daily
-					sMeetingProps[4].Value.i = rec.ulPeriod / 1440; // DayInterval
-					sMeetingProps[11].Value.i = 64; // RecurrenceType
-				} else {
-					// Every workday, actually a weekly recurrence (weekly every workday)
-					sMeetingProps[5].Value.i = 1; // WeekInterval
-					sMeetingProps[8].Value.ul = 62; // Mo-Fri
-					sMeetingProps[11].Value.i = 48; // Weekly
-				}
-				break;
-			case RF_WEEKLY:
-				sMeetingProps[5].Value.i = rec.ulPeriod; // WeekInterval
-				sMeetingProps[8].Value.ul = rec.ulWeekDays; // DayOfWeekMask
-				sMeetingProps[11].Value.i = 48; // RecurrenceType
-				break;
-			case RF_MONTHLY:
-				sMeetingProps[6].Value.i = rec.ulPeriod; // MonthInterval
-				if (rec.ulPatternType == PT_MONTH_NTH) { // Every Nth [weekday] of the month
-					sMeetingProps[5].Value.ul = rec.ulWeekNumber; // WeekInterval
-					sMeetingProps[8].Value.ul = rec.ulWeekDays; // DayOfWeekMask
-					sMeetingProps[11].Value.i = 56; // RecurrenceType
-				} else {
-					sMeetingProps[9].Value.ul = 1 << (rec.ulDayOfMonth - 1); // day of month 1..31 mask
-					sMeetingProps[11].Value.i = 12; // RecurrenceType
-				}
-				break;
-			case RF_YEARLY:
-				sMeetingProps[6].Value.i = rec.ulPeriod; // YearInterval
-				sMeetingProps[7].Value.i = rec.ulPeriod / 12; // MonthInterval
-				/*
-				 * The following calculation is needed because the month of the year is encoded as minutes since
-				 * the beginning of a (non-leap-year) year until the beginning of the month. We can therefore
-				 * divide the minutes by the minimum number of minutes in one month (24*60*29) and round down
-				 * (which is automatic since it is an int), giving us month 0-11.
-				 *
-				 * Put a different way, lets just ASSUME each month has 29 days. Let X be the minute-offset, and M the
-				 * month (0-11), then M = X/(24*60*29). In real life though, some months have more than 29 days, so X will
-				 * actually be larger. Due to rounding, this keeps working until we have more then 29 days of error. In a
-				 * year, you will have a maximum of 17 ((31-29)+(29-29)+(31-29)+(30-29)...etc) days of error which is under
-				 * so this formula always gives a correct value if 0 < M < 12.
-				 */
-				sMeetingProps[10].Value.ul = 1 << ((rec.ulFirstDateTime/(24*60*29)) % 12); // month of year (minutes since beginning of the year)
-
-				if (rec.ulPatternType == PT_MONTH_NTH) { // Every Nth [weekday] in Month X
-					sMeetingProps[5].Value.ul = rec.ulWeekNumber; // WeekInterval
-					sMeetingProps[8].Value.ul = rec.ulWeekDays; // DayOfWeekMask
-					sMeetingProps[11].Value.i = 51; // RecurrenceType
-				} else {
-					sMeetingProps[9].Value.ul = 1 << (rec.ulDayOfMonth - 1); // day of month 1..31 mask
-					sMeetingProps[11].Value.i = 7; // RecurrenceType
-				}
-				break;
-			default:
-				break;
-			}
-			
-			hr = lpMessage->SetProps(14, sMeetingProps, NULL);
-			if(hr != hrSuccess)
-				return hr;
-		}
 	}
-	return hr;
+
+	// @todo
+	// this code should be in a separate function, which can easily
+	// do 'goto exit', and we can continue here with other fixes.
+	if (!lpProps[1].Value.b)
+		return hrSuccess;
+
+	// This is a recurring appointment. Generate the properties needed by CDO, which can be
+	// found in the recurrence state. Since these properties are completely redundant we always
+	// write them to correct any possible errors in the incoming message.
+	SPropValue sMeetingProps[14];
+	SizedSPropTagArray(3, sptaRecProps) = {3, {PROP_RECURRENCESTATE, PROP_CLIPSTART, PROP_CLIPEND}};
+	RecurrenceState rec;
+
+	// @todo, if all properties are not available: remove recurrence true marker
+	hr = lpMessage->GetProps(sptaRecProps, 0, &cRecProps, &~lpRecProps);
+	if (hr != hrSuccess) // Warnings not accepted
+		return hr;
+	hr = rec.ParseBlob(reinterpret_cast<const char *>(lpRecProps[0].Value.bin.lpb),
+	     static_cast<unsigned int>(lpRecProps[0].Value.bin.cb), 0);
+	if (FAILED(hr))
+		return hr;
+
+	// Ignore warnings
+	hr = hrSuccess;
+	sMeetingProps[0].ulPropTag = PROP_MEETING_STARTRECDATE;
+	sMeetingProps[0].Value.ul = FileTimeToIntDate(lpRecProps[1].Value.ft);
+	sMeetingProps[1].ulPropTag = PROP_MEETING_STARTRECTIME;
+	sMeetingProps[1].Value.ul = SecondsToIntTime(rec.ulStartTimeOffset * 60);
+	if (rec.ulEndType != ET_NEVER) {
+		sMeetingProps[2].ulPropTag = PROP_MEETING_ENDRECDATE;
+		sMeetingProps[2].Value.ul = FileTimeToIntDate(lpRecProps[2].Value.ft);
+	} else {
+		sMeetingProps[2].ulPropTag = PR_NULL;
+	}
+
+	sMeetingProps[3].ulPropTag = PROP_MEETING_ENDRECTIME;
+	sMeetingProps[3].Value.ul = SecondsToIntTime(rec.ulEndTimeOffset * 60);
+
+	// Default the following values to 0 and set them later if needed
+	sMeetingProps[4].ulPropTag = PROP_MEETING_DAYINTERVAL;
+	sMeetingProps[4].Value.i = 0;
+	sMeetingProps[5].ulPropTag = PROP_MEETING_WEEKINTERVAL;
+	sMeetingProps[5].Value.i = 0;
+	sMeetingProps[6].ulPropTag = PROP_MEETING_MONTHINTERVAL;
+	sMeetingProps[6].Value.i = 0;
+	sMeetingProps[7].ulPropTag = PROP_MEETING_YEARINTERVAL;
+	sMeetingProps[7].Value.i = 0;
+	sMeetingProps[8].ulPropTag = PROP_MEETING_DOWMASK;
+	sMeetingProps[8].Value.ul = 0 ;
+	sMeetingProps[9].ulPropTag = PROP_MEETING_DOMMASK;
+	sMeetingProps[9].Value.ul = 0;
+	sMeetingProps[10].ulPropTag = PROP_MEETING_MOYMASK;
+	sMeetingProps[10].Value.ul = 0;
+	sMeetingProps[11].ulPropTag = PROP_MEETING_RECURRENCETYPE;
+	sMeetingProps[11].Value.ul = 0;
+	sMeetingProps[12].ulPropTag = PROP_MEETING_DOWSTART;
+	sMeetingProps[12].Value.i = rec.ulFirstDOW;
+	sMeetingProps[13].ulPropTag = PROP_MEETING_RECURRING;
+	sMeetingProps[13].Value.b = true;
+
+	// Set the values depending on the type
+	switch (rec.ulRecurFrequency) {
+	case RF_DAILY:
+		if (rec.ulPatternType == PT_DAY) {
+			// Daily
+			sMeetingProps[4].Value.i = rec.ulPeriod / 1440; // DayInterval
+			sMeetingProps[11].Value.i = 64; // RecurrenceType
+			break;
+		}
+		// Every workday, actually a weekly recurrence (weekly every workday)
+		sMeetingProps[5].Value.i = 1; // WeekInterval
+		sMeetingProps[8].Value.ul = 62; // Mo-Fri
+		sMeetingProps[11].Value.i = 48; // Weekly
+		break;
+	case RF_WEEKLY:
+		sMeetingProps[5].Value.i = rec.ulPeriod; // WeekInterval
+		sMeetingProps[8].Value.ul = rec.ulWeekDays; // DayOfWeekMask
+		sMeetingProps[11].Value.i = 48; // RecurrenceType
+		break;
+	case RF_MONTHLY:
+		sMeetingProps[6].Value.i = rec.ulPeriod; // MonthInterval
+		if (rec.ulPatternType == PT_MONTH_NTH) { // Every Nth [weekday] of the month
+			sMeetingProps[5].Value.ul = rec.ulWeekNumber; // WeekInterval
+			sMeetingProps[8].Value.ul = rec.ulWeekDays; // DayOfWeekMask
+			sMeetingProps[11].Value.i = 56; // RecurrenceType
+		} else {
+			sMeetingProps[9].Value.ul = 1 << (rec.ulDayOfMonth - 1); // day of month 1..31 mask
+			sMeetingProps[11].Value.i = 12; // RecurrenceType
+		}
+		break;
+	case RF_YEARLY:
+		sMeetingProps[6].Value.i = rec.ulPeriod; // YearInterval
+		sMeetingProps[7].Value.i = rec.ulPeriod / 12; // MonthInterval
+		/*
+		 * The following calculation is needed because the month of the year is encoded as minutes since
+		 * the beginning of a (non-leap-year) year until the beginning of the month. We can therefore
+		 * divide the minutes by the minimum number of minutes in one month (24*60*29) and round down
+		 * (which is automatic since it is an int), giving us month 0-11.
+		 *
+		 * Put a different way, lets just ASSUME each month has 29 days. Let X be the minute-offset, and M the
+		 * month (0-11), then M = X/(24*60*29). In real life though, some months have more than 29 days, so X will
+		 * actually be larger. Due to rounding, this keeps working until we have more then 29 days of error. In a
+		 * year, you will have a maximum of 17 ((31-29)+(29-29)+(31-29)+(30-29)...etc) days of error which is under
+		 * so this formula always gives a correct value if 0 < M < 12.
+		 */
+		sMeetingProps[10].Value.ul = 1 << ((rec.ulFirstDateTime / (24 * 60 * 29)) % 12); // month of year (minutes since beginning of the year)
+
+		if (rec.ulPatternType == PT_MONTH_NTH) { // Every Nth [weekday] in Month X
+			sMeetingProps[5].Value.ul = rec.ulWeekNumber; // WeekInterval
+			sMeetingProps[8].Value.ul = rec.ulWeekDays; // DayOfWeekMask
+			sMeetingProps[11].Value.i = 51; // RecurrenceType
+		} else {
+			sMeetingProps[9].Value.ul = 1 << (rec.ulDayOfMonth - 1); // day of month 1..31 mask
+			sMeetingProps[11].Value.i = 7; // RecurrenceType
+		}
+		break;
+	default:
+		break;
+	}
+
+	return lpMessage->SetProps(14, sMeetingProps, nullptr);
 }
 
 static std::string StringEscape(const char *input, const char *tokens,
