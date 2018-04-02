@@ -82,18 +82,13 @@ HRESULT HrCopyString(void *base, const wchar_t *src, wchar_t **dst)
  * @param[in]	bNoRecipients	Skip recipients during conversion if set to true
  * @param[in]	lpMailUser		IMailUser Object pointer of the logged in user
  */
-VConverter::VConverter(LPADRBOOK lpAdrBook, timezone_map *mapTimeZones, LPSPropTagArray lpNamedProps, const std::string& strCharset, bool blCensor, bool bNoRecipients, IMailUser *lpMailUser)
-{
-	m_lpAdrBook = lpAdrBook;
-	m_mapTimeZones = mapTimeZones;
-	m_iCurrentTimeZone = m_mapTimeZones->end();
-	m_lpNamedProps = lpNamedProps;
-	m_strCharset = strCharset;
-	m_lpMailUser = lpMailUser;
-	m_bCensorPrivate = blCensor;
-	m_bNoRecipients = bNoRecipients;
-	m_ulUserStatus = 0;
-}
+VConverter::VConverter(IAddrBook *ab, timezone_map *tzmap, SPropTagArray *np,
+    const std::string &charset, bool censor, bool norecip, IMailUser *mu) :
+	m_lpAdrBook(ab), m_mapTimeZones(tzmap),
+	m_iCurrentTimeZone(m_mapTimeZones->end()),
+	m_lpNamedProps(np), m_strCharset(charset), m_lpMailUser(mu),
+	m_bCensorPrivate(censor), m_bNoRecipients(norecip), m_ulUserStatus(0)
+{}
 
 /**
  * Basic ical to mapi conversion, common to all VEVENT, VTODO,
