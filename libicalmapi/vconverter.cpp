@@ -1727,66 +1727,61 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 		}
 
 		icalcomponent_add_property(lpicEvent, lpicProp);
+		*lpicMethod = icMethod;
+		return hrSuccess;
 	}
-	else
-	{
-		// strMessageClass == "IPM.Schedule.Meeting.Request", "IPM.Schedule.Meeting.Canceled" or ....?
-		// strMessageClass == "IPM.Appointment": normal calendar item
 
-		// If we're dealing with a meeting, preset status to 1. PROP_MEETINGSTATUS may not be set
-		if (strMessageClass.compare(0, string("IPM.Schedule.Meeting").length(), string("IPM.Schedule.Meeting")) == 0)
-			ulMeetingStatus = 1;
+	// strMessageClass == "IPM.Schedule.Meeting.Request", "IPM.Schedule.Meeting.Canceled" or ....?
+	// strMessageClass == "IPM.Appointment": normal calendar item
+	// If we're dealing with a meeting, preset status to 1. PROP_MEETINGSTATUS may not be set
+	if (strMessageClass.compare(0, string("IPM.Schedule.Meeting").length(), string("IPM.Schedule.Meeting")) == 0)
+		ulMeetingStatus = 1;
 
-		// a normal calendar item has meeting status == 0, all other types != 0
-		lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG));
-		if (lpPropVal)
-			ulMeetingStatus = lpPropVal->Value.ul;
-		else if (HrGetOneProp(lpParentMsg, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG), &~lpSpropVal) == hrSuccess)
-			// if MeetingStatus flag is not set in exception message, retrive it from parent message.
-			ulMeetingStatus = lpSpropVal->Value.ul;
+	// a normal calendar item has meeting status == 0, all other types != 0
+	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG));
+	if (lpPropVal)
+		ulMeetingStatus = lpPropVal->Value.ul;
+	else if (HrGetOneProp(lpParentMsg, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG), &~lpSpropVal) == hrSuccess)
+		// if MeetingStatus flag is not set in exception message, retrive it from parent message.
+		ulMeetingStatus = lpSpropVal->Value.ul;
 
-		// meeting bit enabled
-		if (ulMeetingStatus & 1) {
-			if (ulMeetingStatus & 4) {
-				icalcomponent_add_property(lpicEvent, icalproperty_new_status(ICAL_STATUS_CANCELLED));
-				icMethod = ICAL_METHOD_CANCEL;
-			} else {
-				icalcomponent_add_property(lpicEvent, icalproperty_new_status(ICAL_STATUS_CONFIRMED));
-				icMethod = ICAL_METHOD_REQUEST;
-			}
-
-			// meeting action, add all attendees, request reply when needed
-			hr = HrSetICalAttendees(lpMessage, strSenderEmailAddr, lpicEvent);
-			if (hr != hrSuccess)
-				return hr;
-
-			//Set this property to force thunderbird to send invitations mails.
-			lpPropVal = PCpropFindProp (lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZSENDINVITE], PT_BOOLEAN));
-			if (lpPropVal && !lpPropVal->Value.b) 
-				lpicProp = icalproperty_new_x("FALSE");
-			else
-				lpicProp = icalproperty_new_x("TRUE");
-	
-			icalproperty_set_x_name(lpicProp, "X-MOZ-SEND-INVITATIONS"); 
-			icalcomponent_add_property(lpicEvent, lpicProp);
-			
-			// I am the Organizer
-			auto wstrBuf = L"mailto:" + (strRepsSenderEmailAddr.empty()? strSenderEmailAddr : strRepsSenderEmailAddr);
-			lpicProp = icalproperty_new_organizer(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str());
-
-			wstrBuf = strRepsSenderName.empty()? strSenderName : strRepsSenderName;
-			if (!wstrBuf.empty())
-				icalproperty_add_parameter(lpicProp, icalparameter_new_cn(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str()) );
-
-			wstrBuf = L"mailto:" + strSenderEmailAddr;
-			if (!strSenderEmailAddr.empty() && strSenderEmailAddr != strRepsSenderEmailAddr)
-				icalproperty_add_parameter(lpicProp, icalparameter_new_sentby(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str()) );
-
-			icalcomponent_add_property(lpicEvent, lpicProp);
+	// meeting bit enabled
+	if (ulMeetingStatus & 1) {
+		if (ulMeetingStatus & 4) {
+			icalcomponent_add_property(lpicEvent, icalproperty_new_status(ICAL_STATUS_CANCELLED));
+			icMethod = ICAL_METHOD_CANCEL;
 		} else {
-			// normal calendar item
-			icMethod = ICAL_METHOD_PUBLISH;
+			icalcomponent_add_property(lpicEvent, icalproperty_new_status(ICAL_STATUS_CONFIRMED));
+			icMethod = ICAL_METHOD_REQUEST;
 		}
+
+		// meeting action, add all attendees, request reply when needed
+		hr = HrSetICalAttendees(lpMessage, strSenderEmailAddr, lpicEvent);
+		if (hr != hrSuccess)
+			return hr;
+
+		//Set this property to force thunderbird to send invitations mails.
+		lpPropVal = PCpropFindProp (lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZSENDINVITE], PT_BOOLEAN));
+		if (lpPropVal && !lpPropVal->Value.b)
+			lpicProp = icalproperty_new_x("FALSE");
+		else
+			lpicProp = icalproperty_new_x("TRUE");
+		icalproperty_set_x_name(lpicProp, "X-MOZ-SEND-INVITATIONS");
+		icalcomponent_add_property(lpicEvent, lpicProp);
+
+		// I am the Organizer
+		auto wstrBuf = L"mailto:" + (strRepsSenderEmailAddr.empty()? strSenderEmailAddr : strRepsSenderEmailAddr);
+		lpicProp = icalproperty_new_organizer(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str());
+		wstrBuf = strRepsSenderName.empty()? strSenderName : strRepsSenderName;
+		if (!wstrBuf.empty())
+			icalproperty_add_parameter(lpicProp, icalparameter_new_cn(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str()) );
+		wstrBuf = L"mailto:" + strSenderEmailAddr;
+		if (!strSenderEmailAddr.empty() && strSenderEmailAddr != strRepsSenderEmailAddr)
+			icalproperty_add_parameter(lpicProp, icalparameter_new_sentby(m_converter.convert_to<string>(m_strCharset.c_str(), wstrBuf, rawsize(wstrBuf), CHARSET_WCHAR).c_str()) );
+		icalcomponent_add_property(lpicEvent, lpicProp);
+	} else {
+		// normal calendar item
+		icMethod = ICAL_METHOD_PUBLISH;
 	}
 
 	*lpicMethod = icMethod;
