@@ -58,12 +58,10 @@ static constexpr const SizedSPropTagArray(22, sptaKopanoProfile) =
 
 HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULONG ulResourceType, LPMAPISUP lpMAPISup, LPSPropValue lpspvIdentity, ULONG ulFlags)
 {
-	HRESULT			hResult = hrSuccess;
 	memory_ptr<SPropValue> lpspvStatusRow;
 	ULONG			cCurVal = 0;
-	unsigned int	size = 0;
 
-	hResult = MAPIAllocateBuffer(sizeof(SPropValue) * 13, &~lpspvStatusRow);
+	auto hResult = MAPIAllocateBuffer(sizeof(SPropValue) * 13, &~lpspvStatusRow);
 	if(hResult != hrSuccess)
 		return hResult;
 
@@ -71,8 +69,7 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 
 	if(lpszProviderDisplay)
 	{
-		size = strlen(lpszProviderDisplay)+1;
-
+		unsigned int size = strlen(lpszProviderDisplay) + 1;
 		// Set the PR_PROVIDER_DISPLAY property:
 		lpspvStatusRow[cCurVal].ulPropTag = PR_PROVIDER_DISPLAY_A;
 		hResult = KAllocCopy(lpszProviderDisplay, size, reinterpret_cast<void **>(&lpspvStatusRow[cCurVal].Value.lpszA), lpspvStatusRow);
@@ -127,27 +124,24 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 
 HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup, LPSPropValue* lppIdentityProps)
 {
-	HRESULT			hr = hrSuccess;
 	ULONG			cbEntryStore = 0;
 	memory_ptr<ENTRYID> lpEntryStore, lpEID;
 	ULONG			cbEID = 0;
-	ULONG			cValues = 0;
 	ULONG			ulSize = 0;
 	memory_ptr<ECUSER> lpUser;
-	tstring			strProfileSenderSearchKey;
 	memory_ptr<SPropValue> lpIdentityProps;
 
 	// Get the username and email adress
-	hr = lpTransport->HrGetUser(0, NULL, fMapiUnicode, &~lpUser);
+	auto hr = lpTransport->HrGetUser(0, NULL, fMapiUnicode, &~lpUser);
 	if(hr != hrSuccess)
 		return hr;
-	cValues = NUM_IDENTITY_PROPS;
+	unsigned int cValues = NUM_IDENTITY_PROPS;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpIdentityProps);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpIdentityProps, 0, sizeof(SPropValue) * cValues);
 
-	strProfileSenderSearchKey = strToUpper(tstring(TRANSPORT_ADDRESS_TYPE_ZARAFA) + KC_T(":") + lpUser->lpszMailAddress);
+	auto strProfileSenderSearchKey = strToUpper(tstring(TRANSPORT_ADDRESS_TYPE_ZARAFA) + KC_T(":") + lpUser->lpszMailAddress);
 	lpIdentityProps[XPID_EID].ulPropTag = PR_SENDER_ENTRYID;
 	lpIdentityProps[XPID_EID].Value.bin.cb = lpUser->sUserId.cb;
 	hr = KAllocCopy(lpUser->sUserId.lpb, lpUser->sUserId.cb, reinterpret_cast<void **>(&lpIdentityProps[XPID_EID].Value.bin.lpb), lpIdentityProps);
@@ -215,25 +209,15 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
  */
 HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAGE* lppEmptyMessage)
 {
-	HRESULT			hr = hrSuccess;
 	memory_ptr<SPropValue> spv, dpv;
-	ULONG			ulMaxDestValues = 0;
-	ULONG			dval = 0;
-	ULONG			cSrcValues = 0;
-	ULONG			cbTmp = 0;
+	unsigned int dval = 0, cSrcValues = 0, cbTmp = 0;
 	memory_ptr<BYTE> lpByteTmp;
 	const TCHAR *lpMsgClass = NULL;
-	LPTSTR			lpReportText = NULL;
-	LPTSTR			lpReadText = NULL;
+	LPTSTR lpReportText = nullptr, lpReadText = nullptr;
 	FILETIME		ft;	
 	adrlist_ptr lpMods;
-	std::wstring	strName;
-	std::wstring	strType;
-	std::wstring	strAddress;
-	tstring			strBodyText;
+	std::wstring strName, strType, strAddress;
 	time_t			zero = 0;
-	time_t			tt;
-	struct tm*		tm;
 	char			szTime[255];
 	object_ptr<IStream> lpBodyStream;
 	tstring			tSubject;
@@ -289,7 +273,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		lpReportText = _("was read on");
 	}
 
-	hr = lpReadMessage->GetProps(sPropReadReceipt, fMapiUnicode, &cSrcValues, &~spv);
+	auto hr = lpReadMessage->GetProps(sPropReadReceipt, fMapiUnicode, &cSrcValues, &~spv);
 	if(FAILED(hr) != hrSuccess)
 		return hr;
 
@@ -298,7 +282,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	if (!HAVE(REPORT_ENTRYID))
 		return MAPI_E_INVALID_PARAMETER;
 
-	strBodyText = _("Your message");
+	tstring strBodyText = _("Your message");
 	strBodyText += KC_T("\r\n\r\n");
 
 	if (HAVE(DISPLAY_TO)) {
@@ -326,8 +310,8 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		strBodyText += KC_T("\t");
 		strBodyText+= _("Sent on:");
 		strBodyText += KC_T(" ");
-		tt = FileTimeToUnixTime(spv[RR_CLIENT_SUBMIT_TIME].Value.ft);
-		tm = localtime(&tt);
+		auto tt = FileTimeToUnixTime(spv[RR_CLIENT_SUBMIT_TIME].Value.ft);
+		auto tm = localtime(&tt);
 		if (tm == NULL)
 			tm = localtime(&zero);
 		strftime(szTime, 255, "%c", tm);
@@ -339,15 +323,15 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	strBodyText += KC_T("\r\n");
 	strBodyText+= lpReportText;
 	strBodyText += KC_T(" ");
-	tt = FileTimeToUnixTime(ft);
-	tm = localtime(&tt);
+	auto tt = FileTimeToUnixTime(ft);
+	auto tm = localtime(&tt);
 	if (tm == NULL)
 		tm = localtime(&zero);
 	strftime(szTime, 255, "%c", tm);
 
 	strBodyText+= convert_to<tstring>(szTime, strlen(szTime), CHARSET_CHAR);
 	strBodyText += KC_T("\r\n");
-	ulMaxDestValues = cSrcValues + 4;//+ default properties
+	auto ulMaxDestValues = cSrcValues + 4;//+ default properties
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * ulMaxDestValues, &~dpv);
 	if(hr != hrSuccess)
 		return hr;
@@ -555,10 +539,8 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 
 HRESULT ClientUtil::GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlobalProfileProps* lpsProfileProps)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<IProfSect> lpGlobalProfSect;
-
-	hr = lpMAPISup->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), MAPI_MODIFY, &~lpGlobalProfSect);
+	auto hr = lpMAPISup->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), MAPI_MODIFY, &~lpGlobalProfSect);
 	if(hr != hrSuccess)
 		return hr;
 	return ClientUtil::GetGlobalProfileProperties(lpGlobalProfSect, lpsProfileProps);
@@ -566,20 +548,19 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlob
 
 HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, struct sGlobalProfileProps* lpsProfileProps)
 {
-	HRESULT			hr = hrSuccess;
 	memory_ptr<SPropValue> lpsPropArray;
 	ULONG			cValues = 0;
-	const SPropValue *lpProp = NULL;
 
 	if (lpGlobalProfSect == nullptr || lpsProfileProps == nullptr)
 		return MAPI_E_INVALID_OBJECT;
 
 	// Get the properties we need directly from the global profile section
-	hr = lpGlobalProfSect->GetProps(sptaKopanoProfile, 0, &cValues, &~lpsPropArray);
+	auto hr = lpGlobalProfSect->GetProps(sptaKopanoProfile, 0, &cValues, &~lpsPropArray);
 	if(FAILED(hr))
 		return hr;
 
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PATH)) != NULL)
+	auto lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PATH);
+	if (lpProp != nullptr)
 		lpsProfileProps->strServerPath = lpProp->Value.lpszA;
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_PROFILE_NAME_A)) != NULL)
 		lpsProfileProps->strProfileName = lpProp->Value.lpszA;
@@ -631,7 +612,6 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 
 HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSect, ULONG *lpcDelegates, LPBYTE *lppDelegateStores)
 {
-	HRESULT			hr = hrSuccess;
 	memory_ptr<SPropValue> lpsPropValue;
 	ULONG			cValues = 0;
 	SizedSPropTagArray(1, sPropTagArray);
@@ -643,7 +623,7 @@ HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSe
 	
 	sPropTagArray.cValues = 1;
 	sPropTagArray.aulPropTag[0] =  PR_STORE_PROVIDERS;
-	hr = lpGlobalProfSect->GetProps(sPropTagArray, 0, &cValues, &~lpsPropValue);
+	auto hr = lpGlobalProfSect->GetProps(sPropTagArray, 0, &cValues, &~lpsPropValue);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -666,9 +646,7 @@ entryid functions
 HRESULT HrCreateEntryId(const GUID &guidStore, unsigned int ulObjType,
     ULONG *lpcbEntryId, ENTRYID **lppEntryId)
 {
-	HRESULT		hr;
 	EID			eid;
-	ULONG		cbEntryId = 0;
 	LPENTRYID	lpEntryId = NULL;
 
 	if (lpcbEntryId == NULL || lppEntryId == NULL)
@@ -676,9 +654,8 @@ HRESULT HrCreateEntryId(const GUID &guidStore, unsigned int ulObjType,
 	if (CoCreateGuid(&eid.uniqueId) != hrSuccess)
 		return MAPI_E_CALL_FAILED;
 
-	cbEntryId = CbNewEID("");
-
-	hr = ECAllocateBuffer(cbEntryId, (void**)&lpEntryId); 
+	unsigned int cbEntryId = CbNewEID("");
+	auto hr = ECAllocateBuffer(cbEntryId, reinterpret_cast<void **>(&lpEntryId));
 	if(hr != hrSuccess)
 		return hr;
 
@@ -711,10 +688,7 @@ HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId,
     const ENTRYID *lpEntryId, std::string &rServerPath, bool *lpbIsPseudoUrl)
 {
 	PEID	peid = (PEID)lpEntryId;
-	EID_V0*	peid_V0 = NULL;
-
-	ULONG	ulMaxSize = 0;
-	ULONG	ulSize = 0;
+	unsigned int ulMaxSize = 0, ulSize = 0;
 	char*	lpTmpServerName = NULL;
 	bool	bIsPseudoUrl = false;
 
@@ -723,8 +697,7 @@ HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId,
 
 	if (peid->ulVersion == 0) 
 	{
-		peid_V0 = (EID_V0*)lpEntryId;
-
+		auto peid_V0 = reinterpret_cast<const EID_V0 *>(lpEntryId);
 		ulMaxSize = cbEntryId - offsetof(EID_V0, szServer);
 		ulSize = strnlen((char*)peid_V0->szServer, ulMaxSize);
 		lpTmpServerName = (char*)peid_V0->szServer;
@@ -763,7 +736,6 @@ HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId,
  */
 HRESULT HrResolvePseudoUrl(WSTransport *lpTransport, const char *lpszUrl, std::string& serverPath, bool *lpbIsPeer)
 {
-	HRESULT		hr = hrSuccess;
 	ecmem_ptr<char> lpszServerPath;
 	bool		bIsPeer = false;
 
@@ -771,7 +743,7 @@ HRESULT HrResolvePseudoUrl(WSTransport *lpTransport, const char *lpszUrl, std::s
 		return MAPI_E_INVALID_PARAMETER;
 	if (strncmp(lpszUrl, "pseudo://", 9))
 		return MAPI_E_NOT_FOUND;
-	hr = lpTransport->HrResolvePseudoUrl(lpszUrl, &~lpszServerPath, &bIsPeer);
+	auto hr = lpTransport->HrResolvePseudoUrl(lpszUrl, &~lpszServerPath, &bIsPeer);
 	if (hr != hrSuccess)
 		return hr;
 	serverPath = lpszServerPath.get();
@@ -796,8 +768,6 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID,
     const GUID &guidStore, void *lpBase, ULONG *lpcbEntryID,
     ENTRYID **lppEntryID)
 {
-	HRESULT hr = hrSuccess;
-	ULONG cbEntryID = 0;
 	LPENTRYID lpEntryID = NULL;
 
 	GUID guidEmpty = {0};
@@ -820,8 +790,8 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID,
 	if (lpcbEntryID == NULL || lppEntryID == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	cbEntryID = CbEID(&eid);
-	hr = KAllocCopy(&eid, cbEntryID, reinterpret_cast<void **>(&lpEntryID), lpBase);
+	unsigned int cbEntryID = CbEID(&eid);
+	auto hr = KAllocCopy(&eid, cbEntryID, reinterpret_cast<void **>(&lpEntryID), lpBase);
 	if (hr != hrSuccess)
 		return hr;
 	*lpcbEntryID = cbEntryID;
