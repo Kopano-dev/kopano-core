@@ -1020,7 +1020,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	if (hr != hrSuccess)
 		return hr;
 
-	for (lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY);
+	for (auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY);
 		 lpicProp != NULL;
 		 lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_ATTENDEE_PROPERTY))
 	{
@@ -2051,6 +2051,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	if (lpPropVal)
 	{
 		LONG ulXmozGen = 0;
+		icalvalue *lpicValue = NULL;
 		ulXmozGen = lpPropVal->Value.ul;
 		lpicValue = icalvalue_new_integer(ulXmozGen);
 
@@ -2451,6 +2452,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	for (ULONG i = 0; i < ulModCount; ++i) {
 		SPropValuePtr  lpMsgProps;
 		ULONG ulMsgProps = 0;
+		const SPropValue *lpProp = NULL;
 		icalproperty_method icMethod = ICAL_METHOD_NONE;
 		icalcomp_ptr lpicException;
 
@@ -2510,7 +2512,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		     strTZid, ICAL_DTEND_PROPERTY, lpicException.get());
 		if (hr != hrSuccess)
 			continue;
-		auto lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME));
+		lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME));
 		if (!lpProp)
 			lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OLDSTART], PT_SYSTIME));
 
