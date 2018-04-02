@@ -917,8 +917,8 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			}
 		}
 
-		for (const auto &field : vmHeader->getFieldList()) {
-			std::string value, name = field->getName();
+		for (const auto &fld : vmHeader->getFieldList()) {
+			std::string value, name = fld->getName();
 
 			// exclusion list?
 			if (name == "X-Priority")
@@ -955,7 +955,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			}
 
 			KPropbuffer<1> prop;
-			prop.set(0, lpPropTags->aulPropTag[0], field->getValue()->generate());
+			prop.set(0, lpPropTags->aulPropTag[0], fld->getValue()->generate());
 			lpMessage->SetProps(1, prop.get(), nullptr);
 			// in case of error: ignore this x-header as named props then
 		}

@@ -202,7 +202,7 @@ static HRESULT StreamToPropValue(IStream *lpStream, ULONG ulPropTag,
  * 							List of properties to exclude from the message
  * @return	MAPI error code
  */
-HRESULT ECTNEF::AddProps(ULONG ulFlags, const SPropTagArray *lpPropList)
+HRESULT ECTNEF::AddProps(ULONG flags, const SPropTagArray *lpPropList)
 {
 	HRESULT			hr = hrSuccess;
 	memory_ptr<SPropTagArray> lpPropListMessage;
@@ -237,8 +237,8 @@ HRESULT ECTNEF::AddProps(ULONG ulFlags, const SPropTagArray *lpPropList)
 
 		fPropTagInList = PropTagInPropList(lpPropListMessage->aulPropTag[i], lpPropList);
 
-		bool a = ulFlags & TNEF_PROP_INCLUDE && fPropTagInList;
-		a     |= ulFlags & TNEF_PROP_EXCLUDE && !fPropTagInList;
+		bool a = flags & TNEF_PROP_INCLUDE && fPropTagInList;
+		a     |= flags & TNEF_PROP_EXCLUDE && !fPropTagInList;
 		if (!a)
 			continue;
 		sPropTagArray.cValues = 1;
@@ -271,7 +271,7 @@ HRESULT ECTNEF::AddProps(ULONG ulFlags, const SPropTagArray *lpPropList)
  * 
  * @retval	MAPI_E_CORRUPT_DATA TNEF stream input is broken, or other MAPI error codes
  */
-HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
+HRESULT ECTNEF::ExtractProps(ULONG flags, SPropTagArray *lpPropList)
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulSignature = 0;
@@ -1291,7 +1291,7 @@ HRESULT ECTNEF::SetProps(ULONG cValues, LPSPropValue lpProps)
  * @param[in]	lpPropList		List of proptags to put in the TNEF stream of this attachment
  * @return MAPI error code
  */
-HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID,
+HRESULT ECTNEF::FinishComponent(ULONG flags, ULONG ulComponentID,
     const SPropTagArray *lpPropList)
 {
     HRESULT hr = hrSuccess;
@@ -1307,7 +1307,7 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID,
 	sTnefAttach.reset(new(std::nothrow) tnefattachment);
 	if (sTnefAttach == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	if (ulFlags != TNEF_COMPONENT_ATTACHMENT)
+	if (flags != TNEF_COMPONENT_ATTACHMENT)
 		return MAPI_E_NO_SUPPORT;
 	if (this->ulFlags != TNEF_ENCODE)
 		return MAPI_E_INVALID_PARAMETER;
@@ -1393,7 +1393,6 @@ HRESULT ECTNEF::Finish()
 	ULARGE_INTEGER uzero = {{0,0}};
 	// attachment vars
 	ULONG ulAttachNum;
-	object_ptr<IStream> lpAttStream;
 	object_ptr<IMessage> lpAttMessage;
 	SPropValue sProp;
 
