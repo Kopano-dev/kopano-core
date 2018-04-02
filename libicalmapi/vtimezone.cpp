@@ -153,8 +153,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
     TIMEZONE_STRUCT *lpsTimeZone)
 {
 	icalcomponent *icComp = NULL;
-	SYSTEMTIME *lpSysTime = NULL;
-	SYSTEMTIME stRecurTime;
+	SYSTEMTIME stRecurTime, *lpSysTime = NULL;
 
 	/* Assumes that definitions are sorted on dtstart, in ascending order. */
 	auto iterComp = icalcomponent_get_first_component(lpVTZ, kind);

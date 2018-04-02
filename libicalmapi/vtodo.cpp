@@ -165,8 +165,7 @@ HRESULT VTodoConverter::HrAddBaseProperties(icalproperty_method icMethod, icalco
 HRESULT VTodoConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem)
 {
 	SPropValue sPropVal;
-	time_t timeDTStart = 0;
-	time_t timeDue = 0;
+	time_t timeDTStart = 0, timeDue = 0;
 
 	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
 	if (lpicProp) {

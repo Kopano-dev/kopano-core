@@ -138,8 +138,7 @@ HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
 		to_prop(adrnode, "C", msgprop_array[4].Value.lpszW);
 	}
 
-	MAPINAMEID nameids[5];
-	MAPINAMEID *nameids_ptrs[5];
+	MAPINAMEID nameids[5], *nameids_ptrs[5];
 	for (size_t i = 0; i < 5; ++i) {
 		nameids[i].lpguid = const_cast<GUID *>(&PSETID_Address);
 		nameids[i].ulKind = MNID_ID;
@@ -168,8 +167,7 @@ HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
 
 HRESULT mapitovcf_impl::add_email(IMessage *lpMessage, VObject *root)
 {
-	MAPINAMEID name;
-	MAPINAMEID *namep = &name;
+	MAPINAMEID name, *namep = &name;
 
 	for (int lid = 0x8083; lid <= 0x80a3; lid += 0x10) {
 		name.lpguid = const_cast<GUID *>(&PSETID_Address);
@@ -195,9 +193,7 @@ HRESULT mapitovcf_impl::add_email(IMessage *lpMessage, VObject *root)
 
 HRESULT mapitovcf_impl::add_uid(IMessage *lpMessage, VObject *root)
 {
-	MAPINAMEID name;
-	MAPINAMEID *namep = &name;
-
+	MAPINAMEID name, *namep = &name;
 	name.lpguid = const_cast<GUID *>(&PSETID_Meeting);
 	name.ulKind = MNID_ID;
 	name.Kind.lID = dispidGlobalObjectID;
@@ -239,8 +235,7 @@ HRESULT mapitovcf_impl::add_uid(IMessage *lpMessage, VObject *root)
 
 HRESULT mapitovcf_impl::add_url(IMessage *lpMessage, VObject *root)
 {
-	MAPINAMEID name;
-	MAPINAMEID *namep = &name;
+	MAPINAMEID name, *namep = &name;
 	name.lpguid = const_cast<GUID *>(&PSETID_Address);
 	name.ulKind = MNID_ID;
 	name.Kind.lID = dispidWebPage;

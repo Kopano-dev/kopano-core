@@ -47,13 +47,12 @@ bool IsOutlookUid(const std::string &strUid)
 HRESULT HrGenerateUid(std::string *lpStrData)
 {
 	GUID sGuid;
-	FILETIME ftNow;
 	ULONG ulSize = 1;
 
 	HRESULT hr = CoCreateGuid(&sGuid);
 	if (hr != hrSuccess)
 		return hr;
-	ftNow = UnixTimeToFileTime(time(nullptr));
+	auto ftNow = UnixTimeToFileTime(time(nullptr));
 	auto strBinUid = outlook_guid;
 	strBinUid += "00000000";	// InstanceDate
 	strBinUid += bin2hex(sizeof(FILETIME), &ftNow);
@@ -75,11 +74,10 @@ HRESULT HrGenerateUid(std::string *lpStrData)
 HRESULT HrCreateGlobalID(ULONG ulNamedTag, void *base, LPSPropValue *lppPropVal)
 {
 	void *origbase = base;
-	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropVal = NULL;
 	std::string strUid, strBinUid;
 
-	hr = MAPIAllocateMore(sizeof(SPropValue), base, reinterpret_cast<void **>(&lpPropVal));
+	auto hr = MAPIAllocateMore(sizeof(SPropValue), base, reinterpret_cast<void **>(&lpPropVal));
 	if (base == nullptr)
 		base = lpPropVal;
 	if (hr != hrSuccess)
@@ -181,8 +179,7 @@ HRESULT HrMakeBinUidFromICalUid(const std::string &strUid, std::string *lpStrBin
 HRESULT HrMakeBinaryUID(const std::string &strUid, void *base, SPropValue *lpPropValue)
 {
 	SPropValue sPropValue;
-	std::string strBinUid;
-	std::string strByteArrayID = "040000008200E00074C5B7101A82E008";
+	std::string strBinUid, strByteArrayID = "040000008200E00074C5B7101A82E008";
 
 	// Check whether this is a default Outlook UID
 	// Exchange example: UID:040000008200E00074C5B7101A82E008 00000000 305D0F2A9A06C901 0000000000000000 10000000 7F64D28AE2DCC64C88F849733F5FBD1D
