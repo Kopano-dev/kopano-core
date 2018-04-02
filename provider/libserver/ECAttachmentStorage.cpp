@@ -1661,11 +1661,9 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
 			iSizeLeft -= iChunkSize;
 		}
 
-		if (er == erSuccess) {
-			if (force_changes_to_disk && !force_buffers_to_disk(fd)) {
-				ec_log_warn("Problem syncing file \"%s\": %s", filename.c_str(), strerror(errno));
-				er = KCERR_DATABASE_ERROR;
-			}
+		if (er == erSuccess && force_changes_to_disk && !force_buffers_to_disk(fd)) {
+			ec_log_warn("Problem syncing file \"%s\": %s", filename.c_str(), strerror(errno));
+			er = KCERR_DATABASE_ERROR;
 		}
 
 		close(fd);
