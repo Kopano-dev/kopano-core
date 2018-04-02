@@ -558,17 +558,17 @@ HRESULT ECGenericProp::HrSetPropStorage(IECPropStorage *storage, BOOL fLoadProps
 	SPropValue sPropValue;
 
 	lpStorage.reset(storage);
-	if(fLoadProps) {
-		auto hr = HrLoadProps();
-		if(hr != hrSuccess)
-			return hr;
-		if (HrGetRealProp(PR_OBJECT_TYPE, 0, NULL, &sPropValue, m_ulMaxPropSize) == hrSuccess &&
-		    // The server sent a PR_OBJECT_TYPE, check if it is correct
-		    this->ulObjType != sPropValue.Value.ul)
-			// Return NOT FOUND because the entryid given was the incorrect type. This means
-			// that the object was basically not found.
-			return MAPI_E_NOT_FOUND;
-	}
+	if (!fLoadProps)
+		return hrSuccess;
+	auto hr = HrLoadProps();
+	if(hr != hrSuccess)
+		return hr;
+	if (HrGetRealProp(PR_OBJECT_TYPE, 0, NULL, &sPropValue, m_ulMaxPropSize) == hrSuccess &&
+	    // The server sent a PR_OBJECT_TYPE, check if it is correct
+	    this->ulObjType != sPropValue.Value.ul)
+		// Return NOT FOUND because the entryid given was the incorrect type. This means
+		// that the object was basically not found.
+		return MAPI_E_NOT_FOUND;
 	return hrSuccess;
 }
 
