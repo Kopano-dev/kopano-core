@@ -202,8 +202,7 @@ protected:
 	ECCategoryMap				m_mapCategories;	// Map between instance key of category and category struct
 	ECSortedCategoryMap			m_mapSortedCategories; // Map between category sort keys and instance key. This is where we track which categories we have
 	ECLeafMap					m_mapLeafs;			// Map between object instance key and LEAFINFO (contains unread flag and category pointer)
-	unsigned int m_ulCategory = 1, m_ulCategories = 0;
-	unsigned int m_ulExpanded = 0;
+	unsigned int m_ulCategory = 1, m_ulCategories = 0, m_ulExpanded = 0;
 	bool m_bPopulated = false;
 	ECLocale					m_locale;
 };

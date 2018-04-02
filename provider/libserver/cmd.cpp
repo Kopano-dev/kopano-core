@@ -7285,8 +7285,7 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	unsigned int ulDestFolderId = 0, ulSourceType = 0, ulDestType = 0;
 	long long		llFolderSize = 0;
 	SOURCEKEY		sSourceKey;
-	SOURCEKEY		sParentSourceKey; // Old parent
-	SOURCEKEY		sDestSourceKey; // New parent
+	SOURCEKEY sParentSourceKey, sDestSourceKey; /* old + new parent */
 	std::string strSubQuery, name;
 	USE_DATABASE();
 	const EntryId srcEntryId(&sEntryId), dstEntryId(&sDestFolderId);

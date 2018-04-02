@@ -118,7 +118,7 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
     const struct restrictSub *lpRestrict, const ECObjectTableList *lpObjects,
     const ECLocale &locale, SUBRESTRICTIONRESULT &result)
 {
-    unsigned int ulType = 0;
+	unsigned int ulType = 0, ulSubObject = 0, ulParent = 0;
     std::string strQuery;
 	DB_RESULT lpDBResult;
     DB_ROW lpRow = NULL;
@@ -129,8 +129,6 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
 	auto lpResult = std::make_unique<SUBRESTRICTIONRESULT>();
     struct rowSet *lpRowSet = NULL;
     bool fMatch = false;
-    unsigned int ulSubObject = 0;
-    unsigned int ulParent = 0;
     sObjectTableKey sKey;
     ECDatabase *lpDatabase = NULL;
 

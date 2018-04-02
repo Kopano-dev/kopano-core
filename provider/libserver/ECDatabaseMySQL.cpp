@@ -199,8 +199,7 @@ static const char *const server_groups[] = {
 };
 
 struct STOREDPROCS {
-	const char *szName;
-	const char *szSQL;
+	const char *szName, *szSQL;
 };
 
 /**

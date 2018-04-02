@@ -965,9 +965,7 @@ ECRESULT ECStoreObjectTable::Load()
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpDBResult;
 	auto lpData = static_cast<const ECODStore *>(m_lpObjectData);
-
-    unsigned int ulFlags = lpData->ulFlags;
-    unsigned int ulFolderId = lpData->ulFolderId;
+	unsigned int ulFlags = lpData->ulFlags, ulFolderId = lpData->ulFolderId;
     unsigned int ulObjType = lpData->ulObjType;
 
     unsigned int ulMaxItems = atoui(lpSession->GetSessionManager()->GetConfig()->GetSetting("folder_max_items"));

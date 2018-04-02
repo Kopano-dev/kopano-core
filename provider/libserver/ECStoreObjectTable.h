@@ -27,9 +27,7 @@ class ECSession;
 struct ECODStore {
 	unsigned int	ulStoreId;		// The Store ID this table is watching (0 == multi-store)
 	unsigned int	ulFolderId;		// The Folder ID this table is watching (0 == multi-folder)
-	unsigned int	ulObjType;
-	unsigned int	ulFlags;
-	unsigned int 	ulTableFlags;
+	unsigned int ulObjType, ulFlags, ulTableFlags;
 	GUID*			lpGuid;			// The GUID of the store
 };
 

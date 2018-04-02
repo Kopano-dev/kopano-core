@@ -164,10 +164,8 @@ ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int 
 {
 	ulock_normal l_note(m_hNotificationLock);
 	ECNotification notify(*notifyItem);
-	unsigned int ulParent = 0;
-	unsigned int ulOldParent = 0;
-	bool check_parent = false;
-	bool check_old_parent = false;
+	unsigned int ulParent = 0, ulOldParent = 0;
+	bool check_parent = false, check_old_parent = false;
 	ECRESULT hr = erSuccess;
 
 	if (notifyItem->obj != nullptr) {

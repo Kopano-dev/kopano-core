@@ -608,8 +608,7 @@ ECDispatcherEPoll::~ECDispatcherEPoll()
 ECRESULT ECDispatcherEPoll::MainLoop()
 {
 	ECRESULT er = erSuccess;
-	time_t now = 0;
-	time_t last = 0;
+	time_t now = 0, last = 0;
 	CONNECTION_TYPE ulType;
 	epoll_event epevent;
 	auto epevents = make_unique_nt<epoll_event[]>(m_fdMax);
