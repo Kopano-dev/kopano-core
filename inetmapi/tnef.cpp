@@ -1280,7 +1280,7 @@ HRESULT ECTNEF::FinishComponent(ULONG flags, ULONG ulComponentID,
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	if (flags != TNEF_COMPONENT_ATTACHMENT)
 		return MAPI_E_NO_SUPPORT;
-	if (this->ulFlags != TNEF_ENCODE)
+	if (ulFlags != TNEF_ENCODE)
 		return MAPI_E_INVALID_PARAMETER;
 	auto hr = m_lpMessage->OpenAttach(ulComponentID, &IID_IAttachment, 0, &~lpAttach);
     if(hr != hrSuccess)
