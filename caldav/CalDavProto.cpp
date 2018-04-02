@@ -447,7 +447,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	WEBDAVPROP sDavProp;
 	WEBDAVRESPONSE sWebResponse;
 	bool blCensorPrivate = false;
-	int i;
+	unsigned int i;
 
 	m_lpRequest->HrGetRequestUrl(&strReqUrl);
 	if (strReqUrl.empty() || *--strReqUrl.end() != '/')
@@ -487,7 +487,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	if (!lpMtIcal)
 		return MAPI_E_CALL_FAILED;
 
-	for (ULONG i = 0; i < cbsize; ++i) {
+	for (i = 0; i < cbsize; ++i) {
 		WEBDAVVALUE sWebDavVal;
 		ULONG ulCensorFlag = (ULONG)blCensorPrivate;
 		
@@ -623,7 +623,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	ULONG ulObjType = 0;
 	std::string strReq;	
 	ECOrRestriction rst;
-	int i;
+	size_t i;
 
 	m_lpRequest->HrGetRequestUrl(&strReq);
 
@@ -652,8 +652,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 
 	// create restriction
 	iterWebVal = sWebRMGet->lstWebVal.cbegin();
-
-	for (size_t i = 0; i < sWebRMGet->lstWebVal.size(); ++i, ++iterWebVal) {
+	for (i = 0; i < sWebRMGet->lstWebVal.size(); ++i, ++iterWebVal) {
 		auto content = U2W(iterWebVal->strValue);
 		SPropValue pv;
 		pv.ulPropTag = GetPropIDForXMLProp(lpAbCont, iterWebVal->sPropName, m_converter);
@@ -712,7 +711,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 		if (hr != hrSuccess || lpValRows->cRows == 0)
 			break;
 
-		for (ULONG i = 0; i < lpValRows->cRows; ++i) {
+		for (i = 0; i < lpValRows->cRows; ++i) {
 			WEBDAVVALUE sWebDavVal;
 			auto lpsPropVal = lpValRows[i].cfind(PR_ACCOUNT_W);
 			if (!lpsPropVal)
@@ -1253,7 +1252,7 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	ULONG ulDelEntries = 0;
 	WEBDAVRESPONSE sDavResponse;
 	std::string strReqUrl;
-	int i;
+	unsigned int i;
 
 	// @todo, check input url not to have 3rd level path? .. see input/output list above.
 
@@ -1351,7 +1350,7 @@ nowaste:
 		if(hr != hrSuccess)
 			break;
 
-		for (ULONG i = 0; i < lpRowsALL->cRows; ++i) {
+		for (i = 0; i < lpRowsALL->cRows; ++i) {
 			std::wstring wstrFldPath;
 
 			if (lpDelHichyTable && lpRowsDeleted->cRows != 0 && ulDelEntries != lpRowsDeleted->cRows)
