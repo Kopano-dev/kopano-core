@@ -224,32 +224,26 @@ HRESULT ProtocolBase::HrInitializeClass()
 	/*
 	 * Workaround for old users with sunbird / lightning on old url base.
 	 */
-	{
-		std::vector<std::string> parts;
-		parts = tokenize(strUrl, '/', true);
-
-		m_lpRequest->HrGetHeaderValue("User-Agent", &strAgent);
-
-		// /caldav/
-		// /caldav/username/ (which we return in XML data! (and shouldn't)), since this isn't a calendar, but /caldav/username/Calendar/ is.
-		if ((strAgent.find("Sunbird/1") != std::string::npos || strAgent.find("Lightning/1") != std::string::npos) && parts.size() <= 2) {
-			// Mozilla Sunbird / Lightning doesn't handle listing of calendars, only contents.
-			// We therefore redirect them to the default calendar url.
-			SPropValuePtr ptrDisplayName;
-			auto strLocation = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8");
-
-			if (HrGetOneProp(m_lpUsrFld, PR_DISPLAY_NAME_W, &~ptrDisplayName) == hrSuccess) {
-				std::string part = urlEncode(ptrDisplayName->Value.lpszW, "UTF-8"); 
-				strLocation += "/" + part + "/";
-			} else {
-				// return 404 ?
-				strLocation += "/Calendar/";
-			}
-
-			m_lpRequest->HrResponseHeader(301, "Moved Permanently");
-			m_lpRequest->HrResponseHeader("Location", m_converter.convert_to<std::string>(strLocation));
-			return MAPI_E_NOT_ME;
+	std::vector<std::string> parts;
+	parts = tokenize(strUrl, '/', true);
+	m_lpRequest->HrGetHeaderValue("User-Agent", &strAgent);
+	// /caldav/
+	// /caldav/username/ (which we return in XML data! (and shouldn't)), since this isn't a calendar, but /caldav/username/Calendar/ is.
+	if ((strAgent.find("Sunbird/1") != std::string::npos || strAgent.find("Lightning/1") != std::string::npos) && parts.size() <= 2) {
+		// Mozilla Sunbird / Lightning doesn't handle listing of calendars, only contents.
+		// We therefore redirect them to the default calendar url.
+		SPropValuePtr ptrDisplayName;
+		auto strLocation = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8");
+		if (HrGetOneProp(m_lpUsrFld, PR_DISPLAY_NAME_W, &~ptrDisplayName) == hrSuccess) {
+			std::string part = urlEncode(ptrDisplayName->Value.lpszW, "UTF-8");
+			strLocation += "/" + part + "/";
+		} else {
+			// return 404 ?
+			strLocation += "/Calendar/";
 		}
+		m_lpRequest->HrResponseHeader(301, "Moved Permanently");
+		m_lpRequest->HrResponseHeader("Location", m_converter.convert_to<std::string>(strLocation));
+		return MAPI_E_NOT_ME;
 	}
 
 	/*
@@ -268,13 +262,13 @@ HRESULT ProtocolBase::HrInitializeClass()
 		if (hr != hrSuccess || ulCmp == TRUE)
 			m_blFolderAccess = false;
 	}
-	if (m_blFolderAccess) {
-		hr = HrGetOneProp(m_lpUsrFld, PR_SUBFOLDERS, &~lpFldProp);
-		if(hr != hrSuccess)
-			return hr;
-		if(lpFldProp->Value.b == (unsigned short)true && !strMethod.compare("DELETE"))
-			m_blFolderAccess = false;
-	}
+	if (!m_blFolderAccess)
+		return hr;
+	hr = HrGetOneProp(m_lpUsrFld, PR_SUBFOLDERS, &~lpFldProp);
+	if (hr != hrSuccess)
+		return hr;
+	if (lpFldProp->Value.b == (unsigned short)true && !strMethod.compare("DELETE"))
+		m_blFolderAccess = false;
 	return hr;
 }
 
