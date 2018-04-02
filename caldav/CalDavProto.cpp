@@ -1638,8 +1638,12 @@ HRESULT CalDAV::HrConvertToIcal(const SPropValue *lpEid, MapiToICal *lpMtIcal,
 
 	auto hr = m_lpActiveStore->OpenEntry(lpEid->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEid->Value.bin.lpb),
 	          &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
-	if (hr != hrSuccess || ulObjType != MAPI_MESSAGE)
+	if (hr != hrSuccess)
 		return kc_perror("Error opening calendar entry", hr);
+	if (ulObjType != MAPI_MESSAGE) {
+		ec_log_warn("K-1734: Object %s is not a MAPI_MESSAGE", bin2hex(lpEid->Value.bin).c_str());
+		return MAPI_E_INVALID_PARAMETER;
+	}
 	hr = lpMtIcal->AddMessage(lpMessage, m_strSrvTz, ulFlags);
 	if (hr != hrSuccess)
 		return kc_perror("Error converting MAPI message to iCal", hr);
