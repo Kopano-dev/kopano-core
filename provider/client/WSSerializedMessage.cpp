@@ -55,12 +55,9 @@ HRESULT WSSerializedMessage::GetProps(ULONG *lpcbProps, LPSPropValue *lppProps)
  */
 HRESULT WSSerializedMessage::CopyData(LPSTREAM lpDestStream)
 {
-	HRESULT hr;
-
 	if (lpDestStream == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	hr = DoCopyData(lpDestStream);
+	auto hr = DoCopyData(lpDestStream);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -128,13 +125,11 @@ void* WSSerializedMessage::MTOMWriteOpen(struct soap *soap, void *handle, const 
 
 int WSSerializedMessage::MTOMWrite(struct soap *soap, void* /*handle*/, const char *buf, size_t len)
 {
-	HRESULT hr = hrSuccess;
 	ULONG cbWritten = 0;
 
 	if (!m_ptrDestStream)
 		return SOAP_OK;
-
-	hr = m_ptrDestStream->Write(buf, (ULONG)len, &cbWritten);
+	auto hr = m_ptrDestStream->Write(buf, static_cast<unsigned int>(len), &cbWritten);
 	if (hr != hrSuccess) {
 		soap->error = SOAP_ERR;
 		m_hr = hr;

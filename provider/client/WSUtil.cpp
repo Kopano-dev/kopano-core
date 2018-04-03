@@ -2256,14 +2256,13 @@ HRESULT CopySOAPChangeNotificationToSyncState(const struct notification *lpSrc,
 static HRESULT CopyMAPISourceKeyToSoapSourceKey(const SBinary *lpsMAPISourceKey,
     struct xsd__base64Binary *lpsSoapSourceKey, void *lpBase)
 {
-	HRESULT hr;
 	struct xsd__base64Binary sSoapSourceKey;
 
 	if (lpsMAPISourceKey == NULL || lpsSoapSourceKey == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
 	sSoapSourceKey.__size = (int)lpsMAPISourceKey->cb;
-	hr = KAllocCopy(lpsMAPISourceKey->lpb, lpsMAPISourceKey->cb, reinterpret_cast<void **>(&sSoapSourceKey.__ptr), lpBase);
+	auto hr = KAllocCopy(lpsMAPISourceKey->lpb, lpsMAPISourceKey->cb, reinterpret_cast<void **>(&sSoapSourceKey.__ptr), lpBase);
 	if (hr != hrSuccess)
 		return hr;
 	*lpsSoapSourceKey = sSoapSourceKey;
@@ -2273,12 +2272,11 @@ static HRESULT CopyMAPISourceKeyToSoapSourceKey(const SBinary *lpsMAPISourceKey,
 HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges,
     const ICSCHANGE *lpsChanges, sourceKeyPairArray **lppsSKPA)
 {
-	HRESULT				hr = hrSuccess;
 	memory_ptr<sourceKeyPairArray> lpsSKPA;
 
 	if (lpsChanges == nullptr || lppsSKPA == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = MAPIAllocateBuffer(sizeof *lpsSKPA, &~lpsSKPA);
+	auto hr = MAPIAllocateBuffer(sizeof(*lpsSKPA), &~lpsSKPA);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpsSKPA, 0, sizeof *lpsSKPA);
@@ -2356,41 +2354,39 @@ static HRESULT ConvertString8ToUnicode(const char *lpszA, WCHAR **lppszW,
 static HRESULT ConvertString8ToUnicode(LPSRestriction lpRestriction,
     void *base, convert_context &converter)
 {
-	HRESULT hr;
-	ULONG i;
-
 	if (lpRestriction == NULL)
 		return hrSuccess;
 
 	switch (lpRestriction->rt) {
 	case RES_OR:
-		for (i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
-			hr = ConvertString8ToUnicode(&lpRestriction->res.resOr.lpRes[i], base, converter);
+		for (unsigned int i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
+			auto hr = ConvertString8ToUnicode(&lpRestriction->res.resOr.lpRes[i], base, converter);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		break;
 	case RES_AND:
-		for (i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
-			hr = ConvertString8ToUnicode(&lpRestriction->res.resAnd.lpRes[i], base, converter);
+		for (unsigned int i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
+			auto hr = ConvertString8ToUnicode(&lpRestriction->res.resAnd.lpRes[i], base, converter);
 			if (hr != hrSuccess)
 				return hr;
 		}
 		break;
-	case RES_NOT:
-		hr = ConvertString8ToUnicode(lpRestriction->res.resNot.lpRes, base, converter);
+	case RES_NOT: {
+		auto hr = ConvertString8ToUnicode(lpRestriction->res.resNot.lpRes, base, converter);
 		if (hr != hrSuccess)
 			return hr;
 		break;
+	}
 	case RES_COMMENT:
 		if (lpRestriction->res.resComment.lpRes) {
-			hr = ConvertString8ToUnicode(lpRestriction->res.resComment.lpRes, base, converter);
+			auto hr = ConvertString8ToUnicode(lpRestriction->res.resComment.lpRes, base, converter);
 			if (hr != hrSuccess)
 				return hr;
 		}
-		for (i = 0; i < lpRestriction->res.resComment.cValues; ++i) {
+		for (unsigned int i = 0; i < lpRestriction->res.resComment.cValues; ++i) {
 			if (PROP_TYPE(lpRestriction->res.resComment.lpProp[i].ulPropTag) == PT_STRING8) {
-				hr = ConvertString8ToUnicode(lpRestriction->res.resComment.lpProp[i].Value.lpszA, &lpRestriction->res.resComment.lpProp[i].Value.lpszW, base, converter);
+				auto hr = ConvertString8ToUnicode(lpRestriction->res.resComment.lpProp[i].Value.lpszA, &lpRestriction->res.resComment.lpProp[i].Value.lpszW, base, converter);
 				if (hr != hrSuccess)
 					return hr;
 				lpRestriction->res.resComment.lpProp[i].ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resComment.lpProp[i].ulPropTag, PT_UNICODE);
@@ -2401,7 +2397,7 @@ static HRESULT ConvertString8ToUnicode(LPSRestriction lpRestriction,
 		break;
 	case RES_CONTENT:
 		if (PROP_TYPE(lpRestriction->res.resContent.ulPropTag) == PT_STRING8) {
-			hr = ConvertString8ToUnicode(lpRestriction->res.resContent.lpProp->Value.lpszA, &lpRestriction->res.resContent.lpProp->Value.lpszW, base, converter);
+			auto hr = ConvertString8ToUnicode(lpRestriction->res.resContent.lpProp->Value.lpszA, &lpRestriction->res.resContent.lpProp->Value.lpszW, base, converter);
 			if (hr != hrSuccess)
 				return hr;
 			lpRestriction->res.resContent.lpProp->ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resContent.lpProp->ulPropTag, PT_UNICODE);
@@ -2410,18 +2406,19 @@ static HRESULT ConvertString8ToUnicode(LPSRestriction lpRestriction,
 		break;
 	case RES_PROPERTY:
 		if (PROP_TYPE(lpRestriction->res.resProperty.ulPropTag) == PT_STRING8) {
-			hr = ConvertString8ToUnicode(lpRestriction->res.resProperty.lpProp->Value.lpszA, &lpRestriction->res.resProperty.lpProp->Value.lpszW, base, converter);
+			auto hr = ConvertString8ToUnicode(lpRestriction->res.resProperty.lpProp->Value.lpszA, &lpRestriction->res.resProperty.lpProp->Value.lpszW, base, converter);
 			if (hr != hrSuccess)
 				return hr;
 			lpRestriction->res.resProperty.lpProp->ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resProperty.lpProp->ulPropTag, PT_UNICODE);
 			lpRestriction->res.resProperty.ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resProperty.ulPropTag, PT_UNICODE);
 		}
 		break;
-	case RES_SUBRESTRICTION:
-		hr = ConvertString8ToUnicode(lpRestriction->res.resSub.lpRes, base, converter);
+	case RES_SUBRESTRICTION: {
+		auto hr = ConvertString8ToUnicode(lpRestriction->res.resSub.lpRes, base, converter);
 		if (hr != hrSuccess)
 			return hr;
 		break;
+	}
 	};
 	return hrSuccess;
 }
