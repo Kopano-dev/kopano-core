@@ -551,10 +551,8 @@ HRESULT ECExchangeExportChanges::GetChangeCount(ULONG *lpcChanges) {
  */
 HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize)
 {
-	HRESULT hr;
 	auto lpSyncSettings = &ECSyncSettings::instance;
-	BOOL bCanStream = false;
-	BOOL bSupportsPropTag = false;
+	BOOL bCanStream = false, bSupportsPropTag = false;
 	
 	if (ulPropTag != PR_ENTRYID && ulPropTag != PR_SOURCE_KEY)
 		return MAPI_E_INVALID_PARAMETER;
@@ -582,7 +580,7 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 		return MAPI_E_NO_SUPPORT;
 
 	// Select an importer interface
-	hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, &~m_lpImportContents);
+	auto hr = lpCollector->QueryInterface(IID_IExchangeImportContentsChanges, &~m_lpImportContents);
 	if (hr == hrSuccess && lpSyncSettings->SyncStreamEnabled()) {
 		m_lpStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &bCanStream);
 		if (bCanStream == TRUE) {
@@ -645,12 +643,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 	HRESULT			hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropArray;
 	memory_ptr<SPropTagArray> lpPropTagArray;
-	ULONG			ulObjType;
-	ULONG			ulCount;
-	ULONG			ulFlags;
-	ULONG			ulSteps = 0;
-
-	ULONG			cbEntryID = 0;
+	unsigned int ulObjType, ulCount, ulSteps = 0, cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 	static constexpr const SizedSPropTagArray(5, sptMessageExcludes) =
 		{5, {PR_MESSAGE_SIZE, PR_MESSAGE_RECIPIENTS,
@@ -662,7 +655,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 	static constexpr const SizedSPropTagArray(1, sptAttach) = {1, {PR_ATTACH_NUM}};
 
 	while(m_ulStep < m_lstChange.size() && (m_ulBufferSize == 0 || ulSteps < m_ulBufferSize)){
-		ulFlags = 0;
+		unsigned int ulFlags = 0;
 		if ((m_lstChange.at(m_ulStep).ulChangeType & ICS_ACTION_MASK) == ICS_NEW)
 			ulFlags |= SYNC_NEW_MESSAGE;
 
@@ -891,10 +884,9 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<WSSerializedMessage> ptrSerializedMessage;
-	ULONG cbProps = 0;
+	unsigned int cbProps = 0, ulFlags = 0;
 	SPropValuePtr ptrProps;
 	const SPropValue *lpPropVal = NULL;
-	ULONG ulFlags = 0;
 	StreamPtr ptrDestStream;
 	static constexpr const SizedSPropTagArray(11, sptImportProps) = { 11, {
 		PR_SOURCE_KEY,
@@ -1044,11 +1036,10 @@ exit:
 }
 
 HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
-	HRESULT			hr = hrSuccess;
 	memory_ptr<ENTRYLIST> lpEntryList;
 
 	if(!m_lstSoftDelete.empty()){
-		hr = ChangesToEntrylist(&m_lstSoftDelete, &~lpEntryList);
+		auto hr = ChangesToEntrylist(&m_lstSoftDelete, &~lpEntryList);
 		if(hr != hrSuccess)
 			return hr;
 		hr = m_lpImportContents->ImportMessageDeletion(SYNC_SOFT_DELETE, lpEntryList);
@@ -1067,7 +1058,7 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 	}
 
 	if(!m_lstHardDelete.empty()){
-		hr = ChangesToEntrylist(&m_lstHardDelete, &~lpEntryList);
+		auto hr = ChangesToEntrylist(&m_lstHardDelete, &~lpEntryList);
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to create entry list");
 			return hr;
