@@ -5,6 +5,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import calendar
 import datetime
 import struct
 import sys
@@ -246,7 +247,7 @@ class Recurrence(object):
             start_exc_ext[exc['start_datetime']] = exc, ext
 
         for d in recurrences:
-            startdatetime_val = _utils.unixtime_to_rectime(time.mktime(d.timetuple()))
+            startdatetime_val = _utils.unixtime_to_rectime(calendar.timegm(d.timetuple()))
 
             subject = self.item.subject
             location = self.item.location
