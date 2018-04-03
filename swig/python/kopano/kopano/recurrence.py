@@ -691,10 +691,21 @@ class Recurrence(object):
     def _is_exception(self, basedate):
         return self._exception_message(basedate) is not None
 
-    def _update_exceptions(self, cal_item, item, startdate_val, enddate_val, basedate_val, exception, extended_exception, copytags, create=False): # XXX kill copytags, create args, just pass all properties as in php
-        exception['start_datetime'] = startdate_val
-        exception['end_datetime'] = enddate_val
-        exception['original_start_date'] = basedate_val
+    def _update_exception(self, cal_item, item, basedate_val, exception, extended_exception, copytags=None, create=False): # XXX kill copytags, create args, just pass all properties as in php
+        tz = item.get(PidLidTimeZoneStruct)
+
+        # TODO get start/end from cal_item if not in item?
+        startdate = item.get(PidLidAppointmentStartWhole)
+        if startdate is not None:
+           startdate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(startdate, tz).timetuple()))
+           exception['start_datetime'] = startdate_val
+
+        enddate = item.get(PidLidAppointmentEndWhole)
+        if enddate is not None:
+            enddate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(enddate, tz).timetuple()))
+            exception['end_datetime'] = enddate_val
+
+        exception['original_start_date'] = basedate_val # TODO why set again?
         exception['override_flags'] = 0
 
         extended = False
@@ -749,6 +760,7 @@ class Recurrence(object):
             extended_exception['original_start_date'] = basedate_val
 
     def _update_calitem(self):
+        tz = self.item.get(PidLidTimeZoneStruct)
         cal_item = self.item
 
         cal_item[PidLidSideEffects] = 3441 # XXX spec, check php
@@ -756,16 +768,14 @@ class Recurrence(object):
 
         # reminder
         if cal_item.get(PidLidReminderSet) and cal_item.get(PidLidReminderDelta):
-            occs = list(cal_item.occurrences(datetime.datetime.now(), datetime.datetime(2038,1,1))) # XXX slow for daily?
-            occs.sort(key=lambda occ: occ.start)
-            for occ in occs: # XXX check default/reminder props
-                dueby = occ.start - datetime.timedelta(minutes=cal_item.get(PidLidReminderDelta))
-                if dueby > datetime.datetime.now():
-                    cal_item[PidLidReminderSignalTime] = dueby
-                    break
+            next_date = self.recurrences.after(datetime.datetime.now()) # TODO different timezones!
+            if next_date:
+                next_date = _utils._to_gmt(next_date, tz)
+                dueby = next_date - datetime.timedelta(minutes=cal_item.get(PidLidReminderDelta))
+                cal_item[PidLidReminderSignalTime] = dueby
             else:
-                cal_item.prop(PidLidReminderSet).value = False
-                cal_item.prop(PidLidReminderSignalTime).value = datetime.datetime.fromtimestamp(0x7ff00000)
+                cal_item[PidLidReminderSet] = False
+                cal_item[PidLidReminderSignalTime] = datetime.datetime.fromtimestamp(0x7ff00000)
 
     def _update_embedded(self, basedate, message, item, copytags=None, create=False):
         basetime = basedate + datetime.timedelta(minutes=self._starttime_offset)
@@ -874,15 +884,9 @@ class Recurrence(object):
         self._modified_instance_dates.append(moddate_val)
         self._modified_instance_dates.sort()
 
-        startdate = _utils._from_gmt(message.prop(PidLidAppointmentStartWhole).value, tz)
-        startdate_val = _utils.unixtime_to_rectime(time.mktime(startdate.timetuple()))
-
-        enddate = _utils._from_gmt(message.prop(PidLidAppointmentEndWhole).value, tz)
-        enddate_val = _utils.unixtime_to_rectime(time.mktime(enddate.timetuple()))
-
         exception = {}
         extended_exception = {}
-        self._update_exceptions(cal_item, message, startdate_val, enddate_val, deldate_val, exception, extended_exception, copytags, create=True)
+        self._update_exception(cal_item, message, deldate_val, exception, extended_exception, copytags, create=True)
         self._exceptions.append(exception) # no evidence of sorting
         self._extended_exceptions.append(extended_exception)
 
@@ -936,9 +940,6 @@ class Recurrence(object):
         startdate = _utils._from_gmt(message.prop(PidLidAppointmentStartWhole).value, tz)
         startdate_val = _utils.unixtime_to_rectime(time.mktime(startdate.timetuple()))
 
-        enddate = _utils._from_gmt(message.prop(PidLidAppointmentEndWhole).value, tz)
-        enddate_val = _utils.unixtime_to_rectime(time.mktime(enddate.timetuple()))
-
         for i, exception in enumerate(self._exceptions):
             if exception['original_start_date'] == basedate_val: # TODO offset, as below?
                 current_startdate_val = exception['start_datetime'] - self._starttime_offset
@@ -950,7 +951,7 @@ class Recurrence(object):
                         break
 
                 extended_exception = self._extended_exceptions[i]
-                self._update_exceptions(cal_item, message, startdate_val, enddate_val, basedate_val, exception, extended_exception, copytags, create=False)
+                self._update_exception(cal_item, message, basedate_val, exception, extended_exception, copytags, create=False)
 
         self._save()
 
@@ -959,9 +960,13 @@ class Recurrence(object):
 
     def _create_exception2(self, basedate):
         # TODO merge with create_exception
-        # TODO create embedded item
 
         tz = self.item.get(PidLidTimeZoneStruct)
+        cal_item = self.item
+
+        # create embedded item
+        message_flags = MSGFLAG_READ
+        message = cal_item.create_item(message_flags, hidden=True)
 
         basedate = _utils._from_gmt(basedate, tz)
         basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate.timetuple())) - self._starttime_offset
@@ -992,6 +997,7 @@ class Recurrence(object):
     def _modify_exception2(self, basedate, subject=None, start=None, end=None, location=None):
         # TODO merge with modify_exception
         tz = self.item.get(PidLidTimeZoneStruct)
+        cal_item = self.item
 
         # update embedded item
         for message in self.item.items(): # XXX no cal_item? to helper
@@ -1011,30 +1017,7 @@ class Recurrence(object):
                 extended_exception = self._extended_exceptions[i]
                 break
 
-        if subject is not None:
-            exception['override_flags'] |= ARO_SUBJECT
-            exception['subject'] = subject.encode('cp1252', 'replace')
-            extended_exception['subject'] = subject
-
-        if location is not None:
-            exception['override_flags'] |= ARO_LOCATION
-            exception['location'] = location.encode('cp1252', 'replace')
-            extended_exception['location'] = location
-
-        if start:
-            startdate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(start, tz).timetuple()))
-            exception['start_datetime'] = startdate_val
-            extended_exception['start_datetime'] = startdate_val
-
-        if end:
-            enddate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(end, tz).timetuple()))
-            exception['end_datetime'] = enddate_val
-            extended_exception['end_datetime'] = enddate_val
-
-        extended_exception['start_datetime'] = exception['start_datetime'] # TODO on creation?
-        extended_exception['end_datetime'] = exception['end_datetime']
-        extended_exception['original_start_date'] = exception['original_start_date']
-
+        self._update_exception(cal_item, message, basedate_val, exception, extended_exception)
         self._save()
 
         # update calitem

@@ -160,12 +160,12 @@ def human_to_bytes(s):
         prefix[s] = 1 << (i + 1) * 10
     return int(num * prefix[letter])
 
-def _in_dst(date, dststartmonth, dststartweek, dststarthour, dstendmonth, dstendweek, dstendhour):
+def _in_dst(date, dststartmonth, dststartday, dststarthour, dstendmonth, dstendday, dstendhour):
     dststart = datetime.datetime(date.year, dststartmonth, 1) + \
-        datetime.timedelta(seconds=dststartweek*7*24*60*60 + dststarthour*60*60)
+        datetime.timedelta(seconds=dststartday*24*60*60 + dststarthour*60*60)
 
     dstend = datetime.datetime(date.year, dstendmonth, 1) + \
-        datetime.timedelta(seconds=dstendweek*7*24*60*60 + dstendhour*60*60)
+        datetime.timedelta(seconds=dstendday*24*60*60 + dstendhour*60*60)
 
     if dststart <= dstend:
         if dststart < date < dstend:
@@ -181,14 +181,18 @@ def _get_timezone(date, tz_data, align_dst=False):
     if tz_data is None:
         return 0
 
-    timezone, _, timezonedst, _, dstendmonth, dstendweek, dstendhour, _, _, _, dststartmonth, dststartweek, dststarthour, _, _ = struct.unpack('<lllllHHllHlHHlH', tz_data)
+    timezone, _, timezonedst, \
+    _, \
+    _, dstendmonth, _, dstendday, dstendhour, _, _, _, \
+    _, \
+    _, dststartmonth, _, dststartday, dststarthour, _, _, _ = struct.unpack('<lll H HHHHHHHH H HHHHHHHH', tz_data)
 
-    dst = _in_dst(date, dststartmonth, dststartweek, dststarthour, dstendmonth, dstendweek, dstendhour)
+    dst = _in_dst(date, dststartmonth, dststartday, dststarthour, dstendmonth, dstendday, dstendhour)
 
     # TODO use DST-aware datetimes?
     if align_dst and _in_dst(datetime.datetime.now(),
-       dststartmonth, dststartweek, dststarthour,
-       dstendmonth, dstendweek, dstendhour) != dst:
+       dststartmonth, dststartday, dststarthour,
+       dstendmonth, dstendday, dstendhour) != dst:
         dst = not dst
 
     if dst:

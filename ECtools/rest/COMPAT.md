@@ -59,6 +59,8 @@ Query Parameters:
 
 [Create contact](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/contactfolder_post_contacts.md)
 
+[delta](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/contactfolder_delta.md)
+
 ## event Resource
 
 [(Resource)](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/resources/event.md)

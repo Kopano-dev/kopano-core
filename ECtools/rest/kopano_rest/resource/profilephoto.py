@@ -1,3 +1,5 @@
+import falcon
+
 from ..utils import (
     _server_store, _folder
 )
@@ -24,6 +26,9 @@ class ProfilePhotoResource(Resource):
             userid = kopano.Store(server=server,
                 mapiobj = GetDefaultStore(server.mapisession)).user.userid
             photo = server.user(userid=userid).photo
+
+        if not photo:
+            raise falcon.HTTPNotFound(description="The photo wasn't found")
 
         if method == '$value':
             resp.content_type = photo.mimetype

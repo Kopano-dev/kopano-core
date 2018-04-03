@@ -5,6 +5,13 @@ from ..utils import (
 from .contact import ContactResource
 from .folder import FolderResource
 
+class DeletedContactFolderResource(FolderResource):
+    fields = {
+        '@odata.type': lambda folder: '#microsoft.graph.contactFolder', # TODO
+        'id': lambda folder: folder.entryid,
+        '@removed': lambda folder: {'reason': 'deleted'} # TODO soft deletes
+    }
+
 class ContactFolderResource(FolderResource):
     fields = FolderResource.fields.copy()
     fields.update({
@@ -12,10 +19,17 @@ class ContactFolderResource(FolderResource):
         'parentFolderId': lambda folder: folder.parent.entryid,
     })
 
+    deleted_resource = DeletedContactFolderResource
+    container_classes = ('IPF.Contact',)
+
     def on_get(self, req, resp, userid=None, folderid=None, method=None):
         server, store = _server_store(req, userid, self.options)
-        folder = _folder(store, folderid)
 
+        if folderid == 'delta':
+            self.delta(req, resp, store)
+            return
+
+        folder = _folder(store, folderid)
         if method == 'contacts':
             data = self.folder_gen(req, folder)
             fields = ContactResource.fields

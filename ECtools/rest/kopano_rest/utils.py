@@ -42,6 +42,7 @@ def _auth(req, options):
         if userid:
             return {
                 'method': 'passthrough',
+                'user': req.get_header('X-Kopano-Username', ''),
                 'userid': userid,
             }
 
@@ -56,7 +57,6 @@ def db_put(key, value):
             db[codecs.encode(key, 'ascii')] = codecs.encode(value, 'ascii')
 
 def _server(req, options):
-    global SERVER
     auth = _auth(req, options)
 
     if auth['method'] == 'bearer':
@@ -74,16 +74,20 @@ def _server(req, options):
             mapisession = kc_session_restore(sessiondata)
             server = kopano.Server(mapisession=mapisession, parse_args=False)
         else:
-            try:
-                SERVER
-            except NameError:
-                SERVER = kopano.Server(parse_args=False, store_cache=False)
-            username = SERVER.user(userid=userid).name
+            username = _username(auth['userid'])
             server = kopano.Server(auth_user=username, auth_pass='',
                                    parse_args=False, store_cache=False)
             sessiondata = kc_session_save(server.mapisession)
             SESSIONDATA[userid] = sessiondata
         return server
+
+def _username(userid):
+    global SERVER
+    try:
+        SERVER
+    except NameError:
+        SERVER = kopano.Server(parse_args=False, store_cache=False)
+    return SERVER.user(userid=userid).name
 
 def _store(server, userid):
     if userid:
@@ -97,7 +101,10 @@ def _server_store(req, userid, options):
         server = _server(req, options)
     except Exception:
         raise falcon.HTTPForbidden('Unauthorized', None)
-    store = _store(server, userid)
+    try:
+        store = _store(server, userid)
+    except Exception:
+        raise falcon.HTTPNotFound(description="The user wasn't found")
     return server, store
 
 def _folder(store, folderid):

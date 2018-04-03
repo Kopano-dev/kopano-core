@@ -66,6 +66,9 @@ class UserResource(Resource):
             userid = kopano.Store(server=server,
                 mapiobj = GetDefaultStore(server.mapisession)).user.userid
 
+        if method and not store:
+            raise falcon.HTTPNotFound(description="The user store has no store")
+
         if not method:
             if userid:
                 if userid == 'delta':
@@ -83,7 +86,7 @@ class UserResource(Resource):
             self.respond(req, resp, data, MailFolderResource.fields)
 
         elif method == 'contactFolders':
-            data = self.generator(req, store.contacts.folders, 0)
+            data = self.generator(req, store.contact_folders, 0)
             self.respond(req, resp, data, ContactFolderResource.fields)
 
         elif method == 'messages': # TODO store-wide?

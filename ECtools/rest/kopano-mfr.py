@@ -6,6 +6,12 @@ import signal
 import sys
 import time
 
+try:
+    import setproctitle
+    SETPROCTITLE = True
+except ImportError:
+    SETPROCTITLE = False
+
 import bjoern
 import kopano_rest
 
@@ -46,11 +52,15 @@ def opt_args():
     return options, args
 
 def run_app(socket_path, n, options):
+    if SETPROCTITLE:
+        setproctitle.setproctitle('kopano-mfr rest %d' % n)
     app = kopano_rest.RestAPI(options)
     unix_socket = 'unix:' + os.path.join(socket_path, 'rest%d.sock' % n)
     bjoern.run(app, unix_socket)
 
 def run_notify(socket_path, options):
+    if SETPROCTITLE:
+        setproctitle.setproctitle('kopano-mfr notify')
     app = kopano_rest.NotifyAPI(options)
     unix_socket = 'unix:' + os.path.join(socket_path, 'notify.sock')
     bjoern.run(app, unix_socket)
