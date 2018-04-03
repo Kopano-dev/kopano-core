@@ -81,15 +81,13 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
     LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError,
     LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<WSTransport> lpTransport;
 	object_ptr<ECMsgStore> lpECMsgStore;
 	object_ptr<ECMSLogon> lpECMSLogon;
 	object_ptr<IProfSect> lpProfSect;
-	ULONG			cValues = 0;
+	unsigned int cValues = 0, ulStoreType = 0;
 	memory_ptr<SPropValue> lpsPropArray;
 	BOOL			fIsDefaultStore = FALSE;
-	ULONG			ulStoreType = 0;
 	MAPIUID			guidMDBProvider;
 	sGlobalProfileProps	sProfileProps;
 
@@ -103,7 +101,7 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 		*lppbSpoolSecurity = NULL;
 
 	// Get the username and password from the profile settings
-	hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
+	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -186,7 +184,6 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
     LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon,
     LPMDB *lppMDB)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<WSTransport> lpTransport;
 	object_ptr<ECMsgStore> lpMsgStore;
 	object_ptr<ECMSLogon> lpLogon;
@@ -195,7 +192,6 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	ULONG cValues = 0;
 	LPSPropValue lpsPropArray = NULL;
 	sGlobalProfileProps	sProfileProps;
-	wchar_t *strSep = NULL;
 
 	if (lpEntryID == nullptr)
 		return MAPI_E_UNCONFIGURED;
@@ -203,7 +199,7 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 		return MAPI_E_NO_ACCESS;
 
 	// Get Global profile settings
-	hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
+	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -229,7 +225,7 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 
 	if (cbSpoolSecurity % sizeof(wchar_t) != 0)
 		return MAPI_E_INVALID_PARAMETER;
-	strSep = (wchar_t*)wmemchr((wchar_t*)lpbSpoolSecurity, 0, cbSpoolSecurity / sizeof(wchar_t));
+	auto strSep = wmemchr(reinterpret_cast<wchar_t *>(lpbSpoolSecurity), 0, cbSpoolSecurity / sizeof(wchar_t));
 	if (strSep == NULL)
 		return MAPI_E_NO_ACCESS;
 	++strSep;
@@ -294,12 +290,11 @@ HRESULT ECMSProvider::CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, UL
 HRESULT ECMSProvider::LogonByEntryID(object_ptr<WSTransport> &lpTransport,
     sGlobalProfileProps *lpsProfileProps, ULONG cbEntryID, ENTRYID *lpEntryID)
 {
-	HRESULT hr;
 	std::string extractedServerPath; // The extracted server path
 	bool		bIsPseudoUrl = false;
 
 	assert(lpTransport != nullptr);
-	hr = HrGetServerURLFromStoreEntryId(cbEntryID, lpEntryID, extractedServerPath, &bIsPseudoUrl);
+	auto hr = HrGetServerURLFromStoreEntryId(cbEntryID, lpEntryID, extractedServerPath, &bIsPseudoUrl);
 	if (hr != hrSuccess)
 		return MAPI_E_FAILONEPROVIDER;
 
@@ -362,10 +357,8 @@ HRESULT ECMSProviderSwitch::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECMSProviderSwitch::Shutdown(ULONG * lpulFlags)
 {
-	HRESULT hr = hrSuccess;
-
 	//FIXME
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
@@ -374,7 +367,6 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
     LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError,
     LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<ECMsgStore> lpecMDB;
 	sGlobalProfileProps	sProfileProps;
 	object_ptr<IProfSect> lpProfSect;
@@ -399,7 +391,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	});
 
 	// Get the username and password from the profile settings
-	hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
+	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -540,7 +532,6 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
     ULONG cbSpoolSecurity, LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError,
     LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
-	HRESULT hr = hrSuccess;
 	IMSProvider *lpProvider = NULL; // Do not release
 	PROVIDER_INFO sProviderInfo;
 	object_ptr<IMsgStore> lpMDB;
@@ -556,8 +547,7 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
 
 	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == NULL)
 		return MAPI_E_NO_ACCESS;
-
-	hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
+	auto hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;
 

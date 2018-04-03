@@ -286,7 +286,6 @@ HRESULT ECMAPIFolderPublic::SetPropHandler(ULONG ulPropTag, void *lpProvider,
 
 HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<ECMemTable> lpMemTable;
 	object_ptr<ECMemTableView> lpView;
 	memory_ptr<SPropTagArray> lpPropTagArray;
@@ -300,7 +299,7 @@ HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTabl
 	if (ulFlags & SHOW_SOFT_DELETES)
 		return MAPI_E_NO_SUPPORT;
 	Util::proptag_change_unicode(ulFlags, sPropsContentColumns);
-	hr = ECMemTable::Create(sPropsContentColumns, PR_ROWID, &~lpMemTable);
+	auto hr = ECMemTable::Create(sPropsContentColumns, PR_ROWID, &~lpMemTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
@@ -311,7 +310,6 @@ HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTabl
 
 HRESULT ECMAPIFolderPublic::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<ECMemTableView> lpView;
 
 	if( m_ePublicEntryID == ePE_IPMSubtree)
@@ -319,7 +317,7 @@ HRESULT ECMAPIFolderPublic::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTab
 		// FIXME: if exchange support CONVENIENT_DEPTH than we must implement this
 		if (ulFlags & (SHOW_SOFT_DELETES | CONVENIENT_DEPTH))
 			return MAPI_E_NO_SUPPORT;
-		hr = ((ECMsgStorePublic *)GetMsgStore())->GetIPMSubTree()->HrGetView(createLocaleFromName(""), ulFlags, &~lpView);
+		auto hr = static_cast<ECMsgStorePublic *>(GetMsgStore())->GetIPMSubTree()->HrGetView(createLocaleFromName(""), ulFlags, &~lpView);
 		if(hr != hrSuccess)
 			return hr;
 		return lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
