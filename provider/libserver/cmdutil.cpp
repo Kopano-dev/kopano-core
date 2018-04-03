@@ -249,7 +249,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			sItem.sEntryId.__size = 0;
 			sItem.sEntryId.__ptr = NULL;
 			sItem.ulMessageFlags = lpDBRow[5] ? atoui(lpDBRow[5]) : 0;
-			sItem.fInOGQueue = lpDBRow[6] ? true : false;
+			sItem.fInOGQueue = lpDBRow[6] != nullptr;
 
 			// Validate deleted object, if not valid, break directly
 			er = ValidateDeleteObject(lpSession, bCheckPermission, ulFlags, sItem);
@@ -304,7 +304,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			sItem.ulObjType = atoi(lpDBRow[1]);
 			// Add the parent delete flag, because only the top-level object is marked for deletion
 			sItem.ulFlags = atoui(lpDBRow[2]) | (di.ulFlags & MSGFLAG_DELETED);
-			sItem.fInOGQueue = lpDBRow[3] ? true : false;
+			sItem.fInOGQueue = lpDBRow[3] != nullptr;
 
 			// Validate deleted object, if no valid, break directly
 			er = ValidateDeleteObject(lpSession, bCheckPermission, ulFlags, sItem);

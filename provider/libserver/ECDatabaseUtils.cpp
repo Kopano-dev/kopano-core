@@ -453,7 +453,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 			goto exit;
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_b;
-		lpPropVal->Value.b = atoi(lpRow[FIELD_NR_ULONG]) ? true : false;
+		lpPropVal->Value.b = atoi(lpRow[FIELD_NR_ULONG]) != 0;
 		break;
 	case PT_DOUBLE:
 		if(lpRow[FIELD_NR_DOUBLE] == NULL) {
