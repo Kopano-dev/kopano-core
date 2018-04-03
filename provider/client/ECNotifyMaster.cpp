@@ -207,8 +207,6 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 	kcsrv_blocksigs();
 	auto pNotifyMaster = static_cast<ECNotifyMaster *>(pTmpNotifyMaster);
 	assert(pNotifyMaster != NULL);
-
-	HRESULT							hr = hrSuccess;
 	NOTIFYCONNECTIONMAP				mapNotifications;
 	notifyResponse					notifications;
 	bool							bReconnect = false;
@@ -235,7 +233,7 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 		 */
 		notificationArray *pNotifyArray = NULL;
 
-		hr = pNotifyMaster->m_lpTransport->HrGetNotify(&pNotifyArray);
+		auto hr = pNotifyMaster->m_lpTransport->HrGetNotify(&pNotifyArray);
 		if (static_cast<unsigned int>(hr) == KCWARN_CALL_KEEPALIVE) {
 			if (bReconnect)
 				bReconnect = false;

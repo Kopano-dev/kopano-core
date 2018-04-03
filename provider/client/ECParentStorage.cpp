@@ -63,7 +63,6 @@ HRESULT ECParentStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 
 HRESULT ECParentStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 {
-	HRESULT hr = hrSuccess;
 	ECMapiObjects::const_iterator iterSObj;
 
 	if (!m_lpParentObject)
@@ -85,5 +84,5 @@ HRESULT ECParentStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		return MAPI_E_NOT_FOUND;
 	// make a complete copy of the object, because of close / re-open
 	*lppsMapiObject = new MAPIOBJECT(**iterSObj);
-	return hr;
+	return hrSuccess;
 }

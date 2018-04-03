@@ -37,20 +37,16 @@
 using namespace KC;
 
 struct ECADVISE {
-	ULONG cbKey = 0;
-	ULONG ulEventMask = 0;
+	unsigned int cbKey = 0, ulEventMask = 0;
+	unsigned int ulConnection = 0, ulSupportConnection = 0;
 	memory_ptr<BYTE> lpKey;
 	object_ptr<IMAPIAdviseSink> lpAdviseSink;
-	ULONG ulConnection = 0;
 	GUID guid{};
-	ULONG ulSupportConnection = 0;
 };
 
 struct ECCHANGEADVISE {
-	ULONG ulSyncId = 0;
-	ULONG ulChangeId = 0;
-	ULONG ulEventMask = 0;
-	ULONG ulConnection = 0;
+	unsigned int ulSyncId = 0, ulChangeId = 0;
+	unsigned int ulEventMask = 0, ulConnection = 0;
 	object_ptr<IECChangeAdviseSink> lpAdviseSink;
 	GUID guid{};
 };
@@ -138,7 +134,6 @@ HRESULT ECNotifyClient::QueryInterface(REFIID refiid, void **lppInterface)
  */
 HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, bool bSynchronous, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection)
 {
-	HRESULT		hr = MAPI_E_NO_SUPPORT;
 	ULONG		ulConnection = 0;
 
 	if (lpKey == nullptr)
@@ -149,7 +144,7 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 	*lpulConnection = 0;
 	pEcAdvise->lpKey = NULL;
 	pEcAdvise->cbKey = cbKey;
-	hr = KAllocCopy(lpKey, cbKey, &~pEcAdvise->lpKey);
+	auto hr = KAllocCopy(lpKey, cbKey, &~pEcAdvise->lpKey);
 	if (hr != hrSuccess)
 		return hr;
 	pEcAdvise->lpAdviseSink.reset(lpAdviseSink);
@@ -198,7 +193,6 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
     IECChangeAdviseSink *lpChangeAdviseSink, ULONG *lpulConnection)
 {
-	HRESULT			hr = MAPI_E_NO_SUPPORT;
 	ULONG			ulConnection = 0;
 	std::unique_ptr<ECCHANGEADVISE> pEcAdvise(new(std::nothrow) ECCHANGEADVISE);
 	if (pEcAdvise == nullptr)
@@ -212,7 +206,7 @@ HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
 	/*
 	 * Request unique connection id from Master.
 	 */
-	hr = m_lpNotifyMaster->ReserveConnection(&ulConnection);
+	auto hr = m_lpNotifyMaster->ReserveConnection(&ulConnection);
 	if(hr != hrSuccess)
 		return hr;
 	/*
@@ -334,23 +328,21 @@ HRESULT ECNotifyClient::Unadvise(ULONG ulConnection)
 
 HRESULT ECNotifyClient::Unadvise(const ECLISTCONNECTION &lstConnections)
 {
-	HRESULT hr	= MAPI_E_NO_SUPPORT;
-	HRESULT hrTmp;
 	bool bWithErrors = false;
 
 	// Logoff the advisors
-	hr = m_lpTransport->HrUnSubscribeMulti(lstConnections);
+	auto hr = m_lpTransport->HrUnSubscribeMulti(lstConnections);
 	if (hr != hrSuccess) {
 		hr = hrSuccess;
 
 		for (const auto &p : lstConnections) {
-			hrTmp = m_lpTransport->HrUnSubscribe(p.second);
+			auto hrTmp = m_lpTransport->HrUnSubscribe(p.second);
 			if (FAILED(hrTmp))
 				bWithErrors = true;
 		}
 	}
 	for (const auto &p : lstConnections) {
-		hrTmp = UnRegisterAdvise(p.second);
+		auto hrTmp = UnRegisterAdvise(p.second);
 		if (FAILED(hrTmp))
 			bWithErrors = true;
 	}
@@ -432,13 +424,11 @@ HRESULT ECNotifyClient::NotifyReload()
 HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotifications)
 {
 	HRESULT						hr = hrSuccess;
-	ECMAPADVISE::const_iterator iterAdvise;
 	NOTIFICATIONLIST			notifications;
 
 	for (auto notp : lNotifications) {
 		LPNOTIFICATION tmp = NULL;
-
-		hr = CopySOAPNotificationToMAPINotification(m_lpProvider, notp, &tmp);
+		auto hr = CopySOAPNotificationToMAPINotification(m_lpProvider, notp, &tmp);
 		if (hr != hrSuccess)
 			continue;
 		notifications.emplace_back(tmp);
@@ -447,7 +437,7 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 	ulock_rec biglock(m_hMutex);
 
 	/* Search for the right connection */
-	iterAdvise = m_mapAdvise.find(ulConnection);
+	auto iterAdvise = m_mapAdvise.find(ulConnection);
 	if (iterAdvise == m_mapAdvise.cend() ||
 	    iterAdvise->second->lpAdviseSink == nullptr)
 		goto exit;
@@ -497,14 +487,12 @@ exit:
 
 HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNotifications)
 {
-	HRESULT						hr = hrSuccess;
 	memory_ptr<ENTRYLIST> lpSyncStates;
-	ECMAPCHANGEADVISE::const_iterator iterAdvise;
 	BINARYLIST					syncStates;
 	ulock_rec biglock(m_hMutex, std::defer_lock_t());
 
 	/* Create a straight array of MAX_NOTIFS_PER_CALL sync states */
-	hr = MAPIAllocateBuffer(sizeof *lpSyncStates, &~lpSyncStates);
+	auto hr = MAPIAllocateBuffer(sizeof(*lpSyncStates), &~lpSyncStates);
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpSyncStates, 0, sizeof *lpSyncStates);
@@ -525,7 +513,7 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 
 	/* Search for the right connection */
 	biglock.lock();
-	iterAdvise = m_mapChangeAdvise.find(ulConnection);
+	auto iterAdvise = m_mapChangeAdvise.find(ulConnection);
 	if (iterAdvise == m_mapChangeAdvise.cend() ||
 	    iterAdvise->second->lpAdviseSink == nullptr)
 		return hr;

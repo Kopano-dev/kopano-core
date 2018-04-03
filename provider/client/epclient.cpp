@@ -70,10 +70,9 @@ struct initprov {
 	object_ptr<WSTransport> transport;
 	unsigned int count, eid_size, wrap_eid_size;
 	SPropValue prop[6];
-	EntryIdPtr eid;
+	EntryIdPtr eid, wrap_eid;
 	/* referenced from prop[n] */
 	memory_ptr<wchar_t> store_name;
-	EntryIdPtr wrap_eid;
 	memory_ptr<ABEID> abe_id;
 };
 
@@ -409,28 +408,25 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
     IProfSect *lpProfSect, const sGlobalProfileProps &sProfileProps,
     ULONG *lpcStoreID, ENTRYID **lppStoreID)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> ptrPropValueResourceType, dspname, tpprop;
 	SPropValuePtr	ptrPropValueProviderUid;
 	std::string		strServiceName;
-	ULONG			ulResourceType=0;
 	struct initprov d;
 	d.provadm = lpAdminProvider;
 	d.profsect = lpProfSect;
 	d.count = d.eid_size = 0;
 
 	if (d.provadm != NULL) {
-		hr = GetServiceName(d.provadm, &strServiceName);
+		auto hr = GetServiceName(d.provadm, &strServiceName);
 		if (hr != hrSuccess)
 			return hr;
 	} else {
 		SPropValuePtr psn;
-		hr = HrGetOneProp(d.profsect, PR_SERVICE_NAME_A, &~psn);
+		auto hr = HrGetOneProp(d.profsect, PR_SERVICE_NAME_A, &~psn);
 		if(hr == hrSuccess)
 			strServiceName = psn->Value.lpszA;
-		hr = hrSuccess;
 	}
-	hr = HrGetOneProp(d.profsect, PR_RESOURCE_TYPE, &~ptrPropValueResourceType);
+	auto hr = HrGetOneProp(d.profsect, PR_RESOURCE_TYPE, &~ptrPropValueResourceType);
 	if (hr != hrSuccess)
 		// Ignore this provider; apparently it has no resource type, so just skip it
 		return hrSuccess;
@@ -440,7 +436,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	else
 		d.provuid = nullptr;
 
-	ulResourceType = ptrPropValueResourceType->Value.l;
+	unsigned int ulResourceType = ptrPropValueResourceType->Value.l;
 	hr = HrGetOneProp(d.profsect, PR_DISPLAY_NAME_A, &~dspname);
 	ec_log_debug("Initializing provider \"%s\"",
 		dspname != nullptr ? dspname->Value.lpszA : "(unnamed)");
@@ -551,25 +547,18 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
     LPPROVIDERADMIN lpAdminProviders, MAPIERROR **lppMapiError)
 {
 	HRESULT			hr = erSuccess;
-	std::string		strServerName;
-	std::wstring	strUserName;
-	std::wstring	strUserPassword;
-	std::string		strServerPort;
-	std::string		strType;
-	std::string		strDefStoreServer;
+	std::string strServerName, strDefStoreServer;
+	std::wstring strUserName, strUserPassword;
 	sGlobalProfileProps	sProfileProps;
 	std::basic_string<TCHAR> strError;
-
-	ProfSectPtr		ptrGlobalProfSect;
-	ProfSectPtr		ptrProfSect;
+	ProfSectPtr ptrGlobalProfSect, ptrProfSect;
 	MAPISessionPtr	ptrSession;
 	object_ptr<WSTransport> lpTransport;
 	memory_ptr<SPropValue> lpsPropValue;
-	bool			bShowDialog = false;
+	bool bShowDialog = false, bInitStores = true;
 	memory_ptr<BYTE> lpDelegateStores;
 	ULONG			cDelegateStores = 0;
 	convert_context	converter;
-	bool bInitStores = true;
 	SPropValue spv;
 
 	_hInstance = hInst;
@@ -586,9 +575,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 	}
 
 	// Logon defaults
-	strType = "http";
-	strServerPort ="236";
-
+	std::string strType = "http", strServerPort = "236";
 	switch(ulContext) {
 	case MSG_SERVICE_INSTALL:
 		hr = hrSuccess;

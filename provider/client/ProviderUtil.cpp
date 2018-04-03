@@ -100,8 +100,6 @@ HRESULT SetProviderMode(IMAPISupport *lpMAPISup, ECMapProvider* lpmapProvider, L
 
 HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, const char *lpszProfileName, ULONG ulFlags, PROVIDER_INFO* lpsProviderInfo)
 {
-	HRESULT hr = hrSuccess;
-	ECMapProvider::const_iterator iterProvider;
 	PROVIDER_INFO sProviderInfo;
 	object_ptr<ECMSProvider> lpECMSProvider;
 	object_ptr<ECABProvider> lpECABProvider;
@@ -111,14 +109,14 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	    lpszProfileName == nullptr || lpsProviderInfo == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	iterProvider = lpmapProvider->find(lpszProfileName);
+	auto iterProvider = lpmapProvider->find(lpszProfileName);
 	if (iterProvider != lpmapProvider->cend()) {
 		*lpsProviderInfo = iterProvider->second;
 		return hrSuccess;
 	}
 		
 	// Get the username and password from the profile settings
-	hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
+	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -163,12 +161,9 @@ HRESULT CreateMsgStoreObject(const char *lpszProfname, IMAPISupport *lpMAPISup,
     BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
 {
 	HRESULT	hr = hrSuccess;
-	
-	BOOL fModify = FALSE;
 	object_ptr<ECMsgStore> lpMsgStore;
 	object_ptr<IECPropStorage> lpStorage;
-
-	fModify = ulMsgFlags & MDB_WRITE || ulMsgFlags & MAPI_BEST_ACCESS; // FIXME check access at server
+	BOOL fModify = ulMsgFlags & MDB_WRITE || ulMsgFlags & MAPI_BEST_ACCESS; // FIXME check access at server
 
 	if (CompareMDBProvider(lpguidMDBProvider, &KOPANO_STORE_PUBLIC_GUID) == TRUE)
 		hr = ECMsgStorePublic::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, bOfflineStore, &~lpMsgStore);
@@ -205,8 +200,6 @@ HRESULT CreateMsgStoreObject(const char *lpszProfname, IMAPISupport *lpMAPISup,
 
 HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerName, ULONG ulFlags, WSTransport **lppTransport)
 {
-	HRESULT hr;
-	utf8string strServerName;
 	utf8string strPseudoUrl = utf8string::from_string("pseudo://");
 	char *lpszServerPath = NULL;
 	bool bIsPeer = false;
@@ -217,9 +210,9 @@ HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerNa
 	if ((ulFlags & ~MAPI_UNICODE) != 0)
 		return MAPI_E_UNKNOWN_FLAGS;
 
-	strServerName = convstring(lpszServerName, ulFlags);
+	utf8string strServerName = convstring(lpszServerName, ulFlags);
 	strPseudoUrl.append(strServerName);
-	hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &lpszServerPath, &bIsPeer);
+	auto hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &lpszServerPath, &bIsPeer);
 	if (hr != hrSuccess)
 		return hr;
 
