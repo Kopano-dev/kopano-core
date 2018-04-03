@@ -2099,11 +2099,11 @@ HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept, bool bDec
 	FBProps[2].Value.b = TRUE;
 
 	FBProps[3].ulPropTag = PR_PROCESS_MEETING_REQUESTS;
-	FBProps[3].Value.b = bAutoAccept ? TRUE : FALSE;
+	FBProps[3].Value.b = bAutoAccept;
 	FBProps[4].ulPropTag = PR_DECLINE_CONFLICTING_MEETING_REQUESTS;
-	FBProps[4].Value.b = bDeclineConflict ? TRUE : FALSE;
+	FBProps[4].Value.b = bDeclineConflict;
 	FBProps[5].ulPropTag = PR_DECLINE_RECURRING_MEETING_REQUESTS;
-	FBProps[5].Value.b = bDeclineRecurring ? TRUE : FALSE;
+	FBProps[5].Value.b = bDeclineRecurring;
 
 	// Save localfreebusy settings
 	auto hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, true, &~lpLocalFBMessage);
