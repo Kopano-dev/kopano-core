@@ -223,11 +223,9 @@ HRESULT ECGenericProp::HrDeleteRealProp(ULONG ulPropTag, BOOL fOverwriteRO)
 
 	// Now find the real value
 	auto iterProps = lstProps.find(PROP_ID(ulPropTag));
-	if (iterProps == lstProps.end()) {
+	if (iterProps == lstProps.end())
 		// Couldn't find it!
 		return MAPI_E_NOT_FOUND;
-	}
-
 	m_setDeletedProps.emplace(iterProps->second.GetPropTag());
 	lstProps.erase(iterProps);
 	return hrSuccess;

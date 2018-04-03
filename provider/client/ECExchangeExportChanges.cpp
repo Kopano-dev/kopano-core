@@ -385,13 +385,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	}
 
 	m_lstChange.assign(lstChange.begin(), lstChange.end());
-
-	if(ulBufferSize != 0){
-		m_ulBufferSize = ulBufferSize;
-	}else{
-		m_ulBufferSize = 10;
-	}
-
+	m_ulBufferSize = (ulBufferSize != 0) ? ulBufferSize : 10;
 	m_bConfiged = true;
 
 	if (bForceImplicitStateUpdate) {

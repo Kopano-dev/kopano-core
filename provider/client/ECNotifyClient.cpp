@@ -308,12 +308,11 @@ HRESULT ECNotifyClient::Advise(const ECLISTSYNCSTATE &lstSyncStates,
 	std::transform(lstAdvises.begin(), lstAdvises.end(), std::back_inserter(*lplstConnections), &SyncAdviseToConnection);
 
 exit:
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		// Unregister all advises.
 		for (auto iSyncAdvise = lstAdvises.cbegin();
 		     iSyncAdvise != lstAdvises.cend(); ++iSyncAdvise)
 			UnRegisterAdvise(iSyncAdvise->ulConnection);
-	}
 	return hr;
 }
 

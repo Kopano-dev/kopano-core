@@ -131,9 +131,8 @@ HRESULT ECExchangeImportHierarchyChanges::Config(LPSTREAM lpStream, ULONG ulFlag
 	hr = lpStream->Read(&m_ulChangeId, 4, &ulLen);
 	if (hr != hrSuccess)
 		return hr;
-	if (ulLen != 4) {
+	if (ulLen != 4)
 		return MAPI_E_INVALID_PARAMETER;
-	}
 	hr = HrGetOneProp(m_lpFolder, PR_SOURCE_KEY, &~lpPropSourceKey);
 	if(hr != hrSuccess)
 		return hr;
@@ -336,9 +335,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 		}
 	}
 
-	if(bConflict){
-		//TODO: handle conflicts
-	}
+	/* if (bConflict) TODO: handle conflicts */
 	hr = lpFolder->QueryInterface(IID_ECMAPIFolder, &~lpECFolder);
 	if(hr != hrSuccess)
 		return hr;
