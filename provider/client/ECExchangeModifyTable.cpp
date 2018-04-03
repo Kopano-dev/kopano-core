@@ -90,7 +90,6 @@ ECExchangeModifyTable::ECExchangeModifyTable(ULONG ulUniqueTag,
 HRESULT ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent,
     ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<ECMemTable> lpecTable;
 	ULONG ulUniqueId = 1;
 	static constexpr const SizedSPropTagArray(4, sPropACLs) =
@@ -99,7 +98,7 @@ HRESULT ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent,
 
 	// Although PR_RULE_ID is PT_I8, it does not matter, since the low count comes first in memory
 	// This will break on a big-endian system though
-	hr = ECMemTable::Create(sPropACLs, PR_MEMBER_ID, &~lpecTable);
+	auto hr = ECMemTable::Create(sPropACLs, PR_MEMBER_ID, &~lpecTable);
 	if (hr!=hrSuccess)
 		return hr;
 	hr = OpenACLS(lpParent, ulFlags, lpecTable, &ulUniqueId);
@@ -116,12 +115,10 @@ HRESULT ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent,
 HRESULT ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent,
     ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IStream> lpRulesData;
 	STATSTG statRulesData;
-	ULONG ulRead;
+	unsigned int ulRead, ulRuleId = 1;
 	object_ptr<ECMemTable> ecTable;
-	ULONG ulRuleId = 1;
 	static constexpr const SizedSPropTagArray(7, sPropRules) =
 		{7, {PR_RULE_ID, PR_RULE_SEQUENCE, PR_RULE_STATE,
 		PR_RULE_CONDITION, PR_RULE_ACTIONS, PR_RULE_USER_FLAGS,
@@ -129,7 +126,7 @@ HRESULT ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent,
 
 	// Although PR_RULE_ID is PT_I8, it does not matter, since the low count comes first in memory
 	// This will break on a big-endian system though
-	hr = ECMemTable::Create(sPropRules, PR_RULE_ID, &~ecTable);
+	auto hr = ECMemTable::Create(sPropRules, PR_RULE_ID, &~ecTable);
 	if (hr!=hrSuccess)
 		return hr;
 
@@ -192,34 +189,29 @@ HRESULT ECExchangeModifyTable::GetTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 HRESULT ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lpMods)
 {
-	HRESULT			hr = hrSuccess;
 	SPropValue		sRowId;
 	LPSPropValue	lpProps = NULL;
-	const SPropValue *lpFind = nullptr;
 	memory_ptr<SPropValue> lpPropRemove;
-	ULONG			cValues = 0;
+	unsigned int cValues = 0, ulFlagsRow = 0;
 	SPropValue		sPropXML;
-	ULONG			ulFlagsRow = 0;
-
-	unsigned int i = 0;
 
 	if(ulFlags == ROWLIST_REPLACE) {
-		hr = m_ecTable->HrDeleteAll();
+		auto hr = m_ecTable->HrDeleteAll();
 		if(hr != hrSuccess)
 			return hr;
 	}
 
-	for (i = 0; i < lpMods->cEntries; ++i) {
+	for (unsigned int i = 0; i < lpMods->cEntries; ++i) {
 		switch(lpMods->aEntries[i].ulRowFlags) {
 		case ROW_ADD:
-		case ROW_MODIFY:
+		case ROW_MODIFY: {
 			// Note: the ECKeyTable only uses an ULONG as the key.
 			//       Information placed in the HighPart of this PT_I8 is lost!
-			lpFind = PCpropFindProp(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, m_ulUniqueTag);
+			auto lpFind = PCpropFindProp(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, m_ulUniqueTag);
 			if (lpFind == NULL) {
 				sRowId.ulPropTag = m_ulUniqueTag;
 				sRowId.Value.li.QuadPart = this->m_ulUniqueId++;
-				hr = Util::HrAddToPropertyArray(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, &sRowId, &~lpPropRemove, &cValues);
+				auto hr = Util::HrAddToPropertyArray(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, &sRowId, &~lpPropRemove, &cValues);
 				if(hr != hrSuccess)
 					return hr;
 				lpProps = lpPropRemove;
@@ -232,15 +224,17 @@ HRESULT ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lpMods)
 			else
 				ulFlagsRow = ECKeyTable::TABLE_ROW_MODIFY;
 
-			hr = m_ecTable->HrModifyRow(ulFlagsRow, lpFind, lpProps, cValues);
+			auto hr = m_ecTable->HrModifyRow(ulFlagsRow, lpFind, lpProps, cValues);
 			if(hr != hrSuccess)
 				return hr;
 			break;
-		case ROW_REMOVE:
-			hr = m_ecTable->HrModifyRow(ECKeyTable::TABLE_ROW_DELETE, NULL, lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues);
+		}
+		case ROW_REMOVE: {
+			auto hr = m_ecTable->HrModifyRow(ECKeyTable::TABLE_ROW_DELETE, NULL, lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues);
 			if(hr != hrSuccess)
 				return hr;
 			break;
+		}
 		case ROW_EMPTY:
 			break;
 		}
@@ -254,7 +248,7 @@ HRESULT ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lpMods)
 	if(m_ulUniqueTag == PR_RULE_ID)
 	{
 		char *xml = nullptr;
-		hr = HrSerializeTable(m_ecTable, &xml);
+		auto hr = HrSerializeTable(m_ecTable, &xml);
 		std::unique_ptr<char[]> szXML(xml);
 		if(hr != hrSuccess)
 			return hr;
@@ -266,8 +260,7 @@ HRESULT ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lpMods)
 		if(hr != hrSuccess)
 			return hr;
 	} else if (m_ulUniqueTag == PR_MEMBER_ID) {
-		
-		hr = SaveACLS(m_lpParent, m_ecTable);
+		auto hr = SaveACLS(m_lpParent, m_ecTable);
 		if(hr != hrSuccess)
 			return hr;
 		// FIXME: if username not exist, just resolve
@@ -282,17 +275,15 @@ HRESULT ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lpMods)
 
 HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags, ECMemTable *lpTable, ULONG *lpulUniqueID)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IECSecurity> lpSecurity;
-	ULONG cPerms = 0;
 	memory_ptr<ECPERMISSION> lpECPerms;
 	SPropValue	lpsPropMember[4];
 	WCHAR* lpMemberName = NULL;
-	unsigned int ulUserid = 0;
+	unsigned int ulUserid = 0, cPerms = 0;
 
 	if (lpecMapiProp == nullptr || lpTable == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = lpecMapiProp->QueryInterface(IID_IECSecurity, &~lpSecurity);
+	auto hr = lpecMapiProp->QueryInterface(IID_IECSecurity, &~lpSecurity);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~lpECPerms);
@@ -349,7 +340,6 @@ HRESULT ECExchangeModifyTable::DisablePushToServer()
 
 HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lpTable)
 {
-	HRESULT hr = hrSuccess;
 	rowset_ptr lpRowSet;
 	memory_ptr<SPropValue> lpIDs;
 	memory_ptr<ULONG> lpulStatus;
@@ -359,7 +349,7 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 	object_ptr<IECSecurity> lpSecurity;
 
 	// Get the ACLS
-	hr = lpecMapiProp->QueryInterface(IID_IECSecurity, &~lpSecurity);
+	auto hr = lpecMapiProp->QueryInterface(IID_IECSecurity, &~lpSecurity);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -419,7 +409,6 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 // Serializes the rules ECMemTable data into an XML stream.
 HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppSerialized)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<ECMemTableView> lpView;
 	memory_ptr<SPropTagArray> lpCols;
 	rowset_ptr lpRowSet;
@@ -436,7 +425,7 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 	});
 
 	// Get a view
-	hr = lpTable->HrGetView(createLocaleFromName(""), MAPI_UNICODE, &~lpView);
+	auto hr = lpTable->HrGetView(createLocaleFromName(""), MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -487,14 +476,11 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 // Deserialize the rules xml data to ECMemtable
 HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable *lpTable, ULONG *ulRuleId)
 {
-	HRESULT hr = hrSuccess;
 	std::istringstream is(lpSerialized);
 	struct rowSet sSOAPRowSet;
 	rowset_ptr lpsRowSet;
-	ULONG cValues;
+	unsigned int cValues, ulHighestRuleID = 1;
 	SPropValue		sRowId;
-	ULONG ulHighestRuleID = 1;
-	unsigned int i, n;
 	struct soap soap;
 	convert_context converter;
 
@@ -514,12 +500,11 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 
 	if (soap_end_recv(&soap) != 0)
 		return MAPI_E_NETWORK_FAILURE;
-
-	hr = CopySOAPRowSetToMAPIRowSet(NULL, &sSOAPRowSet, &~lpsRowSet, 0);
+	auto hr = CopySOAPRowSetToMAPIRowSet(NULL, &sSOAPRowSet, &~lpsRowSet, 0);
 	if(hr != hrSuccess)
 		return hr;
 
-	for (i = 0; i < lpsRowSet->cRows; ++i) {
+	for (unsigned int i = 0; i < lpsRowSet->cRows; ++i) {
 		memory_ptr<SPropValue> lpProps;
 
 		// Note: the ECKeyTable only uses an ULONG as the key.
@@ -529,8 +514,7 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 		hr = Util::HrAddToPropertyArray(lpsRowSet[i].lpProps, lpsRowSet[i].cValues, &sRowId, &~lpProps, &cValues);
 		if(hr != hrSuccess)
 			return hr;
-
-		for (n = 0; n < cValues; ++n) {
+		for (unsigned int n = 0; n < cValues; ++n) {
 			/*
 			 * If a string type is PT_STRING8, it is old and
 			 * assumed to be in WTF-1252 (CP-1252 values directly
