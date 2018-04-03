@@ -357,10 +357,8 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
 
     DEBUGPRINT("%d Bytes left\n", ulLen - data.GetCursorPos());
     
-    if(ulLen - data.GetCursorPos() != 0) {
-        hr = MAPI_E_NOT_FOUND;
-    }
-    
+	if (ulLen - data.GetCursorPos() != 0)
+		hr = MAPI_E_NOT_FOUND;
 exit:
 	if (hr == hrSuccess || !bReadValid)
 		return hr;
