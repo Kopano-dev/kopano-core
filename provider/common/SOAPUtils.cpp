@@ -2214,11 +2214,8 @@ size_t RestrictTableSize(const struct restrictTable *lpSrc)
 		break;
 	case RES_CONTENT:
 		ulSize += sizeof(restrictContent);
-
-		if(lpSrc->lpContent->lpProp) {
+		if (lpSrc->lpContent->lpProp != nullptr)
 			ulSize += PropSize(lpSrc->lpContent->lpProp);
-		}
-
 		break;
 	case RES_PROPERTY:
 		ulSize += sizeof(restrictProp);
@@ -2302,13 +2299,10 @@ size_t SearchCriteriaSize(const struct searchCriteria *lpSrc)
 		return 0;
 
 	size_t ulSize = sizeof(struct searchCriteria);
-	if(lpSrc->lpRestrict) {
+	if (lpSrc->lpRestrict != nullptr)
 		ulSize += RestrictTableSize(lpSrc->lpRestrict);
-	}
-
-	if(lpSrc->lpFolders) {
+	if (lpSrc->lpFolders != nullptr)
 		ulSize += EntryListSize(lpSrc->lpFolders);
-	}
 	return ulSize;
 }
 
@@ -2358,10 +2352,8 @@ size_t NotificationStructSize(const notification *lpNotification)
 		ulSize += sizeof(notificationNewMail);
 		ulSize += EntryIdSize(lpNotification->newmail->pEntryId);
 		ulSize += EntryIdSize(lpNotification->newmail->pParentId);
-		
-		if(lpNotification->newmail->lpszMessageClass) {
+		if (lpNotification->newmail->lpszMessageClass != nullptr)
 			ulSize += (unsigned int)strlen(lpNotification->newmail->lpszMessageClass)+1;
-		}
 	}else if(lpNotification->ics != NULL){
 		ulSize += sizeof(notificationICS);
 		ulSize += EntryIdSize(lpNotification->ics->pSyncState);
