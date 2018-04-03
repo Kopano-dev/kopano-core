@@ -11,13 +11,8 @@ from MAPI import (
     KEEP_OPEN_READWRITE, PT_UNICODE, PT_ERROR, MAPI_E_NOT_FOUND
 )
 
-from MAPI.Defs import (
-    PROP_TYPE, PROP_ID
-)
-
-from MAPI.Struct import (
-    SPropValue
-)
+from MAPI.Defs import PROP_TYPE
+from MAPI.Struct import SPropValue
 
 from .compat import repr as _repr
 from .errors import NotFoundError
@@ -37,7 +32,7 @@ class Properties(object):
         :param create: create property if it doesn't exist
         """
         return _prop.prop(self, self.mapiobj, proptag, create=create,
-            proptype=proptype)
+                          proptype=proptype)
 
     def get_prop(self, proptag):
         """Return :class:`property <Property>` with given proptag or

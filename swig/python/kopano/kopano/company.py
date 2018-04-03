@@ -28,22 +28,22 @@ from .errors import (
     NotFoundError, DuplicateError
 )
 from .compat import (
-    benc as _benc, bdec as _bdec, repr as _repr, fake_unicode as _unicode,
+    benc as _benc, bdec as _bdec, fake_unicode as _unicode,
 )
 
 if sys.hexversion >= 0x03000000:
     try:
         from . import server as _server
     except ImportError:
-        _server = sys.modules[__package__+'.server']
+        _server = sys.modules[__package__ + '.server']
     try:
         from . import user as _user
     except ImportError:
-        _user = sys.modules[__package__+'.user']
+        _user = sys.modules[__package__ + '.user']
     try:
         from . import store as _store
     except ImportError:
-        _store = sys.modules[__package__+'.store']
+        _store = sys.modules[__package__ + '.store']
 else:
     import server as _server
     import user as _user
@@ -121,8 +121,9 @@ class Company(Properties):
         """
         if guid == 'public':
             if not self.public_store:
-                raise NotFoundError("no public store for company '%s'" % \
-                    self.name)
+                raise NotFoundError(
+                    "no public store for company '%s'" % self.name
+                )
             return self.public_store
         else:
             return self.server.store(guid)
@@ -131,8 +132,9 @@ class Company(Properties):
         """Return all company :class:`stores <Store>`."""
         if self.server.multitenant:
             table = self.server.sa.OpenUserStoresTable(MAPI_UNICODE)
-            restriction = SPropertyRestriction(RELOP_EQ, PR_EC_COMPANY_NAME_W,
-                SPropValue(PR_EC_COMPANY_NAME_W, self.name))
+            restriction = SPropertyRestriction(
+                RELOP_EQ, PR_EC_COMPANY_NAME_W, SPropValue(PR_EC_COMPANY_NAME_W, self.name)
+            )
             table.Restrict(restriction, TBL_BATCH)
             for row in table.QueryRows(-1, 0):
                 prop = PpropFindProp(row, PR_EC_STOREGUID)
@@ -218,7 +220,7 @@ class Company(Properties):
         :param name: user name
         :param create: create user if it doesn't exist (default False)
         """
-        if not '@' in name and self._name != 'Default':
+        if '@' not in name and self._name != 'Default':
             name = name + '@' + self._name
         try:
             return self.server.user(name)
@@ -310,7 +312,7 @@ class Company(Properties):
         self.server.create_user(name, password=password, company=self._name)
         return self.user('%s@%s' % (name, self._name))
 
-    #XXX create_group/create=True
+    # XXX create_group/create=True
     def group(self, name):
         """Return :class:`group <Group>` with given name.
 

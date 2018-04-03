@@ -18,7 +18,7 @@ from MAPI import (
 )
 
 from MAPI.Tags import (
-    PT_BOOLEAN, PR_RECIPIENT_TRACKSTATUS, PR_MESSAGE_RECIPIENTS,
+    PR_RECIPIENT_TRACKSTATUS, PR_MESSAGE_RECIPIENTS,
     PR_MESSAGE_CLASS_W, PR_ENTRYID, PR_SENT_REPRESENTING_ENTRYID, PR_ROWID,
     PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W, PR_PROCESSED,
     IID_IMAPITable, IID_IMessage, PR_RECIPIENT_TRACKSTATUS_TIME,
@@ -50,7 +50,7 @@ if sys.hexversion >= 0x03000000:
     try:
         from . import utils as _utils
     except ImportError:
-        _utils = sys.modules[__package__+'.utils']
+        _utils = sys.modules[__package__ + '.utils']
     from . import property_ as _prop
 else:
     import utils as _utils
@@ -216,8 +216,7 @@ class MeetingRequest(object):
     @property
     def processed(self):
         """ Has the request/response been processed """
-
-        processed = self.item.get(PR_PROCESSED) or False
+        return self.item.get(PR_PROCESSED) or False
 
     @processed.setter
     def processed(self, value):
@@ -384,9 +383,9 @@ class MeetingRequest(object):
         # send response
         if response:
             if tentative:
-                message_class ='IPM.Schedule.Meeting.Resp.Tent'
+                message_class = 'IPM.Schedule.Meeting.Resp.Tent'
             else:
-                message_class ='IPM.Schedule.Meeting.Resp.Pos'
+                message_class = 'IPM.Schedule.Meeting.Resp.Pos'
             self._respond('Accepted', message_class)
 
     def decline(self, message=None, response=True):
@@ -489,7 +488,7 @@ class MeetingRequest(object):
 
                 attendee_crit_change = self.item.get_prop(PidLidAttendeeCriticalChange)
                 if trackstatus_time and attendee_crit_change and \
-                    attendee_crit_change.mapiobj.Value <= trackstatus_time.Value:
+                   attendee_crit_change.mapiobj.Value <= trackstatus_time.Value:
                     continue
 
                 if trackstatus_time:

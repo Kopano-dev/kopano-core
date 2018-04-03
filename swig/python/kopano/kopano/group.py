@@ -20,11 +20,11 @@ if sys.hexversion >= 0x03000000:
     try:
         from . import server as _server
     except ImportError:
-        _server = sys.modules[__package__+'.server']
+        _server = sys.modules[__package__ + '.server']
     try:
         from . import user as _user
     except ImportError:
-        _user = sys.modules[__package__+'.user']
+        _user = sys.modules[__package__ + '.user']
 else:
     import server as _server
     import user as _user

@@ -27,4 +27,3 @@ class Restriction(object):
 
     def __repr__(self):
         return _repr(self)
-

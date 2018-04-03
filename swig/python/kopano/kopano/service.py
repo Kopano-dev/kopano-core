@@ -34,7 +34,6 @@ if sys.hexversion >= 0x03000000:
     from . import server as _server
     from . import errors as _errors
     from . import parser as _parser
-    from . import log as _log
 else:
     try:
         import daemon # picks bundled version
@@ -47,7 +46,6 @@ else:
     import server as _server
     import errors as _errors
     import parser as _parser
-    import log as _log
 
 def _daemon_helper(func, service, log):
     try:

@@ -6,7 +6,6 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import datetime
-import libfreebusy
 import struct
 import sys
 import time
@@ -17,9 +16,9 @@ from MAPI import (
 )
 
 from MAPI.Tags import (
-    PR_MESSAGE_CLASS_W, PR_ATTACH_NUM, PR_ATTACH_FLAGS, PR_ATTACHMENT_FLAGS,
+    PR_MESSAGE_CLASS_W, PR_ATTACH_FLAGS, PR_ATTACHMENT_FLAGS,
     PR_ATTACHMENT_HIDDEN, PR_ATTACH_METHOD, PR_DISPLAY_NAME_W,
-    PR_EXCEPTION_STARTTIME, PR_EXCEPTION_ENDTIME, PR_HASATTACH,
+    PR_EXCEPTION_STARTTIME, PR_EXCEPTION_ENDTIME,
     PR_NORMALIZED_SUBJECT_W, PR_ATTACHMENT_LINKID, PR_ICON_INDEX,
     PR_MESSAGE_RECIPIENTS, IID_IMAPITable, PR_RECIPIENT_FLAGS,
     PR_MESSAGE_FLAGS, PR_RECIPIENT_TRACKSTATUS, recipSendable,
@@ -27,9 +26,7 @@ from MAPI.Tags import (
     respOrganized, respDeclined,
 )
 
-from MAPI.Defs import (
-    HrGetOneProp, PpropFindProp,
-)
+from MAPI.Defs import PpropFindProp
 
 from MAPI.Struct import (
     SPropValue,
@@ -58,7 +55,7 @@ if sys.hexversion >= 0x03000000:
     try:
         from . import utils as _utils
     except ImportError:
-        _utils = sys.modules[__package__+'.utils']
+        _utils = sys.modules[__package__ + '.utils']
     from . import meetingrequest as _meetingrequest
 else:
     import utils as _utils
@@ -67,9 +64,9 @@ else:
 SHORT, LONG = 2, 4
 
 from .pidlid import (
-    PidLidSideEffects, PidLidSmartNoAttach, PidLidReminderDelta,
+    PidLidSideEffects, PidLidSmartNoAttach,
     PidLidReminderSet, PidLidReminderSignalTime, PidLidReminderDelta,
-    PidLidBusyStatus, PidLidExceptionReplaceTime, PidLidAppointmentSubType,
+    PidLidBusyStatus, PidLidExceptionReplaceTime,
     PidLidResponseStatus, PidLidTimeZoneStruct, PidLidAppointmentRecur,
     PidLidLocation, PidLidAppointmentSubType, PidLidAppointmentColor,
     PidLidIntendedBusyStatus, PidLidAppointmentStartWhole,
@@ -202,16 +199,16 @@ class Recurrence(object):
     @property
     def interval(self):
         if self._recur_frequency == FREQ_YEAR:
-            return self._period//12
+            return self._period // 12
         elif self._pattern_type == PATTERN_DAILY:
-            return self._period//(24*60)
+            return self._period // (24 * 60)
         else:
             return self._period
 
     @interval.setter
     def interval(self, value):
         if self._pattern_type == PATTERN_DAILY:
-            self._period = value*(24*60)
+            self._period = value * (24 * 60)
         else:
             self._period = value
         # TODO fill in
@@ -286,8 +283,8 @@ class Recurrence(object):
         return Occurrence(
             self.item,
             start,
-            start + datetime.timedelta(minutes=self._endtime_offset-self._starttime_offset),
-            basedate_val = basedate_val,
+            start + datetime.timedelta(minutes=self._endtime_offset - self._starttime_offset),
+            basedate_val=basedate_val,
         )
 
     @staticmethod
@@ -403,11 +400,10 @@ class Recurrence(object):
 
             # We have modified the subject
             if exception['override_flags'] & ARO_SUBJECT:
-                subject_length = _utils.unpack_short(value, pos) # XXX: unused?
                 pos += SHORT
                 subject_length2 = _utils.unpack_short(value, pos)
                 pos += SHORT
-                exception['subject'] = value[pos:pos+subject_length2]
+                exception['subject'] = value[pos:pos + subject_length2]
                 pos += subject_length2
 
             if exception['override_flags'] & ARO_MEETINGTYPE:
@@ -423,11 +419,10 @@ class Recurrence(object):
                 pos += LONG
 
             if exception['override_flags'] & ARO_LOCATION:
-                location_length = _utils.unpack_short(value, pos) # XXX: unused?
                 pos += SHORT
                 location_length2 = _utils.unpack_short(value, pos)
                 pos += SHORT
-                exception['location'] = value[pos:pos+location_length2]
+                exception['location'] = value[pos:pos + location_length2]
                 pos += location_length2
 
             if exception['override_flags'] & ARO_BUSYSTATUS:
@@ -480,15 +475,15 @@ class Recurrence(object):
             if exception['override_flags'] & ARO_SUBJECT:
                 length = _utils.unpack_short(value, pos)
                 pos += SHORT
-                extended_exception['subject'] = value[pos:pos+2*length].decode('utf-16-le')
-                pos += 2*length
+                extended_exception['subject'] = value[pos:pos + 2 * length].decode('utf-16-le')
+                pos += 2 * length
 
             # WideCharLocation
             if exception['override_flags'] & ARO_LOCATION:
                 length = _utils.unpack_short(value, pos)
                 pos += SHORT
-                extended_exception['location'] = value[pos:pos+2*length].decode('utf-16-le')
-                pos += 2*length
+                extended_exception['location'] = value[pos:pos + 2 * length].decode('utf-16-le')
+                pos += 2 * length
 
             # ReservedBlockEE2
             if exception['override_flags'] & ARO_SUBJECT or exception['override_flags'] & ARO_LOCATION:
@@ -500,8 +495,10 @@ class Recurrence(object):
         # AppointmentRecurrencePattern
 
         # RecurrencePattern
-        data = struct.pack('<HHHHH', self._reader_version, self._writer_version,
-            self._recur_frequency, self._pattern_type, self._calendar_type)
+        data = struct.pack(
+            '<HHHHH', self._reader_version, self._writer_version,
+            self._recur_frequency, self._pattern_type, self._calendar_type
+        )
 
         data += struct.pack('<III', self._first_datetime, self._period, self._sliding_flag)
 
@@ -544,7 +541,7 @@ class Recurrence(object):
 
             if exception['override_flags'] & ARO_SUBJECT:
                 subject = exception['subject']
-                data += struct.pack('<H', len(subject)+1)
+                data += struct.pack('<H', len(subject) + 1)
                 data += struct.pack('<H', len(subject))
                 data += subject
 
@@ -559,7 +556,7 @@ class Recurrence(object):
 
             if exception['override_flags'] & ARO_LOCATION:
                 location = exception['location']
-                data += struct.pack('<H', len(location)+1)
+                data += struct.pack('<H', len(location) + 1)
                 data += struct.pack('<H', len(location))
                 data += location
 
@@ -615,7 +612,7 @@ class Recurrence(object):
     def _start(self, value):
         self._start_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
         start = self.item.start
-        self._starttime_offset = start.hour*60 + start.minute
+        self._starttime_offset = start.hour * 60 + start.minute
 
     @property
     def _end(self):
@@ -625,7 +622,7 @@ class Recurrence(object):
     def _end(self, value):
         self._end_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
         end = self.item.end
-        self._endtime_offset = end.hour*60 + end.minute
+        self._endtime_offset = end.hour * 60 + end.minute
 
     # TODO functionality below here should be refactored or not visible
 
@@ -635,7 +632,7 @@ class Recurrence(object):
         rule = rruleset()
 
         if self._pattern_type == PATTERN_DAILY:
-            rule.rrule(rrule(DAILY, dtstart=self._start, until=self._end, interval=self._period//(24*60)))
+            rule.rrule(rrule(DAILY, dtstart=self._start, until=self._end, interval=self._period // (24 * 60)))
 
         if self._pattern_type == PATTERN_WEEKLY:
             byweekday = () # Set
@@ -644,7 +641,7 @@ class Recurrence(object):
                     byweekday += (week,)
             # FIXME: add one day, so that we don't miss the last recurrence, since the end date is for example 11-3-2015 on 1:00
             # But the recurrence is on 8:00 that day and we should include it.
-            rule.rrule(rrule(WEEKLY, wkst = self._start.weekday(), dtstart=self._start, until=self._end + timedelta(days=1), byweekday=byweekday, interval=self._period))
+            rule.rrule(rrule(WEEKLY, wkst=self._start.weekday(), dtstart=self._start, until=self._end + timedelta(days=1), byweekday=byweekday, interval=self._period))
 
         elif self._pattern_type == PATTERN_MONTHLY:
             # X Day of every Y month(s)
@@ -697,8 +694,8 @@ class Recurrence(object):
         # TODO get start/end from cal_item if not in item?
         startdate = item.get(PidLidAppointmentStartWhole)
         if startdate is not None:
-           startdate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(startdate, tz).timetuple()))
-           exception['start_datetime'] = startdate_val
+            startdate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(startdate, tz).timetuple()))
+            exception['start_datetime'] = startdate_val
 
         enddate = item.get(PidLidAppointmentEndWhole)
         if enddate is not None:
@@ -926,7 +923,8 @@ class Recurrence(object):
                 if flags and flags.Value != (recipOrganizer | recipSendable):
                     flags.Value = recipExceptionalDeleted | recipSendable
                     trackstatus = PpropFindProp(recip, PR_RECIPIENT_TRACKSTATUS)
-                    recip.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, 0))
+                    if not trackstatus:
+                        recip.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, 0))
 
             message.mapiobj.ModifyRecipients(MODRECIP_MODIFY, recips)
 
@@ -966,6 +964,7 @@ class Recurrence(object):
 
         # create embedded item
         message_flags = MSGFLAG_READ
+        # UNUSED?
         message = cal_item.create_item(message_flags, hidden=True)
 
         basedate = _utils._from_gmt(basedate, tz)
@@ -1051,7 +1050,6 @@ class Recurrence(object):
         self._save()
         self._update_calitem()
 
-
     def __unicode__(self):
         return u'Recurrence()'
 
@@ -1133,9 +1131,9 @@ class Occurrence(object):
         basedate_val = self._basedate_val or 0
 
         return _benc(
-            flag + \
-            _utils.pack_short(len(eid)) + \
-            eid + \
+            flag +
+            _utils.pack_short(len(eid)) +
+            eid +
             _utils.pack_long(basedate_val)
         )
 

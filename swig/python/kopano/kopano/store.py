@@ -31,8 +31,8 @@ from MAPI.Tags import (
     PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME, IID_IExchangeModifyTable,
     PR_MAILBOX_OWNER_ENTRYID, PR_EC_STOREGUID, PR_EC_STORETYPE,
     PR_EC_USERNAME_W, PR_EC_COMPANY_NAME_W, PR_MESSAGE_CLASS_W,
-    PR_SUBJECT, PR_WLINK_FLAGS, PR_WLINK_ORDINAL,
-    PR_WLINK_STORE_ENTRYID, PR_WLINK_TYPE, PR_WLINK_ENTRYID,
+    PR_SUBJECT,
+    PR_WLINK_STORE_ENTRYID, PR_WLINK_ENTRYID,
     PR_EXTENDED_FOLDER_FLAGS, PR_WB_SF_ID, PR_FREEBUSY_ENTRYIDS,
     PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES_W,
     PR_DELEGATE_FLAGS, PR_MAPPING_SIGNATURE, PR_EC_WEBACCESS_SETTINGS_JSON
@@ -40,7 +40,6 @@ from MAPI.Tags import (
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue, ROWENTRY, MAPINAMEID,
     MAPIErrorNotFound, MAPIErrorInvalidEntryid,
-    MAPIErrorNoSupport
 )
 
 from .defs import (
@@ -48,7 +47,7 @@ from .defs import (
     RSF_PID_RSS_SUBSCRIPTION, NAMED_PROPS_ARCHIVER
 )
 
-from .errors import NotFoundError, NotSupportedError
+from .errors import NotFoundError
 from .properties import Properties
 from .autoaccept import AutoAccept
 from .outofoffice import OutOfOffice
@@ -62,7 +61,7 @@ from .restriction import Restriction
 from . import notification as _notification
 
 from .compat import (
-    encode as _encode, repr as _repr, bdec as _bdec, benc as _benc
+    encode as _encode, bdec as _bdec, benc as _benc
 )
 
 if sys.hexversion >= 0x03000000:
@@ -70,13 +69,13 @@ if sys.hexversion >= 0x03000000:
     try:
         from . import user as _user
     except ImportError:
-        _user = sys.modules[__package__+'.user']
+        _user = sys.modules[__package__ + '.user']
     from . import folder as _folder
     from . import item as _item
     try:
         from . import utils as _utils
     except ImportError:
-        _utils = sys.modules[__package__+'.utils']
+        _utils = sys.modules[__package__ + '.utils']
 else:
     import server as _server
     import user as _user
@@ -315,7 +314,7 @@ class Store(Properties):
             pass
 
     def _extract_ipm_ol2007_entryid(self, offset):
-        #Extracts entryids from PR_IPM_OL2007_ENTRYIDS blob using logic from common/Util.cpp Util::ExtractAdditionalRenEntryID
+        # Extracts entryids from PR_IPM_OL2007_ENTRYIDS blob using logic from common/Util.cpp Util::ExtractAdditionalRenEntryID
         blob = self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value
         pos = 0
         while True:
@@ -468,7 +467,7 @@ class Store(Properties):
         """
         table = self.subtree.mapiobj.GetContentsTable(MAPI_DEFERRED_ERRORS | MAPI_ASSOCIATED)
         table.Restrict(SPropertyRestriction(RELOP_EQ, PR_SUBJECT, SPropValue(PR_SUBJECT, name)), 0)
-        rows = table.QueryRows(1,0)
+        rows = table.QueryRows(1, 0)
         # No config item found, create new message
         if len(rows) == 0:
             item = self.subtree.associated.create_item(message_class='IPM.Zarafa.Configuration', subject=name)
@@ -745,7 +744,7 @@ class Store(Properties):
     def unsubscribe(self, sink):
         _notification.unsubscribe(self, sink)
 
-    def notifications(self, time=24*3600):
+    def notifications(self, time=24 * 3600):
         for n in _notification._notifications(self, None, time):
             yield n
 

@@ -5,7 +5,7 @@ Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
 """
 
 from MAPI import (
-    ROW_REMOVE, FL_PREFIX, RELOP_NE, ROW_ADD, ROW_MODIFY, MAPI_BEST_ACCESS,
+    ROW_REMOVE, FL_PREFIX, RELOP_NE, ROW_ADD, MAPI_BEST_ACCESS,
     MAPI_UNICODE,
 )
 from MAPI.Tags import (
@@ -27,7 +27,6 @@ from MAPI.Struct import (
 from .compat import (
     bdec as _bdec, repr as _repr,
 )
-from .defs import *
 from .errors import NotFoundError
 
 USERPROPS = [
@@ -113,15 +112,18 @@ class Delegation(object):
             user = store.server.gab.OpenEntry(userid, None, MAPI_BEST_ACCESS)
             userprops.append(user.GetProps(USERPROPS, MAPI_UNICODE))
 
-        actions.append(ACTION( ACTTYPE.OP_DELEGATE, 0, None, None, 0, actFwdDelegate(userprops)))
+        actions.append(ACTION(ACTTYPE.OP_DELEGATE, 0, None, None, 0, actFwdDelegate(userprops)))
         if deletion:
-            actions.append(ACTION( ACTTYPE.OP_DELETE,  0, None, None, 0, None))
+            actions.append(ACTION(ACTTYPE.OP_DELETE, 0, None, None, 0, None))
         row.append(SPropValue(PR_RULE_ACTIONS, ACTIONS(1, actions)))
 
-        cond = SAndRestriction([SContentRestriction(FL_PREFIX, PR_MESSAGE_CLASS_W, SPropValue(PR_MESSAGE_CLASS_W, u"IPM.Schedule.Meeting")),
-            SNotRestriction( SExistRestriction(PR_DELEGATED_BY_RULE) ),
-            SOrRestriction([SNotRestriction( SExistRestriction(PR_SENSITIVITY)),
-            SPropertyRestriction(RELOP_NE, PR_SENSITIVITY, SPropValue(PR_SENSITIVITY, 2))])
+        cond = SAndRestriction([
+            SContentRestriction(FL_PREFIX, PR_MESSAGE_CLASS_W, SPropValue(PR_MESSAGE_CLASS_W, u"IPM.Schedule.Meeting")),
+            SNotRestriction(SExistRestriction(PR_DELEGATED_BY_RULE) ),
+            SOrRestriction([
+                SNotRestriction(SExistRestriction(PR_SENSITIVITY)),
+                SPropertyRestriction(RELOP_NE, PR_SENSITIVITY, SPropValue(PR_SENSITIVITY, 2))
+            ])
         ])
         row.append(SPropValue(PR_RULE_CONDITION, cond))
         rulerows = [ROWENTRY(ROW_ADD, row)]
@@ -189,4 +191,3 @@ class Delegation(object):
 
     def __repr__(self):
         return _repr(self)
-

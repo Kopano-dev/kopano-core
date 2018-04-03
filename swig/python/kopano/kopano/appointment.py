@@ -26,8 +26,8 @@ from .defs import (
     PSETID_Appointment,
 )
 from .pidlid import (
-    PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
-    PidLidBusyStatus, PidLidGlobalObjectId, PidLidRecurring,
+    PidLidReminderSet, PidLidReminderDelta, PidLidBusyStatus,
+    PidLidGlobalObjectId, PidLidRecurring,
 )
 if sys.hexversion >= 0x03000000:
     from . import utils as _utils

@@ -6,8 +6,8 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import datetime
-import email.parser
-import email.utils
+import email.parser as email_parser
+import email.utils as email_utils
 import functools
 import os
 import random
@@ -62,7 +62,7 @@ from MAPI.Tags import (
     PR_SENT_REPRESENTING_ENTRYID, PR_MESSAGE_RECIPIENTS,
     PR_MESSAGE_ATTACHMENTS, PR_RECIPIENT_TYPE, PR_ADDRTYPE_W,
     PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W, PR_NULL, PR_HTML,
-    PR_RTF_COMPRESSED, PR_SEARCH_KEY, PR_SENDER_SEARCH_KEY,
+    PR_RTF_COMPRESSED, PR_SENDER_SEARCH_KEY,
     PR_START_DATE, PR_END_DATE, PR_OWNER_APPT_ID, PR_RESPONSE_REQUESTED,
     PR_SENT_REPRESENTING_SEARCH_KEY, PR_ATTACHMENT_FLAGS,
     PR_ATTACHMENT_HIDDEN, PR_ATTACHMENT_LINKID, PR_ATTACH_FLAGS,
@@ -82,9 +82,9 @@ from .pidlid import (
 )
 
 from .compat import (
-    is_str as _is_str, repr as _repr, pickle_load as _pickle_load,
+    is_str as _is_str, pickle_load as _pickle_load,
     pickle_loads as _pickle_loads, fake_unicode as _unicode,
-    is_file as _is_file, encode as _encode, benc as _benc, bdec as _bdec,
+    is_file as _is_file, benc as _benc, bdec as _bdec,
     default as _default,
 )
 
@@ -110,15 +110,15 @@ if sys.hexversion >= 0x03000000:
     try:
         from . import store as _store
     except ImportError:
-        _store = sys.modules[__package__+'.store']
+        _store = sys.modules[__package__ + '.store']
     try:
         from . import user as _user
     except ImportError:
-        _user = sys.modules[__package__+'.user']
+        _user = sys.modules[__package__ + '.user']
     try:
         from . import utils as _utils
     except ImportError:
-        _utils = sys.modules[__package__+'.utils']
+        _utils = sys.modules[__package__ + '.utils']
     from . import property_ as _prop
 else:
     import folder as _folder
@@ -149,9 +149,8 @@ class Item(Properties, Contact, Appointment):
     """Item class"""
 
     def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None,
-        loads=None, attachments=True, create=False, mapiobj=None,
-        entryid=None, content_flag=None, cache={}, save=True
-    ):
+                 loads=None, attachments=True, create=False, mapiobj=None,
+                 entryid=None, content_flag=None, cache={}, save=True):
         self._eml = None
         self._architem = None
         self._folder = None
@@ -555,8 +554,7 @@ class Item(Properties, Contact, Appointment):
             pass
 
     def attachments(self, embedded=False, page_start=None, page_limit=None,
-            order=None
-        ):
+                    order=None):
         """ Return item :class:`attachments <Attachment>`
 
         :param embedded: include embedded attachments
@@ -589,7 +587,7 @@ class Item(Properties, Contact, Appointment):
 
         :param name: the attachment name
         :param data: string containing the attachment data
-        :param filename: string 
+        :param filename: string
         """
 
         if filename:
@@ -622,9 +620,9 @@ class Item(Properties, Contact, Appointment):
         try:
             message_headers = self.prop(PR_TRANSPORT_MESSAGE_HEADERS)
             if sys.hexversion >= 0x03000000:
-                headers = email.parser.BytesParser().parsebytes(message_headers.value, headersonly=True)
+                headers = email_parser.BytesParser().parsebytes(message_headers.value, headersonly=True)
             else:
-                headers = email.parser.Parser().parsestr(message_headers.value, headersonly=True)
+                headers = email_parser.Parser().parsestr(message_headers.value, headersonly=True)
             return headers
         except NotFoundError:
             return {}
@@ -766,7 +764,6 @@ class Item(Properties, Contact, Appointment):
                                                           self.from_.name,
                                                           body)
 
-
     def _create_source_message_info(self, action):
         """Create source message info, value of the record, based on action
         type (reply, replyall, forward) and add 48byte entryid at the end.
@@ -788,7 +785,6 @@ class Item(Properties, Contact, Appointment):
         except KeyError:
             return ""
 
-
     def reply(self, folder=None, all=False):
         # TODO(jelle): support reply all.
         if not folder:
@@ -804,7 +800,6 @@ class Item(Properties, Contact, Appointment):
         item.create_prop('common:0x85CE', source_message_info, PT_BINARY)
 
         return item
-
 
     def send(self, copy_to_sentmail=True):
         item = self
@@ -971,20 +966,20 @@ class Item(Properties, Contact, Appointment):
         pos = 8
         for i in range(count):
             size = _utils.unpack_long(entries, pos)
-            content = entries[pos+4+24:pos+4+24+size]
+            content = entries[pos + 4 + 24:pos + 4 + 24 + size]
 
             start = sos = 0
             info = []
             while True:
-                if content[sos:sos+2] == b'\x00\x00':
+                if content[sos:sos + 2] == b'\x00\x00':
                     info.append(content[start:sos].decode('utf-16-le'))
                     if len(info) == 3:
                         yield Address(self.server, info[1], info[0], info[2])
                         break
-                    start = sos+2
+                    start = sos + 2
                 sos += 2
 
-            pos += 4+size
+            pos += 4 + size
 
     @property
     def meetingrequest(self):
@@ -1004,7 +999,7 @@ class Item(Properties, Contact, Appointment):
         else:
             addr = _unicode(addr)
             pr_addrtype = 'SMTP'
-            pr_dispname, pr_email = email.utils.parseaddr(addr)
+            pr_dispname, pr_email = email_utils.parseaddr(addr)
             pr_dispname = pr_dispname or addr
             pr_entryid = self.server.ab.CreateOneOff(pr_dispname, u'SMTP', _unicode(pr_email), MAPI_UNICODE)
         return pr_addrtype, pr_dispname, pr_email, pr_entryid
@@ -1214,13 +1209,13 @@ class Item(Properties, Contact, Appointment):
         self.mapiobj.SetProps(props)
 
         # recipients
-        recipients = [[SPropValue(proptag, value) for (proptag, value, nameid) in row] for row in d[b'recipients']]
+        recipients = [[SPropValue(proptag_, value) for (proptag_, value, nameid) in row] for row in d[b'recipients']]
         self.mapiobj.ModifyRecipients(0, recipients)
 
         # attachments
         for props, data in d[b'attachments']:
             if attachments or isinstance(data, dict):
-                props = [SPropValue(proptag, value) for (proptag, value, nameid) in props]
+                props = [SPropValue(proptag_, value) for (proptag_, value, nameid) in props]
                 (id_, attach) = self.mapiobj.CreateAttach(None, 0)
                 attach.SetProps(props)
                 if isinstance(data, dict): # embedded message
@@ -1388,4 +1383,3 @@ class Item(Properties, Contact, Appointment):
 
     def __unicode__(self):
         return u'Item(%s)' % self.subject
-

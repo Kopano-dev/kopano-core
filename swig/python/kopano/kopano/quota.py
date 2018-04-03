@@ -17,7 +17,7 @@ if sys.hexversion >= 0x03000000:
     try:
         from . import utils as _utils
     except ImportError:
-        _utils = sys.modules[__package__+'.utils']
+        _utils = sys.modules[__package__ + '.utils']
 else:
     import utils as _utils
 
@@ -124,4 +124,3 @@ class Quota(object):
 
     def __repr__(self):
         return _repr(self)
-

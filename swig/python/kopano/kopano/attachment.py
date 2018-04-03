@@ -26,7 +26,7 @@ if sys.hexversion >= 0x03000000:
     try:
         from . import item as _item
     except ImportError:
-        _item = sys.modules[__package__+'.item']
+        _item = sys.modules[__package__ + '.item']
 else:
     import item as _item
 
@@ -40,7 +40,7 @@ if sys.hexversion >= 0x03000000:
     try:
         from . import utils as _utils
     except ImportError:
-        _utils = sys.modules[__package__+'.utils']
+        _utils = sys.modules[__package__ + '.utils']
 else:
     import utils as _utils
 

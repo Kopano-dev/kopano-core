@@ -1,4 +1,3 @@
-
 """
 lockfile.py - Platform-independent advisory file locks.
 
@@ -62,7 +61,6 @@ import os
 import threading
 import time
 import errno
-import urllib
 
 # Work with PEP8 and non-PEP8 versions of threading module.
 if not hasattr(threading, "current_thread"):
@@ -266,7 +264,7 @@ class LinkFileLock(LockBase):
                             raise LockTimeout
                         else:
                             raise AlreadyLocked
-                    time.sleep(timeout is not None and timeout/10 or 0.1)
+                    time.sleep(timeout is not None and timeout / 10 or 0.1)
             else:
                 # Link creation succeeded.  We're good to go.
                 return
@@ -381,7 +379,6 @@ class SQLiteFileLock(LockBase):
 
         import sqlite3
         self.connection = sqlite3.connect(SQLiteFileLock.testdb)
-        
         c = self.connection.cursor()
         try:
             c.execute("create table locks"
@@ -443,7 +440,6 @@ class SQLiteFileLock(LockBase):
                 if len(rows) == 1:
                     # We're the locker, so go home.
                     return
-                    
             # Maybe we should wait a bit longer.
             if timeout is not None and time.time() > end_time:
                 if timeout > 0:
@@ -473,7 +469,7 @@ class SQLiteFileLock(LockBase):
                        "  where lock_file = ?",
                        (self.lock_file,))
         return cursor.fetchone()[0]
-        
+
     def is_locked(self):
         cursor = self.connection.cursor()
         cursor.execute("select * from locks"

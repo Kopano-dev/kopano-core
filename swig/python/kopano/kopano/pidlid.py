@@ -4,7 +4,7 @@ Part of the high-level python bindings for Kopano
 Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
 """
 
-#TODO PT_STRING8 -> PT_UNICODE
+# TODO PT_STRING8 -> PT_UNICODE
 
 PidLidEmail1AddressType = 'PT_UNICODE:PSETID_Address:0x8082'
 PidLidEmail1DisplayName = 'PT_UNICODE:PSETID_Address:0x8080'
@@ -18,11 +18,11 @@ PidLidEmail3AddressType = 'PT_UNICODE:PSETID_Address:0x80A2'
 PidLidEmail3DisplayName = 'PT_UNICODE:PSETID_Address:0x80A0'
 PidLidEmail3EmailAddress = 'PT_UNICODE:PSETID_Address:0x80A3'
 PidLidEmail3OriginalEntryId = 'PT_BINARY:PSETID_Address:0x80A5'
-#PidLidEmail1OriginalDisplayName = 'PT_UNICODE:PSETID_Address:0x8084'
+# PidLidEmail1OriginalDisplayName = 'PT_UNICODE:PSETID_Address:0x8084'
 PidLidReminderDelta = "PT_LONG:PSETID_Common:0x8501"
 PidLidReminderSet = "PT_BOOLEAN:PSETID_Common:0x8503"
 PidLidCommonStart = "PT_SYSTIME:PSETID_Common:0x8516"
-PidLidCommonEnd ="PT_SYSTIME:PSETID_Common:0x8517"
+PidLidCommonEnd = "PT_SYSTIME:PSETID_Common:0x8517"
 PidLidUseTnef = "PT_BOOLEAN:PSETID_Common:0x8582"
 PidLidAttendeeCriticalChange = "PT_SYSTIME:PSETID_Meeting:0x1"
 PidLidWhere = "PT_STRING8:PSETID_Meeting:0x2"

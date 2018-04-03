@@ -10,6 +10,7 @@ try:
 except ImportError:
     import pickle
 
+# Not unused, imported from server
 try:
     from functools import lru_cache
 except ImportError:

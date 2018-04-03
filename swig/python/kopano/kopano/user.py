@@ -34,7 +34,7 @@ from .defs import (
 )
 from .errors import Error, NotFoundError, NotSupportedError, DuplicateError
 from .compat import (
-    fake_unicode as _unicode, benc as _benc, bdec as _bdec, benc as _benc,
+    fake_unicode as _unicode, benc as _benc, bdec as _bdec,
 )
 from .picture import Picture
 
@@ -49,8 +49,7 @@ class User(Properties):
     """User class"""
 
     def __init__(self, name=None, server=None, email=None, ecuser=None,
-        userid=None
-    ):
+                 userid=None):
         self.server = server or _server.Server()
         self._ecuser = None
         self._name = None

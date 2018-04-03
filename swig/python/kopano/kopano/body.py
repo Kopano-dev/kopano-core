@@ -7,13 +7,9 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file)
 Deprecated
 """
 
-import sys
 import warnings
 
-from .compat import (
-    repr as _repr, fake_unicode as _unicode
-)
-
+from .compat import repr as _repr
 from .errors import _DeprecationWarning
 
 class Body(object):
@@ -61,7 +57,6 @@ class Body(object):
 
         warnings.warn('Body.type_ is deprecated', _DeprecationWarning)
         return self.item.body_type
-
 
     def __unicode__(self):
         return u'Body()'

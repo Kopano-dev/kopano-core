@@ -126,13 +126,13 @@ Example::
                     try:
                         self.data[key] = self.config[key].parse(key, value)
                     except ConfigError as e:
-                        if service:
+                        if self.service:
                             self.errors.append(e.message)
                         else:
                             raise
             else:
                 msg = "%s: unknown config option" % key
-                if service:
+                if self.service:
                     self.warnings.append(msg)
                 else:
                     raise ConfigError(msg)
