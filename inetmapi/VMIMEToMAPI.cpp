@@ -468,14 +468,11 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 				}
 			}
 
+			sPropDefaults[0].ulPropTag = PR_MESSAGE_CLASS_W;
 			if (receivedMDN.getDisposition().getType() == vmime::dispositionTypes::DELETED)
-			{
-				sPropDefaults[0].ulPropTag = PR_MESSAGE_CLASS_W;
 				sPropDefaults[0].Value.lpszW = const_cast<wchar_t *>(L"REPORT.IPM.Note.IPNNRN");
-			} else {
-				sPropDefaults[0].ulPropTag = PR_MESSAGE_CLASS_W;
+			else
 				sPropDefaults[0].Value.lpszW = const_cast<wchar_t *>(L"REPORT.IPM.Note.IPNRN");
-			}
 			sPropDefaults.set(1, 0x1046001E /* ptagOriginalInetMessageID */, "<" + receivedMDN.getOriginalMessageId().getId() + ">");
 			hr = lpMessage->SetProps(2, sPropDefaults.get(), nullptr);
 			if (hr != hrSuccess) {
@@ -3191,13 +3188,12 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 
 	// date
 	vmime::shared_ptr<vmime::datetime> date;
-	if (vmHeader->hasField("Date")) {
+	if (vmHeader->hasField("Date"))
 		date = vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue());
-	}
-	else {
+	else
 		// date must not be empty, so force epoch as the timestamp
 		date = vmime::make_shared<vmime::datetime>(0);
-	}
+
 	date->generate(ctx, os);
 	lItems.emplace_back("\"" + buffer + "\"");
 	buffer.clear();

@@ -85,10 +85,8 @@ static const struct _sClassMap {
 static const char *FindMAPIClassByScheduleClass(const char *szSClass)
 {
 	for (size_t i = 0; i < ARRAY_SIZE(sClassMap); ++i)
-		if(strcasecmp(szSClass, sClassMap[i].szScheduleClass) == 0) {
+		if (strcasecmp(szSClass, sClassMap[i].szScheduleClass) == 0)
 			return sClassMap[i].szMAPIClass;
-		}
-
 	return NULL;
 }
 
