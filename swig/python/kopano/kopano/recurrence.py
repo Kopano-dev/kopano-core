@@ -44,7 +44,9 @@ from datetime import timedelta
 from .compat import (
     repr as _repr, benc as _benc, bdec as _bdec,
 )
-from .errors import NotSupportedError
+from .errors import (
+    NotSupportedError, NotFoundError,
+)
 from .defs import (
     ARO_SUBJECT, ARO_MEETINGTYPE, ARO_REMINDERDELTA, ARO_REMINDERSET,
     ARO_LOCATION, ARO_BUSYSTATUS, ARO_ATTACHMENT, ARO_SUBTYPE,
@@ -610,16 +612,28 @@ class Recurrence(object):
         # local to recurrence timezone!
         return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date)) + datetime.timedelta(minutes=self._starttime_offset)
 
-    @_start.setter
+    @property
+    def start(self):
+        """ Start of recurrence range """
+        tz_start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date))
+        return tz_start.replace(tzinfo=self.item.timezone).astimezone().replace(tzinfo=None)
+
+    @_start.setter # TODO start.setter
     def _start(self, value):
         self._start_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
         start = self.item.start
         self._starttime_offset = start.hour * 60 + start.minute
 
-    @property
+    @property # TODO end.setter
     def _end(self):
         # local to recurrence timezone!
         return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date)) + datetime.timedelta(minutes=self._endtime_offset)
+
+    @property
+    def end(self):
+        """ End of recurrence range """
+        tz_end = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date))
+        return tz_end.replace(tzinfo=self.item.timezone).astimezone().replace(tzinfo=None)
 
     @_end.setter
     def _end(self, value):
