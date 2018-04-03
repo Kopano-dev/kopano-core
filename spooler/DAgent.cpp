@@ -180,6 +180,9 @@ public:
 
 	/* Username is email address, resolve it to get username */
 	bool bResolveAddress = false;
+
+	/* Indication if we got an error calling external tools */
+	bool got_error = false;
 };
 
 /**
@@ -513,7 +516,7 @@ static bool kc_recip_in_list(const char *s, const char *recip)
  * @param[in] fp	File pointer to the email data
  * @param[in] lpRecipient	Pointer to a recipient name
  */
-static void SaveRawMessage(FILE *fp, const char *lpRecipient)
+static void SaveRawMessage(FILE *fp, const char *lpRecipient, DeliveryArgs *lpArgs)
 {
 	if (!g_lpConfig || !g_lpLogger || !fp || !lpRecipient)
 		return;
@@ -527,7 +530,8 @@ static void SaveRawMessage(FILE *fp, const char *lpRecipient)
 	 * - space-separated user list
 	 */
 	bool y = parseBool(rawmsg) && (strcasecmp(rawmsg, "all") == 0 ||
-	         strcasecmp(rawmsg, "yes") == 0 || kc_recip_in_list(rawmsg, lpRecipient));
+	         strcasecmp(rawmsg, "yes") == 0 || kc_recip_in_list(rawmsg, lpRecipient)) ||
+	         (strcasecmp(rawmsg, "error") == 0 && lpArgs->got_error);
 	if (!y)
 		return;
 
@@ -2041,6 +2045,7 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 		}
 		ec_log_info("Autoaccept processing failed, proceeding with rules processing: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);
+		lpArgs->got_error = true;
 		// The MR autoaccepter did not run properly. This could be correct behaviour; for example the
 		// autoaccepter may want to defer accepting to a human controller. This means we have to continue
 		// processing as if the autoaccepter was not used
@@ -2049,11 +2054,13 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 	else if (FNeedsAutoProcessing(*lppMessage)) {
 		ec_log_info("Starting MR auto processing");
 		hr = HrAutoProcess(lpRecip, lpStore, *lppMessage);
-		if (hr == hrSuccess)
+		if (hr == hrSuccess) {
 			ec_log_info("Automatic MR processing successful.");
-		else
+		} else {
 			ec_log_info("Automatic MR processing failed: %s (%x).",
 				GetMAPIErrorMessage(hr), hr);
+			lpArgs->got_error = true;
+		}
 	}
 
 	if (lpFolder == lpInbox) {
@@ -2940,8 +2947,9 @@ static void *HandlerLMTP(void *lpArg)
 
 			auto rawmsg = g_lpConfig->GetSetting("log_raw_message");
 			auto save_all = parseBool(rawmsg) && (strcasecmp(rawmsg, "all") == 0 || strcasecmp(rawmsg, "yes") == 0);
-			if (save_all)
-				SaveRawMessage(tmp, "LMTP");
+			auto save_error = strcasecmp(rawmsg, "error") == 0 && lpArgs->got_error;
+			if (save_all || save_error)
+				SaveRawMessage(tmp, "LMTP", lpArgs.get());
 
 			for (const auto &company : mapRCPT)
 				for (const auto &server : company.second)
@@ -2951,10 +2959,10 @@ static void *HandlerLMTP(void *lpArg)
 							static_assert(std::is_same<decltype(recip->wstrDeliveryStatus.c_str()), decltype(i.c_str())>::value, "need compatible types");
 							snprintf(wbuffer, ARRAY_SIZE(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
 							mapRecipientResults.emplace(converter.convert_to<std::string>(i), wbuffer);
-							if (save_all)
+							if (save_all || save_error)
 								continue;
 							auto save_username = converter.convert_to<std::string>(recip->wstrUsername);
-							SaveRawMessage(tmp, save_username.c_str());
+							SaveRawMessage(tmp, save_username.c_str(), lpArgs.get());
 						}
 					}
 
@@ -3232,7 +3240,7 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 	    g_bTempfail = false;
 
 	// Save copy of the raw message
-	SaveRawMessage(fpMail, recipient);
+	SaveRawMessage(fpMail, recipient, lpArgs);
 	return hr;
 }
 
@@ -3371,7 +3379,7 @@ int main(int argc, char *argv[]) {
 		{ "sslkey_pass", "", CONFIGSETTING_EXACT },
 		{ "spam_header_name", "X-Spam-Status" },
 		{ "spam_header_value", "Yes," },
-		{ "log_raw_message", "no", CONFIGSETTING_RELOADABLE },
+		{ "log_raw_message", "error", CONFIGSETTING_RELOADABLE },
 		{ "log_raw_message_path", "/tmp", CONFIGSETTING_RELOADABLE },
 		{ "archive_on_delivery", "no", CONFIGSETTING_RELOADABLE },
 		{ "mr_autoaccepter", "/usr/sbin/kopano-mr-accept", CONFIGSETTING_RELOADABLE },
