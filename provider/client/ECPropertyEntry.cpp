@@ -584,75 +584,75 @@ ECProperty::~ECProperty()
 	DEBUG_GUARD;
 
 	switch(PROP_TYPE(ulPropTag)) {
-		case PT_I2:
-		case PT_I4:
-		case PT_R4:
-		case PT_R8:
-		case PT_BOOLEAN:
-		case PT_CURRENCY:
-		case PT_APPTIME:
-		case PT_SYSTIME:
-		case PT_I8:
-			break;
-		case PT_BINARY:
-			delete[] this->Value.bin.lpb;
-			break;
-		case PT_STRING8:
-			assert("We should never have PT_STRING8 storage" == nullptr);
-			// Deliberate fallthrough
-		case PT_UNICODE:
-			delete [] this->Value.lpszW;
-			break;
-		case PT_CLSID:
-			delete this->Value.lpguid;
-			break;
-		case PT_MV_I2:
-			delete [] Value.MVi.lpi;
-			break;
-		case PT_MV_LONG:
-			delete [] this->Value.MVl.lpl;
-			break;
-		case PT_MV_R4:
-			delete [] this->Value.MVflt.lpflt;
-			break;
-		case PT_MV_DOUBLE:
-			delete [] this->Value.MVdbl.lpdbl;
-			break;
-		case PT_MV_CURRENCY:
-			delete [] this->Value.MVcur.lpcur;
-			break;
-		case PT_MV_APPTIME:
-			delete [] this->Value.MVat.lpat;
-			break;
-		case PT_MV_SYSTIME:
-			delete [] this->Value.MVft.lpft;
-			break;
-		case PT_MV_BINARY: {
-			for (unsigned int i = 0; i <this->Value.MVbin.cValues; ++i)
-				delete[] this->Value.MVbin.lpbin[i].lpb;
-			delete [] this->Value.MVbin.lpbin;
-			break;
-		}
-		case PT_MV_STRING8:
-			assert("We should never have PT_MV_STRING8 storage" == nullptr);
-			// Deliberate fallthrough
-		case PT_MV_UNICODE: {
-			for (unsigned int i = 0; i < this->Value.MVszW.cValues; ++i)
-				delete [] this->Value.MVszW.lppszW[i];
-			delete [] this->Value.MVszW.lppszW;
-			break;
-		}
-		case PT_MV_CLSID: {
-			delete [] this->Value.MVguid.lpguid;
-			break;
-		}
-		case PT_MV_I8:
-			delete [] this->Value.MVli.lpli;
-			break;
-		case PT_ERROR:
-			break;
-		default:
-			break;
+	case PT_I2:
+	case PT_I4:
+	case PT_R4:
+	case PT_R8:
+	case PT_BOOLEAN:
+	case PT_CURRENCY:
+	case PT_APPTIME:
+	case PT_SYSTIME:
+	case PT_I8:
+		break;
+	case PT_BINARY:
+		delete[] this->Value.bin.lpb;
+		break;
+	case PT_STRING8:
+		assert("We should never have PT_STRING8 storage" == nullptr);
+		// Deliberate fallthrough
+	case PT_UNICODE:
+		delete[] this->Value.lpszW;
+		break;
+	case PT_CLSID:
+		delete this->Value.lpguid;
+		break;
+	case PT_MV_I2:
+		delete[] Value.MVi.lpi;
+		break;
+	case PT_MV_LONG:
+		delete[] this->Value.MVl.lpl;
+		break;
+	case PT_MV_R4:
+		delete[] this->Value.MVflt.lpflt;
+		break;
+	case PT_MV_DOUBLE:
+		delete[] this->Value.MVdbl.lpdbl;
+		break;
+	case PT_MV_CURRENCY:
+		delete[] this->Value.MVcur.lpcur;
+		break;
+	case PT_MV_APPTIME:
+		delete[] this->Value.MVat.lpat;
+		break;
+	case PT_MV_SYSTIME:
+		delete[] this->Value.MVft.lpft;
+		break;
+	case PT_MV_BINARY: {
+		for (unsigned int i = 0; i <this->Value.MVbin.cValues; ++i)
+			delete[] this->Value.MVbin.lpbin[i].lpb;
+		delete[] this->Value.MVbin.lpbin;
+		break;
+	}
+	case PT_MV_STRING8:
+		assert("We should never have PT_MV_STRING8 storage" == nullptr);
+		// Deliberate fallthrough
+	case PT_MV_UNICODE: {
+		for (unsigned int i = 0; i < this->Value.MVszW.cValues; ++i)
+			delete[] this->Value.MVszW.lppszW[i];
+		delete[] this->Value.MVszW.lppszW;
+		break;
+	}
+	case PT_MV_CLSID: {
+		delete[] this->Value.MVguid.lpguid;
+		break;
+	}
+	case PT_MV_I8:
+		delete[] this->Value.MVli.lpli;
+		break;
+	case PT_ERROR:
+		break;
+	default:
+		break;
 	}
 }
 
