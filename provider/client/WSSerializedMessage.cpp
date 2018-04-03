@@ -130,13 +130,12 @@ int WSSerializedMessage::MTOMWrite(struct soap *soap, void* /*handle*/, const ch
 	if (!m_ptrDestStream)
 		return SOAP_OK;
 	auto hr = m_ptrDestStream->Write(buf, static_cast<unsigned int>(len), &cbWritten);
-	if (hr != hrSuccess) {
-		soap->error = SOAP_ERR;
-		m_hr = hr;
-		m_ptrDestStream.reset();
-	}
+	if (hr == hrSuccess)
+		return SOAP_OK;
+	soap->error = SOAP_ERR;
+	m_hr = hr;
+	m_ptrDestStream.reset();
 	// @todo: Should we check if everything was written?
-
 	return SOAP_OK;
 }
 

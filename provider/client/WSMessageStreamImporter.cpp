@@ -45,21 +45,20 @@ HRESULT WSMessageStreamSink::Write(LPVOID lpData, ULONG cbData)
 {
 	HRESULT hrAsync = hrSuccess;
 	auto hr = kcerr_to_mapierr(m_lpFifoBuffer->Write(lpData, cbData, 0, nullptr));
-	if(hr != hrSuccess) {
-		// Write failed, close the write-side of the FIFO
-		m_lpFifoBuffer->Close(ECFifoBuffer::cfWrite);
+	if (hr == hrSuccess)
+		return hrSuccess;
+	// Write failed, close the write-side of the FIFO
+	m_lpFifoBuffer->Close(ECFifoBuffer::cfWrite);
 
-		// Failure writing to the fifo. This means there must have been some error
-		// on the other side of the FIFO. Since that is the root cause of the write failure,
-		// return that instead of the error from the FIFO buffer (most probably a network
-		// error, but others also possible, eg logon failure, session lost, etc)
-		m_lpImporter->GetAsyncResult(&hrAsync);
+	// Failure writing to the fifo. This means there must have been some error
+	// on the other side of the FIFO. Since that is the root cause of the write failure,
+	// return that instead of the error from the FIFO buffer (most probably a network
+	// error, but others also possible, eg logon failure, session lost, etc)
+	m_lpImporter->GetAsyncResult(&hrAsync);
 
-		// Make sure that we only use the async error if there really was an error
-		if(hrAsync != hrSuccess)
-			hr = hrAsync;
-	}
-
+	// Make sure that we only use the async error if there really was an error
+	if (hrAsync != hrSuccess)
+		hr = hrAsync;
 	return hr;
 }
 
