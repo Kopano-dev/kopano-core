@@ -1434,15 +1434,12 @@ static HRESULT CopySOAPPropTagArrayToMAPIPropTagArray(
 HRESULT Utf8ToTString(LPCSTR lpszUtf8, ULONG ulFlags, LPVOID lpBase, convert_context *lpConverter, LPTSTR *lppszTString)
 {
 	HRESULT	hr;
-	std::string strDest;
-	size_t cbDest;
 
 	if (lpszUtf8 == NULL || lppszTString == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	strDest = CONVERT_TO(lpConverter, std::string, ((ulFlags & MAPI_UNICODE) ? CHARSET_WCHAR : CHARSET_CHAR), lpszUtf8, rawsize(lpszUtf8), "UTF-8");
-	cbDest = strDest.length() + ((ulFlags & MAPI_UNICODE) ? sizeof(WCHAR) : sizeof(CHAR));
-
+	std::string strDest = CONVERT_TO(lpConverter, std::string, ((ulFlags & MAPI_UNICODE) ? CHARSET_WCHAR : CHARSET_CHAR), lpszUtf8, rawsize(lpszUtf8), "UTF-8");
+	size_t cbDest = strDest.length() + ((ulFlags & MAPI_UNICODE) ? sizeof(WCHAR) : sizeof(CHAR));
 	if (lpBase)
 		hr = ECAllocateMore(cbDest, lpBase, (LPVOID*)lppszTString);
 	else
@@ -1461,7 +1458,6 @@ static HRESULT TStringToUtf8(const TCHAR *lpszTstring, ULONG ulFlags,
 {
 	HRESULT	hr;
 	std::string strDest;
-	size_t cbDest;
 
 	if (lpszTstring == NULL || lppszUtf8 == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -1470,8 +1466,8 @@ static HRESULT TStringToUtf8(const TCHAR *lpszTstring, ULONG ulFlags,
 		strDest = CONVERT_TO(lpConverter, std::string, "UTF-8", (wchar_t*)lpszTstring, rawsize((wchar_t*)lpszTstring), CHARSET_WCHAR);
 	else
 		strDest = CONVERT_TO(lpConverter, std::string, "UTF-8", (char*)lpszTstring, rawsize((char*)lpszTstring), CHARSET_CHAR);
-	cbDest = strDest.length() + 1;
 
+	size_t cbDest = strDest.length() + 1;
 	if (lpBase)
 		hr = ECAllocateMore(cbDest, lpBase, (LPVOID*)lppszUtf8);
 	else
@@ -1488,15 +1484,13 @@ HRESULT CopyABPropsFromSoap(const struct propmapPairArray *lpsoapPropmap,
     const struct propmapMVPairArray *lpsoapMVPropmap, SPROPMAP *lpPropmap,
     MVPROPMAP *lpMVPropmap, void *lpBase, ULONG ulFlags)
 {
-	HRESULT hr;
-	unsigned int nLen = 0;
 	convert_context converter;
 	ULONG ulConvFlags;
 
 	if (lpsoapPropmap != NULL) {
 		lpPropmap->cEntries = lpsoapPropmap->__size;
-		nLen = sizeof(*lpPropmap->lpEntries) * lpPropmap->cEntries;
-		hr = ECAllocateMore(nLen, lpBase, (void**)&lpPropmap->lpEntries);
+		unsigned int nLen = sizeof(*lpPropmap->lpEntries) * lpPropmap->cEntries;
+		auto hr = ECAllocateMore(nLen, lpBase, (void**)&lpPropmap->lpEntries);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -1517,7 +1511,7 @@ HRESULT CopyABPropsFromSoap(const struct propmapPairArray *lpsoapPropmap,
 
 	if (lpsoapMVPropmap != NULL) {
 		lpMVPropmap->cEntries = lpsoapMVPropmap->__size;
-		hr = ECAllocateMore(sizeof(*lpMVPropmap->lpEntries) * lpMVPropmap->cEntries, lpBase, (void**)&lpMVPropmap->lpEntries);
+		auto hr = ECAllocateMore(sizeof(*lpMVPropmap->lpEntries) * lpMVPropmap->cEntries, lpBase, (void**)&lpMVPropmap->lpEntries);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -1531,7 +1525,7 @@ HRESULT CopyABPropsFromSoap(const struct propmapPairArray *lpsoapPropmap,
 			}
 
 			lpMVPropmap->lpEntries[i].cValues = lpsoapMVPropmap->__ptr[i].sValues.__size;
-			nLen = sizeof(*lpMVPropmap->lpEntries[i].lpszValues) * lpMVPropmap->lpEntries[i].cValues;
+			unsigned int nLen = sizeof(*lpMVPropmap->lpEntries[i].lpszValues) * lpMVPropmap->lpEntries[i].cValues;
 			hr = ECAllocateMore(nLen, lpBase, (void**)&lpMVPropmap->lpEntries[i].lpszValues);
 			if (hr != hrSuccess)
 				return hr;
@@ -1551,14 +1545,13 @@ HRESULT CopyABPropsToSoap(const SPROPMAP *lpPropmap,
     struct propmapPairArray **lppsoapPropmap,
     struct propmapMVPairArray **lppsoapMVPropmap)
 {
-	HRESULT hr = hrSuccess;
 	ecmem_ptr<struct propmapPairArray> soapPropmap;
 	ecmem_ptr<struct propmapMVPairArray> soapMVPropmap;
 	convert_context	converter;
 	ULONG ulConvFlags;
 
 	if (lpPropmap && lpPropmap->cEntries) {
-		hr = ECAllocateBuffer(sizeof *soapPropmap, &~soapPropmap);
+		auto hr = ECAllocateBuffer(sizeof *soapPropmap, &~soapPropmap);
 		if (hr != hrSuccess)
 			return hr;
 		soapPropmap->__size = lpPropmap->cEntries;
@@ -1582,7 +1575,7 @@ HRESULT CopyABPropsToSoap(const SPROPMAP *lpPropmap,
 	}
 
 	if (lpMVPropmap && lpMVPropmap->cEntries) {
-		hr = ECAllocateBuffer(sizeof *soapMVPropmap, &~soapMVPropmap);
+		auto hr = ECAllocateBuffer(sizeof *soapMVPropmap, &~soapMVPropmap);
 		if (hr != hrSuccess)
 			return hr;
 		soapMVPropmap->__size = lpMVPropmap->cEntries;
@@ -1633,17 +1626,13 @@ HRESULT FreeABProps(struct propmapPairArray *lpsoapPropmap, struct propmapMVPair
 static HRESULT SoapUserToUser(const struct user *lpUser, ECUSER *lpsUser,
     ULONG ulFlags, void *lpBase, convert_context &converter)
 {
-	HRESULT hr;
-
 	if (lpUser == NULL || lpsUser == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpBase == NULL)
 		lpBase = lpsUser;
 
 	memset(lpsUser, 0, sizeof(*lpsUser));
-
-	hr = Utf8ToTString(lpUser->lpszUsername, ulFlags, lpBase, &converter, &lpsUser->lpszUsername);
-
+	auto hr = Utf8ToTString(lpUser->lpszUsername, ulFlags, lpBase, &converter, &lpsUser->lpszUsername);
 	if (hr == hrSuccess && lpUser->lpszFullName != NULL)
 		hr = Utf8ToTString(lpUser->lpszFullName, ulFlags, lpBase, &converter, &lpsUser->lpszFullName);
 
@@ -1995,7 +1984,6 @@ HRESULT WrapServerClientStoreEntry(const char *lpszServerName,
     const entryId *lpsStoreId, ULONG *lpcbStoreID, ENTRYID **lppStoreID)
 {
 	LPENTRYID	lpStoreID = NULL;
-	ULONG		ulSize;
 
 	if (lpsStoreId == NULL || lpszServerName == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2005,7 +1993,7 @@ HRESULT WrapServerClientStoreEntry(const char *lpszServerName,
 	}
 
 	// The new entryid size is, current size + servername size + 1 byte term 0 - 4 bytes padding
-	ulSize = lpsStoreId->__size+strlen(lpszServerName)+1-4;
+	unsigned int ulSize = lpsStoreId->__size+strlen(lpszServerName)+1-4;
 	auto hr = ECAllocateBuffer(ulSize, reinterpret_cast<void **>(&lpStoreID));
 	if(hr != hrSuccess)
 		return hr;

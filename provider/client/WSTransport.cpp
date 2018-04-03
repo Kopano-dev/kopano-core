@@ -114,10 +114,8 @@ HRESULT WSTransport::Create(ULONG ulUIFlags, WSTransport **lppTransport)
 /* Creates a transport working on the same session and session group as this transport */
 HRESULT WSTransport::HrClone(WSTransport **lppTransport)
 {
-	HRESULT hr;
 	WSTransport *lpTransport = NULL;
-
-	hr = WSTransport::Create(m_ulUIFlags, &lpTransport);
+	auto hr = WSTransport::Create(m_ulUIFlags, &lpTransport);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -153,13 +151,11 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	unsigned int ulCapabilities = KOPANO_CAP_GIFN32;
-	unsigned int	ulLogonFlags = 0;
-	unsigned int	ulServerCapabilities = 0;
+	unsigned int ulCapabilities = KOPANO_CAP_GIFN32, ulLogonFlags = 0;
+	unsigned int ulServerCapabilities = 0, ulServerVersion = 0;
 	ECSESSIONID	ecSessionId = 0;
 	KCmdProxy *lpCmd = nullptr;
 	bool		bPipeConnection = false;
-	unsigned int	ulServerVersion = 0;
 	struct logonResponse sResponse;
 	struct xsd__base64Binary sLicenseRequest;
 	
@@ -304,13 +300,12 @@ HRESULT WSTransport::HrSetRecvTimeout(unsigned int ulSeconds)
 
 HRESULT WSTransport::CreateAndLogonAlternate(LPCSTR szServer, WSTransport **lppTransport) const
 {
-	HRESULT				hr = hrSuccess;
 	object_ptr<WSTransport> lpTransport;
 	sGlobalProfileProps	sProfileProps = m_sProfileProps;
 
 	if (lppTransport == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = WSTransport::Create(m_ulUIFlags, &~lpTransport);
+	auto hr = WSTransport::Create(m_ulUIFlags, &~lpTransport);
 	if (hr != hrSuccess)
 		return hr;
 	sProfileProps.strServerPath = szServer;
@@ -331,12 +326,11 @@ HRESULT WSTransport::CreateAndLogonAlternate(LPCSTR szServer, WSTransport **lppT
  */
 HRESULT WSTransport::CloneAndRelogon(WSTransport **lppTransport) const
 {
-	HRESULT				hr = hrSuccess;
 	object_ptr<WSTransport> lpTransport;
 
 	if (lppTransport == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = WSTransport::Create(m_ulUIFlags, &~lpTransport);
+	auto hr = WSTransport::Create(m_ulUIFlags, &~lpTransport);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpTransport->HrLogon(m_sProfileProps);
@@ -720,18 +714,16 @@ HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID,
     const ENTRYID *lpParentEntryID, ULONG cbEntryID, const ENTRYID *lpEntryID,
     ULONG ulFlags, IECPropStorage **lppPropStorage)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<WSMAPIPropStorage> lpPropStorage;
 	ecmem_ptr<ENTRYID> lpUnWrapParentID, lpUnWrapEntryID;
-	ULONG		cbUnWrapParentID = 0;
-	ULONG		cbUnWrapEntryID = 0;
+	unsigned int cbUnWrapParentID = 0, cbUnWrapEntryID = 0;
 
 	if (lpParentEntryID) {
-		hr = UnWrapServerClientStoreEntry(cbParentEntryID, lpParentEntryID, &cbUnWrapParentID, &~lpUnWrapParentID);
+		auto hr = UnWrapServerClientStoreEntry(cbParentEntryID, lpParentEntryID, &cbUnWrapParentID, &~lpUnWrapParentID);
 		if(hr != hrSuccess)
 			return hr;
 	}
-	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapEntryID, &~lpUnWrapEntryID);
+	auto hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapEntryID, &~lpUnWrapEntryID);
 	if(hr != hrSuccess)
 		return hr;
 	hr = WSMAPIPropStorage::Create(cbUnWrapParentID, lpUnWrapParentID,
@@ -744,10 +736,8 @@ HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID,
 
 HRESULT WSTransport::HrOpenParentStorage(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage, IECPropStorage **lppPropStorage)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<ECParentStorage> lpPropStorage;
-
-	hr = ECParentStorage::Create(lpParentObject, ulUniqueId, ulObjId, lpServerStorage, &~lpPropStorage);
+	auto hr = ECParentStorage::Create(lpParentObject, ulUniqueId, ulObjId, lpServerStorage, &~lpPropStorage);
 	if(hr != hrSuccess)
 		return hr;
 	return lpPropStorage->QueryInterface(IID_IECPropStorage,
@@ -757,12 +747,11 @@ HRESULT WSTransport::HrOpenParentStorage(ECGenericProp *lpParentObject, ULONG ul
 HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID,
     const ENTRYID *lpEntryID, IECPropStorage **lppPropStorage)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<WSABPropStorage> lpPropStorage;
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
-	hr = UnWrapServerClientABEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
+	auto hr = UnWrapServerClientABEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		return hr;
 	hr = WSABPropStorage::Create(cbUnWrapStoreID, lpUnWrapStoreID, m_lpCmd,
@@ -776,7 +765,6 @@ HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID,
 HRESULT WSTransport::HrOpenFolderOps(ULONG cbEntryID, const ENTRYID *lpEntryID,
     WSMAPIFolderOps **lppFolderOps)
 {
-	HRESULT hr = hrSuccess;
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
@@ -784,7 +772,7 @@ HRESULT WSTransport::HrOpenFolderOps(ULONG cbEntryID, const ENTRYID *lpEntryID,
 //	hr = CheckEntryIDType(cbEntryID, lpEntryID, MAPI_FOLDER);
 //	if( hr != hrSuccess)
 		//return hr;
-	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
+	auto hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		return hr;
 	return WSMAPIFolderOps::Create(m_lpCmd, m_hDataLock, m_ecSessionId,
@@ -816,11 +804,10 @@ HRESULT WSTransport::HrOpenABTableOps(ULONG ulType, ULONG ulFlags, ULONG cbEntry
 
 HRESULT WSTransport::HrOpenMailBoxTableOps(ULONG ulFlags, ECMsgStore *lpMsgStore, WSTableView **lppTableView)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<WSTableMailBox> lpWSTable;
 	
-	hr = WSTableMailBox::Create(ulFlags, m_lpCmd, m_hDataLock,
-	     m_ecSessionId, lpMsgStore, this, &~lpWSTable);
+	auto hr = WSTableMailBox::Create(ulFlags, m_lpCmd, m_hDataLock,
+	          m_ecSessionId, lpMsgStore, this, &~lpWSTable);
 	if(hr != hrSuccess)
 		return hr;
 	return lpWSTable->QueryInterface(IID_ECTableView,
@@ -829,13 +816,12 @@ HRESULT WSTransport::HrOpenMailBoxTableOps(ULONG ulFlags, ECMsgStore *lpMsgStore
 
 HRESULT WSTransport::HrOpenTableOutGoingQueueOps(ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, ECMsgStore *lpMsgStore, WSTableOutGoingQueue **lppTableOutGoingQueueOps)
 {
-	HRESULT hr = hrSuccess;
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
 
 	// lpStoreEntryID == null for master queue
 	if(lpStoreEntryID) {
-		hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
+		auto hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -974,7 +960,6 @@ HRESULT WSTransport::HrSubscribe(ULONG ulSyncId, ULONG ulChangeId, ULONG ulConne
 
 HRESULT WSTransport::HrSubscribeMulti(const ECLISTSYNCADVISE &lstSyncAdvises, ULONG ulEventMask)
 {
-	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	notifySubscribeArray notSubscribeArray;
 	unsigned	i = 0;
@@ -982,7 +967,7 @@ HRESULT WSTransport::HrSubscribeMulti(const ECLISTSYNCADVISE &lstSyncAdvises, UL
 	LockSoap();
 
 	notSubscribeArray.__size = lstSyncAdvises.size();
-	hr = MAPIAllocateBuffer(notSubscribeArray.__size * sizeof *notSubscribeArray.__ptr, (void**)&notSubscribeArray.__ptr);
+	auto hr = MAPIAllocateBuffer(notSubscribeArray.__size * sizeof(*notSubscribeArray.__ptr), reinterpret_cast<void **>(&notSubscribeArray.__ptr));
 	if (hr != hrSuccess)
 		goto exitm;
 	memset(notSubscribeArray.__ptr, 0, notSubscribeArray.__size * sizeof *notSubscribeArray.__ptr);
@@ -1121,12 +1106,11 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
 
 HRESULT WSTransport::HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG cbFolderEntryID, LPENTRYID lpFolderEntryID, bool bNewMessage, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppStreamImporter)
 {
-	HRESULT hr;
 	WSMessageStreamImporterPtr ptrStreamImporter;
 
 	if ((m_ulServerCapabilities & KOPANO_CAP_ENHANCED_ICS) == 0)
 		return MAPI_E_NO_SUPPORT;
-	hr = WSMessageStreamImporter::Create(ulFlags, ulSyncId, cbEntryID, lpEntryID, cbFolderEntryID, lpFolderEntryID, bNewMessage, lpConflictItems, this, &~ptrStreamImporter);
+	auto hr = WSMessageStreamImporter::Create(ulFlags, ulSyncId, cbEntryID, lpEntryID, cbFolderEntryID, lpFolderEntryID, bNewMessage, lpConflictItems, this, &~ptrStreamImporter);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1136,23 +1120,21 @@ HRESULT WSTransport::HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, U
 
 HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames, ULONG ulFlags, ULONG **lpServerIDs)
 {
-	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	struct namedPropArray sNamedProps;
 	struct getIDsFromNamesResponse sResponse;
-	unsigned int i=0;
 	convert_context convertContext;
 
 	LockSoap();
 
 	// Convert our data into a structure that the server can take
 	sNamedProps.__size = cNames;
-	er = ECAllocateBuffer(sizeof(struct namedProp) * cNames, reinterpret_cast<void **>(&sNamedProps.__ptr));
+	auto er = ECAllocateBuffer(sizeof(struct namedProp) * cNames, reinterpret_cast<void **>(&sNamedProps.__ptr));
 	if (er != erSuccess)
 		goto exitm;
 	memset(sNamedProps.__ptr, 0 , sizeof(struct namedProp) * cNames);
 
-	for (i = 0; i < cNames; ++i) {	
+	for (unsigned int i = 0; i < cNames; ++i) {	
 		switch(lppPropNames[i]->ulKind) {
 		case MNID_ID:
 			er = ECAllocateMore(sizeof(unsigned int), sNamedProps.__ptr, reinterpret_cast<void **>(&sNamedProps.__ptr[i].lpId));
@@ -1286,19 +1268,16 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags,
 {
 	struct receiveFolderTableResponse sReceiveFolders;
 	ECRESULT	er = erSuccess;
-	HRESULT		hr = hrSuccess;
 	LPSRowSet	lpsRowSet = NULL;
-	ULONG		ulRowId = 0;
+	ULONG ulRowId = 0, cbUnWrapStoreID = 0;
 	int			nLen = 0;
 	entryId sEntryId; // Do not free
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
-	ULONG		cbUnWrapStoreID = 0;
 	std::wstring unicode;
 	convert_context converter;
 
 	LockSoap();
-
-	hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
+	auto hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
 	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
@@ -1387,15 +1366,12 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID,
 	struct receiveFolderResponse sReceiveFolderTable;
 
 	ECRESULT	er = erSuccess;
-	HRESULT		hr = hrSuccess;
 	entryId sEntryId; // Do not free
-	ULONG		cbEntryID = 0;
+	ULONG cbEntryID = 0, cbUnWrapStoreID = 0;
 	ecmem_ptr<ENTRYID> lpEntryID, lpUnWrapStoreID;
-	ULONG		cbUnWrapStoreID = 0;
 
 	LockSoap();
-
-	hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
+	auto hr = UnWrapServerClientStoreEntry(cbStoreEntryID, lpStoreEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
 	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
@@ -1443,7 +1419,6 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
     const ENTRYID *lpStoreID, const utf8string &strMessageClass,
     ULONG cbEntryID, const ENTRYID *lpEntryID)
 {
-	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	unsigned int result;
 	entryId sStoreId, sEntryId; // Do not free
@@ -1451,8 +1426,7 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
 	ULONG		cbUnWrapStoreID = 0;
 
 	LockSoap();
-
-	hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
+	auto hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
 	sStoreId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
@@ -1506,12 +1480,10 @@ HRESULT WSTransport::HrSetReadFlag(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG u
 
 HRESULT WSTransport::HrSubmitMessage(ULONG cbMessageID, LPENTRYID lpMessageID, ULONG ulFlags)
 {
-	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	entryId sEntryId; // Do not free
 	LockSoap();
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbMessageID, lpMessageID, &sEntryId, true);
+	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbMessageID, lpMessageID, &sEntryId, true);
 	if(hr != hrSuccess)
 		goto exitm;
 
@@ -1530,12 +1502,10 @@ HRESULT WSTransport::HrSubmitMessage(ULONG cbMessageID, LPENTRYID lpMessageID, U
 HRESULT WSTransport::HrFinishedMessage(ULONG cbEntryID,
     const ENTRYID *lpEntryID, ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	entryId sEntryId; // Do not free
 	LockSoap();
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
+	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
 		goto exitm;
 	
@@ -1553,12 +1523,10 @@ HRESULT WSTransport::HrFinishedMessage(ULONG cbEntryID,
 
 HRESULT WSTransport::HrAbortSubmit(ULONG cbEntryID, const ENTRYID *lpEntryID)
 {
-	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	entryId sEntryId; // Do not free
 	LockSoap();
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
+	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
 		goto exitm;
 
