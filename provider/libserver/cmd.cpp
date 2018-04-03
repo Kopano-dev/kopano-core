@@ -4206,24 +4206,18 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
 		strQuery += "(";
 
-		// ID, then add ID where clause
-		if(lpsNamedProps->__ptr[i].lpId != NULL) {
+		if (lpsNamedProps->__ptr[i].lpId != nullptr)
+			// ID, then add ID where clause
 			strQuery += "nameid=" + stringify(*lpsNamedProps->__ptr[i].lpId) + " ";
-		}
-
-		// String, then add STRING where clause
-		else if(lpsNamedProps->__ptr[i].lpString != NULL) {
+		else if (lpsNamedProps->__ptr[i].lpString != nullptr)
+			// String, then add STRING where clause
 			strQuery += "namestring='" + lpDatabase->Escape(lpsNamedProps->__ptr[i].lpString) + "' ";
-		}
-		else {
+		else
 			strQuery += "0 ";
-		}
 
 		// Add a GUID specifier if there
-		if(lpsNamedProps->__ptr[i].lpguid != NULL) {
+		if (lpsNamedProps->__ptr[i].lpguid != nullptr)
 			strQuery += "AND guid=" + lpDatabase->EscapeBinary(lpsNamedProps->__ptr[i].lpguid->__ptr, lpsNamedProps->__ptr[i].lpguid->__size);
-		}
-
 		strQuery += ")";
 		if (i != lpsNamedProps->__size - 1)
 			strQuery += " OR ";
@@ -4286,12 +4280,10 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 			strQuery += "null";
 
 		strQuery += ",";
-		if (lpsNamedProps->__ptr[i].lpString != nullptr) {
+		if (lpsNamedProps->__ptr[i].lpString != nullptr)
 			strQuery += "'" + lpDatabase->Escape(lpsNamedProps->__ptr[i].lpString) + "'";
-		} else {
+		else
 			strQuery += "null";
-		}
-
 		strQuery += ",";
 		strQuery += lpDatabase->EscapeBinary(lpsNamedProps->__ptr[i].lpguid->__ptr, lpsNamedProps->__ptr[i].lpguid->__size);
 		strQuery += ")";

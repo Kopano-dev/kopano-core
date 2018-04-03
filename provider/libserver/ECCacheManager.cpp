@@ -1346,11 +1346,10 @@ ECRESULT ECCacheManager::SetComplete(unsigned int ulObjId)
     ECsCells *sCell;
 	scoped_rlock lock(m_hCacheCellsMutex);
 
-	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess) {
-        sCell->SetComplete(true);
-    } else {
-        er = KCERR_NOT_FOUND;
-    }
+	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess)
+		sCell->SetComplete(true);
+	else
+		er = KCERR_NOT_FOUND;
 	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Set cell complete for object %d failed cell not found", ulObjId);
 	else
@@ -1364,11 +1363,10 @@ ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag
     ECsCells *sCell;
 	scoped_rlock lock(m_hCacheCellsMutex);
 
-	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess) {
-        sCell->UpdatePropVal(ulPropTag, lDelta);
-    } else {
-        er = KCERR_NOT_FOUND;
-    }
+	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess)
+		sCell->UpdatePropVal(ulPropTag, lDelta);
+	else
+		er = KCERR_NOT_FOUND;
 	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, delta %d failed cell not found", ulObjId, ulPropTag, lDelta);
 	else
@@ -1382,11 +1380,10 @@ ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag
     ECsCells *sCell;
 	scoped_rlock lock(m_hCacheCellsMutex);
 
-	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess) {
-        sCell->UpdatePropVal(ulPropTag, ulMask, ulValue);
-    } else {
-        er = KCERR_NOT_FOUND;
-    }
+	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess)
+		sCell->UpdatePropVal(ulPropTag, ulMask, ulValue);
+	else
+		er = KCERR_NOT_FOUND;
 	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, mask 0x%08X, value %d failed cell not found", ulObjId, ulPropTag, ulMask, ulValue);
 	else
