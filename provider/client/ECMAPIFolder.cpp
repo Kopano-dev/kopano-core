@@ -598,11 +598,15 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		memcmp(&guidFrom, &guidDest, sizeof(GUID)) == 0 &&
 		lpFolderOps != NULL)
 		//FIXME: Progressbar
-		hr = this->lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID, lpPropArray[0].Value.bin.cb, (LPENTRYID)lpPropArray[0].Value.bin.lpb, convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
-	else
-		// Support object handled de copy/move
-		hr = this->GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(this), cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags);
-	return hr;
+		return lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID,
+		       lpPropArray[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropArray[0].Value.bin.lpb),
+		       convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
+
+	/* Support object handled de copy/move */
+	return GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder,
+	       static_cast<IMAPIFolder *>(this), cbEntryID, lpEntryID,
+	       lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam,
+	       lpProgress, ulFlags);
 }
 
 HRESULT ECMAPIFolder::DeleteFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,

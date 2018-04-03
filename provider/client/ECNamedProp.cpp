@@ -289,8 +289,6 @@ HRESULT ECNamedProp::ResolveLocal(MAPINAMEID *lpName, ULONG *ulPropTag)
 HRESULT ECNamedProp::ResolveReverseCache(ULONG ulId, const GUID *lpGuid,
     ULONG ulFlags, void *lpBase, MAPINAMEID **lppName)
 {
-	HRESULT hr = MAPI_E_NOT_FOUND;
-
 	// Loop through the map to find the reverse-lookup of the named property. This could be speeded up by
 	// used a bimap (bi-directional map)
 
@@ -301,11 +299,10 @@ HRESULT ECNamedProp::ResolveReverseCache(ULONG ulId, const GUID *lpGuid,
 			if (lpGuid != nullptr)
 				assert(memcmp(lpGuid, p.first->lpguid, sizeof(GUID)) == 0); // TEST michel
 			// found it
-			hr = HrCopyNameId(p.first, lppName, lpBase);
-			break;
+			return HrCopyNameId(p.first, lppName, lpBase);
 		}
 	}
-	return hr;
+	return MAPI_E_NOT_FOUND;
 }
 
 HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, const GUID *lpGuid,

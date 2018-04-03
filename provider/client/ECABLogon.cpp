@@ -222,8 +222,7 @@ HRESULT ECABLogon::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
     ULONG *lpulResult)
 {
 	if(lpulResult)
-		*lpulResult = (CompareABEID(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2) ? TRUE : FALSE);
-
+		*lpulResult = CompareABEID(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2);
 	return hrSuccess;
 }
 

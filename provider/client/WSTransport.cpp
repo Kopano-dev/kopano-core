@@ -4159,8 +4159,7 @@ HRESULT WSTransport::HrCheckCapabilityFlags(ULONG ulFlags, BOOL *lpbResult)
 {
 	if (lpbResult == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	*lpbResult = ((m_ulServerCapabilities & ulFlags) == ulFlags) ? TRUE : FALSE;
+	*lpbResult = (m_ulServerCapabilities & ulFlags) == ulFlags;
 	return hrSuccess;
 }
 

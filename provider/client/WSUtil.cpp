@@ -2234,9 +2234,6 @@ HRESULT CopySOAPChangeNotificationToSyncState(const struct notification *lpSrc,
 	memcpy(lpSBinary->lpb, lpSrc->ics->pSyncState->__ptr, lpSBinary->cb);
 
 	*lppDst = lpSBinary;
-	lpSBinary = NULL;
-
-	MAPIFreeBuffer(lpSBinary);
 	return hr;
 }
 

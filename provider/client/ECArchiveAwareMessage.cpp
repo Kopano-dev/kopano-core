@@ -392,9 +392,7 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDelet
 	hr = ptrHtmlStream->Write(strBodyHtml.c_str(), strBodyHtml.size(), NULL);
 	if (hr != hrSuccess)
 		return hr;
-
-	hr = ptrHtmlStream->Commit(0);
-	return hr;
+	return ptrHtmlStream->Commit(0);
 }
 
 std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {

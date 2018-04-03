@@ -943,14 +943,15 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 bool ECProperty::operator==(const ECProperty &property) const {
 	DEBUG_GUARD;
 
-	return	property.ulPropTag == this->ulPropTag ||
-			(
-				PROP_ID(property.ulPropTag) == PROP_ID(this->ulPropTag) && 
-				(
-					(PROP_TYPE(property.ulPropTag) == PT_STRING8 && PROP_TYPE(this->ulPropTag) == PT_UNICODE) ||
-					(PROP_TYPE(property.ulPropTag) == PT_MV_STRING8 && PROP_TYPE(this->ulPropTag) == PT_MV_UNICODE)
-				)
-			);
+	if (property.ulPropTag == ulPropTag)
+		return true;
+	if (PROP_ID(property.ulPropTag) != PROP_ID(ulPropTag))
+		return false;
+	if (PROP_TYPE(property.ulPropTag) == PT_STRING8 && PROP_TYPE(ulPropTag) == PT_UNICODE)
+		return true;
+	if (PROP_TYPE(property.ulPropTag) == PT_MV_STRING8 && PROP_TYPE(ulPropTag) == PT_MV_UNICODE)
+		return true;
+	return false;
 }
 
 SPropValue ECProperty::GetMAPIPropValRef(void) const

@@ -316,12 +316,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageDeletion(ULONG ulFlags, LP
 	
 	if(EntryList.cValues == 0)
 		return hr;
-
-	hr = m_lpFolder->GetMsgStore()->lpTransport->HrDeleteObjects(ulFlags & SYNC_SOFT_DELETE ? 0 : DELETE_HARD_DELETE, &EntryList, m_ulSyncId);
-	if(hr != hrSuccess)
-		return hr;
-
-	return hr;
+	return m_lpFolder->GetMsgStore()->lpTransport->HrDeleteObjects(ulFlags & SYNC_SOFT_DELETE ? 0 : DELETE_HARD_DELETE, &EntryList, m_ulSyncId);
 }
 
 HRESULT ECExchangeImportContentsChanges::ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState){

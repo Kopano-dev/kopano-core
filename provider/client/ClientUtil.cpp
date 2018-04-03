@@ -806,7 +806,5 @@ BOOL CompareMDBProvider(const BYTE *lpguid, const GUID *lpguidKopano)
 
 BOOL CompareMDBProvider(const MAPIUID *lpguid, const GUID *lpguidKopano)
 {
-	if (memcmp(lpguid, lpguidKopano, sizeof(GUID)) == 0)
-		return TRUE;
-	return FALSE;
+	return memcmp(lpguid, lpguidKopano, sizeof(GUID)) == 0;
 }
