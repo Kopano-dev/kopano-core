@@ -28,12 +28,8 @@ typedef ULONG connection_t;
 
 // Client-side type definitions for ICS
 struct ICSCHANGE {
-    unsigned int ulChangeId;
-    SBinary sSourceKey;
-    SBinary sParentSourceKey;
-    SBinary sMovedFromSourceKey;
-    unsigned int ulChangeType;
-    unsigned int ulFlags;
+	SBinary sSourceKey, sParentSourceKey, sMovedFromSourceKey;
+	unsigned int ulChangeId, ulChangeType, ulFlags;
 };
 
 /**

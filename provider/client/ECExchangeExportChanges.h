@@ -67,10 +67,8 @@ private:
 	bool m_bConfiged = false;
 	std::string		m_sourcekey;
 	std::wstring	m_strDisplay;
-	ULONG m_ulFlags = 0;
-	ULONG m_ulSyncId = 0, m_ulChangeId = 0;
-	ULONG m_ulStep = 0, m_ulBatchSize;
-	ULONG m_ulBufferSize = 0;
+	ULONG m_ulFlags = 0, m_ulSyncId = 0, m_ulChangeId = 0;
+	ULONG m_ulStep = 0, m_ulBatchSize, m_ulBufferSize = 0;
 	ULONG m_ulEntryPropTag = PR_SOURCE_KEY; // This is normally the tag that is sent to exportMessageChangeAsStream()
 
 	IID				m_iidMessage;
@@ -80,9 +78,7 @@ private:
 
 	typedef std::list<ICSCHANGE>	ChangeList;
 	typedef ChangeList::iterator	ChangeListIter;
-	ChangeList m_lstFlag;
-	ChangeList m_lstSoftDelete;
-	ChangeList m_lstHardDelete;
+	ChangeList m_lstFlag, m_lstSoftDelete, m_lstHardDelete;
 
 	typedef std::set<std::pair<unsigned int, std::string> > PROCESSEDCHANGESSET;
 	

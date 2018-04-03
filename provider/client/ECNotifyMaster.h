@@ -97,8 +97,7 @@ private:
 	/* Threading information */
 	std::recursive_mutex m_hMutex;
 	pthread_t					m_hThread;
-	BOOL m_bThreadRunning = false;
-	BOOL m_bThreadExit = false;
+	BOOL m_bThreadRunning = false, m_bThreadExit = false;
 	ALLOC_WRAP_FRIEND;
 };
 

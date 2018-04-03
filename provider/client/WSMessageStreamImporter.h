@@ -78,10 +78,8 @@ private:
 	size_t MTOMRead(struct soap *soap, void *handle, char *buf, size_t len);
 	void   MTOMReadClose(struct soap *soap, void *handle);
 
-	ULONG m_ulFlags;
-	ULONG m_ulSyncId;
-	entryId m_sEntryId;
-	entryId m_sFolderEntryId;
+	unsigned int m_ulFlags, m_ulSyncId;
+	entryId m_sEntryId, m_sFolderEntryId;
 	bool m_bNewMessage;
 	propVal m_sConflictItems;
 	KC::object_ptr<WSTransport> m_ptrTransport;

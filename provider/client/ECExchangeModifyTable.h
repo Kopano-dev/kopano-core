@@ -49,9 +49,7 @@ private:
 	static HRESULT OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags, ECMemTable *lpTable, ULONG *lpulUniqueID);
 	static HRESULT SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lpTable);
 
-	ULONG	m_ulUniqueId;
-	ULONG	m_ulUniqueTag;
-	ULONG	m_ulFlags;
+	unsigned int m_ulUniqueId, m_ulUniqueTag, m_ulFlags;
 	KC::object_ptr<ECMAPIProp> m_lpParent;
 	KC::object_ptr<ECMemTable> m_ecTable;
 	bool m_bPushToServer = true;

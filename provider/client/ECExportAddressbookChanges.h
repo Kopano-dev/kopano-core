@@ -47,9 +47,7 @@ private:
 
 	unsigned int m_ulChangeId = 0;
 	ECMsgStore *m_lpMsgStore = nullptr;
-	unsigned int m_ulThisChange = 0;
-	ULONG m_ulChanges = 0;
-	ULONG m_ulMaxChangeId =0;
+	unsigned int m_ulThisChange = 0, m_ulChanges = 0, m_ulMaxChangeId = 0;
 	std::set<ULONG>				m_setProcessed;
 	KC::object_ptr<ECLogger> m_lpLogger;
 	KC::object_ptr<IECImportAddressbookChanges> m_lpImporter;

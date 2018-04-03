@@ -72,9 +72,7 @@ private:
 	_kc_hidden std::string CreateErrorBodyUtf8(HRESULT);
 	_kc_hidden std::string CreateOfflineWarnBodyUtf8(void);
 
-	bool	m_bLoading;
-
-	bool	m_bNamedPropsMapped;
+	bool	m_bLoading, m_bNamedPropsMapped;
 	PROPMAP_DECL()
 	PROPMAP_DEF_NAMED_ID(ARCHIVE_STORE_ENTRYIDS)
 	PROPMAP_DEF_NAMED_ID(ARCHIVE_ITEM_ENTRYIDS)
@@ -83,8 +81,7 @@ private:
 	PROPMAP_DEF_NAMED_ID(ORIGINAL_SOURCE_KEY)
 
 	typedef KC::memory_ptr<SPropValue> SPropValuePtr;
-	SPropValuePtr	m_ptrStoreEntryIDs;
-	SPropValuePtr	m_ptrItemEntryIDs;
+	SPropValuePtr m_ptrStoreEntryIDs, m_ptrItemEntryIDs;
 
 	enum eMode {
 		MODE_UNARCHIVED,	// Not archived

@@ -67,8 +67,7 @@ private:
 
 private:
 	KC::object_ptr<ECGenericProp> m_lpParentObject;
-	ULONG m_ulObjId;
-	ULONG m_ulUniqueId;
+	unsigned int m_ulObjId, m_ulUniqueId;
 	KC::object_ptr<IECPropStorage> m_lpServerStorage;
 	ALLOC_WRAP_FRIEND;
 };

@@ -43,8 +43,7 @@ private:
 	static HRESULT LogonByEntryID(KC::object_ptr<WSTransport> &, sGlobalProfileProps *, ULONG eid_size, ENTRYID *eid);
 
 	ULONG			m_ulFlags;
-	std::string		m_strLastUser;
-	std::string		m_strLastPassword;
+	std::string m_strLastUser, m_strLastPassword;
 	ALLOC_WRAP_FRIEND;
 };
 

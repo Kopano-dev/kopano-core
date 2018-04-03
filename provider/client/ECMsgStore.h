@@ -242,8 +242,7 @@ public:
 	unsigned int m_ulClientVersion = 0;
 
 private:
-	BOOL				m_fIsSpooler;
-	BOOL				m_fIsDefaultStore;
+	BOOL m_fIsSpooler, m_fIsDefaultStore;
 	RELEASECALLBACK lpfnCallback = nullptr;
 	ECUnknown *lpCallbackObject = nullptr;
 	std::string			m_strProfname;
