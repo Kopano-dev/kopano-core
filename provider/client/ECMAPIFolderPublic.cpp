@@ -96,18 +96,17 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 		if (lpFolder->m_ePublicEntryID == ePE_IPMSubtree) {
 			lpsPropValue->ulPropTag = PR_ACCESS;
 			lpsPropValue->Value.l = MAPI_ACCESS_READ;
+			break;
 		}else if (lpFolder->m_ePublicEntryID == ePE_Favorites) {
 			lpsPropValue->ulPropTag = PR_ACCESS;
 			lpsPropValue->Value.l = MAPI_ACCESS_READ;
-		} else {
-			hr = lpFolder->HrGetRealProp(PR_ACCESS, ulFlags, lpBase, lpsPropValue);
-			
-			if (hr == hrSuccess && lpFolder->m_ePublicEntryID == ePE_FavoriteSubFolder)
-				lpsPropValue->Value.l |= MAPI_ACCESS_READ | MAPI_ACCESS_DELETE; 
-			else if(hr == hrSuccess && lpFolder->m_ePublicEntryID == ePE_PublicFolders)
-				lpsPropValue->Value.l &= ~(MAPI_ACCESS_CREATE_CONTENTS | MAPI_ACCESS_CREATE_ASSOCIATED);
-			
+			break;
 		}
+		hr = lpFolder->HrGetRealProp(PR_ACCESS, ulFlags, lpBase, lpsPropValue);
+		if (hr == hrSuccess && lpFolder->m_ePublicEntryID == ePE_FavoriteSubFolder)
+			lpsPropValue->Value.l |= MAPI_ACCESS_READ | MAPI_ACCESS_DELETE;
+		else if (hr == hrSuccess && lpFolder->m_ePublicEntryID == ePE_PublicFolders)
+			lpsPropValue->Value.l &= ~(MAPI_ACCESS_CREATE_CONTENTS | MAPI_ACCESS_CREATE_ASSOCIATED);
 		break;
 	case PROP_ID(PR_ACCESS_LEVEL):
 		if (lpFolder->m_ePublicEntryID == ePE_IPMSubtree || lpFolder->m_ePublicEntryID == ePE_FavoriteSubFolder) {
@@ -144,8 +143,7 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 				((LPENTRYID)lpsPropValue->Value.bin.lpb)->abFlags[3] = KOPANO_FAVORITE;
 		}
 		break;
-	case PROP_ID(PR_DISPLAY_NAME):
-
+	case PROP_ID(PR_DISPLAY_NAME): {
 		// FIXME: Should be from the global profile and/or gettext (PR_FAVORITES_DEFAULT_NAME)
 		if (lpFolder->m_ePublicEntryID == ePE_PublicFolders)
 			lpszName = _("Public Folders");
@@ -154,32 +152,27 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 		else if (lpFolder->m_ePublicEntryID == ePE_IPMSubtree)
 			lpszName = KC_T("IPM_SUBTREE");
 
-		if (lpszName)
-		{
-			if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
-				const std::wstring strTmp = convert_to<std::wstring>(lpszName);
-
-				hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(WCHAR), lpBase, (void**)&lpsPropValue->Value.lpszW);
-				if (hr != hrSuccess) 
-					return hr;
-
-				wcscpy(lpsPropValue->Value.lpszW, strTmp.c_str());
-				lpsPropValue->ulPropTag = PR_DISPLAY_NAME_W;
-			} else {
-				const std::string strTmp = convert_to<std::string>(lpszName);
-
-				hr = MAPIAllocateMore(strTmp.size() + 1, lpBase, (void**)&lpsPropValue->Value.lpszA);
-				if (hr != hrSuccess) 
-					return hr;
-
-				strcpy(lpsPropValue->Value.lpszA, strTmp.c_str());
-				lpsPropValue->ulPropTag = PR_DISPLAY_NAME_A;
-			}
-			
-		} else {
+		if (lpszName == nullptr) {
 			hr = lpFolder->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
+			break;
 		}
+		if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
+			const std::wstring strTmp = convert_to<std::wstring>(lpszName);
+			hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(WCHAR), lpBase, (void**)&lpsPropValue->Value.lpszW);
+			if (hr != hrSuccess)
+				return hr;
+			wcscpy(lpsPropValue->Value.lpszW, strTmp.c_str());
+			lpsPropValue->ulPropTag = PR_DISPLAY_NAME_W;
+			break;
+		}
+		const std::string strTmp = convert_to<std::string>(lpszName);
+		hr = MAPIAllocateMore(strTmp.size() + 1, lpBase, (void**)&lpsPropValue->Value.lpszA);
+		if (hr != hrSuccess)
+			return hr;
+		strcpy(lpsPropValue->Value.lpszA, strTmp.c_str());
+		lpsPropValue->ulPropTag = PR_DISPLAY_NAME_A;
 		break;
+	}
 	case PROP_ID(PR_COMMENT):
 		// FIXME: load the message class from shortcut (favorite) folder, see setprops
 		hr = lpFolder->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
@@ -187,12 +180,11 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 	case PROP_ID(PR_RECORD_KEY):
 		// Use entryid as record key because it should be global unique in outlook.
 		hr = ECMAPIFolderPublic::GetPropHandler(PR_ENTRYID, lpProvider, ulFlags, lpsPropValue, lpParam, lpBase);
-		if (hr == hrSuccess) {
-			if(lpFolder->m_ePublicEntryID == ePE_FavoriteSubFolder)
-				((LPENTRYID)lpsPropValue->Value.bin.lpb)->abFlags[3] = KOPANO_FAVORITE;
-
-			lpsPropValue->ulPropTag = PR_RECORD_KEY;
-		}
+		if (hr != hrSuccess)
+			break;
+		if (lpFolder->m_ePublicEntryID == ePE_FavoriteSubFolder)
+			((LPENTRYID)lpsPropValue->Value.bin.lpb)->abFlags[3] = KOPANO_FAVORITE;
+		lpsPropValue->ulPropTag = PR_RECORD_KEY;
 		break;
 	case PROP_ID(PR_PARENT_ENTRYID):
 		if (lpFolder->m_ePublicEntryID == ePE_IPMSubtree || lpFolder->m_ePublicEntryID == ePE_PublicFolders || lpFolder->m_ePublicEntryID == ePE_Favorites) {
@@ -228,15 +220,13 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 		break;
 	case PROP_ID(PR_ORIGINAL_ENTRYID):
 		// entryid on the server (only used for "Public Folders" folder)
-		if (lpFolder->m_lpEntryId) {
-			lpsPropValue->Value.bin.cb = lpFolder->m_cbEntryId;
-			hr = KAllocCopy(lpFolder->m_lpEntryId, lpFolder->m_cbEntryId, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb), lpBase);
-			if (hr != hrSuccess)
-				return hr;
-			hr = hrSuccess;
-		} else {
-			hr = MAPI_E_NOT_FOUND;
-		}
+		if (lpFolder->m_lpEntryId == nullptr)
+			return MAPI_E_NOT_FOUND;
+		lpsPropValue->Value.bin.cb = lpFolder->m_cbEntryId;
+		hr = KAllocCopy(lpFolder->m_lpEntryId, lpFolder->m_cbEntryId, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb), lpBase);
+		if (hr != hrSuccess)
+			return hr;
+		hr = hrSuccess;
 		break;
 	default:
 		hr = MAPI_E_NOT_FOUND;

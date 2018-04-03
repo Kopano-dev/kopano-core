@@ -113,27 +113,24 @@ HRESULT ECMAPIFolder::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ul
 	case PR_DELETED_ASSOC_MSG_COUNT:
 	case PR_ASSOC_CONTENT_COUNT:
 	case PR_FOLDER_CHILD_COUNT:
-		if(lpFolder->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) != hrSuccess)
-		{
-			// Don't return an error here: outlook is relying on PR_CONTENT_COUNT, etc being available at all times. Especially the
-			// exit routine (which checks to see how many items are left in the outbox) will crash if PR_CONTENT_COUNT is MAPI_E_NOT_FOUND
-			lpsPropValue->ulPropTag = ulPropTag;
-			lpsPropValue->Value.ul = 0;
-		}
+		if (lpFolder->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) == hrSuccess)
+			break;
+		// Don't return an error here: outlook is relying on PR_CONTENT_COUNT, etc being available at all times. Especially the
+		// exit routine (which checks to see how many items are left in the outbox) will crash if PR_CONTENT_COUNT is MAPI_E_NOT_FOUND
+		lpsPropValue->ulPropTag = ulPropTag;
+		lpsPropValue->Value.ul = 0;
 		break;
 	case PR_SUBFOLDERS:
-		if(lpFolder->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) != hrSuccess)
-		{
-			lpsPropValue->ulPropTag = PR_SUBFOLDERS;
-			lpsPropValue->Value.b = FALSE;
-		}
+		if (lpFolder->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue) == hrSuccess)
+			break;
+		lpsPropValue->ulPropTag = PR_SUBFOLDERS;
+		lpsPropValue->Value.b = FALSE;
 		break;
 	case PR_ACCESS:
-		if(lpFolder->HrGetRealProp(PR_ACCESS, ulFlags, lpBase, lpsPropValue) != hrSuccess)
-		{
-			lpsPropValue->ulPropTag = PR_ACCESS;
-			lpsPropValue->Value.l = 0; // FIXME: tijdelijk voor test
-		}
+		if (lpFolder->HrGetRealProp(PR_ACCESS, ulFlags, lpBase, lpsPropValue) == hrSuccess)
+			break;
+		lpsPropValue->ulPropTag = PR_ACCESS;
+		lpsPropValue->Value.l = 0; // FIXME: tijdelijk voor test
 		break;
 	case PR_CONTAINER_CONTENTS:
 	case PR_FOLDER_ASSOCIATED_CONTENTS:

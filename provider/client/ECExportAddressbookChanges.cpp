@@ -142,54 +142,54 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 				lpLastChange = NULL;
 			}
 
-			if (!lpLastChange)
+			if (lpLastChange == nullptr) {
 				lpLastChange = &m_lpRawChanges[i];
+				continue;
+			}
 
-			else {
-				switch (m_lpRawChanges[i].ulChangeType) {
-				case ICS_AB_NEW:
-					// This shouldn't happen since apparently we have another change for the same object.
-					if (lpLastChange->ulChangeType == ICS_AB_DELETE) {
-						// user was deleted and re-created (probably as different object class), so keep both events
-						ZLOG_DEBUG(m_lpLogger, "Got an ICS_AB_NEW change for an object that was deleted, modifying into CHANGE. sourcekey=%s",
-							bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
-						lpLastChange->ulChangeType = ICS_AB_CHANGE;
-					} else
-						ZLOG_DEBUG(m_lpLogger, "Got an ICS_AB_NEW change for an object we've seen before. sourcekey=%s",
-							bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
-					break;
-
-				case ICS_AB_CHANGE:
-					// The only valid previous change could have been an add, since the server doesn't track
-					// multiple changes and we can't change an object that was just deleted.
-					// We'll ignore this in any case.
-					if (lpLastChange->ulChangeType != ICS_AB_NEW)
-						ZLOG_DEBUG(m_lpLogger, "Got an ICS_AB_CHANGE with something else than a ICS_AB_NEW as the previous changes. prev_change=%04x, sourcekey=%s",
-							lpLastChange->ulChangeType, bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
-					ZLOG_DEBUG(m_lpLogger, "Ignoring ICS_AB_CHANGE due to previous ICS_AB_NEW. sourcekey=%s",
+			switch (m_lpRawChanges[i].ulChangeType) {
+			case ICS_AB_NEW:
+				// This shouldn't happen since apparently we have another change for the same object.
+				if (lpLastChange->ulChangeType == ICS_AB_DELETE) {
+					// user was deleted and re-created (probably as different object class), so keep both events
+					ZLOG_DEBUG(m_lpLogger, "Got an ICS_AB_NEW change for an object that was deleted, modifying into CHANGE. sourcekey=%s",
 						bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
-					break;
+					lpLastChange->ulChangeType = ICS_AB_CHANGE;
+				} else
+					ZLOG_DEBUG(m_lpLogger, "Got an ICS_AB_NEW change for an object we've seen before. sourcekey=%s",
+						bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
+				break;
 
-				case ICS_AB_DELETE:
-					if (lpLastChange->ulChangeType == ICS_AB_NEW) {
-						ZLOG_DEBUG(m_lpLogger, "Ignoring previous ICS_AB_NEW due to current ICS_AB_DELETE. sourcekey=%s",
-							bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
-						lpLastChange = NULL;	// An add and a delete results in nothing.
-					}
-					else if (lpLastChange->ulChangeType == ICS_AB_CHANGE) {
-						// We'll ignore the previous change and write the delete now. This way we allow another object
-						// with the same ID to be added after this object.
-						ZLOG_DEBUG(m_lpLogger, "Replacing previous ICS_AB_CHANGE with current ICS_AB_DELETE. sourcekey=%s",
-							bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
-						m_lpChanges[n++] = m_lpRawChanges[i];
-						lpLastChange = NULL;
-					}
-					break;
-				default:
-					ZLOG_DEBUG(m_lpLogger, "Got an unknown change. change=%04x, sourcekey=%s",
-						m_lpRawChanges[i].ulChangeType, bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
-					break;
+			case ICS_AB_CHANGE:
+				// The only valid previous change could have been an add, since the server doesn't track
+				// multiple changes and we can't change an object that was just deleted.
+				// We'll ignore this in any case.
+				if (lpLastChange->ulChangeType != ICS_AB_NEW)
+					ZLOG_DEBUG(m_lpLogger, "Got an ICS_AB_CHANGE with something else than a ICS_AB_NEW as the previous changes. prev_change=%04x, sourcekey=%s",
+						lpLastChange->ulChangeType, bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
+				ZLOG_DEBUG(m_lpLogger, "Ignoring ICS_AB_CHANGE due to previous ICS_AB_NEW. sourcekey=%s",
+					bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
+				break;
+
+			case ICS_AB_DELETE:
+				if (lpLastChange->ulChangeType == ICS_AB_NEW) {
+					ZLOG_DEBUG(m_lpLogger, "Ignoring previous ICS_AB_NEW due to current ICS_AB_DELETE. sourcekey=%s",
+						bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
+					lpLastChange = NULL;	// An add and a delete results in nothing.
 				}
+				else if (lpLastChange->ulChangeType == ICS_AB_CHANGE) {
+					// We'll ignore the previous change and write the delete now. This way we allow another object
+					// with the same ID to be added after this object.
+					ZLOG_DEBUG(m_lpLogger, "Replacing previous ICS_AB_CHANGE with current ICS_AB_DELETE. sourcekey=%s",
+						bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
+					m_lpChanges[n++] = m_lpRawChanges[i];
+					lpLastChange = NULL;
+				}
+				break;
+			default:
+				ZLOG_DEBUG(m_lpLogger, "Got an unknown change. change=%04x, sourcekey=%s",
+					m_lpRawChanges[i].ulChangeType, bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
+				break;
 			}
 		}	
 
