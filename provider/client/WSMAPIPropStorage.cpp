@@ -34,7 +34,7 @@
 #define START_SOAP_CALL retry:
 
 #define END_SOAP_CALL 	\
-	if (er == KCERR_END_OF_SESSION && this->m_lpTransport->HrReLogon() == hrSuccess) \
+	if (er == KCERR_END_OF_SESSION && m_lpTransport->HrReLogon() == hrSuccess) \
 		goto retry; \
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND); \
 	if(hr != hrSuccess) \
@@ -97,8 +97,7 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 	struct loadPropResponse	sResponse;
 	
 	LockSoap();
-	
-	if (ulObjId == 0 && ((this->ulServerCapabilities & KOPANO_CAP_LOADPROP_ENTRYID) == 0)) {
+	if (ulObjId == 0 && (ulServerCapabilities & KOPANO_CAP_LOADPROP_ENTRYID) == 0) {
 		hr = MAPI_E_NO_SUPPORT; 
 		goto exit; 
 	} 

@@ -38,7 +38,7 @@ WSStoreTableView::WSStoreTableView(ULONG type, ULONG flags, KCmdProxy *cmd,
 	// and have a different routine then go through all the properties is more memory intensive AND
 	// slower as we have 2 passes to fill the queried rows.
 	m_lpProvider = lpMsgStore;
-	this->m_ulTableType = TABLETYPE_MS;
+	m_ulTableType = TABLETYPE_MS;
 }
 
 HRESULT WSStoreTableView::Create(ULONG ulType, ULONG ulFlags, KCmdProxy *lpCmd,
@@ -93,12 +93,11 @@ HRESULT WSTableMultiStore::HrOpenTable()
 	struct tableOpenResponse sResponse;
 
 	LockSoap();
-
-	if(this->ulTableId != 0)
+	if (ulTableId != 0)
 	    goto exit;
 
 	//m_sEntryId is the id of a store
-	if (lpCmd->tableOpen(ecSessionId, m_sEntryId, m_ulTableType, MAPI_MESSAGE, this->ulFlags, &sResponse) != SOAP_OK)
+	if (lpCmd->tableOpen(ecSessionId, m_sEntryId, m_ulTableType, MAPI_MESSAGE, ulFlags, &sResponse) != SOAP_OK)
 		er = KCERR_NETWORK_ERROR;
 	else
 		er = sResponse.er;
@@ -106,8 +105,7 @@ HRESULT WSTableMultiStore::HrOpenTable()
 	hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
 		goto exit;
-
-	this->ulTableId = sResponse.ulTableId;
+	ulTableId = sResponse.ulTableId;
 	if (lpCmd->tableSetMultiStoreEntryIDs(ecSessionId, ulTableId, &m_sEntryList, &er) != SOAP_OK)
 		er = KCERR_NETWORK_ERROR;
 
@@ -166,7 +164,7 @@ HRESULT WSTableMisc::HrOpenTable()
 	    goto exit;
 
 	// the class is actually only to call this function with the correct ulTableType .... hmm.
-	if (lpCmd->tableOpen(ecSessionId, m_sEntryId, m_ulTableType, ulType, this->ulFlags, &sResponse) != SOAP_OK)
+	if (lpCmd->tableOpen(ecSessionId, m_sEntryId, m_ulTableType, ulType, ulFlags, &sResponse) != SOAP_OK)
 		er = KCERR_NETWORK_ERROR;
 	else
 		er = sResponse.er;
@@ -174,9 +172,7 @@ HRESULT WSTableMisc::HrOpenTable()
 	hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
 		goto exit;
-
-	this->ulTableId = sResponse.ulTableId;
-
+	ulTableId = sResponse.ulTableId;
 exit:
 	UnLockSoap();
 

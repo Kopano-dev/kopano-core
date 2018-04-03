@@ -210,7 +210,7 @@ HRESULT ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lpMods)
 			auto lpFind = PCpropFindProp(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, m_ulUniqueTag);
 			if (lpFind == NULL) {
 				sRowId.ulPropTag = m_ulUniqueTag;
-				sRowId.Value.li.QuadPart = this->m_ulUniqueId++;
+				sRowId.Value.li.QuadPart = m_ulUniqueId++;
 				auto hr = Util::HrAddToPropertyArray(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, &sRowId, &~lpPropRemove, &cValues);
 				if(hr != hrSuccess)
 					return hr;

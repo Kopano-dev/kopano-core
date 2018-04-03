@@ -54,7 +54,7 @@ HRESULT ECGenericProp::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECGenericProp::SetProvider(void *prov)
 {
-	assert(this->lpProvider == NULL);
+	assert(lpProvider == nullptr);
 	lpProvider = prov;
 	return hrSuccess;
 }
@@ -448,7 +448,7 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	// and its modifications in lstModified and lstDeleted.
 
 	// save to parent or server
-	hr = lpStorage->HrSaveObject(this->ulObjFlags, m_sMapiObject.get());
+	hr = lpStorage->HrSaveObject(ulObjFlags, m_sMapiObject.get());
 	if (hr != hrSuccess)
 		return hr;
 
@@ -563,7 +563,7 @@ HRESULT ECGenericProp::HrSetPropStorage(IECPropStorage *storage, BOOL fLoadProps
 		return hr;
 	if (HrGetRealProp(PR_OBJECT_TYPE, 0, NULL, &sPropValue, m_ulMaxPropSize) == hrSuccess &&
 	    // The server sent a PR_OBJECT_TYPE, check if it is correct
-	    this->ulObjType != sPropValue.Value.ul)
+	    ulObjType != sPropValue.Value.ul)
 		// Return NOT FOUND because the entryid given was the incorrect type. This means
 		// that the object was basically not found.
 		return MAPI_E_NOT_FOUND;
@@ -706,7 +706,7 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 	for (unsigned int i = 0; i < lpPropTagArray->cValues; ++i) {
 		if (HrGetHandler(lpPropTagArray->aulPropTag[i], NULL, &lpfnGetProp, &lpParam) == hrSuccess) {
 			lpsPropValue[i].ulPropTag = lpPropTagArray->aulPropTag[i];
-			hrT = lpfnGetProp(lpPropTagArray->aulPropTag[i], this->lpProvider, ulFlags, &lpsPropValue[i], lpParam, lpsPropValue);
+			hrT = lpfnGetProp(lpPropTagArray->aulPropTag[i], lpProvider, ulFlags, &lpsPropValue[i], lpParam, lpsPropValue);
 		} else {
 			hrT = HrGetRealProp(lpPropTagArray->aulPropTag[i], ulFlags, lpsPropValue, &lpsPropValue[i], m_ulMaxPropSize);
 			if (hrT != hrSuccess && hrT != MAPI_E_NOT_FOUND &&
@@ -765,7 +765,8 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 		hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 		if (hr != hrSuccess)
 			return hr;
-		hrT = iterCallBack->second.lpfnGetProp(iterCallBack->second.ulPropTag, this->lpProvider, ulFlags, lpsPropValue, this, lpsPropValue);
+		hrT = iterCallBack->second.lpfnGetProp(iterCallBack->second.ulPropTag,
+		      lpProvider, ulFlags, lpsPropValue, this, lpsPropValue);
 		if (HR_FAILED(hrT) && hrT != MAPI_E_NOT_ENOUGH_MEMORY)
 			continue;
 		if (PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR &&
@@ -826,7 +827,7 @@ HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 			continue;
 
 		if (HrGetHandler(lpPropArray[i].ulPropTag, &lpfnSetProp, NULL, &lpParam) == hrSuccess)
-			hrT = lpfnSetProp(lpPropArray[i].ulPropTag, this->lpProvider, &lpPropArray[i], lpParam);
+			hrT = lpfnSetProp(lpPropArray[i].ulPropTag, lpProvider, &lpPropArray[i], lpParam);
 		else
 			hrT = HrSetRealProp(&lpPropArray[i]); // SC: TODO: this does a ref copy ?!
 

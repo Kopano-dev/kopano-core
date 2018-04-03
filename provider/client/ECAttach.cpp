@@ -134,7 +134,8 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 		return hr;
 
 	// Client side unique ID is 0. Attachment can only have 1 submessage
-	hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, 0, ulObjId, this->lpStorage->GetServerStorage(), &~lpParentStorage);
+	hr = GetMsgStore()->lpTransport->HrOpenParentStorage(this, 0, ulObjId,
+	     lpStorage->GetServerStorage(), &~lpParentStorage);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpMessage->HrSetPropStorage(lpParentStorage, !fNew);
@@ -152,7 +153,7 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 		hr = ECAllocateBuffer(sizeof(MAPIUID), &~lpMapiUID);
 		if (hr != hrSuccess)
 			return hr;
-		hr = this->GetMsgStore()->lpSupport->NewUID(lpMapiUID);
+		hr = GetMsgStore()->lpSupport->NewUID(lpMapiUID);
 		if (hr != hrSuccess)
 			return hr;
 		sPropValue[0].ulPropTag = PR_MESSAGE_FLAGS;

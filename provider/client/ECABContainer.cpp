@@ -250,7 +250,9 @@ HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	auto hr = ECMAPITable::Create("AB Contents", nullptr, 0, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
-	hr = GetABStore()->m_lpTransport->HrOpenABTableOps(MAPI_MAILUSER, ulFlags, m_cbEntryId, m_lpEntryId, (ECABLogon *)this->lpProvider, &~lpTableOps); // also MAPI_DISTLIST
+	hr = GetABStore()->m_lpTransport->HrOpenABTableOps(MAPI_MAILUSER,
+	     ulFlags, m_cbEntryId, m_lpEntryId,
+	     static_cast<ECABLogon *>(lpProvider), &~lpTableOps); // also MAPI_DISTLIST
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
@@ -273,7 +275,9 @@ HRESULT ECABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	auto hr = ECMAPITable::Create("AB hierarchy", GetABStore()->m_lpNotifyClient, ulFlags, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
-	hr = GetABStore()->m_lpTransport->HrOpenABTableOps(MAPI_ABCONT, ulFlags, m_cbEntryId, m_lpEntryId, (ECABLogon *)this->lpProvider, &~lpTableOps);
+	hr = GetABStore()->m_lpTransport->HrOpenABTableOps(MAPI_ABCONT, ulFlags,
+	     m_cbEntryId, m_lpEntryId, static_cast<ECABLogon *>(lpProvider),
+	     &~lpTableOps);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
