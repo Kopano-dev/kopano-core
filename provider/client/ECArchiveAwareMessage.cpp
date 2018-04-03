@@ -82,13 +82,9 @@ HRESULT	ECArchiveAwareMessage::Create(ECArchiveAwareMsgStore *lpMsgStore, BOOL f
 
 HRESULT ECArchiveAwareMessage::HrLoadProps()
 {
-	HRESULT hr = hrSuccess;
-	BOOL fModifyCopy;
-	ECMsgStore *lpMsgStore;
-
 	m_bLoading = true;
 	auto laters = KC::make_scope_success([&]() { m_bLoading = false; });
-	hr = ECMessage::HrLoadProps();
+	auto hr = ECMessage::HrLoadProps();
 	if (hr != hrSuccess)
 		return hr;
 
@@ -96,8 +92,8 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 	if (m_mode != MODE_STUBBED)
 		return hr;
 
-	fModifyCopy = this->fModify;
-	lpMsgStore = GetMsgStore();
+	BOOL fModifyCopy = fModify;
+	auto lpMsgStore = GetMsgStore();
 	// @todo: Put in MergePropsFromStub
 	static constexpr const SizedSPropTagArray(4, sptaDeleteProps) =
 		{4, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX}};
@@ -154,7 +150,6 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 
 HRESULT	ECArchiveAwareMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 {
-	HRESULT hr;
 	SPropValue copy;
 
 	if (lpsPropValue != nullptr)
@@ -171,7 +166,7 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 		// one of the properties we're interested in.
 		// That might mean we need to first map the named properties now.
 		if (!m_bNamedPropsMapped) {
-			hr = MapNamedProps();
+			auto hr = MapNamedProps();
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -182,7 +177,7 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 				m_mode = MODE_ARCHIVED;
 
 			// Store list
-			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~m_ptrStoreEntryIDs);
+			auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~m_ptrStoreEntryIDs);
 			if (hr == hrSuccess)
 				hr = Util::HrCopyProperty(m_ptrStoreEntryIDs, lpsPropValue, m_ptrStoreEntryIDs);
 			if (hr != hrSuccess)
@@ -194,7 +189,7 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 				m_mode = MODE_ARCHIVED;
 
 			// Store list
-			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~m_ptrItemEntryIDs);
+			auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~m_ptrItemEntryIDs);
 			if (hr == hrSuccess)
 				hr = Util::HrCopyProperty(m_ptrItemEntryIDs, lpsPropValue, m_ptrItemEntryIDs);
 			if (hr != hrSuccess)
@@ -217,7 +212,7 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 		}
 	}
 
-	hr = ECMessage::HrSetRealProp(lpsPropValue != nullptr ? &copy : nullptr);
+	auto hr = ECMessage::HrSetRealProp(lpsPropValue != nullptr ? &copy : nullptr);
 	if (hr == hrSuccess && !m_bLoading)
 		/*
 		 * This is where we end up if a property is actually altered through SetProps.
@@ -228,9 +223,7 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 
 HRESULT	ECArchiveAwareMessage::HrDeleteRealProp(ULONG ulPropTag, BOOL fOverwriteRO)
 {
-	HRESULT hr = hrSuccess;
-
-	hr = ECMessage::HrDeleteRealProp(ulPropTag, fOverwriteRO);
+	auto hr = ECMessage::HrDeleteRealProp(ulPropTag, fOverwriteRO);
 	if (hr == hrSuccess && !m_bLoading)
 		m_bChanged = true;
 
@@ -239,9 +232,7 @@ HRESULT	ECArchiveAwareMessage::HrDeleteRealProp(ULONG ulPropTag, BOOL fOverwrite
 
 HRESULT ECArchiveAwareMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
 {
-	HRESULT hr = hrSuccess;
-
-	hr = ECMessage::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
+	auto hr = ECMessage::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 	if (!m_bLoading && hr == hrSuccess && ((ulFlags & MAPI_MODIFY) || (fModify && (ulFlags & MAPI_BEST_ACCESS))))
 		// We have no way of knowing if the property will modified since it operates directly
 		// on the MAPIOBJECT data, which bypasses this subclass.
@@ -252,9 +243,7 @@ HRESULT ECArchiveAwareMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG
 
 HRESULT ECArchiveAwareMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG ulFlags, LPATTACH *lppAttach)
 {
-	HRESULT hr = hrSuccess;
-
-	hr = ECMessage::OpenAttach(ulAttachmentNum, lpInterface, ulFlags, lppAttach);
+	auto hr = ECMessage::OpenAttach(ulAttachmentNum, lpInterface, ulFlags, lppAttach);
 	// According to MSDN an attachment must explicitly be opened with MAPI_MODIFY or MAPI_BEST_ACCESS
 	// in order to get write access. However, practice has thought that that's not always the case. So
 	// if the parent object was openend with write access, we'll assume the object is changed the moment
@@ -290,9 +279,7 @@ HRESULT ECArchiveAwareMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, U
 
 HRESULT ECArchiveAwareMessage::DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
-
-	hr = ECMessage::DeleteAttach(ulAttachmentNum, ulUIParam, lpProgress, ulFlags);
+	auto hr = ECMessage::DeleteAttach(ulAttachmentNum, ulUIParam, lpProgress, ulFlags);
 	if (hr == hrSuccess && !m_bLoading)
 		m_bChanged = true;	// Definitely changed.
 
@@ -302,9 +289,7 @@ HRESULT ECArchiveAwareMessage::DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIPar
 HRESULT ECArchiveAwareMessage::ModifyRecipients(ULONG ulFlags,
     const ADRLIST *lpMods)
 {
-	HRESULT hr = hrSuccess;
-
-	hr = ECMessage::ModifyRecipients(ulFlags, lpMods);
+	auto hr = ECMessage::ModifyRecipients(ulFlags, lpMods);
 	if (hr == hrSuccess)
 		m_bChanged = true;
 
@@ -313,7 +298,6 @@ HRESULT ECArchiveAwareMessage::ModifyRecipients(ULONG ulFlags,
 
 HRESULT ECArchiveAwareMessage::SaveChanges(ULONG ulFlags)
 {
-	HRESULT hr;
 	SizedSPropTagArray(1, sptaStubbedProp) = {1, {PROP_STUBBED}};
 
 	if (!fModify)
@@ -326,7 +310,7 @@ HRESULT ECArchiveAwareMessage::SaveChanges(ULONG ulFlags)
 
 	// From here on we're no longer stubbed.
 	if (m_bNamedPropsMapped) {
-		hr = DeleteProps(sptaStubbedProp, NULL);
+		auto hr = DeleteProps(sptaStubbedProp, NULL);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -336,8 +320,7 @@ HRESULT ECArchiveAwareMessage::SaveChanges(ULONG ulFlags)
 
 		propDirty.ulPropTag = PROP_DIRTY;
 		propDirty.Value.b = TRUE;
-
-		hr = SetProps(1, &propDirty, NULL);
+		auto hr = SetProps(1, &propDirty, nullptr);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -383,14 +366,13 @@ HRESULT ECArchiveAwareMessage::MapNamedProps()
 HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDeleteProps,
     const std::string &strBodyHtml)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
 	StreamPtr ptrHtmlStream;
 	ULARGE_INTEGER liZero = {{0, 0}};
 
 	this->fModify = TRUE;
 	auto laters = KC::make_scope_success([&]() { this->fModify = FALSE; });
-	hr = DeleteProps(lpptaDeleteProps, NULL);
+	auto hr = DeleteProps(lpptaDeleteProps, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 

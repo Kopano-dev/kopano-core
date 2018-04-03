@@ -61,11 +61,7 @@ HRESULT ECArchiveAwareMsgStore::OpenEntry(ULONG cbEntryID,
 
 HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs, LPSPropValue lpPropItemEIDs, ECMessage **lppMessage)
 {
-	HRESULT hr;
-	BinaryList			lstStoreEIDs;
-	BinaryList			lstItemEIDs;
-	BinaryListIterator	iterStoreEID;
-	BinaryListIterator	iterIterEID;
+	BinaryList lstStoreEIDs, lstItemEIDs;
 	object_ptr<ECMessage> ptrArchiveMessage;
 
 	if (lpPropStoreEIDs == NULL || 
@@ -77,12 +73,12 @@ HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs
 		return MAPI_E_INVALID_PARAMETER;
 
 	// First get a list of items that could be retrieved from cached archive stores.
-	hr = CreateCacheBasedReorderedList(lpPropStoreEIDs->Value.MVbin, lpPropItemEIDs->Value.MVbin, &lstStoreEIDs, &lstItemEIDs);
+	auto hr = CreateCacheBasedReorderedList(lpPropStoreEIDs->Value.MVbin, lpPropItemEIDs->Value.MVbin, &lstStoreEIDs, &lstItemEIDs);
 	if (hr != hrSuccess)
 		return hr;
 
-	iterStoreEID = lstStoreEIDs.begin();
-	iterIterEID = lstItemEIDs.begin();
+	auto iterStoreEID = lstStoreEIDs.begin();
+	auto iterIterEID = lstItemEIDs.begin();
 	for (; iterStoreEID != lstStoreEIDs.end(); ++iterStoreEID, ++iterIterEID) {
 		ECMsgStorePtr	ptrArchiveStore;
 		ULONG			ulType = 0;
@@ -107,11 +103,8 @@ HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs
 
 HRESULT ECArchiveAwareMsgStore::CreateCacheBasedReorderedList(SBinaryArray sbaStoreEIDs, SBinaryArray sbaItemEIDs, BinaryList *lplstStoreEIDs, BinaryList *lplstItemEIDs)
 {
-	BinaryList lstStoreEIDs;
-	BinaryList lstItemEIDs;
-
-	BinaryList lstUncachedStoreEIDs;
-	BinaryList lstUncachedItemEIDs;
+	BinaryList lstStoreEIDs, lstItemEIDs;
+	BinaryList lstUncachedStoreEIDs, lstUncachedItemEIDs;
 
 	for (ULONG i = 0; i < sbaStoreEIDs.cValues; ++i) {
 		const std::vector<BYTE> eid(sbaStoreEIDs.lpbin[i].lpb, sbaStoreEIDs.lpbin[i].lpb + sbaStoreEIDs.lpbin[i].cb);
@@ -133,8 +126,6 @@ HRESULT ECArchiveAwareMsgStore::CreateCacheBasedReorderedList(SBinaryArray sbaSt
 
 HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore **lppArchiveStore)
 {
-	HRESULT hr;
-
 	const std::vector<BYTE> eid(lpStoreEID->lpb, lpStoreEID->lpb + lpStoreEID->cb);
 	MsgStoreMap::const_iterator iterStore = m_mapStores.find(eid);
 	if (iterStore != m_mapStores.cend())
@@ -145,15 +136,13 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	ECMsgStorePtr ptrOnlineStore;
 	ULONG cbEntryID = 0;
 	EntryIdPtr ptrEntryID;
-	std::string ServerURL;
-	bool bIsPseudoUrl = false;
-	std::string strServer;
-	bool bIsPeer = false;
+	std::string ServerURL, strServer;
+	bool bIsPseudoUrl = false, bIsPeer = false;
 	object_ptr<WSTransport> ptrTransport;
 	ECMsgStorePtr ptrArchiveStore;
 	object_ptr<IECPropStorage> ptrPropStorage;
 
-	hr = QueryInterface(IID_ECMsgStoreOnline, &~ptrUnknown);
+	auto hr = QueryInterface(IID_ECMsgStoreOnline, &~ptrUnknown);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrUnknown->QueryInterface(IID_ECMsgStore, &~ptrOnlineStore);

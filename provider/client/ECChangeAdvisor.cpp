@@ -80,7 +80,6 @@ HRESULT ECChangeAdvisor::QueryInterface(REFIID refiid, void **lppInterface)
  */
 HRESULT ECChangeAdvisor::Create(ECMsgStore *lpMsgStore, ECChangeAdvisor **lppChangeAdvisor)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<ECChangeAdvisor> lpChangeAdvisor;
 	BOOL			fEnhancedICS = false;
 
@@ -88,8 +87,7 @@ HRESULT ECChangeAdvisor::Create(ECMsgStore *lpMsgStore, ECChangeAdvisor **lppCha
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpMsgStore->m_lpNotifyClient == nullptr)
 		return MAPI_E_NO_SUPPORT;
-
-	hr = lpMsgStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &fEnhancedICS);
+	auto hr = lpMsgStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &fEnhancedICS);
 	if (hr != hrSuccess)
 		return hr;
 	if (!fEnhancedICS)
@@ -110,10 +108,8 @@ HRESULT ECChangeAdvisor::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERRO
 HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
     IECChangeAdviseSink *lpAdviseSink, ULONG ulFlags)
 {
-	HRESULT					hr = hrSuccess;
-	ULONG					ulVal = 0;
+	ULONG ulVal = 0, ulRead = 0;
 	memory_ptr<ENTRYLIST> lpEntryList;
-	ULONG					ulRead = {0};
 	LARGE_INTEGER			liSeekStart = {{0}};
 
 	if (lpAdviseSink == nullptr && !(ulFlags & SYNC_CATCHUP))
@@ -126,8 +122,8 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 	m_ulFlags = ulFlags;
 	m_lpChangeAdviseSink.reset(lpAdviseSink);
 	if (lpStream == NULL)
-		return hr;
-	hr = lpStream->Seek(liSeekStart, SEEK_SET, NULL);
+		return hrSuccess;
+	auto hr = lpStream->Seek(liSeekStart, SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpStream->Read(&ulVal, sizeof(ulVal), &ulRead);
