@@ -1,3 +1,5 @@
+import falcon
+
 from .resource import json
 from ..utils import (
     _server_store, _folder
@@ -41,7 +43,10 @@ class MailFolderResource(FolderResource):
         else:
             data = self.generator(req, store.folders, store.subtree.subfolder_count_recursive)
 
-        if method == 'childFolders':
+        if not method:
+            self.respond(req, resp, data)
+
+        elif method == 'childFolders':
             data = self.generator(req, data.folders, data.subfolder_count_recursive)
 
         elif method == 'messages':
@@ -49,7 +54,7 @@ class MailFolderResource(FolderResource):
             self.respond(req, resp, data, MessageResource.fields)
 
         else:
-            self.respond(req, resp, data)
+            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
     def on_post(self, req, resp, userid=None, folderid=None, method=None):
         server, store = _server_store(req, userid, self.options)

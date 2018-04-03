@@ -120,6 +120,9 @@ class UserResource(Resource):
             data = (user.groups(), DEFAULT_TOP, 0, 0)
             self.respond(req, resp, data, GroupResource.fields)
 
+        else:
+            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
+
     # TODO redirect to other resources?
     def on_post(self, req, resp, userid=None, method=None):
         server, store = _server_store(req, userid, self.options)

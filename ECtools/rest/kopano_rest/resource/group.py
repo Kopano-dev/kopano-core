@@ -1,3 +1,5 @@
+import falcon
+
 from ..utils import _server_store
 from .resource import (
     DEFAULT_TOP, Resource
@@ -12,6 +14,9 @@ class GroupResource(Resource):
 
     def on_get(self, req, resp, userid=None, groupid=None, method=None):
         server, store = _server_store(req, userid, self.options)
+
+        if method:
+            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
         if groupid:
             for group in server.groups(): # TODO server.group(groupid/entryid=..)

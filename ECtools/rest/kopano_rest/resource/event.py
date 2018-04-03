@@ -1,5 +1,7 @@
 import base64
+
 import dateutil.parser
+import falcon
 
 import kopano
 
@@ -169,6 +171,9 @@ class EventResource(ItemResource):
             start, end = _start_end(req)
             data = (event.occurrences(start, end), DEFAULT_TOP, 0, 0)
             self.respond(req, resp, data)
+
+        elif method:
+            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
         else:
             self.respond(req, resp, event)
