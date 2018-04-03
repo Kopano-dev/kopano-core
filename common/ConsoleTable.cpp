@@ -223,9 +223,8 @@ void ConsoleTable::PrintTable()
  */
 void ConsoleTable::DumpTable()
 {
-	if (bHaveHeader) {
+	if (bHaveHeader)
 		DumpRow(m_vHeader);
-	}
 	for (size_t nRow = 0; nRow < m_nRow; ++nRow)
 		DumpRow(m_vTable[nRow]);
 }

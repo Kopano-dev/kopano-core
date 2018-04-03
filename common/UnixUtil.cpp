@@ -192,9 +192,8 @@ int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, bool bForce)
 	char tmp[256];
 	bool running = false;
 
-	if (strcmp(lpConfig->GetSetting("pid_file"), "")) {
+	if (strcmp(lpConfig->GetSetting("pid_file"), ""))
 		pidfilename = lpConfig->GetSetting("pid_file");
-	}
 
 	// test for existing and running process
 	pidfile = fopen(pidfilename.c_str(), "r");

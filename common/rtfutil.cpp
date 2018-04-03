@@ -270,12 +270,10 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 
 						// Set new charset			
 						HrGetCharsetByRTFID(i->second, &sState[ulState].szCharset);
-						if(sState[ulState].szCharset == NULL) {
+						if (sState[ulState].szCharset == nullptr)
 							sState[ulState].szCharset = "us-ascii";
-						} else if(sState[ulState].szCharset[0] == 0) {
+						else if (sState[ulState].szCharset[0] == 0)
 							sState[ulState].szCharset = szANSICharset;
-						}
-
 					} 
 					// ignore error
 				}
@@ -520,12 +518,10 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 
 						// Set new charset			
 						HrGetCharsetByRTFID(i->second, &sState[ulState].szCharset);
-						if(sState[ulState].szCharset == NULL) {
+						if (sState[ulState].szCharset == nullptr)
 							sState[ulState].szCharset = "us-ascii";
-						} else if(sState[ulState].szCharset[0] == 0) {
+						else if (sState[ulState].szCharset[0] == 0)
 							sState[ulState].szCharset = szANSICharset;
-						}
-
 					} 
 					// ignore error
 				}
@@ -818,12 +814,10 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 
 						// Set new charset
 						HrGetCharsetByRTFID(i->second, &sState[ulState].szCharset);
-						if(sState[ulState].szCharset == NULL) {
+						if (sState[ulState].szCharset == nullptr)
 							sState[ulState].szCharset = "us-ascii";
-						} else if(sState[ulState].szCharset[0] == 0) {
+						else if (sState[ulState].szCharset[0] == 0)
 							sState[ulState].szCharset = szANSICharset;
-						}
-
 					} 
 					// ignore error
 				}
