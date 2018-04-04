@@ -306,25 +306,22 @@ HRESULT ECMessage::GetSyncedBodyProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 	if (HR_FAILED(hr))
 		return hr;
 
-	if (PROP_TYPE(lpsPropValue->ulPropTag) == PT_ERROR &&
-		lpsPropValue->Value.err == MAPI_E_NOT_FOUND &&
-		m_ulBodyType != bodyTypeUnknown)
-	{
-		// If a non-best body was requested, we might need to generate it.
-		if ((m_ulBodyType == bodyTypePlain && PROP_ID(ulPropTag) == PROP_ID(PR_BODY)) ||
-			(m_ulBodyType == bodyTypeRTF && PROP_ID(ulPropTag) == PROP_ID(PR_RTF_COMPRESSED)) ||
-			(m_ulBodyType == bodyTypeHTML && PROP_ID(ulPropTag) == PROP_ID(PR_HTML)))
-			// Nothing more to do, the best body should be available or generated in HrLoadProps.
-			return hr;
+	if (PROP_TYPE(lpsPropValue->ulPropTag) != PT_ERROR ||
+	    lpsPropValue->Value.err != MAPI_E_NOT_FOUND ||
+	    m_ulBodyType == bodyTypeUnknown)
+		return HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 
-		hr = SyncBody(ulPropTag);
-		if (hr != hrSuccess)
-			return hr;
-
-		// Retry now the body is generated.
-		hr = HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
-	}
-	return hr;
+	// If a non-best body was requested, we might need to generate it.
+	if ((m_ulBodyType == bodyTypePlain && PROP_ID(ulPropTag) == PROP_ID(PR_BODY)) ||
+	    (m_ulBodyType == bodyTypeRTF && PROP_ID(ulPropTag) == PROP_ID(PR_RTF_COMPRESSED)) ||
+	    (m_ulBodyType == bodyTypeHTML && PROP_ID(ulPropTag) == PROP_ID(PR_HTML)))
+		// Nothing more to do, the best body should be available or generated in HrLoadProps.
+		return hr;
+	hr = SyncBody(ulPropTag);
+	if (hr != hrSuccess)
+		return hr;
+	// Retry now the body is generated.
+	return HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 }
 
 /**
@@ -1680,22 +1677,21 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 
 	if(hr != hrSuccess)
 		return hr;
-
+	if (m_sMapiObject == nullptr || m_bEmbedded)
+		return hrSuccess;
 	// resync recip and attachment table, because of hierarchy IDs, only on actual saved object
-	if (m_sMapiObject && m_bEmbedded == false) {
-		if (lpRecips) {
-			hr = UpdateTable(lpRecips, MAPI_MAILUSER, PR_ROWID);
-			if(hr != hrSuccess)
-				return hr;
-			hr = UpdateTable(lpRecips, MAPI_DISTLIST, PR_ROWID);
-			if(hr != hrSuccess)
-				return hr;
-		}
-		if (lpAttachments) {
-			hr = UpdateTable(lpAttachments, MAPI_ATTACH, PR_ATTACH_NUM);
-			if(hr != hrSuccess)
-				return hr;
-		}
+	if (lpRecips) {
+		hr = UpdateTable(lpRecips, MAPI_MAILUSER, PR_ROWID);
+		if (hr != hrSuccess)
+			return hr;
+		hr = UpdateTable(lpRecips, MAPI_DISTLIST, PR_ROWID);
+		if (hr != hrSuccess)
+			return hr;
+	}
+	if (lpAttachments) {
+		hr = UpdateTable(lpAttachments, MAPI_ATTACH, PR_ATTACH_NUM);
+		if (hr != hrSuccess)
+			return hr;
 	}
 	return hrSuccess;
 }
@@ -1734,34 +1730,28 @@ HRESULT ECMessage::SyncSubject()
 		//Set emtpy PR_SUBJECT_PREFIX
 		lpPropArray[1].ulPropTag = PR_SUBJECT_PREFIX_W;
 		lpPropArray[1].Value.lpszW = const_cast<wchar_t *>(L"");
-
-		hr = HrSetRealProp(&lpPropArray[1]);
-	} else {
-		sizePrefix1 = lpszColon - lpPropArray[0].Value.lpszW + 1;
-
-		// synchronized PR_SUBJECT_PREFIX
-		lpPropArray[1].ulPropTag = PR_SUBJECT_PREFIX_W;	// If PROP_TYPE(lpPropArray[1].ulPropTag) == PT_ERROR, we lose that info here.
-
-		if (sizePrefix1 > 1 && sizePrefix1 <= 4)
-		{
-			if (lpPropArray[0].Value.lpszW[sizePrefix1] == L' ')
-				lpPropArray[0].Value.lpszW[sizePrefix1+1] = 0; // with space "fwd: "
-			else
-				lpPropArray[0].Value.lpszW[sizePrefix1] = 0; // "fwd:"
-
-			assert(lpPropArray[0].Value.lpszW[sizePrefix1-1] == L':');
-			lpPropArray[1].Value.lpszW = lpPropArray[0].Value.lpszW;
-
-			wcstol(lpPropArray[1].Value.lpszW, &lpszEnd, 10);
-			if (lpszEnd == lpszColon)
-				lpPropArray[1].Value.lpszW = const_cast<wchar_t *>(L""); // skip a numeric prefix
-		} else
-			lpPropArray[1].Value.lpszW = const_cast<wchar_t *>(L""); // emtpy PR_SUBJECT_PREFIX
-
-		hr = HrSetRealProp(&lpPropArray[1]);
-		// PR_SUBJECT_PREFIX and PR_SUBJECT are synchronized
+		return HrSetRealProp(&lpPropArray[1]);
 	}
-	return hr;
+
+	sizePrefix1 = lpszColon - lpPropArray[0].Value.lpszW + 1;
+	// synchronized PR_SUBJECT_PREFIX
+	lpPropArray[1].ulPropTag = PR_SUBJECT_PREFIX_W;	// If PROP_TYPE(lpPropArray[1].ulPropTag) == PT_ERROR, we lose that info here.
+	if (sizePrefix1 > 1 && sizePrefix1 <= 4)
+	{
+		if (lpPropArray[0].Value.lpszW[sizePrefix1] == L' ')
+			lpPropArray[0].Value.lpszW[sizePrefix1+1] = 0; // with space "fwd: "
+		else
+			lpPropArray[0].Value.lpszW[sizePrefix1] = 0; // "fwd:"
+		assert(lpPropArray[0].Value.lpszW[sizePrefix1-1] == L':');
+		lpPropArray[1].Value.lpszW = lpPropArray[0].Value.lpszW;
+		wcstol(lpPropArray[1].Value.lpszW, &lpszEnd, 10);
+		if (lpszEnd == lpszColon)
+			lpPropArray[1].Value.lpszW = const_cast<wchar_t *>(L""); // skip a numeric prefix
+	} else
+		lpPropArray[1].Value.lpszW = const_cast<wchar_t *>(L""); // emtpy PR_SUBJECT_PREFIX
+
+	return HrSetRealProp(&lpPropArray[1]);
+	// PR_SUBJECT_PREFIX and PR_SUBJECT are synchronized
 }
 
 // Override IMAPIProp::SetProps
@@ -2399,24 +2389,25 @@ HRESULT ECMessage::GetBodyType(eBodyType *lpulBodyType)
 	char		szRtfBuf[64] = {0};
 	ULONG		cbRtfBuf = 0;
 
-	if (m_ulBodyType == bodyTypeUnknown) {
-		auto hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, &~lpRTFCompressedStream);
-		if (hr != hrSuccess)
-			return hr;
-		hr = WrapCompressedRTFStream(lpRTFCompressedStream, 0, &~lpRTFUncompressedStream);
-		if (hr != hrSuccess)
-			return hr;
-		hr = lpRTFUncompressedStream->Read(szRtfBuf, sizeof(szRtfBuf), &cbRtfBuf);
-		if (hr != hrSuccess)
-			return hr;
-		if (isrtftext(szRtfBuf, cbRtfBuf))
-			m_ulBodyType = bodyTypePlain;
-		else if (isrtfhtml(szRtfBuf, cbRtfBuf))
-			m_ulBodyType = bodyTypeHTML;
-		else
-			m_ulBodyType = bodyTypeRTF;
+	if (m_ulBodyType != bodyTypeUnknown) {
+		*lpulBodyType = m_ulBodyType;
+		return hrSuccess;
 	}
-
+	auto hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, &~lpRTFCompressedStream);
+	if (hr != hrSuccess)
+		return hr;
+	hr = WrapCompressedRTFStream(lpRTFCompressedStream, 0, &~lpRTFUncompressedStream);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpRTFUncompressedStream->Read(szRtfBuf, sizeof(szRtfBuf), &cbRtfBuf);
+	if (hr != hrSuccess)
+		return hr;
+	if (isrtftext(szRtfBuf, cbRtfBuf))
+		m_ulBodyType = bodyTypePlain;
+	else if (isrtfhtml(szRtfBuf, cbRtfBuf))
+		m_ulBodyType = bodyTypeHTML;
+	else
+		m_ulBodyType = bodyTypeRTF;
 	*lpulBodyType = m_ulBodyType;
 	return hrSuccess;
 }
