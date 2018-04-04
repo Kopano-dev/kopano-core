@@ -137,9 +137,7 @@ HRESULT ECMessage::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 	HRESULT			hr = hrSuccess;
 	ULONG			cValues = 0;
 	SPropArrayPtr	ptrPropArray;
-	LONG			lBodyIdx = 0;
-	LONG			lRtfIdx = 0;
-	LONG			lHtmlIdx = 0;
+	int lBodyIdx = 0, lRtfIdx = 0, lHtmlIdx = 0;
 
 	if (lpPropTagArray) {
 		lBodyIdx = Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_BODY_W, PT_UNSPECIFIED));
@@ -302,12 +300,9 @@ HRESULT ECMessage::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
  */
 HRESULT ECMessage::GetSyncedBodyProp(ULONG ulPropTag, ULONG ulFlags, void *lpBase, LPSPropValue lpsPropValue)
 {
-	HRESULT hr;
-
 	if (ulPropTag == PR_BODY_HTML)
 	    ulPropTag = PR_HTML;
-
-	hr = HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
+	auto hr = HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 	if (HR_FAILED(hr))
 		return hr;
 
@@ -657,10 +652,7 @@ HRESULT ECMessage::SyncHtmlToPlain()
  */
 HRESULT ECMessage::SyncHtmlToRtf()
 {
-	HRESULT hr = hrSuccess;
-	StreamPtr ptrHtmlStream;
-	StreamPtr ptrRtfCompressedStream;
-	StreamPtr ptrRtfUncompressedStream;
+	StreamPtr ptrHtmlStream, ptrRtfCompressedStream, ptrRtfUncompressedStream;
 	unsigned int ulCodePage;
 
 	ULARGE_INTEGER emptySize = {{0,0}};
@@ -668,8 +660,7 @@ HRESULT ECMessage::SyncHtmlToRtf()
 	m_bInhibitSync = TRUE;
 
 	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
-
-	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrHtmlStream);
+	auto hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrHtmlStream);
 	if (hr != hrSuccess)
 		return hr;
 
