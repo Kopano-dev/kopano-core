@@ -135,8 +135,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 
 exit:
 	UnLockSoap();
-
-	if (hr != hrSuccess && mo)
+	if (hr != hrSuccess)
 		delete mo;
 	return hr;
 }

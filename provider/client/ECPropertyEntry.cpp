@@ -364,8 +364,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		unsigned int ulNewSize = sizeof(double) * lpsProp->Value.MVat.cValues;
 		if(ulSize < ulNewSize) {
-			if(this->Value.MVat.lpat)
-				delete[] this->Value.MVat.lpat;
+			delete[] this->Value.MVat.lpat;
 			this->Value.MVat.lpat = new(std::nothrow) double[lpsProp->Value.MVat.cValues];
 			if (this->Value.MVat.lpat == NULL)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;

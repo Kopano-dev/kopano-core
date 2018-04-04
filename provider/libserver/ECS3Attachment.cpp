@@ -464,7 +464,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 		*data_p = cd.data;
 		ret = erSuccess;
 	}
-	if (ret != erSuccess && cd.data != nullptr && soap == nullptr)
+	if (ret != erSuccess && soap == nullptr)
 		delete cd.data;
 	/*
 	 * Make sure we clear the cd.data variable so we cannot write
