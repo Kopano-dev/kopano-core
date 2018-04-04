@@ -99,8 +99,6 @@ private:
 
 	bool	AddSetting(const configsetting_t *lpsConfig, unsigned int ulFlags);
 	void	AddAlias(const configsetting_t *lpsAlias);
-
-	void	CleanupMap(settingmap_t *lpMap);
 	static bool CopyConfigSetting(const configsetting_t *, settingkey_t *);
 	static bool CopyConfigSetting(const settingkey_t *, const char *value, configsetting_t *);
 

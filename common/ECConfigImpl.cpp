@@ -154,23 +154,13 @@ bool ECConfigImpl::AddSetting(const char *szName, const char *szValue, const uns
 	return AddSetting(&sSetting, ulGroup ? LOADSETTING_OVERWRITE_GROUP : LOADSETTING_OVERWRITE);
 }
 
-static void freeSettings(settingmap_t::value_type &entry)
-{
-	// see InsertOrReplace
-	delete [] entry.second;
-}
-
-void ECConfigImpl::CleanupMap(settingmap_t *lpMap)
-{
-	if (!lpMap->empty())
-		for_each(lpMap->begin(), lpMap->end(), freeSettings);
-}
-
 ECConfigImpl::~ECConfigImpl()
 {
 	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);
-	CleanupMap(&m_mapSettings);
-	CleanupMap(&m_mapAliases);
+	for (auto &e : m_mapSettings)
+		delete[] e.second;
+	for (auto &e : m_mapAliases)
+		delete[] e.second;
 }
 
 /** 
