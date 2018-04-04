@@ -321,10 +321,12 @@ Default:
 \fI\-\fP
 .SS log_level
 .PP
-The level of output for logging in the range from 0 to 5. 0=no logging, 5=full logging.
+The level of output for logging in the range from 0 to 6. "0" means no logging,
+"1" for critical messages only, "2" for error or worse, "3" for warning or
+worse, "4" for notice or worse, "5" for info or worse, "6" debug.
 .PP
 Default:
-\fI2\fR
+\fI3\fP
 .SS log_timestamp
 .PP
 Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode.

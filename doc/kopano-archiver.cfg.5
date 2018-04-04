@@ -216,10 +216,12 @@ Default:
 \fI0\fR
 .SS log_level
 .PP
-The level of output for logging in the range from 0 to 5. 0 means no logging, 5 means full logging.
+The level of output for logging in the range from 0 to 6. "0" means no logging,
+"1" for critical messages only, "2" for error or worse, "3" for warning or
+worse, "4" for notice or worse, "5" for info or worse, "6" debug.
 .PP
 Default:
-\fI2\fR
+\fI3\fP
 .SS pid_file
 .PP
 The location of the pid file used to guarantee only one instance of kopano\-archiver is running in non\-administrative mode.
