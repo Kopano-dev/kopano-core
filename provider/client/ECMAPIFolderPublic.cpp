@@ -426,7 +426,10 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID,
 	    memcmp(&guidFrom, &guidDest, sizeof(GUID)) != 0 ||
 	    lpFolderOps == nullptr)
 		// Support object handled de copy/move
-		return this->GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder, static_cast<IMAPIFolder *>(this), cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags);
+		return GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder,
+		       static_cast<IMAPIFolder *>(this), cbEntryID, lpEntryID,
+		       lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam,
+		       lpProgress, ulFlags);
 
 	// if the entryid a a publicfolders entryid just change the entryid to a server entryid
 	if (((ECMsgStorePublic *)GetMsgStore())->ComparePublicEntryId(ePE_PublicFolders, lpPropArray[0].Value.bin.cb, (LPENTRYID)lpPropArray[0].Value.bin.lpb, &ulResult) == hrSuccess && ulResult == TRUE)
@@ -436,7 +439,9 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID,
 			return hr;
 	}
 	//FIXME: Progressbar
-	return this->lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID, lpPropArray[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropArray[0].Value.bin.lpb), convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
+	return lpFolderOps->HrCopyFolder(cbEntryID, lpEntryID,
+	       lpPropArray[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropArray[0].Value.bin.lpb),
+	       convstring(lpszNewFolderName, ulFlags), ulFlags, 0);
 }
 
 HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID,

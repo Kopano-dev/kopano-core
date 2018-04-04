@@ -45,7 +45,7 @@ struct PROPCALLBACK {
 
 	bool operator==(const PROPCALLBACK &callback) const noexcept
 	{
-		return callback.ulPropTag == this->ulPropTag;
+		return callback.ulPropTag == ulPropTag;
 	}
 };
 

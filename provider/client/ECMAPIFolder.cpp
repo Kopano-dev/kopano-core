@@ -84,7 +84,7 @@ ECMAPIFolder::ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL modify,
 	HrAddPropHandlers(PR_FOLDER_TYPE, DefaultMAPIGetProp, DefaultSetPropComputed, this);
 	// ACLs are only offline
 	HrAddPropHandlers(PR_ACL_DATA, GetPropHandler, SetPropHandler, this);
-	this->isTransactedObject = FALSE;
+	isTransactedObject = false;
 }
 
 ECMAPIFolder::~ECMAPIFolder()

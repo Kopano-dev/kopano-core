@@ -87,7 +87,9 @@ HRESULT ECMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	auto hr = ECMAPITable::Create(strName.c_str(), GetMsgStore()->m_lpNotifyClient, 0, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
-	hr = this->GetMsgStore()->lpTransport->HrOpenTableOps(MAPI_MESSAGE, ulFlags & (MAPI_UNICODE | SHOW_SOFT_DELETES | MAPI_ASSOCIATED | EC_TABLE_NOCAP), m_cbEntryId, m_lpEntryId, this->GetMsgStore(), &~lpTableOps);
+	hr = GetMsgStore()->lpTransport->HrOpenTableOps(MAPI_MESSAGE,
+	     ulFlags & (MAPI_UNICODE | SHOW_SOFT_DELETES | MAPI_ASSOCIATED | EC_TABLE_NOCAP),
+	     m_cbEntryId, m_lpEntryId, GetMsgStore(), &~lpTableOps);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
@@ -118,7 +120,9 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	auto hr = ECMAPITable::Create(strName.c_str(), GetMsgStore()->m_lpNotifyClient, 0, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
-	hr = this->GetMsgStore()->lpTransport->HrOpenTableOps(MAPI_FOLDER, ulFlags & (MAPI_UNICODE | SHOW_SOFT_DELETES | CONVENIENT_DEPTH), m_cbEntryId, m_lpEntryId, this->GetMsgStore(), &~lpTableOps);
+	hr = GetMsgStore()->lpTransport->HrOpenTableOps(MAPI_FOLDER,
+	     ulFlags & (MAPI_UNICODE | SHOW_SOFT_DELETES | CONVENIENT_DEPTH),
+	     m_cbEntryId, m_lpEntryId, GetMsgStore(), &~lpTableOps);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
@@ -136,5 +140,5 @@ HRESULT ECMAPIContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
     IUnknown **lppUnk)
 {
-	return this->GetMsgStore()->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
+	return GetMsgStore()->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 }

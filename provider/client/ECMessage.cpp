@@ -65,8 +65,7 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL is_new, BOOL modify,
 	ECMAPIProp(lpMsgStore, MAPI_MESSAGE, modify, lpRoot, "IMessage"),
 	fNew(is_new), m_bEmbedded(emb)
 {
-	this->ulObjFlags = ulFlags & MAPI_ASSOCIATED;
-
+	ulObjFlags = ulFlags & MAPI_ASSOCIATED;
 	// proptag, getprop, setprops, class, bRemovable, bHidden
 	HrAddPropHandlers(PR_RTF_IN_SYNC, GetPropHandler, DefaultSetPropIgnore, this, true, false);
 	HrAddPropHandlers(PR_HASATTACH, GetPropHandler, DefaultSetPropComputed, this, false, false);
@@ -777,7 +776,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			return hr;
 	}
 
-	if (this->lpAttachments == NULL) {
+	if (lpAttachments == nullptr) {
 		Util::proptag_change_unicode(ulFlags, sPropAttachColumns);
 		auto hr = ECMemTable::Create(sPropAttachColumns, PR_ATTACH_NUM, &~lpAttachments);
 		if(hr != hrSuccess)
@@ -793,9 +792,8 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 					continue;
 				if (obj->bDelete)
 					continue;
-
-				this->ulNextAttUniqueId = obj->ulUniqueId > this->ulNextAttUniqueId ? obj->ulUniqueId : this->ulNextAttUniqueId;
-				++this->ulNextAttUniqueId;
+				ulNextAttUniqueId = obj->ulUniqueId > ulNextAttUniqueId ? obj->ulUniqueId : ulNextAttUniqueId;
+				++ulNextAttUniqueId;
 
 				unsigned int i = 0, ulProps = obj->lstProperties.size();
 				ecmem_ptr<SPropValue> lpProps;
@@ -852,7 +850,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		} // !new == empty table
 	}
 
-	if (this->lpAttachments == nullptr)
+	if (lpAttachments == nullptr)
 		return MAPI_E_CALL_FAILED;
 
 	object_ptr<ECMemTableView> lpView;
@@ -872,13 +870,13 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 	ecmem_ptr<SPropValue> lpObjId;
 	ULONG				ulObjId;
 
-	if(this->lpAttachments == NULL) {
+	if (lpAttachments == nullptr) {
 		object_ptr<IMAPITable> lpTable;
 		auto hr = GetAttachmentTable(fMapiUnicode, &~lpTable);
 		if(hr != hrSuccess)
 			return hr;
 	}
-	if (this->lpAttachments == nullptr)
+	if (lpAttachments == nullptr)
 		return MAPI_E_CALL_FAILED;
 	auto hr = ECAttach::Create(GetMsgStore(), MAPI_ATTACH, true,
 	          ulAttachmentNum, m_lpRoot, &~lpAttach);
@@ -892,7 +890,9 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 	else
 		ulObjId = 0;
 
-	hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, ulAttachmentNum, ulObjId, this->lpStorage->GetServerStorage(), &~lpParentStorage);
+	hr = GetMsgStore()->lpTransport->HrOpenParentStorage(this,
+	     ulAttachmentNum, ulObjId, lpStorage->GetServerStorage(),
+	     &~lpParentStorage);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpAttach->HrSetPropStorage(lpParentStorage, TRUE);
@@ -915,13 +915,13 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 	SPropValue			sID;
 	object_ptr<IECPropStorage> storage;
 
-	if(this->lpAttachments == NULL) {
+	if (lpAttachments == nullptr) {
 		object_ptr<IMAPITable> lpTable;
 		auto hr = GetAttachmentTable(fMapiUnicode, &~lpTable);
 		if(hr != hrSuccess)
 			return hr;
 	}
-	if (this->lpAttachments == nullptr)
+	if (lpAttachments == nullptr)
 		return MAPI_E_CALL_FAILED;
 
 	object_ptr<ECAttach> lpAttach;
@@ -934,8 +934,9 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 	if(hr != hrSuccess)
 		return hr;
 	sID.ulPropTag = PR_ATTACH_NUM;
-	sID.Value.ul = this->ulNextAttUniqueId;
-	hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, this->ulNextAttUniqueId, 0, nullptr, &~storage);
+	sID.Value.ul = ulNextAttUniqueId;
+	hr = GetMsgStore()->lpTransport->HrOpenParentStorage(this,
+	     ulNextAttUniqueId, 0, nullptr, &~storage);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpAttach->HrSetPropStorage(storage, false);
@@ -951,7 +952,7 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 	*lpulAttachmentNum = sID.Value.ul;
 
 	// successfully created attachment, so increment counter for the next
-	++this->ulNextAttUniqueId;
+	++ulNextAttUniqueId;
 	return hr;
 }
 
@@ -959,14 +960,13 @@ HRESULT ECMessage::DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPR
 {
 	SPropValue sPropID;
 
-	if(this->lpAttachments == NULL) {
+	if (lpAttachments == nullptr) {
 		object_ptr<IMAPITable> lpTable;
 		auto hr = GetAttachmentTable(fMapiUnicode, &~lpTable);
 		if(hr != hrSuccess)
 			return hr;
 	}
-
-	if (this->lpAttachments == NULL)
+	if (lpAttachments == nullptr)
 		return MAPI_E_CALL_FAILED;
 
 	sPropID.ulPropTag = PR_ATTACH_NUM;
@@ -992,7 +992,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			return hr;
 	}
 
-	if (this->lpRecips == NULL) {
+	if (lpRecips == nullptr) {
 		Util::proptag_change_unicode(ulFlags, sPropRecipColumns);
 		auto hr = ECMemTable::Create(sPropRecipColumns, PR_ROWID, &~lpRecips);
 		if(hr != hrSuccess)
@@ -1016,9 +1016,8 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 					continue;
 				if (obj->bDelete)
 					continue;
-
-				this->ulNextRecipUniqueId = obj->ulUniqueId > this->ulNextRecipUniqueId ? obj->ulUniqueId : this->ulNextRecipUniqueId;
-				++this->ulNextRecipUniqueId;
+				ulNextRecipUniqueId = obj->ulUniqueId > ulNextRecipUniqueId ? obj->ulUniqueId : ulNextRecipUniqueId;
+				++ulNextRecipUniqueId;
 
 				unsigned int i = 0, ulProps = obj->lstProperties.size();
 				ecmem_ptr<SPropValue> lpProps;
@@ -1130,8 +1129,7 @@ HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 		if(ulFlags & MODRECIP_ADD || ulFlags == 0) {
 			// Add a new PR_ROWID
 			sPropAdd[0].ulPropTag = PR_ROWID;
-			sPropAdd[0].Value.ul = this->ulNextRecipUniqueId++;
-
+			sPropAdd[0].Value.ul = ulNextRecipUniqueId++;
 			// Add a PR_INSTANCE_KEY which is equal to the row id
 			sPropAdd[1].ulPropTag = PR_INSTANCE_KEY;
 			sPropAdd[1].Value.bin.cb = sizeof(ULONG);
@@ -1184,14 +1182,13 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		// Re-set 'unsent' as it is obviously not sent if we're submitting it ... This allows you to send a message
 		// multiple times, but only if the client calls SubmitMessage multiple times.
 		lpsPropArray->Value.ul |= MSGFLAG_UNSENT;
-
-		hr = this->SetProps(1, lpsPropArray, NULL);
+		hr = SetProps(1, lpsPropArray, nullptr);
 		if(hr != hrSuccess)
 			return hr;
 	}
 
 	// Get the recipientslist
-	hr = this->GetRecipientTable(fMapiUnicode, &~lpRecipientTable);
+	hr = GetRecipientTable(fMapiUnicode, &~lpRecipientTable);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -1225,7 +1222,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		sRowSetRecip.aEntries[0].cValues = cRecip;
 
 		if (lpsRow[0].cValues > 1) {
-			hr = this->ModifyRecipients(MODRECIP_MODIFY, sRowSetRecip);
+			hr = ModifyRecipients(MODRECIP_MODIFY, sRowSetRecip);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -1249,7 +1246,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		return hr;
 
 	// Resolve recipients
-	hr = this->GetMsgStore()->lpSupport->ExpandRecips(this, &ulPreprocessFlags);
+	hr = GetMsgStore()->lpSupport->ExpandRecips(this, &ulPreprocessFlags);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1273,7 +1270,8 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		return hr;
 
 	// Add the message to the master outgoing queue, and request the spooler to DoSentMail()
-	return this->GetMsgStore()->lpTransport->HrSubmitMessage(this->m_cbEntryId, this->m_lpEntryId, EC_SUBMIT_MASTER | EC_SUBMIT_DOSENTMAIL);
+	return GetMsgStore()->lpTransport->HrSubmitMessage(m_cbEntryId,
+	       m_lpEntryId, EC_SUBMIT_MASTER | EC_SUBMIT_DOSENTMAIL);
 }
 
 HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
@@ -1350,7 +1348,7 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 
 	}
 
-	hr = this->GetMsgStore()->lpTransport->HrSetReadFlag(this->m_cbEntryId, this->m_lpEntryId, ulFlags, 0);
+	hr = GetMsgStore()->lpTransport->HrSetReadFlag(m_cbEntryId, m_lpEntryId, ulFlags, 0);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -1382,7 +1380,7 @@ HRESULT ECMessage::SyncRecips()
 	static constexpr const SizedSPropTagArray(2, sPropDisplay) =
 		{2, {PR_RECIPIENT_TYPE, PR_DISPLAY_NAME_W}};
 
-	if (this->lpRecips == nullptr) {
+	if (lpRecips == nullptr) {
 		m_bRecipsDirty = false;
 		return hrSuccess;
 	}
@@ -1634,7 +1632,7 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 		return MAPI_E_NO_ACCESS;
 
 	// nothing changed -> no need to save
-	if (!this->m_props_loaded)
+	if (!m_props_loaded)
 		return hrSuccess;
 
 	assert(m_sMapiObject != NULL); // the actual bug .. keep open on submessage
@@ -1645,8 +1643,7 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 		// Synchronize PR_DISPLAY_* ... FIXME should we do this after each ModifyRecipients ?
 		SyncRecips();
 	}
-
-	if (this->lpAttachments) {
+	if (lpAttachments != nullptr) {
 		// set deleted attachments in saved child list
 		auto hr = SyncAttachments();
 		if (hr != hrSuccess)
@@ -1654,7 +1651,7 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 	}
 
 	// Property change of a new item
-	if (fNew && this->GetMsgStore()->IsSpooler() == TRUE) {
+	if (fNew && GetMsgStore()->IsSpooler()) {
 		static constexpr const SizedSPropTagArray(1, proptag) = {1, {PR_MESSAGE_FLAGS}};
 		auto hr = ECMAPIProp::GetProps(proptag, 0, &cValues, &~lpsPropMessageFlags);
 		if(hr != hrSuccess)
@@ -2149,10 +2146,10 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 	    GetECObject(destiprop, iid_of(lpECMAPIProp), &~lpECMAPIProp) == hrSuccess) {
 		// Find the top-level objects for both source and destination objects
 		auto lpDestTop = lpECMAPIProp->m_lpRoot;
-		auto lpSourceTop = this->m_lpRoot;
+		auto lpSourceTop = m_lpRoot;
 
 		// destination may not be a child of the source, but source can be a child of destination
-		if (!this->IsChildOf(lpDestTop)) {
+		if (!IsChildOf(lpDestTop)) {
 			// ICS expects the entryids to be equal. So check if the objects reside on
 			// the same server as well.
 			auto hr = lpDestTop->GetMsgStore()->lpTransport->GetServerGUID(&sDestServerGuid);
@@ -2308,13 +2305,13 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 		// can only save attachments as child objects
 		// (recipients are saved through SaveRecips() from SaveChanges() on this object)
 		return MAPI_E_INVALID_OBJECT;
-	if(this->lpAttachments == NULL) {
+	if (lpAttachments == nullptr) {
 		object_ptr<IMAPITable> lpTable;
 		auto hr = GetAttachmentTable(fMapiUnicode, &~lpTable);
 		if(hr != hrSuccess)
 			return hr;
 	}
-	if (this->lpAttachments == nullptr)
+	if (lpAttachments == nullptr)
 		return MAPI_E_CALL_FAILED;
 
 	if (!m_sMapiObject) {
