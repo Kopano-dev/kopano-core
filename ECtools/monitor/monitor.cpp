@@ -263,21 +263,12 @@ static ECRESULT main2(int argc, char **argv)
 	signal(SIGHUP, sighup);
 
 	// SIGSEGV backtrace support
-	stack_t st;
+	KAlternateStack sigstack;
 	struct sigaction act;
-
-	memset(&st, 0, sizeof(st));
 	memset(&act, 0, sizeof(act));
-
-	st.ss_sp = malloc(65536);
-	st.ss_flags = 0;
-	st.ss_size = 65536;
-
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
 	sigemptyset(&act.sa_mask);
-
-	sigaltstack(&st, NULL);
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGBUS, &act, NULL);
 	sigaction(SIGABRT, &act, NULL);
