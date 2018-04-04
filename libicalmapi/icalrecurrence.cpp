@@ -57,10 +57,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	HRESULT hr = hrSuccess;
 	int i = 0;
 	ULONG ulWeekDays = 0;	
-	time_t dtUTCEnd = 0;
-	time_t dtUTCUntil = 0;
-	time_t exUTCDate = 0;
-	time_t exLocalDate = 0;
+	time_t dtUTCEnd = 0, dtUTCUntil = 0, exUTCDate = 0, exLocalDate = 0;
 	SPropValue sPropVal = {0};
 	struct tm tm = {0};
 
@@ -321,8 +318,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot,
 	time_t ttReminderTime = 0;
 	bool bReminderSet = false;
 	convert_context converter;
-	bool abOldPresent[8] = {false};
-	bool abNewPresent[8] = {false};
+	bool abOldPresent[8] = {false}, abNewPresent[8] = {false};
 	SizedSPropTagArray(8, sptaCopy) = { 8, {
 			PR_SUBJECT,
 			CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_LOCATION], PT_STRING8),

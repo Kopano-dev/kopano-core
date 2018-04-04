@@ -143,8 +143,7 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	TIMEZONE_STRUCT ttTimeZone = {0};
 	timezone_map tzMap;
 	std::string strTZID;
-	icalitem *item = NULL;
-	icalitem *previtem = NULL;
+	icalitem *item = nullptr, *previtem = nullptr;
 
 	Clean();
 	if (m_lpNamedProps == NULL) {
@@ -343,8 +342,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	memory_ptr<SPropTagArray> lpsPTA;
 	object_ptr<IMAPITable> lpAttachTable;
 	rowset_ptr lpRows;
-	SPropValue sStart = {0};
-	SPropValue sMethod = {0};
+	SPropValue sStart = {0}, sMethod = {0};
 
 	if (ulPosition >= m_vMessages.size() || lpMessage == nullptr)
 		return MAPI_E_INVALID_PARAMETER;

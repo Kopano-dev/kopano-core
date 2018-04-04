@@ -288,8 +288,7 @@ HRESULT vcftomapi_impl::handle_UID(VObject *v)
 	if (hr != hrSuccess)
 		return hr;
 
-	MAPINAMEID name;
-	MAPINAMEID *namep = &name;
+	MAPINAMEID name, *namep = &name;
 	memory_ptr<SPropTagArray> proptag;
 
 	name.lpguid = const_cast<GUID *>(&PSETID_Meeting);
@@ -484,8 +483,7 @@ HRESULT vcftomapi_impl::vobject_to_prop(VObject *v, SPropValue &s, ULONG proptyp
 HRESULT vcftomapi_impl::vobject_to_named_prop(VObject *v, SPropValue &s,
     ULONG named_proptype)
 {
-        MAPINAMEID name;
-	MAPINAMEID *namep = &name;
+	MAPINAMEID name, *namep = &name;
 	memory_ptr<SPropTagArray> proptag;
 
 	name.lpguid = const_cast<GUID *>(&PSETID_Address);
@@ -500,8 +498,7 @@ HRESULT vcftomapi_impl::vobject_to_named_prop(VObject *v, SPropValue &s,
 HRESULT vcftomapi_impl::unicode_to_named_prop(const wchar_t *v, SPropValue &s,
     ULONG named_proptype)
 {
-        MAPINAMEID name;
-	MAPINAMEID *namep = &name;
+	MAPINAMEID name, *namep = &name;
 	memory_ptr<SPropTagArray> proptag;
 
 	name.lpguid = const_cast<GUID *>(&PSETID_Address);
@@ -536,8 +533,7 @@ HRESULT vcftomapi_impl::get_item(IMessage *msg)
 	if (hr != hrSuccess)
 		return hr;
 
-	MAPINAMEID name;
-	MAPINAMEID *namep = &name;
+	MAPINAMEID name, *namep = &name;
 	memory_ptr<SPropTagArray> proptag;
 
 	name.lpguid = const_cast<GUID *>(&PSETID_Common);

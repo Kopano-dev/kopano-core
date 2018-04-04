@@ -83,8 +83,7 @@ HRESULT VEventConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *
 HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalcomponent *lpicEvent, void *base, bool bisException, std::list<SPropValue> *lstMsgProps)
 {
 	SPropValue sPropVal;
-	bool bMeeting = false;
-	bool bMeetingOrganised = false;
+	bool bMeeting = false, bMeetingOrganised = false;
 	std::wstring strEmail;
 
 	auto icProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
@@ -266,8 +265,7 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 HRESULT VEventConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem)
 {
 	SPropValue sPropVal;
-	icalproperty* lpicOrigDTStartProp = NULL;
-	icalproperty* lpicOrigDTEndProp = NULL;
+	icalproperty *lpicOrigDTStartProp = nullptr, *lpicOrigDTEndProp = nullptr;
 	std::unique_ptr<icalproperty, icalmapi_delete> lpicFreeDTStartProp, lpicFreeDTEndProp;
 	time_t timeDTStartUTC = 0, timeDTEndUTC = 0;
 	time_t timeDTStartLocal = 0, timeDTEndLocal = 0;
@@ -448,10 +446,8 @@ HRESULT VEventConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *l
  */
 HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent)
 {
-	bool bIsAllDay = false;
-	bool bCounterProposal = false;
-	ULONG ulStartIndex = PROP_APPTSTARTWHOLE;
-	ULONG ulEndIndex = PROP_APPTENDWHOLE;
+	bool bIsAllDay = false, bCounterProposal = false;
+	ULONG ulStartIndex = PROP_APPTSTARTWHOLE, ulEndIndex = PROP_APPTENDWHOLE;
 
 	HRESULT hr = VConverter::HrSetTimeProperties(lpMsgProps, ulMsgProps,
 	             lpicTZinfo, strTZid, lpEvent);

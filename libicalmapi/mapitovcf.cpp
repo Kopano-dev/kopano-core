@@ -138,8 +138,7 @@ HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
 		to_prop(adrnode, "C", msgprop_array[4].Value.lpszW);
 	}
 
-	MAPINAMEID nameids[5];
-	MAPINAMEID *nameids_ptrs[5];
+	MAPINAMEID nameids[5], *nameids_ptrs[5];
 	for (size_t i = 0; i < 5; ++i) {
 		nameids[i].lpguid = const_cast<GUID *>(&PSETID_Address);
 		nameids[i].ulKind = MNID_ID;
@@ -148,30 +147,27 @@ HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
 	}
 
 	hr = lpMessage->GetIDsFromNames(5, nameids_ptrs, MAPI_BEST_ACCESS, &~proptag);
-	if (hr == hrSuccess) {
-		for (size_t i = 0; i < 5; ++i)
-			proptag->aulPropTag[i] = CHANGE_PROP_TYPE(proptag->aulPropTag[i], PT_UNICODE);
-
-		hr = lpMessage->GetProps(proptag, 0, &count, &~msgprop_array);
-		if (hr == hrSuccess) {
-			auto adrnode = addProp(root, VCAdrProp);
-			auto node = addProp(adrnode, "TYPE");
-			setVObjectStringZValue(node, "WORK");
-			to_prop(adrnode, "STREET", msgprop_array[0].Value.lpszW);
-			to_prop(adrnode, "L", msgprop_array[1].Value.lpszW);
-			to_prop(adrnode, "R", msgprop_array[2].Value.lpszW);
-			to_prop(adrnode, "PC", msgprop_array[3].Value.lpszW);
-			to_prop(adrnode, "C", msgprop_array[4].Value.lpszW);
-		}
-	}
-
+	if (hr != hrSuccess)
+		return hrSuccess;
+	for (size_t i = 0; i < 5; ++i)
+		proptag->aulPropTag[i] = CHANGE_PROP_TYPE(proptag->aulPropTag[i], PT_UNICODE);
+	hr = lpMessage->GetProps(proptag, 0, &count, &~msgprop_array);
+	if (hr != hrSuccess)
+		return hrSuccess;
+	auto adrnode = addProp(root, VCAdrProp);
+	auto node = addProp(adrnode, "TYPE");
+	setVObjectStringZValue(node, "WORK");
+	to_prop(adrnode, "STREET", msgprop_array[0].Value.lpszW);
+	to_prop(adrnode, "L", msgprop_array[1].Value.lpszW);
+	to_prop(adrnode, "R", msgprop_array[2].Value.lpszW);
+	to_prop(adrnode, "PC", msgprop_array[3].Value.lpszW);
+	to_prop(adrnode, "C", msgprop_array[4].Value.lpszW);
 	return hrSuccess;
 }
 
 HRESULT mapitovcf_impl::add_email(IMessage *lpMessage, VObject *root)
 {
-	MAPINAMEID name;
-	MAPINAMEID *namep = &name;
+	MAPINAMEID name, *namep = &name;
 
 	for (int lid = 0x8083; lid <= 0x80a3; lid += 0x10) {
 		name.lpguid = const_cast<GUID *>(&PSETID_Address);
@@ -197,9 +193,7 @@ HRESULT mapitovcf_impl::add_email(IMessage *lpMessage, VObject *root)
 
 HRESULT mapitovcf_impl::add_uid(IMessage *lpMessage, VObject *root)
 {
-	MAPINAMEID name;
-	MAPINAMEID *namep = &name;
-
+	MAPINAMEID name, *namep = &name;
 	name.lpguid = const_cast<GUID *>(&PSETID_Meeting);
 	name.ulKind = MNID_ID;
 	name.Kind.lID = dispidGlobalObjectID;
@@ -221,47 +215,40 @@ HRESULT mapitovcf_impl::add_uid(IMessage *lpMessage, VObject *root)
 	}
 	/* Object did not have guid, let us generate one, and save it
 	   if possible */
-	if (uid.size() == 0) {
-		HrGenerateUid(&uid);
-		auto binstr = hex2bin(uid);
-
-		SPropValue prop;
-		prop.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
-		prop.Value.bin.lpb = (LPBYTE)binstr.c_str();
-		prop.Value.bin.cb = binstr.length();
-
-		hr = HrSetOneProp(lpMessage, &prop);
-		if (hr == hrSuccess) {
-			hr = lpMessage->SaveChanges(0);
-			if (hr != hrSuccess)
-				/* ignore */;
-		}
-
-		to_prop(root, "UID", prop);
+	if (uid.size() != 0)
+		return hrSuccess;
+	HrGenerateUid(&uid);
+	auto binstr = hex2bin(uid);
+	SPropValue prop;
+	prop.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);
+	prop.Value.bin.lpb = (LPBYTE)binstr.c_str();
+	prop.Value.bin.cb = binstr.length();
+	hr = HrSetOneProp(lpMessage, &prop);
+	if (hr == hrSuccess) {
+		hr = lpMessage->SaveChanges(0);
+		if (hr != hrSuccess)
+			/* ignore */;
 	}
-
+	to_prop(root, "UID", prop);
 	return hrSuccess;
 }
 
 HRESULT mapitovcf_impl::add_url(IMessage *lpMessage, VObject *root)
 {
-	MAPINAMEID name;
-	MAPINAMEID *namep = &name;
+	MAPINAMEID name, *namep = &name;
 	name.lpguid = const_cast<GUID *>(&PSETID_Address);
 	name.ulKind = MNID_ID;
 	name.Kind.lID = dispidWebPage;
 
 	memory_ptr<SPropTagArray> proptag;
 	auto hr = lpMessage->GetIDsFromNames(1, &namep, MAPI_BEST_ACCESS, &~proptag);
-	if (hr == hrSuccess) {
-
-		ULONG proptype = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
-		memory_ptr<SPropValue> prop;
-		hr = HrGetOneProp(lpMessage, proptype, &~prop);
-		if (hr == hrSuccess)
-			to_prop(root, "URL", *prop);
-	}
-
+	if (hr != hrSuccess)
+		return hrSuccess;
+	ULONG proptype = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
+	memory_ptr<SPropValue> prop;
+	hr = HrGetOneProp(lpMessage, proptype, &~prop);
+	if (hr == hrSuccess)
+		to_prop(root, "URL", *prop);
 	return hrSuccess;
 }
 
