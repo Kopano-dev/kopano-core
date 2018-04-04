@@ -4364,7 +4364,9 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 
 			strQuery += "namestring='" + strEscapedString + "' ";
 		}
-		/* else { Handle this, it will break the SQL query, iff guid is present } */
+		else {
+			strQuery += "0 ";
+		}
 
 		// Add a GUID specifier if there
 		if(lpsNamedProps->__ptr[i].lpguid != NULL) {
@@ -4384,10 +4386,8 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i)
 		lpsResponse->lpsPropTags.__ptr[i] = 0;
 
-	for (size_t i = 0; i < lpDBResult.get_num_rows(); ++i) {
-		lpDBRow = lpDBResult.fetch_row();
-		if (lpDBRow == nullptr)
-			continue;
+	/* For every result row, look for a named prop that can be filled. */
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
 			std::string nameid, namestring;
 

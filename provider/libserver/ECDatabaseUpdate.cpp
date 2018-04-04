@@ -98,4 +98,30 @@ ECRESULT UpdateABChangesTbl(ECDatabase *db)
 		"modify change_type int(11) unsigned not null default 0");
 }
 
+/* Edit no. 67 */
+ECRESULT DropClientUpdateStatusTbl(ECDatabase *db)
+{
+	return db->DoUpdate("drop table if exists `clientupdatestatus`");
+}
+
+ECRESULT db_update_68(ECDatabase *db)
+{
+	auto ret = db->DoUpdate("ALTER TABLE `hierarchy` MODIFY COLUMN `owner` int(11) unsigned NOT NULL DEFAULT 0");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	ret = db->DoUpdate("ALTER TABLE `stores` MODIFY COLUMN `id` int(11) unsigned NOT NULL auto_increment");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	ret = db->DoUpdate("ALTER TABLE `stores` MODIFY COLUMN `user_id` int(11) unsigned NOT NULL DEFAULT 0");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	ret = db->DoUpdate("ALTER TABLE `stores` MODIFY COLUMN `company` int(11) unsigned NOT NULL DEFAULT 0");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	ret = db->DoUpdate("ALTER TABLE `users` MODIFY COLUMN `id` int(11) NOT NULL AUTO_INCREMENT");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	return db->DoUpdate("ALTER TABLE `users` MODIFY COLUMN `company` int(11) NOT NULL DEFAULT 0");
+}
+
 } /* namespace */
