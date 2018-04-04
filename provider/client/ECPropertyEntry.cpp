@@ -377,7 +377,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		unsigned int ulNewSize = sizeof(void *) * lpsProp->Value.MVbin.cValues;
 		if(ulSize < ulNewSize) {
-			if (Value.MVbin.lpbin != nullptr) {
+			if (Value.MVbin.lpbin){
 				for (unsigned int i = 0; i < Value.MVbin.cValues; ++i)
 					delete[] Value.MVbin.lpbin[i].lpb;
 				delete[] Value.MVbin.lpbin;
@@ -388,7 +388,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 			memset(Value.MVbin.lpbin, 0, sizeof(SBinary) * lpsProp->Value.MVbin.cValues);
 		}
 		else {
-			for (unsigned int i = lpsProp->Value.MVbin.cValues; i < Value.MVbin.cValues; ++i)
+			for(unsigned int i = lpsProp->Value.MVbin.cValues; i < Value.MVbin.cValues; ++i)
 				delete[] Value.MVbin.lpbin[i].lpb;
 		}
 
@@ -463,34 +463,32 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		unsigned int ulNewSize = sizeof(void *) * lpsProp->Value.MVszW.cValues;
 		if(ulSize < ulNewSize) {
-			if(this->Value.MVszW.lppszW) {
-				for (unsigned int i = 0; i < this->Value.MVszW.cValues; ++i)
-					delete[] this->Value.MVszW.lppszW[i];
-				delete[] this->Value.MVszW.lppszW;
+			if (Value.MVszW.lppszW != nullptr) {
+				for (unsigned int i = 0; i < Value.MVszW.cValues; ++i)
+					delete[] Value.MVszW.lppszW[i];
+				delete[] Value.MVszW.lppszW;
 			}
-			this->Value.MVszW.lppszW = new(std::nothrow) wchar_t *[lpsProp->Value.MVszW.cValues];
-			if (this->Value.MVszW.lppszW == NULL)
+			Value.MVszW.lppszW = new(std::nothrow) wchar_t *[lpsProp->Value.MVszW.cValues];
+			if (Value.MVszW.lppszW == nullptr)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
-
-			memset(this->Value.MVszW.lppszW, 0, sizeof(WCHAR *) * lpsProp->Value.MVszW.cValues);
+			memset(Value.MVszW.lppszW, 0, sizeof(wchar_t *) * lpsProp->Value.MVszW.cValues);
 		}
 		else {
-			for(unsigned int i = lpsProp->Value.MVszW.cValues; i < this->Value.MVszW.cValues; ++i)
-				delete[] this->Value.MVszW.lppszW[i];
+			for (unsigned int i = lpsProp->Value.MVszW.cValues; i < Value.MVszW.cValues; ++i)
+				delete[] Value.MVszW.lppszW[i];
 		}
 		
 		ulSize = ulNewSize;
-
-		this->Value.MVszW.cValues = lpsProp->Value.MVszW.cValues;
+		Value.MVszW.cValues = lpsProp->Value.MVszW.cValues;
 
 		for (unsigned int i = 0; i < lpsProp->Value.MVszW.cValues; ++i) {
 			if (lpsProp->Value.MVszW.lppszW[i] == NULL)
 				return dwLastError = MAPI_E_INVALID_PARAMETER;
-			if(this->Value.MVszW.lppszW[i] == NULL || wcslen(this->Value.MVszW.lppszW[i]) < wcslen(lpsProp->Value.MVszW.lppszW[i])) {
-				delete[] this->Value.MVszW.lppszW[i];
-				this->Value.MVszW.lppszW[i] = new WCHAR [wcslen(lpsProp->Value.MVszW.lppszW[i])+sizeof(WCHAR)];
+			if (Value.MVszW.lppszW[i] == nullptr || wcslen(Value.MVszW.lppszW[i]) < wcslen(lpsProp->Value.MVszW.lppszW[i])) {
+				delete[] Value.MVszW.lppszW[i];
+				Value.MVszW.lppszW[i] = new wchar_t[wcslen(lpsProp->Value.MVszW.lppszW[i]) + sizeof(wchar_t)];
 			}
-			wcscpy(this->Value.MVszW.lppszW[i], lpsProp->Value.MVszW.lppszW[i]);
+			wcscpy(Value.MVszW.lppszW[i], lpsProp->Value.MVszW.lppszW[i]);
 		}
 
 		break;
@@ -501,17 +499,15 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		unsigned int ulNewSize = sizeof(GUID) * lpsProp->Value.MVguid.cValues;
 		if(ulSize < ulNewSize) {
-			delete[] this->Value.MVguid.lpguid;
-			this->Value.MVguid.lpguid = new(std::nothrow) GUID[lpsProp->Value.MVguid.cValues];
-			if (this->Value.MVguid.lpguid == NULL)
+			delete[] Value.MVguid.lpguid;
+			Value.MVguid.lpguid = new(std::nothrow) GUID[lpsProp->Value.MVguid.cValues];
+			if (Value.MVguid.lpguid == nullptr)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
 
 		ulSize = ulNewSize;
-
-        this->Value.MVguid.cValues = lpsProp->Value.MVguid.cValues;
-		memcpy(this->Value.MVguid.lpguid, lpsProp->Value.MVguid.lpguid, sizeof(GUID) * lpsProp->Value.MVguid.cValues);
-			
+	        Value.MVguid.cValues = lpsProp->Value.MVguid.cValues;
+		memcpy(Value.MVguid.lpguid, lpsProp->Value.MVguid.lpguid, sizeof(GUID) * lpsProp->Value.MVguid.cValues);
 		break;
 	}
 	case PT_MV_I8: {
@@ -520,21 +516,19 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		unsigned int ulNewSize = sizeof(LARGE_INTEGER) * lpsProp->Value.MVli.cValues;
 		if(ulSize < ulNewSize) {
-			delete[] this->Value.MVli.lpli;
-			this->Value.MVli.lpli = new(std::nothrow) LARGE_INTEGER[lpsProp->Value.MVli.cValues];
-			if (this->Value.MVli.lpli == NULL)
+			delete[] Value.MVli.lpli;
+			Value.MVli.lpli = new(std::nothrow) LARGE_INTEGER[lpsProp->Value.MVli.cValues];
+			if (Value.MVli.lpli == nullptr)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
 
 		ulSize = ulNewSize;
-
-		this->Value.MVli.cValues = lpsProp->Value.MVli.cValues;
-		memcpy(this->Value.MVli.lpli, lpsProp->Value.MVli.lpli, lpsProp->Value.MVli.cValues * sizeof(LARGE_INTEGER));
-
+		Value.MVli.cValues = lpsProp->Value.MVli.cValues;
+		memcpy(Value.MVli.lpli, lpsProp->Value.MVli.lpli, lpsProp->Value.MVli.cValues * sizeof(LARGE_INTEGER));
 		break;
 	}
 	case PT_ERROR:
-		this->Value.err = lpsProp->Value.err;
+		Value.err = lpsProp->Value.err;
 		break;
 	default:
 		// Unknown type (PR_NULL not include)
@@ -561,59 +555,59 @@ ECProperty::~ECProperty()
 	case PT_I8:
 		break;
 	case PT_BINARY:
-		delete[] this->Value.bin.lpb;
+		delete[] Value.bin.lpb;
 		break;
 	case PT_STRING8:
 		assert("We should never have PT_STRING8 storage" == nullptr);
 		// Deliberate fallthrough
 	case PT_UNICODE:
-		delete[] this->Value.lpszW;
+		delete[] Value.lpszW;
 		break;
 	case PT_CLSID:
-		delete this->Value.lpguid;
+		delete Value.lpguid;
 		break;
 	case PT_MV_I2:
 		delete[] Value.MVi.lpi;
 		break;
 	case PT_MV_LONG:
-		delete[] this->Value.MVl.lpl;
+		delete[] Value.MVl.lpl;
 		break;
 	case PT_MV_R4:
-		delete[] this->Value.MVflt.lpflt;
+		delete[] Value.MVflt.lpflt;
 		break;
 	case PT_MV_DOUBLE:
-		delete[] this->Value.MVdbl.lpdbl;
+		delete[] Value.MVdbl.lpdbl;
 		break;
 	case PT_MV_CURRENCY:
-		delete[] this->Value.MVcur.lpcur;
+		delete[] Value.MVcur.lpcur;
 		break;
 	case PT_MV_APPTIME:
-		delete[] this->Value.MVat.lpat;
+		delete[] Value.MVat.lpat;
 		break;
 	case PT_MV_SYSTIME:
-		delete[] this->Value.MVft.lpft;
+		delete[] Value.MVft.lpft;
 		break;
 	case PT_MV_BINARY: {
-		for (unsigned int i = 0; i <this->Value.MVbin.cValues; ++i)
-			delete[] this->Value.MVbin.lpbin[i].lpb;
-		delete[] this->Value.MVbin.lpbin;
+		for (unsigned int i = 0; i < Value.MVbin.cValues; ++i)
+			delete[] Value.MVbin.lpbin[i].lpb;
+		delete[] Value.MVbin.lpbin;
 		break;
 	}
 	case PT_MV_STRING8:
 		assert("We should never have PT_MV_STRING8 storage" == nullptr);
 		// Deliberate fallthrough
 	case PT_MV_UNICODE: {
-		for (unsigned int i = 0; i < this->Value.MVszW.cValues; ++i)
-			delete[] this->Value.MVszW.lppszW[i];
-		delete[] this->Value.MVszW.lppszW;
+		for (unsigned int i = 0; i < Value.MVszW.cValues; ++i)
+			delete[] Value.MVszW.lppszW[i];
+		delete[] Value.MVszW.lppszW;
 		break;
 	}
 	case PT_MV_CLSID: {
-		delete[] this->Value.MVguid.lpguid;
+		delete[] Value.MVguid.lpguid;
 		break;
 	}
 	case PT_MV_I8:
-		delete[] this->Value.MVli.lpli;
+		delete[] Value.MVli.lpli;
 		break;
 	case PT_ERROR:
 		break;
@@ -625,8 +619,8 @@ ECProperty::~ECProperty()
 HRESULT ECProperty::CopyToByRef(LPSPropValue lpsProp) const
 {
 	DEBUG_GUARD;
-    lpsProp->ulPropTag = this->ulPropTag;
-	memcpy(&lpsProp->Value, &this->Value, sizeof(union __UPV));
+	lpsProp->ulPropTag = ulPropTag;
+	memcpy(&lpsProp->Value, &Value, sizeof(union __UPV));
 	return hrSuccess;
 }
 
@@ -637,53 +631,53 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 
 	assert
 	(
-		PROP_TYPE(ulRequestPropTag) == PROP_TYPE(this->ulPropTag) ||
-		((PROP_TYPE(ulRequestPropTag) == PT_STRING8 || PROP_TYPE(ulRequestPropTag) == PT_UNICODE) && PROP_TYPE(this->ulPropTag) == PT_UNICODE) ||
-		((PROP_TYPE(ulRequestPropTag) == PT_MV_STRING8 || PROP_TYPE(ulRequestPropTag) == PT_MV_UNICODE) && PROP_TYPE(this->ulPropTag) == PT_MV_UNICODE)
+		PROP_TYPE(ulRequestPropTag) == PROP_TYPE(ulPropTag) ||
+		((PROP_TYPE(ulRequestPropTag) == PT_STRING8 || PROP_TYPE(ulRequestPropTag) == PT_UNICODE) && PROP_TYPE(ulPropTag) == PT_UNICODE) ||
+		((PROP_TYPE(ulRequestPropTag) == PT_MV_STRING8 || PROP_TYPE(ulRequestPropTag) == PT_MV_UNICODE) && PROP_TYPE(ulPropTag) == PT_MV_UNICODE)
 	);
 
 	lpsProp->ulPropTag = ulRequestPropTag;
 
-	switch(PROP_TYPE(this->ulPropTag)) {
+	switch (PROP_TYPE(ulPropTag)) {
 	case PT_I2:
-		lpsProp->Value.i = this->Value.i;
+		lpsProp->Value.i = Value.i;
 		break;
 	case PT_I4:
-		lpsProp->Value.l = this->Value.l;
+		lpsProp->Value.l = Value.l;
 		break;
 	case PT_R4:
-		lpsProp->Value.flt = this->Value.flt;
+		lpsProp->Value.flt = Value.flt;
 		break;
 	case PT_R8:
-		lpsProp->Value.dbl = this->Value.dbl;
+		lpsProp->Value.dbl = Value.dbl;
 		break;
 	case PT_BOOLEAN:
-		lpsProp->Value.b = this->Value.b;
+		lpsProp->Value.b = Value.b;
 		break;
 	case PT_CURRENCY:
-		lpsProp->Value.cur = this->Value.cur;
+		lpsProp->Value.cur = Value.cur;
 		break;
 	case PT_APPTIME:
-		lpsProp->Value.at = this->Value.at;
+		lpsProp->Value.at = Value.at;
 		break;
 	case PT_SYSTIME:
-		lpsProp->Value.ft = this->Value.ft;
+		lpsProp->Value.ft = Value.ft;
 		break;
 	case PT_BINARY: {
-		if (this->Value.bin.cb == 0) {
+		if (Value.bin.cb == 0) {
 			lpsProp->Value.bin.lpb = NULL;
-			lpsProp->Value.bin.cb = this->Value.bin.cb;
+			lpsProp->Value.bin.cb = Value.bin.cb;
 			break;
 		}
 		BYTE *lpBin = NULL;
-		hr = ECAllocateMore(this->Value.bin.cb, lpBase, (LPVOID *)&lpBin);
+		hr = ECAllocateMore(Value.bin.cb, lpBase, reinterpret_cast<void **>(&lpBin));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
 		}
-		memcpy(lpBin, this->Value.bin.lpb, this->Value.bin.cb);
+		memcpy(lpBin, Value.bin.lpb, Value.bin.cb);
 		lpsProp->Value.bin.lpb = lpBin;
-		lpsProp->Value.bin.cb = this->Value.bin.cb;
+		lpsProp->Value.bin.cb = Value.bin.cb;
 		break;
 	}
 	case PT_STRING8:
@@ -691,15 +685,15 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 		// Deliberate fallthrough
 	case PT_UNICODE: {
 		if (PROP_TYPE(ulRequestPropTag) == PT_UNICODE) {
-			hr = ECAllocateMore(sizeof(WCHAR) * (wcslen(this->Value.lpszW) + 1), lpBase, (LPVOID*)&lpsProp->Value.lpszW);
+			hr = ECAllocateMore(sizeof(wchar_t) * (wcslen(Value.lpszW) + 1), lpBase, reinterpret_cast<void **>(&lpsProp->Value.lpszW));
 			if (hr != hrSuccess)
 				dwLastError = hr;
 			else
-				wcscpy(lpsProp->Value.lpszW, this->Value.lpszW);
+				wcscpy(lpsProp->Value.lpszW, Value.lpszW);
 			break;
 		}
 		std::string dst;
-		if (TryConvert(this->Value.lpszW, dst) != hrSuccess) {
+		if (TryConvert(Value.lpszW, dst) != hrSuccess) {
 			dwLastError = MAPI_E_INVALID_PARAMETER;
 			return hr;
 		}
@@ -717,116 +711,116 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 			dwLastError = hr;
 			break;
 		}
-		memcpy(lpGUID, this->Value.lpguid, sizeof(GUID));
+		memcpy(lpGUID, Value.lpguid, sizeof(GUID));
 		lpsProp->Value.lpguid = lpGUID;
 		break;
 	}
 	case PT_I8:
-		lpsProp->Value.li = this->Value.li;
+		lpsProp->Value.li = Value.li;
 		break;
 	case PT_MV_I2: {
 		short int *lpShort;
-		hr = ECAllocateMore(this->Value.MVi.cValues * sizeof(short int), lpBase, (LPVOID *)&lpShort);
+		hr = ECAllocateMore(Value.MVi.cValues * sizeof(short int), lpBase, reinterpret_cast<void **>(&lpShort));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
 		}
-		lpsProp->Value.MVi.cValues = this->Value.MVi.cValues;
-		memcpy(lpShort, this->Value.MVi.lpi, this->Value.MVi.cValues * sizeof(short int));
+		lpsProp->Value.MVi.cValues = Value.MVi.cValues;
+		memcpy(lpShort, Value.MVi.lpi, Value.MVi.cValues * sizeof(short int));
 		lpsProp->Value.MVi.lpi = lpShort;
 		break;
 	}
 	case PT_MV_LONG: {
 		LONG *lpLong;
-		hr = ECAllocateMore(this->Value.MVl.cValues * sizeof(LONG), lpBase, (LPVOID *)&lpLong);
+		hr = ECAllocateMore(Value.MVl.cValues * sizeof(LONG), lpBase, reinterpret_cast<void **>(&lpLong));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
 		}
-		lpsProp->Value.MVl.cValues = this->Value.MVl.cValues;
-		memcpy(lpLong, this->Value.MVl.lpl, this->Value.MVl.cValues * sizeof(LONG));
+		lpsProp->Value.MVl.cValues = Value.MVl.cValues;
+		memcpy(lpLong, Value.MVl.lpl, Value.MVl.cValues * sizeof(LONG));
 		lpsProp->Value.MVl.lpl = lpLong;
 		break;
 	}
 	case PT_MV_R4: {
 		float *lpFloat;
-		hr = ECAllocateMore(this->Value.MVflt.cValues * sizeof(float), lpBase, (LPVOID *)&lpFloat);
+		hr = ECAllocateMore(Value.MVflt.cValues * sizeof(float), lpBase, reinterpret_cast<void **>(&lpFloat));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
 		}
-		lpsProp->Value.MVflt.cValues = this->Value.MVflt.cValues;
-		memcpy(lpFloat, this->Value.MVflt.lpflt, this->Value.MVflt.cValues * sizeof(float));
+		lpsProp->Value.MVflt.cValues = Value.MVflt.cValues;
+		memcpy(lpFloat, Value.MVflt.lpflt, Value.MVflt.cValues * sizeof(float));
 		lpsProp->Value.MVflt.lpflt = lpFloat;
 		break;
 	}
 	case PT_MV_DOUBLE: {
 		double *lpDouble;
-		hr = ECAllocateMore(this->Value.MVdbl.cValues * sizeof(double), lpBase, (LPVOID *)&lpDouble);
+		hr = ECAllocateMore(Value.MVdbl.cValues * sizeof(double), lpBase, reinterpret_cast<void **>(&lpDouble));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
 		}
-		lpsProp->Value.MVdbl.cValues = this->Value.MVdbl.cValues;
-		memcpy(lpDouble, this->Value.MVdbl.lpdbl, this->Value.MVdbl.cValues * sizeof(double));
+		lpsProp->Value.MVdbl.cValues = Value.MVdbl.cValues;
+		memcpy(lpDouble, Value.MVdbl.lpdbl, Value.MVdbl.cValues * sizeof(double));
 		lpsProp->Value.MVdbl.lpdbl = lpDouble;
 		break;
 	}
 	case PT_MV_CURRENCY: {
 		CURRENCY *lpCurrency;
-		hr = ECAllocateMore(this->Value.MVcur.cValues * sizeof(CURRENCY), lpBase, (LPVOID *)&lpCurrency);
+		hr = ECAllocateMore(Value.MVcur.cValues * sizeof(CURRENCY), lpBase, reinterpret_cast<void **>(&lpCurrency));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
 		}
-		lpsProp->Value.MVcur.cValues = this->Value.MVcur.cValues;
-		memcpy(lpCurrency, this->Value.MVcur.lpcur, this->Value.MVcur.cValues * sizeof(CURRENCY));
+		lpsProp->Value.MVcur.cValues = Value.MVcur.cValues;
+		memcpy(lpCurrency, Value.MVcur.lpcur, Value.MVcur.cValues * sizeof(CURRENCY));
 		lpsProp->Value.MVcur.lpcur = lpCurrency;
 		break;
 	}
 	case PT_MV_APPTIME: {
 		double *lpApptime;
-		hr = ECAllocateMore(this->Value.MVat.cValues * sizeof(double), lpBase, (LPVOID *)&lpApptime);
+		hr = ECAllocateMore(Value.MVat.cValues * sizeof(double), lpBase, reinterpret_cast<void **>(&lpApptime));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
 		}
-		lpsProp->Value.MVat.cValues = this->Value.MVat.cValues;
-		memcpy(lpApptime, this->Value.MVat.lpat, this->Value.MVat.cValues * sizeof(double));
+		lpsProp->Value.MVat.cValues = Value.MVat.cValues;
+		memcpy(lpApptime, Value.MVat.lpat, Value.MVat.cValues * sizeof(double));
 		lpsProp->Value.MVat.lpat = lpApptime;
 		break;
 	}
 	case PT_MV_SYSTIME: {
 		FILETIME *lpFiletime;
-		hr = ECAllocateMore(this->Value.MVft.cValues * sizeof(FILETIME), lpBase, (LPVOID *)&lpFiletime);
+		hr = ECAllocateMore(Value.MVft.cValues * sizeof(FILETIME), lpBase, reinterpret_cast<void **>(&lpFiletime));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
 		}
-		lpsProp->Value.MVft.cValues = this->Value.MVft.cValues;
-		memcpy(lpFiletime, this->Value.MVft.lpft, this->Value.MVft.cValues * sizeof(FILETIME));
+		lpsProp->Value.MVft.cValues = Value.MVft.cValues;
+		memcpy(lpFiletime, Value.MVft.lpft, Value.MVft.cValues * sizeof(FILETIME));
 		lpsProp->Value.MVft.lpft = lpFiletime;
 		break;
 	}
 	case PT_MV_BINARY: {
 		SBinary *lpBin;
-		hr = ECAllocateMore(this->Value.MVbin.cValues * sizeof(SBinary), lpBase, (LPVOID *)&lpBin);
+		hr = ECAllocateMore(Value.MVbin.cValues * sizeof(SBinary), lpBase, reinterpret_cast<void **>(&lpBin));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
 		}
-		lpsProp->Value.MVbin.cValues = this->Value.MVbin.cValues;
+		lpsProp->Value.MVbin.cValues = Value.MVbin.cValues;
 		lpsProp->Value.MVbin.lpbin = lpBin;
-		for (unsigned int i = 0; i < this->Value.MVbin.cValues; ++i) {
-			lpsProp->Value.MVbin.lpbin[i].cb = this->Value.MVbin.lpbin[i].cb;
+		for (unsigned int i = 0; i < Value.MVbin.cValues; ++i) {
+			lpsProp->Value.MVbin.lpbin[i].cb = Value.MVbin.lpbin[i].cb;
 			if (lpsProp->Value.MVbin.lpbin[i].cb == 0) {
 				lpsProp->Value.MVbin.lpbin[i].lpb = NULL;
 				continue;
 			}
-			hr = ECAllocateMore(this->Value.MVbin.lpbin[i].cb, lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVbin.lpbin[i].lpb));
+			hr = ECAllocateMore(Value.MVbin.lpbin[i].cb, lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVbin.lpbin[i].lpb));
 			if (hr != hrSuccess)
 				return hr;
-			memcpy(lpsProp->Value.MVbin.lpbin[i].lpb, this->Value.MVbin.lpbin[i].lpb, lpsProp->Value.MVbin.lpbin[i].cb);
+			memcpy(lpsProp->Value.MVbin.lpbin[i].lpb, Value.MVbin.lpbin[i].lpb, lpsProp->Value.MVbin.lpbin[i].cb);
 		}
 		break;
 	}
@@ -835,16 +829,16 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 		// Deliberate fallthrough
 	case PT_MV_UNICODE: {
 		if (PROP_TYPE(ulRequestPropTag) == PT_MV_STRING8) {
-			lpsProp->Value.MVszA.cValues = this->Value.MVszW.cValues;
-			hr = ECAllocateMore(this->Value.MVszW.cValues * sizeof(LPSTR), lpBase, (LPVOID*)&lpsProp->Value.MVszA.lppszA);
+			lpsProp->Value.MVszA.cValues = Value.MVszW.cValues;
+			hr = ECAllocateMore(Value.MVszW.cValues * sizeof(LPSTR), lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVszA.lppszA));
 			if (hr != hrSuccess) {
 				dwLastError = hr;
 				break;
 			}
 			convert_context converter;
-			for (ULONG i = 0; hr == hrSuccess && i < this->Value.MVszW.cValues; ++i) {
+			for (ULONG i = 0; hr == hrSuccess && i < Value.MVszW.cValues; ++i) {
 				std::string strDst;
-				if (TryConvert(this->Value.MVszW.lppszW[i], strDst) != hrSuccess) {
+				if (TryConvert(Value.MVszW.lppszW[i], strDst) != hrSuccess) {
 					dwLastError = MAPI_E_INVALID_PARAMETER;
 					return hr;
 				}
@@ -856,51 +850,51 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 			}
 			break;
 		}
-		lpsProp->Value.MVszW.cValues = this->Value.MVszW.cValues;
-		hr = ECAllocateMore(this->Value.MVszW.cValues * sizeof(LPWSTR), lpBase, (LPVOID*)&lpsProp->Value.MVszW.lppszW);
+		lpsProp->Value.MVszW.cValues = Value.MVszW.cValues;
+		hr = ECAllocateMore(Value.MVszW.cValues * sizeof(LPWSTR), lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVszW.lppszW));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
 		}
-		for (ULONG i = 0; hr == hrSuccess && i < this->Value.MVszW.cValues; ++i) {
-			hr = ECAllocateMore(sizeof(WCHAR) * (wcslen(this->Value.MVszW.lppszW[i]) + 1), lpBase, (LPVOID*)&lpsProp->Value.MVszW.lppszW[i]);
+		for (ULONG i = 0; hr == hrSuccess && i < Value.MVszW.cValues; ++i) {
+			hr = ECAllocateMore(sizeof(wchar_t) * (wcslen(Value.MVszW.lppszW[i]) + 1), lpBase, reinterpret_cast<void **>(&lpsProp->Value.MVszW.lppszW[i]));
 			if (hr != hrSuccess)
 				dwLastError = hr;
 			else
-				wcscpy(lpsProp->Value.MVszW.lppszW[i], this->Value.MVszW.lppszW[i]);
+				wcscpy(lpsProp->Value.MVszW.lppszW[i], Value.MVszW.lppszW[i]);
 		}
 		break;
 	}
 	case PT_MV_CLSID: {
 		GUID *lpGuid;
-		hr = ECAllocateMore(this->Value.MVguid.cValues * sizeof(GUID), lpBase, (LPVOID *)&lpGuid);
+		hr = ECAllocateMore(Value.MVguid.cValues * sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpGuid));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
 		}
-		memcpy(lpGuid, this->Value.MVguid.lpguid, sizeof(GUID) * this->Value.MVguid.cValues);
-		lpsProp->Value.MVguid.cValues = this->Value.MVguid.cValues;
+		memcpy(lpGuid, Value.MVguid.lpguid, sizeof(GUID) * Value.MVguid.cValues);
+		lpsProp->Value.MVguid.cValues = Value.MVguid.cValues;
 		lpsProp->Value.MVguid.lpguid = lpGuid;
 		break;
 	}
 	case PT_MV_I8: {
 		LARGE_INTEGER *lpLarge;
-		hr = ECAllocateMore(this->Value.MVli.cValues * sizeof(LARGE_INTEGER), lpBase, (LPVOID *)&lpLarge);
+		hr = ECAllocateMore(Value.MVli.cValues * sizeof(LARGE_INTEGER), lpBase, reinterpret_cast<void **>(&lpLarge));
 		if (hr != hrSuccess) {
 			dwLastError = hr;
 			break;
 		}
-		lpsProp->Value.MVli.cValues = this->Value.MVli.cValues;
-		memcpy(lpLarge, this->Value.MVli.lpli, this->Value.MVli.cValues * sizeof(LARGE_INTEGER));
+		lpsProp->Value.MVli.cValues = Value.MVli.cValues;
+		memcpy(lpLarge, Value.MVli.lpli, Value.MVli.cValues * sizeof(LARGE_INTEGER));
 		lpsProp->Value.MVli.lpli = lpLarge;
 		break;
 	}
 	case PT_ERROR:
-		lpsProp->Value.err = this->Value.err;
+		lpsProp->Value.err = Value.err;
 		break;
 	default: // I hope there are no pointers involved here!
 		assert(false);
-		lpsProp->Value = this->Value;
+		lpsProp->Value = Value;
 		break;
 	}
 	return hr;
@@ -925,10 +919,8 @@ SPropValue ECProperty::GetMAPIPropValRef(void) const
 	DEBUG_GUARD;
 
 	SPropValue ret;
-
-	ret.ulPropTag = this->ulPropTag;
+	ret.ulPropTag = ulPropTag;
 	ret.dwAlignPad = 0;
-	ret.Value = this->Value;
-
+	ret.Value = Value;
 	return ret;
 }
