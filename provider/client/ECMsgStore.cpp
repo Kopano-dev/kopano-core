@@ -665,23 +665,13 @@ HRESULT ECMsgStore::SetReceiveFolder(const TCHAR *lpszMessageClass,
 // If the open store a publicstore
 BOOL ECMsgStore::IsPublicStore() const
 {
-	BOOL fPublicStore = FALSE;
-
-	if(CompareMDBProvider(&this->m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID))
-		fPublicStore = TRUE;
-
-	return fPublicStore;
+	return CompareMDBProvider(&m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID);
 }
 
 // As the store is a delegate store
 BOOL ECMsgStore::IsDelegateStore() const
 {
-	BOOL fDelegateStore = FALSE;
-
-	if(CompareMDBProvider(&this->m_guidMDB_Provider, &KOPANO_STORE_DELEGATE_GUID))
-		fDelegateStore = TRUE;
-
-	return fDelegateStore;
+	return CompareMDBProvider(&m_guidMDB_Provider, &KOPANO_STORE_DELEGATE_GUID);
 }
 
 HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
@@ -1079,19 +1069,9 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 HRESULT	ECMsgStore::SetPropHandler(ULONG ulPropTag, void *lpProvider,
     const SPropValue *lpsPropValue, void *lpParam)
 {
-	HRESULT hr = hrSuccess;
-	auto lpStore = static_cast<ECMsgStore *>(lpParam);
-
-	switch(ulPropTag) {
-	case PR_ACL_DATA:
-		hr = lpStore->SetSerializedACLData(lpsPropValue);
-		break;
-	default:
-		hr = MAPI_E_NOT_FOUND;
-		break;
-	}
-
-	return hr;
+	if (ulPropTag == PR_ACL_DATA)
+		return static_cast<ECMsgStore *>(lpParam)->SetSerializedACLData(lpsPropValue);
+	return MAPI_E_NOT_FOUND;
 }
 
 HRESULT ECMsgStore::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)

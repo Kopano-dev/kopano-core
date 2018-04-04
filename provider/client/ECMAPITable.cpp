@@ -426,21 +426,13 @@ HRESULT ECMAPITable::HrSetTableOps(WSTableView *ops, bool fLoad)
 
 HRESULT ECMAPITable::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows)
 {
-	HRESULT hr = hrSuccess;
-
 	scoped_rlock lock(m_hLock);
-
-	if(IsDeferred()) {
-	    m_ulRowCount = lRowCount;
-	    m_ulFlags = ulFlags;
-	    
-	    hr = FlushDeferred(lppRows);
-    } else {
-        
-        // Send the request to the TableOps object, which will send the request to the server.
-        hr = this->lpTableOps->HrQueryRows(lRowCount, ulFlags, lppRows);
-    }
-	return hr;
+	if (!IsDeferred())
+		/* Send the request to the TableOps object, which will send the request to the server. */
+		return lpTableOps->HrQueryRows(lRowCount, ulFlags, lppRows);
+	m_ulRowCount = lRowCount;
+	m_ulFlags = ulFlags;
+	return FlushDeferred(lppRows);
 }
 
 HRESULT ECMAPITable::Reload(void *lpParam)

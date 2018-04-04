@@ -649,12 +649,7 @@ HRESULT ECMessage::SyncHtmlToPlain()
 	hr = Util::HrHtmlToText(ptrHtmlStream, ptrBodyStream, ulCodePage);
 	if (hr != hrSuccess)
 		return hr;
-
-	hr = ptrBodyStream->Commit(0);
-	if (hr != hrSuccess)
-		return hr;
-
-	return hr;
+	return ptrBodyStream->Commit(0);
 }
 
 /**
@@ -1021,13 +1016,8 @@ HRESULT ECMessage::DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPR
 
 	sPropID.ulPropTag = PR_ATTACH_NUM;
 	sPropID.Value.ul = ulAttachmentNum;
-
-	hr = this->lpAttachments->HrModifyRow(ECKeyTable::TABLE_ROW_DELETE, NULL, &sPropID, 1);
-	if (hr !=hrSuccess)
-		return hr;
+	return lpAttachments->HrModifyRow(ECKeyTable::TABLE_ROW_DELETE, nullptr, &sPropID, 1);
 	// the object is deleted from the child list when SaveChanges is called, which calls SyncAttachments()
-
-	return hrSuccess;
 }
 
 HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
@@ -1940,7 +1930,6 @@ HRESULT ECMessage::TableRowGetProp(void *lpProvider,
     const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
     void **lpBase, ULONG ulType)
 {
-	HRESULT hr = hrSuccess;
 	auto lpMsgStore = static_cast<ECMsgStore *>(lpProvider);
 
 	if (lpsPropValSrc->ulPropTag != PR_SOURCE_KEY)
@@ -1949,11 +1938,9 @@ HRESULT ECMessage::TableRowGetProp(void *lpProvider,
 	    lpsPropValSrc->Value.bin->__size > 22) {
 		lpsPropValSrc->Value.bin->__size = 22;
 		lpsPropValSrc->Value.bin->__ptr[lpsPropValSrc->Value.bin->__size-1] |= 0x80; // Set top bit
-		hr = CopySOAPPropValToMAPIPropVal(lpsPropValDst, lpsPropValSrc, lpBase);
-	} else {
-		hr = MAPI_E_NOT_FOUND;
+		return CopySOAPPropValToMAPIPropVal(lpsPropValDst, lpsPropValSrc, lpBase);
 	}
-	return hr;
+	return MAPI_E_NOT_FOUND;
 }
 
 HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
