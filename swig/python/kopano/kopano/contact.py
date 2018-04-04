@@ -11,7 +11,7 @@ from MAPI import (
 
 from MAPI.Tags import (
     PR_ATTACHMENT_CONTACTPHOTO, PR_GIVEN_NAME_W, PR_MIDDLE_NAME_W,
-    PR_SURNAME_W, PR_NICKNAME_W, PR_GENERATION_W, PR_TITLE_W, PR_GENERATION_W,
+    PR_SURNAME_W, PR_NICKNAME_W, PR_TITLE_W, PR_GENERATION_W,
     PR_COMPANY_NAME_W, PR_MOBILE_TELEPHONE_NUMBER_W, PR_CHILDRENS_NAMES_W,
     PR_BIRTHDAY, PR_SPOUSE_NAME_W, PR_INITIALS_W, PR_DISPLAY_NAME_PREFIX_W,
     PR_DEPARTMENT_NAME_W, PR_OFFICE_LOCATION_W, PR_PROFESSION_W,
@@ -27,7 +27,7 @@ from MAPI.Tags import (
 
 from .pidlid import (
     PidLidEmail1AddressType, PidLidEmail1DisplayName, PidLidEmail1EmailAddress,
-    PidLidEmail1OriginalEntryId,PidLidEmail2AddressType, PidLidEmail2DisplayName,
+    PidLidEmail1OriginalEntryId, PidLidEmail2AddressType, PidLidEmail2DisplayName,
     PidLidEmail2EmailAddress, PidLidEmail2OriginalEntryId, PidLidYomiFirstName,
     PidLidEmail3AddressType, PidLidEmail3DisplayName, PidLidEmail3EmailAddress,
     PidLidEmail3OriginalEntryId, PidLidYomiLastName, PidLidYomiCompanyName,

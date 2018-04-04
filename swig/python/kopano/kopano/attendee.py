@@ -4,9 +4,6 @@ Part of the high-level python bindings for Kopano
 Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
 """
 
-from MAPI.Struct import MAPIErrorNotFound
-from MAPI.Util import TestRestriction
-
 from MAPI.Tags import (
     PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_ENTRYID,
     PR_SEARCH_KEY, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_TRACKSTATUS_TIME,
@@ -27,7 +24,7 @@ class Attendee(object):
     @property
     def address(self):
         args = [self.row[p].value if p in self.row else None for p in
-            (PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_ENTRYID, PR_SEARCH_KEY)]
+                (PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_EMAIL_ADDRESS_W, PR_ENTRYID, PR_SEARCH_KEY)]
 
         return Address(self.server, *args, props=self.mapirow)
 
@@ -67,4 +64,3 @@ class Attendee(object):
 
     def __repr__(self):
         return _repr(self)
-

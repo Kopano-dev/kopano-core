@@ -11,10 +11,6 @@ try:
 except ImportError:
     pass
 
-from MAPI.Tags import (
-    PR_MAILBOX_OWNER_ENTRYID, PR_ENTRYID
-)
-
 from MAPI.Time import (
     FileTime,
 )

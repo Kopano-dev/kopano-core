@@ -11,8 +11,7 @@ except ImportError:
     from Queue import Queue
 
 from MAPI import (
-    MAPI_MESSAGE, MAPI_FOLDER,
-    MAPIAdviseSink, fnevObjectModified, fnevObjectCreated,
+    MAPI_MESSAGE, MAPIAdviseSink, fnevObjectModified, fnevObjectCreated,
     fnevObjectMoved, fnevObjectCopied, fnevObjectDeleted,
 )
 
@@ -24,7 +23,8 @@ from MAPI.Tags import (
     IID_IMAPIAdviseSink,
 )
 
-from .compat import  benc as _benc, bdec as _bdec
+from .compat import benc as _benc, bdec as _bdec
+from .errors import NotSupportedError
 
 if sys.hexversion >= 0x03000000:
     from . import folder as _folder

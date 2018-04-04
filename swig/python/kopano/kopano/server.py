@@ -52,7 +52,7 @@ from .group import Group
 from .property_ import _proptag_to_name
 
 from .compat import (
-    repr as _repr, is_str as _is_str, benc as _benc, benc as _benc,
+    repr as _repr, is_str as _is_str, benc as _benc,
     bdec as _bdec, fake_unicode as _unicode, lru_cache as _lru_cache
 )
 
@@ -60,20 +60,20 @@ if sys.hexversion >= 0x03000000:
     try:
         from . import user as _user
     except ImportError:
-        _user = sys.modules[__package__+'.user']
+        _user = sys.modules[__package__ + '.user']
     try:
         from . import config as _config
     except ImportError:
-        _config = sys.modules[__package__+'.config']
+        _config = sys.modules[__package__ + '.config']
     from . import ics as _ics
     try:
         from . import store as _store
     except ImportError:
-        _store = sys.modules[__package__+'.store']
+        _store = sys.modules[__package__ + '.store']
     try:
         from . import utils as _utils
     except ImportError:
-        _utils = sys.modules[__package__+'.utils']
+        _utils = sys.modules[__package__ + '.utils']
 else:
     import user as _user
     import config as _config
@@ -370,8 +370,7 @@ class Server(object):
             pass
 
     def users(self, remote=False, system=False, parse=True, page_start=None,
-            page_limit=None, order=None
-        ):
+              page_limit=None, order=None):
         """Return all :class:`users <User>` on server.
 
         :param remote: include users on remote server nodes
@@ -536,13 +535,13 @@ class Server(object):
 
     @instance_method_lru_cache(128) # backend doesn't like too many open stores
     def _store_cached(self, storeid):
-        return self.mapisession.OpenMsgStore(0, storeid, IID_IMsgStore,MDB_WRITE)
+        return self.mapisession.OpenMsgStore(0, storeid, IID_IMsgStore, MDB_WRITE)
 
     def _store2(self, storeid): # TODO max lifetime?
         if self.store_cache:
             return self._store_cached(storeid)
         else:
-            return self.mapisession.OpenMsgStore(0, storeid, IID_IMsgStore,MDB_WRITE)
+            return self.mapisession.OpenMsgStore(0, storeid, IID_IMsgStore, MDB_WRITE)
 
     def groups(self):
         """Return all :class:`groups <Group>` on server."""

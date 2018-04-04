@@ -50,11 +50,11 @@ if sys.hexversion >= 0x03000000:
     try:
         from . import store as _store
     except ImportError:
-        _store = sys.modules[__package__+'.store']
+        _store = sys.modules[__package__ + '.store']
     try:
         from . import utils as _utils
     except ImportError:
-        _utils = sys.modules[__package__+'.utils']
+        _utils = sys.modules[__package__ + '.utils']
 else:
     import item as _item
     import folder as _folder

@@ -162,16 +162,16 @@ def human_to_bytes(s):
 
 def _in_dst(date, dststartmonth, dststartday, dststarthour, dstendmonth, dstendday, dstendhour):
     dststart = datetime.datetime(date.year, dststartmonth, 1) + \
-        datetime.timedelta(seconds=dststartday*24*60*60 + dststarthour*60*60)
+        datetime.timedelta(seconds=dststartday * 24 * 60 * 60 + dststarthour * 60 * 60)
 
     dstend = datetime.datetime(date.year, dstendmonth, 1) + \
-        datetime.timedelta(seconds=dstendday*24*60*60 + dstendhour*60*60)
+        datetime.timedelta(seconds=dstendday * 24 * 60 * 60 + dstendhour * 60 * 60)
 
     if dststart <= dstend:
         if dststart < date < dstend:
             return True
     else:
-        if data < dstend or data > dststart:
+        if date < dstend or date > dststart:
             return True
 
     return False
@@ -182,10 +182,10 @@ def _get_timezone(date, tz_data, align_dst=False):
         return 0
 
     timezone, _, timezonedst, \
-    _, \
-    _, dstendmonth, _, dstendday, dstendhour, _, _, _, \
-    _, \
-    _, dststartmonth, _, dststartday, dststarthour, _, _, _ = struct.unpack('<lll H HHHHHHHH H HHHHHHHH', tz_data)
+        _, \
+        _, dstendmonth, _, dstendday, dstendhour, _, _, _, \
+        _, \
+        _, dststartmonth, _, dststartday, dststarthour, _, _, _ = struct.unpack('<lll H HHHHHHHH H HHHHHHHH', tz_data)
 
     dst = _in_dst(date, dststartmonth, dststartday, dststarthour, dstendmonth, dstendday, dstendhour)
 
@@ -218,4 +218,3 @@ def arg_objects(arg, supported_classes, method_name):
     if [o for o in objects if not isinstance(o, supported_classes)]:
         raise Error('invalid argument to %s' % method_name)
     return objects
-

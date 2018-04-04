@@ -28,10 +28,10 @@ from MAPI.Tags import (
     PR_MESSAGE_DELIVERY_TIME, MNID_ID, PT_SYSTIME, PT_BOOLEAN,
     DELETE_HARD_DELETE, PR_MESSAGE_SIZE, PR_ACL_TABLE, PR_MESSAGE_CLASS_W,
     PR_MEMBER_ID, PR_RULES_TABLE, IID_IExchangeModifyTable,
-    IID_IMAPITable, PR_CONTAINER_CONTENTS, PR_RULE_STATE,
+    IID_IMAPITable, PR_CONTAINER_CONTENTS,
     PR_FOLDER_ASSOCIATED_CONTENTS, PR_CONTAINER_HIERARCHY,
     PR_SUBJECT_W, PR_BODY_W, PR_DISPLAY_TO_W, PR_CREATION_TIME,
-    CONVENIENT_DEPTH, PR_DEPTH, PR_CONTENT_COUNT, PR_ASSOC_CONTENT_COUNT,
+    CONVENIENT_DEPTH, PR_CONTENT_COUNT, PR_ASSOC_CONTENT_COUNT,
     PR_DELETED_MSG_COUNT, PR_LAST_MODIFICATION_TIME, PR_MESSAGE_ATTACHMENTS,
     PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, PR_CHANGE_KEY, PR_EXCEPTION_STARTTIME,
     PR_EXCEPTION_ENDTIME,
@@ -58,7 +58,7 @@ from .defs import (
     PSETID_Appointment, UNESCAPED_SLASH_RE,
     ENGLISH_FOLDER_MAP, NAME_RIGHT, NAMED_PROPS_ARCHIVER
 )
-from .errors import NotFoundError, Error, _DeprecationWarning
+from .errors import NotFoundError
 
 from .compat import (
     fake_unicode as _unicode, bdec as _bdec, benc as _benc
@@ -68,27 +68,27 @@ if sys.hexversion >= 0x03000000:
     try:
         from . import user as _user
     except ImportError:
-        _user = sys.modules[__package__+'.user']
+        _user = sys.modules[__package__ + '.user']
     try:
         from . import store as _store
     except ImportError:
-        _store = sys.modules[__package__+'.store']
+        _store = sys.modules[__package__ + '.store']
     try:
         from . import item as _item
     except ImportError:
-        _item = sys.modules[__package__+'.item']
+        _item = sys.modules[__package__ + '.item']
     try:
         from . import utils as _utils
     except ImportError:
-        _utils = sys.modules[__package__+'.utils']
+        _utils = sys.modules[__package__ + '.utils']
     try:
         from . import ics as _ics
     except ImportError:
-        _ics = sys.modules[__package__+'.ics']
+        _ics = sys.modules[__package__ + '.ics']
     try:
         from . import notification as _notification
     except ImportError:
-        _notification = sys.modules[__package__+'.notification']
+        _notification = sys.modules[__package__ + '.notification']
 else:
     import user as _user
     import store as _store
@@ -100,15 +100,14 @@ else:
 # TODO generalize, autogenerate basic item getters/setters?
 PROPMAP = {
     'subject': PR_SUBJECT_W,
-    'received':  PR_MESSAGE_DELIVERY_TIME,
+    'received': PR_MESSAGE_DELIVERY_TIME,
 }
 
 class Folder(Properties):
     """Folder class"""
 
     def __init__(self, store=None, entryid=None, associated=False,
-        deleted=False, mapiobj=None, _check_mapiobj=True, cache={}
-    ):
+                 deleted=False, mapiobj=None, _check_mapiobj=True, cache={}):
         if store:
             self.store = store
             self.server = store.server
@@ -302,8 +301,7 @@ class Folder(Properties):
         return item
 
     def items(self, restriction=None, page_start=None, page_limit=None,
-            order=None,
-        ):
+              order=None):
         """Return all :class:`items <Item>` in folder, reverse sorted on
         received date.
 
@@ -388,7 +386,8 @@ class Folder(Properties):
                 # exceptions: exception start/end in attachment
                 SAndRestriction([
                     SPropertyRestriction(RELOP_EQ, recurring, SPropValue(recurring, True)),
-                    SSubRestriction(PR_MESSAGE_ATTACHMENTS,
+                    SSubRestriction(
+                        PR_MESSAGE_ATTACHMENTS,
                         SAndRestriction([
                             SPropertyRestriction(RELOP_LT, PR_EXCEPTION_STARTTIME, SPropValue(PR_EXCEPTION_STARTTIME, unixtime(endstamp))),
                             SPropertyRestriction(RELOP_GT, PR_EXCEPTION_ENDTIME, SPropValue(PR_EXCEPTION_ENDTIME, unixtime(startstamp))),
@@ -594,7 +593,7 @@ class Folder(Properties):
             pass
 
     def folders(self, recurse=True, restriction=None, page_start=None,
-            page_limit=None, order=None):
+                page_limit=None, order=None):
         """ Return all :class:`sub-folders <Folder>` in folder
 
         :param recurse: include all sub-folders
@@ -652,7 +651,7 @@ class Folder(Properties):
             for feid, f in sorted(fs, key=lambda data: names[data[0]]):
                 f.depth = depth
                 yield f
-                for f in folders_recursive(children[feid], depth+1):
+                for f in folders_recursive(children[feid], depth + 1):
                     yield f
 
         rootfolders = []
@@ -665,7 +664,7 @@ class Folder(Properties):
             # SHOW_SOFT_DELETES filters out subfolders of soft-deleted folders.. XXX slow
             if self.content_flag == SHOW_SOFT_DELETES:
                 for g in f.folders():
-                    g.depth += f.depth+1
+                    g.depth += f.depth + 1
                     yield g
 
     def create_folder(self, path=None, **kwargs):
@@ -911,14 +910,14 @@ class Folder(Properties):
     def unsubscribe(self, sink):
         _notification.unsubscribe(self.store, sink)
 
-    def notifications(self, time=24*3600):
+    def notifications(self, time=24 * 3600):
         for n in _notification._notifications(self.store, self.entryid, time):
             yield n
 
     def event(self, eventid):
         eventid = _bdec(eventid)
         leid = _utils.unpack_short(eventid, 1)
-        item = self.item(_benc(eventid[3:3+leid]))
+        item = self.item(_benc(eventid[3:3 + leid]))
         if eventid[0] == 0:
             return item
         else:

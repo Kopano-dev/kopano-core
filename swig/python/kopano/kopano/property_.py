@@ -11,10 +11,10 @@ import time
 
 from MAPI import (
     PT_ERROR, PT_BINARY, PT_MV_BINARY, PT_UNICODE, PT_LONG, PT_OBJECT,
-    PT_BOOLEAN, PT_STRING8, MV_FLAG, PT_SHORT, PT_MV_SHORT, PT_LONGLONG,
+    PT_BOOLEAN, MV_FLAG, PT_SHORT, PT_MV_SHORT, PT_LONGLONG,
     PT_MV_LONG, PT_FLOAT, PT_MV_FLOAT, PT_DOUBLE, PT_MV_DOUBLE, PT_STRING8,
     PT_CURRENCY, PT_MV_CURRENCY, PT_APPTIME, PT_MV_APPTIME, PT_MV_LONGLONG,
-    PT_SYSTIME, MAPI_E_NOT_ENOUGH_MEMORY, KEEP_OPEN_READWRITE, PT_MV_STRING8,
+    PT_SYSTIME, MAPI_E_NOT_ENOUGH_MEMORY, PT_MV_STRING8,
     PT_MV_UNICODE, PT_MV_SYSTIME, PT_CLSID, PT_MV_CLSID, MNID_STRING,
     MAPI_E_NOT_FOUND, MNID_ID, KEEP_OPEN_READWRITE, MAPI_UNICODE,
 )
@@ -45,7 +45,7 @@ if sys.hexversion >= 0x03000000:
     try:
         from . import utils as _utils
     except ImportError:
-        _utils = sys.modules[__package__+'.utils']
+        _utils = sys.modules[__package__ + '.utils']
 else:
     import utils as _utils
 
@@ -198,7 +198,7 @@ def prop(self, mapiobj, proptag, create=False, value=None, proptype=None): # XXX
         except MAPIErrorNotEnoughMemory:
             data = _utils.stream(mapiobj, proptag)
             sprop = SPropValue(proptag, data)
-        except MAPIErrorNotFound as e:
+        except MAPIErrorNotFound:
             # not found, create it?
             if create:
                 return create_prop(self, mapiobj, proptag, value=value, proptype=proptype)
