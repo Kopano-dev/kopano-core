@@ -51,8 +51,7 @@ public:
 	KC::object_ptr<IMAPISupport> m_lpMAPISup;
 	KC::object_ptr<WSTransport> m_lpTransport;
 	KC::object_ptr<ECNotifyClient> m_lpNotifyClient;
-	GUID				m_guid;
-	GUID				m_ABPGuid;
+	GUID m_guid, m_ABPGuid;
 	ALLOC_WRAP_FRIEND;
 };
 

@@ -117,43 +117,38 @@ HRESULT ECExchangeImportHierarchyChanges::Config(LPSTREAM lpStream, ULONG ulFlag
 	if(lpStream == NULL) {
 		m_ulSyncId = 0;
 		m_ulChangeId = 0;
-	} else {
-		hr = lpStream->Seek(zero, STREAM_SEEK_SET, NULL);
-		if(hr != hrSuccess)
+		m_ulFlags = ulFlags;
+		return hrSuccess;
+	}
+	hr = lpStream->Seek(zero, STREAM_SEEK_SET, NULL);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpStream->Read(&m_ulSyncId, 4, &ulLen);
+	if (hr != hrSuccess)
+		return hr;
+	if (ulLen != 4)
+		return MAPI_E_INVALID_PARAMETER;
+	hr = lpStream->Read(&m_ulChangeId, 4, &ulLen);
+	if (hr != hrSuccess)
+		return hr;
+	if (ulLen != 4) {
+		return MAPI_E_INVALID_PARAMETER;
+	}
+	hr = HrGetOneProp(m_lpFolder, PR_SOURCE_KEY, &~lpPropSourceKey);
+	if(hr != hrSuccess)
+		return hr;
+
+	// The user specified the special sync key '0000000000000000', get a sync key from the server.
+	if (m_ulSyncId == 0) {
+		hr = m_lpFolder->GetMsgStore()->lpTransport->HrSetSyncStatus(std::string((char *)lpPropSourceKey->Value.bin.lpb, lpPropSourceKey->Value.bin.cb), m_ulSyncId, m_ulChangeId, ICS_SYNC_HIERARCHY, 0, &m_ulSyncId);
+		if (hr != hrSuccess)
 			return hr;
-
-		hr = lpStream->Read(&m_ulSyncId, 4, &ulLen);
-		if(hr != hrSuccess)
-			return hr;
-
-		if(ulLen != 4)
-			return MAPI_E_INVALID_PARAMETER;
-
-		hr = lpStream->Read(&m_ulChangeId, 4, &ulLen);
-		if(hr != hrSuccess)
-			return hr;
-
-		if(ulLen != 4) {
-			return MAPI_E_INVALID_PARAMETER;
-		}
-		hr = HrGetOneProp(m_lpFolder, PR_SOURCE_KEY, &~lpPropSourceKey);
-		if(hr != hrSuccess)
-			return hr;
-
-		// The user specified the special sync key '0000000000000000', get a sync key from the server.
-		if(m_ulSyncId == 0) {
-			hr = m_lpFolder->GetMsgStore()->lpTransport->HrSetSyncStatus(std::string((char *)lpPropSourceKey->Value.bin.lpb, lpPropSourceKey->Value.bin.cb), m_ulSyncId, m_ulChangeId, ICS_SYNC_HIERARCHY, 0, &m_ulSyncId);
-			if(hr != hrSuccess)
-				return hr;
-		}
-
-		// The sync key we got from the server can be used to retrieve all items in the database now when given to IEEC->Config(). At the same time, any
-		// items written to this importer will send the sync ID to the server so that any items written here will not be returned by the exporter,
-		// preventing local looping of items.
 	}
 
+	// The sync key we got from the server can be used to retrieve all items in the database now when given to IEEC->Config(). At the same time, any
+	// items written to this importer will send the sync ID to the server so that any items written here will not be returned by the exporter,
+	// preventing local looping of items.
 	m_ulFlags = ulFlags;
-
 	return hrSuccess;
 }
 

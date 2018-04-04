@@ -41,7 +41,6 @@
  */
 HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const messageStreamArray &streams, WSTransport *lpTransport, WSMessageStreamExporter **lppStreamExporter)
 {
-	HRESULT hr = hrSuccess;
 	convert_context converter;
 	WSMessageStreamExporterPtr ptrStreamExporter(new(std::nothrow) WSMessageStreamExporter);
 	if (ptrStreamExporter == nullptr)
@@ -52,7 +51,7 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 		if (lpsi == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 		lpsi->id.assign(streams.__ptr[i].sStreamData.xop__Include.id);
-		hr = MAPIAllocateBuffer(streams.__ptr[i].sPropVals.__size * sizeof(SPropValue), &~lpsi->ptrPropVals);
+		auto hr = MAPIAllocateBuffer(streams.__ptr[i].sPropVals.__size * sizeof(SPropValue), &~lpsi->ptrPropVals);
 		if (hr != hrSuccess)
 			return hr;
 		for (gsoap_size_t j = 0; j < streams.__ptr[i].sPropVals.__size; ++j) {
@@ -93,12 +92,9 @@ bool WSMessageStreamExporter::IsDone() const
  */
 HRESULT WSMessageStreamExporter::GetSerializedMessage(ULONG ulIndex, WSSerializedMessage **lppSerializedMessage)
 {
-	StreamInfoMap::const_iterator iStreamInfo;
-
 	if (ulIndex != m_ulExpectedIndex || lppSerializedMessage == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	iStreamInfo = m_mapStreamInfo.find(ulIndex);
+	auto iStreamInfo = m_mapStreamInfo.find(ulIndex);
 	if (iStreamInfo == m_mapStreamInfo.cend()) {
 		++m_ulExpectedIndex;
 		return SYNC_E_OBJECT_DELETED;

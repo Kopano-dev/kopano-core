@@ -43,9 +43,7 @@ public:
 private:
 	KC::object_ptr<ECMAPIFolder> m_lpFolder;
 	IStream *m_lpStream = nullptr;
-	ULONG m_ulFlags = 0;
-	ULONG m_ulSyncId = 0;
-	ULONG m_ulChangeId = 0;
+	unsigned int m_ulFlags = 0, m_ulSyncId = 0, m_ulChangeId = 0;
 	ALLOC_WRAP_FRIEND;
 };
 

@@ -54,10 +54,8 @@ HRESULT SessionGroupData::GetOrCreateNotifyMaster(ECNotifyMaster **lppMaster)
 
 HRESULT SessionGroupData::GetTransport(WSTransport **lppTransport)
 {
-	HRESULT hr;
 	WSTransport *lpTransport = NULL;
-
-	hr = WSTransport::Create(MDB_NO_DIALOG, &lpTransport);
+	auto hr = WSTransport::Create(MDB_NO_DIALOG, &lpTransport);
 	if (hr != hrSuccess) 
 		return hr;
 

@@ -57,8 +57,6 @@ ECPropertyEntry::~ECPropertyEntry()
 HRESULT ECPropertyEntry::HrSetProp(const SPropValue *lpsPropValue)
 {
 	DEBUG_GUARD;
-
-	HRESULT hr = hrSuccess;
 	assert(this->ulPropTag != 0);
 	assert(this->ulPropTag == lpsPropValue->ulPropTag);
 
@@ -67,22 +65,17 @@ HRESULT ECPropertyEntry::HrSetProp(const SPropValue *lpsPropValue)
 	else
 		lpProperty.reset(new ECProperty(lpsPropValue));
 	this->fDirty = TRUE;
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECPropertyEntry::HrSetProp(ECProperty *property)
 {
 	DEBUG_GUARD;
-
-	HRESULT hr = hrSuccess;
-
 	assert(property->GetPropTag() != 0);
 	assert(this->lpProperty == NULL);
 	lpProperty.reset(property);
 	this->fDirty = TRUE;
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECPropertyEntry::HrSetClean()
@@ -143,8 +136,6 @@ HRESULT ECProperty::CopyFrom(const SPropValue *lpsProp)
 
 HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 {
-	ULONG ulNewSize = 0;
-
 	if (lpsProp == NULL)
 		return dwLastError = MAPI_E_INVALID_PARAMETER;
 
@@ -194,7 +185,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (TryConvert(lpsProp->Value.lpszA, wstrTmp) != hrSuccess)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = wstrTmp.length() + 1;
+		unsigned int ulNewSize = wstrTmp.length() + 1;
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.lpszW;
 			this->Value.lpszW = new(std::nothrow) WCHAR[ulNewSize];
@@ -213,8 +204,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.bin.lpb == NULL && lpsProp->Value.bin.cb)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = lpsProp->Value.bin.cb;
-
+		unsigned int ulNewSize = lpsProp->Value.bin.cb;
 		if(ulNewSize == 0)	{
 			delete[] this->Value.bin.lpb;
 			this->Value.bin.lpb = NULL;
@@ -240,7 +230,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.lpszW == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = wcslen(lpsProp->Value.lpszW)+1;
+		unsigned int ulNewSize = wcslen(lpsProp->Value.lpszW) + 1;
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.lpszW;
 			this->Value.lpszW = new(std::nothrow) WCHAR[ulNewSize];
@@ -277,8 +267,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.MVi.lpi == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = sizeof(short int)*lpsProp->Value.MVi.cValues;
-
+		unsigned int ulNewSize = sizeof(short int) * lpsProp->Value.MVi.cValues;
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVi.lpi;
 			this->Value.MVi.lpi = new(std::nothrow) short int[lpsProp->Value.MVi.cValues];
@@ -297,8 +286,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.MVl.lpl == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = sizeof(LONG) * lpsProp->Value.MVl.cValues;
-
+		unsigned int ulNewSize = sizeof(LONG) * lpsProp->Value.MVl.cValues;
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVl.lpl;
 			this->Value.MVl.lpl = new(std::nothrow) LONG[lpsProp->Value.MVl.cValues];
@@ -317,8 +305,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.MVflt.lpflt == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = sizeof(float) * lpsProp->Value.MVflt.cValues;
-
+		unsigned int ulNewSize = sizeof(float) * lpsProp->Value.MVflt.cValues;
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVflt.lpflt;
 			this->Value.MVflt.lpflt = new(std::nothrow) float[lpsProp->Value.MVflt.cValues];
@@ -337,8 +324,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.MVdbl.lpdbl == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = sizeof(double) * lpsProp->Value.MVdbl.cValues;
-
+		unsigned int ulNewSize = sizeof(double) * lpsProp->Value.MVdbl.cValues;
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVdbl.lpdbl;
 			this->Value.MVdbl.lpdbl = new(std::nothrow) double[lpsProp->Value.MVdbl.cValues];
@@ -357,8 +343,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.MVcur.lpcur == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = sizeof(CURRENCY) * lpsProp->Value.MVcur.cValues;
-
+		unsigned int ulNewSize = sizeof(CURRENCY) * lpsProp->Value.MVcur.cValues;
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVcur.lpcur;
 			this->Value.MVcur.lpcur = new(std::nothrow) CURRENCY[lpsProp->Value.MVcur.cValues];
@@ -377,8 +362,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.MVat.lpat == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = sizeof(double) * lpsProp->Value.MVat.cValues;
-
+		unsigned int ulNewSize = sizeof(double) * lpsProp->Value.MVat.cValues;
 		if(ulSize < ulNewSize) {
 			if(this->Value.MVat.lpat)
 				delete[] this->Value.MVat.lpat;
@@ -398,8 +382,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.MVft.lpft == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = sizeof(FILETIME) * lpsProp->Value.MVft.cValues;
-
+		unsigned int ulNewSize = sizeof(FILETIME) * lpsProp->Value.MVft.cValues;
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVft.lpft;
 			this->Value.MVft.lpft = new(std::nothrow) FILETIME[lpsProp->Value.MVft.cValues];
@@ -418,8 +401,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.MVbin.lpbin == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = sizeof(void *) * lpsProp->Value.MVbin.cValues;
-
+		unsigned int ulNewSize = sizeof(void *) * lpsProp->Value.MVbin.cValues;
 		if(ulSize < ulNewSize) {
 			
 			if(this->Value.MVbin.lpbin){
@@ -468,8 +450,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.MVszA.lppszA == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = sizeof(void *) * lpsProp->Value.MVszA.cValues;
-
+		unsigned int ulNewSize = sizeof(void *) * lpsProp->Value.MVszA.cValues;
 		if(ulSize < ulNewSize) {
 			
 			if(this->Value.MVszW.lppszW) {
@@ -514,8 +495,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.MVszW.lppszW == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = sizeof(void *) * lpsProp->Value.MVszW.cValues;
-
+		unsigned int ulNewSize = sizeof(void *) * lpsProp->Value.MVszW.cValues;
 		if(ulSize < ulNewSize) {
 			if(this->Value.MVszW.lppszW) {
 				for (unsigned int i = 0; i < this->Value.MVszW.cValues; ++i)
@@ -553,8 +533,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.MVguid.lpguid == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = sizeof(GUID) * lpsProp->Value.MVguid.cValues;
-
+		unsigned int ulNewSize = sizeof(GUID) * lpsProp->Value.MVguid.cValues;
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVguid.lpguid;
 			this->Value.MVguid.lpguid = new(std::nothrow) GUID[lpsProp->Value.MVguid.cValues];
@@ -573,8 +552,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 		if (lpsProp->Value.MVli.lpli == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
-		ulNewSize = sizeof(LARGE_INTEGER) * lpsProp->Value.MVli.cValues;
-
+		unsigned int ulNewSize = sizeof(LARGE_INTEGER) * lpsProp->Value.MVli.cValues;
 		if(ulSize < ulNewSize) {
 			delete[] this->Value.MVli.lpli;
 			this->Value.MVli.lpli = new(std::nothrow) LARGE_INTEGER[lpsProp->Value.MVli.cValues];
@@ -681,12 +659,9 @@ ECProperty::~ECProperty()
 HRESULT ECProperty::CopyToByRef(LPSPropValue lpsProp) const
 {
 	DEBUG_GUARD;
-
-    HRESULT hr = hrSuccess;
-    
     lpsProp->ulPropTag = this->ulPropTag;
 	memcpy(&lpsProp->Value, &this->Value, sizeof(union __UPV));
-    return hr;
+	return hrSuccess;
 }
 
 HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPropTag) {

@@ -82,15 +82,13 @@ private:
 	friend class ECParentStorage;
 
 private:
-	entryId			m_sEntryId;
-	entryId			m_sParentEntryId;
+	entryId m_sEntryId, m_sParentEntryId;
 	KCmdProxy *lpCmd;
 	std::recursive_mutex &lpDataLock;
 	ECSESSIONID		ecSessionId;
 	unsigned int	ulServerCapabilities;
 	ULONG m_ulSyncId = 0, m_ulConnection = 0, m_ulEventMask = 0;
-	ULONG			m_ulFlags;
-	ULONG			m_ulSessionReloadCallback;
+	unsigned int m_ulFlags, m_ulSessionReloadCallback;
 	WSTransport		*m_lpTransport;
 	bool m_bSubscribed = false;
 	ALLOC_WRAP_FRIEND;

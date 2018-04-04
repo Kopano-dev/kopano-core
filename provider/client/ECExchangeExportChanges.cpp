@@ -300,87 +300,87 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 			default:
 				break;
 			}
-		} else {
-			switch (ICS_ACTION(m_lpChanges[ulStep].ulChangeType)) {
-			case ICS_NEW:
-				// This shouldn't happen since apparently we have another change for the same object.
-				// However, if an object gets moved to another folder and back, we'll get a delete followed by an add. If that happens
-				// we skip the delete and morph the current add to a change.
-				if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE || ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_HARD_DELETE) {
-					auto iterNewChange = lstChange.emplace(lstChange.end(), *iterLastChange->second);
-					iterNewChange->ulChangeType = (iterNewChange->ulChangeType & ~ICS_ACTION_MASK) | ICS_CHANGE;
-					if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE)
-						m_lstSoftDelete.erase(iterLastChange->second);
-					else
-						m_lstHardDelete.erase(iterLastChange->second);
-					iterLastChange->second = iterNewChange;
+			continue;
+		}
 
-					ZLOG_DEBUG(m_lpLogger, "Got an ICS_NEW change for a previously deleted object. I converted it to a change. sourcekey=%s",
-						bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
-				} else
-					ZLOG_DEBUG(m_lpLogger, "Got an ICS_NEW change for an object we've seen before. prev_change=%04x, sourcekey=%s",
-						iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
-				break;
-
-			case ICS_CHANGE:
-				// Any change is allowed as the previous change except a change.
-				if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_CHANGE)
-					ZLOG_DEBUG(m_lpLogger, "Got an ICS_CHANGE on an object for which we just saw an ICS_CHANGE. sourcekey=%s",
-						bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
-				// A previous delete is allowed for the same reason as in ICS_NEW.
-				if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE || ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_HARD_DELETE) {
-					if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE)
-						m_lstSoftDelete.erase(iterLastChange->second);
-					else
-						m_lstHardDelete.erase(iterLastChange->second);
-					iterLastChange->second = lstChange.emplace(lstChange.end(), m_lpChanges[ulStep]);
-					ZLOG_DEBUG(m_lpLogger, "Got an ICS_CHANGE change for a previously deleted object. sourcekey=%s",
-						bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
-				} else if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_FLAG) {
-					m_lstFlag.erase(iterLastChange->second);
-					iterLastChange->second = lstChange.emplace(lstChange.end(), m_lpChanges[ulStep]);
-					ZLOG_DEBUG(m_lpLogger, "Upgraded a previous ICS_FLAG to ICS_CHANGED. sourcekey=%s",
-						bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
-				} else
-					ZLOG_DEBUG(m_lpLogger, "Ignoring ICS_CHANGE due to a previous change. prev_change=%04x, sourcekey=%s",
-						iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
-				break;
-
-			case ICS_FLAG:
-				// This is only allowed after an ICS_NEW and ICS_CHANGE. It will be ignored in any case.
-				if (ICS_ACTION(iterLastChange->second->ulChangeType) != ICS_NEW && ICS_ACTION(iterLastChange->second->ulChangeType) != ICS_CHANGE)
-					ZLOG_DEBUG(m_lpLogger, "Got an ICS_FLAG with something else than a ICS_NEW or ICS_CHANGE as the previous changes. prev_change=%04x, sourcekey=%s",
-						iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
-				ZLOG_DEBUG(m_lpLogger, "Ignoring ICS_FLAG due to previous ICS_NEW or ICS_CHANGE. prev_change=%04x, sourcekey=%s",
-					iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
-				break;
-
-			case ICS_SOFT_DELETE:
-			case ICS_HARD_DELETE:
-				// We'll ignore the previous change and replace it with this delete. We won't write it now as
-				// we could get an add for the same object. But because of the reordering (deletes after all adds/changes) we would delete
-				// the new object. Therefore we'll make a change out of a delete - add/change.
-				ZLOG_DEBUG(m_lpLogger, "Replacing previous change with current ICS_xxxx_DELETE. prev_change=%04x, sourcekey=%s",
-					iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
-				if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_NEW || ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_CHANGE)
-					lstChange.erase(iterLastChange->second);
-				else if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_FLAG)
-					m_lstFlag.erase(iterLastChange->second);
-				else if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE)
+		switch (ICS_ACTION(m_lpChanges[ulStep].ulChangeType)) {
+		case ICS_NEW:
+			// This shouldn't happen since apparently we have another change for the same object.
+			// However, if an object gets moved to another folder and back, we'll get a delete followed by an add. If that happens
+			// we skip the delete and morph the current add to a change.
+			if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE || ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_HARD_DELETE) {
+				auto iterNewChange = lstChange.emplace(lstChange.end(), *iterLastChange->second);
+				iterNewChange->ulChangeType = (iterNewChange->ulChangeType & ~ICS_ACTION_MASK) | ICS_CHANGE;
+				if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE)
 					m_lstSoftDelete.erase(iterLastChange->second);
-				else if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_HARD_DELETE)
-					m_lstHardDelete.erase(iterLastChange->second);
-
-				if (ICS_ACTION(m_lpChanges[ulStep].ulChangeType) == ICS_SOFT_DELETE)
-					iterLastChange->second = m_lstSoftDelete.emplace(m_lstSoftDelete.end(), m_lpChanges[ulStep]);
 				else
-					iterLastChange->second = m_lstHardDelete.emplace(m_lstHardDelete.end(), m_lpChanges[ulStep]);
-				break;
-			default:
-				ZLOG_DEBUG(m_lpLogger, "Got an unknown change. change=%04x, sourcekey=%s",
-					m_lpChanges[ulStep].ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
-				break;
-			}
+					m_lstHardDelete.erase(iterLastChange->second);
+				iterLastChange->second = iterNewChange;
+				ZLOG_DEBUG(m_lpLogger, "Got an ICS_NEW change for a previously deleted object. I converted it to a change. sourcekey=%s",
+					bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
+			} else
+				ZLOG_DEBUG(m_lpLogger, "Got an ICS_NEW change for an object we've seen before. prev_change=%04x, sourcekey=%s",
+					iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
+			break;
+
+		case ICS_CHANGE:
+			// Any change is allowed as the previous change except a change.
+			if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_CHANGE)
+				ZLOG_DEBUG(m_lpLogger, "Got an ICS_CHANGE on an object for which we just saw an ICS_CHANGE. sourcekey=%s",
+					bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
+			// A previous delete is allowed for the same reason as in ICS_NEW.
+			if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE || ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_HARD_DELETE) {
+				if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE)
+					m_lstSoftDelete.erase(iterLastChange->second);
+				else
+					m_lstHardDelete.erase(iterLastChange->second);
+				iterLastChange->second = lstChange.emplace(lstChange.end(), m_lpChanges[ulStep]);
+				ZLOG_DEBUG(m_lpLogger, "Got an ICS_CHANGE change for a previously deleted object. sourcekey=%s",
+					bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
+			} else if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_FLAG) {
+				m_lstFlag.erase(iterLastChange->second);
+				iterLastChange->second = lstChange.emplace(lstChange.end(), m_lpChanges[ulStep]);
+				ZLOG_DEBUG(m_lpLogger, "Upgraded a previous ICS_FLAG to ICS_CHANGED. sourcekey=%s",
+					bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
+			} else
+				ZLOG_DEBUG(m_lpLogger, "Ignoring ICS_CHANGE due to a previous change. prev_change=%04x, sourcekey=%s",
+					iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
+			break;
+
+		case ICS_FLAG:
+			// This is only allowed after an ICS_NEW and ICS_CHANGE. It will be ignored in any case.
+			if (ICS_ACTION(iterLastChange->second->ulChangeType) != ICS_NEW && ICS_ACTION(iterLastChange->second->ulChangeType) != ICS_CHANGE)
+				ZLOG_DEBUG(m_lpLogger, "Got an ICS_FLAG with something else than a ICS_NEW or ICS_CHANGE as the previous changes. prev_change=%04x, sourcekey=%s",
+					iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
+			ZLOG_DEBUG(m_lpLogger, "Ignoring ICS_FLAG due to previous ICS_NEW or ICS_CHANGE. prev_change=%04x, sourcekey=%s",
+				iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
+			break;
+
+		case ICS_SOFT_DELETE:
+		case ICS_HARD_DELETE:
+			// We'll ignore the previous change and replace it with this delete. We won't write it now as
+			// we could get an add for the same object. But because of the reordering (deletes after all adds/changes) we would delete
+			// the new object. Therefore we'll make a change out of a delete - add/change.
+			ZLOG_DEBUG(m_lpLogger, "Replacing previous change with current ICS_xxxx_DELETE. prev_change=%04x, sourcekey=%s",
+				iterLastChange->second->ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
+			if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_NEW || ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_CHANGE)
+				lstChange.erase(iterLastChange->second);
+			else if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_FLAG)
+				m_lstFlag.erase(iterLastChange->second);
+			else if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_SOFT_DELETE)
+				m_lstSoftDelete.erase(iterLastChange->second);
+			else if (ICS_ACTION(iterLastChange->second->ulChangeType) == ICS_HARD_DELETE)
+				m_lstHardDelete.erase(iterLastChange->second);
+
+			if (ICS_ACTION(m_lpChanges[ulStep].ulChangeType) == ICS_SOFT_DELETE)
+				iterLastChange->second = m_lstSoftDelete.emplace(m_lstSoftDelete.end(), m_lpChanges[ulStep]);
+			else
+				iterLastChange->second = m_lstHardDelete.emplace(m_lstHardDelete.end(), m_lpChanges[ulStep]);
+			break;
+		default:
+			ZLOG_DEBUG(m_lpLogger, "Got an unknown change. change=%04x, sourcekey=%s",
+				m_lpChanges[ulStep].ulChangeType, bin2hex(m_lpChanges[ulStep].sSourceKey).c_str());
+			break;
 		}
 	}
 

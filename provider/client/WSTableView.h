@@ -75,14 +75,12 @@ protected:
 	ECSESSIONID		ecSessionId;
 	entryId			m_sEntryId;
 	void *			m_lpProvider;
-	ULONG			m_ulTableType;
-	ULONG			m_ulSessionReloadCallback;
+	unsigned int m_ulTableType, m_ulSessionReloadCallback;
 	WSTransport*	m_lpTransport;
 	SPropTagArray *m_lpsPropTagArray = nullptr;
 	SSortOrderSet *m_lpsSortOrderSet = nullptr;
 	SRestriction *m_lpsRestriction = nullptr;
-	ULONG		ulFlags;
-	ULONG		ulType;
+	unsigned int ulFlags, ulType;
 
 	void *m_lpParam = nullptr;
 	RELOADCALLBACK m_lpCallback = nullptr;

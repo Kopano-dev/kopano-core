@@ -131,38 +131,32 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 		return hr;
 	if (ulRead != sizeof(ulVal))
 		return MAPI_E_CALL_FAILED;
-
-	if (ulVal > 0) {
-		hr = MAPIAllocateBuffer(sizeof *lpEntryList, &~lpEntryList);
+	if (ulVal <= 0)
+		return hrSuccess;
+	hr = MAPIAllocateBuffer(sizeof *lpEntryList, &~lpEntryList);
+	if (hr != hrSuccess)
+		return hr;
+	hr = MAPIAllocateMore(ulVal * sizeof *lpEntryList->lpbin, lpEntryList, (void**)&lpEntryList->lpbin);
+	if (hr != hrSuccess)
+		return hr;
+	lpEntryList->cValues = ulVal;
+	for (ULONG i = 0; i < lpEntryList->cValues; ++i) {
+		hr = lpStream->Read(&ulVal, sizeof(ulVal), &ulRead);
 		if (hr != hrSuccess)
 			return hr;
-		hr = MAPIAllocateMore(ulVal * sizeof *lpEntryList->lpbin, lpEntryList, (void**)&lpEntryList->lpbin);
+		if (ulRead != sizeof(ulVal))
+			return MAPI_E_CALL_FAILED;
+		hr = MAPIAllocateMore(ulVal, lpEntryList, (void**)&lpEntryList->lpbin[i].lpb);
 		if (hr != hrSuccess)
 			return hr;
-
-		lpEntryList->cValues = ulVal;
-		for (ULONG i = 0; i < lpEntryList->cValues; ++i) {
-			hr = lpStream->Read(&ulVal, sizeof(ulVal), &ulRead);
-			if (hr != hrSuccess)
-				return hr;
-			if (ulRead != sizeof(ulVal))
-				return MAPI_E_CALL_FAILED;
-			hr = MAPIAllocateMore(ulVal, lpEntryList, (void**)&lpEntryList->lpbin[i].lpb);
-			if (hr != hrSuccess)
-				return hr;
-			lpEntryList->lpbin[i].cb = ulVal;
-			hr = lpStream->Read(lpEntryList->lpbin[i].lpb, ulVal, &ulRead);
-			if (hr != hrSuccess)
-				return hr;
-			if (ulRead != ulVal)
-				return MAPI_E_CALL_FAILED;
-		}
-
-		hr = AddKeys(lpEntryList);
+		lpEntryList->lpbin[i].cb = ulVal;
+		hr = lpStream->Read(lpEntryList->lpbin[i].lpb, ulVal, &ulRead);
 		if (hr != hrSuccess)
 			return hr;
+		if (ulRead != ulVal)
+			return MAPI_E_CALL_FAILED;
 	}
-	return hrSuccess;
+	return AddKeys(lpEntryList);
 }
 
 /**

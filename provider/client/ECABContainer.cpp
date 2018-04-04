@@ -165,26 +165,24 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 		else if (strValue.compare( L"All Address Lists" ) == 0)
 			lpszName = _("All Address Lists");
 
-		if(lpszName) {
-			if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
-				const std::wstring strTmp = convert_to<std::wstring>(lpszName);
-
-				hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(WCHAR), lpBase, (void**)&lpsPropValue->Value.lpszW);
-				if (hr != hrSuccess) 
-					return hr;
-				wcscpy(lpsPropValue->Value.lpszW, strTmp.c_str());
-			} else {
-				const std::string strTmp = convert_to<std::string>(lpszName);
-
-				hr = MAPIAllocateMore(strTmp.size() + 1, lpBase, (void**)&lpsPropValue->Value.lpszA);
-				if (hr != hrSuccess) 
-					return hr;
-				strcpy(lpsPropValue->Value.lpszA, strTmp.c_str());
-			}
-			lpsPropValue->ulPropTag = ulPropTag;
+		if (lpszName == nullptr)
+			break;
+		if (PROP_TYPE(ulPropTag) == PT_UNICODE) {
+			const std::wstring strTmp = convert_to<std::wstring>(lpszName);
+			hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(WCHAR), lpBase, (void**)&lpsPropValue->Value.lpszW);
+			if (hr != hrSuccess)
+				return hr;
+			wcscpy(lpsPropValue->Value.lpszW, strTmp.c_str());
+		} else {
+			const std::string strTmp = convert_to<std::string>(lpszName);
+			hr = MAPIAllocateMore(strTmp.size() + 1, lpBase, (void**)&lpsPropValue->Value.lpszA);
+			if (hr != hrSuccess)
+				return hr;
+			strcpy(lpsPropValue->Value.lpszA, strTmp.c_str());
 		}
-		}
+		lpsPropValue->ulPropTag = ulPropTag;
 		break;
+	}
 	default:
 		hr = lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 		break;

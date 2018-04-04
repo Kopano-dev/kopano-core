@@ -43,10 +43,8 @@ HRESULT WSMessageStreamSink::Create(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout,
  */
 HRESULT WSMessageStreamSink::Write(LPVOID lpData, ULONG cbData)
 {
-	HRESULT hr = hrSuccess;
 	HRESULT hrAsync = hrSuccess;
-
-	hr = kcerr_to_mapierr(m_lpFifoBuffer->Write(lpData, cbData, 0, NULL));
+	auto hr = kcerr_to_mapierr(m_lpFifoBuffer->Write(lpData, cbData, 0, nullptr));
 	if(hr != hrSuccess) {
 		// Write failed, close the write-side of the FIFO
 		m_lpFifoBuffer->Close(ECFifoBuffer::cfWrite);
@@ -136,13 +134,11 @@ exit:
 
 HRESULT WSMessageStreamImporter::StartTransfer(WSMessageStreamSink **lppSink)
 {
-	HRESULT hr;
 	KC::object_ptr<WSMessageStreamSink> ptrSink;
 	
 	if (!m_threadPool.dispatch(this))
 		return MAPI_E_CALL_FAILED;
-
-	hr = WSMessageStreamSink::Create(&m_fifoBuffer, m_ulTimeout, this, &~ptrSink);
+	auto hr = WSMessageStreamSink::Create(&m_fifoBuffer, m_ulTimeout, this, &~ptrSink);
 	if (hr != hrSuccess) {
 		m_fifoBuffer.Close(ECFifoBuffer::cfWrite);
 		return hr;
@@ -241,10 +237,8 @@ void* WSMessageStreamImporter::MTOMReadOpen(struct soap* /*soap*/, void *handle,
 
 size_t WSMessageStreamImporter::MTOMRead(struct soap* soap, void* /*handle*/, char *buf, size_t len)
 {
-	ECRESULT er = erSuccess;
 	ECFifoBuffer::size_type cbRead = 0;
-
-	er = m_fifoBuffer.Read(buf, len, 0, &cbRead);
+	auto er = m_fifoBuffer.Read(buf, len, 0, &cbRead);
 	if (er != erSuccess) {
 		m_hr = kcerr_to_mapierr(er);
 		return 0;

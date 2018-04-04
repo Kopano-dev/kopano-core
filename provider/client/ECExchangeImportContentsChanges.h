@@ -70,9 +70,7 @@ private:
 	friend class ECExchangeImportHierarchyChanges;
 
 	IStream *m_lpStream = nullptr;
-	ULONG m_ulFlags = 0;
-	ULONG m_ulSyncId = 0;
-	ULONG m_ulChangeId = 0;
+	unsigned int m_ulFlags = 0, m_ulSyncId = 0, m_ulChangeId = 0;
 	KC::memory_ptr<SPropValue> m_lpSourceKey;
 	KC::object_ptr<ECLogger> m_lpLogger;
 	KC::object_ptr<ECMAPIFolder> m_lpFolder;

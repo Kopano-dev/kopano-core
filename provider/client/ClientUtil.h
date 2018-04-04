@@ -27,22 +27,14 @@
 class WSTransport;
 
 struct sGlobalProfileProps {
-	std::string		strServerPath;
-	std::string		strProfileName;
-	std::wstring		strUserName;
-	std::wstring		strPassword;
-    	std::wstring    	strImpersonateUser;
-	ULONG			ulProfileFlags;
-	std::string		strSSLKeyFile;
-	std::string		strSSLKeyPass;
-	ULONG			ulConnectionTimeOut;
-	ULONG			ulProxyFlags;
-	std::string		strProxyHost;
-	ULONG			ulProxyPort;
-	std::string		strProxyUserName;
-	std::string		strProxyPassword;
-	std::string		strClientAppVersion;
-	std::string		strClientAppMisc;
+	std::string strServerPath, strProfileName;
+	std::wstring strUserName, strPassword, strImpersonateUser;
+	std::string strSSLKeyFile, strSSLKeyPass;
+	std::string strProxyHost;
+	std::string strProxyUserName, strProxyPassword;
+	std::string strClientAppVersion, strClientAppMisc;
+	unsigned int ulProfileFlags, ulConnectionTimeOut;
+	unsigned int ulProxyFlags, ulProxyPort;
 };
 
 class ClientUtil _kc_final {

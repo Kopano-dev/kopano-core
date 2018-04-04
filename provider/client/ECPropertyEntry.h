@@ -67,8 +67,7 @@ private:
 	DECL_INVARIANT_GUARD(ECProperty)
 	HRESULT CopyFromInternal(const SPropValue *);
 
-	ULONG ulSize;
-	ULONG ulPropTag;
+	unsigned int ulSize, ulPropTag;
 	union __UPV Value;
 	DWORD dwLastError;
 };

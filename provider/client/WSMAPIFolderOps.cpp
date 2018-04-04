@@ -135,13 +135,12 @@ HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId,
     const ENTRYID *lpEntryId, ULONG ulFlags, ULONG ulSyncId)
 {
 	ECRESULT	er = erSuccess;
-	HRESULT		hr = hrSuccess;
 	entryId		sEntryId;
 
 	LockSoap();
 
 	// Cheap copy entryid
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &sEntryId, true); 
+	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &sEntryId, true);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -310,14 +309,11 @@ HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom,
     const ENTRYID *lpEntryFrom, ULONG cbEntryDest, const ENTRYID *lpEntryDest,
     const utf8string &strNewFolderName, ULONG ulFlags, ULONG ulSyncId)
 {
-	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	entryId		sEntryFrom;	//Do not free, cheap copy
-	entryId		sEntryDest;	//Do not free, cheap copy
+	entryId sEntryFrom, sEntryDest; /* Do not free, cheap copy */
 
 	LockSoap();
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryFrom, lpEntryFrom, &sEntryFrom, true);
+	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryFrom, lpEntryFrom, &sEntryFrom, true);
 	if(hr != hrSuccess)
 		goto exit;
 

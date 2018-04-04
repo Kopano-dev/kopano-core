@@ -66,12 +66,10 @@ HRESULT WSTableView::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT WSTableView::HrQueryRows(ULONG ulRowCount, ULONG flags, SRowSet **lppRowSet)
 {
 	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
 	struct tableQueryRowsResponse sResponse;
 
 	LockSoap();
-	
-	hr = HrOpenTable();
+	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
 
@@ -121,7 +119,6 @@ exit:
 HRESULT WSTableView::HrSetColumns(const SPropTagArray *lpsPropTagArray)
 {
 	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
 	struct propTagArray sColumns;
 	LPSPropTagArray lpsOld = m_lpsPropTagArray;
 
@@ -134,8 +131,7 @@ HRESULT WSTableView::HrSetColumns(const SPropTagArray *lpsPropTagArray)
 	sColumns.__size = lpsPropTagArray->cValues;
 
 	LockSoap();
-
-	hr = HrOpenTable();
+	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
 
@@ -156,13 +152,11 @@ exit:
 HRESULT WSTableView::HrQueryColumns(ULONG flags, SPropTagArray **lppsPropTags)
 {
 	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
 	struct tableQueryColumnsResponse sResponse;
 	LPSPropTagArray lpsPropTags = NULL;
 	
 	LockSoap();
-
-	hr = HrOpenTable();
+	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
 
@@ -195,9 +189,7 @@ exit:
 HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
 {
 	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
 	sortOrderArray sSort;
-	unsigned int i=0;
 	LPSSortOrderSet lpOld = m_lpsSortOrderSet;
 	
 	// Remember sort order for reconnect
@@ -206,15 +198,13 @@ HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
 
 	sSort.__size = lpsSortOrderSet->cSorts;
 	sSort.__ptr = s_alloc<sortOrder>(nullptr, lpsSortOrderSet->cSorts);
-
-	for (i = 0; i < lpsSortOrderSet->cSorts; ++i) {
+	for (unsigned int i = 0; i < lpsSortOrderSet->cSorts; ++i) {
 		sSort.__ptr[i].ulOrder = lpsSortOrderSet->aSort[i].ulOrder;
 		sSort.__ptr[i].ulPropTag = lpsSortOrderSet->aSort[i].ulPropTag;
 	}
 
 	LockSoap();
-
-	hr = HrOpenTable();
+	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
 
@@ -263,12 +253,10 @@ exit:
 HRESULT WSTableView::HrGetRowCount(ULONG *lpulRowCount, ULONG *lpulCurrentRow)
 {
 	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
 	struct tableGetRowCountResponse sResponse;
 	
 	LockSoap();
-
-	hr = HrOpenTable();
+	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
 
@@ -293,14 +281,12 @@ exit:
 HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
     BOOKMARK bkOrigin, ULONG flags)
 {
-	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 
 	struct restrictTable *lpRestrict = NULL;
 
 	LockSoap();
-
-	er = CopyMAPIRestrictionToSOAPRestriction(&lpRestrict, lpsRestriction);
+	ECRESULT er = CopyMAPIRestrictionToSOAPRestriction(&lpRestrict, lpsRestriction);
 
 	if(er != erSuccess) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -331,13 +317,10 @@ exit:
 HRESULT WSTableView::HrSeekRow(BOOKMARK bkOrigin, LONG lRows, LONG *lplRowsSought)
 {
 	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
-
 	struct tableSeekRowResponse sResponse;
 
 	LockSoap();
-
-	hr = HrOpenTable();
+	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
 
@@ -362,12 +345,10 @@ exit:
 HRESULT WSTableView::CreateBookmark(BOOKMARK* lpbkPosition)
 {
 	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
 	tableBookmarkResponse	sResponse;
 
 	LockSoap();
-
-	hr = HrOpenTable();
+	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
 
@@ -396,11 +377,9 @@ exit:
 HRESULT WSTableView::FreeBookmark(BOOKMARK bkPosition)
 {
 	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
 
 	LockSoap();
-
-	hr = HrOpenTable();
+	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
 
@@ -420,14 +399,12 @@ exit:
 HRESULT WSTableView::HrExpandRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
     ULONG ulRowCount, ULONG flags, SRowSet **lppRows, ULONG *lpulMoreRows)
 {
-	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	xsd__base64Binary sInstanceKey;
 	struct tableExpandRowResponse sResponse;
 
 	LockSoap();
-
-	hr = HrOpenTable();
+	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
 
@@ -458,14 +435,12 @@ exit:
 HRESULT WSTableView::HrCollapseRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
     ULONG flags, ULONG *lpulRowCount)
 {
-	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	xsd__base64Binary sInstanceKey;
 	struct tableCollapseRowResponse sResponse;
 
 	LockSoap();
-
-	hr = HrOpenTable();
+	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
 
@@ -491,7 +466,6 @@ exit:
 
 HRESULT WSTableView::HrGetCollapseState(BYTE **lppCollapseState, ULONG *lpcbCollapseState, BYTE *lpInstanceKey, ULONG cbInstanceKey)
 {
-	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	struct tableGetCollapseStateResponse sResponse;
 	struct xsd__base64Binary sBookmark;
@@ -500,8 +474,7 @@ HRESULT WSTableView::HrGetCollapseState(BYTE **lppCollapseState, ULONG *lpcbColl
 	sBookmark.__ptr = lpInstanceKey;
 
 	LockSoap();
-
-	hr = HrOpenTable();
+	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
 
@@ -527,7 +500,6 @@ exit:
 
 HRESULT WSTableView::HrSetCollapseState(BYTE *lpCollapseState, ULONG cbCollapseState, BOOKMARK *lpbkPosition)
 {
-	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	xsd__base64Binary sState;
 	struct tableSetCollapseStateResponse sResponse;
@@ -536,8 +508,7 @@ HRESULT WSTableView::HrSetCollapseState(BYTE *lpCollapseState, ULONG cbCollapseS
 	sState.__size = cbCollapseState;
 
 	LockSoap();
-
-	hr = HrOpenTable();
+	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
 
@@ -577,7 +548,6 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 	struct tableQueryRowsRequest sQueryRows;
 	struct tableSortRequest sSort;
 	struct tableOpenRequest sOpen;
-	unsigned int i;
 	
 	if(ulTableId == 0) {
 	    sOpen.sEntryId = m_sEntryId;
@@ -622,8 +592,7 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 		// Copy sort order for call
         sSort.sSortOrder.__size = lpsSortOrderSet->cSorts;
 		sSort.sSortOrder.__ptr = s_alloc<sortOrder>(nullptr, lpsSortOrderSet->cSorts);
-
-        for (i = 0; i < lpsSortOrderSet->cSorts; ++i) {
+		for (unsigned int i = 0; i < lpsSortOrderSet->cSorts; ++i) {
             sSort.sSortOrder.__ptr[i].ulOrder = lpsSortOrderSet->aSort[i].ulOrder;
             sSort.sSortOrder.__ptr[i].ulPropTag = lpsSortOrderSet->aSort[i].ulPropTag;
         }
