@@ -62,6 +62,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 #include <kopano/UnixUtil.h>
+#include <kopano/automapi.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/my_getopt.h>
 #include <kopano/ecversion.h>
@@ -1101,6 +1102,7 @@ int main(int argc, char *argv[]) {
 	bQuit = bMessagesWaiting = false;
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 
+	AutoMAPI mapiinit;
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
 	if (unix_runas(g_lpConfig)) {
@@ -1123,7 +1125,7 @@ int main(int argc, char *argv[]) {
 	ec_log_set(g_lpLogger);
 	g_lpLogger->SetLogprefix(LP_PID);
 
-	hr = MAPIInitialize(NULL);
+	hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to initialize MAPI: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -1141,8 +1143,6 @@ int main(int argc, char *argv[]) {
 
 	if (!bForked)
 		ec_log_info("Spooler shutdown complete");
-	MAPIUninitialize();
-
 exit:
 	delete g_lpConfig;
 	DeleteLogger(g_lpLogger);

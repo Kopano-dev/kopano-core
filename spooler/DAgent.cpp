@@ -58,6 +58,7 @@
 #include <poll.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
+#include <kopano/automapi.hpp>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
@@ -3075,7 +3076,8 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger); // maybe replace logger
 	ec_log_set(g_lpLogger);
 
-	hr = MAPIInitialize(NULL);
+	AutoMAPI mapiinit;
+	hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to initialize MAPI: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -3152,8 +3154,6 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		ec_log_notice("Forced shutdown with %d processes left", g_nLMTPThreads);
 	else
 		ec_log_info("LMTP service shutdown complete");
-	MAPIUninitialize();
-
 	return hr;
 }
 
@@ -3659,15 +3659,13 @@ int main(int argc, char *argv[]) {
 		// log process id prefix to distinguinsh events, file logger only affected
 		g_lpLogger->SetLogprefix(LP_PID);
 
-		hr = MAPIInitialize(NULL);
+		AutoMAPI mapiinit;
+		hr = mapiinit.Initialize();
 		if (hr != hrSuccess) {
 			ec_log_crit("Unable to initialize MAPI: %s (%x)",
 				GetMAPIErrorMessage(hr), hr);
 			return get_return_value(hr, false, qmail);
 		}
-
-		auto uninit = make_scope_success([&]() { MAPIUninitialize(); });
-
 		sc = new StatsClient(g_lpLogger);
 		auto free_sc = make_scope_success([&]() { delete sc; });
 		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
