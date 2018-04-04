@@ -433,25 +433,20 @@ HRESULT ECMsgStore::TableRowGetProp(void *lpProvider,
 {
 	auto lpMsgStore = static_cast<ECMsgStore *>(lpProvider);
 
-	switch (lpsPropValSrc->ulPropTag) {
-	case PR_ENTRYID:
-	{				
-		ULONG cbWrapped = 0;
-		memory_ptr<ENTRYID> lpWrapped;
-		auto hr = lpMsgStore->GetWrappedServerStoreEntryID(lpsPropValSrc->Value.bin->__size, lpsPropValSrc->Value.bin->__ptr, &cbWrapped, &~lpWrapped);
-		if (hr != hrSuccess)
-			return hr;
-		hr = ECAllocateMore(cbWrapped, lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
-		if (hr != hrSuccess)
-			return hr;
-		memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
-		lpsPropValDst->Value.bin.cb = cbWrapped;
-		lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
-		break;
-	}	
-	default:
+	if (lpsPropValSrc->ulPropTag != PR_ENTRYID)
 		return MAPI_E_NOT_FOUND;
-	}
+
+	ULONG cbWrapped = 0;
+	memory_ptr<ENTRYID> lpWrapped;
+	auto hr = lpMsgStore->GetWrappedServerStoreEntryID(lpsPropValSrc->Value.bin->__size, lpsPropValSrc->Value.bin->__ptr, &cbWrapped, &~lpWrapped);
+	if (hr != hrSuccess)
+		return hr;
+	hr = ECAllocateMore(cbWrapped, lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
+	if (hr != hrSuccess)
+		return hr;
+	memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
+	lpsPropValDst->Value.bin.cb = cbWrapped;
+	lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
 	return hrSuccess;
 }
 
@@ -920,130 +915,126 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 	auto lpStore = static_cast<ECMsgStore *>(lpParam);
 
 	switch(PROP_ID(ulPropTag)) {
-		case PROP_ID(PR_EMSMDB_SECTION_UID): {
-			hr = lpStore->lpSupport->OpenProfileSection(NULL, 0, &~lpProfSect);
-			if(hr != hrSuccess)
-				return hr;
-			hr = HrGetOneProp(lpProfSect, PR_SERVICE_UID, &~lpProp);
-			if(hr != hrSuccess)
-				return hr;
-			hr = lpStore->lpSupport->OpenProfileSection((LPMAPIUID)lpProp->Value.bin.lpb, 0, &~lpProfSect);
-			if(hr != hrSuccess)
-				return hr;
-			hr = HrGetOneProp(lpProfSect, PR_EMSMDB_SECTION_UID, &~lpProp);
-			if(hr != hrSuccess)
-				return hr;
-			lpsPropValue->ulPropTag = PR_EMSMDB_SECTION_UID;
-			lpsPropValue->Value.bin.cb = sizeof(GUID);
-			return KAllocCopy(lpProp->Value.bin.lpb, sizeof(GUID), reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb), lpBase);
-			}
-		case PROP_ID(PR_SEARCH_KEY):
-		case PROP_ID(PR_ENTRYID):
-			{
-				ULONG cbWrapped = 0;
-				memory_ptr<ENTRYID> lpWrapped;
+	case PROP_ID(PR_EMSMDB_SECTION_UID): {
+		hr = lpStore->lpSupport->OpenProfileSection(NULL, 0, &~lpProfSect);
+		if (hr != hrSuccess)
+			return hr;
+		hr = HrGetOneProp(lpProfSect, PR_SERVICE_UID, &~lpProp);
+		if (hr != hrSuccess)
+			return hr;
+		hr = lpStore->lpSupport->OpenProfileSection((LPMAPIUID)lpProp->Value.bin.lpb, 0, &~lpProfSect);
+		if (hr != hrSuccess)
+			return hr;
+		hr = HrGetOneProp(lpProfSect, PR_EMSMDB_SECTION_UID, &~lpProp);
+		if (hr != hrSuccess)
+			return hr;
+		lpsPropValue->ulPropTag = PR_EMSMDB_SECTION_UID;
+		lpsPropValue->Value.bin.cb = sizeof(GUID);
+		return KAllocCopy(lpProp->Value.bin.lpb, sizeof(GUID), reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb), lpBase);
+	}
+	case PROP_ID(PR_SEARCH_KEY):
+	case PROP_ID(PR_ENTRYID): {
+		ULONG cbWrapped = 0;
+		memory_ptr<ENTRYID> lpWrapped;
 
-				lpsPropValue->ulPropTag = ulPropTag;
-				hr = lpStore->GetWrappedStoreEntryID(&cbWrapped, &~lpWrapped);
-				if(hr == hrSuccess) {
-					hr = ECAllocateMore(cbWrapped, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
-					if (hr != hrSuccess)
-						break;
-					memcpy(lpsPropValue->Value.bin.lpb, lpWrapped, cbWrapped);
-					lpsPropValue->Value.bin.cb = cbWrapped;
-				} else {
-					hr = MAPI_E_NOT_FOUND;
-				}
-				break;
-			}
-		case PROP_ID(PR_RECORD_KEY):
-			lpsPropValue->ulPropTag = PR_RECORD_KEY;
-			lpsPropValue->Value.bin.cb = sizeof(MAPIUID);
-			hr = ECAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		lpsPropValue->ulPropTag = ulPropTag;
+		hr = lpStore->GetWrappedStoreEntryID(&cbWrapped, &~lpWrapped);
+		if (hr == hrSuccess) {
+			hr = ECAllocateMore(cbWrapped, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
 			if (hr != hrSuccess)
 				break;
-			memcpy(lpsPropValue->Value.bin.lpb, &lpStore->GetStoreGuid(), sizeof(MAPIUID));
+			memcpy(lpsPropValue->Value.bin.lpb, lpWrapped, cbWrapped);
+			lpsPropValue->Value.bin.cb = cbWrapped;
+		} else {
+			hr = MAPI_E_NOT_FOUND;
+		}
+		break;
+	}
+	case PROP_ID(PR_RECORD_KEY):
+		lpsPropValue->ulPropTag = PR_RECORD_KEY;
+		lpsPropValue->Value.bin.cb = sizeof(MAPIUID);
+		hr = ECAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
+		if (hr != hrSuccess)
 			break;
-
-		case PROP_ID(PR_RECEIVE_FOLDER_SETTINGS):
-			lpsPropValue->ulPropTag = PR_RECEIVE_FOLDER_SETTINGS;
-			lpsPropValue->Value.x = 1;
-			break;
-		case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):	
-			hr = lpStore->HrGetRealProp(PR_MESSAGE_SIZE_EXTENDED, ulFlags, lpBase, lpsPropValue);
-			break;
-		case PROP_ID(PR_QUOTA_WARNING_THRESHOLD):
-			lpsPropValue->ulPropTag = PR_QUOTA_WARNING_THRESHOLD;
-			hr = lpStore->HrGetRealProp(PR_QUOTA_WARNING_THRESHOLD, ulFlags, lpBase, lpsPropValue);
-			break;
-		case PROP_ID(PR_QUOTA_SEND_THRESHOLD):
-			lpsPropValue->ulPropTag = PR_QUOTA_SEND_THRESHOLD;
-			hr = lpStore->HrGetRealProp(PR_QUOTA_SEND_THRESHOLD, ulFlags, lpBase, lpsPropValue);
-			break;
-		case PROP_ID(PR_QUOTA_RECEIVE_THRESHOLD):
-			lpsPropValue->ulPropTag = PR_QUOTA_RECEIVE_THRESHOLD;
-			hr = lpStore->HrGetRealProp(PR_QUOTA_RECEIVE_THRESHOLD, ulFlags, lpBase, lpsPropValue);
-			break;
-
-		case PROP_ID(PR_MAILBOX_OWNER_NAME):
-			if(lpStore->IsPublicStore() == TRUE) {
-				hr = MAPI_E_NOT_FOUND;
-				break;
-			}
-			lpsPropValue->ulPropTag = ulPropTag;
-			hr = lpStore->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
-			break;
-		case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):
-			if(lpStore->IsPublicStore() == TRUE) {
-				hr = MAPI_E_NOT_FOUND;
-				break;
-			}
-			lpsPropValue->ulPropTag = PR_MAILBOX_OWNER_ENTRYID;
-			hr = lpStore->HrGetRealProp(PR_MAILBOX_OWNER_ENTRYID, ulFlags, lpBase, lpsPropValue);
-			break;
-		case PROP_ID(PR_STORE_OFFLINE):
-			// Delegate stores are always online, so ignore this property
-			if(lpStore->IsDelegateStore() == TRUE) {
-				hr = MAPI_E_NOT_FOUND;
-				break;
-			}
-			lpsPropValue->ulPropTag = PR_STORE_OFFLINE;
-			lpsPropValue->Value.b = false;
-			break;
-		case PROP_ID(PR_USER_NAME):
-			lpsPropValue->ulPropTag = PR_USER_NAME;
-			hr = lpStore->HrGetRealProp(PR_USER_NAME, ulFlags, lpBase, lpsPropValue);
-			break;
-		case PROP_ID(PR_USER_ENTRYID):
-			lpsPropValue->ulPropTag = PR_USER_ENTRYID;
-			hr = lpStore->HrGetRealProp(PR_USER_ENTRYID, ulFlags, lpBase, lpsPropValue);
-			break;
-
-		case PROP_ID(PR_EC_STATSTABLE_SYSTEM):
-		case PROP_ID(PR_EC_STATSTABLE_SESSIONS):
-		case PROP_ID(PR_EC_STATSTABLE_USERS):
-		case PROP_ID(PR_EC_STATSTABLE_COMPANY):
-			lpsPropValue->ulPropTag = ulPropTag;
-			lpsPropValue->Value.x = 1;
-			break;
-		case PROP_ID(PR_TEST_LINE_SPEED):
-			lpsPropValue->ulPropTag = ulPropTag;
-			lpsPropValue->Value.bin.lpb = NULL;
-			lpsPropValue->Value.bin.cb = 0;
-			break;
-		case PROP_ID(PR_ACL_DATA):
-			hr = lpStore->GetSerializedACLData(lpBase, lpsPropValue);
-			if (hr == hrSuccess)
-				lpsPropValue->ulPropTag = PR_ACL_DATA;
-			else {
-				lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(PR_ACL_DATA, PT_ERROR);
-				lpsPropValue->Value.err = hr;
-			}
-			break;
-
-		default:
+		memcpy(lpsPropValue->Value.bin.lpb, &lpStore->GetStoreGuid(), sizeof(MAPIUID));
+		break;
+	case PROP_ID(PR_RECEIVE_FOLDER_SETTINGS):
+		lpsPropValue->ulPropTag = PR_RECEIVE_FOLDER_SETTINGS;
+		lpsPropValue->Value.x = 1;
+		break;
+	case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):
+		hr = lpStore->HrGetRealProp(PR_MESSAGE_SIZE_EXTENDED, ulFlags, lpBase, lpsPropValue);
+		break;
+	case PROP_ID(PR_QUOTA_WARNING_THRESHOLD):
+		lpsPropValue->ulPropTag = PR_QUOTA_WARNING_THRESHOLD;
+		hr = lpStore->HrGetRealProp(PR_QUOTA_WARNING_THRESHOLD, ulFlags, lpBase, lpsPropValue);
+		break;
+	case PROP_ID(PR_QUOTA_SEND_THRESHOLD):
+		lpsPropValue->ulPropTag = PR_QUOTA_SEND_THRESHOLD;
+		hr = lpStore->HrGetRealProp(PR_QUOTA_SEND_THRESHOLD, ulFlags, lpBase, lpsPropValue);
+		break;
+	case PROP_ID(PR_QUOTA_RECEIVE_THRESHOLD):
+		lpsPropValue->ulPropTag = PR_QUOTA_RECEIVE_THRESHOLD;
+		hr = lpStore->HrGetRealProp(PR_QUOTA_RECEIVE_THRESHOLD, ulFlags, lpBase, lpsPropValue);
+		break;
+	case PROP_ID(PR_MAILBOX_OWNER_NAME):
+		if (lpStore->IsPublicStore() == TRUE) {
 			hr = MAPI_E_NOT_FOUND;
 			break;
+		}
+		lpsPropValue->ulPropTag = ulPropTag;
+		hr = lpStore->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
+		break;
+	case PROP_ID(PR_MAILBOX_OWNER_ENTRYID):
+		if (lpStore->IsPublicStore() == TRUE) {
+			hr = MAPI_E_NOT_FOUND;
+			break;
+		}
+		lpsPropValue->ulPropTag = PR_MAILBOX_OWNER_ENTRYID;
+		hr = lpStore->HrGetRealProp(PR_MAILBOX_OWNER_ENTRYID, ulFlags, lpBase, lpsPropValue);
+		break;
+	case PROP_ID(PR_STORE_OFFLINE):
+		// Delegate stores are always online, so ignore this property
+		if (lpStore->IsDelegateStore() == TRUE) {
+			hr = MAPI_E_NOT_FOUND;
+			break;
+		}
+		lpsPropValue->ulPropTag = PR_STORE_OFFLINE;
+		lpsPropValue->Value.b = false;
+		break;
+	case PROP_ID(PR_USER_NAME):
+		lpsPropValue->ulPropTag = PR_USER_NAME;
+		hr = lpStore->HrGetRealProp(PR_USER_NAME, ulFlags, lpBase, lpsPropValue);
+		break;
+	case PROP_ID(PR_USER_ENTRYID):
+		lpsPropValue->ulPropTag = PR_USER_ENTRYID;
+		hr = lpStore->HrGetRealProp(PR_USER_ENTRYID, ulFlags, lpBase, lpsPropValue);
+		break;
+	case PROP_ID(PR_EC_STATSTABLE_SYSTEM):
+	case PROP_ID(PR_EC_STATSTABLE_SESSIONS):
+	case PROP_ID(PR_EC_STATSTABLE_USERS):
+	case PROP_ID(PR_EC_STATSTABLE_COMPANY):
+		lpsPropValue->ulPropTag = ulPropTag;
+		lpsPropValue->Value.x = 1;
+		break;
+	case PROP_ID(PR_TEST_LINE_SPEED):
+		lpsPropValue->ulPropTag = ulPropTag;
+		lpsPropValue->Value.bin.lpb = NULL;
+		lpsPropValue->Value.bin.cb = 0;
+		break;
+	case PROP_ID(PR_ACL_DATA):
+		hr = lpStore->GetSerializedACLData(lpBase, lpsPropValue);
+		if (hr == hrSuccess)
+			lpsPropValue->ulPropTag = PR_ACL_DATA;
+		else {
+			lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(PR_ACL_DATA, PT_ERROR);
+			lpsPropValue->Value.err = hr;
+		}
+		break;
+
+	default:
+		hr = MAPI_E_NOT_FOUND;
+		break;
 	}
 	return hr;
 }
@@ -1062,15 +1053,12 @@ HRESULT ECMsgStore::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 	HRESULT hr = ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
 	if(hr != hrSuccess)
 		return hr;
-
-	if(! (m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS)) {
-		// Create Notifyclient
-		hr = ECNotifyClient::Create(MAPI_STORE, this, m_ulProfileFlags, lpSupport, &~m_lpNotifyClient);
-		assert(m_lpNotifyClient != NULL);
-		if(hr != hrSuccess)
-			return hr;
-	}
-	return hrSuccess;
+	if (m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS)
+		return hrSuccess;
+	// Create Notifyclient
+	hr = ECNotifyClient::Create(MAPI_STORE, this, m_ulProfileFlags, lpSupport, &~m_lpNotifyClient);
+	assert(m_lpNotifyClient != NULL);
+	return hr;
 }
 
 const GUID& ECMsgStore::GetStoreGuid()
