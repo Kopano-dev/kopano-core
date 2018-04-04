@@ -31,6 +31,7 @@
 #include <kopano/platform.h>
 #include <chrono>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <new>
 #include <string>
@@ -91,7 +92,7 @@ using std::map;
 using std::string;
 using std::wstring;
 
-static StatsClient *sc = NULL;
+static std::unique_ptr<StatsClient> sc;
 
 // spooler exit codes
 #define EXIT_WAIT 2
@@ -1132,15 +1133,12 @@ int main(int argc, char *argv[]) {
 		goto exit;
 	}
 
-	sc = new StatsClient(g_lpLogger);
+	sc.reset(new StatsClient(g_lpLogger));
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	if (bForked)
 		hr = ProcessMessageForked(strUsername.c_str(), szSMTP, ulPort, szPath, strMsgEntryId.length(), (LPENTRYID)strMsgEntryId.data(), bDoSentMail);
 	else
 			hr = running_server(szSMTP, ulPort, szPath);
-
-	delete sc;
-
 	if (!bForked)
 		ec_log_info("Spooler shutdown complete");
 exit:

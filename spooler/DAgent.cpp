@@ -135,7 +135,7 @@ using std::min;
 using std::string;
 using std::wstring;
 
-static StatsClient *sc = NULL;
+static std::unique_ptr<StatsClient> sc;
 
 enum _dt {
 	DM_STORE=0,
@@ -2066,7 +2066,7 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 
 	if (lpFolder == lpInbox) {
 		// process rules for the inbox
-		hr = HrProcessRules(convert_to<std::string>(lpRecip->wstrUsername), lppyMapiPlugin, lpUserSession, lpAdrBook, lpStore, lpInbox, lppMessage, sc);
+		hr = HrProcessRules(convert_to<std::string>(lpRecip->wstrUsername), lppyMapiPlugin, lpUserSession, lpAdrBook, lpStore, lpInbox, lppMessage, sc.get());
 		if (hr == MAPI_E_CANCEL)
 			ec_log_notice("Message canceled by rule");
 		else if (hr != hrSuccess)
@@ -3083,7 +3083,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	sc = new StatsClient(g_lpLogger);
+	sc.reset(new StatsClient(g_lpLogger));
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent version " PROJECT_VERSION " (pid %d) (LMTP mode)", getpid());
 	pollfd.fd = ulListenLMTP;
@@ -3666,8 +3666,7 @@ int main(int argc, char *argv[]) {
 				GetMAPIErrorMessage(hr), hr);
 			return get_return_value(hr, false, qmail);
 		}
-		sc = new StatsClient(g_lpLogger);
-		auto free_sc = make_scope_success([&]() { delete sc; });
+		sc.reset(new StatsClient(g_lpLogger));
 		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 		hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 		if (hr != hrSuccess) {
