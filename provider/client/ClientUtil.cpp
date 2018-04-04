@@ -564,17 +564,14 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 		lpsProfileProps->strServerPath = lpProp->Value.lpszA;
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_PROFILE_NAME_A)) != NULL)
 		lpsProfileProps->strProfileName = lpProp->Value.lpszA;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERNAME_W)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERNAME_W)) != nullptr ||
+	    (lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERNAME_A)) != nullptr)
 		lpsProfileProps->strUserName = convstring::from_SPropValue(lpProp);
-	else if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERNAME_A)) != NULL)
-		lpsProfileProps->strUserName = convstring::from_SPropValue(lpProp);
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERPASSWORD_W)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERPASSWORD_W)) != nullptr ||
+	    (lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERPASSWORD_A)) != nullptr)
 		lpsProfileProps->strPassword = convstring::from_SPropValue(lpProp);
-	else if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERPASSWORD_A)) != NULL)
-		lpsProfileProps->strPassword = convstring::from_SPropValue(lpProp);
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_IMPERSONATEUSER_W)) != NULL)
-		lpsProfileProps->strImpersonateUser = convstring::from_SPropValue(lpProp);
-	else if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_IMPERSONATEUSER_A)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_IMPERSONATEUSER_W)) != nullptr ||
+	    (lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_IMPERSONATEUSER_A)) != nullptr)
 		lpsProfileProps->strImpersonateUser = convstring::from_SPropValue(lpProp);
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_FLAGS)) != NULL)
 		lpsProfileProps->ulProfileFlags = lpProp->Value.ul;
