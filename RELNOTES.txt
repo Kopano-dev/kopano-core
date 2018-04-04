@@ -1,5 +1,15 @@
-8.6
-===
+8.6.1
+=====
+Includes changes from 8.5.6.
+Fixes:
+* swig: fix type error in SaveChanges(FILETIME, FILETIME)
+* storeadm: honor config file and SSL parameters
+Enhancements:
+* pyko: add Python 3.4 compatibility
+
+
+8.6 (2018-03-08)
+================
 Enhancements:
 * spooler: rules support testing for out-of-office flag [KC-119]
 * kopano-spamd: new daemon for spam learning in Kopano/SpamAssasin [KC-666]
