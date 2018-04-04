@@ -1705,32 +1705,26 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
  */
 HRESULT ECMessage::SyncSubject()
 {
-    HRESULT			hr = hrSuccess;
-	HRESULT			hr1 = hrSuccess;
-	HRESULT			hr2 = hrSuccess;
-	BOOL			bDirtySubject = FALSE;
-	BOOL			bDirtySubjectPrefix = FALSE;
+	BOOL bDirtySubject = false, bDirtySubjectPrefix = false;
 	ecmem_ptr<SPropValue> lpPropArray;
 	ULONG			cValues = 0;
-	WCHAR*			lpszColon = NULL;
-	WCHAR*			lpszEnd = NULL;
+	wchar_t *lpszColon = nullptr, *lpszEnd = nullptr;
 	int				sizePrefix1 = 0;
 	static constexpr const SizedSPropTagArray(2, sPropSubjects) =
 		{2, {PR_SUBJECT_W, PR_SUBJECT_PREFIX_W}};
-
-	hr1 = IsPropDirty(CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED), &bDirtySubject);
-	hr2 = IsPropDirty(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED), &bDirtySubjectPrefix);
+	unsigned int hr1 = IsPropDirty(CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED), &bDirtySubject);
+	unsigned int hr2 = IsPropDirty(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED), &bDirtySubjectPrefix);
 
 	// if both not present or not dirty
 	if( (hr1 != hrSuccess && hr2 != hrSuccess) || (hr1 == hr2 && bDirtySubject == FALSE && bDirtySubjectPrefix == FALSE) )
-		return hr;
+		return hrSuccess;
 
 	// If subject is deleted but the prefix is not, delete it
 	if(hr1 != hrSuccess && hr2 == hrSuccess)
 		return HrDeleteRealProp(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED), FALSE);
 
 	// Check if subject and prefix in sync
-	hr = ECMAPIProp::GetProps(sPropSubjects, 0, &cValues, &~lpPropArray);
+	auto hr = ECMAPIProp::GetProps(sPropSubjects, 0, &cValues, &~lpPropArray);
 	if(HR_FAILED(hr))
 		return hr;
 	if(lpPropArray[0].ulPropTag == PR_SUBJECT_W)
@@ -1774,17 +1768,13 @@ HRESULT ECMessage::SyncSubject()
 HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
     SPropProblemArray **lppProblems)
 {
-	HRESULT hr = hrSuccess;
-	const SPropValue *pvalSubject, *pvalSubjectPrefix;
-	const SPropValue *pvalRtf, *pvalHtml, *pvalBody;
-
 	const BOOL bInhibitSyncOld = m_bInhibitSync;
 	m_bInhibitSync = TRUE; // We want to override the logic in ECMessage::HrSetRealProp.
 
 	auto laters = make_scope_success([&]() { m_bInhibitSync = bInhibitSyncOld; });
 
 	// Send to IMAPIProp first
-	hr = ECMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
+	auto hr = ECMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1795,17 +1785,17 @@ HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	 * 2) PR_SUBJECT is modified, and PR_SUBJECT_PREFIX was modified by a previous SyncSubject() call
 	 * If the caller ever does a SetProps on the PR_SUBJECT_PREFIX itself, we must never touch it ourselves again, until SaveChanges().
 	 */
-	pvalSubject = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED));
-	pvalSubjectPrefix = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED));
+	auto pvalSubject = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED));
+	auto pvalSubjectPrefix = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED));
 	if (pvalSubjectPrefix)
 		m_bExplicitSubjectPrefix = TRUE;
 	if (pvalSubject && m_bExplicitSubjectPrefix == FALSE)
 		SyncSubject();
 
 	// Now, sync RTF
-	pvalRtf = PCpropFindProp(lpPropArray, cValues, PR_RTF_COMPRESSED);
-	pvalHtml = PCpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY_HTML)) );
-	pvalBody = PCpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY)) );
+	auto pvalRtf  = PCpropFindProp(lpPropArray, cValues, PR_RTF_COMPRESSED);
+	auto pvalHtml = PCpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY_HTML)));
+	auto pvalBody = PCpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY)));
 
 	// IF the user sets both the body and the RTF, assume RTF overrides
 	if (pvalRtf) {
@@ -1821,19 +1811,17 @@ HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 		HrDeleteRealProp(PR_RTF_COMPRESSED, FALSE);
 		HrDeleteRealProp(PR_HTML, FALSE);
 	}
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMessage::DeleteProps(const SPropTagArray *lpPropTagArray,
     SPropProblemArray **lppProblems)
 {
-	HRESULT hr;
 	SizedSPropTagArray(1, sSubjectPrefix) =
 		{1, {CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED)}};
 
 	// Send to IMAPIProp first
-	hr = ECMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
+	auto hr = ECMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
 	if (FAILED(hr))
 		return hr;
 
@@ -2063,10 +2051,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		break;
 	}
 	case PROP_ID(PR_SOURCE_KEY): {
-		std::string strServerGUID;
-		std::string strID;
-		std::string strSourceKey;
-
+		std::string strServerGUID, strID, strSourceKey;
 		if(ECMAPIProp::DefaultMAPIGetProp(PR_SOURCE_KEY, lpProvider, ulFlags, lpsPropValue, lpParam, lpBase) == hrSuccess)
 			return hr;
 
@@ -2161,12 +2146,10 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIProp> destiprop;
 	object_ptr<ECMAPIProp> lpECMAPIProp;
 	memory_ptr<SPropValue> lpECObject;
-	GUID sDestServerGuid = {0};
-	GUID sSourceServerGuid = {0};
+	GUID sDestServerGuid = {0}, sSourceServerGuid = {0};
 
 	if (lpInterface == nullptr || lpDestObj == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2182,7 +2165,7 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 		if (!this->IsChildOf(lpDestTop)) {
 			// ICS expects the entryids to be equal. So check if the objects reside on
 			// the same server as well.
-			hr = lpDestTop->GetMsgStore()->lpTransport->GetServerGUID(&sDestServerGuid);
+			auto hr = lpDestTop->GetMsgStore()->lpTransport->GetServerGUID(&sDestServerGuid);
 			if (hr != hrSuccess)
 				return hr;
 			hr = lpSourceTop->GetMsgStore()->lpTransport->GetServerGUID(&sSourceServerGuid);
@@ -2206,19 +2189,14 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 // when saving.
 HRESULT ECMessage::HrLoadProps()
 {
-	HRESULT hr = hrSuccess;
 	ecmem_ptr<SPropValue> lpsBodyProps;
 	static constexpr const SizedSPropTagArray(3, sPropBodyTags) =
 		{3, {PR_BODY_W, PR_RTF_COMPRESSED, PR_HTML}};
 	ULONG cValues = 0;
-	BOOL fBodyOK = FALSE;
-	BOOL fRTFOK = FALSE;
-	BOOL fHTMLOK = FALSE;
+	BOOL fBodyOK = false, fRTFOK = false, fHTMLOK = false;
 
 	m_bInhibitSync = TRUE; // We don't want the logic in ECMessage::HrSetRealProp to kick in yet.
-
-	hr = ECMAPIProp::HrLoadProps();
-
+	auto hr = ECMAPIProp::HrLoadProps();
 	m_bInhibitSync = FALSE;
 
 	if (hr != hrSuccess)
@@ -2251,9 +2229,7 @@ HRESULT ECMessage::HrLoadProps()
 		fHTMLOK = TRUE;
 
 	if (fRTFOK) {
-		HRESULT hrTmp = hrSuccess;
-
-		hrTmp = GetBodyType(&m_ulBodyType);
+		auto hrTmp = GetBodyType(&m_ulBodyType);
 		if (FAILED(hrTmp)) {
 			// e.g. this fails then RTF property is present but empty
 			ec_log_warn("GetBestBody: Unable to determine body type based on RTF data, hr=0x%08x", hrTmp);
@@ -2279,9 +2255,7 @@ HRESULT ECMessage::HrLoadProps()
 
 HRESULT ECMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 {
-	HRESULT hr;
-
-	hr = ECMAPIProp::HrSetRealProp(lpsPropValue);
+	auto hr = ECMAPIProp::HrSetRealProp(lpsPropValue);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -2306,8 +2280,7 @@ HRESULT ECMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 }
 
 struct findobject_if {
-    unsigned int m_ulUniqueId;
-    unsigned int m_ulObjType;
+	unsigned int m_ulUniqueId, m_ulObjType;
 
     findobject_if(unsigned int ulObjType, unsigned int ulUniqueId) : m_ulUniqueId(ulUniqueId), m_ulObjType(ulObjType) {}
 
@@ -2337,14 +2310,8 @@ static HRESULT HrCopyObjIDs(MAPIOBJECT *lpDest, const MAPIOBJECT *lpSrc)
 }
 
 HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
-	HRESULT hr = hrSuccess;
-	ECMapiObjects::const_iterator iterSObj;
 	SPropValue sKeyProp;
 	ecmem_ptr<SPropValue> lpProps;
-	ULONG ulProps = 0;
-	LPSPropValue lpPropID = NULL;
-	LPSPropValue lpPropObjType = NULL;
-	ULONG i;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if (lpsMapiObject->ulObjType != MAPI_ATTACH)
@@ -2353,7 +2320,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 		return MAPI_E_INVALID_OBJECT;
 	if(this->lpAttachments == NULL) {
 		object_ptr<IMAPITable> lpTable;
-		hr = this->GetAttachmentTable(fMapiUnicode, &~lpTable);
+		auto hr = GetAttachmentTable(fMapiUnicode, &~lpTable);
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -2368,10 +2335,10 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 
 	// Replace the attachment in the object hierarchy with this one, but preserve server object id. This is needed
 	// if the entire object has been saved to the server in the mean time.
-	iterSObj = m_sMapiObject->lstChildren.find(lpsMapiObject);
+	auto iterSObj = m_sMapiObject->lstChildren.find(lpsMapiObject);
 	if (iterSObj != m_sMapiObject->lstChildren.cend()) {
 		// Preserve server IDs
-		hr = HrCopyObjIDs(lpsMapiObject, (*iterSObj));
+		auto hr = HrCopyObjIDs(lpsMapiObject, (*iterSObj));
 		if(hr != hrSuccess)
 			return hr;
 		// Remove item
@@ -2381,15 +2348,14 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 
 	m_sMapiObject->lstChildren.emplace(new MAPIOBJECT(*lpsMapiObject));
 	// Update the attachment table. The attachment table contains all properties of the attachments
-	ulProps = lpsMapiObject->lstProperties.size();
+	unsigned int i = 0, ulProps = lpsMapiObject->lstProperties.size();
 
 	// +2 for maybe missing PR_ATTACH_NUM and PR_OBJECT_TYPE properties
-	hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), &~lpProps);
+	auto hr = ECAllocateBuffer(sizeof(SPropValue) * (ulProps + 2), &~lpProps);
 	if (hr != hrSuccess)
 		return hr;
 
-	lpPropID = NULL;
-	i = 0;
+	SPropValue *lpPropID = nullptr, *lpPropObjType = nullptr;
 	for (const auto &pv : lpsMapiObject->lstProperties) {
 		pv.CopyToByRef(&lpProps[i]);
 		if (lpProps[i].ulPropTag == PR_ATTACH_NUM) {
@@ -2429,13 +2395,12 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 
 HRESULT ECMessage::GetBodyType(eBodyType *lpulBodyType)
 {
-	HRESULT		hr = hrSuccess;
 	object_ptr<IStream> lpRTFCompressedStream, lpRTFUncompressedStream;
 	char		szRtfBuf[64] = {0};
 	ULONG		cbRtfBuf = 0;
 
 	if (m_ulBodyType == bodyTypeUnknown) {
-		hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, &~lpRTFCompressedStream);
+		auto hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, &~lpRTFCompressedStream);
 		if (hr != hrSuccess)
 			return hr;
 		hr = WrapCompressedRTFStream(lpRTFCompressedStream, 0, &~lpRTFUncompressedStream);
@@ -2458,13 +2423,11 @@ HRESULT ECMessage::GetBodyType(eBodyType *lpulBodyType)
 
 HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
 {
-	HRESULT hr;
-	StreamPtr ptrRtfCompressedStream;
-	StreamPtr ptrRtfUncompressedStream;
+	StreamPtr ptrRtfCompressedStream, ptrRtfUncompressedStream;
 	char lpBuf[4096];
 	std::string strRtfData;
 
-	hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, &~ptrRtfCompressedStream);
+	auto hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, &~ptrRtfCompressedStream);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2502,10 +2465,8 @@ HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
 
 HRESULT ECMessage::GetCodePage(unsigned int *lpulCodePage)
 {
-	HRESULT hr;
 	SPropValuePtr ptrPropValue;
-
-	hr = ECAllocateBuffer(sizeof(SPropValue), &~ptrPropValue);
+	auto hr = ECAllocateBuffer(sizeof(SPropValue), &~ptrPropValue);
 	if (hr != hrSuccess)
 		return hr;
 
