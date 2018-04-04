@@ -135,8 +135,6 @@ using std::min;
 using std::string;
 using std::wstring;
 
-static std::unique_ptr<StatsClient> sc;
-
 enum _dt {
 	DM_STORE=0,
 	DM_JUNK,
@@ -158,6 +156,7 @@ public:
 		bResolveAddress(o.bResolveAddress)
 	{}
 
+	std::shared_ptr<StatsClient> sc;
 	/* Channel for communication from MTA */
 	std::unique_ptr<ECChannel> lpChannel;
 
@@ -388,8 +387,8 @@ static bool FNeedsAutoProcessing(IMessage *lpMessage)
  * 
  * @return result
  */
-static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
-    IMessage *lpMessage)
+static HRESULT HrAutoAccept(StatsClient *sc, ECRecipient *lpRecip,
+    IMsgStore *lpStore, IMessage *lpMessage)
 {
 	object_ptr<IMAPIFolder> lpRootFolder;
 	object_ptr<IMessage> lpMessageCopy;
@@ -454,8 +453,8 @@ static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
  *
  * @return result
  */
-static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
-    IMessage *lpMessage)
+static HRESULT HrAutoProcess(StatsClient *sc, ECRecipient *lpRecip,
+    IMsgStore *lpStore, IMessage *lpMessage)
 {
 	object_ptr<IMAPIFolder> lpRootFolder;
 	object_ptr<IMessage> lpMessageCopy;
@@ -953,10 +952,10 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 	switch (lpArgs->ulDeliveryMode) {
 	case DM_STORE:
 		ec_log_info("Mail will be delivered in Inbox");
-			sc -> countInc("DAgent", "deliver_inbox");
+		lpArgs->sc->countInc("DAgent", "deliver_inbox");
 		break;
 	case DM_JUNK:
-			sc -> countInc("DAgent", "deliver_junk");
+		lpArgs->sc->countInc("DAgent", "deliver_junk");
 		hr = HrGetOneProp(lpInbox, PR_ADDITIONAL_REN_ENTRYIDS, &~lpJunkProp);
 		if (hr != hrSuccess || lpJunkProp->Value.MVbin.lpbin[4].cb == 0) {
 			ec_log_warn("Unable to resolve junk folder, using normal Inbox: %s (%x)",
@@ -979,7 +978,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 		lpDeliveryFolder = lpJunkFolder;
 		break;
 	case DM_PUBLIC:
-			sc -> countInc("DAgent", "deliver_public");
+		lpArgs->sc->countInc("DAgent", "deliver_public");
 		hr = HrOpenECPublicStore(lpSession, &~lpPublicStore);
 		if (hr != hrSuccess) {
 			kc_perror("Unable to open public store", hr);
@@ -1033,7 +1032,8 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
  * 
  * @return MAPI Error code
  */
-static HRESULT FallbackDelivery(LPMESSAGE lpMessage, const string &msg)
+static HRESULT FallbackDelivery(StatsClient *sc, IMessage *lpMessage,
+    const std::string &msg)
 {
 	memory_ptr<SPropValue> lpPropValue, lpAttPropValue;
 	FILETIME		ft;
@@ -1238,8 +1238,8 @@ static bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
  * 
  * @return MAPI Error code
  */
-static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
-    LPMESSAGE lpMessage, ECRecipient *lpRecip,
+static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
+    IMsgStore *lpMDB, IMessage *lpMessage, ECRecipient *lpRecip,
     const std::string &strBaseCommand)
 {
 	static constexpr const SizedSPropTagArray(5, sptaStoreProps) = {5, {
@@ -1570,7 +1570,7 @@ static HRESULT HrStringToMAPIMessage(const string &strMail,
 			goto exit;
 		}
 
-		hr = FallbackDelivery(lpFallbackMessage, strMail);
+		hr = FallbackDelivery(lpArgs->sc.get(), lpFallbackMessage, strMail);
 		if (hr != hrSuccess) {
 			kc_perror("Unable to deliver fallback message", hr);
 			goto exit;
@@ -1591,7 +1591,7 @@ static HRESULT HrStringToMAPIMessage(const string &strMail,
 	*lpbFallbackDelivery = bFallback;
 
 exit:
-	sc->countInc("DAgent", "string_to_mapi");
+	lpArgs->sc->countInc("DAgent", "string_to_mapi");
 
 	// count attachments
 	object_ptr<IMAPITable> lppAttTable;
@@ -1600,8 +1600,8 @@ exit:
 		ULONG countAtt = 0;
 		if (lppAttTable->GetRowCount(0, &countAtt) == hrSuccess &&
 		    countAtt > 0) {
-			sc -> countInc("DAgent", "n_with_attachment");
-			sc -> countAdd("DAgent", "attachment_count", int64_t(countAtt));
+			lpArgs->sc->countInc("DAgent", "n_with_attachment");
+			lpArgs->sc->countAdd("DAgent", "attachment_count", static_cast<int64_t>(countAtt));
 		}
 	}
 
@@ -1611,7 +1611,7 @@ exit:
 	    lppRecipTable != nullptr) {
 		ULONG countRecip = 0;
 		if (lppRecipTable->GetRowCount(0, &countRecip) == hrSuccess)
-			sc->countAdd("DAgent", "recipients", int64_t(countRecip));
+			lpArgs->sc->countAdd("DAgent", "recipients", static_cast<int64_t>(countRecip));
 	}
 	return hr;
 }
@@ -1624,7 +1624,7 @@ exit:
  * 
  * @return always hrSuccess
  */
-static HRESULT HrMessageExpired(IMessage *lpMessage, bool *bExpired)
+static HRESULT HrMessageExpired(StatsClient *sc, IMessage *lpMessage, bool *bExpired)
 {
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpsExpiryTime;
@@ -2037,7 +2037,7 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 
 	if(FNeedsAutoAccept(lpStore, *lppMessage)) {
 		ec_log_info("Starting MR autoaccepter");
-		hr = HrAutoAccept(lpRecip, lpStore, *lppMessage);
+		hr = HrAutoAccept(lpArgs->sc.get(), lpRecip, lpStore, *lppMessage);
 		if(hr == hrSuccess) {
 			ec_log_info("Autoaccept processing completed successfully. Skipping further processing.");
 			// The MR autoaccepter has processed the message. Skip any further work on this message: dont
@@ -2054,7 +2054,7 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 	}
 	else if (FNeedsAutoProcessing(*lppMessage)) {
 		ec_log_info("Starting MR auto processing");
-		hr = HrAutoProcess(lpRecip, lpStore, *lppMessage);
+		hr = HrAutoProcess(lpArgs->sc.get(), lpRecip, lpStore, *lppMessage);
 		if (hr == hrSuccess) {
 			ec_log_info("Automatic MR processing successful.");
 		} else {
@@ -2066,7 +2066,7 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 
 	if (lpFolder == lpInbox) {
 		// process rules for the inbox
-		hr = HrProcessRules(convert_to<std::string>(lpRecip->wstrUsername), lppyMapiPlugin, lpUserSession, lpAdrBook, lpStore, lpInbox, lppMessage, sc.get());
+		hr = HrProcessRules(convert_to<std::string>(lpRecip->wstrUsername), lppyMapiPlugin, lpUserSession, lpAdrBook, lpStore, lpInbox, lppMessage, lpArgs->sc.get());
 		if (hr == MAPI_E_CANCEL)
 			ec_log_notice("Message canceled by rule");
 		else if (hr != hrSuccess)
@@ -2079,7 +2079,8 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 	// do not send vacation message on delegated messages
 	    (HrGetOneProp(*lppMessage, PR_DELEGATED_BY_RULE, &~ptrProp) != hrSuccess || ptrProp->Value.b == FALSE)) {
 		auto autoresponder = lpArgs->strAutorespond.size() > 0 ? lpArgs->strAutorespond : g_lpConfig->GetSetting("autoresponder");
-		SendOutOfOffice(lpAdrBook, lpStore, *lppMessage, lpRecip, autoresponder);
+		SendOutOfOffice(lpArgs->sc.get(), lpAdrBook, lpStore,
+			*lppMessage, lpRecip, autoresponder);
 	}
 	return hr;
 }
@@ -2102,8 +2103,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	size_t end, pos;
 	string match;
 	string strHeaders;
-
-	auto laters = make_scope_success([&]() { sc->countInc("DAgent", lpArgs->ulDeliveryMode == DM_JUNK ? "is_spam" : "is_ham"); });
+	auto laters = make_scope_success([&]() { lpArgs->sc->countInc("DAgent", lpArgs->ulDeliveryMode == DM_JUNK ? "is_spam" : "is_ham"); });
 
 	if (!szHeader || !szValue)
 		return hr;
@@ -2202,7 +2202,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 		/*
 		 * Check if the message has expired.
 		 */
-		hr = HrMessageExpired(lpDeliveryMessage, &bExpired);
+		hr = HrMessageExpired(lpArgs->sc.get(), lpDeliveryMessage, &bExpired);
 		if (hr != hrSuccess)
 			return kc_perrorf("HrMessageExpired failed", hr);
 		if (bExpired)
@@ -2392,7 +2392,7 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 	bool bFallbackDeliveryTmp = false;
 	convert_context converter;
 
-	sc -> countInc("DAgent", "to_server");
+	lpArgs->sc->countInc("DAgent", "to_server");
 
 	// if we already had a message, we can create a copy.
 	if (lpMessage)
@@ -2494,8 +2494,7 @@ static HRESULT ProcessDeliveryToSingleRecipient(pym_plugin_intf *lppyMapiPlugin,
     recipients_t &lstSingleRecip, DeliveryArgs *lpArgs)
 {
 	std::string strMail;
-
-	sc -> countInc("DAgent", "to_single_recipient");
+	lpArgs->sc->countInc("DAgent", "to_single_recipient");
 
 	/* Always start at the beginning of the file */
 	rewind(fp);
@@ -2537,7 +2536,7 @@ static HRESULT ProcessDeliveryToCompany(pym_plugin_intf *lppyMapiPlugin,
 	bool bFallbackDelivery = false;
 	bool bExpired = false;
 
-	sc -> countInc("DAgent", "to_company");
+	lpArgs->sc->countInc("DAgent", "to_company");
 	if (lpServerNameRecips == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -2658,8 +2657,7 @@ static HRESULT ProcessDeliveryToList(pym_plugin_intf *lppyMapiPlugin,
     DeliveryArgs *lpArgs)
 {
 	HRESULT hr = hrSuccess;
-
-	sc -> countInc("DAgent", "to_list");
+	lpArgs->sc->countInc("DAgent", "to_list");
 
 	/*
 	 * Find user with lowest adminlevel, we will use the addressbook for this
@@ -2756,7 +2754,7 @@ static void *HandlerLMTP(void *lpArg)
 		ec_log_info("LMTP thread exiting");
 	});
 
-	sc -> countInc("DAgent::LMTP", "sessions");
+	lpArgs->sc->countInc("DAgent::LMTP", "sessions");
 	ec_log_info("Starting worker for LMTP request pid %d", getpid());
 	const char *lpEnvGDB  = getenv("GDB");
 	if (lpEnvGDB && parseBool(lpEnvGDB)) {
@@ -2831,7 +2829,7 @@ static void *HandlerLMTP(void *lpArg)
 		hr = lmtp.HrGetCommand(inBuffer, eCommand);	
 		if (hr != hrSuccess) {
 			lmtp.HrResponse("555 5.5.4 Command not recognized");
-			sc -> countInc("DAgent::LMTP", "unknown_command");
+			lpArgs->sc->countInc("DAgent::LMTP", "unknown_command");
 			continue;
 		}
 
@@ -2844,7 +2842,7 @@ static void *HandlerLMTP(void *lpArg)
 				lmtp.HrResponse("250 RSET");
 			} else {
 				lmtp.HrResponse("501 5.5.4 Syntax: LHLO hostname");
-				sc -> countInc("DAgent::LMTP", "LHLO_fail");
+				lpArgs->sc->countInc("DAgent::LMTP", "LHLO_fail");
 			}				
 			break;
 
@@ -2852,7 +2850,7 @@ static void *HandlerLMTP(void *lpArg)
 			// @todo, if this command is received a second time, repond: 503 5.5.1 Error: nested MAIL command
 			if (lmtp.HrCommandMAILFROM(inBuffer, &curFrom) != hrSuccess) {
 				lmtp.HrResponse("503 5.1.7 Bad sender's mailbox address syntax");
-				sc -> countInc("DAgent::LMTP", "bad_sender_address");
+				lpArgs->sc->countInc("DAgent::LMTP", "bad_sender_address");
 			}
 			else {
 				lmtp.HrResponse("250 2.1.0 Ok");
@@ -2862,7 +2860,7 @@ static void *HandlerLMTP(void *lpArg)
 		case LMTP_Command_RCPT_TO: {
 			if (lmtp.HrCommandRCPTTO(inBuffer, &strMailAddress) != hrSuccess) {
 				lmtp.HrResponse("503 5.1.3 Bad destination mailbox address syntax");
-				sc -> countInc("DAgent::LMTP", "bad_recipient_address");
+				lpArgs->sc->countInc("DAgent::LMTP", "bad_recipient_address");
 				break;
 			}
 			auto lpRecipient = new ECRecipient(strMailAddress);
@@ -2904,7 +2902,7 @@ static void *HandlerLMTP(void *lpArg)
 		case LMTP_Command_DATA: {
 			if (mapRCPT.empty()) {
 				lmtp.HrResponse("503 5.1.1 No recipients");
-				sc->countInc("DAgent::LMTP", "no_recipients");
+				lpArgs->sc->countInc("DAgent::LMTP", "no_recipients");
 				break;
 			}
 
@@ -2912,7 +2910,7 @@ static void *HandlerLMTP(void *lpArg)
 			if (!tmp) {
 				lmtp.HrResponse("503 5.1.1 Internal error during delivery");
 				ec_log_err("Unable to create temp file for email delivery. Please check write-access in /tmp directory. Error: %s", strerror(errno));
-				sc->countInc("DAgent::LMTP", "tmp_file_fail");
+				lpArgs->sc->countInc("DAgent::LMTP", "tmp_file_fail");
 				break;
 			}
 
@@ -2925,7 +2923,7 @@ static void *HandlerLMTP(void *lpArg)
 					ec_log_crit("K-1731: Unable to initialize the dagent plugin manager: %s (%x).",
 						GetMAPIErrorMessage(hr), hr);
 					lmtp.HrResponse("503 5.1.1 Internal error during delivery");
-					sc->countInc("DAgent::LMTP", "internal_error");
+					lpArgs->sc->countInc("DAgent::LMTP", "internal_error");
 					fclose(tmp);
 					hr = hrSuccess;
 					break;
@@ -2976,7 +2974,7 @@ static void *HandlerLMTP(void *lpArg)
 					// FIXME if a following item from lORderedRecipients does succeed, then this error status
 					// is forgotten. is that ok? (FvH)
 					hr = lmtp.HrResponse("503 5.1.1 Internal error while searching recipient delivery status");
-					sc -> countInc("DAgent::LMTP", "internal_error");
+					lpArgs->sc->countInc("DAgent::LMTP", "internal_error");
 				}
 				else {
 					hr = lmtp.HrResponse(r->second);
@@ -2985,8 +2983,7 @@ static void *HandlerLMTP(void *lpArg)
 					break;
 			}
 
-			sc->countInc("DAgent::LMTP", "received");
-
+			lpArgs->sc->countInc("DAgent::LMTP", "received");
 			// Reset RCPT TO list now
 			FreeServerRecipients(&mapRCPT);
 			lOrderedRecipients.clear();
@@ -3083,7 +3080,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	sc.reset(new StatsClient(g_lpLogger));
+	std::shared_ptr<StatsClient> sc(new StatsClient(g_lpLogger));
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent version " PROJECT_VERSION " (pid %d) (LMTP mode)", getpid());
 	pollfd.fd = ulListenLMTP;
@@ -3129,6 +3126,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			continue;
 		}
 		sc->countInc("DAgent", "incoming_session");
+		da->sc = sc;
 		if (unix_fork_function(HandlerLMTP, da.get(), nCloseFDs, pCloseFDs) < 0)
 			ec_log_err("Can't create LMTP process.");
 			// just keep running
@@ -3249,7 +3247,7 @@ static HRESULT deliver_recipients(pym_plugin_intf *py_plugin,
     DeliveryArgs *args)
 {
 	HRESULT func_ret = hrSuccess;
-	sc->countInc("DAgent::STDIN", "received");
+	args->sc->countInc("DAgent::STDIN", "received");
 	FILE *fpmail = nullptr;
 	auto ret = HrFileLFtoCRLF(file, &fpmail);
 	if (ret != hrSuccess) {
@@ -3666,8 +3664,9 @@ int main(int argc, char *argv[]) {
 				GetMAPIErrorMessage(hr), hr);
 			return get_return_value(hr, false, qmail);
 		}
-		sc.reset(new StatsClient(g_lpLogger));
+		std::shared_ptr<StatsClient> sc(new StatsClient(g_lpLogger));
 		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
+		sDeliveryArgs.sc = std::move(sc);
 		hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 		if (hr != hrSuccess) {
 			ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
