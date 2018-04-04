@@ -575,8 +575,6 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 		lpsProfileProps->strImpersonateUser = convstring::from_SPropValue(lpProp);
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_FLAGS)) != NULL)
 		lpsProfileProps->ulProfileFlags = lpProp->Value.ul;
-	else
-		lpsProfileProps->ulProfileFlags = 0;
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_SSLKEY_FILE)) != NULL)
 		lpsProfileProps->strSSLKeyFile = lpProp->Value.lpszA;
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_SSLKEY_PASS)) != NULL)
@@ -585,20 +583,14 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 		lpsProfileProps->strProxyHost = lpProp->Value.lpszA;
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_PORT)) != NULL)
 		lpsProfileProps->ulProxyPort = lpProp->Value.ul;
-	else
-		lpsProfileProps->ulProxyPort = 0;
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_FLAGS)) != NULL)
 		lpsProfileProps->ulProxyFlags = lpProp->Value.ul;
-	else
-		lpsProfileProps->ulProxyFlags = 0;
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_USERNAME)) != NULL)
 		lpsProfileProps->strProxyUserName = lpProp->Value.lpszA;
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_PASSWORD)) != NULL)
 		lpsProfileProps->strProxyPassword = lpProp->Value.lpszA;
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_CONNECTION_TIMEOUT)) != NULL)
 		lpsProfileProps->ulConnectionTimeOut = lpProp->Value.ul;
-	else
-		lpsProfileProps->ulConnectionTimeOut = 10;
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION)) != NULL)
 		lpsProfileProps->strClientAppVersion = lpProp->Value.lpszA;
 	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC)) != NULL)
