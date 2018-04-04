@@ -288,6 +288,8 @@ HRESULT vcftomapi_impl::handle_UID(VObject *v)
 	name.ulKind = MNID_ID;
 	name.Kind.lID = dispidGlobalObjectID;
 	hr = m_propobj->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptag);
+	if (FAILED(hr))
+		return hr;
 
 	SPropValue s;
 	s.ulPropTag = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_BINARY);

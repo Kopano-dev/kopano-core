@@ -79,6 +79,8 @@ static const sUpdateList_t sUpdateList[] = {
 	{ Z_UPDATE_CHANGES_PKEY, 0, "Updating changes table", UpdateChangesTbl },
 	{Z_DROP_CLIENTUPDATESTATUS_PKEY, 0, "Drop clientupdatestatus table", DropClientUpdateStatusTbl},
 	{68, 0, "Perform column type upgrade missed in SVN r23897", db_update_68},
+	{69, 0, "Update \"names\" with uniqueness constraints", db_update_69},
+	{70, 0, "names.guid change from blob to binary(16); drop old indexes", db_update_70},
 };
 
 static const char *const server_groups[] = {
@@ -241,6 +243,10 @@ int zcp_versiontuple::compare(const zcp_versiontuple &rhs) const
 ECDatabase::ECDatabase(ECConfig *cfg) :
     m_lpConfig(cfg)
 {
+	auto s = cfg->GetSetting("mysql_database");
+	if (s != nullptr)
+		/* used by db_update_69 */
+		m_dbname = s;
 }
 
 ECDatabase::~ECDatabase(void)

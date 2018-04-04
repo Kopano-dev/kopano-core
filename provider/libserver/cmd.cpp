@@ -4337,6 +4337,17 @@ SOAP_ENTRY_START(getOwner, lpsResponse->er, entryId sEntryId, struct getOwnerRes
 }
 SOAP_ENTRY_END()
 
+static bool soap_namedprop_eq(const namedProp &p, const namedProp &q)
+{
+	if (p.lpguid == nullptr || q.lpguid == nullptr)
+		return false;
+	if (p.lpId != nullptr && q.lpId != nullptr)
+		return *p.lpId == *q.lpId;
+	if (p.lpString != nullptr && q.lpString != nullptr)
+		return strcasecmp(p.lpString, q.lpString) == 0;
+	return false;
+}
+
 SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNamedProps, unsigned int ulFlags, struct getIDsFromNamesResponse *lpsResponse)
 {
 	std::string		strEscapedString;
@@ -4380,17 +4391,26 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 			strQuery += " OR ";
 	}
 
-	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+	er = lpDatabase->DoSelect(strQuery + " ORDER BY id", &lpDBResult);
 	if(er != erSuccess)
 		return er;
 	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i)
 		lpsResponse->lpsPropTags.__ptr[i] = 0;
 
+	auto old_client = !(lpecSession->GetCapabilities() & KOPANO_CAP_GIFN32);
 	/* For every result row, look for a named prop that can be filled. */
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
+		unsigned int tag = strtoul(lpDBRow[0], nullptr, 0) + 1;
+		if (tag >= 0x7AFF && old_client) {
+			ec_log_debug("K-1223: Not returning high namepropid (0x%x) to old client", tag);
+			continue;
+		}
 		for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
 			std::string nameid, namestring;
 
+			if (lpsResponse->lpsPropTags.__ptr[i] != 0)
+				/* Do not re-update responses already filled. */
+				continue;
 			if (lpsNamedProps->__ptr[i].lpId != nullptr)
 				nameid = stringify(*lpsNamedProps->__ptr[i].lpId);
 			else if (lpsNamedProps->__ptr[i].lpString != nullptr)
@@ -4400,10 +4420,8 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 			    memcmp(lpsNamedProps->__ptr[i].lpguid->__ptr, lpDBRow[3], lpsNamedProps->__ptr[i].lpguid->__size) != 0)
 				continue;
 			if ((nameid.size() > 0 && lpDBRow[1] && nameid.compare(lpDBRow[1]) == 0) ||
-			    (namestring.size() > 0 && lpDBRow[2] && namestring.compare(lpDBRow[2]) == 0)) {
-				lpsResponse->lpsPropTags.__ptr[i] = atoi(lpDBRow[0]) + 1;
-				break;
-			}
+			    (namestring.size() > 0 && lpDBRow[2] && namestring.compare(lpDBRow[2]) == 0))
+				lpsResponse->lpsPropTags.__ptr[i] = tag;
 		}
 	}
 
@@ -4424,7 +4442,7 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 		}
 
 		strQuery = "INSERT INTO names (nameid, namestring, guid) VALUES(";
-		if (lpsNamedProps->__ptr[i].lpId != 0)
+		if (lpsNamedProps->__ptr[i].lpId != nullptr)
 			strQuery += stringify(*lpsNamedProps->__ptr[i].lpId);
 		else
 			strQuery += "null";
@@ -4444,7 +4462,14 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 		er = lpDatabase->DoInsert(strQuery, &ulLastId);
 		if (er != erSuccess)
 			goto exit;
-		lpsResponse->lpsPropTags.__ptr[i] = ulLastId+1; // offset one because 0 is 'not found'
+		/* Client might have requested the same name more than once */
+		for (gsoap_size_t j = i; j < lpsNamedProps->__size; ++j) {
+			if (lpsResponse->lpsPropTags.__ptr[j] != 0)
+				continue;
+			if (!soap_namedprop_eq(lpsNamedProps->__ptr[i], lpsNamedProps->__ptr[j]))
+				continue;
+			lpsResponse->lpsPropTags.__ptr[j] = ulLastId + 1; // offset one because 0 is 'not found'
+		}
 	}
 
 	er = lpDatabase->Commit();
