@@ -530,8 +530,8 @@ static void SaveRawMessage(FILE *fp, const char *lpRecipient, DeliveryArgs *lpAr
 	 * - space-separated user list
 	 */
 	bool y = parseBool(rawmsg) && (strcasecmp(rawmsg, "all") == 0 ||
-	         strcasecmp(rawmsg, "yes") == 0 || kc_recip_in_list(rawmsg, lpRecipient)) ||
-	         (strcasecmp(rawmsg, "error") == 0 && lpArgs->got_error);
+	         strcasecmp(rawmsg, "yes") == 0 || kc_recip_in_list(rawmsg, lpRecipient) ||
+	         (strcasecmp(rawmsg, "error") == 0 && lpArgs->got_error));
 	if (!y)
 		return;
 
