@@ -25,8 +25,8 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECDebug.h>
 
-ECDistList::ECDistList(ECABLogon *lpProvider, BOOL fModify) :
-	ECABContainer(lpProvider, MAPI_DISTLIST, fModify, "IDistList")
+ECDistList::ECDistList(ECABLogon *prov, BOOL modify) :
+	ECABContainer(prov, MAPI_DISTLIST, modify, "IDistList")
 {
 	// since we have no OpenProperty / abLoadProp, remove the 8k prop limit
 	this->m_ulMaxPropSize = 0;
@@ -83,8 +83,8 @@ HRESULT ECDistList::CopyProps(const SPropTagArray *lpIncludeProps,
 	       lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
-ECMailUser::ECMailUser(ECABLogon *lpProvider, BOOL fModify) :
-    ECABProp(lpProvider, MAPI_MAILUSER, fModify, "IMailUser")
+ECMailUser::ECMailUser(ECABLogon *prov, BOOL modify) :
+	ECABProp(prov, MAPI_MAILUSER, modify, "IMailUser")
 {
 	// since we have no OpenProperty / abLoadProp, remove the 8k prop limit
 	this->m_ulMaxPropSize = 0;

@@ -38,9 +38,9 @@
 
 using namespace KC;
 
-ECABContainer::ECABContainer(ECABLogon *lpProvider, ULONG ulObjType, BOOL fModify,
-    const char *szClassName) :
-	ECABProp(lpProvider, ulObjType, fModify, szClassName)
+ECABContainer::ECABContainer(ECABLogon *prov, ULONG objtype, BOOL modify,
+    const char *cls_name) :
+	ECABProp(prov, objtype, modify, cls_name)
 {
 	HrAddPropHandlers(PR_AB_PROVIDER_ID, DefaultABContainerGetProp, DefaultSetPropComputed, this);
 	HrAddPropHandlers(PR_CONTAINER_FLAGS, DefaultABContainerGetProp, DefaultSetPropComputed, this);
@@ -244,13 +244,12 @@ HRESULT ECABContainer::TableRowGetProp(void *lpProvider,
 // IMAPIContainer
 HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<ECMAPITable> lpTable;
 	object_ptr<WSTableView> lpTableOps;
 	static constexpr const SizedSSortOrderSet(1, sSortByDisplayName) =
 		{1, 0, 0, {{PR_DISPLAY_NAME, TABLE_SORT_ASCEND}}};
 
-	hr = ECMAPITable::Create("AB Contents", nullptr, 0, &~lpTable);
+	auto hr = ECMAPITable::Create("AB Contents", nullptr, 0, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
 	hr = GetABStore()->m_lpTransport->HrOpenABTableOps(MAPI_MAILUSER, ulFlags, m_cbEntryId, m_lpEntryId, (ECABLogon *)this->lpProvider, &~lpTableOps); // also MAPI_DISTLIST
@@ -270,11 +269,10 @@ HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 HRESULT ECABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<ECMAPITable> lpTable;
 	object_ptr<WSTableView> lpTableOps;
 
-	hr = ECMAPITable::Create("AB hierarchy", GetABStore()->m_lpNotifyClient, ulFlags, &~lpTable);
+	auto hr = ECMAPITable::Create("AB hierarchy", GetABStore()->m_lpNotifyClient, ulFlags, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
 	hr = GetABStore()->m_lpTransport->HrOpenABTableOps(MAPI_ABCONT, ulFlags, m_cbEntryId, m_lpEntryId, (ECABLogon *)this->lpProvider, &~lpTableOps);

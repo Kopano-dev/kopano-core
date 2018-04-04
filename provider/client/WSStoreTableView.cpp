@@ -23,11 +23,11 @@
 #include "WSUtil.h"
 #include "soapKCmdProxy.h"
 
-WSStoreTableView::WSStoreTableView(ULONG ulType, ULONG ulFlags,
-    KCmdProxy *lpCmd, std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId,
-    ULONG cbEntryId, const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore,
+WSStoreTableView::WSStoreTableView(ULONG type, ULONG flags, KCmdProxy *cmd,
+    std::recursive_mutex &lock, ECSESSIONID sid, ULONG cbEntryId,
+    const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore,
     WSTransport *lpTransport) :
-	WSTableView(ulType, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId,
+	WSTableView(type, flags, cmd, lock, sid, cbEntryId,
 	    lpEntryId, lpTransport, "WSStoreTableView")
 {
 
@@ -58,11 +58,11 @@ HRESULT WSStoreTableView::QueryInterface(REFIID refiid, void **lppInterface)
 }
 
 // WSTableMultiStore view
-WSTableMultiStore::WSTableMultiStore(ULONG ulFlags, KCmdProxy *lpCmd,
-    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+WSTableMultiStore::WSTableMultiStore(ULONG flags, KCmdProxy *cmd,
+    std::recursive_mutex &lock, ECSESSIONID sid, ULONG cbEntryId,
     const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore,
     WSTransport *lpTransport) :
-	WSStoreTableView(MAPI_MESSAGE, ulFlags, lpCmd, lpDataLock, ecSessionId,
+	WSStoreTableView(MAPI_MESSAGE, flags, cmd, lock, sid,
 	    cbEntryId, lpEntryId, lpMsgStore, lpTransport)
 {
 	m_sEntryList = entryList();
@@ -132,12 +132,12 @@ HRESULT WSTableMultiStore::HrSetEntryIDs(const ENTRYLIST *lpMsgList)
   Miscellaneous tables are not really store tables, but the is the same, so it inherits from the store table
   Supported tables are the stats tables, and userstores table.
 */
-WSTableMisc::WSTableMisc(ULONG ulTableType, ULONG ulFlags, KCmdProxy *lpCmd,
-    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+WSTableMisc::WSTableMisc(ULONG ulTableType, ULONG flags, KCmdProxy *cmd,
+    std::recursive_mutex &lock, ECSESSIONID sid, ULONG cbEntryId,
     const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore,
     WSTransport *lpTransport) :
 	// is MAPI_STATUS even valid here?
-	WSStoreTableView(MAPI_STATUS, ulFlags, lpCmd, lpDataLock, ecSessionId,
+	WSStoreTableView(MAPI_STATUS, flags, cmd, lock, sid,
 	    cbEntryId, lpEntryId, lpMsgStore, lpTransport)
 {
 	m_ulTableType = ulTableType;
@@ -184,10 +184,10 @@ exit:
 }
 
 // WSTableMailBox view
-WSTableMailBox::WSTableMailBox(ULONG ulFlags, KCmdProxy *lpCmd,
-    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId,
-    ECMsgStore *lpMsgStore, WSTransport *lpTransport) :
-	WSStoreTableView(MAPI_STORE, ulFlags, lpCmd, lpDataLock, ecSessionId,
+WSTableMailBox::WSTableMailBox(ULONG flags, KCmdProxy *cmd,
+    std::recursive_mutex &lock, ECSESSIONID sid, ECMsgStore *lpMsgStore,
+    WSTransport *lpTransport) :
+	WSStoreTableView(MAPI_STORE, flags, cmd, lock, sid,
 	    0, NULL, lpMsgStore, lpTransport)
 {
 	m_ulTableType = TABLETYPE_MAILBOX;

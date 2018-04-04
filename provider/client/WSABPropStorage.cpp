@@ -164,10 +164,10 @@ HRESULT WSABPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
 	return hrSuccess;
 }
 
-WSABTableView::WSABTableView(ULONG ulType, ULONG ulFlags, KCmdProxy *lpCmd,
-    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+WSABTableView::WSABTableView(ULONG type, ULONG flags, KCmdProxy *cmd,
+    std::recursive_mutex &lock, ECSESSIONID sid, ULONG cbEntryId,
     LPENTRYID lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport) :
-	WSTableView(ulType, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId,
+	WSTableView(type, flags, cmd, lock, sid, cbEntryId,
 	    lpEntryId, lpTransport, "WSABTableView")
 {
 	m_lpProvider = lpABLogon;

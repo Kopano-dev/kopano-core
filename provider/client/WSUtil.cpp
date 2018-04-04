@@ -1243,7 +1243,6 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 {
 	HRESULT hr = hrSuccess;
 	struct restrictTable *lpDst = NULL;
-	unsigned int i=0;
 	auto laters = make_scope_success([&]() {
 		if(hr != hrSuccess && lpDst != NULL)
 			FreeRestrictTable(lpDst);
@@ -1266,8 +1265,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		lpDst->lpOr->__ptr = s_alloc<restrictTable *>(nullptr, lpSrc->res.resOr.cRes);
 		memset(lpDst->lpOr->__ptr, 0, sizeof(restrictTable*) * lpSrc->res.resOr.cRes);
 		lpDst->lpOr->__size = lpSrc->res.resOr.cRes;
-
-		for (i = 0; i < lpSrc->res.resOr.cRes; ++i) {
+		for (unsigned int i = 0; i < lpSrc->res.resOr.cRes; ++i) {
 			hr = CopyMAPIRestrictionToSOAPRestriction(&(lpDst->lpOr->__ptr[i]), &lpSrc->res.resOr.lpRes[i], lpConverter);
 
 			if(hr != hrSuccess)
@@ -1282,8 +1280,7 @@ HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **lppDst,
 		lpDst->lpAnd->__ptr = s_alloc<restrictTable *>(nullptr, lpSrc->res.resAnd.cRes);
 		memset(lpDst->lpAnd->__ptr, 0, sizeof(restrictTable*) * lpSrc->res.resAnd.cRes);
 		lpDst->lpAnd->__size = lpSrc->res.resAnd.cRes;
-
-		for (i = 0; i < lpSrc->res.resAnd.cRes; ++i) {
+		for (unsigned int i = 0; i < lpSrc->res.resAnd.cRes; ++i) {
 			hr = CopyMAPIRestrictionToSOAPRestriction(&lpDst->lpAnd->__ptr[i], &lpSrc->res.resAnd.lpRes[i], lpConverter);
 
 			if(hr != hrSuccess)

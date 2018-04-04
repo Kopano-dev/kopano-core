@@ -81,13 +81,11 @@ HRESULT ECABLogon::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lpp
 
 HRESULT ECABLogon::Logoff(ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
-
 	//FIXME: Release all Other open objects ?
 	//Releases all open objects, such as any subobjects or the status object. 
 	//Releases the provider's support object.
 	m_lpMAPISup.reset();
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
@@ -232,8 +230,6 @@ HRESULT ECABLogon::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 HRESULT ECABLogon::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
     ULONG ulEventMask, IMAPIAdviseSink *lpAdviseSink, ULONG *lpulConnection)
 {
-	HRESULT hr = hrSuccess;
-
 	if (lpAdviseSink == NULL || lpulConnection == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpEntryID == NULL)
@@ -242,8 +238,8 @@ HRESULT ECABLogon::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 	assert(m_lpNotifyClient != NULL && (lpEntryID != NULL || true));
 	if(m_lpNotifyClient->Advise(cbEntryID, (LPBYTE)lpEntryID, ulEventMask, lpAdviseSink, lpulConnection) != S_OK)
-		hr = MAPI_E_NO_SUPPORT;
-	return hr;
+		return MAPI_E_NO_SUPPORT;
+	return hrSuccess;
 }
 
 HRESULT ECABLogon::Unadvise(ULONG ulConnection)
@@ -259,7 +255,7 @@ HRESULT ECABLogon::OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG *lpu
 }
 
 HRESULT ECABLogon::OpenTemplateID(ULONG tpl_size, const ENTRYID *tpl_eid,
-    ULONG tpl_flags, IMAPIProp *propdata, const IID *intf, IMAPIProp **propnew,
+    ULONG tpl_flags, IMAPIProp *propdata, const IID *iface, IMAPIProp **propnew,
     IMAPIProp *sibling)
 {
 	return MAPI_E_NO_SUPPORT;
@@ -274,30 +270,24 @@ HRESULT ECABLogon::GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable)
 HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
     const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList)
 {
-	HRESULT			hr = hrSuccess;
-	ULONG			cPropsRecip;
-	LPSPropValue	rgpropvalsRecip;
-	ABEID *lpABeid = NULL;
-	ULONG			cbABeid;
 	ULONG			cValues;
 	ecmem_ptr<SPropValue> lpPropArray, lpNewPropArray;
-	unsigned int	j;
 	ULONG			ulObjType;
 
 	if(lpPropTagArray == NULL || lpPropTagArray->cValues == 0) // There is no work to do.
 		return hrSuccess;
 
 	for (unsigned int i = 0; i < lpRecipList->cEntries; ++i) {
-		rgpropvalsRecip	= lpRecipList->aEntries[i].rgPropVals;
-		cPropsRecip		= lpRecipList->aEntries[i].cValues;
+		auto rgpropvalsRecip = lpRecipList->aEntries[i].rgPropVals;
+		unsigned int cPropsRecip = lpRecipList->aEntries[i].cValues;
 
 		// For each recipient, find its entryid
 		auto lpPropVal = PCpropFindProp(rgpropvalsRecip, cPropsRecip, PR_ENTRYID);
 		if(!lpPropVal)
 			continue; // no
 		
-		lpABeid = reinterpret_cast<ABEID *>(lpPropVal->Value.bin.lpb);
-		cbABeid = lpPropVal->Value.bin.cb;
+		auto lpABeid = reinterpret_cast<ABEID *>(lpPropVal->Value.bin.lpb);
+		auto cbABeid = lpPropVal->Value.bin.cb;
 
 		/* Is it one of ours? */
 		if ( cbABeid  < CbNewABEID("") || lpABeid == NULL)
@@ -307,7 +297,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 			continue;	// no
 
 		object_ptr<IMailUser> lpIMailUser;
-		hr = OpenEntry(cbABeid, reinterpret_cast<ENTRYID *>(lpABeid), nullptr, 0, &ulObjType, &~lpIMailUser);
+		auto hr = OpenEntry(cbABeid, reinterpret_cast<ENTRYID *>(lpABeid), nullptr, 0, &ulObjType, &~lpIMailUser);
 		if(hr != hrSuccess)
 			continue;	// no
 		hr = lpIMailUser->GetProps(lpPropTagArray, 0, &cValues, &~lpPropArray);
@@ -319,7 +309,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		if (hr != hrSuccess)
 			return hr;
 
-		for (j = 0; j < cValues; ++j) {
+		for (unsigned int j = 0; j < cValues; ++j) {
 			lpPropVal = NULL;
 
 			if(PROP_TYPE(lpPropArray[j].ulPropTag) == PT_ERROR)
@@ -333,7 +323,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 				return hr;
 		}
 
-		for (j = 0; j < cPropsRecip; ++j) {
+		for (unsigned int j = 0; j < cPropsRecip; ++j) {
 			if (PCpropFindProp(lpNewPropArray, cValues, rgpropvalsRecip[j].ulPropTag) ||
 				PROP_TYPE( rgpropvalsRecip[j].ulPropTag ) == PT_ERROR )
 				continue;

@@ -24,9 +24,9 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECDebug.h>
 
-ECABProp::ECABProp(ECABLogon *lpProvider, ULONG ulObjType, BOOL fModify,
-    const char *szClassName) :
-	ECGenericProp(lpProvider, ulObjType, fModify, szClassName)
+ECABProp::ECABProp(ECABLogon *prov, ULONG objtype, BOOL modify,
+    const char *cls_name) :
+	ECGenericProp(prov, objtype, modify, cls_name)
 {
 	HrAddPropHandlers(PR_RECORD_KEY, DefaultABGetProp, DefaultSetPropComputed, this);
 	HrAddPropHandlers(PR_STORE_SUPPORT_MASK, DefaultABGetProp, DefaultSetPropComputed, this);

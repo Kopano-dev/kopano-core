@@ -40,8 +40,8 @@
 
 using namespace KC;
 
-ECABProvider::ECABProvider(ULONG ulFlags, const char *szClassName) :
-	ECUnknown(szClassName), m_ulFlags(ulFlags)
+ECABProvider::ECABProvider(ULONG ulFlags, const char *cls_name) :
+	ECUnknown(cls_name), m_ulFlags(ulFlags)
 {}
 
 HRESULT ECABProvider::Create(ECABProvider **lppECABProvider)
@@ -66,17 +66,15 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
     const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity,
     LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<ECABLogon> lpABLogon;
 	sGlobalProfileProps	sProfileProps;
-	LPMAPIUID	lpGuid = NULL;
 	object_ptr<WSTransport> lpTransport;
 
 	if (lpMAPISup == nullptr || lppABLogon == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Get the username and password from the profile settings
-	hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
+	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -88,7 +86,7 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	hr = lpTransport->HrLogon(sProfileProps);
 	if(hr != hrSuccess)
 		return hr;
-	hr = ECABLogon::Create(lpMAPISup, lpTransport, sProfileProps.ulProfileFlags, reinterpret_cast<const GUID *>(lpGuid), &~lpABLogon);
+	hr = ECABLogon::Create(lpMAPISup, lpTransport, sProfileProps.ulProfileFlags, nullptr, &~lpABLogon);
 	if(hr != hrSuccess)
 		return hr;
 	AddChild(lpABLogon);
@@ -133,14 +131,12 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
     const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity,
     LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon)
 {
-	HRESULT hr = hrSuccess;
 	PROVIDER_INFO sProviderInfo;
-	ULONG ulConnectType = CT_UNSPECIFIED;
 	object_ptr<IABLogon> lpABLogon;
 	object_ptr<IABProvider> lpOnline;
 
 	convstring tstrProfileName(lpszProfileName, ulFlags);
-	hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
+	auto hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;
 	hr = sProviderInfo.lpABProviderOnline->QueryInterface(IID_IABProvider, &~lpOnline);
@@ -149,11 +145,9 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 
 	// Online
 	hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags, nullptr, nullptr, nullptr, &~lpABLogon);
-	ulConnectType = CT_ONLINE;
-
 	// Set the provider in the right connection type
 	if (SetProviderMode(lpMAPISup, &g_mapProviders,
-	    convstring(lpszProfileName, ulFlags).c_str(), ulConnectType) != hrSuccess)
+	    convstring(lpszProfileName, ulFlags).c_str(), CT_ONLINE) != hrSuccess)
 		return MAPI_E_INVALID_PARAMETER;
 
 	if(hr != hrSuccess) {

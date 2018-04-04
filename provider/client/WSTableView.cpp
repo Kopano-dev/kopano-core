@@ -37,8 +37,8 @@
 WSTableView::WSTableView(ULONG ty, ULONG fl, KCmdProxy *cmd,
     std::recursive_mutex &data_lock, ECSESSIONID sid, ULONG cbEntryId,
     const ENTRYID *lpEntryId, WSTransport *lpTransport,
-    const char *szClassName) :
-	ECUnknown(szClassName), lpCmd(cmd), lpDataLock(data_lock),
+    const char *cls_name) :
+	ECUnknown(cls_name), lpCmd(cmd), lpDataLock(data_lock),
 	ecSessionId(sid), m_lpTransport(lpTransport), ulFlags(fl), ulType(ty)
 {
 	m_lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
@@ -63,7 +63,7 @@ HRESULT WSTableView::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT WSTableView::HrQueryRows(ULONG ulRowCount, ULONG ulFlags, LPSRowSet *lppRowSet)
+HRESULT WSTableView::HrQueryRows(ULONG ulRowCount, ULONG flags, SRowSet **lppRowSet)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
@@ -77,7 +77,7 @@ HRESULT WSTableView::HrQueryRows(ULONG ulRowCount, ULONG ulFlags, LPSRowSet *lpp
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableQueryRows(ecSessionId, ulTableId, ulRowCount, ulFlags, &sResponse) != SOAP_OK)
+		if (lpCmd->tableQueryRows(ecSessionId, ulTableId, ulRowCount, flags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -153,7 +153,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTableView::HrQueryColumns(ULONG ulFlags, LPSPropTagArray *lppsPropTags)
+HRESULT WSTableView::HrQueryColumns(ULONG flags, SPropTagArray **lppsPropTags)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
@@ -168,7 +168,7 @@ HRESULT WSTableView::HrQueryColumns(ULONG ulFlags, LPSPropTagArray *lppsPropTags
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableQueryColumns(ecSessionId, ulTableId, ulFlags, &sResponse) != SOAP_OK)
+		if (lpCmd->tableQueryColumns(ecSessionId, ulTableId, flags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -291,7 +291,7 @@ exit:
 }
 
 HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
-    BOOKMARK bkOrigin, ULONG ulFlags)
+    BOOKMARK bkOrigin, ULONG flags)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
@@ -314,7 +314,7 @@ HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableFindRow(ecSessionId, ulTableId, static_cast<unsigned int>(bkOrigin), ulFlags, lpRestrict, &er) != SOAP_OK)
+		if (lpCmd->tableFindRow(ecSessionId, ulTableId, static_cast<unsigned int>(bkOrigin), flags, lpRestrict, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -417,7 +417,8 @@ exit:
 	return hr;
 }
 
-HRESULT WSTableView::HrExpandRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulRowCount, ULONG ulFlags, LPSRowSet * lppRows, ULONG *lpulMoreRows)
+HRESULT WSTableView::HrExpandRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
+    ULONG ulRowCount, ULONG flags, SRowSet **lppRows, ULONG *lpulMoreRows)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -435,7 +436,7 @@ HRESULT WSTableView::HrExpandRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULON
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableExpandRow(ecSessionId, this->ulTableId, sInstanceKey, ulRowCount, ulFlags, &sResponse) != SOAP_OK)
+		if (lpCmd->tableExpandRow(ecSessionId, this->ulTableId, sInstanceKey, ulRowCount, flags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -454,7 +455,8 @@ exit:
 	return hr;
 }
 
-HRESULT WSTableView::HrCollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulFlags, ULONG *lpulRowCount)
+HRESULT WSTableView::HrCollapseRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
+    ULONG flags, ULONG *lpulRowCount)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
@@ -472,7 +474,7 @@ HRESULT WSTableView::HrCollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, UL
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableCollapseRow(ecSessionId, this->ulTableId, sInstanceKey, ulFlags, &sResponse) != SOAP_OK)
+		if (lpCmd->tableCollapseRow(ecSessionId, this->ulTableId, sInstanceKey, flags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -561,7 +563,10 @@ exit:
 	return hr;
 }
 
-HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags, LPSPropTagArray lpsPropTagArray, LPSRestriction lpsRestriction, LPSSortOrderSet lpsSortOrderSet, ULONG ulRowCount, ULONG ulFlags, LPSRowSet *lppRowSet)
+HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
+    SPropTagArray *lpsPropTagArray, SRestriction *lpsRestriction,
+    SSortOrderSet *lpsSortOrderSet, ULONG ulRowCount, ULONG flags,
+    SRowSet **lppRowSet)
 {
     HRESULT hr = hrSuccess;
     ECRESULT er = erSuccess;
@@ -631,8 +636,7 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags, LPSPropTagArray lpsPropTagAr
 	
 	if(ulRowCount > 0) {
 	    sQueryRows.ulCount = ulRowCount;
-	    sQueryRows.ulFlags = ulFlags;
-	    
+		sQueryRows.ulFlags = flags;
 	    sRequest.lpQueryRows = &sQueryRows;
 	}
 
@@ -710,12 +714,11 @@ HRESULT WSTableView::SetReloadCallback(RELOADCALLBACK callback, void *lpParam)
 }
 
 // WSTableOutGoingQueue view
-WSTableOutGoingQueue::WSTableOutGoingQueue(KCmdProxy *lpCmd,
-    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
-    const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore,
-    WSTransport *lpTransport) :
-	WSStoreTableView(MAPI_MESSAGE, 0, lpCmd, lpDataLock, ecSessionId,
-	    cbEntryId, lpEntryId, lpMsgStore, lpTransport)
+WSTableOutGoingQueue::WSTableOutGoingQueue(KCmdProxy *cmd,
+    std::recursive_mutex &lock, ECSESSIONID sid, ULONG cbEntryId,
+    const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore, WSTransport *tp) :
+	WSStoreTableView(MAPI_MESSAGE, 0, cmd, lock, sid,
+	    cbEntryId, lpEntryId, lpMsgStore, tp)
 {
 }
 

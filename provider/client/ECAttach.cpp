@@ -35,9 +35,9 @@ HRESULT ECAttachFactory::Create(ECMsgStore *lpMsgStore, ULONG ulObjType,
 	return ECAttach::Create(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot, lppAttach);
 }
 
-ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify,
+ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG objtype, BOOL modify,
     ULONG anum, const ECMAPIProp *lpRoot) :
-	ECMAPIProp(lpMsgStore, ulObjType, fModify, lpRoot, "IAttach"),
+	ECMAPIProp(lpMsgStore, objtype, modify, lpRoot, "IAttach"),
 	ulAttachNum(anum)
 {
 	HrAddPropHandlers(PR_ATTACH_DATA_OBJ, GetPropHandler, SetPropHandler, this, true, false);
@@ -67,8 +67,6 @@ HRESULT ECAttach::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECAttach::SaveChanges(ULONG ulFlags)
 {
-	HRESULT hr;
-
 	if (!fModify)
 		return MAPI_E_NO_ACCESS;
 
@@ -81,8 +79,7 @@ HRESULT ECAttach::SaveChanges(ULONG ulFlags)
 		sPropVal.ulPropTag = PR_RECORD_KEY;
 		sPropVal.Value.bin.cb = sizeof(guid);
 		sPropVal.Value.bin.lpb = (LPBYTE)&guid;
-
-		hr = HrSetRealProp(&sPropVal);
+		auto hr = HrSetRealProp(&sPropVal);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -91,7 +88,6 @@ HRESULT ECAttach::SaveChanges(ULONG ulFlags)
 
 HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
 {
-	HRESULT			hr = hrSuccess;
 	object_ptr<ECMessage> lpMessage;
 	object_ptr<IECPropStorage> lpParentStorage;
 	SPropValue		sPropValue[3];
@@ -132,7 +128,8 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 		fNew = TRUE; // new message in message
 		ulObjId = 0;
 	}
-	hr = ECMessage::Create(this->GetMsgStore(), fNew, ulFlags & MAPI_MODIFY, 0, TRUE, m_lpRoot, &~lpMessage);
+
+	auto hr = ECMessage::Create(GetMsgStore(), fNew, ulFlags & MAPI_MODIFY, 0, true, m_lpRoot, &~lpMessage);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -259,7 +256,6 @@ HRESULT ECAttach::HrSetRealProp(const SPropValue *lpProp)
 
 HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 {
-	ECMapiObjects::const_iterator iterSObj;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if (!m_sMapiObject) {
@@ -272,7 +268,7 @@ HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 		return MAPI_E_INVALID_OBJECT;
 
 	// attachments can only have 1 sub-message
-	iterSObj = m_sMapiObject->lstChildren.cbegin();
+	auto iterSObj = m_sMapiObject->lstChildren.cbegin();
 	if (iterSObj != m_sMapiObject->lstChildren.cend()) {
 		delete *iterSObj;
 		m_sMapiObject->lstChildren.erase(iterSObj);

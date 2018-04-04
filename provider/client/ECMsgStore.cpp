@@ -76,9 +76,9 @@ typedef object_ptr<WSTransport> WSTransportPtr;
  * ECMsgStore
  **/
 ECMsgStore::ECMsgStore(const char *lpszProfname, IMAPISupport *sup,
-    WSTransport *tp, BOOL fModify, ULONG ulProfileFlags,
+    WSTransport *tp, BOOL modify, ULONG ulProfileFlags,
     BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore) :
-	ECMAPIProp(NULL, MAPI_STORE, fModify, NULL, "IMsgStore"),
+	ECMAPIProp(nullptr, MAPI_STORE, modify, nullptr, "IMsgStore"),
 	lpSupport(sup), lpTransport(tp), lpNamedProp(tp),
 	m_ulProfileFlags(ulProfileFlags), m_fIsSpooler(fIsSpooler),
 	m_fIsDefaultStore(fIsDefaultStore),
@@ -212,11 +212,10 @@ ULONG ECMsgStore::Release()
 	return ECUnknown::Release();
 }
 
-HRESULT ECMsgStore::HrSetReleaseCallback(ECUnknown *lpObject, RELEASECALLBACK lpfnCallback)
+HRESULT ECMsgStore::HrSetReleaseCallback(ECUnknown *lpObject, RELEASECALLBACK cb)
 {
 	this->lpCallbackObject = lpObject;
-	this->lpfnCallback = lpfnCallback;
-
+	lpfnCallback = cb;
 	return hrSuccess;
 }
 
@@ -549,7 +548,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	object_ptr<ECMessage> lpMessage;
 	object_ptr<IECPropStorage> lpPropStorage;
 	object_ptr<WSMAPIFolderOps> lpFolderOps;
-	unsigned int		ulObjType = 0;
+	unsigned int objtype = 0;
 
 	// Check input/output variables
 	if (lpulObjType == nullptr || lppUnk == nullptr)
@@ -584,11 +583,11 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		}
 	}
 
-	hr = HrGetObjTypeFromEntryId(cbEntryID, (LPBYTE)lpEntryID, &ulObjType);
+	hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), &objtype);
 	if(hr != hrSuccess)
 		return hr;
 
-	switch( ulObjType ) {
+	switch (objtype) {
 	case MAPI_FOLDER:
 		hr = lpTransport->HrOpenFolderOps(cbEntryID, lpEntryID, &~lpFolderOps);
 		if(hr != hrSuccess)
@@ -882,7 +881,7 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 HRESULT ECMsgStore::FinishedMsg(ULONG ulFlags, ULONG cbEntryID, const ENTRYID *lpEntryID)
 {
 	HRESULT		hr = hrSuccess;
-	ULONG		ulObjType = 0;
+	unsigned int objtype = 0;
 	object_ptr<IMessage> lpMessage;
 
 	// Only supported by the MAPI spooler
@@ -906,7 +905,7 @@ HRESULT ECMsgStore::FinishedMsg(ULONG ulFlags, ULONG cbEntryID, const ENTRYID *l
 	hr = lpTransport->HrSetLockState(cbEntryID, lpEntryID, false);
 	if (hr != hrSuccess)
 		return hr;
-	hr = OpenEntry(cbEntryID, lpEntryID, &IID_IMessage, MAPI_MODIFY,  &ulObjType, &~lpMessage);
+	hr = OpenEntry(cbEntryID, lpEntryID, &IID_IMessage, MAPI_MODIFY, &objtype, &~lpMessage);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -1602,12 +1601,11 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 	/* Root container, IPM_SUBTREE and NON_IPM_SUBTREE */
 	object_ptr<IMAPIFolder> lpFolderRoot, lpFolderRootST, lpFolderRootNST;
 	object_ptr<IMAPIFolder> lpMAPIFolder, lpMAPIFolder2, lpMAPIFolder3;
-	object_ptr<IECPropStorage> lpStorage;
+	object_ptr<IECPropStorage> storage;
 	object_ptr<ECMAPIFolder> lpECMapiFolderInbox;
 	object_ptr<IMAPIFolder> lpInboxFolder, lpCalendarFolder;
 	ecmem_ptr<SPropValue> lpPropValue;
-	ULONG				cValues = 0;
-	ULONG				ulObjType = 0;
+	unsigned int cValues = 0, objtype = 0;
 	object_ptr<IECSecurity> lpECSecurity;
 	ECPERMISSION		sPermission;
 	ecmem_ptr<ECUSER> lpECUser;
@@ -1654,12 +1652,12 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 		return hr;
 
 	// Get a propstorage for the message store
-	hr = lpTransport->HrOpenPropStorage(0, NULL, cbStoreId, lpStoreId, 0, &~lpStorage);
+	hr = lpTransport->HrOpenPropStorage(0, nullptr, cbStoreId, lpStoreId, 0, &~storage);
 	if(hr != hrSuccess)
 		return hr;
 
 	// Set up the message store to use this storage
-	hr = lpecMsgStore->HrSetPropStorage(lpStorage, TRUE);
+	hr = lpecMsgStore->HrSetPropStorage(storage, true);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpecMsgStore->SetEntryId(cbStoreId, lpStoreId);
@@ -1667,7 +1665,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 		return hr;
 
 	// Open rootfolder
-	hr = lpecMsgStore->OpenEntry(cbRootId, lpRootId, &IID_ECMAPIFolder, MAPI_MODIFY , &ulObjType, &~lpMapiFolderRoot);
+	hr = lpecMsgStore->OpenEntry(cbRootId, lpRootId, &IID_ECMAPIFolder, MAPI_MODIFY, &objtype, &~lpMapiFolderRoot);
 	if(hr != hrSuccess)
 		return hr;
 

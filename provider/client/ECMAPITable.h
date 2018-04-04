@@ -78,7 +78,6 @@ private:
 	KC::object_ptr<WSTableView> lpTableOps;
 	KC::object_ptr<ECNotifyClient> lpNotifyClient;
 	KC::memory_ptr<SSortOrderSet> lpsSortOrderSet;
-	ULONG				ulFlags; // Currently unused
 	std::set<ULONG>		m_ulConnectionList;
 	std::recursive_mutex m_hMutexConnectionList;
 	

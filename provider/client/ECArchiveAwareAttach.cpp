@@ -27,9 +27,8 @@ HRESULT ECArchiveAwareAttachFactory::Create(ECMsgStore *lpMsgStore,
 }
 
 ECArchiveAwareAttach::ECArchiveAwareAttach(ECMsgStore *lpMsgStore,
-    ULONG ulObjType, BOOL fModify, ULONG ulAttachNum,
-    const ECMAPIProp *lpRoot) :
-	ECAttach(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot),
+    ULONG objtype, BOOL modify, ULONG atnum, const ECMAPIProp *lpRoot) :
+	ECAttach(lpMsgStore, objtype, modify, atnum, lpRoot),
 	m_lpRoot(dynamic_cast<const ECArchiveAwareMessage *>(lpRoot))
 {
 	assert(m_lpRoot != NULL);	// We don't expect an ECArchiveAwareAttach to be ever created by any other object than a ECArchiveAwareMessage.

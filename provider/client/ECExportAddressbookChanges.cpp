@@ -49,18 +49,15 @@ HRESULT ECExportAddressbookChanges::QueryInterface(REFIID refiid, void **lppInte
 
 HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IECImportAddressbookChanges *lpCollector)
 {
-	HRESULT hr;
 	LARGE_INTEGER lint = {{ 0, 0 }};
     ABEID abeid;
 	STATSTG sStatStg;
-	ULONG ulCount = 0;
-	ULONG ulProcessed = 0;
-	ULONG ulRead = 0;
+	unsigned int ulCount = 0, ulProcessed = 0, ulRead = 0;
 	ICSCHANGE *lpLastChange = NULL;
 	int n = 0;
 
 	// Read state from stream
-	hr = lpStream->Stat(&sStatStg, 0);
+	auto hr = lpStream->Stat(&sStatStg, 0);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -278,12 +275,9 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
 
 HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 {
-	HRESULT hr;
 	LARGE_INTEGER zero = {{0,0}};
 	ULARGE_INTEGER uzero = {{0,0}};
-	ULONG ulCount = 0;
 	ULONG ulWritten = 0;
-	ULONG ulProcessed = 0;
 
 	if(m_ulThisChange == m_ulChanges) {
 		// All changes have been processed, we can discard processed changes and go to the next server change ID
@@ -294,7 +288,7 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 			m_ulChangeId = m_ulMaxChangeId;
 	}
 
-	hr = lpStream->Seek(zero, STREAM_SEEK_SET, NULL);
+	auto hr = lpStream->Seek(zero, STREAM_SEEK_SET, nullptr);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -307,8 +301,7 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 	if(hr != hrSuccess)
 		return hr;
 
-	ulCount = m_setProcessed.size();
-
+	unsigned int ulCount = m_setProcessed.size();
 	// Write the number of processed IDs to follow
 	hr = lpStream->Write(&ulCount, sizeof(ULONG), &ulWritten);
 	if(hr != hrSuccess)
@@ -316,7 +309,7 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 
 	// Write the processed IDs
 	for (const auto &pc : m_setProcessed) {
-		ulProcessed = pc;
+		unsigned int ulProcessed = pc;
 		hr = lpStream->Write(&ulProcessed, sizeof(ULONG), &ulWritten);
 		if(hr != hrSuccess)
 			return hr;

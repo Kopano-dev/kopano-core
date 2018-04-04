@@ -34,16 +34,15 @@ class WSTransport;
 
 class ECSessionGroupInfo _kc_final {
 public:
-	std::string strServer;
-	std::string strProfile;
+	std::string strServer, strProfile;
 
 	ECSessionGroupInfo()
 		: strServer(), strProfile()
 	{
 	}
 
-	ECSessionGroupInfo(const std::string &strServer, const std::string &strProfile)
-		: strServer(strServer), strProfile(strProfile)
+	ECSessionGroupInfo(const std::string &server, const std::string &profile) :
+		strServer(server), strProfile(profile)
 	{
 	}
 };
