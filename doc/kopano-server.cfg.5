@@ -214,15 +214,15 @@ Default:
 The method which should be used for logging. Valid values are:
 .TP
 \fBsyslog\fP
-Use the Linux system log. All messages will be written to the mail facility. See also
-\fBsyslog.conf\fR(5).
+Use the syslog service. Messages will be sent using the "mail" facility tag. See also
+\fBjournald.conf\fP(5) or \fBsyslog.conf\fP(5).
 .TP
 \fIfile\fR
 Log to a file. The filename will be specified in
 \fBlog_file\fR.
 .PP
 Default:
-\fIfile\fR
+(automatic: selects file if log_file is given, else syslog)
 .SS log_file
 .PP
 When logging to a file, specify the filename in this parameter. Use

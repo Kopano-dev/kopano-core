@@ -70,8 +70,8 @@ const configsetting_t* Archiver::GetConfigDefaults()
 		{ "auto_attach_writable",	"yes" },
 
 		// Log options
-		{"log_method", "file", CONFIGSETTING_NONEMPTY},
-		{"log_file", "-", CONFIGSETTING_NONEMPTY},
+		{"log_method", "auto", CONFIGSETTING_NONEMPTY},
+		{"log_file", ""},
 		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
 		{ "log_timestamp",	"yes" },
 		{ "log_buffer_size",    "0" },

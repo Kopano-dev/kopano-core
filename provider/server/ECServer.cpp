@@ -25,6 +25,7 @@
 #include <kopano/platform.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ecversion.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/stringutil.h>
 #include <kopano/scope.hpp>
 #include "soapH.h"
@@ -797,11 +798,13 @@ static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 	bool kcoidc_initialized = false;
 #endif
 
-static void cleanup(HRESULT er) {
+static void cleanup(ECRESULT er)
+{
 	if (er != erSuccess) {
-		auto msg = format("An error occurred (%x).", er);
+		auto msg = format("An error occurred: %s (0x%x).", GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 		if (g_lpConfig)
-			msg += format(" Please check logfile \"%s\" for details.", g_lpConfig->GetSetting("log_file"));
+			msg += format(" Please check logfile %s:%s for details.",
+			       g_lpConfig->GetSetting("log_method"), g_lpConfig->GetSetting("log_file"));
 		else
 			msg += " Please check logfile for details.";
 
@@ -931,8 +934,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "attachment_compression",		"6" },
 
 		// Log options
-		{"log_method", "file", CONFIGSETTING_NONEMPTY},
-		{"log_file", "-", CONFIGSETTING_NONEMPTY},
+		{"log_method", "auto", CONFIGSETTING_NONEMPTY},
+		{"log_file", ""},
 		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
 		{ "log_timestamp",				"1" },
 		{ "log_buffer_size", "0" },

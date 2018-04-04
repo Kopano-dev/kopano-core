@@ -816,6 +816,22 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 	return lpPipeLogger;
 }
 
+static void resolve_auto_logger(ECConfig *cfg)
+{
+	auto meth = cfg->GetSetting("log_method");
+	auto file = cfg->GetSetting("log_file");
+	if (meth == nullptr || strcasecmp(meth, "auto") != 0 || file == nullptr)
+		return;
+	if (*file != '\0') {
+		meth = "file";
+	} else {
+		meth = "syslog";
+		file = "-";
+	}
+	cfg->AddSetting("log_method", meth);
+	cfg->AddSetting("log_file", file);
+}
+
 /**
  * Create ECLogger object from configuration.
  *
@@ -833,6 +849,7 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 	std::string prepend;
 	int loglevel = 0;
 	int syslog_facility = LOG_MAIL;
+	resolve_auto_logger(lpConfig);
 	auto log_method = lpConfig->GetSetting("log_method");
 	auto log_file   = lpConfig->GetSetting("log_file");
 
