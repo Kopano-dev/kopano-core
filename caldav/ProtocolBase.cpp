@@ -45,14 +45,10 @@ ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession,
  */
 HRESULT ProtocolBase::HrInitializeClass()
 {
-	HRESULT hr = hrSuccess;
-	std::string strUrl;
-	std::string strMethod, strFldOwner, strFldName;
+	std::string strUrl, strMethod, strFldOwner, strFldName;
 	memory_ptr<SPropValue> lpDefaultProp, lpFldProp;
 	SPropValuePtr lpEntryID;
-	ULONG ulRes = 0;
-	bool bIsPublic = false;
-	ULONG ulType = 0;
+	ULONG ulRes = 0, ulType = 0;
 	MAPIFolderPtr lpRoot;
 
 	/* URLs
@@ -75,11 +71,10 @@ HRESULT ProtocolBase::HrInitializeClass()
 	HrParseURL(strUrl, &m_ulUrlFlag, &strFldOwner, &strFldName);
 	m_wstrFldOwner = U2W(strFldOwner);
 	m_wstrFldName = U2W(strFldName);
-	bIsPublic = m_ulUrlFlag & REQ_PUBLIC;
+	bool bIsPublic = m_ulUrlFlag & REQ_PUBLIC;
 	if (m_wstrFldOwner.empty())
 		m_wstrFldOwner = m_wstrUser;
-
-	hr = m_lpSession->OpenAddressBook(0, NULL, 0, &~m_lpAddrBook);
+	auto hr = m_lpSession->OpenAddressBook(0, nullptr, 0, &~m_lpAddrBook);
 	if(hr != hrSuccess)
 		return kc_perror("Error opening addressbook", hr);
 	// default store required for various actions (delete, freebusy, ...)
@@ -229,32 +224,26 @@ HRESULT ProtocolBase::HrInitializeClass()
 	/*
 	 * Workaround for old users with sunbird / lightning on old url base.
 	 */
-	{
-		std::vector<std::string> parts;
-		parts = tokenize(strUrl, '/', true);
-
-		m_lpRequest->HrGetHeaderValue("User-Agent", &strAgent);
-
-		// /caldav/
-		// /caldav/username/ (which we return in XML data! (and shouldn't)), since this isn't a calendar, but /caldav/username/Calendar/ is.
-		if ((strAgent.find("Sunbird/1") != std::string::npos || strAgent.find("Lightning/1") != std::string::npos) && parts.size() <= 2) {
-			// Mozilla Sunbird / Lightning doesn't handle listing of calendars, only contents.
-			// We therefore redirect them to the default calendar url.
-			SPropValuePtr ptrDisplayName;
-			auto strLocation = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8");
-
-			if (HrGetOneProp(m_lpUsrFld, PR_DISPLAY_NAME_W, &~ptrDisplayName) == hrSuccess) {
-				std::string part = urlEncode(ptrDisplayName->Value.lpszW, "UTF-8"); 
-				strLocation += "/" + part + "/";
-			} else {
-				// return 404 ?
-				strLocation += "/Calendar/";
-			}
-
-			m_lpRequest->HrResponseHeader(301, "Moved Permanently");
-			m_lpRequest->HrResponseHeader("Location", m_converter.convert_to<std::string>(strLocation));
-			return MAPI_E_NOT_ME;
+	std::vector<std::string> parts;
+	parts = tokenize(strUrl, '/', true);
+	m_lpRequest->HrGetHeaderValue("User-Agent", &strAgent);
+	// /caldav/
+	// /caldav/username/ (which we return in XML data! (and shouldn't)), since this isn't a calendar, but /caldav/username/Calendar/ is.
+	if ((strAgent.find("Sunbird/1") != std::string::npos || strAgent.find("Lightning/1") != std::string::npos) && parts.size() <= 2) {
+		// Mozilla Sunbird / Lightning doesn't handle listing of calendars, only contents.
+		// We therefore redirect them to the default calendar url.
+		SPropValuePtr ptrDisplayName;
+		auto strLocation = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8");
+		if (HrGetOneProp(m_lpUsrFld, PR_DISPLAY_NAME_W, &~ptrDisplayName) == hrSuccess) {
+			std::string part = urlEncode(ptrDisplayName->Value.lpszW, "UTF-8");
+			strLocation += "/" + part + "/";
+		} else {
+			// return 404 ?
+			strLocation += "/Calendar/";
 		}
+		m_lpRequest->HrResponseHeader(301, "Moved Permanently");
+		m_lpRequest->HrResponseHeader("Location", m_converter.convert_to<std::string>(strLocation));
+		return MAPI_E_NOT_ME;
 	}
 
 	/*
@@ -273,13 +262,13 @@ HRESULT ProtocolBase::HrInitializeClass()
 		if (hr != hrSuccess || ulCmp == TRUE)
 			m_blFolderAccess = false;
 	}
-	if (m_blFolderAccess) {
-		hr = HrGetOneProp(m_lpUsrFld, PR_SUBFOLDERS, &~lpFldProp);
-		if(hr != hrSuccess)
-			return hr;
-		if(lpFldProp->Value.b == (unsigned short)true && !strMethod.compare("DELETE"))
-			m_blFolderAccess = false;
-	}
+	if (!m_blFolderAccess)
+		return hr;
+	hr = HrGetOneProp(m_lpUsrFld, PR_SUBFOLDERS, &~lpFldProp);
+	if (hr != hrSuccess)
+		return hr;
+	if (lpFldProp->Value.b == (unsigned short)true && !strMethod.compare("DELETE"))
+		m_blFolderAccess = false;
 	return hr;
 }
 
@@ -324,7 +313,7 @@ std::string ProtocolBase::SPropValToString(const SPropValue *lpSprop)
 	std::string strRetVal;
 	
 	if (lpSprop == NULL)
-		return std::string();
+		return strRetVal;
 	if (PROP_TYPE(lpSprop->ulPropTag) == PT_SYSTIME)
 		strRetVal = stringify_int64(FileTimeToUnixTime(lpSprop->Value.ft), false);
 	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_STRING8)

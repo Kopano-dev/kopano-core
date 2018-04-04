@@ -100,8 +100,8 @@ private:
 	std::string m_strRespHeader;			//!< first header with http status code
 	std::list<std::string> m_lstHeaders;	//!< other headers
 	std::string m_strRespBody;
-	ULONG m_ulRetCode;
-	int m_ulKeepAlive;
+	unsigned int m_ulRetCode = 0;
+	int m_ulKeepAlive = 0;
 	KC::convert_context m_converter;
 
 	HRESULT HrParseHeaders();

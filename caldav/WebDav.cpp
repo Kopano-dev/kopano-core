@@ -50,22 +50,15 @@ WebDav::~WebDav()
  */
 HRESULT WebDav::HrParseXml()
 {
-	HRESULT hr = hrSuccess;
 	std::string strBody;
 
 	assert(m_lpXmlDoc == NULL);
 	if (m_lpXmlDoc != NULL)
-		return hr;
-
+		return hrSuccess;
 	m_lpRequest->HrGetBody(&strBody);
 
 	m_lpXmlDoc = xmlReadMemory((char *)strBody.c_str(),(int)strBody.length(), "PROVIDE_BASE.xml", NULL,  XML_PARSE_NOBLANKS);
-	if (m_lpXmlDoc == NULL)
-		hr = MAPI_E_INVALID_PARAMETER;
-
-	strBody.clear();
-
-	return hr;
+	return m_lpXmlDoc == nullptr ? MAPI_E_INVALID_PARAMETER : hrSuccess;
 }
 
 /**
@@ -88,19 +81,16 @@ HRESULT WebDav::HrParseXml()
  */
 HRESULT WebDav::HrPropfind()
 {
-	HRESULT hr = hrSuccess;
-		
 	WEBDAVPROPSTAT sPropStat;
 	WEBDAVRESPONSE sDavResp;
 	WEBDAVMULTISTATUS sDavMStatus;
 	WEBDAVREQSTPROPS sDavReqsProps;
 	WEBDAVPROP sDavPropRet;
-	std::string strFldPath;
-	std::string strXml;
+	std::string strFldPath, strXml;
 	xmlNode * lpXmlNode = NULL;
 
 	// libxml parser parses the xml data and returns the DomTree pointer.
-	hr = HrParseXml();
+	auto hr = HrParseXml();
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -176,13 +166,8 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 {
 	HRESULT hr = hrSuccess;
 	int ulRet;
-	std::string strNsPrefix;
-	xmlTextWriter *xmlWriter = NULL;
-	xmlBuffer *xmlBuff = NULL;
-	std::string strNs;	
-
-	strNsPrefix = "C";
-	xmlBuff = xmlBufferCreate();
+	std::string strNs, strNsPrefix = "C";
+	auto xmlBuff = xmlBufferCreate();
 	
 	if (xmlBuff == NULL)
 	{
@@ -191,7 +176,7 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 	}
 
 	//Initialize Xml-Writer
-	xmlWriter = xmlNewTextWriterMemory(xmlBuff, 0);
+	auto xmlWriter = xmlNewTextWriterMemory(xmlBuff, 0);
 	if (xmlWriter == NULL)
 	{
 		hr = MAPI_E_CALL_FAILED;
@@ -288,14 +273,10 @@ xmlfail:
  */
 HRESULT WebDav::HrReport()
 {
-	HRESULT hr;
-	xmlNode *lpXmlNode;
-	
-	hr = HrParseXml();
+	auto hr = HrParseXml();
 	if (hr != hrSuccess)
 		return hr;
-
-	lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
+	auto lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
 	if (!lpXmlNode)
 		return MAPI_E_CORRUPT_DATA;
 
@@ -347,14 +328,11 @@ HRESULT WebDav::HrReport()
 HRESULT WebDav::HrHandleRptCalQry()
 {
 	HRESULT hr = hrSuccess;
-	xmlNode * lpXmlNode = NULL;
-	xmlAttr * lpXmlAttr = NULL;
 	xmlNode * lpXmlChildAttr = NULL;
 	WEBDAVREQSTPROPS sReptQuery;
 	WEBDAVMULTISTATUS sWebMStatus;
 	std::string strXml;
-
-	lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
+	auto lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
 	if (!lpXmlNode)
 	{
 		hr = MAPI_E_CORRUPT_DATA;
@@ -379,8 +357,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 			}
 			HrSetDavPropName(&(sReptQuery.sFilter.sPropName),lpXmlNode);
 			auto lpXmlChildNode = lpXmlNode->children;
-
-			lpXmlAttr = lpXmlChildNode->properties;
+			auto lpXmlAttr = lpXmlChildNode->properties;
 			if (lpXmlAttr && lpXmlAttr->children)
 				lpXmlChildAttr = lpXmlAttr->children;
 			else
@@ -501,11 +478,8 @@ HRESULT WebDav::HrHandleRptMulGet()
 	HRESULT hr = hrSuccess;
 	WEBDAVRPTMGET sRptMGet;
 	WEBDAVMULTISTATUS sWebMStatus;
-	xmlNode * lpXmlNode = NULL;
-	xmlNode * lpXmlContentNode = NULL;
 	std::string strXml;
-	
-	lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
+	auto lpXmlNode = xmlDocGetRootElement(m_lpXmlDoc);
 	if (!lpXmlNode)
 	{
 		hr = MAPI_E_CORRUPT_DATA;
@@ -543,7 +517,7 @@ HRESULT WebDav::HrHandleRptMulGet()
 		WEBDAVVALUE sWebVal;
 		std::string strGuid;
 		size_t found = 0;
-		lpXmlContentNode = lpXmlChildNode->children;
+		auto lpXmlContentNode = lpXmlChildNode->children;
 
 		HrSetDavPropName(&(sWebVal.sPropName),lpXmlChildNode);
 		strGuid.assign((const char *) lpXmlContentNode->content);

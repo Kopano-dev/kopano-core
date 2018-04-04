@@ -45,14 +45,10 @@ using namespace KC;
 HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpstrUrlUser, std::string *lpstrFolder)
 {
 	HRESULT hr = hrSuccess;
-	std::string strService;
-	std::string strFolder;
-	std::string strUrlUser;
-	std::vector<std::string> vcUrlTokens;
-	decltype(vcUrlTokens)::const_iterator iterToken;
+	std::string strService, strFolder, strUrlUser;
 	ULONG ulFlag = 0;
-
-	vcUrlTokens = tokenize(strUrl, L'/', true);
+	auto vcUrlTokens = tokenize(strUrl, L'/', true);
+	decltype(vcUrlTokens)::const_iterator iterToken;
 	if (vcUrlTokens.empty())
 		// root should be present, no flags are set. mostly used on OPTIONS command
 		goto exit;
@@ -113,14 +109,9 @@ exit:
 	return hr;
 }
 
-Http::Http(ECChannel *lpChannel, ECConfig *lpConfig)
-{
-	m_lpChannel = lpChannel;
-	m_lpConfig = lpConfig;
-
-	m_ulKeepAlive = 0;
-	m_ulRetCode = 0;
-}
+Http::Http(ECChannel *lpChannel, ECConfig *lpConfig) :
+	m_lpChannel(lpChannel), m_lpConfig(lpConfig)
+{}
 
 /**
  * Reads the http headers from the channel and Parses them
@@ -190,12 +181,9 @@ HRESULT Http::HrParseHeaders()
 	HRESULT hr;
 	std::string strAuthdata;
 	std::string strUserAgent;
-
-	std::vector<std::string> items;
-	std::string user_pass;
 	size_t colon_pos;
 
-	items = tokenize(m_strAction, ' ', true);
+	auto items = tokenize(m_strAction, ' ', true);
 	if (items.size() != 3) {
 		ec_log_debug("HrParseHeaders invalid != 3 tokens");
 		return MAPI_E_INVALID_PARAMETER;
@@ -242,8 +230,7 @@ HRESULT Http::HrParseHeaders()
 		ec_log_debug("HrParseHeaders login failed");
 		return MAPI_E_LOGON_FAILED;
 	}
-
-	user_pass = base64_decode(items[1]);
+	auto user_pass = base64_decode(items[1]);
 	if((colon_pos = user_pass.find(":")) == std::string::npos) {
 		ec_log_debug("HrParseHeaders password missing");
 		return MAPI_E_LOGON_FAILED;
@@ -344,13 +331,11 @@ HRESULT Http::HrGetBody(std::string *strBody)
  */
 HRESULT Http::HrGetDepth(ULONG *ulDepth)
 {
-	HRESULT hr = hrSuccess;
 	std::string strDepth;
-
 	/*
 	 * Valid input: [0, 1, infinity]
 	 */
-	hr = HrGetHeaderValue("Depth", &strDepth);
+	auto hr = HrGetHeaderValue("Depth", &strDepth);
 	if (hr != hrSuccess)
 		*ulDepth = 0; /* Default is no subfolders. Default should become a parameter. It is action dependent. */
 	else if (strDepth.compare("infinity") == 0)
@@ -375,8 +360,7 @@ HRESULT Http::HrGetDepth(ULONG *ulDepth)
  */
 bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 {
-	bool ret = false;
-	bool invert = false;
+	bool ret = false, invert = false;
 	std::string strIf, strValue;
 	SPropValuePtr ptrLastModTime;
 
@@ -444,13 +428,10 @@ HRESULT Http::HrGetCharSet(std::string *strCharset)
  */
 HRESULT Http::HrGetDestination(std::string *strDestination)
 {
-	HRESULT hr;
-	std::string strHost;
-	std::string strDest;
-	size_t pos;
+	std::string strHost, strDest;
 
 	// example:  Host: server:port
-	hr = HrGetHeaderValue("Host", &strHost);
+	auto hr = HrGetHeaderValue("Host", &strHost);
 	if(hr != hrSuccess) {
 		ec_log_debug("Http::HrGetDestination host header missing");
 		return hr;
@@ -462,8 +443,7 @@ HRESULT Http::HrGetDestination(std::string *strDestination)
 		ec_log_debug("Http::HrGetDestination destination header missing");
 		return hr;
 	}
-
-	pos = strDest.find(strHost);
+	auto pos = strDest.find(strHost);
 	if (pos == std::string::npos) {
 		ec_log_err("Refusing to move calendar item from %s to different host on url %s", strHost.c_str(), strDest.c_str());
 		return MAPI_E_CALL_FAILED;
@@ -480,8 +460,6 @@ HRESULT Http::HrGetDestination(std::string *strDestination)
  */
 HRESULT Http::HrReadBody()
 {
-	HRESULT hr = hrSuccess;
-	int ulContLength;
 	std::string strLength;
 
 	// find the Content-Length
@@ -489,14 +467,12 @@ HRESULT Http::HrReadBody()
 		ec_log_debug("Http::HrReadBody content-length missing");
 		return MAPI_E_NOT_FOUND;
 	}
-
-	ulContLength = atoi((char*)strLength.c_str());
+	auto ulContLength = atoi(strLength.c_str());
 	if (ulContLength <= 0) {
 		ec_log_debug("Http::HrReadBody content-length invalid %d", ulContLength);
 		return MAPI_E_NOT_FOUND;
 	}
-
-	hr = m_lpChannel->HrReadBytes(&m_strReqBody, ulContLength);
+	auto hr = m_lpChannel->HrReadBytes(&m_strReqBody, ulContLength);
 	if (!m_strUser.empty())
 		ec_log_debug("Request body:\n%s\n", m_strReqBody.c_str());
 
@@ -515,7 +491,6 @@ HRESULT Http::HrValidateReq()
 		"PROPFIND", "REPORT", "MKCALENDAR", "PROPPATCH", "MOVE", NULL,
 	};
 	bool bFound = false;
-	int i;
 
 	if (m_strMethod.empty())
 		return kc_perror("HTTP request method is empty", MAPI_E_INVALID_PARAMETER);
@@ -523,8 +498,7 @@ HRESULT Http::HrValidateReq()
 		ec_log_err("Denying iCalendar GET since it is disabled");
 		return MAPI_E_NO_ACCESS;
 	}
-
-	for (i = 0; lpszMethods[i] != NULL; ++i) {
+	for (unsigned int i = 0; lpszMethods[i] != nullptr; ++i) {
 		if (m_strMethod.compare(lpszMethods[i]) == 0) {
 			bFound = true;
 			break;
@@ -730,9 +704,8 @@ HRESULT Http::HrRequestAuth(const std::string &strMsg)
 HRESULT Http::HrFlushHeaders()
 {
 	HRESULT hr = hrSuccess;
-	std::string strOutput;
+	std::string strOutput, strConnection;
 	char lpszChar[128];
-	std::string strConnection;
 
 	HrGetHeaderValue("Connection", &strConnection);
 
