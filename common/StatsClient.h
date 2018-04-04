@@ -29,6 +29,7 @@
 #include <sys/un.h>
 
 #include <kopano/ECLogger.h>
+#include <kopano/memory.hpp>
 
 namespace KC {
 
@@ -38,8 +39,7 @@ private:
 	struct sockaddr_un addr;
 	int addr_len = 0;
 	bool thread_running = false;
-	ECLogger *const logger;
-
+	object_ptr<ECLogger> logger;
 	pthread_t countsSubmitThread;
 public:
 	std::atomic<bool> terminate{false};
