@@ -23,6 +23,8 @@ CONFIG = {
     'ham_dir': Config.string(default="/var/lib/kopano/spamd/ham"),
     'spam_db': Config.string(default="/var/lib/kopano/spamd/spam.db"),
     'sa_group': Config.string(default="amavis"),
+    'run_as_user': Config.string(default="kopano"),
+    'run_as_group': Config.string(default="kopano"),
     'learn_ham': Config.boolean(default=True)
 }
 

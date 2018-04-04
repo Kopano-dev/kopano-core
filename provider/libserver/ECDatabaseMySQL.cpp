@@ -79,6 +79,8 @@ static const sUpdateList_t sUpdateList[] = {
 	{ Z_UPDATE_CHANGES_PKEY, 0, "Updating changes table", UpdateChangesTbl },
 	{Z_DROP_CLIENTUPDATESTATUS_PKEY, 0, "Drop clientupdatestatus table", DropClientUpdateStatusTbl},
 	{68, 0, "Perform column type upgrade missed in SVN r23897", db_update_68},
+	{69, 0, "Update \"names\" with uniqueness constraints", db_update_69},
+	{70, 0, "names.guid change from blob to binary(16); drop old indexes", db_update_70},
 };
 
 static const char *const server_groups[] = {
@@ -241,6 +243,10 @@ int zcp_versiontuple::compare(const zcp_versiontuple &rhs) const
 ECDatabase::ECDatabase(ECConfig *cfg) :
     m_lpConfig(cfg)
 {
+	auto s = cfg->GetSetting("mysql_database");
+	if (s != nullptr)
+		/* used by db_update_69 */
+		m_dbname = s;
 }
 
 ECDatabase::~ECDatabase(void)
@@ -407,9 +413,6 @@ ECRESULT ECDatabase::Query(const std::string &strQuery)
 		if (!m_bSuppressLockErrorLogging || GetLastError() == DB_E_UNKNOWN)
 			ec_log_err("SQL [%08lu] Failed: %s, Query Size: %zu, Query: \"%s\"", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL), strQuery.size(), strQuery.c_str());
 		er = KCERR_DATABASE_ERROR;
-		// Don't assert on ER_NO_SUCH_TABLE because it's an anticipated error in the db upgrade code.
-		if (mysql_errno(&m_lpMySQL) != ER_NO_SUCH_TABLE)
-			assert(false);
 	}
 	return er;
 }
@@ -848,7 +851,7 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 	if (cmp == 0 && stored_ver.v_schema == Z_UPDATE_LAST) {
 		// up to date
 		return erSuccess;
-	} else if (cmp > 0) {
+	} else if (cmp > 0 || (cmp == 0 && stored_ver.v_schema > Z_UPDATE_LAST)) {
 		// Start a old server with a new database
 		strReport = "Database version (" + stored_ver.stringify(',') +
 		            ") is newer than the server version (" + program_ver.stringify(',') + ")";
@@ -879,7 +882,6 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 		} else if (er == KCERR_USER_CANCEL) {
 			return er; // Reason should be logged in the update itself.
 		} else if (er != hrSuccess) {
-			ec_log_err("Failed: Rollback database");
 			return er;
 		}
 

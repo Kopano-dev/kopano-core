@@ -364,9 +364,14 @@ typedef EID * PEID;
 #define KOPANO_CAP_MAX_ABCHANGEID		0x2000
 // Client can read and write binary anonymous ab properties
 #define KOPANO_CAP_EXTENDED_ANON		0x4000
+/*
+ * Client knows how to handle (or at least, error-handle) 32-bit IDs
+ * returned from the getIDsForNames RPC.
+ */
+#define KOPANO_CAP_GIFN32 0x8000
 
 // Do *not* use this from a client. This is just what the latest server supports.
-#define KOPANO_LATEST_CAPABILITIES		KOPANO_CAP_CRYPT | KOPANO_CAP_LICENSE_SERVER | KOPANO_CAP_LOADPROP_ENTRYID | KOPANO_CAP_EXPORT_PROPTAG | KOPANO_CAP_IMPERSONATION
+#define KOPANO_LATEST_CAPABILITIES (KOPANO_CAP_CRYPT | KOPANO_CAP_LICENSE_SERVER | KOPANO_CAP_LOADPROP_ENTRYID | KOPANO_CAP_EXPORT_PROPTAG | KOPANO_CAP_IMPERSONATION | KOPANO_CAP_GIFN32)
 
 //
 // Logon flags, sent with ns__logon()

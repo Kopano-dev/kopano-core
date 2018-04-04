@@ -53,6 +53,7 @@ public:
 	void ThreadEnd(void);
 	void ThreadInit(void);
 	ECRESULT UpdateDatabase(bool force_update, std::string &report);
+	const std::string &get_dbname() const { return m_dbname; }
 
 	private:
 	ECRESULT InitializeDBStateInner(void);
@@ -62,7 +63,7 @@ public:
 	ECRESULT UpdateDatabaseVersion(unsigned int ulDatabaseRevision);
 	virtual ECRESULT Query(const std::string &q) _kc_override;
 
-	std::string error;
+	std::string error, m_dbname;
 	bool m_bForceUpdate = false, m_bFirstResult = false;
 	ECConfig *m_lpConfig = nullptr;
 #ifdef DEBUG

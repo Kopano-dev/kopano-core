@@ -84,7 +84,7 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
     // Search for all folders with PR_EC_SEARCHCRIT that are not deleted. Note that this query can take quite some time on large databases
 	auto strQuery = "SELECT h.id, p.val_ulong, p2.val_string FROM hierarchy AS h"
 		" LEFT JOIN properties AS p ON h.id=p.hierarchyid AND p.tag=" + stringify(PROP_ID(PR_EC_SEARCHFOLDER_STATUS)) + " AND p.type=" + stringify(PROP_TYPE(PR_EC_SEARCHFOLDER_STATUS)) +
-		" LEFT JOIN properties AS p2 ON h.id=p2.hierarchyid AND p.tag=" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) + " AND p.type=" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)) +
+		" LEFT JOIN properties AS p2 ON h.id=p2.hierarchyid AND p2.tag=" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) + " AND p2.type=" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)) +
 		" WHERE h.type=3 AND h.flags=2";
     struct searchCriteria *lpSearchCriteria = NULL;
     

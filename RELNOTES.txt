@@ -1,5 +1,15 @@
-8.6
-===
+8.6.1
+=====
+Includes changes from 8.5.6.
+Fixes:
+* swig: fix type error in SaveChanges(FILETIME, FILETIME)
+* storeadm: honor config file and SSL parameters
+Enhancements:
+* pyko: add Python 3.4 compatibility
+
+
+8.6 (2018-03-08)
+================
 Enhancements:
 * spooler: rules support testing for out-of-office flag [KC-119]
 * kopano-spamd: new daemon for spam learning in Kopano/SpamAssasin [KC-666]
@@ -23,6 +33,22 @@ Fixes:
 =====
 Fixes:
 * backup: ignore error when server cannot find attachments [KC-1056]
+* server: search folders were not loaded on startup [KC-1074]
+* monitor: handle absence of config file [KC-1095]
+* dagent: do not treat -d option like -c was given [KC-1096]
+* server: fix a case where an old kopano-server would refuse to
+  start with a newer database even if --ignore-da was used
+* server: fix server/client getting slower when named properties
+  are created multiple times [KC-1108]
+* client: fix data corruption when server returns high named property
+  IDs [KC-1107]
+Changes (generally requires admin action):
+* inetmapi: stop treating empty indexed_headers as "X-*" [KC-1107]
+* dagent: cease indexing X-Headers by default [KC-1107]
+* dagent: turn indexed_headers from a prefix list into an exact-match set
+  [KC-1107]
+* If you need certain e-mail headers copied into named properties, they MUST
+  be explicitly listed _one by one_ in dagent.cfg:indexed_headers now.
 Enhancements:
 * server: reorder SQL log messages so the error is shown first,
   and do say when the message was truncated [KC-1053]

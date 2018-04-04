@@ -22,6 +22,7 @@
 #include <mapicode.h>
 
 #include <list>
+#include <kopano/ECLogger.h>
 #include "Mem.h"
 #include "ECNamedProp.h"
 #include "WSTransport.h"
@@ -82,6 +83,7 @@ static const struct _sLocalNames {
 					{{ 0x6ED8DA90, 0x450B, 0x101B, { 0x98, 0xDA, 0x00, 0xAA, 0x00, 0x3F, 0x13, 0x05} } , 0x0000, 0x003F, 0x8340}};
 
 #define SERVER_NAMED_OFFSET	0x8500
+#define SERVER_MAX_NPID (0xFFFF - SERVER_NAMED_OFFSET)
 
 /**
  * Sort function
@@ -149,7 +151,7 @@ HRESULT ECNamedProp::GetNamesFromIDs(SPropTagArray **lppPropTags,
 		if (lppPropNames[i] != NULL)
 			continue;
 		if (PROP_ID(lpsPropTags->aulPropTag[i]) > SERVER_NAMED_OFFSET)
-			ResolveReverseCache(PROP_ID(lpsPropTags->aulPropTag[i]), lpPropSetGuid, ulFlags, lppPropNames, &lppPropNames[i]);
+			ResolveReverseCache(PROP_ID(lpsPropTags->aulPropTag[i]) - SERVER_NAMED_OFFSET, lpPropSetGuid, ulFlags, lppPropNames, &lppPropNames[i]);
 		// else { Hmmm, so here is a named property, which is < SERVER_NAMED_OFFSET, but CANNOT be
 		// resolved internally. Looks like somebody's pulling our leg ... We just leave it unknown }
 	}
@@ -178,13 +180,13 @@ HRESULT ECNamedProp::GetNamesFromIDs(SPropTagArray **lppPropTags,
 			return MAPI_E_CALL_FAILED;
 		for (unsigned int i = 0; i < cResolved; ++i)
 			if(lppResolved[i] != NULL)
-				UpdateCache(lpsUnresolved->aulPropTag[i] + SERVER_NAMED_OFFSET, lppResolved[i]);
+				UpdateCache(lpsUnresolved->aulPropTag[i], lppResolved[i]);
 
 		// re-scan the cache
 		for (unsigned int i = 0; i < lpsPropTags->cValues; ++i)
 			if (lppPropNames[i] == NULL)
 				if (PROP_ID(lpsPropTags->aulPropTag[i]) > SERVER_NAMED_OFFSET)
-					ResolveReverseCache(PROP_ID(lpsPropTags->aulPropTag[i]), lpPropSetGuid, ulFlags, lppPropNames, &lppPropNames[i]);
+					ResolveReverseCache(PROP_ID(lpsPropTags->aulPropTag[i]) - SERVER_NAMED_OFFSET, lpPropSetGuid, ulFlags, lppPropNames, &lppPropNames[i]);
 	}
 
 	// Check for errors
@@ -244,7 +246,7 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 		// Put the names into the local cache for all the IDs the server gave us
 		for (unsigned int i = 0; i < cUnresolved; ++i)
 			if(lpServerIDs[i] != 0)
-				UpdateCache(lpServerIDs[i] + SERVER_NAMED_OFFSET, lppPropNamesUnresolved[i]);
+				UpdateCache(lpServerIDs[i], lppPropNamesUnresolved[i]);
 
 		// Pass 4, re-resolve from local cache (FAST)
 		for (unsigned int i = 0; i < cPropNames; ++i)
@@ -292,7 +294,9 @@ HRESULT ECNamedProp::ResolveReverseCache(ULONG ulId, const GUID *lpGuid,
 	// Loop through the map to find the reverse-lookup of the named property. This could be speeded up by
 	// used a bimap (bi-directional map)
 
-	for (const auto &p : mapNames)
+	for (const auto &p : mapNames) {
+		if (p.second >= SERVER_MAX_NPID)
+			continue;
 		if (p.second == ulId) { // FIXME match GUID
 			if (lpGuid != nullptr)
 				assert(memcmp(lpGuid, p.first->lpguid, sizeof(GUID)) == 0); // TEST michel
@@ -300,7 +304,7 @@ HRESULT ECNamedProp::ResolveReverseCache(ULONG ulId, const GUID *lpGuid,
 			hr = HrCopyNameId(p.first, lppName, lpBase);
 			break;
 		}
-
+	}
 	return hr;
 }
 
@@ -350,6 +354,11 @@ HRESULT ECNamedProp::UpdateCache(ULONG ulId, MAPINAMEID *lpName)
 	if(hr != hrSuccess)
 		return hr;
 	mapNames[lpNameCopy.release()] = ulId;
+	static bool warn_range_exceeded;
+	if (ulId >= SERVER_MAX_NPID && !warn_range_exceeded) {
+		warn_range_exceeded = true;
+		ec_log_err("K-1222: Server returned a high namedpropid (0x%x) which this client cannot deal with.", ulId);
+	}
 	return hrSuccess;
 }
 
@@ -358,7 +367,11 @@ HRESULT ECNamedProp::ResolveCache(MAPINAMEID *lpName, ULONG *lpulPropTag)
 	auto iterMap = mapNames.find(lpName);
 	if (iterMap == mapNames.cend())
 		return MAPI_E_NOT_FOUND;
-	*lpulPropTag = PROP_TAG(PT_UNSPECIFIED, iterMap->second);
+	if (iterMap->second >= SERVER_MAX_NPID) {
+		*lpulPropTag = PROP_TAG(PT_ERROR, 0);
+		return MAPI_W_ERRORS_RETURNED;
+	}
+	*lpulPropTag = PROP_TAG(PT_UNSPECIFIED, SERVER_NAMED_OFFSET + iterMap->second);
 	return hrSuccess;
 }
 

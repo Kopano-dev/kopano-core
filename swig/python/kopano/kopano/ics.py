@@ -42,7 +42,10 @@ from .compat import benc as _benc, bdec as _bdec
 
 if sys.hexversion >= 0x03000000:
     from . import item as _item
-    from . import folder as _folder
+    try:
+        from . import folder as _folder
+    except ImportError:
+        _folder = sys.modules[__package__+'.folder']
     from . import user as _user
     try:
         from . import store as _store

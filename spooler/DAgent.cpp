@@ -3440,7 +3440,6 @@ int main(int argc, char *argv[]) {
 			//-d the Dagent is daemonized; service LMTP over socket starts listening on port 2003
 			bDaemonize = true;
 			bListenLMTP = true;
-			bExplicitConfig = true;
 			break;
 		
 		case OPT_HOST:

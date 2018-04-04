@@ -30,7 +30,10 @@ from .pidlid import (
     PidLidBusyStatus, PidLidGlobalObjectId, PidLidRecurring,
 )
 if sys.hexversion >= 0x03000000:
-    from . import utils as _utils
+    try:
+        from . import utils as _utils
+    except ImportError:
+        _utils = sys.modules[__package__+'.utils']
 else:
     import utils as _utils
 

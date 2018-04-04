@@ -153,7 +153,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	unsigned int	ulCapabilities = 0;
+	unsigned int ulCapabilities = KOPANO_CAP_GIFN32;
 	unsigned int	ulLogonFlags = 0;
 	unsigned int	ulServerCapabilities = 0;
 	ECSESSIONID	ecSessionId = 0;

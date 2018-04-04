@@ -1,4 +1,4 @@
-#!/usr/bin/env @PYTHON@
+#!@PYTHON@
 import sys
 from kopano_utils import autorespond
 from kopano_utils import __version__

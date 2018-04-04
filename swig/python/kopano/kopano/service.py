@@ -27,7 +27,8 @@ if sys.hexversion >= 0x03000000:
         import daemon # picks system version
         import daemon.pidfile as pidlockfile
     except ImportError:
-        pass
+        from . import daemon # fallback to bundled version
+        from .daemon import pidlockfile
 
     from . import config as _config
     from . import log as _log

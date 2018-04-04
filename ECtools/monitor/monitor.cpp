@@ -140,7 +140,7 @@ int main(int argc, char *argv[]) {
 	const char *szConfig = ECConfig::GetDefaultPath("monitor.cfg");
 	const char *szPath = NULL;
 	int daemonize = 1;
-	bool bIgnoreUnknownConfigOptions = false;
+	bool bIgnoreUnknownConfigOptions = false, exp_config = false;
 
 	// Default settings
 	static const configsetting_t lpDefaults[] = {
@@ -199,6 +199,7 @@ int main(int argc, char *argv[]) {
 		case OPT_CONFIG:
 		case 'c':
 			szConfig = optarg;
+			exp_config = true;
 			break;
 		case OPT_HOST:
 		case 'h':
@@ -234,7 +235,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	m_lpThreadMonitor->lpConfig.reset(ECConfig::Create(lpDefaults));
-	if (!m_lpThreadMonitor->lpConfig->LoadSettings(szConfig) ||
+	if (!m_lpThreadMonitor->lpConfig->LoadSettings(szConfig, !exp_config) ||
 	    m_lpThreadMonitor->lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors())) {
 		/* Create fatal logger without a timestamp to stderr. */
