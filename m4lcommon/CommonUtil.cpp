@@ -1872,16 +1872,6 @@ HRESULT UnWrapStoreEntryID(ULONG cbOrigEntry, const ENTRYID *lpOrigEntry,
 	return hrSuccess;
 }
 
-/**
- * An enumeration for getting the localfreebusy from the calendar or from the free/busy data folder.
- *
- * @note it's also the array position of property PR_FREEBUSY_ENTRYIDS
- */
-enum DGMessageType { 
-	dgAssociated = 0,	/**< Localfreebusy message in default associated calendar folder */
-	dgFreebusydata = 1	/**< Localfreebusy message in Free/busy data folder */
-};
-
 // Default freebusy publish months
 #define ECFREEBUSY_DEFAULT_PUBLISH_MONTHS		6
 
@@ -1959,7 +1949,7 @@ static HRESULT CreateLocalFreeBusyMessage(LPMAPIFOLDER lpFolder, ULONG ulFlags,
  *			Local free/busy message is not exist
  *
  */
-static HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
+HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
     IMsgStore *lpMsgStore, bool bCreateIfMissing, IMessage **lppFBMessage)
 {
 	object_ptr<IMAPIFolder> lpRoot, lpInbox;

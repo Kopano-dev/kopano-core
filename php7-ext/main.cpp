@@ -32,6 +32,7 @@
 #include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
 #include <kopano/MAPIErrors.h>
+#include <kopano/CommonUtil.h>
 #include <ICalToMAPI.h>
 #include <MAPIToICal.h>
 #include <libicalmapi/mapitovcf.hpp>
@@ -415,6 +416,7 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_zarafa_getpermissionrules, NULL)
 	ZEND_FE(mapi_zarafa_setpermissionrules, NULL)
 
+	ZEND_FE(mapi_freebusy_openmsg, NULL)
 	ZEND_FE(mapi_freebusysupport_open, NULL)
 	ZEND_FE(mapi_freebusysupport_close, NULL)
 	ZEND_FE(mapi_freebusysupport_loaddata, NULL)
@@ -5536,6 +5538,28 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 		return;
 
 	RETVAL_TRUE;
+}
+
+ZEND_FUNCTION(mapi_freebusy_openmsg)
+{
+	object_ptr<IMessage> retval;
+	zval *res_store = nullptr;
+	IMsgStore *store = nullptr;
+
+	auto laters = make_scope_success([&]() { LOG_END(); THROW_ON_ERROR(); });
+
+	RETVAL_FALSE;
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res_store) == FAILURE)
+		return;
+	ZEND_FETCH_RESOURCE_C(store, LPMDB, &res_store, -1, name_mapi_msgstore, le_mapi_msgstore);
+
+	MAPI_G(hr) = OpenLocalFBMessage(dgFreebusydata, store, true, &~retval);
+	if (MAPI_G(hr) != hrSuccess)
+		return;
+
+	ZEND_REGISTER_RESOURCE(return_value, retval.release(), le_mapi_message);
 }
 
 ZEND_FUNCTION(mapi_freebusysupport_open)
