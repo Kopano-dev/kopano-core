@@ -295,6 +295,16 @@ to use when encountering mail bodies with unrecognized character set encodings.
 This is a \fBlossy\fP operation; its use is not recommended. Normally, dagent
 would store such mail bodies as attachments to preserve their content, with
 decoding left to the user who can try any number of encodings, not just one.
+.SS indexed_headers
+.PP
+By default, only well-known headers of an e-mail that Kopano makes use of (or
+which Outlook makes use of), such as From, To, and so on, are turned into MAPI
+properties. All others are generally discarded during the transformation of the
+e-mail to a MAPI message. If your organization needs certain fields to persist
+within the MAPI message, the indexed_headers directive may be used to list
+the header fields to keep.
+.PP
+Default: (empty)
 .RE
 .SH "RELOADING"
 .PP

@@ -38,7 +38,7 @@ public:
 
 private:
 	KC::object_ptr<WSTransport> lpTransport;
-	std::map<MAPINAMEID *,ULONG,ltmap>		mapNames;
+	std::map<MAPINAMEID *, unsigned int, ltmap> mapNames;
 
 	HRESULT			ResolveLocal(MAPINAMEID *lpName, ULONG *ulId);
 	HRESULT			ResolveCache(MAPINAMEID *lpName, ULONG *ulId);

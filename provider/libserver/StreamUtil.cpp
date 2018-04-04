@@ -75,6 +75,11 @@ static inline bool operator<(const GUID &lhs, const GUID &rhs)
 
 namespace KC {
 
+enum {
+	SERVER_NAMED_OFFSET = 0x8500,
+	MAX_SERVER_NPID = 0xFFFF - SERVER_NAMED_OFFSET,
+};
+
 class ECStreamSerializer _kc_final : public ECSerializer {
 	public:
 	ECStreamSerializer(IStream *lpBuffer);
@@ -307,8 +312,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 			ec_log_err("NamedPropertyMapper::GetId(): column null");
 			return KCERR_DATABASE_ERROR;
 		}
-
-		*lpulId = atoui((char*)lpRow[0]) + 0x8501;
+		*lpulId = strtoul(lpRow[0], nullptr, 0);
 	} else {
 		// Create the named property
 		strQuery = 
@@ -317,8 +321,12 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 		er = m_lpDatabase->DoInsert(strQuery, lpulId);
 		if (er != erSuccess)
 			return er;
-		*lpulId += 0x8501;
 	}
+	if (*lpulId >= MAX_SERVER_NPID) {
+		ec_log_err("K-1224: %s encountered unrecoverable high namedpropid (0x%x)", __PRETTY_FUNCTION__, *lpulId);
+		return KCERR_INVALID_TYPE;
+	}
+	*lpulId += 0x8501;
 
 	// *lpulId now contains the local propid, update the cache
 	m_mapNameIds.emplace(key, *lpulId);
@@ -355,8 +363,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 			ec_log_err("NamedPropertyMapper::GetId(): column null");
 			return KCERR_DATABASE_ERROR;
 		}
-
-		*lpulId = atoui((char*)lpRow[0]) + 0x8501;
+		*lpulId = strtoul(lpRow[0], nullptr, 0);
 	} else {
 		// Create the named property
 		strQuery = 
@@ -365,8 +372,12 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 		er = m_lpDatabase->DoInsert(strQuery, lpulId);
 		if (er != erSuccess)
 			return er;
-		*lpulId += 0x8501;
 	}
+	if (*lpulId >= MAX_SERVER_NPID) {
+		ec_log_err("K-1225: %s encountered unrecoverable high namedpropid (0x%x)", __PRETTY_FUNCTION__, *lpulId);
+		return KCERR_INVALID_TYPE;
+	}
+	*lpulId += 0x8501;
 
 	// *lpulId now contains the local propid, update the cache
 	m_mapNameStrings.emplace(key, *lpulId);
@@ -1415,8 +1426,12 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 			if (er == erSuccess)
 				er = namedPropertyMapper.GetId(guid, strNameString, &ulLocalId);
 		}
-		if (er == erSuccess)
-			lpsPropval->ulPropTag = PROP_TAG(PROP_TYPE(lpsPropval->ulPropTag), ulLocalId);
+		if (er == erSuccess) {
+			if (ulLocalId == 0)
+				lpsPropval->ulPropTag = PROP_TAG(PT_ERROR, 0);
+			else
+				lpsPropval->ulPropTag = PROP_TAG(PROP_TYPE(lpsPropval->ulPropTag), ulLocalId);
+		}
 	}
 
 	*lppsPropval = lpsPropval;
