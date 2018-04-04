@@ -3296,6 +3296,19 @@ static void print_help(const char *name)
 	cout << endl;
 }
 
+static int get_return_value(HRESULT hr, bool listen_lmtp, bool qmail)
+{
+	if (hr == hrSuccess || listen_lmtp)
+		return EX_OK;
+
+	if (g_bTempfail)
+		// please retry again later.
+		return qmail ? 111 : EX_TEMPFAIL;
+
+	// fatal error, mail was undelivered (or Fallback delivery, but still return an error)
+	return qmail ? 100 : EX_SOFTWARE;
+}
+
 int main(int argc, char *argv[]) {
 	FILE *fp = stdin;
 	HRESULT hr = hrSuccess;
@@ -3512,13 +3525,14 @@ int main(int argc, char *argv[]) {
 	}
 
 	g_lpConfig = ECConfig::Create(lpDefaults);
+	auto free_config = make_scope_success([&]() { delete g_lpConfig; });
 	/* When LoadSettings fails, provide warning to user (but wait until we actually have the Logger) */
 	if (!g_lpConfig->LoadSettings(szConfig))
 		bDefaultConfigWarning = true;
 	else {
 		auto argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind]);
 		if (argidx < 0)
-			goto exit;
+			return get_return_value(hr, bListenLMTP, qmail);
 		if (argidx > 0)
 			// If one overrides the config, it is assumed that the
 			// config is explicit. This causes errors from
@@ -3553,6 +3567,8 @@ int main(int argc, char *argv[]) {
 		/* raise loglevel if there are more -v on the command line than in dagent.cfg */
 		g_lpLogger->SetLoglevel(loglevel);
 
+	auto free_logger = make_scope_success([&]() { DeleteLogger(g_lpLogger); });
+
 	/* Warn users that we are using the default configuration */
 	if (bDefaultConfigWarning && bExplicitConfig) {
 		ec_log_err("Unable to open configuration file %s", szConfig);
@@ -3567,8 +3583,7 @@ int main(int argc, char *argv[]) {
 	/* If something went wrong, create special Logger, log message and bail out */
 	if (g_lpConfig->HasErrors() && bExplicitConfig) {
 		LogConfigErrors(g_lpConfig);
-		hr = E_FAIL;
-		goto exit;
+		return get_return_value(E_FAIL, bListenLMTP, qmail);
 	}
 	if (g_dump_config)
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -3608,6 +3623,7 @@ int main(int argc, char *argv[]) {
 	st.ss_sp = malloc(65536);
 	st.ss_flags = 0;
 	st.ss_size = 65536;
+	auto free_st_ss_sp = make_scope_success([&]() { free(st.ss_sp); });
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
 	sigemptyset(&act.sa_mask);
@@ -3626,7 +3642,7 @@ int main(int argc, char *argv[]) {
 		/* MAPIInitialize done inside running_service */
 		hr = running_service(argv[0], bDaemonize, &sDeliveryArgs);
 		if (hr != hrSuccess)
-			goto exit;
+			return get_return_value(hr, true, qmail);
 	}
 	else {
 		PyMapiPluginFactory pyMapiPluginFactory;
@@ -3639,37 +3655,26 @@ int main(int argc, char *argv[]) {
 		if (hr != hrSuccess) {
 			ec_log_crit("Unable to initialize MAPI: %s (%x)",
 				GetMAPIErrorMessage(hr), hr);
-			goto exit;
+			return get_return_value(hr, false, qmail);
 		}
 
+		auto uninit = make_scope_success([&]() { MAPIUninitialize(); });
+
 		sc = new StatsClient(g_lpLogger);
+		auto free_sc = make_scope_success([&]() { delete sc; });
 		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 		hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 		if (hr != hrSuccess) {
 			ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
 				GetMAPIErrorMessage(hr), hr);
-			hr = MAPI_E_CALL_FAILED;
-			goto nonlmtpexit;
+			return get_return_value(MAPI_E_CALL_FAILED, false, qmail);
 		}
 
 		hr = deliver_recipients(ptrPyMapiPlugin.get(), argc - optind, argv + optind, strip_email, fp, &sDeliveryArgs);
 		if (hr != hrSuccess)
 			kc_perrorf("deliver_recipient failed", hr);
 		fclose(fp);
- nonlmtpexit:
-		MAPIUninitialize();
 	}
-exit:
-	delete sc;
-	DeleteLogger(g_lpLogger);
 
-	delete g_lpConfig;
-	free(st.ss_sp);
-	if (hr == hrSuccess || bListenLMTP)
-		return EX_OK;			// 0
-
-	if (g_bTempfail)
-		return qmail ? 111 : EX_TEMPFAIL;		// please retry again later.
-
-	return qmail ? 100 : EX_SOFTWARE;			// fatal error, mail was undelivered (or Fallback delivery, but still return an error)
+	return get_return_value(hr, bListenLMTP, qmail);
 }
