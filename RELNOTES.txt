@@ -1,5 +1,5 @@
-8.6.1
-=====
+8.6.1 (2018-04-05)
+==================
 Includes changes from 8.5.6.
 Fixes:
 * swig: fix type error in SaveChanges(FILETIME, FILETIME)
