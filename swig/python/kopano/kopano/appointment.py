@@ -75,6 +75,8 @@ class Appointment(object):
         # XXX check if exists?
         self.create_prop('common:34070', val, PT_SYSTIME) # props are identical
         self.create_prop('appointment:33293', val, PT_SYSTIME)
+        if self.recurring:
+            self.recurrence._update_offsets()
 
     @property
     def end(self):
@@ -86,6 +88,8 @@ class Appointment(object):
         # XXX check if exists?
         self.create_prop('common:34071', val, PT_SYSTIME) # props are identical
         self.create_prop('appointment:33294', val, PT_SYSTIME)
+        if self.recurring:
+            self.recurrence._update_offsets()
 
     @property
     def location(self):

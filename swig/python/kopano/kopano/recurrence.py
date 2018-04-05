@@ -312,12 +312,25 @@ class Recurrence(object):
         rec._modified_instance_dates = []
         rec._start_date = 0
         rec._end_date = 0
-        rec._starttime_offset = 0
-        rec._endtime_offset = 0
         rec._exceptions = []
         rec._extended_exceptions = []
 
+        rec._starttime_offset = 0
+        rec._endtime_offset = 0
+        rec._update_offsets(save=False)
+
         rec._save()
+
+    def _update_offsets(self, save=True):
+        item = self.item
+        start = item.start
+        if start:
+            self._starttime_offset = start.hour*60+start.minute
+        end = item.end
+        if end:
+            self._endtime_offset = end.hour*60+end.minute
+        if save:
+            self._save()
 
     def _parse(self):
         # AppointmentRecurrencePattern
@@ -621,8 +634,6 @@ class Recurrence(object):
     @_start.setter # TODO start.setter
     def _start(self, value):
         self._start_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
-        start = self.item.start
-        self._starttime_offset = start.hour * 60 + start.minute
 
     @property # TODO end.setter
     def _end(self):
@@ -638,8 +649,6 @@ class Recurrence(object):
     @_end.setter
     def _end(self, value):
         self._end_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
-        end = self.item.end
-        self._endtime_offset = end.hour * 60 + end.minute
 
     # TODO functionality below here should be refactored or not visible
 
