@@ -41,7 +41,7 @@
 	$1 = &temp;
 }
 %typemap(argout,fragment="SWIG_FromCharPtrAndSize") (SBinary* ) {
-	%append_output(SWIG_FromCharPtrAndSize((const char *)$1->lpb, $1->cb));
+	%append_output(PyBytes_FromStringAndSize((const char *)$1->lpb, $1->cb));
 }
 
 /* Finalize output parameters */
@@ -49,8 +49,7 @@
 	$1 = &temp;
 }
 %typemap(argout) (std::string *) {
-	/* @todo fix this not to go through a cstring */
-	%append_output(SWIG_FromCharPtrAndSize($1->c_str(), $1->length()));
+	%append_output(PyBytes_FromStringAndSize($1->c_str(), $1->length()));
 }
 
 %typemap(in) (const std::string &strIcal) (std::string temp, char *buf=NULL, Py_ssize_t size)
