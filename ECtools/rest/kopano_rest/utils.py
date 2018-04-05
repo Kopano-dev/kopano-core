@@ -23,7 +23,8 @@ def _auth(req, options):
         token = codecs.encode(auth_header[7:], 'ascii')
         return {
             'method': 'bearer',
-            'user': req.get_header('X-Kopano-UserEntryID', ''),
+            'user': req.get_header('X-Kopano-Username', ''),
+            'userid': req.get_header('X-Kopano-UserEntryID', ''),
             'token': token,
         }
 
@@ -60,7 +61,7 @@ def _server(req, options):
     auth = _auth(req, options)
 
     if auth['method'] == 'bearer':
-        return kopano.Server(auth_user=auth['user'], auth_pass=auth['token'],
+        return kopano.Server(auth_user=auth['userid'], auth_pass=auth['token'],
             parse_args=False, oidc=True)
 
     elif auth['method'] == 'basic':

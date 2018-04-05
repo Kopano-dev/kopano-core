@@ -326,10 +326,10 @@ class Recurrence(object):
         item = self.item
         start = item.start
         if start:
-            self._starttime_offset = start.hour*60+start.minute
+            self._starttime_offset = start.hour * 60 + start.minute
         end = item.end
         if end:
-            self._endtime_offset = end.hour*60+end.minute
+            self._endtime_offset = end.hour * 60 + end.minute
         if save:
             self._save()
 
