@@ -541,7 +541,15 @@ ECLogger_Pipe::ECLogger_Pipe(int fd, pid_t childpid, int loglevel) :
 }
 
 ECLogger_Pipe::~ECLogger_Pipe() {
-	close(m_fd);						// this will make the log child exit
+	/*
+	 * Closing the fd will make the log child exit, which triggers
+	 * SIGCHLD and an ec_log from the handler right away, which
+	 * then gets a EBADF because the fd is already closed.
+	 * Reset the target first to avoid this.
+	 */
+	if (ec_log_target == this)
+		ec_log_set(nullptr);
+	close(m_fd);
 
 	if (m_childpid)
 		waitpid(m_childpid, NULL, 0);	// wait for the child if we're the one that forked it
