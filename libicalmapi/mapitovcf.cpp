@@ -168,8 +168,9 @@ HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
 HRESULT mapitovcf_impl::add_email(IMessage *lpMessage, VObject *root)
 {
 	MAPINAMEID name, *namep = &name;
+	const int first_email_id = 0x8083, last_email_id = 0x80a3;
 
-	for (int lid = 0x8083; lid <= 0x80a3; lid += 0x10) {
+	for (int lid = first_email_id; lid <= last_email_id; lid += 0x10) {
 		name.lpguid = const_cast<GUID *>(&PSETID_Address);
 		name.ulKind = MNID_ID;
 		name.Kind.lID = lid;
@@ -185,7 +186,7 @@ HRESULT mapitovcf_impl::add_email(IMessage *lpMessage, VObject *root)
 		if (hr == hrSuccess) {
 			auto node = to_prop(root, VCEmailAddressProp, *prop);
 			std::wstring email_type = L"INTERNET";
-			if (lid == 0x8083)
+			if (lid == first_email_id)
 				/* first email address */
 				email_type += L",PREF";
 			to_prop(node, "TYPE", email_type.c_str());
