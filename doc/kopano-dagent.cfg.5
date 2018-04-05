@@ -180,11 +180,23 @@ Default:
 \fI2\fR
 .SS log_raw_message
 .PP
-Log the raw message to a file. The file is saved to the location specified in
-\fBlog_raw_message_path\fR.
+A space-separated list of usernames for whom the incoming Internet e-mail (RFC
+5322) messages should be dumped to files in the directory specified by
+\fBlog_raw_message_path\fP. Alternatively, instead of such a list, the
+following magic keywords are recognized:
+.TP
+\fByes\fP, \fBall\fP
+Dump incoming messages irrespective of recipient.
+.TP
+\fBno\fP
+Do not dump any incoming messages.
+.TP
+\fBerror\fP
+Only dump when automatic processing programs (e.g. \fBkopano\-mr\-process\fP(8)
+or \fBkopano\-mr\-accept\fP(8)) have returned a non-success exit code.
 .PP
 Default:
-\fIno\fR
+\fIerror\fP
 .SS log_raw_message_path
 .PP
 Path to save the raw message.
