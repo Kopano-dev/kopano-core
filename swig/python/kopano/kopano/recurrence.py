@@ -91,6 +91,8 @@ PATTERN_HJMONTHLY = 0xA
 PATTERN_HJMONTHNTH = 0xB
 PATTERN_HJMONTHEND = 0xC
 
+RRULE_WEEKDAYS = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
+
 # see MS-OXOCAL, section 2.2.1.44.5, "AppointmentRecurrencePattern Structure"
 
 # TODO hide low-level variables (self._pattern_type etc)
@@ -655,7 +657,6 @@ class Recurrence(object):
 
     @property
     def recurrences(self): # TODO rename to _recurrences and/or rrule?
-        rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
         rule = rruleset()
 
         if self._pattern_type == PATTERN_DAILY:
@@ -663,7 +664,7 @@ class Recurrence(object):
 
         if self._pattern_type == PATTERN_WEEKLY:
             byweekday = () # Set
-            for index, week in rrule_weekdays.items():
+            for index, week in RRULE_WEEKDAYS.items():
                 if (self._pattern_type_specific[0] >> index ) & 1:
                     byweekday += (week,)
             # FIXME: add one day, so that we don't miss the last recurrence, since the end date is for example 11-3-2015 on 1:00
@@ -678,7 +679,7 @@ class Recurrence(object):
 
         elif self._pattern_type == PATTERN_MONTHNTH:
             byweekday = () # Set
-            for index, week in rrule_weekdays.items():
+            for index, week in RRULE_WEEKDAYS.items():
                 if (self._pattern_type_specific[0] >> index ) & 1:
                     if self._pattern_type_specific[1] == 5:
                         byweekday += (week(-1),) # last week of month
