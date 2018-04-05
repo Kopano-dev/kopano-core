@@ -182,10 +182,16 @@ HRESULT mapitovcf_impl::add_email(IMessage *lpMessage, VObject *root)
 		ULONG proptype = CHANGE_PROP_TYPE(proptag->aulPropTag[0], PT_UNICODE);
 		memory_ptr<SPropValue> prop;
 		hr = HrGetOneProp(lpMessage, proptype, &~prop);
-		if (hr == hrSuccess)
-			to_prop(root, VCEmailAddressProp, *prop);
-		else if (hr != MAPI_E_NOT_FOUND)
+		if (hr == hrSuccess) {
+			auto node = to_prop(root, VCEmailAddressProp, *prop);
+			std::wstring email_type = L"INTERNET";
+			if (lid == 0x8083)
+				/* first email address */
+				email_type += L",PREF";
+			to_prop(node, "TYPE", email_type.c_str());
+		} else if (hr != MAPI_E_NOT_FOUND) {
 			continue;
+		}
 	}
 
 	return hrSuccess;
