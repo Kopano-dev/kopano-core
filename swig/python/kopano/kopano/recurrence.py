@@ -235,7 +235,7 @@ class Recurrence(object):
 
     def occurrences(self, start=None, end=None): # XXX fit-to-period
         tz = self.item.get(PidLidTimeZoneStruct)
-        tzinfo = self.item.timezone
+        tzinfo = self.item.tzinfo
 
         recurrences = self.recurrences
         if start and end:
@@ -616,7 +616,7 @@ class Recurrence(object):
     def start(self):
         """ Start of recurrence range """
         tz_start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date))
-        return tz_start.replace(tzinfo=self.item.timezone).astimezone().replace(tzinfo=None)
+        return tz_start.replace(tzinfo=self.item.tzinfo).astimezone().replace(tzinfo=None)
 
     @_start.setter # TODO start.setter
     def _start(self, value):
@@ -633,7 +633,7 @@ class Recurrence(object):
     def end(self):
         """ End of recurrence range """
         tz_end = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date))
-        return tz_end.replace(tzinfo=self.item.timezone).astimezone().replace(tzinfo=None)
+        return tz_end.replace(tzinfo=self.item.tzinfo).astimezone().replace(tzinfo=None)
 
     @_end.setter
     def _end(self, value):
@@ -775,7 +775,7 @@ class Recurrence(object):
 
     def _update_calitem(self):
         tz = self.item.get(PidLidTimeZoneStruct)
-        timezone = self.item.timezone
+        tzinfo = self.item.tzinfo
         cal_item = self.item
 
         cal_item[PidLidSideEffects] = 3441 # XXX spec, check php
@@ -783,9 +783,9 @@ class Recurrence(object):
 
         # reminder
         if cal_item.get(PidLidReminderSet) and cal_item.get(PidLidReminderDelta):
-            next_date = self.recurrences.after(datetime.datetime.now(timezone).replace(tzinfo=None))
+            next_date = self.recurrences.after(datetime.datetime.now(tzinfo).replace(tzinfo=None))
             if next_date:
-                next_date = next_date.replace(tzinfo=timezone).astimezone().replace(tzinfo=None)
+                next_date = next_date.replace(tzinfo=tzinfo).astimezone().replace(tzinfo=None)
                 dueby = next_date - datetime.timedelta(minutes=cal_item.get(PidLidReminderDelta))
                 cal_item[PidLidReminderSignalTime] = dueby
             else:

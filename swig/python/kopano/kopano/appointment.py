@@ -4,6 +4,7 @@ Part of the high-level python bindings for Kopano
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
 Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
+import codecs
 import datetime
 import sys
 
@@ -26,8 +27,9 @@ from .defs import (
     PSETID_Appointment,
 )
 from .pidlid import (
-    PidLidReminderSet, PidLidReminderDelta, PidLidBusyStatus,
-    PidLidGlobalObjectId, PidLidRecurring, PidLidTimeZoneStruct,
+    PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
+    PidLidBusyStatus, PidLidGlobalObjectId, PidLidRecurring,
+    PidLidTimeZoneStruct, PidLidTimeZoneDescription,
 )
 if sys.hexversion >= 0x03000000:
     try:
@@ -176,7 +178,13 @@ class Appointment(object):
         return _benc(b'\x00' + _utils.pack_short(len(eid)) + eid)
 
     @property
-    def timezone(self):
+    def tzinfo(self):
         tzdata = self.get(PidLidTimeZoneStruct)
         if tzdata:
             return _utils.MAPITimezone(tzdata)
+
+    @property
+    def timezone(self):
+        desc = self.get(PidLidTimeZoneDescription)
+        if desc:
+            return codecs.decode(desc[1:-1], 'ascii') # TODO check encoding
