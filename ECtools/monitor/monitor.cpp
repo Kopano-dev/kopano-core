@@ -134,9 +134,8 @@ static void print_help(const char *name)
 	cout << endl;
 }
 
-int main(int argc, char *argv[]) {
-
-	HRESULT hr = hrSuccess;
+static ECRESULT main2(int argc, char **argv)
+{
 	const char *szConfig = ECConfig::GetDefaultPath("monitor.cfg");
 	const char *szPath = NULL;
 	int daemonize = 1;
@@ -188,7 +187,7 @@ int main(int argc, char *argv[]) {
 	};
 
 	if (!forceUTF8Locale(true))
-		goto exit;
+		return hrSuccess;
 
 	while(1) {
 		auto c = my_getopt_long_permissive(argc, argv, "c:h:iuFV", long_options, NULL);
@@ -229,10 +228,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	m_lpThreadMonitor.reset(new(std::nothrow) ECTHREADMONITOR);
-	if (m_lpThreadMonitor == nullptr) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
+	if (m_lpThreadMonitor == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 
 	m_lpThreadMonitor->lpConfig.reset(ECConfig::Create(lpDefaults));
 	if (!m_lpThreadMonitor->lpConfig->LoadSettings(szConfig, !exp_config) ||
@@ -240,17 +237,14 @@ int main(int argc, char *argv[]) {
 	    (!bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors())) {
 		/* Create fatal logger without a timestamp to stderr. */
 		m_lpThreadMonitor->lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false), false);
-		if (m_lpThreadMonitor->lpLogger == nullptr) {
-			hr = MAPI_E_NOT_ENOUGH_MEMORY;
-			goto exit;
-		}
+		if (m_lpThreadMonitor->lpLogger == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		ec_log_set(m_lpThreadMonitor->lpLogger.get());
 		LogConfigErrors(m_lpThreadMonitor->lpConfig.get());
-		hr = E_FAIL;
-		goto exit;
+		return E_FAIL;
 	}
 	if (g_dump_config)
-		return m_lpThreadMonitor->lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+		return m_lpThreadMonitor->lpConfig->dump_config(stdout) == 0 ? hrSuccess : E_FAIL;
 
 	mainthread = pthread_self();
 
@@ -291,16 +285,18 @@ int main(int argc, char *argv[]) {
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
 	if (unix_runas(m_lpThreadMonitor->lpConfig.get()))
-		goto exit;
+		return E_FAIL;
 	if (daemonize && unix_daemonize(m_lpThreadMonitor->lpConfig.get()))
-		goto exit;
+		return E_FAIL;
 	if (!daemonize)
 		setsid();
 	if (unix_create_pidfile(argv[0], m_lpThreadMonitor->lpConfig.get(), false) < 0)
-		goto exit;
-
+		return E_FAIL;
 	// Init exit threads
-	hr = running_service();
-exit:
-	return hr == hrSuccess ? 0 : 1;
+	return running_service();
+}
+
+int main(int argc, char **argv)
+{
+	return main2(argc, argv) == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
 }
