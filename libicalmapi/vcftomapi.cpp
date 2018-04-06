@@ -349,14 +349,19 @@ HRESULT vcftomapi_impl::handle_PHOTO(VObject *v)
 		else if(vObjectValueType(vv) == VCVT_STRINGZ)
 			value = convert_to<std::string>(vObjectStringZValue(vv));
 
-		if ((strcmp(name, "TYPE") == 0 && strcmp(value.c_str(), "JPEG") == 0) || strcmp(name, "JPEG") == 0)
-			phototype = PHOTO_JPEG;
-		else if ((strcmp(name, "TYPE") == 0 && strcmp(value.c_str(), "PNG") == 0) || strcmp(name, "PNG") == 0)
-			phototype = PHOTO_PNG;
-		else if ((strcmp(name, "TYPE") == 0 && strcmp(value.c_str(), "GIF") == 0) || strcmp(name, "PNG") == 0)
-			phototype = PHOTO_GIF;
-		else if (strcmp(name, "ENCODING") == 0 && (strcmp(value.c_str(), "b") == 0 || strcmp(value.c_str(), "BASE64")))
+		if (strcmp(name, "ENCODING") == 0 && (strcmp(value.c_str(), "b") == 0 || strcmp(value.c_str(), "BASE64"))) {
 			base64 = true;
+			continue;
+		}
+
+		std::pair<std::string, photo_type_enum> mapping[] = { { "JPEG", PHOTO_JPEG }, { "PNG", PHOTO_PNG }, { "GIF", PHOTO_GIF } };
+		for (const auto &elem : mapping) {
+			auto real_value = strcmp(name, "TYPE") == 0 ? value : name;
+			if (elem.first != real_value)
+				continue;
+			phototype = elem.second;
+			break;
+		}
 	}
 
 	if (!base64 || vObjectValueType(v) != VCVT_USTRINGZ)
