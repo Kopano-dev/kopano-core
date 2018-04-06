@@ -581,7 +581,7 @@ static int kc_reexec_with_allocator(char **argv, const char *lib)
 		setenv("KC_ORIGINAL_PRELOAD", s, true);
 		setenv("LD_PRELOAD", (std::string(s) + ":" + lib).c_str(), true);
 	}
-	void *handle = dlopen(lib, RTLD_LAZY | RTLD_LOCAL);
+	void *handle = dlopen(lib, RTLD_LAZY | RTLD_GLOBAL);
 	if (handle == NULL)
 		/*
 		 * Ignore libraries that won't load anyway. This avoids
