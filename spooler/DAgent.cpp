@@ -1314,7 +1314,9 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 		}
 		// save headers to a file so they can also be tested from the script we're runing
 		snprintf(szTemp, PATH_MAX, "%s/autorespond-headers.XXXXXX", TmpPath::instance.getTempPath().c_str());
+		auto mask = umask(S_IRWXO|S_IRWXG);
 		fd = mkstemp(szTemp);
+		umask(mask);
 		if (fd >= 0) {
 			hr = WriteOrLogError(fd, lpMessageProps[0].Value.lpszA, strlen(lpMessageProps[0].Value.lpszA));
 			if (hr == hrSuccess)
