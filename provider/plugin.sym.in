@@ -4,6 +4,9 @@ global:
 	getUserPluginInstance;
 	getUserPluginVersion;
 	extern "C++" {
+		typeinfo*;
+		vtable*;
+		VTT*;
 		std::*::_S_*;
 	};
 local:
