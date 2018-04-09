@@ -381,13 +381,13 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	    PROP_TYPE(ulPropTag) != PT_UNICODE)
 		return MAPI_E_NOT_FOUND;
 
-	if (*lpiid == IID_IStream && !this->m_props_loaded &&
+	if (*lpiid == IID_IStream && !m_props_loaded &&
 	    PROP_TYPE(ulPropTag) == PT_BINARY && !(ulFlags & MAPI_MODIFY) &&
 	    // Shortcut: don't load entire object if only one property is being requested for read-only. HrLoadProp() will return
 		// without querying the server if the server does not support this capability (introduced in 6.20.8). Main reason is
 		// calendar loading time with large recursive entries in outlook XP.
 	    // If HrLoadProp failed, just fallback to the 'normal' way of loading properties.
-	    this->lpStorage->HrLoadProp(0, ulPropTag, &~lpsPropValue) == erSuccess) {
+	    lpStorage->HrLoadProp(0, ulPropTag, &~lpsPropValue) == erSuccess) {
 		lpStreamData = new STREAMDATA; // is freed by HrStreamCleanup, called by ECMemStream on refcount == 0
 		lpStreamData->ulPropTag = ulPropTag;
 		lpStreamData->lpProp = this;
@@ -413,7 +413,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 
 	// For MAPI_CREATE, reset (or create) the property now
 	if (ulFlags & MAPI_CREATE) {
-		if (!this->fModify)
+		if (!fModify)
 			return MAPI_E_NO_ACCESS;
 		SPropValue sProp;
 		sProp.ulPropTag = ulPropTag;
@@ -794,8 +794,8 @@ HRESULT ECMAPIProp::GetPermissionRules(int ulType, ULONG *lpcPermissions,
 {
 	if (m_lpEntryId == NULL)
 		return MAPI_E_NO_ACCESS;
-
-	return this->GetMsgStore()->lpTransport->HrGetPermissionRules(ulType, m_cbEntryId, m_lpEntryId, lpcPermissions, lppECPermissions);
+	return GetMsgStore()->lpTransport->HrGetPermissionRules(ulType,
+	       m_cbEntryId, m_lpEntryId, lpcPermissions, lppECPermissions);
 }
 
 HRESULT ECMAPIProp::SetPermissionRules(ULONG cPermissions,
@@ -803,8 +803,8 @@ HRESULT ECMAPIProp::SetPermissionRules(ULONG cPermissions,
 {
 	if (m_lpEntryId == NULL)
 		return MAPI_E_NO_ACCESS;
-
-	return this->GetMsgStore()->lpTransport->HrSetPermissionRules(m_cbEntryId, m_lpEntryId, cPermissions, lpECPermissions);
+	return GetMsgStore()->lpTransport->HrSetPermissionRules(m_cbEntryId,
+	       m_lpEntryId, cPermissions, lpECPermissions);
 }
 
 HRESULT ECMAPIProp::GetOwner(ULONG *lpcbOwner, LPENTRYID *lppOwner)

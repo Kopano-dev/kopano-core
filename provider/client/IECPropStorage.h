@@ -72,9 +72,9 @@ struct MAPIOBJECT {
 		ulObjId(s.ulObjId), ulObjType(s.ulObjType)
 	{
 		KC::Util::HrCopyEntryId(s.cbInstanceID, reinterpret_cast<const ENTRYID *>(s.lpInstanceID),
-							&this->cbInstanceID, (LPENTRYID *)&this->lpInstanceID);
+			&cbInstanceID, reinterpret_cast<ENTRYID **>(&lpInstanceID));
 		for (const auto &i : s.lstChildren)
-			this->lstChildren.emplace(new MAPIOBJECT(*i));
+			lstChildren.emplace(new MAPIOBJECT(*i));
 	};
 
 	void operator=(const MAPIOBJECT &) = delete;

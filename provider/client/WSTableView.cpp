@@ -51,7 +51,7 @@ WSTableView::~WSTableView()
 	m_lpTransport->RemoveSessionReloadCallback(m_ulSessionReloadCallback);
 
 	// if the table was still open it will now be closed in the server too
-	this->HrCloseTable();
+	HrCloseTable();
 	delete[] m_lpsPropTagArray;
 	delete[] m_lpsSortOrderSet;
 	FreeEntryId(&m_sEntryId, false);
@@ -81,9 +81,7 @@ HRESULT WSTableView::HrQueryRows(ULONG ulRowCount, ULONG flags, SRowSet **lppRow
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.sRowSet, lppRowSet, this->ulType);
-
+	hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.sRowSet, lppRowSet, ulType);
 exit:
 	UnLockSoap();
 
@@ -102,7 +100,7 @@ HRESULT WSTableView::HrCloseTable()
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableClose(ecSessionId, this->ulTableId, &er) != SOAP_OK)
+		if (lpCmd->tableClose(ecSessionId, ulTableId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 
 		if(er == KCERR_END_OF_SESSION)
@@ -229,21 +227,18 @@ HRESULT WSTableView::HrOpenTable()
 	struct tableOpenResponse sResponse;
 
 	LockSoap();
-
-	if(this->ulTableId != 0)
+	if (ulTableId != 0)
 	    goto exit;
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableOpen(ecSessionId, m_sEntryId, m_ulTableType, ulType, this->ulFlags, &sResponse) != SOAP_OK)
+		if (lpCmd->tableOpen(ecSessionId, m_sEntryId, m_ulTableType, ulType, ulFlags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	this->ulTableId = sResponse.ulTableId;
-
+	ulTableId = sResponse.ulTableId;
 exit:
 	UnLockSoap();
 
@@ -413,7 +408,7 @@ HRESULT WSTableView::HrExpandRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableExpandRow(ecSessionId, this->ulTableId, sInstanceKey, ulRowCount, flags, &sResponse) != SOAP_OK)
+		if (lpCmd->tableExpandRow(ecSessionId, ulTableId, sInstanceKey, ulRowCount, flags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -421,8 +416,7 @@ HRESULT WSTableView::HrExpandRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 	END_SOAP_CALL
 
 	if(lppRows)
-		hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.rowSet, lppRows, this->ulType);	
-
+		hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.rowSet, lppRows, ulType);	
 	if(lpulMoreRows)
 		*lpulMoreRows = sResponse.ulMoreRows;
 
@@ -449,7 +443,7 @@ HRESULT WSTableView::HrCollapseRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableCollapseRow(ecSessionId, this->ulTableId, sInstanceKey, flags, &sResponse) != SOAP_OK)
+		if (lpCmd->tableCollapseRow(ecSessionId, ulTableId, sInstanceKey, flags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -480,7 +474,7 @@ HRESULT WSTableView::HrGetCollapseState(BYTE **lppCollapseState, ULONG *lpcbColl
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableGetCollapseState(ecSessionId, this->ulTableId, sBookmark, &sResponse) != SOAP_OK)
+		if (lpCmd->tableGetCollapseState(ecSessionId, ulTableId, sBookmark, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -514,7 +508,7 @@ HRESULT WSTableView::HrSetCollapseState(BYTE *lpCollapseState, ULONG cbCollapseS
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableSetCollapseState(ecSessionId, this->ulTableId, sState, &sResponse) != SOAP_OK)
+		if (lpCmd->tableSetCollapseState(ecSessionId, ulTableId, sState, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -552,8 +546,8 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 	if(ulTableId == 0) {
 	    sOpen.sEntryId = m_sEntryId;
 	    sOpen.ulTableType = m_ulTableType;
-	    sOpen.ulType = this->ulType;
-	    sOpen.ulFlags = this->ulFlags;
+		sOpen.ulType = ulType;
+		sOpen.ulFlags = ulFlags;
 	    sRequest.lpOpen = &sOpen;
     } else {
         sRequest.ulTableId = ulTableId;
@@ -623,8 +617,7 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 	if (sResponse.ulTableId != 0)
 		ulTableId = sResponse.ulTableId;
 	if (lppRowSet)
-		hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.sRowSet, lppRowSet, this->ulType);
-
+		hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.sRowSet, lppRowSet, ulType);
 exit:
 	UnLockSoap();
 	s_free(nullptr, sSort.sSortOrder.__ptr);
@@ -677,8 +670,8 @@ HRESULT WSTableView::Reload(void *lpParam, ECSESSIONID sessionId)
 
 HRESULT WSTableView::SetReloadCallback(RELOADCALLBACK callback, void *lpParam)
 {
-	this->m_lpCallback = callback;
-	this->m_lpParam = lpParam;
+	m_lpCallback = callback;
+	m_lpParam = lpParam;
 	return hrSuccess;
 }
 
@@ -714,22 +707,19 @@ HRESULT WSTableOutGoingQueue::HrOpenTable()
 	struct tableOpenResponse sResponse;
 
 	LockSoap();
-
-	if(this->ulTableId != 0)
+	if (ulTableId != 0)
 	    goto exit;
 
 	START_SOAP_CALL
 	{
 		//m_sEntryId is the id of a store
-		if (lpCmd->tableOpen(ecSessionId, m_sEntryId, TABLETYPE_SPOOLER, 0, this->ulFlags, &sResponse) != SOAP_OK)
+		if (lpCmd->tableOpen(ecSessionId, m_sEntryId, TABLETYPE_SPOOLER, 0, ulFlags, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
-	this->ulTableId = sResponse.ulTableId;
-
+	ulTableId = sResponse.ulTableId;
 exit:
 	UnLockSoap();
 

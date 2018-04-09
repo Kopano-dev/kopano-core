@@ -26,7 +26,7 @@
 
 #define START_SOAP_CALL retry:
 #define END_SOAP_CALL   \
-	if (er == KCERR_END_OF_SESSION && this->m_lpTransport->HrReLogon() == hrSuccess) \
+	if (er == KCERR_END_OF_SESSION && m_lpTransport->HrReLogon() == hrSuccess) \
 		goto retry; \
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND); \
     if(hr != hrSuccess) \
@@ -135,8 +135,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 
 exit:
 	UnLockSoap();
-
-	if (hr != hrSuccess && mo)
+	if (hr != hrSuccess)
 		delete mo;
 	return hr;
 }

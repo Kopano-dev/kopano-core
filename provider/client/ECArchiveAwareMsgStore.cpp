@@ -178,7 +178,8 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 			return hr;
 	}
 
-	hr = ECMsgStore::Create(const_cast<char *>(GetProfileName()), this->lpSupport, ptrTransport, FALSE, 0, FALSE, FALSE, FALSE, &~ptrArchiveStore);
+	hr = ECMsgStore::Create(const_cast<char *>(GetProfileName()), lpSupport,
+	     ptrTransport, false, 0, false, false, false, &~ptrArchiveStore);
 	if (hr != hrSuccess)
 		return hr;
 	// Get a propstorage for the message store

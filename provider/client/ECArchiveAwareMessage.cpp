@@ -121,17 +121,17 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 
 	// We need to temporary enable write access on the underlying objects in order for the following
 	// 5 calls to succeed.
-	this->fModify = TRUE;
+	fModify = true;
 	hr = DeleteProps(sptaDeleteProps, NULL);
 	if (hr != hrSuccess) {
-		this->fModify = fModifyCopy;
+		fModify = fModifyCopy;
 		return hr;
 	}
 	hr = Util::DoCopyProps(&IID_IMAPIProp, static_cast<IMAPIProp *>(m_ptrArchiveMsg),
 	     sptaRestoreProps, 0, NULL, &IID_IMAPIProp,
 	     static_cast<IMAPIProp *>(this), 0, nullptr);
 	if (hr != hrSuccess) {
-		this->fModify = fModifyCopy;
+		fModify = fModifyCopy;
 		return hr;
 	}
 
@@ -139,12 +139,11 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 	// that are too big in the firt place).
 	hr = Util::HrDeleteAttachments(this);
 	if (hr != hrSuccess) {
-		this->fModify = fModifyCopy;
+		fModify = fModifyCopy;
 		return hr;
 	}
 	hr = Util::CopyAttachments(m_ptrArchiveMsg, this, NULL);
-	this->fModify = fModifyCopy;
-
+	fModify = fModifyCopy;
 	return hr;
 }
 
@@ -370,8 +369,8 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDelet
 	StreamPtr ptrHtmlStream;
 	ULARGE_INTEGER liZero = {{0, 0}};
 
-	this->fModify = TRUE;
-	auto laters = KC::make_scope_success([&]() { this->fModify = FALSE; });
+	fModify = true;
+	auto laters = KC::make_scope_success([&]() { fModify = false; });
 	auto hr = DeleteProps(lpptaDeleteProps, nullptr);
 	if (hr != hrSuccess)
 		return hr;

@@ -184,7 +184,7 @@ HRESULT ECMAPITable::QueryColumns(ULONG ulFlags, LPSPropTagArray *lppPropTagArra
 	// FIXME if the client has done SetColumns, we can handle this
 	// call locally instead of querying the server (unless TBL_ALL_COLUMNS has been
 	// specified)
-	return this->lpTableOps->HrQueryColumns(ulFlags, lppPropTagArray);
+	return lpTableOps->HrQueryColumns(ulFlags, lppPropTagArray);
 }
 
 HRESULT ECMAPITable::GetRowCount(ULONG ulFlags, ULONG *lpulCount)
@@ -195,7 +195,7 @@ HRESULT ECMAPITable::GetRowCount(ULONG ulFlags, ULONG *lpulCount)
 	if(hr != hrSuccess)
 		return hr;
 	ULONG ulRow = 0; // discarded
-	return this->lpTableOps->HrGetRowCount(lpulCount, &ulRow);
+	return lpTableOps->HrGetRowCount(lpulCount, &ulRow);
 }
 
 HRESULT ECMAPITable::SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought)
@@ -205,7 +205,7 @@ HRESULT ECMAPITable::SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSou
 	HRESULT hr = FlushDeferred();
 	if (hr != hrSuccess)
 		return hr;
-	return this->lpTableOps->HrSeekRow(bkOrigin, lRowCount, lplRowsSought);
+	return lpTableOps->HrSeekRow(bkOrigin, lRowCount, lplRowsSought);
 }
 
 HRESULT ECMAPITable::SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator)
@@ -252,7 +252,7 @@ HRESULT ECMAPITable::FindRow(const SRestriction *lpRestriction,
 	HRESULT hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
-	return this->lpTableOps->HrFindRow(lpRestriction, bkOrigin, ulFlags);
+	return lpTableOps->HrFindRow(lpRestriction, bkOrigin, ulFlags);
 }
 
 HRESULT ECMAPITable::Restrict(const SRestriction *lpRestriction, ULONG ulFlags)
@@ -284,7 +284,7 @@ HRESULT ECMAPITable::CreateBookmark(BOOKMARK* lpbkPosition)
 	HRESULT hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
-	return this->lpTableOps->CreateBookmark(lpbkPosition);
+	return lpTableOps->CreateBookmark(lpbkPosition);
 }
 
 HRESULT ECMAPITable::FreeBookmark(BOOKMARK bkPosition)
@@ -294,7 +294,7 @@ HRESULT ECMAPITable::FreeBookmark(BOOKMARK bkPosition)
 	HRESULT hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
-	return this->lpTableOps->FreeBookmark(bkPosition);
+	return lpTableOps->FreeBookmark(bkPosition);
 }
 
 HRESULT ECMAPITable::SortTable(const SSortOrderSet *lpSortCriteria,

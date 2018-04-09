@@ -291,8 +291,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		/* Is it one of ours? */
 		if ( cbABeid  < CbNewABEID("") || lpABeid == NULL)
 			continue;	// no
-
-		if ( memcmp( &(lpABeid->guid), &this->m_guid, sizeof(MAPIUID) ) != 0)
+		if (memcmp(&lpABeid->guid, &m_guid, sizeof(MAPIUID)) != 0)
 			continue;	// no
 
 		object_ptr<IMailUser> lpIMailUser;

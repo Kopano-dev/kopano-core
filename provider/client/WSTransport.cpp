@@ -97,7 +97,7 @@ WSTransport::WSTransport(ULONG ulUIFlags) :
 WSTransport::~WSTransport()
 {
 	if (m_lpCmd != NULL)
-		this->HrLogOff();
+		HrLogOff();
 }
 
 HRESULT WSTransport::QueryInterface(REFIID refiid, void **lppInterface)
@@ -122,10 +122,8 @@ HRESULT WSTransport::HrClone(WSTransport **lppTransport)
 	hr = CreateSoapTransport(m_ulUIFlags, m_sProfileProps, &lpTransport->m_lpCmd);
 	if(hr != hrSuccess)
 		return hr;
-	
-	lpTransport->m_ecSessionId = this->m_ecSessionId;
-	lpTransport->m_ecSessionGroupId = this->m_ecSessionGroupId;
-
+	lpTransport->m_ecSessionId = m_ecSessionId;
+	lpTransport->m_ecSessionGroupId = m_ecSessionGroupId;
 	*lppTransport = lpTransport;
 	return hrSuccess;
 }
@@ -291,10 +289,9 @@ HRESULT WSTransport::HrLogon(const struct sGlobalProfileProps &in_props)
 
 HRESULT WSTransport::HrSetRecvTimeout(unsigned int ulSeconds)
 {
-	if (this->m_lpCmd == NULL)
+	if (m_lpCmd == nullptr)
 		return MAPI_E_NOT_INITIALIZED;
-
-	this->m_lpCmd->soap->recv_timeout = ulSeconds;
+	m_lpCmd->soap->recv_timeout = ulSeconds;
 	return hrSuccess;
 }
 
@@ -349,7 +346,7 @@ HRESULT WSTransport::HrReLogon()
 	// Notify new session to listeners
 	scoped_rlock lock(m_mutexSessionReload);
 	for (const auto &p : m_mapSessionReload)
-		p.second.second(p.second.first, this->m_ecSessionId);
+		p.second.second(p.second.first, m_ecSessionId);
 	return hrSuccess;
 }
 
@@ -728,7 +725,7 @@ HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID,
 		return hr;
 	hr = WSMAPIPropStorage::Create(cbUnWrapParentID, lpUnWrapParentID,
 	     cbUnWrapEntryID, lpUnWrapEntryID, ulFlags, m_lpCmd, m_hDataLock,
-	     m_ecSessionId, this->m_ulServerCapabilities, this, &~lpPropStorage);
+	     m_ecSessionId, m_ulServerCapabilities, this, &~lpPropStorage);
 	if(hr != hrSuccess)
 		return hr;
 	return lpPropStorage->QueryInterface(IID_IECPropStorage, (void **)lppPropStorage);
