@@ -33,8 +33,8 @@ struct sGlobalProfileProps {
 	std::string strProxyHost;
 	std::string strProxyUserName, strProxyPassword;
 	std::string strClientAppVersion, strClientAppMisc;
-	unsigned int ulProfileFlags, ulConnectionTimeOut;
-	unsigned int ulProxyFlags, ulProxyPort;
+	unsigned int ulProfileFlags = 0, ulConnectionTimeOut = 10;
+	unsigned int ulProxyFlags = 0, ulProxyPort = 0;
 };
 
 class ClientUtil _kc_final {
