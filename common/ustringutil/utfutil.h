@@ -20,6 +20,7 @@
 
 #include <unicode/unistr.h>
 
+using namespace U_ICU_NAMESPACE;
 class UTF8Iterator;
 class UTF32Iterator;
 

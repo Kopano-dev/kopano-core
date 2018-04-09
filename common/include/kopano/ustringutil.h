@@ -26,8 +26,8 @@
 #ifdef ZCP_USES_ICU
 #include <unicode/coll.h>
 #include <unicode/sortkey.h>
-typedef Locale ECLocale;
-typedef CollationKey ECSortKey;
+using ECLocale = U_ICU_NAMESPACE::Locale;
+using ECSortKey = U_ICU_NAMESPACE::CollationKey;
 #else
 
 //typedef locale_t ECLocale;
