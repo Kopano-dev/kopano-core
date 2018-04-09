@@ -1,4 +1,5 @@
 import falcon
+from prometheus_client import Counter
 
 from ..utils import _server_store
 from .resource import (
@@ -14,6 +15,8 @@ from .message import MessageResource
 
 from MAPI.Util import GetDefaultStore
 import kopano # TODO remove?
+
+COUNTER = Counter('user_messages_count', 'User messages count')
 
 class UserImporter:
     def __init__(self):
@@ -90,6 +93,7 @@ class UserResource(Resource):
             self.respond(req, resp, data, ContactFolderResource.fields)
 
         elif method == 'messages': # TODO store-wide?
+            COUNTER.inc()
             data = self.folder_gen(req, store.inbox)
             self.respond(req, resp, data, MessageResource.fields)
 

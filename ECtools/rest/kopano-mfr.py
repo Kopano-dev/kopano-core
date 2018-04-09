@@ -9,6 +9,8 @@ import sys
 import time
 
 import falcon
+from prometheus_client import multiprocess
+from prometheus_client import generate_latest, CollectorRegistry, CONTENT_TYPE_LATEST, Summary
 
 try:
     import setproctitle
@@ -32,6 +34,10 @@ the kopano-rest WSGI app.
 
 SOCKET_PATH = '/var/run/kopano'
 WORKERS = 8
+METRICS_LISTEN = 'localhost:8100'
+
+# metrics
+REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request')
 
 def opt_args():
     parser = optparse.OptionParser()
@@ -48,6 +54,10 @@ def opt_args():
                       help="enable passthrough authentication (use with caution)")
     parser.add_option("", "--disable-auth-bearer", dest='auth_bearer', action='store_false', default=True,
                       help="disable bearer authentication")
+    parser.add_option("", "--with-metrics", dest='with_metrics', action='store_true', default=False,
+                      help="enable metrics process")
+    parser.add_option("", "--metrics-listen", dest='metrics_listen', metavar='ADDRESS:PORT',
+                      default=METRICS_LISTEN, help="metrics process address")
 
     options, args = parser.parse_args()
     if args:
@@ -63,11 +73,30 @@ def error_handler(ex, req, resp, params):
     # Do things with other errors here
     logging.exception(ex)
 
+# falcon metrics middleware
+
+class FalconMetrics(object):
+    @REQUEST_TIME.time()
+    def process_request(self, req, resp):
+        pass
+
+# Expose metrics.
+def metrics_app(environ, start_response):
+    registry = CollectorRegistry()
+    multiprocess.MultiProcessCollector(registry)
+    data = generate_latest(registry)
+    status = '200 OK'
+    response_headers = [
+        ('Content-type', CONTENT_TYPE_LATEST),
+        ('Content-Length', str(len(data)))
+    ]
+    start_response(status, response_headers)
+    return iter([data])
 
 def run_app(socket_path, n, options):
     if SETPROCTITLE:
         setproctitle.setproctitle('kopano-mfr rest %d' % n)
-    app = kopano_rest.RestAPI(options)
+    app = kopano_rest.RestAPI(options=options, middleware=[FalconMetrics()])
     app.add_error_handler(Exception, error_handler)
     unix_socket = 'unix:' + os.path.join(socket_path, 'rest%d.sock' % n)
     logging.info('starting rest worker: %s', unix_socket)
@@ -77,7 +106,6 @@ def run_app(socket_path, n, options):
         pass
 
 def run_notify(socket_path, options):
-    # TODO merge with run_app?
     if SETPROCTITLE:
         setproctitle.setproctitle('kopano-mfr notify')
     app = kopano_rest.NotifyAPI(options)
@@ -86,6 +114,18 @@ def run_notify(socket_path, options):
     logging.info('starting notify worker: %s', unix_socket)
     try:
         bjoern.run(app, unix_socket)
+    except KeyboardInterrupt:
+        pass
+
+# TODO merge run_*
+def run_metrics(socket_path, options):
+    if SETPROCTITLE:
+        setproctitle.setproctitle('kopano-mfr metrics')
+    address = options.metrics_listen
+    logging.info('starting metrics worker: %s', address)
+    address = address.split(':')
+    try:
+        bjoern.run(metrics_app, address[0], int(address[1]))
     except KeyboardInterrupt:
         pass
 
@@ -122,6 +162,10 @@ def main():
     notify_process = multiprocessing.Process(target=run_notify, args=(socket_path, options))
     workers.append(notify_process)
 
+    if options.with_metrics:
+        metrics_process = multiprocessing.Process(target=run_metrics, args=(socket_path, options))
+        workers.append(metrics_process)
+
     for worker in workers:
         worker.daemon = True
         worker.start()
@@ -139,12 +183,16 @@ def main():
         for n in range(nworkers):
             sockets.append('rest%d.sock' % n)
         sockets.append('notify.sock')
+        sockets.append('metrics.sock')
         for socket in sockets:
             try:
                 unix_socket = os.path.join(socket_path, socket)
                 os.unlink(unix_socket)
             except OSError:
                 pass
+
+        for worker in workers:
+            multiprocess.mark_process_dead(worker.pid)
 
 if __name__ == '__main__':
     main()
