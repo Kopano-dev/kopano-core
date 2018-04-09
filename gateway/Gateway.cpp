@@ -360,8 +360,8 @@ int main(int argc, char *argv[]) {
 #endif
 		{"ssl_ciphers", "ALL:!LOW:!SSLv2:!EXP:!aNULL", CONFIGSETTING_RELOADABLE},
 		{"ssl_prefer_server_ciphers", "no", CONFIGSETTING_RELOADABLE},
-		{"log_method", "file", CONFIGSETTING_NONEMPTY},
-		{"log_file", "-", CONFIGSETTING_NONEMPTY},
+		{"log_method", "auto", CONFIGSETTING_NONEMPTY},
+		{"log_file", ""},
 		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
 		{ "log_timestamp", "1" },
 		{ "log_buffer_size", "0" },

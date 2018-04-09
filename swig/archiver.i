@@ -189,6 +189,8 @@ public:
 			if (r != Success)
 				throw ArchiverError(r, "Failed to instantiate object!");
 
+			if (lpszAppName == nullptr)
+				lpszAppName = "python-unspecified";
 			r = ptr->Init(lpszAppName, lpszConfig, NULL, ulFlags);
 			if (r != Success)
 				throw ArchiverError(r, "Failed to initialize object!");
