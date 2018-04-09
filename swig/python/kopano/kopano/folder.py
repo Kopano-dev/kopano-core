@@ -58,7 +58,7 @@ from .defs import (
     PSETID_Appointment, UNESCAPED_SLASH_RE,
     ENGLISH_FOLDER_MAP, NAME_RIGHT, NAMED_PROPS_ARCHIVER
 )
-from .errors import NotFoundError
+from .errors import NotFoundError, ArgumentError
 
 from .compat import (
     fake_unicode as _unicode, bdec as _bdec, benc as _benc
@@ -280,8 +280,10 @@ class Folder(Properties):
         :param sourcekey: item sourcekey
         """
 
-        # resolve sourcekey to entryid
-        if sourcekey is not None:
+        if entryid is not None:
+            eid = _utils._bdec_eid(entryid)
+
+        elif sourcekey is not None:
             restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY, SPropValue(PR_SOURCE_KEY, _bdec(sourcekey)))
             table = self.mapiobj.GetContentsTable(MAPI_DEFERRED_ERRORS)
             table.SetColumns([PR_ENTRYID, PR_SOURCE_KEY], 0)
@@ -289,13 +291,18 @@ class Folder(Properties):
             rows = list(table.QueryRows(-1, 0))
             if not rows:
                 raise NotFoundError("no item with sourcekey '%s'" % sourcekey)
-            entryid = _benc(rows[0][0].Value)
+            eid = rows[0][0].Value
 
         # open message with entryid
         try:
-            mapiobj = _utils.openentry_raw(self.store.mapiobj, _bdec(entryid), self.content_flag)
+            mapiobj = _utils.openentry_raw(self.store.mapiobj, eid, self.content_flag)
         except MAPIErrorNotFound:
-            raise NotFoundError("no item with entryid '%s'" % entryid)
+            if sourcekey is not None:
+                raise NotFoundError("no item with sourcekey '%s'" % sourcekey)
+            else:
+                raise NotFoundError("no item with entryid '%s'" % entryid)
+        except MAPIErrorInvalidEntryid:
+            raise ArgumentError("invalid entryid: %r" % entryid)
 
         item = _item.Item(self, mapiobj=mapiobj)
         return item

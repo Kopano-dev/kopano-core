@@ -5,6 +5,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import binascii
 import datetime
 import dateutil
 import struct
@@ -32,7 +33,7 @@ from MAPI.Struct import (
 )
 
 from .compat import bdec as _bdec
-from .errors import Error, NotFoundError
+from .errors import Error, NotFoundError, ArgumentError
 
 RRULE_WEEKDAYS = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
 
@@ -266,3 +267,11 @@ def arg_objects(arg, supported_classes, method_name):
     if [o for o in objects if not isinstance(o, supported_classes)]:
         raise Error('invalid argument to %s' % method_name)
     return objects
+
+def _bdec_eid(entryid):
+    if not entryid:
+        raise ArgumentError("invalid entryid: %r" % entryid)
+    try:
+        return _bdec(entryid)
+    except (TypeError, binascii.Error):
+        raise ArgumentError("invalid entryid: %r" % entryid)

@@ -47,7 +47,7 @@ from .defs import (
     RSF_PID_RSS_SUBSCRIPTION, NAMED_PROPS_ARCHIVER
 )
 
-from .errors import NotFoundError
+from .errors import NotFoundError, ArgumentError
 from .properties import Properties
 from .autoaccept import AutoAccept
 from .outofoffice import OutOfOffice
@@ -441,6 +441,8 @@ class Store(Properties):
     def item(self, entryid=None, guid=None):
         """Return :class:`Item` with given entryid."""
 
+        eid = _utils._bdec_eid(entryid)
+
         item = _item.Item() # XXX copy-pasting..
         item.store = self
         item.server = self.server
@@ -450,9 +452,12 @@ class Store(Properties):
             entryid = '00000000' + self.guid + '0100000005000000' + guid + '00000000'
 
         try:
-            item.mapiobj = _utils.openentry_raw(self.mapiobj, _bdec(entryid), 0) # XXX soft-deleted item?
+            item.mapiobj = _utils.openentry_raw(self.mapiobj, eid, 0) # XXX soft-deleted item?
         except MAPIErrorNotFound:
             raise NotFoundError("no item with entryid '%s'" % entryid)
+        except MAPIErrorInvalidEntryid:
+            raise ArgumentError("invalid entryid: %r" % entryid)
+
         return item
 
     @property
