@@ -5,6 +5,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import calendar
 import datetime
 import struct
 import sys
@@ -44,7 +45,9 @@ from datetime import timedelta
 from .compat import (
     repr as _repr, benc as _benc, bdec as _bdec,
 )
-from .errors import NotSupportedError
+from .errors import (
+    NotSupportedError, NotFoundError,
+)
 from .defs import (
     ARO_SUBJECT, ARO_MEETINGTYPE, ARO_REMINDERDELTA, ARO_REMINDERSET,
     ARO_LOCATION, ARO_BUSYSTATUS, ARO_ATTACHMENT, ARO_SUBTYPE,
@@ -87,6 +90,8 @@ PATTERN_MONTHEND = 4
 PATTERN_HJMONTHLY = 0xA
 PATTERN_HJMONTHNTH = 0xB
 PATTERN_HJMONTHEND = 0xC
+
+RRULE_WEEKDAYS = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
 
 # see MS-OXOCAL, section 2.2.1.44.5, "AppointmentRecurrencePattern Structure"
 
@@ -233,6 +238,7 @@ class Recurrence(object):
 
     def occurrences(self, start=None, end=None): # XXX fit-to-period
         tz = self.item.get(PidLidTimeZoneStruct)
+        tzinfo = self.item.tzinfo
 
         recurrences = self.recurrences
         if start and end:
@@ -243,7 +249,7 @@ class Recurrence(object):
             start_exc_ext[exc['start_datetime']] = exc, ext
 
         for d in recurrences:
-            startdatetime_val = _utils.unixtime_to_rectime(time.mktime(d.timetuple()))
+            startdatetime_val = _utils.unixtime_to_rectime(calendar.timegm(d.timetuple()))
 
             subject = self.item.subject
             location = self.item.location
@@ -259,7 +265,7 @@ class Recurrence(object):
                 minutes = self._endtime_offset - self._starttime_offset
                 basedate_val = startdatetime_val
 
-            d = _utils._to_gmt(d, tz, align_dst=True)
+            d = d.replace(tzinfo=tzinfo).astimezone().replace(tzinfo=None)
 
             occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes), subject, location, basedate_val=basedate_val, exception=exception)
             if (not start or occ.end > start) and (not end or occ.start < end):
@@ -309,12 +315,25 @@ class Recurrence(object):
         rec._modified_instance_dates = []
         rec._start_date = 0
         rec._end_date = 0
-        rec._starttime_offset = 0
-        rec._endtime_offset = 0
         rec._exceptions = []
         rec._extended_exceptions = []
 
+        rec._starttime_offset = 0
+        rec._endtime_offset = 0
+        rec._update_offsets(save=False)
+
         rec._save()
+
+    def _update_offsets(self, save=True):
+        item = self.item
+        start = item.start
+        if start:
+            self._starttime_offset = start.hour * 60 + start.minute
+        end = item.end
+        if end:
+            self._endtime_offset = end.hour * 60 + end.minute
+        if save:
+            self._save()
 
     def _parse(self):
         # AppointmentRecurrencePattern
@@ -606,29 +625,38 @@ class Recurrence(object):
 
     @property
     def _start(self):
-        return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self._start_date)) + datetime.timedelta(minutes=self._starttime_offset) # XXX local time..
-
-    @_start.setter
-    def _start(self, value):
-        self._start_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
-        start = self.item.start
-        self._starttime_offset = start.hour * 60 + start.minute
+        # local to recurrence timezone!
+        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date)) + datetime.timedelta(minutes=self._starttime_offset)
 
     @property
+    def start(self):
+        """ Start of recurrence range """
+        tz_start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date))
+        return tz_start.replace(tzinfo=self.item.tzinfo).astimezone().replace(tzinfo=None)
+
+    @_start.setter # TODO start.setter
+    def _start(self, value):
+        self._start_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
+
+    @property # TODO end.setter
     def _end(self):
-        return datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self._end_date)) + datetime.timedelta(minutes=self._endtime_offset)# XXX local time..
+        # local to recurrence timezone!
+        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date)) + datetime.timedelta(minutes=self._endtime_offset)
+
+    @property
+    def end(self):
+        """ End of recurrence range """
+        tz_end = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date))
+        return tz_end.replace(tzinfo=self.item.tzinfo).astimezone().replace(tzinfo=None)
 
     @_end.setter
     def _end(self, value):
         self._end_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
-        end = self.item.end
-        self._endtime_offset = end.hour * 60 + end.minute
 
     # TODO functionality below here should be refactored or not visible
 
     @property
     def recurrences(self): # TODO rename to _recurrences and/or rrule?
-        rrule_weekdays = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
         rule = rruleset()
 
         if self._pattern_type == PATTERN_DAILY:
@@ -636,7 +664,7 @@ class Recurrence(object):
 
         if self._pattern_type == PATTERN_WEEKLY:
             byweekday = () # Set
-            for index, week in rrule_weekdays.items():
+            for index, week in RRULE_WEEKDAYS.items():
                 if (self._pattern_type_specific[0] >> index ) & 1:
                     byweekday += (week,)
             # FIXME: add one day, so that we don't miss the last recurrence, since the end date is for example 11-3-2015 on 1:00
@@ -651,7 +679,7 @@ class Recurrence(object):
 
         elif self._pattern_type == PATTERN_MONTHNTH:
             byweekday = () # Set
-            for index, week in rrule_weekdays.items():
+            for index, week in RRULE_WEEKDAYS.items():
                 if (self._pattern_type_specific[0] >> index ) & 1:
                     if self._pattern_type_specific[1] == 5:
                         byweekday += (week(-1),) # last week of month
@@ -666,13 +694,13 @@ class Recurrence(object):
         # add exceptions
         exc_starts = set()
         for exception in self._exceptions:
-            exc_start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exception['start_datetime']))
+            exc_start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(exception['start_datetime']))
             rule.rdate(exc_start)
             exc_starts.add(exc_start)
 
         # Remove deleted ocurrences (skip added exceptions)
         for del_date_val in self._deleted_instance_dates:
-            del_date = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(del_date_val))
+            del_date = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(del_date_val))
             del_date = datetime.datetime(del_date.year, del_date.month, del_date.day, self._start.hour, self._start.minute)
             if del_date not in exc_starts:
                 rule.exdate(del_date)
@@ -758,6 +786,7 @@ class Recurrence(object):
 
     def _update_calitem(self):
         tz = self.item.get(PidLidTimeZoneStruct)
+        tzinfo = self.item.tzinfo
         cal_item = self.item
 
         cal_item[PidLidSideEffects] = 3441 # XXX spec, check php
@@ -765,9 +794,9 @@ class Recurrence(object):
 
         # reminder
         if cal_item.get(PidLidReminderSet) and cal_item.get(PidLidReminderDelta):
-            next_date = self.recurrences.after(datetime.datetime.now()) # TODO different timezones!
+            next_date = self.recurrences.after(datetime.datetime.now(tzinfo).replace(tzinfo=None))
             if next_date:
-                next_date = _utils._to_gmt(next_date, tz)
+                next_date = next_date.replace(tzinfo=tzinfo).astimezone().replace(tzinfo=None)
                 dueby = next_date - datetime.timedelta(minutes=cal_item.get(PidLidReminderDelta))
                 cal_item[PidLidReminderSignalTime] = dueby
             else:

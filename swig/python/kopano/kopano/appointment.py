@@ -4,6 +4,7 @@ Part of the high-level python bindings for Kopano
 Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
 Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
+import codecs
 import datetime
 import sys
 
@@ -26,8 +27,9 @@ from .defs import (
     PSETID_Appointment,
 )
 from .pidlid import (
-    PidLidReminderSet, PidLidReminderDelta, PidLidBusyStatus,
-    PidLidGlobalObjectId, PidLidRecurring,
+    PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
+    PidLidBusyStatus, PidLidGlobalObjectId, PidLidRecurring,
+    PidLidTimeZoneStruct, PidLidTimeZoneDescription,
 )
 if sys.hexversion >= 0x03000000:
     try:
@@ -73,6 +75,8 @@ class Appointment(object):
         # XXX check if exists?
         self.create_prop('common:34070', val, PT_SYSTIME) # props are identical
         self.create_prop('appointment:33293', val, PT_SYSTIME)
+        if self.recurring:
+            self.recurrence._update_offsets()
 
     @property
     def end(self):
@@ -84,6 +88,8 @@ class Appointment(object):
         # XXX check if exists?
         self.create_prop('common:34071', val, PT_SYSTIME) # props are identical
         self.create_prop('appointment:33294', val, PT_SYSTIME)
+        if self.recurring:
+            self.recurrence._update_offsets()
 
     @property
     def location(self):
@@ -174,3 +180,15 @@ class Appointment(object):
         # /events, so we need an identier which can be used for both.
         eid = _bdec(self.entryid)
         return _benc(b'\x00' + _utils.pack_short(len(eid)) + eid)
+
+    @property
+    def tzinfo(self):
+        tzdata = self.get(PidLidTimeZoneStruct)
+        if tzdata:
+            return _utils.MAPITimezone(tzdata)
+
+    @property
+    def timezone(self):
+        desc = self.get(PidLidTimeZoneDescription)
+        if desc:
+            return codecs.decode(desc[1:-1], 'ascii') # TODO check encoding

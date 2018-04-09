@@ -6,8 +6,13 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import datetime
+import dateutil
 import struct
 import sys
+
+from dateutil.relativedelta import (
+    relativedelta, MO, TU, TH, FR, WE, SA, SU
+)
 
 from MAPI import (
     WrapCompressedRTFStream, PT_UNICODE, ROW_ADD, MAPI_MODIFY,
@@ -28,6 +33,8 @@ from MAPI.Struct import (
 
 from .compat import bdec as _bdec
 from .errors import Error, NotFoundError
+
+RRULE_WEEKDAYS = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
 
 if sys.hexversion >= 0x03000000:
     from . import table as _table
@@ -159,6 +166,47 @@ def human_to_bytes(s):
     for i, s in enumerate(sset[1:]):
         prefix[s] = 1 << (i + 1) * 10
     return int(num * prefix[letter])
+
+class MAPITimezone(datetime.tzinfo):
+    def __init__(self, tzdata):
+        # TODO more thoroughly check specs (MS-OXOCAL)
+        self.timezone, _, self.timezonedst, \
+        _, \
+        _, self.dstendmonth, self.dstendweek, self.dstendday, self.dstendhour, _, _, _, \
+        _, \
+        _, self.dststartmonth, self.dststartweek, self.dststartday, self.dststarthour, _, _, _ = struct.unpack('<lll H HHHHHHHH H HHHHHHHH', tzdata)
+
+    def _date(self, dt, dstmonth, dstweek, dstday, dsthour):
+        d = datetime.datetime(dt.year, dstmonth, 1, dsthour)
+        if dstday == 5: # last weekday of month
+            d += relativedelta(months=1, days=-1, weekday=RRULE_WEEKDAYS[dstweek](-1))
+        else:
+            d += relativedelta(weekday=RRULE_WEEKDAYS[dstweek](dstday))
+        return d
+
+    def dst(self, dt):
+        start = self._date(dt, self.dststartmonth, self.dststartweek, self.dststartday, self.dststarthour)
+        end = self._date(dt, self.dstendmonth, self.dstendweek, self.dstendday, self.dstendhour)
+
+        # Can't compare naive to aware objects, so strip the timezone from
+        # dt first.
+        # TODO end < start case!
+        dt = dt.replace(tzinfo=None)
+
+        if ((start < end and start < dt < end) or \
+            (start > end and not end < dt < start)):
+            return datetime.timedelta(minutes=-self.timezone)
+        else:
+            return datetime.timedelta(minutes=0)
+
+    def utcoffset(self, dt):
+        return datetime.timedelta(minutes=-self.timezone) + self.dst(dt)
+
+    def tzname(self, dt):
+        return 'MAPITimeZone()'
+
+    def __repr__(self):
+        return 'MAPITimeZone()'
 
 def _in_dst(date, dststartmonth, dststartday, dststarthour, dstendmonth, dstendday, dstendhour):
     dststart = datetime.datetime(date.year, dststartmonth, 1) + \

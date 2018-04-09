@@ -1,5 +1,7 @@
 import base64
 
+import falcon
+
 from ..utils import (
     _server_store, _folder,
 )
@@ -84,6 +86,9 @@ class MessageResource(ItemResource):
                 item = item.copy(folder)
             else:
                 item = item.move(folder)
+
+        elif method:
+            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
         self.respond(req, resp, item)
 

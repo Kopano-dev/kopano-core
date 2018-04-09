@@ -25,7 +25,7 @@ def _server(auth_user, auth_pass):
     # return global connection, using credentials from first user to
     # authenticate, and use it for all notifications
     global SERVER
-    try:
+    try: # TODO thread lock?
         SERVER
     except NameError:
         SERVER = kopano.Server(auth_user=auth_user, auth_pass=auth_pass,
@@ -37,7 +37,7 @@ def _user(req, options):
 
     if auth['method'] == 'bearer':
         username = auth['user']
-        server = _server(username, auth['token'])
+        server = _server(auth['userid'], auth['token'])
     elif auth['method'] == 'basic':
         username = codecs.decode(auth['user'], 'utf8')
         server = _server(username, auth['password'])

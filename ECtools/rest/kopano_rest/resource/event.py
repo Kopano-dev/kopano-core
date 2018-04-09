@@ -1,6 +1,7 @@
 import base64
-from collections import OrderedDict # TODO avoid
+
 import dateutil.parser
+import falcon
 
 import kopano
 
@@ -73,6 +74,8 @@ def recurrence_json(item):
         return j
 
 def recurrence_set(item, arg):
+    # TODO order of setting recurrence attrs shouldn't matter
+
     if arg is None:
         item.recurring = False # TODO pyko checks.. cleanup?
     else:
@@ -146,7 +149,7 @@ class EventResource(ItemResource):
         'isOrganizer': lambda item: item.from_.email == item.sender.email,
     })
 
-    set_fields = OrderedDict()
+    set_fields = {}
     set_fields['subject'] = lambda item, arg: setattr(item, 'subject', arg)
     set_fields['start'] = lambda item, arg: set_date(item, 'start', arg)
     set_fields['end'] = lambda item, arg: set_date(item, 'end', arg)
@@ -168,6 +171,9 @@ class EventResource(ItemResource):
             start, end = _start_end(req)
             data = (event.occurrences(start, end), DEFAULT_TOP, 0, 0)
             self.respond(req, resp, data)
+
+        elif method:
+            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
         else:
             self.respond(req, resp, event)

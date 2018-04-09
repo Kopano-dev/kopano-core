@@ -1,3 +1,5 @@
+import falcon
+
 from ..utils import (
     _server_store, _folder
 )
@@ -66,6 +68,9 @@ class ContactResource(ItemResource):
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid or 'contacts') # TODO all folders?
+
+        if method:
+            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
         if itemid == 'delta':
             self.delta(req, resp, folder)
