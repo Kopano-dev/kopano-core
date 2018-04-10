@@ -18,6 +18,7 @@ except TypeError:
     INDENT = False
 
 import dateutil.parser
+import falcon
 
 DEFAULT_TOP = 10
 
@@ -64,9 +65,12 @@ def set_date(item, field, arg):
 
 def _start_end(req):
     args = urlparse.parse_qs(req.query_string)
-    start = _naive_local(dateutil.parser.parse(args['startDateTime'][0]))
-    end = _naive_local(dateutil.parser.parse(args['endDateTime'][0]))
-    return start, end
+    try:
+        start = _naive_local(dateutil.parser.parse(args['startDateTime'][0]))
+        end = _naive_local(dateutil.parser.parse(args['endDateTime'][0]))
+        return start, end
+    except KeyError:
+        raise falcon.HTTPBadRequest(None, 'This request requires a time window specified by the query string parameters StartDateTime and EndDateTime.')
 
 class Resource(object):
     def __init__(self, options):
