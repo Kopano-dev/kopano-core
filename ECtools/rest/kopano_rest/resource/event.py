@@ -12,7 +12,7 @@ from .resource import (
     DEFAULT_TOP, json, _date, set_date, _start_end
 )
 from .item import (
-    ItemResource, get_email, get_body
+    ItemResource, get_email, get_body, set_body
 )
 
 pattern_map = {
@@ -110,6 +110,12 @@ def attendees_json(item):
         result.append(data)
     return result
 
+def attendees_set(item, arg):
+    for a in arg:
+        email = a['emailAddress']
+        addr = '%s <%s>' % (email.get('name', email['address']), email['address'])
+        item.create_attendee(a['type'], addr)
+
 def event_type(item):
     if item.recurring:
         if isinstance(item, kopano.Occurrence):
@@ -149,11 +155,15 @@ class EventResource(ItemResource):
         'isOrganizer': lambda item: item.from_.email == item.sender.email,
     })
 
-    set_fields = {}
-    set_fields['subject'] = lambda item, arg: setattr(item, 'subject', arg)
-    set_fields['start'] = lambda item, arg: set_date(item, 'start', arg)
-    set_fields['end'] = lambda item, arg: set_date(item, 'end', arg)
-    set_fields['recurrence'] = recurrence_set
+    set_fields = {
+        'subject': lambda item, arg: setattr(item, 'subject', arg),
+        'location': lambda item, arg: setattr(item, 'location', arg['displayName']), # TODO
+        'body': set_body,
+        'start': lambda item, arg: set_date(item, 'start', arg),
+        'end': lambda item, arg: set_date(item, 'end', arg),
+        'attendees': lambda item, arg: attendees_set(item, arg),
+        'recurrence': recurrence_set,
+    }
 
     # TODO delta functionality seems to include expanding recurrences!? check with MSGE
 

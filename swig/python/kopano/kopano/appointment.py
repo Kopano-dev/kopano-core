@@ -9,19 +9,23 @@ import datetime
 import sys
 
 from MAPI import (
-    PT_SYSTIME, MNID_ID, PT_BOOLEAN,
+    PT_SYSTIME, MNID_ID, PT_BOOLEAN, MODRECIP_ADD,
+    KEEP_OPEN_READWRITE,
 )
 
 from MAPI.Tags import (
-    PR_MESSAGE_RECIPIENTS, PR_RESPONSE_REQUESTED,
+    PR_MESSAGE_RECIPIENTS, PR_RESPONSE_REQUESTED, PR_ENTRYID,
+    PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, PR_RECIPIENT_TYPE,
 )
+
+from MAPI.Struct import SPropValue
 
 from .attendee import Attendee
 from .errors import NotFoundError
 from .recurrence import Recurrence, Occurrence
 
 from .compat import (
-    benc as _benc, bdec as _bdec,
+    benc as _benc, bdec as _bdec, fake_unicode as _unicode,
 )
 from .defs import (
     PSETID_Appointment,
@@ -29,7 +33,7 @@ from .defs import (
 from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
     PidLidBusyStatus, PidLidGlobalObjectId, PidLidRecurring,
-    PidLidTimeZoneStruct, PidLidTimeZoneDescription,
+    PidLidTimeZoneStruct, PidLidTimeZoneDescription, PidLidLocation,
 )
 if sys.hexversion >= 0x03000000:
     try:
@@ -93,10 +97,11 @@ class Appointment(object):
 
     @property
     def location(self):
-        try:
-            return self.prop('appointment:33288').value
-        except NotFoundError:
-            pass
+        return self.get(PidLidLocation)
+
+    @location.setter
+    def location(self, value):
+        self[PidLidLocation] = value
 
     @property
     def recurring(self):
@@ -162,6 +167,28 @@ class Appointment(object):
     def attendees(self):
         for row in self.table(PR_MESSAGE_RECIPIENTS):
             yield Attendee(self.server, row)
+
+    def create_attendee(self, type_, address):
+        # TODO move to Attendee class
+
+        reciptype = {
+            'required': 1,
+            'optional': 2,
+            'resource': 3
+        }[type_]
+
+        table = self.table(PR_MESSAGE_RECIPIENTS)
+        names = []
+        pr_addrtype, pr_dispname, pr_email, pr_entryid = self._addr_props(address)
+        names.append([
+            SPropValue(PR_RECIPIENT_TYPE, reciptype),
+            SPropValue(PR_DISPLAY_NAME_W, pr_dispname),
+            SPropValue(PR_ADDRTYPE_W, _unicode(pr_addrtype)),
+            SPropValue(PR_EMAIL_ADDRESS_W, _unicode(pr_email)),
+            SPropValue(PR_ENTRYID, pr_entryid),
+        ])
+        self.mapiobj.ModifyRecipients(MODRECIP_ADD, names)
+        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
     def response_requested(self):
