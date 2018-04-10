@@ -12,7 +12,7 @@ class vcftomapi {
 	public:
 	vcftomapi(IMAPIProp *o) : m_propobj(o) {}
 	virtual ~vcftomapi(void) = default;
-	virtual HRESULT parse_vcf(const std::string &) = 0;
+	virtual HRESULT parse_vcf(const std::string &ical) = 0;
 	virtual HRESULT get_item(IMessage *) = 0;
 
 	protected:
