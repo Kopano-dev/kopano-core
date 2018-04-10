@@ -64,6 +64,8 @@
 %typemap(freearg) (const std::string &strIcal) {
 }
 
+%apply const std::string &strIcal {const std::string &ical};
+
 /* defines for the eIcalType */
 #define VEVENT 0
 #define VTODO 1
