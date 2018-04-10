@@ -19,13 +19,13 @@ def get_body(req, item):
     if type_ == 'text':
         return {'contentType': 'text', 'content': item.text}
     else:
-        return {'contentType': 'html', 'content': item.html.decode('utf8')}, # TODO if not utf8?
+        return {'contentType': 'html', 'content': item.html.decode('utf8')} # TODO if not utf8?
 
 def set_body(item, arg):
     if arg['contentType'] == 'text':
         item.text = arg['content']
     elif arg['contentType'] == 'html':
-        item.html = arg['content']
+        item.html = arg['content'].encode('utf8')
 
 def get_email(addr):
     return {'emailAddress': {'name': addr.name, 'address': addr.email} }
