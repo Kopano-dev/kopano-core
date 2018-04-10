@@ -26,7 +26,7 @@ Master Fleet Runner
 
 Instantiates the specified number of Bjoern WSGI server processes,
 each taking orders on their own unix socket and passing requests to
-the kopano-rest WSGI app.
+the respective WSGI app (rest, notify or metrics).
 
 """
 
@@ -37,7 +37,7 @@ WORKERS = 8
 METRICS_LISTEN = 'localhost:8100'
 
 # metrics
-REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request')
+REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request', ['method', 'endpoint'])
 
 def opt_args():
     parser = optparse.OptionParser()
@@ -76,9 +76,15 @@ def error_handler(ex, req, resp, params):
 # falcon metrics middleware
 
 class FalconMetrics(object):
-    @REQUEST_TIME.time()
     def process_request(self, req, resp):
-        pass
+        req.context['start_time'] = time.time()
+
+    def process_response(self, req, resp, resource):
+        t = time.time() - req.context['start_time']
+        if 'label' in req.context:
+            REQUEST_TIME.labels(req.method, req.context['label']).observe(t)
+        else:
+            REQUEST_TIME.labels(req.method, '/').observe(t)
 
 # Expose metrics.
 def metrics_app(environ, start_response):
