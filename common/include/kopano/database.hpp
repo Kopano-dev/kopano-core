@@ -142,7 +142,7 @@ class _kc_export KDatabase {
 	};
 
 	unsigned int GetAffectedRows(void);
-	virtual const struct sSQLDatabase_t *GetDatabaseDefs(void) = 0;
+	virtual const struct sSQLDatabase_t *GetDatabaseDefs() { return nullptr; }
 	unsigned int GetInsertId(void);
 	ECRESULT InitEngine(bool reconnect);
 	bool isConnected(void) const { return m_bConnected; }

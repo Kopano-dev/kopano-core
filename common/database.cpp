@@ -212,6 +212,8 @@ ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 ECRESULT KDatabase::CreateTables(void)
 {
 	auto tables = GetDatabaseDefs();
+	if (tables == nullptr)
+		return erSuccess;
 
 	for (size_t i = 0; tables[i].lpSQL != nullptr; ++i) {
 		DB_RESULT result;
