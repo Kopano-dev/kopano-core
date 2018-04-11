@@ -31,6 +31,7 @@
 #include <kopano/platform.h>
 #include <chrono>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <new>
 #include <string>
@@ -62,6 +63,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 #include <kopano/UnixUtil.h>
+#include <kopano/automapi.hpp>
 #include <kopano/memory.hpp>
 #include <kopano/my_getopt.h>
 #include <kopano/ecversion.h>
@@ -90,7 +92,7 @@ using std::map;
 using std::string;
 using std::wstring;
 
-static StatsClient *sc = NULL;
+static std::unique_ptr<StatsClient> sc;
 
 // spooler exit codes
 #define EXIT_WAIT 2
@@ -1101,6 +1103,7 @@ int main(int argc, char *argv[]) {
 	bQuit = bMessagesWaiting = false;
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 
+	AutoMAPI mapiinit;
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
 	if (unix_runas(g_lpConfig)) {
@@ -1123,26 +1126,21 @@ int main(int argc, char *argv[]) {
 	ec_log_set(g_lpLogger);
 	g_lpLogger->SetLogprefix(LP_PID);
 
-	hr = MAPIInitialize(NULL);
+	hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to initialize MAPI: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
-	sc = new StatsClient(g_lpLogger);
+	sc.reset(new StatsClient(g_lpLogger));
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	if (bForked)
 		hr = ProcessMessageForked(strUsername.c_str(), szSMTP, ulPort, szPath, strMsgEntryId.length(), (LPENTRYID)strMsgEntryId.data(), bDoSentMail);
 	else
 			hr = running_server(szSMTP, ulPort, szPath);
-
-	delete sc;
-
 	if (!bForked)
 		ec_log_info("Spooler shutdown complete");
-	MAPIUninitialize();
-
 exit:
 	delete g_lpConfig;
 	DeleteLogger(g_lpLogger);
