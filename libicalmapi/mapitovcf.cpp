@@ -40,6 +40,7 @@ class mapitovcf_impl _kc_final : public mapitovcf {
 	HRESULT finalize(std::string *) _kc_override;
 
 	private:
+	bool prop_is_empty(const SPropValue &s) const;
 	VObject *to_prop(VObject *node, const char *prop, const SPropValue &value);
 	VObject *to_prop(VObject *node, const char *prop, const wchar_t *value);
 	HRESULT add_adr(IMessage *lpMessage, VObject *root);
@@ -60,9 +61,22 @@ HRESULT create_mapitovcf(mapitovcf **ret)
 	return *ret != nullptr ? hrSuccess : MAPI_E_NOT_ENOUGH_MEMORY;
 }
 
+bool mapitovcf_impl::prop_is_empty(const SPropValue &s) const {
+	if (PROP_TYPE(s.ulPropTag) == PT_UNICODE && wcslen(s.Value.lpszW) == 0)
+		return true;
+	else if (PROP_TYPE(s.ulPropTag) == PT_STRING8 && strlen(s.Value.lpszA) == 0)
+		return true;
+	else if (PROP_TYPE(s.ulPropTag) == PT_BINARY && s.Value.bin.cb == 0)
+		return true;
+	// assume everything else is not empty
+	return false;
+}
+
 VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
     const SPropValue &s)
 {
+	if (prop_is_empty(s))
+		return nullptr;
 	auto newnode = addProp(node, prop);
 	if (newnode == nullptr)
 		return nullptr;
@@ -90,6 +104,8 @@ VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
 VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
     const wchar_t *value)
 {
+	if (node == nullptr || value == nullptr || wcslen(value) == 0)
+		return nullptr;
 	auto newnode = addProp(node, prop);
 	if (newnode == nullptr)
 		return nullptr;
@@ -108,7 +124,7 @@ HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
 	memory_ptr<SPropTagArray> proptag;
 
 	auto hr = lpMessage->GetProps(home_props, MAPI_UNICODE, &count, &~msgprop_array);
-	if (!FAILED(hr) && PROP_TYPE(msgprop_array[0].ulPropTag) == PT_UNICODE) {
+	if (!FAILED(hr) && PROP_TYPE(msgprop_array[0].ulPropTag) == PT_UNICODE && !prop_is_empty(msgprop_array[0])) {
 		auto adrnode = addProp(root, VCAdrProp);
 		auto node = addProp(adrnode, "TYPE");
 		setVObjectStringZValue(node, "HOME");
@@ -129,7 +145,7 @@ HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
 			 PR_OTHER_ADDRESS_COUNTRY}};
 
 	hr = lpMessage->GetProps(other_props, MAPI_UNICODE, &count, &~msgprop_array);
-	if (!FAILED(hr) && PROP_TYPE(msgprop_array[0].ulPropTag) == PT_UNICODE) {
+	if (!FAILED(hr) && PROP_TYPE(msgprop_array[0].ulPropTag) == PT_UNICODE&& !prop_is_empty(msgprop_array[0])) {
 		auto adrnode = addProp(root, VCAdrProp);
 		to_prop(adrnode, "STREET", msgprop_array[0].Value.lpszW);
 		if (PROP_TYPE(msgprop_array[1].ulPropTag) == PT_UNICODE)
@@ -157,7 +173,7 @@ HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
 	for (size_t i = 0; i < 5; ++i)
 		proptag->aulPropTag[i] = CHANGE_PROP_TYPE(proptag->aulPropTag[i], PT_UNICODE);
 	hr = lpMessage->GetProps(proptag, MAPI_UNICODE, &count, &~msgprop_array);
-	if (FAILED(hr) || PROP_TYPE(msgprop_array[0].ulPropTag) != PT_UNICODE)
+	if (FAILED(hr) || PROP_TYPE(msgprop_array[0].ulPropTag) != PT_UNICODE || prop_is_empty(msgprop_array[0]))
 		return hrSuccess;
 	auto adrnode = addProp(root, VCAdrProp);
 	auto node = addProp(adrnode, "TYPE");
@@ -322,7 +338,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 		return hr;
 
 	hr = HrGetOneProp(lpMessage, PR_COMPANY_NAME, &~msgprop);
-	if (hr == hrSuccess) {
+	if (hr == hrSuccess && !prop_is_empty(*msgprop)) {
 		auto node = addGroup(root, VCOrgProp);
 		to_prop(node, "ORGNAME", *msgprop);
 		hr = HrGetOneProp(lpMessage, PR_DEPARTMENT_NAME, &~msgprop);
@@ -330,7 +346,7 @@ HRESULT mapitovcf_impl::add_message(IMessage *lpMessage)
 			to_prop(node, "OUN", *msgprop);
 		else if (hr != MAPI_E_NOT_FOUND)
 			return hr;
-	} else if (hr != MAPI_E_NOT_FOUND) {
+	} else if (hr != MAPI_E_NOT_FOUND && !prop_is_empty(*msgprop)) {
 		return hr;
 	}
 
