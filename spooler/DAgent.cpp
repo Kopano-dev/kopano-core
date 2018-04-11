@@ -523,15 +523,12 @@ static void SaveRawMessage(FILE *fp, const char *lpRecipient, DeliveryArgs *lpAr
 
 	std::string strFileName = g_lpConfig->GetSetting("log_raw_message_path");
 	auto rawmsg = g_lpConfig->GetSetting("log_raw_message");
-	/*
-	 * Either rawmsg contains:
-	 * - no: do not save messages (default)
-	 * - all|yes: save for all users (yes for backward compatibility)
-	 * - space-separated user list
-	 */
-	bool y = parseBool(rawmsg) && (strcasecmp(rawmsg, "all") == 0 ||
-	         strcasecmp(rawmsg, "yes") == 0 || kc_recip_in_list(rawmsg, lpRecipient)) ||
-	         (strcasecmp(rawmsg, "error") == 0 && lpArgs->got_error);
+	bool y = parseBool(rawmsg);
+	if (!y)
+		return;
+	y = strcasecmp(rawmsg, "all") == 0 || strcasecmp(rawmsg, "yes") == 0 ||
+	    kc_recip_in_list(rawmsg, lpRecipient) ||
+	    (strcasecmp(rawmsg, "error") == 0 && lpArgs->got_error);
 	if (!y)
 		return;
 
