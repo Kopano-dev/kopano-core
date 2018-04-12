@@ -66,11 +66,16 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 		auto x = freemap.erase(strtoul(row[0], nullptr, 0));
 		assert(x == 1);
 	}
+
+	ret = db->DoSelect("SELECT id FROM names WHERE id <= 31485 ORDER BY id", &result);
+	if (ret != erSuccess)
+		return ret;
+	printf("defrag: %zu IDs\n", result.get_num_rows());
+	if (result.get_num_rows() == 0)
+		return erSuccess;
 	if (our_proptagidx == nullptr)
 		our_proptagidx.reset(new proptagindex(db));
 
-	ret = db->DoSelect("SELECT id FROM names WHERE id <= 31485 ORDER BY id", &result);
-	printf("defrag: %zu IDs\n", result.get_num_rows());
 	unsigned int newid = 1;
 	while ((row = result.fetch_row()) != nullptr) {
 		unsigned int oldid = strtoul(row[0], nullptr, 0);
@@ -168,6 +173,8 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 	if (ret != erSuccess)
 		return ret;
 	printf("dup: %zu duplicates to repair\n", result.get_num_rows());
+	if (result.get_num_rows() == 0)
+		return erSuccess;
 	if (our_proptagidx == nullptr)
 		our_proptagidx.reset(new proptagindex(db));
 
