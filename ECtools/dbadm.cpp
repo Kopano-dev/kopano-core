@@ -114,6 +114,10 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 
 static ECRESULT np_remove_highid(KDatabase &db)
 {
+	/*
+	 * This is a no-op for systems where only K-1220 and no K-1219 was
+	 * diagnosed.
+	 */
 	return db.DoUpdate("DELETE FROM names WHERE id > 31485");
 }
 
@@ -219,6 +223,17 @@ static ECRESULT np_stat(KDatabase &db)
 	return erSuccess;
 }
 
+static ECRESULT k1216(std::shared_ptr<KDatabase> db)
+{
+	auto ret = np_remove_highid(*db.get());
+	if (ret != erSuccess)
+		return ret;
+	ret = np_repair_dups(db);
+	if (ret != erSuccess)
+		return ret;
+	return np_defrag(db);
+}
+
 int main(int argc, char **argv)
 {
 	const configsetting_t defaults[] = {
@@ -258,7 +273,9 @@ int main(int argc, char **argv)
 	for (size_t i = 1; i < argc; ++i) {
 		ret = KCERR_NOT_FOUND;
 		printf("dbadm: executing action \"%s\"\n", argv[i]);
-		if (strcmp(argv[i], "np-defrag") == 0)
+		if (strcmp(argv[i], "k-1216") == 0)
+			ret = k1216(db);
+		else if (strcmp(argv[i], "np-defrag") == 0)
 			ret = np_defrag(db);
 		else if (strcmp(argv[i], "np-remove-highid") == 0)
 			ret = np_remove_highid(*db.get());

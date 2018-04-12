@@ -7,21 +7,25 @@ kopano\-dbadm \(em database administration utility
 .PP
 This tool is for special surgical tasks on the Kopano SQL database.
 \fBkopano\-server ought to be stopped when running this utility\fP, unless
-otherwise noted.
+otherwise noted. You should make a database backup first.
 .SH Options
 .TP
 \fB\-c\fP \fIserver.cfg\fP
 By default, kopano\-dbadm will read /etc/kopano/server.cfg for MySQL
 connection parameters, but an alternate file may be specified.
 .SH Actions
+.SS k\-1216
+This is an alias for the combination of: np\-remove\-highid, np\-repair\-dups,
+np\-defrag. It may be used to address the K-1216 issue that kopano\-server(8)
+may report when performing a schema update.
 .SS np\-defrag
-Compacts the ID space in the namedproperties table and lowers the
+Compact the ID space in the namedproperties table and lowers the
 AUTO_INCREMENT value, thereby making IDs actually usable after a remove
 operation (such as np\-remove\-xh).
 .SS np\-remove\-highid
-Removes all named properties with internal ID larger than 31485, because the
-data for these named props was not stored correctly and it is impossible to
-reliably retrieve again.
+Remove all named property mappings with internal ID higher than 31485. As
+Kopano/Zarafa MAPI clients cannot handle these IDs anyway, the IDs are never
+used to store any data and only occupy the ID space needlessy.
 .SS np\-remove\-xh
 kopano\-dagent(8) used to index all X-Headers from Internet e-mails by default,
 but administrators may not have needed this information in the first place. By
