@@ -138,16 +138,12 @@ ECRESULT db_update_69(ECDatabase *db)
 	ec_log_err("K-1216: Cannot update to schema v69, because the \"names\" table contains unexpected rows. Certain prior versions of the server erroneously allowed these duplicates to be added (KC-1108).");
 	DB_RESULT res;
 	unsigned long long ai = ~0ULL;
-	ret = db->DoSelect("SELECT `AUTO_INCREMENT` FROM mysql.information_schema WHERE table_schema=\"" + db->Escape(db->get_dbname()) + "\" AND table_name=\"names\"", &res);
+	ret = db->DoSelect("SELECT MAX(id)+1 FROM names", &res);
 	if (ret == erSuccess) {
 		auto row = res.fetch_row();
 		if (row != nullptr && row[0] != nullptr)
 			ai = strtoull(row[0], nullptr, 0);
 	}
-	if (ai == ~0ULL)
-		ec_log_err("K-1217: Table fill level is indeterminate.");
-	else
-		ec_log_err("K-1218: Table fill level is " + stringify(ai) + " of 31485.");
 	if (ai >= 31485)
 		ec_log_err("K-1219: It is possible that K-1216 has, in the past, led old clients to misplace data in the DB. This cannot be reliably detected and such data is effectively lost already.");
 	ec_log_err("K-1220: To fix the excess rows, use `kopano-dbadm k-1216`. Consult the manpage and preferably make a backup first.");
