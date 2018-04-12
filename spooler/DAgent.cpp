@@ -2838,7 +2838,8 @@ static void *HandlerLMTP(void *lpArg)
 				lmtp.HrResponse("250-SERVER ready"); 
 				lmtp.HrResponse("250-PIPELINING");
 				lmtp.HrResponse("250-ENHANCEDSTATUSCODE");
-				lmtp.HrResponse("250 RSET");
+				lmtp.HrResponse("250-RSET");
+				lmtp.HrResponse("250 SMTPUTF8");
 			} else {
 				lmtp.HrResponse("501 5.5.4 Syntax: LHLO hostname");
 				lpArgs->sc->countInc("DAgent::LMTP", "LHLO_fail");
