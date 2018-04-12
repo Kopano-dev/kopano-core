@@ -9,8 +9,13 @@ import sys
 import time
 
 import falcon
-from prometheus_client import multiprocess
-from prometheus_client import generate_latest, CollectorRegistry, CONTENT_TYPE_LATEST, Summary
+
+try:
+    from prometheus_client import multiprocess
+    from prometheus_client import generate_latest, CollectorRegistry, CONTENT_TYPE_LATEST, Summary
+    PROMETHEUS = True
+except ImportError:
+    PROMETHEUS = False
 
 try:
     import setproctitle
@@ -34,10 +39,11 @@ the respective WSGI app (rest, notify or metrics).
 
 SOCKET_PATH = '/var/run/kopano'
 WORKERS = 8
-METRICS_LISTEN = 'localhost:8100'
+METRICS_LISTEN = 'localhost:6060'
 
 # metrics
-REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request', ['method', 'endpoint'])
+if PROMETHEUS:
+    REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request', ['method', 'endpoint'])
 
 def opt_args():
     parser = optparse.OptionParser()
@@ -99,10 +105,15 @@ def metrics_app(environ, start_response):
     start_response(status, response_headers)
     return iter([data])
 
+# TODO merge run_*
 def run_app(socket_path, n, options):
     if SETPROCTITLE:
         setproctitle.setproctitle('kopano-mfr rest %d' % n)
-    app = kopano_rest.RestAPI(options=options, middleware=[FalconMetrics()])
+    if options.with_metrics:
+        middleware=[FalconMetrics()]
+    else:
+        middleware=None
+    app = kopano_rest.RestAPI(options=options, middleware=middleware)
     app.add_error_handler(Exception, error_handler)
     unix_socket = 'unix:' + os.path.join(socket_path, 'rest%d.sock' % n)
     logging.info('starting rest worker: %s', unix_socket)
@@ -114,7 +125,11 @@ def run_app(socket_path, n, options):
 def run_notify(socket_path, options):
     if SETPROCTITLE:
         setproctitle.setproctitle('kopano-mfr notify')
-    app = kopano_rest.NotifyAPI(options)
+    if options.with_metrics:
+        middleware=[FalconMetrics()]
+    else:
+        middleware=None
+    app = kopano_rest.NotifyAPI(options=options, middleware=middleware)
     app.add_error_handler(Exception, error_handler)
     unix_socket = 'unix:' + os.path.join(socket_path, 'notify.sock')
     logging.info('starting notify worker: %s', unix_socket)
@@ -123,7 +138,6 @@ def run_notify(socket_path, options):
     except KeyboardInterrupt:
         pass
 
-# TODO merge run_*
 def run_metrics(socket_path, options):
     if SETPROCTITLE:
         setproctitle.setproctitle('kopano-mfr metrics')
@@ -169,8 +183,12 @@ def main():
     workers.append(notify_process)
 
     if options.with_metrics:
-        metrics_process = multiprocessing.Process(target=run_metrics, args=(socket_path, options))
-        workers.append(metrics_process)
+        if PROMETHEUS:
+            metrics_process = multiprocessing.Process(target=run_metrics, args=(socket_path, options))
+            workers.append(metrics_process)
+        else:
+            logging.error('please install prometheus client python bindings')
+            sys.exit(-1)
 
     for worker in workers:
         worker.daemon = True
@@ -189,7 +207,6 @@ def main():
         for n in range(nworkers):
             sockets.append('rest%d.sock' % n)
         sockets.append('notify.sock')
-        sockets.append('metrics.sock')
         for socket in sockets:
             try:
                 unix_socket = os.path.join(socket_path, socket)
@@ -197,8 +214,9 @@ def main():
             except OSError:
                 pass
 
-        for worker in workers:
-            multiprocess.mark_process_dead(worker.pid)
+        if options.with_metrics:
+            for worker in workers:
+                multiprocess.mark_process_dead(worker.pid)
 
 if __name__ == '__main__':
     main()

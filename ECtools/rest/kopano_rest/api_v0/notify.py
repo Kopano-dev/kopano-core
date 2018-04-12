@@ -12,20 +12,26 @@ except ImportError:
 import requests
 from threading import Thread
 
-from prometheus_client import Counter, Gauge
+try:
+    from prometheus_client import Counter, Gauge
+    PROMETHEUS = True
+except ImportError:
+    PROMETHEUS = False
 
-from MAPI import MAPI_MESSAGE # TODO
+from MAPI import MAPI_MESSAGE # TODO avoid MAPI
 import kopano
 kopano.set_bin_encoding('base64')
 
 from .. import utils
 from .config import PREFIX
 
+# TODO avoid globals
 SUBSCRIPTIONS = {}
 
-SUBSCR_COUNT = Counter('total_subscriptions', 'Total number of subscriptions')
-SUBSCR_ACTIVE = Gauge('active_subscriptions', 'Number of active subscriptions')
-POST_COUNT = Counter('total_webhook_posts', 'Total number of webhook posts')
+if PROMETHEUS:
+    SUBSCR_COUNT = Counter('total_subscriptions', 'Total number of subscriptions')
+    SUBSCR_ACTIVE = Gauge('active_subscriptions', 'Number of active subscriptions')
+    POST_COUNT = Counter('total_webhook_posts', 'Total number of webhook posts')
 
 def _server(auth_user, auth_pass):
     # return global connection, using credentials from first user to
@@ -96,7 +102,8 @@ class Processor(Thread):
 
                 verify = not self.options or not self.options.insecure
                 try:
-                    POST_COUNT.inc()
+                    if self.options.with_metrics:
+                        POST_COUNT.inc()
                     requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10, verify=verify)
                 except Exception:
                     traceback.print_exc()
@@ -148,8 +155,9 @@ class SubscriptionResource:
         resp.content_type = "application/json"
         resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
 
-        SUBSCR_COUNT.inc()
-        SUBSCR_ACTIVE.set(len(SUBSCRIPTIONS))
+        if self.options.with_metrics:
+            SUBSCR_COUNT.inc()
+            SUBSCR_ACTIVE.set(len(SUBSCRIPTIONS))
 
     def on_get(self, req, resp, subscriptionid):
         subscription, sink = SUBSCRIPTIONS[subscriptionid]
@@ -166,11 +174,13 @@ class SubscriptionResource:
 
         store.unsubscribe(sink)
         del SUBSCRIPTIONS[subscriptionid]
-        SUBSCR_ACTIVE.set(len(SUBSCRIPTIONS))
+
+        if self.options.with_metrics:
+            SUBSCR_ACTIVE.set(len(SUBSCRIPTIONS))
 
 class NotifyAPIv0(falcon.API):
-    def __init__(self, options=None):
-        super().__init__(media_type=None)
+    def __init__(self, options=None, middleware=None):
+        super().__init__(media_type=None, middleware=middleware)
         self.options = options
 
         subscriptions = SubscriptionResource(options)
