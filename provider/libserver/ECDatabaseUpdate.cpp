@@ -135,7 +135,7 @@ ECRESULT db_update_69(ECDatabase *db)
 	if (ret == hrSuccess)
 		return hrSuccess;
 
-	ec_log_err("K-1216: Cannot update to schema v69 because the \"names\" table contains unexpected rows.");
+	ec_log_err("K-1216: Cannot update to schema v69, because the \"names\" table contains unexpected rows. Certain prior versions of the server erroneously allowed these duplicates to be added (KC-1108).");
 	DB_RESULT res;
 	unsigned long long ai = ~0ULL;
 	ret = db->DoSelect("SELECT `AUTO_INCREMENT` FROM mysql.information_schema WHERE table_schema=\"" + db->Escape(db->get_dbname()) + "\" AND table_name=\"names\"", &res);
@@ -149,10 +149,9 @@ ECRESULT db_update_69(ECDatabase *db)
 	else
 		ec_log_err("K-1218: Table fill level is " + stringify(ai) + " of 31485.");
 	if (ai >= 31485)
-		ec_log_err("K-1219: K-1216 may have already caused a loss of data in other tables.");
-	else
-		ec_log_err("K-1220: Looks like K-1216 has not yet caused loss of data. The dataset should be repaired as soon as possible.");
-	ec_log_err("K-1221: Proceeding with --ignore-da and ignoring the schema update is technically possible, but data corruption may happen sooner or later.");
+		ec_log_err("K-1219: It is possible that K-1216 has, in the past, led old clients to misplace data in the DB. This cannot be reliably detected and such data is effectively lost already.");
+	ec_log_err("K-1220: To fix the excess rows, use `kopano-dbadm k-1216`. Consult the manpage and preferably make a backup first.");
+	ec_log_err("K-1221: Alternatively, the server may be started with --ignore-da to forego the schema update.");
 	return KCERR_DATABASE_ERROR;
 }
 
