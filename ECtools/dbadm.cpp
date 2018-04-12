@@ -32,7 +32,7 @@ class proptagindex final {
 
 proptagindex::proptagindex(std::shared_ptr<KDatabase> db) : m_db(db)
 {
-	printf("int: adding temporary extra indices\n");
+	printf("dbadm: adding temporary helper indices\n");
 	auto ret = db->DoUpdate("ALTER TABLE properties ADD INDEX tmptag (tag)");
 	m_p = ret == erSuccess;
 	ret = db->DoUpdate("ALTER TABLE tproperties ADD INDEX tmptag (tag)");
@@ -41,7 +41,7 @@ proptagindex::proptagindex(std::shared_ptr<KDatabase> db) : m_db(db)
 
 proptagindex::~proptagindex()
 {
-	printf("int: cleaning up indices\n");
+	printf("dbadm: cleaning up indices\n");
 	if (m_tp)
 		m_db->DoUpdate("ALTER TABLE tproperties DROP INDEX tmptag");
 	if (m_p)
@@ -55,6 +55,7 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 	DB_RESULT result;
 	DB_ROW row;
 	std::set<unsigned int> freemap;
+	printf("dbadm: executing action \"np-defrag\"\n");
 
 	for (unsigned int i = 1; i <= 31485; ++i)
 		freemap.emplace(i);
@@ -118,11 +119,13 @@ static ECRESULT np_remove_highid(KDatabase &db)
 	 * This is a no-op for systems where only K-1220 and no K-1219 was
 	 * diagnosed.
 	 */
+	printf("dbadm: executing action \"np-remove-highid\"\n");
 	return db.DoUpdate("DELETE FROM names WHERE id > 31485");
 }
 
 static ECRESULT np_remove_xh(std::shared_ptr<KDatabase> db)
 {
+	printf("dbadm: executing action \"np-remove-xh\"\n");
 	unsigned int aff = 0;
 	if (our_proptagidx == nullptr)
 		our_proptagidx.reset(new proptagindex(db));
@@ -150,6 +153,7 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 {
 	DB_RESULT result;
 	DB_ROW row;
+	printf("dbadm: executing action \"np-repair-dups\"\n");
 
 	auto ret = db->DoSelect(
 		"SELECT n1.id, n2.min_id FROM names AS n1, "
@@ -272,7 +276,6 @@ int main(int argc, char **argv)
 	}
 	for (size_t i = 1; i < argc; ++i) {
 		ret = KCERR_NOT_FOUND;
-		printf("dbadm: executing action \"%s\"\n", argv[i]);
 		if (strcmp(argv[i], "k-1216") == 0)
 			ret = k1216(db);
 		else if (strcmp(argv[i], "np-defrag") == 0)
