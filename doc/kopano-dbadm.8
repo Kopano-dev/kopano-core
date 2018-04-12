@@ -1,0 +1,54 @@
+.TH kopano\-dbadm 8 "2018-04-11" "Kopano 8" "Kopano Groupware Core reference"
+.SH Name
+kopano\-dbadm \(em database administration utility
+.SH Synopsis
+\fBkopano\-dbadm\fP [\fB\-c\fP \fIserver.cfg\fP] \fIaction\fP...
+.SH Description
+.PP
+This tool is for special surgical tasks on the Kopano SQL database.
+\fBkopano\-server ought to be stopped when running this utility\fP, unless
+otherwise noted.
+.SH Options
+.TP
+\fB\-c\fP \fIserver.cfg\fP
+By default, kopano\-dbadm will read /etc/kopano/server.cfg for MySQL
+connection parameters, but an alternate file may be specified.
+.SH Actions
+.SS np\-defrag
+Compacts the ID space in the namedproperties table and lowers the
+AUTO_INCREMENT value, thereby making IDs actually usable after a remove
+operation (such as np\-remove\-xh).
+.SS np\-remove\-highid
+Removes all named properties with internal ID larger than 31485, because the
+data for these named props was not stored correctly and it is impossible to
+reliably retrieve again.
+.SS np\-remove\-xh
+kopano\-dagent(8) used to index all X-Headers from Internet e-mails by default,
+but administrators may not have needed this information in the first place. By
+using np\-remove\-xh, all named properties whose name starts with "X\-" and
+have GUID=PS_INTERNET_HEADERS are removed. np\-defrag should be run afterwards.
+.SS np\-repair\-dups
+Repairs duplicate named properties (only IDs below or equal to 31485).
+.SS np\-stat
+Show statistics for the namedproperties table. This action can be executed
+while kopano\-server is active.
+.SH Performance
+.PP
+Totally depends on the SQL server, which seems to process this
+single-threadedly. Example wallclock times it took on a i7-3930K for an evolved
+DB (4.9 GiB, 12.92M rows in properties, 9.63M rows in tproperties):
+.IP \(bu 4
+temporary helper index generation: 30 s
+.IP \(bu 4
+np\-remove\-xh: 2 min (2248 X-Headers removed)
+.IP \(bu 4
+np\-repair\-dups: 2 s (9 dups repaired)
+.IP \(bu 4
+np\-defrag: 13 s (moving 2978 IDs)
+.PP
+An approximate row count of a table can be retrieved with \fBSHOW TABLE STATUS
+LIKE "\fP\fIproperties\fP\fB"\fP. For an exact count, use \fBSELECT COUNT(*)
+FROM `\fP\fIproperties\fP\fB`\fP.
+.SH See also
+.PP
+\fBkopano\-server.cfg\fP(5)

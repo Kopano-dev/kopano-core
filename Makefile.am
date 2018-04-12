@@ -48,8 +48,8 @@ bin_PROGRAMS = kopano-fsck kopano-oof kopano-passwd kopano-stats
 dist_bin_SCRIPTS = ECtools/migration-imap/kopano-migration-imap \
 	ECtools/utils/kopano-set-oof
 sbin_PROGRAMS = \
-	kopano-admin kopano-archiver kopano-dagent kopano-gateway kopano-ical \
-	kopano-monitor kopano-server kopano-spooler \
+	kopano-admin kopano-archiver kopano-dagent kopano-dbadm kopano-gateway \
+	kopano-ical kopano-monitor kopano-server kopano-spooler \
 	kopano-srvadm kopano-storeadm
 dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 	ECtools/archiver/scripts/kopano-archiver-aclset \
@@ -170,6 +170,15 @@ kopano_dagent_LDADD = \
 if ENABLE_PYTHON
 kopano_dagent_LDADD += libkcpyplug.la
 endif
+
+
+#
+# kopano-dbadm
+#
+kopano_dbadm_SOURCES = ECtools/dbadm.cpp \
+	common/database.cpp common/include/kopano/database.hpp
+kopano_dbadm_CPPFLAGS = ${AM_CPPFLAGS}
+kopano_dbadm_LDADD = libkcmapi.la libkcutil.la ${MYSQL_LIBS}
 
 
 #
@@ -888,7 +897,7 @@ dist_man_MANS = \
 	doc/kopano-archiver.8 doc/kopano-archiver.cfg.5 \
 	doc/kopano-autorespond.8 doc/kopano-cachestat.8 \
 	doc/kopano-cfgchecker.8 doc/kopano-coredump.5 \
-	doc/kopano-dagent.8 doc/kopano-dagent.cfg.5 \
+	doc/kopano-dagent.8 doc/kopano-dagent.cfg.5 doc/kopano-dbadm.8 \
 	doc/kopano-mr-accept.8 doc/kopano-mr-process.8 \
 	doc/kopano-fsck.1 \
 	doc/kopano-gateway.8 doc/kopano-gateway.cfg.5 \

@@ -214,6 +214,8 @@ ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 ECRESULT KDatabase::CreateTables(ECConfig *cfg)
 {
 	auto tables = GetDatabaseDefs();
+	if (tables == nullptr)
+		return erSuccess;
 	auto engine = cfg->GetSetting("mysql_engine");
 	if (engine == nullptr)
 		engine = "InnoDB";
