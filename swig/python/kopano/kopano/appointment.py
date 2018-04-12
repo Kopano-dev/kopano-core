@@ -219,3 +219,33 @@ class Appointment(object):
         desc = self.get(PidLidTimeZoneDescription)
         if desc:
             return codecs.decode(desc[1:-1], 'ascii') # TODO check encoding
+
+    def accept(self, comment=None, tentative=False, respond=True):
+        # TODO update appointment itself
+
+        if respond:
+            if tentative:
+                message_class = 'IPM.Schedule.Meeting.Resp.Tent'
+            else:
+                message_class = 'IPM.Schedule.Meeting.Resp.Pos'
+            self._respond('Accepted', message_class, comment)
+
+    def decline(self, comment=None, respond=True):
+        # TODO update appointment itself
+
+        if respond:
+            message_class = 'IPM.Schedule.Meeting.Resp.Neg'
+            self._respond('Declined', message_class, comment)
+
+    # TODO merge with meetingrequest version
+    def _respond(self, subject_prefix, message_class, comment=None):
+        response = self.copy(self.store.outbox)
+        response.message_class = message_class
+
+        response.subject = subject_prefix + ': ' + self.subject
+        if comment:
+            response.body = comment
+        response.to = self.server.user(email=self.from_.email) # XXX
+        response.from_ = self.store.user # XXX slow?
+
+        response.send()

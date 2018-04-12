@@ -71,6 +71,12 @@ Query Parameters:
 
 [Delete event](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/event_delete.md)
 
+[accept event](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/event_accept.md)
+
+[tentativelyAccept event](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/event_tentativelyaccept.md)
+
+[decline event](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/event_decline.md)
+
 [List instances](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/event_list_instances.md)
 
 [List attachments](https://github.com/microsoftgraph/microsoft-graph-docs/blob/master/api-reference/v1.0/api/event_list_attachments.md)

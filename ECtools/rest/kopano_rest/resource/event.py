@@ -192,11 +192,26 @@ class EventResource(ItemResource):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid or 'calendar')
         item = folder.event(itemid)
+        fields = json.loads(req.stream.read().decode('utf-8'))
 
-        if method == 'attachments':
-            fields = json.loads(req.stream.read().decode('utf-8'))
+        if method == 'accept':
+            item.accept(comment=fields.get('comment'), respond=(fields.get('sendResponse')=='true'))
+            resp.status = falcon.HTTP_202
+
+        elif method == 'tentativelyAccept':
+            item.accept(comment=fields.get('comment'), tentative=True, respond=(fields.get('sendResponse')=='true'))
+            resp.status = falcon.HTTP_202
+
+        elif method == 'decline':
+            item.decline(comment=fields.get('comment'), respond=(fields.get('sendResponse')=='true'))
+            resp.status = falcon.HTTP_202
+
+        elif method == 'attachments':
             if fields['@odata.type'] == '#microsoft.graph.fileAttachment':
                 item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
+
+        elif method:
+            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
     def on_patch(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid, self.options)
