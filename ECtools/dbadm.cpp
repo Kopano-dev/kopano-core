@@ -8,6 +8,7 @@
  */
 #include <memory>
 #include <set>
+#include <string>
 #include <cassert>
 #include <cstdlib>
 #include <getopt.h>
@@ -27,28 +28,32 @@ class proptagindex final {
 	~proptagindex();
 	private:
 	std::shared_ptr<KDatabase> m_db;
-	bool m_p, m_tp;
+	std::set<std::string> m_indexed;
+};
+
+static std::unique_ptr<proptagindex> our_proptagidx;
+static const std::string our_proptables[] = {
+	"properties", "tproperties", "mvproperties",
+	"indexedproperties", "singleinstances", "lob",
 };
 
 proptagindex::proptagindex(std::shared_ptr<KDatabase> db) : m_db(db)
 {
-	printf("dbadm: adding temporary helper indices\n");
-	auto ret = db->DoUpdate("ALTER TABLE properties ADD INDEX tmptag (tag)");
-	m_p = ret == erSuccess;
-	ret = db->DoUpdate("ALTER TABLE tproperties ADD INDEX tmptag (tag)");
-	m_tp = ret == erSuccess;
+	for (const auto &tbl : our_proptables) {
+		printf("dbadm: adding temporary helper index on %s\n", tbl.c_str());
+		auto ret = db->DoUpdate("ALTER TABLE " + tbl + " ADD INDEX tmptag (tag)");
+		if (ret == erSuccess)
+			m_indexed.emplace(tbl);
+	}
 }
 
 proptagindex::~proptagindex()
 {
-	printf("dbadm: cleaning up indices\n");
-	if (m_tp)
-		m_db->DoUpdate("ALTER TABLE tproperties DROP INDEX tmptag");
-	if (m_p)
-		m_db->DoUpdate("ALTER TABLE properties DROP INDEX tmptag");
+	for (const auto &tbl : m_indexed) {
+		printf("dbadm: discard helper index on %s\n", tbl.c_str());
+		m_db->DoUpdate("ALTER TABLE " + tbl + " DROP INDEX tmptag");
+	}
 }
-
-static std::unique_ptr<proptagindex> our_proptagidx;
 
 static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 {
@@ -90,22 +95,19 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 		assert(oldid > newid);
 		/* e.g. oldid=4 newid=3 */
 		assert(freemap.erase(newid) == 1);
-		printf("defrag: moving %u -> %u [names", oldid, newid);
+		printf("defrag: moving %u -> %u (names)", oldid, newid);
 		fflush(stdout);
 		ret = db->DoUpdate("UPDATE names SET id=" + stringify(newid) + " WHERE id=" + stringify(oldid));
 		if (ret != erSuccess)
 			return ret;
-		printf("] [props");
-		fflush(stdout);
-		ret = db->DoUpdate("UPDATE properties SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
-		if (ret != erSuccess)
-			return ret;
-		printf("] [tprops");
-		fflush(stdout);
-		ret = db->DoUpdate("UPDATE tproperties SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
-		if (ret != erSuccess)
-			return ret;
-		printf("]\n");
+		for (const auto &tbl : our_proptables) {
+			printf(" (%s)", tbl.c_str());
+			fflush(stdout);
+			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
+			if (ret != erSuccess)
+				return ret;
+		}
+		putchar('\n');
 		auto x = freemap.emplace(oldid);
 		assert(x.second);
 		++newid;
@@ -137,16 +139,13 @@ static ECRESULT np_remove_xh(std::shared_ptr<KDatabase> db)
 	auto ret = db->DoUpdate("CREATE TEMPORARY TABLE n (SELECT id, 34049+id AS tag FROM names WHERE id <= 31485 AND guid=0x8603020000000000C000000000000046 AND (namestring LIKE \"X-%\" OR namestring LIKE \"x-%\"))");
 	if (ret != erSuccess)
 		return ret;
-	printf("remove-xh: purging \"properties\"...\n");
-	ret = db->DoDelete("DELETE p FROM properties AS p INNER JOIN n ON p.tag=n.tag", &aff);
-	if (ret != erSuccess)
-		return ret;
-	printf("remove-xh: expunged %u rows.\n", aff);
-	printf("remove-xh: purging \"tproperties\"...\n");
-	ret = db->DoDelete("DELETE p FROM tproperties AS p INNER JOIN n ON p.tag=n.tag", &aff);
-	if (ret != erSuccess)
-		return ret;
-	printf("remove-xh: expunged %u rows.\n", aff);
+	for (const auto &tbl : our_proptables) {
+		printf("remove-xh: purging \"%s\"...\n", tbl.c_str());
+		ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN n ON p.tag=n.tag", &aff);
+		if (ret != erSuccess)
+			return ret;
+		printf("remove-xh: expunged %u rows.\n", aff);
+	}
 	ret = db->DoDelete("DELETE names FROM names INNER JOIN n ON names.id=n.id");
 	if (ret != erSuccess)
 		return ret;
@@ -184,17 +183,12 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 		unsigned int oldtag = 0x8501 + oldid, newtag = 0x8501 + newid;
 		if (newtag >= 0xFFFF || oldtag >= 0xFFFF)
 			continue;
-		printf("dup: merging %u into %u [prop", oldid, newid);
-		fflush(stdout);
-		ret = db->DoUpdate("UPDATE properties SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
-		if (ret != erSuccess)
-			return ret;
-		printf(", tprop");
-		fflush(stdout);
-		ret = db->DoUpdate("UPDATE tproperties SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
-		if (ret != erSuccess)
-			return ret;
-		printf("]\n");
+		for (const auto &tbl : our_proptables) {
+			printf("dup: merging %u into %u (%s)...\n", oldid, newid, tbl.c_str());
+			ret = db->DoUpdate("UPDATE properties SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
+			if (ret != erSuccess)
+				return ret;
+		}
 		ret = db->DoUpdate("DELETE FROM names WHERE id=" + stringify(oldid));
 		if (ret != erSuccess)
 			return ret;

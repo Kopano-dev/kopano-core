@@ -38,17 +38,12 @@ Show statistics for the namedproperties table. This action can be executed
 while kopano\-server is active.
 .SH Performance
 .PP
-Totally depends on the SQL server, which seems to process this
-single-threadedly. Example wallclock times it took on a i7-3930K for an evolved
-DB (4.9 GiB, 12.92M rows in properties, 9.63M rows in tproperties):
-.IP \(bu 4
-temporary helper index generation: 30 s
-.IP \(bu 4
-np\-remove\-xh: 2 min (2248 X-Headers removed)
-.IP \(bu 4
-np\-repair\-dups: 2 s (9 dups repaired)
-.IP \(bu 4
-np\-defrag: 13 s (moving 2978 IDs)
+Totally depends on the amount of data that needs to be moved. MySQL also seems
+to process the requests single-threadedly. An i7-3930K completed a
+naturally-evolved DB (4.96 GiB, properties: 12.94M rows, tproperties: 9.65M
+rows, mvproperties: 9.9K rows, indexedproperties: 3.24M rows, singleinstances:
+188K rows, names: 2988) using the "k\-1216" command combo within 2 minutes and
+The "np\-remove\-xh, np\-defrag" combo within 5 1/2 minutes.
 .PP
 An approximate row count of a table can be retrieved with \fBSHOW TABLE STATUS
 LIKE "\fP\fIproperties\fP\fB"\fP. For an exact count, use \fBSELECT COUNT(*)
