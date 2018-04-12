@@ -53,5 +53,6 @@ class CalendarResource(FolderResource):
         if method == 'events':
             fields = json.loads(req.stream.read().decode('utf-8'))
             item = self.create_message(folder, fields, EventResource.set_fields)
+            item.send()
             self.respond(req, resp, item, EventResource.fields)
 

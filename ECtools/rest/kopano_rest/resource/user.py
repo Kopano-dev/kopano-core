@@ -149,6 +149,7 @@ class UserResource(Resource):
         elif method == 'events':
             item = self.create_message(store.calendar, fields,
                 EventResource.set_fields)
+            item.send()
             self.respond(req, resp, item, EventResource.fields)
 
         elif method == 'mailFolders':
