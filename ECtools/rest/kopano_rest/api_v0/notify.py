@@ -59,9 +59,9 @@ def _user(req, options):
     return server.user(username)
 
 # TODO don't block on sending updates
+# TODO async subscription validation
 # TODO restarting app/server
 # TODO expiration
-# TODO handshake with webhook
 
 class Processor(Thread):
     def __init__(self, options):
@@ -142,6 +142,14 @@ class SubscriptionResource:
 #        folder = _get_folder(store, fields['resource'])
 
         # TODO folder-level, hierarchy.. ?
+
+        validationToken = str(uuid.uuid4())
+        try: # TODO async
+            r = requests.post(fields['notificationUrl']+'?validationToken='+validationToken, timeout=10)
+            if r.text != validationToken:
+                return # TODO error or ignore?
+        except Exception:
+            return # TODO error or ignore?
 
         id_ = str(uuid.uuid4())
         subscription = fields
