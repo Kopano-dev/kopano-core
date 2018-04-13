@@ -171,7 +171,8 @@ HRESULT mapitovcf_impl::add_adr(IMessage *lpMessage, VObject *root)
 	if (FAILED(hr))
 		return hrSuccess;
 	for (size_t i = 0; i < 5; ++i)
-		proptag->aulPropTag[i] = CHANGE_PROP_TYPE(proptag->aulPropTag[i], PT_UNICODE);
+		if (PROP_TYPE(proptag->aulPropTag[i]) != PT_ERROR)
+			proptag->aulPropTag[i] = CHANGE_PROP_TYPE(proptag->aulPropTag[i], PT_UNICODE);
 	hr = lpMessage->GetProps(proptag, MAPI_UNICODE, &count, &~msgprop_array);
 	if (FAILED(hr) || PROP_TYPE(msgprop_array[0].ulPropTag) != PT_UNICODE || prop_is_empty(msgprop_array[0]))
 		return hrSuccess;
