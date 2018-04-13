@@ -15,7 +15,7 @@ noinst_DATA = libkcpyconv.ldd libkcpydirector.ldd \
 CLEANFILES = ${noinst_DATA}
 
 # disable warnings since code is mostly generated
-AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) \
+AM_CPPFLAGS = ${ZCPPFLAGS} \
 	-I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/common \
 	-I${top_srcdir}/common -I${top_srcdir}/m4lcommon \
 	${PYTHON_CFLAGS} -I${top_srcdir}/swig -w \

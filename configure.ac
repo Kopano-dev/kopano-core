@@ -141,17 +141,6 @@ AC_ARG_WITH([ubsan], AS_HELP_STRING([--with-ubsan], [Activate Undefined Behavior
 	[ZCXXFLAGS="$ZCXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"])
 AC_SUBST([NO_VSYM])
 
-AC_ARG_ENABLE([debug], AS_HELP_STRING([--enable-debug], [Enable debug mode (adds debug code, not the -g flag)]),
-  [want_debug=${enableval}],[want_debug=no])
-if test "$want_debug" = "yes"; then
-    DEBUGFLAGS="-DDEBUG"
-    DEBUG=1
-else
-    DEBUGFLAGS=
-    DEBUG=0
-fi
-AC_SUBST(DEBUGFLAGS)
-
 # profiling
 AC_ARG_ENABLE(profiling,
   AS_HELP_STRING([--enable-profiling], [enable profiling (-pg)]),
@@ -788,7 +777,6 @@ Search scripts dir	:	$SEARCHSCRIPTSDIR
 
 Build host	:	$host
 Compile flags	:	$ZCPPFLAGS $CPPFLAGS $ZCXXFLAGS $CXXFLAGS
-Debug flags	:	$DEBUGFLAGS
 PHP version	:	$PHP_VERSION
 PHP ext dir	:	$PHP_EXTENSION_DIR
 PHP config dir	:	$PHP_SYSCONF_DIR
