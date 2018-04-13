@@ -382,7 +382,29 @@ HRESULT vcftomapi_impl::handle_PHOTO(VObject *v)
  */
 HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 {
-	auto v = Parse_MIME(ical.c_str(), ical.length());
+	/* Handle libicalvcal bug: The library does not allow
+	 *
+	 * PHOTO;TYPE=JPEG;ENCODING=BASE64:
+	 *   .... base64 data ....
+	 *
+	 * Therefore we work around it and replace ":\r\n" or ":\n"
+	 * with ":".
+	 */
+
+	auto tmp_ical = ical;
+	while (true) {
+		auto pos = tmp_ical.find(":\r\n");
+		if (pos != std::string::npos) {
+			tmp_ical.replace(pos, 3, ":");
+			continue;
+		}
+		pos = tmp_ical.find(":\n");
+		if (pos == std::string::npos)
+			break;
+		tmp_ical.replace(pos, 2, ":");
+	}
+
+	auto v = Parse_MIME(tmp_ical.c_str(), tmp_ical.length());
 	if (v == nullptr)
 		return MAPI_E_CORRUPT_DATA;
 

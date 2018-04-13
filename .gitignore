@@ -32,6 +32,7 @@ stamp-h2
 /kopano-archiver
 /kopano-cfgchecker
 /kopano-dagent
+/kopano-dbadm
 /kopano-fsck
 /kopano-gateway
 /kopano-ical

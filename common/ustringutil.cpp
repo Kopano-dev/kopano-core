@@ -76,6 +76,10 @@ At some point we need to rewqrite these functions to do all the conversion on th
 #include <unicode/ustring.h>
 #include <kopano/charset/convert.h>
 
+using U_ICU_NAMESPACE::CollationKey;
+using U_ICU_NAMESPACE::Collator;
+using U_ICU_NAMESPACE::Locale;
+using U_ICU_NAMESPACE::UnicodeString;
 typedef std::unique_ptr<Collator> unique_ptr_Collator;
 
 namespace KC {

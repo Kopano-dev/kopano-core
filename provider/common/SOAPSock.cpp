@@ -143,6 +143,7 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 								NULL, NULL,
 								NULL)) {
 			free(const_cast<char *>(lpCmd->soap_endpoint));
+			lpCmd->destroy();
 			delete lpCmd;
 			return E_INVALIDARG;
 		}
@@ -181,6 +182,7 @@ void DestroySoapTransport(KCmdProxy *lpCmd)
 	free(const_cast<char *>(lpCmd->soap->proxy_host));
 	free(const_cast<char *>(lpCmd->soap->proxy_userid));
 	free(const_cast<char *>(lpCmd->soap->proxy_passwd));
+	lpCmd->destroy();
 	delete lpCmd;
 }
 

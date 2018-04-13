@@ -349,11 +349,10 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 		lpSO = PCpropFindProp(m_lpProps, m_cValues, PR_SERVICE_DLL_NAME_A);
 	if (lpSO == NULL)
 		return MAPI_E_NOT_FOUND;
-
-	m_dl = dlopen(lpSO->Value.lpszA, RTLD_NOW);
+	m_dl = dlopen(lpSO->Value.lpszA, RTLD_NOW | RTLD_GLOBAL);
 	if (m_dl == nullptr && strchr(lpSO->Value.lpszA, '/') == nullptr) {
 		snprintf(filename, PATH_MAX + 1, "%s%c%s", PKGLIBDIR, PATH_SEPARATOR, lpSO->Value.lpszA);
-		m_dl = dlopen(filename, RTLD_NOW);
+		m_dl = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
 	}
 	if (!m_dl) {
 		cerr << "Unable to load " << lpSO->Value.lpszA << ": " << dlerror() << endl;

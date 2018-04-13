@@ -1,0 +1,53 @@
+.TH kopano\-dbadm 8 "2018-04-11" "Kopano 8" "Kopano Groupware Core reference"
+.SH Name
+kopano\-dbadm \(em database administration utility
+.SH Synopsis
+\fBkopano\-dbadm\fP [\fB\-c\fP \fIserver.cfg\fP] \fIaction\fP...
+.SH Description
+.PP
+This tool is for special surgical tasks on the Kopano SQL database.
+\fBkopano\-server ought to be stopped when running this utility\fP, unless
+otherwise noted. You should make a database backup first.
+.SH Options
+.TP
+\fB\-c\fP \fIserver.cfg\fP
+By default, kopano\-dbadm will read /etc/kopano/server.cfg for MySQL
+connection parameters, but an alternate file may be specified.
+.SH Actions
+.SS k\-1216
+This is an alias for the combination of: np\-remove\-highid, np\-repair\-dups,
+np\-defrag. It may be used to address the K-1216 issue that kopano\-server(8)
+may report when performing a schema update.
+.SS np\-defrag
+Compact the ID space in the namedproperties table and lowers the
+AUTO_INCREMENT value, thereby making IDs actually usable after a remove
+operation (such as np\-remove\-xh).
+.SS np\-remove\-highid
+Remove all named property mappings with internal ID higher than 31485. As
+Kopano/Zarafa MAPI clients cannot handle these IDs anyway, the IDs are never
+used to store any data and only occupy the ID space needlessy.
+.SS np\-remove\-xh
+kopano\-dagent(8) used to index all X-Headers from Internet e-mails by default,
+but administrators may not have needed this information in the first place. By
+using np\-remove\-xh, all named properties whose name starts with "X\-" and
+have GUID=PS_INTERNET_HEADERS are removed. np\-defrag should be run afterwards.
+.SS np\-repair\-dups
+Repairs duplicate named properties (only IDs below or equal to 31485).
+.SS np\-stat
+Show statistics for the namedproperties table. This action can be executed
+while kopano\-server is active.
+.SH Performance
+.PP
+Totally depends on the amount of data that needs to be moved. MySQL also seems
+to process the requests single-threadedly. An i7-3930K completed a
+naturally-evolved DB (4.96 GiB, properties: 12.94M rows, tproperties: 9.65M
+rows, mvproperties: 9.9K rows, indexedproperties: 3.24M rows, singleinstances:
+188K rows, names: 2988) using the "k\-1216" command combo within 2 minutes and
+The "np\-remove\-xh, np\-defrag" combo within 5 1/2 minutes.
+.PP
+An approximate row count of a table can be retrieved with \fBSHOW TABLE STATUS
+LIKE "\fP\fIproperties\fP\fB"\fP. For an exact count, use \fBSELECT COUNT(*)
+FROM `\fP\fIproperties\fP\fB`\fP.
+.SH See also
+.PP
+\fBkopano\-server.cfg\fP(5)

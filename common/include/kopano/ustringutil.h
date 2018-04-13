@@ -27,7 +27,7 @@
 #include <unicode/unistr.h>
 
 namespace KC {
-typedef Locale ECLocale;
+using ECLocale = U_ICU_NAMESPACE::Locale;
 
 // us-ascii strings
 extern _kc_export const char *str_ifind(const char *haystack, const char *needle);
