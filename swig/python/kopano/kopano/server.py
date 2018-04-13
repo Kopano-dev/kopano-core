@@ -370,7 +370,7 @@ class Server(object):
             pass
 
     def users(self, remote=False, system=False, parse=True, page_start=None,
-              page_limit=None, order=None):
+              page_limit=None, order=None, hidden=True, non_active=True): # TODO hidden, non_active default False?
         """Return all :class:`users <User>` on server.
 
         :param remote: include users on remote server nodes
@@ -382,14 +382,16 @@ class Server(object):
             return
         try:
             for name in self._companylist():
-                for user in Company(name, self).users(): # XXX remote/system check
+                for user in Company(name, self).users(): # TODO filter for args?
                     yield user
         except MAPIErrorNoSupport:
             for ecuser in self.sa.GetUserList(None, MAPI_UNICODE):
-                username = ecuser.Username
-                if system or username != u'SYSTEM':
-                    if remote or ecuser.Servername in (self.name, ''):
-                        yield _user.User(server=self, ecuser=ecuser)
+                user = _user.User(server=self, ecuser=ecuser)
+                if ((system or user.name != u'SYSTEM') and
+                    (remote or ecuser.Servername in (self.name, '')) and
+                    (hidden or not user.hidden) and
+                    (non_active or user.active)):
+                    yield user
 
     def create_user(self, name, email=None, password=None, company=None, fullname=None, create_store=True):
         """Create a new :class:`user <User>` on the server.

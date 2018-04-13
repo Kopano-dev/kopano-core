@@ -77,8 +77,10 @@ class UserResource(Resource):
                 else:
                     data = server.user(userid=userid)
             else:
-                data = self.generator(req, server.users)
-
+                def yielder(**kwargs):
+                    for item in server.users(hidden=False, non_active=False):
+                        yield item
+                data = self.generator(req, yielder)
             self.respond(req, resp, data)
 
         elif method == 'mailFolders':
