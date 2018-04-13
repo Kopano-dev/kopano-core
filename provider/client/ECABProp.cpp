@@ -86,7 +86,7 @@ HRESULT ECABProp::TableRowGetProp(void *lpProvider,
 	HRESULT hr = hrSuccess;
 
 	switch(lpsPropValSrc->ulPropTag) {
-	case PROP_TAG(PT_ERROR,PROP_ID(PR_AB_PROVIDER_ID)):
+	case CHANGE_PROP_TYPE(PR_AB_PROVIDER_ID, PT_ERROR):
 		lpsPropValDst->ulPropTag = PR_AB_PROVIDER_ID;
 		lpsPropValDst->Value.bin.cb = sizeof(GUID);
 		hr = ECAllocateMore(sizeof(GUID), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));

@@ -2277,7 +2277,7 @@ static ECRESULT DeleteProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		// Update cache with NOT_FOUND for this property
 		key.ulObjId = ulObjId;
 		key.ulOrderId = 0;
-		sPropVal.ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsPropTags->__ptr[i]));
+		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpsPropTags->__ptr[i], PT_ERROR);
 		sPropVal.Value.ul = KCERR_NOT_FOUND;
 		sPropVal.__union = SOAP_UNION_propValData_ul;
 

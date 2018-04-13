@@ -357,7 +357,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
             		// Other properties are not found
             		lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
             		lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;
-            		lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
+					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_ERROR);
             	}
 				setCellDone.emplace(i, k);
             	continue;
@@ -885,7 +885,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 				// Update propval to correct value. We have to do this because we may have requested PT_UNICODE while the database
 				// contains PT_STRING8.
 				if (PROP_TYPE(m.ulPropTag) == PT_ERROR)
-					m.ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(iterColumns->first));
+					m.ulPropTag = CHANGE_PROP_TYPE(iterColumns->first, PT_ERROR);
 				else
 					m.ulPropTag = iterColumns->first;
 				if ((m.ulPropTag & MV_FLAG) == 0)
@@ -919,7 +919,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 
 ECRESULT ECStoreObjectTable::CopyEmptyCellToSOAPPropVal(struct soap *soap, unsigned int ulPropTag, struct propVal *lpPropVal)
 {
-	lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
+	lpPropVal->ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_ERROR);
 	lpPropVal->__union = SOAP_UNION_propValData_ul;
 	lpPropVal->Value.ul = KCERR_NOT_FOUND;
 	return erSuccess;

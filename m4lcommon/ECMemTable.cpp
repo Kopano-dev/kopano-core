@@ -1011,16 +1011,16 @@ HRESULT ECMemTableView::QueryRowData(const ECObjectTableList *lpsRowList,
 				continue;
 			}
 			// Find the property in the data (locate the property by property ID, since we may need conversion)
-			auto lpsProp = PCpropFindProp(iterRows->second.lpsPropVal, iterRows->second.cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(lpsPropTags->aulPropTag[j])));
+			auto lpsProp = PCpropFindProp(iterRows->second.lpsPropVal, iterRows->second.cValues, CHANGE_PROP_TYPE(lpsPropTags->aulPropTag[j], PT_UNSPECIFIED));
 			if (lpsProp == nullptr) {
 				/* Not found */
-				prop.ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsPropTags->aulPropTag[j]));
+				prop.ulPropTag = CHANGE_PROP_TYPE(lpsPropTags->aulPropTag[j], PT_ERROR);
 				prop.Value.err = MAPI_E_NOT_FOUND;
 				continue;
 			}
 			if (PROP_TYPE(lpsPropTags->aulPropTag[j]) == PT_UNICODE && PROP_TYPE(lpsProp->ulPropTag) == PT_STRING8) {
 				// PT_UNICODE requested, and PT_STRING8 provided. Do conversion.
-				prop.ulPropTag = PROP_TAG(PT_UNICODE, PROP_ID(lpsPropTags->aulPropTag[j]));
+				prop.ulPropTag = CHANGE_PROP_TYPE(lpsPropTags->aulPropTag[j], PT_UNICODE);
 				const auto strTmp = converter.convert_to<std::wstring>(lpsProp->Value.lpszA);
 				hr = KAllocCopy(strTmp.c_str(), (strTmp.size() + 1) * sizeof(std::wstring::value_type), reinterpret_cast<void **>(&prop.Value.lpszW), lpRows[i].lpProps);
 				if (hr != hrSuccess)
@@ -1028,7 +1028,7 @@ HRESULT ECMemTableView::QueryRowData(const ECObjectTableList *lpsRowList,
 				continue; // Finished with this property
 			} else if (PROP_TYPE(lpsPropTags->aulPropTag[j]) == PT_STRING8 && PROP_TYPE(lpsProp->ulPropTag) == PT_UNICODE) {
 				// PT_STRING8 requested, and PT_UNICODE provided. Do conversion.
-				prop.ulPropTag = PROP_TAG(PT_STRING8, PROP_ID(lpsPropTags->aulPropTag[j]));
+				prop.ulPropTag = CHANGE_PROP_TYPE(lpsPropTags->aulPropTag[j], PT_STRING8);
 				const auto strTmp = converter.convert_to<std::string>(lpsProp->Value.lpszW);
 				hr = KAllocCopy(strTmp.c_str(), strTmp.size() + 1, reinterpret_cast<void **>(&prop.Value.lpszA), lpRows[i].lpProps);
 				if (hr != hrSuccess)
@@ -1038,14 +1038,14 @@ HRESULT ECMemTableView::QueryRowData(const ECObjectTableList *lpsRowList,
 				// Exact property requested that we have
 				hr = Util::HrCopyProperty(&prop, lpsProp, lpRows[i].lpProps);
 				if (hr != hrSuccess) {
-					prop.ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsPropTags->aulPropTag[j]));
+					prop.ulPropTag = CHANGE_PROP_TYPE(lpsPropTags->aulPropTag[j], PT_ERROR);
 					prop.Value.err = MAPI_E_NOT_FOUND;
 					hr = hrSuccess; // ignore this error for the return code
 				}
 				continue;
 			}
 			// Not found
-			prop.ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsPropTags->aulPropTag[j]));
+			prop.ulPropTag = CHANGE_PROP_TYPE(lpsPropTags->aulPropTag[j], PT_ERROR);
 			prop.Value.err = MAPI_E_NOT_FOUND;
 		}
 		++i;

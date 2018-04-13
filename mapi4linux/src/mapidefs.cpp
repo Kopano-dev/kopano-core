@@ -186,7 +186,7 @@ HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
 		if (i != properties.cend())
 			continue;
 		// Not found
-		props[c].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->aulPropTag[c]));
+		props[c].ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->aulPropTag[c], PT_ERROR);
 		props[c].Value.err = MAPI_E_NOT_FOUND;
 		hr = MAPI_W_ERRORS_RETURNED;
 	}

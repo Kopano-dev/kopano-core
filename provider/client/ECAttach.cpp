@@ -112,7 +112,7 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	    PROP_ID(ulPropTag) != PROP_ID(PR_ATTACH_DATA_OBJ) ||
 	    *lpiid != IID_IMessage) {
 		if (PROP_ID(ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ))
-			ulPropTag = PROP_TAG(PT_BINARY, PROP_ID(PR_ATTACH_DATA_OBJ));
+			ulPropTag = CHANGE_PROP_TYPE(PR_ATTACH_DATA_OBJ, PT_BINARY);
 		if (ulAttachType == ATTACH_OLE && *lpiid != IID_IStorage && *lpiid != IID_IStream)
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
 		return ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);

@@ -196,13 +196,13 @@ ECRESULT ECConvenientDepthABObjectTable::QueryRowData(ECGenericObjectTable *lpGe
 
 	// Insert the PR_DEPTH for all the rows since the row engine has no knowledge of depth
 	for (const auto &row : *lpRowList) {
-		lpProp = FindProp(&(*lppRowSet)->__ptr[n], PROP_TAG(PT_ERROR, PROP_ID(PR_DEPTH)));
+		lpProp = FindProp(&(*lppRowSet)->__ptr[n], CHANGE_PROP_TYPE(PR_DEPTH, PT_ERROR));
 		if (lpProp != nullptr) {
 			lpProp->Value.ul = lpThis->m_mapDepth[row.ulObjId];
 			lpProp->ulPropTag = PR_DEPTH;
 			lpProp->__union = SOAP_UNION_propValData_ul;
 		}
-		lpProp = FindProp(&(*lppRowSet)->__ptr[n], PROP_TAG(PT_ERROR, PROP_ID(PR_EMS_AB_HIERARCHY_PATH)));
+		lpProp = FindProp(&(*lppRowSet)->__ptr[n], CHANGE_PROP_TYPE(PR_EMS_AB_HIERARCHY_PATH, PT_ERROR));
 		if (lpProp != nullptr) {
 			lpProp->Value.lpszA = s_strcpy(soap, lpThis->m_mapPath[row.ulObjId].c_str());
 			lpProp->ulPropTag = PR_EMS_AB_HIERARCHY_PATH;

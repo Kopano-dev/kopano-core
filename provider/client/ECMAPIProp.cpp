@@ -305,15 +305,15 @@ HRESULT ECMAPIProp::TableRowGetProp(void *lpProvider,
 			return hr;
 		memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
 		lpsPropValDst->Value.bin.cb = cbWrapped;
-		lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
+		lpsPropValDst->ulPropTag = CHANGE_PROP_TYPE(lpsPropValSrc->ulPropTag, PT_BINARY);
 		break;
 	}
-	case PROP_TAG(PT_ERROR,PROP_ID(PR_DISPLAY_TYPE)):
+	case CHANGE_PROP_TYPE(PR_DISPLAY_TYPE, PT_ERROR):
 		lpsPropValDst->Value.l = DT_FOLDER;				// FIXME, may be a search folder
 		lpsPropValDst->ulPropTag = PR_DISPLAY_TYPE;
 		break;
-	case PROP_TAG(PT_ERROR,PROP_ID(PR_STORE_SUPPORT_MASK)):
-	case PROP_TAG(PT_ERROR,PROP_ID(PR_STORE_UNICODE_MASK)):
+	case CHANGE_PROP_TYPE(PR_STORE_SUPPORT_MASK, PT_ERROR):
+	case CHANGE_PROP_TYPE(PR_STORE_UNICODE_MASK, PT_ERROR):
 		if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID))
 			lpsPropValDst->Value.l = EC_SUPPORTMASK_PUBLIC;
 		else if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_DELEGATE_GUID))
@@ -333,9 +333,9 @@ HRESULT ECMAPIProp::TableRowGetProp(void *lpProvider,
 		lpsPropValDst->ulPropTag = CHANGE_PROP_TYPE(lpsPropValSrc->ulPropTag, PT_LONG);
 		break;
 
-	case PROP_TAG(PT_ERROR,PROP_ID(PR_STORE_RECORD_KEY)):
+	case CHANGE_PROP_TYPE(PR_STORE_RECORD_KEY, PT_ERROR):
 		// Reset type to binary
-		lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
+		lpsPropValDst->ulPropTag = CHANGE_PROP_TYPE(lpsPropValSrc->ulPropTag, PT_BINARY);
 		hr = ECAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
 		if (hr != hrSuccess)
 			break;
@@ -343,8 +343,8 @@ HRESULT ECMAPIProp::TableRowGetProp(void *lpProvider,
 		lpsPropValDst->Value.bin.cb = sizeof(MAPIUID);
 		break;
 
-	case PROP_TAG(PT_ERROR,PROP_ID(PR_MDB_PROVIDER)):
-		lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
+	case CHANGE_PROP_TYPE(PR_MDB_PROVIDER, PT_ERROR):
+		lpsPropValDst->ulPropTag = CHANGE_PROP_TYPE(lpsPropValSrc->ulPropTag, PT_BINARY);
 		hr = ECAllocateMore(sizeof(MAPIUID), lpBase, reinterpret_cast<void **>(&lpsPropValDst->Value.bin.lpb));
 		if (hr != hrSuccess)
 			break;

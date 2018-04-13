@@ -172,8 +172,7 @@ HRESULT ECMAPIFolder::TableRowGetProp(void *lpProvider,
 	HRESULT hr = hrSuccess;
 
 	switch(lpsPropValSrc->ulPropTag) {
-
-	case PROP_TAG(PT_ERROR,PROP_ID(PR_DISPLAY_TYPE)):
+	case CHANGE_PROP_TYPE(PR_DISPLAY_TYPE, PT_ERROR):
 		lpsPropValDst->Value.l = DT_FOLDER;
 		lpsPropValDst->ulPropTag = PR_DISPLAY_TYPE;
 		break;

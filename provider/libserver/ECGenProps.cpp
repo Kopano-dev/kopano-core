@@ -262,7 +262,7 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 		return erSuccess;
 	case PROP_ID(PR_NORMALIZED_SUBJECT): {
     	if(lpPropVal->ulPropTag != PR_SUBJECT) {
-    		lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(PR_NORMALIZED_SUBJECT));
+			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(PR_NORMALIZED_SUBJECT, PT_ERROR);
     		lpPropVal->Value.ul = KCERR_NOT_FOUND;
     		lpPropVal->__union = SOAP_UNION_propValData_ul;
 			return erSuccess;

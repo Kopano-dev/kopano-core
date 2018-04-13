@@ -912,7 +912,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			return hr;
 
 		// Use the mapped ID, not the original ID. The original ID is discarded
-		ulPropTag = PROP_TAG(PROP_TYPE(ulPropTag), PROP_ID(lpPropTags->aulPropTag[0]));
+		ulPropTag = CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PROP_TYPE(ulPropTag));
 	}
 
 	if(ulPropTag & MV_FLAG) {

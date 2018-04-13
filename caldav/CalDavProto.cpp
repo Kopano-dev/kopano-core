@@ -85,7 +85,7 @@ static ULONG GetPropIDForXMLProp(LPMAPIPROP lpObj,
 	hr = lpObj->GetIDsFromNames(1, &+lpNameID, ulFlags, &~ptrPropTags);
 	if (hr != hrSuccess)
 		return PR_NULL;
-	return PROP_TAG(PT_BINARY, PROP_ID(ptrPropTags->aulPropTag[0]));
+	return CHANGE_PROP_TYPE(ptrPropTags->aulPropTag[0], PT_BINARY);
 }
 
 /**
