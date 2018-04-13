@@ -23,7 +23,7 @@
 
 namespace KC {
 
-#ifdef DEBUG
+#ifdef KNOB144
 #define STR_DEF_TIMEOUT 0
 #else
 #define STR_DEF_TIMEOUT 600000

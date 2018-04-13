@@ -44,7 +44,7 @@
 
 namespace KC {
 
-#ifdef DEBUG
+#ifdef KNOB144
 #define DEBUG_SQL 0
 #define DEBUG_TRANSACTION 0
 #endif
@@ -562,11 +562,9 @@ ECRESULT ECDatabase::DoDelete(const std::string &strQuery,
 ECRESULT ECDatabase::DoSequence(const std::string &strSeqName,
     unsigned int ulCount, unsigned long long *lpllFirstId)
 {
-#ifdef DEBUG
-#if DEBUG_TRANSACTION
+#if defined(KNOB144) && DEBUG_TRANSACTION
 	if (m_ulTransactionState != 0)
 		assert(false);
-#endif
 #endif
 	return KDatabase::DoSequence(strSeqName, ulCount, lpllFirstId);
 }
@@ -624,8 +622,7 @@ bool ECDatabase::SuppressLockErrorLogging(bool bSuppress)
 kd_trans ECDatabase::Begin(ECRESULT &res)
 {
 	auto dtx = KDatabase::Begin(res);
-#ifdef DEBUG
-#if DEBUG_TRANSACTION
+#if defined(KNOB144) && DEBUG_TRANSACTION
 	ec_log_debug("%08X: BEGIN", &m_lpMySQL);
 	if(m_ulTransactionState != 0) {
 		ec_log_debug("BEGIN ALREADY ISSUED");
@@ -633,15 +630,13 @@ kd_trans ECDatabase::Begin(ECRESULT &res)
 	}
 	m_ulTransactionState = 1;
 #endif
-#endif
 	return dtx;
 }
 
 ECRESULT ECDatabase::Commit(void)
 {
 	auto er = KDatabase::Commit();
-#ifdef DEBUG
-#if DEBUG_TRANSACTION
+#if defined(KNOB144) && DEBUG_TRANSACTION
 	ec_log_debug("%08X: COMMIT", &m_lpMySQL);
 	if(m_ulTransactionState != 1) {
 		ec_log_debug("NO BEGIN ISSUED");
@@ -649,23 +644,19 @@ ECRESULT ECDatabase::Commit(void)
 	}
 	m_ulTransactionState = 0;
 #endif
-#endif
-
 	return er;
 }
 
 ECRESULT ECDatabase::Rollback(void)
 {
 	auto er = KDatabase::Rollback();
-#ifdef DEBUG
-#if DEBUG_TRANSACTION
+#if defined(KNOB144) && DEBUG_TRANSACTION
 	ec_log_debug("%08X: ROLLBACK", &m_lpMySQL);
 	if(m_ulTransactionState != 1) {
 		ec_log_debug("NO BEGIN ISSUED");
 		assert(("NO BEGIN ISSUED", false));
 	}
 	m_ulTransactionState = 0;
-#endif
 #endif
 	return er;
 }

@@ -56,7 +56,7 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 
 	if(lpMAPISession == NULL)
 		return MAPI_E_INVALID_OBJECT;
-#ifdef DEBUG
+#ifdef KNOB144
 	if (lpMsgStore) {
 		memory_ptr<SPropValue> lpPropArray;
 		HrGetOneProp(lpMsgStore, PR_DISPLAY_NAME_A, &~lpPropArray);

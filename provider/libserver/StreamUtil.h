@@ -25,8 +25,7 @@
 #include "cmdutil.hpp"
 
 #include <SOAPUtils.h>
-
-#ifdef DEBUG
+#ifdef KNOB144
 #include <cstdio>
 #endif
 

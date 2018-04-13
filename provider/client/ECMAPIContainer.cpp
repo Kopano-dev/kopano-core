@@ -76,7 +76,7 @@ HRESULT ECMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	object_ptr<WSTableView> lpTableOps;
 	std::string		strName = "Contents table";
 
-#ifdef DEBUG
+#ifdef KNOB144
 	{
 		LPSPropValue lpDisplay;
 		HrGetOneProp(this, PR_DISPLAY_NAME_A, &lpDisplay);
@@ -109,7 +109,7 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	object_ptr<WSTableView> lpTableOps;
 	std::string		strName = "Hierarchy table";
 	
-#ifdef DEBUG
+#ifdef KNOB144
 	{
 		LPSPropValue lpDisplay;
 		HrGetOneProp(this, PR_DISPLAY_NAME_A, &lpDisplay);

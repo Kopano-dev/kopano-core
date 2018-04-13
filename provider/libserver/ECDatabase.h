@@ -66,7 +66,7 @@ public:
 	std::string error, m_dbname;
 	bool m_bForceUpdate = false, m_bFirstResult = false;
 	ECConfig *m_lpConfig = nullptr;
-#ifdef DEBUG
+#ifdef KNOB144
 	unsigned int m_ulTransactionState = 0;
 #endif
 };

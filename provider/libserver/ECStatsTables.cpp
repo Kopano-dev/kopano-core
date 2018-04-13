@@ -96,7 +96,7 @@ void ECSystemStatsTable::load_tcmalloc(void)
 	value = 0;
 	gnp("tcmalloc.current_total_thread_cache_bytes", &value);
 	GetStatsCollectorData("tc_threadcache_cur", "Current allocated memory in bytes for thread cache", stringify_int64(value), this);
-#ifdef DEBUG
+#ifdef KNOB144
 	char test[2048] = {0};
 	auto getstat = reinterpret_cast<decltype(MallocExtension_GetStats) *>(dlsym(NULL, "MallocExtension_GetStats"));
 	if (getstat != NULL) {

@@ -31,7 +31,7 @@ template<typename Type> class ECInvariantChecker _kc_final {
 	const Type *m_p;
 };
 
-#ifdef DEBUG
+#ifdef KNOB144
 #	define DEBUG_CHECK_INVARIANT do { this->CheckInvariant(); } while (false)
 #	define DEBUG_GUARD guard __g(this);
 #else
