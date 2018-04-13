@@ -11,7 +11,9 @@ import kopano
 class ProfilePhotoResource(Resource):
     fields = {
         '@odata.mediaContentType': lambda photo: photo.mimetype,
-
+        'width': lambda photo: photo.width,
+        'height': lambda photo: photo.height,
+        'id': lambda photo: ('%dX%d' % (photo.width, photo.height))
     }
 
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
