@@ -108,13 +108,13 @@ class _kc_export ECLogger {
 		logprefix prefix;
 
 		/**
-		 * Constructor of ECLogger. Implementations should open the log they're writing to.
+		 * Implementations should open the log they're writing to.
 		 *
 		 * @param[in]	max_ll	Max loglevel allowed to enter in the log. Messages with higher loglevel will be skipped.
 		 */
 		ECLogger(int max_ll);
 		/**
-		 * Destructor of ECLogger. Implementations should close the log they're writing to.
+		 * Implementations should close the log they're writing to.
 		 */
 		virtual ~ECLogger();
 

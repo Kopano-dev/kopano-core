@@ -71,9 +71,6 @@ namespace detail {
 		}
 
 	private:
-		/**
-		 * Destroys the instance in application exit.
-		 */
 		static void destroy() {
 			assert(s_lpInstance);
 			delete s_lpInstance;

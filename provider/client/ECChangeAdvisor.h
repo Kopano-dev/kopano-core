@@ -44,23 +44,16 @@ class ECMsgStore;
 class ECChangeAdvisor _kc_final : public ECUnknown, public IECChangeAdvisor {
 protected:
 	/**
-	 * Construct the ChangeAdvisor.
-	 *
 	 * @param[in]	lpMsgStore
 	 *					The message store that contains the folder to be registered for
 	 *					change notifications.
 	 */
 	ECChangeAdvisor(ECMsgStore *lpMsgStore);
 
-	/**
-	 * Destructor.
-	 */
 	virtual ~ECChangeAdvisor();
 
 public:
 	/**
-	 * Construct the ChangeAdvisor.
-	 *
 	 * @param[in]	lpMsgStore
 	 *					The message store that contains the folder to be registered for
 	 *					change notifications.

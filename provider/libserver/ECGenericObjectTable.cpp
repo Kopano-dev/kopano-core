@@ -115,8 +115,6 @@ static inline bool match(unsigned int relop, int equality)
 }
 
 /**
- * Constructor of the Generic Object Table
- *
  * @param[in] lpSession
  *					Reference to a session object; cannot be NULL.
  * @param[in] ulObjType
@@ -134,9 +132,6 @@ ECGenericObjectTable::ECGenericObjectTable(ECSession *lpSession,
 	this->lpsPropTagArray->__ptr = NULL;
 }
 
-/**
- * Destructor of the Generic Object Table
- */
 ECGenericObjectTable::~ECGenericObjectTable()
 {
 	delete lpKeyTable;
