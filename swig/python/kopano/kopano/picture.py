@@ -45,6 +45,18 @@ class Picture(object):
     def height(self):
         return self._img.height
 
+    @property
+    def size(self):
+        return (self.width, self.height)
+
+    def scale(self, size):
+        img = Image.open(io.BytesIO(self.data))
+        img.thumbnail(size)
+        b = io.BytesIO()
+        img.save(b, format=img.format)
+        data = b.getvalue()
+        return Picture(data, self.name, self.mimetype)
+
     def __unicode__(self):
         return u'Picture(%s)' % (self.name or u'')
 
