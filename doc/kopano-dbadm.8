@@ -7,21 +7,25 @@ kopano\-dbadm \(em database administration utility
 .PP
 This tool is for special surgical tasks on the Kopano SQL database.
 \fBkopano\-server ought to be stopped when running this utility\fP, unless
-otherwise noted.
+otherwise noted. You should make a database backup first.
 .SH Options
 .TP
 \fB\-c\fP \fIserver.cfg\fP
 By default, kopano\-dbadm will read /etc/kopano/server.cfg for MySQL
 connection parameters, but an alternate file may be specified.
 .SH Actions
+.SS k\-1216
+This is an alias for the combination of: np\-remove\-highid, np\-repair\-dups,
+np\-defrag. It may be used to address the K-1216 issue that kopano\-server(8)
+may report when performing a schema update.
 .SS np\-defrag
-Compacts the ID space in the namedproperties table and lowers the
+Compact the ID space in the namedproperties table and lowers the
 AUTO_INCREMENT value, thereby making IDs actually usable after a remove
 operation (such as np\-remove\-xh).
 .SS np\-remove\-highid
-Removes all named properties with internal ID larger than 31485, because the
-data for these named props was not stored correctly and it is impossible to
-reliably retrieve again.
+Remove all named property mappings with internal ID higher than 31485. As
+Kopano/Zarafa MAPI clients cannot handle these IDs anyway, the IDs are never
+used to store any data and only occupy the ID space needlessy.
 .SS np\-remove\-xh
 kopano\-dagent(8) used to index all X-Headers from Internet e-mails by default,
 but administrators may not have needed this information in the first place. By
@@ -34,17 +38,12 @@ Show statistics for the namedproperties table. This action can be executed
 while kopano\-server is active.
 .SH Performance
 .PP
-Totally depends on the SQL server, which seems to process this
-single-threadedly. Example wallclock times it took on a i7-3930K for an evolved
-DB (4.9 GiB, 12.92M rows in properties, 9.63M rows in tproperties):
-.IP \(bu 4
-temporary helper index generation: 30 s
-.IP \(bu 4
-np\-remove\-xh: 2 min (2248 X-Headers removed)
-.IP \(bu 4
-np\-repair\-dups: 2 s (9 dups repaired)
-.IP \(bu 4
-np\-defrag: 13 s (moving 2978 IDs)
+Totally depends on the amount of data that needs to be moved. MySQL also seems
+to process the requests single-threadedly. An i7-3930K completed a
+naturally-evolved DB (4.96 GiB, properties: 12.94M rows, tproperties: 9.65M
+rows, mvproperties: 9.9K rows, indexedproperties: 3.24M rows, singleinstances:
+188K rows, names: 2988) using the "k\-1216" command combo within 2 minutes and
+The "np\-remove\-xh, np\-defrag" combo within 5 1/2 minutes.
 .PP
 An approximate row count of a table can be retrieved with \fBSHOW TABLE STATUS
 LIKE "\fP\fIproperties\fP\fB"\fP. For an exact count, use \fBSELECT COUNT(*)
