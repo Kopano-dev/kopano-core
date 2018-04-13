@@ -585,14 +585,8 @@ void ECLogger_Pipe::Log(unsigned int loglevel, const std::string &message) {
 		off += len;
 	}
 
-	msgbuffer[off] = '\0';
-	++off;
-
-	/*
-	 * Write as one block to get it to the real logger.
-	 * (Atomicity actually only guaranteed up to PIPE_BUF number of bytes.)
-	 */
-	write(m_fd, msgbuffer, off);
+	msgbuffer[off++] = '\0';
+	xwrite(msgbuffer, off);
 }
 
 void ECLogger_Pipe::Log(unsigned int loglevel, const char *format, ...) {
@@ -629,15 +623,17 @@ void ECLogger_Pipe::LogVA(unsigned int loglevel, const char *format, va_list& va
 
 	len = std::min(len, static_cast<int>(sizeof(msgbuffer) - off - 2)); // yes, -2, otherwise we could have 2 \0 at the end of the buffer
 	off += len;
+	msgbuffer[off++] = '\0';
+	xwrite(msgbuffer, off);
+}
 
-	msgbuffer[off] = '\0';
-	++off;
-
+void ECLogger_Pipe::xwrite(const char *msgbuffer, size_t len)
+{
 	/*
 	 * Write as one block to get it to the real logger.
 	 * (Atomicity actually only guaranteed up to PIPE_BUF number of bytes.)
 	 */
-	if (write(m_fd, msgbuffer, off) >= 0)
+	if (write(m_fd, msgbuffer, len) >= 0)
 		return;
 	if (errno != EPIPE) {
 		fprintf(stderr, "%s: write: %s\n", __func__, strerror(errno));

@@ -284,6 +284,7 @@ class _kc_export_dycast ECLogger_Pipe _kc_final : public ECLogger {
 	private:
 	int m_fd;
 	pid_t m_childpid;
+	void xwrite(const char *, size_t);
 
 	public:
 	ECLogger_Pipe(int fd, pid_t childpid, int loglevel);
