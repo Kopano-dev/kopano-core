@@ -382,13 +382,14 @@ void ECLogger_File::Log(unsigned int loglevel, const char *format, ...) {
 	va_end(va);
 }
 
+static const char msgtrunc[] = "(message truncated due to size)";
+
 void ECLogger_File::LogVA(unsigned int loglevel, const char *format, va_list& va) {
 	char msgbuffer[_LOG_BUFSIZE];
 	auto len = _vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va);
-	static const char tb[] = "(message truncated due to size)";
-	static_assert(_LOG_BUFSIZE >= sizeof(tb), "buffer too small for static message");
-	if (len >= _LOG_BUFSIZE)
-		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(tb), tb);
+	static_assert(_LOG_BUFSIZE >= sizeof(msgtrunc), "pick a better basic _LOG_BUFSIZE");
+	if (len >= sizeof(msgbuffer))
+		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	Log(loglevel, std::string(msgbuffer));
 }
 
@@ -449,7 +450,8 @@ void ECLogger_Syslog::LogVA(unsigned int loglevel, const char *format, va_list& 
 	vsyslog(levelmap[loglevel & EC_LOGLEVEL_MASK], format, va);
 #else
 	char msgbuffer[_LOG_BUFSIZE];
-	_vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va);
+	if (_vsnprintf_l(msgbuffer, sizeof(msgbuffer), format, datalocale, va) >= sizeof(msgbuffer))
+		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	syslog(levelmap[loglevel & EC_LOGLEVEL_MASK], "%s", msgbuffer);
 #endif
 }
@@ -513,8 +515,8 @@ void ECLogger_Tee::Log(unsigned int loglevel, const char *format, ...) {
 void ECLogger_Tee::LogVA(unsigned int loglevel, const char *format, va_list &va)
 {
 	char msgbuffer[_LOG_BUFSIZE];
-	_vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va);
-
+	if (_vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va) >= sizeof(msgbuffer))
+		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	for (auto log : m_loggers)
 		log->Log(loglevel, std::string(msgbuffer));
 }
@@ -571,6 +573,8 @@ void ECLogger_Pipe::Log(unsigned int loglevel, const std::string &message)
 	off = strlen(msgbuffer);
 	rem = sizeof(msgbuffer) - off;
 	strncpy(msgbuffer + off, message.c_str(), rem);
+	if (rem < message.length() + 1)
+		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	msgbuffer[sizeof(msgbuffer)-1] = '\0';
 	xwrite(msgbuffer, strlen(msgbuffer) + 1);
 }
@@ -595,7 +599,8 @@ void ECLogger_Pipe::LogVA(unsigned int loglevel, const char *format, va_list& va
 	off = strlen(msgbuffer);
 	rem = sizeof(msgbuffer) - off;
 	// return value is what WOULD have been written if enough space were available in the buffer
-	_vsnprintf_l(msgbuffer + off, rem, format, datalocale, va);
+	if (_vsnprintf_l(msgbuffer + off, rem, format, datalocale, va) >= rem)
+		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	msgbuffer[sizeof(msgbuffer)-1] = '\0';
 	xwrite(msgbuffer, strlen(msgbuffer) + 1);
 }
