@@ -1,7 +1,7 @@
 import base64
 
 from ..utils import (
-    _server_store, _folder
+    _server_store, _folder, _item
 )
 from .resource import (
     Resource, _date
@@ -32,7 +32,7 @@ class AttachmentResource(Resource):
         else:
             folder = store.inbox # TODO messages from all folders?
 
-        item = folder.item(itemid)
+        item = _item(folder, itemid)
         data = item.attachment(attachmentid)
 
         if method == '$value': # TODO graph doesn't do this?
@@ -47,7 +47,7 @@ class AttachmentResource(Resource):
 
     def on_delete(self, req, resp, userid=None, folderid=None, itemid=None, attachmentid=None, method=None):
         server, store = _server_store(req, userid, self.options)
-        item = store.item(itemid)
+        item = _item(store, itemid)
         attachment = item.attachment(attachmentid)
         item.delete(attachment)
 

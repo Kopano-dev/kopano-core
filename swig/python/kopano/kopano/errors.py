@@ -25,6 +25,9 @@ class LogonError(Error):
 class NotSupportedError(Error):
     pass
 
+class ArgumentError(Error):
+    pass
+
 class _DeprecationWarning(Warning):
     pass
 

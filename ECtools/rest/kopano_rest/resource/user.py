@@ -90,6 +90,7 @@ class UserResource(Resource):
             self.respond(req, resp, data, ContactFolderResource.fields)
 
         elif method == 'messages': # TODO store-wide?
+            req.context['label'] = '/user/messages'
             data = self.folder_gen(req, store.inbox)
             self.respond(req, resp, data, MessageResource.fields)
 
@@ -111,6 +112,7 @@ class UserResource(Resource):
             self.respond(req, resp, data, EventResource.fields)
 
         elif method == 'calendarView': # TODO multiple calendars?
+            req.context['label'] = '/user/calendarView'
             start, end = _start_end(req)
             data = (store.calendar.occurrences(start, end), DEFAULT_TOP, 0, 0)
             self.respond(req, resp, data, EventResource.fields)

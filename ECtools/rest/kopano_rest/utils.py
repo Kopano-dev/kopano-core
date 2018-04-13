@@ -126,3 +126,11 @@ def _folder(store, folderid):
         return store.sentmail
     else:
         return store.folder(entryid=folderid)
+
+def _item(parent, entryid):
+    try:
+        return parent.item(entryid)
+    except kopano.NotFoundError:
+        raise falcon.HTTPNotFound(description=None)
+    except kopano.ArgumentError:
+        raise falcon.HTTPBadRequest(None, 'Id is malformed')

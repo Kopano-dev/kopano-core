@@ -1,7 +1,7 @@
 import falcon
 
 from ..utils import (
-    _server_store, _folder
+    _server_store, _folder, _item
 )
 from .resource import Resource
 
@@ -21,7 +21,7 @@ class ProfilePhotoResource(Resource):
             photo = server.user(userid=userid).photo
         elif itemid:
             folder = _folder(store, folderid or 'contacts')
-            photo = folder.item(itemid).photo
+            photo = _item(folder, itemid).photo
         else:
             userid = kopano.Store(server=server,
                 mapiobj = GetDefaultStore(server.mapisession)).user.userid
@@ -44,5 +44,5 @@ class ProfilePhotoResource(Resource):
     def on_put(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid or 'contacts')
-        contact = folder.item(itemid)
+        contact = _item(folder, itemid)
         contact.set_photo('noname', req.stream.read(), req.get_header('Content-Type'))

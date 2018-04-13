@@ -50,6 +50,7 @@ class MailFolderResource(FolderResource):
             data = self.generator(req, data.folders, data.subfolder_count_recursive)
 
         elif method == 'messages':
+            req.context['label'] = '/mailFolder/messages'
             data = self.folder_gen(req, data)
             self.respond(req, resp, data, MessageResource.fields)
 

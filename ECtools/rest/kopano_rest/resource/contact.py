@@ -1,7 +1,7 @@
 import falcon
 
 from ..utils import (
-    _server_store, _folder
+    _server_store, _folder, _item
 )
 from .resource import (
     _date,
@@ -77,7 +77,7 @@ class ContactResource(ItemResource):
             return
 
         if itemid:
-            data = folder.item(itemid)
+            data = _item(folder, itemid)
         else:
             data = self.generator(req, folder.items, folder.count)
 
@@ -85,5 +85,5 @@ class ContactResource(ItemResource):
 
     def on_delete(self, req, resp, userid=None, folderid=None, itemid=None):
         server, store = _server_store(req, userid, self.options)
-        item = store.item(itemid)
+        item = _item(store, itemid)
         store.delete(item)

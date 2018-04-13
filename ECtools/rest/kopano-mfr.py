@@ -11,6 +11,13 @@ import time
 import falcon
 
 try:
+    from prometheus_client import multiprocess
+    from prometheus_client import generate_latest, CollectorRegistry, CONTENT_TYPE_LATEST, Summary
+    PROMETHEUS = True
+except ImportError:
+    PROMETHEUS = False
+
+try:
     import setproctitle
     SETPROCTITLE = True
 except ImportError:
@@ -24,7 +31,7 @@ Master Fleet Runner
 
 Instantiates the specified number of Bjoern WSGI server processes,
 each taking orders on their own unix socket and passing requests to
-the kopano-rest WSGI app.
+the respective WSGI app (rest, notify or metrics).
 
 """
 
@@ -32,6 +39,11 @@ the kopano-rest WSGI app.
 
 SOCKET_PATH = '/var/run/kopano'
 WORKERS = 8
+METRICS_LISTEN = 'localhost:6060'
+
+# metrics
+if PROMETHEUS:
+    REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request', ['method', 'endpoint'])
 
 def opt_args():
     parser = optparse.OptionParser()
@@ -48,6 +60,10 @@ def opt_args():
                       help="enable passthrough authentication (use with caution)")
     parser.add_option("", "--disable-auth-bearer", dest='auth_bearer', action='store_false', default=True,
                       help="disable bearer authentication")
+    parser.add_option("", "--with-metrics", dest='with_metrics', action='store_true', default=False,
+                      help="enable metrics process")
+    parser.add_option("", "--metrics-listen", dest='metrics_listen', metavar='ADDRESS:PORT',
+                      default=METRICS_LISTEN, help="metrics process address")
 
     options, args = parser.parse_args()
     if args:
@@ -63,11 +79,41 @@ def error_handler(ex, req, resp, params):
     # Do things with other errors here
     logging.exception(ex)
 
+# falcon metrics middleware
 
+class FalconMetrics(object):
+    def process_request(self, req, resp):
+        req.context['start_time'] = time.time()
+
+    def process_response(self, req, resp, resource):
+        t = time.time() - req.context['start_time']
+        if 'label' in req.context:
+            REQUEST_TIME.labels(req.method, req.context['label']).observe(t)
+        else:
+            REQUEST_TIME.labels(req.method, '/').observe(t)
+
+# Expose metrics.
+def metrics_app(environ, start_response):
+    registry = CollectorRegistry()
+    multiprocess.MultiProcessCollector(registry)
+    data = generate_latest(registry)
+    status = '200 OK'
+    response_headers = [
+        ('Content-type', CONTENT_TYPE_LATEST),
+        ('Content-Length', str(len(data)))
+    ]
+    start_response(status, response_headers)
+    return iter([data])
+
+# TODO merge run_*
 def run_app(socket_path, n, options):
     if SETPROCTITLE:
         setproctitle.setproctitle('kopano-mfr rest %d' % n)
-    app = kopano_rest.RestAPI(options)
+    if options.with_metrics:
+        middleware=[FalconMetrics()]
+    else:
+        middleware=None
+    app = kopano_rest.RestAPI(options=options, middleware=middleware)
     app.add_error_handler(Exception, error_handler)
     unix_socket = 'unix:' + os.path.join(socket_path, 'rest%d.sock' % n)
     logging.info('starting rest worker: %s', unix_socket)
@@ -77,15 +123,29 @@ def run_app(socket_path, n, options):
         pass
 
 def run_notify(socket_path, options):
-    # TODO merge with run_app?
     if SETPROCTITLE:
         setproctitle.setproctitle('kopano-mfr notify')
-    app = kopano_rest.NotifyAPI(options)
+    if options.with_metrics:
+        middleware=[FalconMetrics()]
+    else:
+        middleware=None
+    app = kopano_rest.NotifyAPI(options=options, middleware=middleware)
     app.add_error_handler(Exception, error_handler)
     unix_socket = 'unix:' + os.path.join(socket_path, 'notify.sock')
     logging.info('starting notify worker: %s', unix_socket)
     try:
         bjoern.run(app, unix_socket)
+    except KeyboardInterrupt:
+        pass
+
+def run_metrics(socket_path, options):
+    if SETPROCTITLE:
+        setproctitle.setproctitle('kopano-mfr metrics')
+    address = options.metrics_listen
+    logging.info('starting metrics worker: %s', address)
+    address = address.split(':')
+    try:
+        bjoern.run(metrics_app, address[0], int(address[1]))
     except KeyboardInterrupt:
         pass
 
@@ -122,6 +182,14 @@ def main():
     notify_process = multiprocessing.Process(target=run_notify, args=(socket_path, options))
     workers.append(notify_process)
 
+    if options.with_metrics:
+        if PROMETHEUS:
+            metrics_process = multiprocessing.Process(target=run_metrics, args=(socket_path, options))
+            workers.append(metrics_process)
+        else:
+            logging.error('please install prometheus client python bindings')
+            sys.exit(-1)
+
     for worker in workers:
         worker.daemon = True
         worker.start()
@@ -145,6 +213,10 @@ def main():
                 os.unlink(unix_socket)
             except OSError:
                 pass
+
+        if options.with_metrics:
+            for worker in workers:
+                multiprocess.mark_process_dead(worker.pid)
 
 if __name__ == '__main__':
     main()

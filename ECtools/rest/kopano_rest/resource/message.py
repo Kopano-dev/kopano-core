@@ -3,7 +3,7 @@ import base64
 import falcon
 
 from ..utils import (
-    _server_store, _folder,
+    _server_store, _folder, _item
 )
 from .resource import (
     DEFAULT_TOP, _date, json
@@ -70,7 +70,7 @@ class MessageResource(ItemResource):
             self.delta(req, resp, folder)
             return
         else:
-            item = folder.item(itemid)
+            item = _item(folder, itemid)
 
         if method == 'attachments':
             attachments = list(get_attachments(item))
@@ -95,7 +95,7 @@ class MessageResource(ItemResource):
     def on_post(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid or 'inbox') # TODO all folders?
-        item = folder.item(itemid)
+        item = _item(folder, itemid)
 
         if method == 'createReply':
             self.respond(req, resp, item.reply())
@@ -111,7 +111,7 @@ class MessageResource(ItemResource):
     def on_patch(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid or 'inbox') # TODO all folders?
-        item = folder.item(itemid)
+        item = _item(folder, itemid)
 
         fields = json.loads(req.stream.read().decode('utf-8'))
 
@@ -123,7 +123,7 @@ class MessageResource(ItemResource):
 
     def on_delete(self, req, resp, userid=None, folderid=None, itemid=None):
         server, store = _server_store(req, userid, self.options)
-        item = store.item(itemid)
+        item = _item(store, itemid)
         store.delete(item)
 
 class EmbeddedMessageResource(MessageResource):
