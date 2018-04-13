@@ -374,13 +374,12 @@ void ECLogger_File::Log(unsigned int loglevel, const std::string &message)
 }
 
 void ECLogger_File::Log(unsigned int loglevel, const char *format, ...) {
+	if (!ECLogger::Log(loglevel))
+		return;
 	va_list va;
-
-	if (ECLogger::Log(loglevel)) {
-		va_start(va, format);
-		LogVA(loglevel, format, va);
-		va_end(va);
-	}
+	va_start(va, format);
+	LogVA(loglevel, format, va);
+	va_end(va);
 }
 
 void ECLogger_File::LogVA(unsigned int loglevel, const char *format, va_list& va) {
