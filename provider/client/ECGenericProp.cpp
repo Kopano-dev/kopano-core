@@ -169,13 +169,13 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 	    PROP_TYPE(ulPropTag & ~MV_FLAG) == PT_STRING8 &&
 	    PROP_TYPE(iterProps->second.GetPropTag() & ~MV_FLAG) == PT_UNICODE)))
 	{
-		lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR,PROP_ID(ulPropTag));
+		lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_ERROR);
 		lpsPropValue->Value.err = MAPI_E_NOT_FOUND;
 		return MAPI_W_ERRORS_RETURNED;
 	}
 
 	if(!iterProps->second.FIsLoaded()) {
-		lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
+		lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_ERROR);
 		lpsPropValue->Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
 		return MAPI_W_ERRORS_RETURNED;
 
@@ -184,7 +184,7 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 
 	// Check if a max. size was requested, if so, dont return unless smaller than max. size
 	if (ulMaxSize != 0 && iterProps->second.GetProperty()->GetSize() > ulMaxSize) {
-		lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
+		lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_ERROR);
 		lpsPropValue->Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
 		return MAPI_W_ERRORS_RETURNED;
 	}
@@ -309,7 +309,7 @@ HRESULT ECGenericProp::TableRowGetProp(void *lpProvider,
     void **lpBase, ULONG ulType)
 {
 	switch(lpsPropValSrc->ulPropTag) {
-	case PROP_TAG(PT_ERROR, PROP_ID(PR_NULL)):
+	case CHANGE_PROP_TYPE(PR_NULL, PT_ERROR):
 		lpsPropValDst->Value.l = 0;
 		lpsPropValDst->ulPropTag = PR_NULL;
 		break;
@@ -716,7 +716,7 @@ HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
 		}
 
 		if(HR_FAILED(hrT)) {
-			lpsPropValue[i].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->aulPropTag[i]));
+			lpsPropValue[i].ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->aulPropTag[i], PT_ERROR);
 			lpsPropValue[i].Value.err = hrT;
 			hr = MAPI_W_ERRORS_RETURNED;
 		} else if(hrT != hrSuccess) {
@@ -787,9 +787,9 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 		if (!(ulFlags & MAPI_UNICODE)) {
 			// Downgrade to ansi
 			if(PROP_TYPE(ulPropTag) == PT_UNICODE)
-				ulPropTag = PROP_TAG(PT_STRING8, PROP_ID(ulPropTag));
+				ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_STRING8);
 			else if(PROP_TYPE(ulPropTag) == PT_MV_UNICODE)
-				ulPropTag = PROP_TAG(PT_MV_STRING8, PROP_ID(ulPropTag));
+				ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_MV_STRING8);
 		}
 		lpPropTagArray->aulPropTag[n++] = ulPropTag;
 	}

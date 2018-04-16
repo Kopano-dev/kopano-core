@@ -200,7 +200,7 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 				continue;		// broken .. should never happen
 
 			// default is error prop
-			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
+			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = CHANGE_PROP_TYPE(lpsPropTagArray->__ptr[k], PT_ERROR);
 			lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;
 			lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
 
@@ -359,7 +359,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			// default is error prop
 			auto &m = lpsRowSet->__ptr[i].__ptr[k];
-			m.ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
+			m.ulPropTag = CHANGE_PROP_TYPE(lpsPropTagArray->__ptr[k], PT_ERROR);
 			m.Value.ul = KCERR_NOT_FOUND;
 			m.__union = SOAP_UNION_propValData_ul;
 			if (iterSD == lpThis->m_mapSessionData.cend())
@@ -632,7 +632,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			// default is error prop
 			auto &m = lpsRowSet->__ptr[i].__ptr[k];
-			m.ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
+			m.ulPropTag = CHANGE_PROP_TYPE(lpsPropTagArray->__ptr[k], PT_ERROR);
 			m.Value.ul = KCERR_NOT_FOUND;
 			m.__union = SOAP_UNION_propValData_ul;
 
@@ -871,7 +871,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			// default is error prop
 			auto &m = lpsRowSet->__ptr[i].__ptr[k];
-			m.ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
+			m.ulPropTag = CHANGE_PROP_TYPE(lpsPropTagArray->__ptr[k], PT_ERROR);
 			m.Value.ul = KCERR_NOT_FOUND;
 			m.__union = SOAP_UNION_propValData_ul;
 
@@ -1036,7 +1036,7 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			// default is error prop
 			auto &m = lpsRowSet->__ptr[i].__ptr[k];
-			m.ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
+			m.ulPropTag = CHANGE_PROP_TYPE(lpsPropTagArray->__ptr[k], PT_ERROR);
 			m.Value.ul = KCERR_NOT_FOUND;
 			m.__union = SOAP_UNION_propValData_ul;
 

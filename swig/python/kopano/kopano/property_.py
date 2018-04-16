@@ -274,7 +274,7 @@ class Property(object):
                 self.proptag = PR_BODY_W
                 mapiobj = SPropDelayedValue(parent_mapiobj, self.proptag)
             elif PROP_ID(self.proptag) in (PROP_ID(PR_RTF_COMPRESSED), PROP_ID(PR_HTML)):
-                self.proptag = PROP_TAG(PT_BINARY, PROP_ID(self.proptag))
+                self.proptag = CHANGE_PROP_TYPE(self.proptag, PT_BINARY)
                 mapiobj = SPropDelayedValue(parent_mapiobj, self.proptag)
             else: # XXX possible to use above trick to infer all proptags?
                 for proptype in (PT_BINARY, PT_UNICODE): # XXX slow, incomplete?

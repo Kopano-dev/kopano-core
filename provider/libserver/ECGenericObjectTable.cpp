@@ -2488,7 +2488,7 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
 			lpOrderedProps[n] = lpOrderedProps[n-1];
 			// Get actual sort order from category
 			if(lpCategory->GetProp(NULL, lpsSortOrderArray->__ptr[n].ulPropTag, &lpOrderedProps[n-1]) != erSuccess) {
-				lpOrderedProps[n-1].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsSortOrderArray->__ptr[n].ulPropTag));
+				lpOrderedProps[n-1].ulPropTag = CHANGE_PROP_TYPE(lpsSortOrderArray->__ptr[n].ulPropTag, PT_ERROR);
 				lpOrderedProps[n-1].Value.ul = KCERR_NOT_FOUND;
 				lpOrderedProps[n-1].__union = SOAP_UNION_propValData_ul;
 			}
@@ -2590,7 +2590,7 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
 					// Update the keytable with the new effective sort data for this column
 					
 					if(lpCategory->GetProp(NULL, lpsSortOrderArray->__ptr[ulDepth+1].ulPropTag, &sProp) != erSuccess) {
-						sProp.ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsSortOrderArray->__ptr[ulDepth+1].ulPropTag));
+						sProp.ulPropTag = CHANGE_PROP_TYPE(lpsSortOrderArray->__ptr[ulDepth+1].ulPropTag, PT_ERROR);
 						sProp.Value.ul = KCERR_NOT_FOUND;
 					}
 

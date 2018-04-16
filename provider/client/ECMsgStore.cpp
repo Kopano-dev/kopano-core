@@ -446,7 +446,7 @@ HRESULT ECMsgStore::TableRowGetProp(void *lpProvider,
 		return hr;
 	memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
 	lpsPropValDst->Value.bin.cb = cbWrapped;
-	lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
+	lpsPropValDst->ulPropTag = CHANGE_PROP_TYPE(lpsPropValSrc->ulPropTag, PT_BINARY);
 	return hrSuccess;
 }
 

@@ -1956,11 +1956,11 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			goto exit;
 		}
 
-		lpMoveReprProps[0].ulPropTag = PROP_TAG(PROP_TYPE(lpMoveReprProps[0].ulPropTag), PROP_ID(PR_SENDER_NAME_W));
-		lpMoveReprProps[1].ulPropTag = PROP_TAG(PROP_TYPE(lpMoveReprProps[1].ulPropTag), PROP_ID(PR_SENDER_ADDRTYPE_W));
-		lpMoveReprProps[2].ulPropTag = PROP_TAG(PROP_TYPE(lpMoveReprProps[2].ulPropTag), PROP_ID(PR_SENDER_EMAIL_ADDRESS_W));
-		lpMoveReprProps[3].ulPropTag = PROP_TAG(PROP_TYPE(lpMoveReprProps[3].ulPropTag), PROP_ID(PR_SENDER_ENTRYID));
-		lpMoveReprProps[4].ulPropTag = PROP_TAG(PROP_TYPE(lpMoveReprProps[4].ulPropTag), PROP_ID(PR_SENDER_SEARCH_KEY));
+		lpMoveReprProps[0].ulPropTag = CHANGE_PROP_TYPE(PR_SENDER_NAME_W,          PROP_TYPE(lpMoveReprProps[0].ulPropTag));
+		lpMoveReprProps[1].ulPropTag = CHANGE_PROP_TYPE(PR_SENDER_ADDRTYPE_W,      PROP_TYPE(lpMoveReprProps[1].ulPropTag));
+		lpMoveReprProps[2].ulPropTag = CHANGE_PROP_TYPE(PR_SENDER_EMAIL_ADDRESS_W, PROP_TYPE(lpMoveReprProps[2].ulPropTag));
+		lpMoveReprProps[3].ulPropTag = CHANGE_PROP_TYPE(PR_SENDER_ENTRYID,         PROP_TYPE(lpMoveReprProps[3].ulPropTag));
+		lpMoveReprProps[4].ulPropTag = CHANGE_PROP_TYPE(PR_SENDER_SEARCH_KEY,      PROP_TYPE(lpMoveReprProps[4].ulPropTag));
 
 		hr = lpMessage->SetProps(5, lpMoveReprProps, NULL);
 		if (FAILED(hr)) {

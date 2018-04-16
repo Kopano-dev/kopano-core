@@ -221,7 +221,7 @@ HRESULT ECMessage::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 			else {
 				// Find best match in requested set
 				for (int i = 0; i < 3; ++i)
-					if (Util::FindPropInArray(ptrPropTagArray, PROP_TAG(PT_UNSPECIFIED, PROP_ID(ulBestMatchTable[m_ulBodyType][i]))) >= 0) {
+					if (Util::FindPropInArray(ptrPropTagArray, CHANGE_PROP_TYPE(ulBestMatchTable[m_ulBodyType][i], PT_UNSPECIFIED)) >= 0) {
 						ulBestMatch = ulBestMatchTable[m_ulBodyType][i];
 						break;
 					}
@@ -1781,8 +1781,8 @@ HRESULT ECMessage::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 
 	// Now, sync RTF
 	auto pvalRtf  = PCpropFindProp(lpPropArray, cValues, PR_RTF_COMPRESSED);
-	auto pvalHtml = PCpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY_HTML)));
-	auto pvalBody = PCpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY)));
+	auto pvalHtml = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_BODY_HTML, PT_UNSPECIFIED));
+	auto pvalBody = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_BODY, PT_UNSPECIFIED));
 
 	// IF the user sets both the body and the RTF, assume RTF overrides
 	if (pvalRtf) {
@@ -2206,13 +2206,17 @@ HRESULT ECMessage::HrLoadProps()
 
 	hr = hrSuccess;
 
-	if (lpsBodyProps[0].ulPropTag == PR_BODY_W || (lpsBodyProps[0].ulPropTag == PROP_TAG(PT_ERROR, PROP_ID(PR_BODY)) && lpsBodyProps[0].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
+	if (lpsBodyProps[0].ulPropTag == PR_BODY_W ||
+	    (lpsBodyProps[0].ulPropTag == CHANGE_PROP_TYPE(PR_BODY, PT_ERROR) &&
+	    lpsBodyProps[0].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
 		fBodyOK = TRUE;
-
-	if (lpsBodyProps[1].ulPropTag == PR_RTF_COMPRESSED || (lpsBodyProps[1].ulPropTag == PROP_TAG(PT_ERROR, PROP_ID(PR_RTF_COMPRESSED)) && lpsBodyProps[1].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
+	if (lpsBodyProps[1].ulPropTag == PR_RTF_COMPRESSED ||
+	    (lpsBodyProps[1].ulPropTag == CHANGE_PROP_TYPE(PR_RTF_COMPRESSED, PT_ERROR) &&
+	    lpsBodyProps[1].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
 		fRTFOK = TRUE;
-
-	if (lpsBodyProps[2].ulPropTag == PR_HTML || (lpsBodyProps[2].ulPropTag == PROP_TAG(PT_ERROR, PROP_ID(PR_HTML)) && lpsBodyProps[2].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
+	if (lpsBodyProps[2].ulPropTag == PR_HTML ||
+	    (lpsBodyProps[2].ulPropTag == CHANGE_PROP_TYPE(PR_HTML, PT_ERROR) &&
+	    lpsBodyProps[2].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
 		fHTMLOK = TRUE;
 
 	if (fRTFOK) {

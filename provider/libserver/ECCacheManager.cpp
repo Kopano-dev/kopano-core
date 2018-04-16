@@ -1293,7 +1293,7 @@ ECRESULT ECCacheManager::GetCell(const sObjectTableKey *lpsRowItem,
         } else {
             // Object is complete and property is not found; we know that the property does not exist
             // so return OK with a NOT_FOUND propvalue
-            lpDest->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
+			lpDest->ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_ERROR);
             lpDest->Value.ul = KCERR_NOT_FOUND;
             lpDest->__union = SOAP_UNION_propValData_ul;
         }

@@ -1783,7 +1783,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap,
 			lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpPropTagArray->__size);
 			lpsRowSet->__ptr[i].__size = lpPropTagArray->__size;
 			for (gsoap_size_t j = 0; j < lpPropTagArray->__size; ++j) {
-				lpsRowSet->__ptr[i].__ptr[j].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->__ptr[j]));
+				lpsRowSet->__ptr[i].__ptr[j].ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->__ptr[j], PT_ERROR);
 				lpsRowSet->__ptr[i].__ptr[j].Value.ul = KCERR_NOT_FOUND;
 				lpsRowSet->__ptr[i].__ptr[j].__union = SOAP_UNION_propValData_ul;
 			}
@@ -3194,7 +3194,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 				break;
 			case PR_EMS_AB_ROOM_DESCRIPTION: {
 				if (lpDetails->GetClass() == ACTIVE_USER) {
-					lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
+					lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
 					lpPropVal->Value.ul = KCERR_NOT_FOUND;
 					lpPropVal->__union = SOAP_UNION_propValData_ul;
 					break;
@@ -3286,7 +3286,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 					strCerts = lpDetails->GetPropListString((property_key_t)lpPropTags->__ptr[i]);
 
 				if (strCerts.empty()) {
-					lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
+					lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
 					lpPropVal->Value.ul = KCERR_NOT_FOUND;
 					lpPropVal->__union = SOAP_UNION_propValData_ul;
 					break;
@@ -3305,7 +3305,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 			case PR_EC_SENDAS_USER_ENTRYIDS: {
 				auto userIds = lpDetails->GetPropListObject(OB_PROP_LO_SENDAS);
 				if (userIds.empty()) {
-					lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
+					lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
 					lpPropVal->Value.ul = KCERR_NOT_FOUND;
 					lpPropVal->__union = SOAP_UNION_propValData_ul;
 					break;
@@ -3357,7 +3357,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 					lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 					break;
 				}
-				lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
+				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
@@ -3369,7 +3369,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 					lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 					break;
 				}
-				lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
+				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
@@ -3378,7 +3378,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 				/* Property not handled in switch, try checking if user has mapped the property personally */ 
 				if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) == erSuccess)
 					break;
-				lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
+				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
@@ -3511,7 +3511,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 			case PR_EC_SENDAS_USER_ENTRYIDS: {
 				auto userIds = lpDetails->GetPropListObject(OB_PROP_LO_SENDAS);
 				if (userIds.empty()) {
-					lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
+					lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
 					lpPropVal->Value.ul = KCERR_NOT_FOUND;
 					lpPropVal->__union = SOAP_UNION_propValData_ul;
 					break;
@@ -3563,7 +3563,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 					lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 					break;
 				}
-				lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
+				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
@@ -3571,7 +3571,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 			default:
 				if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) == erSuccess)
 					break;
-				lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
+				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
@@ -3689,7 +3689,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
 				break;
 			default:
-				lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
+				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
@@ -3787,7 +3787,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 					lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 					break;
 				}
-				lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
+				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
@@ -3795,7 +3795,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 			default:
 				if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) == erSuccess)
 					break;
-				lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTags->__ptr[i]));
+				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
@@ -3939,7 +3939,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 			} else {
 				// id 0 (kopano address book) has no container id
-				lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->__ptr[i]));
+				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->__ptr[i], PT_ERROR);
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 			}
@@ -3959,13 +3959,13 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 
 				*(ABEID *)lpPropVal->Value.bin->__ptr = abeid;
 			} else { /* Kopano Address Book */
-				lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->__ptr[i]));
+				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->__ptr[i], PT_ERROR);
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 			}
 			break;
 		default:
-			lpPropVal->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->__ptr[i]));
+			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->__ptr[i], PT_ERROR);
 			lpPropVal->Value.ul = KCERR_NOT_FOUND;
 			lpPropVal->__union = SOAP_UNION_propValData_ul;
 			break;

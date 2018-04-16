@@ -102,7 +102,7 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 	lpspvStatusRow[cCurVal++].Value.bin = lpspvIdentity[XPID_EID].Value.bin;
 
 	// Set the PR_IDENTITY_DISPLAY property
-	lpspvStatusRow[cCurVal].ulPropTag = PROP_TAG(PROP_TYPE(lpspvIdentity[XPID_NAME].ulPropTag), PROP_ID(PR_IDENTITY_DISPLAY));
+	lpspvStatusRow[cCurVal].ulPropTag = CHANGE_PROP_TYPE(PR_IDENTITY_DISPLAY, PROP_TYPE(lpspvIdentity[XPID_NAME].ulPropTag));
 	lpspvStatusRow[cCurVal++].Value.LPSZ = lpspvIdentity[XPID_NAME].Value.LPSZ;
 
 	// Set the PR_IDENTITY_SEARCH_KEY property

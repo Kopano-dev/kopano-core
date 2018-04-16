@@ -2822,17 +2822,15 @@ static HRESULT TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag,
     IMAPIProp *lpPropSrc, ULONG ulDestPropTag, IMAPIProp *lpPropDest,
     IStream **lppSrcStream, IStream **lppDestStream)
 {
-	HRESULT hr;
 	object_ptr<IStream> lpSrc, lpDest;
-
-	hr = lpPropSrc->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulSrcPropTag)), &IID_IStream, 0, 0, &~lpSrc);
+	auto hr = lpPropSrc->OpenProperty(CHANGE_PROP_TYPE(ulSrcPropTag, ulPropType), &IID_IStream, 0, 0, &~lpSrc);
 	if (hr != hrSuccess)
 		return hr;
 
 	// some mapi functions/providers don't implement STGM_TRANSACTED, retry again without this flag
-	hr = lpPropDest->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulDestPropTag)), &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDest);
+	hr = lpPropDest->OpenProperty(CHANGE_PROP_TYPE(ulDestPropTag, ulPropType), &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDest);
 	if (hr != hrSuccess)
-		hr = lpPropDest->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulDestPropTag)), &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDest);
+		hr = lpPropDest->OpenProperty(CHANGE_PROP_TYPE(ulDestPropTag, ulPropType), &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDest);
 	if (hr != hrSuccess)
 		return hr;
 	*lppSrcStream = lpSrc.release();
@@ -3359,10 +3357,10 @@ next_include_check:
 				continue;
 			if (PROP_TYPE(lpsDestNameTagArray->aulPropTag[j]) != PT_ERROR)
 				// replace with new proptag, so we can open the correct property
-				lpsDestTagArray->aulPropTag[i] = PROP_TAG(PROP_TYPE(lpProps[i].ulPropTag), PROP_ID(lpsDestNameTagArray->aulPropTag[j]));
+				lpsDestTagArray->aulPropTag[i] = CHANGE_PROP_TYPE(lpsDestNameTagArray->aulPropTag[j], PROP_TYPE(lpProps[i].ulPropTag));
 			else
 				// leave on PT_ERROR, so we don't copy the property
-				lpsDestTagArray->aulPropTag[i] = PROP_TAG(PT_ERROR, PROP_ID(lpsDestNameTagArray->aulPropTag[j]));
+				lpsDestTagArray->aulPropTag[i] = CHANGE_PROP_TYPE(lpsDestNameTagArray->aulPropTag[j], PT_ERROR);
 				// don't even return a warning because although not all data could be copied
 			++j;
 		}

@@ -1980,7 +1980,7 @@ HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
 			auto lpProp = PCpropFindProp(lpProps, cValues,
 				lpPropTagArray->aulPropTag[j]);
 			if(lpProp == NULL) {
-				lpRecipList->aEntries[i].rgPropVals[j].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->aulPropTag[j]));
+				lpRecipList->aEntries[i].rgPropVals[j].ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->aulPropTag[j], PT_ERROR);
 				lpRecipList->aEntries[i].rgPropVals[j].Value.err = MAPI_E_NOT_FOUND;
 				continue;
 			}

@@ -1061,7 +1061,7 @@ public:
 			}
 			
 			if(bError) {
-				lpProps[i].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpTags->aulPropTag[i]));
+				lpProps[i].ulPropTag = CHANGE_PROP_TYPE(lpTags->aulPropTag[i], PT_ERROR);
 				lpProps[i].Value.err = MAPI_E_NOT_FOUND;
 
 				hr = MAPI_W_ERRORS_RETURNED;
