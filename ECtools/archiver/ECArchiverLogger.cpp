@@ -44,29 +44,29 @@ void ECArchiverLogger::Reset()
 		m_lpLogger->Reset();
 }
 
-void ECArchiverLogger::Log(unsigned int loglevel, const std::string &message)
+void ECArchiverLogger::log(unsigned int loglevel, const char *message)
 {
 	if (m_lpLogger)
 		m_lpLogger->Log(loglevel, message);
 }
 
-void ECArchiverLogger::Log(unsigned int loglevel, const char *format, ...)
+void ECArchiverLogger::logf(unsigned int loglevel, const char *format, ...)
 {
 	if (m_lpLogger == NULL || !m_lpLogger->Log(loglevel))
 		return;
 	std::string strFormat = CreateFormat(format);
 	va_list va;
 	va_start(va, format);
-	m_lpLogger->LogVA(loglevel, strFormat.c_str(), va);
+	m_lpLogger->logv(loglevel, strFormat.c_str(), va);
 	va_end(va);
 }
 
-void ECArchiverLogger::LogVA(unsigned int loglevel, const char *format, va_list& va)
+void ECArchiverLogger::logv(unsigned int loglevel, const char *format, va_list &va)
 {
 	if (m_lpLogger == NULL || !m_lpLogger->Log(loglevel))
 		return;
 	std::string strFormat = CreateFormat(format);
-	m_lpLogger->LogVA(loglevel, strFormat.c_str(), va);
+	m_lpLogger->logv(loglevel, strFormat.c_str(), va);
 }
 
 std::string ECArchiverLogger::CreateFormat(const char *format)
