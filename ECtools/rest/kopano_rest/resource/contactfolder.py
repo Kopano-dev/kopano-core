@@ -28,6 +28,7 @@ class ContactFolderResource(FolderResource):
         server, store = _server_store(req, userid, self.options)
 
         if folderid == 'delta':
+            req.context['deltaid'] = '{folderid}'
             self.delta(req, resp, store)
             return
 

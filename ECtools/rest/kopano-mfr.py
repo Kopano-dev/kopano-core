@@ -85,12 +85,17 @@ class FalconMetrics(object):
     def process_request(self, req, resp):
         req.context['start_time'] = time.time()
 
+    def process_resource(self, req, resp, resource, params):
+        req.context['label'] = \
+            req.uri_template.replace('{method}', params.get('method', ''))
+
     def process_response(self, req, resp, resource):
         t = time.time() - req.context['start_time']
-        if 'label' in req.context:
-            REQUEST_TIME.labels(req.method, req.context['label']).observe(t)
-        else:
-            REQUEST_TIME.labels(req.method, '/').observe(t)
+        label = req.context.get('label')
+        if label:
+            if 'deltaid' in req.context:
+                label = label.replace(req.context['deltaid'], 'delta')
+            REQUEST_TIME.labels(req.method, label).observe(t)
 
 # Expose metrics.
 def metrics_app(environ, start_response):

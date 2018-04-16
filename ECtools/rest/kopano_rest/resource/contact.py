@@ -76,6 +76,7 @@ class ContactResource(ItemResource):
             raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
         if itemid == 'delta':
+            req.context['deltaid'] = '{itemid}'
             self.delta(req, resp, folder)
             return
 

@@ -29,7 +29,6 @@ class CalendarResource(FolderResource):
             folder = _folder(store, folderid or 'calendar')
 
             if method == 'calendarView':
-                req.context['label'] = '/calendar/calendarView'
                 start, end = _start_end(req)
                 data = (folder.occurrences(start, end), DEFAULT_TOP, 0, 0)
                 fields = EventResource.fields

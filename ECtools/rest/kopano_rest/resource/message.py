@@ -67,6 +67,7 @@ class MessageResource(ItemResource):
         folder = _folder(store, folderid or 'inbox') # TODO all folders?
 
         if itemid == 'delta': # TODO move to MailFolder resource somehow?
+            req.context['deltaid'] = '{itemid}'
             self.delta(req, resp, folder)
             return
         else:
