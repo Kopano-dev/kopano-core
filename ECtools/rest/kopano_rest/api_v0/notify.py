@@ -1,8 +1,7 @@
 import base64
 import codecs
-import falcon
 import json
-import jwt
+import logging
 import traceback
 import uuid
 try:
@@ -11,6 +10,8 @@ except ImportError:
     from Queue import Queue
 import requests
 from threading import Thread
+
+import falcon
 
 try:
     from prometheus_client import Counter, Gauge
@@ -24,6 +25,8 @@ kopano.set_bin_encoding('base64')
 
 from .. import utils
 from .config import PREFIX
+
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 # TODO avoid globals
 SUBSCRIPTIONS = {}
@@ -104,6 +107,7 @@ class Processor(Thread):
                 try:
                     if self.options.with_metrics:
                         POST_COUNT.inc()
+                    logging.debug('Subscription notification: %s' % fields['notificationUrl'])
                     requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10, verify=verify)
                 except Exception:
                     traceback.print_exc()
@@ -144,12 +148,14 @@ class SubscriptionResource:
         # TODO folder-level, hierarchy.. ?
 
         validationToken = str(uuid.uuid4())
+        verify = not self.options or not self.options.insecure
         try: # TODO async
-            r = requests.post(fields['notificationUrl']+'?validationToken='+validationToken, timeout=10)
+            logging.debug('Subscription validation: %s' % fields['notificationUrl'])
+            r = requests.post(fields['notificationUrl']+'?validationToken='+validationToken, timeout=10, verify=verify)
             if r.text != validationToken:
-                return # TODO error or ignore?
+                raise falcon.HTTPBadRequest(None, "Subscription validation request failed.")
         except Exception:
-            return # TODO error or ignore?
+            raise falcon.HTTPBadRequest(None, "Subscription validation request failed.")
 
         id_ = str(uuid.uuid4())
         subscription = fields

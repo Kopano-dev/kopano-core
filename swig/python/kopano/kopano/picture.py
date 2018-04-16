@@ -9,7 +9,7 @@ import mimetypes
 
 try:
     from PIL import Image
-except NameError:
+except ImportError:
     pass
 
 from .compat import repr as _repr
