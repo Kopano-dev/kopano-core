@@ -223,7 +223,7 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 	typedef int (*flush_func)(handle_type);
 
 	KC::shared_mutex handle_lock, dupfilter_lock;
-	handle_type log;
+	handle_type fh;
 	std::string logname;
 	bool timestamp;
 	size_t buffer_size;

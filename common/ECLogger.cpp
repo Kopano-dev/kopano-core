@@ -191,10 +191,10 @@ ECLogger_File::ECLogger_File(unsigned int max_ll, bool add_timestamp,
 			init_for_gzfile();
 		else
 			init_for_file();
-		log = fnOpen(logname.c_str(), szMode);
-		if (log == nullptr) {
+		fh = fnOpen(logname.c_str(), szMode);
+		if (fh == nullptr) {
 			init_for_stderr();
-			fnPrintf(log, "Unable to open logfile %s: %s. Logging to stderr.\n",
+			fnPrintf(fh, "Unable to open logfile %s: %s. Logging to stderr.\n",
 				logname.c_str(), strerror(errno));
 		}
 	}
@@ -213,16 +213,16 @@ ECLogger_File::~ECLogger_File() {
 	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
 
 	if (prevcount > 1)
-		fnPrintf(log, "%sLast message repeated %d times\n", DoPrefix().c_str(), prevcount);
+		fnPrintf(fh, "%sLast message repeated %d times\n", DoPrefix().c_str(), prevcount);
 	else if (prevcount == 1)
-		fnPrintf(log, "%sLast message repeated 1 time\n", DoPrefix().c_str());
-	if (log && fnClose)
-		fnClose(log);
+		fnPrintf(fh, "%sLast message repeated 1 time\n", DoPrefix().c_str());
+	if (fh != nullptr && fnClose != nullptr)
+		fnClose(fh);
 }
 
 void ECLogger_File::init_for_stderr(void)
 {
-	log = stderr;
+	fh = stderr;
 	fnOpen = nullptr;
 	fnClose = nullptr;
 	fnPrintf = reinterpret_cast<printf_func>(&fprintf);
@@ -251,9 +251,9 @@ void ECLogger_File::init_for_gzfile(void)
 void ECLogger_File::reinit_buffer(size_t size)
 {
 	if (size == 0)
-		setvbuf(static_cast<FILE *>(log), NULL, _IOLBF, size);
+		setvbuf(static_cast<FILE *>(fh), nullptr, _IOLBF, size);
 	else
-		setvbuf(static_cast<FILE *>(log), NULL, _IOFBF, size);
+		setvbuf(static_cast<FILE *>(fh), nullptr, _IOFBF, size);
 	/* Store value for Reset() to re-invoke this function after reload */
 	buffer_size = size;
 }
@@ -261,19 +261,19 @@ void ECLogger_File::reinit_buffer(size_t size)
 void ECLogger_File::Reset() {
 	std::lock_guard<KC::shared_mutex> lh(handle_lock);
 
-	if (log == stderr || fnClose == nullptr || fnOpen == nullptr)
+	if (fh == stderr || fnClose == nullptr || fnOpen == nullptr)
 		return;
-	if (log)
-		fnClose(log);
+	if (fh != nullptr)
+		fnClose(fh);
 	/*
 	 * The fnOpen call cannot be reordered before fnClose in all cases —
 	 * like compressed files, as the data stream may not be
 	 * finalized.
 	 */
-	log = fnOpen(logname.c_str(), szMode);
-	if (log == nullptr) {
+	fh = fnOpen(logname.c_str(), szMode);
+	if (fh == nullptr) {
 		init_for_stderr();
-		fnPrintf(log, "%s%sECLogger reset issued, but cannot (re-)open %s: %s. Logging to stderr.\n",
+		fnPrintf(fh, "%s%sECLogger reset issued, but cannot (re-)open %s: %s. Logging to stderr.\n",
 		         DoPrefix().c_str(), EmitLevel(EC_LOGLEVEL_ERROR).c_str(),
 		         logname.c_str(), strerror(errno));
 		return;
@@ -283,9 +283,8 @@ void ECLogger_File::Reset() {
 
 int ECLogger_File::GetFileDescriptor() {
 	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
-
-	if (log && fnFileno)
-		return fnFileno(log);
+	if (fh != nullptr && fnFileno != nullptr)
+		return fnFileno(fh);
 	return -1;
 }
 
@@ -343,7 +342,7 @@ bool ECLogger_File::DupFilter(const unsigned int loglevel, const std::string &me
 
 	if (prevcount > 1) {
 		KC::shared_lock<KC::shared_mutex> lr_handle(handle_lock);
-		fnPrintf(log, "%s%sPrevious message logged %d times\n", DoPrefix().c_str(), EmitLevel(prevloglevel).c_str(), prevcount);
+		fnPrintf(fh, "%s%sPrevious message logged %d times\n", DoPrefix().c_str(), EmitLevel(prevloglevel).c_str(), prevcount);
 	}
 
 	std::lock_guard<KC::shared_mutex> lw_dup(dupfilter_lock);
@@ -361,16 +360,16 @@ void ECLogger_File::Log(unsigned int loglevel, const std::string &message)
 		return;
 
 	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
-	if (log == nullptr)
+	if (fh == nullptr)
 		return;
-	fnPrintf(log, "%s%s%s\n", DoPrefix().c_str(), EmitLevel(loglevel).c_str(), message.c_str());
+	fnPrintf(fh, "%s%s%s\n", DoPrefix().c_str(), EmitLevel(loglevel).c_str(), message.c_str());
 	/*
 	 * If IOLBF was set (buffer_size==0), the previous
 	 * print call already flushed it. Do not flush again
 	 * in that case.
 	 */
 	if (buffer_size > 0 && (loglevel <= EC_LOGLEVEL_WARNING || loglevel == EC_LOGLEVEL_ALWAYS))
-		fflush((FILE *)log);
+		fflush(static_cast<FILE *>(fh));
 }
 
 void ECLogger_File::Log(unsigned int loglevel, const char *format, ...) {
