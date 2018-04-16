@@ -80,9 +80,14 @@ class UserResource(Resource):
                 else:
                     data = server.user(userid=userid)
             else:
-                def yielder(**kwargs):
-                    for item in server.users(hidden=False, non_active=False):
-                        yield item
+                args = urlparse.parse_qs(req.query_string)
+                if '$search' in args:
+                    text = args['$search'][0]
+                    def yielder(**kwargs):
+                        yield from server.user_search(text) # TODO hidden, inactive?
+                else:
+                    def yielder(**kwargs):
+                        yield from server.users(hidden=False, inactive=False)
                 data = self.generator(req, yielder)
             self.respond(req, resp, data)
 
