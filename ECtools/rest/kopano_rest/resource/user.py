@@ -1,3 +1,5 @@
+import codecs
+
 import falcon
 
 from ..utils import _server_store
