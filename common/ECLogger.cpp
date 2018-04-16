@@ -558,35 +558,21 @@ void ECLogger_Pipe::Reset() {
 	kill(m_childpid, SIGHUP);
 }
 
-void ECLogger_Pipe::Log(unsigned int loglevel, const std::string &message) {
-	int len = 0;
-	int off = 0;
-
+void ECLogger_Pipe::Log(unsigned int loglevel, const std::string &message)
+{
 	char msgbuffer[_LOG_BUFSIZE];
 	msgbuffer[0] = loglevel;
-	off += 1;
-
+	msgbuffer[1] = '\0';
+	size_t off = 1, rem = sizeof(msgbuffer) - 1;
 	if (prefix == LP_TID)
-		len = snprintf(msgbuffer + off, sizeof(msgbuffer) - off,
-		      "[T%lu] ", kc_threadid());
+		snprintf(msgbuffer + off, rem, "[T%lu] ", kc_threadid());
 	else if (prefix == LP_PID)
-		len = snprintf(msgbuffer + off, sizeof msgbuffer - off, "[%5d] ", getpid());
-
-	if (len < 0)
-		len = 0;
-	else
-		off += len;
-
-	len = std::min(static_cast<int>(message.length()), static_cast<int>(sizeof(msgbuffer) - (off + 1)));
-	if (len < 0)
-		len = 0;
-	else {
-		memcpy(msgbuffer+off, message.c_str(), len);
-		off += len;
-	}
-
-	msgbuffer[off++] = '\0';
-	xwrite(msgbuffer, off);
+		snprintf(msgbuffer + off, rem, "[%5d] ", getpid());
+	off = strlen(msgbuffer);
+	rem = sizeof(msgbuffer) - off;
+	strncpy(msgbuffer + off, message.c_str(), rem);
+	msgbuffer[sizeof(msgbuffer)-1] = '\0';
+	xwrite(msgbuffer, strlen(msgbuffer) + 1);
 }
 
 void ECLogger_Pipe::Log(unsigned int loglevel, const char *format, ...) {
@@ -598,33 +584,20 @@ void ECLogger_Pipe::Log(unsigned int loglevel, const char *format, ...) {
 }
 
 void ECLogger_Pipe::LogVA(unsigned int loglevel, const char *format, va_list& va) {
-	int len = 0;
-	int off = 0;
-
 	char msgbuffer[_LOG_BUFSIZE];
 	msgbuffer[0] = loglevel;
-	off += 1;
-
+	msgbuffer[1] = '\0';
+	size_t off = 1, rem = sizeof(msgbuffer) - 1;
 	if (prefix == LP_TID)
-		len = snprintf(msgbuffer + off, sizeof(msgbuffer) - off, "[T%lu] ", kc_threadid());
+		snprintf(msgbuffer + off, rem, "[T%lu] ", kc_threadid());
 	else if (prefix == LP_PID)
-		len = snprintf(msgbuffer + off, sizeof msgbuffer - off, "[%5d] ", getpid());
-
-	if (len < 0)
-		len = 0;
-	else
-		off += len;
-
+		snprintf(msgbuffer + off, rem, "[%5d] ", getpid());
+	off = strlen(msgbuffer);
+	rem = sizeof(msgbuffer) - off;
 	// return value is what WOULD have been written if enough space were available in the buffer
-	len = _vsnprintf_l(msgbuffer + off, sizeof msgbuffer - off - 1, format, datalocale, va);
-	// -1 can be returned on formatting error (e.g. %ls in C locale)
-	if (len < 0)
-		len = 0;
-
-	len = std::min(len, static_cast<int>(sizeof(msgbuffer) - off - 2)); // yes, -2, otherwise we could have 2 \0 at the end of the buffer
-	off += len;
-	msgbuffer[off++] = '\0';
-	xwrite(msgbuffer, off);
+	_vsnprintf_l(msgbuffer + off, rem, format, datalocale, va);
+	msgbuffer[sizeof(msgbuffer)-1] = '\0';
+	xwrite(msgbuffer, strlen(msgbuffer) + 1);
 }
 
 void ECLogger_Pipe::xwrite(const char *msgbuffer, size_t len)
