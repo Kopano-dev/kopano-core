@@ -10,7 +10,7 @@ from .calendar import CalendarResource
 from .contact import ContactResource
 from .contactfolder import ContactFolderResource
 from .event import EventResource
-from .group import GroupResource
+from . import group
 from .mailfolder import MailFolderResource
 from .message import MessageResource
 
@@ -123,7 +123,7 @@ class UserResource(Resource):
         elif method == 'memberOf':
             user = server.user(userid=userid)
             data = (user.groups(), DEFAULT_TOP, 0, 0)
-            self.respond(req, resp, data, GroupResource.fields)
+            self.respond(req, resp, data, group.GroupResource.fields)
 
         elif method == 'photos': # TODO
             pass

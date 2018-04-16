@@ -29,10 +29,11 @@ class AttachmentResource(Resource):
             folder = _folder(store, folderid)
         elif itemid:
             folder = store.calendar
+            item = folder.event(itemid) # TODO 'eventid'? error handling
         else:
             folder = store.inbox # TODO messages from all folders?
+            item = _item(folder, itemid)
 
-        item = _item(folder, itemid)
         data = item.attachment(attachmentid)
 
         if method == '$value': # TODO graph doesn't do this?
