@@ -56,5 +56,8 @@ class RestAPIv0(falcon.API):
             route(user+'/contacts/{itemid}', contacts)
             route(user+'/contactFolders/{folderid}/contacts/{itemid}', contacts)
             route(user+'/photo', photos)
+            route(user+'/photos/{photoid}', photos)
             route(user+'/contacts/{itemid}/photo', photos)
+            route(user+'/contacts/{itemid}/photos/{photoid}', photos)
             route(user+'/contactFolders/{folderid}/contacts/{itemid}/photo', photos)
+            route(user+'/contactFolders/{folderid}/contacts/{itemid}/photos/{photoid}', photos)
