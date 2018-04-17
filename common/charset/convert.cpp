@@ -71,8 +71,6 @@ namespace details {
 	
 	
 	/**
-	 * Constructor for iconv_context_base
-	 *
 	 * The conversion context for iconv charset conversions takes a fromcode and a tocode,
 	 * which are the source and destination charsets, respectively. The 'tocode' may take
 	 * some extra options, separated with '//' from the charset, and then separated by commas

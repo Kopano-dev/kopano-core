@@ -57,8 +57,6 @@ class ECStatsCollector;
 class objectsignature_t _kc_final {
 public:
 	/**
-	 * Constructor for combining objectid and signature
-	 *
 	 * @param[in]	i
 	 *					The unique objectid
 	 * @param[in]	s
@@ -67,7 +65,7 @@ public:
     objectsignature_t(const objectid_t &i, const std::string &s) : id(i), signature(s) {};
 
 	/**
-	 * Default constructor, creates empty objectid with empty signature
+	 * Creates an empty objectid with empty signature
 	 */
 	objectsignature_t(void) = default;
 

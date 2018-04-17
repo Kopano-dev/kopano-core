@@ -77,15 +77,10 @@ namespace details {
 	 */
 	class _kc_export iconv_context_base {
 	public:
-		/**
-		 * @brief Destructor.
-		 */
 		virtual ~iconv_context_base();
 		
 	protected:
 		/**
-		 * @brief Constructor.
-		 *
 		 * @param[in]  tocode		The destination charset.
 		 * @param[out] fromcode		The source charset.
 		 */
@@ -127,8 +122,6 @@ namespace details {
 	    public iconv_context_base {
 	public:
 		/**
-		 * @brief Contructor.
-		 *
 		 * Constructs a iconv_context_base with the right tocode and fromcode based
 		 * on the To_Type and From_Type template parameters.
 		 */
@@ -137,8 +130,6 @@ namespace details {
 		{}
 		
 		/**
-		 * @brief Contructor.
-		 *
 		 * Constructs a iconv_context_base with the tocode based on the To_Type
 		 * and the passed fromcode.
 		 */
@@ -147,8 +138,6 @@ namespace details {
 		{}
 		
 		/**
-		 * @brief Contructor.
-		 *
 		 * Constructs a iconv_context_base with the tocode based on the To_Type
 		 * and the passed fromcode.
 		 */
@@ -310,14 +299,7 @@ inline To_Type convert_to(const char *tocode, const From_Type &_from,
  */
 class _kc_export convert_context _kc_final {
 public:
-	/**
-	 * @brief Constructor.
-	 */
 	convert_context(void) = default;
-	
-	/**
-	 * @brief Destructor.
-	 */
 	~convert_context();
 
 	/**
@@ -380,9 +362,6 @@ private:
 	 */
 	template<typename Type> class _kc_hidden helper _kc_final {
 	public:
-		/**
-		 * @brief Constructor.
-		 */
 		helper(convert_context &context)
 			: m_context(context) 
 		{}
@@ -465,9 +444,6 @@ private:
 	public:
 		typedef std::basic_string<Type> string_type;
 	
-		/**
-		 * @brief Constructor.
-		 */
 		helper(convert_context &context)
 			: m_context(context) 
 			, m_helper(context)

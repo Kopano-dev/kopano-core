@@ -45,8 +45,6 @@ class BaseException extends Exception {
 	public $displayMessage = null;
 
 	/**
-	 * Construct the exception
-	 *
 	 * @param  string $errorMessage
 	 * @param  int $code
 	 * @param  Exception $previous

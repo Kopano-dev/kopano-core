@@ -38,7 +38,6 @@ using namespace KC::helpers;
 namespace KC { namespace operations {
 
 /**
- * Constructor.
  * @param[in]	lpLogger
  *					Pointer to an ECLogger object that's used for logging.
  */
@@ -110,7 +109,6 @@ HRESULT ArchiveOperationBase::VerifyRestriction(LPMESSAGE lpMessage)
 }
 
 /**
- * Constructor.
  * @param[in]	lpLogger
  *					Pointer to an ECLogger object that's used for logging.
  */

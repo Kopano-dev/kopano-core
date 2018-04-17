@@ -191,10 +191,10 @@ ECLogger_File::ECLogger_File(unsigned int max_ll, bool add_timestamp,
 			init_for_gzfile();
 		else
 			init_for_file();
-		log = fnOpen(logname.c_str(), szMode);
-		if (log == nullptr) {
+		fh = fnOpen(logname.c_str(), szMode);
+		if (fh == nullptr) {
 			init_for_stderr();
-			fnPrintf(log, "Unable to open logfile %s: %s. Logging to stderr.\n",
+			fnPrintf(fh, "Unable to open logfile %s: %s. Logging to stderr.\n",
 				logname.c_str(), strerror(errno));
 		}
 	}
@@ -213,16 +213,16 @@ ECLogger_File::~ECLogger_File() {
 	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
 
 	if (prevcount > 1)
-		fnPrintf(log, "%sLast message repeated %d times\n", DoPrefix().c_str(), prevcount);
+		fnPrintf(fh, "%sLast message repeated %d times\n", DoPrefix().c_str(), prevcount);
 	else if (prevcount == 1)
-		fnPrintf(log, "%sLast message repeated 1 time\n", DoPrefix().c_str());
-	if (log && fnClose)
-		fnClose(log);
+		fnPrintf(fh, "%sLast message repeated 1 time\n", DoPrefix().c_str());
+	if (fh != nullptr && fnClose != nullptr)
+		fnClose(fh);
 }
 
 void ECLogger_File::init_for_stderr(void)
 {
-	log = stderr;
+	fh = stderr;
 	fnOpen = nullptr;
 	fnClose = nullptr;
 	fnPrintf = reinterpret_cast<printf_func>(&fprintf);
@@ -251,9 +251,9 @@ void ECLogger_File::init_for_gzfile(void)
 void ECLogger_File::reinit_buffer(size_t size)
 {
 	if (size == 0)
-		setvbuf(static_cast<FILE *>(log), NULL, _IOLBF, size);
+		setvbuf(static_cast<FILE *>(fh), nullptr, _IOLBF, size);
 	else
-		setvbuf(static_cast<FILE *>(log), NULL, _IOFBF, size);
+		setvbuf(static_cast<FILE *>(fh), nullptr, _IOFBF, size);
 	/* Store value for Reset() to re-invoke this function after reload */
 	buffer_size = size;
 }
@@ -261,19 +261,19 @@ void ECLogger_File::reinit_buffer(size_t size)
 void ECLogger_File::Reset() {
 	std::lock_guard<KC::shared_mutex> lh(handle_lock);
 
-	if (log == stderr || fnClose == nullptr || fnOpen == nullptr)
+	if (fh == stderr || fnClose == nullptr || fnOpen == nullptr)
 		return;
-	if (log)
-		fnClose(log);
+	if (fh != nullptr)
+		fnClose(fh);
 	/*
 	 * The fnOpen call cannot be reordered before fnClose in all cases —
 	 * like compressed files, as the data stream may not be
 	 * finalized.
 	 */
-	log = fnOpen(logname.c_str(), szMode);
-	if (log == nullptr) {
+	fh = fnOpen(logname.c_str(), szMode);
+	if (fh == nullptr) {
 		init_for_stderr();
-		fnPrintf(log, "%s%sECLogger reset issued, but cannot (re-)open %s: %s. Logging to stderr.\n",
+		fnPrintf(fh, "%s%sECLogger reset issued, but cannot (re-)open %s: %s. Logging to stderr.\n",
 		         DoPrefix().c_str(), EmitLevel(EC_LOGLEVEL_ERROR).c_str(),
 		         logname.c_str(), strerror(errno));
 		return;
@@ -283,9 +283,8 @@ void ECLogger_File::Reset() {
 
 int ECLogger_File::GetFileDescriptor() {
 	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
-
-	if (log && fnFileno)
-		return fnFileno(log);
+	if (fh != nullptr && fnFileno != nullptr)
+		return fnFileno(fh);
 	return -1;
 }
 
@@ -343,7 +342,7 @@ bool ECLogger_File::DupFilter(const unsigned int loglevel, const std::string &me
 
 	if (prevcount > 1) {
 		KC::shared_lock<KC::shared_mutex> lr_handle(handle_lock);
-		fnPrintf(log, "%s%sPrevious message logged %d times\n", DoPrefix().c_str(), EmitLevel(prevloglevel).c_str(), prevcount);
+		fnPrintf(fh, "%s%sPrevious message logged %d times\n", DoPrefix().c_str(), EmitLevel(prevloglevel).c_str(), prevcount);
 	}
 
 	std::lock_guard<KC::shared_mutex> lw_dup(dupfilter_lock);
@@ -361,35 +360,35 @@ void ECLogger_File::Log(unsigned int loglevel, const std::string &message)
 		return;
 
 	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
-	if (log == nullptr)
+	if (fh == nullptr)
 		return;
-	fnPrintf(log, "%s%s%s\n", DoPrefix().c_str(), EmitLevel(loglevel).c_str(), message.c_str());
+	fnPrintf(fh, "%s%s%s\n", DoPrefix().c_str(), EmitLevel(loglevel).c_str(), message.c_str());
 	/*
 	 * If IOLBF was set (buffer_size==0), the previous
 	 * print call already flushed it. Do not flush again
 	 * in that case.
 	 */
 	if (buffer_size > 0 && (loglevel <= EC_LOGLEVEL_WARNING || loglevel == EC_LOGLEVEL_ALWAYS))
-		fflush((FILE *)log);
+		fflush(static_cast<FILE *>(fh));
 }
 
 void ECLogger_File::Log(unsigned int loglevel, const char *format, ...) {
+	if (!ECLogger::Log(loglevel))
+		return;
 	va_list va;
-
-	if (ECLogger::Log(loglevel)) {
-		va_start(va, format);
-		LogVA(loglevel, format, va);
-		va_end(va);
-	}
+	va_start(va, format);
+	LogVA(loglevel, format, va);
+	va_end(va);
 }
+
+static const char msgtrunc[] = "(message truncated due to size)";
 
 void ECLogger_File::LogVA(unsigned int loglevel, const char *format, va_list& va) {
 	char msgbuffer[_LOG_BUFSIZE];
 	auto len = _vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va);
-	static const char tb[] = "(message truncated due to size)";
-	static_assert(_LOG_BUFSIZE >= sizeof(tb), "buffer too small for static message");
-	if (len >= _LOG_BUFSIZE)
-		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(tb), tb);
+	static_assert(_LOG_BUFSIZE >= sizeof(msgtrunc), "pick a better basic _LOG_BUFSIZE");
+	if (len >= sizeof(msgbuffer))
+		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	Log(loglevel, std::string(msgbuffer));
 }
 
@@ -450,7 +449,8 @@ void ECLogger_Syslog::LogVA(unsigned int loglevel, const char *format, va_list& 
 	vsyslog(levelmap[loglevel & EC_LOGLEVEL_MASK], format, va);
 #else
 	char msgbuffer[_LOG_BUFSIZE];
-	_vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va);
+	if (_vsnprintf_l(msgbuffer, sizeof(msgbuffer), format, datalocale, va) >= sizeof(msgbuffer))
+		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	syslog(levelmap[loglevel & EC_LOGLEVEL_MASK], "%s", msgbuffer);
 #endif
 }
@@ -514,8 +514,8 @@ void ECLogger_Tee::Log(unsigned int loglevel, const char *format, ...) {
 void ECLogger_Tee::LogVA(unsigned int loglevel, const char *format, va_list &va)
 {
 	char msgbuffer[_LOG_BUFSIZE];
-	_vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va);
-
+	if (_vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va) >= sizeof(msgbuffer))
+		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	for (auto log : m_loggers)
 		log->Log(loglevel, std::string(msgbuffer));
 }
@@ -559,41 +559,23 @@ void ECLogger_Pipe::Reset() {
 	kill(m_childpid, SIGHUP);
 }
 
-void ECLogger_Pipe::Log(unsigned int loglevel, const std::string &message) {
-	int len = 0;
-	int off = 0;
-
+void ECLogger_Pipe::Log(unsigned int loglevel, const std::string &message)
+{
 	char msgbuffer[_LOG_BUFSIZE];
 	msgbuffer[0] = loglevel;
-	off += 1;
-
+	msgbuffer[1] = '\0';
+	size_t off = 1, rem = sizeof(msgbuffer) - 1;
 	if (prefix == LP_TID)
-		len = snprintf(msgbuffer + off, sizeof(msgbuffer) - off,
-		      "[T%lu] ", kc_threadid());
+		snprintf(msgbuffer + off, rem, "[T%lu] ", kc_threadid());
 	else if (prefix == LP_PID)
-		len = snprintf(msgbuffer + off, sizeof msgbuffer - off, "[%5d] ", getpid());
-
-	if (len < 0)
-		len = 0;
-	else
-		off += len;
-
-	len = std::min(static_cast<int>(message.length()), static_cast<int>(sizeof(msgbuffer) - (off + 1)));
-	if (len < 0)
-		len = 0;
-	else {
-		memcpy(msgbuffer+off, message.c_str(), len);
-		off += len;
-	}
-
-	msgbuffer[off] = '\0';
-	++off;
-
-	/*
-	 * Write as one block to get it to the real logger.
-	 * (Atomicity actually only guaranteed up to PIPE_BUF number of bytes.)
-	 */
-	write(m_fd, msgbuffer, off);
+		snprintf(msgbuffer + off, rem, "[%5d] ", getpid());
+	off = strlen(msgbuffer);
+	rem = sizeof(msgbuffer) - off;
+	strncpy(msgbuffer + off, message.c_str(), rem);
+	if (rem < message.length() + 1)
+		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
+	msgbuffer[sizeof(msgbuffer)-1] = '\0';
+	xwrite(msgbuffer, strlen(msgbuffer) + 1);
 }
 
 void ECLogger_Pipe::Log(unsigned int loglevel, const char *format, ...) {
@@ -605,40 +587,30 @@ void ECLogger_Pipe::Log(unsigned int loglevel, const char *format, ...) {
 }
 
 void ECLogger_Pipe::LogVA(unsigned int loglevel, const char *format, va_list& va) {
-	int len = 0;
-	int off = 0;
-
 	char msgbuffer[_LOG_BUFSIZE];
 	msgbuffer[0] = loglevel;
-	off += 1;
-
+	msgbuffer[1] = '\0';
+	size_t off = 1, rem = sizeof(msgbuffer) - 1;
 	if (prefix == LP_TID)
-		len = snprintf(msgbuffer + off, sizeof(msgbuffer) - off, "[T%lu] ", kc_threadid());
+		snprintf(msgbuffer + off, rem, "[T%lu] ", kc_threadid());
 	else if (prefix == LP_PID)
-		len = snprintf(msgbuffer + off, sizeof msgbuffer - off, "[%5d] ", getpid());
-
-	if (len < 0)
-		len = 0;
-	else
-		off += len;
-
+		snprintf(msgbuffer + off, rem, "[%5d] ", getpid());
+	off = strlen(msgbuffer);
+	rem = sizeof(msgbuffer) - off;
 	// return value is what WOULD have been written if enough space were available in the buffer
-	len = _vsnprintf_l(msgbuffer + off, sizeof msgbuffer - off - 1, format, datalocale, va);
-	// -1 can be returned on formatting error (e.g. %ls in C locale)
-	if (len < 0)
-		len = 0;
+	if (_vsnprintf_l(msgbuffer + off, rem, format, datalocale, va) >= rem)
+		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
+	msgbuffer[sizeof(msgbuffer)-1] = '\0';
+	xwrite(msgbuffer, strlen(msgbuffer) + 1);
+}
 
-	len = std::min(len, static_cast<int>(sizeof(msgbuffer) - off - 2)); // yes, -2, otherwise we could have 2 \0 at the end of the buffer
-	off += len;
-
-	msgbuffer[off] = '\0';
-	++off;
-
+void ECLogger_Pipe::xwrite(const char *msgbuffer, size_t len)
+{
 	/*
 	 * Write as one block to get it to the real logger.
 	 * (Atomicity actually only guaranteed up to PIPE_BUF number of bytes.)
 	 */
-	if (write(m_fd, msgbuffer, off) >= 0)
+	if (write(m_fd, msgbuffer, len) >= 0)
 		return;
 	if (errno != EPIPE) {
 		fprintf(stderr, "%s: write: %s\n", __func__, strerror(errno));
