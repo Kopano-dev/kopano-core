@@ -96,12 +96,9 @@ private:
 
 	const char *GetMapEntry(const settingmap_t *lpMap, const char *szName);
 	const char *GetAlias(const char *szAlias);
-
-	bool	AddSetting(const configsetting_t *lpsConfig, unsigned int ulFlags);
-	void	AddAlias(const configsetting_t *lpsAlias);
-
-	void	CleanupMap(settingmap_t *lpMap);
-	static bool CopyConfigSetting(const configsetting_t *, settingkey_t *);
+	bool AddSetting(const configsetting_t &, unsigned int flags);
+	void AddAlias(const configsetting_t &alias);
+	static bool CopyConfigSetting(const configsetting_t &, settingkey_t *);
 	static bool CopyConfigSetting(const settingkey_t *, const char *value, configsetting_t *);
 
 	const configsetting_t	*m_lpDefaults;
