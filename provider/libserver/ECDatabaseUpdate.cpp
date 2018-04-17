@@ -148,7 +148,7 @@ ECRESULT db_update_69(ECDatabase *db)
 		ec_log_err("K-1219: It is possible that K-1216 has, in the past, led old clients to misplace data in the DB. This cannot be reliably detected and such data is effectively lost already.");
 	ec_log_err("K-1220: To fix the excess rows, use `kopano-dbadm k-1216`. Consult the manpage and preferably make a backup first.");
 	ec_log_err("K-1221: Alternatively, the server may be started with --ignore-da to forego the schema update.");
-	return KCERR_DATABASE_ERROR;
+	return KCERR_INVALID_VERSION; /* allow use of ignore-da */
 }
 
 ECRESULT db_update_70(ECDatabase *db)
