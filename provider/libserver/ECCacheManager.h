@@ -63,11 +63,8 @@ struct ECsUEIdKey {
 
 inline bool operator <(const ECsUEIdKey &a, const ECsUEIdKey &b)
 {
-	if (a.ulClass < b.ulClass)
-		return true;
-	if ((a.ulClass == b.ulClass) && a.strExternId < b.strExternId)
-		return true;
-	return false;
+	return a.ulClass < b.ulClass ||
+	       (a.ulClass == b.ulClass && a.strExternId < b.strExternId);
 }
 
 /* Intern Id cache */
@@ -101,20 +98,13 @@ class ECsIndexObject _kc_final : public ECsCacheEntry {
 public:
 	inline bool operator==(const ECsIndexObject &other) const noexcept
 	{
-		if (ulObjId == other.ulObjId && ulTag == other.ulTag)
-			return true;
-
-		return false;
+		return ulObjId == other.ulObjId && ulTag == other.ulTag;
 	}
 
 	inline bool operator<(const ECsIndexObject &other) const noexcept
 	{
-		if(ulObjId < other.ulObjId)
-			return true;
-		else if(ulObjId == other.ulObjId && ulTag < other.ulTag)
-			return true;
-
-		return false;
+		return ulObjId < other.ulObjId ||
+		       (ulObjId == other.ulObjId && ulTag < other.ulTag);
 	}
 
 	unsigned int ulObjId, ulTag;
