@@ -51,16 +51,12 @@ struct SEARCHFOLDER _kc_final {
 	struct searchCriteria *lpSearchCriteria = nullptr;
     pthread_t 				sThreadId;
 	std::mutex mMutexThreadFree;
-	bool bThreadFree = true;
-	bool bThreadExit = false;
-    unsigned int			ulStoreId;
-    unsigned int			ulFolderId;
+	bool bThreadFree = true, bThreadExit = false;
+	unsigned int ulStoreId, ulFolderId;
 };
 
 struct EVENT {
-    unsigned int			ulStoreId;
-    unsigned int			ulFolderId;
-    unsigned int			ulObjectId;
+	unsigned int ulStoreId, ulFolderId, ulObjectId;
     ECKeyTable::UpdateType  ulType;
 };
 
@@ -69,9 +65,7 @@ typedef std::map<unsigned int, FOLDERIDSEARCH> STOREFOLDERIDSEARCH;
 typedef std::map<unsigned int, pthread_t> SEARCHTHREADMAP;
 
 struct sSearchFolderStats {
-	ULONG ulStores;
-	ULONG ulFolders;
-	ULONG ulEvents;
+	ULONG ulStores, ulFolders, ulEvents;
 	ULONGLONG ullSize;
 };
 

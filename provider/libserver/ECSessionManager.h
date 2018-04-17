@@ -57,10 +57,7 @@ typedef std::multimap<unsigned int, ECSESSIONGROUPID> OBJECTSUBSCRIPTIONSMULTIMA
 
 struct TABLESUBSCRIPTION {
      TABLE_ENTRY::TABLE_TYPE ulType;
-     unsigned int ulRootObjectId;
-     unsigned int ulObjectType;
-     unsigned int ulObjectFlags;
-     
+	unsigned int ulRootObjectId, ulObjectType, ulObjectFlags;
 	bool operator==(const TABLESUBSCRIPTION &b) const noexcept { return memcmp(this, &b, sizeof(*this)) == 0; }
 	bool operator<(const TABLESUBSCRIPTION &b) const noexcept { return memcmp(this, &b, sizeof(*this)) < 0; }
 };
@@ -69,11 +66,8 @@ typedef std::multimap<TABLESUBSCRIPTION, ECSESSIONID> TABLESUBSCRIPTIONMULTIMAP;
 
 struct sSessionManagerStats {
 	struct {
-		ULONG ulItems;
-		ULONG ulLocked;
-		ULONG ulOpenTables;
-		ULONGLONG ullSize;
-		ULONGLONG ulTableSize;
+		ULONG ulItems, ulLocked, ulOpenTables;
+		ULONGLONG ullSize, ulTableSize;
 	}session;
 
 	struct {
@@ -81,14 +75,10 @@ struct sSessionManagerStats {
 		ULONGLONG ullSize;
 	} group;
 
-	ULONG ulPersistentByConnection;
-	ULONG ulPersistentByConnectionSize;
-	ULONG ulPersistentBySession;
-	ULONG ulPersistentBySessionSize;
-	ULONG ulTableSubscriptions;
-	ULONG ulObjectSubscriptions;
-	ULONG ulTableSubscriptionSize;
-	ULONG ulObjectSubscriptionSize;
+	ULONG ulPersistentByConnection, ulPersistentByConnectionSize;
+	ULONG ulPersistentBySession, ulPersistentBySessionSize;
+	ULONG ulTableSubscriptions, ulTableSubscriptionSize;
+	ULONG ulObjectSubscriptions, ulObjectSubscriptionSize;
 };
 
 class SOURCEKEY;
@@ -184,11 +174,9 @@ protected:
 	std::mutex m_hExitMutex; /* Mutex needed for the release signal */
 	std::condition_variable m_hExitSignal; /* Signal that should be sent to the sessionncleaner when to exit */
 	pthread_t			m_hSessionCleanerThread;///< Thread that is used for the sessioncleaner
-	bool				m_bTerminateThread;
 	ECConfig*			m_lpConfig;
-	bool bExit = false;
-	bool				m_bHostedKopano;
-	bool				m_bDistributedKopano;
+	bool bExit = false, m_bTerminateThread;
+	bool m_bHostedKopano, m_bDistributedKopano;
 	unsigned long long m_ullSourceKeyAutoIncrement = 0;
 	unsigned int m_ulSourceKeyQueue = 0;
 	std::mutex m_hSourceKeyAutoIncrementMutex;
