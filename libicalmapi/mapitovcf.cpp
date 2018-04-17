@@ -80,8 +80,10 @@ VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
 	auto newnode = addProp(node, prop);
 	if (newnode == nullptr)
 		return nullptr;
-	if (PROP_TYPE(s.ulPropTag) == PT_UNICODE)
-		setVObjectUStringZValue_(newnode, wcsdup(s.Value.lpszW));
+	if (PROP_TYPE(s.ulPropTag) == PT_UNICODE) {
+		auto str = convert_to<std::string>("utf-8", s.Value.lpszW, rawsize(s.Value.lpszW), CHARSET_WCHAR);
+		setVObjectStringZValue(newnode, str.c_str());
+	}
 	else if (PROP_TYPE(s.ulPropTag) == PT_STRING8)
 		setVObjectStringZValue(newnode, s.Value.lpszA);
 	else if (PROP_TYPE(s.ulPropTag) == PT_BINARY) {
@@ -109,7 +111,8 @@ VObject *mapitovcf_impl::to_prop(VObject *node, const char *prop,
 	auto newnode = addProp(node, prop);
 	if (newnode == nullptr)
 		return nullptr;
-	setVObjectUStringZValue_(newnode, wcsdup(value));
+	auto str = convert_to<std::string>("utf-8", value, rawsize(value), CHARSET_WCHAR);
+	setVObjectStringZValue(newnode, str.c_str());
 	return newnode;
 }
 
