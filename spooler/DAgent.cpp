@@ -3326,10 +3326,8 @@ int main(int argc, char *argv[]) {
 	int loglevel = EC_LOGLEVEL_WARNING;	// normally, log warnings and up
 	bool strip_email = false;
 	bool bIgnoreUnknownConfigOptions = false;
-	stack_t st;
 	struct sigaction act;
 	struct rlimit file_limit;
-	memset(&st, 0, sizeof(st));
 	memset(&act, 0, sizeof(act));
 
 	DeliveryArgs sDeliveryArgs;
@@ -3626,14 +3624,10 @@ int main(int argc, char *argv[]) {
 	signal(SIGPIPE, SIG_IGN);
 
 	// SIGSEGV backtrace support
-	st.ss_sp = malloc(65536);
-	st.ss_flags = 0;
-	st.ss_size = 65536;
-	auto free_st_ss_sp = make_scope_success([&]() { free(st.ss_sp); });
+	KAlternateStack sigstack;
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
 	sigemptyset(&act.sa_mask);
-	sigaltstack(&st, NULL);
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGBUS, &act, NULL);
 	sigaction(SIGABRT, &act, NULL);

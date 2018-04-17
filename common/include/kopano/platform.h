@@ -36,6 +36,7 @@ enum {
 #include <string>
 #include <type_traits>
 #include <cassert>
+#include <csignal>
 #include <cstddef>
 #include <endian.h>
 #include <pthread.h>
@@ -219,6 +220,14 @@ static inline std::wstring operator""s(const wchar_t *str, std::size_t len) { re
 #endif
 
 }
+
+class _kc_export KAlternateStack {
+	public:
+	KAlternateStack();
+	~KAlternateStack();
+	protected:
+	stack_t st;
+};
 
 } /* namespace */
 

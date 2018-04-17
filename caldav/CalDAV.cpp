@@ -132,7 +132,6 @@ int main(int argc, char **argv) {
 	HRESULT hr = hrSuccess;
 	int ulListenCalDAV = 0, ulListenCalDAVs = 0;
 	bool bIgnoreUnknownConfigOptions = false;
-    stack_t st = {0};
 	struct sigaction act;
 
 	// Configuration
@@ -189,6 +188,7 @@ int main(int argc, char **argv) {
 	};
 
 	setlocale(LC_CTYPE, "");
+	KAlternateStack sigstack;
 
 	while (1) {
 		int opt = my_getopt_long_permissive(argc, argv, "Fhc:V", long_options, nullptr);
@@ -265,18 +265,10 @@ int main(int argc, char **argv) {
 	signal(SIGHUP, sighup);
 	signal(SIGCHLD, sigchld);
 	signal(SIGPIPE, SIG_IGN);
-
-    memset(&st, 0, sizeof(st));
     memset(&act, 0, sizeof(act));
-
-    st.ss_sp = malloc(65536);
-    st.ss_flags = 0;
-    st.ss_size = 65536;
-
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
 	sigemptyset(&act.sa_mask);
-	sigaltstack(&st, NULL);
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGBUS, &act, NULL);
 	sigaction(SIGABRT, &act, NULL);
@@ -331,7 +323,6 @@ int main(int argc, char **argv) {
 exit2:
 	MAPIUninitialize();
 exit:
-	free(st.ss_sp);
 	ECChannel::HrFreeCtx();
 	delete g_lpConfig;
 	DeleteLogger(g_lpLogger);

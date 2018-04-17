@@ -854,7 +854,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	bool			distributed = false;
 
 	// SIGSEGV backtrace support
-	stack_t st = {0};
 	struct sigaction act;
 	int tmplock = -1;
 	struct stat dir = {0};
@@ -1234,20 +1233,11 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	mainthread = pthread_self();
 
 	// SIGSEGV backtrace support
-	memset(&st, 0, sizeof(st));
+	KAlternateStack sigstack;
 	memset(&act, 0, sizeof(act));
-
-	st.ss_sp = malloc(65536);
-	st.ss_flags = 0;
-	st.ss_size = 65536;
-
-	auto laters_st = make_scope_success([&]() { free(st.ss_sp); });
-
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
 	sigemptyset(&act.sa_mask);
-
-	sigaltstack(&st, NULL);
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGBUS , &act, NULL);
 	sigaction(SIGABRT, &act, NULL);

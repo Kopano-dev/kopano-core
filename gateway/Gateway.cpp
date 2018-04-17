@@ -531,10 +531,8 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	const char *const interface = g_lpConfig->GetSetting("server_bind");
 
 	// SIGSEGV backtrace support
-	stack_t st;
+	KAlternateStack sigstack;
 	struct sigaction act;
-
-	memset(&st, 0, sizeof(st));
 	memset(&act, 0, sizeof(act));
 
 	if (bThreads) {
@@ -601,16 +599,9 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	signal(SIGHUP, sighup);
 	signal(SIGCHLD, sigchld);
 	signal(SIGPIPE, SIG_IGN);
-  
-    st.ss_sp = malloc(65536);
-    st.ss_flags = 0;
-    st.ss_size = 65536;
-  
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
 	sigemptyset(&act.sa_mask);
-  
-    sigaltstack(&st, NULL);
     sigaction(SIGSEGV, &act, NULL);
     sigaction(SIGBUS, &act, NULL);
     sigaction(SIGABRT, &act, NULL);
@@ -826,7 +817,6 @@ exit:
 	SSL_library_cleanup(); // Remove SSL data for the main application and other related libraries
 	if (bThreads)
 		pthread_attr_destroy(&ThreadAttr);
-	free(st.ss_sp);
 	// cleanup ICU data so valgrind is happy
 	u_cleanup();
 	return hr;
