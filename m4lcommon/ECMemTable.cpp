@@ -64,13 +64,12 @@ private:
  * interface.
  */
 
-ECMemTable::ECMemTable(const SPropTagArray *lpsPropTags, ULONG ulRowPropTag) :
-    ECUnknown("ECMemTable")
+ECMemTable::ECMemTable(const SPropTagArray *lpsPropTags, ULONG rpt) :
+	ECUnknown("ECMemTable"), ulRowPropTag(rpt)
 {
 	this->lpsColumns = (LPSPropTagArray) new BYTE[CbSPropTagArray(lpsPropTags)];
 	this->lpsColumns->cValues = lpsPropTags->cValues;
 	memcpy(&this->lpsColumns->aulPropTag, &lpsPropTags->aulPropTag, lpsPropTags->cValues * sizeof(ULONG));
-	this->ulRowPropTag = ulRowPropTag;
 }
 
 ECMemTable::~ECMemTable()
@@ -377,23 +376,17 @@ HRESULT ECMemTable::HrClear()
  * the actual sorting, etc.
  */
 
-ECMemTableView::ECMemTableView(ECMemTable *lpMemTable, const ECLocale &locale,
+ECMemTableView::ECMemTableView(ECMemTable *mt, const ECLocale &locale,
     ULONG ulFlags) :
-	ECUnknown("ECMemTableView")
+	ECUnknown("ECMemTableView"), lpMemTable(mt), m_ulConnection(1),
+	    m_locale(locale), m_ulFlags(ulFlags & MAPI_UNICODE)
 {
-	this->lpMemTable = lpMemTable;
-
 	this->lpsPropTags = (LPSPropTagArray) new BYTE[CbNewSPropTagArray(lpMemTable->lpsColumns->cValues)];
 
 	lpsPropTags->cValues = lpMemTable->lpsColumns->cValues;
 	std::transform(lpMemTable->lpsColumns->aulPropTag, lpMemTable->lpsColumns->aulPropTag + lpMemTable->lpsColumns->cValues, (ULONG*)lpsPropTags->aulPropTag, FixStringType(ulFlags & MAPI_UNICODE));
 
 	SortTable(sSortDefault, 0);
-
-	m_ulConnection = 1;
-	m_ulFlags = ulFlags & MAPI_UNICODE;
-
-	m_locale = locale;
 }
 
 ECMemTableView::~ECMemTableView()

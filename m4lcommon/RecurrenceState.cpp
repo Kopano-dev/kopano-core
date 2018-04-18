@@ -44,11 +44,9 @@ namespace KC {
 
 class BinReader _kc_final {
 public:
-    BinReader(const char *lpData, unsigned int ulLen) {
-        this->m_lpData = lpData;
-        this->m_ulLen = ulLen;
-        this->m_ulCursor = 0;
-    };
+	BinReader(const char *lpData, unsigned int ulLen) :
+		m_lpData(lpData), m_ulLen(ulLen)
+	{}
     
     int ReadByte(unsigned int *lpData) {
         if(m_ulCursor + 1 > m_ulLen)
@@ -112,7 +110,7 @@ public:
     
 private:
 	const char *m_lpData;
-	unsigned int m_ulLen, m_ulCursor;
+	unsigned int m_ulLen, m_ulCursor = 0;
 };
 
 class BinWriter _kc_final {
