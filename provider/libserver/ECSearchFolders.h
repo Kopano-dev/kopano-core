@@ -62,18 +62,6 @@ struct EVENT {
     unsigned int			ulFolderId;
     unsigned int			ulObjectId;
     ECKeyTable::UpdateType  ulType;
-    
-	bool operator<(const struct EVENT &b) const noexcept
-	{
-		return ulFolderId < b.ulFolderId ? true :
-		       (ulType < b.ulType ? true :
-		       (ulObjectId < b.ulObjectId ? true : false));
-	}
-	bool operator==(const struct EVENT &b) const noexcept
-	{
-		return ulFolderId == b.ulFolderId && ulType == b.ulType &&
-		       ulObjectId ==  b.ulObjectId;
-	}
 };
 
 typedef std::map<unsigned int, SEARCHFOLDER *> FOLDERIDSEARCH;
