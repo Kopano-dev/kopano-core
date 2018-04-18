@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
+#include <climits>
 #include <cstdint>
 #include <cstdlib>
 #include <kopano/ECChannel.h>
@@ -789,6 +790,45 @@ int zcp_bindtodevice(int fd, const char *i)
 #endif
 }
 
+/**
+ * Create a PF_LOCAL socket for listening and return the fd.
+ */
+int ec_listen_localsock(const char *path, int *pfd)
+{
+	struct sockaddr_un sk;
+	if (strlen(path) >= sizeof(sk.sun_path)) {
+		ec_log_err("%s: \"%s\" is too long", __func__, path);
+		return EINVAL;
+	}
+	int fd = socket(PF_LOCAL, SOCK_STREAM, 0);
+	if (fd < 0) {
+		ec_log_err("%s: socket: %s", __func__, strerror(errno));
+		return -errno;
+	}
+	sk.sun_family = AF_LOCAL;
+	kc_strlcpy(sk.sun_path, path, sizeof(sk.sun_path));
+	unlink(path);
+	auto ret = bind(fd, reinterpret_cast<const sockaddr *>(&sk), sizeof(sk));
+	if (ret < 0) {
+		int saved_errno = errno;
+		ec_log_err("%s: bind %s: %s", __func__, path, strerror(saved_errno));
+		close(fd);
+		return -(errno = saved_errno);
+	}
+	ret = listen(fd, INT_MAX);
+	if (ret < 0) {
+		int saved_errno = errno;
+		ec_log_err("%s: listen: %s", __func__, strerror(saved_errno));
+		close(fd);
+		return -(errno = saved_errno);
+	}
+	*pfd = fd;
+	return 0;
+}
+
+/**
+ * Create PF_INET/PF_INET6 socket for listening and return the fd.
+ */
 HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 {
 	HRESULT hr = hrSuccess;

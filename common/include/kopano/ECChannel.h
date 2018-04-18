@@ -78,6 +78,7 @@ private:
 };
 
 /* helpers to open socket */
+extern _kc_export int ec_listen_localsock(const char *path, int *fd);
 extern _kc_export HRESULT HrListen(const char *bind, uint16_t port, int *fd);
 /* accept data on connection */
 extern _kc_export HRESULT HrAccept(int fd, ECChannel **ch);

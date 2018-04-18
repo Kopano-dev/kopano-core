@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <sys/socket.h>
+#include <kopano/ECChannel.h>
 #include <kopano/ECLogger.h>
 
 #ifdef HAVE_SYS_STAT_H
@@ -53,29 +54,12 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
     bool bInit, int mode)
 {
 	int s;
-	int er = 0;
-	struct sockaddr_un saddr;
-	memset(&saddr, 0, sizeof(struct sockaddr_un));
-
-	if (strlen(unix_socket) >= sizeof(saddr.sun_path)) {
-		ec_log_err("UNIX domain socket path \"%s\" is too long", unix_socket);
-		return -1;
-	}
-	s = socket(PF_UNIX, SOCK_STREAM, 0);
-	if(s < 0) {
-		ec_log_crit("Unable to create AF_UNIX socket: %s", strerror(errno));
-		return -1;
-	}
-	memset(&saddr,0,sizeof(saddr));
-	saddr.sun_family = AF_UNIX;
-	kc_strlcpy(saddr.sun_path, unix_socket, sizeof(saddr.sun_path));
-	unlink(unix_socket);
-
-	if (bind(s, (struct sockaddr*)&saddr, 2 + strlen(unix_socket)) == -1) {
-		ec_log_crit("Unable to bind to socket %s: %s. This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", unix_socket, strerror(errno));
+	auto er = ec_listen_localsock(unix_socket, &s);
+	if (er < 0) {
+		ec_log_crit("Unable to bind to socket %s: %s. This program will terminate now.", unix_socket, strerror(-er));
                 kill(0, SIGTERM);
                 exit(1);
-        }
+	}
 
 	er = chmod(unix_socket,mode);
 	if(er) {
