@@ -43,13 +43,10 @@ public:
 	ECRESULT DoHUP();
 	ECRESULT GetStats(unsigned int *lpulQueueLength, double *lpdblAge, unsigned int *lpulThreadCount, unsigned int *lpulIdleThreads);
 
-	static SOAP_SOCKET CreatePipeSocketCallback(void *lpParam);
-
 private:
     // Main thread handler
     ECDispatcher *m_lpDispatcher;
 	KC::ECConfig *m_lpConfig;
-	std::string	m_strPipeName;
 };
 
 #endif // #ifndef ECSOAPSERVERCONNECTION_H

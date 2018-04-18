@@ -191,10 +191,10 @@ ECSoapServerConnection::ECSoapServerConnection(ECConfig *lpConfig) :
 	m_lpConfig(lpConfig)
 {
 #ifdef USE_EPOLL
-	m_lpDispatcher = new ECDispatcherEPoll(lpConfig, ECSoapServerConnection::CreatePipeSocketCallback, this);
+	m_lpDispatcher = new ECDispatcherEPoll(lpConfig);
 	ec_log_info("Using epoll events");
 #else
-	m_lpDispatcher = new ECDispatcherSelect(lpConfig, ECSoapServerConnection::CreatePipeSocketCallback, this);
+	m_lpDispatcher = new ECDispatcherSelect(lpConfig);
 	ec_log_info("Using select events");
 #endif
 }
@@ -316,10 +316,9 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE, lpsSoap);
 	
 	// Create a Unix or Windows pipe
-	m_strPipeName = lpPipeName;
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 	// set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket
-	lpsSoap->socket = sPipe = create_pipe_socket(m_strPipeName.c_str(), m_lpConfig, true, bPriority ? 0660 : 0666);
+	lpsSoap->socket = sPipe = create_pipe_socket(lpPipeName, m_lpConfig, true, bPriority ? 0660 : 0666);
 	// This just marks the socket as being a pipe, which triggers some slightly different behaviour
 	strcpy(lpsSoap->path,"pipe");
 
@@ -331,7 +330,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	lpsSoap->master = sPipe;
 	socklen = sizeof(lpsSoap->peer.storage);
 	if (getsockname(lpsSoap->socket, &lpsSoap->peer.addr, &socklen) != 0) {
-		ec_log_warn("getsockname %s: %s", m_strPipeName.c_str(), strerror(errno));
+		ec_log_warn("getsockname %s: %s", lpPipeName, strerror(errno));
 		socklen = 0;
 	} else if (socklen > sizeof(lpsSoap->peer.storage)) {
 		socklen = 0;
@@ -348,12 +347,6 @@ exit:
 	if (er != erSuccess)
 		soap_free(lpsSoap);
 	return er;
-}
-
-SOAP_SOCKET ECSoapServerConnection::CreatePipeSocketCallback(void *lpParam)
-{
-	auto lpThis = static_cast<ECSoapServerConnection *>(lpParam);
-	return create_pipe_socket(lpThis->m_strPipeName.c_str(), lpThis->m_lpConfig, false, 0666);
 }
 
 ECRESULT ECSoapServerConnection::ShutDown()
