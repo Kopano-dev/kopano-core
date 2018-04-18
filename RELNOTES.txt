@@ -1,5 +1,5 @@
-8.5.7
-=====
+8.5.7 (2018-04-18)
+==================
 Fixes:
 * Fix crash due to ODR violation [KF-1245,KC-379]
 Enhancements:
