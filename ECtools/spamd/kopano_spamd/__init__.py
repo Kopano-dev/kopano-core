@@ -25,7 +25,8 @@ CONFIG = {
     'sa_group': Config.string(default="amavis"),
     'run_as_user': Config.string(default="kopano"),
     'run_as_group': Config.string(default="kopano"),
-    'learn_ham': Config.boolean(default=True)
+    'learn_ham': Config.boolean(default=True),
+    'header_tag': Config.string(default="x-spam-flag")
 }
 
 
@@ -51,6 +52,7 @@ class Checker(object):
         self.hamdir = service.config['ham_dir']
         self.sagroup = service.config['sa_group']
         self.learnham = service.config['learn_ham']
+        self.headertag = service.config['header_tag'].lower()
 
     def mark_spam(self, searchkey):
         with closing(bsddb.btopen(self.spamdb, 'c')) as db:
@@ -67,7 +69,7 @@ class Checker(object):
         searchkey = item.searchkey
 
         if item.folder == item.store.junk and \
-           item.header('x-spam-flag') != 'YES':
+           item.header(headertag).upper() != 'YES':
 
             fn = os.path.join(self.hamdir, searchkey + '.eml')
             if os.path.isfile(fn):
