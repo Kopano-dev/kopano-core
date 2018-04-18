@@ -316,11 +316,6 @@ HRESULT M4LMAPIProp::QueryInterface(REFIID refiid, void **lpvoid) {
 // ---
 // IProfSect
 // ---
-
-M4LProfSect::M4LProfSect(BOOL bGlobalProf) {
-	this->bGlobalProf = bGlobalProf;
-}
-
 HRESULT M4LProfSect::ValidateState(ULONG ulUIParam, ULONG ulFlags) {
 	return MAPI_E_NO_SUPPORT;
 }
@@ -680,12 +675,6 @@ HRESULT M4LProviderAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 // 
 // IMAPIAdviseSink
 // 
-
-M4LMAPIAdviseSink::M4LMAPIAdviseSink(LPNOTIFCALLBACK lpFn, void *lpContext) {
-	this->lpContext = lpContext;
-	this->lpFn = lpFn;
-}
-
 ULONG M4LMAPIAdviseSink::OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) {
 	return this->lpFn(this->lpContext, cNotif, lpNotifications);
 }

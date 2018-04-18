@@ -53,7 +53,7 @@ class M4LProfSect _kc_final : public IProfSect, public M4LMAPIProp {
 private:
 	BOOL bGlobalProf;
 public:
-    M4LProfSect(BOOL bGlobalProf = FALSE);
+	M4LProfSect(BOOL gp = false) : bGlobalProf(gp) {}
 	virtual HRESULT ValidateState(ULONG ulUIParam, ULONG ulFlags);
 	virtual HRESULT SettingsDialog(ULONG ulUIParam, ULONG ulFlags);
 	virtual HRESULT ChangePassword(const TCHAR *oldpw, const TCHAR *newpw, ULONG flags);
@@ -111,7 +111,7 @@ private:
     LPNOTIFCALLBACK lpFn;
 
 public:
-	M4LMAPIAdviseSink(LPNOTIFCALLBACK lpFn, void *lpContext);
+	M4LMAPIAdviseSink(NOTIFCALLBACK *f, void *ctx) : lpContext(ctx), lpFn(f) {}
 	virtual ULONG OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) _kc_override;
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
