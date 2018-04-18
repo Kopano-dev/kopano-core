@@ -154,13 +154,10 @@ static const char *RelationTypeToName(userobject_relation_t type)
 	return "Unknown relation type";
 }
 
-ECUserManagement::ECUserManagement(BTSession *lpSession,
-    ECPluginFactory *lpPluginFactory, ECConfig *lpConfig)
-{
-	this->m_lpSession = lpSession;
-	this->m_lpPluginFactory = lpPluginFactory;
-	this->m_lpConfig = lpConfig;
-}
+ECUserManagement::ECUserManagement(BTSession *s,
+    ECPluginFactory *f, ECConfig *c) :
+	m_lpPluginFactory(f), m_lpSession(s), m_lpConfig(c)    
+{}
 
 // Authenticate a user (NOTE: ECUserManagement will never authenticate SYSTEM unless it is actually
 // authenticated by the remote server, which normally never happens)

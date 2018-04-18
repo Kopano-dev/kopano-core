@@ -50,7 +50,7 @@ struct ACTIVESOCKET _kc_final {
 
 class FindSocket _kc_final {
 public:
-	FindSocket(SOAP_SOCKET s) { this->s = s; };
+	FindSocket(SOAP_SOCKET sk) : s(sk) {}
 	bool operator()(const ACTIVESOCKET &a) const noexcept { return a.soap->socket == s; }
 private:
 	SOAP_SOCKET s;
@@ -58,7 +58,7 @@ private:
 
 class FindListenSocket _kc_final {
 public:
-	FindListenSocket(SOAP_SOCKET s) { this->s = s; };
+	FindListenSocket(SOAP_SOCKET sk) : s(sk) {}
 	bool operator()(struct soap *soap) const noexcept { return soap->socket == s; }
 private:
 	SOAP_SOCKET s;

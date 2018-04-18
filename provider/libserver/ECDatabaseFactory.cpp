@@ -28,10 +28,9 @@ namespace KC {
 // The ECDatabaseFactory creates database objects connected to the server database. Which
 // database is returned is chosen by the database_engine configuration setting.
 
-ECDatabaseFactory::ECDatabaseFactory(ECConfig *lpConfig)
-{
-	this->m_lpConfig = lpConfig;
-}
+ECDatabaseFactory::ECDatabaseFactory(ECConfig *lpConfig) :
+	m_lpConfig(lpConfig)
+{}
 
 ECRESULT ECDatabaseFactory::GetDatabaseFactory(ECDatabase **lppDatabase)
 {

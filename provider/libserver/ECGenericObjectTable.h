@@ -203,7 +203,7 @@ protected:
 
 	// Constants
 	ECSession*					lpSession;
-	ECKeyTable*					lpKeyTable;
+	std::unique_ptr<ECKeyTable> lpKeyTable;
 	unsigned int m_ulTableId = -1; /* id of the table from ECTableManager */
 	const void *m_lpObjectData = nullptr;
 

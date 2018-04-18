@@ -120,12 +120,11 @@ static inline bool match(unsigned int relop, int equality)
  * @param[in] ulObjType
  *					The Object type of the objects in the table
  */
-ECGenericObjectTable::ECGenericObjectTable(ECSession *lpSession,
+ECGenericObjectTable::ECGenericObjectTable(ECSession *ses,
     unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) :
+	lpSession(ses), lpKeyTable(new ECKeyTable),
 	m_ulObjType(ulObjType), m_ulFlags(ulFlags), m_locale(locale)
 {
-	this->lpSession			= lpSession;
-	this->lpKeyTable		= new ECKeyTable;
 	// No columns by default
 	this->lpsPropTagArray = s_alloc<propTagArray>(nullptr);
 	this->lpsPropTagArray->__size = 0;
@@ -134,8 +133,6 @@ ECGenericObjectTable::ECGenericObjectTable(ECSession *lpSession,
 
 ECGenericObjectTable::~ECGenericObjectTable()
 {
-	delete lpKeyTable;
-
 	if(this->lpsPropTagArray)
 		FreePropTagArray(this->lpsPropTagArray);
 

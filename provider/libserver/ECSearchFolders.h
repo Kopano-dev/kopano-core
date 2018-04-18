@@ -38,11 +38,9 @@ namespace KC {
 class ECSessionManager;
 
 struct SEARCHFOLDER _kc_final {
-	SEARCHFOLDER(unsigned int ulStoreId, unsigned int ulFolderId) {
-		this->ulStoreId = ulStoreId;
-		this->ulFolderId = ulFolderId;
-		memset(&sThreadId, 0, sizeof(sThreadId));
-	}
+	SEARCHFOLDER(unsigned int store_id, unsigned int folder_id) :
+		sThreadId{}, ulStoreId(store_id), ulFolderId(folder_id)
+	{}
 	~SEARCHFOLDER() {
 		if (this->lpSearchCriteria)
 			FreeSearchCriteria(this->lpSearchCriteria);

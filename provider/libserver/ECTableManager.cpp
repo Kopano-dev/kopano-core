@@ -177,11 +177,6 @@ static const struct propTagArray sPropTagArrayCompanyStats =
 static const struct propTagArray sPropTagArrayServerStats =
 	{const_cast<unsigned int *>(sServerStatsProps), ARRAY_SIZE(sServerStatsProps)};
 
-ECTableManager::ECTableManager(ECSession *lpSession)
-{
-	this->lpSession = lpSession;
-}
-
 ECTableManager::~ECTableManager()
 {
 	scoped_rlock lock(hListMutex);
