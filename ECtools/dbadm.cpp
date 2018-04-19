@@ -183,9 +183,27 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 		unsigned int oldtag = 0x8501 + oldid, newtag = 0x8501 + newid;
 		if (newtag >= 0xFFFF || oldtag >= 0xFFFF)
 			continue;
+
+		auto soldtag = stringify(oldtag), snewtag = stringify(newtag);
 		for (const auto &tbl : our_proptables) {
 			printf("dup: merging #%u into #%u in \"%s\"...\n", oldid, newid, tbl.c_str());
+
+			/* Remove ambiguous props */
+			ret = db->DoUpdate("CREATE TEMPORARY TABLE vt (SELECT hierarchyid FROM properties WHERE tag IN (" + soldtag + "," + snewtag + ") GROUP BY hierarchyid HAVING COUNT(*) >= 2)");
+			if (ret != erSuccess)
+				return ret;
+			ret = db->DoDelete("DELETE p FROM properties AS p INNER JOIN vt ON p.hierarchyid=vt.hierarchyid AND p.tag IN (" + soldtag + "," + snewtag + ")");
+			if (ret != erSuccess)
+				return ret;
+			ret = db->DoUpdate("DROP TEMPORARY TABLE vt");
+			if (ret != erSuccess)
+				return ret;
+
+			/* Merge unambiguous ones */
 			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
+			if (ret != erSuccess)
+				return ret;
+			ret = db->DoDelete("DELETE FROM " + tbl + " WHERE tag=" + stringify(oldtag));
 			if (ret != erSuccess)
 				return ret;
 		}
