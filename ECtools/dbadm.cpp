@@ -190,6 +190,7 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 			continue;
 
 		auto soldtag = stringify(oldtag), snewtag = stringify(newtag);
+		unsigned int aff;
 		for (const auto &tbl : our_proptables_hier) {
 			printf("dup: merging #%u into #%u in \"%s\"...\n", oldid, newid, tbl.c_str());
 
@@ -197,17 +198,21 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 			ret = db->DoUpdate("CREATE TEMPORARY TABLE vt (SELECT hierarchyid FROM " + tbl + " WHERE tag IN (" + soldtag + "," + snewtag + ") GROUP BY hierarchyid HAVING COUNT(*) >= 2)");
 			if (ret != erSuccess)
 				return ret;
-			ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN vt ON p.hierarchyid=vt.hierarchyid AND p.tag IN (" + soldtag + "," + snewtag + ")");
+			ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN vt ON p.hierarchyid=vt.hierarchyid AND p.tag IN (" + soldtag + "," + snewtag + ")", &aff);
 			if (ret != erSuccess)
 				return ret;
+			if (aff > 0)
+				printf("dup: deleted %u ambiguous rows in \"%s\"\n", aff, tbl.c_str());
 			ret = db->DoUpdate("DROP TEMPORARY TABLE vt");
 			if (ret != erSuccess)
 				return ret;
 
 			/* Merge unambiguous ones */
-			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
+			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag), &aff);
 			if (ret != erSuccess)
 				return ret;
+			if (aff > 0)
+				printf("dup: updated %u rows in \"%s\"\n", aff, tbl.c_str());
 			ret = db->DoDelete("DELETE FROM " + tbl + " WHERE tag=" + stringify(oldtag));
 			if (ret != erSuccess)
 				return ret;
@@ -220,16 +225,20 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 			ret = db->DoUpdate("CREATE TEMPORARY TABLE vt (SELECT instanceid FROM " + tbl + " WHERE tag IN (" + soldtag + "," + snewtag + ") GROUP BY instanceid HAVING COUNT(*) >= 2)");
 			if (ret != erSuccess)
 				return ret;
-			ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN vt ON p.instanceid=vt.instanceid AND p.tag IN (" + soldtag + "," + snewtag + ")");
+			ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN vt ON p.instanceid=vt.instanceid AND p.tag IN (" + soldtag + "," + snewtag + ")", &aff);
 			if (ret != erSuccess)
 				return ret;
+			if (aff > 0)
+				printf("dup: deleted %u ambiguous rows in \"%s\"\n", aff, tbl.c_str());
 			ret = db->DoUpdate("DROP TEMPORARY TABLE vt");
 			if (ret != erSuccess)
 				return ret;
 
-			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
+			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag), &aff);
 			if (ret != erSuccess)
 				return ret;
+			if (aff > 0)
+				printf("dup: updated %u rows in \"%s\"\n", aff, tbl.c_str());
 			ret = db->DoDelete("DELETE FROM " + tbl + " WHERE tag=" + stringify(oldtag));
 			if (ret != erSuccess)
 				return ret;
