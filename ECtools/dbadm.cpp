@@ -189,10 +189,10 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 			printf("dup: merging #%u into #%u in \"%s\"...\n", oldid, newid, tbl.c_str());
 
 			/* Remove ambiguous props */
-			ret = db->DoUpdate("CREATE TEMPORARY TABLE vt (SELECT hierarchyid FROM properties WHERE tag IN (" + soldtag + "," + snewtag + ") GROUP BY hierarchyid HAVING COUNT(*) >= 2)");
+			ret = db->DoUpdate("CREATE TEMPORARY TABLE vt (SELECT hierarchyid FROM " + tbl + " WHERE tag IN (" + soldtag + "," + snewtag + ") GROUP BY hierarchyid HAVING COUNT(*) >= 2)");
 			if (ret != erSuccess)
 				return ret;
-			ret = db->DoDelete("DELETE p FROM properties AS p INNER JOIN vt ON p.hierarchyid=vt.hierarchyid AND p.tag IN (" + soldtag + "," + snewtag + ")");
+			ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN vt ON p.hierarchyid=vt.hierarchyid AND p.tag IN (" + soldtag + "," + snewtag + ")");
 			if (ret != erSuccess)
 				return ret;
 			ret = db->DoUpdate("DROP TEMPORARY TABLE vt");
