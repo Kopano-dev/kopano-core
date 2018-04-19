@@ -294,6 +294,10 @@ int main(int argc, char **argv)
 		{"mysql_password", "", CONFIGSETTING_EXACT},
 		{"mysql_database", "kopano"},
 		{"mysql_socket", ""},
+		{"log_file", ""},
+		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
+		{"log_method", ""},
+		{"log_timestamp", "1", CONFIGSETTING_RELOADABLE},
 		{nullptr, nullptr},
 	};
 	const char *cfg_file = ECConfig::GetDefaultPath("server.cfg");
@@ -315,6 +319,9 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
+	cfg->AddSetting("log_method", "file");
+	cfg->AddSetting("log_file", "-");
+	ec_log_set(CreateLogger(cfg, argv[0], "kopano-dbadm", false));
 	auto db = std::make_shared<KDatabase>();
 	auto ret = db->Connect(cfg, true, 0, 0);
 	if (ret != erSuccess) {
