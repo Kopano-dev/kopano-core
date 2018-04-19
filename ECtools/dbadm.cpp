@@ -36,6 +36,11 @@ static const std::string our_proptables[] = {
 	"properties", "tproperties", "mvproperties",
 	"indexedproperties", "singleinstances", "lob",
 };
+static const std::string our_proptables_hier[] = {
+	/* tables with a "hierarchyid" column */
+	"properties", "tproperties", "mvproperties",
+	"indexedproperties", "singleinstances",
+};
 
 proptagindex::proptagindex(std::shared_ptr<KDatabase> db) : m_db(db)
 {
@@ -185,7 +190,7 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 			continue;
 
 		auto soldtag = stringify(oldtag), snewtag = stringify(newtag);
-		for (const auto &tbl : our_proptables) {
+		for (const auto &tbl : our_proptables_hier) {
 			printf("dup: merging #%u into #%u in \"%s\"...\n", oldid, newid, tbl.c_str());
 
 			/* Remove ambiguous props */
@@ -207,6 +212,29 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 			if (ret != erSuccess)
 				return ret;
 		}
+
+		/* Lonely table with "instanceid" instead of "hierarchyid"... */
+		for (const std::string &tbl : {"lob"}) {
+			printf("dup: merging #%u into #%u in \"%s\"...\n", oldid, newid, tbl.c_str());
+
+			ret = db->DoUpdate("CREATE TEMPORARY TABLE vt (SELECT instanceid FROM " + tbl + " WHERE tag IN (" + soldtag + "," + snewtag + ") GROUP BY instanceid HAVING COUNT(*) >= 2)");
+			if (ret != erSuccess)
+				return ret;
+			ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN vt ON p.instanceid=vt.instanceid AND p.tag IN (" + soldtag + "," + snewtag + ")");
+			if (ret != erSuccess)
+				return ret;
+			ret = db->DoUpdate("DROP TEMPORARY TABLE vt");
+			if (ret != erSuccess)
+				return ret;
+
+			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
+			if (ret != erSuccess)
+				return ret;
+			ret = db->DoDelete("DELETE FROM " + tbl + " WHERE tag=" + stringify(oldtag));
+			if (ret != erSuccess)
+				return ret;
+		}
+
 		ret = db->DoUpdate("DELETE FROM names WHERE id=" + stringify(oldid));
 		if (ret != erSuccess)
 			return ret;
