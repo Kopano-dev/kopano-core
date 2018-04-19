@@ -184,8 +184,8 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 		if (newtag >= 0xFFFF || oldtag >= 0xFFFF)
 			continue;
 		for (const auto &tbl : our_proptables) {
-			printf("dup: merging %u into %u (%s)...\n", oldid, newid, tbl.c_str());
-			ret = db->DoUpdate("UPDATE properties SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
+			printf("dup: merging #%u into #%u in \"%s\"...\n", oldid, newid, tbl.c_str());
+			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
 			if (ret != erSuccess)
 				return ret;
 		}
