@@ -387,21 +387,21 @@ HRESULT vcftomapi_impl::parse_vcf(const std::string &ical)
 	 * PHOTO;TYPE=JPEG;ENCODING=BASE64:
 	 *   .... base64 data ....
 	 *
-	 * Therefore we work around it and replace ":\r\n" or ":\n"
+	 * Therefore we work around it and replace ":\r\n " or ":\n "
 	 * with ":".
 	 */
 
 	auto tmp_ical = ical;
 	while (true) {
-		auto pos = tmp_ical.find(":\r\n");
+		auto pos = tmp_ical.find(":\r\n ");
 		if (pos != std::string::npos) {
-			tmp_ical.replace(pos, 3, ":");
+			tmp_ical.replace(pos, 4, ":");
 			continue;
 		}
-		pos = tmp_ical.find(":\n");
+		pos = tmp_ical.find(":\n ");
 		if (pos == std::string::npos)
 			break;
-		tmp_ical.replace(pos, 2, ":");
+		tmp_ical.replace(pos, 3, ":");
 	}
 
 	auto v = Parse_MIME(tmp_ical.c_str(), tmp_ical.length());

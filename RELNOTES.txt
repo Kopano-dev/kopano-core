@@ -29,13 +29,24 @@ Fixes:
   user/company [KC-795]
 
 
-8.5.7
-=====
+8.5.8 (2018-04-18)
+==================
+Enhancements:
+* dbadm: np-repair-dups will now iterate over more tables that have proptags
+* dbadm: handle overlapping proptags in np-repair-dups [KC-1126]
+* dbadm: respect log_level from server.cfg (e.g. log_level=0x10006 to print
+  SQL queries)
+
+
+8.5.7 (2018-04-18)
+==================
 Fixes:
 * Fix crash due to ODR violation [KF-1245,KC-379]
 Enhancements:
 * kopano-dbadm: new diagnostics program for offline database
   modification
+* kopano-server: allow use of --ignore-da to skip schema update that won't
+  complete (log id K-1221) [KC-1123]
 * build: support ICU 61
 
 
