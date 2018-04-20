@@ -358,10 +358,11 @@ static HRESULT HrSetupListeners(int *lpulNormal, int *lpulSecure)
 
 	// start listening on normal port
 	if (bListen) {
-		hr = HrListen(g_lpConfig->GetSetting("server_bind"), ulPortICal, &ulNormalSocket);
-		if (hr != hrSuccess) {
-			ec_log_crit("Could not listen on port %d. (0x%08X %s)", ulPortICal, hr, GetMAPIErrorMessage(hr));
+		auto ret = ec_listen_inet(g_lpConfig->GetSetting("server_bind"), ulPortICal, &ulNormalSocket);
+		if (ret < 0) {
+			ec_log_crit("Could not listen on port %d: %s", ulPortICal, strerror(-ret));
 			bListen = false;
+			hr = MAPI_E_NETWORK_ERROR;
 		} else {
 			ec_log_info("Listening on port %d.", ulPortICal);
 		}
@@ -371,10 +372,11 @@ static HRESULT HrSetupListeners(int *lpulNormal, int *lpulSecure)
 	if (bListenSecure) {
 		hr = ECChannel::HrSetCtx(g_lpConfig);
 		if (hr == hrSuccess) {
-			hr = HrListen(g_lpConfig->GetSetting("server_bind"), ulPortICalS, &ulSecureSocket);
-			if (hr != hrSuccess) {
-				ec_log_crit("Could not listen on secure port %d. (0x%08X %s)", ulPortICalS, hr, GetMAPIErrorMessage(hr));
+			auto ret = ec_listen_inet(g_lpConfig->GetSetting("server_bind"), ulPortICalS, &ulSecureSocket);
+			if (ret < 0) {
+				ec_log_crit("Could not listen on secure port %u: %s", ulPortICalS, strerror(-ret));
 				bListenSecure = false;
+				hr = MAPI_E_NETWORK_ERROR;
 			}
 			ec_log_info("Listening on secure port %d.", ulPortICalS);
 		} else {

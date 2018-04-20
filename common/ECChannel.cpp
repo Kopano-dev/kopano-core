@@ -829,7 +829,7 @@ int ec_listen_localsock(const char *path, int *pfd)
 /**
  * Create PF_INET/PF_INET6 socket for listening and return the fd.
  */
-HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
+int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 {
 	HRESULT hr = hrSuccess;
 	int fd = -1, opt = 1, ret;
@@ -838,7 +838,7 @@ HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 	char port_string[sizeof("65535")];
 
 	if (lpulListenSocket == nullptr || ulPort == 0 || szBind == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
+		return EINVAL;
 
 	snprintf(port_string, sizeof(port_string), "%u", ulPort);
 	memset(&sock_hints, 0, sizeof(sock_hints));
@@ -850,9 +850,12 @@ HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 	sock_hints.ai_socktype = SOCK_STREAM;
 	ret = getaddrinfo(*szBind == '\0' ? NULL : szBind,
 	      port_string, &sock_hints, &sock_res);
-	if (ret != 0) {
+	if (ret == EAI_SYSTEM) {
 		ec_log_err("getaddrinfo(%s,%u): %s", szBind, ulPort, gai_strerror(ret));
-		return MAPI_E_INVALID_PARAMETER;
+		return errno;
+	} else if (ret != 0) {
+		ec_log_err("getaddrinfo(%s,%u): %s", szBind, ulPort, gai_strerror(ret));
+		return EINVAL;
 	}
 	sock_res = reorder_addrinfo_ipv6(sock_res);
 
@@ -893,9 +896,10 @@ HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 		}
 
 		if (listen(fd, INT_MAX) < 0) {
+			auto saved_errno = errno;
 			ec_log_err("Unable to start listening on port %d: %s",
 				ulPort, strerror(errno));
-			hr = MAPI_E_NETWORK_ERROR;
+			errno = saved_errno;
 			goto exit;
 		}
 
@@ -915,7 +919,7 @@ HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 		goto exit;
 	} else if (fd < 0) {
 		ec_log_err("no sockets proposed");
-		hr = MAPI_E_NETWORK_ERROR;
+		errno = ENOENT;
 		goto exit;
 	}
 
@@ -926,7 +930,7 @@ exit:
 		freeaddrinfo(sock_res);
 	if (hr != hrSuccess && fd >= 0)
 		close(fd);
-	return hr;
+	return -errno;
 }
 
 HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
