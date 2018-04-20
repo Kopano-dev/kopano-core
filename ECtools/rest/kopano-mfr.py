@@ -43,7 +43,7 @@ METRICS_LISTEN = 'localhost:6060'
 
 # metrics
 if PROMETHEUS:
-    REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request', ['method', 'endpoint'])
+    REQUEST_TIME = Summary('kopano_mfr_request_processing_seconds', 'Time spent processing request', ['method', 'endpoint'])
 
 def opt_args():
     parser = optparse.OptionParser()

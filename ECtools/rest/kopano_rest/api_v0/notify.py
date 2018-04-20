@@ -32,9 +32,9 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 SUBSCRIPTIONS = {}
 
 if PROMETHEUS:
-    SUBSCR_COUNT = Counter('total_subscriptions', 'Total number of subscriptions')
-    SUBSCR_ACTIVE = Gauge('active_subscriptions', 'Number of active subscriptions')
-    POST_COUNT = Counter('total_webhook_posts', 'Total number of webhook posts')
+    SUBSCR_COUNT = Counter('kopano_mfr_total_subscriptions', 'Total number of subscriptions')
+    SUBSCR_ACTIVE = Gauge('kopano_mfr_active_subscriptions', 'Number of active subscriptions')
+    POST_COUNT = Counter('kopano_mfr_total_webhook_posts', 'Total number of webhook posts')
 
 def _server(auth_user, auth_pass):
     # return global connection, using credentials from first user to
