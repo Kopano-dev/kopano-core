@@ -350,10 +350,15 @@ MyISAM, Aria, etc.
 Default: \fIInnoDB\fP
 .SS mysql_group_concat_max_len
 .PP
-The group_concat_max_len used to set for MySQL. If you have large distribution lists (more than 150 members), it is useful to set this value higher. On the other hand, some MySQL versions are known to break with a value higher than 21844.
+GROUP_CONCAT() is used to combine multiple rows into one string, used in Kopano
+in conjunction with distribution lists. Some versions of MySQL have a very low
+limit, and this option can be used to raise it. For example, MariaDB 10.0
+has a default limit of 1024, MariaDB 10.2 has a default of 1048576.
 .PP
-Default:
-\fI21844\fR
+Versions prior to KC 8.7 would always set this value; since 8.7, this option
+can only be used to raise it.
+.PP
+Default: \fI21844\fP
 .SS attachment_storage
 .PP
 The location where attachments are stored. This can be in the MySQL database, or as separate files. The drawback of \*(Aqdatabase\*(Aq is that the large data of attachment will push useful data from the MySQL cache. The drawback of separate files is that a mysqldump is not enough for a full disaster recovery.
