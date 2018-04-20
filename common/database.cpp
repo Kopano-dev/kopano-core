@@ -76,6 +76,18 @@ KDatabase::KDatabase(void)
 	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
 }
 
+HRESULT KDatabase::setup_gcm(size_t limit, bool reconnect)
+{
+	auto query = "SET SESSION group_concat_max_len=" + stringify(limit);
+	if (Query(query) != 0) {
+		ec_log_crit("%s: group_concat_max_len set fail: %s", __func__, GetError());
+		return KCERR_DATABASE_ERROR;
+	}
+	if (reconnect)
+		mysql_options(&m_lpMySQL, MYSQL_INIT_COMMAND, query.c_str());
+	return 0;
+}
+
 ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
     unsigned int mysql_flags, unsigned int gcm)
 {
@@ -148,14 +160,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		goto exit;
 	}
 
-	query = "SET SESSION group_concat_max_len = " + stringify(gcm);
-	if (Query(query) != 0) {
-		ec_log_crit("KDatabase::Connect(): group_concat_max_len set fail: %s", GetError());
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
-	}
-	if (reconnect)
-		mysql_options(&m_lpMySQL, MYSQL_INIT_COMMAND, query.c_str());
+	er = setup_gcm(gcm, reconnect);
  exit:
 	if (er != erSuccess)
 		Close();
