@@ -311,7 +311,7 @@ int main(int argc, char **argv)
 	};
 	const char *cfg_file = ECConfig::GetDefaultPath("server.cfg");
 	int c;
-	while ((c = getopt_long(argc, argv, "c", nullptr, nullptr)) >= 0) {
+	while ((c = getopt_long(argc, argv, "c:", nullptr, nullptr)) >= 0) {
 		switch (c) {
 		case 'c':
 			cfg_file = optarg;
@@ -337,7 +337,7 @@ int main(int argc, char **argv)
 		ec_log_err("db connect failed: %s (%x)", GetMAPIErrorMessage(kcerr_to_mapierr(ret)), ret);
 		return ret;
 	}
-	for (size_t i = 1; i < argc; ++i) {
+	for (size_t i = optind; i < argc; ++i) {
 		ret = KCERR_NOT_FOUND;
 		if (strcmp(argv[i], "k-1216") == 0)
 			ret = k1216(db);
