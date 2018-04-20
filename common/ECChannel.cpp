@@ -852,7 +852,7 @@ HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 			continue;
 		}
 
-		if (listen(fd, SOMAXCONN) < 0) {
+		if (listen(fd, INT_MAX) < 0) {
 			ec_log_err("Unable to start listening on port %d: %s",
 				ulPort, strerror(errno));
 			hr = MAPI_E_NETWORK_ERROR;
