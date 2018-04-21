@@ -1006,6 +1006,23 @@ std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *spec)
 	return parts;
 }
 
+/**
+ * Create a listening socket.
+ * @spec:	a string in the form of { INETSPEC | UNIXSPEC }
+ *
+ * INETSPEC := { hostname | ipv4-addr | "[" ipv6-addr "]" } [ ":" portnumber ]
+ * UNIXSPEC := "unix:" path
+ */
+int ec_listen_generic(const char *spec, int *pfd)
+{
+	if (strncmp(spec, "unix:", 5) == 0)
+		return ec_listen_localsock(spec + 5, pfd);
+	auto parts = ec_parse_bindaddr(spec);
+	if (parts.first == "!" || parts.second == 0)
+		return EINVAL;
+	return ec_listen_inet(parts.first.c_str(), parts.second, pfd);
+}
+
 std::set<std::pair<std::string, uint16_t>>
 kc_parse_bindaddrs(const char *longline, uint16_t defport)
 {
