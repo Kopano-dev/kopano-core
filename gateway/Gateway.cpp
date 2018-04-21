@@ -688,18 +688,10 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		lpHandlerArgs->lpConfig = g_lpConfig;
 
 		if (pop3_event || pop3s_event) {
-			bool usessl;
-
 			lpHandlerArgs->type = ST_POP3;
 
 			// Incoming POP3(s) connection
-			if (pop3s_event) {
-				usessl = true;
-				hr = HrAccept(ulListenPOP3s, &lpHandlerArgs->lpChannel);
-			} else {
-				usessl = false;
-				hr = HrAccept(ulListenPOP3, &lpHandlerArgs->lpChannel);
-			}
+			hr = HrAccept(pop3s_event ? ulListenPOP3s : ulListenPOP3, &lpHandlerArgs->lpChannel);
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to accept POP3 socket connection.");
 				// just keep running
@@ -707,10 +699,9 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				continue;
 			}
 
-			lpHandlerArgs->bUseSSL = usessl;
-
+			lpHandlerArgs->bUseSSL = pop3s_event;
 			pthread_t POP3Thread;
-			const char *method = usessl ? "POP3s" : "POP3";
+			const char *method = pop3s_event ? "POP3s" : "POP3";
 			const char *model = bThreads ? "thread" : "process";
 			ec_log_notice("Starting worker %s for %s request", model, method);
 			if (bThreads) {
@@ -742,18 +733,10 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		}
 
 		if (imap_event || imaps_event) {
-			bool usessl;
-
 			lpHandlerArgs->type = ST_IMAP;
 
 			// Incoming IMAP(s) connection
-			if (imaps_event) {
-				usessl = true;
-				hr = HrAccept(ulListenIMAPs, &lpHandlerArgs->lpChannel);
-			} else {
-				usessl = false;
-				hr = HrAccept(ulListenIMAP, &lpHandlerArgs->lpChannel);
-			}
+			hr = HrAccept(imaps_event ? ulListenIMAPs : ulListenIMAP, &lpHandlerArgs->lpChannel);
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to accept IMAP socket connection.");
 				// just keep running
@@ -761,10 +744,9 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				continue;
 			}
 
-			lpHandlerArgs->bUseSSL = usessl;
-
+			lpHandlerArgs->bUseSSL = imaps_event;
 			pthread_t IMAPThread;
-			const char *method = usessl ? "IMAPs" : "IMAP";
+			const char *method = imaps_event ? "IMAPs" : "IMAP";
 			const char *model = bThreads ? "thread" : "process";
 			ec_log_notice("Starting worker %s for %s request", model, method);
 			if (bThreads) {
