@@ -944,7 +944,7 @@ kc_parse_bindaddrs(const char *longline, uint16_t defport)
 
 	for (auto &&spec : tokenize(longline, ' ', true)) {
 		std::string host;
-		uint16_t port;
+		uint16_t port = defport;
 		char *e = nullptr;
 		auto x = spec.find('[');
 		auto y = spec.find(']', x + 1);
