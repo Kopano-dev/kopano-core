@@ -954,14 +954,14 @@ kc_parse_bindaddrs(const char *longline, uint16_t defport)
 			if (y != std::string::npos) {
 				port = strtoul(spec.c_str() + y + 1, &e, 10);
 				if (e == nullptr || *e != '\0')
-					port = defport;
+					continue;
 			}
 		} else {
 			y = spec.find(':');
 			if (y != std::string::npos) {
 				port = strtoul(spec.c_str() + y + 1, &e, 10);
 				if (e == nullptr || *e != '\0')
-					port = defport;
+					continue;
 				spec.erase(y);
 			}
 			host = std::move(spec);
