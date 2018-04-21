@@ -964,38 +964,59 @@ HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 	return hrSuccess;
 }
 
+static std::pair<std::string, uint16_t>
+ec_parse_bindaddr2(const char *spec)
+{
+	char *e = nullptr;
+	if (*spec != '[') { /* ] */
+		/* IPv4 or hostname */
+		auto y = strchr(spec, ':');
+		if (y == nullptr)
+			return {spec, 0};
+		uint16_t port = strtoul(++y, &e, 10);
+		if (e == nullptr || *e != '\0')
+			return {"!", 0};
+		return {std::string(spec, y - spec), port};
+	}
+	/* IPv6 */
+	auto y = strchr(spec + 1, ']');
+	if (y == nullptr)
+		return {"!", 0};
+	if (*++y == '\0')
+		return {std::string(spec + 1, y - spec - 2), 0};
+	if (*y != ':')
+		return {"!", 0};
+	uint16_t port = strtoul(++y, &e, 10);
+	if (e == nullptr || *e != '\0')
+		return {"!", 0};
+	return {std::string(spec + 1, y - spec - 2), port};
+}
+
+/**
+ * Tokenize bind specifier.
+ * @spec:	a string in the form of INETSPEC
+ *
+ * If @spec is not in the desired format, the parsed host will be "!". Absence
+ * of a port part will result in port being emitted as 0 - the caller needs to
+ * check for this, because unfiltered, this means "random port" to the OS.
+ */
+std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *spec)
+{
+	auto parts = ec_parse_bindaddr2(spec);
+	if (parts.first == "*")
+		/* getaddrinfo/soap_bind want the empty string for wildcard binding */
+		parts.first.clear();
+	return parts;
+}
+
 std::set<std::pair<std::string, uint16_t>>
 kc_parse_bindaddrs(const char *longline, uint16_t defport)
 {
 	std::set<std::pair<std::string, uint16_t>> socks;
 
 	for (auto &&spec : tokenize(longline, ' ', true)) {
-		std::string host;
-		uint16_t port;
-		char *e = nullptr;
-		auto x = spec.find('[');
-		auto y = spec.find(']', x + 1);
-		if (x == 0 && y != std::string::npos) {
-			host = spec.substr(x + 1, y - x - 1);
-			y = spec.find(':', y);
-			if (y != std::string::npos) {
-				port = strtoul(spec.c_str() + y + 1, &e, 10);
-				if (e == nullptr || *e != '\0')
-					port = defport;
-			}
-		} else {
-			y = spec.find(':');
-			if (y != std::string::npos) {
-				port = strtoul(spec.c_str() + y + 1, &e, 10);
-				if (e == nullptr || *e != '\0')
-					port = defport;
-				spec.erase(y);
-			}
-			host = std::move(spec);
-			if (host == "*")
-				host.clear();
-		}
-		socks.emplace(std::move(host), port);
+		auto pair = ec_parse_bindaddr(spec.c_str());
+		socks.emplace(std::move(pair.first), pair.second != 0 ? pair.second : defport);
 	}
 	return socks;
 }
