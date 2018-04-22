@@ -3117,6 +3117,9 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			continue;
 		}
 
+		if (!(pollfd.revents & (POLLIN | POLLRDHUP)))
+			/* OS might set more bits than requested */
+			continue;
 		// don't start more "threads" that lmtp_max_threads config option
 		if (g_nLMTPThreads == nMaxThreads) {
 			sc -> countInc("DAgent", "max_thread_count");
@@ -3126,12 +3129,6 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 
 		// One socket has signalled a new incoming connection
 		std::unique_ptr<DeliveryArgs> da(new DeliveryArgs(*lpArgs));
-
-		if ((pollfd.revents & (POLLIN | POLLRDHUP)) == 0) {
-			// should not be able to get here because of continues
-			ec_log_err("Incoming traffic was not for me?!");
-			continue;
-		}
 		hr = HrAccept(ulListenLMTP, &unique_tie(da->lpChannel));
 		if (hr != hrSuccess) {
 			kc_perrorf("HrAccept failed", hr);
