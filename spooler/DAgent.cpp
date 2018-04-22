@@ -3021,15 +3021,46 @@ static void *HandlerLMTP(void *lpArg)
  * @param[in]	lpArgs		Struct containing delivery parameters
  * @retval MAPI error code	
  */
+static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
+    std::vector<int> &closefd)
+{
+	/* Modern directives */
+	auto lmtp_sock = kc_parse_bindaddrs(cfg->GetSetting("lmtp_listen"), 2003);
+
+	/* Historic directives */
+	auto addr = cfg->GetSetting("server_bind");
+	auto port = cfg->GetSetting("lmtp_port");
+	if (port[0] != '\0')
+		lmtp_sock.emplace(addr, strtoul(port, nullptr, 10));
+
+	auto intf = cfg->GetSetting("server_bind_intf");
+	struct pollfd x;
+	memset(&x, 0, sizeof(x));
+	x.events = POLLIN;
+	pollers.reserve(lmtp_sock.size());
+	closefd.reserve(lmtp_sock.size());
+	for (const auto &spec : lmtp_sock) {
+		auto ret = ec_listen_inet(spec.first.c_str(), spec.second, &x.fd);
+		if (ret < 0)
+			return ret;
+		pollers.push_back(x);
+		closefd.push_back(x.fd);
+		ret = zcp_bindtodevice(x.fd, intf);
+		if (ret < 0) {
+			ec_log_err("SO_BINDTODEVICE: %s", strerror(-ret));
+			return ret;
+		}
+		ec_log_info("Listening on %s:%u for LMTP", spec.first.c_str(), spec.second);
+	}
+	return 0;
+}
+
 static HRESULT running_service(const char *servicename, bool bDaemonize,
     DeliveryArgs *lpArgs) 
 {
 	HRESULT hr = hrSuccess;
-	int ulListenLMTP = 0;
 	int err = 0;
 	unsigned int nMaxThreads;
-	int nCloseFDs = 0, pCloseFDs[1] = {0};
-	struct pollfd pollfd;
 
 	auto laters = make_scope_success([&]() { ECChannel::HrFreeCtx(); });
 
@@ -3038,21 +3069,11 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		nMaxThreads = 20;
 	ec_log_info("Maximum LMTP threads set to %d", nMaxThreads);
 	// Setup sockets
-	err = ec_listen_inet(g_lpConfig->GetSetting("server_bind"),
-	              atoi(g_lpConfig->GetSetting("lmtp_port")), &ulListenLMTP);
-	if (err < 0) {
-		ec_log_err("ec_listen_inet: %s", strerror(-err));
+	std::vector<struct pollfd> lmtp_poll;
+	std::vector<int> closefd;
+	err = dagent_listen(g_lpConfig, lmtp_poll, closefd);
+	if (err < 0)
 		return MAPI_E_NETWORK_ERROR;
-	}
-		
-	err = zcp_bindtodevice(ulListenLMTP,
-	      g_lpConfig->GetSetting("server_bind_intf"));
-	if (err < 0) {
-		ec_log_err("SO_BINDTODEVICE: %s", strerror(-err));
-		return hr;
-	}
-	ec_log_info("Listening on port %s for LMTP", g_lpConfig->GetSetting("lmtp_port"));
-	pCloseFDs[nCloseFDs++] = ulListenLMTP;
 
 	// Setup signals
 	signal(SIGTERM, sigterm);
@@ -3083,12 +3104,12 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	std::shared_ptr<StatsClient> sc(new StatsClient(g_lpLogger));
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent version " PROJECT_VERSION " (pid %d) (LMTP mode)", getpid());
-	pollfd.fd = ulListenLMTP;
-	pollfd.events = POLLIN;
 
 	// Mainloop
 	while (!g_bQuit) {
-		err = poll(&pollfd, 1, 10 * 1000);
+		for (size_t i = 0; i < lmtp_poll.size(); ++i)
+			lmtp_poll[i].revents = 0;
+		err = poll(&lmtp_poll[0], lmtp_poll.size(), 10 * 1000);
 		if (err < 0) {
 			if (errno != EINTR) {
 				ec_log_err("Socket error: %s", strerror(errno));
@@ -3101,42 +3122,45 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			continue;
 		}
 
-		if (!(pollfd.revents & POLLIN))
-			/* OS might set more bits than requested */
-			continue;
-		// don't start more "threads" that lmtp_max_threads config option
-		if (g_nLMTPThreads == nMaxThreads) {
-			sc -> countInc("DAgent", "max_thread_count");
-			Sleep(100);
-			continue;
-		}
+		for (size_t i = 0; i < lmtp_poll.size(); ++i) {
+			if (!(lmtp_poll[i].revents & POLLIN))
+				/* OS might set more bits than requested */
+				continue;
 
-		// One socket has signalled a new incoming connection
-		std::unique_ptr<DeliveryArgs> da(new DeliveryArgs(*lpArgs));
-		hr = HrAccept(ulListenLMTP, &unique_tie(da->lpChannel));
-		if (hr != hrSuccess) {
-			kc_perrorf("HrAccept failed", hr);
-			// just keep running
+			// don't start more "threads" that lmtp_max_threads config option
+			if (g_nLMTPThreads == nMaxThreads) {
+				sc->countInc("DAgent", "max_thread_count");
+				Sleep(100);
+				break;
+			}
+
+			// One socket has signalled a new incoming connection
+			std::unique_ptr<DeliveryArgs> da(new DeliveryArgs(*lpArgs));
+			hr = HrAccept(lmtp_poll[i].fd, &unique_tie(da->lpChannel));
+			if (hr != hrSuccess) {
+				kc_perrorf("HrAccept failed", hr);
+				// just keep running
+				hr = hrSuccess;
+				continue;
+			}
+			sc->countInc("DAgent", "incoming_session");
+			da->sc = sc;
+			/*
+			 * Must raise this before fork. If the subprocess dies
+			 * instantly, SIGCHLD could arrive before unix_fork_function
+			 * returns, and then the CHLD handler could underflow the var.
+			 */
+			++g_nLMTPThreads;
+			if (unix_fork_function(HandlerLMTP, da.get(), closefd.size(), &closefd[0]) < 0) {
+				ec_log_err("Can't create LMTP process.");
+				--g_nLMTPThreads;
+				// just keep running
+			}
+
+			// main handler always closes information it doesn't need
 			hr = hrSuccess;
 			continue;
 		}
-		sc->countInc("DAgent", "incoming_session");
-		da->sc = sc;
-		/*
-		 * Must raise this before fork. If the subprocess dies
-		 * instantly, SIGCHLD could arrive before unix_fork_function
-		 * returns, and then the CHLD handler could underflow the var.
-		 */
-		++g_nLMTPThreads;
-		if (unix_fork_function(HandlerLMTP, da.get(), nCloseFDs, pCloseFDs) < 0) {
-			ec_log_err("Can't create LMTP process.");
-			--g_nLMTPThreads;
-			// just keep running
-		}
-
-		// main handler always closes information it doesn't need
-		hr = hrSuccess;
-		continue;
 	}
 
 	ec_log(EC_LOGLEVEL_ALWAYS, "LMTP service will now exit");
@@ -3379,7 +3403,8 @@ int main(int argc, char *argv[]) {
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/dagent.pid" },
 		{"coredump_enabled", "systemdefault"},
-		{"lmtp_port", "2003", CONFIGSETTING_NONEMPTY},
+		{"lmtp_listen", "*:2003", CONFIGSETTING_NONEMPTY},
+		{"lmtp_port", "", CONFIGSETTING_NONEMPTY},
 		{ "lmtp_max_threads", "20" },
 		{ "process_model", "", CONFIGSETTING_UNUSED },
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},

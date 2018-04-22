@@ -111,12 +111,19 @@ Default: value not set.
 The password of the SSL key file that is set in sslkey_file.
 .PP
 Default: value not set.
+.SS lmtp_listen
+.PP
+A space-separated list of address:port specifiers for where the server should
+listen for connections. IPv6 addresses need to be enclosed in brackets (as in
+\fB[2a01:db1::]:236\fP). The asterisk is the multi-protocol address ("*:2003").
+.PP
+Default: \fI*:2003\fP
 .SS lmtp_port
 .PP
-Port to listen to for LMTP requests
+This historic directive specifies a single TCP port to bind to, on the
+wildcard address. It is obsoleted by lmtp_listen.
 .PP
-Default:
-\fI2003\fR
+Default: (none)
 .SS lmtp_max_threads
 .PP
 The maximum number of LMTP threads that can be running simultaneously. This is also limited by your SMTP server. (20 is the postfix default concurrency limit)
