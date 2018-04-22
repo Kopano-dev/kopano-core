@@ -3084,7 +3084,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent version " PROJECT_VERSION " (pid %d) (LMTP mode)", getpid());
 	pollfd.fd = ulListenLMTP;
-	pollfd.events = POLLIN | POLLRDHUP;
+	pollfd.events = POLLIN;
 
 	// Mainloop
 	while (!g_bQuit) {
@@ -3101,7 +3101,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			continue;
 		}
 
-		if (!(pollfd.revents & (POLLIN | POLLRDHUP)))
+		if (!(pollfd.revents & POLLIN))
 			/* OS might set more bits than requested */
 			continue;
 		// don't start more "threads" that lmtp_max_threads config option

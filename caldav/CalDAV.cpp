@@ -420,7 +420,7 @@ static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket)
 		pfd_secure = nCloseFDs++;
 	}
 	for (size_t i = 0; i < nCloseFDs; ++i)
-		pollfd[i].events = POLLIN | POLLRDHUP;
+		pollfd[i].events = POLLIN;
 
 	// main program loop
 	while (!g_bQuit) {
@@ -446,7 +446,7 @@ static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket)
 		}
 
 		// Check if a normal connection is waiting.
-		if (pfd_normal >= 0 && pollfd[pfd_normal].revents & (POLLIN | POLLRDHUP)) {
+		if (pfd_normal >= 0 && pollfd[pfd_normal].revents & POLLIN) {
 			ec_log_info("Connection waiting on port %d.", atoi(g_lpConfig->GetSetting("ical_port")));
 			bUseSSL = false;
 			hr = HrAccept(ulNormalSocket, &lpChannel);
@@ -455,7 +455,7 @@ static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket)
 				continue;
 			}
 		// Check if a secure connection is waiting.
-		} else if (pfd_secure >= 0 && pollfd[pfd_secure].revents & (POLLIN | POLLRDHUP)) {
+		} else if (pfd_secure >= 0 && pollfd[pfd_secure].revents & POLLIN) {
 			ec_log_info("Connection waiting on secure port %d.", atoi(g_lpConfig->GetSetting("icals_port")));
 			bUseSSL = true;
 			hr = HrAccept(ulSecureSocket, &lpChannel);

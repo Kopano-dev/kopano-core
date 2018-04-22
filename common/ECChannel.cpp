@@ -484,7 +484,7 @@ HRESULT ECChannel::HrReadBytes(std::string * strBuffer, ULONG ulByteCount) {
 }
 
 HRESULT ECChannel::HrSelect(int seconds) {
-	struct pollfd pollfd = {fd, POLLIN | POLLRDHUP, 0};
+	struct pollfd pollfd = {fd, POLLIN, 0};
 
 	if(lpSSL && SSL_pending(lpSSL))
 		return hrSuccess;

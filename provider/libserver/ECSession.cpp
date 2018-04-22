@@ -1321,7 +1321,7 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpsz
 	memset(buffer, 0, NTLMBUFFER);
 	pollfd[0].fd = m_stdout;
 	pollfd[1].fd = m_stderr;
-	pollfd[0].events = pollfd[1].events = POLLIN | POLLRDHUP;
+	pollfd[0].events = pollfd[1].events = POLLIN;
 retry:
 	pollfd[0].revents = pollfd[1].revents = 0;
 	int ret = poll(pollfd, 2, 10 * 1000); // timeout of 10 seconds before ntlm_auth can respond too large?
@@ -1339,7 +1339,7 @@ retry:
 	}
 
 	// stderr is optional, and always written first
-	if (pollfd[1].revents & (POLLIN | POLLRDHUP)) {
+	if (pollfd[1].revents & POLLIN) {
 		// log stderr of ntlm_auth to logfile (loop?)
 		bytes = read(m_stderr, buffer, NTLMBUFFER-1);
 		if (bytes < 0)

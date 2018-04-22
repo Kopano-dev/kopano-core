@@ -652,7 +652,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		pollfd[nfds++].fd = ulListenIMAPs;
 	}
 	for (size_t i = 0; i < nfds; ++i)
-		pollfd[i].events = POLLIN | POLLRDHUP;
+		pollfd[i].events = POLLIN;
 
 	// Mainloop
 	while (!quit) {
@@ -671,10 +671,10 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			continue;
 		}
 
-		bool pop3_event = pfd_pop3 >= 0 && pollfd[pfd_pop3].revents & (POLLIN | POLLRDHUP);
-		bool pop3s_event = pfd_pop3s >= 0 && pollfd[pfd_pop3s].revents & (POLLIN | POLLRDHUP);
-		bool imap_event = pfd_imap >= 0 && pollfd[pfd_imap].revents & (POLLIN | POLLRDHUP);
-		bool imaps_event = pfd_imaps >= 0 && pollfd[pfd_imaps].revents & (POLLIN | POLLRDHUP);
+		bool pop3_event = pfd_pop3 >= 0 && pollfd[pfd_pop3].revents & POLLIN;
+		bool pop3s_event = pfd_pop3s >= 0 && pollfd[pfd_pop3s].revents & POLLIN;
+		bool imap_event = pfd_imap >= 0 && pollfd[pfd_imap].revents & POLLIN;
+		bool imaps_event = pfd_imaps >= 0 && pollfd[pfd_imaps].revents & POLLIN;
 		if (!pop3_event && !pop3s_event && !imap_event && !imaps_event)
 			/* OS might set more bits than requested */
 			continue;

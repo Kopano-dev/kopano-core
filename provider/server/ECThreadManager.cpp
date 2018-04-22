@@ -674,7 +674,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
         
         // Listen on rescan trigger
 		pollfd[0].fd = m_fdRescanRead;
-		pollfd[0].events = POLLIN | POLLRDHUP;
+		pollfd[0].events = POLLIN;
 		++nfds;
 
         // Listen on active sockets
@@ -689,13 +689,13 @@ ECRESULT ECDispatcherSelect::MainLoop()
 				shutdown(p.second.soap->socket, SHUT_RDWR);
             
 			pollfd[nfds].fd = p.second.soap->socket;
-			pollfd[nfds++].events = POLLIN | POLLRDHUP;
+			pollfd[nfds++].events = POLLIN;
         }
         // Listen on listener sockets
 		pfd_begin_listen = nfds;
 		for (const auto &p : m_setListenSockets) {
 			pollfd[nfds].fd = p.second->socket;
-			pollfd[nfds++].events = POLLIN | POLLRDHUP;
+			pollfd[nfds++].events = POLLIN;
         }
 		l_sock.unlock();
         		
@@ -705,7 +705,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 		if (n < 0)
             continue; // signal caught, restart
 
-		if (pollfd[0].revents & (POLLIN | POLLRDHUP)) {
+		if (pollfd[0].revents & POLLIN) {
             char s[128];
             // A socket rescan has been triggered, we don't need to do anything, just read the data, discard it
             // and restart the select call
@@ -716,7 +716,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 		l_sock.lock();
 	auto iterSockets = m_setSockets.cbegin();
 		for (size_t i = pfd_begin_sock; i < pfd_begin_listen; ++i) {
-			if (!(pollfd[i].revents & (POLLIN | POLLRDHUP)))
+			if (!(pollfd[i].revents & POLLIN))
 				continue;
 			/*
 			 * Forward to the data structure belonging to the pollfd.
@@ -753,7 +753,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
         // Search for activity on listen sockets
 		auto sockiter = m_setListenSockets.cbegin();
 		for (size_t i = pfd_begin_listen; i < nfds; ++i) {
-			if (!(pollfd[i].revents & (POLLIN | POLLRDHUP)))
+			if (!(pollfd[i].revents & POLLIN))
 				continue;
 			while (sockiter != m_setListenSockets.cend() && sockiter->second->socket != pollfd[i].fd)
 				++sockiter;
