@@ -449,18 +449,6 @@ class Server(object):
         user = self.user(name)
         self.sa.DeleteUser(user._ecuser.UserID)
 
-    def user_search(self, text): # TODO merge into .users(search=) or something? or as AddressBook.search?
-        restriction = Restriction(
-            SOrRestriction([
-                SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_DISPLAY_NAME_W, SPropValue(PR_DISPLAY_NAME_W, text)),
-                SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_SMTP_ADDRESS_W, SPropValue(PR_SMTP_ADDRESS_W, text)),
-            ])
-        )
-        columns = [PR_ENTRYID, PR_DISPLAY_NAME_W, PR_SMTP_ADDRESS_W]
-        table = self.gab_table(restriction=restriction, columns=columns)
-        for row in table.rows():
-            yield self.user(userid=_benc(row[0].value))
-
     def company(self, name, create=False):
         """Return :class:`company <Company>` with given name.
 
