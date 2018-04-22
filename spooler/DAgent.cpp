@@ -3124,8 +3124,6 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			continue;
 		}
 
-		++g_nLMTPThreads;
-
 		// One socket has signalled a new incoming connection
 		std::unique_ptr<DeliveryArgs> da(new DeliveryArgs(*lpArgs));
 
@@ -3142,9 +3140,18 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			continue;
 		}
 		sc->countInc("DAgent", "incoming_session");
-		if (unix_fork_function(HandlerLMTP, da.get(), nCloseFDs, pCloseFDs) < 0)
+		/*
+		 * Must raise this before fork. If the subprocess dies
+		 * instantly, SIGCHLD could arrive before unix_fork_function
+		 * returns, and then the CHLD handler could underflow the var.
+		 */
+		++g_nLMTPThreads;
+		if (unix_fork_function(HandlerLMTP, da.get(), nCloseFDs, pCloseFDs) < 0) {
 			ec_log_err("Can't create LMTP process.");
+			--g_nLMTPThreads;
 			// just keep running
+		}
+
 		// main handler always closes information it doesn't need
 		hr = hrSuccess;
 		continue;
