@@ -3025,13 +3025,13 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
     std::vector<int> &closefd)
 {
 	/* Modern directives */
-	auto lmtp_sock = kc_parse_bindaddrs(cfg->GetSetting("lmtp_listen"), 2003);
+	auto lmtp_sock = tokenize(cfg->GetSetting("lmtp_listen"), ' ', true);
 
 	/* Historic directives */
 	auto addr = cfg->GetSetting("server_bind");
 	auto port = cfg->GetSetting("lmtp_port");
 	if (port[0] != '\0')
-		lmtp_sock.emplace(addr, strtoul(port, nullptr, 10));
+		lmtp_sock.push_back("["s + addr + "]:" + stringify(strtoul(port, nullptr, 10)));
 
 	auto intf = cfg->GetSetting("server_bind_intf");
 	struct pollfd x;
@@ -3040,7 +3040,7 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 	pollers.reserve(lmtp_sock.size());
 	closefd.reserve(lmtp_sock.size());
 	for (const auto &spec : lmtp_sock) {
-		auto ret = ec_listen_inet(spec.first.c_str(), spec.second, &x.fd);
+		auto ret = ec_listen_generic(spec.c_str(), &x.fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 		if (ret < 0)
 			return ret;
 		pollers.push_back(x);
@@ -3050,7 +3050,7 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 			ec_log_err("SO_BINDTODEVICE: %s", strerror(-ret));
 			return ret;
 		}
-		ec_log_info("Listening on %s:%u for LMTP", spec.first.c_str(), spec.second);
+		ec_log_info("Listening on %s for LMTP", spec.c_str());
 	}
 	return 0;
 }

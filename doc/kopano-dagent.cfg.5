@@ -116,8 +116,26 @@ Default: value not set.
 A space-separated list of address:port specifiers for where the server should
 listen for connections. IPv6 addresses need to be enclosed in brackets (as in
 \fB[2a01:db1::]:236\fP). The asterisk is the multi-protocol address ("*:2003").
+Local sockets are supported with "\fBunix:\fP\fI/path\fP".
 .PP
 Default: \fI*:2003\fP
+.PP
+To set up a secure local socket that is only accessible by Postfix, a directory
+like this may be created:
+.nf
+	mkdir -p /var/spool/kopano
+	chown kopano:kopano /var/spool/kopano
+	chmod go= /var/spool/kopano
+	setfacl -m u:postfix:rwx /var/spool/kopano
+.fi
+In dagent.cfg, the listen line would be:
+.nf
+	lmtp_listen = unix:/var/spool/kopano/dagent.sock
+.fi
+And in postfix's main.cf, a transport line might look like:
+.nf
+	virtual_transport = lmtp:unix:/var/spool/kopano/dagent.sock
+.fi
 .SS lmtp_port
 .PP
 This historic directive specifies a single TCP port to bind to, on the
