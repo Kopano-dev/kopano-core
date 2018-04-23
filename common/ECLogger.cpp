@@ -27,6 +27,10 @@
 #include <cstdarg>
 #include <csignal>
 #include <zlib.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/un.h>
+#include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include "charset/localeutil.h"
 #include "config.h"
@@ -796,6 +800,26 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 	return lpPipeLogger;
 }
 
+static bool eclog_sockable(const char *path)
+{
+#if defined(LINUX) && defined(__GLIBC__)
+	struct stat sb;
+	auto ret = stat(path, &sb);
+	if (ret < 0 || !S_ISSOCK(sb.st_mode))
+		return false;
+	auto fd = socket(PF_LOCAL, SOCK_DGRAM, 0);
+	if (fd < 0)
+		return false;
+	auto fdx = make_scope_success([&]() { if (fd >= 0) close(fd); });
+	struct sockaddr_un sk;
+	sk.sun_family = AF_LOCAL;
+	strncpy(sk.sun_path, path, sizeof(sk.sun_path));
+	return connect(fd, reinterpret_cast<const sockaddr *>(&sk), sizeof(sk)) == 0;
+#else
+	return true;
+#endif
+}
+
 static void resolve_auto_logger(ECConfig *cfg)
 {
 	auto meth = cfg->GetSetting("log_method");
@@ -805,7 +829,7 @@ static void resolve_auto_logger(ECConfig *cfg)
 	if (*file != '\0') {
 		meth = "file";
 	} else {
-		meth = "syslog";
+		meth = eclog_sockable("/dev/log") ? "syslog" : "file";
 		file = "-";
 	}
 	cfg->AddSetting("log_method", meth);

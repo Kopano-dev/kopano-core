@@ -132,12 +132,16 @@ The method which should be used for logging. Valid values are:
 Use the syslog service. Messages will be sent using the "mail" facility tag. See also
 \fBjournald.conf\fP(5) or \fBsyslog.conf\fP(5).
 .TP
-\fIfile\fR
+\fBfile\fP
 Log to a file. The filename will be specified in
 \fBlog_file\fR.
+.TP
+\fBauto\fP
+Autoselect mode: If \fBlog_file\fP is set, that will be used.
+Else, syslog will be used if it looks like it is available.
+Else, stderr.
 .PP
-Default:
-(automatic: selects file if log_file is given, else syslog)
+Default: \fIauto\fP
 .SS log_file
 .PP
 When logging to a file, specify the filename in this parameter. Use
