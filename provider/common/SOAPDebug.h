@@ -26,7 +26,6 @@ namespace KC {
 std::string RestrictionToString(const restrictTable *lpRestriction, unsigned int indent = 0);
 std::string PropNameFromPropArray(unsigned int cValues, const propVal *lpPropArray);
 std::string PropValueToString(const propVal *lpPropValue);
-const char* RightsToString(unsigned int ulecRights);
 
 } /* namespace */
 
