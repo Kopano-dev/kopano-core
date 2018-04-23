@@ -21,7 +21,6 @@
 #include <kopano/ECGuid.h>
 #include <kopano/memory.hpp>
 #include "ECMemStream.h"
-#include <kopano/ECDebug.h>
 #define EC_MEMBLOCK_SIZE 8192
 
 namespace KC {

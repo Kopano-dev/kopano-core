@@ -22,7 +22,6 @@
 #include "Mem.h"
 
 #include <kopano/ECGuid.h>
-#include <kopano/ECDebug.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>
 #include "ics.h"

@@ -25,7 +25,6 @@
 #include <mapiguid.h>
 
 #include <kopano/ECGuid.h>
-#include <kopano/ECDebug.h>
 #include <kopano/memory.hpp>
 
 using namespace KC;

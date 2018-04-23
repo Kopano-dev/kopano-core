@@ -33,7 +33,6 @@
 #include <kopano/stringutil.h>
 
 #include <sstream>
-#include <kopano/ECDebug.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
 

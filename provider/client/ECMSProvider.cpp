@@ -30,9 +30,6 @@
 #include "ECMSProvider.h"
 #include "ECMsgStore.h"
 #include "ECABProvider.h"
-
-#include <kopano/ECDebug.h>
-
 #include "ClientUtil.h"
 #include "EntryPoint.h"
 

@@ -28,8 +28,6 @@
 #include <kopano/ECGuid.h>
 #include <kopano/Util.h>
 
-#include <kopano/ECDebug.h>
-
 using namespace KC;
 
 ECMAPITable::ECMAPITable(const std::string &strName, ECNotifyClient *nc,

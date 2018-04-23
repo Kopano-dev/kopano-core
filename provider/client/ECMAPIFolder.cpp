@@ -37,8 +37,6 @@
 #include <edkguid.h>
 #include <kopano/Util.h>
 #include "ClientUtil.h"
-
-#include <kopano/ECDebug.h>
 #include <kopano/mapi_ptr.h>
 
 #include <edkmdb.h>

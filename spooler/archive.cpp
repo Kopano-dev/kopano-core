@@ -37,7 +37,6 @@
 #include <sstream>
 
 #include <kopano/Util.h>
-#include <kopano/ECDebug.h>
 #include "PyMapiPlugin.h"
 
 using namespace KC;

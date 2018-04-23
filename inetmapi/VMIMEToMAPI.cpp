@@ -35,7 +35,6 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
-#include <kopano/ECDebug.h>
 #include <librosie.h>
 #include <vmime/vmime.hpp>
 #include <vmime/platforms/posix/posixHandler.hpp>

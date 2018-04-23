@@ -21,8 +21,6 @@
 #include "Mem.h"
 
 #include <kopano/ECGuid.h>
-#include <kopano/ECDebug.h>
-
 //#include <edkmdb.h>
 #include <kopano/mapiext.h>
 #include <mapiutil.h>

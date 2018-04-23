@@ -20,7 +20,6 @@
 #include <kopano/memory.hpp>
 #include <mapispi.h>
 #include <mapix.h>
-#include <kopano/ECDebug.h>
 #include <kopano/ECLogger.h>
 #include "ECMsgStore.h"
 #include "ECNotifyClient.h"

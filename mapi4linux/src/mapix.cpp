@@ -41,7 +41,6 @@
 #include <kopano/Util.h>
 
 #include <kopano/ECConfig.h>
-#include <kopano/ECDebug.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECMemTable.h>
 #include <kopano/CommonUtil.h>

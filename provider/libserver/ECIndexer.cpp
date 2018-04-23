@@ -22,7 +22,6 @@
 #include <kopano/stringutil.h>
 #include "ECSearchClient.h"
 #include "ECCacheManager.h"
-#include "SOAPDebug.h"
 #include "cmdutil.hpp"
 #include <kopano/Util.h>
 #include "ECStatsCollector.h"

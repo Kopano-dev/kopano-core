@@ -3,7 +3,6 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/memory.hpp>
-#include <kopano/ECDebug.h>
 #include <kopano/MAPIErrors.h>
 #include <stdexcept>
 #include <string>

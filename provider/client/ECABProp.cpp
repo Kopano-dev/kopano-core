@@ -22,7 +22,6 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECDefs.h>
 #include <kopano/CommonUtil.h>
-#include <kopano/ECDebug.h>
 
 ECABProp::ECABProp(ECABLogon *prov, ULONG objtype, BOOL modify,
     const char *cls_name) :

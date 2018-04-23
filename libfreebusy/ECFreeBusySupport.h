@@ -35,7 +35,6 @@
 #include <mapix.h>
 
 #include <kopano/ECUnknown.h>
-#include <kopano/ECDebug.h>
 #include <kopano/ECGuid.h>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>

@@ -28,9 +28,6 @@
 #include <kopano/Util.h>
 
 #include <kopano/ECGuid.h>
-
-#include <kopano/ECDebug.h>
-
 #include <kopano/charset/convert.h>
 #include "EntryPoint.h"
 

@@ -36,8 +36,6 @@
 #include "ECABProvider.h"
 #include <iostream>
 #include <kopano/ecversion.h>
-
-#include <kopano/ECDebug.h>
 #include <kopano/stringutil.h>
 
 #include <kopano/ECLogger.h>

@@ -43,7 +43,6 @@
 
 #include "ECUserManagement.h"
 #include "SOAPUtils.h"
-#include "SOAPDebug.h"
 #include <edkmdb.h>
 #include "ECDBDef.h"
 #include "cmdutil.hpp"
