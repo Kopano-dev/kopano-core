@@ -189,6 +189,10 @@ def main():
 
     if options.with_metrics:
         if PROMETHEUS:
+            if not os.environ.get('prometheus_multiproc_dir'):
+                logging.error('please export "prometheus_multiproc_dir"')
+                sys.exit(-1)
+
             metrics_process = multiprocessing.Process(target=run_metrics, args=(socket_path, options))
             workers.append(metrics_process)
         else:

@@ -33,7 +33,7 @@ SUBSCRIPTIONS = {}
 
 if PROMETHEUS:
     SUBSCR_COUNT = Counter('kopano_mfr_total_subscriptions', 'Total number of subscriptions')
-    SUBSCR_ACTIVE = Gauge('kopano_mfr_active_subscriptions', 'Number of active subscriptions')
+    SUBSCR_ACTIVE = Gauge('kopano_mfr_active_subscriptions', 'Number of active subscriptions', multiprocess_mode='livesum')
     POST_COUNT = Counter('kopano_mfr_total_webhook_posts', 'Total number of webhook posts')
 
 def _server(auth_user, auth_pass):
