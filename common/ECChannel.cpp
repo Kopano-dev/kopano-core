@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
+#include <climits>
 #include <cstdint>
 #include <cstdlib>
 #include <kopano/ECChannel.h>
