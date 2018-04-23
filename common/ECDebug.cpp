@@ -38,7 +38,10 @@
 
 #include <iostream>
 #include <sstream>
+#include <kopano/MAPIErrors.h>
 #include <kopano/mapi_ptr.h>
+
+using namespace KC::string_literals;
 
 namespace KC {
 
@@ -1599,7 +1602,7 @@ std::string PropValueToString(const SPropValue *lpPropValue)
 	case PT_UNSPECIFIED:
 		return "PT_UNSPECIFIED: ";
 	case PT_ERROR:
-		return "PT_ERROR: " + GetMAPIErrorDescription(lpPropValue->Value.err);
+		return "PT_ERROR: "s + GetMAPIErrorMessage(lpPropValue->Value.err) + " (" + stringify(lpPropValue->Value.err) + ")";
 	case PT_SRESTRICTION:
 		return "PT_SRESTRICTION: structure...";
 	case PT_ACTIONS:

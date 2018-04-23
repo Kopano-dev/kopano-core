@@ -34,6 +34,7 @@
 
 #include <sstream>
 #include <kopano/ECDebug.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
 
 #define dispidStoreEntryIds			"store-entryids"
@@ -417,7 +418,8 @@ std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 				<< KC_T("<SPAN id=\"errcode\">")
 				<< tstringify(hResult, true)
 				<< KC_T("</SPAN> (<SPAN id=\"errmsg\">")
-				<< convert_to<tstring>(GetMAPIErrorDescription(hResult))
+				<< convert_to<tstring>(GetMAPIErrorMessage(hResult))
+				<< KC_T(" (") << tstringify(hResult, true) << KC_T(")")
 				<< KC_T("</SPAN>)</P>");
 
 	if (hResult == MAPI_E_NO_SUPPORT) {

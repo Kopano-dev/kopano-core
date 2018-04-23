@@ -2138,7 +2138,7 @@ bool VMIMEToMAPI::filter_html(IMessage *msg, IStream *stream, ULONG flags,
 	           STGM_TRANSACTED, flags, reinterpret_cast<LPUNKNOWN *>(&stream));
 	if (ret != hrSuccess) {
 		ec_log_warn("OpenProperty(PR_EC_BODY_FILTERED) failed: %s (%x)",
-			GetMAPIErrorDescription(ret).c_str(), ret);
+			GetMAPIErrorMessage(ret), ret);
 		return false;
 	}
 
@@ -2147,14 +2147,14 @@ bool VMIMEToMAPI::filter_html(IMessage *msg, IStream *stream, ULONG flags,
 	if (ret != hrSuccess) {
 		/* check cbWritten too? */
 		ec_log_warn("Write(PR_EC_BODY_FILTERED) failed: %s (%x)",
-			GetMAPIErrorDescription(ret).c_str(), ret);
+			GetMAPIErrorMessage(ret), ret);
 		return false;
 	}
 
 	ret = stream->Commit(0);
 	if (ret != hrSuccess) {
 		ec_log_warn("Commit(PR_EC_BODY_FILTERED) failed: %s (%x)",
-			GetMAPIErrorDescription(ret).c_str(), ret);
+			GetMAPIErrorMessage(ret), ret);
 		return false;
 	}
 #endif
