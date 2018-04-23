@@ -3639,7 +3639,11 @@ int main(int argc, char *argv[]) {
 	file_limit.rlim_max = KC_DESIRED_FILEDES;
 
 	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
-		ec_log_err("WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors (%s)", KC_DESIRED_FILEDES, getdtablesize(), strerror(errno));
+		ec_log_err("WARNING: setrlimit(RLIMIT_NOFILE, %d) failed: %s. "
+			"You will only be able to connect up to %d sockets. "
+			"Either start the process as root, "
+			"or increase user limits for open file descriptors.",
+			KC_DESIRED_FILEDES, strerror(errno), getdtablesize());
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 
 	if (bListenLMTP) {
