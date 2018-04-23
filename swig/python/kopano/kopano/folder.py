@@ -333,13 +333,10 @@ class Folder(Properties):
 
         if is_str(restriction):
             if self.container_class == 'IPF.Contact':
-                EMAIL1_NAME = (PSETID_Address, MNID_ID, 0x8083) # TODO
-                email1_proptag = self.store._name_id(EMAIL1_NAME) | PT_UNICODE
-                default_props = [PR_DISPLAY_NAME_W, email1_proptag]
+                type_ = 'contact'
             else:
-                default_props = [PR_SUBJECT_W, PR_BODY_W, PR_SENDER_NAME_W]
-
-            restriction = _query_to_restriction(restriction, default_props, self.store)
+                type_ = 'message'
+            restriction = _query_to_restriction(restriction, type_, self.store)
 
         try:
             table = Table(

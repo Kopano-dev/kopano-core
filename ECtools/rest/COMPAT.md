@@ -5,17 +5,17 @@ General deviations from Microsoft Graph:
 3. Certain esoteric OData fields such as @odata.context are not yet correctly exported.
 4. Many fields are not exported, such as user or contact fields, or cannot be changed at the moment.
 
-Extensions:
-
-1. We support handling attachments in binary using $value, using for example: "GET /me/messages/id/attachment/id/$value".
-
 Query Parameters:
 
 [Graph documentation](https://developer.microsoft.com/en-us/graph/docs/concepts/query_parameters)
 
 1. We do not support $filter or $format.
-2. Support for $search is very preliminary (no support for [KQL](https://docs.microsoft.com/en-us/sharepoint/dev/general-development/keyword-query-language-kql-syntax-reference) or anything).
-3. Support for $expand and $count is preliminary.
+2. Support for $expand and $count is preliminary.
+
+Extensions:
+
+1. We support handling attachments in binary using $value, using for example: "GET /me/messages/id/attachment/id/$value".
+2. We support the query parameter $search for /users, where Graph currently does not.
 
 ## attachment Resource
 

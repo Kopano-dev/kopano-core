@@ -57,6 +57,7 @@ from .company import Company
 from .group import Group
 from .property_ import _proptag_to_name
 from .restriction import Restriction
+from .query import _query_to_restriction
 
 from .compat import (
     repr as _repr, is_str as _is_str, benc as _benc,
@@ -401,6 +402,14 @@ class Server(object):
                     (hidden or not user.hidden) and
                     (inactive or user.active)):
                     yield user
+
+    def _user_query(self, query): # TODO merge as .users('..')?
+        store = _store.Store(mapiobj=self.mapistore, server=self)
+        restriction = _query_to_restriction(query, 'user', store)
+        columns = [PR_ENTRYID, PR_DISPLAY_NAME_W, PR_SMTP_ADDRESS_W]
+        table = self.gab_table(restriction=restriction, columns=columns)
+        for row in table.rows():
+            yield self.user(userid=_benc(row[0].value))
 
     def create_user(self, name, email=None, password=None, company=None, fullname=None, create_store=True):
         """Create a new :class:`user <User>` on the server.

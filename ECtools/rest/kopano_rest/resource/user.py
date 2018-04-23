@@ -82,7 +82,9 @@ class UserResource(Resource):
             else:
                 args = urlparse.parse_qs(req.query_string)
                 if '$search' in args:
-                    raise falcon.HTTPBadRequest(None, "This query is not supported.")
+                    query = args['$search'][0]
+                    def yielder(**kwargs):
+                        yield from server._user_query(query) # TODO .users(query)?
                 else:
                     def yielder(**kwargs):
                         yield from server.users(hidden=False, inactive=False)

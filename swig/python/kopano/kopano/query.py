@@ -22,7 +22,7 @@ from MAPI import (
 from MAPI.Tags import (
     PR_SUBJECT_W, PR_BODY_W, PR_MESSAGE_DELIVERY_TIME, PR_HASATTACH,
     PR_MESSAGE_SIZE, PR_MESSAGE_FLAGS, MSGFLAG_READ, PR_SENDER_NAME_W,
-    PR_DISPLAY_NAME_W, PR_SENT_REPRESENTING_NAME_W
+    PR_DISPLAY_NAME_W, PR_SENT_REPRESENTING_NAME_W, PR_SMTP_ADDRESS_W,
 )
 
 from MAPI.Struct import (
@@ -48,7 +48,7 @@ from .defs import PSETID_Address
 
 EMAIL1_NAME = (PSETID_Address, MNID_ID, 0x8083, PT_UNICODE) # TODO
 
-KEYWORD_PROP = {
+MESSAGE_KEYWORD_PROP = {
     'subject': PR_SUBJECT_W,
     'body': PR_BODY_W,
     'content': PR_BODY_W, # TODO what does content mean
@@ -59,9 +59,29 @@ KEYWORD_PROP = {
     'read': (PR_MESSAGE_FLAGS, MSGFLAG_READ),
     'from': PR_SENT_REPRESENTING_NAME_W, # TODO email address
     'sender': PR_SENDER_NAME_W, # TODO why does 'from:user1@domain.com' work!?
+    # TODO to, cc, bcc, participants, attachments, category
+}
+
+CONTACT_KEYWORD_PROP = {
     'name': PR_DISPLAY_NAME_W,
     'email': EMAIL1_NAME,
-    # TODO to, cc, bcc, participants, attachments, category
+}
+
+USER_KEYWORD_PROP = {
+    'name': PR_DISPLAY_NAME_W,
+    'email': PR_SMTP_ADDRESS_W,
+}
+
+TYPE_KEYWORD_PROPMAP = {
+    'message': MESSAGE_KEYWORD_PROP,
+    'contact': CONTACT_KEYWORD_PROP,
+    'user': USER_KEYWORD_PROP,
+}
+
+DEFAULT_PROPTAGS = {
+    'message': [PR_SUBJECT_W, PR_BODY_W, PR_SENT_REPRESENTING_NAME_W],
+    'contact': [PR_DISPLAY_NAME_W, EMAIL1_NAME],
+    'user': [PR_DISPLAY_NAME_W, PR_SMTP_ADDRESS_W],
 }
 
 OP_RELOP = {
@@ -95,9 +115,9 @@ class Term(object):
         self.op = op
         self.value = value
 
-    def restriction(self, default_proptags, store):
+    def restriction(self, type_, store):
         if self.field:
-            proptag = KEYWORD_PROP[self.field]
+            proptag = TYPE_KEYWORD_PROPMAP[type_][self.field]
             flag = None
             if isinstance(proptag, tuple) and len(proptag) == 2:
                 proptag, flag = proptag
@@ -224,12 +244,15 @@ class Term(object):
                         restr = _interval_restriction(proptag, d, d2)
 
         else:
+            defaults = [(store._name_id(proptag[:3]) | proptag[3])
+                           if isinstance(proptag, tuple) else proptag
+                               for proptag in DEFAULT_PROPTAGS[type_]]
             restr = SOrRestriction([
                        SContentRestriction(
                            FL_SUBSTRING | FL_IGNORECASE,
                            p,
                            SPropValue(p, self.value)
-                       ) for p in default_proptags
+                       ) for p in defaults
                    ])
 
         if self.sign == '-':
@@ -250,18 +273,18 @@ class Operation(object):
         self.op = op
         self.args = args
 
-    def restriction(self, default_proptags, store):
+    def restriction(self, type_, store):
         if self.op == 'AND':
             return SAndRestriction(
-                [arg.restriction(default_proptags, store) for arg in self.args]
+                [arg.restriction(type_, store) for arg in self.args]
             )
         elif self.op == 'OR':
             return SOrRestriction(
-                [arg.restriction(default_proptags, store) for arg in self.args]
+                [arg.restriction(type_, store) for arg in self.args]
             )
         elif self.op == 'NOT':
             return SNotRestriction(
-                self.args[0].restriction(default_proptags, store)
+                self.args[0].restriction(type_, store)
             )
 
     def __repr__(self):
@@ -401,10 +424,6 @@ def test():
         'hasattachment:yes',
         'hasattachment:yes AND size>1000000',
         'from:-bert@hoppa.com',
-        '前田俊夫',
-        '前田俊夫*',
-        'from:前田俊夫* 前田   ',
-        '(a) "前田俊夫*"  ',
         '(a AND NOT (b OR (c AND NOT d)))'
     ]:
         parser_input = ParserInput(s, 0)
@@ -416,9 +435,9 @@ def test():
 
 _PARSER = _build_parser()
 
-def _query_to_restriction(query, default_proptags, store):
+def _query_to_restriction(query, type_, store):
     try:
         ast = _PARSER.parse(ParserInput(query)).value
-        return Restriction(ast.restriction(default_proptags, store))
+        return Restriction(ast.restriction(type_, store))
     except Exception:
         raise ArgumentError("could not process query")
