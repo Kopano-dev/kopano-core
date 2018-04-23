@@ -77,28 +77,32 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 		assert(x == 1);
 	}
 
-	ret = db->DoSelect("SELECT id FROM names WHERE id <= 31485 ORDER BY id", &result);
+	ret = db->DoSelect("SELECT MAX(id) - COUNT(id) FROM names WHERE id <= 31485", &result);
+	if (ret == erSuccess) {
+		row = result.fetch_row();
+		if (row != nullptr)
+			ec_log_info("defrag: %zu entries to move", strtoul(row[0], nullptr, 0));
+	}
+	ret = db->DoSelect("SELECT id FROM names WHERE id <= 31485 ORDER BY id DESC", &result);
 	if (ret != erSuccess)
 		return ret;
-	ec_log_notice("defrag: %zu IDs", result.get_num_rows());
+	ec_log_notice("defrag: %zu entries present", result.get_num_rows());
 	if (result.get_num_rows() == 0)
 		return erSuccess;
 	if (our_proptagidx == nullptr)
 		our_proptagidx.reset(new proptagindex(db));
 
-	unsigned int newid = 1;
 	while ((row = result.fetch_row()) != nullptr) {
 		unsigned int oldid = strtoul(row[0], nullptr, 0);
 		unsigned int oldtag = 0x8501 + oldid;
+		if (freemap.size() == 0)
+			break;
+		unsigned int newid = *freemap.begin();
+		if (newid >= oldid)
+			break;
 		unsigned int newtag = 0x8501 + newid;
 		if (oldtag >= 0xFFFF || newtag >= 0xFFFF)
 			continue;
-		if (oldid == newid) {
-			++newid;
-			continue;
-		}
-		assert(oldid > newid);
-		/* e.g. oldid=4 newid=3 */
 		assert(freemap.erase(newid) == 1);
 		ec_log_notice("defrag: moving %u -> %u [names]", oldid, newid);
 		fflush(stdout);
