@@ -2,6 +2,7 @@ import codecs
 from contextlib import closing
 import fcntl
 import sys
+import time
 
 if sys.hexversion >= 0x03000000:
     import bsddb3 as bsddb
@@ -13,7 +14,10 @@ import falcon
 from MAPI.Util import kc_session_save, kc_session_restore, GetDefaultStore
 import kopano
 
-SESSIONDATA = {}
+USERID_SESSION = {}
+
+TOKEN_SESSION = {}
+LAST_PURGE_TIME = None
 
 def _auth(req, options):
     auth_header = req.get_header('Authorization')
@@ -61,8 +65,24 @@ def _server(req, options):
     auth = _auth(req, options)
 
     if auth['method'] == 'bearer':
-        return kopano.Server(auth_user=auth['userid'], auth_pass=auth['token'],
-            parse_args=False, oidc=True)
+        token = auth['token']
+        sessiondata = TOKEN_SESSION.get(token)
+        if sessiondata:
+            mapisession = kc_session_restore(sessiondata[0])
+            server = kopano.Server(mapisession=mapisession, parse_args=False)
+        else:
+            server = kopano.Server(auth_user=auth['userid'], auth_pass=token,
+                                   parse_args=False, oidc=True)
+            sessiondata = kc_session_save(server.mapisession)
+            now = time.time()
+            TOKEN_SESSION[token] = (sessiondata, now)
+
+            # expire tokens after 15 mins TODO make configurable?
+            if LAST_PURGE_TIME is None or now > LAST_PURGE_TIME+10:
+                for (token, (sessiondata, t)) in list(TOKEN_SESSION.items()):
+                    if t < now - 15*60:
+                        del TOKEN_SESSION[token]
+                LAST_PURGE_TIME = now
 
     elif auth['method'] == 'basic':
         return kopano.Server(auth_user=auth['user'], auth_pass=auth['password'],
@@ -70,8 +90,8 @@ def _server(req, options):
 
     elif auth['method'] == 'passthrough':
         userid = auth['userid']
-        if userid in SESSIONDATA:
-            sessiondata = SESSIONDATA[userid]
+        sessiondata = USERID_SESSION.get(userid)
+        if sessiondata:
             mapisession = kc_session_restore(sessiondata)
             server = kopano.Server(mapisession=mapisession, parse_args=False)
         else:
@@ -79,7 +99,7 @@ def _server(req, options):
             server = kopano.Server(auth_user=username, auth_pass='',
                                    parse_args=False, store_cache=False)
             sessiondata = kc_session_save(server.mapisession)
-            SESSIONDATA[userid] = sessiondata
+            USERID_SESSION[userid] = sessiondata
         return server
 
 def _username(userid):
