@@ -727,7 +727,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			goto next;
 		// TODO handle SYNC_E_OBJECT_DELETED, SYNC_E_CONFLICT, SYNC_E_NO_PARENT, SYNC_E_INCEST, SYNC_E_UNSYNCHRONIZED
 		}else if(hr != hrSuccess){
-			//m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s", stringify(hr, true).c_str());
+			//m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s (0x%x)", GetMAPIErrorMessage(hr), hr);
 			ZLOG_DEBUG(m_lpLogger, "Error during message import");
 			goto exit;
 		}
@@ -868,7 +868,8 @@ next:
 		hr = SYNC_W_PROGRESS;
 exit:
 	if(hr != hrSuccess && hr != SYNC_W_PROGRESS)
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s", stringify(hr, true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s (0x%x)",
+			GetMAPIErrorMessage(hr), hr);
 	return hr;
 }
 
@@ -1145,10 +1146,12 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 			hr = hrSuccess;
 			goto next;
 		}else if(FAILED(hr)) {
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s", stringify(hr, true).c_str());
+			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s (0x%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}else if(hr != hrSuccess){
-			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "change warning: %s", stringify(hr, true).c_str());
+			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "change warning: %s (0x%x)",
+				GetMAPIErrorMessage(hr), hr);
 		}
 next:
 		// Mark this change as processed

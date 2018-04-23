@@ -9312,7 +9312,8 @@ static size_t MTOMRead(struct soap * /*soap*/, void *handle,
 	assert(lpStreamInfo->lpFifoBuffer != NULL);
 	er = lpStreamInfo->lpFifoBuffer->Read(buf, len, STR_DEF_TIMEOUT, &cbRead);
 	if (er != erSuccess)
-		ec_log_err("Failed to read data. er=%s", stringify(er).c_str());
+		ec_log_err("Failed to read data: %s (0x%x)",
+			GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 	return cbRead;
 }
 
