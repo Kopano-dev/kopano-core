@@ -76,6 +76,32 @@ KDatabase::KDatabase(void)
 	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
 }
 
+/**
+ * Raise the GROUP CONCAT limit of the server if that is too low.
+ * @limit:	new GC limit
+ * @reconnect:	whether autoreconnect is desired for this DB object
+ */
+HRESULT KDatabase::setup_gcm(size_t limit, bool reconnect)
+{
+	DB_RESULT result;
+	if (DoSelect("SHOW SESSION VARIABLES LIKE 'group_concat_max_len'", &result) != 0)
+		return 0;
+	auto row = result.fetch_row();
+	if (row == nullptr || row[0] == nullptr || row[1] == nullptr)
+		return 0;
+	auto gcm = strtoul(row[1], nullptr, 0);
+	if (limit <= gcm)
+		return 0; /* server already has a better limit */
+	auto query = "SET SESSION group_concat_max_len=" + stringify(limit);
+	if (Query(query) != 0) {
+		ec_log_crit("%s: raising group_concat_max_len to %zu failed: %s", __func__, limit, GetError());
+		return KCERR_DATABASE_ERROR;
+	}
+	if (reconnect)
+		mysql_options(&m_lpMySQL, MYSQL_INIT_COMMAND, query.c_str());
+	return 0;
+}
+
 ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
     unsigned int mysql_flags, unsigned int gcm)
 {
@@ -148,14 +174,7 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		goto exit;
 	}
 
-	query = "SET SESSION group_concat_max_len = " + stringify(gcm);
-	if (Query(query) != 0) {
-		ec_log_crit("KDatabase::Connect(): group_concat_max_len set fail: %s", GetError());
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
-	}
-	if (reconnect)
-		mysql_options(&m_lpMySQL, MYSQL_INIT_COMMAND, query.c_str());
+	er = setup_gcm(gcm, reconnect);
  exit:
 	if (er != erSuccess)
 		Close();

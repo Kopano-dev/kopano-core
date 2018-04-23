@@ -157,6 +157,7 @@ class _kc_export KDatabase : public kt_completion {
 
 	private:
 	void FreeResult_internal(void *);
+	HRESULT setup_gcm(size_t, bool);
 
 	std::recursive_mutex m_hMutexMySql;
 	bool m_bAutoLock = true;
