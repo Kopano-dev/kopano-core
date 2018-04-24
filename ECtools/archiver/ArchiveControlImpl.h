@@ -159,9 +159,6 @@ private:
 	HRESULT AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet *lpEntries);
 	
 	HRESULT CheckSafeCleanupSettings();
-    HRESULT purgesoftdeletedmessages(const tstring& strUser);
-    tstring getfoldername(LPMAPIFOLDER folder);
-    HRESULT purgesoftdeleteditems(LPMAPIFOLDER folder, const tstring& strUser);
 	
 	enum eCleanupAction { caDelete, caStore, caNone };
 
