@@ -49,7 +49,7 @@ from .parse import (
 # TODO escaping double quotes
 # TODO asterisk not implicit for phrases
 # TODO relative dates and timezone ("today")
-# TODO graph does not support 'size>"10 KB" and such?
+# TODO graph does not support 'size>"10 KB" and such? we now roll our own
 
 EMAIL1_NAME = (PSETID_Address, MNID_ID, 0x8083, PT_UNICODE) # TODO
 
@@ -145,10 +145,27 @@ class Term(object):
                                 SPropValue(proptag, d)
                             )
                 else:
+                    value = self.value
+                    unit = ''
+                    if [x for x in ('KB', 'MB', 'GB') if value.endswith(x)]:
+                        value, unit = value[:-2], value[-2:]
+
+                    if PROP_TYPE(proptag) in (PT_FLOAT, PT_DOUBLE):
+                        value = float(value)
+                    else:
+                        value = int(value)
+
+                    if unit == 'KB':
+                        value *= 1024
+                    elif unit == 'MB':
+                        value *= 1024**2
+                    elif unit == 'GB':
+                        value *= 1024**3
+
                     restr = SPropertyRestriction(
                                 OP_RELOP[self.op],
                                 proptag,
-                                SPropValue(proptag, int(self.value)) # TODO double
+                                SPropValue(proptag, value)
                             )
 
             elif self.op in (':', '='):
@@ -176,7 +193,6 @@ class Term(object):
                 elif PROP_TYPE(proptag) in (PT_SHORT, PT_LONG, PT_LONGLONG, PT_FLOAT, PT_DOUBLE):
                     conv = float if PROP_TYPE(proptag) in (PT_FLOAT, PT_DOUBLE) else int
                     if '..' in self.value:
-                        print('...')
                         val1, val2 = self.value.split('..')
                         restr = SAndRestriction([
                             SPropertyRestriction(
@@ -255,7 +271,6 @@ class Term(object):
 
             if subobj:
                 restr = SSubRestriction(subobj, restr)
-                print('sub!', restr)
 
         else:
             defaults = [(store._name_id(proptag[:3]) | proptag[3])
