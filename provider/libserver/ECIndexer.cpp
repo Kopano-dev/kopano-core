@@ -20,6 +20,7 @@
 #include <kopano/CommonUtil.h>
 #include "ECGenericObjectTable.h"
 #include <kopano/stringutil.h>
+#include <kopano/scope.hpp>
 #include "ECSearchClient.h"
 #include "ECCacheManager.h"
 #include "cmdutil.hpp"
@@ -310,23 +311,29 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	std::list<SIndexedTerm> lstMultiSearches;
 	const char* szSocket = lpConfig->GetSetting("search_socket");
 
+	auto laters = make_scope_success([&]() {
+		if (lpOptimizedRestrict != NULL)
+			FreeRestrictTable(lpOptimizedRestrict);
+		if (er != erSuccess)
+			g_lpStatsCollector->Increment(SCN_DATABASE_SEARCHES);
+		else
+			g_lpStatsCollector->Increment(SCN_INDEXED_SEARCHES);
+	});
+
 	if (!lpDatabase) {
-		er = KCERR_DATABASE_ERROR;
-                ec_log_err("GetIndexerResults(): no database");
-		goto exit;
+		ec_log_err("GetIndexerResults(): no database");
+		return KCERR_DATABASE_ERROR;
 	}
 	
 	lstMatches.clear();
 
-	if (!parseBool(lpConfig->GetSetting("search_enabled")) || szSocket[0] == '\0') {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
+	if (!parseBool(lpConfig->GetSetting("search_enabled")) || szSocket[0] == '\0')
+		return KCERR_NOT_FOUND;
+
 	lpSearchClient.reset(new(std::nothrow) ECSearchClient(szSocket, atoui(lpConfig->GetSetting("search_timeout"))));
-	if (!lpSearchClient) {
-		er = KCERR_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
+	if (!lpSearchClient)
+		return KCERR_NOT_ENOUGH_MEMORY;
+
 	if (lpCacheManager->GetExcludedIndexProperties(setExcludePropTags) != erSuccess) {
 		er = lpSearchClient->GetProperties(setExcludePropTags);
 		if (er == KCERR_NETWORK_ERROR)
@@ -334,24 +341,22 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 		else if (er != erSuccess)
 			ec_log_err("Error while querying search on \"%s\", 0x%08x", szSocket, er);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		er = lpCacheManager->SetExcludedIndexProperties(setExcludePropTags);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	er = CopyRestrictTable(NULL, lpRestrict, &lpOptimizedRestrict);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	er = NormalizeGetOptimalMultiFieldSearch(lpOptimizedRestrict, setExcludePropTags, &lstMultiSearches);
 	if (er != erSuccess)
-		goto exit; // Note this will happen if the restriction cannot be handled by the indexer
-	if (lstMultiSearches.empty()) {
+		return er; // Note this will happen if the restriction cannot be handled by the indexer
+	if (lstMultiSearches.empty())
 		// Although the restriction was strictly speaking indexer-compatible, no index queries could
 		// be found, so bail out
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
+		return KCERR_NOT_FOUND;
 
 	ec_log_debug("Using index, %zu index queries", lstMultiSearches.size());
 	tstart = decltype(tstart)::clock::now();
@@ -369,15 +374,6 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	ec_log_debug("%zu indexed matches found", lstMatches.size());
 	*lppNewRestrict = lpOptimizedRestrict;
     lpOptimizedRestrict = NULL;
-    
-exit:
-	if (lpOptimizedRestrict != NULL)
-		FreeRestrictTable(lpOptimizedRestrict);
-	if (er != erSuccess)
-		g_lpStatsCollector->Increment(SCN_DATABASE_SEARCHES);
-	else
-		g_lpStatsCollector->Increment(SCN_INDEXED_SEARCHES);
-    
     return er;
 }
 
