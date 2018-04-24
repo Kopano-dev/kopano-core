@@ -31,7 +31,6 @@ class proptagindex final {
 	std::set<std::string> m_indexed;
 };
 
-static std::unique_ptr<proptagindex> our_proptagidx;
 static const std::string our_proptables[] = {
 	"properties", "tproperties", "mvproperties",
 	"indexedproperties", "singleinstances", "lob",
@@ -42,11 +41,22 @@ static const std::string our_proptables_hier[] = {
 	"indexedproperties", "singleinstances",
 };
 
+static ECRESULT hidx_add(KDatabase &db, const std::string &tbl)
+{
+	ec_log_notice("dbadm: adding temporary helper index on %s", tbl.c_str());
+	return db.DoUpdate("ALTER TABLE " + tbl + " ADD INDEX tmptag (tag)");
+}
+
+static void hidx_remove(KDatabase &db, const std::string &tbl)
+{
+	ec_log_notice("dbadm: discard helper index on %s", tbl.c_str());
+	db.DoUpdate("ALTER TABLE " + tbl + " DROP INDEX tmptag");
+}
+
 proptagindex::proptagindex(std::shared_ptr<KDatabase> db) : m_db(db)
 {
 	for (const auto &tbl : our_proptables) {
-		ec_log_notice("dbadm: adding temporary helper index on %s", tbl.c_str());
-		auto ret = db->DoUpdate("ALTER TABLE " + tbl + " ADD INDEX tmptag (tag)");
+		auto ret = hidx_add(*db.get(), tbl);
 		if (ret == erSuccess)
 			m_indexed.emplace(tbl);
 	}
@@ -54,10 +64,22 @@ proptagindex::proptagindex(std::shared_ptr<KDatabase> db) : m_db(db)
 
 proptagindex::~proptagindex()
 {
-	for (const auto &tbl : m_indexed) {
-		ec_log_notice("dbadm: discard helper index on %s", tbl.c_str());
-		m_db->DoUpdate("ALTER TABLE " + tbl + " DROP INDEX tmptag");
-	}
+	for (const auto &tbl : m_indexed)
+		hidx_remove(*m_db.get(), tbl.c_str());
+}
+
+static ECRESULT index_tags(std::shared_ptr<KDatabase> db)
+{
+	for (const auto &tbl : our_proptables)
+		hidx_add(*db.get(), tbl);
+	return erSuccess;
+}
+
+static ECRESULT remove_helper_index(std::shared_ptr<KDatabase> db)
+{
+	for (const auto &tbl : our_proptables)
+		hidx_remove(*db.get(), tbl);
+	return erSuccess;
 }
 
 static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
@@ -89,8 +111,6 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 	ec_log_notice("defrag: %zu entries present", result.get_num_rows());
 	if (result.get_num_rows() == 0)
 		return erSuccess;
-	if (our_proptagidx == nullptr)
-		our_proptagidx.reset(new proptagindex(db));
 
 	while ((row = result.fetch_row()) != nullptr) {
 		unsigned int oldid = strtoul(row[0], nullptr, 0);
@@ -142,8 +162,6 @@ static ECRESULT np_remove_xh(std::shared_ptr<KDatabase> db)
 {
 	ec_log_notice("dbadm: executing action \"np-remove-xh\"");
 	unsigned int aff = 0;
-	if (our_proptagidx == nullptr)
-		our_proptagidx.reset(new proptagindex(db));
 	auto ret = db->DoUpdate("CREATE TEMPORARY TABLE n (SELECT id, 34049+id AS tag FROM names WHERE id <= 31485 AND guid=0x8603020000000000C000000000000046 AND (namestring LIKE \"X-%\" OR namestring LIKE \"x-%\"))");
 	if (ret != erSuccess)
 		return ret;
@@ -182,8 +200,6 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 	ec_log_notice("dup: %zu duplicates to repair", result.get_num_rows());
 	if (result.get_num_rows() == 0)
 		return erSuccess;
-	if (our_proptagidx == nullptr)
-		our_proptagidx.reset(new proptagindex(db));
 
 	while ((row = result.fetch_row()) != nullptr) {
 		unsigned int oldid = strtoul(row[0], nullptr, 0);
@@ -288,6 +304,7 @@ static ECRESULT np_stat(KDatabase &db)
 
 static ECRESULT k1216(std::shared_ptr<KDatabase> db)
 {
+	proptagindex helper(db);
 	auto ret = np_remove_highid(*db.get());
 	if (ret != erSuccess)
 		return ret;
@@ -354,6 +371,10 @@ int main(int argc, char **argv)
 			ret = np_repair_dups(db);
 		else if (strcmp(argv[i], "np-stat") == 0)
 			ret = np_stat(*db.get());
+		else if (strcmp(argv[i], "index-tags") == 0)
+			ret = index_tags(db);
+		else if (strcmp(argv[i], "rm-helper-index") == 0)
+			ret = remove_helper_index(db);
 		if (ret == KCERR_NOT_FOUND) {
 			ec_log_err("dbadm: unknown action \"%s\"", argv[i]);
 			return EXIT_FAILURE;
