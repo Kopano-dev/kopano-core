@@ -2,7 +2,6 @@
 Part of the high-level python bindings for Kopano
 
 Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
-
 """
 
 import datetime
@@ -36,6 +35,11 @@ from MAPI.Defs import PROP_TYPE
 from .errors import ArgumentError
 from .restriction import Restriction
 from .defs import PSETID_Address
+
+from .parse import (
+    ParserInput, Parser, Char, CharSet, ZeroOrMore, OneOrMore, Sequence,
+    Choice, Optional, Wrapper, NoMatch
+)
 
 # TODO such grouping: 'subject:(fresh exciting)'
 # TODO Regex: avoid substr
@@ -294,6 +298,23 @@ class Operation(object):
         )
 
 # build parser
+
+class Regex(Parser):
+    def __init__(self, regex):
+        self._re = re.compile(regex)
+
+    def parse(self, parser_input) :
+        if parser_input.remaining() == 0:
+            return NoMatch()
+        rest = parser_input._data[parser_input._position:] # TODO slow
+        match = self._re.match(rest)
+        if not match:
+            return NoMatch()
+        else:
+            n = match.end()
+            parser_input.read(n)
+            parser_input.inc_position(n)
+            return self.match(rest[:n])
 
 def _build_parser():
     whitespace = CharSet(' ')

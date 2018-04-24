@@ -105,9 +105,9 @@ class Processor(Thread):
 
                 verify = not self.options or not self.options.insecure
                 try:
-                    if self.options.with_metrics:
+                    if self.options and self.options.with_metrics:
                         POST_COUNT.inc()
-                    logging.debug('Subscription notification: %s' % fields['notificationUrl'])
+                    logging.debug('Subscription notification: %s' % subscription['notificationUrl'])
                     requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10, verify=verify)
                 except Exception:
                     traceback.print_exc()
@@ -169,7 +169,7 @@ class SubscriptionResource:
         resp.content_type = "application/json"
         resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
 
-        if self.options.with_metrics:
+        if self.options and self.options.with_metrics:
             SUBSCR_COUNT.inc()
             SUBSCR_ACTIVE.set(len(SUBSCRIPTIONS))
 
@@ -189,7 +189,7 @@ class SubscriptionResource:
         store.unsubscribe(sink)
         del SUBSCRIPTIONS[subscriptionid]
 
-        if self.options.with_metrics:
+        if self.options and self.options.with_metrics:
             SUBSCR_ACTIVE.set(len(SUBSCRIPTIONS))
 
 class NotifyAPIv0(falcon.API):
