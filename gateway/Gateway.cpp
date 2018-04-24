@@ -497,9 +497,9 @@ static int gw_listen_on(const char *service, const char *interface,
 		ec_log_crit("\"%s\" is not an acceptable port number", port_str);
 		return E_FAIL;
 	}
-	HRESULT hr = HrListen(interface, port, fd);
-	if (hr != hrSuccess) {
-		ec_log_crit("Unable to listen on port %u", port);
+	auto ret = ec_listen_inet(interface, port, fd);
+	if (ret < 0) {
+		ec_log_crit("Unable to listen on port %u: %s", port, strerror(-ret));
 		return E_FAIL;
 	}
 	ec_log_info("Listening on port %u for %s", port, service);

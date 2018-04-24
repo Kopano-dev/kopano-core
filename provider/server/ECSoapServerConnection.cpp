@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <sys/socket.h>
+#include <kopano/ECChannel.h>
 #include <kopano/ECLogger.h>
 
 #ifdef HAVE_SYS_STAT_H
@@ -53,29 +54,12 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
     bool bInit, int mode)
 {
 	int s;
-	int er = 0;
-	struct sockaddr_un saddr;
-	memset(&saddr, 0, sizeof(struct sockaddr_un));
-
-	if (strlen(unix_socket) >= sizeof(saddr.sun_path)) {
-		ec_log_err("UNIX domain socket path \"%s\" is too long", unix_socket);
-		return -1;
-	}
-	s = socket(PF_UNIX, SOCK_STREAM, 0);
-	if(s < 0) {
-		ec_log_crit("Unable to create AF_UNIX socket: %s", strerror(errno));
-		return -1;
-	}
-	memset(&saddr,0,sizeof(saddr));
-	saddr.sun_family = AF_UNIX;
-	kc_strlcpy(saddr.sun_path, unix_socket, sizeof(saddr.sun_path));
-	unlink(unix_socket);
-
-	if (bind(s, (struct sockaddr*)&saddr, 2 + strlen(unix_socket)) == -1) {
-		ec_log_crit("Unable to bind to socket %s: %s. This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", unix_socket, strerror(errno));
+	auto er = ec_listen_localsock(unix_socket, &s);
+	if (er < 0) {
+		ec_log_crit("Unable to bind to socket %s: %s. This program will terminate now.", unix_socket, strerror(-er));
                 kill(0, SIGTERM);
                 exit(1);
-        }
+	}
 
 	er = chmod(unix_socket,mode);
 	if(er) {
@@ -191,10 +175,10 @@ ECSoapServerConnection::ECSoapServerConnection(ECConfig *lpConfig) :
 	m_lpConfig(lpConfig)
 {
 #ifdef USE_EPOLL
-	m_lpDispatcher = new ECDispatcherEPoll(lpConfig, ECSoapServerConnection::CreatePipeSocketCallback, this);
+	m_lpDispatcher = new ECDispatcherEPoll(lpConfig);
 	ec_log_info("Using epoll events");
 #else
-	m_lpDispatcher = new ECDispatcherSelect(lpConfig, ECSoapServerConnection::CreatePipeSocketCallback, this);
+	m_lpDispatcher = new ECDispatcherSelect(lpConfig);
 	ec_log_info("Using select events");
 #endif
 }
@@ -316,10 +300,9 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE, lpsSoap);
 	
 	// Create a Unix or Windows pipe
-	m_strPipeName = lpPipeName;
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 	// set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket
-	lpsSoap->socket = sPipe = create_pipe_socket(m_strPipeName.c_str(), m_lpConfig, true, bPriority ? 0660 : 0666);
+	lpsSoap->socket = sPipe = create_pipe_socket(lpPipeName, m_lpConfig, true, bPriority ? 0660 : 0666);
 	// This just marks the socket as being a pipe, which triggers some slightly different behaviour
 	strcpy(lpsSoap->path,"pipe");
 
@@ -331,7 +314,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	lpsSoap->master = sPipe;
 	socklen = sizeof(lpsSoap->peer.storage);
 	if (getsockname(lpsSoap->socket, &lpsSoap->peer.addr, &socklen) != 0) {
-		ec_log_warn("getsockname %s: %s", m_strPipeName.c_str(), strerror(errno));
+		ec_log_warn("getsockname %s: %s", lpPipeName, strerror(errno));
 		socklen = 0;
 	} else if (socklen > sizeof(lpsSoap->peer.storage)) {
 		socklen = 0;
@@ -348,12 +331,6 @@ exit:
 	if (er != erSuccess)
 		soap_free(lpsSoap);
 	return er;
-}
-
-SOAP_SOCKET ECSoapServerConnection::CreatePipeSocketCallback(void *lpParam)
-{
-	auto lpThis = static_cast<ECSoapServerConnection *>(lpParam);
-	return create_pipe_socket(lpThis->m_strPipeName.c_str(), lpThis->m_lpConfig, false, 0666);
 }
 
 ECRESULT ECSoapServerConnection::ShutDown()

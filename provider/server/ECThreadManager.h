@@ -156,11 +156,9 @@ private:
  * work item queue. It is the owner of the thread manager and watchdog. Workers will query the dispatcher for
  * work items and will inform the dispatcher when a work item is done.
  */
-typedef SOAP_SOCKET (*CREATEPIPESOCKETCALLBACK)(void *lpParam);
-
 class ECDispatcher {
 public:
-	ECDispatcher(KC::ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
+	ECDispatcher(KC::ECConfig *);
 	virtual ~ECDispatcher();
     
     // Statistics
@@ -211,8 +209,6 @@ protected:
 	std::mutex m_mutexSockets;
 	bool m_bExit = false;
 	std::atomic<unsigned int> m_ulIdle{0};
-	CREATEPIPESOCKETCALLBACK m_lpCreatePipeSocketCallback;
-	void *					m_lpCreatePipeSocketParam;
 
 	// Socket settings (TCP + SSL)
 	int			m_nRecvTimeout;
@@ -226,7 +222,7 @@ private:
     int			m_fdRescanWrite;
 
 public:
-	ECDispatcherSelect(KC::ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
+	ECDispatcherSelect(KC::ECConfig *);
     virtual ECRESULT MainLoop();
 
     virtual ECRESULT ShutDown();
@@ -241,7 +237,7 @@ private:
 	int m_epFD;
 
 public:
-	ECDispatcherEPoll(KC::ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
+	ECDispatcherEPoll(KC::ECConfig *);
     virtual ~ECDispatcherEPoll();
 
     virtual ECRESULT MainLoop();

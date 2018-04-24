@@ -78,13 +78,15 @@ private:
 };
 
 /* helpers to open socket */
-extern _kc_export HRESULT HrListen(const char *bind, uint16_t port, int *fd);
+extern _kc_export int ec_listen_localsock(const char *path, int *fd);
+extern _kc_export int ec_listen_inet(const char *bind, uint16_t port, int *fd);
 /* accept data on connection */
 extern _kc_export HRESULT HrAccept(int fd, ECChannel **ch);
 
 extern _kc_export int zcp_bindtodevice(int fd, const char *iface);
 extern int zcp_peeraddr_is_local(const struct sockaddr *, socklen_t);
 extern _kc_export int zcp_peerfd_is_local(int);
+extern _kc_export std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *);
 extern _kc_export std::set<std::pair<std::string, uint16_t>> kc_parse_bindaddrs(const char *, uint16_t);
 
 } /* namespace KC */

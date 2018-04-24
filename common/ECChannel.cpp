@@ -790,7 +790,46 @@ int zcp_bindtodevice(int fd, const char *i)
 #endif
 }
 
-HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
+/**
+ * Create a PF_LOCAL socket for listening and return the fd.
+ */
+int ec_listen_localsock(const char *path, int *pfd)
+{
+	struct sockaddr_un sk;
+	if (strlen(path) >= sizeof(sk.sun_path)) {
+		ec_log_err("%s: \"%s\" is too long", __func__, path);
+		return EINVAL;
+	}
+	int fd = socket(PF_LOCAL, SOCK_STREAM, 0);
+	if (fd < 0) {
+		ec_log_err("%s: socket: %s", __func__, strerror(errno));
+		return -errno;
+	}
+	sk.sun_family = AF_LOCAL;
+	kc_strlcpy(sk.sun_path, path, sizeof(sk.sun_path));
+	unlink(path);
+	auto ret = bind(fd, reinterpret_cast<const sockaddr *>(&sk), sizeof(sk));
+	if (ret < 0) {
+		int saved_errno = errno;
+		ec_log_err("%s: bind %s: %s", __func__, path, strerror(saved_errno));
+		close(fd);
+		return -(errno = saved_errno);
+	}
+	ret = listen(fd, INT_MAX);
+	if (ret < 0) {
+		int saved_errno = errno;
+		ec_log_err("%s: listen: %s", __func__, strerror(saved_errno));
+		close(fd);
+		return -(errno = saved_errno);
+	}
+	*pfd = fd;
+	return 0;
+}
+
+/**
+ * Create PF_INET/PF_INET6 socket for listening and return the fd.
+ */
+int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 {
 	HRESULT hr = hrSuccess;
 	int fd = -1, opt = 1, ret;
@@ -799,7 +838,7 @@ HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 	char port_string[sizeof("65535")];
 
 	if (lpulListenSocket == nullptr || ulPort == 0 || szBind == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
+		return EINVAL;
 
 	snprintf(port_string, sizeof(port_string), "%u", ulPort);
 	memset(&sock_hints, 0, sizeof(sock_hints));
@@ -811,9 +850,12 @@ HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 	sock_hints.ai_socktype = SOCK_STREAM;
 	ret = getaddrinfo(*szBind == '\0' ? NULL : szBind,
 	      port_string, &sock_hints, &sock_res);
-	if (ret != 0) {
+	if (ret == EAI_SYSTEM) {
 		ec_log_err("getaddrinfo(%s,%u): %s", szBind, ulPort, gai_strerror(ret));
-		return MAPI_E_INVALID_PARAMETER;
+		return errno;
+	} else if (ret != 0) {
+		ec_log_err("getaddrinfo(%s,%u): %s", szBind, ulPort, gai_strerror(ret));
+		return EINVAL;
 	}
 	sock_res = reorder_addrinfo_ipv6(sock_res);
 
@@ -854,9 +896,10 @@ HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 		}
 
 		if (listen(fd, INT_MAX) < 0) {
+			auto saved_errno = errno;
 			ec_log_err("Unable to start listening on port %d: %s",
 				ulPort, strerror(errno));
-			hr = MAPI_E_NETWORK_ERROR;
+			errno = saved_errno;
 			goto exit;
 		}
 
@@ -876,7 +919,7 @@ HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 		goto exit;
 	} else if (fd < 0) {
 		ec_log_err("no sockets proposed");
-		hr = MAPI_E_NETWORK_ERROR;
+		errno = ENOENT;
 		goto exit;
 	}
 
@@ -887,7 +930,7 @@ exit:
 		freeaddrinfo(sock_res);
 	if (hr != hrSuccess && fd >= 0)
 		close(fd);
-	return hr;
+	return -errno;
 }
 
 HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
@@ -921,38 +964,59 @@ HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 	return hrSuccess;
 }
 
+static std::pair<std::string, uint16_t>
+ec_parse_bindaddr2(const char *spec)
+{
+	char *e = nullptr;
+	if (*spec != '[') { /* ] */
+		/* IPv4 or hostname */
+		auto y = strchr(spec, ':');
+		if (y == nullptr)
+			return {spec, 0};
+		uint16_t port = strtoul(++y, &e, 10);
+		if (e == nullptr || *e != '\0')
+			return {"!", 0};
+		return {std::string(spec, y - spec), port};
+	}
+	/* IPv6 */
+	auto y = strchr(spec + 1, ']');
+	if (y == nullptr)
+		return {"!", 0};
+	if (*++y == '\0')
+		return {std::string(spec + 1, y - spec - 2), 0};
+	if (*y != ':')
+		return {"!", 0};
+	uint16_t port = strtoul(++y, &e, 10);
+	if (e == nullptr || *e != '\0')
+		return {"!", 0};
+	return {std::string(spec + 1, y - spec - 2), port};
+}
+
+/**
+ * Tokenize bind specifier.
+ * @spec:	a string in the form of INETSPEC
+ *
+ * If @spec is not in the desired format, the parsed host will be "!". Absence
+ * of a port part will result in port being emitted as 0 - the caller needs to
+ * check for this, because unfiltered, this means "random port" to the OS.
+ */
+std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *spec)
+{
+	auto parts = ec_parse_bindaddr2(spec);
+	if (parts.first == "*")
+		/* getaddrinfo/soap_bind want the empty string for wildcard binding */
+		parts.first.clear();
+	return parts;
+}
+
 std::set<std::pair<std::string, uint16_t>>
 kc_parse_bindaddrs(const char *longline, uint16_t defport)
 {
 	std::set<std::pair<std::string, uint16_t>> socks;
 
 	for (auto &&spec : tokenize(longline, ' ', true)) {
-		std::string host;
-		uint16_t port;
-		char *e = nullptr;
-		auto x = spec.find('[');
-		auto y = spec.find(']', x + 1);
-		if (x == 0 && y != std::string::npos) {
-			host = spec.substr(x + 1, y - x - 1);
-			y = spec.find(':', y);
-			if (y != std::string::npos) {
-				port = strtoul(spec.c_str() + y + 1, &e, 10);
-				if (e == nullptr || *e != '\0')
-					port = defport;
-			}
-		} else {
-			y = spec.find(':');
-			if (y != std::string::npos) {
-				port = strtoul(spec.c_str() + y + 1, &e, 10);
-				if (e == nullptr || *e != '\0')
-					port = defport;
-				spec.erase(y);
-			}
-			host = std::move(spec);
-			if (host == "*")
-				host.clear();
-		}
-		socks.emplace(std::move(host), port);
+		auto pair = ec_parse_bindaddr(spec.c_str());
+		socks.emplace(std::move(pair.first), pair.second != 0 ? pair.second : defport);
 	}
 	return socks;
 }

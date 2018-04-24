@@ -3038,11 +3038,11 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		nMaxThreads = 20;
 	ec_log_info("Maximum LMTP threads set to %d", nMaxThreads);
 	// Setup sockets
-	hr = HrListen(g_lpConfig->GetSetting("server_bind"),
+	err = ec_listen_inet(g_lpConfig->GetSetting("server_bind"),
 	              atoi(g_lpConfig->GetSetting("lmtp_port")), &ulListenLMTP);
-	if (hr != hrSuccess) {
-		kc_perrorf("HrListen failed", hr);
-		return hr;
+	if (err < 0) {
+		ec_log_err("ec_listen_inet: %s", strerror(-err));
+		return MAPI_E_NETWORK_ERROR;
 	}
 		
 	err = zcp_bindtodevice(ulListenLMTP,

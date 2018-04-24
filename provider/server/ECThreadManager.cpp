@@ -417,8 +417,7 @@ void *ECWatchDog::Watch(void *lpParam)
     return NULL;
 }
 
-ECDispatcher::ECDispatcher(ECConfig *lpConfig,
-    CREATEPIPESOCKETCALLBACK lpCallback, void *lpParam)
+ECDispatcher::ECDispatcher(ECConfig *lpConfig)
 {
 	m_lpConfig = lpConfig;
 
@@ -426,8 +425,6 @@ ECDispatcher::ECDispatcher(ECConfig *lpConfig,
 	m_nRecvTimeout = atoi(m_lpConfig->GetSetting("server_recv_timeout"));
 	m_nReadTimeout = atoi(m_lpConfig->GetSetting("server_read_timeout"));
 	m_nSendTimeout = atoi(m_lpConfig->GetSetting("server_send_timeout"));
-	m_lpCreatePipeSocketCallback = lpCallback;
-	m_lpCreatePipeSocketParam = lpParam;
 }
 
 ECDispatcher::~ECDispatcher()
@@ -632,9 +629,8 @@ ECRESULT ECDispatcher::ShutDown()
     return erSuccess;
 }
 
-ECDispatcherSelect::ECDispatcherSelect(ECConfig *lpConfig,
-    CREATEPIPESOCKETCALLBACK lpCallback, void *lpCallbackParam) :
-	ECDispatcher(lpConfig, lpCallback, lpCallbackParam)
+ECDispatcherSelect::ECDispatcherSelect(ECConfig *lpConfig) :
+	ECDispatcher(lpConfig)
 {
     int pipes[2];
     pipe(pipes);
@@ -862,9 +858,8 @@ ECRESULT ECDispatcherSelect::NotifyRestart(SOAP_SOCKET s)
 }
 
 #ifdef HAVE_EPOLL_CREATE
-ECDispatcherEPoll::ECDispatcherEPoll(ECConfig *lpConfig,
-    CREATEPIPESOCKETCALLBACK lpCallback, void *lpCallbackParam) :
-	ECDispatcher(lpConfig, lpCallback, lpCallbackParam)
+ECDispatcherEPoll::ECDispatcherEPoll(ECConfig *lpConfig) :
+	ECDispatcher(lpConfig)
 {
 	m_fdMax = getdtablesize();
 	if (m_fdMax < 0)
