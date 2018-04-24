@@ -102,7 +102,7 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 	ret = db->DoSelect("SELECT MAX(id) - COUNT(id) FROM names WHERE id <= 31485", &result);
 	if (ret == erSuccess) {
 		row = result.fetch_row();
-		if (row != nullptr)
+		if (row != nullptr && row[0] != nullptr)
 			ec_log_info("defrag: %zu entries to move", strtoul(row[0], nullptr, 0));
 	}
 	ret = db->DoSelect("SELECT id FROM names WHERE id <= 31485 ORDER BY id DESC", &result);
