@@ -22,11 +22,12 @@ from MAPI.Tags import (
     PR_SUBJECT_W, PR_BODY_W, PR_MESSAGE_DELIVERY_TIME, PR_HASATTACH,
     PR_MESSAGE_SIZE, PR_MESSAGE_FLAGS, MSGFLAG_READ, PR_SENDER_NAME_W,
     PR_DISPLAY_NAME_W, PR_SENT_REPRESENTING_NAME_W, PR_SMTP_ADDRESS_W,
+    PR_MESSAGE_ATTACHMENTS, PR_ATTACH_LONG_FILENAME_W,
 )
 
 from MAPI.Struct import (
     SOrRestriction, SAndRestriction, SNotRestriction, SContentRestriction,
-    SPropValue, SPropertyRestriction, SBitMaskRestriction
+    SPropValue, SPropertyRestriction, SBitMaskRestriction, SSubRestriction,
 )
 
 from MAPI.Time import FileTime
@@ -63,7 +64,8 @@ MESSAGE_KEYWORD_PROP = {
     'read': (PR_MESSAGE_FLAGS, MSGFLAG_READ),
     'from': PR_SENT_REPRESENTING_NAME_W, # TODO email address
     'sender': PR_SENDER_NAME_W, # TODO why does 'from:user1@domain.com' work!?
-    # TODO to, cc, bcc, participants, attachments, category
+    'attachment': (PR_MESSAGE_ATTACHMENTS, PR_ATTACH_LONG_FILENAME_W),
+    # TODO to, cc, bcc, participants, category
 }
 
 CONTACT_KEYWORD_PROP = {
@@ -123,8 +125,12 @@ class Term(object):
         if self.field:
             proptag = TYPE_KEYWORD_PROPMAP[type_][self.field]
             flag = None
+            subobj = None
             if isinstance(proptag, tuple) and len(proptag) == 2:
-                proptag, flag = proptag
+                if(proptag[0]) == PR_MESSAGE_ATTACHMENTS:
+                    subobj, proptag = proptag
+                else:
+                    proptag, flag = proptag
             elif isinstance(proptag, tuple) and len(proptag) == 4:
                 proptag = store._name_id(proptag[:3]) | proptag[3]
 
@@ -246,6 +252,10 @@ class Term(object):
                         d = dateutil.parser.parse(self.value) # TODO hours etc
                         d2 = d + datetime.timedelta(days=1)
                         restr = _interval_restriction(proptag, d, d2)
+
+            if subobj:
+                restr = SSubRestriction(subobj, restr)
+                print('sub!', restr)
 
         else:
             defaults = [(store._name_id(proptag[:3]) | proptag[3])
