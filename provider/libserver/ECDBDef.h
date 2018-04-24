@@ -28,7 +28,6 @@
  * abchanges         | All addressbook changes
  * acl               | User permission objects
  * changes           | Object changes
- * clientupdatestatus| Update status of the kopano client, only used with auto updater
  * hierarchy         | The hiearchy between the mapi objects
  * indexedproperties | Mapi object entryid and sourcekey
  * lob               | Attachment data. Only when the setting attachment in database is enabled
@@ -305,18 +304,6 @@
 										`value` blob NOT NULL, \
 										PRIMARY KEY  (`name`) \
 									) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;"
-
-#define Z_TABLEDEF_CLIENTUPDATESTATUS "CREATE TABLE clientupdatestatus ( \
-										`userid` int(11) unsigned NOT NULL, \
-										`trackid` int(11) unsigned NOT NULL, \
-										`updatetime` DATETIME NOT NULL, \
-										`currentversion` varchar(50) binary NOT NULL, \
-										`latestversion` varchar(50) binary NOT NULL, \
-										`computername` varchar(255) binary NOT NULL, \
-										`status` int(11) unsigned NOT NULL, \
-										PRIMARY KEY (`userid`), \
-										UNIQUE KEY (`trackid`) \
-										)  ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
 // Default mysql table data
 #define Z_TABLEDATA_ACL				"INSERT INTO `acl` VALUES (2, 2, 2, 1531), \
