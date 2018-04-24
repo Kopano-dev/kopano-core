@@ -45,7 +45,7 @@ static const std::string our_proptables_hier[] = {
 proptagindex::proptagindex(std::shared_ptr<KDatabase> db) : m_db(db)
 {
 	for (const auto &tbl : our_proptables) {
-		printf("dbadm: adding temporary helper index on %s\n", tbl.c_str());
+		ec_log_notice("dbadm: adding temporary helper index on %s", tbl.c_str());
 		auto ret = db->DoUpdate("ALTER TABLE " + tbl + " ADD INDEX tmptag (tag)");
 		if (ret == erSuccess)
 			m_indexed.emplace(tbl);
@@ -55,7 +55,7 @@ proptagindex::proptagindex(std::shared_ptr<KDatabase> db) : m_db(db)
 proptagindex::~proptagindex()
 {
 	for (const auto &tbl : m_indexed) {
-		printf("dbadm: discard helper index on %s\n", tbl.c_str());
+		ec_log_notice("dbadm: discard helper index on %s", tbl.c_str());
 		m_db->DoUpdate("ALTER TABLE " + tbl + " DROP INDEX tmptag");
 	}
 }
@@ -65,7 +65,7 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 	DB_RESULT result;
 	DB_ROW row;
 	std::set<unsigned int> freemap;
-	printf("dbadm: executing action \"np-defrag\"\n");
+	ec_log_notice("dbadm: executing action \"np-defrag\"");
 
 	for (unsigned int i = 1; i <= 31485; ++i)
 		freemap.emplace(i);
@@ -77,42 +77,45 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 		assert(x == 1);
 	}
 
-	ret = db->DoSelect("SELECT id FROM names WHERE id <= 31485 ORDER BY id", &result);
+	ret = db->DoSelect("SELECT MAX(id) - COUNT(id) FROM names WHERE id <= 31485", &result);
+	if (ret == erSuccess) {
+		row = result.fetch_row();
+		if (row != nullptr)
+			ec_log_info("defrag: %zu entries to move", strtoul(row[0], nullptr, 0));
+	}
+	ret = db->DoSelect("SELECT id FROM names WHERE id <= 31485 ORDER BY id DESC", &result);
 	if (ret != erSuccess)
 		return ret;
-	printf("defrag: %zu IDs\n", result.get_num_rows());
+	ec_log_notice("defrag: %zu entries present", result.get_num_rows());
 	if (result.get_num_rows() == 0)
 		return erSuccess;
 	if (our_proptagidx == nullptr)
 		our_proptagidx.reset(new proptagindex(db));
 
-	unsigned int newid = 1;
 	while ((row = result.fetch_row()) != nullptr) {
 		unsigned int oldid = strtoul(row[0], nullptr, 0);
 		unsigned int oldtag = 0x8501 + oldid;
+		if (freemap.size() == 0)
+			break;
+		unsigned int newid = *freemap.begin();
+		if (newid >= oldid)
+			break;
 		unsigned int newtag = 0x8501 + newid;
 		if (oldtag >= 0xFFFF || newtag >= 0xFFFF)
 			continue;
-		if (oldid == newid) {
-			++newid;
-			continue;
-		}
-		assert(oldid > newid);
-		/* e.g. oldid=4 newid=3 */
 		assert(freemap.erase(newid) == 1);
-		printf("defrag: moving %u -> %u (names)", oldid, newid);
+		ec_log_notice("defrag: moving %u -> %u [names]", oldid, newid);
 		fflush(stdout);
 		ret = db->DoUpdate("UPDATE names SET id=" + stringify(newid) + " WHERE id=" + stringify(oldid));
 		if (ret != erSuccess)
 			return ret;
 		for (const auto &tbl : our_proptables) {
-			printf(" (%s)", tbl.c_str());
+			ec_log_notice("defrag: moving %u -> %u [%s]", oldid, newid, tbl.c_str());
 			fflush(stdout);
 			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
 			if (ret != erSuccess)
 				return ret;
 		}
-		putchar('\n');
 		auto x = freemap.emplace(oldid);
 		assert(x.second);
 		++newid;
@@ -121,7 +124,7 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 	ret = db->DoUpdate("ALTER TABLE names AUTO_INCREMENT=1");
 	if (ret != erSuccess)
 		return ret;
-	printf("defrag: done\n");
+	ec_log_notice("defrag: done");
 	return erSuccess;
 }
 
@@ -131,13 +134,13 @@ static ECRESULT np_remove_highid(KDatabase &db)
 	 * This is a no-op for systems where only K-1220 and no K-1219 was
 	 * diagnosed.
 	 */
-	printf("dbadm: executing action \"np-remove-highid\"\n");
+	ec_log_notice("dbadm: executing action \"np-remove-highid\"");
 	return db.DoUpdate("DELETE FROM names WHERE id > 31485");
 }
 
 static ECRESULT np_remove_xh(std::shared_ptr<KDatabase> db)
 {
-	printf("dbadm: executing action \"np-remove-xh\"\n");
+	ec_log_notice("dbadm: executing action \"np-remove-xh\"");
 	unsigned int aff = 0;
 	if (our_proptagidx == nullptr)
 		our_proptagidx.reset(new proptagindex(db));
@@ -145,11 +148,11 @@ static ECRESULT np_remove_xh(std::shared_ptr<KDatabase> db)
 	if (ret != erSuccess)
 		return ret;
 	for (const auto &tbl : our_proptables) {
-		printf("remove-xh: purging \"%s\"...\n", tbl.c_str());
+		ec_log_notice("remove-xh: purging \"%s\"...", tbl.c_str());
 		ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN n ON p.tag=n.tag", &aff);
 		if (ret != erSuccess)
 			return ret;
-		printf("remove-xh: expunged %u rows.\n", aff);
+		ec_log_notice("remove-xh: expunged %u rows.", aff);
 	}
 	ret = db->DoDelete("DELETE names FROM names INNER JOIN n ON names.id=n.id");
 	if (ret != erSuccess)
@@ -162,7 +165,7 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 {
 	DB_RESULT result;
 	DB_ROW row;
-	printf("dbadm: executing action \"np-repair-dups\"\n");
+	ec_log_notice("dbadm: executing action \"np-repair-dups\"");
 
 	auto ret = db->DoSelect(
 		"SELECT n1.id, n2.min_id FROM names AS n1, "
@@ -176,7 +179,7 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 		"ORDER BY n1.id", &result);
 	if (ret != erSuccess)
 		return ret;
-	printf("dup: %zu duplicates to repair\n", result.get_num_rows());
+	ec_log_notice("dup: %zu duplicates to repair", result.get_num_rows());
 	if (result.get_num_rows() == 0)
 		return erSuccess;
 	if (our_proptagidx == nullptr)
@@ -192,7 +195,7 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 		auto soldtag = stringify(oldtag), snewtag = stringify(newtag);
 		unsigned int aff;
 		for (const auto &tbl : our_proptables_hier) {
-			printf("dup: merging #%u into #%u in \"%s\"...\n", oldid, newid, tbl.c_str());
+			ec_log_notice("dup: merging #%u into #%u in \"%s\"...", oldid, newid, tbl.c_str());
 
 			/* Remove ambiguous props */
 			ret = db->DoUpdate("CREATE TEMPORARY TABLE vt (SELECT hierarchyid FROM " + tbl + " WHERE tag IN (" + soldtag + "," + snewtag + ") GROUP BY hierarchyid HAVING COUNT(*) >= 2)");
@@ -202,7 +205,7 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 			if (ret != erSuccess)
 				return ret;
 			if (aff > 0)
-				printf("dup: deleted %u ambiguous rows in \"%s\"\n", aff, tbl.c_str());
+				ec_log_notice("dup: deleted %u ambiguous rows in \"%s\"", aff, tbl.c_str());
 			ret = db->DoUpdate("DROP TEMPORARY TABLE vt");
 			if (ret != erSuccess)
 				return ret;
@@ -212,7 +215,7 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 			if (ret != erSuccess)
 				return ret;
 			if (aff > 0)
-				printf("dup: updated %u rows in \"%s\"\n", aff, tbl.c_str());
+				ec_log_notice("dup: updated %u rows in \"%s\"", aff, tbl.c_str());
 			ret = db->DoDelete("DELETE FROM " + tbl + " WHERE tag=" + stringify(oldtag));
 			if (ret != erSuccess)
 				return ret;
@@ -220,7 +223,7 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 
 		/* Lonely table with "instanceid" instead of "hierarchyid"... */
 		for (const std::string &tbl : {"lob"}) {
-			printf("dup: merging #%u into #%u in \"%s\"...\n", oldid, newid, tbl.c_str());
+			ec_log_notice("dup: merging #%u into #%u in \"%s\"...", oldid, newid, tbl.c_str());
 
 			ret = db->DoUpdate("CREATE TEMPORARY TABLE vt (SELECT instanceid FROM " + tbl + " WHERE tag IN (" + soldtag + "," + snewtag + ") GROUP BY instanceid HAVING COUNT(*) >= 2)");
 			if (ret != erSuccess)
@@ -229,7 +232,7 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 			if (ret != erSuccess)
 				return ret;
 			if (aff > 0)
-				printf("dup: deleted %u ambiguous rows in \"%s\"\n", aff, tbl.c_str());
+				ec_log_notice("dup: deleted %u ambiguous rows in \"%s\"", aff, tbl.c_str());
 			ret = db->DoUpdate("DROP TEMPORARY TABLE vt");
 			if (ret != erSuccess)
 				return ret;
@@ -238,7 +241,7 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 			if (ret != erSuccess)
 				return ret;
 			if (aff > 0)
-				printf("dup: updated %u rows in \"%s\"\n", aff, tbl.c_str());
+				ec_log_notice("dup: updated %u rows in \"%s\"", aff, tbl.c_str());
 			ret = db->DoDelete("DELETE FROM " + tbl + " WHERE tag=" + stringify(oldtag));
 			if (ret != erSuccess)
 				return ret;
