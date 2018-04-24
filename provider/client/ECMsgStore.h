@@ -53,7 +53,6 @@ public:
 class ECMsgStore :
     public ECMAPIProp, public IMsgStore, public IExchangeManageStore,
     public IECServiceAdmin, public IProxyStoreObject, public IECSpooler {
-	typedef void (* RELEASECALLBACK)(ECUnknown *lpObject, ECMsgStore *lpMsgStore);
 protected:
 	ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore);
 	virtual ~ECMsgStore();
@@ -92,7 +91,6 @@ public:
 	virtual HRESULT GetPublicFolderTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags);
 	virtual HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
 	virtual ULONG Release(void) _kc_override;
-	virtual HRESULT HrSetReleaseCallback(ECUnknown *lpObject, RELEASECALLBACK lpfnCallback);
 
 	// IECSpooler
 	virtual HRESULT GetMasterOutgoingTable(ULONG ulFlags, IMAPITable ** lppOutgoingTable);
@@ -243,8 +241,6 @@ public:
 
 private:
 	BOOL m_fIsSpooler, m_fIsDefaultStore;
-	RELEASECALLBACK lpfnCallback = nullptr;
-	ECUnknown *lpCallbackObject = nullptr;
 	std::string			m_strProfname;
 	std::set<ULONG>		m_setAdviseConnections;
 	ALLOC_WRAP_FRIEND;
