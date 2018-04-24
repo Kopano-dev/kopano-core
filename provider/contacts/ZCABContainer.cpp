@@ -24,7 +24,6 @@
 
 #include <kopano/ECMemTable.h>
 #include <kopano/ECGuid.h>
-#include <kopano/ECDebug.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>

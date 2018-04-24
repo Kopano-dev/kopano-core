@@ -23,7 +23,6 @@
 #include "ECMAPITable.h"
 #include "Mem.h"
 #include <kopano/ECGuid.h>
-#include <kopano/ECDebug.h>
 
 ECDistList::ECDistList(ECABLogon *prov, BOOL modify) :
 	ECABContainer(prov, MAPI_DISTLIST, modify, "IDistList")

@@ -37,7 +37,6 @@
 #include <sstream>
 
 #include <kopano/Util.h>
-#include <kopano/ECDebug.h>
 #include "PyMapiPlugin.h"
 
 using namespace KC;
@@ -370,7 +369,7 @@ void Archive::SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage)
 	LPTSTR lpszDesc;
 
 	oss << lpszMessage << endl;
-	oss << _("Error code:") << KC_T(" ") << convert_to<tstring>(GetMAPIErrorDescription(hr))
+	oss << _("Error code:") << KC_T(" ") << convert_to<tstring>(GetMAPIErrorMessage(hr))
 		<< KC_T(" (") << tstringify(hr, true) << KC_T(")") << endl;
 	if (Util::HrMAPIErrorToText(hr, &lpszDesc) == hrSuccess)
 		oss << _("Error description:") << KC_T(" ") << lpszDesc << endl;

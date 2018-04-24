@@ -26,8 +26,6 @@
 #include <mapix.h>
 #include <mapiutil.h>
 #include <mapidefs.h>
-
-#include <kopano/ECDebug.h>
 #include <kopano/ECTags.h>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>

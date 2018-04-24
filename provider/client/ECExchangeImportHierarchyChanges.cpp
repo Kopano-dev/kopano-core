@@ -25,7 +25,6 @@
 #include <edkguid.h>
 #include <mapiguid.h>
 #include <kopano/mapiext.h>
-#include <kopano/ECDebug.h>
 #include <kopano/stringutil.h>
 #include "pcutil.hpp"
 #include "ics.h"

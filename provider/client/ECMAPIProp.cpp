@@ -35,8 +35,6 @@
 
 #include "Mem.h"
 #include <kopano/Util.h>
-
-#include <kopano/ECDebug.h>
 #include <kopano/mapiext.h>
 
 #include <kopano/CommonUtil.h>

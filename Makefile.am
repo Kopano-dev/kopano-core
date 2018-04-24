@@ -570,7 +570,6 @@ libkcserver_la_SOURCES = \
 	provider/libserver/cmd.cpp provider/libserver/cmd.hpp \
 	provider/libserver/cmdutil.cpp provider/libserver/cmdutil.hpp \
 	provider/common/ECSearchClient.cpp provider/common/ECSearchClient.h \
-	provider/common/SOAPDebug.cpp provider/common/SOAPDebug.h \
 	provider/soap/soapKCmdService.h provider/soap/soapKCmdService.cpp
 libkcserver_la_LIBADD = \
 	libkcutil.la libkcmapi.la libkcssl.la libkcsoap.la \
@@ -592,7 +591,7 @@ noinst_HEADERS += \
 	common/ECMemStream.h common/HtmlEntity.h common/HtmlToTextParser.h \
 	common/IStreamAdapter.h common/rtfutil.h
 libkcmapi_la_SOURCES = \
-	common/ECABEntryID.cpp common/ECDebug.cpp \
+	common/ECABEntryID.cpp \
 	common/ECGuid.cpp common/ECKeyTable.cpp common/ECMemStream.cpp \
 	common/ECUnknown.cpp common/HtmlEntity.cpp common/HtmlToTextParser.cpp \
 	common/IStreamAdapter.cpp common/kcodes.cpp \

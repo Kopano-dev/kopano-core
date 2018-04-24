@@ -29,7 +29,6 @@
 #include <kopano/zcdefs.h>
 #include "freebusy.h"
 #include <kopano/ECUnknown.h>
-#include <kopano/ECDebug.h>
 #include <kopano/ECGuid.h>
 #include <kopano/Util.h>
 #include "freebusyguid.h"

@@ -30,8 +30,6 @@
 #include <kopano/ECGuid.h>
 #include <mapiguid.h>
 #include "ECMessage.h"
-#include <kopano/ECDebug.h>
-
 #include "ics.h"
 #include <kopano/mapiext.h>
 #include <kopano/mapi_ptr.h>

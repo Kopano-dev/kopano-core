@@ -21,7 +21,6 @@
 #include "ZCABLogon.h"
 #include "ZCABContainer.h"
 #include <kopano/ECTags.h>
-#include <kopano/ECDebug.h>
 #include <kopano/ECGuid.h>
 #include <kopano/memory.hpp>
 #include "kcore.hpp"

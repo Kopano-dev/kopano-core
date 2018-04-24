@@ -33,8 +33,6 @@
 
 #include <mapiutil.h>
 #include "ics.h"
-#include <kopano/ECDebug.h>
-
 #include "Mem.h"
 #include "ECMessage.h"
 #include <kopano/stringutil.h>

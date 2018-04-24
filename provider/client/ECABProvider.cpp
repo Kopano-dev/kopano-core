@@ -26,9 +26,6 @@
 #include <edkguid.h>
 #include "ECABProvider.h"
 #include "ECABLogon.h"
-
-#include <kopano/ECDebug.h>
-
 #include <kopano/Util.h>
 
 #include "WSTransport.h"

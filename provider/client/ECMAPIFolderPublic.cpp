@@ -26,9 +26,6 @@
 #include <kopano/Util.h>
 #include "ClientUtil.h"
 #include "pcutil.hpp"
-
-#include <kopano/ECDebug.h>
-
 #include <edkmdb.h>
 #include <kopano/mapiext.h>
 

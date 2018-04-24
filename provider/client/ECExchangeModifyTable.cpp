@@ -36,8 +36,6 @@
 #include <edkguid.h>
 #include <kopano/ECGuid.h>
 #include <mapiguid.h>
-#include <kopano/ECDebug.h>
-
 #include "pcutil.hpp"
 #include <kopano/charset/convert.h>
 #include "utf8/unchecked.h"

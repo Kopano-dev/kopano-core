@@ -40,7 +40,6 @@
 
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
-#include <kopano/ECDebug.h>
 #include "WSUtil.h"
 
 #include "ClientUtil.h"

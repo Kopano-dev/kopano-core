@@ -19,7 +19,6 @@
 #include <kopano/memory.hpp>
 #include <kopano/ECGuid.h>
 #include <ECSyncLog.h>
-#include <kopano/ECDebug.h>
 #include <kopano/ECLogger.h>
 
 #include "ECChangeAdvisor.h"

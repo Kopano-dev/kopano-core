@@ -24,7 +24,6 @@
 #include "ECAttach.h"
 
 #include <kopano/ECGuid.h>
-#include <kopano/ECDebug.h>
 
 using namespace KC;
 

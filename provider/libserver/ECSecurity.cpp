@@ -43,7 +43,6 @@
 
 #include "ECUserManagement.h"
 #include "SOAPUtils.h"
-#include "SOAPDebug.h"
 #include <edkmdb.h>
 #include "ECDBDef.h"
 #include "cmdutil.hpp"
@@ -51,6 +50,22 @@
 namespace KC {
 
 #define MAX_PARENT_LIMIT 64
+
+static const char *RightsToString(unsigned int ulecRights)
+{
+	switch (ulecRights) {
+	case ecSecurityRead: return "read";
+	case ecSecurityCreate: return "create";
+	case ecSecurityEdit: return "edit";
+	case ecSecurityDelete: return "delete";
+	case ecSecurityCreateFolder: return "change hierarchy";
+	case ecSecurityFolderVisible: return "view";
+	case ecSecurityFolderAccess: return "folder permissions";
+	case ecSecurityOwner: return "owner";
+	case ecSecurityAdmin: return "admin";
+	default: return "none";
+	}
+}
 
 /** 
  * @param[in] lpSession user session
