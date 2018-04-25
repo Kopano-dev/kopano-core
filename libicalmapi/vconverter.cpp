@@ -1547,10 +1547,13 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 			tStamp += 86400;
 	}
 	
-	if (!bDateOnly && lpicTZinfo != NULL)
+	if (!bDateOnly && lpicTZinfo != nullptr) {
 		ittStamp = icaltime_from_timet_with_zone(tStamp, bDateOnly, lpicTZinfo);
-	else
+		kc_ical_utc(ittStamp, false);
+	}
+	else {
 		ittStamp = icaltime_from_timet_with_zone(tStamp, bDateOnly, icaltimezone_get_utc_timezone());
+	}
 
 	icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
 
