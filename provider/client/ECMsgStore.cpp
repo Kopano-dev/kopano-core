@@ -203,17 +203,7 @@ HRESULT ECMsgStore::QueryInterfaceProxy(REFIID refiid, void **lppInterface)
 
 ULONG ECMsgStore::Release()
 {
-	// If a parent has requested a callback when we're going down, do it now.
-	if (m_cRef == 1 && lpfnCallback != nullptr)
-		lpfnCallback(lpCallbackObject, this);
 	return ECUnknown::Release();
-}
-
-HRESULT ECMsgStore::HrSetReleaseCallback(ECUnknown *lpObject, RELEASECALLBACK cb)
-{
-	lpCallbackObject = lpObject;
-	lpfnCallback = cb;
-	return hrSuccess;
 }
 
 HRESULT	ECMsgStore::Create(const char *lpszProfname, LPMAPISUP lpSupport,

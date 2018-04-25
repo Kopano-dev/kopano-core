@@ -28,6 +28,7 @@
 #include <sys/socket.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECDefs.h>
+#include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 
 #include "ECChannelClient.h"
@@ -79,21 +80,14 @@ ECRESULT ECChannelClient::DoCmd(const std::string &strCommand, std::vector<std::
 
 ECRESULT ECChannelClient::Connect()
 {
-	ECRESULT er = erSuccess;
+	if (m_lpChannel)
+		return erSuccess;
 
-	if (!m_lpChannel) {
-		if (m_bSocket)
-			er = ConnectSocket();
-		else
-			er = ConnectHttp();
-	}
-
-	return er;
+	return m_bSocket ? ConnectSocket() : ConnectHttp();
 }
 
 ECRESULT ECChannelClient::ConnectSocket()
 {
-	ECRESULT er = erSuccess;
 	int fd = -1;
 	struct sockaddr_un saddr;
 
@@ -108,26 +102,25 @@ ECRESULT ECChannelClient::ConnectSocket()
 
 	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
 		return KCERR_INVALID_PARAMETER;
+
 	if (connect(fd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
-		er = KCERR_NETWORK_ERROR;
-		goto exit;
+		if (fd != -1)
+			close(fd);
+		return KCERR_NETWORK_ERROR;
 	}
+
 	m_lpChannel.reset(new(std::nothrow) ECChannel(fd));
 	if (!m_lpChannel) {
-		er = KCERR_NOT_ENOUGH_MEMORY;
-		goto exit;
+		if (fd != -1)
+			close(fd);
+		return KCERR_NOT_ENOUGH_MEMORY;
 	}
 
-exit:
-	if (er != erSuccess && fd != -1)
-		close(fd);
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECChannelClient::ConnectHttp()
 {
-	ECRESULT er = erSuccess;
 	int fd = -1, ret;
 	struct addrinfo *sock_res, sock_hints;
 	const struct addrinfo *sock_addr;
@@ -140,6 +133,11 @@ ECRESULT ECChannelClient::ConnectHttp()
 	      &sock_res);
 	if (ret != 0)
 		return KCERR_NETWORK_ERROR;
+
+	auto free_sock_res = make_scope_success([&]() {
+		if (sock_res != nullptr)
+			freeaddrinfo(sock_res);
+	});
 
 	for (sock_addr = sock_res; sock_addr != NULL;
 	     sock_addr = sock_addr->ai_next)
@@ -162,23 +160,17 @@ ECRESULT ECChannelClient::ConnectHttp()
 		/* Good connected socket, use it */
 		break;
 	}
-	if (fd < 0) {
-		er = KCERR_NETWORK_ERROR;
-		goto exit;
-	}
+	if (fd < 0)
+		return KCERR_NETWORK_ERROR;
+
 	m_lpChannel.reset(new(std::nothrow) ECChannel(fd));
 	if (!m_lpChannel) {
-		er = KCERR_NOT_ENOUGH_MEMORY;
-		goto exit;
+		if (fd != -1)
+			close(fd);
+		return KCERR_NOT_ENOUGH_MEMORY;
 	}
 
-exit:
-	if (sock_res != NULL)
-		freeaddrinfo(sock_res);
-	if (er != erSuccess && fd != -1)
-		close(fd);
-
-	return er;
+	return erSuccess;
 }
 
 } /* namespace */
