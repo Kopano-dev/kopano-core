@@ -65,7 +65,7 @@ ECRESULT ECChannelClient::DoCmd(const std::string &strCommand, std::vector<std::
 		return er;
 
 	// @todo, should be able to read more than 4MB of results
-	er = m_lpChannel->HrReadLine(&strResponse, 4*1024*1024);
+	er = m_lpChannel->HrReadLine(strResponse, 4*1024*1024);
 	if (er != erSuccess)
 		return er;
 

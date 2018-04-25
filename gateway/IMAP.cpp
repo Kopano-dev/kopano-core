@@ -365,7 +365,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 				lpLogger->Log(EC_LOGLEVEL_DEBUG, "< <%d bytes data> %s", ulByteCount, inBuffer.c_str());
 		}
 
-		hr = lpChannel->HrReadLine(&inBuffer);
+		hr = lpChannel->HrReadLine(inBuffer);
 		if (hr != hrSuccess) {
 			if (errno)
 				lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to read line: %s", strerror(errno));

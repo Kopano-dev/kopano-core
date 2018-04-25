@@ -332,25 +332,21 @@ HRESULT ECChannel::HrGets(char *szBuffer, ULONG ulBufSize, ULONG *lpulRead) {
  * @return MAPI_ERROR_CODE
  * @retval MAPI_E_TOO_BIG more data in the network buffer than requested to read
  */
-HRESULT ECChannel::HrReadLine(std::string * strBuffer, ULONG ulMaxBuffer) {
+HRESULT ECChannel::HrReadLine(std::string &strBuffer, ULONG ulMaxBuffer) {
 	HRESULT hr = hrSuccess;
 	ULONG ulRead = 0;
-
-	if(!strBuffer)
-		return MAPI_E_INVALID_PARAMETER;
-
 	char buffer[65536];
 
 	// clear the buffer before appending
-	strBuffer->clear();
+	strBuffer.clear();
 
 	do {
 		hr = HrGets(buffer, 65536, &ulRead);
 		if (hr != hrSuccess)
 			break;
 
-		strBuffer->append(buffer, ulRead);
-		if (strBuffer->size() > ulMaxBuffer) {
+		strBuffer.append(buffer, ulRead);
+		if (strBuffer.size() > ulMaxBuffer) {
 			hr = MAPI_E_TOO_BIG;
 			break;
 		}

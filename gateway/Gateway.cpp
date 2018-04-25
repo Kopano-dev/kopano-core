@@ -206,7 +206,7 @@ static void *Handler(void *lpArg)
 		timeouts = 0;
 
 		inBuffer.clear();
-		hr = lpChannel->HrReadLine(&inBuffer);
+		hr = lpChannel->HrReadLine(inBuffer);
 		if (hr != hrSuccess) {
 			if (errno)
 				lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to read line: %s", strerror(errno));
