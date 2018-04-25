@@ -48,6 +48,10 @@ namespace KC {
 
 static void ec_log_bt(unsigned int, const char *, ...);
 
+static constexpr const size_t _LOG_TSSIZE = 64;
+static constexpr const size_t LOG_PFXSIZE = _LOG_TSSIZE + 32 + 16; /* +threadname+pid */
+static constexpr const size_t LOG_LVLSIZE = 12;
+
 static const char *const ll_names[] = {
 	"=======",
 	"crit   ",
@@ -84,19 +88,15 @@ void ECLogger::SetLoglevel(unsigned int max_ll) {
 	max_loglevel = max_ll;
 }
 
-std::string ECLogger::MakeTimestamp() {
+size_t ECLogger::MakeTimestamp(char *buffer, size_t z)
+{
 	time_t now = time(NULL);
 	tm local;
 
 	localtime_r(&now, &local);
-	char buffer[_LOG_TSSIZE];
-
 	if (timelocale)
-		strftime_l(buffer, sizeof buffer, "%c", &local, timelocale);
-	else
-		strftime(buffer, sizeof buffer, "%c", &local);
-
-	return buffer;
+		return strftime_l(buffer, z, "%c", &local, timelocale);
+	return strftime(buffer, z, "%c", &local);
 }
 
 bool ECLogger::Log(unsigned int loglevel) {
@@ -204,18 +204,19 @@ ECLogger_File::ECLogger_File(unsigned int max_ll, bool add_timestamp,
 	// so read is because we're only reading the handle ('log')
 	// so only Reset() will do a write-lock
 	prevcount = 0;
-	prevmsg.clear();
+	*prevmsg = '\0';
 	prevloglevel = 0;
 }
 
 ECLogger_File::~ECLogger_File() {
 	// not required at this stage but only added here for consistency
 	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
+	char pb[LOG_PFXSIZE];
 
 	if (prevcount > 1)
-		fnPrintf(fh, "%sLast message repeated %d times\n", DoPrefix().c_str(), prevcount);
+		fnPrintf(fh, "%sLast message repeated %d times\n", DoPrefix(pb, sizeof(pb)), prevcount);
 	else if (prevcount == 1)
-		fnPrintf(fh, "%sLast message repeated 1 time\n", DoPrefix().c_str());
+		fnPrintf(fh, "%sLast message repeated 1 time\n", DoPrefix(pb, sizeof(pb)));
 	if (fh != nullptr && fnClose != nullptr)
 		fnClose(fh);
 }
@@ -258,6 +259,17 @@ void ECLogger_File::reinit_buffer(size_t size)
 	buffer_size = size;
 }
 
+static char *EmitLevel(unsigned int loglevel, char *b, size_t z)
+{
+	if (loglevel == EC_LOGLEVEL_ALWAYS)
+		snprintf(b, z, "[%s] ", ll_names[0]);
+	else if (loglevel <= EC_LOGLEVEL_DEBUG)
+		snprintf(b, z, "[%s] ", ll_names[loglevel]);
+	else
+		snprintf(b, z, "[%7x] ", loglevel);
+	return b;
+}
+
 void ECLogger_File::Reset() {
 	std::lock_guard<KC::shared_mutex> lh(handle_lock);
 
@@ -273,8 +285,9 @@ void ECLogger_File::Reset() {
 	fh = fnOpen(logname.c_str(), szMode);
 	if (fh == nullptr) {
 		init_for_stderr();
+		char pb[LOG_PFXSIZE], el[LOG_LVLSIZE];
 		fnPrintf(fh, "%s%sECLogger reset issued, but cannot (re-)open %s: %s. Logging to stderr.\n",
-		         DoPrefix().c_str(), EmitLevel(EC_LOGLEVEL_ERROR).c_str(),
+		         DoPrefix(pb, sizeof(pb)), EmitLevel(EC_LOGLEVEL_ERROR, el, sizeof(el)),
 		         logname.c_str(), strerror(errno));
 		return;
 	}
@@ -288,48 +301,49 @@ int ECLogger_File::GetFileDescriptor() {
 	return -1;
 }
 
-std::string ECLogger_File::EmitLevel(const unsigned int loglevel) {
-	if (loglevel == EC_LOGLEVEL_ALWAYS)
-		return format("[%s] ", ll_names[0]);
-	else if (loglevel <= EC_LOGLEVEL_DEBUG)
-		return format("[%s] ", ll_names[loglevel]);
-
-	return format("[%7x] ", loglevel);
-}
-
 /**
  * Prints the optional timestamp and prefix to the log.
  */
-std::string ECLogger_File::DoPrefix() {
-	std::string out;
-
-	if (timestamp)
-		out += MakeTimestamp() + ": ";
-
+char *ECLogger_File::DoPrefix(char *buffer, size_t z)
+{
+	if (timestamp) {
+		auto adv = MakeTimestamp(buffer, z);
+		buffer += adv;
+		z -= adv;
+	}
+	if (z > 1) {
+		*buffer++ = ':';
+		--z;
+	}
+	if (z > 1) {
+		*buffer++ = ' ';
+		--z;
+	}
 	if (prefix == LP_TID) {
 #ifdef HAVE_PTHREAD_GETNAME_NP
 		pthread_t th = pthread_self();
 		char name[32] = { 0 };
 
 		if (pthread_getname_np(th, name, sizeof name))
-			out += format("[T%lu] ", kc_threadid());
+			snprintf(buffer, z, "[T%lu] ", kc_threadid());
 		else
-			out += format("[%s|T%lu] ", name, kc_threadid());
+			snprintf(buffer, z, "[%s|T%lu] ", name, kc_threadid());
 #else
-		out += format("[T%lu] ", kc_threadid());
+		snprintf(buffer, z, "[T%lu] ", kc_threadid());
 #endif
 	}
 	else if (prefix == LP_PID) {
-		out += format("[%5d] ", getpid());
+		snprintf(buffer, z, "[%5d] ", getpid());
 	}
 
-	return out;
+	return buffer;
 }
 
-bool ECLogger_File::DupFilter(const unsigned int loglevel, const std::string &message) {
+bool ECLogger_File::DupFilter(unsigned int loglevel, const char *message)
+{
 	bool exit_with_true = false;
 	KC::shared_lock<KC::shared_mutex> lr_dup(dupfilter_lock);
-	if (prevmsg == message) {
+	if (strncmp(prevmsg, message, sizeof(prevmsg)) == 0) {
 		++prevcount;
 
 		if (prevcount < 100)
@@ -342,12 +356,13 @@ bool ECLogger_File::DupFilter(const unsigned int loglevel, const std::string &me
 
 	if (prevcount > 1) {
 		KC::shared_lock<KC::shared_mutex> lr_handle(handle_lock);
-		fnPrintf(fh, "%s%sPrevious message logged %d times\n", DoPrefix().c_str(), EmitLevel(prevloglevel).c_str(), prevcount);
+		char pb[LOG_PFXSIZE], el[LOG_LVLSIZE];
+		fnPrintf(fh, "%s%sPrevious message logged %d times\n", DoPrefix(pb, sizeof(pb)), EmitLevel(prevloglevel, el, sizeof(el)), prevcount);
 	}
 
 	std::lock_guard<KC::shared_mutex> lw_dup(dupfilter_lock);
 	prevloglevel = loglevel;
-	prevmsg = message;
+	strncpy(prevmsg, message, sizeof(prevmsg));
 	prevcount = 0;
 	return false;
 }
@@ -362,7 +377,8 @@ void ECLogger_File::log(unsigned int loglevel, const char *message)
 	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
 	if (fh == nullptr)
 		return;
-	fnPrintf(fh, "%s%s%s\n", DoPrefix().c_str(), EmitLevel(loglevel).c_str(), message);
+	char pb[LOG_PFXSIZE], el[LOG_LVLSIZE];
+	fnPrintf(fh, "%s%s%s\n", DoPrefix(pb, sizeof(pb)), EmitLevel(loglevel, el, sizeof(el)), message);
 	/*
 	 * If IOLBF was set (buffer_size==0), the previous
 	 * print call already flushed it. Do not flush again

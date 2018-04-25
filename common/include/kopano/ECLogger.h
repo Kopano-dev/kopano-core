@@ -64,7 +64,6 @@ static const unsigned int EC_LOGLEVEL_SEARCH       = 0x00400000;
 static const unsigned int EC_LOGLEVEL_EXTENDED_MASK = 0xFFFF0000;
 
 #define _LOG_BUFSIZE		10240
-#define _LOG_TSSIZE			64
 
 #define ZLOG_DEBUG(_plog, ...) \
 	do { \
@@ -100,7 +99,7 @@ class _kc_export ECLogger {
 	/**
 	 * Returns string with timestamp in current locale.
 	 */
-	_kc_hidden std::string MakeTimestamp(void);
+	_kc_hidden size_t MakeTimestamp(char *, size_t);
 
 	unsigned int max_loglevel;
 	locale_t timelocale;
@@ -236,16 +235,15 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 	fileno_func fnFileno;
 	const char *szMode;
 
+	char prevmsg[_LOG_BUFSIZE];
 	int prevcount;
-	std::string prevmsg;
 	unsigned int prevloglevel;
-	_kc_hidden bool DupFilter(unsigned int level, const std::string &msg);
-	_kc_hidden std::string DoPrefix(void);
+	_kc_hidden bool DupFilter(unsigned int level, const char *);
+	_kc_hidden char *DoPrefix(char *, size_t);
 
 	public:
 	ECLogger_File(unsigned int max_ll, bool add_timestamp, const char *filename, bool compress);
 	~ECLogger_File(void);
-	_kc_hidden std::string EmitLevel(unsigned int level);
 	_kc_hidden void reinit_buffer(size_t size);
 	_kc_hidden virtual void Reset(void) _kc_override;
 	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
