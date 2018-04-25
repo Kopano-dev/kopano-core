@@ -217,10 +217,7 @@ static HRESULT CreateProfileTemp(const wchar_t *username,
 		sProps[i].Value.lpszA = (char*)app_misc;
 		++i;
 	}
-	hr = lpServiceAdmin->ConfigureMsgService(&service_uid, 0, 0, i, sProps);
-	if (hr != hrSuccess)
-		ec_log_crit("CreateProfileTemp(): ConfigureMsgService failed %x: %s", hr, GetMAPIErrorMessage(hr));
-	return hr;
+	return lpServiceAdmin->ConfigureMsgService(&service_uid, 0, 0, i, sProps);
 }
 
 /**
@@ -286,10 +283,8 @@ HRESULT HrOpenECSession(IMAPISession **lppSession,
 	}
 
 	hr = CreateProfileTemp(szUsername, szPassword, szPath, szProfName.get(), ulProfileFlags, sslkey_file, sslkey_password, app_version, app_misc);
-	if (hr != hrSuccess) {
-		ec_log_warn("CreateProfileTemp failed: %x: %s", hr, GetMAPIErrorMessage(hr));
+	if (hr != hrSuccess)
 		goto exit;
-	}
 
 	// Log on the the profile
 	hr = MAPILogonEx(0, (LPTSTR)szProfName.get(), (LPTSTR)"", MAPI_EXTENDED | MAPI_NEW_SESSION | MAPI_NO_MAIL, &lpMAPISession);
