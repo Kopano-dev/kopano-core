@@ -1,3 +1,19 @@
+8.5.x
+=====
+Changes:
+* daemons: disable SSL renegotiation for OpenSSL 1.1+
+* server: invalid port strings are now rejected
+* client: quiesce verbose logon failure messages
+Fixes:
+* dbadm: recognize -c option properly
+* libserver: drop all remains of clientupdatestatus table [KC-644]
+* dbadm: fix np-defrag crash when run on blank database
+Enhancements:
+* dbadm: add timestamps to log messages
+* dbadm: speed up np-defrag by using a reverse run
+* dbadm: add helper index creation/removal as an explicit action
+
+
 8.5.8 (2018-04-18)
 ==================
 Enhancements:
