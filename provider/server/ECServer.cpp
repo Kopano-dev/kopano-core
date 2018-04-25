@@ -736,17 +736,17 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 	auto https_sock = kc_parse_bindaddrs(cfg->GetSetting("server_listen_tls"), 237);
 
 	/* Historic directives */
-	if (strcmp(g_lpConfig->GetSetting("server_tcp_enabled"), "yes") == 0) {
+	if (strcmp(cfg->GetSetting("server_tcp_enabled"), "yes") == 0) {
 		auto addr = cfg->GetSetting("server_bind");
-		auto port = cfg->GetSetting("server_tcp_port");
-		if (port[0] != '\0')
-			http_sock.emplace(addr, strtoul(port, nullptr, 10));
+		uint16_t port = strtoul(cfg->GetSetting("server_tcp_port"), nullptr, 10);
+		if (port != 0)
+			http_sock.emplace(addr, port);
 	}
-	if (strcmp(g_lpConfig->GetSetting("server_ssl_enabled"), "yes") == 0) {
+	if (strcmp(cfg->GetSetting("server_ssl_enabled"), "yes") == 0) {
 		auto addr = cfg->GetSetting("server_bind");
-		auto port = cfg->GetSetting("server_ssl_port");
-		if (port[0] != '\0')
-			https_sock.emplace(addr, strtoul(port, nullptr, 10));
+		uint16_t port = strtoul(cfg->GetSetting("server_ssl_port"), nullptr, 10);
+		if (port != 0)
+			https_sock.emplace(addr, port);
 	}
 
 	/* Launch */
@@ -783,7 +783,7 @@ static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 		if (er != erSuccess)
 			return er;
 	}
-	if (strcmp(g_lpConfig->GetSetting("server_pipe_enabled"), "yes") == 0) {
+	if (strcmp(cfg->GetSetting("server_pipe_enabled"), "yes") == 0) {
 		auto pipe_sock = tokenize(cfg->GetSetting("server_pipe_name"), ' ', true);
 		for (const auto &spec : pipe_sock) {
 			auto er = ssc->ListenPipe(spec.c_str(), false);

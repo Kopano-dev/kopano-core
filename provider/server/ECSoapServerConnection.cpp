@@ -107,7 +107,10 @@ int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
 	char *ssl_name = nullptr;
 	int ssl_op = 0, ssl_include = 0, ssl_exclude = 0;
 
-	SSL_CTX_set_options(soap->ctx, SSL_OP_ALL);
+#ifndef SSL_OP_NO_RENEGOTIATION
+#	define SSL_OP_NO_RENEGOTIATION 0 /* unavailable in openSSL 1.0 */
+#endif
+	SSL_CTX_set_options(soap->ctx, SSL_OP_ALL | SSL_OP_NO_RENEGOTIATION);
 #if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
 	ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
 	if (ecdh != nullptr) {

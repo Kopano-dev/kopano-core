@@ -108,9 +108,10 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 
 	// enable *all* server methods, not just ssl2 and ssl3, but also tls1 and tls1.1
 	lpCTX = SSL_CTX_new(SSLv23_server_method());
-
-	SSL_CTX_set_options(lpCTX, SSL_OP_ALL);			 // enable quirk and bug workarounds
-
+#ifndef SSL_OP_NO_RENEGOTIATION
+#	define SSL_OP_NO_RENEGOTIATION 0 /* unavailable in openSSL 1.0 */
+#endif
+	SSL_CTX_set_options(lpCTX, SSL_OP_ALL | SSL_OP_NO_RENEGOTIATION);
 	ssl_name = strtok(ssl_protocols.get(), " ");
 	while(ssl_name != NULL) {
 		int ssl_proto = 0;
@@ -927,7 +928,7 @@ kc_parse_bindaddrs(const char *longline, uint16_t defport)
 
 	for (auto &&spec : tokenize(longline, ' ', true)) {
 		std::string host;
-		uint16_t port;
+		uint16_t port = defport;
 		char *e = nullptr;
 		auto x = spec.find('[');
 		auto y = spec.find(']', x + 1);
@@ -937,14 +938,14 @@ kc_parse_bindaddrs(const char *longline, uint16_t defport)
 			if (y != std::string::npos) {
 				port = strtoul(spec.c_str() + y + 1, &e, 10);
 				if (e == nullptr || *e != '\0')
-					port = defport;
+					continue;
 			}
 		} else {
 			y = spec.find(':');
 			if (y != std::string::npos) {
 				port = strtoul(spec.c_str() + y + 1, &e, 10);
 				if (e == nullptr || *e != '\0')
-					port = defport;
+					continue;
 				spec.erase(y);
 			}
 			host = std::move(spec);

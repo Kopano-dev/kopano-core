@@ -147,12 +147,13 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		er = KCERR_DATABASE_ERROR;
 		goto exit;
 	}
-
-	query = "SET SESSION group_concat_max_len = " + stringify(gcm);
-	if (Query(query) != 0) {
-		ec_log_crit("KDatabase::Connect(): group_concat_max_len set fail: %s", GetError());
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
+	if (gcm > 0) {
+		query = "SET SESSION group_concat_max_len = " + stringify(gcm);
+		if (Query(query) != 0) {
+			ec_log_crit("KDatabase::Connect(): group_concat_max_len set fail: %s", GetError());
+			er = KCERR_DATABASE_ERROR;
+			goto exit;
+		}
 	}
 	if (reconnect)
 		mysql_options(&m_lpMySQL, MYSQL_INIT_COMMAND, query.c_str());
