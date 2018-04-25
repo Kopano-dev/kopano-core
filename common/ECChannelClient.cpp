@@ -80,16 +80,10 @@ ECRESULT ECChannelClient::DoCmd(const std::string &strCommand, std::vector<std::
 
 ECRESULT ECChannelClient::Connect()
 {
-	ECRESULT er = erSuccess;
+	if (m_lpChannel)
+		return erSuccess;
 
-	if (!m_lpChannel) {
-		if (m_bSocket)
-			er = ConnectSocket();
-		else
-			er = ConnectHttp();
-	}
-
-	return er;
+	return m_bSocket ? ConnectSocket() : ConnectHttp();
 }
 
 ECRESULT ECChannelClient::ConnectSocket()
