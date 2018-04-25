@@ -973,7 +973,7 @@ ec_parse_bindaddr2(const char *spec)
 		auto y = strchr(spec, ':');
 		if (y == nullptr)
 			return {spec, 0};
-		uint16_t port = strtoul(++y, &e, 10);
+		uint16_t port = strtoul(y + 1, &e, 10);
 		if (e == nullptr || *e != '\0')
 			return {"!", 0};
 		return {std::string(spec, y - spec), port};
@@ -986,7 +986,7 @@ ec_parse_bindaddr2(const char *spec)
 		return {std::string(spec + 1, y - spec - 2), 0};
 	if (*y != ':')
 		return {"!", 0};
-	uint16_t port = strtoul(++y, &e, 10);
+	uint16_t port = strtoul(y + 1, &e, 10);
 	if (e == nullptr || *e != '\0')
 		return {"!", 0};
 	return {std::string(spec + 1, y - spec - 2), port};
