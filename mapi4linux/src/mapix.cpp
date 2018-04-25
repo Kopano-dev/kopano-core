@@ -584,13 +584,14 @@ HRESULT M4LMsgServiceAdmin::ConfigureMsgService(const MAPIUID *lpUID,
     const SPropValue *lpProps)
 {
 	if (lpUID == NULL) {
-		ec_log_err("M4LMsgServiceAdmin::ConfigureMsgService() invalid parameters");
+		ec_log_err("ConfigureMsgService: invalid parameters");
 		return MAPI_E_INVALID_PARAMETER;
 	}
 	ulock_rec l_srv(m_mutexserviceadmin);
 	auto entry = findServiceAdmin(lpUID);
 	if (!entry) {
-		ec_log_err("M4LMsgServiceAdmin::ConfigureMsgService() service not found");
+		ec_log_err("ConfigureMsgService: service UID %s not found",
+			bin2hex(sizeof(*lpUID), lpUID).c_str());
 		return MAPI_E_NOT_FOUND;
 	}
 
@@ -599,7 +600,7 @@ HRESULT M4LMsgServiceAdmin::ConfigureMsgService(const MAPIUID *lpUID,
 	          ulUIParam, ulFlags, MSG_SERVICE_CONFIGURE, cValues, lpProps,
 	          (IProviderAdmin *)entry->provideradmin, nullptr);
 	if (hr != hrSuccess)
-		return kc_perrorf("MSGServiceEntry failed", hr);
+		return hr;
 	entry->bInitialize = true;
 	return hrSuccess;
 }

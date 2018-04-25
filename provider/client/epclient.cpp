@@ -41,6 +41,7 @@
 #include <kopano/ECLogger.h>
 
 #include <kopano/ECGuid.h>
+#include <kopano/MAPIErrors.h>
 #include <edkmdb.h>
 #include <edkguid.h>
 
@@ -648,6 +649,11 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 			}else if(!strServerName.empty() && !sProfileProps.strUserName.empty()) {
 				//Logon the server
 				hr = lpTransport->HrLogon(sProfileProps);
+				if (hr != hrSuccess)
+					ec_log_err("HrLogon server \"%s\" user \"%ls\": %s",
+						sProfileProps.strServerPath.c_str(),
+						sProfileProps.strUserName.c_str(),
+						GetMAPIErrorMessage(hr));
 			}else{
 				hr = MAPI_E_LOGON_FAILED;
 			}

@@ -3101,6 +3101,9 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			continue;
 		}
 
+		if (!(pollfd.revents & (POLLIN | POLLRDHUP)))
+			/* OS might set more bits than requested */
+			continue;
 		// don't start more "threads" that lmtp_max_threads config option
 		if (g_nLMTPThreads == nMaxThreads) {
 			sc -> countInc("DAgent", "max_thread_count");
@@ -3108,16 +3111,8 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			continue;
 		}
 
-		++g_nLMTPThreads;
-
 		// One socket has signalled a new incoming connection
 		std::unique_ptr<DeliveryArgs> da(new DeliveryArgs(*lpArgs));
-
-		if ((pollfd.revents & (POLLIN | POLLRDHUP)) == 0) {
-			// should not be able to get here because of continues
-			ec_log_err("Incoming traffic was not for me?!");
-			continue;
-		}
 		hr = HrAccept(ulListenLMTP, &unique_tie(da->lpChannel));
 		if (hr != hrSuccess) {
 			kc_perrorf("HrAccept failed", hr);
@@ -3127,9 +3122,18 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		}
 		sc->countInc("DAgent", "incoming_session");
 		da->sc = sc;
-		if (unix_fork_function(HandlerLMTP, da.get(), nCloseFDs, pCloseFDs) < 0)
+		/*
+		 * Must raise this before fork. If the subprocess dies
+		 * instantly, SIGCHLD could arrive before unix_fork_function
+		 * returns, and then the CHLD handler could underflow the var.
+		 */
+		++g_nLMTPThreads;
+		if (unix_fork_function(HandlerLMTP, da.get(), nCloseFDs, pCloseFDs) < 0) {
 			ec_log_err("Can't create LMTP process.");
+			--g_nLMTPThreads;
 			// just keep running
+		}
+
 		// main handler always closes information it doesn't need
 		hr = hrSuccess;
 		continue;
@@ -3635,7 +3639,11 @@ int main(int argc, char *argv[]) {
 	file_limit.rlim_max = KC_DESIRED_FILEDES;
 
 	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
-		ec_log_err("WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors (%s)", KC_DESIRED_FILEDES, getdtablesize(), strerror(errno));
+		ec_log_err("WARNING: setrlimit(RLIMIT_NOFILE, %d) failed: %s. "
+			"You will only be able to connect up to %d sockets. "
+			"Either start the process as root, "
+			"or increase user limits for open file descriptors.",
+			KC_DESIRED_FILEDES, strerror(errno), getdtablesize());
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 
 	if (bListenLMTP) {

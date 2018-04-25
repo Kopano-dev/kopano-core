@@ -15,27 +15,43 @@ By default, kopano\-dbadm will read /etc/kopano/server.cfg for MySQL
 connection parameters, but an alternate file may be specified.
 .SH Actions
 .SS k\-1216
-This is an alias for the combination of: np\-remove\-highid, np\-repair\-dups,
-np\-defrag. It may be used to address the K-1216 issue that kopano\-server(8)
-may report when performing a schema update.
+.PP
+This is an alias for the combination of: index\-tags, np\-remove\-highid,
+np\-repair\-dups, np\-defrag, rm\-helper\-index. It may be used to address the
+K-1216 issue that kopano\-server(8) may report when performing a schema update.
+If the tag indices already exist, harmless warnings will show, but the indices
+will be used and left as-is after the k\-1216 action is done.
 .SS np\-defrag
+.PP
 Compact the ID space in the namedproperties table and lowers the
 AUTO_INCREMENT value, thereby making IDs actually usable after a remove
 operation (such as np\-remove\-xh).
 .SS np\-remove\-highid
+.PP
 Remove all named property mappings with internal ID higher than 31485. As
 Kopano/Zarafa MAPI clients cannot handle these IDs anyway, the IDs are never
 used to store any data and only occupy the ID space needlessy.
 .SS np\-remove\-xh
+.PP
 kopano\-dagent(8) used to index all X-Headers from Internet e-mails by default,
 but administrators may not have needed this information in the first place. By
 using np\-remove\-xh, all named properties whose name starts with "X\-" and
 have GUID=PS_INTERNET_HEADERS are removed. np\-defrag should be run afterwards.
 .SS np\-repair\-dups
+.PP
 Repairs duplicate named properties (only IDs below or equal to 31485).
 .SS np\-stat
+.PP
 Show statistics for the namedproperties table. This action can be executed
 while kopano\-server is active.
+.SS index\-tags
+.PP
+Create helper indices for the "tag" columns. This action can be executed while
+kopano\-server is active.
+.SS rm\-helper\-index
+.PP
+Remove helper indices again. This action can be executed while kopano\-server
+is active.
 .SH Performance
 .PP
 Totally depends on the amount of data that needs to be moved. MySQL also seems

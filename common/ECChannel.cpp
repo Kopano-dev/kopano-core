@@ -109,9 +109,10 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 
 	// enable *all* server methods, not just ssl2 and ssl3, but also tls1 and tls1.1
 	lpCTX = SSL_CTX_new(SSLv23_server_method());
-
-	SSL_CTX_set_options(lpCTX, SSL_OP_ALL);			 // enable quirk and bug workarounds
-
+#ifndef SSL_OP_NO_RENEGOTIATION
+#	define SSL_OP_NO_RENEGOTIATION 0 /* unavailable in openSSL 1.0 */
+#endif
+	SSL_CTX_set_options(lpCTX, SSL_OP_ALL | SSL_OP_NO_RENEGOTIATION);
 	ssl_name = strtok(ssl_protocols.get(), " ");
 	while(ssl_name != NULL) {
 		int ssl_proto = 0;
