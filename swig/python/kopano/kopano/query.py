@@ -16,14 +16,15 @@ from MAPI import (
     FL_SUBSTRING, FL_IGNORECASE, RELOP_GT, RELOP_EQ, PT_BOOLEAN, PT_UNICODE,
     BMR_EQZ, BMR_NEZ, PT_SYSTIME, RELOP_GE, RELOP_LT, RELOP_LE, RELOP_NE,
     PT_SHORT, PT_LONG, PT_LONGLONG, PT_FLOAT, PT_DOUBLE, MNID_ID, MNID_STRING,
-    PT_MV_UNICODE
+    PT_MV_UNICODE, MAPI_TO, MAPI_CC, MAPI_BCC
 )
 
 from MAPI.Tags import (
     PR_SUBJECT_W, PR_BODY_W, PR_MESSAGE_DELIVERY_TIME, PR_HASATTACH,
     PR_MESSAGE_SIZE, PR_MESSAGE_FLAGS, MSGFLAG_READ, PR_SENDER_NAME_W,
     PR_DISPLAY_NAME_W, PR_SENT_REPRESENTING_NAME_W, PR_SMTP_ADDRESS_W,
-    PR_MESSAGE_ATTACHMENTS, PR_ATTACH_LONG_FILENAME_W,
+    PR_MESSAGE_ATTACHMENTS, PR_ATTACH_LONG_FILENAME_W, PR_MESSAGE_RECIPIENTS,
+    PR_RECIPIENT_TYPE,
 )
 
 from MAPI.Struct import (
@@ -51,6 +52,7 @@ from .parse import (
 # TODO asterisk not implicit for phrases
 # TODO relative dates rel. to timezone (eg "received:today")
 # TODO graph does not support 'size>"10 KB" and such? we now roll our own
+# TODO email matching on to/cc/bcc (PR_SEARCH_KEY/PR_EMAIL_ADDRESS?)
 
 EMAIL1_NAME = (PSETID_Address, MNID_ID, 0x8083, PT_UNICODE) # TODO merge
 CATEGORY_NAME = (PS_PUBLIC_STRINGS, MNID_STRING, u'Keywords', PT_MV_UNICODE)
@@ -68,7 +70,10 @@ MESSAGE_KEYWORD_PROP = {
     'sender': PR_SENDER_NAME_W, # TODO why does 'from:user1@domain.com' work!?
     'attachment': (PR_MESSAGE_ATTACHMENTS, PR_ATTACH_LONG_FILENAME_W),
     'category': CATEGORY_NAME,
-    # TODO to, cc, bcc, participants
+    'to': (PR_MESSAGE_RECIPIENTS, MAPI_TO),
+    'cc': (PR_MESSAGE_RECIPIENTS, MAPI_CC),
+    'bcc': (PR_MESSAGE_RECIPIENTS, MAPI_BCC),
+    'participants': (PR_MESSAGE_RECIPIENTS, None),
 }
 
 CONTACT_KEYWORD_PROP = {
@@ -130,11 +135,15 @@ class Term(object):
             proptag = TYPE_KEYWORD_PROPMAP[type_][self.field]
             flag = None
             subobj = None
+            recipient_type = None
 
             # property in sub-object (attachments/recipient): use sub-restriction
             if isinstance(proptag, tuple) and len(proptag) == 2:
                 if(proptag[0]) == PR_MESSAGE_ATTACHMENTS:
                     subobj, proptag = proptag
+                elif(proptag[0]) == PR_MESSAGE_RECIPIENTS:
+                    subobj, recipient_type = proptag
+                    proptag = PR_DISPLAY_NAME_W # TODO email
                 else:
                     proptag, flag = proptag
 
@@ -287,7 +296,17 @@ class Term(object):
                         d2 = d + datetime.timedelta(days=1)
                         restr = _interval_restriction(proptag, d, d2)
 
+            # turn restriction into sub-restriction
             if subobj:
+                if recipient_type is not None:
+                    restr = SAndRestriction([
+                        restr,
+                        SPropertyRestriction(
+                                RELOP_EQ,
+                                PR_RECIPIENT_TYPE,
+                                SPropValue(PR_RECIPIENT_TYPE, recipient_type)
+                        )
+                    ])
                 restr = SSubRestriction(subobj, restr)
 
         else:
