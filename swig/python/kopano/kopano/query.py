@@ -15,7 +15,8 @@ import dateutil.parser
 from MAPI import (
     FL_SUBSTRING, FL_IGNORECASE, RELOP_GT, RELOP_EQ, PT_BOOLEAN, PT_UNICODE,
     BMR_EQZ, BMR_NEZ, PT_SYSTIME, RELOP_GE, RELOP_LT, RELOP_LE, RELOP_NE,
-    PT_SHORT, PT_LONG, PT_LONGLONG, PT_FLOAT, PT_DOUBLE, MNID_ID
+    PT_SHORT, PT_LONG, PT_LONGLONG, PT_FLOAT, PT_DOUBLE, MNID_ID, MNID_STRING,
+    PT_MV_UNICODE
 )
 
 from MAPI.Tags import (
@@ -35,7 +36,7 @@ from MAPI.Defs import PROP_TYPE
 
 from .errors import ArgumentError
 from .restriction import Restriction
-from .defs import PSETID_Address
+from .defs import PSETID_Address, PS_PUBLIC_STRINGS
 
 from .parse import (
     ParserInput, Parser, Char, CharSet, ZeroOrMore, OneOrMore, Sequence,
@@ -48,10 +49,11 @@ from .parse import (
 # TODO operator associativity/precedence (eg 'NOT a AND b'), check MSG
 # TODO escaping double quotes
 # TODO asterisk not implicit for phrases
-# TODO relative dates and timezone ("today")
+# TODO relative dates rel. to timezone (eg "received:today")
 # TODO graph does not support 'size>"10 KB" and such? we now roll our own
 
-EMAIL1_NAME = (PSETID_Address, MNID_ID, 0x8083, PT_UNICODE) # TODO
+EMAIL1_NAME = (PSETID_Address, MNID_ID, 0x8083, PT_UNICODE) # TODO merge
+CATEGORY_NAME = (PS_PUBLIC_STRINGS, MNID_STRING, u'Keywords', PT_MV_UNICODE)
 
 MESSAGE_KEYWORD_PROP = {
     'subject': PR_SUBJECT_W,
@@ -65,7 +67,8 @@ MESSAGE_KEYWORD_PROP = {
     'from': PR_SENT_REPRESENTING_NAME_W, # TODO email address
     'sender': PR_SENDER_NAME_W, # TODO why does 'from:user1@domain.com' work!?
     'attachment': (PR_MESSAGE_ATTACHMENTS, PR_ATTACH_LONG_FILENAME_W),
-    # TODO to, cc, bcc, participants, category
+    'category': CATEGORY_NAME,
+    # TODO to, cc, bcc, participants
 }
 
 CONTACT_KEYWORD_PROP = {
@@ -123,17 +126,23 @@ class Term(object):
 
     def restriction(self, type_, store):
         if self.field:
+            # determine proptag for term, eg 'subject'
             proptag = TYPE_KEYWORD_PROPMAP[type_][self.field]
             flag = None
             subobj = None
+
+            # property in sub-object (attachments/recipient): use sub-restriction
             if isinstance(proptag, tuple) and len(proptag) == 2:
                 if(proptag[0]) == PR_MESSAGE_ATTACHMENTS:
                     subobj, proptag = proptag
                 else:
                     proptag, flag = proptag
+
+            # named property: resolve local proptag
             elif isinstance(proptag, tuple) and len(proptag) == 4:
                 proptag = store._name_id(proptag[:3]) | proptag[3]
 
+            # comparison operator
             if self.op in ('<', '>', '>=', '<=', '<>'):
                 if PROP_TYPE(proptag) == PT_SYSTIME:
                     d = dateutil.parser.parse(self.value)
@@ -168,6 +177,7 @@ class Term(object):
                                 SPropValue(proptag, value)
                             )
 
+            # contains/equals operator
             elif self.op in (':', '='):
                 if PROP_TYPE(proptag) == PT_UNICODE:
                     restr = SContentRestriction(
@@ -189,6 +199,14 @@ class Term(object):
                                     proptag,
                                     SPropValue(proptag, self.value in ('yes', 'true'))
                                 )
+
+                elif PROP_TYPE(proptag) == PT_MV_UNICODE:
+                    proptag2 = (proptag ^ PT_MV_UNICODE) | PT_UNICODE # funky!
+                    restr = SContentRestriction(
+                                FL_SUBSTRING | FL_IGNORECASE,
+                                proptag,
+                                SPropValue(proptag2, self.value)
+                            )
 
                 elif PROP_TYPE(proptag) in (PT_SHORT, PT_LONG, PT_LONGLONG, PT_FLOAT, PT_DOUBLE):
                     conv = float if PROP_TYPE(proptag) in (PT_FLOAT, PT_DOUBLE) else int
