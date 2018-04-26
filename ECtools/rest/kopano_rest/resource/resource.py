@@ -189,9 +189,9 @@ class Resource(object):
     def folder_gen(self, req, folder):
         args = urlparse.parse_qs(req.query_string) # TODO generalize
         if '$search' in args:
-            text = args['$search'][0]
+            query = args['$search'][0]
             def yielder(**kwargs):
-                for item in folder.search(text):
+                for item in folder.items(query):
                     yield item
             return self.generator(req, yielder, 0)
         else:

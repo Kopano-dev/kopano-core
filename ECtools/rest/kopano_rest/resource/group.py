@@ -4,6 +4,7 @@ from ..utils import _server_store
 from .resource import (
     DEFAULT_TOP, Resource
 )
+from . import user
 
 class GroupResource(Resource):
     fields = {
@@ -15,9 +16,6 @@ class GroupResource(Resource):
     def on_get(self, req, resp, userid=None, groupid=None, method=None):
         server, store = _server_store(req, userid, self.options)
 
-        if method:
-            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
-
         if groupid:
             for group in server.groups(): # TODO server.group(groupid/entryid=..)
                 if group.groupid == groupid:
@@ -27,6 +25,10 @@ class GroupResource(Resource):
 
         if method == 'members':
             data = (group.users(), DEFAULT_TOP, 0, 0)
-            self.respond(req, resp, data, UserResource.fields)
+            self.respond(req, resp, data, user.UserResource.fields)
+
+        elif method:
+            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
+
         else:
             self.respond(req, resp, data)

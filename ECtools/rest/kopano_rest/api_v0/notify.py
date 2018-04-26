@@ -32,11 +32,11 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 SUBSCRIPTIONS = {}
 
 if PROMETHEUS:
-    SUBSCR_COUNT = Counter('total_subscriptions', 'Total number of subscriptions')
-    SUBSCR_ACTIVE = Gauge('active_subscriptions', 'Number of active subscriptions')
-    POST_COUNT = Counter('total_webhook_posts', 'Total number of webhook posts')
+    SUBSCR_COUNT = Counter('kopano_mfr_total_subscriptions', 'Total number of subscriptions')
+    SUBSCR_ACTIVE = Gauge('kopano_mfr_active_subscriptions', 'Number of active subscriptions', multiprocess_mode='livesum')
+    POST_COUNT = Counter('kopano_mfr_total_webhook_posts', 'Total number of webhook posts')
 
-def _server(auth_user, auth_pass):
+def _server(auth_user, auth_pass, oidc=False):
     # return global connection, using credentials from first user to
     # authenticate, and use it for all notifications
     global SERVER
@@ -44,7 +44,7 @@ def _server(auth_user, auth_pass):
         SERVER
     except NameError:
         SERVER = kopano.Server(auth_user=auth_user, auth_pass=auth_pass,
-            notifications=True, parse_args=False)
+            notifications=True, parse_args=False, oidc=oidc)
     return SERVER
 
 def _user(req, options):
@@ -52,7 +52,7 @@ def _user(req, options):
 
     if auth['method'] == 'bearer':
         username = auth['user']
-        server = _server(auth['userid'], auth['token'])
+        server = _server(auth['userid'], auth['token'], oidc=True)
     elif auth['method'] == 'basic':
         username = codecs.decode(auth['user'], 'utf8')
         server = _server(username, auth['password'])
@@ -105,9 +105,9 @@ class Processor(Thread):
 
                 verify = not self.options or not self.options.insecure
                 try:
-                    if self.options.with_metrics:
+                    if self.options and self.options.with_metrics:
                         POST_COUNT.inc()
-                    logging.debug('Subscription notification: %s' % fields['notificationUrl'])
+                    logging.debug('Subscription notification: %s' % subscription['notificationUrl'])
                     requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10, verify=verify)
                 except Exception:
                     traceback.print_exc()
@@ -169,7 +169,7 @@ class SubscriptionResource:
         resp.content_type = "application/json"
         resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
 
-        if self.options.with_metrics:
+        if self.options and self.options.with_metrics:
             SUBSCR_COUNT.inc()
             SUBSCR_ACTIVE.set(len(SUBSCRIPTIONS))
 
@@ -189,7 +189,7 @@ class SubscriptionResource:
         store.unsubscribe(sink)
         del SUBSCRIPTIONS[subscriptionid]
 
-        if self.options.with_metrics:
+        if self.options and self.options.with_metrics:
             SUBSCR_ACTIVE.set(len(SUBSCRIPTIONS))
 
 class NotifyAPIv0(falcon.API):

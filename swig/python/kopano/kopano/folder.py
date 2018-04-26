@@ -13,7 +13,7 @@ import time
 import icalmapi
 
 from MAPI import (
-    MAPI_MODIFY, MAPI_ASSOCIATED, KEEP_OPEN_READWRITE,
+    MAPI_MODIFY, MAPI_ASSOCIATED, KEEP_OPEN_READWRITE, PT_UNICODE,
     RELOP_GT, RELOP_LT, RELOP_EQ,
     DEL_ASSOCIATED, DEL_FOLDERS, DEL_MESSAGES,
     BOOKMARK_BEGINNING, ROW_REMOVE, MESSAGE_MOVE, FOLDER_MOVE,
@@ -34,7 +34,7 @@ from MAPI.Tags import (
     CONVENIENT_DEPTH, PR_CONTENT_COUNT, PR_ASSOC_CONTENT_COUNT,
     PR_DELETED_MSG_COUNT, PR_LAST_MODIFICATION_TIME, PR_MESSAGE_ATTACHMENTS,
     PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, PR_CHANGE_KEY, PR_EXCEPTION_STARTTIME,
-    PR_EXCEPTION_ENDTIME,
+    PR_EXCEPTION_ENDTIME, PR_SENDER_NAME_W,
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE
@@ -55,13 +55,14 @@ from .rule import Rule
 from .table import Table
 from .property_ import Property
 from .defs import (
-    PSETID_Appointment, UNESCAPED_SLASH_RE,
+    PSETID_Appointment, PSETID_Address, UNESCAPED_SLASH_RE,
     ENGLISH_FOLDER_MAP, NAME_RIGHT, NAMED_PROPS_ARCHIVER
 )
 from .errors import NotFoundError, ArgumentError
+from .query import _query_to_restriction
 
 from .compat import (
-    fake_unicode as _unicode, bdec as _bdec, benc as _benc
+    fake_unicode as _unicode, bdec as _bdec, benc as _benc, is_str
 )
 
 if sys.hexversion >= 0x03000000:
@@ -329,6 +330,13 @@ class Folder(Properties):
             PR_MESSAGE_CLASS_W,
             PR_BODY_W, # body preview, not entire body!
         ]
+
+        if is_str(restriction):
+            if self.container_class == 'IPF.Contact':
+                type_ = 'contact'
+            else:
+                type_ = 'message'
+            restriction = _query_to_restriction(restriction, type_, self.store)
 
         try:
             table = Table(

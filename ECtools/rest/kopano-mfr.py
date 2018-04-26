@@ -43,7 +43,7 @@ METRICS_LISTEN = 'localhost:6060'
 
 # metrics
 if PROMETHEUS:
-    REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request', ['method', 'endpoint'])
+    REQUEST_TIME = Summary('kopano_mfr_request_processing_seconds', 'Time spent processing request', ['method', 'endpoint'])
 
 def opt_args():
     parser = optparse.OptionParser()
@@ -72,12 +72,12 @@ def opt_args():
     return options, args
 
 def error_handler(ex, req, resp, params):
+    # Do things with other errors here
+    logging.exception(ex)
+
     # Ignore falcon.HTTPError and re-raise
     if isinstance(ex, falcon.HTTPError):
         raise
-
-    # Do things with other errors here
-    logging.exception(ex)
 
 # falcon metrics middleware
 
@@ -189,6 +189,10 @@ def main():
 
     if options.with_metrics:
         if PROMETHEUS:
+            if not os.environ.get('prometheus_multiproc_dir'):
+                logging.error('please export "prometheus_multiproc_dir"')
+                sys.exit(-1)
+
             metrics_process = multiprocessing.Process(target=run_metrics, args=(socket_path, options))
             workers.append(metrics_process)
         else:

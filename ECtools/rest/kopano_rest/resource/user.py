@@ -10,7 +10,7 @@ from .calendar import CalendarResource
 from .contact import ContactResource
 from .contactfolder import ContactFolderResource
 from .event import EventResource
-from .group import GroupResource
+from . import group
 from .mailfolder import MailFolderResource
 from .message import MessageResource
 
@@ -80,9 +80,14 @@ class UserResource(Resource):
                 else:
                     data = server.user(userid=userid)
             else:
-                def yielder(**kwargs):
-                    for item in server.users(hidden=False, non_active=False):
-                        yield item
+                args = urlparse.parse_qs(req.query_string)
+                if '$search' in args:
+                    query = args['$search'][0]
+                    def yielder(**kwargs):
+                        yield from server._user_query(query) # TODO .users(query)?
+                else:
+                    def yielder(**kwargs):
+                        yield from server.users(hidden=False, inactive=False)
                 data = self.generator(req, yielder)
             self.respond(req, resp, data)
 
@@ -123,7 +128,7 @@ class UserResource(Resource):
         elif method == 'memberOf':
             user = server.user(userid=userid)
             data = (user.groups(), DEFAULT_TOP, 0, 0)
-            self.respond(req, resp, data, GroupResource.fields)
+            self.respond(req, resp, data, group.GroupResource.fields)
 
         elif method == 'photos': # TODO
             pass

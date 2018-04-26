@@ -18,22 +18,28 @@ from MAPI import (
     MAPI_UNICODE, MDB_WRITE, RELOP_EQ,
     TBL_BATCH, ECSTORE_TYPE_PRIVATE, MAPI_DEFERRED_ERRORS
 )
-from MAPI.Util import GetDefaultStore, OpenECSession
-from MAPI.Defs import HrGetOneProp
+from MAPI.Util import (
+    GetDefaultStore, OpenECSession
+)
+from MAPI.Defs import (
+    HrGetOneProp, PpropFindProp
+)
+
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue, ECCOMPANY, ECGROUP, ECUSER,
+    SContentRestriction, SOrRestriction,
     MAPIErrorNotFound, MAPIErrorNoSupport, MAPIErrorCollision,
     MAPIErrorLogonFailed, MAPIErrorNetworkError, MAPIErrorDiskError
 )
 from MAPI.Tags import (
-    PR_ACCOUNT_W, PURGE_CACHE_ALL, PR_DISPLAY_NAME_W,
-    PR_ENTRYID, PR_STORE_RECORD_KEY,
-    PR_MAPPING_SIGNATURE, PR_CONTAINER_CONTENTS,
-    PR_EC_STATSTABLE_SYSTEM, PR_EC_STATSTABLE_SESSIONS,
+    PR_ACCOUNT_W, PURGE_CACHE_ALL, PR_DISPLAY_NAME_W, PR_ENTRYID,
+    PR_STORE_RECORD_KEY, PR_SMTP_ADDRESS_W, PR_MAPPING_SIGNATURE,
+    PR_CONTAINER_CONTENTS, PR_EC_STATSTABLE_SYSTEM, PR_EC_STATSTABLE_SESSIONS,
     PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_COMPANY,
     PR_EC_STATSTABLE_SERVERS, PR_EC_STATS_SERVER_HTTPSURL,
     PR_STORE_ENTRYID, EC_PROFILE_FLAGS_NO_UID_AUTH,
-    EC_PROFILE_FLAGS_NO_NOTIFICATIONS, EC_PROFILE_FLAGS_OIDC
+    EC_PROFILE_FLAGS_NO_NOTIFICATIONS, EC_PROFILE_FLAGS_OIDC,
+    FL_SUBSTRING, FL_IGNORECASE,
 )
 from MAPI.Tags import (
     IID_IMsgStore, IID_IMAPITable, IID_IExchangeManageStore,
@@ -50,6 +56,8 @@ from .table import Table
 from .company import Company
 from .group import Group
 from .property_ import _proptag_to_name
+from .restriction import Restriction
+from .query import _query_to_restriction
 
 from .compat import (
     repr as _repr, is_str as _is_str, benc as _benc,
@@ -315,13 +323,15 @@ class Server(object):
             except MAPIErrorNotFound:
                 pass
 
-    def gab_table(self): # XXX separate addressbook class? useful to add to self.tables?
+    def gab_table(self, restriction=None, columns=None): # XXX separate addressbook class? useful to add to self.tables?
         ct = self.gab.GetContentsTable(MAPI_DEFERRED_ERRORS)
         return Table(
             self,
             self.mapistore,
             ct,
             PR_CONTAINER_CONTENTS,
+            restriction=restriction,
+            columns=columns,
         )
 
     @property
@@ -370,7 +380,7 @@ class Server(object):
             pass
 
     def users(self, remote=False, system=False, parse=True, page_start=None,
-              page_limit=None, order=None, hidden=True, non_active=True): # TODO hidden, non_active default False?
+              page_limit=None, order=None, hidden=True, inactive=True): # TODO hidden, inactive default False?
         """Return all :class:`users <User>` on server.
 
         :param remote: include users on remote server nodes
@@ -390,8 +400,16 @@ class Server(object):
                 if ((system or user.name != u'SYSTEM') and
                     (remote or ecuser.Servername in (self.name, '')) and
                     (hidden or not user.hidden) and
-                    (non_active or user.active)):
+                    (inactive or user.active)):
                     yield user
+
+    def _user_query(self, query): # TODO merge as .users('..')?
+        store = _store.Store(mapiobj=self.mapistore, server=self)
+        restriction = _query_to_restriction(query, 'user', store)
+        columns = [PR_ENTRYID, PR_DISPLAY_NAME_W, PR_SMTP_ADDRESS_W]
+        table = self.gab_table(restriction=restriction, columns=columns)
+        for row in table.rows():
+            yield self.user(userid=_benc(row[0].value))
 
     def create_user(self, name, email=None, password=None, company=None, fullname=None, create_store=True):
         """Create a new :class:`user <User>` on the server.
