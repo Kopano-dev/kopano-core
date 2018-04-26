@@ -177,7 +177,7 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 
 	// Now the mail body needs to be read line by line until <CRLF>.<CRLF> is encountered
 	while (1) {
-		hr = m_lpChannel->HrReadLine(&inBuffer);
+		hr = m_lpChannel->HrReadLine(inBuffer);
 		if (hr != hrSuccess)
 			return kc_perror("Error during DATA communication with client", hr);
 		if (inBuffer == ".")

@@ -2807,7 +2807,7 @@ static void *HandlerLMTP(void *lpArg)
 		inBuffer.clear();
 
 		errno = 0;				// clear errno, might be from double logoff to server
-		hr = lpArgs->lpChannel->HrReadLine(&inBuffer);
+		hr = lpArgs->lpChannel->HrReadLine(inBuffer);
 		if (hr != hrSuccess){
 			if (errno)
 				ec_log_err("Failed to read line: %s", strerror(errno));

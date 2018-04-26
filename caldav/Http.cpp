@@ -129,7 +129,7 @@ HRESULT Http::HrReadHeaders()
 	ec_log_debug("Receiving headers:");
 	do
 	{
-		hr = m_lpChannel->HrReadLine(&strBuffer);
+		hr = m_lpChannel->HrReadLine(strBuffer);
 		if (hr != hrSuccess)
 			return hr;
 
