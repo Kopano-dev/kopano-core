@@ -72,12 +72,12 @@ def opt_args():
     return options, args
 
 def error_handler(ex, req, resp, params):
+    # Do things with other errors here
+    logging.exception(ex)
+
     # Ignore falcon.HTTPError and re-raise
     if isinstance(ex, falcon.HTTPError):
         raise
-
-    # Do things with other errors here
-    logging.exception(ex)
 
 # falcon metrics middleware
 

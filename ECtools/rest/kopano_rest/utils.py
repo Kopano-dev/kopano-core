@@ -62,6 +62,7 @@ def db_put(key, value):
             db[codecs.encode(key, 'ascii')] = codecs.encode(value, 'ascii')
 
 def _server(req, options):
+    global LAST_PURGE_TIME
     auth = _auth(req, options)
 
     if auth['method'] == 'bearer':
@@ -83,6 +84,7 @@ def _server(req, options):
                     if t < now - 15*60:
                         del TOKEN_SESSION[token]
                 LAST_PURGE_TIME = now
+        return server
 
     elif auth['method'] == 'basic':
         return kopano.Server(auth_user=auth['user'], auth_pass=auth['password'],
