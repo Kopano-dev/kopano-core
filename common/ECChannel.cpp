@@ -793,19 +793,25 @@ int zcp_bindtodevice(int fd, const char *i)
 int ec_listen_localsock(const char *path, int *pfd)
 {
 	struct sockaddr_un sk;
-	if (strlen(path) >= sizeof(sk.sun_path)) {
+	if (strlen(path) + 1 >= sizeof(sk.sun_path)) {
 		ec_log_err("%s: \"%s\" is too long", __func__, path);
 		return EINVAL;
 	}
+	struct stat sb;
+	auto ret = lstat(path, &sb);
+	if (ret == 0 && !S_ISSOCK(sb.st_mode)) {
+		ec_log_err("%s: file already exists, but it is not a socket");
+		return EADDRINUSE;
+	}
+	unlink(path);
 	int fd = socket(PF_LOCAL, SOCK_STREAM, 0);
 	if (fd < 0) {
 		ec_log_err("%s: socket: %s", __func__, strerror(errno));
 		return -errno;
 	}
 	sk.sun_family = AF_LOCAL;
-	kc_strlcpy(sk.sun_path, path, sizeof(sk.sun_path));
-	unlink(path);
-	auto ret = bind(fd, reinterpret_cast<const sockaddr *>(&sk), sizeof(sk));
+	strncpy(sk.sun_path, path, sizeof(sk.sun_path));
+	ret = bind(fd, reinterpret_cast<const sockaddr *>(&sk), sizeof(sk));
 	if (ret < 0) {
 		int saved_errno = errno;
 		ec_log_err("%s: bind %s: %s", __func__, path, strerror(saved_errno));
