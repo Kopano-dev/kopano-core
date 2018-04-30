@@ -790,7 +790,7 @@ int zcp_bindtodevice(int fd, const char *i)
 /**
  * Create a PF_LOCAL socket for listening and return the fd.
  */
-int ec_listen_localsock(const char *path, int *pfd)
+int ec_listen_localsock(const char *path, int *pfd, int mode)
 {
 	struct sockaddr_un sk;
 	if (strlen(path) + 1 >= sizeof(sk.sun_path)) {
@@ -817,6 +817,11 @@ int ec_listen_localsock(const char *path, int *pfd)
 		ec_log_err("%s: bind %s: %s", __func__, path, strerror(saved_errno));
 		close(fd);
 		return -(errno = saved_errno);
+	}
+	if (mode != static_cast<mode_t>(-1)) {
+		ret = chmod(path, mode);
+		if (ret < 0)
+			ec_log_err("chown %s: %s", path, strerror(errno));
 	}
 	ret = listen(fd, INT_MAX);
 	if (ret < 0) {
@@ -1019,10 +1024,10 @@ std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *spec)
  * INETSPEC := { hostname | ipv4-addr | "[" ipv6-addr "]" } [ ":" portnumber ]
  * UNIXSPEC := "unix:" path
  */
-int ec_listen_generic(const char *spec, int *pfd)
+int ec_listen_generic(const char *spec, int *pfd, int mode)
 {
 	if (strncmp(spec, "unix:", 5) == 0)
-		return ec_listen_localsock(spec + 5, pfd);
+		return ec_listen_localsock(spec + 5, pfd, mode);
 	auto parts = ec_parse_bindaddr(spec);
 	if (parts.first == "!" || parts.second == 0)
 		return EINVAL;
