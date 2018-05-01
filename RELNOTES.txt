@@ -1,3 +1,16 @@
+8.6.x
+=====
+Includes changes from the 8.5.x series up to 2018-04-25.
+Fixes:
+* installer: remove duplicate defaults from sample config
+* icalmapi: allow RRULE with DTSTART having zulu-marking [KC-414, KC-811]
+* icalmapi: do not mark timestamp as UTC when we explicitly give a
+  timezone [KC-920, KC-1018]
+* icalmapi: do not write empty fields to VCF files [KW-2503]
+Enhancements:
+* libicalmapi: allow some properties to be missing when serializing ADR
+
+
 8.6.1 (2018-04-05)
 ==================
 Includes changes from 8.5.6.
