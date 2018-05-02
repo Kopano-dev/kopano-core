@@ -33,8 +33,6 @@
 #include "ECDBDef.h"
 #include "ECDatabaseUpdate.h"
 #include <kopano/ECGuid.h>
-#include "ECLockManager.h"
-
 #include "soapH.h"
 
 #include <mutex>

@@ -1476,4 +1476,41 @@ size_t ECAuthSession::GetObjectSize()
 	return sizeof(*this);
 }
 
+ECObjectLock::ECObjectLock(std::shared_ptr<ECLockManager> lm,
+    unsigned int objid, ECSESSIONID sid) :
+	m_ptrLockManager(lm), m_ulObjId(objid), m_sessionId(sid)
+{}
+
+ECObjectLock::ECObjectLock(ECObjectLock &&o) :
+	m_ptrLockManager(std::move(o.m_ptrLockManager)),
+	m_ulObjId(o.m_ulObjId), m_sessionId(o.m_sessionId)
+{
+	/*
+	 * Our Unlock routine depends on m_ptrLockManager being reset, but due
+	 * to LWG DR 2315, weak_ptr(weak_ptr&&) is not implemented in some
+	 * compiler versions and thus did not do that reset.
+	 */
+	o.m_ptrLockManager.reset();
+}
+
+ECObjectLock &ECObjectLock::operator=(ECObjectLock &&o)
+{
+	m_ptrLockManager = std::move(o.m_ptrLockManager);
+	o.m_ptrLockManager.reset();
+	m_ulObjId = o.m_ulObjId;
+	m_sessionId = o.m_sessionId;
+	return *this;
+}
+
+ECRESULT ECObjectLock::Unlock()
+{
+	auto lm = m_ptrLockManager.lock();
+	if (lm == nullptr)
+		return erSuccess;
+	auto er = lm->UnlockObject(m_ulObjId, m_sessionId);
+	if (er == erSuccess)
+		m_ptrLockManager.reset();
+	return er;
+}
+
 } /* namespace */

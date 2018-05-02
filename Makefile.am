@@ -542,8 +542,7 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECICSHelpers.cpp provider/libserver/ECICSHelpers.h \
 	provider/libserver/ECIndexer.cpp provider/libserver/ECIndexer.h \
 	provider/libserver/ECKrbAuth.cpp provider/libserver/ECKrbAuth.h \
-	provider/libserver/ECLockManager.cpp provider/libserver/ECLockManager.h \
-	provider/libserver/ECMAPI.h \
+	provider/libserver/ECLockManager.h provider/libserver/ECMAPI.h \
 	provider/libserver/ECNotification.h \
 	provider/libserver/ECNotificationManager.cpp provider/libserver/ECNotificationManager.h \
 	provider/libserver/ECPluginFactory.cpp provider/libserver/ECPluginFactory.h \

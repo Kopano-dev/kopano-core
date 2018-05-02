@@ -35,8 +35,6 @@
 #include "ECUserManagement.h"
 #include "ECSecurity.h"
 #include "ECSessionManager.h"
-#include "ECLockManager.h"
-
 #include <edkmdb.h>
 #include <kopano/mapiext.h>
 

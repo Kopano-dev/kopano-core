@@ -1402,4 +1402,44 @@ exit:
 	return er;
 }
 
+ECLockManagerPtr ECLockManager::Create()
+{
+	return ECLockManagerPtr(new ECLockManager);
+}
+
+ECRESULT ECLockManager::LockObject(unsigned int objid, ECSESSIONID sid,
+    ECObjectLock *objlock)
+{
+	ECRESULT er = erSuccess;
+	std::lock_guard<KC::shared_mutex> lock(m_hRwLock);
+	auto res = m_mapLocks.emplace(objid, sid);
+	if (res.second == false && res.first->second != sid)
+		er = KCERR_NO_ACCESS;
+	if (objlock != nullptr)
+		*objlock = ECObjectLock(shared_from_this(), objid, sid);
+	return er;
+}
+
+ECRESULT ECLockManager::UnlockObject(unsigned int objid, ECSESSIONID sid)
+{
+	std::lock_guard<KC::shared_mutex> lock(m_hRwLock);
+	auto i = m_mapLocks.find(objid);
+	if (i == m_mapLocks.cend())
+		return KCERR_NOT_FOUND;
+	else if (i->second != sid)
+		return KCERR_NO_ACCESS;
+	else
+		m_mapLocks.erase(i);
+	return erSuccess;
+}
+
+bool ECLockManager::IsLocked(unsigned int objid, ECSESSIONID *sid)
+{
+	KC::shared_lock<KC::shared_mutex> lock(m_hRwLock);
+	auto i = m_mapLocks.find(objid);
+	if (i != m_mapLocks.cend() && sid != nullptr)
+		*sid = i->second;
+	return i != m_mapLocks.end();
+}
+
 } /* namespace */
