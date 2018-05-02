@@ -1715,6 +1715,8 @@ exit:
 
 ECRESULT FreeSearchCriteria(struct searchCriteria *lpSearchCriteria)
 {
+	if (lpSearchCriteria == nullptr)
+		return erSuccess;
 	ECRESULT er = erSuccess;
 	if(lpSearchCriteria->lpRestrict)
 		FreeRestrictTable(lpSearchCriteria->lpRestrict);

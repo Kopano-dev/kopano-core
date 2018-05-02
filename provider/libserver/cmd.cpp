@@ -3149,7 +3149,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		}
 
 		auto laters = make_scope_success([&]() {
-			if(bFreeNewEntryId == true && lpsNewEntryId)
+			if (bFreeNewEntryId)
 				FreeEntryId(lpsNewEntryId, true);
 		});
 
@@ -6630,10 +6630,8 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	auto cleanup = make_scope_success([&]() {
 		if (lpDatabase != nullptr && er != erSuccess && er != KCWARN_PARTIAL_COMPLETION)
 			lpDatabase->Rollback();
-		if (lpsNewEntryId != nullptr)
-			FreeEntryId(lpsNewEntryId, true);
-		if (lpsOldEntryId != nullptr)
-			FreeEntryId(lpsOldEntryId, true);
+		FreeEntryId(lpsNewEntryId, true);
+		FreeEntryId(lpsOldEntryId, true);
 	});
 	if(lplObjectIds->empty())
 		return erSuccess; /* Nothing to do */
@@ -7057,10 +7055,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
 	std::unique_ptr<ECAttachmentStorage> lpInternalAttachmentStorage;
 	kd_trans atx, dtx;
-	auto cleanup = make_scope_success([&]() {
-		if (lpsNewEntryId != nullptr)
-			FreeEntryId(lpsNewEntryId, true);
-	});
+	auto cleanup = make_scope_success([&]() { FreeEntryId(lpsNewEntryId, true); });
 	if (!lpAttachmentStorage) {
 		if (!bIsRoot) {
 			ec_log_err("CopyObject: \"!attachmentstore && !isroot\" clause failed: %s (%x)", GetMAPIErrorMessage(er), er);
@@ -7205,11 +7200,8 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		}
 	}
 
-	if (lpsNewEntryId != NULL) {
-		FreeEntryId(lpsNewEntryId, true);
-		lpsNewEntryId = NULL;
-	}
-
+	FreeEntryId(lpsNewEntryId, true);
+	lpsNewEntryId = nullptr;
 	// Get child items of the message like , attachment, recipient...
 	strQuery = "SELECT id FROM hierarchy WHERE parent="+stringify(ulObjId);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -9686,7 +9678,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 
 	auto cleanup = make_scope_success([&]() {
-		if (lpsStreamInfo != nullptr && lpsStreamInfo->lpPropValArray != nullptr)
+		if (lpsStreamInfo != nullptr)
 			FreePropValArray(lpsStreamInfo->lpPropValArray, true);
 		FreeDeletedItems(&lstDeleteItems);
 		ROLLBACK_ON_ERROR();

@@ -126,10 +126,8 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
 			er = erSuccess; // just try to skip the error
 			continue;
 		}
-		if (lpSearchCriteria) {
-			FreeSearchCriteria(lpSearchCriteria);
-			lpSearchCriteria = NULL;
-		}
+		FreeSearchCriteria(lpSearchCriteria);
+		lpSearchCriteria = nullptr;
     }
 
     if(lpSearchCriteria)
@@ -183,10 +181,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
     struct searchCriteria *lpCriteria = NULL;
     unsigned int ulParent = 0;
 	ulock_rec l_sf(m_mutexMapSearchFolders, std::defer_lock_t());
-	auto cleanup = make_scope_success([&]() {
-		if (lpCriteria != nullptr)
-			FreeSearchCriteria(lpCriteria);
-	});
+	auto cleanup = make_scope_success([&]() { FreeSearchCriteria(lpCriteria); });
 
     if(lpSearchCriteria == NULL) {
 		auto er = LoadSearchCriteria(ulFolderId, &lpCriteria);
@@ -626,14 +621,10 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 						}
 				}
 
-				if(lpPropTags) {
-					FreePropTagArray(lpPropTags);
-					lpPropTags = NULL;
-				}
-				if(lpRowSet) {
-					FreeRowSet(lpRowSet, true);
-					lpRowSet = NULL;
-				}
+				FreePropTagArray(lpPropTags);
+				lpPropTags = nullptr;
+				FreeRowSet(lpRowSet, true);
+				lpRowSet = nullptr;
 			} else {
 				// Not in a target folder, remove from search results
 				for (const auto &obj_id : *lstObjectIDs)
@@ -810,10 +801,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
     
     // Get the row data for the search
-	auto cleanup = make_scope_success([&]() {
-		if (lpRowSet != nullptr)
-			FreeRowSet(lpRowSet, true);
-	});
+	auto cleanup = make_scope_success([&]() { FreeRowSet(lpRowSet, true); });
 	auto er = ECStoreObjectTable::QueryRowData(nullptr, nullptr, lpSession, &ecRows, lpPropTags, lpODStore, &lpRowSet, false, false);
 	if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::ProcessCandidateRows() ECStoreObjectTable::QueryRowData failed %d", er);
@@ -925,10 +913,8 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	auto cleanup = make_scope_success([&]() {
 		lpSession->unlock();
 		m_lpSessionManager->RemoveSessionInternal(lpSession);
-		if (lpPropTags != nullptr)
-			FreePropTagArray(lpPropTags);
-		if (lpAdditionalRestrict != nullptr)
-			FreeRestrictTable(lpAdditionalRestrict);
+		FreePropTagArray(lpPropTags);
+		FreeRestrictTable(lpAdditionalRestrict);
 	});
 	er = lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess) {

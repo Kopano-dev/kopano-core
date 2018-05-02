@@ -42,8 +42,7 @@ struct SEARCHFOLDER _kc_final {
 		sThreadId{}, ulStoreId(store_id), ulFolderId(folder_id)
 	{}
 	~SEARCHFOLDER() {
-		if (this->lpSearchCriteria)
-			FreeSearchCriteria(this->lpSearchCriteria);
+		FreeSearchCriteria(lpSearchCriteria);
 	}
 
 	struct searchCriteria *lpSearchCriteria = nullptr;

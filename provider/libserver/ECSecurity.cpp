@@ -241,11 +241,8 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 						}
 		}
 
-		if(lpRights)
-		{
-			FreeRightsArray(lpRights);
-			lpRights = NULL;
-		}
+		FreeRightsArray(lpRights);
+		lpRights = nullptr;
 		if (bFoundACL)
 			// If any of the ACLs at this level were for us, then use these ACLs.
 			break;

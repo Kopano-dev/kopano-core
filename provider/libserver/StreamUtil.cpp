@@ -1591,9 +1591,7 @@ next_property:
 	}
 
 exit:
-	if (lpPropValArray)
-		FreePropValArray(lpPropValArray, true);
-
+	FreePropValArray(lpPropValArray, true);
 	if (soap) {
 		soap_destroy(soap);
 		soap_end(soap);
@@ -1776,10 +1774,7 @@ exit:
 		lpSource->Flush(); // Flush the whole stream
 		ec_log_err("DeserializeObject failed with error code 0x%08x %s", er, GetMAPIErrorMessage(kcerr_to_mapierr(er, ~0U /* anything that yields UNKNOWN */)));
 	}	
-
-	if (lpPropValArray)
-		FreePropValArray(lpPropValArray, true);
-
+	FreePropValArray(lpPropValArray, true);
 	return er;
 }
 

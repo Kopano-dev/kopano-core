@@ -133,15 +133,9 @@ ECGenericObjectTable::ECGenericObjectTable(ECSession *ses,
 
 ECGenericObjectTable::~ECGenericObjectTable()
 {
-	if(this->lpsPropTagArray)
-		FreePropTagArray(this->lpsPropTagArray);
-
-	if(this->lpsSortOrderArray)
-		FreeSortOrderArray(this->lpsSortOrderArray);
-
-	if(this->lpsRestrict)
-		FreeRestrictTable(this->lpsRestrict);
-		
+	FreePropTagArray(lpsPropTagArray);
+	FreeSortOrderArray(lpsSortOrderArray);
+	FreeRestrictTable(lpsRestrict);
 	for (const auto &p : m_mapCategories)
 		delete p.second;
 }
@@ -480,8 +474,7 @@ ECRESULT ECGenericObjectTable::SetColumns(const struct propTagArray *lpsPropTags
 	scoped_rlock biglock(m_hLock);
 
 	// Delete the old column set
-	if(this->lpsPropTagArray)
-		FreePropTagArray(this->lpsPropTagArray);
+	FreePropTagArray(lpsPropTagArray);
 	lpsPropTagArray = s_alloc<propTagArray>(nullptr);
 	lpsPropTagArray->__size = lpsPropTags->__size;
 	lpsPropTagArray->__ptr = s_alloc<unsigned int>(nullptr, lpsPropTags->__size);
@@ -599,8 +592,7 @@ ECRESULT ECGenericObjectTable::SetSortOrder(const struct sortOrderArray *lpsSort
 	m_ulExpanded = ulExpanded;
 
 	// Save the sort order requested
-	if(this->lpsSortOrderArray)
-		FreeSortOrderArray(this->lpsSortOrderArray);
+	FreeSortOrderArray(lpsSortOrderArray);
 	this->lpsSortOrderArray = s_alloc<sortOrderArray>(nullptr);
 	this->lpsSortOrderArray->__size = lpsSortOrder->__size;
 	if(lpsSortOrder->__size == 0 ) {
@@ -744,8 +736,7 @@ ECRESULT ECGenericObjectTable::Restrict(struct restrictTable *rt)
 		return er;
 
 	// Copy the restriction so we can remember it
-	if(this->lpsRestrict)
-		FreeRestrictTable(this->lpsRestrict);
+	FreeRestrictTable(lpsRestrict);
 	this->lpsRestrict = NULL; // turn off restriction
 	if (rt != nullptr) {
 		er = CopyRestrictTable(nullptr, rt, &lpsRestrict);
@@ -922,9 +913,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 
 exit:
 	biglock.unlock();
-	if(lpRowSet)
-		FreeRowSet(lpRowSet, true);
-
+	FreeRowSet(lpRowSet, true);
 	if(lpsRestrictPropTagArray != NULL)
 		s_free(nullptr, lpsRestrictPropTagArray->__ptr);
 	s_free(nullptr, lpsRestrictPropTagArray);

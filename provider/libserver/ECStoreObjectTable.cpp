@@ -308,7 +308,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 	auto cleanup = make_scope_success([&] {
-		if (soap == nullptr && lpsRowSet != nullptr)
+		if (soap == nullptr)
 			FreeRowSet(lpsRowSet, true);
 	});
 
@@ -1156,9 +1156,7 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
     	er = ECGenericObjectTable::AddRowKey(&sMatchedRows, lpulLoaded, ulFlags, bLoad, true, lpNewRestrict);
 exit:
 	biglock.unlock();
-	if(lpNewRestrict)
-		FreeRestrictTable(lpNewRestrict);
-
+	FreeRestrictTable(lpNewRestrict);
 	return er;
     
 }

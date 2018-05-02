@@ -291,9 +291,7 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 	lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
 
 exit:
-	if(lpsPropTags)
-		FreePropTagArray(lpsPropTags);
-
+	FreePropTagArray(lpsPropTags);
 	return er;
 }
 
