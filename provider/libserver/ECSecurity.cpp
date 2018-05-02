@@ -925,12 +925,11 @@ ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags,
  */
 unsigned int ECSecurity::GetUserId(unsigned int ulObjId)
 {
-	unsigned int ulUserId = this->m_ulUserID;
-
+	unsigned int ulUserId = m_ulUserID;
 	if (ulObjId != 0 && IsAdminOverOwnerOfObject(ulObjId) == erSuccess) {
 		auto er = GetOwner(ulObjId, &ulUserId);
 		if (er != erSuccess)
-			ulUserId = this->m_ulUserID;
+			ulUserId = m_ulUserID;
 	}
 
 	return ulUserId;

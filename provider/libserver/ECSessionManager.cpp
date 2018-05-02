@@ -300,7 +300,7 @@ ECRESULT ECSessionManager::ValidateSession(struct soap *soap,
     ECSESSIONID sessionID, ECAuthSession **lppSession)
 {
 	BTSession *lpSession = NULL;
-	auto er = this->ValidateBTSession(soap, sessionID, &lpSession);
+	auto er = ValidateBTSession(soap, sessionID, &lpSession);
 	if (er != erSuccess)
 		return er;
 	*lppSession = dynamic_cast<ECAuthSession*>(lpSession);
@@ -311,7 +311,7 @@ ECRESULT ECSessionManager::ValidateSession(struct soap *soap,
     ECSESSIONID sessionID, ECSession **lppSession)
 {
 	BTSession *lpSession = NULL;
-	auto er = this->ValidateBTSession(soap, sessionID, &lpSession);
+	auto er = ValidateBTSession(soap, sessionID, &lpSession);
 	if (er != erSuccess)
 		return er;
 	*lppSession = dynamic_cast<ECSession*>(lpSession);
@@ -400,7 +400,7 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 		// connected over network
 		from = soap->host;
 
-	auto er = this->CreateAuthSession(soap, ulCapabilities, lpSessionID, &unique_tie(lpAuthSession), false, false);
+	auto er = CreateAuthSession(soap, ulCapabilities, lpSessionID, &unique_tie(lpAuthSession), false, false);
 	if (er != erSuccess)
 		return er;
 	if (szClientApp == nullptr)
@@ -1086,7 +1086,7 @@ ECRESULT ECSessionManager::DumpStats()
 	ec_log_info("  Folders   : %u", sSearchStats.ulFolders);
 	ec_log_info("  Queue     : %u", sSearchStats.ulEvents);
 	ec_log_info("  Mem usage : %llu Bytes", static_cast<unsigned long long>(sSearchStats.ullSize));
-	return this->m_lpECCacheManager->DumpStats();
+	return m_lpECCacheManager->DumpStats();
 }
 
 ECRESULT ECSessionManager::GetServerGUID(GUID* lpServerGuid){

@@ -297,11 +297,8 @@ public:
         i->second.Value.ul |= ulValue & ulMask;
     }
     
-    void SetComplete(bool bComplete) {
-        this->m_bComplete = bComplete;
-    }
-    
-    bool GetComplete() const { return this->m_bComplete; }
+	void SetComplete(bool bComplete) { m_bComplete = bComplete; }
+	bool GetComplete() const { return m_bComplete; }
 
     // Gets the amount of memory used by this object    
     size_t GetSize() const {

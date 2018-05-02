@@ -1081,11 +1081,11 @@ ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 		return erSuccess;
 	if (lpData->ulFolderId) {
 		// We can either see all messages or none at all. Do this check once only as an optimisation.
-		if (!this->fPermissionRead) {
-			this->ulPermission = sec->CheckPermission(lpData->ulFolderId, ecSecurityRead);
-			this->fPermissionRead = true;
+		if (!fPermissionRead) {
+			ulPermission = sec->CheckPermission(lpData->ulFolderId, ecSecurityRead);
+			fPermissionRead = true;
 		}
-		return this->ulPermission;
+		return ulPermission;
 	}
 	// Get the parent id of the row we're inserting (this is very probably cached from Load())
 	auto er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParent);

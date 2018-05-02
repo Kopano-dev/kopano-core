@@ -1712,7 +1712,7 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstances(const std::list<ext_siid> &
 	int errors = 0;
 
 	for (const auto &del_id : lstDeleteInstances) {
-		auto er = this->DeleteAttachmentInstance(del_id, bReplace);
+		auto er = DeleteAttachmentInstance(del_id, bReplace);
 		if (er != erSuccess)
 			++errors;
 	}

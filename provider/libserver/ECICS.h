@@ -68,7 +68,7 @@ public:
 	{
 		if (ulSize > 0) {
 			lpData.reset(new char[ulSize]);
-			memcpy(this->lpData.get(), sourcekey.__ptr, sourcekey.__size);
+			memcpy(lpData.get(), sourcekey.__ptr, sourcekey.__size);
 		}
 	}
     SOURCEKEY&  operator= (const SOURCEKEY &s) {

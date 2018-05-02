@@ -126,9 +126,9 @@ ECGenericObjectTable::ECGenericObjectTable(ECSession *ses,
 	m_ulObjType(ulObjType), m_ulFlags(ulFlags), m_locale(locale)
 {
 	// No columns by default
-	this->lpsPropTagArray = s_alloc<propTagArray>(nullptr);
-	this->lpsPropTagArray->__size = 0;
-	this->lpsPropTagArray->__ptr = NULL;
+	lpsPropTagArray = s_alloc<propTagArray>(nullptr);
+	lpsPropTagArray->__size = 0;
+	lpsPropTagArray->__ptr = nullptr;
 }
 
 ECGenericObjectTable::~ECGenericObjectTable()
@@ -223,7 +223,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *rt,
 	{
 		sRowItem.ulObjId = *reinterpret_cast<unsigned int *>(rt->lpProp->lpProp->Value.bin->__ptr);
 		sRowItem.ulOrderId = *reinterpret_cast<unsigned int *>(rt->lpProp->lpProp->Value.bin->__ptr + sizeof(LONG));
-		return this->lpKeyTable->SeekId(&sRowItem);
+		return lpKeyTable->SeekId(&sRowItem);
 	}
 
 	// We can do the same with PR_ENTRYID
@@ -239,7 +239,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *rt,
 		if(er != erSuccess)
 			return er;
 		sRowItem.ulOrderId = 0; // FIXME: this is incorrect when MV_INSTANCE is specified on a column, but this won't happen often.
-		return this->lpKeyTable->SeekId(&sRowItem);
+		return lpKeyTable->SeekId(&sRowItem);
 	}
 
 	// Get the columns we will be needing for this search
@@ -577,9 +577,11 @@ ECRESULT ECGenericObjectTable::SetSortOrder(const struct sortOrderArray *lpsSort
 	// reloaded.
 	scoped_rlock biglock(m_hLock);
 
-	if(m_ulCategories == ulCategories && m_ulExpanded == ulExpanded && this->lpsSortOrderArray && CompareSortOrderArray(this->lpsSortOrderArray, lpsSortOrder) == 0) {
+	if (m_ulCategories == ulCategories && m_ulExpanded == ulExpanded &&
+	    lpsSortOrderArray != nullptr &&
+	    CompareSortOrderArray(lpsSortOrderArray, lpsSortOrder) == 0) {
 		// Sort requested was already set, return OK
-		this->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
+		SeekRow(BOOKMARK_BEGINNING, 0, nullptr);
 		return erSuccess;
 	}
 	
@@ -593,13 +595,13 @@ ECRESULT ECGenericObjectTable::SetSortOrder(const struct sortOrderArray *lpsSort
 
 	// Save the sort order requested
 	FreeSortOrderArray(lpsSortOrderArray);
-	this->lpsSortOrderArray = s_alloc<sortOrderArray>(nullptr);
-	this->lpsSortOrderArray->__size = lpsSortOrder->__size;
+	lpsSortOrderArray = s_alloc<sortOrderArray>(nullptr);
+	lpsSortOrderArray->__size = lpsSortOrder->__size;
 	if(lpsSortOrder->__size == 0 ) {
-		this->lpsSortOrderArray->__ptr = NULL;
+		lpsSortOrderArray->__ptr = nullptr;
 	} else {
-		this->lpsSortOrderArray->__ptr = s_alloc<sortOrder>(nullptr, lpsSortOrder->__size);
-		memcpy(this->lpsSortOrderArray->__ptr, lpsSortOrder->__ptr, sizeof(struct sortOrder) * lpsSortOrder->__size);
+		lpsSortOrderArray->__ptr = s_alloc<sortOrder>(nullptr, lpsSortOrder->__size);
+		memcpy(lpsSortOrderArray->__ptr, lpsSortOrder->__ptr, sizeof(struct sortOrder) * lpsSortOrder->__size);
 	}
 
 	auto er = ReloadTable(RELOAD_TYPE_SORTORDER);
@@ -737,7 +739,7 @@ ECRESULT ECGenericObjectTable::Restrict(struct restrictTable *rt)
 
 	// Copy the restriction so we can remember it
 	FreeRestrictTable(lpsRestrict);
-	this->lpsRestrict = NULL; // turn off restriction
+	lpsRestrict = nullptr;
 	if (rt != nullptr) {
 		er = CopyRestrictTable(nullptr, rt, &lpsRestrict);
 		if(er != erSuccess)
@@ -749,7 +751,7 @@ ECRESULT ECGenericObjectTable::Restrict(struct restrictTable *rt)
 		return er;
 
 	// Seek to row 0 (according to spec)
-	this->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
+	SeekRow(BOOKMARK_BEGINNING, 0, nullptr);
 	return er;
 }
 
@@ -799,8 +801,8 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 
 	rt = bOverride ? lpOverrideRestrict : lpsRestrict;
 	// We want all columns of the sort data, plus all the columns needed for restriction, plus the ID of the row
-	if(this->lpsSortOrderArray)
-		sPropTagArray.__size = this->lpsSortOrderArray->__size; // sort columns
+	if (lpsSortOrderArray != nullptr)
+		sPropTagArray.__size = lpsSortOrderArray->__size; // sort columns
 	else
 		sPropTagArray.__size = 0;
 	if (rt != nullptr) {
@@ -822,8 +824,8 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 	
 	// Put all the proptags of the sort columns in a proptag array
 	if(lpsSortOrderArray)
-		for (gsoap_size_t i = 0; i < this->lpsSortOrderArray->__size; ++i)
-			sPropTagArray.__ptr[n++] = this->lpsSortOrderArray->__ptr[i].ulPropTag;
+		for (gsoap_size_t i = 0; i < lpsSortOrderArray->__size; ++i)
+			sPropTagArray.__ptr[n++] = lpsSortOrderArray->__ptr[i].ulPropTag;
 
 	// Same for restrict columns
 	// Check if an item already exist
@@ -962,7 +964,7 @@ ECRESULT ECGenericObjectTable::AddTableNotif(ECKeyTable::UpdateType ulAction, sO
     if(ulAction == ECKeyTable::TABLE_ROW_ADD || ulAction == ECKeyTable::TABLE_ROW_MODIFY) {
 		lstItems.emplace_back(sRowItem);
 		auto cleanup = make_scope_success([&]() { FreeRowSet(lpRowSetNotif, true); });
-        er = m_lpfnQueryRowData(this, NULL, lpSession, &lstItems, this->lpsPropTagArray, m_lpObjectData, &lpRowSetNotif, true, true);
+		er = m_lpfnQueryRowData(this, nullptr, lpSession, &lstItems, lpsPropTagArray, m_lpObjectData, &lpRowSetNotif, true, true);
         if(er != erSuccess)
 			return er;
 		if (lpRowSetNotif->__size != 1)
@@ -1000,8 +1002,7 @@ ECRESULT ECGenericObjectTable::QueryRows(struct soap *soap, unsigned int ulRowCo
 
 	if(er != erSuccess)
 		return er;
-
-	assert(ecRowList.size() <= this->mapObjects.size() + this->m_mapCategories.size());
+	assert(ecRowList.size() <= mapObjects.size() + m_mapCategories.size());
 	if(ecRowList.empty()) {
 		lpRowSet = s_alloc<rowSet>(soap);
 		lpRowSet->__size = 0;
@@ -1009,8 +1010,7 @@ ECRESULT ECGenericObjectTable::QueryRows(struct soap *soap, unsigned int ulRowCo
 	} else {
 		
 		// We now have the ordering of the rows, all we have to do now is get the data. 
-		er = m_lpfnQueryRowData(this, soap, lpSession, &ecRowList, this->lpsPropTagArray, m_lpObjectData, &lpRowSet, true, true);
-
+		er = m_lpfnQueryRowData(this, soap, lpSession, &ecRowList, lpsPropTagArray, m_lpObjectData, &lpRowSet, true, true);
 	}
 
 	if(er != erSuccess)
@@ -1080,7 +1080,7 @@ ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sI
     		lpRowSet->__ptr = NULL;
     	} else {
     	    // Get data for unhidden rows
-    		er = m_lpfnQueryRowData(this, soap, lpSession, &lstUnhidden, this->lpsPropTagArray, m_lpObjectData, &lpRowSet, true, true);
+			er = m_lpfnQueryRowData(this, soap, lpSession, &lstUnhidden, lpsPropTagArray, m_lpObjectData, &lpRowSet, true, true);
     	}
 
     	if(er != erSuccess)
@@ -1395,12 +1395,12 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 	case ECKeyTable::TABLE_ROW_DELETE:
 		// Delete the object ID from our object list, and all items with that object ID (including various order IDs)
 		for (const auto &obj_id : *lstObjId) {
-			for (auto mo = this->mapObjects.find(sObjectTableKey(obj_id, 0));
-			     mo != this->mapObjects.cend() && mo->first.ulObjId == obj_id; ++mo)
+			for (auto mo = mapObjects.find(sObjectTableKey(obj_id, 0));
+			     mo != mapObjects.cend() && mo->first.ulObjId == obj_id; ++mo)
 				ecRowsItem.emplace_back(mo->first);
             
-		for (const auto &row : ecRowsItem) {
-			this->mapObjects.erase(row);
+			for (const auto &row : ecRowsItem) {
+				mapObjects.erase(row);
 			/* Delete the object from the active keyset */
 			DeleteRow(row, ulFlags);
 			RemoveCategoryAfterRemoveRow(row, ulFlags);
@@ -1433,8 +1433,8 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 			auto cMVNew = pair.second;
 			// get old mvprops count
 			auto cMVOld = 0;
-			for (auto iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
-			     iterMapObject != this->mapObjects.cend();
+			for (auto iterMapObject = mapObjects.find(sObjectTableKey(obj_id, 0));
+			     iterMapObject != mapObjects.cend();
 			     ++iterMapObject) {
 				if (iterMapObject->first.ulObjId != obj_id)
 					break;
@@ -1445,7 +1445,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 				--iterMapObject;
 				sRow = iterToDelete->first;
 				// Delete of map
-				this->mapObjects.erase(iterToDelete->first);
+				mapObjects.erase(iterToDelete->first);
 				DeleteRow(sRow, ulFlags);
 				RemoveCategoryAfterRemoveRow(sRow, ulFlags);
 			}
@@ -1458,8 +1458,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
         
         // Remember that the specified row is available		
 		for (const auto &row : ecRowsItem)
-			this->mapObjects[row] = 1;
-            
+			mapObjects[row] = 1;
 		// Add/modify the key in the keytable
 		er = AddRowKey(&ecRowsItem, &ulRead, ulFlags, bLoad, false, NULL);
 		if(er != erSuccess)
@@ -1468,9 +1467,8 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 	}
 	case ECKeyTable::TABLE_CHANGE:
 		// The whole table needs to be reread
-		this->Clear();
-		er = this->Load();
-
+		Clear();
+		er = Load();
 		lpSession->AddNotificationTable(ulType, m_ulObjType, m_ulTableId, NULL, NULL, NULL);
 
 		break;
@@ -2699,7 +2697,7 @@ ECRESULT ECGenericObjectTable::GetPropCategory(struct soap *soap, unsigned int u
 
 unsigned int ECGenericObjectTable::GetCategories()
 {
-    return this->m_ulCategories;
+	return m_ulCategories;
 }
 
 // Normally overridden by subclasses
@@ -2870,9 +2868,8 @@ ECRESULT ECCategory::UpdateMinMaxRemove(const sObjectTableKey &sKey, unsigned in
 		fModified = true;
 		
 		// Reset old value
-		FreePropVal(&this->m_lpProps[i], false);
-		this->m_lpProps[i].ulPropTag = PR_NULL;
-		
+		FreePropVal(&m_lpProps[i], false);
+		m_lpProps[i].ulPropTag = PR_NULL;
 		// The min/max value until now was updated. Find the next min/max value.
 		for (iterMinMax = m_mapMinMax.begin();
 		     iterMinMax != m_mapMinMax.end(); ++iterMinMax)

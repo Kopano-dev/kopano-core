@@ -153,13 +153,13 @@ void BTSession::UpdateSessionTime()
 
 ECRESULT BTSession::GetDatabase(ECDatabase **lppDatabase)
 {
-	return GetThreadLocalDatabase(this->m_lpDatabaseFactory, lppDatabase);
+	return GetThreadLocalDatabase(m_lpDatabaseFactory, lppDatabase);
 }
 
 ECRESULT BTSession::GetAdditionalDatabase(ECDatabase **lppDatabase)
 {
 	std::string str;
-	return this->m_lpDatabaseFactory->CreateDatabaseObject(lppDatabase, str);
+	return m_lpDatabaseFactory->CreateDatabaseObject(lppDatabase, str);
 }
 
 ECRESULT BTSession::GetServerGUID(GUID* lpServerGuid){
@@ -174,14 +174,14 @@ void BTSession::lock()
 {
 	// Increase our refcount by one
 	scoped_lock lock(m_hThreadReleasedMutex);
-	++this->m_ulRefCount;
+	++m_ulRefCount;
 }
 
 void BTSession::unlock()
 {
 	// Decrease our refcount by one, signal ThreadReleased if RefCount == 0
 	scoped_lock lock(m_hThreadReleasedMutex);
-	--this->m_ulRefCount;
+	--m_ulRefCount;
 	if(!IsLocked())
 		m_hThreadReleased.notify_one();
 }

@@ -55,20 +55,20 @@ ECNotification::ECNotification(const notification &notification)
 
 void ECNotification::Init()
 {
-	this->m_lpsNotification = s_alloc<notification>(nullptr);
+	m_lpsNotification = s_alloc<notification>(nullptr);
 	memset(m_lpsNotification, 0, sizeof(notification));
 }
 
 ECNotification& ECNotification::operator=(const ECNotification &x)
 {
 	if (this != &x)
-		CopyNotificationStruct(nullptr, x.m_lpsNotification, *this->m_lpsNotification);
+		CopyNotificationStruct(nullptr, x.m_lpsNotification, *m_lpsNotification);
 	return *this;
 }
 
 ECNotification &ECNotification::operator=(const notification &srcNotification)
 {
-	CopyNotificationStruct(nullptr, &srcNotification, *this->m_lpsNotification);
+	CopyNotificationStruct(nullptr, &srcNotification, *m_lpsNotification);
 	return *this;
 }
 
@@ -79,7 +79,7 @@ void ECNotification::SetConnection(unsigned int ulConnection)
 
 void ECNotification::GetCopy(struct soap *soap, notification &notification) const
 {
-	CopyNotificationStruct(soap, this->m_lpsNotification, notification);
+	CopyNotificationStruct(soap, m_lpsNotification, notification);
 }
 
 /**

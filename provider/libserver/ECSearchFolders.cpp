@@ -1164,8 +1164,7 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulFolderId)
 		ec_log_crit("ECSearchFolders::ResetResults(): GetParent failed 0x%x", er);
 		return er;
 	}
-    
-    er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::ResetResults(): GetThreadLocalDatabase failed 0x%x", er);
 		return er;
@@ -1218,7 +1217,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, unsigned int ulObj
 	DB_RESULT lpDBResult;
     
     assert((ulFlags &~ MSGFLAG_READ) == 0);
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::AddResults(): GetThreadLocalDatabase failed 0x%x", er);
 		return er;
@@ -1258,7 +1257,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, std::list<unsigned
 	assert(lstObjId.size() == lstFlags.size());
     if(lstObjId.empty())
 		return erSuccess;
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::AddResults(): GetThreadLocalDatabase failed 0x%x", er);
 		return er;
@@ -1325,7 +1324,7 @@ ECRESULT ECSearchFolders::DeleteResults(unsigned int ulFolderId, unsigned int ul
 	DB_RESULT lpResult;
     
     unsigned int ulAffected = 0;
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if (er != erSuccess)
 		return er;
 
@@ -1357,7 +1356,7 @@ ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStat
     ECDatabase *lpDatabase = NULL;
    
 	// Do not use transactions because this function is called inside a transaction.
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::SetStatus(): GetThreadLocalDatabase failed 0x%x", er);
 		return er;
@@ -1391,8 +1390,7 @@ ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int 
 {
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpResult;
-    
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::GetSearchResults(): GetThreadLocalDatabase failed 0x%x", er);
 		return er;

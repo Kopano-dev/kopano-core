@@ -277,8 +277,7 @@ ECRESULT ECSessionStatsTable::Load()
 	id = 0;
 	// get all data items available
 	// since the table is too volatile, collect all the data at once, and not in QueryRowData
-	lpSessionManager->ForEachSession(this->GetSessionData, (void*)this);
-
+	lpSessionManager->ForEachSession(GetSessionData, this);
 	// add all items to the keytable
 	for (unsigned int i = 0; i < id; ++i)
 		// Use MAPI_STATUS as ulObjType for the key table .. this param may be removed in the future..?
