@@ -6850,12 +6850,13 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	object_ptr<IMailUser> mailuser;
 	ULONG objtype;
 	MAPI_G(hr) = HrGetOneProp(lpMsgStore, PR_MAILBOX_OWNER_ENTRYID, &~prop);
-	if (MAPI_G(hr) != hrSuccess)
+	if (MAPI_G(hr) == hrSuccess) {
+		MAPI_G(hr) = lpMAPISession->OpenEntry(prop->Value.bin.cb, reinterpret_cast<ENTRYID *>(prop->Value.bin.lpb), &iid_of(mailuser), MAPI_BEST_ACCESS, &objtype, &~mailuser);
+		if (MAPI_G(hr) != hrSuccess)
+			return;
+	} else if (MAPI_G(hr) != MAPI_E_NOT_FOUND) {
 		return;
-
-	MAPI_G(hr) = lpMAPISession->OpenEntry(prop->Value.bin.cb, reinterpret_cast<ENTRYID *>(prop->Value.bin.lpb), &iid_of(mailuser), MAPI_BEST_ACCESS, &objtype, &~mailuser);
-	if (MAPI_G(hr) != hrSuccess)
-		return;
+	}
 
 	// noRecpients, skip recipients from ical.
 	// Used for DAgent, which uses the mail recipients
