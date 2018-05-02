@@ -896,7 +896,9 @@ exit:
 	return SOAP_OK;
 }
 
-#define SOAP_ENTRY_FUNCTION_HEADER(resultvar, fname) \
+#define SOAP_ENTRY_START(fname, resultvar, ...) \
+int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
+{ \
     struct timespec	startTimes = {0}, endTimes = {0};	\
 	auto dblStart = steady_clock::now(); \
     ECSession		*lpecSession = NULL; \
@@ -911,9 +913,12 @@ exit:
 		goto __soapentry_exit; \
 	soap_info(soap)->ulLastSessionId = ulSessionId; \
 	soap_info(soap)->szFname = szFname; \
-	lpecSession->AddBusyState(pthread_self(), #fname, soap_info(soap)->threadstart, soap_info(soap)->start);
+	lpecSession->AddBusyState(pthread_self(), #fname, soap_info(soap)->threadstart, soap_info(soap)->start); \
+	er = [&]() -> int {
 
-#define SOAP_ENTRY_FUNCTION_FOOTER \
+#define SOAP_ENTRY_END() \
+        return er; \
+    }(); \
 __soapentry_exit: \
     *lpResultVar = er; \
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes); \
@@ -923,18 +928,7 @@ __soapentry_exit: \
 		lpecSession->UpdateBusyState(pthread_self(), SESSION_STATE_SENDING); \
 		lpecSession->unlock(); \
     } \
-    return SOAP_OK;
-
-#define SOAP_ENTRY_START(fname,resultvar,...) \
-int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
-{ \
-    SOAP_ENTRY_FUNCTION_HEADER(resultvar, fname) \
-    er = [&]() -> int {
-
-#define SOAP_ENTRY_END() \
-        return er; \
-    }(); \
-    SOAP_ENTRY_FUNCTION_FOOTER \
+    return SOAP_OK; \
 }
 
 #define ALLOC_DBRESULT() \
