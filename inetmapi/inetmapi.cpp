@@ -76,7 +76,6 @@ static void InitializeVMime()
 		return;
 
 	vmime::generationContext::getDefaultContext().setWrapMessageId(false);
-	vmime::generationContext::getDefaultContext().setInternationalizedEmailSupport(true);
 	// need to have a unique indentifier in the mediaType
 	vmime::textPartFactory::getInstance()->registerType<vmime::mapiTextPart>(vmime::mediaType(vmime::mediaTypes::TEXT, "mapi"));
 	// init our random engine for random message id generation
