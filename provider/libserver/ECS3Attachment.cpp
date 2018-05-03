@@ -657,7 +657,7 @@ ECRESULT ECS3Attachment::DeleteAttachmentInstances(const std::list<ext_siid> &ls
 	ECRESULT ret = erSuccess;
 	int errors = 0;
 	for (const auto &del_id : lstDeleteInstances) {
-		ret = this->DeleteAttachmentInstance(del_id, bReplace);
+		ret = DeleteAttachmentInstance(del_id, bReplace);
 		if (ret != erSuccess)
 			++errors;
 	}

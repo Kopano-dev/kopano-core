@@ -692,7 +692,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 
 	if (m_lpsRestrict) {
 		assert(m_lpSession != NULL);
-		auto er = MatchRestrictions(db_rows, db_lengths, m_lpsRestrict, &matches);
+		er = MatchRestrictions(db_rows, db_lengths, m_lpsRestrict, &matches);
 		if (er != erSuccess)
 			return er;
 	}
@@ -994,11 +994,8 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 	*matches_p = std::move(matches);
 exit:
 	delete sODStore.lpGuid;
-
-	if(lpPropTags)
-		FreePropTagArray(lpPropTags);
-	if(lpRowSet)
-		FreeRowSet(lpRowSet, true);
+	FreePropTagArray(lpPropTags);
+	FreeRowSet(lpRowSet, true);
 	return er;
 }
 

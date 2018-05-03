@@ -838,8 +838,6 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(const ext_siid &ulInstance
 ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
     ULONG ulPropId, size_t iSize, unsigned char *lpData)
 {
-	std::string strQuery;
-
 	// make chunks of 393216 bytes (384*1024)
 	size_t iSizeLeft = iSize;
 	size_t iPtr = 0;
@@ -994,15 +992,14 @@ ECRESULT ECDatabaseAttachment::Rollback()
 // Attachment storage is in separate files
 ECFileAttachment::ECFileAttachment(ECDatabase *lpDatabase,
     const std::string &basepath, unsigned int ulCompressionLevel,
-    const bool force_changes_to_disk) :
+    bool sync_to_disk) :
 	ECAttachmentStorage(lpDatabase, ulCompressionLevel),
 	m_basepath(basepath)
 {
 	if (m_basepath.empty())
 		m_basepath = "/var/lib/kopano";
-
-	this -> force_changes_to_disk = force_changes_to_disk;
-	if (force_changes_to_disk) {
+	force_changes_to_disk = sync_to_disk;
+	if (sync_to_disk) {
 		m_dirp = opendir(m_basepath.c_str());
 
 		if (m_dirp)
@@ -1715,7 +1712,7 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstances(const std::list<ext_siid> &
 	int errors = 0;
 
 	for (const auto &del_id : lstDeleteInstances) {
-		auto er = this->DeleteAttachmentInstance(del_id, bReplace);
+		auto er = DeleteAttachmentInstance(del_id, bReplace);
 		if (er != erSuccess)
 			++errors;
 	}

@@ -106,11 +106,11 @@ static bool IsTruncated(const struct propVal *lpsPropVal)
 	return false;		
 }
 
-ECStoreObjectTable::ECStoreObjectTable(ECSession *lpSession,
+ECStoreObjectTable::ECStoreObjectTable(ECSession *ses,
     unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId,
     unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags,
     const ECLocale &locale) :
-	ECGenericObjectTable(lpSession, ulObjType, ulFlags, locale)
+	ECGenericObjectTable(ses, ulObjType, ulFlags, locale)
 {
 	auto lpODStore = new ECODStore;
 	lpODStore->ulStoreId = ulStoreId;
@@ -308,7 +308,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 	auto cleanup = make_scope_success([&] {
-		if (soap == nullptr && lpsRowSet != nullptr)
+		if (soap == nullptr)
 			FreeRowSet(lpsRowSet, true);
 	});
 
@@ -673,10 +673,10 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
         for (const auto &col : mapColumns) {
 			if (ECGenProps::GetPropSubquery(col.first, strSubQuery) != erSuccess)
 				continue;
-			auto strPropColOrder = GetPropColOrder(col.first, strSubQuery);
+			auto co = GetPropColOrder(col.first, strSubQuery);
 			if (!strQuery.empty())
 				strQuery += " UNION ";
-			strQuery += " SELECT " + strPropColOrder +
+			strQuery += " SELECT " + co +
 				" FROM hierarchy WHERE hierarchy.id = " +
 				stringify(sKey.ulObjId);
         }
@@ -1081,11 +1081,11 @@ ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 		return erSuccess;
 	if (lpData->ulFolderId) {
 		// We can either see all messages or none at all. Do this check once only as an optimisation.
-		if (!this->fPermissionRead) {
-			this->ulPermission = sec->CheckPermission(lpData->ulFolderId, ecSecurityRead);
-			this->fPermissionRead = true;
+		if (!fPermissionRead) {
+			ulPermission = sec->CheckPermission(lpData->ulFolderId, ecSecurityRead);
+			fPermissionRead = true;
 		}
-		return this->ulPermission;
+		return ulPermission;
 	}
 	// Get the parent id of the row we're inserting (this is very probably cached from Load())
 	auto er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParent);
@@ -1156,9 +1156,7 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
     	er = ECGenericObjectTable::AddRowKey(&sMatchedRows, lpulLoaded, ulFlags, bLoad, true, lpNewRestrict);
 exit:
 	biglock.unlock();
-	if(lpNewRestrict)
-		FreeRestrictTable(lpNewRestrict);
-
+	FreeRestrictTable(lpNewRestrict);
 	return er;
     
 }

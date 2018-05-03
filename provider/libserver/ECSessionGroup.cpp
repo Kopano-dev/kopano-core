@@ -122,8 +122,7 @@ ECRESULT ECSessionGroup::AddAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 		unsigned int ulStore = 0;
 
 		m_lpSessionManager->GetCacheManager()->GetStore(ulKey, &ulStore, NULL);
-		m_lpSessionManager->SubscribeObjectEvents(ulStore, this->m_sessionGroupId);
-		
+		m_lpSessionManager->SubscribeObjectEvents(ulStore, m_sessionGroupId);
 		scoped_lock lock(m_mutexSubscribedStores);
 		m_mapSubscribedStores.emplace(ulKey, ulStore);
 	}
@@ -163,12 +162,12 @@ ECRESULT ECSessionGroup::DelAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 	}
 	if (iterSubscription->second.ulEventMask & (fnevObjectModified | fnevObjectCreated | fnevObjectCopied | fnevObjectDeleted | fnevObjectMoved)) {
 		// Object notification - remove our subscription to the store
-		scoped_lock lock(m_mutexSubscribedStores);
+		scoped_lock slock(m_mutexSubscribedStores);
 		// Find the store that the key was subscribed for
 		auto iterSubscribed = m_mapSubscribedStores.find(iterSubscription->second.ulKey);
 		if (iterSubscribed != m_mapSubscribedStores.cend()) {
 			// Unsubscribe the store
-			m_lpSessionManager->UnsubscribeObjectEvents(iterSubscribed->second, this->m_sessionGroupId);
+			m_lpSessionManager->UnsubscribeObjectEvents(iterSubscribed->second, m_sessionGroupId);
 			// Remove from our list
 			m_mapSubscribedStores.erase(iterSubscribed);
 		} else

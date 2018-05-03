@@ -142,15 +142,13 @@ struct TABLECHANGENOTIFICATION {
 		return ulFlags < rhs.ulFlags || (ulFlags == rhs.ulFlags && ulType < rhs.ulType);
 	}
 
-	unsigned int ulFlags;
-	unsigned int ulType;
+	unsigned int ulFlags, ulType;
 };
 
 class PARENTINFO _kc_final {
 public:
-	int lItems = 0, lFolders = 0, lAssoc = 0;
+	int lItems = 0, lFolders = 0, lAssoc = 0, lUnread = 0;
 	int lDeleted = 0, lDeletedFolders = 0, lDeletedAssoc = 0;
-	int lUnread = 0;
 	unsigned int ulStoreId = 0;
 };
 

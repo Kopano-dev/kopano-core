@@ -126,10 +126,8 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
 			er = erSuccess; // just try to skip the error
 			continue;
 		}
-		if (lpSearchCriteria) {
-			FreeSearchCriteria(lpSearchCriteria);
-			lpSearchCriteria = NULL;
-		}
+		FreeSearchCriteria(lpSearchCriteria);
+		lpSearchCriteria = nullptr;
     }
 
     if(lpSearchCriteria)
@@ -183,10 +181,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
     struct searchCriteria *lpCriteria = NULL;
     unsigned int ulParent = 0;
 	ulock_rec l_sf(m_mutexMapSearchFolders, std::defer_lock_t());
-	auto cleanup = make_scope_success([&]() {
-		if (lpCriteria != nullptr)
-			FreeSearchCriteria(lpCriteria);
-	});
+	auto cleanup = make_scope_success([&]() { FreeSearchCriteria(lpCriteria); });
 
     if(lpSearchCriteria == NULL) {
 		auto er = LoadSearchCriteria(ulFolderId, &lpCriteria);
@@ -626,14 +621,10 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 						}
 				}
 
-				if(lpPropTags) {
-					FreePropTagArray(lpPropTags);
-					lpPropTags = NULL;
-				}
-				if(lpRowSet) {
-					FreeRowSet(lpRowSet, true);
-					lpRowSet = NULL;
-				}
+				FreePropTagArray(lpPropTags);
+				lpPropTags = nullptr;
+				FreeRowSet(lpRowSet, true);
+				lpRowSet = nullptr;
 			} else {
 				// Not in a target folder, remove from search results
 				for (const auto &obj_id : *lstObjectIDs)
@@ -810,10 +801,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
     
     // Get the row data for the search
-	auto cleanup = make_scope_success([&]() {
-		if (lpRowSet != nullptr)
-			FreeRowSet(lpRowSet, true);
-	});
+	auto cleanup = make_scope_success([&]() { FreeRowSet(lpRowSet, true); });
 	auto er = ECStoreObjectTable::QueryRowData(nullptr, nullptr, lpSession, &ecRows, lpPropTags, lpODStore, &lpRowSet, false, false);
 	if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::ProcessCandidateRows() ECStoreObjectTable::QueryRowData failed %d", er);
@@ -925,10 +913,8 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	auto cleanup = make_scope_success([&]() {
 		lpSession->unlock();
 		m_lpSessionManager->RemoveSessionInternal(lpSession);
-		if (lpPropTags != nullptr)
-			FreePropTagArray(lpPropTags);
-		if (lpAdditionalRestrict != nullptr)
-			FreeRestrictTable(lpAdditionalRestrict);
+		FreePropTagArray(lpPropTags);
+		FreeRestrictTable(lpAdditionalRestrict);
 	});
 	er = lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess) {
@@ -1178,8 +1164,7 @@ ECRESULT ECSearchFolders::ResetResults(unsigned int ulFolderId)
 		ec_log_crit("ECSearchFolders::ResetResults(): GetParent failed 0x%x", er);
 		return er;
 	}
-    
-    er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::ResetResults(): GetThreadLocalDatabase failed 0x%x", er);
 		return er;
@@ -1232,7 +1217,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, unsigned int ulObj
 	DB_RESULT lpDBResult;
     
     assert((ulFlags &~ MSGFLAG_READ) == 0);
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::AddResults(): GetThreadLocalDatabase failed 0x%x", er);
 		return er;
@@ -1272,7 +1257,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, std::list<unsigned
 	assert(lstObjId.size() == lstFlags.size());
     if(lstObjId.empty())
 		return erSuccess;
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::AddResults(): GetThreadLocalDatabase failed 0x%x", er);
 		return er;
@@ -1339,7 +1324,7 @@ ECRESULT ECSearchFolders::DeleteResults(unsigned int ulFolderId, unsigned int ul
 	DB_RESULT lpResult;
     
     unsigned int ulAffected = 0;
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if (er != erSuccess)
 		return er;
 
@@ -1371,7 +1356,7 @@ ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStat
     ECDatabase *lpDatabase = NULL;
    
 	// Do not use transactions because this function is called inside a transaction.
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::SetStatus(): GetThreadLocalDatabase failed 0x%x", er);
 		return er;
@@ -1405,8 +1390,7 @@ ECRESULT ECSearchFolders::GetSearchResults(unsigned int ulStoreId, unsigned int 
 {
     ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpResult;
-    
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::GetSearchResults(): GetThreadLocalDatabase failed 0x%x", er);
 		return er;

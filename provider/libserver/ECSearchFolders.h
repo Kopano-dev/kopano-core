@@ -38,42 +38,23 @@ namespace KC {
 class ECSessionManager;
 
 struct SEARCHFOLDER _kc_final {
-	SEARCHFOLDER(unsigned int ulStoreId, unsigned int ulFolderId) {
-		this->ulStoreId = ulStoreId;
-		this->ulFolderId = ulFolderId;
-		memset(&sThreadId, 0, sizeof(sThreadId));
-	}
+	SEARCHFOLDER(unsigned int store_id, unsigned int folder_id) :
+		sThreadId{}, ulStoreId(store_id), ulFolderId(folder_id)
+	{}
 	~SEARCHFOLDER() {
-		if (this->lpSearchCriteria)
-			FreeSearchCriteria(this->lpSearchCriteria);
+		FreeSearchCriteria(lpSearchCriteria);
 	}
 
 	struct searchCriteria *lpSearchCriteria = nullptr;
     pthread_t 				sThreadId;
 	std::mutex mMutexThreadFree;
-	bool bThreadFree = true;
-	bool bThreadExit = false;
-    unsigned int			ulStoreId;
-    unsigned int			ulFolderId;
+	bool bThreadFree = true, bThreadExit = false;
+	unsigned int ulStoreId, ulFolderId;
 };
 
 struct EVENT {
-    unsigned int			ulStoreId;
-    unsigned int			ulFolderId;
-    unsigned int			ulObjectId;
+	unsigned int ulStoreId, ulFolderId, ulObjectId;
     ECKeyTable::UpdateType  ulType;
-    
-	bool operator<(const struct EVENT &b) const noexcept
-	{
-		return ulFolderId < b.ulFolderId ? true :
-		       (ulType < b.ulType ? true :
-		       (ulObjectId < b.ulObjectId ? true : false));
-	}
-	bool operator==(const struct EVENT &b) const noexcept
-	{
-		return ulFolderId == b.ulFolderId && ulType == b.ulType &&
-		       ulObjectId ==  b.ulObjectId;
-	}
 };
 
 typedef std::map<unsigned int, SEARCHFOLDER *> FOLDERIDSEARCH;
@@ -81,9 +62,7 @@ typedef std::map<unsigned int, FOLDERIDSEARCH> STOREFOLDERIDSEARCH;
 typedef std::map<unsigned int, pthread_t> SEARCHTHREADMAP;
 
 struct sSearchFolderStats {
-	ULONG ulStores;
-	ULONG ulFolders;
-	ULONG ulEvents;
+	ULONG ulStores, ulFolders, ulEvents;
 	ULONGLONG ullSize;
 };
 

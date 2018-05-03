@@ -63,11 +63,8 @@ struct ECsUEIdKey {
 
 inline bool operator <(const ECsUEIdKey &a, const ECsUEIdKey &b)
 {
-	if (a.ulClass < b.ulClass)
-		return true;
-	if ((a.ulClass == b.ulClass) && a.strExternId < b.strExternId)
-		return true;
-	return false;
+	return a.ulClass < b.ulClass ||
+	       (a.ulClass == b.ulClass && a.strExternId < b.strExternId);
 }
 
 /* Intern Id cache */
@@ -101,20 +98,13 @@ class ECsIndexObject _kc_final : public ECsCacheEntry {
 public:
 	inline bool operator==(const ECsIndexObject &other) const noexcept
 	{
-		if (ulObjId == other.ulObjId && ulTag == other.ulTag)
-			return true;
-
-		return false;
+		return ulObjId == other.ulObjId && ulTag == other.ulTag;
 	}
 
 	inline bool operator<(const ECsIndexObject &other) const noexcept
 	{
-		if(ulObjId < other.ulObjId)
-			return true;
-		else if(ulObjId == other.ulObjId && ulTag < other.ulTag)
-			return true;
-
-		return false;
+		return ulObjId < other.ulObjId ||
+		       (ulObjId == other.ulObjId && ulTag < other.ulTag);
 	}
 
 	unsigned int ulObjId, ulTag;
@@ -193,19 +183,16 @@ public:
 		return false;
 	}
 
-	void SetValue(unsigned int ulTag, const unsigned char *lpData, unsigned int cbData)
+	void SetValue(unsigned int tag, const unsigned char *data, unsigned int z)
 	{
-		if(lpData == NULL|| cbData == 0)
+		if (data == nullptr || z == 0)
 			return;
 
 		Free();
-
-		this->lpData = new unsigned char[cbData];
-		this->cbData = cbData;
-		this->ulTag = ulTag;
-
-		memcpy(this->lpData, lpData, (size_t)cbData);
-
+		lpData = new unsigned char[z];
+		cbData = z;
+		ulTag = tag;
+		memcpy(lpData, data, z);
 	}
 protected:
 	void Free() {
@@ -310,11 +297,8 @@ public:
         i->second.Value.ul |= ulValue & ulMask;
     }
     
-    void SetComplete(bool bComplete) {
-        this->m_bComplete = bComplete;
-    }
-    
-    bool GetComplete() const { return this->m_bComplete; }
+	void SetComplete(bool bComplete) { m_bComplete = bComplete; }
+	bool GetComplete() const { return m_bComplete; }
 
     // Gets the amount of memory used by this object    
     size_t GetSize() const {

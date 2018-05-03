@@ -70,7 +70,7 @@ struct TABLE_ENTRY {
 
 class ECTableManager _kc_final {
 public:
-	ECTableManager(ECSession *lpSession);
+	ECTableManager(ECSession *s) : lpSession(s) {}
 	~ECTableManager();
 
 	ECRESULT	OpenGenericTable(unsigned int ulParent, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulTableId, bool fLoad = true);

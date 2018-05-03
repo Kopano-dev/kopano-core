@@ -177,11 +177,6 @@ static const struct propTagArray sPropTagArrayCompanyStats =
 static const struct propTagArray sPropTagArrayServerStats =
 	{const_cast<unsigned int *>(sServerStatsProps), ARRAY_SIZE(sServerStatsProps)};
 
-ECTableManager::ECTableManager(ECSession *lpSession)
-{
-	this->lpSession = lpSession;
-}
-
 ECTableManager::~ECTableManager()
 {
 	scoped_rlock lock(hListMutex);
@@ -296,9 +291,7 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 	lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
 
 exit:
-	if(lpsPropTags)
-		FreePropTagArray(lpsPropTags);
-
+	FreePropTagArray(lpsPropTags);
 	return er;
 }
 
@@ -818,12 +811,15 @@ ECRESULT ECSearchObjectTable::Load()
 	return UpdateRows(ECKeyTable::TABLE_ROW_ADD, &objlist2, 0, true);
 }
 
-ECMultiStoreTable::ECMultiStoreTable(ECSession *lpSession, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) : ECStoreObjectTable(lpSession, 0, NULL, 0, ulObjType, ulFlags, 0, locale) {
-}
+ECMultiStoreTable::ECMultiStoreTable(ECSession *ses, unsigned int ulObjType,
+    unsigned int ulFlags, const ECLocale &locale) :
+	ECStoreObjectTable(ses, 0, nullptr, 0, ulObjType, ulFlags, 0, locale)
+{}
 
-ECRESULT ECMultiStoreTable::Create(ECSession *lpSession, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale, ECMultiStoreTable **lppTable)
+ECRESULT ECMultiStoreTable::Create(ECSession *ses, unsigned int ulObjType,
+    unsigned int ulFlags, const ECLocale &locale, ECMultiStoreTable **lppTable)
 {
-	return alloc_wrap<ECMultiStoreTable>(lpSession, ulObjType,
+	return alloc_wrap<ECMultiStoreTable>(ses, ulObjType,
 	       ulFlags, locale).put(lppTable);
 }
 

@@ -68,7 +68,7 @@ public:
 	{
 		if (ulSize > 0) {
 			lpData.reset(new char[ulSize]);
-			memcpy(this->lpData.get(), sourcekey.__ptr, sourcekey.__size);
+			memcpy(lpData.get(), sourcekey.__ptr, sourcekey.__size);
 		}
 	}
     SOURCEKEY&  operator= (const SOURCEKEY &s) {
@@ -80,11 +80,8 @@ public:
     }
     
     bool operator == (const SOURCEKEY &s) const {
-        if(this == &s)
-            return true;
-        if(ulSize != s.ulSize)
-            return false;
-		return memcmp(lpData.get(), s.lpData.get(), s.ulSize) == 0;
+		return this == &s || (ulSize == s.ulSize &&
+		       memcmp(lpData.get(), s.lpData.get(), s.ulSize) == 0);
     }
 	
 	bool operator < (const SOURCEKEY &s) const {

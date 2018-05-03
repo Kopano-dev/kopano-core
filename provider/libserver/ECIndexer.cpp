@@ -312,8 +312,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	const char* szSocket = lpConfig->GetSetting("search_socket");
 
 	auto laters = make_scope_success([&]() {
-		if (lpOptimizedRestrict != NULL)
-			FreeRestrictTable(lpOptimizedRestrict);
+		FreeRestrictTable(lpOptimizedRestrict);
 		if (er != erSuccess)
 			g_lpStatsCollector->Increment(SCN_DATABASE_SEARCHES);
 		else

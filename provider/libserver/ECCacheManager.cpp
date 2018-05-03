@@ -381,7 +381,7 @@ ECRESULT ECCacheManager::GetObject(unsigned int ulObjId, unsigned int *lpulParen
 	unsigned int	ulParent = 0, ulOwner = 0, ulFlags = 0, ulType = 0;
 	bool bCacheResult = false;
 
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if(er != erSuccess)
 		goto exit;
 
@@ -448,11 +448,10 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 	DB_RESULT lpDBResult;
 	DB_ROW		lpDBRow = NULL;
 	ECDatabase	*lpDatabase = NULL;
-	sObjectTableKey key;
 	ECsObjects sObject, *lpsObject = nullptr;
 	std::set<sObjectTableKey> setUncached;
 
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if(er != erSuccess)
 		goto exit;
 		
@@ -491,6 +490,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
             sObject.ulFlags = atoui(lpDBRow[3]);
             sObject.ulType = atoui(lpDBRow[4]);
             
+			sObjectTableKey key;
             key.ulObjId = ulObjId;
             key.ulOrderId = 0;
             
@@ -531,7 +531,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 	}
 
 	if (!uncached.empty()) {
-		er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+		er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 		if (er != erSuccess)
 			goto exit;
 		auto strQuery = "SELECT hierarchyid, val_binary FROM indexedproperties FORCE INDEX(bin) WHERE tag=" + stringify(ulTag) + " AND val_binary IN(";
@@ -580,8 +580,7 @@ ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpu
 	
 	if(maxdepth <= 0)
 	    return KCERR_NOT_FOUND;
-
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if(er != erSuccess)
 		goto exit;
 
@@ -660,7 +659,7 @@ ECRESULT ECCacheManager::GetUserObject(unsigned int ulUserId, objectid_t *lpExte
 		goto exit;
 	}
 
-	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if (er != erSuccess)
 		goto exit;
 
@@ -747,8 +746,7 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 		bCacheResult = true;
 		goto exit;
 	}
-
-	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if (er != erSuccess)
 		goto exit;
 
@@ -806,7 +804,6 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 	std::string strQuery;
 	ECDatabase *lpDatabase = NULL;
 	std::list<objectid_t> lstExternIds;
-	decltype(lstExternIds)::const_iterator iter;
 	objectid_t sExternId;
 	std::string strSignature;
 
@@ -830,8 +827,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 	// Check if all objects have been collected from the cache
 	if (lstExternIds.empty())
 		goto exit;
-
-	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if (er != erSuccess)
 		goto exit;
 
@@ -1040,7 +1036,7 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 		return erSuccess;
 
 	/* Failed, get it from the cache */
-	auto er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if(er != erSuccess)
 		return er;
 	auto strQuery = "SELECT id, type, rights FROM acl WHERE hierarchy_id=" + stringify(ulObjId);
@@ -1346,11 +1342,10 @@ ECRESULT ECCacheManager::SetComplete(unsigned int ulObjId)
     ECsCells *sCell;
 	scoped_rlock lock(m_hCacheCellsMutex);
 
-	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess) {
-        sCell->SetComplete(true);
-    } else {
-        er = KCERR_NOT_FOUND;
-    }
+	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess)
+		sCell->SetComplete(true);
+	else
+		er = KCERR_NOT_FOUND;
 	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Set cell complete for object %d failed cell not found", ulObjId);
 	else
@@ -1364,11 +1359,10 @@ ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag
     ECsCells *sCell;
 	scoped_rlock lock(m_hCacheCellsMutex);
 
-	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess) {
-        sCell->UpdatePropVal(ulPropTag, lDelta);
-    } else {
-        er = KCERR_NOT_FOUND;
-    }
+	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess)
+		sCell->UpdatePropVal(ulPropTag, lDelta);
+	else
+		er = KCERR_NOT_FOUND;
 	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, delta %d failed cell not found", ulObjId, ulPropTag, lDelta);
 	else
@@ -1382,11 +1376,10 @@ ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag
     ECsCells *sCell;
 	scoped_rlock lock(m_hCacheCellsMutex);
 
-	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess) {
-        sCell->UpdatePropVal(ulPropTag, ulMask, ulValue);
-    } else {
-        er = KCERR_NOT_FOUND;
-    }
+	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess)
+		sCell->UpdatePropVal(ulPropTag, ulMask, ulValue);
+	else
+		er = KCERR_NOT_FOUND;
 	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, mask 0x%08X, value %d failed cell not found", ulObjId, ulPropTag, ulMask, ulValue);
 	else
@@ -1531,7 +1524,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 	}
 
 	// item not found, search in the database
-	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if(er != erSuccess)
 		goto exit;
 
@@ -1590,7 +1583,7 @@ ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbDa
 	}
 
 	// Item not found, search in database
-    er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
+	er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess)
         goto exit;
 

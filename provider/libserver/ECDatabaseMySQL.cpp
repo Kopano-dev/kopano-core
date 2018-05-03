@@ -849,8 +849,7 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 		return KCERR_INVALID_VERSION;
 	}
 
-	this->m_bForceUpdate = bForceUpdate;
-
+	m_bForceUpdate = bForceUpdate;
 	if (bForceUpdate)
 		ec_log_warn("Manually forced the database upgrade because the option \"--force-database-upgrade\" was given.");
 

@@ -3149,7 +3149,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 		}
 
 		auto laters = make_scope_success([&]() {
-			if(bFreeNewEntryId == true && lpsNewEntryId)
+			if (bFreeNewEntryId)
 				FreeEntryId(lpsNewEntryId, true);
 		});
 
@@ -4206,24 +4206,18 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
 		strQuery += "(";
 
-		// ID, then add ID where clause
-		if(lpsNamedProps->__ptr[i].lpId != NULL) {
+		if (lpsNamedProps->__ptr[i].lpId != nullptr)
+			// ID, then add ID where clause
 			strQuery += "nameid=" + stringify(*lpsNamedProps->__ptr[i].lpId) + " ";
-		}
-
-		// String, then add STRING where clause
-		else if(lpsNamedProps->__ptr[i].lpString != NULL) {
+		else if (lpsNamedProps->__ptr[i].lpString != nullptr)
+			// String, then add STRING where clause
 			strQuery += "namestring='" + lpDatabase->Escape(lpsNamedProps->__ptr[i].lpString) + "' ";
-		}
-		else {
+		else
 			strQuery += "0 ";
-		}
 
 		// Add a GUID specifier if there
-		if(lpsNamedProps->__ptr[i].lpguid != NULL) {
+		if (lpsNamedProps->__ptr[i].lpguid != nullptr)
 			strQuery += "AND guid=" + lpDatabase->EscapeBinary(lpsNamedProps->__ptr[i].lpguid->__ptr, lpsNamedProps->__ptr[i].lpguid->__size);
-		}
-
 		strQuery += ")";
 		if (i != lpsNamedProps->__size - 1)
 			strQuery += " OR ";
@@ -4286,12 +4280,10 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 			strQuery += "null";
 
 		strQuery += ",";
-		if (lpsNamedProps->__ptr[i].lpString != nullptr) {
+		if (lpsNamedProps->__ptr[i].lpString != nullptr)
 			strQuery += "'" + lpDatabase->Escape(lpsNamedProps->__ptr[i].lpString) + "'";
-		} else {
+		else
 			strQuery += "null";
-		}
-
 		strQuery += ",";
 		strQuery += lpDatabase->EscapeBinary(lpsNamedProps->__ptr[i].lpguid->__ptr, lpsNamedProps->__ptr[i].lpguid->__size);
 		strQuery += ")";
@@ -6638,10 +6630,8 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	auto cleanup = make_scope_success([&]() {
 		if (lpDatabase != nullptr && er != erSuccess && er != KCWARN_PARTIAL_COMPLETION)
 			lpDatabase->Rollback();
-		if (lpsNewEntryId != nullptr)
-			FreeEntryId(lpsNewEntryId, true);
-		if (lpsOldEntryId != nullptr)
-			FreeEntryId(lpsOldEntryId, true);
+		FreeEntryId(lpsNewEntryId, true);
+		FreeEntryId(lpsOldEntryId, true);
 	});
 	if(lplObjectIds->empty())
 		return erSuccess; /* Nothing to do */
@@ -7065,10 +7055,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
 	std::unique_ptr<ECAttachmentStorage> lpInternalAttachmentStorage;
 	kd_trans atx, dtx;
-	auto cleanup = make_scope_success([&]() {
-		if (lpsNewEntryId != nullptr)
-			FreeEntryId(lpsNewEntryId, true);
-	});
+	auto cleanup = make_scope_success([&]() { FreeEntryId(lpsNewEntryId, true); });
 	if (!lpAttachmentStorage) {
 		if (!bIsRoot) {
 			ec_log_err("CopyObject: \"!attachmentstore && !isroot\" clause failed: %s (%x)", GetMAPIErrorMessage(er), er);
@@ -7213,11 +7200,8 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		}
 	}
 
-	if (lpsNewEntryId != NULL) {
-		FreeEntryId(lpsNewEntryId, true);
-		lpsNewEntryId = NULL;
-	}
-
+	FreeEntryId(lpsNewEntryId, true);
+	lpsNewEntryId = nullptr;
 	// Get child items of the message like , attachment, recipient...
 	strQuery = "SELECT id FROM hierarchy WHERE parent="+stringify(ulObjId);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -8503,15 +8487,14 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, const entryId &sEntryId,
 	readPropsResponse->aPropTag.__size = 0;
 	readPropsResponse->aPropTag.__ptr = s_alloc<unsigned int>(soap, ptaProps.__size);
 
-	for (gsoap_size_t i = 0; i < readPropsResponse->aPropVal.__size; ++i) {
+	for (gsoap_size_t j = 0; j < readPropsResponse->aPropVal.__size; ++j) {
 		if (!bSupportUnicode) {
-			er = FixPropEncoding(soap, stringCompat, Out, readPropsResponse->aPropVal.__ptr + i);
+			er = FixPropEncoding(soap, stringCompat, Out, readPropsResponse->aPropVal.__ptr + j);
 			if (er != erSuccess)
 				return er;
 		}
-
-		if(PROP_TYPE(readPropsResponse->aPropVal.__ptr[i].ulPropTag) != PT_ERROR)
-			readPropsResponse->aPropTag.__ptr[readPropsResponse->aPropTag.__size++] = readPropsResponse->aPropVal.__ptr[i].ulPropTag;
+		if (PROP_TYPE(readPropsResponse->aPropVal.__ptr[j].ulPropTag) != PT_ERROR)
+			readPropsResponse->aPropTag.__ptr[readPropsResponse->aPropTag.__size++] = readPropsResponse->aPropVal.__ptr[j].ulPropTag;
 	}
 	return erSuccess;
 }
@@ -9695,7 +9678,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 	soap_info(soap)->fdoneparam = lpMTOMSessionInfo;
 
 	auto cleanup = make_scope_success([&]() {
-		if (lpsStreamInfo != nullptr && lpsStreamInfo->lpPropValArray != nullptr)
+		if (lpsStreamInfo != nullptr)
 			FreePropValArray(lpsStreamInfo->lpPropValArray, true);
 		FreeDeletedItems(&lstDeleteItems);
 		ROLLBACK_ON_ERROR();

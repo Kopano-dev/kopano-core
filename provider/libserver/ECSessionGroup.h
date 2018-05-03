@@ -44,7 +44,7 @@ class ECSessionGroup;
 class ECSessionManager;
 
 struct sessionInfo {
-	sessionInfo(ECSession *lpSession) : lpSession(lpSession) {}
+	sessionInfo(ECSession *s) : lpSession(s) {}
 	ECSession	 *lpSession;
 };
 
