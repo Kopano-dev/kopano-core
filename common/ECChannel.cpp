@@ -800,7 +800,7 @@ int ec_listen_localsock(const char *path, int *pfd, int mode)
 	struct stat sb;
 	auto ret = lstat(path, &sb);
 	if (ret == 0 && !S_ISSOCK(sb.st_mode)) {
-		ec_log_err("%s: file already exists, but it is not a socket");
+		ec_log_err("%s: file already exists, but it is not a socket", path);
 		return EADDRINUSE;
 	}
 	unlink(path);
