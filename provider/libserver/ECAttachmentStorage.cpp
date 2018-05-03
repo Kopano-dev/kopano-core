@@ -1800,7 +1800,7 @@ ECRESULT ECFileAttachment::DeleteMarkedAttachment(const ext_siid &ulInstanceId)
 		if (unlink(filename.c_str()) == 0)
 			return erSuccess;
 	}
-	ec_log_err("%s unlink %s failed: %s\n", __PRETTY_FUNCTION__, filename.c_str(), strerror(errno));
+	ec_log_err("%s unlink %s failed: %s", __PRETTY_FUNCTION__, filename.c_str(), strerror(errno));
 	if (errno == EACCES || errno == EPERM)
 		return KCERR_NO_ACCESS;
 	if (errno != ENOENT) { // ignore "file not found" error

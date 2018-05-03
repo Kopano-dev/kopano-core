@@ -300,7 +300,7 @@ int ec_relocate_fd(int fd)
 		if (warned_once)
 			return fd;
 		warned_once = true;
-		ec_log_warn("F_DUPFD yielded EINVAL\n");
+		ec_log_warn("F_DUPFD yielded EINVAL");
 		return fd;
 	}
 	static time_t warned_last;
@@ -309,7 +309,7 @@ int ec_relocate_fd(int fd)
 		return fd;
 	ec_log_notice(
 		"Relocation of FD %d into high range (%d+) could not be completed: "
-		"%s. Keeping old number.\n", fd, typical_limit, strerror(errno));
+		"%s. Keeping old number.", fd, typical_limit, strerror(errno));
 	dump_fdtable_summary(getpid());
 	return fd;
 }

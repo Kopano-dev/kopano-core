@@ -559,24 +559,11 @@ Default:
 \fIno\fR
 .SS pam_service
 .PP
-<<<<<<< HEAD
-This is the pam service name. Pam services can be found in /etc/pam.d/.
-.PP
-||||||| merged common ancestors
-\fBpam_service\fR
-.RS 4
-This is the pam service name. Pam services can be found in /etc/pam.d/.
-.sp
-=======
-\fBpam_service\fR
-.RS 4
 This is the PAM service name. PAM services can be found in /etc/pam.d/.
 When choosing a PAM service which is configured to use a plugin - such as
 pam_unix - doing direct file I/O to e.g. /etc/shadow, kopano-server will need
 to be run with a suitable run_as_group/run_as_user values or otherwise have
 read permissions.
-.sp
->>>>>>> pub/kc-8.5.x
 Default:
 \fIpasswd\fR
 .SS max_deferred_records

@@ -714,7 +714,7 @@ int main(int argc, char* argv[])
 		nReturn = running_server(argv[0], config, exp_config, argc, argv,
 		          argc - optind, &argv[optind]);
 	} catch (const std::exception &e) {
-		ec_log_err("Exception caught: %s\n", e.what());
+		ec_log_err("Exception caught: %s", e.what());
 	}
 	return nReturn;
 }
@@ -822,7 +822,7 @@ static void cleanup(ECRESULT er)
 	if (kcoidc_initialized) {
 		auto res = kcoidc_uninitialize();
 		if (res != 0) {
-			ec_log_always("KCOIDC: failed to uninitialize: 0x%llx\n", res);
+			ec_log_always("KCOIDC: failed to uninitialize: 0x%llx", res);
 		}
 	}
 #endif
@@ -1146,7 +1146,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	if (parseBool(g_lpConfig->GetSetting("kcoidc_insecure_skip_verify"))) {
 		auto res = kcoidc_insecure_skip_verify(1);
 		if (res != 0) {
-			ec_log_err("KCOIDC: insecure_skip_verify failed: 0x%llx\n", res);
+			ec_log_err("KCOIDC: insecure_skip_verify failed: 0x%llx", res);
 			return retval;
 		}
 	}
@@ -1154,14 +1154,14 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	if (issuer && strlen(issuer) > 0) {
 		auto res = kcoidc_initialize(const_cast<char *>(issuer));
 		if (res != 0) {
-			ec_log_err("KCOIDC: initialize failed: 0x%llx\n", res);
+			ec_log_err("KCOIDC: initialize failed: 0x%llx", res);
 			return retval;
 		}
 		auto kcoidc_initialize_timeout = atoi(g_lpConfig->GetSetting("kcoidc_initialize_timeout"));
 		if (kcoidc_initialize_timeout > 0) {
 			res = kcoidc_wait_until_ready(kcoidc_initialize_timeout);
 			if (res != 0) {
-				ec_log_err("KCOIDC: wait_until_ready failed: 0x%llx\n", res);
+				ec_log_err("KCOIDC: wait_until_ready failed: 0x%llx", res);
 				return retval;
 			}
 		}
