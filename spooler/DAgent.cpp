@@ -1273,11 +1273,11 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 
 	// Check for autoresponder
 	if (!dagent_oof_active(lpStoreProps)) {
-		ec_log_debug("Target user has OOF inactive\n");
+		ec_log_debug("Target user has OOF inactive");
 		return hrSuccess;
 	}
 
-	ec_log_debug("Target user has OOF active\n");
+	ec_log_debug("Target user has OOF active");
 	// Check for presence of PR_EC_OUTOFOFFICE_MSG_W
 	if (lpStoreProps[1].ulPropTag == PR_EC_OUTOFOFFICE_MSG_W) {
 		strBody = lpStoreProps[1].Value.lpszW;

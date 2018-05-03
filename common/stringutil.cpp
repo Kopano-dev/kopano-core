@@ -288,9 +288,9 @@ std::string bin2hex(size_t inLength, const void *vinput)
 	if (vinput == nullptr)
 		return "";
 	if (inLength > 2048)
-		ec_log_warn("Unexpectedly large bin2hex call, %zu bytes\n", inLength);
+		ec_log_warn("Unexpectedly large bin2hex call, %zu bytes", inLength);
 	else if (inLength > 64)
-		ec_log_debug("Unexpectedly large bin2hex call, %zu bytes\n", inLength);
+		ec_log_debug("Unexpectedly large bin2hex call, %zu bytes", inLength);
 	static constexpr const char digits[] = "0123456789ABCDEF";
 	auto input = static_cast<const char *>(vinput);
 	std::string buffer;

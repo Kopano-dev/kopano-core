@@ -50,7 +50,7 @@ static int unix_runpath(ECConfig *conf)
 	if (path == NULL || ret != 0) {
 		ret = chdir("/");
 		if (ret != 0)
-			ec_log_err("chdir /: %s\n", strerror(errno));
+			ec_log_err("chdir /: %s", strerror(errno));
 	}
 	return ret;
 }

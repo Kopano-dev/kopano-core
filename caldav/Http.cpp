@@ -498,8 +498,7 @@ HRESULT Http::HrReadBody()
 
 	hr = m_lpChannel->HrReadBytes(&m_strReqBody, ulContLength);
 	if (!m_strUser.empty())
-		ec_log_debug("Request body:\n%s\n", m_strReqBody.c_str());
-
+		ec_log_debug("Request body:\n%s", m_strReqBody.c_str());
 	return hr;
 }
 
