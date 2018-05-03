@@ -5,7 +5,7 @@
 class IECSimpleLogger {
 public:
 	virtual ~IECSimpleLogger() {};
-	virtual HRESULT Log(unsigned int loglevel, const char *szMessage) = 0;
+	virtual HRESULT log(unsigned int loglevel, const char *szMessage) = 0;
 };
 
 #include <kopano/swig_iunknown.h>
@@ -26,20 +26,25 @@ public:
 	};
 
 	virtual void Reset() { };
-	virtual void Log(unsigned int loglevel, const std::string &message) { Log(loglevel, "%s", message.c_str()); };
-	virtual void Log(unsigned int Loglevel, const char *format, ...) KC_LIKE_PRINTF(3, 4)
+	virtual void log(unsigned int level, const char *msg)
+	{
+		if (m_lpLogger != nullptr)
+			m_lpLogger->log(level, msg);
+	}
+	virtual void logf(unsigned int Loglevel, const char *format, ...)
 	{
 		va_list va;
 
 		va_start(va, format);
-		LogVA(Loglevel, format, va);
+		logv(Loglevel, format, va);
 		va_end(va);
 	};
-	virtual void LogVA(unsigned int loglevel, const char *format, va_list& va) {
+	virtual void logv(unsigned int loglevel, const char *format, va_list &va)
+	{
 		if (m_lpLogger) {
 			char buf[4096];
 			vsnprintf(buf, sizeof(buf), format, va);
-			m_lpLogger->Log(loglevel, buf);
+			m_lpLogger->log(loglevel, buf);
 		}
 	};
 
@@ -59,7 +64,7 @@ private:
 %feature("director") ECSimpleLogger;
 class ECSimpleLogger : public IECSimpleLogger{
 public:
-	virtual HRESULT Log(unsigned int loglevel, const char *szMessage) = 0;
+	virtual HRESULT log(unsigned int loglevel, const char *szMessage) = 0;
 };
 
 %include "cstring.i"
@@ -74,8 +79,9 @@ public:
     %extend {
         ~ECLogger() { self->Release(); }
 
-        void Log(unsigned int loglevel, const char *szMessage) {
-            self->Log(loglevel, "%s", szMessage);
+		void log(unsigned int loglevel, const char *szMessage)
+		{
+			self->log(loglevel, szMessage);
         }
     }
 

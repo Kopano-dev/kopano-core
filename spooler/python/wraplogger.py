@@ -7,8 +7,7 @@ class WrapLogger(object):
     def log(self, lvl, msg):
         if self.logger is None:
             return
-
-        self.logger.Log(lvl, msg)
+        self.logger.log(lvl, msg)
 
     def logDebug(self, msg):
         self.log(6, msg)

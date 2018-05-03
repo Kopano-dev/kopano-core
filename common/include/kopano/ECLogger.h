@@ -64,7 +64,6 @@ static const unsigned int EC_LOGLEVEL_SEARCH       = 0x00400000;
 static const unsigned int EC_LOGLEVEL_EXTENDED_MASK = 0xFFFF0000;
 
 #define _LOG_BUFSIZE		10240
-#define _LOG_TSSIZE			64
 
 #define ZLOG_DEBUG(_plog, ...) \
 	do { \
@@ -100,7 +99,7 @@ class _kc_export ECLogger {
 	/**
 	 * Returns string with timestamp in current locale.
 	 */
-	_kc_hidden std::string MakeTimestamp(void);
+	_kc_hidden size_t MakeTimestamp(char *, size_t);
 
 	unsigned int max_loglevel;
 	locale_t timelocale;
@@ -175,7 +174,8 @@ class _kc_export ECLogger {
 	 * @param	loglevel	Loglevel to log message under
 	 * @param	message		std::string logmessage. Expected charset is current locale.
 	 */
-	_kc_hidden virtual void Log(unsigned int level, const std::string &msg) = 0;
+	_kc_hidden virtual void log(unsigned int level, const char *msg) = 0;
+	inline void Log(unsigned int level, const std::string &msg) { return log(level, msg.c_str()); }
 
 	/**
 	 * Log a message on a specified loglevel using char* format
@@ -183,7 +183,8 @@ class _kc_export ECLogger {
 	 * @param	loglevel	Loglevel to log message under
 	 * @param	format		formatted string for the parameter list
 	 */
-	_kc_hidden virtual void Log(unsigned int level, const char *fmt, ...) KC_LIKE_PRINTF(3, 4) = 0;
+	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) KC_LIKE_PRINTF(3, 4) = 0;
+	template<typename... T> inline void Log(unsigned int level, const char *fmt, T &&...args) { return logf(level, fmt, args...); }
 	HRESULT perr(const char *text, HRESULT);
 	HRESULT pwarn(const char *text, HRESULT);
 
@@ -194,7 +195,7 @@ class _kc_export ECLogger {
 	 * @param	format		formatted string for the parameter list
 	 * @param	va			va_list converted from ... parameters
 	 */
-	_kc_hidden virtual void LogVA(unsigned int level, const char *fmt, va_list &) = 0;
+	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) = 0;
 };
 
 
@@ -205,9 +206,9 @@ class _kc_export ECLogger_Null _kc_final : public ECLogger {
 	public:
 	ECLogger_Null(void);
 	_kc_hidden virtual void Reset(void) _kc_override;
-	_kc_hidden virtual void Log(unsigned int level, const std::string &msg) _kc_override;
-	_kc_hidden virtual void Log(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
-	_kc_hidden virtual void LogVA(unsigned int level, const char *fmt, va_list &) _kc_override;
+	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
+	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
+	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) _kc_override;
 };
 
 /**
@@ -234,21 +235,20 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 	fileno_func fnFileno;
 	const char *szMode;
 
+	char prevmsg[_LOG_BUFSIZE];
 	int prevcount;
-	std::string prevmsg;
 	unsigned int prevloglevel;
-	_kc_hidden bool DupFilter(unsigned int level, const std::string &msg);
-	_kc_hidden std::string DoPrefix(void);
+	_kc_hidden bool DupFilter(unsigned int level, const char *);
+	_kc_hidden char *DoPrefix(char *, size_t);
 
 	public:
 	ECLogger_File(unsigned int max_ll, bool add_timestamp, const char *filename, bool compress);
 	~ECLogger_File(void);
-	_kc_hidden std::string EmitLevel(unsigned int level);
 	_kc_hidden void reinit_buffer(size_t size);
 	_kc_hidden virtual void Reset(void) _kc_override;
-	_kc_hidden virtual void Log(unsigned int level, const std::string &msg) _kc_override;
-	_kc_hidden virtual void Log(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
-	_kc_hidden virtual void LogVA(unsigned int level, const char *fmt, va_list &) _kc_override;
+	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
+	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
+	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) _kc_override;
 	_kc_hidden int GetFileDescriptor(void) _kc_override;
 	bool IsStdErr() const { return logname == "-"; }
 
@@ -270,9 +270,9 @@ class _kc_export_dycast ECLogger_Syslog _kc_final : public ECLogger {
 	ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility);
 	~ECLogger_Syslog(void);
 	_kc_hidden virtual void Reset(void) _kc_override;
-	_kc_hidden virtual void Log(unsigned int level, const std::string &msg) _kc_override;
-	_kc_hidden virtual void Log(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
-	_kc_hidden virtual void LogVA(unsigned int level, const char *fmt, va_list &) _kc_override;
+	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
+	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
+	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) _kc_override;
 };
 
 /**
@@ -290,9 +290,9 @@ class _kc_export_dycast ECLogger_Pipe _kc_final : public ECLogger {
 	ECLogger_Pipe(int fd, pid_t childpid, int loglevel);
 	_kc_hidden ~ECLogger_Pipe(void);
 	_kc_hidden virtual void Reset(void) _kc_override;
-	_kc_hidden virtual void Log(unsigned int level, const std::string &msg) _kc_override;
-	_kc_hidden virtual void Log(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
-	_kc_hidden virtual void LogVA(unsigned int level, const char *fmt, va_list &) _kc_override;
+	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
+	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
+	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) _kc_override;
 	_kc_hidden int GetFileDescriptor(void) _kc_override { return m_fd; }
 	void Disown();
 };
@@ -314,9 +314,9 @@ class _kc_export ECLogger_Tee _kc_final : public ECLogger {
 	ECLogger_Tee();
 	_kc_hidden virtual void Reset(void) _kc_override;
 	_kc_hidden virtual bool Log(unsigned int level) _kc_override;
-	_kc_hidden virtual void Log(unsigned int level, const std::string &msg) _kc_override;
-	_kc_hidden virtual void Log(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
-	_kc_hidden virtual void LogVA(unsigned int level, const char *fmt, va_list &) _kc_override;
+	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
+	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
+	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) _kc_override;
 	void AddLogger(ECLogger *lpLogger);
 };
 

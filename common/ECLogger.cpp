@@ -52,6 +52,10 @@ namespace KC {
 
 static void ec_log_bt(unsigned int, const char *, ...);
 
+static constexpr const size_t _LOG_TSSIZE = 64;
+static constexpr const size_t LOG_PFXSIZE = _LOG_TSSIZE + 32 + 16; /* +threadname+pid */
+static constexpr const size_t LOG_LVLSIZE = 12;
+
 static const char *const ll_names[] = {
 	"=======",
 	"crit   ",
@@ -88,19 +92,15 @@ void ECLogger::SetLoglevel(unsigned int max_ll) {
 	max_loglevel = max_ll;
 }
 
-std::string ECLogger::MakeTimestamp() {
+size_t ECLogger::MakeTimestamp(char *buffer, size_t z)
+{
 	time_t now = time(NULL);
 	tm local;
 
 	localtime_r(&now, &local);
-	char buffer[_LOG_TSSIZE];
-
 	if (timelocale)
-		strftime_l(buffer, sizeof buffer, "%c", &local, timelocale);
-	else
-		strftime(buffer, sizeof buffer, "%c", &local);
-
-	return buffer;
+		return strftime_l(buffer, z, "%c", &local, timelocale);
+	return strftime(buffer, z, "%c", &local);
 }
 
 bool ECLogger::Log(unsigned int loglevel) {
@@ -175,9 +175,9 @@ HRESULT ECLogger::pwarn(const char *text, HRESULT code)
 
 ECLogger_Null::ECLogger_Null() : ECLogger(EC_LOGLEVEL_NONE) {}
 void ECLogger_Null::Reset() {}
-void ECLogger_Null::Log(unsigned int loglevel, const std::string &message) {}
-void ECLogger_Null::Log(unsigned int loglevel, const char *format, ...) {}
-void ECLogger_Null::LogVA(unsigned int loglevel, const char *format, va_list& va) {}
+void ECLogger_Null::log(unsigned int level, const char *message) {}
+void ECLogger_Null::logf(unsigned int level, const char *format, ...) {}
+void ECLogger_Null::logv(unsigned int level, const char *format, va_list &va) {}
 
 /**
  * @param[in]	max_ll			max loglevel passed to ECLogger
@@ -208,18 +208,19 @@ ECLogger_File::ECLogger_File(unsigned int max_ll, bool add_timestamp,
 	// so read is because we're only reading the handle ('log')
 	// so only Reset() will do a write-lock
 	prevcount = 0;
-	prevmsg.clear();
+	*prevmsg = '\0';
 	prevloglevel = 0;
 }
 
 ECLogger_File::~ECLogger_File() {
 	// not required at this stage but only added here for consistency
 	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
+	char pb[LOG_PFXSIZE];
 
 	if (prevcount > 1)
-		fnPrintf(fh, "%sLast message repeated %d times\n", DoPrefix().c_str(), prevcount);
+		fnPrintf(fh, "%sLast message repeated %d times\n", DoPrefix(pb, sizeof(pb)), prevcount);
 	else if (prevcount == 1)
-		fnPrintf(fh, "%sLast message repeated 1 time\n", DoPrefix().c_str());
+		fnPrintf(fh, "%sLast message repeated 1 time\n", DoPrefix(pb, sizeof(pb)));
 	if (fh != nullptr && fnClose != nullptr)
 		fnClose(fh);
 }
@@ -262,6 +263,17 @@ void ECLogger_File::reinit_buffer(size_t size)
 	buffer_size = size;
 }
 
+static char *EmitLevel(unsigned int loglevel, char *b, size_t z)
+{
+	if (loglevel == EC_LOGLEVEL_ALWAYS)
+		snprintf(b, z, "[%s] ", ll_names[0]);
+	else if (loglevel <= EC_LOGLEVEL_DEBUG)
+		snprintf(b, z, "[%s] ", ll_names[loglevel]);
+	else
+		snprintf(b, z, "[%7x] ", loglevel);
+	return b;
+}
+
 void ECLogger_File::Reset() {
 	std::lock_guard<KC::shared_mutex> lh(handle_lock);
 
@@ -277,8 +289,9 @@ void ECLogger_File::Reset() {
 	fh = fnOpen(logname.c_str(), szMode);
 	if (fh == nullptr) {
 		init_for_stderr();
+		char pb[LOG_PFXSIZE], el[LOG_LVLSIZE];
 		fnPrintf(fh, "%s%sECLogger reset issued, but cannot (re-)open %s: %s. Logging to stderr.\n",
-		         DoPrefix().c_str(), EmitLevel(EC_LOGLEVEL_ERROR).c_str(),
+		         DoPrefix(pb, sizeof(pb)), EmitLevel(EC_LOGLEVEL_ERROR, el, sizeof(el)),
 		         logname.c_str(), strerror(errno));
 		return;
 	}
@@ -292,48 +305,49 @@ int ECLogger_File::GetFileDescriptor() {
 	return -1;
 }
 
-std::string ECLogger_File::EmitLevel(const unsigned int loglevel) {
-	if (loglevel == EC_LOGLEVEL_ALWAYS)
-		return format("[%s] ", ll_names[0]);
-	else if (loglevel <= EC_LOGLEVEL_DEBUG)
-		return format("[%s] ", ll_names[loglevel]);
-
-	return format("[%7x] ", loglevel);
-}
-
 /**
  * Prints the optional timestamp and prefix to the log.
  */
-std::string ECLogger_File::DoPrefix() {
-	std::string out;
-
-	if (timestamp)
-		out += MakeTimestamp() + ": ";
-
+char *ECLogger_File::DoPrefix(char *buffer, size_t z)
+{
+	if (timestamp) {
+		auto adv = MakeTimestamp(buffer, z);
+		buffer += adv;
+		z -= adv;
+	}
+	if (z > 1) {
+		*buffer++ = ':';
+		--z;
+	}
+	if (z > 1) {
+		*buffer++ = ' ';
+		--z;
+	}
 	if (prefix == LP_TID) {
 #ifdef HAVE_PTHREAD_GETNAME_NP
 		pthread_t th = pthread_self();
 		char name[32] = { 0 };
 
 		if (pthread_getname_np(th, name, sizeof name))
-			out += format("[T%lu] ", kc_threadid());
+			snprintf(buffer, z, "[T%lu] ", kc_threadid());
 		else
-			out += format("[%s|T%lu] ", name, kc_threadid());
+			snprintf(buffer, z, "[%s|T%lu] ", name, kc_threadid());
 #else
-		out += format("[T%lu] ", kc_threadid());
+		snprintf(buffer, z, "[T%lu] ", kc_threadid());
 #endif
 	}
 	else if (prefix == LP_PID) {
-		out += format("[%5d] ", getpid());
+		snprintf(buffer, z, "[%5d] ", getpid());
 	}
 
-	return out;
+	return buffer;
 }
 
-bool ECLogger_File::DupFilter(const unsigned int loglevel, const std::string &message) {
+bool ECLogger_File::DupFilter(unsigned int loglevel, const char *message)
+{
 	bool exit_with_true = false;
 	KC::shared_lock<KC::shared_mutex> lr_dup(dupfilter_lock);
-	if (prevmsg == message) {
+	if (strncmp(prevmsg, message, sizeof(prevmsg)) == 0) {
 		++prevcount;
 
 		if (prevcount < 100)
@@ -346,17 +360,18 @@ bool ECLogger_File::DupFilter(const unsigned int loglevel, const std::string &me
 
 	if (prevcount > 1) {
 		KC::shared_lock<KC::shared_mutex> lr_handle(handle_lock);
-		fnPrintf(fh, "%s%sPrevious message logged %d times\n", DoPrefix().c_str(), EmitLevel(prevloglevel).c_str(), prevcount);
+		char pb[LOG_PFXSIZE], el[LOG_LVLSIZE];
+		fnPrintf(fh, "%s%sPrevious message logged %d times\n", DoPrefix(pb, sizeof(pb)), EmitLevel(prevloglevel, el, sizeof(el)), prevcount);
 	}
 
 	std::lock_guard<KC::shared_mutex> lw_dup(dupfilter_lock);
 	prevloglevel = loglevel;
-	prevmsg = message;
+	strncpy(prevmsg, message, sizeof(prevmsg));
 	prevcount = 0;
 	return false;
 }
 
-void ECLogger_File::Log(unsigned int loglevel, const std::string &message)
+void ECLogger_File::log(unsigned int loglevel, const char *message)
 {
 	if (!ECLogger::Log(loglevel))
 		return;
@@ -366,7 +381,8 @@ void ECLogger_File::Log(unsigned int loglevel, const std::string &message)
 	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
 	if (fh == nullptr)
 		return;
-	fnPrintf(fh, "%s%s%s\n", DoPrefix().c_str(), EmitLevel(loglevel).c_str(), message.c_str());
+	char pb[LOG_PFXSIZE], el[LOG_LVLSIZE];
+	fnPrintf(fh, "%s%s%s\n", DoPrefix(pb, sizeof(pb)), EmitLevel(loglevel, el, sizeof(el)), message);
 	/*
 	 * If IOLBF was set (buffer_size==0), the previous
 	 * print call already flushed it. Do not flush again
@@ -376,24 +392,26 @@ void ECLogger_File::Log(unsigned int loglevel, const std::string &message)
 		fflush(static_cast<FILE *>(fh));
 }
 
-void ECLogger_File::Log(unsigned int loglevel, const char *format, ...) {
+void ECLogger_File::logf(unsigned int loglevel, const char *format, ...)
+{
 	if (!ECLogger::Log(loglevel))
 		return;
 	va_list va;
 	va_start(va, format);
-	LogVA(loglevel, format, va);
+	logv(loglevel, format, va);
 	va_end(va);
 }
 
 static const char msgtrunc[] = "(message truncated due to size)";
 
-void ECLogger_File::LogVA(unsigned int loglevel, const char *format, va_list& va) {
+void ECLogger_File::logv(unsigned int level, const char *format, va_list &va)
+{
 	char msgbuffer[_LOG_BUFSIZE];
 	auto len = _vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va);
 	static_assert(_LOG_BUFSIZE >= sizeof(msgtrunc), "pick a better basic _LOG_BUFSIZE");
 	if (len >= sizeof(msgbuffer))
 		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
-	Log(loglevel, std::string(msgbuffer));
+	log(level, msgbuffer);
 }
 
 const int ECLogger_Syslog::levelmap[16] = {
@@ -429,26 +447,27 @@ void ECLogger_Syslog::Reset() {
 	// not needed.
 }
 
-void ECLogger_Syslog::Log(unsigned int loglevel, const std::string &message)
+void ECLogger_Syslog::log(unsigned int loglevel, const char *message)
 {
 	if (!ECLogger::Log(loglevel))
 		return;
-
-	syslog(levelmap[loglevel & EC_LOGLEVEL_MASK], "%s", message.c_str());
+	syslog(levelmap[loglevel & EC_LOGLEVEL_MASK], "%s", message);
 }
 
-void ECLogger_Syslog::Log(unsigned int loglevel, const char *format, ...) {
+void ECLogger_Syslog::logf(unsigned int loglevel, const char *format, ...)
+{
 	va_list va;
 
 	if (!ECLogger::Log(loglevel))
 		return;
 
 	va_start(va, format);
-	LogVA(loglevel, format, va);
+	logv(loglevel, format, va);
 	va_end(va);
 }
 
-void ECLogger_Syslog::LogVA(unsigned int loglevel, const char *format, va_list& va) {
+void ECLogger_Syslog::logv(unsigned int loglevel, const char *format, va_list &va)
+{
 #if HAVE_VSYSLOG
 	vsyslog(levelmap[loglevel & EC_LOGLEVEL_MASK], format, va);
 #else
@@ -495,10 +514,10 @@ bool ECLogger_Tee::Log(unsigned int loglevel)
  * @param[in]	loglevel	The requierd loglevel
  * @param[in]	message		The message to log
  */
-void ECLogger_Tee::Log(unsigned int loglevel, const std::string &message)
+void ECLogger_Tee::log(unsigned int level, const char *msg)
 {
 	for (auto log : m_loggers)
-		log->Log(loglevel, message);
+		log->log(level, msg);
 }
 
 /**
@@ -507,21 +526,22 @@ void ECLogger_Tee::Log(unsigned int loglevel, const std::string &message)
  * @param[in]	loglevel	The required loglevel
  * @param[in]	format		The format string.
  */
-void ECLogger_Tee::Log(unsigned int loglevel, const char *format, ...) {
+void ECLogger_Tee::logf(unsigned int level, const char *format, ...)
+{
 	va_list va;
 
 	va_start(va, format);
-	LogVA(loglevel, format, va);
+	logv(level, format, va);
 	va_end(va);
 }
 
-void ECLogger_Tee::LogVA(unsigned int loglevel, const char *format, va_list &va)
+void ECLogger_Tee::logv(unsigned int level, const char *format, va_list &va)
 {
 	char msgbuffer[_LOG_BUFSIZE];
 	if (_vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va) >= sizeof(msgbuffer))
 		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	for (auto log : m_loggers)
-		log->Log(loglevel, std::string(msgbuffer));
+		log->log(level, msgbuffer);
 }
 
 /**
@@ -563,7 +583,7 @@ void ECLogger_Pipe::Reset() {
 	kill(m_childpid, SIGHUP);
 }
 
-void ECLogger_Pipe::Log(unsigned int loglevel, const std::string &message)
+void ECLogger_Pipe::log(unsigned int loglevel, const char *message)
 {
 	char msgbuffer[_LOG_BUFSIZE];
 	msgbuffer[0] = loglevel;
@@ -575,22 +595,24 @@ void ECLogger_Pipe::Log(unsigned int loglevel, const std::string &message)
 		snprintf(msgbuffer + off, rem, "[%5d] ", getpid());
 	off = strlen(msgbuffer);
 	rem = sizeof(msgbuffer) - off;
-	strncpy(msgbuffer + off, message.c_str(), rem);
-	if (rem < message.length() + 1)
+	strncpy(msgbuffer + off, message, rem);
+	if (rem <= strlen(message))
 		strcpy(msgbuffer + sizeof(msgbuffer) - sizeof(msgtrunc), msgtrunc);
 	msgbuffer[sizeof(msgbuffer)-1] = '\0';
 	xwrite(msgbuffer, strlen(msgbuffer) + 1);
 }
 
-void ECLogger_Pipe::Log(unsigned int loglevel, const char *format, ...) {
+void ECLogger_Pipe::logf(unsigned int level, const char *format, ...)
+{
 	va_list va;
 
 	va_start(va, format);
-	LogVA(loglevel, format, va);
+	logv(level, format, va);
 	va_end(va);
 }
 
-void ECLogger_Pipe::LogVA(unsigned int loglevel, const char *format, va_list& va) {
+void ECLogger_Pipe::logv(unsigned int loglevel, const char *format, va_list &va)
+{
 	char msgbuffer[_LOG_BUFSIZE];
 	msgbuffer[0] = loglevel;
 	msgbuffer[1] = '\0';
@@ -725,7 +747,7 @@ namespace PrivatePipe {
 					p = NULL;
 					continue;
 				}
-				lpFileLogger->Log(l, std::string(p, s));
+				lpFileLogger->log(l, p);
 				++s;		// add \0
 				p += s;		// skip string
 				ret -= s;
@@ -1066,13 +1088,13 @@ void ec_log(unsigned int level, const char *fmt, ...)
 		return;
 	va_list argp;
 	va_start(argp, fmt);
-	ec_log_target->LogVA(level, fmt, argp);
+	ec_log_target->logv(level, fmt, argp);
 	va_end(argp);
 }
 
 void ec_log(unsigned int level, const std::string &msg)
 {
-	ec_log_target->Log(level, msg);
+	ec_log_target->log(level, msg.c_str());
 }
 
 static void ec_log_bt(unsigned int level, const char *fmt, ...)
@@ -1081,7 +1103,7 @@ static void ec_log_bt(unsigned int level, const char *fmt, ...)
 		return;
 	va_list argp;
 	va_start(argp, fmt);
-	ec_log_target->LogVA(level, fmt, argp);
+	ec_log_target->logv(level, fmt, argp);
 	va_end(argp);
 
 	static bool notified = false;
