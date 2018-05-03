@@ -1212,13 +1212,11 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 	lpsResponse->guid.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
 
 	memcpy(lpsResponse->guid.__ptr, lpDBRow[1], lpDBLen[1]);
-
-	if (lpDBRow[3] != nullptr && lpDBLen[1] == sizeof(GUID)) {
-		GUID guid;
-		memcpy(&guid, lpDBRow[1], lpDBLen[1]);
-		gcache->SetStore(atoui(lpDBRow[2]), atoui(lpDBRow[2]), &guid, atoi(lpDBRow[3]));
-	}
-
+	if (lpDBRow[3] == nullptr || lpDBLen[1] != sizeof(GUID))
+		return erSuccess;
+	GUID guid;
+	memcpy(&guid, lpDBRow[1], lpDBLen[1]);
+	gcache->SetStore(atoui(lpDBRow[2]), atoui(lpDBRow[2]), &guid, atoi(lpDBRow[3]));
 	return erSuccess;
 }
 SOAP_ENTRY_END()
@@ -1319,13 +1317,11 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 	lpsResponse->guid.__ptr = s_alloc<unsigned char>(soap, lpDBLen[1]);
 
 	memcpy(lpsResponse->guid.__ptr, lpDBRow[1], lpDBLen[1]);
-
-	if (lpDBRow[3] != nullptr && lpDBLen[1] == sizeof(GUID)) {
-		GUID guid;
-		memcpy(&guid, lpDBRow[1], lpDBLen[1]);
-		gcache->SetStore(atoui(lpDBRow[2]), atoui(lpDBRow[2]), &guid, atoi(lpDBRow[3]));
-	}
-
+	if (lpDBRow[3] == nullptr || lpDBLen[1] != sizeof(GUID))
+		return erSuccess;
+	GUID guid;
+	memcpy(&guid, lpDBRow[1], lpDBLen[1]);
+	gcache->SetStore(atoui(lpDBRow[2]), atoui(lpDBRow[2]), &guid, atoi(lpDBRow[3]));
 	return erSuccess;
 }
 SOAP_ENTRY_END()
@@ -1620,13 +1616,9 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, const entryId &sEntryId,
 			return er;
 	}
 
-	if (!bSupportUnicode) {
-		er = FixPropEncoding(soap, stringCompat, Out, lpsResponse->lpPropVal);
-		if (er != erSuccess)
-			return er;
-	}
-
-	return erSuccess;
+	if (bSupportUnicode)
+		return erSuccess;
+	return FixPropEncoding(soap, stringCompat, Out, lpsResponse->lpPropVal);
 }
 SOAP_ENTRY_END()
 
@@ -3318,10 +3310,7 @@ SOAP_ENTRY_START(createFolder, lpsResponse->er, const entryId &sParentId,
 	er = dtx.commit();
 	if (er != erSuccess)
 		return er;
-
-	er = g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(ulFolderId, soap, 0, &lpsResponse->sEntryId);
-	if (er != erSuccess)
-		return er;
+	return g_lpSessionManager->GetCacheManager()->GetEntryIdFromObject(ulFolderId, soap, 0, &lpsResponse->sEntryId);
 }
 SOAP_ENTRY_END()
 
@@ -3875,19 +3864,18 @@ SOAP_ENTRY_START(tableMulti, lpsResponse->er,
 			return er;
     }
     
-    if(sRequest.lpQueryRows) {
-        er = lpTable->QueryRows(soap, sRequest.lpQueryRows->ulCount, sRequest.lpQueryRows->ulFlags, &lpRowSet);
-        if(er != erSuccess)
+	if (sRequest.lpQueryRows == nullptr)
+		return erSuccess;
+	er = lpTable->QueryRows(soap, sRequest.lpQueryRows->ulCount, sRequest.lpQueryRows->ulFlags, &lpRowSet);
+	if (er != erSuccess)
+		return er;
+	if (!bSupportUnicode) {
+		er = FixRowSetEncoding(soap, stringCompat, Out, lpRowSet);
+		if (er != erSuccess)
 			return er;
-		if (!bSupportUnicode) {
-			er = FixRowSetEncoding(soap, stringCompat, Out, lpRowSet);
-			if (er != erSuccess)
-				return er;
-		}
-                
-        lpsResponse->sRowSet.__ptr = lpRowSet->__ptr;
-        lpsResponse->sRowSet.__size = lpRowSet->__size;
-    }
+	}
+	lpsResponse->sRowSet.__ptr = lpRowSet->__ptr;
+	lpsResponse->sRowSet.__size = lpRowSet->__size;
 	return erSuccess;
 }
 SOAP_ENTRY_END()
@@ -4027,8 +4015,7 @@ SOAP_ENTRY_START(notifySubscribe, *result,  struct notifySubscribe *notifySubscr
 		return KCERR_INVALID_PARAMETER;
 	if (notifySubscribe->ulEventMask == fnevKopanoIcsChange)
 		return lpecSession->AddChangeAdvise(notifySubscribe->ulConnection, &notifySubscribe->sSyncState);
-	else
-		return DoNotifySubscribe(lpecSession, ulSessionId, notifySubscribe);
+	return DoNotifySubscribe(lpecSession, ulSessionId, notifySubscribe);
 }
 SOAP_ENTRY_END()
 
@@ -4481,9 +4468,7 @@ SOAP_ENTRY_START(setReceiveFolder, *result, const entryId &sStoreId,
 
 	if(er != erSuccess)
 		return er;
-	er = dtx.commit();
-	if (er != erSuccess)
-		return er;
+	return dtx.commit();
 }
 SOAP_ENTRY_END()
 
@@ -4931,13 +4916,9 @@ SOAP_ENTRY_START(getUser, lpsGetUserResponse->er, unsigned int ulUserId,
 		er = CopyUserDetailsToSoap(ulUserId, &sTmpUserId, details, lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON, soap, lpsGetUserResponse->lpsUser);
 	if (er != erSuccess)
 		return er;
-
-	if (!bSupportUnicode) {
-		er = FixUserEncoding(soap, stringCompat, Out, lpsGetUserResponse->lpsUser);
-		if (er != erSuccess)
-			return er;
-	}
-	return erSuccess;
+	if (bSupportUnicode)
+		return erSuccess;
+	return FixUserEncoding(soap, stringCompat, Out, lpsGetUserResponse->lpsUser);
 }
 SOAP_ENTRY_END()
 
@@ -5438,12 +5419,9 @@ SOAP_ENTRY_START(getGroup, lpsResponse->er, unsigned int ulGroupId,
 		er = CopyGroupDetailsToSoap(ulGroupId, &sTmpGroupId, details, lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON, soap, lpsResponse->lpsGroup);
 	if (er != erSuccess)
 		return er;
-	if (!bSupportUnicode) {
-		er = FixGroupEncoding(soap, stringCompat, Out, lpsResponse->lpsGroup);
-		if (er != erSuccess)
-			return er;
-	}
-	return erSuccess;
+	if (bSupportUnicode)
+		return erSuccess;
+	return FixGroupEncoding(soap, stringCompat, Out, lpsResponse->lpsGroup);
 }
 SOAP_ENTRY_END()
 
@@ -5824,12 +5802,9 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId,
 	er = CopyCompanyDetailsToSoap(ulCompanyId, &sTmpCompanyId, ulAdmin, &sAdminEid, details, lpecSession->GetCapabilities() & KOPANO_CAP_EXTENDED_ANON, soap, lpsResponse->lpsCompany);
 	if (er != erSuccess)
 		return er;
-	if (!bSupportUnicode) {
-		er = FixCompanyEncoding(soap, stringCompat, Out, lpsResponse->lpsCompany);
-		if (er != erSuccess)
-			return er;
-	}
-	return erSuccess;
+	if (bSupportUnicode)
+		return erSuccess;
+	return FixCompanyEncoding(soap, stringCompat, Out, lpsResponse->lpsCompany);
 }
 SOAP_ENTRY_END()
 
@@ -8559,12 +8534,9 @@ SOAP_ENTRY_START(abResolveNames, lpsABResolveNames->er, struct propTagArray* lpa
 		}
 	}
 
-	if (!bSupportUnicode) {
-		er = FixRowSetEncoding(soap, stringCompat, Out, &lpsABResolveNames->sRowSet);
-		if (er != erSuccess)
-			return er;
-	}
-	return erSuccess;
+	if (bSupportUnicode)
+		return erSuccess;
+	return FixRowSetEncoding(soap, stringCompat, Out, &lpsABResolveNames->sRowSet);
 }
 SOAP_ENTRY_END()
 
@@ -8649,12 +8621,10 @@ SOAP_ENTRY_START(AddQuotaRecipient, *result, unsigned int ulCompanyid,
 	if (er != erSuccess)
 		return er;
 	if (OBJECTCLASS_TYPE(ulType) == OBJECTTYPE_MAILUSER)
-		er = lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_QUOTA_USERRECIPIENT, ulCompanyid, ulRecipientId);
+		return lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_QUOTA_USERRECIPIENT, ulCompanyid, ulRecipientId);
 	else if (ulType == CONTAINER_COMPANY)
-		er = lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_QUOTA_COMPANYRECIPIENT, ulCompanyid, ulRecipientId);
-	else
-		er = KCERR_INVALID_TYPE;
-	return er;
+		return lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_QUOTA_COMPANYRECIPIENT, ulCompanyid, ulRecipientId);
+	return KCERR_INVALID_TYPE;
 }
 SOAP_ENTRY_END()
 
@@ -8671,12 +8641,10 @@ SOAP_ENTRY_START(DeleteQuotaRecipient, *result, unsigned int ulCompanyid,
 	if (er != erSuccess)
 		return er;
 	if (OBJECTCLASS_TYPE(ulType) == OBJECTTYPE_MAILUSER)
-		er = lpecSession->GetUserManagement()->DeleteSubObjectFromObjectAndSync(OBJECTRELATION_QUOTA_USERRECIPIENT, ulCompanyid, ulRecipientId);
+		return lpecSession->GetUserManagement()->DeleteSubObjectFromObjectAndSync(OBJECTRELATION_QUOTA_USERRECIPIENT, ulCompanyid, ulRecipientId);
 	else if (ulType == CONTAINER_COMPANY)
-		er = lpecSession->GetUserManagement()->DeleteSubObjectFromObjectAndSync(OBJECTRELATION_QUOTA_COMPANYRECIPIENT, ulCompanyid, ulRecipientId);
-	else
-		er = KCERR_INVALID_TYPE;
-	return er;
+		return lpecSession->GetUserManagement()->DeleteSubObjectFromObjectAndSync(OBJECTRELATION_QUOTA_COMPANYRECIPIENT, ulCompanyid, ulRecipientId);
+	return KCERR_INVALID_TYPE;
 }
 SOAP_ENTRY_END()
 
@@ -9938,19 +9906,16 @@ SOAP_ENTRY_START(getChangeInfo, lpsResponse->er, const entryId &sEntryId,
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
-
-	if (lpDBResult.get_num_rows() > 0) {
-		lpDBRow = lpDBResult.fetch_row();
-		lpDBLen = lpDBResult.fetch_row_lengths();
-		lpsResponse->sPropPCL.ulPropTag = PR_PREDECESSOR_CHANGE_LIST;
-		lpsResponse->sPropPCL.__union = SOAP_UNION_propValData_bin;
-		lpsResponse->sPropPCL.Value.bin = s_alloc<xsd__base64Binary>(soap, 1);
-		lpsResponse->sPropPCL.Value.bin->__size = lpDBLen[0];
-		lpsResponse->sPropPCL.Value.bin->__ptr = s_alloc<unsigned char>(soap, lpDBLen[0]);
-		memcpy(lpsResponse->sPropPCL.Value.bin->__ptr, lpDBRow[0], lpDBLen[0]);
-	} else {
+	if (lpDBResult.get_num_rows() == 0)
 		return KCERR_NOT_FOUND;
-	}
+	lpDBRow = lpDBResult.fetch_row();
+	lpDBLen = lpDBResult.fetch_row_lengths();
+	lpsResponse->sPropPCL.ulPropTag = PR_PREDECESSOR_CHANGE_LIST;
+	lpsResponse->sPropPCL.__union = SOAP_UNION_propValData_bin;
+	lpsResponse->sPropPCL.Value.bin = s_alloc<xsd__base64Binary>(soap, 1);
+	lpsResponse->sPropPCL.Value.bin->__size = lpDBLen[0];
+	lpsResponse->sPropPCL.Value.bin->__ptr = s_alloc<unsigned char>(soap, lpDBLen[0]);
+	memcpy(lpsResponse->sPropPCL.Value.bin->__ptr, lpDBRow[0], lpDBLen[0]);
 	return erSuccess;
 }
 SOAP_ENTRY_END()
@@ -9982,30 +9947,27 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(testPerform, *result, const char *szCommand,
     const struct testPerformArgs &sPerform, unsigned int *result)
 {
-    if(parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_test_protocol")))
-        er = TestPerform(soap, lpecSession, szCommand, sPerform.__size, sPerform.__ptr);
-    else
-        er = KCERR_NO_ACCESS;
+	if (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_test_protocol")))
+		return KCERR_NO_ACCESS;
+	return TestPerform(soap, lpecSession, szCommand, sPerform.__size, sPerform.__ptr);
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(testSet, *result, const char *szVarName, const char *szValue,
     unsigned int *result)
 {
-    if(parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_test_protocol")))
-        er = TestSet(soap, lpecSession, szVarName, szValue);
-    else
-        er = KCERR_NO_ACCESS;
+	if (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_test_protocol")))
+		return KCERR_NO_ACCESS;
+	return TestSet(soap, lpecSession, szVarName, szValue);
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(testGet, lpsResponse->er, const char *szVarName,
     struct testGetResponse *lpsResponse)
 {
-    if(parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_test_protocol")))
-        er = TestGet(soap, lpecSession, szVarName, &lpsResponse->szValue);
-    else
-        er = KCERR_NO_ACCESS;
+	if (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_test_protocol")))
+		return KCERR_NO_ACCESS;
+	return TestGet(soap, lpecSession, szVarName, &lpsResponse->szValue);
 }
 SOAP_ENTRY_END()
 
@@ -10027,13 +9989,11 @@ SOAP_ENTRY_START(setLockState, *result, const entryId &sEntryId, bool bLocked,
 	er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityOwner);
 	if (er != erSuccess)
 		return er;
-	if (bLocked) {
-		er = lpecSession->LockObject(ulObjId);
-		if (er == KCERR_NO_ACCESS)
-			er = KCERR_SUBMITTED;
-	} else {
-		er = lpecSession->UnlockObject(ulObjId);
-	}
+	if (!bLocked)
+		return lpecSession->UnlockObject(ulObjId);
+	er = lpecSession->LockObject(ulObjId);
+	if (er == KCERR_NO_ACCESS)
+		er = KCERR_SUBMITTED;
 	return er;
 }
 SOAP_ENTRY_END()
