@@ -165,9 +165,11 @@ class Item(Properties, Contact, Appointment):
         if isinstance(parent, _folder.Folder):
             self._folder = parent
             self.store = parent.store
+            self.user = parent.store.user
             self.server = parent.server
         elif isinstance(parent, _store.Store):
             self.store = parent
+            self.user = parent.user
             self.server = parent.server
 
         if create:
@@ -191,7 +193,7 @@ class Item(Properties, Contact, Appointment):
                 pass
             elif ics is not None:
                 icm = icalmapi.CreateICalToMapi(self.mapiobj, server.ab, False)
-                icm.ParseICal(ics, 'utf-8', '', None, 0)
+                icm.ParseICal(ics, 'utf-8', 'UTC', self.user.mapiobj, 0)
                 icm.GetItem(0, 0, self.mapiobj)
             elif vcf is not None:
                 vcm = icalmapi.create_vcftomapi(self.mapiobj)
