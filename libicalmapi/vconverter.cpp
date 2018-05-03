@@ -945,6 +945,42 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 	return hrSuccess;
 }
 
+HRESULT VConverter::resolve_organizer(std::wstring &email, std::wstring &name, std::string &type, unsigned int &cb, ENTRYID **entryid, bool force_mailuser) {
+	if (bIsUserLoggedIn(email) || force_mailuser) {
+		static constexpr const SizedSPropTagArray(4, sPropTags) =
+			{4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID}};
+		ULONG count;
+		memory_ptr<SPropValue> propvals;
+
+		auto hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &~propvals);
+		if (hr != hrSuccess)
+			return hr;
+		if (propvals[0].ulPropTag == PR_SMTP_ADDRESS_W)
+			email = propvals[0].Value.lpszW;
+		if (propvals[1].ulPropTag == PR_DISPLAY_NAME_W)
+			name = propvals[1].Value.lpszW;
+		if (propvals[2].ulPropTag == PR_ADDRTYPE_A)
+			type = propvals[2].Value.lpszA;
+		if (propvals[3].ulPropTag == PR_ENTRYID) {
+			cb = propvals[3].Value.bin.cb;
+			hr = KAllocCopy(reinterpret_cast<ENTRYID **>(propvals[3].Value.bin.lpb), propvals[3].Value.bin.cb, reinterpret_cast<void **>(entryid));
+			if (hr != hrSuccess)
+				return hr;
+		}
+		return hrSuccess;
+	}
+
+	memory_ptr<ENTRYID> lpb_oneoff;
+	unsigned int cb_oneoff = 0;
+	type = "SMTP";
+	auto hr = ECCreateOneOff(convert_to<std::wstring>(name).c_str(), L"SMTP", email.c_str(), MAPI_UNICODE, &cb_oneoff, &~lpb_oneoff);
+	if (hr != hrSuccess)
+		return hr;
+	cb = cb_oneoff;
+	*entryid = lpb_oneoff.release();
+	return hrSuccess;
+}
+
 /**
  * Sets Recipients in mapi structure from the ical data
  *
@@ -960,10 +996,8 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	std::wstring strEmail, strName;
 	std::string strType;
 	icalrecip icrAttendee = {0};
-	unsigned int cbEntryID = 0, cbEntryIDOneOff = 0;
-	LPENTRYID lpEntryID = NULL;
-	memory_ptr<ENTRYID> lpEntryIDOneOff;
-	memory_ptr<SPropValue> lpsPropVal;
+	unsigned int cbEntryID = 0;
+	memory_ptr<ENTRYID> lpEntryID;
 
 	auto lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
 	if (lpicProp) {
@@ -977,34 +1011,9 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			strName = m_converter.convert_to<wstring>(tmp, rawsize(tmp), m_strCharset.c_str());
 		else
 			strName = strEmail; // set email as name OL does not display organiser name if not set.
-
-		if (bIsUserLoggedIn(strEmail)) {
-			static constexpr const SizedSPropTagArray(4, sPropTags) =
-				{4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID}};
-			ULONG count;
-
-			hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &~lpsPropVal);
-			if (hr != hrSuccess)
-				return hr;
-			if (lpsPropVal[0].ulPropTag == PR_SMTP_ADDRESS_W)
-				strEmail = lpsPropVal[0].Value.lpszW;
-			if (lpsPropVal[1].ulPropTag == PR_DISPLAY_NAME_W)
-				strName = lpsPropVal[1].Value.lpszW;
-			if (lpsPropVal[2].ulPropTag == PR_ADDRTYPE_A)
-				strType = lpsPropVal[2].Value.lpszA;
-			if (lpsPropVal[3].ulPropTag == PR_ENTRYID) {
-				cbEntryID = lpsPropVal[3].Value.bin.cb;
-				lpEntryID = (LPENTRYID)lpsPropVal[3].Value.bin.lpb;
-			}
-		} else {
-			strType = "SMTP";
-			hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryIDOneOff, &~lpEntryIDOneOff);
-			if (hr != hrSuccess)
-				return hr;
-			cbEntryID = cbEntryIDOneOff;
-			lpEntryID = lpEntryIDOneOff;
-		}
-
+		hr = resolve_organizer(strEmail, strName, strType, cbEntryID, &~lpEntryID);
+		if (hr != hrSuccess)
+			return hr;
 		// add the organiser to the recipient list
 		icrAttendee.cbEntryID = cbEntryID;
 		hr = KAllocCopy(lpEntryID, cbEntryID, reinterpret_cast<void **>(&icrAttendee.lpEntryID), lpIcalItem->base);
@@ -1020,25 +1029,9 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 		if (!m_bNoRecipients)
 			hr = HrAddOrganizer(lpIcalItem, lplstMsgProps, strEmail, strName, strType, cbEntryID, lpEntryID);
 	} else if (!m_bNoRecipients && m_lpMailUser) {
-		// single item from caldav without organizer, no need to set recipients, only organizer to self
-		static constexpr const SizedSPropTagArray(4, sPropTags) =
-			{4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID}};
-		ULONG count;
-
-		hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &~lpsPropVal);
+		hr = resolve_organizer(strEmail, strName, strType, cbEntryID, &~lpEntryID, true);
 		if (hr != hrSuccess)
 			return hr;
-		if (lpsPropVal[0].ulPropTag == PR_SMTP_ADDRESS_W)
-			strEmail = lpsPropVal[0].Value.lpszW;
-		if (lpsPropVal[1].ulPropTag == PR_DISPLAY_NAME_W)
-			strName = lpsPropVal[1].Value.lpszW;
-		if (lpsPropVal[2].ulPropTag == PR_ADDRTYPE_A)
-			strType = lpsPropVal[2].Value.lpszA;
-		if (lpsPropVal[3].ulPropTag == PR_ENTRYID) {
-			cbEntryID = lpsPropVal[3].Value.bin.cb;
-			lpEntryID = (LPENTRYID)lpsPropVal[3].Value.bin.lpb;
-		}
-
 		hr = HrAddOrganizer(lpIcalItem, lplstMsgProps, strEmail, strName, strType, cbEntryID, lpEntryID);
 	}
 	if (hr != hrSuccess)
