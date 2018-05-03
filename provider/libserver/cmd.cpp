@@ -922,9 +922,10 @@ int KCmdService::fname(ULONG64 ulSessionId, ##__VA_ARGS__) \
 __soapentry_exit: \
     *lpResultVar = er; \
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes); \
+	LOG_SOAP_DEBUG("%020" PRIu64 ": E %s 0x%08x %f %f", ulSessionId, szFname, er,
+		timespec2dbl(endTimes) - timespec2dbl(startTimes), \
+		dur2dbl(decltype(dblStart)::clock::now() - dblStart)); \
     if(lpecSession) { \
-		LOG_SOAP_DEBUG("%020" PRIu64 ": E %s 0x%08x %f %f", ulSessionId, szFname, er, timespec2dbl(endTimes) - timespec2dbl(startTimes), \
-			dur2dbl(decltype(dblStart)::clock::now() - dblStart)); \
 		lpecSession->UpdateBusyState(pthread_self(), SESSION_STATE_SENDING); \
 		lpecSession->unlock(); \
     } \
