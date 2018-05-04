@@ -1158,10 +1158,12 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 			strName = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
 		}
 	}
-	auto hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
+	std::string type;
+	auto hr = resolve_organizer(strEmail, strName, type, cbEntryID, &~lpEntryID);
 	if (hr != hrSuccess)
 		return hr;
-	return HrAddOrganizer(lpIcalItem, &lpIcalItem->lstMsgProps, strEmail, strName, "SMTP", cbEntryID, lpEntryID);
+
+	return HrAddOrganizer(lpIcalItem, &lpIcalItem->lstMsgProps, strEmail, strName, type, cbEntryID, lpEntryID);
 }
 
 /**
