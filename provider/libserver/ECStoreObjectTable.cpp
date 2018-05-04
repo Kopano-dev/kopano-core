@@ -808,7 +808,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 
 	// Get data
 	if (!strTags.empty())
-		strQuery = "SELECT " PROPCOLORDER ", hierarchyid, 0 FROM tproperties AS properties FORCE INDEX(PRIMARY) WHERE folderid=" + stringify(ulFolderId) + " AND hierarchyid IN(" + strHierarchyIds + ") AND tag IN (" + strTags +") AND tag >= " + stringify(ulMin) + " AND tag <= " + stringify(ulMax);
+		strQuery = "SELECT " PROPCOLORDER ", hierarchyid, 0 FROM tproperties AS properties WHERE folderid=" + stringify(ulFolderId) + " AND hierarchyid IN(" + strHierarchyIds + ") AND tag IN (" + strTags +") AND tag >= " + stringify(ulMin) + " AND tag <= " + stringify(ulMax);
 	if(!strMVTags.empty()) {
 		if(!strQuery.empty())
 			strQuery += " UNION ";
