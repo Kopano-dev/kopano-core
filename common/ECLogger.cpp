@@ -310,6 +310,7 @@ int ECLogger_File::GetFileDescriptor() {
  */
 char *ECLogger_File::DoPrefix(char *buffer, size_t z)
 {
+	char *orig = buffer;
 	if (timestamp) {
 		auto adv = MakeTimestamp(buffer, z);
 		buffer += adv;
@@ -317,10 +318,12 @@ char *ECLogger_File::DoPrefix(char *buffer, size_t z)
 	}
 	if (z > 1) {
 		*buffer++ = ':';
+		buffer[1] = '\0';
 		--z;
 	}
 	if (z > 1) {
 		*buffer++ = ' ';
+		buffer[1] = '\0';
 		--z;
 	}
 	if (prefix == LP_TID) {
@@ -340,7 +343,7 @@ char *ECLogger_File::DoPrefix(char *buffer, size_t z)
 		snprintf(buffer, z, "[%5d] ", getpid());
 	}
 
-	return buffer;
+	return orig;
 }
 
 bool ECLogger_File::DupFilter(unsigned int loglevel, const char *message)
