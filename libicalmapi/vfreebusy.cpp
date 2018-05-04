@@ -114,11 +114,13 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 	icalcomponent_add_property(lpFbComp, lpicProp);
 	
 	//UID
-	lpicProp = icalproperty_new(ICAL_UID_PROPERTY);
-	if (lpicProp == NULL)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-	icalproperty_set_uid(lpicProp, strUID.c_str());
-	icalcomponent_add_property(lpFbComp, lpicProp);
+	if (strUID.size() > 0) {
+		lpicProp = icalproperty_new(ICAL_UID_PROPERTY);
+		if (lpicProp == NULL)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
+		icalproperty_set_uid(lpicProp, strUID.c_str());
+		icalcomponent_add_property(lpFbComp, lpicProp);
+	}
 
 	//ORGANIZER
 	lpicProp = icalproperty_new(ICAL_ORGANIZER_PROPERTY);
