@@ -123,7 +123,8 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 		unsigned int newtag = 0x8501 + newid;
 		if (oldtag >= 0xFFFF || newtag >= 0xFFFF)
 			continue;
-		assert(freemap.erase(newid) == 1);
+		auto x0 = freemap.erase(newid);
+		assert(x0 == 1);
 		ec_log_notice("defrag: moving %u -> %u [names]", oldid, newid);
 		fflush(stdout);
 		ret = db->DoUpdate("UPDATE names SET id=" + stringify(newid) + " WHERE id=" + stringify(oldid));
