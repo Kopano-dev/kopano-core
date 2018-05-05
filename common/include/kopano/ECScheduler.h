@@ -58,7 +58,7 @@ private:
 	_kc_hidden static void *ScheduleThread(void *tmp_scheduler);
 
 	ECScheduleList		m_listScheduler;
-	bool m_bExit = false;
+	bool m_thread_active = false, m_bExit = false;
 	std::mutex m_hExitMutex; /* Mutex needed for the release signal */
 	std::condition_variable m_hExitSignal; /* Signal that should be sent to the Scheduler when to exit */
 	std::recursive_mutex m_hSchedulerMutex; /* Mutex for the locking of the scheduler */

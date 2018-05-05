@@ -155,9 +155,11 @@ HRESULT ECNotifyMaster::StartNotifyWatch()
 	/* 1Mb of stack space per thread */
 	if (pthread_attr_setstacksize(&m_hAttrib, 1024 * 1024))
 		return MAPI_E_CALL_FAILED;
-	if (pthread_create(&m_hThread, &m_hAttrib, NotifyWatch, static_cast<void *>(this)))
+	auto ret = pthread_create(&m_hThread, &m_hAttrib, NotifyWatch, static_cast<void *>(this));
+	if (ret != 0) {
+		ec_log_err("Could not create ECNotifyMaster watch thread: %s", strerror(ret));
 		return MAPI_E_CALL_FAILED;
-
+	}
 	pthread_attr_destroy(&m_hAttrib);
 	set_thread_name(m_hThread, "NotifyThread");
 

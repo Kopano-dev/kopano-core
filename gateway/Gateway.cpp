@@ -702,20 +702,18 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			ec_log_notice("Starting worker %s for %s request", model, method);
 			if (bThreads) {
 				if (pthread_create(&POP3Thread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
-					ec_log_err("Can't create %s %s.", method, model);
-					lpHandlerArgs.reset();
+					ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
 					hr = hrSuccess;
 				}
 				else {
+					set_thread_name(POP3Thread, "ZGateway " + std::string(method));
 					lpHandlerArgs.release();
 					++nChildren;
 				}
-
-				set_thread_name(POP3Thread, "ZGateway " + std::string(method));
 			}
 			else {
 				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0)
-					ec_log_err("Can't create %s %s.", method, model);
+					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
 					// just keep running
 				else
 					++nChildren;
@@ -742,21 +740,20 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			const char *model = bThreads ? "thread" : "process";
 			ec_log_notice("Starting worker %s for %s request", model, method);
 			if (bThreads) {
-				if (pthread_create(&IMAPThread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
-					ec_log_err("Could not create %s %s.", method, model);
-					lpHandlerArgs.reset();
+				err = pthread_create(&IMAPThread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
+				if (err != 0) {
+					ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
 					hr = hrSuccess;
 				}
 				else {
+					set_thread_name(IMAPThread, "ZGateway " + std::string(method));
 					lpHandlerArgs.release();
 					++nChildren;
 				}
-
-				set_thread_name(IMAPThread, "ZGateway " + std::string(method));
 			}
 			else {
 				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0)
-					ec_log_err("Could not create %s %s.", method, model);
+					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
 					// just keep running
 				else
 					++nChildren;

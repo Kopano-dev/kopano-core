@@ -111,10 +111,12 @@ ECWorkerThread::ECWorkerThread(ECThreadManager *lpManager,
 		memset(&m_thread, 0, sizeof(m_thread));
 		return;
 	}
-	if (pthread_create(&m_thread, NULL, ECWorkerThread::Work, this) != 0) {
-		ec_log_crit("Unable to start thread: %s", strerror(errno));
+	auto ret = pthread_create(&m_thread, nullptr, ECWorkerThread::Work, this);
+	if (ret != 0) {
+		ec_log_crit("Could not create ECWorkerThread: %s", strerror(ret));
 		return;
 	}
+	m_thread_active = true;
 	set_thread_name(m_thread, "ECWorkerThread");
 	pthread_detach(m_thread);
 }
@@ -123,16 +125,20 @@ ECPriorityWorkerThread::ECPriorityWorkerThread(ECThreadManager *lpManager,
     ECDispatcher *lpDispatcher) :
 	ECWorkerThread(lpManager, lpDispatcher, true)
 {
-	if (pthread_create(&m_thread, NULL, ECWorkerThread::Work, static_cast<ECWorkerThread *>(this)) != 0)
-		ec_log_crit("Unable to start thread: %s", strerror(errno));
-    else
+	auto ret = pthread_create(&m_thread, nullptr, ECWorkerThread::Work, static_cast<ECWorkerThread *>(this));
+	if (ret != 0) {
+		ec_log_crit("Could not create ECPriorityWorkerThread: %s", strerror(ret));
+		return;
+	}
+	m_thread_active = true;
 	set_thread_name(m_thread, "ECPriorityWorkerThread");
 	// do not detach
 }
 
 ECPriorityWorkerThread::~ECPriorityWorkerThread()
 {
-	pthread_join(m_thread, NULL);
+	if (m_thread_active)
+		pthread_join(m_thread, nullptr);
 }
 
 void *ECWorkerThread::Work(void *lpParam)
@@ -369,9 +375,12 @@ ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECDispatcher *lpDispatcher,
 	m_lpConfig(lpConfig), m_lpDispatcher(lpDispatcher),
 	m_lpThreadManager(lpThreadManager)
 {
-    if (pthread_create(&m_thread, NULL, ECWatchDog::Watch, this) != 0)
-		ec_log_crit("Unable to start watchdog thread: %s", strerror(errno));
-    else
+	auto ret = pthread_create(&m_thread, nullptr, ECWatchDog::Watch, this);
+	if (ret != 0) {
+		ec_log_crit("Could not create ECWatchDog thread: %s", strerror(ret));
+		return;
+	}
+	m_thread_active = true;
 	set_thread_name(m_thread, "ECWatchDog");
 }
 
@@ -383,8 +392,8 @@ ECWatchDog::~ECWatchDog()
 	m_bExit = true;
 	m_condExit.notify_one();
 	l_exit.unlock();
-    
-    pthread_join(m_thread, &ret);
+	if (m_thread_active)
+		pthread_join(m_thread, &ret);
 }
 
 void *ECWatchDog::Watch(void *lpParam)

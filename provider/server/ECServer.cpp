@@ -1352,6 +1352,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 	// Create scheduler system
 	g_lpScheduler.reset(new(std::nothrow) ECScheduler);
+	if (g_lpScheduler == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	// Add a task on the scheduler
 	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 0, &SoftDeleteRemover, &g_Quit);
 	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 15, &CleanupSyncsTable);

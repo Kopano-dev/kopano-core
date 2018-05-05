@@ -408,7 +408,7 @@ private:
     pthread_t m_threadProcess;
     
     // Exit request for processing thread
-	bool m_bExitThread = false, m_bRunning = false;
+	bool m_thread_active = false, m_bExitThread = false, m_bRunning = false;
 };
 
 } /* namespace */

@@ -50,7 +50,12 @@ ECSearchFolders::ECSearchFolders(ECSessionManager *lpSessionManager,
     ECDatabaseFactory *lpFactory) :
 	m_lpDatabaseFactory(lpFactory), m_lpSessionManager(lpSessionManager)
 {
-	pthread_create(&m_threadProcess, nullptr, ECSearchFolders::ProcessThread, this);
+	auto ret = pthread_create(&m_threadProcess, nullptr, ECSearchFolders::ProcessThread, this);
+	if (ret != 0) {
+		ec_log_err("Could not create ECSearchFolders thread: %s", strerror(ret));
+		return;
+	}
+	m_thread_active = true;
     set_thread_name(m_threadProcess, "SearchFolders");
 }
 
@@ -63,8 +68,8 @@ ECSearchFolders::~ECSearchFolders() {
     m_bExitThread = true;
 	m_condEvents.notify_all();
 	l_events.unlock();
-
-    pthread_join(m_threadProcess, NULL);
+	if (m_thread_active)
+		pthread_join(m_threadProcess, nullptr);
 }
 
 // Only loads the search criteria for all search folders. Used once at boot time
@@ -242,7 +247,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
 	auto err = pthread_create(&lpSearchFolder->sThreadId, &attr, ECSearchFolders::SearchThread, ti.get());
 	if (err != 0) {
 		ec_log_crit("Unable to spawn thread for search: %s", strerror(err));
-		er = KCERR_NOT_ENOUGH_MEMORY;
+		return KCERR_NOT_ENOUGH_MEMORY;
 	} else {
 		ti.release();
 	}

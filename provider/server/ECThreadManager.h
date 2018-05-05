@@ -85,6 +85,7 @@ protected:
     pthread_t m_thread;
     ECThreadManager *m_lpManager;
     ECDispatcher *m_lpDispatcher;
+	bool m_thread_active = false;
 };
 
 class _kc_export_dycast ECPriorityWorkerThread _kc_final :
@@ -146,7 +147,7 @@ private:
     ECDispatcher *		m_lpDispatcher;
     ECThreadManager*	m_lpThreadManager;
     pthread_t			m_thread;
-	bool m_bExit = false;
+	bool m_thread_active = false, m_bExit = false;
 	std::mutex m_mutexExit;
 	std::condition_variable m_condExit;
 };

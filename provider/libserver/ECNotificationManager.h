@@ -63,7 +63,7 @@ private:
     static void * Thread(void *lpParam);
     void * Work();
     
-	bool m_bExit = false;
+	bool m_thread_active = false, m_bExit = false;
     pthread_t 	m_thread;
 	unsigned int m_ulTimeout = 60; /* Currently hardcoded at 60s, see comment in Work() */
 

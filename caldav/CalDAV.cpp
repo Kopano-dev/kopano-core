@@ -509,8 +509,9 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 
 		if (pthread_attr_setdetachstate(&pThreadAttr, PTHREAD_CREATE_DETACHED) != 0)
 			ec_log_warn("Could not set thread attribute to detached.");
-		if (pthread_create(&pThread, &pThreadAttr, HandlerClient, lpHandlerArgs.get()) != 0) {
-			ec_log_err("Could not create thread.");
+		auto ret = pthread_create(&pThread, &pThreadAttr, HandlerClient, lpHandlerArgs.get());
+		if (ret != 0) {
+			ec_log_err("Could not create ZCalDAV thread: %s", strerror(ret));
 			hr = E_FAIL;
 			goto exit;
 		} else {
@@ -520,7 +521,7 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 	}
 	else {
 		if (unix_fork_function(HandlerClient, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
-			ec_log_err("Could not create process.");
+			ec_log_err("Could not create ZCalDAV process: %s", strerror(errno));
 			hr = E_FAIL;
 			goto exit;
 		}
