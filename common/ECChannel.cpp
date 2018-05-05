@@ -795,13 +795,13 @@ int ec_listen_localsock(const char *path, int *pfd, int mode)
 	struct sockaddr_un sk;
 	if (strlen(path) + 1 >= sizeof(sk.sun_path)) {
 		ec_log_err("%s: \"%s\" is too long", __func__, path);
-		return EINVAL;
+		return -EINVAL;
 	}
 	struct stat sb;
 	auto ret = lstat(path, &sb);
 	if (ret == 0 && !S_ISSOCK(sb.st_mode)) {
 		ec_log_err("%s: file already exists, but it is not a socket", path);
-		return EADDRINUSE;
+		return -EADDRINUSE;
 	}
 	unlink(path);
 	int fd = socket(PF_LOCAL, SOCK_STREAM, 0);
@@ -846,7 +846,7 @@ int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 	char port_string[sizeof("65535")];
 
 	if (lpulListenSocket == nullptr || ulPort == 0 || szBind == nullptr)
-		return EINVAL;
+		return -EINVAL;
 
 	snprintf(port_string, sizeof(port_string), "%u", ulPort);
 	memset(&sock_hints, 0, sizeof(sock_hints));
@@ -860,10 +860,10 @@ int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 	      port_string, &sock_hints, &sock_res);
 	if (ret == EAI_SYSTEM) {
 		ec_log_err("getaddrinfo(%s,%u): %s", szBind, ulPort, gai_strerror(ret));
-		return errno;
+		return -errno;
 	} else if (ret != 0) {
 		ec_log_err("getaddrinfo(%s,%u): %s", szBind, ulPort, gai_strerror(ret));
-		return EINVAL;
+		return -EINVAL;
 	}
 	sock_res = reorder_addrinfo_ipv6(sock_res);
 
@@ -934,10 +934,12 @@ int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 	*lpulListenSocket = fd;
 
 exit:
+	int saved_errno = errno;
 	if (sock_res != NULL)
 		freeaddrinfo(sock_res);
 	if (hr != hrSuccess && fd >= 0)
 		close(fd);
+	errno = saved_errno;
 	return -errno;
 }
 
@@ -1030,7 +1032,7 @@ int ec_listen_generic(const char *spec, int *pfd, int mode)
 		return ec_listen_localsock(spec + 5, pfd, mode);
 	auto parts = ec_parse_bindaddr(spec);
 	if (parts.first == "!" || parts.second == 0)
-		return EINVAL;
+		return -EINVAL;
 	return ec_listen_inet(parts.first.c_str(), parts.second, pfd);
 }
 
