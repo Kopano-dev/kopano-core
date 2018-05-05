@@ -125,8 +125,8 @@ def getGlobalAddressbook(session):
     rest = SAndRestriction(
         [SPropertyRestriction(RELOP_EQ, PR_EMS_AB_CONTAINERID, SPropValue(PR_EMS_AB_CONTAINERID, 0)),
          SOrRestriction([
-                    SPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, SPropValue(PR_AB_PROVIDER_ID, 'AC21A95040D3EE48B319FBA753304425'.decode('hex'))),
-                    SPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, SPropValue(PR_AB_PROVIDER_ID, 'DCA740C8C042101AB4B908002B2FE182'.decode('hex'))) ] )
+                    SPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, SPropValue(PR_AB_PROVIDER_ID, 'AC21A95040D3EE48B319FBA753304425'.decode('hex'))), # MUIDECSAB
+                    SPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, SPropValue(PR_AB_PROVIDER_ID, 'DCA740C8C042101AB4B908002B2FE182'.decode('hex'))) ] ) # MUIDEMSAB
          ])
 
     table.Restrict(rest, TBL_BATCH)
