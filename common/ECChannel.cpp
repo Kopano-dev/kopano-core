@@ -1025,6 +1025,11 @@ std::pair<std::string, uint16_t> ec_parse_bindaddr(const char *spec)
  *
  * INETSPEC := { hostname | ipv4-addr | "[" ipv6-addr "]" } [ ":" portnumber ]
  * UNIXSPEC := "unix:" path
+ *
+ * NB: hostname and ipv4-addr are not specified to be enclosed in square
+ * brackets, but ec_parse_bindaddr2 does support it by chance, and
+ * dagent_listen()'s transformation of historic config directives (hopefully to
+ * be gone sooner than later) currently relies on it.
  */
 int ec_listen_generic(const char *spec, int *pfd, int mode)
 {
