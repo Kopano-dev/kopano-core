@@ -30,6 +30,7 @@
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <kopano/mapiext.h>
+#include <kopano/tie.hpp>
 #include <mapiguid.h>
 
 #include <kopano/CommonUtil.h>
@@ -140,7 +141,7 @@ enum serviceType { ST_POP3 = 0, ST_IMAP };
 
 struct HandlerArgs {
 	serviceType type;
-	ECChannel *lpChannel;
+	std::unique_ptr<ECChannel> lpChannel;
 	ECLogger *lpLogger;
 	std::shared_ptr<ECConfig> lpConfig;
 	bool bUseSSL;
@@ -149,7 +150,7 @@ struct HandlerArgs {
 static void *Handler(void *lpArg)
 {
 	auto lpHandlerArgs = static_cast<HandlerArgs *>(lpArg);
-	auto lpChannel = lpHandlerArgs->lpChannel;
+	std::shared_ptr<ECChannel> lpChannel(std::move(lpHandlerArgs->lpChannel));
 	auto lpLogger = lpHandlerArgs->lpLogger;
 	auto lpConfig = std::move(lpHandlerArgs->lpConfig);
 	auto bUseSSL = lpHandlerArgs->bUseSSL;
@@ -259,8 +260,6 @@ exit:
 	ec_log_notice("Client %s thread exiting", lpChannel->peer_addr());
 	client->HrDone(false);	// HrDone does not send an error string to the client
 	delete client;
-
-	delete lpChannel;
 	if (!bThreads)
 		g_lpLogger->Release();
 	/** free SSL error data **/
@@ -688,7 +687,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			lpHandlerArgs->type = ST_POP3;
 
 			// Incoming POP3(s) connection
-			hr = HrAccept(pop3s_event ? ulListenPOP3s : ulListenPOP3, &lpHandlerArgs->lpChannel);
+			hr = HrAccept(pop3s_event ? ulListenPOP3s : ulListenPOP3, &unique_tie(lpHandlerArgs->lpChannel));
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to accept POP3 socket connection.");
 				// just keep running
@@ -704,8 +703,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			if (bThreads) {
 				if (pthread_create(&POP3Thread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
 					ec_log_err("Can't create %s %s.", method, model);
-					// just keep running
-					delete lpHandlerArgs->lpChannel;
 					lpHandlerArgs.reset();
 					hr = hrSuccess;
 				}
@@ -722,8 +719,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 					// just keep running
 				else
 					++nChildren;
-				// main handler always closes information it doesn't need
-				delete lpHandlerArgs->lpChannel;
 				hr = hrSuccess;
 			}
 			continue;
@@ -733,7 +728,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			lpHandlerArgs->type = ST_IMAP;
 
 			// Incoming IMAP(s) connection
-			hr = HrAccept(imaps_event ? ulListenIMAPs : ulListenIMAP, &lpHandlerArgs->lpChannel);
+			hr = HrAccept(imaps_event ? ulListenIMAPs : ulListenIMAP, &unique_tie(lpHandlerArgs->lpChannel));
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to accept IMAP socket connection.");
 				// just keep running
@@ -749,8 +744,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			if (bThreads) {
 				if (pthread_create(&IMAPThread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
 					ec_log_err("Could not create %s %s.", method, model);
-					// just keep running
-					delete lpHandlerArgs->lpChannel;
 					lpHandlerArgs.reset();
 					hr = hrSuccess;
 				}
@@ -767,8 +760,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 					// just keep running
 				else
 					++nChildren;
-				// main handler always closes information it doesn't need
-				delete lpHandlerArgs->lpChannel;
 				hr = hrSuccess;
 			}
 			continue;

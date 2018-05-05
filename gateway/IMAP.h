@@ -143,7 +143,7 @@ public:
 // FLAGS: \Seen \Answered \Flagged \Deleted \Draft \Recent
 class IMAP _kc_final : public ClientProto {
 public:
-	IMAP(const char *path, KC::ECChannel *, std::shared_ptr<KC::ECConfig>);
+	IMAP(const char *path, std::shared_ptr<KC::ECChannel>, std::shared_ptr<KC::ECConfig>);
 	~IMAP();
 
 	// getTimeoutMinutes: 30 min when logged in otherwise 1 min

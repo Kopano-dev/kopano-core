@@ -30,8 +30,8 @@
 
 class ClientProto {
 public:
-	ClientProto(const char *szServerPath, KC::ECChannel *lpChannel, std::shared_ptr<KC::ECConfig> cfg) :
-		m_strPath(szServerPath), lpChannel(lpChannel), lpConfig(std::move(cfg)), m_ulFailedLogins(0)
+	ClientProto(const char *szServerPath, std::shared_ptr<KC::ECChannel> &&lpChannel, std::shared_ptr<KC::ECConfig> cfg) :
+		m_strPath(szServerPath), lpChannel(std::move(lpChannel)), lpConfig(std::move(cfg)), m_ulFailedLogins(0)
 	{};
 	virtual ~ClientProto(void) = default;
 	virtual int getTimeoutMinutes() const = 0;
@@ -45,7 +45,7 @@ public:
 
 protected:
 	std::string	m_strPath;
-	KC::ECChannel *lpChannel;
+	std::shared_ptr<KC::ECChannel> lpChannel;
 	std::shared_ptr<KC::ECConfig> lpConfig;
 	ULONG		m_ulFailedLogins;
 };
