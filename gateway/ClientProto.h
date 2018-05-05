@@ -19,7 +19,9 @@
 #define GATEWAY_COMMON_H
 
 #include <kopano/zcdefs.h>
+#include <memory>
 #include <string>
+#include <utility>
 #include <kopano/ECChannel.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
@@ -28,8 +30,8 @@
 
 class ClientProto {
 public:
-	ClientProto(const char *szServerPath, KC::ECChannel *lpChannel, KC::ECConfig *lpConfig) :
-	m_strPath(szServerPath), lpChannel(lpChannel), lpConfig(lpConfig), m_ulFailedLogins(0)
+	ClientProto(const char *szServerPath, KC::ECChannel *lpChannel, std::shared_ptr<KC::ECConfig> cfg) :
+		m_strPath(szServerPath), lpChannel(lpChannel), lpConfig(std::move(cfg)), m_ulFailedLogins(0)
 	{};
 	virtual ~ClientProto(void) = default;
 	virtual int getTimeoutMinutes() const = 0;
@@ -44,7 +46,7 @@ public:
 protected:
 	std::string	m_strPath;
 	KC::ECChannel *lpChannel;
-	KC::ECConfig *lpConfig;
+	std::shared_ptr<KC::ECConfig> lpConfig;
 	ULONG		m_ulFailedLogins;
 };
 

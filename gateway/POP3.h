@@ -18,6 +18,7 @@
 #ifndef POP3_H
 #define POP3_H
 
+#include <memory>
 #include <vector>
 #include <kopano/zcdefs.h>
 #include "ClientProto.h"
@@ -41,7 +42,7 @@
 
 class POP3 _kc_final : public ClientProto {
 public:
-	POP3(const char *path, KC::ECChannel *, KC::ECConfig *);
+	POP3(const char *path, KC::ECChannel *, std::shared_ptr<KC::ECConfig>);
 	~POP3();
 
 	// getTimeoutMinutes: 5 min when logged in otherwise 1 min

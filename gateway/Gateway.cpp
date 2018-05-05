@@ -17,6 +17,7 @@
 
 #include "config.h"
 #include <kopano/platform.h>
+#include <memory>
 #include <new>
 #include <climits>
 #include <csignal>
@@ -73,7 +74,7 @@ int quit = 0;
 static bool bThreads, g_dump_config;
 static const char *szPath;
 static ECLogger *g_lpLogger = NULL;
-static ECConfig *g_lpConfig = NULL;
+static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
 static int nChildren = 0;
 static std::string g_strHostString;
@@ -100,7 +101,7 @@ static void sighup(int sig)
 
 	if (strlen(g_lpConfig->GetSetting("ssl_private_key_file")) > 0 &&
 		strlen(g_lpConfig->GetSetting("ssl_certificate_file")) > 0) {
-		if (ECChannel::HrSetCtx(g_lpConfig) != hrSuccess)
+		if (ECChannel::HrSetCtx(g_lpConfig.get()) != hrSuccess)
 			ec_log_err("Error reloading SSL context");
 		else
 			ec_log_info("Reloaded SSL context");
@@ -141,7 +142,7 @@ struct HandlerArgs {
 	serviceType type;
 	ECChannel *lpChannel;
 	ECLogger *lpLogger;
-	ECConfig *lpConfig;
+	std::shared_ptr<ECConfig> lpConfig;
 	bool bUseSSL;
 };
 
@@ -150,7 +151,7 @@ static void *Handler(void *lpArg)
 	auto lpHandlerArgs = static_cast<HandlerArgs *>(lpArg);
 	auto lpChannel = lpHandlerArgs->lpChannel;
 	auto lpLogger = lpHandlerArgs->lpLogger;
-	auto lpConfig = lpHandlerArgs->lpConfig;
+	auto lpConfig = std::move(lpHandlerArgs->lpConfig);
 	auto bUseSSL = lpHandlerArgs->bUseSSL;
 
 	// szPath is global, pointing to argv variable, or lpConfig variable
@@ -260,11 +261,8 @@ exit:
 	delete client;
 
 	delete lpChannel;
-	if (bThreads == false) {
+	if (!bThreads)
 		g_lpLogger->Release();
-		delete g_lpConfig;
-	}
-
 	/** free SSL error data **/
 	#if OPENSSL_VERSION_NUMBER < 0x10100000L
 		ERR_remove_state(0);
@@ -432,7 +430,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Setup config
-	g_lpConfig = ECConfig::Create(lpDefaults);
+	g_lpConfig.reset(ECConfig::Create(lpDefaults));
 	if (!g_lpConfig->LoadSettings(szConfig, !exp_config) ||
 	    g_lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
@@ -442,7 +440,7 @@ int main(int argc, char *argv[]) {
 			goto exit;
 		}
 		ec_log_set(g_lpLogger);
-		LogConfigErrors(g_lpConfig);
+		LogConfigErrors(g_lpConfig.get());
 		hr = E_FAIL;
 		goto exit;
 	}
@@ -450,12 +448,12 @@ int main(int argc, char *argv[]) {
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 
 	// Setup logging
-	g_lpLogger = CreateLogger(g_lpConfig, argv[0], "KopanoGateway");
+	g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0], "KopanoGateway");
 	ec_log_set(g_lpLogger);
 
 	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
-		LogConfigErrors(g_lpConfig);
-	if (!TmpPath::instance.OverridePath(g_lpConfig))
+		LogConfigErrors(g_lpConfig.get());
+	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path-setting!");
 	if (parseBool(g_lpConfig->GetSetting("bypass_auth")))
 		ec_log_warn("Gateway is started with bypass_auth=yes meaning username and password will not be checked.");
@@ -481,7 +479,6 @@ exit:
 		fprintf(stderr, "%s: Startup failed: %s (%x). Please check the logfile (%s) for details.\n",
 			argv[0], GetMAPIErrorMessage(hr), hr, g_lpConfig->GetSetting("log_file"));
 	ssl_threading_cleanup();
-	delete g_lpConfig;
 	DeleteLogger(g_lpLogger);
 
 	return hr == hrSuccess ? 0 : 1;
@@ -558,7 +555,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 
 	// Setup SSL context
 	if ((bListenPOP3s || bListenIMAPs) &&
-	    ECChannel::HrSetCtx(g_lpConfig) != hrSuccess) {
+	    ECChannel::HrSetCtx(g_lpConfig.get()) != hrSuccess) {
 		ec_log_err("Error loading SSL context, POP3S and IMAPS will be disabled");
 		bListenPOP3s = false;
 		bListenIMAPs = false;
@@ -619,15 +616,15 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig))
+	if (unix_runas(g_lpConfig.get()))
 		goto exit;
-	if (daemonize && unix_daemonize(g_lpConfig))
+	if (daemonize && unix_daemonize(g_lpConfig.get()))
 		goto exit;
 	if (!daemonize)
 		setsid();
-	unix_create_pidfile(servicename, g_lpConfig);
+	unix_create_pidfile(servicename, g_lpConfig.get());
 	if (bThreads == false)
-		g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger); // maybe replace logger
+		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), g_lpLogger); // maybe replace logger
 	ec_log_set(g_lpLogger);
 
 	hr = MAPIInitialize(NULL);
