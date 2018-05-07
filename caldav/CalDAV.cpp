@@ -498,8 +498,9 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 	HRESULT hr = hrSuccess;
 	pthread_attr_t pThreadAttr;
 	pthread_t pThread;
-	auto lpHandlerArgs = new HandlerArgs;
-
+	std::unique_ptr<HandlerArgs> lpHandlerArgs(new(std::nothrow) HandlerArgs);
+	if (lpHandlerArgs == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	lpHandlerArgs->lpChannel = lpChannel;
 	lpHandlerArgs->bUseSSL = bUseSSL;
 
@@ -508,16 +509,17 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 
 		if (pthread_attr_setdetachstate(&pThreadAttr, PTHREAD_CREATE_DETACHED) != 0)
 			ec_log_warn("Could not set thread attribute to detached.");
-		if (pthread_create(&pThread, &pThreadAttr, HandlerClient, lpHandlerArgs) != 0) {
+		if (pthread_create(&pThread, &pThreadAttr, HandlerClient, lpHandlerArgs.get()) != 0) {
 			ec_log_err("Could not create thread.");
 			hr = E_FAIL;
 			goto exit;
+		} else {
+			lpHandlerArgs.release();
 		}
-
 		set_thread_name(pThread, std::string("ZCalDAV") + lpChannel->peer_addr());
 	}
 	else {
-		if (unix_fork_function(HandlerClient, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0) {
+		if (unix_fork_function(HandlerClient, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
 			ec_log_err("Could not create process.");
 			hr = E_FAIL;
 			goto exit;
@@ -526,9 +528,6 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 	}
 
 exit:
-	if (hr != hrSuccess)
-		delete lpHandlerArgs;
-
 	return hr;
 }
 
