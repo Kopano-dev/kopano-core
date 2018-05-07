@@ -95,6 +95,7 @@ protected:
 	virtual HRESULT HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEvent, icaltimezone *lpicTZinfo, const std::string &strTZid, std::list<icalcomponent*> *lpEventList);
 	virtual HRESULT HrUpdateReminderTime(icalcomponent *lpicEvent, LONG lReminder);
 	virtual HRESULT HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LPMESSAGE *lppMessage);
+	HRESULT resolve_organizer(std::wstring &email, std::wstring &name, std::string &type, unsigned int &cb, ENTRYID **entryid, bool force_mailuser = false);
 };
 
 HRESULT HrCopyString(convert_context& converter, std::string& strCharset, void *base, const char* lpszSrc, WCHAR** lppszDst);
