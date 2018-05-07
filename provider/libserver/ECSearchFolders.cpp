@@ -231,29 +231,26 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
 	auto iterStore = m_mapSearchFolders.emplace(ulStoreId, FOLDERIDSEARCH()).first;
 	iterStore->second.emplace(ulFolderId, lpSearchFolder);
 	g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_COUNT);
-        
-    if(bReStartSearch) {
-        lpSearchFolder->bThreadFree = false;
-        
-		auto ti = new THREADINFO;
-        ti->lpSearchFolders = this;
-        ti->lpFolder = lpSearchFolder;
-        
-        // Insert the actual folder with the criteria
-        // Start the thread (will store the thread id in the original list)
-        pthread_attr_t attr;
-        pthread_attr_init(&attr);
-        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-        pthread_attr_setstacksize(&attr, 512*1024); // 512KB stack space for search threads
-		auto err = pthread_create(&lpSearchFolder->sThreadId, &attr, ECSearchFolders::SearchThread, ti);
-		if (err != 0) {
-            ec_log_crit("Unable to spawn thread for search: %s", strerror(err));
-            er = KCERR_NOT_ENOUGH_MEMORY;
-        }
+	if (!bReStartSearch)
+		return erSuccess;
+	lpSearchFolder->bThreadFree = false;
+	auto ti = new THREADINFO;
+	ti->lpSearchFolders = this;
+	ti->lpFolder = lpSearchFolder;
+	// Insert the actual folder with the criteria
+	// Start the thread (will store the thread id in the original list)
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	pthread_attr_setstacksize(&attr, 512*1024); // 512KB stack space for search threads
+	auto err = pthread_create(&lpSearchFolder->sThreadId, &attr, ECSearchFolders::SearchThread, ti);
+	if (err != 0) {
+		ec_log_crit("Unable to spawn thread for search: %s", strerror(err));
+		er = KCERR_NOT_ENOUGH_MEMORY;
+	}
 	set_thread_name(lpSearchFolder->sThreadId, "SearchFolders:Folder");
-    }
 	l_sf.unlock();
-    return er;
+	return er;
 }
 
 // Cancel a search: stop any rebuild thread and stop processing updates for this search folder
