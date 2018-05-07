@@ -1914,11 +1914,10 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 		// we may never stream propids > 0x8500 without the names data
 		if (ulObjId != 0)
 			strQuery = "SELECT " PROPCOLORDER ", hierarchyid, names.nameid, names.namestring, names.guid "
-				"FROM properties FORCE INDEX (PRIMARY) ";
+				"FROM properties ";
 		else
 			strQuery = "SELECT " PROPCOLORDER ", hierarchy.id, names.nameid, names.namestring, names.guid "
-				"FROM properties FORCE INDEX (PRIMARY) "
-				"JOIN hierarchy FORCE INDEX (parenttypeflags) "
+				"FROM properties JOIN hierarchy "
 			        "ON properties.hierarchyid=hierarchy.id ";
 
 		strQuery += "LEFT JOIN names ON properties.tag-34049=names.id ";

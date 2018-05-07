@@ -534,7 +534,7 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 		er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 		if (er != erSuccess)
 			goto exit;
-		auto strQuery = "SELECT hierarchyid, val_binary FROM indexedproperties FORCE INDEX(bin) WHERE tag=" + stringify(ulTag) + " AND val_binary IN(";
+		auto strQuery = "SELECT hierarchyid, val_binary FROM indexedproperties WHERE tag=" + stringify(ulTag) + " AND val_binary IN(";
 		for (size_t j = 0; j < uncached.size(); ++j) {
 			strQuery += lpDatabase->EscapeBinary(lpdata[uncached[j]], cbdata[uncached[j]]);
 			strQuery += ",";
@@ -1529,7 +1529,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 		goto exit;
 
 	// Get them from the database
-	strQuery = "SELECT val_binary FROM indexedproperties FORCE INDEX(PRIMARY) WHERE tag="+stringify(ulTag)+" AND hierarchyid="+stringify(ulObjId) + " LIMIT 1";
+	strQuery = "SELECT val_binary FROM indexedproperties WHERE tag="+stringify(ulTag)+" AND hierarchyid="+stringify(ulObjId) + " LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
@@ -1588,7 +1588,7 @@ ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbDa
         goto exit;
 
     // Get them from the database
-    strQuery = "SELECT hierarchyid FROM indexedproperties FORCE INDEX(bin) WHERE tag="+stringify(ulTag)+" AND val_binary="+ lpDatabase->EscapeBinary(lpData, cbData) + " LIMIT 1";
+    strQuery = "SELECT hierarchyid FROM indexedproperties WHERE tag="+stringify(ulTag)+" AND val_binary="+ lpDatabase->EscapeBinary(lpData, cbData) + " LIMIT 1";
     er = lpDatabase->DoSelect(strQuery, &lpDBResult);
     if(er != erSuccess)
 		goto exit;
