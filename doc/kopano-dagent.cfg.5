@@ -116,7 +116,9 @@ Default: value not set.
 A space-separated list of address:port specifiers for where the server should
 listen for connections. IPv6 addresses need to be enclosed in brackets (as in
 \fB[2a01:db1::]:236\fP). The asterisk is the multi-protocol address ("*:2003").
-Local sockets are supported with "\fBunix:\fP\fI/path\fP".
+Local sockets are supported with "\fBunix:\fP\fI/path\fP". Hostnames are not
+allowed (since the mapped address can resolve to multiple addresses, any of
+which can change without notice).
 .PP
 Default: \fI*:2003\fP
 .PP

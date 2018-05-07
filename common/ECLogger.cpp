@@ -315,16 +315,16 @@ char *ECLogger_File::DoPrefix(char *buffer, size_t z)
 		auto adv = MakeTimestamp(buffer, z);
 		buffer += adv;
 		z -= adv;
-	}
-	if (z > 1) {
-		*buffer++ = ':';
-		buffer[1] = '\0';
-		--z;
-	}
-	if (z > 1) {
-		*buffer++ = ' ';
-		buffer[1] = '\0';
-		--z;
+		if (z > 1) {
+			*buffer++ = ':';
+			buffer[1] = '\0';
+			--z;
+		}
+		if (z > 1) {
+			*buffer++ = ' ';
+			buffer[1] = '\0';
+			--z;
+		}
 	}
 	if (prefix == LP_TID) {
 #ifdef HAVE_PTHREAD_GETNAME_NP
