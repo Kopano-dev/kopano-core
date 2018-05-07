@@ -815,9 +815,6 @@ static void cleanup(ECRESULT er)
 		g_lpAudit->Log(EC_LOGLEVEL_ALWAYS, "server shutdown in progress");
 
 	kopano_exit();
-	ssl_threading_cleanup();
-	SSL_library_cleanup(); //cleanup memory so valgrind is happy
-
 #ifdef HAVE_KCOIDC_H
 	if (kcoidc_initialized) {
 		auto res = kcoidc_uninitialize();
@@ -1050,7 +1047,11 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	setlocale(LC_ALL, "");
 	InitBindTextDomain();
 
-	auto laters = make_scope_success([&]() { cleanup(er); });
+	auto laters = make_scope_success([&]() {
+		cleanup(er);
+		ssl_threading_cleanup();
+		SSL_library_cleanup(); //cleanup memory so valgrind is happy
+	});
 	// Load settings
 	g_lpConfig = ECConfig::Create(lpDefaults);
 	if (!g_lpConfig->LoadSettings(szConfig, !exp_config) ||

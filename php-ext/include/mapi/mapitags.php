@@ -815,6 +815,7 @@ define('PR_EC_STATS_SESSION_BUSYSTATES'	,mapi_prop_tag(PT_MV_STRING8,	PR_EC_BASE
 define('PR_EC_COMPANY_NAME', mapi_prop_tag(PT_STRING8,	PR_EC_BASE+0x48));
 
 /* user features */
+define('PR_EC_AB_HIDDEN', mapi_prop_tag(PT_BOOLEAN, PR_EC_BASE+0xA7));
 define('PR_EC_ENABLED_FEATURES'                       ,mapi_prop_tag(PT_MV_TSTRING,  PR_EC_BASE+0xB3));
 define('PR_EC_DISABLED_FEATURES'                      ,mapi_prop_tag(PT_MV_TSTRING,  PR_EC_BASE+0xB4));
 
