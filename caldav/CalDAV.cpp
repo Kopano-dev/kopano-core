@@ -505,11 +505,14 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 	lpHandlerArgs->bUseSSL = bUseSSL;
 
 	if (g_bThreads) {
-		pthread_attr_init(&pThreadAttr);
-
+		if (pthread_attr_init(&pThreadAttr) != 0) {
+			hr = MAPI_E_NOT_ENOUGH_MEMORY;
+			goto exit;
+		}
 		if (pthread_attr_setdetachstate(&pThreadAttr, PTHREAD_CREATE_DETACHED) != 0)
 			ec_log_warn("Could not set thread attribute to detached.");
 		auto ret = pthread_create(&pThread, &pThreadAttr, HandlerClient, lpHandlerArgs.get());
+		pthread_attr_destroy(&pThreadAttr);
 		if (ret != 0) {
 			ec_log_err("Could not create ZCalDAV thread: %s", strerror(ret));
 			hr = E_FAIL;

@@ -535,7 +535,8 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	memset(&act, 0, sizeof(act));
 
 	if (bThreads) {
-		pthread_attr_init(&ThreadAttr);
+		if (pthread_attr_init(&ThreadAttr) != 0)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		if (pthread_attr_setdetachstate(&ThreadAttr, PTHREAD_CREATE_DETACHED) != 0) {
 			ec_log_err("Can't set thread attribute to detached");
 			goto exit;
