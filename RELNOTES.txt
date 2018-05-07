@@ -8,10 +8,12 @@ Fixes:
 * dbadm: recognize -c option properly
 * libserver: drop all remains of clientupdatestatus table [KC-644]
 * dbadm: fix np-defrag crash when run on blank database
+* dbadm: fix np-defrag freemap handling [KC-1126]
 Enhancements:
 * dbadm: add timestamps to log messages
 * dbadm: speed up np-defrag by using a reverse run
 * dbadm: add helper index creation/removal as an explicit action
+* propmap: expose kopanoHidden LDAP attribute as PR_EC_AB_HIDDEN [KC-63]
 
 
 8.5.8 (2018-04-18)
