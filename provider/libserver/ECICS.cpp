@@ -234,7 +234,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	if(er != erSuccess)
 		return er;
 
-	if ((ulChange & ICS_HARD_DELETE) == ICS_HARD_DELETE || (ulChange & ICS_SOFT_DELETE) == ICS_SOFT_DELETE) {
+	if ((ulChange & ICS_ACTION_MASK) == ICS_HARD_DELETE || (ulChange & ICS_ACTION_MASK) == ICS_SOFT_DELETE) {
 		if (ulSyncId != 0)
 			er = RemoveFromLastSyncedMessagesSet(lpDatabase, ulSyncId, sSourceKey, sParentSourceKey);
 		// The real item is removed from the database, So no further actions needed
