@@ -66,8 +66,8 @@ stamp-h2
 /ECtools/search/staging/
 /ECtools/migration-pst/kopano-migration-pst
 /ECtools/spamd/kopano-spamd
-/ECtools/utils/kopano-mr-accept.py
-/ECtools/utils/kopano-mr-process.py
+/ECtools/utils/kopano-mr-accept
+/ECtools/utils/kopano-mr-process
 /ECtools/utils/kopano-autorespond.py
 /ECtools/search/kopano_search/version.py
 /ECtools/backup/kopano_backup/version.py

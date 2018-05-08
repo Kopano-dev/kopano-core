@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 
-dist_sbin_SCRIPTS = kopano-autorespond.py kopano-mr-accept.py kopano-mr-process.py
+dist_sbin_SCRIPTS = kopano-autorespond.py kopano-mr-accept kopano-mr-process
 
 EXTRA_DIST = setup.py \
 	setup.cfg \
