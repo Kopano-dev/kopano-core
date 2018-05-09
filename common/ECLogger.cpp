@@ -1120,4 +1120,14 @@ static void ec_log_bt(unsigned int level, const char *fmt, ...)
 	}
 }
 
+HRESULT ec_log_hrcode(HRESULT code, unsigned int level,
+    const char *fmt, const char *func)
+{
+	if (func == nullptr)
+		ec_log(level, fmt, GetMAPIErrorMessage(code), code);
+	else
+		ec_log(level, fmt, func, GetMAPIErrorMessage(code), code);
+	return code;
+}
+
 } /* namespace */
