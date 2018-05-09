@@ -322,7 +322,7 @@ void Archive::SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage)
 PyMapiPluginFactory::PyMapiPluginFactory() {}
 PyMapiPluginFactory::~PyMapiPluginFactory() {}
 
-HRESULT PyMapiPluginFactory::create_plugin(ECConfig *, ECLogger *,
+HRESULT PyMapiPluginFactory::create_plugin(ECConfig *,
     const char *, pym_plugin_intf **ret)
 {
 	*ret = new(std::nothrow) pym_plugin_intf;
