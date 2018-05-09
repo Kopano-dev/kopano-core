@@ -184,9 +184,8 @@ HRESULT ArchiveControlImpl::Archive2(const tstring &strUser, bool bAutoAttach,
     ScopedUserLogging sul(m_lpLogger, strUser);
 
 	if (ulFlags != ArchiveManage::Writable && ulFlags != ArchiveManage::ReadOnly && ulFlags != 0) {
-		hr = MAPI_E_INVALID_PARAMETER;
         m_lpLogger->Log(EC_LOGLEVEL_INFO, "ArchiveControlImpl::Archive(): invalid parameter.");
-		goto exit;
+		return MAPI_E_INVALID_PARAMETER;
 	}
 
 	if (bAutoAttach || parseBool(m_lpConfig->GetSetting("enable_auto_attach"))) {
@@ -196,13 +195,11 @@ HRESULT ArchiveControlImpl::Archive2(const tstring &strUser, bool bAutoAttach,
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveControlImpl::Archive(): about to create collector.");
 		hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveControlImpl::Archive(): about to get updater.");
 		hr = ptrArchiveStateCollector->GetArchiveStateUpdater(&ptrArchiveStateUpdater);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (ulFlags == 0) {
 			if (parseBool(m_lpConfig->GetSetting("auto_attach_writable")))
 				ulFlags = ArchiveManage::Writable;
@@ -213,14 +210,11 @@ HRESULT ArchiveControlImpl::Archive2(const tstring &strUser, bool bAutoAttach,
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveControlImpl::Archive(): about to update store of user %ls. Flags: 0x%08X", strUser.c_str(), ulFlags);
 		hr = ptrArchiveStateUpdater->Update(strUser, ulFlags);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveControlImpl::Archive(): about to do real archive run.");
-	hr = DoArchive(strUser);
-
-exit:
-	return hr;
+	return DoArchive(strUser);
 }
 
 eResult ArchiveControlImpl::Archive(const tstring &user, bool auto_attach,
@@ -541,39 +535,25 @@ HRESULT ArchiveControlImpl::ProcessFolder2(object_ptr<IMAPIFolder> &ptrFolder,
 		{1, 0, 0, {{PR_PARENT_ENTRYID, TABLE_SORT_ASCEND}}};
 
 	auto hr = ptrFolder->GetContentsTable(fMapiDeferredErrors, &~ptrTable);
-	if (hr != hrSuccess) {
-		m_lpLogger->perr("Failed to get search folder contents table", hr);
-		goto exit;
-	}
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to get search folder contents table", hr);
 	hr = ptrTable->SetColumns(sptaProps, TBL_BATCH);
-	if (hr != hrSuccess) {
-		m_lpLogger->perr("Failed to set columns on table", hr);
-		goto exit;
-	}
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to set columns on table", hr);
 	hr = ptrArchiveOperation->GetRestriction(ptrFolder, &~ptrRestriction);
-	if (hr != hrSuccess) {
-		m_lpLogger->perr("Failed to get restriction from operation", hr);
-		goto exit;
-	}
-
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to get restriction from operation", hr);
 	hr = ptrTable->Restrict(ptrRestriction, TBL_BATCH);
-	if (hr != hrSuccess) {
-		m_lpLogger->perr("Failed to set restriction on table", hr);
-		goto exit;
-	}
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to set restriction on table", hr);
 	hr = ptrTable->SortTable(sptaOrder, TBL_BATCH);
-	if (hr != hrSuccess) {
-		m_lpLogger->perr("Failed to sort table", hr);
-		goto exit;
-	}
+	if (hr != hrSuccess)
+		return m_lpLogger->perr("Failed to sort table", hr);
 
 	do {
 		hr = ptrTable->QueryRows(50, 0, &~ptrRowSet);
-		if (hr != hrSuccess) {
-			m_lpLogger->perr("Failed to get rows from table", hr);
-			goto exit;
-		}
-
+		if (hr != hrSuccess)
+			return m_lpLogger->perr("Failed to get rows from table", hr);
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Processing batch of %u messages", ptrRowSet.size());
 		for (ULONG i = 0; i < ptrRowSet.size(); ++i) {
 			hr = ptrArchiveOperation->ProcessEntry(ptrFolder, ptrRowSet[i]);
@@ -582,16 +562,14 @@ HRESULT ArchiveControlImpl::ProcessFolder2(object_ptr<IMAPIFolder> &ptrFolder,
 				m_lpLogger->perr("Failed to process entry", hr);
 				if (hr == MAPI_E_STORE_FULL) {
 					m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Disk full or over quota.");
-					goto exit;
+					return hr;
 				}
 				continue;
 			}
 		}
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Done processing batch");
 	} while (ptrRowSet.size() == 50);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ArchiveControlImpl::ProcessFolder(object_ptr<IMAPIFolder> &fld,
