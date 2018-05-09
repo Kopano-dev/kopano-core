@@ -176,7 +176,8 @@ eResult ArchiveControlImpl::ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsign
  * @param[in]	strUser
  *					The username for which to archive the messages.
  */
-eResult ArchiveControlImpl::Archive(const tstring &strUser, bool bAutoAttach, unsigned int ulFlags)
+HRESULT ArchiveControlImpl::Archive2(const tstring &strUser, bool bAutoAttach,
+    unsigned int ulFlags)
 {
 	HRESULT hr = hrSuccess;
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveControlImpl::Archive(): function entry.");
@@ -219,6 +220,13 @@ eResult ArchiveControlImpl::Archive(const tstring &strUser, bool bAutoAttach, un
 	hr = DoArchive(strUser);
 
 exit:
+	return hr;
+}
+
+eResult ArchiveControlImpl::Archive(const tstring &user, bool auto_attach,
+    unsigned int flags)
+{
+	auto hr = Archive2(user, auto_attach, flags);
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "ArchiveControlImpl::Archive() at exit. Return code before transformation: %s (%x)", GetMAPIErrorMessage(hr), hr);
 	return MAPIErrorToArchiveError(hr);
 }
@@ -519,15 +527,14 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
  *					If set to true, unread messages will also be processed. Otherwise unread message
  *					will be left untouched.
  */
-HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOperationPtr ptrArchiveOperation)
+HRESULT ArchiveControlImpl::ProcessFolder2(object_ptr<IMAPIFolder> &ptrFolder,
+    std::shared_ptr<IArchiveOperation> ptrArchiveOperation, bool &bHaveErrors)
 {
 	MAPITablePtr ptrTable;
 	SRestrictionPtr ptrRestriction;
 	memory_ptr<SSortOrderSet> ptrSortOrder;
 	SRowSetPtr ptrRowSet;
 	MessagePtr ptrMessage;
-	bool bHaveErrors = false;
-	const tstring strFolderRestore = m_lpLogger->GetFolder();
 	static constexpr const SizedSPropTagArray(3, sptaProps) =
 		{3, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
 	static constexpr const SizedSSortOrderSet(1, sptaOrder) =
@@ -584,6 +591,15 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 	} while (ptrRowSet.size() == 50);
 
 exit:
+	return hr;
+}
+
+HRESULT ArchiveControlImpl::ProcessFolder(object_ptr<IMAPIFolder> &fld,
+    std::shared_ptr<IArchiveOperation> aop)
+{
+	const tstring strFolderRestore = m_lpLogger->GetFolder();
+	bool bHaveErrors = false;
+	auto hr = ProcessFolder2(fld, aop, bHaveErrors);
 	if (hr == hrSuccess && bHaveErrors)
 		hr = MAPI_W_PARTIAL_COMPLETION;
 

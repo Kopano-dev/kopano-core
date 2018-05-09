@@ -112,6 +112,7 @@ class ArchiveControlImpl _kc_final : public ArchiveControl {
 public:
 	static HRESULT Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, bool bForceCleanup, ArchiveControlPtr *lpptrArchiveControl);
 	eResult ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsigned int ulFlags) _kc_override;
+	HRESULT Archive2(const tstring &user, bool auto_attach, unsigned int flags);
 	eResult Archive(const tstring &strUser, bool bAutoAttach, unsigned int ulFlags) _kc_override;
 	eResult CleanupAll(bool bLocalOnly) _kc_override;
 	eResult Cleanup(const tstring &strUser) _kc_override;
@@ -136,6 +137,7 @@ private:
 	HRESULT DoArchive(const tstring& strUser);
 	HRESULT DoCleanup(const tstring& strUser);
 	
+	HRESULT ProcessFolder2(object_ptr<IMAPIFolder> &, std::shared_ptr<operations::IArchiveOperation>, bool &);
 	HRESULT ProcessFolder(MAPIFolderPtr &ptrFolder, operations::ArchiveOperationPtr ptrArchiveOperation);
 
 	HRESULT ProcessAll(bool bLocalOnly, fnProcess_t fnProcess);
