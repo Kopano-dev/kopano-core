@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
+#include <kopano/MAPIErrors.h>
 #include "ECArchiverLogger.h"
 #include "stubber.h"
 #include <kopano/MAPIErrors.h>
@@ -156,7 +157,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		for (ULONG i = 0; i < ptrRowSet.size(); ++i) {
 			hr = lpMessage->DeleteAttach(ptrRowSet[i].lpProps[0].Value.ul, 0, NULL, 0);
 			if (hr != hrSuccess) {
-				Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to delete attachment %u: %s (0x%x)",
+				Logger()->logf(EC_LOGLEVEL_FATAL, "Failed to delete attachment %u: %s (%x)",
 					i, GetMAPIErrorMessage(hr), hr);
 				return hr;
 			}

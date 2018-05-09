@@ -566,7 +566,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		auto hrTmp = m_ptrSession->OpenStore(arc.sStoreEntryId, &~ptrArchiveStore);
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->perr("Failed to open store", hrTmp);
-			entry.StoreName = "Failed id=" + arc.sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
+			entry.StoreName = "Failed id=" + arc.sStoreEntryId.tostring() + ": " + GetMAPIErrorMessage(hrTmp) + " (" + stringify(hrTmp, true) + ")";
 			lstEntries.emplace_back(std::move(entry));
 			continue;
 		}
@@ -616,7 +616,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->perr("Failed to open folder", hrTmp);
-			entry.FolderName = "Failed id=" + arc.sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
+			entry.FolderName = "Failed id=" + arc.sStoreEntryId.tostring() + ": " + GetMAPIErrorMessage(hr) + " (" + stringify(hrTmp, true) + ")";
 			lstEntries.emplace_back(std::move(entry));
 			continue;
 		}

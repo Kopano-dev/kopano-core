@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <new>
 #include <utility>
+#include <kopano/MAPIErrors.h>
 #include <kopano/archiver-common.h>
 #include <kopano/memory.hpp>
 #include "ArchiveStateUpdater.h"
@@ -141,7 +142,8 @@ HRESULT ArchiveStateUpdater::UpdateAll(unsigned int ulAttachFlags)
 	for (const auto &i : m_mapArchiveInfo) {
 		HRESULT hrTmp = UpdateOne(i.first, i.second, ulAttachFlags);
 		if (hrTmp != hrSuccess)
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to auto attach store for user '" TSTRING_PRINTF "', hr=0x%08x", i.second.userName.c_str(), hrTmp);
+			m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to auto attach store for user \"" TSTRING_PRINTF "\": %s (%x)",
+				i.second.userName.c_str(), GetMAPIErrorMessage(hrTmp), hrTmp);
 	}
 	return hrSuccess;
 }
@@ -177,7 +179,8 @@ HRESULT ArchiveStateUpdater::Update(const tstring &userName, unsigned int ulAtta
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::Update(): about to call UpdateOne()");
 	auto hr = UpdateOne(i->first, i->second, ulAttachFlags);
 	if (hr != hrSuccess)
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to auto attach store for user '" TSTRING_PRINTF "', hr=0x%08x", userName.c_str(), hr);
+		m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to auto attach store for user \"" TSTRING_PRINTF "\": %s (%x)",
+			userName.c_str(), GetMAPIErrorMessage(hr), hr);
 	return hr;
 }
 
@@ -292,12 +295,12 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 			continue;
 		}
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open archive store. hr=0x%08x", hr);
+			m_lpLogger->perr("Failed to open archive store", hr);
 			return hr;
 		}
 		hr = ptrArchStore->OpenEntry(i.sItemEntryId.size(), i.sItemEntryId, &iid_of(ptrArchFolder), 0, &ulType, &~ptrArchFolder);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open archive root. hr=0x%08x", hr);
+			m_lpLogger->perr("Failed to open archive root", hr);
 			if (hr == MAPI_E_NOT_FOUND) {
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Possibly invalid entry, skipping...");
 				continue;
@@ -311,7 +314,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 
 		hr = ptrArchiveHelper->GetArchiveType(NULL, &attachType);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get attachType. hr=0x%08x", hr);
+			m_lpLogger->perr("Failed to get attachType", hr);
 			return hr;
 		}
 
@@ -327,7 +330,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 		return hrSuccess;
 	hr = ptrUserStoreHelper->SetArchiveList(lstCurrentArchives, true);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to set archive list, hr=0x%08x", hr);
+		m_lpLogger->perr("Failed to set archive list", hr);
 		return hr;
 	}
 	if (!userName.empty())
@@ -406,7 +409,9 @@ HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std
 
 		hr = lpManage->AttachTo(NULL, strArchive.c_str(), strFolder.c_str(), ulAttachFlags, ImplicitAttach);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to attach to store '" TSTRING_PRINTF "' in folder '" TSTRING_PRINTF "', hr=0x%08x", strArchive.c_str(), strFolder.c_str(), hr);
+			m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to attach to store \"" TSTRING_PRINTF "\" in folder \"" TSTRING_PRINTF "\": %s (%x)",
+				strArchive.c_str(), strFolder.c_str(),
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 	}
@@ -448,13 +453,15 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
 		
 		hr = m_ptrSession->OpenOrCreateArchiveStore(userName, i, &~ptrArchive);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open or create the archive for user '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "', hr=0x%08x", userName.c_str(), i.c_str(), hr);
+			m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to open or create the archive for user \"" TSTRING_PRINTF "\" on server \"" TSTRING_PRINTF "\": %s (%x)",
+				userName.c_str(), i.c_str(), GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 
 		hr = lpManage->AttachTo(ptrArchive, L"", NULL, userId, ulAttachFlags, ImplicitAttach);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to attach to archive store for user '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "', hr=0x%08x", userName.c_str(), i.c_str(), hr);
+			m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to attach to archive store for user \"" TSTRING_PRINTF "\" on server \"" TSTRING_PRINTF "\": %s (%x)",
+				userName.c_str(), i.c_str(), GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 	}
@@ -491,7 +498,8 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 			continue;
 		}
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive entry for store '" TSTRING_PRINTF "', folder '" TSTRING_PRINTF "', hr=0x%08x", strArchive.c_str(), strFolder.c_str(), hr);
+			m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to get archive entry for store \"" TSTRING_PRINTF "\", folder \"" TSTRING_PRINTF "\": %s (%x)",
+				strArchive.c_str(), strFolder.c_str(), GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 
@@ -520,7 +528,8 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 			continue;
 		}
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive store id for '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "', hr=0x%08x", info.userName.c_str(), i.c_str(), hr);
+			m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to get archive store id for \"" TSTRING_PRINTF "\" on server \"" TSTRING_PRINTF "\": %s (%x)",
+				info.userName.c_str(), i.c_str(), GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 
@@ -561,7 +570,8 @@ HRESULT ArchiveStateUpdater::FindArchiveEntry(const tstring &strArchive, const t
 
 	auto hr = m_ptrSession->OpenStoreByName(strArchive, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open store for user '" TSTRING_PRINTF "', hr=0x%08x", strArchive.c_str(), hr);
+		m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to open store for user \"" TSTRING_PRINTF "\": %s (%x)",
+			strArchive.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -571,7 +581,8 @@ HRESULT ArchiveStateUpdater::FindArchiveEntry(const tstring &strArchive, const t
 
 	hr = ptrArchiveHelper->GetArchiveEntry(false, lpObjEntry);
 	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND)
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive entry for folder '" TSTRING_PRINTF "', hr=0x%08x", strFolder.c_str(), hr);
+		m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to get archive entry for folder \"" TSTRING_PRINTF "\": %s (%x)",
+			strFolder.c_str(), GetMAPIErrorMessage(hr), hr);
 	return hr;
 }
 

@@ -20,6 +20,7 @@
 #include <utility>
 #include <kopano/ECConfig.h>
 #include <kopano/ECRestriction.h>
+#include <kopano/MAPIErrors.h>
 #include "ECArchiverLogger.h"
 #include "copier.h"
 #include "deleter.h"
@@ -240,16 +241,19 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 
 			hrTmp = lpSource->OpenAttach(ptrSourceRows[i].lpProps[IDX_ATTACH_NUM].Value.ul, nullptr, MAPI_DEFERRED_ERRORS, &~ptrSourceAttach);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open source attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to open source attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			hrTmp = HrGetOneProp(ptrSourceAttach, PR_ATTACH_METHOD, &~ptrAttachMethod);
 			if (hrTmp == MAPI_E_NOT_FOUND) {
-				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No PR_ATTACH_METHOD found for attachment %u, assuming NO_ATTACHMENT. So nothing to deduplicate.", i);
+				m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "No PR_ATTACH_METHOD found for attachment %u: %s (%x). Assuming NO_ATTACHMENT. So, nothing to deduplicate.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get PR_ATTACH_METHOD for attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to get PR_ATTACH_METHOD for attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			if (ptrAttachMethod->Value.ul != ATTACH_BY_VALUE) {
@@ -258,12 +262,14 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 			}
 			hrTmp = ptrSourceAttach->QueryInterface(iid_of(ptrInstance), &~ptrInstance);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get single instance interface for source attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Unable to get single instance interface for source attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			hrTmp = ptrInstance->GetSingleInstanceId(&cbSourceSIID, &~ptrSourceSIID);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get single instance ID for source attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Unable to get single instance ID for source attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			if (cbSourceSIID == 0 || !ptrSourceSIID) {
@@ -277,29 +283,34 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 				continue;
 			}
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get mapped instance ID for attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Unable to get mapped instance ID for attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			hrTmp = lpDest->OpenAttach(ptrDestRows[i].lpProps[IDX_ATTACH_NUM].Value.ul, nullptr, MAPI_DEFERRED_ERRORS, &~ptrDestAttach);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open dest attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to open dest attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			hrTmp = ptrDestAttach->QueryInterface(iid_of(ptrInstance), &~ptrInstance);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get single instance interface for dest attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Unable to get single instance interface for dest attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 
 			hrTmp = ptrInstance->SetSingleInstanceId(cbDestSIID, ptrDestSIID);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to set single instance ID for dest attachment %u. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Unable to set single instance ID for dest attachment %u: %s (%x)",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 
 			hrTmp = ptrDestAttach->SaveChanges(0);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to save single instance ID for dest attachment %u. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Unable to save single instance ID for dest attachment %u: %s (%x)",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 

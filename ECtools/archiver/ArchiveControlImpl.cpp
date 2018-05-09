@@ -219,7 +219,7 @@ eResult ArchiveControlImpl::Archive(const tstring &strUser, bool bAutoAttach, un
 	hr = DoArchive(strUser);
 
 exit:
-    m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveControlImpl::Archive() at exit. Return code before transformation: 0x%08x (%s).", hr, GetMAPIErrorMessage(hr));
+	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "ArchiveControlImpl::Archive() at exit. Return code before transformation: %s (%x)", GetMAPIErrorMessage(hr), hr);
 	return MAPIErrorToArchiveError(hr);
 }
 

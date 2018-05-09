@@ -23,6 +23,7 @@
 #include <kopano/userutil.h>
 #include "ArchiveStateCollector.h"
 #include <kopano/CommonUtil.h>
+#include <kopano/MAPIErrors.h>
 #include "ArchiverSession.h"
 #include "ArchiveStateUpdater.h"
 #include "ECIterators.h"
@@ -95,7 +96,8 @@ namespace details {
 
 				for (unsigned j = 0; bComplete && j < IDX_MAX; ++j) {
 					if (PROP_TYPE(ptrRows[i].lpProps[j].ulPropTag) == PT_ERROR) {
-						m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Got incomplete row, row %u, column %u contains error 0x%08x", i, j, ptrRows[i].lpProps[j].Value.err);
+						m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Got incomplete row, row %u, column %u contains error \"%s\" (%x)",
+							i, j, GetMAPIErrorMessage(ptrRows[i].lpProps[j].Value.err), ptrRows[i].lpProps[j].Value.err);
 						bComplete = false;
 					}
 				}
@@ -173,7 +175,8 @@ HRESULT ArchiveStateCollector::GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lp
 	     m_ptrSession->GetSSLPath(), m_ptrSession->GetSSLPass(),
 	     false, &mdc);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Failed to get mailbox data. hr=0x%08x", hr);
+		m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Failed to get mailbox data: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -209,7 +212,8 @@ HRESULT ArchiveStateCollector::PopulateUserList()
 		}
 	} catch (const KMAPIError &e) {
 		hr = e.code();
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to iterate addressbook containers. (hr=0x%08x)", hr);
+		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Failed to iterate addressbook containers: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	return hrSuccess;
@@ -266,12 +270,14 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 
 		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 			if (ptrRows[i].lpProps[IDX_ENTRYID].ulPropTag != PR_ENTRYID) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get entryid from address list. hr=0x%08x", ptrRows[i].lpProps[IDX_ACCOUNT].Value.err);
+				auto err = ptrRows[i].lpProps[IDX_ACCOUNT].Value.err;
+				m_lpLogger->perr("Unable to get entryid from address list", err);
 				continue;
 			}
 
 			if (ptrRows[i].lpProps[IDX_ACCOUNT].ulPropTag != PR_ACCOUNT) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get username from address list. hr=0x%08x", ptrRows[i].lpProps[IDX_ACCOUNT].Value.err);
+				auto err = ptrRows[i].lpProps[IDX_ACCOUNT].Value.err;
+				m_lpLogger->perr("Unable to get username from address list", err);
 				continue;
 			}
 
