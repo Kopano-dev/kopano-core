@@ -3584,7 +3584,12 @@ int main(int argc, char *argv[]) {
 		sDeliveryArgs.strPath = g_lpConfig->GetSetting("server_socket");
 	sDeliveryArgs.strPath = GetServerUnixSocket((char*)sDeliveryArgs.strPath.c_str()); // let environment override if present
 	sDeliveryArgs.sDeliveryOpts.ascii_upgrade = g_lpConfig->GetSetting("default_charset");
+#ifdef HAVE_TIDY_H
 	sDeliveryArgs.sDeliveryOpts.html_safety_filter = strcasecmp(g_lpConfig->GetSetting("html_safety_filter"), "yes") == 0;
+#else
+	if (strcasecmp(g_lpConfig->GetSetting("html_safety_filter"), "yes") == 0)
+		ec_log_warn("HTML safety filter is enabled in configuration, but KC is not compiled with libtidy");
+#endif
 	{
 		auto s = g_lpConfig->GetSetting("unknown_charset_substitutions");
 		if (s != nullptr) {
