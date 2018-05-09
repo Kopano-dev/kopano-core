@@ -172,13 +172,11 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceId(ULONG ulObjId, ULONG ulTag,
 		"WHERE `hierarchyid` = " + stringify(ulObjId) + " AND `tag` = " + stringify(ulTag) + " LIMIT 1";
 
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if (er != erSuccess) {
-		ec_log_err("ECAttachmentStorage::GetSingleInstanceId(): DoSelect() failed %x", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return ec_perror("ECAttachmentStorage::GetSingleInstanceId(): DoSelect() failed", er);
 	auto lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
-		// ec_log_err("ECAttachmentStorage::GetSingleInstanceId(): FetchRow() failed %x", er);
+		// ec_perror("ECAttachmentStorage::GetSingleInstanceId(): FetchRow() failed", er);
 		return KCERR_NOT_FOUND;
 	if (esid != nullptr)
 		esid->siid = atoi(lpDBRow[0]);
@@ -315,11 +313,8 @@ ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ext_sii
 	}
 	strQuery +=	")";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if (er != erSuccess) {
-		ec_log_err("ECAttachmentStorage::GetOrphanedSingleInstances(): DoSelect failed %x", er);
-		return er;
-	}
-
+	if (er != erSuccess)
+		return ec_perror("ECAttachmentStorage::GetOrphanedSingleInstances(): DoSelect failed", er);
 	/* First make a full copy of the list of Single Instance IDs */
 	lplstOrphanedInstanceIds->assign(lstInstanceIds.begin(), lstInstanceIds.end());
 
@@ -445,10 +440,8 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 		"(" + stringify(ulObjId) + ", " + stringify(ulPropId) + ")";
 	ext_siid esid;
 	auto er = m_lpDatabase->DoInsert(strQuery, &esid.siid);
-	if (er != erSuccess) {
-		ec_log_err("ECAttachmentStorage::SaveAttachment(): DoInsert failed %x", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return ec_perror("ECAttachmentStorage::SaveAttachment(): DoInsert failed", er);
 	er = SaveAttachmentInstance(esid, ulPropId, iSize, lpData);
 	if (er != erSuccess)
 		return er;
@@ -489,10 +482,8 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 		"(" + stringify(ulObjId) + ", " + stringify(ulPropId) + ")";
 	ext_siid esid;
 	auto er = m_lpDatabase->DoInsert(strQuery, &esid.siid);
-	if (er != erSuccess) {
-		ec_log_err("ECAttachmentStorage::SaveAttachment(): DoInsert failed %x", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return ec_perror("ECAttachmentStorage::SaveAttachment(): DoInsert failed", er);
 	er = SaveAttachmentInstance(esid, ulPropId, iSize, lpSource);
 	if (er != erSuccess)
 		return er;
@@ -569,7 +560,7 @@ ECRESULT ECAttachmentStorage::CopyAttachment(ULONG ulObjId, ULONG ulNewObjId)
 			"WHERE `hierarchyid` = " + stringify(ulObjId);
 	auto er = m_lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		ec_log_err("ECAttachmentStorage::CopyAttachment(): DoInsert failed %x", er);
+		return ec_perror("ECAttachmentStorage::CopyAttachment(): DoInsert failed", er);
 	return er;
 }
 
@@ -606,11 +597,8 @@ ECRESULT ECAttachmentStorage::DeleteAttachments(const std::list<ULONG> &lstDelet
 	strQuery += ")";
 
 	er = m_lpDatabase->DoDelete(strQuery);
-	if (er != erSuccess) {
-		ec_log_err("ECAttachmentStorage::DeleteAttachments(): DoDelete failed %x", er);
-		return er;
-	}
-
+	if (er != erSuccess)
+		return ec_perror("ECAttachmentStorage::DeleteAttachments(): DoDelete failed", er);
 	/*
 	 * Get the list of orphaned Single Instance IDs which we can delete.
 	 */
@@ -672,11 +660,8 @@ ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId, bo
 		"AND `tag` = " + stringify(ulPropId);
 
 	er = m_lpDatabase->DoDelete(strQuery);
-	if (er != erSuccess) {
-		ec_log_err("ECAttachmentStorage::DeleteAttachment(): DoDelete failed %x", er);
-		return er;
-	}
-
+	if (er != erSuccess)
+		return ec_perror("ECAttachmentStorage::DeleteAttachment(): DoDelete failed", er);
 	/*
 	 * Check if the attachment can be permanently deleted.
 	 */
@@ -735,10 +720,8 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap,
 	// we first need to know the complete size of the attachment (some old databases don't have the correct chunk size)
 	auto strQuery = "SELECT SUM(LENGTH(val_binary)) FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if (er != erSuccess) {
-		ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect failed %x", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return ec_perror("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect failed", er);
 	auto lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 		ec_log_err("ECDatabaseAttachment::LoadAttachmentInstance(): no row returned");
@@ -749,11 +732,8 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap,
 	// get all chunks
 	strQuery = "SELECT val_binary FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid) + " ORDER BY chunkid";
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if (er != erSuccess) {
-		ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect(2) failed %x", er);
-		return er;
-	}
-
+	if (er != erSuccess)
+		return ec_perror("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect(2) failed", er);
 	auto lpData = s_alloc<unsigned char>(soap, iSize);
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL) {
@@ -795,10 +775,8 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(const ext_siid &ulInstance
 	// get all chunks
 	auto strQuery = "SELECT val_binary FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid) + " ORDER BY chunkid";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
-	if (er != erSuccess) {
-		ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect failed %x", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return ec_perror("ECAttachmentStorage::LoadAttachmentInstance(): DoSelect failed", er);
 
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		if (lpDBRow[0] == NULL) {
@@ -808,11 +786,8 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(const ext_siid &ulInstance
 		}
 		auto lpDBLen = lpDBResult.fetch_row_lengths();
 		er = lpSink->Write(lpDBRow[0], 1, lpDBLen[0]);
-		if (er != erSuccess) {
-			ec_log_err("ECAttachmentStorage::LoadAttachmentInstance(): Write failed %x", er);
-			return er;
-		}
-
+		if (er != erSuccess)
+			return ec_perror("ECAttachmentStorage::LoadAttachmentInstance(): Write failed", er);
 		iReadSize += lpDBLen[0];
 	}
 
@@ -850,10 +825,8 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstance
 			", " + m_lpDatabase->EscapeBinary(lpData + iPtr, iChunkSize) + ")";
 
 		auto er = m_lpDatabase->DoInsert(strQuery);
-		if (er != erSuccess) {
-			ec_log_err("ECAttachmentStorage::SaveAttachmentInstance(): DoInsert failed %x", er);
-			return er;
-		}
+		if (er != erSuccess)
+			return ec_perror("ECAttachmentStorage::SaveAttachmentInstance(): DoInsert failed", er);
 		++ulChunk;
 		iSizeLeft -= iChunkSize;
 		iPtr += iChunkSize;
@@ -897,10 +870,8 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstance
 			", " + m_lpDatabase->EscapeBinary(szBuffer, iChunkSize) + ")";
 
 		er = m_lpDatabase->DoInsert(strQuery);
-		if (er != erSuccess) {
-			ec_log_err("ECAttachmentStorage::SaveAttachmentInstance(): DoInsert failed %x", er);
-			return er;
-		}
+		if (er != erSuccess)
+			return ec_perror("ECAttachmentStorage::SaveAttachmentInstance(): DoInsert failed", er);
 		++ulChunk;
 		iSizeLeft -= iChunkSize;
 	}
@@ -958,10 +929,8 @@ ECRESULT ECDatabaseAttachment::GetSizeInstance(const ext_siid &ulInstanceId,
 	DB_RESULT lpDBResult;
 	auto strQuery = "SELECT SUM(LENGTH(val_binary)) FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid);
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult); 
-	if (er != erSuccess)  {
-		ec_log_err("ECAttachmentStorage::GetSizeInstance(): DoSelect failed %x", er);
-		return er;
-	}
+	if (er != erSuccess)
+		return ec_perror("ECAttachmentStorage::GetSizeInstance(): DoSelect failed", er);
 	auto lpDBRow = lpDBResult.fetch_row();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) { 
 		ec_log_err("ECDatabaseAttachment::GetSizeInstance(): now row or column contained NULL");

@@ -27,6 +27,7 @@
 #include <vector>
 #include <mapidefs.h>
 #include <mapitags.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/mapiext.h>
 #include <kopano/scope.hpp>
 #include <kopano/tie.hpp>
@@ -2768,7 +2769,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	auto cache = m_lpSession->GetSessionManager()->GetCacheManager();
 	auto cleanup = make_scope_success([&]() {
 		if (er != 0)
-			ec_log_info("Auto-deleting %s %d done. Error code 0x%08X", ObjectClassToName(objclass), ulObjectId, er);
+			ec_log_info("Auto-deleting %s %d done: %s (%x)", ObjectClassToName(objclass), ulObjectId, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 		else
 			ec_log_info("Auto-deleting %s %d done.", ObjectClassToName(objclass), ulObjectId);
 	});
@@ -4317,8 +4318,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 	if (er == KCERR_NO_SUPPORT) {
 		er = erSuccess;
 	} else if (er != erSuccess) {
-		ec_log_err("Error synchronizing company list: %08X", er);
-		return er;
+		return ec_perror("Error synchronizing company list", er);
 	} else { 
 		ec_log_info("Synchronized company list");
 	}
@@ -4327,10 +4327,8 @@ ECRESULT ECUserManagement::SyncAllObjects()
 	if (!lplstCompanyObjects || lplstCompanyObjects->empty()) {
 		// get all users of server
 		er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, 0, &unique_tie(lplstUserObjects), ulFlags);
-		if (er != erSuccess) {
-			ec_log_err("Error synchronizing user list: %08X", er);
-			return er;
-		}
+		if (er != erSuccess)
+			return ec_perror("Error synchronizing user list", er);
 		ec_log_info("Synchronized user list");
 		return erSuccess;
 	}
@@ -4338,7 +4336,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 	for (const auto &com : *lplstCompanyObjects) {
 		er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, com.ulId, &unique_tie(lplstUserObjects), ulFlags);
 		if (er != erSuccess) {
-			ec_log_err("Error synchronizing user list for company %d: %08X", com.ulId, er);
+			ec_log_err("Error synchronizing user list for company %d: %s (%x)", com.ulId, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 			return er;
 		}
 		ec_log_info("Synchronized list for company %d", com.ulId);

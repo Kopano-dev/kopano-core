@@ -779,7 +779,7 @@ int KCmdService::ssoLogon(ULONG64 ulSessionId, const char *szUsername,
 		// create ecsession from ecauthsession, and place in session map
 		er = g_lpSessionManager->RegisterSession(lpecAuthSession, ullSessionGroup, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, &newSessionID, &lpecSession, true);
 		if (er != erSuccess) {
-			ec_log_err("User authenticated, but failed to create session. Error 0x%08X", er);
+			ec_perror("User authenticated, but failed to create session", er);
 			goto exit;
 		}
 
@@ -1742,10 +1742,8 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				break; // Name property found, but name isn't present. This is broken, so skip this.
 			auto strQuery = "SELECT hierarchy.id FROM hierarchy JOIN properties ON hierarchy.id = properties.hierarchyid WHERE hierarchy.parent=" + stringify(ulParent) + " AND hierarchy.type="+stringify(MAPI_FOLDER)+" AND hierarchy.flags & " + stringify(MSGFLAG_DELETED)+ "=0 AND properties.tag=" + stringify(KOPANO_TAG_DISPLAY_NAME) + " AND properties.val_string = '" + lpDatabase->Escape(lpPropValArray->__ptr[i].Value.lpszA) + "' AND properties.type="+stringify(PT_STRING8)+" AND hierarchy.id!=" + stringify(ulObjId) + " LIMIT 1";
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-			if (er != erSuccess) {
-				ec_log_err("WriteProps(): DoSelect failed %x", er);
-				return er;
-			}
+			if (er != erSuccess)
+				return ec_perror("WriteProps(): DoSelect failed", er);
 			if (lpDBResult.get_num_rows() > 0) {
 				ec_log_err("WriteProps(): Folder already exists while putting folder");
 				return KCERR_COLLISION;
@@ -5030,17 +5028,11 @@ SOAP_ENTRY_START(addSendAsUser, *result, unsigned int ulUserId,
     unsigned int *result)
 {
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
-	if (er != erSuccess) {
-		ec_log_err("addSendAsUser(): GetLocalId(ulUserId) failed %x", er);
-		return er;
-	}
-
+	if (er != erSuccess)
+		return ec_perror("addSendAsUser(): GetLocalId(ulUserId) failed", er);
 	er = GetLocalId(sSenderId, ulSenderId, &ulSenderId, NULL);
-	if (er != erSuccess) {
-		ec_log_err("addSendAsUser(): GetLocalId(ulSenderId) failed %x", er);
-		return er;
-	}
-
+	if (er != erSuccess)
+		return ec_perror("addSendAsUser(): GetLocalId(ulSenderId) failed", er);
 	if (ulUserId == ulSenderId) {
 		ec_log_err("addSendAsUser(): ulUserId == ulSenderId");
 		return KCERR_COLLISION;
@@ -5049,21 +5041,18 @@ SOAP_ENTRY_START(addSendAsUser, *result, unsigned int ulUserId,
 	// Check security, only admins can set sendas users, not the user itself
 	auto sec = lpecSession->GetSecurity();
 	if (sec->IsAdminOverUserObject(ulUserId) != erSuccess) {
-		ec_log_err("addSendAsUser(): IsAdminOverUserObject failed %x", er);
+		ec_perror("addSendAsUser(): IsAdminOverUserObject failed", er);
 		return KCERR_NO_ACCESS;
 	}
 
 	// needed?
 	er = sec->IsUserObjectVisible(ulUserId);
-	if (er != erSuccess) {
-		ec_log_err("addSendAsUser(): IsUserObjectVisible failed %x", er);
-		return er;
-	}
-
+	if (er != erSuccess)
+		return ec_perror("addSendAsUser(): IsUserObjectVisible failed", er);
 	er = lpecSession->GetUserManagement()->AddSubObjectToObjectAndSync(OBJECTRELATION_USER_SENDAS, ulUserId, ulSenderId);
 	if (er != erSuccess)
-		ec_log_err("addSendAsUser(): AddSubObjectToObjectAndSync failed %x", er);
-	return er;
+		return ec_perror("addSendAsUser(): AddSubObjectToObjectAndSync failed", er);
+	return erSuccess;
 }
 SOAP_ENTRY_END()
 
@@ -5162,7 +5151,8 @@ SOAP_ENTRY_START(createStore, *result, unsigned int ulStoreType,
 		if (er == KCERR_NO_ACCESS)
 			ec_log_err("Failed to create store access denied");
 		else if (er != erSuccess)
-			ec_log_err("Failed to create store (id=%d), errorcode=0x%08X", ulUserId, er);
+			ec_log_err("Failed to create store (id=%d): %s (%x)",
+				ulUserId, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 		s_free(nullptr, srightsArray.__ptr);
 		ROLLBACK_ON_ERROR();
 	});
@@ -6405,7 +6395,7 @@ SOAP_ENTRY_START(resolveStore, lpsResponse->er,
 			"ON s.user_id = u.id "
 		"WHERE s.guid=" + strStoreGuid + " LIMIT 2";
 	if(lpDatabase->DoSelect(strQuery, &lpDBResult) != erSuccess) {
-		ec_log_err("resolveStore(): select failed %x", er);
+		ec_perror("resolveStore(): select failed", er);
 		return KCERR_DATABASE_ERROR;
 	}
 	if (lpDBResult.get_num_rows() != 1)
@@ -6524,7 +6514,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 
 	strQuery = "SELECT hierarchy_id, guid FROM stores WHERE user_id = " + stringify(ulObjectId) + " AND (1 << type) & " + stringify(ulStoreTypeMask) + " LIMIT 1";
 	if ((er = lpDatabase->DoSelect(strQuery, &lpDBResult)) != erSuccess) {
-		ec_log_err("resolveUserStore(): select failed %x", er);
+		ec_perror("resolveUserStore(): select failed", er);
 		return KCERR_DATABASE_ERROR;
 	}
 	lpDBRow = lpDBResult.fetch_row();
@@ -8029,7 +8019,7 @@ SOAP_ENTRY_START(unhookStore, *result, unsigned int ulStoreType,
 	// but will be migrated here and we need to remove the previous store with different guid.
 	auto cleanup = make_scope_success([&]() {
 		if (er != erSuccess)
-			ec_log_err("Unhook of store (type %d) with userid %d and GUID %s failed with error code 0x%x",  ulStoreType, ulUserId, strGUID.c_str(), er);
+			ec_log_err("Unhook of store (type %d) with userid %d and GUID %s failed: %s (%x)",  ulStoreType, ulUserId, strGUID.c_str(), GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 		else
 			ec_log_err("Unhook of store (type %d) with userid %d and GUID %s succeeded",  ulStoreType, ulUserId, strGUID.c_str());
 		ROLLBACK_ON_ERROR();
@@ -8079,7 +8069,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType,
 	USE_DATABASE();
 	auto cleanup = make_scope_success([&]() {
 		if (er != erSuccess)
-			ec_log_err("Hook of store failed: 0x%x", er);
+			ec_perror("Hook of store failed", er);
 		ROLLBACK_ON_ERROR();
 	});
 
@@ -8206,7 +8196,7 @@ SOAP_ENTRY_START(removeStore, *result,
 			ec_log_err("Failed to remove store access denied");
 		} else if (er != erSuccess) {
 			lpDatabase->Rollback();
-			ec_log_err("Failed to remove store, errorcode=0x%08X", er);
+			ec_perror("Failed to remove store", er);
 		}
 	});
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -8841,7 +8831,7 @@ SOAP_ENTRY_START(getMessageStatus, lpsStatus->er, const entryId &sEntryId,
 	// Get the old flags
 	strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid="+stringify(ulId)+" AND tag=3607 AND type=3 LIMIT 2";
 	if ((er = lpDatabase->DoSelect(strQuery, &lpDBResult)) != erSuccess) {
-		ec_log_err("getMessageStatus(): select failed %x", er);
+		ec_perror("getMessageStatus(): select failed", er);
 		return KCERR_DATABASE_ERROR;
 	}
 	if (lpDBResult.get_num_rows() == 1) {
@@ -8886,7 +8876,7 @@ SOAP_ENTRY_START(setMessageStatus, lpsOldStatus->er, const entryId &sEntryId,
 	// Get the old flags (PR_MSG_STATUS)
 	strQuery = "SELECT val_ulong FROM properties WHERE hierarchyid="+stringify(ulId)+" AND tag=3607 AND type=3 LIMIT 2";
 	if((er = lpDatabase->DoSelect(strQuery, &lpDBResult)) != erSuccess) {
-		ec_log_err("setMessageStatus(): select failed %x", er);
+		ec_perror("setMessageStatus(): select failed", er);
 		return er = KCERR_DATABASE_ERROR;
 	}
 
@@ -9312,8 +9302,7 @@ static size_t MTOMRead(struct soap * /*soap*/, void *handle,
 	assert(lpStreamInfo->lpFifoBuffer != NULL);
 	er = lpStreamInfo->lpFifoBuffer->Read(buf, len, STR_DEF_TIMEOUT, &cbRead);
 	if (er != erSuccess)
-		ec_log_err("Failed to read data: %s (0x%x)",
-			GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
+		ec_perror("Failed to read data", er);
 	return cbRead;
 }
 

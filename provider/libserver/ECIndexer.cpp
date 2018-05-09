@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 
 #include <kopano/CommonUtil.h>
+#include <kopano/MAPIErrors.h>
 #include "ECGenericObjectTable.h"
 #include <kopano/stringutil.h>
 #include <kopano/scope.hpp>
@@ -338,7 +339,8 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 		if (er == KCERR_NETWORK_ERROR)
 			ec_log_err("Error while connecting to search on \"%s\"", szSocket);
 		else if (er != erSuccess)
-			ec_log_err("Error while querying search on \"%s\", 0x%08x", szSocket, er);
+			ec_log_err("Error while querying search on \"%s\": %s (%x)",
+				szSocket, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 		if (er != erSuccess)
 			return er;
 		er = lpCacheManager->SetExcludedIndexProperties(setExcludePropTags);
@@ -366,7 +368,8 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 
 	if (er != erSuccess) {
 		g_lpStatsCollector->Increment(SCN_INDEXER_SEARCH_ERRORS);
-		ec_log_err("Error while querying search on \"%s\", 0x%08x", szSocket, er);
+		ec_log_err("Error while querying search on \"%s\": %s (%x)",
+			szSocket, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 	} else
 		ec_log_debug("Indexed query results found in %.4f ms", llelapsedtime/1000.0);
 
