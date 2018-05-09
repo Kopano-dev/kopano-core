@@ -486,7 +486,7 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 	/* Start reading the template mail */
 	auto fp = fopen(lpszTemplate, "rt");
 	if (fp == nullptr) {
-		ec_log_err("Failed to open template email: %s", lpszTemplate);
+		ec_log_err("Failed to open template email file \"%s\": %s", lpszTemplate, strerror(errno));
 		return MAPI_E_NOT_FOUND;
 	}
 
@@ -850,8 +850,7 @@ HRESULT ECQuotaMonitor::SendQuotaWarningMail(IMsgStore* lpMDB, ULONG cPropSize, 
 		return kc_perror("Unable to set properties", hr);
 	hr = lpMessage->ModifyRecipients(MODRECIP_ADD, lpAddrList);
 	if (hr != hrSuccess)
-		return hr;
-
+		return kc_pwarn("ModifyRecipients", hr);
 	/* Save Message */
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess)
