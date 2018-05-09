@@ -582,7 +582,7 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 		     lpsRowSet[0].lpProps[2].Value.bin.cb, lpsRowSet[0].lpProps[2].Value.bin.lpb,
 		     lpsRowSet[0].lpProps[3].Value.ul);
 		if (hr != hrSuccess) {
-			ec_log_warn("ProcessAllEntries(): Failed starting spooler: %x", hr);
+			kc_pwarn("ProcessAllEntries(): Failed starting spooler", hr);
 			goto exit;
 		}
 	}
@@ -697,7 +697,7 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 		// also checks not to send a message again which is already sending
 		hr = ProcessAllEntries(lpAdminSession, lpSpooler, lpTable, szSMTP, ulPort, szPath);
 		if(hr != hrSuccess) {
-			ec_log_warn("ProcessQueue: ProcessAllEntries failed %x", hr);
+			kc_pwarn("ProcessQueue: ProcessAllEntries failed", hr);
 			goto exit;
 		}
 

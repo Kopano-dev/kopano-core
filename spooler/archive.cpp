@@ -103,7 +103,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	}
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess) {
-		ec_log_warn("Archive::HrArchiveMessageForDelivery(): GetProps failed %x", hr);
+		kc_pwarn("Archive::HrArchiveMessageForDelivery(): GetProps failed", hr);
 		goto exit;
 	}
 	refMsgEntry.sStoreEntryId = ptrMsgProps[IDX_STORE_ENTRYID].Value.bin;
@@ -112,19 +112,19 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrStore), MDB_WRITE, &~ptrStore);
 	if (hr != hrSuccess) {
-		ec_log_warn("Archive::HrArchiveMessageForDelivery(): OpenMsgStore failed %x", hr);
+		kc_pwarn("Archive::HrArchiveMessageForDelivery(): OpenMsgStore failed", hr);
 		goto exit;
 	}
 
 	hr = StoreHelper::Create(ptrStore, &ptrStoreHelper);
 	if (hr != hrSuccess) {
-		ec_log_warn("Archive::HrArchiveMessageForDelivery(): StoreHelper::Create failed %x", hr);
+		kc_pwarn("Archive::HrArchiveMessageForDelivery(): StoreHelper::Create failed", hr);
 		goto exit;
 	}
 
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess) {
-		ec_log_warn("Archive::HrArchiveMessageForDelivery(): StoreHelper::GetArchiveList failed %x", hr);
+		kc_pwarn("Archive::HrArchiveMessageForDelivery(): StoreHelper::GetArchiveList failed", hr);
 		goto exit;
 	}
 
@@ -136,13 +136,13 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);
 	if (hr != hrSuccess) {
-		ec_log_warn("Archive::HrArchiveMessageForDelivery(): StoreHelper::OpenEntry failed %x", hr);
+		kc_pwarn("Archive::HrArchiveMessageForDelivery(): StoreHelper::OpenEntry failed", hr);
 		goto exit;
 	}
 
 	hr = ArchiverSession::Create(m_ptrSession, ec_log_get(), &ptrSession);
 	if (hr != hrSuccess) {
-		ec_log_warn("Archive::HrArchiveMessageForDelivery(): ArchiverSession::Create failed %x", hr);
+		kc_pwarn("Archive::HrArchiveMessageForDelivery(): ArchiverSession::Create failed", hr);
 		goto exit;
 	}
 
@@ -152,7 +152,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	 */
 	hr = InstanceIdMapper::Create(ec_log_get(), NULL, &ptrMapper);
 	if (hr != hrSuccess) {
-		ec_log_warn("Archive::HrArchiveMessageForDelivery(): InstanceIdMapper::Create failed %x", hr);
+		kc_pwarn("Archive::HrArchiveMessageForDelivery(): InstanceIdMapper::Create failed", hr);
 		goto exit;
 	}
 
@@ -169,7 +169,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 
 		hr = ptrHelper->CreateArchivedMessage(lpMessage, arc, refMsgEntry, &~ptrArchivedMsg, &ptrPSAction);
 		if (hr != hrSuccess) {
-			ec_log_warn("Archive::HrArchiveMessageForDelivery(): CreateArchivedMessage failed %x", hr);
+			kc_pwarn("Archive::HrArchiveMessageForDelivery(): CreateArchivedMessage failed", hr);
 			goto exit;
 		}
 		lstArchivedMessages.emplace_back(ptrArchivedMsg, ptrPSAction);
@@ -184,7 +184,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 		hr = msg.first->GetProps(sptaMessageProps, 0,
 		     &cArchivedMsgProps, &~ptrArchivedMsgProps);
 		if (hr != hrSuccess) {
-			ec_log_warn("Archive::HrArchiveMessageForDelivery(): ArchivedMessage GetProps failed %x", hr);
+			kc_pwarn("Archive::HrArchiveMessageForDelivery(): ArchivedMessage GetProps failed", hr);
 			goto exit;
 		}
 		refArchiveEntry.sItemEntryId = ptrArchivedMsgProps[IDX_ENTRYID].Value.bin;
@@ -192,14 +192,14 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 		lstReferences.emplace_back(refArchiveEntry);
 		hr = msg.first->SaveChanges(KEEP_OPEN_READWRITE);
 		if (hr != hrSuccess) {
-			ec_log_warn("Archive::HrArchiveMessageForDelivery(): ArchivedMessage SaveChanges failed %x", hr);
+			kc_pwarn("Archive::HrArchiveMessageForDelivery(): ArchivedMessage SaveChanges failed", hr);
 			goto exit;
 		}
 
 		if (msg.second) {
 			HRESULT hrTmp = msg.second->Execute();
 			if (hrTmp != hrSuccess)
-				ec_log_warn("Failed to execute post save action. hr=0x%08x", hrTmp);
+				kc_pwarn("Failed to execute post save action", hrTmp);
 		}
 
 		result.AddMessage(msg.first);
@@ -211,7 +211,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 
 	hr = MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrMsgHelper);
 	if (hr != hrSuccess) {
-		ec_log_warn("Archive::HrArchiveMessageForDelivery(): failed creating reference to original message %x", hr);
+		kc_pwarn("Archive::HrArchiveMessageForDelivery(): failed creating reference to original message", hr);
 		goto exit;
 	}
 
@@ -247,20 +247,20 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 	}
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess) {
-		ec_log_warn("Archive::HrArchiveMessageForSending(): GetProps failed %x", hr);
+		kc_pwarn("Archive::HrArchiveMessageForSending(): GetProps failed", hr);
 		goto exit;
 	}
 	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb),
 	     &iid_of(ptrStore), 0, &~ptrStore);
 	if (hr != hrSuccess) {
-		ec_log_warn("Archive::HrArchiveMessageForSending(): OpenMsgStore failed %x", hr);
+		kc_pwarn("Archive::HrArchiveMessageForSending(): OpenMsgStore failed", hr);
 		goto exit;
 	}
 
 	hr = StoreHelper::Create(ptrStore, &ptrStoreHelper);
 	if (hr != hrSuccess) {
-		ec_log_warn("Archive::HrArchiveMessageForSending(): StoreHelper::Create failed %x", hr);
+		kc_pwarn("Archive::HrArchiveMessageForSending(): StoreHelper::Create failed", hr);
 		goto exit;
 	}
 
@@ -278,7 +278,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 
 	hr = ArchiverSession::Create(m_ptrSession, ec_log_get(), &ptrSession);
 	if (hr != hrSuccess) {
-		ec_log_warn("Archive::HrArchiveMessageForSending(): ArchiverSession::Create failed %x", hr);
+		kc_pwarn("Archive::HrArchiveMessageForSending(): ArchiverSession::Create failed", hr);
 		goto exit;
 	}
 
@@ -288,7 +288,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 	 */
 	hr = InstanceIdMapper::Create(ec_log_get(), NULL, &ptrMapper);
 	if (hr != hrSuccess) {
-		ec_log_warn("Archive::HrArchiveMessageForSending(): InstanceIdMapper::Create failed %x", hr);
+		kc_pwarn("Archive::HrArchiveMessageForSending(): InstanceIdMapper::Create failed", hr);
 		goto exit;
 	}
 
@@ -346,7 +346,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 		if (msg.second) {
 			HRESULT hrTmp = msg.second->Execute();
 			if (hrTmp != hrSuccess)
-				ec_log_warn("Failed to execute post save action. hr=0x%08x", hrTmp);
+				kc_pwarn("Failed to execute post save action", hrTmp);
 		}
 
 		result.AddMessage(msg.first);
