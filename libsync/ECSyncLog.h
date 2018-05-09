@@ -26,7 +26,7 @@ namespace KC {
 
 class ECLogger;
 
-class _kc_export ECSyncLog _kc_final {
+class ECSyncLog final {
 public:
 	static HRESULT GetLogger(ECLogger **);
 	static HRESULT SetLogger(ECLogger *annoyingswig);

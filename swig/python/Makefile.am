@@ -42,7 +42,6 @@ _MAPICore_la_LIBADD = libkcpyconv.la libkcpydirector.la \
 	${top_builddir}/libmapi.la \
 	${top_builddir}/libkcmapi.la \
 	${top_builddir}/libkcutil.la \
-	${top_builddir}/libkcsync.la \
 	$(XML2_LIBS) $(PROG_LIBS) $(PYTHON_LIBS)
 
 _inetmapi_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/inetmapi

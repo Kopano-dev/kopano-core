@@ -79,7 +79,7 @@ COND_libkcrosie_ldd = libkcrosie.ldd
 endif
 lib_LTLIBRARIES = \
 	libkcutil.la libkcmapi.la libkcssl.la libmapi.la \
-	libkcfreebusy.la libkcsync.la libkcsoap.la libkcserver.la \
+	libkcfreebusy.la libkcsoap.la libkcserver.la \
 	libkcicalmapi.la ${COND_libkcrosie_la} libkcinetmapi.la \
 	libkcarchiver.la libkcarchivercore.la
 noinst_LTLIBRARIES =
@@ -94,7 +94,7 @@ noinst_DATA = \
 	libkcarchiver.ldd libkcarchivercore.ldd libkcclient.ldd \
 	libkccontacts.ldd libkcfreebusy.ldd libkcicalmapi.ldd \
 	libkcinetmapi.ldd libkcmapi.ldd ${COND_libkcrosie_ldd} \
-	libkcserver.ldd libkcssl.ldd libkcsync.ldd libkcutil.ldd libmapi.ldd
+	libkcserver.ldd libkcssl.ldd libkcutil.ldd libmapi.ldd
 # Undefined references
 #noinst_DATA += libkcsoap.ldd
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
@@ -352,6 +352,10 @@ EXTRA_libkcarchivercore_la_DEPENDENCIES = ${default_sym}
 # libkcclient
 #
 libkcclient_la_SOURCES = \
+	libsync/ECSyncContext.cpp libsync/ECSyncContext.h \
+	libsync/ECSyncLog.cpp libsync/ECSyncLog.h \
+	libsync/ECSyncSettings.cpp libsync/ECSyncSettings.h \
+	libsync/ECSyncUtil.cpp libsync/ECSyncUtil.h \
 	provider/client/ClientUtil.cpp provider/client/ClientUtil.h \
 	provider/client/ECABContainer.cpp provider/client/ECABContainer.h \
 	provider/client/ECABLogon.cpp provider/client/ECABLogon.h \
@@ -410,7 +414,7 @@ libkcclient_la_SOURCES = \
 	provider/common/SOAPSock.cpp provider/common/SOAPSock.h \
 	provider/soap/soapKCmdProxy.h provider/soap/soapKCmdProxy.cpp
 libkcclient_la_LIBADD = \
-	libkcmapi.la libkcssl.la libkcutil.la libkcfreebusy.la libkcsync.la \
+	libkcmapi.la libkcssl.la libkcutil.la libkcfreebusy.la \
 	libmapi.la ${COND_libkcrosie_la} libkcsoap.la -lstdc++ \
 	${GSOAP_LIBS} ${ICU_LIBS} ${SSL_LIBS} ${UUID_LIBS} ${KRB5_LIBS}
 libkcclient_la_SYFLAGS = -Wl,--version-script=provider/provider.sym
@@ -644,22 +648,6 @@ libkcssl_la_LIBADD = libkcutil.la -lpthread ${SSL_LIBS}
 libkcssl_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcssl_la_DEPENDENCIES = ${default_sym}
-
-
-#
-# libkcsync
-#
-libkcsyncdir = ${includedir}/libkcsync
-libkcsync_HEADERS = \
-	libsync/ECSyncContext.h libsync/ECSyncLog.h \
-	libsync/ECSyncSettings.h libsync/ECSyncUtil.h
-libkcsync_la_SOURCES = \
-	libsync/ECSyncContext.cpp libsync/ECSyncLog.cpp \
-	libsync/ECSyncSettings.cpp libsync/ECSyncUtil.cpp
-libkcsync_la_LIBADD = libkcmapi.la libmapi.la
-libkcsync_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	${default_SYFLAGS${NO_VSYM}}
-EXTRA_libkcsync_la_DEPENDENCIES = ${default_sym}
 
 
 #
