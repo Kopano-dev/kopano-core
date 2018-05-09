@@ -25,6 +25,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECRestriction.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
 #include <kopano/charset/convert.h>
 
@@ -142,7 +143,8 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 				hr = hrSuccess;
 			} else if (hr != hrSuccess) {
 				// e.g. MAPI_E_NOT_FOUND
-				ec_log_err("Error while expanding group. Group: %ls, error: 0x%08x", lpGroupName->Value.lpszW, hr);
+				ec_log_err("Error while expanding group \"%ls\": %s (%x)",
+					lpGroupName->Value.lpszW, GetMAPIErrorMessage(hr), hr);
 				error = L"Error in group \""s + lpGroupName->Value.lpszW + L"\", unable to send e-mail";
 				return hr;
 			}

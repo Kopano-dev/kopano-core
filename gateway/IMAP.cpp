@@ -748,8 +748,8 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 	     strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(),
 	     flags, NULL, NULL);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to login from %s with invalid username \"%s\" or wrong password. Error: 0x%08X",
-					  lpChannel->peer_addr(), strUsername.c_str(), hr);
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to login from [%s] with invalid username \"%s\" or wrong password: %s (%x)",
+			lpChannel->peer_addr(), strUsername.c_str(), GetMAPIErrorMessage(hr), hr);
 		if (hr == MAPI_E_LOGON_FAILED)
 			HrResponse(RESP_TAGGED_NO, strTag, "LOGIN wrong username or password");
 		else
@@ -3574,16 +3574,12 @@ HRESULT IMAP::save_generated_properties(const std::string &text, IMessage *messa
 	lpLogger->Log(EC_LOGLEVEL_DEBUG, "Setting IMAP props");
 
 	auto hr = createIMAPBody(text, message, true);
-	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to create IMAP body %08x", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return lpLogger->pwarn("Failed to create IMAP body", hr);
 	hr = message->SaveChanges(0);
 	if (hr != hrSuccess)
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to save IMAP props %08x", hr);
-
-	return hr;
+		return lpLogger->pwarn("Failed to save IMAP props", hr);
+	return hrSuccess;
 }
 
 /** 

@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <algorithm>
+#include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
 #include <kopano/tie.hpp>
 #include <mapi.h>
@@ -465,9 +466,8 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 		std::unique_ptr<char[]> szMessage;
 		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &unique_tie(szMessage), sopt);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Error converting MAPI to MIME: 0x%08x", hr);
 			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");
-			return hr;
+			return lpLogger->perr("Error converting MAPI to MIME", hr);
 		}
 		strMessage = DotFilter(szMessage.get());
 	}
@@ -654,9 +654,8 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 		std::unique_ptr<char[]> szMessage;
 		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &unique_tie(szMessage), sopt);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Error converting MAPI to MIME: 0x%08x", hr);
 			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");
-			return hr;
+			return lpLogger->perr("Error converting MAPI to MIME", hr);
 		}
 		strMessage = szMessage.get();
 	}
@@ -714,8 +713,8 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 	     strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(),
 	     flags, NULL, NULL);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to login from %s with invalid username \"%s\" or wrong password. Error: 0x%X",
-					  lpChannel->peer_addr(), strUsername.c_str(), hr);
+		lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to login from [%s] with invalid username \"%s\" or wrong password: %s (%x)",
+			lpChannel->peer_addr(), strUsername.c_str(), GetMAPIErrorMessage(hr), hr);
 		++m_ulFailedLogins;
 		if (m_ulFailedLogins >= LOGIN_RETRIES)
 			// disconnect client

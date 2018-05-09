@@ -217,7 +217,8 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 	hr = HrDecodeSyncStateStream(m_lpStream, &ulSyncId, &ulChangeId, &m_setProcessedChanges);
 	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Unable to decode sync state stream, hr=0x%08x", hr);
+		ZLOG_DEBUG(m_lpLogger, "Unable to decode sync state stream: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -241,7 +242,8 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		// Register our sync with the server, get a sync ID
 		hr = m_lpStore->lpTransport->HrSetSyncStatus(sourcekey, ulSyncId, ulChangeId, m_ulSyncType, 0, &ulSyncId);
 		if(hr != hrSuccess) {
-			ZLOG_DEBUG(m_lpLogger, "Unable to update sync status on server, hr=0x%08x", hr);
+			ZLOG_DEBUG(m_lpLogger, "Unable to update sync status on server: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 
@@ -253,7 +255,8 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	MAPIFreeBuffer(m_lpChanges);
 	hr = m_lpStore->lpTransport->HrGetChanges(sourcekey, ulSyncId, ulChangeId, m_ulSyncType, ulFlags, m_lpRestrict, &m_ulMaxChangeId, &m_ulChanges, &~m_lpChanges);
 	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Unable to get changes from server, hr=0x%08x", hr);
+		ZLOG_DEBUG(m_lpLogger, "Unable to get changes from server: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -455,7 +458,8 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgre
 		else
 			hr = m_lpImportHierarchy->UpdateState(NULL);
 		if(hr != hrSuccess) {
-			ZLOG_DEBUG(m_lpLogger, "Importer state update failed, hr=0x%08x", hr);
+			ZLOG_DEBUG(m_lpLogger, "Importer state update failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 	}
@@ -727,7 +731,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			goto next;
 		// TODO handle SYNC_E_OBJECT_DELETED, SYNC_E_CONFLICT, SYNC_E_NO_PARENT, SYNC_E_INCEST, SYNC_E_UNSYNCHRONIZED
 		}else if(hr != hrSuccess){
-			//m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s (0x%x)", GetMAPIErrorMessage(hr), hr);
+			//m_lpLogger->perr("change error", hr);
 			ZLOG_DEBUG(m_lpLogger, "Error during message import");
 			goto exit;
 		}
@@ -868,8 +872,7 @@ next:
 		hr = SYNC_W_PROGRESS;
 exit:
 	if(hr != hrSuccess && hr != SYNC_W_PROGRESS)
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s (0x%x)",
-			GetMAPIErrorMessage(hr), hr);
+		m_lpLogger->perr("change error", hr);
 	return hr;
 }
 
@@ -1146,12 +1149,10 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 			hr = hrSuccess;
 			goto next;
 		}else if(FAILED(hr)) {
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s (0x%x)",
-				GetMAPIErrorMessage(hr), hr);
+			m_lpLogger->perr("change error", hr);
 			return hr;
 		}else if(hr != hrSuccess){
-			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "change warning: %s (0x%x)",
-				GetMAPIErrorMessage(hr), hr);
+			m_lpLogger->pwarn("change warning", hr);
 		}
 next:
 		// Mark this change as processed

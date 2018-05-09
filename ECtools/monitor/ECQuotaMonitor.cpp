@@ -92,7 +92,7 @@ void* ECQuotaMonitor::Create(void* lpVoid)
 	          lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", nullptr),
 	          lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", nullptr));
 	if (hr != hrSuccess) {
-		lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open an admin session. Error 0x%X", hr);
+		lpThreadMonitor->lpLogger->perr("Unable to open an admin session", hr);
 		return NULL;
 	}
 

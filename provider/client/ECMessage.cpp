@@ -22,6 +22,7 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECLogger.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/scope.hpp>
 #include <mapidefs.h>
 #include <mapiutil.h>
@@ -2225,7 +2226,7 @@ HRESULT ECMessage::HrLoadProps()
 		auto hrTmp = GetBodyType(&m_ulBodyType);
 		if (FAILED(hrTmp)) {
 			// e.g. this fails then RTF property is present but empty
-			ec_log_warn("GetBestBody: Unable to determine body type based on RTF data, hr=0x%08x", hrTmp);
+			kc_pwarn("GetBestBody: Unable to determine body type based on RTF data", hrTmp);
 		} else if ((m_ulBodyType == bodyTypePlain && !fBodyOK) ||
 		    (m_ulBodyType == bodyTypeHTML && !fHTMLOK)) {
 			hr = SyncRtf();
