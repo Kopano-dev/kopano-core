@@ -499,11 +499,8 @@ static HRESULT ProcessAllEntries2(IMAPISession *lpAdminSession,
 			ec_log_debug("Messages with delayed delivery: %d", later_mails);
 	});
 	auto hr = lpTable->GetRowCount(0, &ulRowCount);
-	if (hr != hrSuccess) {
-		kc_perror("Unable to get outgoing queue count", hr);
-		goto exit;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Unable to get outgoing queue count", hr);
 	if (ulRowCount) {
 		ec_log_debug("Number of messages in the queue: %d", ulRowCount);
 		sc -> countInc("Spooler", "batch_invokes");
@@ -525,13 +522,10 @@ static HRESULT ProcessAllEntries2(IMAPISession *lpAdminSession,
 
 		rowset_ptr lpsRowSet;
 		hr = lpTable->QueryRows(1, 0, &~lpsRowSet);
-		if (hr != hrSuccess) {
-			kc_perror("Unable to fetch data from table", hr);
-			goto exit;
-		}
-
+		if (hr != hrSuccess)
+			return kc_perror("Unable to fetch data from table", hr);
 		if (lpsRowSet->cRows == 0)		// All rows done
-			goto exit;
+			break;
 		if (lpsRowSet[0].lpProps[4].ulPropTag == PR_DEFERRED_SEND_TIME &&
 		    time(nullptr) < FileTimeToUnixTime(lpsRowSet[0].lpProps[4].Value.ft)) {
 			// if we ever add logging here, it should trigger just once for this mail
@@ -553,11 +547,9 @@ static HRESULT ProcessAllEntries2(IMAPISession *lpAdminSession,
 				// we can remove this message
 				ec_log_warn("Removing invalid entry from OutgoingQueue");
 				hr = lpSpooler->DeleteFromMasterOutgoingTable(lpsRowSet[0].lpProps[2].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpsRowSet[0].lpProps[2].Value.bin.lpb), lpsRowSet[0].lpProps[3].Value.ul);
-				if (hr != hrSuccess) {
-					kc_pwarn("Could not remove invalid message from queue", hr);
+				if (hr != hrSuccess)
 					// since we have an error, we will reconnect to the server to fully reload the table
-					goto exit;
-				}
+					return kc_pwarn("Could not remove invalid message from queue", hr);
 			}
 			else {
 				// this error makes the spooler disconnect from the server, and reconnect again (bQuit still false)
@@ -584,14 +576,10 @@ static HRESULT ProcessAllEntries2(IMAPISession *lpAdminSession,
 		     lpsRowSet[0].lpProps[1].Value.bin.cb, lpsRowSet[0].lpProps[1].Value.bin.lpb,
 		     lpsRowSet[0].lpProps[2].Value.bin.cb, lpsRowSet[0].lpProps[2].Value.bin.lpb,
 		     lpsRowSet[0].lpProps[3].Value.ul);
-		if (hr != hrSuccess) {
-			kc_pwarn("ProcessAllEntries(): Failed starting spooler", hr);
-			goto exit;
-		}
+		if (hr != hrSuccess)
+			return kc_pwarn("ProcessAllEntries(): Failed starting spooler", hr);
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT ProcessAllEntries(IMAPISession *ses, IECSpooler *spooler,
@@ -654,27 +642,18 @@ static HRESULT ProcessQueue2(IMAPISession *lpAdminSession,
 	
 	// Request the master outgoing table
 	auto hr = lpSpooler->GetMasterOutgoingTable(0, &~lpTable);
-	if (hr != hrSuccess) {
-		kc_perror("Master outgoing queue not available", hr);
-		goto exit;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Master outgoing queue not available", hr);
 	hr = lpTable->SetColumns(sOutgoingCols, 0);
-	if (hr != hrSuccess) {
-		kc_perror("Unable to setColumns() on OutgoingQueue", hr);
-		goto exit;
-	}
-	
+	if (hr != hrSuccess)
+		return kc_perror("Unable to setColumns() on OutgoingQueue", hr);
 	// Sort by ascending hierarchyid: first in, first out queue
 	hr = lpTable->SortTable(sSort, 0);
-	if (hr != hrSuccess) {
-		kc_perror("Unable to SortTable() on OutgoingQueue", hr);
-		goto exit;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to SortTable() on OutgoingQueue", hr);
 	hr = HrAllocAdviseSink(AdviseCallback, nullptr, &~lpAdviseSink);	
-	if (hr != hrSuccess) {
-		kc_perror("Unable to allocate memory for advise sink", hr);
-		goto exit;
-	}
+	if (hr != hrSuccess)
+		return kc_perror("Unable to allocate memory for advise sink", hr);
 
 	// notify on new mail in the outgoing table
 	hr = lpTable->Advise(fnevTableModified, lpAdviseSink, &ulConnection);
@@ -686,11 +665,8 @@ static HRESULT ProcessQueue2(IMAPISession *lpAdminSession,
 
 		// also checks not to send a message again which is already sending
 		hr = ProcessAllEntries(lpAdminSession, lpSpooler, lpTable, szSMTP, ulPort, szPath);
-		if(hr != hrSuccess) {
-			kc_pwarn("ProcessQueue: ProcessAllEntries failed", hr);
-			goto exit;
-		}
-
+		if (hr != hrSuccess)
+			return kc_pwarn("ProcessQueue: ProcessAllEntries failed", hr);
 		// Exit signal, break the operation
 		if(bQuit)
 			break;
@@ -718,9 +694,7 @@ static HRESULT ProcessQueue2(IMAPISession *lpAdminSession,
 		// remove any entries that were done during the wait
 		CleanFinishedMessages(lpAdminSession, lpSpooler);
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT ProcessQueue(const char *smtp, int port, const char *path)
