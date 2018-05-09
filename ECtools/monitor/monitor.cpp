@@ -62,7 +62,9 @@ static HRESULT running_service(void)
 		ec_log_crit("Unable to initialize MAPI");
 		return hr;
 	}
-	std::unique_ptr<ECScheduler> lpECScheduler(new ECScheduler(ec_log_get()));
+	std::unique_ptr<ECScheduler> lpECScheduler(new(std::nothrow) ECScheduler);
+	if (lpECScheduler == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	unsigned int ulInterval = atoi(m_lpThreadMonitor->lpConfig->GetSetting("quota_check_interval", nullptr, "15"));
 	if (ulInterval == 0)
 		ulInterval = 15;

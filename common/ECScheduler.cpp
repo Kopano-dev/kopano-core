@@ -17,14 +17,14 @@
 
 #include <kopano/platform.h>
 #include <utility>
+#include <kopano/ECLogger.h>
 #include <kopano/ECScheduler.h>
 #include <cerrno>
 #define SCHEDULER_POLL_FREQUENCY	5
 
 namespace KC {
 
-ECScheduler::ECScheduler(ECLogger *lpLogger) :
-	m_lpLogger(lpLogger)
+ECScheduler::ECScheduler()
 {
 	//Create Scheduler thread
 	pthread_create(&m_hMainThread, nullptr, ScheduleThread, this);
@@ -142,7 +142,7 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 				int err = 0;
 				
 				if((err = pthread_create(&hThread, NULL, sl.lpFunction, static_cast<void *>(sl.lpData))) != 0) {
-				    lpScheduler->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to spawn new thread: %s", strerror(err));
+					ec_log_err("Unable to spawn new thread: %s", strerror(err));
 					goto task_fail;
 				}
 
@@ -151,7 +151,7 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 				sl.tLastRunTime = ttime;
 
 				if((err = pthread_join(hThread, (void**)&lperThread)) != 0) {
-				    lpScheduler->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to join thread: %s", strerror(err));
+					ec_log_err("Unable to join thread: %s", strerror(err));
 					goto task_fail;
 				}
 

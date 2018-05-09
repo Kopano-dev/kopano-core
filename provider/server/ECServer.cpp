@@ -1351,7 +1351,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		g_lpSessionManager->GetSearchFolders()->RestartSearches();
 
 	// Create scheduler system
-	g_lpScheduler.reset(new(std::nothrow) ECScheduler(g_lpLogger));
+	g_lpScheduler.reset(new(std::nothrow) ECScheduler);
 	// Add a task on the scheduler
 	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 0, &SoftDeleteRemover, &g_Quit);
 	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 15, &CleanupSyncsTable);
