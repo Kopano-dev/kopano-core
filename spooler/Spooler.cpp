@@ -68,6 +68,7 @@
 #include <kopano/my_getopt.h>
 #include <kopano/ecversion.h>
 #include <kopano/Util.h>
+#include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/tie.hpp>
 #include <kopano/mapiext.h>
@@ -486,15 +487,17 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
  * @param[in]	szPath			URI to storage server
  * @return		HRESULT
  */
-static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
+static HRESULT ProcessAllEntries2(IMAPISession *lpAdminSession,
     IECSpooler *lpSpooler, IMAPITable *lpTable, const char *szSMTP, int ulPort,
-    const char *szPath)
+    const char *szPath, bool &bForceReconnect)
 {
 	unsigned int ulMaxThreads	= 0;
 	ULONG ulRowCount = 0, later_mails = 0;
 	std::wstring strUsername;
-	bool bForceReconnect = false;
-
+	auto report = make_scope_success([&]() {
+		if (ulRowCount != 0)
+			ec_log_debug("Messages with delayed delivery: %d", later_mails);
+	});
 	auto hr = lpTable->GetRowCount(0, &ulRowCount);
 	if (hr != hrSuccess) {
 		kc_perror("Unable to get outgoing queue count", hr);
@@ -588,9 +591,15 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 	}
 
 exit:
-	if (ulRowCount != 0)
-		ec_log_debug("Messages with delayed delivery: %d", later_mails);
-	return bForceReconnect ? MAPI_E_NETWORK_ERROR : hr;
+	return hr;
+}
+
+static HRESULT ProcessAllEntries(IMAPISession *ses, IECSpooler *spooler,
+    IMAPITable *table, const char *smtp, int port, const char *path)
+{
+	bool reconn = false;
+	auto ret = ProcessAllEntries2(ses, spooler, table, smtp, port, path, reconn);
+	return reconn ? MAPI_E_NETWORK_ERROR : ret;
 }
 
 /**
@@ -624,10 +633,9 @@ static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
  * @param[in]	szPath	URI of storage server to connect to, must be file:// or https:// with valid SSL certificates.
  * @return		HRESULT
  */
-static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
+static HRESULT ProcessQueue2(IMAPISession *lpAdminSession,
+    IECSpooler *lpSpooler, const char *szSMTP, int ulPort, const char *szPath)
 {
-	object_ptr<IMAPISession> lpAdminSession;
-	object_ptr<IECSpooler> lpSpooler;
 	object_ptr<IMAPITable> lpTable;
 	object_ptr<IMAPIAdviseSink> lpAdviseSink;
 	ULONG				ulConnection	= 0;
@@ -637,33 +645,15 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	static constexpr const SizedSSortOrderSet(1, sSort) =
 		{1, 0, 0, {{PR_EC_HIERARCHYID, TABLE_SORT_ASCEND}}};
 
-	auto hr = HrOpenECAdminSession(&~lpAdminSession, PROJECT_VERSION,
-	          "spooler:system", szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
-	          g_lpConfig->GetSetting("sslkey_file", "", nullptr),
-	          g_lpConfig->GetSetting("sslkey_pass", "", nullptr));
-	if (hr != hrSuccess) {
-		kc_perror("Unable to open admin session", hr);
-		goto exit;
-	}
-
-	if (disconnects == 0)
-		ec_log_debug("Connection to storage server succeeded");
-	else
-		ec_log_info("Connection to storage server succeeded after %d retries", disconnects);
-
-	disconnects = 0;			// first call succeeded, assume all is well.
-
-	hr = GetAdminSpooler(lpAdminSession, &~lpSpooler);
-	if (hr != hrSuccess) {
-		kc_perrorf("GetAdminSpooler failed", hr);
-		goto exit;
-	}
-
+	auto adv_clean = make_scope_success([&]() {
+		if (lpTable != nullptr && ulConnection != 0)
+			lpTable->Unadvise(ulConnection);
+	});
 	// Mark reload as done since we reloaded the outgoing table
 	nReload = false;
 	
 	// Request the master outgoing table
-	hr = lpSpooler->GetMasterOutgoingTable(0, &~lpTable);
+	auto hr = lpSpooler->GetMasterOutgoingTable(0, &~lpTable);
 	if (hr != hrSuccess) {
 		kc_perror("Master outgoing queue not available", hr);
 		goto exit;
@@ -730,14 +720,36 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	}
 
 exit:
-	// when we exit, we must make sure all forks started are cleaned
-	if (bQuit) {
-		ULONG ulCount = 0, ulThreads = 0;
+	return hr;
+}
 
+static HRESULT ProcessQueue(const char *smtp, int port, const char *path)
+{
+	object_ptr<IMAPISession> lpAdminSession;
+	object_ptr<IECSpooler> lpSpooler;
+
+	auto hr = HrOpenECAdminSession(&~lpAdminSession, PROJECT_VERSION,
+	          "spooler:system", path, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	          g_lpConfig->GetSetting("sslkey_file", "", nullptr),
+	          g_lpConfig->GetSetting("sslkey_pass", "", nullptr));
+	if (hr != hrSuccess)
+		return kc_perror("Unable to open admin session", hr);
+	if (disconnects == 0)
+		ec_log_debug("Connection to storage server succeeded");
+	else
+		ec_log_info("Connection to storage server succeeded after %d retries", disconnects);
+	disconnects = 0; /* first call succeeded, assume all is well. */
+	hr = GetAdminSpooler(lpAdminSession, &~lpSpooler);
+	if (hr != hrSuccess)
+		return kc_perrorf("GetAdminSpooler failed", hr);
+	hr = ProcessQueue2(lpAdminSession, lpSpooler, smtp, port, path);
+	/* When we exit, we must make sure all forks started are cleaned. */
+	if (bQuit) {
+		size_t ulCount = 0, ulThreads = 0;
 		while (ulCount < 60) {
 			if ((ulCount % 5) == 0) {
 				ulThreads = mapSendData.size();
-				ec_log_warn("Still waiting for %d thread(s) to exit.", ulThreads);
+				ec_log_warn("Still waiting for %zu thread(s) to exit.", ulThreads);
 			}
 			if (lpSpooler != nullptr)
 				CleanFinishedMessages(lpAdminSession, lpSpooler);
@@ -753,9 +765,6 @@ exit:
 	else if (nReload) {
 		ec_log_warn("Table reload requested, breaking server connection");
 	}
-
-	if (lpTable && ulConnection)
-		lpTable->Unadvise(ulConnection);
 	return hr;
 }
 

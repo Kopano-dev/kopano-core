@@ -26,7 +26,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
 #include <kopano/mapi_ptr.h>
-
+#include <kopano/scope.hpp>
 #include "helpers/StoreHelper.h"
 #include "operations/copier.h"
 #include "operations/instanceidmapper.h"
@@ -96,6 +96,11 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 		{3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_STORE_ENTRYID, IDX_PARENT_ENTRYID};
 
+	auto cleanup = make_scope_success([&]() {
+		/* On error, delete all saved archives. */
+		if (FAILED(hr))
+			result.Undo(m_ptrSession);
+	});
 	if (lpMessage == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		ec_log_warn("Archive::HrArchiveMessageForDelivery(): invalid parameter");
@@ -218,10 +223,6 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	hr = ptrMsgHelper->SetArchiveList(lstReferences, true);
 
 exit:
-	// On error delete all saved archives
-	if (FAILED(hr))
-		result.Undo(m_ptrSession);
-
 	return hr;
 }
 
@@ -241,6 +242,11 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 	static constexpr const SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
 	enum {IDX_STORE_ENTRYID};
 
+	auto cleanup = make_scope_success([&]() {
+		/* On error, delete all saved archives. */
+		if (FAILED(hr))
+			result.Undo(m_ptrSession);
+	});
 	if (lpMessage == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -356,10 +362,6 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 		std::swap(result, *lpResult);
 
 exit:
-	// On error delete all saved archives
-	if (FAILED(hr))
-		result.Undo(m_ptrSession);
-
 	return hr;
 }
 
