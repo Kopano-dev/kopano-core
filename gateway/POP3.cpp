@@ -53,7 +53,9 @@ using std::string;
  * @{
  */
 
-POP3::POP3(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig) : ClientProto(szServerPath, lpChannel, lpLogger, lpConfig) {
+POP3::POP3(const char *szServerPath, ECChannel *lpChannel, ECConfig *lpConfig) :
+	ClientProto(szServerPath, lpChannel, lpConfig)
+{
 	imopt_default_sending_options(&sopt);
 	sopt.no_recipients_workaround = true;	// do not stop processing mail on empty recipient table
 	sopt.add_received_date = true;			// add Received header (outlook uses this)
@@ -101,13 +103,11 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 
 	vWords = tokenize(strInput, ' ');
 	if (vWords.empty()) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Empty line received");
+		ec_log_warn("Empty line received");
 		return MAPI_E_CALL_FAILED;
 	}
 
-	if (lpLogger->Log(EC_LOGLEVEL_DEBUG))
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "Command received: %s", vWords[0].c_str());
-
+	ec_log_debug("Command received: %s", vWords[0].c_str());
 	strCommand = strToUpper(vWords[0]);
 	if (strCommand.compare("CAPA") == 0) {
 		if (vWords.size() != 1)
@@ -141,7 +141,7 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		return MAPI_E_END_OF_SESSION;
     } else if (!IsAuthorized()) {
 		HrResponse(POP3_RESP_ERR, "Invalid command");
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Not authorized for command: %s", vWords[0].c_str());
+		ec_log_err("Not authorized for command \"%s\"", vWords[0].c_str());
 		return MAPI_E_CALL_FAILED;
 	} else if (strCommand.compare("STAT") == 0) {
 		if (vWords.size() != 1)
@@ -189,7 +189,7 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		return HrCmdUidl();
 	}
 	HrResponse(POP3_RESP_ERR, "Function not (yet) implemented");
-	lpLogger->Log(EC_LOGLEVEL_ERROR, "non-existing function called: %s", vWords[0].c_str());
+	ec_log_err("non-existing function \"%s\" called", vWords[0].c_str());
 	return MAPI_E_CALL_FAILED;
 }
 
@@ -213,8 +213,7 @@ HRESULT POP3::HrDone(bool bSendResponse)
  * @return MAPI Error code
  */
 HRESULT POP3::HrResponse(const string &strResult, const string &strResponse) {
-    if(lpLogger->Log(EC_LOGLEVEL_DEBUG))
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "%s%s", strResult.c_str(), strResponse.c_str());
+	ec_log_debug("%s%s", strResult.c_str(), strResponse.c_str());
 	return lpChannel->HrWriteLine(strResult + strResponse);
 }
 
@@ -279,12 +278,12 @@ HRESULT POP3::HrCmdStarttls() {
 	hr = lpChannel->HrEnableTLS();
 	if (hr != hrSuccess) {
 		HrResponse(POP3_RESP_ERR, "Error switching to secure SSL/TLS connection");
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Error switching to SSL in STLS");
+		ec_log_err("Error switching to SSL in STLS");
 		return hr;
 	}
 
 	if (lpChannel->UsingSsl())
-		lpLogger->Log(EC_LOGLEVEL_INFO, "Using SSL now");
+		ec_log_info("Using SSL now");
 	return hrSuccess;
 }
 
@@ -303,13 +302,13 @@ HRESULT POP3::HrCmdUser(const string &strUser) {
 
 	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
 		hr = HrResponse(POP3_RESP_AUTH_ERROR, "Plaintext authentication disallowed on non-secure (SSL/TLS) connections");
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s with username \"%s\" (tried to use disallowed plaintext auth)",
+		ec_log_err("Aborted login from [%s] with username \"%s\" (tried to use disallowed plaintext auth)",
 					  lpChannel->peer_addr(), strUser.c_str());
 		return hr;
 	} else if (lpStore != NULL) {
 		return HrResponse(POP3_RESP_AUTH_ERROR, "Can't login twice");
 	} else if (strUser.length() > POP3_MAX_RESPONSE_LENGTH) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Username too long: %d > %d", (int)strUser.length(), POP3_MAX_RESPONSE_LENGTH);
+		ec_log_err("Username too long: %d > %d", (int)strUser.length(), POP3_MAX_RESPONSE_LENGTH);
 		return HrResponse(POP3_RESP_PERMFAIL, "Username too long");
 	}
 	szUser = strUser;
@@ -332,16 +331,16 @@ HRESULT POP3::HrCmdPass(const string &strPass) {
 	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
 		hr = HrResponse(POP3_RESP_AUTH_ERROR, "Plaintext authentication disallowed on non-secure (SSL/TLS) connections");
 		if(szUser.empty())
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s without username (tried to use disallowed "
+			ec_log_err("Aborted login from [%s] without username (tried to use disallowed "
 							 "plaintext auth)", lpChannel->peer_addr());
 		else
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s with username \"%s\" (tried to use disallowed "
+			ec_log_err("Aborted login from [%s] with username \"%s\" (tried to use disallowed "
 							 "plaintext auth)", lpChannel->peer_addr(), szUser.c_str());
 		return hr;
 	} else if (lpStore != NULL) {
 		return HrResponse(POP3_RESP_AUTH_ERROR, "Can't login twice");
 	} else if (strPass.length() > POP3_MAX_RESPONSE_LENGTH) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Password too long: %d > %d", (int)strPass.length(), POP3_MAX_RESPONSE_LENGTH);
+		ec_log_err("Password too long: %d > %d", (int)strPass.length(), POP3_MAX_RESPONSE_LENGTH);
 		return HrResponse(POP3_RESP_PERMFAIL, "Password too long");
 	} else if (szUser.empty()) {
 		return HrResponse(POP3_RESP_ERR, "Give username first");
@@ -467,7 +466,7 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &unique_tie(szMessage), sopt);
 		if (hr != hrSuccess) {
 			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");
-			return lpLogger->perr("Error converting MAPI to MIME", hr);
+			return kc_perror("Error converting MAPI to MIME", hr);
 		}
 		strMessage = DotFilter(szMessage.get());
 	}
@@ -655,7 +654,7 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &unique_tie(szMessage), sopt);
 		if (hr != hrSuccess) {
 			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");
-			return lpLogger->perr("Error converting MAPI to MIME", hr);
+			return kc_perror("Error converting MAPI to MIME", hr);
 		}
 		strMessage = szMessage.get();
 	}
@@ -696,12 +695,12 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 
 	hr = TryConvert(strUsername, rawsize(strUsername), "windows-1252", strwUsername);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Illegal byte sequence in username");
+		ec_log_err("Illegal byte sequence in username");
 		goto exit;
 	}
 	hr = TryConvert(strPassword, rawsize(strPassword), "windows-1252", strwPassword);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Illegal byte sequence in password");
+		ec_log_err("Illegal byte sequence in password");
 		goto exit;
 	}
 
@@ -713,7 +712,7 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 	     strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(),
 	     flags, NULL, NULL);
 	if (hr != hrSuccess) {
-		lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to login from [%s] with invalid username \"%s\" or wrong password: %s (%x)",
+		ec_log_err("Failed to login from [%s] with invalid username \"%s\" or wrong password: %s (%x)",
 			lpChannel->peer_addr(), strUsername.c_str(), GetMAPIErrorMessage(hr), hr);
 		++m_ulFailedLogins;
 		if (m_ulFailedLogins >= LOGIN_RETRIES)
@@ -724,25 +723,25 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 
 	hr = HrOpenDefaultStore(lpSession, &~lpStore);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open default store");
+		ec_log_err("Failed to open default store");
 		goto exit;
 	}
 
 	hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open addressbook");
+		ec_log_err("Failed to open addressbook");
 		goto exit;
 	}
 
 	// check if pop3 access is disabled
 	if (checkFeature("pop3", lpAddrBook, lpStore, PR_EC_DISABLED_FEATURES_A)) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "POP3 not enabled for user '%s'", strUsername.c_str());
+		ec_log_err("POP3 not enabled for user \"%s\"", strUsername.c_str());
 		hr = MAPI_E_LOGON_FAILED;
 		goto exit;
 	}
 	hr = lpStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryID, &~lpEntryID, nullptr);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to find receive folder of store");
+		ec_log_err("Failed to find receive folder of store");
 		goto exit;
 	}
 
@@ -751,12 +750,10 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 		hr = MAPI_E_NOT_FOUND;
 
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open receive folder");
+		ec_log_err("Failed to open receive folder");
 		goto exit;
 	}
-
-	lpLogger->Log(EC_LOGLEVEL_NOTICE, "POP3 Login from %s for user %s", lpChannel->peer_addr(), strUsername.c_str());
-
+	ec_log_notice("POP3 login from [%s] for user \"%s\"", lpChannel->peer_addr(), strUsername.c_str());
 exit:
 	if (hr != hrSuccess) {
 		lpInbox.reset();
@@ -798,11 +795,11 @@ HRESULT POP3::HrMakeMailList() {
 	lstMails.clear();
 	for (ULONG i = 0; i < lpRows->cRows; ++i) {
 		if (PROP_TYPE(lpRows[i].lpProps[EID].ulPropTag) == PT_ERROR) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Missing EntryID in message table for message %d", i);
+			ec_log_err("Missing EntryID in message table for message %d", i);
 			continue;
 		}
 		if (PROP_TYPE(lpRows[i].lpProps[SIZE].ulPropTag) == PT_ERROR) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Missing size in message table for message %d", i);
+			ec_log_err("Missing size in message table for message %d", i);
 			continue;
 		}
 
