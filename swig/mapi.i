@@ -338,5 +338,4 @@ public:
 	}
 };
 
-%include "kopanosync.i"
 #endif
