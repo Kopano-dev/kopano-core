@@ -262,9 +262,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 	m_ulSyncId = ulSyncId;
 	m_ulChangeId = ulChangeId;
-
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "folder: %ls changes: %u syncid: %u changeid: %u", m_strDisplay.c_str(), m_ulChanges, m_ulSyncId, m_ulChangeId);
-
+	m_lpLogger->logf(EC_LOGLEVEL_INFO, "folder=\"%ls\" changes=%u syncid=%u changeid=%u", m_strDisplay.c_str(), m_ulChanges, m_ulSyncId, m_ulChangeId);
 	/**
 	 * Filter the changes.
 	 * How this works:
@@ -489,8 +487,7 @@ progress:
 						snprintf(szDuration, sizeof(szDuration), "%u:%02u.%03u min.", (unsigned)(dblDuration / 60), (unsigned)dblDuration % 60, (unsigned)(dblDuration * 1000 + .5) % 1000);
 					else
 						snprintf(szDuration, sizeof(szDuration), "%u.%03u s.", (unsigned)dblDuration % 60, (unsigned)(dblDuration * 1000 + .5) % 1000);
-
-					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "folder changes synchronized in %s", szDuration);
+					m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "folder changes synchronized in %s", szDuration);
 				} else
 					m_lpLogger->Log(EC_LOGLEVEL_INFO, "folder changes synchronized");
 			}
@@ -671,8 +668,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				hr = hrSuccess;
 				goto next;
 			}
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
-
+			m_lpLogger->logf(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
 			if(hr != hrSuccess) {
 				ZLOG_DEBUG(m_lpLogger, "Error while getting entryid from sourcekey %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
 				goto exit;
@@ -1027,7 +1023,7 @@ HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 
 exit:
 	if (hr != hrSuccess)
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to sync message flags, 0x%08X", hr);
+		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Failed to sync message flags, 0x%08X", hr);
 	return hr;
 }
 
@@ -1104,7 +1100,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 				hr = hrSuccess;
 				goto next;
 			}
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
+			m_lpLogger->logf(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
 			hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
 			if(hr != hrSuccess){
 				hr = hrSuccess;
@@ -1336,7 +1332,7 @@ void ECExchangeExportChanges::LogMessageProps(int loglevel, ULONG cValues, LPSPr
 	auto lpPropHierarchyId = PCpropFindProp(lpPropArray, cValues, PR_EC_HIERARCHYID);
 	auto lpPropParentId = PCpropFindProp(lpPropArray, cValues, PR_EC_PARENT_HIERARCHYID);
 
-	m_lpLogger->Log(loglevel, "ExportFast:   Message info: id=%u, parentid=%u, msgflags=%x, entryid=%s, sourcekey=%s",
+	m_lpLogger->logf(loglevel, "ExportFast:   Message info: id=%u, parentid=%u, msgflags=%x, entryid=%s, sourcekey=%s",
 		lpPropHierarchyId != NULL ? lpPropHierarchyId->Value.ul : 0,
 		lpPropParentId != NULL ? lpPropParentId->Value.ul : 0,
 		lpPropFlags != NULL ? lpPropFlags->Value.ul : 0,

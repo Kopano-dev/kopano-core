@@ -244,7 +244,7 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
 		hr = hrSuccess;
 
 	else if (hr == MAPI_E_INVALID_TYPE) {
-		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Ignoring invalid entry, type=%04x, sourcekey=%s",
+		m_lpLogger->logf(EC_LOGLEVEL_WARNING, "Ignoring invalid entry, type=%04x, sourcekey=%s",
 			m_lpChanges[m_ulThisChange].ulChangeType,
 			bin2hex(m_lpChanges[m_ulThisChange].sSourceKey).c_str());
 		hr = hrSuccess;

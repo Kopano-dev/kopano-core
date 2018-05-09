@@ -68,12 +68,12 @@ static const unsigned int EC_LOGLEVEL_EXTENDED_MASK = 0xFFFF0000;
 #define ZLOG_DEBUG(_plog, ...) \
 	do { \
 		if ((_plog)->Log(EC_LOGLEVEL_DEBUG)) \
-			(_plog)->Log(EC_LOGLEVEL_DEBUG, __VA_ARGS__); \
+			(_plog)->logf(EC_LOGLEVEL_DEBUG, __VA_ARGS__); \
 	} while (false)
 #define ZLOG_AUDIT(_plog, ...) \
 	do { \
 		if ((_plog) != NULL) \
-			(_plog)->Log(EC_LOGLEVEL_FATAL, __VA_ARGS__); \
+			(_plog)->logf(EC_LOGLEVEL_FATAL, __VA_ARGS__); \
 	} while (false)
 
 #define TSTRING_PRINTF "%ls"
@@ -184,7 +184,7 @@ class _kc_export ECLogger {
 	 * @param	format		formatted string for the parameter list
 	 */
 	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) KC_LIKE_PRINTF(3, 4) = 0;
-	template<typename... T> inline void Log(unsigned int level, const char *fmt, T &&...args) { return logf(level, fmt, args...); }
+	inline void Log(unsigned int level, const char *s) { return log(level, s); }
 	HRESULT perr(const char *text, HRESULT);
 	HRESULT pwarn(const char *text, HRESULT);
 

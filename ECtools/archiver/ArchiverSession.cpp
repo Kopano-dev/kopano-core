@@ -155,11 +155,11 @@ HRESULT ArchiverSession::Init(const char *lpszServerPath, const char *lpszSslPat
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Unable to open Admin ArchiverSession.");
 		switch (hr) {
 		case MAPI_E_NETWORK_ERROR:
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "The server is not running, or not accessible through %s.", lpszServerPath);
+			m_lpLogger->logf(EC_LOGLEVEL_INFO, "The server is not running, or not accessible through \"%s\".", lpszServerPath);
 			break;
 		case MAPI_E_LOGON_FAILED:
 		case MAPI_E_NO_ACCESS:
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Access was denied on %s.", lpszServerPath);
+			m_lpLogger->logf(EC_LOGLEVEL_INFO, "Access was denied on \"%s\".", lpszServerPath);
 			break;
 		default:
 			m_lpLogger->perr("Other cause", hr);

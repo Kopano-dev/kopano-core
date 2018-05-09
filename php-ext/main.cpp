@@ -266,7 +266,7 @@ pmeasure::~pmeasure(void)
 	FILE *fh = fopen(perf_measure_file, "a+");
 	if (fh == NULL) {
 		if (lpLogger != NULL)
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "~pmeasure: cannot open \"%s\": %s", perf_measure_file, strerror(errno));
+			lpLogger->logf(EC_LOGLEVEL_ERROR, "~pmeasure: cannot open \"%s\": %s", perf_measure_file, strerror(errno));
 		return;
 	}
 	using namespace std::chrono;
@@ -557,7 +557,7 @@ static int LoadSettingsFile(void)
 	lpLogger->Log(EC_LOGLEVEL_INFO, "php5-mapi " PROJECT_VERSION " instantiated");
 	ec_log_set(lpLogger);
 	if (mapi_debug)
-		lpLogger->Log(EC_LOGLEVEL_INFO, "PHP-MAPI trace level set to %d", mapi_debug);
+		lpLogger->logf(EC_LOGLEVEL_INFO, "PHP-MAPI trace level set to %d", mapi_debug);
 	return SUCCESS;
 }
 
@@ -619,7 +619,7 @@ PHP_MINIT_FUNCTION(mapi) {
 #define THROW_ON_ERROR() \
 	if (FAILED(MAPI_G(hr))) { \
 		if (lpLogger) \
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr), __FUNCTION__, __LINE__); \
+			lpLogger->logf(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr), __FUNCTION__, __LINE__); \
 			\
 		if (MAPI_G(exceptions_enabled)) \
 			zend_throw_exception(MAPI_G(exception_ce), "MAPI error ", MAPI_G(hr)  TSRMLS_CC); \

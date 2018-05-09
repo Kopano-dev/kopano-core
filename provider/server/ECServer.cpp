@@ -1088,7 +1088,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 	g_lpAudit = CreateLogger(g_lpConfig, szName, "KopanoServer", true);
 	if (g_lpAudit)
-		g_lpAudit->Log(EC_LOGLEVEL_NOTICE, "server startup uid=%d", getuid());
+		g_lpAudit->logf(EC_LOGLEVEL_NOTICE, "server startup uid=%d", getuid());
 	else
 		ec_log_info("Audit logging not enabled.");
 

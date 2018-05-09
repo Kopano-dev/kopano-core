@@ -460,15 +460,15 @@ int main(int argc, char *argv[])
     }
 
 	ec_log_info("Startup command: \"%s\"", kc_join(argc, argv, "\" \"").c_str());
-	ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Version %s", PROJECT_VERSION);
+	ptrArchiver->GetLogger(Archiver::LogOnly)->log(EC_LOGLEVEL_INFO, "Version " PROJECT_VERSION);
 	auto lSettings = ptrArchiver->GetConfig()->GetAllSettings();
     ECLogger* filelogger = ptrArchiver->GetLogger(Archiver::LogOnly);
     ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Config settings:");
 	for (const auto &s : lSettings)
 		if (strcmp(s.szName, "sslkey_pass") == 0 || strcmp(s.szName, "mysql_password") == 0)
-			filelogger->Log(EC_LOGLEVEL_FATAL, "*  %s = '********'", s.szName);
+			filelogger->logf(EC_LOGLEVEL_FATAL, "*  %s = '********'", s.szName);
 		else
-			filelogger->Log(EC_LOGLEVEL_FATAL, "*  %s = '%s'", s.szName, s.szValue);
+			filelogger->logf(EC_LOGLEVEL_FATAL, "*  %s = '%s'", s.szName, s.szValue);
 
     if (mode == MODE_ARCHIVE || mode == MODE_CLEANUP)
         if (unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), false) != 0)
@@ -482,9 +482,9 @@ int main(int argc, char *argv[])
         if (r != Success)
             return 1;
 
-        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Attach archive %s in server %s using folder %s", lpszArchive, lpszArchiveServer, lpszFolder);
+		filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Attach archive \"%s\" in server \"%s\" using folder \"%s\"", lpszArchive, lpszArchiveServer, lpszFolder);
         r = ptr->AttachTo(lpszArchiveServer, toLPTST(lpszArchive, converter), toLPTST(lpszFolder, converter), ulAttachFlags);
-        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+		filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
     }
     break;
 
@@ -496,11 +496,11 @@ int main(int argc, char *argv[])
             return 1;
 
         if (mode == MODE_DETACH_IDX) {
-            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Detach archive %u", ulArchive);
+			filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Detach archive %u", ulArchive);
             r = ptr->DetachFrom(ulArchive);
-            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+			filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
         } else {
-            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Detach archive %s on server %s, folder %s", lpszArchive, lpszArchiveServer, lpszFolder);
+			filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Detach archive \"%s\" on server \"%s\", folder \"%s\"", lpszArchive, lpszArchiveServer, lpszFolder);
             r = ptr->DetachFrom(lpszArchiveServer, toLPTST(lpszArchive, converter), toLPTST(lpszFolder, converter));
         }
     }
@@ -512,14 +512,13 @@ int main(int argc, char *argv[])
             r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
             if (r != Success)
                 return 1;
-
-            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Autoattach for user %ls, flags: %u", strUser.c_str(), ulAttachFlags);
+			filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Autoattach for user \"%ls\", flags: %u", strUser.c_str(), ulAttachFlags);
             r = ptr->AutoAttach(ulAttachFlags);
         } else {
-            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Autoattach flags: %u", ulAttachFlags);
+			filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Autoattach flags: %u", ulAttachFlags);
             r = ptrArchiver->AutoAttach(ulAttachFlags);
         }
-        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+		filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
     }
     break;
 
@@ -531,7 +530,7 @@ int main(int argc, char *argv[])
 
         filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: List archives");
         r = ptr->ListArchives(cout);
-        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+		filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
     }
     break;
 
@@ -543,7 +542,7 @@ int main(int argc, char *argv[])
 
         filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: List archive users");
         r = ptr->ListAttachedUsers(cout);
-        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+		filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
     }
     break;
 
@@ -554,13 +553,13 @@ int main(int argc, char *argv[])
             return 1;
 
         if (strUser.size()) {
-            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: archive user %ls (autoattach: %s, flags %u)", strUser.c_str(), yesno(bAutoAttach), ulAttachFlags);
+			filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: archive user \"%ls\" (autoattach: %s, flags %u)", strUser.c_str(), yesno(bAutoAttach), ulAttachFlags);
             r = ptr->Archive(strUser, bAutoAttach, ulAttachFlags);
         } else {
-            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: archive all users (local only: %s autoattach: %s, flags %u)", yesno(bLocalOnly), yesno(bAutoAttach), ulAttachFlags);
+			filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: archive all users (local only: %s autoattach: %s, flags %u)", yesno(bLocalOnly), yesno(bAutoAttach), ulAttachFlags);
             r = ptr->ArchiveAll(bLocalOnly, bAutoAttach, ulAttachFlags);
         }
-        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+		filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
     }
     break;
 
@@ -571,13 +570,13 @@ int main(int argc, char *argv[])
             return 1;
 
         if (strUser.size()) {
-            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Cleanup user %ls ", strUser.c_str());
+			filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Cleanup user \"%ls\"", strUser.c_str());
             r = ptr->Cleanup(strUser);
         } else {
-            filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Cleanup all (local only): %s", yesno(bLocalOnly));
+			filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver action: Cleanup all (local only): %s", yesno(bLocalOnly));
             r = ptr->CleanupAll(bLocalOnly);
         }
-        filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
+		filelogger->logf(EC_LOGLEVEL_DEBUG, "Archiver result %d (%s)", r, ArchiveResultString(r));
     }
     break;
 

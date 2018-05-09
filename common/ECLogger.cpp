@@ -163,13 +163,13 @@ int ECLogger::snprintf(char *str, size_t size, const char *format, ...) {
 
 HRESULT ECLogger::perr(const char *text, HRESULT code)
 {
-	Log(EC_LOGLEVEL_ERROR, "%s: %s (%x)", text, GetMAPIErrorMessage(code), code);
+	logf(EC_LOGLEVEL_ERROR, "%s: %s (%x)", text, GetMAPIErrorMessage(code), code);
 	return code;
 }
 
 HRESULT ECLogger::pwarn(const char *text, HRESULT code)
 {
-	Log(EC_LOGLEVEL_WARNING, "%s: %s (%x)", text, GetMAPIErrorMessage(code), code);
+	logf(EC_LOGLEVEL_WARNING, "%s: %s (%x)", text, GetMAPIErrorMessage(code), code);
 	return code;
 }
 
@@ -677,7 +677,7 @@ namespace PrivatePipe {
 		}
 
 		m_lpFileLogger->Reset();
-		m_lpFileLogger->Log(EC_LOGLEVEL_INFO, "[%5d] Log process received sighup", getpid());
+		m_lpFileLogger->logf(EC_LOGLEVEL_INFO, "[%5d] Log process received sighup", getpid());
 	}
 	static int PipePassLoop(int readfd, ECLogger_File *lpFileLogger,
 	    ECConfig *lpConfig)
@@ -758,7 +758,7 @@ namespace PrivatePipe {
 		}
 		// we need to stop fetching signals
 		kill(getpid(), SIGPIPE);
-		m_lpFileLogger->Log(EC_LOGLEVEL_INFO, "[%5d] Log process is done", getpid());
+		m_lpFileLogger->logf(EC_LOGLEVEL_INFO, "[%5d] Log process is done", getpid());
 		m_lpFileLogger->Release();
 		return ret;
 	}
@@ -815,12 +815,12 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 		 * if not, this means that some other class is carrying a
 		 * pointer. This is not critical but is ill-favored.
 		 */
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "StartLoggerProcess called with large refcount %u", refs + 1);
+		lpLogger->logf(EC_LOGLEVEL_WARNING, "StartLoggerProcess called with large refcount %u", refs + 1);
 
 	close(pipefds[0]);
 	lpPipeLogger = new ECLogger_Pipe(pipefds[1], child, atoi(lpConfig->GetSetting("log_level"))); // let destructor wait on child
 	lpPipeLogger->SetLogprefix(LP_PID);
-	lpPipeLogger->Log(EC_LOGLEVEL_INFO, "Logger process started on pid %d", child);
+	lpPipeLogger->logf(EC_LOGLEVEL_INFO, "Logger process started on pid %d", child);
 
 	return lpPipeLogger;
 }
@@ -1004,38 +1004,37 @@ void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,
 
 	lpLogger->Log(EC_LOGLEVEL_FATAL, "----------------------------------------------------------------------");
 	lpLogger->Log(EC_LOGLEVEL_FATAL, "Fatal error detected. Please report all following information.");
-	lpLogger->Log(EC_LOGLEVEL_FATAL, "Application %s version: %s", app_name, version_string);
-
+	lpLogger->logf(EC_LOGLEVEL_FATAL, "Application %s version: %s", app_name, version_string);
 	struct utsname buf;
 	if (uname(&buf) == -1)
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "uname() failed: %s", strerror(errno));
+		lpLogger->logf(EC_LOGLEVEL_FATAL, "uname() failed: %s", strerror(errno));
 	else
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "OS: %s, release: %s, version: %s, hardware: %s", buf.sysname, buf.release, buf.version, buf.machine);
+		lpLogger->logf(EC_LOGLEVEL_FATAL, "OS: %s, release: %s, version: %s, hardware: %s", buf.sysname, buf.release, buf.version, buf.machine);
 
 #ifdef HAVE_PTHREAD_GETNAME_NP
         char name[32] = { 0 };
         int rc = pthread_getname_np(pthread_self(), name, sizeof name);
 	if (rc)
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "pthread_getname_np failed: %s", strerror(rc));
+		lpLogger->logf(EC_LOGLEVEL_FATAL, "pthread_getname_np failed: %s", strerror(rc));
 	else
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Thread name: %s", name);
+		lpLogger->logf(EC_LOGLEVEL_FATAL, "Thread name: %s", name);
 #endif
 
 	struct rusage rusage;
 	if (getrusage(RUSAGE_SELF, &rusage) == -1)
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "getrusage() failed: %s", strerror(errno));
+		lpLogger->logf(EC_LOGLEVEL_FATAL, "getrusage() failed: %s", strerror(errno));
 	else
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Peak RSS: %ld", rusage.ru_maxrss);
+		lpLogger->logf(EC_LOGLEVEL_FATAL, "Peak RSS: %ld", rusage.ru_maxrss);
         
 	switch (signr) {
 	case SIGSEGV:
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Pid %d caught SIGSEGV (%d), traceback:", getpid(), signr);
+		lpLogger->logf(EC_LOGLEVEL_FATAL, "Pid %d caught SIGSEGV (%d), traceback:", getpid(), signr);
 		break;
 	case SIGBUS:
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Pid %d caught SIGBUS (%d), possible invalid mapped memory access, traceback:", getpid(), signr);
+		lpLogger->logf(EC_LOGLEVEL_FATAL, "Pid %d caught SIGBUS (%d), possible invalid mapped memory access, traceback:", getpid(), signr);
 		break;
 	case SIGABRT:
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Pid %d caught SIGABRT (%d), out of memory or unhandled exception, traceback:", getpid(), signr);
+		lpLogger->logf(EC_LOGLEVEL_FATAL, "Pid %d caught SIGABRT (%d), out of memory or unhandled exception, traceback:", getpid(), signr);
 		break;
 	}
 
