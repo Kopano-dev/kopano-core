@@ -230,6 +230,7 @@ HRESULT WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG ulFlags,
         	lpUncompressed.reset(new(std::nothrow) char[ulUncompressedLen]);
 		if (lpUncompressed == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
+		memset(lpUncompressed.get(), 0, ulUncompressedLen);
         	if (rtf_decompress(lpUncompressed.get(), lpCompressed.get(), sStatStg.cbSize.LowPart) != 0)
 			return MAPI_E_INVALID_PARAMETER;
         	// We now have the uncompressed data, create a stream and write the uncompressed data into it
