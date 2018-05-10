@@ -528,9 +528,11 @@ bool ECConfigImpl::AddSetting(const configsetting_t &lpsConfig, unsigned int ulF
 		}
 
 		if (!(ulFlags & LOADSETTING_INITIALIZING) &&
+		    (iterSettings->first.ulFlags & CONFIGSETTING_OBSOLETE))
+			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" is recognized but obsolete, and will be removed in a future release.");
+		if (!(ulFlags & LOADSETTING_INITIALIZING) &&
 		    (iterSettings->first.ulFlags & CONFIGSETTING_UNUSED))
-			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" is not used anymore.");
-
+			warnings.emplace_back("Option \"" + std::string(lpsConfig.szName) + "\" has no effect anymore, and will be removed in a future release.");
 		s.ulFlags = iterSettings->first.ulFlags;
 
 		// If this is a commandline parameter, mark the setting as non-reloadable since you do not want to
