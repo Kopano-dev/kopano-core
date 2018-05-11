@@ -311,6 +311,9 @@ int ECLogger_File::GetFileDescriptor() {
 char *ECLogger_File::DoPrefix(char *buffer, size_t z)
 {
 	char *orig = buffer;
+	if (z > 0)
+		/* clear it in case no prefix is wanted */
+		*buffer = '\0';
 	if (timestamp) {
 		auto adv = MakeTimestamp(buffer, z);
 		buffer += adv;
