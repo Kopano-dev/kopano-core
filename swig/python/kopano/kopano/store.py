@@ -416,22 +416,22 @@ class Store(Properties):
             for folder in self.subtree.folders(recurse=recurse, **kwargs):
                 yield folder
 
-    def mail_folders(self, **kwargs): # TODO def type, store.folders(type='contacts') etc..?
+    def mail_folders(self, **kwargs): # TODO replace by store.folders(type='contacts') etc
         # TODO restriction
         for folder in self.folders():
-            if folder.container_class in (None, 'IPF.Note'):
+            if folder.type_ == 'mail':
                 yield folder
 
     def contact_folders(self, **kwargs):
         # TODO restriction
         for folder in self.folders():
-            if folder.container_class == 'IPF.Contact':
+            if folder.type_ == 'contacts':
                 yield folder
 
     def calendars(self, **kwargs):
         # TODO restriction
         for folder in self.folders():
-            if folder.container_class == 'IPF.Appointment':
+            if folder.type_ == 'calendar':
                 yield folder
 
     def create_searchfolder(self, text=None): # XXX store.findroot.create_folder()?
@@ -743,14 +743,14 @@ class Store(Properties):
             return self.guid == s.guid
         return False
 
-    def subscribe(self, sink):
-        _notification.subscribe(self, None, sink)
+    def subscribe(self, sink, **kwargs):
+        _notification.subscribe(self, None, sink, **kwargs)
 
     def unsubscribe(self, sink):
         _notification.unsubscribe(self, sink)
 
-    def notifications(self, time=24 * 3600):
-        for n in _notification._notifications(self, None, time):
+    def notifications(self, time=24 * 3600, **kwargs):
+        for n in _notification._notifications(self, None, time, **kwargs):
             yield n
 
     def __ne__(self, s):

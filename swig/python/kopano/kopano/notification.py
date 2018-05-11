@@ -4,6 +4,7 @@ Part of the high-level python bindings for Kopano
 Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import copy
 import sys
 try:
     from queue import Queue
@@ -11,8 +12,8 @@ except ImportError:
     from Queue import Queue
 
 from MAPI import (
-    MAPI_MESSAGE, MAPIAdviseSink, fnevObjectModified, fnevObjectCreated,
-    fnevObjectMoved, fnevObjectCopied, fnevObjectDeleted,
+    MAPI_MESSAGE, MAPI_FOLDER, MAPIAdviseSink, fnevObjectModified,
+    fnevObjectCreated, fnevObjectMoved, fnevObjectCopied, fnevObjectDeleted,
 )
 
 from MAPI.Struct import (
@@ -33,81 +34,136 @@ else:
     import folder as _folder
     import item as _item
 
-class Notification:
-    def __init__(self, store, mapiobj):
-        self.store = store
+fnevObjTypeMessage = 0x00010000 # TODO to defs?
+fnevObjTypeFolder = 0x00020000
+
+OBJECT_TYPES = ['folder', 'item']
+FOLDER_TYPES = ['mail', 'contacts', 'calendar']
+EVENT_TYPES = ['created', 'updated', 'deleted']
+
+class Notification(object):
+    def __init__(self, mapiobj):
         self.mapiobj = mapiobj
 
-    @property
-    def object(self):
-        if self.mapiobj.ulObjType == MAPI_MESSAGE:
-            item = _item.Item()
-            item.store = self.store
-            item.server = self.store.server
-            item._entryid = self.mapiobj.lpEntryID
-            return item
+def _split(mapiobj, store):
+    notif = Notification(mapiobj)
 
-    @property
-    def old_object(self):
-        if self.mapiobj.ulObjType == MAPI_MESSAGE and self.mapiobj.lpOldID:
-            item = _item.Item()
-            item.store = self.store
-            item.server = self.store.server
-            item._entryid = self.mapiobj.lpOldID
-            return item
+    notif.mapiobj = mapiobj
+    notif.object = None
+    notif.object_type = None
+    notif.event_type = None
 
-    @property
-    def parent(self):
-        if self.mapiobj.ulObjType == MAPI_MESSAGE:
-            return _folder.Folder(
-                store=self.store, entryid=_benc(self.mapiobj.lpParentID)
-            )
+    # object
+    if mapiobj.ulObjType == MAPI_MESSAGE:
+        item = _item.Item()
+        item.store = store
+        item.server = store.server
+        item._entryid = mapiobj.lpEntryID
 
-    @property
-    def old_parent(self):
-        if self.mapiobj.ulObjType == MAPI_MESSAGE and self.mapiobj.lpOldParentID:
-            return _folder.Folder(
-                store=self.store, entryid=_benc(self.mapiobj.lpOldParentID)
-            )
+        notif.object_type = 'item'
+        notif.object = item
 
-    @property
-    def event_type(self):
-        return {
-            fnevObjectCreated: 'create',
-            fnevObjectCopied: 'copy',
-            fnevObjectMoved: 'move',
-            fnevObjectModified: 'update',
-            fnevObjectDeleted: 'delete',
-        }[self.mapiobj.ulEventType]
+    elif mapiobj.ulObjType == MAPI_FOLDER:
+        folder = _folder.Folder(store=store, entryid=_benc(mapiobj.lpEntryID), _check_mapiobj=False)
+
+        notif.object = folder
+        notif.object_type = 'folder'
+
+    # event
+    if mapiobj.ulEventType in (fnevObjectCreated, fnevObjectCopied):
+        notif.event_type = 'created'
+        yield notif
+
+    elif mapiobj.ulEventType == fnevObjectModified:
+        notif.event_type = 'updated'
+        yield notif
+
+    elif mapiobj.ulEventType == fnevObjectDeleted:
+        notif.event_type = 'deleted'
+        yield notif
+
+    elif mapiobj.ulEventType == fnevObjectMoved:
+        notif.event_type = 'created'
+        yield notif
+
+        notif = copy.copy(notif)
+
+        item = _item.Item()
+        item.store = store
+        item.server = store.server
+        item._entryid = mapiobj.lpOldID
+        notif.object = item
+        item._folder = store.folder(entryid=_benc(mapiobj.lpOldParentID))
+
+        notif.event_type = 'deleted'
+        yield notif
+
+def _filter(notifs, folder, event_types, folder_types):
+    for notif in notifs:
+        if notif.event_type not in event_types:
+            continue
+
+        if folder and notif.object_type == 'item' and notif.object.folder != folder:
+            continue
+
+        if notif.object_type == 'item' and notif.object.folder.type_ not in folder_types:
+            continue
+
+        if notif.object_type == 'folder' and notif.object.type_ not in folder_types:
+            continue
+
+        yield notif
 
 class AdviseSink(MAPIAdviseSink):
-    def __init__(self, store, sink):
+    def __init__(self, store, folder, event_types, folder_types, sink):
         MAPIAdviseSink.__init__(self, [IID_IMAPIAdviseSink])
+
         self.store = store
+        self.folder = folder
         self.sink = sink
+        self.event_types = event_types
+        self.folder_types = folder_types
 
     def OnNotify(self, notifications):
         if hasattr(self.sink, 'update'):
             for n in notifications:
-                self.sink.update(Notification(self.store, n))
+                for m in _filter(_split(n, self.store), self.folder,
+                        self.event_types, self.folder_types):
+                    self.sink.update(m)
         return 0
 
 class AdviseSinkQueue(MAPIAdviseSink):
-    def __init__(self, q):
+    def __init__(self, store, q):
         MAPIAdviseSink.__init__(self, [IID_IMAPIAdviseSink])
+
+        self.store = store
         self.q = q
 
     def OnNotify(self, notifications):
         for n in notifications:
-            self.q.put(n)
+            for m in _split(n, self.store): # TODO filter
+                self.q.put(m)
         return 0
 
-def subscribe(store, folder, sink):
+def _flags(object_types, event_types):
+    flags = 0
+
     flags = fnevObjectModified | fnevObjectCreated \
         | fnevObjectMoved | fnevObjectCopied | fnevObjectDeleted
 
+    if 'folder' in object_types:
+        flags |= fnevObjTypeFolder
+    if 'item' in object_types:
+        flags |= fnevObjTypeMessage
+
+    return flags
+
+def subscribe(store, folder, sink,
+        object_types=OBJECT_TYPES, folder_types=FOLDER_TYPES, event_types=EVENT_TYPES):
+    flags = _flags(object_types, event_types)
+
     sink._store = store
-    sink2 = AdviseSink(store, sink)
+    sink2 = AdviseSink(store, folder, event_types, folder_types, sink)
 
     if folder:
         sink._conn = store.mapiobj.Advise(_bdec(folder.entryid), flags, sink2)
@@ -117,16 +173,16 @@ def subscribe(store, folder, sink):
 def unsubscribe(store, sink):
     store.mapiobj.Unadvise(sink._conn)
 
-def _notifications(store, entryid):
-    flags = fnevObjectModified | fnevObjectCreated \
-        | fnevObjectMoved | fnevObjectCopied | fnevObjectDeleted
+def _notifications(store, folder,
+        object_types=OBJECT_TYPES, folder_types=FOLDER_TYPES, event_types=EVENT_TYPES):
+    flags = _flags(object_types, event_types)
 
     q = Queue()
-    sink = AdviseSinkQueue(q)
+    sink = AdviseSinkQueue(store, q)
 
     try:
-        if entryid:
-            store.mapiobj.Advise(_bdec(entryid), flags, sink)
+        if folder:
+            store.mapiobj.Advise(_bdec(folder.entryid), flags, sink)
         else:
             store.mapiobj.Advise(None, flags, sink)
     except MAPIErrorNoSupport:
