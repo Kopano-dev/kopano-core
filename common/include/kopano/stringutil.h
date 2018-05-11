@@ -65,13 +65,23 @@ static inline std::wstring strToUpper(std::wstring f)
 	return f;
 }
 
-// Use casting if passing hard coded values.
-extern _kc_export std::string stringify(unsigned int x, bool usehex = false, bool _signed = false);
+static inline std::string stringify(unsigned int x)
+{
+	/* (w)stringify(-1) has a different result than to_(w)string(-1), so do not subtitute! */
+	return std::to_string(x);
+}
+
+static inline std::wstring wstringify(unsigned int x)
+{
+	return std::to_wstring(x);
+}
+
+extern _kc_export std::string stringify(unsigned int x, bool usehex, bool _signed = false);
 extern _kc_export std::string stringify_int64(int64_t, bool usehex = false);
 extern _kc_export std::string stringify_float(float);
 extern _kc_export std::string stringify_double(double, int prec = 18, bool locale = false);
 
-extern _kc_export std::wstring wstringify(unsigned int x, bool usehex = false, bool _signed = false);
+extern _kc_export std::wstring wstringify(unsigned int x, bool usehex, bool _signed = false);
 
 #define tstringify			wstringify
 

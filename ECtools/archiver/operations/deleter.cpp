@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/MAPIErrors.h>
 #include "ECArchiverLogger.h"
 #include "deleter.h"
 
@@ -82,7 +83,8 @@ HRESULT Deleter::PurgeQueuedMessages()
 	
 	hr = CurrentFolder()->DeleteMessages(ptrEntryList, 0, NULL, 0);
 	if (hr != hrSuccess) {
-		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to delete %u messages. (hr=%s)", ptrEntryList->cValues, stringify(hr, true).c_str());
+		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to delete %u messages: %s (0x%x)",
+			ptrEntryList->cValues, GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	

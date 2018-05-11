@@ -23,6 +23,7 @@
 
 #include "ECABContainer.h"
 #include <kopano/IECInterfaces.hpp>
+#include <kopano/MAPIErrors.h>
 #include "ECMsgStore.h"
 
 #include "ECExportAddressbookChanges.h"
@@ -249,9 +250,10 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
 	}
 
 	else if (hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "failed type=%04x, hr=%s, sourcekey=%s",
-			m_lpChanges[m_ulThisChange].ulChangeType, stringify(hr, true).c_str(),
-			bin2hex(m_lpChanges[m_ulThisChange].sSourceKey).c_str());
+		ZLOG_DEBUG(m_lpLogger, "failed type=%04x, sourcekey=%s, error=%s (0x%x)",
+			m_lpChanges[m_ulThisChange].ulChangeType,
+			bin2hex(m_lpChanges[m_ulThisChange].sSourceKey).c_str(),
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 

@@ -26,6 +26,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/CommonUtil.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/mapiext.h>
 #include <kopano/userutil.h>
 #include "ECMsgStore.h"
@@ -161,7 +162,7 @@ HRESULT ArchiverSession::Init(const char *lpszServerPath, const char *lpszSslPat
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Access was denied on %s.", lpszServerPath);
 			break;
 		default:
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Unknown cause (hr=%s).", stringify(hr,true).c_str());
+			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Unknown cause / %s (0x%x)", GetMAPIErrorMessage(hr), hr);
 			break;
 		};
 		return hr;
@@ -169,7 +170,7 @@ HRESULT ArchiverSession::Init(const char *lpszServerPath, const char *lpszSslPat
 
 	hr = HrOpenDefaultStore(m_ptrSession, MDB_NO_MAIL | MDB_TEMPORARY, &~m_ptrAdminStore);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Unable to open Admin store (hr=%s).", stringify(hr,true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Unable to open Admin store: %s (0x%x)", GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -223,17 +224,20 @@ HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgSt
 	
 	auto hr = m_ptrAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to get EMS interface (hr=%s).", stringify(hr, true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to get EMS interface: %s (0x%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	hr = ptrEMS->CreateStoreEntryID(nullptr, reinterpret_cast<const TCHAR *>(strUser.c_str()), fMapiUnicode, &cbEntryId, &~ptrEntryId);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to create store entryid for user '" TSTRING_PRINTF "' (hr=%s).", strUser.c_str(), stringify(hr, true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to create store entryid for user \"" TSTRING_PRINTF "\": %s (0x%x)",
+			strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	hr = m_ptrSession->OpenMsgStore(0, cbEntryId, ptrEntryId, &iid_of(ptrUserStore), MDB_WRITE | fMapiDeferredErrors | MDB_NO_MAIL | MDB_TEMPORARY, &~ptrUserStore);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to open store for user '" TSTRING_PRINTF "' (hr=%s).", strUser.c_str(), stringify(hr, true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to open store for user \"" TSTRING_PRINTF "\": %s (0x%x)",
+			strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 		
@@ -260,7 +264,8 @@ HRESULT ArchiverSession::OpenStore(const entryid_t &sEntryId, ULONG ulFlags, LPM
 	if (!sEntryId.isWrapped()) {
 		auto hr = m_ptrSession->OpenMsgStore(0, sEntryId.size(), sEntryId, &iid_of(ptrUserStore), ulFlags, &~ptrUserStore);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to open store. (entryid=%s, hr=%s)", sEntryId.tostring().c_str(), stringify(hr, true).c_str());
+			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to open store by entryid %s: %s (0x%x)",
+				sEntryId.tostring().c_str(), GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 		return ptrUserStore->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppMsgStore));
@@ -272,7 +277,8 @@ HRESULT ArchiverSession::OpenStore(const entryid_t &sEntryId, ULONG ulFlags, LPM
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive store entryid is wrapped.");
 	auto hr = CreateRemote(strPath.c_str(), m_lpLogger, &ptrSession);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to create ArchiverSession on '%s' (hr=%s)", strPath.c_str(), stringify(hr, true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to create ArchiverSession on \"%s\": %s (0x%x)",
+			strPath.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	return ptrSession->OpenStore(sTempEntryId, ulFlags, lppMsgStore);
@@ -333,18 +339,21 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 
 	auto hr = HrOpenDefaultStore(m_ptrSession, &~ptrStore);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to open default store (hr=%s)", stringify(hr, true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to open default store: %s (0x%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	hr = ptrStore.QueryInterface(ptrServiceAdmin);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to obtain the serviceadmin interface (hr=%s)", stringify(hr, true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to obtain the serviceadmin interface: %s (0x%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 	hr = ptrServiceAdmin->ResolveUserName((LPCTSTR)strUser.c_str(), fMapiUnicode, &cbEntryId, &~ptrEntryId);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to resolve user '" TSTRING_PRINTF "' (hr=%s)", strUser.c_str(), stringify(hr, true).c_str());
+		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to resolve user \"" TSTRING_PRINTF "\": %s (0x%x)",
+			strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -359,7 +368,8 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 
 		hr = m_ptrSession->OpenEntry(cbEntryId, ptrEntryId, &IID_IMailUser, 0, &ulType, &~ptrUser);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to open user object for user '" TSTRING_PRINTF "' (hr=%s)", strUser.c_str(), stringify(hr, true).c_str());
+			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to open user object for user \"" TSTRING_PRINTF "\": %s (0x%x)",
+				strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 		hr = ptrUser->GetProps(sptaUserProps, 0, &cValues, &~ptrUserProps);
@@ -371,7 +381,8 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 		if (lpstrFullname) {
 			if (ptrUserProps[IDX_DISPLAY_NAME].ulPropTag != PR_DISPLAY_NAME) {
 				hr = ptrUserProps[IDX_DISPLAY_NAME].Value.err;
-				m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to obtain the display name for user '" TSTRING_PRINTF "' (hr=%s)", strUser.c_str(), stringify(hr, true).c_str());
+				m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to obtain the display name for user \"" TSTRING_PRINTF "\": %s (0x%x)",
+					strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 				return hr;
 			}
 
@@ -381,7 +392,8 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 		if (lpbAclCapable) {
 			if (ptrUserProps[IDX_DISPLAY_TYPE_EX].ulPropTag != PR_DISPLAY_TYPE_EX) {
 				hr = ptrUserProps[IDX_DISPLAY_TYPE_EX].Value.err;
-				m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to obtain the type for user '" TSTRING_PRINTF "' (hr=%s)", strUser.c_str(), stringify(hr, true).c_str());
+				m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to obtain the type for user \"" TSTRING_PRINTF "\": %s (0x%x)",
+					strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 				return hr;
 			}
 
