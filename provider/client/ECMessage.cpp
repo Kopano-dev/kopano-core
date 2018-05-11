@@ -1963,8 +1963,8 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		lpsPropValue->ulPropTag = PR_MESSAGE_RECIPIENTS;
 		lpsPropValue->Value.x = 1;
 		break;
-#ifdef HAVE_TIDY_H
 	case PROP_ID(PR_EC_BODY_FILTERED): {
+#ifdef HAVE_TIDY_H
 		// does it already exist? (e.g. inserted by dagent/gateway)
 		hr = lpMessage->HrGetRealProp(PR_EC_BODY_FILTERED, ulFlags, lpBase, lpsPropValue);
 		if (hr == hrSuccess) // yes, then use that
@@ -2007,8 +2007,11 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 			break;
 		}
 		break;
-	}
+#else
+		hr = MAPI_E_NO_SUPPORT;
+		break;
 #endif
+	}
 	case PROP_ID(PR_BODY):
 	case PROP_ID(PR_RTF_COMPRESSED):
 	case PROP_ID(PR_HTML): {
