@@ -30,8 +30,7 @@ namespace KC {
 #define EC_SYNC_OPT_CONTINUOUS		8	// Not included in EC_SYNC_OPT_ALL
 #define EC_SYNC_OPT_ALL				(EC_SYNC_OPT_STREAM | EC_SYNC_OPT_CHANGENOTIF | EC_SYNC_OPT_STATECOLLECT)
 
-
-class _kc_export ECSyncSettings _kc_final {
+class ECSyncSettings final {
 public:
 	// Synclog settings
 	bool SyncLogEnabled() const { return ContinuousLogging() ? true : m_ulSyncLog != 0; }
@@ -56,7 +55,7 @@ public:
 	ULONG	SetStreamBufferSize(ULONG ulBufferSize);
 	ULONG	SetStreamBatchSize(ULONG ulBatchSize);
 
-	static _kc_export ECSyncSettings instance;
+	static ECSyncSettings instance;
 
 private:
 	_kc_hidden ECSyncSettings(void);

@@ -26,7 +26,7 @@
 namespace KC {
 
 typedef std::set<std::pair<unsigned int, std::string> > PROCESSEDCHANGESSET;
-extern _kc_export HRESULT HrDecodeSyncStateStream(LPSTREAM, ULONG *sync_id, ULONG *change_id, PROCESSEDCHANGESSET * = nullptr);
+extern HRESULT HrDecodeSyncStateStream(LPSTREAM, ULONG *sync_id, ULONG *change_id, PROCESSEDCHANGESSET * = nullptr);
 HRESULT ResetStream(LPSTREAM lpStream);
 HRESULT CreateNullStatusStream(LPSTREAM *lppStream);
 
