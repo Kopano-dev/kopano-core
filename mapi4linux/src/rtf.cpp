@@ -67,6 +67,7 @@ unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
 	if(ulBufSize < sizeof(RTFHeader)) 
 		return 1;
 	
+	const unsigned int uncomp_size = le32_to_cpu(lpHeader->ulUncompressedSize);
 	lpSrc += sizeof(struct RTFHeader);
 	
 	if (le32_to_cpu(lpHeader->ulMagic) == 0x414c454d) {
@@ -77,13 +78,12 @@ unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
 		return 1;
 	}
 	// Allocate a buffer to decompress into (uncompressed size plus prebuffered data)
-	std::unique_ptr<char[]> lpBuffer(new char[lpHeader->ulUncompressedSize+prebufSize]);
+	std::unique_ptr<char[]> lpBuffer(new char[uncomp_size+prebufSize]);
 	memcpy(lpBuffer.get(), lpPrebuf, prebufSize);
 
 	// Start writing just after the prebuffered data
 	char *lpWrite = lpBuffer.get() + prebufSize;
-
-	while (lpWrite < lpBuffer.get() + lpHeader->ulUncompressedSize + prebufSize) {
+	while (lpWrite < lpBuffer.get() + uncomp_size + prebufSize) {
 		// Get next bit from flags
 		ulFlags = ulFlagNr++ % 8 == 0 ? *lpSrc++ : ulFlags >> 1;
 
@@ -113,13 +113,13 @@ unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
 		ulOffset = ((lpWrite - lpBuffer.get()) / 4096) * 4096 + ulOffset;
 		if (ulOffset > (unsigned int)(lpWrite - lpBuffer.get()))
 			ulOffset -= 4096;
-		while (ulSize && lpWrite < &lpBuffer[lpHeader->ulUncompressedSize+prebufSize] && ulOffset < lpHeader->ulUncompressedSize + prebufSize) {
+		while (ulSize && lpWrite < &lpBuffer[uncomp_size+prebufSize] && ulOffset < uncomp_size + prebufSize) {
 			*lpWrite++ = lpBuffer[ulOffset++];
 			--ulSize;
 		}
 	}
 	// Copy back the data without the prebuffer
-	memcpy(lpDest, &lpBuffer[prebufSize], lpHeader->ulUncompressedSize);
+	memcpy(lpDest, &lpBuffer[prebufSize], uncomp_size);
 	return 0;
 }
 
