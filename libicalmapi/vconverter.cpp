@@ -1846,7 +1846,11 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 		PR_EMAIL_ADDRESS_A, PR_RECIPIENT_FLAGS, PR_RECIPIENT_TYPE,
 		PR_RECIPIENT_TRACKSTATUS}};
 
-	auto hr = lpMessage->GetRecipientTable(0, &~lpTable);
+	std::wstring recv_name, recv_type, recv_email;
+	auto hr = HrGetAddress(m_lpAdrBook, lpMessage, PR_RECEIVED_BY_ENTRYID, PR_RECEIVED_BY_NAME_W, PR_RECEIVED_BY_ADDRTYPE_A, PR_RECEIVED_BY_EMAIL_ADDRESS_W, recv_name, recv_type, recv_email);
+	auto got_recv = hr == hrSuccess;
+
+	hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpTable->SetColumns(sptaRecipProps, 0);
@@ -1890,10 +1894,24 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 			continue;
 		}
 
-		strEmailAddress.insert(0, L"mailto:");
-		auto lpProp = icalproperty_new_attendee(m_converter.convert_to<string>(m_strCharset.c_str(), strEmailAddress, rawsize(strEmailAddress), CHARSET_WCHAR).c_str());
+		auto tmp_email = strEmailAddress;
+		tmp_email.insert(0, L"mailto:");
+		auto lpProp = icalproperty_new_attendee(m_converter.convert_to<string>(m_strCharset.c_str(), tmp_email, rawsize(tmp_email), CHARSET_WCHAR).c_str());
 		icalproperty_add_parameter(lpProp, lpParam);
-		lpPropVal = lpRows[ulCount].cfind(PR_RECIPIENT_TRACKSTATUS);
+
+		memory_ptr<SPropValue> prop;
+		lpPropVal = nullptr;
+		if (got_recv && strEmailAddress == recv_email) {
+			hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RESPONSESTATUS], PT_LONG), &~prop);
+			if (hr == hrSuccess)
+				lpPropVal = prop.get();
+			else
+				/* reset error */
+				hr = hrSuccess;
+		}
+
+		if (lpPropVal == nullptr)
+			lpPropVal = lpRows[ulCount].cfind(PR_RECIPIENT_TRACKSTATUS);
 		if (lpPropVal != NULL) {
 			if (lpPropVal->Value.ul == 2)
 				icalproperty_add_parameter(lpProp, icalparameter_new_partstat(ICAL_PARTSTAT_TENTATIVE));
