@@ -186,6 +186,9 @@ class MAPITimezone(datetime.tzinfo):
         return d
 
     def dst(self, dt):
+        if self.dststartmonth == 0: # no DST
+            return datetime.timedelta(0)
+
         start = self._date(dt, self.dststartmonth, self.dststartweek, self.dststartday, self.dststarthour)
         end = self._date(dt, self.dstendmonth, self.dstendweek, self.dstendday, self.dstendhour)
 
@@ -210,6 +213,9 @@ class MAPITimezone(datetime.tzinfo):
         return 'MAPITimeZone()'
 
 def _in_dst(date, dststartmonth, dststartday, dststarthour, dstendmonth, dstendday, dstendhour):
+    if dststartmonth == 0: # no DST
+        return False
+
     dststart = datetime.datetime(date.year, dststartmonth, 1) + \
         datetime.timedelta(seconds=dststartday * 24 * 60 * 60 + dststarthour * 60 * 60)
 
