@@ -25,16 +25,10 @@ rhel_initscript_files = \
 	kopano-presence.init.rhel
 
 data_configdir = ${docdir}/example-config
-dist_data_config_DATA = ${config_files} ldap.cfg
+dist_data_config_DATA = ${config_files} ldap.cfg sysconfig.txt
 
 sysconf_initdir=${sysconfdir}/init.d
 sysconf_init_SCRIPTS = ${@DISTRO@_initscript_files}
-
-rhel_sysconfig_path = ${sysconfdir}/sysconfig
-suse_sysconfig_path = ${localstatedir}/adm/fillup-templates
-sles_sysconfig_path = ${localstatedir}/adm/fillup-templates
-sysconf_sysconfigdir = ${@DISTRO@_sysconfig_path}
-sysconf_sysconfig_DATA = sysconfig.txt
 
 dist_doc_DATA = \
 	db-calc-storesize db-convert-attachments-to-files \
@@ -76,11 +70,6 @@ install-data-hook:
 	install -d -m 755 ${DESTDIR}/${sysconfdir}/kopano/license
 	mv -v ${DESTDIR}${sysconf_rotatedir}/kopano.logrotate ${DESTDIR}${sysconf_rotatedir}/kopano
 	mv -v ${DESTDIR}${sysconf_crondir}/kopano-client-update.cron ${DESTDIR}${sysconf_crondir}/kopano-client-update
-	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
-		mv -v ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.txt ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.kopano; \
-	elif test ${DISTRO} = "rhel"; then \
-		mv -v ${DESTDIR}${sysconf_sysconfigdir}/sysconfig.txt ${DESTDIR}${sysconf_sysconfigdir}/kopano; \
-	fi
 	for f in ${sysconf_init_SCRIPTS}; do \
 		newf=`echo "$$f" | sed -e 's/\(kopano-.*\).init.*/\1/'`; \
 		mv -v "${DESTDIR}${sysconf_initdir}/$$f" "${DESTDIR}${sysconf_initdir}/$$newf"; \
@@ -89,11 +78,6 @@ install-data-hook:
 uninstall-local:
 	rm -f "${DESTDIR}${sysconf_rotatedir}/kopano" \
 		"${DESTDIR}${sysconf_crondir}/kopano-client-update"
-	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
-		rm -f "${DESTDIR}${sysconf_sysconfigdir}/sysconfig.kopano"; \
-	elif test ${DISTRO} = "rhel"; then \
-		rm -f "${DESTDIR}${sysconf_sysconfigdir}/kopano"; \
-	fi
 	for f in ${sysconf_init_SCRIPTS}; do \
 		newf=$$(echo "$$f" | sed -e 's/\(kopano-.*\).init.*/\1/'); \
 		rm -f "${DESTDIR}${sysconf_initdir}/$$newf"; \
