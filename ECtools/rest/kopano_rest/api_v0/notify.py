@@ -28,7 +28,12 @@ from .config import PREFIX
 
 logging.getLogger("requests").setLevel(logging.WARNING)
 
-# TODO avoid globals
+# TODO don't block on sending updates
+# TODO async subscription validation
+# TODO restarting app/server?
+# TODO expiration?
+# TODO avoid globals (threading)
+
 SUBSCRIPTIONS = {}
 
 if PROMETHEUS:
@@ -61,10 +66,6 @@ def _user(req, options):
         server = _server(username, '')
     return server.user(username)
 
-# TODO don't block on sending updates
-# TODO async subscription validation
-# TODO restarting app/server
-# TODO expiration
 
 class Processor(Thread):
     def __init__(self, options):
@@ -116,12 +117,21 @@ class Sink:
 
         QUEUE.put((self.store, notification, self.subscription))
 
-#def _get_folder(store, resource):
-#    resource = resource.split('/')
-#    if (len(resource) == 4 and \
-#        resource[0] == 'me' and resource[1] == 'mailFolders' and resource[3] == 'messages'):
-#        folderid = resource[2]
-#    return utils._folder(store, folderid)
+def _subscription_object(store, resource):
+    resource = resource.split('/')
+
+    if (len(resource) == 4 and \
+        resource[0] == 'me' and \
+        ((resource[:2] == ['me', 'mailFolders'] and resource[-1] == 'messages') or \
+         (resource[:2] == ['me', 'contactFolders'] and resource[-1] == 'contacts'))):
+        return utils._folder(store, resource[2]), None
+
+    elif (len(resource) == 2 and \
+          resource[0] == 'me'):
+        if resource[1] == 'messages':
+            return store, 'mail'
+        elif resource[1] == 'contacts':
+            return store, 'contacts'
 
 class SubscriptionResource:
     def __init__(self, options):
@@ -131,10 +141,8 @@ class SubscriptionResource:
         user = _user(req, self.options)
         store = user.store
         fields = json.loads(req.stream.read().decode('utf-8'))
-#        folder = _get_folder(store, fields['resource'])
 
-        # TODO folder-level, hierarchy.. ?
-
+        # validate webhook
         validationToken = str(uuid.uuid4())
         verify = not self.options or not self.options.insecure
         try: # TODO async
@@ -145,14 +153,19 @@ class SubscriptionResource:
         except Exception:
             raise falcon.HTTPBadRequest(None, "Subscription validation request failed.")
 
+        # create subscription
         id_ = str(uuid.uuid4())
         subscription = fields
         subscription['id'] = id_
 
+        target, folder_types = _subscription_object(store, fields['resource'])
+
         sink = Sink(self.options, store, subscription)
         object_types = ['item'] # TODO folders not supported by graph atm?
         event_types = [x.strip() for x in subscription['changeType'].split(',')]
-        store.subscribe(sink, object_types=object_types, event_types=event_types)
+
+        target.subscribe(sink, object_types=object_types,
+                         event_types=event_types, folder_types=folder_types)
 
         SUBSCRIPTIONS[id_] = (subscription, sink)
 
@@ -174,7 +187,6 @@ class SubscriptionResource:
         store = user.store
 
         subscription, sink = SUBSCRIPTIONS[subscriptionid]
-        #folder = _get_folder(store, subscription['resource'])
 
         store.unsubscribe(sink)
         del SUBSCRIPTIONS[subscriptionid]

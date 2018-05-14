@@ -158,8 +158,13 @@ def _flags(object_types, event_types):
 
     return flags
 
-def subscribe(store, folder, sink,
-        object_types=OBJECT_TYPES, folder_types=FOLDER_TYPES, event_types=EVENT_TYPES):
+def subscribe(store, folder, sink, object_types=None, folder_types=None,
+        event_types=None):
+
+    object_types = object_types or OBJECT_TYPES
+    folder_types = folder_types or FOLDER_TYPES
+    event_types = event_types or EVENT_TYPES
+
     flags = _flags(object_types, event_types)
 
     sink._store = store
@@ -173,8 +178,13 @@ def subscribe(store, folder, sink,
 def unsubscribe(store, sink):
     store.mapiobj.Unadvise(sink._conn)
 
-def _notifications(store, folder,
-        object_types=OBJECT_TYPES, folder_types=FOLDER_TYPES, event_types=EVENT_TYPES):
+def _notifications(store, folder, object_types=None, folder_types=None,
+        event_types=None):
+
+    object_types = object_types or OBJECT_TYPES
+    folder_types = folder_types or FOLDER_TYPES
+    event_types = event_types or EVENT_TYPES
+
     flags = _flags(object_types, event_types)
 
     q = Queue()
