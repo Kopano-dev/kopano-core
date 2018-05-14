@@ -72,11 +72,11 @@ class Processor(Thread):
         self.options = options
         self.daemon = True
 
-    def _notification(self, subscription, changetype, obj):
+    def _notification(self, subscription, event_type, obj):
         return {
             'subscriptionId': subscription['id'],
             'clientState': subscription['clientState'],
-            'changeType': changetype,
+            'changeType': event_type,
             'resource': subscription['resource'],
             'resourceData': {
                 '@data.type': '#Microsoft.Graph.Message',
@@ -88,29 +88,17 @@ class Processor(Thread):
         while True:
             store, notification, subscription = QUEUE.get()
 
-            if notification.mapiobj.ulObjType == MAPI_MESSAGE:
+            data = self._notification(subscription, notification.event_type, notification.object)
 
-                if notification.event_type == 'update':
-                    changetype = 'updated'
-                elif notification.event_type in ('create', 'copy', 'move'):
-                    changetype = 'created'
-                elif notification.event_type == 'delete':
-                    changetype = 'deleted'
-
-                data = self._notification(subscription, changetype, notification.object)
-
-                if notification.event_type == 'move':
-                    old_data = self._notification(subscription, 'deleted', notification.old_object)
-                    data = {'value': [old_data, data]}
-
-                verify = not self.options or not self.options.insecure
-                try:
-                    if self.options and self.options.with_metrics:
-                        POST_COUNT.inc()
-                    logging.debug('Subscription notification: %s' % subscription['notificationUrl'])
-                    requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10, verify=verify)
-                except Exception:
-                    traceback.print_exc()
+            verify = not self.options or not self.options.insecure
+            try:
+                if self.options and self.options.with_metrics:
+                    POST_COUNT.inc()
+                logging.debug('Subscription notification: %s' % subscription['notificationUrl'])
+                print('posting', json.dumps(data))
+                requests.post(subscription['notificationUrl'], json=data, timeout=10, verify=verify)
+            except Exception:
+                traceback.print_exc()
 
 class Sink:
     def __init__(self, options, store, subscription):
@@ -162,7 +150,9 @@ class SubscriptionResource:
         subscription['id'] = id_
 
         sink = Sink(self.options, store, subscription)
-        store.subscribe(sink)
+        object_types = ['item'] # TODO folders not supported by graph atm?
+        event_types = [x.strip() for x in subscription['changeType'].split(',')]
+        store.subscribe(sink, object_types=object_types, event_types=event_types)
 
         SUBSCRIPTIONS[id_] = (subscription, sink)
 
