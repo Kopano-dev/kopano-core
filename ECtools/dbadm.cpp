@@ -38,20 +38,25 @@ static ECRESULT hidx_add(KDatabase &db, const std::string &tbl)
 	return db.DoUpdate("ALTER TABLE " + tbl + " ADD INDEX tmptag (tag)");
 }
 
-static void hidx_remove(KDatabase &db, const std::string &tbl)
+static ECRESULT hidx_remove(KDatabase &db, const std::string &tbl)
 {
 	ec_log_notice("dbadm: discard helper index on %s", tbl.c_str());
-	db.DoUpdate("ALTER TABLE " + tbl + " DROP INDEX tmptag");
+	return db.DoUpdate("ALTER TABLE " + tbl + " DROP INDEX tmptag");
 }
 
 static std::set<std::string> index_tags2(std::shared_ptr<KDatabase> db)
 {
 	std::set<std::string> status;
+	ECRESULT coll = erSuccess;
 	for (const auto &tbl : our_proptables) {
 		auto ret = hidx_add(*db.get(), tbl);
 		if (ret == erSuccess)
 			status.emplace(tbl);
+		if (coll == erSuccess)
+			coll = ret;
 	}
+	if (coll != erSuccess)
+		ec_log_info("Index creation failures are not fatal; it affects at most the processing speed.");
 	return status;
 }
 
@@ -63,8 +68,14 @@ static ECRESULT index_tags(std::shared_ptr<KDatabase> db)
 
 static ECRESULT remove_helper_index(std::shared_ptr<KDatabase> db)
 {
-	for (const auto &tbl : our_proptables)
-		hidx_remove(*db.get(), tbl);
+	ECRESULT coll = erSuccess;
+	for (const auto &tbl : our_proptables) {
+		auto ret = hidx_remove(*db.get(), tbl);
+		if (coll != erSuccess)
+			coll = ret;
+	}
+	if (coll != erSuccess)
+		ec_log_info("This failure is not fatal. Extraneous indices only take up disk space.");
 	return erSuccess;
 }
 
