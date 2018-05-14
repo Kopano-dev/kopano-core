@@ -10,6 +10,7 @@
 #include <set>
 #include <string>
 #include <cassert>
+#include <csignal>
 #include <cstdlib>
 #include <getopt.h>
 #include <kopano/ECConfig.h>
@@ -21,6 +22,9 @@
 
 using namespace KC;
 using namespace KCHL;
+
+static int adm_sigterm_count = 3;
+static bool adm_quit;
 
 static const std::string our_proptables[] = {
 	"properties", "tproperties", "mvproperties",
@@ -113,7 +117,7 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 		return erSuccess;
 
 	KC::time_point start_ts = decltype(start_ts)::clock::now();
-	while ((row = result.fetch_row()) != nullptr) {
+	while (!adm_quit && (row = result.fetch_row()) != nullptr) {
 		unsigned int oldid = strtoul(row[0], nullptr, 0);
 		unsigned int oldtag = 0x8501 + oldid;
 		if (freemap.size() == 0)
@@ -145,6 +149,10 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 		ec_log_notice("defrag: %u left, est. %.0f minutes", tags_to_move - tags_moved,
 			(tags_to_move - tags_moved) * diff_ts / tags_moved / 60);
 	}
+	if (adm_quit) {
+		ec_log_notice("defrag: operation interrupted safely.");
+		return erSuccess;
+	}
 	/* autoupdates to highest id */
 	ret = db->DoUpdate("ALTER TABLE names AUTO_INCREMENT=1");
 	if (ret != erSuccess)
@@ -171,11 +179,17 @@ static ECRESULT np_remove_xh(std::shared_ptr<KDatabase> db)
 	if (ret != erSuccess)
 		return ret;
 	for (const auto &tbl : our_proptables) {
+		if (adm_quit)
+			break;
 		ec_log_notice("remove-xh: purging \"%s\"...", tbl.c_str());
 		ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN n ON p.tag=n.tag", &aff);
 		if (ret != erSuccess)
 			return ret;
 		ec_log_notice("remove-xh: expunged %u rows.", aff);
+	}
+	if (adm_quit) {
+		ec_log_notice("remove-xh: operation interrupted safely.");
+		return erSuccess;
 	}
 	ret = db->DoDelete("DELETE names FROM names INNER JOIN n ON names.id=n.id");
 	if (ret != erSuccess)
@@ -208,7 +222,7 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 		return erSuccess;
 
 	KC::time_point start_ts = decltype(start_ts)::clock::now();
-	while ((row = result.fetch_row()) != nullptr) {
+	while (!adm_quit && (row = result.fetch_row()) != nullptr) {
 		unsigned int oldid = strtoul(row[0], nullptr, 0);
 		unsigned int newid = strtoul(row[1], nullptr, 0);
 		unsigned int oldtag = 0x8501 + oldid, newtag = 0x8501 + newid;
@@ -278,6 +292,10 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 		ec_log_notice("dup: %u left, est. %.0f minutes", tags_to_move - tags_moved,
 			(tags_to_move - tags_moved) * diff_ts / tags_moved / 60);
 	}
+	if (adm_quit) {
+		ec_log_notice("dup: stopped (safely) after user request to exit.");
+		return erSuccess;
+	}
 	/* Now the names table is clean, but fragmented ... */
 	return erSuccess;
 }
@@ -317,6 +335,11 @@ static ECRESULT k1216(std::shared_ptr<KDatabase> db)
 {
 	auto idx = index_tags2(db);
 	/* If indices failed, so be it. Proceed at slow speed, then. */
+	auto terminate_handler = make_scope_success([&]() {
+		if (adm_quit)
+			/* Quick stop, waste no time with more ALTER TABLE. */
+			idx.clear();
+	});
 	auto clean_indices = make_scope_success([&]() {
 		for (const auto &tbl : idx)
 			hidx_remove(*db.get(), tbl.c_str());
@@ -324,10 +347,49 @@ static ECRESULT k1216(std::shared_ptr<KDatabase> db)
 	auto ret = np_remove_highid(*db.get());
 	if (ret != erSuccess)
 		return ret;
+	if (adm_quit)
+		return erSuccess;
 	ret = np_repair_dups(db);
 	if (ret != erSuccess)
 		return ret;
+	if (adm_quit)
+		return erSuccess;
 	return np_defrag(db);
+}
+
+static void adm_sigterm(int sig)
+{
+	if (--adm_sigterm_count <= 0) {
+		ec_log_crit("Forced termination. The database may be left in an inconsistent state.");
+		sigaction(sig, nullptr, nullptr);
+		exit(1);
+		return;
+	}
+	ec_log_notice("Received request to terminate. "
+		"Please wait until the program has reached a consistent database state. "
+		"(This may take a while!) To force stop, reissue the request %u more time(s).",
+		adm_sigterm_count);
+	adm_quit = true;
+}
+
+static bool adm_setup_signals()
+{
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sigemptyset(&sa.sa_mask);
+	sa.sa_handler = adm_sigterm;
+	sa.sa_flags   = SA_RESTART;
+	auto ret = sigaction(SIGINT, &sa, nullptr);
+	if (ret < 0) {
+		perror("sigaction");
+		return false;
+	}
+	ret = sigaction(SIGTERM, &sa, nullptr);
+	if (ret < 0) {
+		perror("sigaction");
+		return false;
+	}
+	return true;
 }
 
 int main(int argc, char **argv)
@@ -373,6 +435,8 @@ int main(int argc, char **argv)
 		ec_log_err("db connect failed: %s (%x)", GetMAPIErrorMessage(kcerr_to_mapierr(ret)), ret);
 		return ret;
 	}
+	if (!adm_setup_signals())
+		return EXIT_FAILURE;
 	for (size_t i = optind; i < argc; ++i) {
 		ret = KCERR_NOT_FOUND;
 		if (strcmp(argv[i], "k-1216") == 0)
