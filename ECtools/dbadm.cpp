@@ -22,15 +22,6 @@
 using namespace KC;
 using namespace KCHL;
 
-class proptagindex final {
-	public:
-	proptagindex(std::shared_ptr<KDatabase>);
-	~proptagindex();
-	private:
-	std::shared_ptr<KDatabase> m_db;
-	std::set<std::string> m_indexed;
-};
-
 static const std::string our_proptables[] = {
 	"properties", "tproperties", "mvproperties",
 	"indexedproperties", "singleinstances", "lob",
@@ -53,25 +44,20 @@ static void hidx_remove(KDatabase &db, const std::string &tbl)
 	db.DoUpdate("ALTER TABLE " + tbl + " DROP INDEX tmptag");
 }
 
-proptagindex::proptagindex(std::shared_ptr<KDatabase> db) : m_db(db)
+static std::set<std::string> index_tags2(std::shared_ptr<KDatabase> db)
 {
+	std::set<std::string> status;
 	for (const auto &tbl : our_proptables) {
 		auto ret = hidx_add(*db.get(), tbl);
 		if (ret == erSuccess)
-			m_indexed.emplace(tbl);
+			status.emplace(tbl);
 	}
-}
-
-proptagindex::~proptagindex()
-{
-	for (const auto &tbl : m_indexed)
-		hidx_remove(*m_db.get(), tbl.c_str());
+	return status;
 }
 
 static ECRESULT index_tags(std::shared_ptr<KDatabase> db)
 {
-	for (const auto &tbl : our_proptables)
-		hidx_add(*db.get(), tbl);
+	index_tags2(db);
 	return erSuccess;
 }
 
@@ -318,7 +304,12 @@ static ECRESULT np_stat(KDatabase &db)
 
 static ECRESULT k1216(std::shared_ptr<KDatabase> db)
 {
-	proptagindex helper(db);
+	auto idx = index_tags2(db);
+	/* If indices failed, so be it. Proceed at slow speed, then. */
+	auto clean_indices = make_scope_success([&]() {
+		for (const auto &tbl : idx)
+			hidx_remove(*db.get(), tbl.c_str());
+	});
 	auto ret = np_remove_highid(*db.get());
 	if (ret != erSuccess)
 		return ret;
