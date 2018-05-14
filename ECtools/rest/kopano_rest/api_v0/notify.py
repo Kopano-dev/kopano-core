@@ -33,6 +33,7 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 # TODO restarting app/server?
 # TODO expiration?
 # TODO avoid globals (threading)
+# TODO list subscription scalability
 
 SUBSCRIPTIONS = {}
 
@@ -167,7 +168,7 @@ class SubscriptionResource:
         target.subscribe(sink, object_types=object_types,
                          event_types=event_types, folder_types=folder_types)
 
-        SUBSCRIPTIONS[id_] = (subscription, sink)
+        SUBSCRIPTIONS[id_] = (subscription, sink, user.userid)
 
         resp.content_type = "application/json"
         resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
@@ -176,17 +177,27 @@ class SubscriptionResource:
             SUBSCR_COUNT.inc()
             SUBSCR_ACTIVE.set(len(SUBSCRIPTIONS))
 
-    def on_get(self, req, resp, subscriptionid):
-        subscription, sink = SUBSCRIPTIONS[subscriptionid]
+    def on_get(self, req, resp, subscriptionid=None):
+        user = _user(req, self.options)
+
+        if subscriptionid:
+            subscription, sink, userid = SUBSCRIPTIONS[subscriptionid]
+            data = subscription
+        else:
+            userid = user.userid
+            data = {
+                '@odata.context': req.path,
+                'value': [subscription for (subscription, _, uid) in SUBSCRIPTIONS.values() if uid == userid], # TODO doesn't scale
+            }
 
         resp.content_type = "application/json"
-        resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
+        resp.body = json.dumps(data, indent=2, separators=(',', ': '))
 
     def on_delete(self, req, resp, subscriptionid):
         user = _user(req, self.options)
         store = user.store
 
-        subscription, sink = SUBSCRIPTIONS[subscriptionid]
+        subscription, sink, userid = SUBSCRIPTIONS[subscriptionid]
 
         store.unsubscribe(sink)
         del SUBSCRIPTIONS[subscriptionid]
