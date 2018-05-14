@@ -200,14 +200,14 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 		return stringify_float(iSD.second.data.f);
 	case SCDT_LONGLONG:
 		return stringify_int64(iSD.second.data.ll);
-	case SCDT_TIMESTAMP:
-		if (iSD.second.data.ts > 0) {
-			char timestamp[128] = { 0 };
-			struct tm *tm = localtime(&iSD.second.data.ts);
-			strftime(timestamp, sizeof timestamp, "%a %b %e %T %Y", tm);
-			return timestamp;
-		}
-		break;
+	case SCDT_TIMESTAMP: {
+		if (iSD.second.data.ts <= 0)
+			break;
+		char timestamp[128] = { 0 };
+		struct tm *tm = localtime(&iSD.second.data.ts);
+		strftime(timestamp, sizeof timestamp, "%a %b %e %T %Y", tm);
+		return timestamp;
+	}
 	}
 	return "";
 }
