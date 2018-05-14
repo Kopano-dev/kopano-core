@@ -1369,47 +1369,43 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 		    
 		if (!strFolderPath.empty())
 			strFolderPath.erase(0,1); // strip / from start of string
-
-        if (MatchFolderPath(strFolderPath, strPattern)) {
-			hr = MAPI2IMAPCharset(strFolderPath, strResponse);
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to represent foldername \"%ls\" in UTF-7", strFolderPath.c_str());
-				continue;
-			}
-
-			strResponse = (string)"\"" + IMAP_HIERARCHY_DELIMITER + "\" \"" + strResponse + "\""; // prepend folder delimiter
-			strListProps = strAction + " (";
-			if (!iFld->bMailFolder)
-				strListProps += "\\Noselect ";
-			if (!bSubscribedOnly && iFld->bSpecialFolder) {
-				switch (iFld->ulSpecialFolderType) {
-				case PR_IPM_SENTMAIL_ENTRYID:
-					strListProps += "\\Sent ";
-					break;
-				case PR_IPM_WASTEBASKET_ENTRYID:
-					strListProps += "\\Trash ";
-					break;
-				case PR_IPM_DRAFTS_ENTRYID:
-					strListProps += "\\Drafts ";
-					break;
-				case PR_IPM_FAKEJUNK_ENTRYID:
-					strListProps += "\\Junk ";
-					break;
-				}
-			}
-			if (!bSubscribedOnly) {
-				// don't list flag on LSUB command
-				if (iFld->bHasSubfolders)
-					strListProps += "\\HasChildren";
-				else
-					strListProps += "\\HasNoChildren";
-			}
-			strListProps += ") ";
-
-			strResponse = strListProps + strResponse;
-
-			HrResponse(RESP_UNTAGGED, strResponse);
+		if (!MatchFolderPath(strFolderPath, strPattern))
+			continue;
+		hr = MAPI2IMAPCharset(strFolderPath, strResponse);
+		if (hr != hrSuccess) {
+			ec_log_err("Unable to represent foldername \"%ls\" in UTF-7", strFolderPath.c_str());
+			continue;
 		}
+		strResponse = (string)"\"" + IMAP_HIERARCHY_DELIMITER + "\" \"" + strResponse + "\""; // prepend folder delimiter
+		strListProps = strAction + " (";
+		if (!iFld->bMailFolder)
+			strListProps += "\\Noselect ";
+		if (!bSubscribedOnly && iFld->bSpecialFolder) {
+			switch (iFld->ulSpecialFolderType) {
+			case PR_IPM_SENTMAIL_ENTRYID:
+				strListProps += "\\Sent ";
+				break;
+			case PR_IPM_WASTEBASKET_ENTRYID:
+				strListProps += "\\Trash ";
+				break;
+			case PR_IPM_DRAFTS_ENTRYID:
+				strListProps += "\\Drafts ";
+				break;
+			case PR_IPM_FAKEJUNK_ENTRYID:
+				strListProps += "\\Junk ";
+				break;
+			}
+		}
+		if (!bSubscribedOnly) {
+			// don't list flag on LSUB command
+			if (iFld->bHasSubfolders)
+				strListProps += "\\HasChildren";
+			else
+				strListProps += "\\HasNoChildren";
+		}
+		strListProps += ") ";
+		strResponse = strListProps + strResponse;
+		HrResponse(RESP_UNTAGGED, strResponse);
 	}
 	HrResponse(RESP_TAGGED_OK, strTag, strAction + " completed");
 	return hrSuccess;
