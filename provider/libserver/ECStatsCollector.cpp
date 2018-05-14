@@ -213,12 +213,10 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 }
 
 std::string ECStatsCollector::GetValue(const SCName &name) {
-	std::string rv;
 	auto iSD = m_StatData.find(name);
 	if (iSD != m_StatData.cend())
-		rv = GetValue(*iSD);
-
-	return rv;
+		return GetValue(*iSD);
+	return {};
 }
 
 void ECStatsCollector::ForEachStat(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
