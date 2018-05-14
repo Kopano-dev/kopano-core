@@ -48,14 +48,20 @@ Changes:
 * daemons: disable SSL renegotiation for OpenSSL 1.1+
 * server: invalid port strings are now rejected
 * client: quiesce verbose logon failure messages
+* installer: set default and UTF-8 locale for services [KC-840, KC-1140]
 Fixes:
 * dbadm: recognize -c option properly
 * libserver: drop all remains of clientupdatestatus table [KC-644]
 * dbadm: fix np-defrag crash when run on blank database
+* dbadm: fix np-defrag freemap handling [KC-1126]
+* gateway: fix crash when new client immediately disconnects
+* mapi: avoid garbage at end of malformed RTF [KC-1142]
 Enhancements:
 * dbadm: add timestamps to log messages
 * dbadm: speed up np-defrag by using a reverse run
 * dbadm: add helper index creation/removal as an explicit action
+* dbadm: ad-hoc progress meter during operation
+* propmap: expose kopanoHidden LDAP attribute as PR_EC_AB_HIDDEN [KC-63]
 
 
 8.5.8 (2018-04-18)

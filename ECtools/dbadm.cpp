@@ -98,11 +98,14 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 		assert(x == 1);
 	}
 
+	unsigned int tags_to_move = 0, tags_moved = 0;
 	ret = db->DoSelect("SELECT MAX(id) - COUNT(id) FROM names WHERE id <= 31485", &result);
 	if (ret == erSuccess) {
 		row = result.fetch_row();
-		if (row != nullptr && row[0] != nullptr)
-			ec_log_info("defrag: %zu entries to move", strtoul(row[0], nullptr, 0));
+		if (row != nullptr && row[0] != nullptr) {
+			tags_to_move = strtoul(row[0], nullptr, 0);
+			ec_log_info("defrag: %u entries to move", tags_to_move);
+		}
 	}
 	ret = db->DoSelect("SELECT id FROM names WHERE id <= 31485 ORDER BY id DESC", &result);
 	if (ret != erSuccess)
@@ -111,6 +114,7 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 	if (result.get_num_rows() == 0)
 		return erSuccess;
 
+	KC::time_point start_ts = decltype(start_ts)::clock::now();
 	while ((row = result.fetch_row()) != nullptr) {
 		unsigned int oldid = strtoul(row[0], nullptr, 0);
 		unsigned int oldtag = 0x8501 + oldid;
@@ -138,7 +142,10 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 		}
 		auto x = freemap.emplace(oldid);
 		assert(x.second);
-		++newid;
+		++tags_moved;
+		auto diff_ts = dur2dbl(decltype(start_ts)::clock::now() - start_ts);
+		ec_log_notice("defrag: %u left, est. %.0f minutes", tags_to_move - tags_moved,
+			(tags_to_move - tags_moved) * diff_ts / tags_moved / 60);
 	}
 	/* autoupdates to highest id */
 	ret = db->DoUpdate("ALTER TABLE names AUTO_INCREMENT=1");
@@ -197,10 +204,12 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 		"ORDER BY n1.id", &result);
 	if (ret != erSuccess)
 		return ret;
-	ec_log_notice("dup: %zu duplicates to repair", result.get_num_rows());
-	if (result.get_num_rows() == 0)
+	unsigned int tags_to_move = result.get_num_rows(), tags_moved = 0;
+	ec_log_notice("dup: %u duplicates to repair", tags_to_move);
+	if (tags_to_move == 0)
 		return erSuccess;
 
+	KC::time_point start_ts = decltype(start_ts)::clock::now();
 	while ((row = result.fetch_row()) != nullptr) {
 		unsigned int oldid = strtoul(row[0], nullptr, 0);
 		unsigned int newid = strtoul(row[1], nullptr, 0);
@@ -266,6 +275,10 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 		ret = db->DoUpdate("DELETE FROM names WHERE id=" + stringify(oldid));
 		if (ret != erSuccess)
 			return ret;
+		++tags_moved;
+		auto diff_ts = dur2dbl(decltype(start_ts)::clock::now() - start_ts);
+		ec_log_notice("dup: %u left, est. %.0f minutes", tags_to_move - tags_moved,
+			(tags_to_move - tags_moved) * diff_ts / tags_moved / 60);
 	}
 	/* Now the names table is clean, but fragmented ... */
 	return erSuccess;

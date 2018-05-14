@@ -21,7 +21,7 @@ config_files = \
 	autorespond.cfg spamd.cfg
 
 data_configdir = ${docdir}/example-config
-dist_data_config_DATA = ${config_files} ldap.cfg
+dist_data_config_DATA = ${config_files} ldap.cfg sysconfig.txt
 
 dist_doc_DATA = \
 	db-calc-storesize db-convert-attachments-to-files \
