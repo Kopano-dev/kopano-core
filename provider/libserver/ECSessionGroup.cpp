@@ -182,16 +182,69 @@ ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int 
 	ulock_normal l_note(m_hNotificationLock);
 	ECNotification notify(*notifyItem);
 
+	unsigned int ulParent = 0;
+	unsigned int ulOldParent = 0;
+
+	bool check_parent = false;
+	bool check_old_parent = false;
+	ECRESULT hr = erSuccess;
+
+	if (notifyItem->obj != nullptr) {
+		if (notifyItem->obj->pParentId) {
+			hr = m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(notifyItem->obj->pParentId, &ulParent);
+			if (hr != hrSuccess)
+				ulParent = 0; // to be sure
+		}
+		if (notifyItem->obj->pOldParentId) {
+			hr = m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(notifyItem->obj->pOldParentId, &ulOldParent);
+			if (hr != hrSuccess)
+				ulOldParent = 0; // to be sure
+		}
+	}
+
 	for (const auto &i : m_mapSubscribe) {
-		if ((ulSessionId != 0 && ulSessionId != i.second.ulSession) ||
-		    (ulKey != i.second.ulKey && i.second.ulKey != ulStore) ||
-			!(notifyItem->ulEventType & i.second.ulEventMask))
+		auto eventmask = i.second.ulEventMask;
+
+		// session mismatch (?)
+		if (ulSessionId != 0 && ulSessionId != i.second.ulSession)
+			continue;
+
+		// not subscribed to respective (parent) folder or store
+		check_parent = ulParent && (eventmask & fnevObjTypeMessage) &&
+				(notifyItem->obj != nullptr) &&
+				notifyItem->obj->ulObjType == MAPI_MESSAGE;
+		check_old_parent = ulOldParent && (eventmask & fnevObjTypeMessage) &&
+				(notifyItem->obj != nullptr) &&
+				notifyItem->obj->ulObjType == MAPI_MESSAGE;
+
+		if (i.second.ulKey != ulKey &&
+		    i.second.ulKey != ulStore &&
+		    (!check_parent || i.second.ulKey != ulParent) &&
+		    (!check_old_parent || i.second.ulKey != ulOldParent))
+			continue;
+
+		// not subscribed to specified event type(s)
+		if (!(notifyItem->ulEventType & eventmask))
+			continue;
+
+		// not subscribed to specified object type(s)
+		if ((notifyItem->obj != nullptr) && (eventmask & (fnevObjTypeMessage | fnevObjTypeFolder))) {
+			unsigned int objtype = 0;
+			if (notifyItem->obj->ulObjType == MAPI_MESSAGE)
+				objtype = fnevObjTypeMessage;
+			else if (notifyItem->obj->ulObjType == MAPI_FOLDER)
+				objtype = fnevObjTypeFolder;
+
+			if (!(objtype & eventmask))
 				continue;
+		}
+
+		// send notification
 		notify.SetConnection(i.second.ulConnection);
 		m_listNotification.emplace_back(notify);
 	}
 	l_note.unlock();
-	
+
 	// Since we now have a notification ready to send, tell the session manager that we have something to send. Since
 	// a notification can be read from any session in the session group, we have to notify all of the sessions
 	scoped_rlock l_ses(m_hSessionMapLock);
