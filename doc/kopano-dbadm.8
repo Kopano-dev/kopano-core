@@ -17,10 +17,11 @@ connection parameters, but an alternate file may be specified.
 .SS k\-1216
 .PP
 This is an alias for the combination of: index\-tags, np\-remove\-highid,
-np\-repair\-dups, np\-defrag, rm\-helper\-index. It may be used to address the
-K-1216 issue that kopano\-server(8) may report when performing a schema update.
-If the tag indices already exist, harmless warnings will show, but the indices
-will be used and left as-is after the k\-1216 action is done.
+np\-remove\-unused, np\-repair\-dups, np\-defrag, rm\-helper\-index. It may be
+used to address the K-1216 issue that kopano\-server(8) may report when
+performing a schema update. If the tag indices already exist, harmless warnings
+will show, but the indices will be used and left as-is after the k\-1216 action
+is done.
 .SS np\-defrag
 .PP
 Compact the ID space in the namedproperties table and lowers the
@@ -31,6 +32,9 @@ operation (such as np\-remove\-xh).
 Remove all named property mappings with internal ID higher than 31485. As
 Kopano/Zarafa MAPI clients cannot handle these IDs anyway, the IDs are never
 used to store any data and only occupy the ID space needlessy.
+.SS np\-remove\-unused
+.PP
+Remove all named property mappings that have zero use counts in other tables.
 .SS np\-remove\-xh
 .PP
 kopano\-dagent(8) used to index all X-Headers from Internet e-mails by default,
