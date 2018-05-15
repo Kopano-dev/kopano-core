@@ -1,6 +1,6 @@
 # shell include script
 
-KOPANO_LANG="${KOPANO_USERSCRIPT_LOCALE:-${LC_MESSAGES:-en_US}}"
+KOPANO_LANG="${KOPANO_USERSCRIPT_LOCALE:-${LC_MESSAGES:-C}}"
 PATH=/bin:/usr/local/bin:/usr/bin
 export KOPANO_LANG PATH
 
