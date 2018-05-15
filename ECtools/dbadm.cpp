@@ -146,13 +146,11 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 		auto x0 = freemap.erase(newid);
 		assert(x0 == 1);
 		ec_log_notice("defrag: moving %u -> %u [names]", oldid, newid);
-		fflush(stdout);
 		ret = db->DoUpdate("UPDATE names SET id=" + stringify(newid) + " WHERE id=" + stringify(oldid));
 		if (ret != erSuccess)
 			return ret;
 		for (const auto &tbl : our_proptables) {
 			ec_log_notice("defrag: moving %u -> %u [%s]", oldid, newid, tbl.c_str());
-			fflush(stdout);
 			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
 			if (ret != erSuccess)
 				return ret;
