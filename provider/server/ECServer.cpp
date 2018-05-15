@@ -859,7 +859,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 	const configsetting_t lpDefaults[] = {
 		// Aliases
-		{ "server_port",				"server_tcp_port", CONFIGSETTING_ALIAS },
+		{"server_port", "server_tcp_port", CONFIGSETTING_ALIAS | CONFIGSETTING_OBSOLETE},
 		{ "unix_socket",				"server_pipe_name", CONFIGSETTING_ALIAS },
 		// Default settings
 		{ "enable_hosted_kopano",		"false" },	// Will only be checked when license allows hosted
@@ -867,7 +867,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "server_name",				"" }, // used by multi-server
 		{ "server_hostname",			"" }, // used by kerberos, if empty, gethostbyname is used
 		// server connections
-		{ "server_bind",				"" },
+		{"server_bind", "", CONFIGSETTING_OBSOLETE},
 		{"server_tcp_port", "236", CONFIGSETTING_NONEMPTY},
 		{"server_tcp_enabled", "no", CONFIGSETTING_NONEMPTY},
 		{"server_pipe_enabled", "yes", CONFIGSETTING_NONEMPTY},

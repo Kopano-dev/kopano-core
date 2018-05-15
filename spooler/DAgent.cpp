@@ -3397,14 +3397,14 @@ int main(int argc, char *argv[]) {
 
 	// Default settings
 	static const configsetting_t lpDefaults[] = {
-		{ "server_bind", "" },
+		{"server_bind", "", CONFIGSETTING_OBSOLETE},
 		{ "server_bind_intf", "" },
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/dagent.pid" },
 		{"coredump_enabled", "systemdefault"},
 		{"lmtp_listen", "*:2003", CONFIGSETTING_NONEMPTY},
-		{"lmtp_port", ""},
+		{"lmtp_port", "", CONFIGSETTING_OBSOLETE},
 		{ "lmtp_max_threads", "20" },
 		{ "process_model", "", CONFIGSETTING_UNUSED },
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},
