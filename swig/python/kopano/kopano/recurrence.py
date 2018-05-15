@@ -105,7 +105,8 @@ class Recurrence(object):
         # XXX add check if we actually have a recurrence, otherwise we throw a mapi exception which might not be desirable
 
         self.item = item
-        self._tz = item.get(PidLidTimeZoneStruct)
+        self._tz = item.get(PidLidTimeZoneStruct) # TODO remove
+        self._tzinfo = item.tzinfo
 
         if parse:
             self._parse()
@@ -238,7 +239,6 @@ class Recurrence(object):
 
     def occurrences(self, start=None, end=None): # XXX fit-to-period
         tz = self.item.get(PidLidTimeZoneStruct)
-        tzinfo = self.item.tzinfo
 
         recurrences = self.recurrences
         if start and end:
@@ -265,7 +265,7 @@ class Recurrence(object):
                 minutes = self._endtime_offset - self._starttime_offset
                 basedate_val = startdatetime_val
 
-            d = d.replace(tzinfo=tzinfo).astimezone().replace(tzinfo=None)
+            d = _utils._to_utc(d, self._tzinfo)
 
             occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes), subject, location, basedate_val=basedate_val, exception=exception)
             if (not start or occ.end > start) and (not end or occ.start < end):
@@ -278,13 +278,11 @@ class Recurrence(object):
 
         for exc in self._exceptions: # TODO subject etc
             if exc['original_start_date'] in (basedate_val, basedate_val - self._starttime_offset): # TODO pick one
-                start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(exc['start_datetime']))
-                start = _utils._to_gmt(start, self._tz)
+                start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(exc['start_datetime']))
                 break
         else:
             # TODO check that date is (still) valid
-            start = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(basedate_val))
-            start = _utils._to_gmt(start, self._tz)
+            start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(basedate_val))
 
         return Occurrence(
             self.item,
@@ -632,7 +630,7 @@ class Recurrence(object):
     def start(self):
         """ Start of recurrence range """
         tz_start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date))
-        return tz_start.replace(tzinfo=self.item.tzinfo).astimezone().replace(tzinfo=None)
+        return _utils._to_utc(tz_start, self._tzinfo)
 
     @_start.setter # TODO start.setter
     def _start(self, value):
@@ -647,7 +645,7 @@ class Recurrence(object):
     def end(self):
         """ End of recurrence range """
         tz_end = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date))
-        return tz_end.replace(tzinfo=self.item.tzinfo).astimezone().replace(tzinfo=None)
+        return _utils._to_utc(tz_end, self._tzinfo)
 
     @_end.setter
     def _end(self, value):
@@ -786,7 +784,6 @@ class Recurrence(object):
 
     def _update_calitem(self):
         tz = self.item.get(PidLidTimeZoneStruct)
-        tzinfo = self.item.tzinfo
         cal_item = self.item
 
         cal_item[PidLidSideEffects] = 3441 # XXX spec, check php
@@ -794,9 +791,9 @@ class Recurrence(object):
 
         # reminder
         if cal_item.get(PidLidReminderSet) and cal_item.get(PidLidReminderDelta):
-            next_date = self.recurrences.after(datetime.datetime.now(tzinfo).replace(tzinfo=None))
+            next_date = self.recurrences.after(datetime.datetime.now(self._tzinfo).replace(tzinfo=None))
             if next_date:
-                next_date = next_date.replace(tzinfo=tzinfo).astimezone().replace(tzinfo=None)
+                next_date = _utils._to_utc(next_date, self._tzinfo)
                 dueby = next_date - datetime.timedelta(minutes=cal_item.get(PidLidReminderDelta))
                 cal_item[PidLidReminderSignalTime] = dueby
             else:
@@ -1137,8 +1134,7 @@ class Occurrence(object):
     def _update(self, **kwargs):
         if self.item.recurring:
             rec = self.item.recurrence
-            basedate = datetime.datetime.fromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
-            basedate = _utils._to_gmt(basedate, rec._tz)
+            basedate = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
 
             if rec._is_exception(basedate):
                 rec._modify_exception2(basedate, **kwargs)

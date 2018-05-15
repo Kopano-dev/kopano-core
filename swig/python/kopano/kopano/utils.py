@@ -207,10 +207,10 @@ class MAPITimezone(datetime.tzinfo):
         return datetime.timedelta(minutes=-self.timezone) + self.dst(dt)
 
     def tzname(self, dt):
-        return 'MAPITimeZone()'
+        return 'MAPITimezone()'
 
     def __repr__(self):
-        return 'MAPITimeZone()'
+        return 'MAPITimezone()'
 
 def _in_dst(date, dststartmonth, dststartday, dststarthour, dstendmonth, dstendday, dstendhour):
     if dststartmonth == 0: # no DST
@@ -231,7 +231,7 @@ def _in_dst(date, dststartmonth, dststartday, dststarthour, dstendmonth, dstendd
 
     return False
 
-# XXX check doc for exact format, check php version
+# TODO deprecated by class MAPITimezone
 def _get_timezone(date, tz_data, align_dst=False):
     if tz_data is None:
         return 0
@@ -258,8 +258,8 @@ def _get_timezone(date, tz_data, align_dst=False):
 def _from_gmt(date, tz_data):
     return date - datetime.timedelta(minutes=_get_timezone(date, tz_data))
 
-def _to_gmt(date, tz_data, align_dst=False):
-    return date + datetime.timedelta(minutes=_get_timezone(date, tz_data, align_dst=align_dst))
+def _to_utc(date, tzinfo):
+    return date.replace(tzinfo=tzinfo).astimezone().replace(tzinfo=None)
 
 def arg_objects(arg, supported_classes, method_name):
     if isinstance(arg, supported_classes):
