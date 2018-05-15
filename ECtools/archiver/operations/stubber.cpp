@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
+#include <kopano/MAPIErrors.h>
 #include "ECArchiverLogger.h"
 #include "stubber.h"
 #include <kopano/MAPIErrors.h>
@@ -76,7 +77,7 @@ HRESULT Stubber::ProcessEntry(IMAPIFolder * lpFolder, const SRow &proprow)
 		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;
 	}
-	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin).c_str());
+	Logger()->logf(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin).c_str());
 	hr = lpFolder->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IECMessageRaw, MAPI_BEST_ACCESS, &ulType, &~ptrMessage);
 	if (hr == MAPI_E_NOT_FOUND) {
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Failed to open message. This can happen if the search folder is lagging.");
@@ -152,11 +153,11 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		return Logger()->perr("Failed to get attachment numbers", hr);
 
 	if (!ptrRowSet.empty()) {
-		Logger()->Log(EC_LOGLEVEL_INFO, "Removing %u attachments", ptrRowSet.size());
+		Logger()->logf(EC_LOGLEVEL_INFO, "Removing %u attachments", ptrRowSet.size());
 		for (ULONG i = 0; i < ptrRowSet.size(); ++i) {
 			hr = lpMessage->DeleteAttach(ptrRowSet[i].lpProps[0].Value.ul, 0, NULL, 0);
 			if (hr != hrSuccess) {
-				Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to delete attachment %u: %s (0x%x)",
+				Logger()->logf(EC_LOGLEVEL_FATAL, "Failed to delete attachment %u: %s (%x)",
 					i, GetMAPIErrorMessage(hr), hr);
 				return hr;
 			}

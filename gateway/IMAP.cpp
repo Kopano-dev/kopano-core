@@ -89,9 +89,8 @@ static bool Prefix(const std::string &strInput, const std::string &strPrefix)
     return (strInput.compare(0, strPrefix.size(), strPrefix) == 0);
 }
 
-IMAP::IMAP(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger,
-    ECConfig *lpConfig) :
-	ClientProto(szServerPath, lpChannel, lpLogger, lpConfig)
+IMAP::IMAP(const char *szServerPath, ECChannel *lpChannel, ECConfig *lpConfig) :
+	ClientProto(szServerPath, lpChannel, lpConfig)
 {
 	imopt_default_delivery_options(&dopt);
 	dopt.add_imap_data = true;
@@ -303,9 +302,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		{"STARTTLS", &IMAP::HrCmdStarttls}
 	};
 
-	if (lpLogger->Log(EC_LOGLEVEL_DEBUG))
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "< %s", strInput.c_str());
-
+	ec_log_debug("< %s", strInput.c_str());
 	HrSplitInput(strInput, strvResult);
 	if (strvResult.empty())
 		return MAPI_E_CALL_FAILED;
@@ -332,7 +329,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		ulByteCount = strtoul(strByteTag.c_str(), &lpcres, 10);
 		if (lpcres == strByteTag.c_str() || (*lpcres != '}' && *lpcres != '+')) {
 			// invalid tag received
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Invalid size tag received: %s", strByteTag.c_str());
+			ec_log_err("Invalid size tag received: %s", strByteTag.c_str());
 			return hr;
 		}
 		bPlus = (*lpcres == '+');
@@ -342,14 +339,13 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			try {
 				HrResponse(RESP_CONTINUE, "Ready for literal data");
 			} catch (const KMAPIError &e) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Error sending during continuation");
+				ec_log_err("Error sending during continuation");
 				return e.code();
 			}
 		}
 
 		if (ulByteCount > ulMaxMessageSize) {
-			lpLogger->Log(EC_LOGLEVEL_WARNING, "Discarding %d bytes of data", ulByteCount);
-
+			ec_log_warn("Discarding %d bytes of data", ulByteCount);
 			hr = lpChannel->HrReadAndDiscardBytes(ulByteCount);
 			if (hr != hrSuccess)
 				break;
@@ -360,24 +356,22 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 				break;
 			// replace size request with literal 
 			strvResult.back() = inBuffer;
-
-			if (lpLogger->Log(EC_LOGLEVEL_DEBUG))
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "< <%d bytes data> %s", ulByteCount, inBuffer.c_str());
+			ec_log_debug("< <%d bytes data> %s", ulByteCount, inBuffer.c_str());
 		}
 
 		hr = lpChannel->HrReadLine(inBuffer);
 		if (hr != hrSuccess) {
 			if (errno)
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to read line: %s", strerror(errno));
+				ec_log_err("Failed to read line: %s", strerror(errno));
 			else
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Client disconnected");
+				ec_log_err("Client disconnected");
 			break;
 		}
 
 		HrSplitInput(inBuffer, strvResult);
 
 		if (ulByteCount > ulMaxMessageSize) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Maximum message size reached (%u), message size is %u bytes", ulMaxMessageSize, ulByteCount);
+			ec_log_err("Maximum message size reached (%u), message size is %u bytes", ulMaxMessageSize, ulByteCount);
 			HrResponse(RESP_TAGGED_NO, strTag, "[ALERT] Maximum message size reached");
 			hr = MAPI_E_NOT_ENOUGH_MEMORY;
 			break;
@@ -604,13 +598,13 @@ HRESULT IMAP::HrCmdStarttls(const string &strTag) {
 	auto hr = lpChannel->HrEnableTLS();
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_BAD, strTag, "[ALERT] Error switching to secure SSL/TLS connection");
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Error switching to SSL in STARTTLS");
+		ec_log_err("Error switching to SSL in STARTTLS");
 		/* Let the gateway quit from the socket read loop. */
 		return MAPI_E_END_OF_SESSION;
 	}
 
 	if (lpChannel->UsingSsl())
-		lpLogger->Log(EC_LOGLEVEL_INFO, "Using SSL now");
+		ec_log_info("Using SSL now");
 	return hrSuccess;
 }
 
@@ -639,7 +633,7 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
 		HrResponse(RESP_TAGGED_NO, strTag, "[PRIVACYREQUIRED] Plaintext authentication disallowed on non-secure "
 							 "(SSL/TLS) connections.");
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s without username (tried to use disallowed plaintext auth)",
+		ec_log_err("Aborted login from [%s] without username (tried to use disallowed plaintext auth)",
 					  lpChannel->peer_addr());
 		return hrSuccess;
 	}
@@ -665,7 +659,7 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 	// vAuth[2] is the password for vAuth[1]
 		
 	if (vAuth.size() != 3) {
-		lpLogger->Log(EC_LOGLEVEL_INFO, "Invalid authentication data received, expected 3 items, have %zu items.", vAuth.size());
+		ec_log_info("Invalid authentication data received, expected 3 items, have %zu items.", vAuth.size());
 		HrResponse(RESP_TAGGED_NO, strTag, "AUTHENTICATE " + strAuthMethod + " incomplete data received");
 		return MAPI_E_LOGON_FAILED;
 	}
@@ -715,26 +709,25 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 
 		HrResponse(RESP_TAGGED_NO, strTag, "[PRIVACYREQUIRED] Plaintext authentication disallowed on non-secure "
 							 "(SSL/TLS) connections.");
-
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s with username \"%s\" (tried to use disallowed plaintext auth)",
+		ec_log_err("Aborted login from [%s] with username \"%s\" (tried to use disallowed plaintext auth)",
 					  lpChannel->peer_addr(), strUsername.c_str());
 		return hr;
 	}
 
 	if (lpSession != NULL) {
-		lpLogger->Log(EC_LOGLEVEL_INFO, "Ignoring to login TWICE for username \"%s\"", strUsername.c_str());
+		ec_log_info("Ignoring to login TWICE for username \"%s\"", strUsername.c_str());
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN Can't login twice");
 		return hr;
 	}
 
 	hr = TryConvert(strUsername, rawsize(strUsername), "windows-1252", strwUsername);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Illegal byte sequence in username");
+		ec_log_err("Illegal byte sequence in username");
 		return hr;
 	}
 	hr = TryConvert(strPass, rawsize(strPass), "windows-1252", strwPassword);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Illegal byte sequence in password");
+		ec_log_err("Illegal byte sequence in password");
 		return hr;
 	}
 
@@ -748,8 +741,8 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 	     strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(),
 	     flags, NULL, NULL);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to login from %s with invalid username \"%s\" or wrong password. Error: 0x%08X",
-					  lpChannel->peer_addr(), strUsername.c_str(), hr);
+		ec_log_warn("Failed to login from [%s] with invalid username \"%s\" or wrong password: %s (%x)",
+			lpChannel->peer_addr(), strUsername.c_str(), GetMAPIErrorMessage(hr), hr);
 		if (hr == MAPI_E_LOGON_FAILED)
 			HrResponse(RESP_TAGGED_NO, strTag, "LOGIN wrong username or password");
 		else
@@ -763,21 +756,21 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 
 	hr = HrOpenDefaultStore(lpSession, &~lpStore);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open default store");
+		ec_log_err("Failed to open default store");
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't open default store");
 		return hr;
 	}
 
 	hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open addressbook");
+		ec_log_err("Failed to open addressbook");
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't open addressbook");
 		return hr;
 	}
 
 	// check if imap access is disabled
 	if (checkFeature("imap", lpAddrBook, lpStore, PR_EC_DISABLED_FEATURES_A)) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "IMAP not enabled for user '%s'", strUsername.c_str());
+		ec_log_err("IMAP not enabled for user \"%s\"", strUsername.c_str());
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN imap feature disabled");
 		hr = MAPI_E_LOGON_FAILED;
 		return hr;
@@ -803,19 +796,18 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 	if(bShowPublicFolder){
 		hr = HrOpenECPublicStore(lpSession, &~lpPublicStore);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to open public store");
+			ec_log_warn("Failed to open public store");
 			lpPublicStore.reset();
 		}
 	}
 
 	hr = HrMakeSpecialsList();
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to find special folder properties");
+		ec_log_warn("Failed to find special folder properties");
 		HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't find special folder properties");
 		return hr;
 	}
-
-	lpLogger->Log(EC_LOGLEVEL_NOTICE, "IMAP Login from %s for user %s", lpChannel->peer_addr(), strUsername.c_str());
+	ec_log_notice("IMAP Login from [%s] for user \"%s\"", lpChannel->peer_addr(), strUsername.c_str());
 	HrResponse(RESP_TAGGED_OK, strTag, "[" + GetCapabilityString(false) + "] LOGIN completed");
 	return hr;
 }
@@ -1049,7 +1041,7 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 	// remove from subscribed list
 	hr = ChangeSubscribeList(false, cb, entry_id);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to update subscribed list for deleted folder '%ls'", strFolder.c_str());
+		ec_log_err("Unable to update subscribed list for deleted folder \"%ls\"", strFolder.c_str());
 		hr = hrSuccess;
 	}
 
@@ -1375,7 +1367,7 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
         if (MatchFolderPath(strFolderPath, strPattern)) {
 			hr = MAPI2IMAPCharset(strFolderPath, strResponse);
 			if (hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to represent foldername '%ls' in UTF-7", strFolderPath.c_str());
+				ec_log_err("Unable to represent foldername \"%ls\" in UTF-7", strFolderPath.c_str());
 				continue;
 			}
 
@@ -2643,8 +2635,7 @@ void IMAP::HrResponse(const string &strUntag, const string &strResponse)
     // Early cutoff of debug messages. This means the current process's config
     // determines if we log debug info (so HUP will only affect new processes if
     // you want debug output)
-	if (lpLogger->Log(EC_LOGLEVEL_DEBUG))
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "> %s%s", strUntag.c_str(), strResponse.c_str());
+	ec_log_debug("> %s%s", strUntag.c_str(), strResponse.c_str());
 	HRESULT hr = lpChannel->HrWriteLine(strUntag + strResponse);
 	if (hr != hrSuccess)
 		throw KMAPIError(hr);
@@ -2674,13 +2665,11 @@ void IMAP::HrResponse(const string &strResult, const string &strTag, const strin
 	else
 		++m_ulErrors;
 	if (m_ulErrors >= max_err) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Disconnecting client of user %ls because too many (%u) erroneous commands received, last reply:", m_strwUsername.c_str(), max_err);
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "%s%s%s", strTag.c_str(), strResult.c_str(), strResponse.c_str());
+		ec_log_err("Disconnecting client of user \"%ls\" because too many (%u) erroneous commands received, last reply:", m_strwUsername.c_str(), max_err);
+		ec_log_err("%s%s%s", strTag.c_str(), strResult.c_str(), strResponse.c_str());
 		throw KMAPIError(MAPI_E_END_OF_SESSION);
 	}
-		
-	if (lpLogger->Log(EC_LOGLEVEL_DEBUG))
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "> %s%s%s", strTag.c_str(), strResult.c_str(), strResponse.c_str());
+	ec_log_debug("> %s%s%s", strTag.c_str(), strResult.c_str(), strResponse.c_str());
 	HRESULT hr = lpChannel->HrWriteLine(strTag + strResult + strResponse);
 	if (hr != hrSuccess)
 		throw KMAPIError(hr);
@@ -2748,7 +2737,7 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 		     reinterpret_cast<const ENTRYID *>(lpRows[ulMailnr].lpProps[EID].Value.bin.lpb),
 		     0, ~MSGSTATUS_DELMARKED, NULL);
 		if (hr != hrSuccess)
-			lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to update message status flag during " + strCommand);
+			ec_log_warn("Unable to update message status flag during " + strCommand);
 		entry_list->lpbin[entry_list->cValues++] = lpRows[ulMailnr].lpProps[EID].Value.bin;
 	}
 
@@ -2794,8 +2783,7 @@ HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
 	// make public folder folders list
 	hr = HrGetSubTree(lstFolders, true, --lstFolders.end());
 	if (hr != hrSuccess)
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Public store is enabled in configuration, but Public Folders inside public store could not be found.");
-
+		ec_log_warn("Public store is enabled in configuration, but Public Folders inside public store could not be found.");
 	return hrSuccess;
 }
 
@@ -3212,7 +3200,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 
 		HRESULT hr = HrGetOneProp(lpPublicStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~sprop);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_WARNING, "Public store is enabled in configuration, but Public Folders inside public store could not be found.");
+			ec_log_warn("Public store is enabled in configuration, but Public Folders inside public store could not be found.");
 			return hrSuccess;
 		}
 		hr = lpPublicStore->OpenEntry(sprop->Value.bin.cb, reinterpret_cast<ENTRYID *>(sprop->Value.bin.lpb), &IID_IMAPIFolder, MAPI_DEFERRED_ERRORS, &obj_type, &~folder);
@@ -3267,7 +3255,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 
 	for (unsigned int i = 0; i < rows.size(); ++i) {
 		if (rows[i].lpProps[IMAPID].ulPropTag != PR_EC_IMAP_ID) {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Server does not support PR_EC_IMAP_ID. Please update the storage server.");
+			ec_log_err("Server does not support PR_EC_IMAP_ID. Please update the storage server.");
 			break;
 		}
 
@@ -3555,7 +3543,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
         
         // Fetch the row data
 		if (HrPropertyFetchRow(lpProps, cValues, strResponse, mail_idx, lpProp != nullptr, lstDataItems) != hrSuccess)
-            lpLogger->Log(EC_LOGLEVEL_WARNING, "{?} Error fetching mail");
+			ec_log_warn("{?} Error fetching mail");
 		else
 			HrResponse(RESP_UNTAGGED, strResponse);
 	}
@@ -3571,19 +3559,14 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 
 HRESULT IMAP::save_generated_properties(const std::string &text, IMessage *message)
 {
-	lpLogger->Log(EC_LOGLEVEL_DEBUG, "Setting IMAP props");
-
+	ec_log_debug("Setting IMAP props");
 	auto hr = createIMAPBody(text, message, true);
-	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to create IMAP body %08x", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_pwarn("Failed to create IMAP body", hr);
 	hr = message->SaveChanges(0);
 	if (hr != hrSuccess)
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to save IMAP props %08x", hr);
-
-	return hr;
+		return kc_pwarn("Failed to save IMAP props", hr);
+	return hrSuccess;
 }
 
 /** 
@@ -3808,14 +3791,14 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				// no full imap email in database available, so regenerate all
 				if (hr != hrSuccess) {
 					assert(lpMessage);
-					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Generating message");
+					ec_log_debug("Generating message");
 
 					if (oss.tellp() == std::ostringstream::pos_type(0)) {
 						// already converted in previous loop?
 						if (lpMessage == NULL) {
 							vProps.emplace_back(item);
 							vProps.emplace_back("NIL");
-							lpLogger->Log(EC_LOGLEVEL_WARNING, "K-1579: No message to pass to IMToINet. (user \"%ls\" folder \"%ls\" message %d)",
+							ec_log_warn("K-1579: No message to pass to IMToINet. (user \"%ls\" folder \"%ls\" message %d)",
 								m_strwUsername.c_str(), strCurrentFolder.c_str(), ulMailnr + 1);
 							continue;
 						}
@@ -3823,7 +3806,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 						if (hr != hrSuccess) {
 							vProps.emplace_back(item);
 							vProps.emplace_back("NIL");
-							lpLogger->Log(EC_LOGLEVEL_WARNING, "K-1580: IMToInet (user \"%ls\" folder \"%ls\" message %d): %s (%x)",
+							ec_log_warn("K-1580: IMToInet (user \"%ls\" folder \"%ls\" message %d): %s (%x)",
 								m_strwUsername.c_str(), strCurrentFolder.c_str(), ulMailnr + 1,
 								GetMAPIErrorMessage(hr), hr);
 							continue;

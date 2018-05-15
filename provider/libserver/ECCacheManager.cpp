@@ -25,6 +25,7 @@
 #include <utility>
 #include <mapidefs.h>
 #include <mapitags.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/scope.hpp>
 #include "ECDatabase.h"
 #include "ECSessionManager.h"
@@ -348,7 +349,7 @@ ECRESULT ECCacheManager::GetOwner(unsigned int ulObjId, unsigned int *ulOwner)
 	else
 		er = GetObject(ulObjId, NULL, ulOwner, NULL);
 	if (er != erSuccess)
-		LOG_CACHE_DEBUG("Get Owner for id %d error 0x%08X", ulObjId, er);
+		LOG_CACHE_DEBUG("Get owner for id %d: %s (%x)", ulObjId, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 	else
 		LOG_CACHE_DEBUG("Get Owner for id %d result [%s]: owner %d", ulObjId, ((bCacheResult)?"C":"D"), *ulOwner);
 	return er;
@@ -757,7 +758,7 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		er = KCERR_DATABASE_ERROR;
-		ec_log_err("ECCacheManager::GetUserObject(): query failed %x", er);
+		ec_perror("ECCacheManager::GetUserObject(): query failed", er);
 		goto exit;
 	}
 
@@ -790,7 +791,7 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 
 exit:
 	if (er != erSuccess)
-		LOG_USERCACHE_DEBUG("Get user object done. error 0x%08X", er);
+		LOG_USERCACHE_DEBUG("Get user object done: %s (%x)", GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 	else
 		LOG_USERCACHE_DEBUG("Get user object from externid '%s', class %d result [%s]: company %d, userid %d, signature '%s'" , bin2hex(sExternId.id).c_str(), sExternId.objclass, ((bCacheResult)?"C":"D"), ((lpulCompanyId)?*lpulCompanyId:-1), ((lpulUserId)?*lpulUserId:-1), ((lpstrSignature)?bin2hex(*lpstrSignature).c_str():"-") );
 	return er;
@@ -843,7 +844,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
-		ec_log_err("ECCacheManager::GetUserObjects() query failed %x", er);
+		ec_perror("ECCacheManager::GetUserObjects() query failed", er);
 		er = KCERR_DATABASE_ERROR;
 		goto exit;
 	}
@@ -867,7 +868,7 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 
 exit:
 	if (er != erSuccess)
-		LOG_USERCACHE_DEBUG("Get User Objects done. Error 0x%08X", er);
+		LOG_USERCACHE_DEBUG("Get user objects done: %s (%x)", GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 	else
 		LOG_USERCACHE_DEBUG("Get User Objects done. Returned objects %zu",
 			lpmapLocalObjIds->size());
@@ -1057,7 +1058,7 @@ ECRESULT ECCacheManager::GetACLs(unsigned int ulObjId, struct rightsArray **lppR
 			if(lpRow == NULL || lpRow[0] == NULL || lpRow[1] == NULL || lpRow[2] == NULL) {
 				s_free(nullptr, lpRights->__ptr);
 				s_free(nullptr, lpRights);
-				ec_log_err("ECCacheManager::GetACLs(): ROW or COLUMNS null %x", er);
+				ec_perror("ECCacheManager::GetACLs(): ROW or COLUMNS null", er);
 				return KCERR_DATABASE_ERROR;
 			}
 

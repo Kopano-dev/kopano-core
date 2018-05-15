@@ -484,7 +484,8 @@ static ECRESULT check_server_configuration(void)
 	std::lock_guard<ECSession> holder(*lpecSession);
 	er = lpecSession->GetUserManagement()->GetServerDetails(strServerName, &sServerDetails);
 	if (er != erSuccess) {
-		ec_log_crit("ERROR: Unable to find server information on LDAP for '%s', error 0x%08X. Check your server name.", strServerName.c_str(), er);
+		ec_log_crit("ERROR: Unable to find server information on LDAP for \"%s\": %s (%x). Check your server name.",
+			strServerName.c_str(), GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 		// unable to check anything else if we have no details, skip other tests
 		// we do return er, since if that is set GetServerDetails() does not work and that is quite vital to work in distributed systems.
 		return er;
@@ -1087,7 +1088,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 	g_lpAudit = CreateLogger(g_lpConfig, szName, "KopanoServer", true);
 	if (g_lpAudit)
-		g_lpAudit->Log(EC_LOGLEVEL_NOTICE, "server startup uid=%d", getuid());
+		g_lpAudit->logf(EC_LOGLEVEL_NOTICE, "server startup uid=%d", getuid());
 	else
 		ec_log_info("Audit logging not enabled.");
 
@@ -1350,7 +1351,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		g_lpSessionManager->GetSearchFolders()->RestartSearches();
 
 	// Create scheduler system
-	g_lpScheduler.reset(new(std::nothrow) ECScheduler(g_lpLogger));
+	g_lpScheduler.reset(new(std::nothrow) ECScheduler);
 	// Add a task on the scheduler
 	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 0, &SoftDeleteRemover, &g_Quit);
 	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 15, &CleanupSyncsTable);

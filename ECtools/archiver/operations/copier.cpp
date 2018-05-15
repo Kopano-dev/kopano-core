@@ -20,6 +20,7 @@
 #include <utility>
 #include <kopano/ECConfig.h>
 #include <kopano/ECRestriction.h>
+#include <kopano/MAPIErrors.h>
 #include "ECArchiverLogger.h"
 #include "copier.h"
 #include "deleter.h"
@@ -108,10 +109,10 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 	HRESULT hrTmp = ptrArchiveFolder->GetProps(sptaProps, 0, &cb, &~props);
 	if (!FAILED(hrTmp)) {
 		if (PROP_TYPE(props[0].ulPropTag) != PT_ERROR)
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder: %s", props[0].Value.lpszA);
+			m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Archive folder: \"%s\'", props[0].Value.lpszA);
 		else
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder: has no name");
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder entryid: %s", bin2hex(props[1].Value.bin).c_str());
+		m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Archive folder entryid: %s", bin2hex(props[1].Value.bin).c_str());
 	}
 	return ptrArchiveFolder->QueryInterface(IID_IMAPIFolder,
 		reinterpret_cast<LPVOID *>(lppArchiveFolder));
@@ -208,7 +209,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to get dest attachment count", hr);
 	if (ulSourceRows != ulDestRows) {
-		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Source has %u attachments, destination has %u. No idea how to match them...", ulSourceRows, ulDestRows);
+		m_lpLogger->logf(EC_LOGLEVEL_WARNING, "Source has %u attachments, destination has %u. No idea how to match them...", ulSourceRows, ulDestRows);
 		return MAPI_E_NO_SUPPORT;
 	}
 
@@ -240,34 +241,39 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 
 			hrTmp = lpSource->OpenAttach(ptrSourceRows[i].lpProps[IDX_ATTACH_NUM].Value.ul, nullptr, MAPI_DEFERRED_ERRORS, &~ptrSourceAttach);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open source attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to open source attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			hrTmp = HrGetOneProp(ptrSourceAttach, PR_ATTACH_METHOD, &~ptrAttachMethod);
 			if (hrTmp == MAPI_E_NOT_FOUND) {
-				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No PR_ATTACH_METHOD found for attachment %u, assuming NO_ATTACHMENT. So nothing to deduplicate.", i);
+				m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "No PR_ATTACH_METHOD found for attachment %u: %s (%x). Assuming NO_ATTACHMENT. So, nothing to deduplicate.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get PR_ATTACH_METHOD for attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to get PR_ATTACH_METHOD for attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			if (ptrAttachMethod->Value.ul != ATTACH_BY_VALUE) {
-				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attachment method for attachment %u is not ATTACH_BY_VALUE. So nothing to deduplicate.", i);
+				m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Attachment method for attachment %u is not ATTACH_BY_VALUE. So nothing to deduplicate.", i);
 				continue;
 			}
 			hrTmp = ptrSourceAttach->QueryInterface(iid_of(ptrInstance), &~ptrInstance);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get single instance interface for source attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Unable to get single instance interface for source attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			hrTmp = ptrInstance->GetSingleInstanceId(&cbSourceSIID, &~ptrSourceSIID);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get single instance ID for source attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Unable to get single instance ID for source attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			if (cbSourceSIID == 0 || !ptrSourceSIID) {
-				m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Got empty single instance ID for attachment %u. That's not suitable for deduplication.", i);
+				m_lpLogger->logf(EC_LOGLEVEL_WARNING, "Got empty single instance ID for attachment %u. That's not suitable for deduplication.", i);
 				continue;
 			}
 			hrTmp = m_ptrMapper->GetMappedInstanceId(ptrSourceServerUID->Value.bin, cbSourceSIID, ptrSourceSIID, ptrDestServerUID->Value.bin, &cbDestSIID, &~ptrDestSIID);
@@ -277,29 +283,34 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 				continue;
 			}
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get mapped instance ID for attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Unable to get mapped instance ID for attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			hrTmp = lpDest->OpenAttach(ptrDestRows[i].lpProps[IDX_ATTACH_NUM].Value.ul, nullptr, MAPI_DEFERRED_ERRORS, &~ptrDestAttach);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open dest attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to open dest attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 			hrTmp = ptrDestAttach->QueryInterface(iid_of(ptrInstance), &~ptrInstance);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get single instance interface for dest attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Unable to get single instance interface for dest attachment %u: %s (%x). Skipping attachment.",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 
 			hrTmp = ptrInstance->SetSingleInstanceId(cbDestSIID, ptrDestSIID);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to set single instance ID for dest attachment %u. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Unable to set single instance ID for dest attachment %u: %s (%x)",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 
 			hrTmp = ptrDestAttach->SaveChanges(0);
 			if (hrTmp != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to save single instance ID for dest attachment %u. hr=0x%08x", i, hrTmp);
+				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Unable to save single instance ID for dest attachment %u: %s (%x)",
+					i, GetMAPIErrorMessage(hrTmp), hrTmp);
 				continue;
 			}
 
@@ -420,7 +431,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 	// Set the reference to the original message
 	refObjectEntry.sStoreEntryId = lpStoreEntryId->Value.bin;
 	refObjectEntry.sItemEntryId = lpEntryId->Value.bin;
-	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin).c_str());
+	Logger()->logf(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin).c_str());
 	hr = CurrentFolder()->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IECMessageRaw, MAPI_MODIFY|fMapiDeferredErrors, &ulType, &~ptrMessageRaw);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to open message", hr);
@@ -445,7 +456,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to determine message state", hr);
 	if (state.isCopy() || state.isMove()) {
-		Logger()->Log(EC_LOGLEVEL_INFO, "Found %s archive, treating it as a new message.", (state.isCopy() ? "copied" : "moved"));
+		Logger()->logf(EC_LOGLEVEL_INFO, "Found %s archive, treating it as a new message.", (state.isCopy() ? "copied" : "moved"));
 
 		// Here we reopen the source message with destubbing enabled. This message
 		// will be used as source for creating the new archive message. Note that
@@ -480,8 +491,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 			//
 			// Alternatively we could get the previous version from another archive and copy that to this archive if the
 			// configuration dictates that old archives are linked. We won't do that though!
-
-			Logger()->Log(EC_LOGLEVEL_DEBUG, "Message not yet archived to archive (%s)", arc.sStoreEntryId.tostring().c_str());
+			Logger()->logf(EC_LOGLEVEL_DEBUG, "Message not yet archived to archive (%s)", arc.sStoreEntryId.tostring().c_str());
 			hr = DoInitialArchive(ptrMessage, arc, refObjectEntry, &ptrTransaction);
 
 		} else if (state.isDirty()) {

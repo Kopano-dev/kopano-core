@@ -45,9 +45,7 @@ static void *submitThread(void *p)
 {
 	kcsrv_blocksigs();
 	auto psc = static_cast<StatsClient *>(p);
-
-	psc -> getLogger() -> Log(EC_LOGLEVEL_DEBUG, "Submit thread started");
-
+	ec_log_debug("Submit thread started");
 	pthread_cleanup_push(submitThreadDo, p);
 
 	while(!psc -> terminate) {
@@ -57,15 +55,9 @@ static void *submitThread(void *p)
 	}
 
 	pthread_cleanup_pop(1);
-
-	psc -> getLogger() -> Log(EC_LOGLEVEL_DEBUG, "Submit thread stopping");
-
+	ec_log_debug("Submit thread stopping");
 	return NULL;
 }
-
-StatsClient::StatsClient(ECLogger *l) :
-	addr(), logger(l), countsSubmitThread()
-{}
 
 int StatsClient::startup(const std::string &collectorSocket)
 {
@@ -73,12 +65,12 @@ int StatsClient::startup(const std::string &collectorSocket)
 
 	fd = socket(AF_UNIX, SOCK_DGRAM, 0);
 	if (fd == -1) {
-		logger -> Log(EC_LOGLEVEL_ERROR, "StatsClient cannot create socket: %s", strerror(errno));
+		ec_log_err("StatsClient cannot create socket: %s", strerror(errno));
 		return -errno; /* maybe log a bit */
 	}
 
 	rand_init();
-	logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient binding socket");
+	ec_log_debug("StatsClient binding socket");
 
 	for (unsigned int retry = 3; retry > 0; --retry) {
 		struct sockaddr_un laddr;
@@ -95,8 +87,7 @@ int StatsClient::startup(const std::string &collectorSocket)
 		ret = bind(fd, reinterpret_cast<const struct sockaddr *>(&laddr),
 		      sizeof(laddr));
 		if (ret == 0) {
-			logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient bound socket to %s", laddr.sun_path);
-
+			ec_log_debug("StatsClient bound socket to %s", laddr.sun_path);
 			unlink(laddr.sun_path);
 			break;
 		}
@@ -122,13 +113,12 @@ int StatsClient::startup(const std::string &collectorSocket)
 	if (pthread_create(&countsSubmitThread, NULL, submitThread, this) == 0)
 		thread_running = true;
 	set_thread_name(countsSubmitThread, "StatsClient");
-	logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient thread started");
+	ec_log_debug("StatsClient thread started");
 	return 0;
 }
 
 StatsClient::~StatsClient() {
-	logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient terminating");
-
+	ec_log_debug("StatsClient terminating");
 	terminate = true;
 	if (thread_running) {
 		// interrupt sleep()
@@ -137,8 +127,7 @@ StatsClient::~StatsClient() {
 		pthread_join(countsSubmitThread, &dummy);
 	}
 	close(fd);
-
-	logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient terminated");
+	ec_log_debug("StatsClient terminated");
 }
 
 void StatsClient::submit(const std::string & key, const time_t ts, const double value) {
@@ -153,7 +142,7 @@ void StatsClient::submit(const std::string & key, const time_t ts, const double 
 		int rc = sendto(fd, msg, len, 0, (struct sockaddr *)&addr, addr_len);
 
 		if (rc == -1)
-			logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient submit float failed: %s", strerror(errno));
+			ec_log_debug("StatsClient submit float failed: %s", strerror(errno));
 	}
 }
 
@@ -171,7 +160,7 @@ void StatsClient::submit(const std::string & key, const time_t ts, const int64_t
 		int rc = sendto(fd, msg, len, 0, (struct sockaddr *)&addr, addr_len);
 
 		if (rc == -1)
-			logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient submit int failed: %s", strerror(errno));
+			ec_log_debug("StatsClient submit int failed: %s", strerror(errno));
 	}
 }
 

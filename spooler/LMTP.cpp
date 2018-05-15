@@ -203,8 +203,8 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 		message += inBuffer + "\r\n";
 	}
 #if 0
-	if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG + 1)) // really hidden output (limited to 10k in logger)
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Received message:\n" + message);
+	if (ec_log(EC_LOGLEVEL_DEBUG + 1)) // really hidden output (limited to 10k in logger)
+		ec_log_debug("Received message:\n" + message);
 #endif
 	return hrSuccess;
 }

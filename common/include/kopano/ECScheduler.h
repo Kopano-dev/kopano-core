@@ -21,7 +21,6 @@
 #include <kopano/zcdefs.h>
 #include <condition_variable>
 #include <mutex>
-#include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
 #include <pthread.h>
 #include <list>
@@ -49,7 +48,7 @@ typedef std::list<ECSCHEDULE> ECScheduleList;
 
 class _kc_export ECScheduler _kc_final {
 public:
-	ECScheduler(ECLogger *lpLogger);
+	ECScheduler();
 	~ECScheduler(void);
 
 	HRESULT AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle, void* (*lpFunction)(void*), void* lpData = NULL);
@@ -59,7 +58,6 @@ private:
 	_kc_hidden static void *ScheduleThread(void *tmp_scheduler);
 
 	ECScheduleList		m_listScheduler;
-	object_ptr<ECLogger> m_lpLogger;
 	bool m_bExit = false;
 	std::mutex m_hExitMutex; /* Mutex needed for the release signal */
 	std::condition_variable m_hExitSignal; /* Signal that should be sent to the Scheduler when to exit */

@@ -96,7 +96,7 @@ static void sighup(int sig)
 
 	const char *ll = g_lpConfig->GetSetting("log_level");
 	int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
-	g_lpLogger->SetLoglevel(new_ll);
+	ec_log_get()->SetLoglevel(new_ll);
 
 	if (strlen(g_lpConfig->GetSetting("ssl_private_key_file")) > 0 &&
 		strlen(g_lpConfig->GetSetting("ssl_certificate_file")) > 0) {
@@ -105,7 +105,7 @@ static void sighup(int sig)
 		else
 			ec_log_info("Reloaded SSL context");
 	}
-	g_lpLogger->Reset();
+	ec_log_get()->Reset();
 	ec_log_info("Log connection was reset");
 }
 
@@ -156,9 +156,9 @@ static void *Handler(void *lpArg)
 	// szPath is global, pointing to argv variable, or lpConfig variable
 	ClientProto *client;
 	if (lpHandlerArgs->type == ST_POP3)
-		client = new POP3(szPath, lpChannel, lpLogger, lpConfig);
+		client = new POP3(szPath, lpChannel, lpConfig);
 	else
-		client = new IMAP(szPath, lpChannel, lpLogger, lpConfig);
+		client = new IMAP(szPath, lpChannel, lpConfig);
 	// not required anymore
 	delete lpHandlerArgs;
 
@@ -173,7 +173,7 @@ static void *Handler(void *lpArg)
 	int timeouts = 0;
 
 	if (bUseSSL && lpChannel->HrEnableTLS() != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to negotiate SSL connection");
+		ec_log_err("Unable to negotiate SSL connection");
 		goto exit;
 	}
 
@@ -194,11 +194,11 @@ static void *Handler(void *lpArg)
 				continue;
 			// close idle first, so we don't have a race condition with the channel
 			client->HrCloseConnection("BYE Connection closed because of timeout");
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Connection closed because of timeout");
+			ec_log_err("Connection closed because of timeout");
 			bQuit = true;
 			break;
 		} else if (hr == MAPI_E_NETWORK_ERROR) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Socket error: %s", strerror(errno));
+			ec_log_err("Socket error: %s", strerror(errno));
 			bQuit = true;
 			break;
 		}
@@ -209,9 +209,9 @@ static void *Handler(void *lpArg)
 		hr = lpChannel->HrReadLine(inBuffer);
 		if (hr != hrSuccess) {
 			if (errno)
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to read line: %s", strerror(errno));
+				ec_log_err("Failed to read line: %s", strerror(errno));
 			else
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Client disconnected");
+				ec_log_err("Client disconnected");
 			bQuit = true;
 			break;
 		}
@@ -241,18 +241,17 @@ static void *Handler(void *lpArg)
 		}
 
 		if (hr == MAPI_E_NETWORK_ERROR) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Connection error.");
+			ec_log_err("Connection error.");
 			bQuit = true;
 		}
 		if (hr == MAPI_E_END_OF_SESSION) {
-			lpLogger->Log(EC_LOGLEVEL_NOTICE, "Disconnecting client.");
+			ec_log_notice("Disconnecting client.");
 			bQuit = true;
 		}
 	}
 
 exit:
-	lpLogger->Log(EC_LOGLEVEL_NOTICE, "Client %s thread exiting", lpChannel->peer_addr());
-
+	ec_log_notice("Client %s thread exiting", lpChannel->peer_addr());
 	client->HrDone(false);	// HrDone does not send an error string to the client
 	delete client;
 

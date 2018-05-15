@@ -498,8 +498,8 @@ static HRESULT kc_send_fwdabort_notice(IMsgStore *store, const wchar_t *addr, co
 		return kc_perror("K-3284: commit", hr);
 	hr = HrNewMailNotification(store, msg);
 	if (hr != hrSuccess)
-		ec_log_warn("K-3285: NewMailNotification: 0x%08x %s", hr, GetMAPIErrorMessage(hr));
-	return hr;
+		return kc_pwarn("K-3285: NewMailNotification", hr);
+	return hrSuccess;
 }
 
 /** 
@@ -926,7 +926,8 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	static constexpr const SizedSPropTagArray(5, sptaStoreProps) = {3, {PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL,}};
 	hr = lpOrigStore->GetProps(sptaStoreProps, 0, &cValues, &~OOFProps);
 	if (FAILED(hr)) {
-		ec_log_err("lpOrigStore->GetProps failed(%x) - OOF-state unavailable", hr);
+		ec_log_err("lpOrigStore->GetProps failed: %s (%x) - OOF-state unavailable",
+			GetMAPIErrorMessage(hr), hr);
 	} else {
 		bOOFactive = OOFProps[0].ulPropTag == PR_EC_OUTOFOFFICE && OOFProps[0].Value.b;
 
@@ -1012,7 +1013,8 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		// @todo: Create the correct locale for the current store.
 		hr = TestRestriction(lpCondition, *lppMessage, createLocaleFromName(""));
 		if (hr != hrSuccess) {
-			ec_log_info("Rule %s doesn't match: 0x%08x", strRule.c_str(), hr);
+			ec_log_info("Rule \"%s\" does not match: %s (%x)", strRule.c_str(),
+				GetMAPIErrorMessage(hr), hr);
 			continue;
 		}	
 		ec_log_info("Rule "s + strRule + " matches");

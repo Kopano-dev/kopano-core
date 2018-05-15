@@ -163,7 +163,7 @@ ZEND_END_ARG_INFO()
 #define LOG_END() do { \
 	if (mapi_debug & 2) { \
 		HRESULT hrx =  MAPI_G(hr); \
-		php_error_docref(nullptr TSRMLS_CC, E_NOTICE, "[OUT] %s hr=0x%08x", __FUNCTION__, hrx); \
+		php_error_docref(nullptr TSRMLS_CC, E_NOTICE, "[OUT] %s: %s (%x)", __FUNCTION__, GetMAPIErrorMessage(hrx), hrx); \
 	} \
 } while (false)
 
@@ -277,7 +277,7 @@ pmeasure::~pmeasure(void)
 	FILE *fh = fopen(perf_measure_file, "a+");
 	if (fh == NULL) {
 		if (lpLogger != NULL)
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "~pmeasure: cannot open \"%s\": %s", perf_measure_file, strerror(errno));
+			lpLogger->logf(EC_LOGLEVEL_ERROR, "~pmeasure: cannot open \"%s\": %s", perf_measure_file, strerror(errno));
 		return;
 	}
 	using namespace std::chrono;
@@ -569,7 +569,7 @@ static int LoadSettingsFile(void)
 	lpLogger->Log(EC_LOGLEVEL_INFO, "php7-mapi " PROJECT_VERSION " instantiated");
 	ec_log_set(lpLogger);
 	if (mapi_debug)
-		lpLogger->Log(EC_LOGLEVEL_INFO, "PHP-MAPI trace level set to %d", mapi_debug);
+		lpLogger->logf(EC_LOGLEVEL_INFO, "PHP-MAPI trace level set to %d", mapi_debug);
 	return SUCCESS;
 }
 
@@ -631,7 +631,7 @@ PHP_MINIT_FUNCTION(mapi) {
 #define THROW_ON_ERROR() \
 	if (FAILED(MAPI_G(hr))) { \
 		if (lpLogger) \
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr), __FUNCTION__, __LINE__); \
+			lpLogger->logf(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr), __FUNCTION__, __LINE__); \
 			\
 		if (MAPI_G(exceptions_enabled)) \
 			zend_throw_exception(MAPI_G(exception_ce), "MAPI error ", MAPI_G(hr)  TSRMLS_CC); \
@@ -1180,7 +1180,8 @@ ZEND_FUNCTION(mapi_ab_getdefaultdir) {
 
 	MAPI_G(hr) = lpAddrBook->GetDefaultDir(&cbEntryID, &~lpEntryID);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed GetDefaultDir  of the addressbook. Error code: 0x%08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Failed GetDefaultDir of addressbook: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -1214,7 +1215,8 @@ ZEND_FUNCTION(mapi_getmsgstorestable)
 	MAPI_G(hr) = lpSession->GetMsgStoresTable(0, &lpTable);
 
 	if (FAILED(MAPI_G(hr))) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to fetch the message store table: 0x%08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to fetch the message store table: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 	ZEND_REGISTER_RESOURCE(return_value, lpTable, le_mapi_table);
@@ -1251,7 +1253,8 @@ ZEND_FUNCTION(mapi_openmsgstore)
 	MAPI_G(hr) = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, 0, MAPI_BEST_ACCESS | MDB_NO_DIALOG, &pMDB);
 
 	if (FAILED(MAPI_G(hr))) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to open the messagestore: 0x%08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to open message store: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 	ZEND_REGISTER_RESOURCE(return_value, pMDB, le_mapi_msgstore);
@@ -2075,7 +2078,8 @@ ZEND_FUNCTION(mapi_table_queryrows)
 		MAPI_G(hr) = lpTable->SetColumns(lpTagArray, TBL_BATCH);
 
 		if (FAILED(MAPI_G(hr))) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "SetColumns failed. Error code %08X", MAPI_G(hr));
+			php_error_docref(nullptr TSRMLS_CC, E_WARNING, "SetColumns failed: %s (%x)",
+				GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 			return;
 		}
 	}
@@ -2085,7 +2089,8 @@ ZEND_FUNCTION(mapi_table_queryrows)
 		MAPI_G(hr) = lpTable->SeekRow(BOOKMARK_BEGINNING, start, NULL);
 
 		if (FAILED(MAPI_G(hr))) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Seekrow failed. Error code %08X", MAPI_G(hr));
+			php_error_docref(nullptr TSRMLS_CC, E_WARNING, "SeekRow failed: %s (%x)",
+				GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 			return;
 		}
 	}
@@ -2139,7 +2144,8 @@ ZEND_FUNCTION(mapi_table_setcolumns)
 	MAPI_G(hr) = lpTable->SetColumns(lpTagArray, lFlags);
 
 	if (FAILED(MAPI_G(hr))) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "SetColumns failed. Error code %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "SetColumns failed: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -2177,7 +2183,8 @@ ZEND_FUNCTION(mapi_table_seekrow)
 	MAPI_G(hr) = lpTable->SeekRow((BOOKMARK)lbookmark, lRowCount, (LONG*)&lRowsSought);
 
 	if (FAILED(MAPI_G(hr))) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Seekrow failed. Error code %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "SeekRow failed: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -2373,7 +2380,8 @@ ZEND_FUNCTION(mapi_table_createbookmark)
 	MAPI_G(hr) = lpTable->CreateBookmark((BOOKMARK*)&lbookmark);
 
 	if (FAILED(MAPI_G(hr))) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Create bookmark failed. Error code %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Create bookmark failed: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -2408,7 +2416,8 @@ ZEND_FUNCTION(mapi_table_freebookmark)
 	MAPI_G(hr) = lpTable->FreeBookmark((BOOKMARK)lbookmark);
 
 	if (FAILED(MAPI_G(hr))) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Free bookmark failed. Error code %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Free bookmark failed: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -3160,7 +3169,8 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 
 	MAPI_G(hr) = lpMessageStore->GetIDsFromNames(hashTotal, lppNamePropId, MAPI_CREATE, &~lpPropTagArray);
 	if (FAILED(MAPI_G(hr))) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "GetIDsFromNames failed with error code %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "GetIDsFromNames failed: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	} else {
 		array_init(return_value);
@@ -3342,7 +3352,8 @@ ZEND_FUNCTION(mapi_savechanges)
 	MAPI_G(hr) = lpMapiProp->SaveChanges(flags);
 
 	if (FAILED(MAPI_G(hr)))
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed to save the object %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Failed to save object: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 	else
 		RETVAL_TRUE;
 }
@@ -3684,7 +3695,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 	// make and fill the stream
 	MAPI_G(hr) = CreateStreamOnHGlobal(nullptr, true, &~pStream);
 	if (MAPI_G(hr) != hrSuccess || pStream == NULL) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to CreateStreamOnHGlobal %x", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to CreateStreamOnHGlobal: %s (%x)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -3693,7 +3704,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 	pStream->Seek(begin, SEEK_SET, NULL);
 	MAPI_G(hr) = WrapCompressedRTFStream(pStream, 0, &~deCompressedStream);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to wrap uncompressed stream %x", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to wrap uncompressed stream: %s (%x)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -3707,7 +3718,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 	while(1) {
 		MAPI_G(hr) = deCompressedStream->Read(htmlbuf.get(), bufsize, &cbRead);
 		if (MAPI_G(hr) != hrSuccess) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Read from uncompressed stream failed %x", MAPI_G(hr));
+			php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Read from uncompressed stream failed: %s (%x)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 			return;
 		}
 
@@ -4070,13 +4081,15 @@ ZEND_FUNCTION(mapi_zarafa_deleteuser)
 	}
 	MAPI_G(hr) = lpServiceAdmin->ResolveUserName((TCHAR*)lpszUserName, 0, &cbUserId, &~lpUserId);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to delete user, Can't resolve user: %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to resolve/delete user: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
 	MAPI_G(hr) = lpServiceAdmin->DeleteUser(cbUserId, lpUserId);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to delete user: %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to delete user: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -4114,7 +4127,8 @@ ZEND_FUNCTION(mapi_zarafa_createstore)
 	}
 	MAPI_G(hr) = lpServiceAdmin->CreateStore(ulStoreType, cbUserId, lpUserId, &cbStoreID, &~lpStoreID, &cbRootID, &~lpRootID);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to modify user: %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to modify user: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -4351,13 +4365,15 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_name)
 	}
 	MAPI_G(hr) = lpServiceAdmin->ResolveUserName((TCHAR*)lpszUsername, 0, (ULONG*)&cbUserId, &~lpUserId);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to resolve the user: %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to resolve user: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 
 	}
 	MAPI_G(hr) = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpUsers);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to get the user: %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to get user: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -4406,7 +4422,8 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_id)
 	}
 	MAPI_G(hr) = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpUsers);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to get the user: %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to get user: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -4450,7 +4467,8 @@ ZEND_FUNCTION(mapi_zarafa_creategroup)
 	sGroup.lpszFullname = sGroup.lpszGroupname;
 	MAPI_G(hr) = lpServiceAdmin->CreateGroup(&sGroup, 0, (ULONG*)&cbGroupId, &~lpGroupId);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to create group: %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to create group: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -4487,7 +4505,8 @@ ZEND_FUNCTION(mapi_zarafa_deletegroup)
 	}
 	MAPI_G(hr) = lpServiceAdmin->ResolveGroupName((TCHAR*)lpszGroupname, 0, (ULONG*)&cbGroupId, &~lpGroupId);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Group not found: %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Group not found: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -4673,7 +4692,8 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_name)
 	}
 	MAPI_G(hr) = lpServiceAdmin->ResolveGroupName((TCHAR*)lpszGroupname, 0, (ULONG*)&cbGroupId, &~lpGroupId);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to resolve the group: %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to resolve group: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 	MAPI_G(hr) = lpServiceAdmin->GetGroup(cbGroupId, lpGroupId, 0, &~lpsGroup);
@@ -4854,7 +4874,8 @@ ZEND_FUNCTION(mapi_zarafa_createcompany)
 	}
 	MAPI_G(hr) = lpServiceAdmin->CreateCompany(&sCompany, 0, (ULONG*)&cbCompanyId, &~lpCompanyId);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to create company: %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Unable to create company: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -4892,7 +4913,8 @@ ZEND_FUNCTION(mapi_zarafa_deletecompany)
 	}
 	MAPI_G(hr) = lpServiceAdmin->ResolveCompanyName((TCHAR*)lpszCompanyname, 0, (ULONG*)&cbCompanyId, &~lpCompanyId);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Company not found: %08X", MAPI_G(hr));
+		php_error_docref(nullptr TSRMLS_CC, E_WARNING, "Company not found: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 
@@ -4972,7 +4994,8 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_name)
 	}
 	MAPI_G(hr) = lpServiceAdmin->ResolveCompanyName((TCHAR*)lpszCompanyname, 0, (ULONG*)&cbCompanyId, &~lpCompanyId);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to resolve the company: %08X", MAPI_G(hr));
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to resolve company: %s (%x)",
+			GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr));
 		return;
 	}
 	MAPI_G(hr) = lpServiceAdmin->GetCompany(cbCompanyId, lpCompanyId, 0, &~lpsCompany);

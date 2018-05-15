@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 
 #include <kopano/ECGuid.h>
+#include <kopano/MAPIErrors.h>
 #include "ics.h"
 #include "pcutil.hpp"
 
@@ -243,17 +244,16 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
 		hr = hrSuccess;
 
 	else if (hr == MAPI_E_INVALID_TYPE) {
-		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Ignoring invalid entry, type=%04x, sourcekey=%s",
+		m_lpLogger->logf(EC_LOGLEVEL_WARNING, "Ignoring invalid entry, type=%04x, sourcekey=%s",
 			m_lpChanges[m_ulThisChange].ulChangeType,
 			bin2hex(m_lpChanges[m_ulThisChange].sSourceKey).c_str());
 		hr = hrSuccess;
 	}
 
 	else if (hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "failed type=%04x, sourcekey=%s, error=%s (0x%x)",
-			m_lpChanges[m_ulThisChange].ulChangeType,
-			bin2hex(m_lpChanges[m_ulThisChange].sSourceKey).c_str(),
-			GetMAPIErrorMessage(hr), hr);
+		ZLOG_DEBUG(m_lpLogger, "failed type=%04x, %s, hr=%x, sourcekey=%s",
+			m_lpChanges[m_ulThisChange].ulChangeType, GetMAPIErrorMessage(hr), hr,
+			bin2hex(m_lpChanges[m_ulThisChange].sSourceKey).c_str());
 		return hr;
 	}
 

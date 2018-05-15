@@ -47,6 +47,7 @@ using namespace KC;
 using std::cout;
 using std::endl;
 
+static object_ptr<ECLogger> g_lpLogger;
 static std::unique_ptr<ECTHREADMONITOR> m_lpThreadMonitor;
 static std::mutex m_hExitMutex;
 static std::condition_variable m_hExitSignal;
@@ -58,19 +59,21 @@ static HRESULT running_service(void)
 	AutoMAPI mapiinit;
 	auto hr = mapiinit.Initialize(nullptr);
 	if (hr != hrSuccess) {
-		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize MAPI");
+		ec_log_crit("Unable to initialize MAPI");
 		return hr;
 	}
-	std::unique_ptr<ECScheduler> lpECScheduler(new ECScheduler(m_lpThreadMonitor->lpLogger));
+	std::unique_ptr<ECScheduler> lpECScheduler(new(std::nothrow) ECScheduler);
+	if (lpECScheduler == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	unsigned int ulInterval = atoi(m_lpThreadMonitor->lpConfig->GetSetting("quota_check_interval", nullptr, "15"));
 	if (ulInterval == 0)
 		ulInterval = 15;
-	m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting kopano-monitor version " PROJECT_VERSION " (pid %d)", getpid());
+	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-monitor version " PROJECT_VERSION " (pid %d)", getpid());
 
 	// Add Quota monitor
 	hr = lpECScheduler->AddSchedule(SCHEDULE_MINUTES, ulInterval, ECQuotaMonitor::Create, m_lpThreadMonitor.get());
 	if (hr != hrSuccess) {
-		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to add quota monitor schedule");
+		ec_log_crit("Unable to add quota monitor schedule");
 		return hr;
 	}
 	ulock_normal l_exit(m_hExitMutex);
@@ -87,8 +90,7 @@ static void sighandle(int sig)
 	if (m_lpThreadMonitor) {
 		if (!m_lpThreadMonitor->bShutdown)
 			/* do not log multimple shutdown messages */
-			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_NOTICE, "Termination requested, shutting down.");
-	
+			ec_log_notice("Termination requested, shutting down.");
 		m_lpThreadMonitor->bShutdown = true;
 	}
 	m_hExitSignal.notify_one();
@@ -103,25 +105,22 @@ static void sighup(int signr)
 	if (m_lpThreadMonitor == NULL)
 		return;
 	if (m_lpThreadMonitor->lpConfig != NULL &&
-	    !m_lpThreadMonitor->lpConfig->ReloadSettings() &&
-	    m_lpThreadMonitor->lpLogger != NULL)
-		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to reload configuration file, continuing with current settings.");
-	if (m_lpThreadMonitor->lpLogger == NULL)
-		return;
+	    !m_lpThreadMonitor->lpConfig->ReloadSettings())
+		ec_log_warn("Unable to reload configuration file, continuing with current settings.");
 	if (m_lpThreadMonitor->lpConfig) {
 		const char *ll = m_lpThreadMonitor->lpConfig->GetSetting("log_level");
 		int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
-		m_lpThreadMonitor->lpLogger->SetLoglevel(new_ll);
+		ec_log_get()->SetLoglevel(new_ll);
 	}
 
-	m_lpThreadMonitor->lpLogger->Reset();
-	m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_WARNING, "Log connection was reset");
+	ec_log_get()->Reset();
+	ec_log_warn("Log connection was reset");
 }
 
 // SIGSEGV catcher
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
-	generic_sigsegv_handler(m_lpThreadMonitor->lpLogger, "kopano-monitor", PROJECT_VERSION, signr, si, uc);
+	generic_sigsegv_handler(ec_log_get(), "kopano-monitor", PROJECT_VERSION, signr, si, uc);
 }
 
 static void print_help(const char *name)
@@ -236,10 +235,8 @@ static ECRESULT main2(int argc, char **argv)
 	    m_lpThreadMonitor->lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors())) {
 		/* Create fatal logger without a timestamp to stderr. */
-		m_lpThreadMonitor->lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false), false);
-		if (m_lpThreadMonitor->lpLogger == nullptr)
-			return MAPI_E_NOT_ENOUGH_MEMORY;
-		ec_log_set(m_lpThreadMonitor->lpLogger.get());
+		g_lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false));
+		ec_log_set(g_lpLogger);
 		LogConfigErrors(m_lpThreadMonitor->lpConfig.get());
 		return E_FAIL;
 	}
@@ -249,8 +246,8 @@ static ECRESULT main2(int argc, char **argv)
 	mainthread = pthread_self();
 
 	// setup logging
-	m_lpThreadMonitor->lpLogger.reset(CreateLogger(m_lpThreadMonitor->lpConfig.get(), argv[0], "Kopano-Monitor"));
-	ec_log_set(m_lpThreadMonitor->lpLogger.get());
+	g_lpLogger.reset(CreateLogger(m_lpThreadMonitor->lpConfig.get(), argv[0], "Kopano-Monitor"));
+	ec_log_set(g_lpLogger);
 	if ((bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors()) || m_lpThreadMonitor->lpConfig->HasWarnings())
 		LogConfigErrors(m_lpThreadMonitor->lpConfig.get());
 

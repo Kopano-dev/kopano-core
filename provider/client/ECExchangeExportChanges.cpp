@@ -217,7 +217,8 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 	hr = HrDecodeSyncStateStream(m_lpStream, &ulSyncId, &ulChangeId, &m_setProcessedChanges);
 	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Unable to decode sync state stream, hr=0x%08x", hr);
+		ZLOG_DEBUG(m_lpLogger, "Unable to decode sync state stream: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
@@ -241,7 +242,8 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		// Register our sync with the server, get a sync ID
 		hr = m_lpStore->lpTransport->HrSetSyncStatus(sourcekey, ulSyncId, ulChangeId, m_ulSyncType, 0, &ulSyncId);
 		if(hr != hrSuccess) {
-			ZLOG_DEBUG(m_lpLogger, "Unable to update sync status on server, hr=0x%08x", hr);
+			ZLOG_DEBUG(m_lpLogger, "Unable to update sync status on server: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 
@@ -253,15 +255,14 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	MAPIFreeBuffer(m_lpChanges);
 	hr = m_lpStore->lpTransport->HrGetChanges(sourcekey, ulSyncId, ulChangeId, m_ulSyncType, ulFlags, m_lpRestrict, &m_ulMaxChangeId, &m_ulChanges, &~m_lpChanges);
 	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Unable to get changes from server, hr=0x%08x", hr);
+		ZLOG_DEBUG(m_lpLogger, "Unable to get changes from server: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
 
 	m_ulSyncId = ulSyncId;
 	m_ulChangeId = ulChangeId;
-
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "folder: %ls changes: %u syncid: %u changeid: %u", m_strDisplay.c_str(), m_ulChanges, m_ulSyncId, m_ulChangeId);
-
+	m_lpLogger->logf(EC_LOGLEVEL_INFO, "folder=\"%ls\" changes=%u syncid=%u changeid=%u", m_strDisplay.c_str(), m_ulChanges, m_ulSyncId, m_ulChangeId);
 	/**
 	 * Filter the changes.
 	 * How this works:
@@ -455,7 +456,8 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgre
 		else
 			hr = m_lpImportHierarchy->UpdateState(NULL);
 		if(hr != hrSuccess) {
-			ZLOG_DEBUG(m_lpLogger, "Importer state update failed, hr=0x%08x", hr);
+			ZLOG_DEBUG(m_lpLogger, "Importer state update failed: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
 	}
@@ -485,8 +487,7 @@ progress:
 						snprintf(szDuration, sizeof(szDuration), "%u:%02u.%03u min.", (unsigned)(dblDuration / 60), (unsigned)dblDuration % 60, (unsigned)(dblDuration * 1000 + .5) % 1000);
 					else
 						snprintf(szDuration, sizeof(szDuration), "%u.%03u s.", (unsigned)dblDuration % 60, (unsigned)(dblDuration * 1000 + .5) % 1000);
-
-					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "folder changes synchronized in %s", szDuration);
+					m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "folder changes synchronized in %s", szDuration);
 				} else
 					m_lpLogger->Log(EC_LOGLEVEL_INFO, "folder changes synchronized");
 			}
@@ -667,8 +668,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				hr = hrSuccess;
 				goto next;
 			}
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
-
+			m_lpLogger->logf(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
 			if(hr != hrSuccess) {
 				ZLOG_DEBUG(m_lpLogger, "Error while getting entryid from sourcekey %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
 				goto exit;
@@ -727,7 +727,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			goto next;
 		// TODO handle SYNC_E_OBJECT_DELETED, SYNC_E_CONFLICT, SYNC_E_NO_PARENT, SYNC_E_INCEST, SYNC_E_UNSYNCHRONIZED
 		}else if(hr != hrSuccess){
-			//m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s (0x%x)", GetMAPIErrorMessage(hr), hr);
+			//m_lpLogger->perr("change error", hr);
 			ZLOG_DEBUG(m_lpLogger, "Error during message import");
 			goto exit;
 		}
@@ -868,8 +868,7 @@ next:
 		hr = SYNC_W_PROGRESS;
 exit:
 	if(hr != hrSuccess && hr != SYNC_W_PROGRESS)
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s (0x%x)",
-			GetMAPIErrorMessage(hr), hr);
+		m_lpLogger->perr("change error", hr);
 	return hr;
 }
 
@@ -1024,7 +1023,7 @@ HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 
 exit:
 	if (hr != hrSuccess)
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to sync message flags, 0x%08X", hr);
+		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Failed to sync message flags, 0x%08X", hr);
 	return hr;
 }
 
@@ -1101,7 +1100,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 				hr = hrSuccess;
 				goto next;
 			}
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
+			m_lpLogger->logf(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
 			hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
 			if(hr != hrSuccess){
 				hr = hrSuccess;
@@ -1146,12 +1145,10 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 			hr = hrSuccess;
 			goto next;
 		}else if(FAILED(hr)) {
-			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s (0x%x)",
-				GetMAPIErrorMessage(hr), hr);
+			m_lpLogger->perr("change error", hr);
 			return hr;
 		}else if(hr != hrSuccess){
-			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "change warning: %s (0x%x)",
-				GetMAPIErrorMessage(hr), hr);
+			m_lpLogger->pwarn("change warning", hr);
 		}
 next:
 		// Mark this change as processed
@@ -1335,7 +1332,7 @@ void ECExchangeExportChanges::LogMessageProps(int loglevel, ULONG cValues, LPSPr
 	auto lpPropHierarchyId = PCpropFindProp(lpPropArray, cValues, PR_EC_HIERARCHYID);
 	auto lpPropParentId = PCpropFindProp(lpPropArray, cValues, PR_EC_PARENT_HIERARCHYID);
 
-	m_lpLogger->Log(loglevel, "ExportFast:   Message info: id=%u, parentid=%u, msgflags=%x, entryid=%s, sourcekey=%s",
+	m_lpLogger->logf(loglevel, "ExportFast:   Message info: id=%u, parentid=%u, msgflags=%x, entryid=%s, sourcekey=%s",
 		lpPropHierarchyId != NULL ? lpPropHierarchyId->Value.ul : 0,
 		lpPropParentId != NULL ? lpPropParentId->Value.ul : 0,
 		lpPropFlags != NULL ? lpPropFlags->Value.ul : 0,

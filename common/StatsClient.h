@@ -36,10 +36,9 @@ namespace KC {
 class _kc_export StatsClient _kc_final {
 private:
 	int fd = -1;
-	struct sockaddr_un addr;
+	struct sockaddr_un addr{};
 	int addr_len = 0;
 	bool thread_running = false;
-	object_ptr<ECLogger> logger;
 	pthread_t countsSubmitThread;
 public:
 	std::atomic<bool> terminate{false};
@@ -47,11 +46,9 @@ public:
 	std::map<std::string, double> countsMapDouble;
 	std::map<std::string, int64_t> countsMapInt64;
 
-	StatsClient(ECLogger *);
 	~StatsClient();
 
 	int startup(const std::string &collector);
-	_kc_hidden inline ECLogger *getLogger() const { return logger; }
 	void countInc(const std::string & key, const std::string & key_sub);
 	_kc_hidden void countAdd(const std::string &key, const std::string &key_sub, double n);
 	void countAdd(const std::string & key, const std::string & key_sub, const int64_t n);

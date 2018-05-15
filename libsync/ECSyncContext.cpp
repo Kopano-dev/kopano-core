@@ -272,7 +272,7 @@ HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULON
 		auto iterNotifiedSyncId = m_mapNotifiedSyncIds.find(sSyncState.ulSyncId);
 		if (iterNotifiedSyncId == m_mapNotifiedSyncIds.cend()) {
 			*lpulSteps = 0;
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "GetSteps: sourcekey=%s, syncid=%u, notified=yes, steps=0 (unsignalled)", bin2hex(*lpSourceKey).c_str(), sSyncState.ulSyncId);
+			m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "GetSteps: sourcekey=%s, syncid=%u, notified=yes, steps=0 (unsignalled)", bin2hex(*lpSourceKey).c_str(), sSyncState.ulSyncId);
 			lk.unlock();
 			return hr;
 		}
@@ -321,7 +321,7 @@ fallback:
 	}
 
 	*lpulSteps = ulChangeCount;
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "GetSteps: sourcekey=%s, syncid=%u, notified=%s, steps=%u",
+	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "GetSteps: sourcekey=%s, syncid=%u, notified=%s, steps=%u",
 		bin2hex(*lpSourceKey).c_str(), sSyncState.ulSyncId,
 		(bNotified ? "yes" : "no"), *lpulSteps);
 	return hrSuccess;
@@ -636,7 +636,7 @@ ULONG ECSyncContext::OnChange(ULONG ulFlags, LPENTRYLIST lpEntryList)
 		ULONG ulChangeId = CHANGEID(lpEntryList->lpbin[i].lpb);
 		m_mapNotifiedSyncIds[ulSyncId] = ulChangeId;
 
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "change notification: syncid=%u, changeid=%u", ulSyncId, ulChangeId);
+		m_lpLogger->logf(EC_LOGLEVEL_INFO, "change notification: syncid=%u, changeid=%u", ulSyncId, ulChangeId);
 	}
 	return 0;
 }

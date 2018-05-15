@@ -143,7 +143,7 @@ public:
 // FLAGS: \Seen \Answered \Flagged \Deleted \Draft \Recent
 class IMAP _kc_final : public ClientProto {
 public:
-	IMAP(const char *path, KC::ECChannel *, KC::ECLogger *, KC::ECConfig *);
+	IMAP(const char *path, KC::ECChannel *, KC::ECConfig *);
 	~IMAP();
 
 	// getTimeoutMinutes: 30 min when logged in otherwise 1 min

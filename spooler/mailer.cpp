@@ -1723,7 +1723,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	sopt.always_expand_distr_list = parseBool(g_lpConfig->GetSetting("expand_groups"));
 
 	// Init plugin system
-	auto hr = pyMapiPluginFactory.create_plugin(g_lpConfig, ec_log_get(), "SpoolerPluginManager", &unique_tie(ptrPyMapiPlugin));
+	auto hr = pyMapiPluginFactory.create_plugin(g_lpConfig, "SpoolerPluginManager", &unique_tie(ptrPyMapiPlugin));
 	if (hr != hrSuccess) {
 		ec_log_crit("K-1733: Unable to initialize the spooler plugin system: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);

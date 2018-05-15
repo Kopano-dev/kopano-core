@@ -68,12 +68,12 @@ static const unsigned int EC_LOGLEVEL_EXTENDED_MASK = 0xFFFF0000;
 #define ZLOG_DEBUG(_plog, ...) \
 	do { \
 		if ((_plog)->Log(EC_LOGLEVEL_DEBUG)) \
-			(_plog)->Log(EC_LOGLEVEL_DEBUG, __VA_ARGS__); \
+			(_plog)->logf(EC_LOGLEVEL_DEBUG, __VA_ARGS__); \
 	} while (false)
 #define ZLOG_AUDIT(_plog, ...) \
 	do { \
 		if ((_plog) != NULL) \
-			(_plog)->Log(EC_LOGLEVEL_FATAL, __VA_ARGS__); \
+			(_plog)->logf(EC_LOGLEVEL_FATAL, __VA_ARGS__); \
 	} while (false)
 
 #define TSTRING_PRINTF "%ls"
@@ -184,7 +184,7 @@ class _kc_export ECLogger {
 	 * @param	format		formatted string for the parameter list
 	 */
 	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) KC_LIKE_PRINTF(3, 4) = 0;
-	template<typename... T> inline void Log(unsigned int level, const char *fmt, T &&...args) { return logf(level, fmt, args...); }
+	inline void Log(unsigned int level, const char *s) { return log(level, s); }
 	HRESULT perr(const char *text, HRESULT);
 	HRESULT pwarn(const char *text, HRESULT);
 
@@ -333,11 +333,11 @@ extern _kc_export void ec_log(unsigned int level, const std::string &msg);
 #define ec_log_notice(...)  ec_log(EC_LOGLEVEL_NOTICE, __VA_ARGS__)
 #define ec_log_info(...)    ec_log(EC_LOGLEVEL_INFO, __VA_ARGS__)
 #define ec_log_debug(...)   ec_log(EC_LOGLEVEL_DEBUG, __VA_ARGS__)
-#define kc_perror(s, r)     (ec_log(EC_LOGLEVEL_ERROR, s ": %s (%x)", GetMAPIErrorMessage(r), (r)), (r))
-#define kc_perrorf(s, r)    (ec_log(EC_LOGLEVEL_ERROR, "%s: " s ": %s (%x)", __PRETTY_FUNCTION__, GetMAPIErrorMessage(r), (r)), (r))
-#define kc_pwarn(s, r)      (ec_log(EC_LOGLEVEL_WARNING, s ": %s (%x)", GetMAPIErrorMessage(r), (r)), (r))
-#define ec_perror(s, r)     (ec_log(EC_LOGLEVEL_ERROR, s ": %s (%x)", GetMAPIErrorMessage(kcerr_to_mapierr(r)), (r)), (r))
+#define kc_perror(s, r)     ec_log_hrcode((r), EC_LOGLEVEL_ERROR, s ": %s (%x)", nullptr)
+#define kc_perrorf(s, r)    ec_log_hrcode((r), EC_LOGLEVEL_ERROR, "%s: " s ": %s (%x)", __PRETTY_FUNCTION__)
+#define kc_pwarn(s, r)      ec_log_hrcode((r), EC_LOGLEVEL_WARNING, s ": %s (%x)", nullptr)
 
+extern _kc_export HRESULT ec_log_hrcode(HRESULT, unsigned int level, const char *fmt, const char *func);
 extern _kc_export ECLogger *CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
 extern _kc_export int DeleteLogger(ECLogger *);
 extern _kc_export void LogConfigErrors(ECConfig *);

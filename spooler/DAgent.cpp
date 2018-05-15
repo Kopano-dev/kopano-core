@@ -2918,7 +2918,7 @@ static void *HandlerLMTP(void *lpArg)
 			hr = lmtp.HrCommandDATA(tmp);
 			if (hr == hrSuccess) {
 				std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
-				hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
+				hr = pyMapiPluginFactory.create_plugin(g_lpConfig, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 				if (hr != hrSuccess) {
 					ec_log_crit("K-1731: Unable to initialize the dagent plugin manager: %s (%x).",
 						GetMAPIErrorMessage(hr), hr);
@@ -3101,7 +3101,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	std::shared_ptr<StatsClient> sc(new StatsClient(g_lpLogger));
+	std::shared_ptr<StatsClient> sc(new StatsClient);
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent version " PROJECT_VERSION " (pid %d) (LMTP mode)", getpid());
 
@@ -3691,10 +3691,10 @@ int main(int argc, char *argv[]) {
 				GetMAPIErrorMessage(hr), hr);
 			return get_return_value(hr, false, qmail);
 		}
-		std::shared_ptr<StatsClient> sc(new StatsClient(g_lpLogger));
+		std::shared_ptr<StatsClient> sc(new StatsClient);
 		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 		sDeliveryArgs.sc = std::move(sc);
-		hr = pyMapiPluginFactory.create_plugin(g_lpConfig, g_lpLogger, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
+		hr = pyMapiPluginFactory.create_plugin(g_lpConfig, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 		if (hr != hrSuccess) {
 			ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
 				GetMAPIErrorMessage(hr), hr);

@@ -51,13 +51,12 @@ class PyMapiPluginFactory _kc_final {
 public:
 	PyMapiPluginFactory(void);
 	~PyMapiPluginFactory();
-	HRESULT create_plugin(KC::ECConfig *, KC::ECLogger *, const char *mgr_class, pym_plugin_intf **);
+	HRESULT create_plugin(KC::ECConfig *, const char *mgr_class, pym_plugin_intf **);
 
 private:
 	struct pym_factory_priv *m_priv;
 	bool m_bEnablePlugin = false;
 	std::string m_strPluginPath;
-	KC::object_ptr<KC::ECLogger> m_lpLogger;
 
 	// Inhibit (accidental) copying
 	PyMapiPluginFactory(const PyMapiPluginFactory &) = delete;

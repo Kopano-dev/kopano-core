@@ -380,7 +380,7 @@ static HRESULT HrSetupListeners(int *lpulNormal, int *lpulSecure)
 			}
 			ec_log_info("Listening on secure port %d.", ulPortICalS);
 		} else {
-			ec_log_crit("Could not listen on secure port %d. (0x%08X %s)", ulPortICalS, hr, GetMAPIErrorMessage(hr));
+			ec_log_crit("Could not listen on secure port %d: %s (%x)", ulPortICalS, GetMAPIErrorMessage(hr), hr);
 			bListenSecure = false;
 		}
 	}
@@ -451,7 +451,8 @@ static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket)
 			bUseSSL = false;
 			hr = HrAccept(ulNormalSocket, &lpChannel);
 			if (hr != hrSuccess) {
-				ec_log_err("Could not accept incoming connection on port %d. (0x%08X)", atoi(g_lpConfig->GetSetting("ical_port")), hr);
+				ec_log_err("Could not accept incoming connection on port %d: %s (%x)",
+					atoi(g_lpConfig->GetSetting("ical_port")), GetMAPIErrorMessage(hr), hr);
 				continue;
 			}
 		// Check if a secure connection is waiting.
@@ -460,7 +461,8 @@ static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket)
 			bUseSSL = true;
 			hr = HrAccept(ulSecureSocket, &lpChannel);
 			if (hr != hrSuccess) {
-				ec_log_err("Could not accept incoming secure connection on port %d. (0x%08X %s)", atoi(g_lpConfig->GetSetting("ical_port")), hr, GetMAPIErrorMessage(hr));
+				ec_log_err("Could not accept incoming secure connection on port %d: %s (%x)",
+					atoi(g_lpConfig->GetSetting("ical_port")), GetMAPIErrorMessage(hr), hr);
 				continue;
 			}
 		} else {

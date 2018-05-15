@@ -127,6 +127,8 @@ typedef uint64_t ECSESSIONGROUPID;
 #define ATTACH_PATHDEPTH_LEVEL1 10
 #define ATTACH_PATHDEPTH_LEVEL2 20
 
+#define ec_perror(s, r)     ec_log_ercode((r), EC_LOGLEVEL_ERROR, s ": %s (%x)", nullptr)
+
 enum CONNECTION_TYPE {
 	CONNECTION_TYPE_TCP,
 	CONNECTION_TYPE_SSL,
@@ -136,6 +138,7 @@ enum CONNECTION_TYPE {
 
 //Functions
 extern _kc_export HRESULT kcerr_to_mapierr(ECRESULT, HRESULT hrDefault = 0x80070005 /* MAPI_E_NO_ACCESS */);
+extern _kc_export ECRESULT ec_log_ercode(ECRESULT, unsigned int level, const char *fmt, const char *func);
 
 } /* namespace */
 

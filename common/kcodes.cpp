@@ -17,6 +17,8 @@
 
 #include <kopano/platform.h>
 #include <mapicode.h>
+#include <kopano/ECLogger.h>
+#include <kopano/MAPIErrors.h>
 #include <kopano/kcodes.h>
 #include <kopano/mapiext.h>
 
@@ -72,6 +74,16 @@ HRESULT kcerr_to_mapierr(ECRESULT ecResult, HRESULT hrDefault)
 
 	default:			return hrDefault;
 	}
+}
+
+ECRESULT ec_log_ercode(ECRESULT code, unsigned int level,
+    const char *fmt, const char *func)
+{
+	if (func == nullptr)
+		ec_log(level, fmt, GetMAPIErrorMessage(kcerr_to_mapierr(code)), code);
+	else
+		ec_log(level, fmt, func, GetMAPIErrorMessage(kcerr_to_mapierr(code)), code);
+	return code;
 }
 
 } /* namespace */

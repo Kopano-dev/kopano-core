@@ -28,8 +28,8 @@
 
 class ClientProto {
 public:
-	ClientProto(const char *szServerPath, KC::ECChannel *lpChannel, KC::ECLogger *lpLogger, KC::ECConfig *lpConfig) :
-	m_strPath(szServerPath), lpChannel(lpChannel), lpLogger(lpLogger), lpConfig(lpConfig), m_ulFailedLogins(0)
+	ClientProto(const char *szServerPath, KC::ECChannel *lpChannel, KC::ECConfig *lpConfig) :
+	m_strPath(szServerPath), lpChannel(lpChannel), lpConfig(lpConfig), m_ulFailedLogins(0)
 	{};
 	virtual ~ClientProto(void) = default;
 	virtual int getTimeoutMinutes() const = 0;
@@ -44,7 +44,6 @@ public:
 protected:
 	std::string	m_strPath;
 	KC::ECChannel *lpChannel;
-	KC::ECLogger *lpLogger;
 	KC::ECConfig *lpConfig;
 	ULONG		m_ulFailedLogins;
 };

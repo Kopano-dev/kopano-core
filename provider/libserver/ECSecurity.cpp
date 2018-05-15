@@ -509,14 +509,14 @@ exit:
 		}
 
 		if (er == KCERR_NO_ACCESS)
-			m_lpAudit->Log(EC_LOGLEVEL_FATAL, "access denied objectid=%d type=%d ownername='%s' username='%s' rights='%s'",
+			m_lpAudit->logf(EC_LOGLEVEL_FATAL, "access denied objectid=%d type=%d ownername=\"%s\" username=\"%s\" rights=\"%s\"",
 						   ulObjId, ulType, strStoreOwner.c_str(), strUsername.c_str(), RightsToString(ulecRights));
 		else if (ulStoreOwnerId != m_ulUserID)
-			m_lpAudit->Log(EC_LOGLEVEL_FATAL, "access allowed objectid=%d type=%d ownername='%s' username='%s' rights='%s'",
+			m_lpAudit->logf(EC_LOGLEVEL_FATAL, "access allowed objectid=%d type=%d ownername=\"%s\" username=\"%s\" rights=\"%s\"",
 						   ulObjId, ulType, strStoreOwner.c_str(), strUsername.c_str(), RightsToString(ulecRights));
 		else
 			// you probably do not want to log all what a user does in their own store, do you?
-			m_lpAudit->Log(EC_LOGLEVEL_INFO, "access allowed objectid=%d type=%d userid=%d", ulObjId, ulType, m_ulUserID);
+			m_lpAudit->logf(EC_LOGLEVEL_INFO, "access allowed objectid=%d type=%d userid=%d", ulObjId, ulType, m_ulUserID);
 	}
 
 	return er;
