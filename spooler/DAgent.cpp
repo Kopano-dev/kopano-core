@@ -3431,6 +3431,7 @@ int main(int argc, char *argv[]) {
 		{ "plugin_path", "/var/lib/kopano/dagent/plugins" },
 		{ "plugin_manager_path", "/usr/share/kopano-dagent/python" },
 		{ "default_charset", "us-ascii"},
+		{"insecure_html_join", "no", CONFIGSETTING_RELOADABLE},
 		{ "set_rule_headers", "yes", CONFIGSETTING_RELOADABLE },
 		{ "no_double_forward", "no", CONFIGSETTING_RELOADABLE },
 		{ "z_statsd_stats", "/var/run/kopano/statsd.sock" },
@@ -3630,6 +3631,7 @@ int main(int argc, char *argv[]) {
 		sDeliveryArgs.strPath = g_lpConfig->GetSetting("server_socket");
 	sDeliveryArgs.strPath = GetServerUnixSocket((char*)sDeliveryArgs.strPath.c_str()); // let environment override if present
 	sDeliveryArgs.sDeliveryOpts.ascii_upgrade = g_lpConfig->GetSetting("default_charset");
+	sDeliveryArgs.sDeliveryOpts.insecure_html_join = parseBool(g_lpConfig->GetSetting("insecure_html_join"));
 #ifdef HAVE_TIDY_H
 	sDeliveryArgs.sDeliveryOpts.html_safety_filter = strcasecmp(g_lpConfig->GetSetting("html_safety_filter"), "yes") == 0;
 #else

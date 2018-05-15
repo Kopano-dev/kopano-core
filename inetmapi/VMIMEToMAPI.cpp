@@ -1758,7 +1758,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			if (mt->getSubType() == vmime::mediaTypes::TEXT_HTML || (m_mailState.bodyLevel == BODY_HTML && bAppendBody)) {
 				// handle real html part, or append a plain text bodypart to the html main body
 				// subtype guaranteed html or plain.
-				hr = handleHTMLTextpart(vmHeader, vmBody, lpMessage, bAppendBody);
+				hr = handleHTMLTextpart(vmHeader, vmBody, lpMessage, m_dopt.insecure_html_join ? bAppendBody : false);
 				if (hr != hrSuccess) {
 					ec_log_err("Unable to parse mail HTML text");
 					goto exit;
@@ -2224,11 +2224,11 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 	SPropValue sCodepage;
 	LONG ulFlags;
 
-	bool new_text = m_mailState.bodyLevel < BODY_HTML ||
-                        (m_mailState.bodyLevel == BODY_HTML && bAppendBody);
-
+	bool new_text = m_mailState.bodyLevel == BODY_NONE ||
+	                (m_mailState.bodyLevel < BODY_PLAIN && bAppendBody) ||
+	                (m_mailState.bodyLevel == BODY_HTML && bAppendBody);
 	if (!new_text) {
-		// already found html as body, so this is an attachment
+		/* Already had a final body, so this is an attachment. */
 		auto hr = handleAttachment(vmHeader, vmBody, lpMessage, L"secondary_html_body");
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to parse attached text mail");
@@ -3627,6 +3627,7 @@ void imopt_default_delivery_options(delivery_options *dopt) {
 	dopt->mark_as_read = false;
 	dopt->add_imap_data = false;
 	dopt->charset_strict_rfc = true;
+	dopt->insecure_html_join = false;
 	dopt->user_entryid = NULL;
 	dopt->parse_smime_signed = false;
 	dopt->ascii_upgrade = nullptr;
