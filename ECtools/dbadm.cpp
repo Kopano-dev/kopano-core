@@ -245,20 +245,28 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 		auto soldtag = stringify(oldtag), snewtag = stringify(newtag);
 		unsigned int aff;
 		for (const auto &tbl : our_proptables_hier) {
+			if (adm_quit)
+				break;
 			ec_log_notice("dup: merging #%u into #%u in \"%s\"...", oldid, newid, tbl.c_str());
 
 			/* Remove ambiguous props */
 			ret = db->DoUpdate("CREATE TEMPORARY TABLE vt (SELECT hierarchyid FROM " + tbl + " WHERE tag IN (" + soldtag + "," + snewtag + ") GROUP BY hierarchyid HAVING COUNT(*) >= 2)");
 			if (ret != erSuccess)
 				return ret;
+			if (adm_quit)
+				break;
 			ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN vt ON p.hierarchyid=vt.hierarchyid AND p.tag IN (" + soldtag + "," + snewtag + ")", &aff);
 			if (ret != erSuccess)
 				return ret;
 			if (aff > 0)
 				ec_log_notice("dup: deleted %u ambiguous rows in \"%s\"", aff, tbl.c_str());
+			if (adm_quit)
+				break;
 			ret = db->DoUpdate("DROP TEMPORARY TABLE vt");
 			if (ret != erSuccess)
 				return ret;
+			if (adm_quit)
+				break;
 
 			/* Merge unambiguous ones */
 			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag), &aff);
@@ -266,6 +274,8 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 				return ret;
 			if (aff > 0)
 				ec_log_notice("dup: updated %u rows in \"%s\"", aff, tbl.c_str());
+			if (adm_quit)
+				break;
 			ret = db->DoDelete("DELETE FROM " + tbl + " WHERE tag=" + stringify(oldtag));
 			if (ret != erSuccess)
 				return ret;
@@ -273,30 +283,42 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 
 		/* Lonely table with "instanceid" instead of "hierarchyid"... */
 		for (const std::string &tbl : {"lob"}) {
+			if (adm_quit)
+				break;
 			ec_log_notice("dup: merging #%u into #%u in \"%s\"...", oldid, newid, tbl.c_str());
 
 			ret = db->DoUpdate("CREATE TEMPORARY TABLE vt (SELECT instanceid FROM " + tbl + " WHERE tag IN (" + soldtag + "," + snewtag + ") GROUP BY instanceid HAVING COUNT(*) >= 2)");
 			if (ret != erSuccess)
 				return ret;
+			if (adm_quit)
+				break;
 			ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN vt ON p.instanceid=vt.instanceid AND p.tag IN (" + soldtag + "," + snewtag + ")", &aff);
 			if (ret != erSuccess)
 				return ret;
 			if (aff > 0)
 				ec_log_notice("dup: deleted %u ambiguous rows in \"%s\"", aff, tbl.c_str());
+			if (adm_quit)
+				break;
 			ret = db->DoUpdate("DROP TEMPORARY TABLE vt");
 			if (ret != erSuccess)
 				return ret;
+			if (adm_quit)
+				break;
 
 			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag), &aff);
 			if (ret != erSuccess)
 				return ret;
 			if (aff > 0)
 				ec_log_notice("dup: updated %u rows in \"%s\"", aff, tbl.c_str());
+			if (adm_quit)
+				break;
 			ret = db->DoDelete("DELETE FROM " + tbl + " WHERE tag=" + stringify(oldtag));
 			if (ret != erSuccess)
 				return ret;
 		}
 
+		if (adm_quit)
+			break;
 		ret = db->DoUpdate("DELETE FROM names WHERE id=" + stringify(oldid));
 		if (ret != erSuccess)
 			return ret;
