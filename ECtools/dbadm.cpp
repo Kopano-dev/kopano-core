@@ -100,8 +100,23 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 		assert(x == 1);
 	}
 
+	/*
+	 * 1. Let T be the set of input tagids. $T is its cardinality.
+	 * 2. Defrag only “renames” elements within the set T.
+	 *    $T will therefore not change.
+	 * 3. Let B be a bitvector of size $T (B[1]..B[T]).
+	 *    B[i] indicates whether i is, or is not, in T.
+	 * 4. Defrag produces a contiguous sequence starting at 1.
+	 *    Therefore, B must be an all-ones bitvector after defrag.
+	 * 5. Therefore, the number of zero bits in B prior to defrag
+	 *    gives the amount of work to be done.
+	 *
+	 * $T = select count(*) from names where id<=31485;
+	 * ones_count(B) = select count(*) from names where id<=$T;
+	 * zeros_count(B) = $T - ones_count(B)
+	 */
 	unsigned int tags_to_move = 0, tags_moved = 0;
-	ret = db->DoSelect("SELECT MAX(id) - COUNT(id) FROM names WHERE id <= 31485", &result);
+	ret = db->DoSelect("SELECT (SELECT COUNT(*) FROM names WHERE id<=31485)-COUNT(*) FROM names WHERE id <= (SELECT COUNT(*) FROM names WHERE id<=31485)", &result);
 	if (ret == erSuccess) {
 		row = result.fetch_row();
 		if (row != nullptr && row[0] != nullptr) {
