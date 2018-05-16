@@ -40,7 +40,7 @@
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
 #include <kopano/mapi_ptr.h>
-
+#include <kopano/namedprops.h>
 #include <kopano/charset/convert.h>
 #include <kopano/mapiext.h>
 #include "freebusytags.h"
@@ -2138,22 +2138,34 @@ HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept, bool bDec
  *
  * @note you get the outlook 2003/2007 settings
  */
-HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *lpbDeclineConflict, bool *lpbDeclineRecurring)
+HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *lpbDeclineConflict, bool *lpbDeclineRecurring, bool *autoprocess_ptr)
 {
 	object_ptr<IMessage> lpLocalFBMessage;
 	memory_ptr<SPropValue> lpProps;
-	static constexpr const SizedSPropTagArray(3, sptaFBProps) =
-		{3, {PR_PROCESS_MEETING_REQUESTS,
-		PR_DECLINE_CONFLICTING_MEETING_REQUESTS,
-		PR_DECLINE_RECURRING_MEETING_REQUESTS}};
 	ULONG cValues = 0;
 
 	bool bAutoAccept = false;
 	bool bDeclineConflict = false;
 	bool bDeclineRecurring = false;
+	bool autoprocess = true;
 
 	auto hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, false, &~lpLocalFBMessage);
 	if(hr == hrSuccess) {
+		MAPINAMEID name, *namep = &name;
+		memory_ptr<SPropTagArray> proptagarr;
+		name.lpguid = const_cast<GUID *>(&PSETID_KC);
+		name.ulKind = MNID_ID;
+		name.Kind.lID = dispidAutoProcess;
+		hr = lpLocalFBMessage->GetIDsFromNames(1, &namep, MAPI_CREATE, &~proptagarr);
+		if (FAILED(hr))
+			return hr;
+
+		auto proptag = CHANGE_PROP_TYPE(proptagarr->aulPropTag[0], PT_BOOLEAN);
+		static const SizedSPropTagArray(4, sptaFBProps) =
+			{4, {PR_PROCESS_MEETING_REQUESTS,
+			PR_DECLINE_CONFLICTING_MEETING_REQUESTS,
+			PR_DECLINE_RECURRING_MEETING_REQUESTS, proptag}};
+
 		hr = lpLocalFBMessage->GetProps(sptaFBProps, 0, &cValues, &~lpProps);
 		if(FAILED(hr))
 			return hr;
@@ -2163,11 +2175,18 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 			bDeclineConflict = lpProps[1].Value.b;
 		if(lpProps[2].ulPropTag == PR_DECLINE_RECURRING_MEETING_REQUESTS)
 			bDeclineRecurring = lpProps[2].Value.b;
+		if(lpProps[3].ulPropTag == proptag)
+			autoprocess = lpProps[3].Value.b;
 	}
 	// else, hr != hrSuccess: no FB -> all settings are FALSE
-	*lpbAutoAccept = bAutoAccept;
-	*lpbDeclineConflict = bDeclineConflict;
-	*lpbDeclineRecurring = bDeclineRecurring;
+	if (lpbAutoAccept != nullptr)
+		*lpbAutoAccept = bAutoAccept;
+	if (lpbDeclineConflict != nullptr)
+		*lpbDeclineConflict = bDeclineConflict;
+	if (lpbDeclineRecurring != nullptr)
+		*lpbDeclineRecurring = bDeclineRecurring;
+	if (autoprocess_ptr != nullptr)
+		*autoprocess_ptr = autoprocess;
 	return hrSuccess;
 }
 

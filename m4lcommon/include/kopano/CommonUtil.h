@@ -89,7 +89,7 @@ extern _kc_export HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType, IMsgStore
 
 // Auto-accept settings
 extern _kc_export HRESULT SetAutoAcceptSettings(IMsgStore *, bool auto_accept, bool decline_conflict, bool decline_recurring);
-extern _kc_export HRESULT GetAutoAcceptSettings(IMsgStore *, bool *auto_accept, bool *decline_conflict, bool *decline_recurring);
+extern _kc_export HRESULT GetAutoAcceptSettings(IMsgStore *, bool *auto_accept, bool *decline_conflict, bool *decline_recurring, bool *autoprocess_ptr = nullptr);
 
 /**
  * NAMED PROPERTY utilities

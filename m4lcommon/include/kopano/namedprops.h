@@ -179,6 +179,9 @@
 #define dispidApptTsRef						0x0025	//PT_STRING8	Timestamp used as ID by Caldav
 #define dispidFldID							0x0026	//PT_STRING8	FolderID used by Caldav
 
+//In PSETID_KC (general KC properties)
+#define dispidAutoProcess                   0x0001  //PT_LONG
+
 // In PSETID_Common
 #define dispidReminderMinutesBeforeStart	0x8501	//PT_LONG
 #define dispidReminderTime					0x8502	//PT_SYSTIME
