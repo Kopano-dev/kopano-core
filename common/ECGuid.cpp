@@ -112,6 +112,7 @@
 #define USES_PSETID_Kopano_CalDav	//used in caldav
 #define USES_PSETID_Archive
 #define USES_PSETID_CalendarAssistant
+#define USES_PSETID_KC
 #define USES_GUID_Dilkie
 #define USES_IID_IMAPIClientShutdown
 #define USES_IID_IMAPIProviderShutdown
