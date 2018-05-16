@@ -855,13 +855,11 @@ static void resolve_auto_logger(ECConfig *cfg)
 	if (meth == nullptr || strcasecmp(meth, "auto") != 0 || file == nullptr)
 		return;
 	if (*file != '\0') {
-		meth = "file";
+		cfg->AddSetting("log_method", "file");
 	} else {
-		meth = eclog_sockable("/dev/log") ? "syslog" : "file";
-		file = "-";
+		cfg->AddSetting("log_method", eclog_sockable("/dev/log") ? "syslog" : "file");
+		cfg->AddSetting("log_file", "-");
 	}
-	cfg->AddSetting("log_method", meth);
-	cfg->AddSetting("log_file", file);
 }
 
 /**
