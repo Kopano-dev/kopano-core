@@ -316,8 +316,6 @@ bool ECConfigImpl::InitDefaults(unsigned int ulFlags)
 			continue;
 		}
 		auto f = ulFlags | LOADSETTING_MARK_DEFAULT;
-		if (m_lpDefaults[i].ulFlags & CONFIGSETTING_UNUSED)
-			f |= LOADSETTING_MARK_UNUSED;
 		AddSetting(m_lpDefaults[i++], f);
 	}
 
@@ -571,8 +569,6 @@ bool ECConfigImpl::AddSetting(const configsetting_t &lpsConfig, unsigned int ulF
 		s.ulFlags |= LOADSETTING_MARK_DEFAULT;
 	else
 		s.ulFlags &= ~LOADSETTING_MARK_DEFAULT;
-	if (ulFlags & LOADSETTING_MARK_UNUSED)
-		s.ulFlags |= LOADSETTING_MARK_UNUSED;
 	InsertOrReplace(&m_mapSettings, s, lpsConfig.szValue, s.ulFlags & CONFIGSETTING_SIZE);
 	return true;
 }
@@ -607,7 +603,7 @@ int ECConfigImpl::dump_config(FILE *fp)
 {
 	std::lock_guard<KC::shared_mutex> lset(m_settingsRWLock);
 	for (const auto &p : m_mapSettings) {
-		if (p.first.ulFlags & LOADSETTING_MARK_UNUSED)
+		if (p.first.ulFlags & CONFIGSETTING_UNUSED)
 			continue;
 		if (p.first.ulFlags & LOADSETTING_MARK_DEFAULT)
 			fprintf(fp, "# ");
