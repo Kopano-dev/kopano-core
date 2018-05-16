@@ -96,7 +96,7 @@ ECConfig *ECPluginSharedData::CreateConfig(const configsetting_t *lpDefaults,
 		for (n = 0; lpDefaults[n].szName; ++n) {
 			m_lpDefaults[n].szName = strdup(lpDefaults[n].szName);
 			m_lpDefaults[n].szValue = strdup(lpDefaults[n].szValue);
-			m_lpDefaults[n].ulFlags = lpDefaults[n].ulFlags;
+			m_lpDefaults[n].cs_flags = lpDefaults[n].cs_flags;
 			m_lpDefaults[n].ulGroup = lpDefaults[n].ulGroup;
 		}
 		m_lpDefaults[n].szName = NULL;

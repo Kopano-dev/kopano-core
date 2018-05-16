@@ -27,7 +27,7 @@ namespace KC {
 struct configsetting_t {
 	const char *szName;
 	const char *szValue;
-	unsigned short ulFlags;
+	unsigned short cs_flags;
 #define CONFIGSETTING_ALIAS			0x0001
 #define CONFIGSETTING_RELOADABLE	0x0002
 #define CONFIGSETTING_UNUSED		0x0004

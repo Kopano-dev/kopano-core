@@ -34,7 +34,7 @@ namespace KC {
 
 struct settingkey_t {
 	char s[256];
-	unsigned short ulFlags, ulGroup;
+	unsigned short cs_flags, ulGroup;
 	bool operator<(const settingkey_t &o) const noexcept { return strcmp(s, o.s) < 0; }
 };
 
