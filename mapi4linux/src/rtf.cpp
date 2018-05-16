@@ -15,6 +15,7 @@
  *
  */
 #include <memory>
+#include <climits>
 #include <cstring>
 #include <cstdlib>
 #include <kopano/platform.h>
@@ -48,8 +49,13 @@ unsigned int rtf_get_uncompressed_length(const char *lpData,
 	return ((RTFHeader *)lpData)->ulUncompressedSize;
 }
 
-// FIXME bad data can buffer overflow when ulUncompressedSize is incorrect
-// lpDest should be pre-allocated to the uncompressed size
+/*
+ * @lpDest needs to be big enough. The only caller, WrapCompressedRTFStream,
+ * allocates as many bytes as ulUncompressedLen specifies.
+ *
+ * Returns %UINT_MAX on error, otherwise the number of bytes placed into
+ * @lpDest.
+ */
 unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
     unsigned int ulBufSize)
 {
@@ -61,25 +67,32 @@ unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
 
 	// Check if we have a full header
 	if(ulBufSize < sizeof(RTFHeader)) 
-		return 1;
+		return UINT_MAX;
 	
+	unsigned int uncomp_size = le32_to_cpu(lpHeader->ulUncompressedSize);
+	if (uncomp_size == UINT_MAX)
+		/*
+		 * Put a slight cap on the data size, since we will (ab)use
+		 * UINT_MAX to indicate an error.
+		 */
+		--uncomp_size;
 	lpSrc += sizeof(struct RTFHeader);
 	
 	if (le32_to_cpu(lpHeader->ulMagic) == 0x414c454d) {
 		// Uncompressed RTF
-		memcpy(lpDest, lpSrc, ulBufSize - sizeof(RTFHeader));
-		return 0;
+		auto len = std::min(static_cast<size_t>(uncomp_size), ulBufSize - sizeof(RTFHeader));
+		memcpy(lpDest, lpSrc, len);
+		return len;
 	} else if (le32_to_cpu(lpHeader->ulMagic) != 0x75465a4c) {
-		return 1;
+		return UINT_MAX;
 	}
 	// Allocate a buffer to decompress into (uncompressed size plus prebuffered data)
-	std::unique_ptr<char[]> lpBuffer(new char[lpHeader->ulUncompressedSize+prebufSize]);
+	std::unique_ptr<char[]> lpBuffer(new char[uncomp_size+prebufSize]);
 	memcpy(lpBuffer.get(), lpPrebuf, prebufSize);
 
 	// Start writing just after the prebuffered data
 	char *lpWrite = lpBuffer.get() + prebufSize;
-
-	while (lpWrite < lpBuffer.get() + lpHeader->ulUncompressedSize + prebufSize) {
+	while (lpWrite < lpBuffer.get() + uncomp_size + prebufSize) {
 		// Get next bit from flags
 		ulFlags = ulFlagNr++ % 8 == 0 ? *lpSrc++ : ulFlags >> 1;
 
@@ -109,14 +122,15 @@ unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
 		ulOffset = ((lpWrite - lpBuffer.get()) / 4096) * 4096 + ulOffset;
 		if (ulOffset > (unsigned int)(lpWrite - lpBuffer.get()))
 			ulOffset -= 4096;
-		while (ulSize && lpWrite < &lpBuffer[lpHeader->ulUncompressedSize+prebufSize] && ulOffset < lpHeader->ulUncompressedSize + prebufSize) {
+		while (ulSize && lpWrite < &lpBuffer[uncomp_size+prebufSize] && ulOffset < uncomp_size + prebufSize) {
 			*lpWrite++ = lpBuffer[ulOffset++];
 			--ulSize;
 		}
 	}
 	// Copy back the data without the prebuffer
-	memcpy(lpDest, &lpBuffer[prebufSize], lpHeader->ulUncompressedSize);
-	return 0;
+	auto len = lpWrite - (lpBuffer.get() + prebufSize);
+	memcpy(lpDest, &lpBuffer[prebufSize], len);
+	return len;
 }
 
 /**

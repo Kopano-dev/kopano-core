@@ -25,10 +25,13 @@ SEARCHPROGRAM=/usr/sbin/kopano-search
 SEARCHCONFIG_OPT=""
 [ ! -z $SEARCHCONFIG -a -f $SEARCHCONFIG ] && SEARCHCONFIG_OPT="-c $SEARCHCONFIG"
 
+# Switch to C, like at boot time.
+unset LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MESSAGES LC_ALL
+# Update with user settings.
+LC_CTYPE=en_US.UTF-8
+LC_TIME=en_US.UTF-8
 [ -f /etc/sysconfig/kopano ] && . /etc/sysconfig/kopano
-if [ -z "$KOPANO_LOCALE" ]; then
-	KOPANO_LOCALE="C"
-fi
+export LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MESSAGES LC_ALL
 
 # Source function library.
 . /etc/rc.d/init.d/functions
@@ -42,8 +45,6 @@ start() {
 	# Start in background, always succeeds
 	echo -n $"Starting $search: "
 	install -dm0775 -o kopano -g kopano /var/run/kopano
-	export LC_ALL=$KOPANO_LOCALE
-	export LANG=$KOPANO_LOCALE
 	daemon $SEARCHPROGRAM $SEARCHCONFIG_OPT >/dev/null 2>&1
 	RETVAL=$?
 	unset LC_ALL LANG

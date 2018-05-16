@@ -177,7 +177,11 @@ static void *Handler(void *lpArg)
 		goto exit;
 	}
 
-	hr = client->HrSendGreeting(g_strHostString);
+	try {
+		hr = client->HrSendGreeting(g_strHostString);
+	} catch (const KMAPIError &e) {
+		hr = e.code();
+	}
 	if (hr != hrSuccess)
 		goto exit;
 
