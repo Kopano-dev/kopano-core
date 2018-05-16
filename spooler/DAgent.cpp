@@ -359,7 +359,7 @@ static bool FNeedsAutoAccept(IMsgStore *lpStore, LPMESSAGE lpMessage)
 /**
  * Checks whether the message needs auto-processing
  */
-static bool FNeedsAutoProcessing(IMessage *lpMessage)
+static bool FNeedsAutoProcessing(IMsgStore *lpStore, IMessage *lpMessage)
 {
 	static constexpr const SizedSPropTagArray(1, sptaProps) = {1, {PR_MESSAGE_CLASS}};
 	memory_ptr<SPropValue> lpProps;
@@ -370,7 +370,16 @@ static bool FNeedsAutoProcessing(IMessage *lpMessage)
 		kc_perrorf("GetProps failed", hr);
 		return false; /* hr */
 	}
-	return wcsncasecmp(lpProps[0].Value.lpszW, L"IPM.Schedule.Meeting.", wcslen(L"IPM.Schedule.Meeting.")) == 0;
+	if(wcsncasecmp(lpProps[0].Value.lpszW, L"IPM.Schedule.Meeting.", wcslen(L"IPM.Schedule.Meeting.")) != 0)
+		return false;
+
+	bool autoprocess = true;
+	hr = GetAutoAcceptSettings(lpStore, nullptr, nullptr, nullptr, &autoprocess);
+	if (hr != hrSuccess) {
+		kc_perrorf("GetAutoAcceptSettings failed", hr);
+		return false; /* hr */
+	}
+	return autoprocess;
 }
 
 /**
@@ -2051,7 +2060,7 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 		// processing as if the autoaccepter was not used
 		hr = hrSuccess;
 	}
-	else if (FNeedsAutoProcessing(*lppMessage)) {
+	else if (FNeedsAutoProcessing(lpStore, *lppMessage)) {
 		ec_log_info("Starting MR auto processing");
 		hr = HrAutoProcess(lpArgs->sc.get(), lpRecip, lpStore, *lppMessage);
 		if (hr == hrSuccess) {
