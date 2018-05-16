@@ -1,5 +1,5 @@
-8.5.x
-=====
+8.5.9 (2018-05-16)
+==================
 Changes:
 * daemons: disable SSL renegotiation for OpenSSL 1.1+
 * server: invalid port strings are now rejected
