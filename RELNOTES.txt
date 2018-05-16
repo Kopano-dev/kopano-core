@@ -1,6 +1,6 @@
 8.6.x
 =====
-Includes changes from the 8.5.x series up to 2018-05-16.
+Includes changes until including 8.5.9.
 Fixes:
 * installer: remove duplicate defaults from sample config
 * icalmapi: allow RRULE with DTSTART having zulu-marking [KC-414, KC-811]
