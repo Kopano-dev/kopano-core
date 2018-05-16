@@ -42,8 +42,8 @@ Fixes:
   user/company [KC-795]
 
 
-8.5.x
-=====
+8.5.9 (2018-05-16)
+==================
 Changes:
 * daemons: disable SSL renegotiation for OpenSSL 1.1+
 * server: invalid port strings are now rejected
@@ -62,6 +62,7 @@ Enhancements:
 * dbadm: add helper index creation/removal as an explicit action
 * dbadm: ad-hoc progress meter during operation
 * dbadm: support mid-way program termination [KC-1156]
+* dbadm: add np-remove-unused action
 * propmap: expose kopanoHidden LDAP attribute as PR_EC_AB_HIDDEN [KC-63]
 
 

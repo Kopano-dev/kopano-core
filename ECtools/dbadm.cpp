@@ -183,6 +183,26 @@ static ECRESULT np_remove_highid(KDatabase &db)
 	return db.DoUpdate("DELETE FROM names WHERE id > 31485");
 }
 
+static ECRESULT np_remove_unused(KDatabase &db)
+{
+	ec_log_notice("dbadm: executing action \"np-remove-unused\"");
+	auto ret = db.DoUpdate("CREATE TEMPORARY TABLE ut (PRIMARY KEY (`tag`)) SELECT * FROM ("
+		"SELECT DISTINCT tag FROM properties UNION "
+		"SELECT DISTINCT tag FROM tproperties UNION "
+		"SELECT DISTINCT tag FROM mvproperties UNION "
+		"SELECT DISTINCT tag FROM indexedproperties UNION "
+		"SELECT DISTINCT tag FROM singleinstances UNION "
+		"SELECT DISTINCT tag FROM lob) AS t WHERE tag>=34049");
+	if (ret != erSuccess)
+		return ret;
+	unsigned int aff = 0;
+	ret = db.DoDelete("DELETE names FROM names LEFT JOIN ut ON names.id+34049=ut.tag WHERE ut.tag IS NULL", &aff);
+	if (ret != erSuccess)
+		return ret;
+	ec_log_notice("remove-unused: expunged %u rows.", aff);
+	return erSuccess;
+}
+
 static ECRESULT np_remove_xh(std::shared_ptr<KDatabase> db)
 {
 	ec_log_notice("dbadm: executing action \"np-remove-xh\"");
@@ -383,6 +403,11 @@ static ECRESULT k1216(std::shared_ptr<KDatabase> db)
 		return ret;
 	if (adm_quit)
 		return erSuccess;
+	ret = np_remove_unused(*db.get());
+	if (ret != erSuccess)
+		return ret;
+	if (adm_quit)
+		return erSuccess;
 	ret = np_repair_dups(db);
 	if (ret != erSuccess)
 		return ret;
@@ -479,6 +504,8 @@ int main(int argc, char **argv)
 			ret = np_defrag(db);
 		else if (strcmp(argv[i], "np-remove-highid") == 0)
 			ret = np_remove_highid(*db.get());
+		else if (strcmp(argv[i], "np-remove-unused") == 0)
+			ret = np_remove_unused(*db.get());
 		else if (strcmp(argv[i], "np-remove-xh") == 0)
 			ret = np_remove_xh(db);
 		else if (strcmp(argv[i], "np-repair-dups") == 0)
