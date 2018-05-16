@@ -566,9 +566,9 @@ bool ECConfigImpl::AddSetting(const configsetting_t &lpsConfig, unsigned int ulF
 		}
 	}
 	if (ulFlags & LOADSETTING_MARK_DEFAULT)
-		s.ulFlags |= LOADSETTING_MARK_DEFAULT;
+		s.ulFlags |= CONFIGSETTING_MARK_DEFAULT;
 	else
-		s.ulFlags &= ~LOADSETTING_MARK_DEFAULT;
+		s.ulFlags &= ~CONFIGSETTING_MARK_DEFAULT;
 	InsertOrReplace(&m_mapSettings, s, lpsConfig.szValue, s.ulFlags & CONFIGSETTING_SIZE);
 	return true;
 }
@@ -605,7 +605,7 @@ int ECConfigImpl::dump_config(FILE *fp)
 	for (const auto &p : m_mapSettings) {
 		if (p.first.ulFlags & CONFIGSETTING_UNUSED)
 			continue;
-		if (p.first.ulFlags & LOADSETTING_MARK_DEFAULT)
+		if (p.first.ulFlags & CONFIGSETTING_MARK_DEFAULT)
 			fprintf(fp, "# ");
 		auto ret = fprintf(fp, "%s = %s\n", p.first.s, p.second);
 		if (ret < 0)

@@ -35,6 +35,8 @@ struct configsetting_t {
 #define CONFIGSETTING_EXACT			0x0010
 #define CONFIGSETTING_SIZE			0x0020
 #define CONFIGSETTING_OBSOLETE 0x0040
+/* value is still unchanged from hard-coded defautls (internal flag) */
+#define CONFIGSETTING_MARK_DEFAULT 0x0080
 	unsigned short ulGroup;
 #define CONFIGGROUP_PROPMAP			0x0001
 };
