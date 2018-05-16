@@ -14,7 +14,7 @@ from MAPI import Tags
 from MAPI.Tags import (
     PS_PUBLIC_STRINGS
 )
-from MAPI import MNID_STRING, MAPI_DISTLIST
+from MAPI import MNID_STRING, MAPI_DISTLIST, MNID_ID
 
 try:
     REV_TYPE
@@ -72,6 +72,10 @@ PS_EC_IMAP = DEFINE_GUID(
     0x00f5f108, 0x8e3f, 0x46c7, 0xaf, 0x72, 0x5e, 0x20, 0x1c, 0x23, 0x49, 0xe7
 )
 
+PSETID_KC = DEFINE_GUID(
+    0x63aed8c8, 0x4049, 0x4b75, 0xbc, 0x88, 0x96, 0xdf, 0x9d, 0x72, 0x3f, 0x2f
+)
+
 NAMED_PROPS_INTERNET_HEADERS = [
     MAPINAMEID(PS_INTERNET_HEADERS, MNID_STRING, u'x-original-to'),
 ]
@@ -84,6 +88,10 @@ NAMED_PROPS_ARCHIVER = [
     MAPINAMEID(PSETID_Archive, MNID_STRING, u'ref-item-entryid'),
     MAPINAMEID(PSETID_Archive, MNID_STRING, u'ref-prev-entryid'),
     MAPINAMEID(PSETID_Archive, MNID_STRING, u'flags')
+]
+
+NAMED_PROPS_KC = [
+    MAPINAMEID(PSETID_KC, MNID_ID, 0x0001)
 ]
 
 NAMED_PROP_CATEGORY = MAPINAMEID(PS_PUBLIC_STRINGS, MNID_STRING, u'Keywords')
@@ -105,7 +113,8 @@ GUID_NAMESPACE = {
     PSETID_UnifiedMessaging: 'unifiedmessaging',
     PSETID_CONTACT_FOLDER_RECIPIENT: 'contact_folder_recipient',
     PSETID_ZMT: 'zmt',
-    PSETID_CalendarAssistant: 'calendarassistant'
+    PSETID_CalendarAssistant: 'calendarassistant',
+    PSETID_KC: 'kc',
 }
 NAMESPACE_GUID = dict((b, a) for (a, b) in GUID_NAMESPACE.items())
 
@@ -127,6 +136,7 @@ STR_GUID = {
     'PSETID_CONTACT_FOLDER_RECIPIENT': PSETID_CONTACT_FOLDER_RECIPIENT,
     'PSETID_ZMT': PSETID_ZMT,
     'PSETID_CalendarAssistant': PSETID_CalendarAssistant,
+    'PSETID_KC': PSETID_KC,
 }
 
 # XXX copied from common/ECDefs.h
