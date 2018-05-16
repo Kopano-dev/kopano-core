@@ -10,6 +10,7 @@
 #include <set>
 #include <string>
 #include <cassert>
+#include <csignal>
 #include <cstdlib>
 #include <getopt.h>
 #include <kopano/ECConfig.h>
@@ -21,14 +22,8 @@
 
 using namespace KC;
 
-class proptagindex final {
-	public:
-	proptagindex(std::shared_ptr<KDatabase>);
-	~proptagindex();
-	private:
-	std::shared_ptr<KDatabase> m_db;
-	std::set<std::string> m_indexed;
-};
+static int adm_sigterm_count = 3;
+static bool adm_quit;
 
 static const std::string our_proptables[] = {
 	"properties", "tproperties", "mvproperties",
@@ -46,38 +41,44 @@ static ECRESULT hidx_add(KDatabase &db, const std::string &tbl)
 	return db.DoUpdate("ALTER TABLE " + tbl + " ADD INDEX tmptag (tag)");
 }
 
-static void hidx_remove(KDatabase &db, const std::string &tbl)
+static ECRESULT hidx_remove(KDatabase &db, const std::string &tbl)
 {
 	ec_log_notice("dbadm: discard helper index on %s", tbl.c_str());
-	db.DoUpdate("ALTER TABLE " + tbl + " DROP INDEX tmptag");
+	return db.DoUpdate("ALTER TABLE " + tbl + " DROP INDEX tmptag");
 }
 
-proptagindex::proptagindex(std::shared_ptr<KDatabase> db) : m_db(db)
+static std::set<std::string> index_tags2(std::shared_ptr<KDatabase> db)
 {
+	std::set<std::string> status;
+	ECRESULT coll = erSuccess;
 	for (const auto &tbl : our_proptables) {
 		auto ret = hidx_add(*db.get(), tbl);
 		if (ret == erSuccess)
-			m_indexed.emplace(tbl);
+			status.emplace(tbl);
+		if (coll == erSuccess)
+			coll = ret;
 	}
-}
-
-proptagindex::~proptagindex()
-{
-	for (const auto &tbl : m_indexed)
-		hidx_remove(*m_db.get(), tbl.c_str());
+	if (coll != erSuccess)
+		ec_log_info("Index creation failures are not fatal; it affects at most the processing speed.");
+	return status;
 }
 
 static ECRESULT index_tags(std::shared_ptr<KDatabase> db)
 {
-	for (const auto &tbl : our_proptables)
-		hidx_add(*db.get(), tbl);
+	index_tags2(db);
 	return erSuccess;
 }
 
 static ECRESULT remove_helper_index(std::shared_ptr<KDatabase> db)
 {
-	for (const auto &tbl : our_proptables)
-		hidx_remove(*db.get(), tbl);
+	ECRESULT coll = erSuccess;
+	for (const auto &tbl : our_proptables) {
+		auto ret = hidx_remove(*db.get(), tbl);
+		if (coll != erSuccess)
+			coll = ret;
+	}
+	if (coll != erSuccess)
+		ec_log_info("This failure is not fatal. Extraneous indices only take up disk space.");
 	return erSuccess;
 }
 
@@ -98,8 +99,23 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 		assert(x == 1);
 	}
 
+	/*
+	 * 1. Let T be the set of input tagids. $T is its cardinality.
+	 * 2. Defrag only “renames” elements within the set T.
+	 *    $T will therefore not change.
+	 * 3. Let B be a bitvector of size $T (B[1]..B[T]).
+	 *    B[i] indicates whether i is, or is not, in T.
+	 * 4. Defrag produces a contiguous sequence starting at 1.
+	 *    Therefore, B must be an all-ones bitvector after defrag.
+	 * 5. Therefore, the number of zero bits in B prior to defrag
+	 *    gives the amount of work to be done.
+	 *
+	 * $T = select count(*) from names where id<=31485;
+	 * ones_count(B) = select count(*) from names where id<=$T;
+	 * zeros_count(B) = $T - ones_count(B)
+	 */
 	unsigned int tags_to_move = 0, tags_moved = 0;
-	ret = db->DoSelect("SELECT MAX(id) - COUNT(id) FROM names WHERE id <= 31485", &result);
+	ret = db->DoSelect("SELECT (SELECT COUNT(*) FROM names WHERE id<=31485)-COUNT(*) FROM names WHERE id <= (SELECT COUNT(*) FROM names WHERE id<=31485)", &result);
 	if (ret == erSuccess) {
 		row = result.fetch_row();
 		if (row != nullptr && row[0] != nullptr) {
@@ -115,7 +131,7 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 		return erSuccess;
 
 	KC::time_point start_ts = decltype(start_ts)::clock::now();
-	while ((row = result.fetch_row()) != nullptr) {
+	while (!adm_quit && (row = result.fetch_row()) != nullptr) {
 		unsigned int oldid = strtoul(row[0], nullptr, 0);
 		unsigned int oldtag = 0x8501 + oldid;
 		if (freemap.size() == 0)
@@ -128,24 +144,26 @@ static ECRESULT np_defrag(std::shared_ptr<KDatabase> db)
 			continue;
 		auto x0 = freemap.erase(newid);
 		assert(x0 == 1);
-		ec_log_notice("defrag: moving %u -> %u [names]", oldid, newid);
-		fflush(stdout);
-		ret = db->DoUpdate("UPDATE names SET id=" + stringify(newid) + " WHERE id=" + stringify(oldid));
-		if (ret != erSuccess)
-			return ret;
 		for (const auto &tbl : our_proptables) {
 			ec_log_notice("defrag: moving %u -> %u [%s]", oldid, newid, tbl.c_str());
-			fflush(stdout);
 			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag));
 			if (ret != erSuccess)
 				return ret;
 		}
+		ec_log_notice("defrag: moving %u -> %u [names]", oldid, newid);
+		ret = db->DoUpdate("UPDATE names SET id=" + stringify(newid) + " WHERE id=" + stringify(oldid));
+		if (ret != erSuccess)
+			return ret;
 		auto x = freemap.emplace(oldid);
 		assert(x.second);
 		++tags_moved;
 		auto diff_ts = dur2dbl(decltype(start_ts)::clock::now() - start_ts);
 		ec_log_notice("defrag: %u left, est. %.0f minutes", tags_to_move - tags_moved,
 			(tags_to_move - tags_moved) * diff_ts / tags_moved / 60);
+	}
+	if (adm_quit) {
+		ec_log_notice("defrag: operation interrupted safely.");
+		return erSuccess;
 	}
 	/* autoupdates to highest id */
 	ret = db->DoUpdate("ALTER TABLE names AUTO_INCREMENT=1");
@@ -173,11 +191,17 @@ static ECRESULT np_remove_xh(std::shared_ptr<KDatabase> db)
 	if (ret != erSuccess)
 		return ret;
 	for (const auto &tbl : our_proptables) {
+		if (adm_quit)
+			break;
 		ec_log_notice("remove-xh: purging \"%s\"...", tbl.c_str());
 		ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN n ON p.tag=n.tag", &aff);
 		if (ret != erSuccess)
 			return ret;
 		ec_log_notice("remove-xh: expunged %u rows.", aff);
+	}
+	if (adm_quit) {
+		ec_log_notice("remove-xh: operation interrupted safely.");
+		return erSuccess;
 	}
 	ret = db->DoDelete("DELETE names FROM names INNER JOIN n ON names.id=n.id");
 	if (ret != erSuccess)
@@ -210,7 +234,7 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 		return erSuccess;
 
 	KC::time_point start_ts = decltype(start_ts)::clock::now();
-	while ((row = result.fetch_row()) != nullptr) {
+	while (!adm_quit && (row = result.fetch_row()) != nullptr) {
 		unsigned int oldid = strtoul(row[0], nullptr, 0);
 		unsigned int newid = strtoul(row[1], nullptr, 0);
 		unsigned int oldtag = 0x8501 + oldid, newtag = 0x8501 + newid;
@@ -220,20 +244,28 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 		auto soldtag = stringify(oldtag), snewtag = stringify(newtag);
 		unsigned int aff;
 		for (const auto &tbl : our_proptables_hier) {
+			if (adm_quit)
+				break;
 			ec_log_notice("dup: merging #%u into #%u in \"%s\"...", oldid, newid, tbl.c_str());
 
 			/* Remove ambiguous props */
 			ret = db->DoUpdate("CREATE TEMPORARY TABLE vt (SELECT hierarchyid FROM " + tbl + " WHERE tag IN (" + soldtag + "," + snewtag + ") GROUP BY hierarchyid HAVING COUNT(*) >= 2)");
 			if (ret != erSuccess)
 				return ret;
+			if (adm_quit)
+				break;
 			ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN vt ON p.hierarchyid=vt.hierarchyid AND p.tag IN (" + soldtag + "," + snewtag + ")", &aff);
 			if (ret != erSuccess)
 				return ret;
 			if (aff > 0)
 				ec_log_notice("dup: deleted %u ambiguous rows in \"%s\"", aff, tbl.c_str());
+			if (adm_quit)
+				break;
 			ret = db->DoUpdate("DROP TEMPORARY TABLE vt");
 			if (ret != erSuccess)
 				return ret;
+			if (adm_quit)
+				break;
 
 			/* Merge unambiguous ones */
 			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag), &aff);
@@ -241,6 +273,8 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 				return ret;
 			if (aff > 0)
 				ec_log_notice("dup: updated %u rows in \"%s\"", aff, tbl.c_str());
+			if (adm_quit)
+				break;
 			ret = db->DoDelete("DELETE FROM " + tbl + " WHERE tag=" + stringify(oldtag));
 			if (ret != erSuccess)
 				return ret;
@@ -248,30 +282,42 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 
 		/* Lonely table with "instanceid" instead of "hierarchyid"... */
 		for (const std::string &tbl : {"lob"}) {
+			if (adm_quit)
+				break;
 			ec_log_notice("dup: merging #%u into #%u in \"%s\"...", oldid, newid, tbl.c_str());
 
 			ret = db->DoUpdate("CREATE TEMPORARY TABLE vt (SELECT instanceid FROM " + tbl + " WHERE tag IN (" + soldtag + "," + snewtag + ") GROUP BY instanceid HAVING COUNT(*) >= 2)");
 			if (ret != erSuccess)
 				return ret;
+			if (adm_quit)
+				break;
 			ret = db->DoDelete("DELETE p FROM " + tbl + " AS p INNER JOIN vt ON p.instanceid=vt.instanceid AND p.tag IN (" + soldtag + "," + snewtag + ")", &aff);
 			if (ret != erSuccess)
 				return ret;
 			if (aff > 0)
 				ec_log_notice("dup: deleted %u ambiguous rows in \"%s\"", aff, tbl.c_str());
+			if (adm_quit)
+				break;
 			ret = db->DoUpdate("DROP TEMPORARY TABLE vt");
 			if (ret != erSuccess)
 				return ret;
+			if (adm_quit)
+				break;
 
 			ret = db->DoUpdate("UPDATE " + tbl + " SET tag=" + stringify(newtag) + " WHERE tag=" + stringify(oldtag), &aff);
 			if (ret != erSuccess)
 				return ret;
 			if (aff > 0)
 				ec_log_notice("dup: updated %u rows in \"%s\"", aff, tbl.c_str());
+			if (adm_quit)
+				break;
 			ret = db->DoDelete("DELETE FROM " + tbl + " WHERE tag=" + stringify(oldtag));
 			if (ret != erSuccess)
 				return ret;
 		}
 
+		if (adm_quit)
+			break;
 		ret = db->DoUpdate("DELETE FROM names WHERE id=" + stringify(oldid));
 		if (ret != erSuccess)
 			return ret;
@@ -279,6 +325,10 @@ static ECRESULT np_repair_dups(std::shared_ptr<KDatabase> db)
 		auto diff_ts = dur2dbl(decltype(start_ts)::clock::now() - start_ts);
 		ec_log_notice("dup: %u left, est. %.0f minutes", tags_to_move - tags_moved,
 			(tags_to_move - tags_moved) * diff_ts / tags_moved / 60);
+	}
+	if (adm_quit) {
+		ec_log_notice("dup: stopped (safely) after user request to exit.");
+		return erSuccess;
 	}
 	/* Now the names table is clean, but fragmented ... */
 	return erSuccess;
@@ -317,14 +367,63 @@ static ECRESULT np_stat(KDatabase &db)
 
 static ECRESULT k1216(std::shared_ptr<KDatabase> db)
 {
-	proptagindex helper(db);
+	auto idx = index_tags2(db);
+	/* If indices failed, so be it. Proceed at slow speed, then. */
+	auto terminate_handler = make_scope_success([&]() {
+		if (adm_quit)
+			/* Quick stop, waste no time with more ALTER TABLE. */
+			idx.clear();
+	});
+	auto clean_indices = make_scope_success([&]() {
+		for (const auto &tbl : idx)
+			hidx_remove(*db.get(), tbl.c_str());
+	});
 	auto ret = np_remove_highid(*db.get());
 	if (ret != erSuccess)
 		return ret;
+	if (adm_quit)
+		return erSuccess;
 	ret = np_repair_dups(db);
 	if (ret != erSuccess)
 		return ret;
+	if (adm_quit)
+		return erSuccess;
 	return np_defrag(db);
+}
+
+static void adm_sigterm(int sig)
+{
+	if (--adm_sigterm_count <= 0) {
+		ec_log_crit("Forced termination. The database may be left in an inconsistent state.");
+		sigaction(sig, nullptr, nullptr);
+		exit(1);
+		return;
+	}
+	ec_log_notice("Received request to terminate. "
+		"Please wait until the program has reached a consistent database state. "
+		"(This may take a while!) To force stop, reissue the request %u more time(s).",
+		adm_sigterm_count);
+	adm_quit = true;
+}
+
+static bool adm_setup_signals()
+{
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sigemptyset(&sa.sa_mask);
+	sa.sa_handler = adm_sigterm;
+	sa.sa_flags   = SA_RESTART;
+	auto ret = sigaction(SIGINT, &sa, nullptr);
+	if (ret < 0) {
+		perror("sigaction");
+		return false;
+	}
+	ret = sigaction(SIGTERM, &sa, nullptr);
+	if (ret < 0) {
+		perror("sigaction");
+		return false;
+	}
+	return true;
 }
 
 int main(int argc, char **argv)
@@ -370,6 +469,8 @@ int main(int argc, char **argv)
 		ec_log_err("db connect failed: %s (%x)", GetMAPIErrorMessage(kcerr_to_mapierr(ret)), ret);
 		return ret;
 	}
+	if (!adm_setup_signals())
+		return EXIT_FAILURE;
 	for (size_t i = optind; i < argc; ++i) {
 		ret = KCERR_NOT_FOUND;
 		if (strcmp(argv[i], "k-1216") == 0)

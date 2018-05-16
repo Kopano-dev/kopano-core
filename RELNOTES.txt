@@ -61,6 +61,7 @@ Enhancements:
 * dbadm: speed up np-defrag by using a reverse run
 * dbadm: add helper index creation/removal as an explicit action
 * dbadm: ad-hoc progress meter during operation
+* dbadm: support mid-way program termination [KC-1156]
 * propmap: expose kopanoHidden LDAP attribute as PR_EC_AB_HIDDEN [KC-63]
 
 
