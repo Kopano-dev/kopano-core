@@ -50,6 +50,7 @@ from .defs import (
 from .errors import NotFoundError, ArgumentError
 from .properties import Properties
 from .autoaccept import AutoAccept
+from .autoprocess import AutoProcess
 from .outofoffice import OutOfOffice
 from .property_ import Property
 from .delegation import Delegation
@@ -496,6 +497,10 @@ class Store(Properties):
         """Return :class:`OutOfOffice` settings."""
         # FIXME: If store is public store, return None?
         return OutOfOffice(self)
+
+    @property
+    def autoprocess(self):
+        return AutoProcess(self)
 
     @property
     def autoaccept(self):
