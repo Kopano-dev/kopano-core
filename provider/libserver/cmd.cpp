@@ -4240,6 +4240,21 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 		lpsResponse->lpsPropTags.__size = lpsNamedProps->__size;
 		return erSuccess;
 	}
+
+	bool create_props = false;
+	for (gsoap_size_t i = 0; i < lpsNamedProps->__size; ++i) {
+		if (lpsResponse->lpsPropTags.__ptr[i] != 0)
+			continue;
+
+		create_props = true;
+		break;
+	}
+
+	if (!create_props) {
+		lpsResponse->lpsPropTags.__size = lpsNamedProps->__size;
+		return erSuccess;
+	}
+
 	auto dtx = lpDatabase->Begin(er);
 	if (er != erSuccess)
 		return er;
