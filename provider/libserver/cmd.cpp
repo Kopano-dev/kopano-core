@@ -2878,33 +2878,6 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
     	FreeChildProps(&mapChildProps);
 	}
 
-	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
-		std::unique_ptr<ECAttachmentStorage> lpAttachmentStorage(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
-		if (lpAttachmentStorage == nullptr)
-			return KCERR_NOT_ENOUGH_MEMORY;
-		er = g_lpSessionManager->GetServerGUID(&sGuidServer);
-		if (er != erSuccess)
-			return er;
-
-		/* Not having a single instance ID is not critical, we might create it at a later time */
-		// @todo this should be GetSingleInstanceIdsWithTags(ulObjId, map<tag, instanceid>);
-		if (ulObjType == MAPI_MESSAGE)
-			ulInstanceTag = PROP_ID(PR_EC_IMAP_EMAIL);
-		else
-			ulInstanceTag = PROP_ID(PR_ATTACH_DATA_BIN);
-		ext_siid ulInstanceId;
-		if (lpAttachmentStorage->GetSingleInstanceId(ulObjId, ulInstanceTag, &ulInstanceId) == erSuccess) {
-			sSavedObject.lpInstanceIds = s_alloc<entryList>(soap);
-			sSavedObject.lpInstanceIds->__size = 1;
-			sSavedObject.lpInstanceIds->__ptr = s_alloc<entryId>(soap, sSavedObject.lpInstanceIds->__size);
-			er = SIIDToEntryID(soap, &sGuidServer, ulInstanceId.siid, ulInstanceTag, &sSavedObject.lpInstanceIds->__ptr[0]);
-			if (er != erSuccess) {
-				sSavedObject.lpInstanceIds->__size = 0;
-				return er;
-			}
-		}
-	}
-
 	if (ulObjType == MAPI_MESSAGE) {
 		// @todo: Check if we can do this on the fly to avoid the additional lookup.
 		auto lm = g_lpSessionManager->GetLockManager();
