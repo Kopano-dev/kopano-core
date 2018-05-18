@@ -799,6 +799,7 @@ static void process_signal(int sig)
 		bQuit = true;
 		// Trigger condition so we force wakeup the queue thread
 		hCondMessagesWaiting.notify_one();
+		ec_log_info("User requested graceful shutdown. To force quit, reissue the request.");
 		break;
 	}
 
@@ -1087,11 +1088,11 @@ int main(int argc, char *argv[]) {
 		act.sa_flags = SA_ONSTACK | SA_RESTART;
 		sigemptyset(&act.sa_mask);
 		sigaction(SIGHUP, &act, nullptr);
-		sigaction(SIGINT, &act, nullptr);
-		sigaction(SIGTERM, &act, nullptr);
 		sigaction(SIGCHLD, &act, nullptr);
 		sigaction(SIGUSR2, &act, nullptr);
-
+		act.sa_flags = SA_ONSTACK | SA_RESETHAND;
+		sigaction(SIGINT, &act, nullptr);
+		sigaction(SIGTERM, &act, nullptr);
 	}
 
     st.ss_sp = malloc(65536);
