@@ -748,14 +748,13 @@ exit:
 		ULONG ulCount = 0, ulThreads = 0;
 
 		while (ulCount < 60) {
-			if ((ulCount % 5) == 0) {
-				ulThreads = mapSendData.size();
+			ulThreads = mapSendData.size();
+			if (ulThreads == 0)
+				break;
+			if ((ulCount % 5) == 0)
 				ec_log_warn("Still waiting for %d thread(s) to exit.", ulThreads);
-			}
 			if (lpSpooler != nullptr)
 				CleanFinishedMessages(lpAdminSession, lpSpooler);
-			if (mapSendData.size() == 0)
-				break;
 
 			Sleep(1000);
 			++ulCount;
