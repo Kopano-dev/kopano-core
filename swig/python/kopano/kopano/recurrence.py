@@ -40,7 +40,7 @@ from MAPI.Time import (
 from dateutil.rrule import (
     DAILY, WEEKLY, MONTHLY, MO, TU, TH, FR, WE, SA, SU, rrule, rruleset
 )
-from datetime import timedelta
+import dateutil.tz
 
 from .compat import (
     repr as _repr, benc as _benc, bdec as _bdec,
@@ -53,6 +53,8 @@ from .defs import (
     ARO_LOCATION, ARO_BUSYSTATUS, ARO_ATTACHMENT, ARO_SUBTYPE,
     ARO_APPTCOLOR
 )
+
+LOCAL = dateutil.tz.tzlocal()
 
 if sys.hexversion >= 0x03000000:
     try:
@@ -105,7 +107,6 @@ class Recurrence(object):
         # XXX add check if we actually have a recurrence, otherwise we throw a mapi exception which might not be desirable
 
         self.item = item
-        self._tz = item.get(PidLidTimeZoneStruct) # TODO remove
         self._tzinfo = item.tzinfo
 
         if parse:
@@ -238,11 +239,11 @@ class Recurrence(object):
             self._end_type = 0x2023
 
     def occurrences(self, start=None, end=None): # XXX fit-to-period
-        tz = self.item.get(PidLidTimeZoneStruct)
-
         recurrences = self.recurrences
         if start and end:
-            recurrences = recurrences.between(_utils._from_gmt(start, tz), _utils._from_gmt(end, tz))
+            start = _utils._tz2(start, LOCAL, self._tzinfo)
+            end = _utils._tz2(end, LOCAL, self._tzinfo)
+            recurrences = recurrences.between(start, end)
 
         start_exc_ext = {}
         for exc, ext in zip(self._exceptions, self._extended_exceptions):
@@ -667,7 +668,7 @@ class Recurrence(object):
                     byweekday += (week,)
             # FIXME: add one day, so that we don't miss the last recurrence, since the end date is for example 11-3-2015 on 1:00
             # But the recurrence is on 8:00 that day and we should include it.
-            rule.rrule(rrule(WEEKLY, wkst=self._start.weekday(), dtstart=self._start, until=self._end + timedelta(days=1), byweekday=byweekday, interval=self._period))
+            rule.rrule(rrule(WEEKLY, wkst=self._start.weekday(), dtstart=self._start, until=self._end + datetime.timedelta(days=1), byweekday=byweekday, interval=self._period))
 
         elif self._pattern_type == PATTERN_MONTHLY:
             # X Day of every Y month(s)
@@ -715,17 +716,15 @@ class Recurrence(object):
         return self._exception_message(basedate) is not None
 
     def _update_exception(self, cal_item, item, basedate_val, exception, extended_exception, copytags=None, create=False): # XXX kill copytags, create args, just pass all properties as in php
-        tz = item.get(PidLidTimeZoneStruct)
-
         # TODO get start/end from cal_item if not in item?
         startdate = item.get(PidLidAppointmentStartWhole)
         if startdate is not None:
-            startdate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(startdate, tz).timetuple()))
+            startdate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_utc(startdate, self._tzinfo).timetuple()))
             exception['start_datetime'] = startdate_val
 
         enddate = item.get(PidLidAppointmentEndWhole)
         if enddate is not None:
-            enddate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(enddate, tz).timetuple()))
+            enddate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_utc(enddate, self._tzinfo).timetuple()))
             exception['end_datetime'] = enddate_val
 
         exception['original_start_date'] = basedate_val # TODO why set again?
@@ -783,7 +782,6 @@ class Recurrence(object):
             extended_exception['original_start_date'] = basedate_val
 
     def _update_calitem(self):
-        tz = self.item.get(PidLidTimeZoneStruct)
         cal_item = self.item
 
         cal_item[PidLidSideEffects] = 3441 # XXX spec, check php
@@ -833,12 +831,12 @@ class Recurrence(object):
 
         start = message.get(PidLidAppointmentStartWhole)
         if start is not None:
-            start_local = unixtime(time.mktime(_utils._from_gmt(start, self._tz).timetuple())) # XXX why local??
+            start_local = unixtime(time.mktime(_utils._from_utc(start, self._tzinfo).timetuple())) # XXX why local??
             props.append(SPropValue(PR_EXCEPTION_STARTTIME, start_local))
 
         end = message.prop(PidLidAppointmentEndWhole).value
         if end is not None:
-            end_local = unixtime(time.mktime(_utils._from_gmt(end, self._tz).timetuple())) # XXX why local??
+            end_local = unixtime(time.mktime(_utils._from_utc(end, self._tzinfo).timetuple())) # XXX why local??
             props.append(SPropValue(PR_EXCEPTION_ENDTIME, end_local))
 
         message._attobj.SetProps(props)
@@ -850,7 +848,6 @@ class Recurrence(object):
         message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def _create_exception(self, basedate, item, copytags=None, merge=False):
-        tz = item.get(PidLidTimeZoneStruct)
         cal_item = self.item
 
         # create embedded item
@@ -894,7 +891,7 @@ class Recurrence(object):
 
         # update blob
         self.deleted_instance_count += 1
-        deldate = _utils._from_gmt(basedate, tz)
+        deldate = _utils._from_utc(basedate, self._tzinfo)
         deldate_val = _utils.unixtime_to_rectime(time.mktime(deldate.timetuple()))
         self._deleted_instance_dates.append(deldate_val)
         self._deleted_instance_dates.sort()
@@ -902,7 +899,7 @@ class Recurrence(object):
         self._modified_instance_count += 1
         moddate = message.prop(PidLidAppointmentStartWhole).value
         daystart = moddate - datetime.timedelta(hours=moddate.hour, minutes=moddate.minute) # XXX different approach in php? seconds?
-        localdaystart = _utils._from_gmt(daystart, tz)
+        localdaystart = _utils._from_utc(daystart, self._tzinfo)
         moddate_val = _utils.unixtime_to_rectime(time.mktime(localdaystart.timetuple()))
         self._modified_instance_dates.append(moddate_val)
         self._modified_instance_dates.sort()
@@ -919,7 +916,6 @@ class Recurrence(object):
         self._update_calitem()
 
     def _modify_exception(self, basedate, item, copytags=None): # XXX 'item' too MR specific
-        tz = item.get(PidLidTimeZoneStruct)
         cal_item = self.item
 
         # update embedded item
@@ -959,9 +955,9 @@ class Recurrence(object):
             cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
         # update blob
-        basedate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(basedate, tz).timetuple()))
+        basedate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_utc(basedate, self._tzinfo).timetuple()))
 
-        startdate = _utils._from_gmt(message.prop(PidLidAppointmentStartWhole).value, tz)
+        startdate = _utils._from_utc(message.prop(PidLidAppointmentStartWhole).value, self._tzinfo)
         startdate_val = _utils.unixtime_to_rectime(time.mktime(startdate.timetuple()))
 
         for i, exception in enumerate(self._exceptions):
@@ -984,8 +980,6 @@ class Recurrence(object):
 
     def _create_exception2(self, basedate):
         # TODO merge with create_exception
-
-        tz = self.item.get(PidLidTimeZoneStruct)
         cal_item = self.item
 
         # create embedded item
@@ -993,7 +987,7 @@ class Recurrence(object):
         # UNUSED?
         message = cal_item.create_item(message_flags, hidden=True)
 
-        basedate = _utils._from_gmt(basedate, tz)
+        basedate = _utils._from_utc(basedate, self._tzinfo)
         basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate.timetuple())) - self._starttime_offset
 
         # update blob
@@ -1021,7 +1015,6 @@ class Recurrence(object):
 
     def _modify_exception2(self, basedate, subject=None, start=None, end=None, location=None):
         # TODO merge with modify_exception
-        tz = self.item.get(PidLidTimeZoneStruct)
         cal_item = self.item
 
         # update embedded item
@@ -1035,7 +1028,7 @@ class Recurrence(object):
                 break
 
         # update blob
-        basedate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_gmt(basedate, tz).timetuple()))
+        basedate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_utc(basedate, self._tzinfo).timetuple()))
 
         for i, exception in enumerate(self._exceptions):
             if exception['original_start_date'] in (basedate_val, basedate_val - self._starttime_offset): # TODO pick one
@@ -1049,9 +1042,7 @@ class Recurrence(object):
         self._update_calitem()
 
     def _delete_exception(self, basedate, item, copytags):
-        tz = item.get(PidLidTimeZoneStruct)
-
-        basedate2 = _utils._from_gmt(basedate, tz)
+        basedate2 = _utils._from_utc(basedate, self._tzinfo)
         basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate2.timetuple()))
 
         if self._is_exception(basedate):

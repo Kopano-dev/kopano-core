@@ -8,6 +8,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 import binascii
 import datetime
 import dateutil
+import dateutil.tz
 import struct
 import sys
 
@@ -36,6 +37,7 @@ from .compat import bdec as _bdec
 from .errors import Error, NotFoundError, ArgumentError
 
 RRULE_WEEKDAYS = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
+UTC = dateutil.tz.tzutc()
 
 if sys.hexversion >= 0x03000000:
     from . import table as _table
@@ -212,54 +214,14 @@ class MAPITimezone(datetime.tzinfo):
     def __repr__(self):
         return 'MAPITimezone()'
 
-def _in_dst(date, dststartmonth, dststartday, dststarthour, dstendmonth, dstendday, dstendhour):
-    if dststartmonth == 0: # no DST
-        return False
-
-    dststart = datetime.datetime(date.year, dststartmonth, 1) + \
-        datetime.timedelta(seconds=dststartday * 24 * 60 * 60 + dststarthour * 60 * 60)
-
-    dstend = datetime.datetime(date.year, dstendmonth, 1) + \
-        datetime.timedelta(seconds=dstendday * 24 * 60 * 60 + dstendhour * 60 * 60)
-
-    if dststart <= dstend:
-        if dststart < date < dstend:
-            return True
-    else:
-        if date < dstend or date > dststart:
-            return True
-
-    return False
-
-# TODO deprecated by class MAPITimezone
-def _get_timezone(date, tz_data, align_dst=False):
-    if tz_data is None:
-        return 0
-
-    timezone, _, timezonedst, \
-        _, \
-        _, dstendmonth, _, dstendday, dstendhour, _, _, _, \
-        _, \
-        _, dststartmonth, _, dststartday, dststarthour, _, _, _ = struct.unpack('<lll H HHHHHHHH H HHHHHHHH', tz_data)
-
-    dst = _in_dst(date, dststartmonth, dststartday, dststarthour, dstendmonth, dstendday, dstendhour)
-
-    # TODO use DST-aware datetimes?
-    if align_dst and _in_dst(datetime.datetime.now(),
-       dststartmonth, dststartday, dststarthour,
-       dstendmonth, dstendday, dstendhour) != dst:
-        dst = not dst
-
-    if dst:
-        return timezone + timezonedst
-    else:
-        return timezone
-
-def _from_gmt(date, tz_data):
-    return date - datetime.timedelta(minutes=_get_timezone(date, tz_data))
+def _from_utc(date, tzinfo):
+    return date.replace(tzinfo=UTC).astimezone(tzinfo).replace(tzinfo=None)
 
 def _to_utc(date, tzinfo):
     return date.replace(tzinfo=tzinfo).astimezone().replace(tzinfo=None)
+
+def _tz2(date, tz1, tz2):
+    return date.replace(tzinfo=tz1).astimezone(tz2).replace(tzinfo=None)
 
 def arg_objects(arg, supported_classes, method_name):
     if isinstance(arg, supported_classes):
