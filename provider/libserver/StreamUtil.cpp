@@ -1512,6 +1512,11 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 					goto exit;
 				}
 			}
+			if (ulParentType == MAPI_FOLDER) {
+				// Cache the written value
+				sObjectTableKey key(ulObjId, 0);
+				gcache->SetCell(&key, lpsPropval->ulPropTag, lpsPropval);
+			}
 			
 		} else {
 			// Write the property to the database
