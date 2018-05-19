@@ -106,8 +106,7 @@ const char *GetServerUnixSocket(const char *szPreferred)
 		return env;
 	else if (szPreferred && szPreferred[0] != '\0')
 		return szPreferred;
-	else
-		return "";
+	return "";
 }
 
 /**
@@ -1768,39 +1767,35 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 		return hr;
 		
 	for (unsigned int i = 0; i < cValues; ++i) {
-		if(PROP_TYPE(lpProps[i].ulPropTag) == PT_ERROR && lpProps[i].Value.err == MAPI_E_NOT_ENOUGH_MEMORY) {
-			if(PROP_TYPE(lpTags->aulPropTag[i]) != PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) != PT_UNICODE && PROP_TYPE(lpTags->aulPropTag[i]) != PT_BINARY)
-				continue;
-			if(lpProp->OpenProperty(lpTags->aulPropTag[i], &IID_IStream, 0, 0, &~lpStream) != hrSuccess)
-				continue;
+		if (PROP_TYPE(lpProps[i].ulPropTag) != PT_ERROR || lpProps[i].Value.err != MAPI_E_NOT_ENOUGH_MEMORY)
+			continue;
+		if (PROP_TYPE(lpTags->aulPropTag[i]) != PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) != PT_UNICODE && PROP_TYPE(lpTags->aulPropTag[i]) != PT_BINARY)
+			continue;
+		if (lpProp->OpenProperty(lpTags->aulPropTag[i], &IID_IStream, 0, 0, &~lpStream) != hrSuccess)
+			continue;
 				
-			std::string strData;
-			if(Util::HrStreamToString(lpStream.get(), strData) != hrSuccess)
-				continue;
-				
-			if ((hr = MAPIAllocateMore(strData.size() + sizeof(WCHAR), lpProps, (void **)&lpData)) != hrSuccess)
-				return hr;
-
-			memcpy(lpData, strData.data(), strData.size());
-			
-			lpProps[i].ulPropTag = lpTags->aulPropTag[i];
-				
-			switch PROP_TYPE(lpTags->aulPropTag[i]) {
-			case PT_STRING8:
-				lpProps[i].Value.lpszA = (char *)lpData;
-				lpProps[i].Value.lpszA[strData.size()] = 0;
-				break;
-			case PT_UNICODE:
-				lpProps[i].Value.lpszW = (wchar_t *)lpData;
-				lpProps[i].Value.lpszW[strData.size() / sizeof(WCHAR)] = 0;
-				break;
-			case PT_BINARY:
-				lpProps[i].Value.bin.lpb = (LPBYTE)lpData;
-				lpProps[i].Value.bin.cb = strData.size();
-				break;
-			default:
-				assert(false);
-			}
+		std::string strData;
+		if (Util::HrStreamToString(lpStream.get(), strData) != hrSuccess)
+			continue;
+		if ((hr = MAPIAllocateMore(strData.size() + sizeof(WCHAR), lpProps, (void **)&lpData)) != hrSuccess)
+			return hr;
+		memcpy(lpData, strData.data(), strData.size());
+		lpProps[i].ulPropTag = lpTags->aulPropTag[i];
+		switch (PROP_TYPE(lpTags->aulPropTag[i])) {
+		case PT_STRING8:
+			lpProps[i].Value.lpszA = (char *)lpData;
+			lpProps[i].Value.lpszA[strData.size()] = 0;
+			break;
+		case PT_UNICODE:
+			lpProps[i].Value.lpszW = (wchar_t *)lpData;
+			lpProps[i].Value.lpszW[strData.size() / sizeof(WCHAR)] = 0;
+			break;
+		case PT_BINARY:
+			lpProps[i].Value.bin.lpb = (LPBYTE)lpData;
+			lpProps[i].Value.bin.cb = strData.size();
+			break;
+		default:
+			assert(false);
 		}
 	}
 	

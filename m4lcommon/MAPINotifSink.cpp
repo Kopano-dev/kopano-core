@@ -59,20 +59,18 @@ static HRESULT MAPICopyMem(ULONG cb, const void *lpb, void *lpBase, ULONG *lpCb,
 
 static HRESULT MAPICopyString(const char *lpSrc, void *lpBase, char **lpDst)
 {
-    if(lpSrc == NULL) {
-        *lpDst = NULL;
-		return hrSuccess;
-	}
-	return KAllocCopy(lpSrc, strlen(lpSrc) + 1, reinterpret_cast<void **>(lpDst), lpBase);
+	if (lpSrc != nullptr)
+		return KAllocCopy(lpSrc, strlen(lpSrc) + 1, reinterpret_cast<void **>(lpDst), lpBase);
+	*lpDst = NULL;
+	return hrSuccess;
 }
 
 static HRESULT MAPICopyUnicode(const wchar_t *lpSrc, void *lpBase, wchar_t **lpDst)
 {
-    if(lpSrc == NULL) {
+	if (lpSrc != nullptr)
+		return KAllocCopy(lpSrc, (wcslen(lpSrc) + 1) * sizeof(WCHAR), reinterpret_cast<void **>(lpDst), lpBase);
         *lpDst = NULL;
-		return hrSuccess;
-    }
-	return KAllocCopy(lpSrc, (wcslen(lpSrc) + 1) * sizeof(WCHAR), reinterpret_cast<void **>(lpDst), lpBase);
+	return hrSuccess;
 }
 
 static HRESULT CopyMAPIERROR(const MAPIERROR *lpSrc, void *lpBase,
