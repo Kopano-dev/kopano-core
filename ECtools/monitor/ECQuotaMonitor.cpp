@@ -414,9 +414,8 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 				continue;
 			}
 			hr = OpenUserStore(lpsUserList[u].lpszUsername, ACTIVE_USER, &~ptrStore);
-			if (hr != hrSuccess) {
+			if (hr != hrSuccess)
 				continue;
-			}
 			hr = Notify(&lpsUserList[u], lpecCompany, &sQuotaStatus, ptrStore);
 			if (hr != hrSuccess)
 				++m_ulFailed;
@@ -923,12 +922,10 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
 	}
 
 	hr = m_lpMAPIAdminSession->OpenMsgStore(0, cbUserStoreEntryID, ptrUserStoreEntryID, NULL, MDB_WRITE, lppStore);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		ec_log_err("Unable to open store for \"%s\": %s (%x)",
 			reinterpret_cast<const char *>(szStoreName), GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-	return hrSuccess;
+	return hr;
 }
 
 /** 
