@@ -4315,14 +4315,12 @@ ECRESULT ECUserManagement::SyncAllObjects()
 
 	// request all companies
 	er = GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &unique_tie(lplstCompanyObjects), ulFlags);
-	if (er == KCERR_NO_SUPPORT) {
+	if (er == KCERR_NO_SUPPORT)
 		er = erSuccess;
-	} else if (er != erSuccess) {
+	else if (er != erSuccess)
 		return ec_perror("Error synchronizing company list", er);
-	} else { 
+	else
 		ec_log_info("Synchronized company list");
-	}
-		
 
 	if (!lplstCompanyObjects || lplstCompanyObjects->empty()) {
 		// get all users of server
