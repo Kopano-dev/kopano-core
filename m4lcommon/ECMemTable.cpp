@@ -944,8 +944,6 @@ HRESULT ECMemTableView::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppR
 HRESULT ECMemTableView::QueryRowData(const ECObjectTableList *lpsRowList,
     SRowSet **lppRows)
 {
-	HRESULT hr = hrSuccess;
-	unsigned int i=0,j=0;
 	rowset_ptr lpRows;
 	convert_context converter;
 
@@ -955,13 +953,13 @@ HRESULT ECMemTableView::QueryRowData(const ECObjectTableList *lpsRowList,
 	}
 
 	// We have the rows we need, just copy them into a new rowset
-	hr = MAPIAllocateBuffer(CbNewSRowSet(lpsRowList->size()), &~lpRows);
+	auto hr = MAPIAllocateBuffer(CbNewSRowSet(lpsRowList->size()), &~lpRows);
 	if(hr != hrSuccess)
 		return hr;
 	lpRows->cRows = 0;
 
 	// Copy the rows into the rowset
-	i = 0;
+	unsigned int i = 0, j = 0;
 	for (auto rowlist : *lpsRowList) {
 		auto iterRows = this->lpMemTable->mapRows.find(rowlist.ulObjId);
 		if (iterRows == this->lpMemTable->mapRows.cend())
@@ -1049,8 +1047,7 @@ HRESULT ECMemTableView::UpdateRow(ULONG ulUpdateType, ULONG ulId)
 {
 	HRESULT hr = hrSuccess;
 	ECRESULT er = hrSuccess;
-	sObjectTableKey sRowItem;
-	sObjectTableKey sPrevRow;
+	sObjectTableKey sRowItem, sPrevRow;
 	ULONG ulTableEvent = 0;
 
 	sRowItem.ulObjId = ulId;

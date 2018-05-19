@@ -1945,12 +1945,9 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 	object_ptr<IMAPIFolder> lpRoot, lpInbox;
 	IMAPIFolder *lpFolder = NULL;
 	IMessage *lpMessage = NULL;
-	ULONG ulType = 0;
-	memory_ptr<SPropValue> lpPropFB, lpPropFBNew;
-	LPSPropValue lpPVFBFolder = NULL;
-	memory_ptr<SPropValue> lpEntryID, lpAppEntryID;
-	LPSPropValue lpPropFBRef = NULL; // Non-free
-	ULONG cbEntryIDInbox = 0;
+	memory_ptr<SPropValue> lpPropFB, lpPropFBNew, lpEntryID, lpAppEntryID;
+	SPropValue *lpPVFBFolder = nullptr, *lpPropFBRef = nullptr;
+	ULONG ulType = 0, cbEntryIDInbox = 0;
 	memory_ptr<ENTRYID> lpEntryIDInbox;
 	memory_ptr<TCHAR> lpszExplicitClass;
 
@@ -2138,11 +2135,8 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 	object_ptr<IMessage> lpLocalFBMessage;
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues = 0;
-
-	bool bAutoAccept = false;
-	bool bDeclineConflict = false;
-	bool bDeclineRecurring = false;
-	bool autoprocess = true;
+	bool bAutoAccept = false, bDeclineConflict = false;
+	bool bDeclineRecurring = false, autoprocess = true;
 
 	auto hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, false, &~lpLocalFBMessage);
 	if(hr == hrSuccess) {
@@ -2227,10 +2221,9 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
  */
 HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lppMessage)
 {
-	ULONG cValues;
 	SPropArrayPtr ptrEntryIDs;
 	MAPIFolderPtr ptrFolder;
-	ULONG ulType;
+	unsigned int cValues, ulType;
 	MAPITablePtr ptrTable;
 	SPropValue propSubject;
 	SRowSetPtr ptrRows;
