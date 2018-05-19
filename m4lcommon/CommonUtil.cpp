@@ -632,14 +632,6 @@ HRESULT HrNewMailNotification(IMsgStore* lpMDB, IMessage* lpMessage)
 	return lpMDB->NotifyNewMail(&sNotification);
 }
 
-static void strupr(char *a)
-{
-	while (*a != '\0') {
-		*a = toupper(*a);
-		++a;
-	}
-}
-
 // Create Search key for recipients
 HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
     const char *lpszEmail, ULONG *cb, LPBYTE *lppByte)
@@ -656,7 +648,11 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
 	*(lpByte + sizeEmailType) = ':';
 	memcpy(lpByte + sizeEmailType + 1, lpszEmail, sizeEmail);
 	*(lpByte + size - 1) = 0;
-	strupr(reinterpret_cast<char *>(lpByte.get()));
+	auto a = lpByte.get();
+	while (*a != '\0') {
+		*a = toupper(*a);
+		++a;
+	}
 	*lppByte = lpByte.release();
 	*cb = size;
 	return hrSuccess;

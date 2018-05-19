@@ -1530,11 +1530,7 @@ LONG Util::FindPropInArray(const SPropTagArray *lpPropTags, ULONG ulPropTag)
 		if(PROP_TYPE(ulPropTag) == PT_UNSPECIFIED && PROP_ID(lpPropTags->aulPropTag[i]) == PROP_ID(ulPropTag))
 			break;
 	}
-
-	if(i != lpPropTags->cValues)
-		return i;
-
-	return -1;
+	return (i != lpPropTags->cValues) ? i : -1;
 }
 
 /** 
@@ -2367,17 +2363,12 @@ bool Util::IsBodyProp(ULONG ulPropTag)
  */
 static HRESULT FindInterface(LPCIID lpIID, ULONG ulIIDs, LPCIID lpIIDs)
 {
-	HRESULT hr = MAPI_E_NOT_FOUND;
-
 	if (!lpIIDs || !lpIID)
 		return MAPI_E_NOT_FOUND;
-	for (unsigned int i = 0; i < ulIIDs; ++i) {
-		if (*lpIID == lpIIDs[i]) {
-			hr = hrSuccess;
-			break;
-		}
-	}
-	return hr;
+	for (unsigned int i = 0; i < ulIIDs; ++i)
+		if (*lpIID == lpIIDs[i])
+			return hrSuccess;
+	return MAPI_E_NOT_FOUND;
 }
 
 /** 
