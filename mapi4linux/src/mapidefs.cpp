@@ -206,8 +206,6 @@ HRESULT M4LMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfa
 HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
     SPropProblemArray **lppProblems)
 {
-	std::list<SPropValue *>::iterator i, del;
-	ULONG c;
 	LPSPropValue pv = NULL;
 
 	// Validate input
@@ -218,13 +216,13 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 		//       the array and its cValues member is set to zero.		
 
     // remove possible old properties
-	for (c = 0; c < cValues; ++c) {
-		for(i = properties.begin(); i != properties.end(); ) {
+	for (unsigned int c = 0; c < cValues; ++c) {
+		for (auto i = properties.begin(); i != properties.end(); ) {
 			if ( PROP_ID((*i)->ulPropTag) == PROP_ID(lpPropArray[c].ulPropTag) && 
 				(*i)->ulPropTag != PR_NULL && 
 				PROP_TYPE((*i)->ulPropTag) != PT_ERROR)
 			{
-				del = i++;
+				auto del = i++;
 				MAPIFreeBuffer(*del);
 				properties.erase(del);
 				break;
@@ -235,7 +233,7 @@ HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	}
 
     // set new properties
-	for (c = 0; c < cValues; ++c) {
+	for (unsigned int c = 0; c < cValues; ++c) {
 		// Ignore PR_NULL property tag and all properties with a type of PT_ERROR
 		if(PROP_TYPE(lpPropArray[c].ulPropTag) == PT_ERROR || 
 			lpPropArray[c].ulPropTag == PR_NULL)
@@ -547,7 +545,6 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 {
 	SPropValue sProps[10];
 	ULONG nProps = 0;
-	const SPropValue *lpResource = nullptr;
 	memory_ptr<SPropValue> lpsPropValProfileName;
 	std::unique_ptr<providerEntry> entry;
 	ULONG cProviderProps = 0;
@@ -600,7 +597,7 @@ HRESULT M4LProviderAdmin::CreateProvider(const TCHAR *lpszProvider,
 	sProps[nProps].Value.bin.cb = sizeof(GUID);
 	++nProps;
 
-	lpResource = PCpropFindProp(lpProviderProps, cProviderProps, PR_RESOURCE_TYPE);
+	auto lpResource = PCpropFindProp(lpProviderProps, cProviderProps, PR_RESOURCE_TYPE);
 	if (!lpResource || lpResource->Value.ul == MAPI_STORE_PROVIDER) {
 		sProps[nProps].ulPropTag = PR_OBJECT_TYPE;
 		sProps[nProps].Value.ul = MAPI_STORE;

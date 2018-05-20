@@ -65,9 +65,6 @@ HRESULT WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
     ULONG cbOrigEntry, const ENTRYID *lpOrigEntry, ULONG *lpcbWrappedEntry,
     ENTRYID **lppWrappedEntry)
 {
-	HRESULT hr = hrSuccess;
-	ULONG cbDLLName = 0;
-	ULONG cbPad = 0;
 	std::string strDLLName = convstring(lpszDLLName, ulFlags);
 
 	if (lpszDLLName == nullptr || lpOrigEntry == nullptr ||
@@ -82,11 +79,11 @@ HRESULT WrapStoreEntryID(ULONG ulFlags, const TCHAR *lpszDLLName,
 	// - then the dll name + termination char + padding to 32 bits
 	// - then the entry id
 
-	cbDLLName = strDLLName.size() + 1;
-	cbPad = (4 - ((4+sizeof(GUID)+2+cbDLLName) & 0x03)) & 0x03;
+	unsigned int cbDLLName = strDLLName.size() + 1;
+	unsigned int cbPad = (4 - ((4 + sizeof(GUID) + 2 + cbDLLName) & 0x03)) & 0x03;
 
 	*lpcbWrappedEntry = 4+sizeof(GUID)+2+cbDLLName+cbPad+cbOrigEntry;
-	hr = MAPIAllocateBuffer(*lpcbWrappedEntry, (void**)lppWrappedEntry);
+	auto hr = MAPIAllocateBuffer(*lpcbWrappedEntry, reinterpret_cast<void **>(lppWrappedEntry));
 	if (hr != hrSuccess)
 		return hr;
 	memset(*lppWrappedEntry, 0, *lpcbWrappedEntry);
@@ -127,9 +124,7 @@ static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 {
 	auto lpCompressedStream = static_cast<IStream *>(lpData);
 	STATSTG sStatStg;
-	ULONG ulRead = 0;
-	ULONG ulWritten = 0;
-	unsigned int ulCompressedSize;
+	unsigned int ulRead = 0, ulWritten = 0, ulCompressedSize;
 	std::unique_ptr<char, cstdlib_deleter> lpCompressed;
 	ULARGE_INTEGER zero = {{0,0}};
 	LARGE_INTEGER front = {{0,0}};
@@ -182,10 +177,8 @@ HRESULT WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG ulFlags,
 
 	STATSTG sStatStg;
 	std::unique_ptr<char[]> lpCompressed, lpUncompressed;
-	char *lpReadPtr = NULL;
-	ULONG ulRead = 0;
+	unsigned int ulRead = 0, ulUncompressedLen = 0;
 	object_ptr<ECMemStream> lpUncompressedStream;
-	ULONG ulUncompressedLen = 0;
 	
 	auto hr = lpCompressedRTFStream->Stat(&sStatStg, STATFLAG_NONAME);
 	if(hr != hrSuccess)
@@ -197,7 +190,7 @@ HRESULT WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG ulFlags,
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 
         	// Read in the whole compressed data buffer
-        	lpReadPtr = lpCompressed.get();
+			auto lpReadPtr = lpCompressed.get();
         	while(1) {
         		hr = lpCompressedRTFStream->Read(lpReadPtr, 1024, &ulRead);
 
@@ -314,8 +307,7 @@ HRESULT CreateStreamOnHGlobal(void *hGlobal, BOOL fDeleteOnRelease,
 
 #pragma pack(push, 1)
 struct CONVERSATION_INDEX { /* 22 bytes */
-	char ulReserved1;
-	char ftTime[5];
+	char ulReserved1, ftTime[5];
 	GUID guid;
 };
 #pragma pack(pop)

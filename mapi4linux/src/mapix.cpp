@@ -297,22 +297,18 @@ HRESULT M4LProfAdmin::AdminServices(const TCHAR *lpszProfileName,
     const TCHAR *lpszPassword, ULONG_PTR ulUIParam, ULONG ulFlags,
     IMsgServiceAdmin **lppServiceAdmin)
 {
-    HRESULT hr = hrSuccess;									
-	decltype(profiles)::const_iterator i;
 	scoped_rlock l_prof(m_mutexProfiles);
 
     if(lpszProfileName == NULL) {
 	ec_log_err("M4LProfAdmin::AdminServices invalid parameters");
 		return MAPI_E_INVALID_PARAMETER;
 	}
-
-    i = findProfile(lpszProfileName);
+	auto i = findProfile(lpszProfileName);
     if (i == profiles.cend()) {
 	ec_log_err("M4LProfAdmin::AdminServices profile not found");
 		return MAPI_E_NOT_FOUND;
     }
-    
-	hr = (*i)->serviceadmin->QueryInterface(IID_IMsgServiceAdmin,(void**)lppServiceAdmin);
+	auto hr = (*i)->serviceadmin->QueryInterface(IID_IMsgServiceAdmin, reinterpret_cast<void **>(lppServiceAdmin));
 	if (hr != hrSuccess)
 		kc_perrorf("QueryInterface failed", hr);
     return hr;
@@ -464,7 +460,6 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
     MAPIUID *uid)
 {
 	SVCService* service = NULL;
-	const SPropValue *lpProp = NULL;
 	
 	if(lpszService == NULL || lpszDisplayName == NULL) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): invalid parameters");
@@ -500,7 +495,7 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	}
 	entry->servicename = (char*)lpszService;
-	lpProp = service->GetProp(PR_DISPLAY_NAME_A);
+	const SPropValue *lpProp = service->GetProp(PR_DISPLAY_NAME_A);
 	entry->displayname = lpProp ? lpProp->Value.lpszA : (char*)lpszService;
 	
 	CoCreateGuid((LPGUID)&entry->muid);
@@ -705,10 +700,9 @@ HRESULT M4LMsgServiceAdmin::SetPrimaryIdentity(const MAPIUID *lpUID,
  * @return		HRESULT
  */
 HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
-	ULONG cValues = 0;
+	unsigned int cValues = 0, cValuesDest = 0;
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
-	ULONG cValuesDest = 0;
 	SPropValue sPropID;
 	int n = 0;
 	memory_ptr<SPropTagArray> lpPropTagArray;
@@ -800,10 +794,9 @@ HRESULT M4LMAPISession::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR
  * @return		HRESULT
  */
 HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
-	ULONG cValues = 0;
+	unsigned int cValues = 0, cValuesDest = 0;
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
-	ULONG cValuesDest = 0;
 	SPropValue sPropID;
 	int n = 0;
 	memory_ptr<SPropTagArray> lpPropTagArray;
@@ -866,14 +859,11 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG_PTR ulUIParam, ULONG cbEntryID,
 	object_ptr<IMSProvider> msp;
 	object_ptr<IMAPISupport> lpISupport;
 	object_ptr<IMsgStore> mdb;
-	ULONG mdbver;
-	// I don't want these ...
-	ULONG sizeSpoolSec;
+	unsigned int mdbver, sizeSpoolSec, cbStoreEntryID = 0;
 	memory_ptr<BYTE> pSpoolSec;
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpsRows;
 	MAPIUID sProviderUID;
-	ULONG cbStoreEntryID = 0;
 	memory_ptr<ENTRYID> lpStoreEntryID;
 	SVCService *service = NULL;
 
@@ -1353,15 +1343,14 @@ M4LAddrBook::~M4LAddrBook() {
 }
 
 HRESULT M4LAddrBook::addProvider(const std::string &profilename, const std::string &displayname, LPMAPIUID lpUID, LPABPROVIDER newProvider) {
-	HRESULT hr = hrSuccess;
 	ULONG cbSecurity;
 	memory_ptr<BYTE> lpSecurity;
 	memory_ptr<MAPIERROR> lpMAPIError;
 	object_ptr<IABLogon> lpABLogon;
 	abEntry entry;
 
-	hr = newProvider->Logon(m_lpMAPISup, 0, reinterpret_cast<const TCHAR *>(profilename.c_str()),
-	     0, &cbSecurity, &~lpSecurity, &~lpMAPIError, &~lpABLogon);
+	auto hr = newProvider->Logon(m_lpMAPISup, 0, reinterpret_cast<const TCHAR *>(profilename.c_str()),
+	          0, &cbSecurity, &~lpSecurity, &~lpMAPIError, &~lpABLogon);
 	if (hr != hrSuccess)
 		return kc_perrorf("logon failed", hr);
 
@@ -1376,14 +1365,13 @@ HRESULT M4LAddrBook::addProvider(const std::string &profilename, const std::stri
 
 HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IABContainer> lpRoot;
 	object_ptr<IMAPITable> lpTable;
 	ULONG ulObjType;
 	SPropValue sProp;
 	ECAndRestriction cRes;
 
-	hr = this->OpenEntry(0, nullptr, &IID_IABContainer, 0, &ulObjType, &~lpRoot);
+	auto hr = OpenEntry(0, nullptr, &IID_IABContainer, 0, &ulObjType, &~lpRoot);
 	if (hr != hrSuccess)
 		return kc_perrorf("OpenEntry failed", hr);
 	hr = lpRoot->GetHierarchyTable((ulFlags & MAPI_UNICODE) | CONVENIENT_DEPTH, &~lpTable);
@@ -1533,15 +1521,13 @@ HRESULT M4LAddrBook::CompareEntryIDs(ULONG cbEntryID1,
     const ENTRYID *lpEntryID1, ULONG cbEntryID2, const ENTRYID *lpEntryID2,
     ULONG ulFlags, ULONG *lpulResult)
 {
-	HRESULT hr = hrSuccess;
-
 	// m_lABProviders[0] probably always is Kopano
 	for (const auto &i : m_lABProviders) {
-		hr = i.lpABLogon->CompareEntryIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
+		auto hr = i.lpABLogon->CompareEntryIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
 		if (hr == hrSuccess || hr != MAPI_E_NO_SUPPORT)
-			break;
+			return hr;
 	}
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT M4LAddrBook::Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask,
@@ -1601,9 +1587,8 @@ HRESULT M4LAddrBook::NewEntry(ULONG_PTR ui_param, ULONG flags,
 HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
     const TCHAR *lpszNewEntryTitle, ADRLIST *lpAdrList)
 {
-	ULONG objType;
+	unsigned int objType, cNewRow = 0;
 	memory_ptr<FlagList> lpFlagList;
-	ULONG cNewRow = 0;
 	rowset_ptr lpSearchRows;
 	bool bContinue = true;
 
@@ -1806,12 +1791,11 @@ HRESULT M4LAddrBook::SetPAB(ULONG eid_size, const ENTRYID *)
  */
 HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 	HRESULT hr = MAPI_E_INVALID_PARAMETER;
-	ULONG objType;
+	ULONG objType, cbEntryID;
 	object_ptr<IABContainer> lpABContainer;
 	memory_ptr<SPropValue> propEntryID;
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRowSet;
-	ULONG cbEntryID;
 	LPENTRYID lpEntryID = NULL;
 	const SPropValue *lpProp = NULL;
 
@@ -1943,7 +1927,6 @@ exit:
 HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
     const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList)
 {
-	HRESULT hr = hrSuccess;
 	ULONG cValues = 0, ulType = 0;
 
 	//FIXME: lpPropTagArray can be NULL, this means that doesn't have extra properties to update only the 
@@ -1962,13 +1945,12 @@ HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
 		auto lpEntryId = lpRecipList->aEntries[i].cfind(PR_ENTRYID);
 		if(lpEntryId == NULL)
 			continue;
-		hr = OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IMailUser, 0, &ulType, &~lpMailUser);
+		auto hr = OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IMailUser, 0, &ulType, &~lpMailUser);
 		if (hr != hrSuccess)
 			return kc_perrorf("OpenEntry failed", hr);
 		hr = lpMailUser->GetProps(lpPropTagArray, 0, &cValues, &~lpProps);
 		if (FAILED(hr))
 			return kc_perrorf("GetProps failed", hr);
-		hr = hrSuccess;
 		MAPIFreeBuffer(lpRecipList->aEntries[i].rgPropVals);
 
 		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues, (void **)&lpRecipList->aEntries[i].rgPropVals)) != hrSuccess)
@@ -1989,7 +1971,7 @@ HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
 				return kc_perrorf("Util::HrCopyProperty failed", hr);
 		}
 	}
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT M4LAddrBook::QueryInterface(REFIID refiid, void **lpvoid) {
