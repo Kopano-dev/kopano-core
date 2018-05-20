@@ -618,7 +618,7 @@ HRESULT M4LMsgServiceAdmin::OpenProfileSection(const MAPIUID *lpUID,
 	ulock_rec l_srv(m_mutexserviceadmin);
 
 	if(lpUID && memcmp(lpUID, &pbGlobalProfileSectionGuid, sizeof(MAPIUID)) == 0) {
-		return this->profilesection->QueryInterface( (lpInterface)?*lpInterface:IID_IProfSect, (void**)lppProfSect);
+		return profilesection->QueryInterface(lpInterface ? *lpInterface : IID_IProfSect, reinterpret_cast<void **>(lppProfSect));
 	} else if (lpUID && memcmp(lpUID, &MUID_PROFILE_INSTANCE, sizeof(MAPIUID)) == 0) {
 		// hack to support MUID_PROFILE_INSTANCE
 		*lppProfSect = new M4LProfSect();
@@ -627,7 +627,7 @@ HRESULT M4LMsgServiceAdmin::OpenProfileSection(const MAPIUID *lpUID,
 		// @todo add PR_SEARCH_KEY should be a profile unique GUID
 
 		// Set the default profilename
-		auto hr = this->profilesection->QueryInterface(IID_IMAPIProp, &~lpMapiProp);
+		auto hr = profilesection->QueryInterface(IID_IMAPIProp, &~lpMapiProp);
 		if (hr != hrSuccess)
 			return kc_perrorf("QueryInterface failed", hr);
 		hr = HrGetOneProp(lpMapiProp, PR_PROFILE_NAME_A, &~lpsPropVal);
@@ -1258,7 +1258,7 @@ HRESULT M4LMAPISession::QueryIdentity(ULONG* lpcbEntryID, LPENTRYID* lppEntryID)
 	LPENTRYID lpEntryID = NULL;
 	scoped_lock l_srv(m_mutexStatusRow);
 
-	auto lpProp = PCpropFindProp(this->m_lpPropsStatus, this->m_cValuesStatus, PR_IDENTITY_ENTRYID);
+	auto lpProp = PCpropFindProp(m_lpPropsStatus, m_cValuesStatus, PR_IDENTITY_ENTRYID);
 	if(lpProp == NULL) {
 		ec_log_err("M4LMAPISession::QueryIdentity(): PCpropFindProp failed");
 		return MAPI_E_NOT_FOUND;
@@ -1695,7 +1695,7 @@ HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
 		lpAdrList->aEntries[i].cValues = cNewRow;
 	}
 
-	hr = this->GetSearchPath(MAPI_UNICODE, &~lpSearchRows);
+	hr = GetSearchPath(MAPI_UNICODE, &~lpSearchRows);
 	if (hr != hrSuccess)
 		return kc_perrorf("GetSearchPath failed", hr);
 
@@ -1705,7 +1705,7 @@ HRESULT M4LAddrBook::ResolveName(ULONG_PTR ulUIParam, ULONG ulFlags,
 			continue;
 
 		object_ptr<IABContainer> lpABContainer;
-		hr = this->OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb), &IID_IABContainer, 0, &objType, &~lpABContainer);
+		hr = OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb), &IID_IABContainer, 0, &objType, &~lpABContainer);
 		if (hr != hrSuccess) {
 			kc_perrorf("OpenEntry failed", hr);
 			continue;
@@ -1873,7 +1873,7 @@ HRESULT M4LAddrBook::GetSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath) {
 	rowset_ptr lpSearchPath;
 
 	if (!m_lpSavedSearchPath) {
-		auto hr = this->getDefaultSearchPath(ulFlags, &m_lpSavedSearchPath);
+		auto hr = getDefaultSearchPath(ulFlags, &m_lpSavedSearchPath);
 		if (hr != hrSuccess)
 			return kc_perrorf("getDefaultSearchPath failed", hr);
 	}

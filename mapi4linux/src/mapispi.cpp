@@ -131,7 +131,7 @@ HRESULT M4LMAPISupport::Notify(const NOTIFKEY *lpKey, ULONG cNotification,
 HRESULT M4LMAPISupport::ModifyStatusRow(ULONG cValues,
     const SPropValue *lpColumnVals, ULONG ulFlags)
 {
-	return static_cast<M4LMAPISession *>(this->session)->setStatusRow(cValues, lpColumnVals);
+	return static_cast<M4LMAPISession *>(session)->setStatusRow(cValues, lpColumnVals);
 }
 
 HRESULT M4LMAPISupport::OpenProfileSection(const MAPIUID *lpUid, ULONG ulFlags,
@@ -280,8 +280,7 @@ HRESULT M4LMAPISupport::CopyMessages(const IID *lpSrcInterface,
 			bPartial = true;
 			continue;
 		}
-
-		hr = this->DoCopyTo(&IID_IMessage, lpSrcMessage, 0, NULL, NULL, ulUIParam, lpProgress, &IID_IMessage, lpDestMessage, 0, NULL);
+		hr = DoCopyTo(&IID_IMessage, lpSrcMessage, 0, nullptr, nullptr, ulUIParam, lpProgress, &IID_IMessage, lpDestMessage, 0, nullptr);
 		if (FAILED(hr)) {
 			return hr;
 		} else if (hr != hrSuccess) {
@@ -346,7 +345,7 @@ HRESULT M4LMAPISupport::CopyFolder(const IID *lpSrcInterface, void *lpSrcFolder,
 	hr = lpDest->CreateFolder(FOLDER_GENERIC, lpszNewFolderName, nullptr, &IID_IMAPIFolder, ulFolderFlags, &~lpSubFolder);
 	if (hr != hrSuccess)
 		return hr;
-	hr = this->DoCopyTo(&IID_IMAPIFolder, lpFolder, 0, NULL, sExcludeProps,
+	hr = DoCopyTo(&IID_IMAPIFolder, lpFolder, 0, nullptr, sExcludeProps,
 	     ulUIParam, lpProgress, &IID_IMAPIFolder, lpSubFolder, ulFlags, NULL);
 	if (hr != hrSuccess)
 		return hr;

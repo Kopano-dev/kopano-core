@@ -26,7 +26,7 @@ ULONG M4LUnknown::AddRef() {
 }
 
 ULONG M4LUnknown::Release() {
-	ULONG nRef = --this->ref;
+	ULONG nRef = --ref;
 	if (nRef == 0)
 		delete this;
 	return nRef;

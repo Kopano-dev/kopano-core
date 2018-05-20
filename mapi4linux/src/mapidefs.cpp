@@ -673,7 +673,7 @@ HRESULT M4LProviderAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 // IMAPIAdviseSink
 // 
 ULONG M4LMAPIAdviseSink::OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) {
-	return this->lpFn(this->lpContext, cNotif, lpNotifications);
+	return lpFn(lpContext, cNotif, lpNotifications);
 }
 
 HRESULT M4LMAPIAdviseSink::QueryInterface(REFIID refiid, void **lpvoid) {
