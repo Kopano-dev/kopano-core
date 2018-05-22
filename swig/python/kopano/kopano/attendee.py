@@ -48,7 +48,7 @@ class Attendee(object):
             return prop.value
 
     @property
-    def type(self): # TODO type_?
+    def type_(self):
         # TODO is it just webapp which uses this?
         # (as there are explicit meeting properties for this)
         prop = self.row.get(PR_RECIPIENT_TYPE)

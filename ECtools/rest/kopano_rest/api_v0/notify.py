@@ -12,6 +12,7 @@ import requests
 from threading import Thread
 
 import falcon
+from falcon import routing
 
 try:
     from prometheus_client import Counter, Gauge
@@ -36,6 +37,9 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 # TODO list subscription scalability
 
 SUBSCRIPTIONS = {}
+
+_, PATTERN_MESSAGES = routing.compile_uri_template('/me/mailFolders/{folderid}/messages')
+_, PATTERN_CONTACTS = routing.compile_uri_template('/me/contactFolders/{folderid}/contacts')
 
 if PROMETHEUS:
     SUBSCR_COUNT = Counter('kopano_mfr_total_subscriptions', 'Total number of subscriptions')
@@ -97,7 +101,6 @@ class Processor(Thread):
                 if self.options and self.options.with_metrics:
                     POST_COUNT.inc()
                 logging.debug('Subscription notification: %s' % subscription['notificationUrl'])
-                print('posting', json.dumps(data))
                 requests.post(subscription['notificationUrl'], json=data, timeout=10, verify=verify)
             except Exception:
                 traceback.print_exc()
@@ -119,20 +122,21 @@ class Sink:
         QUEUE.put((self.store, notification, self.subscription))
 
 def _subscription_object(store, resource):
-    resource = resource.split('/')
+    resource = '/' + resource
 
-    if (len(resource) == 4 and \
-        resource[0] == 'me' and \
-        ((resource[:2] == ['me', 'mailFolders'] and resource[-1] == 'messages') or \
-         (resource[:2] == ['me', 'contactFolders'] and resource[-1] == 'contacts'))):
-        return utils._folder(store, resource[2]), None
+    # specific mail/contacts folder
+    match = (PATTERN_MESSAGES.match(resource) or \
+             PATTERN_CONTACTS.match(resource))
+    if match:
+        return utils._folder(store, match.groupdict()['folderid']), None
 
-    elif (len(resource) == 2 and \
-          resource[0] == 'me'):
-        if resource[1] == 'messages':
-            return store, 'mail'
-        elif resource[1] == 'contacts':
-            return store, 'contacts'
+    # all mail
+    elif resource == '/me/messages':
+        return store, 'mail'
+
+    # all contacts
+    elif resource == '/me/contacts':
+        return store, 'contacts'
 
 class SubscriptionResource:
     def __init__(self, options):
