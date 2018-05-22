@@ -208,13 +208,11 @@ HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& st
 	sProp.ulPropTag = DefinitionFromString(strTag, true);
 	switch (PROP_TYPE(sProp.ulPropTag)) {
 	case PT_LONG:
-	{
 		// either a definition, or a hexed network order value
 		sProp.Value.ul = 0;
 		for (const auto &val : tokenize(strData, "| \t"))
 			sProp.Value.ul |= DefinitionFromString(val, false);
 		break;
-	}
 	case PT_UNICODE:
 		sProp.ulPropTag = CHANGE_PROP_TYPE(sProp.ulPropTag, PT_STRING8);
 		/* fallthru */
@@ -474,9 +472,7 @@ HRESULT MAPISVC::Init()
  */
 HRESULT MAPISVC::GetService(const TCHAR *lpszService, ULONG ulFlags, SVCService **lppService)
 {
-	std::map<std::string, SVCService *>::const_iterator i;
-	
-	i = m_sServices.find(reinterpret_cast<const char *>(lpszService));
+	auto i = m_sServices.find(reinterpret_cast<const char *>(lpszService));
 	if (i == m_sServices.cend())
 		return MAPI_E_NOT_FOUND;
 

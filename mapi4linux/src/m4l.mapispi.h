@@ -30,13 +30,9 @@
 #include <edkmdb.h>
 
 struct M4LSUPPORTADVISE {
-	M4LSUPPORTADVISE(LPNOTIFKEY lpKey, ULONG ulEventMask, ULONG ulFlags, LPMAPIADVISESINK lpAdviseSink)
-	{
-		this->lpKey = lpKey;
-		this->ulEventMask = ulEventMask;
-		this->ulFlags = ulFlags;
-		this->lpAdviseSink = lpAdviseSink;
-	}
+	M4LSUPPORTADVISE(NOTIFKEY *k, ULONG m, ULONG f, IMAPIAdviseSink *s) :
+		lpKey(k), ulEventMask(m), ulFlags(f), lpAdviseSink(s)
+	{}
 
 	LPNOTIFKEY lpKey;
 	ULONG ulEventMask;
