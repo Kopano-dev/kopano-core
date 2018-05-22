@@ -78,7 +78,7 @@ from MAPI.Tags import (
 )
 
 from .pidlid import (
-    PidLidAppointmentStateFlags,
+    PidLidAppointmentStateFlags, PidLidCleanGlobalObjectId,
 )
 
 from .compat import (
@@ -810,6 +810,7 @@ class Item(Properties, Contact, Appointment):
         item = self
         if self.message_class == 'IPM.Appointment':
             item = self._send_meeting_request()
+            self[PidLidCleanGlobalObjectId] = item[PidLidCleanGlobalObjectId] # TODO don't overwrite?
 
         icon_index = {
             b'66': 261,  # reply
