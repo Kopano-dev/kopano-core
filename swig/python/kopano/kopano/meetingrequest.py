@@ -30,8 +30,9 @@ from MAPI.Tags import (
     PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
     PR_RECIPIENT_DISPLAY_NAME_W, PR_SENT_REPRESENTING_ADDRTYPE_W,
     PR_SENT_REPRESENTING_SEARCH_KEY, PR_ACCOUNT_W, PR_DISPLAY_TYPE_EX,
-    PR_SUBJECT_W, PR_MESSAGE_FLAGS, recipSendable, recipOrganizer,
-    recipOriginal, respTentative, respAccepted, respDeclined,
+    PR_SUBJECT_W, PR_MESSAGE_FLAGS, PR_RESPONSE_REQUESTED,
+    recipSendable, recipOrganizer, recipOriginal, respTentative, respAccepted,
+    respDeclined,
 )
 
 from MAPI.Defs import (
@@ -216,7 +217,7 @@ class MeetingRequest(object):
     @property
     def processed(self):
         """ Has the request/response been processed """
-        return self.item.get(PR_PROCESSED) or False
+        return self.item.get(PR_PROCESSED, False)
 
     @processed.setter
     def processed(self, value):
@@ -229,15 +230,23 @@ class MeetingRequest(object):
             self.processed = True
 
     @property
+    def response_requested(self):
+        """ Is a response requested """
+        return self.item.get(PR_RESPONSE_REQUESTED, False)
+
+    @property
     def is_request(self):
+        """ Is it an actual request """
         return self.item.message_class == 'IPM.Schedule.Meeting.Request'
 
     @property
     def is_response(self):
+        """ Is it a response """
         return self.item.message_class.startswith('IPM.Schedule.Meeting.Resp.')
 
     @property
     def is_cancellation(self):
+        """ Is it a cancellation """
         return self.item.message_class == 'IPM.Schedule.Meeting.Canceled'
 
     def _respond(self, subject_prefix, message_class, message=None):
