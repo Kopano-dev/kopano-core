@@ -1118,7 +1118,9 @@ class Item(Properties, Contact, Appointment):
             else:
                 props.append([searchkey, key, None])
 
-    def _dump(self, attachments=True, archiver=True, skip_broken=False):
+    def _dump(self, attachments=True, archiver=True, skip_broken=False, _main_item=None):
+        _main_item = _main_item or self
+
         # props
         props = []
         tag_data = {}
@@ -1165,7 +1167,7 @@ class Item(Properties, Contact, Appointment):
                         msg = att.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_DEFERRED_ERRORS)
                     item = Item(mapiobj=msg)
                     item.server = self.server # XXX
-                    data = item._dump() # recursion
+                    data = item._dump(_main_item=_main_item) # recursion
                     atts.append(([[a, b, None] for a, b in row.items()], data))
                 elif method == ATTACH_BY_VALUE and attachments:
                     try:
@@ -1174,14 +1176,14 @@ class Item(Properties, Contact, Appointment):
                         service = self.server.service
                         log = (service or self.server).log
                         if log:
-                            log.warn("no data found for attachment of item with entryid %s" % self.entryid)
+                            log.warn("no data found for attachment of item with entryid %s" % _main_item.entryid)
                         data = ''
                     atts.append(([[a, b, None] for a, b in row.items()], data))
             except Exception as e: # XXX generalize so usable in more places
                 service = self.server.service
                 log = (service or self.server).log
                 if log:
-                    log.error('could not serialize attachment for item with entryid %s' % self.entryid)
+                    log.error('could not serialize attachment for item with entryid %s' % _main_item.entryid)
                 if skip_broken:
                     if log:
                         log.error(traceback.format_exc(e))
