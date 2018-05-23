@@ -1377,6 +1377,11 @@ class Item(Properties, Contact, Appointment):
 
         return self.copy(folder, _delete=True)
 
+    @property
+    def is_meetingrequest(self):
+        """ Is the item a meeting request """
+        return self.message_class.startswith('IPM.Schedule.Meeting.')
+
     def __eq__(self, i): # XXX check same store?
         if isinstance(i, Item):
             return self.entryid == i.entryid

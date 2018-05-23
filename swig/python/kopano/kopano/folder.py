@@ -102,6 +102,7 @@ else:
 PROPMAP = {
     'subject': PR_SUBJECT_W,
     'received': PR_MESSAGE_DELIVERY_TIME,
+    'created': PR_CREATION_TIME,
 }
 
 class Folder(Properties):

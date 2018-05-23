@@ -79,32 +79,44 @@ def conflict_message(occurrences):
     return '\n'.join(lines)
 
 def main():
-    username, config, entryid = [_decode(arg) for arg in sys.argv[1:]]
+    args = [_decode(arg) for arg in sys.argv[1:]]
+    username, config = args[:2]
 
     server = kopano.Server()
     user = server.user(username)
     autoaccept = user.autoaccept
-    item = user.item(entryid)
-    mr = item.meetingrequest
 
-    if mr.is_request:
-        decline_message = None
+    if len(args) > 2:
+        items = [user.item(args[2])]
+    else:
+        items = []
+        for item in user.inbox:
+            mr = item.meetingrequest
+            if((mr.is_request and mr.response_requested and not mr.processed) or \
+               (mr.is_cancellation and not mr.processed)):
+               items.append(item)
 
-        if not autoaccept.recurring and item.recurring:
-            decline_message = "Recurring meetings are not allowed"
+    for item in items:
+        mr = item.meetingrequest
 
-        elif not autoaccept.conflicts:
-            conflicts = conflict_occurrences(user, item)
-            if conflicts:
-                decline_message = conflict_message(conflicts)
+        if mr.is_request:
+            decline_message = None
 
-        if decline_message:
-            mr.decline(message=decline_message)
-        else:
-            mr.accept(add_bcc=True)
+            if not autoaccept.recurring and item.recurring:
+                decline_message = "Recurring meetings are not allowed"
 
-    elif mr.is_cancellation:
-        mr.process_cancellation(delete=True)
+            elif not autoaccept.conflicts:
+                conflicts = conflict_occurrences(user, item)
+                if conflicts:
+                    decline_message = conflict_message(conflicts)
+
+            if decline_message:
+                mr.decline(message=decline_message)
+            else:
+                mr.accept(add_bcc=True)
+
+        elif mr.is_cancellation:
+            mr.process_cancellation(delete=True)
 
     now = datetime.now()
     user.freebusy.publish(now - timedelta(7), now + timedelta(180))
