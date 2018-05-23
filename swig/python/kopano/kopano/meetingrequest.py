@@ -483,7 +483,7 @@ class MeetingRequest(object):
 
         # update recipient track status
         table = message.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
-        table.SetColumns(RECIP_PROPS, 0) # XXX why do things get lot witout this
+        table.SetColumns(RECIP_PROPS, 0) # XXX things seem to get lost without this
 
         rows = table.QueryRows(-1, 0)
         for row in rows:
