@@ -12,6 +12,7 @@ import requests
 from threading import Thread
 
 import falcon
+from falcon import routing
 
 try:
     from prometheus_client import Counter, Gauge
@@ -28,8 +29,17 @@ from .config import PREFIX
 
 logging.getLogger("requests").setLevel(logging.WARNING)
 
-# TODO avoid globals
+# TODO don't block on sending updates
+# TODO async subscription validation
+# TODO restarting app/server?
+# TODO expiration?
+# TODO avoid globals (threading)
+# TODO list subscription scalability
+
 SUBSCRIPTIONS = {}
+
+_, PATTERN_MESSAGES = routing.compile_uri_template('/me/mailFolders/{folderid}/messages')
+_, PATTERN_CONTACTS = routing.compile_uri_template('/me/contactFolders/{folderid}/contacts')
 
 if PROMETHEUS:
     SUBSCR_COUNT = Counter('kopano_mfr_total_subscriptions', 'Total number of subscriptions')
@@ -61,10 +71,6 @@ def _user(req, options):
         server = _server(username, '')
     return server.user(username)
 
-# TODO don't block on sending updates
-# TODO async subscription validation
-# TODO restarting app/server
-# TODO expiration
 
 class Processor(Thread):
     def __init__(self, options):
@@ -72,11 +78,11 @@ class Processor(Thread):
         self.options = options
         self.daemon = True
 
-    def _notification(self, subscription, changetype, obj):
+    def _notification(self, subscription, event_type, obj):
         return {
             'subscriptionId': subscription['id'],
             'clientState': subscription['clientState'],
-            'changeType': changetype,
+            'changeType': event_type,
             'resource': subscription['resource'],
             'resourceData': {
                 '@data.type': '#Microsoft.Graph.Message',
@@ -88,29 +94,16 @@ class Processor(Thread):
         while True:
             store, notification, subscription = QUEUE.get()
 
-            if notification.mapiobj.ulObjType == MAPI_MESSAGE:
+            data = self._notification(subscription, notification.event_type, notification.object)
 
-                if notification.event_type == 'update':
-                    changetype = 'updated'
-                elif notification.event_type in ('create', 'copy', 'move'):
-                    changetype = 'created'
-                elif notification.event_type == 'delete':
-                    changetype = 'deleted'
-
-                data = self._notification(subscription, changetype, notification.object)
-
-                if notification.event_type == 'move':
-                    old_data = self._notification(subscription, 'deleted', notification.old_object)
-                    data = {'value': [old_data, data]}
-
-                verify = not self.options or not self.options.insecure
-                try:
-                    if self.options and self.options.with_metrics:
-                        POST_COUNT.inc()
-                    logging.debug('Subscription notification: %s' % subscription['notificationUrl'])
-                    requests.post(subscription['notificationUrl'], json.dumps(data), timeout=10, verify=verify)
-                except Exception:
-                    traceback.print_exc()
+            verify = not self.options or not self.options.insecure
+            try:
+                if self.options and self.options.with_metrics:
+                    POST_COUNT.inc()
+                logging.debug('Subscription notification: %s' % subscription['notificationUrl'])
+                requests.post(subscription['notificationUrl'], json=data, timeout=10, verify=verify)
+            except Exception:
+                traceback.print_exc()
 
 class Sink:
     def __init__(self, options, store, subscription):
@@ -128,12 +121,22 @@ class Sink:
 
         QUEUE.put((self.store, notification, self.subscription))
 
-#def _get_folder(store, resource):
-#    resource = resource.split('/')
-#    if (len(resource) == 4 and \
-#        resource[0] == 'me' and resource[1] == 'mailFolders' and resource[3] == 'messages'):
-#        folderid = resource[2]
-#    return utils._folder(store, folderid)
+def _subscription_object(store, resource):
+    resource = '/' + resource
+
+    # specific mail/contacts folder
+    match = (PATTERN_MESSAGES.match(resource) or \
+             PATTERN_CONTACTS.match(resource))
+    if match:
+        return utils._folder(store, match.groupdict()['folderid']), None
+
+    # all mail
+    elif resource == '/me/messages':
+        return store, 'mail'
+
+    # all contacts
+    elif resource == '/me/contacts':
+        return store, 'contacts'
 
 class SubscriptionResource:
     def __init__(self, options):
@@ -143,10 +146,8 @@ class SubscriptionResource:
         user = _user(req, self.options)
         store = user.store
         fields = json.loads(req.stream.read().decode('utf-8'))
-#        folder = _get_folder(store, fields['resource'])
 
-        # TODO folder-level, hierarchy.. ?
-
+        # validate webhook
         validationToken = str(uuid.uuid4())
         verify = not self.options or not self.options.insecure
         try: # TODO async
@@ -157,14 +158,21 @@ class SubscriptionResource:
         except Exception:
             raise falcon.HTTPBadRequest(None, "Subscription validation request failed.")
 
+        # create subscription
         id_ = str(uuid.uuid4())
         subscription = fields
         subscription['id'] = id_
 
-        sink = Sink(self.options, store, subscription)
-        store.subscribe(sink)
+        target, folder_types = _subscription_object(store, fields['resource'])
 
-        SUBSCRIPTIONS[id_] = (subscription, sink)
+        sink = Sink(self.options, store, subscription)
+        object_types = ['item'] # TODO folders not supported by graph atm?
+        event_types = [x.strip() for x in subscription['changeType'].split(',')]
+
+        target.subscribe(sink, object_types=object_types,
+                         event_types=event_types, folder_types=folder_types)
+
+        SUBSCRIPTIONS[id_] = (subscription, sink, user.userid)
 
         resp.content_type = "application/json"
         resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
@@ -173,18 +181,27 @@ class SubscriptionResource:
             SUBSCR_COUNT.inc()
             SUBSCR_ACTIVE.set(len(SUBSCRIPTIONS))
 
-    def on_get(self, req, resp, subscriptionid):
-        subscription, sink = SUBSCRIPTIONS[subscriptionid]
+    def on_get(self, req, resp, subscriptionid=None):
+        user = _user(req, self.options)
+
+        if subscriptionid:
+            subscription, sink, userid = SUBSCRIPTIONS[subscriptionid]
+            data = subscription
+        else:
+            userid = user.userid
+            data = {
+                '@odata.context': req.path,
+                'value': [subscription for (subscription, _, uid) in SUBSCRIPTIONS.values() if uid == userid], # TODO doesn't scale
+            }
 
         resp.content_type = "application/json"
-        resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
+        resp.body = json.dumps(data, indent=2, separators=(',', ': '))
 
     def on_delete(self, req, resp, subscriptionid):
         user = _user(req, self.options)
         store = user.store
 
-        subscription, sink = SUBSCRIPTIONS[subscriptionid]
-        #folder = _get_folder(store, subscription['resource'])
+        subscription, sink, userid = SUBSCRIPTIONS[subscriptionid]
 
         store.unsubscribe(sink)
         del SUBSCRIPTIONS[subscriptionid]

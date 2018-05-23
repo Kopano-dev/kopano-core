@@ -4,7 +4,6 @@ Part of the high-level python bindings for Kopano
 Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
 """
 
-from calendar import timegm
 import datetime
 import struct
 import sys
@@ -193,9 +192,7 @@ class MeetingRequest(object):
         if blob is not None:
             y, m, d = struct.unpack_from('>HBB', blob, 16)
             if (y, m, d) != (0, 0, 0):
-                ts = timegm(datetime.datetime(y, m, d).timetuple())
-                tz = self.item.get(PidLidTimeZoneStruct)
-                return _utils._to_gmt(datetime.datetime.fromtimestamp(ts), tz)
+                return _utils._to_utc(datetime.datetime(y, m, d), self.item.tzinfo)
 
     @property
     def update_counter(self):

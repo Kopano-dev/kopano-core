@@ -21,8 +21,8 @@ else:
 def capacity(user): # XXX pyko?
     """ equipment resources can be overbooked up to N times """
 
-    disptype = user.get_value(PR_DISPLAY_TYPE_EX)
-    capacity = user.get_value(PR_EMS_AB_ROOM_CAPACITY)
+    disptype = user.get(PR_DISPLAY_TYPE_EX)
+    capacity = user.get(PR_EMS_AB_ROOM_CAPACITY)
 
     if disptype == DT_EQUIPMENT and capacity:
         return capacity

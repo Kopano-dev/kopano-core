@@ -919,14 +919,14 @@ class Folder(Properties):
     def last_modified(self):
         return self._get_fast(PR_LAST_MODIFICATION_TIME)
 
-    def subscribe(self, sink):
-        _notification.subscribe(self.store, self, sink)
+    def subscribe(self, sink, **kwargs):
+        _notification.subscribe(self.store, self, sink, **kwargs)
 
     def unsubscribe(self, sink):
         _notification.unsubscribe(self.store, sink)
 
-    def notifications(self, time=24 * 3600):
-        for n in _notification._notifications(self.store, self.entryid, time):
+    def notifications(self, time=24 * 3600, **kwargs):
+        for n in _notification._notifications(self.store, self, time, **kwargs):
             yield n
 
     def event(self, eventid):
@@ -937,6 +937,15 @@ class Folder(Properties):
             return item
         else:
             return item.occurrence(_benc(eventid[1:]))
+
+    @property
+    def type_(self):
+        if self.container_class in (None, 'IPF.Note'):
+            return 'mail'
+        elif self.container_class == 'IPF.Contact':
+            return 'contacts'
+        elif self.container_class == 'IPF.Appointment':
+            return 'calendar'
 
     def __eq__(self, f): # XXX check same store?
         if isinstance(f, Folder):
