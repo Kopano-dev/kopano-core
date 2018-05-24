@@ -254,7 +254,7 @@ public:
     void AddPropVal(unsigned int ulPropTag, const struct propVal *lpPropVal) {
         struct propVal val;
         ulPropTag = NormalizeDBPropTag(ulPropTag); // Only cache PT_STRING8
-        CopyPropVal(lpPropVal, &val, NULL, false);
+        CopyPropVal(lpPropVal, &val, NULL, false, true);
         val.ulPropTag = NormalizeDBPropTag(val.ulPropTag);
 		auto res = mapPropVals.emplace(ulPropTag, val);
 		if (res.second == false) {
