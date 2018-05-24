@@ -30,6 +30,7 @@
 
 namespace KC {
 
+extern std::string FilterBMP(const std::string &strToFilter);
 // SortOrderSets
 extern void FreeSortOrderArray(struct sortOrderArray *lpsSortOrder);
 extern int CompareSortOrderArray(const struct sortOrderArray *lpsSortOrder1, const struct sortOrderArray *lpsSortOrder2);

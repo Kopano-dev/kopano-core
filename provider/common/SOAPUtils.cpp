@@ -31,6 +31,51 @@
 
 namespace KC {
 
+/**
+ * For some reason, MySQL only supports up to 3 bytes of UTF-8 data. This means
+ * that data outside the BMP is not supported. This function filters the passed UTF-8 string
+ * and removes the non-BMP characters. Since it should be extremely uncommon to have useful
+ * data outside the BMP, this should be acceptable.
+ *
+ * Note: BMP stands for Basic Multilingual Plane (first 0x10000 code points in unicode)
+ *
+ * If somebody points out a useful use case for non-BMP characters in the future, then we'll
+ * have to rethink this.
+ *
+ */
+std::string FilterBMP(const std::string &str_to_filter)
+{
+	const char *c = str_to_filter.c_str();
+	std::string str_filtered;
+
+	for (size_t pos = 0; pos < str_to_filter.size(); ) {
+		// Copy 1, 2, and 3-byte UTF-8 sequences
+		int len;
+
+		if ((c[pos] & 0x80) == 0)
+			len = 1;
+		else if ((c[pos] & 0xE0) == 0xC0)
+			len = 2;
+		else if ((c[pos] & 0xF0) == 0xE0)
+			len = 3;
+		else if ((c[pos] & 0xF8) == 0xF0)
+			len = 4;
+		else if ((c[pos] & 0xFC) == 0xF8)
+			len = 5;
+		else if ((c[pos] & 0xFE) == 0xFC)
+			len = 6;
+		else
+			// Invalid UTF-8 ?
+			len = 1;
+		if (len < 4)
+			str_filtered.append(&c[pos], len);
+		pos += len;
+	}
+
+	return str_filtered;
+}
+
+
 /* See m4lcommon/Util.cpp for twcmp */
 template<typename T> static int twcmp(T a, T b)
 {

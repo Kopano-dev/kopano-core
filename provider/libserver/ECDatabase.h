@@ -45,7 +45,6 @@ public:
 	virtual ECRESULT DoSequence(const std::string &seqname, unsigned int ulCount, unsigned long long *first_id) _kc_override;
 	virtual ECRESULT DoUpdate(const std::string &query, unsigned int *affected_rows = nullptr) _kc_override;
 	ECRESULT FinalizeMulti(void);
-	std::string FilterBMP(const std::string &to_filter);
 	ECRESULT GetNextResult(DB_RESULT *);
 	ECRESULT InitializeDBState(void);
 	virtual ECRESULT Rollback(void) _kc_override;
