@@ -2038,17 +2038,17 @@ ECRESULT DynamicPropValArray::AddPropVal(struct propVal &propVal)
     return erSuccess;
 }
 
-ECRESULT DynamicPropValArray::GetPropValArray(struct propValArray *lpPropValArray)
+ECRESULT DynamicPropValArray::GetPropValArray(struct propValArray *lpPropValArray, bool release)
 {
     ECRESULT er = erSuccess;
     
     lpPropValArray->__size = m_ulPropCount;
     lpPropValArray->__ptr = m_lpPropVals; // Transfer ownership to the caller
-    
-    m_lpPropVals = NULL;					// We don't own these anymore
-    m_ulPropCount = 0;
-    m_ulCapacity = 0;
-    
+	if (release) {
+		m_lpPropVals = nullptr;					// We don't own these anymore
+		m_ulPropCount = 0;
+		m_ulCapacity = 0;
+	}
     return er;
 }
 

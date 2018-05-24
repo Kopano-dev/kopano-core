@@ -118,7 +118,7 @@ public:
     ECRESULT AddPropVal(struct propVal &propVal);
     
     // Return a propvalarray of all properties passed
-    ECRESULT GetPropValArray(struct propValArray *lpPropValArray);
+    ECRESULT GetPropValArray(struct propValArray *lpPropValArray, bool release = true);
 
 private:
     ECRESULT Resize(unsigned int ulSize);
