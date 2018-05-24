@@ -287,10 +287,12 @@ public:
         if(PROP_TYPE(ulPropTag) != PT_LONG && PROP_TYPE(ulPropTag) != PT_LONGLONG)
             return;
 		auto i = mapPropVals.find(ulPropTag);
-		if (i == mapPropVals.cend() ||
-		    (PROP_TYPE(i->second.ulPropTag) != PT_LONG && PROP_TYPE(i->second.ulPropTag) != PT_LONGLONG))
+		if (i == mapPropVals.cend())
 			return;
-        i->second.Value.ul += lDelta;
+		if (PROP_TYPE(i->second.ulPropTag) == PT_LONG)
+			i->second.Value.ul += lDelta;
+		if (PROP_TYPE(i->second.ulPropTag) == PT_LONGLONG)
+			i->second.Value.li += lDelta;
     }
     
     // Updates a LONG type property
@@ -298,11 +300,16 @@ public:
         if(PROP_TYPE(ulPropTag) != PT_LONG && PROP_TYPE(ulPropTag) != PT_LONGLONG)
             return;
 		auto i = mapPropVals.find(ulPropTag);
-		if (i == mapPropVals.cend() ||
-		    (PROP_TYPE(i->second.ulPropTag) != PT_LONG && PROP_TYPE(i->second.ulPropTag) != PT_LONGLONG))
+		if (i == mapPropVals.cend())
 			return;
-        i->second.Value.ul &= ~ulMask;
-        i->second.Value.ul |= ulValue & ulMask;
+		if (PROP_TYPE(i->second.ulPropTag) == PT_LONG) {
+			i->second.Value.ul &= ~ulMask;
+			i->second.Value.ul |= ulValue & ulMask;
+		}
+		if (PROP_TYPE(i->second.ulPropTag) == PT_LONGLONG) {
+			i->second.Value.li &= ~ulMask;
+			i->second.Value.li |= ulValue & ulMask;
+		}
     }
     
 	void SetComplete(bool bComplete) { m_bComplete = bComplete; }
