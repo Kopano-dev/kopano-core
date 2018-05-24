@@ -252,7 +252,7 @@ class MeetingRequest(object):
 
         response.subject = subject_prefix + ': ' + self.item.subject
         if message:
-            response.body = message
+            response.text = message
         response.to = self.item.server.user(email=self.item.from_.email) # XXX
         response.from_ = self.item.store.user # XXX slow?
 
