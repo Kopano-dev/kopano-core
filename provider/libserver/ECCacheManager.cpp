@@ -1269,12 +1269,7 @@ ECRESULT ECCacheManager::GetCell(const sObjectTableKey *lpsRowItem,
         goto exit;
     }
 
-    // only support caching order id 0 (non-multi-valued)
-	if(lpsRowItem->ulOrderId != 0) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
+	/* ignoring orderId for now */
 	er = m_CellCache.GetCacheItem(lpsRowItem->ulObjId, &sCell);
 	if(er != erSuccess)
 	    goto exit;
@@ -1286,7 +1281,6 @@ ECRESULT ECCacheManager::GetCell(const sObjectTableKey *lpsRowItem,
             // not in the cache.
 			m_CellCache.DecrementValidCount();
             er = KCERR_NOT_FOUND;
-            goto exit;
         } else {
             // Object is complete and property is not found; we know that the property does not exist
             // so return OK with a NOT_FOUND propvalue
@@ -1310,9 +1304,7 @@ ECRESULT ECCacheManager::SetCell(const sObjectTableKey *lpsRowItem,
     ECRESULT er = erSuccess;
     ECsCells *sCell;
 
-	if (lpsRowItem->ulOrderId != 0)
-		return KCERR_NOT_FOUND;
-
+	/* ignoring orderId for now */
 	scoped_rlock lock(m_hCacheCellsMutex);
 
 	if (m_CellCache.GetCacheItem(lpsRowItem->ulObjId, &sCell) == erSuccess) {

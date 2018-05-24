@@ -1979,6 +1979,19 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				}
 			}
 
+			if (nMVItems == 0) {
+				sObjectTableKey key(ulObjId, 0);
+				struct propVal sPropVal;
+				sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag, PT_ERROR);
+				sPropVal.Value.ul = KCERR_NOT_FOUND;
+				sPropVal.__union = SOAP_UNION_propValData_ul;
+				g_lpSessionManager->GetCacheManager()->SetCell(&key, lpPropValArray->__ptr[i].ulPropTag, &sPropVal);
+			} else {
+				// Cache the written value
+				sObjectTableKey key(ulObjId,0);
+				g_lpSessionManager->GetCacheManager()->SetCell(&key, lpPropValArray->__ptr[i].ulPropTag, &lpPropValArray->__ptr[i]);
+			}
+
 			if(!fNewItem) {
 				auto strQuery = "DELETE FROM mvproperties WHERE hierarchyid=" + stringify (ulObjId) +
 							" AND tag=" + stringify(PROP_ID(lpPropValArray->__ptr[i].ulPropTag)) +
@@ -2018,6 +2031,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		}
 
 		setInserted.emplace(lpPropValArray->__ptr[i].ulPropTag);
+
 	} // for (i = 0; i < lpPropValArray->__size; ++i)
 
 	if(!strInsert.empty()) {
@@ -2208,7 +2222,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				return er;
 		}
 	}
-
 	if(fNewItem && ulParentType == MAPI_FOLDER)
         // Since we have written a new item, we know that the cache contains *all* properties for this object
         g_lpSessionManager->GetCacheManager()->SetComplete(ulObjId);

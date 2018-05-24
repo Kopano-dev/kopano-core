@@ -385,13 +385,11 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
     	    	bRowComplete = false;
     	    	continue; // These are not in cache, even if cache is complete for an item.
 			}
-			
-			if(PROP_TYPE(ulPropTag) & MV_FLAG) {
-				// Currently not caching MV values
+
+			if ((ulPropTag & MVI_FLAG) == MVI_FLAG) {
 				bRowComplete = false;
 				continue;
 			}
-    	    
     	    // FIXME bComputed always false
     	    // FIXME optimisation possible to GetCell: much more efficient to get all cells in one row at once
 			if (cache->GetCell(&row, ulPropTag, &lpsRowSet->__ptr[i].__ptr[k], soap, false) == erSuccess) {
@@ -715,12 +713,13 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
                 // Update property tag to requested property tag; requested type may have been PT_UNICODE while database contains PT_STRING8
                 lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag = iterColumns->first;
 
-                if ((lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag & MV_FLAG) == 0)
-					// Cache value
-					cache->SetCell(&sKey, iterColumns->first, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]);
-				else if ((lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag & MVI_FLAG) == MVI_FLAG)
+				// Cache value
+				if ((lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag & MVI_FLAG) == MVI_FLAG)
 					// Get rid of the MVI_FLAG
 					lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag &= ~MVI_FLAG;
+				else
+					cache->SetCell(&sKey, iterColumns->first, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]);
+
 
                 // Remove from mapColumns so we know that we got a response from SQL
 				iterColumns = mapColumns.erase(iterColumns);
@@ -888,10 +887,11 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 					m.ulPropTag = CHANGE_PROP_TYPE(iterColumns->first, PT_ERROR);
 				else
 					m.ulPropTag = iterColumns->first;
-				if ((m.ulPropTag & MV_FLAG) == 0)
-					cache->SetCell(const_cast<sObjectTableKey *>(&iterObjIds->first), iterColumns->first, &m);
-				else if ((m.ulPropTag & MVI_FLAG) == MVI_FLAG)
+				if ((m.ulPropTag & MVI_FLAG) == MVI_FLAG)
 					m.ulPropTag &= ~MVI_FLAG;
+				else
+					cache->SetCell(const_cast<sObjectTableKey *>(&iterObjIds->first), iterColumns->first, &m);
+
 				setDone.emplace(iterObjIds->second, iterColumns->second);
 			}
 			
