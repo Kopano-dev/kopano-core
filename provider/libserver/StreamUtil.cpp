@@ -1512,12 +1512,9 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 					goto exit;
 				}
 			}
-			if (ulParentType == MAPI_FOLDER) {
-				// Cache the written value
-				sObjectTableKey key(ulObjId, 0);
-				gcache->SetCell(&key, lpsPropval->ulPropTag, lpsPropval);
-			}
-			
+			// Cache the written value
+			sObjectTableKey key(ulObjId, 0);
+			gcache->SetCell(&key, lpsPropval->ulPropTag, lpsPropval);
 		} else {
 			// Write the property to the database
 			er = WriteSingleProp(lpDatabase, ulObjId, ulParentId, lpsPropval, false, lpDatabase->GetMaxAllowedPacket(), strInsertQuery);
@@ -1532,11 +1529,9 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 				goto exit;
 			
 			// Write the property to the table properties if needed (only on objects in folders (folders, messages), and if the property is being tracked here.
-			if (ulParentType == MAPI_FOLDER) {
-				// Cache the written value
-				sObjectTableKey key(ulObjId, 0);
-				gcache->SetCell(&key, lpsPropval->ulPropTag, lpsPropval);
-			}
+			// Cache the written value
+			sObjectTableKey key(ulObjId, 0);
+			gcache->SetCell(&key, lpsPropval->ulPropTag, lpsPropval);
 		}
 
 		setInserted.emplace(lpsPropval->ulPropTag);

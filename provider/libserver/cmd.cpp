@@ -2023,11 +2023,10 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				return er;
 			
 			// Write the property to the table properties if needed (only on objects in folders (folders, messages), and if the property is being tracked here.
-			if(ulParentType == MAPI_FOLDER || lpPropValArray->__ptr[i].ulPropTag == PR_SORT_LOCALE_ID) {
-				// Cache the written value
-				sObjectTableKey key(ulObjId,0);
-				g_lpSessionManager->GetCacheManager()->SetCell(&key, lpPropValArray->__ptr[i].ulPropTag, &lpPropValArray->__ptr[i]);
-			}
+
+			// Cache the written value
+			sObjectTableKey key(ulObjId,0);
+			g_lpSessionManager->GetCacheManager()->SetCell(&key, lpPropValArray->__ptr[i].ulPropTag, &lpPropValArray->__ptr[i]);
 		}
 
 		setInserted.emplace(lpPropValArray->__ptr[i].ulPropTag);
@@ -2121,8 +2120,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
             // Add to cache
             key.ulObjId = ulObjId;
             key.ulOrderId = 0;
-			if(ulParentType == MAPI_FOLDER)
-                g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_LAST_MODIFICATION_TIME, &sProp);
+			g_lpSessionManager->GetCacheManager()->SetCell(&key, PR_LAST_MODIFICATION_TIME, &sProp);
 			
 		}
 		
@@ -2174,8 +2172,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			// Add to cache
 			key.ulObjId = ulObjId;
 			key.ulOrderId = 0;
-			if (ulParentType == MAPI_FOLDER)
-				g_lpSessionManager->GetCacheManager()->SetCell(&key, tags[i], &sPropTime);
+			g_lpSessionManager->GetCacheManager()->SetCell(&key, tags[i], &sPropTime);
 		}
 	}
 
@@ -2222,7 +2219,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				return er;
 		}
 	}
-	if(fNewItem && ulParentType == MAPI_FOLDER)
+	if (fNewItem)
         // Since we have written a new item, we know that the cache contains *all* properties for this object
         g_lpSessionManager->GetCacheManager()->SetComplete(ulObjId);
         
@@ -2841,8 +2838,50 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	sSavedObject.ulClientId = 0;
 	sSavedObject.ulServerId = ulObjId;
 	sSavedObject.ulObjType = ulObjType;
-	
-	if(lpChildProps == NULL) {
+
+	auto cache = lpecSession->GetSessionManager()->GetCacheManager();
+	bool complete = false;
+	if (lpChildProps == nullptr && cache->GetComplete(ulObjId, complete) == erSuccess && complete) {
+		std::vector<unsigned int> proptags;
+
+		er = cache->GetPropTags(ulObjId, proptags);
+		if (er != erSuccess)
+			return er;
+
+		CHILDPROPS sChild;
+		sChild.lpPropTags = new DynamicPropTagArray(soap);
+		sChild.lpPropVals = new DynamicPropValArray(soap, 20);
+
+		for (auto proptag : proptags) {
+			sObjectTableKey key(ulObjId, 0);
+			struct propVal prop;
+			er = cache->GetCell(&key, proptag, &prop, nullptr, false, false);
+			if (er != erSuccess) {
+				delete sChild.lpPropTags;
+				delete sChild.lpPropVals;
+				FreeChildProps(&mapChildProps);
+				return er;
+			}
+			if (PROP_TYPE(prop.ulPropTag) == PT_ERROR)
+				continue;
+
+			if (PROP_TYPE(prop.ulPropTag) == PT_STRING8)
+				prop.ulPropTag = CHANGE_PROP_TYPE(prop.ulPropTag, PT_UNICODE);
+			if (PROP_TYPE(proptag) == PT_STRING8)
+				proptag = CHANGE_PROP_TYPE(proptag, PT_UNICODE);
+			if (PROP_TYPE(prop.ulPropTag) == PT_MV_STRING8)
+				prop.ulPropTag = CHANGE_PROP_TYPE(prop.ulPropTag, PT_MV_UNICODE);
+			if (PROP_TYPE(proptag) == PT_MV_STRING8)
+				proptag = CHANGE_PROP_TYPE(proptag, PT_MV_UNICODE);
+
+			sChild.lpPropTags->AddPropTag(proptag);
+			sChild.lpPropVals->AddPropVal(prop);
+		}
+
+		mapChildProps.emplace(ulObjId, std::move(sChild));
+		lpChildProps = &mapChildProps;
+	}
+	else if (lpChildProps == nullptr) {
 	    // We were not provided with a property list for this object, get our own now.
 	    er = PrepareReadProps(soap, lpDatabase, true, lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE, ulObjId, 0, MAX_PROP_SIZE, &mapChildProps, NULL);
 	    if(er != erSuccess)
@@ -2850,7 +2889,22 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	        
         lpChildProps = &mapChildProps;
     }
-	
+
+	/* not in cache, so let us cache it */
+	if (!complete) {
+		struct propValArray arr;
+		iterProps = lpChildProps->find(ulObjId);
+		er = iterProps->second.lpPropVals->GetPropValArray(&arr, false);
+		if (er != erSuccess)
+			return er;
+
+		for (int i = 0; i < arr.__size; ++i) {
+			sObjectTableKey key(ulObjId, 0);
+			cache->SetCell(&key, arr.__ptr[i].ulPropTag, &arr.__ptr[i]);
+		}
+		cache->SetComplete(ulObjId);
+	}
+
 	iterProps = lpChildProps->find(ulObjId);
 	if (iterProps == lpChildProps->cend())
 		er = ReadProps(soap, lpecSession, ulObjId, ulObjType, ulParentObjType, sEmptyProps, &sSavedObject.delProps, &sSavedObject.modProps);
@@ -2864,10 +2918,12 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
     
 
 	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
-        // Pre-load *all* properties of *all* subobjects for fast accessibility
-        er = PrepareReadProps(soap, lpDatabase, true, lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE, 0, ulObjId, MAX_PROP_SIZE, &mapChildProps, NULL);
-        if (er != erSuccess)
-			return er;
+		if (!complete) {
+			// Pre-load *all* properties of *all* subobjects for fast accessibility
+			er = PrepareReadProps(soap, lpDatabase, true, lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE, 0, ulObjId, MAX_PROP_SIZE, &mapChildProps, NULL);
+			if (er != erSuccess)
+				return er;
+		}
 
 		// find subobjects
 		strQuery = "SELECT id, type FROM hierarchy WHERE parent="+stringify(ulObjId);
@@ -2886,7 +2942,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 				return KCERR_DATABASE_ERROR; // this should never happen
 			}
 			
-   			LoadObject(soap, lpecSession, atoi(lpDBRow[0]), atoi(lpDBRow[1]), ulObjType, &sSavedObject.__ptr[i], &mapChildProps);
+			LoadObject(soap, lpecSession, atoi(lpDBRow[0]), atoi(lpDBRow[1]), ulObjType, &sSavedObject.__ptr[i], complete ? nullptr : &mapChildProps);
 		}
     	FreeChildProps(&mapChildProps);
 	}

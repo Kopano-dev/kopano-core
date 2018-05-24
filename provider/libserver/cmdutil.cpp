@@ -775,6 +775,8 @@ ECRESULT DeleteObjectCacheUpdate(ECSession *lpSession, unsigned int ulFlags, ECL
 		// Update cache, Remove index properties
 		if (ulFlags & EC_DELETE_HARD_DELETE)
 			lpCacheManager->RemoveIndexData(di.ulId);
+
+		lpCacheManager->DeleteCell(di.ulId);
 	}
 	return erSuccess;
 }
