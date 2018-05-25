@@ -669,8 +669,9 @@ class Server(object):
         table.SetColumns([PR_DISPLAY_NAME_W, PR_ENTRYID], 0)
         for row in table.QueryRows(-1, 0):
             store = _store.Store(mapiobj=self._store2(row[1].Value), server=self)
-            if system or store.public or (store.user and store.user.name != 'SYSTEM'):
-                yield store
+            if not system and store.user and store.user.name == 'SYSTEM':
+                continue
+            yield store
 
     def remove_store(self, store):
         try:

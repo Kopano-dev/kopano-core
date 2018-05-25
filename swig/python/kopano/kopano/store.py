@@ -575,7 +575,7 @@ class Store(Properties):
             pubstore = self.company.public_store
             return (pubstore is None or pubstore.guid != self.guid)
         else:
-            return (self.user.store is None or self.user.store.guid != self.guid)
+            return (self.user is None or self.user.store is None or self.user.store.guid != self.guid)
 
     def permissions(self):
         """Return all :class:`permissions <Permission>` set for this store."""
