@@ -1150,10 +1150,14 @@ class Item(Properties, Contact, Appointment):
         }
 
     def dump(self, f, attachments=True, archiver=True):
-        pickle.dump(self._dump(attachments=attachments, archiver=archiver), f, protocol=2)
+        item = Item(mapiobj=self._arch_item) # TODO make configurable?
+        item.server = self.server
+        pickle.dump(item._dump(attachments=attachments, archiver=archiver), f, protocol=2)
 
     def dumps(self, attachments=True, archiver=True, skip_broken=False):
-        return pickle.dumps(self._dump(attachments=attachments, archiver=archiver, skip_broken=skip_broken), protocol=2)
+        item = Item(mapiobj=self._arch_item) # TODO make configurable?
+        item.server = self.server
+        return pickle.dumps(item._dump(attachments=attachments, archiver=archiver, skip_broken=skip_broken), protocol=2)
 
     def _load(self, d, attachments):
         # props
