@@ -280,6 +280,7 @@ static void *Handler_Threaded(void *a)
 	 * Steer the control signals to the main thread for consistency with
 	 * the forked mode.
 	 */
+	++nChildren;
 	kcsrv_blocksigs();
 	return Handler(a);
 }
@@ -707,14 +708,14 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				else {
 					set_thread_name(POP3Thread, "ZGateway " + std::string(method));
 					lpHandlerArgs.release();
-					++nChildren;
 				}
 			}
 			else {
-				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0)
+				++nChildren;
+				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
 					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
-				else
-					++nChildren;
+					--nChildren;
+				}
 			}
 			continue;
 		}
@@ -742,14 +743,14 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				else {
 					set_thread_name(IMAPThread, "ZGateway " + std::string(method));
 					lpHandlerArgs.release();
-					++nChildren;
 				}
 			}
 			else {
-				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0)
+				++nChildren;
+				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
 					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
-				else
-					++nChildren;
+					--nChildren;
+				}
 			}
 			continue;
 		}
@@ -765,12 +766,12 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	// wait max 10 seconds (init script waits 15 seconds)
 	for (int i = 10; nChildren != 0 && i != 0; --i) {
 		if (i % 5 == 0)
-			ec_log_warn("Waiting for %d processes to exit", nChildren.load());
+			ec_log_warn("Waiting for %d processes/threads to exit", nChildren.load());
 		sleep(1);
 	}
 
 	if (nChildren)
-		ec_log_warn("Forced shutdown with %d processes left", nChildren.load());
+		ec_log_warn("Forced shutdown with %d processes/threads left", nChildren.load());
 	else
 		ec_log_notice("POP3/IMAP Gateway shutdown complete");
 	MAPIUninitialize();
