@@ -701,22 +701,20 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			const char *method = pop3s_event ? "POP3s" : "POP3";
 			const char *model = bThreads ? "thread" : "process";
 			ec_log_notice("Starting worker %s for %s request", model, method);
-			if (bThreads) {
-				if (pthread_create(&POP3Thread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
-					ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
-				}
-				else {
-					set_thread_name(POP3Thread, "ZGateway " + std::string(method));
-					lpHandlerArgs.release();
-				}
-			}
-			else {
+			if (!bThreads) {
 				++nChildren;
 				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
 					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
 					--nChildren;
 				}
+				continue;
 			}
+			if (pthread_create(&POP3Thread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
+				ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
+				continue;
+			}
+			set_thread_name(POP3Thread, "ZGateway " + std::string(method));
+			lpHandlerArgs.release();
 			continue;
 		}
 
@@ -735,23 +733,21 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			const char *method = imaps_event ? "IMAPs" : "IMAP";
 			const char *model = bThreads ? "thread" : "process";
 			ec_log_notice("Starting worker %s for %s request", model, method);
-			if (bThreads) {
-				err = pthread_create(&IMAPThread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
-				if (err != 0) {
-					ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
-				}
-				else {
-					set_thread_name(IMAPThread, "ZGateway " + std::string(method));
-					lpHandlerArgs.release();
-				}
-			}
-			else {
+			if (!bThreads) {
 				++nChildren;
 				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
 					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
 					--nChildren;
 				}
+				continue;
 			}
+			err = pthread_create(&IMAPThread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
+			if (err != 0) {
+				ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
+				continue;
+			}
+			set_thread_name(IMAPThread, "ZGateway " + std::string(method));
+			lpHandlerArgs.release();
 			continue;
 		}
 	}
