@@ -521,11 +521,12 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 		set_thread_name(pThread, std::string("ZCalDAV") + lpChannel->peer_addr());
 	}
 	else {
+		++nChildren;
 		if (unix_fork_function(HandlerClient, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
 			ec_log_err("Could not create ZCalDAV process: %s", strerror(errno));
+			--nChildren;
 			return E_FAIL;
 		}
-		++nChildren;
 	}
 	return hrSuccess;
 }
