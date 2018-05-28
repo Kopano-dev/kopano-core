@@ -249,8 +249,10 @@ int main(int argc, char **argv) {
 	if (!TmpPath::instance.OverridePath(g_lpConfig))
 		ec_log_err("Ignoring invalid path-setting!");
 
-	if (strncmp(g_lpConfig->GetSetting("process_model"), "thread", strlen("thread")) == 0)
+	if (strncmp(g_lpConfig->GetSetting("process_model"), "thread", strlen("thread")) == 0) {
 		g_bThreads = true;
+		g_lpLogger->SetLogprefix(LP_TID);
+	}
 
 	// initialize SSL threading
     ssl_threading_setup();
