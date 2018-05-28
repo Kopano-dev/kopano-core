@@ -16,6 +16,7 @@
  */
 
 #include "config.h"
+#include <atomic>
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
@@ -62,8 +63,7 @@ static bool g_bDaemonize = true, g_bQuit, g_bThreads, g_dump_config;
 static ECLogger *g_lpLogger = NULL;
 static ECConfig *g_lpConfig = NULL;
 static pthread_t mainthread;
-static int nChildren = 0;
-
+static std::atomic<int> nChildren{0};
 static HRESULT HrSetupListeners(int *lpulNormalSocket, int *lpulSecureSocket);
 static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket);
 static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL, int nCloseFDs, int *pCloseFDs);
@@ -310,13 +310,13 @@ int main(int argc, char **argv) {
 		int i = 30; /* wait max 30 seconds */
 		while (nChildren && i) {
 			if (i % 5 == 0)
-				ec_log_notice("Waiting for %d processes/threads to exit", nChildren);
+				ec_log_notice("Waiting for %d processes/threads to exit", nChildren.load());
 			sleep(1);
 			--i;
 		}
 
 		if (nChildren)
-			ec_log_notice("Forced shutdown with %d processes/threads left", nChildren);
+			ec_log_notice("Forced shutdown with %d processes/threads left", nChildren.load());
 		else
 			ec_log_info("CalDAV Gateway shutdown complete");
 	}
