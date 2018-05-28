@@ -1277,8 +1277,6 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpsz
 			return er;
 		} else if (m_NTLM_pid == 0) {
 			// client
-			int j, k;
-
 			close(m_NTLM_stdin[1]);
 			close(m_NTLM_stdout[0]);
 			close(m_NTLM_stderr[0]);
@@ -1288,8 +1286,8 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpsz
 			dup2(m_NTLM_stderr[1], 2);
 
 			// close all other open file descriptors, so ntlm doesn't keep the kopano-server sockets open
-			j = getdtablesize();
-			for (k = 3; k < j; ++k)
+			auto j = getdtablesize();
+			for (int k = 3; k < j; ++k)
 				close(k);
 
 			execl("/bin/sh", "sh", "-c", "ntlm_auth -d0 --helper-protocol=squid-2.5-ntlmssp", NULL);
