@@ -300,22 +300,18 @@ int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pClo
 		return -1;
 
 	pid = fork();
-	if (pid < 0)
+	if (pid != 0)
 		return pid;
-
-	if (pid == 0) {
-		// reset the SIGHUP signal to default, not to trigger the config/logfile reload signal too often on 'killall <process>'
-		signal(SIGHUP, SIG_DFL);
-		// close filedescriptors
-		for (int n = 0; n < nCloseFDs && pCloseFDs != NULL; ++n)
-			if (pCloseFDs[n] >= 0)
-				close(pCloseFDs[n]);
-		func(param);
-		// call normal cleanup exit
-		exit(0);
-	}
-
-	return pid;
+	// reset the SIGHUP signal to default, not to trigger the config/logfile reload signal too often on 'killall <process>'
+	signal(SIGHUP, SIG_DFL);
+	// close filedescriptors
+	for (int n = 0; n < nCloseFDs && pCloseFDs != NULL; ++n)
+		if (pCloseFDs[n] >= 0)
+			close(pCloseFDs[n]);
+	func(param);
+	// call normal cleanup exit
+	exit(0);
+	return 0;
 }
 
 /** 
