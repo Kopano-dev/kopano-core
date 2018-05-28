@@ -16,6 +16,7 @@
  */
 
 #include "config.h"
+#include <atomic>
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
@@ -77,7 +78,7 @@ static const char *szPath;
 static ECLogger *g_lpLogger = NULL;
 static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
-static int nChildren = 0;
+static std::atomic<int> nChildren{0};
 static std::string g_strHostString;
 
 static void sigterm(int s)
@@ -764,12 +765,12 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	// wait max 10 seconds (init script waits 15 seconds)
 	for (int i = 10; nChildren != 0 && i != 0; --i) {
 		if (i % 5 == 0)
-			ec_log_warn("Waiting for %d processes to exit", nChildren);
+			ec_log_warn("Waiting for %d processes to exit", nChildren.load());
 		sleep(1);
 	}
 
 	if (nChildren)
-		ec_log_warn("Forced shutdown with %d processes left", nChildren);
+		ec_log_warn("Forced shutdown with %d processes left", nChildren.load());
 	else
 		ec_log_notice("POP3/IMAP Gateway shutdown complete");
 	MAPIUninitialize();
