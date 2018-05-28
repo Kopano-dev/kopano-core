@@ -44,6 +44,7 @@
  * see rfc.
  */
 #include <kopano/platform.h>
+#include <atomic>
 #include <memory>
 #include <string>
 #include <unordered_set>
@@ -262,7 +263,9 @@ class kc_icase_equal {
 
 static bool g_bQuit = false;
 static bool g_bTempfail = true; // Most errors are tempfails
-static unsigned int g_nLMTPThreads = 0;
+static pthread_t g_main_thread;
+static bool g_use_threads;
+static std::atomic<unsigned int> g_nLMTPThreads{0};
 static ECLogger *g_lpLogger;
 extern ECConfig *g_lpConfig;
 ECConfig *g_lpConfig = NULL;
@@ -289,6 +292,8 @@ static void sigterm(int)
 
 static void sighup(int sig)
 {
+	if (g_use_threads && !pthread_equal(pthread_self(), g_main_thread))
+		return;
 	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 	    g_lpLogger != nullptr)
 		ec_log_warn("Unable to reload configuration file, continuing with current settings.");
@@ -3016,6 +3021,8 @@ static void *HandlerLMTP(void *lpArg)
 		}
 	}
 
+	if (g_use_threads)
+		--g_nLMTPThreads;
 	return NULL;
 }
 
@@ -3114,6 +3121,11 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent version " PROJECT_VERSION " (pid %d) (LMTP mode)", getpid());
 
+	pthread_attr_t thr_attr;
+	pthread_attr_init(&thr_attr);
+	pthread_attr_setdetachstate(&thr_attr, PTHREAD_CREATE_DETACHED);
+	pthread_attr_setstacksize(&thr_attr, 1 << 20 /* 1 MB */);
+
 	// Mainloop
 	while (!g_bQuit) {
 		for (size_t i = 0; i < lmtp_poll.size(); ++i)
@@ -3153,35 +3165,42 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			}
 			sc->countInc("DAgent", "incoming_session");
 			da->sc = sc;
-			/*
-			 * Must raise this before fork. If the subprocess dies
-			 * instantly, SIGCHLD could arrive before unix_fork_function
-			 * returns, and then the CHLD handler could underflow the var.
-			 */
-			++g_nLMTPThreads;
-			if (unix_fork_function(HandlerLMTP, da.get(), closefd.size(), &closefd[0]) < 0) {
-				ec_log_err("Can't create LMTP process.");
-				--g_nLMTPThreads;
+			if (!g_use_threads) {
+				++g_nLMTPThreads;
+				if (unix_fork_function(HandlerLMTP, da.get(), closefd.size(), &closefd[0]) < 0) {
+					ec_log_err("Can't create LMTP process.");
+					--g_nLMTPThreads;
+				}
+				continue;
 			}
+			pthread_t tid;
+			++g_nLMTPThreads;
+			err = pthread_create(&tid, &thr_attr, HandlerLMTP, da.get());
+			if (err != 0) {
+				--g_nLMTPThreads;
+				ec_log_err("Could not create LMTP thread: %s", strerror(err));
+				continue;
+			}
+			da.release();
 			continue;
 		}
 	}
 
 	ec_log(EC_LOGLEVEL_ALWAYS, "LMTP service will now exit");
-
-	// in forked mode, send all children the exit signal
-	signal(SIGTERM, SIG_IGN);
-	kill(0, SIGTERM);
+	if (!g_use_threads) {
+		signal(SIGTERM, SIG_IGN);
+		kill(0, SIGTERM);
+	}
 
 	// wait max 30 seconds
 	for (int i = 30; g_nLMTPThreads && i; --i) {
 		if (i % 5 == 0)
-			ec_log_debug("Waiting for %d processes to terminate", g_nLMTPThreads);
+			ec_log_debug("Waiting for %d processes/threads to terminate", g_nLMTPThreads.load());
 		sleep(1);
 	}
 
 	if (g_nLMTPThreads)
-		ec_log_notice("Forced shutdown with %d processes left", g_nLMTPThreads);
+		ec_log_notice("Forced shutdown with %d processes/threads left", g_nLMTPThreads.load());
 	else
 		ec_log_info("LMTP service shutdown complete");
 	return hr;
@@ -3410,7 +3429,7 @@ int main(int argc, char *argv[]) {
 		{"lmtp_listen", "*:2003", CONFIGSETTING_NONEMPTY},
 		{"lmtp_port", "", CONFIGSETTING_OBSOLETE},
 		{ "lmtp_max_threads", "20" },
-		{ "process_model", "", CONFIGSETTING_UNUSED },
+		{"process_model", "fork", CONFIGSETTING_NONEMPTY},
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},
 		{"log_file", ""},
 		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
@@ -3625,6 +3644,23 @@ int main(int argc, char *argv[]) {
 	if (g_dump_config)
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 
+	g_main_thread = pthread_self();
+	if (strcmp(g_lpConfig->GetSetting("process_model"), "thread") == 0) {
+		if (parseBool(g_lpConfig->GetSetting("plugin_enabled")))
+			/*
+			 * Though you can create multiple interpreters, they
+			 * cannot run simultaneously, defeating the purpose.
+			 */
+			ec_log_err("Use of Python (plugin_enabled=yes) forces process_model=fork");
+		else
+			g_use_threads = true;
+	}
+	if (g_use_threads)
+		g_lpLogger->SetLogprefix(LP_TID);
+	else if (!bListenLMTP)
+		// log process id prefix to distinguinsh events, file logger only affected
+		g_lpLogger->SetLogprefix(LP_PID);
+
 	/* When path wasn't provided through commandline, resolve it from config file */
 	if (sDeliveryArgs.strPath.empty())
 		sDeliveryArgs.strPath = g_lpConfig->GetSetting("server_socket");
@@ -3689,9 +3725,6 @@ int main(int argc, char *argv[]) {
 	else {
 		PyMapiPluginFactory pyMapiPluginFactory;
 		std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
-
-		// log process id prefix to distinguinsh events, file logger only affected
-		g_lpLogger->SetLogprefix(LP_PID);
 
 		AutoMAPI mapiinit;
 		hr = mapiinit.Initialize();
