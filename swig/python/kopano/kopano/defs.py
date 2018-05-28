@@ -233,3 +233,7 @@ URGENCY = {
 }
 
 REV_URGENCY = dict((b, a) for (a, b) in URGENCY.items())
+
+ASF_MEETING = 1
+ASF_RECEIVED = 2
+ASF_CANCELED = 4

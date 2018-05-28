@@ -28,12 +28,13 @@ from .compat import (
     benc as _benc, bdec as _bdec, fake_unicode as _unicode,
 )
 from .defs import (
-    PSETID_Appointment,
+    PSETID_Appointment, ASF_CANCELED
 )
 from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
     PidLidBusyStatus, PidLidGlobalObjectId, PidLidRecurring,
     PidLidTimeZoneStruct, PidLidTimeZoneDescription, PidLidLocation,
+    PidLidAppointmentStateFlags,
 )
 if sys.hexversion >= 0x03000000:
     try:
@@ -249,3 +250,7 @@ class Appointment(object):
         response.from_ = self.store.user # XXX slow?
 
         response.send()
+
+    @property
+    def canceled(self):
+        return bool(self[PidLidAppointmentStateFlags] & ASF_CANCELED)
