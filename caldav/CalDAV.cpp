@@ -495,7 +495,6 @@ static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket)
 static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
     int nCloseFDs, int *pCloseFDs)
 {
-	HRESULT hr = hrSuccess;
 	pthread_attr_t pThreadAttr;
 	pthread_t pThread;
 	std::unique_ptr<HandlerArgs> lpHandlerArgs(new(std::nothrow) HandlerArgs);
@@ -505,10 +504,8 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 	lpHandlerArgs->bUseSSL = bUseSSL;
 
 	if (g_bThreads) {
-		if (pthread_attr_init(&pThreadAttr) != 0) {
-			hr = MAPI_E_NOT_ENOUGH_MEMORY;
-			goto exit;
-		}
+		if (pthread_attr_init(&pThreadAttr) != 0)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		if (pthread_attr_setdetachstate(&pThreadAttr, PTHREAD_CREATE_DETACHED) != 0)
 			ec_log_warn("Could not set thread attribute to detached.");
 		++nChildren;
@@ -517,8 +514,7 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 		if (ret != 0) {
 			--nChildren;
 			ec_log_err("Could not create ZCalDAV thread: %s", strerror(ret));
-			hr = E_FAIL;
-			goto exit;
+			return E_FAIL;
 		} else {
 			lpHandlerArgs.release();
 		}
@@ -527,14 +523,11 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 	else {
 		if (unix_fork_function(HandlerClient, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
 			ec_log_err("Could not create ZCalDAV process: %s", strerror(errno));
-			hr = E_FAIL;
-			goto exit;
+			return E_FAIL;
 		}
 		++nChildren;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static void *HandlerClient(void *lpArg)
