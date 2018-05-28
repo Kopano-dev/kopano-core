@@ -310,13 +310,13 @@ int main(int argc, char **argv) {
 		int i = 30; /* wait max 30 seconds */
 		while (nChildren && i) {
 			if (i % 5 == 0)
-				ec_log_notice("Waiting for %d processes to exit", nChildren);
+				ec_log_notice("Waiting for %d processes/threads to exit", nChildren);
 			sleep(1);
 			--i;
 		}
 
 		if (nChildren)
-			ec_log_notice("Forced shutdown with %d processes left", nChildren);
+			ec_log_notice("Forced shutdown with %d processes/threads left", nChildren);
 		else
 			ec_log_info("CalDAV Gateway shutdown complete");
 	}
@@ -511,9 +511,11 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 		}
 		if (pthread_attr_setdetachstate(&pThreadAttr, PTHREAD_CREATE_DETACHED) != 0)
 			ec_log_warn("Could not set thread attribute to detached.");
+		++nChildren;
 		auto ret = pthread_create(&pThread, &pThreadAttr, HandlerClient, lpHandlerArgs.get());
 		pthread_attr_destroy(&pThreadAttr);
 		if (ret != 0) {
+			--nChildren;
 			ec_log_err("Could not create ZCalDAV thread: %s", strerror(ret));
 			hr = E_FAIL;
 			goto exit;
