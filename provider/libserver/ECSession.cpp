@@ -1289,9 +1289,7 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpsz
 			auto j = getdtablesize();
 			for (int k = 3; k < j; ++k)
 				close(k);
-
-			execl("/bin/sh", "sh", "-c", "ntlm_auth -d0 --helper-protocol=squid-2.5-ntlmssp", NULL);
-
+			execlp("ntlm_auth", "-d0", "--helper-protocol=squid-2.5-ntlmssp", nullptr);
 			ec_log_crit(std::string("Cannot start ntlm_auth: ") + strerror(errno));
 			_exit(2);
 		} else {
