@@ -691,8 +691,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			hr = HrAccept(pop3s_event ? ulListenPOP3s : ulListenPOP3, &unique_tie(lpHandlerArgs->lpChannel));
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to accept POP3 socket connection.");
-				// just keep running
-				hr = hrSuccess;
 				continue;
 			}
 
@@ -704,7 +702,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			if (bThreads) {
 				if (pthread_create(&POP3Thread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
 					ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
-					hr = hrSuccess;
 				}
 				else {
 					set_thread_name(POP3Thread, "ZGateway " + std::string(method));
@@ -715,10 +712,8 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			else {
 				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0)
 					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
-					// just keep running
 				else
 					++nChildren;
-				hr = hrSuccess;
 			}
 			continue;
 		}
@@ -730,8 +725,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			hr = HrAccept(imaps_event ? ulListenIMAPs : ulListenIMAP, &unique_tie(lpHandlerArgs->lpChannel));
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to accept IMAP socket connection.");
-				// just keep running
-				hr = hrSuccess;
 				continue;
 			}
 
@@ -744,7 +737,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				err = pthread_create(&IMAPThread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
 				if (err != 0) {
 					ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
-					hr = hrSuccess;
 				}
 				else {
 					set_thread_name(IMAPThread, "ZGateway " + std::string(method));
@@ -755,10 +747,8 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			else {
 				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0)
 					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
-					// just keep running
 				else
 					++nChildren;
-				hr = hrSuccess;
 			}
 			continue;
 		}
