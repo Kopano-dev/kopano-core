@@ -458,7 +458,7 @@ int main(int argc, char *argv[]) {
 		ec_log_err("Ignoring invalid path-setting!");
 	if (parseBool(g_lpConfig->GetSetting("bypass_auth")))
 		ec_log_warn("Gateway is started with bypass_auth=yes meaning username and password will not be checked.");
-	if (strncmp(g_lpConfig->GetSetting("process_model"), "thread", strlen("thread")) == 0) {
+	if (strcmp(g_lpConfig->GetSetting("process_model"), "thread") == 0) {
 		bThreads = true;
 		g_lpLogger->SetLogprefix(LP_TID);
 	}

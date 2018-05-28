@@ -248,8 +248,7 @@ int main(int argc, char **argv) {
 		LogConfigErrors(g_lpConfig);
 	if (!TmpPath::instance.OverridePath(g_lpConfig))
 		ec_log_err("Ignoring invalid path-setting!");
-
-	if (strncmp(g_lpConfig->GetSetting("process_model"), "thread", strlen("thread")) == 0) {
+	if (strcmp(g_lpConfig->GetSetting("process_model"), "thread") == 0) {
 		g_bThreads = true;
 		g_lpLogger->SetLogprefix(LP_TID);
 	}
