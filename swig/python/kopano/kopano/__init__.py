@@ -60,7 +60,6 @@ from .server import Server
 from .address import Address
 from .attachment import Attachment
 from .autoaccept import AutoAccept
-from .body import Body
 from .company import Company
 from .compat import set_bin_encoding, set_missing_none, hex, unhex, benc, bdec
 from .delegation import Delegation

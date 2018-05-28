@@ -244,7 +244,7 @@ class Appointment(object):
 
         response.subject = subject_prefix + ': ' + self.subject
         if comment:
-            response.body = comment
+            response.text = comment
         response.to = self.server.user(email=self.from_.email) # XXX
         response.from_ = self.store.user # XXX slow?
 

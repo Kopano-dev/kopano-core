@@ -95,7 +95,6 @@ from .defs import (
 from .errors import Error, NotFoundError, _DeprecationWarning
 
 from .attachment import Attachment
-from .body import Body
 from .properties import Properties
 from .recurrence import Occurrence
 from .restriction import Restriction
@@ -329,13 +328,6 @@ class Item(Properties, Contact, Appointment):
             return u''
 
     @property
-    def body(self):
-        """ Item :class:`body <Body>` """
-
-        warnings.warn('item.body is deprecated', _DeprecationWarning)
-        return Body(self) # XXX return None if no body..?
-
-    @property
     def body_preview(self):
         """ Item body preview (plaintext, up to 255 characters) """
 
@@ -367,11 +359,6 @@ class Item(Properties, Contact, Appointment):
         * IPM.Task                       - task
         """
         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, _unicode(messageclass))])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
-
-    @body.setter
-    def body(self, x):
-        self.mapiobj.SetProps([SPropValue(PR_BODY_W, _unicode(x))])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
