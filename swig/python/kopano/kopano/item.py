@@ -90,7 +90,8 @@ from .compat import (
 
 from .defs import (
     NAMED_PROPS_ARCHIVER, NAMED_PROP_CATEGORY, ADDR_PROPS,
-    PSETID_Archive, URGENCY, REV_URGENCY
+    PSETID_Archive, URGENCY, REV_URGENCY, ASF_MEETING, ASF_RECEIVED,
+    ASF_CANCELED
 )
 from .errors import Error, NotFoundError, _DeprecationWarning
 
@@ -714,7 +715,7 @@ class Item(Properties, Contact, Appointment):
         _, data = mic.Finalize(0)
         return data
 
-    def _send_meeting_request(self):
+    def _send_meeting_request(self, cancel=False):
         # XXX: check if start/end is set
         # XXX: Check if we can copy the calendar item.
         # XXX: Update the calendar item, for tracking status
@@ -731,7 +732,12 @@ class Item(Properties, Contact, Appointment):
         item.create_prop('appointment:33320', self.start, PT_SYSTIME) # basedate????!
         item.create_prop('appointment:33316', False, PT_BOOLEAN) # intendedbusystatus???
         item.create_prop('appointment:33315', False, PT_BOOLEAN) # XXX item.recurring
-        item.create_prop('appointment:33303', 3, PT_LONG) # XXX meetingtype?!
+
+        stateflags = ASF_MEETING | ASF_RECEIVED
+        if cancel:
+            stateflags |= ASF_CANCELED
+        item[PidLidAppointmentStateFlags] = stateflags
+
         item.create_prop('appointment:33301', False, PT_BOOLEAN) # XXX item.alldayevent?!
         duration = int((self.end - self.start).total_seconds() / 60) # XXX: total time in minutes
         item.create_prop('appointment:33293', self.start, PT_SYSTIME) # XXX start
@@ -742,9 +748,16 @@ class Item(Properties, Contact, Appointment):
         item.create_prop('appointment:33280', 0, PT_BOOLEAN) # XXX sendasical
         item.create_prop(PR_OWNER_APPT_ID, random.randrange(2**32))
         item.create_prop(PR_ICON_INDEX, 1026) # XXX: meeting request icon index.. const?
-        goid = self._generate_goid()
+
+        goid = self.get(PidLidCleanGlobalObjectId)
+        if goid is None:
+            goid = self._generate_goid()
+            # TODO set on appointment creation already?
+            self[PidLidCleanGlobalObjectId] = goid
+
         item.create_prop('meeting:3', goid, PT_BINARY)
         item.create_prop('meeting:35', goid, PT_BINARY)
+
         return item
 
     def _generate_reply_body(self):
@@ -793,11 +806,10 @@ class Item(Properties, Contact, Appointment):
 
         return item
 
-    def send(self, copy_to_sentmail=True):
+    def send(self, copy_to_sentmail=True, cancel=False):
         item = self
         if self.message_class == 'IPM.Appointment':
-            item = self._send_meeting_request()
-            self[PidLidCleanGlobalObjectId] = item[PidLidCleanGlobalObjectId] # TODO don't overwrite?
+            item = self._send_meeting_request(cancel=cancel)
 
         icon_index = {
             b'66': 261,  # reply
