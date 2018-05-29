@@ -1,6 +1,6 @@
 8.6.x
 =====
-Includes changes from the 8.5.x series up to 2018-05-16.
+Includes changes until including 8.5.9.
 Fixes:
 * installer: remove duplicate defaults from sample config
 * icalmapi: allow RRULE with DTSTART having zulu-marking [KC-414, KC-811]
@@ -44,6 +44,12 @@ Fixes:
 
 8.5.x
 =====
+Enhancements:
+* spooler: allow hard termination via repeated Ctrl-C
+
+
+8.5.9 (2018-05-16)
+==================
 Changes:
 * daemons: disable SSL renegotiation for OpenSSL 1.1+
 * server: invalid port strings are now rejected
@@ -62,6 +68,7 @@ Enhancements:
 * dbadm: add helper index creation/removal as an explicit action
 * dbadm: ad-hoc progress meter during operation
 * dbadm: support mid-way program termination [KC-1156]
+* dbadm: add np-remove-unused action
 * propmap: expose kopanoHidden LDAP attribute as PR_EC_AB_HIDDEN [KC-63]
 
 
