@@ -59,6 +59,7 @@ def parser_opt_args():
     group.add_option('--mr-accept', help='Auto-accept meeting requests', **_bool())
     group.add_option('--mr-accept-conflicts', help='Auto-accept conflicting meeting requests', **_bool())
     group.add_option('--mr-accept-recurring', help='Auto-accept recurring meeting requests', **_bool())
+    group.add_option('--mr-process', help='Auto-process meeting requests', **_bool())
     parser.add_option_group(group)
 
     group = OptionGroup(parser, "Send-as and delegations", "")
@@ -118,7 +119,7 @@ UPDATE_MATRIX = {
     ('name',): ('companies', 'groups', 'users'),
     ('email', 'add_sendas', 'remove_sendas'): ('users', 'groups'),
     ('fullname', 'password', 'password_prompt', 'admin_level', 'active', 'reset_folder_count'): ('users',),
-    ('mr_accept', 'mr_accept_conflicts', 'mr_accept_recurring', 'hook_archive', 'unhook_archive'): ('users',),
+    ('mr_accept', 'mr_accept_conflicts', 'mr_accept_recurring', 'hook_archive', 'unhook_archive', 'mr_process'): ('users',),
     ('ooo', 'ooo_clear', 'ooo_subject', 'ooo_message', 'ooo_from', 'ooo_until'): ('users',),
     ('add_feature', 'remove_feature', 'add_delegation', 'remove_delegation'): ('users',),
     ('send_only_to_delegates',): ('users',),
@@ -249,6 +250,8 @@ def user_details(user):
         if user.autoaccept.enabled:
             print(fmt.format('    Accept conflicting:', yesno(user.autoaccept.conflicts)))
             print(fmt.format('    Accept recurring:', yesno(user.autoaccept.recurring)))
+
+        print(fmt.format('Auto-process meeting request:', yesno(user.autoprocess.enabled)))
 
         ooo = 'disabled'
         if user.outofoffice.enabled:
@@ -384,6 +387,9 @@ def user_options(name, options, server):
         user.autoaccept.conflicts = options.mr_accept_conflicts
     if options.mr_accept_recurring is not None:
         user.autoaccept.recurring = options.mr_accept_recurring
+
+    if options.mr_process is not None:
+        user.autoprocess.enabled = options.mr_process
 
     for feature in options.add_feature:
         user.add_feature(feature)
