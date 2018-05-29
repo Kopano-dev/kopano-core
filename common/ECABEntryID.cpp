@@ -28,11 +28,8 @@ namespace KC {
 struct ABEID {
 	BYTE	abFlags[4];
 	GUID	guid;
-	ULONG	ulVersion;
-	ULONG	ulType;
-	ULONG	ulId;
-	char	szExId[1];
-	char	szPadding[3];
+	ULONG ulVersion, ulType, ulId;
+	char szExId[1], szPadding[3];
 
 	ABEID(ULONG t, GUID g, ULONG id)
 	{

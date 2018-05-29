@@ -65,8 +65,7 @@ HRESULT ECScheduler::AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle
 
 bool ECScheduler::hasExpired(time_t ttime, ECSCHEDULE *lpSchedule)
 {
-	struct tm tmLastRunTime;
-	struct tm tmtime;
+	struct tm tmLastRunTime, tmtime;
 
 	localtime_r(&ttime, &tmtime);
 

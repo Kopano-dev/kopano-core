@@ -211,9 +211,7 @@ bool CHtmlToTextParser::parseEntity(const WCHAR* &lpwHTML)
 
 void CHtmlToTextParser::parseTag(const WCHAR* &lpwHTML)
 {
-	bool bTagName = true;
-	bool bTagEnd = false;
-	bool bParseAttrs = false;
+	bool bTagName = true, bTagEnd = false, bParseAttrs = false;
 	decltype(tagMap)::const_iterator iterTag;
 	std::wstring tagName;
 
@@ -279,11 +277,8 @@ void CHtmlToTextParser::parseTag(const WCHAR* &lpwHTML)
 
 void CHtmlToTextParser::parseAttributes(const WCHAR* &lpwHTML)
 {
-	std::wstring attrName;
-	std::wstring attrValue;
-	bool bAttrName = true;
-	bool bAttrValue = false;
-	bool bEndTag = false;
+	std::wstring attrName, attrValue;
+	bool bAttrName = true, bAttrValue = false, bEndTag = false;
 	MapAttrs mapAttrs;
 
 	WCHAR firstQuote = 0;

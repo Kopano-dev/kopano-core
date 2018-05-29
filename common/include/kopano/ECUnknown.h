@@ -59,21 +59,6 @@ namespace KC {
 		} \
 	} while (false)
 
-/**
- * Return interface pointer on a specific interface query without incrementing the refcount.
- * @param[in]	_guid	The interface guid.
- * @param[in]	_interface	The class which implements the interface
- * @note guid variable must be named 'refiid', return variable must be named lppInterface.
- */
-#define REGISTER_INTERFACE_NOREF(_guid, _interface) \
-	do { \
-		if (refiid == (_guid)) { \
-			AddRef(); \
-			*lppInterface = reinterpret_cast<void *>(_interface); \
-			return hrSuccess; \
-		} \
-	} while (false)
-
 class _kc_export ECUnknown : public virtual IUnknown {
 public:
 	ECUnknown(const char *szClassName = NULL);

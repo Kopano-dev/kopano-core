@@ -41,8 +41,7 @@ protected:
 	unsigned int m_ulTimeout = 5; ///< Response timeout in second
 
 private:
-	std::string m_strTokenizer;
-	std::string m_strPath;
+	std::string m_strTokenizer, m_strPath;
 	bool m_bSocket;
 	uint16_t m_ulPort;
 	std::unique_ptr<ECChannel> m_lpChannel;

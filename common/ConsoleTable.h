@@ -39,9 +39,7 @@ public:
 	void DumpTable();
 
 private:
-	size_t m_nRow = 0;
-	size_t m_iRows;
-	size_t m_iColumns;
+	size_t m_nRow = 0, m_iRows, m_iColumns;
 	std::string m_lead = "\t";
 	std::vector<std::wstring> m_vHeader;
 	std::vector<std::vector<std::wstring> > m_vTable;

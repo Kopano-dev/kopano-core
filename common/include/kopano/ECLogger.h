@@ -102,8 +102,7 @@ class _kc_export ECLogger {
 	_kc_hidden size_t MakeTimestamp(char *, size_t);
 
 	unsigned int max_loglevel;
-	locale_t timelocale;
-	locale_t datalocale;
+	locale_t timelocale, datalocale;
 
 	/**
 	 * Implementations should open the log they're writing to.

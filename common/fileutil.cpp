@@ -53,8 +53,7 @@ namespace KC {
  */
 HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
 {
-	char	bufferin[BLOCKSIZE / 2];
-	char	bufferout[BLOCKSIZE+1];
+	char bufferin[BLOCKSIZE/2], bufferout[BLOCKSIZE+1];
 	size_t sizebufferout;
 
 	if(fin == NULL || fout == NULL)

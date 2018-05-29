@@ -43,11 +43,8 @@ void ECCacheBase::RequestStats(void(callback)(const std::string &, const std::st
 
 void ECCacheBase::DumpStats(void) const
 {
-	unsigned long long z;
-	std::string strName;
-	
-	strName = m_strCachename + " cache size:";
-	z = Size();
+	auto strName = m_strCachename + " cache size:";
+	unsigned long long z = Size();
 	ec_log_info(
 		"  %-30s  %8lu (%8llu bytes) (usage %.02f%%)",
 		strName.c_str(), ItemCount(), z, z / (double)MaxSize() * 100.0);

@@ -250,16 +250,14 @@ ECRESULT ECKeyTable::UpdateRow_Delete(const sObjectTableKey *lpsRowItem,
     std::vector<ECSortCol> &&dat, sObjectTableKey *lpsPrevRow, bool fHidden,
     UpdateType *lpulAction)
 {
-	ECTableRow *lpRow = nullptr;
-	ECTableRowMap::const_iterator iterMap;
 	scoped_rlock biglock(mLock);
 
 	// Find the row by ID
-	iterMap = mapRow.find(*lpsRowItem);
+	auto iterMap = mapRow.find(*lpsRowItem);
 	if (iterMap == mapRow.cend())
 		return KCERR_NOT_FOUND;
 	// The row exists
-	lpRow = iterMap->second;
+	auto lpRow = iterMap->second;
 
 	// Do the delete
 	if (lpRow->lpLeft == NULL && lpRow->lpRight == NULL) {
@@ -292,8 +290,7 @@ ECRESULT ECKeyTable::UpdateRow_Delete(const sObjectTableKey *lpsRowItem,
 		RestructureRecursive(lpRow->lpParent);
 	} else {
 		// We have two child nodes ..
-		ECTableRow *lpPredecessor = lpRow->lpLeft;
-		ECTableRow *lpPredecessorParent = NULL;
+		ECTableRow *lpPredecessor = lpRow->lpLeft, *lpPredecessorParent = nullptr;
 
 		while (lpPredecessor->lpRight)
 			lpPredecessor = lpPredecessor->lpRight;
@@ -358,17 +355,14 @@ ECRESULT ECKeyTable::UpdateRow_Modify(const sObjectTableKey *lpsRowItem,
     std::vector<ECSortCol> &&dat, sObjectTableKey *lpsPrevRow, bool fHidden,
     UpdateType *lpulAction)
 {
-	ECRESULT er = erSuccess;
-	ECTableRow *lpRow = NULL;
-	ECTableRowMap::const_iterator iterMap;
-	ECTableRow *lpNewRow = NULL;
+	ECTableRow *lpNewRow = nullptr;
 	unsigned int fLeft = 0;
 	bool fRelocateCursor = false;
 	scoped_rlock biglock(mLock);
 
-	lpRow = lpRoot;
+	auto lpRow = lpRoot;
 	// Find the row by id (see if we already have the row)
-	iterMap = mapRow.find(*lpsRowItem);
+	auto iterMap = mapRow.find(*lpsRowItem);
 	if (iterMap != mapRow.cend()) {
 		// Found the row
 		// Indiciate that we are modifying an existing row
@@ -409,10 +403,10 @@ ECRESULT ECKeyTable::UpdateRow_Modify(const sObjectTableKey *lpsRowItem,
 			
 			// Delete the unused new node
 			delete lpNewRow;
-			return er;
+			return erSuccess;
 		}
 		// new row data is different, so delete the old row now
-		er = UpdateRow(TABLE_ROW_DELETE, lpsRowItem, {}, nullptr);
+		auto er = UpdateRow(TABLE_ROW_DELETE, lpsRowItem, {}, nullptr);
 		if (er != erSuccess) {
 			// Delete the unused new node
 			delete lpNewRow;
@@ -509,11 +503,8 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 
 ECRESULT ECKeyTable::Clear()
 {
-	ECTableRow *lpRow = NULL;
-	ECTableRow *lpParent = NULL;
 	scoped_rlock biglock(mLock);
-
-	lpRow = lpRoot;
+	ECTableRow *lpRow = lpRoot, *lpParent = nullptr;
 
 	/* Depth-first deletion of all nodes (excluding root) */
 	while(lpRow) {
@@ -580,8 +571,7 @@ ECRESULT ECKeyTable::GetBookmark(unsigned int ulbkPosition, int* lpbkPosition)
 ECRESULT ECKeyTable::CreateBookmark(unsigned int* lpulbkPosition)
 {
 	sBookmarkPosition	sbkPosition;
-	unsigned int	ulbkPosition = 0;
-	unsigned int	ulRowCount = 0;
+	unsigned int ulbkPosition = 0, ulRowCount = 0;
 	scoped_rlock biglock(mLock);
 
 	// Limit of bookmarks
@@ -612,12 +602,10 @@ ECRESULT ECKeyTable::FreeBookmark(unsigned int ulbkPosition)
 // Intern function, no locking
 ECRESULT ECKeyTable::InvalidateBookmark(ECTableRow *lpRow)
 {
-	ECBookmarkMap::iterator	iPosition, iRemove;
-
 	// Nothing todo
 	if (m_mapBookmarks.empty())
 		return erSuccess;
-	for (iPosition = m_mapBookmarks.begin(); iPosition != m_mapBookmarks.end(); ) {
+	for (auto iPosition = m_mapBookmarks.begin(); iPosition != m_mapBookmarks.end(); ) {
 		if (lpRow != iPosition->second.lpPosition)
 			++iPosition;
 		else
@@ -629,8 +617,7 @@ ECRESULT ECKeyTable::InvalidateBookmark(ECTableRow *lpRow)
 ECRESULT ECKeyTable::SeekRow(unsigned int lbkOrgin, int lSeekTo, int *lplRowsSought)
 {
 	int lDestRow = 0;
-	unsigned int ulCurrentRow = 0;
-	unsigned int ulRowCount = 0;
+	unsigned int ulCurrentRow = 0, ulRowCount = 0;
 	ECTableRow *lpRow = NULL;
 	scoped_rlock biglock(mLock);
 
@@ -776,10 +763,8 @@ ECRESULT ECKeyTable::CurrentRow(ECTableRow *lpRow, unsigned int *lpulCurrentRow)
  */
 ECRESULT ECKeyTable::QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList, bool bDirBackward, unsigned int ulFlags, bool bShowHidden)
 {
-	ECTableRow *lpOrig = NULL;
 	scoped_rlock biglock(mLock);
-
-	lpOrig = lpCurrent;
+	auto lpOrig = lpCurrent;
 	
 	if (bDirBackward && lpCurrent == nullptr)
 		SeekRow(EC_SEEK_CUR, -1, NULL);
@@ -852,10 +837,8 @@ void ECKeyTable::Prev()
 
 ECRESULT ECKeyTable::GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTableKey *lpsPrev)
 {
-    ECTableRow *lpPos = NULL;
 	scoped_rlock biglock(mLock);
-
-	lpPos = lpCurrent;
+	auto lpPos = lpCurrent;
 	ECRESULT er = SeekId((sObjectTableKey *)lpsRowItem);
     if(er != erSuccess)
 		return er;
@@ -973,10 +956,7 @@ int ECKeyTable::GetBalance(ECTableRow *lpPivot)
 
 void ECKeyTable::Restructure(ECTableRow *lpPivot)
 {
-	int balance = 0;
-
-	balance = GetBalance(lpPivot);
-
+	auto balance = GetBalance(lpPivot);
 	if(balance > 1) {
 		// Unbalanced (too much on the left)
 		balance = GetBalance(lpPivot->lpLeft);
@@ -1014,11 +994,8 @@ void ECKeyTable::RestructureRecursive(ECTableRow *lpRow)
  */
 ECRESULT ECKeyTable::GetRowsBySortPrefix(sObjectTableKey *lpsRowItem, ECObjectTableList *lpRowList)
 {
-    ECTableRow *lpCursor = NULL;
 	scoped_rlock biglock(mLock);
-	
-	lpCursor = lpCurrent;
-
+	auto lpCursor = lpCurrent;
 	ECRESULT er = SeekId(lpsRowItem);
 	if(er != erSuccess)
 		return er;
@@ -1038,10 +1015,8 @@ ECRESULT ECKeyTable::GetRowsBySortPrefix(sObjectTableKey *lpsRowItem, ECObjectTa
 ECRESULT ECKeyTable::HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lpHiddenList)
 {
     BOOL fCursorHidden = false;
-    ECTableRow *lpCursor = NULL;
 	scoped_rlock biglock(mLock);
-
-	lpCursor = lpCurrent;
+	auto lpCursor = lpCurrent;
 	ECRESULT er = SeekId(lpsRowItem);
 	if(er != erSuccess)
 		return er;
@@ -1145,12 +1120,9 @@ ECRESULT ECKeyTable::LowerBound(const std::vector<ECSortCol> &cols)
 // Find an exact match for a sort key
 ECRESULT ECKeyTable::Find(const std::vector<ECSortCol> &cols, sObjectTableKey *lpsKey)
 {
-    ECRESULT er = erSuccess;
-	ECTableRow *lpCurPos = NULL;
 	scoped_rlock biglock(mLock);
-
-	lpCurPos = lpCurrent;
-	er = LowerBound(cols);
+	auto lpCurPos = lpCurrent;
+	auto er = LowerBound(cols);
     if(er != erSuccess)
         goto exit;
      
@@ -1213,11 +1185,9 @@ ECRESULT ECKeyTable::UpdatePartialSortKey(sObjectTableKey *lpsRowItem,
     size_t ulColumn, const ECSortCol &col, sObjectTableKey *lpsPrevRow,
     bool *lpfHidden, ECKeyTable::UpdateType *lpulAction)
 {
-    ECRESULT er = erSuccess;
     ECTableRow *lpCursor = NULL;
 	ulock_rec biglock(mLock);
-
-    er = GetRow(lpsRowItem, &lpCursor);
+	auto er = GetRow(lpsRowItem, &lpCursor);
     if(er != erSuccess)
 		return er;
 	if (ulColumn >= lpCursor->m_cols.size())

@@ -67,7 +67,6 @@ HRESULT ECMemBlock::QueryInterface(REFIID refiid, void **lppInterface)
 // Reads at most ulLen chars, may be shorter due to shorter data len
 HRESULT	ECMemBlock::ReadAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulBytesRead)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulToRead = cbCurrent - ulPos;
 
 	ulToRead = ulLen < ulToRead ? ulLen : ulToRead;
@@ -76,8 +75,7 @@ HRESULT	ECMemBlock::ReadAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulByte
 
 	if(ulBytesRead)
 		*ulBytesRead = ulToRead;
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemBlock::WriteAt(ULONG ulPos, ULONG ulLen, const char *buffer,
@@ -110,7 +108,6 @@ HRESULT ECMemBlock::Commit()
 	if (!(ulFlags & STGM_TRANSACTED))
 		return hrSuccess;
 	free(lpOriginal);
-	lpOriginal = NULL;
 	lpOriginal = (char *)malloc(cbCurrent);
 	if (lpOriginal == NULL)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
@@ -124,7 +121,6 @@ HRESULT ECMemBlock::Revert()
 	if (!(ulFlags & STGM_TRANSACTED))
 		return hrSuccess;
 	free(lpCurrent);
-	lpCurrent = NULL;
 	lpCurrent = (char *)malloc(cbOriginal);
 	if (lpCurrent == NULL)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
@@ -291,24 +287,17 @@ HRESULT ECMemStream::Seek(LARGE_INTEGER dlibmove, DWORD dwOrigin, ULARGE_INTEGER
 
 HRESULT ECMemStream::SetSize(ULARGE_INTEGER libNewSize)
 {
-	HRESULT hr;
-
 	if(!(ulFlags&STGM_WRITE))
 		return MAPI_E_NO_ACCESS;
-
-	hr = lpMemBlock->SetSize((ULONG)libNewSize.QuadPart);
+	auto hr = lpMemBlock->SetSize(static_cast<ULONG>(libNewSize.QuadPart));
 	fDirty = true;
 	return hr;
 }
 
 HRESULT ECMemStream::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten)
 {
-	HRESULT hr;
-	ULONG ulOffset = 0;
-	ULONG ulWritten = 0;
-	ULONG ulSize = 0;
-	
-	hr = lpMemBlock->GetSize(&ulSize);
+	ULONG ulOffset = 0, ulWritten = 0, ulSize = 0;
+	auto hr = lpMemBlock->GetSize(&ulSize);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -387,12 +376,10 @@ HRESULT ECMemStream::Stat(STATSTG *pstatstg, DWORD grfStatFlag)
 
 HRESULT ECMemStream::Clone(IStream **ppstm)
 {
-	HRESULT hr = hrSuccess;
 	ECMemStream *lpStream = NULL;
 
 	ECMemStream::Create(lpMemBlock, ulFlags, lpCommitFunc, lpDeleteFunc, lpParam, &lpStream);
-	hr = lpStream->QueryInterface(IID_IStream, (void **)ppstm);
-
+	auto hr = lpStream->QueryInterface(IID_IStream, (void **)ppstm);
 	lpStream->Release();
 
 	return hr;

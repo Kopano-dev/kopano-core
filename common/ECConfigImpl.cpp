@@ -217,7 +217,6 @@ void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, c
 const char *ECConfigImpl::GetMapEntry(const settingmap_t *lpMap,
     const char *szName)
 {
-	const char *retval = NULL;
 	if (szName == NULL)
 		return NULL;
 
@@ -230,8 +229,8 @@ const char *ECConfigImpl::GetMapEntry(const settingmap_t *lpMap,
 	KC::shared_lock<KC::shared_mutex> lset(m_settingsRWLock);
 	auto itor = lpMap->find(key);
 	if (itor != lpMap->cend())
-		retval = itor->second;
-	return retval;
+		return itor->second;
+	return nullptr;
 }
 
 const char *ECConfigImpl::GetSetting(const char *szName)

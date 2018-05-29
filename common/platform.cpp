@@ -43,9 +43,7 @@ FILETIME UnixTimeToFileTime(time_t t)
 
 time_t FileTimeToUnixTime(const FILETIME &ft)
 {
-	__int64 l;
-
-	l = ((__int64)ft.dwHighDateTime << 32) + ft.dwLowDateTime;
+	__int64 l = (static_cast<__int64>(ft.dwHighDateTime) << 32) + ft.dwLowDateTime;
 	l -= NANOSECS_BETWEEN_EPOCHS;
 	l /= 10000000;
 	
@@ -61,9 +59,7 @@ time_t FileTimeToUnixTime(const FILETIME &ft)
 
 void UnixTimeToFileTime(time_t t, int *hi, unsigned int *lo)
 {
-	__int64 ll;
-
-	ll = (__int64)t * 10000000 + NANOSECS_BETWEEN_EPOCHS;
+	__int64 ll = static_cast<__int64>(t) * 10000000 + NANOSECS_BETWEEN_EPOCHS;
 	*lo = (unsigned int)ll;
 	*hi = (unsigned int)(ll >> 32);
 }
@@ -105,9 +101,7 @@ time_t RTimeToUnixTime(LONG rtime)
 
 LONG UnixTimeToRTime(time_t unixtime)
 {
-	FILETIME ft;
-	ft = UnixTimeToFileTime(unixtime);
-	return FileTimeToRTime(ft);
+	return FileTimeToRTime(UnixTimeToFileTime(unixtime));
 }
 
 /* The 'IntDate' and 'IntTime' date and time encoding are used for some CDO calculations. They
@@ -149,11 +143,7 @@ bool operator<=(const FILETIME &a, const FILETIME &b) noexcept
 
 #ifndef HAVE_TIMEGM
 time_t timegm(struct tm *t) {
-	time_t convert;
-	char *tz = NULL;
-	char *s_tz = NULL;
-
-	tz = getenv("TZ");
+	char *s_tz = nullptr, *tz = getenv("TZ");
 	if(tz)
 		s_tz = strdup(tz);
 
@@ -161,7 +151,7 @@ time_t timegm(struct tm *t) {
 	// so use setenv() on linux, putenv() on others.
 	setenv("TZ", "UTC0", 1);
 	tzset();
-	convert = mktime(t);
+	auto convert = mktime(t);
 	if (s_tz) {
 		setenv("TZ", s_tz, 1);
 		tzset();

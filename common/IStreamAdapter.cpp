@@ -108,13 +108,11 @@ HRESULT IStreamAdapter::SetSize(ULARGE_INTEGER libNewSize)
 
 HRESULT IStreamAdapter::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten)
 {
-	HRESULT hr = hrSuccess;
-	
 	char buf[4096];
 	ULONG len = 0;
 	
 	while(1) {
-		hr = Read(buf, sizeof(buf), &len);
+		auto hr = Read(buf, sizeof(buf), &len);
 		if(hr != hrSuccess)
 			return hr;
 			
@@ -125,7 +123,7 @@ HRESULT IStreamAdapter::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER 
 		if(hr != hrSuccess)
 			return hr;
 	}
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT IStreamAdapter::Stat(STATSTG *pstatstg, DWORD grfStatFlag)
