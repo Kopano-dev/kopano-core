@@ -732,14 +732,13 @@ exit:
 		ULONG ulCount = 0, ulThreads = 0;
 
 		while (ulCount < 60) {
-			if ((ulCount % 5) == 0) {
-				ulThreads = mapSendData.size();
+			ulThreads = mapSendData.size();
+			if (ulThreads == 0)
+				break;
+			if ((ulCount % 5) == 0)
 				ec_log_warn("Still waiting for %d thread(s) to exit.", ulThreads);
-			}
 			if (lpSpooler != nullptr)
 				CleanFinishedMessages(lpAdminSession, lpSpooler);
-			if (mapSendData.size() == 0)
-				break;
 
 			Sleep(1000);
 			++ulCount;
@@ -783,6 +782,7 @@ static void process_signal(int sig)
 		bQuit = true;
 		// Trigger condition so we force wakeup the queue thread
 		hCondMessagesWaiting.notify_one();
+		ec_log_info("User requested graceful shutdown. To force quit, reissue the request.");
 		break;
 	}
 
@@ -1078,11 +1078,11 @@ int main(int argc, char *argv[]) {
 		act.sa_flags = SA_ONSTACK | SA_RESTART;
 		sigemptyset(&act.sa_mask);
 		sigaction(SIGHUP, &act, nullptr);
-		sigaction(SIGINT, &act, nullptr);
-		sigaction(SIGTERM, &act, nullptr);
 		sigaction(SIGCHLD, &act, nullptr);
 		sigaction(SIGUSR2, &act, nullptr);
-
+		act.sa_flags = SA_ONSTACK | SA_RESETHAND;
+		sigaction(SIGINT, &act, nullptr);
+		sigaction(SIGTERM, &act, nullptr);
 	}
 
     st.ss_sp = malloc(65536);
