@@ -25,9 +25,9 @@ from MAPI.Struct import (
 if sys.hexversion >= 0x03000000:
     try:
         from . import item as _item
-    except ImportError:
+    except ImportError: # pragma: no cover
         _item = sys.modules[__package__ + '.item']
-else:
+else: # pragma: no cover
     import item as _item
 
 from .properties import Properties
@@ -39,9 +39,9 @@ from .compat import (
 if sys.hexversion >= 0x03000000:
     try:
         from . import utils as _utils
-    except ImportError:
+    except ImportError: # pragma: no cover
         _utils = sys.modules[__package__ + '.utils']
-else:
+else: # pragma: no cover
     import utils as _utils
 
 class Attachment(Properties):

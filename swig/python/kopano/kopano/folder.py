@@ -68,29 +68,29 @@ from .compat import (
 if sys.hexversion >= 0x03000000:
     try:
         from . import user as _user
-    except ImportError:
+    except ImportError: # pragma: no cover
         _user = sys.modules[__package__ + '.user']
     try:
         from . import store as _store
-    except ImportError:
+    except ImportError: # pragma: no cover
         _store = sys.modules[__package__ + '.store']
     try:
         from . import item as _item
-    except ImportError:
+    except ImportError: # pragma: no cover
         _item = sys.modules[__package__ + '.item']
     try:
         from . import utils as _utils
-    except ImportError:
+    except ImportError: # pragma: no cover
         _utils = sys.modules[__package__ + '.utils']
     try:
         from . import ics as _ics
-    except ImportError:
+    except ImportError: # pragma: no cover
         _ics = sys.modules[__package__ + '.ics']
     try:
         from . import notification as _notification
-    except ImportError:
+    except ImportError: # pragma: no cover
         _notification = sys.modules[__package__ + '.notification']
-else:
+else: # pragma: no cover
     import user as _user
     import store as _store
     import item as _item

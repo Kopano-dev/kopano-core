@@ -19,7 +19,7 @@ from .errors import NotFoundError
 
 if sys.hexversion >= 0x03000000:
     from . import property_ as _prop
-else:
+else: # pragma: no cover
     import property_ as _prop
 
 class Properties(object):

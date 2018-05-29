@@ -38,9 +38,9 @@ from .pidlid import (
 if sys.hexversion >= 0x03000000:
     try:
         from . import utils as _utils
-    except ImportError:
+    except ImportError: # pragma: no cover
         _utils = sys.modules[__package__+'.utils']
-else:
+else: # pragma: no cover
     import utils as _utils
 
 ALL_DAY_NAME = (PSETID_Appointment, MNID_ID, 0x8215)

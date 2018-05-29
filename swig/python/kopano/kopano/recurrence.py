@@ -59,10 +59,10 @@ LOCAL = dateutil.tz.tzlocal()
 if sys.hexversion >= 0x03000000:
     try:
         from . import utils as _utils
-    except ImportError:
+    except ImportError: # pragma: no cover
         _utils = sys.modules[__package__ + '.utils']
     from . import meetingrequest as _meetingrequest
-else:
+else: # pragma: no cover
     import utils as _utils
     import meetingrequest as _meetingrequest
 

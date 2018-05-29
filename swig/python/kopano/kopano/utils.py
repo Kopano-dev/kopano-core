@@ -44,7 +44,7 @@ if sys.hexversion >= 0x03000000:
     from . import permission as _permission
     from . import user as _user
     from . import group as _group
-else:
+else: # pragma: no cover
     import table as _table
     import permission as _permission
     import user as _user

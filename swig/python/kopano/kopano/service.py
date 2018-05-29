@@ -26,7 +26,7 @@ if sys.hexversion >= 0x03000000:
     try:
         import daemon # picks system version
         import daemon.pidfile as pidlockfile
-    except ImportError:
+    except ImportError: # pragma: no cover
         from . import daemon # fallback to bundled version
         from .daemon import pidlockfile
 
@@ -35,7 +35,7 @@ if sys.hexversion >= 0x03000000:
     from . import server as _server
     from . import errors as _errors
     from . import parser as _parser
-else:
+else: # pragma: no cover
     try:
         import daemon # picks bundled version
         import daemon.pidlockfile as pidlockfile

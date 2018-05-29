@@ -13,7 +13,7 @@ from .errors import ConfigError
 
 if sys.hexversion >= 0x03000000:
     from . import utils as _utils
-else:
+else: # pragma: no cover
     import utils as _utils
 
 class ConfigOption:

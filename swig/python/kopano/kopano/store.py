@@ -69,15 +69,15 @@ if sys.hexversion >= 0x03000000:
     from . import server as _server
     try:
         from . import user as _user
-    except ImportError:
+    except ImportError: # pragma: no cover
         _user = sys.modules[__package__ + '.user']
     from . import folder as _folder
     from . import item as _item
     try:
         from . import utils as _utils
-    except ImportError:
+    except ImportError: # pragma: no cover
         _utils = sys.modules[__package__ + '.utils']
-else:
+else: # pragma: no cover
     import server as _server
     import user as _user
     import folder as _folder
