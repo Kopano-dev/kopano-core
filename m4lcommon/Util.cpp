@@ -99,15 +99,13 @@ HRESULT Util::HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues,
     const SPropValue *lpToAdd, SPropValue **lppDest, ULONG *cDestValues)
 {
 	LPSPropValue lpDest = NULL;
-	unsigned int i = 0;
 	unsigned int n = 0;
 
 	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * (cValues + 1),
 	             reinterpret_cast<void **>(&lpDest));
 	if (hr != hrSuccess)
 		return hr;
-
-	for (i = 0; i < cValues; ++i) {
+	for (unsigned int i = 0; i < cValues; ++i) {
 		hr = HrCopyProperty(&lpDest[n], &lpSrc[i], lpDest);
 
 		if(hr == hrSuccess)
@@ -138,10 +136,8 @@ HRESULT Util::HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 #endif
 static bool FHasHTML(IMAPIProp *lpProp)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropSupport = NULL;
-
-	hr = HrGetOneProp(lpProp, PR_STORE_SUPPORT_MASK, &~lpPropSupport);
+	auto hr = HrGetOneProp(lpProp, PR_STORE_SUPPORT_MASK, &~lpPropSupport);
 	if(hr != hrSuccess)
 		return false; /* hr */
 	if((lpPropSupport->Value.ul & STORE_HTML_OK) == 0)
@@ -165,20 +161,18 @@ HRESULT	Util::HrMergePropertyArrays(const SPropValue *lpSrc, ULONG cValues,
     const SPropValue *lpAdds, ULONG cAddValues, SPropValue **lppDest,
     ULONG *cDestValues)
 {
-	HRESULT hr = hrSuccess;
 	std::map<ULONG, const SPropValue *> mapPropSource;
-	ULONG i = 0;
 	memory_ptr<SPropValue> lpProps;
 
-	for (i = 0; i < cValues; ++i)
+	for (unsigned int i = 0; i < cValues; ++i)
 		mapPropSource[lpSrc[i].ulPropTag] = &lpSrc[i];
-	for (i = 0; i < cAddValues; ++i)
+	for (unsigned int i = 0; i < cAddValues; ++i)
 		mapPropSource[lpAdds[i].ulPropTag] = &lpAdds[i];
-	hr = MAPIAllocateBuffer(sizeof(SPropValue)*mapPropSource.size(), &~lpProps);
+	auto hr = MAPIAllocateBuffer(sizeof(SPropValue)*mapPropSource.size(), &~lpProps);
 	if (hr != hrSuccess)
 		return hr;
 
-	i = 0;
+	unsigned int i = 0;
 	for (const auto &ips : mapPropSource) {
 		hr = Util::HrCopyProperty(&lpProps[i], ips.second, lpProps);
 		if (hr != hrSuccess)
@@ -208,14 +202,12 @@ HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
     LPSPropValue *lppDest, ULONG *cDestValues, bool bExcludeErrors)
 {
 	memory_ptr<SPropValue> lpDest;
-    unsigned int i = 0;
     unsigned int n = 0;
     
 	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpDest);
 	if (hr != hrSuccess)
 		return hr;
-    
-	for (i = 0; i < cValues; ++i) {
+	for (unsigned int i = 0; i < cValues; ++i) {
 		if (bExcludeErrors && PROP_TYPE(lpSrc[i].ulPropTag) == PT_ERROR)
 			continue;
 		hr = HrCopyPropertyByRef(&lpDest[n], &lpSrc[i]);
@@ -243,14 +235,12 @@ HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
     LPSPropValue *lppDest, ULONG *cDestValues, bool bExcludeErrors)
 {
 	memory_ptr<SPropValue> lpDest;
-	unsigned int i = 0;
 	unsigned int n = 0;
 
 	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpDest);
 	if (hr != hrSuccess)
 		return hr;
-
-	for (i = 0; i < cValues; ++i) {
+	for (unsigned int i = 0; i < cValues; ++i) {
 		if (bExcludeErrors && PROP_TYPE(lpSrc[i].ulPropTag) == PT_ERROR)
 			continue;
 		hr = HrCopyProperty(&lpDest[n], &lpSrc[i], lpDest);
@@ -279,9 +269,7 @@ HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
     LPSPropValue lpDest, void *lpBase)
 {
-	unsigned int i;
-
-	for (i = 0; i < cValues; ++i) {
+	for (unsigned int i = 0; i < cValues; ++i) {
 		HRESULT hr = HrCopyProperty(&lpDest[i], &lpSrc[i], lpBase);
 		if(hr != hrSuccess)
 			return hr;
@@ -303,9 +291,7 @@ HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
     LPSPropValue lpDest)
 {
-	unsigned int i;
-
-	for (i = 0; i < cValues; ++i) {
+	for (unsigned int i = 0; i < cValues; ++i) {
 		HRESULT hr = HrCopyPropertyByRef(&lpDest[i], &lpSrc[i]);
 		if(hr != hrSuccess)
 			return hr;
@@ -711,8 +697,6 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 static HRESULT HrCopyActions(ACTIONS *lpDest, const ACTIONS *lpSrc,
     void *lpBase)
 {
-	unsigned int i;
-
 	lpDest->cActions = lpSrc->cActions;
 	lpDest->ulVersion = lpSrc->ulVersion;
 	HRESULT hr = MAPIAllocateMore(sizeof(ACTION) * lpSrc->cActions, lpBase,
@@ -721,8 +705,7 @@ static HRESULT HrCopyActions(ACTIONS *lpDest, const ACTIONS *lpSrc,
 		return hr;
 
 	memset(lpDest->lpAction, 0, sizeof(ACTION) * lpSrc->cActions);
-
-	for (i = 0; i < lpSrc->cActions; ++i) {
+	for (unsigned int i = 0; i < lpSrc->cActions; ++i) {
 		hr = HrCopyAction(&lpDest->lpAction[i], &lpSrc->lpAction[i], lpBase);
 		if(hr != hrSuccess)
 			return hr;
@@ -811,10 +794,8 @@ static HRESULT HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 HRESULT Util::HrCopySRowSet(LPSRowSet lpDest, const SRowSet *lpSrc,
     void *lpBase)
 {
-	unsigned int i;
-
 	lpDest->cRows = 0;
-	for (i = 0; i < lpSrc->cRows; ++i) {
+	for (unsigned int i = 0; i < lpSrc->cRows; ++i) {
 		HRESULT hr = HrCopySRow(&lpDest->aRow[i], &lpSrc->aRow[i], lpBase);
 		if (hr != hrSuccess)
 			return hr;
@@ -1010,7 +991,6 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 {
 	HRESULT	hr = hrSuccess;
 	int		nCompareResult = 0;
-	unsigned int		i;
 
 	if (lpProp1 == NULL || lpProp2 == NULL || lpCompareResult == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -1071,7 +1051,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 		
 	case PT_MV_I2:
 		if (lpProp1->Value.MVi.cValues == lpProp2->Value.MVi.cValues) {
-			for (i = 0; i < lpProp1->Value.MVi.cValues; ++i) {
+			for (unsigned int i = 0; i < lpProp1->Value.MVi.cValues; ++i) {
 				nCompareResult = twcmp(lpProp1->Value.MVi.lpi[i], lpProp2->Value.MVi.lpi[i]);
 				if(nCompareResult != 0)
 					break;
@@ -1081,7 +1061,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 		break;
 	case PT_MV_LONG:
 		if (lpProp1->Value.MVl.cValues == lpProp2->Value.MVl.cValues) {
-			for (i = 0; i < lpProp1->Value.MVl.cValues; ++i) {
+			for (unsigned int i = 0; i < lpProp1->Value.MVl.cValues; ++i) {
 				nCompareResult = twcmp(lpProp1->Value.MVl.lpl[i], lpProp2->Value.MVl.lpl[i]);
 				if(nCompareResult != 0)
 					break;
@@ -1091,7 +1071,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 		break;
 	case PT_MV_R4:
 		if (lpProp1->Value.MVflt.cValues == lpProp2->Value.MVflt.cValues) {
-			for (i = 0; i < lpProp1->Value.MVflt.cValues; ++i) {
+			for (unsigned int i = 0; i < lpProp1->Value.MVflt.cValues; ++i) {
 				nCompareResult = twcmp(lpProp1->Value.MVflt.lpflt[i], lpProp2->Value.MVflt.lpflt[i]);
 				if(nCompareResult != 0)
 					break;
@@ -1102,7 +1082,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 	case PT_MV_DOUBLE:
 	case PT_MV_APPTIME:
 		if (lpProp1->Value.MVdbl.cValues == lpProp2->Value.MVdbl.cValues) {
-			for (i = 0; i < lpProp1->Value.MVdbl.cValues; ++i) {
+			for (unsigned int i = 0; i < lpProp1->Value.MVdbl.cValues; ++i) {
 				nCompareResult = twcmp(lpProp1->Value.MVdbl.lpdbl[i], lpProp2->Value.MVdbl.lpdbl[i]);
 				if(nCompareResult != 0)
 					break;
@@ -1112,7 +1092,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 		break;
 	case PT_MV_I8:
 		if (lpProp1->Value.MVli.cValues == lpProp2->Value.MVli.cValues) {
-			for (i = 0; i < lpProp1->Value.MVli.cValues; ++i) {
+			for (unsigned int i = 0; i < lpProp1->Value.MVli.cValues; ++i) {
 				nCompareResult = twcmp(lpProp1->Value.MVli.lpli[i].QuadPart, lpProp2->Value.MVli.lpli[i].QuadPart);
 				if(nCompareResult != 0)
 					break;
@@ -1123,7 +1103,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 	case PT_MV_SYSTIME:
 	case PT_MV_CURRENCY:
 		if (lpProp1->Value.MVcur.cValues == lpProp2->Value.MVcur.cValues) {
-			for (i = 0; i < lpProp1->Value.MVcur.cValues; ++i) {
+			for (unsigned int i = 0; i < lpProp1->Value.MVcur.cValues; ++i) {
 				if(lpProp1->Value.MVcur.lpcur[i].Hi == lpProp2->Value.MVcur.lpcur[i].Hi)
 					nCompareResult = twcmp(lpProp1->Value.MVcur.lpcur[i].Lo, lpProp2->Value.MVcur.lpcur[i].Lo);
 				else
@@ -1143,7 +1123,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 		break;
 	case PT_MV_BINARY:
 		if (lpProp1->Value.MVbin.cValues == lpProp2->Value.MVbin.cValues) {
-			for (i = 0; i < lpProp1->Value.MVbin.cValues; ++i) {
+			for (unsigned int i = 0; i < lpProp1->Value.MVbin.cValues; ++i) {
 				nCompareResult = CompareSBinary(lpProp1->Value.MVbin.lpbin[i], lpProp2->Value.MVbin.lpbin[i]);
 				if(nCompareResult != 0)
 					break;
@@ -1153,7 +1133,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 		break;
 	case PT_MV_UNICODE:
 		if (lpProp1->Value.MVszW.cValues == lpProp2->Value.MVszW.cValues) {
-			for (i = 0; i < lpProp1->Value.MVszW.cValues; ++i) {
+			for (unsigned int i = 0; i < lpProp1->Value.MVszW.cValues; ++i) {
 				if (lpProp1->Value.MVszW.lppszW[i] && lpProp2->Value.MVszW.lppszW[i])
 					nCompareResult = wcscasecmp(lpProp1->Value.MVszW.lppszW[i], lpProp2->Value.MVszW.lppszW[i]);
 				else
@@ -1167,7 +1147,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 		break;
 	case PT_MV_STRING8:
 		if (lpProp1->Value.MVszA.cValues == lpProp2->Value.MVszA.cValues) {
-			for (i = 0; i < lpProp1->Value.MVszA.cValues; ++i) {
+			for (unsigned int i = 0; i < lpProp1->Value.MVszA.cValues; ++i) {
 				if (lpProp1->Value.MVszA.lppszA[i] && lpProp2->Value.MVszA.lppszA[i])
 					nCompareResult = strcasecmp(lpProp1->Value.MVszA.lppszA[i], lpProp2->Value.MVszA.lppszA[i]);
 				else
@@ -1197,7 +1177,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
  */
 unsigned int Util::PropSize(const SPropValue *lpProp)
 {
-	unsigned int ulSize, i;
+	unsigned int ulSize;
 
 	if(lpProp == NULL)
 		return 0;
@@ -1237,12 +1217,12 @@ unsigned int Util::PropSize(const SPropValue *lpProp)
 		return 8 * lpProp->Value.MVli.cValues;
 	case PT_MV_UNICODE:
 		ulSize = 0;
-		for (i = 0; i < lpProp->Value.MVszW.cValues; ++i)
+		for (unsigned int i = 0; i < lpProp->Value.MVszW.cValues; ++i)
 			ulSize += (lpProp->Value.MVszW.lppszW[i]) ? wcslen(lpProp->Value.MVszW.lppszW[i]) : 0;
 		return ulSize;
 	case PT_MV_STRING8:
 		ulSize = 0;
-		for (i = 0; i < lpProp->Value.MVszA.cValues; ++i)
+		for (unsigned int i = 0; i < lpProp->Value.MVszA.cValues; ++i)
 			ulSize += (lpProp->Value.MVszA.lppszA[i]) ? strlen(lpProp->Value.MVszA.lppszA[i]) : 0;
 		return ulSize;
 	case PT_MV_SYSTIME:
@@ -1250,7 +1230,7 @@ unsigned int Util::PropSize(const SPropValue *lpProp)
 		return 8 * lpProp->Value.MVcur.cValues;	
 	case PT_MV_BINARY:
 		ulSize = 0;
-		for (i = 0; i < lpProp->Value.MVbin.cValues; ++i)
+		for (unsigned int i = 0; i < lpProp->Value.MVbin.cValues; ++i)
 			ulSize+= lpProp->Value.MVbin.lpbin[i].cb;
 		return ulSize;
 	case PT_MV_CLSID:
@@ -1280,7 +1260,6 @@ unsigned int Util::PropSize(const SPropValue *lpProp)
 #define BUFSIZE 65536
 HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 {
-	HRESULT hr = hrSuccess;
 	ULONG cRead;
 	std::wstring strHtml;
 	WCHAR lpBuffer[BUFSIZE];
@@ -1303,24 +1282,16 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 					"\n" \
 					"</BODY>" \
 					"</HTML>";
-	ULONG i = 0;
-
-	size_t	stRead = 0;
-	size_t	stWrite = 0;
-	size_t	stWritten;
-	size_t  err;
 	const char	*readBuffer = NULL;
 	std::unique_ptr<char[]> writeBuffer;
-	char	*wPtr = NULL;
-	iconv_t	cd = (iconv_t)-1;
 	const char *lpszCharset;
 
-	hr = HrGetCharsetByCP(ulCodepage, &lpszCharset);
+	auto hr = HrGetCharsetByCP(ulCodepage, &lpszCharset);
 	if (hr != hrSuccess)
 		// client actually should have set the PR_INTERNET_CPID to the correct value
 		lpszCharset = "us-ascii";
 
-	cd = iconv_open(lpszCharset, CHARSET_WCHAR);
+	auto cd = iconv_open(lpszCharset, CHARSET_WCHAR);
 	if (cd == reinterpret_cast<iconv_t>(-1))
 		return MAPI_E_BAD_CHARWIDTH;
 	writeBuffer.reset(new(std::nothrow) char[BUFSIZE * 2]);
@@ -1355,7 +1326,7 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 		cRead /= sizeof(WCHAR);
 
 		// escape some characters in HTML
-		for (i = 0; i < cRead; ++i) {
+		for (unsigned int i = 0; i < cRead; ++i) {
 			if (lpBuffer[i] != ' ') {
 				std::wstring str;
 				CHtmlEntity::CharToHtmlEntity(lpBuffer[i], str);
@@ -1370,15 +1341,13 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 
 		/* Convert WCHAR to wanted (8-bit) charset */
 		readBuffer = (const char*)strHtml.c_str();
-		stRead = strHtml.size() * sizeof(WCHAR);
+		auto stRead = strHtml.size() * sizeof(wchar_t);
 
 		while (stRead > 0) {
-			wPtr = writeBuffer.get();
-			stWrite = BUFSIZE * 2;
-
-			err = iconv(cd, iconv_HACK(&readBuffer), &stRead, &wPtr, &stWrite);
-
-			stWritten = (BUFSIZE * 2) - stWrite;
+			auto wPtr = writeBuffer.get();
+			size_t stWrite = BUFSIZE * 2;
+			auto err = iconv(cd, iconv_HACK(&readBuffer), &stRead, &wPtr, &stWrite);
+			size_t stWritten = (BUFSIZE * 2) - stWrite;
 			// write to stream
 			hr = html->Write(writeBuffer.get(), stWritten, NULL);
 			if (hr != hrSuccess)
@@ -1422,11 +1391,9 @@ exit:
  */
 HRESULT Util::HrTextToHtml(const WCHAR *text, std::string &strHTML, ULONG ulCodepage)
 {
-	HRESULT hr = hrSuccess;
 	const char *lpszCharset;
 	std::wstring wHTML;
-
-	hr = HrGetCharsetByCP(ulCodepage, &lpszCharset);
+	auto hr = HrGetCharsetByCP(ulCodepage, &lpszCharset);
 	if (hr != hrSuccess) {
 		// client actually should have set the PR_INTERNET_CPID to the correct value
 		lpszCharset = "us-ascii";
@@ -1480,7 +1447,6 @@ HRESULT Util::HrTextToRtf(IStream *text, IStream *rtf)
 					"{\\colortbl\\red0\\green0\\blue0;\\red0\\green0\\blue255;}\n" \
 					"\\uc1\\pard\\plain\\deftab360 \\f0\\fs20 ";
 	static const char footer[] = "}";
-	ULONG i = 0;
 
 	rtf->Write(header, strlen(header), NULL);
 
@@ -1490,8 +1456,7 @@ HRESULT Util::HrTextToRtf(IStream *text, IStream *rtf)
 			break;
 
 		cRead /= sizeof(WCHAR);
-
-		for (i = 0; i < cRead; ++i) {
+		for (unsigned int i = 0; i < cRead; ++i) {
 			switch (c[i]) {
 			case 0:
 				break;
@@ -1565,11 +1530,7 @@ LONG Util::FindPropInArray(const SPropTagArray *lpPropTags, ULONG ulPropTag)
 		if(PROP_TYPE(ulPropTag) == PT_UNSPECIFIED && PROP_ID(lpPropTags->aulPropTag[i]) == PROP_ID(ulPropTag))
 			break;
 	}
-
-	if(i != lpPropTags->cValues)
-		return i;
-
-	return -1;
+	return (i != lpPropTags->cValues) ? i : -1;
 }
 
 /** 
@@ -1668,12 +1629,10 @@ HRESULT Util::HrMAPIErrorToText(HRESULT hr, LPTSTR *lppszError, void *lpBase)
 bool Util::ValidatePropTagArray(const SPropTagArray *lpPropTagArray)
 {
 	bool bResult = false;
-	unsigned int i;
 
 	if (lpPropTagArray == NULL)
 		return true;
-
-	for (i = 0; i < lpPropTagArray->cValues; ++i) {
+	for (unsigned int i = 0; i < lpPropTagArray->cValues; ++i) {
 		switch (PROP_TYPE(lpPropTagArray->aulPropTag[i]))
 		{
 		case PT_UNSPECIFIED:
@@ -1726,7 +1685,6 @@ bool Util::ValidatePropTagArray(const SPropTagArray *lpPropTagArray)
  * @return MAPI Error code
  */
 HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
-	HRESULT hr = hrSuccess;
 	object_ptr<ECMemStream> lpMemStream;
 	ULONG ulRead = 0;
 	char buffer[BUFSIZE];
@@ -1735,10 +1693,10 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
 	if (sInput->QueryInterface(IID_ECMemStream, &~lpMemStream) == hrSuccess) {
 		// getsize, getbuffer, assign
 		strOutput.append(lpMemStream->GetBuffer(), lpMemStream->GetSize());
-		return hr;
+		return hrSuccess;
 	}
 	// manual copy
-	hr = sInput->Seek(zero, SEEK_SET, NULL);
+	auto hr = sInput->Seek(zero, SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	while (1) {
@@ -1762,7 +1720,6 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::string &strOutput) {
  * @return MAPI Error code
  */
 HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
-	HRESULT hr = hrSuccess;
 	object_ptr<ECMemStream> lpMemStream;
 	ULONG ulRead = 0;
 	char buffer[BUFSIZE];
@@ -1771,10 +1728,10 @@ HRESULT Util::HrStreamToString(IStream *sInput, std::wstring &strOutput) {
 	if (sInput->QueryInterface(IID_ECMemStream, &~lpMemStream) == hrSuccess) {
 		// getsize, getbuffer, assign
 		strOutput.append((WCHAR*)lpMemStream->GetBuffer(), lpMemStream->GetSize() / sizeof(WCHAR));
-		return hr;
+		return hrSuccess;
 	}
 	// manual copy
-	hr = sInput->Seek(zero, SEEK_SET, NULL);
+	auto hr = sInput->Seek(zero, SEEK_SET, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	while (1) {
@@ -1865,15 +1822,11 @@ template<size_t N> static bool StrCaseCompare(const wchar_t *lpString,
  */
 HRESULT Util::HrHtmlToRtf(const WCHAR *lpwHTML, std::string &strRTF)
 {
-	int tag = 0, type = 0;
 	std::stack<unsigned int> stackTag;
 	size_t pos = 0;
-	bool inTag = false;
 	int ulCommentMode = 0;		// 0=no comment, 1=just starting top-level comment, 2=inside comment level 1, 3=inside comment level 2, etc
-	int ulStyleMode = 0;
-	int ulParMode = 0;
-	bool bFirstText = true;
-	bool bPlainCRLF = false;
+	int tag = 0, type = 0, ulStyleMode = 0, ulParMode = 0;
+	bool inTag = false, bFirstText = true, bPlainCRLF = false;
 
 	if (lpwHTML == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2262,12 +2215,10 @@ HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *o
  */
 HRESULT Util::hex2bin(const char *input, size_t len, LPBYTE output)
 {
-	ULONG i, j;
-
 	if (len % 2 != 0)
 		return MAPI_E_INVALID_PARAMETER;
 
-	for (i = 0, j = 0; i < len; ++j) {
+	for (unsigned int i = 0, j = 0; i < len; ++j) {
 		output[j] = x2b(input[i++]) << 4;
 		output[j] |= x2b(input[i++]);
 	}
@@ -2334,7 +2285,6 @@ ULONG Util::GetBestBody(const SPropValue *lpBody, const SPropValue *lpHtml,
  */
 ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
 	SPropArrayPtr ptrBodies;
 	const ULONG ulBodyTag = ((ulFlags & MAPI_UNICODE) ? PR_BODY_W : PR_BODY_A);
 	SizedSPropTagArray (4, sBodyTags) = { 4, {
@@ -2344,8 +2294,7 @@ ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
 			PR_RTF_IN_SYNC
 		} };
 	ULONG cValues = 0;
-
-	hr = lpPropObj->GetProps(sBodyTags, 0, &cValues, &~ptrBodies);
+	auto hr = lpPropObj->GetProps(sBodyTags, 0, &cValues, &~ptrBodies);
 	if (FAILED(hr))
 		return PR_NULL;
 	return GetBestBody(&ptrBodies[0], &ptrBodies[1], &ptrBodies[2], &ptrBodies[3], ulFlags);
@@ -2414,19 +2363,12 @@ bool Util::IsBodyProp(ULONG ulPropTag)
  */
 static HRESULT FindInterface(LPCIID lpIID, ULONG ulIIDs, LPCIID lpIIDs)
 {
-	HRESULT hr = MAPI_E_NOT_FOUND;
-	ULONG i;
-
 	if (!lpIIDs || !lpIID)
 		return MAPI_E_NOT_FOUND;
-
-	for (i = 0; i < ulIIDs; ++i) {
-		if (*lpIID == lpIIDs[i]) {
-			hr = hrSuccess;
-			break;
-		}
-	}
-	return hr;
+	for (unsigned int i = 0; i < ulIIDs; ++i)
+		if (*lpIID == lpIIDs[i])
+			return hrSuccess;
+	return MAPI_E_NOT_FOUND;
 }
 
 /** 
@@ -2462,13 +2404,12 @@ static HRESULT CopyStream(IStream *lpSrc, IStream *lpDest)
  */
 static HRESULT CopyRecipients(IMessage *lpSrc, IMessage *lpDest)
 {
-	HRESULT hr;
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
 	memory_ptr<SPropTagArray> lpTableColumns;
 	ULONG ulRows = 0;
 
-	hr = lpSrc->GetRecipientTable(MAPI_UNICODE, &~lpTable);
+	auto hr = lpSrc->GetRecipientTable(MAPI_UNICODE, &~lpTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &~lpTableColumns);
@@ -2555,7 +2496,6 @@ static HRESULT CopyAttachmentProps(IAttach *lpSrcAttach, IAttach *lpDstAttach,
  * @return MAPI error code
  */
 HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction lpRestriction) {
-	HRESULT hr;
 	bool bPartial = false;
 
 	// table
@@ -2568,7 +2508,7 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 	memory_ptr<SPropValue> lpHasAttach;
 	ULONG ulAttachNr = 0;
 
-	hr = HrGetOneProp(lpSrc, PR_HASATTACH, &~lpHasAttach);
+	auto hr = HrGetOneProp(lpSrc, PR_HASATTACH, &~lpHasAttach);
 	if (hr != hrSuccess)
 		return hrSuccess;
 	if (lpHasAttach->Value.b == FALSE)
@@ -2653,7 +2593,6 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 static HRESULT CopyHierarchy(IMAPIFolder *lpSrc, IMAPIFolder *lpDest,
     ULONG ulFlags, ULONG ulUIParam, IMAPIProgress *lpProgress)
 {
-	HRESULT hr;
 	bool bPartial = false;
 	object_ptr<IMAPITable> lpTable;
 	static constexpr const SizedSPropTagArray(2, sptaName) =
@@ -2664,7 +2603,7 @@ static HRESULT CopyHierarchy(IMAPIFolder *lpSrc, IMAPIFolder *lpDest,
 	// sanity checks
 	if (lpSrc == nullptr || lpDest == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = lpSrc->QueryInterface(IID_IMAPIFolder, &~lpSrcParam);
+	auto hr = lpSrc->QueryInterface(IID_IMAPIFolder, &~lpSrcParam);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpDest->QueryInterface(IID_IMAPIFolder, &~lpDestParam);
@@ -2732,14 +2671,13 @@ static HRESULT CopyContents(ULONG ulWhat, IMAPIFolder *lpSrc,
     IMAPIFolder *lpDest, ULONG ulFlags, ULONG ulUIParam,
     IMAPIProgress *lpProgress)
 {
-	HRESULT hr;
 	bool bPartial = false;
 	object_ptr<IMAPITable> lpTable;
 	static constexpr const SizedSPropTagArray(1, sptaEntryID) = {1, {PR_ENTRYID}};
 	ULONG ulObj;
 	memory_ptr<ENTRYLIST> lpDeleteEntries;
 
-	hr = lpSrc->GetContentsTable(MAPI_UNICODE | ulWhat, &~lpTable);
+	auto hr = lpSrc->GetContentsTable(MAPI_UNICODE | ulWhat, &~lpTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpTable->SetColumns(sptaEntryID, 0);
@@ -2851,17 +2789,15 @@ static HRESULT TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag,
 static HRESULT AddProblemToArray(const SPropProblem *lpProblem,
     SPropProblemArray **lppProblems)
 {
-	HRESULT hr;
-	LPSPropProblemArray lpNewProblems = NULL;
-	LPSPropProblemArray lpOrigProblems = *lppProblems;
+	SPropProblemArray *lpNewProblems = nullptr, *lpOrigProblems = *lppProblems;
 
 	if (!lpOrigProblems) {
-		hr = MAPIAllocateBuffer(CbNewSPropProblemArray(1), (void**)&lpNewProblems);
+		auto hr = MAPIAllocateBuffer(CbNewSPropProblemArray(1), reinterpret_cast<void **>(&lpNewProblems));
 		if (hr != hrSuccess)
 			return hr;
 		lpNewProblems->cProblem = 1;
 	} else {
-		hr = MAPIAllocateBuffer(CbNewSPropProblemArray(lpOrigProblems->cProblem+1), (void**)&lpNewProblems);
+		auto hr = MAPIAllocateBuffer(CbNewSPropProblemArray(lpOrigProblems->cProblem + 1), reinterpret_cast<void **>(&lpNewProblems));
 		if (hr != hrSuccess)
 			return hr;
 		lpNewProblems->cProblem = lpOrigProblems->cProblem +1;
@@ -2916,7 +2852,6 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
     ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface,
     void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
-	HRESULT hr = hrSuccess;
 	bool bPartial = false;
 	// Properties that can never be copied (if you do this wrong, copying a message to a PST will fail)
 	SizedSPropTagArray(23, sExtraExcludes) = { 19, { PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK, PR_MAPPING_SIGNATURE,
@@ -2933,8 +2868,7 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
 		return MAPI_E_INVALID_PARAMETER;
 
 	// source is "usually" the same as dest .. so we don't check (as ms mapi doesn't either)
-
-	hr = FindInterface(lpSrcInterface, ciidExclude, rgiidExclude);
+	auto hr = FindInterface(lpSrcInterface, ciidExclude, rgiidExclude);
 	if (hr == hrSuccess)
 		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 	hr = FindInterface(lpDestInterface, ciidExclude, rgiidExclude);
@@ -3108,17 +3042,13 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 
 	// named props
 	ULONG cNames = 0;
-	memory_ptr<SPropTagArray> lpIncludeProps;
-	memory_ptr<SPropTagArray> lpsSrcNameTagArray, lpsDestNameTagArray;
-	memory_ptr<SPropTagArray> lpsDestTagArray;
+	memory_ptr<SPropTagArray> lpIncludeProps, lpsSrcNameTagArray;
+	memory_ptr<SPropTagArray> lpsDestNameTagArray, lpsDestTagArray;
 	memory_ptr<MAPINAMEID *> lppNames;
 
 	// attachments
 	memory_ptr<SPropValue> lpAttachMethod;
 	LONG ulIdCPID;
-	LONG ulIdRTF;
-	LONG ulIdHTML;
-	LONG ulIdBODY;
 	ULONG ulBodyProp = PR_BODY;
 
 	if (lpSrcInterface == nullptr || lpDestInterface == nullptr ||
@@ -3161,9 +3091,9 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 
 	if (lpKopano) {
 		// Use only one body text property, RTF, HTML or BODY when we're copying to another Kopano message.
-		ulIdRTF = Util::FindPropInArray(lpIncludeProps, PR_RTF_COMPRESSED);
-		ulIdHTML = Util::FindPropInArray(lpIncludeProps, PR_HTML);
-		ulIdBODY = Util::FindPropInArray(lpIncludeProps, PR_BODY_W);
+		auto ulIdRTF = Util::FindPropInArray(lpIncludeProps, PR_RTF_COMPRESSED);
+		auto ulIdHTML = Util::FindPropInArray(lpIncludeProps, PR_HTML);
+		auto ulIdBODY = Util::FindPropInArray(lpIncludeProps, PR_BODY_W);
 
 		// find out the original body type, and only copy that version
 		ulBodyProp = GetBestBody(lpSrcProp, fMapiUnicode);
@@ -3440,7 +3370,6 @@ exit:
  */
 HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IStream> lpSrcStream, lpDestStream;
 	static constexpr const SizedSPropTagArray(3, sptaIMAP) =
 		{3, {PR_EC_IMAP_EMAIL_SIZE, PR_EC_IMAP_BODY,
@@ -3461,7 +3390,7 @@ HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 	CopyInstanceIds(lpSrcMsg, lpDstMsg);
 
 	// Since we have a copy of the original email body, copy the other properties for IMAP too
-	hr = lpSrcMsg->GetProps(sptaIMAP, 0, &cValues, &~lpIMAPProps);
+	auto hr = lpSrcMsg->GetProps(sptaIMAP, 0, &cValues, &~lpIMAPProps);
 	if (FAILED(hr))
 		return hr;
 	hr = lpDstMsg->SetProps(cValues, lpIMAPProps, NULL);
@@ -3490,7 +3419,6 @@ HRESULT Util::HrDeleteIMAPData(LPMESSAGE lpMsg)
 HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
     ECQUOTASTATUS **lppsQuotaStatus)
 {
-	HRESULT			hr = hrSuccess;
 	memory_ptr<ECQUOTASTATUS> lpsQuotaStatus;
 	memory_ptr<SPropValue> lpProps;
 	static constexpr const SizedSPropTagArray(1, sptaProps) = {1, {PR_MESSAGE_SIZE_EXTENDED}};
@@ -3498,7 +3426,7 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 	
 	if (lpMsgStore == nullptr || lppsQuotaStatus == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = lpMsgStore->GetProps(sptaProps, 0, &cValues, &~lpProps);
+	auto hr = lpMsgStore->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if (hr != hrSuccess)
 		return hr;		
 	if (cValues != 1 || lpProps[0].ulPropTag != PR_MESSAGE_SIZE_EXTENDED)
@@ -3538,7 +3466,6 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
  */
 HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, LPSPropTagArray lpsValidProps)
 {
-	HRESULT			hr = hrSuccess;
 	memory_ptr<SPropTagArray> lpsPropArray, lpsNamedPropArray;
 	memory_ptr<SPropTagArray> lpsMappedPropArray;
 	ULONG			cPropNames = 0;
@@ -3547,7 +3474,7 @@ HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, 
 
 	if (lpDestMsg == nullptr || lpSourceMsg == nullptr || lpsValidProps == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = lpDestMsg->GetPropList(0, &~lpsPropArray);
+	auto hr = lpDestMsg->GetPropList(0, &~lpsPropArray);
 	if (hr != hrSuccess || lpsPropArray->cValues == 0)
 		return hr;
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpsValidProps->cValues), &~lpsNamedPropArray);
@@ -3680,10 +3607,8 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
  */
 HRESULT Util::ReadProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strData)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IStream> lpStream;
-
-	hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, 0, 0, &~lpStream);
+	auto hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, 0, 0, &~lpStream);
 	if(hr != hrSuccess)
 		return hr;
 	return HrStreamToString(lpStream, strData);
@@ -3703,11 +3628,9 @@ HRESULT Util::ReadProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strD
  */
 HRESULT Util::WriteProperty(IMAPIProp *lpProp, ULONG ulPropTag, const std::string &strData)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IStream> lpStream;
 	ULONG len = 0;
-
-	hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, STGM_DIRECT, MAPI_CREATE | MAPI_MODIFY, &~lpStream);
+	auto hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, STGM_DIRECT, MAPI_CREATE | MAPI_MODIFY, &~lpStream);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpStream->Write(strData.data(), strData.size(), &len);

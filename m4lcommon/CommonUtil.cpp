@@ -106,8 +106,7 @@ const char *GetServerUnixSocket(const char *szPreferred)
 		return env;
 	else if (szPreferred && szPreferred[0] != '\0')
 		return szPreferred;
-	else
-		return "";
+	return "";
 }
 
 /**
@@ -633,14 +632,6 @@ HRESULT HrNewMailNotification(IMsgStore* lpMDB, IMessage* lpMessage)
 	return lpMDB->NotifyNewMail(&sNotification);
 }
 
-static void strupr(char *a)
-{
-	while (*a != '\0') {
-		*a = toupper(*a);
-		++a;
-	}
-}
-
 // Create Search key for recipients
 HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
     const char *lpszEmail, ULONG *cb, LPBYTE *lppByte)
@@ -657,7 +648,11 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
 	*(lpByte + sizeEmailType) = ':';
 	memcpy(lpByte + sizeEmailType + 1, lpszEmail, sizeEmail);
 	*(lpByte + size - 1) = 0;
-	strupr(reinterpret_cast<char *>(lpByte.get()));
+	auto a = lpByte.get();
+	while (*a != '\0') {
+		*a = toupper(*a);
+		++a;
+	}
 	*lppByte = lpByte.release();
 	*cb = size;
 	return hrSuccess;
@@ -1768,39 +1763,35 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 		return hr;
 		
 	for (unsigned int i = 0; i < cValues; ++i) {
-		if(PROP_TYPE(lpProps[i].ulPropTag) == PT_ERROR && lpProps[i].Value.err == MAPI_E_NOT_ENOUGH_MEMORY) {
-			if(PROP_TYPE(lpTags->aulPropTag[i]) != PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) != PT_UNICODE && PROP_TYPE(lpTags->aulPropTag[i]) != PT_BINARY)
-				continue;
-			if(lpProp->OpenProperty(lpTags->aulPropTag[i], &IID_IStream, 0, 0, &~lpStream) != hrSuccess)
-				continue;
+		if (PROP_TYPE(lpProps[i].ulPropTag) != PT_ERROR || lpProps[i].Value.err != MAPI_E_NOT_ENOUGH_MEMORY)
+			continue;
+		if (PROP_TYPE(lpTags->aulPropTag[i]) != PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) != PT_UNICODE && PROP_TYPE(lpTags->aulPropTag[i]) != PT_BINARY)
+			continue;
+		if (lpProp->OpenProperty(lpTags->aulPropTag[i], &IID_IStream, 0, 0, &~lpStream) != hrSuccess)
+			continue;
 				
-			std::string strData;
-			if(Util::HrStreamToString(lpStream.get(), strData) != hrSuccess)
-				continue;
-				
-			if ((hr = MAPIAllocateMore(strData.size() + sizeof(WCHAR), lpProps, (void **)&lpData)) != hrSuccess)
-				return hr;
-
-			memcpy(lpData, strData.data(), strData.size());
-			
-			lpProps[i].ulPropTag = lpTags->aulPropTag[i];
-				
-			switch PROP_TYPE(lpTags->aulPropTag[i]) {
-			case PT_STRING8:
-				lpProps[i].Value.lpszA = (char *)lpData;
-				lpProps[i].Value.lpszA[strData.size()] = 0;
-				break;
-			case PT_UNICODE:
-				lpProps[i].Value.lpszW = (wchar_t *)lpData;
-				lpProps[i].Value.lpszW[strData.size() / sizeof(WCHAR)] = 0;
-				break;
-			case PT_BINARY:
-				lpProps[i].Value.bin.lpb = (LPBYTE)lpData;
-				lpProps[i].Value.bin.cb = strData.size();
-				break;
-			default:
-				assert(false);
-			}
+		std::string strData;
+		if (Util::HrStreamToString(lpStream.get(), strData) != hrSuccess)
+			continue;
+		if ((hr = MAPIAllocateMore(strData.size() + sizeof(WCHAR), lpProps, (void **)&lpData)) != hrSuccess)
+			return hr;
+		memcpy(lpData, strData.data(), strData.size());
+		lpProps[i].ulPropTag = lpTags->aulPropTag[i];
+		switch (PROP_TYPE(lpTags->aulPropTag[i])) {
+		case PT_STRING8:
+			lpProps[i].Value.lpszA = (char *)lpData;
+			lpProps[i].Value.lpszA[strData.size()] = 0;
+			break;
+		case PT_UNICODE:
+			lpProps[i].Value.lpszW = (wchar_t *)lpData;
+			lpProps[i].Value.lpszW[strData.size() / sizeof(WCHAR)] = 0;
+			break;
+		case PT_BINARY:
+			lpProps[i].Value.bin.lpb = (LPBYTE)lpData;
+			lpProps[i].Value.bin.cb = strData.size();
+			break;
+		default:
+			assert(false);
 		}
 	}
 	
@@ -1950,12 +1941,9 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 	object_ptr<IMAPIFolder> lpRoot, lpInbox;
 	IMAPIFolder *lpFolder = NULL;
 	IMessage *lpMessage = NULL;
-	ULONG ulType = 0;
-	memory_ptr<SPropValue> lpPropFB, lpPropFBNew;
-	LPSPropValue lpPVFBFolder = NULL;
-	memory_ptr<SPropValue> lpEntryID, lpAppEntryID;
-	LPSPropValue lpPropFBRef = NULL; // Non-free
-	ULONG cbEntryIDInbox = 0;
+	memory_ptr<SPropValue> lpPropFB, lpPropFBNew, lpEntryID, lpAppEntryID;
+	SPropValue *lpPVFBFolder = nullptr, *lpPropFBRef = nullptr;
+	ULONG ulType = 0, cbEntryIDInbox = 0;
 	memory_ptr<ENTRYID> lpEntryIDInbox;
 	memory_ptr<TCHAR> lpszExplicitClass;
 
@@ -2099,11 +2087,11 @@ HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept, bool bDec
 	FBProps[2].Value.b = TRUE;
 
 	FBProps[3].ulPropTag = PR_PROCESS_MEETING_REQUESTS;
-	FBProps[3].Value.b = bAutoAccept ? TRUE : FALSE;
+	FBProps[3].Value.b = bAutoAccept;
 	FBProps[4].ulPropTag = PR_DECLINE_CONFLICTING_MEETING_REQUESTS;
-	FBProps[4].Value.b = bDeclineConflict ? TRUE : FALSE;
+	FBProps[4].Value.b = bDeclineConflict;
 	FBProps[5].ulPropTag = PR_DECLINE_RECURRING_MEETING_REQUESTS;
-	FBProps[5].Value.b = bDeclineRecurring ? TRUE : FALSE;
+	FBProps[5].Value.b = bDeclineRecurring;
 
 	// Save localfreebusy settings
 	auto hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, true, &~lpLocalFBMessage);
@@ -2143,11 +2131,8 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 	object_ptr<IMessage> lpLocalFBMessage;
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues = 0;
-
-	bool bAutoAccept = false;
-	bool bDeclineConflict = false;
-	bool bDeclineRecurring = false;
-	bool autoprocess = true;
+	bool bAutoAccept = false, bDeclineConflict = false;
+	bool bDeclineRecurring = false, autoprocess = true;
 
 	auto hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, false, &~lpLocalFBMessage);
 	if(hr == hrSuccess) {
@@ -2232,10 +2217,9 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
  */
 HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lppMessage)
 {
-	ULONG cValues;
 	SPropArrayPtr ptrEntryIDs;
 	MAPIFolderPtr ptrFolder;
-	ULONG ulType;
+	unsigned int cValues, ulType;
 	MAPITablePtr ptrTable;
 	SPropValue propSubject;
 	SRowSetPtr ptrRows;

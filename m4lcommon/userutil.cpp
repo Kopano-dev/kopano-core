@@ -90,7 +90,6 @@ HRESULT	DataCollector::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArra
 }
 
 HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRestriction) {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropOrphan;
 
 	PROPMAP_START(1)
@@ -100,7 +99,7 @@ HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRest
 	sPropOrphan.ulPropTag = PR_EC_DELETED_STORE;
 	sPropOrphan.Value.b = TRUE;
 
-	hr = ECAndRestriction(
+	return ECAndRestriction(
 		ECNotRestriction(
 			ECAndRestriction(
 				ECExistRestriction(PR_EC_DELETED_STORE) +
@@ -109,7 +108,6 @@ HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRest
 		) +
 		ECExistRestriction(CHANGE_PROP_TYPE(PROP_STORE_ENTRYIDS, PT_MV_BINARY))
 	).CreateMAPIRestriction(lppRestriction, ECRestriction::Full);
-	return hr;
 }
 
 template<typename string_type, ULONG prAccount>
@@ -134,12 +132,11 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 			if (ptrRows[i].lpProps[0].ulPropTag != PR_MAILBOX_OWNER_ENTRYID)
 				continue;
-			HRESULT hrTmp;
 			ULONG ulType;
 			MAPIPropPtr ptrUser;
 			SPropValuePtr ptrAccount;
 
-			hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb,
+			auto hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb,
 			        reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb),
 			        &iid_of(ptrUser), 0, &ulType, &~ptrUser);
 			if (hrTmp != hrSuccess)
@@ -198,21 +195,14 @@ HRESULT GetArchivedUserList(IMAPISession *lpMapiSession, const char *lpSSLKey,
 HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
     const char *lpSSLPass, bool bLocalOnly, DataCollector *lpCollector)
 {
-	HRESULT			hr = S_OK;
-
 	AddrBookPtr		ptrAdrBook;
 	EntryIdPtr		ptrDDEntryID;
-	ABContainerPtr	ptrDefaultDir;
-	ABContainerPtr	ptrCompanyDir;
+	ABContainerPtr ptrDefaultDir, ptrCompanyDir;
 	MAPITablePtr	ptrHierarchyTable;
 	SRowSetPtr		ptrRows;
 	MsgStorePtr		ptrStore;
 	ECServiceAdminPtr	ptrServiceAdmin;
-
-	ULONG ulObj = 0;
-	ULONG cbDDEntryID = 0;
-	ULONG ulCompanyCount = 0;
-
+	unsigned int ulObj = 0, cbDDEntryID = 0, ulCompanyCount = 0;
 	std::set<servername>	listServers;
 	convert_context		converter;
 	memory_ptr<ECSVRNAMELIST> lpSrvNameList;
@@ -221,7 +211,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 
 	if (lpMapiSession == nullptr || lpCollector == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = lpMapiSession->OpenAddressBook(0, &IID_IAddrBook, 0, &~ptrAdrBook);
+	auto hr = lpMapiSession->OpenAddressBook(0, &IID_IAddrBook, 0, &~ptrAdrBook);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to open addressbook", hr);
 	hr = ptrAdrBook->GetDefaultDir(&cbDDEntryID, &~ptrDDEntryID);
@@ -415,8 +405,7 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 {
 	SRowSetPtr ptrRows;
 	MAPITablePtr ptrTable;
-	SPropValue sPropUser;
-	SPropValue sPropDisplayType;
+	SPropValue sPropUser, sPropDisplayType;
 	static constexpr const SizedSPropTagArray(2, sCols) =
 		{2, {PR_EC_HOMESERVER_NAME_W, PR_DISPLAY_NAME_W}};
 
