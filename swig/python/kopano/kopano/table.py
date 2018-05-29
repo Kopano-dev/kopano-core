@@ -10,7 +10,7 @@ import sys
 
 try:
     from StringIO import StringIO
-except ImportError:
+except ImportError: # pragma: no cover
     from io import StringIO
 
 from MAPI import (
@@ -24,7 +24,7 @@ from .compat import fake_unicode as _unicode, repr as _repr
 
 if sys.hexversion >= 0x03000000:
     from . import property_ as _prop
-else:
+else: # pragma: no cover
     import property_ as _prop
 
 class Table(object):

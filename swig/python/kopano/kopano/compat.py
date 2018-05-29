@@ -13,7 +13,7 @@ except ImportError:
 # Not unused, imported from server
 try:
     from functools import lru_cache
-except ImportError:
+except ImportError: # pragma: no cover
     from .lru_cache import lru_cache
 
 try:
@@ -80,7 +80,7 @@ if sys.hexversion >= 0x03000000:
         return s.encode()
 
 # Python 2
-else:
+else: # pragma: no cover
     def is_str(s):
         return isinstance(s, (str, unicode))
 

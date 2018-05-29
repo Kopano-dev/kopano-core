@@ -44,18 +44,18 @@ if sys.hexversion >= 0x03000000:
     from . import item as _item
     try:
         from . import folder as _folder
-    except ImportError:
+    except ImportError: # pragma: no cover
         _folder = sys.modules[__package__+'.folder']
     from . import user as _user
     try:
         from . import store as _store
-    except ImportError:
+    except ImportError: # pragma: no cover
         _store = sys.modules[__package__ + '.store']
     try:
         from . import utils as _utils
-    except ImportError:
+    except ImportError: # pragma: no cover
         _utils = sys.modules[__package__ + '.utils']
-else:
+else: # pragma: no cover
     import item as _item
     import folder as _folder
     import store as _store

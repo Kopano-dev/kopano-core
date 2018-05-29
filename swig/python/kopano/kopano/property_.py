@@ -44,9 +44,9 @@ from .errors import Error, NotFoundError
 if sys.hexversion >= 0x03000000:
     try:
         from . import utils as _utils
-    except ImportError:
+    except ImportError: # pragma: no cover
         _utils = sys.modules[__package__ + '.utils']
-else:
+else: # pragma: no cover
     import utils as _utils
 
 TYPEMAP = {

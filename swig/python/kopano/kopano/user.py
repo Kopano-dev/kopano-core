@@ -41,7 +41,7 @@ from .picture import Picture
 if sys.hexversion >= 0x03000000:
     from . import server as _server
     from . import company as _company
-else:
+else: # pragma: no cover
     import server as _server
     import company as _company
 

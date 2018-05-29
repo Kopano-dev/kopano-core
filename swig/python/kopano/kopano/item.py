@@ -107,22 +107,22 @@ from .appointment import Appointment
 if sys.hexversion >= 0x03000000:
     try:
         from . import folder as _folder
-    except ImportError:
+    except ImportError: # pragma: no cover
         _folder = sys.modules[__package__+'.folder']
     try:
         from . import store as _store
-    except ImportError:
+    except ImportError: # pragma: no cover
         _store = sys.modules[__package__ + '.store']
     try:
         from . import user as _user
-    except ImportError:
+    except ImportError: # pragma: no cover
         _user = sys.modules[__package__ + '.user']
     try:
         from . import utils as _utils
-    except ImportError:
+    except ImportError: # pragma: no cover
         _utils = sys.modules[__package__ + '.utils']
     from . import property_ as _prop
-else:
+else: # pragma: no cover
     import folder as _folder
     import store as _store
     import user as _user

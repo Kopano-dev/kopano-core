@@ -30,7 +30,7 @@ from .errors import NotSupportedError
 if sys.hexversion >= 0x03000000:
     from . import folder as _folder
     from . import item as _item
-else:
+else: # pragma: no cover
     import folder as _folder
     import item as _item
 

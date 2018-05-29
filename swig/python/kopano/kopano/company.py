@@ -34,17 +34,17 @@ from .compat import (
 if sys.hexversion >= 0x03000000:
     try:
         from . import server as _server
-    except ImportError:
+    except ImportError: # pragma: no cover
         _server = sys.modules[__package__ + '.server']
     try:
         from . import user as _user
-    except ImportError:
+    except ImportError: # pragma: no cover
         _user = sys.modules[__package__ + '.user']
     try:
         from . import store as _store
-    except ImportError:
+    except ImportError: # pragma: no cover
         _store = sys.modules[__package__ + '.store']
-else:
+else: # pragma: no cover
     import server as _server
     import user as _user
     import store as _store

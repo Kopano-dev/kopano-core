@@ -67,22 +67,22 @@ from .compat import (
 if sys.hexversion >= 0x03000000:
     try:
         from . import user as _user
-    except ImportError:
+    except ImportError: # pragma: no cover
         _user = sys.modules[__package__ + '.user']
     try:
         from . import config as _config
-    except ImportError:
+    except ImportError: # pragma: no cover
         _config = sys.modules[__package__ + '.config']
     from . import ics as _ics
     try:
         from . import store as _store
-    except ImportError:
+    except ImportError: # pragma: no cover
         _store = sys.modules[__package__ + '.store']
     try:
         from . import utils as _utils
-    except ImportError:
+    except ImportError: # pragma: no cover
         _utils = sys.modules[__package__ + '.utils']
-else:
+else: # pragma: no cover
     import user as _user
     import config as _config
     import ics as _ics
