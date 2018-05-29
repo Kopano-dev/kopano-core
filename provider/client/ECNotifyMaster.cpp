@@ -150,14 +150,23 @@ HRESULT ECNotifyMaster::StartNotifyWatch()
 
 	/* Make thread joinable which we need during shutdown */
 	pthread_attr_t m_hAttrib;
-	pthread_attr_init(&m_hAttrib);
-	pthread_attr_setdetachstate(&m_hAttrib, PTHREAD_CREATE_JOINABLE);
+	if (pthread_attr_init(&m_hAttrib) != 0)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	if (pthread_attr_setdetachstate(&m_hAttrib, PTHREAD_CREATE_JOINABLE) != 0) {
+		pthread_attr_destroy(&m_hAttrib);
+		return MAPI_E_INVALID_PARAMETER;
+	}
 	/* 1Mb of stack space per thread */
-	if (pthread_attr_setstacksize(&m_hAttrib, 1024 * 1024))
+	if (pthread_attr_setstacksize(&m_hAttrib, 1024 * 1024)) {
+		pthread_attr_destroy(&m_hAttrib);
 		return MAPI_E_CALL_FAILED;
-	if (pthread_create(&m_hThread, &m_hAttrib, NotifyWatch, static_cast<void *>(this)))
+	}
+	auto ret = pthread_create(&m_hThread, &m_hAttrib, NotifyWatch, static_cast<void *>(this));
+	if (ret != 0) {
+		pthread_attr_destroy(&m_hAttrib);
+		ec_log_err("Could not create ECNotifyMaster watch thread: %s", strerror(ret));
 		return MAPI_E_CALL_FAILED;
-
+	}
 	pthread_attr_destroy(&m_hAttrib);
 	set_thread_name(m_hThread, "NotifyThread");
 

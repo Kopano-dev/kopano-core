@@ -89,8 +89,9 @@ static bool Prefix(const std::string &strInput, const std::string &strPrefix)
     return (strInput.compare(0, strPrefix.size(), strPrefix) == 0);
 }
 
-IMAP::IMAP(const char *szServerPath, ECChannel *lpChannel, ECConfig *lpConfig) :
-	ClientProto(szServerPath, lpChannel, lpConfig)
+IMAP::IMAP(const char *szServerPath, std::shared_ptr<ECChannel> lpChannel,
+    std::shared_ptr<ECConfig> lpConfig) :
+	ClientProto(szServerPath, std::move(lpChannel), lpConfig)
 {
 	imopt_default_delivery_options(&dopt);
 	dopt.add_imap_data = true;

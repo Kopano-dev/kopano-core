@@ -53,8 +53,9 @@ using std::string;
  * @{
  */
 
-POP3::POP3(const char *szServerPath, ECChannel *lpChannel, ECConfig *lpConfig) :
-	ClientProto(szServerPath, lpChannel, lpConfig)
+POP3::POP3(const char *szServerPath, std::shared_ptr<ECChannel> lpChannel,
+    std::shared_ptr<ECConfig> lpConfig) :
+	ClientProto(szServerPath, std::move(lpChannel), std::move(lpConfig))
 {
 	imopt_default_sending_options(&sopt);
 	sopt.no_recipients_workaround = true;	// do not stop processing mail on empty recipient table

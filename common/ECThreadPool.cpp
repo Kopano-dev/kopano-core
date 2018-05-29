@@ -19,6 +19,7 @@
 #include <condition_variable>
 #include <utility>
 #include <kopano/platform.h>
+#include <kopano/ECLogger.h>
 #include <kopano/ECThreadPool.h>
 #include <algorithm>
 
@@ -94,7 +95,12 @@ void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 			for (unsigned i = 0; i < ulThreadsToAdd; ++i) {
 				pthread_t hThread;
 		
-				pthread_create(&hThread, NULL, &threadFunc, this);
+				auto ret = pthread_create(&hThread, nullptr, &threadFunc, this);
+				if (ret != 0) {
+					ec_log_err("Could not create ECThreadPool worker thread: %s", strerror(ret));
+					/* If there were no resources, stop trying. */
+					break;
+				}
 				set_thread_name(hThread, "ECThreadPool");
 				m_setThreads.emplace(hThread);
 			}

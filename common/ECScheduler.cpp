@@ -27,7 +27,12 @@ namespace KC {
 ECScheduler::ECScheduler()
 {
 	//Create Scheduler thread
-	pthread_create(&m_hMainThread, nullptr, ScheduleThread, this);
+	auto ret = pthread_create(&m_hMainThread, nullptr, ScheduleThread, this);
+	if (ret != 0) {
+		ec_log_err("Could not create ECScheduler thread: %s", strerror(ret));
+		return;
+	}
+	m_thread_active = true;
 	set_thread_name(m_hMainThread, "ECScheduler:main");
 }
 
@@ -37,7 +42,8 @@ ECScheduler::~ECScheduler(void)
 	m_bExit = TRUE;
 	m_hExitSignal.notify_one();
 	l_exit.unlock();
-	pthread_join(m_hMainThread, NULL);
+	if (m_thread_active)
+		pthread_join(m_hMainThread, nullptr);
 }
 
 HRESULT ECScheduler::AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle, void* (*lpFunction)(void*), void* lpData)
@@ -142,7 +148,7 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 				int err = 0;
 				
 				if((err = pthread_create(&hThread, NULL, sl.lpFunction, static_cast<void *>(sl.lpData))) != 0) {
-					ec_log_err("Unable to spawn new thread: %s", strerror(err));
+					ec_log_err("Could not create ECScheduler worker thread: %s", strerror(err));
 					goto task_fail;
 				}
 
@@ -151,7 +157,7 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 				sl.tLastRunTime = ttime;
 
 				if((err = pthread_join(hThread, (void**)&lperThread)) != 0) {
-					ec_log_err("Unable to join thread: %s", strerror(err));
+					ec_log_err("Could not join ECScheduler work thread: %s", strerror(err));
 					goto task_fail;
 				}
 

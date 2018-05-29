@@ -175,7 +175,7 @@ protected:
 	std::condition_variable m_hExitSignal; /* Signal that should be sent to the sessionncleaner when to exit */
 	pthread_t			m_hSessionCleanerThread;///< Thread that is used for the sessioncleaner
 	ECConfig*			m_lpConfig;
-	bool bExit = false, m_bTerminateThread;
+	bool bExit = false, m_bTerminateThread, m_thread_active = false;
 	bool m_bHostedKopano, m_bDistributedKopano;
 	unsigned long long m_ullSourceKeyAutoIncrement = 0;
 	unsigned int m_ulSourceKeyQueue = 0;

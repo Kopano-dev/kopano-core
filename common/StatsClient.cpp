@@ -109,9 +109,12 @@ int StatsClient::startup(const std::string &collectorSocket)
 	}
 
 	addr_len = sizeof(addr);
-
-	if (pthread_create(&countsSubmitThread, NULL, submitThread, this) == 0)
-		thread_running = true;
+	ret = pthread_create(&countsSubmitThread, nullptr, submitThread, this);
+	if (ret != 0) {
+		ec_log_err("Could not create StatsClient submit thread: %s", strerror(ret));
+		return -ret;
+	}
+	thread_running = true;
 	set_thread_name(countsSubmitThread, "StatsClient");
 	ec_log_debug("StatsClient thread started");
 	return 0;

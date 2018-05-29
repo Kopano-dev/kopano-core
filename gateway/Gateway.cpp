@@ -17,6 +17,7 @@
 
 #include "config.h"
 #include <kopano/platform.h>
+#include <memory>
 #include <new>
 #include <climits>
 #include <csignal>
@@ -29,6 +30,7 @@
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <kopano/mapiext.h>
+#include <kopano/tie.hpp>
 #include <mapiguid.h>
 
 #include <kopano/CommonUtil.h>
@@ -73,7 +75,7 @@ int quit = 0;
 static bool bThreads, g_dump_config;
 static const char *szPath;
 static ECLogger *g_lpLogger = NULL;
-static ECConfig *g_lpConfig = NULL;
+static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
 static int nChildren = 0;
 static std::string g_strHostString;
@@ -100,7 +102,7 @@ static void sighup(int sig)
 
 	if (strlen(g_lpConfig->GetSetting("ssl_private_key_file")) > 0 &&
 		strlen(g_lpConfig->GetSetting("ssl_certificate_file")) > 0) {
-		if (ECChannel::HrSetCtx(g_lpConfig) != hrSuccess)
+		if (ECChannel::HrSetCtx(g_lpConfig.get()) != hrSuccess)
 			ec_log_err("Error reloading SSL context");
 		else
 			ec_log_info("Reloaded SSL context");
@@ -139,18 +141,18 @@ enum serviceType { ST_POP3 = 0, ST_IMAP };
 
 struct HandlerArgs {
 	serviceType type;
-	ECChannel *lpChannel;
+	std::unique_ptr<ECChannel> lpChannel;
 	ECLogger *lpLogger;
-	ECConfig *lpConfig;
+	std::shared_ptr<ECConfig> lpConfig;
 	bool bUseSSL;
 };
 
 static void *Handler(void *lpArg)
 {
 	auto lpHandlerArgs = static_cast<HandlerArgs *>(lpArg);
-	auto lpChannel = lpHandlerArgs->lpChannel;
+	std::shared_ptr<ECChannel> lpChannel(std::move(lpHandlerArgs->lpChannel));
 	auto lpLogger = lpHandlerArgs->lpLogger;
-	auto lpConfig = lpHandlerArgs->lpConfig;
+	auto lpConfig = std::move(lpHandlerArgs->lpConfig);
 	auto bUseSSL = lpHandlerArgs->bUseSSL;
 
 	// szPath is global, pointing to argv variable, or lpConfig variable
@@ -258,13 +260,8 @@ exit:
 	ec_log_notice("Client %s thread exiting", lpChannel->peer_addr());
 	client->HrDone(false);	// HrDone does not send an error string to the client
 	delete client;
-
-	delete lpChannel;
-	if (bThreads == false) {
+	if (!bThreads)
 		g_lpLogger->Release();
-		delete g_lpConfig;
-	}
-
 	/** free SSL error data **/
 	#if OPENSSL_VERSION_NUMBER < 0x10100000L
 		ERR_remove_state(0);
@@ -432,7 +429,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Setup config
-	g_lpConfig = ECConfig::Create(lpDefaults);
+	g_lpConfig.reset(ECConfig::Create(lpDefaults));
 	if (!g_lpConfig->LoadSettings(szConfig, !exp_config) ||
 	    g_lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
@@ -442,7 +439,7 @@ int main(int argc, char *argv[]) {
 			goto exit;
 		}
 		ec_log_set(g_lpLogger);
-		LogConfigErrors(g_lpConfig);
+		LogConfigErrors(g_lpConfig.get());
 		hr = E_FAIL;
 		goto exit;
 	}
@@ -450,12 +447,12 @@ int main(int argc, char *argv[]) {
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 
 	// Setup logging
-	g_lpLogger = CreateLogger(g_lpConfig, argv[0], "KopanoGateway");
+	g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0], "KopanoGateway");
 	ec_log_set(g_lpLogger);
 
 	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
-		LogConfigErrors(g_lpConfig);
-	if (!TmpPath::instance.OverridePath(g_lpConfig))
+		LogConfigErrors(g_lpConfig.get());
+	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path-setting!");
 	if (parseBool(g_lpConfig->GetSetting("bypass_auth")))
 		ec_log_warn("Gateway is started with bypass_auth=yes meaning username and password will not be checked.");
@@ -481,7 +478,6 @@ exit:
 		fprintf(stderr, "%s: Startup failed: %s (%x). Please check the logfile (%s) for details.\n",
 			argv[0], GetMAPIErrorMessage(hr), hr, g_lpConfig->GetSetting("log_file"));
 	ssl_threading_cleanup();
-	delete g_lpConfig;
 	DeleteLogger(g_lpLogger);
 
 	return hr == hrSuccess ? 0 : 1;
@@ -539,7 +535,8 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	memset(&act, 0, sizeof(act));
 
 	if (bThreads) {
-		pthread_attr_init(&ThreadAttr);
+		if (pthread_attr_init(&ThreadAttr) != 0)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		if (pthread_attr_setdetachstate(&ThreadAttr, PTHREAD_CREATE_DETACHED) != 0) {
 			ec_log_err("Can't set thread attribute to detached");
 			goto exit;
@@ -558,7 +555,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 
 	// Setup SSL context
 	if ((bListenPOP3s || bListenIMAPs) &&
-	    ECChannel::HrSetCtx(g_lpConfig) != hrSuccess) {
+	    ECChannel::HrSetCtx(g_lpConfig.get()) != hrSuccess) {
 		ec_log_err("Error loading SSL context, POP3S and IMAPS will be disabled");
 		bListenPOP3s = false;
 		bListenIMAPs = false;
@@ -619,15 +616,15 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig))
+	if (unix_runas(g_lpConfig.get()))
 		goto exit;
-	if (daemonize && unix_daemonize(g_lpConfig))
+	if (daemonize && unix_daemonize(g_lpConfig.get()))
 		goto exit;
 	if (!daemonize)
 		setsid();
-	unix_create_pidfile(servicename, g_lpConfig);
+	unix_create_pidfile(servicename, g_lpConfig.get());
 	if (bThreads == false)
-		g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger); // maybe replace logger
+		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), g_lpLogger); // maybe replace logger
 	ec_log_set(g_lpLogger);
 
 	hr = MAPIInitialize(NULL);
@@ -688,18 +685,10 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		lpHandlerArgs->lpConfig = g_lpConfig;
 
 		if (pop3_event || pop3s_event) {
-			bool usessl;
-
 			lpHandlerArgs->type = ST_POP3;
 
 			// Incoming POP3(s) connection
-			if (pop3s_event) {
-				usessl = true;
-				hr = HrAccept(ulListenPOP3s, &lpHandlerArgs->lpChannel);
-			} else {
-				usessl = false;
-				hr = HrAccept(ulListenPOP3, &lpHandlerArgs->lpChannel);
-			}
+			hr = HrAccept(pop3s_event ? ulListenPOP3s : ulListenPOP3, &unique_tie(lpHandlerArgs->lpChannel));
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to accept POP3 socket connection.");
 				// just keep running
@@ -707,53 +696,38 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				continue;
 			}
 
-			lpHandlerArgs->bUseSSL = usessl;
-
+			lpHandlerArgs->bUseSSL = pop3s_event;
 			pthread_t POP3Thread;
-			const char *method = usessl ? "POP3s" : "POP3";
+			const char *method = pop3s_event ? "POP3s" : "POP3";
 			const char *model = bThreads ? "thread" : "process";
 			ec_log_notice("Starting worker %s for %s request", model, method);
 			if (bThreads) {
 				if (pthread_create(&POP3Thread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
-					ec_log_err("Can't create %s %s.", method, model);
-					// just keep running
-					delete lpHandlerArgs->lpChannel;
-					lpHandlerArgs.reset();
+					ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
 					hr = hrSuccess;
 				}
 				else {
+					set_thread_name(POP3Thread, "ZGateway " + std::string(method));
 					lpHandlerArgs.release();
 					++nChildren;
 				}
-
-				set_thread_name(POP3Thread, "ZGateway " + std::string(method));
 			}
 			else {
 				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0)
-					ec_log_err("Can't create %s %s.", method, model);
+					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
 					// just keep running
 				else
 					++nChildren;
-				// main handler always closes information it doesn't need
-				delete lpHandlerArgs->lpChannel;
 				hr = hrSuccess;
 			}
 			continue;
 		}
 
 		if (imap_event || imaps_event) {
-			bool usessl;
-
 			lpHandlerArgs->type = ST_IMAP;
 
 			// Incoming IMAP(s) connection
-			if (imaps_event) {
-				usessl = true;
-				hr = HrAccept(ulListenIMAPs, &lpHandlerArgs->lpChannel);
-			} else {
-				usessl = false;
-				hr = HrAccept(ulListenIMAP, &lpHandlerArgs->lpChannel);
-			}
+			hr = HrAccept(imaps_event ? ulListenIMAPs : ulListenIMAP, &unique_tie(lpHandlerArgs->lpChannel));
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to accept IMAP socket connection.");
 				// just keep running
@@ -761,35 +735,29 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				continue;
 			}
 
-			lpHandlerArgs->bUseSSL = usessl;
-
+			lpHandlerArgs->bUseSSL = imaps_event;
 			pthread_t IMAPThread;
-			const char *method = usessl ? "IMAPs" : "IMAP";
+			const char *method = imaps_event ? "IMAPs" : "IMAP";
 			const char *model = bThreads ? "thread" : "process";
 			ec_log_notice("Starting worker %s for %s request", model, method);
 			if (bThreads) {
-				if (pthread_create(&IMAPThread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
-					ec_log_err("Could not create %s %s.", method, model);
-					// just keep running
-					delete lpHandlerArgs->lpChannel;
-					lpHandlerArgs.reset();
+				err = pthread_create(&IMAPThread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
+				if (err != 0) {
+					ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
 					hr = hrSuccess;
 				}
 				else {
+					set_thread_name(IMAPThread, "ZGateway " + std::string(method));
 					lpHandlerArgs.release();
 					++nChildren;
 				}
-
-				set_thread_name(IMAPThread, "ZGateway " + std::string(method));
 			}
 			else {
 				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0)
-					ec_log_err("Could not create %s %s.", method, model);
+					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
 					// just keep running
 				else
 					++nChildren;
-				// main handler always closes information it doesn't need
-				delete lpHandlerArgs->lpChannel;
 				hr = hrSuccess;
 			}
 			continue;

@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <pthread.h>
 #include "ECDatabaseFactory.h"
@@ -57,7 +58,7 @@ struct EVENT {
     ECKeyTable::UpdateType  ulType;
 };
 
-typedef std::map<unsigned int, SEARCHFOLDER *> FOLDERIDSEARCH;
+typedef std::map<unsigned int, std::shared_ptr<SEARCHFOLDER>> FOLDERIDSEARCH;
 typedef std::map<unsigned int, FOLDERIDSEARCH> STOREFOLDERIDSEARCH;
 typedef std::map<unsigned int, pthread_t> SEARCHTHREADMAP;
 
@@ -171,7 +172,7 @@ public:
 	 *
 	 * @param[in] lpFolder	Search folder data object
 	 */
-	_kc_hidden void DestroySearchFolder(SEARCHFOLDER *);
+	_kc_hidden void DestroySearchFolder(std::shared_ptr<SEARCHFOLDER> &&);
 
     /** 
      * Restart all searches. 
@@ -407,7 +408,7 @@ private:
     pthread_t m_threadProcess;
     
     // Exit request for processing thread
-	bool m_bExitThread = false, m_bRunning = false;
+	bool m_thread_active = false, m_bExitThread = false, m_bRunning = false;
 };
 
 } /* namespace */

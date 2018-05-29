@@ -62,10 +62,12 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 
 	//Create session clean up thread
 	auto err = pthread_create(&m_hSessionCleanerThread, nullptr, SessionCleaner, this);
-        set_thread_name(m_hSessionCleanerThread, "SessionCleanUp");
-	
-	if (err != 0)
-		ec_log_crit("Unable to spawn thread for session cleaner! Sessions will live forever!: %s", strerror(err));
+	if (err != 0) {
+		m_thread_active = true;
+		ec_log_crit("Could not create SessionCleaner thread: %s", strerror(err));
+	} else {
+	        set_thread_name(m_hSessionCleanerThread, "SessionCleanUp");
+	}
 
 	m_lpNotificationManager.reset(new ECNotificationManager());
 	err = ECAttachmentConfig::create(m_lpConfig, &unique_tie(m_atxconfig));
@@ -85,11 +87,12 @@ ECSessionManager::~ECSessionManager()
 	m_lpTPropsPurge.reset();
 	m_lpDatabase.reset();
 	m_lpDatabaseFactory.reset();
-		
-	int err = pthread_join(m_hSessionCleanerThread, NULL);
-	if (err != 0)
-		ec_log_crit("Unable to join session cleaner thread: %s", strerror(err));
 
+	if (m_thread_active) {
+		auto err = pthread_join(m_hSessionCleanerThread, nullptr);
+		if (err != 0)
+			ec_log_crit("Unable to join session cleaner thread: %s", strerror(err));
+	}
 	/* Clean up all sessions */
 	std::lock_guard<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	for (auto s = m_mapSessions.begin(); s != m_mapSessions.end();

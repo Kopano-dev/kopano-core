@@ -38,7 +38,12 @@ ECTPropsPurge::ECTPropsPurge(ECConfig *lpConfig,
 	m_lpConfig(lpConfig), m_lpDatabaseFactory(lpDatabaseFactory)
 {
     // Start our purge thread
-	pthread_create(&m_hThread, nullptr, Thread, this);
+	auto ret = pthread_create(&m_hThread, nullptr, Thread, this);
+	if (ret != 0) {
+		ec_log_err("Could not create TPropsPurge thread: %s", strerror(ret));
+		return;
+	}
+	m_thread_active = true;
     set_thread_name(m_hThread, "TPropsPurge");
 }
 
@@ -51,7 +56,8 @@ ECTPropsPurge::~ECTPropsPurge()
 	l_exit.unlock();
 	
 	// Wait for the thread to exit
-	pthread_join(m_hThread, NULL);
+	if (m_thread_active)
+		pthread_join(m_hThread, nullptr);
 }
 
 /**

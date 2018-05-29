@@ -125,7 +125,12 @@ void (*kopano_notify_done)(struct soap *) = [](struct soap *) {};
 
 ECNotificationManager::ECNotificationManager(void)
 {
-    pthread_create(&m_thread, NULL, Thread, this);
+	auto ret = pthread_create(&m_thread, nullptr, Thread, this);
+	if (ret != 0) {
+		ec_log_err("Could not create ECNotificationManager thread: %s", strerror(ret));
+		return;
+	}
+	m_thread_active = true;
     set_thread_name(m_thread, "NotificationManager");
 }
 
@@ -137,7 +142,8 @@ ECNotificationManager::~ECNotificationManager()
 	l_ses.unlock();
 
 	ec_log_info("Shutdown notification manager");
-    pthread_join(m_thread, NULL);
+	if (m_thread_active)
+		pthread_join(m_thread, nullptr);
 
     // Close and free any pending requests (clients will receive EOF)
 	for (const auto &p : m_mapRequests) {
