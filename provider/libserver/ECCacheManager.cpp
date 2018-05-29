@@ -1258,7 +1258,7 @@ ECRESULT ECCacheManager::GetObjectFlags(unsigned int ulObjId, unsigned int *ulFl
 
 ECRESULT ECCacheManager::GetCell(const sObjectTableKey *lpsRowItem,
     unsigned int ulPropTag, struct propVal *lpDest, struct soap *soap,
-    bool bComputed)
+    bool bComputed, bool truncate)
 {
     ECRESULT er = erSuccess;
     ECsCells *sCell;
@@ -1274,7 +1274,7 @@ ECRESULT ECCacheManager::GetCell(const sObjectTableKey *lpsRowItem,
 	if(er != erSuccess)
 	    goto exit;
 
-    if(!sCell->GetPropVal(ulPropTag, lpDest, soap)) {
+    if (!sCell->GetPropVal(ulPropTag, lpDest, soap, truncate)) {
         if(!sCell->GetComplete() || bComputed) {
             // Object is not complete, and item is not in cache. We simply don't know anything about
             // the item, so return NOT_FOUND. Or, the item is complete but the requested property is computed, and therefore
@@ -1343,6 +1343,40 @@ ECRESULT ECCacheManager::SetComplete(unsigned int ulObjId)
 		LOG_CELLCACHE_DEBUG("Set cell complete for object %d failed cell not found", ulObjId);
 	else
 		LOG_CELLCACHE_DEBUG("Set cell complete for object %d", ulObjId);
+	return er;
+}
+
+ECRESULT ECCacheManager::GetComplete(unsigned int ulObjId, bool &complete)
+{
+	ECRESULT er = erSuccess;
+	ECsCells *sCell;
+	scoped_rlock lock(m_hCacheCellsMutex);
+
+	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess)
+		complete = sCell->GetComplete();
+	else
+		er = KCERR_NOT_FOUND;
+	if (er != erSuccess)
+		LOG_CELLCACHE_DEBUG("Get complete for object %d failed cell not found", ulObjId);
+	else
+		LOG_CELLCACHE_DEBUG("Get complete for object %d", ulObjId);
+	return er;
+}
+
+ECRESULT ECCacheManager::GetPropTags(unsigned int ulObjId, std::vector<unsigned int> &proptags)
+{
+	ECRESULT er = erSuccess;
+	ECsCells *sCell;
+	scoped_rlock lock(m_hCacheCellsMutex);
+
+	if (m_CellCache.GetCacheItem(ulObjId, &sCell) == erSuccess)
+		proptags = sCell->GetPropTags();
+	else
+		er = KCERR_NOT_FOUND;
+	if (er != erSuccess)
+		LOG_CELLCACHE_DEBUG("get proptags for object %d failed cell not found", ulObjId);
+	else
+		LOG_CELLCACHE_DEBUG("get proptags complete for object %d", ulObjId);
 	return er;
 }
 

@@ -569,50 +569,6 @@ ECRESULT ECDatabase::DoSequence(const std::string &strSeqName,
 	return KDatabase::DoSequence(strSeqName, ulCount, lpllFirstId);
 }
 
-/** 
- * For some reason, MySQL only supports up to 3 bytes of UTF-8 data. This means
- * that data outside the BMP is not supported. This function filters the passed UTF-8 string
- * and removes the non-BMP characters. Since it should be extremely uncommon to have useful
- * data outside the BMP, this should be acceptable.
- *
- * Note: BMP stands for Basic Multilingual Plane (first 0x10000 code points in unicode)
- *
- * If somebody points out a useful use case for non-BMP characters in the future, then we'll
- * have to rethink this.
- *
- */
-std::string ECDatabase::FilterBMP(const std::string &strToFilter)
-{
-	const char *c = strToFilter.c_str();
-	std::string strFiltered;
-
-	for (size_t pos = 0; pos < strToFilter.size(); ) {
-		// Copy 1, 2, and 3-byte UTF-8 sequences
-		int len;
-		
-		if((c[pos] & 0x80) == 0)
-			len = 1;
-		else if((c[pos] & 0xE0) == 0xC0)
-			len = 2;
-		else if((c[pos] & 0xF0) == 0xE0)
-			len = 3;
-		else if((c[pos] & 0xF8) == 0xF0)
-			len = 4;
-		else if((c[pos] & 0xFC) == 0xF8)
-			len = 5;
-		else if((c[pos] & 0xFE) == 0xFC)
-			len = 6;
-		else
-			// Invalid UTF-8 ?
-			len = 1;
-		if (len < 4)
-			strFiltered.append(&c[pos], len);
-		pos += len;
-	}
-	
-	return strFiltered;
-}
-
 bool ECDatabase::SuppressLockErrorLogging(bool bSuppress)
 {
 	std::swap(bSuppress, m_bSuppressLockErrorLogging);

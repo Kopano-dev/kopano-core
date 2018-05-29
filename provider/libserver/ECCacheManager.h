@@ -254,7 +254,7 @@ public:
     void AddPropVal(unsigned int ulPropTag, const struct propVal *lpPropVal) {
         struct propVal val;
         ulPropTag = NormalizeDBPropTag(ulPropTag); // Only cache PT_STRING8
-        CopyPropVal(lpPropVal, &val, NULL, true);
+        CopyPropVal(lpPropVal, &val, NULL, false, true);
         val.ulPropTag = NormalizeDBPropTag(val.ulPropTag);
 		auto res = mapPropVals.emplace(ulPropTag, val);
 		if (res.second == false) {
@@ -264,37 +264,52 @@ public:
     }
     
     // get a property value for this object
-    bool GetPropVal(unsigned int ulPropTag, struct propVal *lpPropVal, struct soap *soap) {
+    bool GetPropVal(unsigned int ulPropTag, struct propVal *lpPropVal, struct soap *soap, bool truncate) {
 		auto i = mapPropVals.find(NormalizeDBPropTag(ulPropTag));
 		if (i == mapPropVals.cend())
 			return false;
-        CopyPropVal(&i->second, lpPropVal, soap);
+        CopyPropVal(&i->second, lpPropVal, soap, truncate);
         if(NormalizeDBPropTag(ulPropTag) == lpPropVal->ulPropTag)
 	        lpPropVal->ulPropTag = ulPropTag; // Switch back to requested type (not on PT_ERROR of course)
         return true;
     }
     
+	std::vector<unsigned int> GetPropTags() {
+		std::vector<unsigned int> result;
+		for (auto iter = mapPropVals.cbegin(); iter != mapPropVals.cend(); iter++) {
+			result.push_back(iter->first);
+		}
+		return result;
+	}
+
     // Updates a LONG type property
     void UpdatePropVal(unsigned int ulPropTag, int lDelta) {
-        if(PROP_TYPE(ulPropTag) != PT_LONG)
+        if(PROP_TYPE(ulPropTag) != PT_LONG && PROP_TYPE(ulPropTag) != PT_LONGLONG)
             return;
 		auto i = mapPropVals.find(ulPropTag);
-		if (i == mapPropVals.cend() ||
-		    PROP_TYPE(i->second.ulPropTag) != PT_LONG)
+		if (i == mapPropVals.cend())
 			return;
-        i->second.Value.ul += lDelta;
+		if (PROP_TYPE(i->second.ulPropTag) == PT_LONG)
+			i->second.Value.ul += lDelta;
+		if (PROP_TYPE(i->second.ulPropTag) == PT_LONGLONG)
+			i->second.Value.li += lDelta;
     }
     
     // Updates a LONG type property
     void UpdatePropVal(unsigned int ulPropTag, unsigned int ulMask, unsigned int ulValue) {
-        if(PROP_TYPE(ulPropTag) != PT_LONG)
+        if(PROP_TYPE(ulPropTag) != PT_LONG && PROP_TYPE(ulPropTag) != PT_LONGLONG)
             return;
 		auto i = mapPropVals.find(ulPropTag);
-		if (i == mapPropVals.cend() ||
-		    PROP_TYPE(i->second.ulPropTag) != PT_LONG)
+		if (i == mapPropVals.cend())
 			return;
-        i->second.Value.ul &= ~ulMask;
-        i->second.Value.ul |= ulValue & ulMask;
+		if (PROP_TYPE(i->second.ulPropTag) == PT_LONG) {
+			i->second.Value.ul &= ~ulMask;
+			i->second.Value.ul |= ulValue & ulMask;
+		}
+		if (PROP_TYPE(i->second.ulPropTag) == PT_LONGLONG) {
+			i->second.Value.li &= ~ulMask;
+			i->second.Value.li |= ulValue & ulMask;
+		}
     }
     
 	void SetComplete(bool bComplete) { m_bComplete = bComplete; }
@@ -463,12 +478,14 @@ public:
 	ECRESULT GetEntryListFromObjectList(ECListInt* lplObjectList, struct soap *soap, struct entryList **lppEntryList);
 
 	// Table data functions (pure cache functions, they will never access the DB themselves. Data must be provided through Set functions)
-	ECRESULT GetCell(const sObjectTableKey *, unsigned int tag, struct propVal *, struct soap *, bool computed);
+	ECRESULT GetCell(const sObjectTableKey *, unsigned int tag, struct propVal *, struct soap *, bool computed, bool truncated = true);
 	ECRESULT SetCell(const sObjectTableKey *, unsigned int tag, const struct propVal *);
 	ECRESULT UpdateCell(unsigned int ulObjId, unsigned int ulPropTag, int lDelta);
 	ECRESULT UpdateCell(unsigned int ulObjId, unsigned int ulPropTag, unsigned int ulMask, unsigned int ulValue);
 	ECRESULT SetComplete(unsigned int ulObjId);
-	
+	ECRESULT GetComplete(unsigned int ulObjId, bool &complete);
+	ECRESULT GetPropTags(unsigned int ulObjId, std::vector<unsigned int> &proptags);
+	ECRESULT DeleteCell(unsigned int ulObjId) { return I_DelCell(ulObjId); }
 	// Cache Index properties
 	
 	// Read-through

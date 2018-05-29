@@ -31,6 +31,51 @@
 
 namespace KC {
 
+/**
+ * For some reason, MySQL only supports up to 3 bytes of UTF-8 data. This means
+ * that data outside the BMP is not supported. This function filters the passed UTF-8 string
+ * and removes the non-BMP characters. Since it should be extremely uncommon to have useful
+ * data outside the BMP, this should be acceptable.
+ *
+ * Note: BMP stands for Basic Multilingual Plane (first 0x10000 code points in unicode)
+ *
+ * If somebody points out a useful use case for non-BMP characters in the future, then we'll
+ * have to rethink this.
+ *
+ */
+std::string FilterBMP(const std::string &str_to_filter)
+{
+	const char *c = str_to_filter.c_str();
+	std::string str_filtered;
+
+	for (size_t pos = 0; pos < str_to_filter.size(); ) {
+		// Copy 1, 2, and 3-byte UTF-8 sequences
+		int len;
+
+		if ((c[pos] & 0x80) == 0)
+			len = 1;
+		else if ((c[pos] & 0xE0) == 0xC0)
+			len = 2;
+		else if ((c[pos] & 0xF0) == 0xE0)
+			len = 3;
+		else if ((c[pos] & 0xF8) == 0xF0)
+			len = 4;
+		else if ((c[pos] & 0xFC) == 0xF8)
+			len = 5;
+		else if ((c[pos] & 0xFE) == 0xFC)
+			len = 6;
+		else
+			// Invalid UTF-8 ?
+			len = 1;
+		if (len < 4)
+			str_filtered.append(&c[pos], len);
+		pos += len;
+	}
+
+	return str_filtered;
+}
+
+
 /* See m4lcommon/Util.cpp for twcmp */
 template<typename T> static int twcmp(T a, T b)
 {
@@ -986,7 +1031,7 @@ ECRESULT FreeRestrictTable(struct restrictTable *lpRestrict, bool base)
 }
 
 ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
-    struct soap *soap, bool bTruncate)
+    struct soap *soap, bool bTruncate, bool filterbmp)
 {
 	ECRESULT er = PropCheck(lpSrc);
 	if(er != erSuccess)
@@ -1036,10 +1081,16 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		else
 			len = strlen(lpSrc->Value.lpszA);
 		
-		lpDst->Value.lpszA = s_alloc<char>(soap, len+1);
-		strncpy(lpDst->Value.lpszA, lpSrc->Value.lpszA, len);
-		*(lpDst->Value.lpszA+len) = 0; // null terminate after strncpy
-
+		if (filterbmp) {
+			auto filtered_string = FilterBMP(std::string(lpSrc->Value.lpszA, len));
+			lpDst->Value.lpszA = s_alloc<char>(soap, filtered_string.size() + 1);
+			strncpy(lpDst->Value.lpszA, filtered_string.c_str(), filtered_string.size());
+			lpDst->Value.lpszA[filtered_string.size()] = '\0'; // null terminate after strncpy
+		} else {
+			lpDst->Value.lpszA = s_alloc<char>(soap, len + 1);
+			strncpy(lpDst->Value.lpszA, lpSrc->Value.lpszA, len);
+			lpDst->Value.lpszA[len] = '\0'; // null terminate after strncpy
+		}
 		break;
 	}
 	case PT_BINARY:
@@ -1105,11 +1156,19 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		lpDst->Value.mvszA.__size = lpSrc->Value.mvszA.__size;
 		lpDst->Value.mvszA.__ptr = s_alloc<char*>(soap, lpSrc->Value.mvszA.__size);
 		for (gsoap_size_t i = 0; i < lpSrc->Value.mvszA.__size; ++i) {
-			lpDst->Value.mvszA.__ptr[i] = s_alloc<char>(soap, strlen(lpSrc->Value.mvszA.__ptr[i])+1);
-			if(lpSrc->Value.mvszA.__ptr[i] == NULL)
-			    strcpy(lpDst->Value.mvszA.__ptr[i], "");
-			else
-				strcpy(lpDst->Value.mvszA.__ptr[i], lpSrc->Value.mvszA.__ptr[i]);
+			if (filterbmp) {
+				std::string filtered_string;
+				if (lpSrc->Value.mvszA.__ptr[i] != nullptr)
+					filtered_string = FilterBMP(lpSrc->Value.mvszA.__ptr[i]);
+				lpDst->Value.mvszA.__ptr[i] = s_alloc<char>(soap, filtered_string.size() + 1);
+				strcpy(lpDst->Value.mvszA.__ptr[i], filtered_string.c_str());
+			} else {
+				lpDst->Value.mvszA.__ptr[i] = s_alloc<char>(soap, strlen(lpSrc->Value.mvszA.__ptr[i]) + 1);
+				if(lpSrc->Value.mvszA.__ptr[i] == NULL)
+					strcpy(lpDst->Value.mvszA.__ptr[i], "");
+				else
+					strcpy(lpDst->Value.mvszA.__ptr[i], lpSrc->Value.mvszA.__ptr[i]);
+			}
 		}
 		break;
 	case PT_MV_BINARY:
@@ -1135,14 +1194,14 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 }
 
 ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal **lppDst,
-    struct soap *soap, bool bTruncate)
+    struct soap *soap, bool bTruncate, bool filterbmp)
 {
 	ECRESULT er;
 	struct propVal *lpDst;
 
 	lpDst = s_alloc<struct propVal>(soap);
 
-	er = CopyPropVal(lpSrc, lpDst, soap);
+	er = CopyPropVal(lpSrc, lpDst, soap, bTruncate, filterbmp);
 	if (er != erSuccess) {
 		// there is no sub-alloc when there's an error, so we can remove lpDst
 		if (!soap)
@@ -2038,17 +2097,17 @@ ECRESULT DynamicPropValArray::AddPropVal(struct propVal &propVal)
     return erSuccess;
 }
 
-ECRESULT DynamicPropValArray::GetPropValArray(struct propValArray *lpPropValArray)
+ECRESULT DynamicPropValArray::GetPropValArray(struct propValArray *lpPropValArray, bool release)
 {
     ECRESULT er = erSuccess;
     
     lpPropValArray->__size = m_ulPropCount;
     lpPropValArray->__ptr = m_lpPropVals; // Transfer ownership to the caller
-    
-    m_lpPropVals = NULL;					// We don't own these anymore
-    m_ulPropCount = 0;
-    m_ulCapacity = 0;
-    
+	if (release) {
+		m_lpPropVals = nullptr;					// We don't own these anymore
+		m_ulPropCount = 0;
+		m_ulCapacity = 0;
+	}
     return er;
 }
 

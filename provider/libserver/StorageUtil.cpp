@@ -30,6 +30,7 @@
 #include "ECSecurity.h"
 #include "cmdutil.hpp"
 #include <edkmdb.h>
+#include <kopano/MAPIErrors.h>
 
 namespace KC {
 
@@ -166,17 +167,15 @@ ECRESULT UpdateObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned
 		auto er = lpDatabase->DoInsert(strQuery);
 		if(er != erSuccess)
 			return er;
-		if (ulObjType != MAPI_MESSAGE)
-			return erSuccess;
 		// Update cell cache for new size
 		sObjectTableKey key;
 		struct propVal sPropVal;
 		key.ulObjId = ulObjId;
 		key.ulOrderId = 0;
-		sPropVal.ulPropTag = PR_MESSAGE_SIZE;
+		sPropVal.ulPropTag = ulPropTag;
 		sPropVal.Value.ul = llSize;
 		sPropVal.__union = SOAP_UNION_propValData_ul;
-		return gcache->SetCell(&key, PR_MESSAGE_SIZE, &sPropVal);
+		return gcache->SetCell(&key, ulPropTag, &sPropVal);
 	}
 	auto strQuery = "UPDATE properties SET " + strField + "=";
 	if (updateAction == UPDATE_ADD)
@@ -189,10 +188,10 @@ ECRESULT UpdateObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned
 	auto er = lpDatabase->DoUpdate(strQuery, &ulAffRows);
 	if (er != erSuccess)
 		return er;
-	if (ulObjType != MAPI_MESSAGE)
-		return erSuccess;
-	// Update cell cache
-	return gcache->UpdateCell(ulObjId, PR_MESSAGE_SIZE, (updateAction == UPDATE_ADD ? llSize : -llSize));
+	er = gcache->UpdateCell(ulObjId, ulPropTag, (updateAction == UPDATE_ADD ? llSize : -llSize));
+	if (er != erSuccess)
+		ec_log_debug("Unable to update %d: %s (%x)", ulObjId, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
+	return erSuccess;
 }
 
 static ECRESULT ltm_sync_time(ECDatabase *db,

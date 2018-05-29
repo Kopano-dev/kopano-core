@@ -30,6 +30,7 @@
 
 namespace KC {
 
+extern std::string FilterBMP(const std::string &strToFilter);
 // SortOrderSets
 extern void FreeSortOrderArray(struct sortOrderArray *lpsSortOrder);
 extern int CompareSortOrderArray(const struct sortOrderArray *lpsSortOrder1, const struct sortOrderArray *lpsSortOrder2);
@@ -62,8 +63,8 @@ extern ECRESULT CompareMVPropWithProp(struct propVal *lpMVProp1, const struct pr
 
 size_t PropSize(const struct propVal *);
 ECRESULT			FreePropVal(struct propVal *lpProp, bool bBasePointerDel);
-ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst, struct soap *soap = NULL, bool bTruncate = false);
-ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal **lppDst, struct soap *soap = NULL, bool bTruncate = false); /* allocates new lpDst and calls other version */
+ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst, struct soap *soap = NULL, bool bTruncate = false, bool filterbmp = false);
+ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal **lppDst, struct soap *soap = NULL, bool bTruncate = false, bool filterbmp = false); /* allocates new lpDst and calls other version */
 
 // EntryList
 ECRESULT			CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryList **lppDst);
@@ -118,7 +119,7 @@ public:
     ECRESULT AddPropVal(struct propVal &propVal);
     
     // Return a propvalarray of all properties passed
-    ECRESULT GetPropValArray(struct propValArray *lpPropValArray);
+    ECRESULT GetPropValArray(struct propValArray *lpPropValArray, bool release = true);
 
 private:
     ECRESULT Resize(unsigned int ulSize);

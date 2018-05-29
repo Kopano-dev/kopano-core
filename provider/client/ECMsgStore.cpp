@@ -110,11 +110,6 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, IMAPISupport *sup,
 	HrAddPropHandlers(PR_TEST_LINE_SPEED, GetPropHandler, DefaultSetPropComputed, this, false, true);
 	HrAddPropHandlers(PR_EMSMDB_SECTION_UID, GetPropHandler, DefaultSetPropComputed, this, false, true);
 	HrAddPropHandlers(PR_ACL_DATA, GetPropHandler, SetPropHandler, this, false, true);
-	HrAddPropHandlers(PR_EC_WEBACCESS_SETTINGS, DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
-	HrAddPropHandlers(PR_EC_RECIPIENT_HISTORY, DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
-	HrAddPropHandlers(PR_EC_WEBACCESS_SETTINGS_JSON, DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
-	HrAddPropHandlers(PR_EC_RECIPIENT_HISTORY_JSON, DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
-	HrAddPropHandlers(PR_EC_WEBAPP_PERSISTENT_SETTINGS_JSON, DefaultGetPropGetReal, DefaultSetPropSetReal, this, true, true);
 
 	// Basically a workaround because we can't pass 'this' in the superclass constructor.
 	SetProvider(this);
