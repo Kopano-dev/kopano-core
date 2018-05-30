@@ -697,7 +697,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			}
 
 			lpHandlerArgs->bUseSSL = pop3s_event;
-			pthread_t POP3Thread;
+			pthread_t tid;
 			const char *method = pop3s_event ? "POP3s" : "POP3";
 			const char *model = bThreads ? "thread" : "process";
 			ec_log_notice("Starting worker %s for %s request", model, method);
@@ -709,11 +709,11 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				}
 				continue;
 			}
-			if (pthread_create(&POP3Thread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
+			if (pthread_create(&tid, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
 				ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
 				continue;
 			}
-			set_thread_name(POP3Thread, "ZGateway " + std::string(method));
+			set_thread_name(tid, "ZGateway " + std::string(method));
 			lpHandlerArgs.release();
 			continue;
 		}
@@ -729,7 +729,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			}
 
 			lpHandlerArgs->bUseSSL = imaps_event;
-			pthread_t IMAPThread;
+			pthread_t tid;
 			const char *method = imaps_event ? "IMAPs" : "IMAP";
 			const char *model = bThreads ? "thread" : "process";
 			ec_log_notice("Starting worker %s for %s request", model, method);
@@ -741,12 +741,12 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				}
 				continue;
 			}
-			err = pthread_create(&IMAPThread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
+			err = pthread_create(&tid, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
 			if (err != 0) {
 				ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
 				continue;
 			}
-			set_thread_name(IMAPThread, "ZGateway " + std::string(method));
+			set_thread_name(tid, "ZGateway " + std::string(method));
 			lpHandlerArgs.release();
 			continue;
 		}
