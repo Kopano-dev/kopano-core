@@ -247,9 +247,6 @@ HRESULT ECChannel::HrFreeCtx() {
 ECChannel::ECChannel(int inputfd) :
 	fd(inputfd), peer_atxt(), peer_sockaddr()
 {
-	int flag = 1;
-	if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char *>(&flag), sizeof(flag)) < 0)
-		/* silence Coverity */;
 }
 
 ECChannel::~ECChannel() {
