@@ -685,71 +685,40 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		std::unique_ptr<HandlerArgs> lpHandlerArgs(new HandlerArgs);
 		lpHandlerArgs->lpLogger = g_lpLogger;
 		lpHandlerArgs->lpConfig = g_lpConfig;
+		lpHandlerArgs->type = (pop3_event || pop3s_event) ? ST_POP3 : ST_IMAP;
+		lpHandlerArgs->bUseSSL = pop3s_event || imaps_event;
+		const char *method = "", *model = bThreads ? "thread" : "process";
 
-		if (pop3_event || pop3s_event) {
-			lpHandlerArgs->type = ST_POP3;
-
-			// Incoming POP3(s) connection
+		if (lpHandlerArgs->type == ST_POP3) {
 			hr = HrAccept(pop3s_event ? ulListenPOP3s : ulListenPOP3, &unique_tie(lpHandlerArgs->lpChannel));
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to accept POP3 socket connection.");
-				continue;
-			}
-
-			lpHandlerArgs->bUseSSL = pop3s_event;
-			pthread_t tid;
-			const char *method = pop3s_event ? "POP3s" : "POP3";
-			const char *model = bThreads ? "thread" : "process";
-			ec_log_notice("Starting worker %s for %s request", model, method);
-			if (!bThreads) {
-				++nChildren;
-				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
-					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
-					--nChildren;
-				}
-				continue;
-			}
-			if (pthread_create(&tid, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
-				ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
-				continue;
-			}
-			set_thread_name(tid, "ZGateway " + std::string(method));
-			lpHandlerArgs.release();
-			continue;
+			method = lpHandlerArgs->bUseSSL ? "POP3s" : "POP3";
 		}
-
-		if (imap_event || imaps_event) {
-			lpHandlerArgs->type = ST_IMAP;
-
-			// Incoming IMAP(s) connection
+		else if (lpHandlerArgs->type == ST_IMAP) {
 			hr = HrAccept(imaps_event ? ulListenIMAPs : ulListenIMAP, &unique_tie(lpHandlerArgs->lpChannel));
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to accept IMAP socket connection.");
-				continue;
-			}
-
-			lpHandlerArgs->bUseSSL = imaps_event;
-			pthread_t tid;
-			const char *method = imaps_event ? "IMAPs" : "IMAP";
-			const char *model = bThreads ? "thread" : "process";
-			ec_log_notice("Starting worker %s for %s request", model, method);
-			if (!bThreads) {
-				++nChildren;
-				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
-					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
-					--nChildren;
-				}
-				continue;
-			}
-			err = pthread_create(&tid, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
-			if (err != 0) {
-				ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
-				continue;
-			}
-			set_thread_name(tid, "ZGateway " + std::string(method));
-			lpHandlerArgs.release();
+			method = lpHandlerArgs->bUseSSL ? "IMAPs" : "IMAP";
+		}
+		if (hr != hrSuccess) {
+			ec_log_err("Unable to accept %s socket connection.", method);
 			continue;
 		}
+
+		pthread_t tid;
+		ec_log_notice("Starting worker %s for %s request", model, method);
+		if (!bThreads) {
+			++nChildren;
+			if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
+				ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
+				--nChildren;
+			}
+			continue;
+		}
+		err = pthread_create(&tid, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
+		if (err != 0) {
+			ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
+			continue;
+		}
+		set_thread_name(tid, "ZGateway " + std::string(method));
+		lpHandlerArgs.release();
 	}
 
 	ec_log(EC_LOGLEVEL_ALWAYS, "POP3/IMAP Gateway will now exit");
