@@ -201,7 +201,7 @@ using namespace std::chrono_literals;
 #else
 #	pragma GCC diagnostic push
 #	pragma GCC diagnostic ignored "-Wliteral-suffix"
-static constexpr inline std::chrono::seconds operator""s(unsigned long long x) { return std::chrono::seconds{x}; }
+static constexpr inline std::chrono::seconds operator"" s(unsigned long long x) { return std::chrono::seconds{x}; }
 #	pragma GCC diagnostic pop
 #endif
 
@@ -214,8 +214,8 @@ using namespace std::string_literals;
 #else
 #	pragma GCC diagnostic push
 #	pragma GCC diagnostic ignored "-Wliteral-suffix"
-static inline std::string operator""s(const char *str, std::size_t len) { return std::string(str, len); }
-static inline std::wstring operator""s(const wchar_t *str, std::size_t len) { return std::wstring(str, len); }
+static inline std::string operator"" s(const char *str, std::size_t len) { return std::string(str, len); }
+static inline std::wstring operator"" s(const wchar_t *str, std::size_t len) { return std::wstring(str, len); }
 #	pragma GCC diagnostic pop
 #endif
 
