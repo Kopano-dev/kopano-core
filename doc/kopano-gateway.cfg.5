@@ -66,11 +66,6 @@ Include and process
 Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF EACH PARAMETER"
-.SS server_bind
-.PP
-IP address to bind to. Leave empty to bind to all addresses.
-.PP
-Default: (empty)
 .SS server_hostname
 .PP
 Hostname of the server to print to a client in the logon greeting. Leave empty to use DNS to find the hostname.
@@ -82,54 +77,49 @@ Whether to show the hostname in the logon greeting to clients. This config optio
 .PP
 Default:
 \fIno\fR
-.SS pop3_enable
+.SS imap_listen
 .PP
-Enable POP3 service with value yes. All other values disable the service.
+A space-separated list of address:port specifiers for where the server should
+listen for unencrypted and STARTTLS-ed IMAP connections. IPv6 addresses need to
+be enclosed in brackets (as in \fB[2001:db8::1]:236\fP), and the asterisk is
+the multi-protocol address wildcard.
 .PP
-Default:
-\fIyes\fR
-.SS pop3_port
+Default: \fI*:143\fP
+.SS imaps_listen
+A space-separated list of address:port spcifiers for implicit-SSL IMAP
+connections, similar to \fBimap_listen\fP. Normally placed on port 993.
 .PP
-The POP3 service will listen on this port for incoming connections.
+Default: \fI(empty)\fP
+.SS pop3_listen
 .PP
-Default:
-\fI110\fR
-.SS pop3s_enable
+A space-separated list of address:port specifiers for where the server should
+listen for unencrypted and STARTTLS-ed POP3 connections. IPv6 addresses need to
+be enclosed in brackets (as in \fB[2001:db8::1]:236\fP), and the asterisk is
+the multi-protocol address wildcard.
 .PP
-Enable POP3S service with value yes. All other values disable the service.
+Default: \fI*:110\fP
+.SS pop3s_listen
+A space-separated list of address:port spcifiers for implicit-SSL POP3
+connections, similar to \fBpop3_listen\fP. Normally placed on port 995.
 .PP
-Default:
-\fIyes\fR
-.SS pop3s_port
+Default: \fI(empty)\fP
+.SS server_bind
 .PP
-The POP3S service will listen on this port for incoming connections.
+This historic directive specifies a single IPv4/IPv6 address to bind to. Its
+use is discouraged in favor of the various *\fB_listen\fP directives.
 .PP
-Default:
-\fI995\fR
-.SS imap_enable
+Default: (empty)
+.SS imap_port, imaps_port, pop3_port, pop3s_port
 .PP
-Enable IMAP service with value yes. All other values disable the service.
+These historic directive specify the single port to bind to for POP3(S)/IMAP(S)
+connections. Their use is discouraged in favor of the various *\fB_listen\fP
+directives. The address for the old directives is mandated by
+\fBserver_bind\fP.
+.SS imap_enable, imaps_enable, pop3_enable, pop3s_enable
 .PP
-Default:
-\fIyes\fR
-.SS imap_port
-.PP
-The IMAP service will listen on this port for incoming connections.
-.PP
-Default:
-\fI143\fR
-.SS imaps_enable
-.PP
-Enable IMAPS service with value yes. All other values disable the service.
-.PP
-Default:
-\fIyes\fR
-.SS imaps_port
-.PP
-The IMAPS service will listen on this port for incoming connections.
-.PP
-Default:
-\fI993\fR
+These historic directives are made obsolete by the *\fB_listen\fP directives
+where the presence or absence of an addr:port specifier determines whether or
+not the service is enabled.
 .SS server_socket
 .PP
 The http address of the storage server.

@@ -20,6 +20,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
+#include <set>
 #include <climits>
 #include <csignal>
 #include <netdb.h>
@@ -67,8 +68,15 @@
  */
 
 using namespace KC;
+using namespace KC::string_literals;
 using std::cout;
 using std::endl;
+
+struct socks {
+	std::vector<struct pollfd> pollfd;
+	std::vector<int> linfd;
+	std::vector<bool> pop3, ssl;
+};
 
 static int daemonize = 1;
 int quit = 0;
@@ -79,6 +87,7 @@ static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
 static std::atomic<int> nChildren{0};
 static std::string g_strHostString;
+static struct socks g_socks;
 
 static void sigterm(int s)
 {
@@ -326,14 +335,18 @@ int main(int argc, char *argv[]) {
 		{ "running_path", "/var/lib/kopano" },
 		{ "process_model", "thread" },
 		{"coredump_enabled", "systemdefault"},
-		{"pop3_enable", "yes", CONFIGSETTING_NONEMPTY},
-		{"pop3_port", "110", CONFIGSETTING_NONEMPTY},
-		{"pop3s_enable", "no", CONFIGSETTING_NONEMPTY},
-		{"pop3s_port", "995", CONFIGSETTING_NONEMPTY},
-		{"imap_enable", "yes", CONFIGSETTING_NONEMPTY},
-		{"imap_port", "143", CONFIGSETTING_NONEMPTY},
-		{"imaps_enable", "no", CONFIGSETTING_NONEMPTY},
-		{"imaps_port", "993", CONFIGSETTING_NONEMPTY},
+		{"pop3_listen", ""}, /* default in gw_listen() */
+		{"pop3s_listen", ""},
+		{"imap_listen", ""}, /* default in gw_listen() */
+		{"imaps_listen", ""},
+		{"pop3_enable", "auto", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"pop3_port", "110", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"pop3s_enable", "auto", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"pop3s_port", "995", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"imap_enable", "auto", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"imap_port", "143", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"imaps_enable", "auto", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"imaps_port", "993", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
 		{ "imap_only_mailfolders", "yes", CONFIGSETTING_RELOADABLE },
 		{ "imap_public_folders", "yes", CONFIGSETTING_RELOADABLE },
 		{ "imap_capability_idle", "yes", CONFIGSETTING_RELOADABLE },
@@ -481,27 +494,110 @@ exit:
 	return hr == hrSuccess ? 0 : 1;
 }
 
-static int gw_listen_on(const char *service, const char *interface,
-    const char *port_str, int *fd, int *fdlist, size_t *lsize)
+static HRESULT gw_listen(ECConfig *cfg)
 {
-	if (port_str == NULL) {
-		ec_log_crit("No port selected for %s", service);
+	/* Modern directives */
+	auto pop3_sock  = tokenize(cfg->GetSetting("pop3_listen"), ' ', true);
+	auto pop3s_sock = tokenize(cfg->GetSetting("pop3s_listen"), ' ', true);
+	auto imap_sock  = tokenize(cfg->GetSetting("imap_listen"), ' ', true);
+	auto imaps_sock = tokenize(cfg->GetSetting("imaps_listen"), ' ', true);
+	/*
+	 * Historic directives. Enclosing in [] is a nudge for the parser and
+	 * will work with non-IPv6 too.
+	 */
+	auto addr = cfg->GetSetting("server_bind");
+	auto cvar = g_lpConfig->GetSetting("pop3_enable");
+	if (!parseBool(cvar)) {
+		/* vetoes everything */
+		pop3_sock.clear();
+	} else if (strcmp(cvar, "yes") == 0) {
+		/* "yes" := "read extra historic variable" */
+		auto port = cfg->GetSetting("pop3_port");
+		if (port[0] != '\0')
+			pop3_sock.push_back("["s + addr + "]:" + port);
+	} else if (pop3_sock.empty()) {
+		pop3_sock.push_back("*:110");
+	}
+	cvar = g_lpConfig->GetSetting("pop3s_enable");
+	if (!parseBool(cvar)) {
+		pop3s_sock.clear();
+	} else if (strcmp(cvar, "yes") == 0) {
+		auto port = cfg->GetSetting("pop3s_port");
+		if (port[0] != '\0')
+			pop3s_sock.push_back("["s + addr + "]:" + port);
+	}
+	cvar = g_lpConfig->GetSetting("imap_enable");
+	if (!parseBool(cvar)) {
+		imap_sock.clear();
+	} else if (strcmp(cvar, "yes") == 0) {
+		auto port = cfg->GetSetting("imap_port");
+		if (port[0] != '\0')
+			imap_sock.push_back("["s + addr + "]:" + port);
+	} else if (imap_sock.empty()) {
+		imap_sock.push_back("*:143");
+	}
+	cvar = g_lpConfig->GetSetting("imaps_enable");
+	if (!parseBool(cvar)) {
+		imaps_sock.clear();
+	} else if (strcmp(cvar, "yes") == 0) {
+		auto port = cfg->GetSetting("imaps_port");
+		if (port[0] != '\0')
+			imaps_sock.push_back("["s + addr + "]:" + port);
+	}
+
+	if ((!pop3s_sock.empty() || !imaps_sock.empty()) &&
+	    ECChannel::HrSetCtx(g_lpConfig.get()) != hrSuccess) {
+		ec_log_err("Error loading SSL context, POP3S and IMAPS will be disabled");
+		pop3s_sock.clear();
+		imaps_sock.clear();
+	}
+	if (pop3_sock.empty() && pop3s_sock.empty() &&
+	    imap_sock.empty() && imaps_sock.empty()) {
+		ec_log_crit("POP3, POP3S, IMAP and IMAPS are all four disabled");
 		return E_FAIL;
 	}
-	char *end = NULL;
-	uint16_t port = strtoul(port_str, &end, 0);
-	if (port == 0 || (end != NULL && *end != '\0')) {
-		ec_log_crit("\"%s\" is not an acceptable port number", port_str);
-		return E_FAIL;
+
+	/* Launch */
+	struct pollfd pfd;
+	memset(&pfd, 0, sizeof(pfd));
+	pfd.events = POLLIN;
+	int ret;
+	for (const auto &spec : pop3_sock) {
+		ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		if (ret < 0)
+			return MAPI_E_NETWORK_ERROR;
+		g_socks.pollfd.push_back(pfd);
+		g_socks.linfd.push_back(pfd.fd);
+		g_socks.pop3.push_back(true);
+		g_socks.ssl.push_back(false);
 	}
-	auto ret = ec_listen_inet(interface, port, fd);
-	if (ret < 0) {
-		ec_log_crit("Unable to listen on port %u: %s", port, strerror(-ret));
-		return E_FAIL;
+	for (const auto &spec : pop3s_sock) {
+		ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		if (ret < 0)
+			return MAPI_E_NETWORK_ERROR;
+		g_socks.pollfd.push_back(pfd);
+		g_socks.linfd.push_back(pfd.fd);
+		g_socks.pop3.push_back(true);
+		g_socks.ssl.push_back(true);
 	}
-	ec_log_info("Listening on port %u for %s", port, service);
-	fdlist[*lsize] = *fd;
-	++*lsize;
+	for (const auto &spec : imap_sock) {
+		ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		if (ret < 0)
+			return MAPI_E_NETWORK_ERROR;
+		g_socks.pollfd.push_back(pfd);
+		g_socks.linfd.push_back(pfd.fd);
+		g_socks.pop3.push_back(false);
+		g_socks.ssl.push_back(false);
+	}
+	for (const auto &spec : imaps_sock) {
+		ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		if (ret < 0)
+			return MAPI_E_NETWORK_ERROR;
+		g_socks.pollfd.push_back(pfd);
+		g_socks.linfd.push_back(pfd.fd);
+		g_socks.pop3.push_back(false);
+		g_socks.ssl.push_back(true);
+	}
 	return hrSuccess;
 }
 
@@ -515,17 +611,9 @@ static int gw_listen_on(const char *service, const char *interface,
 static HRESULT running_service(const char *szPath, const char *servicename)
 {
 	HRESULT hr = hrSuccess;
-	int ulListenPOP3 = 0, ulListenPOP3s = 0;
-	int ulListenIMAP = 0, ulListenIMAPs = 0;
-	bool bListenPOP3, bListenPOP3s;
-	bool bListenIMAP, bListenIMAPs;
-	int pCloseFDs[4] = {0};
-	size_t nCloseFDs = 0;
-	struct pollfd pollfd[4];
-	int nfds = 0, pfd_pop3 = -1, pfd_pop3s = -1, pfd_imap = -1, pfd_imaps = -1;
 	int err = 0;
 	pthread_attr_t ThreadAttr;
-	const char *const interface = g_lpConfig->GetSetting("server_bind");
+	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION " (pid %d)", getpid());
 
 	// SIGSEGV backtrace support
 	KAlternateStack sigstack;
@@ -546,50 +634,9 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		}
 	}
 
-	bListenPOP3 = (strcmp(g_lpConfig->GetSetting("pop3_enable"), "yes") == 0);
-	bListenPOP3s = (strcmp(g_lpConfig->GetSetting("pop3s_enable"), "yes") == 0);
-	bListenIMAP = (strcmp(g_lpConfig->GetSetting("imap_enable"), "yes") == 0);
-	bListenIMAPs = (strcmp(g_lpConfig->GetSetting("imaps_enable"), "yes") == 0);
-
-	// Setup SSL context
-	if ((bListenPOP3s || bListenIMAPs) &&
-	    ECChannel::HrSetCtx(g_lpConfig.get()) != hrSuccess) {
-		ec_log_err("Error loading SSL context, POP3S and IMAPS will be disabled");
-		bListenPOP3s = false;
-		bListenIMAPs = false;
-	}
-	
-	if (!bListenPOP3 && !bListenPOP3s && !bListenIMAP && !bListenIMAPs) {
-		ec_log_crit("POP3, POP3S, IMAP and IMAPS are all four disabled");
-		hr = E_FAIL;
-		goto exit;
-	}
-
-	// Setup sockets
-	if (bListenPOP3) {
-		hr = gw_listen_on("pop3", interface, g_lpConfig->GetSetting("pop3_port"),
-		     &ulListenPOP3, pCloseFDs, &nCloseFDs);
-		if (hr != hrSuccess)
-			goto exit;
-	}
-	if (bListenPOP3s) {
-		hr = gw_listen_on("pop3s", interface, g_lpConfig->GetSetting("pop3s_port"),
-		     &ulListenPOP3s, pCloseFDs, &nCloseFDs);
-		if (hr != hrSuccess)
-			goto exit;
-	}
-	if (bListenIMAP) {
-		hr = gw_listen_on("imap", interface, g_lpConfig->GetSetting("imap_port"),
-		     &ulListenIMAP, pCloseFDs, &nCloseFDs);
-		if (hr != hrSuccess)
-			goto exit;
-	}
-	if (bListenIMAPs) {
-		hr = gw_listen_on("imaps", interface, g_lpConfig->GetSetting("imaps_port"),
-		     &ulListenIMAPs, pCloseFDs, &nCloseFDs);
-		if (hr != hrSuccess)
-			goto exit;
-	}
+	hr = gw_listen(g_lpConfig.get());
+	if (hr != hrSuccess)
+		return hr;
 
 	// Setup signals
 	signal(SIGPIPE, SIG_IGN);
@@ -637,31 +684,12 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	}
 
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION " (pid %d)", getpid());
-	if (bListenPOP3) {
-		pfd_pop3 = nfds;
-		pollfd[nfds++].fd = ulListenPOP3;
-	}
-	if (bListenPOP3s) {
-		pfd_pop3s = nfds;
-		pollfd[nfds++].fd = ulListenPOP3s;
-	}
-	if (bListenIMAP) {
-		pfd_imap = nfds;
-		pollfd[nfds++].fd = ulListenIMAP;
-	}
-	if (bListenIMAPs) {
-		pfd_imaps = nfds;
-		pollfd[nfds++].fd = ulListenIMAPs;
-	}
-	for (size_t i = 0; i < nfds; ++i)
-		pollfd[i].events = POLLIN;
-
 	// Mainloop
 	while (!quit) {
+		auto nfds = g_socks.pollfd.size();
 		for (size_t i = 0; i < nfds; ++i)
-			pollfd[i].revents = 0;
-
-		err = poll(pollfd, nfds, 10 * 1000);
+			g_socks.pollfd[i].revents = 0;
+		err = poll(&g_socks.pollfd[0], nfds, 10 * 1000);
 		if (err < 0) {
 			if (errno != EINTR) {
 				ec_log_err("Socket error: %s", strerror(errno));
@@ -673,30 +701,24 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			continue;
 		}
 
-		bool pop3_event = pfd_pop3 >= 0 && pollfd[pfd_pop3].revents & POLLIN;
-		bool pop3s_event = pfd_pop3s >= 0 && pollfd[pfd_pop3s].revents & POLLIN;
-		bool imap_event = pfd_imap >= 0 && pollfd[pfd_imap].revents & POLLIN;
-		bool imaps_event = pfd_imaps >= 0 && pollfd[pfd_imaps].revents & POLLIN;
-		if (!pop3_event && !pop3s_event && !imap_event && !imaps_event)
-			/* OS might set more bits than requested */
-			continue;
+		for (size_t i = 0; i < nfds; ++i) {
+			if (!(g_socks.pollfd[i].revents & POLLIN))
+				/* OS might set more bits than requested */
+				continue;
 
 		// One socket has signalled a new incoming connection
 		std::unique_ptr<HandlerArgs> lpHandlerArgs(new HandlerArgs);
 		lpHandlerArgs->lpLogger = g_lpLogger;
 		lpHandlerArgs->lpConfig = g_lpConfig;
-		lpHandlerArgs->type = (pop3_event || pop3s_event) ? ST_POP3 : ST_IMAP;
-		lpHandlerArgs->bUseSSL = pop3s_event || imaps_event;
+		lpHandlerArgs->type = g_socks.pop3[i] ? ST_POP3 : ST_IMAP;
+		lpHandlerArgs->bUseSSL = g_socks.ssl[i];
 		const char *method = "", *model = bThreads ? "thread" : "process";
 
-		if (lpHandlerArgs->type == ST_POP3) {
-			hr = HrAccept(pop3s_event ? ulListenPOP3s : ulListenPOP3, &unique_tie(lpHandlerArgs->lpChannel));
+		if (lpHandlerArgs->type == ST_POP3)
 			method = lpHandlerArgs->bUseSSL ? "POP3s" : "POP3";
-		}
-		else if (lpHandlerArgs->type == ST_IMAP) {
-			hr = HrAccept(imaps_event ? ulListenIMAPs : ulListenIMAP, &unique_tie(lpHandlerArgs->lpChannel));
+		else if (lpHandlerArgs->type == ST_IMAP)
 			method = lpHandlerArgs->bUseSSL ? "IMAPs" : "IMAP";
-		}
+		hr = HrAccept(g_socks.pollfd[i].fd, &unique_tie(lpHandlerArgs->lpChannel));
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to accept %s socket connection.", method);
 			continue;
@@ -706,7 +728,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		ec_log_notice("Starting worker %s for %s request", model, method);
 		if (!bThreads) {
 			++nChildren;
-			if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
+			if (unix_fork_function(Handler, lpHandlerArgs.get(), g_socks.linfd.size(), &g_socks.linfd[0]) < 0) {
 				ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
 				--nChildren;
 			}
@@ -719,6 +741,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		}
 		set_thread_name(tid, "ZGateway " + std::string(method));
 		lpHandlerArgs.release();
+		}
 	}
 
 	ec_log(EC_LOGLEVEL_ALWAYS, "POP3/IMAP Gateway will now exit");
