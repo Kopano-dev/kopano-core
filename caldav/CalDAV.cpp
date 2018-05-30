@@ -16,6 +16,7 @@
  */
 
 #include "config.h"
+#include <atomic>
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
@@ -62,8 +63,7 @@ static bool g_bDaemonize = true, g_bQuit, g_bThreads, g_dump_config;
 static ECLogger *g_lpLogger = NULL;
 static ECConfig *g_lpConfig = NULL;
 static pthread_t mainthread;
-static int nChildren = 0;
-
+static std::atomic<int> nChildren{0};
 static HRESULT HrSetupListeners(int *lpulNormalSocket, int *lpulSecureSocket);
 static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket);
 static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL, int nCloseFDs, int *pCloseFDs);
@@ -248,9 +248,10 @@ int main(int argc, char **argv) {
 		LogConfigErrors(g_lpConfig);
 	if (!TmpPath::instance.OverridePath(g_lpConfig))
 		ec_log_err("Ignoring invalid path-setting!");
-
-	if (strncmp(g_lpConfig->GetSetting("process_model"), "thread", strlen("thread")) == 0)
+	if (strcmp(g_lpConfig->GetSetting("process_model"), "thread") == 0) {
 		g_bThreads = true;
+		g_lpLogger->SetLogprefix(LP_TID);
+	}
 
 	// initialize SSL threading
     ssl_threading_setup();
@@ -310,13 +311,13 @@ int main(int argc, char **argv) {
 		int i = 30; /* wait max 30 seconds */
 		while (nChildren && i) {
 			if (i % 5 == 0)
-				ec_log_notice("Waiting for %d processes to exit", nChildren);
+				ec_log_notice("Waiting for %d processes/threads to exit", nChildren.load());
 			sleep(1);
 			--i;
 		}
 
 		if (nChildren)
-			ec_log_notice("Forced shutdown with %d processes left", nChildren);
+			ec_log_notice("Forced shutdown with %d processes/threads left", nChildren.load());
 		else
 			ec_log_info("CalDAV Gateway shutdown complete");
 	}
@@ -495,7 +496,6 @@ static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket)
 static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
     int nCloseFDs, int *pCloseFDs)
 {
-	HRESULT hr = hrSuccess;
 	pthread_attr_t pThreadAttr;
 	pthread_t pThread;
 	std::unique_ptr<HandlerArgs> lpHandlerArgs(new(std::nothrow) HandlerArgs);
@@ -504,35 +504,31 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 	lpHandlerArgs->lpChannel = lpChannel;
 	lpHandlerArgs->bUseSSL = bUseSSL;
 
-	if (g_bThreads) {
-		if (pthread_attr_init(&pThreadAttr) != 0) {
-			hr = MAPI_E_NOT_ENOUGH_MEMORY;
-			goto exit;
-		}
-		if (pthread_attr_setdetachstate(&pThreadAttr, PTHREAD_CREATE_DETACHED) != 0)
-			ec_log_warn("Could not set thread attribute to detached.");
-		auto ret = pthread_create(&pThread, &pThreadAttr, HandlerClient, lpHandlerArgs.get());
-		pthread_attr_destroy(&pThreadAttr);
-		if (ret != 0) {
-			ec_log_err("Could not create ZCalDAV thread: %s", strerror(ret));
-			hr = E_FAIL;
-			goto exit;
-		} else {
-			lpHandlerArgs.release();
-		}
-		set_thread_name(pThread, std::string("ZCalDAV") + lpChannel->peer_addr());
-	}
-	else {
+	if (!g_bThreads) {
+		++nChildren;
 		if (unix_fork_function(HandlerClient, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
 			ec_log_err("Could not create ZCalDAV process: %s", strerror(errno));
-			hr = E_FAIL;
-			goto exit;
+			--nChildren;
+			return E_FAIL;
 		}
-		++nChildren;
+		return hrSuccess;
 	}
-
-exit:
-	return hr;
+	if (pthread_attr_init(&pThreadAttr) != 0)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	if (pthread_attr_setdetachstate(&pThreadAttr, PTHREAD_CREATE_DETACHED) != 0)
+		ec_log_warn("Could not set thread attribute to detached.");
+	++nChildren;
+	auto ret = pthread_create(&pThread, &pThreadAttr, HandlerClient, lpHandlerArgs.get());
+	pthread_attr_destroy(&pThreadAttr);
+	if (ret != 0) {
+		--nChildren;
+		ec_log_err("Could not create ZCalDAV thread: %s", strerror(ret));
+		return E_FAIL;
+	} else {
+		lpHandlerArgs.release();
+	}
+	set_thread_name(pThread, std::string("ZCalDAV") + lpChannel->peer_addr());
+	return hrSuccess;
 }
 
 static void *HandlerClient(void *lpArg)

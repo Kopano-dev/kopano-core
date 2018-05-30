@@ -16,6 +16,7 @@
  */
 
 #include "config.h"
+#include <atomic>
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
@@ -77,7 +78,7 @@ static const char *szPath;
 static ECLogger *g_lpLogger = NULL;
 static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
-static int nChildren = 0;
+static std::atomic<int> nChildren{0};
 static std::string g_strHostString;
 
 static void sigterm(int s)
@@ -279,6 +280,7 @@ static void *Handler_Threaded(void *a)
 	 * Steer the control signals to the main thread for consistency with
 	 * the forked mode.
 	 */
+	++nChildren;
 	kcsrv_blocksigs();
 	return Handler(a);
 }
@@ -456,7 +458,7 @@ int main(int argc, char *argv[]) {
 		ec_log_err("Ignoring invalid path-setting!");
 	if (parseBool(g_lpConfig->GetSetting("bypass_auth")))
 		ec_log_warn("Gateway is started with bypass_auth=yes meaning username and password will not be checked.");
-	if (strncmp(g_lpConfig->GetSetting("process_model"), "thread", strlen("thread")) == 0) {
+	if (strcmp(g_lpConfig->GetSetting("process_model"), "thread") == 0) {
 		bThreads = true;
 		g_lpLogger->SetLogprefix(LP_TID);
 	}
@@ -691,8 +693,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			hr = HrAccept(pop3s_event ? ulListenPOP3s : ulListenPOP3, &unique_tie(lpHandlerArgs->lpChannel));
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to accept POP3 socket connection.");
-				// just keep running
-				hr = hrSuccess;
 				continue;
 			}
 
@@ -701,25 +701,20 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			const char *method = pop3s_event ? "POP3s" : "POP3";
 			const char *model = bThreads ? "thread" : "process";
 			ec_log_notice("Starting worker %s for %s request", model, method);
-			if (bThreads) {
-				if (pthread_create(&POP3Thread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
-					ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
-					hr = hrSuccess;
-				}
-				else {
-					set_thread_name(POP3Thread, "ZGateway " + std::string(method));
-					lpHandlerArgs.release();
-					++nChildren;
-				}
-			}
-			else {
-				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0)
+			if (!bThreads) {
+				++nChildren;
+				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
 					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
-					// just keep running
-				else
-					++nChildren;
-				hr = hrSuccess;
+					--nChildren;
+				}
+				continue;
 			}
+			if (pthread_create(&POP3Thread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get()) != 0) {
+				ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
+				continue;
+			}
+			set_thread_name(POP3Thread, "ZGateway " + std::string(method));
+			lpHandlerArgs.release();
 			continue;
 		}
 
@@ -730,8 +725,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			hr = HrAccept(imaps_event ? ulListenIMAPs : ulListenIMAP, &unique_tie(lpHandlerArgs->lpChannel));
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to accept IMAP socket connection.");
-				// just keep running
-				hr = hrSuccess;
 				continue;
 			}
 
@@ -740,26 +733,21 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			const char *method = imaps_event ? "IMAPs" : "IMAP";
 			const char *model = bThreads ? "thread" : "process";
 			ec_log_notice("Starting worker %s for %s request", model, method);
-			if (bThreads) {
-				err = pthread_create(&IMAPThread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
-				if (err != 0) {
-					ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
-					hr = hrSuccess;
-				}
-				else {
-					set_thread_name(IMAPThread, "ZGateway " + std::string(method));
-					lpHandlerArgs.release();
-					++nChildren;
-				}
-			}
-			else {
-				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0)
+			if (!bThreads) {
+				++nChildren;
+				if (unix_fork_function(Handler, lpHandlerArgs.get(), nCloseFDs, pCloseFDs) < 0) {
 					ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
-					// just keep running
-				else
-					++nChildren;
-				hr = hrSuccess;
+					--nChildren;
+				}
+				continue;
 			}
+			err = pthread_create(&IMAPThread, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
+			if (err != 0) {
+				ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
+				continue;
+			}
+			set_thread_name(IMAPThread, "ZGateway " + std::string(method));
+			lpHandlerArgs.release();
 			continue;
 		}
 	}
@@ -774,12 +762,12 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	// wait max 10 seconds (init script waits 15 seconds)
 	for (int i = 10; nChildren != 0 && i != 0; --i) {
 		if (i % 5 == 0)
-			ec_log_warn("Waiting for %d processes to exit", nChildren);
+			ec_log_warn("Waiting for %d processes/threads to exit", nChildren.load());
 		sleep(1);
 	}
 
 	if (nChildren)
-		ec_log_warn("Forced shutdown with %d processes left", nChildren);
+		ec_log_warn("Forced shutdown with %d processes/threads left", nChildren.load());
 	else
 		ec_log_notice("POP3/IMAP Gateway shutdown complete");
 	MAPIUninitialize();

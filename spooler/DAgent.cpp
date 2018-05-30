@@ -3148,7 +3148,6 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			hr = HrAccept(lmtp_poll[i].fd, &unique_tie(da->lpChannel));
 			if (hr != hrSuccess) {
 				kc_perrorf("HrAccept failed", hr);
-				// just keep running
 				hr = hrSuccess;
 				continue;
 			}
@@ -3163,11 +3162,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			if (unix_fork_function(HandlerLMTP, da.get(), closefd.size(), &closefd[0]) < 0) {
 				ec_log_err("Can't create LMTP process.");
 				--g_nLMTPThreads;
-				// just keep running
 			}
-
-			// main handler always closes information it doesn't need
-			hr = hrSuccess;
 			continue;
 		}
 	}
