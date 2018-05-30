@@ -22,4 +22,5 @@ if [ -z "${KOPANO_GROUP}" -a -z "${KOPANO_GROUPID}" ] ; then
     exit 1
 fi
 
+cd "$KOPANO_GROUP_SCRIPTS"
 find -L "$KOPANO_GROUP_SCRIPTS"/* -maxdepth 0 -type f -perm -u=x ! -name \*~ ! -name \#\* ! -name \*.rpm\* ! -name \*.bak ! -name \*.old -exec {} \;
