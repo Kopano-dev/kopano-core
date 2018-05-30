@@ -42,7 +42,8 @@ class ECRestriction;
  * @{
  */
 
-#define ROWS_PER_REQUEST 200
+#define ROWS_PER_REQUEST_SMALL 200
+#define ROWS_PER_REQUEST_BIG 4000
 #define IMAP_HIERARCHY_DELIMITER '/'
 #define PUBLIC_FOLDERS_NAME L"Public folders"
 

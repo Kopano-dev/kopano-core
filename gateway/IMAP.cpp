@@ -3071,9 +3071,10 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
     // Scan MAPI for new and existing messages
 	while(1) {
 		rowset_ptr lpRows;
-		hr = table->QueryRows(ROWS_PER_REQUEST, 0, &~lpRows);
+		hr = table->QueryRows(ROWS_PER_REQUEST_BIG, 0, &~lpRows);
 		if (hr != hrSuccess)
 			return hr;
+
         if(lpRows->cRows == 0)
             break;
             
@@ -3363,7 +3364,6 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
     int n;
     LPSPropValue lpProps;
     ULONG cValues;
-    unsigned int ulReadAhead = 0;
 	static constexpr const SizedSSortOrderSet(1, sSortUID) =
 		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_ASCEND}}};
 	bool bMarkAsRead = false;
@@ -3372,9 +3372,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 	if (strCurrentFolder.empty() || lpSession == nullptr)
 		return MAPI_E_CALL_FAILED;
 
-	// Setup the readahead length
-	ulReadAhead = lstMails.size() > ROWS_PER_REQUEST ? ROWS_PER_REQUEST : lstMails.size();
-
+	bool big_payload = false;
 	// Find out which properties we will be needing from the table. This should be kept in-sync
 	// with the properties that are used in HrPropertyFetchRow()
 	// Also check if we need to mark the message as read.
@@ -3405,6 +3403,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		} else if (strstr(strDataItem.c_str(), "HEADER") != NULL) {
 			// RFC822.HEADER, BODY[HEADER or BODY.PEEK[HEADER
 			setProps.emplace(PR_TRANSPORT_MESSAGE_HEADERS_A);
+			big_payload = true;
 			// if we have the full body, we can skip some hacks to make headers match with the otherwise regenerated version.
 			setProps.emplace(PR_EC_IMAP_EMAIL_SIZE);
 
@@ -3435,6 +3434,12 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 
 		lpEntryList->cValues = 0;
 	}
+
+	unsigned int ulReadAhead;
+	if (big_payload)
+		ulReadAhead = lstMails.size() > ROWS_PER_REQUEST_SMALL ? ROWS_PER_REQUEST_SMALL : lstMails.size();
+	else
+		ulReadAhead = lstMails.size() > ROWS_PER_REQUEST_BIG ? ROWS_PER_REQUEST_BIG : lstMails.size();
 
 	if(!setProps.empty() && m_vTableDataColumns != lstDataItems) {
 		ReleaseContentsCache();
