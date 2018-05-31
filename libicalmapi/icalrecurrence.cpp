@@ -83,9 +83,8 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	{
 		// check for duration property
 		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DURATION_PROPERTY);
-		if (lpicProp == nullptr)
-			return MAPI_E_NOT_FOUND;
-		dtUTCEnd = dtUTCStart + icaldurationtype_as_int(icalproperty_get_duration(lpicProp));
+		if (lpicProp != nullptr)
+			dtUTCEnd = dtUTCStart + icaldurationtype_as_int(icalproperty_get_duration(lpicProp));
 	} else {
 		dtUTCEnd = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 	}
@@ -227,8 +226,9 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		dtUTCUntil = 0x7FFFFFFF; // incorrect, but good enough
 	}
 
-	// offset in minutes after midnight of the start time
-	lpRec->setEndTimeOffset((lpRec->getStartTimeOffset() + dtUTCEnd - dtUTCStart) / 60);
+	if (dtUTCEnd > 0)
+		// offset in minutes after midnight of the start time
+		lpRec->setEndTimeOffset((lpRec->getStartTimeOffset() + dtUTCEnd - dtUTCStart) / 60);
 
 	// Set 0x8236, also known as ClipEnd in OutlookSpy
 	sPropVal.Value.ft  = UnixTimeToFileTime(dtUTCUntil);
@@ -276,18 +276,20 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
 		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
-		// Set 0x8516 / CommonStart
-		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME);
-		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
-		sPropVal.Value.ft = UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime() + (dtUTCEnd - dtUTCStart), sTimeZone));
+		if (dtUTCEnd > 0) {
+			// Set 0x8516 / CommonStart
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
+			sPropVal.Value.ft = UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime() + (dtUTCEnd - dtUTCStart), sTimeZone));
 
-		// Set 0x820E / ApptEndWhole
-		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
-		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
+			// Set 0x820E / ApptEndWhole
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
-		// Set CommonEnd		
-		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME);
-		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
+			// Set CommonEnd
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
+		}
 	}
 	lpIcalItem->lpRecurrence = std::move(lpRec);
 	return hr;
