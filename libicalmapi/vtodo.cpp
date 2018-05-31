@@ -223,9 +223,9 @@ HRESULT VTodoConverter::HrAddTimes(icalproperty_method icMethod, icalcomponent *
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_COMPLETED_PROPERTY);
 	if (lpicProp) {
-		
+		auto timecomplete = icaltime_as_timet(icalproperty_get_due(lpicProp));
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_COMPLETED_DATE], PT_SYSTIME);
-		sPropVal.Value.ft  = UnixTimeToFileTime(timeDue);
+		sPropVal.Value.ft  = UnixTimeToFileTime(timecomplete);
 		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 	} else {
 		lpIcalItem->lstDelPropTags.emplace_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_COMPLETED_DATE], PT_SYSTIME));
