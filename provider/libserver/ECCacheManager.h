@@ -485,7 +485,6 @@ public:
 	ECRESULT SetComplete(unsigned int ulObjId);
 	ECRESULT GetComplete(unsigned int ulObjId, bool &complete);
 	ECRESULT GetPropTags(unsigned int ulObjId, std::vector<unsigned int> &proptags);
-	ECRESULT DeleteCell(unsigned int ulObjId) { return I_DelCell(ulObjId); }
 	// Cache Index properties
 	
 	// Read-through
