@@ -464,10 +464,7 @@ int main(int argc, char *argv[]) {
 		bThreads = true;
 		g_lpLogger->SetLogprefix(LP_TID);
 	}
-
-	if (bThreads)
-		mainthread = pthread_self();
-
+	mainthread = pthread_self();
 	if (!szPath)
 		szPath = g_lpConfig->GetSetting("server_socket");
 
