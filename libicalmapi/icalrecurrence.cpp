@@ -666,9 +666,18 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
 	// TODO: combine with icon index in vevent .. the item may be a meeting request (meeting+recurring==1027)
 	pv[1].ulPropTag = PR_ICON_INDEX;
 	pv[1].Value.ul = ICON_APPT_RECURRING;
-	pv[2].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
-	pv[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpRecBlob.get());
-	pv[2].Value.bin.cb = ulRecBlob;
+
+	memory_ptr<SPropValue> prop;
+	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_W, &~prop);
+	if (!wcscasecmp(prop->Value.lpszW, L"IPM.Task")) {
+		pv[2].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_TASK_RECURRSTATE], PT_BINARY);
+		pv[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpRecBlob.get());
+		pv[2].Value.bin.cb = ulRecBlob;
+	} else {
+		pv[2].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
+		pv[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpRecBlob.get());
+		pv[2].Value.bin.cb = ulRecBlob;
+	}
 
 	unsigned int i = 3;
 	hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_STRING8), &~lpsPropRecPattern);
