@@ -1,12 +1,14 @@
 8.6.x
 =====
-Includes changes until including 8.5.9.
+Includes changes until including 8.5.x.
 Fixes:
 * installer: remove duplicate defaults from sample config
 * icalmapi: allow RRULE with DTSTART having zulu-marking [KC-414, KC-811]
 * icalmapi: do not mark timestamp as UTC when we explicitly give a
   timezone [KC-920, KC-1018]
 * icalmapi: do not write empty fields to VCF files [KW-2503]
+* scripts: follow symbolic links when running user/group/company scripts,
+  and run them in lexicographic order [KC-1171,KC-1172]
 Enhancements:
 * libicalmapi: allow some properties to be missing when serializing ADR
 

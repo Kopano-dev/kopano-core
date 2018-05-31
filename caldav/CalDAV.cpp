@@ -294,9 +294,7 @@ int main(int argc, char **argv) {
 		kc_perror("Messaging API could not be initialized", hr);
 		goto exit;
 	}
-
-	if (g_bThreads)
-		mainthread = pthread_self();
+	mainthread = pthread_self();
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-ical version " PROJECT_VERSION " (pid %d)", getpid());
 	hr = HrProcessConnections(ulListenCalDAV, ulListenCalDAVs);
 	if (hr != hrSuccess)
