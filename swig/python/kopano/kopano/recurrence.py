@@ -719,14 +719,21 @@ class Recurrence(object):
     def _is_exception(self, basedate):
         return self._exception_message(basedate) is not None
 
-    def _update_exception(self, cal_item, item, basedate_val, exception, extended_exception, copytags=None, create=False): # XXX kill copytags, create args, just pass all properties as in php
+    def _update_exception(self, cal_item, item, basedate_val, exception, extended_exception, copytags=None, create=False, orig_item=None, **kwargs): # XXX kill copytags, create args, just pass all properties as in php
         # TODO get start/end from cal_item if not in item?
-        startdate = item.get(PidLidAppointmentStartWhole)
+
+        startdate = kwargs.get('start')
+        if orig_item or (startdate is None and 'start_datetime' not in exception):
+            startdate = item.get(PidLidAppointmentStartWhole)
+
         if startdate is not None:
             startdate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_utc(startdate, self._tzinfo).timetuple()))
             exception['start_datetime'] = startdate_val
 
-        enddate = item.get(PidLidAppointmentEndWhole)
+        enddate = kwargs.get('end')
+        if orig_item or (enddate is None and 'end_datetime' not in exception):
+            enddate = item.get(PidLidAppointmentEndWhole)
+
         if enddate is not None:
             enddate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_utc(enddate, self._tzinfo).timetuple()))
             exception['end_datetime'] = enddate_val
@@ -735,9 +742,14 @@ class Recurrence(object):
         exception['override_flags'] = 0
 
         extended = False
-        subject = item.get(PR_NORMALIZED_SUBJECT_W)
-        if subject is not None:
+        subject = kwargs.get('subject')
+        if orig_item or (subject is None and 'subject' not in exception):
+            subject = item.get(PR_NORMALIZED_SUBJECT_W)
+
+        if subject is not None or 'subject' in exception:
             exception['override_flags'] |= ARO_SUBJECT
+
+        if subject is not None:
             exception['subject'] = subject.encode('cp1252', 'replace')
             extended = True
             extended_exception['subject'] = subject
@@ -781,8 +793,10 @@ class Recurrence(object):
             exception['appointment_color'] = appointment_color
 
         if extended:
-            extended_exception['start_datetime'] = startdate_val
-            extended_exception['end_datetime'] = enddate_val
+            if startdate:
+                extended_exception['start_datetime'] = startdate_val
+            if enddate:
+                extended_exception['end_datetime'] = enddate_val
             extended_exception['original_start_date'] = basedate_val
 
     def _update_calitem(self):
@@ -802,16 +816,21 @@ class Recurrence(object):
                 cal_item[PidLidReminderSet] = False
                 cal_item[PidLidReminderSignalTime] = datetime.datetime.fromtimestamp(0x7ff00000)
 
-    def _update_embedded(self, basedate, message, item, copytags=None, create=False):
+    def _update_embedded(self, basedate, message, item=None, copytags=None, create=False):
         basetime = basedate + datetime.timedelta(minutes=self._starttime_offset)
         cal_item = self.item
 
+        item2 = item or cal_item
         if copytags:
-            props = item.mapiobj.GetProps(copytags, 0)
+            props = item2.mapiobj.GetProps(copytags, 0)
         else: # XXX remove?
-            props = [p.mapiobj for p in item.props() if p.proptag != PR_ICON_INDEX]
+            props = [p.mapiobj for p in item2.props() if p.proptag != PR_ICON_INDEX]
 
         message.mapiobj.SetProps(props)
+
+        if not item:
+            message[PidLidAppointmentStartWhole] = basedate + datetime.timedelta(minutes=self._starttime_offset)
+            message[PidLidAppointmentEndWhole] = basedate + datetime.timedelta(minutes=self._endtime_offset)
 
         message[PR_MESSAGE_CLASS_W] = u'IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}'
         message[PidLidExceptionReplaceTime] = basetime
@@ -833,12 +852,17 @@ class Recurrence(object):
             SPropValue(PR_DISPLAY_NAME_W, u'Exception'),
         ]
 
-        start = message.get(PidLidAppointmentStartWhole)
+        if item is None:
+            start = basetime
+            end = basetime + datetime.timedelta(minutes=self._endtime_offset-self._starttime_offset)
+        else:
+            start = message.get(PidLidAppointmentStartWhole)
+            end = message.prop(PidLidAppointmentEndWhole).value
+
         if start is not None:
             start_local = unixtime(time.mktime(_utils._from_utc(start, self._tzinfo).timetuple())) # XXX why local??
             props.append(SPropValue(PR_EXCEPTION_STARTTIME, start_local))
 
-        end = message.prop(PidLidAppointmentEndWhole).value
         if end is not None:
             end_local = unixtime(time.mktime(_utils._from_utc(end, self._tzinfo).timetuple())) # XXX why local??
             props.append(SPropValue(PR_EXCEPTION_ENDTIME, end_local))
@@ -851,12 +875,12 @@ class Recurrence(object):
         message.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
         message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
 
-    def _create_exception(self, basedate, item, copytags=None, merge=False):
+    def _create_exception(self, basedate, item=None, copytags=None, merge=False):
         cal_item = self.item
 
         # create embedded item
         message_flags = MSGFLAG_READ
-        if item.get(PR_MESSAGE_FLAGS) == 0: # XXX wut/php compat
+        if item and item.get(PR_MESSAGE_FLAGS) == 0: # XXX wut/php compat
             message_flags |= MSGFLAG_UNSENT
         message = cal_item.create_item(message_flags, hidden=True)
 
@@ -867,25 +891,26 @@ class Recurrence(object):
             message[PidLidBusyStatus] = 0
 
         # copy over recipients (XXX check php delta stuff..)
-        table = item.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
-        table.SetColumns(_meetingrequest.RECIP_PROPS, 0)
-        recips = list(table.QueryRows(-1, 0))
+        if item:
+            table = item.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
+            table.SetColumns(_meetingrequest.RECIP_PROPS, 0)
+            recips = list(table.QueryRows(-1, 0))
 
-        for recip in recips:
-            flags = PpropFindProp(recip, PR_RECIPIENT_FLAGS)
-            if not flags:
-                recip.append(SPropValue(PR_RECIPIENT_FLAGS, recipExceptionalResponse | recipSendable))
-
-        if copytags:
             for recip in recips:
-                recip.append(SPropValue(PR_RECIPIENT_FLAGS, recipExceptionalDeleted | recipSendable))
-                recip.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, 0))
+                flags = PpropFindProp(recip, PR_RECIPIENT_FLAGS)
+                if not flags:
+                    recip.append(SPropValue(PR_RECIPIENT_FLAGS, recipExceptionalResponse | recipSendable))
 
-        organiser = _meetingrequest._organizer_props(message, item)
-        if organiser and not merge: # XXX merge -> initialize?
-            recips.insert(0, organiser)
+            if copytags:
+                for recip in recips:
+                    recip.append(SPropValue(PR_RECIPIENT_FLAGS, recipExceptionalDeleted | recipSendable))
+                    recip.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, 0))
 
-        message.mapiobj.ModifyRecipients(MODRECIP_ADD, recips)
+            organiser = _meetingrequest._organizer_props(message, item)
+            if organiser and not merge: # XXX merge -> initialize?
+                recips.insert(0, organiser)
+
+            message.mapiobj.ModifyRecipients(MODRECIP_ADD, recips)
 
         message.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
         message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
@@ -910,7 +935,7 @@ class Recurrence(object):
 
         exception = {}
         extended_exception = {}
-        self._update_exception(cal_item, message, deldate_val, exception, extended_exception, copytags, create=True)
+        self._update_exception(cal_item, message, deldate_val, exception, extended_exception, copytags, create=True, orig_item=item)
         self._exceptions.append(exception) # no evidence of sorting
         self._extended_exceptions.append(extended_exception)
 
@@ -919,7 +944,7 @@ class Recurrence(object):
         # update calitem
         self._update_calitem()
 
-    def _modify_exception(self, basedate, item, copytags=None): # XXX 'item' too MR specific
+    def _modify_exception(self, basedate, item=None, copytags=None, **kwargs): # XXX 'item' too MR specific
         cal_item = self.item
 
         # update embedded item
@@ -928,9 +953,10 @@ class Recurrence(object):
             if replacetime and replacetime.date() == basedate.date():
                 self._update_embedded(basedate, message, item, copytags)
 
-                icon_index = item.get(PR_ICON_INDEX)
-                if not copytags and icon_index is not None:
-                    message[PR_ICON_INDEX] = icon_index
+                if item:
+                    icon_index = item.get(PR_ICON_INDEX)
+                    if not copytags and icon_index is not None:
+                        message[PR_ICON_INDEX] = icon_index
 
                 message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
                 break
@@ -975,71 +1001,8 @@ class Recurrence(object):
                         break
 
                 extended_exception = self._extended_exceptions[i]
-                self._update_exception(cal_item, message, basedate_val, exception, extended_exception, copytags, create=False)
+                self._update_exception(cal_item, message, basedate_val, exception, extended_exception, copytags, create=False, **kwargs, orig_item=item)
 
-        self._save()
-
-        # update calitem
-        self._update_calitem()
-
-    def _create_exception2(self, basedate):
-        # TODO merge with create_exception
-        cal_item = self.item
-
-        # create embedded item
-        message_flags = MSGFLAG_READ
-        # UNUSED?
-        message = cal_item.create_item(message_flags, hidden=True)
-
-        basedate = _utils._from_utc(basedate, self._tzinfo)
-        basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate.timetuple())) - self._starttime_offset
-
-        # update blob
-        self.deleted_instance_count += 1
-        self._deleted_instance_dates.append(basedate_val)
-        self._deleted_instance_dates.sort()
-
-        self._modified_instance_count += 1
-        self._modified_instance_dates.append(basedate_val)
-        self._modified_instance_dates.sort()
-
-        exception = {
-            'start_datetime': basedate_val + self._starttime_offset,
-            'end_datetime': basedate_val + self._starttime_offset + 30, # TODO
-            'original_start_date': basedate_val,
-            'override_flags': 0,
-        }
-        self._exceptions.append(exception) # no evidence of sorting
-        self._extended_exceptions.append({})
-
-        self._save()
-
-        # update calitem
-        self._update_calitem()
-
-    def _modify_exception2(self, basedate, subject=None, start=None, end=None, location=None):
-        # TODO merge with modify_exception
-        cal_item = self.item
-
-        # update embedded item
-        for message in self.item.items(): # XXX no cal_item? to helper
-            replacetime = message.get(PidLidExceptionReplaceTime)
-            if replacetime and replacetime.date() == basedate.date():
-                if subject is not None:
-                    message.subject = subject
-                # TODO set other args
-                message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
-                break
-
-        # update blob
-        basedate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_utc(basedate, self._tzinfo).timetuple()))
-
-        for i, exception in enumerate(self._exceptions):
-            if exception['original_start_date'] in (basedate_val, basedate_val - self._starttime_offset): # TODO pick one
-                extended_exception = self._extended_exceptions[i]
-                break
-
-        self._update_exception(cal_item, message, basedate_val, exception, extended_exception)
         self._save()
 
         # update calitem
@@ -1130,12 +1093,13 @@ class Occurrence(object):
         if self.item.recurring:
             rec = self.item.recurrence
             basedate = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
+            basedate = basedate.replace(hour=0, minute=0)
 
             if rec._is_exception(basedate):
-                rec._modify_exception2(basedate, **kwargs)
+                rec._modify_exception(basedate, **kwargs) # TODO test
             else:
-                rec._create_exception2(basedate)
-                rec._modify_exception2(basedate, **kwargs)
+                rec._create_exception(basedate)
+                rec._modify_exception(basedate, **kwargs)
         else:
             for (k, v) in kwargs.items():
                 setattr(self.item, k, v)
