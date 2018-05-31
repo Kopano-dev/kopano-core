@@ -3034,13 +3034,13 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
     std::vector<int> &closefd)
 {
 	/* Modern directives */
-	auto lmtp_sock = tokenize(cfg->GetSetting("lmtp_listen"), ' ', true);
+	auto lmtp_sock = vector_to_set(tokenize(cfg->GetSetting("lmtp_listen"), ' ', true));
 
 	/* Historic directives */
 	auto addr = cfg->GetSetting("server_bind");
 	auto port = cfg->GetSetting("lmtp_port");
 	if (port[0] != '\0')
-		lmtp_sock.push_back("["s + addr + "]:" + stringify(strtoul(port, nullptr, 10)));
+		lmtp_sock.emplace("["s + addr + "]:" + stringify(strtoul(port, nullptr, 10)));
 
 	auto intf = cfg->GetSetting("server_bind_intf");
 	struct pollfd x;
