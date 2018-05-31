@@ -538,7 +538,10 @@ class Folder(Properties):
         if props:
             self.mapiobj.DeleteProps([prop.proptag for prop in props])
         for occ in occs:
-            occ.item.delete(occ)
+            if occ.item.recurring:
+                occ.item.delete(occ)
+            else:
+                self.delete(occ.item)
 
     def copy(self, objects, folder, _delete=False):
         """Copy items or subfolders to folder.
