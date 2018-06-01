@@ -83,9 +83,8 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 	{
 		// check for duration property
 		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DURATION_PROPERTY);
-		if (lpicProp == nullptr)
-			return MAPI_E_NOT_FOUND;
-		dtUTCEnd = dtUTCStart + icaldurationtype_as_int(icalproperty_get_duration(lpicProp));
+		if (lpicProp != nullptr)
+			dtUTCEnd = dtUTCStart + icaldurationtype_as_int(icalproperty_get_duration(lpicProp));
 	} else {
 		dtUTCEnd = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 	}
@@ -227,8 +226,9 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		dtUTCUntil = 0x7FFFFFFF; // incorrect, but good enough
 	}
 
-	// offset in minutes after midnight of the start time
-	lpRec->setEndTimeOffset((lpRec->getStartTimeOffset() + dtUTCEnd - dtUTCStart) / 60);
+	if (dtUTCEnd > 0)
+		// offset in minutes after midnight of the start time
+		lpRec->setEndTimeOffset((lpRec->getStartTimeOffset() + dtUTCEnd - dtUTCStart) / 60);
 
 	// Set 0x8236, also known as ClipEnd in OutlookSpy
 	sPropVal.Value.ft  = UnixTimeToFileTime(dtUTCUntil);
@@ -276,18 +276,20 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME);
 		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
-		// Set 0x8516 / CommonStart
-		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME);
-		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
-		sPropVal.Value.ft = UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime() + (dtUTCEnd - dtUTCStart), sTimeZone));
+		if (dtUTCEnd > 0) {
+			// Set 0x8516 / CommonStart
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
+			sPropVal.Value.ft = UnixTimeToFileTime(LocalToUTC(lpRec->getStartDateTime() + (dtUTCEnd - dtUTCStart), sTimeZone));
 
-		// Set 0x820E / ApptEndWhole
-		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
-		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
+			// Set 0x820E / ApptEndWhole
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
 
-		// Set CommonEnd		
-		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME);
-		lpIcalItem->lstMsgProps.emplace_back(sPropVal);
+			// Set CommonEnd
+			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME);
+			lpIcalItem->lstMsgProps.emplace_back(sPropVal);
+		}
 	}
 	lpIcalItem->lpRecurrence = std::move(lpRec);
 	return hr;
@@ -664,9 +666,18 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
 	// TODO: combine with icon index in vevent .. the item may be a meeting request (meeting+recurring==1027)
 	pv[1].ulPropTag = PR_ICON_INDEX;
 	pv[1].Value.ul = ICON_APPT_RECURRING;
-	pv[2].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
-	pv[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpRecBlob.get());
-	pv[2].Value.bin.cb = ulRecBlob;
+
+	memory_ptr<SPropValue> prop;
+	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_W, &~prop);
+	if (!wcscasecmp(prop->Value.lpszW, L"IPM.Task")) {
+		pv[2].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_TASK_RECURRSTATE], PT_BINARY);
+		pv[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpRecBlob.get());
+		pv[2].Value.bin.cb = ulRecBlob;
+	} else {
+		pv[2].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
+		pv[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpRecBlob.get());
+		pv[2].Value.bin.cb = ulRecBlob;
+	}
 
 	unsigned int i = 3;
 	hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_STRING8), &~lpsPropRecPattern);
