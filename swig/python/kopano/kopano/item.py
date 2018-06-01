@@ -43,7 +43,7 @@ from MAPI.Defs import (
 from MAPI.Struct import (
     SPropValue, MAPIErrorNotFound, MAPIErrorUnknownEntryid,
     MAPIErrorInterfaceNotSupported, MAPIErrorUnconfigured, MAPIErrorNoAccess,
-    SPropertyRestriction
+    MAPIErrorNoRecipients, SPropertyRestriction
 )
 
 from MAPI.Tags import (
@@ -79,6 +79,7 @@ from MAPI.Tags import (
 
 from .pidlid import (
     PidLidAppointmentStateFlags, PidLidCleanGlobalObjectId,
+    PidLidAppointmentStartWhole, PidLidAppointmentEndWhole
 )
 
 from .compat import (
@@ -93,7 +94,9 @@ from .defs import (
     PSETID_Archive, URGENCY, REV_URGENCY, ASF_MEETING, ASF_RECEIVED,
     ASF_CANCELED
 )
-from .errors import Error, NotFoundError, _DeprecationWarning
+from .errors import (
+    Error, NotFoundError, _DeprecationWarning
+)
 
 from .attachment import Attachment
 from .properties import Properties
@@ -818,6 +821,10 @@ class Item(Properties, Contact, Appointment):
     def send(self, copy_to_sentmail=True, cancel=False):
         item = self
         if self.message_class == 'IPM.Appointment':
+            if (self.get(PidLidAppointmentStartWhole) is None or \
+                self.get(PidLidAppointmentEndWhole) is None):
+                raise Error('appointment requires start and end date')
+
             item = self._send_meeting_request(cancel=cancel)
 
         icon_index = {
@@ -842,7 +849,11 @@ class Item(Properties, Contact, Appointment):
             props.append(SPropValue(PR_SENTMAIL_ENTRYID, _bdec(item.folder.store.sentmail.entryid)))
         props.append(SPropValue(PR_DELETE_AFTER_SUBMIT, True))
         item.mapiobj.SetProps(props)
-        item.mapiobj.SubmitMessage(0)
+        try:
+            item.mapiobj.SubmitMessage(0)
+        except MAPIErrorNoRecipients:
+            if self.message_class != 'IPM.Appointment':
+                raise Error('cannot send item without recipients')
 
     def _generate_goid(self):
         """
