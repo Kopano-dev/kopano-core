@@ -1560,7 +1560,10 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 		ittStamp = icaltime_from_timet_with_zone(tStamp, bDateOnly, icaltimezone_get_utc_timezone());
 	}
 
-	icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
+	if (bDateOnly)
+		icalproperty_set_value(lpicProp, icalvalue_new_date(ittStamp));
+	else
+		icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
 
 	// only allowed to add timezone information on non-allday events
 	if (lpicTZinfo && !bDateOnly)
