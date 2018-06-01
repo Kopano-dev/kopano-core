@@ -8,7 +8,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file)
 import sys
 
 from MAPI import (
-    MAPI_MODIFY, MAPI_DEFERRED_ERRORS,
+    MAPI_MODIFY, MAPI_DEFERRED_ERRORS, KEEP_OPEN_READWRITE
 )
 
 from MAPI.Tags import (
@@ -88,6 +88,7 @@ class Attachment(Properties):
     @mimetype.setter
     def mimetype(self, m):
         self[PR_ATTACH_MIME_TAG_W] = _unicode(m)
+        self.parent.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
     def filename(self):
