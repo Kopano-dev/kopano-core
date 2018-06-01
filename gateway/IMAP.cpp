@@ -3608,6 +3608,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 	sopt.no_recipients_workaround = true;	// do not stop processing mail on empty recipient table
 	sopt.alternate_boundary = const_cast<char *>("=_ZG_static");
 	sopt.ignore_missing_attachments = true;
+	sopt.use_tnef = -1;
 	string strMessage;
 	string strMessagePart;
 	unsigned int ulCount = 0;
