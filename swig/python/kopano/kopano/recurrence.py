@@ -267,8 +267,9 @@ class Recurrence(object):
                 basedate_val = startdatetime_val
 
             d = _utils._to_utc(d, self._tzinfo)
+            e = d + datetime.timedelta(minutes=minutes)
 
-            occ = Occurrence(self.item, d, d + datetime.timedelta(minutes=minutes), subject, location, basedate_val=basedate_val, exception=exception)
+            occ = Occurrence(self.item, d, e, subject, location, basedate_val=basedate_val, exception=exception)
             if (not start or occ.end > start) and (not end or occ.start < end):
                 yield occ
 
@@ -277,20 +278,23 @@ class Recurrence(object):
         pos = 2 + _utils.unpack_short(entryid, 0)
         basedate_val = _utils.unpack_long(entryid, pos)
 
-        for exc in self._exceptions: # TODO subject etc
+        start = end = subject = location = None
+
+        for exc, ext in zip(self._exceptions, self._extended_exceptions):
             if exc['original_start_date'] in (basedate_val, basedate_val - self._starttime_offset): # TODO pick one
                 start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(exc['start_datetime']))
+                end = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(exc['end_datetime']))
+                if exc['override_flags'] & ARO_SUBJECT:
+                    subject = ext['subject']
+                if exc['override_flags'] & ARO_LOCATION:
+                    location = ext['location']
                 break
         else:
             # TODO check that date is (still) valid
             start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(basedate_val))
+            end = start + datetime.timedelta(minutes=self._endtime_offset - self._starttime_offset)
 
-        return Occurrence(
-            self.item,
-            start,
-            start + datetime.timedelta(minutes=self._endtime_offset - self._starttime_offset),
-            basedate_val=basedate_val,
-        )
+        return Occurrence(self.item, start, end, subject, location, basedate_val=basedate_val)
 
     @staticmethod
     def _init(item):
