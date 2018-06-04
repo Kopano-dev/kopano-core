@@ -142,9 +142,10 @@ class UserResource(Resource):
         fields = json.loads(req.stream.read().decode('utf-8'))
 
         if method == 'sendMail':
-            # TODO save in sent items?
-            self.create_message(store.outbox, fields['message'],
-                MessageResource.set_fields).send()
+            message = self.create_message(store.outbox, fields['message'],
+                MessageResource.set_fields)
+            copy_to_sentmail = fields.get('SaveToSentItems', 'true') == 'true'
+            message.send(copy_to_sentmail=copy_to_sentmail)
             resp.status = falcon.HTTP_202
 
         elif method == 'contacts':
