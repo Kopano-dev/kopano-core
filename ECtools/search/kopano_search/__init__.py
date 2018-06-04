@@ -329,7 +329,11 @@ class Service(kopano.Service):
         index_path = self.config['index_path']
         os.umask(0o77)
         if not os.path.exists(index_path):
-            os.makedirs(index_path)
+            try:
+                os.makedirs(index_path)
+            except PermissionError:
+                self.log.error("Unable to create directory '%s': permission denied", index_path)
+                sys.exit(1)
         self.state_db = os.path.join(index_path, self.server.guid+'_state')
         self.plugin = __import__('plugin_%s' % self.config['search_engine']).Plugin(index_path, self.log)
         self.iqueue, self.oqueue = Queue(), Queue()
@@ -337,7 +341,12 @@ class Service(kopano.Service):
         workers = [IndexWorker(self, 'index%d'%i, nr=i, iqueue=self.iqueue, oqueue=self.oqueue) for i in range(self.index_processes)]
         for worker in workers:
             worker.start()
-        self.state = db_get(self.state_db, 'SERVER')
+        try:
+            self.state = db_get(self.state_db, 'SERVER')
+        except bsddb.db.DBAccessError:
+            self.log.error("Cannot access '%s': permission denied", self.state_db)
+            sys.exit(1)
+
         if self.state:
             self.log.info('found previous server sync state: %s', self.state)
         else:
