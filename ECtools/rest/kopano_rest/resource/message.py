@@ -79,15 +79,6 @@ class MessageResource(ItemResource):
             self.respond(req, resp, data)
             return
 
-        elif method in ('copy', 'move'):
-            body = json.loads(req.stream.read().decode('utf-8'))
-            folder = store.folder(entryid=body['destinationId'].encode('ascii')) # TODO ascii?
-
-            if method == 'copy':
-                item = item.copy(folder)
-            else:
-                item = item.move(folder)
-
         elif method:
             raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
@@ -108,6 +99,15 @@ class MessageResource(ItemResource):
             fields = json.loads(req.stream.read().decode('utf-8'))
             if fields['@odata.type'] == '#microsoft.graph.fileAttachment':
                 item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
+
+        elif method in ('copy', 'move'):
+            body = json.loads(req.stream.read().decode('utf-8'))
+            folder = store.folder(entryid=body['destinationId'].encode('ascii')) # TODO ascii?
+
+            if method == 'copy':
+                item = item.copy(folder)
+            else:
+                item = item.move(folder)
 
     def on_patch(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid, self.options)
