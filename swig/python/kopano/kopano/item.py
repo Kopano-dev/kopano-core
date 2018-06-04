@@ -575,7 +575,7 @@ class Item(Properties, Contact, Appointment):
         else:
             raise NotFoundError("no attachment with entryid '%s'" % entryid)
 
-    def create_attachment(self, name=None, data=None, filename=None):
+    def create_attachment(self, name=None, data=None, filename=None, **kwargs):
         """Create a new attachment
 
         :param name: the attachment name
@@ -594,9 +594,16 @@ class Item(Properties, Contact, Appointment):
         stream = attach.OpenProperty(PR_ATTACH_DATA_BIN, IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_MODIFY | MAPI_CREATE)
         stream.Write(data)
         stream.Commit(0)
+
         attach.SaveChanges(KEEP_OPEN_READWRITE)
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
-        return Attachment(self, mapiobj=attach)
+
+        att = Attachment(self, mapiobj=attach)
+
+        for key, val in kwargs.items():
+            setattr(att, key, val)
+
+        return att
 
     @property
     def has_attachments(self):
