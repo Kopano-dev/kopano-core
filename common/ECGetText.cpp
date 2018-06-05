@@ -27,69 +27,65 @@
 
 namespace KC {
 
-namespace detail {
+/**
+ * This class performs the actual conversion and caching of the translated messages.
+ * Results are cached based on the pointer value, not the string content. This implies
+ * two assumptions:
+ * 1. Gettext always returns the same pointer for a particular translation.
+ * 2. If there's no translation, the original pointer is returned. So we assume that the
+ *    compiler optimized string literals to have the same address if they're equal. If
+ *    this assumption is false, this will lead to more conversions, and more memory usage
+ *    by the cache.
+ */
+class converter _kc_final {
+	public:
+	/**
+	 * Get the global converter instance.
+	 * @return	The global converter instance.
+	 */
+	static converter *getInstance() {
+		scoped_lock locker(s_hInstanceLock);
+		if (!s_lpInstance) {
+			s_lpInstance = new converter;
+			atexit(&destroy);
+		}
+		return s_lpInstance;
+	}
 
 	/**
-	 * This class performs the actual conversion and caching of the translated messages.
-	 * Results are cached based on the pointer value, not the string content. This implies
-	 * two assumptions:
-	 * 1. Gettext always returns the same pointer for a particular translation.
-	 * 2. If there's no translation, the original pointer is returned. So we assume that the
-	 *    compiler optimized string literals to have the same address if they're equal. If
-	 *    this assumption is false, this will lead to more conversions, and more memory usage
-	 *    by the cache.
+	 * Perform the actual cache lookup or conversion.
+	 *
+	 * @param[in]	lpsz	The string to convert.
+	 * @return	The converted string.
 	 */
-	class converter _kc_final {
-	public:
-		/**
-		 * Get the global converter instance.
-		 * @return	The global converter instance.
-		 */
-		static converter *getInstance() {
-			scoped_lock locker(s_hInstanceLock);
-			if (!s_lpInstance) {
-				s_lpInstance = new converter;
-				atexit(&destroy);
-			}
-			return s_lpInstance;
-		}
-
-		/**
-		 * Perform the actual cache lookup or conversion.
-		 *
-		 * @param[in]	lpsz	The string to convert.
-		 * @return	The converted string.
-		 */
-		const wchar_t *convert(const char *lpsz) {
-			scoped_lock l_cache(m_hCacheLock);
-			auto insResult = m_cache.emplace(lpsz, L"");
-			if (insResult.second == true)	// successful insert, so not found in cache
-				insResult.first->second.assign(m_converter.convert_to<std::wstring>(lpsz));
-			
-			const wchar_t *lpszW = insResult.first->second.c_str();
-			return lpszW;
-		}
+	const wchar_t *convert(const char *lpsz) {
+		scoped_lock l_cache(m_hCacheLock);
+		auto insResult = m_cache.emplace(lpsz, L"");
+		if (insResult.second == true)	// successful insert, so not found in cache
+			insResult.first->second.assign(m_converter.convert_to<std::wstring>(lpsz));
+		
+		const wchar_t *lpszW = insResult.first->second.c_str();
+		return lpszW;
+	}
 
 	private:
-		static void destroy() {
-			assert(s_lpInstance);
-			delete s_lpInstance;
-			s_lpInstance = NULL;
-		}
+	static void destroy() {
+		assert(s_lpInstance);
+		delete s_lpInstance;
+		s_lpInstance = NULL;
+	}
 
-	private:
-		static converter		*s_lpInstance;
-		static std::mutex s_hInstanceLock;
+	static converter		*s_lpInstance;
+	static std::mutex s_hInstanceLock;
 
-		typedef std::map<const char *, std::wstring>	cache_type;
-		convert_context	m_converter;
-		cache_type		m_cache;
-		std::mutex m_hCacheLock;
-	};
+	typedef std::map<const char *, std::wstring>	cache_type;
+	convert_context	m_converter;
+	cache_type		m_cache;
+	std::mutex m_hCacheLock;
+};
 
-	std::mutex converter::s_hInstanceLock;
-	converter* converter::s_lpInstance = NULL;
-} // namespace detail
+std::mutex converter::s_hInstanceLock;
+converter *converter::s_lpInstance;
 
 /**
  * Performs a 'regular' gettext and converts the result to a wide character string.
@@ -114,7 +110,7 @@ LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid)
 	const char *lpsz = msgid;
 
 	lpsz = dcgettext(domainname, msgid, LC_MESSAGES);
-	return const_cast<wchar_t *>(detail::converter::getInstance()->convert(lpsz));
+	return const_cast<wchar_t *>(converter::getInstance()->convert(lpsz));
 }
 
 } /* namespace */
