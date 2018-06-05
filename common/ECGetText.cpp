@@ -101,6 +101,16 @@ namespace detail {
  */
 LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid)
 {
+	static bool init;
+	if (!init) {
+		/*
+		 * Avoid gettext doing the downconversion to LC_CTYPE and
+		 * killing all the Unicode characters before we had a chance of
+		 * seeing them.
+		 */
+		bind_textdomain_codeset("kopano", "utf-8");
+		init = true;
+	}
 	const char *lpsz = msgid;
 
 	lpsz = dcgettext(domainname, msgid, LC_MESSAGES);
