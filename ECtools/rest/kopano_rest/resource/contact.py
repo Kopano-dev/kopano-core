@@ -7,7 +7,7 @@ from .resource import (
     _date,
 )
 from .item import (
-    ItemResource, get_email
+    ItemResource, get_email2
 )
 def set_email_addresses(item, arg): # TODO multiple via pyko
     item.address1 = '%s <%s>' % (arg[0]['name'], arg[0]['address'])
@@ -26,7 +26,7 @@ class ContactResource(ItemResource):
     fields = ItemResource.fields.copy()
     fields.update({
         'displayName': lambda item: item.name,
-        'emailAddresses': lambda item: [get_email(a) for a in item.addresses()],
+        'emailAddresses': lambda item: [get_email2(a) for a in item.addresses()],
         'parentFolderId': lambda item: item.folder.entryid,
         'givenName': lambda item: item.first_name or None,
         'middleName': lambda item: item.middle_name or None,
@@ -91,3 +91,4 @@ class ContactResource(ItemResource):
         server, store = _server_store(req, userid, self.options)
         item = _item(store, itemid)
         store.delete(item)
+        resp.status = falcon.HTTP_204

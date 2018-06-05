@@ -42,7 +42,7 @@ class ContactFolderResource(FolderResource):
             fields = ContactResource.fields
             self.respond(req, resp, data, fields)
 
-        else:
+        elif method:
             raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
     def on_post(self, req, resp, userid=None, folderid=None, method=None):
@@ -54,3 +54,4 @@ class ContactFolderResource(FolderResource):
             item = self.create_message(folder, fields, ContactResource.set_fields)
 
             self.respond(req, resp, item, ContactResource.fields)
+            resp.status = falcon.HTTP_201

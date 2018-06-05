@@ -30,6 +30,9 @@ def set_body(item, arg):
 def get_email(addr):
     return {'emailAddress': {'name': addr.name, 'address': addr.email} }
 
+def get_email2(addr): # TODO merge
+    return {'name': addr.name, 'address': addr.email}
+
 def get_attachments(item):
     for attachment in item.attachments(embedded=True):
         if attachment.embedded:
