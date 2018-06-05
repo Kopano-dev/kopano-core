@@ -163,7 +163,7 @@ kopano_dagent_SOURCES = \
 	spooler/rules.cpp spooler/rules.h
 kopano_dagent_LDADD = \
 	libkcinetmapi.la libmapi.la libkcutil.la \
-	libkcarchiver.la libkcarchivercore.la \
+	libkcarchiver.la libkcarchivercore.la -lpthread \
 	${PROG_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 if ENABLE_PYTHON
 kopano_dagent_LDADD += libkcpyplug.la
