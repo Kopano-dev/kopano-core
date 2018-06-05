@@ -109,6 +109,13 @@ class MessageResource(ItemResource):
             else:
                 item = item.move(folder)
 
+        elif method == 'send':
+            item.send()
+            resp.status = falcon.HTTP_202
+
+        else:
+            raise falcon.HTTPBadRequest(None, "Unsupported segment type")
+
     def on_patch(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid or 'inbox') # TODO all folders?
