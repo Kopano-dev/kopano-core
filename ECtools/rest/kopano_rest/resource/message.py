@@ -8,6 +8,9 @@ from ..utils import (
 from .resource import (
     DEFAULT_TOP, _date, json
 )
+from .attachment import (
+    AttachmentResource
+)
 from .item import (
     ItemResource, get_body, set_body, get_email, get_attachments,
 )
@@ -99,8 +102,10 @@ class MessageResource(ItemResource):
 
         elif method == 'attachments':
             fields = json.loads(req.stream.read().decode('utf-8'))
-            if fields['@odata.type'] == '#microsoft.graph.fileAttachment':
-                item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
+            if fields['@odata.type'] == '#microsoft.graph.fileAttachment': # TODO other types
+                att = item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
+                self.respond(req, resp, att, AttachmentResource.fields)
+                resp.status = falcon.HTTP_201
 
         elif method in ('copy', 'move'):
             body = json.loads(req.stream.read().decode('utf-8'))

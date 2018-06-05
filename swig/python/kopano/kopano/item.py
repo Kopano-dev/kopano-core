@@ -603,7 +603,7 @@ class Item(Properties, Contact, Appointment):
         attach.SaveChanges(KEEP_OPEN_READWRITE)
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
 
-        att = Attachment(self, mapiobj=attach)
+        att = Attachment(self, mapiitem=self.mapiobj, mapiobj=attach)
 
         for key, val in kwargs.items():
             setattr(att, key, val)
