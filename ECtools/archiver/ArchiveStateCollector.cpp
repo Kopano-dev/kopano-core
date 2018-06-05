@@ -243,6 +243,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 	sPropDispType.ulPropTag = PR_DISPLAY_TYPE;
 	sPropDispType.Value.ul = DT_MAILUSER;;
 
+	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Scanning IABContainer for users with archives");
 	auto hr = lpContainer->GetContentsTable(0, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
@@ -298,6 +299,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 			}
 		}
 	}
+	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "IABContainer scan yielded %zu users", m_mapArchiveInfo.size());
 	return hrSuccess;
 }
 
