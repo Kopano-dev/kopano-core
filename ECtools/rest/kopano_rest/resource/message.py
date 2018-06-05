@@ -91,9 +91,11 @@ class MessageResource(ItemResource):
 
         if method == 'createReply':
             self.respond(req, resp, item.reply())
+            resp.status = falcon.HTTP_201
 
         elif method == 'createReplyAll':
             self.respond(req, resp, item.reply(all=True))
+            resp.status = falcon.HTTP_201
 
         elif method == 'attachments':
             fields = json.loads(req.stream.read().decode('utf-8'))
