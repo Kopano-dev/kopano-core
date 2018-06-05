@@ -78,7 +78,7 @@ COND_libkcrosie_la = libkcrosie.la
 COND_libkcrosie_ldd = libkcrosie.ldd
 endif
 lib_LTLIBRARIES = \
-	libkcutil.la libkcmapi.la libkcssl.la libmapi.la \
+	libkcutil.la libkcmapi.la libmapi.la \
 	libkcfreebusy.la libkcsoap.la libkcserver.la \
 	libkcicalmapi.la ${COND_libkcrosie_la} libkcinetmapi.la \
 	libkcarchiver.la libkcarchivercore.la
@@ -94,7 +94,7 @@ noinst_DATA = \
 	libkcarchiver.ldd libkcarchivercore.ldd libkcclient.ldd \
 	libkccontacts.ldd libkcfreebusy.ldd libkcicalmapi.ldd \
 	libkcinetmapi.ldd libkcmapi.ldd ${COND_libkcrosie_ldd} \
-	libkcserver.ldd libkcssl.ldd libkcutil.ldd libmapi.ldd
+	libkcserver.ldd libkcutil.ldd libmapi.ldd
 # Undefined references
 #noinst_DATA += libkcsoap.ldd
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
@@ -124,7 +124,7 @@ plugin_SYFLAGS = -Wl,--version-script=provider/plugin.sym
 #
 kopano_admin_SOURCES = ECtools/admin/admin.cpp
 kopano_admin_LDADD = \
-	libmapi.la libkcmapi.la libkcutil.la libkcssl.la libkcarchiver.la \
+	libmapi.la libkcmapi.la libkcutil.la libkcarchiver.la \
 	${PROG_LIBS} ${SSL_LIBS}
 
 
@@ -164,7 +164,7 @@ kopano_dagent_SOURCES = \
 	spooler/archive.cpp spooler/archive.h \
 	spooler/rules.cpp spooler/rules.h
 kopano_dagent_LDADD = \
-	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
+	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la \
 	libkcarchiver.la libkcarchivercore.la \
 	${PROG_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 if ENABLE_PYTHON
@@ -198,8 +198,7 @@ kopano_gateway_SOURCES = \
 	gateway/IMAP.cpp gateway/IMAP.h \
 	gateway/POP3.cpp gateway/POP3.h
 kopano_gateway_LDADD = \
-	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
-	-lpthread \
+	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la -lpthread \
 	${PROG_LIBS} ${CRYPTO_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 
 
@@ -213,7 +212,7 @@ kopano_ical_SOURCES = \
 	caldav/ProtocolBase.cpp caldav/ProtocolBase.h \
 	caldav/WebDav.cpp caldav/WebDav.h caldav/iCal.cpp caldav/iCal.h
 kopano_ical_LDADD = \
-	libmapi.la libkcmapi.la libkcutil.la libkcicalmapi.la libkcssl.la \
+	libmapi.la libkcmapi.la libkcutil.la libkcicalmapi.la \
 	libkcfreebusy.la -lpthread \
 	${PROG_LIBS} ${SSL_LIBS} ${ICONV_LIBS} ${XML2_LIBS} \
 	${ICAL_LIBS} ${icu_uc_LIBS}
@@ -247,7 +246,7 @@ kopano_spooler_SOURCES = \
 	spooler/Spooler.cpp spooler/archive.cpp spooler/archive.h \
 	spooler/mailer.cpp spooler/mailer.h
 kopano_spooler_LDADD = \
-	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
+	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la \
 	libkcarchiver.la libkcarchivercore.la ${PROG_LIBS} ${XML2_LIBS}
 if ENABLE_PYTHON
 kopano_spooler_LDADD += libkcpyplug.la
@@ -282,8 +281,7 @@ kopano_server_SOURCES = \
 	provider/server/ECSoapServerConnection.cpp provider/server/ECSoapServerConnection.h \
 	provider/server/ECThreadManager.cpp provider/server/ECThreadManager.h
 kopano_server_LDADD = \
-	libkcutil.la libkcmapi.la libkcssl.la \
-	libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
+	libkcutil.la libkcmapi.la libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
 	${PROG_LIBS} ${clock_LIBS} \
 	${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
 	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} ${kcoidc_LIBS} -lpthread
@@ -414,7 +412,7 @@ libkcclient_la_SOURCES = \
 	provider/common/SOAPSock.cpp provider/common/SOAPSock.h \
 	provider/soap/soapKCmdProxy.h provider/soap/soapKCmdProxy.cpp
 libkcclient_la_LIBADD = \
-	libkcmapi.la libkcssl.la libkcutil.la libkcfreebusy.la \
+	libkcmapi.la libkcutil.la libkcfreebusy.la \
 	libmapi.la ${COND_libkcrosie_la} libkcsoap.la -lstdc++ \
 	${GSOAP_LIBS} ${ICU_LIBS} ${SSL_LIBS} ${UUID_LIBS} ${KRB5_LIBS}
 libkcclient_la_SYFLAGS = -Wl,--version-script=provider/provider.sym
@@ -575,7 +573,7 @@ libkcserver_la_SOURCES = \
 	provider/common/ECSearchClient.cpp provider/common/ECSearchClient.h \
 	provider/soap/soapKCmdService.h provider/soap/soapKCmdService.cpp
 libkcserver_la_LIBADD = \
-	libkcutil.la libkcmapi.la libkcssl.la libkcsoap.la \
+	libkcutil.la libkcmapi.la libkcsoap.la \
 	-lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \
 	${GSOAP_LIBS} ${KRB5_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS} \
 	${kcoidc_LIBS}
@@ -639,18 +637,6 @@ provider/libkcsoap.sym: ${top_builddir}/config.status
 
 
 #
-# libkcssl
-#
-noinst_HEADERS += common/ECChannelClient.h common/SSLUtil.h
-libkcssl_la_SOURCES = \
-	common/ECChannel.cpp common/ECChannelClient.cpp common/SSLUtil.cpp
-libkcssl_la_LIBADD = libkcutil.la -lpthread ${SSL_LIBS}
-libkcssl_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	${default_SYFLAGS${NO_VSYM}}
-EXTRA_libkcssl_la_DEPENDENCIES = ${default_sym}
-
-
-#
 # libkcutil
 #
 noinst_HEADERS += \
@@ -661,9 +647,11 @@ noinst_HEADERS += \
 	common/utf8/core.h common/utf8/unchecked.h
 libkcutil_la_SOURCES = \
 	common/ConsoleTable.cpp common/ECACL.cpp common/ECCache.cpp \
+	common/ECChannel.cpp common/ECChannelClient.cpp \
 	common/ECConfig.cpp common/ECConfigImpl.cpp common/ECFifoBuffer.cpp \
 	common/ECGetText.cpp common/ECIConv.cpp common/ECLogger.cpp \
 	common/ECScheduler.cpp common/ECThreadPool.cpp common/MAPIErrors.cpp \
+	common/SSLUtil.cpp \
 	common/StatsClient.cpp common/SymmetricCrypt.cpp common/TimeUtil.cpp \
 	common/TmpPath.cpp common/UnixUtil.cpp \
 	common/fileutil.cpp common/my_getopt.cpp common/platform.cpp \
@@ -671,7 +659,8 @@ libkcutil_la_SOURCES = \
 	common/ustringutil.cpp common/charset/convert.cpp \
 	common/charset/convstring.cpp common/charset/localeutil.cpp
 libkcutil_la_LIBADD = \
-	-lpthread -lz ${CRYPTO_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} ${UUID_LIBS}
+	-lpthread -lz ${CRYPTO_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} \
+	${SSL_LIBS} ${UUID_LIBS}
 libkcutil_la_SYFLAGS = -Wl,--version-script=common/libkcutil.sym
 libkcutil_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${libkcutil_la_SYFLAGS${NO_VSYM}}
