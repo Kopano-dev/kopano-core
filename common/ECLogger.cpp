@@ -809,6 +809,7 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 		_exit(0);
 	}
 
+	auto prefix = lpLogger->prefix;
 	// this is the main fork, which doesn't log anything anymore, except through the pipe version.
 	// we should release the lpFileLogger
 	unsigned int refs = lpLogger->Release();
@@ -822,7 +823,7 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 
 	close(pipefds[0]);
 	lpPipeLogger = new ECLogger_Pipe(pipefds[1], child, atoi(lpConfig->GetSetting("log_level"))); // let destructor wait on child
-	lpPipeLogger->SetLogprefix(LP_PID);
+	lpPipeLogger->SetLogprefix(prefix);
 	lpPipeLogger->logf(EC_LOGLEVEL_INFO, "Logger process started on pid %d", child);
 
 	return lpPipeLogger;

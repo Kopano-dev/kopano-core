@@ -104,7 +104,6 @@ class _kc_export ECLogger {
 	unsigned int max_loglevel;
 	locale_t timelocale;
 	locale_t datalocale;
-	logprefix prefix;
 
 	/**
 	 * Implementations should open the log they're writing to.
@@ -196,6 +195,8 @@ class _kc_export ECLogger {
 	 * @param	va			va_list converted from ... parameters
 	 */
 	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) = 0;
+
+	logprefix prefix;
 };
 
 
