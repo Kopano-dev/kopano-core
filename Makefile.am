@@ -767,7 +767,11 @@ CLEANFILES += spooler/PythonSWIGRuntime.h
 EXTRA_DIST += spooler/PythonSWIGRuntime.h
 
 spooler/PythonSWIGRuntime.h:
+if ENABLE_PYTHON
 	${SWIG_EXEC} -python -external-runtime $@
+else
+	: >$@
+endif
 
 
 #
