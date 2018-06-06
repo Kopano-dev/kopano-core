@@ -740,25 +740,24 @@ HRESULT ECMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterface
 	if(ulPropTag == PR_MESSAGE_ATTACHMENTS) {
 		if(*lpiid == IID_IMAPITable)
 			hr = GetAttachmentTable(ulInterfaceOptions, (LPMAPITABLE*)lppUnk);
+		return hr;
 	} else if(ulPropTag == PR_MESSAGE_RECIPIENTS) {
 		if (*lpiid == IID_IMAPITable)
 			hr = GetRecipientTable(ulInterfaceOptions, (LPMAPITABLE*)lppUnk);
-	} else {
-		// Workaround for support html in outlook 2000/xp
-		if(ulPropTag == PR_BODY_HTML)
-			ulPropTag = PR_HTML;
-
-		hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-		if (hr == MAPI_E_NOT_FOUND && m_ulBodyType != bodyTypeUnknown && Util::IsBodyProp(ulPropTag)) {
-			hr = SyncBody(ulPropTag);
-			if (hr != hrSuccess)
-				return hr;
-
-			// Retry now the body is generated.
-			hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-		}
+		return hr;
 	}
-	return hr;
+	// Workaround for support html in outlook 2000/xp
+	if (ulPropTag == PR_BODY_HTML)
+		ulPropTag = PR_HTML;
+	hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
+	bool sync = hr == MAPI_E_NOT_FOUND && m_ulBodyType != bodyTypeUnknown && Util::IsBodyProp(ulPropTag);
+	if (!sync)
+		return hr;
+	hr = SyncBody(ulPropTag);
+	if (hr != hrSuccess)
+		return hr;
+	// Retry now the body is generated.
+	return ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 }
 
 HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)

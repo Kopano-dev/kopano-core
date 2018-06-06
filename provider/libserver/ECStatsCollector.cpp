@@ -200,25 +200,23 @@ std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &
 		return stringify_float(iSD.second.data.f);
 	case SCDT_LONGLONG:
 		return stringify_int64(iSD.second.data.ll);
-	case SCDT_TIMESTAMP:
-		if (iSD.second.data.ts > 0) {
-			char timestamp[128] = { 0 };
-			struct tm *tm = localtime(&iSD.second.data.ts);
-			strftime(timestamp, sizeof timestamp, "%a %b %e %T %Y", tm);
-			return timestamp;
-		}
-		break;
+	case SCDT_TIMESTAMP: {
+		if (iSD.second.data.ts <= 0)
+			break;
+		char timestamp[128] = { 0 };
+		struct tm *tm = localtime(&iSD.second.data.ts);
+		strftime(timestamp, sizeof timestamp, "%a %b %e %T %Y", tm);
+		return timestamp;
+	}
 	}
 	return "";
 }
 
 std::string ECStatsCollector::GetValue(const SCName &name) {
-	std::string rv;
 	auto iSD = m_StatData.find(name);
 	if (iSD != m_StatData.cend())
-		rv = GetValue(*iSD);
-
-	return rv;
+		return GetValue(*iSD);
+	return {};
 }
 
 void ECStatsCollector::ForEachStat(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
