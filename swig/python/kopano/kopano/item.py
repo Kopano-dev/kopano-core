@@ -165,11 +165,9 @@ class Item(Properties, Contact, Appointment):
         if isinstance(parent, _folder.Folder):
             self._folder = parent
             self.store = parent.store
-            self.user = parent.store.user
             self.server = parent.server
         elif isinstance(parent, _store.Store):
             self.store = parent
-            self.user = parent.user
             self.server = parent.server
 
         if create:
@@ -496,6 +494,10 @@ class Item(Properties, Contact, Appointment):
     @urgency.setter
     def urgency(self, value):
         self.create_prop(PR_IMPORTANCE, REV_URGENCY[value])
+
+    @property
+    def user(self):
+        return self.store.user
 
     @property
     def sensitivity(self):
