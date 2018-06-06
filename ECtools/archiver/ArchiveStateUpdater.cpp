@@ -164,14 +164,14 @@ HRESULT ArchiveStateUpdater::Update(const tstring &userName, unsigned int ulAtta
 		// Resolve the username and search by entryid.
 		abentryid_t userId;
 
-		m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Unable to find entry for user \"" TSTRING_PRINTF "\", trying to resolve.", userName.c_str());
+		m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Archive map has no entry for user \"" TSTRING_PRINTF "\", trying to resolve.", userName.c_str());
 		auto hr = m_ptrSession->GetUserInfo(userName, &userId, NULL, NULL);
 		if (hr != hrSuccess)
 			return hr;
 
 		i = m_mapArchiveInfo.find(userId);
 		if (i == m_mapArchiveInfo.end()) {
-			m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Unable to find entry for userid \"%s\".", userId.tostring().c_str());
+			m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Archive map has no entry for user entryid \"%s\".", userId.tostring().c_str());
 			return MAPI_E_NOT_FOUND;
 		}
 	}
