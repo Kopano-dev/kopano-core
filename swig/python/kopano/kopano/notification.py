@@ -79,6 +79,7 @@ def _split(mapiobj, store):
         yield notif
 
     elif mapiobj.ulEventType == fnevObjectDeleted:
+        item._folder = store.folder(entryid=_benc(mapiobj.lpParentID))
         notif.event_type = 'deleted'
         yield notif
 
