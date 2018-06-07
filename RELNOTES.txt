@@ -1,3 +1,20 @@
+8.7.x
+=====
+Fixes:
+* caldav: better support recurring tasks [KC-781]
+Enhancements:
+* dagent: support for threaded mode [KC-1170]
+* dagent: modern socket specification [KC-1174]
+* dagent: PF_LOCAL socket support [KC-1131]
+* dagent: limited support for RFC 6531 (SMTPUTF8) [KC-833]
+* server: multivalue properties are now cached [KC-1162]
+* spooler: new config value log_raw_message=error [KC-1105]
+* php: new functions to get freebusy message [KC-1077]
+Changes:
+* daemons: the default logging target is now syslog/journalctl [KC-1100]
+* kopano-mr-accept was replaced by a Python script
+
+
 8.6.2 (2018-06-07)
 ==================
 Includes changes until including 8.5.z.
