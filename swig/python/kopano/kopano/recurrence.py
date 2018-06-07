@@ -1001,7 +1001,7 @@ class Recurrence(object):
                         break
 
                 extended_exception = self._extended_exceptions[i]
-                self._update_exception(cal_item, message, basedate_val, exception, extended_exception, copytags, create=False, **kwargs, orig_item=item)
+                self._update_exception(cal_item, message, basedate_val, exception, extended_exception, copytags, create=False, orig_item=item, **kwargs)
 
         self._save()
 

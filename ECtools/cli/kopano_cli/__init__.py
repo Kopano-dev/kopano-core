@@ -135,7 +135,7 @@ UPDATE_MATRIX = {
 if sys.hexversion >= 0x03000000:
     def _encode(s):
         return s
-else:
+else: # pragma: no cover
     def _encode(s):
         return s.encode(sys.stdout.encoding or 'utf8')
 

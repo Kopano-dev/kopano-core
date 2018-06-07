@@ -20,7 +20,7 @@ except ImportError:
     import _pickle as pickle
 if sys.hexversion >= 0x03000000:
     import bsddb3 as bsddb
-else:
+else: # pragma: no cover
     import bsddb
 
 from MAPI import (
@@ -111,7 +111,7 @@ if sys.hexversion >= 0x03000000:
     def _base64(s):
         return codecs.decode(codecs.encode(s, 'base64').strip(), 'ascii')
 
-else:
+else: # pragma: no cover
     def _decode(s):
         return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
 
@@ -143,7 +143,7 @@ def fatal(s):
 def dbopen(path):
     if sys.hexversion >= 0x03000000:
         return bsddb.hashopen(path, 'c')
-    else:
+    else: # pragma: no cover
         return bsddb.hashopen(_encode(path), 'c')
 
 def _copy_folder_meta(from_dir, to_dir, keep_db=False):
