@@ -158,12 +158,12 @@ class SubscriptionResource:
         except Exception:
             raise falcon.HTTPBadRequest(None, "Subscription validation request failed.")
 
+        target, folder_types = _subscription_object(store, fields['resource'])
+
         # create subscription
         id_ = str(uuid.uuid4())
         subscription = fields
         subscription['id'] = id_
-
-        target, folder_types = _subscription_object(store, fields['resource'])
 
         sink = Sink(self.options, store, subscription)
         object_types = ['item'] # TODO folders not supported by graph atm?
@@ -176,6 +176,7 @@ class SubscriptionResource:
 
         resp.content_type = "application/json"
         resp.body = json.dumps(subscription, indent=2, separators=(',', ': '))
+        resp.status = falcon.HTTP_201
 
         if self.options and self.options.with_metrics:
             SUBSCR_COUNT.inc()
@@ -205,6 +206,7 @@ class SubscriptionResource:
 
         store.unsubscribe(sink)
         del SUBSCRIPTIONS[subscriptionid]
+        resp.status = falcon.HTTP_204
 
         if self.options and self.options.with_metrics:
             SUBSCR_ACTIVE.set(len(SUBSCRIPTIONS))
