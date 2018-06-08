@@ -67,7 +67,8 @@ def logger(service, options=None, stdout=False, config=None, name=''):
         ch = logging.StreamHandler(sys.stdout)
         ch.setLevel(log_level)
         ch.setFormatter(formatter)
-        if stdout or (options and options.foreground):
+        if stdout or (options and options.foreground and \
+                      (log_method, log_file) != ('file', '-')):
             logger.addHandler(ch)
     logger.setLevel(log_level)
     return logger
