@@ -404,7 +404,7 @@ class Service(kopano.Service):
                     store = user.store
             if store: # XXX check all keys first
                 with closing(kopano.client_socket(self.config['server_bind_name'], ssl_cert=self.config['ssl_certificate_file'])) as s:
-                    s.sendall('REINDEX %s\r\n' % store.guid)
+                    s.sendall((u'REINDEX %s\r\n' % store.guid).encode('ascii'))
                     s.recv(1024)
             else:
                 print("no such user/store: %s" % key)
