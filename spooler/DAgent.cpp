@@ -1326,9 +1326,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 		}
 		// save headers to a file so they can also be tested from the script we're runing
 		snprintf(szTemp, PATH_MAX, "%s/autorespond-headers.XXXXXX", TmpPath::instance.getTempPath().c_str());
-		auto mask = umask(S_IRWXO|S_IRWXG);
 		fd = mkstemp(szTemp);
-		umask(mask);
 		if (fd >= 0) {
 			hr = WriteOrLogError(fd, lpMessageProps[0].Value.lpszA, strlen(lpMessageProps[0].Value.lpszA));
 			if (hr == hrSuccess)
@@ -1356,9 +1354,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	}
 
 	snprintf(szTemp, PATH_MAX, "%s/autorespond.XXXXXX", TmpPath::instance.getTempPath().c_str());
-	auto mask = umask(S_IRWXO|S_IRWXG);
 	fd = mkstemp(szTemp);
-	umask(mask);
 	if (fd < 0) {
 		ec_log_warn("Unable to create temp file for out of office mail: %s", strerror(errno));
 		return MAPI_E_FAILURE;
@@ -3722,6 +3718,7 @@ int main(int argc, char *argv[]) {
 			"or increase user limits for open file descriptors.",
 			KC_DESIRED_FILEDES, strerror(errno), getdtablesize());
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
+	umask(S_IRWXG | S_IRWXO);
 
 	if (bListenLMTP) {
 		/* MAPIInitialize done inside running_service */
