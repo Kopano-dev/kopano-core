@@ -43,6 +43,7 @@
 #include <iostream>
 #include <csignal>
 #include <time.h>
+#include <sys/stat.h>
 
 #define USES_IID_IMAPIFolder
 #define USES_IID_IMessage
@@ -1078,6 +1079,7 @@ int main(int argc, char *argv[]) {
 
 	bQuit = bMessagesWaiting = false;
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
+	umask(S_IRWXG | S_IRWXO);
 
 	AutoMAPI mapiinit;
 	// fork if needed and drop privileges as requested.
