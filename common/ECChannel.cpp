@@ -386,8 +386,7 @@ HRESULT ECChannel::HrWriteLine(const char *szBuffer, int len) {
 		strLine.assign(szBuffer, len);
 
 	strLine += "\r\n";
-	
-	return HrWriteString(strLine);
+	return HrWriteString(std::move(strLine));
 }
 
 HRESULT ECChannel::HrWriteLine(const std::string & strBuffer) {
