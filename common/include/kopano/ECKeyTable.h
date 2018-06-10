@@ -69,11 +69,6 @@ struct sObjectTableKey {
 	sObjectTableKey(void) = default;
 	unsigned int ulObjId = 0;
 	unsigned int ulOrderId = 0;
-
-	bool operator()(const sObjectTableKey &o) const noexcept
-	{
-		return ulObjId < o.ulObjId || (ulObjId == o.ulObjId && ulOrderId < o.ulOrderId);
-	}
 };
 
 extern bool operator!=(const sObjectTableKey &, const sObjectTableKey &) noexcept;
