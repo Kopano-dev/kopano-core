@@ -29,6 +29,8 @@ namespace KC {
 struct AclRightName {
 	unsigned ulRight;
 	const char *szRight;
+
+	bool operator<(const AclRightName &r) const { return ulRight < r.ulRight; }
 };
 
 static const AclRightName g_rights[] = {
@@ -48,6 +50,8 @@ static const AclRightName g_rights[] = {
 struct AclRoleName {
 	unsigned ulRights;
 	const char *szRole;
+
+	bool operator<(const AclRoleName &r) const { return ulRights < r.ulRights; }
 };
 
 static const AclRoleName g_roles[] = {
@@ -66,14 +70,6 @@ static const AclRoleName g_roles[] = {
 static inline bool IsRight(unsigned ulRights) {
 	// A right has exactly 1 bit set. Otherwise it's a role
 	return (ulRights ^ (ulRights - 1)) == 0;
-}
-
-static inline bool operator<(const AclRightName &lhs, const AclRightName &rhs) {
-	return lhs.ulRight < rhs.ulRight;
-}
-
-static inline bool operator<(const AclRoleName &lhs, const AclRoleName &rhs) {
-	return lhs.ulRights < rhs.ulRights;
 }
 
 static const AclRightName *FindAclRight(unsigned ulRights) {
