@@ -173,6 +173,8 @@ public:
 	ECKeyTable();
 	~ECKeyTable();
 	ECRESULT UpdateRow(UpdateType ulType, const sObjectTableKey *lpsRowItem, std::vector<ECSortCol> &&, sObjectTableKey *lpsPrevRow, bool fHidden = false, UpdateType *lpulAction = nullptr);
+	ECRESULT UpdateRow_Delete(const sObjectTableKey *row, std::vector<ECSortCol> &&, sObjectTableKey *prev_row, bool hidden = false, UpdateType *action = nullptr);
+	ECRESULT UpdateRow_Modify(const sObjectTableKey *row, std::vector<ECSortCol> &&, sObjectTableKey *prev_row, bool hidden = false, UpdateType *action = nullptr);
 	ECRESULT	GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTableKey *lpsPrevItem);
 	ECRESULT	SeekRow(unsigned int ulBookmark, int lSeekTo, int *lplRowsSought);
 	ECRESULT	SeekId(const sObjectTableKey *lpsRowItem);
