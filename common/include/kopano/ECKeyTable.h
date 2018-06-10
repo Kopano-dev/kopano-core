@@ -69,12 +69,24 @@ struct sObjectTableKey {
 	sObjectTableKey(void) = default;
 	unsigned int ulObjId = 0;
 	unsigned int ulOrderId = 0;
-};
 
-extern bool operator!=(const sObjectTableKey &, const sObjectTableKey &) noexcept;
-extern _kc_export bool operator==(const sObjectTableKey &, const sObjectTableKey &) noexcept;
-extern _kc_export bool operator<(const sObjectTableKey &, const sObjectTableKey &) noexcept;
-extern bool operator>(const sObjectTableKey &, const sObjectTableKey &) noexcept;
+	bool operator==(const sObjectTableKey &o) const noexcept
+	{
+		return ulObjId == o.ulObjId && ulOrderId == o.ulOrderId;
+	}
+
+	bool operator!=(const sObjectTableKey &o) const noexcept { return !operator==(o); }
+
+	bool operator<(const sObjectTableKey &o) const noexcept
+	{
+		return ulObjId < o.ulObjId || (ulObjId == o.ulObjId && ulOrderId < o.ulOrderId);
+	}
+
+	bool operator>(const sObjectTableKey &o) const noexcept
+	{
+		return ulObjId > o.ulObjId || (ulObjId == o.ulObjId && ulOrderId > o.ulOrderId);
+	}
+};
 
 typedef std::map<sObjectTableKey, unsigned int> ECObjectTableMap;
 typedef std::list<sObjectTableKey> ECObjectTableList;
