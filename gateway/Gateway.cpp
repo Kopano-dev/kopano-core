@@ -593,10 +593,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	}
 
 	// Setup signals
-	signal(SIGTERM, sigterm);
-	signal(SIGINT, sigterm);
-	signal(SIGHUP, sighup);
-	signal(SIGCHLD, sigchld);
 	signal(SIGPIPE, SIG_IGN);
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
@@ -604,6 +600,14 @@ static HRESULT running_service(const char *szPath, const char *servicename)
     sigaction(SIGSEGV, &act, NULL);
     sigaction(SIGBUS, &act, NULL);
     sigaction(SIGABRT, &act, NULL);
+	act.sa_flags   = SA_RESTART;
+	act.sa_handler = sigterm;
+	sigaction(SIGTERM, &act, nullptr);
+	sigaction(SIGINT, &act, nullptr);
+	act.sa_handler = sighup;
+	sigaction(SIGHUP, &act, nullptr);
+	act.sa_handler = sigchld;
+	sigaction(SIGCHLD, &act, nullptr);
 
     struct rlimit file_limit;
 	file_limit.rlim_cur = KC_DESIRED_FILEDES;

@@ -84,9 +84,12 @@ static HRESULT running_service(void)
 static void sighandle(int sig)
 {
 	// Win32 has Unix semantics and therefore requires us to reset the signal handler.
-	signal(SIGTERM , sighandle);
-	signal(SIGINT  , sighandle);	// CTRL+C
-
+	struct sigaction act{};
+	sigemptyset(&act.sa_mask);
+	act.sa_flags   = SA_RESTART;
+	act.sa_handler = sighandle;
+	sigaction(SIGTERM, &act, nullptr);
+	sigaction(SIGINT, &act, nullptr);
 	if (m_lpThreadMonitor) {
 		if (!m_lpThreadMonitor->bShutdown)
 			/* do not log multimple shutdown messages */
@@ -255,20 +258,23 @@ static ECRESULT main2(int argc, char **argv)
 	if (!szPath)
 		szPath = m_lpThreadMonitor->lpConfig->GetSetting("server_socket");
 
-	signal(SIGTERM, sighandle);
-	signal(SIGINT, sighandle);
-	signal(SIGHUP, sighup);
 
 	// SIGSEGV backtrace support
 	KAlternateStack sigstack;
-	struct sigaction act;
-	memset(&act, 0, sizeof(act));
+	struct sigaction act{};
+	sigemptyset(&act.sa_mask);
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
 	sigemptyset(&act.sa_mask);
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGBUS, &act, NULL);
 	sigaction(SIGABRT, &act, NULL);
+	act.sa_flags   = SA_RESTART;
+	act.sa_handler = sighandle;
+	sigaction(SIGTERM, &act, nullptr);
+	sigaction(SIGINT, &act, nullptr);
+	act.sa_handler = sighup;
+	sigaction(SIGHUP, &act, nullptr);
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads

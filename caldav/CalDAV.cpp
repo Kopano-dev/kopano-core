@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
 	HRESULT hr = hrSuccess;
 	int ulListenCalDAV = 0, ulListenCalDAVs = 0;
 	bool bIgnoreUnknownConfigOptions = false;
-	struct sigaction act;
+	struct sigaction act{};
 
 	// Configuration
 	const char *lpszCfg = ECConfig::GetDefaultPath("ical.cfg");
@@ -261,18 +261,21 @@ int main(int argc, char **argv) {
 		goto exit;
 
 	// setup signals
-	signal(SIGTERM, sigterm);
-	signal(SIGINT, sigterm);
-	signal(SIGHUP, sighup);
-	signal(SIGCHLD, sigchld);
 	signal(SIGPIPE, SIG_IGN);
-    memset(&act, 0, sizeof(act));
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
 	sigemptyset(&act.sa_mask);
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGBUS, &act, NULL);
 	sigaction(SIGABRT, &act, NULL);
+	act.sa_flags = SA_RESTART;
+	act.sa_handler = sigterm;
+	sigaction(SIGTERM, &act, nullptr);
+	sigaction(SIGINT, &act, nullptr);
+	act.sa_handler = sighup;
+	sigaction(SIGHUP, &act, nullptr);
+	act.sa_handler = sigchld;
+	sigaction(SIGCHLD, &act, nullptr);
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
