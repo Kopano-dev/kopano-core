@@ -164,8 +164,7 @@ bool ECTableRow::rowcompare(const ECSortColView &a, const ECSortColView &b,
 	// Unequal, flip order if desc
 	if (!fIgnoreOrder && a[i].flags & TABLEROW_FLAG_DESC)
 		return !ret;
-	else
-		return ret;
+	return ret;
 }
 
 // Compares a row by looking only at a certain prefix of sort columns
@@ -618,15 +617,11 @@ ECRESULT ECKeyTable::InvalidateBookmark(ECTableRow *lpRow)
 	// Nothing todo
 	if (m_mapBookmarks.empty())
 		return erSuccess;
-
-	for(iPosition = m_mapBookmarks.begin(); iPosition != m_mapBookmarks.end(); )
-	{
-		if (lpRow != iPosition->second.lpPosition) {
+	for (iPosition = m_mapBookmarks.begin(); iPosition != m_mapBookmarks.end(); ) {
+		if (lpRow != iPosition->second.lpPosition)
 			++iPosition;
-			continue;
-		}
-		iRemove = iPosition++;
-		m_mapBookmarks.erase(iRemove);
+		else
+			iPosition = m_mapBookmarks.erase(iPosition);
 	}
 	return erSuccess;
 }
