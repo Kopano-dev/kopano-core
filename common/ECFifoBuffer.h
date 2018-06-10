@@ -54,22 +54,6 @@ private:
 	std::condition_variable m_hCondNotEmpty, m_hCondNotFull, m_hCondFlushed;
 };
 
-
-// inlines
-inline bool ECFifoBuffer::IsClosed(ULONG flags) const {
-	switch (flags) {
-	case cfRead:
-		return m_bReaderClosed;
-	case cfWrite:
-		return m_bWriterClosed;
-	case cfRead|cfWrite:
-		return m_bReaderClosed && m_bWriterClosed;
-	default:
-		assert(false);
-		return false;
-	}
-}
-
 } /* namespace */
 
 #endif // ndef ECFIFOBUFFER_H

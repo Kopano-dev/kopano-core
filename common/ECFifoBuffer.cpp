@@ -205,4 +205,19 @@ ECRESULT ECFifoBuffer::Flush()
 	return erSuccess;
 }
 
+bool ECFifoBuffer::IsClosed(unsigned int flags) const
+{
+	switch (flags) {
+	case cfRead:
+		return m_bReaderClosed;
+	case cfWrite:
+		return m_bWriterClosed;
+	case cfRead|cfWrite:
+		return m_bReaderClosed && m_bWriterClosed;
+	default:
+		assert(false);
+		return false;
+	}
+}
+
 } /* namespace */
