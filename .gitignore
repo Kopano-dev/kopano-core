@@ -101,7 +101,6 @@ stamp-h2
 /common/ecversion.h
 /common/include/kopano/ecversion.h
 /common/kopano.pc
-/common/libkcmapi.sym
 /common/libkcutil.sym
 
 ## /doc/php-ext/

@@ -32,7 +32,7 @@ public:
     std::string convert(const std::string &input);
 
 private:
-	typedef details::iconv_context<std::string, std::string> context_t;
+	typedef iconv_context<std::string, std::string> context_t;
 	std::unique_ptr<context_t> m_lpContext;
 };
 

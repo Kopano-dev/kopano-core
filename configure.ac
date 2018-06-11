@@ -737,7 +737,7 @@ AC_CONFIG_FILES([Makefile
 		swig/python/include/kopano/Makefile
 		swig/python/kopano/Makefile
 		swig/python/zarafa/Makefile
-		common/kopano.pc common/libkcmapi.sym common/libkcutil.sym
+		common/kopano.pc common/libkcutil.sym
 		default.sym
 		mapi4linux/src/libmapi.sym
 		provider/plugin.sym provider/provider.sym

@@ -67,33 +67,6 @@ namespace Predicates {
 		IMAPISession *m_lpSession;
 		const SObjectEntry &m_objEntry;
 	};
-
-	/**
-	 * Compare a store entryid with the store entryid from an SObjectEntry instance.
-	 * This method uses CompareEntryIDs to do the comparison.
-	 */
-	class storeId_equals_compareEntryId {
-	public:
-		storeId_equals_compareEntryId(IMAPISession *lpSession, const entryid_t &storeId): m_lpSession(lpSession), m_storeId(storeId) {}
-		bool operator()(const SObjectEntry &objEntry) const
-		{
-			ULONG ulResult = 0;
-			auto hr = m_lpSession->CompareEntryIDs(m_storeId.size(), m_storeId, objEntry.sStoreEntryId.size(), objEntry.sStoreEntryId, 0, &ulResult);
-			return (hr == hrSuccess && ulResult == 1);
-		}
-	private:
-		IMAPISession *m_lpSession;
-		const entryid_t &m_storeId;
-	};
-
-	class MapInfo_contains_userName {
-	public:
-		MapInfo_contains_userName(const tstring &userName): m_userName(userName) {}
-		bool operator()(const ArchiveStateUpdater::ArchiveInfoMap::value_type &pair) const { return m_userName.compare(pair.second.userName) == 0; }
-	private:
-		const tstring &m_userName;
-	};
-
 } // namespace Predicates
 
 /**
@@ -159,7 +132,7 @@ HRESULT ArchiveStateUpdater::Update(const tstring &userName, unsigned int ulAtta
 	// First see if the username can be found in the map.
 	auto i = std::find_if(m_mapArchiveInfo.cbegin(),
 	         m_mapArchiveInfo.cend(),
-	         Predicates::MapInfo_contains_userName(userName));
+	         [&](const decltype(m_mapArchiveInfo)::value_type &p) { return userName.compare(p.second.userName) == 0; });
 	if (i == m_mapArchiveInfo.end()) {
 		// Resolve the username and search by entryid.
 		abentryid_t userId;
@@ -533,7 +506,11 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 		}
 
 		// see if entry is in list of attached archives (store entryid only)
-		auto iObjEntry = std::find_if(lstArchives.begin(), lstArchives.end(), Predicates::storeId_equals_compareEntryId(m_ptrSession->GetMAPISession(), archiveId));
+		auto iObjEntry = std::find_if(lstArchives.begin(), lstArchives.end(),
+			[&](const SObjectEntry &e) {
+				ULONG r = 0;
+				return m_ptrSession->GetMAPISession()->CompareEntryIDs(archiveId.size(), archiveId, e.sStoreEntryId.size(), e.sStoreEntryId, 0, &r) == hrSuccess && r == 1;
+			});
 		if (iObjEntry == lstArchives.end()) {
 			// Found a server/archive that's not yet attached. Add it to the to-attach-list.
 			m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "archive store for \"" TSTRING_PRINTF "\" on server \"" TSTRING_PRINTF "\" not yet attached. Adding to server list", info.userName.c_str(), i.c_str());

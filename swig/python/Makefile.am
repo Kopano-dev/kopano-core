@@ -40,7 +40,6 @@ _MAPICore_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/libsync
 _MAPICore_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 _MAPICore_la_LIBADD = libkcpyconv.la libkcpydirector.la \
 	${top_builddir}/libmapi.la \
-	${top_builddir}/libkcmapi.la \
 	${top_builddir}/libkcutil.la \
 	$(XML2_LIBS) $(PROG_LIBS) $(PYTHON_LIBS)
 
@@ -48,7 +47,6 @@ _inetmapi_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/inetmapi
 _inetmapi_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 _inetmapi_la_LIBADD = libkcpyconv.la \
 	${top_builddir}/libmapi.la \
-	${top_builddir}/libkcmapi.la \
 	${top_builddir}/libkcutil.la \
 	${top_builddir}/libkcinetmapi.la \
 	$(PROG_LIBS) $(PYTHON_LIBS)
@@ -59,7 +57,6 @@ _icalmapi_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 _icalmapi_la_LIBADD = libkcpyconv.la \
 	${top_builddir}/libmapi.la \
 	${top_builddir}/libkcicalmapi.la \
-	${top_builddir}/libkcmapi.la \
 	${top_builddir}/libkcutil.la \
 	${top_builddir}/libkcfreebusy.la \
 	$(ICAL_LIBS) $(PROG_LIBS) $(PYTHON_LIBS)
@@ -74,7 +71,6 @@ _archiver_la_LIBADD = \
 _RecurrenceState_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version -rpath '$(libdir)'
 _RecurrenceState_la_LIBADD = libkcpyconv.la \
 	${top_builddir}/libmapi.la \
-	${top_builddir}/libkcmapi.la \
 	${top_builddir}/libkcutil.la \
 	$(PROG_LIBS) $(PYTHON_LIBS)
 
@@ -82,7 +78,6 @@ _libfreebusy_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/libfreebusy
 _libfreebusy_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 _libfreebusy_la_LIBADD = libkcpyconv.la ${top_builddir}/libmapi.la \
 	${top_builddir}/libkcfreebusy.la \
-	${top_builddir}/libkcmapi.la \
 	${top_builddir}/libkcutil.la \
 	$(PROG_LIBS) $(PYTHON_LIBS)
 

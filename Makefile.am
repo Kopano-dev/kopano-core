@@ -78,8 +78,7 @@ COND_libkcrosie_la = libkcrosie.la
 COND_libkcrosie_ldd = libkcrosie.ldd
 endif
 lib_LTLIBRARIES = \
-	libkcutil.la libkcmapi.la libkcssl.la libmapi.la \
-	libkcfreebusy.la libkcsoap.la libkcserver.la \
+	libkcutil.la libmapi.la libkcfreebusy.la libkcsoap.la libkcserver.la \
 	libkcicalmapi.la ${COND_libkcrosie_la} libkcinetmapi.la \
 	libkcarchiver.la libkcarchivercore.la
 noinst_LTLIBRARIES =
@@ -93,8 +92,8 @@ noinst_DATA = \
 	kopano-stats.ldx \
 	libkcarchiver.ldd libkcarchivercore.ldd libkcclient.ldd \
 	libkccontacts.ldd libkcfreebusy.ldd libkcicalmapi.ldd \
-	libkcinetmapi.ldd libkcmapi.ldd ${COND_libkcrosie_ldd} \
-	libkcserver.ldd libkcssl.ldd libkcutil.ldd libmapi.ldd
+	libkcinetmapi.ldd ${COND_libkcrosie_ldd} \
+	libkcserver.ldd libkcutil.ldd libmapi.ldd
 # Undefined references
 #noinst_DATA += libkcsoap.ldd
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
@@ -124,8 +123,7 @@ plugin_SYFLAGS = -Wl,--version-script=provider/plugin.sym
 #
 kopano_admin_SOURCES = ECtools/admin/admin.cpp
 kopano_admin_LDADD = \
-	libmapi.la libkcmapi.la libkcutil.la libkcssl.la libkcarchiver.la \
-	${PROG_LIBS} ${SSL_LIBS}
+	libmapi.la libkcutil.la libkcarchiver.la ${PROG_LIBS} ${SSL_LIBS}
 
 
 #
@@ -133,7 +131,7 @@ kopano_admin_LDADD = \
 #
 kopano_archiver_SOURCES = ECtools/archiver/main.cpp
 kopano_archiver_LDADD = \
-	libmapi.la libkcmapi.la libkcutil.la libkcarchiver.la \
+	libmapi.la libkcutil.la libkcarchiver.la \
 	libkcarchivercore.la ${PROG_LIBS}
 
 
@@ -145,7 +143,7 @@ kopano_cfgchecker_SOURCES = \
 	ECtools/cfgchecker/LDAPConfigCheck.cpp \
 	ECtools/cfgchecker/ServerConfigCheck.cpp \
 	ECtools/cfgchecker/cfg.cpp
-kopano_cfgchecker_LDADD = libkcutil.la libkcmapi.la libmapi.la ${PROG_LIBS}
+kopano_cfgchecker_LDADD = libkcutil.la libmapi.la ${PROG_LIBS}
 
 
 #
@@ -164,8 +162,8 @@ kopano_dagent_SOURCES = \
 	spooler/archive.cpp spooler/archive.h \
 	spooler/rules.cpp spooler/rules.h
 kopano_dagent_LDADD = \
-	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
-	libkcarchiver.la libkcarchivercore.la \
+	libkcinetmapi.la libmapi.la libkcutil.la \
+	libkcarchiver.la libkcarchivercore.la -lpthread \
 	${PROG_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 if ENABLE_PYTHON
 kopano_dagent_LDADD += libkcpyplug.la
@@ -178,7 +176,7 @@ endif
 kopano_dbadm_SOURCES = ECtools/dbadm.cpp \
 	common/database.cpp common/include/kopano/database.hpp
 kopano_dbadm_CPPFLAGS = ${AM_CPPFLAGS}
-kopano_dbadm_LDADD = libkcmapi.la libkcutil.la ${MYSQL_LIBS}
+kopano_dbadm_LDADD = libkcutil.la ${MYSQL_LIBS}
 
 
 #
@@ -187,7 +185,7 @@ kopano_dbadm_LDADD = libkcmapi.la libkcutil.la ${MYSQL_LIBS}
 kopano_fsck_SOURCES = \
 	ECtools/fsck/fsck.cpp ECtools/fsck/fsck-main.cpp ECtools/fsck/fsck-calendar.cpp \
 	ECtools/fsck/fsck-contact.cpp ECtools/fsck/fsck-task.cpp ECtools/fsck/fsck.h
-kopano_fsck_LDADD = libmapi.la libkcmapi.la libkcutil.la ${PROG_LIBS}
+kopano_fsck_LDADD = libmapi.la libkcutil.la ${PROG_LIBS}
 
 
 #
@@ -198,8 +196,7 @@ kopano_gateway_SOURCES = \
 	gateway/IMAP.cpp gateway/IMAP.h \
 	gateway/POP3.cpp gateway/POP3.h
 kopano_gateway_LDADD = \
-	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
-	-lpthread \
+	libkcinetmapi.la libmapi.la libkcutil.la -lpthread \
 	${PROG_LIBS} ${CRYPTO_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 
 
@@ -213,8 +210,7 @@ kopano_ical_SOURCES = \
 	caldav/ProtocolBase.cpp caldav/ProtocolBase.h \
 	caldav/WebDav.cpp caldav/WebDav.h caldav/iCal.cpp caldav/iCal.h
 kopano_ical_LDADD = \
-	libmapi.la libkcmapi.la libkcutil.la libkcicalmapi.la libkcssl.la \
-	libkcfreebusy.la -lpthread \
+	libmapi.la libkcutil.la libkcicalmapi.la libkcfreebusy.la -lpthread \
 	${PROG_LIBS} ${SSL_LIBS} ${ICONV_LIBS} ${XML2_LIBS} \
 	${ICAL_LIBS} ${icu_uc_LIBS}
 
@@ -226,18 +222,18 @@ kopano_monitor_SOURCES = \
 	ECtools/monitor/ECMonitorDefs.h \
 	ECtools/monitor/ECQuotaMonitor.cpp ECtools/monitor/ECQuotaMonitor.h \
 	ECtools/monitor/monitor.cpp
-kopano_monitor_LDADD = libmapi.la libkcmapi.la libkcutil.la ${PROG_LIBS}
+kopano_monitor_LDADD = libmapi.la libkcutil.la ${PROG_LIBS}
 
 
 kopano_oof_SOURCES = ECtools/oof.cpp
-kopano_oof_LDADD = ${jsoncpp_LIBS} ${popt_LIBS} libmapi.la libkcmapi.la libkcutil.la
+kopano_oof_LDADD = ${jsoncpp_LIBS} ${popt_LIBS} libmapi.la libkcutil.la
 
 
 #
 # kopano-passwd
 #
 kopano_passwd_SOURCES = ECtools/passwd/passwd.cpp
-kopano_passwd_LDADD = libmapi.la libkcmapi.la libkcutil.la ${PROG_LIBS}
+kopano_passwd_LDADD = libmapi.la libkcutil.la ${PROG_LIBS}
 
 
 #
@@ -247,7 +243,7 @@ kopano_spooler_SOURCES = \
 	spooler/Spooler.cpp spooler/archive.cpp spooler/archive.h \
 	spooler/mailer.cpp spooler/mailer.h
 kopano_spooler_LDADD = \
-	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
+	libkcinetmapi.la libmapi.la libkcutil.la \
 	libkcarchiver.la libkcarchivercore.la ${PROG_LIBS} ${XML2_LIBS}
 if ENABLE_PYTHON
 kopano_spooler_LDADD += libkcpyplug.la
@@ -265,13 +261,11 @@ kopano_stats_SOURCES = ECtools/stats/stats.cpp
 kopano_stats_CPPFLAGS = ${AM_CPPFLAGS} ${NCURSES_FLAGS}
 # ncurses needs to come first, because ICU_LIBS erroneously has -L/usr/lib64
 # which overrides the ncurses lib selection >:-(
-kopano_stats_LDADD = \
-	${NCURSES_LIBS} libmapi.la libkcmapi.la libkcutil.la ${PROG_LIBS}
+kopano_stats_LDADD = ${NCURSES_LIBS} libmapi.la libkcutil.la ${PROG_LIBS}
 
 
 kopano_storeadm_SOURCES = ECtools/storeadm.cpp
-kopano_storeadm_LDADD = ${jsoncpp_LIBS} ${popt_LIBS} \
-	libmapi.la libkcmapi.la libkcutil.la
+kopano_storeadm_LDADD = ${jsoncpp_LIBS} ${popt_LIBS} libmapi.la libkcutil.la
 
 
 #
@@ -282,8 +276,7 @@ kopano_server_SOURCES = \
 	provider/server/ECSoapServerConnection.cpp provider/server/ECSoapServerConnection.h \
 	provider/server/ECThreadManager.cpp provider/server/ECThreadManager.h
 kopano_server_LDADD = \
-	libkcutil.la libkcmapi.la libkcssl.la \
-	libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
+	libkcutil.la libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
 	${PROG_LIBS} ${clock_LIBS} \
 	${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
 	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} ${kcoidc_LIBS} -lpthread
@@ -309,7 +302,7 @@ libkcarchiver_la_SOURCES = \
 	ECtools/archiver/ECIterators.cpp ECtools/archiver/ECIterators.h
 libkcarchiver_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${default_SYFLAGS${NO_VSYM}}
-libkcarchiver_la_LIBADD = libmapi.la libkcmapi.la libkcutil.la
+libkcarchiver_la_LIBADD = libmapi.la libkcutil.la
 EXTRA_libkcarchiver_la_DEPENDENCIES = ${default_sym}
 
 
@@ -343,8 +336,7 @@ libkcarchivercore_la_SOURCES = \
 libkcarchivercore_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${default_SYFLAGS${NO_VSYM}}
 libkcarchivercore_la_LIBADD = \
-	libmapi.la libkcmapi.la libkcarchiver.la \
-	${PROG_LIBS} ${SSL_LIBS} ${MYSQL_LIBS}
+	libmapi.la libkcarchiver.la ${PROG_LIBS} ${SSL_LIBS} ${MYSQL_LIBS}
 EXTRA_libkcarchivercore_la_DEPENDENCIES = ${default_sym}
 
 
@@ -414,7 +406,7 @@ libkcclient_la_SOURCES = \
 	provider/common/SOAPSock.cpp provider/common/SOAPSock.h \
 	provider/soap/soapKCmdProxy.h provider/soap/soapKCmdProxy.cpp
 libkcclient_la_LIBADD = \
-	libkcmapi.la libkcssl.la libkcutil.la libkcfreebusy.la \
+	libkcutil.la libkcfreebusy.la \
 	libmapi.la ${COND_libkcrosie_la} libkcsoap.la -lstdc++ \
 	${GSOAP_LIBS} ${ICU_LIBS} ${SSL_LIBS} ${UUID_LIBS} ${KRB5_LIBS}
 libkcclient_la_SYFLAGS = -Wl,--version-script=provider/provider.sym
@@ -433,7 +425,7 @@ libkccontacts_la_SOURCES = \
 	provider/contacts/ZCABProvider.h provider/contacts/ZCABProvider.cpp \
 	provider/contacts/ZCMAPIProp.h provider/contacts/ZCMAPIProp.cpp
 libkccontacts_la_LIBADD = \
-	libkcutil.la libkcmapi.la libmapi.la -lstdc++ ${UUID_LIBS} ${ICU_LIBS}
+	libkcutil.la libmapi.la -lstdc++ ${UUID_LIBS} ${ICU_LIBS}
 libkccontacts_la_SYFLAGS = -Wl,--version-script=provider/provider.sym
 libkccontacts_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
 	${libkccontacts_la_SYFLAGS${NO_VSYM}}
@@ -457,8 +449,7 @@ libkcfreebusy_la_SOURCES = \
 	libfreebusy/ECFreeBusyUpdate.cpp libfreebusy/ECFreeBusyUpdate.h \
 	libfreebusy/PublishFreeBusy.cpp \
 	libfreebusy/freebusyutil.cpp libfreebusy/recurrence.cpp
-libkcfreebusy_la_LIBADD = \
-	libkcutil.la libkcmapi.la libmapi.la
+libkcfreebusy_la_LIBADD = libkcutil.la libmapi.la
 libkcfreebusy_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcfreebusy_la_DEPENDENCIES = ${default_sym}
@@ -487,7 +478,7 @@ libkcicalmapi_la_SOURCES = \
 	libicalmapi/vevent.cpp libicalmapi/vfreebusy.cpp \
 	libicalmapi/vtimezone.cpp libicalmapi/vtodo.cpp
 libkcicalmapi_la_LIBADD = \
-	libkcfreebusy.la libmapi.la libkcmapi.la libkcutil.la ${ICAL_LIBS}
+	libkcfreebusy.la libmapi.la libkcutil.la ${ICAL_LIBS}
 libkcicalmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0 \
 	${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcicalmapi_la_DEPENDENCIES = ${default_sym}
@@ -516,7 +507,7 @@ libkcinetmapi_la_SOURCES = \
 # libinetmapi. On some systems, this fails to resolve the symbol during unload,
 # resulting in a crash in __cxa_finalize during unload of mapi.so
 libkcinetmapi_la_LIBADD = \
-	libmapi.la libkcmapi.la libkcutil.la libkcicalmapi.la \
+	libmapi.la libkcutil.la libkcicalmapi.la \
 	${COND_libkcrosie_la} ${VMIME_LIBS} ${XML2_LIBS}
 libkcinetmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-version-info 0:0:0 -Wl,-z -Wl,now ${default_SYFLAGS${NO_VSYM}}
@@ -575,8 +566,7 @@ libkcserver_la_SOURCES = \
 	provider/common/ECSearchClient.cpp provider/common/ECSearchClient.h \
 	provider/soap/soapKCmdService.h provider/soap/soapKCmdService.cpp
 libkcserver_la_LIBADD = \
-	libkcutil.la libkcmapi.la libkcssl.la libkcsoap.la \
-	-lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \
+	libkcutil.la libkcsoap.la -lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \
 	${GSOAP_LIBS} ${KRB5_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS} \
 	${kcoidc_LIBS}
 libkcserver_la_SYFLAGS = -Wl,--version-script=provider/libkcserver.sym
@@ -585,27 +575,6 @@ libkcserver_la_LDFLAGS = ${AM_LDFLAGS} \
 EXTRA_libkcserver_la_DEPENDENCIES = provider/libkcserver.sym
 
 provider/libkcserver.sym: ${top_builddir}/config.status
-
-
-#
-# libkcmapi
-#
-noinst_HEADERS += \
-	common/ECMemStream.h common/HtmlEntity.h common/HtmlToTextParser.h \
-	common/IStreamAdapter.h common/rtfutil.h
-libkcmapi_la_SOURCES = \
-	common/ECABEntryID.cpp \
-	common/ECGuid.cpp common/ECKeyTable.cpp common/ECMemStream.cpp \
-	common/ECUnknown.cpp common/HtmlEntity.cpp common/HtmlToTextParser.cpp \
-	common/IStreamAdapter.cpp common/kcodes.cpp \
-	common/codepage.cpp common/rtfutil.cpp
-libkcmapi_la_LIBADD = libkcutil.la -lpthread
-libkcmapi_la_SYFLAGS = -Wl,--version-script=common/libkcmapi.sym
-libkcmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	${libkcmapi_la_SYFLAGS${NO_VSYM}}
-EXTRA_libkcmapi_la_DEPENDENCIES = common/libkcmapi.sym
-
-common/libkcmapi.sym: ${top_builddir}/config.status
 
 
 #
@@ -629,25 +598,13 @@ libkcsoap_la_SOURCES = \
 	provider/common/pcutil.cpp provider/common/pcutil.hpp \
 	provider/common/versions.h
 libkcsoap_la_CXXFLAGS = ${AM_CXXFLAGS} -fvisibility=default
-libkcsoap_la_LIBADD = libkcutil.la libkcmapi.la ${GSOAP_LIBS}
+libkcsoap_la_LIBADD = libkcutil.la ${GSOAP_LIBS}
 libkcsoap_la_SYFLAGS = -Wl,--version-script=provider/libkcsoap.sym
 libkcsoap_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${libkcsoap_la_SYFLAGS${NO_VSYM}}
 EXTRA_libkcsoap_la_DEPENDENCIES = provider/libkcsoap.sym
 
 provider/libkcsoap.sym: ${top_builddir}/config.status
-
-
-#
-# libkcssl
-#
-noinst_HEADERS += common/ECChannelClient.h common/SSLUtil.h
-libkcssl_la_SOURCES = \
-	common/ECChannel.cpp common/ECChannelClient.cpp common/SSLUtil.cpp
-libkcssl_la_LIBADD = libkcutil.la -lpthread ${SSL_LIBS}
-libkcssl_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	${default_SYFLAGS${NO_VSYM}}
-EXTRA_libkcssl_la_DEPENDENCIES = ${default_sym}
 
 
 #
@@ -660,18 +617,26 @@ noinst_HEADERS += \
 	common/charset/localeutil.h \
 	common/utf8/core.h common/utf8/unchecked.h
 libkcutil_la_SOURCES = \
-	common/ConsoleTable.cpp common/ECACL.cpp common/ECCache.cpp \
+	common/ConsoleTable.cpp common/ECABEntryID.cpp \
+	common/ECACL.cpp common/ECCache.cpp \
+	common/ECChannel.cpp common/ECChannelClient.cpp \
 	common/ECConfig.cpp common/ECConfigImpl.cpp common/ECFifoBuffer.cpp \
-	common/ECGetText.cpp common/ECIConv.cpp common/ECLogger.cpp \
-	common/ECScheduler.cpp common/ECThreadPool.cpp common/MAPIErrors.cpp \
+	common/ECGetText.cpp common/ECGuid.cpp \
+	common/ECIConv.cpp common/ECKeyTable.cpp common/ECLogger.cpp \
+	common/ECMemStream.cpp \
+	common/ECScheduler.cpp common/ECThreadPool.cpp \
+	common/ECUnknown.cpp common/HtmlEntity.cpp common/HtmlToTextParser.cpp \
+	common/IStreamAdapter.cpp common/MAPIErrors.cpp common/SSLUtil.cpp \
 	common/StatsClient.cpp common/SymmetricCrypt.cpp common/TimeUtil.cpp \
 	common/TmpPath.cpp common/UnixUtil.cpp \
-	common/fileutil.cpp common/my_getopt.cpp common/platform.cpp \
-	common/platform.linux.cpp common/stringutil.cpp \
+	common/codepage.cpp common/fileutil.cpp common/kcodes.cpp \
+	common/my_getopt.cpp common/platform.cpp \
+	common/platform.linux.cpp common/rtfutil.cpp common/stringutil.cpp \
 	common/ustringutil.cpp common/charset/convert.cpp \
 	common/charset/convstring.cpp common/charset/localeutil.cpp
 libkcutil_la_LIBADD = \
-	-lpthread -lz ${CRYPTO_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} ${UUID_LIBS}
+	-lpthread -lz ${CRYPTO_LIBS} ${icu_i18n_LIBS} ${icu_uc_LIBS} \
+	${SSL_LIBS} ${UUID_LIBS}
 libkcutil_la_SYFLAGS = -Wl,--version-script=common/libkcutil.sym
 libkcutil_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	${libkcutil_la_SYFLAGS${NO_VSYM}}
@@ -698,7 +663,7 @@ libmapi_la_SOURCES = \
 	m4lcommon/Util.cpp \
 	m4lcommon/mapicontact.h
 libmapi_la_LIBADD = \
-	libkcutil.la libkcmapi.la -lpthread ${PROG_LIBS} ${DL_LIBS}
+	libkcutil.la -lpthread ${PROG_LIBS} ${DL_LIBS}
 libmapi_la_SYFLAGS = -Wl,--version-script=mapi4linux/src/libmapi.sym
 libmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 1:0:0 \
 	${libmapi_la_SYFLAGS${NO_VSYM}}
@@ -756,7 +721,7 @@ mapi_la_SOURCES += \
 	php-ext/typeconversion.cpp php-ext/typeconversion.h \
 	php-ext/util.cpp php-ext/util.h
 endif
-mapi_la_LIBADD = libmapi.la libkcmapi.la libkcutil.la libkcfreebusy.la \
+mapi_la_LIBADD = libmapi.la libkcutil.la libkcfreebusy.la \
 	libkcinetmapi.la libkcicalmapi.la ${PROG_LIBS} -lpthread
 mapi_la_SYFLAGS = -Wl,--version-script=${srcdir}/php-ext/mapi.sym
 mapi_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module ${PHP_LDFLAGS} \
@@ -788,7 +753,7 @@ dist_phpdata_DATA = \
 # test programs
 #
 mapitime_SOURCES = ECtools/mapitime.cpp
-mapitime_LDADD = ${clock_LIBS} libmapi.la libkcmapi.la libkcutil.la \
+mapitime_LDADD = ${clock_LIBS} libmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}
 rosie_test_SOURCES = librosie/test.cpp
 rosie_test_LDADD = libkcrosie.la
@@ -802,7 +767,11 @@ CLEANFILES += spooler/PythonSWIGRuntime.h
 EXTRA_DIST += spooler/PythonSWIGRuntime.h
 
 spooler/PythonSWIGRuntime.h:
+if ENABLE_PYTHON
 	${SWIG_EXEC} -python -external-runtime $@
+else
+	: >$@
+endif
 
 
 #

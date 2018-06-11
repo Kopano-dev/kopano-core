@@ -376,7 +376,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 	try {
 		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {
-		hr = details::HrFromException(ce);
+		hr = HrFromException(ce);
 	}
 	return hr;	
 }
@@ -666,7 +666,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 	try {
 		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {
-		hr = details::HrFromException(ce);
+		hr = HrFromException(ce);
 	}
 	return hr;	
 }
@@ -1017,7 +1017,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 	try {
 		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {
-		hr = details::HrFromException(ce);
+		hr = HrFromException(ce);
 	}
 	return hr;
 }
