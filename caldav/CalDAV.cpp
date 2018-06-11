@@ -61,7 +61,7 @@ struct HandlerArgs {
 
 static bool g_bDaemonize = true, g_bQuit, g_bThreads, g_dump_config;
 static ECLogger *g_lpLogger = NULL;
-static ECConfig *g_lpConfig = NULL;
+static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
 static std::atomic<int> nChildren{0};
 static HRESULT HrSetupListeners(int *lpulNormalSocket, int *lpulSecureSocket);
@@ -221,8 +221,7 @@ int main(int argc, char **argv) {
 	
 	// init xml parser
 	xmlInitParser();
-
-	g_lpConfig = ECConfig::Create(lpDefaults);
+	g_lpConfig.reset(ECConfig::Create(lpDefaults));
 	if (!g_lpConfig->LoadSettings(lpszCfg, !exp_config) ||
 	    g_lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
@@ -232,21 +231,20 @@ int main(int argc, char **argv) {
 			goto exit;
 		}
 		ec_log_set(g_lpLogger);
-		LogConfigErrors(g_lpConfig);
+		LogConfigErrors(g_lpConfig.get());
 		goto exit;
 	}
 	if (g_dump_config)
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
-
-	g_lpLogger = CreateLogger(g_lpConfig, argv[0], "KopanoICal");
+	g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0], "KopanoICal");
 	if (!g_lpLogger) {
 		fprintf(stderr, "Error loading configuration or parsing commandline arguments.\n");
 		goto exit;
 	}
 	ec_log_set(g_lpLogger);
 	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
-		LogConfigErrors(g_lpConfig);
-	if (!TmpPath::instance.OverridePath(g_lpConfig))
+		LogConfigErrors(g_lpConfig.get());
+	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path-setting!");
 	if (strcmp(g_lpConfig->GetSetting("process_model"), "thread") == 0) {
 		g_bThreads = true;
@@ -276,15 +274,15 @@ int main(int argc, char **argv) {
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig))
+	if (unix_runas(g_lpConfig.get()))
 		goto exit;
-	if (g_bDaemonize && unix_daemonize(g_lpConfig))
+	if (g_bDaemonize && unix_daemonize(g_lpConfig.get()))
 		goto exit;
 	if (!g_bDaemonize)
 		setsid();
-	unix_create_pidfile(argv[0], g_lpConfig);
+	unix_create_pidfile(argv[0], g_lpConfig.get());
 	if (g_bThreads == false)
-		g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger);
+		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), g_lpLogger);
 	else
 		g_lpLogger->SetLogprefix(LP_TID);
 	ec_log_set(g_lpLogger);
@@ -323,7 +321,6 @@ exit2:
 	MAPIUninitialize();
 exit:
 	ECChannel::HrFreeCtx();
-	delete g_lpConfig;
 	DeleteLogger(g_lpLogger);
 
 	SSL_library_cleanup(); // Remove SSL data for the main application and other related libraries
@@ -369,7 +366,7 @@ static HRESULT HrSetupListeners(int *lpulNormal, int *lpulSecure)
 
 	// start listening on secure port
 	if (bListenSecure) {
-		hr = ECChannel::HrSetCtx(g_lpConfig);
+		hr = ECChannel::HrSetCtx(g_lpConfig.get());
 		if (hr == hrSuccess) {
 			auto ret = ec_listen_inet(g_lpConfig->GetSetting("server_bind"), ulPortICalS, &ulSecureSocket);
 			if (ret < 0) {
