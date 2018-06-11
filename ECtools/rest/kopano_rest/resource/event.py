@@ -85,6 +85,8 @@ def recurrence_set(item, arg):
         item.recurring = True
         rec = item.recurrence
 
+        item.timezone = arg['range']['recurrenceTimeZone']
+
         rec.pattern = pattern_map_rev[arg['pattern']['type']]
         rec.interval = arg['pattern']['interval']
         if 'daysOfWeek' in arg['pattern']:

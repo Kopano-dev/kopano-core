@@ -6,6 +6,8 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 import codecs
 import datetime
+import pytz
+import struct
 import sys
 
 from MAPI import (
@@ -221,9 +223,12 @@ class Appointment(object):
 
     @property
     def timezone(self):
-        desc = self.get(PidLidTimeZoneDescription)
-        if desc:
-            return codecs.decode(desc[1:-1], 'ascii') # TODO check encoding
+        return self.get(PidLidTimeZoneDescription)
+
+    @timezone.setter
+    def timezone(self, value):
+        self[PidLidTimeZoneDescription] = value
+        self[PidLidTimeZoneStruct] = _utils._timezone_struct(value)
 
     def accept(self, comment=None, tentative=False, respond=True):
         # TODO update appointment itself

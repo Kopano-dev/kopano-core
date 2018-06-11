@@ -648,7 +648,7 @@ class Recurrence(object):
 
     @_start.setter # TODO start.setter
     def _start(self, value):
-        self._start_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
+        self._start_date = _utils.unixtime_to_rectime(calendar.timegm(value.timetuple()))
 
     @property # TODO end.setter
     def _end(self):
@@ -663,7 +663,7 @@ class Recurrence(object):
 
     @_end.setter
     def _end(self, value):
-        self._end_date = _utils.unixtime_to_rectime(time.mktime(value.date().timetuple()))
+        self._end_date = _utils.unixtime_to_rectime(calendar.timegm(value.timetuple()))
 
     # TODO functionality below here should be refactored or not visible
 

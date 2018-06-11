@@ -6,11 +6,15 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import binascii
+import calendar
 import datetime
 import dateutil
 import dateutil.tz
+from dateutil.relativedelta import relativedelta, SU
 import struct
 import sys
+
+import pytz
 
 from dateutil.relativedelta import (
     relativedelta, MO, TU, TH, FR, WE, SA, SU
@@ -38,6 +42,7 @@ from .errors import Error, NotFoundError, ArgumentError
 
 RRULE_WEEKDAYS = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
 UTC = dateutil.tz.tzutc()
+TZFMT = '<lll H HHHHHHHH H HHHHHHHH'
 
 if sys.hexversion >= 0x03000000:
     from . import table as _table
@@ -177,7 +182,8 @@ class MAPITimezone(datetime.tzinfo):
         _, \
         _, self.dstendmonth, self.dstendweek, self.dstendday, self.dstendhour, _, _, _, \
         _, \
-        _, self.dststartmonth, self.dststartweek, self.dststartday, self.dststarthour, _, _, _ = struct.unpack('<lll H HHHHHHHH H HHHHHHHH', tzdata)
+        _, self.dststartmonth, self.dststartweek, self.dststartday, self.dststarthour, _, _, _ = \
+            struct.unpack(TZFMT, tzdata)
 
     def _date(self, dt, dstmonth, dstweek, dstday, dsthour):
         d = datetime.datetime(dt.year, dstmonth, 1, dsthour)
@@ -222,6 +228,61 @@ def _to_utc(date, tzinfo):
 
 def _tz2(date, tz1, tz2):
     return date.replace(tzinfo=tz1).astimezone(tz2).replace(tzinfo=None)
+
+def _timezone_struct(name):
+    # this is a bit painful. we need to generate a MAPI timezone structure
+    # (rule) from an 'olson' name. on the one hand the olson db (as in pytz)
+    # does not expose the actual DST rules, if any, and just expands all
+    # transitions. this means we have to do some guess work.
+    # on the other hand, the MAPI struct/rule is quite limited (transition
+    # always on "Nth weekday in month", and not historical). ideally of course
+    # we move away from the MAPI struct altogether, and just use the olson name..
+    # but that would probably break other clients at this point.
+
+    tz = pytz.timezone(name)
+
+    now = datetime.datetime.now()
+    year = now.year
+
+    yearstart = datetime.datetime(year,1,1)
+
+    runningdst = tz.dst(yearstart)
+
+    UTCBIAS = tz.utcoffset(yearstart)
+    DSTBIAS = None
+    DSTSTART = None
+    DSTEND = None
+
+    ZERO = datetime.timedelta(0)
+
+    days = 366 if calendar.isleap(year) else 365
+
+    for day in range(days): # TODO find matching transitions
+        dt = datetime.datetime(year,1,1) + datetime.timedelta(days=day)
+
+        datedst = tz.dst(dt)
+
+        if runningdst == ZERO and datedst != ZERO:
+            runningdst = datedst
+            UTCBIAS = tz.utcoffset(dt) - datedst
+            DSTBIAS = datedst
+            DSTSTART = dt
+
+        elif runningdst != ZERO and datedst == ZERO:
+            runningdst = datedst
+            DSTEND = dt
+
+    utcbias = -UTCBIAS.seconds//60
+
+    if DSTBIAS:
+        dstbias = -DSTBIAS.seconds//60
+        startmonth = DSTSTART.month
+        endmonth = DSTEND.month
+        weekday = DSTSTART.weekday() # TODO don't assume start/end are same weekday and last-in-month
+
+        return struct.pack(TZFMT, utcbias, 0, dstbias, 0, 0, endmonth, weekday, 5, 0, 0, 0, 0, 0, 0, startmonth, weekday, 5, 0, 0, 0, 0)
+    else:
+        return struct.pack(TZFMT, utcbias, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
 def arg_objects(arg, supported_classes, method_name):
     if isinstance(arg, supported_classes):
