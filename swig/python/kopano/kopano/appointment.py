@@ -57,6 +57,10 @@ class Appointment(object):
         proptag = self.store._name_id(ALL_DAY_NAME) | PT_BOOLEAN
         return self._get_fast(proptag)
 
+    @all_day.setter
+    def all_day(self, value):
+        self[PidLidAppointmentSubType] = value
+
     @property
     def show_as(self):
         try:
