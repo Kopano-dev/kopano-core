@@ -29,10 +29,7 @@
 #include "Http.h"
 
 struct WEBDAVPROPNAME {
-	std::string strNS;
-	std::string strPropname;
-	std::string strPropAttribName;
-	std::string strPropAttribValue;
+	std::string strNS, strPropname, strPropAttribName, strPropAttribValue;
 };
 
 struct WEBDAVVALUE {
@@ -95,15 +92,12 @@ struct WEBDAVRPTMGET {
 };
 
 struct WEBDAVFBUSERINFO {
-	std::string strUser;
-	std::string strIcal;
+	std::string strUser, strIcal;
 };
 
 struct WEBDAVFBINFO {
-	time_t tStart;
-	time_t tEnd;
-	std::string strOrganiser;
-	std::string strUID;
+	time_t tStart, tEnd;
+	std::string strOrganiser, strUID;
 	std::list<WEBDAVFBUSERINFO> lstFbUserInfo;
 };
 

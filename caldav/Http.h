@@ -87,14 +87,8 @@ private:
 	std::string m_strPath;		//!< decoded url
 	std::string m_strHttpVer;
 	std::map<std::string, std::string> mapHeaders;
-
-	std::string m_strUser;
-	std::string m_strPass;
-	std::string m_strReqBody;
-	std::string m_strCharSet;
-
-	std::string m_strUserAgent;
-	std::string m_strUserAgentVersion;
+	std::string m_strUser, m_strPass, m_strReqBody, m_strCharSet;
+	std::string m_strUserAgent, m_strUserAgentVersion;
 
 	/* response */
 	std::string m_strRespHeader;			//!< first header with http status code

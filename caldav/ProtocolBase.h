@@ -48,8 +48,7 @@ protected:
 
 	std::wstring m_wstrUser;	//!< login username (http auth user)
 	bool m_blFolderAccess = true; //!< can we delete the current folder
-	ULONG m_ulUrlFlag = 0;
-	ULONG m_ulFolderFlag = 0;
+	ULONG m_ulUrlFlag = 0, m_ulFolderFlag = 0;
 	KC::convert_context m_converter;
 
 	std::string W2U(const std::wstring&); //!< convert widestring to UTF-8
