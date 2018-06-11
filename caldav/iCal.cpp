@@ -36,7 +36,7 @@
 
 using namespace KC;
 
-iCal::iCal(Http *lpRequest, IMAPISession *lpSession,
+iCal::iCal(Http &lpRequest, IMAPISession *lpSession,
     const std::string &strSrvTz, const std::string &strCharset) :
 	ProtocolBase(lpRequest, lpSession, strSrvTz, strCharset)
 {
@@ -91,26 +91,25 @@ exit:
 	if (hr == hrSuccess)
 	{
 		if (!strModtime.empty())
-			m_lpRequest->HrResponseHeader("Etag", strModtime);
-		m_lpRequest->HrResponseHeader("Content-Type", "text/calendar; charset=\"utf-8\""); 
-
+			m_lpRequest.HrResponseHeader("Etag", strModtime);
+		m_lpRequest.HrResponseHeader("Content-Type", "text/calendar; charset=\"utf-8\""); 
 		if (strIcal.empty()) {
-			m_lpRequest->HrResponseHeader(204, "No Content");
+			m_lpRequest.HrResponseHeader(204, "No Content");
 		} else {
-			m_lpRequest->HrResponseHeader(200, "OK");
+			m_lpRequest.HrResponseHeader(200, "OK");
 			strMsg = "attachment; filename=\"" + (m_wstrFldName.empty() ? "Calendar" : W2U(m_wstrFldName.substr(0,10))) + ".ics\"";
-			m_lpRequest->HrResponseHeader("Content-Disposition", strMsg);
+			m_lpRequest.HrResponseHeader("Content-Disposition", strMsg);
 		}
 		if (strMethod.compare("GET") == 0)
-			m_lpRequest->HrResponseBody(strIcal);
+			m_lpRequest.HrResponseBody(strIcal);
 		// @todo, send Content-Length header? but HrFinalize in HTTP class will also send with size:0
 	}
 	else if (hr == MAPI_E_NOT_FOUND)
 	{
-		m_lpRequest->HrResponseHeader(404, "Not Found");
+		m_lpRequest.HrResponseHeader(404, "Not Found");
 	}
 	else
-		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
+		m_lpRequest.HrResponseHeader(500, "Internal Server Error");
 	return hr;
 }
 
@@ -144,8 +143,7 @@ HRESULT iCal::HrHandleIcalPost()
 	//retrive entries from ical data.
 	std::unique_ptr<ICalToMapi> lpICalToMapi;
 	CreateICalToMapi(m_lpActiveStore, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
-
-	m_lpRequest->HrGetBody(&strIcal);
+	m_lpRequest.HrGetBody(&strIcal);
 	if(!strIcal.empty())
 	{
 		hr = lpICalToMapi->ParseICal(strIcal, m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
@@ -277,12 +275,11 @@ HRESULT iCal::HrHandleIcalPost()
 
 exit:
 	if(hr == hrSuccess || hr == MAPI_E_INVALID_OBJECT)
-		m_lpRequest->HrResponseHeader(200,"OK");
+		m_lpRequest.HrResponseHeader(200,"OK");
 	else if (hr == MAPI_E_NO_ACCESS)
-		m_lpRequest->HrResponseHeader(403,"Forbidden");
+		m_lpRequest.HrResponseHeader(403,"Forbidden");
 	else
-		m_lpRequest->HrResponseHeader(500,"Internal Server Error");
-
+		m_lpRequest.HrResponseHeader(500,"Internal Server Error");
 	for (mpIterJ = mpSrvEntries.cbegin(); mpIterJ != mpSrvEntries.cend(); ++mpIterJ)
 		MAPIFreeBuffer(mpIterJ->second.lpb);
 	mpSrvEntries.clear();
@@ -408,7 +405,7 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 	hr = ptrContents->SetColumns(sPropEntryIdcol, 0);
 	if (hr != hrSuccess)
 		return hr;
-	m_lpRequest->HrGetUrl(&strUrl);
+	m_lpRequest.HrGetUrl(&strUrl);
 	auto strUid = StripGuid(strUrl);
 	if (!strUid.empty()) {
 		// single item requested
@@ -535,10 +532,10 @@ HRESULT iCal::HrDelFolder()
 
 exit:
 	if (hr == hrSuccess)
-		m_lpRequest->HrResponseHeader(200,"OK");
+		m_lpRequest.HrResponseHeader(200,"OK");
 	else if (hr == MAPI_E_NO_ACCESS)
-		m_lpRequest->HrResponseHeader(403,"Forbidden");
+		m_lpRequest.HrResponseHeader(403,"Forbidden");
 	else
-		m_lpRequest->HrResponseHeader(500,"Internal Server Error");
+		m_lpRequest.HrResponseHeader(500,"Internal Server Error");
 	return hr;
 }

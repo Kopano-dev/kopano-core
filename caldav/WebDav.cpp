@@ -31,7 +31,7 @@ using namespace KC;
  * @param[in]	lpRequest	Pointer to http Request object
  * @param[in]	lpSession	Pointer to mapi session of the user
  */
-WebDav::WebDav(Http *lpRequest, IMAPISession *lpSession,
+WebDav::WebDav(Http &lpRequest, IMAPISession *lpSession,
     const std::string &strSrvTz, const std::string &strCharset) :
 	ProtocolBase(lpRequest, lpSession, strSrvTz, strCharset)
 {	
@@ -55,8 +55,7 @@ HRESULT WebDav::HrParseXml()
 	assert(m_lpXmlDoc == NULL);
 	if (m_lpXmlDoc != NULL)
 		return hrSuccess;
-	m_lpRequest->HrGetBody(&strBody);
-
+	m_lpRequest.HrGetBody(&strBody);
 	m_lpXmlDoc = xmlReadMemory((char *)strBody.c_str(),(int)strBody.length(), "PROVIDE_BASE.xml", NULL,  XML_PARSE_NOBLANKS);
 	return m_lpXmlDoc == nullptr ? MAPI_E_INVALID_PARAMETER : hrSuccess;
 }
@@ -138,17 +137,16 @@ HRESULT WebDav::HrPropfind()
 exit:
 	if(hr == hrSuccess)
 	{
-		m_lpRequest->HrResponseHeader(207, "Multi-Status");
-		m_lpRequest->HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\""); 
-		m_lpRequest->HrResponseBody(strXml);
+		m_lpRequest.HrResponseHeader(207, "Multi-Status");
+		m_lpRequest.HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\"");
+		m_lpRequest.HrResponseBody(strXml);
 	}
 	else if (hr == MAPI_E_NOT_FOUND)
-		m_lpRequest->HrResponseHeader(404, "Not Found");
+		m_lpRequest.HrResponseHeader(404, "Not Found");
 	else if (hr == MAPI_E_NO_ACCESS)
-		m_lpRequest->HrResponseHeader(403, "Access Denied");
+		m_lpRequest.HrResponseHeader(403, "Access Denied");
 	else 
-		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
-
+		m_lpRequest.HrResponseHeader(500, "Internal Server Error");
 	return hr;
 }
 
@@ -296,10 +294,9 @@ HRESULT WebDav::HrReport()
 		return HrPropertySearchSet();
 	else if (lpXmlNode->name && !xmlStrcmp(lpXmlNode->name, (const xmlChar *)"expand-property"))
 		// ignore expand-property
-		m_lpRequest->HrResponseHeader(200, "OK");
+		m_lpRequest.HrResponseHeader(200, "OK");
 	else
-		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
-
+		m_lpRequest.HrResponseHeader(500, "Internal Server Error");
 	return hrSuccess;
 }
 
@@ -443,15 +440,14 @@ HRESULT WebDav::HrHandleRptCalQry()
 		 goto exit;
 
 	//Respond to the client with xml data.
-	m_lpRequest->HrResponseHeader(207, "Multi-Status");
-	m_lpRequest->HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\""); 
-	m_lpRequest->HrResponseBody(strXml);
-
+	m_lpRequest.HrResponseHeader(207, "Multi-Status");
+	m_lpRequest.HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\"");
+	m_lpRequest.HrResponseBody(strXml);
 exit:
 	if (hr != hrSuccess)
 	{
 		ec_log_debug("Unable to process report calendar query: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
+		m_lpRequest.HrResponseHeader(500, "Internal Server Error");
 	}
 
 	return hr;
@@ -543,16 +539,14 @@ HRESULT WebDav::HrHandleRptMulGet()
 	hr = RespStructToXml(&sWebMStatus, &strXml);
 	if (hr != hrSuccess)
 		goto exit;
-
-	m_lpRequest->HrResponseHeader(207, "Multi-Status");
-	m_lpRequest->HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\""); 
-	m_lpRequest->HrResponseBody(strXml);
-
+	m_lpRequest.HrResponseHeader(207, "Multi-Status");
+	m_lpRequest.HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\"");
+	m_lpRequest.HrResponseBody(strXml);
 exit:
 	if(hr != hrSuccess)
 	{
 		ec_log_debug("Unable to process report multi-get: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
+		m_lpRequest.HrResponseHeader(500, "Internal Server Error");
 	}
 	
 	return hr;
@@ -645,16 +639,14 @@ HRESULT WebDav::HrPropertySearch()
 	hr = RespStructToXml(&sWebMStatus, &strXml);
 	if (hr != hrSuccess)
 		goto exit;
-
-	m_lpRequest->HrResponseHeader(207 , "Multi-Status");
-	m_lpRequest->HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\""); 
-	m_lpRequest->HrResponseBody(strXml);
-
+	m_lpRequest.HrResponseHeader(207 , "Multi-Status");
+	m_lpRequest.HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\"");
+	m_lpRequest.HrResponseBody(strXml);
 exit:
 	if(hr != hrSuccess)
 	{
 		ec_log_debug("Unable to process report multi-get: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
+		m_lpRequest.HrResponseHeader(500, "Internal Server Error");
 	}
 	
 	return hr;
@@ -680,10 +672,9 @@ HRESULT WebDav::HrPropertySearchSet()
 	hr = RespStructToXml(&sDavMStatus, &strXml);
 	if (hr != hrSuccess)
 		return hr;
-
-	m_lpRequest->HrResponseHeader(200, "OK");
-	m_lpRequest->HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\"");
-	m_lpRequest->HrResponseBody(strXml);
+	m_lpRequest.HrResponseHeader(200, "OK");
+	m_lpRequest.HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\"");
+	m_lpRequest.HrResponseBody(strXml);
 	return hrSuccess;
 }
 /**
@@ -734,11 +725,11 @@ HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 
 exit:
 	if (hr == hrSuccess) {
-		m_lpRequest->HrResponseHeader(200, "OK");
-		m_lpRequest->HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\"");
-		m_lpRequest->HrResponseBody(strXml);
+		m_lpRequest.HrResponseHeader(200, "OK");
+		m_lpRequest.HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\"");
+		m_lpRequest.HrResponseBody(strXml);
 	} else {
-		m_lpRequest->HrResponseHeader(404, "Not found");
+		m_lpRequest.HrResponseHeader(404, "Not found");
 	}
 
 	return hr;
@@ -1308,13 +1299,13 @@ exit:
 	if (hr != hrSuccess) {
 		// this is important for renaming your calendar folder
 		if (hr == MAPI_E_COLLISION)
-			m_lpRequest->HrResponseHeader(409, "Conflict");
+			m_lpRequest.HrResponseHeader(409, "Conflict");
 		else
-			m_lpRequest->HrResponseHeader(403, "Forbidden");
+			m_lpRequest.HrResponseHeader(403, "Forbidden");
 	} else {
-		m_lpRequest->HrResponseHeader(207 , "Multi-Status");
-		m_lpRequest->HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\""); 
-		m_lpRequest->HrResponseBody(strXml);
+		m_lpRequest.HrResponseHeader(207 , "Multi-Status");
+		m_lpRequest.HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\"");
+		m_lpRequest.HrResponseBody(strXml);
 	}
 
 	return hr;
@@ -1410,15 +1401,14 @@ HRESULT WebDav::HrMkCalendar()
 exit:
 	if(hr == MAPI_E_COLLISION)
 	{
-		m_lpRequest->HrResponseHeader(409,"CONFLICT");
-		m_lpRequest->HrResponseBody("Folder with same name already exists");
+		m_lpRequest.HrResponseHeader(409,"CONFLICT");
+		m_lpRequest.HrResponseBody("Folder with same name already exists");
 	}
 	else if(hr == MAPI_E_NO_ACCESS)
-		m_lpRequest->HrResponseHeader(403 ,"Forbidden");
+		m_lpRequest.HrResponseHeader(403 ,"Forbidden");
 	else if(hr == hrSuccess)
-		m_lpRequest->HrResponseHeader(201,"Created");
+		m_lpRequest.HrResponseHeader(201,"Created");
 	else
-		m_lpRequest->HrResponseHeader(500,"Bad Request");
-
+		m_lpRequest.HrResponseHeader(500,"Bad Request");
 	return hr;
 }

@@ -24,14 +24,14 @@
 
 class ProtocolBase {
 public:
-	ProtocolBase(Http *, IMAPISession *, const std::string &srv_tz, const std::string &charset);
+	ProtocolBase(Http &, IMAPISession *, const std::string &srv_tz, const std::string &charset);
 	virtual ~ProtocolBase() = default;
 	HRESULT HrInitializeClass();
 
 	virtual HRESULT HrHandleCommand(const std::string &strMethod) = 0;
 	
 protected:
-	Http *m_lpRequest = nullptr;
+	Http &m_lpRequest;
 	KC::object_ptr<IMAPISession> m_lpSession;
 	std::string m_strSrvTz;
 	std::string m_strCharset;

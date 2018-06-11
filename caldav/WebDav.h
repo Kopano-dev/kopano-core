@@ -106,7 +106,7 @@ struct WEBDAVFBINFO {
 
 class WebDav : public ProtocolBase {
 public:
-	WebDav(Http *, IMAPISession *, const std::string &srv_tz, const std::string &charset);
+	WebDav(Http &, IMAPISession *, const std::string &srv_tz, const std::string &charset);
 	virtual ~WebDav();
 
 protected:

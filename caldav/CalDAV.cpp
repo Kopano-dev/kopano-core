@@ -53,6 +53,7 @@
 #include <openssl/ssl.h>
 
 using namespace KC;
+using namespace KC::string_literals;
 
 struct HandlerArgs {
     ECChannel *lpChannel;
@@ -337,6 +338,23 @@ exit:
 
 static HRESULT HrSetupListeners(int *lpulNormal, int *lpulSecure)
 {
+	auto &cfg = g_lpConfig;
+	/* Modern directives */
+	auto ical_sock  = tokenize(cfg->GetSetting("ical_listen"), ' ', true);
+	auto icals_sock = tokenize(cfg->GetSetting("icals_listen"), ' ', true);
+	/* Historic directives */
+	auto addr = cfg->GetSetting("server_bind");
+	if (strcmp(cfg->GetSetting("ical_enable"), "yes") == 0) {
+		auto port = cfg->GetSetting("ical_port");
+		if (port[0] != '\0')
+			ical_sock.push_back("["s + addr + "]:" + port);
+	}
+	if (strcmp(cfg->GetSetting("icals_enable"), "yes") == 0) {
+		auto port = cfg->GetSetting("icals_port");
+		if (port[0] != '\0')
+			icals_sock.push_back("["s + addr + "]:" + port);
+	}
+
 	HRESULT hr;
 	int ulNormalSocket = 0, ulSecureSocket = 0;
 
@@ -365,7 +383,7 @@ static HRESULT HrSetupListeners(int *lpulNormal, int *lpulSecure)
 	}
 
 	// start listening on secure port
-	if (bListenSecure) {
+	if (!icals_sock.empty()) {
 		hr = ECChannel::HrSetCtx(g_lpConfig.get());
 		if (hr == hrSuccess) {
 			auto ret = ec_listen_inet(g_lpConfig->GetSetting("server_bind"), ulPortICalS, &ulSecureSocket);
@@ -658,12 +676,12 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	static_assert(std::is_polymorphic<ProtocolBase>::value, "ProtocolBase needs to be polymorphic for unique_ptr to work");
 	if( !strMethod.compare("GET") || !strMethod.compare("HEAD") || ((ulFlag & SERVICE_ICAL) && strMethod.compare("PROPFIND")) )
 	{
-		lpBase.reset(new iCal(&lpRequest, lpSession, strServerTZ, strCharset));
+		lpBase.reset(new iCal(lpRequest, lpSession, strServerTZ, strCharset));
 	}
 	//CALDAV Requests
 	else if((ulFlag & SERVICE_CALDAV) || ( !strMethod.compare("PROPFIND") && !(ulFlag & SERVICE_ICAL)))
 	{
-		lpBase.reset(new CalDAV(&lpRequest, lpSession, strServerTZ, strCharset));
+		lpBase.reset(new CalDAV(lpRequest, lpSession, strServerTZ, strCharset));
 	} 
 	else
 	{
