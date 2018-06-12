@@ -114,7 +114,7 @@ typedef memory_ptr<struct berval *, ldap_deleter> auto_free_ldap_berval;
 	do { \
 		if (m_ldap == NULL) \
 			/* this either returns a connection or throws an exception */ \
-			m_ldap = ConnectLDAP(m_config->GetSetting("ldap_bind_user"), m_config->GetSetting("ldap_bind_passwd")); \
+			m_ldap = ConnectLDAP(m_config->GetSetting("ldap_bind_user"), m_config->GetSetting("ldap_bind_passwd"), parseBool(m_config->GetSetting("ldap_starttls"))); \
 		/* set critical to 'F' to not force paging? @todo find an ldap server without support. */ \
 		rc = ldap_create_page_control(m_ldap, ldap_page_size, &sCookie, 0, &~pageControl); \
 		if (rc != LDAP_SUCCESS) {										\
@@ -264,6 +264,7 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 		{ "ldap_uri","" },
 		{"ldap_protocol", "ldap", CONFIGSETTING_OBSOLETE},
 		{ "ldap_server_charset", "UTF-8" },
+		{"ldap_starttls", "no", CONFIGSETTING_RELOADABLE},
 		{ "ldap_bind_user","" },
 		{ "ldap_bind_passwd","", CONFIGSETTING_EXACT | CONFIGSETTING_RELOADABLE },
 		{ "ldap_search_base","", CONFIGSETTING_RELOADABLE },
@@ -422,10 +423,10 @@ void LDAPUserPlugin::InitPlugin()
 {
 	const char *ldap_binddn = m_config->GetSetting("ldap_bind_user");
 	const char *ldap_bindpw = m_config->GetSetting("ldap_bind_passwd");
+	auto starttls = parseBool(m_config->GetSetting("ldap_starttls"));
 
 	/* FIXME encode the user and password, now it depends on which charset the config is saved in */
-	m_ldap = ConnectLDAP(ldap_binddn, ldap_bindpw);
-
+	m_ldap = ConnectLDAP(ldap_binddn, ldap_bindpw, starttls);
 	const char *ldap_server_charset = m_config->GetSetting("ldap_server_charset");
 	m_iconv.reset(new ECIConv("UTF-8", ldap_server_charset));
 	if (!m_iconv -> canConvert())
@@ -435,7 +436,9 @@ void LDAPUserPlugin::InitPlugin()
 		throw ldap_error(format("Cannot convert UTF-8 to %s", ldap_server_charset));
 }
 
-LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
+LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
+    const char *bind_pw, bool starttls)
+{
 	int rc = -1;
 	LDAP *ld = NULL;
 	LONGLONG llelapsedtime = 0;
@@ -490,22 +493,24 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 			ec_log_err("LDAP_OPT_NETWORK_TIMEOUT failed: %s", ldap_err2string(rc));
 			goto fail;
 		}
-#if 0 /* OpenLDAP stupidly closes the connection when TLS is not configured on the server. */
-#ifdef LINUX /* Only available in Windows XP, so we can't use this on windows platform. */
+		if (starttls) {
 #ifdef HAVE_LDAP_START_TLS_S
-		/*
-		 * Initialize TLS-secured connection - this is the first
-		 * command after ldap_init, so it will be the call that
-		 * actually connects to the server.
-		 */
-		rc = ldap_start_tls_s(ld, nullptr, nullptr);
-		if (rc != LDAP_SUCCESS) {
-			ec_log_err("Failed to enable TLS on LDAP session: %s", ldap_err2string(rc));
+			/*
+			 * Initialize TLS-secured connection - this is the first
+			 * command after ldap_init, so it will be the call that
+			 * actually connects to the server.
+			 */
+			rc = ldap_start_tls_s(ld, nullptr, nullptr);
+			if (rc != LDAP_SUCCESS) {
+				ec_log_err("Failed to enable TLS on LDAP session: %s", ldap_err2string(rc));
+				goto fail;
+			}
+#else
+			ec_log_err("LDAP library does not have STARTTLS");
+			rc = LDAP_PROTOCOL_ERROR;
 			goto fail;
-		}
 #endif /* HAVE_LDAP_START_TLS_S */
-#endif /* LINUX */
-#endif
+		}
 
 		// Bind
 		// For these two values: if they are both NULL, anonymous bind
@@ -582,6 +587,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	if (m_ldap == NULL || LDAP_API_ERROR(result)) {
 		const char *ldap_binddn = m_config->GetSetting("ldap_bind_user");
 		const char *ldap_bindpw = m_config->GetSetting("ldap_bind_passwd");
+		auto starttls = parseBool(m_config->GetSetting("ldap_starttls"));
 
 		if (m_ldap != NULL) {
 			ec_log_err("LDAP search error: %s. Will unbind, reconnect and retry.", ldap_err2string(result));
@@ -591,8 +597,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 		}
 
 		/// @todo encode the user and password, now it's depended in which charset the config is saved
-		m_ldap = ConnectLDAP(ldap_binddn, ldap_bindpw);
-
+		m_ldap = ConnectLDAP(ldap_binddn, ldap_bindpw, starttls);
 		m_lpStatsCollector->Increment(SCN_LDAP_RECONNECTS);
 		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs,
 		          attrsonly, serverControls, nullptr, nullptr, 0, &~res);
@@ -1475,7 +1480,8 @@ objectsignature_t LDAPUserPlugin::authenticateUserBind(const string &username, c
 		 * skipping the cache.
 		 */
 		auto dn = objectUniqueIDtoObjectDN(signature.id, false);
-		ld = ConnectLDAP(dn.c_str(), m_iconvrev->convert(password).c_str());
+		ld = ConnectLDAP(dn.c_str(), m_iconvrev->convert(password).c_str(),
+			parseBool(m_config->GetSetting("ldap_starttls")));
 	} catch (const std::exception &e) {
 		throw login_error((string)"Trying to authenticate failed: " + e.what() + (string)"; username = " + username);
 	}
