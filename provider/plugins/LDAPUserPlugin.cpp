@@ -490,6 +490,22 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 			ec_log_err("LDAP_OPT_NETWORK_TIMEOUT failed: %s", ldap_err2string(rc));
 			goto fail;
 		}
+#if 0 /* OpenLDAP stupidly closes the connection when TLS is not configured on the server. */
+#ifdef LINUX /* Only available in Windows XP, so we can't use this on windows platform. */
+#ifdef HAVE_LDAP_START_TLS_S
+		/*
+		 * Initialize TLS-secured connection - this is the first
+		 * command after ldap_init, so it will be the call that
+		 * actually connects to the server.
+		 */
+		rc = ldap_start_tls_s(ld, nullptr, nullptr);
+		if (rc != LDAP_SUCCESS) {
+			ec_log_err("Failed to enable TLS on LDAP session: %s", ldap_err2string(rc));
+			goto fail;
+		}
+#endif /* HAVE_LDAP_START_TLS_S */
+#endif /* LINUX */
+#endif
 
 		// Bind
 		// For these two values: if they are both NULL, anonymous bind
