@@ -22,8 +22,7 @@
 #include <mutex>
 #include <string>
 #include <kopano/zcdefs.h>
-#include <kopano/ECIConv.h>
-
+#include <kopano/charset/convert.h>
 #include <set>
 #include <ldap.h>
 #include "plugin.h"
@@ -353,14 +352,9 @@ protected:
 	LDAP *m_ldap;
 
 	/**
-	 * converter FROM ldap TO kopano-server
+	 * converter FROM ldap TO kopano-server and vice-versa
 	 */
-	std::unique_ptr<ECIConv> m_iconv;
-
-	/**
-	 * converter FROM kopano-server TO ldap
-	 */
-	std::unique_ptr<ECIConv> m_iconvrev;
+	std::unique_ptr<KC::iconv_context<std::string, std::string>> m_iconv, m_iconvrev;
 
 	static std::unique_ptr<LDAPCache> m_lpCache;
 	struct timeval m_timeout;

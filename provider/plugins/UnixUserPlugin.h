@@ -23,8 +23,7 @@
 #include <mutex>
 #include <string>
 #include <kopano/zcdefs.h>
-#include <kopano/ECIConv.h>
-
+#include <kopano/charset/convert.h>
 #include "plugin.h"
 #include "DBBase.h"
 
@@ -317,7 +316,7 @@ public:
 										 const objectid_t &parentobject, const objectid_t &childobject);
 
 private:
-	std::unique_ptr<KC::ECIConv> m_iconv;
+	std::unique_ptr<KC::iconv_context<std::string, std::string>> m_iconv;
 
 	/**
 	 * Find a user with specific name

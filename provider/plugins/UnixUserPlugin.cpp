@@ -110,9 +110,11 @@ void UnixUserPlugin::InitPlugin() {
 	DBPlugin::InitPlugin();
 
 	// we only need unix_charset -> kopano charset
-	m_iconv.reset(new ECIConv("utf-8", m_config->GetSetting("fullname_charset")));
-	if (!m_iconv -> canConvert())
+	try {
+		m_iconv.reset(new decltype(m_iconv)::element_type("utf-8", m_config->GetSetting("fullname_charset")));
+	} catch (const convert_exception &) {
 		throw runtime_error(string("Cannot setup charset converter, check \"fullname_charset\" in cfg"));
+	}
 }
 
 void UnixUserPlugin::findUserID(const string &id, struct passwd *pwd, char *buffer)

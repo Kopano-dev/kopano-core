@@ -428,12 +428,16 @@ void LDAPUserPlugin::InitPlugin()
 	/* FIXME encode the user and password, now it depends on which charset the config is saved in */
 	m_ldap = ConnectLDAP(ldap_binddn, ldap_bindpw, starttls);
 	const char *ldap_server_charset = m_config->GetSetting("ldap_server_charset");
-	m_iconv.reset(new ECIConv("UTF-8", ldap_server_charset));
-	if (!m_iconv -> canConvert())
-		throw ldap_error(format("Cannot convert %s to UTF8", ldap_server_charset));
-	m_iconvrev.reset(new ECIConv(m_config->GetSetting("ldap_server_charset"), "UTF-8"));
-	if (!m_iconvrev -> canConvert())
-		throw ldap_error(format("Cannot convert UTF-8 to %s", ldap_server_charset));
+	try {
+		m_iconv.reset(new decltype(m_iconv)::element_type("UTF-8", ldap_server_charset));
+	} catch (const convert_exception &e) {
+		throw ldap_error(format("Cannot convert %s to UTF-8: %s", ldap_server_charset, e.what()));
+	}
+	try {
+		m_iconvrev.reset(new decltype(m_iconv)::element_type(m_config->GetSetting("ldap_server_charset"), "UTF-8"));
+	} catch (const convert_exception &e) {
+		throw ldap_error(format("Cannot convert UTF-8 to %s: %s", ldap_server_charset, e.what()));
+	}
 }
 
 LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
