@@ -9271,7 +9271,7 @@ struct MTOMSessionInfo {
 	std::unique_ptr<ECDatabase> lpSharedDatabase;
 	ECDatabase *lpDatabase = nullptr;
 	std::shared_ptr<ECAttachmentStorage> lpAttachmentStorage;
-	ECRESULT er;
+	ECRESULT er = 0;
 	std::unique_ptr<ECThreadPool> lpThreadPool;
 	std::lock_guard<ECSession> holder;
 	/* These are only tracked for cleanup at session exit */

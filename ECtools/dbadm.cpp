@@ -74,7 +74,7 @@ static ECRESULT remove_helper_index(std::shared_ptr<KDatabase> db)
 	ECRESULT coll = erSuccess;
 	for (const auto &tbl : our_proptables) {
 		auto ret = hidx_remove(*db.get(), tbl);
-		if (coll != erSuccess)
+		if (coll == erSuccess)
 			coll = ret;
 	}
 	if (coll != erSuccess)

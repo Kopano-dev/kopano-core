@@ -1326,9 +1326,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 		}
 		// save headers to a file so they can also be tested from the script we're runing
 		snprintf(szTemp, PATH_MAX, "%s/autorespond-headers.XXXXXX", TmpPath::instance.getTempPath().c_str());
-		auto mask = umask(S_IRWXO|S_IRWXG);
 		fd = mkstemp(szTemp);
-		umask(mask);
 		if (fd >= 0) {
 			hr = WriteOrLogError(fd, lpMessageProps[0].Value.lpszA, strlen(lpMessageProps[0].Value.lpszA));
 			if (hr == hrSuccess)
@@ -1356,9 +1354,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	}
 
 	snprintf(szTemp, PATH_MAX, "%s/autorespond.XXXXXX", TmpPath::instance.getTempPath().c_str());
-	auto mask = umask(S_IRWXO|S_IRWXG);
 	fd = mkstemp(szTemp);
-	umask(mask);
 	if (fd < 0) {
 		ec_log_warn("Unable to create temp file for out of office mail: %s", strerror(errno));
 		return MAPI_E_FAILURE;
@@ -3092,9 +3088,14 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		return MAPI_E_NETWORK_ERROR;
 
 	// Setup signals
-	signal(SIGTERM, sigterm);
-	signal(SIGINT, sigterm);
-	signal(SIGCHLD, sigchld);
+	struct sigaction act{};
+	sigemptyset(&act.sa_mask);
+	act.sa_flags   = SA_RESTART;
+	act.sa_handler = sigterm;
+	sigaction(SIGTERM, &act, nullptr);
+	sigaction(SIGINT, &act, nullptr);
+	act.sa_handler = sigchld;
+	sigaction(SIGCHLD, &act, nullptr);
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
@@ -3694,7 +3695,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	signal(SIGHUP, sighup);		// logrotate
 	signal(SIGPIPE, SIG_IGN);
 
 	// SIGSEGV backtrace support
@@ -3705,6 +3705,9 @@ int main(int argc, char *argv[]) {
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGBUS, &act, NULL);
 	sigaction(SIGABRT, &act, NULL);
+	act.sa_flags = SA_RESTART;
+	act.sa_handler = sighup;
+	sigaction(SIGHUP, &act, nullptr);
 	file_limit.rlim_cur = KC_DESIRED_FILEDES;
 	file_limit.rlim_max = KC_DESIRED_FILEDES;
 
@@ -3715,6 +3718,7 @@ int main(int argc, char *argv[]) {
 			"or increase user limits for open file descriptors.",
 			KC_DESIRED_FILEDES, strerror(errno), getdtablesize());
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
+	umask(S_IRWXG | S_IRWXO);
 
 	if (bListenLMTP) {
 		/* MAPIInitialize done inside running_service */

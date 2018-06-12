@@ -191,11 +191,8 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 		HrCopyString(base, L"IPM.Appointment", &sPropVal.Value.lpszW);
 
 		// if we don't have attendees, skip the meeting request props
-		if (icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY) == NULL)
-			bMeeting = false;
-		else
-			bMeeting = true;	//if Attendee is present then set the PROP_MEETINGSTATUS property
-
+		// if Attendee is present, then set the PROP_MEETINGSTATUS property
+		bMeeting = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY) != nullptr;
 		break;
 	}
 	}
