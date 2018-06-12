@@ -26,7 +26,6 @@
 #include <set>
 #include <cstring>
 #include <kopano/zcdefs.h>
-#include <kopano/ECIConv.h>
 #include <kopano/ECChannel.h>
 #include <kopano/memory.hpp>
 #include <kopano/hl.hpp>
