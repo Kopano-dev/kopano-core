@@ -23,7 +23,7 @@
 #include <kopano/ECLogger.h>
 #include <mapicode.h>
 #include <kopano/stringutil.h>
-#include <kopano/ECIConv.h>
+#include <kopano/charset/convert.h>
 #include <ctime>
 #include <kopano/CommonUtil.h>
 #include <mapiutil.h>

@@ -25,7 +25,6 @@
 #include <fstream>
 #include <new>
 #include <string>
-#include <kopano/ECIConv.h>
 #include <kopano/ECLogger.h>
 #include "WSTransport.h"
 #include "ProviderUtil.h"

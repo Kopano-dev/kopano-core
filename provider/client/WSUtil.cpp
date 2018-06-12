@@ -18,7 +18,6 @@
 #include <kopano/platform.h>
 #include <sys/un.h>
 #include "WSUtil.h"
-#include <kopano/ECIConv.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
