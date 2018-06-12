@@ -51,10 +51,13 @@ if sys.hexversion >= 0x03000000:
         from . import utils as _utils
     except ImportError: # pragma: no cover
         _utils = sys.modules[__package__ + '.utils']
+
     from . import property_ as _prop
+    from . import timezone as _timezone
 else: # pragma: no cover
     import utils as _utils
     import property_ as _prop
+    import timezone as _timezone
 
 # XXX move all pidlids into separate definition file, plus short description of their meanings
 
@@ -193,7 +196,7 @@ class MeetingRequest(object):
         if blob is not None:
             y, m, d = struct.unpack_from('>HBB', blob, 16)
             if (y, m, d) != (0, 0, 0):
-                return _utils._to_utc(datetime.datetime(y, m, d), self.item.tzinfo)
+                return _timezone._to_utc(datetime.datetime(y, m, d), self.item.tzinfo)
 
     @property
     def update_counter(self):

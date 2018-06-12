@@ -43,8 +43,11 @@ if sys.hexversion >= 0x03000000:
         from . import utils as _utils
     except ImportError: # pragma: no cover
         _utils = sys.modules[__package__+'.utils']
+
+    from . import timezone as _timezone
 else: # pragma: no cover
     import utils as _utils
+    import timezone as _timezone
 
 ALL_DAY_NAME = (PSETID_Appointment, MNID_ID, 0x8215)
 START_NAME = (PSETID_Appointment, MNID_ID, 33293) # TODO use pidlid instead
@@ -219,7 +222,7 @@ class Appointment(object):
     def tzinfo(self):
         tzdata = self.get(PidLidTimeZoneStruct)
         if tzdata:
-            return _utils.MAPITimezone(tzdata)
+            return _timezone.MAPITimezone(tzdata)
 
     @property
     def timezone(self):
@@ -228,7 +231,7 @@ class Appointment(object):
     @timezone.setter
     def timezone(self, value):
         self[PidLidTimeZoneDescription] = value
-        self[PidLidTimeZoneStruct] = _utils._timezone_struct(value)
+        self[PidLidTimeZoneStruct] = _timezone._timezone_struct(value)
 
     def accept(self, comment=None, tentative=False, respond=True):
         # TODO update appointment itself

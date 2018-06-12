@@ -61,10 +61,13 @@ if sys.hexversion >= 0x03000000:
         from . import utils as _utils
     except ImportError: # pragma: no cover
         _utils = sys.modules[__package__ + '.utils']
+
     from . import meetingrequest as _meetingrequest
+    from . import timezone as _timezone
 else: # pragma: no cover
     import utils as _utils
     import meetingrequest as _meetingrequest
+    import timezone as _timezone
 
 SHORT, LONG = 2, 4
 
@@ -241,8 +244,8 @@ class Recurrence(object):
     def occurrences(self, start=None, end=None): # XXX fit-to-period
         recurrences = self.recurrences
         if start and end:
-            start = _utils._tz2(start, LOCAL, self._tzinfo)
-            end = _utils._tz2(end, LOCAL, self._tzinfo)
+            start = _timezone._tz2(start, LOCAL, self._tzinfo)
+            end = _timezone._tz2(end, LOCAL, self._tzinfo)
             recurrences = recurrences.between(start, end)
 
         start_exc_ext = {}
@@ -266,7 +269,7 @@ class Recurrence(object):
                 minutes = self._endtime_offset - self._starttime_offset
                 basedate_val = startdatetime_val
 
-            d = _utils._to_utc(d, self._tzinfo)
+            d = _timezone._to_utc(d, self._tzinfo)
             e = d + datetime.timedelta(minutes=minutes)
 
             occ = Occurrence(self.item, d, e, subject, location, basedate_val=basedate_val, exception=exception)
@@ -644,7 +647,7 @@ class Recurrence(object):
     def start(self):
         """ Start of recurrence range """
         tz_start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date))
-        return _utils._to_utc(tz_start, self._tzinfo)
+        return _timezone._to_utc(tz_start, self._tzinfo)
 
     @_start.setter # TODO start.setter
     def _start(self, value):
@@ -659,7 +662,7 @@ class Recurrence(object):
     def end(self):
         """ End of recurrence range """
         tz_end = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date))
-        return _utils._to_utc(tz_end, self._tzinfo)
+        return _timezone._to_utc(tz_end, self._tzinfo)
 
     @_end.setter
     def _end(self, value):
@@ -736,7 +739,7 @@ class Recurrence(object):
             startdate = item.get(PidLidAppointmentStartWhole)
 
         if startdate is not None:
-            startdate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_utc(startdate, self._tzinfo).timetuple()))
+            startdate_val = _utils.unixtime_to_rectime(time.mktime(_timezone._from_utc(startdate, self._tzinfo).timetuple()))
             exception['start_datetime'] = startdate_val
 
         enddate = kwargs.get('end')
@@ -744,7 +747,7 @@ class Recurrence(object):
             enddate = item.get(PidLidAppointmentEndWhole)
 
         if enddate is not None:
-            enddate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_utc(enddate, self._tzinfo).timetuple()))
+            enddate_val = _utils.unixtime_to_rectime(time.mktime(_timezone._from_utc(enddate, self._tzinfo).timetuple()))
             exception['end_datetime'] = enddate_val
 
         exception['original_start_date'] = basedate_val # TODO why set again?
@@ -818,7 +821,7 @@ class Recurrence(object):
         if cal_item.get(PidLidReminderSet) and cal_item.get(PidLidReminderDelta):
             next_date = self.recurrences.after(datetime.datetime.now(self._tzinfo).replace(tzinfo=None))
             if next_date:
-                next_date = _utils._to_utc(next_date, self._tzinfo)
+                next_date = _timezone._to_utc(next_date, self._tzinfo)
                 dueby = next_date - datetime.timedelta(minutes=cal_item.get(PidLidReminderDelta))
                 cal_item[PidLidReminderSignalTime] = dueby
             else:
@@ -869,11 +872,11 @@ class Recurrence(object):
             end = message.prop(PidLidAppointmentEndWhole).value
 
         if start is not None:
-            start_local = unixtime(time.mktime(_utils._from_utc(start, self._tzinfo).timetuple())) # XXX why local??
+            start_local = unixtime(time.mktime(_timezone._from_utc(start, self._tzinfo).timetuple())) # XXX why local??
             props.append(SPropValue(PR_EXCEPTION_STARTTIME, start_local))
 
         if end is not None:
-            end_local = unixtime(time.mktime(_utils._from_utc(end, self._tzinfo).timetuple())) # XXX why local??
+            end_local = unixtime(time.mktime(_timezone._from_utc(end, self._tzinfo).timetuple())) # XXX why local??
             props.append(SPropValue(PR_EXCEPTION_ENDTIME, end_local))
 
         message._attobj.SetProps(props)
@@ -929,7 +932,7 @@ class Recurrence(object):
 
         # update blob
         self.deleted_instance_count += 1
-        deldate = _utils._from_utc(basedate, self._tzinfo)
+        deldate = _timezone._from_utc(basedate, self._tzinfo)
         deldate_val = _utils.unixtime_to_rectime(time.mktime(deldate.timetuple()))
         self._deleted_instance_dates.append(deldate_val)
         self._deleted_instance_dates.sort()
@@ -937,7 +940,7 @@ class Recurrence(object):
         self._modified_instance_count += 1
         moddate = message.prop(PidLidAppointmentStartWhole).value
         daystart = moddate - datetime.timedelta(hours=moddate.hour, minutes=moddate.minute) # XXX different approach in php? seconds?
-        localdaystart = _utils._from_utc(daystart, self._tzinfo)
+        localdaystart = _timezone._from_utc(daystart, self._tzinfo)
         moddate_val = _utils.unixtime_to_rectime(time.mktime(localdaystart.timetuple()))
         self._modified_instance_dates.append(moddate_val)
         self._modified_instance_dates.sort()
@@ -994,9 +997,9 @@ class Recurrence(object):
             cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
         # update blob
-        basedate_val = _utils.unixtime_to_rectime(time.mktime(_utils._from_utc(basedate, self._tzinfo).timetuple()))
+        basedate_val = _utils.unixtime_to_rectime(time.mktime(_timezone._from_utc(basedate, self._tzinfo).timetuple()))
 
-        startdate = _utils._from_utc(message.prop(PidLidAppointmentStartWhole).value, self._tzinfo)
+        startdate = _timezone._from_utc(message.prop(PidLidAppointmentStartWhole).value, self._tzinfo)
         startdate_val = _utils.unixtime_to_rectime(time.mktime(startdate.timetuple()))
 
         for i, exception in enumerate(self._exceptions):
@@ -1018,7 +1021,7 @@ class Recurrence(object):
         self._update_calitem()
 
     def _delete_exception(self, basedate, item, copytags):
-        basedate2 = _utils._from_utc(basedate, self._tzinfo)
+        basedate2 = _timezone._from_utc(basedate, self._tzinfo)
         basedate_val = _utils.unixtime_to_rectime(time.mktime(basedate2.timetuple()))
 
         if self._is_exception(basedate):
