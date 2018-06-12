@@ -622,7 +622,7 @@ libkcutil_la_SOURCES = \
 	common/ECChannel.cpp common/ECChannelClient.cpp \
 	common/ECConfig.cpp common/ECConfigImpl.cpp common/ECFifoBuffer.cpp \
 	common/ECGetText.cpp common/ECGuid.cpp \
-	common/ECIConv.cpp common/ECKeyTable.cpp common/ECLogger.cpp \
+	common/ECKeyTable.cpp common/ECLogger.cpp \
 	common/ECMemStream.cpp \
 	common/ECScheduler.cpp common/ECThreadPool.cpp \
 	common/ECUnknown.cpp common/HtmlEntity.cpp common/HtmlToTextParser.cpp \
