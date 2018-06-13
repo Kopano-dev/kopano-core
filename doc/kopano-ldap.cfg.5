@@ -73,29 +73,23 @@ In the propmap the configuration names must be the hex property tag of the reque
 Example: !propmap ldap.propmap.cfg
 .RE
 .SH "EXPLANATION OF EACH PARAMETER"
-.SS ldap_host
+.SS ldap_host, ldap_port, ldap_protocol
 .PP
-The hostname or ip\-adress of the LDAP server.
+These historic directives specify a single LDAP server to use. Its use
+is discouraged in favor of \fBldap_uri\fP.
 .PP
-Default:
-\fIlocalhost\fR
-.SS ldap_port
-.PP
-The port number of the LDAP server. LDAP normally runs on port 389.
-.PP
-Default:
-\fI389\fR
-.SS ldap_protocol
-.PP
-The protocol to be used to connect to the LDAP server. Can be either \*(Aqldap\*(Aq or \*(Aqldaps\*(Aq for SSL connections. You will probably have to specify port 636 for ldap_port also. Kopano will not use STARTTLS for such an SSL connection but instead will connect directly to an SSL encrypted port.
-.PP
-Default:
-\fIldap\fR
+Defaults: ldap_host=\fIlocalhost\fP, ldap_port=\fI389\fP,
+ldap_protocol=\fIldap\fP
 .SS ldap_uri
 .PP
-Instead of using ldap_host, ldap_port and ldap_protocol, you may also use ldap_uri which should specify the URI of the LDAP server like \*(Aqldap://server:389\*(Aq. If ldap_uri is set, the values of ldap_host, ldap_port and ldap_protocol are ignored. You may also specify multiple space\-separated LDAP server URI\*(Aqs.
+Specifies the URI of one or more LDAP server(s) to use, without any DN portion,
+such as "\fBldap://server:389/\fP", "\fBldaps://server:636/\fP" or
+"\fBldapi:///\fP". If \fBldap_uri\fP is set, the values of the historic
+directives \fBldap_host\fP, \fBldap_port\fP and \fBldap_protocol\fP are
+ignored.
 .PP
-Default:
+Default: \fI(empty, such that URI list is constructed from ldap_host, ldap_port,
+ldap_protocol)\fP
 .SS ldap_server_charset
 .PP
 The charset that the LDAP server uses to store strings. All strings sent to the LDAP server or retrieved from the server will be interpreted in this charset. In most setups, utf\-8 is used, but may also be iso\-8859\-15. All charsets supported by the system iconv() are supported here.
