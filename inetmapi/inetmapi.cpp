@@ -273,14 +273,13 @@ HRESULT createIMAPBody(const std::string &input, IMessage *lpMessage, bool envel
 {
 	InitializeVMime();
 
+	VMIMEToMAPI obj;
 	auto vmMessage = vmime::make_shared<vmime::message>();
 	vmMessage->parse(input);
-
-	auto hr = VMIMEToMAPI().createIMAPBody(input, vmMessage, lpMessage);
+	auto hr = obj.createIMAPBody(input, vmMessage, lpMessage);
 	if (hr != hrSuccess || !envelope)
 		return hr;
-
-	return VMIMEToMAPI().createIMAPEnvelope(vmMessage, lpMessage);
+	return obj.createIMAPEnvelope(vmMessage, lpMessage);
 }
 
 } /* namespace */
