@@ -74,8 +74,6 @@ static void InitializeVMime()
 	}
 	if (vmimeInitialized)
 		return;
-
-	vmime::generationContext::getDefaultContext().setWrapMessageId(false);
 	// need to have a unique indentifier in the mediaType
 	vmime::textPartFactory::getInstance()->registerType<vmime::mapiTextPart>(vmime::mediaType(vmime::mediaTypes::TEXT, "mapi"));
 	// init our random engine for random message id generation

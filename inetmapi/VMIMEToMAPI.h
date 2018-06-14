@@ -71,6 +71,7 @@ public:
 	HRESULT createIMAPEnvelope(vmime::shared_ptr<vmime::message>, IMessage *);
 
 private:
+	vmime::generationContext m_genctx;
 	delivery_options m_dopt;
 	IAddrBook *m_lpAdrBook = nullptr;
 	object_ptr<IABContainer> m_lpDefaultDir;

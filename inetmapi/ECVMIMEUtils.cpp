@@ -339,9 +339,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 		// to the generic send() function.
 		std::ostringstream oss;
 		vmime::utility::outputStreamAdapter ossAdapter(oss);
-
-		vmMessage->generate(ossAdapter);
-
+		vmMessage->generate(imopt_default_genctx(), ossAdapter);
 		/*
 		 * This would be the place for spooler's
 		 * log_raw_message_stage2, but this so deep in inetmapi…
@@ -421,6 +419,14 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 		return MAPI_E_NETWORK_ERROR;
 	}
 	return hr;
+}
+
+vmime::generationContext imopt_default_genctx()
+{
+	vmime::generationContext c;
+	/* Outlook gets confused by "Content-Id: \n<...>" */
+	c.setWrapMessageId(false);
+	return c;
 }
 
 } /* namespace */

@@ -146,7 +146,8 @@ static ULONG SecondsToIntTime(ULONG seconds)
  * Default empty constructor for the inetmapi library. Sets all member
  * values to sane defaults.
  */
-VMIMEToMAPI::VMIMEToMAPI()
+VMIMEToMAPI::VMIMEToMAPI() :
+	m_genctx(imopt_default_genctx())
 {
 	imopt_default_delivery_options(&m_dopt);
 	m_dopt.use_received_date = false; // use Date header
@@ -160,7 +161,7 @@ VMIMEToMAPI::VMIMEToMAPI()
  * @param[in]	dopt		delivery options handle differences in DAgent and Gateway behaviour.
  */
 VMIMEToMAPI::VMIMEToMAPI(LPADRBOOK lpAdrBook, delivery_options dopt) :
-	m_dopt(dopt), m_lpAdrBook(lpAdrBook)
+	m_genctx(imopt_default_genctx()), m_dopt(dopt), m_lpAdrBook(lpAdrBook)
 {
 }
 
@@ -297,8 +298,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 
 			outputStreamMAPIAdapter os(lpStream);
 			// get the content-type string from the headers
-			vmHeader->ContentType()->generate(os);
-
+			vmHeader->ContentType()->generate(m_genctx, os);
 			// find the original received body
 			// vmime re-generates different headers and spacings, so we can't use this.
 			if (posHeaderEnd != string::npos)
@@ -511,7 +511,7 @@ std::string VMIMEToMAPI::generate_wrap(vmime::shared_ptr<vmime::headerFieldValue
 {
 	std::string buffer;
 	vmime::utility::outputStreamStringAdapter adap(buffer);
-	v->generate(adap);
+	v->generate(m_genctx, adap);
 	return buffer;
 }
 
@@ -1532,7 +1532,7 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 
 	std::string newMessage;
 	vmime::utility::outputStreamStringAdapter os(newMessage);
-	vmBody->generate(os);
+	vmBody->generate(m_genctx, os);
 	auto lpszBody = const_cast<char *>(newMessage.c_str());
 	auto lpszBodyOrig = lpszBody;
 
@@ -2820,7 +2820,7 @@ std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
 		 *
 		 * (a) display input as-is, e.g. as =?utf-8?Q?VielSpa=C3=9F?=
 		 *     if (!ValidateCharset(..))
-		 *         ret += m_converter.convert_to<std::wstring>((*i)->generate());
+		 *         ret += m_converter.convert_to<std::wstring>((*i)->generate(m_genctx));
 		 * (b) best effort conversion (which we pick) or
 		 * (c) substitute by a message that decoding failed.
 		 *
@@ -3187,18 +3187,13 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 	auto vmHeader = vmMessage->getHeader();
 	std::string buffer;
 	vmime::utility::outputStreamStringAdapter os(buffer);
-	vmime::generationContext ctx;
+	auto ctx = m_genctx;
 	ctx.setMaxLineLength(vmime::lineLengthLimits::infinite);
-	ctx.setWrapMessageId(false);
 
-	// date
-	vmime::shared_ptr<vmime::datetime> date;
-	if (vmHeader->hasField("Date"))
-		date = vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue());
-	else
-		// date must not be empty, so force epoch as the timestamp
-		date = vmime::make_shared<vmime::datetime>(0);
-
+	// date must not be empty, so force epoch as the timestamp
+	vmime::shared_ptr<vmime::datetime> date = vmHeader->hasField("Date") ?
+		vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue()) :
+		vmime::make_shared<vmime::datetime>(0);
 	date->generate(ctx, os);
 	lItems.emplace_back("\"" + buffer + "\"");
 	buffer.clear();
@@ -3432,7 +3427,7 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
 
 	if (vmHeaderPart->hasField(vmime::fields::CONTENT_DESCRIPTION)) {
 		buffer.clear();
-		vmHeaderPart->findField(vmime::fields::CONTENT_DESCRIPTION)->getValue()->generate(os);
+		vmHeaderPart->findField(vmime::fields::CONTENT_DESCRIPTION)->getValue()->generate(m_genctx, os);
 		lBody.emplace_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
 	} else {
 		lBody.emplace_back("NIL");
@@ -3440,7 +3435,7 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
 
 	if (vmHeaderPart->hasField(vmime::fields::CONTENT_TRANSFER_ENCODING)) {
 		buffer.clear();
-		vmHeaderPart->findField(vmime::fields::CONTENT_TRANSFER_ENCODING)->getValue()->generate(os);
+		vmHeaderPart->findField(vmime::fields::CONTENT_TRANSFER_ENCODING)->getValue()->generate(m_genctx, os);
 		lBody.emplace_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
 	} else {
 		lBody.emplace_back("NIL");
@@ -3532,7 +3527,7 @@ std::string VMIMEToMAPI::getStructureExtendedFields(vmime::shared_ptr<vmime::hea
 	// location
 	try {
 		buffer.clear();
-		vmHeaderPart->ContentLocation()->getValue()->generate(os);
+		vmHeaderPart->ContentLocation()->getValue()->generate(m_genctx, os);
 		lItems.emplace_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
 	} catch (const vmime::exception &e) {
 		lItems.emplace_back("NIL");
