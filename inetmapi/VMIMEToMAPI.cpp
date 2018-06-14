@@ -507,6 +507,14 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 	return hrSuccess;
 }
 
+std::string VMIMEToMAPI::generate_wrap(vmime::shared_ptr<vmime::headerFieldValue> &&v)
+{
+	std::string buffer;
+	vmime::utility::outputStreamStringAdapter adap(buffer);
+	v->generate(adap);
+	return buffer;
+}
+
 /**
  * Convert all kinds of headers into MAPI properties.
  *
@@ -557,15 +565,15 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		// internet message ID
 		auto field = vmHeader->findField(vmime::fields::MESSAGE_ID);
 		if (field != nullptr)
-			msgProps.set(nProps++, PR_INTERNET_MESSAGE_ID, field->getValue()->generate());
+			msgProps.set(nProps++, PR_INTERNET_MESSAGE_ID, generate_wrap(field->getValue()));
 		// In-Reply-To header
 		field = vmHeader->findField(vmime::fields::IN_REPLY_TO);
 		if (field != nullptr)
-			msgProps.set(nProps++, PR_IN_REPLY_TO_ID, field->getValue()->generate());
+			msgProps.set(nProps++, PR_IN_REPLY_TO_ID, generate_wrap(field->getValue()));
 		// References header
 		field = vmHeader->findField(vmime::fields::REFERENCES);
 		if (field != nullptr)
-			msgProps.set(nProps++, PR_INTERNET_REFERENCES, field->getValue()->generate());
+			msgProps.set(nProps++, PR_INTERNET_REFERENCES, generate_wrap(field->getValue()));
 		// set subject
 		field = vmHeader->findField(vmime::fields::SUBJECT);
 		if (field != nullptr)
@@ -758,9 +766,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		{
 			vmime::string outString;
 			SPropValue sThreadIndex;
-
-			string threadIndex = vmHeader->findField("Thread-Index")->getValue()->generate();
-
+			auto threadIndex = generate_wrap(vmHeader->findField("Thread-Index")->getValue());
 			auto enc = vmime::utility::encoder::encoderFactory::getInstance()->create("base64");
 			vmime::utility::inputStreamStringAdapter in(threadIndex);			
 			vmime::utility::outputStreamStringAdapter out(outString);
@@ -780,7 +786,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			SPropValue sPriority[2];
 			sPriority[0].ulPropTag = PR_PRIORITY;
 			sPriority[1].ulPropTag = PR_IMPORTANCE;
-			auto importance = strToLower(vmHeader->findField("Importance")->getValue()->generate());
+			auto importance = strToLower(generate_wrap(vmHeader->findField("Importance")->getValue()));
 			if(importance.compare("high") == 0) {
 				sPriority[0].Value.ul = PRIO_URGENT;
 				sPriority[1].Value.ul = IMPORTANCE_HIGH;
@@ -802,7 +808,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			SPropValue sPriority[2];
 			sPriority[0].ulPropTag = PR_PRIORITY;
 			sPriority[1].ulPropTag = PR_IMPORTANCE;
-			string xprio = vmHeader->findField("X-Priority")->getValue()->generate();
+			auto xprio = generate_wrap(vmHeader->findField("X-Priority")->getValue());
 			switch (xprio[0]) {
 			case '1':
 			case '2':
@@ -839,7 +845,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		// Sensitivity header
 		if (vmHeader->hasField("Sensitivity")) {
 			SPropValue sSensitivity;
-			auto sensitivity = strToLower(vmHeader->findField("Sensitivity")->getValue()->generate());
+			auto sensitivity = strToLower(generate_wrap(vmHeader->findField("Sensitivity")->getValue()));
 			sSensitivity.ulPropTag = PR_SENSITIVITY;
 			if (sensitivity.compare("personal") == 0)
 				sSensitivity.Value.ul = SENSITIVITY_PERSONAL;
@@ -860,8 +866,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			SPropValue sExpiryTime;
 
 			// reparse string to datetime
-			vmime::datetime expiry(field->getValue()->generate());
-
+			vmime::datetime expiry(generate_wrap(field->getValue()));
 			sExpiryTime.ulPropTag = PR_EXPIRY_TIME;
 			sExpiryTime.Value.ft = vmimeDatetimeToFiletime(expiry);
 
@@ -937,7 +942,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			}
 
 			KPropbuffer<1> prop;
-			prop.set(0, lpPropTags->aulPropTag[0], fld->getValue()->generate());
+			prop.set(0, lpPropTags->aulPropTag[0], generate_wrap(fld->getValue()));
 			lpMessage->SetProps(1, prop.get(), nullptr);
 			// in case of error: ignore this x-header as named props then
 		}
