@@ -1,3 +1,12 @@
+#
+# THESE DEFINITIONS ONLY APPLY WHEN
+# kopano-server runs /etc/kopano/*scripts*.
+#
+# IT DOES NOT GET USED IN ANY OTHER WAY,
+# ESPECIALLY NOT WHEN ISSUING kopano-storeadm FROM A SHELL.
+#
+
+
 ## Path:        Network/Mail/Kopano
 ## Description: Kopano service locale
 ## Type:        string
@@ -25,5 +34,8 @@ LC_TIME=en_US.UTF-8
 # Locale setting for Kopano userscripts. This is assigned to LC_MESSAGES
 # and therefore affects the emitted language, e.g. folder names for new
 # message stores.
+#
+# If this is empty, it defaults to the LC_MESSAGES value of kopano-server.
+# (Cf. `systemctl show kopano-server`)
 #
 KOPANO_USERSCRIPT_LOCALE="en_US.UTF-8"
