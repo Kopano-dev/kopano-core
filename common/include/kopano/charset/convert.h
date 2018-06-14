@@ -187,15 +187,6 @@ class _kc_export_dycast iconv_context _kc_final :
 template<typename Type> class convert_helper _kc_final {
 	public:
 	/**
-	 * @brief Converts a string to a string with the same charset.
-	 *
-	 * Effectively this method does nothing but a copy.
-	 * @param[in] _from		The string to be converted.
-	 * @return				The converted string.
-	 */
-	static Type convert(const Type &_from) { return _from; }
-
-	/**
 	 * @brief Converts a string to a string with a different charset.
 	 *
 	 * The string with a charset linked to Other_Type is converted to a
@@ -206,6 +197,7 @@ template<typename Type> class convert_helper _kc_final {
 	template<typename Other_Type>
 	static Type convert(const Other_Type &_from)
 	{
+		static_assert(!std::is_same<Type, Other_Type>::value, "pointless conversion");
 		iconv_context<Type, Other_Type> context;
 		return context.convert(_from);
 	}
@@ -333,18 +325,6 @@ private:
 		{}
 
 		/**
-		 * @brief Converts a string to a string with the same charset.
-		 *
-		 * Effectively this method does nothing but a copy.
-		 * @param[in] _from		The string to be converted.
-		 * @return				The converted string.
-		 */
-		Type convert(const Type &_from)
-		{
-			return _from;
-		}
-
-		/**
 		 * @brief Converts a string to a string with a different charset.
 		 *
 		 * The string with a charset linked to Other_Type is converted to a
@@ -356,6 +336,7 @@ private:
 		template<typename Other_Type>
 		Type convert(const Other_Type &_from)
 		{
+			static_assert(!std::is_same<Type, Other_Type>::value, "pointless conversion");
 			return m_context.get_context<Type, Other_Type>()->convert(_from);
 		}
 		
