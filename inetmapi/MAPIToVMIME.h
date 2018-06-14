@@ -50,6 +50,7 @@ public:
 	std::wstring getConversionError(void) const;
 
 private:
+	vmime::parsingContext m_parsectx;
 	sending_options sopt;
 	object_ptr<IAddrBook> m_lpAdrBook;
 	object_ptr<IMAPISession> m_lpSession;

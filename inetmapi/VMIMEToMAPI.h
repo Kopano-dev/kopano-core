@@ -70,7 +70,9 @@ public:
 	HRESULT createIMAPBody(const std::string &input, vmime::shared_ptr<vmime::message>, IMessage *);
 	HRESULT createIMAPEnvelope(vmime::shared_ptr<vmime::message>, IMessage *);
 
-private:
+	public:
+	vmime::parsingContext m_parsectx;
+	private:
 	vmime::generationContext m_genctx;
 	delivery_options m_dopt;
 	IAddrBook *m_lpAdrBook = nullptr;

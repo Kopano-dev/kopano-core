@@ -178,8 +178,7 @@ VMIMEToMAPI::VMIMEToMAPI(LPADRBOOK lpAdrBook, delivery_options dopt) :
 HRESULT VMIMEToMAPI::createIMAPProperties(const std::string &input, std::string *lpEnvelope, std::string *lpBody, std::string *lpBodyStructure)
 {
 	auto vmMessage = vmime::make_shared<vmime::message>();
-	vmMessage->parse(input);
-
+	vmMessage->parse(m_parsectx, input);
 	if (lpBody || lpBodyStructure)
 		messagePartToStructure(input, vmMessage, lpBody, lpBodyStructure);
 
@@ -247,8 +246,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 
 		// turn buffer into a message
 		auto vmMessage = vmime::make_shared<vmime::message>();
-		vmMessage->parse(input);
-
+		vmMessage->parse(m_parsectx, input);
 		if (m_dopt.header_strict_rfc) {
 			auto vmHeader = vmMessage->getHeader();
 			if (!vmHeader->hasField(vmime::fields::FROM) && !vmHeader->hasField(vmime::fields::DATE))
@@ -3470,7 +3468,7 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
 
 		// envelope eerst, dan message, dan lines
 		vmBodyPart->getBody()->getContents()->extractRaw(os); // generate? raw?
-		subMessage->parse(buffer);
+		subMessage->parse(m_parsectx, buffer);
 		lBody.emplace_back("(" + createIMAPEnvelope(subMessage) + ")");
 		lBodyStructure.emplace_back("(" + createIMAPEnvelope(subMessage) + ")");
 

@@ -963,8 +963,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 				// default, or exit?
 				lpszContentType = "application/x-pkcs7-mime;smime-type=enveloped-data;name=smime.p7m";
 
-			vmMessage->getHeader()->ContentType()->parse(lpszContentType);
-
+			vmMessage->getHeader()->ContentType()->parse(m_parsectx, lpszContentType);
 			// copy via string so we can set the size of the string since it's binary
 			vmime::string inString(lpszRawSMTP.get(), (size_t)sStreamStat.cbSize.QuadPart);
 			vmMessage->getBody()->setContents(vmime::make_shared<vmime::stringContentHandler>(inString));
