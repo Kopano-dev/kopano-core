@@ -319,7 +319,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 			}
 			wszPath = lpSrvList->lpsaServer[i].lpszSslPath;
 		}
-		hr = GetMailboxDataPerServer(converter.convert_to<char *>(wszPath), lpSSLKey, lpSSLPass, lpCollector);
+		hr = GetMailboxDataPerServer(converter.convert_to<std::string>(wszPath).c_str(), lpSSLKey, lpSSLPass, lpCollector);
 		if(FAILED(hr)) {
 			ec_log_err("Failed to collect data from server: \"%ls\": %s (%x)",
 				wszPath, GetMAPIErrorMessage(hr), hr);

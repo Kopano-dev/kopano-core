@@ -59,6 +59,7 @@ extern "C" {
 // Frees the buffer with MAPIFreeBuffer if lpBase is NOT set, we can't directly free data allocated with MAPIAllocateMore ..
 #define MAPI_FREE(lpbase, lpp) \
 	do { if (lpBase == nullptr) MAPIFreeBuffer(lpp); } while (false)
+#define BEFORE_PHP7_2(s) const_cast<char *>(s)
 
 using namespace KC;
 
@@ -1615,7 +1616,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues, LPSPropValue pPropValueArray, zv
 			break;
 
 		case PT_UNICODE:
-			add_assoc_string(zval_prop_value, pulproptag, converter.convert_to<char*>(pPropValue->Value.lpszW));
+			add_assoc_string(zval_prop_value, pulproptag, BEFORE_PHP7_2(converter.convert_to<std::string>(pPropValue->Value.lpszW).c_str()));
 			break;
 
 		case PT_BINARY:
@@ -1728,7 +1729,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues, LPSPropValue pPropValueArray, zv
 
 			for (j = 0; j < pPropValue->Value.MVszW.cValues; ++j) {
 				sprintf(ulKey, "%i", j);
-				add_assoc_string(&zval_mvprop_value, ulKey, converter.convert_to<char*>(pPropValue->Value.MVszW.lppszW[j]));
+				add_assoc_string(&zval_mvprop_value, ulKey, BEFORE_PHP7_2(converter.convert_to<std::string>(pPropValue->Value.MVszW.lppszW[j]).c_str()));
 			}
 
 			add_assoc_zval(zval_prop_value, pulproptag, &zval_mvprop_value);
