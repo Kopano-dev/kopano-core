@@ -66,9 +66,9 @@ public:
 	VMIMEToMAPI(LPADRBOOK lpAdrBook, delivery_options dopt);
 
 	HRESULT convertVMIMEToMAPI(const std::string &input, IMessage *lpMessage);
-	HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope, std::string *lpBody, std::string *lpBodyStructure);
-	HRESULT createIMAPBody(const std::string &input, vmime::shared_ptr<vmime::message>, IMessage *lpMessage);
-	HRESULT createIMAPEnvelope(vmime::shared_ptr<vmime::message>, IMessage* lpMessage);
+	HRESULT createIMAPProperties(const std::string &input, std::string *envelope, std::string *body, std::string *bodystruct);
+	HRESULT createIMAPBody(const std::string &input, vmime::shared_ptr<vmime::message>, IMessage *);
+	HRESULT createIMAPEnvelope(vmime::shared_ptr<vmime::message>, IMessage *);
 
 private:
 	delivery_options m_dopt;
@@ -88,31 +88,28 @@ private:
 	HRESULT modifyRecipientList(LPADRLIST lpRecipients, vmime::shared_ptr<vmime::addressList>, ULONG ulRecipType);
 	HRESULT modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpulValues, const char *email, const wchar_t *fullname, ULONG ulRecipType, const SPropTagArray *lpPropsList);
 
-	std::string content_transfer_decode(vmime::shared_ptr<vmime::body>) const;
-	vmime::charset get_mime_encoding(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>) const;
+	static std::string content_transfer_decode(vmime::shared_ptr<vmime::body>);
+	static vmime::charset get_mime_encoding(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>);
 	int renovate_encoding(std::string &, const std::vector<std::string> &);
-	int renovate_encoding(std::wstring &, std::string &, const std::vector<std::string> &);
+	static int renovate_encoding(std::wstring &, std::string &, const std::vector<std::string> &);
 
 	HRESULT handleTextpart(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage* lpMessage, bool bAppendBody);
 	HRESULT handleHTMLTextpart(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage* lpMessage, bool bAppendBody);
 	HRESULT handleAttachment(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *lpMessage, const wchar_t *sugg_filename = nullptr, bool bAllowEmpty = true);
 	HRESULT handleMessageToMeProps(IMessage *lpMessage, LPADRLIST lpRecipients);
-
-	int getCharsetFromHTML(const std::string &strHTML, vmime::charset *htmlCharset);
-	vmime::charset getCompatibleCharset(const vmime::charset &vmCharset);
+	static int getCharsetFromHTML(const std::string &html, vmime::charset *charset);
+	static vmime::charset getCompatibleCharset(const vmime::charset &);
 	std::wstring getWideFromVmimeText(const vmime::text &vmText);
-	
-	HRESULT postWriteFixups(IMessage *lpMessage);
-
-	std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox>);
-	std::string addressListToEnvelope(vmime::shared_ptr<vmime::addressList> mbox);
+	static HRESULT postWriteFixups(IMessage *lpMessage);
+	static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox>);
+	static std::string addressListToEnvelope(vmime::shared_ptr<vmime::addressList> mbox);
 	std::string createIMAPEnvelope(vmime::shared_ptr<vmime::message>);
-	HRESULT messagePartToStructure(const std::string &input, vmime::shared_ptr<vmime::bodyPart>, std::string *lpSimple, std::string *lpExtended);
-	HRESULT bodyPartToStructure(const std::string &input, vmime::shared_ptr<vmime::bodyPart>, std::string *lpSimple, std::string *lpExtended);
-	std::string getStructureExtendedFields(vmime::shared_ptr<vmime::header> vmHeaderPart);
-	std::string parameterizedFieldToStructure(vmime::shared_ptr<vmime::parameterizedHeaderField>);
-	std::string::size_type countBodyLines(const std::string &input, std::string::size_type start, std::string::size_type length);
-	bool filter_html(IMessage *, IStream *, ULONG, const std::string &);
+	HRESULT messagePartToStructure(const std::string &input, vmime::shared_ptr<vmime::bodyPart>, std::string *simple, std::string *extended);
+	HRESULT bodyPartToStructure(const std::string &input, vmime::shared_ptr<vmime::bodyPart>, std::string *simple, std::string *extended);
+	std::string getStructureExtendedFields(vmime::shared_ptr<vmime::header> part);
+	static std::string parameterizedFieldToStructure(vmime::shared_ptr<vmime::parameterizedHeaderField>);
+	static std::string::size_type countBodyLines(const std::string &input, std::string::size_type start, std::string::size_type length);
+	static bool filter_html(IMessage *, IStream *, ULONG, const std::string &);
 };
 
 } /* namespace */

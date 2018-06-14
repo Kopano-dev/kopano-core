@@ -1886,7 +1886,7 @@ exit:
  * Returns the transfer-decoded data.
  */
 std::string
-VMIMEToMAPI::content_transfer_decode(vmime::shared_ptr<vmime::body> im_body) const
+VMIMEToMAPI::content_transfer_decode(vmime::shared_ptr<vmime::body> im_body)
 {
 	/* TODO: Research how conversion could be minimized using streams. */
 	std::string data;
@@ -1914,7 +1914,7 @@ VMIMEToMAPI::content_transfer_decode(vmime::shared_ptr<vmime::body> im_body) con
  */
 vmime::charset
 VMIMEToMAPI::get_mime_encoding(vmime::shared_ptr<vmime::header> im_header,
-    vmime::shared_ptr<vmime::body> im_body) const
+    vmime::shared_ptr<vmime::body> im_body)
 {
 	auto ctf = vmime::dynamicCast<vmime::contentTypeField>(im_header->ContentType());
 
