@@ -179,31 +179,6 @@ class _kc_export_dycast iconv_context _kc_final :
 };
 
 /**
- * @brief	Helper class for converting from one charset to another.
- *
- * The converter_helper class detects when the to and from charsets are identical. In
- * that case the string is merely copied.
- */
-template<typename Type> class convert_helper _kc_final {
-	public:
-	/**
-	 * @brief Converts a string to a string with a different charset.
-	 *
-	 * The string with a charset linked to Other_Type is converted to a
-	 * string with a charset linked to Type.
-	 * @param[in] _from		The string to be converted.
-	 * @return				The converted string.
-	 */
-	template<typename Other_Type>
-	static Type convert(const Other_Type &_from)
-	{
-		static_assert(!std::is_same<Type, Other_Type>::value, "pointless conversion");
-		iconv_context<Type, Other_Type> context;
-		return context.convert(_from);
-	}
-};
-
-/**
  * @brief	Converts a string to a string with a different charset.
  *
  * convert_to comes in three forms:
@@ -229,7 +204,9 @@ template<typename Type> class convert_helper _kc_final {
 template<typename To_Type, typename From_Type>
 inline To_Type convert_to(const From_Type &_from)
 {
-	return convert_helper<To_Type>::convert(_from);
+	static_assert(!std::is_same<To_Type, From_Type>::value, "pointless conversion");
+	iconv_context<To_Type, From_Type> context;
+	return context.convert(_from);
 }
 
 template<typename To_Type, typename From_Type> inline To_Type
