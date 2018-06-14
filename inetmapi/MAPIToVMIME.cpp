@@ -57,6 +57,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/codepage.h>
 #include <kopano/ecversion.h>
+#include "ECVMIMEUtils.h"
 #include "SMIMEMessage.h"
 
 // icalmapi
@@ -144,7 +145,8 @@ static constexpr const SizedSPropTagArray(54, sptaExclude) = {
 /**
  * Inits the class with empty/default values.
  */
-MAPIToVMIME::MAPIToVMIME()
+MAPIToVMIME::MAPIToVMIME() :
+	m_parsectx(imopt_default_parsectx())
 {
 	rand_init();
 	imopt_default_sending_options(&sopt);
@@ -158,7 +160,7 @@ MAPIToVMIME::MAPIToVMIME()
  */
 MAPIToVMIME::MAPIToVMIME(IMAPISession *lpSession, IAddrBook *lpAddrBook,
     sending_options so) :
-	sopt(so), m_lpSession(lpSession)
+	m_parsectx(imopt_default_parsectx()), sopt(so), m_lpSession(lpSession)
 {
 	rand_init();
 	if (lpSession != nullptr && lpAddrBook == nullptr)

@@ -421,6 +421,13 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 	return hr;
 }
 
+vmime::parsingContext imopt_default_parsectx()
+{
+	vmime::parsingContext c;
+	c.setInternationalizedEmailSupport(true);
+	return c;
+}
+
 vmime::generationContext imopt_default_genctx()
 {
 	vmime::generationContext c;

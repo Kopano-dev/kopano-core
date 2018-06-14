@@ -38,6 +38,7 @@ public:
 	_kc_hidden HRESULT sendMail(LPADRBOOK, LPMESSAGE, vmime::shared_ptr<vmime::message>, bool allow_everyone, bool always_expand_distlist);
 };
 
+extern vmime::parsingContext imopt_default_parsectx();
 extern vmime::generationContext imopt_default_genctx();
 
 } /* namespace */
