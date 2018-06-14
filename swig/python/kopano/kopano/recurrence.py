@@ -639,30 +639,30 @@ class Recurrence(object):
         self.item[PidLidAppointmentRecur] = data
 
     @property
-    def _start(self):
-        # local to recurrence timezone!
-        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date)) + datetime.timedelta(minutes=self._starttime_offset)
-
-    @property
     def start(self):
         """ Start of recurrence range """
         tz_start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date))
         return _timezone._to_utc(tz_start, self._tzinfo)
-
-    @_start.setter # TODO start.setter
-    def _start(self, value):
-        self._start_date = _utils.unixtime_to_rectime(calendar.timegm(value.timetuple()))
-
-    @property # TODO end.setter
-    def _end(self):
-        # local to recurrence timezone!
-        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date)) + datetime.timedelta(minutes=self._endtime_offset)
 
     @property
     def end(self):
         """ End of recurrence range """
         tz_end = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date))
         return _timezone._to_utc(tz_end, self._tzinfo)
+
+    @property
+    def _start(self):
+        # local to recurrence timezone!
+        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date))
+
+    @property # TODO end.setter
+    def _end(self):
+        # local to recurrence timezone!
+        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date))
+
+    @_start.setter # TODO start.setter
+    def _start(self, value):
+        self._start_date = _utils.unixtime_to_rectime(calendar.timegm(value.timetuple()))
 
     @_end.setter
     def _end(self, value):
@@ -674,8 +674,11 @@ class Recurrence(object):
     def recurrences(self): # TODO rename to _recurrences and/or rrule?
         rule = rruleset()
 
+        start = self._start + datetime.timedelta(minutes=self._starttime_offset)
+        end =  self._end + datetime.timedelta(minutes=self._endtime_offset)
+
         if self._pattern_type == PATTERN_DAILY:
-            rule.rrule(rrule(DAILY, dtstart=self._start, until=self._end, interval=self._period // (24 * 60)))
+            rule.rrule(rrule(DAILY, dtstart=start, until=end, interval=self._period // (24 * 60)))
 
         if self._pattern_type == PATTERN_WEEKLY:
             byweekday = () # Set
@@ -684,12 +687,12 @@ class Recurrence(object):
                     byweekday += (week,)
             # FIXME: add one day, so that we don't miss the last recurrence, since the end date is for example 11-3-2015 on 1:00
             # But the recurrence is on 8:00 that day and we should include it.
-            rule.rrule(rrule(WEEKLY, wkst=self._start.weekday(), dtstart=self._start, until=self._end + datetime.timedelta(days=1), byweekday=byweekday, interval=self._period))
+            rule.rrule(rrule(WEEKLY, wkst=start.weekday(), dtstart=start, until=end + datetime.timedelta(days=1), byweekday=byweekday, interval=self._period))
 
         elif self._pattern_type == PATTERN_MONTHLY:
             # X Day of every Y month(s)
             # The Xnd Y (day) of every Z Month(s)
-            rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, bymonthday=self._pattern_type_specific[0], interval=self._period))
+            rule.rrule(rrule(MONTHLY, dtstart=start, until=end, bymonthday=self._pattern_type_specific[0], interval=self._period))
             # self._pattern_type_specific[0] is either day of month or
 
         elif self._pattern_type == PATTERN_MONTHNTH:
@@ -701,7 +704,7 @@ class Recurrence(object):
                     else:
                         byweekday += (week(self._pattern_type_specific[1]),)
             # Yearly, the last XX of YY
-            rule.rrule(rrule(MONTHLY, dtstart=self._start, until=self._end, interval=self._period, byweekday=byweekday))
+            rule.rrule(rrule(MONTHLY, dtstart=start, until=end, interval=self._period, byweekday=byweekday))
 
         elif self._pattern_type != PATTERN_DAILY: # XXX check 0
             raise NotSupportedError('Unsupported recurrence pattern: %d' % self._pattern_type)
@@ -716,7 +719,7 @@ class Recurrence(object):
         # Remove deleted ocurrences (skip added exceptions)
         for del_date_val in self._deleted_instance_dates:
             del_date = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(del_date_val))
-            del_date = datetime.datetime(del_date.year, del_date.month, del_date.day, self._start.hour, self._start.minute)
+            del_date = datetime.datetime(del_date.year, del_date.month, del_date.day, self._starttime_offset//60, self._starttime_offset%60)
             if del_date not in exc_starts:
                 rule.exdate(del_date)
 
