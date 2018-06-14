@@ -285,9 +285,9 @@ class Recurrence(object):
                 start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(exc['start_datetime']))
                 end = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(exc['end_datetime']))
                 if exc['override_flags'] & ARO_SUBJECT:
-                    subject = ext['subject']
+                    subject = ext.get('subject')
                 if exc['override_flags'] & ARO_LOCATION:
-                    location = ext['location']
+                    location = ext.get('location')
                 break
         else:
             # TODO check that date is (still) valid
@@ -465,6 +465,14 @@ class Recurrence(object):
 
             self._exceptions.append(exception)
 
+        # according to the specs, the number of exceptions and extended exceptions
+        # should always be equal, but some clients apparently do not respect this
+        self._has_extended = True
+        if pos==len(value):
+            self._extended_exceptions = [{} for ext in self._exceptions]
+            self._has_extended = False
+            return
+
         # ReservedBlock1Size
         pos += _utils.unpack_long(value, pos) + LONG
 
@@ -594,35 +602,36 @@ class Recurrence(object):
             if exception['override_flags'] & ARO_APPTCOLOR:
                 data += struct.pack('<I', exception['appointment_color'])
 
-        # ReservedBlock1Size
-        data += struct.pack('<I', 0)
-
-        # ExtendedException
-        for exception, extended_exception in zip(self._exceptions, self._extended_exceptions):
+        if self._has_extended:
+            # ReservedBlock1Size
             data += struct.pack('<I', 0)
 
-            overrideflags = exception['override_flags']
-
-            if overrideflags & ARO_SUBJECT or overrideflags & ARO_LOCATION:
-                data += struct.pack('<I', extended_exception['start_datetime'])
-                data += struct.pack('<I', extended_exception['end_datetime'])
-                data += struct.pack('<I', extended_exception['original_start_date'])
-
-            if overrideflags & ARO_SUBJECT:
-                subject = extended_exception['subject']
-                data += struct.pack('<H', len(subject))
-                data += subject.encode('utf-16-le')
-
-            if overrideflags & ARO_LOCATION:
-                location = extended_exception['location']
-                data += struct.pack('<H', len(location))
-                data += location.encode('utf-16-le')
-
-            if overrideflags & ARO_SUBJECT or overrideflags & ARO_LOCATION:
+            # ExtendedException
+            for exception, extended_exception in zip(self._exceptions, self._extended_exceptions):
                 data += struct.pack('<I', 0)
 
-        # ReservedBlock2Size
-        data += struct.pack('<I', 0)
+                overrideflags = exception['override_flags']
+
+                if overrideflags & ARO_SUBJECT or overrideflags & ARO_LOCATION:
+                    data += struct.pack('<I', extended_exception['start_datetime'])
+                    data += struct.pack('<I', extended_exception['end_datetime'])
+                    data += struct.pack('<I', extended_exception['original_start_date'])
+
+                if overrideflags & ARO_SUBJECT:
+                    subject = extended_exception['subject']
+                    data += struct.pack('<H', len(subject))
+                    data += subject.encode('utf-16-le')
+
+                if overrideflags & ARO_LOCATION:
+                    location = extended_exception['location']
+                    data += struct.pack('<H', len(location))
+                    data += location.encode('utf-16-le')
+
+                if overrideflags & ARO_SUBJECT or overrideflags & ARO_LOCATION:
+                    data += struct.pack('<I', 0)
+
+            # ReservedBlock2Size
+            data += struct.pack('<I', 0)
 
         self.item[PidLidAppointmentRecur] = data
 
