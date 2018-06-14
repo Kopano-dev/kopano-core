@@ -38,6 +38,9 @@ struct delivery_options {
 	 */
 	bool charset_strict_rfc;
 
+	/* Enables the joining of HTML parts (one document's stylesheet can hack another). */
+	bool insecure_html_join;
+
 	LPSBinary user_entryid;			// If not NULL, specifies the entryid of the user for whom we are delivering. If set, allows generating PR_MESSAGE_*_ME properties.
 	const char *ascii_upgrade; // Upgrade ASCII parts to this new (ASCII-compatible) charset
 	bool html_safety_filter;

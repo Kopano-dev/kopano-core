@@ -109,7 +109,8 @@ static constexpr const struct {
 	{"qt", "video/quicktime"},
 	{"mov", "video/quicktime"},
 	{"avi", "video/x-msvideo"},
-	{"ics", "text/calendar"}
+	{"ics", "text/calendar"},
+	{"html", "text/html"},
 };
 
 const char *ext_to_mime_type(const char *ext, const char *def)
