@@ -198,7 +198,7 @@ class Appointment(object):
             SPropValue(PR_ENTRYID, pr_entryid),
         ])
         self.mapiobj.ModifyRecipients(MODRECIP_ADD, names)
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def response_requested(self):

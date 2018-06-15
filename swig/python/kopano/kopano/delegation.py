@@ -4,6 +4,8 @@ Part of the high-level python bindings for Kopano
 Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import sys
+
 from MAPI import (
     ROW_REMOVE, FL_PREFIX, RELOP_NE, ROW_ADD, MAPI_BEST_ACCESS,
     MAPI_UNICODE,
@@ -28,6 +30,14 @@ from .compat import (
     bdec as _bdec, repr as _repr,
 )
 from .errors import NotFoundError
+
+if sys.hexversion >= 0x03000000:
+    try:
+        from . import utils as _utils
+    except ImportError: # pragma: no cover
+        _utils = sys.modules[__package__ + '.utils']
+else: # pragma: no cover
+    import utils as _utils
 
 USERPROPS = [
     PR_ENTRYID,
@@ -66,7 +76,7 @@ class Delegation(object):
             flags.Value[pos] &= ~1
 
         fbmsg.SetProps([flags])
-        fbmsg.SaveChanges(0)
+        _utils._save(fbmsg)
 
     @staticmethod
     def _parse_rule(store):
@@ -184,7 +194,7 @@ class Delegation(object):
         del flags.Value[pos]
 
         fbmsg.SetProps([entryids, names, flags])
-        fbmsg.SaveChanges(0)
+        _utils._save(fbmsg)
 
     def __unicode__(self):
         return u"Delegation('%s')" % self.user.name

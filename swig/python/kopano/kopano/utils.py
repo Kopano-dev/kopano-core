@@ -10,9 +10,11 @@ import calendar
 import datetime
 import struct
 import sys
+import time
 
 from MAPI import (
     WrapCompressedRTFStream, PT_UNICODE, ROW_ADD, MAPI_MODIFY,
+    KEEP_OPEN_READWRITE,
 )
 from MAPI.Defs import (
     PROP_TYPE
@@ -25,7 +27,7 @@ from MAPI.Tags import (
 )
 from MAPI.Struct import (
     MAPIErrorNotFound, MAPIErrorInterfaceNotSupported, SPropValue, ROWENTRY,
-    MAPIErrorNoAccess
+    MAPIErrorNoAccess, MAPIErrorDiskError
 )
 
 from .compat import bdec as _bdec
@@ -182,3 +184,19 @@ def _bdec_eid(entryid):
         return _bdec(entryid)
     except (TypeError, binascii.Error):
         raise ArgumentError("invalid entryid: %r" % entryid)
+
+def _save(mapiobj):
+    # retry on deadlock or other temporary issue
+    t = 0.1
+    retry = 0
+    while True:
+        try:
+            mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            break
+        except MAPIErrorDiskError:
+            if retry >= 5:
+                raise
+            else:
+                retry += 1
+                time.sleep(t)
+                t *= 2

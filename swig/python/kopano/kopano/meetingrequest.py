@@ -284,7 +284,7 @@ class MeetingRequest(object):
                 cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD, [organizer_props] + rows)
             else:
                 cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD, [organizer_props])
-            cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(cal_item.mapiobj)
 
     def accept(self, tentative=False, response=True, add_bcc=False):
         """ Accept meeting request
@@ -367,7 +367,7 @@ class MeetingRequest(object):
                 table.SetColumns(RECIP_PROPS, 0)
                 rows = table.QueryRows(-1, 0)
                 cal_item.mapiobj.ModifyRecipients(MODRECIP_MODIFY, rows)
-                cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+                _utils._save(cal_item.mapiobj)
 
         # add self as BCC for ZCP-9901 XXX still relevant?
         proptags = [
@@ -392,7 +392,7 @@ class MeetingRequest(object):
         ])
         if add_bcc and not merge:
             cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD, [props])
-            cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(cal_item.mapiobj)
 
         # send response
         if response:
@@ -445,7 +445,7 @@ class MeetingRequest(object):
                     message[PidLidBusyStatus] = libfreebusy.fbFree
                     message[PR_MESSAGE_FLAGS] = MSGFLAG_UNSENT | MSGFLAG_READ
 
-                    message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
+                    _utils._save(message._attobj)
 
         else:
             if delete:
@@ -455,7 +455,7 @@ class MeetingRequest(object):
                 cal_item.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')])
 
         if cal_item:
-            cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(cal_item.mapiobj)
 
     def process_response(self):
         """ Process meeting request response """
@@ -530,11 +530,11 @@ class MeetingRequest(object):
             message[PidLidAppointmentCounterProposal] = True
 
         # save all the things
-        message.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(message.mapiobj)
 
         if attach:
-            attach.SaveChanges(KEEP_OPEN_READWRITE)
-            cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(attach)
+            _utils._save(cal_item.mapiobj)
 
     def _compare_ab_entryids(self, entryid1, entryid2): # XXX shorten?
         smtp1 = self._get_smtp_address(entryid1)

@@ -148,7 +148,7 @@ class PersistentList(list):
             ret = func(*args, **kwargs)
             data = [_unicode(x) for x in self]
             self.mapiobj.SetProps([SPropValue(self.proptag, data)])
-            self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(self.mapiobj)
             return ret
         return _func
 
@@ -218,7 +218,7 @@ class Item(Properties, Contact, Appointment):
                         self.from_ = self.store.user
                         self[PidLidAppointmentStateFlags] = 1
             if save:
-                self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+                _utils._save(self.mapiobj)
 
     @property
     def mapiobj(self):
@@ -319,7 +319,7 @@ class Item(Properties, Contact, Appointment):
     @name.setter
     def name(self, x):
         self.mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME_W, _unicode(x))])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def normalized_subject(self):
@@ -362,7 +362,7 @@ class Item(Properties, Contact, Appointment):
         * IPM.Task                       - task
         """
         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, _unicode(messageclass))])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def created(self):
@@ -452,7 +452,7 @@ class Item(Properties, Contact, Appointment):
         proptag = CHANGE_PROP_TYPE(proptag, PT_MV_UNICODE)
         data = [_unicode(x) for x in value]
         self.mapiobj.SetProps([SPropValue(proptag, data)])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def folder(self):
@@ -485,7 +485,7 @@ class Item(Properties, Contact, Appointment):
 
         warnings.warn('item.importance is deprecated (use item.urgency)', _DeprecationWarning)
         self.mapiobj.SetProps([SPropValue(PR_IMPORTANCE, value)])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def urgency(self): # TODO rename back to 'importance' with core 9?
@@ -602,8 +602,8 @@ class Item(Properties, Contact, Appointment):
         stream.Write(data)
         stream.Commit(0)
 
-        attach.SaveChanges(KEEP_OPEN_READWRITE)
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
+        _utils._save(attach)
+        _utils._save(self.mapiobj) # XXX needed?
 
         att = Attachment(self, mapiitem=self.mapiobj, mapiobj=attach)
 
@@ -923,7 +923,7 @@ class Item(Properties, Contact, Appointment):
             SPropValue(PR_SENDER_EMAIL_ADDRESS_W, pr_email),
             SPropValue(PR_SENDER_ENTRYID, pr_entryid),
         ])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def from_(self):
@@ -947,7 +947,7 @@ class Item(Properties, Contact, Appointment):
         if not self.sender.email:
             self.sender = addr
 
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     def table(self, name, restriction=None, order=None, columns=None):
         return Table(
@@ -1072,7 +1072,7 @@ class Item(Properties, Contact, Appointment):
                 SPropValue(PR_ENTRYID, pr_entryid),
             ])
         self.mapiobj.ModifyRecipients(MODRECIP_ADD, names)
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
+        _utils._save(self.mapiobj) # XXX needed?
 
     @to.setter
     def to(self, addrs):
@@ -1106,7 +1106,7 @@ class Item(Properties, Contact, Appointment):
 
         # XXX: refresh the mapiobj since PR_ATTACH_NUM is updated when opening
         # a message? PR_HASATTACH is also updated by the server.
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     def match(self, restriction):
         return restriction.match(self)
@@ -1264,9 +1264,9 @@ class Item(Properties, Contact, Appointment):
                     stream = attach.OpenProperty(PR_ATTACH_DATA_BIN, IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_MODIFY | MAPI_CREATE)
                     stream.Write(data)
                     stream.Commit(0)
-                attach.SaveChanges(KEEP_OPEN_READWRITE)
+                _utils._save(attach)
 
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
+        _utils._save(self.mapiobj) # XXX needed?
 
     def load(self, f, attachments=True):
         self._load(_pickle_load(f), attachments)
@@ -1306,9 +1306,9 @@ class Item(Properties, Contact, Appointment):
         for key, val in kwargs.items():
             setattr(item, key, val)
 
-        msg.SaveChanges(KEEP_OPEN_READWRITE)
-        attach.SaveChanges(KEEP_OPEN_READWRITE)
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
+        _utils._save(msg)
+        _utils._save(attach)
+        _utils._save(self.mapiobj) # XXX needed?
 
         return item
 
@@ -1376,13 +1376,13 @@ class Item(Properties, Contact, Appointment):
         exclude_props = [PROP_REF_STORE_ENTRYID, PROP_REF_ITEM_ENTRYID, PROP_REF_PREV_ENTRYID, PROP_FLAGS]
         self.mapiobj.CopyTo(None, exclude_props, 0, None, IID_IMessage, mapiobj, 0)
 
-        mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(mapiobj)
 
         # update backref
         if new:
             entryid = HrGetOneProp(mapiobj, PR_ENTRYID).Value
             self.mapiobj.SetProps([SPropValue(PROP_REF_ITEM_ENTRYID, entryid)])
-            self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(self.mapiobj)
 
     def copy(self, folder, _delete=False):
         """ Copy item to folder; return copied item
@@ -1392,7 +1392,7 @@ class Item(Properties, Contact, Appointment):
 
         mapiobj = folder.mapiobj.CreateMessage(None, 0)
         self.mapiobj.CopyTo([], [], 0, None, IID_IMessage, mapiobj, 0)
-        mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(mapiobj)
         if _delete:
             self.folder.delete(self)
         item = Item(mapiobj=mapiobj)

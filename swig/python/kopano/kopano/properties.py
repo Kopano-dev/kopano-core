@@ -19,8 +19,14 @@ from .errors import NotFoundError
 
 if sys.hexversion >= 0x03000000:
     from . import property_ as _prop
+
+    try:
+        from . import utils as _utils
+    except ImportError: # pragma: no cover
+        _utils = sys.modules[__package__ + '.utils']
 else: # pragma: no cover
     import property_ as _prop
+    import utils as _utils
 
 class Properties(object):
     """Property mixin class"""
@@ -118,7 +124,7 @@ class Properties(object):
     def _set_fast(self, proptag, value):
         self._cache.pop(proptag, None)
         self.mapiobj.SetProps([SPropValue(proptag, value)])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     def __repr__(self):
         return _repr(self)

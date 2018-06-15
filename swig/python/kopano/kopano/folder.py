@@ -244,7 +244,7 @@ class Folder(Properties):
     @name.setter
     def name(self, name):
         self.mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME_W, _unicode(name))])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def container_class(self): # TODO return '' by default?
@@ -268,7 +268,7 @@ class Folder(Properties):
     @container_class.setter
     def container_class(self, value):
         self.mapiobj.SetProps([SPropValue(PR_CONTAINER_CLASS_W, _unicode(value))])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def unread(self):
@@ -784,7 +784,7 @@ class Folder(Properties):
         for i in range(0, icm.GetItemCount()):
             mapiobj = self.mapiobj.CreateMessage(None, 0)
             icm.GetItem(i, 0, mapiobj)
-            mapiobj.SaveChanges(0)
+            _utils._save(mapiobj)
 
     def ics(self, charset="UTF-8"):
         """Export all calendar items in the folder to an ics file

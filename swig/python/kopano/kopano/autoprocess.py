@@ -4,6 +4,8 @@ Part of the high-level python bindings for Kopano
 Copyright 2018 - Kopano and its licensors (see LICENSE file)
 """
 
+import sys
+
 from MAPI.Tags import (
     PR_FREEBUSY_ENTRYIDS,
 )
@@ -18,6 +20,14 @@ from MAPI import (
 )
 
 from .defs import NAMED_PROPS_KC
+
+if sys.hexversion >= 0x03000000:
+    try:
+        from . import utils as _utils
+    except ImportError: # pragma: no cover
+        _utils = sys.modules[__package__ + '.utils']
+else: # pragma: no cover
+    import utils as _utils
 
 class AutoProcess(object):
     """AutoProcess class"""
@@ -40,4 +50,4 @@ class AutoProcess(object):
     def enabled(self, b):
         prop = CHANGE_PROP_TYPE(self._ids[0], PT_BOOLEAN)
         self._fb.SetProps([SPropValue(prop, b)])
-        self._fb.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self._fb)

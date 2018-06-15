@@ -887,8 +887,8 @@ class Recurrence(object):
             props = props[:-2]
         message.mapiobj.SetProps(props)
 
-        message.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
-        message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(message.mapiobj)
+        _utils._save(message._attobj)
 
     def _create_exception(self, basedate, item=None, copytags=None, merge=False):
         cal_item = self.item
@@ -927,9 +927,9 @@ class Recurrence(object):
 
             message.mapiobj.ModifyRecipients(MODRECIP_ADD, recips)
 
-        message.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
-        message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
-        cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(message.mapiobj)
+        _utils._save(message._attobj)
+        _utils._save(cal_item.mapiobj)
 
         # XXX attachments?
 
@@ -973,7 +973,7 @@ class Recurrence(object):
                     if not copytags and icon_index is not None:
                         message[PR_ICON_INDEX] = icon_index
 
-                message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
+                _utils._save(message._attobj)
                 break
         else:
             return # XXX exception
@@ -995,9 +995,9 @@ class Recurrence(object):
 
             message.mapiobj.ModifyRecipients(MODRECIP_MODIFY, recips)
 
-            message.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
-            message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
-            cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(message.mapiobj)
+            _utils._save(message._attobj)
+            _utils._save(cal_item.mapiobj)
 
         # update blob
         basedate_val = _utils.unixtime_to_rectime(time.mktime(_timezone._from_utc(basedate, self._tzinfo).timetuple()))
