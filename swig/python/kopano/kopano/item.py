@@ -155,7 +155,7 @@ class PersistentList(list):
 class Item(Properties, Contact, Appointment):
     """Item class"""
 
-    def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None,
+    def __init__(self, folder=None, eml=None, ics=None, vcf=None, load=None,
                  loads=None, attachments=True, create=False, mapiobj=None,
                  entryid=None, content_flag=None, cache={}, save=True):
         self._eml = None
@@ -166,13 +166,10 @@ class Item(Properties, Contact, Appointment):
         self._content_flag = content_flag or 0
         self._cache = cache
 
-        if isinstance(parent, _folder.Folder):
-            self._folder = parent
-            self.store = parent.store
-            self.server = parent.server
-        elif isinstance(parent, _store.Store):
-            self.store = parent
-            self.server = parent.server
+        if folder:
+            self._folder = folder
+            self.store = folder.store
+            self.server = folder.server
 
         if create:
             self.mapiobj = self.folder.mapiobj.CreateMessage(None, MAPI_ASSOCIATED if self.folder.content_flag & MAPI_ASSOCIATED else 0)
