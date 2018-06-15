@@ -7,8 +7,10 @@ Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
 # two-way conversion of timezones between MAPI and python
 #
 # note that pyko always outputs/expects naive system-local datetimes.
+# (except for recurrence.{start,end}, which are timezone-local dates)
 # this may have been a mistake, but OTOH, it does seem nice for interactive use.
-# anyway this is not easy to change now.
+# anyway this is not easy to change now. we intend to add a global flag
+# to python-kopano, to make all datetimes timezone-aware.
 
 import calendar
 import datetime

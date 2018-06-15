@@ -183,7 +183,7 @@ class Recurrence(object):
     @property
     def month(self):
         if self._recur_frequency == FREQ_YEAR:
-            return self._start.month # TODO isn't this stored explicitly!?
+            return self.start.month # TODO isn't this stored explicitly!?
 
     @property
     def monthday(self):
@@ -240,6 +240,14 @@ class Recurrence(object):
             self._end_type = 0x2022
         elif value == 'no_end':
             self._end_type = 0x2023
+
+    @property
+    def count(self):
+        return self._occurrence_count
+
+    @count.setter
+    def count(self, value):
+        self._occurrence_count = value
 
     def occurrences(self, start=None, end=None): # XXX fit-to-period
         recurrences = self.recurrences
@@ -638,34 +646,23 @@ class Recurrence(object):
 
         self.item[PidLidAppointmentRecur] = data
 
+    # TODO add timezone-awareness flag to pyko..
     @property
     def start(self):
-        """ Start of recurrence range """
-        tz_start = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date))
-        return _timezone._to_utc(tz_start, self._tzinfo)
+        """ Start of recurrence range (within recurrence timezone) """
+        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date))
+
+    @start.setter
+    def start(self, value):
+        self._start_date = _utils.unixtime_to_rectime(calendar.timegm(value.timetuple()))
 
     @property
     def end(self):
-        """ End of recurrence range """
-        tz_end = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date))
-        return _timezone._to_utc(tz_end, self._tzinfo)
-
-    @property
-    def _start(self):
-        # local to recurrence timezone!
-        return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._start_date))
-
-    @property # TODO end.setter
-    def _end(self):
-        # local to recurrence timezone!
+        """ End of recurrence range (within recurrence timezone) """
         return datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._end_date))
 
-    @_start.setter # TODO start.setter
-    def _start(self, value):
-        self._start_date = _utils.unixtime_to_rectime(calendar.timegm(value.timetuple()))
-
-    @_end.setter
-    def _end(self, value):
+    @end.setter
+    def end(self, value):
         self._end_date = _utils.unixtime_to_rectime(calendar.timegm(value.timetuple()))
 
     # TODO functionality below here should be refactored or not visible
@@ -674,8 +671,8 @@ class Recurrence(object):
     def recurrences(self): # TODO rename to _recurrences and/or rrule?
         rule = rruleset()
 
-        start = self._start + datetime.timedelta(minutes=self._starttime_offset)
-        end =  self._end + datetime.timedelta(minutes=self._endtime_offset)
+        start = self.start + datetime.timedelta(minutes=self._starttime_offset)
+        end =  self.end + datetime.timedelta(minutes=self._endtime_offset)
 
         if self._pattern_type == PATTERN_DAILY:
             rule.rrule(rrule(DAILY, dtstart=start, until=end, interval=self._period // (24 * 60)))
