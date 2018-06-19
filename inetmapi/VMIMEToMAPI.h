@@ -45,7 +45,7 @@ struct sMailState {
 	std::string strHTMLBody;	//!< cache for the current complete untouched HTML body, used for finding CIDs or locations (inline images)
 
 	sMailState() {
-		this->reset();
+		reset();
 		ulMsgInMsg = 0;
 	};
 	void reset() {

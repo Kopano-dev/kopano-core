@@ -85,10 +85,8 @@ static const struct _sClassMap {
 static const char *FindMAPIClassByScheduleClass(const char *szSClass)
 {
 	for (size_t i = 0; i < ARRAY_SIZE(sClassMap); ++i)
-		if(strcasecmp(szSClass, sClassMap[i].szScheduleClass) == 0) {
+		if (strcasecmp(szSClass, sClassMap[i].szScheduleClass) == 0)
 			return sClassMap[i].szMAPIClass;
-		}
-
 	return NULL;
 }
 
@@ -1280,7 +1278,7 @@ HRESULT ECTNEF::FinishComponent(ULONG flags, ULONG ulComponentID,
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	if (flags != TNEF_COMPONENT_ATTACHMENT)
 		return MAPI_E_NO_SUPPORT;
-	if (this->ulFlags != TNEF_ENCODE)
+	if (ulFlags != TNEF_ENCODE)
 		return MAPI_E_INVALID_PARAMETER;
 	auto hr = m_lpMessage->OpenAttach(ulComponentID, &IID_IAttachment, 0, &~lpAttach);
     if(hr != hrSuccess)

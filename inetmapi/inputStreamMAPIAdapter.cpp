@@ -32,8 +32,7 @@ size_t inputStreamMAPIAdapter::read(unsigned char *data, size_t count)
 	if (lpStream->Read(data, count, &ulSize) != hrSuccess)
 		return 0;
 	if (ulSize != count)
-		this->ateof = true;
-
+		ateof = true;
 	return ulSize;
 }
 
@@ -44,8 +43,7 @@ void inputStreamMAPIAdapter::reset()
 	move.QuadPart = 0;
 
 	lpStream->Seek(move, SEEK_SET, NULL);
-
-	this->ateof = false;
+	ateof = false;
 }
 
 size_t inputStreamMAPIAdapter::skip(size_t count)
@@ -58,8 +56,7 @@ size_t inputStreamMAPIAdapter::skip(size_t count)
 	lpStream->Seek(move, SEEK_CUR, &ulSize);
 
 	if (ulSize.QuadPart != count)
-		this->ateof = true;
-
+		ateof = true;
 	return ulSize.QuadPart;
 }
 

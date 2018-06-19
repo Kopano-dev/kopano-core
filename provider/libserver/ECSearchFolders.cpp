@@ -1199,9 +1199,8 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, std::list<unsigned
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::AddResults(): GetThreadLocalDatabase failed", er);
 	std::string strQuery = "SELECT 1 FROM searchresults WHERE folderid = " +  stringify(ulFolderId) + " AND hierarchyid IN (";
-	for (const auto n : lstObjId) {
+	for (const auto n : lstObjId)
 		strQuery += stringify(n) + ",";
-	}
 	strQuery.resize(strQuery.size()-1);
 	strQuery += ") FOR UPDATE";
 
@@ -1209,9 +1208,8 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, std::list<unsigned
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::AddResults(): DoSelect failed", er);
 	strQuery = "INSERT IGNORE INTO searchresults (folderid, hierarchyid, flags) VALUES";
-	for (const auto n : lstObjId) {
+	for (const auto n : lstObjId)
 		strQuery += "(" + stringify(ulFolderId) + "," + stringify(n) + ",1),";
-	}
 	strQuery.resize(strQuery.size()-1);
 
     er = lpDatabase->DoInsert(strQuery, NULL, &ulInserted);
