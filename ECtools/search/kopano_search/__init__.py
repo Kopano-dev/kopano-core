@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import print_function
 from .version import __version__
 
 import collections
@@ -405,23 +406,36 @@ class Service(kopano.Service):
     def reindex(self):
         """ pass usernames/store-ids given on command-line to running search process """
 
-        for key in self.options.reindex: # usernames supported for convenience/backward compatibility
-            store = self.server.get_store(key)
-            if not store:
-                user = self.server.get_user(key)
-                if user:
-                    store = user.store
-            if store: # XXX check all keys first
-                with closing(kopano.client_socket(self.config['server_bind_name'], ssl_cert=self.config['ssl_certificate_file'])) as s:
-                    s.sendall((u'REINDEX %s\r\n' % store.guid).encode('ascii'))
-                    s.recv(1024)
-            else:
-                print("no such user/store: %s" % key)
+        store_guids = []
+
+        if not (self.options.users or self.options.stores):
+            print("no user/store specified (use -u/-S)", file=sys.stderr)
+            sys.exit(1)
+
+        for username in self.options.users:
+            user = self.server.get_user(username)
+            if not user:
+                print("no such user: %s" % username, file=sys.stderr)
                 sys.exit(1)
+            elif user.store:
+                store_guids.append(user.store.guid)
+
+        for store_guid in self.options.stores:
+            store = self.server.get_store(store_guid)
+            if not store:
+                print("no such store: %s" % store_guid, file=sys.stderr)
+                sys.exit(1)
+            else:
+                store_guids.append(store_guid)
+
+        for store_guid in store_guids:
+            with closing(kopano.client_socket(self.config['server_bind_name'], ssl_cert=self.config['ssl_certificate_file'])) as s:
+                s.sendall((u'REINDEX %s\r\n' % store_guid).encode('ascii'))
+                s.recv(1024)
 
 def main():
-    parser = kopano.parser('ckpsFlV') # select common cmd-line options
-    parser.add_option('-r', '--reindex', dest='reindex', action='append', default=[], help='Reindex user/store', metavar='USER')
+    parser = kopano.parser('ckpsFlVuS') # select common cmd-line options
+    parser.add_option('-r', '--reindex', dest='reindex', action='store_true',help='Reindex user/store')
     options, args = parser.parse_args()
     service = Service('search', config=CONFIG, options=options)
     if options.reindex:
