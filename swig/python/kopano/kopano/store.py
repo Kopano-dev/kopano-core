@@ -442,8 +442,6 @@ class Store(Properties):
     def item(self, entryid=None, guid=None):
         """Return :class:`Item` with given entryid."""
 
-        eid = _utils._bdec_eid(entryid)
-
         item = _item.Item() # XXX copy-pasting..
         item.store = self
         item.server = self.server
@@ -451,6 +449,8 @@ class Store(Properties):
         if guid:
             # 01 -> entryid format version, 05 -> object type (message)
             entryid = '00000000' + self.guid + '0100000005000000' + guid + '00000000'
+
+        eid = _utils._bdec_eid(entryid)
 
         try:
             item.mapiobj = _utils.openentry_raw(self.mapiobj, eid, 0) # XXX soft-deleted item?
