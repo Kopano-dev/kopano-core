@@ -70,16 +70,23 @@ struct sObjectTableKey {
 	unsigned int ulObjId = 0;
 	unsigned int ulOrderId = 0;
 
-	bool operator()(const sObjectTableKey &o) const noexcept
+	bool operator==(const sObjectTableKey &o) const noexcept
+	{
+		return ulObjId == o.ulObjId && ulOrderId == o.ulOrderId;
+	}
+
+	bool operator!=(const sObjectTableKey &o) const noexcept { return !operator==(o); }
+
+	bool operator<(const sObjectTableKey &o) const noexcept
 	{
 		return ulObjId < o.ulObjId || (ulObjId == o.ulObjId && ulOrderId < o.ulOrderId);
 	}
-};
 
-extern bool operator!=(const sObjectTableKey &, const sObjectTableKey &) noexcept;
-extern _kc_export bool operator==(const sObjectTableKey &, const sObjectTableKey &) noexcept;
-extern _kc_export bool operator<(const sObjectTableKey &, const sObjectTableKey &) noexcept;
-extern bool operator>(const sObjectTableKey &, const sObjectTableKey &) noexcept;
+	bool operator>(const sObjectTableKey &o) const noexcept
+	{
+		return ulObjId > o.ulObjId || (ulObjId == o.ulObjId && ulOrderId > o.ulOrderId);
+	}
+};
 
 typedef std::map<sObjectTableKey, unsigned int> ECObjectTableMap;
 typedef std::list<sObjectTableKey> ECObjectTableList;
@@ -166,6 +173,8 @@ public:
 	ECKeyTable();
 	~ECKeyTable();
 	ECRESULT UpdateRow(UpdateType ulType, const sObjectTableKey *lpsRowItem, std::vector<ECSortCol> &&, sObjectTableKey *lpsPrevRow, bool fHidden = false, UpdateType *lpulAction = nullptr);
+	ECRESULT UpdateRow_Delete(const sObjectTableKey *row, std::vector<ECSortCol> &&, sObjectTableKey *prev_row, bool hidden = false, UpdateType *action = nullptr);
+	ECRESULT UpdateRow_Modify(const sObjectTableKey *row, std::vector<ECSortCol> &&, sObjectTableKey *prev_row, bool hidden = false, UpdateType *action = nullptr);
 	ECRESULT	GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTableKey *lpsPrevItem);
 	ECRESULT	SeekRow(unsigned int ulBookmark, int lSeekTo, int *lplRowsSought);
 	ECRESULT	SeekId(const sObjectTableKey *lpsRowItem);

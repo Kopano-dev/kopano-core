@@ -135,7 +135,7 @@ public:
 	
 	virtual ~ECWaitableTask();
 	virtual void execute(void) _kc_override;
-	_kc_hidden bool done(void) const;
+	_kc_hidden bool done() const { return m_state == Done; }
 	bool wait(unsigned timeout = WAIT_INFINITE, unsigned waitMask = Done) const;
 	
 protected:
@@ -146,15 +146,6 @@ private:
 	mutable std::condition_variable m_hCondition;
 	State					m_state;
 };
-
-/**
- * Check if the task has been executed.
- * @retval true when executed, false otherwise.
- */
-inline bool ECWaitableTask::done() const {
-	return m_state == Done;
-}
-
 
 /**
  * This class can be used to run a function with one argument asynchronously on
