@@ -14,7 +14,7 @@ import sys
 if sys.hexversion >= 0x03000000:
     import bsddb3 as bsddb
     from queue import Empty
-else:
+else: # pragma: no cover
     import bsddb
     from Queue import Empty
 
@@ -95,7 +95,7 @@ if sys.hexversion >= 0x03000000:
 
     def _encode(s):
         return s.encode()
-else:
+else: # pragma: no cover
     def _is_unicode(s):
         return isinstance(s, unicode)
 

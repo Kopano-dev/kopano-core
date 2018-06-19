@@ -14,7 +14,7 @@ DT_EQUIPMENT = 8
 if sys.hexversion >= 0x03000000:
     def _decode(s):
         return s
-else:
+else: # pragma: no cover
     def _decode(s):
         return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
 

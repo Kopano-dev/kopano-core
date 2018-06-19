@@ -43,7 +43,7 @@ from MAPI.Defs import (
 from MAPI.Struct import (
     SPropValue, MAPIErrorNotFound, MAPIErrorUnknownEntryid,
     MAPIErrorInterfaceNotSupported, MAPIErrorUnconfigured, MAPIErrorNoAccess,
-    SPropertyRestriction
+    MAPIErrorNoRecipients, SPropertyRestriction
 )
 
 from MAPI.Tags import (
@@ -79,6 +79,7 @@ from MAPI.Tags import (
 
 from .pidlid import (
     PidLidAppointmentStateFlags, PidLidCleanGlobalObjectId,
+    PidLidAppointmentStartWhole, PidLidAppointmentEndWhole
 )
 
 from .compat import (
@@ -93,7 +94,9 @@ from .defs import (
     PSETID_Archive, URGENCY, REV_URGENCY, ASF_MEETING, ASF_RECEIVED,
     ASF_CANCELED
 )
-from .errors import Error, NotFoundError, _DeprecationWarning
+from .errors import (
+    Error, NotFoundError, _DeprecationWarning
+)
 
 from .attachment import Attachment
 from .properties import Properties
@@ -600,7 +603,7 @@ class Item(Properties, Contact, Appointment):
         attach.SaveChanges(KEEP_OPEN_READWRITE)
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
 
-        att = Attachment(self, mapiobj=attach)
+        att = Attachment(self, mapiitem=self.mapiobj, mapiobj=attach)
 
         for key, val in kwargs.items():
             setattr(att, key, val)
@@ -773,10 +776,15 @@ class Item(Properties, Contact, Appointment):
         """Create a reply body"""
         # TODO(jelle): HTML formatted text support.
         body = u"\r\n".join(u"> " + line for line in self.text.split('\r\n'))
-        return u"\r\nOn {} at {}, {} wrote:\r\n{}".format(self.sent.strftime('%d-%m-%Y'),
-                                                          self.sent.strftime('%H:%M'),
-                                                          self.from_.name,
-                                                          body)
+
+        if self.sent and self.from_:
+            body = u"\r\nOn {} at {}, {} wrote:\r\n{}".format(
+                self.sent.strftime('%d-%m-%Y'),
+                self.sent.strftime('%H:%M'),
+                self.from_.name,
+                body)
+
+        return body
 
     def _create_source_message_info(self, action):
         """Create source message info, value of the record, based on action
@@ -818,6 +826,10 @@ class Item(Properties, Contact, Appointment):
     def send(self, copy_to_sentmail=True, cancel=False):
         item = self
         if self.message_class == 'IPM.Appointment':
+            if (self.get(PidLidAppointmentStartWhole) is None or \
+                self.get(PidLidAppointmentEndWhole) is None):
+                raise Error('appointment requires start and end date')
+
             item = self._send_meeting_request(cancel=cancel)
 
         icon_index = {
@@ -842,7 +854,11 @@ class Item(Properties, Contact, Appointment):
             props.append(SPropValue(PR_SENTMAIL_ENTRYID, _bdec(item.folder.store.sentmail.entryid)))
         props.append(SPropValue(PR_DELETE_AFTER_SUBMIT, True))
         item.mapiobj.SetProps(props)
-        item.mapiobj.SubmitMessage(0)
+        try:
+            item.mapiobj.SubmitMessage(0)
+        except MAPIErrorNoRecipients:
+            if self.message_class != 'IPM.Appointment':
+                raise Error('cannot send item without recipients')
 
     def _generate_goid(self):
         """

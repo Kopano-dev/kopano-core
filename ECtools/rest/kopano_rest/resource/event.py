@@ -171,10 +171,10 @@ class EventResource(ItemResource):
 
     # TODO delta functionality seems to include expanding recurrences!? check with MSGE
 
-    def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
+    def on_get(self, req, resp, userid=None, folderid=None, eventid=None, method=None):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid or 'calendar')
-        event = folder.event(itemid)
+        event = folder.event(eventid)
 
         if method == 'attachments':
             attachments = list(event.attachments(embedded=True))
@@ -192,10 +192,10 @@ class EventResource(ItemResource):
         else:
             self.respond(req, resp, event)
 
-    def on_post(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
+    def on_post(self, req, resp, userid=None, folderid=None, eventid=None, method=None):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid or 'calendar')
-        item = folder.event(itemid)
+        item = folder.event(eventid)
         fields = json.loads(req.stream.read().decode('utf-8'))
 
         if method == 'accept':
@@ -212,15 +212,17 @@ class EventResource(ItemResource):
 
         elif method == 'attachments':
             if fields['@odata.type'] == '#microsoft.graph.fileAttachment':
-                item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
+                att = item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
+                self.respond(req, resp, att, AttachmentResource.fields)
+                resp.status = falcon.HTTP_201
 
         elif method:
             raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
-    def on_patch(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
+    def on_patch(self, req, resp, userid=None, folderid=None, eventid=None, method=None):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid or 'calendar')
-        item = folder.event(itemid)
+        item = folder.event(eventid)
 
         fields = json.loads(req.stream.read().decode('utf-8'))
 
@@ -230,9 +232,9 @@ class EventResource(ItemResource):
 
         self.respond(req, resp, item, EventResource.fields)
 
-    def on_delete(self, req, resp, userid=None, folderid=None, itemid=None):
+    def on_delete(self, req, resp, userid=None, folderid=None, eventid=None):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid or 'calendar')
-        event = folder.event(itemid)
+        event = folder.event(eventid)
         folder.delete(event)
         resp.status = falcon.HTTP_204

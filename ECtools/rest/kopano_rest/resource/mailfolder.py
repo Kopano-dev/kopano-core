@@ -49,6 +49,7 @@ class MailFolderResource(FolderResource):
 
         elif method == 'childFolders':
             data = self.generator(req, data.folders, data.subfolder_count_recursive)
+            self.respond(req, resp, data)
 
         elif method == 'messages':
             data = self.folder_gen(req, data)

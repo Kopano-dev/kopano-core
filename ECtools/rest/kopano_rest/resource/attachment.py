@@ -7,6 +7,8 @@ from .resource import (
     Resource, _date
 )
 
+import falcon
+
 class AttachmentResource(Resource):
     fields = {
         'id': lambda attachment: attachment.entryid,
@@ -22,16 +24,19 @@ class AttachmentResource(Resource):
         'microsoft.graph.itemAttachment/item': lambda attachment: (attachment.item, EmbeddedMessageResource),
     }
 
-    def on_get(self, req, resp, userid=None, folderid=None, itemid=None, attachmentid=None, method=None):
+    def on_get(self, req, resp, userid=None, folderid=None, itemid=None, eventid=None, attachmentid=None, method=None):
         server, store = _server_store(req, userid, self.options)
 
         if folderid:
             folder = _folder(store, folderid)
-        elif itemid:
+        elif eventid:
             folder = store.calendar
-            item = folder.event(itemid) # TODO 'eventid'? error handling
-        else:
+        elif itemid:
             folder = store.inbox # TODO messages from all folders?
+
+        if eventid:
+            item = folder.event(eventid) # TODO like _item
+        elif itemid:
             item = _item(folder, itemid)
 
         data = item.attachment(attachmentid)
@@ -46,11 +51,24 @@ class AttachmentResource(Resource):
                 all_fields = FileAttachmentResource.fields
             self.respond(req, resp, data, all_fields=all_fields)
 
-    def on_delete(self, req, resp, userid=None, folderid=None, itemid=None, attachmentid=None, method=None):
+    def on_delete(self, req, resp, userid=None, folderid=None, itemid=None, eventid=None, attachmentid=None, method=None):
         server, store = _server_store(req, userid, self.options)
-        item = _item(store, itemid)
+
+        if folderid: # TODO same code above
+            folder = _folder(store, folderid)
+        elif eventid:
+            folder = store.calendar
+        elif itemid:
+            folder = store.inbox # TODO messages from all folders?
+
+        if eventid:
+            item = folder.event(eventid) # TODO like _item
+        elif itemid:
+            item = _item(folder, itemid)
+
         attachment = item.attachment(attachmentid)
         item.delete(attachment)
+        resp.status = falcon.HTTP_204
 
 class FileAttachmentResource(AttachmentResource):
     fields = AttachmentResource.fields.copy()
