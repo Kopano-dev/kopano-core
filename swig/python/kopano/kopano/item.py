@@ -996,7 +996,7 @@ class Item(Properties, Contact, Appointment):
     @to.setter
     def to(self, addrs):
         if _is_str(addrs):
-            addrs = _unicode(addrs).split(';')
+            addrs = [x.strip() for x in _unicode(addrs).split(';')]
         elif isinstance(addrs, _user.User):
             addrs = [addrs]
         names = []
