@@ -1,7 +1,10 @@
-SUBDIRS = createcompany.d createuser.d
 xdirs = createcompany.d creategroup.d createuser.d deletecompany.d deletegroup.d deleteuser.d
 dist_bin_SCRIPTS = createcompany creategroup createuser deletecompany deletegroup deleteuser
 bindir = ${dcprefix}${uscriptlibdir}
+cudir = ${bindir}/createuser.d
+cu_SCRIPTS = 00createstore
+ccdir = ${bindir}/createcompany.d
+cc_SCRIPTS = 00createpublic
 
 replcmd = ${SED} -e 's|[@]uscriptlibdir@|${uscriptlibdir}|g' -e 's|[@]uscriptconfdir@|${uscriptconfdir}|g' <"$<" >"$@"
 
