@@ -2,6 +2,8 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
+uscriptlibdir=@uscriptlibdir@
+uscriptconfdir=@uscriptconfdir@
 
 Name: kopano
 Description: Kopano development

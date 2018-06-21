@@ -158,13 +158,10 @@ AC_ARG_ENABLE(coverage,
 	  fi
     ])
 
-# user create scripts location
-AC_ARG_WITH(userscript-prefix,
-  AS_HELP_STRING([--with-userscript-prefix=PATH], [path to install the userscripts in (default SYSCONFDIR/kopano/userscripts)]),
-  [USERSCRIPTDIR=${withval}],[USERSCRIPTDIR='/etc/kopano/userscripts'])
-AC_SUBST(USERSCRIPTDIR)
-AS_IF([echo "$USERSCRIPTDIR" | grep -q '\$'],
-	[AC_MSG_ERROR([Variable expansion unfortunately not supported for --with-userscript-prefix])])
+uscriptlibdir='${prefix}/lib/kopano/userscripts'
+uscriptconfdir='${sysconfdir}/kopano/userscripts'
+AC_SUBST([uscriptlibdir])
+AC_SUBST([uscriptconfdir])
 
 # quota warning templates location
 AC_ARG_WITH(quotatemplate-prefix,
@@ -718,17 +715,11 @@ AC_CONFIG_FILES([Makefile
 		installer/Makefile
 		installer/linux/Makefile
 		installer/userscripts/Makefile
-		installer/userscripts/createcompany
 		installer/userscripts/createcompany.d/Makefile
-		installer/userscripts/creategroup
 		installer/userscripts/creategroup.d/Makefile
-		installer/userscripts/createuser
 		installer/userscripts/createuser.d/Makefile
-		installer/userscripts/deletecompany
 		installer/userscripts/deletecompany.d/Makefile
-		installer/userscripts/deletegroup
 		installer/userscripts/deletegroup.d/Makefile
-		installer/userscripts/deleteuser
 		installer/userscripts/deleteuser.d/Makefile
 		installer/quotamail/Makefile
 		installer/searchscripts/Makefile
@@ -774,7 +765,6 @@ $LN_TFSV "$abs_top_srcdir" "@"
 
 AC_MSG_RESULT([
 Install prefix	:	$prefix
-Userscript dir	:	$USERSCRIPTDIR
 Quota dir	:	$QUOTATEMPLATEDIR
 Search scripts dir	:	$SEARCHSCRIPTSDIR
 

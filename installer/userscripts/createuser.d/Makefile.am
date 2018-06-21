@@ -1,2 +1,2 @@
 dist_bin_SCRIPTS = 00createstore
-bindir = ${dcprefix}${USERSCRIPTDIR}/createuser.d
+bindir = ${dcprefix}${uscriptlibdir}/createuser.d
