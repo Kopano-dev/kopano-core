@@ -716,11 +716,7 @@ AC_CONFIG_FILES([Makefile
 		installer/linux/Makefile
 		installer/userscripts/Makefile
 		installer/userscripts/createcompany.d/Makefile
-		installer/userscripts/creategroup.d/Makefile
 		installer/userscripts/createuser.d/Makefile
-		installer/userscripts/deletecompany.d/Makefile
-		installer/userscripts/deletegroup.d/Makefile
-		installer/userscripts/deleteuser.d/Makefile
 		installer/quotamail/Makefile
 		installer/searchscripts/Makefile
 		po/Makefile

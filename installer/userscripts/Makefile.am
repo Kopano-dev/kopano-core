@@ -1,4 +1,5 @@
-SUBDIRS = createcompany.d creategroup.d createuser.d deletecompany.d deletegroup.d deleteuser.d
+SUBDIRS = createcompany.d createuser.d
+xdirs = createcompany.d creategroup.d createuser.d deletecompany.d deletegroup.d deleteuser.d
 dist_bin_SCRIPTS = createcompany creategroup createuser deletecompany deletegroup deleteuser
 bindir = ${dcprefix}${uscriptlibdir}
 
@@ -18,6 +19,6 @@ deleteuser: deleteuser.in
 	${replcmd}
 
 install-data-hook:
-	for dir in $(SUBDIRS); do \
+	for dir in ${xdirs}; do \
 		mkdir -p ${DESTDIR}/${dcprefix}${uscriptlibdir}/$$dir ${DESTDIR}/${dcprefix}${uscriptconfdir}/$$dir; \
 	done
