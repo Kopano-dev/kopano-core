@@ -14,6 +14,6 @@ if [ -f @sysconfdir@/sysconfig/kopano ]; then
 elif [ -f @sysconfdir@/default/kopano ]; then
   . @sysconfdir@/default/kopano
 fi
-
+PKGLIBEXECDIR=@PKGLIBEXECDIR@
 KOPANO_COMPANY_SCRIPTS=@USERSCRIPTDIR@/deletecompany.d
 . @USERSCRIPTDIR@/companies_common.sh

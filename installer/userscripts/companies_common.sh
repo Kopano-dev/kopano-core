@@ -21,6 +21,4 @@ if [ -z "${KOPANO_COMPANY}" -a -z "${KOPANO_COMPANYID}" ] ; then
     echo "KOPANO_COMPANY and KOPANO_COMPANYID is not set."
     exit 1
 fi
-
-cd "$KOPANO_COMPANY_SCRIPTS"
-find -L "$KOPANO_COMPANY_SCRIPTS"/* -maxdepth 0 -type f -perm -u=x ! -name \*~ ! -name \#\* ! -name \*.rpm\* ! -name \*.bak ! -name \*.old -exec {} \;
+exec "$PKGLIBEXECDIR/kscriptrun" "$KOPANO_COMPANY_SCRIPTS"

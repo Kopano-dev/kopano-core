@@ -21,7 +21,4 @@ if [ -z "${KOPANO_USER}" -a -z "${KOPANO_STOREGUID}" ] ; then
     echo "KOPANO_USER and KOPANO_STOREGUID is not set."
     exit 1
 fi
-
-# Find cannot cope with unreadable cwd
-cd "$KOPANO_USER_SCRIPTS"
-find -L "$KOPANO_USER_SCRIPTS"/* -maxdepth 0 -type f -perm -u=x ! -name \*~ ! -name \#\* ! -name \*.rpm\* ! -name \*.bak ! -name \*.old -exec {} \;
+exec "$PKGLIBEXECDIR/kscriptrun" "$KOPANO_USER_SCRIPTS"
