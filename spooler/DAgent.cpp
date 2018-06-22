@@ -1046,6 +1046,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 static HRESULT FallbackDelivery(StatsClient *sc, IMessage *lpMessage,
     const std::string &msg)
 {
+	std::string newbody;
 	SPropValue lpPropValue[8], lpAttPropValue[4];
 	FILETIME		ft;
 	object_ptr<IAttach> lpAttach;
@@ -1078,9 +1079,8 @@ static HRESULT FallbackDelivery(StatsClient *sc, IMessage *lpMessage,
 	lpPropValue[ulPropPos].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 	lpPropValue[ulPropPos++].Value.ft = ft;
 
-	std::string newbody = "An e-mail sent to you could not be delivered correctly.\n\n";
-	newbody += "The original message is attached to this e-mail (the one you're reading right now).\n"; 
-
+	newbody = "An e-mail sent to you could not be delivered correctly.\n\n"
+	          "The original message is attached to this e-mail (the one you are reading right now).\n";
 	lpPropValue[ulPropPos].ulPropTag = PR_BODY_A;
 	lpPropValue[ulPropPos++].Value.lpszA = (char*)newbody.c_str();
 
@@ -1266,7 +1266,6 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	string  unquoted, quoted;
 	std::vector<std::string> cmdline = {strBaseCommand};
 	// Environment
-	std::unique_ptr<const char *[]> env;
 	size_t s = 0;
 	std::string strToMe;
 	std::string strCcMe, strBccMe;
@@ -1480,7 +1479,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	while (environ[s] != nullptr)
 		s++;
 
-	env.reset(new(std::nothrow) const char *[s + 5]);
+	std::unique_ptr<const char *[]> env(new(std::nothrow) const char *[s + 5]);
 	if (env == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 
