@@ -730,7 +730,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValu
 	if (lpPropArray == nullptr || lppMessageImporter == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT hr;
 	unsigned int ulNewFlags = 0, cbEntryId = 0;
 	LPENTRYID lpEntryId = NULL;
 	WSMessageStreamImporterPtr ptrMessageImporter;
@@ -746,14 +745,14 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValu
 		lpEntryId = (LPENTRYID)lpPropEntryId->Value.bin.lpb;
 	} else {
 		ZLOG_DEBUG(m_lpLogger, "CreateFast: %s", "Creating new entryid");
-		hr = HrCreateEntryId(m_lpFolder->GetMsgStore()->GetStoreGuid(), MAPI_MESSAGE, &cbEntryId, &lpEntryId);
+		auto hr = HrCreateEntryId(m_lpFolder->GetMsgStore()->GetStoreGuid(), MAPI_MESSAGE, &cbEntryId, &lpEntryId);
 		if (hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "CreateFast: Failed to create entryid, hr = 0x%08x", hr);
 			return hr;
 		}
 	}
 
-	hr = m_lpFolder->CreateMessageFromStream(ulNewFlags, m_ulSyncId, cbEntryId, lpEntryId, &~ptrMessageImporter);
+	auto hr = m_lpFolder->CreateMessageFromStream(ulNewFlags, m_ulSyncId, cbEntryId, lpEntryId, &~ptrMessageImporter);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "CreateFast: Failed to create message from stream, hr = 0x%08x", hr);
 		return hr;

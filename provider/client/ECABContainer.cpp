@@ -183,17 +183,15 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 		break;
 	}
 	default:
-		hr = lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
-		break;
+		return lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 	}
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECABContainer::TableRowGetProp(void *lpProvider,
     const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
     void **lpBase, ULONG ulType)
 {
-	HRESULT hr = hrSuccess;
 	ULONG size = 0;
 
 	switch(lpsPropValSrc->ulPropTag) {
@@ -232,10 +230,9 @@ HRESULT ECABContainer::TableRowGetProp(void *lpProvider,
 		return KAllocCopy(lpszA, size, reinterpret_cast<void **>(&lpsPropValDst->Value.lpszA), lpBase);
 	}
 	default:
-		hr = MAPI_E_NOT_FOUND;
-		break;
+		return MAPI_E_NOT_FOUND;
 	}
-	return hr;
+	return hrSuccess;
 }
 
 // IMAPIContainer

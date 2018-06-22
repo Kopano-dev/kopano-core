@@ -233,51 +233,49 @@ HRESULT ECMAPIFolder::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterf
 	if (lpiid == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	SPropValuePtr ptrSK, ptrDisplay;
-
 	if(ulPropTag == PR_CONTAINER_CONTENTS) {
 		if (*lpiid == IID_IMAPITable)
-			hr = GetContentsTable(ulInterfaceOptions, (LPMAPITABLE*)lppUnk);
+			return GetContentsTable(ulInterfaceOptions, reinterpret_cast<IMAPITable **>(lppUnk));
 	} else if(ulPropTag == PR_FOLDER_ASSOCIATED_CONTENTS) {
 		if (*lpiid == IID_IMAPITable)
-			hr = GetContentsTable( (ulInterfaceOptions|MAPI_ASSOCIATED), (LPMAPITABLE*)lppUnk);
+			return GetContentsTable(ulInterfaceOptions | MAPI_ASSOCIATED, reinterpret_cast<IMAPITable **>(lppUnk));
 	} else if(ulPropTag == PR_CONTAINER_HIERARCHY) {
 		if(*lpiid == IID_IMAPITable)
-			hr = GetHierarchyTable(ulInterfaceOptions, (LPMAPITABLE*)lppUnk);
+			return GetHierarchyTable(ulInterfaceOptions, reinterpret_cast<IMAPITable **>(lppUnk));
 	} else if(ulPropTag == PR_RULES_TABLE) {
 		if(*lpiid == IID_IExchangeModifyTable)
-			hr = ECExchangeModifyTable::CreateRulesTable(this, ulInterfaceOptions, (LPEXCHANGEMODIFYTABLE*)lppUnk);
+			return ECExchangeModifyTable::CreateRulesTable(this, ulInterfaceOptions, reinterpret_cast<IExchangeModifyTable **>(lppUnk));
 	} else if(ulPropTag == PR_ACL_TABLE) {
 		if(*lpiid == IID_IExchangeModifyTable)
-			hr = ECExchangeModifyTable::CreateACLTable(this, ulInterfaceOptions, (LPEXCHANGEMODIFYTABLE*)lppUnk);
+			return ECExchangeModifyTable::CreateACLTable(this, ulInterfaceOptions, reinterpret_cast<IExchangeModifyTable **>(lppUnk));
 	} else if(ulPropTag == PR_COLLECTOR) {
 		if(*lpiid == IID_IExchangeImportHierarchyChanges)
-			hr = ECExchangeImportHierarchyChanges::Create(this, (LPEXCHANGEIMPORTHIERARCHYCHANGES*)lppUnk);
+			return ECExchangeImportHierarchyChanges::Create(this, reinterpret_cast<IExchangeImportHierarchyChanges **>(lppUnk));
 		else if(*lpiid == IID_IExchangeImportContentsChanges)
-			hr = ECExchangeImportContentsChanges::Create(this, (LPEXCHANGEIMPORTCONTENTSCHANGES*)lppUnk);
+			return ECExchangeImportContentsChanges::Create(this, reinterpret_cast<IExchangeImportContentsChanges **>(lppUnk));
 	} else if(ulPropTag == PR_HIERARCHY_SYNCHRONIZER) {
-		hr = HrGetOneProp(this, PR_SOURCE_KEY, &~ptrSK);
+		auto hr = HrGetOneProp(this, PR_SOURCE_KEY, &~ptrSK);
 		if(hr != hrSuccess)
 			return hr;
 		HrGetOneProp(this, PR_DISPLAY_NAME_W, &~ptrDisplay); // ignore error
-		hr = ECExchangeExportChanges::Create(GetMsgStore(), *lpiid,
+		return ECExchangeExportChanges::Create(GetMsgStore(), *lpiid,
 		     std::string(reinterpret_cast<const char *>(ptrSK->Value.bin.lpb), ptrSK->Value.bin.cb),
 		     ptrDisplay == nullptr ? L"" : ptrDisplay->Value.lpszW,
 		     ICS_SYNC_HIERARCHY, reinterpret_cast<IExchangeExportChanges **>(lppUnk));
 	} else if(ulPropTag == PR_CONTENTS_SYNCHRONIZER) {
-		hr = HrGetOneProp(this, PR_SOURCE_KEY, &~ptrSK);
+		auto hr = HrGetOneProp(this, PR_SOURCE_KEY, &~ptrSK);
 		if(hr != hrSuccess)
 			return hr;
 		auto dsp = HrGetOneProp(this, PR_DISPLAY_NAME, &~ptrDisplay) == hrSuccess ?
 		           ptrDisplay->Value.lpszW : L"";
-		hr = ECExchangeExportChanges::Create(GetMsgStore(),
+		return ECExchangeExportChanges::Create(GetMsgStore(),
 		     *lpiid, std::string(reinterpret_cast<const char *>(ptrSK->Value.bin.lpb), ptrSK->Value.bin.cb),
 		     dsp, ICS_SYNC_CONTENTS, reinterpret_cast<IExchangeExportChanges **>(lppUnk));
 	} else {
-		hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
+		return ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 	}
-	return hr;
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
 HRESULT ECMAPIFolder::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,

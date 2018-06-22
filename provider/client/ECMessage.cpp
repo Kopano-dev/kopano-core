@@ -339,7 +339,6 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 		 */
 		return MAPI_E_NO_SUPPORT;
 
-	HRESULT hr = hrSuccess;
 	const BOOL fModifyOld = fModify;
 
 	auto laters = make_scope_success([&]() { fModify = fModifyOld; });
@@ -349,20 +348,19 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 
 	if (m_ulBodyType == bodyTypePlain) {
 		if (PROP_ID(ulPropTag) == PROP_ID(PR_RTF_COMPRESSED))
-			hr = SyncPlainToRtf();
+			return SyncPlainToRtf();
 		else if (PROP_ID(ulPropTag) == PROP_ID(PR_HTML))
-			hr = SyncPlainToHtml();
+			return SyncPlainToHtml();
 	} else if (m_ulBodyType == bodyTypeRTF) {
 		if (PROP_ID(ulPropTag) == PROP_ID(PR_BODY) || PROP_ID(ulPropTag) == PROP_ID(PR_HTML))
-			hr = SyncRtf();
+			return SyncRtf();
 	} else if (m_ulBodyType == bodyTypeHTML) {
 		if (PROP_ID(ulPropTag) == PROP_ID(PR_BODY))
-			hr = SyncHtmlToPlain();
+			return SyncHtmlToPlain();
 		else if (PROP_ID(ulPropTag) == PROP_ID(PR_RTF_COMPRESSED))
-			hr = SyncHtmlToRtf();
+			return SyncHtmlToRtf();
 	}
-
-	return hr;
+	return hrSuccess;
 }
 
 /**

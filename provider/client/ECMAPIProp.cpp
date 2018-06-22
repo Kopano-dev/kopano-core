@@ -373,7 +373,6 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	    PROP_TYPE(ulPropTag) != PT_UNICODE)
 		return MAPI_E_NOT_FOUND;
 
-    HRESULT hr = hrSuccess;
 	ECMemStream *lpStream = NULL;
 	ecmem_ptr<SPropValue> lpsPropValue;
 	STREAMDATA *lpStreamData = NULL;
@@ -388,8 +387,9 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		lpStreamData = new STREAMDATA; // is freed by HrStreamCleanup, called by ECMemStream on refcount == 0
 		lpStreamData->ulPropTag = ulPropTag;
 		lpStreamData->lpProp = this;
-		hr = ECMemStream::Create((char*)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb, ulInterfaceOptions,
-		     nullptr, ECMAPIProp::HrStreamCleanup, lpStreamData, &lpStream);
+		auto hr = ECMemStream::Create(reinterpret_cast<char *>(lpsPropValue->Value.bin.lpb),
+		          lpsPropValue->Value.bin.cb, ulInterfaceOptions,
+		          nullptr, ECMAPIProp::HrStreamCleanup, lpStreamData, &lpStream);
 		if (hr != hrSuccess)
 			return hr;
 		lpStream->QueryInterface(IID_IStream, (void **)lppUnk);
@@ -401,7 +401,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		ulInterfaceOptions |= STGM_WRITE;
 
 	// IStream requested for a property
-	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
+	auto hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -487,12 +487,11 @@ HRESULT ECMAPIProp::SaveChanges(ULONG ulFlags)
 	if (!fModify)
 		return MAPI_E_NO_ACCESS;
 
-	HRESULT hr = hrSuccess;
 	object_ptr<WSMAPIPropStorage> lpMAPIPropStorage;
 	
 	// only folders and main messages have a syncid, attachments and msg-in-msg don't
 	if (lpStorage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage) == hrSuccess) {
-		hr = lpMAPIPropStorage->HrSetSyncId(m_ulSyncId);
+		auto hr = lpMAPIPropStorage->HrSetSyncId(m_ulSyncId);
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -507,7 +506,6 @@ HRESULT ECMAPIProp::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 
 HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValue)
 {
-	HRESULT				hr = hrSuccess;
 	object_ptr<IECSecurity> ptrSecurity;
 	ULONG				cPerms = 0;
 	ECPermissionPtr		ptrPerms;
@@ -520,8 +518,7 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 		soap_destroy(&soap);
 		soap_end(&soap); // clean up allocated temporaries
 	});
-
-	hr = QueryInterface(IID_IECSecurity, &~ptrSecurity);
+	auto hr = QueryInterface(IID_IECSecurity, &~ptrSecurity);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~ptrPerms);
@@ -552,7 +549,6 @@ HRESULT ECMAPIProp::SetSerializedACLData(const SPropValue *lpsPropValue)
 	    PROP_TYPE(lpsPropValue->ulPropTag) != PT_BINARY)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT				hr = hrSuccess;
 	ECPermissionPtr		ptrPerms;
 	struct soap			soap;
 	struct rightsArray	rights;
@@ -578,27 +574,21 @@ HRESULT ECMAPIProp::SetSerializedACLData(const SPropValue *lpsPropValue)
 		if (soap_end_recv(&soap) != 0)
 			return MAPI_E_NETWORK_ERROR;
 	}
-	hr = MAPIAllocateBuffer(rights.__size * sizeof(ECPERMISSION), &~ptrPerms);
+	auto hr = MAPIAllocateBuffer(rights.__size * sizeof(ECPERMISSION), &~ptrPerms);
 	if (hr != hrSuccess)
 		return hr;
 
 	std::transform(rights.__ptr, rights.__ptr + rights.__size, ptrPerms.get(), &RightsToECPermCheap);
-	hr = UpdateACLs(rights.__size, ptrPerms);
-
-	return hr;
+	return UpdateACLs(rights.__size, ptrPerms);
 }
 
 HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 {
-	HRESULT hr;
 	object_ptr<IECSecurity> ptrSecurity;
-	ULONG					cPerms = 0;
+	ULONG cPerms = 0, cSparePerms = 0;
 	memory_ptr<ECPERMISSION> ptrPerms;
-	ULONG					cSparePerms = 0;
 	ECPermissionPtr			ptrTmpPerms;
-	ECPERMISSION *lpPermissions = NULL;
-
-	hr = QueryInterface(IID_IECSecurity, &~ptrSecurity);
+	auto hr = QueryInterface(IID_IECSecurity, &~ptrSecurity);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~ptrPerms);
@@ -645,7 +635,7 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 
 	// Now see if there are still some new ACLs left. If enough spare space is available,
 	// we will reuse the ptrPerms storage. If not, we will reallocate the whole array.
-	lpPermissions = ptrPerms.get();
+	auto lpPermissions = ptrPerms.get();
 	if (cNewPerms > 0) {
 		if (cNewPerms <= cSparePerms) {
 			memcpy(&ptrPerms[cPerms], lpNewPerms, cNewPerms * sizeof(ECPERMISSION));
@@ -700,15 +690,13 @@ HRESULT ECMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames
 // Stream functions
 HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 {
-	HRESULT hr = hrSuccess;
 	auto lpStreamData = static_cast<STREAMDATA *>(lpData);
 	char *buffer = NULL;
 	ecmem_ptr<SPropValue> lpPropValue;
 	STATSTG sStat;
 	ULONG ulSize = 0;
 	object_ptr<ECMemStream> lpECStream;
-
-	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
+	auto hr = ECAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpStream->Stat(&sStat, 0);
@@ -774,11 +762,10 @@ HRESULT ECMAPIProp::HrStreamCleanup(void *lpData)
 
 HRESULT ECMAPIProp::HrSetSyncId(ULONG ulSyncId)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<WSMAPIPropStorage> lpMAPIPropStorage;
 	
 	if (lpStorage != nullptr && lpStorage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage) == hrSuccess) {
-		hr = lpMAPIPropStorage->HrSetSyncId(ulSyncId);
+		auto hr = lpMAPIPropStorage->HrSetSyncId(ulSyncId);
 		if(hr != hrSuccess)
 			return hr;
 	}

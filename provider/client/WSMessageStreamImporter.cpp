@@ -90,13 +90,11 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId,
 	    (bNewMessage && lpConflictItems != nullptr))
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT hr = hrSuccess;
 	entryId sEntryId, sFolderEntryId;
 	struct propVal sConflictItems;
 	WSMessageStreamImporterPtr ptrStreamImporter;
 	ECSyncSettings* lpSyncSettings = NULL;
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, false);
+	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, false);
 	if (hr != hrSuccess)
 		goto exit;
 

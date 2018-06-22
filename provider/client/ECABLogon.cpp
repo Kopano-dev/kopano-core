@@ -96,8 +96,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	HRESULT			hr = hrSuccess;
 	object_ptr<ECABContainer> lpABContainer;
 	BOOL			fModifyObject = FALSE;
-	ABEID			eidRoot =  ABEID(MAPI_ABCONT, MUIDECSAB, 0);
-	ABEID lpABeid;
+	ABEID lpABeid,  eidRoot(MAPI_ABCONT, MUIDECSAB, 0);
 	object_ptr<IECPropStorage> lpPropStorage;
 	object_ptr<ECMailUser> lpMailUser;
 	object_ptr<ECDistList> 	lpDistList;
@@ -269,9 +268,8 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 	if (lpPropTagArray == nullptr || lpPropTagArray->cValues == 0)
 		return hrSuccess;
 
-	ULONG			cValues;
+	ULONG cValues, ulObjType;
 	ecmem_ptr<SPropValue> lpPropArray, lpNewPropArray;
-	ULONG			ulObjType;
 
 	for (unsigned int i = 0; i < lpRecipList->cEntries; ++i) {
 		auto rgpropvalsRecip = lpRecipList->aEntries[i].rgPropVals;

@@ -135,7 +135,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	unsigned int ulServerCapabilities = 0, ulServerVersion = 0;
 	ECSESSIONID	ecSessionId = 0;
 	KCmdProxy *lpCmd = nullptr;
-	bool		bPipeConnection = false;
+	auto bPipeConnection = strncmp("file:", sProfileProps.strServerPath.c_str(), 5) == 0;
 	struct logonResponse sResponse;
 	struct xsd__base64Binary sLicenseRequest;
 	
@@ -144,11 +144,6 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	utf8string	strPassword = converter.convert_to<utf8string>(sProfileProps.strPassword);
 	utf8string	strImpersonateUser = converter.convert_to<utf8string>(sProfileProps.strImpersonateUser);
 	soap_lock_guard spg(*this);
-
-	if (strncmp("file:", sProfileProps.strServerPath.c_str(), 5) == 0)
-		bPipeConnection = true;
-	else
-		bPipeConnection = false;
 
 	if (m_lpCmd != nullptr) {
 		lpCmd = m_lpCmd;
@@ -535,7 +530,6 @@ HRESULT WSTransport::HrGetStoreName(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG 
 		return MAPI_E_INVALID_PARAMETER;
 
 	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
 	entryId		sEntryId; // Do not free
 	struct getStoreNameResponse sResponse;
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
@@ -543,7 +537,7 @@ HRESULT WSTransport::HrGetStoreName(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG 
 	soap_lock_guard spg(*this);
 
 	// Remove the servername
-	hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
+	auto hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
 	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
@@ -569,7 +563,6 @@ HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG 
 		return MAPI_E_INVALID_PARAMETER;
 
 	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
 	entryId		sEntryId; // Do not free
 	struct getStoreTypeResponse sResponse;
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
@@ -577,7 +570,7 @@ HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG 
 	soap_lock_guard spg(*this);
 
 	// Remove the servername
-	hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
+	auto hr = UnWrapServerClientStoreEntry(cbStoreID, lpStoreID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exitm;
 	sEntryId.__ptr = reinterpret_cast<unsigned char *>(lpUnWrapStoreID.get());
@@ -642,12 +635,10 @@ HRESULT WSTransport::HrCheckExistObject(ULONG cbEntryID,
 	if (cbEntryID == 0 || lpEntryID == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	entryId sEntryId; // Do not free
 	soap_lock_guard spg(*this);
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
+	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
 		goto exitm;
 
@@ -784,11 +775,9 @@ HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, LPENTRYLIST lpMsgList, ULONG
 		return hrSuccess;
 
 	ECRESULT er = erSuccess;
-	HRESULT hr = hrSuccess;
 	struct entryList sEntryList;
 	soap_lock_guard spg(*this);
-
-	hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, &sEntryList);
+	auto hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, &sEntryList);
 	if(hr != hrSuccess)
 		goto exitm;
 	START_SOAP_CALL

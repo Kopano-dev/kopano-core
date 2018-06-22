@@ -95,9 +95,8 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	SPropValue		sPropValue[3];
 	ecmem_ptr<SPropValue> lpPropAttachType;
 	ecmem_ptr<MAPIUID> lpMapiUID;
-	ULONG			ulAttachType = 0;
+	ULONG ulAttachType = 0, ulObjId = 0;
 	BOOL			fNew = FALSE;
-	ULONG			ulObjId = 0;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// Get the attachement method

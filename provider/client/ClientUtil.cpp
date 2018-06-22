@@ -125,10 +125,8 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 
 HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup, LPSPropValue* lppIdentityProps)
 {
-	ULONG			cbEntryStore = 0;
+	ULONG cbEntryStore = 0, cbEID = 0;
 	memory_ptr<ENTRYID> lpEntryStore, lpEID;
-	ULONG			cbEID = 0;
-	ULONG			ulSize = 0;
 	memory_ptr<ECUSER> lpUser;
 	memory_ptr<SPropValue> lpIdentityProps;
 
@@ -151,7 +149,7 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 
 	// Create the PR_SENDER_NAME property value.
 	lpIdentityProps[XPID_NAME].ulPropTag = PR_SENDER_NAME;
-	ulSize = sizeof(TCHAR) * (_tcslen(lpUser->lpszFullName) + 1);
+	unsigned int ulSize = sizeof(TCHAR) * (_tcslen(lpUser->lpszFullName) + 1);
 	hr = KAllocCopy(lpUser->lpszFullName, ulSize, reinterpret_cast<void **>(&lpIdentityProps[XPID_NAME].Value.LPSZ), lpIdentityProps);
 	if (hr != hrSuccess)
 		return hr;

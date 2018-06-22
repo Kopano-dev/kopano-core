@@ -534,7 +534,6 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
 	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == nullptr)
 		return MAPI_E_NO_ACCESS;
 
-	IMSProvider *lpProvider = NULL; // Do not release
 	PROVIDER_INFO sProviderInfo;
 	object_ptr<IMsgStore> lpMDB;
 	object_ptr<IMSLogon> lpMSLogon;
@@ -546,8 +545,7 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
 	auto hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;
-
-	lpProvider = sProviderInfo.lpMSProviderOnline;
+	auto lpProvider = sProviderInfo.lpMSProviderOnline.get();
 	hr = lpProvider->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName,
 	     cbEntryID, lpEntryID, ulFlags, lpInterface, cbSpoolSecurity,
 	     lpbSpoolSecurity, nullptr, &~lpMSLogon, &~lpMDB);
@@ -573,8 +571,7 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
 		if (hr != hrSuccess)
 			return hr;
 	}
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMSProviderSwitch::CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)

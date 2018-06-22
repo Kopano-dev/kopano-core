@@ -43,14 +43,12 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Read(void* /*pv*/, ULONG /*cb*/, 
 
 HRESULT ECMessageStreamImporterIStreamAdapter::Write(const void *pv, ULONG cb, ULONG *pcbWritten)
 {
-	HRESULT hr;
-
 	if (!m_ptrSink) {
-		hr = m_ptrStreamImporter->StartTransfer(&~m_ptrSink);
+		auto hr = m_ptrStreamImporter->StartTransfer(&~m_ptrSink);
 		if (hr != hrSuccess)
 			return hr;
 	}
-	hr = m_ptrSink->Write(pv, cb);
+	auto hr = m_ptrSink->Write(pv, cb);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -78,15 +76,13 @@ HRESULT ECMessageStreamImporterIStreamAdapter::CopyTo(IStream* /*pstm*/, ULARGE_
 
 HRESULT ECMessageStreamImporterIStreamAdapter::Commit(DWORD /*grfCommitFlags*/)
 {
-	HRESULT hr;
 	HRESULT hrAsync = hrSuccess;
 
 	if (m_ptrSink == NULL)
 		return MAPI_E_UNCONFIGURED;
 
 	m_ptrSink.reset();
-
-	hr = m_ptrStreamImporter->GetAsyncResult(&hrAsync);
+	auto hr = m_ptrStreamImporter->GetAsyncResult(&hrAsync);
 	if (hr == hrSuccess)
 		hr = hrAsync;
 	return hr;

@@ -82,7 +82,6 @@ HRESULT ECSessionGroupManager::GetSessionGroupData(ECSESSIONGROUPID ecSessionGro
 
 HRESULT ECSessionGroupManager::DeleteSessionGroupDataIfOrphan(ECSESSIONGROUPID ecSessionGroupId)
 {
-	HRESULT hr = hrSuccess;
 	SessionGroupData *lpSessionGroupData = NULL;
 	ulock_rec biglock(m_hMutex);
 	auto iter = std::find_if(m_mapSessionGroups.cbegin(), m_mapSessionGroups.cend(),
@@ -103,5 +102,5 @@ HRESULT ECSessionGroupManager::DeleteSessionGroupDataIfOrphan(ECSESSIONGROUPID e
 	// now (since it is not in the map anymore), and the delete() will cause a pthread_join(), 
 	// which could be blocked by the m_hMutex.
 	delete lpSessionGroupData;
-	return hr;
+	return hrSuccess;
 }

@@ -200,7 +200,6 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 	if (lpStream == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT					hr = hrSuccess;
 	LARGE_INTEGER			liPos = {{0}};
 	ULARGE_INTEGER			uliSize = {{0}};
 	ULONG					ulVal = 0;
@@ -208,7 +207,7 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 
 	if (m_lpChangeAdviseSink == NULL && !(m_ulFlags & SYNC_CATCHUP))
 		return MAPI_E_UNCONFIGURED;
-	hr = PurgeStates();
+	auto hr = PurgeStates();
 	if (hr != hrSuccess)
 		return hr;
 
@@ -290,12 +289,11 @@ HRESULT ECChangeAdvisor::RemoveKeys(LPENTRYLIST lpEntryList)
 	if (m_lpChangeAdviseSink == nullptr && !(m_ulFlags & SYNC_CATCHUP))
 		return MAPI_E_UNCONFIGURED;
 
-	HRESULT					hr = hrSuccess;
 	SSyncState				*lpsSyncState = NULL;
 	ECLISTCONNECTION		listConnections;
 	scoped_rlock lock(m_hConnectionLock);
 
-	for (ULONG i = 0; hr == hrSuccess && i < lpEntryList->cValues; ++i) {
+	for (ULONG i = 0; i < lpEntryList->cValues; ++i) {
 		if (lpEntryList->lpbin[i].cb < sizeof(SSyncState))
 			continue;
 		lpsSyncState = (SSyncState*)lpEntryList->lpbin[i].lpb;

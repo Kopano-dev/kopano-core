@@ -329,13 +329,11 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
 	if (lpMsgList->cValues == 0)
 		return hrSuccess;
 
-	HRESULT			hr = hrSuccess;
 	ECRESULT		er = erSuccess;
 	struct entryList sEntryList;
 	entryId			sEntryDest;	//Do not free, cheap copy
 	soap_lock_guard spg(*m_lpTransport);
-
-	hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, &sEntryList);
+	auto hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, &sEntryList);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -364,13 +362,11 @@ HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
 	if (lpEntryID == nullptr)
 		return MAPI_E_INVALID_ENTRYID;
 
-	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	entryId		sEntryId;	//Do not free, cheap copy
 	struct messageStatus sMessageStatus;
 	soap_lock_guard spg(*m_lpTransport);
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
+	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -397,13 +393,11 @@ HRESULT WSMAPIFolderOps::HrSetMessageStatus(ULONG cbEntryID,
 	if (lpEntryID == nullptr)
 		return MAPI_E_INVALID_ENTRYID;
 
-	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	entryId		sEntryId;	//Do not free, cheap copy
 	struct messageStatus sMessageStatus;
 	soap_lock_guard spg(*m_lpTransport);
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
+	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -430,14 +424,12 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
 	if (lpEntryID == nullptr)
 		return MAPI_E_INVALID_ENTRYID;
 
-	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	entryId sEntryId;
 	KC::memory_ptr<SPropValue> lpSPropValPCL, lpSPropValCK;
 	getChangeInfoResponse sChangeInfo;
 	soap_lock_guard spg(*m_lpTransport);
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
+	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
 		goto exit;
 	if (m_lpTransport->m_lpCmd->getChangeInfo(ecSessionId, sEntryId, &sChangeInfo) != SOAP_OK)
