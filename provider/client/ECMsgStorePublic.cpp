@@ -118,6 +118,9 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
     IUnknown **lppUnk)
 {
+	if (lpulObjType == nullptr || lppUnk == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT				hr = hrSuccess;
 	unsigned int objtype = 0;
 	object_ptr<ECMAPIFolder> lpMAPIFolder;
@@ -129,10 +132,6 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	memory_ptr<SPropValue> lpsPropValue, lpParentProp;
 	memory_ptr<ENTRYID> lpEntryIDIntern;
 	ULONG				ulResults;
-
-	// Check input/output variables
-	if (lpulObjType == nullptr || lppUnk == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
 
 	if(ulFlags & MAPI_MODIFY) {
 		if (!fModify)
@@ -285,6 +284,9 @@ HRESULT ECMsgStorePublic::InitEntryIDs()
 
 HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, void *lpBase, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
+	if (lpcbEntryID == NULL || lppEntryID == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	ULONG cbPublicID = 0;
 	LPENTRYID lpPublicID = NULL;
 	LPENTRYID lpEntryID = NULL;
@@ -292,9 +294,6 @@ HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, voi
 	HRESULT hr = InitEntryIDs();
 	if(hr != hrSuccess)
 		return hr;
-	if (lpcbEntryID == NULL || lppEntryID == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
 	switch(ePublicEntryID)
 	{
 		case ePE_IPMSubtree:
@@ -324,6 +323,9 @@ HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, voi
 HRESULT ECMsgStorePublic::ComparePublicEntryId(enumPublicEntryID ePublicEntryID,
     ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG *lpulResult)
 {
+	if (lpEntryID == NULL || lpulResult == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT hr;
 	ULONG ulResult = 0;
 	ULONG cbPublicID = 0;
@@ -332,10 +334,6 @@ HRESULT ECMsgStorePublic::ComparePublicEntryId(enumPublicEntryID ePublicEntryID,
 	hr = InitEntryIDs();
 	if(hr != hrSuccess)
 		return hr;
-
-	if (lpEntryID == NULL || lpulResult == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
 	switch(ePublicEntryID)
 	{
 		case ePE_IPMSubtree:

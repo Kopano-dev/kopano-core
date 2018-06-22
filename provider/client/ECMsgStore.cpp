@@ -238,11 +238,10 @@ HRESULT ECMsgStore::SaveChanges(ULONG ulFlags)
 
 HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
 {
-	HRESULT hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-	if (lpiid == NULL)
+	if (lpiid == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
+	HRESULT hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	if(ulPropTag == PR_RECEIVE_FOLDER_SETTINGS) {
 		if (*lpiid == IID_IMAPITable && IsPublicStore() == false)
 			// Non supported function for publicfolder
@@ -288,12 +287,11 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 
 HRESULT ECMsgStore::OpenStatsTable(unsigned int ulTableType, LPMAPITABLE *lppTable)
 {
-	object_ptr<WSTableView> lpTableView;
-	object_ptr<ECMAPITable> lpTable;
-
 	if (lppTable == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
+	object_ptr<WSTableView> lpTableView;
+	object_ptr<ECMAPITable> lpTable;
 	// notifications? set 1st param: m_lpNotifyClient
 	auto hr = ECMAPITable::Create("Stats table", nullptr, 0, &~lpTable);
 	if (hr != hrSuccess)
@@ -332,14 +330,14 @@ HRESULT ECMsgStore::OpenStatsTable(unsigned int ulTableType, LPMAPITABLE *lppTab
 HRESULT ECMsgStore::InternalAdvise(ULONG cbEntryID, const ENTRYID *lpEntryID,
     ULONG ulEventMask, IMAPIAdviseSink *lpAdviseSink, ULONG *lpulConnection)
 {
-	HRESULT hr = hrSuccess;
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
-	ULONG		cbUnWrapStoreID = 0;
-
 	if (m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS)
 		return MAPI_E_NO_SUPPORT;
 	if (lpAdviseSink == nullptr || lpulConnection == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
+
+	HRESULT hr = hrSuccess;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	ULONG		cbUnWrapStoreID = 0;
 
 	assert(m_lpNotifyClient != nullptr && (lpEntryID != nullptr || m_lpEntryId != nullptr));
 	if(lpEntryID == NULL) {
@@ -364,14 +362,14 @@ HRESULT ECMsgStore::InternalAdvise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 HRESULT ECMsgStore::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
     ULONG ulEventMask, IMAPIAdviseSink *lpAdviseSink, ULONG *lpulConnection)
 {
-	HRESULT hr = hrSuccess;
-	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
-	ULONG		cbUnWrapStoreID = 0;
-
 	if (m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS)
 		return MAPI_E_NO_SUPPORT;
 	if (lpAdviseSink == nullptr || lpulConnection == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
+
+	HRESULT hr = hrSuccess;
+	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
+	ULONG		cbUnWrapStoreID = 0;
 
 	assert(m_lpNotifyClient != nullptr && (lpEntryID != nullptr || m_lpEntryId != nullptr));
 	if(lpEntryID == NULL) {
@@ -456,10 +454,6 @@ HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
     ULONG cbEntryID2, const ENTRYID *lpEntryID2, ULONG ulFlags,
     ULONG *lpulResult)
 {
-	PEID peid1 = (PEID)lpEntryID1;
-	PEID peid2 = (PEID)lpEntryID2;
-	auto lpStoreId = reinterpret_cast<const EID *>(m_lpEntryId.get());
-
 	if (lpulResult != nullptr)
 		*lpulResult = false;
 	// Apparently BlackBerry CALHelper.exe needs this
@@ -468,6 +462,10 @@ HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 	if (lpEntryID1 == nullptr || lpEntryID2 == nullptr ||
 	    lpulResult == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
+
+	PEID peid1 = (PEID)lpEntryID1;
+	PEID peid2 = (PEID)lpEntryID2;
+	auto lpStoreId = reinterpret_cast<const EID *>(m_lpEntryId.get());
 
 	// Check if one or both of the entry identifiers contains the store guid.
 	if (cbEntryID1 != cbEntryID2)
@@ -513,6 +511,9 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     ULONG *lpulObjType,
     IUnknown **lppUnk)
 {
+	if (lpulObjType == nullptr || lppUnk == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	
 	memory_ptr<ENTRYID> lpRootEntryID;
 	ULONG				cbRootEntryID = 0;
 	BOOL				fModifyObject = FALSE;
@@ -522,10 +523,6 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	object_ptr<WSMAPIFolderOps> lpFolderOps;
 	unsigned int objtype = 0;
 
-	// Check input/output variables
-	if (lpulObjType == nullptr || lppUnk == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-	
 	if(ulFlags & MAPI_MODIFY) {
 		if (!fModify)
 			return MAPI_E_NO_ACCESS;
@@ -649,17 +646,14 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
     ULONG ulFlags, ULONG *lpcbEntryID, ENTRYID **lppEntryID,
     TCHAR **lppszExplicitClass)
 {
+	if (IsPublicStore())
+		return MAPI_E_NO_SUPPORT;
+	if (lpcbEntryID == nullptr || lppEntryID == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	ULONG		cbEntryID = 0;
 	LPENTRYID	lpEntryID = NULL;
 	utf8string	strExplicitClass;
-
-	// Non supported function for publicfolder
-	if (IsPublicStore() == TRUE)
-		return MAPI_E_NO_SUPPORT;
-	// Check input/output variables
-	if (lpcbEntryID == NULL || lppEntryID == NULL) // lppszExplicitClass may NULL
-		return MAPI_E_INVALID_PARAMETER;
-
 	auto hr = lpTransport->HrGetReceiveFolder(m_cbEntryId, m_lpEntryId,
 	          convstring(lpszMessageClass, ulFlags), &cbEntryID,
 	          &lpEntryID, lppszExplicitClass ? &strExplicitClass : nullptr);
@@ -697,6 +691,11 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
 
 HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
+	if (IsPublicStore())
+		return MAPI_E_NO_SUPPORT;
+	if (lppTable == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	SizedSPropTagArray(NUM_RFT_PROPS, sPropRFTColumns) =
 		{NUM_RFT_PROPS, {PR_ROWID, PR_INSTANCE_KEY, PR_ENTRYID,
 		PR_RECORD_KEY,PR_MESSAGE_CLASS_A}};
@@ -705,13 +704,6 @@ HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	rowset_ptr lpsRowSet;
 	memory_ptr<SPropTagArray> lpPropTagArray;
 
-	// Non supported function for publicfolder
-	if (IsPublicStore())
-		return MAPI_E_NO_SUPPORT;
-
-	// Check input/output variables
-	if (lppTable == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
 	Util::proptag_change_unicode(ulFlags, sPropRFTColumns);
 	auto hr = ECMemTable::Create(sPropRFTColumns, PR_ROWID, &~lpMemTable); // PR_INSTANCE_KEY
 	if(hr != hrSuccess)
@@ -751,17 +743,15 @@ HRESULT ECMsgStore::AbortSubmit(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG
 
 HRESULT ECMsgStore::GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
-	object_ptr<ECMAPITable> lpTable;
-	object_ptr<WSTableOutGoingQueue> lpTableOps;
-
-	// Only supported by the MAPI spooler
+	/* Only supported by the MAPI spooler */
 	/* if (!IsSpooler())
 		return MAPI_E_NO_SUPPORT;
 	*/
-
-	// Check input/output variables
 	if (lppTable == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
+
+	object_ptr<ECMAPITable> lpTable;
+	object_ptr<WSTableOutGoingQueue> lpTableOps;
 	auto hr = ECMAPITable::Create("Outgoing queue", m_lpNotifyClient, 0, &~lpTable);
 	if(hr != hrSuccess)
 		return hr;
@@ -780,18 +770,18 @@ HRESULT ECMsgStore::GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 {
+	/* Only supported by the MAPI spooler */
+	/* if (!IsSpooler())
+		return MAPI_E_NO_SUPPORT; */
+	if (lpMessage == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	ecmem_ptr<SPropValue> lpsPropArray;
 	unsigned int cValue = 0, ulSubmitFlag = 0;
 	object_ptr<ECMessage> ptrECMessage;
 	static constexpr const SizedSPropTagArray(2, sptaMessageProps) =
 		{2, {PR_SUBMIT_FLAGS, PR_ENTRYID}};
 	enum {IDX_SUBMIT_FLAGS, IDX_ENTRYID};
-
-	// Only supported by the MAPI spooler
-	/* if (!IsSpooler())
-		return MAPI_E_NO_SUPPORT; */
-	if (lpMessage == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
 	auto hr = lpMessage->GetProps(sptaMessageProps, 0, &cValue, &~lpsPropArray);
 	if(HR_FAILED(hr))
 		return hr;
@@ -835,18 +825,15 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 
 HRESULT ECMsgStore::FinishedMsg(ULONG ulFlags, ULONG cbEntryID, const ENTRYID *lpEntryID)
 {
-	unsigned int objtype = 0;
-	object_ptr<IMessage> lpMessage;
-
-	// Only supported by the MAPI spooler
+	/* Only supported by the MAPI spooler */
 	/* if (!IsSpooler())
 		return MAPI_E_NO_SUPPORT;
 	*/
-
-	// Check input/output variables
 	if (lpEntryID == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
+	unsigned int objtype = 0;
+	object_ptr<IMessage> lpMessage;
 	// Delete the message from the local outgoing queue
 	auto hr = lpTransport->HrFinishedMessage(cbEntryID, lpEntryID, EC_SUBMIT_LOCAL);
 	if(hr != hrSuccess)
@@ -1901,16 +1888,9 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId,
     const ENTRYID *lpUserId, ULONG ulFlags, ULONG *lpcbStoreId,
     ENTRYID **lppStoreId, ULONG *lpcbRootId, ENTRYID **lppRootId)
 {
-	unsigned int cbStoreId = 0, cbRootId = 0;
-	ENTRYID *lpStoreId = nullptr, *lpRootId = nullptr;
-	GUID guidStore;
-
-	// Check requested store type
 	if (!ECSTORE_TYPE_ISVALID(ulStoreType) ||
-		(ulFlags != 0 && ulFlags != EC_OVERRIDE_HOMESERVER))
+	    (ulFlags != 0 && ulFlags != EC_OVERRIDE_HOMESERVER))
 		return MAPI_E_INVALID_PARAMETER;
-
-	// Check passed store and root entry ids.
 	if (lpcbStoreId == nullptr || lppStoreId == nullptr ||
 	    lpcbRootId == nullptr || lppRootId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -1922,6 +1902,11 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId,
 		return MAPI_E_INVALID_PARAMETER;
 	if (*lppRootId != nullptr && *lppStoreId == nullptr) /* Root id set, but storeid unset */
 		return MAPI_E_INVALID_PARAMETER;
+
+	unsigned int cbStoreId = 0, cbRootId = 0;
+	ENTRYID *lpStoreId = nullptr, *lpRootId = nullptr;
+	GUID guidStore;
+
 	if ((*lpcbStoreId == 0 || *lpcbRootId == 0) && CoCreateGuid(&guidStore) != S_OK)
 		return MAPI_E_CALL_FAILED;
 
@@ -2070,12 +2055,11 @@ HRESULT ECMsgStore::CreateSpecialFolder(IMAPIFolder *folder_parent_in,
     unsigned int ulMVPos, const TCHAR *lpszContainerClass,
     LPMAPIFOLDER *lppMAPIFolder)
 {
-	object_ptr<IMAPIFolder> lpMAPIFolder;
-	ecmem_ptr<SPropValue> lpPropValue;
-
 	if (folder_parent_in == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
+	object_ptr<IMAPIFolder> lpMAPIFolder;
+	ecmem_ptr<SPropValue> lpPropValue;
 	/* Add a reference to the folders */
 	object_ptr<IMAPIFolder> lpFolderParent(folder_parent_in);
 	object_ptr<ECMAPIProp> lpFolderPropSet(folder_propset_in);
@@ -2342,12 +2326,11 @@ HRESULT ECMsgStore::GetServerDetails(ECSVRNAMELIST *lpServerNameList,
 
 HRESULT ECMsgStore::OpenUserStoresTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
-	object_ptr<WSTableView> lpTableView;
-	object_ptr<ECMAPITable> lpTable;
-
 	if (lppTable == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
+	object_ptr<WSTableView> lpTableView;
+	object_ptr<ECMAPITable> lpTable;
 	// notifications? set 1st param: m_lpNotifyClient
 	auto hr = ECMAPITable::Create("Userstores table", nullptr, 0, &~lpTable);
 	if (hr != hrSuccess)
@@ -2375,11 +2358,12 @@ HRESULT ECMsgStore::ResolvePseudoUrl(const char *lpszPseudoUrl,
 
 HRESULT ECMsgStore::GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
 {
+	if (lpszUserName == nullptr || lpcbStoreID == nullptr ||
+	    lppStoreID == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	ULONG cbStoreID;
 	EntryIdPtr ptrStoreID;
-
-	if (lpszUserName == NULL || lpcbStoreID == NULL || lppStoreID == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 
 	if (lpszServerName != NULL) {
 		WSTransportPtr ptrTransport;
@@ -2452,12 +2436,11 @@ HRESULT ECMsgStore::UnwrapNoRef(LPVOID *ppvObject)
 HRESULT ECMsgStore::OpenMultiStoreTable(const ENTRYLIST *lpMsgList,
     ULONG ulFlags, IMAPITable **lppTable)
 {
-	object_ptr<ECMAPITable> lpTable;
-	object_ptr<WSTableView> lpTableOps;
-
 	if (lpMsgList == nullptr || lppTable == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
+	object_ptr<ECMAPITable> lpTable;
+	object_ptr<WSTableView> lpTableOps;
 	// no notifications on this table
 	auto hr = ECMAPITable::Create("Multistore table", nullptr, ulFlags, &~lpTable);
 	if (hr != hrSuccess)
@@ -2559,9 +2542,6 @@ HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
     const std::vector<ICSCHANGE> &sChanges, ULONG ulStart, ULONG ulCount,
     const SPropTagArray *lpsProps, WSMessageStreamExporter **lppsStreamExporter)
 {
-	WSMessageStreamExporterPtr ptrStreamExporter;
-	WSTransportPtr ptrTransport;
-
 	if (ulStart > sChanges.size())
 		return MAPI_E_INVALID_PARAMETER;
 	if (ulStart + ulCount > sChanges.size())
@@ -2569,6 +2549,8 @@ HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
 	if (ulCount == 0)
 		return MAPI_E_UNABLE_TO_COMPLETE;
 
+	WSMessageStreamExporterPtr ptrStreamExporter;
+	WSTransportPtr ptrTransport;
 	// Need to clone the transport since we want to be able to use our own transport for other things
 	// while the streaming is going on; you should be able to intermix Synchronize() calls on the exporter
 	// with other MAPI calls which would normally be impossible since the stream is kept open between
