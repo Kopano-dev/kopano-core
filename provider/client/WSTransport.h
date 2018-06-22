@@ -69,7 +69,7 @@ enum
 
 class ECABLogon;
 
-class WSTransport _kc_final : public ECUnknown {
+class WSTransport final : public ECUnknown, public WSSoap {
 protected:
 	WSTransport(ULONG ulUIFlags);
 	virtual ~WSTransport();
@@ -282,19 +282,6 @@ public:
 	virtual HRESULT HrResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates);
 
 private:
-	class soap_lock_guard {
-		public:
-		soap_lock_guard(WSTransport &);
-		soap_lock_guard(const soap_lock_guard &) = delete;
-		~soap_lock_guard();
-		void operator=(const soap_lock_guard &) = delete;
-		void unlock();
-		private:
-		WSTransport &m_parent;
-		std::unique_lock<std::recursive_mutex> m_dg;
-		bool m_done = false;
-	};
-
 	static SOAP_SOCKET RefuseConnect(struct soap*, const char*, const char*, int);
 	static ECRESULT KCOIDCLogon(KCmdProxy *, const char *server, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);
 	//TODO: Move this function to the right file
@@ -304,8 +291,6 @@ private:
 	std::string GetAppName();
 
 protected:
-	KCmdProxy *m_lpCmd = nullptr;
-	std::recursive_mutex m_hDataLock;
 	ECSESSIONID m_ecSessionId = 0;
 	ECSESSIONGROUPID m_ecSessionGroupId = 0;
 	SESSIONRELOADLIST m_mapSessionReload;

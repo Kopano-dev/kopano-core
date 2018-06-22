@@ -18,12 +18,14 @@
 #ifndef CLIENTUTIL_H
 #define CLIENTUTIL_H
 
+#include <mutex>
 #include <mapispi.h>
 #include <string>
 #include <kopano/ECTags.h>
 #include <edkmdb.h>
 #include <kopano/zcdefs.h>
 
+class KCmdProxy;
 class WSTransport;
 
 struct sGlobalProfileProps {
@@ -50,6 +52,26 @@ public:
 
 	/* Get the delegate stores from the global profile. */
 	static HRESULT GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSect, ULONG *lpcDelegates, LPBYTE *lppDelegateStores);
+};
+
+class WSSoap {
+	public:
+	KCmdProxy *m_lpCmd = nullptr;
+	std::recursive_mutex m_hDataLock;
+};
+
+class soap_lock_guard {
+	public:
+	soap_lock_guard(WSSoap &);
+	soap_lock_guard(const soap_lock_guard &) = delete;
+	~soap_lock_guard();
+	void operator=(const soap_lock_guard &) = delete;
+	void unlock();
+
+	private:
+	WSSoap &m_parent;
+	std::unique_lock<std::recursive_mutex> m_dg;
+	bool m_done = false;
 };
 
 extern HRESULT HrCreateEntryId(const GUID &store_guid, unsigned int obj_type, ULONG *eid_size, ENTRYID **eid);

@@ -127,28 +127,6 @@ HRESULT WSTransport::HrClone(WSTransport **lppTransport)
 	return hrSuccess;
 }
 
-WSTransport::soap_lock_guard::soap_lock_guard(WSTransport &p) :
-	m_parent(p), m_dg(p.m_hDataLock)
-{}
-
-void WSTransport::soap_lock_guard::unlock()
-{
-	if (m_done)
-		return;
-	m_done = true;
-	/* Clean up data created with soap_malloc */
-	if (m_parent.m_lpCmd != nullptr && m_parent.m_lpCmd->soap != nullptr) {
-		soap_destroy(m_parent.m_lpCmd->soap);
-		soap_end(m_parent.m_lpCmd->soap);
-	}
-	m_dg.unlock();
-}
-
-WSTransport::soap_lock_guard::~soap_lock_guard()
-{
-	unlock();
-}
-
 HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 {
 	HRESULT		hr = hrSuccess;

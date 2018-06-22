@@ -198,7 +198,7 @@ void WSMessageStreamImporter::run()
 	sStreamData.xop__Include.__ptr = (unsigned char*)this;
 	sStreamData.xop__Include.type = const_cast<char *>("application/binary");
 
-	WSTransport::soap_lock_guard spg(*m_ptrTransport);
+	soap_lock_guard spg(*m_ptrTransport);
 	soap_set_omode(lpSoap, SOAP_ENC_MTOM | SOAP_IO_CHUNK);	
     lpSoap->mode &= ~SOAP_XML_TREE;
     lpSoap->omode &= ~SOAP_XML_TREE;
