@@ -181,6 +181,13 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
     LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon,
     LPMDB *lppMDB)
 {
+	if (lpEntryID == nullptr)
+		return MAPI_E_UNCONFIGURED;
+	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == nullptr)
+		return MAPI_E_NO_ACCESS;
+	if (cbSpoolSecurity % sizeof(wchar_t) != 0)
+		return MAPI_E_INVALID_PARAMETER;
+
 	object_ptr<WSTransport> lpTransport;
 	object_ptr<ECMsgStore> lpMsgStore;
 	object_ptr<ECMSLogon> lpLogon;
@@ -189,11 +196,6 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	ULONG cValues = 0;
 	LPSPropValue lpsPropArray = NULL;
 	sGlobalProfileProps	sProfileProps;
-
-	if (lpEntryID == nullptr)
-		return MAPI_E_UNCONFIGURED;
-	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == nullptr)
-		return MAPI_E_NO_ACCESS;
 
 	// Get Global profile settings
 	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
@@ -220,8 +222,6 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 			return MAPI_E_NOT_FOUND;
 	}
 
-	if (cbSpoolSecurity % sizeof(wchar_t) != 0)
-		return MAPI_E_INVALID_PARAMETER;
 	auto strSep = wmemchr(reinterpret_cast<wchar_t *>(lpbSpoolSecurity), 0, cbSpoolSecurity / sizeof(wchar_t));
 	if (strSep == NULL)
 		return MAPI_E_NO_ACCESS;
@@ -529,6 +529,11 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
     ULONG cbSpoolSecurity, LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError,
     LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
+	if (lpEntryID == nullptr)
+		return MAPI_E_UNCONFIGURED;
+	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == nullptr)
+		return MAPI_E_NO_ACCESS;
+
 	IMSProvider *lpProvider = NULL; // Do not release
 	PROVIDER_INFO sProviderInfo;
 	object_ptr<IMsgStore> lpMDB;
@@ -538,12 +543,6 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
 		if (lppMAPIError != nullptr)
 			*lppMAPIError = nullptr;
 	});
-
-	if (lpEntryID == NULL)
-		return MAPI_E_UNCONFIGURED;
-
-	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == NULL)
-		return MAPI_E_NO_ACCESS;
 	auto hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;

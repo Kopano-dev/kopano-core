@@ -230,11 +230,11 @@ HRESULT ECMAPIFolder::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 
 HRESULT ECMAPIFolder::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
 {
+	if (lpiid == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	SPropValuePtr ptrSK, ptrDisplay;
-	
-	if (lpiid == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 
 	if(ulPropTag == PR_CONTAINER_CONTENTS) {
 		if (*lpiid == IID_IMAPITable)
@@ -426,19 +426,18 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags
 
 HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
 {
+	if (lpMsgList == nullptr || lpMsgList->cValues == 0)
+		return hrSuccess;
+	if (lpMsgList->lpbin == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT hr = hrSuccess, hrEC = hrSuccess;
 	object_ptr<IMAPIFolder> lpMapiFolder;
 	ecmem_ptr<SPropValue> lpDestPropArray;
 	ecmem_ptr<ENTRYLIST> lpMsgListEC, lpMsgListSupport;
 	GUID guidFolder, guidMsg;
 
-	if(lpMsgList == NULL || lpMsgList->cValues == 0)
-		return hrSuccess;
-	if (lpMsgList->lpbin == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-
 	// FIXME progress bar
-	
 	//Get the interface of destinationfolder
 	if(lpInterface == NULL || *lpInterface == IID_IMAPIFolder)
 		lpMapiFolder.reset(static_cast<IMAPIFolder *>(lpDestFolder));
@@ -634,20 +633,19 @@ HRESULT ECMAPIFolder::DeleteFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
 {
-	HRESULT		hr = hrSuccess;
-	BOOL		bError = FALSE;
-	unsigned int objtype = 0;
-
-	// Progress bar
-	unsigned int ulPGMin = 0, ulPGMax = 0, ulPGDelta = 0, ulPGFlags = 0;
-	
-	if((ulFlags &~ (CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING | GENERATE_RECEIPT_ONLY | MAPI_DEFERRED_ERRORS | MESSAGE_DIALOG | SUPPRESS_RECEIPT)) != 0 ||
-		(ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG) ||
-		(ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY) ||
-		(ulFlags & (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)	)
+	if ((ulFlags & ~(CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING | GENERATE_RECEIPT_ONLY | MAPI_DEFERRED_ERRORS | MESSAGE_DIALOG | SUPPRESS_RECEIPT)) != 0 ||
+	    (ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG) ||
+	    (ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY) ||
+	    (ulFlags & (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY))
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpFolderOps == nullptr)
 		return MAPI_E_NO_SUPPORT;
+
+	HRESULT		hr = hrSuccess;
+	BOOL		bError = FALSE;
+	unsigned int objtype = 0;
+	// Progress bar
+	unsigned int ulPGMin = 0, ulPGMax = 0, ulPGDelta = 0, ulPGFlags = 0;
 
 	//FIXME: (GENERATE_RECEIPT_ONLY | SUPPRESS_RECEIPT) not yet implement ok on the server (update PR_READ_RECEIPT_REQUESTED to false)
 	if( (!(ulFlags & (SUPPRESS_RECEIPT|CLEAR_READ_FLAG|CLEAR_NRN_PENDING|CLEAR_RN_PENDING)) || (ulFlags&GENERATE_RECEIPT_ONLY))&& lpMsgList){

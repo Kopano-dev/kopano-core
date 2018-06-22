@@ -359,15 +359,9 @@ HRESULT ECMAPIProp::TableRowGetProp(void *lpProvider,
 // FIXME openproperty on computed value is illegal
 HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
 {
-    HRESULT hr = hrSuccess;
-	ECMemStream *lpStream = NULL;
-	ecmem_ptr<SPropValue> lpsPropValue;
-	STREAMDATA *lpStreamData = NULL;
-
-	if((ulFlags&MAPI_CREATE && !(ulFlags&MAPI_MODIFY)) || lpiid == NULL)
+	if ((ulFlags & MAPI_CREATE && !(ulFlags & MAPI_MODIFY)) || lpiid == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	
-	// Only support certain property types
+	/* Only support certain property types */
 	if (PROP_TYPE(ulPropTag) != PT_BINARY &&
 	    PROP_TYPE(ulPropTag) != PT_UNICODE &&
 	    PROP_TYPE(ulPropTag) != PT_STRING8)
@@ -378,6 +372,11 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	    PROP_TYPE(ulPropTag) != PT_BINARY &&
 	    PROP_TYPE(ulPropTag) != PT_UNICODE)
 		return MAPI_E_NOT_FOUND;
+
+    HRESULT hr = hrSuccess;
+	ECMemStream *lpStream = NULL;
+	ecmem_ptr<SPropValue> lpsPropValue;
+	STREAMDATA *lpStreamData = NULL;
 
 	if (*lpiid == IID_IStream && !m_props_loaded &&
 	    PROP_TYPE(ulPropTag) == PT_BINARY && !(ulFlags & MAPI_MODIFY) &&
@@ -483,14 +482,14 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 
 HRESULT ECMAPIProp::SaveChanges(ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
-	object_ptr<WSMAPIPropStorage> lpMAPIPropStorage;
-	
 	if (lpStorage == nullptr)
 		return MAPI_E_NOT_FOUND;
 	if (!fModify)
 		return MAPI_E_NO_ACCESS;
 
+	HRESULT hr = hrSuccess;
+	object_ptr<WSMAPIPropStorage> lpMAPIPropStorage;
+	
 	// only folders and main messages have a syncid, attachments and msg-in-msg don't
 	if (lpStorage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage) == hrSuccess) {
 		hr = lpMAPIPropStorage->HrSetSyncId(m_ulSyncId);
@@ -549,6 +548,10 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 
 HRESULT ECMAPIProp::SetSerializedACLData(const SPropValue *lpsPropValue)
 {
+	if (lpsPropValue == nullptr ||
+	    PROP_TYPE(lpsPropValue->ulPropTag) != PT_BINARY)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT				hr = hrSuccess;
 	ECPermissionPtr		ptrPerms;
 	struct soap			soap;
@@ -559,9 +562,6 @@ HRESULT ECMAPIProp::SetSerializedACLData(const SPropValue *lpsPropValue)
 		soap_destroy(&soap);
 		soap_end(&soap); // clean up allocated temporaries
 	});
-
-	if (lpsPropValue == NULL || PROP_TYPE(lpsPropValue->ulPropTag) != PT_BINARY)
-		return MAPI_E_INVALID_PARAMETER;
 
 	{
 		std::istringstream is(std::string((char*)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb));

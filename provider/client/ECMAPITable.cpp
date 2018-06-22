@@ -99,15 +99,15 @@ HRESULT ECMAPITable::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *l
 
 HRESULT ECMAPITable::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG * lpulConnection)
 {
-	scoped_rlock lock(m_hLock);
+	if (lpulConnection == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
+	scoped_rlock lock(m_hLock);
 	HRESULT hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	if (lpNotifyClient == NULL)
 		return MAPI_E_NO_SUPPORT;
-	if (lpulConnection == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 
 	// FIXME: if a reconnection happens in another thread during the following call, the ulTableId sent here will be incorrect. The reconnection
 	// code will not yet know about this connection since we don't insert it until later, so you may end up getting an Advise() on completely the wrong

@@ -680,15 +680,16 @@ HRESULT ECGenericProp::HrLoadProp(ULONG ulPropTag)
 HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
     ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
 {
+	/* FIXME: check lpPropTagArray on PROP_TYPE() */
+	if ((lpPropTagArray != nullptr && lpPropTagArray->cValues == 0) ||
+	    !Util::ValidatePropTagArray(lpPropTagArray))
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT			hrT = hrSuccess;
 	ecmem_ptr<SPropTagArray> lpGetPropTagArray;
 	GetPropCallBack	lpfnGetProp = NULL;
 	void*			lpParam = NULL;
 	ecmem_ptr<SPropValue> lpsPropValue;
-
-	//FIXME: check lpPropTagArray on PROP_TYPE()
-	if((lpPropTagArray != NULL && lpPropTagArray->cValues == 0) || Util::ValidatePropTagArray(lpPropTagArray) == false)
-		return MAPI_E_INVALID_PARAMETER;
 
 	if (lpPropTagArray == NULL) {
 		auto hr = GetPropList(ulFlags, &~lpGetPropTagArray);
@@ -804,14 +805,14 @@ HRESULT ECGenericProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInter
 HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
     SPropProblemArray **lppProblems)
 {
+	if (lpPropArray == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT				hrT = hrSuccess;
 	ecmem_ptr<SPropProblemArray> lpProblems;
 	int					nProblem = 0;
 	SetPropCallBack		lpfnSetProp = NULL;
 	void*				lpParam = NULL;
-
-	if (lpPropArray == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
 	auto hr = ECAllocateBuffer(CbNewSPropProblemArray(cValues), &~lpProblems);
 	if(hr != hrSuccess)
 		return hr;
@@ -860,12 +861,11 @@ HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 HRESULT ECGenericProp::DeleteProps(const SPropTagArray *lpPropTagArray,
     SPropProblemArray **lppProblems)
 {
-	ecmem_ptr<SPropProblemArray> lpProblems;
-	int						nProblem = 0;
-
-	if (lpPropTagArray == NULL)
+	if (lpPropTagArray == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
+	ecmem_ptr<SPropProblemArray> lpProblems;
+	int						nProblem = 0;
 	// over-allocate the problem array
 	auto er = ECAllocateBuffer(CbNewSPropProblemArray(lpPropTagArray->cValues), &~lpProblems);
 	if (er != erSuccess)
@@ -933,12 +933,11 @@ HRESULT ECGenericProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNa
 HRESULT ECGenericProp::GetSingleInstanceId(ULONG *lpcbInstanceID,
     ENTRYID **lppInstanceID)
 {
+	if (lpcbInstanceID == nullptr || lppInstanceID == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	scoped_rlock lock(m_hMutexMAPIObject);
-
 	if (m_sMapiObject == NULL)
 		return MAPI_E_NOT_FOUND;
-	if (lpcbInstanceID == NULL || lppInstanceID == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 	return Util::HrCopyEntryId(m_sMapiObject->cbInstanceID,
 	       reinterpret_cast<ENTRYID *>(m_sMapiObject->lpInstanceID),
 	       lpcbInstanceID, lppInstanceID);
