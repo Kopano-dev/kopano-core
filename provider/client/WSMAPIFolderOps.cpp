@@ -44,7 +44,7 @@
 
 WSMAPIFolderOps::WSMAPIFolderOps(KCmdProxy *cmd,
     std::recursive_mutex &data_lock, ECSESSIONID sid, ULONG cbEntryId,
-    ENTRYID *lpEntryId, WSTransport *lpTransport) :
+    const ENTRYID *lpEntryId, WSTransport *lpTransport) :
 	ECUnknown("WSMAPIFolderOps"), lpCmd(cmd), lpDataLock(data_lock),
 	ecSessionId(sid), m_lpTransport(lpTransport)
 {
@@ -63,7 +63,7 @@ WSMAPIFolderOps::~WSMAPIFolderOps()
 
 HRESULT WSMAPIFolderOps::Create(KCmdProxy *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
-    LPENTRYID lpEntryId, WSTransport *lpTransport,
+    const ENTRYID *lpEntryId, WSTransport *lpTransport,
     WSMAPIFolderOps **lppFolderOps)
 {
 	return alloc_wrap<WSMAPIFolderOps>(lpCmd, lpDataLock, ecSessionId,
@@ -335,7 +335,8 @@ exit:
 	return hr;
 }
 
-HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest, LPENTRYID lpEntryDest, ULONG ulFlags, ULONG ulSyncId)
+HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
+    const ENTRYID *lpEntryDest, ULONG ulFlags, ULONG ulSyncId)
 {
 	HRESULT			hr = hrSuccess;
 	ECRESULT		er = erSuccess;
@@ -444,7 +445,8 @@ exit:
 	return hr;
 }
 
-HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue *lppPropPCL, LPSPropValue *lppPropCK)
+HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, SPropValue **lppPropPCL, SPropValue **lppPropCK)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;

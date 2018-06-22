@@ -41,7 +41,7 @@
 		goto exit;
 
 WSMAPIPropStorage::WSMAPIPropStorage(ULONG cbParentEntryId,
-    LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID lpEntryId,
+    const ENTRYID *lpParentEntryId, ULONG cbEntryId, const ENTRYID *lpEntryId,
     ULONG ulFlags, KCmdProxy *cmd, std::recursive_mutex &data_lock,
     ECSESSIONID sid, unsigned int sc, WSTransport *tp) :
 	ECUnknown("WSMAPIPropStorage"), lpCmd(cmd), lpDataLock(data_lock),
@@ -78,7 +78,7 @@ HRESULT WSMAPIPropStorage::QueryInterface(REFIID refiid, void **lppInterface)
 }
 
 HRESULT WSMAPIPropStorage::Create(ULONG cbParentEntryId,
-    LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID lpEntryId,
+    const ENTRYID *lpParentEntryId, ULONG cbEntryId, const ENTRYID *lpEntryId,
     ULONG ulFlags, KCmdProxy *lpCmd, std::recursive_mutex &lpDataLock,
     ECSESSIONID ecSessionId, unsigned int ulServerCapabilities,
     WSTransport *lpTransport, WSMAPIPropStorage **lppPropStorage)

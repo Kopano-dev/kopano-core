@@ -35,11 +35,11 @@ class KCmdProxy;
 
 class WSABPropStorage _kc_final : public ECUnknown, public IECPropStorage {
 protected:
-	WSABPropStorage(ULONG cbEntryId, LPENTRYID, KCmdProxy *, std::recursive_mutex &, ECSESSIONID, WSTransport *);
+	WSABPropStorage(ULONG eid_size, const ENTRYID *, KCmdProxy *, std::recursive_mutex &, ECSESSIONID, WSTransport *);
 	virtual ~WSABPropStorage();
 
 public:
-	static HRESULT Create(ULONG cbEntryId, LPENTRYID, KCmdProxy *, std::recursive_mutex &, ECSESSIONID, WSTransport *, WSABPropStorage **);
+	static HRESULT Create(ULONG eid_size, const ENTRYID *, KCmdProxy *, std::recursive_mutex &, ECSESSIONID, WSTransport *, WSABPropStorage **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	static HRESULT Reload(void *lpParam, ECSESSIONID sessionId);
 	
@@ -69,11 +69,11 @@ private:
 
 class WSABTableView _kc_final : public WSTableView {
 	public:
-	static HRESULT Create(ULONG ulType, ULONG ulFlags, KCmdProxy *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECABLogon *, WSTransport *, WSTableView **);
+	static HRESULT Create(ULONG type, ULONG flags, KCmdProxy *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *, ECABLogon *, WSTransport *, WSTableView **);
 	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	protected:
-	WSABTableView(ULONG ulType, ULONG ulFlags, KCmdProxy *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECABLogon *, WSTransport *);
+	WSABTableView(ULONG type, ULONG flags, KCmdProxy *, std::recursive_mutex &, ECSESSIONID, ULONG eid_size, const ENTRYID *, ECABLogon *, WSTransport *);
 	ALLOC_WRAP_FRIEND;
 };
 

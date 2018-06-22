@@ -78,7 +78,11 @@ WSMessageStreamSink::~WSMessageStreamSink()
 	m_lpFifoBuffer->Close(ECFifoBuffer::cfWrite);
 }
 
-HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG cbFolderEntryID, LPENTRYID lpFolderEntryID, bool bNewMessage, LPSPropValue lpConflictItems, WSTransport *lpTransport, WSMessageStreamImporter **lppStreamImporter)
+HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId,
+    ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG cbFolderEntryID,
+    const ENTRYID *lpFolderEntryID, bool bNewMessage,
+    SPropValue *lpConflictItems, WSTransport *lpTransport,
+    WSMessageStreamImporter **lppStreamImporter)
 {
 	HRESULT hr = hrSuccess;
 	entryId sEntryId, sFolderEntryId;

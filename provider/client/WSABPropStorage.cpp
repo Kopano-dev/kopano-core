@@ -37,7 +37,7 @@
  * This is a PropStorage object for use with the WebServices storage platform
  */
 
-WSABPropStorage::WSABPropStorage(ULONG cbEntryId, LPENTRYID lpEntryId,
+WSABPropStorage::WSABPropStorage(ULONG cbEntryId, const ENTRYID *lpEntryId,
     KCmdProxy *cmd, std::recursive_mutex &data_lock, ECSESSIONID sid,
     WSTransport *lpTransport) :
 	ECUnknown("WSABPropStorage"), lpCmd(cmd), lpDataLock(data_lock),
@@ -64,7 +64,7 @@ HRESULT WSABPropStorage::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT WSABPropStorage::Create(ULONG cbEntryId, LPENTRYID lpEntryId,
+HRESULT WSABPropStorage::Create(ULONG cbEntryId, const ENTRYID *lpEntryId,
     KCmdProxy *lpCmd, std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId,
     WSTransport *lpTransport, WSABPropStorage **lppPropStorage)
 {
@@ -165,7 +165,7 @@ HRESULT WSABPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
 
 WSABTableView::WSABTableView(ULONG type, ULONG flags, KCmdProxy *cmd,
     std::recursive_mutex &lock, ECSESSIONID sid, ULONG cbEntryId,
-    LPENTRYID lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport) :
+    const ENTRYID *lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport) :
 	WSTableView(type, flags, cmd, lock, sid, cbEntryId,
 	    lpEntryId, lpTransport, "WSABTableView")
 {
@@ -175,7 +175,7 @@ WSABTableView::WSABTableView(ULONG type, ULONG flags, KCmdProxy *cmd,
 
 HRESULT WSABTableView::Create(ULONG ulType, ULONG ulFlags, KCmdProxy *lpCmd,
     std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
-    LPENTRYID lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport,
+    const ENTRYID *lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport,
     WSTableView **lppTableView)
 {
 	return alloc_wrap<WSABTableView>(ulType, ulFlags, lpCmd, lpDataLock,
