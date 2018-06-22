@@ -836,7 +836,6 @@ int ec_listen_localsock(const char *path, int *pfd, int mode)
  */
 int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 {
-	HRESULT hr = hrSuccess;
 	int fd = -1, opt = 1, ret;
 	struct addrinfo *sock_res = NULL, sock_hints;
 	const struct addrinfo *sock_addr, *sock_last = NULL;
@@ -920,7 +919,6 @@ int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 		ec_log_crit("Unable to create socket(%u,%u,%u) port %s: %s",
 			sock_last->ai_family, sock_last->ai_socktype,
 			sock_last->ai_protocol, port_string, strerror(errno));
-		hr = MAPI_E_NETWORK_ERROR;
 		goto exit;
 	} else if (fd < 0) {
 		ec_log_err("no sockets proposed");
@@ -934,8 +932,6 @@ exit:
 	int saved_errno = errno;
 	if (sock_res != NULL)
 		freeaddrinfo(sock_res);
-	if (hr != hrSuccess && fd >= 0)
-		close(fd);
 	errno = saved_errno;
 	return -errno;
 }
