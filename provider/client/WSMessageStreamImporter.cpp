@@ -41,7 +41,7 @@ HRESULT WSMessageStreamSink::Create(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout,
  * @param[in]	lpData	Pointer to the data
  * @param[in]	cbData	The amount of data in bytes.
  */
-HRESULT WSMessageStreamSink::Write(LPVOID lpData, ULONG cbData)
+HRESULT WSMessageStreamSink::Write(const void *lpData, unsigned int cbData)
 {
 	HRESULT hrAsync = hrSuccess;
 	auto hr = kcerr_to_mapierr(m_lpFifoBuffer->Write(lpData, cbData, 0, nullptr));

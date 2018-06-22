@@ -50,8 +50,7 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Write(const void *pv, ULONG cb, U
 		if (hr != hrSuccess)
 			return hr;
 	}
-
-	hr = m_ptrSink->Write((LPVOID)pv, cb);
+	hr = m_ptrSink->Write(pv, cb);
 	if (hr != hrSuccess)
 		return hr;
 

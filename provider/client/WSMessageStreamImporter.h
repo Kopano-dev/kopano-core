@@ -38,7 +38,7 @@ class WSMessageStreamImporter;
 class WSMessageStreamSink _kc_final : public ECUnknown {
 public:
 	static HRESULT Create(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout, WSMessageStreamImporter *lpImporter, WSMessageStreamSink **lppSink);
-	HRESULT Write(LPVOID lpData, ULONG cbData);
+	HRESULT Write(const void *data, unsigned int size);
 
 private:
 	WSMessageStreamSink(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout, WSMessageStreamImporter *lpImporter);
