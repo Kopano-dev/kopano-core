@@ -46,7 +46,7 @@ from .compat import (
     repr as _repr, benc as _benc, bdec as _bdec,
 )
 from .errors import (
-    NotSupportedError, NotFoundError,
+    NotSupportedError, NotFoundError, ArgumentError,
 )
 from .defs import (
     ARO_SUBJECT, ARO_MEETINGTYPE, ARO_REMINDERDELTA, ARO_REMINDERSET,
@@ -150,6 +150,8 @@ class Recurrence(object):
         elif value == 'yearly_rel':
             self._recur_frequency = FREQ_YEAR
             self._pattern_type = PATTERN_MONTHNTH
+        else:
+            raise ArgumentError('invalid recurrence pattern: %s' % value) # TODO add more such checks
 
     @property
     def weekdays(self):
@@ -240,6 +242,8 @@ class Recurrence(object):
             self._end_type = 0x2022
         elif value == 'no_end':
             self._end_type = 0x2023
+        else:
+            raise ArgumentError('invalid recurrence range type: %s' % value)
 
     @property
     def count(self):
