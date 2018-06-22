@@ -39,7 +39,6 @@
 #include <kopano/ECRestriction.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECTags.h>
-#include <kopano/ECIConv.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/Util.h>
 #include <kopano/scope.hpp>
@@ -1950,7 +1949,6 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 	ULONG ulCriterianr = 0;
 	string strResponse;
 	char szBuffer[33];
-	std::unique_ptr<ECIConv> iconv;
 	string strMode;
 
 	if (bUidMode)
@@ -1960,19 +1958,9 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 		HrResponse(RESP_TAGGED_NO, strTag, strMode + "SEARCH error no folder");
 		return MAPI_E_CALL_FAILED;
 	}
-
-	// don't support other charsets
-	// @todo unicode searches
-	if (lstSearchCriteria[0].compare("CHARSET") == 0) {
-		if (lstSearchCriteria[1] != "WINDOWS-1252") {
-			iconv.reset(new ECIConv("windows-1252", lstSearchCriteria[1]));
-			if (!iconv->canConvert()) {
-				HrResponse(RESP_TAGGED_NO, strTag, "[BADCHARSET (WINDOWS-1252)] " + strMode + "SEARCH charset not supported");
-				return MAPI_E_CALL_FAILED;
-			}
-		}
+	if (lstSearchCriteria[0].compare("CHARSET") == 0)
+		/* No support for other charsets; skip the fields. */
 		ulCriterianr += 2;
-	}
 	hr = HrSearch(std::move(lstSearchCriteria), ulCriterianr, lstMailnr);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_NO, strTag, strMode + "SEARCH error");

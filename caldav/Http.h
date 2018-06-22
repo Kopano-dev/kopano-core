@@ -24,7 +24,6 @@
 #include <kopano/stringutil.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECChannel.h>
-#include <kopano/ECIConv.h>
 #include <cstdio>
 #include <cstdarg>
 #include <cctype>

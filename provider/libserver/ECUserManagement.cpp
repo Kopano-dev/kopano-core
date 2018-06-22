@@ -41,7 +41,6 @@
 #include "ECSessionManager.h"
 #include "ECPluginFactory.h"
 #include "ECSecurity.h"
-#include <kopano/ECIConv.h>
 #include "SymmetricCrypt.h"
 #include "ECKrbAuth.h"
 #include <kopano/UnixUtil.h>

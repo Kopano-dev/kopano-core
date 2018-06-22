@@ -19,6 +19,7 @@
 #define traits_INCLUDED
 
 #include <kopano/zcdefs.h>
+#include <kopano/platform.h>
 #include <string>
 #include <cstring>
 
@@ -28,7 +29,18 @@ template<typename Type> class iconv_charset _kc_final {
 };
 
 #define CHARSET_CHAR "//TRANSLIT"
-#define CHARSET_WCHAR "UTF-32LE"
+/*
+ * glibc iconv is missing support for wchar_t->wchar_t conversions
+ * (https://sourceware.org/bugzilla/show_bug.cgi?id=20804 ), and
+ * iconv_charset<> does not capture that special case either.
+ * UTF-32BE/LE needs to be used, because conversion to unspecified UTF-32
+ * leads to BOMs (and an upset testsuite).
+ */
+#ifdef KC_BIGENDIAN
+#	define CHARSET_WCHAR "UTF-32BE"
+#else
+#	define CHARSET_WCHAR "UTF-32LE"
+#endif
 #define CHARSET_TCHAR (iconv_charset<TCHAR*>::name())
 
 // Multibyte character specializations
@@ -175,7 +187,7 @@ public:
 template<> class iconv_charset<std::u16string> _kc_final {
 public:
 	static const char *name() {
-		return "UTF-16LE";
+		return "UTF-16";
 	}
 	static const char *rawptr(const std::u16string &from)
 	{

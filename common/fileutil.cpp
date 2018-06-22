@@ -23,7 +23,6 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
-#include <kopano/ECIConv.h>
 #include <kopano/ECLogger.h>
 
 #include <mapicode.h>

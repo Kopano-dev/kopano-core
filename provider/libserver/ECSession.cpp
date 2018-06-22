@@ -45,7 +45,7 @@
 #include "SOAPUtils.h"
 #include "ics.h"
 #include "ECICS.h"
-#include <kopano/ECIConv.h>
+#include <kopano/charset/convert.h>
 #include "versions.h"
 #include <kopano/MAPIErrors.h>
 
@@ -1399,14 +1399,12 @@ retry:
 		// Authentication Fine
 		// Samba default runs in UTF-8 and setting 'unix charset' to windows-1252 in the samba config will break ntlm_auth
 		// convert the username before we use it in Kopano
-		ECIConv iconv("windows-1252", "utf-8");
-		if (!iconv.canConvert()) {
-			ec_log_crit("Problem setting up windows-1252 to utf-8 converter");
+		try {
+			strAnswer = iconv_context<std::string, std::string>("windows-1252", "utf-8").convert(strAnswer);
+		} catch (const convert_exception &e) {
+			ec_log_crit("Problem setting up windows-1252 to utf-8 converter: %s", e.what());
 			return er;
 		}
-
-		strAnswer = iconv.convert(strAnswer);
-
 		ec_log_info("Found username (%s)", strAnswer.c_str());
 
 		// if the domain separator is not found, assume we only have the username (samba)

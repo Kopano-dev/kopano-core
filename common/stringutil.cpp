@@ -24,7 +24,6 @@
 #include <cctype>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
-#include <kopano/ECIConv.h>
 #include <kopano/ECLogger.h>
 #include <openssl/md5.h>
 #include <mapidefs.h>

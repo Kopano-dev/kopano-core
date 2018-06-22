@@ -33,7 +33,6 @@
 #include <edkmdb.h>
 
 #include <kopano/Util.h>
-#include <kopano/ECIConv.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/memory.hpp>
 #include <kopano/stringutil.h>

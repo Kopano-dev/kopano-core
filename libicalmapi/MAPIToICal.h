@@ -32,7 +32,6 @@ class MapiToICal {
 public:
 	/*
 	    - Addressbook (Global AddressBook for looking up users)
-		- charset to use to convert to (use common/ECIConv.cpp)
 	 */
 	virtual ~MapiToICal(void) = default;
 	virtual HRESULT AddMessage(LPMESSAGE lpMessage, const std::string &strSrvTZ, ULONG ulFlags) = 0;

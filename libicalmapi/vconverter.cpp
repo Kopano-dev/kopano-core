@@ -46,9 +46,8 @@ using std::wstring;
 /**
  * Copies string from source to destination
  * 
- * The function also does charset conversion according to the ECIConv object passed
+ * The function also does charset conversion according to the convert_context object passed
  *
- * @param[in]	lpIConv		ECIConv object pointer for charset conversion, may be NULL for no conversion
  * @param[in]	base		Base from memory allocation, cannot not be NULL
  * @param[in]	lpszSrc		Source chararacter string, NULL allowed, since icalproperty_get_*() may return NULL
  * @param[out]	lppszDst	Destination char pointer, cannot be NULL

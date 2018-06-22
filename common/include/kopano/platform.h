@@ -130,6 +130,7 @@ template<typename T> static constexpr inline double dur2dbl(const T &t)
 #	define le16_to_cpu(x) __builtin_bswap16(x)
 #	define le32_to_cpu(x) __builtin_bswap32(x)
 #	define be64_to_cpu(x) (x)
+#	define KC_BIGENDIAN 1
 #else
 #	define cpu_to_le16(x) (x)
 #	define cpu_to_le32(x) (x)
@@ -137,6 +138,7 @@ template<typename T> static constexpr inline double dur2dbl(const T &t)
 #	define le16_to_cpu(x) (x)
 #	define le32_to_cpu(x) (x)
 #	define be64_to_cpu(x) __builtin_bswap64(x)
+#	undef KC_BIGENDIAN
 #endif
 
 #if __cplusplus >= 201700L
