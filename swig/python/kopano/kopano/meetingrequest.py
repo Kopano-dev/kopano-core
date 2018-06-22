@@ -319,6 +319,9 @@ class MeetingRequest(object):
                 self._init_calitem(cal_item, tentative)
 
         else:
+            # preserve categories # TODO preserve everything unrelated?
+            categories = cal_item.categories if cal_item else []
+
             # remove existing recurrence
             if cal_item and cal_item.recurring:
                 mr_counter = self.update_counter
@@ -341,6 +344,8 @@ class MeetingRequest(object):
 
             # create new recurrence
             cal_item = self.item.copy(calendar)
+            if categories:
+                cal_item.categories = categories
 
             # merge existing exceptions
             if cal_item.recurring and existing_items:
