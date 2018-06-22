@@ -807,7 +807,7 @@ int ec_listen_localsock(const char *path, int *pfd, int mode)
 		return -errno;
 	}
 	sk.sun_family = AF_LOCAL;
-	strncpy(sk.sun_path, path, sizeof(sk.sun_path));
+	kc_strlcpy(sk.sun_path, path, sizeof(sk.sun_path));
 	ret = bind(fd, reinterpret_cast<const sockaddr *>(&sk), sizeof(sk));
 	if (ret < 0) {
 		int saved_errno = errno;
