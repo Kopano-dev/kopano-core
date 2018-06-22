@@ -87,8 +87,7 @@ HRESULT WSTableMultiStore::HrOpenTable()
 	HRESULT			hr = hrSuccess;
 
 	struct tableOpenResponse sResponse;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	if (ulTableId != 0)
 	    goto exit;
 
@@ -112,8 +111,6 @@ HRESULT WSTableMultiStore::HrOpenTable()
 		goto exit;
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -154,9 +151,7 @@ HRESULT WSTableMisc::HrOpenTable()
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	struct tableOpenResponse sResponse;
-
-	LockSoap();
-	
+	soap_lock_guard spg(*m_lpTransport);
 	if(ulTableId != 0)
 	    goto exit;
 
@@ -172,8 +167,6 @@ HRESULT WSTableMisc::HrOpenTable()
 		goto exit;
 	ulTableId = sResponse.ulTableId;
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 

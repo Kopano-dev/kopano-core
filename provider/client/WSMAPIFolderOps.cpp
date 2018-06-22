@@ -85,8 +85,7 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 	struct xsd__base64Binary sSourceKey;
 	struct createFolderResponse sResponse;
 	entryId*	lpsEntryId = NULL;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpNewEntryId) {
 		hr = CopyMAPIEntryIdToSOAPEntryId(cbNewEntryId, lpNewEntryId, &lpsEntryId);
@@ -122,8 +121,7 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 	}
 
 exit:
-	UnLockSoap();
-
+	spg.unlock();
 	if(lpsEntryId)
 		FreeEntryId(lpsEntryId, true);
 
@@ -135,8 +133,7 @@ HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId,
 {
 	ECRESULT	er = erSuccess;
 	entryId		sEntryId;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	// Cheap copy entryid
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &sEntryId, true);
@@ -152,8 +149,6 @@ HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId,
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -161,8 +156,7 @@ HRESULT WSMAPIFolderOps::HrEmptyFolder(ULONG ulFlags, ULONG ulSyncId)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	START_SOAP_CALL
 	{
@@ -173,8 +167,6 @@ HRESULT WSMAPIFolderOps::HrEmptyFolder(ULONG ulFlags, ULONG ulSyncId)
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -183,8 +175,7 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 	HRESULT			hr = hrSuccess;
 	ECRESULT		er = erSuccess;
 	struct entryList sEntryList;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpMsgList) {
 		if(lpMsgList->cValues == 0)
@@ -205,8 +196,7 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
-
+	spg.unlock();
 	FreeEntryList(&sEntryList, false);
 
 	return hr;
@@ -219,8 +209,7 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(ENTRYLIST *lpMsgList, SRestriction 
 
 	struct entryList*		lpsEntryList = NULL;
 	struct restrictTable*	lpsRestrict = NULL;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpMsgList) {
 		lpsEntryList = s_alloc<entryList>(nullptr);
@@ -249,8 +238,7 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(ENTRYLIST *lpMsgList, SRestriction 
 		goto exit;
 
 exit:
-	UnLockSoap();
-
+	spg.unlock();
 	if(lpsRestrict)
 		FreeRestrictTable(lpsRestrict);
 
@@ -268,8 +256,7 @@ HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestrict
 	ecmem_ptr<SRestriction> lpRestriction;
 
 	struct tableGetSearchCriteriaResponse sResponse;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	START_SOAP_CALL
 	{
@@ -306,7 +293,6 @@ HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestrict
 		*lpulFlags = sResponse.ulFlags;
 
 exit:
-	UnLockSoap();
 	return hr;
 }
 
@@ -316,8 +302,7 @@ HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom,
 {
 	ECRESULT	er = erSuccess;
 	entryId sEntryFrom, sEntryDest; /* Do not free, cheap copy */
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryFrom, lpEntryFrom, &sEntryFrom, true);
 	if(hr != hrSuccess)
 		goto exit;
@@ -335,8 +320,6 @@ HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom,
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -347,8 +330,7 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
 	ECRESULT		er = erSuccess;
 	struct entryList sEntryList;
 	entryId			sEntryDest;	//Do not free, cheap copy
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpMsgList->cValues == 0)
 		goto exit;
@@ -370,7 +352,7 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
+	spg.unlock();
 	FreeEntryList(&sEntryList, false);
 	
 	return hr;
@@ -384,8 +366,7 @@ HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
 	entryId		sEntryId;	//Do not free, cheap copy
 	
 	struct messageStatus sMessageStatus;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpEntryID == NULL) {
 		hr = MAPI_E_INVALID_ENTRYID;
@@ -409,8 +390,6 @@ HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
 	*lpulMessageStatus = sMessageStatus.ulMessageStatus;
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -423,8 +402,7 @@ HRESULT WSMAPIFolderOps::HrSetMessageStatus(ULONG cbEntryID,
 	entryId		sEntryId;	//Do not free, cheap copy
 	
 	struct messageStatus sMessageStatus;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpEntryID == NULL)	{
 		hr = MAPI_E_INVALID_ENTRYID;
@@ -449,8 +427,6 @@ HRESULT WSMAPIFolderOps::HrSetMessageStatus(ULONG cbEntryID,
 	if(lpulOldStatus)
 		*lpulOldStatus = sMessageStatus.ulMessageStatus;
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -462,8 +438,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
 	entryId sEntryId;
 	KC::memory_ptr<SPropValue> lpSPropValPCL, lpSPropValCK;
 	getChangeInfoResponse sChangeInfo;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if (lpEntryID == NULL)	{
 		hr = MAPI_E_INVALID_ENTRYID;
@@ -508,24 +483,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
 	if (lppPropCK != nullptr)
 		*lppPropCK = lpSPropValCK.release();
 exit:
-	UnLockSoap();
 	return hr;
-}
-
-//FIXME: one lock/unlock function
-void WSMAPIFolderOps::LockSoap()
-{
-	m_lpTransport->m_hDataLock.lock();
-}
-
-void WSMAPIFolderOps::UnLockSoap()
-{
-	//Clean up data create with soap_malloc
-	if (m_lpTransport->m_lpCmd->soap != nullptr) {
-		soap_destroy(m_lpTransport->m_lpCmd->soap);
-		soap_end(m_lpTransport->m_lpCmd->soap);
-	}
-	m_lpTransport->m_hDataLock.unlock();
 }
 
 HRESULT WSMAPIFolderOps::Reload(void *lpParam, ECSESSIONID sessionid)

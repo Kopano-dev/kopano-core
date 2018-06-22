@@ -65,8 +65,7 @@ HRESULT WSTableView::HrQueryRows(ULONG ulRowCount, ULONG flags, SRowSet **lppRow
 {
 	ECRESULT er = erSuccess;
 	struct tableQueryRowsResponse sResponse;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
@@ -82,8 +81,6 @@ HRESULT WSTableView::HrQueryRows(ULONG ulRowCount, ULONG flags, SRowSet **lppRow
 	END_SOAP_CALL
 	hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.sRowSet, lppRowSet, ulType);
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -91,8 +88,7 @@ HRESULT WSTableView::HrCloseTable()
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if(ulTableId == 0)
 		goto exit;
@@ -108,8 +104,6 @@ HRESULT WSTableView::HrCloseTable()
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -127,7 +121,7 @@ HRESULT WSTableView::HrSetColumns(const SPropTagArray *lpsPropTagArray)
 	sColumns.__ptr = (unsigned int *)&lpsPropTagArray->aulPropTag;
 	sColumns.__size = lpsPropTagArray->cValues;
 
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
@@ -142,8 +136,6 @@ HRESULT WSTableView::HrSetColumns(const SPropTagArray *lpsPropTagArray)
 
 exit:
 	delete[] lpsOld;
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -152,8 +144,7 @@ HRESULT WSTableView::HrQueryColumns(ULONG flags, SPropTagArray **lppsPropTags)
 	ECRESULT er = erSuccess;
 	struct tableQueryColumnsResponse sResponse;
 	LPSPropTagArray lpsPropTags = NULL;
-	
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
@@ -180,8 +171,6 @@ HRESULT WSTableView::HrQueryColumns(ULONG flags, SPropTagArray **lppsPropTags)
 	*lppsPropTags = lpsPropTags;
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -202,7 +191,7 @@ HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
 		sSort.__ptr[i].ulPropTag = lpsSortOrderSet->aSort[i].ulPropTag;
 	}
 
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
@@ -217,7 +206,7 @@ HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
+	spg.unlock();
 	delete[] lpOld;
 	s_free(nullptr, sSort.__ptr);
 	return hr;
@@ -228,8 +217,7 @@ HRESULT WSTableView::HrOpenTable()
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	struct tableOpenResponse sResponse;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	if (ulTableId != 0)
 	    goto exit;
 
@@ -244,8 +232,6 @@ HRESULT WSTableView::HrOpenTable()
 	END_SOAP_CALL
 	ulTableId = sResponse.ulTableId;
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -253,8 +239,7 @@ HRESULT WSTableView::HrGetRowCount(ULONG *lpulRowCount, ULONG *lpulCurrentRow)
 {
 	ECRESULT er = erSuccess;
 	struct tableGetRowCountResponse sResponse;
-	
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
@@ -273,8 +258,6 @@ HRESULT WSTableView::HrGetRowCount(ULONG *lpulRowCount, ULONG *lpulCurrentRow)
 	*lpulCurrentRow = sResponse.ulRow;
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -284,8 +267,7 @@ HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
 	HRESULT hr = hrSuccess;
 
 	struct restrictTable *lpRestrict = NULL;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	ECRESULT er = CopyMAPIRestrictionToSOAPRestriction(&lpRestrict, lpsRestriction);
 
 	if(er != erSuccess) {
@@ -308,8 +290,7 @@ HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
-
+	spg.unlock();
 	if(lpRestrict)
 		FreeRestrictTable(lpRestrict);
 
@@ -320,8 +301,7 @@ HRESULT WSTableView::HrSeekRow(BOOKMARK bkOrigin, LONG lRows, LONG *lplRowsSough
 {
 	ECRESULT er = erSuccess;
 	struct tableSeekRowResponse sResponse;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
@@ -341,8 +321,6 @@ HRESULT WSTableView::HrSeekRow(BOOKMARK bkOrigin, LONG lRows, LONG *lplRowsSough
 		*lplRowsSought = sResponse.lRowsSought;
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -350,8 +328,7 @@ HRESULT WSTableView::CreateBookmark(BOOKMARK* lpbkPosition)
 {
 	ECRESULT er = erSuccess;
 	tableBookmarkResponse	sResponse;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
@@ -374,16 +351,13 @@ HRESULT WSTableView::CreateBookmark(BOOKMARK* lpbkPosition)
 	*lpbkPosition = sResponse.ulbkPosition;
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
 HRESULT WSTableView::FreeBookmark(BOOKMARK bkPosition)
 {
 	ECRESULT er = erSuccess;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
@@ -397,8 +371,6 @@ HRESULT WSTableView::FreeBookmark(BOOKMARK bkPosition)
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -408,8 +380,7 @@ HRESULT WSTableView::HrExpandRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 	ECRESULT er = erSuccess;
 	xsd__base64Binary sInstanceKey;
 	struct tableExpandRowResponse sResponse;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
@@ -434,8 +405,6 @@ HRESULT WSTableView::HrExpandRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 		*lpulMoreRows = sResponse.ulMoreRows;
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -445,8 +414,7 @@ HRESULT WSTableView::HrCollapseRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 	ECRESULT er = erSuccess;
 	xsd__base64Binary sInstanceKey;
 	struct tableCollapseRowResponse sResponse;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
@@ -467,8 +435,6 @@ HRESULT WSTableView::HrCollapseRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 	*lpulRowCount = sResponse.ulRows;
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -481,7 +447,7 @@ HRESULT WSTableView::HrGetCollapseState(BYTE **lppCollapseState, ULONG *lpcbColl
 	sBookmark.__size = cbInstanceKey;
 	sBookmark.__ptr = lpInstanceKey;
 
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
@@ -502,8 +468,6 @@ HRESULT WSTableView::HrGetCollapseState(BYTE **lppCollapseState, ULONG *lpcbColl
 	*lpcbCollapseState = sResponse.sCollapseState.__size;
 		
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -516,7 +480,7 @@ HRESULT WSTableView::HrSetCollapseState(BYTE *lpCollapseState, ULONG cbCollapseS
 	sState.__ptr = lpCollapseState;
 	sState.__size = cbCollapseState;
 
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
@@ -539,8 +503,6 @@ HRESULT WSTableView::HrSetCollapseState(BYTE *lpCollapseState, ULONG cbCollapseS
 		*lpbkPosition = sResponse.ulBookmark;
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -584,6 +546,7 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
     	sRequest.lpSetColumns = &sColumns;
 	}
     
+	soap_lock_guard spg(*m_lpTransport);
 	if(lpsRestriction) {
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpsRestrictTable, lpsRestriction);
 
@@ -619,8 +582,6 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 	    sRequest.lpQueryRows = &sQueryRows;
 	}
 
-	LockSoap();
-
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableMulti(ecSessionId, sRequest, &sResponse) != SOAP_OK)
@@ -635,28 +596,12 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 	if (lppRowSet)
 		hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.sRowSet, lppRowSet, ulType);
 exit:
-	UnLockSoap();
+	spg.unlock();
 	s_free(nullptr, sSort.sSortOrder.__ptr);
 	if(lpsRestrictTable)
 		FreeRestrictTable(lpsRestrictTable);
         
     return hr;    
-}
-
-//FIXME: one lock/unlock function
-void WSTableView::LockSoap()
-{
-	m_lpTransport->m_hDataLock.lock();
-}
-
-void WSTableView::UnLockSoap()
-{
-	//Clean up data create with soap_malloc
-	if (m_lpTransport->m_lpCmd->soap != nullptr) {
-		soap_destroy(m_lpTransport->m_lpCmd->soap);
-		soap_end(m_lpTransport->m_lpCmd->soap);
-	}
-	m_lpTransport->m_hDataLock.unlock();
 }
 
 HRESULT WSTableView::Reload(void *lpParam, ECSESSIONID sessionId)
@@ -717,8 +662,7 @@ HRESULT WSTableOutGoingQueue::HrOpenTable()
 	HRESULT			hr = hrSuccess;
 
 	struct tableOpenResponse sResponse;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	if (ulTableId != 0)
 	    goto exit;
 
@@ -734,8 +678,6 @@ HRESULT WSTableOutGoingQueue::HrOpenTable()
 	END_SOAP_CALL
 	ulTableId = sResponse.ulTableId;
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 

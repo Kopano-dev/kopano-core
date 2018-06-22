@@ -66,9 +66,6 @@ public:
 	ULONG ulTableId = 0;
 
 protected:
-	void LockSoap();
-	void UnLockSoap();
-
 	ECSESSIONID		ecSessionId;
 	entryId			m_sEntryId;
 	void *			m_lpProvider;

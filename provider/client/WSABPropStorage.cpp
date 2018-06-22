@@ -90,8 +90,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	ecmem_ptr<SPropValue> lpProp;
 	struct readPropsResponse sResponse;
 	convert_context	converter;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	START_SOAP_CALL
 	{
@@ -133,25 +132,10 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	*lppsMapiObject = mo;
 
 exit:
-	UnLockSoap();
+	spg.unlock();
 	if (hr != hrSuccess)
 		delete mo;
 	return hr;
-}
-
-void WSABPropStorage::LockSoap()
-{
-	m_lpTransport->m_hDataLock.lock();
-}
-
-void WSABPropStorage::UnLockSoap()
-{
-	// Clean up data create with soap_malloc
-	if (m_lpTransport->m_lpCmd->soap != nullptr) {
-		soap_destroy(m_lpTransport->m_lpCmd->soap);
-		soap_end(m_lpTransport->m_lpCmd->soap);
-	}
-	m_lpTransport->m_hDataLock.unlock();
 }
 
 // Called when the session ID has changed

@@ -56,10 +56,8 @@ WSMAPIPropStorage::~WSMAPIPropStorage()
 	// Unregister the notification request we sent
 	if(m_bSubscribed) {
 		ECRESULT er = erSuccess;
-
-		LockSoap();		
+		soap_lock_guard spg(*m_lpTransport);
 		m_lpTransport->m_lpCmd->notifyUnSubscribe(ecSessionId, m_ulConnection, &er);
-		UnLockSoap();
 	}
 	
 	FreeEntryId(&m_sEntryId, false);
@@ -92,8 +90,8 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 	LPSPropValue	lpsPropValDst = NULL;
 
 	struct loadPropResponse	sResponse;
+	soap_lock_guard spg(*m_lpTransport);
 	
-	LockSoap();
 	if (ulObjId == 0 && (ulServerCapabilities & KOPANO_CAP_LOADPROP_ENTRYID) == 0) {
 		hr = MAPI_E_NO_SUPPORT; 
 		goto exit; 
@@ -124,8 +122,6 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 	*lppsPropValue = lpsPropValDst;
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -407,9 +403,7 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	convert_context converter;
 
 	HrMapiObjectToSoapObject(lpsMapiObject, &sSaveObj, &converter);
-
-	LockSoap();
-
+	soap_lock_guard spg(*m_lpTransport);
 	// ulFlags == object flags, e.g. MAPI_ASSOCIATE for messages, FOLDER_SEARCH on folders...
 	START_SOAP_CALL
 	{
@@ -444,8 +438,7 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	// ECGenericProps, the properties in 
 
 exit:
-	UnLockSoap();
-
+	spg.unlock();
 	DeleteSoapObject(&sSaveObj);
 
 	return hr;
@@ -536,8 +529,7 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		sNotSubscribe.sKey.__ptr = m_sEntryId.__ptr;
 	}
 
-	LockSoap();
-
+	soap_lock_guard spg(*m_lpTransport);
 	if (!lppsMapiObject) {
 		assert(false);
 		er = KCERR_INVALID_PARAMETER;
@@ -576,25 +568,7 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	m_bSubscribed = m_ulConnection != 0;
 
 exit:
-	UnLockSoap();
-
 	return hr;
-}
-
-//FIXME: one lock/unlock function
-void WSMAPIPropStorage::LockSoap()
-{
-	m_lpTransport->m_hDataLock.lock();
-}
-
-void WSMAPIPropStorage::UnLockSoap()
-{
-	//Clean up data create with soap_malloc
-	if (m_lpTransport->m_lpCmd->soap != nullptr) {
-		soap_destroy(m_lpTransport->m_lpCmd->soap);
-		soap_end(m_lpTransport->m_lpCmd->soap);
-	}
-	m_lpTransport->m_hDataLock.unlock();
 }
 
 HRESULT WSMAPIPropStorage::HrSetSyncId(ULONG ulSyncId) {

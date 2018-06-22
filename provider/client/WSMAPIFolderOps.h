@@ -81,9 +81,6 @@ public:
 	static HRESULT Reload(void *lpParam, ECSESSIONID sessionid);
 
 private:
-	void LockSoap();
-	void UnLockSoap();
-
 	entryId			m_sEntryId;		// Entryid of the folder
 	ECSESSIONID		ecSessionId;	// Id of the session
 	ULONG			m_ulSessionReloadCallback;
