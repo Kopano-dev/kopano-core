@@ -66,35 +66,32 @@ Include and process
 Example: !include common.cfg
 .RE
 .SH "EXPLANATION OF EACH PARAMETER"
+.SS ical_listen
+.PP
+A space-separated list of address:port specifiers for where the server should
+listen for HTTP/CalDAV connections. IPv6 addresses need to
+be enclosed in brackets (as in \fB[2001:db8::1]:236\fP), and the asterisk is
+the multi-protocol address wildcard.
+.PP
+Default: \fI*:8080\fP
+.SS icals_listen
+A space-separated list of address:port spcifiers for implicit-SSL CalDAV/HTTP
+connections, similar to \fBical_listen\fP. Previous versions of ZCP/KC
+suggested port 8443.
+.PP
+Default: \fI(none)\fP
 .SS server_bind
 .PP
-IP address to bind to. Leave empty to bind to all addresses.
+This historic directive specifies a single IPv4/IPv6 address to bind to. Its
+use is discouraged in favor of the various *\fB_listen\fP directives.
 .PP
-Default: (empty)
-.SS ical_enable
+Default: \fI(empty)\fP
+.SS ical_enable, ical_port, icals_enable, icals_port
 .PP
-Enable iCal/CalDAV service with value yes. All other values disable the service.
-.PP
-Default:
-\fIyes\fR
-.SS ical_port
-.PP
-The iCal/CalDAV service will listen on this port for incoming connections.
-.PP
-Default:
-\fI8080\fR
-.SS icals_enable
-.PP
-Enable SSL iCal/CalDAV service with value yes. All other values disable the service.
-.PP
-Default:
-\fIyes\fR
-.SS icals_port
-.PP
-The SSL iCal/CalDAV service will listen on this port for incoming connections.
-.PP
-Default:
-\fI8443\fR
+These historic directive specify the single port to bind to for iCal/ICALS
+connections. Their use is discouraged in favor of the various *\fB_listen\fP
+directives. The address for the old directives is mandated by
+\fBserver_bind\fP.
 .SS server_socket
 .PP
 The http address of the storage server.

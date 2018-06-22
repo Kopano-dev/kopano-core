@@ -46,7 +46,7 @@ HRESULT HrParseURL(const std::string &stUrl, ULONG *lpulFlag, std::string *lpstr
 
 class Http _kc_final {
 public:
-	Http(KC::ECChannel *, KC::ECConfig *);
+	Http(KC::ECChannel *, std::shared_ptr<KC::ECConfig>);
 	HRESULT HrReadHeaders();
 	HRESULT HrValidateReq();
 	HRESULT HrReadBody();
@@ -78,7 +78,7 @@ public:
 
 private:
 	KC::ECChannel *m_lpChannel;
-	KC::ECConfig *m_lpConfig;
+	std::shared_ptr<KC::ECConfig> m_lpConfig;
 
 	/* request */
 	std::string m_strAction;	//!< full 1st-line
@@ -87,14 +87,8 @@ private:
 	std::string m_strPath;		//!< decoded url
 	std::string m_strHttpVer;
 	std::map<std::string, std::string> mapHeaders;
-
-	std::string m_strUser;
-	std::string m_strPass;
-	std::string m_strReqBody;
-	std::string m_strCharSet;
-
-	std::string m_strUserAgent;
-	std::string m_strUserAgentVersion;
+	std::string m_strUser, m_strPass, m_strReqBody, m_strCharSet;
+	std::string m_strUserAgent, m_strUserAgentVersion;
 
 	/* response */
 	std::string m_strRespHeader;			//!< first header with http status code

@@ -28,7 +28,7 @@
 
 using namespace KC;
 
-ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession,
+ProtocolBase::ProtocolBase(Http &lpRequest, IMAPISession *lpSession,
     const std::string &strSrvTz, const std::string &strCharset) :
 	m_lpRequest(lpRequest), m_lpSession(lpSession), m_strSrvTz(strSrvTz),
 	m_strCharset(strCharset)
@@ -63,11 +63,9 @@ HRESULT ProtocolBase::HrInitializeClass()
 	 * /caldav/user/folder/folder/		| subfolders are not allowed!
 	 * /caldav/user/folder/id.ics		| a message (note: not ending in /)
 	 */
-
-	m_lpRequest->HrGetUrl(&strUrl);
-	m_lpRequest->HrGetUser(&m_wstrUser);
-	m_lpRequest->HrGetMethod(&strMethod);	
-
+	m_lpRequest.HrGetUrl(&strUrl);
+	m_lpRequest.HrGetUser(&m_wstrUser);
+	m_lpRequest.HrGetMethod(&strMethod);	
 	HrParseURL(strUrl, &m_ulUrlFlag, &strFldOwner, &strFldName);
 	m_wstrFldOwner = U2W(strFldOwner);
 	m_wstrFldName = U2W(strFldName);
@@ -226,7 +224,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	 */
 	std::vector<std::string> parts;
 	parts = tokenize(strUrl, '/', true);
-	m_lpRequest->HrGetHeaderValue("User-Agent", &strAgent);
+	m_lpRequest.HrGetHeaderValue("User-Agent", &strAgent);
 	// /caldav/
 	// /caldav/username/ (which we return in XML data! (and shouldn't)), since this isn't a calendar, but /caldav/username/Calendar/ is.
 	if ((strAgent.find("Sunbird/1") != std::string::npos || strAgent.find("Lightning/1") != std::string::npos) && parts.size() <= 2) {
@@ -241,8 +239,8 @@ HRESULT ProtocolBase::HrInitializeClass()
 			// return 404 ?
 			strLocation += "/Calendar/";
 		}
-		m_lpRequest->HrResponseHeader(301, "Moved Permanently");
-		m_lpRequest->HrResponseHeader("Location", m_converter.convert_to<std::string>(strLocation));
+		m_lpRequest.HrResponseHeader(301, "Moved Permanently");
+		m_lpRequest.HrResponseHeader("Location", m_converter.convert_to<std::string>(strLocation));
 		return MAPI_E_NOT_ME;
 	}
 

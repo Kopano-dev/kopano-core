@@ -94,7 +94,7 @@ static ULONG GetPropIDForXMLProp(LPMAPIPROP lpObj,
  * @param[in]	strSrvTz	String specifying the server timezone, set in ical.cfg
  * @param[in]	strCharset	String specifying the default charset of the http response
  */
-CalDAV::CalDAV(Http *lpRequest, IMAPISession *lpSession,
+CalDAV::CalDAV(Http &lpRequest, IMAPISession *lpSession,
     const std::string &strSrvTz, const std::string &strCharset) :
 	WebDav(lpRequest, lpSession, strSrvTz, strCharset)
 {
@@ -126,11 +126,9 @@ HRESULT CalDAV::HrHandleCommand(const std::string &strMethod)
 	else if (!strMethod.compare("MOVE"))
 		hr = HrMove();
 	else
-		m_lpRequest->HrResponseHeader(501, "Not Implemented");
-
+		m_lpRequest.HrResponseHeader(501, "Not Implemented");
 	if (hr != hrSuccess)
-		m_lpRequest->HrResponseHeader(400, "Bad Request");
-
+		m_lpRequest.HrResponseHeader(400, "Bad Request");
 	return hr;
 }
 
@@ -149,9 +147,7 @@ HRESULT CalDAV::HrHandlePropfind(WEBDAVREQSTPROPS *lpsDavProp, WEBDAVMULTISTATUS
 	 * caldav report: 0
 	 * webdav propfind: infinity
 	 */
-	
-	m_lpRequest->HrGetDepth(&ulDepth);
-
+	m_lpRequest.HrGetDepth(&ulDepth);
 	// always load top level container properties
 	auto hr = HrHandlePropfindRoot(lpsDavProp, lpsDavMulStatus);
 	if (hr != hrSuccess)
@@ -220,8 +216,7 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 
 	HrSetDavPropName(&(sDavResp.sHRef.sPropName), "href", WEBDAVNS);
 	// fetches escaped url
-	m_lpRequest->HrGetRequestUrl(&sDavResp.sHRef.strValue);
-
+	m_lpRequest.HrGetRequestUrl(&sDavResp.sHRef.strValue);
 	// map values and properties in WEBDAVRESPONSE structure.
 	hr = HrMapValtoStruct(lpMapiProp, lpSpropVal, cbsize, NULL, 0, false, &(lpsDavProp->lstProps), &sDavResp);
 	if (hr != hrSuccess) {
@@ -261,7 +256,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	unsigned int ulTagTsRef   = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_UNICODE);
 	unsigned int ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
 
-	m_lpRequest->HrGetRequestUrl(&strReqUrl);
+	m_lpRequest.HrGetRequestUrl(&strReqUrl);
 	if (strReqUrl.empty() || *--strReqUrl.end() != '/')
 		strReqUrl.append(1, '/');
 
@@ -423,7 +418,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	memory_ptr<SRestriction> lpsRoot;
 	WEBDAVRESPONSE sWebResponse;
 
-	m_lpRequest->HrGetRequestUrl(&strReqUrl);
+	m_lpRequest.HrGetRequestUrl(&strReqUrl);
 	if (strReqUrl.empty() || *--strReqUrl.end() != '/')
 		strReqUrl.append(1, '/');
 
@@ -590,8 +585,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	ECOrRestriction rst;
 	size_t i;
 
-	m_lpRequest->HrGetRequestUrl(&strReq);
-
+	m_lpRequest.HrGetRequestUrl(&strReq);
 	// Open Global Address book
 	auto hr = m_lpAddrBook->GetDefaultDir(&sbEid.cb, reinterpret_cast<ENTRYID **>(&sbEid.lpb));
 	if (hr != hrSuccess) {
@@ -724,7 +718,7 @@ HRESULT CalDAV::HrHandleDelete()
 	static constexpr const SizedSPropTagArray(3, lpPropTagArr) =
 		{3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, PR_DISPLAY_NAME_W}};
 
-	m_lpRequest->HrGetUrl(&strUrl);
+	m_lpRequest.HrGetUrl(&strUrl);
 	bool bisFolder = m_ulUrlFlag & REQ_COLLECTION;
 
 	/* Deny deletion of the default folder. */
@@ -808,16 +802,16 @@ HRESULT CalDAV::HrHandleDelete()
 exit:
 	if (hr == MAPI_E_NO_ACCESS)
 	{
-		m_lpRequest->HrResponseHeader(403, "Forbidden");
-		m_lpRequest->HrResponseBody("This item cannot be deleted");
+		m_lpRequest.HrResponseHeader(403, "Forbidden");
+		m_lpRequest.HrResponseBody("This item cannot be deleted");
 	}
 	else if (hr != hrSuccess)
 	{
-		m_lpRequest->HrResponseHeader(404, "Not Found");
-		m_lpRequest->HrResponseBody("Item to be Deleted not found");
+		m_lpRequest.HrResponseHeader(404, "Not Found");
+		m_lpRequest.HrResponseBody("Item to be Deleted not found");
 	}
 	else
-		m_lpRequest->HrResponseHeader(204, "No Content");
+		m_lpRequest.HrResponseHeader(204, "No Content");
 	return hr;
 }
 
@@ -847,7 +841,7 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 	auto hr = HrFindAndGetMessage(strGuid, m_lpUsrFld, m_lpNamedProps, &~lpMessage);
 	if (hr != hrSuccess)
 		return kc_perror("Entry to be deleted not found", hr);
-	bool bMatch = !m_lpRequest->CheckIfMatch(lpMessage);
+	auto bMatch = !m_lpRequest.CheckIfMatch(lpMessage);
 	if (bMatch)
 		return MAPI_E_DECLINE_COPY;
 
@@ -919,7 +913,7 @@ HRESULT CalDAV::HrPut()
 	ICalToMapi *lpICalToMapi = NULL;
 	bool blNewEntry = false, bMatch = false;
 
-	m_lpRequest->HrGetUrl(&strUrl);
+	m_lpRequest.HrGetUrl(&strUrl);
 	auto strGuid = StripGuid(strUrl);
 	//Find the Entry with particular Guid
 	auto hr = HrFindAndGetMessage(strGuid, m_lpUsrFld, m_lpNamedProps, &~lpMessage);
@@ -959,15 +953,13 @@ HRESULT CalDAV::HrPut()
 		}
 	}
 
-	bMatch = ! m_lpRequest->CheckIfMatch(lpMessage);
+	bMatch = !m_lpRequest.CheckIfMatch(lpMessage);
 	if (bMatch)
 		goto exit;
 
 	//save Ical data to mapi.
 	CreateICalToMapi(m_lpActiveStore, m_lpAddrBook, false, &lpICalToMapi);
-	
-	m_lpRequest->HrGetBody(&strIcal);
-
+	m_lpRequest.HrGetBody(&strIcal);
 	hr = lpICalToMapi->ParseICal(strIcal, m_strCharset, m_strSrvTz, m_lpLoginUser, 0);
 	if(hr!=hrSuccess)
 	{
@@ -1049,8 +1041,7 @@ HRESULT CalDAV::HrPut()
 
 	// new modification time
 	if (HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &~ptrPropModTime) == hrSuccess)
-		m_lpRequest->HrResponseHeader("Etag", SPropValToString(ptrPropModTime));
-
+		m_lpRequest.HrResponseHeader("Etag", SPropValToString(ptrPropModTime));
 	// Publish freebusy only for default Calendar
 	if (m_ulFolderFlag & DEFAULT_FOLDER &&
 	    HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION) != hrSuccess)
@@ -1058,18 +1049,17 @@ HRESULT CalDAV::HrPut()
 		kc_perror("Error publishing freebusy", hr);
 exit:
 	if (hr == hrSuccess && blNewEntry)
-		m_lpRequest->HrResponseHeader(201, "Created");
+		m_lpRequest.HrResponseHeader(201, "Created");
 	else if (hr == hrSuccess && bMatch)
-		m_lpRequest->HrResponseHeader(412, "Precondition failed");
+		m_lpRequest.HrResponseHeader(412, "Precondition failed");
 	else if (hr == hrSuccess)
-		m_lpRequest->HrResponseHeader(204, "No Content");
+		m_lpRequest.HrResponseHeader(204, "No Content");
 	else if (hr == MAPI_E_NOT_FOUND)
-		m_lpRequest->HrResponseHeader(404, "Not Found");
+		m_lpRequest.HrResponseHeader(404, "Not Found");
 	else if (hr == MAPI_E_NO_ACCESS)
-		m_lpRequest->HrResponseHeader(403, "Forbidden");
+		m_lpRequest.HrResponseHeader(403, "Forbidden");
 	else
-		m_lpRequest->HrResponseHeader(400, "Bad Request");
-	
+		m_lpRequest.HrResponseHeader(400, "Bad Request");
 	delete lpICalToMapi;
 	return hr;
 }
@@ -1361,7 +1351,7 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 	HrSetDavPropName(&lpsMultiStatus->sPropName, "multistatus", WEBDAVNS);
 	HrSetDavPropName(&sDavResponse.sPropName, "response", WEBDAVNS);
 	HrSetDavPropName(&sDavResponse.sHRef.sPropName, "href", WEBDAVNS);
-	m_lpRequest->HrGetRequestUrl(&sDavResponse.sHRef.strValue);
+	m_lpRequest.HrGetRequestUrl(&sDavResponse.sHRef.strValue);
 
 	HrSetDavPropName(&sPropStatusOK.sPropName, "propstat", WEBDAVNS);
 	HrSetDavPropName(&sPropStatusOK.sStatus.sPropName, "status", WEBDAVNS);
@@ -1456,8 +1446,7 @@ HRESULT CalDAV::HrHandlePost()
 {
 	std::string strIcal;
 	std::unique_ptr<ICalToMapi> lpIcalToMapi;
-
-	auto hr = m_lpRequest->HrGetBody(&strIcal);
+	auto hr = m_lpRequest.HrGetBody(&strIcal);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandlePost HrGetBody failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		return hr;
@@ -1616,9 +1605,9 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 		kc_perror("Unable to submit message", hr);
 exit:
 	if(hr == hrSuccess)
-		m_lpRequest->HrResponseHeader(200, "Ok");
+		m_lpRequest.HrResponseHeader(200, "Ok");
 	else
-		m_lpRequest->HrResponseHeader(400, "Bad Request");
+		m_lpRequest.HrResponseHeader(400, "Bad Request");
 	return hr;
 }
 
@@ -1696,7 +1685,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 	auto strCurrentUserURL = "/caldav/" + urlEncode(m_wstrUser, "utf-8") + "/";
 	// principal always /caldav/m_wstrFldOwner/, except public: full url
 	if (m_ulUrlFlag & REQ_PUBLIC) {
-		m_lpRequest->HrGetRequestUrl(&strPrincipalURL);
+		m_lpRequest.HrGetRequestUrl(&strPrincipalURL);
 		strCalHome = strPrincipalURL;
 	} else {
 		strPrincipalURL = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8") + "/";
@@ -1976,7 +1965,7 @@ HRESULT CalDAV::HrMove()
 {
 	object_ptr<IMAPIFolder> lpDestFolder;
 	std::string strDestination, strDestFolder, strGuid;
-	auto hr = m_lpRequest->HrGetDestination(&strDestination);
+	auto hr = m_lpRequest.HrGetDestination(&strDestination);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrMove HrGetDestination failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -1998,14 +1987,14 @@ HRESULT CalDAV::HrMove()
 exit:
 	// @todo - set e-tag value for the new saved message, so ical.app does not send the GET request
 	if (hr == hrSuccess)
-		m_lpRequest->HrResponseHeader(200, "OK");
+		m_lpRequest.HrResponseHeader(200, "OK");
 	else if (hr == MAPI_E_DECLINE_COPY)
-		m_lpRequest->HrResponseHeader(412, "Precondition Failed"); // entry is modifid on server (sunbird & TB)
+		m_lpRequest.HrResponseHeader(412, "Precondition Failed"); // entry is modifid on server (sunbird & TB)
 	else if( hr == MAPI_E_NOT_FOUND)
-		m_lpRequest->HrResponseHeader(404, "Not Found");
+		m_lpRequest.HrResponseHeader(404, "Not Found");
 	else if(hr == MAPI_E_NO_ACCESS)
-		m_lpRequest->HrResponseHeader(403, "Forbidden");
+		m_lpRequest.HrResponseHeader(403, "Forbidden");
 	else
-		m_lpRequest->HrResponseHeader(400, "Bad Request");
+		m_lpRequest.HrResponseHeader(400, "Bad Request");
 	return hr;
 }
