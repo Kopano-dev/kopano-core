@@ -326,14 +326,14 @@ exit:
 HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
     const ENTRYID *lpEntryDest, ULONG ulFlags, ULONG ulSyncId)
 {
+	if (lpMsgList->cValues == 0)
+		return hrSuccess;
+
 	HRESULT			hr = hrSuccess;
 	ECRESULT		er = erSuccess;
 	struct entryList sEntryList;
 	entryId			sEntryDest;	//Do not free, cheap copy
 	soap_lock_guard spg(*m_lpTransport);
-
-	if(lpMsgList->cValues == 0)
-		goto exit;
 
 	hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, &sEntryList);
 	if(hr != hrSuccess)
@@ -361,17 +361,14 @@ exit:
 HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
     const ENTRYID *lpEntryID, ULONG ulFlags, ULONG *lpulMessageStatus)
 {
+	if (lpEntryID == nullptr)
+		return MAPI_E_INVALID_ENTRYID;
+
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	entryId		sEntryId;	//Do not free, cheap copy
-	
 	struct messageStatus sMessageStatus;
 	soap_lock_guard spg(*m_lpTransport);
-
-	if(lpEntryID == NULL) {
-		hr = MAPI_E_INVALID_ENTRYID;
-		goto exit;
-	}
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
@@ -397,17 +394,14 @@ HRESULT WSMAPIFolderOps::HrSetMessageStatus(ULONG cbEntryID,
     const ENTRYID *lpEntryID, ULONG ulNewStatus, ULONG ulNewStatusMask,
     ULONG ulSyncId, ULONG *lpulOldStatus)
 {
+	if (lpEntryID == nullptr)
+		return MAPI_E_INVALID_ENTRYID;
+
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	entryId		sEntryId;	//Do not free, cheap copy
-	
 	struct messageStatus sMessageStatus;
 	soap_lock_guard spg(*m_lpTransport);
-
-	if(lpEntryID == NULL)	{
-		hr = MAPI_E_INVALID_ENTRYID;
-		goto exit;
-	}
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
@@ -433,17 +427,15 @@ exit:
 HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
     const ENTRYID *lpEntryID, SPropValue **lppPropPCL, SPropValue **lppPropCK)
 {
+	if (lpEntryID == nullptr)
+		return MAPI_E_INVALID_ENTRYID;
+
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	entryId sEntryId;
 	KC::memory_ptr<SPropValue> lpSPropValPCL, lpSPropValCK;
 	getChangeInfoResponse sChangeInfo;
 	soap_lock_guard spg(*m_lpTransport);
-
-	if (lpEntryID == NULL)	{
-		hr = MAPI_E_INVALID_ENTRYID;
-		goto exit;
-	}
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)

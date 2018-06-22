@@ -83,13 +83,13 @@ HRESULT WSTableMultiStore::Create(ULONG ulFlags, ECSESSIONID ecSessionId,
 
 HRESULT WSTableMultiStore::HrOpenTable()
 {
+	if (ulTableId != 0)
+		return hrSuccess;
+
 	ECRESULT		er = erSuccess;
 	HRESULT			hr = hrSuccess;
-
 	struct tableOpenResponse sResponse;
 	soap_lock_guard spg(*m_lpTransport);
-	if (ulTableId != 0)
-	    goto exit;
 
 	//m_sEntryId is the id of a store
 	if (m_lpTransport->m_lpCmd->tableOpen(ecSessionId, m_sEntryId,
@@ -148,12 +148,13 @@ HRESULT WSTableMisc::Create(ULONG ulTableType, ULONG ulFlags,
 
 HRESULT WSTableMisc::HrOpenTable()
 {
+	if (ulTableId != 0)
+		return hrSuccess;
+
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	struct tableOpenResponse sResponse;
 	soap_lock_guard spg(*m_lpTransport);
-	if(ulTableId != 0)
-	    goto exit;
 
 	// the class is actually only to call this function with the correct ulTableType .... hmm.
 	if (m_lpTransport->m_lpCmd->tableOpen(ecSessionId, m_sEntryId,

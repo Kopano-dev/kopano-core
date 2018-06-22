@@ -326,17 +326,15 @@ exit:
 
 HRESULT WSTableView::CreateBookmark(BOOKMARK* lpbkPosition)
 {
+	if (lpbkPosition == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	ECRESULT er = erSuccess;
 	tableBookmarkResponse	sResponse;
 	soap_lock_guard spg(*m_lpTransport);
 	auto hr = HrOpenTable();
 	if(hr != erSuccess)
 	    goto exit;
-
-	if(lpbkPosition == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
 
 	START_SOAP_CALL
 	{

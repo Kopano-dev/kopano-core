@@ -780,13 +780,14 @@ HRESULT WSTransport::HrOpenTableOutGoingQueueOps(ULONG cbStoreEntryID, LPENTRYID
 
 HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, LPENTRYLIST lpMsgList, ULONG ulSyncId)
 {
+	if (lpMsgList->cValues == 0)
+		return hrSuccess;
+
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	struct entryList sEntryList;
 	soap_lock_guard spg(*this);
 
-	if(lpMsgList->cValues == 0)
-		goto exitm;
 	hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, &sEntryList);
 	if(hr != hrSuccess)
 		goto exitm;
@@ -804,18 +805,15 @@ HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, LPENTRYLIST lpMsgList, ULONG
 
 HRESULT WSTransport::HrNotify(LPNOTIFICATION lpNotification)
 {
+	/* FIMXE: also notify other types? */
+	if (lpNotification == nullptr || lpNotification->ulEventType != fnevNewMail)
+		return MAPI_E_NO_ACCESS;
+
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	struct notification	sNotification; 
 	int ulSize = 0;
 	soap_lock_guard spg(*this);
-
-	//FIMXE: also notify other types ?
-	if(lpNotification == NULL || lpNotification->ulEventType != fnevNewMail)
-	{
-		hr = MAPI_E_NO_ACCESS;
-		goto exitm;
-	}
 
 	sNotification.ulConnection = 0;// The connection id should be calculate on the server side
 

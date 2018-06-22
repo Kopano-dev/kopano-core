@@ -84,21 +84,17 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId,
     SPropValue *lpConflictItems, WSTransport *lpTransport,
     WSMessageStreamImporter **lppStreamImporter)
 {
+	if (lppStreamImporter == nullptr || lpEntryID == nullptr ||
+	    cbEntryID == 0 || lpFolderEntryID == nullptr ||
+	    cbFolderEntryID == 0 || lpTransport == nullptr ||
+	    (bNewMessage && lpConflictItems != nullptr))
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT hr = hrSuccess;
 	entryId sEntryId, sFolderEntryId;
 	struct propVal sConflictItems;
 	WSMessageStreamImporterPtr ptrStreamImporter;
 	ECSyncSettings* lpSyncSettings = NULL;
-
-	if (lppStreamImporter == NULL || 
-		lpEntryID == NULL || cbEntryID == 0 || 
-		lpFolderEntryID == NULL || cbFolderEntryID == 0 || 
-		(bNewMessage == true && lpConflictItems != NULL) ||
-		lpTransport == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
 
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, false);
 	if (hr != hrSuccess)
