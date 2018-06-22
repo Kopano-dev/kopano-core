@@ -73,9 +73,8 @@ private:
 	virtual void    DeleteSoapObject(struct saveObject *lpSaveObj);
 	virtual HRESULT HrUpdateMapiObject(MAPIOBJECT *, const struct saveObject *);
 	virtual ECRESULT ECSoapObjectToMapiObject(const struct saveObject *, MAPIOBJECT *);
-	virtual HRESULT LockSoap();
-	virtual HRESULT UnLockSoap();
-
+	void LockSoap();
+	void UnLockSoap();
 	static HRESULT Reload(void *lpParam, ECSESSIONID sessionId);
 
 	/* ECParentStorage may access my functions (used to read PR_ATTACH_DATA_BIN chunks through HrLoadProp()) */

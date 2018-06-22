@@ -127,13 +127,12 @@ HRESULT WSTransport::HrClone(WSTransport **lppTransport)
 	return hrSuccess;
 }
 
-HRESULT WSTransport::LockSoap()
+void WSTransport::LockSoap()
 {
 	m_hDataLock.lock();
-	return erSuccess;
 }
 
-HRESULT WSTransport::UnLockSoap()
+void WSTransport::UnLockSoap()
 {
 	//Clean up data create with soap_malloc
 	if (m_lpCmd && m_lpCmd->soap) {
@@ -141,7 +140,6 @@ HRESULT WSTransport::UnLockSoap()
 		soap_end(m_lpCmd->soap);
 	}
 	m_hDataLock.unlock();
-	return erSuccess;
 }
 
 HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)

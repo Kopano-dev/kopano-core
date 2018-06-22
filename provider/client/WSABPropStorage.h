@@ -54,8 +54,8 @@ private:
 	// Load complete object from disk
 	virtual HRESULT HrLoadObject(MAPIOBJECT **lppsMapiObject);
 	virtual IECPropStorage *GetServerStorage() override { return this; }
-	virtual HRESULT LockSoap();
-	virtual HRESULT UnLockSoap();
+	void LockSoap();
+	void UnLockSoap();
 
 private:
 	entryId			m_sEntryId;

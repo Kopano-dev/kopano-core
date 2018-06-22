@@ -504,13 +504,12 @@ exit:
 }
 
 //FIXME: one lock/unlock function
-HRESULT WSMAPIFolderOps::LockSoap()
+void WSMAPIFolderOps::LockSoap()
 {
 	lpDataLock.lock();
-	return erSuccess;
 }
 
-HRESULT WSMAPIFolderOps::UnLockSoap()
+void WSMAPIFolderOps::UnLockSoap()
 {
 	//Clean up data create with soap_malloc
 	if(lpCmd->soap) {
@@ -518,7 +517,6 @@ HRESULT WSMAPIFolderOps::UnLockSoap()
 		soap_end(lpCmd->soap);
 	}
 	lpDataLock.unlock();
-	return erSuccess;
 }
 
 HRESULT WSMAPIFolderOps::Reload(void *lpParam, ECSESSIONID sessionid)

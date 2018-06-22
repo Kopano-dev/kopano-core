@@ -628,13 +628,12 @@ exit:
 }
 
 //FIXME: one lock/unlock function
-HRESULT WSTableView::LockSoap()
+void WSTableView::LockSoap()
 {
 	lpDataLock.lock();
-	return erSuccess;
 }
 
-HRESULT WSTableView::UnLockSoap()
+void WSTableView::UnLockSoap()
 {
 	//Clean up data create with soap_malloc
 	if(lpCmd->soap) {
@@ -642,7 +641,6 @@ HRESULT WSTableView::UnLockSoap()
 		soap_end(lpCmd->soap);
 	}
 	lpDataLock.unlock();
-	return erSuccess;
 }
 
 HRESULT WSTableView::Reload(void *lpParam, ECSESSIONID sessionId)

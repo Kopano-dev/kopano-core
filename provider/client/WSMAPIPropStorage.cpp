@@ -580,13 +580,12 @@ exit:
 }
 
 //FIXME: one lock/unlock function
-HRESULT WSMAPIPropStorage::LockSoap()
+void WSMAPIPropStorage::LockSoap()
 {
 	lpDataLock.lock();
-	return erSuccess;
 }
 
-HRESULT WSMAPIPropStorage::UnLockSoap()
+void WSMAPIPropStorage::UnLockSoap()
 {
 	//Clean up data create with soap_malloc
 	if(lpCmd->soap) {
@@ -594,7 +593,6 @@ HRESULT WSMAPIPropStorage::UnLockSoap()
 		soap_end(lpCmd->soap);
 	}
 	lpDataLock.unlock();
-	return erSuccess;
 }
 
 HRESULT WSMAPIPropStorage::HrSetSyncId(ULONG ulSyncId) {

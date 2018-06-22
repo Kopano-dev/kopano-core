@@ -82,8 +82,8 @@ public:
 	static HRESULT Reload(void *lpParam, ECSESSIONID sessionid);
 
 private:
-	virtual HRESULT LockSoap();
-	virtual HRESULT UnLockSoap();
+	void LockSoap();
+	void UnLockSoap();
 
 	entryId			m_sEntryId;		// Entryid of the folder
 	KCmdProxy *lpCmd; // command object

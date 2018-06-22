@@ -140,13 +140,12 @@ exit:
 	return hr;
 }
 
-HRESULT WSABPropStorage::LockSoap()
+void WSABPropStorage::LockSoap()
 {
 	lpDataLock.lock();
-	return erSuccess;
 }
 
-HRESULT WSABPropStorage::UnLockSoap()
+void WSABPropStorage::UnLockSoap()
 {
 	// Clean up data create with soap_malloc
 	if(lpCmd->soap) {
@@ -154,7 +153,6 @@ HRESULT WSABPropStorage::UnLockSoap()
 		soap_end(lpCmd->soap);
 	}
 	lpDataLock.unlock();
-	return erSuccess;
 }
 
 // Called when the session ID has changed

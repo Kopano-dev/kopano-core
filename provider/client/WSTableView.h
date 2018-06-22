@@ -67,8 +67,8 @@ public:
 	ULONG ulTableId = 0;
 
 protected:
-	virtual HRESULT LockSoap();
-	virtual HRESULT UnLockSoap();
+	void LockSoap();
+	void UnLockSoap();
 
 	KCmdProxy *lpCmd;
 	std::recursive_mutex &lpDataLock;
