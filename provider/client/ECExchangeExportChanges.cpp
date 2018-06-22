@@ -544,25 +544,23 @@ HRESULT ECExchangeExportChanges::GetChangeCount(ULONG *lpcChanges) {
  */
 HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize)
 {
-	auto lpSyncSettings = &ECSyncSettings::instance;
-	BOOL bCanStream = false, bSupportsPropTag = false;
-	
 	if (ulPropTag != PR_ENTRYID && ulPropTag != PR_SOURCE_KEY)
 		return MAPI_E_INVALID_PARAMETER;
+	if (ulPropTag == PR_ENTRYID && lpParents != nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if (ulPropTag == PR_SOURCE_KEY && lpParents == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if (lpParents != nullptr && lpParents->cValues != lpEntries->cValues)
+		return MAPI_E_INVALID_PARAMETER;
+
+	auto lpSyncSettings = &ECSyncSettings::instance;
+	BOOL bCanStream = false, bSupportsPropTag = false;
 	
 	if(ulPropTag == PR_ENTRYID) {
 		m_lpStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_EXPORT_PROPTAG, &bSupportsPropTag);
 		if (!bSupportsPropTag)
 			return MAPI_E_NO_SUPPORT;
 	}
-	
-	if (ulPropTag == PR_ENTRYID && lpParents != NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	if (ulPropTag == PR_SOURCE_KEY && lpParents == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	if (lpParents != NULL && lpParents->cValues != lpEntries->cValues)
-		return MAPI_E_INVALID_PARAMETER;
-	
 	if(m_bConfiged){
 		ZLOG_DEBUG(m_lpLogger, "Config() called twice");
 		return MAPI_E_UNCONFIGURED;

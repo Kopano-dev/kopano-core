@@ -727,14 +727,13 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 
 HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValue, LPSPropValue lpPropArray, WSMessageStreamImporter **lppMessageImporter)
 {
+	if (lpPropArray == nullptr || lppMessageImporter == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT hr;
 	unsigned int ulNewFlags = 0, cbEntryId = 0;
 	LPENTRYID lpEntryId = NULL;
 	WSMessageStreamImporterPtr ptrMessageImporter;
-
-	if (lpPropArray == NULL || lppMessageImporter == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
 	auto lpMessageFlags = PCpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
 	auto lpMessageAssociated = PCpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
 	auto lpPropEntryId = PCpropFindProp(lpPropArray, cValue, PR_ENTRYID);
@@ -766,12 +765,13 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValu
 
 HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG cValue, LPSPropValue lpPropArray, WSMessageStreamImporter **lppMessageImporter)
 {
+	if (lpEntryId == nullptr || lpPropArray == nullptr ||
+	    lppMessageImporter == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	SPropValuePtr ptrPropPCL, ptrPropCK, ptrConflictItems;
 	bool bAssociated = false;
 	WSMessageStreamImporterPtr ptrMessageImporter;
-
-	if (lpEntryId == NULL || lpPropArray == NULL || lppMessageImporter == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 	auto hr = m_lpFolder->GetChangeInfo(cbEntryId, lpEntryId, &~ptrPropPCL, &~ptrPropCK);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_NOT_FOUND) {

@@ -61,17 +61,15 @@ HRESULT ECArchiveAwareMsgStore::OpenEntry(ULONG cbEntryID,
 
 HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs, LPSPropValue lpPropItemEIDs, ECMessage **lppMessage)
 {
-	BinaryList lstStoreEIDs, lstItemEIDs;
-	object_ptr<ECMessage> ptrArchiveMessage;
-
-	if (lpPropStoreEIDs == NULL || 
-		lpPropItemEIDs == NULL || 
-		lppMessage == NULL || 
-		PROP_TYPE(lpPropStoreEIDs->ulPropTag) != PT_MV_BINARY ||
-		PROP_TYPE(lpPropItemEIDs->ulPropTag) != PT_MV_BINARY ||
-		lpPropStoreEIDs->Value.MVbin.cValues != lpPropItemEIDs->Value.MVbin.cValues)
+	if (lpPropStoreEIDs == nullptr || lpPropItemEIDs == nullptr ||
+	    lppMessage == nullptr ||
+	    PROP_TYPE(lpPropStoreEIDs->ulPropTag) != PT_MV_BINARY ||
+	    PROP_TYPE(lpPropItemEIDs->ulPropTag) != PT_MV_BINARY ||
+	    lpPropStoreEIDs->Value.MVbin.cValues != lpPropItemEIDs->Value.MVbin.cValues)
 		return MAPI_E_INVALID_PARAMETER;
 
+	BinaryList lstStoreEIDs, lstItemEIDs;
+	object_ptr<ECMessage> ptrArchiveMessage;
 	// First get a list of items that could be retrieved from cached archive stores.
 	auto hr = CreateCacheBasedReorderedList(lpPropStoreEIDs->Value.MVbin, lpPropItemEIDs->Value.MVbin, &lstStoreEIDs, &lstItemEIDs);
 	if (hr != hrSuccess)

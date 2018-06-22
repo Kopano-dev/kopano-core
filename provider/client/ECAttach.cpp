@@ -87,6 +87,9 @@ HRESULT ECAttach::SaveChanges(ULONG ulFlags)
 
 HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
 {
+	if (lpiid == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	object_ptr<ECMessage> lpMessage;
 	object_ptr<IECPropStorage> lpParentStorage;
 	SPropValue		sPropValue[3];
@@ -96,9 +99,6 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	BOOL			fNew = FALSE;
 	ULONG			ulObjId = 0;
 	scoped_rlock lock(m_hMutexMAPIObject);
-
-	if (lpiid == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
 
 	// Get the attachement method
 	if (HrGetOneProp(this, PR_ATTACH_METHOD, &~lpPropAttachType) == hrSuccess)
@@ -256,16 +256,15 @@ HRESULT ECAttach::HrSetRealProp(const SPropValue *lpProp)
 
 HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 {
-	scoped_rlock lock(m_hMutexMAPIObject);
+	if (lpsMapiObject->ulObjType != MAPI_MESSAGE)
+		/* can only save messages in an attachment */
+		return MAPI_E_INVALID_OBJECT;
 
+	scoped_rlock lock(m_hMutexMAPIObject);
 	if (!m_sMapiObject) {
 		assert(m_sMapiObject != NULL);
 		m_sMapiObject.reset(new MAPIOBJECT(0, 0, MAPI_MESSAGE));
 	}
-
-	if (lpsMapiObject->ulObjType != MAPI_MESSAGE)
-		// can only save messages in an attachment
-		return MAPI_E_INVALID_OBJECT;
 
 	// attachments can only have 1 sub-message
 	auto iterSObj = m_sMapiObject->lstChildren.cbegin();

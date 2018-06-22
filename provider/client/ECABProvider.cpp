@@ -63,13 +63,12 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
     const TCHAR *lpszProfileName, ULONG ulFlags, ULONG *lpulcbSecurity,
     LPBYTE *lppbSecurity, LPMAPIERROR *lppMAPIError, LPABLOGON *lppABLogon)
 {
-	object_ptr<ECABLogon> lpABLogon;
-	sGlobalProfileProps	sProfileProps;
-	object_ptr<WSTransport> lpTransport;
-
 	if (lpMAPISup == nullptr || lppABLogon == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
+	object_ptr<ECABLogon> lpABLogon;
+	sGlobalProfileProps	sProfileProps;
+	object_ptr<WSTransport> lpTransport;
 	// Get the username and password from the profile settings
 	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if(hr != hrSuccess)
