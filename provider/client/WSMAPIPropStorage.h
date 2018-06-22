@@ -34,15 +34,13 @@ namespace KC {
 class convert_context;
 }
 
-class KCmdProxy;
-
 class WSMAPIPropStorage _kc_final : public ECUnknown, public IECPropStorage {
 protected:
-	WSMAPIPropStorage(ULONG peid_size, const ENTRYID *parent_eid, ULONG eid_size, const ENTRYID *eid, ULONG flags, KCmdProxy *, std::recursive_mutex &, ECSESSIONID, unsigned int srv_caps, WSTransport *);
+	WSMAPIPropStorage(ULONG peid_size, const ENTRYID *parent_eid, ULONG eid_size, const ENTRYID *eid, ULONG flags, ECSESSIONID, unsigned int srv_caps, WSTransport *);
 	virtual ~WSMAPIPropStorage();
 
 public:
-	static HRESULT Create(ULONG peid_size, const ENTRYID *parent_eid, ULONG eid_size, const ENTRYID *eid, ULONG flags, KCmdProxy * , std::recursive_mutex &, ECSESSIONID, unsigned int srv_caps, WSTransport *, WSMAPIPropStorage **);
+	static HRESULT Create(ULONG peid_size, const ENTRYID *parent_eid, ULONG eid_size, const ENTRYID *eid, ULONG flags, ECSESSIONID, unsigned int srv_caps, WSTransport *, WSMAPIPropStorage **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	// For ICS
@@ -82,8 +80,6 @@ private:
 
 private:
 	entryId m_sEntryId, m_sParentEntryId;
-	KCmdProxy *lpCmd;
-	std::recursive_mutex &lpDataLock;
 	ECSESSIONID		ecSessionId;
 	unsigned int	ulServerCapabilities;
 	ULONG m_ulSyncId = 0, m_ulConnection = 0, m_ulEventMask = 0;

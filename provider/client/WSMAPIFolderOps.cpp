@@ -42,11 +42,10 @@
  * The WSMAPIFolderOps for use with the WebServices transport
  */
 
-WSMAPIFolderOps::WSMAPIFolderOps(KCmdProxy *cmd,
-    std::recursive_mutex &data_lock, ECSESSIONID sid, ULONG cbEntryId,
+WSMAPIFolderOps::WSMAPIFolderOps(ECSESSIONID sid, ULONG cbEntryId,
     const ENTRYID *lpEntryId, WSTransport *lpTransport) :
-	ECUnknown("WSMAPIFolderOps"), lpCmd(cmd), lpDataLock(data_lock),
-	ecSessionId(sid), m_lpTransport(lpTransport)
+	ECUnknown("WSMAPIFolderOps"), ecSessionId(sid),
+	m_lpTransport(lpTransport)
 {
 	lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
 	auto ret = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
@@ -61,13 +60,12 @@ WSMAPIFolderOps::~WSMAPIFolderOps()
 	FreeEntryId(&m_sEntryId, false);
 }
 
-HRESULT WSMAPIFolderOps::Create(KCmdProxy *lpCmd,
-    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+HRESULT WSMAPIFolderOps::Create(ECSESSIONID ecSessionId, ULONG cbEntryId,
     const ENTRYID *lpEntryId, WSTransport *lpTransport,
     WSMAPIFolderOps **lppFolderOps)
 {
-	return alloc_wrap<WSMAPIFolderOps>(lpCmd, lpDataLock, ecSessionId,
-	       cbEntryId, lpEntryId, lpTransport).put(lppFolderOps);
+	return alloc_wrap<WSMAPIFolderOps>(ecSessionId, cbEntryId, lpEntryId,
+	       lpTransport).put(lppFolderOps);
 }
 
 HRESULT WSMAPIFolderOps::QueryInterface(REFIID refiid, void **lppInterface)
@@ -106,9 +104,10 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->createFolder(ecSessionId, m_sEntryId, lpsEntryId,
-		    ulFolderType, strFolderName.c_str(), strComment.c_str(),
-		    !!fOpenIfExists, ulSyncId, sSourceKey, &sResponse) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->createFolder(ecSessionId,
+		    m_sEntryId, lpsEntryId, ulFolderType, strFolderName.c_str(),
+		    strComment.c_str(), !!fOpenIfExists, ulSyncId, sSourceKey,
+		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -146,7 +145,8 @@ HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->deleteFolder(ecSessionId, sEntryId, ulFlags, ulSyncId, &er) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->deleteFolder(ecSessionId, sEntryId,
+		    ulFlags, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -166,7 +166,8 @@ HRESULT WSMAPIFolderOps::HrEmptyFolder(ULONG ulFlags, ULONG ulSyncId)
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->emptyFolder(ecSessionId, m_sEntryId, ulFlags, ulSyncId, &er) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->emptyFolder(ecSessionId,
+		    m_sEntryId, ulFlags, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -196,7 +197,9 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->setReadFlags(ecSessionId, ulFlags, &m_sEntryId, lpMsgList != nullptr ? &sEntryList : nullptr, ulSyncId, &er) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->setReadFlags(ecSessionId, ulFlags,
+		    &m_sEntryId, lpMsgList != nullptr ? &sEntryList : nullptr,
+		    ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -235,7 +238,8 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(ENTRYLIST *lpMsgList, SRestriction 
 	
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableSetSearchCriteria(ecSessionId, m_sEntryId, lpsRestrict, lpsEntryList, ulFlags, &er) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->tableSetSearchCriteria(ecSessionId,
+		    m_sEntryId, lpsRestrict, lpsEntryList, ulFlags, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -269,7 +273,8 @@ HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestrict
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableGetSearchCriteria(ecSessionId, m_sEntryId, &sResponse) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->tableGetSearchCriteria(ecSessionId,
+		    m_sEntryId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -323,7 +328,7 @@ HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->copyFolder(ecSessionId, sEntryFrom, sEntryDest,
+		if (m_lpTransport->m_lpCmd->copyFolder(ecSessionId, sEntryFrom, sEntryDest,
 		    strNewFolderName.c_str(), ulFlags, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
@@ -358,7 +363,8 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->copyObjects(ecSessionId, &sEntryList, sEntryDest, ulFlags, ulSyncId, &er) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->copyObjects(ecSessionId,
+		    &sEntryList, sEntryDest, ulFlags, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -392,7 +398,8 @@ HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->getMessageStatus(ecSessionId, sEntryId, ulFlags, &sMessageStatus) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->getMessageStatus(ecSessionId,
+		    sEntryId, ulFlags, &sMessageStatus) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sMessageStatus.er;
@@ -430,7 +437,9 @@ HRESULT WSMAPIFolderOps::HrSetMessageStatus(ULONG cbEntryID,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->setMessageStatus(ecSessionId, sEntryId, ulNewStatus, ulNewStatusMask, ulSyncId, &sMessageStatus) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->setMessageStatus(ecSessionId,
+		    sEntryId, ulNewStatus, ulNewStatusMask, ulSyncId,
+		    &sMessageStatus) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sMessageStatus.er;
@@ -464,7 +473,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
 		goto exit;
-	if (lpCmd->getChangeInfo(ecSessionId, sEntryId, &sChangeInfo) != SOAP_OK)
+	if (m_lpTransport->m_lpCmd->getChangeInfo(ecSessionId, sEntryId, &sChangeInfo) != SOAP_OK)
 		er = KCERR_NETWORK_ERROR;
 	else
 		er = sChangeInfo.er;
@@ -506,17 +515,17 @@ exit:
 //FIXME: one lock/unlock function
 void WSMAPIFolderOps::LockSoap()
 {
-	lpDataLock.lock();
+	m_lpTransport->m_hDataLock.lock();
 }
 
 void WSMAPIFolderOps::UnLockSoap()
 {
 	//Clean up data create with soap_malloc
-	if(lpCmd->soap) {
-		soap_destroy(lpCmd->soap);
-		soap_end(lpCmd->soap);
+	if (m_lpTransport->m_lpCmd->soap != nullptr) {
+		soap_destroy(m_lpTransport->m_lpCmd->soap);
+		soap_end(m_lpTransport->m_lpCmd->soap);
 	}
-	lpDataLock.unlock();
+	m_lpTransport->m_hDataLock.unlock();
 }
 
 HRESULT WSMAPIFolderOps::Reload(void *lpParam, ECSESSIONID sessionid)

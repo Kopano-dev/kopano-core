@@ -42,11 +42,9 @@
 
 WSMAPIPropStorage::WSMAPIPropStorage(ULONG cbParentEntryId,
     const ENTRYID *lpParentEntryId, ULONG cbEntryId, const ENTRYID *lpEntryId,
-    ULONG ulFlags, KCmdProxy *cmd, std::recursive_mutex &data_lock,
-    ECSESSIONID sid, unsigned int sc, WSTransport *tp) :
-	ECUnknown("WSMAPIPropStorage"), lpCmd(cmd), lpDataLock(data_lock),
-	ecSessionId(sid), ulServerCapabilities(sc),
-	m_ulFlags(ulFlags), m_lpTransport(tp)
+    ULONG ulFlags, ECSESSIONID sid, unsigned int sc, WSTransport *tp) :
+	ECUnknown("WSMAPIPropStorage"), ecSessionId(sid),
+	ulServerCapabilities(sc), m_ulFlags(ulFlags), m_lpTransport(tp)
 {
 	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
 	CopyMAPIEntryIdToSOAPEntryId(cbParentEntryId, lpParentEntryId, &m_sParentEntryId);
@@ -60,7 +58,7 @@ WSMAPIPropStorage::~WSMAPIPropStorage()
 		ECRESULT er = erSuccess;
 
 		LockSoap();		
-		lpCmd->notifyUnSubscribe(ecSessionId, m_ulConnection, &er);
+		m_lpTransport->m_lpCmd->notifyUnSubscribe(ecSessionId, m_ulConnection, &er);
 		UnLockSoap();
 	}
 	
@@ -79,12 +77,11 @@ HRESULT WSMAPIPropStorage::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT WSMAPIPropStorage::Create(ULONG cbParentEntryId,
     const ENTRYID *lpParentEntryId, ULONG cbEntryId, const ENTRYID *lpEntryId,
-    ULONG ulFlags, KCmdProxy *lpCmd, std::recursive_mutex &lpDataLock,
-    ECSESSIONID ecSessionId, unsigned int ulServerCapabilities,
+    ULONG ulFlags, ECSESSIONID ecSessionId, unsigned int ulServerCapabilities,
     WSTransport *lpTransport, WSMAPIPropStorage **lppPropStorage)
 {
 	return alloc_wrap<WSMAPIPropStorage>(cbParentEntryId, lpParentEntryId,
-	       cbEntryId, lpEntryId, ulFlags, lpCmd, lpDataLock, ecSessionId,
+	       cbEntryId, lpEntryId, ulFlags, ecSessionId,
 	       ulServerCapabilities, lpTransport).put(lppPropStorage);
 }
 
@@ -104,7 +101,8 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->loadProp(ecSessionId, m_sEntryId, ulObjId, ulPropTag, &sResponse) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->loadProp(ecSessionId, m_sEntryId,
+		    ulObjId, ulPropTag, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -415,7 +413,9 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	// ulFlags == object flags, e.g. MAPI_ASSOCIATE for messages, FOLDER_SEARCH on folders...
 	START_SOAP_CALL
 	{
-		if (lpCmd->saveObject(ecSessionId, m_sParentEntryId, m_sEntryId, &sSaveObj, ulFlags, m_ulSyncId, &sResponse) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->saveObject(ecSessionId,
+		    m_sParentEntryId, m_sEntryId, &sSaveObj, ulFlags,
+		    m_ulSyncId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -553,7 +553,9 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->loadObject(ecSessionId, m_sEntryId, (m_ulConnection == 0 || m_bSubscribed) ? nullptr : &sNotSubscribe, m_ulFlags | 0x80000000, &sResponse) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->loadObject(ecSessionId, m_sEntryId,
+		    (m_ulConnection == 0 || m_bSubscribed) ? nullptr : &sNotSubscribe,
+		    m_ulFlags | 0x80000000, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -582,17 +584,17 @@ exit:
 //FIXME: one lock/unlock function
 void WSMAPIPropStorage::LockSoap()
 {
-	lpDataLock.lock();
+	m_lpTransport->m_hDataLock.lock();
 }
 
 void WSMAPIPropStorage::UnLockSoap()
 {
 	//Clean up data create with soap_malloc
-	if(lpCmd->soap) {
-		soap_destroy(lpCmd->soap);
-		soap_end(lpCmd->soap);
+	if (m_lpTransport->m_lpCmd->soap != nullptr) {
+		soap_destroy(m_lpTransport->m_lpCmd->soap);
+		soap_end(m_lpTransport->m_lpCmd->soap);
 	}
-	lpDataLock.unlock();
+	m_lpTransport->m_hDataLock.unlock();
 }
 
 HRESULT WSMAPIPropStorage::HrSetSyncId(ULONG ulSyncId) {

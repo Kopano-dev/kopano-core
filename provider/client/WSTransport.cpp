@@ -690,8 +690,8 @@ HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID,
 	if(hr != hrSuccess)
 		return hr;
 	hr = WSMAPIPropStorage::Create(cbUnWrapParentID, lpUnWrapParentID,
-	     cbUnWrapEntryID, lpUnWrapEntryID, ulFlags, m_lpCmd, m_hDataLock,
-	     m_ecSessionId, m_ulServerCapabilities, this, &~lpPropStorage);
+	     cbUnWrapEntryID, lpUnWrapEntryID, ulFlags, m_ecSessionId,
+	     m_ulServerCapabilities, this, &~lpPropStorage);
 	if(hr != hrSuccess)
 		return hr;
 	return lpPropStorage->QueryInterface(IID_IECPropStorage, (void **)lppPropStorage);
@@ -717,8 +717,8 @@ HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID,
 	auto hr = UnWrapServerClientABEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		return hr;
-	hr = WSABPropStorage::Create(cbUnWrapStoreID, lpUnWrapStoreID, m_lpCmd,
-	     m_hDataLock, m_ecSessionId, this, &~lpPropStorage);
+	hr = WSABPropStorage::Create(cbUnWrapStoreID, lpUnWrapStoreID,
+	     m_ecSessionId, this, &~lpPropStorage);
 	if(hr != hrSuccess)
 		return hr;
 	return lpPropStorage->QueryInterface(IID_IECPropStorage,
@@ -738,8 +738,8 @@ HRESULT WSTransport::HrOpenFolderOps(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	auto hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &~lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		return hr;
-	return WSMAPIFolderOps::Create(m_lpCmd, m_hDataLock, m_ecSessionId,
-	       cbUnWrapStoreID, lpUnWrapStoreID, this, lppFolderOps);
+	return WSMAPIFolderOps::Create(m_ecSessionId, cbUnWrapStoreID,
+	       lpUnWrapStoreID, this, lppFolderOps);
 
 }
 
@@ -750,9 +750,8 @@ HRESULT WSTransport::HrOpenTableOps(ULONG ulType, ULONG ulFlags, ULONG cbEntryID
 	if (peid->ulType != MAPI_FOLDER && peid->ulType != MAPI_MESSAGE)
 		return MAPI_E_INVALID_ENTRYID;
 	*/
-	return WSStoreTableView::Create(ulType, ulFlags, m_lpCmd, m_hDataLock,
-	       m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this,
-	       lppTableOps);
+	return WSStoreTableView::Create(ulType, ulFlags, m_ecSessionId,
+	       cbEntryID, lpEntryID, lpMsgStore, this, lppTableOps);
 }
 
 HRESULT WSTransport::HrOpenABTableOps(ULONG ulType, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECABLogon* lpABLogon, WSTableView **lppTableOps)
@@ -760,17 +759,15 @@ HRESULT WSTransport::HrOpenABTableOps(ULONG ulType, ULONG ulFlags, ULONG cbEntry
 	/*if (peid->ulType != MAPI_FOLDER && peid->ulType != MAPI_MESSAGE)
 		return MAPI_E_INVALID_ENTRYID;
 	*/
-	return WSABTableView::Create(ulType, ulFlags, m_lpCmd, m_hDataLock,
-	       m_ecSessionId, cbEntryID, lpEntryID, lpABLogon, this,
-	       lppTableOps);
+	return WSABTableView::Create(ulType, ulFlags, m_ecSessionId, cbEntryID,
+	       lpEntryID, lpABLogon, this, lppTableOps);
 }
 
 HRESULT WSTransport::HrOpenMailBoxTableOps(ULONG ulFlags, ECMsgStore *lpMsgStore, WSTableView **lppTableView)
 {
 	object_ptr<WSTableMailBox> lpWSTable;
-	
-	auto hr = WSTableMailBox::Create(ulFlags, m_lpCmd, m_hDataLock,
-	          m_ecSessionId, lpMsgStore, this, &~lpWSTable);
+	auto hr = WSTableMailBox::Create(ulFlags, m_ecSessionId, lpMsgStore,
+	          this, &~lpWSTable);
 	if(hr != hrSuccess)
 		return hr;
 	return lpWSTable->QueryInterface(IID_ECTableView,
@@ -788,7 +785,7 @@ HRESULT WSTransport::HrOpenTableOutGoingQueueOps(ULONG cbStoreEntryID, LPENTRYID
 		if(hr != hrSuccess)
 			return hr;
 	}
-	return WSTableOutGoingQueue::Create(m_lpCmd, m_hDataLock, m_ecSessionId,
+	return WSTableOutGoingQueue::Create(m_ecSessionId,
 	       cbUnWrapStoreID, lpUnWrapStoreID, lpMsgStore, this,
 	       lppTableOutGoingQueueOps);
 }
@@ -3888,9 +3885,8 @@ HRESULT WSTransport::HrOpenMultiStoreTable(const ENTRYLIST *lpMsgList,
 
 	if (lpMsgList == nullptr || lpMsgList->cValues == 0)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = WSTableMultiStore::Create(ulFlags, m_lpCmd, m_hDataLock,
-	     m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this,
-	     &~lpMultiStoreTable);
+	hr = WSTableMultiStore::Create(ulFlags, m_ecSessionId, cbEntryID,
+	     lpEntryID, lpMsgStore, this, &~lpMultiStoreTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpMultiStoreTable->HrSetEntryIDs(lpMsgList);
@@ -3909,9 +3905,8 @@ HRESULT WSTransport::HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags, ULONG cbE
 		ulTableType != TABLETYPE_STATS_USERS && ulTableType != TABLETYPE_STATS_COMPANY  &&
 		ulTableType != TABLETYPE_USERSTORES && ulTableType != TABLETYPE_STATS_SERVERS)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = WSTableMisc::Create(ulTableType, ulFlags, m_lpCmd, m_hDataLock,
-	     m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this,
-	     &~lpMiscTable);
+	hr = WSTableMisc::Create(ulTableType, ulFlags, m_ecSessionId,
+	     cbEntryID, lpEntryID, lpMsgStore, this, &~lpMiscTable);
 	if (hr != hrSuccess)
 		return hr;
 	return lpMiscTable->QueryInterface(IID_ECTableView,
