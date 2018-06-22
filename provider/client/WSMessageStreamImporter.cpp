@@ -198,8 +198,7 @@ void WSMessageStreamImporter::run()
 	sStreamData.xop__Include.__ptr = (unsigned char*)this;
 	sStreamData.xop__Include.type = const_cast<char *>("application/binary");
 
-	m_ptrTransport->LockSoap();
-
+	WSTransport::soap_lock_guard spg(*m_ptrTransport);
 	soap_set_omode(lpSoap, SOAP_ENC_MTOM | SOAP_IO_CHUNK);	
     lpSoap->mode &= ~SOAP_XML_TREE;
     lpSoap->omode &= ~SOAP_XML_TREE;
@@ -214,8 +213,6 @@ void WSMessageStreamImporter::run()
 		m_hr = MAPI_E_NETWORK_ERROR;
 	else if (m_hr == hrSuccess) // Could be set from callback
 		m_hr = kcerr_to_mapierr(ulResult, MAPI_E_NOT_FOUND);
-
-	m_ptrTransport->UnLockSoap();
 }
 
 void* WSMessageStreamImporter::StaticMTOMReadOpen(struct soap *soap, void *handle, const char *id, const char *type, const char *description)
