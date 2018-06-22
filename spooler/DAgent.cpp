@@ -1046,18 +1046,13 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 static HRESULT FallbackDelivery(StatsClient *sc, IMessage *lpMessage,
     const std::string &msg)
 {
-	memory_ptr<SPropValue> lpPropValue, lpAttPropValue;
+	SPropValue lpPropValue[8], lpAttPropValue[4];
 	FILETIME		ft;
 	object_ptr<IAttach> lpAttach;
 	ULONG			ulAttachNum;
 	object_ptr<IStream> lpStream;
 
 	sc -> countInc("DAgent", "FallbackDelivery");
-
-	// set props
-	auto hr = MAPIAllocateBuffer(sizeof(SPropValue) * 8, &~lpPropValue);
-	if (hr != hrSuccess)
-		return kc_perrorf("MAPIAllocateBuffer failed", hr);
 
 	unsigned int ulPropPos = 0;
 
@@ -1090,7 +1085,7 @@ static HRESULT FallbackDelivery(StatsClient *sc, IMessage *lpMessage,
 	lpPropValue[ulPropPos++].Value.lpszA = (char*)newbody.c_str();
 
 	// Add the original message into the errorMessage
-	hr = lpMessage->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
+	auto hr = lpMessage->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
 	if (hr != hrSuccess)
 		return kc_pwarn("Unable to create attachment", hr);
 	hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpStream);
@@ -1104,9 +1099,6 @@ static HRESULT FallbackDelivery(StatsClient *sc, IMessage *lpMessage,
 		return kc_perrorf("lpStream->Commit failed", hr);
 
 	// Add attachment properties
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 4, &~lpAttPropValue);
-	if (hr != hrSuccess)
-		return kc_perrorf("MAPIAllocateBuffer failed", hr);
 	unsigned int ulAttPropPos = 0;
 
 	// Attach method .. ?
