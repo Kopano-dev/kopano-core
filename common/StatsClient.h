@@ -39,7 +39,7 @@ private:
 	struct sockaddr_un addr{};
 	int addr_len = 0;
 	bool thread_running = false;
-	pthread_t countsSubmitThread;
+	pthread_t countsSubmitThread{};
 public:
 	std::atomic<bool> terminate{false};
 	std::mutex mapsLock;
