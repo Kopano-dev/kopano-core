@@ -466,7 +466,7 @@ HRESULT WSTransport::HrGetPublicStore(ULONG ulFlags, ULONG *lpcbStoreID,
 	return hr;
 }
 
-HRESULT WSTransport::HrGetStore(ULONG cbMasterID, ENTRYID *lpMasterID,
+HRESULT WSTransport::HrGetStore(ULONG cbMasterID, const ENTRYID *lpMasterID,
     ULONG *lpcbStoreID, ENTRYID **lppStoreID, ULONG *lpcbRootID,
     ENTRYID **lppRootID, std::string *lpstrRedirServer)
 {
@@ -524,7 +524,8 @@ HRESULT WSTransport::HrGetStore(ULONG cbMasterID, ENTRYID *lpMasterID,
 	return hr;
 }
 
-HRESULT WSTransport::HrGetStoreName(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG ulFlags, LPTSTR *lppszStoreName)
+HRESULT WSTransport::HrGetStoreName(ULONG cbStoreID, const ENTRYID *lpStoreID,
+    ULONG ulFlags, TCHAR **lppszStoreName)
 {
 	if (lpStoreID == nullptr || lppszStoreName == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -557,7 +558,8 @@ HRESULT WSTransport::HrGetStoreName(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG 
 	return hr;
 }
 
-HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG *lpulStoreType)
+HRESULT WSTransport::HrGetStoreType(ULONG cbStoreID, const ENTRYID *lpStoreID,
+    ULONG *lpulStoreType)
 {
 	if (lpStoreID == nullptr || lpulStoreType == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -722,7 +724,9 @@ HRESULT WSTransport::HrOpenFolderOps(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 }
 
-HRESULT WSTransport::HrOpenTableOps(ULONG ulType, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECMsgStore *lpMsgStore, WSTableView **lppTableOps)
+HRESULT WSTransport::HrOpenTableOps(ULONG ulType, ULONG ulFlags,
+    ULONG cbEntryID, const ENTRYID *lpEntryID, ECMsgStore *lpMsgStore,
+    WSTableView **lppTableOps)
 {
 	/*
 	FIXME: Do a check ?
@@ -733,7 +737,9 @@ HRESULT WSTransport::HrOpenTableOps(ULONG ulType, ULONG ulFlags, ULONG cbEntryID
 	       cbEntryID, lpEntryID, lpMsgStore, this, lppTableOps);
 }
 
-HRESULT WSTransport::HrOpenABTableOps(ULONG ulType, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECABLogon* lpABLogon, WSTableView **lppTableOps)
+HRESULT WSTransport::HrOpenABTableOps(ULONG ulType, ULONG ulFlags,
+    ULONG cbEntryID, const ENTRYID *lpEntryID, ECABLogon *lpABLogon,
+    WSTableView **lppTableOps)
 {
 	/*if (peid->ulType != MAPI_FOLDER && peid->ulType != MAPI_MESSAGE)
 		return MAPI_E_INVALID_ENTRYID;
@@ -753,7 +759,9 @@ HRESULT WSTransport::HrOpenMailBoxTableOps(ULONG ulFlags, ECMsgStore *lpMsgStore
 	       reinterpret_cast<void **>(lppTableView));
 }
 
-HRESULT WSTransport::HrOpenTableOutGoingQueueOps(ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, ECMsgStore *lpMsgStore, WSTableOutGoingQueue **lppTableOutGoingQueueOps)
+HRESULT WSTransport::HrOpenTableOutGoingQueueOps(ULONG cbStoreEntryID,
+    const ENTRYID *lpStoreEntryID, ECMsgStore *lpMsgStore,
+    WSTableOutGoingQueue **lppTableOutGoingQueueOps)
 {
 	ecmem_ptr<ENTRYID> lpUnWrapStoreID;
 	ULONG		cbUnWrapStoreID = 0;
@@ -769,7 +777,7 @@ HRESULT WSTransport::HrOpenTableOutGoingQueueOps(ULONG cbStoreEntryID, LPENTRYID
 	       lppTableOutGoingQueueOps);
 }
 
-HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, LPENTRYLIST lpMsgList, ULONG ulSyncId)
+HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, const ENTRYLIST *lpMsgList, ULONG ulSyncId)
 {
 	if (lpMsgList->cValues == 0)
 		return hrSuccess;
@@ -792,7 +800,7 @@ HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, LPENTRYLIST lpMsgList, ULONG
 	return hr;
 }
 
-HRESULT WSTransport::HrNotify(LPNOTIFICATION lpNotification)
+HRESULT WSTransport::HrNotify(const NOTIFICATION *lpNotification)
 {
 	/* FIMXE: also notify other types? */
 	if (lpNotification == nullptr || lpNotification->ulEventType != fnevNewMail)
@@ -1019,7 +1027,11 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
 	return hr;
 }
 
-HRESULT WSTransport::HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG cbFolderEntryID, LPENTRYID lpFolderEntryID, bool bNewMessage, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppStreamImporter)
+HRESULT WSTransport::HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId,
+    ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG cbFolderEntryID,
+    const ENTRYID *lpFolderEntryID, bool bNewMessage,
+    const SPropValue *lpConflictItems,
+    WSMessageStreamImporter **lppStreamImporter)
 {
 	WSMessageStreamImporterPtr ptrStreamImporter;
 
@@ -1355,7 +1367,8 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID,
 	return hr;
 }
 
-HRESULT WSTransport::HrSetReadFlag(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, ULONG ulSyncId)
+HRESULT WSTransport::HrSetReadFlag(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ULONG ulFlags, ULONG ulSyncId)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
@@ -1381,7 +1394,8 @@ HRESULT WSTransport::HrSetReadFlag(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG u
 
 }
 
-HRESULT WSTransport::HrSubmitMessage(ULONG cbMessageID, LPENTRYID lpMessageID, ULONG ulFlags)
+HRESULT WSTransport::HrSubmitMessage(ULONG cbMessageID,
+    const ENTRYID *lpMessageID, ULONG ulFlags)
 {
 	ECRESULT	er = erSuccess;
 	entryId sEntryId; // Do not free
@@ -1852,7 +1866,7 @@ HRESULT WSTransport::HrRemoveStore(const GUID *lpGuid, ULONG ulSyncId)
 	return hr;
 }
 
-HRESULT WSTransport::HrDeleteUser(ULONG cbUserId, LPENTRYID lpUserId)
+HRESULT WSTransport::HrDeleteUser(ULONG cbUserId, const ENTRYID *lpUserId)
 {
 	if (cbUserId < CbNewABEID("") || lpUserId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2069,7 +2083,7 @@ HRESULT WSTransport::HrGetGroup(ULONG cbGroupID, const ENTRYID *lpGroupID,
 	return hr;
 }
 
-HRESULT WSTransport::HrDeleteGroup(ULONG cbGroupId, LPENTRYID lpGroupId)
+HRESULT WSTransport::HrDeleteGroup(ULONG cbGroupId, const ENTRYID *lpGroupId)
 {
 	if (cbGroupId < CbNewABEID("") || lpGroupId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2103,7 +2117,7 @@ HRESULT WSTransport::HrDeleteGroup(ULONG cbGroupId, LPENTRYID lpGroupId)
  * @param[out]	lppSenders	Array of ECUSER objects.
  * @return		HRESULT		MAPI error code.
  */
-HRESULT WSTransport::HrGetSendAsList(ULONG cbUserId, LPENTRYID lpUserId,
+HRESULT WSTransport::HrGetSendAsList(ULONG cbUserId, const ENTRYID *lpUserId,
     ULONG ulFlags, ULONG *lpcSenders, ECUSER **lppSenders)
 {
 	if (cbUserId < CbNewABEID("") || lpUserId == nullptr ||
@@ -2136,7 +2150,8 @@ HRESULT WSTransport::HrGetSendAsList(ULONG cbUserId, LPENTRYID lpUserId,
 	return hr;
 }
 
-HRESULT WSTransport::HrAddSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId)
+HRESULT WSTransport::HrAddSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
+    ULONG cbSenderId, const ENTRYID *lpSenderId)
 {
 	if (cbUserId < CbNewABEID("") || lpUserId == nullptr ||
 	    cbSenderId < CbNewABEID("") || lpSenderId == nullptr)
@@ -2165,7 +2180,8 @@ HRESULT WSTransport::HrAddSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG c
 	return hr;
 }
 
-HRESULT WSTransport::HrDelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId)
+HRESULT WSTransport::HrDelSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
+    ULONG cbSenderId, const ENTRYID *lpSenderId)
 {
 	if (cbUserId < CbNewABEID("") || lpUserId == nullptr ||
 	    cbSenderId < CbNewABEID("") || lpSenderId == nullptr)
@@ -2194,7 +2210,7 @@ HRESULT WSTransport::HrDelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG c
 }
 
 HRESULT WSTransport::HrGetUserClientUpdateStatus(ULONG cbUserId,
-    LPENTRYID lpUserId, ULONG ulFlags, ECUSERCLIENTUPDATESTATUS **lppECUCUS)
+    const ENTRYID *lpUserId, ULONG ulFlags, ECUSERCLIENTUPDATESTATUS **lppECUCUS)
 {
 	if (cbUserId < CbNewABEID("") || lpUserId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2223,7 +2239,7 @@ HRESULT WSTransport::HrGetUserClientUpdateStatus(ULONG cbUserId,
 	return hr;
 }
 
-HRESULT WSTransport::HrRemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId)
+HRESULT WSTransport::HrRemoveAllObjects(ULONG cbUserId, const ENTRYID *lpUserId)
 {
 	if (cbUserId < CbNewABEID("") || lpUserId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2365,7 +2381,8 @@ HRESULT WSTransport::HrGetGroupList(ULONG cbCompanyId,
 	return hr;
 }
 
-HRESULT WSTransport::HrDeleteGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG cbUserId, LPENTRYID lpUserId)
+HRESULT WSTransport::HrDeleteGroupUser(ULONG cbGroupId,
+    const ENTRYID *lpGroupId, ULONG cbUserId, const ENTRYID *lpUserId)
 {
 	if (lpGroupId == nullptr || lpUserId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2393,7 +2410,8 @@ HRESULT WSTransport::HrDeleteGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULO
 	return hr;
 }
 
-HRESULT WSTransport::HrAddGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG cbUserId, LPENTRYID lpUserId)
+HRESULT WSTransport::HrAddGroupUser(ULONG cbGroupId, const ENTRYID *lpGroupId,
+    ULONG cbUserId, const ENTRYID *lpUserId)
 {
 	if (lpGroupId == nullptr || lpUserId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2431,8 +2449,9 @@ HRESULT WSTransport::HrAddGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG 
  * @param[out]	lppsUsers		Array of ECUSER objects.
  * @return		HRESULT			MAPI error code.
  */
-HRESULT WSTransport::HrGetUserListOfGroup(ULONG cbGroupId, LPENTRYID lpGroupId,
-    ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers)
+HRESULT WSTransport::HrGetUserListOfGroup(ULONG cbGroupId,
+    const ENTRYID *lpGroupId, ULONG ulFlags, ULONG *lpcUsers,
+    ECUSER **lppsUsers)
 {
 	if (lpGroupId == nullptr || lpcUsers == nullptr || lppsUsers == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2474,8 +2493,9 @@ HRESULT WSTransport::HrGetUserListOfGroup(ULONG cbGroupId, LPENTRYID lpGroupId,
  * @param[out]	lppsGroups		Array of ECGROUP objects.
  * @return		HRESULT			MAPI error code.
  */
-HRESULT WSTransport::HrGetGroupListOfUser(ULONG cbUserId, LPENTRYID lpUserId,
-    ULONG ulFlags, ULONG *lpcGroup, ECGROUP **lppsGroups)
+HRESULT WSTransport::HrGetGroupListOfUser(ULONG cbUserId,
+    const ENTRYID *lpUserId, ULONG ulFlags, ULONG *lpcGroup,
+    ECGROUP **lppsGroups)
 {
 	if (lpcGroup == nullptr || lpUserId == nullptr || lppsGroups == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2558,7 +2578,7 @@ HRESULT WSTransport::HrCreateCompany(ECCOMPANY *lpECCompany, ULONG ulFlags,
 	return hr;
 }
 
-HRESULT WSTransport::HrDeleteCompany(ULONG cbCompanyId, LPENTRYID lpCompanyId)
+HRESULT WSTransport::HrDeleteCompany(ULONG cbCompanyId, const ENTRYID *lpCompanyId)
 {
 	if (cbCompanyId < CbNewABEID("") || lpCompanyId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2755,7 +2775,9 @@ HRESULT WSTransport::HrGetCompanyList(ULONG ulFlags, ULONG *lpcCompanies,
 	return hr;
 }
 
-HRESULT WSTransport::HrAddCompanyToRemoteViewList(ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId, ULONG cbCompanyId, LPENTRYID lpCompanyId)
+HRESULT WSTransport::HrAddCompanyToRemoteViewList(ULONG cbSetCompanyId,
+    const ENTRYID *lpSetCompanyId, ULONG cbCompanyId,
+    const ENTRYID *lpCompanyId)
 {
 	if (lpSetCompanyId == nullptr || lpCompanyId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2782,7 +2804,9 @@ HRESULT WSTransport::HrAddCompanyToRemoteViewList(ULONG cbSetCompanyId, LPENTRYI
 	return hr;
 }
 
-HRESULT WSTransport::HrDelCompanyFromRemoteViewList(ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId, ULONG cbCompanyId, LPENTRYID lpCompanyId)
+HRESULT WSTransport::HrDelCompanyFromRemoteViewList(ULONG cbSetCompanyId,
+    const ENTRYID *lpSetCompanyId, ULONG cbCompanyId,
+    const ENTRYID *lpCompanyId)
 {
 	if (lpSetCompanyId == nullptr || lpCompanyId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2820,7 +2844,7 @@ HRESULT WSTransport::HrDelCompanyFromRemoteViewList(ULONG cbSetCompanyId, LPENTR
  * @return		HRESULT			MAPI error code.
  */
 HRESULT WSTransport::HrGetRemoteViewList(ULONG cbCompanyId,
-    LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcCompanies,
+    const ENTRYID *lpCompanyId, ULONG ulFlags, ULONG *lpcCompanies,
     ECCOMPANY **lppsCompanies)
 {
 	if (lpcCompanies == nullptr || lpCompanyId == nullptr ||
@@ -2855,7 +2879,8 @@ HRESULT WSTransport::HrGetRemoteViewList(ULONG cbCompanyId,
 	return hr;
 }
 
-HRESULT WSTransport::HrAddUserToRemoteAdminList(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbCompanyId, LPENTRYID lpCompanyId)
+HRESULT WSTransport::HrAddUserToRemoteAdminList(ULONG cbUserId,
+    const ENTRYID *lpUserId, ULONG cbCompanyId, const ENTRYID *lpCompanyId)
 {
 	if (lpUserId == nullptr || lpCompanyId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2882,7 +2907,8 @@ HRESULT WSTransport::HrAddUserToRemoteAdminList(ULONG cbUserId, LPENTRYID lpUser
 	return hr;
 }
 
-HRESULT WSTransport::HrDelUserFromRemoteAdminList(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbCompanyId, LPENTRYID lpCompanyId)
+HRESULT WSTransport::HrDelUserFromRemoteAdminList(ULONG cbUserId,
+    const ENTRYID *lpUserId, ULONG cbCompanyId, const ENTRYID *lpCompanyId)
 {
 	if (lpUserId == nullptr || lpCompanyId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2920,7 +2946,8 @@ HRESULT WSTransport::HrDelUserFromRemoteAdminList(ULONG cbUserId, LPENTRYID lpUs
  * @return		HRESULT			MAPI error code.
  */
 HRESULT WSTransport::HrGetRemoteAdminList(ULONG cbCompanyId,
-    LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers)
+    const ENTRYID *lpCompanyId, ULONG ulFlags, ULONG *lpcUsers,
+    ECUSER **lppsUsers)
 {
 	if (lpcUsers == nullptr || lpCompanyId == nullptr || lppsUsers == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2954,7 +2981,7 @@ HRESULT WSTransport::HrGetRemoteAdminList(ULONG cbCompanyId,
 }
 
 HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
-    LPENTRYID lpEntryID, ULONG *lpcPermissions,
+    const ENTRYID *lpEntryID, ULONG *lpcPermissions,
     ECPERMISSION **lppECPermissions)
 {
 	if (lpcPermissions == nullptr || lppECPermissions == nullptr)
@@ -3069,7 +3096,8 @@ HRESULT WSTransport::HrSetPermissionRules(ULONG cbEntryID,
 	return hr;
 }
 
-HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpcbOwnerId, LPENTRYID *lppOwnerId)
+HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ULONG *lpcbOwnerId, ENTRYID **lppOwnerId)
 {
 	if (lpcbOwnerId == nullptr || lppOwnerId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -3179,7 +3207,7 @@ HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
 	return hr;
 }
 
-HRESULT WSTransport::HrSyncUsers(ULONG cbCompanyId, LPENTRYID lpCompanyId)
+HRESULT WSTransport::HrSyncUsers(ULONG cbCompanyId, const ENTRYID *lpCompanyId)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
@@ -3208,7 +3236,7 @@ HRESULT WSTransport::HrSyncUsers(ULONG cbCompanyId, LPENTRYID lpCompanyId)
 	return hr;
 }
 
-HRESULT WSTransport::GetQuota(ULONG cbUserId, LPENTRYID lpUserId,
+HRESULT WSTransport::GetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
     bool bGetUserDefault, ECQUOTA **lppsQuota)
 {
 	if (lppsQuota == nullptr || lpUserId == nullptr)
@@ -3248,7 +3276,7 @@ HRESULT WSTransport::GetQuota(ULONG cbUserId, LPENTRYID lpUserId,
 	return hr;
 }
 
-HRESULT WSTransport::SetQuota(ULONG cbUserId, LPENTRYID lpUserId,
+HRESULT WSTransport::SetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
     ECQUOTA *lpsQuota)
 {
 	if (lpsQuota == nullptr || lpUserId == nullptr)
@@ -3283,7 +3311,9 @@ HRESULT WSTransport::SetQuota(ULONG cbUserId, LPENTRYID lpUserId,
 	return hr;
 }
 
-HRESULT WSTransport::AddQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG cbRecipientId, LPENTRYID lpRecipientId, ULONG ulType)
+HRESULT WSTransport::AddQuotaRecipient(ULONG cbCompanyId,
+    const ENTRYID *lpCompanyId, ULONG cbRecipientId,
+    const ENTRYID *lpRecipientId, ULONG ulType)
 {
 	if (lpCompanyId == nullptr || lpRecipientId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -3310,7 +3340,9 @@ HRESULT WSTransport::AddQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompanyId,
 	return hr;
 }
 
-HRESULT WSTransport::DeleteQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG cbRecipientId, LPENTRYID lpRecipientId, ULONG ulType)
+HRESULT WSTransport::DeleteQuotaRecipient(ULONG cbCompanyId,
+    const ENTRYID *lpCompanyId, ULONG cbRecipientId,
+    const ENTRYID *lpRecipientId, ULONG ulType)
 {
 	if (lpCompanyId == nullptr || lpRecipientId == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -3337,7 +3369,7 @@ HRESULT WSTransport::DeleteQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompany
 	return hr;
 }
 
-HRESULT WSTransport::GetQuotaRecipients(ULONG cbUserId, LPENTRYID lpUserId,
+HRESULT WSTransport::GetQuotaRecipients(ULONG cbUserId, const ENTRYID *lpUserId,
     ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers)
 {
 	if (lpcUsers == nullptr || lppsUsers == nullptr)
@@ -3371,7 +3403,7 @@ HRESULT WSTransport::GetQuotaRecipients(ULONG cbUserId, LPENTRYID lpUserId,
 	return hr;
 }
 
-HRESULT WSTransport::GetQuotaStatus(ULONG cbUserId, LPENTRYID lpUserId,
+HRESULT WSTransport::GetQuotaStatus(ULONG cbUserId, const ENTRYID *lpUserId,
     ECQUOTASTATUS **lppsQuotaStatus)
 {
 	if (lppsQuotaStatus == nullptr)
@@ -3559,7 +3591,11 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 	return hr;
 }
 
-HRESULT WSTransport::HrGetChanges(const std::string& sourcekey, ULONG ulSyncId, ULONG ulChangeId, ULONG ulSyncType, ULONG ulFlags, LPSRestriction lpsRestrict, ULONG *lpulMaxChangeId, ULONG* lpcChanges, ICSCHANGE **lppChanges){
+HRESULT WSTransport::HrGetChanges(const std::string &sourcekey, ULONG ulSyncId,
+    ULONG ulChangeId, ULONG ulSyncType, ULONG ulFlags,
+    const SRestriction *lpsRestrict, ULONG *lpulMaxChangeId, ULONG *lpcChanges,
+    ICSCHANGE **lppChanges)
+{
 	HRESULT						hr = hrSuccess;
 	ECRESULT					er = erSuccess;
 	struct icsChangeResponse	sResponse;
@@ -3649,7 +3685,10 @@ HRESULT WSTransport::HrSetSyncStatus(const std::string& sourcekey, ULONG ulSyncI
 	return hr;
 }
 
-HRESULT WSTransport::HrEntryIDFromSourceKey(ULONG cbStoreID, LPENTRYID lpStoreID, ULONG ulFolderSourceKeySize, BYTE * lpFolderSourceKey, ULONG ulMessageSourceKeySize, BYTE * lpMessageSourceKey, ULONG * lpcbEntryID, LPENTRYID * lppEntryID)
+HRESULT WSTransport::HrEntryIDFromSourceKey(ULONG cbStoreID,
+    const ENTRYID *lpStoreID, ULONG ulFolderSourceKeySize,
+    BYTE *lpFolderSourceKey, ULONG ulMessageSourceKeySize,
+    BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, ENTRYID **lppEntryID)
 {
 	if (ulFolderSourceKeySize == 0 || lpFolderSourceKey == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -3762,7 +3801,9 @@ HRESULT WSTransport::HrOpenMultiStoreTable(const ENTRYLIST *lpMsgList,
 	       reinterpret_cast<void **>(lppTableView));
 }
 
-HRESULT WSTransport::HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECMsgStore *lpMsgStore, WSTableView **lppTableView)
+HRESULT WSTransport::HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags,
+    ULONG cbEntryID, const ENTRYID *lpEntryID, ECMsgStore *lpMsgStore,
+    WSTableView **lppTableView)
 {
 	if (ulTableType != TABLETYPE_STATS_SYSTEM && ulTableType != TABLETYPE_STATS_SESSIONS &&
 	    ulTableType != TABLETYPE_STATS_USERS && ulTableType != TABLETYPE_STATS_COMPANY &&
@@ -4008,7 +4049,8 @@ std::string WSTransport::GetAppName()
     return m_strAppName;
 }
 
-HRESULT WSTransport::HrResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates)
+HRESULT WSTransport::HrResetFolderCount(ULONG cbEntryId,
+    const ENTRYID *lpEntryId, ULONG *lpulUpdates)
 {
 	HRESULT hr = hrSuccess;
     ECRESULT er = erSuccess;

@@ -81,7 +81,7 @@ WSMessageStreamSink::~WSMessageStreamSink()
 HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId,
     ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG cbFolderEntryID,
     const ENTRYID *lpFolderEntryID, bool bNewMessage,
-    SPropValue *lpConflictItems, WSTransport *lpTransport,
+    const SPropValue *lpConflictItems, WSTransport *lpTransport,
     WSMessageStreamImporter **lppStreamImporter)
 {
 	if (lppStreamImporter == nullptr || lpEntryID == nullptr ||

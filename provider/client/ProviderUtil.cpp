@@ -42,7 +42,9 @@
 
 using namespace KC;
 
-HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
+HRESULT CompareStoreIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
+    ULONG cbEntryID2, const ENTRYID *lpEntryID2, ULONG ulFlags,
+    ULONG *lpulResult)
 {
 	if (lpEntryID1 == nullptr || lpEntryID2 == nullptr || lpulResult == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -51,8 +53,8 @@ HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2
 
 	HRESULT hr = hrSuccess;
 	BOOL fTheSame = FALSE;
-	PEID peid1 = (PEID)lpEntryID1;
-	PEID peid2 = (PEID)lpEntryID2;
+	auto peid1 = reinterpret_cast<const EID *>(lpEntryID1);
+	auto peid2 = reinterpret_cast<const EID *>(lpEntryID2);
 
 	if(memcmp(&peid1->guid, &peid2->guid, sizeof(GUID)) != 0)
 		goto exit;
@@ -67,8 +69,8 @@ HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2
 
 		if(cbEntryID1 < sizeof(EID_V0))
 			goto exit;
-
-		if( ((EID_V0*)lpEntryID1)->ulId != ((EID_V0*)lpEntryID2)->ulId )
+		if (reinterpret_cast<const EID_V0 *>(lpEntryID1)->ulId !=
+		    reinterpret_cast<const EID_V0 *>(lpEntryID2)->ulId)
 			goto exit;
 
 	}else {
