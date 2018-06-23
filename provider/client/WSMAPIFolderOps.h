@@ -61,7 +61,7 @@ public:
 	virtual HRESULT HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULONG ulSyncId);
 
 	// Set / Get search criteria
-	virtual HRESULT HrSetSearchCriteria(ENTRYLIST *lpMsgList, SRestriction *lpRestriction, ULONG ulFlags);
+	virtual HRESULT HrSetSearchCriteria(const ENTRYLIST *msglist, const SRestriction *, ULONG flags);
 	virtual HRESULT HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestriction *lppRestriction, ULONG *lpulFlags);
 
 	// Move or copy a folder

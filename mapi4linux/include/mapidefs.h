@@ -761,7 +761,7 @@ public:
     virtual HRESULT GetContentsTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
     virtual HRESULT GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **) = 0;
-    virtual HRESULT SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags) = 0;
+	virtual HRESULT SetSearchCriteria(const SRestriction *, const ENTRYLIST *container, ULONG flags) = 0;
     virtual HRESULT GetSearchCriteria(ULONG ulFlags, LPSRestriction* lppRestriction, LPENTRYLIST* lppContainerList,
 				      ULONG* lpulSearchState) = 0;
 };
@@ -951,7 +951,7 @@ public:
     virtual HRESULT GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
     virtual HRESULT SetLockState(LPMESSAGE lpMessage,ULONG ulLockState) = 0;
 	virtual HRESULT FinishedMsg(ULONG flags, ULONG eid_size, const ENTRYID *) = 0;
-    virtual HRESULT NotifyNewMail(LPNOTIFICATION lpNotification) = 0;
+	virtual HRESULT NotifyNewMail(const NOTIFICATION *lpNotification) = 0;
 };
 IID_OF(IMsgStore)
 
@@ -1142,8 +1142,8 @@ namespace KC {
 class IABContainer_DistList_base : public virtual IMAPIContainer {
 	public:
 	virtual HRESULT CreateEntry(ULONG eid_size, const ENTRYID *eid, ULONG flags, IMAPIProp **) = 0;
-	virtual HRESULT CopyEntries(ENTRYLIST *, ULONG ui_param, IMAPIProgress *, ULONG flags) = 0;
-	virtual HRESULT DeleteEntries(ENTRYLIST *, ULONG flags) = 0;
+	virtual HRESULT CopyEntries(const ENTRYLIST *, ULONG ui_param, IMAPIProgress *, ULONG flags) = 0;
+	virtual HRESULT DeleteEntries(const ENTRYLIST *, ULONG flags) = 0;
 	virtual HRESULT ResolveNames(const SPropTagArray *, ULONG flags, ADRLIST *, FlagList *) = 0;
 };
 

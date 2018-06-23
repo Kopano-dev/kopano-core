@@ -124,7 +124,7 @@ public:
 	virtual HRESULT GetHierarchyTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
 //	OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) _kc_override;
-	virtual HRESULT SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags) _kc_override;
+	virtual HRESULT SetSearchCriteria(const SRestriction *, const ENTRYLIST *container, ULONG flags) override;
 	virtual HRESULT GetSearchCriteria(ULONG flags, LPSRestriction *lppRestriction, LPENTRYLIST *lppContainerList, ULONG *lpulSearchState) _kc_override;
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
@@ -144,8 +144,8 @@ private:
 public:
 	M4LABContainer(const std::list<abEntry> &lABEntries);
 	virtual HRESULT CreateEntry(ULONG eid_size, const ENTRYID *eid, ULONG flags, IMAPIProp **) _kc_override;
-	virtual HRESULT CopyEntries(LPENTRYLIST lpEntries, ULONG ui_param, LPMAPIPROGRESS, ULONG flags) _kc_override;
-	virtual HRESULT DeleteEntries(LPENTRYLIST lpEntries, ULONG flags) _kc_override;
+	virtual HRESULT CopyEntries(const ENTRYLIST *, ULONG ui_param, IMAPIProgress *, ULONG flags) override;
+	virtual HRESULT DeleteEntries(const ENTRYLIST *, ULONG flags) override;
 	virtual HRESULT ResolveNames(const SPropTagArray *, ULONG flags, LPADRLIST lpAdrList, LPFlagList lpFlagList) _kc_override;
 	virtual HRESULT GetHierarchyTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
 	virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);

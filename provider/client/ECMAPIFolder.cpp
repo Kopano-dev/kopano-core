@@ -318,7 +318,8 @@ HRESULT ECMAPIFolder::SaveChanges(ULONG ulFlags)
 	return hrSuccess;
 }
 
-HRESULT ECMAPIFolder::SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags)
+HRESULT ECMAPIFolder::SetSearchCriteria(const SRestriction *lpRestriction,
+    const ENTRYLIST *lpContainerList, ULONG ulSearchFlags)
 {
 	if (lpFolderOps == NULL)
 		return MAPI_E_NO_SUPPORT;

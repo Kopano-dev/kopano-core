@@ -202,7 +202,8 @@ exit:
 	return hr;
 }
 
-HRESULT WSMAPIFolderOps::HrSetSearchCriteria(ENTRYLIST *lpMsgList, SRestriction *lpRestriction, ULONG ulFlags)
+HRESULT WSMAPIFolderOps::HrSetSearchCriteria(const ENTRYLIST *lpMsgList,
+    const SRestriction *lpRestriction, ULONG ulFlags)
 {
 	ECRESULT		er = erSuccess;
 	HRESULT			hr = hrSuccess;

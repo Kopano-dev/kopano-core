@@ -82,13 +82,12 @@ public:
 	virtual HRESULT GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable);
 	virtual HRESULT SetLockState(LPMESSAGE lpMessage,ULONG ulLockState);
 	virtual HRESULT FinishedMsg(ULONG flags, ULONG eid_size, const ENTRYID *) override;
-	virtual HRESULT NotifyNewMail(LPNOTIFICATION lpNotification);
-
+	virtual HRESULT NotifyNewMail(const NOTIFICATION *) override;
 	virtual HRESULT CreateStoreEntryID(const TCHAR *store_dn, const TCHAR *mbox_dn, ULONG flags, ULONG *eid_size, ENTRYID **eid);
 	virtual HRESULT EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey,	ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 	virtual HRESULT GetRights(ULONG ueid_size, const ENTRYID *user_eid, ULONG eid_size, const ENTRYID *eid, ULONG *rights) override;
-	virtual HRESULT GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags);
-	virtual HRESULT GetPublicFolderTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags);
+	virtual HRESULT GetMailboxTable(const TCHAR *server, IMAPITable **, ULONG flags) override;
+	virtual HRESULT GetPublicFolderTable(const TCHAR *server, IMAPITable **, ULONG flags) override;
 	virtual HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
 	virtual ULONG Release(void) _kc_override;
 
@@ -211,7 +210,7 @@ public:
 		virtual HRESULT GetOutgoingQueue(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
 		virtual HRESULT SetLockState(LPMESSAGE lpMessage,ULONG ulLockState) _kc_override;
 		virtual HRESULT FinishedMsg(ULONG flags, ULONG eid_size, const ENTRYID *) override;
-		virtual HRESULT NotifyNewMail(LPNOTIFICATION lpNotification) _kc_override;
+		virtual HRESULT NotifyNewMail(const NOTIFICATION *) override;
 		virtual HRESULT GetLastError(HRESULT hError, ULONG flags, LPMAPIERROR *lppMapiError) _kc_override;
 		virtual HRESULT SaveChanges(ULONG flags) _kc_override;
 		virtual HRESULT GetProps(const SPropTagArray *lpPropTagArray, ULONG flags, ULONG *lpcValues, LPSPropValue *lppPropArray) _kc_override;
