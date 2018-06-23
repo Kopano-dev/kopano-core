@@ -181,50 +181,50 @@ class IECServiceAdmin : public virtual IECSecSvcAdm_base {
 
 	/* User functions */
 	virtual HRESULT CreateUser(ECUSER *lpECUser, ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId) = 0;
-	virtual HRESULT DeleteUser(ULONG cbUserId, LPENTRYID lpUserId) = 0;
+	virtual HRESULT DeleteUser(ULONG ueid_size, const ENTRYID *user_eid) = 0;
 	virtual HRESULT SetUser(ECUSER *lpECUser, ULONG ulFlags) = 0;
 	virtual HRESULT GetUser(ULONG eid_size, const ENTRYID *user_eid, ULONG flags, ECUSER **) = 0;
 	virtual HRESULT ResolveUserName(LPCTSTR lpszUserName, ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId) = 0;
-	virtual HRESULT GetSendAsList(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG *lpcSenders, ECUSER **lppSenders) = 0;
-	virtual HRESULT AddSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId) = 0;
-	virtual HRESULT DelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId) = 0;
-	virtual HRESULT GetUserClientUpdateStatus(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ECUSERCLIENTUPDATESTATUS **lppECUCUS) = 0;
+	virtual HRESULT GetSendAsList(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, ULONG *nsenders, ECUSER **) = 0;
+	virtual HRESULT AddSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid) = 0;
+	virtual HRESULT DelSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid) = 0;
+	virtual HRESULT GetUserClientUpdateStatus(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, ECUSERCLIENTUPDATESTATUS **) = 0;
 
 	/* Remove all users EXCEPT the passed user */
-	virtual HRESULT RemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId) = 0;
+	virtual HRESULT RemoveAllObjects(ULONG ueid_size, const ENTRYID *user_eid) = 0;
 
 	/* Group functions */
 	virtual HRESULT CreateGroup(ECGROUP *lpECGroup, ULONG ulFlags, ULONG *lpcbGroupId, LPENTRYID *lppGroupId) = 0;
-	virtual HRESULT DeleteGroup(ULONG cbGroupId, LPENTRYID lpGroupId) = 0;
+	virtual HRESULT DeleteGroup(ULONG geid_size, const ENTRYID *grp_eid) = 0;
 	virtual HRESULT SetGroup(ECGROUP *lpECGroup, ULONG ulFlags) = 0;
 	virtual HRESULT GetGroup(ULONG grp_size, const ENTRYID *grp_eid, ULONG flags, ECGROUP **) = 0;
 	virtual HRESULT ResolveGroupName(LPCTSTR lpszGroupName, ULONG ulFlags, ULONG *lpcbGroupId, LPENTRYID *lppGroupId) = 0;
-	virtual HRESULT DeleteGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG cbUserId, LPENTRYID lpUserId) = 0;
-	virtual HRESULT AddGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG cbUserId, LPENTRYID lpUserId) = 0;
-	virtual HRESULT GetUserListOfGroup(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers) = 0;
-	virtual HRESULT GetGroupListOfUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG *lpcGroups, ECGROUP **lppsGroups) = 0;
+	virtual HRESULT DeleteGroupUser(ULONG geid_size, const ENTRYID *grp_eid, ULONG ueid_size, const ENTRYID *user_eid) = 0;
+	virtual HRESULT AddGroupUser(ULONG geid_size, const ENTRYID *grp_eid, ULONG ueid_size, const ENTRYID *user_eid) = 0;
+	virtual HRESULT GetUserListOfGroup(ULONG geid_size, const ENTRYID *grp_eid, ULONG flags, ULONG *nusers, ECUSER **) = 0;
+	virtual HRESULT GetGroupListOfUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, ULONG *ngrps, ECGROUP **) = 0;
 
 	/* Company functions */
 	virtual HRESULT CreateCompany(ECCOMPANY *lpECCompany, ULONG ulFlags, ULONG *lpcbCompanyId, LPENTRYID *lppCompanyId) = 0;
-	virtual HRESULT DeleteCompany(ULONG cbCompanyId, LPENTRYID lpCompanyId) = 0;
+	virtual HRESULT DeleteCompany(ULONG ceid_size, const ENTRYID *com_eid) = 0;
 	virtual HRESULT SetCompany(ECCOMPANY *lpECCompany, ULONG ulFlags) = 0;
 	virtual HRESULT GetCompany(ULONG cmp_size, const ENTRYID *cmp_eid, ULONG flags, ECCOMPANY **) = 0;
 	virtual HRESULT ResolveCompanyName(LPCTSTR lpszCompanyName, ULONG ulFlags, ULONG *lpcbCompanyId, LPENTRYID *lppCompanyId) = 0;
-	virtual HRESULT AddCompanyToRemoteViewList(ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId, ULONG cbCompanyId, LPENTRYID lpCompanyId) = 0;
-	virtual HRESULT DelCompanyFromRemoteViewList(ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId, ULONG cbCompanyId, LPENTRYID lpCompanyId) = 0;
-	virtual HRESULT GetRemoteViewList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcCompanies, ECCOMPANY **lppsCompanies) = 0;
-	virtual HRESULT AddUserToRemoteAdminList(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbCompanyId, LPENTRYID lpCompanyId) = 0;
-	virtual HRESULT DelUserFromRemoteAdminList(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbCompanyId, LPENTRYID lpCompanyId) = 0;
-	virtual HRESULT GetRemoteAdminList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers) = 0;
-	virtual HRESULT SyncUsers(ULONG cbCompanyId, LPENTRYID lpCOmpanyId) = 0;
+	virtual HRESULT AddCompanyToRemoteViewList(ULONG sc_size, const ENTRYID *scom_eid, ULONG ceid_size, const ENTRYID *com_eid) = 0;
+	virtual HRESULT DelCompanyFromRemoteViewList(ULONG sc_size, const ENTRYID *scom_eid, ULONG ceid_size, const ENTRYID *com_eid) = 0;
+	virtual HRESULT GetRemoteViewList(ULONG ceid_size, const ENTRYID *com_eid, ULONG flags, ULONG *ncomps, ECCOMPANY **) = 0;
+	virtual HRESULT AddUserToRemoteAdminList(ULONG ueid_size, const ENTRYID *user_eid, ULONG ceid_size, const ENTRYID *com_eid) = 0;
+	virtual HRESULT DelUserFromRemoteAdminList(ULONG ueid_size, const ENTRYID *user_eid, ULONG ceid_size, const ENTRYID *com_eid) = 0;
+	virtual HRESULT GetRemoteAdminList(ULONG ceid_size, const ENTRYID *com_eid, ULONG flags, ULONG *nusers, ECUSER **) = 0;
+	virtual HRESULT SyncUsers(ULONG ceid_size, const ENTRYID *com_eid) = 0;
 
 	/* Quota functions */
-	virtual HRESULT GetQuota(ULONG cbUserId, LPENTRYID lpUserId, bool bGetUserDefaultQuota, ECQUOTA **lppsQuota) = 0;
-	virtual HRESULT SetQuota(ULONG cbUserId, LPENTRYID lpUserId, ECQUOTA *lpsQuota) = 0;
-	virtual HRESULT AddQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG cbRecipientId, LPENTRYID lpRecipientId, ULONG ulType) = 0;
-	virtual HRESULT DeleteQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCmopanyId, ULONG cbRecipientId, LPENTRYID lpRecipientId, ULONG ulType) = 0;
-	virtual HRESULT GetQuotaRecipients(ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers) = 0;
-	virtual HRESULT GetQuotaStatus(ULONG cbUserId, LPENTRYID lpUserId, ECQUOTASTATUS **lppsQuotaStatus) = 0;
+	virtual HRESULT GetQuota(ULONG ueid_size, const ENTRYID *user_eid, bool get_dfl, ECQUOTA **) = 0;
+	virtual HRESULT SetQuota(ULONG ueid_size, const ENTRYID *user_eid, ECQUOTA *) = 0;
+	virtual HRESULT AddQuotaRecipient(ULONG ceid_size, const ENTRYID *com_eid, ULONG reid_size, const ENTRYID *recip_eid, ULONG type) = 0;
+	virtual HRESULT DeleteQuotaRecipient(ULONG ceid_size, const ENTRYID *com_eid, ULONG reid_size, const ENTRYID *recip_eid, ULONG type) = 0;
+	virtual HRESULT GetQuotaRecipients(ULONG ceid_size, const ENTRYID *user_eid, ULONG flags, ULONG *nusers, ECUSER **) = 0;
+	virtual HRESULT GetQuotaStatus(ULONG ueid_size, const ENTRYID *user_eid, ECQUOTASTATUS **) = 0;
 	virtual HRESULT PurgeSoftDelete(ULONG ulDays) = 0;
 	virtual HRESULT PurgeCache(ULONG ulFlags) = 0;
 	virtual HRESULT OpenUserStoresTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
@@ -236,7 +236,7 @@ class IECServiceAdmin : public virtual IECSecSvcAdm_base {
 
 	/* Archive store function(s) */
 	virtual HRESULT GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG *lpcbStoreID, LPENTRYID *lppStoreID) = 0;
-	virtual HRESULT ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates) = 0;
+	virtual HRESULT ResetFolderCount(ULONG eid_size, const ENTRYID *eid, ULONG *nupdates) = 0;
 };
 
 class IECSingleInstance : public virtual IUnknown {

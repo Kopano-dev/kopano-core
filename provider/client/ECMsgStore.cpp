@@ -1153,7 +1153,8 @@ HRESULT ECMsgStore::EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSou
 	       lpMessageSourceKey, lpcbEntryID, lppEntryID);
 }
 
-HRESULT ECMsgStore::GetRights(ULONG cbUserEntryID, LPENTRYID lpUserEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulRights)
+HRESULT ECMsgStore::GetRights(ULONG cbUserEntryID, const ENTRYID *lpUserEntryID,
+    ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG *lpulRights)
 {
 	return MAPI_E_NOT_FOUND;
 }
@@ -2118,7 +2119,7 @@ HRESULT ECMsgStore::GetUser(ULONG cbUserId, const ENTRYID *lpUserId,
 	return lpTransport->HrGetUser(cbUserId, lpUserId, ulFlags, lppECUser);
 }
 
-HRESULT ECMsgStore::DeleteUser(ULONG cbUserId, LPENTRYID lpUserId)
+HRESULT ECMsgStore::DeleteUser(ULONG cbUserId, const ENTRYID *lpUserId)
 {
 	return lpTransport->HrDeleteUser(cbUserId, lpUserId);
 }
@@ -2128,29 +2129,32 @@ HRESULT ECMsgStore::ResolveUserName(LPCTSTR lpszUserName, ULONG ulFlags, ULONG *
 	return lpTransport->HrResolveUserName(lpszUserName, ulFlags, lpcbUserId, lppUserId);
 }
 
-HRESULT ECMsgStore::GetSendAsList(ULONG cbUserId, LPENTRYID lpUserId,
+HRESULT ECMsgStore::GetSendAsList(ULONG cbUserId, const ENTRYID *lpUserId,
     ULONG ulFlags, ULONG *lpcSenders, ECUSER **lppSenders)
 {
 	return lpTransport->HrGetSendAsList(cbUserId, lpUserId, ulFlags, lpcSenders, lppSenders);
 }
 
-HRESULT ECMsgStore::AddSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId)
+HRESULT ECMsgStore::AddSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
+    ULONG cbSenderId, const ENTRYID *lpSenderId)
 {
 	return lpTransport->HrAddSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
 }
 
-HRESULT ECMsgStore::DelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId)
+HRESULT ECMsgStore::DelSendAsUser(ULONG cbUserId, const ENTRYID *lpUserId,
+    ULONG cbSenderId, const ENTRYID *lpSenderId)
 {
 	return lpTransport->HrDelSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
 }
 
 HRESULT ECMsgStore::GetUserClientUpdateStatus(ULONG cbUserId,
-    LPENTRYID lpUserId, ULONG ulFlags, ECUSERCLIENTUPDATESTATUS **lppECUCUS)
+    const ENTRYID *lpUserId, ULONG ulFlags,
+    ECUSERCLIENTUPDATESTATUS **lppECUCUS)
 {
 	return lpTransport->HrGetUserClientUpdateStatus(cbUserId, lpUserId, ulFlags, lppECUCUS);
 }
 
-HRESULT ECMsgStore::RemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId)
+HRESULT ECMsgStore::RemoveAllObjects(ULONG cbUserId, const ENTRYID *lpUserId)
 {
 	return lpTransport->HrRemoveAllObjects(cbUserId, lpUserId);
 }
@@ -2177,29 +2181,32 @@ HRESULT ECMsgStore::GetGroup(ULONG cbGroupId, const ENTRYID *lpGroupId,
 	return lpTransport->HrGetGroup(cbGroupId, lpGroupId, ulFlags, lppECGroup);
 }
 
-HRESULT ECMsgStore::DeleteGroup(ULONG cbGroupId, LPENTRYID lpGroupId)
+HRESULT ECMsgStore::DeleteGroup(ULONG cbGroupId, const ENTRYID *lpGroupId)
 {
 	return lpTransport->HrDeleteGroup(cbGroupId, lpGroupId);
 }
 
 //Group and user functions
-HRESULT ECMsgStore::DeleteGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG cbUserId, LPENTRYID lpUserId)
+HRESULT ECMsgStore::DeleteGroupUser(ULONG cbGroupId, const ENTRYID *lpGroupId,
+    ULONG cbUserId, const ENTRYID *lpUserId)
 {
 	return lpTransport->HrDeleteGroupUser(cbGroupId, lpGroupId, cbUserId, lpUserId);
 }
 
-HRESULT ECMsgStore::AddGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG cbUserId, LPENTRYID lpUserId)
+HRESULT ECMsgStore::AddGroupUser(ULONG cbGroupId, const ENTRYID *lpGroupId,
+    ULONG cbUserId, const ENTRYID *lpUserId)
 {
 	return lpTransport->HrAddGroupUser(cbGroupId, lpGroupId, cbUserId, lpUserId);
 }
 
-HRESULT ECMsgStore::GetUserListOfGroup(ULONG cbGroupId, LPENTRYID lpGroupId,
-    ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers)
+HRESULT ECMsgStore::GetUserListOfGroup(ULONG cbGroupId,
+    const ENTRYID *lpGroupId, ULONG ulFlags, ULONG *lpcUsers,
+    ECUSER **lppsUsers)
 {
 	return lpTransport->HrGetUserListOfGroup(cbGroupId, lpGroupId, ulFlags, lpcUsers, lppsUsers);
 }
 
-HRESULT ECMsgStore::GetGroupListOfUser(ULONG cbUserId, LPENTRYID lpUserId,
+HRESULT ECMsgStore::GetGroupListOfUser(ULONG cbUserId, const ENTRYID *lpUserId,
     ULONG ulFlags, ULONG *lpcGroups, ECGROUP **lppsGroups)
 {
 	return lpTransport->HrGetGroupListOfUser(cbUserId, lpUserId, ulFlags, lpcGroups, lppsGroups);
@@ -2211,7 +2218,8 @@ HRESULT ECMsgStore::CreateCompany(ECCOMPANY *lpECCompany, ULONG ulFlags,
 	return lpTransport->HrCreateCompany(lpECCompany, ulFlags, lpcbCompanyId, lppCompanyId);
 }
 
-HRESULT ECMsgStore::DeleteCompany(ULONG cbCompanyId, LPENTRYID lpCompanyId)
+HRESULT ECMsgStore::DeleteCompany(ULONG cbCompanyId,
+    const ENTRYID *lpCompanyId)
 {
 	return lpTransport->HrDeleteCompany(cbCompanyId, lpCompanyId);
 }
@@ -2232,72 +2240,84 @@ HRESULT ECMsgStore::ResolveCompanyName(LPCTSTR lpszCompanyName, ULONG ulFlags, U
 	return lpTransport->HrResolveCompanyName(lpszCompanyName, ulFlags, lpcbCompanyId, lppCompanyId);
 }
 
-HRESULT ECMsgStore::AddCompanyToRemoteViewList(ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId, ULONG cbCompanyId, LPENTRYID lpCompanyId)
+HRESULT ECMsgStore::AddCompanyToRemoteViewList(ULONG cbSetCompanyId,
+    const ENTRYID *lpSetCompanyId, ULONG cbCompanyId,
+    const ENTRYID *lpCompanyId)
 {
 	return lpTransport->HrAddCompanyToRemoteViewList(cbSetCompanyId, lpSetCompanyId, cbCompanyId, lpCompanyId);
 }
 
-HRESULT ECMsgStore::DelCompanyFromRemoteViewList(ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId, ULONG cbCompanyId, LPENTRYID lpCompanyId)
+HRESULT ECMsgStore::DelCompanyFromRemoteViewList(ULONG cbSetCompanyId,
+    const ENTRYID *lpSetCompanyId, ULONG cbCompanyId,
+    const ENTRYID *lpCompanyId)
 {
 	return lpTransport->HrDelCompanyFromRemoteViewList(cbSetCompanyId, lpSetCompanyId, cbCompanyId, lpCompanyId);
 }
 
-HRESULT ECMsgStore::GetRemoteViewList(ULONG cbCompanyId, LPENTRYID lpCompanyId,
-    ULONG ulFlags, ULONG *lpcCompanies, ECCOMPANY **lppsCompanies)
+HRESULT ECMsgStore::GetRemoteViewList(ULONG cbCompanyId,
+    const ENTRYID *lpCompanyId, ULONG ulFlags, ULONG *lpcCompanies,
+    ECCOMPANY **lppsCompanies)
 {
 	return lpTransport->HrGetRemoteViewList(cbCompanyId, lpCompanyId, ulFlags, lpcCompanies, lppsCompanies);
 }
 
-HRESULT ECMsgStore::AddUserToRemoteAdminList(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbCompanyId, LPENTRYID lpCompanyId)
+HRESULT ECMsgStore::AddUserToRemoteAdminList(ULONG cbUserId,
+    const ENTRYID *lpUserId, ULONG cbCompanyId, const ENTRYID *lpCompanyId)
 {
 	return lpTransport->HrAddUserToRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
 }
 
-HRESULT ECMsgStore::DelUserFromRemoteAdminList(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbCompanyId, LPENTRYID lpCompanyId)
+HRESULT ECMsgStore::DelUserFromRemoteAdminList(ULONG cbUserId,
+    const ENTRYID *lpUserId, ULONG cbCompanyId, const ENTRYID *lpCompanyId)
 {
 	return lpTransport->HrDelUserFromRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
 }
 
 HRESULT ECMsgStore::GetRemoteAdminList(ULONG cbCompanyId,
-    LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers)
+    const ENTRYID *lpCompanyId, ULONG ulFlags, ULONG *lpcUsers,
+    ECUSER **lppsUsers)
 {
 	return lpTransport->HrGetRemoteAdminList(cbCompanyId, lpCompanyId, ulFlags, lpcUsers, lppsUsers);
 }
 
-HRESULT ECMsgStore::SyncUsers(ULONG cbCompanyId, LPENTRYID lpCompanyId)
+HRESULT ECMsgStore::SyncUsers(ULONG cbCompanyId, const ENTRYID *lpCompanyId)
 {
 	return lpTransport->HrSyncUsers(cbCompanyId, lpCompanyId);
 }
 
-HRESULT ECMsgStore::GetQuota(ULONG cbUserId, LPENTRYID lpUserId,
+HRESULT ECMsgStore::GetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
     bool bGetUserDefault, ECQUOTA **lppsQuota)
 {
 	return lpTransport->GetQuota(cbUserId, lpUserId, bGetUserDefault, lppsQuota);
 }
 
-HRESULT ECMsgStore::SetQuota(ULONG cbUserId, LPENTRYID lpUserId,
+HRESULT ECMsgStore::SetQuota(ULONG cbUserId, const ENTRYID *lpUserId,
     ECQUOTA *lpsQuota)
 {
 	return lpTransport->SetQuota(cbUserId, lpUserId, lpsQuota);
 }
 
-HRESULT ECMsgStore::AddQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG cbRecipientId, LPENTRYID lpRecipientId, ULONG ulType)
+HRESULT ECMsgStore::AddQuotaRecipient(ULONG cbCompanyId,
+    const ENTRYID *lpCompanyId, ULONG cbRecipientId,
+    const ENTRYID *lpRecipientId, ULONG ulType)
 {
 	return lpTransport->AddQuotaRecipient(cbCompanyId, lpCompanyId, cbRecipientId, lpRecipientId, ulType);
 }
 
-HRESULT ECMsgStore::DeleteQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCmopanyId, ULONG cbRecipientId, LPENTRYID lpRecipientId, ULONG ulType)
+HRESULT ECMsgStore::DeleteQuotaRecipient(ULONG cbCompanyId,
+    const ENTRYID *lpCmopanyId, ULONG cbRecipientId,
+    const ENTRYID *lpRecipientId, ULONG ulType)
 {
 	return lpTransport->DeleteQuotaRecipient(cbCompanyId, lpCmopanyId, cbRecipientId, lpRecipientId, ulType);
 }
 
-HRESULT ECMsgStore::GetQuotaRecipients(ULONG cbUserId, LPENTRYID lpUserId,
+HRESULT ECMsgStore::GetQuotaRecipients(ULONG cbUserId, const ENTRYID *lpUserId,
     ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers)
 {
 	return lpTransport->GetQuotaRecipients(cbUserId, lpUserId, ulFlags, lpcUsers, lppsUsers);
 }
 
-HRESULT ECMsgStore::GetQuotaStatus(ULONG cbUserId, LPENTRYID lpUserId,
+HRESULT ECMsgStore::GetQuotaStatus(ULONG cbUserId, const ENTRYID *lpUserId,
     ECQUOTASTATUS **lppsQuotaStatus)
 {
 	return lpTransport->GetQuotaStatus(cbUserId, lpUserId, lppsQuotaStatus);
@@ -2382,7 +2402,8 @@ HRESULT ECMsgStore::GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszSer
 	return lpSupport->WrapStoreEntryID(cbStoreID, ptrStoreID, lpcbStoreID, lppStoreID);
 }
 
-HRESULT ECMsgStore::ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates)
+HRESULT ECMsgStore::ResetFolderCount(ULONG cbEntryId, const ENTRYID *lpEntryId,
+    ULONG *lpulUpdates)
 {
 	return lpTransport->HrResetFolderCount(cbEntryId, lpEntryId, lpulUpdates);
 }

@@ -152,9 +152,10 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 //  all the msgstore objects, we also release the support object.
 //
 HRESULT CreateMsgStoreObject(const char *lpszProfname, IMAPISupport *lpMAPISup,
-    ULONG cbEntryID, ENTRYID *lpEntryID, ULONG ulMsgFlags, ULONG ulProfileFlags,
-    WSTransport *lpTransport, const MAPIUID *lpguidMDBProvider, BOOL bSpooler,
-    BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
+    ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulMsgFlags,
+    ULONG ulProfileFlags, WSTransport *lpTransport,
+    const MAPIUID *lpguidMDBProvider, BOOL bSpooler, BOOL fIsDefaultStore,
+    BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
 {
 	HRESULT	hr = hrSuccess;
 	object_ptr<ECMsgStore> lpMsgStore;

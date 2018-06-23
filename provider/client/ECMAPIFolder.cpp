@@ -338,7 +338,9 @@ HRESULT ECMAPIFolder::CreateMessage(LPCIID lpInterface, ULONG ulFlags, LPMESSAGE
     return CreateMessageWithEntryID(lpInterface, ulFlags, 0, NULL, lppMessage);
 }
 
-HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, LPMESSAGE *lppMessage)
+HRESULT ECMAPIFolder::CreateMessageWithEntryID(const IID *lpInterface,
+    ULONG ulFlags, ULONG cbEntryID, const ENTRYID *lpEntryID,
+    IMessage **lppMessage)
 {
 	object_ptr<ECMessage> lpMessage;
 	ecmem_ptr<MAPIUID> lpMapiUID;
@@ -747,7 +749,9 @@ HRESULT ECMAPIFolder::GetSupportMask(DWORD * pdwSupportMask)
 	return hrSuccess;
 }
 
-HRESULT ECMAPIFolder::CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, WSMessageStreamImporter **lppsStreamImporter)
+HRESULT ECMAPIFolder::CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId,
+    ULONG cbEntryID, const ENTRYID *lpEntryID,
+    WSMessageStreamImporter **lppsStreamImporter)
 {
 	WSMessageStreamImporterPtr	ptrStreamImporter;
 	auto hr = GetMsgStore()->lpTransport->HrGetMessageStreamImporter(ulFlags,
@@ -760,12 +764,15 @@ HRESULT ECMAPIFolder::CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId, ULO
 	return hrSuccess;
 }
 
-HRESULT ECMAPIFolder::GetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue *lppPropPCL, LPSPropValue *lppPropCK)
+HRESULT ECMAPIFolder::GetChangeInfo(ULONG cbEntryID, const ENTRYID *lpEntryID,
+    SPropValue **lppPropPCL, SPropValue **lppPropCK)
 {
 	return lpFolderOps->HrGetChangeInfo(cbEntryID, lpEntryID, lppPropPCL, lppPropCK);
 }
 
-HRESULT ECMAPIFolder::UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppsStreamImporter)
+HRESULT ECMAPIFolder::UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID,
+    const ENTRYID *lpEntryID, const SPropValue *lpConflictItems,
+    WSMessageStreamImporter **lppsStreamImporter)
 {
 	WSMessageStreamImporterPtr	ptrStreamImporter;
 	auto hr = GetMsgStore()->lpTransport->HrGetMessageStreamImporter(0,

@@ -762,7 +762,9 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValu
 	return hrSuccess;
 }
 
-HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG cValue, LPSPropValue lpPropArray, WSMessageStreamImporter **lppMessageImporter)
+HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEntryId,
+    const ENTRYID *lpEntryId, ULONG cValue, const SPropValue *lpPropArray,
+    WSMessageStreamImporter **lppMessageImporter)
 {
 	if (lpEntryId == nullptr || lpPropArray == nullptr ||
 	    lppMessageImporter == nullptr)
