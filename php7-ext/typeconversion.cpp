@@ -142,7 +142,8 @@ HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray
 	return MAPI_G(hr);
 }
 
-HRESULT SBinaryArraytoPHPArray(SBinaryArray *lpBinaryArray, zval *pvalRet TSRMLS_DC)
+HRESULT SBinaryArraytoPHPArray(const SBinaryArray *lpBinaryArray,
+    zval *pvalRet TSRMLS_DC)
 {
 	unsigned int i = 0;
 	
@@ -1355,7 +1356,9 @@ exit:
 	return MAPI_G(hr);
 }
 
-HRESULT SRestrictiontoPHPArray(LPSRestriction lpRes, int level, zval *ret TSRMLS_DC) {
+HRESULT SRestrictiontoPHPArray(const SRestriction *lpRes, int level,
+    zval *ret TSRMLS_DC)
+{
 	zval entry;
 	char key[16];
 	zval array;
@@ -1530,8 +1533,8 @@ HRESULT SRestrictiontoPHPArray(LPSRestriction lpRes, int level, zval *ret TSRMLS
 * Function to conver a PropTagArray to a PHP Array
 *
 */
-
-HRESULT PropTagArraytoPHPArray(ULONG cValues, LPSPropTagArray lpPropTagArray, zval *zvalRet TSRMLS_DC)
+HRESULT PropTagArraytoPHPArray(ULONG cValues,
+    const SPropTagArray *lpPropTagArray, zval *zvalRet TSRMLS_DC)
 {
 	unsigned int i = 0;
 	
@@ -1550,18 +1553,19 @@ HRESULT PropTagArraytoPHPArray(ULONG cValues, LPSPropTagArray lpPropTagArray, zv
 *
 *
 */
-HRESULT PropValueArraytoPHPArray(ULONG cValues, LPSPropValue pPropValueArray, zval *zval_prop_value TSRMLS_DC)
+HRESULT PropValueArraytoPHPArray(ULONG cValues,
+    const SPropValue *pPropValueArray, zval *zval_prop_value TSRMLS_DC)
 {
 	// local
 	zval zval_mvprop_value;	// mvprops converts
 	zval zval_action_array;	// action converts
 	zval zval_action_value;	// action converts
 	zval zval_alist_value;	// adrlist in action convert
-	LPSPropValue pPropValue;
+	const SPropValue *pPropValue;
 	ULONG col, j;
 	char ulKey[16];
 	ACTIONS *lpActions = NULL;
-	LPSRestriction lpRestriction = NULL;
+	const SRestriction *lpRestriction = nullptr;
 	convert_context converter;
 
 	MAPI_G(hr) = hrSuccess;
@@ -1819,7 +1823,8 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues, LPSPropValue pPropValueArray, zv
 	return MAPI_G(hr);
 }
 
-HRESULT RowSettoPHPArray(LPSRowSet lpRowSet, zval *ret TSRMLS_DC) {
+HRESULT RowSettoPHPArray(const SRowSet *lpRowSet, zval *ret TSRMLS_DC)
+{
 	zval	zval_prop_value;
 	ULONG	crow	= 0;
 	
@@ -1839,7 +1844,8 @@ HRESULT RowSettoPHPArray(LPSRowSet lpRowSet, zval *ret TSRMLS_DC) {
 /*
  * Convert from READSTATE array to PHP. Returns a list of arrays, each containing "sourcekey" and "flags" per entry
  */
-HRESULT ReadStateArraytoPHPArray(ULONG cValues, LPREADSTATE lpReadStates, zval *pvalRet TSRMLS_DC)
+HRESULT ReadStateArraytoPHPArray(ULONG cValues, const READSTATE *lpReadStates,
+    zval *pvalRet TSRMLS_DC)
 {
 	unsigned int i=0;
 	
@@ -1985,7 +1991,8 @@ exit:
 	return MAPI_G(hr);
 }
 
-HRESULT NotificationstoPHPArray(ULONG cNotifs, LPNOTIFICATION lpNotifs, zval *zvalRet TSRMLS_DC)
+HRESULT NotificationstoPHPArray(ULONG cNotifs, const NOTIFICATION *lpNotifs,
+    zval *zvalRet TSRMLS_DC)
 {
 	zval zvalProps;
 	unsigned int i = 0;

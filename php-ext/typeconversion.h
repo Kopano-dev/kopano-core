@@ -63,12 +63,12 @@ extern HRESULT PHPArraytoDeliveryOptions(zval *, KC::delivery_options *);
  * All functions return a newly allocated ZVAL structure which must be FREE_ZVAL()'ed by the caller.
  */
  
-HRESULT			SBinaryArraytoPHPArray(SBinaryArray *lpBinaryArray, zval **ret TSRMLS_DC);
-HRESULT			PropTagArraytoPHPArray(ULONG cValues, LPSPropTagArray lpPropTagArray, zval **ret TSRMLS_DC);
-HRESULT			PropValueArraytoPHPArray(ULONG cValues, LPSPropValue pPropValueArray, zval **ret TSRMLS_DC);
-HRESULT 		SRestrictiontoPHPArray(LPSRestriction lpRes, int level, zval **ret TSRMLS_DC);
-HRESULT			RowSettoPHPArray(LPSRowSet lpRowSet, zval **ret TSRMLS_DC);
-HRESULT 		ReadStateArraytoPHPArray(ULONG cValues, LPREADSTATE lpReadStates, zval **ret TSRMLS_DC);
-HRESULT			NotificationstoPHPArray(ULONG cNotifs, LPNOTIFICATION lpNotifs, zval **ret TSRMLS_DC);
+extern HRESULT SBinaryArraytoPHPArray(const SBinaryArray *, zval **ret TSRMLS_DC);
+extern HRESULT PropTagArraytoPHPArray(ULONG nvals, const SPropTagArray *, zval **ret TSRMLS_DC);
+extern HRESULT PropValueArraytoPHPArray(ULONG nvals, const SPropValue *, zval **ret TSRMLS_DC);
+extern HRESULT SRestrictiontoPHPArray(const SRestriction *, int level, zval **ret TSRMLS_DC);
+extern HRESULT RowSettoPHPArray(const SRowSet *, zval **ret TSRMLS_DC);
+extern HRESULT ReadStateArraytoPHPArray(ULONG nvals, const READSTATE *, zval **ret TSRMLS_DC);
+extern HRESULT NotificationstoPHPArray(ULONG nvals, const NOTIFICATION *, zval **ret TSRMLS_DC);
 
 #endif
