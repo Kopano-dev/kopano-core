@@ -30,7 +30,7 @@ class file_deleter {
 };
 
 extern _kc_export HRESULT HrFileLFtoCRLF(FILE *fin, FILE **fout);
-extern _kc_export HRESULT HrMapFileToString(FILE *f, std::string *buf, int *size = nullptr);
+extern _kc_export HRESULT HrMapFileToString(FILE *f, std::string *buf);
 extern _kc_export bool DuplicateFile(FILE *, std::string &newname);
 
 } /* namespace */

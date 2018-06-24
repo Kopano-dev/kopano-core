@@ -193,7 +193,7 @@ static int oof_set(IMsgStore *store)
 			return MAPI_E_CALL_FAILED;
 		}
 		std::string msg;
-		auto ret = HrMapFileToString(fp.get(), &msg, nullptr);
+		auto ret = HrMapFileToString(fp.get(), &msg);
 		if (ret != hrSuccess)
 			return kc_perror("HrMapFileToString", ret);
 		pv.set(c++, PR_EC_OUTOFOFFICE, convert_to<std::wstring>(msg));
