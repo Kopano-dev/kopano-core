@@ -179,6 +179,36 @@ HRESULT Http::HrReadHeaders()
 	return hr;
 }
 
+/* deduplicate in master */
+static std::string fix_content_type_charset(const char *in, const char *dfl)
+{
+	const char *cset = dfl, *cset_end = dfl + strlen(dfl);
+
+	while (!isspace(*in) && *in != '\0')	/* skip type */
+		++in;
+	while (*in != '\0') {
+		while (isspace(*in))
+			++in; /* skip possible whitespace before ';' */
+		if (*in == ';') {
+			++in;
+			while (isspace(*in))	/* skip WS after ';' */
+				++in;
+		}
+		if (strncasecmp(in, "charset=", 8) == 0) {
+			in += 8;
+			cset = in;
+			while (!isspace(*in) && *in != ';' && *in != '\0')
+				++in;	/* skip value */
+			cset_end = in;
+			continue;
+			/* continue parsing for more charset= values */
+		}
+		while (!isspace(*in) && *in != ';' && *in != '\0')
+			++in;
+	}
+	return std::string(cset, cset_end - cset);
+}
+
 /**
  * Parse the http headers
  * @return	HRESULT
@@ -210,8 +240,8 @@ HRESULT Http::HrParseHeaders()
 	// find the content-type
 	// Content-Type: text/xml;charset=UTF-8
 	hr = HrGetHeaderValue("Content-Type", &m_strCharSet);
-	if (hr == hrSuccess && m_strCharSet.find("charset") != std::string::npos)
-		m_strCharSet = m_strCharSet.substr(m_strCharSet.find("charset")+ strlen("charset") + 1, m_strCharSet.length());
+	if (hr == hrSuccess)
+		m_strCharSet = fix_content_type_charset(m_strCharSet.c_str(), m_lpConfig->GetSetting("default_charset"));
 	else
 		m_strCharSet = m_lpConfig->GetSetting("default_charset"); // really should be UTF-8
 
