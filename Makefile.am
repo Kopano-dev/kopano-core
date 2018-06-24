@@ -629,7 +629,7 @@ libkcutil_la_SOURCES = \
 	common/IStreamAdapter.cpp common/MAPIErrors.cpp common/SSLUtil.cpp \
 	common/StatsClient.cpp common/SymmetricCrypt.cpp common/TimeUtil.cpp \
 	common/TmpPath.cpp common/UnixUtil.cpp \
-	common/codepage.cpp common/fileutil.cpp common/kcodes.cpp \
+	common/codepage.cpp common/fileutil.cpp \
 	common/my_getopt.cpp common/platform.cpp \
 	common/platform.linux.cpp common/rtfutil.cpp common/stringutil.cpp \
 	common/ustringutil.cpp common/charset/convert.cpp \
