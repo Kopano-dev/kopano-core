@@ -373,9 +373,8 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	    PROP_TYPE(ulPropTag) != PT_UNICODE)
 		return MAPI_E_NOT_FOUND;
 
-	ECMemStream *lpStream = NULL;
+	object_ptr<ECMemStream> lpStream;
 	ecmem_ptr<SPropValue> lpsPropValue;
-	STREAMDATA *lpStreamData = NULL;
 
 	if (*lpiid == IID_IStream && !m_props_loaded &&
 	    PROP_TYPE(ulPropTag) == PT_BINARY && !(ulFlags & MAPI_MODIFY) &&
@@ -384,17 +383,20 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		// calendar loading time with large recursive entries in outlook XP.
 	    // If HrLoadProp failed, just fallback to the 'normal' way of loading properties.
 	    lpStorage->HrLoadProp(0, ulPropTag, &~lpsPropValue) == erSuccess) {
-		lpStreamData = new STREAMDATA; // is freed by HrStreamCleanup, called by ECMemStream on refcount == 0
+		/* is freed by HrStreamCleanup, called by ECMemStream on refcount == 0 */
+		std::unique_ptr<STREAMDATA> lpStreamData(new(std::nothrow) STREAMDATA);
+		if (lpStreamData == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		lpStreamData->ulPropTag = ulPropTag;
 		lpStreamData->lpProp = this;
 		auto hr = ECMemStream::Create(reinterpret_cast<char *>(lpsPropValue->Value.bin.lpb),
 		          lpsPropValue->Value.bin.cb, ulInterfaceOptions,
-		          nullptr, ECMAPIProp::HrStreamCleanup, lpStreamData, &lpStream);
+		          nullptr, ECMAPIProp::HrStreamCleanup, lpStreamData.get(), &~lpStream);
 		if (hr != hrSuccess)
 			return hr;
+		lpStreamData.release();
 		lpStream->QueryInterface(IID_IStream, (void **)lppUnk);
 		AddChild(lpStream);
-		lpStream->Release();
 		return hr;
 	}
 	if (ulFlags & MAPI_MODIFY)
@@ -431,49 +433,50 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		// Promote warnings from GetProps to error
 		return MAPI_E_NOT_FOUND;
 
-	lpStreamData = new STREAMDATA; // is freed by HrStreamCleanup, called by ECMemStream on refcount == 0
+	/* is freed by HrStreamCleanup, called by ECMemStream on refcount == 0 */
+	std::unique_ptr<STREAMDATA> lpStreamData(new(std::nothrow) STREAMDATA);
+	if (lpStreamData == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	lpStreamData->ulPropTag = ulPropTag;
 	lpStreamData->lpProp = this;
 
 	if (ulFlags & MAPI_CREATE) {
 		hr = ECMemStream::Create(NULL, 0, ulInterfaceOptions,
-		     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, lpStreamData, &lpStream);
+		     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, lpStreamData.get(), &~lpStream);
 	} else {
 		switch (PROP_TYPE(lpsPropValue->ulPropTag)) {
 		case PT_STRING8:
 			hr = ECMemStream::Create(lpsPropValue->Value.lpszA, strlen(lpsPropValue->Value.lpszA), ulInterfaceOptions,
-			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, lpStreamData, &lpStream);
+			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup,
+			     lpStreamData.get(), &~lpStream);
 			break;
 		case PT_UNICODE:
 			hr = ECMemStream::Create((char*)lpsPropValue->Value.lpszW, wcslen(lpsPropValue->Value.lpszW)*sizeof(WCHAR), ulInterfaceOptions,
-			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, lpStreamData, &lpStream);
+			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup,
+			     lpStreamData.get(), &~lpStream);
 			break;
 		case PT_BINARY:
 			hr = ECMemStream::Create((char *)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb, ulInterfaceOptions,
-			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, lpStreamData, &lpStream);
+			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup,
+			     lpStreamData.get(), &~lpStream);
 			break;
 		default:
 			assert(false);
 			hr = MAPI_E_NOT_FOUND;
-			delete lpStreamData;
 			break;
 		}
 	}
 	if (hr != hrSuccess)
 		return hr;
-	if (*lpiid == IID_IStorage) { //*lpiid == IID_IStreamDocfile ||
+	lpStreamData.release();
+	if (*lpiid == IID_IStorage) //*lpiid == IID_IStreamDocfile ||
 		//FIXME: Unknown what to do with flag STGSTRM_CURRENT
 		hr = GetMsgStore()->lpSupport->IStorageFromStream(lpStream, nullptr,
 		     ((ulFlags & MAPI_MODIFY) ? STGSTRM_MODIFY : 0) |
 		     ((ulFlags & MAPI_CREATE) ? STGSTRM_CREATE : 0),
 		     reinterpret_cast<IStorage **>(lppUnk));
-		if (hr != hrSuccess)
-			return hr;
-	} else
+	else
 		hr = lpStream->QueryInterface(*lpiid, (void **)lppUnk);
-
-	// Release our copy
-	lpStream->Release();
 	if(hr != hrSuccess)
 		return hr;
 	AddChild(lpStream);
