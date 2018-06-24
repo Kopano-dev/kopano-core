@@ -21,6 +21,7 @@
 #include <kopano/charset/convert.h>
 
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <cassert>
@@ -39,16 +40,11 @@ namespace KC {
  */
 class converter _kc_final {
 	public:
-	/**
-	 * Get the global converter instance.
-	 * @return	The global converter instance.
-	 */
-	static converter *getInstance() {
+	static std::unique_ptr<converter> &getInstance()
+	{
 		scoped_lock locker(s_hInstanceLock);
-		if (!s_lpInstance) {
-			s_lpInstance = new converter;
-			atexit(&destroy);
-		}
+		if (s_lpInstance == nullptr)
+			s_lpInstance.reset(new converter);
 		return s_lpInstance;
 	}
 
@@ -69,13 +65,7 @@ class converter _kc_final {
 	}
 
 	private:
-	static void destroy() {
-		assert(s_lpInstance);
-		delete s_lpInstance;
-		s_lpInstance = NULL;
-	}
-
-	static converter		*s_lpInstance;
+	static std::unique_ptr<converter> s_lpInstance;
 	static std::mutex s_hInstanceLock;
 
 	typedef std::map<const char *, std::wstring>	cache_type;
@@ -85,7 +75,7 @@ class converter _kc_final {
 };
 
 std::mutex converter::s_hInstanceLock;
-converter *converter::s_lpInstance;
+std::unique_ptr<converter> converter::s_lpInstance;
 
 /**
  * Performs a 'regular' gettext and converts the result to a wide character string.
