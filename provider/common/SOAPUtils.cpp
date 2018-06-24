@@ -310,34 +310,23 @@ static ECRESULT PropCheck(const struct propVal *lpProp)
 	case PT_STRING8:
 		if(lpProp->__union != SOAP_UNION_propValData_lpszA)
 			er = KCERR_INVALID_PARAMETER;
-		else {
-			if(lpProp->Value.lpszA == NULL)
-				er = KCERR_INVALID_PARAMETER;
-			else
-				er = erSuccess;
-		}
+		else if (lpProp->Value.lpszA == nullptr)
+			er = KCERR_INVALID_PARAMETER;
+		else
+			er = erSuccess;
 		break;
 	case PT_BINARY:
 		if(lpProp->__union != SOAP_UNION_propValData_bin)
 			er = KCERR_INVALID_PARAMETER;
-		else {
-			if(lpProp->Value.bin->__size > 0)
-			{
-				if(lpProp->Value.bin->__ptr == NULL)
-					er = KCERR_INVALID_PARAMETER;
-			}
-		}
+		else if (lpProp->Value.bin->__size > 0 && lpProp->Value.bin->__ptr == nullptr)
+			er = KCERR_INVALID_PARAMETER;
 		break;
 	case PT_CLSID:
 		if(lpProp->__union != SOAP_UNION_propValData_bin)
 			er = KCERR_INVALID_PARAMETER;
-		else {
-			if(lpProp->Value.bin->__size > 0)
-			{
-				if(lpProp->Value.bin->__ptr == NULL || (lpProp->Value.bin->__size%sizeof(GUID)) != 0)
-					er = KCERR_INVALID_PARAMETER;
-			}
-		}
+		else if (lpProp->Value.bin->__size > 0 &&
+		    (lpProp->Value.bin->__ptr == nullptr || lpProp->Value.bin->__size % sizeof(GUID) != 0))
+			er = KCERR_INVALID_PARAMETER;
 		break;
 
 		// TODO: check __ptr pointers?
@@ -518,13 +507,12 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 		break;
 	case PT_UNICODE:
 	case PT_STRING8:
-		if (lpProp1->Value.lpszA && lpProp2->Value.lpszA)
-			if(PROP_ID(lpProp2->ulPropTag) == PROP_ID(PR_ANR))
-				nCompareResult = u8_istartswith(lpProp1->Value.lpszA, lpProp2->Value.lpszA, locale);
-			else
-				nCompareResult = u8_icompare(lpProp1->Value.lpszA, lpProp2->Value.lpszA, locale);
-		else
+		if (lpProp1->Value.lpszA == nullptr || lpProp2->Value.lpszA == nullptr)
 			nCompareResult = lpProp1->Value.lpszA != lpProp2->Value.lpszA;
+		else if (PROP_ID(lpProp2->ulPropTag) == PROP_ID(PR_ANR))
+			nCompareResult = u8_istartswith(lpProp1->Value.lpszA, lpProp2->Value.lpszA, locale);
+		else
+			nCompareResult = u8_icompare(lpProp1->Value.lpszA, lpProp2->Value.lpszA, locale);
 		break;
 	case PT_SYSTIME:
 	case PT_CURRENCY:
@@ -546,127 +534,129 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 		break;
 
 	case PT_MV_I2:
-		if (lpProp1->Value.mvi.__size == lpProp2->Value.mvi.__size) {
-			for (gsoap_size_t i = 0; i < lpProp1->Value.mvi.__size; ++i) {
-				nCompareResult = twcmp(lpProp1->Value.mvi.__ptr[i], lpProp2->Value.mvi.__ptr[i]);
-				if(nCompareResult != 0)
-					break;
-			}
-		} else
+		if (lpProp1->Value.mvi.__size != lpProp2->Value.mvi.__size) {
 			nCompareResult = twcmp(lpProp1->Value.mvi.__size, lpProp2->Value.mvi.__size);
+			break;
+		}
+		for (gsoap_size_t i = 0; i < lpProp1->Value.mvi.__size; ++i) {
+			nCompareResult = twcmp(lpProp1->Value.mvi.__ptr[i], lpProp2->Value.mvi.__ptr[i]);
+			if (nCompareResult != 0)
+				break;
+		}
 		break;
 	case PT_MV_LONG:
-		if (lpProp1->Value.mvl.__size == lpProp2->Value.mvl.__size) {
-			for (gsoap_size_t i = 0; i < lpProp1->Value.mvl.__size; ++i) {
-				if(lpProp1->Value.mvl.__ptr[i] == lpProp2->Value.mvl.__ptr[i])
-                    nCompareResult = 0;
-				else if(lpProp1->Value.mvl.__ptr[i] < lpProp2->Value.mvl.__ptr[i])
-					nCompareResult = -1;
-				else
-					nCompareResult = 1;
-
-				if(nCompareResult != 0)
-					break;
-			}
-		} else
+		if (lpProp1->Value.mvl.__size != lpProp2->Value.mvl.__size) {
 			nCompareResult = twcmp(lpProp1->Value.mvl.__size, lpProp2->Value.mvl.__size);
+			break;
+		}
+		for (gsoap_size_t i = 0; i < lpProp1->Value.mvl.__size; ++i) {
+			if (lpProp1->Value.mvl.__ptr[i] == lpProp2->Value.mvl.__ptr[i])
+				nCompareResult = 0;
+			else if (lpProp1->Value.mvl.__ptr[i] < lpProp2->Value.mvl.__ptr[i])
+				nCompareResult = -1;
+			else
+				nCompareResult = 1;
+			if (nCompareResult != 0)
+				break;
+		}
 		break;
 	case PT_MV_R4:
-		if (lpProp1->Value.mvflt.__size == lpProp2->Value.mvflt.__size) {
-			for (gsoap_size_t i = 0; i < lpProp1->Value.mvflt.__size; ++i) {
-				if(lpProp1->Value.mvflt.__ptr[i] == lpProp2->Value.mvflt.__ptr[i])
-					nCompareResult = 0;
-				else if(lpProp1->Value.mvflt.__ptr[i] < lpProp2->Value.mvflt.__ptr[i])
-					nCompareResult = -1;
-				else
-					nCompareResult = 1;
-
-				if(nCompareResult != 0)
-					break;
-			}
-		} else
+		if (lpProp1->Value.mvflt.__size != lpProp2->Value.mvflt.__size) {
 			nCompareResult = twcmp(lpProp1->Value.mvflt.__size, lpProp2->Value.mvflt.__size);
+			break;
+		}
+		for (gsoap_size_t i = 0; i < lpProp1->Value.mvflt.__size; ++i) {
+			if (lpProp1->Value.mvflt.__ptr[i] == lpProp2->Value.mvflt.__ptr[i])
+				nCompareResult = 0;
+			else if (lpProp1->Value.mvflt.__ptr[i] < lpProp2->Value.mvflt.__ptr[i])
+				nCompareResult = -1;
+			else
+				nCompareResult = 1;
+			if (nCompareResult != 0)
+				break;
+		}
 		break;
 	case PT_MV_DOUBLE:
 	case PT_MV_APPTIME:
-		if (lpProp1->Value.mvdbl.__size == lpProp2->Value.mvdbl.__size) {
-			for (gsoap_size_t i = 0; i < lpProp1->Value.mvdbl.__size; ++i) {
-				if(lpProp1->Value.mvdbl.__ptr[i] == lpProp2->Value.mvdbl.__ptr[i])
-					nCompareResult = 0;
-				else if(lpProp1->Value.mvdbl.__ptr[i] < lpProp2->Value.mvdbl.__ptr[i])
-					nCompareResult = -1;
-				else
-					nCompareResult = 1;
-
-				if(nCompareResult != 0)
-					break;
-			}
-		} else
+		if (lpProp1->Value.mvdbl.__size != lpProp2->Value.mvdbl.__size) {
 			nCompareResult = twcmp(lpProp1->Value.mvdbl.__size, lpProp2->Value.mvdbl.__size);
+			break;
+		}
+		for (gsoap_size_t i = 0; i < lpProp1->Value.mvdbl.__size; ++i) {
+			if (lpProp1->Value.mvdbl.__ptr[i] == lpProp2->Value.mvdbl.__ptr[i])
+				nCompareResult = 0;
+			else if (lpProp1->Value.mvdbl.__ptr[i] < lpProp2->Value.mvdbl.__ptr[i])
+				nCompareResult = -1;
+			else
+				nCompareResult = 1;
+			if (nCompareResult != 0)
+				break;
+		}
 		break;
 	case PT_MV_I8:
-		if (lpProp1->Value.mvli.__size == lpProp2->Value.mvli.__size) {
-			for (gsoap_size_t i = 0; i < lpProp1->Value.mvli.__size; ++i) {
-				if(lpProp1->Value.mvli.__ptr[i] == lpProp2->Value.mvli.__ptr[i])
-					nCompareResult = 0;
-				else if(lpProp1->Value.mvli.__ptr[i] < lpProp2->Value.mvli.__ptr[i])
-					nCompareResult = -1;
-				else
-					nCompareResult = 1;
-				if(nCompareResult != 0)
-					break;
-			}
-		} else
+		if (lpProp1->Value.mvli.__size != lpProp2->Value.mvli.__size) {
 			nCompareResult = twcmp(lpProp1->Value.mvli.__size, lpProp2->Value.mvli.__size);
+			break;
+		}
+		for (gsoap_size_t i = 0; i < lpProp1->Value.mvli.__size; ++i) {
+			if (lpProp1->Value.mvli.__ptr[i] == lpProp2->Value.mvli.__ptr[i])
+				nCompareResult = 0;
+			else if (lpProp1->Value.mvli.__ptr[i] < lpProp2->Value.mvli.__ptr[i])
+				nCompareResult = -1;
+			else
+				nCompareResult = 1;
+			if (nCompareResult != 0)
+				break;
+		}
 		break;
 	case PT_MV_SYSTIME:
 	case PT_MV_CURRENCY:
-		if (lpProp1->Value.mvhilo.__size == lpProp2->Value.mvhilo.__size) {
-			for (gsoap_size_t i = 0; i < lpProp1->Value.mvhilo.__size; ++i) {
-				if(lpProp1->Value.mvhilo.__ptr[i].hi == lpProp2->Value.mvhilo.__ptr[i].hi && lpProp1->Value.mvhilo.__ptr[i].lo < lpProp2->Value.mvhilo.__ptr[i].lo)
-					nCompareResult = -1;
-				else if(lpProp1->Value.mvhilo.__ptr[i].hi == lpProp2->Value.mvhilo.__ptr[i].hi && lpProp1->Value.mvhilo.__ptr[i].lo > lpProp2->Value.mvhilo.__ptr[i].lo)
-					nCompareResult = 1;
-				else
-					nCompareResult = twcmp(lpProp1->Value.mvhilo.__ptr[i].hi, lpProp2->Value.mvhilo.__ptr[i].hi);
-
-				if(nCompareResult != 0)
-					break;
-			}
-		} else
+		if (lpProp1->Value.mvhilo.__size != lpProp2->Value.mvhilo.__size) {
 			nCompareResult = lpProp1->Value.mvhilo.__size == lpProp2->Value.mvhilo.__size;
+			break;
+		}
+		for (gsoap_size_t i = 0; i < lpProp1->Value.mvhilo.__size; ++i) {
+			if (lpProp1->Value.mvhilo.__ptr[i].hi == lpProp2->Value.mvhilo.__ptr[i].hi && lpProp1->Value.mvhilo.__ptr[i].lo < lpProp2->Value.mvhilo.__ptr[i].lo)
+				nCompareResult = -1;
+			else if (lpProp1->Value.mvhilo.__ptr[i].hi == lpProp2->Value.mvhilo.__ptr[i].hi && lpProp1->Value.mvhilo.__ptr[i].lo > lpProp2->Value.mvhilo.__ptr[i].lo)
+				nCompareResult = 1;
+			else
+				nCompareResult = twcmp(lpProp1->Value.mvhilo.__ptr[i].hi, lpProp2->Value.mvhilo.__ptr[i].hi);
+			if (nCompareResult != 0)
+				break;
+		}
 		break;
 	case PT_MV_CLSID:
 	case PT_MV_BINARY:
-		if (lpProp1->Value.mvbin.__size == lpProp2->Value.mvbin.__size) {
-			for (gsoap_size_t i = 0; i < lpProp1->Value.mvbin.__size; ++i) {
-				if(lpProp1->Value.mvbin.__ptr[i].__ptr && lpProp2->Value.mvbin.__ptr[i].__ptr &&
-				   lpProp1->Value.mvbin.__ptr[i].__size && lpProp2->Value.mvbin.__ptr[i].__size &&
-				   lpProp1->Value.mvbin.__ptr[i].__size == lpProp2->Value.mvbin.__ptr[i].__size)
-					nCompareResult = memcmp(lpProp1->Value.mvbin.__ptr[i].__ptr, lpProp2->Value.mvbin.__ptr[i].__ptr, lpProp1->Value.mvbin.__ptr[i].__size);
-				else
-					nCompareResult = twcmp(lpProp1->Value.mvbin.__ptr[i].__size, lpProp2->Value.mvbin.__ptr[i].__size);
-
-				if(nCompareResult != 0)
-					break;
-			}
-		} else
+		if (lpProp1->Value.mvbin.__size != lpProp2->Value.mvbin.__size) {
 			nCompareResult = twcmp(lpProp1->Value.mvbin.__size, lpProp2->Value.mvbin.__size);
+			break;
+		}
+		for (gsoap_size_t i = 0; i < lpProp1->Value.mvbin.__size; ++i) {
+			if (lpProp1->Value.mvbin.__ptr[i].__ptr && lpProp2->Value.mvbin.__ptr[i].__ptr &&
+			    lpProp1->Value.mvbin.__ptr[i].__size && lpProp2->Value.mvbin.__ptr[i].__size &&
+			    lpProp1->Value.mvbin.__ptr[i].__size == lpProp2->Value.mvbin.__ptr[i].__size)
+				nCompareResult = memcmp(lpProp1->Value.mvbin.__ptr[i].__ptr, lpProp2->Value.mvbin.__ptr[i].__ptr, lpProp1->Value.mvbin.__ptr[i].__size);
+			else
+				nCompareResult = twcmp(lpProp1->Value.mvbin.__ptr[i].__size, lpProp2->Value.mvbin.__ptr[i].__size);
+			if (nCompareResult != 0)
+				break;
+		}
 		break;
 	case PT_MV_STRING8:
 	case PT_MV_UNICODE:
-		if (lpProp1->Value.mvszA.__size == lpProp2->Value.mvszA.__size) {
-			for (gsoap_size_t i = 0; i < lpProp1->Value.mvszA.__size; ++i) {
-				if (lpProp1->Value.mvszA.__ptr[i] && lpProp2->Value.mvszA.__ptr[i])
-					nCompareResult =u8_icompare(lpProp1->Value.mvszA.__ptr[i], lpProp2->Value.mvszA.__ptr[i], locale);
-				else
-					nCompareResult = lpProp1->Value.mvszA.__ptr[i] != lpProp2->Value.mvszA.__ptr[i];
-
-				if(nCompareResult != 0)
-					break;
-			}
-		} else
+		if (lpProp1->Value.mvszA.__size != lpProp2->Value.mvszA.__size) {
 			nCompareResult = twcmp(lpProp1->Value.mvszA.__size, lpProp2->Value.mvszA.__size);
+			break;
+		}
+		for (gsoap_size_t i = 0; i < lpProp1->Value.mvszA.__size; ++i) {
+			if (lpProp1->Value.mvszA.__ptr[i] && lpProp2->Value.mvszA.__ptr[i])
+				nCompareResult =u8_icompare(lpProp1->Value.mvszA.__ptr[i], lpProp2->Value.mvszA.__ptr[i], locale);
+			else
+				nCompareResult = lpProp1->Value.mvszA.__ptr[i] != lpProp2->Value.mvszA.__ptr[i];
+			if (nCompareResult != 0)
+				break;
+		}
 		break;
 	default:
 		return KCERR_INVALID_PARAMETER;
@@ -815,10 +805,10 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		break;
 	case PT_CLSID:
 	case PT_BINARY:
-		if (lpProp->Value.bin) {
-			s_free(nullptr, lpProp->Value.bin->__ptr);
-			s_free(nullptr, lpProp->Value.bin);
-		}
+		if (lpProp->Value.bin == nullptr)
+			break;
+		s_free(nullptr, lpProp->Value.bin->__ptr);
+		s_free(nullptr, lpProp->Value.bin);
 		break;
 	case PT_MV_I2:
 		s_free(nullptr, lpProp->Value.mvi.__ptr);
@@ -842,21 +832,19 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 		break;
 	case PT_MV_CLSID:
 	case PT_MV_BINARY:
-		if(lpProp->Value.mvbin.__ptr)
-		{
-			for (gsoap_size_t i = 0; i < lpProp->Value.mvbin.__size; ++i)
-				s_free(nullptr, lpProp->Value.mvbin.__ptr[i].__ptr);
-			s_free(nullptr, lpProp->Value.mvbin.__ptr);
-		}
+		if (lpProp->Value.mvbin.__ptr == nullptr)
+			break;
+		for (gsoap_size_t i = 0; i < lpProp->Value.mvbin.__size; ++i)
+			s_free(nullptr, lpProp->Value.mvbin.__ptr[i].__ptr);
+		s_free(nullptr, lpProp->Value.mvbin.__ptr);
 		break;
 	case PT_MV_STRING8:
 	case PT_MV_UNICODE:
-		if(lpProp->Value.mvszA.__ptr)
-		{
-			for (gsoap_size_t i = 0; i < lpProp->Value.mvszA.__size; ++i)
-				s_free(nullptr, lpProp->Value.mvszA.__ptr[i]);
-			s_free(nullptr, lpProp->Value.mvszA.__ptr);
-		}
+		if (lpProp->Value.mvszA.__ptr == nullptr)
+			break;
+		for (gsoap_size_t i = 0; i < lpProp->Value.mvszA.__size; ++i)
+			s_free(nullptr, lpProp->Value.mvszA.__ptr[i]);
+		s_free(nullptr, lpProp->Value.mvszA.__ptr);
 		break;
 	case PT_SRESTRICTION:
 		if(lpProp->Value.res)
@@ -2390,8 +2378,7 @@ const char *GetSourceAddr(struct soap *soap)
 {
 	if (soap_info(soap)->bProxy && soap->proxy_from != nullptr)
 		return soap->proxy_from;
-	else
-		return soap->host;
+	return soap->host;
 }
 
 } /* namespace */

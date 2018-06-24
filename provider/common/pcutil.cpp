@@ -231,26 +231,17 @@ bool CompareABEID(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 	if (lpEntryID1 == NULL || lpEntryID2 == NULL)
 		return false;
 
-	if (peid1->ulVersion == peid2->ulVersion)
-	{
-		if(cbEntryID1 != cbEntryID2)
+	if (peid1->ulVersion != peid2->ulVersion) {
+		if (cbEntryID1 < CbNewABEID("") || cbEntryID2 < CbNewABEID("") ||
+		    peid1->ulId != peid2->ulId)
 			return false;
-		if(cbEntryID1 < CbNewABEID(""))
+	} else if (cbEntryID1 != cbEntryID2 || cbEntryID1 < CbNewABEID("")) {
+		return false;
+	} else if (peid1->ulVersion == 0) {
+		if (peid1->ulId != peid2->ulId)
 			return false;
-		if (peid1->ulVersion == 0) {
-			if(peid1->ulId != peid2->ulId)
-				return false;
-		} else {
-			if (strcmp((char*)peid1->szExId, (char*)peid2->szExId))
-				return false;
-		}
-	}
-	else
-	{
-		if (cbEntryID1 < CbNewABEID("") || cbEntryID2 < CbNewABEID(""))
-			return false;
-		if(peid1->ulId != peid2->ulId)
-			return false;
+	} else if (strcmp(reinterpret_cast<const char *>(peid1->szExId), reinterpret_cast<const char *>(peid2->szExId))) {
+		return false;
 	}
 	return peid1->guid == peid2->guid && peid1->ulType == peid2->ulType;
 }

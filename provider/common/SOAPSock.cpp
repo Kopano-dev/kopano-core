@@ -187,25 +187,20 @@ void DestroySoapTransport(KCmdProxy *lpCmd)
 
 int ssl_verify_callback_kopano_silent(int ok, X509_STORE_CTX *store)
 {
-	int sslerr;
-
-	if (ok == 0)
-	{
-		// Get the last SSL error
-		sslerr = X509_STORE_CTX_get_error(store);
-		switch (sslerr)
-		{
-		case X509_V_ERR_CERT_HAS_EXPIRED:
-		case X509_V_ERR_CERT_NOT_YET_VALID:
-		case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
-		case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
-			// always ignore these errors
-			X509_STORE_CTX_set_error(store, X509_V_OK);
-			ok = 1;
-			break;
-		default:
-			break;
-		}
+	if (ok != 0)
+		return ok;
+	auto sslerr = X509_STORE_CTX_get_error(store);
+	switch (sslerr) {
+	case X509_V_ERR_CERT_HAS_EXPIRED:
+	case X509_V_ERR_CERT_NOT_YET_VALID:
+	case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
+	case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
+		// always ignore these errors
+		X509_STORE_CTX_set_error(store, X509_V_OK);
+		ok = 1;
+		break;
+	default:
+		break;
 	}
 	return ok;
 }
