@@ -28,7 +28,6 @@
 #include <kopano/ECLogger.h>
 #include "WSTransport.h"
 #include "ProviderUtil.h"
-#include "SymmetricCrypt.h"
 #include "soapH.h"
 #include "pcutil.hpp"
 
