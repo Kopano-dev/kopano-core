@@ -32,11 +32,8 @@ bool IsKopanoEntryId(ULONG cb, const BYTE *lpEntryId)
 		return false;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
 	/* TODO: maybe also a check on objType */
-	if( (cb == sizeof(EID) && peid->ulVersion == 1) ||
-		(cb == sizeof(EID_V0) && peid->ulVersion == 0 ) )
-		return true;
-
-	return false;
+	return (cb == sizeof(EID) && peid->ulVersion == 1) ||
+	       (cb == sizeof(EID_V0) && peid->ulVersion == 0);
 }
 
 bool ValidateZEntryId(ULONG cb, const BYTE *lpEntryId, unsigned int ulCheckType)
@@ -44,11 +41,9 @@ bool ValidateZEntryId(ULONG cb, const BYTE *lpEntryId, unsigned int ulCheckType)
 	if(lpEntryId == NULL)
 		return false;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
-	if( ((cb == sizeof(EID) && peid->ulVersion == 1) ||
-		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 ) ) &&
-		 peid->usType == ulCheckType)
-		return true;
-	return false;
+	return ((cb == sizeof(EID) && peid->ulVersion == 1) ||
+	       (cb == sizeof(EID_V0) && peid->ulVersion == 0)) &&
+	       peid->usType == ulCheckType;
 }
 
 /**
@@ -257,12 +252,7 @@ bool CompareABEID(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 		if(peid1->ulId != peid2->ulId)
 			return false;
 	}
-
-	if(peid1->guid != peid2->guid)
-		return false;
-	if(peid1->ulType != peid2->ulType)
-		return false;
-	return true;
+	return peid1->guid == peid2->guid && peid1->ulType == peid2->ulType;
 }
 
 HRESULT HrSIEntryIDToID(ULONG cb, const BYTE *lpInstanceId, GUID *guidServer,
