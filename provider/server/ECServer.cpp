@@ -61,7 +61,7 @@
 #include <map>
 #include <kopano/charset/convstring.h>
 #include <unicode/uclean.h>
-#include "TmpPath.h"
+#include "fileutil.h"
 #include "ECICS.h"
 #include <openssl/ssl.h>
 

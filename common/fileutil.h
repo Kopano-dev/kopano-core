@@ -24,6 +24,19 @@
 
 namespace KC {
 
+class ECConfig;
+
+class _kc_export TmpPath _kc_final {
+	private:
+	std::string path;
+
+	public:
+	_kc_hidden TmpPath(void);
+	bool OverridePath(ECConfig *const ec);
+	_kc_hidden const std::string &getTempPath(void) const { return path; }
+	static _kc_export TmpPath instance;
+};
+
 class file_deleter {
 	public:
 	void operator()(FILE *f) { fclose(f); }

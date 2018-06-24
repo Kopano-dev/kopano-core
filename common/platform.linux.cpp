@@ -48,7 +48,7 @@
 #	include <cxxabi.h>
 #	include <execinfo.h>
 #endif
-#include "TmpPath.h"
+#include "fileutil.h"
 
 #ifdef __APPLE__
 // bsd

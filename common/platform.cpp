@@ -31,7 +31,7 @@
 #include <sys/syscall.h>
 #include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
-#include "TmpPath.h"
+#include "fileutil.h"
 
 namespace KC {
 
