@@ -376,13 +376,11 @@ HRESULT ECMemStream::Stat(STATSTG *pstatstg, DWORD grfStatFlag)
 
 HRESULT ECMemStream::Clone(IStream **ppstm)
 {
-	ECMemStream *lpStream = NULL;
-
-	ECMemStream::Create(lpMemBlock, ulFlags, lpCommitFunc, lpDeleteFunc, lpParam, &lpStream);
-	auto hr = lpStream->QueryInterface(IID_IStream, (void **)ppstm);
-	lpStream->Release();
-
-	return hr;
+	object_ptr<ECMemStream> lpStream;
+	auto hr = ECMemStream::Create(lpMemBlock, ulFlags, lpCommitFunc, lpDeleteFunc, lpParam, &~lpStream);
+	if (hr != hrSuccess)
+		return hr;
+	return lpStream->QueryInterface(IID_IStream, reinterpret_cast<void **>(ppstm));
 }
 
 ULONG ECMemStream::GetSize()
