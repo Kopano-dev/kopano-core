@@ -203,7 +203,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	 * Version is retrieved but not analyzed because we want to be able to
 	 * connect to old servers for development.
 	 */
-	er = ParseKopanoVersion(sResponse.lpszVersion, &ulServerVersion);
+	er = ParseKopanoVersion(sResponse.lpszVersion, &m_server_version, &ulServerVersion);
 	if (er != erSuccess) {
 		hr = MAPI_E_VERSION;
 		goto exit;

@@ -814,10 +814,10 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
     const ArchiveList &lstArchives, const ECUSERCLIENTUPDATESTATUS *lpECUCUS)
 {
 	memory_ptr<SPropValue> lpProps;
-	static constexpr const SizedSPropTagArray(5, sptaProps) =
-		{5, {PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME,
+	static constexpr const SizedSPropTagArray(6, sptaProps) =
+		{6, {PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME,
 		PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM,
-		PR_EC_OUTOFOFFICE_UNTIL}};
+		PR_EC_OUTOFOFFICE_UNTIL, CHANGE_PROP_TYPE(PR_EC_SERVER_VERSION, PT_STRING8)}};
 	ULONG cValues = 0;
 
 	if (lpStore)
@@ -859,6 +859,8 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 			strftime(d, sizeof(d), "%x %X", localtime(&logoff));
 			cout << "Last logoff:\t\t" << d << std::endl;
 		}
+		if (lpProps[5].ulPropTag == sptaProps.aulPropTag[5])
+			cout << "Server version:\t\t" << lpProps[5].Value.lpszA << endl;
 	}
 
 	print_extra_settings(&lpECUser->sPropmap, &lpECUser->sMVPropmap);

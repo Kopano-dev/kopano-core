@@ -100,6 +100,7 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, IMAPISupport *sup,
 	HrAddPropHandlers(PR_QUOTA_SEND_THRESHOLD, GetPropHandler, DefaultSetPropComputed, this, false, false);
 	HrAddPropHandlers(PR_QUOTA_RECEIVE_THRESHOLD, GetPropHandler, DefaultSetPropComputed, this, false, false);
 	HrAddPropHandlers(PR_STORE_OFFLINE, GetPropHandler, DefaultSetPropComputed, this);
+	HrAddPropHandlers(PR_EC_SERVER_VERSION, GetPropHandler, DefaultSetPropComputed, this);
 
 	// only on admin store? how? .. now checked on server in ECTableManager
 	HrAddPropHandlers(PR_EC_STATSTABLE_SYSTEM, GetPropHandler, DefaultSetPropComputed, this, false, true);
@@ -1002,7 +1003,22 @@ HRESULT	ECMsgStore::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 			lpsPropValue->Value.err = hr;
 		}
 		break;
-
+	case PROP_ID(PR_EC_SERVER_VERSION): {
+		auto &ver = lpStore->lpTransport->m_server_version;
+		if (PROP_TYPE(ulPropTag) == PT_STRING8) {
+			hr = ECAllocateMore(ver.size() + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
+			if (hr != hrSuccess)
+				return hr;
+			strcpy(lpsPropValue->Value.lpszA, ver.c_str());
+			break;
+		}
+		const auto tmp = convert_to<std::wstring>(ver);
+		hr = ECAllocateMore((tmp.size() + 1) * sizeof(wchar_t), lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszW));
+		if (hr != hrSuccess)
+			return hr;
+		wcscpy(lpsPropValue->Value.lpszW, tmp.c_str());
+		break;
+	}
 	default:
 		hr = MAPI_E_NOT_FOUND;
 		break;

@@ -248,8 +248,7 @@ ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
 	m_lpTableManager.reset(new ECTableManager(this));
 	m_strClientApplicationVersion   = cl_app_ver;
 	m_strClientApplicationMisc	= cl_app_misc;
-
-	ParseKopanoVersion(cl_ver, &m_ulClientVersion);
+	ParseKopanoVersion(cl_ver, nullptr, &m_ulClientVersion);
 	// Ignore result.
 
 	m_ulSessionTimeout = atoi(lpSessionManager->GetConfig()->GetSetting("session_timeout"));
