@@ -26,20 +26,14 @@ namespace KC {
 
 objectid_t::objectid_t(const std::string &str)
 {
-	std::string objclass;
-	std::string objid;
-	size_t pos;
-
 	// sendas users are "encoded" like this in a string
-	pos = str.find_first_of(';');
+	auto pos = str.find_first_of(';');
 	if (pos == std::string::npos) {
 		this->id = hex2bin(str);
 		this->objclass = ACTIVE_USER;
 	} else {
-		objid.assign(str, pos + 1, str.size() - pos);
-		objclass.assign(str, 0, pos);
-		this->id = hex2bin(objid);
-		this->objclass = (objectclass_t)atoi(objclass.c_str());
+		id = hex2bin(std::string(str, pos + 1, str.size() - pos));
+		objclass = (objectclass_t)atoi(std::string(str, 0, pos).c_str());
 	}
 }
 
@@ -241,9 +235,7 @@ size_t objectdetails_t::GetObjectSize(void) const
 
 std::string objectdetails_t::ToStr(void) const
 {
-	std::string str;
-
-	str = "propmap: ";
+	std::string str = "propmap: ";
 	for (auto i = m_mapProps.cbegin(); i != m_mapProps.cend(); ++i) {
 		if (i != m_mapProps.cbegin())
 			str += ", ";

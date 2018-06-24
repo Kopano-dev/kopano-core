@@ -130,11 +130,9 @@ ECRESULT ABEntryIDToID(ULONG cb, const BYTE *lpEntryId, unsigned int *lpulID,
 	if (memcmp(&lpABEID->guid, &MUIDECSAB, sizeof(GUID)) != 0)
 		return KCERR_INVALID_ENTRYID;
 
-	unsigned int	ulID = 0;
+	unsigned int ulID = lpABEID->ulId;
 	objectid_t		sExternId;
 	objectclass_t	sClass = ACTIVE_USER;
-
-	ulID = lpABEID->ulId;
 	MAPITypeToType(lpABEID->ulType, &sClass);
 
 	if (lpABEID->ulVersion == 1)
@@ -162,9 +160,7 @@ ECRESULT SIEntryIDToID(ULONG cb, const BYTE *lpInstanceId, GUID *guidServer,
 {
 	if (lpInstanceId == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	LPSIEID lpInstanceEid;
-	lpInstanceEid = (LPSIEID)lpInstanceId;
-
+	auto lpInstanceEid = reinterpret_cast<const SIEID *>(lpInstanceId);
 	if (guidServer)
 		memcpy(guidServer, (LPBYTE)lpInstanceEid + sizeof(SIEID), sizeof(GUID));
 	if (lpulInstanceId)
@@ -258,16 +254,12 @@ ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& s
 {
 	if (lpsEntryId == nullptr)
 		return KCERR_INVALID_PARAMETER;
-
-	ECRESULT er;
 	auto strEncExId = base64_encode(sExternId.id.c_str(), sExternId.id.size());
-	unsigned int	ulLen       = 0;
-
-	ulLen = CbNewABEID(strEncExId.c_str());
+	unsigned int ulLen = CbNewABEID(strEncExId.c_str());
 	auto lpUserEid = reinterpret_cast<ABEID *>(s_alloc<char>(soap, ulLen));
 	memset(lpUserEid, 0, ulLen);
 	lpUserEid->ulId = ulID;
-	er = TypeToMAPIType(sExternId.objclass, &lpUserEid->ulType);
+	auto er = TypeToMAPIType(sExternId.objclass, &lpUserEid->ulType);
 	if (er != erSuccess) {
 		s_free(soap, lpUserEid);
 		return er; /* or make default type user? */
@@ -295,12 +287,8 @@ ECRESULT SIIDToEntryID(struct soap *soap, const GUID *guidServer,
 	if (lpsInstanceId == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
-	LPSIEID lpInstanceEid = NULL;
-	ULONG ulSize = 0;
-
-	ulSize = sizeof(SIEID) + sizeof(GUID);
-
-	lpInstanceEid = (LPSIEID)s_alloc<char>(soap, ulSize);
+	ULONG ulSize = sizeof(SIEID) + sizeof(GUID);
+	auto lpInstanceEid = reinterpret_cast<SIEID *>(s_alloc<char>(soap, ulSize));
 	memset(lpInstanceEid, 0, ulSize);
 
 	lpInstanceEid->ulId = ulInstanceId;

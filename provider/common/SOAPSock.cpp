@@ -68,7 +68,6 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
 	if (soap_valid_socket(soap->socket))
 	    return SOAP_OK;
 
-	int fd;
 	struct sockaddr_un saddr;
 	memset(&saddr, 0, sizeof(struct sockaddr_un));
 	soap->socket = SOAP_INVALID_SOCKET;
@@ -80,8 +79,7 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
 	if (socket_name == NULL ||
 	    strlen(socket_name) >= sizeof(saddr.sun_path))
 		return SOAP_EOF;
-
-	fd = socket(PF_UNIX, SOCK_STREAM, 0);
+	auto fd = socket(PF_UNIX, SOCK_STREAM, 0);
 	if (fd < 0)
 		return SOAP_EOF;
 

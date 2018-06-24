@@ -683,13 +683,12 @@ ECRESULT CompareMVPropWithProp(struct propVal *lpMVProp1,
 	if (PropCheck(lpMVProp1) != erSuccess || PropCheck(lpProp2) != erSuccess)
 		return KCERR_INVALID_PARAMETER;
 
-	ECRESULT er;
 	int			nCompareResult = -1; // Default, Don't change this to 0
 	bool		fMatch = false;
 	MVPropProxy pxyMVProp1(lpMVProp1);
 
 	for (unsigned int i = 0; !fMatch && i < pxyMVProp1.size(); ++i) {
-		er = pxyMVProp1.compare(i, lpProp2, locale, &nCompareResult);
+		auto er = pxyMVProp1.compare(i, lpProp2, locale, &nCompareResult);
 		if (er != erSuccess)
 			return er;
 
@@ -1049,15 +1048,10 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 		break;
 	case PT_UNICODE:
 	case PT_STRING8: {
-		size_t len;
-		
 		if (lpSrc->Value.lpszA == NULL)
 			return KCERR_INVALID_TYPE;
-		if (bTruncate)
-			len = u8_cappedbytes(lpSrc->Value.lpszA, TABLE_CAP_STRING);
-		else
-			len = strlen(lpSrc->Value.lpszA);
-		
+		size_t len = !bTruncate ? strlen(lpSrc->Value.lpszA) :
+		             u8_cappedbytes(lpSrc->Value.lpszA, TABLE_CAP_STRING);
 		if (filterbmp) {
 			auto filtered_string = FilterBMP(std::string(lpSrc->Value.lpszA, len));
 			lpDst->Value.lpszA = s_alloc<char>(soap, filtered_string.size() + 1);
@@ -1173,12 +1167,8 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst,
 ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal **lppDst,
     struct soap *soap, bool bTruncate, bool filterbmp)
 {
-	ECRESULT er;
-	struct propVal *lpDst;
-
-	lpDst = s_alloc<struct propVal>(soap);
-
-	er = CopyPropVal(lpSrc, lpDst, soap, bTruncate, filterbmp);
+	auto lpDst = s_alloc<struct propVal>(soap);
+	auto er = CopyPropVal(lpSrc, lpDst, soap, bTruncate, filterbmp);
 	if (er != erSuccess) {
 		// there is no sub-alloc when there's an error, so we can remove lpDst
 		if (!soap)
@@ -1195,14 +1185,9 @@ ECRESULT CopyPropValArray(const struct propValArray *lpSrc,
 {
 	if (lpSrc == nullptr || lppDst == nullptr)
 		return KCERR_INVALID_PARAMETER;
-
-	ECRESULT er;
-	struct propValArray *lpDst = NULL;
-
-	lpDst = s_alloc<struct propValArray>(soap);
-
+	auto lpDst = s_alloc<struct propValArray>(soap);
 	if(lpSrc->__size > 0) {
-		er = CopyPropValArray(lpSrc, lpDst, soap);
+		auto er = CopyPropValArray(lpSrc, lpDst, soap);
 		if(er != erSuccess)
 			return er;
 	}else {
@@ -1219,13 +1204,12 @@ ECRESULT CopyPropValArray(const struct propValArray *lpSrc,
 {
 	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	ECRESULT er;
 	lpDst->__ptr = s_alloc<struct propVal>(soap, lpSrc->__size);
 	lpDst->__size = lpSrc->__size;
 	memset(lpDst->__ptr, 0, sizeof(propVal)*lpDst->__size);
 
 	for (gsoap_size_t i = 0; i < lpSrc->__size; ++i) {
-		er = CopyPropVal(&lpSrc->__ptr[i], &lpDst->__ptr[i], soap);
+		auto er = CopyPropVal(&lpSrc->__ptr[i], &lpDst->__ptr[i], soap);
 		if(er != erSuccess) {
 			if (!soap) {
 				s_free(nullptr, lpDst->__ptr);
@@ -1243,10 +1227,7 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 {
 	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
-
-	ECRESULT er;
-	struct restrictTable *lpDst = NULL;
-	lpDst = s_alloc<struct restrictTable>(soap);
+	auto lpDst = s_alloc<struct restrictTable>(soap);
 	memset(lpDst, 0, sizeof(restrictTable));
 
 	lpDst->ulType = lpSrc->ulType;
@@ -1263,8 +1244,7 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 		memset(lpDst->lpOr->__ptr, 0, sizeof(restrictTable *) * lpSrc->lpOr->__size);
 
 		for (gsoap_size_t i = 0; i < lpSrc->lpOr->__size; ++i) {
-			er = CopyRestrictTable(soap, lpSrc->lpOr->__ptr[i], &lpDst->lpOr->__ptr[i]);
-
+			auto er = CopyRestrictTable(soap, lpSrc->lpOr->__ptr[i], &lpDst->lpOr->__ptr[i]);
 			if(er != erSuccess)
 				return er;
 		}
@@ -1280,22 +1260,20 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 		memset(lpDst->lpAnd->__ptr, 0, sizeof(restrictTable *) * lpSrc->lpAnd->__size);
 
 		for (gsoap_size_t i = 0; i < lpSrc->lpAnd->__size; ++i) {
-			er = CopyRestrictTable(soap, lpSrc->lpAnd->__ptr[i], &lpDst->lpAnd->__ptr[i]);
-
+			auto er = CopyRestrictTable(soap, lpSrc->lpAnd->__ptr[i], &lpDst->lpAnd->__ptr[i]);
 			if(er != erSuccess)
 				return er;
 		}
 		break;
 
-	case RES_NOT:
+	case RES_NOT: {
 		lpDst->lpNot = s_alloc<restrictNot>(soap);
 		memset(lpDst->lpNot, 0, sizeof(restrictNot));
-
-		er = CopyRestrictTable(soap, lpSrc->lpNot->lpNot, &lpDst->lpNot->lpNot);
-
+		auto er = CopyRestrictTable(soap, lpSrc->lpNot->lpNot, &lpDst->lpNot->lpNot);
 		if(er != erSuccess)
 			return er;
 		break;
+	}
 	case RES_CONTENT:
 		lpDst->lpContent = s_alloc<restrictContent>(soap);
 		memset(lpDst->lpContent, 0, sizeof(restrictContent));
@@ -1304,25 +1282,23 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 		lpDst->lpContent->ulPropTag = lpSrc->lpContent->ulPropTag;
 
 		if(lpSrc->lpContent->lpProp) {
-			er = CopyPropVal(lpSrc->lpContent->lpProp, &lpDst->lpContent->lpProp, soap);
+			auto er = CopyPropVal(lpSrc->lpContent->lpProp, &lpDst->lpContent->lpProp, soap);
 			if(er != erSuccess)
 				return er;
 		}
 
 		break;
-	case RES_PROPERTY:
+	case RES_PROPERTY: {
 		lpDst->lpProp = s_alloc<restrictProp>(soap);
 		memset(lpDst->lpProp, 0, sizeof(restrictProp));
 
 		lpDst->lpProp->ulType = lpSrc->lpProp->ulType;
 		lpDst->lpProp->ulPropTag = lpSrc->lpProp->ulPropTag;
-
-		er = CopyPropVal(lpSrc->lpProp->lpProp, &lpDst->lpProp->lpProp, soap);
-
+		auto er = CopyPropVal(lpSrc->lpProp->lpProp, &lpDst->lpProp->lpProp, soap);
 		if(er != erSuccess)
 			return er;
 		break;
-
+	}
 	case RES_COMPAREPROPS:
 		lpDst->lpCompare = s_alloc<restrictCompare>(soap);
 		memset(lpDst->lpCompare, 0 , sizeof(restrictCompare));
@@ -1357,31 +1333,27 @@ ECRESULT CopyRestrictTable(struct soap *soap,
 		lpDst->lpExist->ulPropTag = lpSrc->lpExist->ulPropTag;
 		break;
 
-	case RES_COMMENT:
+	case RES_COMMENT: {
 		lpDst->lpComment = s_alloc<restrictComment>(soap);
 		memset(lpDst->lpComment, 0, sizeof(restrictComment));
-
-		er = CopyPropValArray(&lpSrc->lpComment->sProps, &lpDst->lpComment->sProps, soap);
+		auto er = CopyPropValArray(&lpSrc->lpComment->sProps, &lpDst->lpComment->sProps, soap);
 		if (er != erSuccess)
 			return er;
 		er = CopyRestrictTable(soap, lpSrc->lpComment->lpResTable, &lpDst->lpComment->lpResTable);
 		if(er != erSuccess)
 			return er;
-
 		break;
-
-	case RES_SUBRESTRICTION:
+	}
+	case RES_SUBRESTRICTION: {
 	    lpDst->lpSub = s_alloc<restrictSub>(soap);
 	    memset(lpDst->lpSub, 0, sizeof(restrictSub));
 
 	    lpDst->lpSub->ulSubObject = lpSrc->lpSub->ulSubObject;
-
-		er = CopyRestrictTable(soap, lpSrc->lpSub->lpSubObject, &lpDst->lpSub->lpSubObject);
-
+		auto er = CopyRestrictTable(soap, lpSrc->lpSub->lpSubObject, &lpDst->lpSub->lpSubObject);
 		if(er != erSuccess)
 			return er;
-
-        break;
+	        break;
+	}
 	default:
 		return KCERR_INVALID_TYPE;
 	}
@@ -1406,9 +1378,7 @@ ECRESULT CopyEntryId(struct soap *soap, entryId* lpSrc, entryId** lppDst)
 {
 	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
-
-	entryId *lpDst = nullptr;
-	lpDst = s_alloc<entryId>(soap);
+	auto lpDst = s_alloc<entryId>(soap);
 	lpDst->__size = lpSrc->__size;
 
 	if(lpSrc->__size > 0) {
@@ -1426,9 +1396,7 @@ ECRESULT CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryL
 {
 	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
-
-	struct entryList *lpDst = NULL;
-	lpDst = s_alloc<entryList>(soap);
+	auto lpDst = s_alloc<entryList>(soap);
 	lpDst->__size = lpSrc->__size;
 	if(lpSrc->__size > 0)
 		lpDst->__ptr = s_alloc<entryId>(soap, lpSrc->__size);
@@ -1622,9 +1590,7 @@ ECRESULT CopyRightsArrayToSoap(struct soap *soap, struct rightsArray *lpRightsAr
 	if (soap == nullptr || lpRightsArraySrc == nullptr ||
 	    lppRightsArrayDst == nullptr)
 		return KCERR_INVALID_PARAMETER;
-
-	struct rightsArray *lpRightsArrayDst = nullptr;
-	lpRightsArrayDst = s_alloc<struct rightsArray>(soap);
+	auto lpRightsArrayDst = s_alloc<struct rightsArray>(soap);
 	memset(lpRightsArrayDst, 0, sizeof *lpRightsArrayDst);
 
 	lpRightsArrayDst->__size = lpRightsArraySrc->__size;
@@ -1674,18 +1640,14 @@ ECRESULT MergePropValArray(struct soap *soap,
     const struct propValArray *lpsPropValArray2,
     struct propValArray *lpPropValArrayNew)
 {
-	ECRESULT er;
-	const struct propVal *lpsPropVal;
-
 	lpPropValArrayNew->__ptr = s_alloc<struct propVal>(soap, lpsPropValArray1->__size + lpsPropValArray2->__size);
 	lpPropValArrayNew->__size = 0;
 
 	for (gsoap_size_t i = 0; i < lpsPropValArray1->__size; ++i) {
-		lpsPropVal = SpropValFindPropVal(lpsPropValArray2, lpsPropValArray1->__ptr[i].ulPropTag);
+		auto lpsPropVal = SpropValFindPropVal(lpsPropValArray2, lpsPropValArray1->__ptr[i].ulPropTag);
 		if(lpsPropVal == NULL)
 			lpsPropVal = &lpsPropValArray1->__ptr[i];
-
-		er = CopyPropVal(lpsPropVal, &lpPropValArrayNew->__ptr[lpPropValArrayNew->__size], soap);
+		auto er = CopyPropVal(lpsPropVal, &lpPropValArrayNew->__ptr[lpPropValArrayNew->__size], soap);
 		if(er != erSuccess)
 			return er;
 		++lpPropValArrayNew->__size;
@@ -1693,11 +1655,10 @@ ECRESULT MergePropValArray(struct soap *soap,
 
 	//Merge items
 	for (gsoap_size_t i = 0; i < lpsPropValArray2->__size; ++i) {
-		lpsPropVal = SpropValFindPropVal(lpPropValArrayNew, lpsPropValArray2->__ptr[i].ulPropTag);
+		auto lpsPropVal = SpropValFindPropVal(lpPropValArrayNew, lpsPropValArray2->__ptr[i].ulPropTag);
 		if(lpsPropVal != NULL)
 			continue; // Already exist
-
-		er = CopyPropVal(&lpsPropValArray2->__ptr[i], &lpPropValArrayNew->__ptr[lpPropValArrayNew->__size], soap);
+		auto er = CopyPropVal(&lpsPropValArray2->__ptr[i], &lpPropValArrayNew->__ptr[lpPropValArrayNew->__size], soap);
 		if(er != erSuccess)
 			return er;
 		++lpPropValArrayNew->__size;
@@ -1712,11 +1673,10 @@ ECRESULT CopySearchCriteria(struct soap *soap,
 		return KCERR_NOT_FOUND;
 
 	ECRESULT er = erSuccess;
-	struct searchCriteria *lpDst = nullptr;
-	lpDst = s_alloc<searchCriteria>(nullptr);
+	auto lpDst = s_alloc<searchCriteria>(nullptr);
 	memset(lpDst, '\0', sizeof(*lpDst));
 	if(lpSrc->lpRestrict) {
-    	er = CopyRestrictTable(soap, lpSrc->lpRestrict, &lpDst->lpRestrict);
+		auto er = CopyRestrictTable(soap, lpSrc->lpRestrict, &lpDst->lpRestrict);
 		if (er != erSuccess)
 			goto exit;
     } else {
@@ -1724,7 +1684,7 @@ ECRESULT CopySearchCriteria(struct soap *soap,
     }
 
 	if(lpSrc->lpFolders) {
-    	er = CopyEntryList(soap, lpSrc->lpFolders, &lpDst->lpFolders);
+		auto er = CopyEntryList(soap, lpSrc->lpFolders, &lpDst->lpFolders);
 		if (er != erSuccess)
 			goto exit;
     } else {
@@ -1747,14 +1707,13 @@ ECRESULT FreeSearchCriteria(struct searchCriteria *lpSearchCriteria)
 {
 	if (lpSearchCriteria == nullptr)
 		return erSuccess;
-	ECRESULT er = erSuccess;
 	if(lpSearchCriteria->lpRestrict)
 		FreeRestrictTable(lpSearchCriteria->lpRestrict);
 
 	if(lpSearchCriteria->lpFolders)
 		FreeEntryList(lpSearchCriteria->lpFolders);
 	s_free(nullptr, lpSearchCriteria);
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -1766,7 +1725,6 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
     struct propmapPairArray **lppsoapPropmap,
     struct propmapMVPairArray **lppsoapMVPropmap)
 {
-	ECRESULT er = erSuccess;
 	struct propmapPairArray *lpsoapPropmap = NULL;
 	struct propmapMVPairArray *lpsoapMVPropmap = NULL;
 	property_map propmap = details.GetPropMapAnonymous();
@@ -1831,8 +1789,7 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 
 	if (lppsoapMVPropmap)
 		*lppsoapMVPropmap = lpsoapMVPropmap;
-
-	return er;
+	return erSuccess;
 }
 
 static ECRESULT
@@ -1866,7 +1823,6 @@ CopyAnonymousDetailsFromSoap(struct propmapPairArray *lpsoapPropmap,
 
 ECRESULT CopyUserDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const objectdetails_t &details, bool bCopyBinary, struct soap *soap, struct user *lpUser)
 {
-	ECRESULT er = erSuccess;
 	const objectclass_t objClass = details.GetClass();
 
 	// assert(OBJECTCLASS_TYPE(objClass) == OBJECTTYPE_MAILUSER);
@@ -1889,15 +1845,12 @@ ECRESULT CopyUserDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const obje
 	// Lazy copy
 	lpUser->sUserId.__size = lpUserEid->__size;
 	lpUser->sUserId.__ptr = lpUserEid->__ptr;
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT CopyUserDetailsFromSoap(struct user *lpUser,
     std::string *lpstrExternId, objectdetails_t *details, struct soap *soap)
 {
-	ECRESULT er = erSuccess;
-
 	if (lpUser->lpszUsername)
 		details->SetPropString(OB_PROP_S_LOGIN, lpUser->lpszUsername);
 
@@ -1930,13 +1883,11 @@ ECRESULT CopyUserDetailsFromSoap(struct user *lpUser,
 
 	CopyAnonymousDetailsFromSoap(lpUser->lpsPropmap, lpUser->lpsMVPropmap, details);
 
-	return er;
+	return erSuccess;
 }
 
 ECRESULT CopyGroupDetailsToSoap(unsigned int ulId, entryId *lpGroupEid, const objectdetails_t &details, bool bCopyBinary, struct soap *soap, struct group *lpGroup)
 {
-	ECRESULT er = erSuccess;
-
 	// assert(OBJECTCLASS_TYPE(details.GetClass()) == OBJECTTYPE_DISTLIST);
 	lpGroup->ulGroupId = ulId;
 	lpGroup->lpszGroupname = s_strcpy(soap, details.GetPropString(OB_PROP_S_LOGIN).c_str());
@@ -1951,15 +1902,12 @@ ECRESULT CopyGroupDetailsToSoap(unsigned int ulId, entryId *lpGroupEid, const ob
 	// Lazy copy
 	lpGroup->sGroupId.__size = lpGroupEid->__size;
 	lpGroup->sGroupId.__ptr = lpGroupEid->__ptr;
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT CopyGroupDetailsFromSoap(struct group *lpGroup,
     std::string *lpstrExternId, objectdetails_t *details, struct soap *soap)
 {
-	ECRESULT er = erSuccess;
-
 	if (lpGroup->lpszGroupname)
 		details->SetPropString(OB_PROP_S_LOGIN, lpGroup->lpszGroupname);
 
@@ -1976,14 +1924,11 @@ ECRESULT CopyGroupDetailsFromSoap(struct group *lpGroup,
 		details->SetPropBool(OB_PROP_B_AB_HIDDEN, !!lpGroup->ulIsABHidden);
 
 	CopyAnonymousDetailsFromSoap(lpGroup->lpsPropmap, lpGroup->lpsMVPropmap, details);
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT CopyCompanyDetailsToSoap(unsigned int ulId, entryId *lpCompanyEid, unsigned int ulAdmin, entryId *lpAdminEid, const objectdetails_t &details, bool bCopyBinary, struct soap *soap, struct company *lpCompany)
 {
-	ECRESULT er = erSuccess;
-
 	// assert(details.GetClass() == CONTAINER_COMPANY);
 	lpCompany->ulCompanyId = ulId;
 	lpCompany->lpszCompanyname = s_strcpy(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
@@ -2002,16 +1947,13 @@ ECRESULT CopyCompanyDetailsToSoap(unsigned int ulId, entryId *lpCompanyEid, unsi
 	// Lazy copy
 	lpCompany->sAdministrator.__size = lpAdminEid->__size;
 	lpCompany->sAdministrator.__ptr = lpAdminEid->__ptr;
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT CopyCompanyDetailsFromSoap(struct company *lpCompany,
     std::string *lpstrExternId, unsigned int ulAdmin, objectdetails_t *details,
     struct soap *soap)
 {
-	ECRESULT er = erSuccess;
-
 	if (lpCompany->lpszCompanyname)
 		details->SetPropString(OB_PROP_S_FULLNAME, lpCompany->lpszCompanyname);
 
@@ -2028,8 +1970,7 @@ ECRESULT CopyCompanyDetailsFromSoap(struct company *lpCompany,
 		details->SetPropBool(OB_PROP_B_AB_HIDDEN, !!lpCompany->ulIsABHidden);
 
 	CopyAnonymousDetailsFromSoap(lpCompany->lpsPropmap, lpCompany->lpsMVPropmap, details);
-
-	return er;
+	return erSuccess;
 }
 
 DynamicPropValArray::DynamicPropValArray(struct soap *soap,
@@ -2050,17 +1991,14 @@ DynamicPropValArray::~DynamicPropValArray()
     
 ECRESULT DynamicPropValArray::AddPropVal(struct propVal &propVal)
 {
-	ECRESULT er;
-    
     if(m_ulCapacity == m_ulPropCount) {
         if(m_ulCapacity == 0)
 			++m_ulCapacity;
-        er = Resize(m_ulCapacity * 2);
+		auto er = Resize(m_ulCapacity * 2);
         if(er != erSuccess)
 			return er;
     }
-    
-    er = CopyPropVal(&propVal, &m_lpPropVals[m_ulPropCount], m_soap);
+	auto er = CopyPropVal(&propVal, &m_lpPropVals[m_ulPropCount], m_soap);
     if(er != erSuccess)
 		return er;
         
@@ -2070,8 +2008,6 @@ ECRESULT DynamicPropValArray::AddPropVal(struct propVal &propVal)
 
 ECRESULT DynamicPropValArray::GetPropValArray(struct propValArray *lpPropValArray, bool release)
 {
-    ECRESULT er = erSuccess;
-    
     lpPropValArray->__size = m_ulPropCount;
     lpPropValArray->__ptr = m_lpPropVals; // Transfer ownership to the caller
 	if (release) {
@@ -2079,22 +2015,19 @@ ECRESULT DynamicPropValArray::GetPropValArray(struct propValArray *lpPropValArra
 		m_ulPropCount = 0;
 		m_ulCapacity = 0;
 	}
-    return er;
+	return erSuccess;
 }
 
 ECRESULT DynamicPropValArray::Resize(unsigned int ulSize)
 {
 	if (ulSize < m_ulCapacity)
 		return KCERR_INVALID_PARAMETER;
-
-	ECRESULT er;
-	struct propVal *lpNew = nullptr;
-	lpNew = s_alloc_nothrow<struct propVal>(m_soap, ulSize);
+	auto lpNew = s_alloc_nothrow<struct propVal>(m_soap, ulSize);
 	if (lpNew == NULL)
 		return KCERR_NOT_ENOUGH_MEMORY;
     
 	for (unsigned int i = 0; i < m_ulPropCount; ++i) {
-        er = CopyPropVal(&m_lpPropVals[i], &lpNew[i], m_soap);
+		auto er = CopyPropVal(&m_lpPropVals[i], &lpNew[i], m_soap);
         if(er != erSuccess)
 			return er;
 	}
