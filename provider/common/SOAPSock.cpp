@@ -64,14 +64,13 @@ http_post(struct soap *soap, const char *endpoint, const char *host, int port, c
 static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
     const char *host, int port)
 {
-	int fd;
-	struct sockaddr_un saddr;
-	memset(&saddr, 0, sizeof(struct sockaddr_un));
-
 	// See stdsoap2.cpp:tcp_connect() function
 	if (soap_valid_socket(soap->socket))
 	    return SOAP_OK;
 
+	int fd;
+	struct sockaddr_un saddr;
+	memset(&saddr, 0, sizeof(struct sockaddr_un));
 	soap->socket = SOAP_INVALID_SOCKET;
 
 	if (strncmp(endpoint, "file://", 7) != 0)

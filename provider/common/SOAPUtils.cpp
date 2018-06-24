@@ -205,11 +205,10 @@ int CompareSortOrderArray(const struct sortOrderArray *lpsSortOrder1,
 ECRESULT CopyPropTagArray(struct soap *soap,
     const struct propTagArray *lpPTsSrc, struct propTagArray **lppsPTsDst)
 {
-	struct propTagArray* lpPTsDst = NULL;
-
-	if (lppsPTsDst == NULL || lpPTsSrc == NULL)
+	if (lppsPTsDst == nullptr || lpPTsSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
+	struct propTagArray *lpPTsDst = nullptr;
 	lpPTsDst = s_alloc<struct propTagArray>(soap);
 	lpPTsDst->__size = lpPTsSrc->__size;
 
@@ -442,11 +441,19 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
     const struct propVal *lpProp2, const ECLocale &locale,
     int *lpCompareResult)
 {
+	if (lpProp1 == nullptr || lpProp2 == nullptr ||
+	    lpCompareResult == nullptr)
+		return KCERR_INVALID_PARAMETER;
+	auto ulPropTag1 = NormalizePropTag(lpProp1->ulPropTag);
+	auto ulPropTag2 = NormalizePropTag(lpProp2->ulPropTag);
+	if (PROP_TYPE(ulPropTag1) != PROP_TYPE(ulPropTag2))
+		/* Treat this as equal */
+		return KCERR_INVALID_PARAMETER;
+	if (PropCheck(lpProp1) != erSuccess || PropCheck(lpProp2) != erSuccess)
+		return KCERR_INVALID_PARAMETER;
+
 	ECRESULT	er = erSuccess;
 	int			nCompareResult = 0;
-	unsigned int ulPropTag1;
-	unsigned int ulPropTag2;
-
 	// List of prperties that get special treatment
 	static const struct {
 		ULONG		ulPropTag;
@@ -454,20 +461,6 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 	} sSpecials[] = {
 		{PR_ADDRESS_BOOK_ENTRYID, &CompareABEID},
 	};
-
-	if (lpProp1 == NULL || lpProp2 == NULL || lpCompareResult == NULL)
-		return KCERR_INVALID_PARAMETER;
-
-	ulPropTag1 = NormalizePropTag(lpProp1->ulPropTag);
-	ulPropTag2 = NormalizePropTag(lpProp2->ulPropTag);
-
-	if (PROP_TYPE(ulPropTag1) != PROP_TYPE(ulPropTag2))
-		// Treat this as equal
-		return KCERR_INVALID_PARAMETER;
-
-	// check soap union types and null pointers
-	if (PropCheck(lpProp1) != erSuccess || PropCheck(lpProp2) != erSuccess)
-		return KCERR_INVALID_PARAMETER;
 
 	// First check if the any of the properties is in the sSpecials list
 	for (size_t x = 0; x < ARRAY_SIZE(sSpecials); ++x) {
@@ -692,20 +685,18 @@ ECRESULT CompareMVPropWithProp(struct propVal *lpMVProp1,
     const struct propVal *lpProp2, unsigned int ulType, const ECLocale &locale,
     bool *lpfMatch)
 {
+	if (lpMVProp1 == nullptr || lpProp2 == nullptr || lpfMatch == nullptr)
+		return KCERR_INVALID_PARAMETER;
+	if ((PROP_TYPE(lpMVProp1->ulPropTag) & ~MV_FLAG) != PROP_TYPE(lpProp2->ulPropTag))
+		/* Treat this as equal */
+		return KCERR_INVALID_PARAMETER;
+	if (PropCheck(lpMVProp1) != erSuccess || PropCheck(lpProp2) != erSuccess)
+		return KCERR_INVALID_PARAMETER;
+
 	ECRESULT er;
 	int			nCompareResult = -1; // Default, Don't change this to 0
 	bool		fMatch = false;
 	MVPropProxy pxyMVProp1(lpMVProp1);
-
-	if (lpMVProp1 == NULL || lpProp2 == NULL || lpfMatch == NULL)
-		return KCERR_INVALID_PARAMETER;
-	if ((PROP_TYPE(lpMVProp1->ulPropTag) & ~MV_FLAG) != PROP_TYPE(lpProp2->ulPropTag))
-		// Treat this as equal
-		return KCERR_INVALID_PARAMETER;
-
-	// check soap union types and null pointers
-	if (PropCheck(lpMVProp1) != erSuccess || PropCheck(lpProp2) != erSuccess)
-		return KCERR_INVALID_PARAMETER;
 
 	for (unsigned int i = 0; !fMatch && i < pxyMVProp1.size(); ++i) {
 		er = pxyMVProp1.compare(i, lpProp2, locale, &nCompareResult);
@@ -801,11 +792,9 @@ size_t PropSize(const struct propVal *lpProp)
 
 ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 {
+	if (lpProp == nullptr)
+		return erSuccess;
 	ECRESULT er = erSuccess;
-
-	if(lpProp == NULL)
-		return er;
-
 	switch(PROP_TYPE(lpProp->ulPropTag)) {
 	case PT_I2:
 	case PT_LONG:
@@ -1216,11 +1205,11 @@ ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal **lppDst,
 ECRESULT CopyPropValArray(const struct propValArray *lpSrc,
     struct propValArray **lppDst, struct soap *soap)
 {
+	if (lpSrc == nullptr || lppDst == nullptr)
+		return KCERR_INVALID_PARAMETER;
+
 	ECRESULT er;
 	struct propValArray *lpDst = NULL;
-
-	if (lpSrc == NULL || lppDst == NULL)
-		return KCERR_INVALID_PARAMETER;
 
 	lpDst = s_alloc<struct propValArray>(soap);
 
@@ -1240,11 +1229,9 @@ ECRESULT CopyPropValArray(const struct propValArray *lpSrc,
 ECRESULT CopyPropValArray(const struct propValArray *lpSrc,
     struct propValArray *lpDst, struct soap *soap)
 {
-	ECRESULT er;
-
-	if (lpSrc == NULL)
+	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
-
+	ECRESULT er;
 	lpDst->__ptr = s_alloc<struct propVal>(soap, lpSrc->__size);
 	lpDst->__size = lpSrc->__size;
 	memset(lpDst->__ptr, 0, sizeof(propVal)*lpDst->__size);
@@ -1266,12 +1253,11 @@ ECRESULT CopyPropValArray(const struct propValArray *lpSrc,
 ECRESULT CopyRestrictTable(struct soap *soap,
     const struct restrictTable *lpSrc, struct restrictTable **lppDst)
 {
-	ECRESULT er;
-	struct restrictTable *lpDst = NULL;
-
-	if (lpSrc == NULL)
+	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
+	ECRESULT er;
+	struct restrictTable *lpDst = NULL;
 	lpDst = s_alloc<struct restrictTable>(soap);
 	memset(lpDst, 0, sizeof(restrictTable));
 
@@ -1430,11 +1416,10 @@ ECRESULT FreePropValArray(struct propValArray *lpPropValArray, bool bFreeBase)
 
 ECRESULT CopyEntryId(struct soap *soap, entryId* lpSrc, entryId** lppDst)
 {
-	entryId* lpDst = NULL;
-
-	if (lpSrc == NULL)
+	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
+	entryId *lpDst = nullptr;
 	lpDst = s_alloc<entryId>(soap);
 	lpDst->__size = lpSrc->__size;
 
@@ -1451,11 +1436,10 @@ ECRESULT CopyEntryId(struct soap *soap, entryId* lpSrc, entryId** lppDst)
 
 ECRESULT CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryList **lppDst)
 {
-	struct entryList *lpDst = NULL;
-
-	if (lpSrc == NULL)
+	if (lpSrc == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
+	struct entryList *lpDst = NULL;
 	lpDst = s_alloc<entryList>(soap);
 	lpDst->__size = lpSrc->__size;
 	if(lpSrc->__size > 0)
@@ -1647,11 +1631,11 @@ ECRESULT FreeEntryId(entryId* lpEntryId, bool bFreeBase)
 
 ECRESULT CopyRightsArrayToSoap(struct soap *soap, struct rightsArray *lpRightsArraySrc, struct rightsArray **lppRightsArrayDst)
 {
-	struct rightsArray	*lpRightsArrayDst = NULL;
-
-	if (soap == NULL || lpRightsArraySrc == NULL || lppRightsArrayDst == NULL)
+	if (soap == nullptr || lpRightsArraySrc == nullptr ||
+	    lppRightsArrayDst == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
+	struct rightsArray *lpRightsArrayDst = nullptr;
 	lpRightsArrayDst = s_alloc<struct rightsArray>(soap);
 	memset(lpRightsArrayDst, 0, sizeof *lpRightsArrayDst);
 
@@ -1736,12 +1720,11 @@ ECRESULT MergePropValArray(struct soap *soap,
 ECRESULT CopySearchCriteria(struct soap *soap,
     const struct searchCriteria *lpSrc, struct searchCriteria **lppDst)
 {
-	ECRESULT er = erSuccess;
-	struct searchCriteria *lpDst = NULL;
-
-	if (lpSrc == NULL)
+	if (lpSrc == nullptr)
 		return KCERR_NOT_FOUND;
 
+	ECRESULT er = erSuccess;
+	struct searchCriteria *lpDst = nullptr;
 	lpDst = s_alloc<searchCriteria>(nullptr);
 	memset(lpDst, '\0', sizeof(*lpDst));
 	if(lpSrc->lpRestrict) {
@@ -2113,12 +2096,11 @@ ECRESULT DynamicPropValArray::GetPropValArray(struct propValArray *lpPropValArra
 
 ECRESULT DynamicPropValArray::Resize(unsigned int ulSize)
 {
-	ECRESULT er;
-    struct propVal *lpNew = NULL;
-    
 	if (ulSize < m_ulCapacity)
 		return KCERR_INVALID_PARAMETER;
-    
+
+	ECRESULT er;
+	struct propVal *lpNew = nullptr;
 	lpNew = s_alloc_nothrow<struct propVal>(m_soap, ulSize);
 	if (lpNew == NULL)
 		return KCERR_NOT_ENOUGH_MEMORY;
