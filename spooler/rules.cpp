@@ -44,6 +44,13 @@ using std::string;
 using std::wstring;
 extern ECConfig *g_lpConfig;
 
+enum actstatus {
+	ROP_FAILURE,
+	ROP_NOOP,
+	ROP_ERROR,
+	ROP_SUCCESS,
+};
+
 static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
     std::wstring &wstrCc, std::wstring &wstrBcc)
 {
@@ -812,7 +819,7 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 	return lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 }
 
-static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
+static enum actstatus proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
     const ACTION &act, const std::string &rule, StatsClient *sc,
     bool &bAddFwdFlag, IMessage **lppMessage)
 {
@@ -828,7 +835,7 @@ static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 	// redirect == 3
 	if (act.lpadrlist->cEntries == 0) {
 		ec_log_debug("Forwarding rule doesn't have recipients");
-		return 0; // Nothing todo
+		return ROP_NOOP;
 	}
 	if (parseBool(g_lpConfig->GetSetting("no_double_forward"))) {
 		/*
@@ -839,12 +846,12 @@ static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		PROPMAP_NAMED_ID(KopanoRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-kopano-rule-action")
 		hr = m_propmap.Resolve(*lppMessage);
 		if (hr != hrSuccess)
-			return -1;
+			return ROP_FAILURE;
 
 		memory_ptr<SPropValue> lpPropRule;
 		if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &~lpPropRule) == hrSuccess) {
 			ec_log_warn("Rule "s + rule + ": FORWARD loop protection. Message will not be forwarded or redirected because it includes header \"x-kopano-rule-action\"");
-			return 0;
+			return ROP_NOOP;
 		}
 	}
 	ec_log_debug("Rule action: %s e-mail", (act.ulActionFlavor & FWD_PRESERVE_SENDER) ? "redirecting" : "forwarding");
@@ -855,17 +862,17 @@ static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 	if (hr != hrSuccess) {
 		auto msg = "Rule " + rule + ": FORWARD Unable to create forward message: %s (%x)";
 		ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-		return hr == MAPI_E_NO_ACCESS ? -1 : 1;
+		return hr == MAPI_E_NO_ACCESS ? ROP_FAILURE : ROP_ERROR;
 	}
 	hr = lpFwdMsg->SubmitMessage(0);
 	if (hr != hrSuccess) {
 		auto msg = "Rule " + rule + ": FORWARD Unable to send forward message: %s (%x)";
 		ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-		return 1;
+		return ROP_ERROR;
 	}
 	// update original message, set as forwarded
 	bAddFwdFlag = true;
-	return 2;
+	return ROP_SUCCESS;
 }
 
 // lpMessage: gets EntryID, maybe pass this and close message in DAgent.cpp
@@ -1128,7 +1135,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 
 			case OP_FORWARD: {
 				auto ret = proc_op_fwd(lpAdrBook, lpOrigStore, lpActions->lpAction[n], strRule, sc, bAddFwdFlag, lppMessage);
-				if (ret == -1)
+				if (ret == ROP_FAILURE)
 					goto exit;
 				break;
 			}
