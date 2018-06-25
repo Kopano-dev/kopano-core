@@ -149,19 +149,6 @@ kopano_cfgchecker_LDADD = libkcutil.la libmapi.la ${PROG_LIBS}
 #
 # kopano-dagent
 #
-libkcpyplug_la_CPPFLAGS = \
-	${AM_CPPFLAGS} -Ispooler ${PYTHON_CFLAGS} -DSWIG_TYPE_TABLE=MAPI
-libkcpyplug_la_SOURCES = \
-	common/pymem.hpp spooler/PyMapiPlugin.cpp spooler/PyMapiPlugin.h \
-	spooler/PythonSWIGRuntime.h
-libkcpyplug_la_SYFLAGS = -Wl,--version-script=spooler/libkcpyplug.sym
-libkcpyplug_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -module \
-	${libkcpyplug_la_SYFLAGS${NO_VSYM}}
-libkcpyplug_la_LIBADD = \
-	libkcutil.la libmapi.la ${PYTHON_LIBS}
-EXTRA_libkcpyplug_la_DEPENDENCIES = spooler/libkcpyplug.sym
-
-
 kopano_dagent_SOURCES = \
 	spooler/DAgent.cpp spooler/LMTP.cpp spooler/LMTP.h \
 	spooler/archive.cpp spooler/archive.h \
@@ -511,6 +498,22 @@ libkcinetmapi_la_LIBADD = \
 libkcinetmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-version-info 0:0:0 -Wl,-z -Wl,now ${default_SYFLAGS${NO_VSYM}}
 EXTRA_libkcinetmapi_la_DEPENDENCIES = ${default_sym}
+
+
+#
+# libkcpyplug
+#
+libkcpyplug_la_CPPFLAGS = \
+	${AM_CPPFLAGS} -Ispooler ${PYTHON_CFLAGS} -DSWIG_TYPE_TABLE=MAPI
+libkcpyplug_la_SOURCES = \
+	common/pymem.hpp spooler/PyMapiPlugin.cpp spooler/PyMapiPlugin.h \
+	spooler/PythonSWIGRuntime.h
+libkcpyplug_la_SYFLAGS = -Wl,--version-script=spooler/libkcpyplug.sym
+libkcpyplug_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -module \
+	${libkcpyplug_la_SYFLAGS${NO_VSYM}}
+libkcpyplug_la_LIBADD = \
+	libkcutil.la libmapi.la ${PYTHON_LIBS}
+EXTRA_libkcpyplug_la_DEPENDENCIES = spooler/libkcpyplug.sym
 
 
 #
