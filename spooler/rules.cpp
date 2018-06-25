@@ -49,6 +49,7 @@ enum actstatus {
 	ROP_NOOP,
 	ROP_ERROR,
 	ROP_SUCCESS,
+	ROP_CANCEL,
 };
 
 struct actresult {
@@ -1167,40 +1168,26 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 
 		for (ULONG n = 0; n < lpActions->cActions; ++n) {
 			const auto &action = lpActions->lpAction[n];
-
+			auto ret = [lpSession, lpOrigStore, lpOrigInbox, lpAdrBook, &action, strRule, sc, &bMoved, &bAddFwdFlag, lppMessage]() -> struct actresult {
 			// do action
 			switch (action.acttype) {
 			case OP_MOVE:
 			case OP_COPY: {
 				auto ret = proc_op_copy(lpSession, action, strRule, sc, lppMessage);
-				if (ret.status == ROP_FAILURE) {
-					hr = ret.code;
-					goto exit;
-				}
 				if (ret.status == ROP_SUCCESS && action.acttype == OP_MOVE)
 					bMoved = true;
-				break;
+				return ret;
 			}
 			/* May become DAMs, may become normal rules (OL2003) */
 			case OP_REPLY:
-			case OP_OOF_REPLY: {
-				auto ret = proc_op_reply(lpSession, lpOrigStore, lpOrigInbox, action, strRule, sc, lppMessage);
-				if (ret.status == ROP_FAILURE) {
-					hr = ret.code;
-					goto exit;
-				}
-				break;
-			}
+			case OP_OOF_REPLY:
+				return proc_op_reply(lpSession, lpOrigStore, lpOrigInbox, action, strRule, sc, lppMessage);
 			case OP_FORWARD: {
-				auto ret = proc_op_fwd(lpAdrBook, lpOrigStore, lpActions->lpAction[n], strRule, sc, lppMessage);
-				if (ret.status == ROP_FAILURE) {
-					hr = ret.code;
-					goto exit;
-				}
+				auto ret = proc_op_fwd(lpAdrBook, lpOrigStore, action, strRule, sc, lppMessage);
 				if (ret.status == ROP_SUCCESS)
 					/* Update original message, set as forwarded */
 					bAddFwdFlag = true;
-				break;
+				return ret;
 			}
 			case OP_BOUNCE:
 				sc -> countInc("rules", "bounce");
@@ -1212,14 +1199,8 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 				ec_log_warn("Rule \"%s\": BOUNCE actions are currently unsupported", strRule.c_str());
 				break;
 
-			case OP_DELEGATE: {
-				auto ret = proc_op_delegate(lpAdrBook, lpOrigStore, action, strRule, sc, lppMessage);
-				if (ret.status == ROP_FAILURE) {
-					hr = ret.code;
-					goto exit;
-				}
-				break;
-			}
+			case OP_DELEGATE:
+				return proc_op_delegate(lpAdrBook, lpOrigStore, action, strRule, sc, lppMessage);
 
 			// will become a DAM atm, so I won't even bother implementing these ...
 
@@ -1239,15 +1220,22 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 				// this will trigger the out-of-office mail (according to microsoft), but not save the message and drop it.
 				// The error code will become hrSuccess automatically after returning from the post processing function.
 				ec_log_debug("Rule action: deleting e-mail");
-				hr = MAPI_E_CANCEL;
-				goto exit;
-				break;
+				return {ROP_CANCEL};
 			case OP_MARK_AS_READ:
 				sc -> countInc("rules", "mark_read");
 				// add prop read
 				ec_log_warn("Rule \"%s\": MARK AS READ actions are currently unsupported", strRule.c_str());
 				break;
 			};
+			return {ROP_SUCCESS};
+			}();
+			if (ret.status == ROP_FAILURE) {
+				hr = ret.code;
+				goto exit;
+			} else if (ret.status == ROP_CANCEL) {
+				hr = MAPI_E_CANCEL;
+				goto exit;
+			}
 		} // end action loop
 
 		if (lpRuleState && (lpRuleState->Value.i & ST_EXIT_LEVEL))
