@@ -880,6 +880,41 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 	return {ROP_SUCCESS};
 }
 
+static struct actresult proc_op_delegate(IAddrBook *abk, IMsgStore *store,
+    const ACTION &action, const std::string &rule, StatsClient *sc,
+    IMessage **msg)
+{
+	sc->countInc("rules", "delegate");
+	if (action.lpadrlist->cEntries == 0) {
+		ec_log_debug("Delegating rule doesn't have recipients");
+		return {ROP_NOOP};
+	}
+	ec_log_debug("Rule action: delegating e-mail");
+	object_ptr<IMessage> fwdmsg;
+	auto hr = CreateForwardCopy(abk, store, *msg, action.lpadrlist,
+	          true, true, true, false, &~fwdmsg);
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": DELEGATE Unable to create delegate message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	/* set delegate properties */
+	hr = HrDelegateMessage(fwdmsg);
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": DELEGATE Unable to modify delegate message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	hr = fwdmsg->SubmitMessage(0);
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": DELEGATE Unable to send delegate message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	/* don't set forwarded flag */
+	return {ROP_SUCCESS};
+}
+
 // lpMessage: gets EntryID, maybe pass this and close message in DAgent.cpp
 HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
     IMAPISession *lpSession, IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
@@ -1175,38 +1210,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 				break;
 
 			case OP_DELEGATE: {
-				auto ret = [lpAdrBook,lpOrigStore,&action,&strRule,sc,lppMessage]() -> struct actresult {
-				sc -> countInc("rules", "delegate");
-				if (action.lpadrlist->cEntries == 0) {
-					ec_log_debug("Delegating rule doesn't have recipients");
-					return {ROP_NOOP};
-				}
-				ec_log_debug("Rule action: delegating e-mail");
-				object_ptr<IMessage> lpFwdMsg;
-				auto hr = CreateForwardCopy(lpAdrBook, lpOrigStore, *lppMessage, action.lpadrlist, true, true, true, false, &~lpFwdMsg);
-				if (hr != hrSuccess) {
-					ec_log_err("Rule \"%s\": DELEGATE Unable to create delegate message: %s (%x)",
-						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					return {ROP_ERROR, hr};
-				}
-
-				// set delegate properties
-				hr = HrDelegateMessage(lpFwdMsg);
-				if (hr != hrSuccess) {
-					ec_log_err("Rule \"%s\": DELEGATE Unable to modify delegate message: %s (%x)",
-						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					return {ROP_ERROR, hr};
-				}
-
-				hr = lpFwdMsg->SubmitMessage(0);
-				if (hr != hrSuccess) {
-					ec_log_err("Rule \"%s\": DELEGATE Unable to send delegate message: %s (%x)",
-						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					return {ROP_ERROR, hr};
-				}
-				// don't set forwarded flag
-				return {ROP_SUCCESS};
-				}();
+				auto ret = proc_op_delegate(lpAdrBook, lpOrigStore, action, strRule, sc, lppMessage);
 				if (ret.status == ROP_FAILURE) {
 					hr = ret.code;
 					goto exit;
