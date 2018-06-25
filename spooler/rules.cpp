@@ -887,7 +887,6 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 {
 	object_ptr<IExchangeModifyTable> lpTable;
 	object_ptr<IMAPITable> lpView;
-	ULONG ulObjType;
 	bool bAddFwdFlag = false;
 	bool bMoved = false;
 	static constexpr const SizedSPropTagArray(11, sptaRules) =
@@ -1032,16 +1031,14 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		sc -> countAdd("rules", "n_actions", int64_t(lpActions->cActions));
 
 		for (ULONG n = 0; n < lpActions->cActions; ++n) {
-			object_ptr<IMsgStore> lpDestStore;
-			object_ptr<IMAPIFolder> lpDestFolder;
-			object_ptr<IMessage> lpNewMessage;
 			const auto &action = lpActions->lpAction[n];
 
 			// do action
 			switch (action.acttype) {
 			case OP_MOVE:
 			case OP_COPY: {
-				const auto &cmov = lpActions->lpAction[n].actMoveCopy;
+				auto ret = [lpSession,&action,&strRule,sc,lppMessage]() -> struct actresult {
+				const auto &cmov = action.actMoveCopy;
 				sc->countInc("rules", "copy_move");
 				if (action.acttype == OP_COPY)
 					ec_log_debug("Rule action: copying e-mail");
@@ -1049,18 +1046,21 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 					ec_log_debug("Rule action: moving e-mail");
 
 				// First try to open the folder on the session as that will just work if we have the store open
-				hr = lpSession->OpenEntry(cmov.cbFldEntryId,
+				object_ptr<IMAPIFolder> lpDestFolder;
+				unsigned int ulObjType;
+				auto hr = lpSession->OpenEntry(cmov.cbFldEntryId,
 				     cmov.lpFldEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType,
 				     &~lpDestFolder);
 				if (hr != hrSuccess) {
 					ec_log_info("Rule \"%s\": Unable to open folder through session, trying through store: %s (%x)",
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
+					object_ptr<IMsgStore> lpDestStore;
 					hr = lpSession->OpenMsgStore(0, cmov.cbStoreEntryId,
 					     cmov.lpStoreEntryId, nullptr, MAPI_BEST_ACCESS, &~lpDestStore);
 					if (hr != hrSuccess) {
 						ec_log_err("Rule \"%s\": Unable to open destination store: %s (%x)",
 							strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-						continue;
+						return {ROP_ERROR, hr};
 					}
 
 					hr = lpDestStore->OpenEntry(cmov.cbFldEntryId,
@@ -1069,22 +1069,23 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 					if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
 						ec_log_err("Rule \"%s\": Unable to open destination folder: %s (%x)",
 							strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-						continue;
+						return {ROP_ERROR, hr};
 					}
 				}
 
+				object_ptr<IMessage> lpNewMessage;
 				hr = lpDestFolder->CreateMessage(nullptr, 0, &~lpNewMessage);
 				if(hr != hrSuccess) {
 					ec_log_err("Unable to create e-mail for rule \"%s\": %s (%x)",
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					goto exit;
+					return {ROP_FAILURE, hr};
 				}
 					
 				hr = (*lppMessage)->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, lpNewMessage, 0, NULL);
 				if(hr != hrSuccess) {
 					ec_log_err("Unable to copy e-mail for rule \"%s\": %s (%x)",
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					goto exit;
+					return {ROP_FAILURE, hr};
 				}
 
 				hr = Util::HrCopyIMAPData((*lppMessage), lpNewMessage);
@@ -1092,8 +1093,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 				if (hr != hrSuccess) {
 					ec_log_err("Unable to copy IMAP data e-mail for rule \"%s\", continuing: %s (%x)",
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					hr = hrSuccess;
-					goto exit;
+					return {ROP_FAILURE, hr};
 				}
 
 				// Save the copy in its new location
@@ -1101,9 +1101,15 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 				if (hr != hrSuccess) {
 					ec_log_err("Rule \"%s\": Unable to copy/move message: %s (%x)",
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
+					return {ROP_ERROR, hr};
 				}
-				if (action.acttype == OP_MOVE)
+				return {ROP_SUCCESS};
+				}();
+				if (ret.status == ROP_FAILURE) {
+					hr = ret.code;
+					goto exit;
+				}
+				if (ret.status == ROP_SUCCESS && action.acttype == OP_MOVE)
 					bMoved = true;
 				break;
 			}
