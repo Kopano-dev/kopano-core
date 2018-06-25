@@ -45,20 +45,26 @@ class pym_plugin_intf {
 	virtual HRESULT RequestCallExecution(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *do_callexe, ULONG *result) { return hrSuccess; }
 };
 
-struct pym_factory_priv;
-
 class PyMapiPluginFactory _kc_final {
 public:
-	PyMapiPluginFactory(void);
+	PyMapiPluginFactory() = default;
 	~PyMapiPluginFactory();
 	HRESULT create_plugin(KC::ECConfig *, const char *mgr_class, pym_plugin_intf **);
 
 private:
-	struct pym_factory_priv *m_priv;
+	void *m_handle = nullptr;
+	void (*m_exit)(void) = nullptr;
 
 	// Inhibit (accidental) copying
 	PyMapiPluginFactory(const PyMapiPluginFactory &) = delete;
 	PyMapiPluginFactory &operator=(const PyMapiPluginFactory &) = delete;
 };
+
+extern "C" {
+
+extern _kc_export HRESULT plugin_manager_init(KC::ECConfig *, const char *, pym_plugin_intf **);
+extern _kc_export void plugin_manager_exit();
+
+}
 
 #endif

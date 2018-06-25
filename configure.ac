@@ -742,6 +742,7 @@ AC_CONFIG_FILES([Makefile
 		mapi4linux/src/libmapi.sym
 		provider/plugin.sym provider/provider.sym
 		provider/libkcserver.sym provider/libkcsoap.sym
+		spooler/libkcpyplug.sym
 ])
 
 # Python tools

@@ -83,7 +83,7 @@ lib_LTLIBRARIES = \
 	libkcarchiver.la libkcarchivercore.la
 noinst_LTLIBRARIES =
 if ENABLE_PYTHON
-noinst_LTLIBRARIES += libkcpyplug.la
+lib_LTLIBRARIES += libkcpyplug.la
 endif
 noinst_DATA = \
 	kopano-archiver.ldx kopano-cfgchecker.ldx kopano-dagent.ldx \
@@ -154,8 +154,13 @@ libkcpyplug_la_CPPFLAGS = \
 libkcpyplug_la_SOURCES = \
 	common/pymem.hpp spooler/PyMapiPlugin.cpp spooler/PyMapiPlugin.h \
 	spooler/PythonSWIGRuntime.h
+libkcpyplug_la_SYFLAGS = -Wl,--version-script=spooler/libkcpyplug.sym
+libkcpyplug_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -module \
+	${libkcpyplug_la_SYFLAGS${NO_VSYM}}
 libkcpyplug_la_LIBADD = \
 	libkcutil.la libmapi.la ${PYTHON_LIBS}
+EXTRA_libkcpyplug_la_DEPENDENCIES = spooler/libkcpyplug.sym
+
 
 kopano_dagent_SOURCES = \
 	spooler/DAgent.cpp spooler/LMTP.cpp spooler/LMTP.h \
@@ -164,10 +169,7 @@ kopano_dagent_SOURCES = \
 kopano_dagent_LDADD = \
 	libkcinetmapi.la libmapi.la libkcutil.la \
 	libkcarchiver.la libkcarchivercore.la -lpthread \
-	${PROG_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
-if ENABLE_PYTHON
-kopano_dagent_LDADD += libkcpyplug.la
-endif
+	${DL_LIBS} ${PROG_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 
 
 #
@@ -244,10 +246,7 @@ kopano_spooler_SOURCES = \
 	spooler/mailer.cpp spooler/mailer.h
 kopano_spooler_LDADD = \
 	libkcinetmapi.la libmapi.la libkcutil.la \
-	libkcarchiver.la libkcarchivercore.la ${PROG_LIBS} ${XML2_LIBS}
-if ENABLE_PYTHON
-kopano_spooler_LDADD += libkcpyplug.la
-endif
+	libkcarchiver.la libkcarchivercore.la ${DL_LIBS} ${PROG_LIBS} ${XML2_LIBS}
 
 
 kopano_srvadm_SOURCES = ECtools/srvadm.cpp
@@ -874,7 +873,7 @@ dist_man_MANS = \
 #
 # build infrastructure
 #
-default.sym provider/plugin.sym provider/provider.sym: ${top_builddir}/config.status
+default.sym provider/plugin.sym provider/provider.sym spooler/libkcpyplug.sym: ${top_builddir}/config.status
 
 include global.am
 
