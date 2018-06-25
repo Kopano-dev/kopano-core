@@ -1035,7 +1035,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		for (ULONG n = 0; n < lpActions->cActions; ++n) {
 			object_ptr<IMsgStore> lpDestStore;
 			object_ptr<IMAPIFolder> lpDestFolder;
-			object_ptr<IMessage> lpReplyMsg, lpFwdMsg, lpNewMessage;
+			object_ptr<IMessage> lpReplyMsg, lpNewMessage;
 			const auto &action = lpActions->lpAction[n];
 
 			// do action
@@ -1159,18 +1159,20 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 				ec_log_warn("Rule \"%s\": BOUNCE actions are currently unsupported", strRule.c_str());
 				break;
 
-			case OP_DELEGATE:
+			case OP_DELEGATE: {
+				auto ret = [lpAdrBook,lpOrigStore,&action,&strRule,sc,lppMessage]() -> struct actresult {
 				sc -> countInc("rules", "delegate");
 				if (action.lpadrlist->cEntries == 0) {
 					ec_log_debug("Delegating rule doesn't have recipients");
-					continue; // Nothing todo
+					return {ROP_NOOP};
 				}
 				ec_log_debug("Rule action: delegating e-mail");
-				hr = CreateForwardCopy(lpAdrBook, lpOrigStore, *lppMessage, action.lpadrlist, true, true, true, false, &~lpFwdMsg);
+				object_ptr<IMessage> lpFwdMsg;
+				auto hr = CreateForwardCopy(lpAdrBook, lpOrigStore, *lppMessage, action.lpadrlist, true, true, true, false, &~lpFwdMsg);
 				if (hr != hrSuccess) {
 					ec_log_err("Rule \"%s\": DELEGATE Unable to create delegate message: %s (%x)",
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
+					return {ROP_ERROR, hr};
 				}
 
 				// set delegate properties
@@ -1178,18 +1180,24 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 				if (hr != hrSuccess) {
 					ec_log_err("Rule \"%s\": DELEGATE Unable to modify delegate message: %s (%x)",
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
+					return {ROP_ERROR, hr};
 				}
 
 				hr = lpFwdMsg->SubmitMessage(0);
 				if (hr != hrSuccess) {
 					ec_log_err("Rule \"%s\": DELEGATE Unable to send delegate message: %s (%x)",
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
+					return {ROP_ERROR, hr};
 				}
-
 				// don't set forwarded flag
+				return {ROP_SUCCESS};
+				}();
+				if (ret.status == ROP_FAILURE) {
+					hr = ret.code;
+					goto exit;
+				}
 				break;
+			}
 
 			// will become a DAM atm, so I won't even bother implementing these ...
 
