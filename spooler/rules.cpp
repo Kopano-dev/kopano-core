@@ -1036,34 +1036,36 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			object_ptr<IMsgStore> lpDestStore;
 			object_ptr<IMAPIFolder> lpDestFolder;
 			object_ptr<IMessage> lpReplyMsg, lpFwdMsg, lpNewMessage;
+			const auto &action = lpActions->lpAction[n];
 
 			// do action
-			switch(lpActions->lpAction[n].acttype) {
+			switch (action.acttype) {
 			case OP_MOVE:
-			case OP_COPY:
+			case OP_COPY: {
+				const auto &cmov = lpActions->lpAction[n].actMoveCopy;
 				sc->countInc("rules", "copy_move");
-				if (lpActions->lpAction[n].acttype == OP_COPY)
+				if (action.acttype == OP_COPY)
 					ec_log_debug("Rule action: copying e-mail");
 				else
 					ec_log_debug("Rule action: moving e-mail");
 
 				// First try to open the folder on the session as that will just work if we have the store open
-				hr = lpSession->OpenEntry(lpActions->lpAction[n].actMoveCopy.cbFldEntryId,
-				     lpActions->lpAction[n].actMoveCopy.lpFldEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType,
+				hr = lpSession->OpenEntry(cmov.cbFldEntryId,
+				     cmov.lpFldEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType,
 				     &~lpDestFolder);
 				if (hr != hrSuccess) {
 					ec_log_info("Rule \"%s\": Unable to open folder through session, trying through store: %s (%x)",
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					hr = lpSession->OpenMsgStore(0, lpActions->lpAction[n].actMoveCopy.cbStoreEntryId,
-					     lpActions->lpAction[n].actMoveCopy.lpStoreEntryId, nullptr, MAPI_BEST_ACCESS, &~lpDestStore);
+					hr = lpSession->OpenMsgStore(0, cmov.cbStoreEntryId,
+					     cmov.lpStoreEntryId, nullptr, MAPI_BEST_ACCESS, &~lpDestStore);
 					if (hr != hrSuccess) {
 						ec_log_err("Rule \"%s\": Unable to open destination store: %s (%x)",
 							strRule.c_str(), GetMAPIErrorMessage(hr), hr);
 						continue;
 					}
 
-					hr = lpDestStore->OpenEntry(lpActions->lpAction[n].actMoveCopy.cbFldEntryId,
-					     lpActions->lpAction[n].actMoveCopy.lpFldEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType,
+					hr = lpDestStore->OpenEntry(cmov.cbFldEntryId,
+					     cmov.lpFldEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType,
 					     &~lpDestFolder);
 					if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
 						ec_log_err("Rule \"%s\": Unable to open destination folder: %s (%x)",
@@ -1102,21 +1104,22 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
 					continue;
 				}
-				if (lpActions->lpAction[n].acttype == OP_MOVE)
+				if (action.acttype == OP_MOVE)
 					bMoved = true;
 				break;
-
+			}
 			/* May become DAMs, may become normal rules (OL2003) */
 			case OP_REPLY:
-			case OP_OOF_REPLY:
+			case OP_OOF_REPLY: {
+				const auto &repl = lpActions->lpAction[n].actReply;
 				sc->countInc("rules", "reply_and_oof");
-				if (lpActions->lpAction[n].acttype == OP_REPLY)
+				if (action.acttype == OP_REPLY)
 					ec_log_debug("Rule action: replying e-mail");
 				else
 					ec_log_debug("Rule action: OOF replying e-mail");
 
-				hr = lpOrigInbox->OpenEntry(lpActions->lpAction[n].actReply.cbEntryId,
-				     lpActions->lpAction[n].actReply.lpEntryId, &IID_IMessage, 0, &ulObjType,
+				hr = lpOrigInbox->OpenEntry(repl.cbEntryId,
+				     repl.lpEntryId, &IID_IMessage, 0, &ulObjType,
 				     (IUnknown**)&lpTemplate);
 				if (hr != hrSuccess) {
 					ec_log_err("Rule \"%s\": Unable to open reply message: %s (%x)",
@@ -1137,7 +1140,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 					continue;
 				}
 				break;
-
+			}
 			case OP_FORWARD: {
 				auto ret = proc_op_fwd(lpAdrBook, lpOrigStore, lpActions->lpAction[n], strRule, sc, bAddFwdFlag, lppMessage);
 				if (ret.status == ROP_FAILURE) {
@@ -1158,12 +1161,12 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 
 			case OP_DELEGATE:
 				sc -> countInc("rules", "delegate");
-				if (lpActions->lpAction[n].lpadrlist->cEntries == 0) {
+				if (action.lpadrlist->cEntries == 0) {
 					ec_log_debug("Delegating rule doesn't have recipients");
 					continue; // Nothing todo
 				}
 				ec_log_debug("Rule action: delegating e-mail");
-				hr = CreateForwardCopy(lpAdrBook, lpOrigStore, *lppMessage, lpActions->lpAction[n].lpadrlist, true, true, true, false, &~lpFwdMsg);
+				hr = CreateForwardCopy(lpAdrBook, lpOrigStore, *lppMessage, action.lpadrlist, true, true, true, false, &~lpFwdMsg);
 				if (hr != hrSuccess) {
 					ec_log_err("Rule \"%s\": DELEGATE Unable to create delegate message: %s (%x)",
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
