@@ -55,8 +55,6 @@ public:
 
 private:
 	struct pym_factory_priv *m_priv;
-	bool m_bEnablePlugin = false;
-	std::string m_strPluginPath;
 
 	// Inhibit (accidental) copying
 	PyMapiPluginFactory(const PyMapiPluginFactory &) = delete;
