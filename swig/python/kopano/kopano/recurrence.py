@@ -335,6 +335,7 @@ class Recurrence(object):
         rec._end_date = 0
         rec._exceptions = []
         rec._extended_exceptions = []
+        rec._has_extended = True
 
         rec._starttime_offset = 0
         rec._endtime_offset = 0
