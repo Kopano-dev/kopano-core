@@ -10,10 +10,7 @@ import email.parser as email_parser
 import email.utils as email_utils
 import functools
 import os
-import random
 import sys
-import struct
-import time
 import traceback
 import warnings
 
@@ -102,7 +99,7 @@ from .attachment import Attachment
 from .properties import Properties
 from .recurrence import Occurrence
 from .restriction import Restriction
-from .meetingrequest import MeetingRequest, _copytags
+from .meetingrequest import MeetingRequest, _copytags, _create_meetingrequest
 from .address import Address
 from .table import Table
 from .contact import Contact
@@ -726,31 +723,6 @@ class Item(Properties, Contact, Appointment):
         _, data = mic.Finalize(0)
         return data
 
-    def _send_meeting_request(self, cancel=False):
-        # TODO Update the calendar item, for tracking status
-        # TODO Set the body of the message like WebApp / OL does.
-        # TODO Whitelist properties?
-
-        item = self.copy(self.store.outbox)
-
-        # Set meeting request props
-        item.message_class = 'IPM.Schedule.Meeting.Request'
-        stateflags = ASF_MEETING | ASF_RECEIVED
-        if cancel:
-            stateflags |= ASF_CANCELED
-        item[PidLidAppointmentStateFlags] = stateflags
-
-        goid = self.get(PidLidCleanGlobalObjectId)
-        if goid is None:
-            goid = self._generate_goid()
-            # TODO set on appointment creation already?
-            self[PidLidCleanGlobalObjectId] = goid
-
-            item.create_prop('meeting:3', goid, PT_BINARY)
-            item.create_prop('meeting:35', goid, PT_BINARY)
-
-        return item
-
     def _generate_reply_body(self):
         """Create a reply body"""
         # TODO(jelle): HTML formatted text support.
@@ -809,7 +781,7 @@ class Item(Properties, Contact, Appointment):
                 self.get(PidLidAppointmentEndWhole) is None):
                 raise Error('appointment requires start and end date')
 
-            item = self._send_meeting_request(cancel=cancel)
+            item = _create_meetingrequest(self, cancel=cancel)
 
         icon_index = {
             b'66': 261,  # reply
@@ -838,50 +810,6 @@ class Item(Properties, Contact, Appointment):
         except MAPIErrorNoRecipients:
             if self.message_class != 'IPM.Appointment':
                 raise Error('cannot send item without recipients')
-
-    def _generate_goid(self):
-        """
-        Generate a meeting request Global Object ID.
-
-        The Global Object ID is a MAPI property that any MAPI client uses to
-        correlate meeting updates and responses with a particular meeting on
-        the calendar. The Global Object ID is the same across all copies of the
-        item.
-
-        The Global Object ID consists of the following data:
-
-        * byte array id (16 bytes) - identifiers the BLOB as a GLOBAL Object ID.
-        * year (YH + YL) - original year of the instance represented by the
-        exception. The value is in big-endian format.
-        * M (byte) - original month of the instance represented by the exception.
-        * D (byte) - original day of the instance represented by the exception.
-        * Creation time - 8 byte date
-        * X - reversed byte array of size 8.
-        * size - LONG, the length of the data field.
-        * data - a byte array (16 bytes) that uniquely identifers the meeting object.
-        """
-
-        from MAPI.Time import NANOSECS_BETWEEN_EPOCH
-
-        # XXX: in MAPI.Time?
-        def mapi_time(t):
-            return int(t) * 10000000 + NANOSECS_BETWEEN_EPOCH
-
-        # byte array id
-        goid = b'\x04\x00\x00\x00\x82\x00\xe0\x00t\xc5\xb7\x10\x1a\x82\xe0\x08'
-        # YEARHIGH, YEARLOW, MONTH, DATE
-        goid += struct.pack('>H2B', 0, 0, 0)
-        # Creation time, lowdatetime, highdatetime
-        now = mapi_time(time.time())
-        goid += struct.pack('II', now & 0xffffffff, now >> 32)
-        # Reserved, 8 zeros
-        goid += struct.pack('L', 0)
-        # data size
-        goid += struct.pack('I', 16)
-        # Unique data
-        for _ in range(0, 16):
-            goid += struct.pack('B', random.getrandbits(8))
-        return goid
 
     @property
     def sender(self):
