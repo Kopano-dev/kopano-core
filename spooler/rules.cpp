@@ -50,6 +50,8 @@ enum actstatus {
 	ROP_ERROR,
 	ROP_SUCCESS,
 	ROP_CANCEL,
+	ROP_MOVED,
+	ROP_FORWARDED,
 };
 
 struct actresult {
@@ -1018,15 +1020,14 @@ static struct actresult proc_op_delegate(IAddrBook *abk, IMsgStore *store,
 
 static struct actresult proc_op_act(IMAPISession *ses, IMsgStore *store,
     IMAPIFolder *inbox, IAddrBook *abk, const ACTION &action,
-    const std::string &rule, StatsClient *sc, bool &moved, bool &add_fwd_flag,
-    IMessage **msg)
+    const std::string &rule, StatsClient *sc, IMessage **msg)
 {
 	switch (action.acttype) {
 	case OP_MOVE:
 	case OP_COPY: {
 		auto ret = proc_op_copy(ses, action, rule, sc, msg);
 		if (ret.status == ROP_SUCCESS && action.acttype == OP_MOVE)
-			moved = true;
+			return {ROP_MOVED};
 		return ret;
 	}
 	/* May become DAMs, may become normal rules (OL2003) */
@@ -1037,7 +1038,7 @@ static struct actresult proc_op_act(IMAPISession *ses, IMsgStore *store,
 		auto ret = proc_op_fwd(abk, store, action, rule, sc, msg);
 		if (ret.status == ROP_SUCCESS)
 			/* Update original message, set as forwarded */
-			add_fwd_flag = true;
+			return {ROP_FORWARDED};
 		return ret;
 	}
 	case OP_BOUNCE:
@@ -1238,7 +1239,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 
 		for (ULONG n = 0; n < lpActions->cActions; ++n) {
 			const auto &action = lpActions->lpAction[n];
-			auto ret = proc_op_act(lpSession, lpOrigStore, lpOrigInbox, lpAdrBook, action, strRule, sc, bMoved, bAddFwdFlag, lppMessage);
+			auto ret = proc_op_act(lpSession, lpOrigStore, lpOrigInbox, lpAdrBook, action, strRule, sc, lppMessage);
 			if (ret.status == ROP_FAILURE) {
 				hr = ret.code;
 				goto exit;
@@ -1246,6 +1247,10 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 				hr = MAPI_E_CANCEL;
 				goto exit;
 			}
+			if (ret.status == ROP_MOVED)
+				bMoved = true;
+			if (ret.status == ROP_FORWARDED)
+				bAddFwdFlag = true;
 		} // end action loop
 
 		if (lpRuleState && (lpRuleState->Value.i & ST_EXIT_LEVEL))
