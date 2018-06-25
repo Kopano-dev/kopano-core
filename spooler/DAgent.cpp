@@ -3370,7 +3370,7 @@ int main(int argc, char *argv[]) {
 		{"log_method", "file", CONFIGSETTING_NONEMPTY},
 		{"log_file", "-", CONFIGSETTING_NONEMPTY},
 		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},
-		{ "log_timestamp", "0" },
+		{"log_timestamp", "yes"},
 		{ "log_buffer_size", "0" },
 		{ "server_socket", "default:" },
 		{ "sslkey_file", "" },
