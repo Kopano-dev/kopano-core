@@ -824,6 +824,72 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 	return lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 }
 
+static struct actresult proc_op_copy(IMAPISession *ses, const ACTION &action,
+    const std::string &rule, StatsClient *sc, IMessage **msg)
+{
+	const auto &cmov = action.actMoveCopy;
+	sc->countInc("rules", "copy_move");
+	if (action.acttype == OP_COPY)
+		ec_log_debug("Rule action: copying e-mail");
+	else
+		ec_log_debug("Rule action: moving e-mail");
+
+	// First try to open the folder on the session as that will just work if we have the store open
+	object_ptr<IMAPIFolder> dst_folder;
+	unsigned int obj_type;
+	auto hr = ses->OpenEntry(cmov.cbFldEntryId, cmov.lpFldEntryId,
+	          &IID_IMAPIFolder, MAPI_MODIFY, &obj_type, &~dst_folder);
+	if (hr != hrSuccess) {
+		ec_log_info("Rule \"%s\": Unable to open folder through session, trying through store: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		object_ptr<IMsgStore> dst_store;
+		hr = ses->OpenMsgStore(0, cmov.cbStoreEntryId,
+		     cmov.lpStoreEntryId, nullptr, MAPI_BEST_ACCESS, &~dst_store);
+		if (hr != hrSuccess) {
+			ec_log_err("Rule \"%s\": Unable to open destination store: %s (%x)",
+				rule.c_str(), GetMAPIErrorMessage(hr), hr);
+			return {ROP_ERROR, hr};
+		}
+		hr = dst_store->OpenEntry(cmov.cbFldEntryId, cmov.lpFldEntryId,
+		     &IID_IMAPIFolder, MAPI_MODIFY, &obj_type, &~dst_folder);
+		if (hr != hrSuccess || obj_type != MAPI_FOLDER) {
+			ec_log_err("Rule \"%s\": Unable to open destination folder: %s (%x)",
+				rule.c_str(), GetMAPIErrorMessage(hr), hr);
+			return {ROP_ERROR, hr};
+		}
+	}
+
+	object_ptr<IMessage> newmsg;
+	hr = dst_folder->CreateMessage(nullptr, 0, &~newmsg);
+	if (hr != hrSuccess) {
+		ec_log_err("Unable to create e-mail for rule \"%s\": %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_FAILURE, hr};
+	}
+	hr = (*msg)->CopyTo(0, nullptr, nullptr, 0, nullptr, &IID_IMessage,
+	     newmsg, 0, nullptr);
+	if (hr != hrSuccess) {
+		ec_log_err("Unable to copy e-mail for rule \"%s\": %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_FAILURE, hr};
+	}
+	hr = Util::HrCopyIMAPData(*msg, newmsg);
+	// the function only returns errors on get/setprops, not when the data is just missing
+	if (hr != hrSuccess) {
+		ec_log_err("Unable to copy IMAP data e-mail for rule \"%s\", continuing: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_FAILURE, hr};
+	}
+	/* Save the copy in its new location */
+	hr = newmsg->SaveChanges(0);
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": Unable to copy/move message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	return {ROP_SUCCESS};
+}
+
 static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
     IMAPIFolder *inbox, const ACTION &action, const std::string &rule,
     StatsClient *sc, IMessage **msg)
@@ -1108,74 +1174,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			switch (action.acttype) {
 			case OP_MOVE:
 			case OP_COPY: {
-				auto ret = [lpSession,&action,&strRule,sc,lppMessage]() -> struct actresult {
-				const auto &cmov = action.actMoveCopy;
-				sc->countInc("rules", "copy_move");
-				if (action.acttype == OP_COPY)
-					ec_log_debug("Rule action: copying e-mail");
-				else
-					ec_log_debug("Rule action: moving e-mail");
-
-				// First try to open the folder on the session as that will just work if we have the store open
-				object_ptr<IMAPIFolder> lpDestFolder;
-				unsigned int ulObjType;
-				auto hr = lpSession->OpenEntry(cmov.cbFldEntryId,
-				     cmov.lpFldEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType,
-				     &~lpDestFolder);
-				if (hr != hrSuccess) {
-					ec_log_info("Rule \"%s\": Unable to open folder through session, trying through store: %s (%x)",
-						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					object_ptr<IMsgStore> lpDestStore;
-					hr = lpSession->OpenMsgStore(0, cmov.cbStoreEntryId,
-					     cmov.lpStoreEntryId, nullptr, MAPI_BEST_ACCESS, &~lpDestStore);
-					if (hr != hrSuccess) {
-						ec_log_err("Rule \"%s\": Unable to open destination store: %s (%x)",
-							strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-						return {ROP_ERROR, hr};
-					}
-
-					hr = lpDestStore->OpenEntry(cmov.cbFldEntryId,
-					     cmov.lpFldEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType,
-					     &~lpDestFolder);
-					if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
-						ec_log_err("Rule \"%s\": Unable to open destination folder: %s (%x)",
-							strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-						return {ROP_ERROR, hr};
-					}
-				}
-
-				object_ptr<IMessage> lpNewMessage;
-				hr = lpDestFolder->CreateMessage(nullptr, 0, &~lpNewMessage);
-				if(hr != hrSuccess) {
-					ec_log_err("Unable to create e-mail for rule \"%s\": %s (%x)",
-						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					return {ROP_FAILURE, hr};
-				}
-					
-				hr = (*lppMessage)->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, lpNewMessage, 0, NULL);
-				if(hr != hrSuccess) {
-					ec_log_err("Unable to copy e-mail for rule \"%s\": %s (%x)",
-						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					return {ROP_FAILURE, hr};
-				}
-
-				hr = Util::HrCopyIMAPData((*lppMessage), lpNewMessage);
-				// the function only returns errors on get/setprops, not when the data is just missing
-				if (hr != hrSuccess) {
-					ec_log_err("Unable to copy IMAP data e-mail for rule \"%s\", continuing: %s (%x)",
-						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					return {ROP_FAILURE, hr};
-				}
-
-				// Save the copy in its new location
-				hr = lpNewMessage->SaveChanges(0);
-				if (hr != hrSuccess) {
-					ec_log_err("Rule \"%s\": Unable to copy/move message: %s (%x)",
-						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					return {ROP_ERROR, hr};
-				}
-				return {ROP_SUCCESS};
-				}();
+				auto ret = proc_op_copy(lpSession, action, strRule, sc, lppMessage);
 				if (ret.status == ROP_FAILURE) {
 					hr = ret.code;
 					goto exit;
