@@ -887,7 +887,6 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 {
 	object_ptr<IExchangeModifyTable> lpTable;
 	object_ptr<IMAPITable> lpView;
-	LPMESSAGE lpTemplate = NULL;
 	ULONG ulObjType;
 	bool bAddFwdFlag = false;
 	bool bMoved = false;
@@ -1035,7 +1034,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		for (ULONG n = 0; n < lpActions->cActions; ++n) {
 			object_ptr<IMsgStore> lpDestStore;
 			object_ptr<IMAPIFolder> lpDestFolder;
-			object_ptr<IMessage> lpReplyMsg, lpNewMessage;
+			object_ptr<IMessage> lpNewMessage;
 			const auto &action = lpActions->lpAction[n];
 
 			// do action
@@ -1111,33 +1110,43 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			/* May become DAMs, may become normal rules (OL2003) */
 			case OP_REPLY:
 			case OP_OOF_REPLY: {
-				const auto &repl = lpActions->lpAction[n].actReply;
+				auto ret = [lpSession,lpOrigStore,lpOrigInbox,&action,&strRule,sc,lppMessage]() -> struct actresult {
+				const auto &repl = action.actReply;
 				sc->countInc("rules", "reply_and_oof");
 				if (action.acttype == OP_REPLY)
 					ec_log_debug("Rule action: replying e-mail");
 				else
 					ec_log_debug("Rule action: OOF replying e-mail");
 
-				hr = lpOrigInbox->OpenEntry(repl.cbEntryId,
+				IMessage *lpTemplate = nullptr;
+				unsigned int ulObjType;
+				auto hr = lpOrigInbox->OpenEntry(repl.cbEntryId,
 				     repl.lpEntryId, &IID_IMessage, 0, &ulObjType,
 				     (IUnknown**)&lpTemplate);
 				if (hr != hrSuccess) {
 					ec_log_err("Rule \"%s\": Unable to open reply message: %s (%x)",
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
+					return {ROP_ERROR, hr};
 				}
+				object_ptr<IMessage> lpReplyMsg;
 				hr = CreateReplyCopy(lpSession, lpOrigStore, *lppMessage, lpTemplate, &~lpReplyMsg);
 				if (hr != hrSuccess) {
 					ec_log_err("Rule \"%s\": Unable to create reply message: %s (%x)",
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
+					return {ROP_ERROR, hr};
 				}
 
 				hr = lpReplyMsg->SubmitMessage(0);
 				if (hr != hrSuccess) {
 					ec_log_err("Rule \"%s\": Unable to send reply message: %s (%x)",
 						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
+					return {ROP_ERROR, hr};
+				}
+				return {ROP_SUCCESS};
+				}();
+				if (ret.status == ROP_FAILURE) {
+					hr = ret.code;
+					goto exit;
 				}
 				break;
 			}
