@@ -1016,6 +1016,76 @@ static struct actresult proc_op_delegate(IAddrBook *abk, IMsgStore *store,
 	return {ROP_SUCCESS};
 }
 
+static struct actresult proc_op_act(IMAPISession *ses, IMsgStore *store,
+    IMAPIFolder *inbox, IAddrBook *abk, const ACTION &action,
+    const std::string &rule, StatsClient *sc, bool &moved, bool &add_fwd_flag,
+    IMessage **msg)
+{
+	switch (action.acttype) {
+	case OP_MOVE:
+	case OP_COPY: {
+		auto ret = proc_op_copy(ses, action, rule, sc, msg);
+		if (ret.status == ROP_SUCCESS && action.acttype == OP_MOVE)
+			moved = true;
+		return ret;
+	}
+	/* May become DAMs, may become normal rules (OL2003) */
+	case OP_REPLY:
+	case OP_OOF_REPLY:
+		return proc_op_reply(ses, store, inbox, action, rule, sc, msg);
+	case OP_FORWARD: {
+		auto ret = proc_op_fwd(abk, store, action, rule, sc, msg);
+		if (ret.status == ROP_SUCCESS)
+			/* Update original message, set as forwarded */
+			add_fwd_flag = true;
+		return ret;
+	}
+	case OP_BOUNCE:
+		sc->countInc("rules", "bounce");
+		/*
+		 * scBounceCode?
+		 * TODO:
+		 * 1. make copy of lpMessage, needs CopyTo() function
+		 * 2. copy From: to To:
+		 * 3. SubmitMessage()
+		 */
+		ec_log_warn("Rule \"%s\": BOUNCE actions are currently unsupported", rule.c_str());
+		break;
+	case OP_DELEGATE:
+		return proc_op_delegate(abk, store, action, rule, sc, msg);
+
+	/* will become a DAM atm, so I won't even bother implementing these ... */
+	case OP_DEFER_ACTION:
+		sc->countInc("rules", "defer");
+		/* DAM crud, but outlook doesn't check these messages... yet */
+		ec_log_warn("Rule \"%s\": DEFER client actions are currently unsupported", rule.c_str());
+		break;
+	case OP_TAG:
+		sc->countInc("rules", "tag");
+		/* sure. WHEN YOU STOP WITH THE FRIGGIN' DEFER ACTION MESSAGES!! */
+		ec_log_warn("Rule \"%s\": TAG actions are currently unsupported", rule.c_str());
+		break;
+	case OP_DELETE:
+		sc->countInc("rules", "delete");
+		/*
+		 * Since *msg wasn't yet saved in the server, we can just
+		 * return a special MAPI Error code here, this will trigger the
+		 * out-of-office mail (according to microsoft), but not save
+		 * the message and drop it. The error code will become
+		 * hrSuccess automatically after returning from the post
+		 * processing function.
+		 */
+		ec_log_debug("Rule action: deleting e-mail");
+		return {ROP_CANCEL};
+	case OP_MARK_AS_READ:
+		sc->countInc("rules", "mark_read");
+		/* add prop read */
+		ec_log_warn("Rule \"%s\": MARK AS READ actions are currently unsupported", rule.c_str());
+		break;
+	}
+	return {ROP_SUCCESS};
+}
+
 // lpMessage: gets EntryID, maybe pass this and close message in DAgent.cpp
 HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
     IMAPISession *lpSession, IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
@@ -1168,67 +1238,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 
 		for (ULONG n = 0; n < lpActions->cActions; ++n) {
 			const auto &action = lpActions->lpAction[n];
-			auto ret = [lpSession, lpOrigStore, lpOrigInbox, lpAdrBook, &action, strRule, sc, &bMoved, &bAddFwdFlag, lppMessage]() -> struct actresult {
-			// do action
-			switch (action.acttype) {
-			case OP_MOVE:
-			case OP_COPY: {
-				auto ret = proc_op_copy(lpSession, action, strRule, sc, lppMessage);
-				if (ret.status == ROP_SUCCESS && action.acttype == OP_MOVE)
-					bMoved = true;
-				return ret;
-			}
-			/* May become DAMs, may become normal rules (OL2003) */
-			case OP_REPLY:
-			case OP_OOF_REPLY:
-				return proc_op_reply(lpSession, lpOrigStore, lpOrigInbox, action, strRule, sc, lppMessage);
-			case OP_FORWARD: {
-				auto ret = proc_op_fwd(lpAdrBook, lpOrigStore, action, strRule, sc, lppMessage);
-				if (ret.status == ROP_SUCCESS)
-					/* Update original message, set as forwarded */
-					bAddFwdFlag = true;
-				return ret;
-			}
-			case OP_BOUNCE:
-				sc -> countInc("rules", "bounce");
-				// scBounceCode?
-				// TODO:
-				// 1. make copy of lpMessage, needs CopyTo() function
-				// 2. copy From: to To:
-				// 3. SubmitMessage()
-				ec_log_warn("Rule \"%s\": BOUNCE actions are currently unsupported", strRule.c_str());
-				break;
-
-			case OP_DELEGATE:
-				return proc_op_delegate(lpAdrBook, lpOrigStore, action, strRule, sc, lppMessage);
-
-			// will become a DAM atm, so I won't even bother implementing these ...
-
-			case OP_DEFER_ACTION:
-				sc -> countInc("rules", "defer");
-				// DAM crud, but outlook doesn't check these messages... yet
-				ec_log_warn("Rule \"%s\": DEFER client actions are currently unsupported", strRule.c_str());
-				break;
-			case OP_TAG:
-				sc -> countInc("rules", "tag");
-				// sure. WHEN YOU STOP WITH THE FRIGGIN' DEFER ACTION MESSAGES!!
-				ec_log_warn("Rule \"%s\": TAG actions are currently unsupported", strRule.c_str());
-				break;
-			case OP_DELETE:
-				sc -> countInc("rules", "delete");
-				// since *lppMessage wasn't yet saved in the server, we can just return a special MAPI Error code here,
-				// this will trigger the out-of-office mail (according to microsoft), but not save the message and drop it.
-				// The error code will become hrSuccess automatically after returning from the post processing function.
-				ec_log_debug("Rule action: deleting e-mail");
-				return {ROP_CANCEL};
-			case OP_MARK_AS_READ:
-				sc -> countInc("rules", "mark_read");
-				// add prop read
-				ec_log_warn("Rule \"%s\": MARK AS READ actions are currently unsupported", strRule.c_str());
-				break;
-			};
-			return {ROP_SUCCESS};
-			}();
+			auto ret = proc_op_act(lpSession, lpOrigStore, lpOrigInbox, lpAdrBook, action, strRule, sc, bMoved, bAddFwdFlag, lppMessage);
 			if (ret.status == ROP_FAILURE) {
 				hr = ret.code;
 				goto exit;
