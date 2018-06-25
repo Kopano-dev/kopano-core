@@ -1130,10 +1130,6 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 				auto ret = proc_op_fwd(lpAdrBook, lpOrigStore, lpActions->lpAction[n], strRule, sc, bAddFwdFlag, lppMessage);
 				if (ret == -1)
 					goto exit;
-				else if (ret == 0)
-					continue;
-				else if (ret == 1)
-					continue;
 				break;
 			}
 			case OP_BOUNCE:
