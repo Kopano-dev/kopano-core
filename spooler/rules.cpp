@@ -824,6 +824,42 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 	return lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 }
 
+static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
+    IMAPIFolder *inbox, const ACTION &action, const std::string &rule,
+    StatsClient *sc, IMessage **msg)
+{
+	const auto &repl = action.actReply;
+	sc->countInc("rules", "reply_and_oof");
+	if (action.acttype == OP_REPLY)
+		ec_log_debug("Rule action: replying e-mail");
+	else
+		ec_log_debug("Rule action: OOF replying e-mail");
+
+	IMessage *tmpl = nullptr;
+	unsigned int objtype;
+	auto hr = inbox->OpenEntry(repl.cbEntryId, repl.lpEntryId,
+	          &IID_IMessage, 0, &objtype, reinterpret_cast<IUnknown **>(&tmpl));
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": Unable to open reply message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	object_ptr<IMessage> replymsg;
+	hr = CreateReplyCopy(ses, store, *msg, tmpl, &~replymsg);
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": Unable to create reply message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	hr = replymsg->SubmitMessage(0);
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": Unable to send reply message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	return {ROP_SUCCESS};
+}
+
 static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
     const ACTION &act, const std::string &rule, StatsClient *sc,
     bool &bAddFwdFlag, IMessage **lppMessage)
@@ -1151,40 +1187,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			/* May become DAMs, may become normal rules (OL2003) */
 			case OP_REPLY:
 			case OP_OOF_REPLY: {
-				auto ret = [lpSession,lpOrigStore,lpOrigInbox,&action,&strRule,sc,lppMessage]() -> struct actresult {
-				const auto &repl = action.actReply;
-				sc->countInc("rules", "reply_and_oof");
-				if (action.acttype == OP_REPLY)
-					ec_log_debug("Rule action: replying e-mail");
-				else
-					ec_log_debug("Rule action: OOF replying e-mail");
-
-				IMessage *lpTemplate = nullptr;
-				unsigned int ulObjType;
-				auto hr = lpOrigInbox->OpenEntry(repl.cbEntryId,
-				     repl.lpEntryId, &IID_IMessage, 0, &ulObjType,
-				     (IUnknown**)&lpTemplate);
-				if (hr != hrSuccess) {
-					ec_log_err("Rule \"%s\": Unable to open reply message: %s (%x)",
-						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					return {ROP_ERROR, hr};
-				}
-				object_ptr<IMessage> lpReplyMsg;
-				hr = CreateReplyCopy(lpSession, lpOrigStore, *lppMessage, lpTemplate, &~lpReplyMsg);
-				if (hr != hrSuccess) {
-					ec_log_err("Rule \"%s\": Unable to create reply message: %s (%x)",
-						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					return {ROP_ERROR, hr};
-				}
-
-				hr = lpReplyMsg->SubmitMessage(0);
-				if (hr != hrSuccess) {
-					ec_log_err("Rule \"%s\": Unable to send reply message: %s (%x)",
-						strRule.c_str(), GetMAPIErrorMessage(hr), hr);
-					return {ROP_ERROR, hr};
-				}
-				return {ROP_SUCCESS};
-				}();
+				auto ret = proc_op_reply(lpSession, lpOrigStore, lpOrigInbox, action, strRule, sc, lppMessage);
 				if (ret.status == ROP_FAILURE) {
 					hr = ret.code;
 					goto exit;
