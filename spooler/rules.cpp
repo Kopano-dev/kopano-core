@@ -1018,6 +1018,16 @@ static struct actresult proc_op_delegate(IAddrBook *abk, IMsgStore *store,
 	return {ROP_SUCCESS};
 }
 
+static struct actresult proc_op_markread(IMessage *msg,
+    StatsClient *sc)
+{
+	sc->countInc("rules", "mark_read");
+	auto ret = msg->SetReadFlag(SUPPRESS_RECEIPT);
+	if (ret == hrSuccess)
+		return {ROP_SUCCESS};
+	return {ROP_ERROR, ret};
+}
+
 static struct actresult proc_op_act(IMAPISession *ses, IMsgStore *store,
     IMAPIFolder *inbox, IAddrBook *abk, const ACTION &action,
     const std::string &rule, StatsClient *sc, IMessage **msg)
@@ -1079,10 +1089,8 @@ static struct actresult proc_op_act(IMAPISession *ses, IMsgStore *store,
 		ec_log_debug("Rule action: deleting e-mail");
 		return {ROP_CANCEL};
 	case OP_MARK_AS_READ:
-		sc->countInc("rules", "mark_read");
-		/* add prop read */
-		ec_log_warn("Rule \"%s\": MARK AS READ actions are currently unsupported", rule.c_str());
-		break;
+		ec_log_debug("Rule action: mark as read");
+		return proc_op_markread(*msg, sc);
 	}
 	return {ROP_SUCCESS};
 }
