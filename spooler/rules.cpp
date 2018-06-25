@@ -928,7 +928,7 @@ static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
 
 static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
     const ACTION &act, const std::string &rule, StatsClient *sc,
-    bool &bAddFwdFlag, IMessage **lppMessage)
+    IMessage **lppMessage)
 {
 	object_ptr<IMessage> lpFwdMsg;
 	HRESULT hr;
@@ -977,8 +977,6 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 		return {ROP_ERROR, hr};
 	}
-	// update original message, set as forwarded
-	bAddFwdFlag = true;
 	return {ROP_SUCCESS};
 }
 
@@ -1194,11 +1192,14 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 				break;
 			}
 			case OP_FORWARD: {
-				auto ret = proc_op_fwd(lpAdrBook, lpOrigStore, lpActions->lpAction[n], strRule, sc, bAddFwdFlag, lppMessage);
+				auto ret = proc_op_fwd(lpAdrBook, lpOrigStore, lpActions->lpAction[n], strRule, sc, lppMessage);
 				if (ret.status == ROP_FAILURE) {
 					hr = ret.code;
 					goto exit;
 				}
+				if (ret.status == ROP_SUCCESS)
+					/* Update original message, set as forwarded */
+					bAddFwdFlag = true;
 				break;
 			}
 			case OP_BOUNCE:
