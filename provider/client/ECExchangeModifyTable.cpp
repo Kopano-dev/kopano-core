@@ -144,7 +144,7 @@ HRESULT ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent,
 		hr = lpRulesData->Read(szXML.get(), statRulesData.cbSize.LowPart, &ulRead);
 		if (hr != hrSuccess || ulRead == 0)
 			goto empty;
-		szXML[statRulesData.cbSize.LowPart] = 0;
+		szXML[ulRead] = 0;
 		hr = HrDeserializeTable(szXML.get(), ecTable, &ulRuleId);
 		/*
 		 * If the data was corrupted, or imported from
