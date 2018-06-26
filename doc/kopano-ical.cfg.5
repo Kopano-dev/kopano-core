@@ -75,7 +75,7 @@ the multi-protocol address wildcard.
 .PP
 Default: \fI*:8080\fP
 .SS icals_listen
-A space-separated list of address:port spcifiers for implicit-SSL CalDAV/HTTP
+A space-separated list of address:port spcifiers for implicit-SSL CalDAV/HTTPS
 connections, similar to \fBical_listen\fP. Previous versions of ZCP/KC
 suggested port 8443.
 .PP
@@ -86,12 +86,17 @@ This historic directive specifies a single IPv4/IPv6 address to bind to. Its
 use is discouraged in favor of the various *\fB_listen\fP directives.
 .PP
 Default: \fI(empty)\fP
-.SS ical_enable, ical_port, icals_enable, icals_port
+.SS ical_port, icals_port
 .PP
-These historic directive specify the single port to bind to for iCal/ICALS
-connections. Their use is discouraged in favor of the various *\fB_listen\fP
+These historic directive specify the single port to bind to for HTTP/HTTPS
+connections. Their use is discouraged in favor of the *\fB_listen\fP
 directives. The address for the old directives is mandated by
 \fBserver_bind\fP.
+.SS ical_enable, icals_enable
+.PP
+These historic directives are made obsolete by the *\fB_listen\fP directives
+where the presence or absence of an addr:port specifier determines whether or
+not the service is enabled.
 .SS server_socket
 .PP
 The http address of the storage server.
