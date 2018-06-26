@@ -44,6 +44,21 @@ using std::string;
 using std::wstring;
 extern ECConfig *g_lpConfig;
 
+enum actstatus {
+	ROP_FAILURE,
+	ROP_NOOP,
+	ROP_ERROR,
+	ROP_SUCCESS,
+	ROP_CANCEL,
+	ROP_MOVED,
+	ROP_FORWARDED,
+};
+
+struct actresult {
+	enum actstatus status;
+	HRESULT code;
+};
+
 static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
     std::wstring &wstrCc, std::wstring &wstrBcc)
 {
@@ -812,9 +827,111 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 	return lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 }
 
-static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
+static struct actresult proc_op_copy(IMAPISession *ses, const ACTION &action,
+    const std::string &rule, StatsClient *sc, IMessage **msg)
+{
+	const auto &cmov = action.actMoveCopy;
+	sc->countInc("rules", "copy_move");
+	if (action.acttype == OP_COPY)
+		ec_log_debug("Rule action: copying e-mail");
+	else
+		ec_log_debug("Rule action: moving e-mail");
+
+	// First try to open the folder on the session as that will just work if we have the store open
+	object_ptr<IMAPIFolder> dst_folder;
+	unsigned int obj_type;
+	auto hr = ses->OpenEntry(cmov.cbFldEntryId, cmov.lpFldEntryId,
+	          &IID_IMAPIFolder, MAPI_MODIFY, &obj_type, &~dst_folder);
+	if (hr != hrSuccess) {
+		ec_log_info("Rule \"%s\": Unable to open folder through session, trying through store: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		object_ptr<IMsgStore> dst_store;
+		hr = ses->OpenMsgStore(0, cmov.cbStoreEntryId,
+		     cmov.lpStoreEntryId, nullptr, MAPI_BEST_ACCESS, &~dst_store);
+		if (hr != hrSuccess) {
+			ec_log_err("Rule \"%s\": Unable to open destination store: %s (%x)",
+				rule.c_str(), GetMAPIErrorMessage(hr), hr);
+			return {ROP_ERROR, hr};
+		}
+		hr = dst_store->OpenEntry(cmov.cbFldEntryId, cmov.lpFldEntryId,
+		     &IID_IMAPIFolder, MAPI_MODIFY, &obj_type, &~dst_folder);
+		if (hr != hrSuccess || obj_type != MAPI_FOLDER) {
+			ec_log_err("Rule \"%s\": Unable to open destination folder: %s (%x)",
+				rule.c_str(), GetMAPIErrorMessage(hr), hr);
+			return {ROP_ERROR, hr};
+		}
+	}
+
+	object_ptr<IMessage> newmsg;
+	hr = dst_folder->CreateMessage(nullptr, 0, &~newmsg);
+	if (hr != hrSuccess) {
+		ec_log_err("Unable to create e-mail for rule \"%s\": %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_FAILURE, hr};
+	}
+	hr = (*msg)->CopyTo(0, nullptr, nullptr, 0, nullptr, &IID_IMessage,
+	     newmsg, 0, nullptr);
+	if (hr != hrSuccess) {
+		ec_log_err("Unable to copy e-mail for rule \"%s\": %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_FAILURE, hr};
+	}
+	hr = Util::HrCopyIMAPData(*msg, newmsg);
+	// the function only returns errors on get/setprops, not when the data is just missing
+	if (hr != hrSuccess) {
+		ec_log_err("Unable to copy IMAP data e-mail for rule \"%s\", continuing: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_FAILURE, hr};
+	}
+	/* Save the copy in its new location */
+	hr = newmsg->SaveChanges(0);
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": Unable to copy/move message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	return {ROP_SUCCESS};
+}
+
+static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
+    IMAPIFolder *inbox, const ACTION &action, const std::string &rule,
+    StatsClient *sc, IMessage **msg)
+{
+	const auto &repl = action.actReply;
+	sc->countInc("rules", "reply_and_oof");
+	if (action.acttype == OP_REPLY)
+		ec_log_debug("Rule action: replying e-mail");
+	else
+		ec_log_debug("Rule action: OOF replying e-mail");
+
+	IMessage *tmpl = nullptr;
+	unsigned int objtype;
+	auto hr = inbox->OpenEntry(repl.cbEntryId, repl.lpEntryId,
+	          &IID_IMessage, 0, &objtype, reinterpret_cast<IUnknown **>(&tmpl));
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": Unable to open reply message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	object_ptr<IMessage> replymsg;
+	hr = CreateReplyCopy(ses, store, *msg, tmpl, &~replymsg);
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": Unable to create reply message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	hr = replymsg->SubmitMessage(0);
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": Unable to send reply message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	return {ROP_SUCCESS};
+}
+
+static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
     const ACTION &act, const std::string &rule, StatsClient *sc,
-    bool &bAddFwdFlag, IMessage **lppMessage)
+    IMessage **lppMessage)
 {
 	object_ptr<IMessage> lpFwdMsg;
 	HRESULT hr;
@@ -828,7 +945,7 @@ static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 	// redirect == 3
 	if (act.lpadrlist->cEntries == 0) {
 		ec_log_debug("Forwarding rule doesn't have recipients");
-		return 0; // Nothing todo
+		return {ROP_NOOP};
 	}
 	if (parseBool(g_lpConfig->GetSetting("no_double_forward"))) {
 		/*
@@ -839,12 +956,12 @@ static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		PROPMAP_NAMED_ID(KopanoRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-kopano-rule-action")
 		hr = m_propmap.Resolve(*lppMessage);
 		if (hr != hrSuccess)
-			return -1;
+			return {ROP_FAILURE, hr};
 
 		memory_ptr<SPropValue> lpPropRule;
 		if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &~lpPropRule) == hrSuccess) {
 			ec_log_warn("Rule "s + rule + ": FORWARD loop protection. Message will not be forwarded or redirected because it includes header \"x-kopano-rule-action\"");
-			return 0;
+			return {ROP_NOOP};
 		}
 	}
 	ec_log_debug("Rule action: %s e-mail", (act.ulActionFlavor & FWD_PRESERVE_SENDER) ? "redirecting" : "forwarding");
@@ -855,17 +972,127 @@ static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 	if (hr != hrSuccess) {
 		auto msg = "Rule " + rule + ": FORWARD Unable to create forward message: %s (%x)";
 		ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-		return hr == MAPI_E_NO_ACCESS ? -1 : 1;
+		return {hr == MAPI_E_NO_ACCESS ? ROP_FAILURE : ROP_ERROR, hr};
 	}
 	hr = lpFwdMsg->SubmitMessage(0);
 	if (hr != hrSuccess) {
 		auto msg = "Rule " + rule + ": FORWARD Unable to send forward message: %s (%x)";
 		ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-		return 1;
+		return {ROP_ERROR, hr};
 	}
-	// update original message, set as forwarded
-	bAddFwdFlag = true;
-	return 2;
+	return {ROP_SUCCESS};
+}
+
+static struct actresult proc_op_delegate(IAddrBook *abk, IMsgStore *store,
+    const ACTION &action, const std::string &rule, StatsClient *sc,
+    IMessage **msg)
+{
+	sc->countInc("rules", "delegate");
+	if (action.lpadrlist->cEntries == 0) {
+		ec_log_debug("Delegating rule doesn't have recipients");
+		return {ROP_NOOP};
+	}
+	ec_log_debug("Rule action: delegating e-mail");
+	object_ptr<IMessage> fwdmsg;
+	auto hr = CreateForwardCopy(abk, store, *msg, action.lpadrlist,
+	          true, true, true, false, &~fwdmsg);
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": DELEGATE Unable to create delegate message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	/* set delegate properties */
+	hr = HrDelegateMessage(fwdmsg);
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": DELEGATE Unable to modify delegate message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	hr = fwdmsg->SubmitMessage(0);
+	if (hr != hrSuccess) {
+		ec_log_err("Rule \"%s\": DELEGATE Unable to send delegate message: %s (%x)",
+			rule.c_str(), GetMAPIErrorMessage(hr), hr);
+		return {ROP_ERROR, hr};
+	}
+	/* don't set forwarded flag */
+	return {ROP_SUCCESS};
+}
+
+static struct actresult proc_op_markread(IMessage *msg,
+    StatsClient *sc)
+{
+	sc->countInc("rules", "mark_read");
+	auto ret = msg->SetReadFlag(SUPPRESS_RECEIPT);
+	if (ret == hrSuccess)
+		return {ROP_SUCCESS};
+	return {ROP_ERROR, ret};
+}
+
+static struct actresult proc_op_act(IMAPISession *ses, IMsgStore *store,
+    IMAPIFolder *inbox, IAddrBook *abk, const ACTION &action,
+    const std::string &rule, StatsClient *sc, IMessage **msg)
+{
+	switch (action.acttype) {
+	case OP_MOVE:
+	case OP_COPY: {
+		auto ret = proc_op_copy(ses, action, rule, sc, msg);
+		if (ret.status == ROP_SUCCESS && action.acttype == OP_MOVE)
+			return {ROP_MOVED};
+		return ret;
+	}
+	/* May become DAMs, may become normal rules (OL2003) */
+	case OP_REPLY:
+	case OP_OOF_REPLY:
+		return proc_op_reply(ses, store, inbox, action, rule, sc, msg);
+	case OP_FORWARD: {
+		auto ret = proc_op_fwd(abk, store, action, rule, sc, msg);
+		if (ret.status == ROP_SUCCESS)
+			/* Update original message, set as forwarded */
+			return {ROP_FORWARDED};
+		return ret;
+	}
+	case OP_BOUNCE:
+		sc->countInc("rules", "bounce");
+		/*
+		 * scBounceCode?
+		 * TODO:
+		 * 1. make copy of lpMessage, needs CopyTo() function
+		 * 2. copy From: to To:
+		 * 3. SubmitMessage()
+		 */
+		ec_log_warn("Rule \"%s\": BOUNCE actions are currently unsupported", rule.c_str());
+		break;
+	case OP_DELEGATE:
+		return proc_op_delegate(abk, store, action, rule, sc, msg);
+
+	/* will become a DAM atm, so I won't even bother implementing these ... */
+	case OP_DEFER_ACTION:
+		sc->countInc("rules", "defer");
+		/* DAM crud, but outlook doesn't check these messages... yet */
+		ec_log_warn("Rule \"%s\": DEFER client actions are currently unsupported", rule.c_str());
+		break;
+	case OP_TAG:
+		sc->countInc("rules", "tag");
+		/* sure. WHEN YOU STOP WITH THE FRIGGIN' DEFER ACTION MESSAGES!! */
+		ec_log_warn("Rule \"%s\": TAG actions are currently unsupported", rule.c_str());
+		break;
+	case OP_DELETE:
+		sc->countInc("rules", "delete");
+		/*
+		 * Since *msg wasn't yet saved in the server, we can just
+		 * return a special MAPI Error code here, this will trigger the
+		 * out-of-office mail (according to microsoft), but not save
+		 * the message and drop it. The error code will become
+		 * hrSuccess automatically after returning from the post
+		 * processing function.
+		 */
+		ec_log_debug("Rule action: deleting e-mail");
+		return {ROP_CANCEL};
+	case OP_MARK_AS_READ:
+		ec_log_debug("Rule action: mark as read");
+		return proc_op_markread(*msg, sc);
+	}
+	return {ROP_SUCCESS};
 }
 
 // lpMessage: gets EntryID, maybe pass this and close message in DAgent.cpp
@@ -875,8 +1102,6 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 {
 	object_ptr<IExchangeModifyTable> lpTable;
 	object_ptr<IMAPITable> lpView;
-	LPMESSAGE lpTemplate = NULL;
-	ULONG ulObjType;
 	bool bAddFwdFlag = false;
 	bool bMoved = false;
 	static constexpr const SizedSPropTagArray(11, sptaRules) =
@@ -1021,191 +1246,19 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		sc -> countAdd("rules", "n_actions", int64_t(lpActions->cActions));
 
 		for (ULONG n = 0; n < lpActions->cActions; ++n) {
-			object_ptr<IMsgStore> lpDestStore;
-			object_ptr<IMAPIFolder> lpDestFolder;
-			object_ptr<IMessage> lpReplyMsg, lpFwdMsg, lpNewMessage;
-
-			// do action
-			switch(lpActions->lpAction[n].acttype) {
-			case OP_MOVE:
-			case OP_COPY:
-				sc->countInc("rules", "copy_move");
-				if (lpActions->lpAction[n].acttype == OP_COPY)
-					ec_log_debug("Rule action: copying e-mail");
-				else
-					ec_log_debug("Rule action: moving e-mail");
-
-				// First try to open the folder on the session as that will just work if we have the store open
-				hr = lpSession->OpenEntry(lpActions->lpAction[n].actMoveCopy.cbFldEntryId,
-				     lpActions->lpAction[n].actMoveCopy.lpFldEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType,
-				     &~lpDestFolder);
-				if (hr != hrSuccess) {
-					auto msg = "Rule " + strRule + ": Unable to open folder through session, trying through store: %s (%x)";
-					ec_log_info(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-
-					hr = lpSession->OpenMsgStore(0, lpActions->lpAction[n].actMoveCopy.cbStoreEntryId,
-					     lpActions->lpAction[n].actMoveCopy.lpStoreEntryId, nullptr, MAPI_BEST_ACCESS, &~lpDestStore);
-					if (hr != hrSuccess) {
-						msg = "Rule " + strRule + ": Unable to open destination store: %s (%x)";
-						ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-						continue;
-					}
-
-					hr = lpDestStore->OpenEntry(lpActions->lpAction[n].actMoveCopy.cbFldEntryId,
-					     lpActions->lpAction[n].actMoveCopy.lpFldEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType,
-					     &~lpDestFolder);
-					if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
-						msg = std::string("Rule ") + strRule + ": Unable to open destination folder: %s (%x)";
-						ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-						continue;
-					}
-				}
-
-				hr = lpDestFolder->CreateMessage(nullptr, 0, &~lpNewMessage);
-				if(hr != hrSuccess) {
-					std::string msg = "Unable to create e-mail for rule " + strRule + ": %s (%x)";
-					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					goto exit;
-				}
-					
-				hr = (*lppMessage)->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, lpNewMessage, 0, NULL);
-				if(hr != hrSuccess) {
-					std::string msg = "Unable to copy e-mail for rule " + strRule + ": %s (%x)";
-					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					goto exit;
-				}
-
-				hr = Util::HrCopyIMAPData((*lppMessage), lpNewMessage);
-				// the function only returns errors on get/setprops, not when the data is just missing
-				if (hr != hrSuccess) {
-					std::string msg = "Unable to copy IMAP data e-mail for rule " + strRule + ", continuing: %s (%x)";
-					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					hr = hrSuccess;
-					goto exit;
-				}
-
-				// Save the copy in its new location
-				hr = lpNewMessage->SaveChanges(0);
-				if (hr != hrSuccess) {
-					auto msg = "Rule " + strRule + ": Unable to copy/move message: %s (%x)";
-					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
-				}
-				if (lpActions->lpAction[n].acttype == OP_MOVE)
-					bMoved = true;
-				break;
-
-			/* May become DAMs, may become normal rules (OL2003) */
-			case OP_REPLY:
-			case OP_OOF_REPLY:
-				sc->countInc("rules", "reply_and_oof");
-				if (lpActions->lpAction[n].acttype == OP_REPLY)
-					ec_log_debug("Rule action: replying e-mail");
-				else
-					ec_log_debug("Rule action: OOF replying e-mail");
-
-				hr = lpOrigInbox->OpenEntry(lpActions->lpAction[n].actReply.cbEntryId,
-				     lpActions->lpAction[n].actReply.lpEntryId, &IID_IMessage, 0, &ulObjType,
-				     (IUnknown**)&lpTemplate);
-				if (hr != hrSuccess) {
-					auto msg = "Rule " + strRule + ": Unable to open reply message: %s (%x)";
-					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
-				}
-				hr = CreateReplyCopy(lpSession, lpOrigStore, *lppMessage, lpTemplate, &~lpReplyMsg);
-				if (hr != hrSuccess) {
-					auto msg = "Rule " + strRule + ": Unable to create reply message: %s (%x)";
-					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
-				}
-
-				hr = lpReplyMsg->SubmitMessage(0);
-				if (hr != hrSuccess) {
-					auto msg = "Rule " + strRule + ": Unable to send reply message: %s (%x)";
-					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
-				}
-				break;
-
-			case OP_FORWARD: {
-				auto ret = proc_op_fwd(lpAdrBook, lpOrigStore, lpActions->lpAction[n], strRule, sc, bAddFwdFlag, lppMessage);
-				if (ret == -1)
-					goto exit;
-				else if (ret == 0)
-					continue;
-				else if (ret == 1)
-					continue;
-				break;
-			}
-			case OP_BOUNCE:
-				sc -> countInc("rules", "bounce");
-				// scBounceCode?
-				// TODO:
-				// 1. make copy of lpMessage, needs CopyTo() function
-				// 2. copy From: to To:
-				// 3. SubmitMessage()
-				ec_log_warn("Rule "s + strRule + ": BOUNCE actions are currently unsupported");
-				break;
-
-			case OP_DELEGATE:
-				sc -> countInc("rules", "delegate");
-				if (lpActions->lpAction[n].lpadrlist->cEntries == 0) {
-					ec_log_debug("Delegating rule doesn't have recipients");
-					continue; // Nothing todo
-				}
-				ec_log_debug("Rule action: delegating e-mail");
-				hr = CreateForwardCopy(lpAdrBook, lpOrigStore, *lppMessage, lpActions->lpAction[n].lpadrlist, true, true, true, false, &~lpFwdMsg);
-				if (hr != hrSuccess) {
-					auto msg = "Rule " + strRule + ": DELEGATE Unable to create delegate message: %s (%x)";
-					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
-				}
-
-				// set delegate properties
-				hr = HrDelegateMessage(lpFwdMsg);
-				if (hr != hrSuccess) {
-					auto msg = "Rule " + strRule + ": DELEGATE Unable to modify delegate message: %s (%x)";
-					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
-				}
-
-				hr = lpFwdMsg->SubmitMessage(0);
-				if (hr != hrSuccess) {
-					auto msg = "Rule " + strRule + ": DELEGATE Unable to send delegate message: %s (%x)";
-					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					continue;
-				}
-
-				// don't set forwarded flag
-				break;
-
-			// will become a DAM atm, so I won't even bother implementing these ...
-
-			case OP_DEFER_ACTION:
-				sc -> countInc("rules", "defer");
-				// DAM crud, but outlook doesn't check these messages... yet
-				ec_log_warn("Rule "s + strRule + ": DEFER client actions are currently unsupported");
-				break;
-			case OP_TAG:
-				sc -> countInc("rules", "tag");
-				// sure. WHEN YOU STOP WITH THE FRIGGIN' DEFER ACTION MESSAGES!!
-				ec_log_warn("Rule "s + strRule + ": TAG actions are currently unsupported");
-				break;
-			case OP_DELETE:
-				sc -> countInc("rules", "delete");
-				// since *lppMessage wasn't yet saved in the server, we can just return a special MAPI Error code here,
-				// this will trigger the out-of-office mail (according to microsoft), but not save the message and drop it.
-				// The error code will become hrSuccess automatically after returning from the post processing function.
-				ec_log_debug("Rule action: deleting e-mail");
+			const auto &action = lpActions->lpAction[n];
+			auto ret = proc_op_act(lpSession, lpOrigStore, lpOrigInbox, lpAdrBook, action, strRule, sc, lppMessage);
+			if (ret.status == ROP_FAILURE) {
+				hr = ret.code;
+				goto exit;
+			} else if (ret.status == ROP_CANCEL) {
 				hr = MAPI_E_CANCEL;
 				goto exit;
-				break;
-			case OP_MARK_AS_READ:
-				sc -> countInc("rules", "mark_read");
-				// add prop read
-				ec_log_warn("Rule "s + strRule + ": MARK AS READ actions are currently unsupported");
-				break;
-			};
+			}
+			if (ret.status == ROP_MOVED)
+				bMoved = true;
+			if (ret.status == ROP_FORWARDED)
+				bAddFwdFlag = true;
 		} // end action loop
 
 		if (lpRuleState && (lpRuleState->Value.i & ST_EXIT_LEVEL))
