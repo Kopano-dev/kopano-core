@@ -19,6 +19,7 @@
 #include <memory>
 #include <new>
 #include <utility>
+#include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include "WSUtil.h"
@@ -145,7 +146,13 @@ HRESULT ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent,
 		if (hr != hrSuccess || ulRead == 0)
 			goto empty;
 		szXML[ulRead] = 0;
+		if (ulRead < statRulesData.cbSize.LowPart)
+			ec_log_notice("Bug: PR_RULES_DATA: read only %u/%u bytes",
+				ulRead, statRulesData.cbSize.LowPart);
 		hr = HrDeserializeTable(szXML.get(), ecTable, &ulRuleId);
+		if (hr == MAPI_E_CORRUPT_DATA)
+			ec_log_debug("PR_RULES_DATA [%u/%u bytes]: rejected due to garbage or truncation",
+				ulRead, statRulesData.cbSize.LowPart);
 		/*
 		 * If the data was corrupted, or imported from
 		 * Exchange, it is incompatible, so return an
