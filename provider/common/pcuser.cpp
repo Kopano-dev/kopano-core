@@ -26,36 +26,30 @@ namespace KC {
 
 objectid_t::objectid_t(const std::string &str)
 {
-	std::string objclass;
-	std::string objid;
-	size_t pos;
-
 	// sendas users are "encoded" like this in a string
-	pos = str.find_first_of(';');
+	auto pos = str.find_first_of(';');
 	if (pos == std::string::npos) {
-		this->id = hex2bin(str);
-		this->objclass = ACTIVE_USER;
+		id = hex2bin(str);
+		objclass = ACTIVE_USER;
 	} else {
-		objid.assign(str, pos + 1, str.size() - pos);
-		objclass.assign(str, 0, pos);
-		this->id = hex2bin(objid);
-		this->objclass = (objectclass_t)atoi(objclass.c_str());
+		id = hex2bin(std::string(str, pos + 1, str.size() - pos));
+		objclass = (objectclass_t)atoi(std::string(str, 0, pos).c_str());
 	}
 }
 
 bool objectid_t::operator==(const objectid_t &x) const noexcept
 {
-	return this->objclass == x.objclass && this->id == x.id;
+	return objclass == x.objclass && id == x.id;
 }
 
 bool objectid_t::operator!=(const objectid_t &x) const noexcept
 {
-	return this->objclass != x.objclass || this->id != x.id;
+	return objclass != x.objclass || id != x.id;
 }
 
 std::string objectid_t::tostring() const
 {
-	return stringify(this->objclass) + ";" + bin2hex(this->id);
+	return stringify(objclass) + ";" + bin2hex(id);
 }
 
 unsigned int objectdetails_t::GetPropInt(property_key_t propname) const
@@ -212,11 +206,11 @@ objectclass_t objectdetails_t::GetClass() const {
 }
 
 void objectdetails_t::MergeFrom(const objectdetails_t &from) {
-	assert(this->m_objclass == from.m_objclass);
+	assert(m_objclass == from.m_objclass);
 	for (const auto &p : from.m_mapProps)
-		this->m_mapProps[p.first].assign(p.second);
+		m_mapProps[p.first].assign(p.second);
 	for (const auto &p : from.m_mapMVProps)
-		this->m_mapMVProps[p.first].assign(p.second.cbegin(), p.second.cend());
+		m_mapMVProps[p.first].assign(p.second.cbegin(), p.second.cend());
 }
 
 /**
@@ -241,9 +235,7 @@ size_t objectdetails_t::GetObjectSize(void) const
 
 std::string objectdetails_t::ToStr(void) const
 {
-	std::string str;
-
-	str = "propmap: ";
+	std::string str = "propmap: ";
 	for (auto i = m_mapProps.cbegin(); i != m_mapProps.cend(); ++i) {
 		if (i != m_mapProps.cbegin())
 			str += ", ";

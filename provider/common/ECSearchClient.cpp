@@ -34,20 +34,15 @@ ECSearchClient::ECSearchClient(const char *szIndexerPath, unsigned int ulTimeOut
 
 ECRESULT ECSearchClient::GetProperties(setindexprops_t &setProps)
 {
-	ECRESULT er;
 	std::vector<std::string> lstResponse;
-	std::vector<std::string> lstProps;
-
-	er = DoCmd("PROPS", lstResponse);
+	auto er = DoCmd("PROPS", lstResponse);
 	if (er != erSuccess)
 		return er;
 
 	setProps.clear();
 	if (lstResponse.empty())
 		return erSuccess; // No properties
-
-	lstProps = tokenize(lstResponse[0], " ");
-
+	auto lstProps = tokenize(lstResponse[0], " ");
 	for (const auto &s : lstProps)
 		setProps.emplace(atoui(s.c_str()));
 	return erSuccess;
@@ -66,15 +61,11 @@ ECRESULT ECSearchClient::GetProperties(setindexprops_t &setProps)
 ECRESULT ECSearchClient::Scope(const std::string &strServer,
     const std::string &strStore, const std::list<unsigned int> &lstFolders)
 {
-	ECRESULT er;
 	std::vector<std::string> lstResponse;
-	std::string strScope;
-
-	er = Connect();
+	auto er = Connect();
 	if (er != erSuccess)
 		return er;
-
-	strScope = "SCOPE " + strServer + " " + strStore;
+	auto strScope = "SCOPE " + strServer + " " + strStore;
 	for (const auto i : lstFolders)
 		strScope += " " + stringify(i);
 
@@ -99,19 +90,15 @@ ECRESULT ECSearchClient::Scope(const std::string &strServer,
 ECRESULT ECSearchClient::Find(const std::set<unsigned int> &setFields,
     const std::string &strTerm)
 {
-	ECRESULT er;
 	std::vector<std::string> lstResponse;
-	std::string strFind;
-
-	strFind = "FIND";
+	std::string strFind = "FIND";
 	for (const auto i : setFields)
 		strFind += " " + stringify(i);
 		
 	strFind += ":";
 	
 	strFind += strTerm;
-
-	er = DoCmd(strFind, lstResponse);
+	auto er = DoCmd(strFind, lstResponse);
 	if (er != erSuccess)
 		return er;
 	if (!lstResponse.empty())
@@ -127,21 +114,15 @@ ECRESULT ECSearchClient::Find(const std::set<unsigned int> &setFields,
  */
 ECRESULT ECSearchClient::Query(std::list<unsigned int> &lstMatches)
 {
-	ECRESULT er;
 	std::vector<std::string> lstResponse;
-	std::vector<std::string> lstResponseIds;
-	
 	lstMatches.clear();
-
-	er = DoCmd("QUERY", lstResponse);
+	auto er = DoCmd("QUERY", lstResponse);
 	if (er != erSuccess)
 		return er;
 		
 	if (lstResponse.empty())
 		return erSuccess; /* no matches */
-
-	lstResponseIds = tokenize(lstResponse[0], " ");
-
+	auto lstResponseIds = tokenize(lstResponse[0], " ");
 	for (unsigned int i = 0; i < lstResponseIds.size(); ++i)
 		lstMatches.emplace_back(atoui(lstResponseIds[i].c_str()));
 	return erSuccess;
@@ -166,11 +147,9 @@ ECRESULT ECSearchClient::Query(std::list<unsigned int> &lstMatches)
  
 ECRESULT ECSearchClient::Query(GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int>& lstFolders, std::list<SIndexedTerm> &lstSearches, std::list<unsigned int> &lstMatches, std::string &suggestion)
 {
-	ECRESULT er;
 	auto strServer = bin2hex(sizeof(GUID), lpServerGuid);
 	auto strStore = bin2hex(sizeof(GUID), lpStoreGuid);
-
-	er = Scope(strServer, strStore, lstFolders);
+	auto er = Scope(strServer, strStore, lstFolders);
 	if (er != erSuccess)
 		return er;
 

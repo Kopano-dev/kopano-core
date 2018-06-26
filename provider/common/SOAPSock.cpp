@@ -64,14 +64,12 @@ http_post(struct soap *soap, const char *endpoint, const char *host, int port, c
 static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
     const char *host, int port)
 {
-	int fd;
-	struct sockaddr_un saddr;
-	memset(&saddr, 0, sizeof(struct sockaddr_un));
-
 	// See stdsoap2.cpp:tcp_connect() function
 	if (soap_valid_socket(soap->socket))
 	    return SOAP_OK;
 
+	struct sockaddr_un saddr;
+	memset(&saddr, 0, sizeof(struct sockaddr_un));
 	soap->socket = SOAP_INVALID_SOCKET;
 
 	if (strncmp(endpoint, "file://", 7) != 0)
@@ -81,8 +79,7 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
 	if (socket_name == NULL ||
 	    strlen(socket_name) >= sizeof(saddr.sun_path))
 		return SOAP_EOF;
-
-	fd = socket(PF_UNIX, SOCK_STREAM, 0);
+	auto fd = socket(PF_UNIX, SOCK_STREAM, 0);
 	if (fd < 0)
 		return SOAP_EOF;
 
@@ -188,25 +185,20 @@ void DestroySoapTransport(KCmdProxy *lpCmd)
 
 int ssl_verify_callback_kopano_silent(int ok, X509_STORE_CTX *store)
 {
-	int sslerr;
-
-	if (ok == 0)
-	{
-		// Get the last SSL error
-		sslerr = X509_STORE_CTX_get_error(store);
-		switch (sslerr)
-		{
-		case X509_V_ERR_CERT_HAS_EXPIRED:
-		case X509_V_ERR_CERT_NOT_YET_VALID:
-		case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
-		case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
-			// always ignore these errors
-			X509_STORE_CTX_set_error(store, X509_V_OK);
-			ok = 1;
-			break;
-		default:
-			break;
-		}
+	if (ok != 0)
+		return ok;
+	auto sslerr = X509_STORE_CTX_get_error(store);
+	switch (sslerr) {
+	case X509_V_ERR_CERT_HAS_EXPIRED:
+	case X509_V_ERR_CERT_NOT_YET_VALID:
+	case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
+	case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
+		// always ignore these errors
+		X509_STORE_CTX_set_error(store, X509_V_OK);
+		ok = 1;
+		break;
+	default:
+		break;
 	}
 	return ok;
 }

@@ -32,11 +32,8 @@ bool IsKopanoEntryId(ULONG cb, const BYTE *lpEntryId)
 		return false;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
 	/* TODO: maybe also a check on objType */
-	if( (cb == sizeof(EID) && peid->ulVersion == 1) ||
-		(cb == sizeof(EID_V0) && peid->ulVersion == 0 ) )
-		return true;
-
-	return false;
+	return (cb == sizeof(EID) && peid->ulVersion == 1) ||
+	       (cb == sizeof(EID_V0) && peid->ulVersion == 0);
 }
 
 bool ValidateZEntryId(ULONG cb, const BYTE *lpEntryId, unsigned int ulCheckType)
@@ -44,11 +41,9 @@ bool ValidateZEntryId(ULONG cb, const BYTE *lpEntryId, unsigned int ulCheckType)
 	if(lpEntryId == NULL)
 		return false;
 	auto peid = reinterpret_cast<const EID *>(lpEntryId);
-	if( ((cb == sizeof(EID) && peid->ulVersion == 1) ||
-		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 ) ) &&
-		 peid->usType == ulCheckType)
-		return true;
-	return false;
+	return ((cb == sizeof(EID) && peid->ulVersion == 1) ||
+	       (cb == sizeof(EID_V0) && peid->ulVersion == 0)) &&
+	       peid->usType == ulCheckType;
 }
 
 /**
@@ -129,18 +124,15 @@ HRESULT HrGetObjTypeFromEntryId(ULONG cb, const BYTE *lpEntryId,
 ECRESULT ABEntryIDToID(ULONG cb, const BYTE *lpEntryId, unsigned int *lpulID,
     objectid_t *lpsExternId, unsigned int *lpulMapiType)
 {
-	unsigned int	ulID = 0;
-	objectid_t		sExternId;
-	objectclass_t	sClass = ACTIVE_USER;
-
-	if (lpEntryId == NULL || lpulID == NULL || cb < CbNewABEID(""))
+	if (lpEntryId == nullptr || lpulID == nullptr || cb < CbNewABEID(""))
 		return KCERR_INVALID_PARAMETER;
-
 	auto lpABEID = reinterpret_cast<const ABEID *>(lpEntryId);
 	if (memcmp(&lpABEID->guid, &MUIDECSAB, sizeof(GUID)) != 0)
 		return KCERR_INVALID_ENTRYID;
 
-	ulID = lpABEID->ulId;
+	unsigned int ulID = lpABEID->ulId;
+	objectid_t		sExternId;
+	objectclass_t	sClass = ACTIVE_USER;
 	MAPITypeToType(lpABEID->ulType, &sClass);
 
 	if (lpABEID->ulVersion == 1)
@@ -166,12 +158,9 @@ ECRESULT ABEntryIDToID(const entryId *lpsEntryId, unsigned int *lpulID,
 ECRESULT SIEntryIDToID(ULONG cb, const BYTE *lpInstanceId, GUID *guidServer,
     unsigned int *lpulInstanceId, unsigned int *lpulPropId)
 {
-	LPSIEID lpInstanceEid;
-
-	if (lpInstanceId == NULL)
+	if (lpInstanceId == nullptr)
 		return KCERR_INVALID_PARAMETER;
-	lpInstanceEid = (LPSIEID)lpInstanceId;
-
+	auto lpInstanceEid = reinterpret_cast<const SIEID *>(lpInstanceId);
 	if (guidServer)
 		memcpy(guidServer, (LPBYTE)lpInstanceEid + sizeof(SIEID), sizeof(GUID));
 	if (lpulInstanceId)
@@ -238,33 +227,19 @@ bool CompareABEID(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 	if (lpEntryID1 == NULL || lpEntryID2 == NULL)
 		return false;
 
-	if (peid1->ulVersion == peid2->ulVersion)
-	{
-		if(cbEntryID1 != cbEntryID2)
+	if (peid1->ulVersion != peid2->ulVersion) {
+		if (cbEntryID1 < CbNewABEID("") || cbEntryID2 < CbNewABEID("") ||
+		    peid1->ulId != peid2->ulId)
 			return false;
-		if(cbEntryID1 < CbNewABEID(""))
-			return false;
-		if (peid1->ulVersion == 0) {
-			if(peid1->ulId != peid2->ulId)
-				return false;
-		} else {
-			if (strcmp((char*)peid1->szExId, (char*)peid2->szExId))
-				return false;
-		}
-	}
-	else
-	{
-		if (cbEntryID1 < CbNewABEID("") || cbEntryID2 < CbNewABEID(""))
-			return false;
-		if(peid1->ulId != peid2->ulId)
-			return false;
-	}
-
-	if(peid1->guid != peid2->guid)
+	} else if (cbEntryID1 != cbEntryID2 || cbEntryID1 < CbNewABEID("")) {
 		return false;
-	if(peid1->ulType != peid2->ulType)
+	} else if (peid1->ulVersion == 0) {
+		if (peid1->ulId != peid2->ulId)
+			return false;
+	} else if (strcmp(reinterpret_cast<const char *>(peid1->szExId), reinterpret_cast<const char *>(peid2->szExId))) {
 		return false;
-	return true;
+	}
+	return peid1->guid == peid2->guid && peid1->ulType == peid2->ulType;
 }
 
 HRESULT HrSIEntryIDToID(ULONG cb, const BYTE *lpInstanceId, GUID *guidServer,
@@ -277,18 +252,14 @@ HRESULT HrSIEntryIDToID(ULONG cb, const BYTE *lpInstanceId, GUID *guidServer,
 
 ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& sExternId, entryId *lpsEntryId)
 {
-	ECRESULT er;
-	auto strEncExId = base64_encode(sExternId.id.c_str(), sExternId.id.size());
-	unsigned int	ulLen       = 0;
-
-	if (lpsEntryId == NULL)
+	if (lpsEntryId == nullptr)
 		return KCERR_INVALID_PARAMETER;
-
-	ulLen = CbNewABEID(strEncExId.c_str());
+	auto strEncExId = base64_encode(sExternId.id.c_str(), sExternId.id.size());
+	unsigned int ulLen = CbNewABEID(strEncExId.c_str());
 	auto lpUserEid = reinterpret_cast<ABEID *>(s_alloc<char>(soap, ulLen));
 	memset(lpUserEid, 0, ulLen);
 	lpUserEid->ulId = ulID;
-	er = TypeToMAPIType(sExternId.objclass, &lpUserEid->ulType);
+	auto er = TypeToMAPIType(sExternId.objclass, &lpUserEid->ulType);
 	if (er != erSuccess) {
 		s_free(soap, lpUserEid);
 		return er; /* or make default type user? */
@@ -312,16 +283,12 @@ ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& s
 ECRESULT SIIDToEntryID(struct soap *soap, const GUID *guidServer,
     unsigned int ulInstanceId, unsigned int ulPropId, entryId *lpsInstanceId)
 {
-	LPSIEID lpInstanceEid = NULL;
-	ULONG ulSize = 0;
-
 	assert(ulPropId < 0x0000FFFF);
-	if (lpsInstanceId == NULL)
+	if (lpsInstanceId == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
-	ulSize = sizeof(SIEID) + sizeof(GUID);
-
-	lpInstanceEid = (LPSIEID)s_alloc<char>(soap, ulSize);
+	ULONG ulSize = sizeof(SIEID) + sizeof(GUID);
+	auto lpInstanceEid = reinterpret_cast<SIEID *>(s_alloc<char>(soap, ulSize));
 	memset(lpInstanceEid, 0, ulSize);
 
 	lpInstanceEid->ulId = ulInstanceId;
@@ -349,11 +316,10 @@ ECRESULT SIEntryIDToID(const entryId *sInstanceId, GUID *guidServer,
 // users table id, or extern id of the user too!
 ECRESULT MAPITypeToType(ULONG ulMAPIType, objectclass_t *lpsUserObjClass)
 {
-	objectclass_t		sUserObjClass = OBJECTCLASS_UNKNOWN;
-
-	if (lpsUserObjClass == NULL)
+	if (lpsUserObjClass == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
+	objectclass_t		sUserObjClass = OBJECTCLASS_UNKNOWN;
 	switch (ulMAPIType) {
 	case MAPI_MAILUSER:
 		sUserObjClass = OBJECTCLASS_USER;
@@ -374,11 +340,10 @@ ECRESULT MAPITypeToType(ULONG ulMAPIType, objectclass_t *lpsUserObjClass)
 
 ECRESULT TypeToMAPIType(objectclass_t sUserObjClass, ULONG *lpulMAPIType)
 {
-	ULONG			ulMAPIType = MAPI_MAILUSER;
-
-	if (lpulMAPIType == NULL)
+	if (lpulMAPIType == nullptr)
 		return KCERR_INVALID_PARAMETER;
 
+	ULONG ulMAPIType = MAPI_MAILUSER;
 	// Check for correctness of mapping!
 	switch (OBJECTCLASS_TYPE(sUserObjClass))
 	{
