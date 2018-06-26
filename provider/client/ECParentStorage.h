@@ -54,13 +54,13 @@ public:
 private:
 
 	// Get a single (large) property
-	virtual HRESULT HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue);
+	virtual HRESULT HrLoadProp(ULONG obj_id, ULONG proptag, SPropValue **) override;
 
 	// Save complete object, deletes/adds/modifies/creates
-	virtual HRESULT HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);
+	virtual HRESULT HrSaveObject(ULONG flags, MAPIOBJECT *to) override;
 
 	// Load complete object, deletes/adds/modifies/creates
-	virtual HRESULT HrLoadObject(MAPIOBJECT **lppsMapiObject);
+	virtual HRESULT HrLoadObject(MAPIOBJECT **) override;
 	
 	// Returns the correct storage which can connect to the server
 	virtual IECPropStorage *GetServerStorage() override { return m_lpServerStorage; }

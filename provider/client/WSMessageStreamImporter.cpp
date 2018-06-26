@@ -41,7 +41,7 @@ HRESULT WSMessageStreamSink::Create(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout,
  * @param[in]	lpData	Pointer to the data
  * @param[in]	cbData	The amount of data in bytes.
  */
-HRESULT WSMessageStreamSink::Write(LPVOID lpData, ULONG cbData)
+HRESULT WSMessageStreamSink::Write(const void *lpData, unsigned int cbData)
 {
 	HRESULT hrAsync = hrSuccess;
 	auto hr = kcerr_to_mapierr(m_lpFifoBuffer->Write(lpData, cbData, 0, nullptr));
@@ -81,26 +81,20 @@ WSMessageStreamSink::~WSMessageStreamSink()
 HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId,
     ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG cbFolderEntryID,
     const ENTRYID *lpFolderEntryID, bool bNewMessage,
-    SPropValue *lpConflictItems, WSTransport *lpTransport,
+    const SPropValue *lpConflictItems, WSTransport *lpTransport,
     WSMessageStreamImporter **lppStreamImporter)
 {
-	HRESULT hr = hrSuccess;
+	if (lppStreamImporter == nullptr || lpEntryID == nullptr ||
+	    cbEntryID == 0 || lpFolderEntryID == nullptr ||
+	    cbFolderEntryID == 0 || lpTransport == nullptr ||
+	    (bNewMessage && lpConflictItems != nullptr))
+		return MAPI_E_INVALID_PARAMETER;
+
 	entryId sEntryId, sFolderEntryId;
 	struct propVal sConflictItems;
 	WSMessageStreamImporterPtr ptrStreamImporter;
 	ECSyncSettings* lpSyncSettings = NULL;
-
-	if (lppStreamImporter == NULL || 
-		lpEntryID == NULL || cbEntryID == 0 || 
-		lpFolderEntryID == NULL || cbFolderEntryID == 0 || 
-		(bNewMessage == true && lpConflictItems != NULL) ||
-		lpTransport == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, false);
+	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, false);
 	if (hr != hrSuccess)
 		goto exit;
 

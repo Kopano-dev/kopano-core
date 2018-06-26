@@ -79,13 +79,13 @@ HRESULT ECChangeAdvisor::QueryInterface(REFIID refiid, void **lppInterface)
  */
 HRESULT ECChangeAdvisor::Create(ECMsgStore *lpMsgStore, ECChangeAdvisor **lppChangeAdvisor)
 {
-	object_ptr<ECChangeAdvisor> lpChangeAdvisor;
-	BOOL			fEnhancedICS = false;
-
 	if (lpMsgStore == nullptr || lppChangeAdvisor == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (lpMsgStore->m_lpNotifyClient == nullptr)
 		return MAPI_E_NO_SUPPORT;
+
+	object_ptr<ECChangeAdvisor> lpChangeAdvisor;
+	BOOL			fEnhancedICS = false;
 	auto hr = lpMsgStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &fEnhancedICS);
 	if (hr != hrSuccess)
 		return hr;
@@ -107,12 +107,12 @@ HRESULT ECChangeAdvisor::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERRO
 HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
     IECChangeAdviseSink *lpAdviseSink, ULONG ulFlags)
 {
+	if (lpAdviseSink == nullptr && !(ulFlags & SYNC_CATCHUP))
+		return MAPI_E_INVALID_PARAMETER;
+
 	ULONG ulVal = 0, ulRead = 0;
 	memory_ptr<ENTRYLIST> lpEntryList;
 	LARGE_INTEGER			liSeekStart = {{0}};
-
-	if (lpAdviseSink == nullptr && !(ulFlags & SYNC_CATCHUP))
-		return MAPI_E_INVALID_PARAMETER;
 
 	// Unregister notifications
 	if (!(m_ulFlags & SYNC_CATCHUP))
@@ -197,7 +197,9 @@ HRESULT ECChangeAdvisor::PurgeStates()
 
 HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 {
-	HRESULT					hr = hrSuccess;
+	if (lpStream == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	LARGE_INTEGER			liPos = {{0}};
 	ULARGE_INTEGER			uliSize = {{0}};
 	ULONG					ulVal = 0;
@@ -205,9 +207,7 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 
 	if (m_lpChangeAdviseSink == NULL && !(m_ulFlags & SYNC_CATCHUP))
 		return MAPI_E_UNCONFIGURED;
-	if (lpStream == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	hr = PurgeStates();
+	auto hr = PurgeStates();
 	if (hr != hrSuccess)
 		return hr;
 
@@ -238,16 +238,15 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 
 HRESULT ECChangeAdvisor::AddKeys(LPENTRYLIST lpEntryList)
 {
+	if (lpEntryList == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if (m_lpChangeAdviseSink == NULL && !(m_ulFlags & SYNC_CATCHUP))
+		return MAPI_E_UNCONFIGURED;
+
 	HRESULT						hr = hrSuccess;
 	SSyncState					*lpsSyncState = NULL;
 	ECLISTCONNECTION			listConnections;
 	ECLISTSYNCSTATE				listSyncStates;
-
-	if (m_lpChangeAdviseSink == NULL && !(m_ulFlags & SYNC_CATCHUP))
-		return MAPI_E_UNCONFIGURED;
-	if (lpEntryList == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
 	scoped_rlock lock(m_hConnectionLock);
 	ZLOG_DEBUG(m_lpLogger, "Adding %u keys", lpEntryList->cValues);
 	
@@ -285,35 +284,30 @@ HRESULT ECChangeAdvisor::AddKeys(LPENTRYLIST lpEntryList)
 
 HRESULT ECChangeAdvisor::RemoveKeys(LPENTRYLIST lpEntryList)
 {
-	HRESULT					hr = hrSuccess;
+	if (lpEntryList == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if (m_lpChangeAdviseSink == nullptr && !(m_ulFlags & SYNC_CATCHUP))
+		return MAPI_E_UNCONFIGURED;
+
 	SSyncState				*lpsSyncState = NULL;
 	ECLISTCONNECTION		listConnections;
-
-	if (m_lpChangeAdviseSink == NULL && !(m_ulFlags & SYNC_CATCHUP))
-		return MAPI_E_UNCONFIGURED;
-	if (lpEntryList == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
 	scoped_rlock lock(m_hConnectionLock);
-	
-	for (ULONG i = 0; hr == hrSuccess && i < lpEntryList->cValues; ++i) {
-		if (lpEntryList->lpbin[i].cb >= sizeof(SSyncState)) {
-			lpsSyncState = (SSyncState*)lpEntryList->lpbin[i].lpb;
 
-			// Try to delete the sync state from state map anyway
-			m_mapSyncStates.erase(lpsSyncState->ulSyncId);
-
-			// Check if we even have the sync state
-			auto iterConnection = m_mapConnections.find(lpsSyncState->ulSyncId);
-			if (iterConnection == m_mapConnections.cend())
-				continue;
-
-			// Unregister the sync state.
-			if (!(m_ulFlags & SYNC_CATCHUP))
-				listConnections.emplace_back(*iterConnection);
-			// Remove from map
-			m_mapConnections.erase(iterConnection);
-		}
+	for (ULONG i = 0; i < lpEntryList->cValues; ++i) {
+		if (lpEntryList->lpbin[i].cb < sizeof(SSyncState))
+			continue;
+		lpsSyncState = (SSyncState*)lpEntryList->lpbin[i].lpb;
+		// Try to delete the sync state from state map anyway
+		m_mapSyncStates.erase(lpsSyncState->ulSyncId);
+		// Check if we even have the sync state
+		auto iterConnection = m_mapConnections.find(lpsSyncState->ulSyncId);
+		if (iterConnection == m_mapConnections.cend())
+			continue;
+		// Unregister the sync state.
+		if (!(m_ulFlags & SYNC_CATCHUP))
+			listConnections.emplace_back(*iterConnection);
+		// Remove from map
+		m_mapConnections.erase(iterConnection);
 	}
 	return m_lpMsgStore->m_lpNotifyClient->Unadvise(listConnections);
 }
@@ -337,14 +331,13 @@ HRESULT ECChangeAdvisor::UpdateSyncState(syncid_t ulSyncId, changeid_t ulChangeI
 
 HRESULT ECChangeAdvisor::Reload(void *lpParam, ECSESSIONID /*newSessionId*/)
 {
+	if (lpParam == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT				hr = hrSuccess;
 	auto lpChangeAdvisor = static_cast<ECChangeAdvisor *>(lpParam);
 	ECLISTSYNCSTATE		listSyncStates;
 	ECLISTCONNECTION	listConnections;
-
-	if (lpParam == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
 	scoped_rlock lock(lpChangeAdvisor->m_hConnectionLock);
 	if ((lpChangeAdvisor->m_ulFlags & SYNC_CATCHUP))
 		return hrSuccess;

@@ -125,10 +125,8 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 
 HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup, LPSPropValue* lppIdentityProps)
 {
-	ULONG			cbEntryStore = 0;
+	ULONG cbEntryStore = 0, cbEID = 0;
 	memory_ptr<ENTRYID> lpEntryStore, lpEID;
-	ULONG			cbEID = 0;
-	ULONG			ulSize = 0;
 	memory_ptr<ECUSER> lpUser;
 	memory_ptr<SPropValue> lpIdentityProps;
 
@@ -151,7 +149,7 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 
 	// Create the PR_SENDER_NAME property value.
 	lpIdentityProps[XPID_NAME].ulPropTag = PR_SENDER_NAME;
-	ulSize = sizeof(TCHAR) * (_tcslen(lpUser->lpszFullName) + 1);
+	unsigned int ulSize = sizeof(TCHAR) * (_tcslen(lpUser->lpszFullName) + 1);
 	hr = KAllocCopy(lpUser->lpszFullName, ulSize, reinterpret_cast<void **>(&lpIdentityProps[XPID_NAME].Value.LPSZ), lpIdentityProps);
 	if (hr != hrSuccess)
 		return hr;
@@ -210,6 +208,12 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
  */
 HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAGE* lppEmptyMessage)
 {
+	if (lpReadMessage == nullptr || lppEmptyMessage == nullptr ||
+	    *lppEmptyMessage == nullptr)
+		return MAPI_E_INVALID_OBJECT;
+	if ((ulFlags & ~MAPI_NON_READ) != 0)
+		return MAPI_E_INVALID_PARAMETER;
+
 	memory_ptr<SPropValue> spv, dpv;
 	unsigned int dval = 0, cSrcValues = 0, cbTmp = 0;
 	memory_ptr<BYTE> lpByteTmp;
@@ -254,13 +258,6 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		PR_DELIVER_TIME, PR_SENT_REPRESENTING_ADDRTYPE,
 		PR_SENT_REPRESENTING_EMAIL_ADDRESS, PR_MDN_DISPOSITION_TYPE,
 		PR_MDN_DISPOSITION_SENDINGMODE}};
-
-	// Check incoming parameters
-	if (lpReadMessage == nullptr || lppEmptyMessage == nullptr ||
-	    *lppEmptyMessage == nullptr)
-		return MAPI_E_INVALID_OBJECT;
-	if ((ulFlags &~ MAPI_NON_READ) != 0)
-		return MAPI_E_INVALID_PARAMETER;
 
 	GetSystemTimeAsFileTime(&ft);
 
@@ -549,12 +546,11 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlob
 
 HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, struct sGlobalProfileProps* lpsProfileProps)
 {
-	memory_ptr<SPropValue> lpsPropArray;
-	ULONG			cValues = 0;
-
 	if (lpGlobalProfSect == nullptr || lpsProfileProps == nullptr)
 		return MAPI_E_INVALID_OBJECT;
 
+	memory_ptr<SPropValue> lpsPropArray;
+	ULONG			cValues = 0;
 	// Get the properties we need directly from the global profile section
 	auto hr = lpGlobalProfSect->GetProps(sptaKopanoProfile, 0, &cValues, &~lpsPropArray);
 	if(FAILED(hr))
@@ -602,15 +598,15 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 
 HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSect, ULONG *lpcDelegates, LPBYTE *lppDelegateStores)
 {
+	if (lpGlobalProfSect == nullptr || lpcDelegates == nullptr ||
+	    lppDelegateStores == nullptr)
+		return MAPI_E_INVALID_OBJECT;
+
 	memory_ptr<SPropValue> lpsPropValue;
 	ULONG			cValues = 0;
 	SizedSPropTagArray(1, sPropTagArray);
 	memory_ptr<BYTE> lpDelegateStores;
 
-	if (lpGlobalProfSect == nullptr || lpcDelegates == nullptr ||
-	    lppDelegateStores == nullptr)
-		return MAPI_E_INVALID_OBJECT;
-	
 	sPropTagArray.cValues = 1;
 	sPropTagArray.aulPropTag[0] =  PR_STORE_PROVIDERS;
 	auto hr = lpGlobalProfSect->GetProps(sPropTagArray, 0, &cValues, &~lpsPropValue);
@@ -636,11 +632,11 @@ entryid functions
 HRESULT HrCreateEntryId(const GUID &guidStore, unsigned int ulObjType,
     ULONG *lpcbEntryId, ENTRYID **lppEntryId)
 {
+	if (lpcbEntryId == nullptr || lppEntryId == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	EID			eid;
 	LPENTRYID	lpEntryId = NULL;
-
-	if (lpcbEntryId == NULL || lppEntryId == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 	if (CoCreateGuid(&eid.uniqueId) != hrSuccess)
 		return MAPI_E_CALL_FAILED;
 
@@ -677,13 +673,13 @@ HRESULT HrCreateEntryId(const GUID &guidStore, unsigned int ulObjType,
 HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId,
     const ENTRYID *lpEntryId, std::string &rServerPath, bool *lpbIsPseudoUrl)
 {
+	if (lpEntryId == nullptr || lpbIsPseudoUrl == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	PEID	peid = (PEID)lpEntryId;
 	unsigned int ulMaxSize = 0, ulSize = 0;
 	char*	lpTmpServerName = NULL;
 	bool	bIsPseudoUrl = false;
-
-	if (lpEntryId == NULL || lpbIsPseudoUrl == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 
 	if (peid->ulVersion == 0) 
 	{
@@ -726,13 +722,13 @@ HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId,
  */
 HRESULT HrResolvePseudoUrl(WSTransport *lpTransport, const char *lpszUrl, std::string& serverPath, bool *lpbIsPeer)
 {
-	ecmem_ptr<char> lpszServerPath;
-	bool		bIsPeer = false;
-
-	if (lpTransport == NULL || lpszUrl == NULL)
+	if (lpTransport == nullptr || lpszUrl == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (strncmp(lpszUrl, "pseudo://", 9))
 		return MAPI_E_NOT_FOUND;
+
+	ecmem_ptr<char> lpszServerPath;
+	bool		bIsPeer = false;
 	auto hr = lpTransport->HrResolvePseudoUrl(lpszUrl, &~lpszServerPath, &bIsPeer);
 	if (hr != hrSuccess)
 		return hr;
@@ -758,6 +754,9 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID,
     const GUID &guidStore, void *lpBase, ULONG *lpcbEntryID,
     ENTRYID **lppEntryID)
 {
+	if (lpcbEntryID == nullptr || lppEntryID == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	LPENTRYID lpEntryID = NULL;
 
 	GUID guidEmpty = {0};
@@ -776,9 +775,6 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID,
 	default:
 		return MAPI_E_INVALID_PARAMETER;
 	}
-
-	if (lpcbEntryID == NULL || lppEntryID == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 
 	unsigned int cbEntryID = CbEID(&eid);
 	auto hr = KAllocCopy(&eid, cbEntryID, reinterpret_cast<void **>(&lpEntryID), lpBase);

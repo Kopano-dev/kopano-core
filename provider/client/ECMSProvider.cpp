@@ -72,11 +72,11 @@ HRESULT ECMSProvider::Shutdown(ULONG * lpulFlags)
 	return hrSuccess;
 }
 
-HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
-    const TCHAR *lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
-    ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity,
-    LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError,
-    LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
+HRESULT ECMSProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
+    const TCHAR *lpszProfileName, ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ULONG ulFlags, const IID *lpInterface, ULONG *lpcbSpoolSecurity,
+    BYTE **lppbSpoolSecurity, MAPIERROR **lppMAPIError,
+    IMSLogon **lppMSLogon, IMsgStore **lppMDB)
 {
 	object_ptr<WSTransport> lpTransport;
 	object_ptr<ECMsgStore> lpECMsgStore;
@@ -175,12 +175,19 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	return lpECMSLogon->QueryInterface(IID_IMSLogon, reinterpret_cast<void **>(lppMSLogon));
 }
 
-HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
-    const TCHAR *lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
-    ULONG ulFlags, LPCIID lpInterface, ULONG cbSpoolSecurity,
-    LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon,
-    LPMDB *lppMDB)
+HRESULT ECMSProvider::SpoolerLogon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
+    const TCHAR *lpszProfileName, ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ULONG ulFlags, const IID *lpInterface, ULONG cbSpoolSecurity,
+    const BYTE *lpbSpoolSecurity, MAPIERROR **lppMAPIError,
+    IMSLogon **lppMSLogon, IMsgStore **lppMDB)
 {
+	if (lpEntryID == nullptr)
+		return MAPI_E_UNCONFIGURED;
+	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == nullptr)
+		return MAPI_E_NO_ACCESS;
+	if (cbSpoolSecurity % sizeof(wchar_t) != 0)
+		return MAPI_E_INVALID_PARAMETER;
+
 	object_ptr<WSTransport> lpTransport;
 	object_ptr<ECMsgStore> lpMsgStore;
 	object_ptr<ECMSLogon> lpLogon;
@@ -189,11 +196,6 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	ULONG cValues = 0;
 	LPSPropValue lpsPropArray = NULL;
 	sGlobalProfileProps	sProfileProps;
-
-	if (lpEntryID == nullptr)
-		return MAPI_E_UNCONFIGURED;
-	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == nullptr)
-		return MAPI_E_NO_ACCESS;
 
 	// Get Global profile settings
 	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
@@ -220,9 +222,7 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 			return MAPI_E_NOT_FOUND;
 	}
 
-	if (cbSpoolSecurity % sizeof(wchar_t) != 0)
-		return MAPI_E_INVALID_PARAMETER;
-	auto strSep = wmemchr(reinterpret_cast<wchar_t *>(lpbSpoolSecurity), 0, cbSpoolSecurity / sizeof(wchar_t));
+	auto strSep = wmemchr(reinterpret_cast<const wchar_t *>(lpbSpoolSecurity), 0, cbSpoolSecurity / sizeof(wchar_t));
 	if (strSep == NULL)
 		return MAPI_E_NO_ACCESS;
 	++strSep;
@@ -264,7 +264,9 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	return lpLogon->QueryInterface(IID_IMSLogon, reinterpret_cast<void **>(lppMSLogon));
 }
 	
-HRESULT ECMSProvider::CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
+HRESULT ECMSProvider::CompareStoreIDs(ULONG cbEntryID1,
+    const ENTRYID *lpEntryID1, ULONG cbEntryID2, const ENTRYID *lpEntryID2,
+    ULONG ulFlags, ULONG *lpulResult)
 {
 	return ::CompareStoreIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
 }
@@ -285,7 +287,8 @@ HRESULT ECMSProvider::CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, UL
  * @retval	MAPI_E_FAILONEPROVIDER		Returned when the extraction of the URL failed.
  */
 HRESULT ECMSProvider::LogonByEntryID(object_ptr<WSTransport> &lpTransport,
-    sGlobalProfileProps *lpsProfileProps, ULONG cbEntryID, ENTRYID *lpEntryID)
+    sGlobalProfileProps *lpsProfileProps, ULONG cbEntryID,
+    const ENTRYID *lpEntryID)
 {
 	std::string extractedServerPath; // The extracted server path
 	bool		bIsPseudoUrl = false;
@@ -358,11 +361,11 @@ HRESULT ECMSProviderSwitch::Shutdown(ULONG * lpulFlags)
 	return hrSuccess;
 }
 
-HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
-    const TCHAR *lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID,
-    ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity,
-    LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError,
-    LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
+HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
+    const TCHAR *lpszProfileName, ULONG cbEntryID, const ENTRYID *lpEntryID,
+    ULONG ulFlags, const IID *lpInterface, ULONG *lpcbSpoolSecurity,
+    BYTE **lppbSpoolSecurity, MAPIERROR **lppMAPIError, IMSLogon **lppMSLogon,
+    IMsgStore **lppMDB)
 {
 	object_ptr<ECMsgStore> lpecMDB;
 	sGlobalProfileProps	sProfileProps;
@@ -523,13 +526,17 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	return hr;
 }
 
-HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
+HRESULT ECMSProviderSwitch::SpoolerLogon(IMAPISupport *lpMAPISup,
     ULONG_PTR ulUIParam, const TCHAR *lpszProfileName, ULONG cbEntryID,
-    LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface,
-    ULONG cbSpoolSecurity, LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError,
-    LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
+    const ENTRYID *lpEntryID, ULONG ulFlags, const IID *lpInterface,
+    ULONG cbSpoolSecurity, const BYTE *lpbSpoolSecurity,
+    MAPIERROR **lppMAPIError, IMSLogon **lppMSLogon, IMsgStore **lppMDB)
 {
-	IMSProvider *lpProvider = NULL; // Do not release
+	if (lpEntryID == nullptr)
+		return MAPI_E_UNCONFIGURED;
+	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == nullptr)
+		return MAPI_E_NO_ACCESS;
+
 	PROVIDER_INFO sProviderInfo;
 	object_ptr<IMsgStore> lpMDB;
 	object_ptr<IMSLogon> lpMSLogon;
@@ -538,17 +545,10 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
 		if (lppMAPIError != nullptr)
 			*lppMAPIError = nullptr;
 	});
-
-	if (lpEntryID == NULL)
-		return MAPI_E_UNCONFIGURED;
-
-	if (cbSpoolSecurity == 0 || lpbSpoolSecurity == NULL)
-		return MAPI_E_NO_ACCESS;
 	auto hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;
-
-	lpProvider = sProviderInfo.lpMSProviderOnline;
+	auto lpProvider = sProviderInfo.lpMSProviderOnline.get();
 	hr = lpProvider->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName,
 	     cbEntryID, lpEntryID, ulFlags, lpInterface, cbSpoolSecurity,
 	     lpbSpoolSecurity, nullptr, &~lpMSLogon, &~lpMDB);
@@ -574,11 +574,12 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup,
 		if (hr != hrSuccess)
 			return hr;
 	}
-
-	return hr;
+	return hrSuccess;
 }
 
-HRESULT ECMSProviderSwitch::CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
+HRESULT ECMSProviderSwitch::CompareStoreIDs(ULONG cbEntryID1,
+    const ENTRYID *lpEntryID1, ULONG cbEntryID2, const ENTRYID *lpEntryID2,
+    ULONG ulFlags, ULONG *lpulResult)
 {
 	return ::CompareStoreIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
 }

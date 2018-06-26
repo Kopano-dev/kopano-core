@@ -330,37 +330,37 @@ HRESULT ECMessage::GetSyncedBodyProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
  */
 HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 {
-	HRESULT hr = hrSuccess;
+	if (!Util::IsBodyProp(ulPropTag))
+		return MAPI_E_INVALID_PARAMETER;
+	if (m_ulBodyType == bodyTypeUnknown)
+		/*
+		 * There is nothing to synchronize if we do not know what our
+		 * best body type is.
+		 */
+		return MAPI_E_NO_SUPPORT;
+
 	const BOOL fModifyOld = fModify;
 
 	auto laters = make_scope_success([&]() { fModify = fModifyOld; });
-
-	if (m_ulBodyType == bodyTypeUnknown)
-	    // There's nothing to synchronize if we don't know what our best body type is.
-		return MAPI_E_NO_SUPPORT;
-
-	if (!Util::IsBodyProp(ulPropTag))
-		return MAPI_E_INVALID_PARAMETER;
 
 	// Temporary enable write access
 	fModify = TRUE;
 
 	if (m_ulBodyType == bodyTypePlain) {
 		if (PROP_ID(ulPropTag) == PROP_ID(PR_RTF_COMPRESSED))
-			hr = SyncPlainToRtf();
+			return SyncPlainToRtf();
 		else if (PROP_ID(ulPropTag) == PROP_ID(PR_HTML))
-			hr = SyncPlainToHtml();
+			return SyncPlainToHtml();
 	} else if (m_ulBodyType == bodyTypeRTF) {
 		if (PROP_ID(ulPropTag) == PROP_ID(PR_BODY) || PROP_ID(ulPropTag) == PROP_ID(PR_HTML))
-			hr = SyncRtf();
+			return SyncRtf();
 	} else if (m_ulBodyType == bodyTypeHTML) {
 		if (PROP_ID(ulPropTag) == PROP_ID(PR_BODY))
-			hr = SyncHtmlToPlain();
+			return SyncHtmlToPlain();
 		else if (PROP_ID(ulPropTag) == PROP_ID(PR_RTF_COMPRESSED))
-			hr = SyncHtmlToRtf();
+			return SyncHtmlToRtf();
 	}
-
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -731,11 +731,10 @@ HRESULT ECMessage::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 
 HRESULT ECMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
 {
-	HRESULT hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-	if (lpiid == NULL)
+	if (lpiid == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
+	HRESULT hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 //FIXME: Support the flags ?
 	if(ulPropTag == PR_MESSAGE_ATTACHMENTS) {
 		if(*lpiid == IID_IMAPITable)
@@ -1097,15 +1096,15 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 {
-	HRESULT hr = hrSuccess;
-	ecmem_ptr<SPropValue> lpRecipProps;
-	ULONG cValuesRecipProps = 0;
-	SPropValue sPropAdd[2], sKeyProp;
-
 	if (lpMods == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	if (!fModify)
 		return MAPI_E_NO_ACCESS;
+
+	HRESULT hr = hrSuccess;
+	ecmem_ptr<SPropValue> lpRecipProps;
+	ULONG cValuesRecipProps = 0;
+	SPropValue sPropAdd[2], sKeyProp;
 
 	// Load the recipients table object
 	if(lpRecips == NULL) {
@@ -1275,6 +1274,15 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 
 HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 {
+	if ((ulFlags & ~(CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING | GENERATE_RECEIPT_ONLY | MAPI_DEFERRED_ERRORS | SUPPRESS_RECEIPT)) != 0 ||
+	    (ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG) ||
+	    (ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY) ||
+	    (ulFlags & (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY))
+		return MAPI_E_INVALID_PARAMETER;
+	if (m_lpParentID != nullptr)
+		/* Unsaved message, ignore (FIXME ?) */
+		return hrSuccess;
+
 	ecmem_ptr<SPropValue> lpReadReceiptRequest;
 	memory_ptr<SPropValue> lpPropFlags, lpsPropUserName;
 	SPropValue		sProp;
@@ -1283,15 +1291,6 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 	unsigned int objtype = 0, cValues = 0, cbStoreID = 0;
 	memory_ptr<ENTRYID> lpStoreID;
 	object_ptr<IMsgStore> lpDefMsgStore;
-
-	if((ulFlags &~ (CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING | GENERATE_RECEIPT_ONLY | MAPI_DEFERRED_ERRORS | SUPPRESS_RECEIPT)) != 0 ||
-		(ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG)||
-		(ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY) ||
-		(ulFlags & (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY)) == (CLEAR_READ_FLAG | GENERATE_RECEIPT_ONLY) )
-		return MAPI_E_INVALID_PARAMETER;
-	if (m_lpParentID != nullptr)
-		// Unsaved message, ignore (FIXME ?)
-		return hrSuccess;
 
 	// see if read receipts are requested
 	static constexpr const SizedSPropTagArray(2, proptags) =
@@ -2135,13 +2134,14 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
+	if (lpInterface == nullptr || lpDestObj == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	object_ptr<IMAPIProp> destiprop;
 	object_ptr<ECMAPIProp> lpECMAPIProp;
 	memory_ptr<SPropValue> lpECObject;
 	GUID sDestServerGuid = {0}, sSourceServerGuid = {0};
 
-	if (lpInterface == nullptr || lpDestObj == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
 	// Deny copying within the same object. This is not allowed in exchange either and is required to deny
 	// creating large recursive objects.
 	if (qi_void_to_imapiprop(lpDestObj, *lpInterface, &~destiprop) == hrSuccess &&
@@ -2303,14 +2303,18 @@ static HRESULT HrCopyObjIDs(MAPIOBJECT *lpDest, const MAPIOBJECT *lpSrc)
 }
 
 HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
+	if (lpsMapiObject->ulObjType != MAPI_ATTACH)
+		/*
+		 * Can only save attachments as child objects. (Recipients are
+		 * saved through SaveRecips() from SaveChanges() on this
+		 * object.)
+		 */
+		return MAPI_E_INVALID_OBJECT;
+
 	SPropValue sKeyProp;
 	ecmem_ptr<SPropValue> lpProps;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	if (lpsMapiObject->ulObjType != MAPI_ATTACH)
-		// can only save attachments as child objects
-		// (recipients are saved through SaveRecips() from SaveChanges() on this object)
-		return MAPI_E_INVALID_OBJECT;
 	if (lpAttachments == nullptr) {
 		object_ptr<IMAPITable> lpTable;
 		auto hr = GetAttachmentTable(fMapiUnicode, &~lpTable);

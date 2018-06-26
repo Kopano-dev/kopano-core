@@ -43,8 +43,7 @@ HRESULT ECMAPITable::FlushDeferred(LPSRowSet *lppRowSet)
 
 	// No deferred calls -> nothing to do
 	if (!IsDeferred())
-		return hr;
-        
+		return hrSuccess;
 	hr = lpTableOps->HrMulti(m_ulDeferredFlags, m_lpSetColumns, m_lpRestrict, m_lpSortTable, m_ulRowCount, m_ulFlags, lppRowSet);
 
 	// Reset deferred items
@@ -99,15 +98,15 @@ HRESULT ECMAPITable::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *l
 
 HRESULT ECMAPITable::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG * lpulConnection)
 {
-	scoped_rlock lock(m_hLock);
+	if (lpulConnection == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
+	scoped_rlock lock(m_hLock);
 	HRESULT hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
 	if (lpNotifyClient == NULL)
 		return MAPI_E_NO_SUPPORT;
-	if (lpulConnection == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 
 	// FIXME: if a reconnection happens in another thread during the following call, the ulTableId sent here will be incorrect. The reconnection
 	// code will not yet know about this connection since we don't insert it until later, so you may end up getting an Advise() on completely the wrong
@@ -143,12 +142,9 @@ HRESULT ECMAPITable::Unadvise(ULONG ulConnection)
 // @fixme Do we need to lock here or just update the status?
 HRESULT ECMAPITable::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType)
 {
-	HRESULT hr = hrSuccess;
-
 	*lpulTableStatus = TBLSTAT_COMPLETE;
 	*lpulTableType = TBLTYPE_DYNAMIC;
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMAPITable::SetColumns(const SPropTagArray *lpPropTagArray,
@@ -213,8 +209,7 @@ HRESULT ECMAPITable::SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator)
 	HRESULT hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
-	ULONG ulRows = 0;
-	ULONG ulCurrent = 0;
+	ULONG ulRows = 0, ulCurrent = 0;
 	hr = lpTableOps->HrGetRowCount(&ulRows, &ulCurrent);
 	if(hr != hrSuccess)
 		return hr;
@@ -228,8 +223,7 @@ HRESULT ECMAPITable::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *
 	HRESULT hr = FlushDeferred();
 	if(hr != hrSuccess)
 		return hr;
-	ULONG ulRows = 0;
-	ULONG ulCurrentRow = 0;
+	ULONG ulRows = 0, ulCurrentRow = 0;
 	hr = lpTableOps->HrGetRowCount(&ulRows, &ulCurrentRow);
 	if(hr != hrSuccess)
 		return hr;
@@ -237,7 +231,7 @@ HRESULT ECMAPITable::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *
 	*lpulRow = ulCurrentRow;
 	*lpulNumerator = ulCurrentRow;
 	*lpulDenominator = (ulRows == 0)?1:ulRows;
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMAPITable::FindRow(const SRestriction *lpRestriction,
@@ -408,12 +402,10 @@ HRESULT ECMAPITable::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBY
 
 HRESULT ECMAPITable::HrSetTableOps(WSTableView *ops, bool fLoad)
 {
-	HRESULT hr;
-
 	lpTableOps.reset(ops);
 	// Open the table on the server, ready for reading ..
 	if(fLoad) {
-		hr = lpTableOps->HrOpenTable();
+		auto hr = lpTableOps->HrOpenTable();
 		if (hr != hrSuccess)
 			return hr;
 	}

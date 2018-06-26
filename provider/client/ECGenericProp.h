@@ -96,15 +96,15 @@ protected: ///?
 	virtual HRESULT HrRemoveModifications(MAPIOBJECT *lpsMapiObject, ULONG ulPropTag);
 
 	// For IECSingleInstance
-	virtual HRESULT GetSingleInstanceId(ULONG *id_size, ENTRYID **id);
+	virtual HRESULT GetSingleInstanceId(ULONG *id_size, ENTRYID **id) override;
 	virtual HRESULT SetSingleInstanceId(ULONG eid_size, const ENTRYID *eid) override;
 
 public:
 	// From IMAPIProp
-	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT SaveChanges(ULONG ulFlags);
-	virtual HRESULT GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray);
-	virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray);
+	virtual HRESULT GetLastError(HRESULT, ULONG flags, MAPIERROR **) override;
+	virtual HRESULT SaveChanges(ULONG flags) override;
+	virtual HRESULT GetProps(const SPropTagArray *, ULONG flags, ULONG *nprops, SPropValue **) override;
+	virtual HRESULT GetPropList(ULONG flags, SPropTagArray **) override;
 	
 	/**
 	 * \brief Opens a property.
@@ -117,13 +117,13 @@ public:
 	 *
 	 * \return hrSuccess on success.
 	 */
-	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
-	virtual HRESULT SetProps(ULONG cValues, const SPropValue *lpPropArray, LPSPropProblemArray *lppProblems);
-	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems);
-	virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
-	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
+	virtual HRESULT OpenProperty(ULONG tag, const IID *intf, ULONG intf_opts, ULONG flags, IUnknown **) override;
+	virtual HRESULT SetProps(ULONG nprops, const SPropValue *props, SPropProblemArray **) override;
+	virtual HRESULT DeleteProps(const SPropTagArray *, LPSPropProblemArray *) override;
+	virtual HRESULT CopyTo(ULONG nexcl, const IID *excl, const SPropTagArray *exclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **) override;
+	virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **) override;
 	virtual HRESULT GetNamesFromIDs(SPropTagArray **tags, const GUID *propset, ULONG flags, ULONG *nvals, MAPINAMEID ***names) override;
-	virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags);
+	virtual HRESULT GetIDsFromNames(ULONG n, MAPINAMEID **, ULONG flags, SPropTagArray **) override;
 
 protected:
 	ECPropertyEntryMap lstProps;

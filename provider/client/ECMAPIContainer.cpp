@@ -58,7 +58,8 @@ HRESULT ECMAPIContainer::CopyProps(const SPropTagArray *lpIncludeProps,
 	return Util::DoCopyProps(&IID_IMAPIContainer, static_cast<IMAPIContainer *>(this), lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
-HRESULT ECMAPIContainer::SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags)
+HRESULT ECMAPIContainer::SetSearchCriteria(const SRestriction *,
+    const ENTRYLIST *container, ULONG flags)
 {
 	return MAPI_E_NO_SUPPORT;
 }

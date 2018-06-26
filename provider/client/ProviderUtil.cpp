@@ -42,22 +42,19 @@
 
 using namespace KC;
 
-HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
+HRESULT CompareStoreIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
+    ULONG cbEntryID2, const ENTRYID *lpEntryID2, ULONG ulFlags,
+    ULONG *lpulResult)
 {
+	if (lpEntryID1 == nullptr || lpEntryID2 == nullptr || lpulResult == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if (cbEntryID1 < sizeof(GUID) + 4 + 4 || cbEntryID2 < sizeof(GUID) + 4 + 4)
+		return MAPI_E_INVALID_ENTRYID;
+
 	HRESULT hr = hrSuccess;
 	BOOL fTheSame = FALSE;
-	PEID peid1 = (PEID)lpEntryID1;
-	PEID peid2 = (PEID)lpEntryID2;
-
-	if(lpEntryID1 == NULL || lpEntryID2 == NULL || lpulResult == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if (cbEntryID1 < (sizeof(GUID) + 4 + 4) || cbEntryID2 < (sizeof(GUID) + 4 + 4)) {
-		hr = MAPI_E_INVALID_ENTRYID;
-		goto exit;
-	}
+	auto peid1 = reinterpret_cast<const EID *>(lpEntryID1);
+	auto peid2 = reinterpret_cast<const EID *>(lpEntryID2);
 
 	if(memcmp(&peid1->guid, &peid2->guid, sizeof(GUID)) != 0)
 		goto exit;
@@ -72,8 +69,8 @@ HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2
 
 		if(cbEntryID1 < sizeof(EID_V0))
 			goto exit;
-
-		if( ((EID_V0*)lpEntryID1)->ulId != ((EID_V0*)lpEntryID2)->ulId )
+		if (reinterpret_cast<const EID_V0 *>(lpEntryID1)->ulId !=
+		    reinterpret_cast<const EID_V0 *>(lpEntryID2)->ulId)
 			goto exit;
 
 	}else {
@@ -100,15 +97,14 @@ HRESULT SetProviderMode(IMAPISupport *lpMAPISup, ECMapProvider* lpmapProvider, L
 
 HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, const char *lpszProfileName, ULONG ulFlags, PROVIDER_INFO* lpsProviderInfo)
 {
-	PROVIDER_INFO sProviderInfo;
-	object_ptr<ECMSProvider> lpECMSProvider;
-	object_ptr<ECABProvider> lpECABProvider;
-	sGlobalProfileProps	sProfileProps;
-
 	if (lpmapProvider == nullptr || lpMAPISup == nullptr ||
 	    lpszProfileName == nullptr || lpsProviderInfo == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
+	PROVIDER_INFO sProviderInfo;
+	object_ptr<ECMSProvider> lpECMSProvider;
+	object_ptr<ECABProvider> lpECABProvider;
+	sGlobalProfileProps	sProfileProps;
 	auto iterProvider = lpmapProvider->find(lpszProfileName);
 	if (iterProvider != lpmapProvider->cend()) {
 		*lpsProviderInfo = iterProvider->second;
@@ -156,9 +152,10 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 //  all the msgstore objects, we also release the support object.
 //
 HRESULT CreateMsgStoreObject(const char *lpszProfname, IMAPISupport *lpMAPISup,
-    ULONG cbEntryID, ENTRYID *lpEntryID, ULONG ulMsgFlags, ULONG ulProfileFlags,
-    WSTransport *lpTransport, const MAPIUID *lpguidMDBProvider, BOOL bSpooler,
-    BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
+    ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulMsgFlags,
+    ULONG ulProfileFlags, WSTransport *lpTransport,
+    const MAPIUID *lpguidMDBProvider, BOOL bSpooler, BOOL fIsDefaultStore,
+    BOOL bOfflineStore, ECMsgStore **lppECMsgStore)
 {
 	HRESULT	hr = hrSuccess;
 	object_ptr<ECMsgStore> lpMsgStore;
@@ -200,16 +197,15 @@ HRESULT CreateMsgStoreObject(const char *lpszProfname, IMAPISupport *lpMAPISup,
 
 HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerName, ULONG ulFlags, WSTransport **lppTransport)
 {
-	utf8string strPseudoUrl = utf8string::from_string("pseudo://");
-	char *lpszServerPath = NULL;
-	bool bIsPeer = false;
-	WSTransport *lpNewTransport = NULL;
-
 	if (lpszServerName == NULL || lpTransport == NULL || lppTransport == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	if ((ulFlags & ~MAPI_UNICODE) != 0)
 		return MAPI_E_UNKNOWN_FLAGS;
 
+	utf8string strPseudoUrl = utf8string::from_string("pseudo://");
+	char *lpszServerPath = NULL;
+	bool bIsPeer = false;
+	WSTransport *lpNewTransport = NULL;
 	utf8string strServerName = convstring(lpszServerName, ulFlags);
 	strPseudoUrl.append(strServerName);
 	auto hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &lpszServerPath, &bIsPeer);

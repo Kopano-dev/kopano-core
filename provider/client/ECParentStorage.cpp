@@ -63,11 +63,10 @@ HRESULT ECParentStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 
 HRESULT ECParentStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 {
-	ECMapiObjects::const_iterator iterSObj;
-
-	if (!m_lpParentObject)
+	if (m_lpParentObject == nullptr)
 		return MAPI_E_INVALID_OBJECT;
 
+	ECMapiObjects::const_iterator iterSObj;
 	scoped_rlock lock(m_lpParentObject->m_hMutexMAPIObject);
 	if (m_lpParentObject->m_sMapiObject == NULL)
 		return MAPI_E_INVALID_OBJECT;

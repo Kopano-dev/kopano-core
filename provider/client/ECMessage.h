@@ -101,33 +101,33 @@ public:
 	 */
 	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
 	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
-	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
-	virtual HRESULT GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG ulFlags, LPATTACH *lppAttach);
-	virtual HRESULT CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach);
-	virtual HRESULT DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
-	virtual HRESULT GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods);
-	virtual HRESULT SubmitMessage(ULONG ulFlags);
-	virtual HRESULT SetReadFlag(ULONG ulFlags);
+	virtual HRESULT OpenProperty(ULONG proptag, const IID *intf, ULONG iface_opts, ULONG flags, IUnknown **) override;
+	virtual HRESULT GetAttachmentTable(ULONG flags, IMAPITable **) override;
+	virtual HRESULT OpenAttach(ULONG atnum, const IID *intf, ULONG flags, IAttach **) override;
+	virtual HRESULT CreateAttach(const IID *intf, ULONG flags, ULONG *atnum, IAttach **) override;
+	virtual HRESULT DeleteAttach(ULONG atnum, ULONG ui_param, IMAPIProgress *, ULONG flags) override;
+	virtual HRESULT GetRecipientTable(ULONG flags, IMAPITable **) override;
+	virtual HRESULT ModifyRecipients(ULONG flags, const ADRLIST *mods) override;
+	virtual HRESULT SubmitMessage(ULONG flags) override;
+	virtual HRESULT SetReadFlag(ULONG flags) override;
 
 	// override for IMAPIProp::SaveChanges
-	virtual HRESULT SaveChanges(ULONG ulFlags);
-	virtual HRESULT HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);
+	virtual HRESULT SaveChanges(ULONG flags) override;
+	virtual HRESULT HrSaveChild(ULONG flags, MAPIOBJECT *) override;
 	// override for IMAPIProp::CopyTo
-	virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
-	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
+	virtual HRESULT CopyTo(ULONG nexcl, const IID *excl, const SPropTagArray *exclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **) override;
+	virtual HRESULT CopyProps(const SPropTagArray *inclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **) override;
 
 	// RTF/Subject overrides
-	virtual HRESULT SetProps(ULONG cValues, const SPropValue *lpPropArray, LPSPropProblemArray *lppProblems);
-	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems);
-	virtual HRESULT HrLoadProps();
+	virtual HRESULT SetProps(ULONG nvals, const SPropValue *, SPropProblemArray **) override;
+	virtual HRESULT DeleteProps(const SPropTagArray *, SPropProblemArray **) override;
+	virtual HRESULT HrLoadProps() override;
 
 	// Our table-row getprop handler (handles client-side generation of table columns)
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
 
 	// RTF overrides
-	virtual HRESULT HrSetRealProp(const SPropValue *lpsPropValue);
+	virtual HRESULT HrSetRealProp(const SPropValue *) override;
 
 protected:
 	void RecursiveMarkDelete(MAPIOBJECT *lpObj);
@@ -151,8 +151,8 @@ private:
 	HRESULT GetBodyType(eBodyType *lpulBodyType);
 	
 	// Override GetProps/GetPropList so we can sync RTF before calling GetProps
-	virtual HRESULT GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray);
-	virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray);
+	virtual HRESULT GetProps(const SPropTagArray *, ULONG flags, ULONG *nvals, SPropValue **) override;
+	virtual HRESULT GetPropList(ULONG flags, SPropTagArray **) override;
 
 	HRESULT GetSyncedBodyProp(ULONG ulPropTag, ULONG ulFlags, void *lpBase, LPSPropValue lpsPropValue);
 	HRESULT SyncBody(ULONG ulPropTag);

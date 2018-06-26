@@ -38,7 +38,7 @@ class WSMessageStreamImporter;
 class WSMessageStreamSink _kc_final : public ECUnknown {
 public:
 	static HRESULT Create(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout, WSMessageStreamImporter *lpImporter, WSMessageStreamSink **lppSink);
-	HRESULT Write(LPVOID lpData, ULONG cbData);
+	HRESULT Write(const void *data, unsigned int size);
 
 private:
 	WSMessageStreamSink(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout, WSMessageStreamImporter *lpImporter);
@@ -59,7 +59,7 @@ private:
 class WSMessageStreamImporter _kc_final :
     public ECUnknown, private ECWaitableTask {
 public:
-	static HRESULT Create(ULONG flags, ULONG sync_id, ULONG eid_size, const ENTRYID *eid, ULONG feid_size, const ENTRYID *folder_eid, bool newmsg, SPropValue *conflict_items, WSTransport *, WSMessageStreamImporter **);
+	static HRESULT Create(ULONG flags, ULONG sync_id, ULONG eid_size, const ENTRYID *eid, ULONG feid_size, const ENTRYID *folder_eid, bool newmsg, const SPropValue *conflict_items, WSTransport *, WSMessageStreamImporter **);
 
 	HRESULT StartTransfer(WSMessageStreamSink **lppSink);
 	HRESULT GetAsyncResult(HRESULT *lphrResult);

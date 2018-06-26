@@ -64,8 +64,7 @@ private:
 	HRESULT CreateConflictFolder(LPTSTR lpszName, LPSPropValue lpAdditionalREN, ULONG ulMVPos, LPMAPIFOLDER lpParentFolder, LPMAPIFOLDER * lppConflictFolder);
 
 	HRESULT ImportMessageCreateAsStream(ULONG cValue, LPSPropValue lpPropArray, WSMessageStreamImporter **lppMessageImporter);
-	HRESULT ImportMessageUpdateAsStream(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG cValue, LPSPropValue lpPropArray, WSMessageStreamImporter **lppMessageImporter);
-
+	HRESULT ImportMessageUpdateAsStream(ULONG eid_size, const ENTRYID *eid, ULONG nvals, const SPropValue *, WSMessageStreamImporter **);
 	static HRESULT HrUpdateSearchReminders(LPMAPIFOLDER lpRootFolder, const SPropValue *);
 	friend class ECExchangeImportHierarchyChanges;
 

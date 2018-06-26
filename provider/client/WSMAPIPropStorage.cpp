@@ -128,15 +128,15 @@ exit:
 HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObject,
     struct saveObject *lpSaveObj, convert_context *lpConverter)
 {
-	HRESULT hr = hrSuccess;
-	ULONG ulPropId = 0;
-	GUID sServerGUID = {0}, sSIGUID = {0};
-	
 	if (lpConverter == NULL) {
 		convert_context converter;
 		return HrMapiObjectToSoapObject(lpsMapiObject, lpSaveObj, &converter);
 	}
 
+	HRESULT hr = hrSuccess;
+	ULONG ulPropId = 0;
+	GUID sServerGUID = {0}, sSIGUID = {0};
+	
 	if (lpsMapiObject->lpInstanceID) {
 		lpSaveObj->lpInstanceIds = s_alloc<entryList>(nullptr);
 		lpSaveObj->lpInstanceIds->__size = 1;

@@ -43,9 +43,9 @@ class IExchangeManageStore : public virtual IUnknown {
 public:
 	virtual HRESULT CreateStoreEntryID(const TCHAR *store_dn, const TCHAR *mbox_dn, ULONG flags, ULONG *eid_size, ENTRYID **eid) = 0;
 	virtual HRESULT EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey, ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, LPENTRYID *lppEntryID) = 0;
-	virtual HRESULT GetRights(ULONG cbUserEntryID, LPENTRYID lpUserEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulRights) = 0;
-	virtual HRESULT GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags) = 0;
-	virtual HRESULT GetPublicFolderTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags) = 0;
+	virtual HRESULT GetRights(ULONG ueid_size, const ENTRYID *user_eid, ULONG eid_size, const ENTRYID *eid, ULONG *rights) = 0;
+	virtual HRESULT GetMailboxTable(const TCHAR *server, IMAPITable **, ULONG flags) = 0;
+	virtual HRESULT GetPublicFolderTable(const TCHAR *server, IMAPITable **, ULONG flags) = 0;
 };
 IID_OF(IExchangeManageStore)
 

@@ -273,14 +273,14 @@ HRESULT ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lpMods)
 
 HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags, ECMemTable *lpTable, ULONG *lpulUniqueID)
 {
+	if (lpecMapiProp == nullptr || lpTable == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	object_ptr<IECSecurity> lpSecurity;
 	memory_ptr<ECPERMISSION> lpECPerms;
 	SPropValue	lpsPropMember[4];
 	WCHAR* lpMemberName = NULL;
 	unsigned int ulUserid = 0, cPerms = 0;
-
-	if (lpecMapiProp == nullptr || lpTable == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
 	auto hr = lpecMapiProp->QueryInterface(IID_IECSecurity, &~lpSecurity);
 	if (hr != hrSuccess)
 		return hr;

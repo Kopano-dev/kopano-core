@@ -183,17 +183,15 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 		break;
 	}
 	default:
-		hr = lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
-		break;
+		return lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 	}
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECABContainer::TableRowGetProp(void *lpProvider,
     const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
     void **lpBase, ULONG ulType)
 {
-	HRESULT hr = hrSuccess;
 	ULONG size = 0;
 
 	switch(lpsPropValSrc->ulPropTag) {
@@ -232,10 +230,9 @@ HRESULT ECABContainer::TableRowGetProp(void *lpProvider,
 		return KAllocCopy(lpszA, size, reinterpret_cast<void **>(&lpsPropValDst->Value.lpszA), lpBase);
 	}
 	default:
-		hr = MAPI_E_NOT_FOUND;
-		break;
+		return MAPI_E_NOT_FOUND;
 	}
-	return hr;
+	return hrSuccess;
 }
 
 // IMAPIContainer
@@ -296,7 +293,8 @@ HRESULT ECABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	return GetABStore()->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 }
 
-HRESULT ECABContainer::SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags)
+HRESULT ECABContainer::SetSearchCriteria(const SRestriction *,
+    const ENTRYLIST *container, ULONG flags)
 {
 	return MAPI_E_NO_SUPPORT;
 }
@@ -313,12 +311,13 @@ HRESULT ECABContainer::CreateEntry(ULONG eid_size, const ENTRYID *eid,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ECABContainer::CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
+HRESULT ECABContainer::CopyEntries(const ENTRYLIST *, ULONG ui_param,
+    IMAPIProgress *, ULONG flags)
 {
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ECABContainer::DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags)
+HRESULT ECABContainer::DeleteEntries(const ENTRYLIST *, ULONG flags)
 {
 	return MAPI_E_NO_SUPPORT;
 }

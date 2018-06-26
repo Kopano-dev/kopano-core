@@ -458,16 +458,16 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID,
 
 HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
 {
+	if (lpMsgList == nullptr || lpMsgList->cValues == 0)
+		return hrSuccess;
+	if (lpMsgList->lpbin == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT hr = hrSuccess;
 	ULONG ulResult = 0;
 	object_ptr<IMAPIFolder> lpMapiFolder;
 	memory_ptr<SPropValue> lpPropArray;
 
-	if(lpMsgList == NULL || lpMsgList->cValues == 0)
-		return hr;
-	if (lpMsgList->lpbin == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-	
 	//Get the interface of destinationfolder
 	if(lpInterface == NULL || *lpInterface == IID_IMAPIFolder)
 		lpMapiFolder.reset(static_cast<IMAPIFolder *>(lpDestFolder));

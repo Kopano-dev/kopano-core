@@ -350,8 +350,6 @@ HRESULT ECArchiveAwareMessage::SetPropHandler(ULONG ulPropTag,
 
 HRESULT ECArchiveAwareMessage::MapNamedProps()
 {
-	HRESULT hr = hrSuccess;
-
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidStoreEntryIds);
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_ITEM_ENTRYIDS,  PT_MV_BINARY, PSETID_Archive, dispidItemEntryIds);
 	PROPMAP_INIT_NAMED_ID(STUBBED,                PT_BOOLEAN,   PSETID_Archive, dispidStubbed);
@@ -359,7 +357,7 @@ HRESULT ECArchiveAwareMessage::MapNamedProps()
 	PROPMAP_INIT_NAMED_ID(ORIGINAL_SOURCE_KEY,    PT_BINARY,    PSETID_Archive, dispidOrigSourceKey);
 	PROPMAP_INIT(this);
 	m_bNamedPropsMapped = true;
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDeleteProps,

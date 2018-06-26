@@ -67,7 +67,6 @@ HRESULT ECMsgStorePublic::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECMsgStorePublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
 {
-	HRESULT hr = hrSuccess;
 	auto lpStore = static_cast<ECMsgStorePublic *>(lpParam);
 
 	switch(ulPropTag) {
@@ -77,11 +76,12 @@ HRESULT ECMsgStorePublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULON
 		return ::GetPublicEntryId(ePE_PublicFolders, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
 	case PR_IPM_FAVORITES_ENTRYID:
 		return ::GetPublicEntryId(ePE_Favorites, lpStore->GetStoreGuid(), lpBase, &lpsPropValue->Value.bin.cb, (LPENTRYID*)&lpsPropValue->Value.bin.lpb);
-	case PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID:
-		hr = lpStore->HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, ulFlags, lpBase, lpsPropValue);
+	case PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID: {
+		auto hr = lpStore->HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, ulFlags, lpBase, lpsPropValue);
 		if (hr == hrSuccess)
 			lpsPropValue->ulPropTag = PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID;
 		return hr;
+	}
 	default:
 		return MAPI_E_NOT_FOUND;
 	}
@@ -118,21 +118,18 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
     IUnknown **lppUnk)
 {
-	HRESULT				hr = hrSuccess;
+	if (lpulObjType == nullptr || lppUnk == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	unsigned int objtype = 0;
 	object_ptr<ECMAPIFolder> lpMAPIFolder;
 	BOOL				fModifyObject = FALSE;
 	enumPublicEntryID	ePublicEntryID = ePE_None;
-	ULONG				ulResult = 0;
+	ULONG ulResult = 0, ulResults;
 	object_ptr<IECPropStorage> lpPropStorage;
 	object_ptr<WSMAPIFolderOps> lpFolderOps;
 	memory_ptr<SPropValue> lpsPropValue, lpParentProp;
 	memory_ptr<ENTRYID> lpEntryIDIntern;
-	ULONG				ulResults;
-
-	// Check input/output variables
-	if (lpulObjType == nullptr || lppUnk == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
 
 	if(ulFlags & MAPI_MODIFY) {
 		if (!fModify)
@@ -147,7 +144,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	// Open always online the root folder
 	if (cbEntryID == 0 || lpEntryID == nullptr)
 		return ECMsgStore::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-	hr = HrCompareEntryIdWithStoreGuid(cbEntryID, lpEntryID, &GetStoreGuid());
+	auto hr = HrCompareEntryIdWithStoreGuid(cbEntryID, lpEntryID, &GetStoreGuid());
 	if(hr != hrSuccess)
 		return hr;
 
@@ -285,6 +282,9 @@ HRESULT ECMsgStorePublic::InitEntryIDs()
 
 HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, void *lpBase, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
+	if (lpcbEntryID == NULL || lppEntryID == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	ULONG cbPublicID = 0;
 	LPENTRYID lpPublicID = NULL;
 	LPENTRYID lpEntryID = NULL;
@@ -292,9 +292,6 @@ HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, voi
 	HRESULT hr = InitEntryIDs();
 	if(hr != hrSuccess)
 		return hr;
-	if (lpcbEntryID == NULL || lppEntryID == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
 	switch(ePublicEntryID)
 	{
 		case ePE_IPMSubtree:
@@ -324,6 +321,9 @@ HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, voi
 HRESULT ECMsgStorePublic::ComparePublicEntryId(enumPublicEntryID ePublicEntryID,
     ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG *lpulResult)
 {
+	if (lpEntryID == NULL || lpulResult == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT hr;
 	ULONG ulResult = 0;
 	ULONG cbPublicID = 0;
@@ -332,10 +332,6 @@ HRESULT ECMsgStorePublic::ComparePublicEntryId(enumPublicEntryID ePublicEntryID,
 	hr = InitEntryIDs();
 	if(hr != hrSuccess)
 		return hr;
-
-	if (lpEntryID == NULL || lpulResult == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
 	switch(ePublicEntryID)
 	{
 		case ePE_IPMSubtree:
@@ -364,12 +360,9 @@ HRESULT ECMsgStorePublic::ComparePublicEntryId(enumPublicEntryID ePublicEntryID,
 
 HRESULT ECMsgStorePublic::BuildIPMSubTree()
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<ECMemTable> lpIPMSubTree;
 	memory_ptr<SPropValue> lpProps;
-	ULONG cProps = 0;
-	ULONG cMaxProps = 0;
-	ULONG ulRowId = 0;
+	ULONG cProps = 0, cMaxProps = 0, ulRowId = 0;
 	SPropValue sKeyProp;
 	static constexpr const SizedSPropTagArray(13, sPropsHierarchyColumns) = {13, {
 			PR_ENTRYID, PR_DISPLAY_NAME_W,
@@ -383,7 +376,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 		assert(false);
 		return hrSuccess;
 	}
-	hr = ECMemTable::Create(sPropsHierarchyColumns, PR_ROWID, &~lpIPMSubTree);
+	auto hr = ECMemTable::Create(sPropsHierarchyColumns, PR_ROWID, &~lpIPMSubTree);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -579,7 +572,6 @@ ECMemTable *ECMsgStorePublic::GetIPMSubTree()
 HRESULT ECMsgStorePublic::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
     ULONG ulEventMask, IMAPIAdviseSink *lpAdviseSink, ULONG *lpulConnection)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulResult = 0;
 	memory_ptr<ENTRYID> lpEntryIDIntern;
 
@@ -591,7 +583,7 @@ HRESULT ECMsgStorePublic::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		return MAPI_E_NO_SUPPORT; // FIXME
 	} else if (lpEntryID && (lpEntryID->abFlags[3] & KOPANO_FAVORITE)) {
 		// Replace the original entryid because this one is only readable
-		hr = KAllocCopy(lpEntryID, cbEntryID, &~lpEntryIDIntern);
+		auto hr = KAllocCopy(lpEntryID, cbEntryID, &~lpEntryIDIntern);
 		if (hr != hrSuccess)
 			return hr;
 		// Remove Flags intern

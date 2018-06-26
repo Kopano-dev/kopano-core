@@ -90,19 +90,17 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     const IID *lpInterface, ULONG ulFlags, ULONG *lpulObjType,
     IUnknown **lppUnk)
 {
+	if (lpulObjType == nullptr || lppUnk == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT			hr = hrSuccess;
 	object_ptr<ECABContainer> lpABContainer;
 	BOOL			fModifyObject = FALSE;
-	ABEID			eidRoot =  ABEID(MAPI_ABCONT, MUIDECSAB, 0);
-	ABEID lpABeid;
+	ABEID lpABeid,  eidRoot(MAPI_ABCONT, MUIDECSAB, 0);
 	object_ptr<IECPropStorage> lpPropStorage;
 	object_ptr<ECMailUser> lpMailUser;
 	object_ptr<ECDistList> 	lpDistList;
 	memory_ptr<ENTRYID> lpEntryIDServer;
-
-	// Check input/output variables 
-	if (lpulObjType == nullptr || lppUnk == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
 
 	/*if(ulFlags & MAPI_MODIFY) {
 		if (!fModify)
@@ -267,12 +265,11 @@ HRESULT ECABLogon::GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable)
 HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
     const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList)
 {
-	ULONG			cValues;
-	ecmem_ptr<SPropValue> lpPropArray, lpNewPropArray;
-	ULONG			ulObjType;
-
-	if(lpPropTagArray == NULL || lpPropTagArray->cValues == 0) // There is no work to do.
+	if (lpPropTagArray == nullptr || lpPropTagArray->cValues == 0)
 		return hrSuccess;
+
+	ULONG cValues, ulObjType;
+	ecmem_ptr<SPropValue> lpPropArray, lpNewPropArray;
 
 	for (unsigned int i = 0; i < lpRecipList->cEntries; ++i) {
 		auto rgpropvalsRecip = lpRecipList->aEntries[i].rgPropVals;

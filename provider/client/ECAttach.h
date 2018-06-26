@@ -37,21 +37,19 @@ public:
 	static HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root, ECAttach **);
 
 	// Override for SaveChanges
-	virtual HRESULT SaveChanges(ULONG ulFlags);
+	virtual HRESULT SaveChanges(ULONG flags) override;
 
 	// Override for OpenProperty
-	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
-
+	virtual HRESULT OpenProperty(ULONG proptag, const IID *intf, ULONG iface_opts, ULONG flags, IUnknown **) override;
 	static  HRESULT	GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
 
 	// Override for CopyTo
-	virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
+	virtual HRESULT CopyTo(ULONG nexcl, const IID *excl, const SPropTagArray *exclprop, ULONG ui_param, IMAPIProgress *, const IID *intf, void *dest, ULONG flags, SPropProblemArray **) override;
 
 	// Override for HrSetRealProp - should reset instance ID when changed
-	virtual HRESULT HrSetRealProp(const SPropValue *lpsPropValue);
-	
-	virtual HRESULT HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);
+	virtual HRESULT HrSetRealProp(const SPropValue *) override;
+	virtual HRESULT HrSaveChild(ULONG flags, MAPIOBJECT *) override;
 
 private:
 	ULONG ulAttachNum;

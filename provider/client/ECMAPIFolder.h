@@ -55,11 +55,11 @@ public:
 	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems) _kc_override;
 
 	// We override from IMAPIContainer
-	virtual HRESULT SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags);
+	virtual HRESULT SetSearchCriteria(const SRestriction *, const ENTRYLIST *container, ULONG flags) override;
 	virtual HRESULT GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRestriction, LPENTRYLIST *lppContainerList, ULONG *lpulSearchState);
 
 	virtual HRESULT CreateMessage(LPCIID lpInterface, ULONG ulFlags, LPMESSAGE *lppMessage);
-	virtual HRESULT CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, LPMESSAGE *lppMessage);
+	virtual HRESULT CreateMessageWithEntryID(const IID *intf, ULONG flags, ULONG eid_size, const ENTRYID *eid, IMessage **);
 	virtual HRESULT CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
 	virtual HRESULT DeleteMessages(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
 	virtual HRESULT CreateFolder(ULONG folder_type, const TCHAR *name, const TCHAR *comment, const IID *intf, ULONG flags, IMAPIFolder **) override;
@@ -79,9 +79,9 @@ public:
 	virtual HRESULT HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProps);
 	
 	// Streaming support
-	virtual HRESULT CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, WSMessageStreamImporter **lppsStreamImporter);
-	virtual HRESULT GetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue *lppPropPCL, LPSPropValue *lppPropCK);
-	virtual HRESULT UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppsStreamImporter);
+	virtual HRESULT CreateMessageFromStream(ULONG flags, ULONG sync_id, ULONG eid_size, const ENTRYID *eid, WSMessageStreamImporter **);
+	virtual HRESULT GetChangeInfo(ULONG eid_size, const ENTRYID *eid, SPropValue **pcl, SPropValue **ck);
+	virtual HRESULT UpdateMessageFromStream(ULONG sync_id, ULONG eid_size, const ENTRYID *eid, const SPropValue *conflict, WSMessageStreamImporter **);
 
 protected:
 	KC::object_ptr<IMAPIAdviseSink> m_lpFolderAdviseSink;

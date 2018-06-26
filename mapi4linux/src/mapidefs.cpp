@@ -706,7 +706,9 @@ HRESULT M4LMAPIContainer::OpenEntry(ULONG eid_size, const ENTRYID *eid,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPIContainer::SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags) {
+HRESULT M4LMAPIContainer::SetSearchCriteria(const SRestriction *,
+    const ENTRYLIST *container, ULONG flags)
+{
 	return MAPI_E_NO_SUPPORT;
 }
 
@@ -742,11 +744,14 @@ HRESULT M4LABContainer::CreateEntry(ULONG eid_size, const ENTRYID *eid,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LABContainer::CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) {
+HRESULT M4LABContainer::CopyEntries(const ENTRYLIST *, ULONG ui_param,
+    IMAPIProgress *, ULONG flags)
+{
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LABContainer::DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags) {
+HRESULT M4LABContainer::DeleteEntries(const ENTRYLIST *, ULONG flags)
+{
 	return MAPI_E_NO_SUPPORT;
 }
 

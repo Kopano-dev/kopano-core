@@ -878,7 +878,8 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	return hr;
 }
 
-HRESULT ZCABContainer::SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags)
+HRESULT ZCABContainer::SetSearchCriteria(const SRestriction *,
+    const ENTRYLIST *container, ULONG flags)
 {
 	return MAPI_E_NO_SUPPORT;
 }
@@ -895,12 +896,13 @@ HRESULT ZCABContainer::CreateEntry(ULONG eid_size, const ENTRYID *eid,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ZCABContainer::CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
+HRESULT ZCABContainer::CopyEntries(const ENTRYLIST *, ULONG ui_param,
+    IMAPIProgress *, ULONG flags)
 {
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ZCABContainer::DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags)
+HRESULT ZCABContainer::DeleteEntries(const ENTRYLIST *, ULONG flags)
 {
 	return MAPI_E_NO_SUPPORT;
 }
