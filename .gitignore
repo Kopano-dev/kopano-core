@@ -27,6 +27,7 @@ stamp-h2
 
 /default.sym
 
+/spooler/libkcpyplug.sym
 /spooler/PythonSWIGRuntime.h
 /kopano-admin
 /kopano-archiver

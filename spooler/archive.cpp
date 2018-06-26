@@ -318,14 +318,36 @@ void Archive::SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage)
 	m_strErrorMessage.assign(oss.str());
 }
 
-#ifndef ENABLE_PYTHON
-PyMapiPluginFactory::PyMapiPluginFactory() {}
-PyMapiPluginFactory::~PyMapiPluginFactory() {}
-
-HRESULT PyMapiPluginFactory::create_plugin(ECConfig *,
-    const char *, pym_plugin_intf **ret)
+PyMapiPluginFactory::~PyMapiPluginFactory()
 {
-	*ret = new(std::nothrow) pym_plugin_intf;
-	return *ret != nullptr ? hrSuccess : MAPI_E_NOT_ENOUGH_MEMORY;
+	if (m_exit != nullptr)
+		m_exit();
+	if (m_handle != nullptr)
+		dlclose(m_handle);
 }
-#endif
+
+HRESULT PyMapiPluginFactory::create_plugin(ECConfig *cfg, const char *ctxname, pym_plugin_intf **ret)
+{
+	auto lib = cfg->GetSetting("plugin_enabled", nullptr, "no");
+	if (!parseBool(lib)) {
+		/* no-op instance */
+		*ret = new(std::nothrow) pym_plugin_intf;
+		return *ret != nullptr ? hrSuccess : MAPI_E_NOT_ENOUGH_MEMORY;
+	}
+	if (strcmp(lib, "yes") == 0)
+		lib = "libkcpyplug.so.0";
+	if (m_handle != nullptr)
+		dlclose(m_handle);
+	m_handle = dlopen(lib, RTLD_LAZY | RTLD_GLOBAL);
+	if (m_handle == nullptr) {
+		ec_log_err("Cannot load plugin manager \"%s\": %s", lib, dlerror());
+		return MAPI_E_CALL_FAILED;
+	}
+	auto init = reinterpret_cast<HRESULT (*)(ECConfig *, const char *, pym_plugin_intf **)>(dlsym(m_handle, "plugin_manager_init"));
+	if (init == nullptr) {
+		ec_log_err("Plugin library is missing the \"plugin_manager_init\" function.");
+		return MAPI_E_CALL_FAILED;
+	}
+	m_exit = reinterpret_cast<void (*)()>(dlsym(m_handle, "plugin_manager_exit"));
+	return init(cfg, ctxname, ret);
+}

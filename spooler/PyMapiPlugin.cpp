@@ -290,52 +290,40 @@ HRESULT PyMapiPlugin::RequestCallExecution(const char *lpFunctionName, IMAPISess
 	return hr;
 }
 
-PyMapiPluginFactory::PyMapiPluginFactory() :
-	m_priv(new struct pym_factory_priv)
-{
-}
+struct pym_factory_priv m_priv;
 
-PyMapiPluginFactory::~PyMapiPluginFactory()
+void plugin_manager_exit()
 {
-	if (m_priv != nullptr && m_priv->m_ptrModMapiPlugin != nullptr) {
-		m_priv->m_ptrModMapiPlugin = nullptr;
+	if (m_priv.m_ptrModMapiPlugin != nullptr) {
+		m_priv.m_ptrModMapiPlugin = nullptr;
 		Py_Finalize();
 	}
-	delete m_priv;
 }
 
-HRESULT PyMapiPluginFactory::create_plugin(ECConfig *lpConfig,
+HRESULT plugin_manager_init(ECConfig *lpConfig,
     const char *lpPluginManagerClassName, pym_plugin_intf **lppPlugin)
 {
 	HRESULT			hr = S_OK;
-	std::string		strEnvPython;
-	char			*lpEnvPython = NULL;
-	PyObjectAPtr	ptrName;
-	PyObjectAPtr	ptrModule;
-
-	m_bEnablePlugin = parseBool(lpConfig->GetSetting("plugin_enabled", NULL, "no"));
-	if (m_bEnablePlugin) {
-		m_strPluginPath = lpConfig->GetSetting("plugin_path");
-		strEnvPython = lpConfig->GetSetting("plugin_manager_path");
-		lpEnvPython = getenv("PYTHONPATH");
-		if (lpEnvPython)
-			strEnvPython += std::string(":") + lpEnvPython;
-		setenv("PYTHONPATH", strEnvPython.c_str(), 1);
-		ec_log_debug("PYTHONPATH = %s", strEnvPython.c_str());
-		Py_Initialize();
-		ptrModule.reset(PyImport_ImportModule("MAPI"));
-		PY_HANDLE_ERROR(ptrModule);
-		// Import python plugin framework
-		// @todo error unable to find file xxx
-		ptrName.reset(PyString_FromString("mapiplugin"));
-		m_priv->m_ptrModMapiPlugin.reset(PyImport_Import(ptrName));
-		PY_HANDLE_ERROR(m_priv->m_ptrModMapiPlugin);
-	}
+	std::string strPluginPath = lpConfig->GetSetting("plugin_path");
+	std::string strEnvPython = lpConfig->GetSetting("plugin_manager_path");
+	auto lpEnvPython = getenv("PYTHONPATH");
+	if (lpEnvPython)
+		strEnvPython += std::string(":") + lpEnvPython;
+	setenv("PYTHONPATH", strEnvPython.c_str(), 1);
+	ec_log_debug("PYTHONPATH = %s", strEnvPython.c_str());
+	Py_Initialize();
+	PyObjectAPtr ptrModule(PyImport_ImportModule("MAPI"));
+	PY_HANDLE_ERROR(ptrModule);
+	// Import python plugin framework
+	// @todo error unable to find file xxx
+	PyObjectAPtr ptrName(PyString_FromString("mapiplugin"));
+	m_priv.m_ptrModMapiPlugin.reset(PyImport_Import(ptrName));
+	PY_HANDLE_ERROR(m_priv.m_ptrModMapiPlugin);
 
 	std::unique_ptr<PyMapiPlugin> lpPlugin(new(std::nothrow) PyMapiPlugin);
 	if (lpPlugin == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpPlugin->Init(m_priv->m_ptrModMapiPlugin, lpPluginManagerClassName, m_strPluginPath.c_str());
+	hr = lpPlugin->Init(m_priv.m_ptrModMapiPlugin, lpPluginManagerClassName, strPluginPath.c_str());
 	if (hr != S_OK)
 		return hr;
 	*lppPlugin = lpPlugin.release();
