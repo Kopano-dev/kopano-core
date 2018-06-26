@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import print_function
 import fcntl
 import glob
 import grp
@@ -33,11 +34,11 @@ def main():
 
     config = kopano.Config(None, service='search', options=options)
     server = kopano.Server(options, config)
-    
+
     # get index_path, run_as_user, run_as_group from  search.cfg
     search_config = server.config
     if not search_config:
-        print('ERROR: search config is not available')
+        print('ERROR: search config is not available', file=sys.stderr)
         sys.exit(1)
 
     index_path = _default(search_config.get('index_path'))
@@ -47,7 +48,7 @@ def main():
     gid = grp.getgrnam(search_group).gr_gid
 
     if (uid, gid) != (os.getuid(), os.getgid()):
-        print('ERROR: script should run under user/group as specified in search.cfg')
+        print('ERROR: script should run under user/group as specified in search.cfg', file=sys.stderr)
         sys.exit(1)
 
     cleaned_args = [arg for arg in sys.argv[:1] if not arg.startswith('-')]
@@ -90,11 +91,11 @@ def main():
                     shutil.move(dbpath + '.compact', dbpath)
                     shutil.rmtree(dbpath + '.old')
             else:
-                print('ERROR: no such database: %s', dbpath)
+                print('ERROR: no such database:', dbpath)
                 errors += 1
             print
         except Exception as e:
-            print('ERROR')
+            print('ERROR', file=sys.stderr)
             traceback.print_exc(e)
             errors += 1
 

@@ -1,5 +1,7 @@
 #!@PYTHON@
 
+from __future__ import print_function
+
 import kopano
 from kopano.log import logger
 import sys
@@ -57,7 +59,7 @@ def main():
     options, args = parser.parse_args()
 
     if len(args) != 5:
-        print("Invalid arguments, you have to supply the arguments: from, to, subject, username, and msgfile")
+        print("Invalid arguments, you have to supply the arguments: from, to, subject, username, and msgfile", file=sys.stderr)
         sys.exit(1)
 
     config_dict = kopano.CONFIG
