@@ -142,7 +142,7 @@ def _organizer_props(cal_item, item):
             break
 
     if not has_organizer:
-        return [
+        orgprops = [
             SPropValue(PR_ENTRYID, item.prop(PR_SENT_REPRESENTING_ENTRYID).value),
             SPropValue(PR_DISPLAY_NAME_W, item.prop(PR_SENT_REPRESENTING_NAME_W).value),
             SPropValue(PR_EMAIL_ADDRESS_W, item.prop(PR_SENT_REPRESENTING_EMAIL_ADDRESS_W).value),
@@ -151,8 +151,11 @@ def _organizer_props(cal_item, item):
             SPropValue(PR_ADDRTYPE_W, item.prop(PR_SENT_REPRESENTING_ADDRTYPE_W).value), # XXX php
             SPropValue(PR_RECIPIENT_TRACKSTATUS, 0),
             SPropValue(PR_RECIPIENT_FLAGS, (recipOrganizer | recipSendable)),
-            SPropValue(PR_SEARCH_KEY, item.prop(PR_SENT_REPRESENTING_SEARCH_KEY).value),
         ]
+        repr_search_key = item.get(PR_SENT_REPRESENTING_SEARCH_KEY) # TODO not in exception message?
+        if repr_search_key:
+            orgprops.append(SPropValue(PR_SEARCH_KEY, repr_search_key))
+        return orgprops
 
 def _copytags(mapiobj):
     copytags = [_prop._name_to_proptag(tag, mapiobj)[0] for tag in PROPTAGS]

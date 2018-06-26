@@ -776,7 +776,10 @@ class Item(Properties, Contact, Appointment):
 
     def send(self, copy_to_sentmail=True, cancel=False):
         item = self
-        if self.message_class == 'IPM.Appointment':
+        if self.message_class in (
+            'IPM.Appointment',
+            'IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}' # exception message
+        ):
             if (self.get(PidLidAppointmentStartWhole) is None or \
                 self.get(PidLidAppointmentEndWhole) is None):
                 raise Error('appointment requires start and end date')
@@ -802,9 +805,10 @@ class Item(Properties, Contact, Appointment):
         props = []
 
         if copy_to_sentmail:
-            props.append(SPropValue(PR_SENTMAIL_ENTRYID, _bdec(item.folder.store.sentmail.entryid)))
+            props.append(SPropValue(PR_SENTMAIL_ENTRYID, _bdec(item.store.sentmail.entryid)))
         props.append(SPropValue(PR_DELETE_AFTER_SUBMIT, True))
         item.mapiobj.SetProps(props)
+
         try:
             item.mapiobj.SubmitMessage(0)
         except MAPIErrorNoRecipients:

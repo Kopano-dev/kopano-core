@@ -19,12 +19,12 @@ from MAPI import (
 from MAPI.Tags import (
     PR_MESSAGE_CLASS_W, PR_ATTACH_FLAGS, PR_ATTACHMENT_FLAGS,
     PR_ATTACHMENT_HIDDEN, PR_ATTACH_METHOD, PR_DISPLAY_NAME_W,
-    PR_EXCEPTION_STARTTIME, PR_EXCEPTION_ENDTIME,
+    PR_EXCEPTION_STARTTIME, PR_EXCEPTION_ENDTIME, PR_SUBJECT_W,
     PR_NORMALIZED_SUBJECT_W, PR_ATTACHMENT_LINKID, PR_ICON_INDEX,
     PR_MESSAGE_RECIPIENTS, IID_IMAPITable, PR_RECIPIENT_FLAGS,
-    PR_MESSAGE_FLAGS, PR_RECIPIENT_TRACKSTATUS, recipSendable,
-    recipExceptionalResponse, recipExceptionalDeleted, recipOrganizer,
-    respOrganized, respDeclined,
+    PR_MESSAGE_FLAGS, PR_RECIPIENT_TRACKSTATUS, PR_LOCATION_W,
+    recipSendable, recipExceptionalResponse, recipExceptionalDeleted,
+    recipOrganizer, respOrganized, respDeclined,
 )
 
 from MAPI.Defs import PpropFindProp
@@ -79,6 +79,7 @@ from .pidlid import (
     PidLidLocation, PidLidAppointmentSubType, PidLidAppointmentColor,
     PidLidIntendedBusyStatus, PidLidAppointmentStartWhole,
     PidLidAppointmentEndWhole,
+    PidLidIsRecurring
 )
 
 FREQ_DAY = 0x200A
@@ -833,21 +834,28 @@ class Recurrence(object):
                 cal_item[PidLidReminderSet] = False
                 cal_item[PidLidReminderSignalTime] = datetime.datetime.fromtimestamp(0x7ff00000)
 
-    def _update_embedded(self, basedate, message, item=None, copytags=None, create=False):
+    def _update_embedded(self, basedate, message, item=None, copytags=None, create=False, **kwargs):
         basetime = basedate + datetime.timedelta(minutes=self._starttime_offset)
         cal_item = self.item
 
         item2 = item or cal_item
         if copytags:
             props = item2.mapiobj.GetProps(copytags, 0)
-        else: # XXX remove?
+            message.mapiobj.SetProps(props)
+        elif not kwargs:
             props = [p.mapiobj for p in item2.props() if p.proptag != PR_ICON_INDEX]
-
-        message.mapiobj.SetProps(props)
+            message.mapiobj.SetProps(props)
+            message.recurring = False
 
         if not item:
-            message[PidLidAppointmentStartWhole] = basedate + datetime.timedelta(minutes=self._starttime_offset)
-            message[PidLidAppointmentEndWhole] = basedate + datetime.timedelta(minutes=self._endtime_offset)
+            if kwargs:
+                if 'start' in kwargs:
+                    message[PidLidAppointmentStartWhole] = kwargs['start']
+                if 'end' in kwargs:
+                    message[PidLidAppointmentEndWhole] = kwargs['end']
+            else:
+                message[PidLidAppointmentStartWhole] = basedate + datetime.timedelta(minutes=self._starttime_offset)
+                message[PidLidAppointmentEndWhole] = basedate + datetime.timedelta(minutes=self._endtime_offset)
 
         message[PR_MESSAGE_CLASS_W] = u'IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}'
         message[PidLidExceptionReplaceTime] = basetime
@@ -869,7 +877,13 @@ class Recurrence(object):
             SPropValue(PR_DISPLAY_NAME_W, u'Exception'),
         ]
 
-        if item is None:
+        if 'subject' in kwargs:
+            props.append(SPropValue(PR_SUBJECT_W, kwargs['subject']))
+
+        if 'location' in kwargs:
+            props.append(SPropValue(PR_LOCATION_W, kwargs['location']))
+
+        if item is None: # TODO pick up kwargs['start/end']
             start = basetime
             end = basetime + datetime.timedelta(minutes=self._endtime_offset-self._starttime_offset)
         else:
@@ -892,7 +906,7 @@ class Recurrence(object):
         _utils._save(message.mapiobj)
         _utils._save(message._attobj)
 
-    def _create_exception(self, basedate, item=None, copytags=None, merge=False):
+    def _create_exception(self, basedate, item=None, copytags=None, merge=False, recips_from=None):
         cal_item = self.item
 
         # create embedded item
@@ -908,6 +922,7 @@ class Recurrence(object):
             message[PidLidBusyStatus] = 0
 
         # copy over recipients (XXX check php delta stuff..)
+        item = item or recips_from
         if item:
             table = item.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
             table.SetColumns(_meetingrequest.RECIP_PROPS, 0)
@@ -923,7 +938,7 @@ class Recurrence(object):
                     recip.append(SPropValue(PR_RECIPIENT_FLAGS, recipExceptionalDeleted | recipSendable))
                     recip.append(SPropValue(PR_RECIPIENT_TRACKSTATUS, 0))
 
-            organiser = _meetingrequest._organizer_props(message, item)
+            organiser = _meetingrequest._organizer_props(cal_item, item)
             if organiser and not merge: # XXX merge -> initialize?
                 recips.insert(0, organiser)
 
@@ -968,7 +983,7 @@ class Recurrence(object):
         for message in cal_item.items(): # XXX no cal_item? to helper
             replacetime = message.get(PidLidExceptionReplaceTime)
             if replacetime and replacetime.date() == basedate.date():
-                self._update_embedded(basedate, message, item, copytags)
+                self._update_embedded(basedate, message, item, copytags, **kwargs)
 
                 if item:
                     icon_index = item.get(PR_ICON_INDEX)
@@ -1115,10 +1130,11 @@ class Occurrence(object):
             basedate = basedate.replace(hour=0, minute=0)
 
             if rec._is_exception(basedate):
-                rec._modify_exception(basedate, **kwargs) # TODO test
+                rec._modify_exception(basedate, **kwargs) # TODO does too much - only need to update kwargs!
             else:
-                rec._create_exception(basedate)
+                rec._create_exception(basedate, recips_from=self.item)
                 rec._modify_exception(basedate, **kwargs)
+
         else:
             for (k, v) in kwargs.items():
                 setattr(self.item, k, v)
@@ -1145,6 +1161,16 @@ class Occurrence(object):
         # msgraph has both appointments and expanded appointments under
         # /events, so we need an identier which can be used for both.
         return self._entryid(True)
+
+    def send(self, copy_to_sentmail=True, cancel=False):
+        if self.item.recurring:
+            basedate = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
+            message = self.item.recurrence._exception_message(basedate)
+            message.store = self.store
+            message.to = self.item.to # TODO
+            message.send(copy_to_sentmail, cancel)
+        else:
+            self.item.send(copy_to_sentmail, cancel)
 
     def __getattr__(self, x):
         return getattr(self.item, x)
