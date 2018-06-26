@@ -55,8 +55,7 @@
 #include <kopano/ecversion.h>
 
 #include "SSLUtil.h"
-
-#include "TmpPath.h"
+#include "fileutil.h"
 #include <kopano/UnixUtil.h>
 #include <unicode/uclean.h>
 #include <openssl/ssl.h>

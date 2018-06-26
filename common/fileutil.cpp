@@ -22,6 +22,7 @@
 #include <string>
 #include <cerrno>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <kopano/ECLogger.h>
 
@@ -30,9 +31,11 @@
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+#include <kopano/ECConfig.h>
 #include "fileutil.h"
-
 #define BLOCKSIZE	65536
 
 namespace KC {
@@ -260,6 +263,52 @@ bool DuplicateFile(FILE *lpFile, std::string &strFileName)
 		}
 	}
 	return true;
+}
+
+TmpPath TmpPath::instance;
+
+TmpPath::TmpPath()
+{
+	const char *dummy = nullptr;
+
+	if (path.empty()) {
+		dummy = getenv("TMP");
+		if (dummy != nullptr)
+			path = dummy;
+	}
+	if (path.empty()) {
+		dummy = getenv("TEMP");
+		if (dummy != nullptr)
+			path = dummy;
+	}
+	if (!path.empty()) {
+		struct stat st;
+		if (stat(path.c_str(), &st) == -1)
+			path = "/tmp"; // what to do if we can't access that path either? FIXME
+	}
+	if (path.empty())
+		path = "/tmp";
+}
+
+bool TmpPath::OverridePath(ECConfig *ec)
+{
+	bool rc = true;
+	const char *newPath = ec->GetSetting("tmp_path");
+
+	if (newPath == nullptr || newPath[0] == '\0')
+		return true;
+	path = newPath;
+	size_t s = path.size();
+	if (path.at(s - 1) == '/' && s > 1)
+		path = path.substr(0, s - 1);
+	struct stat st;
+	if (stat(path.c_str(), &st) == -1) {
+		path = "/tmp"; // what to do if we can't access that path either? FIXME
+		rc = false;
+	}
+	setenv("TMP", newPath, 1);
+	setenv("TEMP", newPath, 1);
+	return rc;
 }
 
 } /* namespace */

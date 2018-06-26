@@ -82,8 +82,7 @@
 #include <kopano/charset/utf8string.h>
 #include <kopano/ECGetText.h>
 #include "StatsClient.h"
-#include "TmpPath.h"
-
+#include "fileutil.h"
 #include <map>
 
 using namespace KC;

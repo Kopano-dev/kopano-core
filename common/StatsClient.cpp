@@ -23,7 +23,7 @@
 #include <ctime>
 #include <unistd.h>
 #include "StatsClient.h"
-#include "TmpPath.h"
+#include "fileutil.h"
 
 namespace KC {
 

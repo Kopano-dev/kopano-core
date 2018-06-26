@@ -72,7 +72,6 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <pwd.h>
-#include "TmpPath.h"
 
 /*
   This is actually from sysexits.h

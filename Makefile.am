@@ -613,8 +613,7 @@ provider/libkcsoap.sym: ${top_builddir}/config.status
 noinst_HEADERS += \
 	common/ConsoleTable.h common/ECACL.h common/ECCache.h common/ECConfigImpl.h \
 	common/ECFifoBuffer.h common/ECSerializer.h common/StatsClient.h \
-	common/SymmetricCrypt.h common/TimeUtil.h common/TmpPath.h common/fileutil.h \
-	common/charset/localeutil.h \
+	common/TimeUtil.h common/fileutil.h common/charset/localeutil.h \
 	common/utf8/core.h common/utf8/unchecked.h
 libkcutil_la_SOURCES = \
 	common/ConsoleTable.cpp common/ECABEntryID.cpp \
@@ -627,9 +626,8 @@ libkcutil_la_SOURCES = \
 	common/ECScheduler.cpp common/ECThreadPool.cpp \
 	common/ECUnknown.cpp common/HtmlEntity.cpp common/HtmlToTextParser.cpp \
 	common/IStreamAdapter.cpp common/MAPIErrors.cpp common/SSLUtil.cpp \
-	common/StatsClient.cpp common/SymmetricCrypt.cpp common/TimeUtil.cpp \
-	common/TmpPath.cpp common/UnixUtil.cpp \
-	common/codepage.cpp common/fileutil.cpp common/kcodes.cpp \
+	common/StatsClient.cpp common/TimeUtil.cpp \
+	common/UnixUtil.cpp common/codepage.cpp common/fileutil.cpp \
 	common/my_getopt.cpp common/platform.cpp \
 	common/platform.linux.cpp common/rtfutil.cpp common/stringutil.cpp \
 	common/ustringutil.cpp common/charset/convert.cpp \
