@@ -152,7 +152,7 @@ int main(int argc, char **argv) {
 		{ "running_path", "/var/lib/kopano" },
 		{ "process_model", "thread" },
 		{ "server_bind", "" },
-		{"ical_listen", "*:8080"},
+		{"ical_listen", ""}, /* default in ical_listen() */
 		{"icals_listen", ""},
 		{"ical_port", "8080", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
 		{"ical_enable", "auto", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
@@ -363,6 +363,8 @@ static HRESULT ical_listen(ECConfig *cfg)
 		auto port = cfg->GetSetting("ical_port");
 		if (port[0] != '\0')
 			ical_sock.push_back("["s + addr + "]:" + port);
+	} else if (ical_sock.empty()) {
+		ical_sock.push_back("*:8080");
 	}
 	cvar = cfg->GetSetting("icals_enable");
 	if (!parseBool(cvar)) {
