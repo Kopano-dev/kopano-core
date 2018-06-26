@@ -2747,14 +2747,15 @@ void ignoreError(void *ctx, const char *msg, ...)
 /**
  * Determine character set from a possibly broken Content-Type value.
  * @in:		string in the form of m{^text/foo\s*(;?\s*key=value)*}
+ * @cset:	the default return value if no charset= is to be found
  *
  * Attempt to extract the character set parameter, e.g. from a HTML <meta> tag,
  * or from a Content-Type MIME header (though we do not use it for MIME headers
  * currently).
  */
-static std::string fix_content_type_charset(const char *in)
+static std::string fix_content_type_charset(const char *in, const char *cset)
 {
-	const char *cset = im_charset_unspec, *cset_end = im_charset_unspec;
+	const char *cset_end = cset + strlen(cset);
 
 	while (!isspace(*in) && *in != '\0')	/* skip type */
 		++in;
@@ -2851,7 +2852,7 @@ int VMIMEToMAPI::getCharsetFromHTML(const string &strHTML, vmime::charset *htmlC
 			lpValue = xmlGetProp(lpNode, (const xmlChar*)"content");
 			if (lpValue) {
 				ec_log_debug("HTML4 meta tag found: charset=\"%s\"", lpValue);
-				charset = fix_content_type_charset(reinterpret_cast<const char *>(lpValue));
+				charset = fix_content_type_charset(reinterpret_cast<const char *>(lpValue), "");
 			}
 			break;
 		}

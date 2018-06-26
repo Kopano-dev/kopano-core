@@ -34,7 +34,7 @@ namespace KC {
 /**
  * @brief	Exception class
  */
-class convert_exception : public std::runtime_error {
+class _kc_export_throw convert_exception : public std::runtime_error {
 public:
 	enum exception_type {
 		eUnknownCharset,
