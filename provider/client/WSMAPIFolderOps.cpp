@@ -42,11 +42,10 @@
  * The WSMAPIFolderOps for use with the WebServices transport
  */
 
-WSMAPIFolderOps::WSMAPIFolderOps(KCmdProxy *cmd,
-    std::recursive_mutex &data_lock, ECSESSIONID sid, ULONG cbEntryId,
-    ENTRYID *lpEntryId, WSTransport *lpTransport) :
-	ECUnknown("WSMAPIFolderOps"), lpCmd(cmd), lpDataLock(data_lock),
-	ecSessionId(sid), m_lpTransport(lpTransport)
+WSMAPIFolderOps::WSMAPIFolderOps(ECSESSIONID sid, ULONG cbEntryId,
+    const ENTRYID *lpEntryId, WSTransport *lpTransport) :
+	ECUnknown("WSMAPIFolderOps"), ecSessionId(sid),
+	m_lpTransport(lpTransport)
 {
 	lpTransport->AddSessionReloadCallback(this, Reload, &m_ulSessionReloadCallback);
 	auto ret = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
@@ -61,13 +60,12 @@ WSMAPIFolderOps::~WSMAPIFolderOps()
 	FreeEntryId(&m_sEntryId, false);
 }
 
-HRESULT WSMAPIFolderOps::Create(KCmdProxy *lpCmd,
-    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
-    LPENTRYID lpEntryId, WSTransport *lpTransport,
+HRESULT WSMAPIFolderOps::Create(ECSESSIONID ecSessionId, ULONG cbEntryId,
+    const ENTRYID *lpEntryId, WSTransport *lpTransport,
     WSMAPIFolderOps **lppFolderOps)
 {
-	return alloc_wrap<WSMAPIFolderOps>(lpCmd, lpDataLock, ecSessionId,
-	       cbEntryId, lpEntryId, lpTransport).put(lppFolderOps);
+	return alloc_wrap<WSMAPIFolderOps>(ecSessionId, cbEntryId, lpEntryId,
+	       lpTransport).put(lppFolderOps);
 }
 
 HRESULT WSMAPIFolderOps::QueryInterface(REFIID refiid, void **lppInterface)
@@ -87,8 +85,7 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 	struct xsd__base64Binary sSourceKey;
 	struct createFolderResponse sResponse;
 	entryId*	lpsEntryId = NULL;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpNewEntryId) {
 		hr = CopyMAPIEntryIdToSOAPEntryId(cbNewEntryId, lpNewEntryId, &lpsEntryId);
@@ -106,9 +103,10 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->createFolder(ecSessionId, m_sEntryId, lpsEntryId,
-		    ulFolderType, strFolderName.c_str(), strComment.c_str(),
-		    !!fOpenIfExists, ulSyncId, sSourceKey, &sResponse) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->createFolder(ecSessionId,
+		    m_sEntryId, lpsEntryId, ulFolderType, strFolderName.c_str(),
+		    strComment.c_str(), !!fOpenIfExists, ulSyncId, sSourceKey,
+		    &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -123,8 +121,7 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 	}
 
 exit:
-	UnLockSoap();
-
+	spg.unlock();
 	if(lpsEntryId)
 		FreeEntryId(lpsEntryId, true);
 
@@ -136,8 +133,7 @@ HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId,
 {
 	ECRESULT	er = erSuccess;
 	entryId		sEntryId;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	// Cheap copy entryid
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &sEntryId, true);
@@ -146,14 +142,13 @@ HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->deleteFolder(ecSessionId, sEntryId, ulFlags, ulSyncId, &er) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->deleteFolder(ecSessionId, sEntryId,
+		    ulFlags, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -161,19 +156,17 @@ HRESULT WSMAPIFolderOps::HrEmptyFolder(ULONG ulFlags, ULONG ulSyncId)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->emptyFolder(ecSessionId, m_sEntryId, ulFlags, ulSyncId, &er) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->emptyFolder(ecSessionId,
+		    m_sEntryId, ulFlags, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -182,8 +175,7 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 	HRESULT			hr = hrSuccess;
 	ECRESULT		er = erSuccess;
 	struct entryList sEntryList;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpMsgList) {
 		if(lpMsgList->cValues == 0)
@@ -196,14 +188,15 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->setReadFlags(ecSessionId, ulFlags, &m_sEntryId, lpMsgList != nullptr ? &sEntryList : nullptr, ulSyncId, &er) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->setReadFlags(ecSessionId, ulFlags,
+		    &m_sEntryId, lpMsgList != nullptr ? &sEntryList : nullptr,
+		    ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
-
+	spg.unlock();
 	FreeEntryList(&sEntryList, false);
 
 	return hr;
@@ -216,8 +209,7 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(ENTRYLIST *lpMsgList, SRestriction 
 
 	struct entryList*		lpsEntryList = NULL;
 	struct restrictTable*	lpsRestrict = NULL;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpMsgList) {
 		lpsEntryList = s_alloc<entryList>(nullptr);
@@ -235,7 +227,8 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(ENTRYLIST *lpMsgList, SRestriction 
 	
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableSetSearchCriteria(ecSessionId, m_sEntryId, lpsRestrict, lpsEntryList, ulFlags, &er) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->tableSetSearchCriteria(ecSessionId,
+		    m_sEntryId, lpsRestrict, lpsEntryList, ulFlags, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
@@ -245,8 +238,7 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(ENTRYLIST *lpMsgList, SRestriction 
 		goto exit;
 
 exit:
-	UnLockSoap();
-
+	spg.unlock();
 	if(lpsRestrict)
 		FreeRestrictTable(lpsRestrict);
 
@@ -264,12 +256,12 @@ HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestrict
 	ecmem_ptr<SRestriction> lpRestriction;
 
 	struct tableGetSearchCriteriaResponse sResponse;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->tableGetSearchCriteria(ecSessionId, m_sEntryId, &sResponse) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->tableGetSearchCriteria(ecSessionId,
+		    m_sEntryId, &sResponse) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sResponse.er;
@@ -301,7 +293,6 @@ HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestrict
 		*lpulFlags = sResponse.ulFlags;
 
 exit:
-	UnLockSoap();
 	return hr;
 }
 
@@ -311,8 +302,7 @@ HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom,
 {
 	ECRESULT	er = erSuccess;
 	entryId sEntryFrom, sEntryDest; /* Do not free, cheap copy */
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryFrom, lpEntryFrom, &sEntryFrom, true);
 	if(hr != hrSuccess)
 		goto exit;
@@ -323,26 +313,24 @@ HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->copyFolder(ecSessionId, sEntryFrom, sEntryDest,
+		if (m_lpTransport->m_lpCmd->copyFolder(ecSessionId, sEntryFrom, sEntryDest,
 		    strNewFolderName.c_str(), ulFlags, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
-HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest, LPENTRYID lpEntryDest, ULONG ulFlags, ULONG ulSyncId)
+HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
+    const ENTRYID *lpEntryDest, ULONG ulFlags, ULONG ulSyncId)
 {
 	HRESULT			hr = hrSuccess;
 	ECRESULT		er = erSuccess;
 	struct entryList sEntryList;
 	entryId			sEntryDest;	//Do not free, cheap copy
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpMsgList->cValues == 0)
 		goto exit;
@@ -357,13 +345,14 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest, 
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->copyObjects(ecSessionId, &sEntryList, sEntryDest, ulFlags, ulSyncId, &er) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->copyObjects(ecSessionId,
+		    &sEntryList, sEntryDest, ulFlags, ulSyncId, &er) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
 
 exit:
-	UnLockSoap();
+	spg.unlock();
 	FreeEntryList(&sEntryList, false);
 	
 	return hr;
@@ -377,8 +366,7 @@ HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
 	entryId		sEntryId;	//Do not free, cheap copy
 	
 	struct messageStatus sMessageStatus;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpEntryID == NULL) {
 		hr = MAPI_E_INVALID_ENTRYID;
@@ -391,7 +379,8 @@ HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->getMessageStatus(ecSessionId, sEntryId, ulFlags, &sMessageStatus) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->getMessageStatus(ecSessionId,
+		    sEntryId, ulFlags, &sMessageStatus) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sMessageStatus.er;
@@ -401,8 +390,6 @@ HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
 	*lpulMessageStatus = sMessageStatus.ulMessageStatus;
 
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
@@ -415,8 +402,7 @@ HRESULT WSMAPIFolderOps::HrSetMessageStatus(ULONG cbEntryID,
 	entryId		sEntryId;	//Do not free, cheap copy
 	
 	struct messageStatus sMessageStatus;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if(lpEntryID == NULL)	{
 		hr = MAPI_E_INVALID_ENTRYID;
@@ -429,7 +415,9 @@ HRESULT WSMAPIFolderOps::HrSetMessageStatus(ULONG cbEntryID,
 
 	START_SOAP_CALL
 	{
-		if (lpCmd->setMessageStatus(ecSessionId, sEntryId, ulNewStatus, ulNewStatusMask, ulSyncId, &sMessageStatus) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->setMessageStatus(ecSessionId,
+		    sEntryId, ulNewStatus, ulNewStatusMask, ulSyncId,
+		    &sMessageStatus) != SOAP_OK)
 			er = KCERR_NETWORK_ERROR;
 		else
 			er = sMessageStatus.er;
@@ -439,20 +427,18 @@ HRESULT WSMAPIFolderOps::HrSetMessageStatus(ULONG cbEntryID,
 	if(lpulOldStatus)
 		*lpulOldStatus = sMessageStatus.ulMessageStatus;
 exit:
-	UnLockSoap();
-
 	return hr;
 }
 
-HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue *lppPropPCL, LPSPropValue *lppPropCK)
+HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
+    const ENTRYID *lpEntryID, SPropValue **lppPropPCL, SPropValue **lppPropCK)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	entryId sEntryId;
 	KC::memory_ptr<SPropValue> lpSPropValPCL, lpSPropValCK;
 	getChangeInfoResponse sChangeInfo;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	if (lpEntryID == NULL)	{
 		hr = MAPI_E_INVALID_ENTRYID;
@@ -462,7 +448,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, L
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
 	if(hr != hrSuccess)
 		goto exit;
-	if (lpCmd->getChangeInfo(ecSessionId, sEntryId, &sChangeInfo) != SOAP_OK)
+	if (m_lpTransport->m_lpCmd->getChangeInfo(ecSessionId, sEntryId, &sChangeInfo) != SOAP_OK)
 		er = KCERR_NETWORK_ERROR;
 	else
 		er = sChangeInfo.er;
@@ -497,26 +483,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, L
 	if (lppPropCK != nullptr)
 		*lppPropCK = lpSPropValCK.release();
 exit:
-	UnLockSoap();
 	return hr;
-}
-
-//FIXME: one lock/unlock function
-HRESULT WSMAPIFolderOps::LockSoap()
-{
-	lpDataLock.lock();
-	return erSuccess;
-}
-
-HRESULT WSMAPIFolderOps::UnLockSoap()
-{
-	//Clean up data create with soap_malloc
-	if(lpCmd->soap) {
-		soap_destroy(lpCmd->soap);
-		soap_end(lpCmd->soap);
-	}
-	lpDataLock.unlock();
-	return erSuccess;
 }
 
 HRESULT WSMAPIFolderOps::Reload(void *lpParam, ECSESSIONID sessionid)

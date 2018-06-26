@@ -34,15 +34,13 @@ namespace KC {
 class convert_context;
 }
 
-class KCmdProxy;
-
 class WSMAPIPropStorage _kc_final : public ECUnknown, public IECPropStorage {
 protected:
-	WSMAPIPropStorage(ULONG cbParentEntryId, LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID, ULONG ulFlags, KCmdProxy *, std::recursive_mutex &, ECSESSIONID, unsigned int ulServerCapabilities, WSTransport *);
+	WSMAPIPropStorage(ULONG peid_size, const ENTRYID *parent_eid, ULONG eid_size, const ENTRYID *eid, ULONG flags, ECSESSIONID, unsigned int srv_caps, WSTransport *);
 	virtual ~WSMAPIPropStorage();
 
 public:
-	static HRESULT Create(ULONG cbParentEntryId, LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID, ULONG ulFlags, KCmdProxy * , std::recursive_mutex &, ECSESSIONID, unsigned int ulServerCapabilities, WSTransport *, WSMAPIPropStorage **);
+	static HRESULT Create(ULONG peid_size, const ENTRYID *parent_eid, ULONG eid_size, const ENTRYID *eid, ULONG flags, ECSESSIONID, unsigned int srv_caps, WSTransport *, WSMAPIPropStorage **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	// For ICS
@@ -73,9 +71,6 @@ private:
 	virtual void    DeleteSoapObject(struct saveObject *lpSaveObj);
 	virtual HRESULT HrUpdateMapiObject(MAPIOBJECT *, const struct saveObject *);
 	virtual ECRESULT ECSoapObjectToMapiObject(const struct saveObject *, MAPIOBJECT *);
-	virtual HRESULT LockSoap();
-	virtual HRESULT UnLockSoap();
-
 	static HRESULT Reload(void *lpParam, ECSESSIONID sessionId);
 
 	/* ECParentStorage may access my functions (used to read PR_ATTACH_DATA_BIN chunks through HrLoadProp()) */
@@ -83,8 +78,6 @@ private:
 
 private:
 	entryId m_sEntryId, m_sParentEntryId;
-	KCmdProxy *lpCmd;
-	std::recursive_mutex &lpDataLock;
 	ECSESSIONID		ecSessionId;
 	unsigned int	ulServerCapabilities;
 	ULONG m_ulSyncId = 0, m_ulConnection = 0, m_ulEventMask = 0;

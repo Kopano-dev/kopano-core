@@ -35,18 +35,17 @@ namespace KC {
 class utf8string;
 }
 
-class KCmdProxy;
 class WSTransport;
 
 using namespace KC;
 
 class WSMAPIFolderOps _kc_final : public ECUnknown {
 protected:
-	WSMAPIFolderOps(KCmdProxy *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *);
+	WSMAPIFolderOps(ECSESSIONID, ULONG eid_size, const ENTRYID *, WSTransport *);
 	virtual ~WSMAPIFolderOps();
 
 public:
-	static HRESULT Create(KCmdProxy *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *, WSMAPIFolderOps **);
+	static HRESULT Create(ECSESSIONID, ULONG eid_size, const ENTRYID *, WSTransport *, WSMAPIFolderOps **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	
 	// Creates a folder object with only a PR_DISPLAY_NAME and type
@@ -69,25 +68,20 @@ public:
 	virtual HRESULT HrCopyFolder(ULONG srceid_size, const ENTRYID *srceid, ULONG dsteid_size, const ENTRYID *dsteid, const utf8string &newname, ULONG flags, ULONG sync_id);
 
 	// Move or copy a message
-	virtual HRESULT HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest, LPENTRYID lpEntryDest, ULONG ulFlags, ULONG ulSyncId);
+	virtual HRESULT HrCopyMessage(ENTRYLIST *msglist, ULONG eid_size, const ENTRYID *dest_eid, ULONG flags, ULONG sync_id);
 	
 	// Message status
 	virtual HRESULT HrGetMessageStatus(ULONG eid_size, const ENTRYID *, ULONG flags, ULONG *status);
 	virtual HRESULT HrSetMessageStatus(ULONG eid_size, const ENTRYID *, ULONG new_status, ULONG stmask, ULONG sync_id, ULONG *old_status);
 	
 	// Streaming Support
-	virtual HRESULT HrGetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue *lppPropPCL, LPSPropValue *lppPropCK);
+	virtual HRESULT HrGetChangeInfo(ULONG eid_size, const ENTRYID *, SPropValue **pcl, SPropValue **ck);
 
 	// Reload callback
 	static HRESULT Reload(void *lpParam, ECSESSIONID sessionid);
 
 private:
-	virtual HRESULT LockSoap();
-	virtual HRESULT UnLockSoap();
-
 	entryId			m_sEntryId;		// Entryid of the folder
-	KCmdProxy *lpCmd; // command object
-	std::recursive_mutex &lpDataLock;
 	ECSESSIONID		ecSessionId;	// Id of the session
 	ULONG			m_ulSessionReloadCallback;
 	WSTransport *	m_lpTransport;

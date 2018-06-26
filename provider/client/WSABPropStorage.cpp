@@ -37,11 +37,10 @@
  * This is a PropStorage object for use with the WebServices storage platform
  */
 
-WSABPropStorage::WSABPropStorage(ULONG cbEntryId, LPENTRYID lpEntryId,
-    KCmdProxy *cmd, std::recursive_mutex &data_lock, ECSESSIONID sid,
-    WSTransport *lpTransport) :
-	ECUnknown("WSABPropStorage"), lpCmd(cmd), lpDataLock(data_lock),
-	ecSessionId(sid), m_lpTransport(lpTransport)
+WSABPropStorage::WSABPropStorage(ULONG cbEntryId, const ENTRYID *lpEntryId,
+    ECSESSIONID sid, WSTransport *lpTransport) :
+	ECUnknown("WSABPropStorage"), ecSessionId(sid),
+	m_lpTransport(lpTransport)
 {
 	auto ret = CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
 	if (ret != hrSuccess)
@@ -64,12 +63,12 @@ HRESULT WSABPropStorage::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT WSABPropStorage::Create(ULONG cbEntryId, LPENTRYID lpEntryId,
-    KCmdProxy *lpCmd, std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId,
-    WSTransport *lpTransport, WSABPropStorage **lppPropStorage)
+HRESULT WSABPropStorage::Create(ULONG cbEntryId, const ENTRYID *lpEntryId,
+    ECSESSIONID ecSessionId, WSTransport *lpTransport,
+    WSABPropStorage **lppPropStorage)
 {
-	return alloc_wrap<WSABPropStorage>(cbEntryId, lpEntryId, lpCmd,
-	       lpDataLock, ecSessionId, lpTransport).put(lppPropStorage);
+	return alloc_wrap<WSABPropStorage>(cbEntryId, lpEntryId, ecSessionId,
+	       lpTransport).put(lppPropStorage);
 }
 
 HRESULT WSABPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue)
@@ -91,13 +90,12 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	ecmem_ptr<SPropValue> lpProp;
 	struct readPropsResponse sResponse;
 	convert_context	converter;
-
-	LockSoap();
+	soap_lock_guard spg(*m_lpTransport);
 
 	START_SOAP_CALL
 	{
     	// Read the properties from the server
-		if (lpCmd->readABProps(ecSessionId, m_sEntryId, &sResponse) != SOAP_OK)
+		if (m_lpTransport->m_lpCmd->readABProps(ecSessionId, m_sEntryId, &sResponse) != SOAP_OK)
     		er = KCERR_NETWORK_ERROR;
     	else
     		er = sResponse.er;
@@ -134,27 +132,10 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	*lppsMapiObject = mo;
 
 exit:
-	UnLockSoap();
+	spg.unlock();
 	if (hr != hrSuccess)
 		delete mo;
 	return hr;
-}
-
-HRESULT WSABPropStorage::LockSoap()
-{
-	lpDataLock.lock();
-	return erSuccess;
-}
-
-HRESULT WSABPropStorage::UnLockSoap()
-{
-	// Clean up data create with soap_malloc
-	if(lpCmd->soap) {
-		soap_destroy(lpCmd->soap);
-		soap_end(lpCmd->soap);
-	}
-	lpDataLock.unlock();
-	return erSuccess;
 }
 
 // Called when the session ID has changed
@@ -163,23 +144,22 @@ HRESULT WSABPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
 	return hrSuccess;
 }
 
-WSABTableView::WSABTableView(ULONG type, ULONG flags, KCmdProxy *cmd,
-    std::recursive_mutex &lock, ECSESSIONID sid, ULONG cbEntryId,
-    LPENTRYID lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport) :
-	WSTableView(type, flags, cmd, lock, sid, cbEntryId,
-	    lpEntryId, lpTransport, "WSABTableView")
+WSABTableView::WSABTableView(ULONG type, ULONG flags, ECSESSIONID sid,
+    ULONG cbEntryId, const ENTRYID *lpEntryId, ECABLogon *lpABLogon,
+    WSTransport *lpTransport) :
+	WSTableView(type, flags, sid, cbEntryId, lpEntryId, lpTransport,
+	    "WSABTableView")
 {
 	m_lpProvider = lpABLogon;
 	m_ulTableType = TABLETYPE_AB;
 }
 
-HRESULT WSABTableView::Create(ULONG ulType, ULONG ulFlags, KCmdProxy *lpCmd,
-    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
-    LPENTRYID lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport,
-    WSTableView **lppTableView)
+HRESULT WSABTableView::Create(ULONG ulType, ULONG ulFlags,
+    ECSESSIONID ecSessionId, ULONG cbEntryId, const ENTRYID *lpEntryId,
+    ECABLogon *lpABLogon, WSTransport *lpTransport, WSTableView **lppTableView)
 {
-	return alloc_wrap<WSABTableView>(ulType, ulFlags, lpCmd, lpDataLock,
-	       ecSessionId, cbEntryId, lpEntryId, lpABLogon, lpTransport)
+	return alloc_wrap<WSABTableView>(ulType, ulFlags, ecSessionId,
+	       cbEntryId, lpEntryId, lpABLogon, lpTransport)
 	       .as(IID_ECTableView, lppTableView);
 }
 

@@ -42,6 +42,7 @@
 
 #include <kopano/charset/convstring.h>
 #include "EntryPoint.h"
+#include "soapKCmdProxy.h"
 
 using namespace KC;
 
@@ -796,4 +797,26 @@ BOOL CompareMDBProvider(const BYTE *lpguid, const GUID *lpguidKopano)
 BOOL CompareMDBProvider(const MAPIUID *lpguid, const GUID *lpguidKopano)
 {
 	return memcmp(lpguid, lpguidKopano, sizeof(GUID)) == 0;
+}
+
+soap_lock_guard::soap_lock_guard(WSSoap &p) :
+	m_parent(p), m_dg(p.m_hDataLock)
+{}
+
+void soap_lock_guard::unlock()
+{
+	if (m_done)
+		return;
+	m_done = true;
+	/* Clean up data created with soap_malloc */
+	if (m_parent.m_lpCmd != nullptr && m_parent.m_lpCmd->soap != nullptr) {
+		soap_destroy(m_parent.m_lpCmd->soap);
+		soap_end(m_parent.m_lpCmd->soap);
+	}
+	m_dg.unlock();
+}
+
+soap_lock_guard::~soap_lock_guard()
+{
+	unlock();
 }
