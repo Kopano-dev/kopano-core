@@ -28,7 +28,6 @@
 
 #include <mapicode.h>
 #include <mapidefs.h>
-#include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -86,138 +85,34 @@ HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
 }
 
 /** 
- * align to page boundary (4k)
- * 
- * @param size add "padding" to size to make sure it's a multiple 4096 bytes
- * 
- * @return aligned size
- */
-static inline int mmapsize(unsigned int size)
-{
-	return (((size + 1) >> 12) + 1) << 12;
-}
-
-/** 
- * Load a file, first by trying to use mmap. If that fails, the whole
- * file is loaded in memory.
- * 
- * @param[in] f file to read
- * @param[out] lppBuffer buffer containing the file contents
- * @param[out] lpSize length of the buffer
- * @param[out] lpImmap boolean denoting if the buffer is mapped or not (used when freeing the buffer)
- * 
- * @return MAPI error code
- */
-static HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize,
-    bool *lpImmap)
-{
-	char *lpBuffer = NULL;
-	int offset = 0;
-	long ulBufferSize = BLOCKSIZE;
-	struct stat stat;
-	int fd = fileno(f);
-
-	*lpImmap = false;
-
-	/* Try mmap first */
-	if (fstat(fd, &stat) != 0) {
-		perror("Stat failed");
-		return MAPI_E_CALL_FAILED;
-	}
-
-	/* auto-zero-terminate because mmap zeroes bytes after the file */
-	lpBuffer = (char *)mmap(0, mmapsize(stat.st_size), PROT_READ, MAP_PRIVATE, fd, 0);
-	if (lpBuffer != MAP_FAILED) {
-		*lpImmap = true;
-		*lppBuffer = lpBuffer;
-		*lpSize = stat.st_size;
-		return hrSuccess;
-	}
-
-	/* mmap failed (probably reading from STDIN as a stream), just read the file into memory, and return that */
-	lpBuffer = (char*)malloc(BLOCKSIZE); // will be deleted as soon as possible
-	while (!feof(f)) {
-		long ulReadsize = fread(lpBuffer+offset, 1, BLOCKSIZE, f);
-		if (ferror(f)) {
-			perror("Read error");
-			break;
-		}
-
-		offset += ulReadsize;
-		if (offset + BLOCKSIZE > ulBufferSize) {    // Next read could cross buffer boundary, realloc
-			auto lpRealloc = static_cast<char *>(realloc(lpBuffer, offset + BLOCKSIZE));
-			if (lpRealloc == NULL) {
-				free(lpBuffer);
-				return MAPI_E_NOT_ENOUGH_MEMORY;
-			}
-			lpBuffer = lpRealloc;
-			ulBufferSize += BLOCKSIZE;
-		}
-	}
-
-	/* Nothing was read */
-    if (offset == 0) {
-		free(lpBuffer);
-		*lppBuffer = NULL;
-		*lpSize = 0;
-		return hrSuccess;
-	}
-	/* Add terminate character */
-	lpBuffer[offset] = 0;
-	*lppBuffer = lpBuffer;
-	*lpSize = offset;
-	return hrSuccess;
-}
-
-/** 
- * Free a buffer from HrMapFileToBuffer
- * 
- * @param[in] lpBuffer buffer to free
- * @param[in] ulSize size of the buffer
- * @param[in] bImmap marker if the buffer is mapped or not
- */
-static HRESULT HrUnmapFileBuffer(char *lpBuffer, int ulSize, bool bImmap)
-{
-	if (bImmap)
-		munmap(lpBuffer, mmapsize(ulSize));
-	else
-		free(lpBuffer);
-	return hrSuccess;
-}
-
-/** 
- * Reads a file into a std::string using file mapping if possible.
+ * Reads a file into a std::string
  *
- * @todo doesn't the std::string undermine the whole idea of mapping?
- * @todo std::string has a length method, so what's with the lpSize parameter?
- * 
  * @param[in] f file to read in memory
- * @param[out] lpstrBuffer string containing the file contents, optionally returned (why?)
- * @param[out] lpSize size of the buffer, optionally returned
+ * @param[out] lpstrBuffer string containing the file contents
  * 
  * @return 
  */
-HRESULT HrMapFileToString(FILE *f, std::string *lpstrBuffer, int *lpSize)
+HRESULT HrMapFileToString(FILE *f, std::string *lpstrBuffer)
 {
-	HRESULT hr = hrSuccess;
-	char *lpBuffer = NULL;
-	int ulBufferSize = 0;
-	bool immap = false;
-
-	hr = HrMapFileToBuffer(f, &lpBuffer, &ulBufferSize, &immap); // what if message was half read?
-	if (hr != hrSuccess || !lpBuffer)
-		goto exit;
-
-	if (lpstrBuffer)
-		*lpstrBuffer = std::string(lpBuffer, ulBufferSize);
-	if (lpSize)
-		*lpSize = ulBufferSize;
-
-exit:
-	if (lpBuffer)
-		HrUnmapFileBuffer(lpBuffer, ulBufferSize, immap);
-
-	return hr;
+	struct stat sb;
+	if (fstat(fileno(f), &sb) != 0)
+		return MAPI_E_CALL_FAILED;
+	lpstrBuffer->clear();
+	char buf[BLOCKSIZE];
+	while (!feof(f)) {
+		auto rd = fread(buf, 1, sizeof(buf), f);
+		if (ferror(f)) {
+			perror("MapFileToString/fread");
+			return MAPI_E_CORRUPT_DATA;
+		}
+		try {
+			lpstrBuffer->append(buf, rd);
+		} catch (const std::bad_alloc &) {
+			perror("malloc");
+			return MAPI_E_NOT_ENOUGH_MEMORY;
+		}
+	}
+	return hrSuccess;
 }
 
 /**
