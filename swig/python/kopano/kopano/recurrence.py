@@ -1168,7 +1168,7 @@ class Occurrence(object):
             message = self.item.recurrence._exception_message(basedate)
             message.store = self.store
             message.to = self.item.to # TODO
-            message.send(copy_to_sentmail, cancel)
+            message.send(copy_to_sentmail, cancel, _basedate=basedate, cal_item=self.item)
         else:
             self.item.send(copy_to_sentmail, cancel)
 

@@ -774,7 +774,7 @@ class Item(Properties, Contact, Appointment):
 
         return item
 
-    def send(self, copy_to_sentmail=True, cancel=False):
+    def send(self, copy_to_sentmail=True, cancel=False, _basedate=None, cal_item=None):
         item = self
         if self.message_class in (
             'IPM.Appointment',
@@ -784,7 +784,7 @@ class Item(Properties, Contact, Appointment):
                 self.get(PidLidAppointmentEndWhole) is None):
                 raise Error('appointment requires start and end date')
 
-            item = _create_meetingrequest(self, cancel=cancel)
+            item = _create_meetingrequest(cal_item or self, self, cancel=cancel, basedate=_basedate)
 
         icon_index = {
             b'66': 261,  # reply

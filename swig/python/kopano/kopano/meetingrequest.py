@@ -212,7 +212,7 @@ def _generate_goid():
         goid += struct.pack('B', random.getrandbits(8))
     return goid
 
-def _create_meetingrequest(item, cancel=False):
+def _create_meetingrequest(cal_item, item, cancel=False, basedate=None):
     # TODO Update the calendar item, for tracking status
     # TODO Set the body of the message like WebApp / OL does.
     # TODO Whitelist properties?
@@ -226,15 +226,19 @@ def _create_meetingrequest(item, cancel=False):
         stateflags |= ASF_CANCELED
     item2[PidLidAppointmentStateFlags] = stateflags
 
-    goid = item.get(PidLidCleanGlobalObjectId)
+    goid = cal_item.get(PidLidCleanGlobalObjectId)
     if goid is None:
-        goid = _generate_goid()
+        cleangoid = _generate_goid()
 
-        item2.create_prop(PidLidCleanGlobalObjectId, goid, PT_BINARY)
-        item2.create_prop(PidLidGlobalObjectId, goid, PT_BINARY) # TODO add basedate
+        if basedate:
+            datefield = struct.pack('>H2B', basedate.year, basedate.month, basedate.day)
+            goid = cleangoid[:16] + datefield + cleangoid[20:]
+            item2[PidLidGlobalObjectId] = goid
+
+        item2[PidLidCleanGlobalObjectId] = cleangoid
 
         # update appointment
-        item[PidLidCleanGlobalObjectId] = goid
+        cal_item[PidLidCleanGlobalObjectId] = cleangoid
 
     return item2
 
