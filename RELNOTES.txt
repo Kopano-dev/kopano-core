@@ -1,3 +1,16 @@
+8.6.3
+=====
+Fixes:
+* ical: hopefully cure uncaught exception on OpenBSD
+* ical: handle double quotes in Content-Type header [KC-1198]
+Enhancements:
+* client: now emits warnings about own incomplete PR_RULES_DATA processing
+* inetmapi: now emits a warning when runtime vmime is too old [KC-1124]
+* server: fewer stat calls to the attachment backend [KC-1192]
+Changes:
+* dagent: default for log_timestamp changed to "yes" [KC-1152]
+
+
 8.6.2 (2018-06-07)
 ==================
 Includes changes until including 8.5.z.
