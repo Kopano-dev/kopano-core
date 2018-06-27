@@ -145,6 +145,17 @@ HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore,
 		dopt.ascii_upgrade = "us-ascii";
 	}
 	InitializeVMime();
+
+	static bool vmime_once;
+	if (!vmime_once) {
+		vmime_once = true;
+		vmime::mailbox mbox;
+		mbox.parse("=?UTF-8?Q?a=c2=a0b_=28c@d.e=29?= <f@g.h>");
+		if (*mbox.getName().getWholeBuffer().c_str() == '\0')
+			ec_log_notice("Detected old libvmime (< 0.9.2.42). "
+			"Consider having it upgraded to be able to parse more broken mails (KC-1124).");
+	}
+
 	// fill mapi object from buffer
 	return VMIMEToMAPI(lpAddrBook, dopt).convertVMIMEToMAPI(input, lpMessage);
 }

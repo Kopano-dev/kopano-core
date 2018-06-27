@@ -1116,7 +1116,7 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 {
 	ECRESULT er = erSuccess;
 	unsigned char *lpData = NULL;
-	bool bCompressed = false;
+	bool bCompressed = m_bFileCompression;
 	gzFile gzfp = NULL;
 
 	*lpiSize = 0;
@@ -1127,8 +1127,8 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 		ec_log_err("K-1561: cannot open attachment \"%s\": %s", filename.c_str(), strerror(errno));
 		return KCERR_NO_ACCESS;
 	} else if (fd < 0) {
-		/* Not found, try gzip */
-		bCompressed = true;
+		/* Switch between compressed↔uncompressed, and try again. */
+		bCompressed = !bCompressed;
 		filename = CreateAttachmentFilename(ulInstanceId, bCompressed);
 		fd = open(filename.c_str(), O_RDONLY);
 		if (fd < 0) {
@@ -1137,15 +1137,8 @@ ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
 		}
 	}
 	my_readahead(fd);
-
-	/*
-	 * CreateAttachmentFilename Already checked if we are working with a compressed or uncompressed file,
-	 * no need to perform retries when our first guess (which is based on CreateAttachmentFilename) fails.
-	 */
 	if (bCompressed) {
 		unsigned char *temp = NULL;
-
-		/* Compressed attachment */
 		gzfp = gzdopen(fd, "rb");
 		if (!gzfp) {
 			// do not use KCERR_NOT_FOUND: the file is already open so it exists

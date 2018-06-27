@@ -85,7 +85,7 @@ else: # pragma: no cover
         return isinstance(s, (str, unicode))
 
     def pickle_load(f):
-        return pickle.loads(f)
+        return pickle.load(f)
 
     def pickle_loads(s):
         return pickle.loads(s)

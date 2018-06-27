@@ -63,7 +63,7 @@ noinst_PROGRAMS = kopano-cfgchecker
 if HAVE_TIDY
 noinst_PROGRAMS += rosie-test
 endif
-pkglibexec_PROGRAMS = mapitime
+pkglibexec_PROGRAMS = kscriptrun mapitime
 
 
 #
@@ -752,6 +752,7 @@ dist_phpdata_DATA = \
 #
 # test programs
 #
+kscriptrun_SOURCES = ECtools/scriptrun.cpp
 mapitime_SOURCES = ECtools/mapitime.cpp
 mapitime_LDADD = ${clock_LIBS} libmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}

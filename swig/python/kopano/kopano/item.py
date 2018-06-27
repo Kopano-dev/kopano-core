@@ -146,7 +146,8 @@ class PersistentList(list):
         @functools.wraps(func)
         def _func(*args, **kwargs):
             ret = func(*args, **kwargs)
-            self.mapiobj.SetProps([SPropValue(self.proptag, self)])
+            data = [_unicode(x) for x in self]
+            self.mapiobj.SetProps([SPropValue(self.proptag, data)])
             self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
             return ret
         return _func
@@ -449,7 +450,8 @@ class Item(Properties, Contact, Appointment):
     def categories(self, value):
         proptag = self.mapiobj.GetIDsFromNames([NAMED_PROP_CATEGORY], MAPI_CREATE)[0]
         proptag = CHANGE_PROP_TYPE(proptag, PT_MV_UNICODE)
-        self.mapiobj.SetProps([SPropValue(proptag, list(value))])
+        data = [_unicode(x) for x in value]
+        self.mapiobj.SetProps([SPropValue(proptag, data)])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
@@ -1056,7 +1058,7 @@ class Item(Properties, Contact, Appointment):
             self.mapiobj.ModifyRecipients(MODRECIP_REMOVE, rows)
 
         if _is_str(addrs):
-            addrs = _unicode(addrs).split(';')
+            addrs = [x.strip() for x in _unicode(addrs).split(';')]
         elif isinstance(addrs, _user.User):
             addrs = [addrs]
         names = []
