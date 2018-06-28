@@ -56,6 +56,8 @@ from .defs import (
 
 LOCAL = dateutil.tz.tzlocal()
 
+from .attendee import Attendee
+
 if sys.hexversion >= 0x03000000:
     try:
         from . import utils as _utils
@@ -1162,6 +1164,20 @@ class Occurrence(object):
         # /events, so we need an identier which can be used for both.
         return self._entryid(True)
 
+    def attendees(self):
+        if self.item.recurring:
+            rec = self.item.recurrence
+            basedate = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
+            basedate = basedate.replace(hour=0, minute=0)
+            message = rec._exception_message(basedate)
+            if message:
+                for row in message.table(PR_MESSAGE_RECIPIENTS):
+                    yield Attendee(self.item.server, row)
+                return
+
+        for attendee in self.item.attendees():
+            yield attendee
+
     def send(self, copy_to_sentmail=True, cancel=False):
         if self.item.recurring:
             basedate = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
@@ -1172,7 +1188,7 @@ class Occurrence(object):
         else:
             self.item.send(copy_to_sentmail, cancel)
 
-    def __getattr__(self, x):
+    def __getattr__(self, x): # TODO get from exception message by default? eg subject, attendees..
         return getattr(self.item, x)
 
     def __unicode__(self):
