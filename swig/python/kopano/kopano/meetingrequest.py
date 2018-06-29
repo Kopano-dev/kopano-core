@@ -84,10 +84,10 @@ from .pidlid import (
     PidLidAppointmentReplyTime, PidLidRecurring, PidLidIntendedBusyStatus,
     PidLidExceptionReplaceTime, PidLidFInvited, PidLidAppointmentReplyName,
     PidLidRecurrencePattern, PidLidTimeZoneStruct, PidLidTimeZoneDescription,
-    PidLidClipStart, PidLidClipEnd, PidLidToAttendeesString,
-    PidLidCcAttendeesString, PidLidAppointmentProposedStartWhole,
-    PidLidAppointmentProposedEndWhole, PidLidAppointmentProposedDuration,
-    PidLidAppointmentCounterProposal, PidLidSendAsIcal,
+    PidLidToAttendeesString, PidLidCcAttendeesString,
+    PidLidAppointmentProposedStartWhole, PidLidAppointmentProposedEndWhole,
+    PidLidAppointmentProposedDuration, PidLidAppointmentCounterProposal,
+    PidLidSendAsIcal,
 )
 
 # all of the above # TODO redundant
@@ -106,10 +106,10 @@ PROPTAGS = [
     PidLidAppointmentReplyTime, PidLidRecurring, PidLidIntendedBusyStatus,
     PidLidExceptionReplaceTime, PidLidFInvited, PidLidAppointmentReplyName,
     PidLidRecurrencePattern, PidLidTimeZoneStruct, PidLidTimeZoneDescription,
-    PidLidClipStart, PidLidClipEnd, PidLidToAttendeesString,
-    PidLidCcAttendeesString, PidLidAppointmentProposedStartWhole,
-    PidLidAppointmentProposedEndWhole, PidLidAppointmentProposedDuration,
-    PidLidAppointmentCounterProposal, PidLidSendAsIcal,
+    PidLidToAttendeesString, PidLidCcAttendeesString,
+    PidLidAppointmentProposedStartWhole, PidLidAppointmentProposedEndWhole,
+    PidLidAppointmentProposedDuration, PidLidAppointmentCounterProposal,
+    PidLidSendAsIcal,
 ]
 
 RECIP_PROPS = [

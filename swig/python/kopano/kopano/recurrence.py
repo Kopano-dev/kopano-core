@@ -80,8 +80,8 @@ from .pidlid import (
     PidLidResponseStatus, PidLidTimeZoneStruct, PidLidAppointmentRecur,
     PidLidLocation, PidLidAppointmentSubType, PidLidAppointmentColor,
     PidLidIntendedBusyStatus, PidLidAppointmentStartWhole,
-    PidLidAppointmentEndWhole,
-    PidLidIsRecurring
+    PidLidAppointmentEndWhole, PidLidIsRecurring, PidLidClipStart,
+    PidLidClipEnd,
 )
 
 FREQ_DAY = 0x200A
@@ -664,6 +664,8 @@ class Recurrence(object):
     def start(self, value):
         self._start_date = _utils.unixtime_to_rectime(calendar.timegm(value.timetuple()))
 
+        self.item[PidLidClipStart] = self.start
+
     @property
     def end(self):
         """ End of recurrence range (within recurrence timezone) """
@@ -672,6 +674,8 @@ class Recurrence(object):
     @end.setter
     def end(self, value):
         self._end_date = _utils.unixtime_to_rectime(calendar.timegm(value.timetuple()))
+
+        self.item[PidLidClipEnd] = self.end
 
     # TODO functionality below here should be refactored or not visible
 
