@@ -7,6 +7,7 @@
 #include <new>
 #include <kopano/platform.h>
 #include <kopano/ECRestriction.h>
+#include <kopano/hl.hpp>
 #include <kopano/memory.hpp>
 #include "ICalToMAPI.h"
 #include "vconverter.h"
@@ -561,7 +562,7 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 HRESULT ICalToMapiImpl::SaveAttendeesString(const std::list<icalrecip> *lplstRecip, LPMESSAGE lpMessage)
 {
 	std::wstring strAllAttendees, strToAttendees, strCCAttendees;
-	SPropValue lpsPropValue[3];
+	KPropbuffer<3> pv;
 
 	// Create attendees string
 	for (const auto &recip : *lplstRecip) {
@@ -581,13 +582,10 @@ HRESULT ICalToMapiImpl::SaveAttendeesString(const std::list<icalrecip> *lplstRec
 		strAllAttendees += recip.strName;
 	}
 
-	lpsPropValue[0].ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TOATTENDEESSTRING], PT_UNICODE);
-	lpsPropValue[0].Value.lpszW = (WCHAR*)strToAttendees.c_str();
-	lpsPropValue[1].ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CCATTENDEESSTRING], PT_UNICODE);
-	lpsPropValue[1].Value.lpszW = (WCHAR*)strCCAttendees.c_str();
-	lpsPropValue[2].ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLATTENDEESSTRING], PT_UNICODE);
-	lpsPropValue[2].Value.lpszW = (WCHAR*)strAllAttendees.c_str();
-	return lpMessage->SetProps(3, lpsPropValue, nullptr);
+	pv.set(0, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TOATTENDEESSTRING], PT_UNICODE), std::move(strToAttendees));
+	pv.set(1, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CCATTENDEESSTRING], PT_UNICODE), std::move(strCCAttendees));
+	pv.set(2, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLATTENDEESSTRING], PT_UNICODE), std::move(strAllAttendees));
+	return lpMessage->SetProps(3, pv.get(), nullptr);
 }
 
 } /* namespace */

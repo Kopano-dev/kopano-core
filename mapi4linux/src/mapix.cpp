@@ -1413,7 +1413,6 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
     IUnknown **lppUnk)
 {
 	std::wstring name, type, email;
-	SPropValue sProps[5];
 
 	if ((lpInterface == NULL || *lpInterface == IID_IMailUser || *lpInterface == IID_IMAPIProp || *lpInterface == IID_IUnknown) && lpEntryID != NULL) {
 		auto hr = ECParseOneOff(lpEntryID, cbEntryID, name, type, email);
@@ -1424,15 +1423,10 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 				return MAPI_E_NOT_ENOUGH_MEMORY;
 			lpMailUser->AddRef();
 
-			sProps[0].ulPropTag = PR_DISPLAY_NAME_W;
-			sProps[0].Value.lpszW = (WCHAR*)name.c_str();
-
-			sProps[1].ulPropTag = PR_ADDRTYPE_W;
-			sProps[1].Value.lpszW = (WCHAR*)type.c_str();
-
-			sProps[2].ulPropTag = PR_EMAIL_ADDRESS_W;
-			sProps[2].Value.lpszW = (WCHAR*)email.c_str();
-
+			KPropbuffer<5> sProps;
+			sProps.set(0, PR_DISPLAY_NAME_W, std::move(name));
+			sProps.set(1, PR_ADDRTYPE_W, std::move(type));
+			sProps.set(2, PR_EMAIL_ADDRESS_W, std::move(email));
 			sProps[3].ulPropTag = PR_ENTRYID;
 			sProps[3].Value.bin.cb = cbEntryID;
 			sProps[3].Value.bin.lpb = (BYTE *)lpEntryID;
@@ -1442,8 +1436,7 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 			// also missing, but still not important:
 			// PR_ENTRYID, PR_RECORD_KEY, PR_SEARCH_KEY, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO
-
-			lpMailUser->SetProps(5, sProps, NULL);
+			lpMailUser->SetProps(5, sProps.get(), nullptr);
 			if (lpInterface == nullptr || *lpInterface == IID_IMailUser)
 				*lppUnk = reinterpret_cast<IUnknown *>(static_cast<IMailUser *>(lpMailUser));
 			else if (*lpInterface == IID_IMAPIProp)
