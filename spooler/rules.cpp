@@ -1028,7 +1028,6 @@ static struct actresult proc_op_act(IMAPISession *ses, IMsgStore *store,
 			return {ROP_MOVED};
 		return ret;
 	}
-	/* May become DAMs, may become normal rules (OL2003) */
 	case OP_REPLY:
 	case OP_OOF_REPLY:
 		return proc_op_reply(ses, store, inbox, action, rule, sc, msg);
@@ -1053,15 +1052,12 @@ static struct actresult proc_op_act(IMAPISession *ses, IMsgStore *store,
 	case OP_DELEGATE:
 		return proc_op_delegate(abk, store, action, rule, sc, msg);
 
-	/* will become a DAM atm, so I won't even bother implementing these ... */
 	case OP_DEFER_ACTION:
 		sc->countInc("rules", "defer");
-		/* DAM crud, but outlook doesn't check these messages... yet */
 		ec_log_warn("Rule \"%s\": DEFER client actions are currently unsupported", rule.c_str());
 		break;
 	case OP_TAG:
 		sc->countInc("rules", "tag");
-		/* sure. WHEN YOU STOP WITH THE FRIGGIN' DEFER ACTION MESSAGES!! */
 		ec_log_warn("Rule \"%s\": TAG actions are currently unsupported", rule.c_str());
 		break;
 	case OP_DELETE:
