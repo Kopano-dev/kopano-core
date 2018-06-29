@@ -233,17 +233,17 @@ class Recurrence(object):
         if self._end_type == 0x2021:
             return 'end_date'
         elif self._end_type == 0x2022:
-            return 'occurrence_count'
+            return 'count'
         elif self._end_type in (0x2023, 0xFFFFFFFF):
-            return 'no_end'
+            return 'forever'
 
     @range_type.setter
     def range_type(self, value):
         if value == 'end_date':
             self._end_type = 0x2021
-        elif value == 'occurrence_count':
+        elif value == 'count':
             self._end_type = 0x2022
-        elif value == 'no_end':
+        elif value == 'forever':
             self._end_type = 0x2023
         else:
             raise ArgumentError('invalid recurrence range type: %s' % value)

@@ -30,8 +30,8 @@ pattern_map_rev = dict((b,a) for (a,b) in pattern_map.items())
 
 range_end_map = {
     'end_date': 'endDate',
-    'occurrence_count': 'numberOfOccurrences',
-    'no_end': 'noEnd',
+    'forever': 'noEnd',
+    'count': 'numbered',
 }
 range_end_map_rev = dict((b,a) for (a,b) in range_end_map.items())
 
