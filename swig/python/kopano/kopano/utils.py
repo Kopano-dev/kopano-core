@@ -182,6 +182,8 @@ def _get_timezone(date, tz_data, align_dst=False):
         return 0
 
     timezone, _, timezonedst, _, dstendmonth, dstendweek, dstendhour, _, _, _, dststartmonth, dststartweek, dststarthour, _, _ = struct.unpack('<lllllHHllHlHHlH', tz_data)
+    if dststartmonth == 0:
+        return timezone
 
     dst = _in_dst(date, dststartmonth, dststartweek, dststarthour, dstendmonth, dstendweek, dstendhour)
 
