@@ -1186,9 +1186,12 @@ class Occurrence(object):
         if self.item.recurring:
             basedate = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
             message = self.item.recurrence._exception_message(basedate)
-            message.store = self.store
-            message.to = self.item.to # TODO
-            message.send(copy_to_sentmail, cancel, _basedate=basedate, cal_item=self.item)
+            if message:
+                message.store = self.store
+                message.to = self.item.to # TODO
+                message.send(copy_to_sentmail, cancel, _basedate=basedate, cal_item=self.item)
+            else:
+                self.item.send(copy_to_sentmail, cancel, _basedate=basedate, cal_item=self.item)
         else:
             self.item.send(copy_to_sentmail, cancel)
 

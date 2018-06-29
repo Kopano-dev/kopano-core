@@ -776,6 +776,7 @@ class Item(Properties, Contact, Appointment):
 
         return item
 
+    # TODO too many cases overlapping here
     def send(self, copy_to_sentmail=True, cancel=False, _basedate=None, cal_item=None):
         item = self
         appt = None

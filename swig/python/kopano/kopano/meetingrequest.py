@@ -33,7 +33,7 @@ from MAPI.Tags import (
     PR_SENT_REPRESENTING_SEARCH_KEY, PR_ACCOUNT_W, PR_DISPLAY_TYPE_EX,
     PR_SUBJECT_W, PR_MESSAGE_FLAGS, PR_RESPONSE_REQUESTED,
     recipSendable, recipOrganizer, recipOriginal, respTentative, respAccepted,
-    respDeclined,
+    respDeclined, PR_START_DATE, PR_END_DATE,
 )
 
 from MAPI.Defs import (
@@ -219,26 +219,42 @@ def _create_meetingrequest(cal_item, item, cancel=False, basedate=None):
 
     item2 = item.copy(item.store.outbox)
 
-    # Set meeting request props
-    item2.message_class = 'IPM.Schedule.Meeting.Request'
+    # set meeting request props
+    if cancel:
+        item2.message_class = 'IPM.Schedule.Meeting.Canceled'
+    else:
+        item2.message_class = 'IPM.Schedule.Meeting.Request'
+
     stateflags = ASF_MEETING | ASF_RECEIVED
     if cancel:
         stateflags |= ASF_CANCELED
+        item2.subject = u'Canceled: '+item2.subject
     item2[PidLidAppointmentStateFlags] = stateflags
 
-    goid = cal_item.get(PidLidCleanGlobalObjectId)
-    if goid is None:
+    # create appointment goid if not there
+    cleangoid = cal_item.get(PidLidCleanGlobalObjectId)
+    if cleangoid is None:
         cleangoid = _generate_goid()
-
-        if basedate:
-            datefield = struct.pack('>H2B', basedate.year, basedate.month, basedate.day)
-            goid = cleangoid[:16] + datefield + cleangoid[20:]
-            item2[PidLidGlobalObjectId] = goid
-
-        item2[PidLidCleanGlobalObjectId] = cleangoid
-
-        # update appointment
         cal_item[PidLidCleanGlobalObjectId] = cleangoid
+
+    # set item goids
+    item2[PidLidCleanGlobalObjectId] = cleangoid
+    if basedate:
+        datefield = struct.pack('>H2B', basedate.year, basedate.month, basedate.day)
+        goid = cleangoid[:16] + datefield + cleangoid[20:]
+
+        item2[PidLidGlobalObjectId] = goid
+        item2[PidLidRecurring] = False
+
+        # update for non-exception TODO don't overwrite if exception
+        if cancel:
+            item2[PidLidAppointmentStartWhole] = basedate
+            item2[PidLidAppointmentEndWhole] = basedate + (cal_item.end - cal_item.start)
+
+            item2[PR_START_DATE] = basedate
+            item2[PR_END_DATE] = basedate + (cal_item.end - cal_item.start)
+
+            item2[PidLidExceptionReplaceTime] = datetime.datetime(basedate.year, basedate.month, basedate.day)
 
     return item2
 
@@ -501,7 +517,6 @@ class MeetingRequest(object):
 
         :param delete: delete appointment from calendar
         """
-
         if not self.is_cancellation:
             raise Error('item is not a meeting request cancellation')
 
