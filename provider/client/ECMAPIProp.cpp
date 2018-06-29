@@ -675,7 +675,6 @@ HRESULT ECMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames
 HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 {
 	auto lpStreamData = static_cast<STREAMDATA *>(lpData);
-	char *buffer = NULL;
 	ecmem_ptr<SPropValue> lpPropValue;
 	STATSTG sStat;
 	ULONG ulSize = 0;
@@ -689,13 +688,17 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 		return hr;
 
 	if(PROP_TYPE(lpStreamData->ulPropTag) == PT_STRING8) {
+		char *buffer = nullptr;
 		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart+1, lpPropValue, (void **)&buffer);
 	
 		if(hr != hrSuccess)
 			return hr;
 		// read the data into the buffer
 		hr = lpStream->Read(buffer, (ULONG)sStat.cbSize.QuadPart, &ulSize);
+		buffer[ulSize] = '\0';
+		lpPropValue->Value.lpszA = buffer;
 	} else if(PROP_TYPE(lpStreamData->ulPropTag) == PT_UNICODE) {
+		wchar_t *buffer = nullptr;
 		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart+sizeof(WCHAR), lpPropValue, (void **)&buffer);
 	
 		if(hr != hrSuccess)
@@ -703,32 +706,18 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 		// read the data into the buffer
 		hr = lpStream->Read(buffer, (ULONG)sStat.cbSize.QuadPart, &ulSize);
 		/* no point in dealing with an incomplete multibyte sequence */
-		ulSize = ulSize / sizeof(wchar_t) * sizeof(wchar_t);
+		ulSize = ulSize / sizeof(wchar_t);
+		buffer[ulSize] = '\0';
+		lpPropValue->Value.lpszW = buffer;
 	} else{
 		hr = lpStream->QueryInterface(IID_ECMemStream, &~lpECStream);
 		if(hr != hrSuccess)
 			return hr;
-		ulSize = (ULONG)sStat.cbSize.QuadPart;
-		buffer = lpECStream->GetBuffer();
+		lpPropValue->Value.bin.cb = static_cast<unsigned int>(sStat.cbSize.QuadPart);
+		lpPropValue->Value.bin.lpb = reinterpret_cast<unsigned char *>(lpECStream->GetBuffer());
 	}
 
 	lpPropValue->ulPropTag = lpStreamData->ulPropTag;
-
-	switch(PROP_TYPE(lpStreamData->ulPropTag)) {
-	case PT_STRING8:
-		buffer[ulSize] = 0;
-		lpPropValue->Value.lpszA = buffer;
-		break;
-	case PT_UNICODE:
-		memset(&buffer[ulSize], 0, sizeof(wchar_t));
-		lpPropValue->Value.lpszW = (WCHAR *)buffer;
-		break;
-	case PT_BINARY:
-		lpPropValue->Value.bin.cb = ulSize;
-		lpPropValue->Value.bin.lpb = (unsigned char *)buffer;
-		break;
-	}
-
 	hr = lpStreamData->lpProp->HrSetRealProp(lpPropValue);
 	if (hr != hrSuccess)
 		return hr;

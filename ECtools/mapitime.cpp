@@ -318,7 +318,7 @@ static int mpt_main_malloc(void)
 			return EXIT_FAILURE;
 		for (unsigned int i = 0; i < 10000; ++i) {
 			void *x = nullptr;
-			ret = MAPIAllocateMore(sizeof(MAPIUID), base, &x);
+			ret = MAPIAllocateMore(sizeof(MAPIUID), base.get(), &x);
 			if (ret != hrSuccess)
 				return EXIT_FAILURE;
 		}

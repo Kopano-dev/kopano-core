@@ -1595,7 +1595,7 @@ ECRESULT CopySearchCriteria(struct soap *soap,
 	auto lpDst = s_alloc<searchCriteria>(nullptr);
 	memset(lpDst, '\0', sizeof(*lpDst));
 	if(lpSrc->lpRestrict) {
-		auto er = CopyRestrictTable(soap, lpSrc->lpRestrict, &lpDst->lpRestrict);
+		er = CopyRestrictTable(soap, lpSrc->lpRestrict, &lpDst->lpRestrict);
 		if (er != erSuccess)
 			goto exit;
     } else {
@@ -1603,7 +1603,7 @@ ECRESULT CopySearchCriteria(struct soap *soap,
     }
 
 	if(lpSrc->lpFolders) {
-		auto er = CopyEntryList(soap, lpSrc->lpFolders, &lpDst->lpFolders);
+		er = CopyEntryList(soap, lpSrc->lpFolders, &lpDst->lpFolders);
 		if (er != erSuccess)
 			goto exit;
     } else {

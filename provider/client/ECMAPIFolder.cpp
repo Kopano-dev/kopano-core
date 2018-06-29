@@ -242,7 +242,9 @@ HRESULT ECMAPIFolder::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterf
 		auto hr = HrGetOneProp(this, PR_SOURCE_KEY, &~ptrSK);
 		if(hr != hrSuccess)
 			return hr;
-		HrGetOneProp(this, PR_DISPLAY_NAME_W, &~ptrDisplay); // ignore error
+		hr = HrGetOneProp(this, PR_DISPLAY_NAME_W, &~ptrDisplay);
+		if (hr != hrSuccess)
+			/* ignore error */;
 		return ECExchangeExportChanges::Create(GetMsgStore(), *lpiid,
 		     std::string(reinterpret_cast<const char *>(ptrSK->Value.bin.lpb), ptrSK->Value.bin.cb),
 		     ptrDisplay == nullptr ? L"" : ptrDisplay->Value.lpszW,
