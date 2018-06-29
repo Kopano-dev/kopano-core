@@ -1470,21 +1470,20 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		lpCont->SetProps(1, &sPropObjectType, NULL);
 
 		*lpulObjType = MAPI_ABCONT;
+		return hrSuccess;
 	} else if (lpEntryID == nullptr) {
 		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 	} else if (cbEntryID < 4 + sizeof(MAPIUID)) {
 		return MAPI_E_UNKNOWN_ENTRYID;
-	} else {
-		std::list<abEntry>::const_iterator i;
-		auto hr = MAPI_E_UNKNOWN_ENTRYID;
-		for (i = m_lABProviders.cbegin(); i != m_lABProviders.cend(); ++i)
-			if (memcmp((BYTE*)lpEntryID +4, &i->muid, sizeof(MAPIUID)) == 0)
-				break;
-		if (i != m_lABProviders.cend())
-			hr = i->lpABLogon->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-		return hr;
 	}
-	return hrSuccess;
+	std::list<abEntry>::const_iterator i;
+	auto hr = MAPI_E_UNKNOWN_ENTRYID;
+	for (i = m_lABProviders.cbegin(); i != m_lABProviders.cend(); ++i)
+		if (memcmp((BYTE*)lpEntryID +4, &i->muid, sizeof(MAPIUID)) == 0)
+			break;
+	if (i != m_lABProviders.cend())
+		hr = i->lpABLogon->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
+	return hr;
 }
 
 /** 
