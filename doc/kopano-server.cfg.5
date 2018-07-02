@@ -388,6 +388,12 @@ to disable compression completely. The maximum compression level is
 .PP
 Default:
 \fI6\fR
+.SS attachment_files_fsync
+.PP
+When storing new attachments, this directive controls whether fsync(2) is
+to be called after the data has been placed into the file.
+.PP
+Default: \fIyes\fP
 .SH "EXPLANATION OF THE SSL SETTINGS PARAMETERS"
 .SS server_listen_tls
 .PP
