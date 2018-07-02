@@ -150,7 +150,7 @@ static ECRESULT main2(int argc, char **argv)
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/monitor.pid" },
-		{ "running_path", "/var/lib/kopano" },
+		{"running_path", "/var/lib/kopano/empty"},
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},
 		{"log_file", ""},
 		{"log_level", "3", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE},

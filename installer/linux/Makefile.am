@@ -62,6 +62,7 @@ EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 sysconfig.txt \
 
 install-data-hook:
 	install -d -m 755 ${DESTDIR}/${sysconfdir}/kopano/license
+	mkdir -p ${DESTDIR}${localstatedir}/lib/kopano/empty
 	mv -v ${DESTDIR}${sysconf_rotatedir}/kopano.logrotate ${DESTDIR}${sysconf_rotatedir}/kopano
 
 uninstall-local:

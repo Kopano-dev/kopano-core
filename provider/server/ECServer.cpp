@@ -883,7 +883,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "run_as_user",			"kopano" }, // drop root privileges, and run as this user/group
 		{ "run_as_group",			"kopano" },
 		{ "pid_file",					"/var/run/kopano/server.pid" },
-		{ "running_path",			"/var/lib/kopano" },
+		{"running_path", "/var/lib/kopano/empty"},
 		{"allocator_library", "libtcmalloc_minimal.so.4"},
 		{ "coredump_enabled",			"yes" },
 

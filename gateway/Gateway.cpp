@@ -332,7 +332,7 @@ int main(int argc, char *argv[]) {
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/gateway.pid" },
-		{ "running_path", "/var/lib/kopano" },
+		{"running_path", "/var/lib/kopano/empty"},
 		{ "process_model", "thread" },
 		{"coredump_enabled", "systemdefault"},
 		{"pop3_listen", ""}, /* default in gw_listen() */

@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/ical.pid" },
-		{ "running_path", "/var/lib/kopano" },
+		{"running_path", "/var/lib/kopano/empty"},
 		{ "process_model", "thread" },
 		{ "server_bind", "" },
 		{"ical_listen", "*:8080"},
