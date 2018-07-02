@@ -125,9 +125,9 @@ bool operator==(const FILETIME &a, const FILETIME &b) noexcept
 
 bool operator>(const FILETIME &a, const FILETIME &b) noexcept
 {
-	return ((a.dwHighDateTime > b.dwHighDateTime) ||
-		((a.dwHighDateTime == b.dwHighDateTime) &&
-		 (a.dwLowDateTime > b.dwLowDateTime)));
+	return a.dwHighDateTime > b.dwHighDateTime ||
+		(a.dwHighDateTime == b.dwHighDateTime &&
+		 a.dwLowDateTime > b.dwLowDateTime);
 }
 
 bool operator>=(const FILETIME &a, const FILETIME &b) noexcept
@@ -137,9 +137,9 @@ bool operator>=(const FILETIME &a, const FILETIME &b) noexcept
 
 bool operator<(const FILETIME &a, const FILETIME &b) noexcept
 {
-	return ((a.dwHighDateTime < b.dwHighDateTime) ||
-		((a.dwHighDateTime == b.dwHighDateTime) &&
-		 (a.dwLowDateTime < b.dwLowDateTime)));
+	return a.dwHighDateTime < b.dwHighDateTime ||
+		(a.dwHighDateTime == b.dwHighDateTime &&
+		 a.dwLowDateTime < b.dwLowDateTime);
 }
 
 bool operator<=(const FILETIME &a, const FILETIME &b) noexcept

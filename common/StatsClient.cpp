@@ -141,12 +141,11 @@ void StatsClient::submit(const std::string & key, const time_t ts, const double 
 	int len = snprintf(msg, sizeof msg, "ADD float %s %ld %f", key.c_str(), ts, value); 
 
 	// in theory snprintf can return -1
-	if (len > 0) {
-		int rc = sendto(fd, msg, len, 0, (struct sockaddr *)&addr, addr_len);
-
-		if (rc == -1)
-			ec_log_debug("StatsClient submit float failed: %s", strerror(errno));
-	}
+	if (len <= 0)
+		return;
+	int rc = sendto(fd, msg, len, 0, (struct sockaddr *)&addr, addr_len);
+	if (rc == -1)
+		ec_log_debug("StatsClient submit float failed: %s", strerror(errno));
 }
 
 void StatsClient::submit(const std::string & key, const time_t ts, const int64_t value) {
@@ -159,12 +158,11 @@ void StatsClient::submit(const std::string & key, const time_t ts, const int64_t
 	          static_cast<size_t>(value));
 
 	// in theory snprintf can return -1
-	if (len > 0) {
-		int rc = sendto(fd, msg, len, 0, (struct sockaddr *)&addr, addr_len);
-
-		if (rc == -1)
-			ec_log_debug("StatsClient submit int failed: %s", strerror(errno));
-	}
+	if (len <= 0)
+		return;
+	int rc = sendto(fd, msg, len, 0, (struct sockaddr *)&addr, addr_len);
+	if (rc == -1)
+		ec_log_debug("StatsClient submit int failed: %s", strerror(errno));
 }
 
 void StatsClient::countInc(const std::string & key, const std::string & key_sub) {

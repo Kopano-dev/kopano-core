@@ -78,33 +78,33 @@ bool ECScheduler::hasExpired(time_t ttime, ECSCHEDULE *lpSchedule)
 	switch (lpSchedule->eType) {
 	case SCHEDULE_SECONDS:
 		return
-			(((tmLastRunTime.tm_min != tmtime.tm_min) ||
-			  ((tmLastRunTime.tm_min == tmtime.tm_min) &&
-			   (tmLastRunTime.tm_sec != tmtime.tm_sec))) &&
-			 ((tmtime.tm_sec == (int)lpSchedule->ulBeginCycle) ||
-			  ((lpSchedule->ulBeginCycle > 0) &&
-			   ((tmtime.tm_sec % (int)lpSchedule->ulBeginCycle) < SCHEDULER_POLL_FREQUENCY))));
+			((tmLastRunTime.tm_min != tmtime.tm_min ||
+			  (tmLastRunTime.tm_min == tmtime.tm_min &&
+			   tmLastRunTime.tm_sec != tmtime.tm_sec)) &&
+			 ((tmtime.tm_sec == static_cast<int>(lpSchedule->ulBeginCycle)) ||
+			  (lpSchedule->ulBeginCycle > 0 &&
+			   tmtime.tm_sec % static_cast<int>(lpSchedule->ulBeginCycle) < SCHEDULER_POLL_FREQUENCY)));
 	case SCHEDULE_MINUTES:
 		return
-			(((tmLastRunTime.tm_hour != tmtime.tm_hour) ||
-			  ((tmLastRunTime.tm_hour == tmtime.tm_hour) &&
-			   (tmLastRunTime.tm_min != tmtime.tm_min))) &&
-			 ((tmtime.tm_min == (int)lpSchedule->ulBeginCycle) ||
-			  ((lpSchedule->ulBeginCycle > 0) &&
-			   ((tmtime.tm_min % (int)lpSchedule->ulBeginCycle) == 0))));
+			((tmLastRunTime.tm_hour != tmtime.tm_hour ||
+			  (tmLastRunTime.tm_hour == tmtime.tm_hour &&
+			   tmLastRunTime.tm_min != tmtime.tm_min)) &&
+			 (tmtime.tm_min == static_cast<int>(lpSchedule->ulBeginCycle) ||
+			  (lpSchedule->ulBeginCycle > 0 &&
+			   tmtime.tm_min % static_cast<int>(lpSchedule->ulBeginCycle) == 0)));
 	case SCHEDULE_HOUR:
 		return
-			((tmLastRunTime.tm_hour != tmtime.tm_hour) &&
-			 ((int)lpSchedule->ulBeginCycle >= tmtime.tm_min) &&
-			 ((int)lpSchedule->ulBeginCycle <= (tmtime.tm_min + 2)));
+			tmLastRunTime.tm_hour != tmtime.tm_hour &&
+			static_cast<int>(lpSchedule->ulBeginCycle) >= tmtime.tm_min &&
+			static_cast<int>(lpSchedule->ulBeginCycle) <= tmtime.tm_min + 2;
 	case SCHEDULE_DAY:
 		return
-			((tmLastRunTime.tm_mday != tmtime.tm_mday) &&
-			 ((int)lpSchedule->ulBeginCycle == tmtime.tm_hour));
+			tmLastRunTime.tm_mday != tmtime.tm_mday &&
+			static_cast<int>(lpSchedule->ulBeginCycle) == tmtime.tm_hour;
 	case SCHEDULE_MONTH:
 		return
-			((tmLastRunTime.tm_mon != tmtime.tm_mon) &&
-			 ((int)lpSchedule->ulBeginCycle == tmtime.tm_mday));
+			tmLastRunTime.tm_mon != tmtime.tm_mon &&
+			static_cast<int>(lpSchedule->ulBeginCycle) == tmtime.tm_mday;
 	case SCHEDULE_NONE:
 		return false;
 	}

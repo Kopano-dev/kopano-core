@@ -111,10 +111,8 @@ int ECConfigImpl::ParseParams(int argc, char **argv)
 			errors.emplace_back("Commandline option '" + std::string(arg + 2) + "' cannot be empty!");
 			continue;
 		}
-		string strName(arg+2, eq-arg-2);
-		string strValue(eq+1);
-		strName = trim(strName, " \t\r\n");
-		strValue = trim(strValue, " \t\r\n");
+		auto strName = trim(std::string(arg + 2, eq - arg - 2), " \t\r\n");
+		auto strValue = trim(std::string(eq + 1), " \t\r\n");
 		std::transform(strName.begin(), strName.end(), strName.begin(),
 			[](int c) { return c == '-' ? '_' : c; });
 		// Overwrite an existing setting, and make sure it is not reloadable during HUP
