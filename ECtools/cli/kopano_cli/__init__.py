@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import print_function
 from .version import __version__
 
 import getpass
@@ -601,9 +602,9 @@ def main():
 
     except Exception as e:
         if 'options' in locals() and options.debug:
-            print(traceback.format_exc())
+            print(traceback.format_exc(), file=sys.stderr)
         else:
-            print(_encode(str(e)))
+            print(_encode(str(e)), file=sys.stderr)
         sys.exit(1)
 
 if __name__ == '__main__':
