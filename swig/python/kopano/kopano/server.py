@@ -22,12 +22,11 @@ from MAPI.Util import (
     GetDefaultStore, OpenECSession
 )
 from MAPI.Defs import (
-    HrGetOneProp, PpropFindProp
+    HrGetOneProp,
 )
 
 from MAPI.Struct import (
     SPropertyRestriction, SPropValue, ECCOMPANY, ECGROUP, ECUSER,
-    SContentRestriction, SOrRestriction,
     MAPIErrorNotFound, MAPIErrorNoSupport, MAPIErrorCollision,
     MAPIErrorLogonFailed, MAPIErrorNetworkError, MAPIErrorDiskError
 )
@@ -39,7 +38,6 @@ from MAPI.Tags import (
     PR_EC_STATSTABLE_SERVERS, PR_EC_STATS_SERVER_HTTPSURL,
     PR_STORE_ENTRYID, EC_PROFILE_FLAGS_NO_UID_AUTH,
     EC_PROFILE_FLAGS_NO_NOTIFICATIONS, EC_PROFILE_FLAGS_OIDC,
-    FL_SUBSTRING, FL_IGNORECASE,
 )
 from MAPI.Tags import (
     IID_IMsgStore, IID_IMAPITable, IID_IExchangeManageStore,
@@ -56,7 +54,6 @@ from .table import Table
 from .company import Company
 from .group import Group
 from .property_ import _proptag_to_name
-from .restriction import Restriction
 from .query import _query_to_restriction
 
 from .compat import (

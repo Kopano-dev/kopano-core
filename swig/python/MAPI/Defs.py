@@ -5,6 +5,7 @@ import MAPI.Struct
 EC_ADDRTYPE = 'ZARAFA'
 EC_ADDRTYPE_W = u'ZARAFA'
 
+# Deprecated
 if sys.hexversion >= 0x03000000:
     def bin2hex(x):
         return ''.join('%02X' % c for c in x)

@@ -37,7 +37,7 @@ from MAPI import (
 )
 
 from MAPI.Defs import (
-    HrGetOneProp, CHANGE_PROP_TYPE, bin2hex
+    HrGetOneProp, CHANGE_PROP_TYPE
 )
 
 from MAPI.Struct import (

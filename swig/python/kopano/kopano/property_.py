@@ -19,7 +19,7 @@ from MAPI import (
     MAPI_E_NOT_FOUND, MNID_ID, KEEP_OPEN_READWRITE, MAPI_UNICODE,
 )
 from MAPI.Defs import (
-    PROP_ID, PROP_TAG, PROP_TYPE, HrGetOneProp,
+    PROP_ID, PROP_TYPE, HrGetOneProp,
     CHANGE_PROP_TYPE,
 )
 from MAPI.Struct import (
