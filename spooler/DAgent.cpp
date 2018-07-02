@@ -2954,10 +2954,10 @@ static void *HandlerLMTP(void *lpArg)
 				for (const auto &server : company.second)
 					for (const auto &recip : server.second) {
 						char wbuffer[4096];
-						for (const auto i : recip->vwstrRecipients) {
+						for (const auto &i : recip->vwstrRecipients) {
 							static_assert(std::is_same<decltype(recip->wstrDeliveryStatus.c_str()), decltype(i.c_str())>::value, "need compatible types");
 							snprintf(wbuffer, ARRAY_SIZE(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
-							mapRecipientResults.emplace(converter.convert_to<std::string>(i), wbuffer);
+							mapRecipientResults.emplace(i, wbuffer);
 							if (save_all || save_error)
 								continue;
 							auto save_username = converter.convert_to<std::string>(recip->wstrUsername);

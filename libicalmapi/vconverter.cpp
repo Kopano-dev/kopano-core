@@ -972,7 +972,7 @@ HRESULT VConverter::resolve_organizer(std::wstring &email, std::wstring &name, s
 	memory_ptr<ENTRYID> lpb_oneoff;
 	unsigned int cb_oneoff = 0;
 	type = "SMTP";
-	auto hr = ECCreateOneOff(convert_to<std::wstring>(name).c_str(), L"SMTP", email.c_str(), MAPI_UNICODE, &cb_oneoff, &~lpb_oneoff);
+	auto hr = ECCreateOneOff(name.c_str(), L"SMTP", email.c_str(), MAPI_UNICODE, &cb_oneoff, &~lpb_oneoff);
 	if (hr != hrSuccess)
 		return hr;
 	cb = cb_oneoff;

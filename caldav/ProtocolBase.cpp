@@ -240,7 +240,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 			strLocation += "/Calendar/";
 		}
 		m_lpRequest.HrResponseHeader(301, "Moved Permanently");
-		m_lpRequest.HrResponseHeader("Location", m_converter.convert_to<std::string>(strLocation));
+		m_lpRequest.HrResponseHeader("Location", strLocation);
 		return MAPI_E_NOT_ME;
 	}
 
