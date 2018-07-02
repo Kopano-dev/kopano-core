@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <new>
 #include <typeinfo>
+#include <sys/time.h>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include "ECMAPI.h"

@@ -18,6 +18,8 @@
 #ifndef PTHREADUTIL_H
 #define PTHREADUTIL_H
 
+#include <sys/time.h>
+
 inline int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, int millis)
 {
     struct timespec ts;

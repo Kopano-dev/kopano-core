@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <kopano/platform.h>
+#include <sys/time.h>
 #include <mapi.h>
 #include <mapispi.h>
 #include <mapiutil.h>
