@@ -736,14 +736,21 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 	auto https_sock = kc_parse_bindaddrs(cfg->GetSetting("server_listen_tls"), 237);
 
 	/* Historic directives */
-	if (strcmp(cfg->GetSetting("server_tcp_enabled"), "yes") == 0) {
-		auto addr = cfg->GetSetting("server_bind");
+	auto addr = cfg->GetSetting("server_bind");
+	auto cvar = cfg->GetSetting("server_tcp_enabled");
+	if (!parseBool(cvar)) {
+		/* vetoes everything */
+		http_sock.clear();
+	} else if (strcmp(cvar, "yes") == 0) {
+		/* "yes" := "read extra historic variable" */
 		uint16_t port = strtoul(cfg->GetSetting("server_tcp_port"), nullptr, 10);
 		if (port != 0)
 			http_sock.emplace(addr, port);
 	}
-	if (strcmp(cfg->GetSetting("server_ssl_enabled"), "yes") == 0) {
-		auto addr = cfg->GetSetting("server_bind");
+	cvar = cfg->GetSetting("server_ssl_enabled");
+	if (!parseBool(cvar)) {
+		http_sock.clear();
+	} else if (strcmp(cvar, "yes") == 0) {
 		uint16_t port = strtoul(cfg->GetSetting("server_ssl_port"), nullptr, 10);
 		if (port != 0)
 			https_sock.emplace(addr, port);
@@ -868,8 +875,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "server_hostname",			"" }, // used by kerberos, if empty, gethostbyname is used
 		// server connections
 		{"server_bind", "", CONFIGSETTING_OBSOLETE},
-		{"server_tcp_port", "236", CONFIGSETTING_NONEMPTY},
-		{"server_tcp_enabled", "no", CONFIGSETTING_NONEMPTY},
+		{"server_tcp_port", "236", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"server_tcp_enabled", "auto", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
 		{"server_pipe_enabled", "yes", CONFIGSETTING_NONEMPTY},
 		{"server_pipe_name", KOPANO_SERVER_PIPE, CONFIGSETTING_NONEMPTY},
 		{"server_pipe_priority", KOPANO_SERVER_PRIO, CONFIGSETTING_NONEMPTY},
@@ -891,8 +898,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "license_socket",			"/var/run/kopano/licensed.sock" },
 		{ "license_timeout", 		"10", CONFIGSETTING_RELOADABLE},
 		{ "system_email_address",		"postmaster@localhost", CONFIGSETTING_RELOADABLE },
-		{"server_ssl_enabled", "no", CONFIGSETTING_NONEMPTY},
-		{"server_ssl_port", "237", CONFIGSETTING_NONEMPTY},
+		{"server_ssl_enabled", "auto", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"server_ssl_port", "237", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
 		{"server_ssl_key_file", "/etc/kopano/ssl/server.pem", CONFIGSETTING_RELOADABLE},
 		{"server_ssl_key_pass", "server", CONFIGSETTING_EXACT | CONFIGSETTING_RELOADABLE},
 		{"server_ssl_ca_file", "/etc/kopano/ssl/cacert.pem", CONFIGSETTING_RELOADABLE},

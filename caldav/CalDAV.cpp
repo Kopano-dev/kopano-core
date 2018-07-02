@@ -152,12 +152,12 @@ int main(int argc, char **argv) {
 		{"running_path", "/var/lib/kopano/empty"},
 		{ "process_model", "thread" },
 		{ "server_bind", "" },
-		{"ical_listen", "*:8080"},
+		{"ical_listen", ""}, /* default in ical_listen() */
 		{"icals_listen", ""},
-		{"ical_port", "8080", CONFIGSETTING_NONEMPTY},
-		{"ical_enable", "no", CONFIGSETTING_NONEMPTY},
-		{"icals_port", "8443", CONFIGSETTING_NONEMPTY},
-		{"icals_enable", "no", CONFIGSETTING_NONEMPTY},
+		{"ical_port", "8080", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"ical_enable", "auto", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"icals_port", "8443", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"icals_enable", "auto", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
 		{ "enable_ical_get", "yes", CONFIGSETTING_RELOADABLE },
 		{ "server_socket", "http://localhost:236/" },
 		{ "server_timezone","Europe/Amsterdam"},
@@ -354,12 +354,22 @@ static HRESULT ical_listen(ECConfig *cfg)
 	auto icals_sock = tokenize(cfg->GetSetting("icals_listen"), ' ', true);
 	/* Historic directives */
 	auto addr = cfg->GetSetting("server_bind");
-	if (strcmp(cfg->GetSetting("ical_enable"), "yes") == 0) {
+	auto cvar = cfg->GetSetting("ical_enable");
+	if (!parseBool(cvar)) {
+		/* vetoes everything */
+		ical_sock.clear();
+	} else if (strcmp(cvar, "yes") == 0) {
+		/* "yes" := "read extra historic variable" */
 		auto port = cfg->GetSetting("ical_port");
 		if (port[0] != '\0')
 			ical_sock.push_back("["s + addr + "]:" + port);
+	} else if (ical_sock.empty()) {
+		ical_sock.push_back("*:8080");
 	}
-	if (strcmp(cfg->GetSetting("icals_enable"), "yes") == 0) {
+	cvar = cfg->GetSetting("icals_enable");
+	if (!parseBool(cvar)) {
+		icals_sock.clear();
+	} else if (strcmp(cvar, "yes") == 0) {
 		auto port = cfg->GetSetting("icals_port");
 		if (port[0] != '\0')
 			icals_sock.push_back("["s + addr + "]:" + port);
