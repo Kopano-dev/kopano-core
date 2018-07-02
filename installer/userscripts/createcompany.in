@@ -15,6 +15,13 @@ elif [ -f @sysconfdir@/default/kopano ]; then
   # Used on Debian in place of sysconfig
   . @sysconfdir@/default/kopano
 fi
-PKGLIBEXECDIR=@PKGLIBEXECDIR@
-KOPANO_COMPANY_SCRIPTS=@USERSCRIPTDIR@/createcompany.d
-. @USERSCRIPTDIR@/companies_common.sh
+KOPANO_COMPANY_SCRIPTS=/ignore/
+KOPANO_LANG="${KOPANO_USERSCRIPT_LOCALE:-${LC_MESSAGES:-en_US}}"
+PATH=/bin:/usr/local/bin:/usr/bin
+export KOPANO_LANG PATH
+if [ -z "${KOPANO_COMPANY}" -a -z "${KOPANO_COMPANYID}" ] ; then
+    exec >&2
+    echo "KOPANO_COMPANY and KOPANO_COMPANYID is not set."
+    exit 1
+fi
+exec "$PKGLIBEXECDIR/kscriptrun" @uscriptlibdir@/createcompany.d @uscriptconfdir@/createcompany.d
