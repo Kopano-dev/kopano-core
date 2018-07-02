@@ -8,6 +8,7 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 import binascii
 import calendar
 import datetime
+import os
 import struct
 import sys
 import time
@@ -29,6 +30,8 @@ from MAPI.Struct import (
     MAPIErrorNotFound, MAPIErrorInterfaceNotSupported, SPropValue, ROWENTRY,
     MAPIErrorNoAccess, MAPIErrorDiskError
 )
+
+MAX_SAVE_RETRIES = int(os.getenv('PYKO_MAPI_SAVE_MAX_RETRIES', 3))
 
 from .compat import bdec as _bdec
 from .errors import Error, NotFoundError, ArgumentError
@@ -194,9 +197,8 @@ def _save(mapiobj):
             mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
             break
         except MAPIErrorDiskError:
-            if retry >= 5:
+            if retry >= MAX_SAVE_RETRIES:
                 raise
             else:
                 retry += 1
                 time.sleep(t)
-                t *= 2
