@@ -561,7 +561,7 @@ Changes:
   (like postfix) instead of yourself [KC-309]
 * Support for building with a no-SSLv2 OpenSSL 1.1. [KC-230]
   If you run such a setup, be aware that a config setting like
-  "ssl_protocol = !SSLv2" in one or more of kopano-{server,gateway,ical}.cfg
+  "ssl_protocols = !SSLv2" in one or more of kopano-{server,gateway,ical}.cfg
   can inhibit the process from starting.
 * Cleanup of the example LDAP configuration files. [KC-229]
   /usr/share/doc/kopano/example-configs/ now has just a ldap.cfg,

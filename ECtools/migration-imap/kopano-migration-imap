@@ -175,7 +175,7 @@ This description of options are reproduced here:
                        it's often small and deleted at reboot.
                        --tmpdir /var/tmp should be better.
  --pidfile      str  : The file where kopano-migration-imap pid is written.
- --pidfilelocking    : Abort if pidfile already exists. Usefull to avoid
+ --pidfilelocking    : Abort if pidfile already exists. Useful to avoid
                        concurrent transfers on the same mailbox.
 
  --nolog             : Turn off logging on file
@@ -8480,7 +8480,7 @@ sub usage {
                        it's often small and deleted at reboot.
                        --tmpdir /var/tmp should be better.
  --pidfile      str  : The file where kopano-migration-imap pid is written.
- --pidfilelocking    : Abort if pidfile already exists. Usefull to avoid
+ --pidfilelocking    : Abort if pidfile already exists. Useful to avoid
                        concurrent transfers on the same mailbox.
 
  --nolog             : Turn off logging on file
