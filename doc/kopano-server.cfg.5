@@ -358,6 +358,9 @@ Default:
 .PP
 The location where attachments are stored. This can be in the MySQL database, or as separate files. The drawback of \*(Aqdatabase\*(Aq is that the large data of attachment will push useful data from the MySQL cache. The drawback of separate files is that a mysqldump is not enough for a full disaster recovery.
 .PP
+Possible values: \fBdatabase\fP, \fBfiles\fP, and, if built with libs3/AWS
+support, \fBs3\fP.
+.PP
 Default:
 \fIfiles\fR
 .SS attachment_path
