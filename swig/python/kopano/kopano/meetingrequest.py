@@ -235,6 +235,7 @@ def _create_meetingrequest(cal_item, item, cancel=False, basedate=None):
     cleangoid = cal_item.get(PidLidCleanGlobalObjectId)
     if cleangoid is None:
         cleangoid = _generate_goid()
+        cal_item[PidLidGlobalObjectId] = cleangoid
         cal_item[PidLidCleanGlobalObjectId] = cleangoid
 
     # set item goids
