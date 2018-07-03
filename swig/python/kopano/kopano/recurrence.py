@@ -1178,9 +1178,24 @@ class Occurrence(object):
                 for row in message.table(PR_MESSAGE_RECIPIENTS):
                     yield Attendee(self.item.server, row)
                 return
+            # TODO else?
 
         for attendee in self.item.attendees():
             yield attendee
+
+    def create_attendee(self, type_, addr):
+        if self.item.recurring:
+            rec = self.item.recurrence
+            basedate = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
+            basedate = basedate.replace(hour=0, minute=0)
+            message = rec._exception_message(basedate)
+            if message:
+                message.create_attendee(type_, addr)
+                _utils._save(message._attobj)
+                return
+            # TODO else?
+        else:
+            self.item.create_attendee(type_, addr)
 
     def send(self, copy_to_sentmail=True, cancel=False):
         if self.item.recurring:
@@ -1188,7 +1203,9 @@ class Occurrence(object):
             message = self.item.recurrence._exception_message(basedate)
             if message:
                 message.store = self.store
-                message.to = self.item.to # TODO
+                to = list(message.to)
+                if not to:
+                    message.to = self.item.to # TODO don't change message on send
                 message.send(copy_to_sentmail, cancel, _basedate=basedate, cal_item=self.item)
             else:
                 self.item.send(copy_to_sentmail, cancel, _basedate=basedate, cal_item=self.item)
