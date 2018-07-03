@@ -8,20 +8,17 @@
 
 #include <kopano/zcdefs.h>
 #include "ECDatabase.h"
-#include <atomic>
 #include <list>
 #include <set>
 #include <string>
 #include <dirent.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 
 struct soap;
 
 namespace KC {
 
 class ECAttachmentStorage;
+class ECConfig;
 class ECSerializer;
 class ECLogger;
 
