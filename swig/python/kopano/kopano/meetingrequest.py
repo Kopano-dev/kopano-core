@@ -219,6 +219,16 @@ def _create_meetingrequest(cal_item, item, cancel=False, basedate=None):
 
     item2 = item.copy(item.store.outbox)
 
+    # remove meeting organizer TODO just copy correct ones? or why is the organizer MAPI_TO?
+    table = item2.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
+    table.SetColumns(RECIP_PROPS, 0)
+    orgs = []
+    for row in table.QueryRows(-1,0):
+        recipient_flags = PpropFindProp(row, PR_RECIPIENT_FLAGS)
+        if recipient_flags and recipient_flags.Value & recipOrganizer:
+            orgs.append(row)
+    item2.mapiobj.ModifyRecipients(MODRECIP_REMOVE, orgs)
+
     # set meeting request props
     if cancel:
         item2.message_class = 'IPM.Schedule.Meeting.Canceled'
