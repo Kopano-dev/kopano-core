@@ -128,6 +128,12 @@ Change directory to this path when running in daemonize mode. When using the \-F
 .PP
 Default:
 \fI/\fR
+.SS coredump_enabled
+.PP
+When a crash occurs or an assertion fails, a coredump file can be generated.
+This file should be sent along with the crash report. It is turned on by
+default in Kopano, but your system may have it disabled. For details, see the
+\fBkopano\-coredump\fP(5) manpage.
 .SS process_model
 .PP
 You can change the process model between
