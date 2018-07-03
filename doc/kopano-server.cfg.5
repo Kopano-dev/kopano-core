@@ -729,42 +729,42 @@ contains the new username. The script should at least call
 to correctly create the store for the new user.
 .PP
 Default:
-\fI/etc/kopano/userscripts/createuser\fR
+\fI/usr/lib/kopano/userscripts/createuser\fR
 .SS deleteuser_script
 .PP
 \fIKOPANO_STOREID\fR
 contains the old id of the store of the removed user.
 .PP
 Default:
-\fI/etc/kopano/userscripts/deleteuser\fR
+\fI/usr/lib/kopano/userscripts/deleteuser\fR
 .SS creategroup_script
 .PP
 \fIKOPANO_GROUP\fR
 contains the new groupname. No action is currently needed by the script.
 .PP
 Default:
-\fI/etc/kopano/userscripts/creategroup\fR
+\fI/usr/lib/kopano/userscripts/creategroup\fR
 .SS deletegroup_script
 .PP
 \fIKOPANO_GROUPID\fR
 contains the old id of the group. No action is currently needed by the script.
 .PP
 Default:
-\fI/etc/kopano/userscripts/deletegroup\fR
+\fI/usr/lib/kopano/userscripts/deletegroup\fR
 .SS createcompany_script
 .PP
 \fIKOPANO_COMPANY\fR
 contains the new companyname. No action is currently needed by the script.
 .PP
 Default:
-\fI/etc/kopano/userscripts/createcompany\fR
+\fI/usr/lib/kopano/userscripts/createcompany\fR
 .SS deletecompany_script
 .PP
 \fIKOPANO_COMPANYID\fR
 contains the old id of the company. No action is currently needed by the script.
 .PP
 Default:
-\fI/etc/kopano/userscripts/deletecompany\fR
+\fI/usr/lib/kopano/userscripts/deletecompany\fR
 .SS user_safe_mode
 .PP
 If enabled, the storage server will only log when create, delete and move actions are done on an user object. This might be useful when you are testing changes to your plugin configuration.
