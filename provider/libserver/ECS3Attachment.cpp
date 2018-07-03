@@ -469,7 +469,7 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 		ret = erSuccess;
 	}
 	if (ret != erSuccess && cd.data != nullptr && soap == nullptr)
-		delete cd.data;
+		s_free(nullptr, cd.data);
 	/*
 	 * Make sure we clear the cd.data variable so we cannot write
 	 * to it after it is freed externally.
