@@ -11,6 +11,7 @@
 #include <mapidefs.h>
 #include <cerrno>
 #include <algorithm>
+#include <dirent.h>
 #include <fcntl.h>
 #include <zlib.h>
 #include <ECSerializer.h>
@@ -44,6 +45,46 @@ class ECFileAttachmentConfig final : public ECAttachmentConfig {
 	std::string m_dir;
 	unsigned int m_complvl;
 	bool m_sync_files;
+};
+
+class ECFileAttachment final : public ECAttachmentStorage {
+	public:
+	ECFileAttachment(ECDatabase *, const std::string &basepath, unsigned int compr_lvl, bool sync);
+
+	protected:
+	virtual ~ECFileAttachment(void);
+
+	/* Single Instance Attachment handlers */
+	virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;
+	virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *, ECSerializer *) override;
+	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, unsigned char *) override;
+	virtual ECRESULT SaveAttachmentInstance(const ext_siid &, ULONG propid, size_t, ECSerializer *) override;
+	virtual ECRESULT DeleteAttachmentInstances(const std::list<ext_siid> &, bool replace) override;
+	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
+	virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *size, bool *compr = nullptr) override;
+	virtual kd_trans Begin(ECRESULT &) override;
+
+	private:
+	std::string CreateAttachmentFilename(const ext_siid &, bool compressed);
+	virtual ECRESULT Commit() override;
+	virtual ECRESULT Rollback() override;
+
+	size_t attachment_size_safety_limit;
+	int m_dirFd = -1;
+	DIR *m_dirp = nullptr;
+	bool force_changes_to_disk;
+
+	/* helper functions for transacted deletion */
+	ECRESULT MarkAttachmentForDeletion(const ext_siid &);
+	ECRESULT DeleteMarkedAttachment(const ext_siid &);
+	ECRESULT RestoreMarkedAttachment(const ext_siid &);
+	bool VerifyInstanceSize(const ext_siid &, size_t expected_size, const std::string &filename);
+	void give_filesize_hint(const int fd, const off_t len);
+	void my_readahead(int fd);
+
+	std::string m_basepath;
+	bool m_bTransaction = false;
+	std::set<ext_siid> m_setNewAttachment, m_setDeletedAttachment, m_setMarkedAttachment;
 };
 
 using std::string;
