@@ -1089,7 +1089,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		return retval;
 	}
 
-	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0) {
+	auto aback = g_lpConfig->GetSetting("attachment_storage");
+	if (strcmp(aback, "files") == 0 || strcmp(aback, "files_v2") == 0) {
 		/*
 		 * Either (1.) the attachment directory or (2.) its immediate
 		 * parent directory needs to exist with right permissions.
@@ -1119,11 +1120,11 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 			}
 		}
 #ifdef HAVE_LIBS3_H
-	} else if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "s3") == 0) {
+	} else if (strcmp(aback, "s3") == 0) {
 		// @todo check S3 settings and connectivity
 		ec_log_info("Attachment storage set to S3 Storage");
 #endif
-	} else if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "database") != 0) {
+	} else if (strcmp(aback, "database") != 0) {
 		ec_log_err("Unknown attachment_storage option '%s', reverting to default 'database' method.", g_lpConfig->GetSetting("attachment_storage"));
 		g_lpConfig->AddSetting("attachment_storage", "database");
 	}

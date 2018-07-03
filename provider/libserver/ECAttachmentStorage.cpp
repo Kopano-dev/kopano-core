@@ -36,18 +36,18 @@ class ECDatabaseAttachmentConfig final : public ECAttachmentConfig {
 	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
 };
 
-class ECFileAttachmentConfig final : public ECAttachmentConfig {
+class ECFileAttachmentConfig : public ECAttachmentConfig {
 	public:
 	virtual ECRESULT init(ECConfig *) override;
 	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
 
-	private:
+	protected:
 	std::string m_dir;
 	unsigned int m_complvl;
 	bool m_sync_files;
 };
 
-class ECFileAttachment final : public ECAttachmentStorage {
+class ECFileAttachment : public ECAttachmentStorage {
 	public:
 	ECFileAttachment(ECDatabase *, const std::string &basepath, unsigned int compr_lvl, bool sync);
 
@@ -63,8 +63,6 @@ class ECFileAttachment final : public ECAttachmentStorage {
 	virtual ECRESULT DeleteAttachmentInstance(const ext_siid &, bool replace) override;
 	virtual ECRESULT GetSizeInstance(const ext_siid &, size_t *size, bool *compr = nullptr) override;
 	virtual kd_trans Begin(ECRESULT &) override;
-
-	private:
 	std::string CreateAttachmentFilename(const ext_siid &, bool compressed);
 	virtual ECRESULT Commit() override;
 	virtual ECRESULT Rollback() override;
@@ -85,6 +83,19 @@ class ECFileAttachment final : public ECAttachmentStorage {
 	std::string m_basepath;
 	bool m_bTransaction = false;
 	std::set<ext_siid> m_setNewAttachment, m_setDeletedAttachment, m_setMarkedAttachment;
+};
+
+class ECFileAttachmentConfig2 final : public ECFileAttachmentConfig {
+	public:
+	using ECFileAttachmentConfig::ECFileAttachmentConfig;
+	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
+
+	friend class ECFileAttachment2;
+};
+
+class ECFileAttachment2 : public ECFileAttachment {
+	public:
+	using ECFileAttachment::ECFileAttachment;
 };
 
 using std::string;
@@ -131,6 +142,8 @@ ECRESULT ECAttachmentConfig::create(ECConfig *config, ECAttachmentConfig **atcp)
 		a.reset(new(std::nothrow) ECDatabaseAttachmentConfig);
 	} else if (strcmp(type, "files") == 0) {
 		a.reset(new(std::nothrow) ECFileAttachmentConfig);
+	} else if (strcmp(type, "files_v2") == 0) {
+		a.reset(new(std::nothrow) ECFileAttachmentConfig2);
 	} else if (strcmp(type, "s3") == 0) {
 #ifdef HAVE_LIBS3_H
 		a.reset(new(std::nothrow) ECS3Config);
@@ -2021,6 +2034,11 @@ ECRESULT ECFileAttachment::Rollback()
 		return KCERR_DATABASE_ERROR;
 	}
 	return erSuccess;
+}
+
+ECAttachmentStorage *ECFileAttachmentConfig2::new_handle(ECDatabase *db)
+{
+	return new(std::nothrow) ECFileAttachment2(db, m_dir, m_complvl, m_sync_files);
 }
 
 } /* namespace */
