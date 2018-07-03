@@ -108,18 +108,16 @@ archiver.py: $(BUILT_SOURCES)
 libfreebusy.py: $(BUILT_SOURCES)
 RecurrenceState.py: $(BUILT_SOURCES)
 
-
-_MAPICore_la_SOURCES = mapi_wrap.cxx mapi_wrap.h scl.h
-_inetmapi_la_SOURCES = inetmapi_wrap.cxx
-_icalmapi_la_SOURCES = icalmapi_wrap.cxx
-_archiver_la_SOURCES = archiver_wrap.cxx archiver_conv.h archiver_conv.cpp
-_RecurrenceState_la_SOURCES = RecurrenceState_wrap.cxx
-_libfreebusy_la_SOURCES = libfreebusy_wrap.cxx libfreebusy_conv.h libfreebusy_conv.cpp
+nodist__MAPICore_la_SOURCES = mapi_wrap.cxx mapi_wrap.h scl.h
+nodist__inetmapi_la_SOURCES = inetmapi_wrap.cxx
+nodist__icalmapi_la_SOURCES = icalmapi_wrap.cxx
+nodist__archiver_la_SOURCES = archiver_wrap.cxx archiver_conv.h archiver_conv.cpp
+nodist__RecurrenceState_la_SOURCES = RecurrenceState_wrap.cxx
+nodist__libfreebusy_la_SOURCES = libfreebusy_wrap.cxx libfreebusy_conv.h libfreebusy_conv.cpp
 
 EXTRA_DIST = helpers_python.i \
 	setup.py \
 	setup.cfg \
-	$(BUILT_SOURCES) \
 	MAPICore.py \
 	inetmapi.py \
 	icalmapi.py \
