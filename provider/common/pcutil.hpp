@@ -37,7 +37,7 @@ extern ECRESULT ABEntryIDToID(ULONG eid_size, const BYTE *eid, unsigned int *id,
 extern ECRESULT SIEntryIDToID(ULONG eid_size, const BYTE *instance_eid, GUID *server_guid, unsigned int *instance_nid, unsigned int *prop_id = nullptr);
 extern int SortCompareABEID(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b);
 extern bool CompareABEID(ULONG asize, const ENTRYID *a, ULONG bsize, const ENTRYID *b);
-ECRESULT ParseKopanoVersion(const std::string &strVersion, unsigned int *lpulVersion);
+extern ECRESULT ParseKopanoVersion(const std::string &commamagic, std::string *seg, unsigned int *integ);
 
 //Clientside functions
 extern HRESULT HrGetStoreGuidFromEntryId(ULONG eid_size, const BYTE *eid, GUID *store_guid);

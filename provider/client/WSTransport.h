@@ -278,6 +278,8 @@ public:
 
 	virtual HRESULT HrResetFolderCount(ULONG eid_size, const ENTRYID *eid, ULONG *nupdates);
 
+	std::string m_server_version;
+
 private:
 	static SOAP_SOCKET RefuseConnect(struct soap*, const char*, const char*, int);
 	static ECRESULT KCOIDCLogon(KCmdProxy *, const char *server, const utf8string &user, const utf8string &imp_user, const utf8string &password, unsigned int caps, ECSESSIONGROUPID, const char *app_name, ECSESSIONID *, unsigned int *srv_caps, unsigned long long *flags, GUID *srv_guid, const std::string &cl_app_ver, const std::string &cl_app_misc);

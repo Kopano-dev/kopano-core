@@ -375,12 +375,15 @@ ECRESULT TypeToMAPIType(objectclass_t sUserObjClass, ULONG *lpulMAPIType)
  *
  * @retval		KCERR_INVALID_PARAMETER	The version string could not be parsed.
  */
-ECRESULT ParseKopanoVersion(const std::string &strVersion, unsigned int *lpulVersion)
+ECRESULT ParseKopanoVersion(const std::string &strVersion, std::string *seg,
+    unsigned int *lpulVersion)
 {
 	const char *lpszStart = strVersion.c_str();
 	char *lpszEnd = NULL;
 	unsigned int ulGeneral, ulMajor, ulMinor;
 
+	if (seg != nullptr)
+		seg->clear();
 	// For some reason the server returns its version prefixed with "0,". We'll
 	// just ignore that.
 	// We assume that there's no actual live server running 0,x,y,z
@@ -400,7 +403,8 @@ ECRESULT ParseKopanoVersion(const std::string &strVersion, unsigned int *lpulVer
 	ulMinor = strtoul(lpszStart, &lpszEnd, 10);
 	if (lpszEnd == NULL || lpszEnd == lpszStart || (*lpszEnd != ',' && *lpszEnd != '\0'))
 		return KCERR_INVALID_PARAMETER;
-
+	if (seg != nullptr)
+		*seg = std::to_string(ulGeneral) + "." + std::to_string(ulMajor) + "." + std::to_string(ulMinor);
 	if (lpulVersion)
 		*lpulVersion = MAKE_KOPANO_VERSION(ulGeneral, ulMajor, ulMinor);
 	return erSuccess;
