@@ -59,7 +59,7 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 	}
 
 	m_lpNotificationManager.reset(new ECNotificationManager());
-	err = ECAttachmentConfig::create(m_lpConfig, &unique_tie(m_atxconfig));
+	err = ECAttachmentConfig::create(m_server_guid, m_lpConfig, &unique_tie(m_atxconfig));
 	if (err != hrSuccess) {
 		err = kcerr_to_mapierr(err);
 		ec_log_crit("Could not initialize attachment store: %s", GetMAPIErrorMessage(err));

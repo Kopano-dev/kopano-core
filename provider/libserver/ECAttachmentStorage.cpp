@@ -87,15 +87,21 @@ class ECFileAttachment : public ECAttachmentStorage {
 
 class ECFileAttachmentConfig2 final : public ECFileAttachmentConfig {
 	public:
-	using ECFileAttachmentConfig::ECFileAttachmentConfig;
+	ECFileAttachmentConfig2(const GUID &);
 	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
+
+	protected:
+	std::string m_server_guid;
 
 	friend class ECFileAttachment2;
 };
 
 class ECFileAttachment2 : public ECFileAttachment {
 	public:
-	using ECFileAttachment::ECFileAttachment;
+	ECFileAttachment2(ECFileAttachmentConfig2 &, ECDatabase *, const std::string &basepath, unsigned int complvl, bool sync);
+
+	protected:
+	ECFileAttachmentConfig2 &m_config;
 };
 
 using std::string;
@@ -134,7 +140,8 @@ ECAttachmentStorage::ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ul
 	m_CompressionLevel = stringify(ulCompressionLevel);
 }
 
-ECRESULT ECAttachmentConfig::create(ECConfig *config, ECAttachmentConfig **atcp)
+ECRESULT ECAttachmentConfig::create(const GUID &sguid, ECConfig *config,
+    ECAttachmentConfig **atcp)
 {
 	auto type = config->GetSetting("attachment_storage");
 	std::unique_ptr<ECAttachmentConfig> a;
@@ -143,7 +150,7 @@ ECRESULT ECAttachmentConfig::create(ECConfig *config, ECAttachmentConfig **atcp)
 	} else if (strcmp(type, "files") == 0) {
 		a.reset(new(std::nothrow) ECFileAttachmentConfig);
 	} else if (strcmp(type, "files_v2") == 0) {
-		a.reset(new(std::nothrow) ECFileAttachmentConfig2);
+		a.reset(new(std::nothrow) ECFileAttachmentConfig2(sguid));
 	} else if (strcmp(type, "s3") == 0) {
 #ifdef HAVE_LIBS3_H
 		a.reset(new(std::nothrow) ECS3Config);
@@ -2036,9 +2043,19 @@ ECRESULT ECFileAttachment::Rollback()
 	return erSuccess;
 }
 
+ECFileAttachmentConfig2::ECFileAttachmentConfig2(const GUID &g) :
+	m_server_guid(bin2hex(sizeof(g), &g))
+{}
+
 ECAttachmentStorage *ECFileAttachmentConfig2::new_handle(ECDatabase *db)
 {
-	return new(std::nothrow) ECFileAttachment2(db, m_dir, m_complvl, m_sync_files);
+	return new(std::nothrow) ECFileAttachment2(*this, db, m_dir, m_complvl, m_sync_files);
 }
+
+ECFileAttachment2::ECFileAttachment2(ECFileAttachmentConfig2 &acf,
+    ECDatabase *db, const std::string &basepath, unsigned int complvl,
+    bool sync) :
+	ECFileAttachment(db, basepath, complvl, sync), m_config(acf)
+{}
 
 } /* namespace */

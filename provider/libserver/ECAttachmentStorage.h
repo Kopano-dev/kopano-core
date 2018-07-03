@@ -34,7 +34,7 @@ class ext_siid {
 class ECAttachmentConfig {
 	public:
 	virtual ~ECAttachmentConfig() = default;
-	static ECRESULT create(ECConfig *, ECAttachmentConfig **);
+	static ECRESULT create(const GUID &sguid, ECConfig *, ECAttachmentConfig **);
 	virtual ECAttachmentStorage *new_handle(ECDatabase *) = 0;
 
 	private:
