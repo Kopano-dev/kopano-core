@@ -16,7 +16,7 @@ from MAPI import (
     PT_CURRENCY, PT_MV_CURRENCY, PT_APPTIME, PT_MV_APPTIME, PT_MV_LONGLONG,
     PT_SYSTIME, MAPI_E_NOT_ENOUGH_MEMORY, PT_MV_STRING8,
     PT_MV_UNICODE, PT_MV_SYSTIME, PT_CLSID, PT_MV_CLSID, MNID_STRING,
-    MAPI_E_NOT_FOUND, MNID_ID, KEEP_OPEN_READWRITE, MAPI_UNICODE,
+    MAPI_E_NOT_FOUND, MNID_ID, MAPI_UNICODE,
 )
 from MAPI.Defs import (
     PROP_ID, PROP_TAG, PROP_TYPE, HrGetOneProp,
@@ -181,7 +181,7 @@ def create_prop(self, mapiobj, proptag, value=None, proptype=None): # XXX selfie
     # handle invalid type versus value. For example proptype=PT_UNICODE and value=True
     try:
         mapiobj.SetProps([SPropValue(proptag2, value)])
-        mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(mapiobj)
     except TypeError:
         raise Error('Could not create property, type and value did not match')
 
@@ -376,7 +376,7 @@ class Property(object):
         if self.type_ == PT_SYSTIME:
             value = unixtime(time.mktime(value.timetuple()))
         self._parent_mapiobj.SetProps([SPropValue(self.proptag, value)])
-        self._parent_mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self._parent_mapiobj)
 
     @property
     def strid(self):

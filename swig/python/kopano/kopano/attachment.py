@@ -88,7 +88,7 @@ class Attachment(Properties):
     @mimetype.setter
     def mimetype(self, m):
         self[PR_ATTACH_MIME_TAG_W] = _unicode(m)
-        self.parent.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.parent.mapiobj)
 
     @property
     def filename(self):

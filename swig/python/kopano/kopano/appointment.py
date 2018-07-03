@@ -6,6 +6,8 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 import codecs
 import datetime
+import pytz
+import struct
 import sys
 
 from MAPI import (
@@ -41,8 +43,11 @@ if sys.hexversion >= 0x03000000:
         from . import utils as _utils
     except ImportError: # pragma: no cover
         _utils = sys.modules[__package__+'.utils']
+
+    from . import timezone as _timezone
 else: # pragma: no cover
     import utils as _utils
+    import timezone as _timezone
 
 ALL_DAY_NAME = (PSETID_Appointment, MNID_ID, 0x8215)
 START_NAME = (PSETID_Appointment, MNID_ID, 33293) # TODO use pidlid instead
@@ -193,7 +198,7 @@ class Appointment(object):
             SPropValue(PR_ENTRYID, pr_entryid),
         ])
         self.mapiobj.ModifyRecipients(MODRECIP_ADD, names)
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def response_requested(self):
@@ -217,13 +222,16 @@ class Appointment(object):
     def tzinfo(self):
         tzdata = self.get(PidLidTimeZoneStruct)
         if tzdata:
-            return _utils.MAPITimezone(tzdata)
+            return _timezone.MAPITimezone(tzdata)
 
     @property
     def timezone(self):
-        desc = self.get(PidLidTimeZoneDescription)
-        if desc:
-            return codecs.decode(desc[1:-1], 'ascii') # TODO check encoding
+        return self.get(PidLidTimeZoneDescription)
+
+    @timezone.setter
+    def timezone(self, value):
+        self[PidLidTimeZoneDescription] = value
+        self[PidLidTimeZoneStruct] = _timezone._timezone_struct(value)
 
     def accept(self, comment=None, tentative=False, respond=True):
         # TODO update appointment itself

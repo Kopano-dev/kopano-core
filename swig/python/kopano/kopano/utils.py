@@ -6,18 +6,16 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import binascii
+import calendar
 import datetime
-import dateutil
-import dateutil.tz
+import os
 import struct
 import sys
-
-from dateutil.relativedelta import (
-    relativedelta, MO, TU, TH, FR, WE, SA, SU
-)
+import time
 
 from MAPI import (
     WrapCompressedRTFStream, PT_UNICODE, ROW_ADD, MAPI_MODIFY,
+    KEEP_OPEN_READWRITE,
 )
 from MAPI.Defs import (
     PROP_TYPE
@@ -30,14 +28,13 @@ from MAPI.Tags import (
 )
 from MAPI.Struct import (
     MAPIErrorNotFound, MAPIErrorInterfaceNotSupported, SPropValue, ROWENTRY,
-    MAPIErrorNoAccess
+    MAPIErrorNoAccess, MAPIErrorDiskError
 )
+
+MAX_SAVE_RETRIES = int(os.getenv('PYKO_MAPI_SAVE_MAX_RETRIES', 3))
 
 from .compat import bdec as _bdec
 from .errors import Error, NotFoundError, ArgumentError
-
-RRULE_WEEKDAYS = {0: SU, 1: MO, 2: TU, 3: WE, 4: TH, 5: FR, 6: SA}
-UTC = dateutil.tz.tzutc()
 
 if sys.hexversion >= 0x03000000:
     from . import table as _table
@@ -170,59 +167,6 @@ def human_to_bytes(s):
         prefix[s] = 1 << (i + 1) * 10
     return int(num * prefix[letter])
 
-class MAPITimezone(datetime.tzinfo):
-    def __init__(self, tzdata):
-        # TODO more thoroughly check specs (MS-OXOCAL)
-        self.timezone, _, self.timezonedst, \
-        _, \
-        _, self.dstendmonth, self.dstendweek, self.dstendday, self.dstendhour, _, _, _, \
-        _, \
-        _, self.dststartmonth, self.dststartweek, self.dststartday, self.dststarthour, _, _, _ = struct.unpack('<lll H HHHHHHHH H HHHHHHHH', tzdata)
-
-    def _date(self, dt, dstmonth, dstweek, dstday, dsthour):
-        d = datetime.datetime(dt.year, dstmonth, 1, dsthour)
-        if dstday == 5: # last weekday of month
-            d += relativedelta(months=1, days=-1, weekday=RRULE_WEEKDAYS[dstweek](-1))
-        else:
-            d += relativedelta(weekday=RRULE_WEEKDAYS[dstweek](dstday))
-        return d
-
-    def dst(self, dt):
-        if self.dststartmonth == 0: # no DST
-            return datetime.timedelta(0)
-
-        start = self._date(dt, self.dststartmonth, self.dststartweek, self.dststartday, self.dststarthour)
-        end = self._date(dt, self.dstendmonth, self.dstendweek, self.dstendday, self.dstendhour)
-
-        # Can't compare naive to aware objects, so strip the timezone from
-        # dt first.
-        # TODO end < start case!
-        dt = dt.replace(tzinfo=None)
-
-        if ((start < end and start < dt < end) or \
-            (start > end and not end < dt < start)):
-            return datetime.timedelta(minutes=-self.timezone)
-        else:
-            return datetime.timedelta(minutes=0)
-
-    def utcoffset(self, dt):
-        return datetime.timedelta(minutes=-self.timezone) + self.dst(dt)
-
-    def tzname(self, dt):
-        return 'MAPITimezone()'
-
-    def __repr__(self):
-        return 'MAPITimezone()'
-
-def _from_utc(date, tzinfo):
-    return date.replace(tzinfo=UTC).astimezone(tzinfo).replace(tzinfo=None)
-
-def _to_utc(date, tzinfo):
-    return date.replace(tzinfo=tzinfo).astimezone().replace(tzinfo=None)
-
-def _tz2(date, tz1, tz2):
-    return date.replace(tzinfo=tz1).astimezone(tz2).replace(tzinfo=None)
-
 def arg_objects(arg, supported_classes, method_name):
     if isinstance(arg, supported_classes):
         objects = [arg]
@@ -243,3 +187,18 @@ def _bdec_eid(entryid):
         return _bdec(entryid)
     except (TypeError, binascii.Error):
         raise ArgumentError("invalid entryid: %r" % entryid)
+
+def _save(mapiobj):
+    # retry on deadlock or other temporary issue
+    t = 0.1
+    retry = 0
+    while True:
+        try:
+            mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            break
+        except MAPIErrorDiskError:
+            if retry >= MAX_SAVE_RETRIES:
+                raise
+            else:
+                retry += 1
+                time.sleep(t)

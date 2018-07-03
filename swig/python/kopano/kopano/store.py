@@ -347,7 +347,7 @@ class Store(Properties):
         props = [o for o in objects if isinstance(o, Property)]
         if props:
             self.mapiobj.DeleteProps([p.proptag for p in props])
-            self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(self.mapiobj)
 
         delgs = [o for o in objects if isinstance(o, Delegation)]
         for d in delgs:
@@ -539,7 +539,7 @@ class Store(Properties):
         # XXX only for detaching atm
         if store is None:
             self.mapiobj.DeleteProps([PROP_STORE_ENTRYIDS, PROP_ITEM_ENTRYIDS])
-            self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(self.mapiobj)
 
     @property
     def archive_folder(self):
@@ -638,7 +638,7 @@ class Store(Properties):
             flags.Value.append(1 if see_private else 0)
 
             fbmsg.SetProps([entryids, names, flags])
-            fbmsg.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(fbmsg)
 
             return Delegation(self, user)
         else:

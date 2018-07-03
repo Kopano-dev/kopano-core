@@ -10,10 +10,7 @@ import email.parser as email_parser
 import email.utils as email_utils
 import functools
 import os
-import random
 import sys
-import struct
-import time
 import traceback
 import warnings
 
@@ -102,7 +99,7 @@ from .attachment import Attachment
 from .properties import Properties
 from .recurrence import Occurrence
 from .restriction import Restriction
-from .meetingrequest import MeetingRequest, _copytags
+from .meetingrequest import MeetingRequest, _copytags, _create_meetingrequest
 from .address import Address
 from .table import Table
 from .contact import Contact
@@ -148,14 +145,14 @@ class PersistentList(list):
             ret = func(*args, **kwargs)
             data = [_unicode(x) for x in self]
             self.mapiobj.SetProps([SPropValue(self.proptag, data)])
-            self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(self.mapiobj)
             return ret
         return _func
 
 class Item(Properties, Contact, Appointment):
     """Item class"""
 
-    def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None,
+    def __init__(self, folder=None, eml=None, ics=None, vcf=None, load=None,
                  loads=None, attachments=True, create=False, mapiobj=None,
                  entryid=None, content_flag=None, cache={}, save=True):
         self._eml = None
@@ -166,13 +163,10 @@ class Item(Properties, Contact, Appointment):
         self._content_flag = content_flag or 0
         self._cache = cache
 
-        if isinstance(parent, _folder.Folder):
-            self._folder = parent
-            self.store = parent.store
-            self.server = parent.server
-        elif isinstance(parent, _store.Store):
-            self.store = parent
-            self.server = parent.server
+        if folder:
+            self._folder = folder
+            self.store = folder.store
+            self.server = folder.server
 
         if create:
             self.mapiobj = self.folder.mapiobj.CreateMessage(None, MAPI_ASSOCIATED if self.folder.content_flag & MAPI_ASSOCIATED else 0)
@@ -218,7 +212,7 @@ class Item(Properties, Contact, Appointment):
                         self.from_ = self.store.user
                         self[PidLidAppointmentStateFlags] = 1
             if save:
-                self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+                _utils._save(self.mapiobj)
 
     @property
     def mapiobj(self):
@@ -319,7 +313,7 @@ class Item(Properties, Contact, Appointment):
     @name.setter
     def name(self, x):
         self.mapiobj.SetProps([SPropValue(PR_DISPLAY_NAME_W, _unicode(x))])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def normalized_subject(self):
@@ -362,7 +356,7 @@ class Item(Properties, Contact, Appointment):
         * IPM.Task                       - task
         """
         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, _unicode(messageclass))])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def created(self):
@@ -452,7 +446,7 @@ class Item(Properties, Contact, Appointment):
         proptag = CHANGE_PROP_TYPE(proptag, PT_MV_UNICODE)
         data = [_unicode(x) for x in value]
         self.mapiobj.SetProps([SPropValue(proptag, data)])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def folder(self):
@@ -485,7 +479,7 @@ class Item(Properties, Contact, Appointment):
 
         warnings.warn('item.importance is deprecated (use item.urgency)', _DeprecationWarning)
         self.mapiobj.SetProps([SPropValue(PR_IMPORTANCE, value)])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def urgency(self): # TODO rename back to 'importance' with core 9?
@@ -602,8 +596,8 @@ class Item(Properties, Contact, Appointment):
         stream.Write(data)
         stream.Commit(0)
 
-        attach.SaveChanges(KEEP_OPEN_READWRITE)
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
+        _utils._save(attach)
+        _utils._save(self.mapiobj) # XXX needed?
 
         att = Attachment(self, mapiitem=self.mapiobj, mapiobj=attach)
 
@@ -729,51 +723,6 @@ class Item(Properties, Contact, Appointment):
         _, data = mic.Finalize(0)
         return data
 
-    def _send_meeting_request(self, cancel=False):
-        # XXX: check if start/end is set
-        # XXX: Check if we can copy the calendar item.
-        # XXX: Update the calendar item, for tracking status
-        # XXX: Set the body of the message like WebApp / OL does.
-        item = self.store.outbox.create_item(subject=self.subject, to=self.to, start=self.start, end=self.end, html=self.html)
-        # Set meeting request props
-        item.message_class = 'IPM.Schedule.Meeting.Request'
-        item.create_prop(PR_START_DATE, self.start)
-        item.create_prop(PR_END_DATE, self.end)
-        item.create_prop(PR_RESPONSE_REQUESTED, True)
-        item.private = False
-        item.reminder = False
-        item.create_prop('appointment:33321', True, PT_BOOLEAN) # PidLidFInvited
-        item.create_prop('appointment:33320', self.start, PT_SYSTIME) # basedate????!
-        item.create_prop('appointment:33316', False, PT_BOOLEAN) # intendedbusystatus???
-        item.create_prop('appointment:33315', False, PT_BOOLEAN) # XXX item.recurring
-
-        stateflags = ASF_MEETING | ASF_RECEIVED
-        if cancel:
-            stateflags |= ASF_CANCELED
-        item[PidLidAppointmentStateFlags] = stateflags
-
-        item.create_prop('appointment:33301', False, PT_BOOLEAN) # XXX item.alldayevent?!
-        duration = int((self.end - self.start).total_seconds() / 60) # XXX: total time in minutes
-        item.create_prop('appointment:33293', self.start, PT_SYSTIME) # XXX start
-        item.create_prop('appointment:33294', self.end, PT_SYSTIME) # XXX end
-        item.create_prop('appointment:33299', duration, PT_LONG) # XXX item.alldayevent?!
-        item.create_prop('appointment:33285', 1, PT_LONG) # XXX busystatus???
-        item.create_prop('appointment:33281', 0, PT_LONG) # XXX updatecounter???
-        item.create_prop('appointment:33280', 0, PT_BOOLEAN) # XXX sendasical
-        item.create_prop(PR_OWNER_APPT_ID, random.randrange(2**32))
-        item.create_prop(PR_ICON_INDEX, 1026) # XXX: meeting request icon index.. const?
-
-        goid = self.get(PidLidCleanGlobalObjectId)
-        if goid is None:
-            goid = self._generate_goid()
-            # TODO set on appointment creation already?
-            self[PidLidCleanGlobalObjectId] = goid
-
-        item.create_prop('meeting:3', goid, PT_BINARY)
-        item.create_prop('meeting:35', goid, PT_BINARY)
-
-        return item
-
     def _generate_reply_body(self):
         """Create a reply body"""
         # TODO(jelle): HTML formatted text support.
@@ -832,7 +781,7 @@ class Item(Properties, Contact, Appointment):
                 self.get(PidLidAppointmentEndWhole) is None):
                 raise Error('appointment requires start and end date')
 
-            item = self._send_meeting_request(cancel=cancel)
+            item = _create_meetingrequest(self, cancel=cancel)
 
         icon_index = {
             b'66': 261,  # reply
@@ -862,50 +811,6 @@ class Item(Properties, Contact, Appointment):
             if self.message_class != 'IPM.Appointment':
                 raise Error('cannot send item without recipients')
 
-    def _generate_goid(self):
-        """
-        Generate a meeting request Global Object ID.
-
-        The Global Object ID is a MAPI property that any MAPI client uses to
-        correlate meeting updates and responses with a particular meeting on
-        the calendar. The Global Object ID is the same across all copies of the
-        item.
-
-        The Global Object ID consists of the following data:
-
-        * byte array id (16 bytes) - identifiers the BLOB as a GLOBAL Object ID.
-        * year (YH + YL) - original year of the instance represented by the
-        exception. The value is in big-endian format.
-        * M (byte) - original month of the instance represented by the exception.
-        * D (byte) - original day of the instance represented by the exception.
-        * Creation time - 8 byte date
-        * X - reversed byte array of size 8.
-        * size - LONG, the length of the data field.
-        * data - a byte array (16 bytes) that uniquely identifers the meeting object.
-        """
-
-        from MAPI.Time import NANOSECS_BETWEEN_EPOCH
-
-        # XXX: in MAPI.Time?
-        def mapi_time(t):
-            return int(t) * 10000000 + NANOSECS_BETWEEN_EPOCH
-
-        # byte array id
-        goid = b'\x04\x00\x00\x00\x82\x00\xe0\x00t\xc5\xb7\x10\x1a\x82\xe0\x08'
-        # YEARHIGH, YEARLOW, MONTH, DATE
-        goid += struct.pack('>H2B', 0, 0, 0)
-        # Creation time, lowdatetime, highdatetime
-        now = mapi_time(time.time())
-        goid += struct.pack('II', now & 0xffffffff, now >> 32)
-        # Reserved, 8 zeros
-        goid += struct.pack('L', 0)
-        # data size
-        goid += struct.pack('I', 16)
-        # Unique data
-        for _ in range(0, 16):
-            goid += struct.pack('B', random.getrandbits(8))
-        return goid
-
     @property
     def sender(self):
         """ Sender :class:`Address` """
@@ -923,7 +828,7 @@ class Item(Properties, Contact, Appointment):
             SPropValue(PR_SENDER_EMAIL_ADDRESS_W, pr_email),
             SPropValue(PR_SENDER_ENTRYID, pr_entryid),
         ])
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     @property
     def from_(self):
@@ -947,7 +852,7 @@ class Item(Properties, Contact, Appointment):
         if not self.sender.email:
             self.sender = addr
 
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     def table(self, name, restriction=None, order=None, columns=None):
         return Table(
@@ -1072,7 +977,7 @@ class Item(Properties, Contact, Appointment):
                 SPropValue(PR_ENTRYID, pr_entryid),
             ])
         self.mapiobj.ModifyRecipients(MODRECIP_ADD, names)
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
+        _utils._save(self.mapiobj) # XXX needed?
 
     @to.setter
     def to(self, addrs):
@@ -1106,7 +1011,7 @@ class Item(Properties, Contact, Appointment):
 
         # XXX: refresh the mapiobj since PR_ATTACH_NUM is updated when opening
         # a message? PR_HASATTACH is also updated by the server.
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
 
     def match(self, restriction):
         return restriction.match(self)
@@ -1264,9 +1169,9 @@ class Item(Properties, Contact, Appointment):
                     stream = attach.OpenProperty(PR_ATTACH_DATA_BIN, IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_MODIFY | MAPI_CREATE)
                     stream.Write(data)
                     stream.Commit(0)
-                attach.SaveChanges(KEEP_OPEN_READWRITE)
+                _utils._save(attach)
 
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
+        _utils._save(self.mapiobj) # XXX needed?
 
     def load(self, f, attachments=True):
         self._load(_pickle_load(f), attachments)
@@ -1306,9 +1211,9 @@ class Item(Properties, Contact, Appointment):
         for key, val in kwargs.items():
             setattr(item, key, val)
 
-        msg.SaveChanges(KEEP_OPEN_READWRITE)
-        attach.SaveChanges(KEEP_OPEN_READWRITE)
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
+        _utils._save(msg)
+        _utils._save(attach)
+        _utils._save(self.mapiobj) # XXX needed?
 
         return item
 
@@ -1376,13 +1281,13 @@ class Item(Properties, Contact, Appointment):
         exclude_props = [PROP_REF_STORE_ENTRYID, PROP_REF_ITEM_ENTRYID, PROP_REF_PREV_ENTRYID, PROP_FLAGS]
         self.mapiobj.CopyTo(None, exclude_props, 0, None, IID_IMessage, mapiobj, 0)
 
-        mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(mapiobj)
 
         # update backref
         if new:
             entryid = HrGetOneProp(mapiobj, PR_ENTRYID).Value
             self.mapiobj.SetProps([SPropValue(PROP_REF_ITEM_ENTRYID, entryid)])
-            self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(self.mapiobj)
 
     def copy(self, folder, _delete=False):
         """ Copy item to folder; return copied item
@@ -1392,7 +1297,7 @@ class Item(Properties, Contact, Appointment):
 
         mapiobj = folder.mapiobj.CreateMessage(None, 0)
         self.mapiobj.CopyTo([], [], 0, None, IID_IMessage, mapiobj, 0)
-        mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(mapiobj)
         if _delete:
             self.folder.delete(self)
         item = Item(mapiobj=mapiobj)

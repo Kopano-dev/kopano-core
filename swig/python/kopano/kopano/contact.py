@@ -5,6 +5,8 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file)
 Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 
+import sys
+
 from MAPI import (
     KEEP_OPEN_READWRITE,
 )
@@ -44,6 +46,15 @@ from .compat import (
     fake_unicode as _unicode,
 )
 from .picture import Picture
+
+if sys.hexversion >= 0x03000000:
+    try:
+        from . import utils as _utils
+    except ImportError: # pragma: no cover
+        _utils = sys.modules[__package__ + '.utils']
+else: # pragma: no cover
+    import utils as _utils
+
 
 class PhysicalAddress(object):
     def __init__(self, item, proptags):
@@ -177,7 +188,7 @@ class Contact(object):
         attachment = self.create_attachment(name, data)
         attachment[PR_ATTACHMENT_CONTACTPHOTO] = True
         attachment.mimetype = mimetype
-        self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(self.mapiobj)
         return attachment
 
     @property

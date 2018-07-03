@@ -5,15 +5,17 @@ Copyright 2017 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import datetime
+import random
 import struct
 import sys
+import time
 
 import libfreebusy
 
 from MAPI import (
     MAPI_UNICODE, MODRECIP_MODIFY, KEEP_OPEN_READWRITE, RELOP_EQ,
     MODRECIP_ADD, MAPI_TO, MAPI_BCC, SUPPRESS_RECEIPT, MSGFLAG_READ,
-    MSGFLAG_UNSENT, MODRECIP_REMOVE,
+    MSGFLAG_UNSENT, MODRECIP_REMOVE, PT_BINARY
 )
 
 from MAPI.Tags import (
@@ -42,6 +44,12 @@ from MAPI.Struct import (
     SPropValue, SPropertyRestriction, MAPIErrorUnknownEntryid,
 )
 
+from MAPI.Time import NANOSECS_BETWEEN_EPOCH
+
+from .defs import (
+    ASF_MEETING, ASF_RECEIVED, ASF_CANCELED
+)
+
 from .compat import repr as _repr
 from .errors import Error
 from .restriction import Restriction
@@ -51,10 +59,13 @@ if sys.hexversion >= 0x03000000:
         from . import utils as _utils
     except ImportError: # pragma: no cover
         _utils = sys.modules[__package__ + '.utils']
+
     from . import property_ as _prop
+    from . import timezone as _timezone
 else: # pragma: no cover
     import utils as _utils
     import property_ as _prop
+    import timezone as _timezone
 
 # XXX move all pidlids into separate definition file, plus short description of their meanings
 
@@ -156,6 +167,74 @@ def _copytags(mapiobj):
     ])
     return copytags
 
+# TODO: in MAPI.Time?
+def mapi_time(t):
+    return int(t) * 10000000 + NANOSECS_BETWEEN_EPOCH
+
+def _generate_goid():
+    """
+    Generate a meeting request Global Object ID.
+
+    The Global Object ID is a MAPI property that any MAPI client uses to
+    correlate meeting updates and responses with a particular meeting on
+    the calendar. The Global Object ID is the same across all copies of the
+    item.
+
+    The Global Object ID consists of the following data:
+
+    * byte array id (16 bytes) - identifiers the BLOB as a GLOBAL Object ID.
+    * year (YH + YL) - original year of the instance represented by the
+    exception. The value is in big-endian format.
+    * M (byte) - original month of the instance represented by the exception.
+    * D (byte) - original day of the instance represented by the exception.
+    * Creation time - 8 byte date
+    * X - reversed byte array of size 8.
+    * size - LONG, the length of the data field.
+    * data - a byte array (16 bytes) that uniquely identifers the meeting object.
+    """
+
+    # byte array id
+    goid = b'\x04\x00\x00\x00\x82\x00\xe0\x00t\xc5\xb7\x10\x1a\x82\xe0\x08'
+    # YEARHIGH, YEARLOW, MONTH, DATE
+    goid += struct.pack('>H2B', 0, 0, 0)
+    # Creation time, lowdatetime, highdatetime
+    now = mapi_time(time.time())
+    goid += struct.pack('II', now & 0xffffffff, now >> 32)
+    # Reserved, 8 zeros
+    goid += struct.pack('L', 0)
+    # data size
+    goid += struct.pack('I', 16)
+    # Unique data
+    for _ in range(0, 16):
+        goid += struct.pack('B', random.getrandbits(8))
+    return goid
+
+def _create_meetingrequest(item, cancel=False):
+    # TODO Update the calendar item, for tracking status
+    # TODO Set the body of the message like WebApp / OL does.
+    # TODO Whitelist properties?
+
+    item2 = item.copy(item.store.outbox)
+
+    # Set meeting request props
+    item2.message_class = 'IPM.Schedule.Meeting.Request'
+    stateflags = ASF_MEETING | ASF_RECEIVED
+    if cancel:
+        stateflags |= ASF_CANCELED
+    item2[PidLidAppointmentStateFlags] = stateflags
+
+    goid = item.get(PidLidCleanGlobalObjectId)
+    if goid is None:
+        goid = _generate_goid()
+
+        item2.create_prop(PidLidCleanGlobalObjectId, goid, PT_BINARY)
+        item2.create_prop(PidLidGlobalObjectId, goid, PT_BINARY) # TODO add basedate
+
+        # update appointment
+        item[PidLidCleanGlobalObjectId] = goid
+
+    return item2
+
 class MeetingRequest(object):
     """MeetingRequest class"""
 
@@ -193,7 +272,7 @@ class MeetingRequest(object):
         if blob is not None:
             y, m, d = struct.unpack_from('>HBB', blob, 16)
             if (y, m, d) != (0, 0, 0):
-                return _utils._to_utc(datetime.datetime(y, m, d), self.item.tzinfo)
+                return _timezone._to_utc(datetime.datetime(y, m, d), self.item.tzinfo)
 
     @property
     def update_counter(self):
@@ -281,7 +360,7 @@ class MeetingRequest(object):
                 cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD, [organizer_props] + rows)
             else:
                 cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD, [organizer_props])
-            cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(cal_item.mapiobj)
 
     def accept(self, tentative=False, response=True, add_bcc=False):
         """ Accept meeting request
@@ -364,7 +443,7 @@ class MeetingRequest(object):
                 table.SetColumns(RECIP_PROPS, 0)
                 rows = table.QueryRows(-1, 0)
                 cal_item.mapiobj.ModifyRecipients(MODRECIP_MODIFY, rows)
-                cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+                _utils._save(cal_item.mapiobj)
 
         # add self as BCC for ZCP-9901 XXX still relevant?
         proptags = [
@@ -389,7 +468,7 @@ class MeetingRequest(object):
         ])
         if add_bcc and not merge:
             cal_item.mapiobj.ModifyRecipients(MODRECIP_ADD, [props])
-            cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(cal_item.mapiobj)
 
         # send response
         if response:
@@ -442,7 +521,7 @@ class MeetingRequest(object):
                     message[PidLidBusyStatus] = libfreebusy.fbFree
                     message[PR_MESSAGE_FLAGS] = MSGFLAG_UNSENT | MSGFLAG_READ
 
-                    message._attobj.SaveChanges(KEEP_OPEN_READWRITE)
+                    _utils._save(message._attobj)
 
         else:
             if delete:
@@ -452,7 +531,7 @@ class MeetingRequest(object):
                 cal_item.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')])
 
         if cal_item:
-            cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(cal_item.mapiobj)
 
     def process_response(self):
         """ Process meeting request response """
@@ -527,11 +606,11 @@ class MeetingRequest(object):
             message[PidLidAppointmentCounterProposal] = True
 
         # save all the things
-        message.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        _utils._save(message.mapiobj)
 
         if attach:
-            attach.SaveChanges(KEEP_OPEN_READWRITE)
-            cal_item.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+            _utils._save(attach)
+            _utils._save(cal_item.mapiobj)
 
     def _compare_ab_entryids(self, entryid1, entryid2): # XXX shorten?
         smtp1 = self._get_smtp_address(entryid1)
