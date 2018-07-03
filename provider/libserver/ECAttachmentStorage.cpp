@@ -66,6 +66,7 @@ class ECFileAttachment : public ECAttachmentStorage {
 	std::string CreateAttachmentFilename(const ext_siid &, bool compressed);
 	virtual ECRESULT Commit() override;
 	virtual ECRESULT Rollback() override;
+	ECRESULT save_instance_data(const std::string &filename, int fd, unsigned int propid, size_t z, unsigned char *data, bool comp);
 
 	size_t attachment_size_safety_limit;
 	int m_dirFd = -1;
@@ -1506,22 +1507,11 @@ static bool EvaluateCompressibleness(const uint8_t *const lpData, const size_t i
  *
  * @return Kopano error code
  */
-ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
-    ULONG ulPropId, size_t iSize, unsigned char *lpData)
+ECRESULT ECFileAttachment::save_instance_data(const std::string &filename, int fd,
+    ULONG ulPropId, size_t iSize, unsigned char *lpData, bool compressAttachment)
 {
-	bool compressible = EvaluateCompressibleness(lpData, iSize);
-
-	bool compressAttachment = compressible ? m_bFileCompression && iSize : false;
-
 	ECRESULT er = erSuccess;
-	auto filename = CreateAttachmentFilename(ulInstanceId, compressAttachment);
 	gzFile gzfp = NULL;
-	int fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IRUSR | S_IRGRP);
-	if (fd < 0) {
-		ec_log_err("Unable to open attachment \"%s\" for writing: %s", filename.c_str(), strerror(errno));
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
-	}
 
 	// no need to remove the file, just overwrite it
 	if (compressAttachment) {
@@ -1551,10 +1541,6 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
 			goto exit;
 		}
 	}
-
-	// set in transaction before disk full check to remove empty file
-	if(m_bTransaction)
-		m_setNewAttachment.emplace(ulInstanceId);
 exit:
 	if (gzfp != NULL) {
 		int ret = gzclose(gzfp);
@@ -1570,7 +1556,24 @@ exit:
 	return er;
 }
 
-/**
+ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &instance,
+    unsigned int propid, size_t dsize, unsigned char *data)
+{
+	auto comp = EvaluateCompressibleness(data, dsize) ? m_bFileCompression && dsize > 0 : false;
+	auto filename = CreateAttachmentFilename(instance, comp);
+	int fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IRUSR | S_IRGRP);
+	if (fd < 0) {
+		ec_log_err("Unable to open attachment \"%s\" for writing: %s", filename.c_str(), strerror(errno));
+		return KCERR_DATABASE_ERROR;
+	}
+	auto ret = save_instance_data(filename, fd, propid, dsize, data, comp);
+	if (ret == erSuccess && m_bTransaction)
+		/* set in transaction before disk full check to remove empty file */
+		m_setNewAttachment.emplace(instance);
+	return ret;
+}
+
+/** 
  * Save a property in a new instance from a serializer
  *
  * @param[in] ulInstanceId InstanceID to save data under
