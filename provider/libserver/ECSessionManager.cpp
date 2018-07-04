@@ -59,12 +59,6 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 	}
 
 	m_lpNotificationManager.reset(new ECNotificationManager());
-	err = ECAttachmentConfig::create(m_server_guid, m_lpConfig, &unique_tie(m_atxconfig));
-	if (err != hrSuccess) {
-		err = kcerr_to_mapierr(err);
-		ec_log_crit("Could not initialize attachment store: %s", GetMAPIErrorMessage(err));
-		throw KMAPIError(err);
-	}
 }
 
 ECSessionManager::~ECSessionManager()
@@ -123,6 +117,12 @@ ECRESULT ECSessionManager::LoadSettings(){
 
 	memcpy(&m_ullSourceKeyAutoIncrement, lpDBRow[0], sizeof(m_ullSourceKeyAutoIncrement));
 	m_sguid_set = true;
+
+	er = ECAttachmentConfig::create(m_server_guid, m_lpConfig, &unique_tie(m_atxconfig));
+	if (er != hrSuccess) {
+		ec_log_crit("Could not initialize attachment store: %s", GetMAPIErrorMessage(kcerr_to_mapierr(er)));
+		return er;
+	}
 	return erSuccess;
 }
 
