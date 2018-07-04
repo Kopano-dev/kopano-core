@@ -166,7 +166,7 @@ double timespec2dbl(const struct timespec &t)
 }
 
 // Does mkdir -p <path>
-int CreatePath(const char *createpath)
+int CreatePath(const char *createpath, unsigned int mode)
 {
 	struct stat s;
 	std::unique_ptr<char[], cstdlib_deleter> path(strdup(createpath));
@@ -193,7 +193,7 @@ int CreatePath(const char *createpath)
 	if (CreatePath(path.get()) != 0)
 		return -1;
 	// Create the actual directory
-	return mkdir(createpath, 0700);
+	return mkdir(createpath, mode);
 }
 
 void set_thread_name(pthread_t tid, const std::string & name)

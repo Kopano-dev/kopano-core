@@ -60,7 +60,7 @@ time_t timegm(struct tm *t);
 #endif
 
 // mkdir -p
-extern _kc_export int CreatePath(const char *);
+extern _kc_export int CreatePath(const char *, unsigned int = 0770);
 
 // Random-number generators
 extern _kc_export void rand_init(void);
