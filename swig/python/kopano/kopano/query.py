@@ -5,7 +5,6 @@ Copyright 2018 - Kopano and its licensors (see LICENSE file for details)
 """
 
 import datetime
-import string
 import time
 import re
 import sys
