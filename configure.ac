@@ -199,8 +199,6 @@ AC_ARG_WITH([tmpfilesdir],
 		AS_IF([test -z "$tmpfilesdir"], [tmpfilesdir='${prefix}/lib/tmpfiles.d'])
 	])
 AC_SUBST([tmpfilesdir])
-PKGLIBEXECDIR="$libexecdir/kopano"
-AC_SUBST([PKGLIBEXECDIR])
 
 dnl Not all files will be installed to ${prefix}, so we need to cheat a bit
 dnl to make "distcheck" succeed.

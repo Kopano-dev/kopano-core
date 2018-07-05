@@ -6,7 +6,7 @@ cu_SCRIPTS = 00createstore
 ccdir = ${bindir}/createcompany.d
 cc_SCRIPTS = 00createpublic
 
-replcmd = ${AM_V_GEN}${SED} -e 's|[@]uscriptlibdir@|${uscriptlibdir}|g' -e 's|[@]uscriptconfdir@|${uscriptconfdir}|g' <"$<" >"$@"
+replcmd = ${AM_V_GEN}${SED} -e 's|[@]pkglibexecdir@|${pkglibexecdir}|g' -e 's|[@]uscriptlibdir@|${uscriptlibdir}|g' -e 's|[@]uscriptconfdir@|${uscriptconfdir}|g' <"$<" >"$@"
 
 createcompany: createcompany.in
 	${replcmd}
