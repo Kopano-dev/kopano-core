@@ -288,7 +288,7 @@ class MeetingRequest(object):
         return store.calendar
 
     @property
-    def calendar_item(self):
+    def calendar_item(self): # TODO ambiguous: split in two (match exact GOID or parent recurrence?)
         """ Global calendar item :class:`item <Item>` (possibly in delegator store) """
 
         goid = self.item.get_prop(PidLidCleanGlobalObjectId)
@@ -426,7 +426,7 @@ class MeetingRequest(object):
 
             # otherwise replace calendar item
             else:
-                if cal_item:
+                if cal_item and cal_item[PidLidGlobalObjectId] == self.item[PidLidGlobalObjectId]:
                     calendar.delete(cal_item)
                 cal_item = self.item.copy(calendar)
                 self._init_calitem(cal_item, tentative)
