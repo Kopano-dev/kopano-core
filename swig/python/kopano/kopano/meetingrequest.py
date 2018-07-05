@@ -465,7 +465,9 @@ class MeetingRequest(object):
                 merge = True
                 rec = cal_item.recurrence
                 for item in existing_items:
-                    rec._create_exception(item.meetingrequest.basedate, item, merge=True)
+                    if not rec._is_exception(item.meetingrequest.basedate):
+                        rec._create_exception(item.meetingrequest.basedate, item, merge=True)
+                    # TODO else update..?
 
             calendar.delete(existing_items)
 
