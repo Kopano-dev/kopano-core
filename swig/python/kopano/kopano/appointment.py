@@ -230,7 +230,7 @@ class Appointment(object):
 
     @timezone.setter
     def timezone(self, value):
-        self[PidLidTimeZoneDescription] = value
+        self[PidLidTimeZoneDescription] = _unicode(value)
         self[PidLidTimeZoneStruct] = _timezone._timezone_struct(value)
 
     def accept(self, comment=None, tentative=False, respond=True):

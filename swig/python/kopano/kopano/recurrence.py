@@ -43,7 +43,7 @@ from dateutil.rrule import (
 import dateutil.tz
 
 from .compat import (
-    repr as _repr, benc as _benc, bdec as _bdec,
+    repr as _repr, benc as _benc, bdec as _bdec, fake_unicode as _unicode
 )
 from .errors import (
     NotSupportedError, NotFoundError, ArgumentError,
@@ -1094,6 +1094,7 @@ class Occurrence(object):
 
     @location.setter
     def location(self, value):
+        value = _unicode(value)
         self._update(location=value)
         self._location = value
 
@@ -1103,6 +1104,7 @@ class Occurrence(object):
 
     @subject.setter
     def subject(self, value):
+        value = _unicode(value)
         self._update(subject=value)
         self._subject = value
 
