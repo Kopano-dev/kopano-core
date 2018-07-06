@@ -847,10 +847,10 @@ int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 	ret = getaddrinfo(*szBind == '\0' ? NULL : szBind,
 	      port_string, &sock_hints, &sock_res);
 	if (ret == EAI_SYSTEM) {
-		ec_log_err("getaddrinfo(%s,%u): %s", szBind, ulPort, gai_strerror(ret));
+		ec_log_err("getaddrinfo [%s]:%u: %s", szBind, ulPort, strerror(errno));
 		return -errno;
 	} else if (ret != 0) {
-		ec_log_err("getaddrinfo(%s,%u): %s", szBind, ulPort, gai_strerror(ret));
+		ec_log_err("getaddrinfo [%s]:%u: %s", szBind, ulPort, gai_strerror(ret));
 		return -EINVAL;
 	}
 	sock_res = reorder_addrinfo_ipv6(sock_res);
@@ -893,8 +893,8 @@ int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 
 		if (listen(fd, INT_MAX) < 0) {
 			auto saved_errno = errno;
-			ec_log_err("Unable to start listening on port %d: %s",
-				ulPort, strerror(errno));
+			ec_log_err("Unable to start listening on socket [%s]:%d: %s",
+				szBind, ulPort, strerror(errno));
 			errno = saved_errno;
 			goto exit;
 		}
@@ -908,12 +908,12 @@ int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 		break;
 	}
 	if (fd < 0 && sock_last != NULL) {
-		ec_log_crit("Unable to create socket(%u,%u,%u) port %s: %s",
-			sock_last->ai_family, sock_last->ai_socktype,
-			sock_last->ai_protocol, port_string, strerror(errno));
+		ec_log_crit("Unable to create socket for [%s]:%u (family=%u protocol=%u): %s",
+			szBind, ulPort, sock_last->ai_family,
+			sock_last->ai_protocol, strerror(errno));
 		goto exit;
 	} else if (fd < 0) {
-		ec_log_err("no sockets proposed");
+		ec_log_err("OS proposed no sockets for \"[%s]:%u\"", szBind, ulPort);
 		errno = ENOENT;
 		goto exit;
 	}
