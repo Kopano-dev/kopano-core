@@ -92,7 +92,7 @@ class Checker(object):
         try:
             searchkey = item.searchkey
             spameml = item.eml()
-            dir = spam and self.spamdir or self.hamdir
+            dir = self.spamdir if spam else self.hamdir
             emlfilename = os.path.join(dir, searchkey + '.eml')
 
             with closing(open(emlfilename, "wb")) as fh:
