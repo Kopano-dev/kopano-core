@@ -166,34 +166,30 @@ double timespec2dbl(const struct timespec &t)
 }
 
 // Does mkdir -p <path>
-int CreatePath(const char *createpath, unsigned int mode)
+int CreatePath(std::string s, unsigned int mode)
 {
-	struct stat s;
-	std::unique_ptr<char[], cstdlib_deleter> path(strdup(createpath));
-
-	// Remove trailing slashes
-	size_t len = strlen(path.get());
-	while (len > 0 && (path[len-1] == '/' || path[len-1] == '\\'))
-		path[--len] = 0;
-
-	if (stat(path.get(), &s) == 0) {
-		if (s.st_mode & S_IFDIR)
-			return 0; // Directory is already there
-		return -1; // Item is not a directory
-	}
-	// We need to create the directory
-	// First, create parent directories
-	char *trail = strrchr(path.get(), '/') > strrchr(path.get(), '\\') ?
-	              strrchr(path.get(), '/') : strrchr(path.get(), '\\');
-	if (trail == NULL)
-		// Should only happen if you are trying to create /path/to/dir
-		// in win32 or \path\to\dir in linux
-		return -1;
-	*trail = '\0';
-	if (CreatePath(path.get()) != 0)
-		return -1;
-	// Create the actual directory
-	return mkdir(createpath, mode);
+	if (s.size() == 0)
+		return -ENOENT;
+	size_t p = 0;
+	while (s[p] == '/')
+		/* No need to create the root directory; it always exists. */
+		++p;
+	do {
+		p = s.find('/', p);
+		if (p == std::string::npos)
+			break;
+		s[p] = '\0';
+		auto ret = mkdir(s.c_str(), mode);
+		if (ret != 0 && errno != EEXIST)
+			return -errno;
+		s[p++] = '/';
+		while (s[p] == '/')
+			++p;
+	} while (true);
+	auto ret = mkdir(s.c_str(), mode);
+	if (ret != 0 && errno != EEXIST)
+		return -errno;
+	return 0;
 }
 
 void set_thread_name(pthread_t tid, const std::string & name)
