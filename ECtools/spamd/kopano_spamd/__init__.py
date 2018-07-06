@@ -69,7 +69,7 @@ class Checker(object):
         searchkey = item.searchkey
 
         if item.folder == item.store.junk and \
-           item.header(headertag).upper() != 'YES':
+           item.header(self.headertag).upper() != 'YES':
 
             fn = os.path.join(self.hamdir, searchkey + '.eml')
             if os.path.isfile(fn):
