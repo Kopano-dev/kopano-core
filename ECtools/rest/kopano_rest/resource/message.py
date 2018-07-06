@@ -140,6 +140,7 @@ class MessageResource(ItemResource):
         server, store = _server_store(req, userid, self.options)
         item = _item(store, itemid)
         store.delete(item)
+        resp.status = falcon.HTTP_204
 
 class EmbeddedMessageResource(MessageResource):
     fields = MessageResource.fields.copy()
