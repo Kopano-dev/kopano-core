@@ -23,8 +23,10 @@
 #	include <fcntl.h>
 #	include <unistd.h>
 #	include <kopano/UnixUtil.h>
+#include <kopano/scope.hpp>
 
 using namespace KC;
+using namespace std::string_literals;
 
 /**
  * Creates a AF_UNIX socket in a given location and starts to listen
@@ -213,7 +215,18 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServer
 	/* The v6only field exists in 2.8.56, but has no effect. */
 	lpsSoap->bind_v6only = strcmp(lpServerName, "*") != 0;
 #endif
-	lpsSoap->socket = socket = soap_bind(lpsSoap.get(), *lpServerName == '\0' ? nullptr : lpServerName, nServerPort, INT_MAX);
+	struct sockaddr_storage grab_addr;
+	socklen_t grab_len = 0;
+	if (getenv("KC_REEXEC_DONE") != nullptr)
+		lpsSoap->master = lpsSoap->socket = socket =
+			ec_fdtable_socket(("["s + lpServerName + "]:" + std::to_string(nServerPort)).c_str(), &grab_addr, &grab_len);
+	if (socket != SOAP_INVALID_SOCKET) {
+		lpsSoap->port = nServerPort;
+		lpsSoap->peerlen = grab_len;
+		soap_memcpy(&lpsSoap->peer.storage, sizeof(lpsSoap->peer.storage), &grab_addr, grab_len);
+	} else {
+		lpsSoap->socket = socket = soap_bind(lpsSoap.get(), *lpServerName == '\0' ? nullptr : lpServerName, nServerPort, INT_MAX);
+	}
         if (socket == -1) {
                 ec_log_crit("Unable to bind to port %d: %s. This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
                 kill(0, SIGTERM);
@@ -266,8 +279,19 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 #if GSOAP_VERSION >= 20857
 	lpsSoap->bind_v6only = strcmp(lpServerName, "*") != 0;
 #endif
-	lpsSoap->socket = socket = soap_bind(lpsSoap.get(),
-		*lpServerName == '\0' ? nullptr : lpServerName, nServerPort, INT_MAX);
+	struct sockaddr_storage grab_addr;
+	socklen_t grab_len = 0;
+	if (getenv("KC_REEXEC_DONE") != nullptr)
+		lpsSoap->master = lpsSoap->socket = socket =
+			ec_fdtable_socket(("["s + lpServerName + "]:" + std::to_string(nServerPort)).c_str(), &grab_addr, &grab_len);
+	if (socket != SOAP_INVALID_SOCKET) {
+		lpsSoap->port = nServerPort;
+		lpsSoap->peerlen = grab_len;
+		soap_memcpy(&lpsSoap->peer.storage, sizeof(lpsSoap->peer.storage), &grab_addr, grab_len);
+	} else {
+		lpsSoap->socket = socket = soap_bind(lpsSoap.get(),
+			*lpServerName == '\0' ? nullptr : lpServerName, nServerPort, INT_MAX);
+	}
         if (socket == -1) {
                 ec_log_crit("Unable to bind to port %d: %s (SSL). This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
                 kill(0, SIGTERM);
@@ -298,8 +322,14 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE, lpsSoap.get());
 	// Create a Unix or Windows pipe
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
-	// set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket
-	lpsSoap->socket = sPipe = create_pipe_socket(lpPipeName, m_lpConfig.get(), true, bPriority ? 0660 : 0666);
+	struct sockaddr_storage grab_addr;
+	socklen_t grab_len = 0;
+	if (getenv("KC_REEXEC_DONE") != nullptr)
+		lpsSoap->master = lpsSoap->socket = sPipe =
+			ec_fdtable_socket(("unix:"s + lpPipeName).c_str(), &grab_addr, &grab_len);
+	if (sPipe == SOAP_INVALID_SOCKET)
+		// set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket
+		lpsSoap->socket = sPipe = create_pipe_socket(lpPipeName, m_lpConfig.get(), true, bPriority ? 0660 : 0666);
 	// This just marks the socket as being a pipe, which triggers some slightly different behaviour
 	strcpy(lpsSoap->path,"pipe");
 	if (sPipe == -1)
