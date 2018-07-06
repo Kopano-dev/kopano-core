@@ -557,7 +557,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 		std::wstring strRuleName, strRuleType, strRuleAddress;
 
 		hr = HrGetAddress(lpAdrBook, lpRuleRecipients->aEntries[i].rgPropVals, lpRuleRecipients->aEntries[i].cValues, PR_ENTRYID,
-		     CHANGE_PROP_TYPE(PR_DISPLAY_NAME, PT_UNSPECIFIED), CHANGE_PROP_TYPE(PR_ADDRTYPE, PT_UNSPECIFIED), CHANGE_PROP_TYPE(PR_SMTP_ADDRESS, PT_UNSPECIFIED),
+		     CHANGE_PROP_TYPE(PR_DISPLAY_NAME, PT_UNSPECIFIED), CHANGE_PROP_TYPE(PR_ADDRTYPE, PT_UNSPECIFIED), CHANGE_PROP_TYPE(PR_EMAIL_ADDRESS, PT_UNSPECIFIED),
 		     strRuleName, strRuleType, strRuleAddress);
 		if (hr != hrSuccess)
 			return kc_perror("Unable to get rule address", hr);
