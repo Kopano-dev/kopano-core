@@ -232,7 +232,8 @@ def server_socket(addr, ssl_key=None, ssl_cert=None, log=None): # XXX https, mer
     if addr.startswith('file://'):
         addr2 = addr.replace('file://', '')
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        os.system('rm -f %s' % addr2)
+        if os.path.exists(addr2):
+            os.remove(addr2)
         s.bind(addr2)
         s.listen(socket.SOMAXCONN)
     elif addr.startswith('https://'):
