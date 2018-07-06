@@ -1023,18 +1023,6 @@ int ec_listen_generic(const char *spec, int *pfd, int mode)
 	return ec_listen_inet(parts.first.c_str(), parts.second, pfd);
 }
 
-std::set<std::pair<std::string, uint16_t>>
-kc_parse_bindaddrs(const char *longline, uint16_t defport)
-{
-	std::set<std::pair<std::string, uint16_t>> socks;
-
-	for (auto &&spec : tokenize(longline, ' ', true)) {
-		auto pair = ec_parse_bindaddr(spec.c_str());
-		socks.emplace(std::move(pair.first), pair.second != 0 ? pair.second : defport);
-	}
-	return socks;
-}
-
 bool ec_bindaddr_less::operator()(const std::string &a, const std::string &b) const
 {
 	auto p = ec_parse_bindaddr(a.c_str());

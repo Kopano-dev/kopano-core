@@ -497,10 +497,10 @@ exit:
 static HRESULT gw_listen(ECConfig *cfg)
 {
 	/* Modern directives */
-	auto pop3_sock  = tokenize(cfg->GetSetting("pop3_listen"), ' ', true);
-	auto pop3s_sock = tokenize(cfg->GetSetting("pop3s_listen"), ' ', true);
-	auto imap_sock  = tokenize(cfg->GetSetting("imap_listen"), ' ', true);
-	auto imaps_sock = tokenize(cfg->GetSetting("imaps_listen"), ' ', true);
+	auto pop3_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("pop3_listen"), ' ', true));
+	auto pop3s_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("pop3s_listen"), ' ', true));
+	auto imap_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("imap_listen"), ' ', true));
+	auto imaps_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("imaps_listen"), ' ', true));
 	/*
 	 * Historic directives. Enclosing in [] is a nudge for the parser and
 	 * will work with non-IPv6 too.
@@ -514,9 +514,9 @@ static HRESULT gw_listen(ECConfig *cfg)
 		/* "yes" := "read extra historic variable" */
 		auto port = cfg->GetSetting("pop3_port");
 		if (port[0] != '\0')
-			pop3_sock.push_back("["s + addr + "]:" + port);
+			pop3_sock.emplace("["s + addr + "]:" + port);
 	} else if (pop3_sock.empty()) {
-		pop3_sock.push_back("*:110");
+		pop3_sock.emplace("*:110");
 	}
 	cvar = g_lpConfig->GetSetting("pop3s_enable");
 	if (!parseBool(cvar)) {
@@ -524,7 +524,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 	} else if (strcmp(cvar, "yes") == 0) {
 		auto port = cfg->GetSetting("pop3s_port");
 		if (port[0] != '\0')
-			pop3s_sock.push_back("["s + addr + "]:" + port);
+			pop3s_sock.emplace("["s + addr + "]:" + port);
 	}
 	cvar = g_lpConfig->GetSetting("imap_enable");
 	if (!parseBool(cvar)) {
@@ -532,9 +532,9 @@ static HRESULT gw_listen(ECConfig *cfg)
 	} else if (strcmp(cvar, "yes") == 0) {
 		auto port = cfg->GetSetting("imap_port");
 		if (port[0] != '\0')
-			imap_sock.push_back("["s + addr + "]:" + port);
+			imap_sock.emplace("["s + addr + "]:" + port);
 	} else if (imap_sock.empty()) {
-		imap_sock.push_back("*:143");
+		imap_sock.emplace("*:143");
 	}
 	cvar = g_lpConfig->GetSetting("imaps_enable");
 	if (!parseBool(cvar)) {
@@ -542,7 +542,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 	} else if (strcmp(cvar, "yes") == 0) {
 		auto port = cfg->GetSetting("imaps_port");
 		if (port[0] != '\0')
-			imaps_sock.push_back("["s + addr + "]:" + port);
+			imaps_sock.emplace("["s + addr + "]:" + port);
 	}
 
 	if ((!pop3s_sock.empty() || !imaps_sock.empty()) &&

@@ -732,8 +732,8 @@ static void InitBindTextDomain(void)
 static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 {
 	/* Modern directives */
-	auto http_sock  = kc_parse_bindaddrs(cfg->GetSetting("server_listen"), 236);
-	auto https_sock = kc_parse_bindaddrs(cfg->GetSetting("server_listen_tls"), 237);
+	auto http_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen"), ' ', true));
+	auto https_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen_tls"), ' ', true));
 
 	/* Historic directives */
 	auto addr = cfg->GetSetting("server_bind");
@@ -745,7 +745,7 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 		/* "yes" := "read extra historic variable" */
 		uint16_t port = strtoul(cfg->GetSetting("server_tcp_port"), nullptr, 10);
 		if (port != 0)
-			http_sock.emplace(addr, port);
+			http_sock.emplace("["s + addr + "]:" + std::to_string(port));
 	}
 	cvar = cfg->GetSetting("server_ssl_enabled");
 	if (!parseBool(cvar)) {
@@ -753,12 +753,13 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 	} else if (strcmp(cvar, "yes") == 0) {
 		uint16_t port = strtoul(cfg->GetSetting("server_ssl_port"), nullptr, 10);
 		if (port != 0)
-			https_sock.emplace(addr, port);
+			https_sock.emplace("["s + addr + "]:" + std::to_string(port));
 	}
 
 	/* Launch */
 	for (const auto &spec : http_sock) {
-		auto er = ssc->ListenTCP(spec.first.c_str(), spec.second);
+		auto p = ec_parse_bindaddr(spec.c_str());
+		auto er = ssc->ListenTCP(p.first.c_str(), p.second != 0 ? p.second : 236);
 		if (er != erSuccess)
 			return er;
 	}
@@ -768,7 +769,8 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 	auto cafile  = cfg->GetSetting("server_ssl_ca_file", "", nullptr);
 	auto capath  = cfg->GetSetting("server_ssl_ca_path", "", nullptr);
 	for (const auto &spec : https_sock) {
-		auto er = ssc->ListenSSL(spec.first.c_str(), spec.second,
+		auto p = ec_parse_bindaddr(spec.c_str());
+		auto er = ssc->ListenSSL(p.first.c_str(), p.second != 0 ? p.second : 237,
 		          keyfile, keypass, cafile, capath);
 		if (er != erSuccess)
 			return er;
@@ -785,13 +787,13 @@ static int ksrv_listen_pipe(ECSoapServerConnection *ssc, ECConfig *cfg)
 	 * socket is returned first too on activity. [This is no longer true…
 	 * need to create INET sockets beforehand because of privilege drop.]
 	 */
-	for (const auto &spec : tokenize(cfg->GetSetting("server_pipe_priority"), ' ', true)) {
+	for (const auto &spec : vector_to_set(tokenize(cfg->GetSetting("server_pipe_priority"), ' ', true))) {
 		auto er = ssc->ListenPipe(spec.c_str(), true);
 		if (er != erSuccess)
 			return er;
 	}
 	if (strcmp(cfg->GetSetting("server_pipe_enabled"), "yes") == 0) {
-		auto pipe_sock = tokenize(cfg->GetSetting("server_pipe_name"), ' ', true);
+		auto pipe_sock = vector_to_set(tokenize(cfg->GetSetting("server_pipe_name"), ' ', true));
 		for (const auto &spec : pipe_sock) {
 			auto er = ssc->ListenPipe(spec.c_str(), false);
 			if (er != erSuccess)
