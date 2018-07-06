@@ -77,6 +77,11 @@ private:
 	_kc_hidden char *SSL_gets(char *buf, int *len);
 };
 
+class _kc_export ec_bindaddr_less {
+	public:
+	bool operator()(const std::string &, const std::string &) const;
+};
+
 /* helpers to open socket */
 extern _kc_export int ec_listen_localsock(const char *path, int *fd, int mode = -1);
 extern _kc_export int ec_listen_inet(const char *bind, uint16_t port, int *fd);

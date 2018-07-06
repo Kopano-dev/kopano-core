@@ -3026,7 +3026,7 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
     std::vector<int> &closefd)
 {
 	/* Modern directives */
-	auto lmtp_sock = vector_to_set(tokenize(cfg->GetSetting("lmtp_listen"), ' ', true));
+	auto lmtp_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("lmtp_listen"), ' ', true));
 
 	/* Historic directives */
 	auto addr = cfg->GetSetting("server_bind");
