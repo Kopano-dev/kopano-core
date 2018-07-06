@@ -534,6 +534,15 @@ static int kc_reexec_with_allocator(char **argv, const char *lib)
 			setenv("LD_PRELOAD", s, true);
 		return 0;
 	}
+
+	auto handle = dlopen(lib, RTLD_LAZY | RTLD_GLOBAL);
+	if (handle == nullptr)
+		/*
+		 * Ignore libraries that won't load anyway. This avoids
+		 * ld.so emitting a scary warning if we did re-exec.
+		 */
+		return 0;
+	dlclose(handle);
 	s = getenv("LD_PRELOAD");
 	if (s == nullptr) {
 		setenv("LD_PRELOAD", lib, true);
@@ -548,14 +557,6 @@ static int kc_reexec_with_allocator(char **argv, const char *lib)
 		setenv("KC_ORIGINAL_PRELOAD", s, true);
 		setenv("LD_PRELOAD", (std::string(s) + ":" + lib).c_str(), true);
 	}
-	void *handle = dlopen(lib, RTLD_LAZY | RTLD_GLOBAL);
-	if (handle == NULL)
-		/*
-		 * Ignore libraries that won't load anyway. This avoids
-		 * ld.so emitting a scary warning if we did re-exec.
-		 */
-		return 0;
-	dlclose(handle);
 	setenv("KC_ALLOCATOR_DONE", lib, true);
 
 	/* Resolve "exe" symlink before exec to please the sysadmin */
