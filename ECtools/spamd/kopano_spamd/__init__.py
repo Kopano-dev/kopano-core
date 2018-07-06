@@ -37,10 +37,7 @@ class Service(kopano.Service):
         catcher = Checker(self)
         with log_exc(self.log):
             while True:
-                try:
-                    state = server.sync(catcher, state)
-                except Exception as e:
-                    self.log.info('Error: [%s]', e)
+                state = server.sync(catcher, state)
                 time.sleep(1)
 
 
