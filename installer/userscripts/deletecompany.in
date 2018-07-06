@@ -23,4 +23,4 @@ if [ -z "${KOPANO_COMPANY}" -a -z "${KOPANO_COMPANYID}" ] ; then
     echo "KOPANO_COMPANY and KOPANO_COMPANYID is not set."
     exit 1
 fi
-exec "$PKGLIBEXECDIR/kscriptrun" @uscriptlibdir@/deletecompany.d @uscriptconfdir@/deletecompany.d
+exec "@pkglibexecdir@/kscriptrun" @uscriptlibdir@/deletecompany.d @uscriptconfdir@/deletecompany.d

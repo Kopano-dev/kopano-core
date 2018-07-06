@@ -23,4 +23,4 @@ if [ -z "${KOPANO_USER}" -a -z "${KOPANO_STOREGUID}" ] ; then
     echo "KOPANO_USER and KOPANO_STOREGUID is not set."
     exit 1
 fi
-exec "$PKGLIBEXECDIR/kscriptrun" @uscriptlibdir@/deleteuser.d @uscriptconfdir@/deleteuser.d
+exec "@pkglibexecdir@/kscriptrun" @uscriptlibdir@/deleteuser.d @uscriptconfdir@/deleteuser.d

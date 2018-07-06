@@ -23,4 +23,4 @@ if [ -z "${KOPANO_GROUP}" -a -z "${KOPANO_GROUPID}" ] ; then
     echo "KOPANO_GROUP and KOPANO_GROUPID is not set."
     exit 1
 fi
-exec "$PKGLIBEXECDIR/kscriptrun" @uscriptlibdir@/deletegroup.d @uscriptconfdir@/deletegroup.d
+exec "@pkglibexecdir@/kscriptrun" @uscriptlibdir@/deletegroup.d @uscriptconfdir@/deletegroup.d
