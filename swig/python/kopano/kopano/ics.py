@@ -118,10 +118,10 @@ class TrackingContentsImporter(ECImportContentsChanges):
                     self.importer.update(item, flags)
             except (MAPIErrorNotFound, MAPIErrorNoAccess): # XXX, mail already deleted, can we do this in a cleaner way?
                 if self.log:
-                    self.log.debug('received change for entryid %s, but it could not be opened' % _benc(entryid.Value))
+                    self.log.debug('received change for entryid %s, but it could not be opened', _benc(entryid.Value))
         except Exception:
             if self.log:
-                self.log.error('could not process change for entryid %s (%r):' % (_benc(entryid.Value), props))
+                self.log.error('could not process change for entryid %s (%r):', _benc(entryid.Value), props)
                 self.log.error(traceback.format_exc())
             else:
                 traceback.print_exc()
@@ -141,7 +141,7 @@ class TrackingContentsImporter(ECImportContentsChanges):
                     self.importer.delete(item, flags)
         except Exception:
             if self.log:
-                self.log.error('could not process delete for entries: %s' % [_benc(entry) for entry in entries])
+                self.log.error('could not process delete for entries: %s', [_benc(entry) for entry in entries])
                 self.log.error(traceback.format_exc())
             else:
                 traceback.print_exc()
@@ -271,7 +271,7 @@ def sync(server, syncobj, importer, state, log, max_changes, associated=False, w
 
         except MAPIError as e:
             if log:
-                log.warn("Received a MAPI error or timeout (error=0x%x, retry=%d/5)" % (e.hr, retry))
+                log.warn("Received a MAPI error or timeout (error=0x%x, retry=%d/5)", e.hr, retry)
 
             time.sleep(sleep_time)
 
