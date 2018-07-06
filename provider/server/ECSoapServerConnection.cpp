@@ -51,8 +51,13 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 		close(s);
 		return -1;
 	}
+
+	auto uname = lpConfig->GetSetting("run_as_user");
+	auto gname = lpConfig->GetSetting("run_as_group");
+	er = unix_chown(unix_socket, uname, gname);
 	if(er) {
-		ec_log_crit("Unable to chown socket %s, to %s:%s. Error: %s", unix_socket, lpConfig->GetSetting("run_as_user"), lpConfig->GetSetting("run_as_group"), strerror(errno));
+		ec_log_crit("Unable to chown socket %s, to %s:%s. Error: %s",
+			unix_socket, uname, gname, strerror(errno));
 		close(s);
 		return -1;
 	}
