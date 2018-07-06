@@ -119,7 +119,7 @@ class Checker(object):
 
 def main():
     parser = kopano.parser('ckpsFl')  # select common cmd-line options
-    options, args = parser.parse_args()
+    options = parser.parse_args()[0]
     service = Service('spamd', config=CONFIG, options=options)
     service.start()
 
