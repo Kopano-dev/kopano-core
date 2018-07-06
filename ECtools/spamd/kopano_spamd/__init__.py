@@ -40,7 +40,7 @@ class Service(kopano.Service):
                 try:
                     state = server.sync(catcher, state)
                 except Exception as e:
-                    self.log.info('Error: [%s]' % e)
+                    self.log.info('Error: [%s]', e)
                 time.sleep(1)
 
 
@@ -75,7 +75,7 @@ class Checker(object):
             if os.path.isfile(fn):
                 os.unlink(fn)
 
-            self.log.info("Learning message as SPAM, entryid: %s" % item.entryid)
+            self.log.info("Learning message as SPAM, entryid: %s", item.entryid)
             self.learn(item, True)
 
         elif item.folder == item.store.inbox and \
@@ -85,7 +85,7 @@ class Checker(object):
             if os.path.isfile(fn):
                 os.unlink(fn)
 
-            self.log.info("Learning message as HAM, entryid: %s" % item.entryid)
+            self.log.info("Learning message as HAM, entryid: %s", item.entryid)
             self.learn(item, False)
 
     def learn(self, item, spam):
@@ -100,9 +100,8 @@ class Checker(object):
 
         except Exception as e:
             self.log.error(
-                'Exception happend during learning: %s, entryid: %s' %
-                (e, item.entryid)
-            )
+                'Exception happend during learning: %s, entryid: %s',
+                e, item.entryid)
             return
 
         try:
@@ -111,10 +110,8 @@ class Checker(object):
             os.chown(emlfilename, uid, gid)
             os.chmod(emlfilename, 0o660)
         except Exception as e:
-            self.log.warning(
-                'Unable to set ownership: %s, entryid %s' %
-                (e, item.entryid)
-            )
+            self.log.warning('Unable to set ownership: %s, entryid %s',
+                             e, item.entryid)
 
         if spam:
             self.mark_spam(searchkey)
