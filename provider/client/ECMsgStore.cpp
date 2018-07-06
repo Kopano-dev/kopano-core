@@ -1284,7 +1284,7 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 	object_ptr<IMAPIFolder> lpFBFolder;
 	object_ptr<IMessage> lpFBMessage;
 
-	// Freebusy mv propery
+	// Freebusy mv property
 	// This property will be fill in on another place
 	auto hr = ECAllocateBuffer(sizeof(SPropValue), &~lpFBPropValue);
 	if(hr != hrSuccess)

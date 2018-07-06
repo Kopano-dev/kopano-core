@@ -5264,7 +5264,7 @@ FILETIME IMAP::AddDay(const FILETIME &sFileTime)
  *
  * IMAP folder encoding is a modified form of utf-7 (+ becomes &, so & is "escaped",
  * utf-7 is a modifed form of base64, based from the utf16 character
- * I'll use the iconv convertor for this, per character .. sigh
+ * I'll use the iconv converter for this, per character .. sigh
  *
  * @param[in]	input	unicode string to convert
  * @param[out]	output	valid IMAP folder name to send to the client

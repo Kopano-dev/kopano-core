@@ -1677,7 +1677,7 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
  * @param[in] lpecSession Pointer to the session of the caller; Cannot be NULL.
  * @param[in] lpDatabase Pointer to the database handler of the caller; Cannot be NULL. 
  * @param[in] lpAttachmentStorage Pointer to an attachment storage object; Cannot be NULL.
- * @param[in] lpsSaveObj Data object which include the new propery information; Cannot be NULL.
+ * @param[in] lpsSaveObj Data object which include the new property information; Cannot be NULL.
  * @param[in] ulObjId Identify the database object to write the property data to the database.
  * @param[in] fNewItem false for an existing object, true for a new object.
  * @param[in] ulSyncId Client sync identifier.

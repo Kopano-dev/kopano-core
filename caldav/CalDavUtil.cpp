@@ -213,7 +213,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	sPropFolderName.Value.lpszW = (WCHAR*)wstrFldId.c_str();
 
 	// @note, this will find the first folder using this name (1 level, eg 'Calendar', no subfolders in caldav)
-	// so if you have Calendar and subfolder/Calender, the latter will not be able to open using names, but must use IDs.
+	// so if you have Calendar and subfolder/Calendar, the latter will not be able to open using names, but must use IDs.
 	hr = ECOrRestriction(
 		ECPropertyRestriction(RELOP_EQ, ulPropTagFldId, &sPropFolderID, ECRestriction::Cheap) +
 		ECContentRestriction(FL_IGNORECASE, PR_DISPLAY_NAME_W, &sPropFolderName, ECRestriction::Cheap)

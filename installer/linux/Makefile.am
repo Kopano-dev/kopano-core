@@ -51,7 +51,7 @@ dist_sbin_SCRIPTS = kopano-autorespond
 sysconf_rotatedir = ${sysconfdir}/logrotate.d
 dist_sysconf_rotate_DATA = kopano.logrotate
 
-sysconf_bcdir = ${sysconfdir}/bash_completion.d
+sysconf_bcdir = ${datadir}/bash-completion/completions
 dist_sysconf_bc_DATA = kopano-bash-completion.sh
 
 EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 sysconfig.txt \
