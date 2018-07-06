@@ -313,7 +313,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	std::unique_ptr<ECSearchClient> lpSearchClient;
 	std::set<unsigned int> setExcludePropTags;
 	KC::time_point tstart;
-	LONGLONG	llelapsedtime;
+	LONGLONG llelapsedtime;
 	struct restrictTable *lpOptimizedRestrict = NULL;
 	std::list<SIndexedTerm> lstMultiSearches;
 	const char* szSocket = lpConfig->GetSetting("search_socket");
@@ -372,7 +372,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 		g_lpStatsCollector->Increment(SCN_INDEXER_SEARCH_ERRORS);
 		ec_log_err("Error while querying search on \"%s\", 0x%08x", szSocket, er);
 	} else
-		ec_log_debug("Indexed query results found in %.4f ms", llelapsedtime/1000.0);
+		ec_log_debug("Indexed query results found in %u ms", static_cast<unsigned int>(llelapsedtime));
 
 	ec_log_debug("%zu indexed matches found", lstMatches.size());
 	*lppNewRestrict = lpOptimizedRestrict;
