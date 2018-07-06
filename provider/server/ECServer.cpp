@@ -1055,8 +1055,34 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	if (g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig);
 
+	/* setup connection handler */
+	g_lpSoapServerConn.reset(new(std::nothrow) ECSoapServerConnection(g_lpConfig));
+	er = ksrv_listen_inet(g_lpSoapServerConn.get(), g_lpConfig);
+	if (er != erSuccess)
+		return retval;
+	er = ksrv_listen_pipe(g_lpSoapServerConn.get(), g_lpConfig);
+	if (er != erSuccess)
+		return retval;
+
+	struct rlimit limit;
+	limit.rlim_cur = KC_DESIRED_FILEDES;
+	limit.rlim_max = KC_DESIRED_FILEDES;
+	if (setrlimit(RLIMIT_NOFILE, &limit) < 0) {
+		ec_log_warn("setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets.", KC_DESIRED_FILEDES, getdtablesize());
+		ec_log_warn("Either start the process as root, or increase user limits for open file descriptors.");
+	}
+	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
+	if (unix_runas(g_lpConfig)) {
+		er = MAPI_E_CALL_FAILED;
+		return retval;
+	}
+
 	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0) {
-		// directory will be created using startup (probably root) and then chowned to the new 'runas' username
+		/*
+		 * Either (1.) the attachment directory or (2.) its immediate
+		 * parent directory needs to exist with right permissions.
+		 * (Official KC builds use #2 as of this writing.)
+		 */
 		if (CreatePath(g_lpConfig->GetSetting("attachment_path")) != 0) {
 			ec_log_err("Unable to create attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
 			er = KCERR_DATABASE_ERROR;
@@ -1131,27 +1157,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 #endif
 
-	// setup connection handler
-	g_lpSoapServerConn.reset(new(std::nothrow) ECSoapServerConnection(g_lpConfig));
-	er = ksrv_listen_inet(g_lpSoapServerConn.get(), g_lpConfig);
-	if (er != erSuccess)
-		return retval;
-	er = ksrv_listen_pipe(g_lpSoapServerConn.get(), g_lpConfig);
-	if (er != erSuccess)
-		return retval;
-
-	struct rlimit limit;
-	limit.rlim_cur = KC_DESIRED_FILEDES;
-	limit.rlim_max = KC_DESIRED_FILEDES;
-	if(setrlimit(RLIMIT_NOFILE, &limit) < 0) {
-		ec_log_warn("setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets.", KC_DESIRED_FILEDES, getdtablesize());
-		ec_log_warn("WARNING: Either start the process as root, or increase user limits for open file descriptors.");
-	}
-	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
-	if (unix_runas(g_lpConfig)) {
-		er = MAPI_E_CALL_FAILED;
-		return retval;
-	}
 	// Test database settings
 	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig));
 	// open database
