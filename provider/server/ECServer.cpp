@@ -1136,6 +1136,9 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	er = ksrv_listen_inet(g_lpSoapServerConn.get(), g_lpConfig);
 	if (er != erSuccess)
 		return retval;
+	er = ksrv_listen_pipe(g_lpSoapServerConn.get(), g_lpConfig);
+	if (er != erSuccess)
+		return retval;
 
 	struct rlimit limit;
 	limit.rlim_cur = KC_DESIRED_FILEDES;
@@ -1149,10 +1152,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		er = MAPI_E_CALL_FAILED;
 		return retval;
 	}
-	er = ksrv_listen_pipe(g_lpSoapServerConn.get(), g_lpConfig);
-	if (er != erSuccess)
-		return retval;
-
 	// Test database settings
 	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig));
 	// open database
