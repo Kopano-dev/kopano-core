@@ -201,7 +201,7 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServer
 	/* The v6only field exists in 2.8.56, but has no effect. */
 	lpsSoap->bind_v6only = strcmp(lpServerName, "*") != 0;
 #endif
-	lpsSoap->socket = socket = soap_bind(lpsSoap, *lpServerName == '\0' ? NULL : lpServerName, nServerPort, 100);
+	lpsSoap->socket = socket = soap_bind(lpsSoap, *lpServerName == '\0' ? nullptr : lpServerName, nServerPort, INT_MAX);
         if (socket == -1) {
                 ec_log_crit("Unable to bind to port %d: %s. This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
                 kill(0, SIGTERM);
@@ -258,7 +258,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 #if GSOAP_VERSION >= 20857
 	lpsSoap->bind_v6only = strcmp(lpServerName, "*") != 0;
 #endif
-	lpsSoap->socket = socket = soap_bind(lpsSoap, *lpServerName == '\0' ? NULL : lpServerName, nServerPort, 100);
+	lpsSoap->socket = socket = soap_bind(lpsSoap, *lpServerName == '\0' ? nullptr : lpServerName, nServerPort, INT_MAX);
         if (socket == -1) {
                 ec_log_crit("Unable to bind to port %d: %s (SSL). This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
                 kill(0, SIGTERM);
