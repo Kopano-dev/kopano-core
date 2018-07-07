@@ -219,7 +219,6 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
     int nServerPort, const char *lpszKeyFile, const char *lpszKeyPass,
     const char *lpszCAFile, const char *lpszCAPath)
 {
-	ECRESULT	er = erSuccess;
 	int			socket = SOAP_INVALID_SOCKET;
 
 	if (lpServerName == nullptr)
@@ -246,12 +245,11 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 	{
 		soap_set_fault(lpsSoap.get());
 		ec_log_crit("K-2170: Unable to setup ssl context: %s", *soap_faultdetail(lpsSoap.get()));
-		er = KCERR_CALL_FAILED;
-		goto exit;
+		return KCERR_CALL_FAILED;
 	}
-	er = kc_ssl_options(lpsSoap.get(), server_ssl_protocols.get(), server_ssl_ciphers, pref_ciphers);
+	auto er = kc_ssl_options(lpsSoap.get(), server_ssl_protocols.get(), server_ssl_ciphers, pref_ciphers);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	lpsSoap->bind_flags = SO_REUSEADDR;
 #if GSOAP_VERSION >= 20857
 	lpsSoap->bind_v6only = strcmp(lpServerName, "*") != 0;
@@ -267,13 +265,11 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 	soap_post_check_mime_attachments(lpsSoap.get());
 	m_lpDispatcher->AddListenSocket(std::move(lpsSoap));
 	ec_log_notice("Listening for SSL connections on port %d", nServerPort);
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriority)
 {
-	ECRESULT	er = erSuccess;
 	int			sPipe = -1;
 	socklen_t socklen;
 
@@ -294,11 +290,8 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	lpsSoap->socket = sPipe = create_pipe_socket(lpPipeName, m_lpConfig, true, bPriority ? 0660 : 0666);
 	// This just marks the socket as being a pipe, which triggers some slightly different behaviour
 	strcpy(lpsSoap->path,"pipe");
-	if (sPipe == -1) {
-		er = KCERR_CALL_FAILED;
-		goto exit;
-	}
-
+	if (sPipe == -1)
+		return KCERR_CALL_FAILED;
 	lpsSoap->master = sPipe;
 	socklen = sizeof(lpsSoap->peer.storage);
 	if (getsockname(lpsSoap->socket, &lpsSoap->peer.addr, &socklen) != 0) {
@@ -314,8 +307,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	soap_post_check_mime_attachments(lpsSoap.get());
 	m_lpDispatcher->AddListenSocket(std::move(lpsSoap));
 	ec_log_notice("Listening for %spipe connections on %s", bPriority ? "priority " : "", lpPipeName);
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECSoapServerConnection::ShutDown()
