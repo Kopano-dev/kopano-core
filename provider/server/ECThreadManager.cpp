@@ -412,10 +412,8 @@ ECDispatcher::ECDispatcher(ECConfig *lpConfig)
 
 ECDispatcher::~ECDispatcher()
 {
-	for (auto &s : m_setListenSockets) {
-		kopano_end_soap_listener(s.second);
-		soap_free(s.second);
-	}
+	for (auto &s : m_setListenSockets)
+		kopano_end_soap_listener(s.second.get());
 }
 
 ECRESULT ECDispatcher::GetThreadCount(unsigned int *lpulThreads, unsigned int *lpulIdleThreads)
@@ -451,11 +449,11 @@ ECRESULT ECDispatcher::GetQueueLength(unsigned int *lpulLength)
     return erSuccess;
 }
 
-ECRESULT ECDispatcher::AddListenSocket(struct soap *soap)
+ECRESULT ECDispatcher::AddListenSocket(std::unique_ptr<struct soap, KC::ec_soap_deleter> &&soap)
 {
 	soap->recv_timeout = m_nReadTimeout; // Use m_nReadTimeout, the value for timeouts during XML reads
 	soap->send_timeout = m_nSendTimeout;
-	m_setListenSockets.emplace(soap->socket, soap);
+	m_setListenSockets.emplace(soap->socket, std::move(soap));
     return erSuccess;
 }
 
@@ -581,21 +579,22 @@ ECRESULT ECDispatcher::DoHUP()
 		auto ulType = SOAP_CONNECTION_TYPE(p.second);
 		if (ulType != CONNECTION_TYPE_SSL)
 			continue;
-		if (soap_ssl_server_context(p.second, SOAP_SSL_DEFAULT,
+		if (soap_ssl_server_context(p.second.get(), SOAP_SSL_DEFAULT,
 		    m_lpConfig->GetSetting("server_ssl_key_file"),
 		    m_lpConfig->GetSetting("server_ssl_key_pass", "", NULL),
 		    m_lpConfig->GetSetting("server_ssl_ca_file", "", NULL),
 		    m_lpConfig->GetSetting("server_ssl_ca_path", "", NULL),
 		    NULL, NULL, "EC")) {
-			ec_log_crit("K-3904: Unable to setup ssl context: %s", *soap_faultdetail(p.second));
+			ec_log_crit("K-3904: Unable to setup ssl context: %s", *soap_faultdetail(p.second.get()));
 			return KCERR_CALL_FAILED;
 		}
 
-		char *server_ssl_protocols = strdup(m_lpConfig->GetSetting("server_ssl_protocols"));
-		er = kc_ssl_options(p.second, server_ssl_protocols,
+		std::unique_ptr<char[], cstdlib_deleter> server_ssl_protocols(strdup(m_lpConfig->GetSetting("server_ssl_protocols")));
+		if (server_ssl_protocols == nullptr)
+			return KCERR_NOT_ENOUGH_MEMORY;
+		er = kc_ssl_options(p.second.get(), server_ssl_protocols.get(),
 			m_lpConfig->GetSetting("server_ssl_ciphers"),
 			m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers"));
-		free(server_ssl_protocols);
 	}
 	return erSuccess;
 }
@@ -735,7 +734,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 			}
 			const auto &p = *sockiter;
 			ACTIVESOCKET sActive;
-			auto newsoap = soap_copy(p.second);
+			auto newsoap = soap_copy(p.second.get());
 			if (newsoap == NULL) {
 				ec_log_crit("Unable to accept new connection: out of memory");
 				continue;
@@ -892,10 +891,8 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 
 			if (iterListenSockets != m_setListenSockets.end()) {
 				// this was a listen socket .. accept and continue
-				struct soap *newsoap;
 				ACTIVESOCKET sActive;
-
-				newsoap = soap_copy(iterListenSockets->second);
+				auto newsoap = soap_copy(iterListenSockets->second.get());
                 kopano_new_soap_connection(SOAP_CONNECTION_TYPE(iterListenSockets->second), newsoap);
 				// Record last activity (now)
 				time(&sActive.ulLastActivity);
