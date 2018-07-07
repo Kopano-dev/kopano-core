@@ -450,14 +450,8 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
     }
     if(!setUncached.empty()) {
         // Get uncached items from SQL
-		std::string strQuery = "SELECT id, parent, owner, flags, type FROM hierarchy WHERE id IN(";
-		for (const auto &key : setUncached) {
-			strQuery += stringify(key.ulObjId);
-            strQuery += ",";
-        }
-
-        strQuery.resize(strQuery.size()-1);
-        strQuery += ")";
+		auto strQuery = "SELECT id, parent, owner, flags, type FROM hierarchy WHERE id IN(" +
+			kc_join(setUncached, ",", [](const auto &key) { return stringify(key.ulObjId); }) + ")";
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if (er != erSuccess)
             goto exit;
@@ -514,13 +508,8 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 		er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 		if (er != erSuccess)
 			goto exit;
-		auto strQuery = "SELECT hierarchyid, val_binary FROM indexedproperties WHERE tag=" + stringify(ulTag) + " AND val_binary IN(";
-		for (size_t j = 0; j < uncached.size(); ++j) {
-			strQuery += lpDatabase->EscapeBinary(lpdata[uncached[j]], cbdata[uncached[j]]);
-			strQuery += ",";
-		}
-		strQuery.resize(strQuery.size() - 1);
-		strQuery += ")";
+		auto strQuery = "SELECT hierarchyid, val_binary FROM indexedproperties WHERE tag=" + stringify(ulTag) + " AND val_binary IN(" +
+			kc_join(uncached, ",", [&](const auto &j) { return lpDatabase->EscapeBinary(lpdata[j], cbdata[j]); }) + ")";
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess)
 			goto exit;
@@ -808,16 +797,10 @@ ECRESULT ECCacheManager::GetUserObjects(const std::list<objectid_t> &lstExternOb
 	if (er != erSuccess)
 		goto exit;
 
-	strQuery = "SELECT id, externid, objectclass, signature, company FROM users WHERE ";
-	for (auto iter = lstExternIds.cbegin();
-	     iter != lstExternIds.cend(); ++iter) {
-		if (iter != lstExternIds.cbegin())
-			strQuery += " OR ";
-		strQuery +=
-			"(" + OBJECTCLASS_COMPARE_SQL("objectclass", iter->objclass) +
-			" AND externid = '" + lpDatabase->Escape(iter->id) + "')";
-	}
-
+	strQuery = "SELECT id, externid, objectclass, signature, company FROM users WHERE " +
+		kc_join(lstExternIds, "OR", [&](const auto &i) { return
+			"(" + OBJECTCLASS_COMPARE_SQL("objectclass", i.objclass) +
+			" AND externid = '" + lpDatabase->Escape(i.id) + "')"; });
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_perror("ECCacheManager::GetUserObjects() query failed", er);

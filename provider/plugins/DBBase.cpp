@@ -72,7 +72,6 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 {
 	std::map<objectid_t, objectdetails_t> mapdetails;
 	std::map<objectclass_t, std::string> objectstrings;
-	string strSubQuery;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	objectdetails_t details;
@@ -90,20 +89,15 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	}
 
 	/* Create subquery which combines all externids with the matching objectclass */
-	for (auto iterStrings = objectstrings.cbegin();
-	     iterStrings != objectstrings.cend(); ++iterStrings) {
-		if (iterStrings != objectstrings.cbegin())
-			strSubQuery += " OR ";
-		strSubQuery += "(o.externid IN (" + iterStrings->second + ") "
-				"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", iterStrings->first) + ")";
-	}
-
+	auto strSubQuery = kc_join(objectstrings, " OR ", [](const auto &p) {
+		return "(o.externid IN (" + p.second + ") "
+			"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", p.first) + ")"; });
 	auto strQuery =
 		"SELECT o.externid, o.objectclass, op.propname, op.value "
 		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
 		"LEFT JOIN "+(string)DB_OBJECTPROPERTY_TABLE+" AS op "
 		"ON op.objectid=o.id "
-		"WHERE (" + strSubQuery + ") "
+		"WHERE (" + std::move(strSubQuery) + ") "
 		"ORDER BY o.externid, o.objectclass";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
@@ -268,7 +262,7 @@ struct props {
 
 void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &details, const std::list<std::string> *lpDeleteProps)
 {
-	std::string strDeleteQuery, strData;
+	std::string strData;
 	bool bFirstOne = true, bFirstDel = true;
 	const struct props sUserValidProps[] = {
 		{ OB_PROP_S_LOGIN, OP_LOGINNAME, },
@@ -302,21 +296,11 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 
 	if (lpDeleteProps) {
 		// delete properties
-		strDeleteQuery =
+		auto strDeleteQuery =
 			"DELETE FROM " + (string)DB_OBJECTPROPERTY_TABLE + " "
 			"WHERE objectid = (" + strSubQuery + ") " +
-			" AND propname IN (";
-
-		bFirstOne = true;
-
-		for (const auto &prop : *lpDeleteProps) {
-			if (!bFirstOne)
-				strDeleteQuery += ",";
-			strDeleteQuery += prop;
-			bFirstOne = false;
-		}
-
-		strDeleteQuery += ")";
+			" AND propname IN (" +
+			kc_join(*lpDeleteProps, ",") + ")";
 		auto er = m_lpDatabase->DoDelete(strDeleteQuery);
 		if(er != erSuccess)
 			throw runtime_error(string("db_query: ") + strerror(er));
@@ -399,7 +383,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	/* Normal properties have been inserted, check for additional MV properties */
 	bFirstOne = true;
 	strQuery = "REPLACE INTO " + (string)DB_OBJECTMVPROPERTY_TABLE + "(objectid, propname, orderid, value) VALUES ";
-	strDeleteQuery =
+	auto strDeleteQuery =
 		"DELETE FROM " + (string)DB_OBJECTMVPROPERTY_TABLE + " "
 		"WHERE objectid = (" + strSubQuery + ") " +
 		" AND propname IN (";

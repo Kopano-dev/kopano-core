@@ -4383,14 +4383,9 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
         }
 
         // Now find all messages that will actually change
-		auto strQueryCache = "SELECT id, properties.val_ulong FROM hierarchy JOIN properties ON hierarchy.id=properties.hierarchyid AND properties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND properties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE hierarchy.type=5 AND flags = 0 AND (properties.val_ulong & " + stringify(ulFlagsRemove) + " OR properties.val_ulong & " + stringify(ulFlagsAdd) + " != " + stringify(ulFlagsAdd) + ") AND hierarchyid IN (";
-		for (auto hier = lHierarchyIDs.cbegin();
-		     hier != lHierarchyIDs.cend(); ++hier) {
-			if (hier != lHierarchyIDs.cbegin())
-				strQueryCache += ",";
-			strQueryCache += stringify(*hier);
-		}
-		strQueryCache += ") FOR UPDATE"; // See comment above about FOR UPDATE
+		auto strQueryCache = "SELECT id, properties.val_ulong FROM hierarchy JOIN properties ON hierarchy.id=properties.hierarchyid AND properties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND properties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE hierarchy.type=5 AND flags = 0 AND (properties.val_ulong & " + stringify(ulFlagsRemove) + " OR properties.val_ulong & " + stringify(ulFlagsAdd) + " != " + stringify(ulFlagsAdd) + ") AND hierarchyid IN (" +
+			kc_join(lHierarchyIDs, ",", stringify) +
+			") FOR UPDATE"; // See comment above about FOR UPDATE
 		er = lpDatabase->DoSelect(strQueryCache, &lpDBResult);
 		if(er != erSuccess)
 			return er;
@@ -4414,15 +4409,8 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 
     strQuery += " WHERE properties.hierarchyid IN(";
     lHierarchyIDs.clear();
-    for (auto iObjectid = lObjectIds.cbegin(); iObjectid != lObjectIds.cend(); ++iObjectid) {
-        if (iObjectid != lObjectIds.cbegin())
-            strQuery += ",";
-        strQuery += stringify(iObjectid->first);
-		lHierarchyIDs.emplace_back(iObjectid->first);
-    }
-    strQuery += ")";
-	strQuery += " AND properties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + "  AND properties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
-
+	strQuery += kc_join(lObjectIds, ",", [](const auto &p) { return stringify(p.first); });
+	strQuery += ") AND properties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + "  AND properties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
    	// Update the database
    	er = lpDatabase->DoUpdate(strQuery);
    	if(er != erSuccess)
@@ -6316,16 +6304,9 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 
 	GetSourceKey(ulDestFolderId, &sDestFolderSourceKey);
 	// Get all items for the object list
-	strQuery = "SELECT h.id, h.parent, h.type, h.flags, h.owner, p.val_ulong, p2.val_ulong FROM hierarchy AS h LEFT JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_MESSAGE_SIZE))+" AND p.type="+stringify(PROP_TYPE(PR_MESSAGE_SIZE)) +
-			   " LEFT JOIN properties AS p2 ON p2.hierarchyid=h.id AND p2.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND p2.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE h.id IN(";
-
-	for (auto iObjectId = lplObjectIds->begin();
-	     iObjectId != lplObjectIds->end(); ++iObjectId) {
-		if(iObjectId != lplObjectIds->begin())
-			strQuery += ",";
-		strQuery += stringify(*iObjectId);
-	}
-	strQuery += ")";
+	strQuery = "SELECT h.id, h.parent, h.type, h.flags, h.owner, p.val_ulong, p2.val_ulong FROM hierarchy AS h LEFT JOIN properties AS p ON p.hierarchyid=h.id AND p.tag="+stringify(PROP_ID(PR_MESSAGE_SIZE))+" AND p.type="+stringify(PROP_TYPE(PR_MESSAGE_SIZE)) + 
+		   " LEFT JOIN properties AS p2 ON p2.hierarchyid=h.id AND p2.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND p2.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE h.id IN(" +
+		   kc_join(*lplObjectIds, ",", stringify) + ")";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
 		ec_log_err("MoveObjects: failed retrieving list objects from database: %s (%x)", GetMAPIErrorMessage(er), er);

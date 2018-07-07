@@ -160,18 +160,9 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
         goto exit;
 
     // Get the subobject IDs we are querying from the database
-    strQuery = "SELECT hierarchy.parent, hierarchy.id FROM hierarchy WHERE hierarchy.type = " + stringify(ulType) + " AND hierarchy.parent IN (";
-
-    for (const auto &ob : *lpObjects) {
-        strQuery += stringify(ob.ulObjId);
-        strQuery += ",";
-    }
-
-    // Remove trailing comma
-    strQuery.resize(strQuery.size()-1);
-
-    strQuery += ")";
-
+	strQuery = "SELECT hierarchy.parent, hierarchy.id FROM hierarchy WHERE hierarchy.type = " +
+		stringify(ulType) + " AND hierarchy.parent IN (" +
+		kc_join(*lpObjects, ",", [](const auto &ob) { return stringify(ob.ulObjId); }) + ")";
     er = lpDatabase->DoSelect(strQuery, &lpDBResult);
     if(er != erSuccess)
         goto exit;
