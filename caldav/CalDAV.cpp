@@ -102,11 +102,19 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
 
 static HRESULT running_service(char **argv)
 {
-	ssl_threading_setup();
+	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-ical version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 	auto hr = ical_listen(g_lpConfig.get());
 	if (hr != hrSuccess)
 		return hr;
+	if (unix_runas(g_lpConfig.get()))
+		return MAPI_E_CALL_FAILED;
+	ec_reexec_prepare_sockets();
+	auto ret = ec_reexec(argv);
+	if (ret < 0)
+		ec_log_notice("K-1240: Failed to re-exec self: %s. "
+			"Continuing with standard allocator and/or restricted coredumps.",
+			strerror(-ret));
 
 	// setup signals
 	KAlternateStack sigstack;
@@ -126,12 +134,6 @@ static HRESULT running_service(char **argv)
 	sigaction(SIGHUP, &act, nullptr);
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
-	/*
-	 * Fork if needed and drop privileges as requested. this must be done
-	 * before we do anything with pthreads.
-	 */
-	if (unix_runas(g_lpConfig.get()))
-		return MAPI_E_CALL_FAILED;
 	if (g_bDaemonize && unix_daemonize(g_lpConfig.get()))
 		return MAPI_E_CALL_FAILED;
 	if (!g_bDaemonize)
@@ -142,6 +144,7 @@ static HRESULT running_service(char **argv)
 	else
 		g_lpLogger->SetLogprefix(LP_TID);
 	ec_log_set(g_lpLogger);
+	ssl_threading_setup();
 
 	AutoMAPI mapiinit;
 	hr = mapiinit.Initialize();
@@ -150,7 +153,6 @@ static HRESULT running_service(char **argv)
 		return hr;
 	}
 	mainthread = pthread_self();
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-ical version " PROJECT_VERSION " (pid %d)", getpid());
 	hr = HrProcessConnections();
 	if (hr != hrSuccess)
 		return hr;
@@ -366,7 +368,11 @@ static HRESULT ical_listen(ECConfig *cfg)
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
 	for (const auto &spec : ical_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		if (ret >= 0)
+			pfd.fd = ret;
+		else
+			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
 		if (ret < 0)
 			return MAPI_E_NETWORK_ERROR;
 		g_socks.pollfd.push_back(pfd);
@@ -374,7 +380,11 @@ static HRESULT ical_listen(ECConfig *cfg)
 		g_socks.ssl.push_back(false);
 	}
 	for (const auto &spec : icals_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		if (ret >= 0)
+			pfd.fd = ret;
+		else
+			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
 		if (ret < 0)
 			return MAPI_E_NETWORK_ERROR;
 		g_socks.pollfd.push_back(pfd);
