@@ -427,4 +427,46 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	return rv;
 }
 
+int ec_reexec(char **argv)
+{
+	if (getenv("KC_AVOID_REEXEC") != nullptr)
+		return 0;
+	auto s = getenv("KC_REEXEC_DONE");
+	if (s != nullptr) {
+		/*
+		 * 2nd time ec_reexec is called. Restore the previous
+		 * environment.
+		 */
+		unsetenv("KC_REEXEC_DONE");
+		s = getenv("KC_ORIGINAL_PRELOAD");
+		if (s == nullptr)
+			unsetenv("LD_PRELOAD");
+		else
+			setenv("LD_PRELOAD", s, true);
+		return 0;
+	}
+
+	/* 1st time ec_reexec is called. */
+	setenv("KC_REEXEC_DONE", "1", true);
+
+	/* Resolve "exe" symlink before exec to please the sysadmin */
+	std::vector<char> linkbuf(16); /* mutable std::string::data is C++17 only */
+	ssize_t linklen;
+	while (true) {
+		linklen = readlink("/proc/self/exe", &linkbuf[0], linkbuf.size());
+		if (linklen < 0 || static_cast<size_t>(linklen) < linkbuf.size())
+			break;
+		linkbuf.resize(linkbuf.size() * 2);
+	}
+	if (linklen < 0) {
+		int ret = -errno;
+		ec_log_debug("ec_reexec: readlink: %s", strerror(errno));
+		return ret;
+	}
+	linkbuf[linklen] = '\0';
+	ec_log_debug("Reexecing %s", &linkbuf[0]);
+	execv(&linkbuf[0], argv);
+	return -errno;
+}
+
 } /* namespace */
