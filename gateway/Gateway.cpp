@@ -567,7 +567,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 	return hrSuccess;
 }
 
-static HRESULT handler_client(size_t i, const pthread_attr_t &ThreadAttr)
+static HRESULT handler_client(size_t i)
 {
 	// One socket has signalled a new incoming connection
 	std::unique_ptr<HandlerArgs> lpHandlerArgs(new HandlerArgs);
@@ -597,7 +597,21 @@ static HRESULT handler_client(size_t i, const pthread_attr_t &ThreadAttr)
 		}
 		return MAPI_E_CALL_FAILED;
 	}
-	auto err = pthread_create(&tid, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
+	pthread_attr_t attr;
+	if (pthread_attr_init(&attr) != 0)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) != 0) {
+		ec_log_warn("Could not set thread attribute to detached.");
+		pthread_attr_destroy(&attr);
+		return MAPI_E_CALL_FAILED;
+	}
+	if (pthread_attr_setstacksize(&attr, 1U << 20)) {
+		ec_log_err("Could not set thread stack size to 1Mb");
+		pthread_attr_destroy(&attr);
+		return MAPI_E_CALL_FAILED;
+	}
+	auto err = pthread_create(&tid, &attr, Handler_Threaded, lpHandlerArgs.get());
+	pthread_attr_destroy(&attr);
 	if (err != 0) {
 		ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
 		return MAPI_E_CALL_FAILED;
@@ -618,27 +632,12 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 {
 	HRESULT hr = hrSuccess;
 	int err = 0;
-	pthread_attr_t ThreadAttr;
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION " (pid %d)", getpid());
 
 	// SIGSEGV backtrace support
 	KAlternateStack sigstack;
 	struct sigaction act;
 	memset(&act, 0, sizeof(act));
-
-	if (bThreads) {
-		if (pthread_attr_init(&ThreadAttr) != 0)
-			return MAPI_E_NOT_ENOUGH_MEMORY;
-		if (pthread_attr_setdetachstate(&ThreadAttr, PTHREAD_CREATE_DETACHED) != 0) {
-			ec_log_err("Can't set thread attribute to detached");
-			goto exit;
-		}
-		// 1Mb of stack space per thread
-		if (pthread_attr_setstacksize(&ThreadAttr, 1024 * 1024)) {
-			ec_log_err("Can't set thread stack size to 1Mb");
-			goto exit;
-		}
-	}
 
 	hr = gw_listen(g_lpConfig.get());
 	if (hr != hrSuccess)
@@ -708,7 +707,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			if (!(g_socks.pollfd[i].revents & POLLIN))
 				/* OS might set more bits than requested */
 				continue;
-			handler_client(i, ThreadAttr);
+			handler_client(i);
 		}
 	}
 
@@ -732,8 +731,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 exit:
 	ECChannel::HrFreeCtx();
 	SSL_library_cleanup(); // Remove SSL data for the main application and other related libraries
-	if (bThreads)
-		pthread_attr_destroy(&ThreadAttr);
 	// cleanup ICU data so valgrind is happy
 	u_cleanup();
 	return hr;
