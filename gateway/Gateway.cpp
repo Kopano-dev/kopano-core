@@ -648,7 +648,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		goto exit;
 	}
 
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION " (pid %d)", getpid());
 	// Mainloop
 	while (!quit) {
 		auto nfds = g_socks.pollfd.size();
