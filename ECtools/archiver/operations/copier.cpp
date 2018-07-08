@@ -817,19 +817,19 @@ HRESULT Copier::ExecuteSubOperations(IMessage *lpMessage,
 	}
 
 	// Now see if we need to stub the message.
-	if (m_ptrStubOp) {
-		hr = m_ptrStubOp->VerifyRestriction(lpMessage);
-		if (hr == hrSuccess) {
-			Logger()->Log(EC_LOGLEVEL_DEBUG, "Executing stub operation.");
-			hr = m_ptrStubOp->ProcessEntry(lpMessage);
-			if (hr != hrSuccess)
-				Logger()->pwarn("Stub operation failed, postponing next attempt", hr);
-			else
-				Logger()->Log(EC_LOGLEVEL_DEBUG, "Stub operation executed.");
-		} else if (hr == MAPI_E_NOT_FOUND) {
-			hr = hrSuccess;
-			Logger()->Log(EC_LOGLEVEL_DEBUG, "Message is not eligible for stubbing.");
-		}
+	if (m_ptrStubOp == nullptr)
+		return hr;
+	hr = m_ptrStubOp->VerifyRestriction(lpMessage);
+	if (hr == hrSuccess) {
+		Logger()->Log(EC_LOGLEVEL_DEBUG, "Executing stub operation.");
+		hr = m_ptrStubOp->ProcessEntry(lpMessage);
+		if (hr != hrSuccess)
+			Logger()->pwarn("Stub operation failed, postponing next attempt", hr);
+		else
+			Logger()->Log(EC_LOGLEVEL_DEBUG, "Stub operation executed.");
+	} else if (hr == MAPI_E_NOT_FOUND) {
+		hr = hrSuccess;
+		Logger()->Log(EC_LOGLEVEL_DEBUG, "Message is not eligible for stubbing.");
 	}
 	return hr;
 }

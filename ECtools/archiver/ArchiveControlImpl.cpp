@@ -417,18 +417,18 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Done stubbing messages");
 	}
 
-	if (m_bPurgeEnable) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Purging archive(s)");
-		hr = PurgeArchives(lstArchives);
-		if (FAILED(hr)) {
-			return m_lpLogger->perr("Failed to purge archive(s)", hr);
-		} else if (hr == MAPI_W_PARTIAL_COMPLETION) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Some archives could not be purged");
-			bHaveErrors = true;
-			hr = hrSuccess;
-		}
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Done purging archive(s)");
+	if (!m_bPurgeEnable)
+		return hr;
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Purging archive(s)");
+	hr = PurgeArchives(lstArchives);
+	if (FAILED(hr)) {
+		return m_lpLogger->perr("Failed to purge archive(s)", hr);
+	} else if (hr == MAPI_W_PARTIAL_COMPLETION) {
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Some archives could not be purged");
+		bHaveErrors = true;
+		hr = hrSuccess;
 	}
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Done purging archive(s)");
 	return hr;
 }
 
@@ -555,14 +555,13 @@ HRESULT ArchiveControlImpl::ProcessFolder2(object_ptr<IMAPIFolder> &ptrFolder,
 		m_lpLogger->logf(EC_LOGLEVEL_INFO, "Processing batch of %u messages", ptrRowSet.size());
 		for (ULONG i = 0; i < ptrRowSet.size(); ++i) {
 			hr = ptrArchiveOperation->ProcessEntry(ptrFolder, ptrRowSet[i]);
-			if (hr != hrSuccess) {
-				bHaveErrors = true;
-				m_lpLogger->perr("Failed to process entry", hr);
-				if (hr == MAPI_E_STORE_FULL) {
-					m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Disk full or over quota.");
-					return hr;
-				}
+			if (hr == hrSuccess)
 				continue;
+			bHaveErrors = true;
+			m_lpLogger->perr("Failed to process entry", hr);
+			if (hr == MAPI_E_STORE_FULL) {
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Disk full or over quota.");
+				return hr;
 			}
 		}
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Done processing batch");
