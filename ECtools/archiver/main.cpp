@@ -145,22 +145,6 @@ static void print_mode_error(modes modeSet, modes modeReq,
     print_help(cerr, lpszName);
 }
 
-static std::string kc_join(int argc, const char *const *argv, const char *sep)
-{
-	std::string s;
-	if (argc == 0)
-		return s;
-	int k = 0;
-	for (; k < argc; ++k) {
-		s += argv[k];
-		s += sep;
-	}
-	if (k > 0)
-		/* Did at least one iteration, so must be a sep in s. */
-		s.erase(s.size() - strlen(sep), strlen(sep));
-	return s;
-}
-
 enum cmdOptions {
     OPT_USER = UCHAR_MAX + 1,
     OPT_ATTACH,
@@ -453,7 +437,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-	ec_log_info("Startup command: \"%s\"", kc_join(argc, argv, "\" \"").c_str());
+	ec_log_info("Startup command: \"%s\"", kc_join(&argv[0], &argv[argc], "\" \"").c_str());
 	ptrArchiver->GetLogger(Archiver::LogOnly)->log(EC_LOGLEVEL_INFO, "Version " PROJECT_VERSION);
 	auto lSettings = ptrArchiver->GetConfig()->GetAllSettings();
     ECLogger* filelogger = ptrArchiver->GetLogger(Archiver::LogOnly);
