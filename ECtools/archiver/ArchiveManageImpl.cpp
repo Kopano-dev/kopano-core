@@ -201,12 +201,13 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 		return m_lpLogger->perr("Failed to get archive list", hr);
 
 	// Find ptrArchiveStoreId in lstArchives
-	for (const auto &arc : lstArchives) {
-		bool bEqual;
-		if (m_ptrSession->CompareStoreIds(arc.sStoreEntryId, ptrArchiveStoreId->Value.bin, &bEqual) == hrSuccess && bEqual) {
-			m_lpLogger->logf(EC_LOGLEVEL_FATAL, "An archive for this \"" TSTRING_PRINTF "\" is already present in this store.", m_strUser.c_str());
-			return MAPI_E_UNABLE_TO_COMPLETE;
-		}
+	auto id_match = [&](const auto &arc) {
+		bool eq;
+		return m_ptrSession->CompareStoreIds(arc.sStoreEntryId, ptrArchiveStoreId->Value.bin, &eq) == hrSuccess && eq;
+	};
+	if (std::any_of(lstArchives.cbegin(), lstArchives.cend(), id_match)) {
+		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "An archive for this \"" TSTRING_PRINTF "\" is already present in this store.", m_strUser.c_str());
+		return MAPI_E_UNABLE_TO_COMPLETE;
 	}
 
 	hr = ArchiveHelper::Create(lpArchiveStore, strFoldername, lpszArchiveServer, &ptrArchiveHelper);
@@ -436,16 +437,11 @@ eResult ArchiveManageImpl::DetachFrom(unsigned int ulArchive)
 		m_lpLogger->perr("Failed to get archive list", hr);
 		return MAPIErrorToArchiveError(hr);
 	}
-
-	auto iArchive = lstArchives.begin();
-	for (unsigned int i = 0; i < ulArchive && iArchive != lstArchives.end(); ++i, ++iArchive);
-	if (iArchive == lstArchives.end()) {
+	if (ulArchive >= lstArchives.size()) {
 		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Archive %u does not exist.", ulArchive);
 		return MAPIErrorToArchiveError(MAPI_E_NOT_FOUND);
 	}
-
-	lstArchives.erase(iArchive);
-
+	lstArchives.erase(std::next(lstArchives.begin(), ulArchive));
 	hr = ptrStoreHelper->SetArchiveList(lstArchives);
 	if (hr != hrSuccess) {
 		m_lpLogger->perr("Failed to update archive list", hr);

@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <algorithm>
 #include <memory>
 #include <new>          // std::bad_alloc
 #include <list>          // std::list
@@ -894,10 +895,8 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 				if (PROP_TYPE(prop.ulPropTag) == PT_ERROR)
 					continue;
 				const auto &m = prop.Value.MVbin;
-				for (ULONG k = 0; k < m.cValues; ++k)
-					if (m.lpbin[k].cb >= sizeof(prefixData) &&
-					    memcmp(m.lpbin[k].lpb, prefixData, sizeof(prefixData)) == 0)
-						lpReferences->insert(m.lpbin[k]);
+				std::copy_if(&m.lpbin[0], &m.lpbin[m.cValues], std::inserter(*lpReferences, lpReferences->begin()),
+					[&](const auto &e) { return e.cb >= sizeof(prefixData) && memcmp(e.lpb, prefixData, sizeof(prefixData)) == 0; });
 			}
 			if (ptrRows.size() < batch_size)
 				break;

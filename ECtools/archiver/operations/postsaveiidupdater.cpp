@@ -111,15 +111,9 @@ PostSaveInstanceIdUpdater::PostSaveInstanceIdUpdater(ULONG ulPropTag, const Inst
 
 HRESULT PostSaveInstanceIdUpdater::Execute()
 {
-	bool bFailure = false;
-
-	for (const auto &i : m_lstDeferred) {
-		auto hr = i->Execute(m_ulPropTag, m_ptrMapper);
-		if (hr != hrSuccess)
-			bFailure = true;
-	}
-
-	return bFailure ? MAPI_W_ERRORS_RETURNED : hrSuccess;
+	return std::any_of(m_lstDeferred.begin(), m_lstDeferred.end(),
+	       [&](const auto &i) { return i->Execute(m_ulPropTag, m_ptrMapper) != hrSuccess; }) ?
+	       MAPI_W_ERRORS_RETURNED : hrSuccess;
 }
 
 }} /* namespace */
