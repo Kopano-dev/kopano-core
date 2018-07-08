@@ -122,7 +122,6 @@ static void PrintVersion(void)
 int main(int argc, char **argv) {
 	HRESULT hr = hrSuccess;
 	bool bIgnoreUnknownConfigOptions = false;
-	struct sigaction act{};
 	// Configuration
 	const char *lpszCfg = ECConfig::GetDefaultPath("ical.cfg");
 	bool exp_config = false;
@@ -176,7 +175,6 @@ int main(int argc, char **argv) {
 	};
 
 	setlocale(LC_CTYPE, "");
-	KAlternateStack sigstack;
 
 	while (1) {
 		int opt = my_getopt_long_permissive(argc, argv, "Fhc:V", long_options, nullptr);
@@ -239,13 +237,16 @@ int main(int argc, char **argv) {
 		g_lpLogger->SetLogprefix(LP_TID);
 	}
 
+	hr = [](char **argv) -> HRESULT {
 	// initialize SSL threading
     ssl_threading_setup();
-	hr = ical_listen(g_lpConfig.get());
+	auto hr = ical_listen(g_lpConfig.get());
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// setup signals
+	KAlternateStack sigstack;
+	struct sigaction act{};
 	signal(SIGPIPE, SIG_IGN);
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
@@ -266,9 +267,9 @@ int main(int argc, char **argv) {
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
 	if (unix_runas(g_lpConfig.get()))
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	if (g_bDaemonize && unix_daemonize(g_lpConfig.get()))
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	if (!g_bDaemonize)
 		setsid();
 	unix_create_pidfile(argv[0], g_lpConfig.get());
@@ -278,17 +279,17 @@ int main(int argc, char **argv) {
 		g_lpLogger->SetLogprefix(LP_TID);
 	ec_log_set(g_lpLogger);
 
-	hr = MAPIInitialize(NULL);
+	AutoMAPI mapiinit;
+	hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
 		kc_perror("Messaging API could not be initialized", hr);
-		goto exit;
+		return hr;
 	}
 	mainthread = pthread_self();
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-ical version " PROJECT_VERSION " (pid %d)", getpid());
 	hr = HrProcessConnections();
 	if (hr != hrSuccess)
-		goto exit2;
-
+		return hr;
 	ec_log_info("CalDAV Gateway will now exit");
 
 	// in forked mode, send all children the exit signal
@@ -307,8 +308,8 @@ int main(int argc, char **argv) {
 		else
 			ec_log_info("CalDAV Gateway shutdown complete");
 	}
-exit2:
-	MAPIUninitialize();
+	return hrSuccess;
+	}(argv);
 exit:
 	ECChannel::HrFreeCtx();
 	SSL_library_cleanup(); // Remove SSL data for the main application and other related libraries
@@ -318,7 +319,7 @@ exit:
 	xmlCleanupParser();
 	// cleanup ICU data so valgrind is happy
 	u_cleanup();
-	return hr;
+	return hr == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 static HRESULT ical_listen(ECConfig *cfg)
