@@ -633,18 +633,25 @@ static HRESULT handler_client(size_t i)
  */
 static HRESULT running_service(const char *szPath, const char *servicename)
 {
-	HRESULT hr = hrSuccess;
 	int err = 0;
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION " (pid %d)", getpid());
+
+	struct rlimit file_limit;
+	file_limit.rlim_cur = KC_DESIRED_FILEDES;
+	file_limit.rlim_max = KC_DESIRED_FILEDES;
+	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
+		ec_log_warn("setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", KC_DESIRED_FILEDES, getdtablesize());
+	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
+	auto hr = gw_listen(g_lpConfig.get());
+	if (hr != hrSuccess)
+		return hr;
+	if (unix_runas(g_lpConfig.get()))
+		return MAPI_E_CALL_FAILED;
 
 	// SIGSEGV backtrace support
 	KAlternateStack sigstack;
 	struct sigaction act;
 	memset(&act, 0, sizeof(act));
-
-	hr = gw_listen(g_lpConfig.get());
-	if (hr != hrSuccess)
-		return hr;
 
 	// Setup signals
 	signal(SIGPIPE, SIG_IGN);
@@ -663,17 +670,8 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
 
-    struct rlimit file_limit;
-	file_limit.rlim_cur = KC_DESIRED_FILEDES;
-	file_limit.rlim_max = KC_DESIRED_FILEDES;
-	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
-		ec_log_warn("setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", KC_DESIRED_FILEDES, getdtablesize());
-	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
-
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig.get()))
-		return MAPI_E_CALL_FAILED;
 	if (daemonize && unix_daemonize(g_lpConfig.get()))
 		return MAPI_E_CALL_FAILED;
 	if (!daemonize)
