@@ -302,6 +302,9 @@ HRESULT ArchiveControlImpl::ProcessAll(bool bLocalOnly, fnProcess_t fnProcess)
  */
 HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 {
+	if (strUser.empty())
+		return MAPI_E_INVALID_PARAMETER;
+
 	MsgStorePtr ptrUserStore;
 	StoreHelperPtr ptrStoreHelper;
 	MAPIFolderPtr ptrSearchArchiveFolder;
@@ -312,9 +315,6 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	std::shared_ptr<Copier> ptrCopyOp;
 	DeleterPtr	ptrDeleteOp;
 	StubberPtr	ptrStubOp;
-
-	if (strUser.empty())
-		return MAPI_E_INVALID_PARAMETER;
 
 	m_lpLogger->logf(EC_LOGLEVEL_INFO, "Archiving store for user \"" TSTRING_PRINTF "\"", strUser.c_str());
 	auto hr = m_ptrSession->OpenStoreByName(strUser, &~ptrUserStore);

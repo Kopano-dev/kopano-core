@@ -79,15 +79,15 @@ HRESULT InstanceIdMapper::Init(ECConfig *lpConfig)
 
 HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG *lpcbDestInstanceID, LPENTRYID *lppDestInstanceID)
 {
+	if (cbSourceInstanceID == 0 || lpSourceInstanceID == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	std::string strQuery;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
 	DB_LENGTHS lpLengths = NULL;
-
-	if (cbSourceInstanceID == 0 || lpSourceInstanceID == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
 
 	strQuery =
 		"SELECT m_dst.val_binary FROM za_mappings AS m_dst "
@@ -128,14 +128,14 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 
 HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID)
 {
+	if (cbSourceInstanceID == 0 || lpSourceInstanceID == nullptr ||
+	    cbDestInstanceID == 0 || lpDestInstanceID == nullptr)
+		return kcerr_to_mapierr(KCERR_INVALID_PARAMETER);
+
 	ECRESULT er = erSuccess;
 	std::string strQuery;
 	DB_RESULT lpResult;
 	DB_ROW lpDBRow = NULL;
-
-	if (cbSourceInstanceID == 0 || lpSourceInstanceID == nullptr ||
-	    cbDestInstanceID == 0 || lpDestInstanceID == nullptr)
-		return kcerr_to_mapierr(er = KCERR_INVALID_PARAMETER);
 	auto dtx = m_ptrDatabase->Begin(er);
 	if (er != erSuccess)
 		return kcerr_to_mapierr(er);

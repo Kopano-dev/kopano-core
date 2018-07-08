@@ -90,6 +90,10 @@ HRESULT Stubber::ProcessEntry(IMAPIFolder * lpFolder, const SRow &proprow)
 
 HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 {
+	assert(lpMessage != nullptr);
+	if (lpMessage == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT hr;
 	SPropValue sProps[3];
 	SPropValue sProp = {0};
@@ -100,10 +104,6 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	MAPIPropHelperPtr ptrMsgHelper;
 	ObjectEntryList lstMsgArchives;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
-
-	assert(lpMessage != NULL);
-	if (lpMessage == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 
 	hr = VerifyRestriction(lpMessage);
 	if (hr == MAPI_E_NOT_FOUND) {

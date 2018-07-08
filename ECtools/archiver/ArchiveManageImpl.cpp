@@ -670,11 +670,10 @@ eResult ArchiveManageImpl::ListAttachedUsers(std::ostream &ostr)
 
 eResult ArchiveManageImpl::ListAttachedUsers(UserList *lplstUsers)
 {
-	std::list<std::string> lstUsers;
-
-	if (lplstUsers == NULL)
+	if (lplstUsers == nullptr)
 		return MAPIErrorToArchiveError(MAPI_E_INVALID_PARAMETER);
 
+	std::list<std::string> lstUsers;
 	auto hr = GetArchivedUserList(m_ptrSession->GetMAPISession(),
 	          m_ptrSession->GetSSLPath(), m_ptrSession->GetSSLPass(), &lstUsers);
 	if (hr != hrSuccess)
@@ -692,15 +691,14 @@ eResult ArchiveManageImpl::ListAttachedUsers(UserList *lplstUsers)
  */
 eResult ArchiveManageImpl::AutoAttach(unsigned int ulFlags)
 {
+	if (ulFlags != ArchiveManage::Writable &&
+	    ulFlags != ArchiveManage::ReadOnly && ulFlags != 0)
+		return MAPIErrorToArchiveError(MAPI_E_INVALID_PARAMETER);
+
 	HRESULT hr = hrSuccess;
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveManageImpl::AutoAttach(): function entry");
 	ArchiveStateCollectorPtr ptrArchiveStateCollector;
 	ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
-
-	if (ulFlags != ArchiveManage::Writable && ulFlags != ArchiveManage::ReadOnly && ulFlags != 0) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveManageImpl::AutoAttach(): about to create ArchiveStateCollector");
 	hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
@@ -736,15 +734,15 @@ exit:
  */
 HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights)
 {
+	if (lpFolder == nullptr || lpulRights == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	SPropValuePtr ptrName;
 	object_ptr<IExchangeModifyTable> ptrACLModifyTable;
 	MAPITablePtr ptrACLTable;
 	SPropValue sPropUser;
 	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_MEMBER_RIGHTS}};
-
-	if (lpFolder == NULL || lpulRights == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 
 	// In an ideal world we would use the user entryid for the restriction.
 	// However, the ACL table is a client side table, which doesn't implement

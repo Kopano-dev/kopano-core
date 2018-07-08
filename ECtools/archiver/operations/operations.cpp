@@ -52,6 +52,11 @@ ArchiveOperationBase::ArchiveOperationBase(ECArchiverLogger *lpLogger, int ulAge
 
 HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestriction)
 {
+	if (lppRestriction == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if (m_ulAge < 0)
+		return MAPI_E_NOT_FOUND;
+
 	HRESULT hr = hrSuccess;
 	ULARGE_INTEGER li;
 	SPropValue sPropRefTime;
@@ -60,11 +65,6 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
 	PROPMAP_INIT(lpMapiProp)
-
-	if (lppRestriction == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-	if (m_ulAge < 0)
-		return MAPI_E_NOT_FOUND;
 
 	li.LowPart = m_ftCurrent.dwLowDateTime;
 	li.HighPart = m_ftCurrent.dwHighDateTime;

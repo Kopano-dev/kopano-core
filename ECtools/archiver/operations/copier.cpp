@@ -76,12 +76,12 @@ HRESULT Copier::Helper::CreateArchivedMessage(LPMESSAGE lpSource, const SObjectE
 
 HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAPIFOLDER *lppArchiveFolder)
 {
+	if (lppArchiveFolder == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT hr;
 	ArchiveFolderMap::const_iterator iArchiveFolder;
 	MAPIFolderPtr ptrArchiveFolder;
-
-	if (lppArchiveFolder == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 	
 	iArchiveFolder = m_mapArchiveFolders.find(archiveEntry.sStoreEntryId);
 	if (iArchiveFolder == m_mapArchiveFolders.cend()) {
@@ -120,14 +120,14 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 
 HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *lpMsgEntry, LPMESSAGE lpDest, PostSaveActionPtr *lpptrPSAction)
 {
+	if (lpSource == nullptr || lpDest == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT hr = hrSuccess;
 	MAPIPropHelperPtr ptrMsgHelper;
 	SPropValuePtr ptrEntryId;
 	SPropValue sPropArchFlags = {0};
 	PostSaveActionPtr ptrPSAction;
-
-	if (lpSource == NULL || lpDest == NULL)
-		return MAPI_E_INVALID_PARAMETER;	// Don't use goto so we can use the PROPMAP macros after checking lpDest
 
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
@@ -163,6 +163,9 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 
 HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSaveActionPtr *lpptrPSAction)
 {
+	if (lpSource == nullptr || lpDest == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	HRESULT hr;
 	MAPITablePtr ptrSourceTable;
 	MAPITablePtr ptrDestTable;
@@ -174,8 +177,6 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 	static constexpr const SizedSPropTagArray(1, sptaAttachProps) = {1, {PR_ATTACH_NUM}};
 	enum {IDX_ATTACH_NUM};
 
-	if (lpSource == NULL || lpDest == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 	hr = HrGetOneProp(lpSource, PR_EC_SERVER_UID, &~ptrSourceServerUID);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to get source server UID", hr);
@@ -401,6 +402,9 @@ HRESULT Copier::LeaveFolder()
 
 HRESULT Copier::DoProcessEntry(const SRow &proprow)
 {
+	if (m_ptrMapper == nullptr)
+		return MAPI_E_UNCONFIGURED;
+
 	HRESULT hr;
 	SObjectEntry refObjectEntry;
 	MessagePtr ptrMessageRaw;
@@ -413,9 +417,6 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 	ObjectEntryList lstNewMsgArchives;
 	TransactionList lstTransactions;
 	RollbackList lstRollbacks;
-
-	if (!m_ptrMapper)
-		return MAPI_E_UNCONFIGURED;
 
 	auto lpEntryId = proprow.cfind(PR_ENTRYID);
 	if (lpEntryId == NULL) {
