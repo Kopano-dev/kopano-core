@@ -915,15 +915,14 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 				return hr;
 			
 			for (SRowSetPtr::size_type j = 0; j < ptrRows.size(); ++j) {
-				if (PROP_TYPE(ptrRows[j].lpProps[0].ulPropTag) == PT_ERROR)
+				const auto &prop = ptrRows[j].lpProps[0];
+				if (PROP_TYPE(prop.ulPropTag) == PT_ERROR)
 					continue;
-				
-				for (ULONG k = 0; k < ptrRows[j].lpProps[0].Value.MVbin.cValues; ++k) {
-					if (ptrRows[j].lpProps[0].Value.MVbin.lpbin[k].cb >= sizeof(prefixData) &&
-						memcmp(ptrRows[j].lpProps[0].Value.MVbin.lpbin[k].lpb, prefixData, sizeof(prefixData)) == 0) {
-						lpReferences->insert(ptrRows[j].lpProps[0].Value.MVbin.lpbin[k]);
-					}
-				}
+				const auto &m = prop.Value.MVbin;
+				for (ULONG k = 0; k < m.cValues; ++k)
+					if (m.lpbin[k].cb >= sizeof(prefixData) &&
+					    memcmp(m.lpbin[k].lpb, prefixData, sizeof(prefixData)) == 0)
+						lpReferences->insert(m.lpbin[k]);
 			}
 			
 			if (ptrRows.size() < batch_size)
