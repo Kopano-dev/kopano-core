@@ -613,7 +613,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		case MAPI_FOLDER:
 			if ((ulRights & ecRightsReadAny) == ecRightsReadAny)
 				sPropVal.Value.ul |= MAPI_ACCESS_READ;
-			if (bOwner == true || (ulRights & ecRightsFolderAccess) == ecRightsFolderAccess)
+			if (bOwner || (ulRights & ecRightsFolderAccess) == ecRightsFolderAccess)
 				sPropVal.Value.ul |= MAPI_ACCESS_DELETE | MAPI_ACCESS_MODIFY;
 
 			if (ulFlags != FOLDER_SEARCH) //FOLDER_GENERIC, FOLDER_ROOT
@@ -624,7 +624,8 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 					sPropVal.Value.ul |= MAPI_ACCESS_CREATE_CONTENTS;
 
 				// olk2k7 fix: if we have delete access, we must set create contents access (eventhough an actual saveObject will still be denied) for deletes to work.
-				if ((ulRights & ecRightsDeleteAny) == ecRightsDeleteAny || (bOwner == true && (ulRights & ecRightsDeleteOwned) == ecRightsDeleteOwned))
+				if ((ulRights & ecRightsDeleteAny) == ecRightsDeleteAny ||
+				    (bOwner && (ulRights & ecRightsDeleteOwned) == ecRightsDeleteOwned))
 					sPropVal.Value.ul |= MAPI_ACCESS_CREATE_CONTENTS;
 				if ((ulRights & ecRightsFolderAccess) == ecRightsFolderAccess)
 					sPropVal.Value.ul |= MAPI_ACCESS_CREATE_ASSOCIATED;
@@ -633,9 +634,11 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		case MAPI_MESSAGE:
 			if ((ulRights & ecRightsReadAny) == ecRightsReadAny)
 				sPropVal.Value.ul |= MAPI_ACCESS_READ;
-			if ((ulRights & ecRightsEditAny) == ecRightsEditAny || (bOwner == true && (ulRights & ecRightsEditOwned) == ecRightsEditOwned))
+			if ((ulRights & ecRightsEditAny) == ecRightsEditAny ||
+			    (bOwner && (ulRights & ecRightsEditOwned) == ecRightsEditOwned))
 				sPropVal.Value.ul |= MAPI_ACCESS_MODIFY;
-			if ((ulRights & ecRightsDeleteAny) == ecRightsDeleteAny || (bOwner == true && (ulRights & ecRightsDeleteOwned) == ecRightsDeleteOwned))
+			if ((ulRights & ecRightsDeleteAny) == ecRightsDeleteAny ||
+			    (bOwner && (ulRights & ecRightsDeleteOwned) == ecRightsDeleteOwned))
 				sPropVal.Value.ul |= MAPI_ACCESS_DELETE;
 			break;
 		default:

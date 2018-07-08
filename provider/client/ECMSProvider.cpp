@@ -435,7 +435,7 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 
 	if ((ulFlags & MDB_ONLINE) ||
 	    !(sProviderInfo.ulProfileFlags & EC_PROFILE_FLAGS_OFFLINE) ||
-	    bIsDefaultStore == false) {
+	    !bIsDefaultStore) {
 		bool fDone = false;
 
 		while(!fDone) {

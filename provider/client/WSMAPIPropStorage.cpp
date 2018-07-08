@@ -195,7 +195,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 	// recursive process all children when parent is still present
 	lpSaveObj->__size = 0;
 	lpSaveObj->__ptr = NULL;
-	if (lpsMapiObject->bDelete == false) {
+	if (!lpsMapiObject->bDelete) {
 		size = lpsMapiObject->lstChildren.size();
 		if (size != 0) {
 			lpSaveObj->__ptr = s_alloc<saveObject>(nullptr, size);

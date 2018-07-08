@@ -244,7 +244,7 @@ HRESULT ECMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 
 	HRESULT hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	if(ulPropTag == PR_RECEIVE_FOLDER_SETTINGS) {
-		if (*lpiid == IID_IMAPITable && IsPublicStore() == false)
+		if (*lpiid == IID_IMAPITable && !IsPublicStore())
 			// Non supported function for publicfolder
 			hr = GetReceiveFolderTable(0, (LPMAPITABLE*)lppUnk);
 	} else if(ulPropTag == PR_HIERARCHY_SYNCHRONIZER) {

@@ -1077,8 +1077,7 @@ ECRESULT ECSearchFolders::GetState(unsigned int ulStoreId, unsigned int ulFolder
         } else {
             
             ulState = SEARCH_RUNNING;
-            
-            if(iterFolder->second->bThreadFree == false)
+			if (!iterFolder->second->bThreadFree)
                 ulState |= SEARCH_REBUILD;
         }
     }    

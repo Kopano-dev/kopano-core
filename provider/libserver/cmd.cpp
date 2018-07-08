@@ -3287,7 +3287,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 			return er;
 	}
 
-	if(bExist == false && !(type & FOLDER_SEARCH)){
+	if (!bExist && !(type & FOLDER_SEARCH)) {
 		SOURCEKEY sParentSourceKey;
 		
 		GetSourceKey(ulParentId, &sParentSourceKey);
@@ -3295,7 +3295,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 	}
 
 	// Notify that the folder has been created
-	if(bExist == false && bNotify == true) {
+	if (!bExist && bNotify) {
 		g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulParentId);
 		g_lpSessionManager->NotificationCreated(MAPI_FOLDER, ulFolderId, ulParentId);
 		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
@@ -6736,8 +6736,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	}
 	
 	// Check the quota size when the item is a softdelete item
-	if(bUpdateDeletedSize == true)
-	{
+	if (bUpdateDeletedSize) {
 		// Quota check
 		er = sec->GetStoreSize(ulDestFolderId, &llStoreSize);
 		if (er != erSuccess) {
@@ -6948,7 +6947,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	}
 
 	// change the size if it is a soft delete item
-	if(bUpdateDeletedSize == true) {
+	if (bUpdateDeletedSize) {
 		er = UpdateObjectSize(lpDatabase, ulDestStoreId, MAPI_STORE, UPDATE_ADD, ulItemSize);
 		if (er != erSuccess) {
 			ec_log_debug("MoveObjects: UpdateObjectSize(store %u) failed: %s (%x)", ulDestStoreId, GetMAPIErrorMessage(er), er);
@@ -7099,8 +7098,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	}
 
 	// Check permission
-	if(bIsRoot == true)
-	{
+	if (bIsRoot) {
 		auto sec = lpecSession->GetSecurity();
 		er = sec->CheckPermission(ulObjId, ecSecurityRead);
 		if (er != erSuccess) {
@@ -7155,7 +7153,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	if (lpDBRow[2])
 		ulFlags		= atoui(lpDBRow[2]);
 
-	if (bIsRoot == true && ulObjType != MAPI_MESSAGE) {
+	if (bIsRoot && ulObjType != MAPI_MESSAGE) {
 		ec_log_err("CopyObject: \"isRoot && != MAPI_MESSAGE\" fail");
 		return er = KCERR_INVALID_ENTRYID;
 	}
@@ -7173,7 +7171,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		return er;
 	}
 
-	if(bIsRoot == true) {
+	if (bIsRoot) {
 		sObjectTableKey key(ulNewObjectId, 0);
 		propVal sProp;
 
@@ -7282,8 +7280,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	}
 	er = erSuccess;
 
-	if(bIsRoot == true)
-	{
+	if (bIsRoot) {
 		// Create indexedproperties, Add new PR_SOURCE_KEY
 		er = lpecSession->GetNewSourceKey(&sSourceKey);
 		if (er != erSuccess) {

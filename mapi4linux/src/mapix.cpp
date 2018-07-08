@@ -1072,7 +1072,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	// See if we already have the store open
 	decltype(mapStores)::const_iterator iterStores = mapStores.find(guidProvider);
 	if (iterStores != mapStores.cend()) {
-		if (bStoreEntryID == true) {
+		if (bStoreEntryID) {
 			hr = iterStores->second->QueryInterface(IID_IMsgStore, (void**)lppUnk);
 			if (hr == hrSuccess)
 				*lpulObjType = MAPI_STORE;
@@ -1138,7 +1138,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 		// Keep the store open in case somebody else needs it later (only via this function)
 		mapStores.emplace(guidProvider, object_ptr<IMsgStore>(lpMDB, false));
-		if (bStoreEntryID == true) {
+		if (bStoreEntryID) {
 			hr = lpMDB->QueryInterface(IID_IMsgStore, (void **)lppUnk);
 			if (hr == hrSuccess)
 				*lpulObjType = MAPI_STORE;

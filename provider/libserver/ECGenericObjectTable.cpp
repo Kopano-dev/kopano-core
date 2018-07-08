@@ -375,7 +375,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 	for (gsoap_size_t i = 0; lpsPropTagArray != NULL && i < lpsPropTagArray->__size; ++i) {
 		if ((PROP_TYPE(lpsPropTagArray->__ptr[i]) &MVI_FLAG) != MVI_FLAG)
 			continue;
-		if (bMVColsNew == true)
+		if (bMVColsNew)
 			assert(false); //FIXME: error 1 mv prop set!!!
 		bMVColsNew = true;
 		listMVPropTag.emplace_back(lpsPropTagArray->__ptr[i]);
@@ -385,7 +385,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 	for (gsoap_size_t i = 0; lpsSortOrderArray != NULL && i < lpsSortOrderArray->__size; ++i) {
 		if ((PROP_TYPE(lpsSortOrderArray->__ptr[i].ulPropTag) & MVI_FLAG) != MVI_FLAG)
 			continue;
-		if (bMVSortNew == true)
+		if (bMVSortNew)
 			assert(false);
 		bMVSortNew = true;
 		listMVPropTag.emplace_back(lpsSortOrderArray->__ptr[i].ulPropTag);
@@ -394,7 +394,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 	listMVPropTag.sort();
 	listMVPropTag.unique();
 
-	if((m_bMVCols == false && m_bMVSort == false && bMVColsNew == false && bMVSortNew == false) ||
+	if ((!m_bMVCols && !m_bMVSort && !bMVColsNew && !bMVSortNew) ||
 		(listMVPropTag == m_listMVSortCols && (m_bMVCols == bMVColsNew || m_bMVSort == bMVSortNew)) )
 	{
 		if(eType == RELOAD_TYPE_SORTORDER)
@@ -411,9 +411,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 			listRows.emplace_back(p.first);
 	if(mapObjects.empty())
 		goto skip;
-
-	if(bMVColsNew == true || bMVSortNew == true)
-	{
+	if (bMVColsNew || bMVSortNew) {
 		// Expand rows to contain all MVI expansions (listRows is appended to)
 		er = ReloadTableMVData(&listRows, &listMVPropTag);
 		if(er != erSuccess)
@@ -835,7 +833,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 			for (gsoap_size_t j = 0; j < n; ++j)
 				if(sPropTagArray.__ptr[j] == lpsRestrictPropTagArray->__ptr[i])
 					bExist = true;
-			if(bExist == false)
+			if (!bExist)
 				sPropTagArray.__ptr[n++] = lpsRestrictPropTagArray->__ptr[i];
 		}
 
@@ -879,7 +877,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 			// Match the row with the restriction, if any
 			if (rt != nullptr) {
 				MatchRowRestrict(cache, &lpRowSet->__ptr[i], rt, &sub_results, m_locale, &fMatch);
-				if(fMatch == false) {
+				if (!fMatch) {
 					// this row isn't in the table, as it does not match the restrict criteria. Remove it as if it had
 					// been deleted if it was already in the table.
 					DeleteRow(sRowItem, ulFlags);

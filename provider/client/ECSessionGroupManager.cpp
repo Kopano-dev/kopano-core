@@ -33,7 +33,7 @@ ECSESSIONGROUPID ECSessionGroupManager::GetSessionGroupId(const sGlobalProfilePr
 	scoped_rlock lock(m_hMutex);
 	ECSessionGroupInfo ecSessionGroup(sProfileProps.strServerPath, sProfileProps.strProfileName);
 	auto result = m_mapSessionGroupIds.emplace(ecSessionGroup, 0);
-	if (result.second == true) {
+	if (result.second) {
         // Not found, generate one now
     	ssl_random((sizeof(ecSessionGroupId) == 8), &ecSessionGroupId);
 		// Register the new SessionGroupId, this is needed because we are not creating a SessionGroupData
@@ -66,7 +66,7 @@ HRESULT ECSessionGroupManager::GetSessionGroupData(ECSESSIONGROUPID ecSessionGro
 	scoped_rlock lock(m_hMutex);
 
 	auto result = m_mapSessionGroups.emplace(ecSessionGroup, nullptr);
-	if (result.second == true) {
+	if (result.second) {
         hr = SessionGroupData::Create(ecSessionGroupId, &ecSessionGroup, sProfileProps, &lpData);
         if (hr == hrSuccess)
 			result.first->second = lpData;

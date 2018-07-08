@@ -428,8 +428,7 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 			return hr;
 		}
 
-		if (vmime::mdn::MDNHelper::isMDN(vmMessage) == true)
-		{
+		if (vmime::mdn::MDNHelper::isMDN(vmMessage)) {
 			vmime::mdn::receivedMDNInfos receivedMDN = vmime::mdn::MDNHelper::getReceivedMDN(vmMessage);
 			auto myBody = vmMessage->getBody();
 			// it is possible to get 3 bodyparts.

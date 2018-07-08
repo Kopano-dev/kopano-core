@@ -330,7 +330,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 			for (const auto &i : tokenize(sp.second, ", \t")) {
 				auto infProvider = cINF.GetSection(i);
 				auto prov = m_sProviders.emplace(i, new SVCProvider);
-				if (prov.second == false)
+				if (!prov.second)
 					continue;	// already exists
 
 				prov.first->second->Init(cINF, infProvider);
@@ -447,7 +447,7 @@ HRESULT MAPISVC::Init()
 		// ZARAFA6, ZCONTACTS
 		auto infService = inf.GetSection(sp.first);
 		auto i = m_sServices.emplace(sp.first, new SVCService);
-		if (i.second == false)
+		if (!i.second)
 			continue;			// already exists
 
 		hr = i.first->second->Init(inf, infService);

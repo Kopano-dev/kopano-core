@@ -105,7 +105,7 @@ HRESULT MailboxDataCollector::CollectData(LPMAPITABLE lpStoreTable)
 			}
 			userId = ptrRows[i].lpProps[IDX_MAILBOX_OWNER_ENTRYID].Value.bin;
 			auto res = m_mapArchiveInfo.emplace(userId, ArchiveStateCollector::ArchiveInfo());
-			if (res.second == true)
+			if (res.second)
 				m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Inserting row for user id \"%s\"", userId.tostring().c_str());
 			else
 				m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Updating row for user \"" TSTRING_PRINTF "\"", res.first->second.userName.c_str());

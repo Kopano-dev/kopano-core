@@ -293,7 +293,7 @@ int main(int argc, char **argv) {
 	if (!g_bDaemonize)
 		setsid();
 	unix_create_pidfile(argv[0], g_lpConfig.get());
-	if (g_bThreads == false)
+	if (!g_bThreads)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), g_lpLogger);
 	else
 		g_lpLogger->SetLogprefix(LP_TID);
@@ -313,7 +313,7 @@ int main(int argc, char **argv) {
 	ec_log_info("CalDAV Gateway will now exit");
 
 	// in forked mode, send all children the exit signal
-	if (g_bThreads == false) {
+	if (!g_bThreads) {
 		signal(SIGTERM, SIG_IGN);
 		kill(0, SIGTERM);
 		int i = 30; /* wait max 30 seconds */
@@ -457,7 +457,7 @@ static HRESULT HrProcessConnections()
 			kc_perror("Handling client connection failed", hr);
 			continue;
 		}
-		if (g_bThreads == false)
+		if (!g_bThreads)
 			delete lpChannel;	// always cleanup channel in main process
 		}
 	}

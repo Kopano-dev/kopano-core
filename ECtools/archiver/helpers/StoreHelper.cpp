@@ -372,7 +372,7 @@ HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFo
 		hr = m_ptrMsgStore->OpenEntry(ptrRowSet[0].lpProps[0].Value.bin.cb,
 		     reinterpret_cast<ENTRYID *>(ptrRowSet[0].lpProps[0].Value.bin.lpb),
 		     &iid_of(ptrSubFolder), MAPI_BEST_ACCESS, &ulType, &~ptrSubFolder);
-	} else if (hr == MAPI_E_NOT_FOUND && bCreate == true) {
+	} else if (hr == MAPI_E_NOT_FOUND && bCreate) {
 		hr = ptrFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)strFolder.c_str(), nullptr, &iid_of(ptrSubFolder), fMapiUnicode, &~ptrSubFolder);
 		if (hr != hrSuccess)
 			return hr;

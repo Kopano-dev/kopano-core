@@ -152,8 +152,7 @@ typedef memory_ptr<struct berval *, ldap_deleter> auto_free_ldap_berval;
 
 #define END_FOREACH_LDAP_PAGING	\
 	} \
-	while (morePages == true); \
-	\
+	while (morePages); \
 	if (sCookie.bv_val != NULL) { \
 		ber_memfree(sCookie.bv_val); \
 		sCookie.bv_val = NULL; \
@@ -1186,8 +1185,7 @@ string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid,
 		}
 	}
 	END_FOREACH_ATTR
-
-	if(bDataAttrFound == false)
+	if (!bDataAttrFound)
 		throw data_error(string(lpAttr)+" attribute not found");
 
 	return strData;
@@ -1805,7 +1803,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			sObjDetails.SetPropObject(OB_PROP_O_SYSADMIN, objectid_t("SYSTEM", ACTIVE_USER));
 
 		// when cutoff is used, filter only the requested entries.
-		if(bCutOff == true && setObjectIds.find(objectid) == setObjectIds.end())
+		if (bCutOff && setObjectIds.find(objectid) == setObjectIds.end())
 			continue;
 
 		FOREACH_ATTR(entry) {

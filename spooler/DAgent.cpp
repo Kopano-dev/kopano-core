@@ -2321,8 +2321,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 				ulNewMailNotify = lpArgs->bNewmailNotify;
 				hr = hrSuccess;
 			}
-
-			if (ulNewMailNotify == true) {
+			if (ulNewMailNotify) {
 				hr = HrNewMailNotification(lpTargetStore, lpDeliveryMessage);
 				if (hr != hrSuccess)
 					kc_pwarn("Unable to send \"New Mail\" notification", hr);

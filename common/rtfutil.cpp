@@ -623,7 +623,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 		} else if (*szInput == '\r' || *szInput == '\n' || *szInput == '\0') {
 			++szInput;
 		} else if (!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars) {
-			if (bPar == false) {
+			if (!bPar) {
 				sState[ulState].output.append("<P>");
 				bPar = true;
 			}

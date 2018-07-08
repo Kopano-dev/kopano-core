@@ -57,7 +57,7 @@ class converter _kc_final {
 	const wchar_t *convert(const char *lpsz) {
 		scoped_lock l_cache(m_hCacheLock);
 		auto insResult = m_cache.emplace(lpsz, L"");
-		if (insResult.second == true)	// successful insert, so not found in cache
+		if (insResult.second) /* successful insert, so not found in cache */
 			insResult.first->second.assign(m_converter.convert_to<std::wstring>(lpsz));
 		
 		const wchar_t *lpszW = insResult.first->second.c_str();

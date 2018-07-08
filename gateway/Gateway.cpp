@@ -672,7 +672,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	if (!daemonize)
 		setsid();
 	unix_create_pidfile(servicename, g_lpConfig.get());
-	if (bThreads == false)
+	if (!bThreads)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), g_lpLogger); // maybe replace logger
 	ec_log_set(g_lpLogger);
 
@@ -746,7 +746,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 
 	ec_log(EC_LOGLEVEL_ALWAYS, "POP3/IMAP Gateway will now exit");
 	// in forked mode, send all children the exit signal
-	if (bThreads == false) {
+	if (!bThreads) {
 		signal(SIGTERM, SIG_IGN);
 		kill(0, SIGTERM);
 	}

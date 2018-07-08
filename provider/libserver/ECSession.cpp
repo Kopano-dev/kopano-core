@@ -539,7 +539,7 @@ ECRESULT ECSession::LockObject(unsigned int ulObjId)
 {
 	scoped_lock lock(m_hLocksLock);
 	auto res = m_mapLocks.emplace(ulObjId, ECObjectLock());
-	if (res.second == true)
+	if (res.second)
 		return m_lpSessionManager->GetLockManager()->LockObject(ulObjId, m_sessionID, &res.first->second);
 	return erSuccess;
 }
@@ -1022,7 +1022,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 
 	if (strlen(name) > 0) {
 		auto entryid_bin = base64_decode(name);
-		if (entryid_bin.size() > 0 && CompareABEID(entryid_bin.size(), reinterpret_cast<const ENTRYID *>(entryid_bin.c_str()), username_abid.size(), reinterpret_cast<const ENTRYID *>(username_abid.c_str())) == false) {
+		if (entryid_bin.size() > 0 && !CompareABEID(entryid_bin.size(), reinterpret_cast<const ENTRYID *>(entryid_bin.c_str()), username_abid.size(), reinterpret_cast<const ENTRYID *>(username_abid.c_str()))) {
 			ec_log_info("RPC user entryid does not match token entryid, call:\"%s\", token: \"%s\"", name, res.r0);
 			return KCERR_LOGON_FAILED;
 		}

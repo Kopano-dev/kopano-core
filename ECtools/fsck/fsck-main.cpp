@@ -441,7 +441,7 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 			if (pRows[i].lpProps[3].ulPropTag == PR_RECIPIENT_TYPE)
 				strData += stringify(pRows[i].lpProps[3].Value.ul);
 			auto res = mapRecip.emplace(std::move(strData));
-			if (res.second == false)
+			if (!res.second)
 				mapiReciptDel.emplace_back(pRows[i].lpProps[0].Value.ul);
 		}
 	}

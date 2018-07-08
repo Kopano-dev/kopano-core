@@ -1416,7 +1416,7 @@ ECRESULT ECLockManager::LockObject(unsigned int objid, ECSESSIONID sid,
 	ECRESULT er = erSuccess;
 	std::lock_guard<KC::shared_mutex> lock(m_hRwLock);
 	auto res = m_mapLocks.emplace(objid, sid);
-	if (res.second == false && res.first->second != sid)
+	if (!res.second && res.first->second != sid)
 		er = KCERR_NO_ACCESS;
 	if (objlock != nullptr)
 		*objlock = ECObjectLock(shared_from_this(), objid, sid);

@@ -257,7 +257,7 @@ public:
         CopyPropVal(lpPropVal, &val, NULL, false, true);
         val.ulPropTag = NormalizeDBPropTag(val.ulPropTag);
 		auto res = mapPropVals.emplace(ulPropTag, val);
-		if (res.second == false) {
+		if (!res.second) {
             FreePropVal(&res.first->second, false); 
             res.first->second = val;	// reassign
         }

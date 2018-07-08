@@ -159,8 +159,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 
 	if (sizeof(ECSESSIONID) == 8)
 		ulCapabilities |= KOPANO_CAP_LARGE_SESSIONID;
-
-	if (bPipeConnection == false) {
+	if (!bPipeConnection) {
 		/*
 		 * All connections except pipes request compression. The server
 		 * can still reject the request.

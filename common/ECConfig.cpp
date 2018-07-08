@@ -63,7 +63,7 @@ const char* ECConfig::GetDefaultPath(const char* lpszBasename)
 	if (!lpszBasename)
 		lpszBasename = "";
 	auto result = s_mapPaths.emplace(lpszBasename, "");
-	if (result.second == true) {		// New item added, so create the actual path
+	if (result.second) { /* New item added, so create the actual path */
 		const char *lpszDirname = getenv("KOPANO_CONFIG_PATH");
 		if (!lpszDirname || lpszDirname[0] == '\0')
 			lpszDirname = "/etc/kopano";

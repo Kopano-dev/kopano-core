@@ -2366,11 +2366,11 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	if (mode == MODE_HOOK_STORE && (storeguid == NULL || (username == NULL && bCopyToPublic == false) ) ) {
+	if (mode == MODE_HOOK_STORE && (storeguid == nullptr || (username == nullptr && !bCopyToPublic))) {
 		cerr << "Missing information to hook store:";
 		if (storeguid == NULL)
 			cerr << " store GUID (--hook-store)";
-		if (username == NULL && bCopyToPublic == false)
+		if (username == nullptr && !bCopyToPublic)
 			cerr << " username (-u)";
 		cerr << endl;
 		return 1;
@@ -2808,7 +2808,7 @@ int main(int argc, char* argv[])
 		// happy compiler
 		break;
 	case MODE_HOOK_STORE:
-		if (bCopyToPublic == true)
+		if (bCopyToPublic)
 			return fexech(argv[0], {"kopano-storeadm", "-A", storeguid, "-p"}, path);
 		return fexech(argv[0], {"kopano-storeadm", "-A", storeguid, "-n", username}, path);
 	case MODE_UNHOOK_STORE:

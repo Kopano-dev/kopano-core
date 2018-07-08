@@ -1138,7 +1138,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		g_lpConfig->AddSetting("attachment_storage", "database");
 	}
 
-	if (strcasecmp(g_lpConfig->GetSetting("user_plugin"), "db") == 0 && parseBool(g_lpConfig->GetSetting("sync_gab_realtime")) == false) {
+	if (strcasecmp(g_lpConfig->GetSetting("user_plugin"), "db") == 0 &&
+	    !parseBool(g_lpConfig->GetSetting("sync_gab_realtime"))) {
 		ec_log_info("Unsupported sync_gab_realtime = no when using DB plugin. Enabling sync_gab_realtime.");
 		g_lpConfig->AddSetting("sync_gab_realtime", "yes");
 	}
@@ -1285,8 +1286,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 	if(er == KCERR_INVALID_VERSION) {
 		ec_log_warn("WARNING: %s", dbError.c_str());
-
-		if(m_bIgnoreDatabaseVersionConflict == false) {
+		if (!m_bIgnoreDatabaseVersionConflict) {
 			ec_log_warn("   You can force the server to start with --ignore-database-version-conflict");
 			ec_log_warn("   Warning, you can lose data! If you don't know what you're doing, you shouldn't be using this option!");
 			return retval;

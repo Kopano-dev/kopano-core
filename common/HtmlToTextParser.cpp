@@ -369,7 +369,7 @@ void CHtmlToTextParser::parseTagBTR()
 
 void CHtmlToTextParser::parseTagTDTH()
 {
-	if (!stackTableRow.empty() && stackTableRow.top().bFirstCol == true)
+	if (!stackTableRow.empty() && stackTableRow.top().bFirstCol)
 		 stackTableRow.top().bFirstCol = false;
 	else
 		addChar('\t');

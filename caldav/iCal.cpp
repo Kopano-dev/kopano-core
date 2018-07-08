@@ -506,7 +506,7 @@ HRESULT iCal::HrDelFolder()
 	object_ptr<IMAPIFolder> lpWasteBoxFld;
 	ULONG ulObjType = 0;
 
-	if (m_blFolderAccess == false) {
+	if (!m_blFolderAccess) {
 		hr = MAPI_E_NO_ACCESS;
 		goto exit;
 	}
