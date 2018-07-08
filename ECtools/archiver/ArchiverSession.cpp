@@ -93,8 +93,7 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECLogger *lpLo
 HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
 {
 	object_ptr<ECLogger> lpLocalLogger;
-	const char *lpszSslKeyFile = NULL;
-	const char *lpszSslKeyPass = NULL;
+	const char *lpszSslKeyFile = nullptr, *lpszSslKeyPass = nullptr;
 
 	if (lpLogger != nullptr)
 		lpLocalLogger.reset(lpLogger);
@@ -406,9 +405,8 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 
 HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstrUser, tstring *lpstrFullname)
 {
-	ULONG ulType = 0;
+	unsigned int ulType = 0, cUserProps = 0;
 	MAPIPropPtr ptrUser;
-	ULONG cUserProps = 0;
 	SPropArrayPtr ptrUserProps;
 	static constexpr const SizedSPropTagArray(2, sptaUserProps) =
 		{2, {PR_ACCOUNT, PR_DISPLAY_NAME}};
@@ -447,8 +445,7 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
 HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 {
 	AddrBookPtr		ptrAdrBook;
-	ABContainerPtr	ptrABRootContainer;
-	ABContainerPtr	ptrGAL;
+	ABContainerPtr ptrABRootContainer, ptrGAL;
 	MAPITablePtr	ptrABRCTable;
 	SRowSetPtr		ptrRows;
 	ULONG			ulType = 0;
@@ -506,8 +503,7 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
  */					
 HRESULT ArchiverSession::CompareStoreIds(LPMDB lpUserStore, LPMDB lpArchiveStore, bool *lpbResult)
 {
-	SPropValuePtr ptrUserStoreEntryId;
-	SPropValuePtr ptrArchiveStoreEntryId;
+	SPropValuePtr ptrUserStoreEntryId, ptrArchiveStoreEntryId;
 	ULONG ulResult = 0;
 
 	auto hr = HrGetOneProp(lpUserStore, PR_ENTRYID, &~ptrUserStoreEntryId);
@@ -634,17 +630,12 @@ HRESULT ArchiverSession::GetArchiveStoreEntryId(const tstring& strUserName, cons
 
 HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const tstring& strServerName, LPMDB *lppArchiveStore)
 {
-	MsgStorePtr ptrRemoteAdminStore;
+	MsgStorePtr ptrRemoteAdminStore, ptrArchiveStore;
 	ECServiceAdminPtr ptrRemoteServiceAdmin;
 	abentryid_t userId;
-	ULONG cbStoreId = 0;
-	EntryIdPtr ptrStoreId;
-	ULONG cbRootId = 0;
-	EntryIdPtr ptrRootId;
-	MsgStorePtr ptrArchiveStore;
-	MAPIFolderPtr ptrRoot;
-	ULONG ulType;
-	MAPIFolderPtr ptrIpmSubtree;
+	ULONG cbStoreId = 0, cbRootId = 0, ulType;
+	EntryIdPtr ptrStoreId, ptrRootId;
+	MAPIFolderPtr ptrRoot, ptrIpmSubtree;
 	SPropValuePtr ptrIpmSubtreeId;
 
 	auto hr = GetUserInfo(strUserName, &userId, nullptr, nullptr);

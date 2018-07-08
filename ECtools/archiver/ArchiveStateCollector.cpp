@@ -53,7 +53,6 @@ MailboxDataCollector::MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap
 
 HRESULT MailboxDataCollector::GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagArray *lppPropTagArray) const
 {
-	HRESULT hr = hrSuccess;
 	SPropTagArrayPtr ptrPropTagArray;
 
 	PROPMAP_START(2)
@@ -61,7 +60,7 @@ HRESULT MailboxDataCollector::GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagA
 		PROPMAP_NAMED_ID(ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, "item-entryids")
 	PROPMAP_INIT(lpProp);
 
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), &~ptrPropTagArray);
+	auto hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), &~ptrPropTagArray);
 	if (hr != hrSuccess)
 		return hr;
 	ptrPropTagArray->cValues = 4;
@@ -221,8 +220,7 @@ HRESULT ArchiveStateCollector::PopulateUserList()
  */
 HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 {
-	SPropValue sPropObjType;
-	SPropValue sPropDispType;
+	SPropValue sPropObjType, sPropDispType;
 	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(4, sptaUserProps) =

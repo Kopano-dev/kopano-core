@@ -372,8 +372,7 @@ HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std
 
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Attaching %zu couplings", lstCouplings.size());
 	for (const auto &i : lstCouplings) {
-		tstring strArchive;
-		tstring strFolder;
+		tstring strArchive, strFolder;
 
 		hr = ParseCoupling(i, &strArchive, &strFolder);
 		if (hr != hrSuccess)
@@ -449,14 +448,12 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
  */
 HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
 {
-	std::list<tstring> lstServers;
-	std::list<tstring> lstCouplings;
+	std::list<tstring> lstServers, lstCouplings;
 	ObjectEntryList lstArchives = info.lstArchives;
 
 	// Handle the automated couplings
 	for (const auto &i : info.lstCouplings) {
-		tstring strArchive;
-		tstring strFolder;
+		tstring strArchive, strFolder;
 		SObjectEntry objEntry;
 
 		auto hr = ParseCoupling(i, &strArchive, &strFolder);

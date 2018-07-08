@@ -62,13 +62,12 @@ HRESULT Deleter::DoProcessEntry(const SRow &proprow)
  */
 HRESULT Deleter::PurgeQueuedMessages()
 {
-	HRESULT hr;
 	EntryListPtr ptrEntryList;
 	ULONG ulIdx = 0;
 	
 	if (m_lstEntryIds.empty())
 		return hrSuccess;
-	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrEntryList);
+	auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrEntryList);
 	if (hr != hrSuccess)
 		return hr;
 	hr = MAPIAllocateMore(m_lstEntryIds.size() * sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);

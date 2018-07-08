@@ -179,7 +179,6 @@ eResult ArchiveControlImpl::ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsign
 HRESULT ArchiveControlImpl::Archive2(const tstring &strUser, bool bAutoAttach,
     unsigned int ulFlags)
 {
-	HRESULT hr = hrSuccess;
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveControlImpl::Archive(): function entry.");
     ScopedUserLogging sul(m_lpLogger, strUser);
 
@@ -193,7 +192,7 @@ HRESULT ArchiveControlImpl::Archive2(const tstring &strUser, bool bAutoAttach,
 		ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
 
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveControlImpl::Archive(): about to create collector.");
-		hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
+		auto hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
 		if (hr != hrSuccess)
 			return hr;
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveControlImpl::Archive(): about to get updater.");
@@ -307,9 +306,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 
 	MsgStorePtr ptrUserStore;
 	StoreHelperPtr ptrStoreHelper;
-	MAPIFolderPtr ptrSearchArchiveFolder;
-	MAPIFolderPtr ptrSearchDeleteFolder;
-	MAPIFolderPtr ptrSearchStubFolder;
+	MAPIFolderPtr ptrSearchArchiveFolder, ptrSearchDeleteFolder, ptrSearchStubFolder;
 	ObjectEntryList lstArchives;
 	bool bHaveErrors = false;
 	std::shared_ptr<Copier> ptrCopyOp;
@@ -882,7 +879,6 @@ HRESULT ArchiveControlImpl::GetAllReferences(LPMDB lpUserStore, LPGUID lpArchive
  */
 HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lpArchiveGuid, EntryIDSet *lpReferences)
 {
-	HRESULT hr = hrSuccess;
 	BYTE prefixData[4 + sizeof(GUID)] = {0};
 	static constexpr const ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
 	SizedSPropTagArray(1, sptaContentProps) = {1, {PT_NULL}};
@@ -898,7 +894,7 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 	for (size_t i = 0; i < ARRAY_SIZE(ulFlagArray); ++i) {
 		MAPITablePtr ptrTable;
 		
-		hr = lpFolder->GetContentsTable(ulFlagArray[i], &~ptrTable);
+		auto hr = lpFolder->GetContentsTable(ulFlagArray[i], &~ptrTable);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ptrTable->SetColumns(sptaContentProps, TBL_BATCH);
@@ -928,7 +924,7 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 				break;
 		}
 	}
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -994,7 +990,6 @@ HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPM
  */
 HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestriction lpRestriction, EntryIDSet *lpEntries)
 {
-	HRESULT hr = hrSuccess;
 	MAPITablePtr ptrTable;
 	ECAndRestriction resContent;
 	static constexpr const SizedSPropTagArray(1, sptaContentProps) = {1, {PR_ENTRYID}};
@@ -1006,7 +1001,7 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 	resContent += ECExistRestriction(PROP_REF_ITEM_ENTRYID);
 	if (lpRestriction)
 		resContent += ECRawRestriction(lpRestriction, ECRestriction::Cheap);
-	hr = lpArchive->GetContentsTable(0, &~ptrTable);
+	auto hr = lpArchive->GetContentsTable(0, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTable->SetColumns(sptaContentProps, TBL_BATCH);
@@ -1051,7 +1046,6 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
  */
 HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchiveRoot, LPMDB lpUserStore)
 {
-	HRESULT hr = hrSuccess;
 	MAPITablePtr ptrTable;
 	static constexpr const SizedSSortOrderSet(1, ssosHierarchy) = {1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
 	SizedSPropTagArray(5, sptaHierarchyProps) = {5, {PR_NULL, PR_ENTRYID, PR_CONTENT_COUNT, PR_FOLDER_CHILD_COUNT, PR_DISPLAY_NAME}};
@@ -1062,7 +1056,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 	PROPMAP_INIT(lpArchiveRoot)
 	
 	sptaHierarchyProps.aulPropTag[IDX_REF_ITEM_ENTRYID] = PROP_REF_ITEM_ENTRYID;
-	hr = lpArchiveRoot->GetHierarchyTable(CONVENIENT_DEPTH, &~ptrTable);
+	auto hr = lpArchiveRoot->GetHierarchyTable(CONVENIENT_DEPTH, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTable->SetColumns(sptaHierarchyProps, TBL_BATCH);

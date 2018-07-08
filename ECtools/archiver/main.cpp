@@ -218,17 +218,11 @@ int main(int argc, char *argv[])
 {
     modes mode = MODE_INVALID;
     tstring strUser;
-    const char *lpszArchive = NULL;
-    unsigned int ulArchive = 0;
-    const char *lpszFolder = NULL;
-    const char *lpszArchiveServer = NULL;
-    bool bLocalOnly = false;
-    bool bAutoAttach = false;
-    bool bForceCleanup = false;
-    unsigned ulAttachFlags = 0;
+	const char *lpszArchive = nullptr, *lpszFolder = nullptr, *lpszArchiveServer = nullptr;
+	bool bLocalOnly = false, bAutoAttach = false, bForceCleanup = false;
+	unsigned int ulArchive = 0, ulAttachFlags = 0, ulFlags = 0;
 	std::unique_ptr<Archiver> ptrArchiver;
     convert_context converter;
-    ULONG ulFlags = 0;
 
     const char *lpszConfig = Archiver::GetConfigPath();
 

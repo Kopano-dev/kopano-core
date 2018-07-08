@@ -32,7 +32,6 @@ namespace KC { namespace operations {
 
 HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, InstanceIdMapperPtr *lpptrMapper)
 {
-	HRESULT hr = hrSuccess;
 	std::unique_ptr<InstanceIdMapper> lpMapper;
 	std::unique_ptr<ECConfig> lpLocalConfig;
 
@@ -47,7 +46,7 @@ HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, Instanc
 	lpMapper.reset(new(std::nothrow) InstanceIdMapper(lpLogger));
 	if (lpMapper == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = lpMapper->Init(lpConfig);
+	auto hr = lpMapper->Init(lpConfig);
 	if (hr != hrSuccess)
 		return hr;
 	static_assert(sizeof(InstanceIdMapper) || true, "incomplete type must not be used");
@@ -61,9 +60,7 @@ InstanceIdMapper::InstanceIdMapper(ECLogger *lpLogger) :
 
 HRESULT InstanceIdMapper::Init(ECConfig *lpConfig)
 {
-	ECRESULT er = erSuccess;
-	
-	er = m_ptrDatabase->Connect(lpConfig);
+	auto er = m_ptrDatabase->Connect(lpConfig);
 	if (er == KCERR_DATABASE_NOT_FOUND) {
 		ec_log_info("Database not found, creating database.");
 		er = m_ptrDatabase->CreateDatabase(lpConfig, true);
@@ -82,20 +79,14 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 	if (cbSourceInstanceID == 0 || lpSourceInstanceID == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT hr = hrSuccess;
-	ECRESULT er = erSuccess;
-	std::string strQuery;
 	DB_RESULT lpResult;
-	DB_ROW lpDBRow = NULL;
-	DB_LENGTHS lpLengths = NULL;
-
-	strQuery =
+	auto strQuery =
 		"SELECT m_dst.val_binary FROM za_mappings AS m_dst "
 		"JOIN za_mappings AS m_src ON m_dst.instance_id = m_src.instance_id AND m_dst.tag = m_src.tag AND m_src.val_binary = " + m_ptrDatabase->EscapeBinary(lpSourceInstanceID, cbSourceInstanceID) + " "
 		"JOIN za_servers AS s_dst ON m_dst.server_id = s_dst.id AND s_dst.guid = " + m_ptrDatabase->EscapeBinary(destServerUID) + " "
 		"JOIN za_servers AS s_src ON m_src.server_id = s_src.id AND s_src.guid = " + m_ptrDatabase->EscapeBinary(sourceServerUID) +
 		" LIMIT 2";
-	er = m_ptrDatabase->DoSelect(strQuery, &lpResult);
+	auto er = m_ptrDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		return kcerr_to_mapierr(er);
 
@@ -109,17 +100,17 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 		return MAPI_E_DISK_ERROR; // MAPI version of KCERR_DATABASE_ERROR
 	}
 
-	lpDBRow = lpResult.fetch_row();
+	auto lpDBRow = lpResult.fetch_row();
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 		ec_log_crit("InstanceIdMapper::GetMappedInstanceId(): FetchRow failed");
 		return MAPI_E_DISK_ERROR; // MAPI version of KCERR_DATABASE_ERROR
 	}
-	lpLengths = lpResult.fetch_row_lengths();
+	auto lpLengths = lpResult.fetch_row_lengths();
 	if (lpLengths == NULL || lpLengths[0] == 0) {
 		ec_log_crit("InstanceIdMapper::GetMappedInstanceId(): FetchRowLengths failed");
 		return MAPI_E_DISK_ERROR; // MAPI version of KCERR_DATABASE_ERROR
 	}
-	hr = KAllocCopy(lpDBRow[0], lpLengths[0], reinterpret_cast<void **>(lppDestInstanceID));
+	auto hr = KAllocCopy(lpDBRow[0], lpLengths[0], reinterpret_cast<void **>(lppDestInstanceID));
 	if (hr != hrSuccess)
 		return hr;
 	*lpcbDestInstanceID = lpLengths[0];
@@ -133,15 +124,13 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 		return kcerr_to_mapierr(KCERR_INVALID_PARAMETER);
 
 	ECRESULT er = erSuccess;
-	std::string strQuery;
 	DB_RESULT lpResult;
-	DB_ROW lpDBRow = NULL;
 	auto dtx = m_ptrDatabase->Begin(er);
 	if (er != erSuccess)
 		return kcerr_to_mapierr(er);
 	// Make sure the server entries exist.
-	strQuery = "INSERT IGNORE INTO za_servers (guid) VALUES (" + m_ptrDatabase->EscapeBinary(sourceServerUID) + "),(" +  m_ptrDatabase->EscapeBinary(destServerUID) + ")";
-	er = m_ptrDatabase->DoInsert(strQuery, NULL, NULL);
+	auto strQuery = "INSERT IGNORE INTO za_servers (guid) VALUES (" + m_ptrDatabase->EscapeBinary(sourceServerUID) + "),(" +  m_ptrDatabase->EscapeBinary(destServerUID) + ")";
+	er = m_ptrDatabase->DoInsert(strQuery, nullptr, nullptr);
 	if (er != erSuccess)
 		return kcerr_to_mapierr(er);
 	// Now first see if the source instance is available.
@@ -151,7 +140,7 @@ HRESULT InstanceIdMapper::SetMappedInstances(ULONG ulPropTag, const SBinary &sou
 	if (er != erSuccess)
 		return kcerr_to_mapierr(er);
 
-	lpDBRow = lpResult.fetch_row();
+	auto lpDBRow = lpResult.fetch_row();
 	if (lpDBRow == NULL) {
 		unsigned int ulNewId;
 

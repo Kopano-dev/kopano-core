@@ -149,8 +149,7 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 	MsgStorePtr ptrArchiveStore;
 	tstring strFoldername;
 	abentryid_t sUserEntryId;
-	ArchiverSessionPtr ptrArchiveSession(m_ptrSession);
-	ArchiverSessionPtr ptrRemoteSession;
+	ArchiverSessionPtr ptrArchiveSession(m_ptrSession), ptrRemoteSession;
 
 	// Resolve the requested user.
 	auto hr = m_ptrSession->GetUserInfo(m_strUser, &sUserEntryId, &strFoldername, nullptr);
@@ -197,8 +196,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	SObjectEntry objectEntry;
 	bool bEqual = false;
 	ArchiveType aType = UndefArchive;
-	SPropValuePtr ptrArchiveName;
-	SPropValuePtr ptrArchiveStoreId;
+	SPropValuePtr ptrArchiveName, ptrArchiveStoreId;
 	
 	// Check if we're not trying to attach a store to itself.
 	auto hr = m_ptrSession->CompareStoreIds(m_ptrUserStore, lpArchiveStore, &bEqual);
@@ -330,7 +328,6 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	entryid_t sUserEntryId;
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
-	ObjectEntryList::iterator iArchive;
 	MsgStorePtr ptrArchiveStore;
 	ArchiveHelperPtr ptrArchiveHelper;
 	SPropValuePtr ptrArchiveStoreEntryId;
@@ -375,7 +372,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	}
 
 	// Find an archives on the passed store.
-	iArchive = find_if(lstArchives.begin(), lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin));
+	auto iArchive = find_if(lstArchives.begin(), lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin));
 	if (iArchive == lstArchives.end()) {
 		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "\"" TSTRING_PRINTF "\" has no archive on \"" TSTRING_PRINTF "\"", m_strUser.c_str(), lpszArchive);
 		return MAPIErrorToArchiveError(MAPI_E_NOT_FOUND);
@@ -451,8 +448,6 @@ eResult ArchiveManageImpl::DetachFrom(unsigned int ulArchive)
 {
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
-	ObjectEntryList::iterator iArchive;
-
 	auto hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess) {
 		m_lpLogger->perr("Failed to create store helper", hr);
@@ -465,7 +460,7 @@ eResult ArchiveManageImpl::DetachFrom(unsigned int ulArchive)
 		return MAPIErrorToArchiveError(hr);
 	}
 
-	iArchive = lstArchives.begin();
+	auto iArchive = lstArchives.begin();
 	for (unsigned int i = 0; i < ulArchive && iArchive != lstArchives.end(); ++i, ++iArchive);
 	if (iArchive == lstArchives.end()) {
 		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Archive %u does not exist.", ulArchive);

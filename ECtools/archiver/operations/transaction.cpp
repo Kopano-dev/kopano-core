@@ -117,10 +117,8 @@ HRESULT Transaction::Delete(const SObjectEntry &objectEntry, bool bDeferredDelet
 
 HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 {
-	HRESULT hr;
 	SPropArrayPtr ptrMsgProps;
-	ULONG cMsgProps;
-	ULONG ulType;
+	unsigned int cMsgProps, ulType;
 	DelEntry entry;
 	static constexpr const SizedSPropTagArray(2, sptaMsgProps) =
 		{2, {PR_ENTRYID, PR_PARENT_ENTRYID}};
@@ -128,7 +126,7 @@ HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 
 	if (lpMessage == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = lpMessage->GetProps(sptaMsgProps, 0, &cMsgProps, &~ptrMsgProps);
+	auto hr = lpMessage->GetProps(sptaMsgProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrSession->GetMAPISession()->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb,
