@@ -668,7 +668,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			if (!(g_socks.pollfd[i].revents & POLLIN))
 				/* OS might set more bits than requested */
 				continue;
-
+			[](size_t i, const pthread_attr_t &ThreadAttr) -> HRESULT {
 		// One socket has signalled a new incoming connection
 		std::unique_ptr<HandlerArgs> lpHandlerArgs(new HandlerArgs);
 		lpHandlerArgs->lpLogger = g_lpLogger;
@@ -681,10 +681,10 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			method = lpHandlerArgs->bUseSSL ? "POP3s" : "POP3";
 		else if (lpHandlerArgs->type == ST_IMAP)
 			method = lpHandlerArgs->bUseSSL ? "IMAPs" : "IMAP";
-		hr = HrAccept(g_socks.pollfd[i].fd, &unique_tie(lpHandlerArgs->lpChannel));
+		auto hr = HrAccept(g_socks.pollfd[i].fd, &unique_tie(lpHandlerArgs->lpChannel));
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to accept %s socket connection.", method);
-			continue;
+			return hr;
 		}
 
 		pthread_t tid;
@@ -695,15 +695,17 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
 				--nChildren;
 			}
-			continue;
+			return MAPI_E_CALL_FAILED;
 		}
-		err = pthread_create(&tid, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
+		auto err = pthread_create(&tid, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
 		if (err != 0) {
 			ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
-			continue;
+			return MAPI_E_CALL_FAILED;
 		}
 		set_thread_name(tid, "ZGateway " + std::string(method));
 		lpHandlerArgs.release();
+		return hrSuccess;
+}(i, ThreadAttr);
 		}
 	}
 
