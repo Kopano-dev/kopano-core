@@ -567,6 +567,46 @@ static HRESULT gw_listen(ECConfig *cfg)
 	return hrSuccess;
 }
 
+static HRESULT handler_client(size_t i, const pthread_attr_t &ThreadAttr)
+{
+	// One socket has signalled a new incoming connection
+	std::unique_ptr<HandlerArgs> lpHandlerArgs(new HandlerArgs);
+	lpHandlerArgs->lpLogger = g_lpLogger;
+	lpHandlerArgs->lpConfig = g_lpConfig;
+	lpHandlerArgs->type = g_socks.pop3[i] ? ST_POP3 : ST_IMAP;
+	lpHandlerArgs->bUseSSL = g_socks.ssl[i];
+	const char *method = "", *model = bThreads ? "thread" : "process";
+
+	if (lpHandlerArgs->type == ST_POP3)
+		method = lpHandlerArgs->bUseSSL ? "POP3s" : "POP3";
+	else if (lpHandlerArgs->type == ST_IMAP)
+		method = lpHandlerArgs->bUseSSL ? "IMAPs" : "IMAP";
+	auto hr = HrAccept(g_socks.pollfd[i].fd, &unique_tie(lpHandlerArgs->lpChannel));
+	if (hr != hrSuccess) {
+		ec_log_err("Unable to accept %s socket connection.", method);
+		return hr;
+	}
+
+	pthread_t tid;
+	ec_log_notice("Starting worker %s for %s request", model, method);
+	if (!bThreads) {
+		++nChildren;
+		if (unix_fork_function(Handler, lpHandlerArgs.get(), g_socks.linfd.size(), &g_socks.linfd[0]) < 0) {
+			ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
+			--nChildren;
+		}
+		return MAPI_E_CALL_FAILED;
+	}
+	auto err = pthread_create(&tid, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
+	if (err != 0) {
+		ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
+		return MAPI_E_CALL_FAILED;
+	}
+	set_thread_name(tid, "ZGateway " + std::string(method));
+	lpHandlerArgs.release();
+	return hrSuccess;
+}
+
 /**
  * Runs the gateway service, starting a new thread or fork child for
  * incoming connections on any configured service.
@@ -668,44 +708,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			if (!(g_socks.pollfd[i].revents & POLLIN))
 				/* OS might set more bits than requested */
 				continue;
-			[](size_t i, const pthread_attr_t &ThreadAttr) -> HRESULT {
-		// One socket has signalled a new incoming connection
-		std::unique_ptr<HandlerArgs> lpHandlerArgs(new HandlerArgs);
-		lpHandlerArgs->lpLogger = g_lpLogger;
-		lpHandlerArgs->lpConfig = g_lpConfig;
-		lpHandlerArgs->type = g_socks.pop3[i] ? ST_POP3 : ST_IMAP;
-		lpHandlerArgs->bUseSSL = g_socks.ssl[i];
-		const char *method = "", *model = bThreads ? "thread" : "process";
-
-		if (lpHandlerArgs->type == ST_POP3)
-			method = lpHandlerArgs->bUseSSL ? "POP3s" : "POP3";
-		else if (lpHandlerArgs->type == ST_IMAP)
-			method = lpHandlerArgs->bUseSSL ? "IMAPs" : "IMAP";
-		auto hr = HrAccept(g_socks.pollfd[i].fd, &unique_tie(lpHandlerArgs->lpChannel));
-		if (hr != hrSuccess) {
-			ec_log_err("Unable to accept %s socket connection.", method);
-			return hr;
-		}
-
-		pthread_t tid;
-		ec_log_notice("Starting worker %s for %s request", model, method);
-		if (!bThreads) {
-			++nChildren;
-			if (unix_fork_function(Handler, lpHandlerArgs.get(), g_socks.linfd.size(), &g_socks.linfd[0]) < 0) {
-				ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
-				--nChildren;
-			}
-			return MAPI_E_CALL_FAILED;
-		}
-		auto err = pthread_create(&tid, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
-		if (err != 0) {
-			ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
-			return MAPI_E_CALL_FAILED;
-		}
-		set_thread_name(tid, "ZGateway " + std::string(method));
-		lpHandlerArgs.release();
-		return hrSuccess;
-}(i, ThreadAttr);
+			handler_client(i, ThreadAttr);
 		}
 	}
 
