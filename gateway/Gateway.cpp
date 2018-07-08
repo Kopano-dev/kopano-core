@@ -452,11 +452,14 @@ int main(int argc, char *argv[]) {
 		g_strHostString = GetServerFQDN();
 	g_strHostString.insert(0, " on ");
 	hr = running_service(szPath, argv[0]);
+	ECChannel::HrFreeCtx();
 exit:
 	if (hr != hrSuccess)
 		fprintf(stderr, "%s: Startup failed: %s (%x). Please check the logfile (%s) for details.\n",
 			argv[0], GetMAPIErrorMessage(hr), hr, g_lpConfig->GetSetting("log_file"));
+	SSL_library_cleanup();
 	ssl_threading_cleanup();
+	u_cleanup();
 	return hr == hrSuccess ? 0 : 1;
 }
 
@@ -670,9 +673,9 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
 	if (unix_runas(g_lpConfig.get()))
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	if (daemonize && unix_daemonize(g_lpConfig.get()))
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	if (!daemonize)
 		setsid();
 	unix_create_pidfile(servicename, g_lpConfig.get());
@@ -684,7 +687,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to initialize MAPI: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	// Mainloop
@@ -728,12 +731,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	else
 		ec_log_notice("POP3/IMAP Gateway shutdown complete");
 	MAPIUninitialize();
-exit:
-	ECChannel::HrFreeCtx();
-	SSL_library_cleanup(); // Remove SSL data for the main application and other related libraries
-	// cleanup ICU data so valgrind is happy
-	u_cleanup();
-	return hr;
+	return hrSuccess;
 }
 
 /** @} */
