@@ -249,6 +249,17 @@ def _create_meetingrequest(cal_item, item, basedate=None):
         cal_item[PidLidGlobalObjectId] = cleangoid
         cal_item[PidLidCleanGlobalObjectId] = cleangoid
 
+    # update sequence props
+    sequence = cal_item.get(PidLidAppointmentSequence)
+    if sequence is None:
+        cal_item[PidLidAppointmentSequence] = 0
+        cal_item[PidLidAppointmentLastSequence] = 0
+    else:
+        cal_item[PidLidAppointmentSequence] = sequence+1
+        cal_item[PidLidAppointmentLastSequence] = sequence+1
+    item2[PidLidAppointmentSequence] = cal_item[PidLidAppointmentSequence]
+    item2[PidLidAppointmentLastSequence] = cal_item[PidLidAppointmentLastSequence]
+
     # set item goids
     item2[PidLidCleanGlobalObjectId] = cleangoid
     if basedate:
