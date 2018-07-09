@@ -52,7 +52,6 @@ static HRESULT running_service(void)
 	unsigned int ulInterval = atoi(m_lpThreadMonitor->lpConfig->GetSetting("quota_check_interval", nullptr, "15"));
 	if (ulInterval == 0)
 		ulInterval = 15;
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-monitor version " PROJECT_VERSION " (pid %d)", getpid());
 
 	// Add Quota monitor
 	hr = lpECScheduler->AddSchedule(SCHEDULE_MINUTES, ulInterval, ECQuotaMonitor::Create, m_lpThreadMonitor.get());
@@ -242,6 +241,14 @@ static ECRESULT main2(int argc, char **argv)
 	if (!szPath)
 		szPath = m_lpThreadMonitor->lpConfig->GetSetting("server_socket");
 
+	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-monitor version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
+	if (unix_runas(m_lpThreadMonitor->lpConfig.get()))
+		return E_FAIL;
+	auto ret = ec_reexec(argv);
+	if (ret < 0)
+		ec_log_notice("K-1240: Failed to re-exec self: %s. "
+			"Continuing with standard allocator and/or restricted coredumps.",
+			strerror(-ret));
 
 	// SIGSEGV backtrace support
 	KAlternateStack sigstack;
@@ -260,10 +267,6 @@ static ECRESULT main2(int argc, char **argv)
 	act.sa_handler = sighup;
 	sigaction(SIGHUP, &act, nullptr);
 
-	// fork if needed and drop privileges as requested.
-	// this must be done before we do anything with pthreads
-	if (unix_runas(m_lpThreadMonitor->lpConfig.get()))
-		return E_FAIL;
 	if (daemonize && unix_daemonize(m_lpThreadMonitor->lpConfig.get()))
 		return E_FAIL;
 	if (!daemonize)
