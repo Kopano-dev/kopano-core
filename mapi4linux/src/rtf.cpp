@@ -61,7 +61,8 @@ unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
 {
 	auto lpHeader = reinterpret_cast<const struct RTFHeader *>(lpSrc);
 	auto lpStart = lpSrc;
-	unsigned int ulFlags = 0, ulFlagNr = 0, c1 = 0, c2 = 0;
+	unsigned char c1 = 0, c2 = 0;
+	unsigned int ulFlags = 0, ulFlagNr = 0;
 	unsigned int ulOffset = 0, ulSize = 0;
 	const unsigned int prebufSize = strlen(lpPrebuf);
 
