@@ -777,7 +777,7 @@ class Item(Properties, Contact, Appointment):
         return item
 
     # TODO too many cases overlapping here
-    def send(self, copy_to_sentmail=True, cancel=False, _basedate=None, cal_item=None):
+    def send(self, copy_to_sentmail=True, _basedate=None, cal_item=None):
         item = self
         appt = None
         if self.message_class in (
@@ -789,7 +789,7 @@ class Item(Properties, Contact, Appointment):
                 raise Error('appointment requires start and end date')
 
             appt = cal_item or self
-            item = _create_meetingrequest(appt, self, cancel=cancel, basedate=_basedate)
+            item = _create_meetingrequest(appt, self, basedate=_basedate)
 
         icon_index = {
             b'66': 261,  # reply

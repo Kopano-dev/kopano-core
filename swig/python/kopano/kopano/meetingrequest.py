@@ -212,12 +212,13 @@ def _generate_goid():
         goid += struct.pack('B', random.getrandbits(8))
     return goid
 
-def _create_meetingrequest(cal_item, item, cancel=False, basedate=None):
+def _create_meetingrequest(cal_item, item, basedate=None):
     # TODO Update the calendar item, for tracking status
     # TODO Set the body of the message like WebApp / OL does.
     # TODO Whitelist properties?
 
     item2 = item.copy(item.store.outbox)
+    cancel = item.canceled
 
     # remove meeting organizer TODO just copy correct ones? or why is the organizer MAPI_TO?
     table = item2.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)

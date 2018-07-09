@@ -263,6 +263,9 @@ class Appointment(object):
 
         response.send()
 
+    def cancel(self):
+        self[PidLidAppointmentStateFlags] |= ASF_CANCELED
+
     @property
     def canceled(self):
         return bool(self[PidLidAppointmentStateFlags] & ASF_CANCELED)

@@ -51,7 +51,7 @@ from .errors import (
 from .defs import (
     ARO_SUBJECT, ARO_MEETINGTYPE, ARO_REMINDERDELTA, ARO_REMINDERSET,
     ARO_LOCATION, ARO_BUSYSTATUS, ARO_ATTACHMENT, ARO_SUBTYPE,
-    ARO_APPTCOLOR
+    ARO_APPTCOLOR, ASF_CANCELED,
 )
 
 LOCAL = dateutil.tz.tzlocal()
@@ -81,7 +81,7 @@ from .pidlid import (
     PidLidLocation, PidLidAppointmentSubType, PidLidAppointmentColor,
     PidLidIntendedBusyStatus, PidLidAppointmentStartWhole,
     PidLidAppointmentEndWhole, PidLidIsRecurring, PidLidClipStart,
-    PidLidClipEnd,
+    PidLidClipEnd, PidLidAppointmentStateFlags,
 )
 
 FREQ_DAY = 0x200A
@@ -909,6 +909,9 @@ class Recurrence(object):
             props = props[:-2]
         message.mapiobj.SetProps(props)
 
+        if 'canceled' in kwargs:
+            message[PidLidAppointmentStateFlags] |= ASF_CANCELED
+
         _utils._save(message.mapiobj)
         _utils._save(message._attobj)
 
@@ -1197,7 +1200,22 @@ class Occurrence(object):
         else:
             self.item.create_attendee(type_, addr)
 
-    def send(self, copy_to_sentmail=True, cancel=False):
+    def cancel(self):
+        self._update(canceled=True)
+
+    @property
+    def canceled(self):
+        if self.item.recurring:
+            rec = self.item.recurrence
+            basedate = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
+            basedate = basedate.replace(hour=0, minute=0)
+            message = rec._exception_message(basedate)
+            if message:
+                return message.canceled
+
+        return self.item.canceled
+
+    def send(self, copy_to_sentmail=True):
         if self.item.recurring:
             basedate = datetime.datetime.utcfromtimestamp(_utils.rectime_to_unixtime(self._basedate_val))
             message = self.item.recurrence._exception_message(basedate)
@@ -1206,11 +1224,11 @@ class Occurrence(object):
                 to = list(message.to)
                 if not to:
                     message.to = self.item.to # TODO don't change message on send
-                message.send(copy_to_sentmail, cancel, _basedate=basedate, cal_item=self.item)
+                message.send(copy_to_sentmail=copy_to_sentmail, _basedate=basedate, cal_item=self.item)
             else:
-                self.item.send(copy_to_sentmail, cancel, _basedate=basedate, cal_item=self.item)
+                self.item.send(copy_to_sentmail=copy_to_sentmail, _basedate=basedate, cal_item=self.item)
         else:
-            self.item.send(copy_to_sentmail, cancel)
+            self.item.send(copy_to_sentmail)
 
     def __getattr__(self, x): # TODO get from exception message by default? eg subject, attendees..
         return getattr(self.item, x)
