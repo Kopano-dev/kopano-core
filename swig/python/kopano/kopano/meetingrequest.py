@@ -542,6 +542,7 @@ class MeetingRequest(object):
 
         :param delete: delete appointment from calendar
         """
+
         if not self.is_cancellation:
             raise Error('item is not a meeting request cancellation')
 
@@ -569,7 +570,11 @@ class MeetingRequest(object):
                     message[PR_MESSAGE_FLAGS] = MSGFLAG_UNSENT | MSGFLAG_READ
 
                     _utils._save(message._attobj)
-
+            else:
+                if delete:
+                    self.calendar.delete(cal_item)
+                else:
+                    cal_item.cancel()
         else:
             if delete:
                 self.calendar.delete(cal_item)
@@ -577,7 +582,7 @@ class MeetingRequest(object):
                 self.item.mapiobj.CopyTo([], [], 0, None, IID_IMessage, cal_item.mapiobj, 0)
                 cal_item.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')])
 
-        if cal_item:
+        if cal_item and not delete:
             _utils._save(cal_item.mapiobj)
 
     def process_response(self):
