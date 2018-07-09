@@ -4,16 +4,6 @@
 Coredump generation is largely controlled by the surrounding operating system.
 Kopano daemons only have little control over it (see end of this document).
 .SH System configuration
-.SS Permission to generate
-.PP
-Most kopano daemons are configured to switch user IDs during operation (cf.
-"run_as_user" and "run_as_group" configuration file directives), and so the
-\fBfs.suid_dumpable\fP sysctl needs to be changed to non-zero. The recommended
-value for when you want to enable Kopano coredumps is \fB2\fP. See the
-\fBprocfs\fP(5) manual page for other options.
-.PP
-When setting \fBfs.suid_dumpable=2\fP, \fBkernel.core_pattern\fP must not
-be a relative path.
 .SS Location for dumps
 .PP
 Ensure that the \fBkernel.core_pattern\fP sysctl specifies a template which is
