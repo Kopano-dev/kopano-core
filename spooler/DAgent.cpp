@@ -3292,6 +3292,34 @@ static HRESULT deliver_recipients(pym_plugin_intf *py_plugin,
 	return func_ret;
 }
 
+static HRESULT direct_delivery(int argc, char **argv,
+    DeliveryArgs &&sDeliveryArgs, FILE *fp, bool strip_email)
+{
+	PyMapiPluginFactory pyMapiPluginFactory;
+	std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
+	AutoMAPI mapiinit;
+	auto hr = mapiinit.Initialize();
+	if (hr != hrSuccess) {
+		ec_log_crit("Unable to initialize MAPI: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
+		return hr;
+	}
+	std::shared_ptr<StatsClient> sc(new StatsClient);
+	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
+	sDeliveryArgs.sc = std::move(sc);
+	hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
+	if (hr != hrSuccess) {
+		ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
+			GetMAPIErrorMessage(hr), hr);
+		return hr;
+	}
+	hr = deliver_recipients(ptrPyMapiPlugin.get(), argc - optind, argv + optind, strip_email, fp, &sDeliveryArgs);
+	if (hr != hrSuccess)
+		kc_perrorf("deliver_recipient failed", hr);
+	fclose(fp);
+	return hr;
+}
+
 static void print_help(const char *name)
 {
 	cout << "Usage:\n" << endl;
@@ -3701,33 +3729,7 @@ int main(int argc, char *argv[]) {
 			return get_return_value(hr, true, qmail);
 	}
 	else {
-		hr = [](int argc, char **argv, DeliveryArgs &&sDeliveryArgs, FILE *fp, bool strip_email) -> HRESULT {
-		PyMapiPluginFactory pyMapiPluginFactory;
-		std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
-
-		AutoMAPI mapiinit;
-		auto hr = mapiinit.Initialize();
-		if (hr != hrSuccess) {
-			ec_log_crit("Unable to initialize MAPI: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
-		std::shared_ptr<StatsClient> sc(new StatsClient);
-		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
-		sDeliveryArgs.sc = std::move(sc);
-		hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
-		if (hr != hrSuccess) {
-			ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
-				GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
-
-		hr = deliver_recipients(ptrPyMapiPlugin.get(), argc - optind, argv + optind, strip_email, fp, &sDeliveryArgs);
-		if (hr != hrSuccess)
-			kc_perrorf("deliver_recipient failed", hr);
-		fclose(fp);
-		return hr;
-		}(argc, argv, std::move(sDeliveryArgs), fp, strip_email);
+		hr = direct_delivery(argc, argv, std::move(sDeliveryArgs), fp, strip_email);
 	}
 
 	return get_return_value(hr, bListenLMTP, qmail);
