@@ -3433,7 +3433,7 @@ int main(int argc, char *argv[]) {
 		{ "spam_header_name", "X-Spam-Status" },
 		{ "spam_header_value", "Yes," },
 		{ "log_raw_message", "error", CONFIGSETTING_RELOADABLE },
-		{ "log_raw_message_path", "/tmp", CONFIGSETTING_RELOADABLE },
+		{"log_raw_message_path", "/var/lib/kopano", CONFIGSETTING_RELOADABLE},
 		{ "archive_on_delivery", "no", CONFIGSETTING_RELOADABLE },
 		{ "mr_autoaccepter", "/usr/sbin/kopano-mr-accept", CONFIGSETTING_RELOADABLE },
 		{ "mr_autoprocessor", "/usr/sbin/kopano-mr-process", CONFIGSETTING_RELOADABLE },
