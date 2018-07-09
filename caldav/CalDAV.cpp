@@ -152,6 +152,7 @@ int main(int argc, char **argv) {
 		{"running_path", "/var/lib/kopano/empty"},
 		{ "process_model", "thread" },
 		{ "server_bind", "" },
+		{"coredump_enabled", "systemdefault"},
 		{"ical_listen", ""}, /* default in ical_listen() */
 		{"icals_listen", ""},
 		{"ical_port", "8080", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
@@ -284,6 +285,7 @@ int main(int argc, char **argv) {
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
 
+	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
 	if (unix_runas(g_lpConfig.get()))
