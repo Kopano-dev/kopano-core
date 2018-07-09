@@ -3003,7 +3003,6 @@ static void *HandlerLMTP(void *lpArg)
  * connection.  Only accepts the incoming connection when the maximum
  * number of processes hasn't been reached.
  * 
- * @param[in]	servicename	Name of the service, used to create a Unix pidfile.
  * @param[in]	bDaemonize	Starts a forked process in this loop to run in the background if true.
  * @param[in]	lpArgs		Struct containing delivery parameters
  * @retval MAPI error code	
@@ -3029,7 +3028,11 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 	pollers.reserve(lmtp_sock.size());
 	closefd.reserve(lmtp_sock.size());
 	for (const auto &spec : lmtp_sock) {
-		auto ret = ec_listen_generic(spec.c_str(), &x.fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		if (ret >= 0)
+			x.fd = ret;
+		else
+			ret = ec_listen_generic(spec.c_str(), &x.fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 		if (ret < 0)
 			return ret;
 		pollers.push_back(x);
@@ -3044,25 +3047,30 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 	return 0;
 }
 
-static HRESULT running_service(const char *servicename, bool bDaemonize,
+static HRESULT running_service(char **argv, bool bDaemonize,
     DeliveryArgs *lpArgs) 
 {
 	HRESULT hr = hrSuccess;
 	int err = 0;
 	unsigned int nMaxThreads;
 
+	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent version " PROJECT_VERSION " (pid %d uid %u) (LMTP mode)", getpid(), getuid());
 	auto laters = make_scope_success([&]() { ECChannel::HrFreeCtx(); });
 
-	nMaxThreads = atoui(g_lpConfig->GetSetting("lmtp_max_threads"));
-	if (nMaxThreads == 0 || nMaxThreads == INT_MAX)
-		nMaxThreads = 20;
-	ec_log_info("Maximum LMTP threads set to %d", nMaxThreads);
 	// Setup sockets
 	std::vector<struct pollfd> lmtp_poll;
 	std::vector<int> closefd;
 	err = dagent_listen(g_lpConfig.get(), lmtp_poll, closefd);
 	if (err < 0)
 		return MAPI_E_NETWORK_ERROR;
+	if (unix_runas(g_lpConfig.get()))
+		return MAPI_E_CALL_FAILED;
+	ec_reexec_prepare_sockets();
+	auto ret = ec_reexec(argv);
+	if (ret < 0)
+		ec_log_notice("K-1240: Failed to re-exec self: %s. "
+			"Continuing with standard allocator and/or restricted coredumps.",
+			strerror(-ret));
 
 	// Setup signals
 	struct sigaction act{};
@@ -3074,18 +3082,19 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
 
-	// fork if needed and drop privileges as requested.
-	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig.get()))
-		return hr;
 	if (bDaemonize && unix_daemonize(g_lpConfig.get()))
 		return hr;
 	
 	if (!bDaemonize)
 		setsid();
-	unix_create_pidfile(servicename, g_lpConfig.get());
+	unix_create_pidfile(argv[0], g_lpConfig.get());
 	g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
 	ec_log_set(g_lpLogger);
+
+	nMaxThreads = atoui(g_lpConfig->GetSetting("lmtp_max_threads"));
+	if (nMaxThreads == 0 || nMaxThreads == INT_MAX)
+		nMaxThreads = 20;
+	ec_log_info("Maximum LMTP threads set to %d", nMaxThreads);
 
 	AutoMAPI mapiinit;
 	hr = mapiinit.Initialize();
@@ -3096,7 +3105,6 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	}
 	std::shared_ptr<StatsClient> sc(new StatsClient);
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent version " PROJECT_VERSION " (pid %d) (LMTP mode)", getpid());
 
 	pthread_attr_t thr_attr;
 	pthread_attr_init(&thr_attr);
@@ -3724,7 +3732,7 @@ int main(int argc, char *argv[]) {
 
 	if (bListenLMTP) {
 		/* MAPIInitialize done inside running_service */
-		hr = running_service(argv[0], bDaemonize, &sDeliveryArgs);
+		hr = running_service(argv, bDaemonize, &sDeliveryArgs);
 		if (hr != hrSuccess)
 			return get_return_value(hr, true, qmail);
 	}
