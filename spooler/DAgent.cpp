@@ -3701,15 +3701,16 @@ int main(int argc, char *argv[]) {
 			return get_return_value(hr, true, qmail);
 	}
 	else {
+		hr = [](int argc, char **argv, DeliveryArgs &&sDeliveryArgs, FILE *fp, bool strip_email) -> HRESULT {
 		PyMapiPluginFactory pyMapiPluginFactory;
 		std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
 
 		AutoMAPI mapiinit;
-		hr = mapiinit.Initialize();
+		auto hr = mapiinit.Initialize();
 		if (hr != hrSuccess) {
 			ec_log_crit("Unable to initialize MAPI: %s (%x)",
 				GetMAPIErrorMessage(hr), hr);
-			return get_return_value(hr, false, qmail);
+			return hr;
 		}
 		std::shared_ptr<StatsClient> sc(new StatsClient);
 		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
@@ -3718,13 +3719,15 @@ int main(int argc, char *argv[]) {
 		if (hr != hrSuccess) {
 			ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
 				GetMAPIErrorMessage(hr), hr);
-			return get_return_value(MAPI_E_CALL_FAILED, false, qmail);
+			return hr;
 		}
 
 		hr = deliver_recipients(ptrPyMapiPlugin.get(), argc - optind, argv + optind, strip_email, fp, &sDeliveryArgs);
 		if (hr != hrSuccess)
 			kc_perrorf("deliver_recipient failed", hr);
 		fclose(fp);
+		return hr;
+		}(argc, argv, std::move(sDeliveryArgs), fp, strip_email);
 	}
 
 	return get_return_value(hr, bListenLMTP, qmail);
