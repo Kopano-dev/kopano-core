@@ -1,0 +1,22 @@
+Return-Path: <test1@zarafa.local>
+Subject: =?utf-8?Q?=74=C3=A6=73=74?=
+From: <test1@zarafa.local>
+To: <test1@zarafa.local>
+Date: Wed, 8 Apr 2015 06:57:46 +0200
+Mime-Version: 1.0
+Content-Type: multipart/alternative; 
+ boundary="=_alb97Rw-h1rvonFMFvV-08AI1UM2Ee6NoGGqE4uVpAg8gx4T"
+Message-Id: <zarafa.6434574a.225d.345d4432753b6031@linux-x77f.fritz.box>
+
+Lack of MIME Content-Type charset, use of HTML4 meta tag. RFC 2045
+section 5.2 says the default Content-type is text/plain and US-ASCII
+if not otherwise specified. IMToMAPI will try to be a bit resilient
+to bogus mail by looking for a charset= specifier within the HTML.
+--=_alb97Rw-h1rvonFMFvV-08AI1UM2Ee6NoGGqE4uVpAg8gx4T
+Content-Type: text/html
+Content-Transfer-Encoding: quoted-printable
+
+<html><head><meta http-equiv=3DContent-Type content=3D"text/html; charset=
+=3Dutf-8"></head><body>t=C3=A6st</body></html>
+--=_alb97Rw-h1rvonFMFvV-08AI1UM2Ee6NoGGqE4uVpAg8gx4T--
+

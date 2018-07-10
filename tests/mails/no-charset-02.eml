@@ -1,0 +1,10 @@
+Return-Path: <t@localhots>
+Subject: C2
+From: <t@localhost>
+To: <t@localhost>
+Date: Wed, 1 Apr 2015 00:00:00 +0000
+MIME-Version: 1.0
+Content-Type: text/plain
+Message-Id: <0@localhost>
+
+This mail differs from C1 by having a MIME-Version tag.
