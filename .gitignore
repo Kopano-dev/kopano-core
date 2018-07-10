@@ -82,6 +82,7 @@ stamp-h2
 /swig/python/kopano/kopano/version.py
 /swig/python/MAPI/version.py
 /tests/imtomapi
+/tests/kc-335
 /tests/mapialloctime
 
 # /autoconf/
