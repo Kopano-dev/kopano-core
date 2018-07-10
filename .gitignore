@@ -84,6 +84,7 @@ stamp-h2
 /tests/imtomapi
 /tests/kc-335
 /tests/mapialloctime
+/tests/readflag
 
 # /autoconf/
 /autoconf/ltsugar.m4

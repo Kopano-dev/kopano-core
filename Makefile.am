@@ -64,7 +64,7 @@ if HAVE_TIDY
 noinst_PROGRAMS += rosie-test
 endif
 pkglibexec_PROGRAMS = kscriptrun mapitime
-check_PROGRAMS = tests/imtomapi tests/kc-335 tests/mapialloctime
+check_PROGRAMS = tests/imtomapi tests/kc-335 tests/mapialloctime tests/readflag
 noinst_PROGRAMS += ${check_PROGRAMS}
 
 
@@ -766,6 +766,8 @@ tests_kc_335_SOURCES = tests/kc-335.cpp tests/tbi.hpp
 tests_kc_335_LDADD = libmapi.la libkcutil.la
 tests_mapialloctime_SOURCES = tests/mapialloctime.cpp
 tests_mapialloctime_LDADD = libmapi.la
+tests_readflag_SOURCES = tests/readflag.cpp tests/tbi.hpp
+tests_readflag_LDADD = libmapi.la libkcutil.la
 
 
 #
