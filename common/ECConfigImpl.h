@@ -106,10 +106,8 @@ private:
 
 	/* m_mapSettings & m_mapAliases are protected by m_settingsLock */
 	KC::shared_mutex m_settingsRWLock;
-	settingmap_t			m_mapSettings;
-	settingmap_t			m_mapAliases;
-	std::list<std::string>	warnings;
-	std::list<std::string>	errors;
+	settingmap_t m_mapSettings, m_mapAliases;
+	std::list<std::string> warnings, errors;
 	std::string m_currentFile;
 	std::set<std::string> m_readFiles;
 

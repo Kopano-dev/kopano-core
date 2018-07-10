@@ -49,10 +49,8 @@ ECChannelClient::ECChannelClient(const char *szPath, const char *tk) :
 
 ECRESULT ECChannelClient::DoCmd(const std::string &strCommand, std::vector<std::string> &lstResponse)
 {
-	ECRESULT er;
 	std::string strResponse;
-
-	er = Connect();
+	auto er = Connect();
 	if (er != erSuccess)
 		return er;
 
@@ -88,7 +86,6 @@ ECRESULT ECChannelClient::Connect()
 
 ECRESULT ECChannelClient::ConnectSocket()
 {
-	int fd = -1;
 	struct sockaddr_un saddr;
 
 	memset(&saddr, 0, sizeof(saddr));
@@ -100,7 +97,8 @@ ECRESULT ECChannelClient::ConnectSocket()
 	}
 	kc_strlcpy(saddr.sun_path, m_strPath.c_str(), sizeof(saddr.sun_path));
 
-	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
+	auto fd = socket(PF_UNIX, SOCK_STREAM, 0);
+	if (fd < 0)
 		return KCERR_INVALID_PARAMETER;
 
 	if (connect(fd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
@@ -121,7 +119,7 @@ ECRESULT ECChannelClient::ConnectSocket()
 
 ECRESULT ECChannelClient::ConnectHttp()
 {
-	int fd = -1, ret;
+	int fd = -1;
 	struct addrinfo *sock_res, sock_hints;
 	const struct addrinfo *sock_addr;
 	char port_string[sizeof("65536")];
@@ -129,8 +127,7 @@ ECRESULT ECChannelClient::ConnectHttp()
 	snprintf(port_string, sizeof(port_string), "%u", m_ulPort);
 	memset(&sock_hints, 0, sizeof(sock_hints));
 	sock_hints.ai_socktype = SOCK_STREAM;
-	ret = getaddrinfo(m_strPath.c_str(), port_string, &sock_hints,
-	      &sock_res);
+	auto ret = getaddrinfo(m_strPath.c_str(), port_string, &sock_hints, &sock_res);
 	if (ret != 0)
 		return KCERR_NETWORK_ERROR;
 

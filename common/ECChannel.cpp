@@ -331,7 +331,6 @@ HRESULT ECChannel::HrGets(char *szBuffer, ULONG ulBufSize, ULONG *lpulRead) {
  * @retval MAPI_E_TOO_BIG more data in the network buffer than requested to read
  */
 HRESULT ECChannel::HrReadLine(std::string &strBuffer, ULONG ulMaxBuffer) {
-	HRESULT hr = hrSuccess;
 	ULONG ulRead = 0;
 	char buffer[65536];
 
@@ -339,30 +338,26 @@ HRESULT ECChannel::HrReadLine(std::string &strBuffer, ULONG ulMaxBuffer) {
 	strBuffer.clear();
 
 	do {
-		hr = HrGets(buffer, 65536, &ulRead);
+		auto hr = HrGets(buffer, 65536, &ulRead);
 		if (hr != hrSuccess)
-			break;
-
+			return hr;
 		strBuffer.append(buffer, ulRead);
 		if (strBuffer.size() > ulMaxBuffer) {
 			hr = MAPI_E_TOO_BIG;
 			break;
 		}
 	} while (ulRead == 65535);	// zero-terminator is not counted
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECChannel::HrWriteString(const std::string & strBuffer) {
-	HRESULT hr = hrSuccess;
-
 	if (lpSSL) {
 		if (SSL_write(lpSSL, strBuffer.c_str(), (int)strBuffer.size()) < 1)
-			hr = MAPI_E_NETWORK_ERROR;
+			return MAPI_E_NETWORK_ERROR;
 	} else if (send(fd, strBuffer.c_str(), (int)strBuffer.size(), 0) < 1) {
-		hr = MAPI_E_NETWORK_ERROR;
+		return MAPI_E_NETWORK_ERROR;
 	}
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -386,8 +381,7 @@ HRESULT ECChannel::HrWriteLine(const char *szBuffer, int len) {
 		strLine.assign(szBuffer, len);
 
 	strLine += "\r\n";
-	
-	return HrWriteString(strLine);
+	return HrWriteString(std::move(strLine));
 }
 
 HRESULT ECChannel::HrWriteLine(const std::string & strBuffer) {
@@ -434,8 +428,7 @@ HRESULT ECChannel::HrReadAndDiscardBytes(ULONG ulByteCount) {
 }
 
 HRESULT ECChannel::HrReadBytes(char *szBuffer, ULONG ulByteCount) {
-	ULONG ulRead = 0;
-	ULONG ulTotRead = 0;
+	ULONG ulRead = 0, ulTotRead = 0;
 
 	if(!szBuffer)
 		return MAPI_E_INVALID_PARAMETER;
@@ -465,7 +458,6 @@ HRESULT ECChannel::HrReadBytes(char *szBuffer, ULONG ulByteCount) {
 }
 
 HRESULT ECChannel::HrReadBytes(std::string * strBuffer, ULONG ulByteCount) {
-	HRESULT hr = hrSuccess;
 	std::unique_ptr<char[]> buffer;
 
 	if (strBuffer == nullptr)
@@ -473,7 +465,7 @@ HRESULT ECChannel::HrReadBytes(std::string * strBuffer, ULONG ulByteCount) {
 	buffer.reset(new(std::nothrow) char[ulByteCount+1]);
 	if (buffer == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = HrReadBytes(buffer.get(), ulByteCount);
+	auto hr = HrReadBytes(buffer.get(), ulByteCount);
 	if (hr != hrSuccess)
 		return hr;
 	strBuffer->assign(buffer.get(), ulByteCount);
@@ -574,7 +566,6 @@ char * ECChannel::fd_gets(char *buf, int *lpulLen) {
 char * ECChannel::SSL_gets(char *buf, int *lpulLen) {
 	char *newline, *bp = buf;
 	int len = *lpulLen;
-	int n = 0;
 
 	if (--len < 1)
 		return NULL;
@@ -584,7 +575,8 @@ char * ECChannel::SSL_gets(char *buf, int *lpulLen) {
 		 * Return NULL when we read nothing:
 		 * other side has closed its writing socket.
 		 */
-		if ((n = SSL_peek(lpSSL, bp, len)) <= 0)
+		int n = SSL_peek(lpSSL, bp, len);
+		if (n <= 0)
 			return NULL;
 		newline = static_cast<char *>(memchr(bp, '\n', n));
 		if (newline != nullptr)
@@ -938,7 +930,6 @@ exit:
 
 HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 {
-	int socket = 0;
 	struct sockaddr_storage client;
 	std::unique_ptr<ECChannel> lpChannel;
 	socklen_t len = sizeof(client);
@@ -953,9 +944,7 @@ HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 		/* ignore - no harm in not having fastopen */;
 #endif
 	memset(&client, 0, sizeof(client));
-
-	socket = accept(ulListenFD, (struct sockaddr *)&client, &len);
-
+	auto socket = accept(ulListenFD, (struct sockaddr *)&client, &len);
 	if (socket == -1) {
 		ec_log_err("Unable to accept(): %s", strerror(errno));
 		return MAPI_E_NETWORK_ERROR;

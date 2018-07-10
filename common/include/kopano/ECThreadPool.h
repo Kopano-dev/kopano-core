@@ -57,13 +57,11 @@ private:	// methods
 	_kc_hidden void joinTerminated(std::unique_lock<std::mutex> &);
 	_kc_hidden static void *threadFunc(void *);
 	
-	ThreadSet	m_setThreads;
-	ThreadSet	m_setTerminated;
+	ThreadSet m_setThreads, m_setTerminated;
 	TaskList	m_listTasks;
 	
 	mutable std::mutex m_hMutex;
-	std::condition_variable m_hCondition;
-	std::condition_variable m_hCondTerminated;
+	std::condition_variable m_hCondition, m_hCondTerminated;
 	mutable std::condition_variable m_hCondTaskDone;
 
 	ECThreadPool(const ECThreadPool &) = delete;

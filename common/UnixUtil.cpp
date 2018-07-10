@@ -187,7 +187,6 @@ int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, bool bForce)
 	if (progname == nullptr)
 		progname = argv0;
 	auto pidfilename = std::string("/var/run/kopano/") + progname + ".pid";
-	FILE *pidfile;
 	int oldpid;
 	char tmp[256];
 	bool running = false;
@@ -196,7 +195,7 @@ int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, bool bForce)
 		pidfilename = lpConfig->GetSetting("pid_file");
 
 	// test for existing and running process
-	pidfile = fopen(pidfilename.c_str(), "r");
+	auto pidfile = fopen(pidfilename.c_str(), "r");
 	if (pidfile) {
 		if (fscanf(pidfile, "%d", &oldpid) < 1)
 			oldpid = -1;
@@ -240,10 +239,8 @@ int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, bool bForce)
 
 int unix_daemonize(ECConfig *lpConfig)
 {
-	int ret;
-
 	// make sure we daemonize in an always existing directory
-	ret = unix_runpath(lpConfig);
+	auto ret = unix_runpath(lpConfig);
 	if (ret != 0)
 		return ret;
 
@@ -293,12 +290,9 @@ int unix_daemonize(ECConfig *lpConfig)
  */
 int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pCloseFDs)
 {
-	int pid;
-
 	if (!func)
 		return -1;
-
-	pid = fork();
+	auto pid = fork();
 	if (pid != 0)
 		return pid;
 	// reset the SIGHUP signal to default, not to trigger the config/logfile reload signal too often on 'killall <process>'

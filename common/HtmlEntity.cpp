@@ -539,11 +539,7 @@ WCHAR CHtmlEntity::toChar( const WCHAR *name )
 {
 	HTMLEntity_t key = {0};
 	key.s = name;
-
-	HTMLEntity_t *result;
-
-	result = (HTMLEntity_t *)bsearch(&key, &_HTMLEntity, cHTMLEntity, sizeof( HTMLEntity_t), (int (*)(const void*, const void*))compareHTMLEntityToChar );
-
+	auto result = static_cast<HTMLEntity_t *>(bsearch(&key, &_HTMLEntity, cHTMLEntity, sizeof(HTMLEntity_t), compareHTMLEntityToChar));
 	if (result)
 		return result->c;
 	else
@@ -554,11 +550,7 @@ const WCHAR *CHtmlEntity::toName( WCHAR c )
 {
 	HTMLEntityToName_t key = {0};
 	key.c = c;
-
-	HTMLEntityToName_t *result;
-
-	result = (HTMLEntityToName_t *)bsearch(&key, &_HTMLEntityToName, cHTMLEntityToName, sizeof( HTMLEntityToName_t), (int (*)(const void*, const void*))compareHTMLEntityToName );
-
+	auto result = static_cast<HTMLEntityToName_t *>(bsearch(&key, &_HTMLEntityToName, cHTMLEntityToName, sizeof(HTMLEntityToName_t), compareHTMLEntityToName));
 	if (result)
 		return result->s;
 	else
@@ -627,18 +619,14 @@ bool CHtmlEntity::validateHtmlEntity(const std::wstring &strEntity)
 
 	if (pos == std::wstring::npos || pos < 3)
 		return false;
-	
-	std::wstring str;
-
 	if (strEntity[1] == '#') {
 		int base = 10;
-		str = strEntity.substr(2, pos-2);
-
+		auto str = strEntity.substr(2, pos - 2);
 		if(str[0] == 'x')
 			base = 16;
 		return wcstoul(str.c_str() + 1, NULL, base) != 0;
 	}
-	str = strEntity.substr(1, pos - 2);
+	auto str = strEntity.substr(1, pos - 2);
 	return CHtmlEntity::toChar(str.c_str()) > 0;
 }
 
@@ -651,10 +639,8 @@ bool CHtmlEntity::validateHtmlEntity(const std::wstring &strEntity)
  */
 WCHAR CHtmlEntity::HtmlEntityToChar(const std::wstring &strEntity)
 {
-	unsigned int ulCode;
-
 	if (strEntity[0] != '#') {
-		ulCode = toChar(strEntity.c_str());
+		unsigned int ulCode = toChar(strEntity.c_str());
 		if (ulCode > 0)
 			return (WCHAR)ulCode;
 		return '?';
@@ -669,7 +655,7 @@ WCHAR CHtmlEntity::HtmlEntityToChar(const std::wstring &strEntity)
 		base = 16;
 		++pNum;
 	}
-	ulCode = wcstoul(pNum, NULL, base);
+	unsigned int ulCode = wcstoul(pNum, nullptr, base);
 	if (ulCode <= 0xFFFF /*USHRT_MAX*/)
 		return (WCHAR)ulCode;
 

@@ -25,9 +25,8 @@
 namespace KC {
 
 struct configsetting_t {
-	const char *szName;
-	const char *szValue;
-	unsigned short cs_flags;
+	const char *szName, *szValue;
+	unsigned short cs_flags, ulGroup;
 #define CONFIGSETTING_ALIAS			0x0001
 #define CONFIGSETTING_RELOADABLE	0x0002
 #define CONFIGSETTING_UNUSED		0x0004
@@ -37,7 +36,6 @@ struct configsetting_t {
 #define CONFIGSETTING_OBSOLETE 0x0040
 /* value is still unchanged from hard-coded defautls (internal flag) */
 #define CONFIGSETTING_MARK_DEFAULT 0x0080
-	unsigned short ulGroup;
 #define CONFIGGROUP_PROPMAP			0x0001
 };
 

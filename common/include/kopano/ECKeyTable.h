@@ -67,8 +67,7 @@ namespace KC {
 struct sObjectTableKey {
     sObjectTableKey(unsigned int obj_id, unsigned int order_id) : ulObjId(obj_id), ulOrderId(order_id) {}
 	sObjectTableKey(void) = default;
-	unsigned int ulObjId = 0;
-	unsigned int ulOrderId = 0;
+	unsigned int ulObjId = 0, ulOrderId = 0;
 
 	bool operator==(const sObjectTableKey &o) const noexcept
 	{

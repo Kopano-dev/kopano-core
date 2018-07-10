@@ -214,8 +214,7 @@ ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 	if (er != erSuccess)
 		return er;
 
-	std::string query;
-	query = "CREATE DATABASE IF NOT EXISTS `" +
+	auto query = "CREATE DATABASE IF NOT EXISTS `" +
 	        std::string(cfg->GetSetting("mysql_database")) + "`";
 	if (Query(query) != erSuccess) {
 		ec_log_err("Unable to create database: %s", GetError());
@@ -336,11 +335,7 @@ ECRESULT KDatabase::DoSelect(const std::string &q, DB_RESULT *res_p,
 	}
 
 	ECRESULT er = erSuccess;
-	DB_RESULT res;
-	if (stream)
-		res = DB_RESULT(this, mysql_use_result(&m_lpMySQL));
-	else
-		res = DB_RESULT(this, mysql_store_result(&m_lpMySQL));
+	DB_RESULT res(this, stream ? mysql_use_result(&m_lpMySQL) : mysql_store_result(&m_lpMySQL));
 	if (res == nullptr) {
 		if (!m_bSuppressLockErrorLogging ||
 		    GetLastError() == DB_E_UNKNOWN)

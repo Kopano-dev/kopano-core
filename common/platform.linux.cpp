@@ -130,9 +130,8 @@ DWORD GetTempPath(DWORD inLen, char *lpBuffer) {
 
 void Sleep(unsigned int msec) {
 	struct timespec ts;
-	unsigned int rsec;
 	ts.tv_sec = msec/1000;
-	rsec = msec - (ts.tv_sec*1000);
+	unsigned int rsec = msec - ts.tv_sec * 1000;
 	ts.tv_nsec = rsec*1000*1000;
 	nanosleep(&ts, NULL);
 }

@@ -136,14 +136,12 @@ bool ConsoleTable::AddColumn(size_t col, const std::string &entry)
  */
 bool ConsoleTable::SetColumn(size_t row, size_t col, const std::string &entry)
 {
-	size_t len;
-
 	if (col >= m_iColumns || row >= m_iRows)
 		return false;
 
 	// we want to count number of printable characters, which is not possible using UTF-8
 	m_vTable[row][col] = m_converter.convert_to<std::wstring>(CHARSET_WCHAR, entry, entry.length(), CHARSET_CHAR);
-	len = m_vTable[row][col].length();
+	auto len = m_vTable[row][col].length();
 	if (len > m_vMaxLengths[col])
 		m_vMaxLengths[col] = len;
 
@@ -162,15 +160,13 @@ bool ConsoleTable::SetColumn(size_t row, size_t col, const std::string &entry)
 void ConsoleTable::PrintRow(const std::vector<std::wstring> &vRow)
 {
 	size_t nCol = 0;
-	size_t longest, ntabs;
-
 	cout << m_lead;
 	for (const auto &col : vRow) {
 		// cout can't print wstring, and wcout is not allowed to mix with cout.
 		printf("%ls\t", col.c_str());
 		if (nCol+1 < m_iColumns) {
-			longest = ((m_vMaxLengths[nCol] /8) +1);
-			ntabs = longest - ((col.length() / 8) + 1);
+			auto longest = (m_vMaxLengths[nCol] /8) + 1;
+			auto ntabs = longest - ((col.length() / 8) + 1);
 			cout << std::string(ntabs, '\t');
 		}
 		++nCol;
