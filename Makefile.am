@@ -64,6 +64,8 @@ if HAVE_TIDY
 noinst_PROGRAMS += rosie-test
 endif
 pkglibexec_PROGRAMS = kscriptrun mapitime
+check_PROGRAMS = tests/mapialloctime
+noinst_PROGRAMS += ${check_PROGRAMS}
 
 
 #
@@ -758,6 +760,8 @@ mapitime_LDADD = ${clock_LIBS} libmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}
 rosie_test_SOURCES = librosie/test.cpp
 rosie_test_LDADD = libkcrosie.la
+tests_mapialloctime_SOURCES = tests/mapialloctime.cpp
+tests_mapialloctime_LDADD = libmapi.la
 
 
 #
