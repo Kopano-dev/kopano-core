@@ -935,7 +935,8 @@ int main(int argc, char **argv) try
         { "plugin_enabled", "yes" },
         { "plugin_path", "/var/lib/kopano/spooler/plugins" },
         { "plugin_manager_path", "/usr/share/kopano-spooler/python" },
-		{ "z_statsd_stats", "/var/run/kopano/statsd.sock" },
+		{"statsclient_url", "unix:/var/run/kopano/statsd.sock", CONFIGSETTING_RELOADABLE},
+		{"statsclient_interval", "3600", CONFIGSETTING_RELOADABLE},
 		{ "tmp_path", "/tmp" },
 		{"log_raw_message_path", "/var/lib/kopano", CONFIGSETTING_RELOADABLE},
 		{"log_raw_message_stage1", "no", CONFIGSETTING_RELOADABLE},
@@ -1127,8 +1128,7 @@ int main(int argc, char **argv) try
 		goto exit;
 	}
 
-	sc.reset(new StatsClient);
-	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
+	sc.reset(new StatsClient(g_lpConfig));
 	if (bForked)
 		hr = ProcessMessageForked(strUsername.c_str(), szSMTP, ulPort,
 		     szPath, strMsgEntryId.length(), reinterpret_cast<const ENTRYID *>(strMsgEntryId.data()),

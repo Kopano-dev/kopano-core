@@ -2866,9 +2866,8 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	auto sc = std::make_shared<StatsClient>();
-	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 
+	auto sc = std::make_shared<StatsClient>(g_lpConfig);
 	pthread_attr_t thr_attr;
 	pthread_attr_init(&thr_attr);
 	pthread_attr_setdetachstate(&thr_attr, PTHREAD_CREATE_DETACHED);
@@ -3072,8 +3071,7 @@ static HRESULT direct_delivery(int argc, char **argv,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	auto sc = std::make_shared<StatsClient>();
-	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
+	auto sc = std::make_shared<StatsClient>(g_lpConfig);
 	sDeliveryArgs.sc = std::move(sc);
 	hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 	if (hr != hrSuccess) {
@@ -3223,7 +3221,8 @@ int main(int argc, char **argv) try {
 		{"insecure_html_join", "no", CONFIGSETTING_RELOADABLE},
 		{ "set_rule_headers", "yes", CONFIGSETTING_RELOADABLE },
 		{ "no_double_forward", "yes", CONFIGSETTING_RELOADABLE },
-		{ "z_statsd_stats", "/var/run/kopano/statsd.sock" },
+		{"statsclient_url", "unix:/var/run/kopano/statsd.sock", CONFIGSETTING_RELOADABLE},
+		{"statsclient_interval", "3600", CONFIGSETTING_RELOADABLE},
 		{ "tmp_path", "/tmp" },
 		{"forward_whitelist_domains", "*"},
 		{"forward_whitelist_domain_message", "The Kopano mail system has rejected your "
