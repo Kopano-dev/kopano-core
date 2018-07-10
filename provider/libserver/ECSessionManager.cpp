@@ -63,9 +63,9 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 	//Create session clean up thread
 	auto err = pthread_create(&m_hSessionCleanerThread, nullptr, SessionCleaner, this);
 	if (err != 0) {
-		m_thread_active = true;
 		ec_log_crit("Could not create SessionCleaner thread: %s", strerror(err));
 	} else {
+		m_thread_active = true;
 	        set_thread_name(m_hSessionCleanerThread, "SessionCleanUp");
 	}
 
