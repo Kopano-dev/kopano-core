@@ -190,7 +190,7 @@ public:
 		if (MaxSize() == 0)
 			return erSuccess;
 		auto result = m_map.emplace(key, value);
-		if (result.second == false) {
+		if (!result.second) {
 			// The key already exists but its value is unmodified. So update it now
 			m_ulSize += GetCacheAdditionalSize(value);
 			m_ulSize -= GetCacheAdditionalSize(result.first->second);

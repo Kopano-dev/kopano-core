@@ -842,7 +842,7 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 	}
 
 	// Ok, no changes for the database, but for update history we add a version record
-	if(bUpdated == false) {
+	if (!bUpdated) {
 		// Update version table
 		er = UpdateDatabaseVersion(Z_UPDATE_LAST);
 		if(er != erSuccess)

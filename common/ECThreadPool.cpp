@@ -132,7 +132,7 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 	assert(locker.owns_lock());
 	assert(lpsTaskInfo != NULL);
 	bool bTerminate = false;
-	while ((bTerminate = (m_ulTermReq > 0)) == false && m_listTasks.empty())
+	while (!(bTerminate = m_ulTermReq > 0) && m_listTasks.empty())
 		m_hCondition.wait(locker);
 		
 	if (bTerminate) {

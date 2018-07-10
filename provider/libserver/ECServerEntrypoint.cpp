@@ -62,7 +62,7 @@ static void plugin_destroy(void *lpParam)
 
 ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 {
-	if (g_bInitLib == true)
+	if (g_bInitLib)
 		return KCERR_CALL_FAILED;
 
 	// This is a global key that we can reference from each thread with a different value. The

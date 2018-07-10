@@ -1261,7 +1261,7 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const std::list<objectsign
 
 	for (const auto &sig : lstSignatures) {
 		auto result = lpmapLocalObjIds->emplace(sig.id, 0);
-		if (result.second == false)
+		if (!result.second)
 			// object already exists
 			continue;
 

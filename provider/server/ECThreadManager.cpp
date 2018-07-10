@@ -403,7 +403,7 @@ void *ECWatchDog::Watch(void *lpParam)
 	kcsrv_blocksigs();
     
     while(1) {
-		if(lpThis->m_bExit == true)
+		if (lpThis->m_bExit)
 			break;
 
         double dblMaxFreq = atoi(lpThis->m_lpConfig->GetSetting("watchdog_frequency"));
@@ -416,9 +416,9 @@ void *ECWatchDog::Watch(void *lpParam)
 
         // Check to see if exit flag is set, and limit rate to dblMaxFreq Hz
 		ulock_normal l_exit(lpThis->m_mutexExit);
-        if(lpThis->m_bExit == false) {
+		if (!lpThis->m_bExit) {
 			lpThis->m_condExit.wait_for(l_exit, std::chrono::duration<double>(1 / dblMaxFreq));
-			if (lpThis->m_bExit == true)
+			if (lpThis->m_bExit)
 				break;
         }
     }

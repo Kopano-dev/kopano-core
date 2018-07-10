@@ -1094,8 +1094,7 @@ int main(int argc, char *argv[]) {
 
 	if (!daemonize)
 		setsid();
-
-	if (bForked == false && unix_create_pidfile(argv[0], g_lpConfig, false) < 0) {
+	if (!bForked && unix_create_pidfile(argv[0], g_lpConfig, false) < 0) {
 		ec_log_crit("main(): Failed creating PID file");
 		goto exit;
 	}

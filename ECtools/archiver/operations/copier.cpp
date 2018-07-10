@@ -53,12 +53,11 @@ Copier::Helper::Helper(ArchiverSessionPtr ptrSession, ECLogger *lpLogger,
 
 HRESULT Copier::Helper::CreateArchivedMessage(LPMESSAGE lpSource, const SObjectEntry &archiveEntry, const SObjectEntry &refMsgEntry, LPMESSAGE *lppArchivedMsg, PostSaveActionPtr *lpptrPSAction)
 {
-	HRESULT hr;
 	MAPIFolderPtr ptrArchiveFolder;
 	MessagePtr ptrNewMessage;
 	PostSaveActionPtr ptrPSAction;
 	
-	hr = GetArchiveFolder(archiveEntry, &~ptrArchiveFolder);
+	auto hr = GetArchiveFolder(archiveEntry, &~ptrArchiveFolder);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrArchiveFolder->CreateMessage(&iid_of(ptrNewMessage), fMapiDeferredErrors, &~ptrNewMessage);
@@ -76,21 +75,18 @@ HRESULT Copier::Helper::CreateArchivedMessage(LPMESSAGE lpSource, const SObjectE
 
 HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAPIFOLDER *lppArchiveFolder)
 {
-	HRESULT hr;
-	ArchiveFolderMap::const_iterator iArchiveFolder;
-	MAPIFolderPtr ptrArchiveFolder;
-
-	if (lppArchiveFolder == NULL)
+	if (lppArchiveFolder == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	
-	iArchiveFolder = m_mapArchiveFolders.find(archiveEntry.sStoreEntryId);
+
+	MAPIFolderPtr ptrArchiveFolder;
+	auto iArchiveFolder = m_mapArchiveFolders.find(archiveEntry.sStoreEntryId);
 	if (iArchiveFolder == m_mapArchiveFolders.cend()) {
 		ArchiveHelperPtr ptrArchiveHelper;
 
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder not found in cache");
 	
 		// Find the associated archive folder 
-		hr = ArchiveHelper::Create(m_ptrSession, archiveEntry, m_lpLogger, &ptrArchiveHelper);
+		auto hr = ArchiveHelper::Create(m_ptrSession, archiveEntry, m_lpLogger, &ptrArchiveHelper);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ptrArchiveHelper->GetArchiveFolderFor(m_ptrFolder, m_ptrSession, &~ptrArchiveFolder);
@@ -120,20 +116,19 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 
 HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *lpMsgEntry, LPMESSAGE lpDest, PostSaveActionPtr *lpptrPSAction)
 {
-	HRESULT hr = hrSuccess;
+	if (lpSource == nullptr || lpDest == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	MAPIPropHelperPtr ptrMsgHelper;
 	SPropValuePtr ptrEntryId;
 	SPropValue sPropArchFlags = {0};
 	PostSaveActionPtr ptrPSAction;
 
-	if (lpSource == NULL || lpDest == NULL)
-		return MAPI_E_INVALID_PARAMETER;	// Don't use goto so we can use the PROPMAP macros after checking lpDest
-
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
 	PROPMAP_INIT(lpDest)
 	
-	hr = lpSource->CopyTo(0, NULL, m_lpExcludeProps, 0, NULL, &IID_IMessage, lpDest, 0, NULL);
+	auto hr = lpSource->CopyTo(0, nullptr, m_lpExcludeProps, 0, nullptr, &IID_IMessage, lpDest, 0, nullptr);
 	// @todo: What to do with warnings?
 	if (FAILED(hr))
 		return m_lpLogger->perr("Failed to copy message", hr);
@@ -163,20 +158,17 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 
 HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSaveActionPtr *lpptrPSAction)
 {
-	HRESULT hr;
-	MAPITablePtr ptrSourceTable;
-	MAPITablePtr ptrDestTable;
-	ULONG ulSourceRows = 0;
-	ULONG ulDestRows = 0;
-	SPropValuePtr ptrSourceServerUID;
-	SPropValuePtr ptrDestServerUID;
+	if (lpSource == nullptr || lpDest == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
+	MAPITablePtr ptrSourceTable, ptrDestTable;
+	unsigned int ulSourceRows = 0, ulDestRows = 0;
+	SPropValuePtr ptrSourceServerUID, ptrDestServerUID;
 	TaskList lstDeferred;
 	static constexpr const SizedSPropTagArray(1, sptaAttachProps) = {1, {PR_ATTACH_NUM}};
 	enum {IDX_ATTACH_NUM};
 
-	if (lpSource == NULL || lpDest == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	hr = HrGetOneProp(lpSource, PR_EC_SERVER_UID, &~ptrSourceServerUID);
+	auto hr = HrGetOneProp(lpSource, PR_EC_SERVER_UID, &~ptrSourceServerUID);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to get source server UID", hr);
 	hr = HrGetOneProp(lpDest, PR_EC_SERVER_UID, &~ptrDestServerUID);
@@ -216,8 +208,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 	// We'll go through the table one row at a time (from each table) and assume the attachments
 	// are sorted the same. We will do a sanity check on the size property, though.
 	while (true) {
-		SRowSetPtr ptrSourceRows;
-		SRowSetPtr ptrDestRows;
+		SRowSetPtr ptrSourceRows, ptrDestRows;
 
 		hr = ptrSourceTable->QueryRows(16, 0, &~ptrSourceRows);
 		if (hr != hrSuccess)
@@ -229,17 +220,13 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 			return m_lpLogger->perr("Failed to query source rows", hr);
 		assert(ptrSourceRows.size() == ptrDestRows.size());
 		for (SRowSetPtr::size_type i = 0; i < ptrSourceRows.size(); ++i) {
-			HRESULT hrTmp = hrSuccess;
-			AttachPtr ptrSourceAttach;
+			AttachPtr ptrSourceAttach, ptrDestAttach;
 			SPropValuePtr ptrAttachMethod;
-			AttachPtr ptrDestAttach;
 			object_ptr<IECSingleInstance> ptrInstance;
-			ULONG cbSourceSIID;
-			EntryIdPtr ptrSourceSIID;
-			ULONG cbDestSIID;
-			EntryIdPtr ptrDestSIID;
+			unsigned int cbSourceSIID, cbDestSIID;
+			EntryIdPtr ptrSourceSIID, ptrDestSIID;
 
-			hrTmp = lpSource->OpenAttach(ptrSourceRows[i].lpProps[IDX_ATTACH_NUM].Value.ul, nullptr, MAPI_DEFERRED_ERRORS, &~ptrSourceAttach);
+			auto hrTmp = lpSource->OpenAttach(ptrSourceRows[i].lpProps[IDX_ATTACH_NUM].Value.ul, nullptr, MAPI_DEFERRED_ERRORS, &~ptrSourceAttach);
 			if (hrTmp != hrSuccess) {
 				m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to open source attachment %u: %s (%x). Skipping attachment.",
 					i, GetMAPIErrorMessage(hrTmp), hrTmp);
@@ -357,7 +344,6 @@ Copier::~Copier()
 
 HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestriction)
 {
-	HRESULT hr = hrSuccess;
 	ECOrRestriction resResult;
 	SRestrictionPtr ptrRestriction;
 
@@ -367,7 +353,7 @@ HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestric
 
 	// Start out with the base restriction, which checks if a message is
 	// old enough to be processed.
-	hr = ArchiveOperationBaseEx::GetRestriction(lpMapiProp, &~ptrRestriction);
+	auto hr = ArchiveOperationBaseEx::GetRestriction(lpMapiProp, &~ptrRestriction);
 	if (hr != hrSuccess)
 		return hr;
 	resResult += ECRawRestriction(ptrRestriction, ECRestriction::Cheap);
@@ -377,8 +363,7 @@ HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestric
 	// age has changed). We'll check that by checking if PROP_ORIGINAL_SOURCE_KEY
 	// is present.
 	resResult += ECExistRestriction(PROP_ORIGINAL_SOURCE_KEY);
-	hr = resResult.CreateMAPIRestriction(lppRestriction, ECRestriction::Full);
-	return hr;
+	return resResult.CreateMAPIRestriction(lppRestriction, ECRestriction::Full);
 }
 
 HRESULT Copier::EnterFolder(LPMAPIFOLDER lpFolder)
@@ -401,21 +386,17 @@ HRESULT Copier::LeaveFolder()
 
 HRESULT Copier::DoProcessEntry(const SRow &proprow)
 {
-	HRESULT hr;
+	if (m_ptrMapper == nullptr)
+		return MAPI_E_UNCONFIGURED;
+
 	SObjectEntry refObjectEntry;
-	MessagePtr ptrMessageRaw;
-	MessagePtr ptrMessage;
+	MessagePtr ptrMessageRaw, ptrMessage;
 	ULONG ulType = 0;
 	MAPIPropHelperPtr ptrMsgHelper;
 	MessageState state;
-	ObjectEntryList lstMsgArchives;
-	HRESULT hrTemp;
-	ObjectEntryList lstNewMsgArchives;
+	ObjectEntryList lstMsgArchives, lstNewMsgArchives;
 	TransactionList lstTransactions;
 	RollbackList lstRollbacks;
-
-	if (!m_ptrMapper)
-		return MAPI_E_UNCONFIGURED;
 
 	auto lpEntryId = proprow.cfind(PR_ENTRYID);
 	if (lpEntryId == NULL) {
@@ -432,7 +413,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 	refObjectEntry.sStoreEntryId = lpStoreEntryId->Value.bin;
 	refObjectEntry.sItemEntryId = lpEntryId->Value.bin;
 	Logger()->logf(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin).c_str());
-	hr = CurrentFolder()->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IECMessageRaw, MAPI_MODIFY|fMapiDeferredErrors, &ulType, &~ptrMessageRaw);
+	auto hr = CurrentFolder()->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IECMessageRaw, MAPI_MODIFY|fMapiDeferredErrors, &ulType, &~ptrMessageRaw);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to open message", hr);
 	hr = VerifyRestriction(ptrMessageRaw);
@@ -579,7 +560,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 		if (hrTmp != hrSuccess)
 			Logger()->perr("Failed to remove old archives", hrTmp);
 	}
-	hrTemp = ExecuteSubOperations(ptrMessageRaw, CurrentFolder(), proprow);
+	auto hrTemp = ExecuteSubOperations(ptrMessageRaw, CurrentFolder(), proprow);
 	if (hrTemp != hrSuccess)
 		Logger()->pwarn("Unable to execute next operation - the operation is postponed, not cancelled.", hrTemp);
 	return hrSuccess;
@@ -597,7 +578,6 @@ void Copier::SetStubOperation(StubberPtr ptrStubOp)
 
 HRESULT Copier::DoInitialArchive(LPMESSAGE lpMessage, const SObjectEntry &archiveRootEntry, const SObjectEntry &refMsgEntry, TransactionPtr *lpptrTransaction)
 {
-	HRESULT hr;
 	MessagePtr ptrNewArchive;
 	SPropValuePtr ptrEntryId;
 	SObjectEntry objectEntry;
@@ -606,7 +586,7 @@ HRESULT Copier::DoInitialArchive(LPMESSAGE lpMessage, const SObjectEntry &archiv
 
 	assert(lpMessage != NULL);
 	assert(lpptrTransaction != NULL);
-	hr = m_ptrHelper->CreateArchivedMessage(lpMessage, archiveRootEntry, refMsgEntry, &~ptrNewArchive, &ptrPSAction);
+	auto hr = m_ptrHelper->CreateArchivedMessage(lpMessage, archiveRootEntry, refMsgEntry, &~ptrNewArchive, &ptrPSAction);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrNewArchive, PR_ENTRYID, &~ptrEntryId);
@@ -626,19 +606,16 @@ HRESULT Copier::DoInitialArchive(LPMESSAGE lpMessage, const SObjectEntry &archiv
 
 HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &archiveRootEntry, const SObjectEntry &archiveMsgEntry, const SObjectEntry &refMsgEntry, bool bUpdateHistory, TransactionPtr *lpptrTransaction)
 {
-	HRESULT hr;
-	MessagePtr ptrNewArchive;
-	SObjectEntry newArchiveEntry;
+	MessagePtr ptrNewArchive, ptrMovedMessage;
+	SObjectEntry newArchiveEntry, movedEntry;
 	MAPIPropHelperPtr ptrMsgHelper;
 	SPropValuePtr ptrEntryId;
-	SObjectEntry movedEntry;
-	MessagePtr ptrMovedMessage;
 	PostSaveActionPtr ptrPSAction;
 	TransactionPtr ptrTransaction;
 
 	assert(lpMessage != NULL);
 	assert(lpptrTransaction != NULL);
-	hr = m_ptrHelper->CreateArchivedMessage(lpMessage, archiveRootEntry, refMsgEntry, &~ptrNewArchive, &ptrPSAction);
+	auto hr = m_ptrHelper->CreateArchivedMessage(lpMessage, archiveRootEntry, refMsgEntry, &~ptrNewArchive, &ptrPSAction);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrNewArchive, PR_ENTRYID, &~ptrEntryId);
@@ -685,7 +662,6 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 
 HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archiveMsgEntry, const SObjectEntry &refMsgEntry, TransactionPtr *lpptrTransaction)
 {
-	HRESULT hr;
 	MsgStorePtr ptrArchiveStore;
 	ULONG ulType;
 	MessagePtr ptrArchivedMsg;
@@ -695,7 +671,7 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 
 	assert(lpMessage != NULL);
 	assert(lpptrTransaction != NULL);
-	hr = m_ptrSession->OpenStore(archiveMsgEntry.sStoreEntryId, &~ptrArchiveStore);
+	auto hr = m_ptrSession->OpenStore(archiveMsgEntry.sStoreEntryId, &~ptrArchiveStore);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to open archive store", hr);
 	/**
@@ -732,19 +708,17 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 
 HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjectEntry &archiveMsgEntry, const SObjectEntry &refMsgEntry, TransactionPtr *lpptrTransaction)
 {
-	HRESULT hr;
 	MAPIFolderPtr ptrArchiveFolder;
 	MsgStorePtr ptrArchiveStore;
 	ULONG ulType;
-	MessagePtr ptrArchive;
-	MessagePtr ptrArchiveCopy;
+	MessagePtr ptrArchive, ptrArchiveCopy;
 	MAPIPropHelperPtr ptrPropHelper;
 	SPropValuePtr ptrEntryId;
 	SObjectEntry objectEntry;
 	TransactionPtr ptrTransaction;
 
 	assert(lpptrTransaction != NULL);
-	hr = m_ptrHelper->GetArchiveFolder(archiveRootEntry, &~ptrArchiveFolder);
+	auto hr = m_ptrHelper->GetArchiveFolder(archiveRootEntry, &~ptrArchiveFolder);
 	if (hr != hrSuccess)
 		return hr;
 	hr = m_ptrSession->OpenStore(archiveMsgEntry.sStoreEntryId, &~ptrArchiveStore);
@@ -816,35 +790,33 @@ HRESULT Copier::ExecuteSubOperations(IMessage *lpMessage,
 	}
 
 	// Now see if we need to stub the message.
-	if (m_ptrStubOp) {
-		hr = m_ptrStubOp->VerifyRestriction(lpMessage);
-		if (hr == hrSuccess) {
-			Logger()->Log(EC_LOGLEVEL_DEBUG, "Executing stub operation.");
-			hr = m_ptrStubOp->ProcessEntry(lpMessage);
-			if (hr != hrSuccess)
-				Logger()->pwarn("Stub operation failed, postponing next attempt", hr);
-			else
-				Logger()->Log(EC_LOGLEVEL_DEBUG, "Stub operation executed.");
-		} else if (hr == MAPI_E_NOT_FOUND) {
-			hr = hrSuccess;
-			Logger()->Log(EC_LOGLEVEL_DEBUG, "Message is not eligible for stubbing.");
-		}
+	if (m_ptrStubOp == nullptr)
+		return hr;
+	hr = m_ptrStubOp->VerifyRestriction(lpMessage);
+	if (hr == hrSuccess) {
+		Logger()->Log(EC_LOGLEVEL_DEBUG, "Executing stub operation.");
+		hr = m_ptrStubOp->ProcessEntry(lpMessage);
+		if (hr != hrSuccess)
+			Logger()->pwarn("Stub operation failed, postponing next attempt", hr);
+		else
+			Logger()->Log(EC_LOGLEVEL_DEBUG, "Stub operation executed.");
+	} else if (hr == MAPI_E_NOT_FOUND) {
+		hr = hrSuccess;
+		Logger()->Log(EC_LOGLEVEL_DEBUG, "Message is not eligible for stubbing.");
 	}
 	return hr;
 }
 
 HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot, const SObjectEntry &sourceMsgEntry, TransactionPtr ptrTransaction, SObjectEntry *lpNewEntry, LPMESSAGE *lppNewMessage)
 {
-	HRESULT hr;
 	ArchiveHelperPtr ptrArchiveHelper;
 	MAPIFolderPtr ptrHistoryFolder;
 	ULONG ulType;
 	MsgStorePtr ptrArchiveStore;
-	MessagePtr ptrArchive;
-	MessagePtr ptrArchiveCopy;
+	MessagePtr ptrArchive, ptrArchiveCopy;
 	SPropValuePtr ptrEntryID;
 
-	hr = ArchiveHelper::Create(m_ptrSession, sourceArchiveRoot, Logger(), &ptrArchiveHelper);
+	auto hr = ArchiveHelper::Create(m_ptrSession, sourceArchiveRoot, Logger(), &ptrArchiveHelper);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrArchiveHelper->GetHistoryFolder(&~ptrHistoryFolder);
@@ -883,11 +855,9 @@ HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot, const SObje
 
 HRESULT Copier::UpdateHistoryRefs(LPMESSAGE lpArchivedMsg, const SObjectEntry &refMsgEntry, TransactionPtr ptrTransaction)
 {
-	HRESULT hr;
 	MAPIPropHelperPtr ptrPropHelper;
 	MessagePtr ptrMessage;
-
-	hr = MAPIPropHelper::Create(MAPIPropPtr(lpArchivedMsg, true), &ptrPropHelper);
+	auto hr = MAPIPropHelper::Create(MAPIPropPtr(lpArchivedMsg, true), &ptrPropHelper);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrPropHelper->OpenPrevious(m_ptrSession, &~ptrMessage);

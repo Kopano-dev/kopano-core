@@ -185,22 +185,22 @@ extern _kc_export bool kc_starts_with(const std::string &, const std::string &);
 extern _kc_export bool kc_istarts_with(const std::string &, const std::string &);
 extern _kc_export bool kc_ends_with(const std::string &, const std::string &);
 
-template<typename T> std::string kc_join(const T &v, const char *sep)
+template<typename Iter> std::string kc_join(Iter cur, Iter end, const char *sep)
 {
-	/* This is faster than std::copy(,,ostream_iterator(stringstream)); on glibc */
+	/* This is faster than std::copy(,,ostream_iterator(stringstream)); on gcc libstdc++ */
 	std::string s;
-	size_t z = 0;
-	for (const auto i : v)
-		z += i.size() + 1;
-	s.reserve(z);
-	for (const auto i : v) {
-		s += i;
+	if (cur != end)
+		s += *cur++;
+	while (cur != end) {
 		s += sep;
+		s += *cur++;
 	}
-	z = strlen(sep);
-	if (s.size() > z)
-		s.erase(s.size() - z, z);
 	return s;
+}
+
+template<typename Container> std::string kc_join(const Container &v, const char *sep)
+{
+	return kc_join(cbegin(v), cend(v), sep);
 }
 
 extern _kc_export std::string base64_encode(const void *, unsigned int);

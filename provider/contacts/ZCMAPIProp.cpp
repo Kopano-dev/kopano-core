@@ -364,7 +364,8 @@ HRESULT ZCMAPIProp::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 	memory_ptr<SPropValue> lpProps;
 	convert_context converter;
 
-	if((lpPropTagArray != NULL && lpPropTagArray->cValues == 0) || Util::ValidatePropTagArray(lpPropTagArray) == false)
+	if ((lpPropTagArray != nullptr && lpPropTagArray->cValues == 0) ||
+	    !Util::ValidatePropTagArray(lpPropTagArray))
 		return MAPI_E_INVALID_PARAMETER;
 
 	if (lpPropTagArray == NULL) {

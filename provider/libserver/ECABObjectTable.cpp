@@ -363,7 +363,9 @@ ECRESULT ECABObjectTable::Load()
 	// If the GAB is disabled, don't show any entries except the top-level object
 	auto sesmgr = lpSession->GetSessionManager();
 	auto sec = lpSession->GetSecurity();
-	if (lpODAB->ulABParentId != 0 && parseBool(sesmgr->GetConfig()->GetSetting("enable_gab")) == false && sec->GetAdminLevel() == 0)
+	if (lpODAB->ulABParentId != 0 &&
+	    !parseBool(sesmgr->GetConfig()->GetSetting("enable_gab")) &&
+	    sec->GetAdminLevel() == 0)
 		return erSuccess;
 	auto er = sec->IsUserObjectVisible(lpODAB->ulABParentId);
 	if (er != erSuccess)

@@ -796,8 +796,7 @@ ECRESULT ECKeyTable::QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList
 			lpRowList->emplace_back(lpCurrent->sKey);
 		--ulRows;
         }
-		
-		if(bDirBackward == true && lpCurrent == lpRoot->lpRight)
+		if (bDirBackward && lpCurrent == lpRoot->lpRight)
 			break;
 	
 		if (bDirBackward)

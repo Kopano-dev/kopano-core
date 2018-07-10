@@ -238,7 +238,7 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 		}
 
 		if (!fToFound) {
-			if (!hasRecips && sopt.no_recipients_workaround == false) {
+			if (!hasRecips && !sopt.no_recipients_workaround) {
 				// spooler will exit here, gateway will continue with the workaround
 				ec_log_err("No valid recipients found.");
 				return MAPI_E_NOT_FOUND;
@@ -705,7 +705,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		if (hr != hrSuccess)
 			return kc_perror("Unable to read MDN recipient table", hr);
 		if (pRows->cRows == 0) {
-			if (sopt.no_recipients_workaround == false) {
+			if (!sopt.no_recipients_workaround) {
 				ec_log_err("No MDN recipient found");
 				return MAPI_E_NOT_FOUND;
 			}
@@ -1094,7 +1094,7 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 		// if mailing to a group without email address
 		vmMailboxNew = vmime::make_shared<vmime::mailboxGroup>(getVmimeTextFromWide(strName));
 		return hrSuccess;
-	} else if (sopt.no_recipients_workaround == true) {
+	} else if (sopt.no_recipients_workaround) {
 		// gateway must always return a mailbox object
 		vmMailboxNew = vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail));
 		return hrSuccess;
@@ -1574,7 +1574,8 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 			// ignore error, since we still have enough information to send, maybe not just under the correct name
 			hr = hrSuccess;
 		}
-		if (sopt.no_recipients_workaround == false && strResEmail.empty() && PROP_TYPE(lpProps[0].ulPropTag) != PT_ERROR) {
+		if (!sopt.no_recipients_workaround && strResEmail.empty() &&
+		    PROP_TYPE(lpProps[0].ulPropTag) != PT_ERROR) {
 			m_strError = L"Representing email address is empty";
 			ec_log_err("%ls", m_strError.c_str());
 			return MAPI_E_NOT_FOUND;

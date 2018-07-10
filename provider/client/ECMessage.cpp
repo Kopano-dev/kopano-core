@@ -371,7 +371,7 @@ HRESULT ECMessage::SyncPlainToRtf()
 	StreamPtr ptrBodyStream, ptrCompressedRtfStream, ptrUncompressedRtfStream;
 
 	ULARGE_INTEGER emptySize = {{0,0}};
-	assert(m_bInhibitSync == false);
+	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
 	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
@@ -422,7 +422,7 @@ HRESULT ECMessage::SyncPlainToHtml()
 	StreamPtr ptrBodyStream, ptrHtmlStream;
 
 	ULARGE_INTEGER emptySize = {{0,0}};
-	assert(m_bInhibitSync == false);
+	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
 	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });
@@ -472,7 +472,7 @@ HRESULT ECMessage::SyncRtf()
 
 	ULARGE_INTEGER emptySize = {{0,0}};
 	LARGE_INTEGER moveBegin = {{0,0}};
-	assert(m_bInhibitSync == false);
+	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
 	auto laters = make_scope_success([&]() { m_bInhibitSync = FALSE; });

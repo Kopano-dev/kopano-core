@@ -116,7 +116,7 @@ ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId, unsigned int ulImpers
 	unsigned int ulAdminLevel = m_impersonatorDetails.GetPropInt(OB_PROP_I_ADMINLEVEL);
 	if (ulAdminLevel == 0) {
 		return KCERR_NO_ACCESS;
-	} else if (sesmgr->IsHostedSupported() == true && ulAdminLevel < ADMIN_LEVEL_SYSADMIN) {
+	} else if (sesmgr->IsHostedSupported() && ulAdminLevel < ADMIN_LEVEL_SYSADMIN) {
 		unsigned int ulCompanyID = m_impersonatorDetails.GetPropInt(OB_PROP_I_COMPANYID);
 		if (ulCompanyID != m_ulCompanyID)
 			return KCERR_NO_ACCESS;
@@ -456,7 +456,7 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 		nCheckType = 1;
 		break;
 	case ecSecurityFolderAccess: // 7
-		if (bOwnerFound == false || ulStoreType == ECSTORE_TYPE_ARCHIVE)
+		if (!bOwnerFound || ulStoreType == ECSTORE_TYPE_ARCHIVE)
 			ulACL |= ecRightsFolderAccess;
 		nCheckType = 1;
 		break;

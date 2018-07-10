@@ -124,7 +124,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 		if (lpGroupName == nullptr || lpGroupEntryID == nullptr)
 			return MAPI_E_NOT_FOUND;
 	
-		if (bAllowEveryone == false) {
+		if (!bAllowEveryone) {
 			bool bEveryone = false;
 			
 			if (EntryIdIsEveryone(lpGroupEntryID->Value.bin.cb, (LPENTRYID)lpGroupEntryID->Value.bin.lpb, &bEveryone) == hrSuccess && bEveryone) {

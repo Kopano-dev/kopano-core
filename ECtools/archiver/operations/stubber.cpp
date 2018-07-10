@@ -65,7 +65,6 @@ Stubber::Stubber(ECArchiverLogger *lpLogger, ULONG ulptStubbed, int ulAge, bool 
 
 HRESULT Stubber::ProcessEntry(IMAPIFolder * lpFolder, const SRow &proprow)
 {
-	HRESULT hr;
 	MessagePtr ptrMessage;
 	ULONG ulType = 0;
 
@@ -78,7 +77,7 @@ HRESULT Stubber::ProcessEntry(IMAPIFolder * lpFolder, const SRow &proprow)
 		return MAPI_E_NOT_FOUND;
 	}
 	Logger()->logf(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin).c_str());
-	hr = lpFolder->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IECMessageRaw, MAPI_BEST_ACCESS, &ulType, &~ptrMessage);
+	auto hr = lpFolder->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IECMessageRaw, MAPI_BEST_ACCESS, &ulType, &~ptrMessage);
 	if (hr == MAPI_E_NOT_FOUND) {
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Failed to open message. This can happen if the search folder is lagging.");
 		return hrSuccess;
@@ -90,9 +89,11 @@ HRESULT Stubber::ProcessEntry(IMAPIFolder * lpFolder, const SRow &proprow)
 
 HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 {
-	HRESULT hr;
-	SPropValue sProps[3];
-	SPropValue sProp = {0};
+	assert(lpMessage != nullptr);
+	if (lpMessage == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
+	SPropValue sProps[3], sProp = {0};
 	MAPITablePtr ptrAttTable;
 	SRowSetPtr ptrRowSet;
 	AttachPtr ptrAttach;
@@ -101,11 +102,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	ObjectEntryList lstMsgArchives;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
 
-	assert(lpMessage != NULL);
-	if (lpMessage == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
-	hr = VerifyRestriction(lpMessage);
+	auto hr = VerifyRestriction(lpMessage);
 	if (hr == MAPI_E_NOT_FOUND) {
 		// This is not an error
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Ignoring message because it doesn't match the criteria for begin stubbed.");

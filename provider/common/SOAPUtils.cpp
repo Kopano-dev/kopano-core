@@ -1578,7 +1578,7 @@ ECRESULT FreeEntryId(entryId* lpEntryId, bool bFreeBase)
 	if(lpEntryId == NULL)
 		return erSuccess;
 	s_free(nullptr, lpEntryId->__ptr);
-	if(bFreeBase == true)
+	if (bFreeBase)
 		s_free(nullptr, lpEntryId);
 	else
 		lpEntryId->__size = 0;

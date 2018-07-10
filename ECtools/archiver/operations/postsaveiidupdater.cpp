@@ -29,19 +29,15 @@ TaskBase::TaskBase(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMs
 { }
 
 HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper) {
-	HRESULT hr;
-	SPropValuePtr ptrSourceServerUID;
-	ULONG cbSourceInstanceID = 0;
-	EntryIdPtr ptrSourceInstanceID;
+	SPropValuePtr ptrSourceServerUID, ptrDestServerUID;
+	EntryIdPtr ptrSourceInstanceID, ptrDestInstanceID;
 	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRows;
 	AttachPtr ptrAttach;
-	SPropValuePtr ptrDestServerUID;
-	ULONG cbDestInstanceID = 0;
-	EntryIdPtr ptrDestInstanceID;
+	unsigned int cbSourceInstanceID = 0, cbDestInstanceID = 0;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
 	
-	hr = GetUniqueIDs(m_ptrSourceAttach, &~ptrSourceServerUID, &cbSourceInstanceID, &~ptrSourceInstanceID);
+	auto hr = GetUniqueIDs(m_ptrSourceAttach, &~ptrSourceServerUID, &cbSourceInstanceID, &~ptrSourceInstanceID);
 	if (hr != hrSuccess)
 		return hr;
 	hr = m_ptrDestMsg->GetAttachmentTable(MAPI_DEFERRED_ERRORS, &~ptrTable);
@@ -72,13 +68,12 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper)
 
 HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID)
 {
-	HRESULT hr;
 	SPropValuePtr ptrServerUID;
 	object_ptr<IECSingleInstance> ptrInstance;
 	ULONG cbInstanceID = 0;
 	EntryIdPtr ptrInstanceID;
 
-	hr = HrGetOneProp(lpAttach, PR_EC_SERVER_UID, &~ptrServerUID);
+	auto hr = HrGetOneProp(lpAttach, PR_EC_SERVER_UID, &~ptrServerUID);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpAttach->QueryInterface(iid_of(ptrInstance), &~ptrInstance);
@@ -129,11 +124,10 @@ PostSaveInstanceIdUpdater::PostSaveInstanceIdUpdater(ULONG ulPropTag, const Inst
 
 HRESULT PostSaveInstanceIdUpdater::Execute()
 {
-	HRESULT hr = hrSuccess;
 	bool bFailure = false;
 
 	for (const auto &i : m_lstDeferred) {
-		hr = i->Execute(m_ulPropTag, m_ptrMapper);
+		auto hr = i->Execute(m_ulPropTag, m_ptrMapper);
 		if (hr != hrSuccess)
 			bFailure = true;
 	}

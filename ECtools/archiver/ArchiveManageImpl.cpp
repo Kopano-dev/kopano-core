@@ -149,8 +149,7 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 	MsgStorePtr ptrArchiveStore;
 	tstring strFoldername;
 	abentryid_t sUserEntryId;
-	ArchiverSessionPtr ptrArchiveSession(m_ptrSession);
-	ArchiverSessionPtr ptrRemoteSession;
+	ArchiverSessionPtr ptrArchiveSession(m_ptrSession), ptrRemoteSession;
 
 	// Resolve the requested user.
 	auto hr = m_ptrSession->GetUserInfo(m_strUser, &sUserEntryId, &strFoldername, nullptr);
@@ -197,8 +196,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	SObjectEntry objectEntry;
 	bool bEqual = false;
 	ArchiveType aType = UndefArchive;
-	SPropValuePtr ptrArchiveName;
-	SPropValuePtr ptrArchiveStoreId;
+	SPropValuePtr ptrArchiveName, ptrArchiveStoreId;
 	
 	// Check if we're not trying to attach a store to itself.
 	auto hr = m_ptrSession->CompareStoreIds(m_ptrUserStore, lpArchiveStore, &bEqual);
@@ -330,7 +328,6 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	entryid_t sUserEntryId;
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
-	ObjectEntryList::iterator iArchive;
 	MsgStorePtr ptrArchiveStore;
 	ArchiveHelperPtr ptrArchiveHelper;
 	SPropValuePtr ptrArchiveStoreEntryId;
@@ -375,7 +372,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	}
 
 	// Find an archives on the passed store.
-	iArchive = find_if(lstArchives.begin(), lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin));
+	auto iArchive = find_if(lstArchives.begin(), lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin));
 	if (iArchive == lstArchives.end()) {
 		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "\"" TSTRING_PRINTF "\" has no archive on \"" TSTRING_PRINTF "\"", m_strUser.c_str(), lpszArchive);
 		return MAPIErrorToArchiveError(MAPI_E_NOT_FOUND);
@@ -451,8 +448,6 @@ eResult ArchiveManageImpl::DetachFrom(unsigned int ulArchive)
 {
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
-	ObjectEntryList::iterator iArchive;
-
 	auto hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess) {
 		m_lpLogger->perr("Failed to create store helper", hr);
@@ -465,7 +460,7 @@ eResult ArchiveManageImpl::DetachFrom(unsigned int ulArchive)
 		return MAPIErrorToArchiveError(hr);
 	}
 
-	iArchive = lstArchives.begin();
+	auto iArchive = lstArchives.begin();
 	for (unsigned int i = 0; i < ulArchive && iArchive != lstArchives.end(); ++i, ++iArchive);
 	if (iArchive == lstArchives.end()) {
 		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Archive %u does not exist.", ulArchive);
@@ -670,11 +665,10 @@ eResult ArchiveManageImpl::ListAttachedUsers(std::ostream &ostr)
 
 eResult ArchiveManageImpl::ListAttachedUsers(UserList *lplstUsers)
 {
-	std::list<std::string> lstUsers;
-
-	if (lplstUsers == NULL)
+	if (lplstUsers == nullptr)
 		return MAPIErrorToArchiveError(MAPI_E_INVALID_PARAMETER);
 
+	std::list<std::string> lstUsers;
 	auto hr = GetArchivedUserList(m_ptrSession->GetMAPISession(),
 	          m_ptrSession->GetSSLPath(), m_ptrSession->GetSSLPass(), &lstUsers);
 	if (hr != hrSuccess)
@@ -692,15 +686,14 @@ eResult ArchiveManageImpl::ListAttachedUsers(UserList *lplstUsers)
  */
 eResult ArchiveManageImpl::AutoAttach(unsigned int ulFlags)
 {
+	if (ulFlags != ArchiveManage::Writable &&
+	    ulFlags != ArchiveManage::ReadOnly && ulFlags != 0)
+		return MAPIErrorToArchiveError(MAPI_E_INVALID_PARAMETER);
+
 	HRESULT hr = hrSuccess;
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveManageImpl::AutoAttach(): function entry");
 	ArchiveStateCollectorPtr ptrArchiveStateCollector;
 	ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
-
-	if (ulFlags != ArchiveManage::Writable && ulFlags != ArchiveManage::ReadOnly && ulFlags != 0) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveManageImpl::AutoAttach(): about to create ArchiveStateCollector");
 	hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
@@ -736,15 +729,15 @@ exit:
  */
 HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights)
 {
+	if (lpFolder == nullptr || lpulRights == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+
 	SPropValuePtr ptrName;
 	object_ptr<IExchangeModifyTable> ptrACLModifyTable;
 	MAPITablePtr ptrACLTable;
 	SPropValue sPropUser;
 	SRowSetPtr ptrRows;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_MEMBER_RIGHTS}};
-
-	if (lpFolder == NULL || lpulRights == NULL)
-		return MAPI_E_INVALID_PARAMETER;
 
 	// In an ideal world we would use the user entryid for the restriction.
 	// However, the ACL table is a client side table, which doesn't implement

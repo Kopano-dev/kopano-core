@@ -1022,7 +1022,7 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 			return KCERR_DATABASE_ERROR; /* this should never happen */
 		}
 		auto iResult = lpsetMessages->emplace(SOURCEKEY(lpDBLen[0], lpDBRow[0]), SAuxMessageData(SOURCEKEY(lpDBLen[1], lpDBRow[1]), 1 << (lpDBRow[2] != nullptr ? atoui(lpDBRow[2]) : 0), lpDBRow[3] != nullptr ? atoui(lpDBRow[3]) : 0));
-		if (iResult.second == false && lpDBRow[2] != nullptr)
+		if (!iResult.second && lpDBRow[2] != nullptr)
 			iResult.first->second.ulChangeTypes |= 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0);
 	}
 	return erSuccess;

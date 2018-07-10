@@ -534,7 +534,7 @@ HRESULT Http::HrValidateReq()
 		}
 	}
 
-	if (bFound == false) {
+	if (!bFound) {
 		static const HRESULT hr = MAPI_E_INVALID_PARAMETER;
 		ec_log_err("HTTP request \"%s\" not implemented: %s (%x)", m_strMethod.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;

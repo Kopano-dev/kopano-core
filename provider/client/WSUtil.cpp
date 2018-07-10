@@ -848,8 +848,7 @@ HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc,
 		lpDest->__size = 0;
 		return hrSuccess;
 	}
-
-	if(bCheapCopy == false) {
+	if (!bCheapCopy) {
 		lpDest->__ptr = s_alloc<unsigned char>(nullptr, cbEntryIdSrc);
 		memcpy(lpDest->__ptr, lpEntryIdSrc, cbEntryIdSrc);
 	}else{

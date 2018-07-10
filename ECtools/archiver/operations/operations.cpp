@@ -52,7 +52,11 @@ ArchiveOperationBase::ArchiveOperationBase(ECArchiverLogger *lpLogger, int ulAge
 
 HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestriction)
 {
-	HRESULT hr = hrSuccess;
+	if (lppRestriction == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if (m_ulAge < 0)
+		return MAPI_E_NOT_FOUND;
+
 	ULARGE_INTEGER li;
 	SPropValue sPropRefTime;
 	ECAndRestriction resResult;
@@ -60,11 +64,6 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
 	PROPMAP_INIT(lpMapiProp)
-
-	if (lppRestriction == nullptr)
-		return MAPI_E_INVALID_PARAMETER;
-	if (m_ulAge < 0)
-		return MAPI_E_NOT_FOUND;
 
 	li.LowPart = m_ftCurrent.dwLowDateTime;
 	li.HighPart = m_ftCurrent.dwHighDateTime;
@@ -92,16 +91,13 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 				ECBitMaskRestriction(BMR_NEZ, PROP_FLAGS, m_ulInhibitMask)
 			)
 		);
-	hr = resResult.CreateMAPIRestriction(lppRestriction, ECRestriction::Full);
-	return hr;
+	return resResult.CreateMAPIRestriction(lppRestriction, ECRestriction::Full);
 }
 
 HRESULT ArchiveOperationBase::VerifyRestriction(LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
 	SRestrictionPtr ptrRestriction;
-
-	hr = GetRestriction(lpMessage, &~ptrRestriction);
+	auto hr = GetRestriction(lpMessage, &~ptrRestriction);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -131,7 +127,6 @@ ArchiveOperationBaseEx::ArchiveOperationBaseEx(ECArchiverLogger *lpLogger, int u
 HRESULT ArchiveOperationBaseEx::ProcessEntry(IMAPIFolder *lpFolder,
     const SRow &proprow)
 {
-	HRESULT hr;
 	bool bReloadFolder = false;
 	ULONG ulType = 0;
 
@@ -147,7 +142,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(IMAPIFolder *lpFolder,
 	if (m_ptrCurFolderEntryId != nullptr) {
 		int nResult = 0;
 		// @todo: Create correct locale.
-		hr = Util::CompareProp(m_ptrCurFolderEntryId, lpFolderEntryId, createLocaleFromName(""), &nResult);
+		auto hr = Util::CompareProp(m_ptrCurFolderEntryId, lpFolderEntryId, createLocaleFromName(""), &nResult);
 		if (hr != hrSuccess)
 			return Logger()->perr("Failed to compare current and new entryid", hr);
 		
@@ -166,7 +161,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(IMAPIFolder *lpFolder,
 
 	SPropValuePtr ptrPropValue;
 	Logger()->logf(EC_LOGLEVEL_DEBUG, "Opening folder (%s)", bin2hex(lpFolderEntryId->Value.bin).c_str());
-	hr = lpFolder->OpenEntry(lpFolderEntryId->Value.bin.cb,
+	auto hr = lpFolder->OpenEntry(lpFolderEntryId->Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(lpFolderEntryId->Value.bin.lpb),
 	     &iid_of(m_ptrCurFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors,
 	     &ulType, &~m_ptrCurFolder);

@@ -121,8 +121,7 @@ static ECRESULT ValidateDeleteObject(ECSession *lpSession,
 		if(er != erSuccess)
 			return er;
 	}
-
-	if (sItem.fRoot == true)
+	if (sItem.fRoot)
 		return erSuccess; // Not for a root
 
 	switch(RealObjType(sItem.ulObjType, sItem.ulParentType)) {
@@ -236,7 +235,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			}
 
 			// Loop protection, don't insert duplicates.
-			if (setIDs.emplace(atoui(lpDBRow[0])).second == false)
+			if (!setIDs.emplace(atoui(lpDBRow[0])).second)
 				continue;
 		
 			sItem.ulId = atoui(lpDBRow[0]);
@@ -288,7 +287,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 				continue;
 
 			// Loop protection, don't insert duplicates.
-			if (setIDs.emplace(atoui(lpDBRow[0])).second == false)
+			if (!setIDs.emplace(atoui(lpDBRow[0])).second)
 				continue;
 
 			// Add this object as a node to the end of the list
@@ -529,7 +528,7 @@ static ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase,
 	// Add properties: PR_DELETED_ON
 	GetSystemTimeAsFileTime(&ft);
 	for (const auto &di : lstDeleteItems) {
-		bool k = di.fRoot == true && 
+		bool k = di.fRoot &&
 			((di.ulObjType == MAPI_MESSAGE &&
 			di.ulParentType == MAPI_FOLDER) ||
 			di.ulObjType == MAPI_FOLDER ||

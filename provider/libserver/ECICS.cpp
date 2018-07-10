@@ -289,8 +289,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	 *    occurs on the local server (actually making check 1 superfluous) or when a change is received
 	 *    through z-push.
 	 **/
-	if(ulSyncId == 0 || fForceNewChangeKey == true)
-	{
+	if (ulSyncId == 0 || fForceNewChangeKey) {
 		struct propVal sProp;
 		struct xsd__base64Binary sBin;
 		struct sObjectTableKey key;

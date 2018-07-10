@@ -551,8 +551,7 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 		assert(fbd.cValues <= ulMonths + 1);
 		assert(xmo.cValues <= ulMonths + 1);
 	}
-
-	if(bFound == false)
+	if (!bFound)
 		return MAPI_E_NOT_FOUND;
 	*lppPropFBDataArray = lpPropFBDataArray.release();
 	return hr;

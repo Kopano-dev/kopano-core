@@ -229,9 +229,9 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
         PyErr_Clear();
         return hr;	// Early return
     } else {
-		if (check_call_from_python() == true)
+		if (check_call_from_python()) {
 			throw Swig::DirectorMethodException();	// Let the calling python interpreter handle the exception
-		else {
+		} else {
 			PyErr_Print();
 			PyErr_Clear();
 			return MAPI_E_CALL_FAILED;
