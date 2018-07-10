@@ -1635,6 +1635,8 @@ static void lograw1(IMAPISession *ses, IAddrBook *ab, IMessage *msg,
 	char buf[64];
 	gmtime_safe(time(nullptr), &tm);
 	std::string fname = g_lpConfig->GetSetting("log_raw_message_path");
+	if (CreatePath(fname.c_str()) < 0)
+		ec_log_err("Could not mkdir \"%s\": %s\n", fname.c_str(), strerror(errno));
 	strftime(buf, sizeof(buf), "/SMTP1_%Y%m%d%H%M%S_", &tm);
 	fname += buf;
 	snprintf(buf, sizeof(buf), "%08x.eml", rand_mt());
