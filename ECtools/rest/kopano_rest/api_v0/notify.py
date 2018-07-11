@@ -38,8 +38,9 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 
 SUBSCRIPTIONS = {}
 
-_, PATTERN_MESSAGES = routing.compile_uri_template('/me/mailFolders/{folderid}/messages')
-_, PATTERN_CONTACTS = routing.compile_uri_template('/me/contactFolders/{folderid}/contacts')
+PATTERN_MESSAGES = (routing.compile_uri_template('/me/mailFolders/{folderid}/messages')[1], 'Message')
+PATTERN_CONTACTS = (routing.compile_uri_template('/me/contactFolders/{folderid}/contacts')[1], 'Contact')
+PATTERN_EVENTS = (routing.compile_uri_template('/me/calendars/{folderid}/events')[1], 'Event')
 
 if PROMETHEUS:
     SUBSCR_COUNT = Counter('kopano_mfr_total_subscriptions', 'Total number of subscriptions')
@@ -85,8 +86,8 @@ class Processor(Thread):
             'changeType': event_type,
             'resource': subscription['resource'],
             'resourceData': {
-                '@data.type': '#Microsoft.Graph.Message',
-                'id': obj.entryid,
+                '@data.type': '#Microsoft.Graph.%s' % subscription['_datatype'],
+                'id': obj.eventid if subscription['_datatype'] == 'Event' else obj.entryid,
             }
         }
 
@@ -122,21 +123,26 @@ class Sink:
         QUEUE.put((self.store, notification, self.subscription))
 
 def _subscription_object(store, resource):
-    resource = '/' + resource
-
     # specific mail/contacts folder
-    match = (PATTERN_MESSAGES.match(resource) or \
-             PATTERN_CONTACTS.match(resource))
-    if match:
-        return utils._folder(store, match.groupdict()['folderid']), None
+    for (pattern, datatype) in (PATTERN_MESSAGES, PATTERN_CONTACTS, PATTERN_EVENTS):
+        match = pattern.match('/'+resource)
+        if match:
+            return utils._folder(store, match.groupdict()['folderid']), None, datatype
 
     # all mail
-    elif resource == '/me/messages':
-        return store, 'mail'
+    if resource == 'me/messages':
+        return store.inbox, None, 'Message'
 
     # all contacts
-    elif resource == '/me/contacts':
-        return store, 'contacts'
+    elif resource == 'me/contacts':
+        return store.contacts, None, 'Contact'
+
+    # all events
+    elif resource in ('me/events', 'me/calendar/events'):
+        return store.calendar, None, 'Event'
+
+def _export_subscription(subscription):
+    return dict((a,b) for (a,b) in subscription.items() if not a.startswith('_'))
 
 class SubscriptionResource:
     def __init__(self, options):
@@ -158,12 +164,13 @@ class SubscriptionResource:
         except Exception:
             raise falcon.HTTPBadRequest(None, "Subscription validation request failed.")
 
-        target, folder_types = _subscription_object(store, fields['resource'])
+        target, folder_types, data_type = _subscription_object(store, fields['resource'])
 
         # create subscription
         id_ = str(uuid.uuid4())
         subscription = fields
         subscription['id'] = id_
+        subscription['_datatype'] = data_type
 
         sink = Sink(self.options, store, subscription)
         object_types = ['item'] # TODO folders not supported by graph atm?
@@ -187,12 +194,12 @@ class SubscriptionResource:
 
         if subscriptionid:
             subscription, sink, userid = SUBSCRIPTIONS[subscriptionid]
-            data = subscription
+            data = _export_subscription(subscription)
         else:
             userid = user.userid
             data = {
                 '@odata.context': req.path,
-                'value': [subscription for (subscription, _, uid) in SUBSCRIPTIONS.values() if uid == userid], # TODO doesn't scale
+                'value': [_export_subscription(subscription) for (subscription, _, uid) in SUBSCRIPTIONS.values() if uid == userid], # TODO doesn't scale
             }
 
         resp.content_type = "application/json"
