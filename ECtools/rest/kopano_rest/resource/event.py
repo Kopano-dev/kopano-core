@@ -169,6 +169,8 @@ class EventResource(ItemResource):
         'attendees': lambda item, arg: attendees_set(item, arg),
         'recurrence': recurrence_set,
         'isAllDay': lambda item, arg: setattr(item, 'all_day', arg),
+        'isReminderOn': lambda item, arg: setattr(item, 'reminder', arg),
+        'reminderMinutesBeforeStart': lambda item, arg: setattr(item, 'reminder_minutes', arg),
     }
 
     # TODO delta functionality seems to include expanding recurrences!? check with MSGE

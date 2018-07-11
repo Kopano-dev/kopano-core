@@ -161,10 +161,18 @@ class Appointment(object):
         """Is reminder set."""
         return self.get(PidLidReminderSet, False)
 
+    @reminder.setter
+    def reminder(self, value):
+        self[PidLidReminderSet] = value
+
     @property
     def reminder_minutes(self):
         """Reminder minutes before appointment."""
         return self.get(PidLidReminderDelta)
+
+    @reminder_minutes.setter
+    def reminder_minutes(self, value):
+        self[PidLidReminderDelta] = value
 
     @property
     def rrule(self): # XXX including timezone!
