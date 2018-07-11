@@ -218,7 +218,7 @@ class SubscriptionResource:
         if self.options and self.options.with_metrics:
             SUBSCR_ACTIVE.set(len(SUBSCRIPTIONS))
 
-class NotifyAPIv0(falcon.API):
+class NotifyAPI(falcon.API):
     def __init__(self, options=None, middleware=None):
         super().__init__(media_type=None, middleware=middleware)
         self.options = options
