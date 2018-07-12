@@ -16,7 +16,7 @@ from MAPI.Struct import (
     SPropValue, MAPIErrorNotFound
 )
 from MAPI import (
-    MAPI_MODIFY, KEEP_OPEN_READWRITE, PT_BOOLEAN
+    MAPI_MODIFY, KEEP_OPEN_READWRITE, PT_BOOLEAN, MAPI_CREATE
 )
 
 from .defs import NAMED_PROPS_KC
@@ -36,7 +36,7 @@ class AutoProcess(object):
         fbeid = store.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]
         self._fb = store.mapiobj.OpenEntry(fbeid, None, MAPI_MODIFY)
         self.store = store
-        self._ids = store.mapiobj.GetIDsFromNames(NAMED_PROPS_KC, 0)
+        self._ids = store.mapiobj.GetIDsFromNames(NAMED_PROPS_KC, MAPI_CREATE)
 
     @property
     def enabled(self):

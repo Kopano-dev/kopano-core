@@ -12,7 +12,7 @@ import sys
 from MAPI import (
     MAPI_UNICODE, MAPI_MODIFY, KEEP_OPEN_READWRITE, PT_MV_BINARY,
     RELOP_EQ, TBL_BATCH, ECSTORE_TYPE_PUBLIC, FOLDER_SEARCH,
-    MAPI_ASSOCIATED, MAPI_DEFERRED_ERRORS, ROW_REMOVE,
+    MAPI_ASSOCIATED, MAPI_DEFERRED_ERRORS, ROW_REMOVE, MAPI_CREATE,
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE, PpropFindProp
@@ -519,7 +519,7 @@ class Store(Properties):
     @property
     def archive_store(self):
         """Archive :class:`Store`."""
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
         PROP_STORE_ENTRYIDS = CHANGE_PROP_TYPE(ids[0], PT_MV_BINARY)
 
         try:
@@ -532,7 +532,7 @@ class Store(Properties):
 
     @archive_store.setter
     def archive_store(self, store):
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
         PROP_STORE_ENTRYIDS = CHANGE_PROP_TYPE(ids[0], PT_MV_BINARY)
         PROP_ITEM_ENTRYIDS = CHANGE_PROP_TYPE(ids[1], PT_MV_BINARY)
 
@@ -544,7 +544,7 @@ class Store(Properties):
     @property
     def archive_folder(self):
         """Archive :class:`Folder`."""
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
         PROP_ITEM_ENTRYIDS = CHANGE_PROP_TYPE(ids[1], PT_MV_BINARY)
 
         try:
@@ -739,7 +739,7 @@ class Store(Properties):
         id_ = self._name_id_cache.get(name_tuple)
         if id_ is None:
             named_props = [MAPINAMEID(*name_tuple)]
-            id_ = self.mapiobj.GetIDsFromNames(named_props, 0)[0]
+            id_ = self.mapiobj.GetIDsFromNames(named_props, 0)[0] # TODO use MAPI_CREATE, or too dangerous because of potential db overflow?
             self._name_id_cache[name_tuple] = id_
         return id_
 

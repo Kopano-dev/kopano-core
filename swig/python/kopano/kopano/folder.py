@@ -14,7 +14,7 @@ import icalmapi
 
 from MAPI import (
     MAPI_MODIFY, MAPI_ASSOCIATED, KEEP_OPEN_READWRITE,
-    RELOP_GT, RELOP_LT, RELOP_EQ,
+    RELOP_GT, RELOP_LT, RELOP_EQ, MAPI_CREATE,
     DEL_ASSOCIATED, DEL_FOLDERS, DEL_MESSAGES,
     BOOKMARK_BEGINNING, ROW_REMOVE, MESSAGE_MOVE, FOLDER_MOVE,
     FOLDER_GENERIC, MAPI_UNICODE, FL_SUBSTRING, FL_IGNORECASE,
@@ -380,7 +380,7 @@ class Folder(Properties):
 
             # XXX use shortcuts and default type (database) to avoid MAPI snake wrestling
             NAMED_PROPS = [MAPINAMEID(PSETID_Appointment, MNID_ID, x) for x in (33293, 33294, 33315, 33301, 33333, 33334)]
-            ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS, 0)
+            ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS, MAPI_CREATE)
             startdate = ids[0] | PT_SYSTIME
             enddate = ids[1] | PT_SYSTIME
             recurring = ids[2] | PT_BOOLEAN
@@ -875,7 +875,7 @@ class Folder(Properties):
     def archive_folder(self):
         """ Archive :class:`Folder` """
 
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
         PROP_STORE_ENTRYIDS = CHANGE_PROP_TYPE(ids[0], PT_MV_BINARY)
         PROP_ITEM_ENTRYIDS = CHANGE_PROP_TYPE(ids[1], PT_MV_BINARY)
 
@@ -891,7 +891,7 @@ class Folder(Properties):
 
     @property
     def primary_store(self):
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
         PROP_REF_STORE_ENTRYID = CHANGE_PROP_TYPE(ids[3], PT_BINARY)
         try:
             entryid = HrGetOneProp(self.mapiobj, PROP_REF_STORE_ENTRYID).Value
@@ -902,7 +902,7 @@ class Folder(Properties):
 
     @property
     def primary_folder(self):
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
         PROP_REF_ITEM_ENTRYID = CHANGE_PROP_TYPE(ids[4], PT_BINARY)
         entryid = HrGetOneProp(self.mapiobj, PROP_REF_ITEM_ENTRYID).Value
 
