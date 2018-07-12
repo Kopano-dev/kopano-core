@@ -37,7 +37,7 @@ from MAPI.Struct import (
 )
 
 from MAPI.Tags import (
-    PR_EC_BACKUP_SOURCE_KEY, PR_EC_OUTOFOFFICE,
+    PR_EC_BACKUP_SOURCE_KEY, PR_EC_OUTOFOFFICE, PR_ENTRYID,
     PR_EC_OUTOFOFFICE_SUBJECT, PR_EC_OUTOFOFFICE_MSG, PR_EC_OUTOFOFFICE_FROM,
     PR_EC_OUTOFOFFICE_UNTIL, IID_IExchangeModifyTable, PR_CONTAINER_CLASS_W,
     PR_SOURCE_KEY, PR_ACL_TABLE, PR_STORE_RECORD_KEY, PR_RULES_DATA,
@@ -665,45 +665,68 @@ class Service(kopano.Service):
                 folder.container_class = container_class
 
         # load existing sourcekeys in folder, to check for duplicates
-        existing = set()
+        existing = {}
         table = folder.mapiobj.GetContentsTable(0)
-        table.SetColumns([PR_SOURCE_KEY, PR_EC_BACKUP_SOURCE_KEY], 0)
+        table.SetColumns([PR_SOURCE_KEY, PR_EC_BACKUP_SOURCE_KEY, PR_ENTRYID], 0)
         for row in table.QueryRows(-1, 0):
             if PROP_TYPE(row[1].ulPropTag) != PT_ERROR:
-                existing.add(_hex(row[1].Value))
+                existing[_hex(row[1].Value)] = _hex(row[2].Value)
             else:
-                existing.add(_hex(row[0].Value))
-
-        # load entry from 'index', so we don't have to unpickle everything
-        with closing(dbopen(data_path+'/index')) as db:
-            index = dict((a, pickle_loads(b)) for (a,b) in db.iteritems())
+                existing[_hex(row[0].Value)] = _hex(row[2].Value)
 
         # now dive into 'items', and restore desired items
-        with closing(dbopen(data_path+'/items')) as db:
+        with closing(dbopen(data_path+'/items')) as db_items:
+          with closing(dbopen(data_path+'/index')) as db_index:
+            index = dict((a, pickle_loads(b)) for (a,b) in db_index.iteritems())
+
             # determine sourcekey(s) to restore
-            sourcekeys = db.keys()
+            sourcekeys = db_index.keys()
             if self.options.sourcekeys:
                 sourcekeys = [sk for sk in self.options.sourcekeys if sk.encode('ascii') in sourcekeys]
             elif sys.hexversion >= 0x03000000:
                 sourcekeys = [sk.decode('ascii') for sk in sourcekeys]
 
+            # restore/delete each item
             for sourcekey2 in sourcekeys:
                 sourcekey2a = sourcekey2.encode('ascii')
                 with log_exc(self.log, stats):
-                    # date check against 'index'
-                    last_modified = index[sourcekey2a][b'last_modified']
-                    if ((self.options.period_begin and last_modified < self.options.period_begin) or
-                        (self.options.period_end and last_modified >= self.options.period_end) or
-                        (index[sourcekey2a].get(b'backup_deleted') and self.options.deletes in (None, 'no'))):
+
+                    # differential delete
+                    if index[sourcekey2a].get(b'backup_deleted') and self.options.differential:
+                        if self.options.deletes == 'no':
+                            self.log.warning('skipping deleted item with sourcekey %s', sourcekey2)
+                            continue
+                        if sourcekey2a not in existing:
+                            self.log.warning('item with sourcekey %s already deleted', sourcekey2)
+                            continue
+
+                        # delete item
+                        self.log.debug('deleting item with sourcekey %s', sourcekey2)
+                        item = folder.item(entryid=existing[sourcekey2a])
+                        folder.delete(item)
                         continue
 
-                    # check for duplicates
+                    # regular delete
+                    if(sourcekey2a not in db_items or \
+                       (index[sourcekey2a].get(b'backup_deleted') and self.options.deletes in (None, 'no'))
+                    ):
+                        continue
+
+                    # date range check
+                    last_modified = index[sourcekey2a].get(b'last_modified')
+                    if(last_modified and \
+                       ((self.options.period_begin and last_modified < self.options.period_begin) or \
+                         (self.options.period_end and last_modified >= self.options.period_end))
+                    ):
+                         continue
+
+                    # restore item
                     if sourcekey2a in existing or index[sourcekey2a][b'orig_sourcekey'] in existing:
                         self.log.warning('skipping duplicate item with sourcekey %s', sourcekey2)
                     else:
-                        # actually restore item
                         self.log.debug('restoring item with sourcekey %s', sourcekey2)
-                        item = folder.create_item(loads=zlib.decompress(db[sourcekey2a]), attachments=not self.options.skip_attachments)
+                        data = zlib.decompress(db_items[sourcekey2a])
+                        item = folder.create_item(loads=data, attachments=not self.options.skip_attachments)
 
                         # store original sourcekey or it is lost
                         try:
@@ -956,7 +979,7 @@ def main():
     parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
     parser.add_option('', '--sourcekey', dest='sourcekeys', action='append', help='restore specific sourcekey', metavar='SOURCEKEY')
     parser.add_option('', '--recursive', dest='recursive', action='store_true', help='backup/restore folders recursively')
-    parser.add_option('', '--differential', dest='differential', action='store_true', help='create differential backup')
+    parser.add_option('', '--differential', dest='differential', action='store_true', help='create/restore differential backup')
     parser.add_option('', '--merge', dest='merge', action='store_true', help='merge differential backups')
 
     # parse and check command-line options
