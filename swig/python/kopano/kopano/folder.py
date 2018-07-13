@@ -118,7 +118,10 @@ class Folder(Properties):
             self._mapiobj = mapiobj
             self._entryid = HrGetOneProp(self.mapiobj, PR_ENTRYID).Value
         elif entryid:
-            self._entryid = _bdec(entryid)
+            try:
+                self._entryid = _bdec(entryid)
+            except:
+                raise ArgumentError('invalid entryid: %r' % entryid)
 
         self.content_flag = MAPI_ASSOCIATED if associated else (SHOW_SOFT_DELETES if deleted else 0)
         self._sourcekey = None
@@ -286,7 +289,10 @@ class Folder(Properties):
             eid = _utils._bdec_eid(entryid)
 
         elif sourcekey is not None: # TODO this is horribly slow with nothing cached.. 1 SQL per row!?
-            restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY, SPropValue(PR_SOURCE_KEY, _bdec(sourcekey)))
+            try:
+                restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY, SPropValue(PR_SOURCE_KEY, _bdec(sourcekey)))
+            except:
+                raise ArgumentError("invalid sourcekey: %r" % sourcekey)
             table = self.mapiobj.GetContentsTable(MAPI_DEFERRED_ERRORS)
             table.SetColumns([PR_ENTRYID, PR_SOURCE_KEY], 0)
             table.Restrict(restriction, 0)
@@ -750,7 +756,7 @@ class Folder(Properties):
         for message in mailbox.mbox(location):
             if sys.hexversion >= 0x03000000:
                 _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
-            else:
+            else: # pragma: no cover
                 _item.Item(self, eml=message.as_string(unixfrom=True), create=True)
 
     def mbox(self, location): # FIXME: inconsistent with maildir()
@@ -771,7 +777,7 @@ class Folder(Properties):
         for message in mailbox.MH(location):
             if sys.hexversion >= 0x03000000:
                 _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
-            else:
+            else: # pragma: no cover
                 _item.Item(self, eml=message.as_string(unixfrom=True), create=True)
 
     def read_ics(self, ics):
@@ -825,7 +831,7 @@ class Folder(Properties):
             return NAME_RIGHT.keys()
         parent = self
         feids = set() # avoid loops
-        while parent.entryid not in feids:
+        while parent and parent.entryid not in feids:
             try:
                 return parent.permission(member).rights
             except NotFoundError:
@@ -904,7 +910,10 @@ class Folder(Properties):
     def primary_folder(self):
         ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
         PROP_REF_ITEM_ENTRYID = CHANGE_PROP_TYPE(ids[4], PT_BINARY)
-        entryid = HrGetOneProp(self.mapiobj, PROP_REF_ITEM_ENTRYID).Value
+        try:
+            entryid = HrGetOneProp(self.mapiobj, PROP_REF_ITEM_ENTRYID).Value
+        except MAPIErrorNotFound:
+            return
 
         if self.primary_store:
             try:
