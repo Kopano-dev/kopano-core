@@ -381,7 +381,7 @@ class Property(object):
     @property
     def strid(self):
         if self.named:
-            return u'%s:%s' % (self.namespace, self.name)
+            return u'%s:%s' % (self.namespace or self.guid, self.name)
         else:
             return self.idname or hex(self.proptag)
 
