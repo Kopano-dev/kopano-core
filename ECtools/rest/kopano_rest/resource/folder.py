@@ -1,5 +1,7 @@
 import codecs
 
+import falcon
+
 from ..utils import (
     _server_store, _folder, db_put, db_get
 )
@@ -34,6 +36,7 @@ class FolderResource(Resource):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid)
         store.delete(folder)
+        resp.status = falcon.HTTP_204
 
     def delta(self, req, resp, store): # TODO contactfolders, calendars.. use restriction?
         args = urlparse.parse_qs(req.query_string)

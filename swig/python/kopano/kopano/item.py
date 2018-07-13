@@ -75,8 +75,8 @@ from MAPI.Tags import (
 )
 
 from .pidlid import (
-    PidLidAppointmentStateFlags, PidLidCleanGlobalObjectId,
-    PidLidAppointmentStartWhole, PidLidAppointmentEndWhole
+    PidLidAppointmentStateFlags, PidLidCleanGlobalObjectId, PidLidResponseStatus,
+    PidLidAppointmentStartWhole, PidLidAppointmentEndWhole, PidLidFInvited
 )
 
 from .compat import (
@@ -205,12 +205,14 @@ class Item(Properties, Contact, Appointment):
                 except MAPIErrorNotFound:
                     self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Note')])
                 else:
-                    if container_class == 'IPF.Contact': # XXX just skip first 4 chars?
-                        self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Contact')]) # XXX set default props
+                    if container_class == 'IPF.Contact': # TODO just skip first 4 chars?
+                        self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Contact')]) # TODO set all default props
                     elif container_class == 'IPF.Appointment':
-                        self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')]) # XXX set default props
+                        self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')]) # TODO set all default props!!
                         self.from_ = self.store.user
                         self[PidLidAppointmentStateFlags] = 1
+                        self[PidLidResponseStatus] = 1 # TODO move appt creation to appointment.py
+                        self[PidLidFInvited] = False
             if save:
                 _utils._save(self.mapiobj)
 
@@ -774,14 +776,20 @@ class Item(Properties, Contact, Appointment):
 
         return item
 
-    def send(self, copy_to_sentmail=True, cancel=False):
+    # TODO too many cases overlapping here
+    def send(self, copy_to_sentmail=True, _basedate=None, cal_item=None):
         item = self
-        if self.message_class == 'IPM.Appointment':
+        appt = None
+        if self.message_class in (
+            'IPM.Appointment',
+            'IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}' # exception message
+        ):
             if (self.get(PidLidAppointmentStartWhole) is None or \
                 self.get(PidLidAppointmentEndWhole) is None):
                 raise Error('appointment requires start and end date')
 
-            item = _create_meetingrequest(self, cancel=cancel)
+            appt = cal_item or self
+            item = _create_meetingrequest(appt, self, basedate=_basedate)
 
         icon_index = {
             b'66': 261,  # reply
@@ -802,14 +810,18 @@ class Item(Properties, Contact, Appointment):
         props = []
 
         if copy_to_sentmail:
-            props.append(SPropValue(PR_SENTMAIL_ENTRYID, _bdec(item.folder.store.sentmail.entryid)))
+            props.append(SPropValue(PR_SENTMAIL_ENTRYID, _bdec(item.store.sentmail.entryid)))
         props.append(SPropValue(PR_DELETE_AFTER_SUBMIT, True))
         item.mapiobj.SetProps(props)
+
         try:
             item.mapiobj.SubmitMessage(0)
         except MAPIErrorNoRecipients:
             if self.message_class != 'IPM.Appointment':
                 raise Error('cannot send item without recipients')
+
+        if appt:
+            appt[PidLidFInvited] = True
 
     @property
     def sender(self):

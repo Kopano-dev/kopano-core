@@ -30,8 +30,8 @@ pattern_map_rev = dict((b,a) for (a,b) in pattern_map.items())
 
 range_end_map = {
     'end_date': 'endDate',
-    'occurrence_count': 'numberOfOccurrences',
-    'no_end': 'noEnd',
+    'forever': 'noEnd',
+    'count': 'numbered',
 }
 range_end_map_rev = dict((b,a) for (a,b) in range_end_map.items())
 
@@ -169,6 +169,8 @@ class EventResource(ItemResource):
         'attendees': lambda item, arg: attendees_set(item, arg),
         'recurrence': recurrence_set,
         'isAllDay': lambda item, arg: setattr(item, 'all_day', arg),
+        'isReminderOn': lambda item, arg: setattr(item, 'reminder', arg),
+        'reminderMinutesBeforeStart': lambda item, arg: setattr(item, 'reminder_minutes', arg),
     }
 
     # TODO delta functionality seems to include expanding recurrences!? check with MSGE

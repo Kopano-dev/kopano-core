@@ -285,7 +285,7 @@ class Folder(Properties):
         if entryid is not None:
             eid = _utils._bdec_eid(entryid)
 
-        elif sourcekey is not None:
+        elif sourcekey is not None: # TODO this is horribly slow with nothing cached.. 1 SQL per row!?
             restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY, SPropValue(PR_SOURCE_KEY, _bdec(sourcekey)))
             table = self.mapiobj.GetContentsTable(MAPI_DEFERRED_ERRORS)
             table.SetColumns([PR_ENTRYID, PR_SOURCE_KEY], 0)

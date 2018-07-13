@@ -33,7 +33,7 @@ from MAPI.Tags import (
     PR_SENT_REPRESENTING_SEARCH_KEY, PR_ACCOUNT_W, PR_DISPLAY_TYPE_EX,
     PR_SUBJECT_W, PR_MESSAGE_FLAGS, PR_RESPONSE_REQUESTED,
     recipSendable, recipOrganizer, recipOriginal, respTentative, respAccepted,
-    respDeclined,
+    respDeclined, PR_START_DATE, PR_END_DATE,
 )
 
 from MAPI.Defs import (
@@ -84,10 +84,10 @@ from .pidlid import (
     PidLidAppointmentReplyTime, PidLidRecurring, PidLidIntendedBusyStatus,
     PidLidExceptionReplaceTime, PidLidFInvited, PidLidAppointmentReplyName,
     PidLidRecurrencePattern, PidLidTimeZoneStruct, PidLidTimeZoneDescription,
-    PidLidClipStart, PidLidClipEnd, PidLidToAttendeesString,
-    PidLidCcAttendeesString, PidLidAppointmentProposedStartWhole,
-    PidLidAppointmentProposedEndWhole, PidLidAppointmentProposedDuration,
-    PidLidAppointmentCounterProposal, PidLidSendAsIcal,
+    PidLidToAttendeesString, PidLidCcAttendeesString,
+    PidLidAppointmentProposedStartWhole, PidLidAppointmentProposedEndWhole,
+    PidLidAppointmentProposedDuration, PidLidAppointmentCounterProposal,
+    PidLidSendAsIcal,
 )
 
 # all of the above # TODO redundant
@@ -106,10 +106,10 @@ PROPTAGS = [
     PidLidAppointmentReplyTime, PidLidRecurring, PidLidIntendedBusyStatus,
     PidLidExceptionReplaceTime, PidLidFInvited, PidLidAppointmentReplyName,
     PidLidRecurrencePattern, PidLidTimeZoneStruct, PidLidTimeZoneDescription,
-    PidLidClipStart, PidLidClipEnd, PidLidToAttendeesString,
-    PidLidCcAttendeesString, PidLidAppointmentProposedStartWhole,
-    PidLidAppointmentProposedEndWhole, PidLidAppointmentProposedDuration,
-    PidLidAppointmentCounterProposal, PidLidSendAsIcal,
+    PidLidToAttendeesString, PidLidCcAttendeesString,
+    PidLidAppointmentProposedStartWhole, PidLidAppointmentProposedEndWhole,
+    PidLidAppointmentProposedDuration, PidLidAppointmentCounterProposal,
+    PidLidSendAsIcal,
 ]
 
 RECIP_PROPS = [
@@ -142,7 +142,7 @@ def _organizer_props(cal_item, item):
             break
 
     if not has_organizer:
-        return [
+        orgprops = [
             SPropValue(PR_ENTRYID, item.prop(PR_SENT_REPRESENTING_ENTRYID).value),
             SPropValue(PR_DISPLAY_NAME_W, item.prop(PR_SENT_REPRESENTING_NAME_W).value),
             SPropValue(PR_EMAIL_ADDRESS_W, item.prop(PR_SENT_REPRESENTING_EMAIL_ADDRESS_W).value),
@@ -151,8 +151,11 @@ def _organizer_props(cal_item, item):
             SPropValue(PR_ADDRTYPE_W, item.prop(PR_SENT_REPRESENTING_ADDRTYPE_W).value), # XXX php
             SPropValue(PR_RECIPIENT_TRACKSTATUS, 0),
             SPropValue(PR_RECIPIENT_FLAGS, (recipOrganizer | recipSendable)),
-            SPropValue(PR_SEARCH_KEY, item.prop(PR_SENT_REPRESENTING_SEARCH_KEY).value),
         ]
+        repr_search_key = item.get(PR_SENT_REPRESENTING_SEARCH_KEY) # TODO not in exception message?
+        if repr_search_key:
+            orgprops.append(SPropValue(PR_SEARCH_KEY, repr_search_key))
+        return orgprops
 
 def _copytags(mapiobj):
     copytags = [_prop._name_to_proptag(tag, mapiobj)[0] for tag in PROPTAGS]
@@ -209,29 +212,72 @@ def _generate_goid():
         goid += struct.pack('B', random.getrandbits(8))
     return goid
 
-def _create_meetingrequest(item, cancel=False):
+def _create_meetingrequest(cal_item, item, basedate=None):
     # TODO Update the calendar item, for tracking status
     # TODO Set the body of the message like WebApp / OL does.
     # TODO Whitelist properties?
 
     item2 = item.copy(item.store.outbox)
+    cancel = item.canceled
 
-    # Set meeting request props
-    item2.message_class = 'IPM.Schedule.Meeting.Request'
+    # remove meeting organizer TODO just copy correct ones? or why is the organizer MAPI_TO?
+    table = item2.mapiobj.OpenProperty(PR_MESSAGE_RECIPIENTS, IID_IMAPITable, MAPI_UNICODE, 0)
+    table.SetColumns(RECIP_PROPS, 0)
+    orgs = []
+    for row in table.QueryRows(-1,0):
+        recipient_flags = PpropFindProp(row, PR_RECIPIENT_FLAGS)
+        if recipient_flags and recipient_flags.Value & recipOrganizer:
+            orgs.append(row)
+    item2.mapiobj.ModifyRecipients(MODRECIP_REMOVE, orgs)
+
+    # set meeting request props
+    if cancel:
+        item2.message_class = 'IPM.Schedule.Meeting.Canceled'
+    else:
+        item2.message_class = 'IPM.Schedule.Meeting.Request'
+
     stateflags = ASF_MEETING | ASF_RECEIVED
     if cancel:
         stateflags |= ASF_CANCELED
+        item2.subject = u'Canceled: '+item2.subject
     item2[PidLidAppointmentStateFlags] = stateflags
 
-    goid = item.get(PidLidCleanGlobalObjectId)
-    if goid is None:
-        goid = _generate_goid()
+    # create appointment goid if not there
+    cleangoid = cal_item.get(PidLidCleanGlobalObjectId)
+    if cleangoid is None:
+        cleangoid = _generate_goid()
+        cal_item[PidLidGlobalObjectId] = cleangoid
+        cal_item[PidLidCleanGlobalObjectId] = cleangoid
 
-        item2.create_prop(PidLidCleanGlobalObjectId, goid, PT_BINARY)
-        item2.create_prop(PidLidGlobalObjectId, goid, PT_BINARY) # TODO add basedate
+    # update sequence props
+    sequence = cal_item.get(PidLidAppointmentSequence)
+    if sequence is None:
+        cal_item[PidLidAppointmentSequence] = 0
+        cal_item[PidLidAppointmentLastSequence] = 0
+    else:
+        cal_item[PidLidAppointmentSequence] = sequence+1
+        cal_item[PidLidAppointmentLastSequence] = sequence+1
+    item2[PidLidAppointmentSequence] = cal_item[PidLidAppointmentSequence]
+    item2[PidLidAppointmentLastSequence] = cal_item[PidLidAppointmentLastSequence]
 
-        # update appointment
-        item[PidLidCleanGlobalObjectId] = goid
+    # set item goids
+    item2[PidLidCleanGlobalObjectId] = cleangoid
+    if basedate:
+        datefield = struct.pack('>H2B', basedate.year, basedate.month, basedate.day)
+        goid = cleangoid[:16] + datefield + cleangoid[20:]
+
+        item2[PidLidGlobalObjectId] = goid
+        item2[PidLidRecurring] = False
+
+        # update for non-exception TODO don't overwrite if exception
+        if cancel:
+            item2[PidLidAppointmentStartWhole] = basedate
+            item2[PidLidAppointmentEndWhole] = basedate + (cal_item.end - cal_item.start)
+
+            item2[PR_START_DATE] = basedate
+            item2[PR_END_DATE] = basedate + (cal_item.end - cal_item.start)
+
+            item2[PidLidExceptionReplaceTime] = datetime.datetime(basedate.year, basedate.month, basedate.day)
 
     return item2
 
@@ -254,7 +300,7 @@ class MeetingRequest(object):
         return store.calendar
 
     @property
-    def calendar_item(self):
+    def calendar_item(self): # TODO ambiguous: split in two (match exact GOID or parent recurrence?)
         """ Global calendar item :class:`item <Item>` (possibly in delegator store) """
 
         goid = self.item.get_prop(PidLidCleanGlobalObjectId)
@@ -392,7 +438,7 @@ class MeetingRequest(object):
 
             # otherwise replace calendar item
             else:
-                if cal_item:
+                if cal_item and cal_item[PidLidGlobalObjectId] == self.item[PidLidGlobalObjectId]:
                     calendar.delete(cal_item)
                 cal_item = self.item.copy(calendar)
                 self._init_calitem(cal_item, tentative)
@@ -431,7 +477,9 @@ class MeetingRequest(object):
                 merge = True
                 rec = cal_item.recurrence
                 for item in existing_items:
-                    rec._create_exception(item.meetingrequest.basedate, item, merge=True)
+                    if not rec._is_exception(item.meetingrequest.basedate):
+                        rec._create_exception(item.meetingrequest.basedate, item, merge=True)
+                    # TODO else update..?
 
             calendar.delete(existing_items)
 
@@ -522,7 +570,11 @@ class MeetingRequest(object):
                     message[PR_MESSAGE_FLAGS] = MSGFLAG_UNSENT | MSGFLAG_READ
 
                     _utils._save(message._attobj)
-
+            else:
+                if delete:
+                    self.calendar.delete(cal_item)
+                else:
+                    cal_item.cancel()
         else:
             if delete:
                 self.calendar.delete(cal_item)
@@ -530,7 +582,7 @@ class MeetingRequest(object):
                 self.item.mapiobj.CopyTo([], [], 0, None, IID_IMessage, cal_item.mapiobj, 0)
                 cal_item.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')])
 
-        if cal_item:
+        if cal_item and not delete:
             _utils._save(cal_item.mapiobj)
 
     def process_response(self):

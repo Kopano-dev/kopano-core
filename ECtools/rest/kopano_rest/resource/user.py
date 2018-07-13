@@ -1,10 +1,11 @@
 import codecs
+import datetime
 
 import falcon
 
 from ..utils import _server_store
 from .resource import (
-    DEFAULT_TOP, Resource, urlparse, _start_end, json
+    DEFAULT_TOP, Resource, urlparse, _start_end, json, _date
 )
 from .calendar import CalendarResource
 from .contact import ContactResource
@@ -13,6 +14,7 @@ from .event import EventResource
 from . import group
 from .mailfolder import MailFolderResource
 from .message import MessageResource
+from .reminder import ReminderResource
 
 from MAPI.Util import GetDefaultStore
 import kopano # TODO remove?
@@ -27,7 +29,6 @@ class UserImporter:
 
     def delete(self, user):
         self.deletes.append(user)
-
 
 class DeletedUserResource(Resource):
     fields = {
@@ -124,6 +125,16 @@ class UserResource(Resource):
             start, end = _start_end(req)
             data = (store.calendar.occurrences(start, end), DEFAULT_TOP, 0, 0)
             self.respond(req, resp, data, EventResource.fields)
+
+        elif method == 'reminderView': # TODO multiple calendars?
+            # TODO use restriction in pyko: calendar.reminders(start, end)?
+            start, end = _start_end(req)
+            def yielder(**kwargs):
+                for occ in store.calendar.occurrences(start, end):
+                    if occ.reminder:
+                        yield occ
+            data = self.generator(req, yielder)
+            self.respond(req, resp, data, ReminderResource.fields)
 
         elif method == 'memberOf':
             user = server.user(userid=userid)
