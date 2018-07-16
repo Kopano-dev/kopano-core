@@ -221,8 +221,11 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *rt,
 	    rt->lpProp->lpProp->ulPropTag == PR_INSTANCE_KEY &&
 	    rt->lpProp->lpProp->Value.bin && rt->lpProp->lpProp->Value.bin->__size == sizeof(unsigned int) * 2)
 	{
-		sRowItem.ulObjId = *reinterpret_cast<unsigned int *>(rt->lpProp->lpProp->Value.bin->__ptr);
-		sRowItem.ulOrderId = *reinterpret_cast<unsigned int *>(rt->lpProp->lpProp->Value.bin->__ptr + sizeof(LONG));
+		uint32_t tmp4;
+		memcpy(&tmp4, lpsRestrict->lpProp->lpProp->Value.bin->__ptr, sizeof(tmp4));
+		sRowItem.ulObjId = le32_to_cpu(tmp4);
+		memcpy(&tmp4, lpsRestrict->lpProp->lpProp->Value.bin->__ptr + sizeof(tmp4), sizeof(tmp4));
+		sRowItem.ulOrderId = le32_to_cpu(tmp4);
 		return lpKeyTable->SeekId(&sRowItem);
 	}
 
@@ -1046,10 +1049,11 @@ ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sI
 
 	if (sInstanceKey.__size != sizeof(sObjectTableKey))
 		return KCERR_INVALID_PARAMETER;
-
-    sKey.ulObjId = *((unsigned int *)sInstanceKey.__ptr);
-    sKey.ulOrderId = *((unsigned int *)sInstanceKey.__ptr+1);
-    
+	uint32_t tmp4;
+	memcpy(&tmp4, sInstanceKey.__ptr, sizeof(tmp4));
+	sKey.ulObjId = le32_to_cpu(tmp4);
+	memcpy(&tmp4, sInstanceKey.__ptr + sizeof(tmp4), sizeof(tmp4));
+	sKey.ulOrderId = le32_to_cpu(tmp4);
     iterCategory = m_mapCategories.find(sKey);
 	if (iterCategory == m_mapCategories.cend())
 		return KCERR_NOT_FOUND;
@@ -1109,10 +1113,11 @@ ECRESULT ECGenericObjectTable::CollapseRow(xsd__base64Binary sInstanceKey, unsig
 	ECRESULT er = Populate();
     if(er != erSuccess)
 		return er;
-
-    sKey.ulObjId = *((unsigned int *)sInstanceKey.__ptr);
-    sKey.ulOrderId = *((unsigned int *)sInstanceKey.__ptr+1);
-    
+	uint32_t tmp4;
+	memcpy(&tmp4, sInstanceKey.__ptr, sizeof(tmp4));
+	sKey.ulObjId = le32_to_cpu(tmp4);
+	memcpy(&tmp4, sInstanceKey.__ptr + sizeof(tmp4), sizeof(tmp4));
+	sKey.ulOrderId = le32_to_cpu(tmp4);
     iterCategory = m_mapCategories.find(sKey);
 	if (iterCategory == m_mapCategories.cend())
 		return KCERR_NOT_FOUND;
@@ -1179,8 +1184,11 @@ ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__b
 
     // We also need to save the sort keys for the given bookmark, so that we can return a bookmark when SetCollapseState is called
     if(sBookmark.__size == 8) {
-        sKey.ulObjId = *((unsigned int *)sBookmark.__ptr);
-        sKey.ulOrderId = *((unsigned int *)sBookmark.__ptr+1);
+		uint32_t tmp4;
+		memcpy(&tmp4, sBookmark.__ptr, sizeof(tmp4));
+		sKey.ulObjId = le32_to_cpu(tmp4);
+		memcpy(&tmp4, sBookmark.__ptr + sizeof(tmp4), sizeof(tmp4));
+		sKey.ulOrderId = le32_to_cpu(tmp4);
         
         // Go the the row requested
         if(lpKeyTable->SeekId(&sKey) == erSuccess) {
@@ -2642,6 +2650,7 @@ ECRESULT ECGenericObjectTable::GetPropCategory(struct soap *soap, unsigned int u
 {
     ECRESULT er = erSuccess;
     unsigned int i = 0;
+	uint32_t tmp4;
     
 	auto iterCategories = m_mapCategories.find(sKey);
 	if (iterCategories == m_mapCategories.cend())
@@ -2653,8 +2662,10 @@ ECRESULT ECGenericObjectTable::GetPropCategory(struct soap *soap, unsigned int u
             lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
             lpPropVal->Value.bin->__size = sizeof(unsigned int) * 2;
             lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(unsigned int) * 2);
-            *((unsigned int *)lpPropVal->Value.bin->__ptr) = sKey.ulObjId;
-            *((unsigned int *)lpPropVal->Value.bin->__ptr+1) = sKey.ulOrderId;
+			tmp4 = cpu_to_le32(sKey.ulObjId);
+			memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
+			tmp4 = cpu_to_le32(sKey.ulOrderId);
+			memcpy(lpPropVal->Value.bin->__ptr + sizeof(tmp4), &tmp4, sizeof(tmp4));
             lpPropVal->ulPropTag = PR_INSTANCE_KEY;
             break;
         case PR_ROW_TYPE:

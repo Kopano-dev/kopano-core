@@ -294,8 +294,10 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 				kc_perror("Error loading recurrence state", hr);
 				continue;
 			}
-			if (lpRowSet[i].lpProps[6].ulPropTag == PROP_APPT_TIMEZONESTRUCT)
-				ttzInfo = *reinterpret_cast<TIMEZONE_STRUCT *>(lpRowSet[i].lpProps[6].Value.bin.lpb);
+			if (lpRowSet[i].lpProps[6].ulPropTag == PROP_APPT_TIMEZONESTRUCT) {
+				memcpy(&ttzInfo, lpRowSet[i].lpProps[6].Value.bin.lpb, sizeof(ttzInfo));
+				ttzInfo.le_to_cpu();
+			}
 			if (lpRowSet[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)
 				ulFbStatus = lpRowSet[i].lpProps[2].Value.ul;
 			hr = lpRecurrence.HrGetItems(m_tsStart, m_tsEnd, ttzInfo, ulFbStatus, &+lpOccrInfo, lpcValues);

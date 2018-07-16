@@ -313,4 +313,16 @@ int ec_relocate_fd(int fd)
 	return fd;
 }
 
+void le_to_cpu(SYSTEMTIME &s)
+{
+	s.wYear = le16_to_cpu(s.wYear);
+	s.wMonth = le16_to_cpu(s.wMonth);
+	s.wDayOfWeek = le16_to_cpu(s.wDayOfWeek);
+	s.wDay = le16_to_cpu(s.wDay);
+	s.wHour = le16_to_cpu(s.wHour);
+	s.wMinute = le16_to_cpu(s.wMinute);
+	s.wSecond = le16_to_cpu(s.wSecond);
+	s.wMilliseconds = le16_to_cpu(s.wMilliseconds);
+}
+
 } /* namespace */

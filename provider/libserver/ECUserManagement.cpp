@@ -3613,6 +3613,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 			break;
 
 		case CONTAINER_ADDRESSLIST: {
+			uint32_t tmp4;
 			switch(NormalizePropTag(lpPropTags->__ptr[i])) {
 			case PR_ENTRYID: {
 				er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
@@ -3630,8 +3631,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
 				lpPropVal->Value.bin->__size = sizeof(ABEID);
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-				*(ABEID *)lpPropVal->Value.bin->__ptr = abeid;
+				memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
 				break;
 			}
 			case PR_NORMALIZED_SUBJECT:
@@ -3645,9 +3645,10 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
 				lpPropVal->Value.bin->__size = 2*sizeof(ULONG);
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-				memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
-				memcpy(lpPropVal->Value.bin->__ptr+sizeof(ULONG), &ulOrder, sizeof(ULONG));
+				tmp4 = cpu_to_le32(ulId);
+				memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
+				tmp4 = cpu_to_le32(ulOrder);
+				memcpy(lpPropVal->Value.bin->__ptr + sizeof(tmp4), &tmp4, sizeof(tmp4));
 				break;
 			case PR_OBJECT_TYPE:
 				lpPropVal->Value.ul = MAPI_ABCONT;
@@ -3666,8 +3667,8 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
 				lpPropVal->Value.bin->__size = sizeof(ULONG);
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-				memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
+				tmp4 = cpu_to_le32(ulId);
+				memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
 				break;
 			case PR_AB_PROVIDER_ID:
 				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
@@ -3687,6 +3688,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 		} // end case CONTAINER_ADDRESSLIST
 		
 		case CONTAINER_COMPANY: {
+			uint32_t tmp4;
 			switch (NormalizePropTag(lpPropTags->__ptr[i])) {
 			case PR_CONTAINER_CLASS:
 				lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.Contact");
@@ -3709,8 +3711,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
 				lpPropVal->Value.bin->__size = sizeof(ABEID);
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-				*(ABEID *)lpPropVal->Value.bin->__ptr = abeid;
+				memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
 				break;
 			}
 			case PR_ACCOUNT:
@@ -3729,9 +3730,10 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
 				lpPropVal->Value.bin->__size = 2 * sizeof(ULONG);
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-				memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
-				memcpy(lpPropVal->Value.bin->__ptr + sizeof(ULONG), &ulOrder, sizeof(ULONG));
+				tmp4 = cpu_to_le32(ulId);
+				memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
+				tmp4 = cpu_to_le32(ulOrder);
+				memcpy(lpPropVal->Value.bin->__ptr + sizeof(tmp4), &tmp4, sizeof(tmp4));
 				break;
 			case PR_OBJECT_TYPE:
 				lpPropVal->Value.ul = MAPI_ABCONT;
@@ -3746,8 +3748,8 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
 				lpPropVal->Value.bin->__size = sizeof(ULONG);
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-				memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
+				tmp4 = cpu_to_le32(ulId);
+				memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
 				break;
 			case PR_CONTAINER_FLAGS:
 				lpPropVal->Value.ul = AB_RECIPIENTS | AB_UNMODIFIABLE | AB_UNICODE_OK;
@@ -3825,6 +3827,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 		lpPropVal->ulPropTag = lpPropTagArray->__ptr[i];
 
 		switch (NormalizePropTag(lpPropTagArray->__ptr[i])) {
+		uint32_t tmp4;
 		case PR_SEARCH_KEY:
 			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
@@ -3855,9 +3858,9 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
 			lpPropVal->Value.bin->__size = 2 * sizeof(ULONG);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-			memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
-			memcpy(lpPropVal->Value.bin->__ptr + sizeof(ULONG), &ulId, sizeof(ULONG));
+			tmp4 = cpu_to_le32(ulId);
+			memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
+			memcpy(lpPropVal->Value.bin->__ptr + sizeof(tmp4), &tmp4, sizeof(tmp4));
 			break;
 		case PR_OBJECT_TYPE:
 			lpPropVal->Value.ul = MAPI_ABCONT;
@@ -3944,7 +3947,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
 				lpPropVal->Value.bin->__size = sizeof(ABEID);
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				*reinterpret_cast<ABEID *>(lpPropVal->Value.bin->__ptr) = abeid2;
+				memcpy(lpPropVal->Value.bin->__ptr, &abeid2, sizeof(abeid2));
 			} else { /* Kopano Address Book */
 				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->__ptr[i], PT_ERROR);
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;

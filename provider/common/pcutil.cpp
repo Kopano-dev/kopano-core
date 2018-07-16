@@ -89,13 +89,22 @@ ECRESULT GetObjTypeFromEntryId(ULONG cb, const BYTE *lpEntryId,
 {
 	if (lpEntryId == NULL || lpulObjType == NULL)
 		return KCERR_INVALID_PARAMETER;
-	auto peid = reinterpret_cast<const EID *>(lpEntryId);
-	if(!((cb == sizeof(EID) && peid->ulVersion == 1) ||
-		 (cb == sizeof(EID_V0) && peid->ulVersion == 0 )) )
-		return KCERR_INVALID_ENTRYID;
-
-	*lpulObjType = peid->usType;
-	return erSuccess;
+	if (cb == sizeof(EID)) {
+		EID eid;
+		memcpy(&eid, lpEntryId, sizeof(eid));
+		if (eid.ulVersion != 1)
+			return KCERR_INVALID_ENTRYID;
+		*lpulObjType = eid.usType;
+		return erSuccess;
+	} else if (cb == sizeof(EID_V0)) {
+		EID_V0 eid;
+		memcpy(&eid, lpEntryId, sizeof(eid));
+		if (eid.ulVersion != 0)
+			return KCERR_INVALID_ENTRYID;
+		*lpulObjType = eid.usType;
+		return erSuccess;
+	}
+	return KCERR_INVALID_ENTRYID;
 }
 
 ECRESULT GetObjTypeFromEntryId(const entryId &sEntryId,

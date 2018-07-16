@@ -36,6 +36,17 @@ struct TIMEZONE_STRUCT {
 
 	WORD wDstYear;
 	SYSTEMTIME stDstDate;		/* 3->2, dus 2 in wHour */
+
+	void le_to_cpu()
+	{
+		lBias = le32_to_cpu(lBias);
+		lStdBias = le32_to_cpu(lStdBias);
+		lDstBias = le32_to_cpu(lDstBias);
+		wStdYear = le16_to_cpu(wStdYear);
+		KC::le_to_cpu(stStdDate);
+		wDstYear = le16_to_cpu(wDstYear);
+		KC::le_to_cpu(stDstDate);
+	}
 };
 
 extern _kc_export time_t LocalToUTC(time_t local, const TIMEZONE_STRUCT &);

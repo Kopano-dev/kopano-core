@@ -352,15 +352,19 @@ HRESULT ECTNEF::ExtractProps(ULONG flags, SPropTagArray *lpPropList)
 			}
 		case 0x00050008: /* PR_OWNER_APPT_ID */
 			if(ulSize == 4 && lpBuffer) {
+				uint32_t tmp4;
 				sProp.ulPropTag = PR_OWNER_APPT_ID;
-				sProp.Value.l = *reinterpret_cast<LONG *>(lpBuffer.get());
+				memcpy(&tmp4, lpBuffer.get(), sizeof(tmp4));
+				sProp.Value.l = le32_to_cpu(tmp4);
 				m_lpMessage->SetProps(1, &sProp, NULL);
 			}
 			break;
 		case ATT_REQUEST_RES: /* PR_RESPONSE_REQUESTED */
 			if(ulSize == 2 && lpBuffer) {
+				uint16_t tmp2;
 				sProp.ulPropTag = PR_RESPONSE_REQUESTED;
-				sProp.Value.b = static_cast<bool>(*reinterpret_cast<short *>(lpBuffer.get()));
+				memcpy(&tmp2, lpBuffer.get(), sizeof(tmp2));
+				sProp.Value.b = le16_to_cpu(tmp2);
 				m_lpMessage->SetProps(1, &sProp, NULL);
 			}
 			break;
@@ -809,7 +813,9 @@ HRESULT ECTNEF::HrReadPropStream(const char *lpBuffer, ULONG ulSize,
 {
 	ULONG ulRead = 0;
 	memory_ptr<SPropValue> lpProp;
-	auto ulProps = *reinterpret_cast<const ULONG *>(lpBuffer);
+	uint32_t ulProps;
+	memcpy(&ulProps, lpBuffer, sizeof(ulProps));
+	ulProps = le32_to_cpu(ulProps);
 	lpBuffer += 4;
 	ulSize -= 4;
 
@@ -1552,14 +1558,15 @@ HRESULT ECTNEF::Finish()
  * @retval MAPI_E_NOT_FOUND if stream was too short, other MAPI error code
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrReadDWord(IStream *lpStream, ULONG *ulData)
+HRESULT ECTNEF::HrReadDWord(IStream *lpStream, uint32_t *value)
 {
 	ULONG ulRead = 0;
-	auto hr = lpStream->Read(ulData, sizeof(unsigned int), &ulRead);
+	auto hr = lpStream->Read(value, sizeof(*value), &ulRead);
 	if(hr != hrSuccess)
 		return hr;
-	if (ulRead != sizeof(unsigned int))
+	if (ulRead != sizeof(*value))
 		return MAPI_E_NOT_FOUND;
+	*value = le32_to_cpu(*value);
 	return hrSuccess;
 }
 
@@ -1571,14 +1578,15 @@ HRESULT ECTNEF::HrReadDWord(IStream *lpStream, ULONG *ulData)
  * @retval MAPI_E_NOT_FOUND if stream was too short, other MAPI error code
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrReadWord(IStream *lpStream, unsigned short *ulData)
+HRESULT ECTNEF::HrReadWord(IStream *lpStream, uint16_t *value)
 {
 	ULONG ulRead = 0;
-	auto hr = lpStream->Read(ulData, sizeof(unsigned short), &ulRead);
+	auto hr = lpStream->Read(value, sizeof(*value), &ulRead);
 	if(hr != hrSuccess)
 		return hr;
 	if (ulRead != sizeof(unsigned short))
 		return MAPI_E_NOT_FOUND;
+	*value = le16_to_cpu(*value);
 	return hrSuccess;
 }
 
@@ -1637,10 +1645,11 @@ HRESULT ECTNEF::HrReadData(IStream *lpStream, void *data, size_t ulLen)
  * @retval MAPI_E_NOT_FOUND if stream was not written the same bytes, other MAPI error code
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrWriteDWord(IStream *lpStream, ULONG ulData)
+HRESULT ECTNEF::HrWriteDWord(IStream *lpStream, uint32_t value)
 {
 	ULONG ulWritten = 0;
-	auto hr = lpStream->Write(&ulData, sizeof(unsigned int), &ulWritten);
+	value = cpu_to_le32(value);
+	auto hr = lpStream->Write(&value, sizeof(value), &ulWritten);
 	if(hr != hrSuccess)
 		return hr;
 	if (ulWritten != sizeof(unsigned int))
@@ -1656,10 +1665,11 @@ HRESULT ECTNEF::HrWriteDWord(IStream *lpStream, ULONG ulData)
  * @retval MAPI_E_NOT_FOUND if stream was not written the same bytes, other MAPI error code
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrWriteWord(IStream *lpStream, unsigned short ulData)
+HRESULT ECTNEF::HrWriteWord(IStream *lpStream, uint16_t value)
 {
 	ULONG ulWritten = 0;
-	auto hr = lpStream->Write(&ulData, sizeof(unsigned short), &ulWritten);
+	value = cpu_to_le16(value);
+	auto hr = lpStream->Write(&value, sizeof(value), &ulWritten);
 	if(hr != hrSuccess)
 		return hr;
 	if (ulWritten != sizeof(unsigned short))

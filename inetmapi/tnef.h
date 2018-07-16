@@ -64,12 +64,12 @@ public:
 	virtual HRESULT Finish();
     
 private:
-	HRESULT HrReadDWord(IStream *lpStream, ULONG *ulData);
-	HRESULT HrReadWord(IStream *lpStream, unsigned short *ulData);
+	HRESULT HrReadDWord(IStream *, uint32_t *value);
+	HRESULT HrReadWord(IStream *, uint16_t *value);
 	HRESULT HrReadByte(IStream *lpStream, unsigned char *ulData);
 	HRESULT HrReadData(IStream *, void *, size_t);
-	HRESULT HrWriteDWord(IStream *lpStream, ULONG ulData);
-	HRESULT HrWriteWord(IStream *lpStream, unsigned short ulData);
+	HRESULT HrWriteDWord(IStream *, uint32_t value);
+	HRESULT HrWriteWord(IStream *, uint16_t value);
 	HRESULT HrWriteByte(IStream *lpStream, unsigned char ulData);
 	HRESULT HrWriteData(IStream *, const void *, size_t);
 	HRESULT HrWritePropStream(IStream *lpStream, std::list<memory_ptr<SPropValue>> &proplist);

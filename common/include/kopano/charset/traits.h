@@ -187,7 +187,11 @@ public:
 template<> class iconv_charset<std::u16string> _kc_final {
 public:
 	static const char *name() {
-		return "UTF-16";
+#ifdef KC_BIGENDIAN
+		return "UTF-16BE";
+#else
+		return "UTF-16LE";
+#endif
 	}
 	static const char *rawptr(const std::u16string &from)
 	{
