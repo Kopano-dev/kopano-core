@@ -535,6 +535,8 @@ static void SaveRawMessage(FILE *fp, const char *lpRecipient, DeliveryArgs *lpAr
 		return;
 
 	std::string strFileName = g_lpConfig->GetSetting("log_raw_message_path");
+	if (CreatePath(strFileName.c_str()) < 0)
+		ec_log_err("Could not mkdir \"%s\": %s\n", strFileName.c_str(), strerror(errno));
 	auto rawmsg = g_lpConfig->GetSetting("log_raw_message");
 	bool y = parseBool(rawmsg);
 	if (!y)
@@ -3431,7 +3433,7 @@ int main(int argc, char *argv[]) {
 		{ "spam_header_name", "X-Spam-Status" },
 		{ "spam_header_value", "Yes," },
 		{ "log_raw_message", "error", CONFIGSETTING_RELOADABLE },
-		{ "log_raw_message_path", "/tmp", CONFIGSETTING_RELOADABLE },
+		{"log_raw_message_path", "/var/lib/kopano", CONFIGSETTING_RELOADABLE},
 		{ "archive_on_delivery", "no", CONFIGSETTING_RELOADABLE },
 		{ "mr_autoaccepter", "/usr/sbin/kopano-mr-accept", CONFIGSETTING_RELOADABLE },
 		{ "mr_autoprocessor", "/usr/sbin/kopano-mr-process", CONFIGSETTING_RELOADABLE },
