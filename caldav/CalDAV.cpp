@@ -352,8 +352,8 @@ exit:
 static HRESULT ical_listen(ECConfig *cfg)
 {
 	/* Modern directives */
-	auto ical_sock  = tokenize(cfg->GetSetting("ical_listen"), ' ', true);
-	auto icals_sock = tokenize(cfg->GetSetting("icals_listen"), ' ', true);
+	auto ical_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("ical_listen"), ' ', true));
+	auto icals_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("icals_listen"), ' ', true));
 	/* Historic directives */
 	auto addr = cfg->GetSetting("server_bind");
 	auto cvar = cfg->GetSetting("ical_enable");
@@ -364,9 +364,9 @@ static HRESULT ical_listen(ECConfig *cfg)
 		/* "yes" := "read extra historic variable" */
 		auto port = cfg->GetSetting("ical_port");
 		if (port[0] != '\0')
-			ical_sock.push_back("["s + addr + "]:" + port);
+			ical_sock.emplace("["s + addr + "]:" + port);
 	} else if (ical_sock.empty()) {
-		ical_sock.push_back("*:8080");
+		ical_sock.emplace("*:8080");
 	}
 	cvar = cfg->GetSetting("icals_enable");
 	if (!parseBool(cvar)) {
@@ -374,7 +374,7 @@ static HRESULT ical_listen(ECConfig *cfg)
 	} else if (strcmp(cvar, "yes") == 0) {
 		auto port = cfg->GetSetting("icals_port");
 		if (port[0] != '\0')
-			icals_sock.push_back("["s + addr + "]:" + port);
+			icals_sock.emplace("["s + addr + "]:" + port);
 	}
 	if (!icals_sock.empty()) {
 		auto hr = ECChannel::HrSetCtx(g_lpConfig.get());

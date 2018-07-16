@@ -150,9 +150,10 @@ std::vector<T> tokenize(const T &str, const T &delimiters)
  * a vector already, do not bother with the conversion to set if @v has few
  * elements.
  */
-template<typename T> std::set<T> vector_to_set(std::vector<T> &&v)
+template<typename T, typename C = std::less<T>> std::set<T, C>
+vector_to_set(std::vector<T> &&v)
 {
-	return std::set<T>(std::make_move_iterator(v.begin()), std::make_move_iterator(v.end()));
+	return std::set<T, C>(std::make_move_iterator(v.begin()), std::make_move_iterator(v.end()));
 }
 
 template<typename T>
