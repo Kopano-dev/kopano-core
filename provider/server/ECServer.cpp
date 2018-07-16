@@ -732,7 +732,7 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 	}
 	cvar = cfg->GetSetting("server_ssl_enabled");
 	if (!parseBool(cvar)) {
-		http_sock.clear();
+		https_sock.clear();
 	} else if (strcmp(cvar, "yes") == 0) {
 		uint16_t port = strtoul(cfg->GetSetting("server_ssl_port"), nullptr, 10);
 		if (port != 0)
