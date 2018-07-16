@@ -541,18 +541,23 @@ class Service(kopano.Service):
                     self.log.debug('purging folder')
                     shutil.rmtree(fpath)
                     stats['folders'] += 1
+
             else: # check all items for deletion
                 with closing(dbopen(fpath+'/items')) as db_items:
                     with closing(dbopen(fpath+'/index')) as db_index:
+                        delete_items = []
                         for item, idx in db_index.items():
                             d = pickle_loads(idx)
                             backup_deleted = d.get(b'backup_deleted')
                             if backup_deleted and (self.timestamp - backup_deleted).days >= self.options.purge:
-                                self.log.debug('purging item: %s', item)
-                                stats['items'] += 1
-                                if item in db_items:
-                                    del db_items[item]
-                                del db_index[item]
+                                delete_items.append(item)
+
+                        for item in delete_items:
+                            stats['items'] += 1
+                            self.log.debug('purging item: %s', item)
+                            del db_index[item]
+                            if item in db_items:
+                                del db_items[item]
 
         self.log.info('purged %d folders and %d items', stats['folders'], stats['items'])
 
