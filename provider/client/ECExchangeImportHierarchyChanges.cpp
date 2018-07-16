@@ -199,7 +199,6 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 	const SBinary *lpOrigSourceKey = NULL;
 
 	std::string strChangeList;
-	bool bConflict = false;
 
 	if (lpPropParentSourceKey == nullptr || lpPropSourceKey == nullptr ||
 	    lpPropDisplayName == nullptr)
@@ -327,7 +326,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 			if(ulSize <= sizeof(GUID)){
 				break;
 			}else if(lpPropVal->Value.bin.cb > sizeof(GUID) && memcmp(strChangeList.substr(ulPos+1, ulSize).c_str(), lpPropVal->Value.bin.lpb, sizeof(GUID)) == 0){
-				bConflict = !(ulSize == lpPropVal->Value.bin.cb && memcmp(strChangeList.substr(ulPos+1, ulSize).c_str(), lpPropVal->Value.bin.lpb, ulSize) == 0);
+				/* bConflict = !(ulSize == lpPropVal->Value.bin.cb && memcmp(strChangeList.substr(ulPos + 1, ulSize).c_str(), lpPropVal->Value.bin.lpb, ulSize) == 0); */
 				break;
 			}
 			ulPos += ulSize + 1;

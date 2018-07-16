@@ -3164,7 +3164,6 @@ HRESULT VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vmMess
     IMessage *lpMessage)
 {
 	KPropbuffer<1> sEnvelope;
-	HRESULT hr = hrSuccess;
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(ENVELOPE, PT_STRING8, PS_EC_IMAP, dispidIMAPEnvelope);
 	PROPMAP_INIT(lpMessage);

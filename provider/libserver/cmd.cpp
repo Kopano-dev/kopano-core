@@ -2803,9 +2803,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
     std::map<unsigned int, CHILDPROPS> *lpChildProps)
 {
 	ECRESULT 		er = erSuccess;
-	ULONG			ulInstanceTag = 0;
 	struct saveObject sSavedObject;
-	GUID			sGuidServer;
 	ChildPropsMap mapChildProps;
 	ChildPropsMap::const_iterator iterProps;
 	USE_DATABASE();

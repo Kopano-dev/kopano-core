@@ -1270,14 +1270,9 @@ exit:
 		delete [] lpData;
 
 	if (gzfp)
-	{
 		gzclose(gzfp);
-		fd = -1;
-	}
-
-	if (fd != -1)
+	else if (fd >= 0)
 		close(fd);
-
 	return er;
 }
 
