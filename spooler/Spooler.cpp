@@ -886,7 +886,7 @@ int main(int argc, char *argv[]) {
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/spooler.pid" },
-		{"running_path", "/var/lib/kopano/empty"},
+		{"running_path", "/var/lib/kopano/empty", CONFIGSETTING_OBSOLETE},
 		{"coredump_enabled", "systemdefault"},
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},
 		{"log_file", ""},
