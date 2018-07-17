@@ -45,7 +45,7 @@ start() {
 	# Start in background, always succeeds
 	echo -n $"Starting $presence: "
 	install -dm0775 -o kopano -g kopano /var/run/kopano
-	daemon $PRESENCEPROGRAM $PRESENCECONFIG_OPT >/dev/null 2>&1
+	daemon --pidfile="$pidfile" $PRESENCEPROGRAM $PRESENCECONFIG_OPT >/dev/null 2>&1
 	RETVAL=$?
 	unset LC_ALL LANG
 	echo

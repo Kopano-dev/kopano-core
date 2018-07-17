@@ -45,7 +45,7 @@ start() {
 	# Start in background, always succeeds
 	echo -n $"Starting $search: "
 	install -dm0775 -o kopano -g kopano /var/run/kopano
-	daemon $SEARCHPROGRAM $SEARCHCONFIG_OPT >/dev/null 2>&1
+	daemon --pidfile="$pidfile" $SEARCHPROGRAM $SEARCHCONFIG_OPT >/dev/null 2>&1
 	RETVAL=$?
 	unset LC_ALL LANG
 	echo

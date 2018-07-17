@@ -8,17 +8,17 @@ cc_SCRIPTS = 00createpublic
 
 replcmd = ${AM_V_GEN}${SED} -e 's|[@]pkglibexecdir@|${pkglibexecdir}|g' -e 's|[@]uscriptlibdir@|${uscriptlibdir}|g' -e 's|[@]uscriptconfdir@|${uscriptconfdir}|g' <"$<" >"$@"
 
-createcompany: createcompany.in
+createcompany: createcompany.in ${top_builddir}/config.status
 	${replcmd}
-deletecompany: deletecompany.in
+deletecompany: deletecompany.in ${top_builddir}/config.status
 	${replcmd}
-creategroup: creategroup.in
+creategroup: creategroup.in ${top_builddir}/config.status
 	${replcmd}
-deletegroup: deletegroup.in
+deletegroup: deletegroup.in ${top_builddir}/config.status
 	${replcmd}
-createuser: createuser.in
+createuser: createuser.in ${top_builddir}/config.status
 	${replcmd}
-deleteuser: deleteuser.in
+deleteuser: deleteuser.in ${top_builddir}/config.status
 	${replcmd}
 
 install-data-hook:

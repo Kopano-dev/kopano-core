@@ -45,7 +45,7 @@ start() {
 	# Start in background, always succeeds
 	echo -n $"Starting $spooler: "
 	install -dm0775 -o kopano -g kopano /var/run/kopano
-	daemon $SPOOLERPROGRAM $SPOOLERCONFIG_OPT
+	daemon --pidfile="$pidfile" $SPOOLERPROGRAM $SPOOLERCONFIG_OPT
 	RETVAL=$?
 	unset LC_ALL LANG
 	echo
@@ -56,7 +56,7 @@ start() {
 
 stop() {
 	echo -n $"Stopping $spooler: "
-	killproc $SPOOLERPROGRAM
+	killproc -p "$pidfile" $SPOOLERPROGRAM
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && rm -f $lockfile $pidfile
@@ -71,7 +71,7 @@ restart() {
 
 reload() {
 	echo -n $"Restarting $spooler: "
-	killproc $SPOOLERPROGRAM -SIGHUP
+	killproc -p "$pidfile" $SPOOLERPROGRAM -SIGHUP
 	RETVAL=$?
 	echo
 
