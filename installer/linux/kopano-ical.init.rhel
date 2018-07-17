@@ -45,7 +45,7 @@ start() {
 	# Start in background, always succeeds
 	echo -n $"Starting $ical: "
 	install -dm0775 -o kopano -g kopano /var/run/kopano
-	daemon $ICALPROGRAM $ICALCONFIG_OPT
+	daemon --pidfile="$pidfile" $ICALPROGRAM $ICALCONFIG_OPT
 	RETVAL=$?
 	unset LC_ALL LANG
 	echo
@@ -56,7 +56,7 @@ start() {
 
 stop() {
 	echo -n $"Stopping $ical: "
-	killproc $ICALPROGRAM
+	killproc -p "$pidfile" $ICALPROGRAM
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && rm -f $lockfile $pidfile
@@ -71,7 +71,7 @@ restart() {
 
 reload() {
 	echo -n $"Restarting $ical: "
-	killproc $ICALPROGRAM -SIGHUP
+	killproc -p "$pidfile" $ICALPROGRAM -SIGHUP
 	RETVAL=$?
 	echo
 

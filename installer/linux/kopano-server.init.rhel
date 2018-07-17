@@ -46,7 +46,7 @@ start() {
 	# Start in background, always succeeds
 	echo -n $"Starting $server: "
 	install -dm0775 -o kopano -g kopano /var/run/kopano
-	daemon $SERVERPROGRAM $SERVERCONFIG_OPT
+	daemon --pidfile="$pidfile" $SERVERPROGRAM $SERVERCONFIG_OPT
 	RETVAL=$?
 	unset LC_ALL LANG
 	echo
@@ -111,7 +111,7 @@ restart() {
 
 reload() {
 	echo -n $"Restarting $server: "
-	killproc $SERVERPROGRAM -SIGHUP
+	killproc -p "$pidfile" $SERVERPROGRAM -SIGHUP
 	RETVAL=$?
 	echo
 

@@ -49,7 +49,7 @@ start() {
 	if [ -f /opt/rh/rh-php56/enable ]; then
 		. /opt/rh/rh-php56/enable
 	fi
-	daemon $DAGENTPROGRAM $DAGENTCONFIG_OPT
+	daemon --pidfile="$pidfile" $DAGENTPROGRAM $DAGENTCONFIG_OPT
 	RETVAL=$?
 	unset LC_ALL LANG
 	echo
@@ -60,7 +60,7 @@ start() {
 
 stop() {
 	echo -n $"Stopping $dagent: "
-	killproc $DAGENTPROGRAM
+	killproc -p "$pidfile" $DAGENTPROGRAM
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && rm -f $lockfile $pidfile
@@ -91,7 +91,7 @@ case "$1" in
 		stop
 		;;
     status)
-		status $dagent
+		status -p "$pidfile" $dagent
 		RETVAL=$?
 		;;
     restart|force-reload)
