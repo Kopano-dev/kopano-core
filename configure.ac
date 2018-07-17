@@ -174,8 +174,6 @@ AC_ARG_WITH(userscript-prefix,
   AS_HELP_STRING([--with-userscript-prefix=PATH], [path to install the userscripts in (default SYSCONFDIR/kopano/userscripts)]),
   [USERSCRIPTDIR=${withval}],[USERSCRIPTDIR='/etc/kopano/userscripts'])
 AC_SUBST(USERSCRIPTDIR)
-AS_IF([echo "$USERSCRIPTDIR" | grep -q '\$'],
-	[AC_MSG_ERROR([Variable expansion unfortunately not supported for --with-userscript-prefix])])
 
 # quota warning templates location
 AC_ARG_WITH(quotatemplate-prefix,
@@ -213,8 +211,6 @@ AC_ARG_WITH([tmpfilesdir],
 		AS_IF([test -z "$tmpfilesdir"], [tmpfilesdir='${prefix}/lib/tmpfiles.d'])
 	])
 AC_SUBST([tmpfilesdir])
-PKGLIBEXECDIR="$libexecdir/kopano"
-AC_SUBST([PKGLIBEXECDIR])
 
 dnl Not all files will be installed to ${prefix}, so we need to cheat a bit
 dnl to make "distcheck" succeed.
@@ -729,17 +725,11 @@ AC_CONFIG_FILES([Makefile
 		installer/Makefile
 		installer/linux/Makefile
 		installer/userscripts/Makefile
-		installer/userscripts/createcompany
 		installer/userscripts/createcompany.d/Makefile
-		installer/userscripts/creategroup
 		installer/userscripts/creategroup.d/Makefile
-		installer/userscripts/createuser
 		installer/userscripts/createuser.d/Makefile
-		installer/userscripts/deletecompany
 		installer/userscripts/deletecompany.d/Makefile
-		installer/userscripts/deletegroup
 		installer/userscripts/deletegroup.d/Makefile
-		installer/userscripts/deleteuser
 		installer/userscripts/deleteuser.d/Makefile
 		installer/quotamail/Makefile
 		installer/searchscripts/Makefile
