@@ -1,4 +1,14 @@
-8.6.3 (2018-06-06)
+8.6.4 (2018-07-17)
+==================
+Fixes:
+* build: fix expansion of @PKGLIBEXECDIR@ [KC-1217]
+* backup: fix differential deletes [KC-1207]
+* installer: use pidfile in all cases for RH6 init script
+* backup: don't delete while looping
+* common: kopano_dcgettext_wide needs additional UTF-8 hint [KC-1196]
+
+
+8.6.3 (2018-07-06)
 ==================
 Fixes:
 * ical: hopefully cure uncaught exception on OpenBSD
