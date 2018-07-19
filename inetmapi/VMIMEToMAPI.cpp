@@ -42,8 +42,6 @@
 #include <vmime/contentDispositionField.hpp>
 
 #include <libxml/HTMLparser.h>
-
-// mapi
 #include <mapi.h>
 #include <mapix.h>
 #include <mapiutil.h>
@@ -61,13 +59,9 @@
 #include <kopano/charset/convert.h>
 #include <kopano/stringutil.h>
 #include <kopano/mapi_ptr.h>
-
-// inetmapi
 #include "ECMapiUtils.h"
 #include "ECVMIMEUtils.h"
 #include "inputStreamMAPIAdapter.h"
-
-// vcal support
 #include "ICalToMAPI.h"
 #include "config.h"
 

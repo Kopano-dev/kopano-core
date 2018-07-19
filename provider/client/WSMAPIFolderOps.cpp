@@ -22,8 +22,6 @@
 
 #include "Mem.h"
 #include <kopano/ECGuid.h>
-
-// Utils
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 

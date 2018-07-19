@@ -23,15 +23,11 @@
 #include <utility>
 #include <vector>
 #include <kopano/MAPIErrors.h>
-
-// vmime
 #include <vmime/vmime.hpp>
 #include <vmime/platforms/posix/posixHandler.hpp>
 #include <vmime/contentTypeField.hpp>
 #include <vmime/parsedMessageAttachment.hpp>
 #include <vmime/emptyContentHandler.hpp>
-
-// mapi
 #include <kopano/memory.hpp>
 #include <kopano/tie.hpp>
 #include <mapi.h>
@@ -41,8 +37,6 @@
 #include <kopano/mapiguidext.h>
 #include <kopano/mapi_ptr.h>
 #include "tnef.h"
-
-// inetmapi
 #include "ECMapiUtils.h"
 #include "MAPIToVMIME.h"
 #include "VMIMEToMAPI.h"
@@ -59,8 +53,6 @@
 #include <kopano/ecversion.h>
 #include "ECVMIMEUtils.h"
 #include "SMIMEMessage.h"
-
-// icalmapi
 #include "MAPIToICal.h"
 
 using std::min;

@@ -24,14 +24,10 @@
 #include <fstream>
 #include <iostream>
 #include <cstdlib>
-
-// vmime
 #include <vmime/vmime.hpp>
 #include <vmime/textPartFactory.hpp>
 #include "mapiTextPart.h"
 #include <vmime/platforms/posix/posixHandler.hpp>
-
-// mapi
 #include <mapix.h>
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
@@ -39,7 +35,6 @@
 #include <edkmdb.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/charset/convert.h>
-// inetmapi
 #include <inetmapi/inetmapi.h>
 #include "VMIMEToMAPI.h"
 #include "MAPIToVMIME.h"

@@ -29,7 +29,6 @@
 #include <kopano/kcodes.h>
 #include <kopano/Util.h>
 #include "WSStoreTableView.h"
-//#include "WSTableOutGoingQueue.h"
 #include "WSMAPIFolderOps.h"
 #include "WSMAPIPropStorage.h"
 #include "ECParentStorage.h"

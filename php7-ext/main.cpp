@@ -103,10 +103,6 @@
  *
  */
 
-/***************************************************************
-* PHP Includes
-***************************************************************/
-
 // we need to include this in c++ space because php.h also includes it in
 // 'extern "C"'-space which doesn't work in win32
 #include <cmath>
@@ -188,10 +184,6 @@ ZEND_END_ARG_INFO()
 // files referencing MAPI....
 #undef inline
 
-/***************************************************************
-* MAPI Includes
-***************************************************************/
-
 #include <mapi.h>
 #include <mapix.h>
 #include <mapiutil.h>
@@ -225,11 +217,7 @@ ZEND_END_ARG_INFO()
 #include <mapiguid.h>
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
-
-//Freebusy includes
 #include "ECFreeBusySupport.h"
-
-// at last, the php-plugin extension headers
 #include "main.h"
 #include "typeconversion.h"
 #include "MAPINotifSink.h"

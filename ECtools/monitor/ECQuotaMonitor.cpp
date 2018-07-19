@@ -22,16 +22,12 @@
 #include <utility>
 #include <vector>
 #include <kopano/memory.hpp>
-
-// Mapi includes
 #include <mapi.h>
 #include <mapix.h>
 #include <mapiutil.h>
 #include <mapidefs.h>
 #include <edkguid.h>
 #include <edkmdb.h>
-
-// Kopano includes
 #include <kopano/ECDefs.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/ECABEntryID.h>
@@ -46,8 +42,6 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
 #include <kopano/mapiext.h>
-
-// Other
 #include "ECMonitorDefs.h"
 #include "ECQuotaMonitor.h"
 

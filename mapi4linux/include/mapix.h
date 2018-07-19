@@ -23,15 +23,11 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <string>
-
-/* Include common MAPI header files if they haven't been already. */
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapiguid.h>
 #include <mapitags.h>
 
-
-/* Forward interface declarations */
 class IProfAdmin;
 class IMsgServiceAdmin;
 class IMAPISession;

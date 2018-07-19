@@ -30,8 +30,6 @@
 #include "ProviderUtil.h"
 #include "soapH.h"
 #include "pcutil.hpp"
-
-// The header files we use for communication with the server
 #include <kopano/kcodes.h>
 #include "soapKCmdProxy.h"
 #include "KCmd.nsmap"

@@ -44,10 +44,6 @@ extern "C" {
 // files referencing MAPI....
 #undef inline
 
-/***************************************************************
-* MAPI Includes
-***************************************************************/
-
 #include <mapi.h>
 #include <mapix.h>
 #include <mapiutil.h>

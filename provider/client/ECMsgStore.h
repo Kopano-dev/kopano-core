@@ -23,8 +23,6 @@
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapispi.h>
-
-//NOTE: windows in $TOP/common/windows, linux in $TOP/mapi4linux/include
 #include <edkmdb.h>
 
 #include <kopano/ECUnknown.h>
