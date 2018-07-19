@@ -37,6 +37,7 @@ from MAPI.Defs import PROP_TYPE
 from .errors import ArgumentError
 from .restriction import Restriction
 from .defs import PSETID_Address, PS_PUBLIC_STRINGS
+from .compat import fake_unicode as _unicode
 
 from .parse import (
     ParserInput, Parser, Char, CharSet, ZeroOrMore, OneOrMore, Sequence,
@@ -518,6 +519,7 @@ def test():
 _PARSER = _build_parser()
 
 def _query_to_restriction(query, type_, store):
+    query = _unicode(query)
     try:
         ast = _PARSER.parse(ParserInput(query)).value
         return Restriction(ast.restriction(type_, store))
