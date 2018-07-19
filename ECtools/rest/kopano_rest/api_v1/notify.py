@@ -21,6 +21,7 @@ except ImportError:
     PROMETHEUS = False
 
 from MAPI import MAPI_MESSAGE # TODO avoid MAPI
+
 import kopano
 kopano.set_bin_encoding('base64')
 
