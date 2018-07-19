@@ -21,6 +21,9 @@ except ImportError:
     PROMETHEUS = False
 
 from MAPI import MAPI_MESSAGE # TODO avoid MAPI
+from MAPI.Struct import (
+    MAPIErrorNetworkError, MAPIErrorEndOfSession
+)
 
 import kopano
 kopano.set_bin_encoding('base64')
@@ -33,7 +36,7 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 # TODO don't block on sending updates
 # TODO async subscription validation
 # TODO restarting app/server?
-# TODO expiration?
+# TODO subscription expiration?
 # TODO avoid globals (threading)
 # TODO list subscription scalability
 
@@ -48,18 +51,23 @@ if PROMETHEUS:
     SUBSCR_ACTIVE = Gauge('kopano_mfr_active_subscriptions', 'Number of active subscriptions', multiprocess_mode='livesum')
     POST_COUNT = Counter('kopano_mfr_total_webhook_posts', 'Total number of webhook posts')
 
-def _server(auth_user, auth_pass, oidc=False):
+def _server(auth_user, auth_pass, oidc=False, reconnect=False):
     # return global connection, using credentials from first user to
     # authenticate, and use it for all notifications
     global SERVER
+
     try: # TODO thread lock?
         SERVER
     except NameError:
+        reconnect=True
+
+    if reconnect:
         SERVER = kopano.Server(auth_user=auth_user, auth_pass=auth_pass,
             notifications=True, parse_args=False, oidc=oidc)
+
     return SERVER
 
-def _user(req, options):
+def _user(req, options, reconnect=False):
     auth = utils._auth(req, options)
 
     if auth['method'] == 'bearer':
@@ -71,8 +79,13 @@ def _user(req, options):
     elif auth['method'] == 'passthrough':
         username = utils._username(auth['userid'])
         server = _server(username, '')
-    return server.user(username)
-
+    try:
+        return server.user(username)
+    except (MAPIErrorNetworkError, MAPIErrorEndOfSession): # server restart: try to reconnect TODO check kc_session_restore (incl. notifs!)
+        if not reconnect:
+            return _user(req, options, reconnect=True)
+        else:
+            raise
 
 class Processor(Thread):
     def __init__(self, options):
