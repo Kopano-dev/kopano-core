@@ -26,19 +26,9 @@ namespace KC {
 
 static int unix_runpath(ECConfig *conf)
 {
-	const char *path = conf->GetSetting("running_path");
-	int ret = 0;
-
-	if (path != NULL) {
-		ret = chdir(path);
-		if (ret != 0)
-			ec_log_err("Unable to run in given path \"%s\": %s", path, strerror(errno));
-	}
-	if (path == NULL || ret != 0) {
-		ret = chdir("/");
-		if (ret != 0)
-			ec_log_err("chdir /: %s", strerror(errno));
-	}
+	auto ret = chdir("/");
+	if (ret != 0)
+		ec_log_err("chdir /: %s", strerror(errno));
 	return ret;
 }
 
