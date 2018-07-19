@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <algorithm>
 #include <exception>
@@ -40,7 +39,6 @@
 #include <vmime/platforms/posix/posixHandler.hpp>
 #include <vmime/contentTypeField.hpp>
 #include <vmime/contentDispositionField.hpp>
-
 #include <libxml/HTMLparser.h>
 #include <mapi.h>
 #include <mapix.h>
@@ -48,7 +46,6 @@
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
 #include <edkmdb.h>
-
 #include <kopano/EMSAbTag.h>
 #include "tnef.h"
 #include <kopano/codepage.h>

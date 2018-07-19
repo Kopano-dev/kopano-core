@@ -29,13 +29,11 @@
 #include <kopano/stringutil.h>
 #include <kopano/scope.hpp>
 #include "soapH.h"
-
 #include "ECDatabase.h"
 #include "ECDatabaseFactory.h"
 #include "ECDatabaseUpdate.h"
 #include "ECDatabaseUtils.h"
 #include <kopano/ECLogger.h>
-
 #include <kopano/ECConfig.h>
 #include "ECPluginFactory.h"
 #include "ECNotificationManager.h"
@@ -52,10 +50,8 @@
 #include <kopano/my_getopt.h>
 #include <kopano/tie.hpp>
 #include "cmd.hpp"
-
 #include "ECServerEntrypoint.h"
 #include "SSLUtil.h"
-
 #include "ECSoapServerConnection.h"
 #include <libintl.h>
 #include <map>
@@ -64,7 +60,6 @@
 #include "fileutil.h"
 #include "ECICS.h"
 #include <openssl/ssl.h>
-
 #ifdef HAVE_KCOIDC_H
 #include <kcoidc.h>
 #endif

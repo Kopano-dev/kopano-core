@@ -14,12 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapiguid.h>
-
 #include <kopano/ECUnknown.h>
 #include <kopano/ECGuid.h>
 

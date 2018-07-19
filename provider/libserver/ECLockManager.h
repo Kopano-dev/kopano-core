@@ -20,7 +20,6 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
-
 #include <map>
 #include <memory>
 #include <pthread.h>

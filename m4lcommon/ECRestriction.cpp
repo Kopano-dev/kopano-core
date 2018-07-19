@@ -14,13 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <utility>
 #include <kopano/ECRestriction.h>
 #include <kopano/Util.h>
 #include <kopano/mapi_ptr.h>
-
 #include <mapicode.h>
 #include <mapix.h>
 

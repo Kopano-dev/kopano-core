@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
@@ -32,12 +31,9 @@
 #include <kopano/stringutil.h>
 #include <kopano/tie.hpp>
 #include <kopano/Util.h>
-
 #include "ECMemStream.h"
 #include <kopano/mapiguidext.h>
-
 #include "rtf.h"
-
 #include <kopano/charset/convstring.h>
 
 using namespace KC;

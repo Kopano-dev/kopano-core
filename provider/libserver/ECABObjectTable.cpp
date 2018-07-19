@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <list>
 #include <memory>
@@ -22,17 +21,14 @@
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
 #include <kopano/tie.hpp>
-
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
-
 #include <kopano/EMSAbTag.h>
 #include <kopano/Util.h>
 #include "SOAPUtils.h"
 #include "ECABObjectTable.h"
 #include "ECSecurity.h"
-
 #include "ECSession.h"
 #include "ECSessionManager.h"
 #include <kopano/stringutil.h>

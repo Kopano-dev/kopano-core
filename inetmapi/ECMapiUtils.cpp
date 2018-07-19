@@ -14,13 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <pthread.h>
 #include <mapix.h>
 #include <ctime>
 #include <iostream>
-
 #include "ECMapiUtils.h"
 
 namespace KC {

@@ -24,7 +24,6 @@
 #include <kopano/kcodes.h>
 #include <kopano/pcuser.hpp>
 #include <kopano/ustringutil.h>
-
 #include <list>
 #include <string>
 

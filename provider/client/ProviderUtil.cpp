@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <utility>
 #include <kopano/ECGetText.h>
@@ -22,13 +21,10 @@
 #include <mapi.h>
 #include <mapiutil.h>
 #include <mapispi.h>
-
 #include "ClientUtil.h"
 #include "Mem.h"
 #include <kopano/stringutil.h>
-
 #include <kopano/ECGuid.h>
-
 #include "ECABProvider.h"
 #include "ECMSProvider.h"
 #include "ECMsgStore.h"
@@ -37,7 +33,6 @@
 #include <kopano/charset/convstring.h>
 #include "EntryPoint.h"
 #include "ProviderUtil.h"
-
 #include <kopano/charset/convert.h>
 
 using namespace KC;

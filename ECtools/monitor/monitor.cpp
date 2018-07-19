@@ -24,20 +24,16 @@
 #include <cstdlib>
 #include <iostream>
 #include <csignal>
-
 #include <mapi.h>
 #include <mapix.h>
 #include <mapiutil.h>
 #include <mapidefs.h>
-
 #include <mapiguid.h>
-
 #include <kopano/ECScheduler.h>
 #include <kopano/automapi.hpp>
 #include <kopano/my_getopt.h>
 #include "ECMonitorDefs.h"
 #include "ECQuotaMonitor.h"
-
 #include <kopano/CommonUtil.h>
 #include <kopano/UnixUtil.h>
 #include <kopano/ecversion.h>

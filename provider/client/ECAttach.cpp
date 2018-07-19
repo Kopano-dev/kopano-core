@@ -20,9 +20,7 @@
 #include <mapiguid.h>
 #include <mapicode.h>
 #include <mapiutil.h>
-
 #include "ECAttach.h"
-
 #include <kopano/ECGuid.h>
 
 using namespace KC;

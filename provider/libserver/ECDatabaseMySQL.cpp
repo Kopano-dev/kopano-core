@@ -16,14 +16,12 @@
  */
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-
 #include <iostream>
 #include <list>
 #include <string>
 #include <errmsg.h>
 #include "mysqld_error.h"
 #include <kopano/stringutil.h>
-
 #include <kopano/ECDefs.h>
 #include "ECDBDef.h"
 #include "ECUserManagement.h"
@@ -31,14 +29,11 @@
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/kcodes.h>
-
 #include <kopano/ecversion.h>
-
 #include <mapidefs.h>
 #include "ECDatabase.h"
 #include "SOAPUtils.h"
 #include "ECSearchFolders.h"
-
 #include "ECDatabaseUpdate.h"
 #include "ECStatsCollector.h"
 

@@ -14,14 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <initguid.h>
 
 /*
  * All the IID_* symbols are created here
  */
-
 #define USES_IID_IMSProvider
 #define USES_IID_IXPProvider
 #define USES_IID_IABProvider

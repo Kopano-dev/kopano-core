@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
@@ -24,23 +23,17 @@
 #include <mapiguid.h>
 #include <mapiutil.h>
 #include "kcore.hpp"
-
 #include <kopano/ECGuid.h>
 #include <kopano/ECDefs.h>
-
 #include "ECMsgStore.h"
 #include "ECMAPIProp.h"
-
 #include "ECMemStream.h"
-
 #include "Mem.h"
 #include <kopano/Util.h>
 #include <kopano/mapiext.h>
-
 #include <kopano/CommonUtil.h>
 #include <kopano/mapi_ptr.h>
 #include "pcutil.hpp"
-
 #include <sstream>
 
 using namespace KC;

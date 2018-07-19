@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <exception>
@@ -29,9 +28,7 @@
 #include <set>
 #include <map>
 #include <cstring>
-
 #include <edkmdb.h>
-
 #include <kopano/Util.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/memory.hpp>
@@ -43,10 +40,8 @@
 #include <kopano/codepage.h>
 #include "rtfutil.h"
 #include <kopano/mapiext.h>
-
 #include <kopano/ustringutil.h>
 #include <kopano/mapi_ptr.h>
-
 #include "HtmlToTextParser.h"
 #include <kopano/ECLogger.h>
 #include "HtmlEntity.h"

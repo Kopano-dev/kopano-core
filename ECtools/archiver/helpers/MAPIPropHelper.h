@@ -21,11 +21,8 @@
 #include <memory>
 #include <kopano/zcdefs.h>
 #include <mapix.h>
-
 #include <kopano/mapi_ptr.h>
-
 #include <kopano/CommonUtil.h>
-
 #include <kopano/archiver-common.h>
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 

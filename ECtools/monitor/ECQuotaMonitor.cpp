@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <iterator>
 #include <memory>
@@ -44,9 +43,9 @@
 #include <kopano/mapiext.h>
 #include "ECMonitorDefs.h"
 #include "ECQuotaMonitor.h"
-
 #include <set>
 #include <string>
+
 using namespace KC;
 using std::set;
 using std::string;

@@ -27,7 +27,6 @@
  * an advise sink which is called when a table change is detected.
  * This advise sink unblocks the main (waiting) thread.
  */
-
 #include <kopano/platform.h>
 #include <chrono>
 #include <condition_variable>

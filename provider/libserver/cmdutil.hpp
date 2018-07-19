@@ -23,7 +23,6 @@
 #include <utility>
 #include "ECICS.h"
 #include "SOAPUtils.h"
-
 #include <map>
 #include <set>
 #include <list>

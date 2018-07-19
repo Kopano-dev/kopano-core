@@ -52,7 +52,6 @@
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
-
 #include <iostream>
 #include <algorithm>
 #include <map>
@@ -87,10 +86,9 @@
 #define USES_IID_IMAPIFolder
 #define USES_IID_IExchangeManageStore
 #define USES_IID_IMsgStore
+
 #include <kopano/ECGuid.h>
-
 #include <inetmapi/inetmapi.h>
-
 #include <mapi.h>
 #include <mapix.h>
 #include <mapiutil.h>
@@ -100,10 +98,8 @@
 #include <edkguid.h>
 #include <edkmdb.h>
 #include <kopano/EMSAbTag.h>
-
 #include <cctype>
 #include <ctime>
-
 #include <kopano/stringutil.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>

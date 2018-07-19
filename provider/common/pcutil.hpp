@@ -25,7 +25,6 @@
 #include <kopano/ECDefs.h>
 #include "SOAPUtils.h"
 #include <mapidefs.h>
-
 #include <string>
 
 namespace KC {

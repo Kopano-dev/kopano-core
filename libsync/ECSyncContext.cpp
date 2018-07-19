@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/zcdefs.h>
 #include <memory>
 #include <mutex>
@@ -37,7 +36,6 @@
 #include <mapiutil.h>
 #include <edkguid.h>
 #include <edkmdb.h>
-
 #include <kopano/mapi_ptr.h>
 
 using namespace KC;

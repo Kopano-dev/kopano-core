@@ -14,16 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <string>
 #include <utility>
 #include <mapitags.h>
 #include <mapidefs.h>
 #include <mapiutil.h>
-
 #include <libintl.h>
-
 #include "ECMAPI.h"
 #include <kopano/stringutil.h>
 #include "SOAPUtils.h"

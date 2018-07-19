@@ -14,10 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include "plugin.h"
-
 #include <openssl/des.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>

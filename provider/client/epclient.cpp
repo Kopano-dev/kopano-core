@@ -14,44 +14,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
-
 #include <cstdint>
 #include <mapi.h>
 #include <mapispi.h>
 #include <mapiutil.h>
-
 #include <kopano/ECGetText.h>
 #include <kopano/memory.hpp>
 #include <memory>
 #include <string>
 #include <utility>
 #include <cassert>
-
 #include "kcore.hpp"
 #include "Mem.h"
-
 #include "ECMSProvider.h"
 #include "ECABProvider.h"
 #include <iostream>
 #include <kopano/ecversion.h>
 #include <kopano/stringutil.h>
-
 #include <kopano/ECLogger.h>
-
 #include <kopano/ECGuid.h>
 #include <kopano/MAPIErrors.h>
 #include <edkmdb.h>
 #include <edkguid.h>
-
 #include <kopano/mapi_ptr.h>
-
 #include "SSLUtil.h"
 #include "ClientUtil.h"
-
 #include "EntryPoint.h"
-
 #include <kopano/charset/convstring.h>
 
 using namespace KC;

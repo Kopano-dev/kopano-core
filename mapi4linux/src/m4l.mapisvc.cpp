@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <memory>
 #include <string>
@@ -22,7 +21,6 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <kopano/stringutil.h>
-
 #include "m4l.mapisvc.h"
 #include <mapix.h>
 #include <mapidefs.h>
@@ -30,7 +28,6 @@
 #include <mapitags.h>
 #include <mapiutil.h>
 #include <kopano/Util.h>
-
 #include <iostream>
 #include <arpa/inet.h>
 #include <climits>

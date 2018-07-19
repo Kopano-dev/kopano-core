@@ -14,9 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include "phpconfig.h"
-
 #include <kopano/platform.h>
 #include <kopano/ecversion.h>
 #include <algorithm>
@@ -27,7 +25,6 @@
 #include <cstdlib>
 #include <syslog.h>
 #include <ctime>
-
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/mapi_ptr.h>
@@ -119,7 +116,6 @@ extern "C" {
 	#include "php.h"
    	#include "php_globals.h"
    	#include "php_ini.h"
-
    	#include "zend_exceptions.h"
 	#include "ext/standard/info.h"
 	#include "ext/standard/php_string.h"
@@ -193,17 +189,14 @@ ZEND_END_ARG_INFO()
 #define USES_IID_IECExportChanges
 
 #include <string>
-
 #include "util.h"
 #include "rtfutil.h"
 #include <kopano/CommonUtil.h>
-
 #include "ECImportContentsChangesProxy.h"
 #include "ECImportHierarchyChangesProxy.h"
 #include "ECMemStream.h"
 #include <inetmapi/inetmapi.h>
 #include <inetmapi/options.h>
-
 #include <edkmdb.h>
 #include <mapiguid.h>
 #include <kopano/ECGuid.h>
@@ -212,7 +205,6 @@ ZEND_END_ARG_INFO()
 #include "main.h"
 #include "typeconversion.h"
 #include "MAPINotifSink.h"
-
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
 #include "charset/localeutil.h"

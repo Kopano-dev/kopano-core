@@ -14,16 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
-
 #include <mapi.h>
 #include <mapidefs.h>
 #include <mapix.h>
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
-
 #include "valarm.h"
 #include "recurrence.h"
 #include <kopano/namedprops.h>

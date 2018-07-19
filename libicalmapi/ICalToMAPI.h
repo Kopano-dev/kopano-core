@@ -22,7 +22,6 @@
 #include <mapidefs.h>
 #include <string>
 #include <list>
-
 #include "icalitem.h"
 
 #define IC2M_NO_RECIPIENTS	0x0001

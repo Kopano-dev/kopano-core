@@ -29,7 +29,6 @@
 #include <map>
 #include <mutex>
 #include <set>
-
 #include <kopano/ECKeyTable.h>
 #include "ECNotification.h"
 #include <kopano/kcodes.h>

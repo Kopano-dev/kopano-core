@@ -41,15 +41,12 @@
  * actual amount of rows requested per query (also O(n)).
  *
  */
-
 #include "soapH.h"
 #include <kopano/kcodes.h>
-
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <edkmdb.h>
 #include <kopano/mapiext.h>
-
 #include "kcore.hpp"
 #include "ECDatabaseUtils.h"
 #include <kopano/ECKeyTable.h>
@@ -66,9 +63,7 @@
 #include <kopano/charset/utf8string.h>
 #include <kopano/charset/convert.h>
 #include "ECSessionManager.h"
-
 #include "ECSession.h"
-
 #include <map>
 
 namespace KC {

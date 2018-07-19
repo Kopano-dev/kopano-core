@@ -25,7 +25,6 @@
 #include "ECMAPIProp.h"
 #include "Mem.h"
 
-
 class ECMsgStore;
 
 class ECAttach : public ECMAPIProp, public IAttach {

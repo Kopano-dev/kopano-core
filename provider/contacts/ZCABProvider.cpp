@@ -14,16 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <new>
 #include "ZCABProvider.h"
 #include "ZCABLogon.h"
-
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapiguid.h>
-
 #include <kopano/ECGuid.h>
 #include <kopano/memory.hpp>
 

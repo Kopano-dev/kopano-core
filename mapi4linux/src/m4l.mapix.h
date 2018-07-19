@@ -29,7 +29,6 @@
 #include <string>
 #include <list>
 #include <map>
-
 #include <kopano/ECConfig.h>
 #include <kopano/memory.hpp>
 

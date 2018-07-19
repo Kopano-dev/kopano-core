@@ -14,9 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
-
 #include <iostream>
 #include <iterator>
 #include <string>
@@ -29,7 +27,6 @@
 #include <mapix.h>
 #include <kopano/namedprops.h>
 #include <kopano/charset/convert.h>
-
 #include <kopano/RecurrenceState.h>
 #include "fsck.h"
 

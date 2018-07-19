@@ -23,10 +23,8 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include "IECPropStorage.h"
-
 #include <kopano/kcodes.h>
 #include "WSTransport.h"
-
 #include <mapi.h>
 #include <mapispi.h>
 

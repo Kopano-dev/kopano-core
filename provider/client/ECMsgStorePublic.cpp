@@ -20,19 +20,15 @@
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ECMsgStorePublic.h"
-
 #include "ECMAPIFolder.h"
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>
 #include "ClientUtil.h"
 #include "pcutil.hpp"
 #include <kopano/ECGetText.h>
-
 #include <kopano/mapiext.h>
 #include <mapiutil.h>
-
 #include "ECMAPIFolderPublic.h"
-
 #include <kopano/ECGuid.h>
 
 using namespace KC;

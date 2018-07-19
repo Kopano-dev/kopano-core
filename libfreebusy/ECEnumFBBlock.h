@@ -32,7 +32,6 @@
 #include <kopano/ECGuid.h>
 #include <kopano/Util.h>
 #include "freebusyguid.h"
-
 #include "ECFBBlockList.h"
 
 namespace KC {

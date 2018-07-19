@@ -21,7 +21,6 @@
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
 #include <string>
-
 #include <unicode/coll.h>
 #include <unicode/sortkey.h>
 #include <unicode/unistr.h>

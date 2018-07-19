@@ -23,18 +23,14 @@
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include "Mem.h"
-
 #include <kopano/mapiext.h>
 #include "ECMAPIProp.h" /* static row getprop functions */
 #include "ECMAPIFolder.h"
 #include "ECMessage.h"
-
 #include "ECMailUser.h"
 #include "ECABContainer.h"
-
 #include "SOAPUtils.h"
 #include <kopano/CommonUtil.h>
-
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
 #include "EntryPoint.h"

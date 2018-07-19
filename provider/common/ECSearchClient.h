@@ -22,10 +22,8 @@
 #include <map>
 #include <set>
 #include <string>
-
 #include <soapH.h>
 #include <kopano/kcodes.h>
-
 #include "ECChannelClient.h"
 
 namespace KC {

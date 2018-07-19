@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <list>
 #include <memory>
@@ -25,15 +24,12 @@
 #include "kcore.hpp"
 #include <mapidefs.h>
 #include <edkmdb.h>
-
 #include <kopano/stringutil.h>
 #include "ECSessionManager.h"
 #include "ECSecurity.h"
-
 #include "ics.h"
 #include "cmdutil.hpp"
 #include "ECStoreObjectTable.h"
-
 #include <kopano/ECGuid.h>
 #include "ECICS.h"
 #include "ECICSHelpers.h"

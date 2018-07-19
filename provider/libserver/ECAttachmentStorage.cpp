@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <new>
 #include <stdexcept>
@@ -23,18 +22,13 @@
 #include <climits>
 #include <mapidefs.h>
 #include <cerrno>
-
 #include <algorithm>
 #include <fcntl.h>
-
 #include <zlib.h>
-
 #include <ECSerializer.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
-	#include <unistd.h>
-
+#include <unistd.h>
 #include "ECAttachmentStorage.h"
 #include "SOAPUtils.h"
 #include <kopano/ECLogger.h>

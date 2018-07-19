@@ -25,7 +25,6 @@
 #include <string>
 #include "ics_client.hpp"
 #include "ECMAPIProp.h"
-
 #include <kopano/ECLogger.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/IECInterfaces.hpp>

@@ -14,12 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include "ECACL.h"
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
-
 #include <sstream>
 #include <algorithm>
 

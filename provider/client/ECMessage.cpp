@@ -28,21 +28,17 @@
 #include <mapiutil.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
-
 #include "ECMessage.h"
 #include "ECAttach.h"
 #include <kopano/ECMemTable.h>
-
 #include <kopano/codepage.h>
 #include "rtfutil.h"
 #include <kopano/Util.h>
 #include "Mem.h"
 #include <kopano/mapi_ptr.h>
-
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
 #include "WSUtil.h"
-
 #include "ClientUtil.h"
 #include "ECMemStream.h"
 #include <kopano/charset/convert.h>

@@ -14,15 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
-
 #include <algorithm>
-
 #include <mapicode.h>
 #include <mapidefs.h>
 #include <mapiguid.h>
-
 #include "IStreamAdapter.h"
 
 namespace KC {

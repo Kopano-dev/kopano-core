@@ -18,14 +18,12 @@
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ECFreeBusySupport.h"
-
 #include "ECFreeBusyUpdate.h"
 #include "ECFreeBusyData.h"
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
 #include <kopano/ECLogger.h>
 #include <mapiutil.h>
-
 #include "freebusyutil.h"
 #include <kopano/mapi_ptr.h>
 

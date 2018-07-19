@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <memory>
 #include <string>
@@ -32,19 +31,18 @@
 #include <mapicode.h>
 #include <mapidefs.h>
 #include <mapiutil.h>
-
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>
 #include <kopano/ECTags.h>
 #include <inetmapi/inetmapi.h>
 #include <kopano/mapiext.h>
-
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include <kopano/ecversion.h>
 #include <kopano/charset/utf8string.h>
 #include <kopano/ECFeatures.hpp>
 #include "POP3.h"
+
 using namespace KC;
 using std::string;
 

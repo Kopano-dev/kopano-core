@@ -9,16 +9,12 @@
 #include "freebusyguid.h"
 #include "ECFreeBusySupport.h"
 #include "PublishFreeBusy.h"
-
 #include "libfreebusy_conv.h"
-
 %}
 
 %include "std_string.i"
 %include "cstring.i"
 %include <kopano/typemap.i>
-
-
 
 // ICLASS (Class instances of MAPI objects)
 

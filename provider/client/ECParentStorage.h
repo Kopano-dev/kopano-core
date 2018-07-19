@@ -21,16 +21,13 @@
 /* This PropStorate class writes the data to the parent object, so this is only used in attachments and msg-in-msg objects
    It reads from the saved data in the parent
 */
-
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
 #include "IECPropStorage.h"
-
 #include "ECGenericProp.h"
 #include "WSMAPIPropStorage.h"
-
 #include <kopano/kcodes.h>
 #include <mapi.h>
 #include <mapispi.h>

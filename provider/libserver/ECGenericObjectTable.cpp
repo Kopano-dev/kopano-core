@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <list>
 #include <memory>
@@ -43,21 +42,16 @@
  * actual amount of rows requested per query (also O(n)).
  *
  */
-
 #include "soapH.h"
 #include <kopano/kcodes.h>
-
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
-
 #include <sys/types.h>
 #if 1 /* change to HAVE_REGEX_H */
 #include <regex.h>
 #endif
-
 #include <iostream>
-
 #include "kcore.hpp"
 #include "pcutil.hpp"
 #include "ECSecurity.h"
@@ -68,7 +62,6 @@
 #include "SOAPUtils.h"
 #include <kopano/stringutil.h>
 #include "ECSessionManager.h"
-       
 #include "ECSession.h"
 
 namespace KC {

@@ -14,14 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <sys/un.h>
 #include <sys/socket.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECDefs.h>
 #include <kopano/stringutil.h>
-
 #include "ECSearchClient.h"
 
 namespace KC {

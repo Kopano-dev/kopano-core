@@ -27,7 +27,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
-
 #include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
 

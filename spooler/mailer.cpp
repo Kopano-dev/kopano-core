@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <memory>
 #include <sstream>
@@ -22,7 +21,6 @@
 #include <utility>
 #include "mailer.h"
 #include "archive.h"
-
 #include <mapitags.h>
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
@@ -31,7 +29,6 @@
 #include <mapidefs.h>
 #include <mapix.h>
 #include <mapi.h>
-
 #include <kopano/ECLogger.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/ECConfig.h>
@@ -48,12 +45,9 @@
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECABEntryID.h>
 #include <kopano/ECGetText.h>
-
 #include <kopano/charset/convert.h>
 #include <kopano/charset/convstring.h>
-
 #include "PyMapiPlugin.h"
-
 #include <list>
 #include <algorithm>
 #include "fileutil.h"

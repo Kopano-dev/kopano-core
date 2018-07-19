@@ -23,7 +23,6 @@
 #include "icalitem.h"
 #include <kopano/RecurrenceState.h>
 #include <kopano/charset/convert.h>
-
 #include <mapidefs.h>
 #include <libical/ical.h>
 

@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <string>
 #include <cstring>
@@ -23,7 +22,6 @@
 #include <edkmdb.h>
 #include <kopano/ECGuid.h>
 #include "kcore.hpp"
-
 #include "SOAPUtils.h"
 #include "SOAPAlloc.h"
 #include <kopano/stringutil.h>

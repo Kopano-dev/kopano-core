@@ -22,7 +22,6 @@
 #include <kopano/Util.h>
 #include "ECGenericObjectTable.h"
 #include "ECSession.h"
-
 #include <string>
 #include <list>
 #include <map>

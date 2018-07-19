@@ -19,7 +19,6 @@
 #include <kopano/memory.hpp>
 #include "ECFreeBusyUpdate.h"
 #include "freebusytags.h"
-
 #include "freebusyutil.h"
 
 namespace KC {

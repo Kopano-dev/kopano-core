@@ -20,29 +20,21 @@
 #include <string>
 #include <utility>
 #include <kopano/platform.h>
-
 #include "ECDatabase.h"
 #include "ECDatabaseUpdate.h"
-
 #include <kopano/stringutil.h>
-
 #include <kopano/ECDefs.h>
 #include "ECDBDef.h"
 #include "ECUserManagement.h"
-
 #include <kopano/ecversion.h>
-
 #include <mapidefs.h>
 #include <mapitags.h>
 #include "SOAPUtils.h"
 #include "ECSearchFolders.h"
-
 #include "ics.h"
-
 #include <kopano/charset/convert.h>
 #include "ECStringCompat.h"
 #include "ECMAPI.h"
-
 #include <zlib.h>
 #include <kopano/mapiext.h>
 #include <edkmdb.h>

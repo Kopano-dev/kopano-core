@@ -27,7 +27,6 @@
 #include "ECABProvider.h"
 #include "ECABLogon.h"
 #include <kopano/Util.h>
-
 #include "WSTransport.h"
 #include "ClientUtil.h"
 #include "EntryPoint.h"

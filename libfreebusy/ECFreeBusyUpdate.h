@@ -35,7 +35,6 @@
 #include <kopano/memory.hpp>
 #include <mapi.h>
 #include <mapidefs.h>
-
 #include "ECFBBlockList.h"
 
 namespace KC {

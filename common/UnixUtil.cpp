@@ -32,7 +32,6 @@
 #include <csignal>
 #include <sys/file.h>
 #include <sys/resource.h>
-
 #include <string>
 
 namespace KC {

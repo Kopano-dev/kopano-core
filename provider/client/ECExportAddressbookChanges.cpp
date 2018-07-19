@@ -14,26 +14,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
-
 #include <kopano/ECGuid.h>
 #include <kopano/MAPIErrors.h>
 #include "ics.h"
 #include "pcutil.hpp"
-
 #include "ECABContainer.h"
 #include <kopano/IECInterfaces.hpp>
 #include <kopano/MAPIErrors.h>
 #include "ECMsgStore.h"
-
 #include "ECExportAddressbookChanges.h"
-
 #include <kopano/ECLogger.h>
 #include <ECSyncLog.h>
 #include <kopano/stringutil.h>
 #include <kopano/Util.h>
-
 #include <edkmdb.h>
 
 ECExportAddressbookChanges::ECExportAddressbookChanges(ECMsgStore *lpStore) :

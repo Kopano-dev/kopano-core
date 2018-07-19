@@ -18,7 +18,6 @@
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ECMAPIFolderPublic.h"
-
 #include "Mem.h"
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
@@ -28,12 +27,9 @@
 #include "pcutil.hpp"
 #include <edkmdb.h>
 #include <kopano/mapiext.h>
-
 #include <kopano/stringutil.h>
 #include "ECMsgStorePublic.h"
-
 #include <kopano/charset/convstring.h>
-
 #include <kopano/ECGetText.h>
 #include <mapiutil.h>
 

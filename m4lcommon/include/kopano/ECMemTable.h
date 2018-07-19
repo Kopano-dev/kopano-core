@@ -25,7 +25,6 @@
 #include <mutex>
 #include <mapitags.h>
 #include <mapidefs.h>
-
 #include <kopano/ECKeyTable.h>
 #include <kopano/ECUnknown.h>
 #include <kopano/ustringutil.h>

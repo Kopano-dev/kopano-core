@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <exception>
 #include <memory>
@@ -33,13 +32,10 @@
 #include "m4l.mapix.h"
 #include "m4l.mapispi.h"
 #include "m4l.mapisvc.h"
-
 #include <mapi.h>
 #include <mapiutil.h>
 #include <cstring>
-
 #include <kopano/Util.h>
-
 #include <kopano/ECConfig.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECMemTable.h>
@@ -48,7 +44,6 @@
 #include <kopano/mapiguidext.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
-
 #include <string>
 #include <map>
 #include <kopano/charset/convert.h>

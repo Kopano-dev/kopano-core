@@ -24,7 +24,6 @@
 #include <vector>
 #include <utility>
 #include <cassert>
-
 #include <kopano/platform.h>
 
 namespace KC {

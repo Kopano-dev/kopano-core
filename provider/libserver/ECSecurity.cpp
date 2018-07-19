@@ -22,25 +22,19 @@
 #include "ECDatabase.h"
 #include "ECSessionManager.h"
 #include "ECSession.h"
-
 #include <kopano/ECDefs.h>
 #include "ECSecurity.h"
-
 #include <kopano/stringutil.h>
 #include "kcore.hpp"
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapitags.h>
-
 #include <kopano/mapiext.h>
-
 #include <openssl/ssl.h>
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 #include <openssl/bio.h>
-
 #include <algorithm>
-
 #include "ECUserManagement.h"
 #include "SOAPUtils.h"
 #include <edkmdb.h>

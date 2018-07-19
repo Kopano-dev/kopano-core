@@ -22,7 +22,6 @@
 #include <kopano/ECUnknown.h>
 #include <mapidefs.h>
 #include <kopano/charset/convert.h>
-
 #include <map>
 
 class ZCMAPIProp _no_final : public KC::ECUnknown, public IMailUser {

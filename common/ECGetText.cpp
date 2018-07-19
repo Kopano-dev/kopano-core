@@ -14,12 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <kopano/ECGetText.h>
 #include <kopano/charset/convert.h>
-
 #include <map>
 #include <memory>
 #include <mutex>

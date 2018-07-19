@@ -20,7 +20,6 @@
 
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
-
 #include "ECGenericProp.h"
 #include "ECABLogon.h"
 #include "WSTransport.h"

@@ -14,14 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <list>
 #include <memory>
 #include <new>
 #include <utility>
 #include "ECDatabase.h"
-
 #include <mapidefs.h>
 #include <mapitags.h>
 #include "ECSecurity.h"

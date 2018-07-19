@@ -14,9 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
-
 #include <exception>
 #include <set>
 #include <stdexcept>
@@ -33,9 +31,7 @@
 #include <kopano/tie.hpp>
 #include <edkmdb.h>
 #include "ECMAPI.h"
-
 #include "soapH.h"
-
 #include "ECSessionManager.h"
 #include "ECSecurity.h"
 #include "ics.h"
@@ -45,7 +41,6 @@
 #include "ECStatsCollector.h"
 #include "ECStringCompat.h"
 #include "ECTPropsPurge.h"
-
 #include "cmdutil.hpp"
 
 #define FIELD_NR_NAMEID		(FIELD_NR_MAX + 1)

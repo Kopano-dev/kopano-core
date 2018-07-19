@@ -22,7 +22,6 @@
 #include <kopano/charset/convert.h>
 #include <string>
 #include <kopano/charset/utf8string.h>
-
 #include <mapidefs.h>
 
 namespace KC {

@@ -25,7 +25,6 @@
 #include <string>
 #include <stdexcept>
 #include <typeinfo>
-
 #include <iconv.h>
 #include <kopano/charset/traits.h>
 

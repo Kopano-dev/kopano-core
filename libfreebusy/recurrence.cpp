@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <string>
 #include <utility>
@@ -29,7 +28,6 @@
 #include <mapiutil.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/namedprops.h>
-
 #include <iostream>
 #include <algorithm>
 

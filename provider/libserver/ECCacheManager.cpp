@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <chrono>
 #include <list>
@@ -30,15 +29,11 @@
 #include "ECDatabase.h"
 #include "ECSessionManager.h"
 #include "ECDatabaseUtils.h"
-
 #include "ECCacheManager.h"
-
 #include "ECMAPI.h"
 #include <kopano/stringutil.h>
 #include "ECGenericObjectTable.h"
-
 #include <algorithm>
-
 #ifdef LINUX
 #include <sys/sysinfo.h>
 #endif

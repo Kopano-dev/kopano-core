@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <list>
 #include <memory>
@@ -28,16 +27,13 @@
 #include <kopano/ECMemTable.h>
 #include <kopano/charset/convert.h>
 #include <kopano/ustringutil.h>
-
 #include <mapi.h>
 #include <mapicode.h>
 #include <mapiguid.h>
 #include <mapix.h>
 #include <mapiutil.h>
-
 #include <kopano/ECConfig.h>
 #include <kopano/CommonUtil.h>
-
 #include <set>
 
 using namespace KC;

@@ -14,14 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapitags.h>
 #include <mapiutil.h>
-
 #include <fstream>
 #include <new>
 #include <string>
@@ -35,7 +33,6 @@
 #include "KCmd.nsmap"
 #include "Mem.h"
 #include <kopano/ECGuid.h>
-
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 #include <kopano/mapiext.h>
@@ -45,11 +42,9 @@
 #include "ECSessionGroupManager.h"
 #include <kopano/stringutil.h>
 #include "versions.h"
-
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
 #include <kopano/charset/convstring.h>
-
 #include "SOAPSock.h"
 #include <kopano/mapi_ptr.h>
 #include "WSMessageStreamExporter.h"

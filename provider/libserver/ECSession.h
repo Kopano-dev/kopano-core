@@ -30,12 +30,10 @@
 #include <memory>
 #include <mutex>
 #include <pthread.h>
-
 #include "soapH.h"
 #include <kopano/kcodes.h>
 #include "ECNotification.h"
 #include "ECTableManager.h"
-
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include "ECDatabaseFactory.h"
@@ -43,7 +41,6 @@
 #include "ECSessionGroup.h"
 #include "ECLockManager.h"
 #include "kcore.hpp"
-
 #ifdef HAVE_GSSAPI
 #include <gssapi/gssapi.h>
 #endif

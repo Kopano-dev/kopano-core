@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
@@ -25,7 +24,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <kopano/ECLogger.h>
-
 #include <mapicode.h>
 #include <mapidefs.h>
 #include <sys/socket.h>

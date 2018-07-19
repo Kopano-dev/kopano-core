@@ -26,7 +26,6 @@
 #include <climits>
 #include <pthread.h>
 #include <unistd.h>
-
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <kopano/ECLogger.h>

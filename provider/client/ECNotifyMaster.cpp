@@ -14,15 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
-
 #include <algorithm>
 #include <new>
 #include <kopano/memory.hpp>
 #include <kopano/ECLogger.h>
 #include <mapidefs.h>
-
 #include "ECNotifyClient.h"
 #include "ECNotifyMaster.h"
 #include "ECSessionGroupManager.h"

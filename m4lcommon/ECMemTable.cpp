@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/zcdefs.h>
 #include <map>
 #include <memory>
@@ -25,7 +24,6 @@
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapiutil.h>
-
 #include <kopano/ECMemTable.h>
 #include <kopano/ECKeyTable.h>
 #include <kopano/ECGuid.h>
@@ -33,7 +31,6 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/memory.hpp>
 #include <kopano/charset/convert.h>
-
 #include <kopano/kcodes.h>
 #include <algorithm>
 #include <netdb.h> /* htons */

@@ -21,7 +21,6 @@
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include "ECMAPIFolder.h"
-
 #include <kopano/ECUnknown.h>
 #include <kopano/IECInterfaces.hpp>
 

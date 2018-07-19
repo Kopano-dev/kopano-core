@@ -14,10 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <new>
-
 #include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapix.h>
@@ -30,7 +28,6 @@
 #include <kopano/ECDefs.h>
 #include <kopano/scope.hpp>
 #include <kopano/stringutil.h>
-
 #include "ECChannelClient.h"
 
 namespace KC {

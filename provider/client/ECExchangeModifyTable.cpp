@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
@@ -25,12 +24,10 @@
 #include "WSUtil.h"
 #include "WSTransport.h"
 #include "SOAPUtils.h"
-
 #include <sstream>
 #include <mapi.h>
 #include <mapidefs.h>
 #include <mapiutil.h>
-
 #include <kopano/Util.h>
 #include "ECExchangeModifyTable.h"
 #include <mapicode.h>

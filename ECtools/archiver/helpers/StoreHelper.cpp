@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
@@ -23,10 +22,8 @@
 #include <mapiutil.h>
 #include "StoreHelper.h"
 #include <kopano/mapi_ptr.h>
-
 #include <kopano/mapiguidext.h>
 #include <kopano/archiver-common.h>
-
 #include <kopano/ECRestriction.h>
 
 namespace KC { namespace helpers {

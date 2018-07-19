@@ -18,7 +18,6 @@
 #include <kopano/platform.h>
 #include <mapicode.h>
 #include <mapix.h>
-
 #include "ClientUtil.h"
 #include "ECNotifyMaster.h"
 #include "ECSessionGroupManager.h"

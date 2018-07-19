@@ -23,10 +23,8 @@
 #include <kopano/zcdefs.h>
 #include <mutex>
 #include "soapH.h"
-
 #include <list>
 #include <map>
-
 #include "ECSubRestriction.h"
 #include <kopano/ECKeyTable.h>
 #include "ECDatabase.h"

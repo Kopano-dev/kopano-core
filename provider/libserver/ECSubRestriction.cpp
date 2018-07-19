@@ -14,21 +14,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <utility>
 #include <cassert>
 #include "ECSubRestriction.h"
-
 #include <mapidefs.h>
 #include <mapitags.h>
-
 #include <kopano/stringutil.h>
 #include "ECSession.h"
 #include "ECStoreObjectTable.h"
 #include "ECGenericObjectTable.h"
 #include "SOAPUtils.h"
-
 #include "ECSessionManager.h"
 
 namespace KC {

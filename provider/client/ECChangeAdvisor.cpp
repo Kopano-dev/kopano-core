@@ -20,7 +20,6 @@
 #include <kopano/ECGuid.h>
 #include <ECSyncLog.h>
 #include <kopano/ECLogger.h>
-
 #include "ECChangeAdvisor.h"
 #include "ECMsgStore.h"
 

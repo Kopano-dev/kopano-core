@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <iterator>
 #include <memory>
@@ -22,7 +21,6 @@
 #include <utility>
 #include <cstdio>
 #include <cstdlib>
-
 #include <sstream>
 #include <iostream>
 #include <algorithm>
@@ -51,7 +49,6 @@
 #include <map>
 #include <algorithm>
 #include <inetmapi/options.h>
-
 #include <edkmdb.h>
 #include <kopano/stringutil.h>
 #include <kopano/codepage.h>
@@ -62,6 +59,7 @@
 #include <kopano/ECFeatures.hpp>
 #include <kopano/mapi_ptr.h>
 #include "IMAP.h"
+
 using namespace KC;
 using std::list;
 using std::string;

@@ -17,7 +17,6 @@
 #include <new>
 #include <kopano/platform.h>
 #include "ECParentStorage.h"
-
 #include "Mem.h"
 #include <kopano/ECGuid.h>
 #include <mapiutil.h>

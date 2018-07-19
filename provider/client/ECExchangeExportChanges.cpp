@@ -22,15 +22,12 @@
 #include "ECExchangeExportChanges.h"
 #include "WSMessageStreamExporter.h"
 #include "WSSerializedMessage.h"
-
 #include <set>
-
 #include <kopano/Util.h>
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
 #include <mapiguid.h>
 #include <kopano/mapiext.h>
-
 #include <mapiutil.h>
 #include "ics.h"
 #include "Mem.h"

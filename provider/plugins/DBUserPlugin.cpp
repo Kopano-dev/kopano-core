@@ -14,13 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <iostream>
 #include <string>
 #include <stdexcept>
 #include <algorithm>
-
 #include <cerrno>
 #include <cassert>
 #include <mutex>
@@ -29,7 +27,6 @@
 #include <kopano/ECDefs.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
-
 #include <kopano/stringutil.h>
 #include "ECDatabaseFactory.h"
 #include "DBUserPlugin.h"

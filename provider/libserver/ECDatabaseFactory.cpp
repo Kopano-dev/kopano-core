@@ -14,13 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <memory>
 #include <kopano/tie.hpp>
 #include "ECDatabase.h"
 #include "ECDatabaseFactory.h"
-
 #include "ECServerEntrypoint.h"
 
 namespace KC {

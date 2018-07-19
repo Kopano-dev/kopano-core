@@ -21,7 +21,6 @@
 #include <mapitags.h>
 #include <mapiguid.h>
 #include <mapiutil.h>
-
 #include "Mem.h"
 #include "ECMAPITable.h"
 #include <edkguid.h>

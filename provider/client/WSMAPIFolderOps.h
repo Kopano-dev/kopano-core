@@ -26,7 +26,6 @@
 #include <kopano/Util.h>
 #include "ics_client.hpp"
 #include <vector>
-
 #include <mapi.h>
 #include <mapispi.h>
 #include "soapStub.h"

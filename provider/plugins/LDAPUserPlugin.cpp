@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <chrono>
@@ -29,7 +28,6 @@
 #include <set>
 #include <utility>
 #include <list>
-
 #include <cerrno>
 #include <cassert>
 #include <kopano/EMSAbTag.h>

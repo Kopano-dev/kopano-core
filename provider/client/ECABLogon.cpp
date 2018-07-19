@@ -21,11 +21,9 @@
 #include <kopano/memory.hpp>
 #include <edkguid.h>
 #include "ECABLogon.h"
-
 #include "ECABContainer.h"
 #include "ECMailUser.h"
 #include "WSTransport.h"
-
 #include <kopano/Util.h>
 #include "Mem.h"
 #include <kopano/stringutil.h>

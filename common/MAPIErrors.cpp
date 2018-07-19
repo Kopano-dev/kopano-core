@@ -23,7 +23,6 @@
 #include <kopano/MAPIErrors.h>
 #include <mapidefs.h>
 #include <kopano/stringutil.h>
-
 #include <mapicode.h>
 #include <kopano/mapiext.h>
 #include <string>

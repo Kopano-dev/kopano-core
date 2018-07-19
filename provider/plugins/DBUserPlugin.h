@@ -23,7 +23,6 @@
 #include <mutex>
 #include <string>
 #include <kopano/zcdefs.h>
-
 #include "plugin.h"
 #include "DBBase.h"
 

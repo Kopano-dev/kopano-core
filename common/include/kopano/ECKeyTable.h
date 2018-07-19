@@ -54,7 +54,6 @@
  */
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
-
 #include <list>
 #include <map>
 #include <mutex>

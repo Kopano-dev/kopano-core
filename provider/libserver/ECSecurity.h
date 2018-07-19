@@ -26,7 +26,6 @@
 #include <kopano/memory.hpp>
 #include "ECUserManagement.h"
 #include "plugin.h"
-
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECDefs.h>

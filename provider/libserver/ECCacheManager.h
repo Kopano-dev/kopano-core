@@ -31,7 +31,6 @@
 #include "cmdutil.hpp"
 #include <mapidefs.h>
 #include <ECCache.h>
-
 #include <kopano/ECKeyTable.h>
 
 struct soap;

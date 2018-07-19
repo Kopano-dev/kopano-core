@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <kopano/MAPIErrors.h>
 #include "ECArchiverLogger.h"

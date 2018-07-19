@@ -26,10 +26,8 @@
 #include "ECDatabaseFactory.h"
 #include <kopano/ECKeyTable.h>
 #include "ECStoreObjectTable.h"
-
 #include "soapH.h"
 #include "SOAPUtils.h"
-
 #include <map>
 #include <set>
 #include <list>

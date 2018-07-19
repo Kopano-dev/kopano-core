@@ -16,7 +16,6 @@
  */
 #include <memory>
 #include "mapiAttachment.h"
-
 #include <vmime/contentDispositionField.hpp>
 #include <vmime/contentTypeField.hpp>
 #include <vmime/messageId.hpp>

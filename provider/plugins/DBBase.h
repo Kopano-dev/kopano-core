@@ -24,7 +24,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-
 #include "ECDatabase.h"
 #include <kopano/ECDefs.h>
 

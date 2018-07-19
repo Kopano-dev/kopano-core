@@ -20,7 +20,6 @@
 
 #include <kopano/zcdefs.h>
 #include <mapispi.h>
-
 #include "ProviderUtil.h"
 
 extern "C" {

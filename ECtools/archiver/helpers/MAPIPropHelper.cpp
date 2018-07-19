@@ -14,16 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
 #include <utility>
 #include "MAPIPropHelper.h"
-
 #include "ArchiverSession.h"
 #include <kopano/archiver-common.h>
-
 #include <mapiutil.h>
 #include <kopano/Util.h>
 #include <kopano/mapi_ptr.h>

@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <memory>
 #include "SOAPSock.h"
@@ -25,7 +24,6 @@
 #include <kopano/CommonUtil.h>
 #include <string>
 #include <map>
-
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
 #include "soapKCmdProxy.h"

@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <utility>
@@ -22,7 +21,6 @@
 #include <mapi.h>
 #include <mapix.h>
 #include <mapicode.h>
-
 #include <kopano/stringutil.h>
 #include <kopano/RecurrenceState.h>
 #include <kopano/charset/convert.h>

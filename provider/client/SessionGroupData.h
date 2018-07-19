@@ -22,7 +22,6 @@
 #include <atomic>
 #include <mutex>
 #include <mapispi.h>
-
 #include <kopano/kcodes.h>
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>

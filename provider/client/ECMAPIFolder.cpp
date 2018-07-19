@@ -31,21 +31,17 @@
 #include "WSTransport.h"
 #include "WSMessageStreamExporter.h"
 #include "WSMessageStreamImporter.h"
-
 #include "Mem.h"
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
 #include <kopano/Util.h>
 #include "ClientUtil.h"
 #include <kopano/mapi_ptr.h>
-
 #include <edkmdb.h>
 #include <kopano/mapiext.h>
 #include <mapiutil.h>
 #include <cstdio>
-
 #include <kopano/stringutil.h>
-
 #include <kopano/charset/convstring.h>
 
 using namespace KC;

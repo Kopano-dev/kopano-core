@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <new>
 #include <utility>
@@ -33,7 +32,6 @@
 #include "ArchiverSession.h"
 #include <kopano/Util.h>
 #include <kopano/mapiguidext.h>
-
 #include <list>
 #include <string>
 

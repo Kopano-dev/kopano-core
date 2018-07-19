@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
@@ -36,10 +35,8 @@
 #ifdef LINUX
 #include <linux/rtnetlink.h>
 #endif
-
 #include <cerrno>
 #include <mapicode.h>
-
 #ifndef hrSuccess
 #define hrSuccess 0
 #endif

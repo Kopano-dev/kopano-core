@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include "ECConfigCheck.h"
 
 LDAPConfigCheck::LDAPConfigCheck(const char *lpszConfigFile) : ECConfigCheck("LDAP Configuration file", lpszConfigFile)

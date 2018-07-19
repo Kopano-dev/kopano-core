@@ -22,18 +22,14 @@
 #include <memory>
 #include <kopano/stringutil.h>
 #include "ics.h"
-
 #include "ECStoreObjectTable.h"
 #include "ECICSHelpers.h"
 #include "ECSessionManager.h"
 #include "ECMAPI.h"
-
 #include <mapidefs.h>
 #include <edkmdb.h>
-
 #include <string>
 #include <algorithm>
-
 #include <kopano/ECLogger.h>
 
 using namespace KC::string_literals;

@@ -23,7 +23,6 @@
 #include <map>
 #include <mutex>
 #include <pthread.h>
-
 #include <kopano/zcdefs.h>
 #include "ECSessionGroupManager.h"
 #include <kopano/ECUnknown.h>

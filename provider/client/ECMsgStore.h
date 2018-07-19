@@ -24,7 +24,6 @@
 #include <mapidefs.h>
 #include <mapispi.h>
 #include <edkmdb.h>
-
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include "ECMAPIProp.h"

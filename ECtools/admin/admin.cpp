@@ -14,9 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
-
 #include <iostream>
 #include <list>
 #include <set>
@@ -55,12 +53,10 @@
 #include "ECACL.h"
 #include "charset/localeutil.h"
 #include <kopano/MAPIErrors.h>
-
 #include <edkmdb.h>
 #include <edkguid.h>
 #include <libintl.h>
 #include "Archiver.h"
-
 #include <kopano/MAPIErrors.h> // for declaration of GetMAPIErrorMessage()
 
 using namespace KC;

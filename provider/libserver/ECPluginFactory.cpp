@@ -14,12 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
-
 #include <cstring>
 #include <climits>
-
 #include "ECPluginFactory.h"
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>

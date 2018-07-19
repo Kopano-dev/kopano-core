@@ -21,7 +21,6 @@
 #include <kopano/zcdefs.h>
 #include <mapi.h>
 #include <mapispi.h>
-
 #include <map>
 #include <mutex>
 #include "kcore.hpp"

@@ -29,10 +29,8 @@
 #include "ECICS.h"
 #include "ECMemStream.h"
 #include <kopano/MAPIErrors.h>
-
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
-
 #include <ECFifoBuffer.h>
 #include <ECSerializer.h>
 #include <kopano/stringutil.h>
@@ -40,7 +38,6 @@
 #include <kopano/mapiext.h>
 #include <mapidefs.h>
 #include <edkmdb.h>
-
 #include <set>
 #include <map>
 #include <string>

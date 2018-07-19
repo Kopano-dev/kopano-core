@@ -25,7 +25,6 @@
 #include "ECSession.h"
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
-
 #include <map>
 #include <set>
 

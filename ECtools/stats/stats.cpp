@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include "config.h"
 #include <chrono>
@@ -23,15 +22,12 @@
 #include <mapi.h>
 #include <mapiutil.h>
 #include <edkmdb.h>
-
 #ifdef HAVE_CURSES_H
 #include <curses.h>
 #endif
-
 #include <map>
 #include <set>
 #include <getopt.h>
-
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
 #include <kopano/ECTags.h>

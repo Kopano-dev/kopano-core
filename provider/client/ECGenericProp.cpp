@@ -21,12 +21,10 @@
 #include <mapidefs.h>
 #include "WSTransport.h"
 #include "ECGenericProp.h"
-
 #include "kcore.hpp"
 #include "pcutil.hpp"
 #include "Mem.h"
 #include <kopano/Util.h>
-
 #include <kopano/ECGuid.h>
 #include <kopano/charset/convert.h>
 #include "EntryPoint.h"

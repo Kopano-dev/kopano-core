@@ -18,7 +18,6 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
-
 #include <sys/select.h>
 #include <iconv.h>
 #include <cstring>
@@ -34,11 +33,9 @@
 #include <cstdlib>
 #include <cerrno>
 #include <climits>
-
 #include <string>
 #include <map>
 #include <vector>
-
 #ifndef HAVE_UUID_CREATE
 #	include <uuid/uuid.h>
 #else

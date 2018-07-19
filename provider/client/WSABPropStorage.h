@@ -23,7 +23,6 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 #include "IECPropStorage.h"
-
 #include <kopano/kcodes.h>
 #include "ECABLogon.h"
 #include "WSTableView.h"

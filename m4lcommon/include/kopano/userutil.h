@@ -22,7 +22,6 @@
 #include <set>
 #include <list>
 #include <string>
-
 #include <mapidefs.h>
 #include <mapix.h>
 

@@ -14,16 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
-
 #include <cmath>
 #include <kopano/memory.hpp>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapidefs.h>
 #include <mapiutil.h>
-
 #include <string>
 
 using namespace KC;

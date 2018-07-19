@@ -14,9 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include "phpconfig.h"
-
 #include <kopano/platform.h>
 #include <kopano/ecversion.h>
 #include <cstdio>

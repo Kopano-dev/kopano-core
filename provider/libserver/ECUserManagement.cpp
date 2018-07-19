@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <exception>
 #include <iterator>
@@ -34,7 +33,6 @@
 #include <map>
 #include <memory>
 #include <algorithm>
-
 #include "kcore.hpp"
 #include <kopano/stringutil.h>
 #include "ECUserManagement.h"
@@ -49,10 +47,8 @@
 #include <kopano/ECDefs.h>
 #include "ECFeatureList.h"
 #include <kopano/EMSAbTag.h>
-
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
-
 #ifndef AB_UNICODE_OK
 #define AB_UNICODE_OK ((ULONG) 0x00000040)
 #endif

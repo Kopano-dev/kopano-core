@@ -18,7 +18,6 @@
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "ECFreeBusyData.h"
-
 #include "ECEnumFBBlock.h"
 
 namespace KC {

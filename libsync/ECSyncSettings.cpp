@@ -14,12 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <mutex>
 #include "ECSyncSettings.h"
 #include <mapix.h>
-
 #include <kopano/ECLogger.h>
 
 namespace KC {

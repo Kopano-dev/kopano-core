@@ -25,7 +25,6 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECDefs.h>
 #include <kopano/pcuser.hpp>
-
 #include <list>
 #include <map>
 #include <memory>

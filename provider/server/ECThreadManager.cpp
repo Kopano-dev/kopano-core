@@ -14,24 +14,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <chrono>
 #include <mutex>
 #include <string>
 #include "ECThreadManager.h"
-
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
 #include <poll.h>
 #include <unistd.h>
 #include <kopano/stringutil.h>
-
 #ifdef HAVE_EPOLL_CREATE
 #include <sys/epoll.h>
 #endif
-
 #include <kopano/CommonUtil.h>
 #include "ECSessionManager.h"
 #include "ECStatsCollector.h"

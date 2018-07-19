@@ -24,7 +24,6 @@
 #include "ECMessageStreamImporterIStreamAdapter.h"
 #include <kopano/ECLogger.h>
 #include "ECSyncLog.h"
-
 #include <kopano/Util.h>
 #include <edkguid.h>
 #include <kopano/ECGuid.h>
@@ -34,13 +33,10 @@
 #include <kopano/mapiext.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/ECRestriction.h>
-
 #include <mapiutil.h>
-
 #include <kopano/charset/convert.h>
 #include <kopano/ECGetText.h>
 #include "EntryPoint.h"
-
 #include <list>
 
 using namespace KC;

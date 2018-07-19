@@ -14,20 +14,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <chrono>
 #include <memory>
 #include <new>
 #include <kopano/tie.hpp>
 #include "ECStatsTables.h"
-
 #include "SOAPUtils.h"
 #include "ECSession.h"
 #include "ECSessionManager.h"
 #include "ECUserManagement.h"
 #include "ECSecurity.h"
-
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapitags.h>
@@ -37,7 +34,6 @@
 #include <kopano/stringutil.h>
 #include <kopano/Util.h>
 #include "ECStatsCollector.h"
-
 #if defined(HAVE_GPERFTOOLS_MALLOC_EXTENSION_H)
 #	include <gperftools/malloc_extension_c.h>
 #	define HAVE_TCMALLOC 1

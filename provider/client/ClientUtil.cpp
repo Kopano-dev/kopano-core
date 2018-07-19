@@ -14,23 +14,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <algorithm>
 #include <memory>
 #include <cctype>
 #include "ClientUtil.h"
-
 #include <kopano/ECGetText.h>
-
 #include <mapi.h>
 #include <mapidefs.h>
 #include <mapiutil.h>
-
 #include <kopano/CommonUtil.h>
 #include "WSTransport.h"
 #include <kopano/ECConfig.h>
-
 #include "kcore.hpp"
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
@@ -39,7 +34,6 @@
 #include <kopano/memory.hpp>
 #include "Mem.h"
 #include <kopano/stringutil.h>
-
 #include <kopano/charset/convstring.h>
 #include "EntryPoint.h"
 #include "soapKCmdProxy.h"

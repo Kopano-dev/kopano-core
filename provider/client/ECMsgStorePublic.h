@@ -21,9 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapispi.h>
-
 #include <edkmdb.h>
-
 #include "ECMsgStore.h"
 #include "ClientUtil.h"
 #include <kopano/ECMemTable.h>

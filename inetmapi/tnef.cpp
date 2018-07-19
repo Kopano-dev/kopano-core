@@ -38,7 +38,6 @@
  *
  * -- Steve
  */
- 
 #include <kopano/platform.h>
 #include <memory>
 #include <cstdint>
@@ -50,7 +49,6 @@
 #include <kopano/Util.h>
 #include <kopano/charset/convert.h>
 #include <string>
-
 #include "tnef.h"
 
 namespace KC {

@@ -40,9 +40,7 @@
 #define USES_IID_IMAPIFolder
 
 #include <mapiguid.h>
-
 #include "platform.linux.h"
-
 #include "m4l.common.h"
 #include "m4l.mapix.h"
 #include "m4l.mapidefs.h"

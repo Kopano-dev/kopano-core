@@ -19,7 +19,6 @@
 #include "ECMAPIContainer.h"
 #include "ECMAPITable.h"
 #include "Mem.h"
-
 #include <kopano/ECGuid.h>
 #include <kopano/mapiext.h>
 #include <mapiutil.h>

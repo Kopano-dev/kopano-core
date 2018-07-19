@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <cerrno>
 #include <cstdlib>
@@ -22,14 +21,12 @@
 #include <sys/socket.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECLogger.h>
-
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
 #ifdef HAVE_SYS_UN_H
 #include <sys/un.h>
 #endif
-
 #include "ECSoapServerConnection.h"
 #include "ECServerEntrypoint.h"
 #	include <dirent.h>

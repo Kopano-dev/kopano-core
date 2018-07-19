@@ -32,7 +32,6 @@
 #include <libxml/globals.h>
 #include <kopano/charset/convert.h>
 
-
 #define HTTP_CHUNK_SIZE 10000
 
 #define SERVICE_UNKNOWN	0x00

@@ -21,10 +21,8 @@
 #include <libxml/tree.h>
 #include <libxml/xmlwriter.h>
 #include <libxml/parser.h>
-
 #include <mapi.h>
 #include <map>
-
 #include "ProtocolBase.h"
 #include "Http.h"
 

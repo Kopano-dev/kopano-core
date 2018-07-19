@@ -23,7 +23,6 @@
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
 #include "WSTransport.h"
-
 #include <string>
 
 using namespace KC;

@@ -21,7 +21,6 @@
 #include "WebDav.h"
 #include "CalDavUtil.h"
 #include <libxml/uri.h>
-
 #include <kopano/zcdefs.h>
 #include <kopano/mapiext.h>
 #include "MAPIToICal.h"

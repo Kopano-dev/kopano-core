@@ -19,7 +19,6 @@
 #include <kopano/memory.hpp>
 #include "ECExchangeImportHierarchyChanges.h"
 #include "ECExchangeImportContentsChanges.h"
-
 #include <kopano/Util.h>
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
@@ -32,7 +31,6 @@
 #include "Mem.h"
 #include <kopano/mapi_ptr.h>
 #include "EntryPoint.h"
-
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
 #include <kopano/charset/convstring.h>

@@ -17,7 +17,6 @@
 #include <string>
 #include <kopano/platform.h>
 #include <kopano/kcodes.h>
-
 #include "ECCache.h"
 #include <kopano/ECLogger.h>
 #include <kopano/stringutil.h>

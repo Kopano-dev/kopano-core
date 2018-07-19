@@ -23,9 +23,7 @@
 #include <mapix.h>
 #include <edkmdb.h>
 #include <string>
-
 #include <kopano/ECDefs.h>
-
 #include <kopano/ustringutil.h>
 
 namespace KC {

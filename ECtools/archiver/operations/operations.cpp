@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
 #include "operations.h"
@@ -23,16 +22,14 @@
 #include "helpers/ArchiveHelper.h"
 #include "ArchiverSession.h"
 #include <kopano/ECRestriction.h>
-
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
-
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
-
 #include <algorithm>
+
 using namespace KC::helpers;
 
 namespace KC { namespace operations {

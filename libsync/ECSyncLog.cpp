@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <mutex>
 #include <kopano/ecversion.h>
@@ -22,7 +21,6 @@
 #include "ECSyncSettings.h"
 #include <kopano/stringutil.h>
 #include <kopano/ECLogger.h>
-
 #include <cstdlib>
 #include <mapidefs.h>
 #include <syslog.h> /* LOG_MAIL */

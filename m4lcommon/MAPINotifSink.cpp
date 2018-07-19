@@ -14,14 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <chrono>
 #include <new>
 #include <kopano/platform.h>
 #include "MAPINotifSink.h"
-
 #include <kopano/Util.h>
-
 #include <mapi.h>
 #include <mapix.h>
 

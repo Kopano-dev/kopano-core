@@ -14,11 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include "phpconfig.h"
-
 #include <kopano/platform.h>
-
 #include <cmath>
 #include <mapiutil.h>
 
@@ -48,7 +45,6 @@ extern "C" {
 #include <mapitags.h>
 #include <mapicode.h>
 #include <edkmdb.h>
-
 #include "typeconversion.h"
 #include <kopano/charset/convert.h>
 

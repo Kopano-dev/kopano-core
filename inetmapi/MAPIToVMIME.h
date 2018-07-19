@@ -21,7 +21,6 @@
 #include <kopano/zcdefs.h>
 #include <memory>
 #include <mapix.h>
-
 #include <string>
 #include <vmime/vmime.hpp>
 #include <vmime/mailbox.hpp>

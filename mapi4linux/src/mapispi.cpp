@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "m4l.mapispi.h"
@@ -23,7 +22,6 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>
 #include <kopano/ECGuid.h>
-
 #include <algorithm>
 #include <kopano/mapi_ptr.h>
 

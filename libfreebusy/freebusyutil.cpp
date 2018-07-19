@@ -14,9 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
-
 #include <mapi.h>
 #include <mapidefs.h>
 #include <mapix.h>
@@ -25,7 +23,6 @@
 #include <kopano/memory.hpp>
 #include "freebusyutil.h"
 #include <kopano/stringutil.h>
-
 #include "freebusytags.h"
 #include <kopano/mapiext.h>
 #include <edkmdb.h>

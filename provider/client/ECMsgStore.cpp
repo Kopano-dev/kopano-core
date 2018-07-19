@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/mapi_ptr.h>
@@ -27,7 +26,6 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-
 #include <kopano/ECGetText.h>
 #include <kopano/Util.h>
 #include "Mem.h"
@@ -37,31 +35,23 @@
 #include "ECMAPIFolder.h"
 #include "ECMAPIProp.h"
 #include "WSTransport.h"
-
 #include <kopano/ECTags.h>
-
 #include <kopano/ECGuid.h>
 #include <kopano/ECABEntryID.h>
-
 #include <kopano/mapiext.h>
-
 #include "freebusytags.h"
 #include <kopano/CommonUtil.h>
 #include "ClientUtil.h"
 #include "pcutil.hpp"
-
 #include "WSUtil.h" // used for UnWrapServerClientStoreEntry
 #include "ECExportAddressbookChanges.h"
 #include "ics.h"
 #include "ECExchangeExportChanges.h"
 #include "ECChangeAdvisor.h"
-
 #include "ProviderUtil.h"
 #include "EntryPoint.h"
-
 #include <kopano/stringutil.h>
 #include "ECExchangeModifyTable.h"
-
 #include <kopano/mapi_ptr.h>
 #include <kopano/charset/convstring.h>
 

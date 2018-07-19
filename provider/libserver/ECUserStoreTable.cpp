@@ -17,10 +17,8 @@
 #include <new>
 #include <kopano/platform.h>
 #include "ECDatabase.h"
-
 #include <mapidefs.h>
 #include <edkmdb.h>
-
 #include "ECSecurity.h"
 #include "ECSessionManager.h"
 #include "ECUserStoreTable.h"

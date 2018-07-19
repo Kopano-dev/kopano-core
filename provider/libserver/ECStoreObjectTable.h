@@ -21,7 +21,6 @@
 #include <kopano/Util.h>
 #include "soapH.h"
 #include "ECDatabase.h"
-
 #include "ECGenericObjectTable.h"
 
 struct soap;

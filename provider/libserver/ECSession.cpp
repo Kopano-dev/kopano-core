@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <chrono>
 #include <memory>
@@ -48,7 +47,6 @@
 #include <kopano/charset/convert.h>
 #include "versions.h"
 #include <kopano/MAPIErrors.h>
-
 #ifdef HAVE_KCOIDC_H
 #include <kcoidc.h>
 #endif

@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include "config.h"
 #include <atomic>
 #include <kopano/platform.h>
@@ -26,7 +25,6 @@
 #include <netdb.h>
 #include <poll.h>
 #include <inetmapi/inetmapi.h>
-
 #include <mapi.h>
 #include <mapix.h>
 #include <mapidefs.h>
@@ -34,7 +32,6 @@
 #include <kopano/mapiext.h>
 #include <kopano/tie.hpp>
 #include <mapiguid.h>
-
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
 #include <iostream>
@@ -44,17 +41,14 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cerrno>
-
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/my_getopt.h>
-
 #include <kopano/ECChannel.h>
 #include "POP3.h"
 #include "IMAP.h"
 #include <kopano/ecversion.h>
-
 #include "SSLUtil.h"
 #include "fileutil.h"
 #include <kopano/UnixUtil.h>

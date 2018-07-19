@@ -28,9 +28,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
 #include <kopano/charset/convert.h>
-
 #include <kopano/stringutil.h>
-
 #include <mapi.h>
 #include <mapitags.h>
 #include <mapidefs.h>

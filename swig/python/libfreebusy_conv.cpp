@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/memory.hpp>
 #include "libfreebusy_conv.h"
 #include "pymem.hpp"

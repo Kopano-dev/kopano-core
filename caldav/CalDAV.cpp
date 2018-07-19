@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include "config.h"
 #include <atomic>
 #include <kopano/platform.h>
@@ -35,10 +34,8 @@
 #include "CalDavProto.h"
 #include "ProtocolBase.h"
 #include <csignal>
-
 #include <iostream>
 #include <string>
-
 #include <kopano/ECLogger.h>
 #include <kopano/ECChannel.h>
 #include <kopano/memory.hpp>

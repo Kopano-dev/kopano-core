@@ -20,26 +20,21 @@
 #include <mapi.h>
 #include <mapiutil.h>
 #include <mapispi.h>
-
 #include <kopano/ECGetText.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include "Mem.h"
-
 #include <kopano/ECGuid.h>
 #include "ECMSProvider.h"
 #include "ECMsgStore.h"
 #include "ECABProvider.h"
 #include "ClientUtil.h"
 #include "EntryPoint.h"
-
 #include "WSUtil.h"
 #include "pcutil.hpp"
 #include "ProviderUtil.h"
 #include <kopano/stringutil.h>
-
 #include <edkguid.h>
-
 #include <cwchar>
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>

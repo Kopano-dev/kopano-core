@@ -14,24 +14,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include "iCal.h"
 #include "CalDavUtil.h"
 #include <map>
 #include <memory>
 #include <vector>
-
 #include <kopano/CommonUtil.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
 #include <kopano/tie.hpp>
 #include "icaluid.h"
-
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 #include "PublishFreeBusy.h"
-
 #include <kopano/mapi_ptr.h>
 
 using namespace KC;

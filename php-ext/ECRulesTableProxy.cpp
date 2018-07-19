@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <new>
 #include <kopano/memory.hpp>
@@ -22,7 +21,6 @@
 #include <kopano/ECGuid.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/charset/convert.h>
-
 #include <mapix.h>
 
 using namespace KC;

@@ -25,13 +25,11 @@
 #include <kopano/scope.hpp>
 #include "IECPropStorage.h"
 #include "Mem.h"
-
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
 #include "ECArchiveAwareMessage.h"
 #include <kopano/ECGetText.h>
 #include <kopano/stringutil.h>
-
 #include <sstream>
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>

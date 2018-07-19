@@ -19,12 +19,10 @@
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include "WSMAPIFolderOps.h"
-
 #include "Mem.h"
 #include <kopano/ECGuid.h>
 #include "SOAPUtils.h"
 #include "WSUtil.h"
-
 #include <kopano/charset/utf8string.h>
 #include "soapKCmdProxy.h"
 

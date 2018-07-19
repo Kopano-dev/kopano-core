@@ -20,7 +20,6 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECConfig.h>
-
 #include <map>
 #include <set>
 #include <list>

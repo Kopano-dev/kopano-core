@@ -24,7 +24,6 @@
 #include "ECDatabase.h"
 #include "pcutil.hpp"
 
-
 #define KOPANO_SERVER_INIT_SERVER		0
 #define KOPANO_SERVER_INIT_OFFLINE		1
 

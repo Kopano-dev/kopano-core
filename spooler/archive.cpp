@@ -14,13 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <iostream>
 #include <new>
 #include <utility>
 #include "archive.h"
-
 #include <kopano/ECLogger.h>
 #include <kopano/ECGetText.h>
 #include <kopano/MAPIErrors.h>
@@ -32,10 +30,8 @@
 #include "operations/instanceidmapper.h"
 #include "ArchiverSession.h"
 #include "helpers/ArchiveHelper.h"
-
 #include <list>
 #include <sstream>
-
 #include <kopano/Util.h>
 #include "PyMapiPlugin.h"
 

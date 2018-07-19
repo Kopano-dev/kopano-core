@@ -17,9 +17,7 @@
 #include <string>
 #include <kopano/platform.h>
 #include "ECStringCompat.h"
-
 #include "soapH.h"
-
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
 #include "utf8/unchecked.h"

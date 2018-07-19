@@ -24,7 +24,6 @@
 #include <map>
 #include <mutex>
 #include <string>
-
 #include <kopano/ECDefs.h>
 #include <kopano/pcuser.hpp>
 

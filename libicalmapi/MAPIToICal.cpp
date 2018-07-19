@@ -21,7 +21,6 @@
 #include <kopano/memory.hpp>
 #include "MAPIToICal.h"
 #include <libical/ical.h>
-
 #include "nameids.h"
 #include "vconverter.h"
 #include "vevent.h"

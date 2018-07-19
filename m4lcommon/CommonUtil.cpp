@@ -14,17 +14,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-
 #include <string>
 #include <memory>
 #include <map>
 #include <utility>
 #include <kopano/memory.hpp>
 #include <kopano/ustringutil.h>
-
 #include <mapi.h>
 #include <mapidefs.h>
 #include <mapiutil.h>
@@ -32,7 +29,6 @@
 #include <mapicode.h>
 #include <cerrno>
 #include <iconv.h>
-
 #include <kopano/ECLogger.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECTags.h>
@@ -44,7 +40,6 @@
 #include <kopano/charset/convert.h>
 #include <kopano/mapiext.h>
 #include "freebusytags.h"
-
 #include <edkguid.h>
 #include <kopano/mapiguidext.h>
 #include <edkmdb.h>
@@ -52,7 +47,6 @@
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
-
 #include <sys/types.h>
 #include <sys/socket.h>
 

@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <cstdio>
 #include <cstdlib>
@@ -30,7 +29,6 @@
 #include <mapiutil.h>
 #include <inetmapi/inetmapi.h>
 #include <kopano/mapiext.h>
-
 #include <kopano/CommonUtil.h>
 #include <kopano/MAPIErrors.h>
 #include <fileutil.h>

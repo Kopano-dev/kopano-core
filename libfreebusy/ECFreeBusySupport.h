@@ -29,11 +29,9 @@
 #include <kopano/zcdefs.h>
 #include "freebusy.h"
 #include "freebusyguid.h"
-
 #include <mapi.h>
 #include <mapidefs.h>
 #include <mapix.h>
-
 #include <kopano/ECUnknown.h>
 #include <kopano/ECGuid.h>
 #include <kopano/Util.h>

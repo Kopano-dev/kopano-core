@@ -14,14 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <new>
 #include <cstring>
 #include "ZCABContainer.h"
 #include "ZCMAPIProp.h"
 #include <mapiutil.h>
-
 #include <kopano/ECMemTable.h>
 #include <kopano/ECGuid.h>
 #include <kopano/CommonUtil.h>
@@ -35,10 +33,10 @@
 #include <kopano/ECGetText.h>
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECRestriction.h>
-
 #include <iostream>
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
+
 using namespace KC;
 
 ZCABContainer::ZCABContainer(const std::vector<zcabFolderEntry> *lpFolders,

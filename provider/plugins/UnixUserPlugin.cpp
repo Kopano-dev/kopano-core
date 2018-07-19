@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <algorithm>
 #include <exception>
@@ -33,7 +32,6 @@
 #include <crypt.h>
 #include <set>
 #include <iterator>
-
 #ifdef HAVE_SHADOW_H
 #include <shadow.h>
 #include <cerrno>

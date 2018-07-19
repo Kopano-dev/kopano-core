@@ -20,7 +20,6 @@
 
 #include <kopano/zcdefs.h>
 #include "operations_fwd.h"
-
 #include <mapix.h>
 #include <kopano/mapi_ptr.h>
 

@@ -20,11 +20,9 @@
 
 #include <set>
 #include <vector>
-
 #include <kopano/ECKeyTable.h>
 #include "ECDatabase.h"
 #include "soapH.h"
-
 #include <kopano/ustringutil.h>
 
 namespace KC {

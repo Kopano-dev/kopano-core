@@ -21,7 +21,6 @@
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapix.h>
-
 #include <kopano/mapi_ptr.h>
 #include <list>
 #include <memory>

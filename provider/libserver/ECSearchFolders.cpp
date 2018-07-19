@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <memory>
 #include <utility>
@@ -22,7 +21,6 @@
 #include <pthread.h>
 #include <mapidefs.h>
 #include <mapitags.h>
-
 #include "ECMAPI.h"
 #include "ECSession.h"
 #include <kopano/ECKeyTable.h>
@@ -36,7 +34,6 @@
 #include <kopano/ECTags.h>
 #include "cmdutil.hpp"
 #include <kopano/stringutil.h>
-
 #include "ECSearchClient.h"
 
 namespace KC {

@@ -17,10 +17,8 @@
 #include <new>
 #include <kopano/platform.h>
 #include "kcore.hpp"
-
 #include "ECMAPITable.h"
 #include "Mem.h"
-
 #include <kopano/ECGuid.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>
@@ -28,10 +26,8 @@
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
 #include "ECABContainer.h"
-
 #include <edkmdb.h>
 #include <mapiutil.h>
-
 #include <kopano/charset/convstring.h>
 #include <kopano/ECGetText.h>
 

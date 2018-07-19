@@ -25,7 +25,6 @@
 #include "ECDatabase.h"
 #include "ECDatabaseFactory.h"
 #include <kopano/ECLogger.h>
-
 #include <string>
 
 struct propVal;

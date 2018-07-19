@@ -22,7 +22,6 @@
 #include <mutex>
 #include "soapH.h"
 #include "kcore.hpp"
-
 #include <kopano/kcodes.h>
 #include <mapi.h>
 #include <mapispi.h>

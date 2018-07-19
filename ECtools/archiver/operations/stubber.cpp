@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
 #include <kopano/MAPIErrors.h>
@@ -24,6 +23,7 @@
 #include <kopano/archiver-common.h>
 #include "helpers/MAPIPropHelper.h"
 #include <kopano/mapiext.h>
+
 using namespace KC::helpers;
 
 namespace KC {

@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 #include <kopano/platform.h>
 #include <algorithm>
 #include <list>
@@ -34,7 +33,6 @@
 #include "ECDatabaseUpdate.h"
 #include <kopano/ECGuid.h>
 #include "soapH.h"
-
 #include <mutex>
 #include <unordered_map>
 #include <mapidefs.h>
@@ -47,7 +45,6 @@
 #include <deque>
 #include <algorithm>
 #include <cstdio>
-
 #include <kopano/ECTags.h>
 #include <kopano/stringutil.h>
 #include "SOAPUtils.h"
@@ -58,9 +55,7 @@
 #include "StreamUtil.h"
 #include <kopano/CommonUtil.h>
 #include "StorageUtil.h"
-
 #include "ics.h"
-
 #include "kcore.hpp"
 #include "pcutil.hpp"
 #include "ECAttachmentStorage.h"
@@ -74,20 +69,16 @@
 #include "ECTPropsPurge.h"
 #include "versions.h"
 #include "ECTestProtocol.h"
-
 #include <kopano/ECDefs.h>
 #include <kopano/EMSAbTag.h>
 #include <edkmdb.h>
 #include <kopano/ecversion.h>
 #include <kopano/mapiext.h>
-
 #include "../server/ECSoapServerConnection.h"
-
 #include "cmdutil.hpp"
 #include <kopano/ECThreadPool.h>
 #include "soapKCmdService.h"
 #include "cmd.hpp"
-
 #if defined(HAVE_GPERFTOOLS_MALLOC_EXTENSION_H)
 #	include <gperftools/malloc_extension_c.h>
 #	define HAVE_TCMALLOC 1
