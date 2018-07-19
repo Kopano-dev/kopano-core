@@ -41,8 +41,7 @@
 #include "ECSyncSettings.h"
 #include "EntryPoint.h"
 #include <kopano/CommonUtil.h>
-// We use ntohl/htonl for network-order conversion
-#include <arpa/inet.h>
+#include <arpa/inet.h> /* ntohl */
 #include <kopano/charset/convert.h>
 
 using namespace KC;

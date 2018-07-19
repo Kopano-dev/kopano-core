@@ -25,9 +25,7 @@
 
 #include <cstdlib>
 #include <mapidefs.h>
-
-// for LOG_MAIL
-#include <syslog.h>
+#include <syslog.h> /* LOG_MAIL */
 
 namespace KC {
 

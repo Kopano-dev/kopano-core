@@ -25,9 +25,7 @@
 #include "Mem.h"
 
 #include <kopano/mapiext.h>
-
-// For the static row getprop functions
-#include "ECMAPIProp.h"
+#include "ECMAPIProp.h" /* static row getprop functions */
 #include "ECMAPIFolder.h"
 #include "ECMessage.h"
 

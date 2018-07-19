@@ -36,8 +36,7 @@
 
 #include <kopano/kcodes.h>
 #include <algorithm>
-// needed for htons()
-#include <netdb.h>
+#include <netdb.h> /* htons */
 
 namespace KC {
 
