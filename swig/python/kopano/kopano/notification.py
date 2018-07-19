@@ -41,6 +41,8 @@ OBJECT_TYPES = ['folder', 'item']
 FOLDER_TYPES = ['mail', 'contacts', 'calendar']
 EVENT_TYPES = ['created', 'updated', 'deleted']
 
+TRACER = sys.gettrace()
+
 class Notification(object):
     def __init__(self, mapiobj):
         self.mapiobj = mapiobj
@@ -126,6 +128,15 @@ class AdviseSink(MAPIAdviseSink):
         self.folder_types = folder_types
 
     def OnNotify(self, notifications):
+        # called from a thread created from C, and as tracing is set for each
+        # thread separately from Python, tracing doesn't work here (so coverage
+        # also doesn't work).
+        #
+        # threading.settrace won't help, as the thread is created from C,
+        # so we just 'inherit' any used tracer from the 'global' python thread.
+        if TRACER:
+            sys.settrace(TRACER)
+
         if hasattr(self.sink, 'update'):
             for n in notifications:
                 for m in _filter(_split(n, self.store), self.folder,
