@@ -173,7 +173,11 @@ class Meetingrequest {
 		$properties["timezone"] = "PT_STRING8:PSETID_Appointment:0x8234";
 		$properties["toattendeesstring"] = "PT_STRING8:PSETID_Appointment:0x823B";
 		$properties["ccattendeesstring"] = "PT_STRING8:PSETID_Appointment:0x823C";
+
 		$this->proptags = getPropIdsFromStrings($store, $properties);
+
+		$properties2["categories"] = "PT_MV_STRING8:PS_PUBLIC_STRINGS:Keywords";
+		$this->proptags2 = getPropIdsFromStrings($store, $properties2);
 	}
 
 	/**
@@ -739,6 +743,11 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 				// Copy properties
 				$props = mapi_getprops($this->message);
+
+				// While we applying updates of MR then all local categories will be removed,
+				// So get the local categories of all occurrence before applying update from organiser.
+				$localCategories = $this->getLocalCategories($calendarItem, $store, $calFolder);
+
 				$props[PR_MESSAGE_CLASS] = 'IPM.Appointment';
 				$props[$this->proptags['meetingstatus']] = olMeetingReceived;
 				// when we are automatically processing the meeting request set responsestatus to olResponseNotResponded
@@ -784,6 +793,13 @@ If it is the first time this attendee has proposed a new date/time, increment th
 					}
 				}
 				mapi_savechanges($calendarItem);
+
+				// After applying update of organiser all local categories of occurrence was removed,
+				// So if local categories exist then apply it on respective occurrence.
+				if (!empty($localCategories)) {
+					$this->applyLocalCategories($calendarItem, $store, $localCategories);
+				}
+
 				if ($move) {
 					$wastebasket = $this->openDefaultWastebasket();
 					mapi_folder_copymessages($calFolder, Array($props[PR_ENTRYID]), $wastebasket, MESSAGE_MOVE);
@@ -816,8 +832,12 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				if (!$calendarItem) {
 					$items = $this->findCalendarItems($messageprops[$this->proptags['goid']], $calFolder);
 
-					if (is_array($items))
+					if (is_array($items)) {
+						// Get local categories before deleting MR.
+						$message = mapi_msgstore_openentry($store, $items[0]);
+						$localCategories = mapi_getprops($message, array($this->proptags2['categories']));
 						mapi_folder_deletemessages($calFolder, $items);
+					}
 
 					if ($move) {
 						// All we have to do is open the default calendar,
@@ -832,6 +852,11 @@ If it is the first time this attendee has proposed a new date/time, increment th
 						mapi_copyto($this->message, array(), array(), $calmsg); /* includes attachments and recipients */
 						/* release old message */
 						$message = null;
+
+						// After creating new MR, If local categories exist then apply it on new MR.
+						if(!empty($localCategories)) {
+							mapi_setprops($calmsg, $localCategories);
+						}
 
 						$calItemProps = Array();
 						$calItemProps[PR_MESSAGE_CLASS] = "IPM.Appointment";
@@ -889,6 +914,12 @@ If it is the first time this attendee has proposed a new date/time, increment th
 						$props = mapi_getprops($this->message);
 
 						$props[PR_MESSAGE_CLASS] = "IPM.Appointment";
+
+						// After creating new MR, If local categories exist then apply it on new MR.
+						if (!empty($localCategories)) {
+							mapi_setprops($new, $localCategories);
+						}
+
 						// when we are automatically processing the meeting request set responsestatus to olResponseNotResponded
 						$props[$this->proptags['responsestatus']] = $userAction ? ($tentative ? olResponseTentative : olResponseAccepted) : olResponseNotResponded;
 
@@ -3077,5 +3108,70 @@ If it is the first time this attendee has proposed a new date/time, increment th
 	function setMeetingTimeInfo($meetingTimeInfo)
 	{
 		$this->meetingTimeInfo = $meetingTimeInfo;
+	}
+
+	/**
+	 * Helper function which is use to get local categories of all occurrence.
+	 *
+	 * @param MAPIMessage $calendarItem meeting request item
+	 * @param MAPIStore $store store containing calendar folder
+	 * @param MAPIFolder $calFolder calendar folder
+	 * @return Array $localCategories which contain array of basedate along with categories
+	 */
+	function getLocalCategories($calendarItem, $store, $calFolder)
+	{
+		$calendarItemProps = mapi_getprops($calendarItem);
+		$recurrence = new Recurrence($store, $calendarItem);
+
+		//Retrieve all occurrences(max: 30 occurrence because recurrence can also be set as 'no end date')
+		$items = $recurrence->getItems($calendarItemProps[$this->proptags['clipstart']], $calendarItemProps[$this->proptags['clipend']] * (24*24*60), 30);
+		$localCategories = array();
+
+		foreach ($items as $item) {
+			$recurrenceItems = $recurrence->getCalendarItems($store, $calFolder, $item[$this->proptags['startdate']], $item[$this->proptags['duedate']], array($this->proptags['goid'], $this->proptags['busystatus'], $this->proptags2['categories']));
+			foreach ($recurrenceItems as $recurrenceItem) {
+
+				// Check if occurrence is exception then get the local categories of that occurrence.
+				if (isset($recurrenceItem[$this->proptags['goid']]) && $recurrenceItem[$this->proptags['goid']] == $calendarItemProps[$this->proptags['goid']]) {
+
+					$exceptionAttach = $recurrence->getExceptionAttachment($recurrenceItem['basedate']);
+
+					if ($exceptionAttach) {
+						$exception = mapi_attach_openobj($exceptionAttach, 0);
+						$exceptionProps = mapi_getprops($exception, array($this->proptags2['categories']));
+						if (isset($exceptionProps[$this->proptags2['categories']])) {
+							$localCategories[$recurrenceItem['basedate']] = $exceptionProps[$this->proptags2['categories']];
+						}
+					}
+				}
+			}
+		}
+
+		return $localCategories;
+	}
+
+	/**
+	 * Helper function which is use to apply local categories on respective occurrences.
+	 *
+	 * @param MAPIMessage $calendarItem meeting request item
+	 * @param MAPIStore $store store containing calendar folder
+	 * @param Array $localCategories array contains basedate and array of categories
+	 */
+	function applyLocalCategories($calendarItem, $store, $localCategories)
+	{
+		$calendarItemProps = mapi_getprops($calendarItem, array(PR_PARENT_ENTRYID, PR_ENTRYID));
+		$message = mapi_msgstore_openentry($store, $calendarItemProps[PR_ENTRYID]);
+		$recurrence = new Recurrence($store, $message);
+
+		// Check for all occurrence if it is exception then modify the exception by setting up categories,
+		// Otherwise create new exception with categories.
+		foreach ($localCategories as $key => $value) {
+			if ($recurrence->isException($key)) {
+				$recurrence->modifyException(array($this->proptags2['categories'] => $value), $key);
+			} else {
+				$recurrence->createException(array($this->proptags2['categories'] => $value), $key, false);
+			}
+			mapi_savechanges($message);
+		}
 	}
 }
