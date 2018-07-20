@@ -25,6 +25,16 @@ Packaging changes:
   for a default install to function.
 
 
+8.6.5
+=====
+Fixes:
+* kopano-mr-accept.py: preserve categories when processing MR [KC-1195]
+* config: update server.cfg comment for owner_auto_full_access [KC-1190]
+* php7-ext: cure stack corruption in mapi_vcftomapi [KC-1218]
+* gateway: avoid uncaught exception when client disconnects midway [KS-41342]
+* dagent: avoid always running into K-2383 [KC-1219]
+
+
 8.6.4 (2018-07-17)
 ==================
 Fixes:

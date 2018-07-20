@@ -449,7 +449,8 @@ static HRESULT kc_send_fwdabort_notice(IMsgStore *store, const wchar_t *addr, co
 	if (ret != hrSuccess)
 		return kc_perror("K-2382", ret);
 	object_ptr<IMAPIFolder> inbox;
-	ret = store->OpenEntry(eid_size, eid, &iid_of(inbox), MAPI_MODIFY, nullptr, &~inbox);
+	unsigned int objtype = 0;
+	ret = store->OpenEntry(eid_size, eid, &iid_of(inbox), MAPI_MODIFY, &objtype, &~inbox);
 	if (ret != hrSuccess)
 		return kc_perror("K-2383", ret);
 	object_ptr<IMessage> msg;

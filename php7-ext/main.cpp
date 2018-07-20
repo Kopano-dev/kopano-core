@@ -6909,7 +6909,7 @@ ZEND_FUNCTION(mapi_vcftomapi)
 	zval *resSession;
 	zval *resStore;
 	zval *resMessage;
-	ULONG cbString = 0;
+	php_stringsize_t cbString = 0;
 	char *szString = nullptr;
 	IMAPISession *lpMAPISession = nullptr;
 	IMessage *lpMessage = nullptr;
