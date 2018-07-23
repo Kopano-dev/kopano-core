@@ -54,7 +54,7 @@ def convert(cmd, data, log):
     tmpdir = tempfile.mkdtemp()
     try:
         tmpfile = '%s/attachment' % tmpdir
-        f = file(tmpfile, 'wb')
+        f = open(tmpfile, 'wb')
         f.write(data)
         f.close()
         cmd = cmd % {
