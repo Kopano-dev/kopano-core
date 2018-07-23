@@ -1,5 +1,5 @@
-8.6.5
-=====
+8.6.5 (2018-07-23)
+==================
 Fixes:
 * kopano-mr-accept.py: preserve categories when processing MR [KC-1195]
 * config: update server.cfg comment for owner_auto_full_access [KC-1190]
