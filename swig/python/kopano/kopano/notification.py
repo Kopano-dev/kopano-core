@@ -144,19 +144,6 @@ class AdviseSink(MAPIAdviseSink):
                     self.sink.update(m)
         return 0
 
-class AdviseSinkQueue(MAPIAdviseSink):
-    def __init__(self, store, q):
-        MAPIAdviseSink.__init__(self, [IID_IMAPIAdviseSink])
-
-        self.store = store
-        self.q = q
-
-    def OnNotify(self, notifications):
-        for n in notifications:
-            for m in _split(n, self.store): # TODO filter
-                self.q.put(m)
-        return 0
-
 def _flags(object_types, event_types):
     flags = 0
 
@@ -189,29 +176,3 @@ def subscribe(store, folder, sink, object_types=None, folder_types=None,
 
 def unsubscribe(store, sink):
     store.mapiobj.Unadvise(sink._conn)
-
-def _notifications(store, folder, object_types=None, folder_types=None,
-        event_types=None):
-
-    object_types = object_types or OBJECT_TYPES
-    folder_types = folder_types or FOLDER_TYPES
-    event_types = event_types or EVENT_TYPES
-
-    flags = _flags(object_types, event_types)
-
-    q = Queue()
-    sink = AdviseSinkQueue(store, q)
-
-    try:
-        if folder:
-            store.mapiobj.Advise(_bdec(folder.entryid), flags, sink)
-        else:
-            store.mapiobj.Advise(None, flags, sink)
-    except MAPIErrorNoSupport:
-        raise NotSupportedError(
-            "No support for advise, please use"
-            "kopano.Server(notifications=True)"
-        )
-
-    while True:
-        yield Notification(store, q.get())

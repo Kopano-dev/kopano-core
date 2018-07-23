@@ -754,10 +754,6 @@ class Store(Properties):
     def unsubscribe(self, sink):
         _notification.unsubscribe(self, sink)
 
-    def notifications(self, time=24 * 3600, **kwargs):
-        for n in _notification._notifications(self, None, time, **kwargs):
-            yield n
-
     def __ne__(self, s):
         return not self == s
 

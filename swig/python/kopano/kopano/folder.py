@@ -938,10 +938,6 @@ class Folder(Properties):
     def unsubscribe(self, sink):
         _notification.unsubscribe(self.store, sink)
 
-    def notifications(self, time=24 * 3600, **kwargs):
-        for n in _notification._notifications(self.store, self, time, **kwargs):
-            yield n
-
     def event(self, eventid):
         eventid = _bdec(eventid)
         leid = _utils.unpack_short(eventid, 1)
