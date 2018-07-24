@@ -3428,7 +3428,7 @@ int main(int argc, char *argv[]) {
 		{ "default_charset", "us-ascii"},
 		{"insecure_html_join", "no", CONFIGSETTING_RELOADABLE},
 		{ "set_rule_headers", "yes", CONFIGSETTING_RELOADABLE },
-		{ "no_double_forward", "no", CONFIGSETTING_RELOADABLE },
+		{ "no_double_forward", "yes", CONFIGSETTING_RELOADABLE },
 		{ "z_statsd_stats", "/var/run/kopano/statsd.sock" },
 		{ "tmp_path", "/tmp" },
 		{"forward_whitelist_domains", "*"},
