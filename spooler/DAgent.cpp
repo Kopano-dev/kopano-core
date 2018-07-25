@@ -248,7 +248,7 @@ static bool g_bTempfail = true; // Most errors are tempfails
 static pthread_t g_main_thread;
 static bool g_use_threads;
 static std::atomic<unsigned int> g_nLMTPThreads{0};
-static ECLogger *g_lpLogger;
+static object_ptr<ECLogger> g_lpLogger;
 extern std::shared_ptr<ECConfig> g_lpConfig;
 std::shared_ptr<ECConfig> g_lpConfig;
 static bool g_dump_config;
@@ -3082,7 +3082,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	if (!bDaemonize)
 		setsid();
 	unix_create_pidfile(servicename, g_lpConfig.get());
-	g_lpLogger = StartLoggerProcess(g_lpConfig.get(), g_lpLogger); // maybe replace logger
+	g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
 	ec_log_set(g_lpLogger);
 
 	AutoMAPI mapiinit;
@@ -3589,15 +3589,13 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (!loglevel)
-		g_lpLogger = new ECLogger_Null();
+		g_lpLogger.reset(new(std::nothrow) ECLogger_Null);
 	else 
-		g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0], "KopanoDAgent");
+		g_lpLogger.reset(CreateLogger(g_lpConfig.get(), argv[0], "KopanoDAgent"));
 	ec_log_set(g_lpLogger);
 	if (!g_lpLogger->Log(loglevel))
 		/* raise loglevel if there are more -v on the command line than in dagent.cfg */
 		g_lpLogger->SetLoglevel(loglevel);
-
-	auto free_logger = make_scope_success([&]() { DeleteLogger(g_lpLogger); });
 
 	/* Warn users that we are using the default configuration */
 	if (bDefaultConfigWarning && bExplicitConfig) {

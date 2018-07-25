@@ -280,7 +280,7 @@ class _kc_export_dycast ECLogger_Pipe _kc_final : public ECLogger {
 	void Disown();
 };
 
-extern _kc_export ECLogger *StartLoggerProcess(ECConfig *, ECLogger *file_logger);
+extern _kc_export object_ptr<ECLogger> StartLoggerProcess(ECConfig *, object_ptr<ECLogger> &&file_logger);
 
 /**
  * This class can be used if log messages need to go to
@@ -322,7 +322,6 @@ extern _kc_export void ec_log(unsigned int level, const std::string &msg);
 
 extern _kc_export HRESULT ec_log_hrcode(HRESULT, unsigned int level, const char *fmt, const char *func);
 extern _kc_export ECLogger *CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
-extern _kc_export int DeleteLogger(ECLogger *);
 extern _kc_export void LogConfigErrors(ECConfig *);
 extern _kc_export void generic_sigsegv_handler(ECLogger *, const char *app, const char *vers, int sig, const siginfo_t *, const void *uctx);
 

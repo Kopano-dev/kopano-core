@@ -94,7 +94,7 @@ static const char *szConfig = ECConfig::GetDefaultPath("spooler.cfg");
 static bool sp_exp_config;
 extern std::shared_ptr<ECConfig> g_lpConfig;
 std::shared_ptr<ECConfig> g_lpConfig;
-static ECLogger *g_lpLogger;
+static object_ptr<ECLogger> g_lpLogger;
 static bool g_dump_config;
 
 // notification
@@ -989,7 +989,7 @@ int main(int argc, char *argv[]) {
 	    (argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind])) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 		/* Create info logger without a timestamp to stderr. */
-		g_lpLogger = new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);
+		g_lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false));
 		if (g_lpLogger == nullptr)
 			return EXIT_FAILURE; /* MAPI_E_NOT_ENOUGH_MEMORY */
 		ec_log_set(g_lpLogger);
@@ -1016,10 +1016,9 @@ int main(int argc, char *argv[]) {
 
 	// setup logging, use pipe to log if started in forked mode and using pipe (file) logger, create normal logger for syslog
 	if (bForked && logfd != -1)
-		g_lpLogger = new ECLogger_Pipe(logfd, 0, atoi(g_lpConfig->GetSetting("log_level")));
+		g_lpLogger.reset(new(std::nothrow) ECLogger_Pipe(logfd, 0, atoi(g_lpConfig->GetSetting("log_level"))));
 	else
-		g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0], "KopanoSpooler");
-
+		g_lpLogger.reset(CreateLogger(g_lpConfig.get(), argv[0], "KopanoSpooler"));
 	ec_log_set(g_lpLogger);
 	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig.get());
@@ -1083,7 +1082,7 @@ int main(int argc, char *argv[]) {
 		ec_log_crit("main(): Failed creating PID file");
 		goto exit;
 	}
-	g_lpLogger = StartLoggerProcess(g_lpConfig.get(), g_lpLogger);
+	g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger));
 	ec_log_set(g_lpLogger);
 	g_lpLogger->SetLogprefix(LP_PID);
 
@@ -1103,7 +1102,6 @@ int main(int argc, char *argv[]) {
 	if (!bForked)
 		ec_log_info("Spooler shutdown complete");
 exit:
-	DeleteLogger(g_lpLogger);
 	switch(hr) {
 	case hrSuccess:
 		return EXIT_SUCCESS;

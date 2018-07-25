@@ -8,6 +8,7 @@
 #include <memory>
 #include <new>
 #include <set>
+#include <utility>
 #include <climits>
 #include <csignal>
 #include <netdb.h>
@@ -64,7 +65,7 @@ static int daemonize = 1;
 int quit = 0;
 static bool bThreads, g_dump_config;
 static const char *szPath;
-static ECLogger *g_lpLogger = NULL;
+static object_ptr<ECLogger> g_lpLogger;
 static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
 static std::atomic<int> nChildren{0};
@@ -132,14 +133,14 @@ enum serviceType { ST_POP3 = 0, ST_IMAP };
 struct HandlerArgs {
 	serviceType type;
 	std::unique_ptr<ECChannel> lpChannel;
-	ECLogger *lpLogger;
+	object_ptr<ECLogger> lpLogger;
 	std::shared_ptr<ECConfig> lpConfig;
 	bool bUseSSL;
 };
 
 static void *Handler(void *lpArg)
 {
-	auto lpHandlerArgs = static_cast<HandlerArgs *>(lpArg);
+	std::unique_ptr<HandlerArgs> lpHandlerArgs(static_cast<HandlerArgs *>(lpArg));
 	std::shared_ptr<ECChannel> lpChannel(std::move(lpHandlerArgs->lpChannel));
 	auto lpLogger = lpHandlerArgs->lpLogger;
 	auto lpConfig = std::move(lpHandlerArgs->lpConfig);
@@ -152,9 +153,9 @@ static void *Handler(void *lpArg)
 	else
 		client = new IMAP(szPath, lpChannel, lpConfig);
 	// not required anymore
-	delete lpHandlerArgs;
+	lpHandlerArgs.release();
 	// make sure the pipe logger does not exit when this handler exits, but only frees the memory.
-	auto pipelog = dynamic_cast<ECLogger_Pipe *>(lpLogger);
+	auto pipelog = dynamic_cast<ECLogger_Pipe *>(lpLogger.get());
 	if (pipelog != nullptr)
 		pipelog->Disown();
 
@@ -247,8 +248,6 @@ exit:
 	ec_log_notice("Client %s thread exiting", lpChannel->peer_addr());
 	client->HrDone(false);	// HrDone does not send an error string to the client
 	delete client;
-	if (!bThreads)
-		g_lpLogger->Release();
 	/** free SSL error data **/
 	#if OPENSSL_VERSION_NUMBER < 0x10100000L
 		ERR_remove_state(0);
@@ -418,7 +417,7 @@ int main(int argc, char *argv[]) {
 	if (!g_lpConfig->LoadSettings(szConfig, !exp_config) ||
 	    g_lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
-		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);	// create logger without a timestamp to stderr
+		g_lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false)); // create logger without a timestamp to stderr
 		if (g_lpLogger == nullptr) {
 			hr = MAPI_E_NOT_ENOUGH_MEMORY;
 			goto exit;
@@ -432,7 +431,7 @@ int main(int argc, char *argv[]) {
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 
 	// Setup logging
-	g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0], "KopanoGateway");
+	g_lpLogger.reset(CreateLogger(g_lpConfig.get(), argv[0], "KopanoGateway"));
 	ec_log_set(g_lpLogger);
 	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig.get());
@@ -457,7 +456,6 @@ exit:
 		fprintf(stderr, "%s: Startup failed: %s (%x). Please check the logfile (%s) for details.\n",
 			argv[0], GetMAPIErrorMessage(hr), hr, g_lpConfig->GetSetting("log_file"));
 	ssl_threading_cleanup();
-	DeleteLogger(g_lpLogger);
 	return hr == hrSuccess ? 0 : 1;
 }
 
@@ -639,7 +637,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		setsid();
 	unix_create_pidfile(servicename, g_lpConfig.get());
 	if (!bThreads)
-		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), g_lpLogger); // maybe replace logger
+		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
 	ec_log_set(g_lpLogger);
 
 	hr = MAPIInitialize(NULL);

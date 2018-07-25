@@ -743,24 +743,24 @@ namespace PrivatePipe {
 }
 
 /**
- * Starts a new process when needed for forked model programs. Only
- * actually replaces your ECLogger object if it's logging to a file.
+ * Starts a new process when needed for forked model programs. If logging to a
+ * file, a new ECLogger is returned, otherwise, the one sunk into this function
+ * is given back.
  *
  * @param[in]	lpConfig	Pointer to your ECConfig object. Cannot be NULL.
  * @param[in]	lpLogger	Pointer to your current ECLogger object.
  * @return		ECLogger	Returns the same or new ECLogger object to use in your program.
  */
-ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
-	auto lpFileLogger = dynamic_cast<ECLogger_File *>(lpLogger);
-	ECLogger_Pipe *lpPipeLogger = NULL;
-	int filefd;
+object_ptr<ECLogger> StartLoggerProcess(ECConfig *lpConfig,
+    object_ptr<ECLogger> &&lpLogger)
+{
+	auto lpFileLogger = dynamic_cast<ECLogger_File *>(lpLogger.get());
 	int pipefds[2];
-	pid_t child = 0;
 
 	if (lpFileLogger == NULL)
 		return lpLogger;
-	filefd = lpFileLogger->GetFileDescriptor();
-	child = pipe(pipefds);
+	auto filefd = lpFileLogger->GetFileDescriptor();
+	auto child = pipe(pipefds);
 	if (child < 0)
 		return NULL;
 	child = fork();
@@ -776,7 +776,6 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 		}
 		PrivatePipe::PipePassLoop(pipefds[0], lpFileLogger, lpConfig);
 		close(pipefds[0]);
-		delete lpFileLogger;
 		delete lpConfig;
 		_exit(0);
 	}
@@ -794,7 +793,9 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 		lpLogger->logf(EC_LOGLEVEL_WARNING, "StartLoggerProcess called with large refcount %u", refs + 1);
 
 	close(pipefds[0]);
-	lpPipeLogger = new ECLogger_Pipe(pipefds[1], child, atoi(lpConfig->GetSetting("log_level"))); // let destructor wait on child
+	object_ptr<ECLogger> lpPipeLogger(new(std::nothrow) ECLogger_Pipe(pipefds[1], child, atoi(lpConfig->GetSetting("log_level")))); // let destructor wait on child
+	if (lpPipeLogger == nullptr)
+		return nullptr;
 	lpPipeLogger->SetLogprefix(prefix);
 	lpPipeLogger->logf(EC_LOGLEVEL_INFO, "Logger process started on pid %d", child);
 	return lpPipeLogger;
@@ -947,12 +948,6 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 		lpLogger = new ECLogger_File(loglevel, logtimestamp, "-", false);
 	}
 	return lpLogger;
-}
-
-int DeleteLogger(ECLogger *lpLogger) {
-	if (lpLogger)
-		lpLogger->Release();
-	return 0;
 }
 
 void LogConfigErrors(ECConfig *lpConfig)
