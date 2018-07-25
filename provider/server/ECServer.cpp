@@ -1048,6 +1048,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 	auto laters = make_scope_success([&]() {
 		cleanup(er);
+		g_lpSoapServerConn.reset();
 		ssl_threading_cleanup();
 		SSL_library_cleanup(); //cleanup memory so valgrind is happy
 	});
