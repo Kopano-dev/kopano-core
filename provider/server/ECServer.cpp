@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <iostream>
+#include <memory>
 #include <new>
 #include <stdexcept>
 #include <string>
@@ -78,7 +79,7 @@ static bool m_bForceDatabaseUpdate = false;
 static bool m_bIgnoreUnknownConfigOptions = false;
 static bool m_bIgnoreDbThreadStackSize = false;
 static pthread_t mainthread;
-ECConfig*			g_lpConfig = NULL;
+std::shared_ptr<ECConfig> g_lpConfig;
 static bool g_listen_http, g_listen_https, g_listen_pipe;
 static ECLogger *g_lpLogger = nullptr;
 static ECLogger *g_lpAudit = nullptr;
@@ -799,7 +800,6 @@ static void cleanup(ECRESULT er)
 	}
 #endif
 	kopano_unloadlibrary();
-	delete g_lpConfig;
 	if (g_lpLogger) {
 		ec_log_always("Server shutdown complete.");
 		g_lpLogger->Release();
@@ -1020,7 +1020,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		SSL_library_cleanup(); //cleanup memory so valgrind is happy
 	});
 	// Load settings
-	g_lpConfig = ECConfig::Create(lpDefaults);
+	g_lpConfig.reset(ECConfig::Create(lpDefaults));
 	if (!g_lpConfig->LoadSettings(szConfig, !exp_config) ||
 	    g_lpConfig->ParseParams(trim_argc, trim_argv) < 0 ||
 	    (!m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) ) {
@@ -1031,7 +1031,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 			return retval;
 		}
 		ec_log_set(g_lpLogger);
-		LogConfigErrors(g_lpConfig);
+		LogConfigErrors(g_lpConfig.get());
 		er = MAPI_E_UNCONFIGURED;
 		return retval;
 	}
@@ -1045,7 +1045,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 			strerror(-ret));
 
 	// setup logging
-	g_lpLogger = CreateLogger(g_lpConfig, szName, "KopanoServer");
+	g_lpLogger = CreateLogger(g_lpConfig.get(), szName, "KopanoServer");
 	if (!g_lpLogger) {
 		fprintf(stderr, "Error in log configuration, unable to resume.\n");
 		er = MAPI_E_UNCONFIGURED;
@@ -1053,11 +1053,10 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 	ec_log_set(g_lpLogger);
 	if (m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())
-		LogConfigErrors(g_lpConfig);
-	if (!TmpPath::instance.OverridePath(g_lpConfig))
+		LogConfigErrors(g_lpConfig.get());
+	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path-setting!");
-
-	g_lpAudit = CreateLogger(g_lpConfig, szName, "KopanoServer", true);
+	g_lpAudit = CreateLogger(g_lpConfig.get(), szName, "KopanoServer", true);
 	if (g_lpAudit)
 		g_lpAudit->logf(EC_LOGLEVEL_NOTICE, "server startup uid=%d", getuid());
 	else
@@ -1065,14 +1064,14 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-server version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
 	if (g_lpConfig->HasWarnings())
-		LogConfigErrors(g_lpConfig);
+		LogConfigErrors(g_lpConfig.get());
 
 	/* setup connection handler */
 	g_lpSoapServerConn.reset(new(std::nothrow) ECSoapServerConnection(g_lpConfig));
-	er = ksrv_listen_inet(g_lpSoapServerConn.get(), g_lpConfig);
+	er = ksrv_listen_inet(g_lpSoapServerConn.get(), g_lpConfig.get());
 	if (er != erSuccess)
 		return retval;
-	er = ksrv_listen_pipe(g_lpSoapServerConn.get(), g_lpConfig);
+	er = ksrv_listen_pipe(g_lpSoapServerConn.get(), g_lpConfig.get());
 	if (er != erSuccess)
 		return retval;
 
@@ -1084,7 +1083,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		ec_log_warn("Either start the process as root, or increase user limits for open file descriptors.");
 	}
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
-	if (unix_runas(g_lpConfig)) {
+	if (unix_runas(g_lpConfig.get())) {
 		er = MAPI_E_CALL_FAILED;
 		return retval;
 	}
@@ -1170,7 +1169,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 #endif
 
 	// Test database settings
-	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig));
+	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig.get()));
 	// open database
 	er = lpDatabaseFactory->CreateDatabaseObject(&unique_tie(lpDatabase), dbError);
 	if(er == KCERR_DATABASE_NOT_FOUND) {
@@ -1198,13 +1197,13 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (daemonize && unix_daemonize(g_lpConfig)) {
+	if (daemonize && unix_daemonize(g_lpConfig.get())) {
 		er = MAPI_E_CALL_FAILED;
 		return retval;
 	}
 	if (!daemonize)
 		setsid();
-	unix_create_pidfile(szName, g_lpConfig);
+	unix_create_pidfile(szName, g_lpConfig.get());
 	mainthread = pthread_self();
 
 	// SIGSEGV backtrace support
@@ -1290,7 +1289,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		return retval;
 	//Init the main system, now you can use the values like session manager
 	// This also starts several threads, like SessionCleaner, NotificationThread and TPropsPurge.
-	er = kopano_init(g_lpConfig, g_lpAudit, hosted, distributed);
+	er = kopano_init(g_lpConfig.get(), g_lpAudit, hosted, distributed);
 	if (er != erSuccess) { // create SessionManager
 		ec_log_err("Unable to initialize kopano session manager");
 		return retval;

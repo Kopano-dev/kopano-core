@@ -401,9 +401,9 @@ void *ECWatchDog::Watch(void *lpParam)
     return NULL;
 }
 
-ECDispatcher::ECDispatcher(ECConfig *lpConfig)
+ECDispatcher::ECDispatcher(std::shared_ptr<ECConfig> lpConfig) :
+	m_lpConfig(std::move(lpConfig))
 {
-	m_lpConfig = lpConfig;
 	// Default socket settings
 	m_nRecvTimeout = atoi(m_lpConfig->GetSetting("server_recv_timeout"));
 	m_nReadTimeout = atoi(m_lpConfig->GetSetting("server_read_timeout"));
@@ -605,8 +605,8 @@ ECRESULT ECDispatcher::ShutDown()
     return erSuccess;
 }
 
-ECDispatcherSelect::ECDispatcherSelect(ECConfig *lpConfig) :
-	ECDispatcher(lpConfig)
+ECDispatcherSelect::ECDispatcherSelect(std::shared_ptr<ECConfig> lpConfig) :
+	ECDispatcher(std::move(lpConfig))
 {
     int pipes[2];
     pipe(pipes);
@@ -639,7 +639,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
     // This will start the threads
 	m_lpThreadManager = new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads")));
     // Start the watchdog
-	lpWatchDog = new ECWatchDog(m_lpConfig, this, m_lpThreadManager);
+	lpWatchDog = new ECWatchDog(m_lpConfig.get(), this, m_lpThreadManager);
 
     // Main loop
     while(!m_bExit) {
@@ -824,8 +824,8 @@ ECRESULT ECDispatcherSelect::NotifyRestart(SOAP_SOCKET s)
 }
 
 #ifdef HAVE_EPOLL_CREATE
-ECDispatcherEPoll::ECDispatcherEPoll(ECConfig *lpConfig) :
-	ECDispatcher(lpConfig)
+ECDispatcherEPoll::ECDispatcherEPoll(std::shared_ptr<ECConfig> lpConfig) :
+	ECDispatcher(std::move(lpConfig))
 {
 	m_fdMax = getdtablesize();
 	if (m_fdMax < 0)
@@ -864,7 +864,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	// This will start the threads
 	m_lpThreadManager = new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads")));
 	// Start the watchdog
-	lpWatchDog = new ECWatchDog(m_lpConfig, this, m_lpThreadManager);
+	lpWatchDog = new ECWatchDog(m_lpConfig.get(), this, m_lpThreadManager);
 
 	while (!m_bExit) {
 		time(&now);

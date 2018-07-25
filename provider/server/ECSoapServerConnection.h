@@ -6,6 +6,7 @@
 #ifndef ECSOAPSERVERCONNECTION_H
 #define ECSOAPSERVERCONNECTION_H
 
+#include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
 #include "ECThreadManager.h"
@@ -17,7 +18,7 @@ extern int kc_ssl_options(struct soap *, char *protos, const char *ciphers, cons
 
 class ECSoapServerConnection _kc_final {
 public:
-	ECSoapServerConnection(KC::ECConfig *);
+	ECSoapServerConnection(std::shared_ptr<KC::ECConfig>);
 	~ECSoapServerConnection();
 	ECRESULT ListenTCP(const char *host, int port);
 	ECRESULT ListenSSL(const char *host, int port, const char *keyfile, const char *keypass, const char *cafile, const char *capath);
@@ -32,7 +33,7 @@ public:
 private:
     // Main thread handler
     ECDispatcher *m_lpDispatcher;
-	KC::ECConfig *m_lpConfig;
+	std::shared_ptr<KC::ECConfig> m_lpConfig;
 };
 
 #endif // #ifndef ECSOAPSERVERCONNECTION_H

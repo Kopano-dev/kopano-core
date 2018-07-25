@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <memory>
 #include <utility>
 #include <cerrno>
 #include <cstdlib>
@@ -168,14 +169,14 @@ int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
 	return erSuccess;
 }
 
-ECSoapServerConnection::ECSoapServerConnection(ECConfig *lpConfig) :
-	m_lpConfig(lpConfig)
+ECSoapServerConnection::ECSoapServerConnection(std::shared_ptr<ECConfig> lpConfig) :
+	m_lpConfig(std::move(lpConfig))
 {
 #ifdef USE_EPOLL
-	m_lpDispatcher = new ECDispatcherEPoll(lpConfig);
+	m_lpDispatcher = new ECDispatcherEPoll(m_lpConfig);
 	ec_log_info("Using epoll events");
 #else
-	m_lpDispatcher = new ECDispatcherSelect(lpConfig);
+	m_lpDispatcher = new ECDispatcherSelect(m_lpConfig);
 	ec_log_info("Using select events");
 #endif
 }
@@ -287,7 +288,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	// Create a Unix or Windows pipe
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 	// set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket
-	lpsSoap->socket = sPipe = create_pipe_socket(lpPipeName, m_lpConfig, true, bPriority ? 0660 : 0666);
+	lpsSoap->socket = sPipe = create_pipe_socket(lpPipeName, m_lpConfig.get(), true, bPriority ? 0660 : 0666);
 	// This just marks the socket as being a pipe, which triggers some slightly different behaviour
 	strcpy(lpsSoap->path,"pipe");
 	if (sPipe == -1)
