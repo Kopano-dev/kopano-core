@@ -15,6 +15,7 @@
 #include <kopano/ECChannel.h>
 #include <kopano/ecversion.h>
 #include <kopano/MAPIErrors.h>
+#include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/scope.hpp>
 #include "soapH.h"
@@ -81,8 +82,7 @@ static bool m_bIgnoreDbThreadStackSize = false;
 static pthread_t mainthread;
 std::shared_ptr<ECConfig> g_lpConfig;
 static bool g_listen_http, g_listen_https, g_listen_pipe;
-static ECLogger *g_lpLogger = nullptr;
-static ECLogger *g_lpAudit = nullptr;
+static object_ptr<ECLogger> g_lpLogger, g_lpAudit;
 static std::unique_ptr<ECScheduler> g_lpScheduler;
 static std::unique_ptr<ECSoapServerConnection> g_lpSoapServerConn;
 static bool m_bDatabaseUpdateIgnoreSignals = false;
@@ -166,7 +166,7 @@ static void process_signal(int sig)
 
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
-	generic_sigsegv_handler(g_lpLogger, "kopano-server", PROJECT_VERSION, signr, si, uc);
+	generic_sigsegv_handler(g_lpLogger.get(), "kopano-server", PROJECT_VERSION, signr, si, uc);
 }
 
 static ECRESULT check_database_engine(ECDatabase *lpDatabase)
@@ -800,12 +800,7 @@ static void cleanup(ECRESULT er)
 	}
 #endif
 	kopano_unloadlibrary();
-	if (g_lpLogger) {
-		ec_log_always("Server shutdown complete.");
-		g_lpLogger->Release();
-	}
-	if (g_lpAudit)
-		g_lpAudit->Release();
+	ec_log_always("Server shutdown complete.");
 	// cleanup ICU data so valgrind is happy
 	u_cleanup();
 }
@@ -1025,7 +1020,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	    g_lpConfig->ParseParams(trim_argc, trim_argv) < 0 ||
 	    (!m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) ) {
 		/* Create info logger without a timestamp to stderr. */
-		g_lpLogger = new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);
+		g_lpLogger.reset(new(std::nothrow) ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false));
 		if (g_lpLogger == nullptr) {
 			er = MAPI_E_NOT_ENOUGH_MEMORY;
 			return retval;
@@ -1045,7 +1040,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 			strerror(-ret));
 
 	// setup logging
-	g_lpLogger = CreateLogger(g_lpConfig.get(), szName, "KopanoServer");
+	g_lpLogger.reset(CreateLogger(g_lpConfig.get(), szName, "KopanoServer"));
 	if (!g_lpLogger) {
 		fprintf(stderr, "Error in log configuration, unable to resume.\n");
 		er = MAPI_E_UNCONFIGURED;
@@ -1056,7 +1051,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		LogConfigErrors(g_lpConfig.get());
 	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path-setting!");
-	g_lpAudit = CreateLogger(g_lpConfig.get(), szName, "KopanoServer", true);
+	g_lpAudit.reset(CreateLogger(g_lpConfig.get(), szName, "KopanoServer", true));
 	if (g_lpAudit)
 		g_lpAudit->logf(EC_LOGLEVEL_NOTICE, "server startup uid=%d", getuid());
 	else
@@ -1289,7 +1284,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		return retval;
 	//Init the main system, now you can use the values like session manager
 	// This also starts several threads, like SessionCleaner, NotificationThread and TPropsPurge.
-	er = kopano_init(g_lpConfig.get(), g_lpAudit, hosted, distributed);
+	er = kopano_init(g_lpConfig.get(), g_lpAudit.get(), hosted, distributed);
 	if (er != erSuccess) { // create SessionManager
 		ec_log_err("Unable to initialize kopano session manager");
 		return retval;
