@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <memory>
 #include <string>
 #include "rules.h"
 #include <mapi.h>
@@ -29,7 +30,7 @@ using namespace KC;
 using namespace KC::string_literals;
 using std::string;
 using std::wstring;
-extern ECConfig *g_lpConfig;
+extern std::shared_ptr<ECConfig> g_lpConfig;
 
 enum actstatus {
 	ROP_FAILURE,

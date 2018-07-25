@@ -44,7 +44,7 @@ using namespace KC;
 using std::list;
 using std::string;
 using std::wstring;
-extern ECConfig *g_lpConfig;
+extern std::shared_ptr<ECConfig> g_lpConfig;
 
 /**
  * Expand all rows in the lpTable to normal user recipient
@@ -1707,7 +1707,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	sopt.always_expand_distr_list = parseBool(g_lpConfig->GetSetting("expand_groups"));
 
 	// Init plugin system
-	auto hr = pyMapiPluginFactory.create_plugin(g_lpConfig, "SpoolerPluginManager", &unique_tie(ptrPyMapiPlugin));
+	auto hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "SpoolerPluginManager", &unique_tie(ptrPyMapiPlugin));
 	if (hr != hrSuccess) {
 		ec_log_crit("K-1733: Unable to initialize the spooler plugin system: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);

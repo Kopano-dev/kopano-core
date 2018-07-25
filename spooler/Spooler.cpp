@@ -92,8 +92,8 @@ static int disconnects = 0;
 static const char *szCommand = NULL;
 static const char *szConfig = ECConfig::GetDefaultPath("spooler.cfg");
 static bool sp_exp_config;
-extern ECConfig *g_lpConfig;
-ECConfig *g_lpConfig = NULL;
+extern std::shared_ptr<ECConfig> g_lpConfig;
+std::shared_ptr<ECConfig> g_lpConfig;
 static ECLogger *g_lpLogger;
 static bool g_dump_config;
 
@@ -983,8 +983,7 @@ int main(int argc, char *argv[]) {
 
 	if (bForked)
 		bIgnoreUnknownConfigOptions = true;
-
-	g_lpConfig = ECConfig::Create(lpDefaults);
+	g_lpConfig.reset(ECConfig::Create(lpDefaults));
 	int argidx = 0;
 	if (!g_lpConfig->LoadSettings(szConfig, !sp_exp_config) ||
 	    (argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind])) < 0 ||
@@ -994,7 +993,7 @@ int main(int argc, char *argv[]) {
 		if (g_lpLogger == nullptr)
 			return EXIT_FAILURE; /* MAPI_E_NOT_ENOUGH_MEMORY */
 		ec_log_set(g_lpLogger);
-		LogConfigErrors(g_lpConfig);
+		LogConfigErrors(g_lpConfig.get());
 		return EXIT_FAILURE; /* E_FAIL */
 	}
 	// ECConfig::ParseParams returns the index in the passed array,
@@ -1019,14 +1018,14 @@ int main(int argc, char *argv[]) {
 	if (bForked && logfd != -1)
 		g_lpLogger = new ECLogger_Pipe(logfd, 0, atoi(g_lpConfig->GetSetting("log_level")));
 	else
-		g_lpLogger = CreateLogger(g_lpConfig, argv[0], "KopanoSpooler");
+		g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0], "KopanoSpooler");
 
 	ec_log_set(g_lpLogger);
 	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
-		LogConfigErrors(g_lpConfig);
+		LogConfigErrors(g_lpConfig.get());
 	if (g_dump_config)
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
-	if (!TmpPath::instance.OverridePath(g_lpConfig))
+	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path setting!");
 
 	// set socket filename
@@ -1069,22 +1068,22 @@ int main(int argc, char *argv[]) {
 	AutoMAPI mapiinit;
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig)) {
+	if (unix_runas(g_lpConfig.get())) {
 		ec_log_crit("main(): run_as failed");
 		goto exit;
 	}
-	if (daemonize && unix_daemonize(g_lpConfig)) {
+	if (daemonize && unix_daemonize(g_lpConfig.get())) {
 		ec_log_crit("main(): failed daemonizing");
 		goto exit;
 	}
 
 	if (!daemonize)
 		setsid();
-	if (!bForked && unix_create_pidfile(argv[0], g_lpConfig, false) < 0) {
+	if (!bForked && unix_create_pidfile(argv[0], g_lpConfig.get(), false) < 0) {
 		ec_log_crit("main(): Failed creating PID file");
 		goto exit;
 	}
-	g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger);
+	g_lpLogger = StartLoggerProcess(g_lpConfig.get(), g_lpLogger);
 	ec_log_set(g_lpLogger);
 	g_lpLogger->SetLogprefix(LP_PID);
 
@@ -1104,7 +1103,6 @@ int main(int argc, char *argv[]) {
 	if (!bForked)
 		ec_log_info("Spooler shutdown complete");
 exit:
-	delete g_lpConfig;
 	DeleteLogger(g_lpLogger);
 	switch(hr) {
 	case hrSuccess:
