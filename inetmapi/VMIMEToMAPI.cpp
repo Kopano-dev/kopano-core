@@ -2769,10 +2769,17 @@ static std::string fix_content_type_charset(const char *in, const char *cset)
 		}
 		if (strncasecmp(in, "charset=", 8) == 0) {
 			in += 8;
-			cset = in;
-			while (!isspace(*in) && *in != ';' && *in != '\0')
-				++in;	/* skip value */
-			cset_end = in;
+			if (*in == '"') {
+				cset = ++in;
+				while (*in != '\0' && *in != '"')
+					++in;
+				cset_end = in;
+			} else {
+				cset = in;
+				while (!isspace(*in) && *in != ';' && *in != '\0')
+					++in;	/* skip value */
+				cset_end = in;
+			}
 			continue;
 			/* continue parsing for more charset= values */
 		}
