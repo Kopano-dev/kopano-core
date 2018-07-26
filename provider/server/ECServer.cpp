@@ -166,9 +166,6 @@ static void process_signal(int sig)
 	}
 }
 
-// SIGSEGV catcher
-#include <execinfo.h>
-
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
 	generic_sigsegv_handler(g_lpLogger, "kopano-server", PROJECT_VERSION, signr, si, uc);
