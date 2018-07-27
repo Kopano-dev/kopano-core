@@ -804,6 +804,33 @@ The secret access key of your S3 account.
 .SS attachment_s3_bucketname
 .PP
 The bucket name in which the files will be stored.
+.SH "EXPLANATION OF OPENID CONNECT PARAMETERS"
+.SS kcoidc_issuer_identifier
+.PP
+The OpenID Connect Issuer Identifier.
+.PP
+When set, the server attempts OIDC discovery using the configured issuer identifier on startup. An Issuer Identifier is a case sensitive URL using the https scheme that contains scheme, host, and optionally, port number and path components. This no Issuer Identifier is set, OIDC support is disabled.
+.PP
+No default set.
+.PP
+Example:
+\fIhttps://your-kopano-konnect.local\fR
+.SS kcoidc_insecure_skip_verify
+.PP
+Skip OpenID Connect client security.
+.PP
+When set to yes, TLS certificate validation is skipped for all requests related to OpenID Connect. This is insecure and should not be used in production setups.
+.PP
+Default:
+\fIno\fR
+.SS kcoidc_initialize_timeout
+.PP
+Timeout in seconds when to give up OpenID Connect discovery.
+.PP
+When the OIDC initialize timeout is reached, server continues startup without OIDC and all OIDC validation will fail until the discovery completes. When set to 0, the server startup does not wait for OIDC discovery at all.
+.PP
+Default:
+\fI60\fR
 .SH "EXPLANATION OF MISCELLEANIOUS PARAMETERS"
 .SS enable_hosted_kopano
 .PP
