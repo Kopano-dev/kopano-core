@@ -217,8 +217,7 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 		std::wstring wstrError = mToVM.getConversionError();
 		if (wstrError.empty())
 			wstrError = L"No error details specified";
-
-		mailer->setError(L"Conversion error: " + wstringify(hr, true) + L". " + wstrError + L". Your email is not sent at all and cannot be retried.");
+		mailer->setError(L"Conversion error: " + wstringify_hex(hr) + L". " + wstrError + L". Your email is not sent at all and cannot be retried.");
 		return hr;
 	}
 

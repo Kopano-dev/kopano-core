@@ -399,10 +399,10 @@ std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 				   KC_T("<P>")
 				<< _("Error code:")
 				<< KC_T("<SPAN id=\"errcode\">")
-				<< tstringify(hResult, true)
+				<< tstringify_hex(hResult)
 				<< KC_T("</SPAN> (<SPAN id=\"errmsg\">")
 				<< convert_to<tstring>(GetMAPIErrorMessage(hResult))
-				<< KC_T(" (") << tstringify(hResult, true) << KC_T(")")
+				<< KC_T(" (") << tstringify_hex(hResult) << KC_T(")")
 				<< KC_T("</SPAN>)</P>");
 
 	if (hResult == MAPI_E_NO_SUPPORT) {

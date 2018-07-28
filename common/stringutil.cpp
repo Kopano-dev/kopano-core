@@ -69,17 +69,11 @@ std::string stringify_double(double x, int prec, bool bLocale) {
 	return s.str();
 }
 
-std::wstring wstringify(unsigned int x, bool usehex)
+std::wstring wstringify_hex(unsigned int x)
 {
-	std::wostringstream s;
-
-	if (usehex) {
-		s.flags(std::ios::showbase);
-		s.setf(std::ios::hex, std::ios::basefield); // showbase && basefield: add 0x prefix
-		s.setf(std::ios::uppercase);
-	}
-	s << x;
-	return s.str();
+	wchar_t b[33];
+	swprintf(b, ARRAY_SIZE(b), L"0x%08X", x);
+	return b;
 }
 
 int memsubstr(const void* haystack, size_t haystackSize, const void* needle, size_t needleSize)
