@@ -18,16 +18,22 @@
 
 namespace KC {
 
-std::string stringify(unsigned int x, bool usehex, bool _signed) {
+std::string stringify(unsigned int x, bool usehex)
+{
 	char szBuff[33];
 
 	if(usehex)
 		sprintf(szBuff, "0x%08X", x);
-	else if (_signed)
-		sprintf(szBuff, "%d", x);
 	else
 		sprintf(szBuff, "%u", x);
 	return szBuff;
+}
+
+std::string stringify_signed(int x)
+{
+	char b[33];
+	snprintf(b, sizeof(b), "%d", x);
+	return b;
 }
 
 std::string stringify_int64(int64_t x, bool usehex) {
@@ -67,8 +73,7 @@ std::string stringify_double(double x, int prec, bool bLocale) {
 	return s.str();
 }
 
-// FIXME support only unsigned int!!!
-std::wstring wstringify(unsigned int x, bool usehex, bool _signed)
+std::wstring wstringify(unsigned int x, bool usehex)
 {
 	std::wostringstream s;
 

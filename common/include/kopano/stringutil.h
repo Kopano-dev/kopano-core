@@ -65,11 +65,12 @@ static inline std::wstring wstringify(unsigned int x)
 	return std::to_wstring(x);
 }
 
-extern _kc_export std::string stringify(unsigned int x, bool usehex, bool _signed = false);
+extern _kc_export std::string stringify(unsigned int x, bool usehex);
+extern _kc_export std::string stringify_signed(int);
 extern _kc_export std::string stringify_int64(int64_t, bool usehex = false);
 extern _kc_export std::string stringify_float(float);
 extern _kc_export std::string stringify_double(double, int prec = 18, bool locale = false);
-extern _kc_export std::wstring wstringify(unsigned int x, bool usehex, bool _signed = false);
+extern _kc_export std::wstring wstringify(unsigned int x, bool usehex);
 
 #define tstringify			wstringify
 

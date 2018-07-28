@@ -1564,7 +1564,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 		ct.SetColumn(0, COL_AVAILABLE, "-");
 	} else {
 		ct.SetColumn(0, COL_ALLOWED, stringify(ulLicensedUsers));
-		ct.SetColumn(0, COL_AVAILABLE, stringify(ulLicensedUsers - ulActiveUsers - ulActiveAsNonActive, false, true));
+		ct.SetColumn(0, COL_AVAILABLE, stringify_signed(ulLicensedUsers - ulActiveUsers - ulActiveAsNonActive));
 	}
 
 	ct.SetColumn(1, 0, "Non-active");
@@ -1576,12 +1576,12 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 		ct.SetColumn(1, COL_ALLOWED, "no limit");
 		ct.SetColumn(1, COL_AVAILABLE, "-");
 	} else {
-		ct.SetColumn(1, COL_ALLOWED, stringify(ulMaxTotal - ulLicensedUsers, false, true));
+		ct.SetColumn(1, COL_ALLOWED, stringify_signed(ulMaxTotal - ulLicensedUsers));
 		if (ulNonActiveTotal > ulNonActiveLow)
-			ct.SetColumn(1, COL_AVAILABLE, "0 (+" + stringify(ulLicensedUsers - ulActiveUsers - ulActiveAsNonActive, false, true) + ")");
+			ct.SetColumn(1, COL_AVAILABLE, "0 (+" + stringify_signed(ulLicensedUsers - ulActiveUsers - ulActiveAsNonActive) + ")");
 		else
-			ct.SetColumn(1, COL_AVAILABLE, stringify(ulNonActiveLow - ulNonActiveTotal, false, true) +
-					" (+" + stringify(ulLicensedUsers - ulActiveUsers - ulActiveAsNonActive, false, true) + ")");
+			ct.SetColumn(1, COL_AVAILABLE, stringify_signed(ulNonActiveLow - ulNonActiveTotal) +
+					" (+" + stringify_signed(ulLicensedUsers - ulActiveUsers - ulActiveAsNonActive) + ")");
 	}
 
 	if (ulNonActiveUsers != (ULONG)-1) {
