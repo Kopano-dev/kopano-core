@@ -18,15 +18,11 @@
 
 namespace KC {
 
-std::string stringify(unsigned int x, bool usehex)
+std::string stringify_hex(unsigned int x)
 {
-	char szBuff[33];
-
-	if(usehex)
-		sprintf(szBuff, "0x%08X", x);
-	else
-		sprintf(szBuff, "%u", x);
-	return szBuff;
+	char b[33];
+	snprintf(b, sizeof(b), "0x%08X", x);
+	return b;
 }
 
 std::string stringify_signed(int x)

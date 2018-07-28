@@ -81,7 +81,7 @@ std::string AclRightsToString(unsigned ulRights)
 	if (IsRight(ulRights)) {
 		const AclRightName *lpRightName = FindAclRight(ulRights);
 		if (lpRightName == NULL)
-			return stringify(ulRights, true);
+			return stringify_hex(ulRights);
 		return lpRightName->szRight;
 	}
 

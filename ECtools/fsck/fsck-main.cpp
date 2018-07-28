@@ -77,7 +77,7 @@ static HRESULT FixProperty(LPMESSAGE lpMessage, const std::string &strName,
 	/* NOTE: Named properties don't have the PT value set by default,
 	   The caller of this function should have taken care of this. */
 	if (PROP_ID(ulTag) == 0 || PROP_TYPE(ulTag) == 0) {
-		cout << "Invalid property tag: " << stringify(ulTag, true) << endl;
+		cout << "Invalid property tag: " << stringify_hex(ulTag) << endl;
 		return MAPI_E_INVALID_PARAMETER;
 	}
 	auto hr = lpMessage->SetProps(1, &ErrorProp, nullptr);

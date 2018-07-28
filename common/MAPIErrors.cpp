@@ -148,7 +148,7 @@ std::string getMapiCodeString(HRESULT hr, const char* object /* = "object" */)
 	case MAPI_E_INVALID_TYPE:
 		return "invalid type combination";
 	default:
-		return retval + std::string(" (") + stringify(hr, true) + std::string(")");
+		return retval + " (" + stringify_hex(hr) + ")";
 	};
 }
 
