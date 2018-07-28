@@ -112,7 +112,7 @@ public:
 	ECTableRow(const sObjectTableKey &, std::vector<ECSortCol> &&, bool hidden);
 	ECTableRow(sObjectTableKey &&, std::vector<ECSortCol> &&, bool hidden);
 	ECTableRow(const ECTableRow &other);
-	_kc_hidden unsigned int GetObjectSize(void) const;
+	_kc_hidden size_t GetObjectSize() const;
 	_kc_hidden static bool rowcompare(const ECTableRow *, const ECTableRow *);
 	_kc_hidden static bool rowcompare(const ECSortColView &, const ECSortColView &, bool ignore_order = false);
 	_kc_hidden static bool rowcompareprefix(size_t prefix, const std::vector<ECSortCol> &, const std::vector<ECSortCol> &);
@@ -176,7 +176,7 @@ public:
 	ECRESULT Find(const std::vector<ECSortCol> &, sObjectTableKey *);
 	ECRESULT UpdatePartialSortKey(sObjectTableKey *lpsRowItem, size_t ulColumn, const ECSortCol &, sObjectTableKey *lpsPrevRow, bool *lpfHidden, ECKeyTable::UpdateType *lpulAction);
 	ECRESULT 	GetRow(sObjectTableKey *lpsRowItem, ECTableRow **lpRow);
-	unsigned int GetObjectSize();
+	size_t GetObjectSize();
 
 private:
 	_kc_hidden ECRESULT UpdateCounts(ECTableRow *);
