@@ -108,7 +108,7 @@ struct SESSION {
 	std::string strUser, strIP, strBusy, strState, strPeer;
 	std::string strClientVersion, strClientApp, strClientAppVersion;
 	std::string strClientAppMisc;
-    
+
     bool operator <(const SESSION &b) const
     {
         return this->dtimes.dblReal > b.dtimes.dblReal;
@@ -129,7 +129,7 @@ static std::string GetString(const SRow &row, ULONG ulPropTag)
 	auto lpProp = row.cfind(ulPropTag);
     if(lpProp == NULL)
         return "";
-        
+
     switch(PROP_TYPE(ulPropTag)) {
         case PT_STRING8: return lpProp->Value.lpszA;
         case PT_MV_STRING8: {
@@ -146,7 +146,7 @@ static std::string GetString(const SRow &row, ULONG ulPropTag)
             return s;
         }
     }
-    
+
     return "";
 }
 
@@ -155,7 +155,7 @@ static unsigned long long GetLongLong(const SRow &row, ULONG ulPropTag)
 	auto lpProp = row.cfind(ulPropTag);
     if(lpProp == NULL)
         return -1;
-        
+
     switch(PROP_TYPE(ulPropTag)) {
         case PT_LONG: return lpProp->Value.ul;
         case PT_LONGLONG: return lpProp->Value.li.QuadPart;
@@ -169,11 +169,11 @@ static double GetDouble(const SRow &row, ULONG ulPropTag)
 	auto lpProp = row.cfind(ulPropTag);
     if(lpProp == NULL)
         return 0;
-        
+
     switch(PROP_TYPE(ulPropTag)) {
         case PT_DOUBLE: return lpProp->Value.dbl;
     }
-    
+
     return 0;
 }
 
@@ -205,7 +205,7 @@ static void showtop(LPMDB lpStore)
         return;
     }
 
-    cbreak(); 
+	cbreak();
     noecho();
     nonl();
     nodelay(win, TRUE);
@@ -229,7 +229,7 @@ static void showtop(LPMDB lpStore)
 		auto cr_now = std::chrono::steady_clock::now();
 		auto dblTime = dur2dbl(cr_now - dblLast);
 		dblLast = std::move(cr_now);
-            
+
         for (ULONG i = 0; i < lpsRowSet->cRows; ++i) {
 		auto lpName  = lpsRowSet[i].cfind(PR_DISPLAY_NAME_A);
 		auto lpValue = lpsRowSet[i].cfind(PR_EC_STATS_SYSTEM_VALUE);
@@ -238,20 +238,20 @@ static void showtop(LPMDB lpStore)
                 mapStats[lpName->Value.lpszA] = lpValue->Value.lpszA;
             }
         }
-        
+
         hr = lpStore->OpenProperty(PR_EC_STATSTABLE_SESSIONS, &IID_IMAPITable, 0, 0, &~lpTable);
         if(hr != hrSuccess)
             goto exit;
         hr = lpTable->QueryRows(-1, 0, &~lpsRowSet);
         if(hr != hrSuccess)
             break;
-            
+
 		std::list<SESSION> lstSessions;
 		std::map<unsigned long long, unsigned int> mapSessionGroups;
 		std::set<std::string> setUsers;
 		double dblUser = 0, dblSystem = 0;
 		unsigned int ulSessGrp = 1;
-        
+
         for (ULONG i = 0; i < lpsRowSet->cRows; ++i) {
             SESSION session;
 
@@ -279,10 +279,10 @@ static void showtop(LPMDB lpStore)
                 session.dtimes.dblUser = (session.times.dblUser - iterTimes->second.dblUser) / dblTime;
                 session.dtimes.dblSystem = (session.times.dblSystem - iterTimes->second.dblSystem) / dblTime;
                 session.dtimes.dblReal = (session.times.dblReal - iterTimes->second.dblReal) / dblTime;
-                
+
                 dblUser += session.dtimes.dblUser;
                 dblSystem += session.dtimes.dblSystem;
-                
+
                 session.dtimes.ulRequests = session.times.ulRequests - iterTimes->second.ulRequests;
             } else {
                 session.dtimes.dblUser = session.dtimes.dblSystem = session.dtimes.dblReal = 0;
@@ -310,7 +310,7 @@ static void showtop(LPMDB lpStore)
 		auto now = time(nullptr);
 		strftime(date, sizeof(date), "%c", localtime(&now) );
         wprintw(win, "Last update: %s (%.1fs since last)", date, dblTime);
-		
+
         wmove(win, 1,0);
         wprintw(win, "Sess: %d", lstSessions.size());
         wmove(win, 1, 12);
@@ -351,7 +351,7 @@ static void showtop(LPMDB lpStore)
         if (bColumns[9]) { wmove(win, 4, ofs); wprintw(win, "NREQ");		ofs += cols[10]; }
         if (bColumns[10]) { wmove(win, 4, ofs); wprintw(win, "STAT");		ofs += cols[11]; }
         if (bColumns[11]) { wmove(win, 4, ofs); wprintw(win, "TASK"); }
-        
+
 	for (const auto &ses : lstSessions) {
 		if (ses.dtimes.dblUser + ses.dtimes.dblSystem > 0)
                 wattron(win, A_BOLD);
@@ -433,7 +433,7 @@ static void showtop(LPMDB lpStore)
 			}
 
             ++line;
-            
+
             if(line + 5>= wy)
             	break;
         }
@@ -464,7 +464,7 @@ exit:
 	cerr << "Not compiled with ncurses support." << endl;
 #endif
 }
- 
+
 static std::string mapitable_ToString(const SPropValue *lpProp)
 {
 	switch (PROP_TYPE(lpProp->ulPropTag)) {
@@ -615,7 +615,7 @@ int main(int argc, char *argv[])
 		cerr << "Cannot init mapi" << endl;
 		return EXIT_FAILURE;
 	}
-	
+
 	if(user) {
         pass = get_password("Enter password:");
         if(!pass) {

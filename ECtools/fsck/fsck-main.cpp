@@ -412,7 +412,7 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 				continue;
 			}
 
-			// Invalid or missing entryid 
+			// Invalid or missing entryid
 			if (pRows[i].lpProps[4].ulPropTag != PR_ENTRYID ||
 			    pRows[i].lpProps[4].Value.bin.cb == 0) {
 				mapiReciptDel.emplace_back(pRows[i].lpProps[0].Value.ul);

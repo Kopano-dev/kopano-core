@@ -871,12 +871,12 @@ HRESULT ECQuotaMonitor::CreateQuotaWarningMail(TemplateVariables *lpVars,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Opens the store of a company or user
- * 
+ *
  * @param[in] szStoreName company or user name
  * @param[out] lppStore opened store
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass, LPMDB *lppStore)
@@ -908,11 +908,11 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
 	return hr;
 }
 
-/** 
+/**
  * Check the last mail time for the quota message.
- * 
+ *
  * @param lpStore Store that is over quota
- * 
+ *
  * @retval hrSuccess User should not receive quota message
  * @retval MAPI_E_TIMEOUT User should receive quota message
  * @return MAPI Error code

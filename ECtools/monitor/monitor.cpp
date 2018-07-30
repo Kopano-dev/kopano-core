@@ -179,7 +179,7 @@ static ECRESULT main2(int argc, char **argv)
 		auto c = my_getopt_long_permissive(argc, argv, "c:h:iuFV", long_options, NULL);
 		if(c == -1)
 			break;
-			
+
 		switch(c) {
 		case OPT_CONFIG:
 		case 'c':

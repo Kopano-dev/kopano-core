@@ -80,7 +80,7 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 
 	if(result[E_SUBJECT].empty()) {
 		__UPV Value;
-		
+
 		Value.lpszA = const_cast<char *>(result[E_FULLNAME].c_str());
         hr = ReplaceProperty(lpMessage, "PR_SUBJECT", PR_SUBJECT_A, "No subject was provided", Value);
 		if (hr != hrSuccess)

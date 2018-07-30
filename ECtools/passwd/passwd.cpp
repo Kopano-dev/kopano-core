@@ -152,7 +152,7 @@ static int main2(int argc, char **argv)
 			break;
 		case 'V':
 			cout << "kopano-passwd " PROJECT_VERSION << endl;
-			return 1;			
+			return 1;
 		case 'v':
 			verbose = true;
 			break;

@@ -313,7 +313,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 		cout << "Wrong username or password." << endl;
 		return hr;
 	}
-	
+
 	if (bPublic) {
 		hr = HrOpenECPublicStore(lpSession, &~lpStore);
 		if (hr != hrSuccess) {
@@ -348,7 +348,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
             cout << "Cannot open user store of user" << endl;
 		return hr;
         }
-        
+
         lpReadStore = lpAltStore;
 	} else {
 	    lpReadStore = lpStore;
