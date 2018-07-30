@@ -230,7 +230,6 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 
 	if (setServers.empty()) {
 		// call server function with current lpMDBAdmin / lpServiceAdmin
-		
 		hr = CheckServerQuota(cUsers, lpsUserList, lpecCompany, m_lpMDBAdmin);
 		if (hr != hrSuccess)
 			return kc_perror("Unable to check server quota", hr);

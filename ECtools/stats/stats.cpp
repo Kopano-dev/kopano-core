@@ -570,7 +570,6 @@ int main(int argc, char *argv[])
 
 	setlocale(LC_MESSAGES, "");
 	setlocale(LC_CTYPE, "");
-	
 	if(argc < 2) {
 		print_help(argv[0]);
 		return 1;

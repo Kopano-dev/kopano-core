@@ -508,7 +508,6 @@ int main(int argc, char *argv[])
 		print_help(argv[0]);
 		return 1;
 	}
-	
 	if (bPrompt) {
 		strPass = get_password("Enter password:");
 		if(!strPass) {
@@ -516,7 +515,6 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 	}
-
 	if (checkmap.empty()) {
 		if (!bAll)
 			cout << "Filter arguments missing, defaulting to --all" << endl;
