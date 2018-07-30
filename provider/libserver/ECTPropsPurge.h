@@ -33,7 +33,6 @@ private:
     ECRESULT PurgeThread();
     ECRESULT PurgeOverflowDeferred(ECDatabase *lpDatabase);
     static ECRESULT GetDeferredCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int *lpulCount);
-    
     static void *Thread(void *param);
 
 	std::mutex m_hMutexExit;

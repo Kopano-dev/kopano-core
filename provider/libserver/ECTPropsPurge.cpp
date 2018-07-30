@@ -78,7 +78,6 @@ ECRESULT ECTPropsPurge::PurgeThread()
     
     while(1) {
     	// Run in a loop constantly checking our deferred update table
-    	
         if(!lpDatabase) {
 			er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
             if(er != erSuccess) {
@@ -166,7 +165,6 @@ ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int *l
 	ec_log_err("ECTPropsPurge::GetDeferredCount(): row or column null");
 		return KCERR_DATABASE_ERROR;
     }
-    
     *lpulCount = atoui(lpRow[0]);
         return erSuccess;
 }
@@ -212,7 +210,6 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 	unsigned int ulAffected;
 	DB_RESULT lpDBResult;
 	DB_ROW lpDBRow = NULL;
-
 	std::string strIn;
 	
 	// This makes sure that we lock the record in the hierarchy *first*. This helps in serializing access and avoiding deadlocks.
@@ -237,7 +234,6 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 			
 	strQuery = "REPLACE INTO tproperties (folderid, hierarchyid, tag, type, val_ulong, val_string, val_binary, val_double, val_longint, val_hi, val_lo) ";
 	strQuery += "SELECT " + stringify(ulFolderId) + ", p.hierarchyid, p.tag, p.type, val_ulong, LEFT(val_string, " + stringify(TABLE_CAP_STRING) + "), LEFT(val_binary, " + stringify(TABLE_CAP_BINARY) + "), val_double, val_longint, val_hi, val_lo FROM properties AS p JOIN deferredupdate ON deferredupdate.hierarchyid=p.hierarchyid WHERE tag NOT IN(4105, 4115) AND deferredupdate.folderid = " + stringify(ulFolderId);
-
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		return er;
@@ -311,7 +307,6 @@ ECRESULT ECTPropsPurge::AddDeferredUpdateNoPurge(ECDatabase *lpDatabase, unsigne
 	else
 		// Message has modified. If there is already a record for this message, we don't need to do anything
 		strQuery = "INSERT IGNORE INTO deferredupdate(hierarchyid, srcfolderid, folderid) VALUES(" + stringify(ulObjId) + "," + stringify(ulFolderId) + "," + stringify(ulFolderId) + ")";
-		
 	return lpDatabase->DoInsert(strQuery);
 }
 

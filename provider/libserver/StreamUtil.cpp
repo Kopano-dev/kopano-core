@@ -105,7 +105,6 @@ extern ECSessionManager *g_lpSessionManager;	// ECServerEntrypoint.cpp
 class NamedPropertyMapper {
 public:
 	NamedPropertyMapper(ECDatabase *lpDatabase);
-
 	ECRESULT GetId(const GUID &guid, unsigned int ulNameId, unsigned int *lpId);
 	ECRESULT GetId(const GUID &guid, const std::string &strNameString, unsigned int *lpId);
 
@@ -369,6 +368,7 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 	locale_t loc = createlocale(LC_NUMERIC, "C");
 	convert_context converter;
 	hiloLong hilo;
+
 	auto er = GetValidatedPropType(lpRow, &type);
 	if (er == KCERR_DATABASE_ERROR) {
 		er = erSuccess;
@@ -377,7 +377,6 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 	else if (er != erSuccess) {
 		goto exit;
 	}
-
 	ulPropTag = PROP_TAG(type, atoi(lpRow[FIELD_NR_TAG]));
 	er = lpSink->Write(&ulPropTag, sizeof(ulPropTag), 1);
 	if (er != erSuccess)
@@ -624,7 +623,6 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 	if (PROP_ID(ulPropTag) > 0x8500) {
 		// Send out the GUID.
 		er = lpSink->Write(lpRow[FIELD_NR_NAMEGUID], 1, lpLen[FIELD_NR_NAMEGUID]);
-
 		if (er == erSuccess && lpRow[FIELD_NR_NAMEID] != NULL) {
 			unsigned int ulKind = MNID_ID, ulNameId = atoui(lpRow[FIELD_NR_NAMEID]);
 			er = lpSink->Write(&ulKind, sizeof(ulKind), 1);
@@ -792,7 +790,6 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
 	
 	if (PROP_ID(sPropVal.ulPropTag) <= 0x8500)
 		return er;
-
 	// If property is named property in the dynamic range we need to add some extra info
 	assert(lpNamedPropDefs != NULL && iNamedPropDef != lpNamedPropDefs->cend());
 	// Send out the GUID.
@@ -822,7 +819,6 @@ static ECRESULT SerializeProps(struct propValArray *lpPropVals,
 	auto er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
 	if (er != erSuccess)
 		return er;
-    	
 	for (unsigned int i = 0; i < ulCount; ++i) {
 		er = SerializePropVal(lpStreamCaps, lpPropVals->__ptr[i], lpSink, lpNamedPropDefs);
 	        if (er != erSuccess)
@@ -853,7 +849,6 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
     GUID *lpsGuid, ULONG ulFlags, ECSerializer *lpSink, bool bTop)
 {
 	unsigned int	ulCount = 0;
-
 	struct soap		*soap = NULL;
 	struct propVal sPropVal;
 	DB_ROW 			lpDBRow = NULL;
@@ -862,7 +857,6 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	object_ptr<IStream> lpIStream;
 	ECStreamSerializer *	lpTempSink = NULL;
 	bool			bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
-
 	std::list<struct propVal> sPropValList;
 
 	assert(lpStreamCaps != NULL);
@@ -882,7 +876,6 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 	// We'll (ab)use a soap structure as a memory pool.
 	soap = soap_new();
-	
 	// PR_SOURCE_KEY
 	if (bTop && ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_SOURCE_KEY, ulObjId, 0, ulStoreId, 0, ulObjType, &sPropVal) == erSuccess)
 		sPropValList.emplace_back(sPropVal);
@@ -920,7 +913,6 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 			ec_log_err("SerializeProps(): fetchrow/fetchrowlengths failed");
 			goto exit;
 		}
-
 		er = SerializeDatabasePropVal(lpStreamCaps, lpDBRow, lpDBLen, lpTempSink);
 		if (er != erSuccess)
 			goto exit;
@@ -938,11 +930,9 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
 	if (er != erSuccess)
 		goto exit;
-
 	er = lpSink->Write(lpStream->GetBuffer(), 1, lpStream->GetSize());
 	if (er != erSuccess)
 		goto exit;
-
 exit:
 	delete lpTempSink;
 	if (soap) {
@@ -950,7 +940,6 @@ exit:
 		soap_end(soap);
 		soap_free(soap);
 	}
-
 	return er;
 }
 
@@ -992,12 +981,10 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 	
 	if (lpStreamCaps == NULL) {
 		lpStreamCaps = STREAM_CAPS_CURRENT;	// Set to current stream capabilities.
-
 		if ((lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE) == 0) {
 			ulStreamVersion = 0;
 			lpStreamCaps = &g_StreamCaps[0];
 		}
-
 		er = lpSink->Write(&ulStreamVersion, sizeof(ulStreamVersion), 1);
 		if (er != erSuccess)
 			goto exit;
@@ -1007,7 +994,6 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 	er = SerializeProps(lpecSession, lpStreamDatabase, lpAttachmentStorage, lpStreamCaps, ulObjId, ulObjType, ulStoreId, lpsGuid, ulFlags, lpSink, bTop);
 	if (er != erSuccess)
 		goto exit;
-
 	// szPrepareGetProps
 	er = PrepareReadProps(NULL, lpStreamDatabase, !bUseSQLMulti, true, 0, ulObjId, 0, &mapChildProps, &mapNamedPropDefs);
 	if (er != erSuccess)
@@ -1055,11 +1041,8 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 			struct propValArray props;
 			
 			iterChild->second.lpPropVals->GetPropValArray(&props);
-			
 			er = SerializeProps(&props, lpStreamCaps, lpSink, &mapNamedPropDefs);
-
 			FreePropValArray(&props, false);
-
 			if(er != erSuccess)
 				goto exit;
 		}
@@ -1134,12 +1117,10 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 
 	if(bTop && bUseSQLMulti)
 		lpStreamDatabase->FinalizeMulti();
-
 exit:
 	if (er != erSuccess)
 		ec_log_err("SerializeObject failed with error code 0x%08x for object %d", er, ulObjId );
 	FreeChildProps(&mapChildProps);
-		
 	return er;
 }
 
@@ -1382,26 +1363,22 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	DB_RESULT lpDBResult;
 	DB_ROW			lpDBRow = NULL;
 	auto gcache = g_lpSessionManager->GetCacheManager();
-
 	std::set<unsigned int>				setInserted;
 
 	if (!lpDatabase) {
 		er = KCERR_DATABASE_ERROR;
 		goto exit;
 	}
-
 	if (!lpAttachmentStorage) {
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
 	}
-
 	er = gcache->GetObject(ulObjId, &ulParentId, &ulOwner, &ulFlags, nullptr);
 	if (er != erSuccess)
 		goto exit;
 	er = gcache->GetObject(ulParentId, nullptr, nullptr, nullptr, &ulParentType);
 	if (er != erSuccess)
 		goto exit;
-
 	// Get the number of properties
 	er = lpSource->Read(&ulCount, sizeof(ulCount), 1);
 	if (er != erSuccess)
@@ -1412,10 +1389,8 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		// Note that we test on lppPropValArray but allocate lpPropValArray. We'll assign that to
 		// *lppPropValArray later if all went well.
 		lpPropValArray = s_alloc<struct propValArray>(NULL);
-		
 		lpPropValArray->__ptr = s_alloc<struct propVal>(NULL, ulCount);
 		memset(lpPropValArray->__ptr, 0, sizeof(struct propVal) * ulCount);
-		
 		lpPropValArray->__size = 0;
 	}
 
@@ -1427,11 +1402,9 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		er = DeserializePropVal(soap, lpStreamCaps, namedPropertyMapper, &lpsPropval, lpSource);
 		if (er != erSuccess)
 			goto exit;
-
 		auto iterInserted = setInserted.find(lpsPropval->ulPropTag);
 		if (iterInserted != setInserted.cend())
 			goto next_property;
-
 		if (ECGenProps::IsPropRedundant(lpsPropval->ulPropTag, ulObjType) == erSuccess)
 			goto next_property;
 
@@ -1457,16 +1430,13 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 				"SELECT hierarchyid FROM indexedproperties "
 					"WHERE tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + 
 					" AND val_binary=" + lpDatabase->EscapeBinary(lpsPropval->Value.bin->__ptr, lpsPropval->Value.bin->__size);
-			
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 			if(er != erSuccess)
 				goto exit;
-
 			lpDBRow = lpDBResult.fetch_row();
 			// We can't use lpDBRow here except for checking if it was NULL.
 			if (lpDBRow != NULL)
 				continue;
-
 			strQuery = "REPLACE INTO indexedproperties(hierarchyid,tag,val_binary) VALUES (" + stringify(ulObjId) + "," + stringify(PROP_ID(PR_SOURCE_KEY)) + "," + lpDatabase->EscapeBinary(lpsPropval->Value.bin->__ptr, lpsPropval->Value.bin->__size) + ")";
 			er = lpDatabase->DoInsert(strQuery);
 			if (er != erSuccess)
@@ -1484,7 +1454,6 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 					er = erSuccess;
 					goto next_property;
 				}
-
 				strQuery = "REPLACE INTO mvproperties(hierarchyid,orderid,tag,type," + strColName + ") VALUES(" + stringify(ulObjId) + "," + stringify(j) + "," + stringify(PROP_ID(lpsPropval->ulPropTag)) + "," + stringify(PROP_TYPE(lpsPropval->ulPropTag)) + "," + strColData + ")";
 				er = lpDatabase->DoInsert(strQuery, NULL, &ulAffected);
 				if (er != erSuccess)
@@ -1510,7 +1479,6 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 			}
 			if (er != erSuccess)
 				goto exit;
-			
 			// Write the property to the table properties if needed (only on objects in folders (folders, messages), and if the property is being tracked here.
 			// Cache the written value
 			sObjectTableKey key(ulObjId, 0);
@@ -1530,7 +1498,6 @@ next_property:
 		if (er != erSuccess)
 			goto exit;
 	}
-
 	if(ulParentType == MAPI_FOLDER && ulParentId != CACHE_NO_PARENT) {
 		// Instead of writing directly to tproperties, save a delayed write request (flushed on table open).
 		er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, ulParentId, 0, ulObjId);
@@ -1556,7 +1523,6 @@ next_property:
 		er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 		if (er != erSuccess)
 			goto exit;
-
 		// We don't require the instance id, since we have no way of returning the instance id of this new object to the client.
 		er = lpAttachmentStorage->SaveAttachment(ulObjId, PROP_ID(PR_ATTACH_DATA_BIN), true, ulLen, lpSource, NULL);
 		if (er != erSuccess)
@@ -1571,7 +1537,6 @@ next_property:
 		*lppPropValArray = lpPropValArray;
 		lpPropValArray = NULL;
 	}
-
 exit:
 	FreePropValArray(lpPropValArray, true);
 	if (soap) {
@@ -1579,7 +1544,6 @@ exit:
 		soap_end(soap);
 		soap_free(soap);
 	}
-
 	return er;
 }
 
@@ -1604,7 +1568,6 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 		
 	// Normalize the object type, but keep the original for storing in the db
 	ulRealObjType = RealObjType(ulObjType, ulParentType);
-
 	if (ulRealObjType != MAPI_MESSAGE && ulRealObjType != MAPI_ATTACH && ulRealObjType != MAPI_MAILUSER && ulRealObjType != MAPI_DISTLIST) {
 		er = KCERR_NO_SUPPORT;
 		goto exit;
@@ -1618,7 +1581,6 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			er = KCERR_NO_SUPPORT;
 			goto exit;
 		}
-
 		lpStreamCaps = &g_StreamCaps[ulStreamVersion];
 	}
 
@@ -1643,7 +1605,6 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 		er = lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
 			goto exit;
-
 		sProp.ulPropTag = PR_EC_IMAP_ID;
 		sProp.Value.ul = (unsigned int)ullIMAP;
 		sProp.__union = SOAP_UNION_propValData_ul;
@@ -1664,14 +1625,11 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			er = lpSource->Read(&ulSubObjType, sizeof(ulSubObjType), 1);
 			if (er != erSuccess)
 				goto exit;
-
 			if (RealObjType(ulSubObjType, ulRealObjType) == MAPI_ATTACH)
 				fHasAttach = TRUE;
-
 			er = lpSource->Read(&ulSubObjId, sizeof(ulSubObjId), 1);
 			if (er != erSuccess)
 				goto exit;
-
 			/**
 			 * For new items we're not interested in the ulSubObjId from the stream, we do need
 			 * to create the object with the current object as its parent
@@ -1679,7 +1637,6 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			er = CreateObject(lpecSession, lpDatabase, ulObjId, ulObjType, ulSubObjType, 0, &ulSubObjId);
 			if (er != erSuccess)
 				goto exit;
-
 			er = DeserializeObject(lpecSession, lpDatabase, lpAttachmentStorage, lpStreamCaps, ulSubObjId, ulStoreId, lpsGuid, bNewItem, 0, lpSource, NULL);
 			if (er != erSuccess)
 				goto exit;
@@ -1687,7 +1644,6 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 
 		if (ulRealObjType == MAPI_MESSAGE) {
 			// We have to generate/update PR_HASATTACH
-			
 			sObjectTableKey key(ulObjId, 0);
 			std::string strQuery;
 			struct propVal sPropHasAttach;
@@ -1701,7 +1657,6 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			er = lpDatabase->DoInsert(strQuery);
 			if(er != erSuccess)
 				goto exit;
-				
 			// Write in tproperties
 			strQuery.clear();
 			WriteSingleProp(lpDatabase, ulObjId, ulParentId, &sPropHasAttach, true, 0, strQuery);
@@ -1711,14 +1666,12 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			
 			// Update cache, since it may have been written before by WriteProps with a possibly wrong value
 			gcache->SetCell(&key, PR_HASATTACH, &sPropHasAttach);
-			
 			// Update MSGFLAG_HASATTACH in the same way. We can assume PR_MESSAGE_FLAGS is already available, so we
 			// just do an update (instead of REPLACE INTO)
 			strQuery = std::string("UPDATE properties SET val_ulong = val_ulong ") + (fHasAttach ? " | 16 " : " & ~16") + " WHERE hierarchyid = " + stringify(ulObjId) + " AND tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
 			er = lpDatabase->DoUpdate(strQuery);
 			if(er != erSuccess)
 				goto exit;
-				
 			// Update cache if it's actually in the cache
 			if (gcache->GetCell(&key, PR_MESSAGE_FLAGS, &sPropHasAttach, nullptr, false) == erSuccess) {
 				sPropHasAttach.Value.ul &= ~MSGFLAG_HASATTACH;
@@ -1733,7 +1686,6 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			er = UpdateObjectSize(lpDatabase, ulObjId, ulObjType, UPDATE_SET, ulSize);
 			if (er != erSuccess)
 				goto exit;
-
 			if (ulRealObjType == MAPI_MESSAGE && ulParentType == MAPI_FOLDER) {
 				er = UpdateObjectSize(lpDatabase, ulStoreId, MAPI_STORE, UPDATE_ADD, ulSize);
 				if (er != erSuccess)
@@ -1749,7 +1701,6 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 		*lppPropValArray = lpPropValArray;
 		lpPropValArray = NULL;
 	}
-
 exit:
 	if (er != erSuccess) {
 		lpSource->Flush(); // Flush the whole stream

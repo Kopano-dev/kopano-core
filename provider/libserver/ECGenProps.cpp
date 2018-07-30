@@ -590,7 +590,6 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap,
 		// someone else is accessing your store, so check their rights
 		ulRights = 0;
 		sec->GetObjectPermission(ulObjId, &ulRights); // skip error checking, ulRights = 0
-
 		// will be false when someone else created this object in this store (or true if you're that someone)
 		bOwner = sec->IsOwner(ulObjId) == erSuccess;
 
@@ -691,7 +690,6 @@ exit:
 		if (er != erSuccess)
 			FreePropVal(&sPropVal, false);
 	}
-
 	return er;
 }
 
@@ -742,7 +740,6 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 	auto er = sec->GetStoreOwner(ulStoreId, &ulUserId);
 	if (er != erSuccess)
 		goto exit;
-
 	// get the companyid to which the logged in user belongs to.
 	er = sec->GetUserCompany(&ulCompanyId);
 	if (er != erSuccess)
@@ -799,9 +796,7 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
     
 	lpStoreName = s_alloc<char>(soap, strFormat.size() + 1);
 	strcpy(lpStoreName, strFormat.c_str());
-
 	*lppStoreName = lpStoreName;
-
 exit:
 	s_free(nullptr, sPropTagArray.__ptr);
 	return er;

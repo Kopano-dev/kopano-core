@@ -133,7 +133,6 @@ public:
 	// @todo check this function, is this really ok?
 	inline bool operator<(const ECsIndexProp &other) const noexcept
 	{
-
 		if(cbData < other.cbData)
 			return true;
 		if (cbData != other.cbData)
@@ -154,19 +153,14 @@ public:
 
 	inline bool operator==(const ECsIndexProp &other) const noexcept
 	{
-
 		if(cbData != other.cbData || ulTag != other.ulTag)
 			return false;
-
 		if (lpData == other.lpData)
 			return true;
-
 		if (lpData == NULL || other.lpData == NULL)
 			return false;
-
 		if(memcmp(lpData, other.lpData, cbData) == 0)
 			return true;
-
 		return false;
 	}
 
@@ -174,13 +168,13 @@ public:
 	{
 		if (data == nullptr || z == 0)
 			return;
-
 		Free();
 		lpData = new unsigned char[z];
 		cbData = z;
 		ulTag = tag;
 		memcpy(lpData, data, z);
 	}
+
 protected:
 	void Free() {
 		delete[] lpData;
@@ -201,6 +195,7 @@ protected:
 
 		dst->ulTag = src->ulTag;
 	}
+
 public:
 	unsigned int ulTag = 0, cbData = 0;
 	unsigned char *lpData = nullptr;
@@ -228,7 +223,6 @@ public:
 		for (auto &p : mapPropVals)
 			FreePropVal(&p.second, false);
         mapPropVals.clear();
-        
 		for (const auto &p : src.mapPropVals) {
 			CopyPropVal(const_cast<struct propVal *>(&p.second), &val);
 			mapPropVals[p.first] = val;
@@ -323,11 +317,9 @@ public:
                 default:
                     break;
             }
-            
             ulSize += sizeof(std::map<unsigned int, struct propVal>::value_type);
         }
         ulSize += sizeof(*this);
-        
         return ulSize;
     }
     
@@ -371,7 +363,6 @@ inline unsigned int IPRSHash(const ECsIndexProp &_Keyval1) noexcept
 		hash = hash * a + _Keyval1.lpData[i];
 		a *= b;
 	}
-
 	return hash;
 }
 
@@ -418,7 +409,6 @@ class ECCacheManager _kc_final {
 public:
 	ECCacheManager(ECConfig *lpConfig, ECDatabaseFactory *lpDatabase);
 	virtual ~ECCacheManager();
-
 	ECRESULT PurgeCache(unsigned int ulFlags);
 
 	// These are read-through (ie they access the DB if they can't find the data)
@@ -431,12 +421,10 @@ public:
 	
 	ECRESULT GetObjects(const std::list<sObjectTableKey> &lstObjects, std::map<sObjectTableKey, ECsObjects> &mapObjects);
 	ECRESULT GetObjectsFromProp(unsigned int ulTag, const std::vector<unsigned int> &cbdata, const std::vector<unsigned char *> &lpdata, std::map<ECsIndexProp, unsigned int> &mapObjects);
-
 	ECRESULT GetStore(unsigned int ulObjId, unsigned int *ulStore, GUID *lpGuid, unsigned int maxdepth = 100);
 	ECRESULT GetStoreAndType(unsigned int ulObjId, unsigned int *ulStore, GUID *lpGuid, unsigned int *ulType, unsigned int maxdepth = 100);
 	ECRESULT GetObjectFlags(unsigned int ulObjId, unsigned int *ulFlags);
 	ECRESULT SetStore(unsigned int ulObjId, unsigned int ulStore, const GUID *, unsigned int ulType);
-
 	ECRESULT GetServerDetails(const std::string &strServerId, serverdetails_t *lpsDetails);
 	ECRESULT SetServerDetails(const std::string &strServerId, const serverdetails_t &sDetails);
 
@@ -456,7 +444,6 @@ public:
 
 	ECRESULT Update(unsigned int ulType, unsigned int ulObjId);
 	ECRESULT UpdateUser(unsigned int ulUserId);
-
 	ECRESULT GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId* lpEntrId);
 	ECRESULT GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId** lppEntryId);
 	ECRESULT GetObjectFromEntryId(const entryId *id, unsigned int *obj);
@@ -486,7 +473,6 @@ public:
 	ECRESULT QueryObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId);
 
 	ECRESULT SetObjectProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int ulObjId);
-
 	void ForEachCacheItem(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj);
 	ECRESULT DumpStats();
 	
@@ -528,42 +514,32 @@ private:
 	std::recursive_mutex m_hCacheObjectMutex;
 	std::recursive_mutex m_hCacheCellsMutex; /* Cell cache */
 	std::recursive_mutex m_hCacheIndPropMutex; /* Indexed properties cache */
-	
 	// Quota cache, to reduce the impact of the user plugin
 	// m_mapQuota contains user and company cache, except when it's the company user default quota
 	// m_mapQuotaUserDefault contains company user default quota
 	// this can't be in the same map, since the id is the same for "company" and "company user default"
 	ECCache<ECMapQuota>			m_QuotaCache;
 	ECCache<ECMapQuota>			m_QuotaUserDefaultCache;
-
 	// Object cache, (hierarchy table)
 	ECCache<ECMapObjects>		m_ObjectsCache;
-
 	// Store cache
 	ECCache<ECMapStores>		m_StoresCache;
-
 	// User cache
 	ECCache<ECMapUserObject>	m_UserObjectCache;
 	ECCache<ECMapUEIdObject>	m_UEIdObjectCache;
 	ECCache<ECMapUserObjectDetails>	m_UserObjectDetailsCache;
-
 	// ACL cache
 	ECCache<ECMapACLs>			m_AclCache;
-
 	// Cell cache, include the column data of a loaded table
 	ECCache<ECMapCells>			m_CellCache;
-	
 	// Server cache
 	ECCache<ECMapServerDetails>	m_ServerDetailsCache;
-	
 	//Index properties
 	ECCache<ECMapPropToObject>	m_PropToObjectCache;
 	ECCache<ECMapObjectToProp>	m_ObjectToPropCache;
-	
 	// Properties from kopano-search
 	std::set<unsigned int> 		m_setExcludedIndexProperties;
 	std::mutex m_hExcludedIndexPropertiesMutex;
-	
 	// Testing
 	bool m_bCellCacheDisabled = false;
 };

@@ -187,9 +187,7 @@ void ECTableManager::AddTableEntry(std::unique_ptr<TABLE_ENTRY> &&arg,
 	mapTable[ulNextTableId] = std::move(arg);
 	auto &lpEntry = mapTable[ulNextTableId];
 	lpEntry->lpTable->AddRef();
-
 	*lpulTableId = ulNextTableId;
-	
 	lpEntry->lpTable->SetTableId(*lpulTableId);
 
 	// Subscribe to events for this table, if needed
@@ -247,7 +245,6 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 		strQuery += " WHERE o.flags & 1 =" + stringify(EC_SUBMIT_LOCAL) + " AND o.store_id=" + stringify(ulStoreId);
 	else
 		strQuery += " WHERE o.flags & 1 =" + stringify(EC_SUBMIT_MASTER);
-
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
@@ -255,7 +252,6 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		if(lpDBRow[0] == NULL)
 			continue;
-
 		// Item found without entryid, item already deleted, so delete the item from the queue
 		if (lpDBRow[1] == NULL) {
 			ec_log_err("Removing stray object \"%s\" from outgoing table", lpDBRow[0]);
@@ -263,7 +259,6 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 			lpDatabase->DoDelete(strQuery); //ignore errors
 			continue;
 		}
-		
 		lpTable->UpdateRow(ECKeyTable::TABLE_ROW_ADD, atoi(lpDBRow[0]), 0);
 	}
 
@@ -277,7 +272,6 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 	if (lpTable->GetColumns(NULL, TBL_ALL_COLUMNS, &lpsPropTags) == erSuccess)
 		lpTable->SetColumns(lpsPropTags, false);
 	lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
-
 exit:
 	FreePropTagArray(lpsPropTags);
 	return er;
@@ -291,10 +285,10 @@ ECRESULT ECTableManager::OpenUserStoresTable(unsigned int ulFlags, unsigned int 
 	auto er = ECUserStoreTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 	if (er != erSuccess)
 		return er;
-
 	std::unique_ptr<TABLE_ENTRY> lpEntry(new(std::nothrow) TABLE_ENTRY);
 	if (lpEntry == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
+
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_USERSTORES;
@@ -315,10 +309,10 @@ ECRESULT ECTableManager::OpenMultiStoreTable(unsigned int ulObjType, unsigned in
 	auto er = ECMultiStoreTable::Create(lpSession, ulObjType, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 	if (er != erSuccess)
 		return er;
-
 	std::unique_ptr<TABLE_ENTRY> lpEntry(new(std::nothrow) TABLE_ENTRY);
 	if (lpEntry == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
+
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_MULTISTORE;
@@ -376,7 +370,6 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 	// First, add table to internal list of tables. This means we can already start
 	// receiving notifications on this table
 	AddTableEntry(std::move(lpEntry), lpulTableId);
-
 	// Load a default column set
 	if (ulObjType == MAPI_MESSAGE)
 		lpTable->SetColumns(&sPropTagArrayContents, true);
@@ -527,7 +520,6 @@ ECRESULT ECTableManager::OpenABTable(unsigned int ulParent, unsigned int ulParen
 		er = ECConvenientDepthABObjectTable::Create(lpSession, 1, ulObjType, ulParent, ulParentType, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 	else
 		er = ECABObjectTable::Create(lpSession, 1, ulObjType, ulParent, ulParentType, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
-
 	if (er != erSuccess)
 		return er;
 
@@ -570,7 +562,6 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 		return er;
 
 	auto &lpEntry = iterTables->second;
-
 	// Unsubscribe if needed
 	switch (lpEntry->ulTableType) {
 	case TABLE_ENTRY::TABLE_TYPE_GENERIC:
@@ -591,10 +582,8 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 	auto lpEntry2 = std::move(lpEntry);
 	// Now, remove the table from the open table list
 	mapTable.erase(ulTableId);
-
 	// Unlock the table now as the search thread may not be able to exit without a hListMutex lock
 	lk.unlock();
-
 	// Free table data and threads running
 	lpEntry2->lpTable->Release();
 	return er;
@@ -633,17 +622,14 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 
 	// This is called when a table has changed, so we have to see if the table in question is actually loaded by this table
 	// manager, and then update the row if required.
-
 	// Outlook may show the subject of sensitive messages (e.g. in
 	// reminder popup), so filter these from shared store notifications
-
 	if(lpSession->GetSecurity()->IsStoreOwner(ulObjId) == KCERR_NO_ACCESS &&
 	    lpSession->GetSecurity()->GetAdminLevel() == 0 &&
 	    lstChildId.size() != 0) {
 		er = lpSession->GetDatabase(&lpDatabase);
 		if (er != erSuccess)
 			return er;
-
 		for(auto it = lstChildId.begin(); it != lstChildId.end(); ++it) {
 			if(it != lstChildId.begin())
 				strInQuery += ",";
@@ -651,7 +637,6 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 		}
 
 		strQuery = "SELECT hierarchyid FROM properties WHERE hierarchyid IN (" + strInQuery + ") AND tag = " + stringify(PROP_ID(PR_SENSITIVITY)) + " AND val_ulong >= 2;";
-
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
 			return er;
@@ -660,7 +645,6 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 				continue;
 			setObjIdPrivate.emplace(atoui(lpDBRow[0]));
 		}
-
 		for(auto it = lstChildId.begin(); it != lstChildId.end(); ++it)
 			if (setObjIdPrivate.find(*it) == setObjIdPrivate.end())
 				lstChildId2.emplace_back(*it);
@@ -695,14 +679,13 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 ECRESULT ECTableManager::GetStats(unsigned int *lpulTables, unsigned int *lpulObjectSize)
 {
 	scoped_rlock lock(hListMutex);
-
 	unsigned int ulTables = mapTable.size();
 	unsigned int ulSize = MEMORY_USAGE_MAP(ulTables, TABLEENTRYMAP);
+
 	for (const auto &e : mapTable)
 		if (e.second->ulTableType != TABLE_ENTRY::TABLE_TYPE_SYSTEMSTATS)
 			/* Skip system stats since it would recursively include itself */
 			ulSize += e.second->lpTable->GetObjectSize();
-
 	*lpulTables = ulTables;
 	*lpulObjectSize = ulSize;
 	return erSuccess;

@@ -97,7 +97,6 @@ static ECRESULT ValidateDeleteObject(ECSession *lpSession,
 {
 	if (lpSession == NULL)
 		return KCERR_INVALID_PARAMETER;
-
 	// Check permission for each folder and messages
 	if (bCheckPermission && ((sItem.ulObjType == MAPI_MESSAGE && sItem.ulParentType == MAPI_FOLDER) || sItem.ulObjType == MAPI_FOLDER)) {
 		auto er = lpSession->GetSecurity()->CheckPermission(sItem.ulId, ecSecurityDelete);
@@ -192,12 +191,10 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			strQuery += "h.parent=" + stringify(elem);
 		else
 			strQuery += "h.id=" + stringify(elem);
-
 		if((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
 			strQuery += " AND (h.flags&"+stringify(MSGFLAG_DELETED)+") !="+stringify(MSGFLAG_DELETED);
 		if ((ulFlags & (EC_DELETE_CONTAINER | EC_DELETE_NOT_ASSOCIATED_MSG)) == EC_DELETE_NOT_ASSOCIATED_MSG)
 			strQuery += " AND (h.flags&"+stringify(MSGFLAG_ASSOCIATED)+") !="+stringify(MSGFLAG_ASSOCIATED);
-
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
 			return er;
@@ -209,14 +206,12 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 				//goto exit;
 				continue;
 			}
-
 			// When you delete a store the parent id is NULL, object type must be MAPI_STORE
 			if(lpDBRow[1] == NULL && atoi(lpDBRow[2]) != MAPI_STORE) {
 				//er = KCERR_DATABASE_ERROR;
 				//goto exit;
 				continue;
 			}
-
 			// Loop protection, don't insert duplicates.
 			if (!setIDs.emplace(atoui(lpDBRow[0])).second)
 				continue;
@@ -232,7 +227,6 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			sItem.sEntryId.__ptr = NULL;
 			sItem.ulMessageFlags = lpDBRow[5] ? atoui(lpDBRow[5]) : 0;
 			sItem.fInOGQueue = lpDBRow[6] != nullptr;
-
 			// Validate deleted object, if not valid, break directly
 			er = ValidateDeleteObject(lpSession, bCheckPermission, ulFlags, sItem);
 			if (er != erSuccess)
@@ -267,7 +261,6 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			// No id, type or flags exist
 			if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL)
 				continue;
-
 			// Loop protection, don't insert duplicates.
 			if (!setIDs.emplace(atoui(lpDBRow[0])).second)
 				continue;
@@ -278,7 +271,6 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			sItem.ulStoreId = 0;
 			sItem.sEntryId.__size = 0;
 			sItem.sEntryId.__ptr = NULL;
-
 			sItem.ulId = atoui(lpDBRow[0]);
 			sItem.ulParent = di.ulId;
 			sItem.ulParentType = di.ulObjType;
@@ -286,7 +278,6 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			// Add the parent delete flag, because only the top-level object is marked for deletion
 			sItem.ulFlags = atoui(lpDBRow[2]) | (di.ulFlags & MSGFLAG_DELETED);
 			sItem.fInOGQueue = lpDBRow[3] != nullptr;
-
 			// Validate deleted object, if no valid, break directly
 			er = ValidateDeleteObject(lpSession, bCheckPermission, ulFlags, sItem);
 			if (er != erSuccess)
@@ -478,7 +469,6 @@ static ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase,
 		auto er = lpDatabase->DoDelete(strQuery);
 		if(er!= erSuccess)
 			return er;
-		
 		// Remove the submit flag
 		strQuery = "UPDATE properties SET val_ulong=val_ulong&~" + stringify(MSGFLAG_SUBMIT)+" WHERE hierarchyid IN(" + strInclauseOQQ + ") AND tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " and type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
 		er = lpDatabase->DoUpdate(strQuery);
@@ -493,7 +483,6 @@ static ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase,
 		auto er = lpDatabase->DoUpdate(strQuery);
 		if(er!= erSuccess)
 			return er;
-
 		// Remove the MSGSTATUS_DELMARKED flag (IMAP gateway set)
 		strQuery = "UPDATE properties SET val_ulong=val_ulong&~" + stringify(MSGSTATUS_DELMARKED) +
 			" WHERE hierarchyid IN(" + strInclause + ") AND tag = " + stringify(PROP_ID(PR_MSG_STATUS)) + " and type = " + stringify(PROP_TYPE(PR_MSG_STATUS));
@@ -566,9 +555,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 	std::string strOGQInclause;
 	std::string strQuery;
 	ECListDeleteItems lstToBeDeleted;
-
 	PARENTINFO pi;
-	
 	std::map<unsigned int, PARENTINFO> mapFolderCounts;
 	int i;
 
@@ -578,7 +565,6 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 		assert(false);
 		return KCERR_INVALID_PARAMETER;
 	}
-
 	if (!lpAttachmentStorage) {
 		lpInternalAttachmentStorage.reset(g_lpSessionManager->get_atxconfig()->new_handle(lpDatabase));
 		lpAttachmentStorage = lpInternalAttachmentStorage.get();
@@ -596,20 +582,16 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 		while (i < 32 && iterDeleteItems != lstDeleteItems.crend()) {
 			if(!strInclause.empty())
 				strInclause += ",";
-
 			strInclause += stringify(iterDeleteItems->ulId);
-
 			if(iterDeleteItems->fInOGQueue) {
 				if(!strOGQInclause.empty())
 					strOGQInclause += ",";
-					
 				strOGQInclause += stringify(iterDeleteItems->ulId);
 			}
 
 			// make new list for attachment deletes. messages can have imap "attachment".
 			if (iterDeleteItems->ulObjType == MAPI_ATTACH || (iterDeleteItems->ulObjType == MAPI_MESSAGE && iterDeleteItems->ulParentType == MAPI_FOLDER))
 				lstDeleteAttachments.emplace_back(iterDeleteItems->ulId);
-
 			lstToBeDeleted.emplace_front(*iterDeleteItems);
 
 			if(!(ulFlags&EC_DELETE_STORE) && iterDeleteItems->ulParentType == MAPI_FOLDER && iterDeleteItems->fRoot) {
@@ -714,7 +696,6 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 			return er;
 		// Clear map for next round
 		mapFolderCounts.clear();
-
 		// Commit the transaction
 		if (!bNoTransaction) {
 			er = atx.commit();
@@ -724,7 +705,6 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 			if(er != erSuccess)
 				return er;
 		}
-
 		// Deletes have been committed, add the deleted items to the list of items we have deleted
 		lstDeleted.splice(lstDeleted.begin(),lstToBeDeleted);
 	} // while iterDeleteItems != end()
@@ -866,7 +846,6 @@ ECRESULT MarkStoreAsDeleted(ECSession *lpSession, ECDatabase *lpDatabase, unsign
 
 	// Remove search results for deleted store
 	lpSearchFolders->RemoveSearchFolder(ulStoreHierarchyId);
-
 	// Mark item as deleted
 	auto strQuery = "UPDATE hierarchy SET flags=flags|"+stringify(MSGFLAG_DELETED)+" WHERE id="+stringify(ulStoreHierarchyId);
 	auto er = lpDatabase->DoUpdate(strQuery);
@@ -875,12 +854,10 @@ ECRESULT MarkStoreAsDeleted(ECSession *lpSession, ECDatabase *lpDatabase, unsign
 
 	// Add properties: PR_DELETED_ON
 	GetSystemTimeAsFileTime(&ft);
-
 	strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_lo, val_hi) VALUES("+stringify(ulStoreHierarchyId)+","+stringify(PROP_ID(PR_DELETED_ON))+","+stringify(PROP_TYPE(PR_DELETED_ON))+","+stringify(ft.dwLowDateTime)+","+stringify(ft.dwHighDateTime)+") ON DUPLICATE KEY UPDATE val_lo="+stringify(ft.dwLowDateTime)+",val_hi="+stringify(ft.dwHighDateTime);
 	er = lpDatabase->DoUpdate(strQuery);
 	if(er!= erSuccess)
 		return er;
-
 	lpCacheManager->Update(fnevObjectDeleted, ulStoreHierarchyId);
 	return erSuccess;
 }
@@ -981,7 +958,6 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 
 	if (!(ulFlags&EC_DELETE_STORE)) {
 		//Those functions are not called with a store delete
-
 		// Update store size
 		er = DeleteObjectStoreSize(lpSession, lpDatabase, ulFlags, lstDeleted);
 		if(er!= erSuccess) {
@@ -1020,7 +996,6 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 
 	// Update cache
 	DeleteObjectCacheUpdate(lpSession, ulFlags, lstDeleted);
-
 	// Send notifications
 	if (!(ulFlags&EC_DELETE_STORE))
 		DeleteObjectNotifications(lpSession, ulFlags, lstDeleted);
@@ -1105,7 +1080,6 @@ ECRESULT UpdateTProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned in
     for (auto iObjectid = lpObjectIDs->cbegin(); iObjectid != lpObjectIDs->cend(); ++iObjectid) {
         if(iObjectid != lpObjectIDs->cbegin())
             strQuery += ",";
-
         strQuery += stringify(*iObjectid);
     }
     strQuery += ")";
@@ -1126,7 +1100,6 @@ ECRESULT UpdateTProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned in
  */
 ECRESULT UpdateTProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned int ulFolderId, unsigned int ulObjId) {
     ECListInt list;
-    
 	list.emplace_back(ulObjId);
     return UpdateTProp(lpDatabase, ulPropTag, ulFolderId, &list);
 }
@@ -1198,7 +1171,6 @@ ECRESULT MapEntryIdToObjectId(ECSession *lpecSession, ECDatabase *lpDatabase, UL
 	er = lpDatabase->DoInsert(strQuery);
 	if(er != erSuccess)
 		return er;
-
 	g_lpSessionManager->GetCacheManager()->SetObjectEntryId((entryId*)&sEntryId, ulObjId);
 	return erSuccess;
 }
@@ -1373,7 +1345,6 @@ ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned 
 	}
 
 	strQueryAppend += ")";
-
 	if (ulMaxQuerySize > 0 && strInsertQuery.size() + strQueryAppend.size() > ulMaxQuerySize)
 		return KCERR_TOO_BIG;
 	strInsertQuery.append(strQueryAppend);
@@ -1408,7 +1379,6 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 		auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
 			return er;
-
 		if (lpDBResult.get_num_rows() != 1) {
 			// No entry
 			lpsNames->__ptr[i].lpguid = NULL;
@@ -1416,6 +1386,7 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 			lpsNames->__ptr[i].lpString = NULL;
 			continue;
 		}
+
 		auto lpDBRow = lpDBResult.fetch_row();
 		auto lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == nullptr) {
@@ -1541,7 +1512,6 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
           stringify(PROP_ID(PR_DELETED_FOLDER_COUNT)) + "," + 
           stringify(PROP_ID(PR_CONTENT_UNREAD)) +
       ")";
-      
     er = lpDatabase->DoUpdate(strQuery, &ulAffected);
     if(er != erSuccess)
 		return er;
@@ -1571,7 +1541,6 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
           stringify(PROP_ID(PR_DELETED_FOLDER_COUNT)) + "," + 
           stringify(PROP_ID(PR_CONTENT_UNREAD)) +
         ") AND hierarchyid = " + stringify(ulObjId);
-        
     er = lpDatabase->DoInsert(strQuery);
     if(er != erSuccess)
 		return er;
@@ -1614,7 +1583,6 @@ ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, 
 	auto lpDBRow = lpDBResult.fetch_row();
     if(!lpDBRow || lpDBRow[0] == NULL)
 		return er; /* Nothing there, no need to do anything */
-        
     ulObjId = atoui(lpDBRow[0]);
         
     // Check if the found item is in a deleted store
@@ -1665,7 +1633,6 @@ static ECRESULT ApplyFolderCounts(ECDatabase *lpDatabase,
 		er = UpdateFolderCount(lpDatabase, ulFolderId, PR_FOLDER_CHILD_COUNT,		pi.lFolders);
 	if (er == erSuccess)
 		er = UpdateFolderCount(lpDatabase, ulFolderId, PR_DELETED_FOLDER_COUNT,		pi.lDeletedFolders);
-
 	return er;
 }
 
@@ -1696,7 +1663,6 @@ static ECRESULT LockFolders(ECDatabase *lpDatabase, bool bShared,
 		strQuery += "LOCK IN SHARE MODE";
 	else
 		strQuery += "FOR UPDATE";
-    
 	return lpDatabase->DoSelect(strQuery, NULL);
 }
 
@@ -1750,7 +1716,6 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
             strQuery += lpDatabase->EscapeBinary(*i);
         }
         strQuery += ")";
-        
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
             return er;
@@ -1760,12 +1725,10 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
                 continue;
 			if(atoui(lpDBRow[1]) != MAPI_MESSAGE && atoui(lpDBRow[1]) != MAPI_FOLDER)
 				continue;
-
             if(atoui(lpDBRow[1]) == MAPI_MESSAGE)
 				setFolders.emplace(atoui(lpDBRow[2]));
             else if(atoui(lpDBRow[1]) == MAPI_FOLDER)
 				setFolders.emplace(atoui(lpDBRow[0]));
-
 			g_lpSessionManager->GetCacheManager()->SetObject(atoui(lpDBRow[0]), atoui(lpDBRow[2]), atoui(lpDBRow[3]), atoui(lpDBRow[4]), atoui(lpDBRow[1]));
         }
     }
@@ -1790,10 +1753,10 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
             strQuery += stringify(*i);
         }
         strQuery += ")";
-        
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
             return er;
+
         while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
             if(lpDBRow[0] == NULL)
                 continue;
@@ -1957,7 +1920,6 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
             
             sChild.lpPropTags = new DynamicPropTagArray(soap);
             sChild.lpPropVals = new DynamicPropValArray(soap, 20);
-            
             // First property for this child
 			iterChild = lpChildProps->emplace(ulChildId, sChild).first;
         }
@@ -1967,20 +1929,15 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 			return er;
 
         er = GetPropSize(lpDBRow, lpDBLen, &ulSize);
-
         if (er == erSuccess && (ulMaxSize == 0 || ulSize < ulMaxSize)) {
             // the size of this property is small enough to send in the initial loading sequence
-            
             er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);
             if(er != erSuccess)
                 continue;
-
 			er = FixPropEncoding(soap, stringCompat, Out, &sPropVal);
 			if (er != erSuccess)
 				continue;
-                
             iterChild->second.lpPropVals->AddPropVal(sPropVal);
-
 			if (!soap)
 				FreePropVal(&sPropVal, false);
         }
@@ -2055,7 +2012,6 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
             
             sChild.lpPropTags = new DynamicPropTagArray(soap);
             sChild.lpPropVals = new DynamicPropValArray(soap, 20);
-            
             // First property for this child
 			iterChild = lpChildProps->emplace(ulChildId, sChild).first;
         }
@@ -2063,17 +2019,13 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 		auto er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);
         if(er != erSuccess)
             continue;
-
 		er = FixPropEncoding(soap, stringCompat, Out, &sPropVal);
 		if (er != erSuccess)
 			continue;
-            
         er = iterChild->second.lpPropTags->AddPropTag(sPropVal.ulPropTag);
         if(er != erSuccess)
             continue;
-
         iterChild->second.lpPropVals->AddPropVal(sPropVal);
-
 		if (!soap)
 			FreePropVal(&sPropVal, false);
     }
@@ -2089,7 +2041,6 @@ ECRESULT FreeChildProps(std::map<unsigned int, CHILDPROPS> *lpChildProps)
 			delete cp.second.lpPropTags;
 	}
     lpChildProps->clear();
-    
     return erSuccess;
 }
 

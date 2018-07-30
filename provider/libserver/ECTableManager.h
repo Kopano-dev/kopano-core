@@ -60,7 +60,6 @@ class ECTableManager _kc_final {
 public:
 	ECTableManager(ECSession *s) : lpSession(s) {}
 	~ECTableManager();
-
 	ECRESULT	OpenGenericTable(unsigned int ulParent, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulTableId, bool fLoad = true);
 	ECRESULT	OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned int *lpulTableId);
 	ECRESULT	OpenABTable(unsigned int ulParent, unsigned int ulParentType, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulTableId);
@@ -68,13 +67,10 @@ public:
 	ECRESULT	OpenUserStoresTable(unsigned int ulFlags, unsigned int *lpulTableId);
 	ECRESULT	OpenStatsTable(unsigned int ulTableType, unsigned int ulFlags, unsigned int *lpulTableId);
 	ECRESULT	OpenMailBoxTable(unsigned int ulflags, unsigned int *lpulTableId);
-
 	ECRESULT	GetTable(unsigned int lpulTableId, ECGenericObjectTable **lppTable);
 	ECRESULT	CloseTable(unsigned int lpulTableId);
-
 	ECRESULT	UpdateOutgoingTables(ECKeyTable::UpdateType ulType, unsigned int ulStoreId, std::list<unsigned int> &lstObjId, unsigned int ulFlags, unsigned int ulObjType);
 	ECRESULT	UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned int ulObjId, std::list<unsigned int> &lstChildId, unsigned int ulObjType);
-
 	ECRESULT	GetStats(unsigned int *lpulTables, unsigned int *lpulObjectSize);
 
 private:
@@ -105,4 +101,3 @@ class _kc_export_dycast ECMultiStoreTable final : public ECStoreObjectTable {
 } /* namespace */
 
 #endif // TABLEMANAGER_H
-

@@ -173,7 +173,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	unsigned int changeid = 0, ulObjId = 0;
 	char			szChangeKey[20];
 	std::string		strChangeList;
-
 	std::set<unsigned int>	syncids;
 
 	if (!isICSChange(ulChange))
@@ -188,7 +187,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 	if(ulChange & ICS_MESSAGE) {
 		// See if anybody is interested in this change. If nobody has subscribed to this folder (ie nobody has got a state on this folder)
 		// then we can ignore the change.
-
 		std::string strQuery = "SELECT id FROM syncs "
 			"WHERE sourcekey=" + lpDatabase->EscapeBinary(sParentSourceKey);
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
@@ -213,7 +211,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 				  ", " + stringify(ulSyncId) +
 				  ", " + stringify(ulFlags) +
 				")";
-
 	er = lpDatabase->DoInsert(strQuery, &changeid , NULL);
 	if(er != erSuccess)
 		return er;
@@ -224,7 +221,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		// The real item is removed from the database, So no further actions needed
 		goto exit;
 	}
-
 	if (ulChange == ICS_MESSAGE_NEW && ulSyncId != 0) {
 		er = AddToLastSyncedMessagesSet(lpDatabase, ulSyncId, sSourceKey, sParentSourceKey);
 		if (er != erSuccess)
@@ -245,7 +241,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 				" AND type IN ( " + stringify(PROP_TYPE(PR_PREDECESSOR_CHANGE_LIST)) +
 				" , " + stringify(PROP_TYPE(PR_CHANGE_KEY)) + " )" +
 				" AND hierarchyid = " + stringify(ulObjId);
-
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
@@ -254,13 +249,11 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr || lpDBLen == nullptr)
 			continue;
-
 		if (lpDBRow[1] == stringify(PROP_ID(PR_PREDECESSOR_CHANGE_LIST)) && lpDBLen[0] > 16)
 			strChangeList.assign(lpDBRow[0], lpDBLen[0]);
 		else if (lpDBRow[1] == stringify(PROP_ID(PR_CHANGE_KEY)) && lpDBLen[0] > 16)
 			AddChangeKeyToChangeList(&strChangeList, lpDBLen[0], lpDBRow[0]);
 	}
-
 	/**
 	 * There are two reasons for generating a new change key:
 	 * 1. ulSyncId == 0. When this happens we have a modification initiated from the online server.
@@ -281,7 +274,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		// Add the new change key to the predecessor change list
 		lpSession->GetServerGUID((GUID*)szChangeKey);
 		memcpy(szChangeKey + sizeof(GUID), &changeid, 4);
-
 		AddChangeKeyToChangeList(&strChangeList, sizeof(szChangeKey), szChangeKey);
 
 		// Write PR_PREDECESSOR_CHANGE_LIST and PR_CHANGE_KEY
@@ -290,7 +282,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		sProp.Value.bin = &sBin;
 		sProp.Value.bin->__ptr = (BYTE *)strChangeList.c_str();
 		sProp.Value.bin->__size = strChangeList.size();
-		
 		er = WriteProp(lpDatabase, ulObjId, 0, &sProp);
 		if(er != erSuccess)
 			return er;
@@ -305,10 +296,10 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		sProp.Value.bin = &sBin;
 		sProp.Value.bin->__ptr = (BYTE *)szChangeKey;
 		sProp.Value.bin->__size = sizeof(szChangeKey);
-		
 		er = WriteProp(lpDatabase, ulObjId, 0, &sProp);
 		if(er != erSuccess)
 			return er;
+
 		key.ulObjId = ulObjId;
 		key.ulOrderId = 0;
 		cache->SetCell(&key, PR_CHANGE_KEY, &sProp);
@@ -317,7 +308,6 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		if (lpstrChangeList != nullptr)
 			lpstrChangeList->assign(strChangeList);
 	}
-
 exit:
 	// FIXME: We should not send notifications while we're in the middle of a transaction.
 	if (er == erSuccess && !syncids.empty())
@@ -384,7 +374,6 @@ void *CleanupSyncedMessagesTable(void *lpTmpMain)
 	auto strQuery = "DELETE syncedmessages.* FROM syncedmessages "
                  "LEFT JOIN syncs ON syncs.id = syncedmessages.sync_id " 	/* join with syncs */
                  "WHERE syncs.id IS NULL";									/* with no existing sync, and therefore not being tracked */
-
 	er = lpDatabase->DoDelete(strQuery, &ulDeleted);
 	if(er == erSuccess)
 		ec_log_info("syncedmessages table clean up done, %d entries removed", ulDeleted);
@@ -727,7 +716,6 @@ static ECRESULT getchanges_hier(struct soap *soap, ECSession *lpSession,
 
 	lstChanges.sort();
 	lstChanges.unique();
-
 	/* We now have both a list of all folders, and and list of changes. */
 	if (ulChangeId == 0)
 		return getchanges_hier1(soap, lpDatabase, lstFolderIds, ulFolderId, ulFlags, ulMaxChange, lpChanges);
@@ -915,7 +903,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	
 	ec_log(EC_LOGLEVEL_ICS, "K-1200: sourcekey=%s, syncid=%d, changetype=%d, flags=%d", bin2hex(sFolderSourceKey).c_str(), ulSyncId, ulChangeType, ulFlags);
 	auto gcache = g_lpSessionManager->GetCacheManager();
-
     // Get database object
 	auto er = lpSession->GetDatabase(&lpDatabase);
     if (er != erSuccess)
@@ -927,7 +914,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
     // CHeck if the client understands the new ABEID.
 	if (lpSession->GetCapabilities() & KOPANO_CAP_MULTI_SERVER)
 		bAcceptABEID = true;
-
 	if(ulChangeType != ICS_SYNC_AB) {
 		er = getchanges_nab(lpSession, lpDatabase, gcache, ulSyncId, ulChangeId, ulChangeType, ulMaxChange, sFolderSourceKey, ulFolderId);
 		if (er != erSuccess)
@@ -964,7 +950,6 @@ ECRESULT AddABChange(BTSession *lpSession, unsigned int ulChange, SOURCEKEY sSou
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
-
 	// Add/Replace new change
 	auto strQuery = "REPLACE INTO abchanges (sourcekey, parentsourcekey, change_type) VALUES(" + lpDatabase->EscapeBinary(sSourceKey) + "," + lpDatabase->EscapeBinary(sParentSourceKey) + "," + stringify(ulChange) + ")";
 	return lpDatabase->DoInsert(strQuery);
@@ -988,7 +973,6 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 	for (gsoap_size_t i = 1; i < ulaSyncId.__size; ++i)
 		strQuery += "," + stringify(ulaSyncId.__ptr[i]);
 	strQuery += ")";
-
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
@@ -1028,10 +1012,8 @@ ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncI
 		ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
 		return KCERR_DATABASE_ERROR;
 	}
-	
 	if (lpDBRow[0] == NULL)	// none set for this sync id.
 		return erSuccess;
-	
 	strQuery = "INSERT INTO syncedmessages (sync_id,change_id,sourcekey,parentsourcekey) VALUES (" +
 				stringify(ulSyncId) + "," +
 				lpDBRow[0] + "," + 
@@ -1053,8 +1035,8 @@ ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncI
 ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncId, const SOURCEKEY &sSourceKey)
 {
 	DB_RESULT lpDBResult;
-
 	std::string strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
+
 	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
@@ -1063,7 +1045,6 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 		ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);
 		return KCERR_DATABASE_ERROR;
 	}
-	
 	if (lpDBRow[0] == NULL)	// none set for this sync id, not an error
 		return erSuccess;
 
@@ -1083,7 +1064,7 @@ ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int u
 ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncId, const SOURCEKEY &sSourceKey, const SOURCEKEY &sParentSourceKey)
 {
 	DB_RESULT lpDBResult;
-	
+
 	std::string strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
 	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
@@ -1093,10 +1074,8 @@ ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ul
 		ec_log_crit("RemoveFromLastSyncedMessagesSet(): fetchrow return null");
 		return KCERR_DATABASE_ERROR;
 	}
-	
 	if (lpDBRow[0] == NULL)	// none set for this sync id.
 		return erSuccess;
-	
 	strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId) +
 				" AND change_id=" + lpDBRow[0] +
 				" AND sourcekey=" + lpDatabase->EscapeBinary(sSourceKey);

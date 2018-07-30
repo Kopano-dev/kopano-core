@@ -40,7 +40,6 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-
 struct sessiondata {
 	ECSESSIONID sessionid;
 	ECSESSIONGROUPID sessiongroupid;

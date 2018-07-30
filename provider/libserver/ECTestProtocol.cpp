@@ -29,13 +29,11 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession,
 			er = lpSession->GetDatabase(&lpDatabase);
             if(er != erSuccess)
 				return er;
-			
             er = ECTPropsPurge::GetLargestFolderId(lpDatabase, &ulFolderId);
             if(er != erSuccess) {
                 er = erSuccess;
                 break;
             }
-            
             er = ECTPropsPurge::PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
             if(er != erSuccess)
                 return er;

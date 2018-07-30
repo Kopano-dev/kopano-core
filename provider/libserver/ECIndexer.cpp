@@ -260,7 +260,6 @@ static ECRESULT NormalizeGetOptimalMultiFieldSearch(
 	auto er = NormalizeRestrictionNestedAnd(lpRestrict);
     if (er != erSuccess)
 		return er;
-        
 	/* Convert a series of ANDs or a single text search into a new restriction and the multisearch terms. */
 	return NormalizeRestrictionMultiFieldSearch(lpRestrict, setExcludeProps, lpMultiSearches);
 }
@@ -310,12 +309,9 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 		ec_log_err("GetIndexerResults(): no database");
 		return KCERR_DATABASE_ERROR;
 	}
-	
 	lstMatches.clear();
-
 	if (!parseBool(lpConfig->GetSetting("search_enabled")) || szSocket[0] == '\0')
 		return KCERR_NOT_FOUND;
-
 	lpSearchClient.reset(new(std::nothrow) ECSearchClient(szSocket, atoui(lpConfig->GetSetting("search_timeout"))));
 	if (!lpSearchClient)
 		return KCERR_NOT_ENOUGH_MEMORY;

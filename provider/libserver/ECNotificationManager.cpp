@@ -166,7 +166,6 @@ HRESULT ECNotificationManager::AddRequest(ECSESSIONID ecSessionId, struct soap *
 		soap_destroy(iterRequest->second.soap);
 		soap_end(iterRequest->second.soap);
         lpItem = iterRequest->second.soap;
-    
         // Pass the socket back to the socket manager (which will probably close it since the client should not be holding two notification sockets)
         kopano_notify_done(lpItem);
     }
@@ -174,14 +173,11 @@ HRESULT ECNotificationManager::AddRequest(ECSESSIONID ecSessionId, struct soap *
     NOTIFREQUEST req;
     req.soap = soap;
     time(&req.ulRequestTime);
-    
     m_mapRequests[ecSessionId] = req;
 	l_req.unlock();
-    
     // There may already be notifications waiting for this session, so post a change on this session so that the
     // thread will attempt to get notifications on this session
     NotifyChange(ecSessionId);
-    
     return hrSuccess;
 }
 
@@ -204,7 +200,6 @@ void * ECNotificationManager::Thread(void *lpParam)
 void *ECNotificationManager::Work() {
     ECSession *lpecSession = NULL;
     struct notifyResponse notifications;
-
     std::set<ECSESSIONID> setActiveSessions;
     struct soap *lpItem;
     time_t ulNow = 0;
@@ -275,7 +270,6 @@ void *ECNotificationManager::Work() {
                 // Since we have responded, remove the item from our request list and pass it back to the active socket list so
                 // that the next SOAP call can be handled (probably another notification request)
                 lpItem = iterRequest->second.soap;
-                
                 m_mapRequests.erase(iterRequest);
             } else {
                 // Nobody was listening to this session, just ignore it

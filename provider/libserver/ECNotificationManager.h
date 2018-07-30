@@ -41,7 +41,6 @@ public:
     
     // Called by the SOAP handler
     HRESULT AddRequest(ECSESSIONID ecSessionId, struct soap *soap);
-
     // Called by a session when it has a notification to send
     HRESULT NotifyChange(ECSESSIONID ecSessionId);
     

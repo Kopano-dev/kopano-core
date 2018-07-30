@@ -918,7 +918,6 @@ ECRESULT ECDatabaseAttachment::GetSizeInstance(const ext_siid &ulInstanceId,
 		ec_log_err("ECDatabaseAttachment::GetSizeInstance(): now row or column contained NULL");
 		return KCERR_DATABASE_ERROR;
 	} 
- 	 
 	*lpulSize = strtoul(lpDBRow[0], NULL, 0);
 	if (lpbCompressed)
 		*lpbCompressed = false;
@@ -1704,14 +1703,12 @@ ECRESULT ECFileAttachment::RestoreMarkedAttachment(const ext_siid &ulInstanceId)
 	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
 	if(rename(string(filename+".deleted").c_str(), filename.c_str()) == 0)
 		return erSuccess;
-
 	if (errno == ENOENT) {
 		// retry with another filename
 		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
 		if(rename(string(filename+".deleted").c_str(), filename.c_str()) == 0)
 			return erSuccess;
 	}
-	
     if (errno == EACCES || errno == EPERM)
 		return KCERR_NO_ACCESS;
     else if (errno == ENOENT)
@@ -1927,7 +1924,6 @@ ECRESULT ECFileAttachment::Commit()
 
 	// Disable the transaction
 	m_bTransaction = false;
-
 	// Delete the attachments
 	for (const auto &att_id : m_setDeletedAttachment)
 		if (DeleteAttachmentInstance(att_id, false) != erSuccess)
@@ -1942,7 +1938,6 @@ ECRESULT ECFileAttachment::Commit()
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECFileAttachment::Commit() error during commit");
 	}
-
 	m_setNewAttachment.clear();
 	m_setDeletedAttachment.clear();
 	m_setMarkedAttachment.clear();
@@ -1960,10 +1955,8 @@ ECRESULT ECFileAttachment::Rollback()
 
 	// Disable the transaction
 	m_bTransaction = false;
-
 	// Don't delete the attachments
 	m_setDeletedAttachment.clear();
-	
 	// Remove the created attachments
 	for (const auto &att_id : m_setNewAttachment)
 		if (DeleteAttachmentInstance(att_id, false) != erSuccess)
@@ -1975,7 +1968,6 @@ ECRESULT ECFileAttachment::Rollback()
 
 	m_setNewAttachment.clear();
 	m_setMarkedAttachment.clear();
-	
 	if (bError) {
 		assert(false);
 		ec_log_err("ECFileAttachment::Rollback() error");

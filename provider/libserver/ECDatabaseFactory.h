@@ -19,7 +19,6 @@ namespace KC {
 class _kc_export ECDatabaseFactory _kc_final {
 public:
 	ECDatabaseFactory(ECConfig *lpConfig);
-	
 	ECRESULT		CreateDatabaseObject(ECDatabase **lppDatabase, std::string &ConnectError);
 	ECRESULT		CreateDatabase();
 	ECRESULT		UpdateDatabase(bool bForceUpdate, std::string &strError);

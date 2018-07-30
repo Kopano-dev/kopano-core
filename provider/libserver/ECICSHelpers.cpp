@@ -44,7 +44,6 @@ public:
 class CommonQueryCreator : public IDbQueryCreator {
 public:
 	CommonQueryCreator(unsigned int ulFlags);
-	
 	// IDbQueryCreator
 	std::string CreateQuery() const override;
 	
@@ -122,7 +121,6 @@ std::string IncrementalQueryCreator::CreateBaseQuery() const
 
 	if ((m_ulFlags & SYNC_READ_STATE) == 0)
 		strQuery += " AND changes.change_type & " + stringify(ICS_ACTION_MASK) + " != " + stringify(ICS_FLAG);
-		
 	return strQuery;
 }
 
@@ -169,7 +167,6 @@ std::string FullQueryCreator::CreateBaseQuery() const
 	
 	if (m_ulFilteredSourceSync)
 		strQuery += " AND (changes.sourcesync is NULL OR changes.sourcesync!=" + stringify(m_ulFilteredSourceSync) + ")";
-		
 	return strQuery;
 }
 
@@ -253,7 +250,6 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGT
 	
 	*lpulChangeType = atoui(lpDBRow[icsChangeType]);
 	*lpulFlags = lpDBRow[icsFlags] ? atoui(lpDBRow[icsFlags]) : 0;
-
 	ec_log(EC_LOGLEVEL_ICS, "NonLegacyIncrementalAccepted: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	return erSuccess;
 }
@@ -317,10 +313,8 @@ ECRESULT NonLegacyFullProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDB
 	}
 	
 	*lpulFlags = 0; // Flags are only useful for ICS_FLAG
-
 	if (ulChange > m_ulMaxChangeId)
 		m_ulMaxChangeId = ulChange;
-		
 	ec_log(EC_LOGLEVEL_ICS, "NonLegacyFullAccepted: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	return erSuccess;
 }
@@ -333,10 +327,8 @@ ECRESULT NonLegacyFullProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDB
 	unsigned int ulChange = (lpDBRow[icsID] ? atoui(lpDBRow[icsID]) : 0);
 	if (ulChange <= m_ulChangeId)
 		*lpulChangeType = ICS_HARD_DELETE;
-
 	if (ulChange > m_ulMaxChangeId)
 		m_ulMaxChangeId = ulChange;
-
 	ec_log(EC_LOGLEVEL_ICS, "NonLegacyFullRejected: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	return erSuccess;
 }
@@ -414,7 +406,6 @@ ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 	
 	if (*lpulChangeType != 0)
 		m_ulMaxChangeId = m_ulMaxFolderChange;
-	
 	return erSuccess;
 }
 
@@ -441,7 +432,6 @@ ECRESULT LegacyProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 
 	if (*lpulChangeType != 0)
 		m_ulMaxChangeId = m_ulMaxFolderChange;
-	
 	return erSuccess;
 }
 
@@ -499,7 +489,6 @@ ECRESULT FirstSyncProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
 {
 	assert(lpulChangeType != NULL);
 	*lpulChangeType = 0;	// Ignore
-
 	ec_log(EC_LOGLEVEL_ICS, "FirstSyncRejected: sourcekey=%s, changetype=0", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str());
 	return erSuccess;
 }
@@ -558,7 +547,6 @@ ECRESULT ECGetContentChangesHelper::Init()
 		ec_log_err("ECGetContentChangesHelper::Init(): fetchrow failed");
 		return KCERR_DATABASE_ERROR;
 	}
-	
 	if (lpDBRow[0])
 		m_ulMaxFolderChange = atoui(lpDBRow[0]);
 
@@ -709,17 +697,13 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 			continue;
 
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeId = lpDBRow[icsID] ? atoui(lpDBRow[icsID]) : 0;
-
 		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr = (unsigned char *)soap_malloc(m_soap, lpDBLen[icsSourceKey]);
 		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__size = lpDBLen[icsSourceKey];
 		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr, lpDBRow[icsSourceKey], lpDBLen[icsSourceKey]);
-
 		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr = (unsigned char *)soap_malloc(m_soap, lpDBLen[icsParentSourceKey]);
 		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__size = lpDBLen[icsParentSourceKey];
 		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr, lpDBRow[icsParentSourceKey], lpDBLen[icsParentSourceKey]);
-
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeType = ulChangeType;
-
 		m_lpChanges->__ptr[m_ulChangeCnt].ulFlags = ulFlags;
 		++m_ulChangeCnt;
 	}
@@ -744,13 +728,10 @@ ECRESULT ECGetContentChangesHelper::ProcessResidualMessages()
 		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr = (unsigned char *)soap_malloc(m_soap, p.first.size());
 		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__size = p.first.size();
 		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr, p.first, p.first.size());
-
 		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr = (unsigned char *)soap_malloc(m_soap, p.second.sParentSourceKey.size());
 		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__size = p.second.sParentSourceKey.size();
 		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr, p.second.sParentSourceKey, p.second.sParentSourceKey.size());
-		
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeType = ICS_HARD_DELETE;
-		
 		m_lpChanges->__ptr[m_ulChangeCnt].ulFlags = 0;
 		++m_ulChangeCnt;
 	}	
@@ -782,7 +763,6 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	if (m_ulChangeCnt == 0 && m_ulChangeId > 0 && !(m_setLegacyMessages.empty() && m_lpsRestrict) ) {
 		assert(ulMaxChange >= m_ulChangeId);
 		*lpulMaxChange = ulMaxChange;
-		
 		// Delete all entries that have a changeid that are greater to the new change id.
 		std::string strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id>" + stringify(ulMaxChange);
 		return m_lpDatabase->DoDelete(strQuery);
@@ -917,9 +897,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 	std::vector<unsigned char *> lpdata;
 
 	memset(&sODStore, 0, sizeof(sODStore));
-
 	ec_log(EC_LOGLEVEL_ICS, "MatchRestrictions: matching %zu rows", db_rows.size());
-
 	for (size_t i = 0; i < db_rows.size(); ++i) {
 		lpdata.emplace_back(reinterpret_cast<unsigned char *>(db_rows[i][icsSourceKey]));
 		cbdata.emplace_back(db_lengths[i][icsSourceKey]);
@@ -941,16 +919,13 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 	er = gcache->GetObject(ulObjId, nullptr, nullptr, nullptr, &sODStore.ulObjType);
 	if (er != erSuccess)
 		goto exit;
-
 	er = ECGenericObjectTable::GetRestrictPropTags(restrict, NULL, &lpPropTags);
 	if (er != erSuccess)
 		goto exit;
-
 	sODStore.lpGuid = new GUID;
 	er = gcache->GetStore(ulObjId, &sODStore.ulStoreId, sODStore.lpGuid);
 	if (er != erSuccess)
 		goto exit;
-
 	assert(m_lpSession != NULL);
 	// NULL for soap, not m_soap. We'll free this ourselves
 	er = ECStoreObjectTable::QueryRowData(NULL, NULL, m_lpSession, &lstRows, lpPropTags, &sODStore, &lpRowSet, false, false);

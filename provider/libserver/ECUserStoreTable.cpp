@@ -43,7 +43,6 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 	auto lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
-
 	if(lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
 		return erSuccess;
@@ -171,7 +170,6 @@ ECRESULT ECUserStoreTable::Load() {
 	ECSecurity *lpSecurity = lpSession->GetSecurity();
 	objectdetails_t sUserDetails, sDetails;
 	objectclass_t objclass = OBJECTCLASS_UNKNOWN;
-
 	enum cols { USERID = 0, EXTERNID, OBJCLASS, UCOMPANY, STOREGUID, STORETYPE, USERNAME, SCOMPANY, HIERARCHYID, STORESIZE, MODTIME_HI, MODTIME_LO };
 
 	auto er = lpSession->GetDatabase(&lpDatabase);
@@ -179,7 +177,6 @@ ECRESULT ECUserStoreTable::Load() {
 		return er;
 
     Clear();
-
 	/*
 	 * The next query will first get the list of all users with their primary store details or NULL if
 	 * no primary store was found. Secondly it will get the list of all stores with their owner or NULL
@@ -211,7 +208,6 @@ ECRESULT ECUserStoreTable::Load() {
 		auto lpDBLength = lpDBResult.fetch_row_lengths();
 		if (lpDBRow[OBJCLASS])
 			objclass = (objectclass_t)atoi(lpDBRow[OBJCLASS]);
-
 		if (lpDBRow[USERID]) {
 			sUserStore.ulUserId = atoi(lpDBRow[USERID]);
 			if (sUserStore.ulUserId == KOPANO_UID_SYSTEM) // everyone already filtered by object type

@@ -77,7 +77,6 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
 			ec_log_crit("Failed to load getUserPluginInstance from plugin: %s", dlerror());
 			goto out;
         }
-
         m_deleteUserPluginInstance = (void (*)(UserPlugin *)) dlsym(m_dl, "deleteUserPluginInstance");
         if (m_deleteUserPluginInstance == NULL) {
 			ec_log_crit("Failed to load deleteUserPluginInstance from plugin: %s", dlerror());
@@ -93,9 +92,7 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
 	}
 	
 	*lppPlugin = lpPlugin;
-
 	return erSuccess;
-
  out:
 	if (m_dl)
 		dlclose(m_dl);
@@ -123,7 +120,6 @@ ECRESULT GetThreadLocalPlugin(ECPluginFactory *lpPluginFactory,
 		}
 		pthread_setspecific(plugin_key, lpPlugin);
 	}
-
 	*lppPlugin = lpPlugin;
 	return erSuccess;
 }

@@ -39,14 +39,12 @@ ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::strin
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
 	}
-
 	code = krb5_parse_name(ctx, strUsername.c_str(), &me);
 	if (code) {
 		*lpstrError = std::string("Error parsing kerberos 5 username: code ") + error_message(code);
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
 	}
-
 	code = krb5_unparse_name(ctx, me, &name);
 	if (code) {
 		*lpstrError = std::string("Error unparsing kerberos 5 username: code ") + error_message(code);
@@ -56,7 +54,6 @@ ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::strin
 
 	krb5_get_init_creds_opt_init(&options);
 	memset(&my_creds, 0, sizeof(my_creds));
-
 	code = krb5_get_init_creds_password(ctx, &my_creds, me, (char*)strPassword.c_str(), 0, 0, 0, NULL, &options);
 	if (code) {
 		*lpstrError = error_message(code);

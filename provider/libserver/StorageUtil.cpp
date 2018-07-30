@@ -49,7 +49,6 @@ ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned i
 	auto er = lpDatabase->DoInsert(strQuery, &ulNewObjId, &ulAffected);
 	if(er != erSuccess)
 		return er;
-
 	if (ulObjType == MAPI_MESSAGE) {
 		strQuery = "INSERT INTO properties (hierarchyid, tag, type, val_ulong) VALUES ("+ stringify(ulNewObjId) + "," + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + "," + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + "," + stringify(ulFlags) + ")";
 		er = lpDatabase->DoInsert(strQuery);
@@ -59,7 +58,6 @@ ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned i
 
 	// Save this item in the cache, as there is a very high probability that this data will be required very soon (almost 100% sure)
 	g_lpSessionManager->GetCacheManager()->SetObject(ulNewObjId, ulParentObjId, ulOwner, ulFlags, ulObjType);
-
 	// return new object id to saveObject
 	if (lpulObjId)
 		*lpulObjId = ulNewObjId;

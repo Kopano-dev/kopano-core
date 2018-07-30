@@ -175,7 +175,6 @@ ECRESULT ECSessionManager::DeleteIfOrphaned(ECSessionGroup *lpGroup)
 	auto i = m_mapSessionGroups.find(id);
 		if (i == m_mapSessionGroups.cend())
 			return erSuccess;
-
     	/* If this was the last Session, delete the SessionGroup */
     	if (i->second->isOrphan()) {
     	    lpSessionGroup = i->second;
@@ -198,7 +197,6 @@ BTSession* ECSessionManager::GetSession(ECSESSIONID sessionID, bool fLockSession
 	if (iIterator != m_mapSessions.cend()) {
 		lpSession = iIterator->second;
 		lpSession->UpdateSessionTime();
-		
 		if(fLockSession)
 			lpSession->lock();
 	}else{
@@ -320,7 +318,6 @@ ECRESULT ECSessionManager::ValidateBTSession(struct soap *soap,
 	if (lpSession == NULL)
 		return KCERR_END_OF_SESSION;
 	lpSession->RecordRequest(soap);
-
 	auto er = lpSession->ValidateOriginator(soap);
 	if (er != erSuccess) {
 		lpSession->unlock();
@@ -333,14 +330,12 @@ ECRESULT ECSessionManager::ValidateBTSession(struct soap *soap,
 		soap_set_imode(soap, SOAP_ENC_ZLIB);
 		soap_set_omode(soap, SOAP_ENC_ZLIB | SOAP_IO_CHUNK);
 	}
-
 	// Enable streaming support if client is capable
 	if (lpSession->GetCapabilities() & KOPANO_CAP_ENHANCED_ICS) {
 		soap_set_omode(soap, SOAP_ENC_MTOM | SOAP_IO_CHUNK);
 		soap_set_imode(soap, SOAP_ENC_MTOM);
 		soap_post_check_mime_attachments(soap);	
 	}
-
 	*lppSession = lpSession;
 	return erSuccess;
 }
@@ -403,14 +398,12 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 		method = "SSL Certificate";
 		goto authenticated;
 	}
-
 	// First, try socket authentication (dagent, won't print error)
 	if(fAllowUidAuth && lpAuthSession->ValidateUserSocket(soap->socket, szName, szImpersonateUser) == erSuccess) {
 		g_lpStatsCollector->Increment(SCN_LOGIN_SOCKET);
 		method = "Pipe socket";
 		goto authenticated;
 	}
-
 	// If that fails, try logon with supplied username/password (clients, may print logon error)
 	if(lpAuthSession->ValidateUserLogon(szName, szPassword, szImpersonateUser) == erSuccess) {
 		g_lpStatsCollector->Increment(SCN_LOGIN_PASSWORD);
@@ -421,7 +414,6 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 	// whoops, out of auth options.
 	ZLOG_AUDIT(m_lpAudit, "authenticate failed user='%s' from='%s' program='%s'",
 		szName, from.c_str(), szClientApp);
-
 	g_lpStatsCollector->Increment(SCN_LOGIN_DENIED);
 	return KCERR_LOGON_FAILED;
 
@@ -472,9 +464,7 @@ ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession,
 	l_cache.unlock();
 	*lpSessionID = std::move(newSID);
 	*lppSession = lpSession;
-
 	g_lpStatsCollector->Increment(SCN_SESSIONS_CREATED);
-
 	return er;
 }
 
@@ -512,10 +502,8 @@ ECRESULT ECSessionManager::RemoveSession(ECSESSIONID sessionID){
 
 	// Make sure no other thread can read or write the sessions list
 	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
-
 	// Get a session, don't lock it ourselves
 	lpSession = GetSession(sessionID, false);
-
 	// Remove the session from the list. No other threads can start new
 	// requests on the session after this point
 	m_mapSessions.erase(sessionID);
@@ -523,7 +511,6 @@ ECRESULT ECSessionManager::RemoveSession(ECSESSIONID sessionID){
 
 	// We know for sure that no other thread is attempting to remove the session
 	// at this time because it would not have been in the m_mapSessions map
-
 	// Delete the session. This will block until all requesters on the session
 	// have released their lock on the session
 	if(lpSession != NULL) {
@@ -532,7 +519,6 @@ ECRESULT ECSessionManager::RemoveSession(ECSESSIONID sessionID){
 		else
 			ec_log_err("Session failed to shut down: skipping logoff");
 	}
-		
     // Tell the notification manager to wake up anyone waiting for this session
     m_lpNotificationManager->NotifyChange(sessionID);
 	return erSuccess;
@@ -579,13 +565,11 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 	// Next, do an internal notification to update searchfolder views for message updates.
 	if (notifyItem->obj == nullptr || notifyItem->obj->ulObjType != MAPI_MESSAGE)
 		return hrSuccess;
-
 	if (ulFolderId == 0 && ulFlags == 0 &&
 	    GetCacheManager()->GetObject(ulKey, &ulFolderId, NULL, &ulFlags, NULL) != erSuccess) {
 		assert(false);
 		return hrSuccess;
 	}
-
 	// Skip changes on associated messages, and changes on deleted item. (but include DELETE of deleted items)
 	if ((ulFlags & MAPI_ASSOCIATED) || (notifyItem->ulEventType != fnevObjectDeleted && (ulFlags & MSGFLAG_DELETED)))
 		return hrSuccess;
@@ -699,7 +683,6 @@ ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned 
 	
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER)
 		return erSuccess;
-
 	sSubscription.ulType = TABLE_ENTRY::TABLE_TYPE_GENERIC;
 	sSubscription.ulRootObjectId = ulObjId;
 	sSubscription.ulObjectType = ulObjType;
@@ -753,30 +736,22 @@ ECRESULT ECSessionManager::NotificationDeleted(unsigned int ulObjType, unsigned 
 	struct notification notify;
 
 	memset(&notify, 0, sizeof(notification));
-
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		goto exit;
-
 	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));	
-	
 	notify.ulEventType			= fnevObjectDeleted;
-	
 	notify.obj->ulObjType		= ulObjType;
 	notify.obj->pEntryId		= lpEntryId;
-
 	if(ulFolderId > 0) {
 		er = GetCacheManager()->GetEntryIdFromObject(ulFolderId, NULL, 0, &notify.obj->pParentId);
 		if(er != erSuccess)
 			goto exit;
 	}
-
 	AddNotification(&notify, ulObjId, ulStoreId, ulFolderId, ulFlags);
-
 exit:
 	notify.obj->pEntryId = NULL;
 	FreeNotificationStruct(&notify, false);
-
 	return er;
 }
 
@@ -790,25 +765,19 @@ ECRESULT ECSessionManager::NotificationModified(unsigned int ulObjType, unsigned
 		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
-	
 	notify.ulEventType			= fnevObjectModified;
 	notify.obj->ulObjType		= ulObjType;
-
 	auto er = GetCacheManager()->GetEntryIdFromObject(ulObjId, nullptr, 0, &notify.obj->pEntryId);
 	if(er != erSuccess)
 		goto exit;
-
 	if(ulParentId > 0) {
 		er = GetCacheManager()->GetEntryIdFromObject(ulParentId, NULL, 0, &notify.obj->pParentId);
 		if(er != erSuccess)
 			goto exit;
 	}
-
 	AddNotification(&notify, ulObjId);
-
 exit:
 	FreeNotificationStruct(&notify, false);
-
 	return er;
 }
 
@@ -817,29 +786,22 @@ ECRESULT ECSessionManager::NotificationCreated(unsigned int ulObjType, unsigned 
 	struct notification notify;
 
 	memset(&notify, 0, sizeof(notification));
-
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
-
 	notify.ulEventType			= fnevObjectCreated;
 	notify.obj->ulObjType		= ulObjType;
 
 	auto er = GetCacheManager()->GetEntryIdFromObject(ulObjId, nullptr, 0, &notify.obj->pEntryId);
 	if(er != erSuccess)
 		goto exit;
-
 	er = GetCacheManager()->GetEntryIdFromObject(ulParentId, NULL, 0, &notify.obj->pParentId);
 	if(er != erSuccess)
 		goto exit;
-	
-
 	AddNotification(&notify, ulObjId);
-
 exit:
 	FreeNotificationStruct(&notify, false);
-
 	return er;
 }
 
@@ -848,36 +810,27 @@ ECRESULT ECSessionManager::NotificationMoved(unsigned int ulObjType, unsigned in
 	struct notification notify;
 
 	memset(&notify, 0, sizeof(notification));
-
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
-
 	notify.ulEventType				= fnevObjectMoved;	
 	notify.obj->ulObjType			= ulObjType;
-	
+
 	auto er = GetCacheManager()->GetEntryIdFromObject(ulObjId, nullptr, 0, &notify.obj->pEntryId);
 	if(er != erSuccess)
 		goto exit;
-
 	er = GetCacheManager()->GetEntryIdFromObject(ulParentId, NULL, 0, &notify.obj->pParentId);
 	if(er != erSuccess)
 		goto exit;
-
 	er = GetCacheManager()->GetEntryIdFromObject(ulOldParentId, NULL, 0, &notify.obj->pOldParentId);
 	if(er != erSuccess)
 		goto exit;
-
 	notify.obj->pOldId = lpOldEntryId;
-
 	AddNotification(&notify, ulObjId);
-
 	notify.obj->pOldId = NULL;
-
 exit:
 	FreeNotificationStruct(&notify, false);
-
 	return er;
 }
 
@@ -886,41 +839,32 @@ ECRESULT ECSessionManager::NotificationCopied(unsigned int ulObjType, unsigned i
 	struct notification notify;
 
 	memset(&notify, 0, sizeof(notification));
-
 	if(ulObjType != MAPI_MESSAGE && ulObjType != MAPI_FOLDER && ulObjType != MAPI_STORE)
 		return erSuccess;
 	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
-
 	notify.ulEventType				= fnevObjectCopied;
-	
 	notify.obj->ulObjType			= ulObjType;
 
 	auto er = GetCacheManager()->GetEntryIdFromObject(ulObjId, nullptr, 0, &notify.obj->pEntryId);
 	if(er != erSuccess)
 		goto exit;
-
 	er = GetCacheManager()->GetEntryIdFromObject(ulParentId, NULL, 0, &notify.obj->pParentId);
 	if(er != erSuccess)
 		goto exit;
-
 	if(ulOldObjId > 0) {
 		er = GetCacheManager()->GetEntryIdFromObject(ulOldObjId, NULL, 0, &notify.obj->pOldId);
 		if(er != erSuccess)
 			goto exit;
 	}
-
 	if(ulOldParentId > 0) {
 		er = GetCacheManager()->GetEntryIdFromObject(ulOldParentId, NULL, 0, &notify.obj->pOldParentId);
 		if(er != erSuccess)
 			goto exit;
 	}
-
 	AddNotification(&notify, ulObjId);
-
 exit:
 	FreeNotificationStruct(&notify, false);
-
 	return er;
 }
 
@@ -938,19 +882,14 @@ ECRESULT ECSessionManager::NotificationSearchComplete(unsigned int ulObjId, unsi
 	memset(&notify, 0, sizeof(notification));
 	notify.obj = s_alloc<notificationObject>(nullptr);
 	memset(notify.obj, 0, sizeof(notificationObject));
-
 	notify.ulEventType				= fnevSearchComplete;
 	notify.obj->ulObjType			= MAPI_FOLDER;
-
 	auto er = GetCacheManager()->GetEntryIdFromObject(ulObjId, nullptr, 0, &notify.obj->pEntryId);
 	if(er != erSuccess)
 		goto exit;
-
 	AddNotification(&notify, ulObjId, ulStoreId);
-
 exit:
 	FreeNotificationStruct(&notify, false);
-
 	return er;
 }
 
@@ -1097,7 +1036,6 @@ ECRESULT ECSessionManager::GetNewSourceKey(SOURCEKEY* lpSourceKey){
 			return er;
 		m_ulSourceKeyQueue = 50;
 	}
-
 	*lpSourceKey = SOURCEKEY(*m_lpServerGuid, m_ullSourceKeyAutoIncrement + 1);
 	++m_ullSourceKeyAutoIncrement;
 	--m_ulSourceKeyQueue;
@@ -1108,7 +1046,6 @@ ECRESULT ECSessionManager::SaveSourceKeyAutoIncrement(unsigned long long ullNewS
 	auto er = CreateDatabaseConnection();
 	if(er != erSuccess)
 		return er;
-
 	std::string strQuery = "UPDATE `settings` SET `value` = " + m_lpDatabase->EscapeBinary(reinterpret_cast<unsigned char *>(&ullNewSourceKeyAutoIncrement), 8) + " WHERE `name` = 'source_key_auto_increment'";
 	return m_lpDatabase->DoUpdate(strQuery);
 	// @TODO if this failed we want to retry this
@@ -1157,7 +1094,6 @@ ECRESULT ECSessionManager::GetNewSequence(SEQUENCE seq, unsigned long long *lpll
 	auto er = CreateDatabaseConnection();
 	if(er != erSuccess)
 		return er;
-
 	if (seq == SEQ_IMAP)
 		strSeqName = "imapseq";
 	else
@@ -1240,7 +1176,6 @@ ECRESULT ECSessionManager::UnsubscribeObjectEvents(unsigned int ulStoreId, ECSES
 	while (i != m_mapObjectSubscriptions.cend() && i->first == ulStoreId &&
 	       i->second != sessionID)
 		++i;
-    
 	if (i != m_mapObjectSubscriptions.cend())
 		m_mapObjectSubscriptions.erase(i);
     return erSuccess;
@@ -1269,13 +1204,11 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 		return KCERR_INVALID_PARAMETER;
 
 	auto cache = GetCacheManager();
-
 	sObjectTableKey key(ulStoreId, 0);
 	struct propVal prop;
 	if (cache->GetCell(&key, PR_SORT_LOCALE_ID, &prop, nullptr, false) == erSuccess) {
 		if (prop.ulPropTag == CHANGE_PROP_TYPE(PR_SORT_LOCALE_ID, PT_ERROR))
 			return prop.Value.ul;
-
 		*lpLcid = prop.Value.ul;
 		return erSuccess;
 	}
@@ -1296,24 +1229,19 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 		new_prop.ulPropTag = CHANGE_PROP_TYPE(PR_SORT_LOCALE_ID, PT_ERROR);
 		new_prop.Value.ul = KCERR_NOT_FOUND;
 		new_prop.__union = SOAP_UNION_propValData_ul;
-
 		er = cache->SetCell(&key, PR_SORT_LOCALE_ID, &new_prop);
 		if (er != erSuccess)
 			return er;
-
 		return KCERR_NOT_FOUND;
 	}
 
 	*lpLcid = strtoul(lpDBRow[0], NULL, 10);
-
 	new_prop.ulPropTag = PR_SORT_LOCALE_ID;
 	new_prop.Value.ul = *lpLcid;
 	new_prop.__union = SOAP_UNION_propValData_ul;
-
 	er = cache->SetCell(&key, PR_SORT_LOCALE_ID, &new_prop);
 	if (er != erSuccess)
 		return er;
-
 	return erSuccess;
 }
 
@@ -1332,11 +1260,9 @@ ULONG ECSessionManager::GetSortLCID(ULONG ulStoreId)
 	auto lpszLocaleId = GetDefaultSortLocaleID();
 	if (lpszLocaleId == NULL || *lpszLocaleId == '\0')
 		return 0; // Select default LCID
-
 	er = LocaleIdToLCID(lpszLocaleId, &ulLcid);
 	if (er != erSuccess)
 		return 0; // Select default LCID
-
 	return ulLcid;
 }
 
@@ -1378,14 +1304,11 @@ ECRESULT ECSessionManager::RemoveBusyState(ECSESSIONID ecSessionId, pthread_t th
 		goto exit;
 		
 	lpECSession = dynamic_cast<ECSession *>(lpSession);
-	
 	if(!lpECSession) {
 		assert(lpECSession != NULL);
 		goto exit;
 	}
-	
 	lpECSession->RemoveBusyState(thread);
-	
 exit:
 	if(lpSession)
 		lpSession->unlock();

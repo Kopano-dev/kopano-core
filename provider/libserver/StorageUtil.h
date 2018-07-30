@@ -18,10 +18,10 @@ class ECSession;
 ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned int ulParentObjId, unsigned int ulParentType, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulObjId);
 
 enum eSizeUpdateAction{ UPDATE_SET, UPDATE_ADD, UPDATE_SUB };
+
 ECRESULT GetObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned int* lpulSize);	
 ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigned int ulObjType, unsigned int* lpulSize);
 ECRESULT UpdateObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned int ulObjType, eSizeUpdateAction updateAction, long long llSize);
-
 extern void sync_logon_times(ECDatabase *);
 extern void record_logon_time(ECSession *, bool);
 

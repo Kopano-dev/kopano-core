@@ -18,7 +18,6 @@ namespace KC {
 class ECSession;
 
 // These are some helper function to help running subqueries.
-
 /* 
  * How we run subqueries assumes the following:
  * - SubSubRestrictions are invalid
@@ -30,7 +29,7 @@ class ECSession;
  * query target. The results of the subqueries is then passed to the main query solver, which only needs
  * to check the outcome of a subquery.
  */
- 
+
 // A set containing all the objects that match a subquery. The row id here is for the parent object, not for
 // the actual object that matched the restriction (ie the message id is in here, not the recipient id or
 // attachment id)

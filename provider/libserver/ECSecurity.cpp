@@ -205,14 +205,12 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 					*lpulRights |= lpRights->__ptr[i].ulRights;
 					bFoundACL = true;
 				}
-
 			// Check for the company we are in and add the permissions
 			for (gsoap_size_t i = 0; i < lpRights->__size; ++i)
 				if (lpRights->__ptr[i].ulType == ACCESS_TYPE_GRANT && lpRights->__ptr[i].ulUserid == m_ulCompanyID) {
 					*lpulRights |= lpRights->__ptr[i].ulRights;
 					bFoundACL = true;
 				}
-
 			// Also check for groups that we are in, and add those permissions
 			if (m_lpGroups || GetGroupsForUser(m_ulUserID, &unique_tie(m_lpGroups)) == erSuccess)
 				for (const auto &grp : *m_lpGroups)
@@ -229,13 +227,11 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 		if (bFoundACL)
 			// If any of the ACLs at this level were for us, then use these ACLs.
 			break;
-
 		// There were no ACLs or no ACLs for us, go to the parent and try there
 		auto er = cache->GetParent(ulCurObj, &ulCurObj);
 		if (er != erSuccess)
 			// No more parents, break (with ulRights = 0)
 			return erSuccess;
-		
 		// This can really only happen if you have a broken tree in the database, eg a record which has
 		// parent == id. To break out of the loop we limit the depth to 64 which is very deep in practice. This means
 		// that you never have any rights for folders that are more than 64 levels of folders away from their ACL ..
@@ -262,7 +258,6 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 ECRESULT ECSecurity::HaveObjectPermission(unsigned int ulObjId, unsigned int ulACLMask)
 {
 	unsigned int	ulRights = 0;
-
 	GetObjectPermission(ulObjId, &ulRights);
 	return (ulRights & ulACLMask) ? erSuccess : KCERR_NO_ACCESS;
 }
@@ -667,7 +662,6 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 			er = lpDatabase->DoInsert(strQueryNew);
 			if(er != erSuccess)
 				return er;
-
 			if(lpsRightsArray->__ptr[i].ulState & RIGHT_AUTOUPDATE_DENIED){
 				strQueryNew = "REPLACE INTO acl (id, hierarchy_id, type, rights) VALUES "
 					" (" + stringify(ulUserId) + "," + stringify(objid) + "," + stringify(ACCESS_TYPE_DENIED) + "," + stringify(ulDeniedRights) + ")";
@@ -683,7 +677,6 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 			er = lpDatabase->DoDelete(strQueryDelete);
 			if(er != erSuccess)
 				return er;
-
 			if(lpsRightsArray->__ptr[i].ulState & RIGHT_AUTOUPDATE_DENIED) {
 				strQueryDelete = "DELETE FROM acl WHERE ";
 				strQueryDelete+="(hierarchy_id="+stringify(objid)+" AND id="+stringify(ulUserId)+" AND type="+stringify(ACCESS_TYPE_DENIED)+")";
@@ -753,7 +746,6 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags,
 		if (m_ulUserID != 0 && (ulFlags & USERMANAGEMENT_ADDRESSBOOK) &&
 		    i.GetPropBool(OB_PROP_B_AB_HIDDEN))
 			continue;
-
 		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 			(*lppObjects)->emplace_back(i.ulId, i.GetClass());
 		else
@@ -791,7 +783,6 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
 	// still needed?
 	if (sExternId.objclass == CONTAINER_COMPANY)
 		ulCompanyId = ulUserObjectId;
-
 	if (!m_lpViewCompanies) {
 		er = GetViewableCompanies(0, &unique_tie(m_lpViewCompanies));
 		if (er != erSuccess)
@@ -800,7 +791,6 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
 	for (const auto &company : *m_lpViewCompanies)
 		if (company.ulId == ulCompanyId)
 			return erSuccess;
-
 	/* Item was not found */
 	return KCERR_NOT_FOUND;
 }
@@ -913,7 +903,6 @@ unsigned int ECSecurity::GetUserId(unsigned int ulObjId)
 		if (er != erSuccess)
 			ulUserId = m_ulUserID;
 	}
-
 	return ulUserId;
 }
 
@@ -977,7 +966,6 @@ ECRESULT ECSecurity::GetStoreOwnerAndType(unsigned int ulObjId,
 		if (er != erSuccess)
 			return er;
 	}
-
 	if (lpulOwnerId) {
 		auto er = GetOwner(ulStoreId, lpulOwnerId);
 		if (er != erSuccess)
@@ -1015,7 +1003,6 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 	/* If hosted is enabled, system administrators are administrator over all users. */
 	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN)
 		return erSuccess;
-
 	/*
 	 * Determine to which company the user belongs
 	 */
@@ -1026,7 +1013,6 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 	// still needed?
 	if (sExternId.objclass == CONTAINER_COMPANY)
 		ulCompanyId = ulUserObjectId;
-
 	/*
 	 * If ulCompanyId is the company where the logged in user belongs to,
 	 * then the only thing we need to check is the "isadmin" boolean.
@@ -1036,7 +1022,6 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 			return erSuccess;
 		return KCERR_NO_ACCESS;
 	}
-
 	if (!m_lpAdminCompanies) {
 		er = GetAdminCompanies(USERMANAGEMENT_IDS_ONLY, &unique_tie(m_lpAdminCompanies));
 		if (er != erSuccess)
@@ -1045,7 +1030,6 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 	for (const auto &obj : *m_lpAdminCompanies)
 		if (obj.ulId == ulCompanyId)
 			return erSuccess;
-
 	/* Item was not found, so no access */
 	return KCERR_NO_ACCESS;
 }
@@ -1062,7 +1046,6 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 ECRESULT ECSecurity::IsAdminOverOwnerOfObject(unsigned int ulObjectId)
 {
 	unsigned int ulOwner;
-
 	/*
 	 * Request the ownership if the object.
 	 */
@@ -1097,6 +1080,7 @@ ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId,
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
+
 	if (lpDBResult.get_num_rows() != 1) {
 		// This mostly happens when we're creating a new store, so return 0 sized store
 		*lpllStoreSize = 0;
@@ -1107,7 +1091,6 @@ ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId,
 		ec_log_err("ECSecurity::GetStoreSize(): row is null");
 		return KCERR_DATABASE_ERROR;
 	}
-
 	*lpllStoreSize = atoll(lpDBRow[0]);
 	return erSuccess;
 }
@@ -1173,17 +1156,14 @@ ECRESULT ECSecurity::CheckQuota(unsigned int ulStoreId, long long llStoreSize,
 	auto er = m_lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulStoreId, nullptr, nullptr, &ulStoreType);
 	if (er != erSuccess)
 		return er;
-
 	if(GetAdminLevel() == ADMIN_LEVEL_SYSADMIN || ulStoreType != ECSTORE_TYPE_PRIVATE) {
 		*lpQuotaStatus = QUOTA_OK;
 		return er; // all is good for admin user and/or non-private stores.
 	}
-
 	// Get the store owner
 	er = GetStoreOwner(ulStoreId, &ulOwnerId);
 	if(er != erSuccess)
 		return er;
-
 	return CheckUserQuota(ulOwnerId, llStoreSize, lpQuotaStatus);
 }
 
@@ -1289,7 +1269,6 @@ ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault,
 		quotadetails.llSoftSize = atoll(lpszSoftQuota) * 1024 * 1024;
 	if (lpszHardQuota)
 		quotadetails.llHardSize = atoll(lpszHardQuota) * 1024 * 1024;
-
 exit:
 	if (er == erSuccess)
 		*lpDetails = std::move(quotadetails);
@@ -1340,7 +1319,6 @@ size_t ECSecurity::GetObjectSize(void) const
 	size_t ulSize = sizeof(*this);
 	ulSize += m_details.GetObjectSize();
 	ulSize += m_impersonatorDetails.GetObjectSize();
-	
 
 	if (m_lpGroups) {
 		size_t ulItems = 0;

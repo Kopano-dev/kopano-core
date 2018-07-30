@@ -145,7 +145,6 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 		    lpPropVal->Value.bin == NULL ||
 		    lpPropVal->Value.bin->__ptr == NULL)
 			return KCERR_INVALID_PARAMETER;
-
 		if (bTruncate && lpPropVal->Value.bin->__size > TABLE_CAP_BINARY)
 			ulSize = TABLE_CAP_BINARY;
 		else
@@ -352,7 +351,6 @@ ECRESULT ParseMVProp(const char *lpRowData, ULONG ulSize,
 	if (lpRowData + ulSize < lpEnd + 1 + ulLen)
 		// not enough data from mysql
 		return KCERR_INVALID_PARAMETER;
-
 	lpstrData->assign(lpEnd + 1, ulLen);
 	*lpulLastPos = (lpEnd - lpRowData) + 1 + ulLen;
 	return erSuccess;
@@ -388,7 +386,6 @@ std::string GetPropColOrder(unsigned int ulPropTag,
 		else
 			strPropColOrder += "NULL";
 	}
-	
 	return strPropColOrder;
 }
 
@@ -640,7 +637,6 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-
 		lpPropVal->__union = SOAP_UNION_propValData_mvli;
 		lpPropVal->Value.mvli.__size = atoi(lpRow[FIELD_NR_ID]);
 		lpPropVal->Value.mvli.__ptr = s_alloc<LONG64>(soap, lpPropVal->Value.mvli.__size);
@@ -656,7 +652,6 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 	}
 
 	lpPropVal->ulPropTag = ulPropTag;
-
 exit:
 	freelocale(loc);
 	return er;

@@ -29,13 +29,10 @@ namespace KC {
  * sort the table once on loading, and simply use that keyset when the rows are actually
  * required. The actual data is always loaded directly from the database.
  */
-
-
 typedef std::list<unsigned int>				ECListInt;
 typedef std::list<unsigned int>::const_iterator ECListIntIterator;
 
 #define RESTRICT_MAX_DEPTH 16
-
 #define OBJECTTABLE_NOTIFY		1
 
 class ECSession;
@@ -56,7 +53,6 @@ public:
     ECRESULT SetProp(unsigned int i, struct propVal *lpPropVal);
     ECRESULT UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, struct propVal *lpPropVal, bool fMax, bool *lpfModified);
     ECRESULT UpdateMinMaxRemove(const sObjectTableKey &sKey, unsigned int i, bool fMax, bool *lpfModified);
-	
 	size_t GetObjectSize(void) const;
 
     struct propVal *m_lpProps;
@@ -65,7 +61,6 @@ public:
 	unsigned int m_ulUnread = 0, m_ulLeafs = 0;
 	bool m_fExpanded;
 	const ECLocale& m_locale;
-
 	std::map<sObjectTableKey, struct propVal *> m_mapMinMax;
 	ECSortedCategoryMap::iterator iSortedCategory;
 	sObjectTableKey m_sCurMinMax;
@@ -106,7 +101,6 @@ typedef ECRESULT (*QueryRowDataCallBack)(ECGenericObjectTable *, struct soap *, 
  *
  * @todo Support more then one multi-value instance property. (Never saw this from Outlook)
  */
-
 class ECGenericObjectTable : public ECUnknown {
 public:
 	ECGenericObjectTable(ECSession *lpSession, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale);
@@ -136,7 +130,6 @@ public:
 	ECRESULT	CollapseRow(xsd__base64Binary sInstanceKey, unsigned int ulFlags, unsigned int *lpulRows);
 	ECRESULT	GetCollapseState(struct soap *soap, struct xsd__base64Binary sBookmark, struct xsd__base64Binary *lpsCollapseState);
 	ECRESULT	SetCollapseState(struct xsd__base64Binary sCollapseState, unsigned int *lpulBookmark);
-
 	virtual ECRESULT GetColumnsAll(ECListInt* lplstProps);
 	virtual ECRESULT ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag);
 
@@ -158,10 +151,8 @@ public:
 
 	bool IsMVSet();
 	void SetTableId(unsigned int ulTableId);
-	
 	virtual	ECRESULT	GetPropCategory(struct soap *soap, unsigned int ulPropTag, sObjectTableKey sKey, struct propVal *lpPropVal);
 	virtual unsigned int GetCategories();
-
 	virtual size_t GetObjectSize(void);
 
 protected:
@@ -182,9 +173,7 @@ protected:
 	virtual ECRESULT GetMVRowCount(std::list<unsigned int> &&ids, std::map<unsigned int, unsigned int> &count);
 	virtual ECRESULT ReloadTable(enumReloadType eType);
 	virtual ECRESULT	Load();
-
 	virtual ECRESULT	CheckPermissions(unsigned int ulObjId); // normally overridden by subclass
-
 	const ECLocale &GetLocale() const { return m_locale; }
 
 	// Constants
@@ -192,7 +181,6 @@ protected:
 	std::unique_ptr<ECKeyTable> lpKeyTable;
 	unsigned int m_ulTableId = -1; /* id of the table from ECTableManager */
 	const void *m_lpObjectData = nullptr;
-
 	std::recursive_mutex m_hLock; /* Lock for locked internals */
 
 	// Locked internals

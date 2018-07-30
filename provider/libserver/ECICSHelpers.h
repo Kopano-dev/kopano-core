@@ -35,7 +35,6 @@ struct SAuxMessageData {
 };
 typedef std::map<SOURCEKEY,SAuxMessageData>	MESSAGESET, *LPMESSAGESET;
 
-
 // Forward declarations of interfaces used by ECGetContentChangesHelper
 class IDbQueryCreator;
 class IMessageProcessor;
@@ -44,7 +43,6 @@ class ECGetContentChangesHelper _kc_final {
 public:
 	static ECRESULT Create(struct soap *, ECSession *, ECDatabase *, const SOURCEKEY &folder, unsigned int sync_id, unsigned int change_id, unsigned int flags, const struct restrictTable *, ECGetContentChangesHelper **);
 	~ECGetContentChangesHelper();
-	
 	ECRESULT QueryDatabase(DB_RESULT *lppDBResult);
 	ECRESULT ProcessRows(const std::vector<DB_ROW> &db_rows, const std::vector<DB_LENGTHS> &db_lengths);
 	ECRESULT ProcessResidualMessages();

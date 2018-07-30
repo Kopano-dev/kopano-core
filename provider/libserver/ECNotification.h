@@ -25,9 +25,7 @@ public:
 	ECNotification& operator=(const ECNotification &x);
 	ECNotification(const notification &);
 	ECNotification& operator=(const notification &srcNotification);
-
 	void SetConnection(unsigned int ulConnection);
-
 	void GetCopy(struct soap *, notification &) const;
 	size_t GetObjectSize(void) const;
 
