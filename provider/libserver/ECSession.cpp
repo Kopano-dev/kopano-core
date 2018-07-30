@@ -1012,6 +1012,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 	*output = nullptr;
 	return erSuccess;
 #else
+	ec_log_err("Incoming OIDC token, but this server was built without KCOIDC support.");
 	return KCERR_NO_SUPPORT;
 #endif
 }
