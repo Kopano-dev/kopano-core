@@ -261,18 +261,12 @@ The path with the files to verify the clients certificates with.
 Default: value not set.
 .SS ssl_protocols
 .PP
-Disabled or enabled protocol names. Supported protocol names are
-\fISSLv3\fR
-and
-\fITLSv1\fR. If Kopano was linked against OpenSSL 1.0.1 or later there is additional support for the new protocols
-\fITLSv1.1\fR
-and
-\fITLSv1.2\fR. To exclude both SSLv3 and TLSv1, set
-\fBserver_ssl_protocols\fR
-to
-\fI!SSLv3 !TLSv1\fR.
+Disabled or enabled protocol names. Supported protocol names depend on the
+system's SSL library; depending on version, one or more of the following are
+available: \fBTLSv1.3\fP, \fBTLSv1.2\fP, \fBTLSv1.1\fP, \fBSSLv3\fP,
+\fBSSLv2\fP. To disable a protocol, prefix the name with an exclamation mark.
 .PP
-Default: SSLv2 being disabled
+Default: \fISSLv2\fP
 .SS ssl_ciphers
 .PP
 SSL ciphers to use, set to
