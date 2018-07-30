@@ -18,6 +18,8 @@
 #include <kopano/platform.h>
 #include <chrono>
 #include <condition_variable>
+#include <list>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <new>
@@ -102,6 +104,8 @@ extern ECConfig *g_lpConfig;
 ECConfig *g_lpConfig = NULL;
 static ECLogger *g_lpLogger;
 static bool g_dump_config;
+static bool g_use_threads;
+static pthread_t g_main_thread;
 
 // notification
 static bool bMessagesWaiting = false;
@@ -111,11 +115,22 @@ static std::condition_variable hCondMessagesWaiting;
 // messages being processed
 struct SendData {
 	std::string store_eid, msg_eid;
+	std::wstring strUsername;
 	ULONG ulFlags;
-	wstring strUsername;
+	int status;
 };
-static map<pid_t, SendData> mapSendData;
+
+struct sp_handlerargs {
+	struct SendData sd;
+	std::string smtp_host, path;
+	unsigned int smtp_port;
+	bool do_sentmail;
+};
+
+static std::map<pid_t, SendData> mapSendData; /* data for subprocesses */
+static std::list<SendData> g_senddata_thr; /* data for subthreads */
 static map<pid_t, int> mapFinished;	// exit status of finished processes
+static std::mutex g_senddata_mtx; /* protect g_senddata_thr */
 static std::mutex hMutexFinished; /* mutex for mapFinished */
 
 static HRESULT running_server(const char *szSMTP, int port, const char *szPath);
@@ -167,6 +182,49 @@ static LONG AdviseCallback(void *lpContext, ULONG cNotif,
 	return 0;
 }
 
+static void *HandlerSP_Thread(void *varg)
+{
+	std::unique_ptr<sp_handlerargs> a(static_cast<sp_handlerargs *>(varg));
+	auto ret = ProcessMessageForked(a->sd.strUsername.c_str(),
+		a->smtp_host.c_str(), a->smtp_port, a->path.c_str(),
+		a->sd.msg_eid.length(), reinterpret_cast<const ENTRYID *>(a->sd.msg_eid.data()),
+		a->do_sentmail);
+	a->sd.status = ret;
+	std::unique_lock<std::mutex> lk(g_senddata_mtx);
+	g_senddata_thr.emplace_back(std::move(a->sd));
+	lk.unlock();
+	hCondMessagesWaiting.notify_one();
+	return nullptr;
+}
+
+static HRESULT StartSpoolerThread(SendData &&sd, const char *smtp_host,
+    uint16_t smtp_port, const char *path, unsigned int flags)
+{
+	std::unique_ptr<sp_handlerargs> th_arg(new(std::nothrow) sp_handlerargs);
+	if (th_arg == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	th_arg->sd = std::move(sd);
+	th_arg->smtp_host = smtp_host;
+	th_arg->smtp_port = smtp_port;
+	th_arg->path = path;
+	th_arg->do_sentmail = flags & EC_SUBMIT_DOSENTMAIL;
+
+	pthread_attr_t attr;
+	pthread_t tid;
+	pthread_attr_init(&attr);
+	pthread_attr_setstacksize(&attr, 1 << 20);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	auto err = pthread_create(&tid, &attr, HandlerSP_Thread, th_arg.get());
+	pthread_attr_destroy(&attr);
+	if (err != 0) {
+		ec_log_err("Could not create worker thread: %s", strerror(err));
+		return MAPI_E_CALL_FAILED;
+	}
+	th_arg.release();
+	ec_log_info("Worker thread 0x%lx started", static_cast<unsigned long>(tid));
+	return hrSuccess;
+}
+
 /*
  * starting fork, passes:
  * -c config    for all log settings and smtp server and such
@@ -200,9 +258,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
     const SBinary &msg_eid, unsigned int ulFlags)
 {
 	SendData sSendData;
-	pid_t pid;
 	bool bDoSentMail = ulFlags & EC_SUBMIT_DOSENTMAIL;
-	std::string strPort = stringify(ulSMTPPort);
 
 	// place pid with entryid copy in map
 	sSendData.store_eid.assign(reinterpret_cast<const char *>(store_eid.lpb), store_eid.cb);
@@ -210,6 +266,11 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	sSendData.ulFlags = ulFlags;
 	sSendData.strUsername = szUsername;
 
+	if (g_use_threads)
+		return StartSpoolerThread(std::move(sSendData), szSMTP, ulSMTPPort, szPath, ulFlags);
+
+	pid_t pid;
+	std::string strPort = stringify(ulSMTPPort);
 	// execute the new spooler process to send the email
 	const char *argv[18];
 	int argc = 0;
@@ -240,11 +301,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	argv[argc] = nullptr;
 	std::vector<std::string> cmd{argv, argv + argc};
 	ec_log_debug("Executing \"%s\"", kc_join(cmd, "\" \"").c_str());
-	/*
-	 * Due to inclusion of the Python interpreter with global state (as it
-	 * is being said), it is not possible to thread; separate processes are
-	 * required.
-	 */
+
 	pid = vfork();
 	if (pid < 0) {
 		ec_log_crit(string("Unable to start new spooler process: ") + strerror(errno));
@@ -325,6 +382,19 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 	return hrSuccess;
 }
 
+static void CleanFinishedMessagesThreaded(IMAPISession *ses, IECSpooler *spooler)
+{
+	std::unique_lock<std::mutex> lk(g_senddata_mtx);
+	if (g_senddata_thr.empty())
+		return;
+	auto finished = std::move(g_senddata_thr);
+	g_senddata_thr.clear();
+	lk.unlock();
+	ec_log_debug("Cleaning %zu subthreads from queue", finished.size());
+	for (const auto &sd : finished)
+		handle_child_exit(ses, spooler, sc.get(), 0, SPC_EXITED, sd.status, sd);
+}
+
 /**
  * Cleans finished messages. Normally only prints a logmessage. If the
  * mailer completely failed (e.g. segfault), this function will try to
@@ -337,6 +407,11 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 static void CleanFinishedMessages(IMAPISession *lpAdminSession,
     IECSpooler *lpSpooler)
 {
+	if (g_use_threads) {
+		CleanFinishedMessagesThreaded(lpAdminSession, lpSpooler);
+		return;
+	}
+
 	std::unique_lock<std::mutex> lock(hMutexFinished);
 
 	if (mapFinished.empty())
@@ -739,6 +814,8 @@ static void process_signal(int sig)
 	}
 
 	case SIGHUP:
+		if (g_use_threads && !pthread_equal(pthread_self(), g_main_thread))
+			break;
 		if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 		    g_lpLogger != nullptr)
 			ec_log_warn("Unable to reload configuration file, continuing with current settings.");
@@ -885,6 +962,7 @@ int main(int argc, char *argv[]) {
 		{ "tmp_path", "/tmp" },
 		{"log_raw_message_path", "/var/lib/kopano", CONFIGSETTING_RELOADABLE},
 		{"log_raw_message_stage1", "no", CONFIGSETTING_RELOADABLE},
+		{"process_model", "fork", CONFIGSETTING_NONEMPTY},
 		{ NULL, NULL },
 	};
     // SIGSEGV backtrace support
@@ -997,6 +1075,19 @@ int main(int argc, char *argv[]) {
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 	if (!TmpPath::instance.OverridePath(g_lpConfig))
 		ec_log_err("Ignoring invalid path setting!");
+	g_main_thread = pthread_self();
+	if (strcmp(g_lpConfig->GetSetting("process_model"), "thread") == 0) {
+		if (parseBool(g_lpConfig->GetSetting("plugin_enabled")))
+			/*
+			 * Though you can create multiple interpreters, they
+			 * cannot run simultaneously, defeating the purpose.
+			 */
+			ec_log_err("Use of Python (plugin_enabled=yes) forces process_model=fork");
+		else
+			g_use_threads = true;
+	}
+	if (g_use_threads)
+		g_lpLogger->SetLogprefix(LP_TID);
 
 	// set socket filename
 	if (!szPath)

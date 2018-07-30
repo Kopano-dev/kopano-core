@@ -232,8 +232,8 @@ kopano_spooler_SOURCES = \
 	spooler/Spooler.cpp spooler/archive.cpp spooler/archive.h \
 	spooler/mailer.cpp spooler/mailer.h
 kopano_spooler_LDADD = \
-	libkcinetmapi.la libmapi.la libkcutil.la \
-	libkcarchiver.la libkcarchivercore.la ${DL_LIBS} ${PROG_LIBS} ${XML2_LIBS}
+	libkcinetmapi.la libmapi.la libkcutil.la libkcarchiver.la \
+	libkcarchivercore.la -lpthread ${DL_LIBS} ${PROG_LIBS} ${XML2_LIBS}
 
 
 kopano_srvadm_SOURCES = ECtools/srvadm.cpp
