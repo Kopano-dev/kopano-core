@@ -22,7 +22,7 @@ from MAPI.Tags import (
     PR_EXCEPTION_STARTTIME, PR_EXCEPTION_ENDTIME, PR_SUBJECT_W,
     PR_NORMALIZED_SUBJECT_W, PR_ATTACHMENT_LINKID, PR_ICON_INDEX,
     PR_MESSAGE_RECIPIENTS, IID_IMAPITable, PR_RECIPIENT_FLAGS,
-    PR_MESSAGE_FLAGS, PR_RECIPIENT_TRACKSTATUS, PR_LOCATION_W,
+    PR_MESSAGE_FLAGS, PR_RECIPIENT_TRACKSTATUS,
     recipSendable, recipExceptionalResponse, recipExceptionalDeleted,
     recipOrganizer, respOrganized, respDeclined,
 )
@@ -766,17 +766,26 @@ class Recurrence(object):
         exception['override_flags'] = 0
 
         extended = False
+
         subject = kwargs.get('subject')
         if orig_item or (subject is None and 'subject' not in exception):
             subject = item.get(PR_NORMALIZED_SUBJECT_W)
-
         if subject is not None or 'subject' in exception:
             exception['override_flags'] |= ARO_SUBJECT
-
         if subject is not None:
             exception['subject'] = subject.encode('cp1252', 'replace')
             extended = True
             extended_exception['subject'] = subject
+
+        location = kwargs.get('location')
+        if orig_item or (location is None and 'location' not in exception):
+            location = item.get(PidLidLocation)
+        if location is not None or 'location' in exception:
+            exception['override_flags'] |= ARO_LOCATION
+        if location is not None:
+            exception['location'] = location.encode('cp1252', 'replace')
+            extended = True
+            extended_exception['location'] = location
 
         # skip ARO_MEETINGTYPE (like php)
 
@@ -789,13 +798,6 @@ class Recurrence(object):
         if reminder_set is not None:
             exception['override_flags'] |= ARO_REMINDERSET
             exception['reminder_set'] = reminder_set
-
-        location = item.get(PidLidLocation)
-        if location is not None:
-            exception['override_flags'] |= ARO_LOCATION
-            exception['location'] = location.encode('cp1252', 'replace')
-            extended = True
-            extended_exception['location'] = location
 
         busy_status = item.get(PidLidBusyStatus)
         if busy_status is not None:
@@ -887,7 +889,7 @@ class Recurrence(object):
             props.append(SPropValue(PR_SUBJECT_W, kwargs['subject']))
 
         if 'location' in kwargs:
-            props.append(SPropValue(PR_LOCATION_W, kwargs['location']))
+            message[PidLidLocation] = kwargs['location']
 
         if item is None: # TODO pick up kwargs['start/end']
             start = basetime

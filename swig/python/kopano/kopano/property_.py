@@ -134,7 +134,7 @@ def _name_to_proptag(proptag, mapiobj, proptype=None):
         return None, proptype, namespace, name
 
     nameid = MAPINAMEID(guid, MNID_ID if isinstance(name, int) else MNID_STRING, name)
-    lpname = mapiobj.GetIDsFromNames([nameid], 0)
+    lpname = mapiobj.GetIDsFromNames([nameid], 0) # TODO MAPI_CREATE, or too dangerous because of potential db overflow?
     proptag = CHANGE_PROP_TYPE(lpname[0], proptype)
 
     return proptag, proptype, namespace, name
@@ -381,7 +381,7 @@ class Property(object):
     @property
     def strid(self):
         if self.named:
-            return u'%s:%s' % (self.namespace, self.name)
+            return u'%s:%s' % (self.namespace or self.guid, self.name)
         else:
             return self.idname or hex(self.proptag)
 

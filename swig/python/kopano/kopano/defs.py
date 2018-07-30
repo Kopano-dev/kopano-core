@@ -115,6 +115,7 @@ GUID_NAMESPACE = {
     PSETID_ZMT: 'zmt',
     PSETID_CalendarAssistant: 'calendarassistant',
     PSETID_KC: 'kc',
+    PS_PUBLIC_STRINGS: 'public',
 }
 NAMESPACE_GUID = dict((b, a) for (a, b) in GUID_NAMESPACE.items())
 
@@ -137,6 +138,7 @@ STR_GUID = {
     'PSETID_ZMT': PSETID_ZMT,
     'PSETID_CalendarAssistant': PSETID_CalendarAssistant,
     'PSETID_KC': PSETID_KC,
+    'PS_PUBLIC_STRINGS': PS_PUBLIC_STRINGS,
 }
 
 # XXX copied from common/ECDefs.h

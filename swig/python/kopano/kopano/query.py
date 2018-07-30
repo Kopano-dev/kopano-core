@@ -37,6 +37,7 @@ from MAPI.Defs import PROP_TYPE
 from .errors import ArgumentError
 from .restriction import Restriction
 from .defs import PSETID_Address, PS_PUBLIC_STRINGS
+from .compat import fake_unicode as _unicode
 
 from .parse import (
     ParserInput, Parser, Char, CharSet, ZeroOrMore, OneOrMore, Sequence,
@@ -238,13 +239,6 @@ class Term(object):
                                     proptag,
                                     SPropValue(proptag, conv(self.value))
                                 )
-
-                elif PROP_TYPE(proptag) in (PT_FLOAT, PT_DOUBLE):
-                    restr = SPropertyRestriction(
-                                RELOP_EQ,
-                                proptag,
-                                SPropValue(proptag, float(self.value))
-                            )
 
                 elif PROP_TYPE(proptag) == PT_SYSTIME:
                     if self.value == 'today':
@@ -458,66 +452,10 @@ def _build_parser():
 
     return expr
 
-def test():
-    for s in [
-        'bert',
-        '-bert',
-        '+bert',
-        '(bert)',
-        'bert AND hop',
-        '(bert AND hop AND hap)',
-        'a AND b AND c AND d',
-        '(a AND b)AND(c AND d)',
-        'subject:shit',
-        '+subject:fietsen',
-        '-subject:fietsen',
-        'from:bert AND to:frits',
-        'received:"last week"',
-        'BAND AND ANDERS',
-        '   witje     ',
-        'pino: niks',
-        'pino AND ole',
-        '-pino: niks*',
-        'bla blup',
-        'bla(blup)',
-        '(bla)blup',
-        'hoi*',
-        'subject:"from ok*"',
-        'subject:',
-        'subject: bert',
-        'subject :bert',
-        '+subject: bert',
-        '2018-01-01',
-        'subject:hoi AND mooi',
-        'subject:hoi AND mooi AND geweldig',
-        '(snotjes bert*)',
-        '("zut vla*")',
-        '(pipo:"zut vla*")',
-        'NOT super',
-        'NOT(super OR +subject:fietsen)',
-        'banaan AND NOT mandarijn',
-        'size>1000',
-        'received="this year"',
-        'received=04-05-2018',
-        'received>=04-05-2018',
-        'received=2018/04/7',
-        'sent:01-04-2018..02-04-2019',
-        'sent:01-04-2018..02-04-2019 OR subject:hoepa',
-        'hasattachment:yes',
-        'hasattachment:yes AND size>1000000',
-        'from:-bert@hoppa.com',
-        '(a AND NOT (b OR (c AND NOT d)))'
-    ]:
-        parser_input = ParserInput(s, 0)
-        sys.stdout.write(s + ' -> ')
-        try:
-            sys.stdout.write(repr(_PARSER.parse(parser_input).value))
-        finally:
-            sys.stdout.write('\n')
-
 _PARSER = _build_parser()
 
 def _query_to_restriction(query, type_, store):
+    query = _unicode(query)
     try:
         ast = _PARSER.parse(ParserInput(query)).value
         return Restriction(ast.restriction(type_, store))

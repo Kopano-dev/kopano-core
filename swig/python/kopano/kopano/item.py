@@ -230,7 +230,7 @@ class Item(Properties, Contact, Appointment):
     def _arch_item(self): # open archive store explicitly so we can handle otherwise silenced errors (MAPI errors in mail bodies for example)
         if self._architem is None:
             if self.stubbed:
-                ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0)
+                ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE)
                 PROP_STORE_ENTRYIDS = CHANGE_PROP_TYPE(ids[0], PT_MV_BINARY)
                 PROP_ITEM_ENTRYIDS = CHANGE_PROP_TYPE(ids[1], PT_MV_BINARY)
 
@@ -395,7 +395,7 @@ class Item(Properties, Contact, Appointment):
     def stubbed(self):
         """Item is stubbed by archiver."""
         # TODO caching folder.GetIDs..?
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0)
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE)
         PROP_STUBBED = CHANGE_PROP_TYPE(ids[2], PT_BOOLEAN)
         try:
             # False means destubbed
@@ -1250,7 +1250,7 @@ class Item(Properties, Contact, Appointment):
 
     @property
     def primary_item(self):
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
         PROP_REF_ITEM_ENTRYID = CHANGE_PROP_TYPE(ids[4], PT_BINARY)
         entryid = HrGetOneProp(self.mapiobj, PROP_REF_ITEM_ENTRYID).Value
 
@@ -1260,7 +1260,7 @@ class Item(Properties, Contact, Appointment):
             pass
 
     def restore(self):
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX cache folder.GetIDs..?
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX cache folder.GetIDs..?
         PROP_STUBBED = CHANGE_PROP_TYPE(ids[2], PT_BOOLEAN)
         PROP_REF_STORE_ENTRYID = CHANGE_PROP_TYPE(ids[3], PT_BINARY)
         PROP_REF_ITEM_ENTRYID = CHANGE_PROP_TYPE(ids[4], PT_BINARY)

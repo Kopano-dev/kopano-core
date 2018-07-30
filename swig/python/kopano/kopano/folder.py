@@ -5,6 +5,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import codecs
 import collections
 import mailbox
 import sys
@@ -13,8 +14,8 @@ import time
 import icalmapi
 
 from MAPI import (
-    MAPI_MODIFY, MAPI_ASSOCIATED, KEEP_OPEN_READWRITE,
-    RELOP_GT, RELOP_LT, RELOP_EQ,
+    MAPI_MODIFY, MAPI_ASSOCIATED, KEEP_OPEN_READWRITE, ROW_ADD,
+    RELOP_GT, RELOP_LT, RELOP_EQ, MAPI_CREATE,
     DEL_ASSOCIATED, DEL_FOLDERS, DEL_MESSAGES,
     BOOKMARK_BEGINNING, ROW_REMOVE, MESSAGE_MOVE, FOLDER_MOVE,
     FOLDER_GENERIC, MAPI_UNICODE, FL_SUBSTRING, FL_IGNORECASE,
@@ -34,7 +35,9 @@ from MAPI.Tags import (
     CONVENIENT_DEPTH, PR_CONTENT_COUNT, PR_ASSOC_CONTENT_COUNT,
     PR_DELETED_MSG_COUNT, PR_LAST_MODIFICATION_TIME, PR_MESSAGE_ATTACHMENTS,
     PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID, PR_CHANGE_KEY, PR_EXCEPTION_STARTTIME,
-    PR_EXCEPTION_ENDTIME,
+    PR_EXCEPTION_ENDTIME, PR_RULE_ID, PR_RULE_STATE, ST_ENABLED,
+    PR_RULE_PROVIDER_DATA, PR_RULE_SEQUENCE, PR_RULE_NAME_W,
+    PR_RULE_CONDITION,
 )
 from MAPI.Defs import (
     HrGetOneProp, CHANGE_PROP_TYPE
@@ -118,7 +121,10 @@ class Folder(Properties):
             self._mapiobj = mapiobj
             self._entryid = HrGetOneProp(self.mapiobj, PR_ENTRYID).Value
         elif entryid:
-            self._entryid = _bdec(entryid)
+            try:
+                self._entryid = _bdec(entryid)
+            except:
+                raise ArgumentError('invalid entryid: %r' % entryid)
 
         self.content_flag = MAPI_ASSOCIATED if associated else (SHOW_SOFT_DELETES if deleted else 0)
         self._sourcekey = None
@@ -286,7 +292,10 @@ class Folder(Properties):
             eid = _utils._bdec_eid(entryid)
 
         elif sourcekey is not None: # TODO this is horribly slow with nothing cached.. 1 SQL per row!?
-            restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY, SPropValue(PR_SOURCE_KEY, _bdec(sourcekey)))
+            try:
+                restriction = SPropertyRestriction(RELOP_EQ, PR_SOURCE_KEY, SPropValue(PR_SOURCE_KEY, _bdec(sourcekey)))
+            except:
+                raise ArgumentError("invalid sourcekey: %r" % sourcekey)
             table = self.mapiobj.GetContentsTable(MAPI_DEFERRED_ERRORS)
             table.SetColumns([PR_ENTRYID, PR_SOURCE_KEY], 0)
             table.Restrict(restriction, 0)
@@ -380,7 +389,7 @@ class Folder(Properties):
 
             # XXX use shortcuts and default type (database) to avoid MAPI snake wrestling
             NAMED_PROPS = [MAPINAMEID(PSETID_Appointment, MNID_ID, x) for x in (33293, 33294, 33315, 33301, 33333, 33334)]
-            ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS, 0)
+            ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS, MAPI_CREATE)
             startdate = ids[0] | PT_SYSTIME
             enddate = ids[1] | PT_SYSTIME
             recurring = ids[2] | PT_BOOLEAN
@@ -512,7 +521,8 @@ class Folder(Properties):
         perms = [item for item in items if isinstance(item, Permission)]
         props = [item for item in items if isinstance(item, Property)]
         occs = [item for item in items if isinstance(item, Occurrence)]
-        return item_entryids, folder_entryids, perms, props, occs
+        rules = [item for item in items if isinstance(item, Rule)]
+        return item_entryids, folder_entryids, perms, props, occs, rules
 
     def delete(self, objects, soft=False): # XXX associated
         """Delete items, subfolders, properties or permissions from folder.
@@ -520,8 +530,8 @@ class Folder(Properties):
         :param objects: The object(s) to delete
         :param soft: In case of items or folders, are they soft-deleted
         """
-        objects = _utils.arg_objects(objects, (_item.Item, Folder, Permission, Property, Occurrence), 'Folder.delete')
-        item_entryids, folder_entryids, perms, props, occs = self._get_entryids(objects)
+        objects = _utils.arg_objects(objects, (_item.Item, Folder, Permission, Property, Occurrence, Rule), 'Folder.delete')
+        item_entryids, folder_entryids, perms, props, occs, rules = self._get_entryids(objects)
         if item_entryids:
             if soft:
                 self.mapiobj.DeleteMessages(item_entryids, 0, None, 0)
@@ -535,6 +545,10 @@ class Folder(Properties):
         for perm in perms:
             acl_table = self.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
             acl_table.ModifyTable(0, [ROWENTRY(ROW_REMOVE, [SPropValue(PR_MEMBER_ID, perm.mapirow[PR_MEMBER_ID])])])
+        for rule in rules:
+            rule_table = self.mapiobj.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, MAPI_UNICODE, 0)
+            rule_table.ModifyTable(0, [ROWENTRY(ROW_REMOVE, [SPropValue(PR_RULE_ID, rule.mapirow[PR_RULE_ID])])])
+
         if props:
             self.mapiobj.DeleteProps([prop.proptag for prop in props])
         for occ in occs:
@@ -550,7 +564,7 @@ class Folder(Properties):
         :param folder: The target folder
         """
         objects = _utils.arg_objects(objects, (_item.Item, Folder), 'Folder.copy')
-        item_entryids, folder_entryids, _, _, _ = self._get_entryids(objects) # XXX copy/move perms?? XXX error for perms/props
+        item_entryids, folder_entryids, _, _, _, _ = self._get_entryids(objects) # XXX copy/move perms?? XXX error for perms/props
         if item_entryids:
             self.mapiobj.CopyMessages(item_entryids, IID_IMAPIFolder, folder.mapiobj, 0, None, (MESSAGE_MOVE if _delete else 0))
         for entryid in folder_entryids:
@@ -703,7 +717,27 @@ class Folder(Properties):
             PR_RULES_TABLE,
         )
         for row in table.dict_rows():
-            yield Rule(row)
+            yield Rule(row, rule_table)
+
+    def create_rule(self, name=None, restriction=None):
+        propid = len(list(self.rules()))+1
+        row = [
+            SPropValue(PR_RULE_STATE, ST_ENABLED), # TODO configurable
+            SPropValue(PR_RULE_PROVIDER_DATA, codecs.decode('010000000000000074da402772c2e440', 'hex')),
+            SPropValue(PR_RULE_SEQUENCE, propid), # TODO max+1?
+            SPropValue(0x6681001f, 'RuleOrganizer'), # TODO name
+            SPropValue(PR_RULE_ID, propid), # TODO max+1
+        ]
+        if name:
+            row.append(SPropValue(PR_RULE_NAME_W, name))
+        if restriction:
+            row.append(SPropValue(PR_RULE_CONDITION, restriction.mapiobj))
+
+        table = self.mapiobj.OpenProperty(PR_RULES_TABLE, IID_IExchangeModifyTable, MAPI_UNICODE, 0)
+        table.ModifyTable(0, [ROWENTRY(ROW_ADD, row)])
+
+        mapirow = dict((p.ulPropTag, p.Value) for p in row)
+        return Rule(mapirow, table)
 
     def table(self, name, restriction=None, order=None, columns=None): # XXX associated, PR_CONTAINER_CONTENTS?
         return Table(
@@ -750,7 +784,7 @@ class Folder(Properties):
         for message in mailbox.mbox(location):
             if sys.hexversion >= 0x03000000:
                 _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
-            else:
+            else: # pragma: no cover
                 _item.Item(self, eml=message.as_string(unixfrom=True), create=True)
 
     def mbox(self, location): # FIXME: inconsistent with maildir()
@@ -771,7 +805,7 @@ class Folder(Properties):
         for message in mailbox.MH(location):
             if sys.hexversion >= 0x03000000:
                 _item.Item(self, eml=message.as_bytes(unixfrom=True), create=True)
-            else:
+            else: # pragma: no cover
                 _item.Item(self, eml=message.as_string(unixfrom=True), create=True)
 
     def read_ics(self, ics):
@@ -825,7 +859,7 @@ class Folder(Properties):
             return NAME_RIGHT.keys()
         parent = self
         feids = set() # avoid loops
-        while parent.entryid not in feids:
+        while parent and parent.entryid not in feids:
             try:
                 return parent.permission(member).rights
             except NotFoundError:
@@ -875,7 +909,7 @@ class Folder(Properties):
     def archive_folder(self):
         """ Archive :class:`Folder` """
 
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
         PROP_STORE_ENTRYIDS = CHANGE_PROP_TYPE(ids[0], PT_MV_BINARY)
         PROP_ITEM_ENTRYIDS = CHANGE_PROP_TYPE(ids[1], PT_MV_BINARY)
 
@@ -891,7 +925,7 @@ class Folder(Properties):
 
     @property
     def primary_store(self):
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
         PROP_REF_STORE_ENTRYID = CHANGE_PROP_TYPE(ids[3], PT_BINARY)
         try:
             entryid = HrGetOneProp(self.mapiobj, PROP_REF_STORE_ENTRYID).Value
@@ -902,9 +936,12 @@ class Folder(Properties):
 
     @property
     def primary_folder(self):
-        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, MAPI_CREATE) # XXX merge namedprops stuff
         PROP_REF_ITEM_ENTRYID = CHANGE_PROP_TYPE(ids[4], PT_BINARY)
-        entryid = HrGetOneProp(self.mapiobj, PROP_REF_ITEM_ENTRYID).Value
+        try:
+            entryid = HrGetOneProp(self.mapiobj, PROP_REF_ITEM_ENTRYID).Value
+        except MAPIErrorNotFound:
+            return
 
         if self.primary_store:
             try:
@@ -928,10 +965,6 @@ class Folder(Properties):
 
     def unsubscribe(self, sink):
         _notification.unsubscribe(self.store, sink)
-
-    def notifications(self, time=24 * 3600, **kwargs):
-        for n in _notification._notifications(self.store, self, time, **kwargs):
-            yield n
 
     def event(self, eventid):
         eventid = _bdec(eventid)

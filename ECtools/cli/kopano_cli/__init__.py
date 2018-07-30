@@ -557,13 +557,9 @@ def check_options(parser, options, server):
     updates = [name for name in sum(UPDATE_MATRIX, ()) if getattr(options, name) not in (None, [])]
 
     if not (actions or updates or objtypes):
-        return False
+        return
     if not (actions or updates):
         options.details = True
-
-    if not (objtypes or actions or updates):
-        parser.print_help()
-        sys.exit(1)
 
     for opts, legaltypes in list(ACTION_MATRIX.items()) + list(UPDATE_MATRIX.items()):
         for opt in opts:
@@ -578,8 +574,6 @@ def check_options(parser, options, server):
         for opt in ('create_store', 'unhook_store', 'hook_store'):
             if getattr(options, opt) is not None:
                 raise Exception('%s option requires --company for multitenant setup' % orig_option(opt))
-
-    return True
 
 def main():
     try:

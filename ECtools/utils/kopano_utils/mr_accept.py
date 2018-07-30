@@ -1,6 +1,7 @@
 #!@PYTHON@
 import collections
 from datetime import datetime, timedelta
+import os
 import sys
 import kopano
 
@@ -20,6 +21,10 @@ else: # pragma: no cover
 
 def capacity(user): # XXX pyko?
     """ equipment resources can be overbooked up to N times """
+
+    capacity = os.getenv('KOPANO_TEST_CAPACITY')
+    if capacity:
+        return int(capacity)
 
     disptype = user.get(PR_DISPLAY_TYPE_EX)
     capacity = user.get(PR_EMS_AB_ROOM_CAPACITY)
