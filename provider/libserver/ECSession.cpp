@@ -388,7 +388,7 @@ ECRESULT ECSession::GetNotifyItems(struct soap *soap, struct notifyResponse *not
 void ECSession::AddBusyState(pthread_t threadId, const char *lpszState,
     const struct timespec &threadstart, const KC::time_point &start)
 {
-	if (!lpszState) {		
+	if (!lpszState) {
 		ec_log_err("Invalid argument \"lpszState\" in call to ECSession::AddBusyState()");
 		return;
 	}

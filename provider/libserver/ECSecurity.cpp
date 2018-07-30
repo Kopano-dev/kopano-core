@@ -50,7 +50,7 @@ static const char *RightsToString(unsigned int ulecRights)
 	}
 }
 
-/** 
+/**
  * @param[in] lpSession user session
  * @param[in] lpConfig config object
  * @param[in] lpLogger log object for normal logging
@@ -64,13 +64,13 @@ ECSecurity::ECSecurity(ECSession *lpSession, ECConfig *lpConfig,
 	m_bOwnerAutoFullAccess = parseBool(lpConfig->GetSetting("owner_auto_full_access"));
 }
 
-/** 
+/**
  * Called once for each login after the object was constructed. Since
  * this function can return errors, this is not done in the
  * constructor.
- * 
+ *
  * @param[in] ulUserId current logged in user
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId, unsigned int ulImpersonatorID)
@@ -123,14 +123,14 @@ public:
 
 	std::set<localobjectdetails_t> m_seen;
 };
-/** 
+/**
  * This function returns a list of security groups the user is a
  * member of. If a group contains a group, it will be appended to the
  * list. The list will be a unique list of groups in the end.
- * 
+ *
  * @param[in]  ulUserId A user or group to query the grouplist for.
  * @param[out] lppGroups The unique list of group ids
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobjectdetails_t> **lppGroups)
@@ -176,12 +176,12 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 	return erSuccess;
 }
 
-/** 
+/**
  * Return the bitmask of permissions for an object
- * 
+ *
  * @param[in] ulObjId hierarchy object to get permission mask for
  * @param[out] lpulRights permission mask
- * 
+ *
  * @return always erSuccess
  */
 ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpulRights)
@@ -262,13 +262,13 @@ ECRESULT ECSecurity::HaveObjectPermission(unsigned int ulObjId, unsigned int ulA
 	return (ulRights & ulACLMask) ? erSuccess : KCERR_NO_ACCESS;
 }
 
-/** 
+/**
  * Checks if you are the owner of the given object id. This can return
  * no access, since other people may have created an object in the
  * owner's store (or true if you're that someone).
- * 
+ *
  * @param[in] ulObjId hierarchy object to check ownership of
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::IsOwner(unsigned int ulObjId) const
@@ -278,12 +278,12 @@ ECRESULT ECSecurity::IsOwner(unsigned int ulObjId) const
 	return er != erSuccess || ulOwner != m_ulUserID ? KCERR_NO_ACCESS : erSuccess;
 }
 
-/** 
+/**
  * Get the original creator of an object
- * 
+ *
  * @param[in] ulObjId hierarchy object to get ownership of
  * @param[out] lpulOwnerId owner userid (may not even exist anymore)
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::GetOwner(unsigned int ulObjId,
@@ -295,12 +295,12 @@ ECRESULT ECSecurity::GetOwner(unsigned int ulObjId,
 	return er != erSuccess ? KCERR_NOT_FOUND : er;
 }
 
-/** 
+/**
  * Check for a deleted folder as parent of ulId, max folder depth as
  * defined (64).
- * 
+ *
  * @param[in] ulId object id to start checking from
- * 
+ *
  * @return KCERR_NOT_FOUND Error if a parent has the delete flag
  */
 ECRESULT ECSecurity::CheckDeletedParent(unsigned int ulId) const
@@ -325,12 +325,12 @@ ECRESULT ECSecurity::CheckDeletedParent(unsigned int ulId) const
 	return er;
 }
 
-/** 
+/**
  * For the current user context, check the permissions on a given object
- * 
+ *
  * @param[in] ulObjId hierarchy object to check permissions on
  * @param[in] ulecRights minimal permission required on object to succeed
- * 
+ *
  * @return Kopano error code
  * @retval erSuccess requested access on object allowed
  * @retval KCERR_NO_ACCESS requested access on object denied
@@ -500,13 +500,13 @@ exit:
 	return er;
 }
 
-/** 
+/**
  * Get the ACLs on a given object in a protocol struct to send to the client
- * 
+ *
  * @param[in] objid hierarchy object to get the ACLs for
  * @param[in] ulType rights access type, denied or grant
  * @param[out] lpsRightsArray structure with the current rights on objid
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
@@ -572,12 +572,12 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
 	return erSuccess;
 }
 
-/** 
+/**
  * Update the rights on a given object
- * 
+ *
  * @param[in] objid hierarchy object id to set rights on
  * @param[in] lpsRightsArray protocol struct containing new rights for this object
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRightsArray)
@@ -699,11 +699,11 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 	return er;
 }
 
-/** 
+/**
  * Return the company id of the current user context
- * 
+ *
  * @param[out] lpulCompanyId company id of user
- * 
+ *
  * @return always erSuccess
  */
 ECRESULT ECSecurity::GetUserCompany(unsigned int *lpulCompanyId) const
@@ -712,12 +712,12 @@ ECRESULT ECSecurity::GetUserCompany(unsigned int *lpulCompanyId) const
 	return erSuccess;
 }
 
-/** 
+/**
  * Get a list of company ids that may be viewed by the current user
- * 
+ *
  * @param[in] ulFlags Usermanagemnt flags
  * @param[out] lppObjects New allocated list of company details
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags,
@@ -754,11 +754,11 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags,
 	return erSuccess;
 }
 
-/** 
+/**
  * Check if the given user id is readable by the current user
- * 
+ *
  * @param[in] ulUserObjectId internal user id
- * 
+ *
  * @return Kopano error code
  * @retval erSuccess viewable
  * @retval KCERR_NOT_FOUND not viewable
@@ -795,7 +795,7 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
 	return KCERR_NOT_FOUND;
 }
 
-/** 
+/**
  * Internal helper function to get a list of viewable company details
  *
  * @todo won't this bug when we cache only the IDs in a first call,
@@ -804,8 +804,8 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
  *
  * @param[in] ulFlags usermanagement flags
  * @param[in] lppObjects new allocated list with company details
- * 
- * @return 
+ *
+ * @return
  */
 ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
     std::list<localobjectdetails_t> **lppObjects) const
@@ -848,12 +848,12 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 	return erSuccess;
 }
 
-/** 
+/**
  * Get a list of company details which the current user is admin over
  *
  * @param[in] ulFlags usermanagement flags
  * @param[out] lppObjects company list
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags,
@@ -886,13 +886,13 @@ ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags,
 	return erSuccess;
 }
 
-/** 
+/**
  * Return the current logged in UserID _OR_ if you're an administrator
  * over user that is set as owner of the given object, return the
  * owner of the object.
- * 
+ *
  * @param[in] ulObjId object to get ownership of if admin, defaults to 0 to get the current UserID
- * 
+ *
  * @return user id of object
  */
 unsigned int ECSecurity::GetUserId(unsigned int ulObjId)
@@ -906,11 +906,11 @@ unsigned int ECSecurity::GetUserId(unsigned int ulObjId)
 	return ulUserId;
 }
 
-/** 
+/**
  * Check if the given object id is in your own store
- * 
+ *
  * @param[in] ulObjId hierarchy object id of object to check
- * 
+ *
  * @return Kopano error code
  * @retval erSuccess object is in the current user's store
  */
@@ -923,9 +923,9 @@ ECRESULT ECSecurity::IsStoreOwner(unsigned int ulObjId) const
 	return IsOwner(ulStoreId);
 }
 
-/** 
+/**
  * Return the current user's admin level
- * 
+ *
  * @return admin level of user
  */
 int ECSecurity::GetAdminLevel(void) const
@@ -933,12 +933,12 @@ int ECSecurity::GetAdminLevel(void) const
 	return m_details.GetPropInt(OB_PROP_I_ADMINLEVEL);
 }
 
-/** 
+/**
  * Get the owner of the store in which the given objectid resides in
- * 
+ *
  * @param[in] ulObjId hierarchy object id to get store owner of
  * @param[in] lpulOwnerId user id of store in which ulObjId resides
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::GetStoreOwner(unsigned int ulObjId,
@@ -947,13 +947,13 @@ ECRESULT ECSecurity::GetStoreOwner(unsigned int ulObjId,
 	return GetStoreOwnerAndType(ulObjId, lpulOwnerId, NULL);
 }
 
-/** 
+/**
  * Get the owner and type of the store in which the given objectid resides in
- * 
+ *
  * @param[in] ulObjId hierarchy object id to get store owner of
  * @param[out] lpulOwnerId user id of store in which ulObjId resides
  * @param[out] lpulStoreType type of store in which ulObjId resides
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::GetStoreOwnerAndType(unsigned int ulObjId,
@@ -974,13 +974,13 @@ ECRESULT ECSecurity::GetStoreOwnerAndType(unsigned int ulObjId,
 	return erSuccess;
 }
 
-/** 
+/**
  * Check if the current user is admin over a given user id (user/group/company/...)
- * 
+ *
  * @todo this function should be renamed to IsAdminOfUserObject(id) or something like that
- * 
+ *
  * @param[in] ulUserObjectId id of user
- * 
+ *
  * @return Kopano error code
  * @retval erSuccess Yes, admin
  * @retval KCERR_NO_ACCESS No, not admin
@@ -1034,11 +1034,11 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 	return KCERR_NO_ACCESS;
 }
 
-/** 
+/**
  * Check if we're admin over the user who owns the given object id
- * 
+ *
  * @param ulObjectId hierarchy object id
- * 
+ *
  * @return Kopano error code
  * @retval erSuccess Yes
  * @retval KCERR_NO_ACCESS No
@@ -1055,12 +1055,12 @@ ECRESULT ECSecurity::IsAdminOverOwnerOfObject(unsigned int ulObjectId)
 	return IsAdminOverUserObject(ulOwner);
 }
 
-/** 
+/**
  * Get the size of the store in which the given ulObjId resides in
- * 
+ *
  * @param[in] ulObjId hierarchy object id
  * @param[out] lpllStoreSize size of store
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId,
@@ -1095,12 +1095,12 @@ ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId,
 	return erSuccess;
 }
 
-/** 
+/**
  * Get the store size of a given user
- * 
+ *
  * @param[in] ulUserId internal user id
  * @param[out] lpllUserSize store size of user
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId,
@@ -1136,17 +1136,17 @@ ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId,
 	return erSuccess;
 }
 
-/** 
+/**
  * Gets the quota status value (ok, warn, soft, hard) for a given
  * store and store size
- * 
+ *
  * @note if you already know the owner of the store, it's better to
  * call ECSecurity::CheckUserQuota
  *
  * @param[in] ulStoreId store to check quota for
  * @param[in] llStoreSize current store size of the store
  * @param[out] lpQuotaStatus quota status value
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::CheckQuota(unsigned int ulStoreId, long long llStoreSize,
@@ -1167,14 +1167,14 @@ ECRESULT ECSecurity::CheckQuota(unsigned int ulStoreId, long long llStoreSize,
 	return CheckUserQuota(ulOwnerId, llStoreSize, lpQuotaStatus);
 }
 
-/** 
+/**
  * Gets the quota status value (ok, warn, soft, hard) for a given
  * store and store size
- * 
+ *
  * @param[in] ulUserId user to check quota for
  * @param[in] llStoreSize current store size of the store
  * @param[out] lpQuotaStatus quota status
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::CheckUserQuota(unsigned int ulUserId,
@@ -1204,12 +1204,12 @@ ECRESULT ECSecurity::CheckUserQuota(unsigned int ulUserId,
 	return erSuccess;
 }
 
-/** 
+/**
  * Get the quota details of a user
- * 
+ *
  * @param[in] ulUserId internal user id
  * @param[out] lpDetails quota details
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault,
@@ -1275,11 +1275,11 @@ exit:
 	return er;
 }
 
-/** 
+/**
  * Get the username of the current user context
- * 
+ *
  * @param[out] lpstrUsername login name of the user
- * 
+ *
  * @return always erSuccess
  */
 ECRESULT ECSecurity::GetUsername(std::string *lpstrUsername) const
@@ -1291,11 +1291,11 @@ ECRESULT ECSecurity::GetUsername(std::string *lpstrUsername) const
 	return erSuccess;
 }
 
-/** 
+/**
  * Get the username of the user impersonating the current user
- * 
+ *
  * @param[out] lpstrImpersonator login name of the impersonator
- * 
+ *
  * @return always erSuccess
  */
 ECRESULT ECSecurity::GetImpersonator(std::string *lpstrImpersonator) const

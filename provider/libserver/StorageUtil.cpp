@@ -28,7 +28,7 @@ extern ECSessionManager *g_lpSessionManager;	// ECServerEntrypoint.cpp
 static std::unordered_map<unsigned int, time_t> ltm_ontime_cache, ltm_offtime_cache;
 static std::mutex ltm_ontime_mutex, ltm_offtime_mutex;
 
-ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned int ulParentObjId, unsigned int ulParentType, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulObjId) 
+ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned int ulParentObjId, unsigned int ulParentType, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulObjId)
 {
 	unsigned int ulNewObjId = 0, ulAffected = 0;
 	assert(ulParentType == MAPI_FOLDER || ulParentType == MAPI_MESSAGE || ulParentType == MAPI_ATTACH);
@@ -99,7 +99,7 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	if (lpAttachmentStorage == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
 
-	// since we already did the length magic in the previous query, we only need the 
+	// since we already did the length magic in the previous query, we only need the
 	// extra size for filestorage and S3 storage, i.e. not database storage
 	lpDatabaseStorage = dynamic_cast<ECDatabaseAttachment *>(lpAttachmentStorage.get());
 	if (!lpDatabaseStorage) {

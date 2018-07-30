@@ -103,7 +103,7 @@ public:
 	~ECsIndexProp() {
 		delete[] lpData;
 	}
-    
+
     ECsIndexProp(const ECsIndexProp &src) {
         if(this == &src)
             return;
@@ -121,7 +121,7 @@ public:
 	{
 		SetValue(tag, d, z);
 	}
-    
+
     ECsIndexProp& operator=(const ECsIndexProp &src) {
 		if (this == &src)
 			return *this;
@@ -178,7 +178,7 @@ public:
 protected:
 	void Free() {
 		delete[] lpData;
-		ulTag = 0; 
+		ulTag = 0;
 		cbData = 0;
 		lpData = NULL;
 	}
@@ -208,7 +208,7 @@ public:
 		for (auto &p : mapPropVals)
 			FreePropVal(&p.second, false);
     };
-    
+
     ECsCells(const ECsCells &src) {
         struct propVal val;
 		for (const auto &p : src.mapPropVals) {
@@ -217,7 +217,7 @@ public:
         }
         m_bComplete = src.m_bComplete;
     }
-    
+
     ECsCells& operator=(const ECsCells &src) {
         struct propVal val;
 		for (auto &p : mapPropVals)
@@ -230,7 +230,7 @@ public:
         m_bComplete = src.m_bComplete;
 		return *this;
     }
-    
+
     // Add a property value for this object
     void AddPropVal(unsigned int ulPropTag, const struct propVal *lpPropVal) {
         struct propVal val;
@@ -239,11 +239,11 @@ public:
         val.ulPropTag = NormalizeDBPropTag(val.ulPropTag);
 		auto res = mapPropVals.emplace(ulPropTag, val);
 		if (!res.second) {
-            FreePropVal(&res.first->second, false); 
+            FreePropVal(&res.first->second, false);
             res.first->second = val;	// reassign
         }
     }
-    
+
     // get a property value for this object
     bool GetPropVal(unsigned int ulPropTag, struct propVal *lpPropVal, struct soap *soap, bool truncate) {
 		auto i = mapPropVals.find(NormalizeDBPropTag(ulPropTag));
@@ -254,7 +254,7 @@ public:
 	        lpPropVal->ulPropTag = ulPropTag; // Switch back to requested type (not on PT_ERROR of course)
         return true;
     }
-    
+
 	std::vector<unsigned int> GetPropTags() {
 		std::vector<unsigned int> result;
 		for (auto iter = mapPropVals.cbegin(); iter != mapPropVals.cend(); iter++) {
@@ -275,7 +275,7 @@ public:
 		if (PROP_TYPE(i->second.ulPropTag) == PT_LONGLONG)
 			i->second.Value.li += lDelta;
     }
-    
+
     // Updates a LONG type property
     void UpdatePropVal(unsigned int ulPropTag, unsigned int ulMask, unsigned int ulValue) {
         if(PROP_TYPE(ulPropTag) != PT_LONG && PROP_TYPE(ulPropTag) != PT_LONGLONG)
@@ -292,14 +292,14 @@ public:
 			i->second.Value.li |= ulValue & ulMask;
 		}
     }
-    
+
 	void SetComplete(bool bComplete) { m_bComplete = bComplete; }
 	bool GetComplete() const { return m_bComplete; }
 
-    // Gets the amount of memory used by this object    
+    // Gets the amount of memory used by this object
     size_t GetSize() const {
         size_t ulSize = 0;
-        
+
         for (const auto &p : mapPropVals) {
             switch (p.second.__union) {
                 case SOAP_UNION_propValData_lpszA:
@@ -322,7 +322,7 @@ public:
         ulSize += sizeof(*this);
         return ulSize;
     }
-    
+
     // All properties for this object; propTag => propVal
     std::map<unsigned int, struct propVal> mapPropVals;
 	bool m_bComplete = false;
@@ -418,7 +418,7 @@ public:
 	ECRESULT SetObject(unsigned int ulObjId, unsigned int ulParent, unsigned int ulOwner, unsigned int ulFlags, unsigned int ulType);
 	// Query cache only
 	ECRESULT QueryParent(unsigned int ulObjId, unsigned int *ulParent);
-	
+
 	ECRESULT GetObjects(const std::list<sObjectTableKey> &lstObjects, std::map<sObjectTableKey, ECsObjects> &mapObjects);
 	ECRESULT GetObjectsFromProp(unsigned int ulTag, const std::vector<unsigned int> &cbdata, const std::vector<unsigned char *> &lpdata, std::map<ECsIndexProp, unsigned int> &mapObjects);
 	ECRESULT GetStore(unsigned int ulObjId, unsigned int *ulStore, GUID *lpGuid, unsigned int maxdepth = 100);
@@ -460,22 +460,22 @@ public:
 	ECRESULT GetComplete(unsigned int ulObjId, bool &complete);
 	ECRESULT GetPropTags(unsigned int ulObjId, std::vector<unsigned int> &proptags);
 	// Cache Index properties
-	
+
 	// Read-through
 	ECRESULT GetPropFromObject(unsigned int ulTag, unsigned int ulObjId, struct soap *soap, unsigned int* lpcbData, unsigned char** lppData);
 	ECRESULT GetObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId);
-	
+
 	ECRESULT RemoveIndexData(unsigned int ulObjId);
 	ECRESULT RemoveIndexData(unsigned int ulPropTag, unsigned int cbData, unsigned char *lpData);
 	ECRESULT RemoveIndexData(unsigned int ulPropTag, unsigned int ulObjId);
-	
+
 	// Read cache only
 	ECRESULT QueryObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId);
 
 	ECRESULT SetObjectProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int ulObjId);
 	void ForEachCacheItem(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj);
 	ECRESULT DumpStats();
-	
+
 	// Cache list of properties indexed by kopano-search
 	ECRESULT GetExcludedIndexProperties(std::set<unsigned int>& set);
 	ECRESULT SetExcludedIndexProperties(const std::set<unsigned int> &);
@@ -483,7 +483,7 @@ public:
 	// Test
 	void DisableCellCache();
 	void EnableCellCache();
-	
+
 private:
 	// cache functions
 	ECRESULT I_GetACLs(unsigned int obj_id, struct rightsArray **);

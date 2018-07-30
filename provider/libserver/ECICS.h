@@ -59,18 +59,18 @@ public:
 		}
 	}
     SOURCEKEY&  operator= (const SOURCEKEY &s) {
-        if(&s == this) return *this; 
+        if(&s == this) return *this;
 		lpData.reset(new char[s.ulSize]);
 		ulSize = s.ulSize;
 		memcpy(lpData.get(), s.lpData.get(), ulSize);
-        return *this; 
+        return *this;
     }
-    
+
     bool operator == (const SOURCEKEY &s) const {
 		return this == &s || (ulSize == s.ulSize &&
 		       memcmp(lpData.get(), s.lpData.get(), s.ulSize) == 0);
     }
-	
+
 	bool operator < (const SOURCEKEY &s) const {
 		if(this == &s)
 			return false;
@@ -84,11 +84,11 @@ public:
 			return (d == 0) ? true : (d < 0);			// If the compared part is equal, the shortes is less (this)
 		}
 	}
-    
+
 	operator unsigned char *(void) const { return reinterpret_cast<unsigned char *>(lpData.get()); }
 	operator std::string(void) const { return std::string(lpData.get(), ulSize); }
     unsigned int 	size() const { return ulSize; }
-	bool			empty() const { return ulSize == 0; } 
+	bool			empty() const { return ulSize == 0; }
 private:
 	unsigned int ulSize;
 	std::unique_ptr<char[]> lpData;

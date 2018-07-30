@@ -139,14 +139,14 @@ private:
 	 * session has exited
 	 */
 	bool m_bExit = false;
-	
+
 	/* Reference to the session manager needed to notify changes in our queue */
 	ECSessionManager *	m_lpSessionManager;
-	
+
 	/* Multimap of subscriptions that we have (key -> store id) */
 	SUBSCRIBESTOREMULTIMAP	m_mapSubscribedStores;
 	std::mutex m_mutexSubscribedStores;
-	
+
 private:
 	// Make ECSessionGroup non-copyable
 	ECSessionGroup(const ECSessionGroup &) = delete;

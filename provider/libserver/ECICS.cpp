@@ -121,8 +121,8 @@ static ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap,
 			return er;
 		lpAbeid = reinterpret_cast<ABEID *>(sEntryId.__ptr);
 		cbAbeid = sEntryId.__size;
-	} 
-	else if (lpAbeid->ulVersion == 0 && bUseV1) 
+	}
+	else if (lpAbeid->ulVersion == 0 && bUseV1)
 	{
 		auto er = lpSession->GetUserManagement()->GetABSourceKeyV1(lpAbeid->ulId, &sSourceKey);
 		if (er != erSuccess)
@@ -270,7 +270,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		struct propVal sProp;
 		struct xsd__base64Binary sBin;
 		struct sObjectTableKey key;
-		
+
 		// Add the new change key to the predecessor change list
 		lpSession->GetServerGUID((GUID*)szChangeKey);
 		memcpy(szChangeKey + sizeof(GUID), &changeid, 4);
@@ -285,7 +285,7 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		er = WriteProp(lpDatabase, ulObjId, 0, &sProp);
 		if(er != erSuccess)
 			return er;
-			
+
 		key.ulObjId = ulObjId;
 		key.ulOrderId = 0;
 		auto cache = lpSession->GetSessionManager()->GetCacheManager();
@@ -842,7 +842,7 @@ static ECRESULT getchanges_ab2(struct soap *soap, ECSession *lpSession,
 	while (1) {
 		objectid_t id;
 		unsigned int ulType;
-		
+
 		lpDBRow = lpDBResult.fetch_row();
 		auto lpDBLen = lpDBResult.fetch_row_lengths();
 		if (lpDBRow == NULL)
@@ -900,7 +900,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	unsigned int ulMaxChange = 0, ulFolderId = 0;
 	icsChangesArray*lpChanges = NULL;
 	bool			bAcceptABEID = false;
-	
+
 	ec_log(EC_LOGLEVEL_ICS, "K-1200: sourcekey=%s, syncid=%d, changetype=%d, flags=%d", bin2hex(sFolderSourceKey).c_str(), ulSyncId, ulChangeType, ulFlags);
 	auto gcache = g_lpSessionManager->GetCacheManager();
     // Get database object
@@ -1002,8 +1002,8 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncId, const SOURCEKEY &sSourceKey, const SOURCEKEY &sParentSourceKey)
 {
 	DB_RESULT lpDBResult;
-	
-	std::string strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
+
+	std::string strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);
 	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
@@ -1016,26 +1016,26 @@ ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncI
 		return erSuccess;
 	strQuery = "INSERT INTO syncedmessages (sync_id,change_id,sourcekey,parentsourcekey) VALUES (" +
 				stringify(ulSyncId) + "," +
-				lpDBRow[0] + "," + 
+				lpDBRow[0] + "," +
 				lpDatabase->EscapeBinary(sSourceKey) + "," +
 				lpDatabase->EscapeBinary(sParentSourceKey) + ")";
 	return lpDatabase->DoInsert(strQuery);
 }
 
-/** 
+/**
  * Check if the object to remove is in the sync set. If it is outside,
  * we don't need to remove it at all.
- * 
+ *
  * @param lpDatabase Database
  * @param ulSyncId sync id, must be != 0
  * @param sSourceKey sourcekey of the object
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncId, const SOURCEKEY &sSourceKey)
 {
 	DB_RESULT lpDBResult;
-	std::string strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
+	std::string strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);
 
 	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
@@ -1065,7 +1065,7 @@ ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ul
 {
 	DB_RESULT lpDBResult;
 
-	std::string strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);	
+	std::string strQuery = "SELECT MAX(change_id) FROM syncedmessages WHERE sync_id=" + stringify(ulSyncId);
 	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;

@@ -39,7 +39,7 @@ private:
 	std::condition_variable m_hCondExit;
     pthread_t			m_hThread;
 	bool m_thread_active = false, m_bExit = false;
-    ECConfig *m_lpConfig;    
+    ECConfig *m_lpConfig;
     ECDatabaseFactory *m_lpDatabaseFactory;
 };
 

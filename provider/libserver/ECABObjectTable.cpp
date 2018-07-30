@@ -84,7 +84,7 @@ ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 {
 	auto lpODAB = static_cast<const ECODAB *>(m_lpObjectData);
 	assert(lplstProps != NULL);
-	
+
 	//List always empty
 	lplstProps->clear();
 
@@ -211,7 +211,7 @@ ECRESULT ECABObjectTable::LoadHierarchyCompany(unsigned int ulObjectId,
 	 * 1. When working in a non-hosted environment.
 	 * 2. When the company does not have enough permissions to view any other company spaces.
 	 * 3. There's only one company.
-	 * 
+	 *
 	 * Having a Global Address Book _and_ a container for the company will only look strange and
 	 * confusing for the user. So lets delete the entry altogether for everybody except SYSTEM
 	 * and SYSADMIN users.

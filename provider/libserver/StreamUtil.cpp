@@ -262,7 +262,7 @@ ECRESULT ECStreamSerializer::Stat(ULONG *lpcbRead, ULONG *lpcbWrite)
 }
 
 NamedPropertyMapper::NamedPropertyMapper(ECDatabase *lpDatabase)
-	: m_lpDatabase(lpDatabase) 
+	: m_lpDatabase(lpDatabase)
 {
 	assert(lpDatabase != NULL);
 }
@@ -294,7 +294,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 		*lpulId = strtoul(lpRow[0], nullptr, 0);
 	} else {
 		// Create the named property
-		strQuery = 
+		strQuery =
 			"INSERT INTO names (nameid, guid) "
 			"VALUES(" + stringify(ulNameId) + "," + m_lpDatabase->EscapeBinary(&guid, sizeof(guid)) + ")";
 		er = m_lpDatabase->DoInsert(strQuery, lpulId);
@@ -339,7 +339,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 		*lpulId = strtoul(lpRow[0], nullptr, 0);
 	} else {
 		// Create the named property
-		strQuery = 
+		strQuery =
 			"INSERT INTO names (namestring, guid) "
 			"VALUES('" + m_lpDatabase->Escape(strNameString) + "'," + m_lpDatabase->EscapeBinary(&guid, sizeof(guid)) + ")";
 		er = m_lpDatabase->DoInsert(strQuery, lpulId);
@@ -787,7 +787,7 @@ static ECRESULT SerializePropVal(const StreamCaps *lpStreamCaps,
 	default:
 		er = KCERR_INVALID_TYPE;
 	}
-	
+
 	if (PROP_ID(sPropVal.ulPropTag) <= 0x8500)
 		return er;
 	// If property is named property in the dynamic range we need to add some extra info
@@ -947,7 +947,7 @@ exit:
  * Serialize a Message directly from the database.
  * This method handles direct subobjects and recurses whenever an embedded
  * message is encountered.
- * 
+ *
  * @param[in] lpecSession			Pointer to the current session.
  * @param[in] lpStreamDatabase		Pointer to the database.
  * @param[in] lpAttachmentStorage	Pointer to the attachmentstore.
@@ -978,7 +978,7 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 		er = KCERR_NO_SUPPORT;
 		goto exit;
 	}
-	
+
 	if (lpStreamCaps == NULL) {
 		lpStreamCaps = STREAM_CAPS_CURRENT;	// Set to current stream capabilities.
 		if ((lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE) == 0) {
@@ -1034,19 +1034,19 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 		er = lpSink->Write(&ulSubObjId, sizeof(ulSubObjId), 1);
 		if (er != erSuccess)
 			goto exit;
-			
+
 		// Output properties for this object
 		auto iterChild = mapChildProps.find(ulSubObjId);
 		if (iterChild != mapChildProps.cend()) {
 			struct propValArray props;
-			
+
 			iterChild->second.lpPropVals->GetPropValArray(&props);
 			er = SerializeProps(&props, lpStreamCaps, lpSink, &mapNamedPropDefs);
 			FreePropValArray(&props, false);
 			if(er != erSuccess)
 				goto exit;
 		}
-		
+
 		if (ulSubObjType != MAPI_ATTACH)
 			continue;
 
@@ -1383,7 +1383,7 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	er = lpSource->Read(&ulCount, sizeof(ulCount), 1);
 	if (er != erSuccess)
 		goto exit;
-		
+
 	if (lppPropValArray) {
 		// If requested we can store upto ulCount properties. Currently we won't store them all though.
 		// Note that we test on lppPropValArray but allocate lpPropValArray. We'll assign that to
@@ -1426,9 +1426,9 @@ static ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		if (lpsPropval->ulPropTag == PR_SOURCE_KEY) {
 			// don't use the sourcekey if found.
 			// Don't query the cache as that can be out of sync with the db in rare occasions.
-			strQuery = 
+			strQuery =
 				"SELECT hierarchyid FROM indexedproperties "
-					"WHERE tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + 
+					"WHERE tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) +
 					" AND val_binary=" + lpDatabase->EscapeBinary(lpsPropval->Value.bin->__ptr, lpsPropval->Value.bin->__size);
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 			if(er != erSuccess)
@@ -1565,7 +1565,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 	er = gcache->GetObject(ulParentId, nullptr, nullptr, nullptr, &ulParentType);
 	if (er != erSuccess)
 		goto exit;
-		
+
 	// Normalize the object type, but keep the original for storing in the db
 	ulRealObjType = RealObjType(ulObjType, ulParentType);
 	if (ulRealObjType != MAPI_MESSAGE && ulRealObjType != MAPI_ATTACH && ulRealObjType != MAPI_MAILUSER && ulRealObjType != MAPI_DISTLIST) {
@@ -1616,7 +1616,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 	if (ulRealObjType == MAPI_MESSAGE || ulRealObjType == MAPI_ATTACH) {
 		unsigned int ulSubObjCount = 0, ulSubObjId = 0, ulSubObjType = 0;
 		BOOL			fHasAttach = FALSE;
-		
+
 		er = lpSource->Read(&ulSubObjCount, sizeof(ulSubObjCount), 1);
 		if (er != erSuccess)
 			goto exit;
@@ -1650,8 +1650,8 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			sPropHasAttach.ulPropTag = PR_HASATTACH;
 			sPropHasAttach.Value.b = (fHasAttach != FALSE);
 			sPropHasAttach.__union = SOAP_UNION_propValData_b;
-	
-			// Write in properties		
+
+			// Write in properties
 			strQuery.clear();
 			WriteSingleProp(lpDatabase, ulObjId, ulParentId, &sPropHasAttach, false, 0, strQuery);
 			er = lpDatabase->DoInsert(strQuery);
@@ -1663,7 +1663,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			er = lpDatabase->DoInsert(strQuery);
 			if(er != erSuccess)
 				goto exit;
-			
+
 			// Update cache, since it may have been written before by WriteProps with a possibly wrong value
 			gcache->SetCell(&key, PR_HASATTACH, &sPropHasAttach);
 			// Update MSGFLAG_HASATTACH in the same way. We can assume PR_MESSAGE_FLAGS is already available, so we
@@ -1695,7 +1695,7 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			assert(false);
 		}
 	}
-	
+
 	if (lpPropValArray) {
 		assert(lppPropValArray != NULL);
 		*lppPropValArray = lpPropValArray;
@@ -1705,7 +1705,7 @@ exit:
 	if (er != erSuccess) {
 		lpSource->Flush(); // Flush the whole stream
 		ec_log_err("DeserializeObject failed with error code 0x%08x %s", er, GetMAPIErrorMessage(kcerr_to_mapierr(er, ~0U /* anything that yields UNKNOWN */)));
-	}	
+	}
 	FreePropValArray(lpPropValArray, true);
 	return er;
 }
@@ -1740,7 +1740,7 @@ static ECRESULT GetValidatedPropType(DB_ROW lpRow, unsigned int *lpulType)
 		break;
 	case PT_CURRENCY:
 	case PT_SYSTIME:
-		if (lpRow[FIELD_NR_HI] == NULL || lpRow[FIELD_NR_LO] == NULL) 
+		if (lpRow[FIELD_NR_HI] == NULL || lpRow[FIELD_NR_LO] == NULL)
 			return er;
 		break;
 	case PT_I8:
@@ -1749,48 +1749,48 @@ static ECRESULT GetValidatedPropType(DB_ROW lpRow, unsigned int *lpulType)
 		break;
 	case PT_STRING8:
 	case PT_UNICODE:
-		if (lpRow[FIELD_NR_STRING] == NULL) 
+		if (lpRow[FIELD_NR_STRING] == NULL)
 			return er;
 		break;
 	case PT_CLSID:
 	case PT_BINARY:
-		if (lpRow[FIELD_NR_BINARY] == NULL) 
+		if (lpRow[FIELD_NR_BINARY] == NULL)
 			return er;
 		break;
 	case PT_MV_I2:
-		if (lpRow[FIELD_NR_ULONG] == NULL) 
+		if (lpRow[FIELD_NR_ULONG] == NULL)
 			return er;
 		break;
 	case PT_MV_LONG:
-		if (lpRow[FIELD_NR_ULONG] == NULL) 
+		if (lpRow[FIELD_NR_ULONG] == NULL)
 			return er;
 		break;
 	case PT_MV_R4:
-		if (lpRow[FIELD_NR_DOUBLE] == NULL) 
+		if (lpRow[FIELD_NR_DOUBLE] == NULL)
 			return er;
 		break;
 	case PT_MV_DOUBLE:
 	case PT_MV_APPTIME:
-		if (lpRow[FIELD_NR_DOUBLE] == NULL) 
+		if (lpRow[FIELD_NR_DOUBLE] == NULL)
 			return er;
 		break;
 	case PT_MV_CURRENCY:
 	case PT_MV_SYSTIME:
-		if (lpRow[FIELD_NR_HI] == NULL || lpRow[FIELD_NR_LO] == NULL) 
+		if (lpRow[FIELD_NR_HI] == NULL || lpRow[FIELD_NR_LO] == NULL)
 			return er;
 		break;
 	case PT_MV_BINARY:
 	case PT_MV_CLSID:
-		if (lpRow[FIELD_NR_BINARY] == NULL) 
+		if (lpRow[FIELD_NR_BINARY] == NULL)
 			return er;
 		break;
 	case PT_MV_STRING8:
 	case PT_MV_UNICODE:
-		if (lpRow[FIELD_NR_STRING] == NULL) 
+		if (lpRow[FIELD_NR_STRING] == NULL)
 			return er;
 		break;
 	case PT_MV_I8:
-		if (lpRow[FIELD_NR_LONGINT] == NULL) 
+		if (lpRow[FIELD_NR_LONGINT] == NULL)
 			return er;
 		break;
 	default:

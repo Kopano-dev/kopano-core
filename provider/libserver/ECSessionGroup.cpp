@@ -101,7 +101,7 @@ ECRESULT ECSessionGroup::AddAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 		scoped_lock lock(m_hNotificationLock);
 		m_mapSubscribe.emplace(ulConnection, sSubscribeItem);
 	}
-	
+
 	if(ulEventMask & (fnevNewMail | fnevObjectModified | fnevObjectCreated | fnevObjectCopied | fnevObjectDeleted | fnevObjectMoved)) {
 		// Object and new mail notifications should be subscribed at the session manager
 		unsigned int ulStore = 0;
@@ -241,7 +241,7 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 	memset(lpNotify, 0, sizeof(notification));
 	lpNotify->tab = s_alloc<notificationTable>(nullptr);
 	memset(lpNotify->tab, 0, sizeof(notificationTable));
-	
+
 	lpNotify->ulEventType			= fnevTableModified;
 	lpNotify->tab->ulTableEvent		= ulType;
 
@@ -271,7 +271,7 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 		lpNotify->tab->propPrior.__union = SOAP_UNION_propValData_ul;
 		lpNotify->tab->propPrior.ulPropTag = PR_NULL;
 	}
-	
+
 	lpNotify->tab->ulObjType = ulObjType;
 	if(lpRow) {
 		lpNotify->tab->pRow = s_alloc<propValArray>(nullptr);

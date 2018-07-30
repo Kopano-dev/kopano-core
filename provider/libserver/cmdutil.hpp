@@ -23,10 +23,10 @@ namespace KC {
 
 class EntryId _kc_final {
 public:
-    EntryId() { 
+    EntryId() {
         updateStruct();
     }
-    EntryId(const EntryId &s) { 
+    EntryId(const EntryId &s) {
         m_data = s.m_data;
         updateStruct();
     }
@@ -36,9 +36,9 @@ public:
 		updateStruct();
 	}
     EntryId(const entryId *entryid) {
-        if(entryid) 
+        if(entryid)
             m_data = std::string((char *)entryid->__ptr, entryid->__size);
-        else 
+        else
             m_data.clear();
         updateStruct();
     }
@@ -50,7 +50,7 @@ public:
         m_data = data;
         updateStruct();
     }
-    EntryId&  operator= (const EntryId &s) { 
+    EntryId&  operator= (const EntryId &s) {
         m_data = s.m_data;
         updateStruct();
         return *this;
@@ -85,19 +85,19 @@ public:
 
 	bool operator==(const EntryId &s) const noexcept { return m_data == s.m_data; }
 	bool operator<(const EntryId &s) const noexcept { return m_data < s.m_data; }
-    operator const std::string& () const { return m_data; }    
+    operator const std::string& () const { return m_data; }
     operator unsigned char *() const { return (unsigned char *)m_data.data(); }
 	operator void *() { return const_cast<char *>(m_data.data()); }
     operator entryId *() { return &m_sEntryId; }
     unsigned int 	size() const { return m_data.size(); }
-	bool			empty() const { return m_data.empty(); } 
-	
+	bool			empty() const { return m_data.empty(); }
+
 private:
     void updateStruct() {
-        m_sEntryId.__size = m_data.size(); 
+        m_sEntryId.__size = m_data.size();
         m_sEntryId.__ptr = (unsigned char *)m_data.data();
     }
-    
+
     entryId m_sEntryId;
     std::string m_data;
 };
@@ -181,7 +181,7 @@ ECRESULT ApplyFolderCounts(ECDatabase *lpDatabase, const std::map<unsigned int, 
 #define LOCK_SHARED 	0x00000001
 #define LOCK_EXCLUSIVE	0x00000002
 
-// Lock folders and start transaction: 
+// Lock folders and start transaction:
 extern ECRESULT BeginLockFolders(ECDatabase *, const std::set<SOURCEKEY> &, unsigned int flags, kd_trans &, ECRESULT &); /* may be mixed list of folders and messages */
 extern ECRESULT BeginLockFolders(ECDatabase *, const std::set<EntryId> &, unsigned int flags, kd_trans &, ECRESULT &); /* may be mixed list of folders and messages */
 extern ECRESULT BeginLockFolders(ECDatabase *, const SOURCEKEY &, unsigned int flags, kd_trans &, ECRESULT &); /* single sourcekey, folder or message */

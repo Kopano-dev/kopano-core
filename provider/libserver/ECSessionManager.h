@@ -131,7 +131,7 @@ public:
 	// are published to the 'AddNotification()' function for the session's sessiongroup.
 	_kc_hidden ECRESULT SubscribeObjectEvents(unsigned int store_id, ECSESSIONGROUPID);
 	_kc_hidden ECRESULT UnsubscribeObjectEvents(unsigned int store_id, ECSESSIONGROUPID);
-	
+
 	enum SEQUENCE { SEQ_IMAP };
 	_kc_hidden ECRESULT GetNewSequence(SEQUENCE, unsigned long long *seq_id);
 	_kc_hidden ECRESULT CreateDatabaseConnection(void);

@@ -79,7 +79,7 @@ ECRESULT GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDa
 
 	// database_key is defined in ECServer.cpp, and allocated in the running_server routine
 	auto lpDatabase = static_cast<ECDatabase *>(pthread_getspecific(database_key));
-	
+
 	if(lpDatabase == NULL) {
 		auto er = lpFactory->CreateDatabaseObject(&lpDatabase, error);
 		if(er != erSuccess) {
@@ -87,7 +87,7 @@ ECRESULT GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDa
 			lpDatabase = NULL;
 			return er;
 		}
-		
+
 		// Add database into a list, for close all database connections
 		AddDatabaseObject(lpDatabase);
 		pthread_setspecific(database_key, lpDatabase);

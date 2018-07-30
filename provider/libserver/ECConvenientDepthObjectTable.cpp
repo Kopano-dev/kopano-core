@@ -75,14 +75,14 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	for (auto iterFolders = lstFolders.cbegin(); iterFolders != lstFolders.cend(); ) {
 		std::string strQuery = "SELECT hierarchy.id, hierarchy.parent, hierarchy.owner, hierarchy.flags, hierarchy.type FROM hierarchy WHERE hierarchy.type = " + stringify(MAPI_FOLDER) + " AND hierarchy.flags & " + stringify(MSGFLAG_DELETED) + " = " + stringify(ulFlags & MSGFLAG_DELETED);
 		strQuery += " AND hierarchy.parent IN(";
-		
+
 		while (iterFolders != lstFolders.cend()) {
 		    strQuery += stringify(*iterFolders);
 		    ++iterFolders;
 		    if (iterFolders != lstFolders.cend())
     		    strQuery += ",";
         }
-        
+
         strQuery += ")";
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess)

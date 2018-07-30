@@ -121,7 +121,7 @@ void ECPluginSharedData::Signal(int signal)
 	case SIGHUP:
 		if (!m_lpConfig->ReloadSettings())
 			ec_log_crit("Unable to reload plugin configuration file, continuing with current settings.");
-			
+
 		if (m_lpConfig->HasErrors()) {
 			ec_log_err("Unable to reload plugin configuration file.");
 			LogConfigErrors(m_lpConfig);

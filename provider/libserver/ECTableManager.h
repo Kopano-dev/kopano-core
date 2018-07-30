@@ -20,7 +20,7 @@ namespace KC {
 class ECSession;
 class ECSessionManager;
 
-/* 
+/*
  * The table manager is responsible for opening tables, and providing
  * access to open tables by a handle ID for each table, and updating tables when
  * a change is made to the underlying data and sending notifications to clients
@@ -38,9 +38,9 @@ struct TABLE_ENTRY {
 		TABLE_TYPE_SYSTEMSTATS, TABLE_TYPE_THREADSTATS, TABLE_TYPE_USERSTATS, TABLE_TYPE_SESSIONSTATS, TABLE_TYPE_COMPANYSTATS, TABLE_TYPE_SERVERSTATS,
 		TABLE_TYPE_MAILBOX,
 	};
-		   
+
     TABLE_TYPE ulTableType;
-    
+
 	union {
 		struct {
 			unsigned int ulParentId;

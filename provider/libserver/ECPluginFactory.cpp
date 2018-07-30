@@ -31,7 +31,7 @@ ECPluginFactory::~ECPluginFactory() {
 ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
     UserPlugin *lpPlugin = NULL;
 
-    if(m_dl == NULL) {    
+    if(m_dl == NULL) {
         const char *pluginname = m_config->GetSetting("user_plugin");
         char filename[PATH_MAX + 1];
         if (!pluginname || !strcmp(pluginname, "")) {
@@ -71,7 +71,7 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
 			filename, sversion, PROJECT_VERSION);
 		goto out;
         }
-    
+
         m_getUserPluginInstance = (UserPlugin* (*)(std::mutex &, ECPluginSharedData *)) dlsym(m_dl, "getUserPluginInstance");
         if (m_getUserPluginInstance == NULL) {
 			ec_log_crit("Failed to load getUserPluginInstance from plugin: %s", dlerror());
@@ -90,7 +90,7 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
 		ec_log_crit("Cannot instantiate user plugin: %s", e.what());
 		return KCERR_NOT_FOUND;
 	}
-	
+
 	*lppPlugin = lpPlugin;
 	return erSuccess;
  out:

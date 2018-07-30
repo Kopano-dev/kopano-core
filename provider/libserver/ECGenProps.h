@@ -18,7 +18,7 @@ namespace KC {
 /*
  * This class is a general serverside class for generated properties. A Generated
  * property is any property that cannot be directly stored or read from the database.
- * This means properties like PR_ENTRYID because they are not stored as a property, 
+ * This means properties like PR_ENTRYID because they are not stored as a property,
  * properties like PR_NORMALIZED_SUBJECT because they are computed from the PR_SUBJECT,
  * and PR_MAPPING_SIGNATURE because they are stored elsewhere within the database.
  *

@@ -81,7 +81,7 @@ struct STOREDPROCS {
  * Mode 1 = Best body only (RTF better than HTML) + plaintext
  * Mode 2 = Plaintext only
  */
- 
+
 static const char szGetProps[] =
 "CREATE PROCEDURE GetProps(IN hid integer, IN mode integer)\n"
 "BEGIN\n"
@@ -90,7 +90,7 @@ static const char szGetProps[] =
 "  IF mode = 1 THEN\n"
 "  	 call GetBestBody(hid, bestbody);\n"
 "  END IF;\n"
-  
+
 "  SELECT 0, tag, properties.type, val_ulong, val_string, val_binary, val_double, val_longint, val_hi, val_lo, 0, names.nameid, names.namestring, names.guid\n"
 "    FROM properties LEFT JOIN names ON properties.tag-34049=names.id WHERE hierarchyid=hid AND (tag <= 34048 OR names.id IS NOT NULL) AND (tag NOT IN (4105, 4115) OR mode = 0 OR (mode = 1 AND tag = bestbody))\n"
 "  UNION\n"
@@ -151,7 +151,7 @@ static const char szStreamObj[] =
 "  call GetProps(rootid, mode);\n"
 
 "  call PrepareGetProps(rootid);\n"
- 
+
 "  SELECT id,hierarchy.type FROM hierarchy WHERE parent=rootid;\n"
 
 "  OPEN cur_hierarchy;\n"
@@ -362,7 +362,7 @@ exit:
  * Sends a query to the MySQL server, and does a reconnect if the server connection is lost before or during
  * the SQL query. The reconnect is done only once. If the query fails after the reconnect, the entire call
  * fails.
- * 
+ *
  * It is up to the caller to get any result information from the query.
  *
  * @param[in] strQuery SQL query to perform
@@ -372,7 +372,7 @@ ECRESULT ECDatabase::Query(const std::string &strQuery)
 {
 	ECRESULT er = erSuccess;
 	int err = KDatabase::Query(strQuery);
-	
+
 	if(err && (mysql_errno(&m_lpMySQL) == CR_SERVER_LOST || mysql_errno(&m_lpMySQL) == CR_SERVER_GONE_ERROR)) {
 		ec_log_warn("SQL [%08lu] info: Try to reconnect", m_lpMySQL.thread_id);
 		er = Close();
@@ -409,7 +409,7 @@ ECRESULT ECDatabase::DoSelectMulti(const std::string &strQuery)
 	ECRESULT er = erSuccess;
 	assert(strQuery.length() != 0);
 	autolock alk(*this);
-		
+
 	if( Query(strQuery) != erSuccess ) {
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECDatabase::DoSelectMulti(): select failed");
@@ -427,7 +427,7 @@ exit:
 
 /**
  * Get next resultset from a multi-resultset query
- * 
+ *
  * @param[out] lppResult Resultset
  * @return result
  */
@@ -450,7 +450,7 @@ ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("SQL [%08lu] next_result of multi-resultset failed: %s", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL));
 		goto exit;
-	}		
+	}
 	lpResult = DB_RESULT(this, mysql_store_result(&m_lpMySQL));
 	if (lpResult == nullptr) {
    		// I think this can only happen on the first result set of a query since otherwise mysql_next_result() would already fail
@@ -725,12 +725,12 @@ ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 	return erSuccess;
 }
 
-/** 
+/**
  * Update the database to the current version.
- * 
+ *
  * @param[in]  bForceUpdate possebly force upgrade
  * @param[out] strReport error message
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)

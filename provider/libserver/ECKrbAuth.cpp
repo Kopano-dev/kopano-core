@@ -59,7 +59,7 @@ ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::strin
 		*lpstrError = error_message(code);
 		er = KCERR_LOGON_FAILED;
 		goto exit;
-	} 
+	}
 exit:
 	if (name)
 		krb5_free_unparsed_name(ctx, name);

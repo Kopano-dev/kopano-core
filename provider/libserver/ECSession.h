@@ -107,7 +107,7 @@ protected:
 	 * method in this object.
 	 */
 	std::condition_variable m_hThreadReleased;
-	std::mutex m_hThreadReleasedMutex;	
+	std::mutex m_hThreadReleasedMutex;
 	std::mutex m_hRequestStats;
 	unsigned int		m_ulRequests;
 	std::string		m_strLastRequestURL;
@@ -139,7 +139,7 @@ public:
 	_kc_hidden ECRESULT GetObjectFromEntryId(const entryId *, unsigned int *obj_id, unsigned int *eid_flags = nullptr);
 	_kc_hidden ECRESULT LockObject(unsigned int obj_id);
 	_kc_hidden ECRESULT UnlockObject(unsigned int obj_id);
-	
+
 	/* for ECStatsSessionTable */
 	_kc_hidden void AddBusyState(pthread_t, const char *state, const struct timespec &threadstart, const KC::time_point &start);
 	_kc_hidden void UpdateBusyState(pthread_t, int state);

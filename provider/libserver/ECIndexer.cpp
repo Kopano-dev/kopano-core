@@ -34,20 +34,20 @@ namespace KC {
  * @param lpRestrict[in]
  * @return result
  */
- 
+
 static BOOL NormalizeRestrictionIsFalse(const struct restrictTable *lpRestrict)
 {
 	std::set<unsigned int> setExist, setNotExist, setBoth;
     if(lpRestrict->ulType != RES_AND)
 		return false;
-        
+
     for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i)
         if (lpRestrict->lpAnd->__ptr[i]->ulType == RES_EXIST)
 			setExist.emplace(lpRestrict->lpAnd->__ptr[i]->lpExist->ulPropTag);
         else if (lpRestrict->lpAnd->__ptr[i]->ulType == RES_NOT &&
             lpRestrict->lpAnd->__ptr[i]->lpNot->lpNot->ulType == RES_EXIST)
 			setNotExist.emplace(lpRestrict->lpAnd->__ptr[i]->lpNot->lpNot->lpExist->ulPropTag);
-    
+
     set_intersection(setExist.begin(), setExist.end(), setNotExist.begin(), setNotExist.end(), inserter(setBoth, setBoth.begin()));
 	return !setBoth.empty();
 }
@@ -70,10 +70,10 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
 {
     std::list<struct restrictTable *> lstClauses;
     bool bModified = false;
-    
+
     if(lpRestrict->ulType != RES_AND)
 		return erSuccess;
-        
+
     for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i) {
 		if (lpRestrict->lpAnd->__ptr[i]->ulType != RES_AND) {
 			lstClauses.emplace_back(lpRestrict->lpAnd->__ptr[i]);
@@ -91,7 +91,7 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
 		s_free(nullptr, lpRestrict->lpAnd->__ptr[i]);
 		bModified = true;
     }
-        
+
 	if (!bModified)
 		return erSuccess;
 	// We changed something, free the previous toplevel data and create a new list of children
@@ -109,7 +109,7 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
  *
  * This works for OR restrictions containing CONTENT restrictions with FL_SUBSTRING and FL_IGNORECASE
  * options enabled, or standalone CONTENT restrictions. Nested ORs are also supported as long as all the
- * CONTENT restrictions in an OR (and sub-ORs) contain the same search term. 
+ * CONTENT restrictions in an OR (and sub-ORs) contain the same search term.
  *
  * e.g.:
  *
@@ -129,11 +129,11 @@ static ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict,
 {
     sMultiSearch.strTerm.clear();
     sMultiSearch.setFields.clear();
-    
+
     if(lpRestrict->ulType == RES_OR) {
         for (gsoap_size_t i = 0; i < lpRestrict->lpOr->__size; ++i) {
             SIndexedTerm terms;
-            
+
             if(NormalizeRestrictionIsFalse(lpRestrict->lpOr->__ptr[i]))
                 continue;
 			auto er = NormalizeGetMultiSearch(lpRestrict->lpOr->__ptr[i], setExcludeProps, terms);
@@ -176,7 +176,7 @@ static ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict,
  * R' = R):
  *
  * AND(
- *  ... 
+ *  ...
  *  OR(f1: t1, ..., fN: t1)
  *  ...
  *  OR(f1: t2, ..., fN: t2)
@@ -190,9 +190,9 @@ static ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict,
  * AND(
  *  ...
  *  ...
- * ) 
+ * )
  * +
- * multisearch: f1 .. fN : t1 .. tN 
+ * multisearch: f1 .. fN : t1 .. tN
  *
  * (eg subject body from: word1 word2)
  *
@@ -205,9 +205,9 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
     std::list<SIndexedTerm> *lpMultiSearches)
 {
     SIndexedTerm sMultiSearch;
-    
+
     lpMultiSearches->clear();
-    
+
     if (lpRestrict->ulType == RES_AND) {
         for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size;) {
             if (NormalizeGetMultiSearch(lpRestrict->lpAnd->__ptr[i], setExcludeProps, sMultiSearch) != erSuccess) {
@@ -241,7 +241,7 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
  * Process the given restriction, and convert into multi-field searches and a restriction
  *
  * This function attempts create a multi-field search and restriction in such a way that
- * as much as possible multi-field searches are returned without changing the result of the 
+ * as much as possible multi-field searches are returned without changing the result of the
  * restriction.
  *
  * This is done by applying the following transformations:
@@ -250,7 +250,7 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
  * - Remove always-false terms in ORs in the top level
  * - Derive multi-field searches from top-level AND clause (from OR clauses with substring searches, or direct substring searches)
  */
-  
+
 static ECRESULT NormalizeGetOptimalMultiFieldSearch(
     struct restrictTable *lpRestrict,
     const std::set<unsigned int> &setExcludeProps,
@@ -264,11 +264,11 @@ static ECRESULT NormalizeGetOptimalMultiFieldSearch(
 	return NormalizeRestrictionMultiFieldSearch(lpRestrict, setExcludeProps, lpMultiSearches);
 }
 
-/** 
+/**
  * Try to run the restriction using the indexer instead of slow
  * database queries. Will fail if the restriction is unable to run by
  * the indexer.
- * 
+ *
  * @param[in] lpConfig config object
  * @param[in] lpLogger log object
  * @param[in] lpCacheManager cachemanager object
@@ -279,7 +279,7 @@ static ECRESULT NormalizeGetOptimalMultiFieldSearch(
  * @param[out] lppNewRestrict restriction that should be applied to lppIndexerResults (part of the restriction that could not be handled by the indexer).
  *							  May be NULL if no restriction is needed (all results in lppIndexerResults match the original restriction)
  * @param[out] lppIndexerResults results found by indexer
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,

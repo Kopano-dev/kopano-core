@@ -70,7 +70,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 			switch (PROP_ID(lpsPropTagArray->__ptr[k])) {
 			case PROP_ID(PR_INSTANCE_KEY):
-				// generate key 
+				// generate key
 				m.__union = SOAP_UNION_propValData_bin;
 				m.ulPropTag = PR_INSTANCE_KEY;
 				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
@@ -250,7 +250,7 @@ ECRESULT ECUserStoreTable::Load() {
 			sUserStore.ulStoreType = atoi(lpDBRow[STORETYPE]);
 		else
 			sUserStore.ulStoreType = ECSTORE_TYPE_PRIVATE; // or invalid value?
-			
+
 		if (lpDBRow[USERNAME])
 			sUserStore.strGuessname = lpDBRow[USERNAME];
 		else

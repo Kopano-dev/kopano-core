@@ -169,7 +169,7 @@ ECTableManager::~ECTableManager()
 {
 	scoped_rlock lock(hListMutex);
 
-	// Clean up tables, if CloseTable(..) isn't called 
+	// Clean up tables, if CloseTable(..) isn't called
 	for (auto iterTables = mapTable.cbegin();
 	     iterTables != mapTable.cend(); ) {
 		auto iterNext = iterTables;
@@ -400,7 +400,7 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 	int adminlevel = lpSession->GetSecurity()->GetAdminLevel();
 	bool hosted = lpSession->GetSessionManager()->IsHostedSupported();
 	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
-	
+
 	// TABLETYPE_STATS_SYSTEM: only for (sys)admins
 	// TABLETYPE_STATS_SESSIONS: only for (sys)admins
 	// TABLETYPE_STATS_USERS: full list: only for (sys)admins, company list: only for admins

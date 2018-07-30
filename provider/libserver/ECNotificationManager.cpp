@@ -155,7 +155,7 @@ HRESULT ECNotificationManager::AddRequest(ECSESSIONID ecSessionId, struct soap *
 
 		ec_log_warn("Replacing notification request for ID %llu",
 			static_cast<unsigned long long>(ecSessionId));
-        
+
         // Return the previous request as an error
         struct notifyResponse notifications;
         soap_default_notifyResponse(iterRequest->second.soap, &notifications);
@@ -169,7 +169,7 @@ HRESULT ECNotificationManager::AddRequest(ECSESSIONID ecSessionId, struct soap *
         // Pass the socket back to the socket manager (which will probably close it since the client should not be holding two notification sockets)
         kopano_notify_done(lpItem);
     }
-    
+
     NOTIFREQUEST req;
     req.soap = soap;
     time(&req.ulRequestTime);
@@ -203,7 +203,7 @@ void *ECNotificationManager::Work() {
     std::set<ECSESSIONID> setActiveSessions;
     struct soap *lpItem;
     time_t ulNow = 0;
-    
+
     // Keep looping until we should exit
     while(1) {
 		ulock_normal l_ses(m_mutexSessions);
@@ -211,17 +211,17 @@ void *ECNotificationManager::Work() {
 			break;
 		if (m_setActiveSessions.size() == 0)
 			m_condSessions.wait_for(l_ses, 1s);
-        
+
         // Make a copy of the session list so we can release the lock ASAP
         setActiveSessions = m_setActiveSessions;
         m_setActiveSessions.clear();
 		l_ses.unlock();
-        
+
         // Look at all the sessions that have signalled a change
         for (const auto &ses : setActiveSessions) {
             lpItem = NULL;
 			ulock_normal l_req(m_mutexRequests);
-            
+
             // Find the request for the session that had something to say
             auto iterRequest = m_mapRequests.find(ses);
             if (iterRequest != m_mapRequests.cend()) {
@@ -230,7 +230,7 @@ void *ECNotificationManager::Work() {
                 if (g_lpSessionManager->ValidateSession(iterRequest->second.soap, ses, &lpecSession) == erSuccess) {
                     // Get the notifications from the session
 					auto er = lpecSession->GetNotifyItems(iterRequest->second.soap, &notifications);
-                    
+
                     if(er == KCERR_NOT_FOUND) {
                         if(time(NULL) - iterRequest->second.ulRequestTime < m_ulTimeout) {
                             // No notifications - this means we have to wait. This can happen if the session was marked active since
@@ -251,7 +251,7 @@ void *ECNotificationManager::Work() {
 						ECStringCompat stringCompat(false);
 						er = FixNotificationsEncoding(iterRequest->second.soap, stringCompat, notifications.pNotificationArray);
 					}
-						
+
                     notifications.er = er;
 					lpecSession->unlock();
                 } else {
@@ -278,7 +278,7 @@ void *ECNotificationManager::Work() {
             if(lpItem)
                 kopano_notify_done(lpItem);
         }
-        
+
         /* Find all notification requests which have not received any data for m_ulTimeout seconds. This makes sure
          * that the client get a response, even if there are no notifications. Since the client has a hard-coded
          * TCP timeout of 70 seconds, we need to respond well within those 70 seconds. We therefore use a timeout
@@ -291,7 +291,7 @@ void *ECNotificationManager::Work() {
                 // Mark the session as active so it will be processed in the next loop
                 NotifyChange(req.first);
     }
-    
+
     return NULL;
 }
 

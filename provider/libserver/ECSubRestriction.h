@@ -18,7 +18,7 @@ namespace KC {
 class ECSession;
 
 // These are some helper function to help running subqueries.
-/* 
+/*
  * How we run subqueries assumes the following:
  * - SubSubRestrictions are invalid
  * - The most efficient way to run a search with a subquery is to first evaluate the subquery and THEN the

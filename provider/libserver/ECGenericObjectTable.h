@@ -110,7 +110,7 @@ public:
 	 * An enumeration for the table reload type.
 	 * The table reload type determines how it should changed
 	 */
-	enum enumReloadType { 
+	enum enumReloadType {
 		RELOAD_TYPE_SETCOLUMNS,		/**< Reload table because changed columns */
 		RELOAD_TYPE_SORTORDER		/**< Reload table because changed sort order */
 	};
@@ -194,11 +194,11 @@ protected:
 	unsigned int				m_ulObjType;
 	unsigned int				m_ulFlags;			//< flags from client
 	QueryRowDataCallBack m_lpfnQueryRowData = nullptr;
-	
+
 	virtual ECRESULT			AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bInitialLoad, bool bOverride, struct restrictTable *lpOverrideRestrict);
     virtual ECRESULT			AddCategoryBeforeAddRow(sObjectTableKey sObjKey, struct propVal *lpProps, unsigned int cProps, unsigned int ulFlags, bool fUnread, bool *lpfHidden, ECCategory **lppCategory);
     virtual ECRESULT			RemoveCategoryAfterRemoveRow(sObjectTableKey sObjKey, unsigned int ulFlags);
-	
+
 	ECCategoryMap				m_mapCategories;	// Map between instance key of category and category struct
 	ECSortedCategoryMap			m_mapSortedCategories; // Map between category sort keys and instance key. This is where we track which categories we have
 	ECLeafMap					m_mapLeafs;			// Map between object instance key and LEAFINFO (contains unread flag and category pointer)

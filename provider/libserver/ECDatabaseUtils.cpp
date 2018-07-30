@@ -134,7 +134,7 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 			u8_ncpy(lpPropVal->Value.lpszA, TABLE_CAP_STRING, &strData);
 		else
 			strData = lpPropVal->Value.lpszA;
-		
+
 		strColData = "'" +  lpDatabase->Escape(FilterBMP(strData)) + "'";
 		*lpulColNr = VALUE_NR_STRING;
 		break;
@@ -149,7 +149,7 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 			ulSize = TABLE_CAP_BINARY;
 		else
 			ulSize = lpPropVal->Value.bin->__size;
-		
+
 		strColData = lpDatabase->EscapeBinary(lpPropVal->Value.bin->__ptr, ulSize);
 		*lpulColNr = VALUE_NR_BINARY;
 		break;

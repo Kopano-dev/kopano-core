@@ -133,9 +133,9 @@ public:
      */
 	_kc_hidden virtual ECRESULT UpdateSearchFolders(unsigned int store_id, unsigned int folder_id, unsigned int obj_id, ECKeyTable::UpdateType);
 
-    /** 
+    /**
      * Remove a search folder because it has been deleted. Cancels the search before removing the information. It will
-     * remove all results from the database. 
+     * remove all results from the database.
      *
      * This is differenct from Cancelling a search folder (see CancelSearchFolder()) because the results are actually
      * deleted after cancelling.
@@ -146,8 +146,8 @@ public:
 	_kc_hidden virtual ECRESULT RemoveSearchFolder(unsigned int store_id, unsigned int folder_id);
 
 	/**
-	 * Remove a search folder of a specific store because it has been deleted. Cancels the search before removing the 
-	 * information. It will remove all results from the database. 
+	 * Remove a search folder of a specific store because it has been deleted. Cancels the search before removing the
+	 * information. It will remove all results from the database.
 	 *
 	 * @param[in] ulStoreId The store id (hierarchyid) of the folder to be removed
 	 */
@@ -160,14 +160,14 @@ public:
 	 */
 	_kc_hidden void DestroySearchFolder(std::shared_ptr<SEARCHFOLDER> &&);
 
-    /** 
-     * Restart all searches. 
+    /**
+     * Restart all searches.
      * This is a rather heavy operation, and runs synchronously. You have to wait until it has finished.
      * This is only called with the --restart-searches option of kopano-server and never used in a running
      * system
      */
     virtual ECRESULT RestartSearches();
-    
+
 	/**
 	 * Get the searchfolder statistics
 	 */
@@ -206,7 +206,7 @@ private:
      * This function add a search folder that should be monitored. This means that changes on objects received via UpdateSearchFolders()
      * will be matched against the criteria passed to this function and processed accordingly.
      *
-     * Optionally, a rebuild can be started with the fStartSearch flag. This should be done if the search should be rebuilt, or 
+     * Optionally, a rebuild can be started with the fStartSearch flag. This should be done if the search should be rebuilt, or
      * if this is a new search folder. On rebuild, existing searches for this search folder will be cancelled first.
      *
      * @param[in] ulStoreId Store id of the search folder
@@ -215,9 +215,9 @@ private:
      * @param[in] lpSearchCriteria Search criteria for this search folder
      */
 	    _kc_hidden virtual ECRESULT AddSearchFolder(unsigned int store_id, unsigned int folder_id, bool start_search, struct searchCriteria *);
-    
-    /** 
-     * Cancel a search. 
+
+    /**
+     * Cancel a search.
      *
      * This means that the search results are 'frozen'. If a search thread is running, it is cancelled.
      * After a search has been cancelled, we can ignore any updates for that folder, so it is removed from the list
@@ -228,7 +228,7 @@ private:
      * @param[in] ulFolderId Folder id of the search folder
      */
 	_kc_hidden virtual ECRESULT CancelSearchFolder(unsigned int store_id, unsigned int folder_id);
-    
+
     /**
      * Does an actual search for all matching items for a searchfolder
      *
@@ -244,7 +244,7 @@ private:
      */
 	_kc_hidden virtual ECRESULT Search(unsigned int store_id, unsigned int folder_id, struct searchCriteria *, bool *cancel, bool notify = true);
 
-    /** 
+    /**
      * Get the state of a search folder
      *
      * It may be rebuilding (thread running), running (no thread) or stopped (not active - 'frozen')
@@ -255,8 +255,8 @@ private:
      */
 	_kc_hidden virtual ECRESULT GetState(unsigned int store_id, unsigned int folder_id, unsigned int *state);
 
-    /** 
-     * Search thread entrypoint. 
+    /**
+     * Search thread entrypoint.
      *
      * Simply a wrapper for Search(), and has code to do thread deregistration.
      * @param[in] lpParam THREADINFO * thread information
@@ -264,7 +264,7 @@ private:
 	_kc_hidden static void *SearchThread(void *);
 
     // Functions to do things in the database
-    
+
     /**
      * Reset all results for a searchfolder (removes all results)
      *
@@ -281,7 +281,7 @@ private:
      * @param[out] lpfInserted true if a new record was inserted, false if flags were updated in an existing record
      */
 	_kc_hidden virtual ECRESULT AddResults(unsigned int folder_id, unsigned int obj_id, unsigned int flags, bool *inserted);
-    
+
     /**
      * Add multiple search results
      *
@@ -389,10 +389,10 @@ private:
     std::list<EVENT> m_lstEvents;
 	std::recursive_mutex m_mutexEvents;
 	std::condition_variable_any m_condEvents;
-    
+
     // Change processing thread
     pthread_t m_threadProcess;
-    
+
     // Exit request for processing thread
 	bool m_thread_active = false, m_bExitThread = false, m_bRunning = false;
 };

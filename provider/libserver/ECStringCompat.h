@@ -53,8 +53,8 @@ public:
 	/**
 	 * Convert the data from UTF8 to either UTF8 ot WTF1252. If culClientCaps
 	 * contains KOPANO_CAP_UNICODE, the output data will not be converted and
-	 * will be in UTF8. Otherwise the data will be encoded in WTF1252. 
-	 * 
+	 * will be in UTF8. Otherwise the data will be encoded in WTF1252.
+	 *
 	 *
 	 * @param[in]	szIn	The input data in UTF8.
 	 *

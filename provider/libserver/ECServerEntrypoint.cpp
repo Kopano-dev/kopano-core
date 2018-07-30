@@ -61,7 +61,7 @@ ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 	// Init mutex for database object list
 	auto er = ECDatabase::InitLibrary(lpDatabaseDir, lpConfigFile);
 	g_lpStatsCollector = new ECStatsCollector();
-	
+
 	//TODO: with an error remove all variables and g_bInitLib = false
 	g_bInitLib = true;
 	return er;
@@ -72,8 +72,8 @@ ECRESULT kopano_unloadlibrary(void)
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
 
-	// Delete the global key,  
-	//  on this position, there are zero or more threads exist. 
+	// Delete the global key,
+	//  on this position, there are zero or more threads exist.
 	//  As you delete the keys, the function database_destroy and plugin_destroy will never called
 	//
 	pthread_key_delete(database_key);

@@ -29,7 +29,7 @@ namespace KC {
 
 extern ECSessionManager*	g_lpSessionManager;
 
-ECRESULT ECGenProps::GetMVPropSubquery(unsigned int ulPropTagRequested, std::string &subquery) 
+ECRESULT ECGenProps::GetMVPropSubquery(unsigned int ulPropTagRequested, std::string &subquery)
 {
 	unsigned int ulType = PROP_TYPE(ulPropTagRequested);
 
@@ -65,7 +65,7 @@ ECRESULT ECGenProps::GetMVPropSubquery(unsigned int ulPropTagRequested, std::str
 	}
 }
 
-ECRESULT ECGenProps::GetPropSubquery(unsigned int ulPropTagRequested, std::string &subquery) 
+ECRESULT ECGenProps::GetPropSubquery(unsigned int ulPropTagRequested, std::string &subquery)
 {
 	switch(ulPropTagRequested) {
 	case PR_PARENT_DISPLAY_W:
@@ -183,7 +183,7 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
 
 // These are properties that are never written to the 'properties' table; ie they are never directly queried. This
 // is not the same as the generated properties, as they may access data in the database to *create* a generated
-// property. 
+// property.
 ECRESULT ECGenProps::IsPropRedundant(unsigned int ulPropTag, unsigned int ulObjType)
 {
     switch(PROP_ID(ulPropTag)) {
@@ -251,7 +251,7 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 			return erSuccess;
 		}
 		lpPropVal->ulPropTag = ulPropTagRequested;
-		// Check for RE, FWD and similar muck at the start of the subject line   		
+		// Check for RE, FWD and similar muck at the start of the subject line
 		const char *lpszColon = strchr(lpPropVal->Value.lpszA, ':');
 		if (lpszColon == nullptr)
 			return erSuccess;
@@ -793,7 +793,7 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 		else
 			assert(false);
     }
-    
+
 	lpStoreName = s_alloc<char>(soap, strFormat.size() + 1);
 	strcpy(lpStoreName, strFormat.c_str());
 	*lppStoreName = lpStoreName;

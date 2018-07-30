@@ -23,7 +23,7 @@ ECStatsCollector::ECStatsCollector() {
  	AddStat(SCN_SOAP_REQUESTS, SCDT_LONGLONG, "soap_request", "Number of soap requests handled by server");
  	AddStat(SCN_RESPONSE_TIME, SCDT_LONGLONG, "response_time", "Response time of soap requests handled in milliseconds (includes time in queue)");
  	AddStat(SCN_PROCESSING_TIME, SCDT_LONGLONG, "processing_time", "Time taken to process soap requests in milliseconds (wallclock time)");
- 
+
  	AddStat(SCN_DATABASE_CONNECTS, SCDT_LONGLONG, "sql_connect", "Number of connections made to SQL server");
  	AddStat(SCN_DATABASE_SELECTS, SCDT_LONGLONG, "sql_select", "Number of SQL Select commands executed");
  	AddStat(SCN_DATABASE_INSERTS, SCDT_LONGLONG, "sql_insert", "Number of SQL Insert commands executed");
@@ -42,36 +42,36 @@ ECStatsCollector::ECStatsCollector() {
  	AddStat(SCN_DATABASE_MERGED_RECORDS, SCDT_LONGLONG, "deferred_records", "Number records merged in the deferred write table");
  	AddStat(SCN_DATABASE_ROW_READS, SCDT_LONGLONG, "row_reads", "Number of table rows read in row order");
  	AddStat(SCN_DATABASE_COUNTER_RESYNCS, SCDT_LONGLONG, "counter_resyncs", "Number of time a counter resync was required");
- 
+
  	AddStat(SCN_LOGIN_PASSWORD, SCDT_LONGLONG, "login_password", "Number of logins through password authentication");
  	AddStat(SCN_LOGIN_SSL, SCDT_LONGLONG, "login_ssl", "Number of logins through SSL certificate authentication");
  	AddStat(SCN_LOGIN_SSO, SCDT_LONGLONG, "login_sso", "Number of logins through Single Sign-on");
  	AddStat(SCN_LOGIN_SOCKET, SCDT_LONGLONG, "login_unix", "Number of logins through Unix socket");
  	AddStat(SCN_LOGIN_DENIED, SCDT_LONGLONG, "login_failed", "Number of failed logins");
- 
+
  	AddStat(SCN_SESSIONS_CREATED, SCDT_LONGLONG, "sessions_created", "Number of created sessions");
  	AddStat(SCN_SESSIONS_DELETED, SCDT_LONGLONG, "sessions_deleted", "Number of deleted sessions");
  	AddStat(SCN_SESSIONS_TIMEOUT, SCDT_LONGLONG, "sessions_timeout", "Number of timed-out sessions");
- 
+
  	AddStat(SCN_SESSIONS_INTERNAL_CREATED, SCDT_LONGLONG, "sess_int_created", "Number of created internal sessions");
  	AddStat(SCN_SESSIONS_INTERNAL_DELETED, SCDT_LONGLONG, "sess_int_deleted", "Number of deleted internal sessions");
- 
+
  	AddStat(SCN_SESSIONGROUPS_CREATED, SCDT_LONGLONG, "sess_grp_created", "Number of created sessiongroups");
  	AddStat(SCN_SESSIONGROUPS_DELETED, SCDT_LONGLONG, "sess_grp_deleted", "Number of deleted sessiongroups");
- 
+
  	AddStat(SCN_LDAP_CONNECTS, SCDT_LONGLONG, "ldap_connect", "Number of connections made to LDAP server");
  	AddStat(SCN_LDAP_RECONNECTS, SCDT_LONGLONG, "ldap_reconnect", "Number of re-connections made to LDAP server");
  	AddStat(SCN_LDAP_CONNECT_FAILED, SCDT_LONGLONG, "ldap_connect_fail", "Number of failed connections made to LDAP server");
  	AddStat(SCN_LDAP_CONNECT_TIME, SCDT_LONGLONG, "ldap_connect_time", "Total duration of connections made to LDAP server");
  	AddStat(SCN_LDAP_CONNECT_TIME_MAX, SCDT_LONGLONG, "ldap_max_connect", "Longest connection time made to LDAP server");
- 	
+
  	/* maybe usesless because SCN_LOGIN_* */
  	AddStat(SCN_LDAP_AUTH_LOGINS, SCDT_LONGLONG, "ldap_auth", "Number of LDAP authentications");
  	AddStat(SCN_LDAP_AUTH_DENIED, SCDT_LONGLONG, "ldap_auth_fail", "Number of failed authentications");
  	AddStat(SCN_LDAP_AUTH_TIME, SCDT_LONGLONG, "ldap_auth_time", "Total authentication time");
  	AddStat(SCN_LDAP_AUTH_TIME_MAX, SCDT_LONGLONG, "ldap_max_auth", "Longest duration of authentication made to LDAP server");
  	AddStat(SCN_LDAP_AUTH_TIME_AVG, SCDT_LONGLONG, "ldap_avg_auth", "Average duration of authentication made to LDAP server");
- 
+
  	AddStat(SCN_LDAP_SEARCH, SCDT_LONGLONG, "ldap_search", "Number of searches made to LDAP server");
  	AddStat(SCN_LDAP_SEARCH_FAILED, SCDT_LONGLONG, "ldap_search_fail", "Number of failed searches made to LDAP server");
  	AddStat(SCN_LDAP_SEARCH_TIME, SCDT_LONGLONG, "ldap_search_time", "Total duration of LDAP searches");

@@ -135,18 +135,18 @@ ECAttachmentStorage *ECFileAttachmentConfig::new_handle(ECDatabase *db)
 	return new(std::nothrow) ECFileAttachment(db, m_dir, m_complvl, m_sync_files);
 }
 
-/** 
+/**
  * Gets the instance id for a given hierarchy id and prop tag.
- * 
+ *
  * @param[in] ulObjId Id from the hierarchy table
  * @param[in] ulTag Proptag of the instance data
  * @param[out] lpulInstanceId Id to use as instanceid
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECAttachmentStorage::GetSingleInstanceId(ULONG ulObjId, ULONG ulTag,
     ext_siid *esid)
-{	
+{
 	DB_RESULT lpDBResult;
 	std::string strQuery =
 		"SELECT `instanceid` "
@@ -165,14 +165,14 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceId(ULONG ulObjId, ULONG ulTag,
 	return erSuccess;
 }
 
-/** 
+/**
  * Get all instance ids from a list of hierarchy ids, independent of
  * the proptag.
  * @todo this should be for a given tag, or we should return the tags too (map<InstanceID, ulPropId>)
- * 
+ *
  * @param[in] lstObjIds list of hierarchy ids
  * @param[out] lstAttachIds list of unique corresponding instance ids
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstObjIds,
@@ -211,12 +211,12 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 	return erSuccess;
 }
 
-/** 
+/**
  * Get all HierarchyIDs for a given InstanceID.
- * 
+ *
  * @param[in] ulInstanceId InstanceID to get HierarchyIDs for
  * @param[out] lplstObjIds List of all HierarchyIDs which link to the single instance
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECAttachmentStorage::GetSingleInstanceParents(ULONG ulInstanceId,
@@ -244,12 +244,12 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceParents(ULONG ulInstanceId,
 	return erSuccess;
 }
 
-/** 
+/**
  * Checks if there are no references to a given InstanceID anymore.
- * 
+ *
  * @param ulInstanceId InstanceID to check
  * @param bOrphan true if instance isn't referenced anymore
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECAttachmentStorage::IsOrphanedSingleInstance(const ext_siid &ulInstanceId, bool *bOrphan)
@@ -271,13 +271,13 @@ ECRESULT ECAttachmentStorage::IsOrphanedSingleInstance(const ext_siid &ulInstanc
 	return erSuccess;
 }
 
-/** 
+/**
  * Make a list of all orphaned instances for a list of given InstanceIDs.
- * 
+ *
  * @param[in] lstAttachments List of instance ids to check
  * @param[out] lplstOrphanedAttachments List of orphaned instance ids
- * 
- * @return 
+ *
+ * @return
  */
 ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ext_siid> &lstInstanceIds,
     std::list<ext_siid> *lplstOrphanedInstanceIds)
@@ -314,12 +314,12 @@ ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ext_sii
 	return erSuccess;
 }
 
-/** 
+/**
  * For a given hierarchy id, check if this has a valid instance id
- * 
+ *
  * @param[in] ulObjId hierarchy id to check instance for
  * @param[in] ulPropId property id to check instance for
- * 
+ *
  * @return instance present
  */
 bool ECAttachmentStorage::ExistAttachment(ULONG ulObjId, ULONG ulPropId)
@@ -343,15 +343,15 @@ bool ECAttachmentStorage::ExistAttachmentInstance(ULONG ins_id)
 	return result.get_num_rows() > 0;
 }
 
-/** 
+/**
  * Retrieve a large property from the storage, return data as blob.
- * 
+ *
  * @param[in] soap Use soap for allocations. Returned data can directly be used to return to the client.
  * @param[in] ulObjId HierarchyID to load property for
  * @param[in] ulPropId property id to load
  * @param[out] lpiSize size of the property
  * @param[out] lppData data of the property
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECAttachmentStorage::LoadAttachment(struct soap *soap, ULONG ulObjId, ULONG ulPropId, size_t *lpiSize, unsigned char **lppData)
@@ -366,14 +366,14 @@ ECRESULT ECAttachmentStorage::LoadAttachment(struct soap *soap, ULONG ulObjId, U
 	return LoadAttachmentInstance(soap, ulInstanceId, lpiSize, lppData);
 }
 
-/** 
+/**
  * Retrieve a large property from the storage, return data in a serializer.
- * 
+ *
  * @param[in] ulObjId HierarchyID to load property for
  * @param[in] ulPropId property id to load
  * @param[out] lpiSize size of the property
  * @param[out] lpSink Write in this serializer
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECAttachmentStorage::LoadAttachment(ULONG ulObjId, ULONG ulPropId, size_t *lpiSize, ECSerializer *lpSink)
@@ -388,16 +388,16 @@ ECRESULT ECAttachmentStorage::LoadAttachment(ULONG ulObjId, ULONG ulPropId, size
 	return LoadAttachmentInstance(ulInstanceId, lpiSize, lpSink);
 }
 
-/** 
+/**
  * Save a property of a specific object from a given blob, optionally remove previous data.
- * 
+ *
  * @param[in] ulObjId HierarchyID of object
  * @param[in] ulPropId PropertyID to save
  * @param[in] bDeleteOld Remove old data before saving the new
  * @param[in] iSize size of lpData
  * @param[in] lpData data of the property
  * @param[out] lpulInstanceId InstanceID for the data (optional)
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool bDeleteOld, size_t iSize, unsigned char *lpData, ULONG *lpulInstanceId)
@@ -432,16 +432,16 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 	return erSuccess;
 }
 
-/** 
+/**
  * Save a property of a specific object from a serializer, optionally remove previous data.
- * 
+ *
  * @param[in] ulObjId HierarchyID of object
  * @param[in] ulPropId Property to save
  * @param[in] bDeleteOld Remove old data before saving the new
  * @param[in] iSize size in lpSource
  * @param[in] lpSource serializer to read data from
  * @param[out] lpulInstanceId InstanceID for the data (optional)
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool bDeleteOld, size_t iSize, ECSerializer *lpSource, ULONG *lpulInstanceId)
@@ -474,16 +474,16 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 	return erSuccess;
 }
 
-/** 
+/**
  * Save a property of an object with a given instance id, optionally remove previous data.
- * 
+ *
  * @param[in] ulObjId HierarchyID of object
  * @param[in] ulPropId Property of object
  * @param[in] bDeleteOld Remove old data before saving the new
  * @param[in] ulInstanceId Instance id to link
  * @param[out] lpulInstanceId Same number as in ulInstanceId
- * 
- * @return 
+ *
+ * @return
  */
 ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool bDeleteOld, ULONG ulInstanceId, ULONG *lpulInstanceId)
 {
@@ -518,15 +518,15 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 	return erSuccess;
 }
 
-/** 
+/**
  * Make a copy of attachment data for a given object.
  *
  * In reality, the data is not copied, but an extra singleinstance
  * entry is added for the new hierarchyid.
- * 
+ *
  * @param[in] ulObjId Source hierarchy id to instance data from
  * @param[in] ulNewObjId Additional hierarchy id which has the same data
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECAttachmentStorage::CopyAttachment(ULONG ulObjId, ULONG ulNewObjId)
@@ -546,11 +546,11 @@ ECRESULT ECAttachmentStorage::CopyAttachment(ULONG ulObjId, ULONG ulNewObjId)
 	return er;
 }
 
-/** 
+/**
  * Delete all properties of given list of hierarchy ids.
- * 
+ *
  * @param[in] lstDeleteObjects list of hierarchy ids to delete singleinstance data for
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECAttachmentStorage::DeleteAttachments(const std::list<ULONG> &lstDeleteObjects)
@@ -595,26 +595,26 @@ ECRESULT ECAttachmentStorage::DeleteAttachments(const std::list<ULONG> &lstDelet
 	return erSuccess;
 }
 
-/** 
+/**
  * Delete one single instance property of an object.
  * public interface version
- * 
+ *
  * @param[in] ulObjId HierarchyID of object to delete single instance property from
  * @param[in] ulPropId Property of object to remove
- * 
- * @return 
+ *
+ * @return
  */
 ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId) {
 	return DeleteAttachment(ulObjId, ulPropId, false);
 }
 
-/** 
+/**
  * Delete one single instance property of an object.
- * 
+ *
  * @param[in] ulObjId HierarchyID of object to delete single instance property from
  * @param[in] ulPropId Property of object to remove
  * @param[in] bReplace Flag used for transations in ECFileStorage
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId, bool bReplace)
@@ -652,13 +652,13 @@ ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId, bo
 	return DeleteAttachmentInstance(ulInstanceId, bReplace);
 }
 
-/** 
+/**
  * Get the size of a large property of a specific object
- * 
+ *
  * @param[in] ulObjId HierarchyID of object
  * @param[in] ulPropId PropertyID of object
  * @param[out] lpulSize size of property
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECAttachmentStorage::GetSize(ULONG ulObjId, ULONG ulPropId, size_t *lpulSize)
@@ -683,14 +683,14 @@ ECDatabaseAttachment::ECDatabaseAttachment(ECDatabase *lpDatabase) :
 {
 }
 
-/** 
+/**
  * Load instance data using soap and return as blob.
- * 
+ *
  * @param[in] soap soap to use memory allocations for
  * @param[in] ulInstanceId InstanceID to load
  * @param[out] lpiSize size in lppData
  * @param[out] lppData data of instance
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(struct soap *soap,
@@ -738,14 +738,14 @@ exit:
 	return er;
 }
 
-/** 
+/**
  * Load instance data using a serializer.
- * 
+ *
  * @param[in] ulInstanceId InstanceID to load
  * @param[out] lpiSize size written in in lpSink
  * @param[in] lpSink serializer to write in
- * 
- * @return 
+ *
+ * @return
  */
 ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
     size_t *lpiSize, ECSerializer *lpSink)
@@ -777,19 +777,19 @@ ECRESULT ECDatabaseAttachment::LoadAttachmentInstance(const ext_siid &ulInstance
 	return erSuccess;
 }
 
-/** 
+/**
  * Save a property in a new instance from a blob
  *
  * @note Property id here is actually useless, but legacy requires
  * this. Removing the `tag` column from the database would require a
  * database update on the lob table, which would make database
  * attachment users very unhappy.
- * 
+ *
  * @param[in] ulInstanceId InstanceID to save data under
  * @param[in] ulPropId PropertyID to save
  * @param[in] iSize size of lpData
  * @param[in] lpData Data of property
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
@@ -817,19 +817,19 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstance
 	return erSuccess;
 }
 
-/** 
+/**
  * Save a property in a new instance from a serializer
  *
  * @note Property id here is actually useless, but legacy requires
  * this. Removing the `tag` column from the database would require a
  * database update on the lob table, which would make database
  * attachment users very unhappy.
- * 
+ *
  * @param[in] ulInstanceId InstanceID to save data under
  * @param[in] ulPropId PropertyID to save
  * @param[in] iSize size in lpSource
  * @param[in] lpSource serializer to read data from
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
@@ -860,12 +860,12 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstance
 	return erSuccess;
 }
 
-/** 
+/**
  * Delete given instances from the database
- * 
+ *
  * @param[in] lstDeleteInstances List of instance ids to remove from the database
  * @param[in] bReplace unused, see ECFileAttachment
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECDatabaseAttachment::DeleteAttachmentInstances(const std::list<ext_siid> &lstDeleteInstances, bool bReplace)
@@ -882,13 +882,13 @@ ECRESULT ECDatabaseAttachment::DeleteAttachmentInstances(const std::list<ext_sii
 	return m_lpDatabase->DoDelete(strQuery);
 }
 
-/** 
+/**
  * Delete a single instanceid from the database
- * 
+ *
  * @param[in] ulInstanceId instance id to remove
  * @param[in] bReplace unused, see ECFileAttachment
- * 
- * @return 
+ *
+ * @return
  */
 ECRESULT ECDatabaseAttachment::DeleteAttachmentInstance(const ext_siid &ulInstanceId, bool bReplace)
 {
@@ -896,13 +896,13 @@ ECRESULT ECDatabaseAttachment::DeleteAttachmentInstance(const ext_siid &ulInstan
 	return m_lpDatabase->DoDelete(strQuery);
 }
 
-/** 
+/**
  * Return the size of an instance
- * 
+ *
  * @param[in] ulInstanceId InstanceID to check the size for
  * @param[out] lpulSize Size of the instance
  * @param[out] lpbCompressed unused, see ECFileAttachment
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECDatabaseAttachment::GetSizeInstance(const ext_siid &ulInstanceId,
@@ -910,14 +910,14 @@ ECRESULT ECDatabaseAttachment::GetSizeInstance(const ext_siid &ulInstanceId,
 {
 	DB_RESULT lpDBResult;
 	auto strQuery = "SELECT SUM(LENGTH(val_binary)) FROM lob WHERE instanceid = " + stringify(ulInstanceId.siid);
-	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult); 
+	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return ec_perror("ECAttachmentStorage::GetSizeInstance(): DoSelect failed", er);
 	auto lpDBRow = lpDBResult.fetch_row();
-	if (lpDBRow == NULL || lpDBRow[0] == NULL) { 
+	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
 		ec_log_err("ECDatabaseAttachment::GetSizeInstance(): now row or column contained NULL");
 		return KCERR_DATABASE_ERROR;
-	} 
+	}
 	*lpulSize = strtoul(lpDBRow[0], NULL, 0);
 	if (lpbCompressed)
 		*lpbCompressed = false;
@@ -1082,14 +1082,14 @@ bool ECFileAttachment::VerifyInstanceSize(const ext_siid &instanceId,
 	return true;
 }
 
-/** 
+/**
  * Load instance data using soap and return as blob.
- * 
+ *
  * @param[in] soap soap to use memory allocations for
  * @param[in] ulInstanceId InstanceID to load
  * @param[out] lpiSize size in lppData
  * @param[out] lppData data of instance
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECFileAttachment::LoadAttachmentInstance(struct soap *soap,
@@ -1257,14 +1257,14 @@ exit:
 	return er;
 }
 
-/** 
+/**
  * Load instance data using a serializer.
- * 
+ *
  * @param[in] ulInstanceId InstanceID to load
  * @param[out] lpiSize size written in in lpSink
  * @param[in] lpSink serializer to write in
- * 
- * @return 
+ *
+ * @return
  */
 ECRESULT ECFileAttachment::LoadAttachmentInstance(const ext_siid &ulInstanceId,
     size_t *lpiSize, ECSerializer *lpSink)
@@ -1429,14 +1429,14 @@ static bool EvaluateCompressibleness(const uint8_t *const lpData, const size_t i
 	return true;
 }
 
-/** 
+/**
  * Save a property in a new instance from a blob
  *
  * @param[in] ulInstanceId InstanceID to save data under
  * @param[in] ulPropId unused, required by interface, see ECDatabaseAttachment
  * @param[in] iSize size of lpData
  * @param[in] lpData Data of property
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
@@ -1503,14 +1503,14 @@ exit:
 	return er;
 }
 
-/** 
+/**
  * Save a property in a new instance from a serializer
- * 
+ *
  * @param[in] ulInstanceId InstanceID to save data under
  * @param[in] ulPropId unused, required by interface, see ECDatabaseAttachment
  * @param[in] iSize size in lpSource
  * @param[in] lpSource serializer to read data from
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECFileAttachment::SaveAttachmentInstance(const ext_siid &ulInstanceId,
@@ -1637,12 +1637,12 @@ exit:
 	return er;
 }
 
-/** 
+/**
  * Delete given instances from the filesystem
- * 
+ *
  * @param[in] lstDeleteInstances List of instance ids to remove from the filesystem
  * @param[in] bReplace Transaction marker
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECFileAttachment::DeleteAttachmentInstances(const std::list<ext_siid> &lstDeleteInstances, bool bReplace)
@@ -1661,11 +1661,11 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstances(const std::list<ext_siid> &
 	return errors == 0 ? erSuccess : KCERR_DATABASE_ERROR;
 }
 
-/** 
+/**
  * Mark a file deleted by renaming it
- * 
+ *
  * @param[in] ulInstanceId instance id to mark
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECFileAttachment::MarkAttachmentForDeletion(const ext_siid &ulInstanceId)
@@ -1691,11 +1691,11 @@ ECRESULT ECFileAttachment::MarkAttachmentForDeletion(const ext_siid &ulInstanceI
 	return KCERR_DATABASE_ERROR;
 }
 
-/** 
+/**
  * Revert a delete marked instance
- * 
+ *
  * @param[in] ulInstanceId instance id to restore
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECFileAttachment::RestoreMarkedAttachment(const ext_siid &ulInstanceId)
@@ -1717,11 +1717,11 @@ ECRESULT ECFileAttachment::RestoreMarkedAttachment(const ext_siid &ulInstanceId)
 	return KCERR_DATABASE_ERROR;
 }
 
-/** 
+/**
  * Delete a marked instance from the filesystem
- * 
+ *
  * @param[in] ulInstanceId instance id to remove
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECFileAttachment::DeleteMarkedAttachment(const ext_siid &ulInstanceId)
@@ -1746,19 +1746,19 @@ ECRESULT ECFileAttachment::DeleteMarkedAttachment(const ext_siid &ulInstanceId)
 	return erSuccess;
 }
 
-/** 
+/**
  * Delete a single instanceid from the filesystem
- * 
+ *
  * @param[in] ulInstanceId instance id to remove
  * @param[in] bReplace Transaction marker
- * 
- * @return 
+ *
+ * @return
  */
 ECRESULT ECFileAttachment::DeleteAttachmentInstance(const ext_siid &ulInstanceId, bool bReplace)
 {
 	ECRESULT er = erSuccess;
 	auto filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
-   
+
 	if(m_bTransaction) {
 		if (!bReplace) {
 			m_setDeletedAttachment.emplace(ulInstanceId);
@@ -1790,12 +1790,12 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstance(const ext_siid &ulInstanceId
 	return er;
 }
 
-/** 
+/**
  * Return a filename for an instance id
- * 
+ *
  * @param[in] ulInstanceId instance id to convert to a filename
  * @param[in] bCompressed add compression marker to filename
- * 
+ *
  * @return Kopano error code
  */
 std::string ECFileAttachment::CreateAttachmentFilename(const ext_siid &esid, bool bCompressed)
@@ -1809,13 +1809,13 @@ std::string ECFileAttachment::CreateAttachmentFilename(const ext_siid &esid, boo
 	return filename;
 }
 
-/** 
+/**
  * Return the size of an instance
- * 
+ *
  * @param[in] ulInstanceId InstanceID to check the size for
  * @param[out] lpulSize Size of the instance
  * @param[out] lpbCompressed the instance was compressed
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECFileAttachment::GetSizeInstance(const ext_siid &ulInstanceId,
@@ -1916,7 +1916,7 @@ ECRESULT ECFileAttachment::Commit()
 {
 	ECRESULT er = erSuccess;
 	bool bError = false;
-	
+
 	if(!m_bTransaction) {
 		assert(false);
 		return erSuccess;

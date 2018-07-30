@@ -87,7 +87,7 @@ ECRESULT GetSourceKey(unsigned int ulObjId, SOURCEKEY *lpSourceKey)
  *
  * @param[in] lpSession Reference to a session object; cannot be NULL.
  * @param[in] bCheckPermission Check if the object folder or message has delete permissions.
- * @param[in] ulFlags Bitmask of flags that controls how the objects will deleted. 
+ * @param[in] ulFlags Bitmask of flags that controls how the objects will deleted.
  * @param[in] sItem Reference to a DELETEITEM structure that contains object information which identifying the folder, message, reciptient and attachment.
  *
  * @return Kopano error code
@@ -142,7 +142,7 @@ static ECRESULT ValidateDeleteObject(ECSession *lpSession,
  * deleted. This may or may not include the given list in
  * lpsObjectList, because of EC_DELETE_CONTAINER.
  *
- * If the ulFLags includes EC_DELETE_NOT_ASSOCIATED_MSG only the associated messages for the container folder is 
+ * If the ulFLags includes EC_DELETE_NOT_ASSOCIATED_MSG only the associated messages for the container folder is
  * not deleted. If ulFlags EC_DELETE_CONTAINER included, the EC_DELETE_NOT_ASSOCIATED_MSG flag will be ignored.
  *
  * @param[in] lpSession Reference to a session object; cannot be NULL.
@@ -162,7 +162,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	ECListDeleteItems lstDeleteItems, lstContainerItems;
 	DELETEITEM sItem;
 	unsigned int ulParent = 0;
-	
+
 	if (lpSession == nullptr || lpDatabase == nullptr ||
 	    lpsObjectList == nullptr || lplstDeleteItems == nullptr)
 		return KCERR_INVALID_PARAMETER;
@@ -185,7 +185,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 		er = lpDatabase->DoSelect("SELECT hierarchy.flags FROM hierarchy WHERE id = " + stringify(elem) + " FOR UPDATE", nullptr);
         if(er != erSuccess)
 			return er;
-                
+
 		auto strQuery = "SELECT h.id, h.parent, h.type, h.flags, p.type, properties.val_ulong, (SELECT hierarchy_id FROM outgoingqueue WHERE outgoingqueue.hierarchy_id = h.id LIMIT 1) FROM hierarchy as h LEFT JOIN properties ON properties.hierarchyid=h.id AND properties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND properties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " LEFT JOIN hierarchy AS p ON h.parent=p.id WHERE ";
 		if((ulFlags & EC_DELETE_CONTAINER) == 0)
 			strQuery += "h.parent=" + stringify(elem);
@@ -215,14 +215,14 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			// Loop protection, don't insert duplicates.
 			if (!setIDs.emplace(atoui(lpDBRow[0])).second)
 				continue;
-		
+
 			sItem.ulId = atoui(lpDBRow[0]);
 			sItem.ulParent = (lpDBRow[1])?atoui(lpDBRow[1]) : 0;
 			sItem.ulObjType = atoi(lpDBRow[2]);
 			sItem.ulFlags = atoui(lpDBRow[3]);
 			sItem.ulObjSize = 0;
 			sItem.ulStoreId = 0;
-			sItem.ulParentType = (lpDBRow[4])?atoui(lpDBRow[4]) : 0; 
+			sItem.ulParentType = (lpDBRow[4])?atoui(lpDBRow[4]) : 0;
 			sItem.sEntryId.__size = 0;
 			sItem.sEntryId.__ptr = NULL;
 			sItem.ulMessageFlags = lpDBRow[5] ? atoui(lpDBRow[5]) : 0;
@@ -295,7 +295,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			lstDeleteItems.emplace_back(sItem);
 		}
 	}
-	
+
 	// Move list
 	std::swap(lstDeleteItems, *lplstDeleteItems);
 	return erSuccess;
@@ -303,7 +303,7 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 
 /*
  * Add changes into the ICS system.
- * 
+ *
  * This adds a change for each removed folder and message. The change could be a soft- or hard delete.
  * It is possible to gives a list with different deleted objects, all not supported object types will be skipped.
  *
@@ -327,14 +327,14 @@ static ECRESULT DeleteObjectUpdateICS(ECSession *lpSession,
 	return erSuccess;
 }
 
-/** 
+/**
  * Check if the deletion of the object should actually occur in the sync
  * scope. Checks the syncedmessages table.
- * 
+ *
  * @param lpDatabase Database object
  * @param lstDeleted Expanded list of all objects to check
  * @param ulSyncId syncid to check with
- * 
+ *
  * @return Kopano error code
  */
 static ECRESULT CheckICSDeleteScope(ECDatabase *lpDatabase,
@@ -360,7 +360,7 @@ static ECRESULT CheckICSDeleteScope(ECDatabase *lpDatabase,
  * Calculate and update the store size for deleted items
  *
  * The DeleteObjectStoreSize methode calculate and update the store size. Only top-level messages will
- * be calculate, all other objects are not supported and will be skipped. If a message has the 
+ * be calculate, all other objects are not supported and will be skipped. If a message has the
  * MSGFLAG_DELETED flag, the size will ignored because it is already subtract from the store size.
  * The deleted object list may include more than one store.
  *
@@ -401,8 +401,8 @@ ECRESULT DeleteObjectStoreSize(ECSession *lpSession, ECDatabase *lpDatabase, uns
  * Soft delete objects, mark the root objects as deleted
  *
  * Mark the root objects as deleted, add deleted on date on the root objects.
- * Since this is a fairly simple operation, we are doing soft deletes in a single transaction. Once the SQL has gone OK, 
- * we know that all items were successfully mark as deleted and we can therefore add all soft-deleted items into 
+ * Since this is a fairly simple operation, we are doing soft deletes in a single transaction. Once the SQL has gone OK,
+ * we know that all items were successfully mark as deleted and we can therefore add all soft-deleted items into
  * the 'lstDeleted' list at once
  *
  * @param[in] lpSession Reference to a session object; cannot be NULL.
@@ -530,12 +530,12 @@ static ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase,
 /**
  * Hard delete objects, remove the data from storage
  *
- * This means we should be really deleting the actual data from the database and storage. This will be done in 
- * bachtches of 32 items each because deleteing records is generally fairly slow. Also, very large delete batches 
- * can taking up to more than an hour to process. We don't want to have a transaction lasting an hour because it 
- * would cause lots of locking problems. Also, each item successfully deleted and committed to the database will 
+ * This means we should be really deleting the actual data from the database and storage. This will be done in
+ * bachtches of 32 items each because deleteing records is generally fairly slow. Also, very large delete batches
+ * can taking up to more than an hour to process. We don't want to have a transaction lasting an hour because it
+ * would cause lots of locking problems. Also, each item successfully deleted and committed to the database will
  * added into a list. So, If something fails we notify the items in the 'deleted items list' only.
- * 
+ *
  * @param[in] lpSession Reference to a session object; cannot be NULL.
  * @param[in] lpDatabase Reference to a database object; cannot be NULL.
  * @param[in] lpAttachmentStorage Reference to an Attachment object. could not NULL if bNoTransaction is true.
@@ -647,7 +647,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 				if(er!= erSuccess)
 					return er;
 			}
-						
+
 			// Then, the hierarchy entries of all the objects
 			strQuery = "DELETE FROM hierarchy WHERE id IN (" + strInclause + ")";
 			er = lpDatabase->DoDelete(strQuery);
@@ -678,7 +678,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 			er = lpDatabase->DoDelete(strQuery);
 			if(er != erSuccess)
 				return er;
-			// remove deferred table updates				
+			// remove deferred table updates
 			strQuery = "DELETE FROM deferredupdate WHERE hierarchyid IN (" + strInclause + ")";
 			er = lpDatabase->DoDelete(strQuery);
 			if(er != erSuccess)
@@ -716,7 +716,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
  *
  * @param[in] lpSession Reference to a session object; cannot be NULL.
  * @param[in] ulFlags Bitmask of flags that controls how the objects will deleted.
- * @param[in] lstDeleted List with deleted objects. 
+ * @param[in] lstDeleted List with deleted objects.
  */
 ECRESULT DeleteObjectCacheUpdate(ECSession *lpSession, unsigned int ulFlags, ECListDeleteItems &lstDeleted)
 {
@@ -903,7 +903,7 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 	ECRESULT er = erSuccess;
 	ECListDeleteItems lstDeleteItems, lstDeleted;
 	auto cleanup = make_scope_success([&]() { FreeDeletedItems(&lstDeleteItems); });
-	
+
 	if (lpSession == nullptr || lpDatabase == nullptr || lpsObjectList == nullptr)
 		return er = KCERR_INVALID_PARAMETER;
 
@@ -913,7 +913,7 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 	auto lpSessionManager = lpSession->GetSessionManager();
 	auto lpSearchFolders = lpSessionManager->GetSearchFolders();
 
-	if ((bNoTransaction && (ulFlags & EC_DELETE_HARD_DELETE)) || 
+	if ((bNoTransaction && (ulFlags & EC_DELETE_HARD_DELETE)) ||
 		(bNoTransaction && (ulFlags&EC_DELETE_STORE)) ) {
 		assert(false); // This means that the caller has a transaction but that's not allowed
 		return er = KCERR_INVALID_PARAMETER;
@@ -945,7 +945,7 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 	// before actual delete check items which are outside the sync scope
 	if (ulSyncId != 0)
 		CheckICSDeleteScope(lpDatabase, lstDeleteItems, ulSyncId);
-	
+
 	// Mark or delete objects
 	if(ulFlags & EC_DELETE_HARD_DELETE)
 		er = DeleteObjectHard(lpSession, lpDatabase, NULL, ulFlags, lstDeleteItems, bNoTransaction, lstDeleted);
@@ -986,7 +986,7 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 			// the folder will receive a changed notification anyway, since items are being deleted from it
 		}
 	}
-	
+
 	// Finish transaction
 	if(!(ulFlags & EC_DELETE_HARD_DELETE) && !bNoTransaction) {
 		er = dtx.commit();
@@ -1002,17 +1002,17 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 	return erSuccess;
 }
 
-/** 
+/**
  * Update PR_LOCAL_COMMIT_TIME_MAX property on a folder which contents has changed.
  *
  * This function should be called when the contents of a folder change
  * Affected: saveObject, emptyFolder, deleteObjects, (not done: copyObjects, copyFolder)
- * 
+ *
  * @param[in]  soap soap struct used for allocating memory for return value, can be NULL
  * @param[in]  lpDatabase database pointer, should be in transaction already
  * @param[in]  ulFolderId folder to update property in
  * @param[out] ppvTime time property that was written on the folder, can be NULL
- * 
+ *
  * @return Kopano error code
  * @retval KCERR_DATABASE_ERROR database could not be updated
  */
@@ -1076,7 +1076,7 @@ ECRESULT UpdateTProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned in
     // Update tproperties by taking value from properties
 	auto strQuery = "UPDATE tproperties JOIN properties on properties.hierarchyid=tproperties.hierarchyid AND properties.tag=tproperties.tag AND properties.type=tproperties.type SET tproperties.val_ulong = properties.val_ulong "
     			"WHERE properties.tag = " + stringify(PROP_ID(ulPropTag)) + " AND properties.type = " + stringify(PROP_TYPE(ulPropTag)) + " AND tproperties.folderid = " + stringify(ulFolderId) + " AND properties.hierarchyid IN (";
-    			
+
     for (auto iObjectid = lpObjectIDs->cbegin(); iObjectid != lpObjectIDs->cend(); ++iObjectid) {
         if(iObjectid != lpObjectIDs->cbegin())
             strQuery += ",";
@@ -1119,7 +1119,7 @@ ECRESULT UpdateTProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned in
 ECRESULT UpdateFolderCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int ulPropTag, int lDelta)
 {
 	unsigned int ulParentId, ulType;
-	
+
 	if(lDelta == 0)
 		return erSuccess; // No change
 	auto er = g_lpSessionManager->GetCacheManager()->GetObject(ulFolderId, &ulParentId, NULL, NULL, &ulType);
@@ -1148,7 +1148,7 @@ ECRESULT CheckQuota(ECSession *lpecSession, ULONG ulStoreId)
 {
 	long long llStoreSize = 0;
 	eQuotaStatus QuotaStatus = QUOTA_OK;
-	
+
 	auto er = lpecSession->GetSecurity()->GetStoreSize(ulStoreId, &llStoreSize);
 	if (er != erSuccess)
 		return er;
@@ -1178,7 +1178,7 @@ ECRESULT MapEntryIdToObjectId(ECSession *lpecSession, ECDatabase *lpDatabase, UL
 ECRESULT UpdateFolderCounts(ECDatabase *lpDatabase, ULONG ulParentId, ULONG ulFlags, propValArray *lpModProps)
 {
 	ECRESULT er = erSuccess;
-	
+
 	if (ulFlags & MAPI_ASSOCIATED)
 		return UpdateFolderCount(lpDatabase, ulParentId, PR_ASSOC_CONTENT_COUNT, 1);
 	er = UpdateFolderCount(lpDatabase, ulParentId, PR_CONTENT_COUNT, 1);
@@ -1189,25 +1189,25 @@ ECRESULT UpdateFolderCounts(ECDatabase *lpDatabase, ULONG ulParentId, ULONG ulFl
 	return er;
 }
 
-/** 
+/**
  * Handles the outgoingqueue table according to the PR_MESSAGE_FLAGS
  * of a message. This function does not do transactions, so you must
  * already be in a database transaction.
- * 
+ *
  * @param[in] lpDatabase Database object
  * @param[in] ulSyncId syncid of the message
  * @param[in] ulStoreId storeid of the message
  * @param[in] ulObjId hierarchyid of the message
  * @param[in] bNewItem message is new
  * @param[in] lpModProps properties of the message
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStoreId, ULONG ulObjId, bool bNewItem, propValArray *lpModProps)
 {
 	DB_RESULT lpDBResult;
 	ULONG ulPrevSubmitFlag = 0;
-	
+
 	// If the messages was saved by an ICS syncer, then we need to sync the PR_MESSAGE_FLAGS for MSGFLAG_SUBMIT if it
 	// was included in the save.
 	auto lpPropMessageFlags = FindProp(lpModProps, PR_MESSAGE_FLAGS);
@@ -1315,7 +1315,7 @@ ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned 
 {
 	std::string strColData, strQueryAppend;
 	unsigned int ulColId = 0;
-	
+
 	assert(PROP_TYPE(lpPropVal->ulPropTag) != PT_UNICODE);
 	auto er = CopySOAPPropValToDatabasePropVal(lpPropVal, &ulColId, strColData, lpDatabase, bColumnProp);
 	if(er != erSuccess)
@@ -1326,7 +1326,7 @@ ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned 
 		strQueryAppend = std::string(replace ? "REPLACE" : "INSERT") + " INTO tproperties (hierarchyid,tag,type,folderid," + (std::string)PROPCOLVALUEORDER(tproperties) + ") VALUES";
 	else
 		strQueryAppend = std::string(replace ? "REPLACE" : "INSERT") + " INTO properties (hierarchyid,tag,type," + (std::string)PROPCOLVALUEORDER(properties) + ") VALUES";
-		
+
 	strQueryAppend += "(" + stringify(ulObjId) + "," +
 							stringify(PROP_ID(lpPropVal->ulPropTag)) + "," +
 							stringify(PROP_TYPE(lpPropVal->ulPropTag)) + ",";
@@ -1353,7 +1353,7 @@ ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned 
 
 ECRESULT WriteProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned int ulParentId, struct propVal *lpPropVal, bool replace) {
 	std::string strQuery;
-	
+
 	strQuery.clear();
 	WriteSingleProp(lpDatabase, ulObjId, ulParentId, lpPropVal, false, 0, strQuery, replace);
 	auto er = lpDatabase->DoInsert(strQuery);
@@ -1455,7 +1455,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	er = lpDatabase->DoSelect(strQuery, NULL); // don't care about the result
 	if (er != erSuccess)
 		return er;
-	
+
 	// Gets counters from hierarchy: cc, acc, dmc, dac, cfc, dfc
 	// use for update, since the update query below must see the same values, mysql should already block here.
 	strQuery = "SELECT count(if(flags & 0x440 = 0 && type = 5, 1, null)) AS cc, count(if(flags & 0x440 = 0x40 and type = 5, 1, null)) AS acc, count(if(flags & 0x440 = 0x400 and type = 5, 1, null)) AS dmc, count(if(flags & 0x440 = 0x440 and type = 5, 1, null)) AS dac, count(if(flags & 0x400 = 0 and type = 3, 1, null)) AS cfc, count(if(flags & 0x400 and type = 3, 1, null)) AS dfc from hierarchy where parent=" + stringify(ulObjId) + " FOR UPDATE";
@@ -1474,7 +1474,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	std::string strCC = lpDBRow[0], strACC = lpDBRow[1];
 	std::string strDMC = lpDBRow[2], strDAC = lpDBRow[3];
 	std::string strCFC = lpDBRow[4], strDFC = lpDBRow[5];
-	
+
 	// Gets unread counters from hierarchy / properties / tproperties
 	strQuery = "SELECT "
 	          // Part one, unread count from non-deferred rows (get the flags from tproperties)
@@ -1491,7 +1491,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 		ec_log_crit("ResetFolderCount(): row/col NULL (2)");
 		return er = KCERR_DATABASE_ERROR;
 	}
-	
+
 	std::string strCU = lpDBRow[0];
     strQuery = "UPDATE properties SET val_ulong = CASE tag "
       " WHEN " + stringify(PROP_ID(PR_CONTENT_COUNT)) + " THEN + " + strCC +
@@ -1502,14 +1502,14 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
       " WHEN " + stringify(PROP_ID(PR_SUBFOLDERS)) + " THEN + " + strCFC +
       " WHEN " + stringify(PROP_ID(PR_DELETED_FOLDER_COUNT)) + " THEN + " + strDFC +
       " WHEN " + stringify(PROP_ID(PR_CONTENT_UNREAD)) + " THEN + " + strCU +
-      " END WHERE hierarchyid = " + stringify(ulObjId) + " AND TAG in (" + 
-          stringify(PROP_ID(PR_CONTENT_COUNT)) + "," + 
-          stringify(PROP_ID(PR_ASSOC_CONTENT_COUNT)) + "," + 
-          stringify(PROP_ID(PR_DELETED_MSG_COUNT)) + "," + 
-          stringify(PROP_ID(PR_DELETED_ASSOC_MSG_COUNT)) + "," + 
-          stringify(PROP_ID(PR_FOLDER_CHILD_COUNT)) + "," + 
-          stringify(PROP_ID(PR_SUBFOLDERS)) + "," + 
-          stringify(PROP_ID(PR_DELETED_FOLDER_COUNT)) + "," + 
+      " END WHERE hierarchyid = " + stringify(ulObjId) + " AND TAG in (" +
+          stringify(PROP_ID(PR_CONTENT_COUNT)) + "," +
+          stringify(PROP_ID(PR_ASSOC_CONTENT_COUNT)) + "," +
+          stringify(PROP_ID(PR_DELETED_MSG_COUNT)) + "," +
+          stringify(PROP_ID(PR_DELETED_ASSOC_MSG_COUNT)) + "," +
+          stringify(PROP_ID(PR_FOLDER_CHILD_COUNT)) + "," +
+          stringify(PROP_ID(PR_SUBFOLDERS)) + "," +
+          stringify(PROP_ID(PR_DELETED_FOLDER_COUNT)) + "," +
           stringify(PROP_ID(PR_CONTENT_UNREAD)) +
       ")";
     er = lpDatabase->DoUpdate(strQuery, &ulAffected);
@@ -1518,7 +1518,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
     if (ulAffected == 0)
         // Nothing updated
 		return er = erSuccess;
-    
+
     // Trigger an assertion since in practice this should never happen
 //	assert(false);
 	g_lpStatsCollector->Increment(SCN_DATABASE_COUNTER_RESYNCS);
@@ -1526,25 +1526,25 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
 	if (er != erSuccess)
 		// No parent -> root folder. Nothing else we need to do now.
 		return er = erSuccess;
-    
+
     // Update tprops
     strQuery = "REPLACE INTO tproperties (folderid, hierarchyid, tag, type, val_ulong) "
         "SELECT " + stringify(ulParent) + ", properties.hierarchyid, properties.tag, properties.type, properties.val_ulong "
         "FROM properties "
         "WHERE tag IN (" +
-          stringify(PROP_ID(PR_CONTENT_COUNT)) + "," + 
-          stringify(PROP_ID(PR_ASSOC_CONTENT_COUNT)) + "," + 
-          stringify(PROP_ID(PR_DELETED_MSG_COUNT)) + "," + 
-          stringify(PROP_ID(PR_DELETED_ASSOC_MSG_COUNT)) + "," + 
-          stringify(PROP_ID(PR_FOLDER_CHILD_COUNT)) + "," + 
-          stringify(PROP_ID(PR_SUBFOLDERS)) + "," + 
-          stringify(PROP_ID(PR_DELETED_FOLDER_COUNT)) + "," + 
+          stringify(PROP_ID(PR_CONTENT_COUNT)) + "," +
+          stringify(PROP_ID(PR_ASSOC_CONTENT_COUNT)) + "," +
+          stringify(PROP_ID(PR_DELETED_MSG_COUNT)) + "," +
+          stringify(PROP_ID(PR_DELETED_ASSOC_MSG_COUNT)) + "," +
+          stringify(PROP_ID(PR_FOLDER_CHILD_COUNT)) + "," +
+          stringify(PROP_ID(PR_SUBFOLDERS)) + "," +
+          stringify(PROP_ID(PR_DELETED_FOLDER_COUNT)) + "," +
           stringify(PROP_ID(PR_CONTENT_UNREAD)) +
         ") AND hierarchyid = " + stringify(ulObjId);
     er = lpDatabase->DoInsert(strQuery);
     if(er != erSuccess)
 		return er;
-        
+
     // Clear cache and update table entries. We do not send an object notification since the object hasn't really changed and
     // this is normally called just before opening an entry anyway, so the counters retrieved there will be ok.
 	cache->Update(fnevObjectModified, ulObjId);
@@ -1565,7 +1565,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
  * property for two items.
  *
  * @param[in] lpDatabase Database handle
- * @param[in] ulPropTag Property tag to scan for 
+ * @param[in] ulPropTag Property tag to scan for
  * @param[in] lpData Data of the indexed property
  * @param[in] cbSize Bytes in lpData
  * @return result
@@ -1584,7 +1584,7 @@ ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, 
     if(!lpDBRow || lpDBRow[0] == NULL)
 		return er; /* Nothing there, no need to do anything */
     ulObjId = atoui(lpDBRow[0]);
-        
+
     // Check if the found item is in a deleted store
     if(g_lpSessionManager->GetCacheManager()->GetStore(ulObjId, &ulStoreId, NULL) == erSuccess) {
         // Find the store
@@ -1658,7 +1658,7 @@ static ECRESULT LockFolders(ECDatabase *lpDatabase, bool bShared,
     }
     strQuery.resize(strQuery.size()-1);
     strQuery += ") ";
-    
+
 	if (bShared)
 		strQuery += "LOCK IN SHARE MODE";
 	else
@@ -1677,7 +1677,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     std::set<std::string> setUncached;
     unsigned int ulId;
     std::string strQuery;
-    
+
     // See if we can get the object IDs for the passed objects from the cache
     for (const auto &s : setIds) {
 		if (g_lpSessionManager->GetCacheManager()->QueryObjectFromProp(ulTag, s.size(),
@@ -1707,7 +1707,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 		}
     }
 
-    if(!setUncached.empty()) {    
+    if(!setUncached.empty()) {
         // For the items that were uncached, go directly to their parent (or the item itself for folders) in the DB
         strQuery = "SELECT hierarchyid, hierarchy.type, hierarchy.parent, hierarchy.owner, hierarchy.flags FROM indexedproperties JOIN hierarchy ON hierarchy.id=indexedproperties.hierarchyid WHERE tag = " + stringify(ulTag) + " AND val_binary IN(";
         for (auto i = setUncached.cbegin(); i != setUncached.cend(); ++i) {
@@ -1719,7 +1719,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
             return er;
-        
+
         while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
             if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL || lpDBRow[4] == NULL)
                 continue;
@@ -1732,17 +1732,17 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 			g_lpSessionManager->GetCacheManager()->SetObject(atoui(lpDBRow[0]), atoui(lpDBRow[2]), atoui(lpDBRow[3]), atoui(lpDBRow[4]), atoui(lpDBRow[1]));
         }
     }
-        
+
     // For the items that were cached, but messages, find their parents in the cache first
 	for (const auto i : setMessages) {
         unsigned int ulParent = 0;
-        
+
 		if (g_lpSessionManager->GetCacheManager()->QueryParent(i, &ulParent) == erSuccess)
 			setFolders.emplace(ulParent);
 		else
 			setUncachedMessages.emplace(i);
     }
-    
+
     // Query uncached parents from the database
     if(!setUncachedMessages.empty()) {
         strQuery = "SELECT parent FROM hierarchy WHERE id IN(";
@@ -1761,9 +1761,9 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
             if(lpDBRow[0] == NULL)
                 continue;
 			setFolders.emplace(atoui(lpDBRow[0]));
-        }    
+        }
     }
-        
+
     // Query objectid -> parentid for messages
     if (setFolders.empty())
         // No objects found that we can lock, fail.
@@ -1785,7 +1785,7 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase,
     kd_trans &dtx, ECRESULT &dtxerr)
 {
     std::set<std::string> setIds;
-    
+
     std::copy(setFolders.begin(), setFolders.end(), std::inserter(setIds, setIds.begin()));
 	return BeginLockFolders(lpDatabase, PROP_ID(PR_SOURCE_KEY), setIds,
 	       ulFlags, dtx, dtxerr);
@@ -1802,7 +1802,7 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase,
     kd_trans &dtx, ECRESULT &dtxerr)
 {
     std::set<std::string> setIds;
-    
+
     std::copy(setEntryIds.begin(), setEntryIds.end(), std::inserter(setIds, setIds.begin()));
 	return BeginLockFolders(lpDatabase, PROP_ID(PR_ENTRYID), setIds,
 	       ulFlags, dtx, dtxerr);
@@ -1812,7 +1812,7 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid,
     unsigned int ulFlags, kd_trans &dtx, ECRESULT &dtxerr)
 {
     std::set<EntryId> set;
-    
+
     // No locking needed for stores
 	try {
 		if (entryid.type() == MAPI_STORE) {
@@ -1892,7 +1892,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 					return KCERR_DATABASE_ERROR;
                 }
                 memcpy(&resInsert.first->second.guid, lpDBRow[FIELD_NR_NAMEGUID], sizeof(resInsert.first->second.guid));
-                
+
                 if (lpDBRow[FIELD_NR_NAMEID] != NULL) {
                     resInsert.first->second.ulKind = MNID_ID;
                     resInsert.first->second.ulId = atoui((char*)lpDBRow[FIELD_NR_NAMEID]);
@@ -1917,13 +1917,13 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 		auto iterChild = lpChildProps->find(ulChildId);
 		if (iterChild == lpChildProps->cend()) {
             CHILDPROPS sChild;
-            
+
             sChild.lpPropTags = new DynamicPropTagArray(soap);
             sChild.lpPropVals = new DynamicPropValArray(soap, 20);
             // First property for this child
 			iterChild = lpChildProps->emplace(ulChildId, sChild).first;
         }
-        
+
 		auto er = iterChild->second.lpPropTags->AddPropTag(ulPropTag);
         if(er != erSuccess)
 			return er;
@@ -1971,7 +1971,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
         if(er != erSuccess)
 			return er;
     }
-    
+
     // Do MV props
 	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
 		auto lpDBLen = lpDBResult.fetch_row_lengths();
@@ -1979,7 +1979,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 			ec_log_crit("PrepareReadProps(): FetchRowLengths failed(2)");
 			return KCERR_DATABASE_ERROR; /* this should never happen */
         }
-        
+
         if (lpNamedPropDefs) {
             unsigned int ulPropTag = PROP_TAG(atoi(lpDBRow[FIELD_NR_TYPE]),atoi(lpDBRow[FIELD_NR_TAG]));
             if (PROP_ID(ulPropTag) > 0x8500) {
@@ -1991,7 +1991,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 						return KCERR_DATABASE_ERROR;
                     }
                     memcpy(&resInsert.first->second.guid, lpDBRow[FIELD_NR_NAMEGUID], sizeof(resInsert.first->second.guid));
-                    
+
                     if (lpDBRow[FIELD_NR_NAMEID] != NULL) {
                         resInsert.first->second.ulKind = MNID_ID;
                         resInsert.first->second.ulId = atoui((char*)lpDBRow[FIELD_NR_NAMEID]);
@@ -2009,13 +2009,13 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 		auto iterChild = lpChildProps->find(ulChildId);
 		if (iterChild == lpChildProps->cend()) {
             CHILDPROPS sChild;
-            
+
             sChild.lpPropTags = new DynamicPropTagArray(soap);
             sChild.lpPropVals = new DynamicPropValArray(soap, 20);
             // First property for this child
 			iterChild = lpChildProps->emplace(ulChildId, sChild).first;
         }
-        
+
 		auto er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);
         if(er != erSuccess)
             continue;

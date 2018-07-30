@@ -48,7 +48,7 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession,
 		lpSession->GetSessionManager()->GetSearchFolders()->FlushAndWait();
 	} else if (strcasecmp(szCommand, "kill_sessions") == 0) {
 	    ECSESSIONID id = lpSession->GetSessionId();
-	    
+
 	    // Remove all sessions except our own
 	    er = lpSession->GetSessionManager()->CancelAllSessions(id);
     } else if(strcasecmp(szCommand, "sleep") == 0) {

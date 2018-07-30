@@ -54,7 +54,7 @@ static bool execute_script(const char *scriptname, ...)
 	std::list<std::string> lstEnv;
 	std::string strEnv;
 	int n = 0;
-	
+
 	va_start(v, scriptname);
 	/* Set environment */
 	for (;;) {
@@ -138,7 +138,7 @@ static const char *RelationTypeToName(userobject_relation_t type)
 
 ECUserManagement::ECUserManagement(BTSession *s,
     ECPluginFactory *f, ECConfig *c) :
-	m_lpPluginFactory(f), m_lpSession(s), m_lpConfig(c)    
+	m_lpPluginFactory(f), m_lpSession(s), m_lpConfig(c)
 {}
 
 // Authenticate a user (NOTE: ECUserManagement will never authenticate SYSTEM unless it is actually
@@ -1093,7 +1093,7 @@ ECRESULT ECUserManagement::GetLocalObjectDetails(unsigned int ulId, objectdetail
 		sDetails.SetPropString(OB_PROP_S_LOGIN, KOPANO_ACCOUNT_EVERYONE);
 		sDetails.SetPropString(OB_PROP_S_FULLNAME, KOPANO_FULLNAME_EVERYONE);
 		sDetails.SetPropBool(OB_PROP_B_AB_HIDDEN, parseBool(m_lpConfig->GetSetting("hide_everyone")) && lpSecurity->GetAdminLevel() == 0);
-	
+
 		if (m_lpSession->GetSessionManager()->IsDistributedSupported() &&
 		    GetPublicStoreDetails(&sPublicStoreDetails) == erSuccess)
 			sDetails.SetPropString(OB_PROP_S_SERVERNAME, sPublicStoreDetails.GetPropString(OB_PROP_S_SERVERNAME));
@@ -2026,12 +2026,12 @@ static inline std::set<std::string> getFeatures()
 	return {kopano_features, kopano_features + ARRAY_SIZE(kopano_features)};
 }
 
-/** 
+/**
  * Add default server settings of enabled/disabled features to the
  * user explicit feature lists.
- * 
+ *
  * @param[in,out] lpDetails plugin feature list to edit
- * 
+ *
  * @return erSuccess
  */
 ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
@@ -2079,12 +2079,12 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 	return erSuccess;
 }
 
-/** 
+/**
  * Make the enabled and disabled feature list of user details an explicit list.
  * This way, changing the default in the server will have a direct effect.
- * 
+ *
  * @param[in,out] lpDetails incoming user details to fix
- * 
+ *
  * @return erSuccess
  */
 ECRESULT ECUserManagement::RemoveDefaultFeatures(objectdetails_t *lpDetails)
@@ -2112,15 +2112,15 @@ ECRESULT ECUserManagement::RemoveDefaultFeatures(objectdetails_t *lpDetails)
 	return erSuccess;
 }
 
-/** 
+/**
  * Convert some properties in the details object from plugin info to
  * client info.
  *
  * @todo this function is called *very* often, and that should be
  * reduced.
- * 
+ *
  * @param[in,out] lpDetails details to update
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECUserManagement::UpdateUserDetailsToClient(objectdetails_t *lpDetails)
@@ -2134,11 +2134,11 @@ ECRESULT ECUserManagement::UpdateUserDetailsToClient(objectdetails_t *lpDetails)
 	return ComplementDefaultFeatures(lpDetails);
 }
 
-/** 
+/**
  * Update client details to db-plugin info
- * 
+ *
  * @param[in,out] lpDetails user details to update
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECUserManagement::UpdateUserDetailsFromClient(objectdetails_t *lpDetails)
@@ -2372,7 +2372,7 @@ exit:
  * Conversion are allowed if the OBJECTCLASS_TYPE of the object remains unchanged. Exception is converting to/from
  * a CONTACT type since we want to do store initialization or deletion in that case (contact is the only USER type
  * that doesn't have a store)
- * 
+ *
  * @param[in] sExternId Extern ID of the object to be updated (the externid contains the object type)
  * @param[out] lpulObjectId Object ID of object if not deleted
  * @return ECRESULT KCERR_NOT_FOUND if the user is not found OR must be deleted due to type change
@@ -2433,7 +2433,7 @@ ECRESULT ECUserManagement::UpdateObjectclassOrDelete(const objectid_t &sExternId
 	return erSuccess;
 }
 
-// Check if an object has moved to a new company, or if it was created as new 
+// Check if an object has moved to a new company, or if it was created as new
 ECRESULT ECUserManagement::MoveOrCreateLocalObject(const objectsignature_t &signature, unsigned int *lpulObjectId, bool *lpbMoved)
 {
 	ECRESULT er;
@@ -2446,7 +2446,7 @@ ECRESULT ECUserManagement::MoveOrCreateLocalObject(const objectsignature_t &sign
 	 * 1) Object was created, and we should create the local item.
 	 * 2) Object was moved to different company, we should move the local item
 	 * 3) Object hasn't changed, but multicompany support was toggled, we should move the local item
-	 * 
+	 *
 	 * The obvious benefit from moving an user will be that it preserves the store, when
 	 * deleting and recreating a user when it has moved the same will happen for the store
 	 * belonging to that user. When we perform a move operation we will only update some
@@ -2519,7 +2519,7 @@ ECRESULT ECUserManagement::MoveOrDeleteLocalObject(unsigned int ulObjectId, obje
 	 * 1) Object was deleted, and we should delete the local item.
 	 * 2) Object was moved to different company, we should move the local item
 	 * 3) Object hasn't changed, but multicompany support was toggled, we should move the local item
-	 * 
+	 *
 	 * The obvious benefit from moving an user will be that it preserves the store, when
 	 * deleting and recreating a user when it has moved the same will happen for the store
 	 * belonging to that user. When we perform a move operation we will only update some
@@ -2774,15 +2774,15 @@ bool ECUserManagement::IsInternalObject(unsigned int ulUserId) const
 	return ulUserId == KOPANO_UID_SYSTEM || ulUserId == KOPANO_UID_EVERYONE;
 }
 
-/** 
+/**
  * Returns property values for "anonymous" properties, which are tags
  * from plugin::getExtraAddressbookProperties().
- * 
+ *
  * @param[in] soap soap struct for memory allocation
  * @param[in] lpDetails details object of an addressbook object to get the values from
  * @param[in] ulPropTag property to fetch from the details
  * @param[out] lpPropVal soap propVal to return to the caller
- * 
+ *
  * @return internal error code
  * @retval erSuccess value is set
  * @retval KCERR_UNKNOWN value for proptag is not found
@@ -2876,7 +2876,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 	case PT_MV_STRING8:
 	case PT_MV_UNICODE: {
 		lpPropVal->ulPropTag = ulPropTag;
-		lpPropVal->Value.mvszA.__size = lstrValues.size();		
+		lpPropVal->Value.mvszA.__size = lstrValues.size();
 		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, lstrValues.size());
 		unsigned int i = 0;
 		for (const auto &val : lstrValues)
@@ -2894,7 +2894,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 		break;
 	case PT_MV_BINARY: {
 		lpPropVal->ulPropTag = ulPropTag;
-		lpPropVal->Value.mvbin.__size = lstrValues.size();		
+		lpPropVal->Value.mvbin.__size = lstrValues.size();
 		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, lstrValues.size());
 		unsigned int i = 0;
 		for (const auto &val : lstrValues) {
@@ -3005,7 +3005,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 			case PR_NORMALIZED_SUBJECT:
 			case PR_7BIT_DISPLAY_NAME:
 			case PR_DISPLAY_NAME:
-			case PR_TRANSMITABLE_DISPLAY_NAME: 
+			case PR_TRANSMITABLE_DISPLAY_NAME:
 				lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
 				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 				break;
@@ -3117,7 +3117,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 					lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
 				else
 					lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
-					
+
 				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 				break;
 			case PR_SEND_INTERNET_ENCODING:
@@ -3229,7 +3229,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 				break;
 			}
 			default:
-				/* Property not handled in switch, try checking if user has mapped the property personally */ 
+				/* Property not handled in switch, try checking if user has mapped the property personally */
 				if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) == erSuccess)
 					break;
 				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
@@ -3545,7 +3545,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 			}
 			break;
 		} // end case CONTAINER_ADDRESSLIST
-		
+
 		case CONTAINER_COMPANY: {
 			uint32_t tmp4;
 			switch (NormalizePropTag(lpPropTags->__ptr[i])) {
@@ -3957,7 +3957,7 @@ ECRESULT ECUserManagement::GetServerDetails(const std::string &strServer, server
 ECRESULT ECUserManagement::GetServerList(serverlist_t *lpServerList)
 {
 	UserPlugin *lpPlugin = NULL;
-	
+
 	auto er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
 		return er;
@@ -4065,7 +4065,7 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 	ABEID *lpEid = NULL;
 	gsoap_size_t ulSize = 0;
 	std::string	strEncExId;
-	
+
 	if (IsInternalObject(ulObjId)) {
 		if (ulVersion != 0)
 			throw std::runtime_error("Internal objects must always have v0 ABEIDs");
