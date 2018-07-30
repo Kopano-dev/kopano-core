@@ -70,7 +70,6 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 		ArchiveHelperPtr ptrArchiveHelper;
 
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder not found in cache");
-	
 		// Find the associated archive folder 
 		auto hr = ArchiveHelper::Create(m_ptrSession, archiveEntry, m_lpLogger, &ptrArchiveHelper);
 		if (hr != hrSuccess)

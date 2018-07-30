@@ -44,7 +44,7 @@ HRESULT ArchiveManageImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpCon
 {
 	if (lpszUser == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	
+
 	std::unique_ptr<ArchiveManageImpl> ptrArchiveManage(
 		new(std::nothrow) ArchiveManageImpl(ptrSession, lpConfig, lpszUser, lpLogger));
 	if (ptrArchiveManage == nullptr)
@@ -52,7 +52,6 @@ HRESULT ArchiveManageImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpCon
 	auto hr = ptrArchiveManage->Init();
 	if (hr != hrSuccess)
 		return hr;
-	
 	*lpptrArchiveManage = std::move(ptrArchiveManage);
 	return hrSuccess;
 }
@@ -159,10 +158,8 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 				lpszArchiveServer, GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
-		
 		ptrArchiveSession = ptrRemoteSession;
 	}
-	
 	// Find the requested archive.
 	hr = ptrArchiveSession->OpenStoreByName(lpszArchive, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
@@ -170,7 +167,6 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 			lpszArchive, GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-
 	return AttachTo(ptrArchiveStore, strFoldername, lpszArchiveServer,
 		sUserEntryId, ulFlags, attachType);
 }
@@ -239,7 +235,6 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	hr = ptrArchiveHelper->GetAttachedUser(&sAttachedUserEntryId);
 	if (hr == MAPI_E_NOT_FOUND)
 		hr = hrSuccess;
-
 	else if ( hr == hrSuccess && (!sAttachedUserEntryId.empty() && sAttachedUserEntryId != sUserEntryId)) {
 		tstring strUser;
 		tstring strFullname;
@@ -249,7 +244,6 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 			m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Archive is already used by \"" TSTRING_PRINTF "\" (" TSTRING_PRINTF ").", strUser.c_str(), strFullname.c_str());
 		else
 			m_lpLogger->logf(EC_LOGLEVEL_FATAL, "Archive is already used (user entry: %s).", sAttachedUserEntryId.tostring().c_str());
-
 		return MAPI_E_COLLISION;
 	} else if (hr != hrSuccess) {
 		return m_lpLogger->perr("Failed to get attached user for the requested archive", hr);
@@ -329,7 +323,6 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 		m_lpLogger->perr("Failed to create store helper", hr);
 		return MAPIErrorToArchiveError(hr);
 	}
-	
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess) {
 		m_lpLogger->perr("Failed to get archive list", hr);
@@ -343,7 +336,6 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 				lpszArchiveServer, GetMAPIErrorMessage(hr), hr);
 			return MAPIErrorToArchiveError(hr);
 		}
-		
 		ptrArchiveSession = ptrRemoteSession;
 	}
 
@@ -390,10 +382,8 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 				m_lpLogger->perr("Failed to get archive folder name", hr);
 				return MAPIErrorToArchiveError(hr);
 			}
-			
 			if (_tcscmp(ptrDisplayName->Value.LPSZ, lpszFolder) == 0)
 				break;
-				
 			iArchive = find_if(++iArchive, lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin));
 		}
 		
@@ -405,7 +395,6 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	
 	assert(iArchive != lstArchives.end());
 	lstArchives.erase(iArchive);
-	
 	hr = ptrStoreHelper->SetArchiveList(lstArchives);
 	if (hr != hrSuccess) {
 		m_lpLogger->perr("Failed to update archive list", hr);
@@ -521,11 +510,9 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 	auto hr = StoreHelper::Create(m_ptrUserStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
 		return MAPIErrorToArchiveError(hr);
-
 	hr = m_ptrSession->GetUserInfo(m_strUser, NULL, NULL, &bAclCapable);
 	if (hr != hrSuccess)
 		return MAPIErrorToArchiveError(hr);
-
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess)
 		return MAPIErrorToArchiveError(hr);
@@ -567,7 +554,6 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 				        &~ptrOwner);
 				if (hrTmp == hrSuccess)
 					hrTmp = HrGetOneProp(ptrOwner, PR_ACCOUNT_A, &~ptrPropValue);
-
 				if (hrTmp == hrSuccess)
 					entry.StoreOwner = ptrPropValue->Value.lpszA;
 				else

@@ -438,9 +438,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 
 		li.LowPart = m_ftCurrent.dwLowDateTime;
 		li.HighPart = m_ftCurrent.dwHighDateTime;
-		
 		li.QuadPart -= (m_ulPurgeAfter * _DAY);
-		
 		sPropRefTime.ulPropTag = PROP_TAG(PT_SYSTIME, 0);
 		sPropRefTime.Value.ft.dwLowDateTime = li.LowPart;
 		sPropRefTime.Value.ft.dwHighDateTime = li.HighPart;
@@ -771,12 +769,10 @@ HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, IMs
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get store GUID of archive store.");
 		return hr;
 	}
-	
 	if (ptrPropVal->Value.bin.cb != sizeof(GUID)) {
 		m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Store record key size does not match that of a GUID. size=%u", ptrPropVal->Value.bin.cb);
 		return MAPI_E_CORRUPT_DATA;
 	}
-	
 	// Get a set of all primary messages that have a reference to this archive.
 	hr = GetAllReferences(lpUserStore, (LPGUID)ptrPropVal->Value.bin.lpb, &setRefs);
 	if (hr != hrSuccess)
@@ -794,7 +790,6 @@ HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, IMs
 	//the second one. Notice that this is a directional operation.
 	std::set_difference(setEntries.begin(), setEntries.end(), setRefs.begin(), setRefs.end(), std::inserter(setDead, setDead.begin()));
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Found %zu dead entries in archive.", setDead.size());
-	
 	if (m_cleanupAction == caNone) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "cleanup_action is set to none, therefore skipping cleanup action.");
 		return hr;
@@ -842,6 +837,7 @@ HRESULT ArchiveControlImpl::GetAllReferences(LPMDB lpUserStore, LPGUID lpArchive
 	hr = AppendAllReferences(ptrIpmSubtree, lpArchiveGuid, &setRefs);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Unable to get all references from the ipm subtree", hr);
+
 	try {
 		for (ECFolderIterator i = ECFolderIterator(ptrIpmSubtree, fMapiDeferredErrors, 0); i != iEnd; ++i) {
 			hr = AppendAllReferences(*i, lpArchiveGuid, &setRefs);
@@ -851,7 +847,6 @@ HRESULT ArchiveControlImpl::GetAllReferences(LPMDB lpUserStore, LPGUID lpArchive
 	} catch (const KMAPIError &e) {
 		return m_lpLogger->perr("Failed to iterate primary folders", e.code());
 	}
-	
 	*lpReferences = std::move(setRefs);
 	return hrSuccess;
 }
@@ -873,9 +868,7 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidItemEntryIds)
 	PROPMAP_INIT(lpFolder)
-	
 	sptaContentProps.aulPropTag[0] = PROP_ITEM_ENTRYIDS;
-	
 	memcpy(prefixData + 4, lpArchiveGuid, sizeof(GUID));
 	
 	for (size_t i = 0; i < ARRAY_SIZE(ulFlagArray); ++i) {
@@ -906,7 +899,6 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 					    memcmp(m.lpbin[k].lpb, prefixData, sizeof(prefixData)) == 0)
 						lpReferences->insert(m.lpbin[k]);
 			}
-			
 			if (ptrRows.size() < batch_size)
 				break;
 		}
@@ -949,12 +941,10 @@ HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPM
 			hr = HrGetOneProp(*i, PR_ENTRYID, &~ptrProp);
 			if (hr != hrSuccess)
 				return hr;
-			
 			if (setFolderExcludes.find(ptrProp->Value.bin) != setFolderExcludes.end()) {
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Skipping special folder");
 				continue;
 			}
-			
 			hr = AppendAllEntries(*i, lpRestriction, &setEntries);
 			if (hr != hrSuccess)
 				return m_lpLogger->perr("Unable to get all references from archive folder", hr);
@@ -962,7 +952,6 @@ HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPM
 	} catch (const KMAPIError &e) {
 		return m_lpLogger->perr("Failed to iterate archive folders", e.code());
 	}
-	
 	*lpEntries = std::move(setEntries);
 	return hrSuccess;
 }
@@ -1005,13 +994,11 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 		hr = ptrTable->QueryRows(batch_size, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
-		
 		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 			if (PROP_TYPE(ptrRows[i].lpProps[0].ulPropTag) == PT_ERROR)
 				return ptrRows[i].lpProps[0].Value.err;
 			lpEntries->insert(ptrRows[i].lpProps[0].Value.bin);
 		}
-		
 		if (ptrRows.size() < batch_size)
 			break;
 	}
@@ -1088,7 +1075,6 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Folder contains messages. Skipping folder.");
 					continue;
 				}
-				
 				if (PROP_TYPE(ptrRows[i].lpProps[IDX_FOLDER_CHILD_COUNT].ulPropTag) == PT_ERROR)	{
 					m_lpLogger->pwarn("Skipping folder due to inability to obtain folder child count",
 						ptrRows[i].lpProps[IDX_FOLDER_CHILD_COUNT].Value.err);
@@ -1109,13 +1095,11 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 				     &iid_of(ptrArchiveFolder), MAPI_MODIFY, &ulType, &~ptrArchiveFolder);
 				if (hr != hrSuccess)
 					return hr;
-				
 				// Check if we still have a back-ref
 				if (HrGetOneProp(ptrArchiveFolder, PROP_REF_ITEM_ENTRYID, &~ptrProp) != hrSuccess) {
 					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Back ref is gone. Folder is possibly moved to the deleted items already.");
 					continue;
 				}
-				
 				// The primary folder does not exist anymore and this folder is empty. Time to get rid of it.
 				m_lpLogger->Log(EC_LOGLEVEL_INFO, "Primary folder seems to have been deleted");
 				if (m_cleanupAction == caStore)
@@ -1227,7 +1211,6 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
 			hr = MAPIPropHelper::Create(MAPIPropPtr(*i, true), &ptrSubHelper);
 			if (hr != hrSuccess)
 				return hr;
-			
 			hr = ptrSubHelper->ClearReference(true);
 			if (hr != hrSuccess)
 				m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to clean reference of subfolder.");
@@ -1314,7 +1297,6 @@ HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet 
 	auto hr = HrGetOneProp(lpBase, PR_ENTRYID, &~ptrProp);
 	if (hr != hrSuccess)
 		return hr;
-	
 	lpEntries->insert(ptrProp->Value.bin);
 	hr = lpBase->GetHierarchyTable(CONVENIENT_DEPTH, &~ptrTable);
 	if (hr != hrSuccess)
@@ -1331,7 +1313,6 @@ HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet 
 			return hr;
 		if (ptrRows.empty())
 			break;
-		
 		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i)
 			lpEntries->insert(ptrRows[i].lpProps[0].Value.bin);
 	}
@@ -1362,7 +1343,6 @@ HRESULT ArchiveControlImpl::CheckSafeCleanupSettings()
 		}
 		m_lpLogger->Log(loglevel, "User forced continuation!");
 	}
-	
 	else if (m_bDeleteEnable && m_bCleanupFollowPurgeAfter && m_ulPurgeAfter == 0) {
 		m_lpLogger->logf(loglevel, "\"delete_enable\" is set to \"%s\" and \"cleanup_follow_purge_after\" is set to \"%s\"",
 						m_lpConfig->GetSetting("delete_enable", "", "no"),
@@ -1376,7 +1356,6 @@ HRESULT ArchiveControlImpl::CheckSafeCleanupSettings()
 		}
 		m_lpLogger->Log(loglevel, "User forced continuation!");
 	}
-	
 	return hrSuccess;
 }
 

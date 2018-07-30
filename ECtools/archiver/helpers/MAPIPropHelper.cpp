@@ -35,7 +35,6 @@ HRESULT MAPIPropHelper::Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptr
 	hr = ptrMAPIPropHelper->Init();
 	if (hr != hrSuccess)
 		return hr;
-		
 	*lpptrMAPIPropHelper = std::move(ptrMAPIPropHelper);
 	return hrSuccess;
 }
@@ -153,7 +152,6 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 			hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &iid_of(ptrArchiveMsg), 0, &ulType, &~ptrArchiveMsg);
 			if (hrTmp != hrSuccess)
 				continue;
-
 			break;
 		}
 
@@ -232,7 +230,6 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
 	SPropArrayPtr ptrPropArray;
 	ObjectEntryList lstArchives;
 	int result = 0;
-	
 	SizedSPropTagArray (4, sptaArchiveProps) = {4, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_ORIGINAL_SOURCEKEY, PR_SOURCE_KEY}};
 
 	enum {
@@ -294,7 +291,6 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
 		objectEntry.sItemEntryId = ptrPropArray[IDX_ARCHIVE_ITEM_ENTRYIDS].Value.MVbin.lpbin[i];
 		lstArchives.emplace_back(std::move(objectEntry));
 	}
-	
 	swap(*lplstArchives, lstArchives);
 	return hr;
 }
@@ -325,7 +321,6 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 	hr = MAPIAllocateMore(cValues * sizeof(SBinary), ptrPropArray, (LPVOID*)&ptrPropArray[0].Value.MVbin.lpbin);
 	if (hr != hrSuccess)
 		return hr;
-	
 	ptrPropArray[1].ulPropTag = PROP_ARCHIVE_ITEM_ENTRYIDS;
 	ptrPropArray[1].Value.MVbin.cValues = cValues;
 	hr = MAPIAllocateMore(cValues * sizeof(SBinary), ptrPropArray, (LPVOID*)&ptrPropArray[1].Value.MVbin.lpbin);
@@ -360,10 +355,8 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 	hr = m_ptrMapiProp->SetProps(cbProps, ptrPropArray.get(), NULL);
 	if (hr != hrSuccess)
 		return hr;
-	
 	if (bExplicitCommit)
 		hr = m_ptrMapiProp->SaveChanges(KEEP_OPEN_READWRITE);
-	
 	return hr;
 }
 
@@ -393,10 +386,8 @@ HRESULT  MAPIPropHelper::SetReference(const SObjectEntry &sEntry, bool bExplicit
 	hr = m_ptrMapiProp->SetProps(2, sPropArray, NULL);
 	if (hr != hrSuccess)
 		return hr;
-
 	if (bExplicitCommit)
 		hr = m_ptrMapiProp->SaveChanges(KEEP_OPEN_READWRITE);
-	
 	return hr;
 }
 
@@ -408,10 +399,8 @@ HRESULT MAPIPropHelper::ClearReference(bool bExplicitCommit)
 	hr = m_ptrMapiProp->DeleteProps(sptaReferenceProps, NULL);
 	if (hr != hrSuccess)
 		return hr;
-
 	if (bExplicitCommit)
 		hr = m_ptrMapiProp->SaveChanges(KEEP_OPEN_READWRITE);
-
 	return hr;
 }
 
@@ -420,7 +409,6 @@ HRESULT MAPIPropHelper::GetReference(SObjectEntry *lpEntry)
 	HRESULT hr;
 	ULONG cMessageProps = 0;
 	SPropArrayPtr ptrMessageProps;
-
 	SizedSPropTagArray(2, sptaMessageProps) = {2, {PROP_REF_STORE_ENTRYID, PROP_REF_ITEM_ENTRYID}};
 	enum {IDX_REF_STORE_ENTRYID, IDX_REF_ITEM_ENTRYID};
 
@@ -535,7 +523,6 @@ HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOL
 	
 	if (ptrSession == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	
 	// We can't just open a folder on the session (at least not in Linux). So we open the store first
 	hr = m_ptrMapiProp->GetProps(sptaProps, 0, &cValues, &~ptrPropArray);
 	if (hr != hrSuccess)
@@ -546,7 +533,6 @@ HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOL
 	hr = ptrMsgStore->OpenEntry(ptrPropArray[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrPropArray[0].Value.bin.lpb), &iid_of(ptrFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
-	
 	return ptrFolder->QueryInterface(IID_IMAPIFolder,
 		reinterpret_cast<LPVOID *>(lppFolder));
 }

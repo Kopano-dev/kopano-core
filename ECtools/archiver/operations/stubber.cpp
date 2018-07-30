@@ -121,12 +121,10 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 
 	sProps[0].ulPropTag = m_ulptStubbed;
 	sProps[0].Value.b = 1;
-	
 	sProps[1].ulPropTag = PR_BODY;
 	sProps[1].Value.LPSZ = const_cast<TCHAR *>(KC_T("This message is archived..."));
 	sProps[2].ulPropTag = PR_ICON_INDEX;
 	sProps[2].Value.l = 2;
-
 	hr = lpMessage->SetProps(3, sProps, NULL);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to set properties", hr);

@@ -226,7 +226,6 @@ HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgSt
 			strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-		
 	return ptrUserStore->QueryInterface(IID_IMsgStore,
 		reinterpret_cast<LPVOID *>(lppMsgStore));
 }
@@ -370,10 +369,8 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 					strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 				return hr;
 			}
-
 			lpstrFullname->assign(ptrUserProps[IDX_DISPLAY_NAME].Value.LPSZ);
 		}
-		
 		if (lpbAclCapable) {
 			if (ptrUserProps[IDX_DISPLAY_TYPE_EX].ulPropTag != PR_DISPLAY_TYPE_EX) {
 				hr = ptrUserProps[IDX_DISPLAY_TYPE_EX].Value.err;
@@ -381,7 +378,6 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 					strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 				return hr;
 			}
-
 			*lpbAclCapable = (ptrUserProps[IDX_DISPLAY_TYPE_EX].Value.ul & DTE_FLAG_ACL_CAPABLE);
 		}
 	}
@@ -500,13 +496,11 @@ HRESULT ArchiverSession::CompareStoreIds(LPMDB lpUserStore, LPMDB lpArchiveStore
 	hr = HrGetOneProp(lpArchiveStore, PR_ENTRYID, &~ptrArchiveStoreEntryId);
 	if (hr != hrSuccess)
 		return hr;
-	
 	hr = m_ptrSession->CompareEntryIDs(ptrUserStoreEntryId->Value.bin.cb, (LPENTRYID)ptrUserStoreEntryId->Value.bin.lpb,
 					   ptrArchiveStoreEntryId->Value.bin.cb, (LPENTRYID)ptrArchiveStoreEntryId->Value.bin.lpb,
 					   0, &ulResult);
 	if (hr != hrSuccess)
 		return hr;
-		
 	*lpbResult = (ulResult == TRUE);
 	return hrSuccess;
 }
@@ -529,7 +523,6 @@ HRESULT ArchiverSession::CompareStoreIds(const entryid_t &sEntryId1, const entry
 	          sEntryId2.size(), sEntryId2, 0, &ulResult);
 	if (hr != hrSuccess)
 		return hr;
-		
 	*lpbResult = (ulResult == TRUE);
 	return hrSuccess;
 }
@@ -660,13 +653,10 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	hr = HrGetOneProp(ptrIpmSubtree, PR_ENTRYID, &~ptrIpmSubtreeId);
 	if (hr != hrSuccess)
 		return hr;
-
 	ptrIpmSubtreeId->ulPropTag = PR_IPM_SUBTREE_ENTRYID;
-	
 	hr = ptrArchiveStore->SetProps(1, ptrIpmSubtreeId, NULL);
 	if (hr != hrSuccess)
 		return hr;
-
 	return ptrArchiveStore->QueryInterface(IID_IMsgStore,
 		reinterpret_cast<LPVOID *>(lppArchiveStore));
 }

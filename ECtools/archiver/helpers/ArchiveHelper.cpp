@@ -177,7 +177,6 @@ HRESULT ArchiveHelper::SetAttachedUser(const abentryid_t &sUserEntryId)
 	hr = GetArchiveFolder(true, &~ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
-		
 	sPropValue.ulPropTag = PROP_ATTACHED_USER_ENTRYID;
 	sPropValue.Value.bin.cb = sUserEntryId.size();
 	sPropValue.Value.bin.lpb = sUserEntryId;
@@ -231,7 +230,6 @@ HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lparchType, AttachType *lpatt
 	HRESULT hr;
 	SPropValuePtr ptrPropVal;
 	MAPIFolderPtr ptrArchiveFolder;
-
 	ArchiveType archType;
 	AttachType attachType = UnknownAttach;
 
@@ -399,7 +397,6 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	hr = ptrEMT->ModifyTable(0, ptrRowList);
 	if (hr == MAPI_W_PARTIAL_COMPLETION)		// We can't set rights for non-active users.
 		hr = hrSuccess;	
-	
 	return hr;
 }
 
@@ -442,7 +439,6 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 	hr = MAPIPropHelper::Create(ptrSourceFolder.as<MAPIPropPtr>(), &ptrSourceFolderHelper);
 	if (hr != hrSuccess)
 		return hr;
-	
 	hr = ptrSourceFolderHelper->GetArchiveList(&lstFolderArchives);
 	if (hr == MAPI_E_CORRUPT_DATA) {
 		// If the list is corrupt, the folder will become unusable. We'll just create a new folder, which will most
@@ -485,7 +481,6 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 		hr = ptrSourceFolder->GetProps(sptaFolderPropsForCreate, 0, &cValues, &~ptrPropArray);
 		if (FAILED(hr))
 			return hr;
-		
 		hr = ptrArchiveParentFolder->CreateFolder(FOLDER_GENERIC, 
 		     const_cast<TCHAR *>(PROP_TYPE(ptrPropArray[1].ulPropTag) == PT_ERROR ? KC_T("") : ptrPropArray[1].Value.LPSZ),
 		     const_cast<TCHAR *>(PROP_TYPE(ptrPropArray[2].ulPropTag) == PT_ERROR ? KC_T("") : ptrPropArray[2].Value.LPSZ),
@@ -516,7 +511,6 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 					     &iid_of(ptrArchiveFolder), fMapiUnicode, &~ptrArchiveFolder);
 					if (hr != hrSuccess && hr != MAPI_E_COLLISION)
 						return hr;
-
 					++ulCollisionCount;
 				} while (hr == MAPI_E_COLLISION && ulCollisionCount < 0xffff);	// We need to stop counting at some point.
 				if (hr != hrSuccess)
@@ -699,7 +693,6 @@ HRESULT ArchiveHelper::SetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG cbEntr
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~ptrSFEntryIDs);
 		if (hr != hrSuccess)
 			return hr;
-
 		ptrSFEntryIDs->ulPropTag = PROP_SPECIAL_FOLDER_ENTRYIDS;
 		ptrSFEntryIDs->Value.MVbin.cValues = 0;
 		ptrSFEntryIDs->Value.MVbin.lpbin = NULL;
@@ -713,27 +706,22 @@ HRESULT ArchiveHelper::SetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG cbEntr
 		hr = MAPIAllocateMore((sfWhich + 1) * sizeof(SBinary), ptrSFEntryIDs, (LPVOID*)&ptrSFEntryIDs->Value.MVbin.lpbin);
 		if (hr != hrSuccess)
 			return hr;
-
 		// Copy old entries
 		for (ULONG i = 0; i < ptrSFEntryIDs->Value.MVbin.cValues; ++i)
 			ptrSFEntryIDs->Value.MVbin.lpbin[i] = lpbinPrev[i];		// Shallow copy
-
 		// Pad entries
 		for (ULONG i = ptrSFEntryIDs->Value.MVbin.cValues; i < ULONG(sfWhich); ++i) {
 			ptrSFEntryIDs->Value.MVbin.lpbin[i].cb = 0;
 			ptrSFEntryIDs->Value.MVbin.lpbin[i].lpb = NULL;
 		}
-
 		ptrSFEntryIDs->Value.MVbin.cValues = sfWhich + 1;
 	}
 
 	ptrSFEntryIDs->Value.MVbin.lpbin[sfWhich].cb = cbEntryID;
 	ptrSFEntryIDs->Value.MVbin.lpbin[sfWhich].lpb = (LPBYTE)lpEntryID;	// Shallow copy
-
 	hr = HrSetOneProp(ptrArchiveRoot, ptrSFEntryIDs);
 	if (hr != hrSuccess)
 		return hr;
-
 	return ptrArchiveRoot->SaveChanges(KEEP_OPEN_READWRITE);
 }
 
@@ -760,7 +748,6 @@ HRESULT ArchiveHelper::GetSpecialFolder(eSpecFolder sfWhich, bool bCreate, LPMAP
 	}
 	if (hr != hrSuccess)
 		return hr;
-	
 	return ptrSpecialFolder->QueryInterface(IID_IMAPIFolder,
 		reinterpret_cast<LPVOID *>(lppSpecialFolder));
 }

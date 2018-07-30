@@ -60,20 +60,17 @@ HRESULT Deleter::PurgeQueuedMessages()
 	hr = MAPIAllocateMore(m_lstEntryIds.size() * sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
 	if (hr != hrSuccess)
 		return hr;
-		
 	ptrEntryList->cValues = m_lstEntryIds.size();
 	for (const auto &e : m_lstEntryIds) {
 		ptrEntryList->lpbin[ulIdx].cb = e.size();
 		ptrEntryList->lpbin[ulIdx++].lpb = e;
 	}
-	
 	hr = CurrentFolder()->DeleteMessages(ptrEntryList, 0, NULL, 0);
 	if (hr != hrSuccess) {
 		Logger()->logf(EC_LOGLEVEL_FATAL, "Failed to delete %u messages: %s (%x)",
 			ptrEntryList->cValues, GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	
 	m_lstEntryIds.clear();
 	return hrSuccess;
 }

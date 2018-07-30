@@ -46,7 +46,6 @@ namespace Predicates {
 			hr = m_lpSession->CompareEntryIDs(m_objEntry.sStoreEntryId.size(), m_objEntry.sStoreEntryId, objEntry.sStoreEntryId.size(), objEntry.sStoreEntryId, 0, &ulResult);
 			if (hr != hrSuccess || ulResult == 0)
 				return false;
-
 			hr = m_lpSession->CompareEntryIDs(m_objEntry.sItemEntryId.size(), m_objEntry.sItemEntryId, objEntry.sItemEntryId.size(), objEntry.sItemEntryId, 0, &ulResult);
 			return (hr == hrSuccess && ulResult == 1);
 		}
@@ -161,7 +160,6 @@ HRESULT ArchiveStateUpdater::UpdateOne(const abentryid_t &userId, const ArchiveI
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() about to call RemoveImplicit()");
 		hr = RemoveImplicit(info.storeId, tstring(), userId, info.lstArchives);
 	}
-
 	else if (info.storeId.empty()) {
 		// Found a user in the GAB that has at least one archive- server or coupling
 		// defined but has no archives attached.

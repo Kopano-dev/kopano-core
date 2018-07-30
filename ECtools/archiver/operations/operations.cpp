@@ -52,12 +52,11 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 
 	li.LowPart = m_ftCurrent.dwLowDateTime;
 	li.HighPart = m_ftCurrent.dwHighDateTime;
-	
 	li.QuadPart -= (m_ulAge * _DAY);
-		
 	sPropRefTime.ulPropTag = PROP_TAG(PT_SYSTIME, 0);
 	sPropRefTime.Value.ft.dwLowDateTime = li.LowPart;
 	sPropRefTime.Value.ft.dwHighDateTime = li.HighPart;
+
 	resResult += ECOrRestriction(
 		ECAndRestriction(
 			ECExistRestriction(PR_MESSAGE_DELIVERY_TIME) +
