@@ -10,7 +10,7 @@
 
 namespace KC { namespace operations {
 
-Transaction::Transaction(const SObjectEntry &objectEntry): m_objectEntry(objectEntry) 
+Transaction::Transaction(const SObjectEntry &objectEntry) : m_objectEntry(objectEntry)
 { }
 
 HRESULT Transaction::SaveChanges(ArchiverSessionPtr ptrSession, RollbackPtr *lpptrRollback)

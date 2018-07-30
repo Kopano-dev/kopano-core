@@ -96,7 +96,7 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession, const SObjectEntry 
 			lpLogger->perr("Failed to open archive root folder", hr);
 		return hr;
 	}
-	
+
 	// We pass a NULL to the lpszServerPath argument, indicating that it's local. However, it was already
 	// remotely opened by ptrSession->OpenStore(). Effectively this causes ptrArchiveHelper->GetArchiveEntry()
 	// to malfunction (it won't wrap the entryid with the serverpath). This is not an issue as we don't use
@@ -150,7 +150,7 @@ HRESULT ArchiveHelper::GetAttachedUser(abentryid_t *lpsUserEntryId)
 	HRESULT hr;
 	MAPIFolderPtr ptrFolder;
 	SPropValuePtr ptrPropValue;
-	
+
 	hr = GetArchiveFolder(false, &~ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
@@ -198,7 +198,7 @@ HRESULT ArchiveHelper::GetArchiveEntry(bool bCreate, SObjectEntry *lpsObjectEntr
 	SPropValuePtr ptrStoreEntryId;
 	MAPIFolderPtr ptrFolder;
 	SPropValuePtr ptrFolderEntryId;
-	
+
 	hr = HrGetOneProp(m_ptrArchiveStore, PR_ENTRYID, &~ptrStoreEntryId);
 	if (hr != hrSuccess)
 		return hr;
@@ -330,7 +330,7 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	SPropValue sOtherProps[2];
 	memory_ptr<ROWLIST> ptrRowList;
 	StoreHelperPtr ptrStoreHelper;
-	
+
 	hr = MAPIAllocateBuffer(CbNewROWLIST(2), &~ptrRowList);
 	if (hr != hrSuccess)
 		return hr;
@@ -338,7 +338,7 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 
 	// First set permissions on the IPM Subtree since we'll simply overwrite
 	// them if the archive folder IS the IPM Subtree.
-	
+
 	// Grant folder visible permissions on the IPM Subtree for this user.
 	hr = StoreHelper::Create(m_ptrArchiveStore, &ptrStoreHelper);
 	if (hr != hrSuccess)
@@ -349,22 +349,22 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	hr = ptrFolder->OpenProperty(PR_ACL_TABLE, &iid_of(ptrEMT), 0, fMapiDeferredErrors, &~ptrEMT);
 	if (hr != hrSuccess)
 		return hr;
-	
+
 	sUserProps[0].ulPropTag = PR_MEMBER_ENTRYID;
 	sUserProps[0].Value.bin.cb = sUserEntryId.size();
 	sUserProps[0].Value.bin.lpb = sUserEntryId;
 	sUserProps[1].ulPropTag = PR_MEMBER_RIGHTS;
 	sUserProps[1].Value.l = RIGHTS_FOLDER_VISIBLE;
-	
+
 	ptrRowList->cEntries = 1;
 	ptrRowList->aEntries[0].ulRowFlags = ROW_MODIFY;
 	ptrRowList->aEntries[0].cValues = 2;
 	ptrRowList->aEntries[0].rgPropVals = sUserProps;
-	
+
 	hr = ptrEMT->ModifyTable(0, ptrRowList);
 	if (hr != hrSuccess && hr != MAPI_E_INVALID_PARAMETER)	// We can't set rights for non-active users.
 		return hr;
-	
+
 	// Grant read only permissions on the archive folder for this user (unless bWritable is requested).
 	// Grant no access for all other users (everyone)
 	hr = GetArchiveFolder(true, &~ptrFolder);
@@ -373,19 +373,19 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	hr = ptrFolder->OpenProperty(PR_ACL_TABLE, &iid_of(ptrEMT), 0, fMapiDeferredErrors, &~ptrEMT);
 	if (hr != hrSuccess)
 		return hr;
-	
+
 	sUserProps[0].ulPropTag = PR_MEMBER_ENTRYID;
 	sUserProps[0].Value.bin.cb = sUserEntryId.size();
 	sUserProps[0].Value.bin.lpb = sUserEntryId;
 	sUserProps[1].ulPropTag = PR_MEMBER_RIGHTS;
 	sUserProps[1].Value.l = (bWritable ? ROLE_OWNER : ROLE_REVIEWER);
-	
+
 	sOtherProps[0].ulPropTag = PR_MEMBER_ENTRYID;
 	sOtherProps[0].Value.bin.cb = g_cbEveryoneEid;
 	sOtherProps[0].Value.bin.lpb = g_lpEveryoneEid;
 	sOtherProps[1].ulPropTag = PR_MEMBER_RIGHTS;
 	sOtherProps[1].Value.l = RIGHTS_NONE;
-	
+
 	ptrRowList->cEntries = 2;
 	ptrRowList->aEntries[0].ulRowFlags = ROW_MODIFY;
 	ptrRowList->aEntries[0].cValues = 2;
@@ -393,10 +393,10 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	ptrRowList->aEntries[1].ulRowFlags = ROW_MODIFY;
 	ptrRowList->aEntries[1].cValues = 2;
 	ptrRowList->aEntries[1].rgPropVals = sOtherProps;
-	
+
 	hr = ptrEMT->ModifyTable(0, ptrRowList);
 	if (hr == MAPI_W_PARTIAL_COMPLETION)		// We can't set rights for non-active users.
-		hr = hrSuccess;	
+		hr = hrSuccess;
 	return hr;
 }
 
@@ -432,7 +432,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 		{3, {PR_CONTAINER_CLASS, PR_DISPLAY_NAME, PR_COMMENT}};
 	static constexpr const SizedSPropTagArray(2, sptaFolderPropsForReference) =
 		{2, {PR_ENTRYID, PR_STORE_ENTRYID}};
-	
+
 	hr = HrGetOneProp(m_ptrArchiveStore, PR_ENTRYID, &~ptrStoreEntryId);
 	if (hr != hrSuccess)
 		return hr;
@@ -446,7 +446,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 		hr = hrSuccess;
 	} else if (hr != hrSuccess)
 		return hr;
-	
+
 	iArchiveFolder = find_if(lstFolderArchives.cbegin(), lstFolderArchives.cend(), StoreCompare(ptrStoreEntryId->Value.bin));
 	if (iArchiveFolder != lstFolderArchives.cend()) {
 		hr = m_ptrArchiveStore->OpenEntry(iArchiveFolder->sItemEntryId.size(), iArchiveFolder->sItemEntryId, &iid_of(ptrArchiveFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
@@ -459,7 +459,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 	hr = ptrSourceFolderHelper->GetParentFolder(ptrSession, &~ptrParentFolder);
 	if (hr != hrSuccess)
 		return hr;
-			
+
 	// If the parent is the root folder, we're currently working on the IPM-SUBTREE. This means
 	// we can just return the root archive folder in that case.
 	hr = HrGetOneProp(ptrParentFolder, PR_FOLDER_TYPE, &~ptrFolderType);
@@ -467,7 +467,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 		return hr;
 	if (ptrFolderType->Value.l == FOLDER_ROOT)
 		hr = GetArchiveFolder(true, &~ptrArchiveFolder);
-	else {		
+	else {
 		bool bIsArchiveRoot = false;
 
 		hr = GetArchiveFolderFor(ptrParentFolder, ptrSession, &~ptrArchiveParentFolder);
@@ -476,12 +476,12 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 		hr = IsArchiveFolder(ptrArchiveParentFolder, &bIsArchiveRoot);
 		if (hr != hrSuccess)
 			return hr;
-		
+
 		// We now have the parent of the folder we're looking for. Se we can just create the folder we need.
 		hr = ptrSourceFolder->GetProps(sptaFolderPropsForCreate, 0, &cValues, &~ptrPropArray);
 		if (FAILED(hr))
 			return hr;
-		hr = ptrArchiveParentFolder->CreateFolder(FOLDER_GENERIC, 
+		hr = ptrArchiveParentFolder->CreateFolder(FOLDER_GENERIC,
 		     const_cast<TCHAR *>(PROP_TYPE(ptrPropArray[1].ulPropTag) == PT_ERROR ? KC_T("") : ptrPropArray[1].Value.LPSZ),
 		     const_cast<TCHAR *>(PROP_TYPE(ptrPropArray[2].ulPropTag) == PT_ERROR ? KC_T("") : ptrPropArray[2].Value.LPSZ),
 		     &iid_of(ptrArchiveFolder), OPEN_IF_EXISTS | fMapiUnicode,
@@ -727,7 +727,7 @@ HRESULT ArchiveHelper::SetSpecialFolderEntryID(eSpecFolder sfWhich, ULONG cbEntr
 
 /**
  * Open one of the special folders.
- * 
+ *
  * @param[in]	sfWhich				The folder to open. Valid values are sfBase, sfHistory, sfOutgoing and sfDeleted.
  * @param[in]	bCreate				Specify if the folder should be created if absent.
  * @param[out]	lppSpecialFolder	Will point to the special folder on success.

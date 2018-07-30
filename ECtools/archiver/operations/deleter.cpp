@@ -51,7 +51,7 @@ HRESULT Deleter::PurgeQueuedMessages()
 {
 	EntryListPtr ptrEntryList;
 	ULONG ulIdx = 0;
-	
+
 	if (m_lstEntryIds.empty())
 		return hrSuccess;
 	auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrEntryList);

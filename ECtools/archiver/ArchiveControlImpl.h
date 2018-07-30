@@ -114,7 +114,7 @@ private:
 			return lhs.second < rhs.second;
 		}
 	};
-	
+
 	typedef HRESULT(ArchiveControlImpl::*fnProcess_t)(const tstring&);
 	typedef std::set<entryid_t> EntryIDSet;
 	typedef std::set<std::pair<entryid_t, entryid_t>, ReferenceLessCompare> ReferenceSet;
@@ -140,7 +140,7 @@ private:
 	HRESULT DeleteFolder(LPMAPIFOLDER lpArchiveFolder);
 	HRESULT AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet *lpEntries);
 	HRESULT CheckSafeCleanupSettings();
-	
+
 	enum eCleanupAction { caDelete, caStore, caNone };
 
 	ArchiverSessionPtr m_ptrSession;
@@ -160,7 +160,7 @@ private:
 	eCleanupAction m_cleanupAction;
 	bool m_bCleanupFollowPurgeAfter = false;
 	bool m_bForceCleanup;
-	
+
 	PROPMAP_DECL()
 	PROPMAP_DEF_NAMED_ID(ARCHIVE_STORE_ENTRYIDS)
 	PROPMAP_DEF_NAMED_ID(ARCHIVE_ITEM_ENTRYIDS)

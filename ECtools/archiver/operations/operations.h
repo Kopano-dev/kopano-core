@@ -26,10 +26,10 @@ public:
 	 * virtual destructor.
 	 */
 	virtual ~IArchiveOperation(void) = default;
-	
+
 	/**
 	 * Entrypoint for all archive operations.
-	 * 
+	 *
 	 * @param[in]	lpFolder
 	 *					A MAPIFolder pointer that points to the folder that's to be processed. This folder will usually be
 	 *					a searchfolder containing the messages that are ready to be processed.
@@ -79,7 +79,7 @@ protected:
 	 * @return An ECArchiverLogger pointer.
 	 */
 	ECArchiverLogger* Logger() { return m_lpLogger; }
-	
+
 private:
 	ECArchiverLogger *m_lpLogger;
 	const int m_ulAge;
@@ -97,14 +97,14 @@ class ArchiveOperationBaseEx : public ArchiveOperationBase {
 public:
 	ArchiveOperationBaseEx(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
 	HRESULT ProcessEntry(IMAPIFolder *, const SRow &proprow) override;
-	
+
 protected:
 	/**
 	 * Returns a pointer to a MAPIFolderPtr, which references the current working folder.
 	 * @return A reference to a MAPIFolderPtr.
 	 */
 	MAPIFolderPtr& CurrentFolder() { return m_ptrCurFolder; }
-	
+
 private:
 	/**
 	 * Called by ProcessEntry after switching source folders. Derived classes will need to
@@ -114,14 +114,14 @@ private:
 	 * @param[in]	lpFolder	The just opened folder.
 	 */
 	virtual HRESULT EnterFolder(LPMAPIFOLDER lpFolder) = 0;
-	
+
 	/**
 	 * Called by ProcessEntry before switching source folders. Derived classes will need to
 	 * implement this method. It can be used to perform operations that only need to be done when
 	 * the source folder is switched.
 	 */
 	virtual HRESULT LeaveFolder() = 0;
-	
+
 	/**
 	 * Called by ProcessEntry for each message found in the search folder that also matches the age restriction.
 	 *
@@ -131,7 +131,7 @@ private:
 	 *					A list of properties that are used by the Operation object.
 	 */
 	virtual HRESULT DoProcessEntry(const SRow &proprow) = 0;
-	
+
 	SPropValuePtr m_ptrCurFolderEntryId;
 	MAPIFolderPtr m_ptrCurFolder;
 };

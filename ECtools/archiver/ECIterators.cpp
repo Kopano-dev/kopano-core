@@ -33,7 +33,7 @@ void ECHierarchyIteratorBase::increment()
 			// No point in processing search folders
 			m_ptrCurrent.reset();
 			return;
-		}			
+		}
 		hr = m_ptrContainer->GetHierarchyTable(m_ulDepth == 1 ? 0 : CONVENIENT_DEPTH, &~m_ptrTable);
 		if (hr != hrSuccess)
 			throw KMAPIError(hr);

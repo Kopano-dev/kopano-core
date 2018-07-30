@@ -251,7 +251,7 @@ eResult ArchiveControlImpl::Cleanup(const tstring &strUser)
  *
  * @param[in]	bLocalOnly	Limit to users that have a store on the local server.
  * @param[in]	fnProcess	The method to execute to do the actual processing.
- */ 
+ */
 HRESULT ArchiveControlImpl::ProcessAll(bool bLocalOnly, fnProcess_t fnProcess)
 {
 	std::list<tstring> lstUsers;
@@ -283,7 +283,7 @@ HRESULT ArchiveControlImpl::ProcessAll(bool bLocalOnly, fnProcess_t fnProcess)
 
 /**
  * Perform the actual archive operation for a specific user.
- * 
+ *
  * @param[in]	strUser	tstring containing user name
  */
 HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
@@ -418,7 +418,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 
 /**
  * Perform the actual cleanup operation for a specific user.
- * 
+ *
  * @param[in]	strUser	tstring containing user name
  */
 HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
@@ -785,7 +785,7 @@ HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, IMs
 	// references to archives in the primary store, which are those same entryids.
 	// We simply check which entries are in the set of entries from the archive and not in the set of
 	// entries in the primary store. Those can be deleted (or stored).
-	
+
 	//The difference of two sets is formed by the elements that are present in the first set, but not in
 	//the second one. Notice that this is a directional operation.
 	std::set_difference(setEntries.begin(), setEntries.end(), setRefs.begin(), setRefs.end(), std::inserter(setDead, setDead.begin()));
@@ -814,7 +814,7 @@ HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, IMs
 /**
  * Get all references to archived items from the primary store. A reference is the entryid of
  * the archived messages.
- * 
+ *
  * @param[in]	lpUserStore		The primary store containing the references.
  * @param[in]	lpArchiveGuid	The GUID of the archive store for which to get the references.
  * @param[out]	lpReferences	An EntryIDSet containing all references.
@@ -854,7 +854,7 @@ HRESULT ArchiveControlImpl::GetAllReferences(LPMDB lpUserStore, LPGUID lpArchive
 /**
  * Get all references to archived items from a primary folder and add them to the
  * passed set.
- * 
+ *
  * @param[in]	lpUserStore		The primary store containing the references.
  * @param[in]	lpArchiveGuid	The GUID of the archive store for which to get the references.
  * @param[out]	lpReferences	The EntryIDSet to add the references to.
@@ -870,25 +870,25 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 	PROPMAP_INIT(lpFolder)
 	sptaContentProps.aulPropTag[0] = PROP_ITEM_ENTRYIDS;
 	memcpy(prefixData + 4, lpArchiveGuid, sizeof(GUID));
-	
+
 	for (size_t i = 0; i < ARRAY_SIZE(ulFlagArray); ++i) {
 		MAPITablePtr ptrTable;
-		
+
 		auto hr = lpFolder->GetContentsTable(ulFlagArray[i], &~ptrTable);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ptrTable->SetColumns(sptaContentProps, TBL_BATCH);
 		if (hr != hrSuccess)
 			return hr;
-		
+
 		while (true) {
 			SRowSetPtr ptrRows;
 			const ULONG batch_size = 128;
-			
+
 			hr = ptrTable->QueryRows(batch_size, 0, &~ptrRows);
 			if (hr != hrSuccess)
 				return hr;
-			
+
 			for (SRowSetPtr::size_type j = 0; j < ptrRows.size(); ++j) {
 				const auto &prop = ptrRows[j].lpProps[0];
 				if (PROP_TYPE(prop.ulPropTag) == PT_ERROR)
@@ -937,7 +937,7 @@ HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPM
 	try {
 		for (ECFolderIterator i = ECFolderIterator(lpArchive, fMapiDeferredErrors, 0); i != iEnd; ++i) {
 			SPropValuePtr ptrProp;
-			
+
 			hr = HrGetOneProp(*i, PR_ENTRYID, &~ptrProp);
 			if (hr != hrSuccess)
 				return hr;
@@ -969,11 +969,11 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 	MAPITablePtr ptrTable;
 	ECAndRestriction resContent;
 	static constexpr const SizedSPropTagArray(1, sptaContentProps) = {1, {PR_ENTRYID}};
-	
+
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(REF_ITEM_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefItemEntryId)
 	PROPMAP_INIT(lpArchive)
-	
+
 	resContent += ECExistRestriction(PROP_REF_ITEM_ENTRYID);
 	if (lpRestriction)
 		resContent += ECRawRestriction(lpRestriction, ECRestriction::Cheap);
@@ -986,11 +986,11 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 	hr = resContent.RestrictTable(ptrTable);
 	if (hr != hrSuccess)
 		return hr;
-	
+
 	while (true) {
 		SRowSetPtr ptrRows;
 		const ULONG batch_size = 128;
-		
+
 		hr = ptrTable->QueryRows(batch_size, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
@@ -1013,7 +1013,7 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
  * it's empty.
  * If the cleanup action is 'store', the folder will be moved to the deleted
  * items folder as is, leaving the hierarchy in tact.
- * 
+ *
  * @param[in]	ptrArchiveHelper	The ArchiverHelper instance for the archive to process.
  * @param[in]	lpArchiveRoot		The root of the archive.
  * @param[out]	lpUserStore			The users primary store.
@@ -1024,11 +1024,11 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 	static constexpr const SizedSSortOrderSet(1, ssosHierarchy) = {1, 0, 0, {{PR_DEPTH, TABLE_SORT_ASCEND}}};
 	SizedSPropTagArray(5, sptaHierarchyProps) = {5, {PR_NULL, PR_ENTRYID, PR_CONTENT_COUNT, PR_FOLDER_CHILD_COUNT, PR_DISPLAY_NAME}};
 	enum {IDX_REF_ITEM_ENTRYID, IDX_ENTRYID, IDX_CONTENT_COUNT, IDX_FOLDER_CHILD_COUNT, IDX_DISPLAY_NAME};
-	
+
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(REF_ITEM_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefItemEntryId)
 	PROPMAP_INIT(lpArchiveRoot)
-	
+
 	sptaHierarchyProps.aulPropTag[IDX_REF_ITEM_ENTRYID] = PROP_REF_ITEM_ENTRYID;
 	auto hr = lpArchiveRoot->GetHierarchyTable(CONVENIENT_DEPTH, &~ptrTable);
 	if (hr != hrSuccess)
@@ -1043,27 +1043,27 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 	hr = ptrTable->SortTable(ssosHierarchy, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
-	
+
 	while (true) {
 		SRowSetPtr ptrRows;
-		
+
 		hr = ptrTable->QueryRows(64, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
 		if (ptrRows.empty())
 			break;
-		
+
 		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 			ULONG ulType = 0;
 			MAPIFolderPtr ptrPrimaryFolder;
 
 			ScopedFolderLogging sfl(m_lpLogger, ptrRows[i].lpProps[IDX_DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME ? ptrRows[i].lpProps[IDX_DISPLAY_NAME].Value.LPSZ : KC_T("<Unnamed>"));
-			
+
 			// If the cleanup action is delete, we don't want to delete a folder that's not empty because it might contain messages that
 			// have been moved in the primary store before the original folder was deleted. If we were to delete the folder in the archive
 			// we would lose that data.
 			// But if the cleanup action is store, we do want to move the folder with content so the hierarchy is preserved.
-			
+
 			if (m_cleanupAction == caDelete) {
 				// The content count and folder child count should always exist. If not we'll skip the folder
 				// just to be safe.
@@ -1084,13 +1084,13 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 					continue;
 				}
 			}
-			
+
 			hr = lpUserStore->OpenEntry(ptrRows[i].lpProps[IDX_REF_ITEM_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[IDX_REF_ITEM_ENTRYID].Value.bin.lpb),
 			     &iid_of(ptrPrimaryFolder), 0, &ulType, &~ptrPrimaryFolder);
 			if (hr == MAPI_E_NOT_FOUND) {
 				MAPIFolderPtr ptrArchiveFolder;
 				SPropValuePtr ptrProp;
-				
+
 				hr = lpArchiveRoot->OpenEntry(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin.lpb),
 				     &iid_of(ptrArchiveFolder), MAPI_MODIFY, &ulType, &~ptrArchiveFolder);
 				if (hr != hrSuccess)
@@ -1207,7 +1207,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
 	try {
 		for (ECFolderIterator i = ECFolderIterator(lpArchiveFolder, fMapiDeferredErrors, 0); i != iEnd; ++i) {
 			MAPIPropHelperPtr ptrSubHelper;
-			
+
 			hr = MAPIPropHelper::Create(MAPIPropPtr(*i, true), &ptrSubHelper);
 			if (hr != hrSuccess)
 				return hr;
@@ -1234,7 +1234,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
 HRESULT ArchiveControlImpl::DeleteMessages(LPMAPIFOLDER lpArchiveFolder, const EntryIDSet &setEIDs)
 {
 	EntryListPtr ptrMessageList;
-	
+
 	m_lpLogger->logf(EC_LOGLEVEL_INFO, "Deleting %zu messages...", setEIDs.size());
 	auto hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrMessageList);
 	if (hr != hrSuccess) {
@@ -1268,7 +1268,7 @@ HRESULT ArchiveControlImpl::DeleteMessages(LPMAPIFOLDER lpArchiveFolder, const E
 HRESULT ArchiveControlImpl::DeleteFolder(LPMAPIFOLDER lpArchiveFolder)
 {
 	SPropValuePtr ptrEntryId;
-	
+
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Deleting folder...");
 	auto hr = HrGetOneProp(lpArchiveFolder, PR_ENTRYID, &~ptrEntryId);
 	if (hr != hrSuccess)
@@ -1293,7 +1293,7 @@ HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet 
 	SPropValuePtr ptrProp;
 	MAPITablePtr ptrTable;
 	static constexpr const SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
-	
+
 	auto hr = HrGetOneProp(lpBase, PR_ENTRYID, &~ptrProp);
 	if (hr != hrSuccess)
 		return hr;
@@ -1304,10 +1304,10 @@ HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet 
 	hr = ptrTable->SetColumns(sptaTableProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
-	
+
 	while (true) {
 		SRowSetPtr ptrRows;
-		
+
 		hr = ptrTable->QueryRows(128, 0, &~ptrRows);
 		if (hr != hrSuccess)
 			return hr;
@@ -1324,13 +1324,13 @@ HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet 
  * a cleanup run. It's unsafe to run a cleanup when the delete operation is
  * enabled, and the cleanup doesn't check the purge_after option or if the
  * purge_after option is set to 0.
- * 
+ *
  * See ZCP-10571.
  */
 HRESULT ArchiveControlImpl::CheckSafeCleanupSettings()
 {
 	int loglevel = (m_bForceCleanup ? EC_LOGLEVEL_WARNING : EC_LOGLEVEL_FATAL);
-	
+
 	if (m_bDeleteEnable && !m_bCleanupFollowPurgeAfter) {
 		m_lpLogger->logf(loglevel, "\"delete_enable\" is set to \"%s\" and \"cleanup_follow_purge_after\" is set to \"%s\"",
 						m_lpConfig->GetSetting("delete_enable", "", "no"),

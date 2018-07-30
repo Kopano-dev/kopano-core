@@ -62,11 +62,11 @@ StoreHelper::StoreHelper(MsgStorePtr &ptrMsgStore)
 HRESULT StoreHelper::Init()
 {
 	HRESULT	hr;
-	
+
 	hr = MAPIPropHelper::Init();
 	if (hr != hrSuccess)
 		return hr;
-	
+
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidStoreEntryIds)
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidItemEntryIds)
 	PROPMAP_INIT_NAMED_ID(ORIGINAL_SOURCEKEY, PT_BINARY, PSETID_Archive, dispidOrigSourceKey)
@@ -95,7 +95,7 @@ HRESULT StoreHelper::GetFolder(const tstring &strFolder, bool bCreate, LPMAPIFOL
 	HRESULT hr;
 	MAPIFolderPtr ptrIpmSubtree;
 	MAPIFolderPtr ptrFolder;
-	
+
 	hr = GetIpmSubtree(&~ptrIpmSubtree);
 	if (hr != hrSuccess)
 		return hr;
@@ -139,13 +139,13 @@ HRESULT StoreHelper::UpdateSearchFolders()
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~ptrPropValue);
 	if (hr != hrSuccess)
 		return hr;
-		
+
 	ptrPropValue->ulPropTag = PROP_SEARCH_FOLDER_ENTRYIDS;
 	ptrPropValue->Value.MVbin.cValues = 3;
 	hr = MAPIAllocateMore(3 * sizeof(*ptrPropValue->Value.MVbin.lpbin), ptrPropValue, (LPVOID*)&ptrPropValue->Value.MVbin.lpbin);
 	if (hr != hrSuccess)
 		return hr;
-	
+
 	ptrPropValue->Value.MVbin.lpbin[0].cb = ptrSearchArchiveEntryId->Value.bin.cb;
 	ptrPropValue->Value.MVbin.lpbin[0].lpb = ptrSearchArchiveEntryId->Value.bin.lpb;
 	ptrPropValue->Value.MVbin.lpbin[1].cb = ptrSearchDeleteEntryId->Value.bin.cb;
@@ -208,11 +208,11 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 	MAPIFolderPtr ptrSearchStubFolder;	// subset of SearchDeleteFolder.
 	ULONG ulType = 0;
 	bool bUpdateRef = false;
-	
+
 	hr = HrGetOneProp(m_ptrMsgStore, PROP_SEARCH_FOLDER_ENTRYIDS, &~ptrPropValue);
 	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND)
 		return hr;
-		
+
 	if (hr == hrSuccess && ptrPropValue->Value.MVbin.cValues == 3) {
 		hr = m_ptrMsgStore->OpenEntry(ptrPropValue->Value.MVbin.lpbin[0].cb,
 		     reinterpret_cast<ENTRYID *>(ptrPropValue->Value.MVbin.lpbin[0].lpb),
@@ -277,13 +277,13 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~ptrPropValue);
 		if (hr != hrSuccess)
 			return hr;
-			
+
 		ptrPropValue->ulPropTag = PROP_SEARCH_FOLDER_ENTRYIDS;
 		ptrPropValue->Value.MVbin.cValues = 3;
 		hr = MAPIAllocateMore(3 * sizeof(*ptrPropValue->Value.MVbin.lpbin), ptrPropValue, (LPVOID*)&ptrPropValue->Value.MVbin.lpbin);
 		if (hr != hrSuccess)
 			return hr;
-		
+
 		ptrPropValue->Value.MVbin.lpbin[0].cb = ptrSearchArchiveEntryId->Value.bin.cb;
 		ptrPropValue->Value.MVbin.lpbin[0].lpb = ptrSearchArchiveEntryId->Value.bin.lpb;
 		ptrPropValue->Value.MVbin.lpbin[1].cb = ptrSearchDeleteEntryId->Value.bin.cb;
@@ -294,7 +294,7 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 		if (hr != hrSuccess)
 			return hr;
 	}
-	
+
 	hr = ptrSearchArchiveFolder->QueryInterface(IID_IMAPIFolder, (LPVOID*)lppSearchArchiveFolder);
 	if (hr != hrSuccess)
 		return hr;
@@ -328,10 +328,10 @@ HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFo
 	ULONG ulType = 0;
 	static constexpr const SizedSPropTagArray(1, sptaFolderProps) = {1, {PR_ENTRYID}};
 	SPropValue				sResPropValue = {0};
-	
+
 	sResPropValue.ulPropTag = PR_DISPLAY_NAME;
 	sResPropValue.Value.LPSZ = (LPTSTR)strFolder.c_str();
-	
+
 	hr = ptrFolder->GetHierarchyTable(fMapiDeferredErrors, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
@@ -627,7 +627,7 @@ HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const EC
 	ptrEntryList->lpbin[0].cb = ptrPropEntryId->Value.bin.cb;
 	ptrEntryList->lpbin[0].lpb = ptrPropEntryId->Value.bin.lpb;
 
-	sPropStubbed.ulPropTag = PROP_STUBBED; 
+	sPropStubbed.ulPropTag = PROP_STUBBED;
 	sPropStubbed.Value.b = 1;
 
 	sPropMsgClass[0].ulPropTag = PR_MESSAGE_CLASS;
@@ -713,7 +713,7 @@ HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCh
 	ObjectEntryList lstArchives;
 	ECAndRestriction resArchiveCheck;
 
-	sPropDirty.ulPropTag = PROP_DIRTY; 
+	sPropDirty.ulPropTag = PROP_DIRTY;
 	sPropDirty.Value.b = 1;
 
 	resArchiveCheck +=

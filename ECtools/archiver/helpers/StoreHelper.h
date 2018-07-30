@@ -32,7 +32,7 @@ public:
 	_kc_hidden HRESULT UpdateSearchFolders(void);
 	_kc_hidden HRESULT GetIpmSubtree(LPMAPIFOLDER *);
 	HRESULT GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMAPIFOLDER *lppSearchDeleteFolder, LPMAPIFOLDER *lppSearchStubFolder);
-	
+
 private:
 	_kc_hidden StoreHelper(MsgStorePtr &);
 	_kc_hidden HRESULT Init(void);
@@ -58,7 +58,7 @@ private:
 	static const search_folder_info_t s_infoSearchFolders[];
 	MsgStorePtr	m_ptrMsgStore;
 	MAPIFolderPtr m_ptrIpmSubtree;
-	
+
 	PROPMAP_DECL()
 	PROPMAP_DEF_NAMED_ID(ARCHIVE_STORE_ENTRYIDS)
 	PROPMAP_DEF_NAMED_ID(ARCHIVE_ITEM_ENTRYIDS)

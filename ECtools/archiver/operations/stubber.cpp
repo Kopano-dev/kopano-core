@@ -19,7 +19,7 @@ namespace KC {
 /**
  * Check if the store entryid from a SObjectEntry is wrapped with a server path.
  *
- * This class is used as the predicate argument in find_if. 
+ * This class is used as the predicate argument in find_if.
  */
 class IsNotWrapped _kc_final {
 	public:
@@ -145,8 +145,8 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 				return hr;
 			}
 		}
-		
-		Logger()->Log(EC_LOGLEVEL_INFO, "Adding placeholder attachment");		
+
+		Logger()->Log(EC_LOGLEVEL_INFO, "Adding placeholder attachment");
 		hr = lpMessage->CreateAttach(&iid_of(ptrAttach), 0, &ulAttachNum, &~ptrAttach);
 		if (hr != hrSuccess)
 			return Logger()->perr("Failed to create attachment", hr);
@@ -159,7 +159,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		if (hr != hrSuccess)
 			return Logger()->perr("Failed to save attachment", hr);
 	}
-	
+
 	hr = lpMessage->SaveChanges(0);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to save stubbed message", hr);

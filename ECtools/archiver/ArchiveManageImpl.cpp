@@ -25,7 +25,7 @@
 using namespace KC::helpers;
 
 namespace KC {
-    
+
 /**
  * Create an ArchiveManageImpl object.
  *
@@ -120,7 +120,7 @@ HRESULT ArchiveManageImpl::Init()
  *					in the ulFlags argument, the lpszFolder argument is ignored. If this argument is NULL, the username of
  *					the user is used as the root foldername.
  * @param[in]	ulFlags
- *					@ref flags specifying the options used for attaching the archive. 
+ *					@ref flags specifying the options used for attaching the archive.
  *
  * @section flags Flags
  * @li \b ATT_USE_IPM_SUBTREE	Use the IPM subtree of the archive store as the root of the archive.
@@ -150,7 +150,7 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 		strFoldername.clear();	// Empty folder name indicates the IPM subtree.
 	else if (lpszFolder)
 		strFoldername.assign(lpszFolder);
-		
+
 	if (lpszArchiveServer) {
 		hr = m_ptrSession->CreateRemote(lpszArchiveServer, m_lpLogger, &ptrRemoteSession);
 		if (hr != hrSuccess) {
@@ -181,7 +181,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	bool bEqual = false;
 	ArchiveType aType = UndefArchive;
 	SPropValuePtr ptrArchiveName, ptrArchiveStoreId;
-	
+
 	// Check if we're not trying to attach a store to itself.
 	auto hr = m_ptrSession->CompareStoreIds(m_ptrUserStore, lpArchiveStore, &bEqual);
 	if (hr != hrSuccess)
@@ -248,7 +248,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	} else if (hr != hrSuccess) {
 		return m_lpLogger->perr("Failed to get attached user for the requested archive", hr);
 	}
-		
+
 	// Add new archive to list of archives.
 	hr = ptrArchiveHelper->GetArchiveEntry(true, &objectEntry);
 	if (hr != hrSuccess)
@@ -256,7 +256,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	lstArchives.emplace_back(std::move(objectEntry));
 	lstArchives.sort();
 	lstArchives.unique();
-	
+
 	hr = ptrStoreHelper->SetArchiveList(lstArchives);
 	if (hr != hrSuccess)
 		return m_lpLogger->perr("Failed to update archive list", hr);
@@ -270,7 +270,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	
+
 	// Update permissions
 	if (!lpszArchiveServer) {	// No need to set permissions on a remote archive.
 		hr = ptrArchiveHelper->SetPermissions(sUserEntryId, (ulFlags & Writable) == Writable);
@@ -299,7 +299,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
  *					The username of the non-active user that's the placeholder for the archive.
  * @param[in]	lpszFolder
  *					The name of the folder that's be used as the root of the archive. If this paramater
- *					is set to NULL and the user has only one archive in the archive store, which 
+ *					is set to NULL and the user has only one archive in the archive store, which
  *					is usually the case, that archive will be detached. If a user has multiple archives
  *					in the archive store, the exact folder need to be specified.
  *					If the archive root was placed in the IPM subtree of the archive store, this parameter
@@ -357,7 +357,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 		m_lpLogger->logf(EC_LOGLEVEL_FATAL, "\"" TSTRING_PRINTF "\" has no archive on \"" TSTRING_PRINTF "\"", m_strUser.c_str(), lpszArchive);
 		return MAPIErrorToArchiveError(MAPI_E_NOT_FOUND);
 	}
-	
+
 	// If no folder name was passed and there are more archives for this user on this archive, we abort.
 	if (lpszFolder == NULL) {
 		ObjectEntryList::iterator iNextArchive(iArchive);
@@ -368,7 +368,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 			return MAPIErrorToArchiveError(MAPI_E_COLLISION);
 		}
 	}
-	
+
 	// If a folder name was passed, we need to find the correct folder.
 	if (lpszFolder) {
 		while (iArchive != lstArchives.end()) {
@@ -386,13 +386,13 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 				break;
 			iArchive = find_if(++iArchive, lstArchives.end(), StoreCompare(ptrArchiveStoreEntryId->Value.bin));
 		}
-		
+
 		if (iArchive == lstArchives.end()) {
 			m_lpLogger->logf(EC_LOGLEVEL_FATAL, "\"" TSTRING_PRINTF "\" has no archive named \"" TSTRING_PRINTF "\" on \"" TSTRING_PRINTF "\"", m_strUser.c_str(), lpszFolder, lpszArchive);
 			return MAPIErrorToArchiveError(MAPI_E_NOT_FOUND);
 		}
 	}
-	
+
 	assert(iArchive != lstArchives.end());
 	lstArchives.erase(iArchive);
 	hr = ptrStoreHelper->SetArchiveList(lstArchives);
@@ -516,7 +516,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess)
 		return MAPIErrorToArchiveError(hr);
-		
+
 	for (const auto &arc : lstArchives) {
 		ULONG cStoreProps = 0;
 		SPropArrayPtr ptrStoreProps;
@@ -536,7 +536,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 			lstEntries.emplace_back(std::move(entry));
 			continue;
 		}
-		
+
 		hrTmp = ptrArchiveStore->GetProps(sptaStoreProps, 0, &cStoreProps, &~ptrStoreProps);
 		if (FAILED(hrTmp))
 			entry.StoreName = entry.StoreOwner = "Unknown (" + stringify(hrTmp, true) + ")";
@@ -545,7 +545,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 				entry.StoreName = ptrStoreProps[IDX_DISPLAY_NAME].Value.lpszA;
 			else
 				entry.StoreName = "Unknown (" + stringify(ptrStoreProps[IDX_DISPLAY_NAME].Value.err, true) + ")";
-				
+
 			if (ptrStoreProps[IDX_MAILBOX_OWNER_ENTRYID].ulPropTag == PR_MAILBOX_OWNER_ENTRYID) {
 				MAPIPropPtr ptrOwner;
 
@@ -585,7 +585,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 			lstEntries.emplace_back(std::move(entry));
 			continue;
 		}
-		
+
 		if (lpszIpmSubtreeSubstitude && ulCompareResult == TRUE) {
 			assert(lpszIpmSubtreeSubstitude != NULL);
 			entry.FolderName = lpszIpmSubtreeSubstitude;

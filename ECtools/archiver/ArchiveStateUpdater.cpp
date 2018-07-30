@@ -42,7 +42,7 @@ namespace Predicates {
 		bool operator()(const SObjectEntry &objEntry) const {
 			HRESULT hr = hrSuccess;
 			ULONG ulResult = 0;
-			
+
 			hr = m_lpSession->CompareEntryIDs(m_objEntry.sStoreEntryId.size(), m_objEntry.sStoreEntryId, objEntry.sStoreEntryId.size(), objEntry.sStoreEntryId, 0, &ulResult);
 			if (hr != hrSuccess || ulResult == 0)
 				return false;
@@ -152,7 +152,7 @@ HRESULT ArchiveStateUpdater::Update(const tstring &userName, unsigned int ulAtta
 HRESULT ArchiveStateUpdater::UpdateOne(const abentryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
 {
 	HRESULT hr = hrSuccess;
-	
+
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() function entry");
 	if (info.userName.empty()) {
 		// Found a store that has archives attached but no archive- servers or couplings
@@ -165,7 +165,7 @@ HRESULT ArchiveStateUpdater::UpdateOne(const abentryid_t &userId, const ArchiveI
 		// defined but has no archives attached.
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() about to call AddCouplingBased()");
 		hr = AddCouplingBased(info.userName, info.lstCouplings, ulAttachFlags);
-		if (hr == hrSuccess) 
+		if (hr == hrSuccess)
         {
             m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() about to call AddServerBased()");
 			hr = AddServerBased(info.userName, userId, info.lstServers, ulAttachFlags);
@@ -203,7 +203,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 	auto hr = m_ptrSession->OpenStore(storeId, &~ptrUserStore);
 	if (hr == MAPI_E_INVALID_ENTRYID) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Got invalid entryid, attempting to resolve...");
-		
+
 		// The storeId was obtained from the MailboxTable that currently does not return
 		if (!userName.empty()) {
 			m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Resolving user \"" TSTRING_PRINTF "\"", userName.c_str());
@@ -406,7 +406,7 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Attaching %zu servers", lstServers.size());
 	for (const auto &i : lstServers) {
 		MsgStorePtr ptrArchive;
-		
+
 		hr = m_ptrSession->OpenOrCreateArchiveStore(userName, i, &~ptrArchive);
 		if (hr != hrSuccess) {
 			m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to open or create the archive for user \"" TSTRING_PRINTF "\" on server \"" TSTRING_PRINTF "\": %s (%x)",

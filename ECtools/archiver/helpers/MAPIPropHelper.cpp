@@ -233,16 +233,16 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
 	SizedSPropTagArray (4, sptaArchiveProps) = {4, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_ORIGINAL_SOURCEKEY, PR_SOURCE_KEY}};
 
 	enum {
-		IDX_ARCHIVE_STORE_ENTRYIDS, 
-		IDX_ARCHIVE_ITEM_ENTRYIDS, 
+		IDX_ARCHIVE_STORE_ENTRYIDS,
+		IDX_ARCHIVE_ITEM_ENTRYIDS,
 		IDX_ORIGINAL_SOURCEKEY,
 		IDX_SOURCE_KEY
 	};
-	
+
 	hr = m_ptrMapiProp->GetProps(sptaArchiveProps, 0, &cbValues, &~ptrPropArray);
 	if (FAILED(hr))
 		return hr;
-		
+
 	if (hr == MAPI_W_ERRORS_RETURNED) {
 		/**
 		 * We expect all three PROP_* properties to be present or all three to be absent, with
@@ -284,7 +284,7 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
 	if (ptrPropArray[IDX_ARCHIVE_STORE_ENTRYIDS].Value.MVbin.cValues !=
 	    ptrPropArray[IDX_ARCHIVE_ITEM_ENTRYIDS].Value.MVbin.cValues)
 		return MAPI_E_CORRUPT_DATA;
-	
+
 	for (ULONG i = 0; i < ptrPropArray[0].Value.MVbin.cValues; ++i) {
 		SObjectEntry objectEntry;
 		objectEntry.sStoreEntryId = ptrPropArray[IDX_ARCHIVE_STORE_ENTRYIDS].Value.MVbin.lpbin[i];
@@ -326,7 +326,7 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 	hr = MAPIAllocateMore(cValues * sizeof(SBinary), ptrPropArray, (LPVOID*)&ptrPropArray[1].Value.MVbin.lpbin);
 	if (hr != hrSuccess)
 		return hr;
-	
+
 	iArchive = lstArchives.cbegin();
 	for (ULONG i = 0; i < cValues; ++i, ++iArchive) {
 		ptrPropArray[0].Value.MVbin.lpbin[i].cb = iArchive->sStoreEntryId.size();
@@ -503,7 +503,7 @@ HRESULT MAPIPropHelper::DetachFromArchives()
 
 /**
  * Get the parent folder of an object.
- * 
+ *
  * @param[in]	lpSession
  *					Pointer to a session object that's used to open the folder with.
  * @param[in]	lppFolder
@@ -520,7 +520,7 @@ HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOL
 	ULONG ulType = 0;
 	static constexpr const SizedSPropTagArray(2, sptaProps) =
 		{2, {PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
-	
+
 	if (ptrSession == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	// We can't just open a folder on the session (at least not in Linux). So we open the store first
