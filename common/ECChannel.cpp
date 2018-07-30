@@ -59,6 +59,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	auto key_file = lpConfig->GetSetting("ssl_private_key_file");
 	std::unique_ptr<char[], cstdlib_deleter> ssl_protocols(strdup(lpConfig->GetSetting("ssl_protocols")));
 	const char *ssl_ciphers = lpConfig->GetSetting("ssl_ciphers");
+	const char *ssl_curves = lpConfig->GetSetting("ssl_curves");
  	char *ssl_name = NULL;
  	int ssl_op = 0, ssl_include = 0, ssl_exclude = 0;
 #if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
@@ -183,6 +184,17 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	if (parseBool(lpConfig->GetSetting("ssl_prefer_server_ciphers"))) {
 		SSL_CTX_set_options(lpCTX, SSL_OP_CIPHER_SERVER_PREFERENCE);
 	}
+
+#if !defined(OPENSSL_NO_ECDH) && defined(SSL_CTX_set1_curves_list)
+	if (ssl_curves && SSL_CTX_set1_curves_list(lpCTX, ssl_curves) != 1) {
+		ec_log_err("Can not set SSL curve list to \"%s\": %s", ssl_curves, ERR_error_string(ERR_get_error(), 0));
+		hr = MAPI_E_CALL_FAILED;
+		goto exit;
+	}
+
+	SSL_CTX_set_ecdh_auto(lpCTX, 1);
+#endif
+
 	SSL_CTX_set_default_verify_paths(lpCTX);
 	if (SSL_CTX_use_certificate_chain_file(lpCTX, cert_file) != 1) {
 		ec_log_err("SSL CTX certificate file error: %s", ERR_error_string(ERR_get_error(), 0));

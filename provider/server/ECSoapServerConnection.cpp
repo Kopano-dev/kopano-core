@@ -71,7 +71,7 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 }
 
 int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
-    const char *prefciphers)
+    const char *prefciphers, const char *curves)
 {
 #if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
 	EC_KEY *ecdh;
@@ -163,6 +163,16 @@ int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
 	}
 	if (parseBool(prefciphers))
 		SSL_CTX_set_options(soap->ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+#if !defined(OPENSSL_NO_ECDH) && defined(SSL_CTX_set1_curves_list)
+	if (curves && SSL_CTX_set1_curves_list(soap->ctx, curves) != 1) {
+		ec_log_crit("Can not set SSL curve list to \"%s\": %s", curves,
+			ERR_error_string(ERR_get_error(), 0));
+		return KCERR_CALL_FAILED;
+	}
+
+	SSL_CTX_set_ecdh_auto(soap->ctx, 1);
+#endif
+
 	/* request certificate from client; it is OK if not present. */
 	SSL_CTX_set_verify(soap->ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, nullptr);
 	return erSuccess;
@@ -226,6 +236,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 
 	std::unique_ptr<char[], cstdlib_deleter> server_ssl_protocols(strdup(m_lpConfig->GetSetting("server_ssl_protocols")));
 	const char *server_ssl_ciphers = m_lpConfig->GetSetting("server_ssl_ciphers");
+	const char *server_ssl_curves = m_lpConfig->GetSetting("server_ssl_curves");
 	auto pref_ciphers = m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers");
 	std::unique_ptr<struct soap, ec_soap_deleter> lpsSoap(soap_new2(SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING, SOAP_IO_KEEPALIVE | SOAP_XML_TREE | SOAP_C_UTFSTRING));
 	if (lpsSoap == nullptr)
@@ -247,7 +258,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
 		ec_log_crit("K-2170: Unable to setup ssl context: %s", *soap_faultdetail(lpsSoap.get()));
 		return KCERR_CALL_FAILED;
 	}
-	auto er = kc_ssl_options(lpsSoap.get(), server_ssl_protocols.get(), server_ssl_ciphers, pref_ciphers);
+	auto er = kc_ssl_options(lpsSoap.get(), server_ssl_protocols.get(), server_ssl_ciphers, pref_ciphers, server_ssl_curves);
 	if (er != erSuccess)
 		return er;
 	lpsSoap->bind_flags = SO_REUSEADDR;

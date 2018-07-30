@@ -594,7 +594,8 @@ ECRESULT ECDispatcher::DoHUP()
 			return KCERR_NOT_ENOUGH_MEMORY;
 		er = kc_ssl_options(p.second.get(), server_ssl_protocols.get(),
 			m_lpConfig->GetSetting("server_ssl_ciphers"),
-			m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers"));
+			m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers"),
+			m_lpConfig->GetSetting("server_ssl_curves"));
 	}
 	return erSuccess;
 }

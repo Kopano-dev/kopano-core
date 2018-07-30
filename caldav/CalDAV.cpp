@@ -153,6 +153,7 @@ int main(int argc, char **argv) {
 		{"ssl_protocols", KC_DEFAULT_SSLPROTOLIST},
 		{"ssl_ciphers", KC_DEFAULT_CIPHERLIST},
 		{ "ssl_prefer_server_ciphers", "no" },
+		{"ssl_curves", KC_DEFAULT_ECDH_CURVES},
         { "ssl_verify_client", "no" },
         { "ssl_verify_file", "" },
         { "ssl_verify_path", "" },
