@@ -2162,7 +2162,7 @@ ECRESULT ECUserManagement::UpdateUserDetailsFromClient(objectdetails_t *lpDetail
 ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature, unsigned int *lpulObjectId) {
 	ECDatabase *lpDatabase = NULL;
 	objectdetails_t details;
-	unsigned int ulId, ulCompanyId;
+	unsigned int ulId;
 	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	SOURCEKEY sSourceKey;
 	UserPlugin *lpPlugin = NULL;
@@ -2238,9 +2238,8 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	if(er != erSuccess)
 		return er;
 
-	if (signature.id.objclass == CONTAINER_COMPANY)
-		ulCompanyId = 0;
-	else
+	unsigned int ulCompanyId = 0;
+	if (signature.id.objclass != CONTAINER_COMPANY)
 		ulCompanyId = details.GetPropInt(OB_PROP_I_COMPANYID);
 	if (ulCompanyId) {
 		strQuery =
@@ -2294,7 +2293,7 @@ ECRESULT ECUserManagement::CreateLocalObjectSimple(const objectsignature_t &sign
 	ECDatabase *lpDatabase = NULL;
 	objectdetails_t details;
 	std::string strQuery, strUserId;
-	unsigned int ulCompanyId;
+	unsigned int ulCompanyId = 0;
 	UserPlugin *lpPlugin = NULL;
 	DB_RESULT lpResult;
 	bool bLocked = false;
@@ -2323,9 +2322,7 @@ ECRESULT ECUserManagement::CreateLocalObjectSimple(const objectsignature_t &sign
 		goto exit;
 	}
 
-	if (signature.id.objclass == CONTAINER_COMPANY)
-		ulCompanyId = 0;
-	else
+	if (signature.id.objclass != CONTAINER_COMPANY)
 		ulCompanyId = details.GetPropInt(OB_PROP_I_COMPANYID);
 
 	strQuery = "LOCK TABLES users WRITE";

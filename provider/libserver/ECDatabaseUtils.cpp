@@ -174,74 +174,62 @@ gsoap_size_t GetMVItemCount(struct propVal *lpPropVal)
 
 	switch (PROP_TYPE(lpPropVal->ulPropTag)) {
 	case PT_MV_I2:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvi || lpPropVal->Value.mvi.__ptr == NULL)
-			ulSize = 0;
-		else
+		if (lpPropVal->__union == SOAP_UNION_propValData_mvi &&
+		    lpPropVal->Value.mvi.__ptr != nullptr)
 			ulSize = lpPropVal->Value.mvi.__size;
 		break;
 	case PT_MV_LONG:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvl || lpPropVal->Value.mvl.__ptr == NULL)
-			ulSize = 0;
-		else
+		if (lpPropVal->__union == SOAP_UNION_propValData_mvl &&
+		    lpPropVal->Value.mvl.__ptr != nullptr)
 			ulSize = lpPropVal->Value.mvl.__size;
 		break;
 	case PT_MV_R4:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvflt || lpPropVal->Value.mvflt.__ptr == NULL)
-			ulSize = 0;
-		else
+		if (lpPropVal->__union == SOAP_UNION_propValData_mvflt &&
+		    lpPropVal->Value.mvflt.__ptr != nullptr)
 			ulSize = lpPropVal->Value.mvflt.__size;
 		break;
 	case PT_MV_DOUBLE:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvdbl || lpPropVal->Value.mvdbl.__ptr == NULL)
-			ulSize = 0;
-		else
+		if (lpPropVal->__union == SOAP_UNION_propValData_mvdbl &&
+		    lpPropVal->Value.mvdbl.__ptr != nullptr)
 			ulSize = lpPropVal->Value.mvdbl.__size;
 		break;
 	case PT_MV_CURRENCY:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvhilo || lpPropVal->Value.mvhilo.__ptr == NULL)
-			ulSize = 0;
-		else
+		if (lpPropVal->__union == SOAP_UNION_propValData_mvhilo &&
+		    lpPropVal->Value.mvhilo.__ptr != nullptr)
 			ulSize = lpPropVal->Value.mvhilo.__size;
 		break;
 	case PT_MV_APPTIME:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvdbl || lpPropVal->Value.mvdbl.__ptr == NULL)
-			ulSize = 0;
-		else
+		if (lpPropVal->__union == SOAP_UNION_propValData_mvdbl &&
+		    lpPropVal->Value.mvdbl.__ptr != nullptr)
 			ulSize = lpPropVal->Value.mvdbl.__size;
 		break;
 	case PT_MV_SYSTIME:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvhilo || lpPropVal->Value.mvhilo.__ptr == NULL)
-			ulSize = 0;
-		else
+		if (lpPropVal->__union == SOAP_UNION_propValData_mvhilo &&
+		    lpPropVal->Value.mvhilo.__ptr != nullptr)
 			ulSize = lpPropVal->Value.mvhilo.__size;
 		break;
 	case PT_MV_BINARY:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvbin || lpPropVal->Value.mvbin.__ptr == NULL)
-			ulSize = 0;
-		else
+		if (lpPropVal->__union == SOAP_UNION_propValData_mvbin &&
+		    lpPropVal->Value.mvbin.__ptr != nullptr)
 			ulSize = lpPropVal->Value.mvbin.__size;
 		break;
 	case PT_MV_STRING8:
 	case PT_MV_UNICODE:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvszA || lpPropVal->Value.mvszA.__ptr == NULL)
-			ulSize = 0;
-		else
+		if (lpPropVal->__union == SOAP_UNION_propValData_mvszA &&
+		    lpPropVal->Value.mvszA.__ptr != nullptr)
 			ulSize = lpPropVal->Value.mvszA.__size;
 		break;
 	case PT_MV_CLSID:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvbin || lpPropVal->Value.mvbin.__ptr == NULL)
-			ulSize = 0;
-		else
+		if (lpPropVal->__union == SOAP_UNION_propValData_mvbin &&
+		    lpPropVal->Value.mvbin.__ptr != nullptr)
 			ulSize = lpPropVal->Value.mvbin.__size;
 		break;
 	case PT_MV_I8:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvli || lpPropVal->Value.mvli.__ptr == NULL)
-			ulSize = 0;
-		else
+		if (lpPropVal->__union == SOAP_UNION_propValData_mvli &&
+		    lpPropVal->Value.mvli.__ptr != nullptr)
 			ulSize = lpPropVal->Value.mvli.__size;
 		break;
 	default:
-		ulSize = 0;
 		break;
 	}
 
