@@ -664,13 +664,12 @@ eResult ArchiveManageImpl::AutoAttach(unsigned int ulFlags)
 	    ulFlags != ArchiveManage::ReadOnly && ulFlags != 0)
 		return MAPIErrorToArchiveError(MAPI_E_INVALID_PARAMETER);
 
-	HRESULT hr = hrSuccess;
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveManageImpl::AutoAttach(): function entry");
 	ArchiveStateCollectorPtr ptrArchiveStateCollector;
 	ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveManageImpl::AutoAttach(): about to create ArchiveStateCollector");
-	hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
+	auto hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
 	if (hr != hrSuccess)
 		goto exit;
 

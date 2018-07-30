@@ -40,10 +40,9 @@ namespace Predicates {
 	public:
 		SObjectEntry_equals_compareEntryId(IMAPISession *lpSession, const SObjectEntry &objEntry): m_lpSession(lpSession), m_objEntry(objEntry) {}
 		bool operator()(const SObjectEntry &objEntry) const {
-			HRESULT hr = hrSuccess;
 			ULONG ulResult = 0;
 
-			hr = m_lpSession->CompareEntryIDs(m_objEntry.sStoreEntryId.size(), m_objEntry.sStoreEntryId, objEntry.sStoreEntryId.size(), objEntry.sStoreEntryId, 0, &ulResult);
+			auto hr = m_lpSession->CompareEntryIDs(m_objEntry.sStoreEntryId.size(), m_objEntry.sStoreEntryId, objEntry.sStoreEntryId.size(), objEntry.sStoreEntryId, 0, &ulResult);
 			if (hr != hrSuccess || ulResult == 0)
 				return false;
 			hr = m_lpSession->CompareEntryIDs(m_objEntry.sItemEntryId.size(), m_objEntry.sItemEntryId, objEntry.sItemEntryId.size(), objEntry.sItemEntryId, 0, &ulResult);
