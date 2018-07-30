@@ -1005,7 +1005,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 		return KCERR_LOGON_FAILED;
 	}
 
-	ec_log_info("KCOIDC Single Sign-On: User \"%s\" authenticated", username.c_str());
+	ec_log_debug("KCOIDC Single Sign-On: User \"%s\" authenticated", username.c_str());
 	ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate ok user='%s' from='%s' method='kcoidc sso' program='%s'", username.c_str(), soap->host, cl_app);
 	m_bValidated = true;
 	m_ulValidationMethod = METHOD_SSO;
@@ -1129,7 +1129,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KRB5(struct soap* soap, const char* lpsz
 
 		m_bValidated = true;
 		m_ulValidationMethod = METHOD_SSO;
-		ec_log_info("Kerberos Single Sign-On: User \"%s\" authenticated", lpszName);
+		ec_log_debug("Kerberos Single Sign-On: User \"%s\" authenticated", lpszName);
 		ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate ok user='%s' from='%s' method='kerberos sso' program='%s'",
 			lpszName, soap->host, szClientApp);
 	} else {
@@ -1366,7 +1366,7 @@ retry:
 			m_bValidated = true;
 			m_ulValidationMethod = METHOD_SSO;
 			er = erSuccess;
-			ec_log_info("Single Sign-On: User \"%s\" authenticated", strAnswer.c_str());
+			ec_log_debug("Single Sign-On: User \"%s\" authenticated", strAnswer.c_str());
 			ZLOG_AUDIT(m_lpSessionManager->GetAudit(), "authenticate ok user='%s' from='%s' method='ntlm sso' program='%s'",
 				lpszName, soap->host, szClientApp);
 		}
