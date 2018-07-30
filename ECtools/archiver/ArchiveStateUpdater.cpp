@@ -150,33 +150,25 @@ HRESULT ArchiveStateUpdater::Update(const tstring &userName, unsigned int ulAtta
  */
 HRESULT ArchiveStateUpdater::UpdateOne(const abentryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
 {
-	HRESULT hr = hrSuccess;
-
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() function entry");
 	if (info.userName.empty()) {
 		// Found a store that has archives attached but no archive- servers or couplings
 		// are defined in the GAB.
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() about to call RemoveImplicit()");
-		hr = RemoveImplicit(info.storeId, tstring(), userId, info.lstArchives);
+		return RemoveImplicit(info.storeId, tstring(), userId, info.lstArchives);
 	}
 	else if (info.storeId.empty()) {
 		// Found a user in the GAB that has at least one archive- server or coupling
 		// defined but has no archives attached.
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() about to call AddCouplingBased()");
-		hr = AddCouplingBased(info.userName, info.lstCouplings, ulAttachFlags);
-		if (hr == hrSuccess)
-        {
+		auto hr = AddCouplingBased(info.userName, info.lstCouplings, ulAttachFlags);
+		if (hr != hrSuccess)
+			return hr;
             m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() about to call AddServerBased()");
-			hr = AddServerBased(info.userName, userId, info.lstServers, ulAttachFlags);
-        }
+		return AddServerBased(info.userName, userId, info.lstServers, ulAttachFlags);
 	}
-
-	else {
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() about to call VerifyAndUpdate()");
-		hr = VerifyAndUpdate(userId, info, ulAttachFlags);
-	}
-
-return hr;
+	return VerifyAndUpdate(userId, info, ulAttachFlags);
 }
 
 /**
