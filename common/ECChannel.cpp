@@ -124,6 +124,10 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_2) == 0)
 			ssl_proto = 0x10;
 #endif
+#ifdef SSL_OP_NO_TLSv1_3
+		else if (strcasecmp(ssl_name, "TLSv1.3") == 0)
+			ssl_proto = 0x20;
+#endif
 		else if (!ssl_neg) {
 			ec_log_err("Unknown protocol \"%s\" in ssl_protocols setting", ssl_name);
 			hr = MAPI_E_CALL_FAILED;
@@ -154,6 +158,10 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 #ifdef SSL_OP_NO_TLSv1_2
 	if ((ssl_exclude & 0x10) != 0)
 		ssl_op |= SSL_OP_NO_TLSv1_2;
+#endif
+#ifdef SSL_OP_NO_TLSv1_3
+	if ((ssl_exclude & 0x20) != 0)
+		ssl_op |= SSL_OP_NO_TLSv1_3;
 #endif
 	if (ssl_protocols)
 		SSL_CTX_set_options(lpCTX, ssl_op);
