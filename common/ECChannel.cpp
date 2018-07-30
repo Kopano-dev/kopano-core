@@ -124,7 +124,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_2) == 0)
 			ssl_proto = 0x10;
 #endif
-		else {
+		else if (!ssl_neg) {
 			ec_log_err("Unknown protocol \"%s\" in ssl_protocols setting", ssl_name);
 			hr = MAPI_E_CALL_FAILED;
 			goto exit;

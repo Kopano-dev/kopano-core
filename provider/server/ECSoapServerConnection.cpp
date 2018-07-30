@@ -114,7 +114,7 @@ int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
 		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_2) == 0)
 			ssl_proto = 0x10;
 #endif
-		else {
+		else if (!ssl_neg) {
 			ec_log_crit("Unknown protocol \"%s\" in protos setting", ssl_name);
 			return KCERR_CALL_FAILED;
 		}

@@ -888,11 +888,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{"server_ssl_key_pass", "server", CONFIGSETTING_EXACT | CONFIGSETTING_RELOADABLE},
 		{"server_ssl_ca_file", "/etc/kopano/ssl/cacert.pem", CONFIGSETTING_RELOADABLE},
 		{"server_ssl_ca_path", "", CONFIGSETTING_RELOADABLE},
-#ifdef SSL_TXT_SSLV2
 		{"server_ssl_protocols", "!SSLv2", CONFIGSETTING_RELOADABLE},
-#else
-		{"server_ssl_protocols", "", CONFIGSETTING_RELOADABLE},
-#endif
 		{"server_ssl_ciphers", "ALL:!LOW:!SSLv2:!EXP:!aNULL", CONFIGSETTING_RELOADABLE},
 		{"server_ssl_prefer_server_ciphers", "no", CONFIGSETTING_RELOADABLE},
 		{"server_listen", ""},

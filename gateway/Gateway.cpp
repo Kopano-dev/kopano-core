@@ -352,11 +352,7 @@ int main(int argc, char *argv[]) {
 		{"ssl_verify_client", "no", CONFIGSETTING_RELOADABLE},
 		{"ssl_verify_file", "", CONFIGSETTING_RELOADABLE},
 		{"ssl_verify_path", "", CONFIGSETTING_RELOADABLE},
-#ifdef SSL_TXT_SSLV2
 		{"ssl_protocols", "!SSLv2", CONFIGSETTING_RELOADABLE},
-#else
-		{"ssl_protocols", "", CONFIGSETTING_RELOADABLE},
-#endif
 		{"ssl_ciphers", "ALL:!LOW:!SSLv2:!EXP:!aNULL", CONFIGSETTING_RELOADABLE},
 		{"ssl_prefer_server_ciphers", "no", CONFIGSETTING_RELOADABLE},
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},

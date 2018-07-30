@@ -155,11 +155,7 @@ int main(int argc, char **argv) {
 		{ "log_buffer_size", "0" },
         { "ssl_private_key_file", "/etc/kopano/ical/privkey.pem" },
         { "ssl_certificate_file", "/etc/kopano/ical/cert.pem" },
-#ifdef SSL_TXT_SSLV2
 		{ "ssl_protocols", "!SSLv2" },
-#else
-		{"ssl_protocols", ""},
-#endif
 		{ "ssl_ciphers", "ALL:!LOW:!SSLv2:!EXP:!aNULL" },
 		{ "ssl_prefer_server_ciphers", "no" },
         { "ssl_verify_client", "no" },
