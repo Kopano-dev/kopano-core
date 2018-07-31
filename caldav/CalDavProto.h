@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef _CALDAVPROTO_H_
 #define _CALDAVPROTO_H_
 
@@ -14,7 +13,6 @@
 #include "MAPIToICal.h"
 #include "ICalToMAPI.h"
 #include "icaluid.h"
-
 #define FB_PUBLISH_DURATION 6
 
 class CalDAV _kc_final : public WebDav {
@@ -44,9 +42,8 @@ protected:
 
 private:
 	HRESULT HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolder);
+	HRESULT HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lpsDavMulStatus);
 
-	HRESULT HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lpsDavMulStatus);	
-	
 	HRESULT CreateAndGetGuid(SBinary sbEid, ULONG ulPropTag, std::string *lpstrGuid);
 	HRESULT HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lpsMulStatus);
 	HRESULT HrConvertToIcal(const SPropValue *eid, KC::MapiToICal *, ULONG flags, std::string *out);

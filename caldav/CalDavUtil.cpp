@@ -45,7 +45,7 @@ HRESULT HrAuthenticate(const std::string &appVersion,
  * @param[in]		bFldId			Boolean to state if the property to be added is FolderID or not
  * @param[in,out]	wstrProperty		String value of the property, if empty then GUID is created and added
  *
- * @return			HRESULT 
+ * @return			HRESULT
  */
 // @todo rewrite usage of this function, and remove it
 HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::wstring *wstrProperty)
@@ -87,7 +87,7 @@ HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::
  * @param[in]		bIsFldID		Boolean to state if the property to be added is FolderID or not
  * @param[in,out]	lpwstrProperty	String value of the property, if empty then GUID is created and added
  *
- * @return			HRESULT 
+ * @return			HRESULT
  */
 HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, bool bIsFldID, std::wstring *lpwstrProperty )
 {
@@ -143,7 +143,6 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	//   FOLDER_PREFIX + hexed named folder id
 	//   FOLDER_PREFIX + hexed entry id
 	//   folder name
-
 	if (wstrFldId.find(FOLDER_PREFIX) == 0)
 		wstrFldId.erase(0, wcslen(FOLDER_PREFIX));
 
@@ -155,7 +154,6 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~folder);
 		if (hr != hrSuccess)
 			return hr;
-
 		folder->Value.bin.cb = cbEntryID;
 		folder->Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryID.get());
 	} else if (wstrFldId.compare(L"Outbox") == 0) {
@@ -177,7 +175,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	auto hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &~lpHichyTable);
 	if(hr != hrSuccess)
 		return hr;
-	//When ENTRY_ID is use For Read Only Calendars assuming the folder id string 
+	//When ENTRY_ID is use For Read Only Calendars assuming the folder id string
 	//not larger than lenght 50
 	//FIXME: include some Entry-id identifier
 	if(wstrFldId.size()> 50)
@@ -194,7 +192,6 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 		sPropFolderID.Value.lpszW = (LPWSTR)wstrFldId.c_str();
 	}
 	sPropFolderID.ulPropTag = ulPropTagFldId;
-
 	sPropFolderName.ulPropTag = PR_DISPLAY_NAME_W;
 	sPropFolderName.Value.lpszW = (WCHAR*)wstrFldId.c_str();
 
@@ -219,9 +216,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	     &iid_of(lpUsrFld), MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<IUnknown **>(&lpUsrFld));
 	if(hr != hrSuccess)
 		return hr;
-
 	*lppUsrFld = lpUsrFld;
-
 	return hr;
 }
 
@@ -262,8 +257,8 @@ HRESULT HrBuildReportSet(WEBDAVPROPERTY *lpsProperty)
 	sDavItem.sDavValue.sPropName.strPropname = "principal-match";
 	sDavItem.ulDepth = ulDepth + 2 ;
 	lpsProperty->lstItems.emplace_back(sDavItem);
-	
-	sDavItem.sDavValue.sPropName.strPropname = "supported-report";	
+
+	sDavItem.sDavValue.sPropName.strPropname = "supported-report";
 	sDavItem.sDavValue.sPropName.strNS = WEBDAVNS;
 	sDavItem.ulDepth = ulDepth ;
 	lpsProperty->lstItems.emplace_back(sDavItem);
@@ -275,8 +270,8 @@ HRESULT HrBuildReportSet(WEBDAVPROPERTY *lpsProperty)
 	sDavItem.sDavValue.sPropName.strPropname = "principal-property-search";
 	sDavItem.ulDepth = ulDepth + 2 ;
 	lpsProperty->lstItems.emplace_back(sDavItem);
-	
-	sDavItem.sDavValue.sPropName.strPropname = "supported-report";	
+
+	sDavItem.sDavValue.sPropName.strPropname = "supported-report";
 	sDavItem.sDavValue.sPropName.strNS = WEBDAVNS;
 	sDavItem.ulDepth = ulDepth ;
 	lpsProperty->lstItems.emplace_back(sDavItem);
@@ -435,13 +430,13 @@ HRESULT HrGetOwner(IMAPISession *lpSession, IMsgStore *lpDefStore, IMailUser **l
 
 /**
  * Get all calendar folder of a specified folder, also includes all sub folders
- * 
+ *
  * @param[in]	lpSession		IMAPISession object of the user
  * @param[in]	lpFolder		IMAPIFolder object for which all calendar are to returned(Optional, can be set to NULL if lpsbEid != NULL)
  * @param[in]	lpsbEid			EntryID of the Folder for which all calendar are to be returned(can be NULL if lpFolderIn != NULL)
  * @param[out]	lppTable		IMAPITable of the sub calendar of the folder
- * 
- * @return		HRESULT 
+ *
+ * @return		HRESULT
  */
 HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolder,
     SBinary *lpsbEid, IMAPITable **lppTable)
@@ -523,7 +518,7 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 			break;
 		}
 	}
-	
+
 	if (!blFound)
 		return false;
 	hr = HrGetOneProp(lpFbMessage, PR_DELEGATE_FLAGS, &~lpProp);
@@ -570,22 +565,22 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 		strBinGuid = hex2bin(strGuid);
 	else
 		HrMakeBinUidFromICalUid(strGuid, &strBinGuid);
-	
+
 	sSpropVal.Value.bin.cb = (ULONG)strBinGuid.size();
 	sSpropVal.Value.bin.lpb = (LPBYTE)strBinGuid.c_str();
-	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);		
+	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 	rst += ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal, ECRestriction::Shallow);
-	
+
 	// converting guid to hex
 	auto strBinOtherUID = hex2bin(strGuid);
 	sSpropVal.ulPropTag = PR_ENTRYID;
 	sSpropVal.Value.bin.cb = (ULONG)strBinOtherUID.size();
 	sSpropVal.Value.bin.lpb = (LPBYTE)strBinOtherUID.c_str();
-	
+
 	// When CreateAndGetGuid() fails PR_ENTRYID is used as guid.
 	rst += ECPropertyRestriction(RELOP_EQ, PR_ENTRYID, &sSpropVal, ECRestriction::Shallow);
 
-	// z-push iphone UIDs are not in Outlook format		
+	// z-push iphone UIDs are not in Outlook format
 	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 	rst += ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal, ECRestriction::Shallow);
 
@@ -608,7 +603,7 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
  * @param[in]	lpNamedProps	Named property tag array
  * @param[out]	lppMessage		if found the mapi message is returned
  * @return		HRESULT
- * @retval		MAPI_E_NOT_FOUND	No message found containing the guid value. 
+ * @retval		MAPI_E_NOT_FOUND	No message found containing the guid value.
  */
 HRESULT HrFindAndGetMessage(const std::string &strGuid, IMAPIFolder *lpUsrFld,
     SPropTagArray *lpNamedProps, IMessage **lppMessage)
@@ -619,7 +614,7 @@ HRESULT HrFindAndGetMessage(const std::string &strGuid, IMAPIFolder *lpUsrFld,
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
 	static constexpr const SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
-	
+
 	HRESULT hr = HrMakeRestriction(strGuid, lpNamedProps, &~lpsRoot);
 	if (hr != hrSuccess)
 		return hr;
@@ -672,7 +667,6 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	std::list<std::string>::const_iterator itUsers;
 	adrlist_ptr lpAdrList;
 	memory_ptr<FlagList> ptrFlagList;
-
 	EntryIdPtr ptrEntryId;
 	unsigned int cFBData = 0, cbEntryId = 0, ulObj = 0;
 	ABContainerPtr ptrABDir;
@@ -693,11 +687,9 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		return hr;
 
 	ptrFlagList->cFlags = cUsers;
-
 	cUsers = 0;
 	for (const auto &user : *lplstUsers) {
 		lpAdrList->aEntries[cUsers].cValues = 1;
-
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[cUsers].rgPropVals);
 		if(hr != hrSuccess)
 			return hr;
@@ -751,14 +743,12 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 
 		if (!lppFBData[i])
 			goto next;
-		
 		hr = lppFBData[i]->EnumBlocks(&~lpEnumBlock, ftStart, ftEnd);
 		if (hr != hrSuccess)
 			goto next;
 		hr = MAPIAllocateBuffer(sizeof(FBBlock_1)*lMaxblks, &~lpsFBblks);
 		if (hr != hrSuccess)
 			goto next;
-		
 		// restrict the freebusy blocks
 		hr = lpEnumBlock->Restrict(ftStart, ftEnd);
 		if (hr != hrSuccess)
@@ -766,24 +756,21 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 
 		// ignore error
 		lpEnumBlock->Next(lMaxblks, lpsFBblks, &lblkFetched);
-		
 		// add freebusy blocks to ical data
 		if (lblkFetched == 0)
-			hr = lpMapiToIcal->AddBlocks(NULL, lblkFetched, lpFbInfo->tStart, lpFbInfo->tEnd, lpFbInfo->strOrganiser, *itUsers, lpFbInfo->strUID);		
+			hr = lpMapiToIcal->AddBlocks(NULL, lblkFetched, lpFbInfo->tStart, lpFbInfo->tEnd, lpFbInfo->strOrganiser, *itUsers, lpFbInfo->strUID);
 		else
 			hr = lpMapiToIcal->AddBlocks(lpsFBblks, lblkFetched, lpFbInfo->tStart, lpFbInfo->tEnd, lpFbInfo->strOrganiser, *itUsers, lpFbInfo->strUID);
-		
 		if (hr != hrSuccess)
 			goto next;
-		
-		// retrieve VFREEBUSY ical data 
+
+		// retrieve VFREEBUSY ical data
 		lpMapiToIcal->Finalize(M2IC_NO_VTIMEZONE, &strMethod, &strIcal);
 next:
 		sWebFbUserInfo.strUser = *itUsers;
 		sWebFbUserInfo.strIcal = strIcal;
 		lpFbInfo->lstFbUserInfo.emplace_back(sWebFbUserInfo);
 		++itUsers;
-
 		lpMapiToIcal->ResetObject();
 		lblkFetched = 0;
 	}
@@ -797,6 +784,5 @@ exit:
 				lppFBData[i]->Release();
 		MAPIFreeBuffer(lppFBData);
 	}
-
 	return hr;
 }

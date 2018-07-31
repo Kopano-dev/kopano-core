@@ -57,11 +57,9 @@ static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
 static std::atomic<int> nChildren{0};
 static struct socks g_socks;
-
 static HRESULT ical_listen(ECConfig *cfg);
 static HRESULT HrProcessConnections();
 static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL, int nCloseFDs, int *pCloseFDs);
-
 static void *HandlerClient(void *lpArg);
 static HRESULT HrHandleRequest(ECChannel *lpChannel);
 
@@ -85,7 +83,6 @@ static void sighup(int)
 			int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
 			g_lpLogger->SetLoglevel(new_ll);
 		}
-
 		g_lpLogger->Reset();
 		ec_log_warn("Log connection was reset");
 	}
@@ -126,7 +123,6 @@ int main(int argc, char **argv) {
 	HRESULT hr = hrSuccess;
 	bool bIgnoreUnknownConfigOptions = false;
 	struct sigaction act{};
-
 	// Configuration
 	const char *lpszCfg = ECConfig::GetDefaultPath("ical.cfg");
 	bool exp_config = false;
@@ -168,7 +164,6 @@ int main(int argc, char **argv) {
 		OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS = UCHAR_MAX + 1,
 		OPT_DUMP_CONFIG,
 	};
-
 	static const struct option long_options[] = {
 		{"help", no_argument, NULL, 'h'},
 		{"config", required_argument, NULL, 'c'},
@@ -210,7 +205,7 @@ int main(int argc, char **argv) {
 			goto exit;
 		}
 	}
-	
+
 	// init xml parser
 	xmlInitParser();
 	g_lpConfig.reset(ECConfig::Create(lpDefaults));
@@ -306,7 +301,6 @@ int main(int argc, char **argv) {
 			sleep(1);
 			--i;
 		}
-
 		if (nChildren)
 			ec_log_notice("Forced shutdown with %d processes/threads left", nChildren.load());
 		else
@@ -317,11 +311,9 @@ exit2:
 exit:
 	ECChannel::HrFreeCtx();
 	DeleteLogger(g_lpLogger);
-
 	SSL_library_cleanup(); // Remove SSL data for the main application and other related libraries
 	// Cleanup SSL parts
 	ssl_threading_cleanup();
-
 	// Cleanup libxml2 library
 	xmlCleanupParser();
 	// cleanup ICU data so valgrind is happy
@@ -500,7 +492,7 @@ static void *HandlerClient(void *lpArg)
 	HRESULT hr = hrSuccess;
 	auto lpHandlerArgs = static_cast<HandlerArgs *>(lpArg);
 	ECChannel *lpChannel = lpHandlerArgs->lpChannel;
-	bool bUseSSL = lpHandlerArgs->bUseSSL;	
+	bool bUseSSL = lpHandlerArgs->bUseSSL;
 
 	delete lpHandlerArgs;
 
@@ -518,7 +510,6 @@ static void *HandlerClient(void *lpArg)
 			ec_log_info("Request timeout, closing connection");
 			break;
 		}
-
 		//Save mapi session between Requests
 		hr = HrHandleRequest(lpChannel);
 		if (hr != hrSuccess)
@@ -548,7 +539,6 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 		hr = MAPI_E_USER_CANCEL; // connection is closed by client no data to be read
 		goto exit;
 	}
-
 	hr = lpRequest.HrValidateReq();
 	if(hr != hrSuccess) {
 		lpRequest.HrResponseHeader(501, "Not Implemented");
@@ -558,7 +548,6 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 
 	// ignore Empty Body
 	lpRequest.HrReadBody();
-
 	// no error, defaults to UTF-8
 	lpRequest.HrGetCharSet(&strCharset);
 	// ignore Empty User field.
@@ -567,9 +556,8 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	lpRequest.HrGetPass(&wstrPass);
 	// no checks required as HrValidateReq() checks Method
 	lpRequest.HrGetMethod(&strMethod);
-	// 
+	//
 	lpRequest.HrSetKeepAlive(KEEP_ALIVE_TIME);
-
 	lpRequest.HrGetUserAgent(&strUserAgent);
 	lpRequest.HrGetUserAgentVersion(&strUserAgentVersion);
 
@@ -580,14 +568,12 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 		lpRequest.HrResponseBody("Bad Request");
 		goto exit;
 	}
-
 	hr = HrParseURL(strUrl, &ulFlag);
 	if (hr != hrSuccess) {
 		kc_perror("Client request is invalid", hr);
 		lpRequest.HrResponseHeader(400, "Bad Request: " + stringify(hr,true));
 		goto exit;
 	}
-
 	if (ulFlag & SERVICE_CALDAV)
 		// this header is always present in a caldav response, but not in ical.
 		lpRequest.HrResponseHeader("DAV", "1, access-control, calendar-access, calendar-schedule, calendarserver-principal-property-search");
@@ -603,7 +589,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 		hr = hrSuccess;
 		goto exit;
 	}
-	
+
 	if (wstrUser.empty() || wstrPass.empty()) {
 		ec_log_info("Sending authentication request");
 		hr = MAPI_E_CALL_FAILED;
@@ -633,7 +619,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	else if((ulFlag & SERVICE_CALDAV) || ( !strMethod.compare("PROPFIND") && !(ulFlag & SERVICE_ICAL)))
 	{
 		lpBase.reset(new CalDAV(lpRequest, lpSession, strServerTZ, strCharset));
-	} 
+	}
 	else
 	{
 		hr = MAPI_E_CALL_FAILED;
@@ -647,9 +633,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 			hr = lpRequest.HrToHTTPCode(hr);
 		goto exit;
 	}
-
 	hr = lpBase->HrHandleCommand(strMethod);
-
 exit:
 	if(hr != hrSuccess && !strMethod.empty() && hr != MAPI_E_NOT_ME)
 		ec_log_err("Error processing %s request, error code 0x%08x %s", strMethod.c_str(), hr, GetMAPIErrorMessage(hr));

@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef CALDAV_UTIL_H_
 #define CALDAV_UTIL_H_
 
@@ -62,7 +61,6 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolderIn, SBin
 
 // Checks for private message.
 bool IsPrivate(LPMESSAGE lpMessage, ULONG ulPropIDPrivate);
-
 bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore);
 
 HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedProps, LPSRestriction *lpsRectrict);

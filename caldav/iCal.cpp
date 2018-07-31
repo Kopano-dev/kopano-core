@@ -39,7 +39,7 @@ HRESULT iCal::HrHandleCommand(const std::string &strMethod)
 
 /**
  * Handles http GET and HEAD request
- * 
+ *
  * The GET request could be to retrieve one paticular msg or all calendar entries
  * HEAD is just a GET without the body returned.
  *
@@ -52,14 +52,13 @@ HRESULT iCal::HrHandleIcalGet(const std::string &strMethod)
 	memory_ptr<SPropValue> lpProp;
 	object_ptr<IMAPITable> lpContents;
 	bool blCensorFlag = m_ulFolderFlag & SHARED_FOLDER && !HasDelegatePerm(m_lpDefStore, m_lpActiveStore);
-	
+
 	// retrieve table and restrict as per request
 	auto hr = HrGetContents(&~lpContents);
 	if (hr != hrSuccess) {
 		kc_perror("Unable to retrieve contents of folder", hr);
 		goto exit;
 	}
-
 	// convert table to ical data
 	hr = HrGetIcal(lpContents, blCensorFlag, &strIcal);
 	if (hr != hrSuccess) {
@@ -70,13 +69,12 @@ HRESULT iCal::HrHandleIcalGet(const std::string &strMethod)
 	if (hr == hrSuccess)
 		strModtime = SPropValToString(lpProp);
 
-	
 exit:
 	if (hr == hrSuccess)
 	{
 		if (!strModtime.empty())
 			m_lpRequest.HrResponseHeader("Etag", strModtime);
-		m_lpRequest.HrResponseHeader("Content-Type", "text/calendar; charset=\"utf-8\""); 
+		m_lpRequest.HrResponseHeader("Content-Type", "text/calendar; charset=\"utf-8\"");
 		if (strIcal.empty()) {
 			m_lpRequest.HrResponseHeader(204, "No Content");
 		} else {
@@ -99,7 +97,7 @@ exit:
 
 /**
  * Handles ical requests to add, modify & delete calendar entries
- * 
+ *
  * @param	strServerTZ				server timezone string set in ical.cfg
  * @return	HRESULT
  * @retval	MAPI_E_NO_ACCESS		insufficient permissions on folder or message
@@ -123,7 +121,7 @@ HRESULT iCal::HrHandleIcalPost()
 	unsigned int ulProptag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 	SizedSPropTagArray(3, proptags) = {3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, ulProptag}};
 	//Include PR_ENTRYID,PR_LAST_MODIFICATION_TIME & Named Prop GlobalObjUid.
-	
+
 	//retrive entries from ical data.
 	std::unique_ptr<ICalToMapi> lpICalToMapi;
 	CreateICalToMapi(m_lpActiveStore, m_lpAddrBook, false, &unique_tie(lpICalToMapi));
@@ -136,7 +134,6 @@ HRESULT iCal::HrHandleIcalPost()
 	}
 
 	ulItemCount = lpICalToMapi->GetItemCount();
-
 	//map of Ical entries.
 	//generate map for each entry's UID and Position.
 	for (ULONG i = 0; i < ulItemCount; ++i) {
@@ -164,7 +161,6 @@ HRESULT iCal::HrHandleIcalPost()
 		hr = lpContTable->QueryRows(50, 0, &~lpRows);
 		if (hr != hrSuccess)
 			goto exit;
-
 		if (lpRows->cRows == 0)
 			break;
 
@@ -193,7 +189,7 @@ HRESULT iCal::HrHandleIcalPost()
 	{
 		if (mpIterJ == mpSrvEntries.cend() && mpIterI == mpIcalEntries.cend())
 			break;
-		
+
 		if (mpIcalEntries.cend() == mpIterI && mpSrvEntries.cend() != mpIterJ) {
 			hr = HrDelMessage(mpIterJ->second, blCensorPrivate);
 			if(hr != hrSuccess)
@@ -245,12 +241,11 @@ HRESULT iCal::HrHandleIcalPost()
 				}
 				++mpIterJ;
 			}
-		}//else if 
+		}//else if
 	}//while
 
 	if(m_ulFolderFlag & DEFAULT_FOLDER)
 		hr = HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION);
-
 	if(hr != hrSuccess) {
 		hr = hrSuccess;
 		ec_log_err("Error publishing freebusy for user %ls", m_wstrUser.c_str());
@@ -268,12 +263,12 @@ exit:
 	mpSrvEntries.clear();
 	mpIcalEntries.clear();
 	mpSrvTimes.clear();
-
 	return hr;
 }
+
 /**
  * Edits the existing message in the folder
- * 
+ *
  * @param[in]	lpIcal2Mapi		ical to mapi conversion object
  * @param[in]	sbSrvEid		EntryID of the message to be edited
  * @param[in]	ulPos			Position in the list of messages in conversion object
@@ -297,6 +292,7 @@ HRESULT iCal::HrModify( ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, 
 		return hr;
 	return lpMessage->SaveChanges(0);
 }
+
 /**
  * Creates a new message in the folder and sets its properties
  *
@@ -321,13 +317,13 @@ HRESULT iCal::HrAddMessage(ICalToMapi *lpIcal2Mapi, ULONG ulPos)
 
 /**
  * Deletes the mapi message
- * 
+ *
  * The message is moved to wastebasket(deleted items folder)
- * 
+ *
  * @param[in]	sbEid		EntryID of the message to be deleted
  * @param[in]	blCensor	boolean to block deletion of private messages
  *
- * @return		HRESULT 
+ * @return		HRESULT
  */
 HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 {
@@ -347,7 +343,6 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 	     &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if(hr != hrSuccess)
 		return hr;
-	
 	if(blCensor && IsPrivate(lpMessage, ulTagPrivate))
 		return hrSuccess; /* ignoring private items */
 
@@ -364,19 +359,19 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 /**
  * Returns Table according to the entries requested.
  *
- * Restction is applied on table only when single calendar entry is requested 
+ * Restction is applied on table only when single calendar entry is requested
  * using http GET request, else all the calendar entries are sent.
  *
  * @param[out]	lppTable	Table containing rows of calendar entries as requested in URL.
  *
- * @return		HRESULT	
+ * @return		HRESULT
  * @retval		MAPI_E_NOT_FOUND	user's folder is not set in m_lpUsrFld
  */
 HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 {
 	std::string strUrl;
 	memory_ptr<SRestriction> lpsRestriction;
-	MAPITablePtr ptrContents;	
+	MAPITablePtr ptrContents;
 	static constexpr const SizedSPropTagArray(1, sPropEntryIdcol) = {1, {PR_ENTRYID}};
 	ULONG ulRows = 0;
 
@@ -464,7 +459,7 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 			}
 		}
 	}
-	
+
 	hr = lpMtIcal->Finalize(0, NULL, lpstrIcal);
 	if (hr != hrSuccess)
 		ec_log_debug("Unable to create ical output of calendar: %s (%x)", GetMAPIErrorMessage(hr), hr);
@@ -508,7 +503,6 @@ HRESULT iCal::HrDelFolder()
 	hr = HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &~lpFldEid);
 	if (hr != hrSuccess)
 		goto exit;
-
 	hr = m_lpIPMSubtree->CopyFolder(lpFldEid->Value.bin.cb, (LPENTRYID)lpFldEid->Value.bin.lpb, NULL, lpWasteBoxFld, NULL, 0, NULL, MAPI_MOVE);
 	if (hr != hrSuccess)
 		goto exit;
