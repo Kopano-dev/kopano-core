@@ -82,18 +82,14 @@ HRESULT POP3::HrCloseConnection(const std::string &strQuitMsg)
  */
 HRESULT POP3::HrProcessCommand(const std::string &strInput)
 {
-	HRESULT hr = hrSuccess;
-	std::vector<std::string> vWords;
-	string strCommand;
-
-	vWords = tokenize(strInput, ' ');
+	auto vWords = tokenize(strInput, ' ');
 	if (vWords.empty()) {
 		ec_log_warn("Empty line received");
 		return MAPI_E_CALL_FAILED;
 	}
 
 	ec_log_debug("Command received: %s", vWords[0].c_str());
-	strCommand = strToUpper(vWords[0]);
+	auto strCommand = strToUpper(vWords[0]);
 	if (strCommand.compare("CAPA") == 0) {
 		if (vWords.size() != 1)
 			return HrResponse(POP3_RESP_ERR,
@@ -107,7 +103,7 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 			// log ?
 			// let the gateway quit from the socket read loop
 			return MAPI_E_END_OF_SESSION;
-		return hr;
+		return hrSuccess;
 	} else if (strCommand.compare("USER") == 0) {
 		if (vWords.size() != 2)
 			return HrResponse(POP3_RESP_ERR,
@@ -212,11 +208,10 @@ HRESULT POP3::HrResponse(const string &strResult, const string &strResponse) {
  */
 std::string POP3::GetCapabilityString()
 {
-	string strCapabilities;
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
 	// capabilities we always have
-	strCapabilities = "\r\nCAPA\r\nTOP\r\nUIDL\r\nRESP-CODES\r\nAUTH-RESP-CODE\r\n";
+	std::string strCapabilities = "\r\nCAPA\r\nTOP\r\nUIDL\r\nRESP-CODES\r\nAUTH-RESP-CODE\r\n";
 	if (lpSession == NULL) {
 		// authentication capabilities
 		if (!lpChannel->UsingSsl() && lpChannel->sslctx())
@@ -278,11 +273,10 @@ HRESULT POP3::HrCmdStarttls() {
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdUser(const string &strUser) {
-	HRESULT hr = hrSuccess;
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
 	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
-		hr = HrResponse(POP3_RESP_AUTH_ERROR, "Plaintext authentication disallowed on non-secure (SSL/TLS) connections");
+		auto hr = HrResponse(POP3_RESP_AUTH_ERROR, "Plaintext authentication disallowed on non-secure (SSL/TLS) connections");
 		ec_log_err("Aborted login from [%s] with username \"%s\" (tried to use disallowed plaintext auth)",
 					  lpChannel->peer_addr(), strUser.c_str());
 		return hr;
@@ -306,11 +300,10 @@ HRESULT POP3::HrCmdUser(const string &strUser) {
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdPass(const string &strPass) {
-	HRESULT hr;
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
 	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
-		hr = HrResponse(POP3_RESP_AUTH_ERROR, "Plaintext authentication disallowed on non-secure (SSL/TLS) connections");
+		auto hr = HrResponse(POP3_RESP_AUTH_ERROR, "Plaintext authentication disallowed on non-secure (SSL/TLS) connections");
 		if(szUser.empty())
 			ec_log_err("Aborted login from [%s] without username (tried to use disallowed "
 							 "plaintext auth)", lpChannel->peer_addr());
@@ -326,7 +319,8 @@ HRESULT POP3::HrCmdPass(const string &strPass) {
 	} else if (szUser.empty()) {
 		return HrResponse(POP3_RESP_ERR, "Give username first");
 	}
-	hr = this->HrLogin(szUser, strPass);
+
+	auto hr = this->HrLogin(szUser, strPass);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_LOGON_FAILED)
 			HrResponse(POP3_RESP_AUTH_ERROR, "Wrong username or password");
@@ -415,7 +409,6 @@ HRESULT POP3::HrCmdList(unsigned int ulMailNr) {
  * @return
  */
 HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpMessage;
 	object_ptr<IStream> lpStream;
 	ULONG ulObjType;
@@ -427,7 +420,7 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 		return MAPI_E_NOT_FOUND;
 	}
 
-	hr = lpStore->OpenEntry(lstMails[ulMailNr-1].sbEntryID.cb, reinterpret_cast<ENTRYID *>(lstMails[ulMailNr-1].sbEntryID.lpb), &IID_IMessage, MAPI_DEFERRED_ERRORS,
+	auto hr = lpStore->OpenEntry(lstMails[ulMailNr-1].sbEntryID.cb, reinterpret_cast<ENTRYID *>(lstMails[ulMailNr-1].sbEntryID.lpb), &IID_IMessage, MAPI_DEFERRED_ERRORS,
 	     &ulObjType, &~lpMessage);
 	if (hr != hrSuccess) {
 		HrResponse(POP3_RESP_ERR, "Failing to open entry");
@@ -509,7 +502,6 @@ HRESULT POP3::HrCmdRset() {
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdQuit() {
-	HRESULT hr = hrSuccess;
 	unsigned int DeleteCount = 0;
 	SBinaryArray ba = {0, NULL};
 
@@ -532,7 +524,7 @@ HRESULT POP3::HrCmdQuit() {
 		// ignore error, we always send the Bye to the client
 	}
 
-	hr = HrResponse(POP3_RESP_OK, "Bye");
+	auto hr = HrResponse(POP3_RESP_OK, "Bye");
 	delete[] ba.lpbin;
 	return hr;
 }
@@ -547,15 +539,13 @@ HRESULT POP3::HrCmdQuit() {
  */
 HRESULT POP3::HrCmdUidl() {
 	char szResponse[POP3_MAX_RESPONSE_LENGTH];
-	string strResponse;
-
 	HRESULT hr = lpChannel->HrWriteLine("+OK");
 	if (hr != hrSuccess)
 		return hr;
 
 	for (size_t i = 0; i < lstMails.size(); ++i) {
 		snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u ", (ULONG)i + 1);
-		strResponse = szResponse;
+		std::string strResponse = szResponse;
 		strResponse += bin2hex(lstMails[i].sbEntryID);
 		hr = lpChannel->HrWriteLine(strResponse);
 		if (hr != hrSuccess)
@@ -575,19 +565,17 @@ HRESULT POP3::HrCmdUidl() {
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdUidl(unsigned int ulMailNr) {
-	HRESULT hr = hrSuccess;
-	string strResponse;
 	char szResponse[POP3_MAX_RESPONSE_LENGTH];
 
 	if (ulMailNr < 1 || ulMailNr > lstMails.size()) {
-		hr = HrResponse(POP3_RESP_ERR, "mail nr not found");
+		auto hr = HrResponse(POP3_RESP_ERR, "mail nr not found");
 		if (hr == hrSuccess)
 			hr = MAPI_E_NOT_FOUND;
 		return hr;
 	}
 
 	snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u ", ulMailNr);
-	strResponse = szResponse;
+	std::string strResponse = szResponse;
 	strResponse += bin2hex(lstMails[ulMailNr-1].sbEntryID);
 	return HrResponse(POP3_RESP_OK, strResponse);
 }
@@ -603,21 +591,19 @@ HRESULT POP3::HrCmdUidl(unsigned int ulMailNr) {
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpMessage;
 	object_ptr<IStream> lpStream;
 	ULONG ulObjType;
 	string strMessage;
-	string::size_type ulPos;
 
 	if (ulMailNr < 1 || ulMailNr > lstMails.size()) {
-		hr = HrResponse(POP3_RESP_ERR, "mail nr not found");
+		auto hr = HrResponse(POP3_RESP_ERR, "mail nr not found");
 		if (hr == hrSuccess)
 			return MAPI_E_NOT_FOUND;
 		return hr;
 	}
 
-	hr = lpStore->OpenEntry(lstMails[ulMailNr-1].sbEntryID.cb, reinterpret_cast<ENTRYID *>(lstMails[ulMailNr-1].sbEntryID.lpb), &IID_IMessage, MAPI_DEFERRED_ERRORS,
+	auto hr = lpStore->OpenEntry(lstMails[ulMailNr-1].sbEntryID.cb, reinterpret_cast<ENTRYID *>(lstMails[ulMailNr-1].sbEntryID.lpb), &IID_IMessage, MAPI_DEFERRED_ERRORS,
 	     &ulObjType, &~lpMessage);
 	if (hr != hrSuccess) {
 		HrResponse(POP3_RESP_ERR, "Failing to open entry");
@@ -637,7 +623,7 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 		strMessage = szMessage.get();
 	}
 
-	ulPos = strMessage.find("\r\n\r\n", 0);
+	auto ulPos = strMessage.find("\r\n\r\n", 0);
 	++ulLines;
 	while (ulPos != string::npos && ulLines--)
 		ulPos = strMessage.find("\r\n", ulPos + 1);
@@ -660,14 +646,12 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
  * @return MAPI Error code
  */
 HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPassword) {
-	HRESULT hr = hrSuccess;
-	ULONG cbEntryID = 0;
+	unsigned int cbEntryID = 0, ulObjType = 0;
 	memory_ptr<ENTRYID> lpEntryID;
-	ULONG ulObjType = 0;
 	std::wstring strwUsername, strwPassword;
 	unsigned int flags;
 
-	hr = TryConvert(strUsername, rawsize(strUsername), "windows-1252", strwUsername);
+	auto hr = TryConvert(strUsername, rawsize(strUsername), "windows-1252", strwUsername);
 	if (hr != hrSuccess) {
 		ec_log_err("Illegal byte sequence in username");
 		goto exit;
@@ -738,7 +722,6 @@ exit:
  * @return MAPI Error code
  */
 HRESULT POP3::HrMakeMailList() {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	enum { EID, SIZE, NUM_COLS };
 	static constexpr const SizedSPropTagArray(NUM_COLS, spt) =
@@ -746,7 +729,7 @@ HRESULT POP3::HrMakeMailList() {
 	static constexpr const SizedSSortOrderSet(1, tableSort) =
 		{1, 0, 0, {{PR_CREATION_TIME, TABLE_SORT_ASCEND}}};
 
-	hr = lpInbox->GetContentsTable(0, &~lpTable);
+	auto hr = lpInbox->GetContentsTable(0, &~lpTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpTable->SetColumns(spt, 0);
