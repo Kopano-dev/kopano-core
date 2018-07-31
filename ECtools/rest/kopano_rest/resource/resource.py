@@ -11,6 +11,11 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 
+import pytz
+import dateutil
+
+UTC = dateutil.tz.tzutc()
+
 INDENT = True
 try:
     json.dumps({}, indent=True) # ujson 1.33 doesn't support 'indent'
@@ -33,7 +38,7 @@ def _header_args(req, name): # TODO use urlparse.parse_qs or similar..?
 
 def _header_sub_arg(req, name, arg):
     args = _header_args(req, name)
-    if args:
+    if arg in args:
         return args[arg].strip('"')
 
 def _date(d, local=False, show_time=True):
@@ -50,6 +55,32 @@ def _date(d, local=False, show_time=True):
     seconds = time.mktime(d.timetuple())
     d = datetime.datetime.utcfromtimestamp(seconds)
     return d.strftime(fmt)
+
+def _tzdate(d, req):
+    if d is None:
+        return None
+
+    fmt = '%Y-%m-%dT%H:%M:%S'
+
+    # local to UTC
+    seconds = time.mktime(d.timetuple())
+    d = datetime.datetime.utcfromtimestamp(seconds)
+
+    # apply timezone preference header
+    pref_timezone = _header_sub_arg(req, 'Prefer', 'outlook.timezone')
+    if pref_timezone:
+        try:
+            tzinfo = pytz.timezone(pref_timezone)
+        except Exception as e:
+            raise falcon.HTTPBadRequest(None, "A valid TimeZone value must be specified. The following TimeZone value is not supported: '%s'." % pref_timezone)
+        d = d.replace(tzinfo=UTC).astimezone(tzinfo).replace(tzinfo=None)
+    else:
+        pref_timezone = 'UTC'
+
+    return {
+        'dateTime': d.strftime(fmt),
+        'timeZone': pref_timezone, # TODO error
+    }
 
 def _naive_local(d): # TODO make pyko not assume naive localtime..
     if d.tzinfo is not None:
@@ -80,13 +111,10 @@ class Resource(object):
         fields = fields or all_fields or self.fields
         result = {}
         for f in fields:
-            try:
+            if all_fields[f].__code__.co_argcount == 1:
                 result[f] = all_fields[f](obj)
-            except (TypeError, KeyError): # TODO
-                try:
-                    result[f] = all_fields[f](req, obj)
-                except KeyError: # TODO
-                    pass
+            else:
+                result[f] = all_fields[f](req, obj)
 
         # TODO do not handle here
         if '@odata.type' in result and not result['@odata.type']:
@@ -140,6 +168,7 @@ class Resource(object):
         pref_body_type = _header_sub_arg(req, 'Prefer', 'outlook.body-content-type')
         if pref_body_type in ('text', 'html'):
             resp.set_header('Preference-Applied', 'outlook.body-content-type='+pref_body_type) # TODO graph doesn't do this actually?
+        # TODO add outlook.timezone
 
         # multiple objects: stream
         if isinstance(obj, tuple):
