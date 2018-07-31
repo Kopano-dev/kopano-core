@@ -26,7 +26,7 @@ private:
 	HRESULT LeaveFolder(void) _kc_override;
 	HRESULT DoProcessEntry(const SRow &proprow) override;
 	HRESULT PurgeQueuedMessages();
-	
+
 	std::list<entryid_t> m_lstEntryIds;
 };
 

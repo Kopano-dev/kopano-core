@@ -88,7 +88,6 @@ std::string ECArchiverLogger::EscapeFormatString(const std::string &strFormat)
 		else
 			strEscaped.append(1, c);
 	}
-	
 	return strEscaped;
 }
 

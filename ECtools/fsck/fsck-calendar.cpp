@@ -385,7 +385,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	if ((PROP_TYPE(lpPropertyArray[E_RECURRENCE_PATTERN].ulPropTag) == PT_ERROR ||
 	    strcmp(lpPropertyArray[E_RECURRENCE_PATTERN].Value.lpszA, "") == 0) && bRecurring) {
 		__UPV Value;
-	
+
 		switch (ulType) {
 		case 1:
 			Value.lpszA = const_cast<char *>("Daily");

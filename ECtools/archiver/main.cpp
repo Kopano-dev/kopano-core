@@ -370,7 +370,6 @@ int main(int argc, char *argv[])
         print_help(cerr, argv[0]);
         return 1;
     }
-
     else if (mode == MODE_ATTACH) {
         if (strUser.empty()) {
             cerr << "Username cannot be empty" << endl;
@@ -381,7 +380,6 @@ int main(int argc, char *argv[])
         if (lpszFolder != NULL && *lpszFolder == '\0')
             lpszFolder = NULL;
     }
-
     else if (mode == MODE_DETACH) {
         if (strUser.empty()) {
             cerr << "Username cannot be empty" << endl;
@@ -392,7 +390,6 @@ int main(int argc, char *argv[])
         if (lpszFolder != NULL && *lpszFolder == '\0')
             lpszFolder = NULL;
     }
-
     else if (mode == MODE_LIST) {
         if (strUser.empty()) {
             cerr << "Username cannot be empty" << endl;
@@ -400,7 +397,6 @@ int main(int argc, char *argv[])
             return 1;
         }
     }
-
     else if (bForceCleanup && mode != MODE_CLEANUP) {
         cerr << "--force-cleanup is only valid in cleanup mode." << endl;
         return 1;

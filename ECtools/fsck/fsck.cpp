@@ -313,7 +313,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 		cout << "Wrong username or password." << endl;
 		return hr;
 	}
-	
+
 	if (bPublic) {
 		hr = HrOpenECPublicStore(lpSession, &~lpStore);
 		if (hr != hrSuccess) {
@@ -348,7 +348,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
             cout << "Cannot open user store of user" << endl;
 		return hr;
         }
-        
+
         lpReadStore = lpAltStore;
 	} else {
 	    lpReadStore = lpStore;
@@ -508,7 +508,6 @@ int main(int argc, char *argv[])
 		print_help(argv[0]);
 		return 1;
 	}
-	
 	if (bPrompt) {
 		strPass = get_password("Enter password:");
 		if(!strPass) {
@@ -516,7 +515,6 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 	}
-
 	if (checkmap.empty()) {
 		if (!bAll)
 			cout << "Filter arguments missing, defaulting to --all" << endl;

@@ -28,14 +28,12 @@ namespace KC { namespace helpers {
  */
 HRESULT MAPIPropHelper::Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper)
 {
-	HRESULT hr;
 	MAPIPropHelperPtr ptrMAPIPropHelper(new(std::nothrow) MAPIPropHelper(ptrMapiProp));
 	if (ptrMAPIPropHelper == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	hr = ptrMAPIPropHelper->Init();
+	auto hr = ptrMAPIPropHelper->Init();
 	if (hr != hrSuccess)
 		return hr;
-		
 	*lpptrMAPIPropHelper = std::move(ptrMAPIPropHelper);
 	return hrSuccess;
 }
@@ -75,10 +73,8 @@ HRESULT MAPIPropHelper::Init()
  */
 HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageState *lpState)
 {
-	HRESULT hr;
-	ULONG cMessageProps = 0;
+	unsigned int cMessageProps = 0, ulState = 0;
 	SPropArrayPtr ptrMessageProps;
-	ULONG ulState = 0;
 	int result = 0;
 
 	SizedSPropTagArray(6, sptaMessageProps) = {6, {PR_ENTRYID, PROP_STUBBED, PROP_DIRTY, PR_SOURCE_KEY, PROP_ORIGINAL_SOURCEKEY, PR_EC_HIERARCHYID}};
@@ -86,7 +82,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 
 	if (lpState == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = m_ptrMapiProp->GetProps(sptaMessageProps, 0, &cMessageProps, &~ptrMessageProps);
+	auto hr = m_ptrMapiProp->GetProps(sptaMessageProps, 0, &cMessageProps, &~ptrMessageProps);
 	if (FAILED(hr))
 		return hr;
 	if (PROP_TYPE(ptrMessageProps[IDX_ENTRYID].ulPropTag) == PT_ERROR)
@@ -133,27 +129,23 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 		// The message is copied. Now check if it was moved.
 		ObjectEntryList lstArchives;
 		ULONG ulType;
-		MessagePtr ptrArchiveMsg;
 		MAPIPropHelperPtr ptrArchiveHelper;
 		SObjectEntry refEntry;
 		MsgStorePtr ptrStore;
-		MessagePtr ptrMessage;
+		MessagePtr ptrMessage, ptrArchiveMsg;
 
 		hr = GetArchiveList(&lstArchives, true);
 		if (hr != hrSuccess)
 			return hr;
 
 		for (const auto &arc : lstArchives) {
-			HRESULT hrTmp;
 			MsgStorePtr ptrArchiveStore;
-
-			hrTmp = ptrSession->OpenReadOnlyStore(arc.sStoreEntryId, &~ptrArchiveStore);
+			auto hrTmp = ptrSession->OpenReadOnlyStore(arc.sStoreEntryId, &~ptrArchiveStore);
 			if (hrTmp != hrSuccess)
 				continue;
 			hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &iid_of(ptrArchiveMsg), 0, &ulType, &~ptrArchiveMsg);
 			if (hrTmp != hrSuccess)
 				continue;
-
 			break;
 		}
 
@@ -227,25 +219,23 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
  */
 HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgnoreSourceKey)
 {
-	HRESULT hr;
 	ULONG cbValues = 0;
 	SPropArrayPtr ptrPropArray;
 	ObjectEntryList lstArchives;
 	int result = 0;
-	
 	SizedSPropTagArray (4, sptaArchiveProps) = {4, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_ORIGINAL_SOURCEKEY, PR_SOURCE_KEY}};
 
 	enum {
-		IDX_ARCHIVE_STORE_ENTRYIDS, 
-		IDX_ARCHIVE_ITEM_ENTRYIDS, 
+		IDX_ARCHIVE_STORE_ENTRYIDS,
+		IDX_ARCHIVE_ITEM_ENTRYIDS,
 		IDX_ORIGINAL_SOURCEKEY,
 		IDX_SOURCE_KEY
 	};
-	
-	hr = m_ptrMapiProp->GetProps(sptaArchiveProps, 0, &cbValues, &~ptrPropArray);
+
+	auto hr = m_ptrMapiProp->GetProps(sptaArchiveProps, 0, &cbValues, &~ptrPropArray);
 	if (FAILED(hr))
 		return hr;
-		
+
 	if (hr == MAPI_W_ERRORS_RETURNED) {
 		/**
 		 * We expect all three PROP_* properties to be present or all three to be absent, with
@@ -287,14 +277,13 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
 	if (ptrPropArray[IDX_ARCHIVE_STORE_ENTRYIDS].Value.MVbin.cValues !=
 	    ptrPropArray[IDX_ARCHIVE_ITEM_ENTRYIDS].Value.MVbin.cValues)
 		return MAPI_E_CORRUPT_DATA;
-	
+
 	for (ULONG i = 0; i < ptrPropArray[0].Value.MVbin.cValues; ++i) {
 		SObjectEntry objectEntry;
 		objectEntry.sStoreEntryId = ptrPropArray[IDX_ARCHIVE_STORE_ENTRYIDS].Value.MVbin.lpbin[i];
 		objectEntry.sItemEntryId = ptrPropArray[IDX_ARCHIVE_ITEM_ENTRYIDS].Value.MVbin.lpbin[i];
 		lstArchives.emplace_back(std::move(objectEntry));
 	}
-	
 	swap(*lplstArchives, lstArchives);
 	return hr;
 }
@@ -309,14 +298,12 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
  */
 HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool bExplicitCommit)
 {
-	HRESULT hr;
-	ULONG cValues = lstArchives.size();
+	unsigned int cValues = lstArchives.size(), cbProps = 2;
 	SPropArrayPtr ptrPropArray;
 	SPropValuePtr ptrSourceKey;
 	ObjectEntryList::const_iterator iArchive;
-	ULONG cbProps = 2;
 
-	hr = MAPIAllocateBuffer(3 * sizeof(SPropValue), &~ptrPropArray);
+	auto hr = MAPIAllocateBuffer(3 * sizeof(SPropValue), &~ptrPropArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -325,13 +312,12 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 	hr = MAPIAllocateMore(cValues * sizeof(SBinary), ptrPropArray, (LPVOID*)&ptrPropArray[0].Value.MVbin.lpbin);
 	if (hr != hrSuccess)
 		return hr;
-	
 	ptrPropArray[1].ulPropTag = PROP_ARCHIVE_ITEM_ENTRYIDS;
 	ptrPropArray[1].Value.MVbin.cValues = cValues;
 	hr = MAPIAllocateMore(cValues * sizeof(SBinary), ptrPropArray, (LPVOID*)&ptrPropArray[1].Value.MVbin.lpbin);
 	if (hr != hrSuccess)
 		return hr;
-	
+
 	iArchive = lstArchives.cbegin();
 	for (ULONG i = 0; i < cValues; ++i, ++iArchive) {
 		ptrPropArray[0].Value.MVbin.lpbin[i].cb = iArchive->sStoreEntryId.size();
@@ -360,10 +346,8 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 	hr = m_ptrMapiProp->SetProps(cbProps, ptrPropArray.get(), NULL);
 	if (hr != hrSuccess)
 		return hr;
-	
 	if (bExplicitCommit)
 		hr = m_ptrMapiProp->SaveChanges(KEEP_OPEN_READWRITE);
-	
 	return hr;
 }
 
@@ -379,7 +363,6 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
  */
 HRESULT  MAPIPropHelper::SetReference(const SObjectEntry &sEntry, bool bExplicitCommit)
 {
-	HRESULT hr;
 	SPropValue sPropArray[2] = {{0}};
 
 	sPropArray[0].ulPropTag = PROP_REF_STORE_ENTRYID;
@@ -390,43 +373,36 @@ HRESULT  MAPIPropHelper::SetReference(const SObjectEntry &sEntry, bool bExplicit
 	sPropArray[1].Value.bin.cb = sEntry.sItemEntryId.size();
 	sPropArray[1].Value.bin.lpb = sEntry.sItemEntryId;
 
-	hr = m_ptrMapiProp->SetProps(2, sPropArray, NULL);
+	auto hr = m_ptrMapiProp->SetProps(2, sPropArray, NULL);
 	if (hr != hrSuccess)
 		return hr;
-
 	if (bExplicitCommit)
 		hr = m_ptrMapiProp->SaveChanges(KEEP_OPEN_READWRITE);
-	
 	return hr;
 }
 
 HRESULT MAPIPropHelper::ClearReference(bool bExplicitCommit)
 {
-	HRESULT hr;
 	SizedSPropTagArray(2, sptaReferenceProps) = {2, {PROP_REF_STORE_ENTRYID, PROP_REF_ITEM_ENTRYID}};
 
-	hr = m_ptrMapiProp->DeleteProps(sptaReferenceProps, NULL);
+	auto hr = m_ptrMapiProp->DeleteProps(sptaReferenceProps, NULL);
 	if (hr != hrSuccess)
 		return hr;
-
 	if (bExplicitCommit)
 		hr = m_ptrMapiProp->SaveChanges(KEEP_OPEN_READWRITE);
-
 	return hr;
 }
 
 HRESULT MAPIPropHelper::GetReference(SObjectEntry *lpEntry)
 {
-	HRESULT hr;
 	ULONG cMessageProps = 0;
 	SPropArrayPtr ptrMessageProps;
-
 	SizedSPropTagArray(2, sptaMessageProps) = {2, {PROP_REF_STORE_ENTRYID, PROP_REF_ITEM_ENTRYID}};
 	enum {IDX_REF_STORE_ENTRYID, IDX_REF_ITEM_ENTRYID};
 
 	if (lpEntry == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = m_ptrMapiProp->GetProps(sptaMessageProps, 0, &cMessageProps, &~ptrMessageProps);
+	auto hr = m_ptrMapiProp->GetProps(sptaMessageProps, 0, &cMessageProps, &~ptrMessageProps);
 	if (FAILED(hr))
 		return hr;
 	if (PROP_TYPE(ptrMessageProps[IDX_REF_STORE_ENTRYID].ulPropTag) == PT_ERROR)
@@ -450,14 +426,13 @@ HRESULT MAPIPropHelper::ReferencePrevious(const SObjectEntry &sEntry)
 
 HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *lppMessage)
 {
-	HRESULT hr;
 	SPropValuePtr ptrEntryID;
 	ULONG ulType;
 	MessagePtr ptrMessage;
 
 	if (lppMessage == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = HrGetOneProp(m_ptrMapiProp, PROP_REF_PREV_ENTRYID, &~ptrEntryID);
+	auto hr = HrGetOneProp(m_ptrMapiProp, PROP_REF_PREV_ENTRYID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -515,7 +490,7 @@ HRESULT MAPIPropHelper::DetachFromArchives()
 
 /**
  * Get the parent folder of an object.
- * 
+ *
  * @param[in]	lpSession
  *					Pointer to a session object that's used to open the folder with.
  * @param[in]	lppFolder
@@ -524,20 +499,17 @@ HRESULT MAPIPropHelper::DetachFromArchives()
  */
 HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppFolder)
 {
-	HRESULT hr;
 	SPropArrayPtr ptrPropArray;
 	MsgStorePtr ptrMsgStore;
 	MAPIFolderPtr ptrFolder;
-	ULONG cValues = 0;
-	ULONG ulType = 0;
+	unsigned int cValues = 0, ulType = 0;
 	static constexpr const SizedSPropTagArray(2, sptaProps) =
 		{2, {PR_PARENT_ENTRYID, PR_STORE_ENTRYID}};
-	
+
 	if (ptrSession == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	
 	// We can't just open a folder on the session (at least not in Linux). So we open the store first
-	hr = m_ptrMapiProp->GetProps(sptaProps, 0, &cValues, &~ptrPropArray);
+	auto hr = m_ptrMapiProp->GetProps(sptaProps, 0, &cValues, &~ptrPropArray);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrSession->OpenStore(ptrPropArray[1].Value.bin, &~ptrMsgStore);
@@ -546,7 +518,6 @@ HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOL
 	hr = ptrMsgStore->OpenEntry(ptrPropArray[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrPropArray[0].Value.bin.lpb), &iid_of(ptrFolder), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
-	
 	return ptrFolder->QueryInterface(IID_IMAPIFolder,
 		reinterpret_cast<LPVOID *>(lppFolder));
 }

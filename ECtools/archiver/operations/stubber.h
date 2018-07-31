@@ -19,7 +19,7 @@ public:
 	Stubber(ECArchiverLogger *lpLogger, ULONG ulptStubbed, int ulAge, bool bProcessUnread);
 	HRESULT ProcessEntry(IMAPIFolder *, const SRow &proprow) override;
 	HRESULT ProcessEntry(LPMESSAGE lpMessage);
-	
+
 private:
 	ULONG m_ulptStubbed;
 };

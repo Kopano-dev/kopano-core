@@ -201,14 +201,14 @@ HRESULT ArchiverSession::Init(const MAPISessionPtr &ptrSession, const char *lpsz
  * @param[out]	lppMsgStore
  *					Pointer to a IMsgStore pointer that will be assigned the
  *					address of the returned message store.
- */ 
+ */
 HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgStore)
 {
 	ExchangeManageStorePtr ptrEMS;
 	MsgStorePtr ptrUserStore;
 	ULONG cbEntryId = 0;
 	EntryIdPtr ptrEntryId;
-	
+
 	auto hr = m_ptrAdminStore->QueryInterface(iid_of(ptrEMS), &~ptrEMS);
 	if (hr != hrSuccess) {
 		m_lpLogger->perr("Failed to get EMS interface", hr);
@@ -226,7 +226,6 @@ HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgSt
 			strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-		
 	return ptrUserStore->QueryInterface(IID_IMsgStore,
 		reinterpret_cast<LPVOID *>(lppMsgStore));
 }
@@ -241,12 +240,12 @@ HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgSt
  * @param[out]	lppMsgStore
  *					Pointer to a IMsgStore pointer that will be assigned the
  *					address of the returned message store.
- */ 
+ */
 HRESULT ArchiverSession::OpenStore(const entryid_t &sEntryId, ULONG ulFlags, LPMDB *lppMsgStore)
 {
 	MsgStorePtr ptrUserStore;
 	ArchiverSessionPtr ptrSession;
-	
+
 	if (!sEntryId.isWrapped()) {
 		auto hr = m_ptrSession->OpenMsgStore(0, sEntryId.size(), sEntryId, &iid_of(ptrUserStore), ulFlags, &~ptrUserStore);
 		if (hr != hrSuccess) {
@@ -278,7 +277,7 @@ HRESULT ArchiverSession::OpenStore(const entryid_t &sEntryId, ULONG ulFlags, LPM
  * @param[out]	lppMsgStore
  *					Pointer to a IMsgStore pointer that will be assigned the
  *					address of the returned message store.
- */ 
+ */
 HRESULT ArchiverSession::OpenStore(const entryid_t &sEntryId, LPMDB *lppMsgStore)
 {
 	return OpenStore(sEntryId, MDB_WRITE|fMapiDeferredErrors|MDB_NO_MAIL|MDB_TEMPORARY, lppMsgStore);
@@ -292,7 +291,7 @@ HRESULT ArchiverSession::OpenStore(const entryid_t &sEntryId, LPMDB *lppMsgStore
  * @param[out]	lppMsgStore
  *					Pointer to a IMsgStore pointer that will be assigned the
  *					address of the returned message store.
- */ 
+ */
 HRESULT ArchiverSession::OpenReadOnlyStore(const entryid_t &sEntryId, LPMDB *lppMsgStore)
 {
 	return OpenStore(sEntryId, fMapiDeferredErrors|MDB_NO_MAIL|MDB_TEMPORARY, lppMsgStore);
@@ -370,10 +369,8 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 					strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 				return hr;
 			}
-
 			lpstrFullname->assign(ptrUserProps[IDX_DISPLAY_NAME].Value.LPSZ);
 		}
-		
 		if (lpbAclCapable) {
 			if (ptrUserProps[IDX_DISPLAY_TYPE_EX].ulPropTag != PR_DISPLAY_TYPE_EX) {
 				hr = ptrUserProps[IDX_DISPLAY_TYPE_EX].Value.err;
@@ -381,7 +378,6 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 					strUser.c_str(), GetMAPIErrorMessage(hr), hr);
 				return hr;
 			}
-
 			*lpbAclCapable = (ptrUserProps[IDX_DISPLAY_TYPE_EX].Value.ul & DTE_FLAG_ACL_CAPABLE);
 		}
 	}
@@ -454,7 +450,7 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 	sGALPropVal.Value.bin.cb = sizeof(GUID);
 	sGALPropVal.Value.bin.lpb = (LPBYTE)&MUIDECSAB;
 
-	hr = ptrABRCTable->SetColumns(sGALProps, TBL_BATCH); 
+	hr = ptrABRCTable->SetColumns(sGALProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ECPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, &sGALPropVal, ECRestriction::Cheap)
@@ -488,7 +484,7 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
  * @param[out]	lpbResult
  *					Pointer to a boolean that will be set to true if the two stores
  *					reference the same store.
- */					
+ */
 HRESULT ArchiverSession::CompareStoreIds(LPMDB lpUserStore, LPMDB lpArchiveStore, bool *lpbResult)
 {
 	SPropValuePtr ptrUserStoreEntryId, ptrArchiveStoreEntryId;
@@ -500,13 +496,11 @@ HRESULT ArchiverSession::CompareStoreIds(LPMDB lpUserStore, LPMDB lpArchiveStore
 	hr = HrGetOneProp(lpArchiveStore, PR_ENTRYID, &~ptrArchiveStoreEntryId);
 	if (hr != hrSuccess)
 		return hr;
-	
 	hr = m_ptrSession->CompareEntryIDs(ptrUserStoreEntryId->Value.bin.cb, (LPENTRYID)ptrUserStoreEntryId->Value.bin.lpb,
 					   ptrArchiveStoreEntryId->Value.bin.cb, (LPENTRYID)ptrArchiveStoreEntryId->Value.bin.lpb,
 					   0, &ulResult);
 	if (hr != hrSuccess)
 		return hr;
-		
 	*lpbResult = (ulResult == TRUE);
 	return hrSuccess;
 }
@@ -521,7 +515,7 @@ HRESULT ArchiverSession::CompareStoreIds(LPMDB lpUserStore, LPMDB lpArchiveStore
  * @param[out]	lpbResult
  *					Pointer to a boolean that will be set to true if the two ids
  *					reference the same store.
- */					
+ */
 HRESULT ArchiverSession::CompareStoreIds(const entryid_t &sEntryId1, const entryid_t &sEntryId2, bool *lpbResult)
 {
 	ULONG ulResult = 0;
@@ -529,18 +523,17 @@ HRESULT ArchiverSession::CompareStoreIds(const entryid_t &sEntryId1, const entry
 	          sEntryId2.size(), sEntryId2, 0, &ulResult);
 	if (hr != hrSuccess)
 		return hr;
-		
 	*lpbResult = (ulResult == TRUE);
 	return hrSuccess;
 }
 
 /**
  * Create a ArchiverSession on another server, with the same credentials (SSL) as the current ArchiverSession.
- * 
+ *
  * @param[in]	lpszServerPath	The path of the server to connect with.
  * @param[in]	lpLogger		THe logger to log to.
  * @param[ou]t	lppSession		The returned ArchiverSession.
- * 
+ *
  * @retval	hrSuccess	The new ArchiverSession was successfully created.
  */
 HRESULT ArchiverSession::CreateRemote(const char *lpszServerPath, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
@@ -660,13 +653,10 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	hr = HrGetOneProp(ptrIpmSubtree, PR_ENTRYID, &~ptrIpmSubtreeId);
 	if (hr != hrSuccess)
 		return hr;
-
 	ptrIpmSubtreeId->ulPropTag = PR_IPM_SUBTREE_ENTRYID;
-	
 	hr = ptrArchiveStore->SetProps(1, ptrIpmSubtreeId, NULL);
 	if (hr != hrSuccess)
 		return hr;
-
 	return ptrArchiveStore->QueryInterface(IID_IMsgStore,
 		reinterpret_cast<LPVOID *>(lppArchiveStore));
 }

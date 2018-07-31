@@ -32,7 +32,7 @@ public:
 
 	_kc_hidden bool equal(const ECHierarchyIteratorBase &rhs) const
 	{
-		return m_ptrCurrent == rhs.m_ptrCurrent; 
+		return m_ptrCurrent == rhs.m_ptrCurrent;
 	}
 
 private:

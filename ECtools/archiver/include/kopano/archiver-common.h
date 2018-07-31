@@ -57,7 +57,7 @@ public:
 	 * Constructs an empty entryid.
 	 */
 	_kc_hidden entryid_t(void) = default;
-	
+
 	/**
 	 * Construct an entryid based on a length and pointer argument.
 	 *
@@ -69,7 +69,7 @@ public:
 	_kc_hidden entryid_t(size_t z, const ENTRYID *eid) :
 		m_eid(reinterpret_cast<const char *>(eid), z)
 	{ }
-	
+
 	/**
 	 * Construct an entryid based on a SBinary structure.
 	 *
@@ -79,10 +79,10 @@ public:
 	_kc_hidden entryid_t(const SBinary &sBin) :
 		m_eid(reinterpret_cast<const char *>(sBin.lpb), sBin.cb)
 	{ }
-	
+
 	_kc_hidden entryid_t(const entryid_t &) = default;
 	_kc_hidden entryid_t(entryid_t &&) = default;
-	
+
 	/**
 	 * Assign a new entryid based on a length and pointer argument.
 	 *
@@ -95,7 +95,7 @@ public:
 	{
 		m_eid.assign(reinterpret_cast<const char *>(eid), z);
 	}
-	
+
 	/**
 	 * Assign a new entryid based on a SBinary structure.
 	 *
@@ -107,19 +107,19 @@ public:
 		m_eid.assign(reinterpret_cast<const char *>(sBin.lpb), sBin.cb);
 		return *this;
 	}
-	
+
 	/**
 	 * Returns the size in bytes of the entryid.
 	 * @return The size in bytes of the entryid.
 	 */
 	_kc_hidden ULONG size(void) const { return m_eid.size(); }
-	
+
 	/**
 	 * Returns true if the entryid is empty.
 	 * @return true or false
 	 */
 	_kc_hidden bool empty(void) const { return m_eid.empty(); }
-	
+
 	/**
 	 * Return a pointer to the data as a BYTE pointer.
 	 * @return The entryid data.
@@ -128,7 +128,7 @@ public:
 	{
 		return reinterpret_cast<BYTE *>(const_cast<char *>(m_eid.data()));
 	}
-	
+
 	/**
 	 * Return a pointer to the data as an ENTRYID pointer.
 	 * @return The entryid data.
@@ -137,7 +137,7 @@ public:
 	{
 		return reinterpret_cast<ENTRYID *>(const_cast<char *>(m_eid.data()));
 	}
-	
+
 	/**
 	 * Return a pointer to the data as a VOID pointer.
 	 * @return The entryid data.
@@ -157,7 +157,7 @@ public:
 	 * @return true if the entryids are equal.
 	 */
 	bool operator==(const entryid_t &other) const;
-	
+
 	/**
 	 * Compare the content of the current entryid with the content of another entryid.
 	 * @param[in]	other
@@ -168,7 +168,7 @@ public:
 	{
 		return !(*this == other);
 	}
-	
+
 	/**
 	 * Compare the content of the current entryid with the content of another entryid.
 	 * @param[in]	other
@@ -176,7 +176,7 @@ public:
 	 * @return true if a binary compare of the entryids results in the current entryid being smaller.
 	 */
 	bool operator<(const entryid_t &other) const;
-	
+
 	/**
 	 * Compare the content of the current entryid with the content of another entryid.
 	 * @param[in]	other
@@ -193,7 +193,7 @@ public:
 	{
 		return bin2hex(m_eid.size(), m_eid.data());
 	}
-	
+
 	/**
 	 * Get entryid as a std::string
 	 * @return The binary data as std::string
@@ -202,26 +202,26 @@ public:
 	{
 		return m_eid;
 	}
-	
+
 	/**
 	 * Wrap the entryid with a server path.
-	 * 
+	 *
 	 * The path should start with "file://", "http://" or "https://" for this
 	 * call to succeed.
-	 * 
+	 *
 	 * @param[in]	strPath		The path to wrap the entryid with.
-	 * 
+	 *
 	 * @return true on success
 	 */
 	_kc_hidden bool wrap(const std::string &path);
-	
+
 	/**
-	 * Unwrap the path from the entryid. 
-	 * 
+	 * Unwrap the path from the entryid.
+	 *
 	 * Extracts the path from the entryid and remove it from the data.
-	 * 
+	 *
 	 * @param[out]	lpstrPath	The path that wrapped the entryid.
-	 * 
+	 *
 	 * @retval	true	The path was successfully extracted.
 	 * @retval	false	THe entryid wasn't wrapped.
 	 */
@@ -241,7 +241,7 @@ public:
 	 * @returns		An entryid object.
 	 */
 	entryid_t getUnwrapped() const;
-	
+
 private:
 	std::string m_eid;
 };
@@ -255,7 +255,7 @@ public:
 	 * Constructs an empty entryid.
 	 */
 	abentryid_t(void) = default;
-	
+
 	/**
 	 * Construct an entryid based on a length and pointer argument.
 	 *
@@ -267,7 +267,7 @@ public:
 	abentryid_t(size_t z, const ENTRYID *eid) :
 		m_eid(reinterpret_cast<const char *>(eid), z)
 	{ }
-	
+
 	/**
 	 * Construct an entryid based on a SBinary structure.
 	 *
@@ -277,10 +277,10 @@ public:
 	abentryid_t(const SBinary &sBin) :
 		m_eid(reinterpret_cast<const char *>(sBin.lpb), sBin.cb)
 	{ }
-	
+
 	abentryid_t(const abentryid_t &) = default;
 	abentryid_t(abentryid_t &&) = default;
-	
+
 	/**
 	 * Assign a new entryid based on a length and pointer argument.
 	 *
@@ -293,7 +293,7 @@ public:
 	{
 		m_eid.assign(reinterpret_cast<const char *>(eid), z);
 	}
-	
+
 	/**
 	 * Assign a new entryid based on a SBinary structure.
 	 *
@@ -305,19 +305,19 @@ public:
 		m_eid.assign(reinterpret_cast<const char *>(sBin.lpb), sBin.cb);
 		return *this;
 	}
-	
+
 	/**
 	 * Returns the size in bytes of the entryid.
 	 * @return The size in bytes of the entryid.
 	 */
 	ULONG size() const { return m_eid.size(); }
-	
+
 	/**
 	 * Returns true if the entryid is empty.
 	 * @return true or false
 	 */
 	bool empty() const { return m_eid.empty(); }
-	
+
 	/**
 	 * Return a pointer to the data as a BYTE pointer.
 	 * @return The entryid data.
@@ -326,7 +326,7 @@ public:
 	{
 		return reinterpret_cast<BYTE *>(const_cast<char *>(m_eid.data()));
 	}
-	
+
 	/**
 	 * Return a pointer to the data as an ENTRYID pointer.
 	 * @return The entryid data.
@@ -335,7 +335,7 @@ public:
 	{
 		return reinterpret_cast<ENTRYID *>(const_cast<char *>(m_eid.data()));
 	}
-	
+
 	/**
 	 * Return a pointer to the data as a VOID pointer.
 	 * @return The entryid data.
@@ -357,7 +357,7 @@ public:
 	bool operator==(const abentryid_t &other) const {
 		return compare(other) == 0;
 	}
-	
+
 	/**
 	 * Compare the content of the current entryid with the content of another entryid.
 	 * @param[in]	other
@@ -367,7 +367,7 @@ public:
 	bool operator!=(const abentryid_t &other) const {
 		return !(*this == other);
 	}
-	
+
 	/**
 	 * Compare the content of the current entryid with the content of another entryid.
 	 * @param[in]	other
@@ -377,7 +377,7 @@ public:
 	bool operator<(const abentryid_t &other) const {
 		return compare(other) < 0;
 	}
-	
+
 	/**
 	 * Compare the content of the current entryid with the content of another entryid.
 	 * @param[in]	other
@@ -405,24 +405,24 @@ private:
 	 * legacy user id (which differs, depending on the server the entryid
 	 * was obtained from).
 	 * No attempt is made to match v0 and v1 entryids.
-	 * 
+	 *
 	 * @param[in]	other	The other entryid.
-	 * 
+	 *
 	 * @returns < 0	This entryid compares less to the other entryid.
 	 * @returns 0	This entryid equals the other entryid.
 	 * @returns >0	This entryid compared greater to the other entryid.
-	 * 
+	 *
 	 * @note: SortCompareABEID from provider/common/pcutil.cpp would be nicer. However, that's
 	 * not intended to be used in client applications. Client applications shouldn't be aware
 	 * of entryid formats at all...
-	 */ 
+	 */
 	int compare(const abentryid_t &other) const;
 
 	std::string m_eid;
 };
 
 /**
- * An SObjectEntry is a reference to an object in a particular store. The sItemEntryId can point to any 
+ * An SObjectEntry is a reference to an object in a particular store. The sItemEntryId can point to any
  * MAPI object, but is currently used for folders and messages.
  */
 struct SObjectEntry {
@@ -444,7 +444,7 @@ static inline bool operator!=(const SObjectEntry &lhs, const SObjectEntry &rhs) 
 }
 
 static inline bool operator<(const SObjectEntry &lhs, const SObjectEntry &rhs) {
-	return	lhs.sStoreEntryId < rhs.sStoreEntryId || 
+	return lhs.sStoreEntryId < rhs.sStoreEntryId ||
 			(lhs.sStoreEntryId == rhs.sStoreEntryId && lhs.sItemEntryId < rhs.sItemEntryId);
 }
 

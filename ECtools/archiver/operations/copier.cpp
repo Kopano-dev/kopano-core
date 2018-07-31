@@ -42,7 +42,7 @@ HRESULT Copier::Helper::CreateArchivedMessage(LPMESSAGE lpSource, const SObjectE
 	MAPIFolderPtr ptrArchiveFolder;
 	MessagePtr ptrNewMessage;
 	PostSaveActionPtr ptrPSAction;
-	
+
 	auto hr = GetArchiveFolder(archiveEntry, &~ptrArchiveFolder);
 	if (hr != hrSuccess)
 		return hr;
@@ -70,8 +70,7 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 		ArchiveHelperPtr ptrArchiveHelper;
 
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder not found in cache");
-	
-		// Find the associated archive folder 
+		// Find the associated archive folder
 		auto hr = ArchiveHelper::Create(m_ptrSession, archiveEntry, m_lpLogger, &ptrArchiveHelper);
 		if (hr != hrSuccess)
 			return hr;
@@ -113,7 +112,7 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
 	PROPMAP_INIT(lpDest)
-	
+
 	auto hr = lpSource->CopyTo(0, nullptr, m_lpExcludeProps, 0, nullptr, &IID_IMessage, lpDest, 0, nullptr);
 	// @todo: What to do with warnings?
 	if (FAILED(hr))
@@ -415,7 +414,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 	} else if (hr != hrSuccess) {
 		return Logger()->pwarn("Failed to verify message criteria", hr);
 	}
-	
+
 	hr = MAPIPropHelper::Create(ptrMessageRaw.as<MAPIPropPtr>(), &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return Logger()->perr("Failed to create prop helper", hr);
@@ -446,7 +445,7 @@ HRESULT Copier::DoProcessEntry(const SRow &proprow)
 			return hr;
 		}
 	}
-		
+
 	for (const auto &arc : m_lstArchives) {
 		TransactionPtr ptrTransaction;
 		auto iArchivedMsg = find_if(lstMsgArchives.cbegin(), lstMsgArchives.cend(), StoreCompare(arc));

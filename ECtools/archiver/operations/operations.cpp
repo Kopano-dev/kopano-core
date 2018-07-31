@@ -52,12 +52,11 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 
 	li.LowPart = m_ftCurrent.dwLowDateTime;
 	li.HighPart = m_ftCurrent.dwHighDateTime;
-	
 	li.QuadPart -= (m_ulAge * _DAY);
-		
 	sPropRefTime.ulPropTag = PROP_TAG(PT_SYSTIME, 0);
 	sPropRefTime.Value.ft.dwLowDateTime = li.LowPart;
 	sPropRefTime.Value.ft.dwHighDateTime = li.HighPart;
+
 	resResult += ECOrRestriction(
 		ECAndRestriction(
 			ECExistRestriction(PR_MESSAGE_DELIVERY_TIME) +
@@ -123,14 +122,14 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(IMAPIFolder *lpFolder,
 		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_PARENT_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;
 	}
-	
+
 	if (m_ptrCurFolderEntryId != nullptr) {
 		int nResult = 0;
 		// @todo: Create correct locale.
 		auto hr = Util::CompareProp(m_ptrCurFolderEntryId, lpFolderEntryId, createLocaleFromName(""), &nResult);
 		if (hr != hrSuccess)
 			return Logger()->perr("Failed to compare current and new entryid", hr);
-		
+
 		if (nResult != 0) {
 			Logger()->logf(EC_LOGLEVEL_DEBUG, "Leaving folder (%s)", bin2hex(m_ptrCurFolderEntryId->Value.bin).c_str());
 			Logger()->SetFolder(KC_T(""));

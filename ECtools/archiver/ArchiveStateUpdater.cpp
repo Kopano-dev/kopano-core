@@ -40,13 +40,11 @@ namespace Predicates {
 	public:
 		SObjectEntry_equals_compareEntryId(IMAPISession *lpSession, const SObjectEntry &objEntry): m_lpSession(lpSession), m_objEntry(objEntry) {}
 		bool operator()(const SObjectEntry &objEntry) const {
-			HRESULT hr = hrSuccess;
 			ULONG ulResult = 0;
-			
-			hr = m_lpSession->CompareEntryIDs(m_objEntry.sStoreEntryId.size(), m_objEntry.sStoreEntryId, objEntry.sStoreEntryId.size(), objEntry.sStoreEntryId, 0, &ulResult);
+
+			auto hr = m_lpSession->CompareEntryIDs(m_objEntry.sStoreEntryId.size(), m_objEntry.sStoreEntryId, objEntry.sStoreEntryId.size(), objEntry.sStoreEntryId, 0, &ulResult);
 			if (hr != hrSuccess || ulResult == 0)
 				return false;
-
 			hr = m_lpSession->CompareEntryIDs(m_objEntry.sItemEntryId.size(), m_objEntry.sItemEntryId, objEntry.sItemEntryId.size(), objEntry.sItemEntryId, 0, &ulResult);
 			return (hr == hrSuccess && ulResult == 1);
 		}
@@ -152,34 +150,25 @@ HRESULT ArchiveStateUpdater::Update(const tstring &userName, unsigned int ulAtta
  */
 HRESULT ArchiveStateUpdater::UpdateOne(const abentryid_t &userId, const ArchiveInfo& info, unsigned int ulAttachFlags)
 {
-	HRESULT hr = hrSuccess;
-	
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() function entry");
 	if (info.userName.empty()) {
 		// Found a store that has archives attached but no archive- servers or couplings
 		// are defined in the GAB.
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() about to call RemoveImplicit()");
-		hr = RemoveImplicit(info.storeId, tstring(), userId, info.lstArchives);
+		return RemoveImplicit(info.storeId, tstring(), userId, info.lstArchives);
 	}
-
 	else if (info.storeId.empty()) {
 		// Found a user in the GAB that has at least one archive- server or coupling
 		// defined but has no archives attached.
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() about to call AddCouplingBased()");
-		hr = AddCouplingBased(info.userName, info.lstCouplings, ulAttachFlags);
-		if (hr == hrSuccess) 
-        {
+		auto hr = AddCouplingBased(info.userName, info.lstCouplings, ulAttachFlags);
+		if (hr != hrSuccess)
+			return hr;
             m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() about to call AddServerBased()");
-			hr = AddServerBased(info.userName, userId, info.lstServers, ulAttachFlags);
-        }
+		return AddServerBased(info.userName, userId, info.lstServers, ulAttachFlags);
 	}
-
-	else {
         m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateOne() about to call VerifyAndUpdate()");
-		hr = VerifyAndUpdate(userId, info, ulAttachFlags);
-	}
-
-return hr;
+	return VerifyAndUpdate(userId, info, ulAttachFlags);
 }
 
 /**
@@ -205,7 +194,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 	auto hr = m_ptrSession->OpenStore(storeId, &~ptrUserStore);
 	if (hr == MAPI_E_INVALID_ENTRYID) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Got invalid entryid, attempting to resolve...");
-		
+
 		// The storeId was obtained from the MailboxTable that currently does not return
 		if (!userName.empty()) {
 			m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Resolving user \"" TSTRING_PRINTF "\"", userName.c_str());
@@ -408,7 +397,7 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Attaching %zu servers", lstServers.size());
 	for (const auto &i : lstServers) {
 		MsgStorePtr ptrArchive;
-		
+
 		hr = m_ptrSession->OpenOrCreateArchiveStore(userName, i, &~ptrArchive);
 		if (hr != hrSuccess) {
 			m_lpLogger->logf(EC_LOGLEVEL_ERROR, "Failed to open or create the archive for user \"" TSTRING_PRINTF "\" on server \"" TSTRING_PRINTF "\": %s (%x)",

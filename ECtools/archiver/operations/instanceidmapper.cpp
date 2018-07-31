@@ -54,10 +54,8 @@ HRESULT InstanceIdMapper::Init(ECConfig *lpConfig)
 		if (er == erSuccess)
 			er = m_ptrDatabase->CreateTables(lpConfig);
 	}
-	
 	if (er != erSuccess)
 		ec_log_crit("Database connection failed: %s", m_ptrDatabase->GetError());
-
 	return kcerr_to_mapierr(er);
 }
 
