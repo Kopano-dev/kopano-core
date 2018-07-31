@@ -101,7 +101,7 @@ ECRESULT ECSessionGroup::AddAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 		scoped_lock lock(m_hNotificationLock);
 		m_mapSubscribe.emplace(ulConnection, sSubscribeItem);
 	}
-	
+
 	if(ulEventMask & (fnevNewMail | fnevObjectModified | fnevObjectCreated | fnevObjectCopied | fnevObjectDeleted | fnevObjectMoved)) {
 		// Object and new mail notifications should be subscribed at the session manager
 		unsigned int ulStore = 0;
@@ -121,9 +121,7 @@ ECRESULT ECSessionGroup::AddChangeAdvise(ECSESSIONID ulSessionId, unsigned int u
 
 	if (lpSyncState == NULL)
 		return KCERR_INVALID_PARAMETER;
-
 	sSubscribeItem.sSyncState = *lpSyncState;
-
 	scoped_lock lock(m_hNotificationLock);
 	m_mapChangeSubscribe.emplace(lpSyncState->ulSyncId, sSubscribeItem);
 	return erSuccess;
@@ -166,10 +164,8 @@ ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int 
 {
 	ulock_normal l_note(m_hNotificationLock);
 	ECNotification notify(*notifyItem);
-
 	unsigned int ulParent = 0;
 	unsigned int ulOldParent = 0;
-
 	bool check_parent = false;
 	bool check_old_parent = false;
 	ECRESULT hr = erSuccess;
@@ -219,7 +215,6 @@ ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int 
 				objtype = fnevObjTypeMessage;
 			else if (notifyItem->obj->ulObjType == MAPI_FOLDER)
 				objtype = fnevObjTypeFolder;
-
 			if (!(objtype & eventmask))
 				continue;
 		}
@@ -246,7 +241,7 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 	memset(lpNotify, 0, sizeof(notification));
 	lpNotify->tab = s_alloc<notificationTable>(nullptr);
 	memset(lpNotify->tab, 0, sizeof(notificationTable));
-	
+
 	lpNotify->ulEventType			= fnevTableModified;
 	lpNotify->tab->ulTableEvent		= ulType;
 
@@ -256,7 +251,6 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 		lpNotify->tab->propIndex.Value.bin = s_alloc<xsd__base64Binary>(nullptr);
 		lpNotify->tab->propIndex.Value.bin->__ptr = s_alloc<unsigned char>(nullptr, sizeof(ULONG) * 2);
 		lpNotify->tab->propIndex.Value.bin->__size = sizeof(ULONG)*2;
-
 		memcpy(lpNotify->tab->propIndex.Value.bin->__ptr, &lpsChildRow->ulObjId, sizeof(ULONG));
 		memcpy(lpNotify->tab->propIndex.Value.bin->__ptr+sizeof(ULONG), &lpsChildRow->ulOrderId, sizeof(ULONG));
 	}else {
@@ -271,16 +265,14 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 		lpNotify->tab->propPrior.Value.bin = s_alloc<xsd__base64Binary>(nullptr);
 		lpNotify->tab->propPrior.Value.bin->__ptr = s_alloc<unsigned char>(nullptr, sizeof(ULONG) * 2);
 		lpNotify->tab->propPrior.Value.bin->__size = sizeof(ULONG)*2;
-
 		memcpy(lpNotify->tab->propPrior.Value.bin->__ptr, &lpsPrevRow->ulObjId, sizeof(ULONG));
 		memcpy(lpNotify->tab->propPrior.Value.bin->__ptr+sizeof(ULONG), &lpsPrevRow->ulOrderId, sizeof(ULONG));
 	}else {
 		lpNotify->tab->propPrior.__union = SOAP_UNION_propValData_ul;
 		lpNotify->tab->propPrior.ulPropTag = PR_NULL;
 	}
-	
-	lpNotify->tab->ulObjType = ulObjType;
 
+	lpNotify->tab->ulObjType = ulObjType;
 	if(lpRow) {
 		lpNotify->tab->pRow = s_alloc<propValArray>(nullptr);
 		lpNotify->tab->pRow->__ptr = lpRow->__ptr;
@@ -288,7 +280,6 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 	}
 
 	AddNotification(lpNotify, ulTableId, 0, ulSessionId);
-
 	//Free by lpRow
 	if(lpNotify->tab->pRow){
 		lpNotify->tab->pRow->__ptr = NULL;
@@ -326,7 +317,6 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 		     iterItem != iterRange.second; ++iterItem) {
 			// update sync state
 			syncState.ulSyncId = sync_id;
-			
 			// create ECNotification
 			ECNotification notify(notifyItem);
 			notify.SetConnection(iterItem->second.ulConnection);
@@ -389,14 +379,12 @@ ECRESULT ECSessionGroup::GetNotifyItems(struct soap *soap, ECSESSIONID ulSession
 	 * session must release all calls into ECSessionGroup.
 	 */
 	m_getNotifySession = ulSessionId;
-
 	/*
 	 * Update Session times for all sessions attached to this group.
 	 * This prevents any of the sessions to timeout while it was waiting
 	 * for notifications for the group.
 	 */
 	UpdateSessionTime();
-
 	memset(notifications, 0,  sizeof(notifyResponse));
 	ulock_normal l_note(m_hNotificationLock);
 

@@ -23,7 +23,6 @@ namespace KC {
 class ECFifoBuffer;
 class ECSerializer;
 class ECAttachmentStorage;
-
 struct StreamCaps;
 typedef const StreamCaps* LPCSTREAMCAPS;
 

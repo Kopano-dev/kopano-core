@@ -75,16 +75,15 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	for (auto iterFolders = lstFolders.cbegin(); iterFolders != lstFolders.cend(); ) {
 		std::string strQuery = "SELECT hierarchy.id, hierarchy.parent, hierarchy.owner, hierarchy.flags, hierarchy.type FROM hierarchy WHERE hierarchy.type = " + stringify(MAPI_FOLDER) + " AND hierarchy.flags & " + stringify(MSGFLAG_DELETED) + " = " + stringify(ulFlags & MSGFLAG_DELETED);
 		strQuery += " AND hierarchy.parent IN(";
-		
+
 		while (iterFolders != lstFolders.cend()) {
 		    strQuery += stringify(*iterFolders);
 		    ++iterFolders;
 		    if (iterFolders != lstFolders.cend())
     		    strQuery += ",";
         }
-        
-        strQuery += ")";
 
+        strQuery += ")";
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess)
 			return er;
@@ -93,16 +92,13 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 			auto lpDBRow = lpDBResult.fetch_row();
 			if (lpDBRow == NULL)
 				break;
-
 			if (lpDBRow[0] == nullptr || lpDBRow[1] == nullptr || lpDBRow[2] == nullptr || lpDBRow[3] == nullptr || lpDBRow[4] == nullptr)
 				continue;
 
             // Since we have this information, give the cache manager the hierarchy information for this object
 			cache->SetObject(atoui(lpDBRow[0]), atoui(lpDBRow[1]), atoui(lpDBRow[2]), atoui(lpDBRow[3]), atoui(lpDBRow[4]));
-			
 			// Push folders onto end of list
 			lstFolders.emplace_back(atoui(lpDBRow[0]));
-            
             // If we were pointing at the last item, point at the freshly inserted item
             if(iterFolders == lstFolders.cend())
 			--iterFolders;
@@ -116,7 +112,6 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 
 	lstFolders.remove(m_ulFolderId);
 	lstObjIds = std::move(lstFolders);
-
     LoadRows(&lstObjIds, 0);
 	return erSuccess;
 }

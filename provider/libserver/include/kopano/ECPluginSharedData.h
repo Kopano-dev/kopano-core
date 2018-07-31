@@ -120,7 +120,7 @@ public:
 
 	/**
 	 * Check for multi-server support
-	 * 
+	 *
 	 * @return True if multi-server support is enabled.
 	 */
 	_kc_hidden virtual bool IsDistributed(void) const { return m_bDistributed; }

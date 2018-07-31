@@ -81,7 +81,7 @@ struct STOREDPROCS {
  * Mode 1 = Best body only (RTF better than HTML) + plaintext
  * Mode 2 = Plaintext only
  */
- 
+
 static const char szGetProps[] =
 "CREATE PROCEDURE GetProps(IN hid integer, IN mode integer)\n"
 "BEGIN\n"
@@ -90,7 +90,7 @@ static const char szGetProps[] =
 "  IF mode = 1 THEN\n"
 "  	 call GetBestBody(hid, bestbody);\n"
 "  END IF;\n"
-  
+
 "  SELECT 0, tag, properties.type, val_ulong, val_string, val_binary, val_double, val_longint, val_hi, val_lo, 0, names.nameid, names.namestring, names.guid\n"
 "    FROM properties LEFT JOIN names ON properties.tag-34049=names.id WHERE hierarchyid=hid AND (tag <= 34048 OR names.id IS NOT NULL) AND (tag NOT IN (4105, 4115) OR mode = 0 OR (mode = 1 AND tag = bestbody))\n"
 "  UNION\n"
@@ -151,7 +151,7 @@ static const char szStreamObj[] =
 "  call GetProps(rootid, mode);\n"
 
 "  call PrepareGetProps(rootid);\n"
- 
+
 "  SELECT id,hierarchy.type FROM hierarchy WHERE parent=rootid;\n"
 
 "  OPEN cur_hierarchy;\n"
@@ -247,12 +247,10 @@ ECRESULT ECDatabase::InitLibrary(const char *lpDatabaseDir,
     	strDatabaseDir = "--datadir=";
     	strDatabaseDir+= lpDatabaseDir;
     }
-
     if(lpConfigFile) {
     	strConfigFile = "--defaults-file=";
     	strConfigFile+= lpConfigFile;
     }
-	
 	const char *server_args[] = {
 		"",		/* this string is not used */
 		strConfigFile.c_str(),
@@ -287,7 +285,6 @@ ECRESULT ECDatabase::InitializeDBStateInner(void)
 		auto er = DoUpdate(std::string("DROP PROCEDURE IF EXISTS ") + stored_procedures[i].szName);
 		if(er != erSuccess)
 			return er;
-			
 		er = DoUpdate(stored_procedures[i].szSQL);
 		if (er == erSuccess)
 			continue;
@@ -351,13 +348,11 @@ ECRESULT ECDatabase::Connect(void)
 			 */
 			Query("SET SESSION sql_mode = 'STRICT_ALL_TABLES,NO_UNSIGNED_SUBTRACTION'");
 	}
-
 exit:
 	if (er == erSuccess)
 		g_lpStatsCollector->Increment(SCN_DATABASE_CONNECTS);
 	else
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_CONNECTS);
-		
 	return er;
 }
 
@@ -367,7 +362,7 @@ exit:
  * Sends a query to the MySQL server, and does a reconnect if the server connection is lost before or during
  * the SQL query. The reconnect is done only once. If the query fails after the reconnect, the entire call
  * fails.
- * 
+ *
  * It is up to the caller to get any result information from the query.
  *
  * @param[in] strQuery SQL query to perform
@@ -377,21 +372,18 @@ ECRESULT ECDatabase::Query(const std::string &strQuery)
 {
 	ECRESULT er = erSuccess;
 	int err = KDatabase::Query(strQuery);
-	
+
 	if(err && (mysql_errno(&m_lpMySQL) == CR_SERVER_LOST || mysql_errno(&m_lpMySQL) == CR_SERVER_GONE_ERROR)) {
 		ec_log_warn("SQL [%08lu] info: Try to reconnect", m_lpMySQL.thread_id);
-			
 		er = Close();
 		if(er != erSuccess)
 			return er;
 		er = Connect();
 		if(er != erSuccess)
 			return er;
-			
 		// Try again
 		err = mysql_real_query( &m_lpMySQL, strQuery.c_str(), strQuery.length() );
 	}
-
 	if(err) {
 		if (!m_bSuppressLockErrorLogging || GetLastError() == DB_E_UNKNOWN)
 			ec_log_err("SQL [%08lu] Failed: %s, Query Size: %zu, Query: \"%s\"", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL), strQuery.size(), strQuery.c_str());
@@ -417,17 +409,14 @@ ECRESULT ECDatabase::DoSelectMulti(const std::string &strQuery)
 	ECRESULT er = erSuccess;
 	assert(strQuery.length() != 0);
 	autolock alk(*this);
-		
+
 	if( Query(strQuery) != erSuccess ) {
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECDatabase::DoSelectMulti(): select failed");
 		goto exit;
 	}
-	
 	m_bFirstResult = true;
-
 	g_lpStatsCollector->Increment(SCN_DATABASE_SELECTS);
-	
 exit:
 	if (er != erSuccess) {
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
@@ -438,7 +427,7 @@ exit:
 
 /**
  * Get next resultset from a multi-resultset query
- * 
+ *
  * @param[out] lppResult Resultset
  * @return result
  */
@@ -451,21 +440,17 @@ ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
 
 	if(!m_bFirstResult)
 		ret = mysql_next_result( &m_lpMySQL );
-		
 	m_bFirstResult = false;
-		
 	if(ret < 0) {
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("SQL [%08lu] next_result failed: expected more results", m_lpMySQL.thread_id);
 		goto exit;
 	}
-	
 	if(ret > 0) {
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("SQL [%08lu] next_result of multi-resultset failed: %s", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL));
 		goto exit;
-	}		
-
+	}
 	lpResult = DB_RESULT(this, mysql_store_result(&m_lpMySQL));
 	if (lpResult == nullptr) {
    		// I think this can only happen on the first result set of a query since otherwise mysql_next_result() would already fail
@@ -473,7 +458,6 @@ ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
 		ec_log_err("SQL [%08lu] result failed: %s", m_lpMySQL.thread_id, mysql_error(&m_lpMySQL));
 		goto exit;
    	}
-
 	if (lppResult)
 		*lppResult = std::move(lpResult);
 exit:
@@ -641,7 +625,6 @@ ECRESULT ECDatabase::CreateDatabase(void)
 	er = InsertServerGUID(this);
 	if(er != erSuccess)
 		return er;
-
 	// Add the release id in the database
 	er = UpdateDatabaseVersion(Z_UPDATE_RELEASE_ID);
 	if(er != erSuccess)
@@ -694,7 +677,6 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 	if (er != erSuccess || lpResult.get_num_rows() == 0) {
 		// Ok, maybe < than version 5.10
 		// check version
-
 		strQuery = "SHOW COLUMNS FROM properties";
 		er = DoSelect(strQuery, &lpResult);
 		if(er != erSuccess)
@@ -718,7 +700,6 @@ ECRESULT ECDatabase::GetDatabaseVersion(zcp_versiontuple *dbv)
 		ec_log_err("ECDatabase::GetDatabaseVersion(): NULL row or columns");
 		return KCERR_DATABASE_ERROR;
 	}
-
 	dbv->v_major  = strtoul(lpDBRow[0], NULL, 0);
 	dbv->v_minor  = strtoul(lpDBRow[1], NULL, 0);
 	dbv->v_micro  = strtoul(lpDBRow[2], NULL, 0);
@@ -744,12 +725,12 @@ ECRESULT ECDatabase::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 	return erSuccess;
 }
 
-/** 
+/**
  * Update the database to the current version.
- * 
+ *
  * @param[in]  bForceUpdate possebly force upgrade
  * @param[out] strReport error message
- * 
+ *
  * @return Kopano error code
  */
 ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
@@ -797,12 +778,10 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 		if (stored_ver.v_schema >= sUpdateList[i].ulVersion)
 			// Update already done, next
 			continue;
-
 		ec_log_info("Start: %s", sUpdateList[i].lpszLogComment);
 		auto dtx = Begin(er);
 		if(er != erSuccess)
 			return er;
-
 		bSkipped = false;
 		er = sUpdateList[i].lpFunction(this);
 		if (er == KCERR_IGNORE_ME) {
@@ -813,7 +792,6 @@ ECRESULT ECDatabase::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 		} else if (er != hrSuccess) {
 			return er;
 		}
-
 		er = UpdateDatabaseVersion(sUpdateList[i].ulVersion);
 		if(er != erSuccess)
 			return er;
@@ -865,7 +843,6 @@ static constexpr const sSQLDatabase_t kcsrv_tables[] = {
 	{"properties", Z_TABLEDEF_PROPERTIES},
 	{"delayedupdate", Z_TABLEDEF_DELAYEDUPDATE},
 	{"receivefolder", Z_TABLEDEF_RECEIVEFOLDER},
-
 	{"stores", Z_TABLEDEF_STORES},
 	{"users", Z_TABLEDEF_USERS},
 	{"outgoingqueue", Z_TABLEDEF_OUTGOINGQUEUE},
@@ -876,12 +853,10 @@ static constexpr const sSQLDatabase_t kcsrv_tables[] = {
 	{"versions", Z_TABLEDEF_VERSIONS},
 	{"indexedproperties", Z_TABLEDEF_INDEXED_PROPERTIES},
 	{"settings", Z_TABLEDEF_SETTINGS},
-
 	{"object", Z_TABLEDEF_OBJECT},
 	{"objectproperty", Z_TABLEDEF_OBJECT_PROPERTY},
 	{"objectmvproperty", Z_TABLEDEF_OBJECT_MVPROPERTY},
 	{"objectrelation", Z_TABLEDEF_OBJECT_RELATION},
-
 	{"singleinstances", Z_TABLEDEF_REFERENCES},
 	{"abchanges", Z_TABLEDEF_ABCHANGES},
 	{"syncedmessages", Z_TABLEDEFS_SYNCEDMESSAGES},

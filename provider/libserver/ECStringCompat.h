@@ -53,8 +53,8 @@ public:
 	/**
 	 * Convert the data from UTF8 to either UTF8 ot WTF1252. If culClientCaps
 	 * contains KOPANO_CAP_UNICODE, the output data will not be converted and
-	 * will be in UTF8. Otherwise the data will be encoded in WTF1252. 
-	 * 
+	 * will be in UTF8. Otherwise the data will be encoded in WTF1252.
+	 *
 	 *
 	 * @param[in]	szIn	The input data in UTF8.
 	 *
@@ -94,8 +94,6 @@ private:
 	bool m_fUnicode;
 };
 
-
-
 enum EncodingFixDirection { In, Out };
 
 ECRESULT FixPropEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct propVal *lpProp, bool bNoTagUpdate = false);
@@ -105,8 +103,6 @@ ECRESULT FixUserEncoding(struct soap *soap, const ECStringCompat &stringCompat, 
 ECRESULT FixGroupEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct group *lpGroup);
 ECRESULT FixCompanyEncoding(struct soap *soap, const ECStringCompat &stringCompat, enum EncodingFixDirection type, struct company *lpCompany);
 ECRESULT FixNotificationsEncoding(struct soap *soap, const ECStringCompat &stringCompat, struct notificationArray *notifications);
-
-
 
 // inlines
 inline char *ECStringCompat::to_UTF8(soap *lpsoap, const char *szIn) const

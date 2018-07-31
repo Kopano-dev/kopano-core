@@ -192,7 +192,7 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 
 			switch (PROP_ID(lpsPropTagArray->__ptr[k])) {
 			case PROP_ID(PR_INSTANCE_KEY):
-				// generate key 
+				// generate key
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_bin;
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].Value.bin = s_alloc<xsd__base64Binary>(soap);
@@ -303,7 +303,7 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 		struct timespec now;
 		if (pthread_getcpuclockid(bs.threadid, &clock) != 0)
 			continue;
-			
+
 		clock_gettime(clock, &now);
 		sd.dblUser += timespec2dbl(now) - timespec2dbl(bs.threadstart);
 		sd.dblReal += dur2dbl(decltype(bs.start)::clock::now() - bs.start);
@@ -353,7 +353,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis,
 
 			switch (PROP_ID(lpsPropTagArray->__ptr[k])) {
 			case PROP_ID(PR_INSTANCE_KEY):
-				// generate key 
+				// generate key
 				m.__union = SOAP_UNION_propValData_bin;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
@@ -625,7 +625,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 			switch (PROP_ID(lpsPropTagArray->__ptr[k])) {
 			case PROP_ID(PR_INSTANCE_KEY):
-				// generate key 
+				// generate key
 				m.__union = SOAP_UNION_propValData_bin;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
@@ -775,7 +775,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 			};
 		}
 		++i;
-	}	
+	}
 
 	*lppRowSet = lpsRowSet;
 	return er;
@@ -866,7 +866,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 			switch (PROP_ID(lpsPropTagArray->__ptr[k])) {
 			case PROP_ID(PR_INSTANCE_KEY):
-				// generate key 
+				// generate key
 				m.__union = SOAP_UNION_propValData_bin;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
@@ -949,7 +949,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 			};
 		}
 		++i;
-	}	
+	}
 
 	*lppRowSet = lpsRowSet;
 	return er;
@@ -977,7 +977,7 @@ ECRESULT ECServerStatsTable::Load()
 	auto er = lpSession->GetUserManagement()->GetServerList(&servers);
 	if (er != erSuccess)
 		return er;
-		
+
 	// Assign an ID to each server which is usable from QueryRowData
 	for (const auto &srv : servers) {
 		m_mapServers.emplace(i, srv);
@@ -1023,7 +1023,7 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 	for (const auto &row : *lpRowList) {
 		if (lpUserManagement->GetServerDetails(lpStats->m_mapServers[row.ulObjId], &details) != erSuccess)
 			details = serverdetails_t();
-		
+
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			// default is error prop
 			auto &m = lpsRowSet->__ptr[i].__ptr[k];
@@ -1033,7 +1033,7 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 
 			switch (PROP_ID(lpsPropTagArray->__ptr[k])) {
 			case PROP_ID(PR_INSTANCE_KEY):
-				// generate key 
+				// generate key
 				m.__union = SOAP_UNION_propValData_bin;
 				m.ulPropTag = lpsPropTagArray->__ptr[k];
 				m.Value.bin = s_alloc<xsd__base64Binary>(soap);
@@ -1084,7 +1084,7 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis,
 			};
 		}
 		++i;
-	}	
+	}
 
 	*lppRowSet = lpsRowSet;
 	return erSuccess;

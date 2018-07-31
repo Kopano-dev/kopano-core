@@ -55,14 +55,13 @@ ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 
 	// This is a global key that we can reference from each thread with a different value. The
 	// database_destroy routine is called when the thread terminates.
-
 	pthread_key_create(&database_key, database_destroy);
 	pthread_key_create(&plugin_key, plugin_destroy); // same goes for the userDB-plugin
 
 	// Init mutex for database object list
 	auto er = ECDatabase::InitLibrary(lpDatabaseDir, lpConfigFile);
 	g_lpStatsCollector = new ECStatsCollector();
-	
+
 	//TODO: with an error remove all variables and g_bInitLib = false
 	g_bInitLib = true;
 	return er;
@@ -73,8 +72,8 @@ ECRESULT kopano_unloadlibrary(void)
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
 
-	// Delete the global key,  
-	//  on this position, there are zero or more threads exist. 
+	// Delete the global key,
+	//  on this position, there are zero or more threads exist.
 	//  As you delete the keys, the function database_destroy and plugin_destroy will never called
 	//
 	pthread_key_delete(database_key);
@@ -120,7 +119,6 @@ ECRESULT kopano_exit()
 
 	delete g_lpSessionManager;
 	g_lpSessionManager = NULL;
-
 	delete g_lpStatsCollector;
 	g_lpStatsCollector = NULL;
 
@@ -209,7 +207,6 @@ ECRESULT GetDatabaseObject(ECDatabase **lppDatabase)
 		return KCERR_UNKNOWN;
 	if (lppDatabase == NULL)
 		return KCERR_INVALID_PARAMETER;
-
 	ECDatabaseFactory db(g_lpSessionManager->GetConfig());
 	return GetThreadLocalDatabase(&db, lppDatabase);
 }

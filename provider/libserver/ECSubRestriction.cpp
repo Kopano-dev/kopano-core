@@ -25,29 +25,29 @@ static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
 {
     ECRESULT er;
     unsigned int ulCount = 0;
-    
+
     if(maxdepth == 0)
         return KCERR_TOO_COMPLEX;
-        
+
     if(lpulCount == NULL) // If the caller didn't want to count restrictions, we still want to count internally
         lpulCount = &ulCount;
     assert(lpRestrict != NULL);
-    
+
     switch(lpRestrict->ulType) {
         case RES_AND:
             for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i) {
                 er = GetSubRestrictionRecursive(lpRestrict->lpAnd->__ptr[i], lpulCount, ulSubRestriction, lppSubRestrict, maxdepth-1);
                 if(er != erSuccess)
                     return er;
-            }        
+            }
             break;
         case RES_OR:
             for (gsoap_size_t i = 0; i < lpRestrict->lpOr->__size; ++i) {
                 er = GetSubRestrictionRecursive(lpRestrict->lpOr->__ptr[i], lpulCount, ulSubRestriction, lppSubRestrict, maxdepth-1);
                 if(er != erSuccess)
                     return er;
-            }        
-            break;        
+            }
+            break;
         case RES_NOT:
             er = GetSubRestrictionRecursive(lpRestrict->lpNot->lpNot, lpulCount, ulSubRestriction, lppSubRestrict, maxdepth-1);
             break;
@@ -67,7 +67,7 @@ static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
             // Counting subrestrictions
             if(lpulCount)
 			++*lpulCount;
-                    
+
             break;
     }
 	return erSuccess;
@@ -137,7 +137,7 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
 		return er;
 	if (lpObjects->empty())
 		goto exit;				// nothing to search in, return success.
-    
+
     assert(lpRestrict != NULL);
     switch(lpRestrict->ulSubObject) {
         case PR_MESSAGE_RECIPIENTS:
@@ -150,43 +150,43 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
             er = KCERR_INVALID_PARAMETER;
             goto exit;
     }
-    
+
     // Get property tags we'll be needing to evaluate the restriction
     er = ECGenericObjectTable::GetRestrictPropTags(lpRestrict->lpSubObject, NULL, &lpPropTags);
     if(er != erSuccess)
         goto exit;
-    
+
     // Get the subobject IDs we are querying from the database
     strQuery = "SELECT hierarchy.parent, hierarchy.id FROM hierarchy WHERE hierarchy.type = " + stringify(ulType) + " AND hierarchy.parent IN (";
-    
+
     for (const auto &ob : *lpObjects) {
         strQuery += stringify(ob.ulObjId);
         strQuery += ",";
     }
-    
+
     // Remove trailing comma
     strQuery.resize(strQuery.size()-1);
-    
+
     strQuery += ")";
-    
+
     er = lpDatabase->DoSelect(strQuery, &lpDBResult);
     if(er != erSuccess)
         goto exit;
-        
+
     while(1) {
 		lpRow = lpDBResult.fetch_row();
         if(lpRow == NULL)
             break;
-            
+
         if(lpRow[0] == NULL || lpRow[1] == NULL)
             break;
-            
+
         ulParent = atoi(lpRow[0]);
         ulSubObject = atoi(lpRow[1]);
-        
+
         // Remember which subobject belongs to which object
         mapParent[ulSubObject] = ulParent;
-        
+
         // Add an item to the rows we want to be querying
         sKey.ulObjId = ulSubObject;
         sKey.ulOrderId = 0;
@@ -197,29 +197,29 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
 		goto exit;				// no objects found, return success
 
     // lstSubObjects contains list of objects to match, mapParent contains mapping to parent
-    
+
     // Get the actual row data from the database
     er = ECStoreObjectTable::QueryRowData(NULL, NULL, lpSession, &lstSubObjects, lpPropTags, lpECODStore, &lpRowSet, false, false, true);
     if(er != erSuccess)
         goto exit;
-        
+
     iterObject = lstSubObjects.cbegin();
     // Loop through all the rows, see if they match
     for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i) {
 		er = ECGenericObjectTable::MatchRowRestrict(cache, &lpRowSet->__ptr[i], lpRestrict->lpSubObject, nullptr, locale, &fMatch);
         if(er != erSuccess)
             goto exit;
-            
+
         if(fMatch) {
             auto iterParent = mapParent.find(iterObject->ulObjId);
             if (iterParent != mapParent.cend())
                 // Remember the id of the message one of whose subobjects matched
 				result.emplace(iterParent->second);
         }
-        
+
         // Optimisation possibility: if one of the subobjects matches, we shouldn't bother checking
         // other subobjects. This is a rather minor optimisation though.
-        
+
         ++iterObject;
         // lstSubObjects will always be in the same order as lpRowSet
     }
@@ -229,7 +229,7 @@ exit:
         FreeRowSet(lpRowSet, true);
     if(lpPropTags)
         FreePropTagArray(lpPropTags);
-        
+
     return er;
 }
 

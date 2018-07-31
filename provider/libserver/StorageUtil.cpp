@@ -28,7 +28,7 @@ extern ECSessionManager *g_lpSessionManager;	// ECServerEntrypoint.cpp
 static std::unordered_map<unsigned int, time_t> ltm_ontime_cache, ltm_offtime_cache;
 static std::mutex ltm_ontime_mutex, ltm_offtime_mutex;
 
-ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned int ulParentObjId, unsigned int ulParentType, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulObjId) 
+ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned int ulParentObjId, unsigned int ulParentType, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulObjId)
 {
 	unsigned int ulNewObjId = 0, ulAffected = 0;
 	assert(ulParentType == MAPI_FOLDER || ulParentType == MAPI_MESSAGE || ulParentType == MAPI_ATTACH);
@@ -49,7 +49,6 @@ ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned i
 	auto er = lpDatabase->DoInsert(strQuery, &ulNewObjId, &ulAffected);
 	if(er != erSuccess)
 		return er;
-
 	if (ulObjType == MAPI_MESSAGE) {
 		strQuery = "INSERT INTO properties (hierarchyid, tag, type, val_ulong) VALUES ("+ stringify(ulNewObjId) + "," + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + "," + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + "," + stringify(ulFlags) + ")";
 		er = lpDatabase->DoInsert(strQuery);
@@ -59,7 +58,6 @@ ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned i
 
 	// Save this item in the cache, as there is a very high probability that this data will be required very soon (almost 100% sure)
 	g_lpSessionManager->GetCacheManager()->SetObject(ulNewObjId, ulParentObjId, ulOwner, ulFlags, ulObjType);
-
 	// return new object id to saveObject
 	if (lpulObjId)
 		*lpulObjId = ulNewObjId;
@@ -101,7 +99,7 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	if (lpAttachmentStorage == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
 
-	// since we already did the length magic in the previous query, we only need the 
+	// since we already did the length magic in the previous query, we only need the
 	// extra size for filestorage and S3 storage, i.e. not database storage
 	lpDatabaseStorage = dynamic_cast<ECDatabaseAttachment *>(lpAttachmentStorage.get());
 	if (!lpDatabaseStorage) {

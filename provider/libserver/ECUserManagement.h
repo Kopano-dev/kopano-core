@@ -50,7 +50,7 @@ public:
 	{
 		memset(m_ulCounts, 0, sizeof(m_ulCounts));
 	}
-	
+
 	usercount_t(unsigned int ulActiveUser, unsigned int ulNonActiveUser, unsigned int ulRoom, unsigned int ulEquipment, unsigned int ulContact): m_bValid(true) {
 		m_ulCounts[ucActiveUser]	= ulActiveUser;
 		m_ulCounts[ucNonActiveUser]	= ulNonActiveUser;

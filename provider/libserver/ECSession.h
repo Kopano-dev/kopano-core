@@ -91,32 +91,28 @@ public:
 	enum AUTHMETHOD {
 	    METHOD_NONE, METHOD_USERPASSWORD, METHOD_SOCKET, METHOD_SSO, METHOD_SSL_CERT
 	};
+
 protected:
 	std::atomic<unsigned int> m_ulRefCount{0};
 	std::string		m_strSourceAddr;
 	ECSESSIONID		m_sessionID;
 	bool			m_bCheckIP;
-
 	time_t			m_sessionTime;
 	unsigned int		m_ulSessionTimeout;
-
 	ECDatabaseFactory	*m_lpDatabaseFactory;
 	ECSessionManager	*m_lpSessionManager;
 	unsigned int		m_ulClientCapabilities;
-
 	/*
 	 * Protects the object from deleting while a thread is running on a
 	 * method in this object.
 	 */
 	std::condition_variable m_hThreadReleased;
-	std::mutex m_hThreadReleasedMutex;	
-	
+	std::mutex m_hThreadReleasedMutex;
 	std::mutex m_hRequestStats;
 	unsigned int		m_ulRequests;
 	std::string		m_strLastRequestURL;
 	std::string		m_strProxyHost;
 	unsigned int		m_ulLastRequestPort;
-
 	std::string		m_strClientApplicationVersion, m_strClientApplicationMisc;
 };
 
@@ -143,7 +139,7 @@ public:
 	_kc_hidden ECRESULT GetObjectFromEntryId(const entryId *, unsigned int *obj_id, unsigned int *eid_flags = nullptr);
 	_kc_hidden ECRESULT LockObject(unsigned int obj_id);
 	_kc_hidden ECRESULT UnlockObject(unsigned int obj_id);
-	
+
 	/* for ECStatsSessionTable */
 	_kc_hidden void AddBusyState(pthread_t, const char *state, const struct timespec &threadstart, const KC::time_point &start);
 	_kc_hidden void UpdateBusyState(pthread_t, int state);
@@ -178,7 +174,6 @@ private:
 	std::unique_ptr<ECUserManagement> m_lpUserManagement;
 	std::unique_ptr<ECTableManager> m_lpTableManager;
 };
-
 
 /*
   Authentication session

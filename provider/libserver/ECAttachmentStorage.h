@@ -121,7 +121,7 @@ class ECFileAttachment _kc_final :
 
 protected:
 	_kc_hidden virtual ~ECFileAttachment(void);
-	
+
 	/* Single Instance Attachment handlers */
 	_kc_hidden virtual ECRESULT LoadAttachmentInstance(struct soap *, const ext_siid &, size_t *, unsigned char **) override;
 	_kc_hidden virtual ECRESULT LoadAttachmentInstance(const ext_siid &, size_t *, ECSerializer *) override;

@@ -103,7 +103,7 @@ public:
 	~ECsIndexProp() {
 		delete[] lpData;
 	}
-    
+
     ECsIndexProp(const ECsIndexProp &src) {
         if(this == &src)
             return;
@@ -121,7 +121,7 @@ public:
 	{
 		SetValue(tag, d, z);
 	}
-    
+
     ECsIndexProp& operator=(const ECsIndexProp &src) {
 		if (this == &src)
 			return *this;
@@ -133,7 +133,6 @@ public:
 	// @todo check this function, is this really ok?
 	inline bool operator<(const ECsIndexProp &other) const noexcept
 	{
-
 		if(cbData < other.cbData)
 			return true;
 		if (cbData != other.cbData)
@@ -154,19 +153,14 @@ public:
 
 	inline bool operator==(const ECsIndexProp &other) const noexcept
 	{
-
 		if(cbData != other.cbData || ulTag != other.ulTag)
 			return false;
-
 		if (lpData == other.lpData)
 			return true;
-
 		if (lpData == NULL || other.lpData == NULL)
 			return false;
-
 		if(memcmp(lpData, other.lpData, cbData) == 0)
 			return true;
-
 		return false;
 	}
 
@@ -174,17 +168,17 @@ public:
 	{
 		if (data == nullptr || z == 0)
 			return;
-
 		Free();
 		lpData = new unsigned char[z];
 		cbData = z;
 		ulTag = tag;
 		memcpy(lpData, data, z);
 	}
+
 protected:
 	void Free() {
 		delete[] lpData;
-		ulTag = 0; 
+		ulTag = 0;
 		cbData = 0;
 		lpData = NULL;
 	}
@@ -201,6 +195,7 @@ protected:
 
 		dst->ulTag = src->ulTag;
 	}
+
 public:
 	unsigned int ulTag = 0, cbData = 0;
 	unsigned char *lpData = nullptr;
@@ -213,7 +208,7 @@ public:
 		for (auto &p : mapPropVals)
 			FreePropVal(&p.second, false);
     };
-    
+
     ECsCells(const ECsCells &src) {
         struct propVal val;
 		for (const auto &p : src.mapPropVals) {
@@ -222,13 +217,12 @@ public:
         }
         m_bComplete = src.m_bComplete;
     }
-    
+
     ECsCells& operator=(const ECsCells &src) {
         struct propVal val;
 		for (auto &p : mapPropVals)
 			FreePropVal(&p.second, false);
         mapPropVals.clear();
-        
 		for (const auto &p : src.mapPropVals) {
 			CopyPropVal(const_cast<struct propVal *>(&p.second), &val);
 			mapPropVals[p.first] = val;
@@ -236,7 +230,7 @@ public:
         m_bComplete = src.m_bComplete;
 		return *this;
     }
-    
+
     // Add a property value for this object
     void AddPropVal(unsigned int ulPropTag, const struct propVal *lpPropVal) {
         struct propVal val;
@@ -245,11 +239,11 @@ public:
         val.ulPropTag = NormalizeDBPropTag(val.ulPropTag);
 		auto res = mapPropVals.emplace(ulPropTag, val);
 		if (!res.second) {
-            FreePropVal(&res.first->second, false); 
+            FreePropVal(&res.first->second, false);
             res.first->second = val;	// reassign
         }
     }
-    
+
     // get a property value for this object
     bool GetPropVal(unsigned int ulPropTag, struct propVal *lpPropVal, struct soap *soap, bool truncate) {
 		auto i = mapPropVals.find(NormalizeDBPropTag(ulPropTag));
@@ -260,7 +254,7 @@ public:
 	        lpPropVal->ulPropTag = ulPropTag; // Switch back to requested type (not on PT_ERROR of course)
         return true;
     }
-    
+
 	std::vector<unsigned int> GetPropTags() {
 		std::vector<unsigned int> result;
 		for (auto iter = mapPropVals.cbegin(); iter != mapPropVals.cend(); iter++) {
@@ -281,7 +275,7 @@ public:
 		if (PROP_TYPE(i->second.ulPropTag) == PT_LONGLONG)
 			i->second.Value.li += lDelta;
     }
-    
+
     // Updates a LONG type property
     void UpdatePropVal(unsigned int ulPropTag, unsigned int ulMask, unsigned int ulValue) {
         if(PROP_TYPE(ulPropTag) != PT_LONG && PROP_TYPE(ulPropTag) != PT_LONGLONG)
@@ -298,14 +292,14 @@ public:
 			i->second.Value.li |= ulValue & ulMask;
 		}
     }
-    
+
 	void SetComplete(bool bComplete) { m_bComplete = bComplete; }
 	bool GetComplete() const { return m_bComplete; }
 
-    // Gets the amount of memory used by this object    
+    // Gets the amount of memory used by this object
     size_t GetSize() const {
         size_t ulSize = 0;
-        
+
         for (const auto &p : mapPropVals) {
             switch (p.second.__union) {
                 case SOAP_UNION_propValData_lpszA:
@@ -323,14 +317,12 @@ public:
                 default:
                     break;
             }
-            
             ulSize += sizeof(std::map<unsigned int, struct propVal>::value_type);
         }
         ulSize += sizeof(*this);
-        
         return ulSize;
     }
-    
+
     // All properties for this object; propTag => propVal
     std::map<unsigned int, struct propVal> mapPropVals;
 	bool m_bComplete = false;
@@ -371,7 +363,6 @@ inline unsigned int IPRSHash(const ECsIndexProp &_Keyval1) noexcept
 		hash = hash * a + _Keyval1.lpData[i];
 		a *= b;
 	}
-
 	return hash;
 }
 
@@ -418,7 +409,6 @@ class ECCacheManager _kc_final {
 public:
 	ECCacheManager(ECConfig *lpConfig, ECDatabaseFactory *lpDatabase);
 	virtual ~ECCacheManager();
-
 	ECRESULT PurgeCache(unsigned int ulFlags);
 
 	// These are read-through (ie they access the DB if they can't find the data)
@@ -428,15 +418,13 @@ public:
 	ECRESULT SetObject(unsigned int ulObjId, unsigned int ulParent, unsigned int ulOwner, unsigned int ulFlags, unsigned int ulType);
 	// Query cache only
 	ECRESULT QueryParent(unsigned int ulObjId, unsigned int *ulParent);
-	
+
 	ECRESULT GetObjects(const std::list<sObjectTableKey> &lstObjects, std::map<sObjectTableKey, ECsObjects> &mapObjects);
 	ECRESULT GetObjectsFromProp(unsigned int ulTag, const std::vector<unsigned int> &cbdata, const std::vector<unsigned char *> &lpdata, std::map<ECsIndexProp, unsigned int> &mapObjects);
-
 	ECRESULT GetStore(unsigned int ulObjId, unsigned int *ulStore, GUID *lpGuid, unsigned int maxdepth = 100);
 	ECRESULT GetStoreAndType(unsigned int ulObjId, unsigned int *ulStore, GUID *lpGuid, unsigned int *ulType, unsigned int maxdepth = 100);
 	ECRESULT GetObjectFlags(unsigned int ulObjId, unsigned int *ulFlags);
 	ECRESULT SetStore(unsigned int ulObjId, unsigned int ulStore, const GUID *, unsigned int ulType);
-
 	ECRESULT GetServerDetails(const std::string &strServerId, serverdetails_t *lpsDetails);
 	ECRESULT SetServerDetails(const std::string &strServerId, const serverdetails_t &sDetails);
 
@@ -456,7 +444,6 @@ public:
 
 	ECRESULT Update(unsigned int ulType, unsigned int ulObjId);
 	ECRESULT UpdateUser(unsigned int ulUserId);
-
 	ECRESULT GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId* lpEntrId);
 	ECRESULT GetEntryIdFromObject(unsigned int ulObjId, struct soap *soap, unsigned int ulFlags, entryId** lppEntryId);
 	ECRESULT GetObjectFromEntryId(const entryId *id, unsigned int *obj);
@@ -473,23 +460,22 @@ public:
 	ECRESULT GetComplete(unsigned int ulObjId, bool &complete);
 	ECRESULT GetPropTags(unsigned int ulObjId, std::vector<unsigned int> &proptags);
 	// Cache Index properties
-	
+
 	// Read-through
 	ECRESULT GetPropFromObject(unsigned int ulTag, unsigned int ulObjId, struct soap *soap, unsigned int* lpcbData, unsigned char** lppData);
 	ECRESULT GetObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId);
-	
+
 	ECRESULT RemoveIndexData(unsigned int ulObjId);
 	ECRESULT RemoveIndexData(unsigned int ulPropTag, unsigned int cbData, unsigned char *lpData);
 	ECRESULT RemoveIndexData(unsigned int ulPropTag, unsigned int ulObjId);
-	
+
 	// Read cache only
 	ECRESULT QueryObjectFromProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int* lpulObjId);
 
 	ECRESULT SetObjectProp(unsigned int ulTag, unsigned int cbData, unsigned char* lpData, unsigned int ulObjId);
-
 	void ForEachCacheItem(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj);
 	ECRESULT DumpStats();
-	
+
 	// Cache list of properties indexed by kopano-search
 	ECRESULT GetExcludedIndexProperties(std::set<unsigned int>& set);
 	ECRESULT SetExcludedIndexProperties(const std::set<unsigned int> &);
@@ -497,7 +483,7 @@ public:
 	// Test
 	void DisableCellCache();
 	void EnableCellCache();
-	
+
 private:
 	// cache functions
 	ECRESULT I_GetACLs(unsigned int obj_id, struct rightsArray **);
@@ -528,42 +514,32 @@ private:
 	std::recursive_mutex m_hCacheObjectMutex;
 	std::recursive_mutex m_hCacheCellsMutex; /* Cell cache */
 	std::recursive_mutex m_hCacheIndPropMutex; /* Indexed properties cache */
-	
 	// Quota cache, to reduce the impact of the user plugin
 	// m_mapQuota contains user and company cache, except when it's the company user default quota
 	// m_mapQuotaUserDefault contains company user default quota
 	// this can't be in the same map, since the id is the same for "company" and "company user default"
 	ECCache<ECMapQuota>			m_QuotaCache;
 	ECCache<ECMapQuota>			m_QuotaUserDefaultCache;
-
 	// Object cache, (hierarchy table)
 	ECCache<ECMapObjects>		m_ObjectsCache;
-
 	// Store cache
 	ECCache<ECMapStores>		m_StoresCache;
-
 	// User cache
 	ECCache<ECMapUserObject>	m_UserObjectCache;
 	ECCache<ECMapUEIdObject>	m_UEIdObjectCache;
 	ECCache<ECMapUserObjectDetails>	m_UserObjectDetailsCache;
-
 	// ACL cache
 	ECCache<ECMapACLs>			m_AclCache;
-
 	// Cell cache, include the column data of a loaded table
 	ECCache<ECMapCells>			m_CellCache;
-	
 	// Server cache
 	ECCache<ECMapServerDetails>	m_ServerDetailsCache;
-	
 	//Index properties
 	ECCache<ECMapPropToObject>	m_PropToObjectCache;
 	ECCache<ECMapObjectToProp>	m_ObjectToPropCache;
-	
 	// Properties from kopano-search
 	std::set<unsigned int> 		m_setExcludedIndexProperties;
 	std::mutex m_hExcludedIndexPropertiesMutex;
-	
 	// Testing
 	bool m_bCellCacheDisabled = false;
 };

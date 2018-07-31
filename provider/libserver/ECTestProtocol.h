@@ -18,6 +18,6 @@ extern ECRESULT TestPerform(struct soap *soap, ECSession *lpSession, const char 
 extern ECRESULT TestSet(struct soap *soap, ECSession *lpSession, const char *name, const char *value);
 extern ECRESULT TestGet(struct soap *soap, ECSession *lpSession, const char *name, char **value);
 
-} /* namespace */            
+} /* namespace */
 
 #endif

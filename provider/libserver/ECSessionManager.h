@@ -131,7 +131,7 @@ public:
 	// are published to the 'AddNotification()' function for the session's sessiongroup.
 	_kc_hidden ECRESULT SubscribeObjectEvents(unsigned int store_id, ECSESSIONGROUPID);
 	_kc_hidden ECRESULT UnsubscribeObjectEvents(unsigned int store_id, ECSESSIONGROUPID);
-	
+
 	enum SEQUENCE { SEQ_IMAP };
 	_kc_hidden ECRESULT GetNewSequence(SEQUENCE, unsigned long long *seq_id);
 	_kc_hidden ECRESULT CreateDatabaseConnection(void);
@@ -156,7 +156,6 @@ protected:
 
 	EC_SESSIONGROUPMAP m_mapSessionGroups; ///< map of all the session groups
 	SESSIONMAP			m_mapSessions;			///< map of all the sessions
-
 	KC::shared_mutex m_hCacheRWLock; ///< locking of the sessionMap
 	KC::shared_mutex m_hGroupLock; ///< locking of session group map and lonely list
 	std::mutex m_hExitMutex; /* Mutex needed for the release signal */
@@ -168,15 +167,12 @@ protected:
 	unsigned long long m_ullSourceKeyAutoIncrement = 0;
 	unsigned int m_ulSourceKeyQueue = 0;
 	std::mutex m_hSourceKeyAutoIncrementMutex;
-
 	std::mutex m_mutexPersistent;
 	PERSISTENTBYSESSION m_mapPersistentBySession; ///< map of all persistent sessions mapped to their connection id
 	PERSISTENTBYCONNECTION m_mapPersistentByConnection; ///< map of all persistent connections mapped to their sessions
-
 	std::mutex m_mutexTableSubscriptions;
 	unsigned int		m_ulTableSubscriptionId;
 	TABLESUBSCRIPTIONMULTIMAP m_mapTableSubscriptions;	///< Maps a table subscription to the subscriber
-
 	std::mutex m_mutexObjectSubscriptions;
 	OBJECTSUBSCRIPTIONSMULTIMAP	m_mapObjectSubscriptions;	///< Maps an object notification subscription (store id) to the subscriber
 

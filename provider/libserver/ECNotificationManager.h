@@ -28,7 +28,7 @@ namespace KC {
  *
  * So, basically we only handle the SOAP-reply part of the soap request.
  */
- 
+
 struct NOTIFREQUEST {
     struct soap *soap;
     time_t ulRequestTime;
@@ -38,18 +38,17 @@ class ECNotificationManager _kc_final {
 public:
 	ECNotificationManager();
 	~ECNotificationManager();
-    
+
     // Called by the SOAP handler
     HRESULT AddRequest(ECSESSIONID ecSessionId, struct soap *soap);
-
     // Called by a session when it has a notification to send
     HRESULT NotifyChange(ECSESSIONID ecSessionId);
-    
+
 private:
     // Just a wrapper to Work()
     static void * Thread(void *lpParam);
     void * Work();
-    
+
 	bool m_thread_active = false, m_bExit = false;
     pthread_t 	m_thread;
 	unsigned int m_ulTimeout = 60; /* Currently hardcoded at 60s, see comment in Work() */
@@ -59,7 +58,7 @@ private:
     // A set of all sessions that have reported notification activity, but are yet to be processed.
     // (a session is in here for only very short periods of time, and contains only a few sessions even if the load is high)
     std::set<ECSESSIONID> 					m_setActiveSessions;
-    
+
 	std::mutex m_mutexRequests;
 	std::mutex m_mutexSessions;
 	std::condition_variable m_condSessions;

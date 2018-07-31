@@ -35,7 +35,6 @@ struct SAuxMessageData {
 };
 typedef std::map<SOURCEKEY,SAuxMessageData>	MESSAGESET, *LPMESSAGESET;
 
-
 // Forward declarations of interfaces used by ECGetContentChangesHelper
 class IDbQueryCreator;
 class IMessageProcessor;
@@ -44,12 +43,11 @@ class ECGetContentChangesHelper _kc_final {
 public:
 	static ECRESULT Create(struct soap *, ECSession *, ECDatabase *, const SOURCEKEY &folder, unsigned int sync_id, unsigned int change_id, unsigned int flags, const struct restrictTable *, ECGetContentChangesHelper **);
 	~ECGetContentChangesHelper();
-	
 	ECRESULT QueryDatabase(DB_RESULT *lppDBResult);
 	ECRESULT ProcessRows(const std::vector<DB_ROW> &db_rows, const std::vector<DB_LENGTHS> &db_lengths);
 	ECRESULT ProcessResidualMessages();
 	ECRESULT Finalize(unsigned int *lpulMaxChange, icsChangesArray **lppChanges);
-	
+
 private:
 	ECGetContentChangesHelper(struct soap *, ECSession *, ECDatabase *, const SOURCEKEY &folder, unsigned int sync_id, unsigned int change_id, unsigned int flags, const struct restrictTable *);
 	ECRESULT Init();
@@ -57,11 +55,11 @@ private:
 	ECRESULT GetSyncedMessages(unsigned int ulSyncId, unsigned int ulChangeId, LPMESSAGESET lpsetMessages);
 	static bool CompareMessageEntry(const MESSAGESET::value_type &lhs, const MESSAGESET::value_type &rhs);
 	bool MessageSetsDiffer() const;
-	
+
 	// Interfaces for delegated processing
 	IDbQueryCreator *m_lpQueryCreator = nullptr;
 	IMessageProcessor *m_lpMsgProcessor = nullptr;
-	
+
 	// Internal variables
 	soap			*m_soap;
 	ECSession		*m_lpSession;
