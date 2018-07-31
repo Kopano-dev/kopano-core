@@ -174,10 +174,10 @@ def arg_objects(arg, supported_classes, method_name):
         try:
             objects = list(arg)
         except TypeError:
-            raise Error('invalid argument to %s' % method_name)
+            raise ArgumentError('invalid argument to %s' % method_name)
 
     if [o for o in objects if not isinstance(o, supported_classes)]:
-        raise Error('invalid argument to %s' % method_name)
+        raise ArgumentError('invalid argument to %s' % method_name)
     return objects
 
 def _bdec_eid(entryid):

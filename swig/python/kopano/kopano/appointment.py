@@ -6,7 +6,6 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 import codecs
 import datetime
-import pytz
 import struct
 import sys
 

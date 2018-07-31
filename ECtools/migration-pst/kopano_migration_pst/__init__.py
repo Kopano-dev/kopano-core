@@ -208,4 +208,4 @@ def main():
         Service('migration-pst', options=options, args=args).start()
 
 if __name__ == '__main__':
-    main()
+    main() # pragma: no cover

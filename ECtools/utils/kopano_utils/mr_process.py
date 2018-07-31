@@ -29,4 +29,4 @@ def main():
     user.freebusy.publish(now - timedelta(7), now + timedelta(180))
 
 if __name__ == '__main__':
-    main()
+    main() # pragma: no cover
