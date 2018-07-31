@@ -24,15 +24,15 @@
 
 using namespace KC;
 
-/** 
+/**
  * Creates a AF_UNIX socket in a given location and starts to listen
  * on that socket.
- * 
- * @param unix_socket the file location of that socket 
+ *
+ * @param unix_socket the file location of that socket
  * @param lpLogger a logger object
  * @param bInit unused
  * @param mode change the mode of the file to this value (octal!)
- * 
+ *
  * @return the socket we're listening on, or -1 for failure.
  */
 static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
@@ -287,7 +287,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE_PRIORITY, lpsSoap);
 	else
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE, lpsSoap);
-	
+
 	// Create a Unix or Windows pipe
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 	// set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket
@@ -332,7 +332,7 @@ ECRESULT ECSoapServerConnection::DoHUP()
 }
 
 ECRESULT ECSoapServerConnection::MainLoop()
-{	
+{
 	return m_lpDispatcher->MainLoop();
 }
 

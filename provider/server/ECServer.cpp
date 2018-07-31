@@ -114,7 +114,7 @@ static void process_signal(int sig)
 		ec_log_notice("  Please be patient, and do not try to kill the server process.");
 		ec_log_notice("  It may leave your database in an inconsistent state.");
 		return;
-	}	
+	}
 
 	const char *ll;
 	int new_ll;
@@ -397,10 +397,10 @@ exit:
 	return er;
 }
 
-/** 
+/**
  * Checks config options for sane multi-server environments and
- * updates some SSO options if detauls may be inadequate. 
- * 
+ * updates some SSO options if detauls may be inadequate.
+ *
  * @return always returns erSuccess
  */
 static ECRESULT check_server_configuration(void)
@@ -451,7 +451,7 @@ static ECRESULT check_server_configuration(void)
 		// we do return er, since if that is set GetServerDetails() does not work and that is quite vital to work in distributed systems.
 		return er;
 	}
-		
+
 	// Check the various connection parameters for consistency
 	if (g_listen_pipe) {
 		if (sServerDetails.GetFilePath().empty()) {
@@ -466,13 +466,13 @@ static ECRESULT check_server_configuration(void)
 		ec_log_warn("WARNING: 'server_pipe_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetFilePath().c_str());
 		bHaveErrors = true;
 	}
-	
+
 	if (g_listen_http) {
 		if (sServerDetails.GetHttpPath().empty()) {
 			ec_log_warn("WARNING: 'server_tcp_enabled' is set, but LDAP returns nothing");
 			bHaveErrors = true;
 		}
-		
+
 		ulPort = atoui(g_lpConfig->GetSetting("server_tcp_port"));
 		if (sServerDetails.GetHttpPort() != ulPort &&
 		    strcmp(g_lpConfig->GetSetting("server_tcp_enabled"), "yes") == 0) {
@@ -483,7 +483,7 @@ static ECRESULT check_server_configuration(void)
 		ec_log_warn("WARNING: 'server_tcp_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetHttpPath().c_str());
 		bHaveErrors = true;
 	}
-	
+
 	if (g_listen_https) {
 		if (sServerDetails.GetSslPath().empty()) {
 			ec_log_warn("WARNING: 'server_ssl_enabled' is set, but LDAP returns nothing");
@@ -498,7 +498,7 @@ static ECRESULT check_server_configuration(void)
 	} else if (!sServerDetails.GetSslPath().empty()) {
 		ec_log_warn("WARNING: 'server_ssl_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetSslPath().c_str());
 		bHaveErrors = true;
-	}	
+	}
 	return erSuccess;
 }
 
@@ -951,10 +951,10 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "enable_gab",				"yes", CONFIGSETTING_RELOADABLE },			// whether the GAB is enabled
         { "enable_enhanced_ics",    "yes", CONFIGSETTING_RELOADABLE },			// (dis)allow enhanced ICS operations (stream and notifications)
         { "enable_sql_procedures",  "no" },			// (dis)allow SQL procedures (requires mysql config stack adjustment), not reloadable because in the middle of the streaming flip
-		
+
 		{"report_path", "/etc/kopano/report", CONFIGSETTING_RELOADABLE | CONFIGSETTING_UNUSED},
 		{"report_ca_path", "/etc/kopano/report-ca", CONFIGSETTING_RELOADABLE | CONFIGSETTING_UNUSED},
-		
+
 		{ "cache_sortkey_size",		"0", CONFIGSETTING_UNUSED }, // Option not support, only for backward compatibility of all configurations under the 6.20
 
 		{"client_update_enabled", "no", CONFIGSETTING_UNUSED},
@@ -964,14 +964,14 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "index_services_enabled", "", CONFIGSETTING_UNUSED },
 		{ "index_services_path",    "", CONFIGSETTING_UNUSED },
 		{ "index_services_search_timeout", "", CONFIGSETTING_UNUSED },
-		{ "search_enabled",			"yes", CONFIGSETTING_RELOADABLE }, 
+		{ "search_enabled",			"yes", CONFIGSETTING_RELOADABLE },
 		{ "search_socket",			"file:///var/run/kopano/search.sock", CONFIGSETTING_RELOADABLE },
 		{ "search_timeout",			"10", CONFIGSETTING_RELOADABLE },
 
 		{ "threads",				"8", CONFIGSETTING_RELOADABLE },
 		{ "watchdog_max_age",		"500", CONFIGSETTING_RELOADABLE },
 		{ "watchdog_frequency",		"1", CONFIGSETTING_RELOADABLE },
-        
+
 		{ "folder_max_items",		"1000000", CONFIGSETTING_RELOADABLE },
 		{ "default_sort_locale_id",		"en_US", CONFIGSETTING_RELOADABLE },
 		{ "sync_gab_realtime",			"yes", CONFIGSETTING_RELOADABLE },

@@ -198,10 +198,10 @@ void *ECWorkerThread::Work(void *lpParam)
             // From the moment we call soap_serve_request, the soap object MAY be handled
             // by another thread. In this case, soap_serve_request() returns SOAP_NULL. We
             // can NOT rely on soap->error being this value since the other thread may already
-            // have overwritten the error value.            
+            // have overwritten the error value.
             if(soap_envelope_begin_in(lpWorkItem->soap)
               || soap_recv_header(lpWorkItem->soap)
-              || soap_body_begin_in(lpWorkItem->soap)) 
+              || soap_body_begin_in(lpWorkItem->soap))
             {
                 err = lpWorkItem->soap->error;
             } else {
@@ -222,7 +222,7 @@ void *ECWorkerThread::Work(void *lpParam)
                 goto done;
             }
 
-done:	
+done:
 			if (info->fdone != nullptr)
 				info->fdone(lpWorkItem->soap, info->fdoneparam);
 
@@ -231,7 +231,7 @@ done:
             // Tell the session we're done processing the request for this session. This will also tell the session that this
             // thread is done processing the item, so any time spent in this thread until now can be accounted in that session.
 			g_lpSessionManager->RemoveBusyState(info->ulLastSessionId, thrself);
-            
+
 		// Track cpu usage server-wide
 		g_lpStatsCollector->Increment(SCN_SOAP_REQUESTS);
 			g_lpStatsCollector->Increment(SCN_PROCESSING_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
@@ -283,10 +283,10 @@ ECThreadManager::~ECThreadManager()
         }
         else
             break;
-    }    
+    }
 	delete m_lpPrioWorker;
 }
-    
+
 ECRESULT ECThreadManager::ForceAddThread(int nThreads)
 {
 	scoped_lock l_thr(m_mutexThreads);
@@ -323,7 +323,7 @@ ECRESULT ECThreadManager::NotifyIdle(ECWorkerThread *lpThread, bool *lpfStop)
 {
 	std::list<ECWorkerThread *>::iterator iterThreads;
     *lpfStop = false;
-        
+
 	scoped_lock l_thr(m_mutexThreads);
 	// special case for priority worker
 	if (lpThread == m_lpPrioWorker) {
@@ -363,7 +363,7 @@ ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECDispatcher *lpDispatcher,
 ECWatchDog::~ECWatchDog()
 {
     void *ret;
-    
+
 	ulock_normal l_exit(m_mutexExit);
 	m_bExit = true;
 	m_condExit.notify_one();
@@ -377,14 +377,14 @@ void *ECWatchDog::Watch(void *lpParam)
 	auto lpThis = static_cast<ECWatchDog *>(lpParam);
     double dblAge;
 	kcsrv_blocksigs();
-    
+
     while(1) {
 		if (lpThis->m_bExit)
 			break;
 
         double dblMaxFreq = atoi(lpThis->m_lpConfig->GetSetting("watchdog_frequency"));
         double dblMaxAge = atoi(lpThis->m_lpConfig->GetSetting("watchdog_max_age")) / 1000.0;
-        
+
         // If the age of the front item in the queue is older than the specified maximum age, force
         // a new thread to be started
         if(lpThis->m_lpDispatcher->GetFrontItemAge(&dblAge) == erSuccess && dblAge > dblMaxAge)
@@ -431,7 +431,7 @@ ECRESULT ECDispatcher::GetThreadCount(unsigned int *lpulThreads, unsigned int *l
 ECRESULT ECDispatcher::GetFrontItemAge(double *lpdblAge)
 {
 	auto now = std::chrono::steady_clock::now();
-    
+
 	scoped_lock lock(m_mutexItems);
     if(m_queueItems.empty() && m_queuePrioItems.empty())
 		*lpdblAge = 0;
@@ -479,13 +479,13 @@ ECRESULT ECDispatcher::QueueItem(struct soap *soap)
 	return erSuccess;
 }
 
-/** 
+/**
  * Called by worker threads to get an item to work on
- * 
+ *
  * @param[out] lppItem soap call to process
  * @param[in] bWait wait for an item until present or return immediately
  * @param[in] bPrio handle priority or normal queue
- * 
+ *
  * @return error code
  * @retval KCERR_NOT_FOUND no soap call in the queue present
  */
@@ -517,7 +517,7 @@ ECRESULT ECDispatcher::GetNextWorkItem(WORKITEM **lppItem, bool bWait, bool bPri
         lpItem = queue->front();
         queue->pop();
     }
-    
+
     *lppItem = lpItem;
     return er;
 }
@@ -526,7 +526,7 @@ ECRESULT ECDispatcher::GetNextWorkItem(WORKITEM **lppItem, bool bWait, bool bPri
 ECRESULT ECDispatcher::NotifyDone(struct soap *soap)
 {
     // During exit, don't requeue active sockets, but close them
-    if(m_bExit) {	
+    if(m_bExit) {
 		kopano_end_soap_connection(soap);
         soap_free(soap);
 		return erSuccess;
@@ -646,7 +646,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
     while(!m_bExit) {
 		int nfds = 0, pfd_begin_sock, pfd_begin_listen;
         time(&now);
-        
+
         // Listen on rescan trigger
 		pollfd[0].fd = m_fdRescanRead;
 		pollfd[0].events = POLLIN;
@@ -672,7 +672,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 			pollfd[nfds++].events = POLLIN;
         }
 		l_sock.unlock();
-        		
+
         // Wait for at most 1 second, so that we can close inactive sockets
         // Wait for activity
 		auto n = poll(pollfd.get(), nfds, 1 * 1000);
@@ -683,7 +683,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
             // A socket rescan has been triggered, we don't need to do anything, just read the data, discard it
             // and restart the select call
             read(m_fdRescanRead, s, sizeof(s));
-        } 
+        }
 
         // Search for activity on active sockets
 		l_sock.lock();
@@ -792,7 +792,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
     // Delete thread manager (waits for threads to become idle). During this time
     // the threads may report back a workitem as being done. If this is the case, we directly close that socket too.
     delete m_lpThreadManager;
-    
+
     // Empty the queue
 	l_item.lock();
     while(!m_queueItems.empty()) { kopano_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
@@ -862,7 +862,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	for (iterListenSockets = m_setListenSockets.begin();
 	     iterListenSockets != m_setListenSockets.end();
 	     ++iterListenSockets) {
-		epevent.data.fd = iterListenSockets->second->socket; 
+		epevent.data.fd = iterListenSockets->second->socket;
 		epoll_ctl(m_epFD, EPOLL_CTL_ADD, iterListenSockets->second->socket, &epevent);
 	}
 
@@ -944,7 +944,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 				// this is a new request from an existing client
 				iterSockets = m_setSockets.find(epevents[i].data.fd);
 				// remove from epfd, either close socket, or it will be reactivated later in the epfd
-				epevent.data.fd = iterSockets->second.soap->socket; 
+				epevent.data.fd = iterSockets->second.soap->socket;
 				epoll_ctl(m_epFD, EPOLL_CTL_DEL, iterSockets->second.soap->socket, &epevent);
 
 				if (epevents[i].events & EPOLLHUP) {

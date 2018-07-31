@@ -86,14 +86,14 @@ class _kc_export_dycast ECPriorityWorkerThread _kc_final :
 
 /*
  * It is the thread manager's job to keep track of processing threads, and adding or removing threads
- * when requested. 
+ * when requested.
  */
 class ECThreadManager _kc_final {
 public:
     // ulThreads is the normal number of threads that are started; These threads are pre-started and will be in an idle state.
 	ECThreadManager(ECDispatcher *, unsigned int threads);
     ~ECThreadManager();
-    
+
     // Adds n threads above the standard thread count. Threads are removed back to the normal thread count whenever the message
     // queue hits size 0 and there is an idle thread.
     ECRESULT ForceAddThread(int nThreads);
@@ -103,7 +103,7 @@ public:
     ECRESULT SetThreadCount(unsigned int ulThreads);
     // Called by the worker thread when it is idle. *lpfStop is set to TRUE then the thread will terminate and delete itself.
     ECRESULT NotifyIdle(ECWorkerThread *, bool *lpfStop);
-    
+
 private:
 	std::mutex m_mutexThreads;
     std::list<ECWorkerThread *> m_lstThreads;
@@ -127,7 +127,7 @@ public:
 private:
     // Main watch thread
     static void *Watch(void *);
-    
+
 	KC::ECConfig *m_lpConfig;
     ECDispatcher *		m_lpDispatcher;
     ECThreadManager*	m_lpThreadManager;
@@ -146,7 +146,7 @@ class ECDispatcher {
 public:
 	ECDispatcher(KC::ECConfig *);
 	virtual ~ECDispatcher();
-    
+
     // Statistics
     ECRESULT GetIdle(unsigned int *lpulIdle); 				// Idle threads
     ECRESULT GetThreadCount(unsigned int *lpulThreads, unsigned int *lpulIdleThreads);		// Total threads + idle threads
@@ -167,7 +167,7 @@ public:
 
     // Called asynchronously during MainLoop() to shutdown the server
     virtual ECRESULT ShutDown();
-    
+
     // Inform that a soap request was processed and is finished. This will cause the dispatcher to start listening
     // on that socket for activity again
     ECRESULT NotifyDone(struct soap *soap);
@@ -176,7 +176,7 @@ public:
     // Goes into main listen loop, accepting sockets and monitoring existing accepted sockets for activity. Also closes
     // sockets which are idle for more than ulSocketTimeout
     virtual ECRESULT MainLoop() = 0;
-    
+
 protected:
 	KC::ECConfig *m_lpConfig;
 	ECThreadManager *m_lpThreadManager = nullptr;
