@@ -70,7 +70,6 @@ HRESULT ProtocolBase::HrInitializeClass()
 			m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-
 	hr = HrGetOwner(m_lpSession, m_lpDefStore, &~m_lpLoginUser);
 	if(hr != hrSuccess)
 		return hr;
@@ -107,7 +106,6 @@ HRESULT ProtocolBase::HrInitializeClass()
 	hr = HrLookupNames(m_lpActiveStore, &~m_lpNamedProps);
 	if (hr != hrSuccess)
 		return hr;
-
 	// get active user info
 	if (bIsPublic)
 		hr = m_lpLoginUser->QueryInterface(IID_IMailUser, &~m_lpActiveUser);
@@ -126,7 +124,6 @@ HRESULT ProtocolBase::HrInitializeClass()
 			m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-
 	// Get active store default calendar to prevent delete action on this folder
 	hr = m_lpActiveStore->OpenEntry(0, nullptr, &iid_of(lpRoot), 0, &ulType, &~lpRoot);
 	if(hr != hrSuccess)
@@ -135,7 +132,6 @@ HRESULT ProtocolBase::HrInitializeClass()
 			m_wstrUser.c_str(), GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-
 	if (!bIsPublic) {
 		// get default calendar entryid for non-public stores
 		hr = HrGetOneProp(lpRoot, PR_IPM_APPOINTMENT_ENTRYID, &~lpDefaultProp);

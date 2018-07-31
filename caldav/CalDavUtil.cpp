@@ -143,7 +143,6 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	//   FOLDER_PREFIX + hexed named folder id
 	//   FOLDER_PREFIX + hexed entry id
 	//   folder name
-
 	if (wstrFldId.find(FOLDER_PREFIX) == 0)
 		wstrFldId.erase(0, wcslen(FOLDER_PREFIX));
 
@@ -155,7 +154,6 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~folder);
 		if (hr != hrSuccess)
 			return hr;
-
 		folder->Value.bin.cb = cbEntryID;
 		folder->Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryID.get());
 	} else if (wstrFldId.compare(L"Outbox") == 0) {
@@ -194,7 +192,6 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 		sPropFolderID.Value.lpszW = (LPWSTR)wstrFldId.c_str();
 	}
 	sPropFolderID.ulPropTag = ulPropTagFldId;
-
 	sPropFolderName.ulPropTag = PR_DISPLAY_NAME_W;
 	sPropFolderName.Value.lpszW = (WCHAR*)wstrFldId.c_str();
 
@@ -219,9 +216,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	     &iid_of(lpUsrFld), MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<IUnknown **>(&lpUsrFld));
 	if(hr != hrSuccess)
 		return hr;
-
 	*lppUsrFld = lpUsrFld;
-
 	return hr;
 }
 
@@ -672,7 +667,6 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	std::list<std::string>::const_iterator itUsers;
 	adrlist_ptr lpAdrList;
 	memory_ptr<FlagList> ptrFlagList;
-
 	EntryIdPtr ptrEntryId;
 	unsigned int cFBData = 0, cbEntryId = 0, ulObj = 0;
 	ABContainerPtr ptrABDir;
@@ -693,11 +687,9 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		return hr;
 
 	ptrFlagList->cFlags = cUsers;
-
 	cUsers = 0;
 	for (const auto &user : *lplstUsers) {
 		lpAdrList->aEntries[cUsers].cValues = 1;
-
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[cUsers].rgPropVals);
 		if(hr != hrSuccess)
 			return hr;
@@ -751,14 +743,12 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 
 		if (!lppFBData[i])
 			goto next;
-		
 		hr = lppFBData[i]->EnumBlocks(&~lpEnumBlock, ftStart, ftEnd);
 		if (hr != hrSuccess)
 			goto next;
 		hr = MAPIAllocateBuffer(sizeof(FBBlock_1)*lMaxblks, &~lpsFBblks);
 		if (hr != hrSuccess)
 			goto next;
-		
 		// restrict the freebusy blocks
 		hr = lpEnumBlock->Restrict(ftStart, ftEnd);
 		if (hr != hrSuccess)
@@ -766,13 +756,11 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 
 		// ignore error
 		lpEnumBlock->Next(lMaxblks, lpsFBblks, &lblkFetched);
-		
 		// add freebusy blocks to ical data
 		if (lblkFetched == 0)
 			hr = lpMapiToIcal->AddBlocks(NULL, lblkFetched, lpFbInfo->tStart, lpFbInfo->tEnd, lpFbInfo->strOrganiser, *itUsers, lpFbInfo->strUID);		
 		else
 			hr = lpMapiToIcal->AddBlocks(lpsFBblks, lblkFetched, lpFbInfo->tStart, lpFbInfo->tEnd, lpFbInfo->strOrganiser, *itUsers, lpFbInfo->strUID);
-		
 		if (hr != hrSuccess)
 			goto next;
 		
@@ -783,7 +771,6 @@ next:
 		sWebFbUserInfo.strIcal = strIcal;
 		lpFbInfo->lstFbUserInfo.emplace_back(sWebFbUserInfo);
 		++itUsers;
-
 		lpMapiToIcal->ResetObject();
 		lblkFetched = 0;
 	}
@@ -797,6 +784,5 @@ exit:
 				lppFBData[i]->Release();
 		MAPIFreeBuffer(lppFBData);
 	}
-
 	return hr;
 }

@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef _WEBDAV_H_
 #define _WEBDAV_H_
 
@@ -119,13 +118,11 @@ private:
 	std::map <std::string,std::string> m_mapNs;
 
 	HRESULT HrParseXml();
-
 	/* more processing xml, but not as direct entrypoint */
 	HRESULT HrHandleRptMulGet();
 	HRESULT HrPropertySearch();
 	HRESULT HrPropertySearchSet();
 	HRESULT HrHandleRptCalQry();
-
 	HRESULT RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *strXml);
 	HRESULT GetNs(std::string *szPrefx, std::string *strNs);
 	void RegisterNs(const std::string &strNs, std::string *strPrefix);
@@ -135,12 +132,11 @@ private:
 	HRESULT HrWriteResponseProps(xmlTextWriter *xmlWriter, std::string *lpstrNsPrefix, std::list<WEBDAVPROPERTY> *lstProps);
 	HRESULT HrWriteSPropStat(xmlTextWriter *xmlWriter, std::string *lpstrNsPrefix, const WEBDAVPROPSTAT &sPropStat);
 	HRESULT HrWriteItems(xmlTextWriter *xmlWriter, std::string *lpstrNsPrefix, WEBDAVPROPERTY *lpsWebProprty);
-
 	void HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName,xmlNode *lpXmlNode);
+
 protected:
 	void HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName, const std::string &strPropName, const std::string &strNs);
 	void HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName, const std::string &strPropName, const std::string &strPropAttribName, const std::string &strPropAttribValue, const std::string &strNs);
-
 };
 
 #endif

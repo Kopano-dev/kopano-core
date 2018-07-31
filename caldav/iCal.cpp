@@ -59,7 +59,6 @@ HRESULT iCal::HrHandleIcalGet(const std::string &strMethod)
 		kc_perror("Unable to retrieve contents of folder", hr);
 		goto exit;
 	}
-
 	// convert table to ical data
 	hr = HrGetIcal(lpContents, blCensorFlag, &strIcal);
 	if (hr != hrSuccess) {
@@ -69,7 +68,6 @@ HRESULT iCal::HrHandleIcalGet(const std::string &strMethod)
 	hr = HrGetOneProp(m_lpUsrFld, PR_LOCAL_COMMIT_TIME_MAX, &~lpProp);
 	if (hr == hrSuccess)
 		strModtime = SPropValToString(lpProp);
-
 	
 exit:
 	if (hr == hrSuccess)
@@ -136,7 +134,6 @@ HRESULT iCal::HrHandleIcalPost()
 	}
 
 	ulItemCount = lpICalToMapi->GetItemCount();
-
 	//map of Ical entries.
 	//generate map for each entry's UID and Position.
 	for (ULONG i = 0; i < ulItemCount; ++i) {
@@ -164,7 +161,6 @@ HRESULT iCal::HrHandleIcalPost()
 		hr = lpContTable->QueryRows(50, 0, &~lpRows);
 		if (hr != hrSuccess)
 			goto exit;
-
 		if (lpRows->cRows == 0)
 			break;
 
@@ -250,7 +246,6 @@ HRESULT iCal::HrHandleIcalPost()
 
 	if(m_ulFolderFlag & DEFAULT_FOLDER)
 		hr = HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION);
-
 	if(hr != hrSuccess) {
 		hr = hrSuccess;
 		ec_log_err("Error publishing freebusy for user %ls", m_wstrUser.c_str());
@@ -268,9 +263,9 @@ exit:
 	mpSrvEntries.clear();
 	mpIcalEntries.clear();
 	mpSrvTimes.clear();
-
 	return hr;
 }
+
 /**
  * Edits the existing message in the folder
  * 
@@ -297,6 +292,7 @@ HRESULT iCal::HrModify( ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, 
 		return hr;
 	return lpMessage->SaveChanges(0);
 }
+
 /**
  * Creates a new message in the folder and sets its properties
  *
@@ -347,7 +343,6 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 	     &iid_of(lpMessage), MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if(hr != hrSuccess)
 		return hr;
-	
 	if(blCensor && IsPrivate(lpMessage, ulTagPrivate))
 		return hrSuccess; /* ignoring private items */
 
@@ -508,7 +503,6 @@ HRESULT iCal::HrDelFolder()
 	hr = HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &~lpFldEid);
 	if (hr != hrSuccess)
 		goto exit;
-
 	hr = m_lpIPMSubtree->CopyFolder(lpFldEid->Value.bin.cb, (LPENTRYID)lpFldEid->Value.bin.lpb, NULL, lpWasteBoxFld, NULL, 0, NULL, MAPI_MOVE);
 	if (hr != hrSuccess)
 		goto exit;

@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef _ICAL_H_
 #define _ICAL_H_
 
@@ -23,7 +22,6 @@ private:
 	HRESULT HrHandleIcalGet(const std::string &strMethod);
 	HRESULT HrHandleIcalPost();
 	HRESULT HrDelFolder();
-
 	HRESULT HrGetContents(IMAPITable **lppTable);
 	HRESULT HrGetIcal(LPMAPITABLE lpTable, bool blCensorPrivate, std::string *strIcal);
 	HRESULT HrModify(KC::ICalToMapi *, SBinary srv_eid, ULONG pos, bool censor);

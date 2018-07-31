@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef PROTOCOLBASE_H
 #define PROTOCOLBASE_H
 
@@ -15,7 +14,6 @@ public:
 	ProtocolBase(Http &, IMAPISession *, const std::string &srv_tz, const std::string &charset);
 	virtual ~ProtocolBase() = default;
 	HRESULT HrInitializeClass();
-
 	virtual HRESULT HrHandleCommand(const std::string &strMethod) = 0;
 	
 protected:
@@ -33,7 +31,6 @@ protected:
 	KC::memory_ptr<SPropTagArray> m_lpNamedProps; //!< named properties of the active store
 	std::wstring m_wstrFldOwner;   //!< url owner part
 	std::wstring m_wstrFldName;	   //!< url foldername part
-
 	std::wstring m_wstrUser;	//!< login username (http auth user)
 	bool m_blFolderAccess = true; //!< can we delete the current folder
 	ULONG m_ulUrlFlag = 0, m_ulFolderFlag = 0;
