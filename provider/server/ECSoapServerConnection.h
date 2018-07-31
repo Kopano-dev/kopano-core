@@ -22,9 +22,7 @@ public:
 	ECRESULT ListenTCP(const char *host, int port);
 	ECRESULT ListenSSL(const char *host, int port, const char *keyfile, const char *keypass, const char *cafile, const char *capath);
 	ECRESULT ListenPipe(const char* lpPipeName, bool bPriority = false);
-
 	ECRESULT MainLoop();
-	
 	// These can be called asynchronously from MainLoop();
 	ECRESULT NotifyDone(struct soap *soap);
 	ECRESULT ShutDown();

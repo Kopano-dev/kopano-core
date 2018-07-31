@@ -24,15 +24,15 @@
 
 using namespace KC;
 
-/** 
+/**
  * Creates a AF_UNIX socket in a given location and starts to listen
  * on that socket.
- * 
- * @param unix_socket the file location of that socket 
+ *
+ * @param unix_socket the file location of that socket
  * @param lpLogger a logger object
  * @param bInit unused
  * @param mode change the mode of the file to this value (octal!)
- * 
+ *
  * @return the socket we're listening on, or -1 for failure.
  */
 static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
@@ -45,14 +45,12 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
                 kill(0, SIGTERM);
                 exit(1);
 	}
-
 	er = chmod(unix_socket,mode);
 	if(er) {
 		ec_log_crit("Unable to chmod socket %s. Error: %s", unix_socket, strerror(errno));
 		close(s);
 		return -1;
 	}
-
 	if(er) {
 		ec_log_crit("Unable to chown socket %s, to %s:%s. Error: %s", unix_socket, lpConfig->GetSetting("run_as_user"), lpConfig->GetSetting("run_as_group"), strerror(errno));
 		close(s);
@@ -63,7 +61,6 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 		close(s);
 		return -1;
 	}
-
 	return s;
 }
 
@@ -127,7 +124,6 @@ int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
 			ssl_exclude |= ssl_proto;
 		else
 			ssl_include |= ssl_proto;
-
 		ssl_name = strtok(nullptr, " ");
 	}
 
@@ -161,7 +157,6 @@ int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
 	}
 	if (parseBool(prefciphers))
 		SSL_CTX_set_options(soap->ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
-
 	/* request certificate from client; it is OK if not present. */
 	SSL_CTX_set_verify(soap->ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, nullptr);
 	return erSuccess;
@@ -209,7 +204,6 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char *lpServerName, int nServer
         }
 
 	m_lpDispatcher->AddListenSocket(lpsSoap);
-    
 	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap);
 	ec_log_notice("Listening for TCP connections on port %d", nServerPort);
@@ -267,7 +261,6 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char *lpServerName,
         }
 
 	m_lpDispatcher->AddListenSocket(lpsSoap);
-
 	/* Manually check for attachments, independent of streaming support. */
 	soap_post_check_mime_attachments(lpsSoap);
 	ec_log_notice("Listening for SSL connections on port %d", nServerPort);
@@ -294,14 +287,13 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE_PRIORITY, lpsSoap);
 	else
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE, lpsSoap);
-	
+
 	// Create a Unix or Windows pipe
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 	// set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket
 	lpsSoap->socket = sPipe = create_pipe_socket(lpPipeName, m_lpConfig, true, bPriority ? 0660 : 0666);
 	// This just marks the socket as being a pipe, which triggers some slightly different behaviour
 	strcpy(lpsSoap->path,"pipe");
-
 	if (sPipe == -1) {
 		er = KCERR_CALL_FAILED;
 		goto exit;
@@ -340,7 +332,7 @@ ECRESULT ECSoapServerConnection::DoHUP()
 }
 
 ECRESULT ECSoapServerConnection::MainLoop()
-{	
+{
 	return m_lpDispatcher->MainLoop();
 }
 
@@ -354,7 +346,6 @@ ECRESULT ECSoapServerConnection::GetStats(unsigned int *lpulQueueLength, double 
 	ECRESULT er = m_lpDispatcher->GetQueueLength(lpulQueueLength);
     if(er != erSuccess)
 		return er;
-        
     er = m_lpDispatcher->GetFrontItemAge(lpdblAge);
     if(er != erSuccess)
 		return er;
