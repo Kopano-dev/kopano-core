@@ -14,20 +14,20 @@
 
 using namespace KC;
 
-/** 
+/**
  * Parse the incoming URL into known pieces:
  *
  * /<service>/[username][/foldername][/uid.ics]
  * service: ical or caldav, mandatory
  * username: open store of this user, "public" for public folders. optional: default comes from HTTP Authenticate header.
  * foldername: folder name in store to open. multiple forms possible (normal name, prefix_guid, prefix_entryid).
- * 
+ *
  * @param[in] strUrl incoming url
  * @param[out] lpulFlag url flags (service type and public marker)
  * @param[out] lpstrUrlUser owner of lpstrFolder
  * @param[out] lpstrFolder folder id or name
- * 
- * @return 
+ *
+ * @return
  */
 HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpstrUrlUser, std::string *lpstrFolder)
 {
@@ -294,12 +294,12 @@ HRESULT Http::HrGetPass(std::wstring *strPass)
 	return X2W(m_strPass, strPass);
 }
 
-/** 
+/**
  * return the original, non-decoded, url
- * 
+ *
  * @param strURL us-ascii encoded url
- * 
- * @return 
+ *
+ * @return
  */
 HRESULT Http::HrGetRequestUrl(std::string *strURL)
 {
@@ -361,11 +361,11 @@ HRESULT Http::HrGetDepth(ULONG *ulDepth)
 	return hr;
 }
 
-/** 
+/**
  * Checks the etag of a MAPI object against If-(None)-Match headers
- * 
+ *
  * @param[in] lpProp Object to check etag (PR_LAST_MODIFICATION_TIME) to
- * 
+ *
  * @return continue request or return 412
  * @retval true continue request
  * @retval false return 412 to client
@@ -424,7 +424,7 @@ HRESULT Http::HrGetCharSet(std::string *strCharset)
 
 /**
  * Returns the Destination value found in the header
- * 
+ *
  * Specifies the destination of entry in MOVE request,
  * to move mapi message from one folder to another
  * for e.g.
@@ -572,7 +572,7 @@ HRESULT Http::HrFinalize()
 			ec_log_debug("Response body:\n%s", m_strRespBody.c_str());
 		}
 	}
-	else 
+	else
 	{
 		const char *lpstrBody = m_strRespBody.data();
 		char lpstrLen[10];
@@ -621,11 +621,11 @@ HRESULT Http::HrFinalize()
 	return hr;
 }
 
-/** 
+/**
  * Converts common hr codes to http error codes
- * 
+ *
  * @param hr HRESULT
- * 
+ *
  * @return Error from HrResponseHeader(unsigned int, string)
  */
 HRESULT Http::HrToHTTPCode(HRESULT hr)
@@ -644,10 +644,10 @@ HRESULT Http::HrToHTTPCode(HRESULT hr)
  * Sets http response headers
  * @param[in]	ulCode			Http header status code
  * @param[in]	strResponse		Http header status string
- * 
+ *
  * @return		HRESULT
  * @retval		MAPI_E_CALL_FAILED	The status is already set
- * 
+ *
  */
 HRESULT Http::HrResponseHeader(unsigned int ulCode, const std::string &strResponse)
 {
@@ -687,7 +687,7 @@ HRESULT Http::HrResponseBody(const std::string &strResponse)
  * Request authorization information from the client
  *
  * @param[in]	strMsg	Message to be shown to the client
- * @return		HRESULT 
+ * @return		HRESULT
  */
 HRESULT Http::HrRequestAuth(const std::string &strMsg)
 {

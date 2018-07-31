@@ -38,7 +38,7 @@ public:
 
 	/* @todo, remove and use HrGetHeaderValue() */
 	HRESULT HrGetMethod(std::string *strMethod);
-	HRESULT HrGetUser(std::wstring *strUser);	
+	HRESULT HrGetUser(std::wstring *strUser);
 	HRESULT HrGetPass(std::wstring *strPass);
 	HRESULT HrGetRequestUrl(std::string *strURL);
 	HRESULT HrGetUrl(std::string *strURL);

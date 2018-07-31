@@ -39,7 +39,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	MAPIFolderPtr lpRoot;
 
 	/* URLs
-	 * 
+	 *
 	 * /caldav/							| depth: 0 results in root props, depth: 1 results in 0 + calendar FOLDER list current user. eg: the same happens /caldav/self/
 	 * /caldav/self/					| depth: 0 results in root props, depth: 1 results in 0 + calendar FOLDER list current user. see ^^
 	 * /caldav/self/Calendar/			| depth: 0 results in root props, depth: 1 results in 0 + _GIVEN_ calendar CONTENTS list current user.
@@ -52,7 +52,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	 */
 	m_lpRequest.HrGetUrl(&strUrl);
 	m_lpRequest.HrGetUser(&m_wstrUser);
-	m_lpRequest.HrGetMethod(&strMethod);	
+	m_lpRequest.HrGetMethod(&strMethod);
 	HrParseURL(strUrl, &m_ulUrlFlag, &strFldOwner, &strFldName);
 	m_wstrFldOwner = U2W(strFldOwner);
 	m_wstrFldName = U2W(strFldName);
@@ -280,19 +280,19 @@ std::string ProtocolBase::W2U(const WCHAR* lpwWideChar)
  */
 std::wstring ProtocolBase::U2W(const std::string &strUtfChar)
 {
-	return m_converter.convert_to<std::wstring>(strUtfChar, rawsize(strUtfChar), m_strCharset.c_str());	
+	return m_converter.convert_to<std::wstring>(strUtfChar, rawsize(strUtfChar), m_strCharset.c_str());
 }
 
 /**
  * Convert SPropValue to string
- * 
+ *
  * @param[in]	lpSprop		SPropValue to be converted
  * @return		string
  */
 std::string ProtocolBase::SPropValToString(const SPropValue *lpSprop)
 {
 	std::string strRetVal;
-	
+
 	if (lpSprop == NULL)
 		return strRetVal;
 	if (PROP_TYPE(lpSprop->ulPropTag) == PT_SYSTIME)
@@ -303,7 +303,7 @@ std::string ProtocolBase::SPropValToString(const SPropValue *lpSprop)
 		strRetVal = W2U(lpSprop->Value.lpszW);
 	//Global UID
 	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_BINARY)
-		HrGetICalUidFromBinUid(lpSprop->Value.bin, &strRetVal);	
+		HrGetICalUidFromBinUid(lpSprop->Value.bin, &strRetVal);
 	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_LONG)
 		strRetVal = stringify(lpSprop->Value.ul, false);
 	return strRetVal;

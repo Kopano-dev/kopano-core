@@ -205,7 +205,7 @@ int main(int argc, char **argv) {
 			goto exit;
 		}
 	}
-	
+
 	// init xml parser
 	xmlInitParser();
 	g_lpConfig.reset(ECConfig::Create(lpDefaults));
@@ -492,7 +492,7 @@ static void *HandlerClient(void *lpArg)
 	HRESULT hr = hrSuccess;
 	auto lpHandlerArgs = static_cast<HandlerArgs *>(lpArg);
 	ECChannel *lpChannel = lpHandlerArgs->lpChannel;
-	bool bUseSSL = lpHandlerArgs->bUseSSL;	
+	bool bUseSSL = lpHandlerArgs->bUseSSL;
 
 	delete lpHandlerArgs;
 
@@ -556,7 +556,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	lpRequest.HrGetPass(&wstrPass);
 	// no checks required as HrValidateReq() checks Method
 	lpRequest.HrGetMethod(&strMethod);
-	// 
+	//
 	lpRequest.HrSetKeepAlive(KEEP_ALIVE_TIME);
 	lpRequest.HrGetUserAgent(&strUserAgent);
 	lpRequest.HrGetUserAgentVersion(&strUserAgentVersion);
@@ -589,7 +589,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 		hr = hrSuccess;
 		goto exit;
 	}
-	
+
 	if (wstrUser.empty() || wstrPass.empty()) {
 		ec_log_info("Sending authentication request");
 		hr = MAPI_E_CALL_FAILED;
@@ -619,7 +619,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	else if((ulFlag & SERVICE_CALDAV) || ( !strMethod.compare("PROPFIND") && !(ulFlag & SERVICE_ICAL)))
 	{
 		lpBase.reset(new CalDAV(lpRequest, lpSession, strServerTZ, strCharset));
-	} 
+	}
 	else
 	{
 		hr = MAPI_E_CALL_FAILED;

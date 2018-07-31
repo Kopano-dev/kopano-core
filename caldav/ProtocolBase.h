@@ -15,7 +15,7 @@ public:
 	virtual ~ProtocolBase() = default;
 	HRESULT HrInitializeClass();
 	virtual HRESULT HrHandleCommand(const std::string &strMethod) = 0;
-	
+
 protected:
 	Http &m_lpRequest;
 	KC::object_ptr<IMAPISession> m_lpSession;
