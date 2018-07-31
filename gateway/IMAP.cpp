@@ -2895,14 +2895,14 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 HRESULT IMAP::HrGetFolderPath(list<SFolder>::const_iterator lpFolder, const list<SFolder> &lstFolders, wstring &strPath) {
 	if (lpFolder == lstFolders.cend())
 		return MAPI_E_NOT_FOUND;
-	if (lpFolder->lpParentFolder != lstFolders.cend()) {
-		HRESULT hr = HrGetFolderPath(lpFolder->lpParentFolder, lstFolders,
-		             strPath);
-		if (hr != hrSuccess)
-			return hr;
-		strPath += IMAP_HIERARCHY_DELIMITER;
-		strPath += lpFolder->strFolderName;
-	}
+	if (lpFolder->lpParentFolder == lstFolders.cend())
+		return hrSuccess;
+	HRESULT hr = HrGetFolderPath(lpFolder->lpParentFolder, lstFolders,
+	             strPath);
+	if (hr != hrSuccess)
+		return hr;
+	strPath += IMAP_HIERARCHY_DELIMITER;
+	strPath += lpFolder->strFolderName;
 	return hrSuccess;
 }
 

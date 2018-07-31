@@ -53,13 +53,9 @@ POP3::~POP3() {
 }
 
 HRESULT POP3::HrSendGreeting(const std::string &strHostString) {
-	HRESULT hr = hrSuccess;
-
-	if (parseBool(lpConfig->GetSetting("server_hostname_greeting")))
-		hr = HrResponse(POP3_RESP_OK, "POP3 gateway ready" + strHostString);
-	else
-		hr = HrResponse(POP3_RESP_OK, "POP3 gateway ready");
-	return hr;
+	if (!parseBool(lpConfig->GetSetting("server_hostname_greeting")))
+		return HrResponse(POP3_RESP_OK, "POP3 gateway ready");
+	return HrResponse(POP3_RESP_OK, "POP3 gateway ready" + strHostString);
 }
 
 /**
