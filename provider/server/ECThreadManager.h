@@ -97,13 +97,10 @@ public:
     // Adds n threads above the standard thread count. Threads are removed back to the normal thread count whenever the message
     // queue hits size 0 and there is an idle thread.
     ECRESULT ForceAddThread(int nThreads);
-    
     // Some statistics
     ECRESULT GetThreadCount(unsigned int *lpulThreads);
-    
     // This is the same parameter as passed in the constructor
     ECRESULT SetThreadCount(unsigned int ulThreads);
-    
     // Called by the worker thread when it is idle. *lpfStop is set to TRUE then the thread will terminate and delete itself.
     ECRESULT NotifyIdle(ECWorkerThread *, bool *lpfStop);
     
@@ -155,12 +152,9 @@ public:
     ECRESULT GetThreadCount(unsigned int *lpulThreads, unsigned int *lpulIdleThreads);		// Total threads + idle threads
     ECRESULT GetFrontItemAge(double *lpdblAge);		// Age of the front queue item (time since the item was queued and now)
     ECRESULT GetQueueLength(unsigned int *lpulQueueLength);	// Number of requests in the queue
-
     ECRESULT SetThreadCount(unsigned int ulThreads);
-    
     // Add a listen socket
     ECRESULT AddListenSocket(struct soap *soap);
-
 	// Add soap socket in the work queue
 	ECRESULT QueueItem(struct soap *soap);
 
@@ -186,19 +180,16 @@ public:
 protected:
 	KC::ECConfig *m_lpConfig;
 	ECThreadManager *m_lpThreadManager = nullptr;
-
 	std::mutex m_mutexItems;
 	std::queue<WORKITEM *> m_queueItems;
 	std::condition_variable m_condItems;
 	std::queue<WORKITEM *> m_queuePrioItems;
 	std::condition_variable m_condPrioItems;
-
 	std::map<int, ACTIVESOCKET> m_setSockets;
 	std::map<int, struct soap *> m_setListenSockets;
 	std::mutex m_mutexSockets;
 	bool m_bExit = false;
 	std::atomic<unsigned int> m_ulIdle{0};
-
 	// Socket settings (TCP + SSL)
 	int			m_nRecvTimeout;
 	int			m_nReadTimeout;
@@ -213,9 +204,7 @@ private:
 public:
 	ECDispatcherSelect(KC::ECConfig *);
     virtual ECRESULT MainLoop();
-
     virtual ECRESULT ShutDown();
-
     virtual ECRESULT NotifyRestart(SOAP_SOCKET s);
 };
 
@@ -228,7 +217,6 @@ private:
 public:
 	ECDispatcherEPoll(KC::ECConfig *);
     virtual ~ECDispatcherEPoll();
-
     virtual ECRESULT MainLoop();
     virtual ECRESULT NotifyRestart(SOAP_SOCKET s);
 };
