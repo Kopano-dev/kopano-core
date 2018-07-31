@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef GATEWAY_COMMON_H
 #define GATEWAY_COMMON_H
 
@@ -24,7 +23,6 @@ public:
 	virtual ~ClientProto(void) = default;
 	virtual int getTimeoutMinutes() const = 0;
 	virtual bool isContinue() const { return false; }; // imap only
-
 	virtual HRESULT HrSendGreeting(const std::string &strHostString) = 0;
 	virtual HRESULT HrCloseConnection(const std::string &strQuitMsg) = 0;
 	virtual HRESULT HrProcessCommand(const std::string &strInput) = 0;

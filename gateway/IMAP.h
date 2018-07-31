@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef IMAP_H
 #define IMAP_H
 
@@ -33,12 +32,9 @@ class ECRestriction;
 #define ROWS_PER_REQUEST_BIG 4000
 #define IMAP_HIERARCHY_DELIMITER '/'
 #define PUBLIC_FOLDERS_NAME L"Public folders"
-
 #define IMAP_RESP_MAX	65536
-
 #define RESP_UNTAGGED "* "
 #define RESP_CONTINUE "+ "
-
 #define RESP_TAGGED_OK " OK "
 #define RESP_TAGGED_NO " NO "
 #define RESP_TAGGED_BAD " BAD "
@@ -138,7 +134,6 @@ public:
 	int getTimeoutMinutes() const { return lpStore == nullptr ? 1 : 30; }
 	bool isIdle() const { return m_bIdleMode; }
 	bool isContinue() const { return m_bContinue; }
-
 	HRESULT HrSendGreeting(const std::string &strHostString);
 	HRESULT HrCloseConnection(const std::string &strQuitMsg);
 	HRESULT HrProcessCommand(const std::string &strInput);
@@ -148,12 +143,10 @@ public:
 private:
 	void CleanupObject();
 	void ReleaseContentsCache();
-
 	std::string GetCapabilityString(bool bAllFlags);
 	HRESULT HrSplitInput(const std::string &input, std::vector<std::string> &words);
 	HRESULT HrSplitPath(const std::wstring &input, std::vector<std::wstring> &folders);
 	HRESULT HrUnsplitPath(const std::vector<std::wstring> &folders, std::wstring &path);
-
 	// All IMAP4rev1 commands
 	HRESULT HrCmdCapability(const std::string &tag);
 	template<bool check> HRESULT HrCmdNoop(const std::string &tag) { return HrCmdNoop(tag, check); }
@@ -189,7 +182,6 @@ private:
 	HRESULT HrCmdGetQuotaRoot(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdGetQuota(const std::string &tag, const std::vector<std::string> &args);
 	HRESULT HrCmdSetQuota(const std::string &tag, const std::vector<std::string> &args);
-
 	/* Untagged response, * or + */
 	void HrResponse(const std::string &untag, const std::string &resp);
 	/* Tagged response with result OK, NO or BAD */
@@ -283,11 +275,11 @@ private:
 
 	/* subscribed folders */
 	std::vector<BinaryArray> m_vSubscriptions;
+
 	HRESULT HrGetSubscribedList();
 	HRESULT HrSetSubscribedList();
 	HRESULT ChangeSubscribeList(bool bSubscribe, ULONG eid_size, const ENTRYID *);
 	HRESULT HrMakeSpecialsList();
-
 	HRESULT HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigned int *lpulUnseen, ULONG *lpulUIDValidity = NULL);
 	HRESULT HrGetSubTree(std::list<SFolder> &folders, bool public_folders, std::list<SFolder>::const_iterator parent_folder);
 	HRESULT HrGetFolderPath(std::list<SFolder>::const_iterator lpFolder, const std::list<SFolder> &lstFolder, std::wstring &path);
@@ -315,14 +307,11 @@ private:
 	bool StringToFileTime(std::string t, FILETIME &sFileTime, bool date_only = false);
 	// add 24 hour to the time to be able to check if a time is on a date
 	FILETIME AddDay(const FILETIME &sFileTime);
-
 	// Folder names are in a *modified* utf-7 form. See RFC2060, chapter 5.1.3
 	HRESULT MAPI2IMAPCharset(const std::wstring &input, std::string &output);
 	HRESULT IMAP2MAPICharset(const std::string &input, std::wstring &output);
-	
 	// Match a folder path
 	bool MatchFolderPath(const std::wstring &folder, const std::wstring &pattern);
-
 	// Various conversion functions
 	std::string PropsToFlags(LPSPropValue props, unsigned int nprops, bool recent, bool read);
 	void HrParseHeaders(const std::string &, std::list<std::pair<std::string, std::string> > &);

@@ -90,7 +90,6 @@ static void sighup(int sig)
 	const char *ll = g_lpConfig->GetSetting("log_level");
 	int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
 	ec_log_get()->SetLoglevel(new_ll);
-
 	if (strlen(g_lpConfig->GetSetting("ssl_private_key_file")) > 0 &&
 		strlen(g_lpConfig->GetSetting("ssl_certificate_file")) > 0) {
 		if (ECChannel::HrSetCtx(g_lpConfig.get()) != hrSuccess)
@@ -154,7 +153,6 @@ static void *Handler(void *lpArg)
 		client = new IMAP(szPath, lpChannel, lpConfig);
 	// not required anymore
 	delete lpHandlerArgs;
-
 	// make sure the pipe logger does not exit when this handler exits, but only frees the memory.
 	auto pipelog = dynamic_cast<ECLogger_Pipe *>(lpLogger);
 	if (pipelog != nullptr)
@@ -201,7 +199,6 @@ static void *Handler(void *lpArg)
 		}
 
 		timeouts = 0;
-
 		inBuffer.clear();
 		hr = lpChannel->HrReadLine(inBuffer);
 		if (hr != hrSuccess) {
@@ -212,14 +209,12 @@ static void *Handler(void *lpArg)
 			bQuit = true;
 			break;
 		}
-
 		if (quit) {
 			client->HrCloseConnection("BYE server shutting down");
 			hr = MAPI_E_CALL_FAILED;
 			bQuit = true;
 			break;
 		}
-
 		if (client->isContinue()) {
 			// we asked the client for more data, do not parse the buffer, but send it "to the previous command"
 			// that last part is currently only HrCmdAuthenticate(), so no difficulties here.
@@ -239,7 +234,6 @@ static void *Handler(void *lpArg)
 		} catch (const KC::KMAPIError &e) {
 			hr = e.code();
 		}
-
 		if (hr == MAPI_E_NETWORK_ERROR) {
 			ec_log_err("Connection error.");
 			bQuit = true;
@@ -249,7 +243,6 @@ static void *Handler(void *lpArg)
 			bQuit = true;
 		}
 	}
-
 exit:
 	ec_log_notice("Client %s thread exiting", lpChannel->peer_addr());
 	client->HrDone(false);	// HrDone does not send an error string to the client
@@ -260,10 +253,8 @@ exit:
 	#if OPENSSL_VERSION_NUMBER < 0x10100000L
 		ERR_remove_state(0);
 	#endif
-
 	if (bThreads)
 		--nChildren;
-
 	return NULL;
 }
 
@@ -386,7 +377,6 @@ int main(int argc, char *argv[]) {
 	// Get commandline options
 	while (1) {
 		c = my_getopt_long_permissive(argc, argv, "c:h:iuFV", long_options, NULL);
-
 		if (c == -1)
 			break;
 
@@ -444,7 +434,6 @@ int main(int argc, char *argv[]) {
 	// Setup logging
 	g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0], "KopanoGateway");
 	ec_log_set(g_lpLogger);
-
 	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig.get());
 	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
@@ -458,20 +447,17 @@ int main(int argc, char *argv[]) {
 	mainthread = pthread_self();
 	if (!szPath)
 		szPath = g_lpConfig->GetSetting("server_socket");
-
 	g_strHostString = g_lpConfig->GetSetting("server_hostname", NULL, "");
 	if (g_strHostString.empty())
 		g_strHostString = GetServerFQDN();
 	g_strHostString.insert(0, " on ");
 	hr = running_service(szPath, argv[0]);
-
 exit:
 	if (hr != hrSuccess)
 		fprintf(stderr, "%s: Startup failed: %s (%x). Please check the logfile (%s) for details.\n",
 			argv[0], GetMAPIErrorMessage(hr), hr, g_lpConfig->GetSetting("log_file"));
 	ssl_threading_cleanup();
 	DeleteLogger(g_lpLogger);
-
 	return hr == hrSuccess ? 0 : 1;
 }
 
@@ -639,7 +625,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
     struct rlimit file_limit;
 	file_limit.rlim_cur = KC_DESIRED_FILEDES;
 	file_limit.rlim_max = KC_DESIRED_FILEDES;
-    
 	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
 		ec_log_warn("setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", KC_DESIRED_FILEDES, getdtablesize());
 	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
@@ -681,7 +666,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		} else if (err == 0) {
 			continue;
 		}
-
 		for (size_t i = 0; i < nfds; ++i) {
 			if (!(g_socks.pollfd[i].revents & POLLIN))
 				/* OS might set more bits than requested */
@@ -731,20 +715,17 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		signal(SIGTERM, SIG_IGN);
 		kill(0, SIGTERM);
 	}
-
 	// wait max 10 seconds (init script waits 15 seconds)
 	for (int i = 10; nChildren != 0 && i != 0; --i) {
 		if (i % 5 == 0)
 			ec_log_warn("Waiting for %d processes/threads to exit", nChildren.load());
 		sleep(1);
 	}
-
 	if (nChildren)
 		ec_log_warn("Forced shutdown with %d processes/threads left", nChildren.load());
 	else
 		ec_log_notice("POP3/IMAP Gateway shutdown complete");
 	MAPIUninitialize();
-
 exit:
 	ECChannel::HrFreeCtx();
 	SSL_library_cleanup(); // Remove SSL data for the main application and other related libraries

@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef POP3_H
 #define POP3_H
 
@@ -16,9 +15,7 @@
  * @ingroup gateway
  * @{
  */
-
 #define POP3_MAX_RESPONSE_LENGTH 512
-
 #define POP3_RESP_OK "+OK "
 #define POP3_RESP_TEMPFAIL "-ERR [SYS/TEMP] "
 #define POP3_RESP_PERMFAIL "-ERR [SYS/PERM] "
@@ -35,7 +32,6 @@ public:
 
 	// getTimeoutMinutes: 5 min when logged in otherwise 1 min
 	int getTimeoutMinutes() const { return lpStore == nullptr ? 1 : 5; }
-
 	HRESULT HrSendGreeting(const std::string &strHostString);
 	HRESULT HrCloseConnection(const std::string &strQuitMsg);
 	HRESULT HrProcessCommand(const std::string &strInput);
@@ -43,7 +39,6 @@ public:
 
 private:
 	std::string GetCapabilityString();
-
 	HRESULT HrCmdCapability();
 	HRESULT HrCmdStarttls();
 	HRESULT HrCmdUser(const std::string &strUser);
@@ -59,7 +54,6 @@ private:
 	HRESULT HrCmdUidl();
 	HRESULT HrCmdUidl(unsigned int ulMailNr);
 	HRESULT HrCmdTop(unsigned int ulMailNr, unsigned int ulLines);
-
 	HRESULT HrResponse(const std::string &strResult, const std::string &strResponse);
 
 	struct MailListItem {
@@ -79,7 +73,6 @@ private:
 	KC::object_ptr<IAddrBook> lpAddrBook;
 	KC::sending_options sopt;
 	std::string szUser;
-
 	std::vector<MailListItem> lstMails;
 };
 

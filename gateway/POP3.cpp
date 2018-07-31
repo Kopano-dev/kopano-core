@@ -38,7 +38,6 @@ using std::string;
  * @ingroup gateway_pop3
  * @{
  */
-
 POP3::POP3(const char *szServerPath, std::shared_ptr<ECChannel> lpChannel,
     std::shared_ptr<ECConfig> lpConfig) :
 	ClientProto(szServerPath, std::move(lpChannel), std::move(lpConfig))
@@ -60,7 +59,6 @@ HRESULT POP3::HrSendGreeting(const std::string &strHostString) {
 		hr = HrResponse(POP3_RESP_OK, "POP3 gateway ready" + strHostString);
 	else
 		hr = HrResponse(POP3_RESP_OK, "POP3 gateway ready");
-
 	return hr;
 }
 
@@ -219,7 +217,6 @@ std::string POP3::GetCapabilityString()
 
 	// capabilities we always have
 	strCapabilities = "\r\nCAPA\r\nTOP\r\nUIDL\r\nRESP-CODES\r\nAUTH-RESP-CODE\r\n";
-
 	if (lpSession == NULL) {
 		// authentication capabilities
 		if (!lpChannel->UsingSsl() && lpChannel->sslctx())
@@ -228,9 +225,7 @@ std::string POP3::GetCapabilityString()
 		if (!(!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0))
 			strCapabilities += "USER\r\n";
 	}
-
 	strCapabilities += ".";
-
 	return strCapabilities;
 }
 
@@ -268,7 +263,6 @@ HRESULT POP3::HrCmdStarttls() {
 		ec_log_err("Error switching to SSL in STLS");
 		return hr;
 	}
-
 	if (lpChannel->UsingSsl())
 		ec_log_info("Using SSL now");
 	return hrSuccess;
@@ -361,7 +355,6 @@ HRESULT POP3::HrCmdStat() {
 
 	for (size_t i = 0; i < lstMails.size(); ++i)
 		ulSize += lstMails[i].ulSize;
-
 	snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u %u", (ULONG)lstMails.size(), ulSize);
 	return HrResponse(POP3_RESP_OK, szResponse);
 }
@@ -408,7 +401,6 @@ HRESULT POP3::HrCmdList(unsigned int ulMailNr) {
 		HrResponse(POP3_RESP_ERR, "Wrong mail number");
 		return MAPI_E_NOT_FOUND;
 	}
-
 	snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u %u", ulMailNr, lstMails[ulMailNr - 1].ulSize);
 	return HrResponse(POP3_RESP_OK, szResponse);
 }
@@ -460,7 +452,6 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 
 	snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u octets", (ULONG)strMessage.length());
 	HrResponse(POP3_RESP_OK, szResponse);
-
 	lpChannel->HrWriteLine(strMessage);
 	lpChannel->HrWriteLine(".");
 	return hrSuccess;
@@ -647,16 +638,12 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 	}
 
 	ulPos = strMessage.find("\r\n\r\n", 0);
-
 	++ulLines;
 	while (ulPos != string::npos && ulLines--)
 		ulPos = strMessage.find("\r\n", ulPos + 1);
-
 	if (ulPos != string::npos)
 		strMessage = strMessage.substr(0, ulPos);
-
 	strMessage = DotFilter(strMessage.c_str());
-
 	if (HrResponse(POP3_RESP_OK, string()) != hrSuccess ||
 		lpChannel->HrWriteLine(strMessage) != hrSuccess ||
 		lpChannel->HrWriteLine(".") != hrSuccess)
@@ -692,7 +679,6 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 	}
 
 	flags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_COMPRESSION;
-
 	if (!parseBool(lpConfig->GetSetting("bypass_auth")))
 		flags |= EC_PROFILE_FLAGS_NO_UID_AUTH;
 	hr = HrOpenECSession(&~lpSession, PROJECT_VERSION, "gateway/pop3",
@@ -713,13 +699,11 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 		ec_log_err("Failed to open default store");
 		goto exit;
 	}
-
 	hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAddrBook);
 	if (hr != hrSuccess) {
 		ec_log_err("Failed to open addressbook");
 		goto exit;
 	}
-
 	// check if pop3 access is disabled
 	if (checkFeature("pop3", lpAddrBook, lpStore, PR_EC_DISABLED_FEATURES_A)) {
 		ec_log_err("POP3 not enabled for user \"%s\"", strUsername.c_str());
@@ -731,7 +715,6 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 		ec_log_err("Failed to find receive folder of store");
 		goto exit;
 	}
-
 	hr = lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpInbox);
 	if (ulObjType != MAPI_FOLDER)
 		hr = MAPI_E_NOT_FOUND;
@@ -746,7 +729,6 @@ exit:
 		lpInbox.reset();
 		lpStore.reset();
 	}
-
 	return hr;
 }
 
