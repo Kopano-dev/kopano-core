@@ -657,35 +657,28 @@ HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId,
 {
 	if (lpEntryId == nullptr || lpbIsPseudoUrl == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
+	if (cbEntryId < offsetof(EID, ulVersion) + sizeof(EID::ulVersion))
+		return MAPI_E_INVALID_ENTRYID;
 
-	PEID	peid = (PEID)lpEntryId;
-	unsigned int ulMaxSize = 0, ulSize = 0;
-	char*	lpTmpServerName = NULL;
 	bool	bIsPseudoUrl = false;
+	auto eby = reinterpret_cast<const char *>(lpEntryId);
+	decltype(EID::ulVersion) version;
+	std::string path;
 
-	if (peid->ulVersion == 0) 
-	{
-		auto peid_V0 = reinterpret_cast<const EID_V0 *>(lpEntryId);
-		ulMaxSize = cbEntryId - offsetof(EID_V0, szServer);
-		ulSize = strnlen((char*)peid_V0->szServer, ulMaxSize);
-		lpTmpServerName = (char*)peid_V0->szServer;
-	} else {
-		ulMaxSize = cbEntryId - offsetof(EID, szServer);
-		ulSize = strnlen((char*)peid->szServer, ulMaxSize);
-		lpTmpServerName = (char*)peid->szServer;
-	}
-
-	if (ulSize >= ulMaxSize)
-		return MAPI_E_NOT_FOUND;
-	if (strncasecmp(lpTmpServerName, "pseudo://", 9) == 0)
+	memcpy(&version, eby + offsetof(EID, ulVersion), sizeof(version));
+	auto z = (version == 0) ? offsetof(EID_V0, szServer) : offsetof(EID, szServer);
+	path.assign(eby + z, cbEntryId - z);
+	auto pos = path.find_first_of('\0');
+	if (pos != std::string::npos)
+		path.erase(pos);
+	if (kc_starts_with(path, "pseudo://"))
 		bIsPseudoUrl = true;
-	else if (strncasecmp(lpTmpServerName, "http://", 7) && 
-			 strncasecmp(lpTmpServerName, "https://", 8) && 
-			 strncasecmp(lpTmpServerName, "file://", 7) &&
-			 strncasecmp(lpTmpServerName, "default:", 8))
+	else if (!kc_starts_with(path, "http://") &&
+	    !kc_starts_with(path, "https://") &&
+	    !kc_starts_with(path, "file://") &&
+	    !kc_starts_with(path, "default:"))
 		return MAPI_E_NOT_FOUND;
-
-	rServerPath = lpTmpServerName;
+	rServerPath = std::move(path);
 	*lpbIsPseudoUrl = bIsPseudoUrl;
 	return hrSuccess;
 }
