@@ -23,7 +23,7 @@ class ECRestriction;
 }
 
 /**
- * @defgroup gateway_imap IMAP 
+ * @defgroup gateway_imap IMAP
  * @ingroup gateway
  * @{
  */

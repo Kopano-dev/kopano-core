@@ -55,7 +55,7 @@ using std::swap;
 using std::vector;
 using std::wstring;
 
-/** 
+/**
  * @ingroup gateway_imap
  * @{
  */
@@ -129,7 +129,7 @@ HRESULT IMAP::HrSplitPath(const wstring &strInputParam, vector<wstring> &vPaths)
 		strInput.erase(strInput.size()-1, 1);
     // split into parts
     vPaths = tokenize(strInput, IMAP_HIERARCHY_DELIMITER);
-    return hrSuccess;    
+    return hrSuccess;
 }
 
 /**
@@ -195,12 +195,12 @@ HRESULT IMAP::HrSplitInput(const string &strInput, vector<string> &vWords) {
 	return hrSuccess;
 }
 
-/** 
+/**
  * Send login greeting to client
- * 
+ *
  * @param[in] strHostString optional hostname string
- * 
- * @return 
+ *
+ * @return
  */
 HRESULT IMAP::HrSendGreeting(const std::string &strHostString)
 {
@@ -211,9 +211,9 @@ HRESULT IMAP::HrSendGreeting(const std::string &strHostString)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Send client an error message that the socket will be closed by the server
- * 
+ *
  * @param[in] strQuitMsg quit message for client
  * @return MAPI error code
  */
@@ -223,11 +223,11 @@ HRESULT IMAP::HrCloseConnection(const std::string &strQuitMsg)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Execute the IMAP command from the client
- * 
+ *
  * @param strInput received input from client
- * 
+ *
  * @return MAPI error code
  */
 HRESULT IMAP::HrProcessCommand(const std::string &strInput)
@@ -314,7 +314,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		}
 		bPlus = (*lpcres == '+');
 
-		// no need to output the 
+		// no need to output the
 		if (!bPlus) {
 			try {
 				HrResponse(RESP_CONTINUE, "Ready for literal data");
@@ -333,7 +333,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			hr = lpChannel->HrReadBytes(&inBuffer, ulByteCount);
 			if (hr != hrSuccess)
 				break;
-			// replace size request with literal 
+			// replace size request with literal
 			strvResult.back() = inBuffer;
 			ec_log_debug("< <%d bytes data> %s", ulByteCount, inBuffer.c_str());
 		}
@@ -441,11 +441,11 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Continue command, only supported for AUTHENTICATE command
- * 
+ *
  * @param[in] strInput more input from client
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrProcessContinue(const string &strInput)
@@ -453,14 +453,14 @@ HRESULT IMAP::HrProcessContinue(const string &strInput)
 	return HrCmdAuthenticate(m_strContinueTag, "PLAIN", strInput);
 }
 
-/** 
+/**
  * Returns the CAPABILITY string. In some stages, items can be listed
  * or not. This depends on the command received from the client, and
  * the logged on status of the user. Last state is autodetected in the
  * class.
- * 
+ *
  * @param[in]  bAllFlags Whether all capabilities should be placed in the string, and not only the pre-logon capabilities.
- * 
+ *
  * @return  The capabilities string
  */
 std::string IMAP::GetCapabilityString(bool bAllFlags)
@@ -489,15 +489,15 @@ std::string IMAP::GetCapabilityString(bool bAllFlags)
 	return strCapabilities;
 }
 
-/** 
+/**
  * @brief Handles the CAPABILITY command
  *
  * Sends all the gateway capabilities to the client, depending on the
  * state we're in. Authentication capabilities are skipped when a user
  * was already logged in.
- * 
+ *
  * @param[in] strTag the IMAP tag for this command
- * 
+ *
  * @return hrSuccess
  */
 HRESULT IMAP::HrCmdCapability(const string &strTag) {
@@ -506,14 +506,14 @@ HRESULT IMAP::HrCmdCapability(const string &strTag) {
 	return hrSuccess;
 }
 
-/** 
+/**
  * @brief Handles the NOOP command
- * 
+ *
  * Checks the current selected folder for changes, and possebly sends
  * the EXISTS and/or RECENT values to the client.
  *
  * @param[in] strTag the IMAP tag for this command
- * 
+ *
  * @return hrSuccess
  */
 HRESULT IMAP::HrCmdNoop(const std::string &strTag, bool check)
@@ -530,14 +530,14 @@ HRESULT IMAP::HrCmdNoop(const std::string &strTag, bool check)
 	return hrSuccess;
 }
 
-/** 
+/**
  * @brief Handles the LOGOUT command
- * 
+ *
  * Sends the BYE response to the client. HandleIMAP() will close the
  * connection.
  *
  * @param[in] strTag the IMAP tag for this command
- * 
+ *
  * @return hrSuccess
  */
 HRESULT IMAP::HrCmdLogout(const string &strTag) {
@@ -547,13 +547,13 @@ HRESULT IMAP::HrCmdLogout(const string &strTag) {
 	return MAPI_E_END_OF_SESSION;
 }
 
-/** 
+/**
  * @brief Handles the STARTTLS command
- * 
+ *
  * Tries to set the current connection to use SSL encryption.
  *
  * @param[in] strTag the IMAP tag for this command
- * 
+ *
  * @return hrSuccess
  */
 HRESULT IMAP::HrCmdStarttls(const string &strTag) {
@@ -574,19 +574,19 @@ HRESULT IMAP::HrCmdStarttls(const string &strTag) {
 	return hrSuccess;
 }
 
-/** 
+/**
  * @brief Handles the AUTENTICATE command
  *
  * The authenticate command only implements the PLAIN authentication
  * method, since we require the actual password, and not just a hash
  * value.
- * 
+ *
  * According to the RFC, the data in strAuthData is UTF-8, but thunderbird still sends iso-8859-X.
  *
  * @param[in] strTag The IMAP tag for this command
  * @param[in] strAuthMethod Must be set to PLAIN
  * @param[in] strAuthData (optional) if empty we use a continuation request, otherwise we can authenticate, base64 encoded string
- * 
+ *
  * @return MAPI error code
  */
 HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, const string &strAuthData)
@@ -629,7 +629,7 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 	return HrCmdLogin(strTag, {vAuth[1], vAuth[2]});
 }
 
-/** 
+/**
  * @brief Handles the LOGIN command
  *
  * Opens a MAPI session, addressbook and possebly open the public if
@@ -638,7 +638,7 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
  * @param[in] strTag IMAP tag
  * @param[in] strUser Username, currently tried as windows-1252 charsets
  * @param[in] strPass Password, currently tried as windows-1252 charsets
- * 
+ *
  * @return MAPI error code
  */
 HRESULT IMAP::HrCmdLogin(const std::string &strTag,
@@ -663,7 +663,7 @@ HRESULT IMAP::HrCmdLogin(const std::string &strTag,
 		if (strUser[i] == '\\' && i+1 < strUser.length() && (strUser[i+1] == '"' || strUser[i+1] == '\\'))
 			++i;
 		strUsername += strUser[i];
-	}	
+	}
 
 	// If plaintext authentication was disabled any login attempt must be refused very soon
 	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
@@ -854,14 +854,14 @@ HRESULT IMAP::HrCmdSelect(const std::string &strTag,
 	return hrSuccess;
 }
 
-/** 
+/**
  * @brief Handles the CREATE command
  *
  * Recursively create a new folders, starting from the root folder.
- * 
+ *
  * @param[in] strTag the IMAP tag for this command
  * @param[in] strFolderParam The foldername, encoded in IMAP UTF-7 charset
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdCreate(const std::string &strTag,
@@ -920,18 +920,18 @@ HRESULT IMAP::HrCmdCreate(const std::string &strTag,
 	return hr;
 }
 
-/** 
+/**
  * @brief Handles the DELETE command
  *
  * Deletes folders, starting from the root folder. Special MAPI
  * folders may not be deleted. The folder will be removed from the
  * subscribed list, if it was subscribed.
- * 
+ *
  * @test write test which checks if delete removes folder from subscribed list
  *
  * @param[in] strTag the IMAP tag for this command
  * @param[in] strFolderParam The foldername, encoded in IMAP UTF-7 charset
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdDelete(const std::string &strTag,
@@ -1004,7 +1004,7 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
 	return hr;
 }
 
-/** 
+/**
  * @brief Handles the RENAME command
  *
  * Renames or moves a folder. A folder cannot be moved under itself. A
@@ -1013,7 +1013,7 @@ HRESULT IMAP::HrCmdDelete(const std::string &strTag,
  * @param[in] strTag the IMAP tag for this command
  * @param[in] strExistingFolderParam the folder to rename or move, in IMAP UTF-7 charset
  * @param[in] strNewFolderParam the new folder name, in IMAP UTF-7 charset
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdRename(const std::string &strTag,
@@ -1052,7 +1052,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 	strExistingFolder = strToUpper(strExistingFolder);
 	if (strExistingFolder.compare(L"INBOX") == 0) {
 		// FIXME, rfc text:
-		// 
+		//
 		//       Renaming INBOX is permitted, and has special behavior.  It moves
 		//       all messages in INBOX to a new mailbox with the given name,
 		//       leaving INBOX empty.  If the server implementation supports
@@ -1088,7 +1088,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME destination already exists");
 		return hr;
 	}
-    
+
     // strPath now contains subfolder we want to create (eg sub/new). So now we have to
     // mkdir -p all the folder leading up to the last (if any)
 	do {
@@ -1146,9 +1146,9 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 	return hr;
 }
 
-/** 
+/**
  * @brief Handles the SUBSCRIBE and UNSUBSCRIBE commands
- * 
+ *
  * Subscribe or unsubscribe the given folder. Special IMAP folders
  * cannot be unsubscribed. Subscribed folders are listed with the LSUB
  * command.
@@ -1160,7 +1160,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
  * @param[in] strTag the IMAP tag for this command
  * @param[in] strFolderParam The folder to (un)subscribe, in IMAP UTF-7 charset
  * @param[in] bSubscribe subscribe (true) or unsubscribe (false)
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
@@ -1213,9 +1213,9 @@ HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
 	return hrSuccess;
 }
 
-/** 
+/**
  * @brief Handles the LIST and LSUB commands
- * 
+ *
  * Lists all or subscribed folders, with wildcard filtering. Supported
  * folder flags are \Noselect and \Has(No)Children.
  * @todo I don't think we check the \Noselect in the SELECT/EXAMINE command
@@ -1225,7 +1225,7 @@ HRESULT IMAP::HrCmdSubscribe(const std::string &strTag,
  * @param[in] strReferenceFolder list folders below this folder, in IMAP UTF-7 charset
  * @param[in] strFindFolder list folders with names matching this name with/or wildcards (* and %) , in IMAP UTF-7 charset
  * @param[in] bSubscribedOnly Behave for the LIST command (false) or LSUB command (true)
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdList(const std::string &strTag,
@@ -1290,7 +1290,7 @@ HRESULT IMAP::HrCmdList(const std::string &strTag,
 		// if path is empty, we're probably dealing the IPM_SUBTREE entry
 		if(HrGetFolderPath(iFld, folders, strFolderPath) != hrSuccess || strFolderPath.empty())
 		    continue;
-		    
+
 		if (!strFolderPath.empty())
 			strFolderPath.erase(0,1); // strip / from start of string
 		if (!MatchFolderPath(strFolderPath, strPattern))
@@ -1387,9 +1387,9 @@ HRESULT IMAP::get_recent_uidnext(IMAPIFolder *folder, const std::string &tag, UL
 	return hrSuccess;
 }
 
-/** 
+/**
  * @brief Handles STATUS command
- * 
+ *
  * Returns values for status items. Status items are:
  * @li \b MESSAGES	The number of messages in the mailbox.
  * @li \b RECENT	The number of messages with the \Recent flag set.
@@ -1403,7 +1403,7 @@ HRESULT IMAP::get_recent_uidnext(IMAPIFolder *folder, const std::string &tag, UL
  * @param[in] strTag the IMAP tag for this command
  * @param[in] strFolder The folder to query the status of, in IMAP UTF-7 charset
  * @param[in] strStatusData A list of status items to query
- * 
+ *
  * @return MAPI error code
  */
 HRESULT IMAP::HrCmdStatus(const std::string &strTag,
@@ -1428,7 +1428,7 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 	memory_ptr<SPropValue> lpPropCounters, lpPropMaxID;
 	wstring strIMAPFolder;
 	std::string strFolder = args[0], strStatusData = args[1];
-    
+
 	if (!lpSession) {
 		HrResponse(RESP_TAGGED_NO, strTag, "STATUS error no session");
 		return MAPI_E_CALL_FAILED;
@@ -1523,9 +1523,9 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
 	return hrSuccess;
 }
 
-/** 
+/**
  * @brief Handles the APPEND command
- * 
+ *
  * Create a new mail message in the given folder, and possebly set
  * flags and received time on the new message.
  *
@@ -1534,7 +1534,7 @@ HRESULT IMAP::HrCmdStatus(const std::string &strTag,
  * @param[in] strData the RFC 2822 formatted email to save
  * @param[in] strFlags optional, contains a list of extra flags to save on the message (e.g. \Seen)
  * @param[in] strTime optional, a timestamp for the message: internal date is received date
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, const string &strData, string strFlags, const string &strTime) {
@@ -1555,7 +1555,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W,
 			PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID, PR_SENDER_SEARCH_KEY
 		} };
-	
+
 	if (!lpSession) {
 		HrResponse(RESP_TAGGED_NO, strTag, "APPEND error no session");
 		return MAPI_E_CALL_FAILED;
@@ -1735,14 +1735,14 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 	return hr;
 }
 
-/** 
+/**
  * @brief Handles the CLOSE command
  *
  * Closes the current selected mailbox, expunging any \Delete marked
  * messages in this mailbox.
- * 
+ *
  * @param[in] strTag the IMAP tag for this command
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdClose(const string &strTag) {
@@ -1772,9 +1772,9 @@ exit:
 	return hr;
 }
 
-/** 
+/**
  * @brief Handles the EXPUNGE command
- * 
+ *
  * All \Deleted marked emails will actually be removed (softdeleted in
  * Kopano). Optional is the sequence set (UIDPLUS extension), which
  * messages only must be expunged if \Deleted flag was marked AND are
@@ -1782,7 +1782,7 @@ exit:
  *
  * @param[in] strTag the IMAP tag for this command
  * @param[in] strStatusData optional sequence set
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdExpunge(const string &strTag, const std::vector<std::string> &args) {
@@ -1822,16 +1822,16 @@ HRESULT IMAP::HrCmdExpunge(const string &strTag, const std::vector<std::string> 
 	return hrSuccess;
 }
 
-/** 
+/**
  * @brief Handles the SEARCH command
  *
  * Searches in the current selected folder using the given search
  * criteria.
- * 
+ *
  * @param[in] strTag the IMAP tag for this command
  * @param[in] lstSearchCriteria The clients search options.
  * @param[in] bUidMode UID SEARCH (true) or flat ID SEARCH (false)
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteria, bool bUidMode) {
@@ -1870,16 +1870,16 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 	return hr;
 }
 
-/** 
+/**
  * @brief Handles the FETCH command
- * 
+ *
  * Fetch specified parts of a list of emails.
  *
  * @param[in] strTag the IMAP tag for this command
  * @param[in] strSeqSet an IMAP sequence of IDs or UIDs depending on bUidMode
  * @param[in] strMsgDataItemNames The parts of the emails to fetch
  * @param[in] bUidMode use UID (true) or ID (false) numbers
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
@@ -1925,9 +1925,9 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &a
 	return hr;
 }
 
-/** 
+/**
  * @brief Handles the STORE command
- * 
+ *
  * Sets, appends or removes flags from a list of emails.
  *
  * @param[in] strTag the IMAP tag for this command
@@ -1935,7 +1935,7 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const std::vector<std::string> &a
  * @param[in] strMsgDataItemName contains the FLAGS modifier command
  * @param[in] strMsgDataItemValue contains a list of flags to modify the emails with
  * @param[in] bUidMode use UID (true) or ID (false) numbers
- * 
+ *
  * @return MAPI error code
  */
 HRESULT IMAP::HrCmdStore(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
@@ -1999,16 +1999,16 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const std::vector<std::string> &a
 	return hr;
 }
 
-/** 
+/**
  * @brief Handles the COPY command
- * 
+ *
  * Copy a list of emails from the current selected folder to the given folder.
  *
  * @param[in] strTag the IMAP tag for this command
  * @param[in] strSeqSet an IMAP sequence of IDs or UIDs depending on bUidMode
  * @param[in] strFolder the folder to copy the message to, in IMAP UTF-7 charset
  * @param[in] bUidMode use UID (true) or ID (false) numbers
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdCopy(const string &strTag, const std::vector<std::string> &args, bool bUidMode) {
@@ -2056,9 +2056,9 @@ HRESULT IMAP::HrCmdCopy(const string &strTag, const std::vector<std::string> &ar
 	return hr;
 }
 
-/** 
+/**
  * @brief Handles the UID XAOL-MOVE command (non-RFC command)
- * 
+ *
  * This extension, currently only used by thunderbird, moves a list of
  * emails into the given folder. Normally IMAP can only move mails
  * with COPY/STORE(\Deleted) commands.
@@ -2066,7 +2066,7 @@ HRESULT IMAP::HrCmdCopy(const string &strTag, const std::vector<std::string> &ar
  * @param[in] strTag the IMAP tag for this command
  * @param[in] strSeqSet an IMAP sequence of IDs or UIDs depending on bUidMode
  * @param[in] strFolder the folder to copy the message to, in IMAP UTF-7 charset
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const std::vector<std::string> &args) {
@@ -2108,15 +2108,15 @@ HRESULT IMAP::HrCmdUidXaolMove(const string &strTag, const std::vector<std::stri
 	return hr;
 }
 
-/** 
+/**
  * Convert a MAPI array of properties (from a table) to an IMAP FLAGS list.
- * 
+ *
  * @todo, flags always are in a list, so this function should add the ()
  *
  * @param[in] lpProps Array of MAPI properties
  * @param[in] cValues Number of properties in lpProps
  * @param[in] bRecent Add the recent flag to the list
- * 
+ *
  * @return string with IMAP Flags
  */
 std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool bRecent, bool bRead) {
@@ -2151,7 +2151,7 @@ std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool 
 		if (lpMsgStatus->Value.ul & MSGSTATUS_DELMARKED)
 			strFlags += "\\Deleted ";
 	}
-	
+
 	if (bRecent)
 	    strFlags += "\\Recent ";
 	// strip final space
@@ -2160,14 +2160,14 @@ std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool 
 	return strFlags;
 }
 
-/** 
+/**
  * The notify callback function. Sends changes to the client on the
  * current selected folder during the IDLE command.
- * 
+ *
  * @param[in] lpContext callback data, containing "this" IMAP class
  * @param[in] cNotif Number of notification messages in lpNotif
  * @param[in] lpNotif Array of changes on the folder
- * 
+ *
  * @return MAPI Error code
  */
 LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
@@ -2264,16 +2264,16 @@ LONG IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
 	return S_OK;
 }
 
-/** 
+/**
  * @brief Handles the IDLE command
- * 
+ *
  * If we have a current selected folder, a notification advise is
  * created in another thread, which will print updates to the
  * client. The IMAP client can at anytime close the thread by exiting,
  * or sending the DONE command.
  *
  * @param[in] strTag the IMAP tag for this command
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdIdle(const string &strTag) {
@@ -2335,15 +2335,15 @@ exit:
 	return hr;
 }
 
-/** 
+/**
  * @brief Handles the DONE command
- * 
+ *
  * The DONE command closes the previous IDLE command, and has no IMAP
  * tag. This function can be also called implicitly, so a response to
  * the client is not always required.
  *
  * @param[in] bSendResponse Send a response to the client or not
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrDone(bool bSendResponse) {
@@ -2370,13 +2370,13 @@ HRESULT IMAP::HrDone(bool bSendResponse) {
 	return hr;
 }
 
-/** 
+/**
  * @brief Handles the NAMESPACE command
  *
  * We currently only support the user namespace.
- * 
+ *
  * @param[in] strTag the IMAP tag for this command
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdNamespace(const string &strTag) {
@@ -2386,13 +2386,13 @@ HRESULT IMAP::HrCmdNamespace(const string &strTag) {
 	return hrSuccess;
 }
 
-/** 
+/**
  * Sends a response to the client with specific quota information. We
  * only export the hard quota level to the IMAP client.
- * 
+ *
  * @param[in] strTag Tag of the IMAP command
  * @param[in] strQuotaRoot Which quota root is requested
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrPrintQuotaRoot(const string& strTag)
@@ -2414,17 +2414,17 @@ HRESULT IMAP::HrPrintQuotaRoot(const string& strTag)
 	return hrSuccess;
 }
 
-/** 
+/**
  * @brief Handles the GETQUOTAROOT command
- * 
+ *
  * Sends which quota roots are available (only hard quota).
- * 
+ *
  * @param[in] strTag Tag of the IMAP command
  * @param[in] strFolder The folder to request quota information on
- * 
+ *
  * @todo check if folder is in public and show no quota?
  *
- * @return 
+ * @return
  */
 HRESULT IMAP::HrCmdGetQuotaRoot(const std::string &strTag,
     const std::vector<std::string> &args)
@@ -2445,13 +2445,13 @@ HRESULT IMAP::HrCmdGetQuotaRoot(const std::string &strTag,
 	return hr;
 }
 
-/** 
+/**
  * Get the quota value for a given quota root. We only have the "" quota root.
- * 
+ *
  * @param[in] strTag Tag of the IMAP command
  * @param[in] strQuotaRoot given quota root
- * 
- * @return 
+ *
+ * @return
  */
 HRESULT IMAP::HrCmdGetQuota(const std::string &strTag,
     const std::vector<std::string> &args)
@@ -2480,12 +2480,12 @@ HRESULT IMAP::HrCmdSetQuota(const std::string &strTag,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Send an untagged response.
- * 
+ *
  * @param[in] strUntag Either RESP_UNTAGGED or RESP_CONTINUE
  * @param[in] strResponse Status information to send to the client
- * 
+ *
  * @return MAPI Error code
  */
 void IMAP::HrResponse(const string &strUntag, const string &strResponse)
@@ -2499,16 +2499,16 @@ void IMAP::HrResponse(const string &strUntag, const string &strResponse)
 		throw KMAPIError(hr);
 }
 
-/** 
+/**
  * Tagged response to the client. You may only send one tagged
  * response to the client per received command.
- * 
+ *
  * @note be careful when sending NO or BAD results: some clients may try the same command over and over.
  *
  * @param[in] strTag The tag received from the client for a command
  * @param[in] strResult The result of the command, either RESP_TAGGED_OK, RESP_TAGGED_NO or RESP_TAGGED_BAD
  * @param[in] strResponse The result of the command to send to the client
- * 
+ *
  * @return MAPI Error code
  */
 void IMAP::HrResponse(const string &strResult, const string &strTag, const string &strResponse)
@@ -2532,14 +2532,14 @@ void IMAP::HrResponse(const string &strResult, const string &strTag, const strin
 		throw KMAPIError(hr);
 }
 
-/** 
+/**
  * Remove \Deleted marked message from current selected folder. Only
  * response in case of an error.
- * 
+ *
  * @param[in] strTag IMAP tag given for command
  * @param[in] strCommand IMAP command which triggered the expunge
  * @param[in] lpUIDRestriction optional restriction to limit messages actually deleted (see HrCmdExpunge)
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
@@ -2603,12 +2603,12 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 	return hr;
 }
 
-/** 
+/**
  * Create a flat list of all folders in the users tree, and possibly
  * add the public folders to this list too.
- * 
+ *
  * @param[out] lstFolders Sets the folder list
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
@@ -2658,7 +2658,7 @@ HRESULT IMAP::HrGetSubscribedList() {
 	ULONG size, i;
 	ULONG read;
 	ULONG cb = 0;
-	
+
 	m_vSubscriptions.clear();
 	hr = lpStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryID, &~lpEntryID, nullptr);
 	if (hr != hrSuccess)
@@ -2737,14 +2737,14 @@ HRESULT IMAP::HrSetSubscribedList() {
 	return lpStream->Commit(0);
 }
 
-/** 
+/**
  * Add or remove a folder EntryID from the subscribed list, and save
  * it to the server when changed.
- * 
+ *
  * @param[in] bSubscribe Add (true) to the list, or remove (false)
  * @param[in] cbEntryID number of bytes in lpEntryID
  * @param[in] lpEntryID EntryID to find in the subscribed list
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, const ENTRYID *lpEntryID)
@@ -2769,10 +2769,10 @@ HRESULT IMAP::ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, const ENTRYI
 	return hrSuccess;
 }
 
-/** 
+/**
  * Create a list of special IMAP folders, which may not be deleted,
  * renamed or unsubscribed from.
- * 
+ *
  * @return MAPI Error code
  * @retval hrSuccess the special folderlist is saved in lstSpecialEntryIDs
  */
@@ -2824,12 +2824,12 @@ HRESULT IMAP::HrMakeSpecialsList() {
 	return hrSuccess;
 }
 
-/** 
+/**
  * Check if the folder with the given EntryID is a special folder.
- * 
+ *
  * @param[in] cbEntryID number of bytes in lpEntryID
  * @param[in] lpEntryID bytes of the entryid
- * 
+ *
  * @return is a special folder (true) or a custom user folder (false)
  */
 
@@ -2844,14 +2844,14 @@ bool IMAP::IsSpecialFolder(ULONG cbEntryID, ENTRYID *lpEntryID,
 	return true;
 }
 
-/** 
+/**
  * Make a list of all mails in the current selected folder.
- * 
+ *
  * @param[in] bInitialLoad Create a new clean list of mails (false to append only)
  * @param[in] bResetRecent Update the value of PR_EC_IMAP_MAX_ID for this folder
  * @param[out] lpulUnseen The number of unread emails in this folder
  * @param[out] lpulUIDValidity The UIDVALIDITY value for this folder (optional)
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigned int *lpulUnseen, ULONG *lpulUIDValidity) {
@@ -2908,7 +2908,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
     if(!bInitialLoad)
 		for (const auto &mail : lstFolderMailEIDs)
 			mapUIDs[mail.ulUid] = n++;
-    
+
     if(bInitialLoad) {
         lstFolderMailEIDs.clear();
 		m_ulLastUid = 0;
@@ -2924,7 +2924,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 			return hr;
         if(lpRows->cRows == 0)
             break;
-            
+
 		for (ulMailnr = 0; ulMailnr < lpRows->cRows; ++ulMailnr) {
             if (lpRows[ulMailnr].lpProps[EID].ulPropTag != PR_ENTRYID ||
                 lpRows[ulMailnr].lpProps[IKEY].ulPropTag != PR_INSTANCE_KEY ||
@@ -2948,7 +2948,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 				lstFolderMailEIDs.emplace_back(sMail);
 				m_ulLastUid = std::max(sMail.ulUid, m_ulLastUid);
                 bNewMail = true;
-                
+
                 // Remember the first unseen message
 				if (ulUnseen == 0 &&
 				    lpRows[ulMailnr].lpProps[FLAGS].ulPropTag == PR_MESSAGE_FLAGS &&
@@ -2982,7 +2982,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
         ++iterMail;
         ++ulMailnr;
     }
-    
+
     if (bNewMail || bInitialLoad) {
 		HrResponse(RESP_UNTAGGED, stringify(lstFolderMailEIDs.size()) + " EXISTS");
 		HrResponse(RESP_UNTAGGED, stringify(ulRecent) + " RECENT");
@@ -3000,14 +3000,14 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 	return hrSuccess;
 }
 
-/** 
+/**
  * Return the IMAP Path for a given folder. Recursively recreates the
  * path using the parent iterator in the SFolder struct.
- * 
+ *
  * @param[in] lpFolder Return the path name for this folder
  * @param[in] lstFolders The list of folders for this user, where lpFolder is a valid iterator in
  * @param[out] strPath The full imap path with separators in wide characters
- * 
+ *
  * @return MAPI Error code
  * @retval MAPI_E_NOT_FOUND lpFolder is not a valid iterator in lstFolders
  */
@@ -3025,11 +3025,11 @@ HRESULT IMAP::HrGetFolderPath(list<SFolder>::const_iterator lpFolder, const list
 	return hrSuccess;
 }
 
-/** 
+/**
  * Appends the given folder list with the given folder from the
  * EntryID with name. If bSubfolders is true, the given folder should
  * have subfolders, and these will recursively be processed.
- * 
+ *
  * @param[out] lstFolders Add the given folder data to this list
  * @param[in] sEntryID Folder EntryID to add to list, and to process for subfolders
  * @param[in] strFolderName The name of the folder to add to the list
@@ -3156,10 +3156,10 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &folders, bool public_folders, list<SFo
 /**
  * Extends IMAP shortcuts into real full IMAP proptags, and returns an
  * vector of all separate and capitalized items.
- * 
+ *
  * @param[in] strMsgDataItemNames String of wanted data items from a FETCH command.
  * @param[out] lstDataItems Vector of all separate items in the string in uppercase.
- * 
+ *
  * @return hrSuccess
  */
 HRESULT IMAP::HrGetDataItems(string strMsgDataItemNames, vector<string> &lstDataItems) {
@@ -3179,14 +3179,14 @@ HRESULT IMAP::HrGetDataItems(string strMsgDataItemNames, vector<string> &lstData
 	return HrSplitInput(strMsgDataItemNames, lstDataItems);
 }
 
-/** 
+/**
  * Do a FETCH based on table data for a specific list of
  * messages. Replies directly to the IMAP client with the result for
  * each mail given.
- * 
+ *
  * @param[in] lstMails a full sorted list of emails to process
  * @param[in] lstDataItems vector of IMAP data items to send to the client
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItems) {
@@ -3327,7 +3327,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 	// Setup a find restriction that we modify for each row
 	sPropVal.ulPropTag = PR_INSTANCE_KEY;
 	ECPropertyRestriction sRestriction(RELOP_EQ, PR_INSTANCE_KEY, &sPropVal, ECRestriction::Cheap);
-    
+
 	// Loop through all requested rows, and get the data for each (FIXME: slow for large requests)
 	for (auto mail_idx : lstMails) {
 		const SPropValue *lpProp = NULL; // non-free // by default: no need to mark-as-read
@@ -3335,7 +3335,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		sPropVal.Value.bin.cb = lstFolderMailEIDs[mail_idx].sInstanceKey.cb;
 		sPropVal.Value.bin.lpb = lstFolderMailEIDs[mail_idx].sInstanceKey.lpb;
 
-        // We use a read-ahead mechanism here, reading 50 rows at a time.		
+        // We use a read-ahead mechanism here, reading 50 rows at a time.
 		if (m_lpTable) {
             // First, see if the next row is somewhere in our already-read data
             lpRow = NULL;
@@ -3351,7 +3351,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 
             if(lpRow == NULL) {
 				lpRows.reset();
-                
+
                 // Row was not found in our current data, request new data
 				if (sRestriction.FindRowIn(m_lpTable, BOOKMARK_CURRENT, 0) == hrSuccess &&
 				    m_lpTable->QueryRows(ulReadAhead, 0, &~lpRows) == hrSuccess &&
@@ -3361,7 +3361,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 					nRow = 0;
 				}
             }
-            
+
 		    // Pass the row data for conversion
 		    if(lpRow) {
 				// possebly add message to mark-as-read
@@ -3384,7 +3384,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
             cValues = 0;
             lpProps = NULL;
         }
-        
+
         // Fetch the row data
 		if (HrPropertyFetchRow(lpProps, cValues, strResponse, mail_idx, lpProp != nullptr, lstDataItems) != hrSuccess)
 			ec_log_warn("{?} Error fetching mail");
@@ -3413,18 +3413,18 @@ HRESULT IMAP::save_generated_properties(const std::string &text, IMessage *messa
 	return hrSuccess;
 }
 
-/** 
+/**
  * Does a FETCH based on row-data from a MAPI table. If the table data
  * is not sufficient, the PR_EC_IMAP_EMAIL property may be fetched
  * when present, or a full re-generation of the email will be
  * triggered to get the data.
- * 
- * @param[in] lpProps Array of MAPI properties of a message 
+ *
+ * @param[in] lpProps Array of MAPI properties of a message
  * @param[in] cValues Number of properties in lpProps
  * @param[out] strResponse The string to send to the client
  * @param[in] ulMailnr Number of current email which we're creating a response for
  * @param[in] lstDataItems IMAP data items to add to the result string
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &strResponse, ULONG ulMailnr, bool bForceFlags, const vector<string> &lstDataItems)
@@ -3449,7 +3449,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 	string strFlags;
 	bool bSkipOpen = true;
 	vector<string> vProps;
-	
+
 	// Response always starts with "<id> FETCH ("
 	snprintf(szBuffer, IMAP_RESP_MAX, "%u FETCH (", ulMailnr + 1);
 	strResponse = szBuffer;
@@ -3611,7 +3611,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 					if (lpProp != NULL)
 						strMessage = lpProp->Value.lpszA;
 					else
-						// still need to convert message 
+						// still need to convert message
 						hr = MAPI_E_NOT_FOUND;
 				} else {
 					// If we have the full body, download that property
@@ -3672,7 +3672,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				vProps.emplace_back(item);
 				vProps.emplace_back(stringify(strMessage.size()));
 				continue;
-			} 			
+			}
 
 			if (item.compare("BODY") == 0 || item.compare("BODYSTRUCTURE") == 0) {
 				string strData;
@@ -3777,13 +3777,13 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 	return hr;
 }
 
-/** 
+/**
  * Returns IMAP flags for a given message
- * 
+ *
  * @param[out] strResponse the FLAGS reply for the given message
  * @param[in] lpMessage the MAPI message to get the IMAP flags for
  * @param[in] bRecent mark this message as recent
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrGetMessageFlags(string &strResponse, LPMESSAGE lpMessage, bool bRecent) {
@@ -3792,7 +3792,7 @@ HRESULT IMAP::HrGetMessageFlags(string &strResponse, LPMESSAGE lpMessage, bool b
 	static constexpr const SizedSPropTagArray(4, sptaFlagProps) =
 		{4, {PR_MESSAGE_FLAGS, PR_FLAG_STATUS, PR_MSG_STATUS,
 		PR_LAST_VERB_EXECUTED}};
-	
+
 	if (lpMessage == nullptr)
 		return MAPI_E_CALL_FAILED;
 	HRESULT hr = lpMessage->GetProps(sptaFlagProps, 0, &cValues, &~lpProps);
@@ -3810,7 +3810,7 @@ HRESULT IMAP::HrGetMessageFlags(string &strResponse, LPMESSAGE lpMessage, bool b
  *       The text of a particular body section.  The section
  *       specification is a set of zero or more part specifiers
  *       delimited by periods.  A part specifier is either a part number
- *       or one of the following: HEADER, HEADER.FIELDS, 
+ *       or one of the following: HEADER, HEADER.FIELDS,
  *       HEADER.FIELDS.NOT, MIME, and TEXT.  An empty section
  *       specification refers to the entire message, including the
  *       header.
@@ -3824,13 +3824,13 @@ HRESULT IMAP::HrGetMessageFlags(string &strResponse, LPMESSAGE lpMessage, bool b
  *		 - The 'whole' part does NOT include the MIME-IMB headers part
  *
  */
-/** 
+/**
  * Returns a body part of an RFC 2822 message
- * 
+ *
  * @param[out] strMessagePart The requested message part
  * @param[in] strMessage The full mail to scan for the part
  * @param[in] strPartName IMAP request identifying a part in strMessage
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, string strPartName) {
@@ -3847,7 +3847,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 		// @todo rewrite without copying strings
 	    std::string strNextPart;
 	    // BODY[1] or BODY[1.2] etc
-	    
+
 	    // Find subsection
 		ulPos = strPartName.find(".");
 		if (ulPos == string::npos) // first section
@@ -3923,7 +3923,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 				return hrSuccess;
             }
         }
-        
+
         // Handle any other request (HEADER, TEXT or 'empty'). This means we first skip the MIME-IMB headers
         // and process the rest from there.
         ulPos = strMessage.find("\r\n\r\n");
@@ -3932,7 +3932,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
         else
             // The message only has headers ?
             strMessage.clear();
-        // Handle HEADER and TEXT if requested        
+        // Handle HEADER and TEXT if requested
         if (!strNextPart.empty())
             HrGetMessagePart(strMessagePart, strMessage, strNextPart);
         else
@@ -3973,13 +3973,13 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
         bool bNot = Prefix(strPartName, "HEADER.FIELDS.NOT");
 		std::list<std::pair<std::string, std::string>> lstFields;
         string strFields;
-        
+
         // Parse headers in message
         HrParseHeaders(strMessage, lstFields);
         // Get (<fields>)
         HrGetSubString(strFields, strPartName, "(", ")");
         strMessagePart.clear();
-        
+
         if(bNot) {
 			auto lstTokens = tokenize(strFields, " ");
 			std::set<std::string> s(std::make_move_iterator(lstTokens.begin()), std::make_move_iterator(lstTokens.end()));
@@ -3998,7 +3998,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 
             // Get fields as vector
 			lstReqFields = tokenize(strFields, " ");
-            
+
             // Output headers specified, in order of field set
             for (const auto &reqfield : lstReqFields) {
 				if (!seen.emplace(reqfield).second)
@@ -4019,14 +4019,14 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 	return hrSuccess;
 }
 
-/** 
+/**
  * Convert a sequence number to its actual number. It will either
  * return a number or a UID, depending on the input.
- * A special treatment for 
- * 
+ * A special treatment for
+ *
  * @param[in] szNr a number of the sequence input (RFC 3501 page 90: seqset)
  * @param[in] bUID sequence input are UID numbers or not
- * 
+ *
  * @return the number corresponding to the input.
  */
 ULONG IMAP::LastOrNumber(const char *szNr, bool bUID)
@@ -4051,12 +4051,12 @@ ULONG IMAP::LastOrNumber(const char *szNr, bool bUID)
 		return lstFolderMailEIDs.back().ulUid;
 }
 
-/** 
+/**
  * Convert a UID sequence set into a MAPI restriction.
- * 
+ *
  * @param[in] strSeqSet The sequence set with uids given by the client
  * @param[out] lppRestriction The MAPI restriction to get all messages matching the sequence
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet,
@@ -4099,15 +4099,15 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Convert an IMAP sequence set to a flat list of email numbers. See
  * RFC-3501 paragraph 9 for the syntax.  This function will return the
  * closest range of requested items, and thus may return an empty
  * list.
- * 
+ *
  * @param[in] strSeqSet IMAP sequence set of UID numbers
  * @param[out] lstMails flat list of email numbers
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
@@ -4153,14 +4153,14 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 	return hr;
 }
 
-/** 
+/**
  * Convert an IMAP sequence set to a flat list of email numbers. See
  * RFC-3501 paragraph 9 for the syntax.  These exact numbers requested
  * must be present in the folder, otherwise an error will be returned.
  *
  * @param[in] strSeqSet IMAP sequence set of direct numbers
  * @param[out] lstMails flat list of email numbers
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
@@ -4202,13 +4202,13 @@ HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
 	return hrSuccess;
 }
 
-/** 
+/**
  * Implementation of the STORE command
- * 
+ *
  * @param[in] lstMails list of emails to process
  * @param[in] strMsgDataItemName how to modify the message (set, append, remove)
  * @param[in] strMsgDataItemValue new flag values from IMAP client
- * 
+ *
  * @return MAPI Error code
  */
 // @todo c store 2 (+FLAGS) (\Deleted) shouldn't but does work
@@ -4459,13 +4459,13 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 	return hr;
 }
 
-/** 
+/**
  * Implementation of the COPY and XAOL-MOVE commands
- * 
+ *
  * @param[in] lstMails list of email to copy or move
  * @param[in] strFolderParam folder to copy/move mails to, in IMAP UTF-7 charset
  * @param[in] bMove copy (false) or move (true)
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCopy(const list<ULONG> &lstMails,
@@ -4503,13 +4503,13 @@ HRESULT IMAP::HrCopy(const list<ULONG> &lstMails,
 	return hr;
 }
 
-/** 
+/**
  * Implements the SEARCH command
- * 
+ *
  * @param[in] lstSearchCriteria search options from the (this value is modified, cannot be used again)
  * @param[in] ulStartCriteria offset in the lstSearchCriteria to start parsing
  * @param[out] lstMailnr number of email messages that match the search criteria
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
@@ -4525,7 +4525,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 	static constexpr const SizedSPropTagArray(NUM_COLS, spt) = {NUM_COLS, {PR_EC_IMAP_ID}};
 	std::map<unsigned int, unsigned int> mapUIDs;
 	int n = 0;
-	
+
 	if (strCurrentFolder.empty() || lpSession == nullptr)
 		return MAPI_E_CALL_FAILED;
 	// no need to search in empty folders, won't find anything
@@ -4564,7 +4564,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 			return hr;
 		}
 	}
-	
+
 	// Make a map of UID->ID
 	for (const auto &e : lstFolderMailEIDs)
 		mapUIDs[e.ulUid] = n++;
@@ -4867,7 +4867,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 		else if (strSearchCriterium.compare("TO") == 0 || strSearchCriterium.compare("CC") == 0 || strSearchCriterium.compare("BCC") == 0) {
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
-			
+
 			// Search for "^HEADER:.*DATA" in PR_TRANSPORT_HEADERS
 			std::string strSearch = (string)"^" + strSearchCriterium + ":.*" + lstSearchCriteria[ulStartCriteria+1];
 			pv.ulPropTag   = PR_TRANSPORT_MESSAGE_HEADERS_A;
@@ -4921,7 +4921,7 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 		} else if (strSearchCriterium.compare("HEADER") == 0) {
 			if (lstSearchCriteria.size() - ulStartCriteria <= 2)
 				return MAPI_E_CALL_FAILED;
-			
+
 			// Search for "^HEADER:.*DATA" in PR_TRANSPORT_HEADERS
 			std::string strSearch = "^" + lstSearchCriteria[ulStartCriteria+1] + ":.*" + lstSearchCriteria[ulStartCriteria+2];
 			pv.ulPropTag   = PR_TRANSPORT_MESSAGE_HEADERS_A;
@@ -4956,16 +4956,16 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Create a bodystructure (RFC 3501). Since this is parsed from a
  * VMIME generated message, this function has alot of assumptions. It
  * will still fail to correctly generate a body structure in the case
  * when an email contains another (quoted) RFC 2822 email.
- * 
- * @param[in] bExtended generate BODYSTRUCTURE (true) or BODY (false) version 
+ *
+ * @param[in] bExtended generate BODYSTRUCTURE (true) or BODY (false) version
  * @param[out] strBodyStructure The generated body structure
  * @param[in] strMessage use this message to generate the output
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrGetBodyStructure(bool bExtended, string &strBodyStructure, const string& strMessage) {
@@ -4974,14 +4974,14 @@ HRESULT IMAP::HrGetBodyStructure(bool bExtended, string &strBodyStructure, const
 	return createIMAPProperties(strMessage, nullptr, &strBodyStructure, nullptr);
 }
 
-/** 
+/**
  * Convert a MAPI FILETIME structure to a IMAP string. This string is
  * slightly differently formatted than an RFC 2822 string.
  *
  * Format: 01-Jan-2006 00:00:00 +0000
- * 
+ *
  * @param[in] sFileTime time structure to convert
- * 
+ *
  * @return date/time in string format
  */
 std::string IMAP::FileTimeToString(const FILETIME &sFileTime)
@@ -4998,21 +4998,21 @@ std::string IMAP::FileTimeToString(const FILETIME &sFileTime)
 	return strTime;
 }
 
-/** 
+/**
  * Parses an IMAP date/time string into a MAPI FILETIME struct.
- * 
+ *
  * @todo, rewrite this function, but it's not widely used (append + search, both slow anyway)
  *
  * @param[in] strTime parse this string into a FILETIME structure
  * @param[in] bDateOnly parse date part only (true) or add time (false)
- * 
+ *
  * @return MAPI FILETIME structure
  */
 bool IMAP::StringToFileTime(string strTime, FILETIME &sFileTime, bool bDateOnly)
 {
 	struct tm sTm;
 	time_t sTime;
-	
+
 	sTm.tm_mday = 1;
 	sTm.tm_year = 100;			// years since 1900
 	sTm.tm_isdst = -1;			// daylight saving time off
@@ -5049,11 +5049,11 @@ bool IMAP::StringToFileTime(string strTime, FILETIME &sFileTime, bool bDateOnly)
 	return true;
 }
 
-/** 
+/**
  * Add 24 hours to the given time struct
- * 
+ *
  * @param[in] sFileTime Original time
- * 
+ *
  * @return Input + 24 hours
  */
 FILETIME IMAP::AddDay(const FILETIME &sFileTime)
@@ -5162,12 +5162,12 @@ HRESULT IMAP::IMAP2MAPICharset(const string& input, wstring& output) {
 	return hrSuccess;
 }
 
-/** 
+/**
  * Check for a MAPI LIST/LSUB pattern in a given foldername.
- * 
+ *
  * @param[in] strFolder folderpath to match
  * @param[in] strPattern Pattern to match with, in uppercase.
- * 
+ *
  * @return whether folder matches
  */
 bool IMAP::MatchFolderPath(const std::wstring &in_folder,
@@ -5177,13 +5177,13 @@ bool IMAP::MatchFolderPath(const std::wstring &in_folder,
     int f = 0;
     int p = 0;
 	auto strFolder = strToUpper(in_folder);
-    
+
     while(1) {
         if (f == static_cast<int>(strFolder.size()) &&
             p == static_cast<int>(strPattern.size()))
             // Reached the end of the folder and the pattern strings, so match
             return true;
-        
+
         if(strPattern[p] == '*') {
             // Match 0-n chars, try longest match first
             for (int i = strFolder.size(); i >= f; --i)
@@ -5191,7 +5191,7 @@ bool IMAP::MatchFolderPath(const std::wstring &in_folder,
                 if (MatchFolderPath(strFolder.substr(i), strPattern.substr(p + 1)))
                     // Match OK, apply the 'skip i' chars
                     return true;
-            
+
             // No match found, failed
             return false;
         } else if(strPattern[p] == '%') {
@@ -5219,9 +5219,9 @@ bool IMAP::MatchFolderPath(const std::wstring &in_folder,
     return bMatch;
 }
 
-/** 
+/**
  * Parse RFC 2822 email headers in to a list of string <name, value> pairs.
- * 
+ *
  * @param[in] strHeaders Email headers to parse (this data will be modified and should not be used after this function)
  * @param[out] lstHeaders list of headers, in header / value pairs
  */
@@ -5232,13 +5232,13 @@ void IMAP::HrParseHeaders(const std::string &strHeaders,
     string strLine;
     string strField;
     string strData;
-    
+
     lstHeaders.clear();
 	auto iterLast = lstHeaders.end();
-    
+
     while(1) {
         size_t end = strHeaders.find("\r\n", pos);
-        
+
 		if (end == string::npos)
 			strLine = strHeaders.substr(pos);
 		else
@@ -5251,7 +5251,7 @@ void IMAP::HrParseHeaders(const std::string &strHeaders,
             iterLast->second += "\r\n" + strLine;
         } else {
             size_t colon = strLine.find(":");
-            
+
             if(colon != string::npos) {
                 // Get field name
                 strField = strLine.substr(0, colon);
@@ -5263,8 +5263,8 @@ void IMAP::HrParseHeaders(const std::string &strHeaders,
                 iterLast = --lstHeaders.end();
             }
             // else: Broken header ? (no :)
-        }    
-        
+        }
+
         if(end == string::npos)
             break;
         pos = end + 2; // Go to next line (+2 = \r\n)
@@ -5298,13 +5298,13 @@ void IMAP::HrGetSubString(std::string &strOutput, const std::string &strInput,
         strOutput = strInput.substr(begin+1, end-begin-1);
 }
 
-/** 
+/**
  * Find the MAPI folder from a full folder path
- * 
+ *
  * @param[in] strFolder The full folder path
  * @param[in] bReadOnly open read-only or with write access (if possible)
  * @param[out] lppFolder The MAPI folder corresponding to the given name
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrFindFolder(const wstring& strFolder, bool bReadOnly, IMAPIFolder **lppFolder, ULONG *cb, ENTRYID **lpb)
@@ -5349,7 +5349,7 @@ HRESULT IMAP::HrFindFolder(const wstring& strFolder, bool bReadOnly, IMAPIFolder
  * @param[in] strFolder The name of the subfolder to find
  * @param[out] lpcbEntryID number of bytes in lppEntryID
  * @param[out] lppEntryID The EntryID of the folder
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
@@ -5367,10 +5367,10 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
 
     sProp.ulPropTag = PR_DISPLAY_NAME_W;
     sProp.Value.lpszW = (WCHAR *)strFolder.c_str();
-    
+
     // lpFolder is NULL when we're referring to the IMAP root. The IMAP root contains
     // INBOX, the public folder container, and all folders under the users IPM_SUBTREE.
-    
+
     if(lpFolder == NULL) {
         if(wcscasecmp(strFolder.c_str(), L"INBOX") == 0) {
             // Inbox request, we know where that is.
@@ -5402,7 +5402,7 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
             // Fall through to normal folder lookup code
         }
     }
-    
+
     // Use a restriction to find the folder in the hierarchy table
 	hr = lpFolder->GetHierarchyTable(MAPI_DEFERRED_ERRORS, &~lpTable);
     if(hr != hrSuccess)
@@ -5423,7 +5423,7 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
 		return MAPI_E_NOT_FOUND;
 	if (lpRowSet->aRow[0].lpProps[0].ulPropTag != PR_ENTRYID)
 		return MAPI_E_INVALID_PARAMETER;
-    
+
     cbEntryID = lpRowSet->aRow[0].lpProps[0].Value.bin.cb;
 	hr = KAllocCopy(lpRowSet->aRow[0].lpProps[0].Value.bin.lpb, cbEntryID, reinterpret_cast<void **>(&lpEntryID));
     if(hr != hrSuccess)
@@ -5452,11 +5452,11 @@ HRESULT IMAP::HrFindFolderPartial(const wstring& strFolder, IMAPIFolder **lppFol
     ULONG ulObjType = 0;
 	memory_ptr<SPropValue> lpTree;
     unsigned int i = 0;
-    
+
     hr = HrSplitPath(strFolder, vFolders);
     if(hr != hrSuccess)
 		return hr;
-        
+
     // Loop through all the path parts until we find a part that we can't find
     for (i = 0; i < vFolders.size(); ++i) {
         hr = HrFindSubFolder(lpFolder, vFolders[i], &cbEntryID, &~lpEntryID);
@@ -5468,11 +5468,11 @@ HRESULT IMAP::HrFindFolderPartial(const wstring& strFolder, IMAPIFolder **lppFol
         if(hr != hrSuccess)
 			return hr;
     }
-    
+
     // Remove parts that we already have processed
     vFolders.erase(vFolders.begin(),vFolders.begin()+i);
 
-    // The remaining path parts are the relative path that we could not find    
+    // The remaining path parts are the relative path that we could not find
     hr = HrUnsplitPath(vFolders, *strNotFound);
     if(hr != hrSuccess)
 		return hr;
@@ -5488,11 +5488,11 @@ HRESULT IMAP::HrFindFolderPartial(const wstring& strFolder, IMAPIFolder **lppFol
 	return hrSuccess;
 }
 
-/** 
+/**
  * Check if this folder contains e-mail
- * 
+ *
  * @param[in] lpFolder MAPI Folder to check
- * 
+ *
  * @return may contain e-mail (true) or not (false)
  */
 bool IMAP::IsMailFolder(IMAPIFolder *lpFolder) const
@@ -5505,19 +5505,19 @@ bool IMAP::IsMailFolder(IMAPIFolder *lpFolder) const
 	       strcasecmp(lpProp->Value.lpszA, "IPF.NOTE") == 0;
 }
 
-/** 
+/**
  * Open parent MAPI folder for given MAPI folder
- * 
+ *
  * @param[in] lpFolder MAPI Folder to open the parent folder for
  * @param[out] lppFolder Parent folder
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT IMAP::HrOpenParentFolder(IMAPIFolder *lpFolder, IMAPIFolder **lppFolder)
 {
 	memory_ptr<SPropValue> lpParent;
     ULONG ulObjType = 0;
-    
+
 	HRESULT hr = HrGetOneProp(lpFolder, PR_PARENT_ENTRYID, &~lpParent);
     if(hr != hrSuccess)
 		return hr;

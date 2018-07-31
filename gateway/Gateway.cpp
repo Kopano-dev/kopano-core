@@ -45,7 +45,7 @@
 #include <kopano/hl.hpp>
 
 /**
- * @defgroup gateway Gateway for IMAP and POP3 
+ * @defgroup gateway Gateway for IMAP and POP3
  * @{
  */
 

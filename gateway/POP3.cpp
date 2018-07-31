@@ -62,9 +62,9 @@ HRESULT POP3::HrSendGreeting(const std::string &strHostString) {
 	return hr;
 }
 
-/** 
+/**
  * Send client an error message that the socket will be closed by the server
- * 
+ *
  * @param[in] strQuitMsg quit message for client
  * @return MAPI error code
  */
@@ -73,11 +73,11 @@ HRESULT POP3::HrCloseConnection(const std::string &strQuitMsg)
 	return HrResponse(POP3_RESP_ERR, strQuitMsg);
 }
 
-/** 
+/**
  * Process the requested command from the POP3 client
- * 
+ *
  * @param[in] strIput received input from client
- * 
+ *
  * @return MAPI error code
  */
 HRESULT POP3::HrProcessCommand(const std::string &strInput)
@@ -178,9 +178,9 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 	return MAPI_E_CALL_FAILED;
 }
 
-/** 
+/**
  * Cleanup connection
- * 
+ *
  * @return hrSuccess
  */
 HRESULT POP3::HrDone(bool bSendResponse)
@@ -189,12 +189,12 @@ HRESULT POP3::HrDone(bool bSendResponse)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Send a response to the client, either +OK or -ERR
- * 
+ *
  * @param[in] strResult +OK or -ERR result (use defines)
  * @param[in] strResponse string to send to client with given result
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT POP3::HrResponse(const string &strResult, const string &strResponse) {
@@ -207,7 +207,7 @@ HRESULT POP3::HrResponse(const string &strResult, const string &strResponse) {
  * not. This depends on the command received from the client, and
  * the logged on status of the user. Last state is autodetected in
  * the class.
- * 
+ *
  * @return  The capabilities string
  */
 std::string POP3::GetCapabilityString()
@@ -229,22 +229,22 @@ std::string POP3::GetCapabilityString()
 	return strCapabilities;
 }
 
-/** 
+/**
  * @brief Handle the CAPA command
  *
  * Sends all the gateway capabilities to the client, depending on the
  * state we're in. Authentication capabilities are skipped when a user
  * was already logged in.
- * 
+ *
  * @return hrSuccess
  */
 HRESULT POP3::HrCmdCapability() {
 	return HrResponse(POP3_RESP_OK, GetCapabilityString());
 }
 
-/** 
+/**
  * @brief Handle the STLS command
- * 
+ *
  * Tries to set the current connection to use SSL encryption.
  *
  * @return hrSuccess
@@ -268,13 +268,13 @@ HRESULT POP3::HrCmdStarttls() {
 	return hrSuccess;
 }
 
-/** 
+/**
  * @brief Handle the USER command
  *
  * Stores the username in the class, since the password is in a second call
  *
  * @param[in] strUser loginname of the user who wants to login
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdUser(const string &strUser) {
@@ -296,13 +296,13 @@ HRESULT POP3::HrCmdUser(const string &strUser) {
 	return HrResponse(POP3_RESP_OK, "Waiting for password");
 }
 
-/** 
+/**
  * @brief Handle the PASS command
  *
  * Now that we have the password, we can login.
  *
  * @param[in] strPass password of the user to login with
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdPass(const string &strPass) {
@@ -342,11 +342,11 @@ HRESULT POP3::HrCmdPass(const string &strPass) {
 	return HrResponse(POP3_RESP_OK, "Username and password accepted");
 }
 
-/** 
+/**
  * @brief Handle the STAT command
  *
- * STAT displays the number of messages and the total size of the Inbox 
- * 
+ * STAT displays the number of messages and the total size of the Inbox
+ *
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdStat() {
@@ -359,13 +359,13 @@ HRESULT POP3::HrCmdStat() {
 	return HrResponse(POP3_RESP_OK, szResponse);
 }
 
-/** 
+/**
  * @brief Handle the LIST command
- * 
+ *
  * List shows for every message the number to retrieve the message
  * with and the size of the message. Since we don't know a client
  * which uses this size exactly, we can use the table version.
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdList() {
@@ -385,13 +385,13 @@ HRESULT POP3::HrCmdList() {
 	return lpChannel->HrWriteLine(".");
 }
 
-/** 
+/**
  * @brief Handle the LIST <number> command
  *
- * Shows the size of the given mail number.  
+ * Shows the size of the given mail number.
  *
  * @param[in] ulMailNr number of the email, starting at 1
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdList(unsigned int ulMailNr) {
@@ -405,14 +405,14 @@ HRESULT POP3::HrCmdList(unsigned int ulMailNr) {
 	return HrResponse(POP3_RESP_OK, szResponse);
 }
 
-/** 
+/**
  * @brief Handle the RETR command
  *
  * Retrieve the complete mail for a given number
- * 
+ *
  * @param[in] ulMailNr number of the email, starting at 1
- * 
- * @return 
+ *
+ * @return
  */
 HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 	HRESULT hr = hrSuccess;
@@ -457,13 +457,13 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 	return hrSuccess;
 }
 
-/** 
+/**
  * @brief Handle the DELE command
  *
  * Mark an email for deletion after the QUIT command
- * 
+ *
  * @param[in] ulMailNr number of the email, starting at 1
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdDele(unsigned int ulMailNr) {
@@ -478,9 +478,9 @@ HRESULT POP3::HrCmdDele(unsigned int ulMailNr) {
 	return HrResponse(POP3_RESP_OK, "mail deleted");
 }
 
-/** 
+/**
  * @brief Handle the NOOP command
- * 
+ *
  * Sends empty OK string to client
  * @return MAPI Error code
  */
@@ -488,11 +488,11 @@ HRESULT POP3::HrCmdNoop() {
 	return HrResponse(POP3_RESP_OK, string());
 }
 
-/** 
+/**
  * @brief Handle the RSET command
- * 
+ *
  * Resets the connections, sets every email to not deleted.
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdRset() {
@@ -501,11 +501,11 @@ HRESULT POP3::HrCmdRset() {
 	return HrResponse(POP3_RESP_OK, "Undeleted mails");
 }
 
-/** 
+/**
  * @brief Handle the QUIT command
  *
- * Delete all delete marked emails and close the connection. 
- * 
+ * Delete all delete marked emails and close the connection.
+ *
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdQuit() {
@@ -537,9 +537,9 @@ HRESULT POP3::HrCmdQuit() {
 	return hr;
 }
 
-/** 
- * @brief Handle the UIDL command 
- * 
+/**
+ * @brief Handle the UIDL command
+ *
  * List all messages by number and Unique ID (EntryID). This ID must
  * be valid over different sessions.
  *
@@ -564,14 +564,14 @@ HRESULT POP3::HrCmdUidl() {
 	return lpChannel->HrWriteLine(".");
 }
 
-/** 
+/**
  * @brief Handle the UIDL <number> command
- * 
+ *
  * List the given message number by number and Unique ID
  * (EntryID). This ID must be valid over different sessions.
  *
  * @param ulMailNr number of the email to get the Unique ID for
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdUidl(unsigned int ulMailNr) {
@@ -592,14 +592,14 @@ HRESULT POP3::HrCmdUidl(unsigned int ulMailNr) {
 	return HrResponse(POP3_RESP_OK, strResponse);
 }
 
-/** 
+/**
  * @brief Handle the TOP command
  *
  * List the first N body lines of an email. The headers are always sent.
- * 
+ *
  * @param[in] ulMailNr The email to list
  * @param[in] ulLines The number of lines of the email to send
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
@@ -651,12 +651,12 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 	return hrSuccess;
 }
 
-/** 
+/**
  * Open the Inbox with the given login credentials
- * 
+ *
  * @param[in] strUsername Username to login with
  * @param[in] strPassword Corresponding password of username
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPassword) {
@@ -732,9 +732,9 @@ exit:
 	return hr;
 }
 
-/** 
+/**
  * Make a list of all emails in the Opened inbox
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT POP3::HrMakeMailList() {
@@ -783,11 +783,11 @@ HRESULT POP3::HrMakeMailList() {
 	return hrSuccess;
 }
 
-/** 
+/**
  * Since a POP3 email stops with one '.' line, we need to escape these lines in the actual email.
- * 
+ *
  * @param[in] input input email to escape
- * 
+ *
  * @return POP3 escaped email
  */
 string POP3::DotFilter(const char *input) {

@@ -11,7 +11,7 @@
 #include "ClientProto.h"
 
 /**
- * @defgroup gateway_pop3 POP3 
+ * @defgroup gateway_pop3 POP3
  * @ingroup gateway
  * @{
  */
