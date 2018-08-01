@@ -20,8 +20,8 @@ convert_exception::convert_exception(enum exception_type type, const std::string
 	, m_type(type)
 {}
 
-unknown_charset_exception::unknown_charset_exception(const std::string &message) 
-	: convert_exception(eUnknownCharset, message) 
+unknown_charset_exception::unknown_charset_exception(const std::string &message)
+	: convert_exception(eUnknownCharset, message)
 {}
 
 illegal_sequence_exception::illegal_sequence_exception(const std::string &message)
@@ -43,7 +43,6 @@ HRESULT HrFromException(const convert_exception &ce)
 class ICONV_HACK {
 public:
 	ICONV_HACK(const char** ptr) : m_ptr(ptr) { }
-
 	// the compiler will choose the right operator
 	operator const char **(void) const { return m_ptr; }
 	operator char**() { return const_cast <char**>(m_ptr); }
@@ -51,7 +50,6 @@ public:
 private:
 	const char** m_ptr;
 };
-
 
 /**
  * The conversion context for iconv charset conversions takes a fromcode and a tocode,
@@ -136,10 +134,10 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 	size_t cbSrc = 0;
 	size_t cbDst = 0;
 	size_t err;
-	
+
 	lpSrc = lpFrom;
 	cbSrc = cbFrom;
-	
+
 	while (cbSrc) {
 		lpDst = buf;
 		cbDst = sizeof(buf);
@@ -167,7 +165,6 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 			wstrEntity += L";";
 			cbEntity = wstrEntity.size() * sizeof(wchar_t);
 			lpEntity = (const char *)wstrEntity.c_str();
-
 			// Since we don't know in what charset we are outputting, we have to send
 			// the entity through iconv so that it can convert it to the target charset.
 			err = iconv(m_cd, ICONV_HACK(&lpEntity), &cbEntity, &lpDst, &cbDst);
@@ -194,7 +191,7 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 	err = iconv(m_cd, NULL, NULL, &lpDst, &cbDst);
 	append(buf, sizeof(buf) - cbDst);
 }
-	
+
 convert_context::~convert_context()
 {
 	for (auto &ictx : m_contexts)

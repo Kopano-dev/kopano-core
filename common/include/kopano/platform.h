@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
@@ -82,9 +81,7 @@ extern _kc_export char *get_password(const char *prompt);
 
 extern _kc_export ssize_t read_retry(int, void *, size_t);
 extern _kc_export ssize_t write_retry(int, const void *, size_t);
-
 extern _kc_export void set_thread_name(pthread_t, const std::string &);
-
 extern _kc_export bool force_buffers_to_disk(int fd);
 extern _kc_export int ec_relocate_fd(int);
 extern _kc_export void kcsrv_blocksigs(void);

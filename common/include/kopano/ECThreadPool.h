@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECThreadPool_INCLUDED
 #define ECThreadPool_INCLUDED
 
@@ -31,30 +30,29 @@ private:	// types
 
 	typedef std::set<pthread_t> ThreadSet;
 	typedef std::list<STaskInfo> TaskList;
-	
+
 public:
 	ECThreadPool(unsigned ulThreadCount);
 	virtual ~ECThreadPool(void);
-	
 	virtual bool dispatch(ECTask *lpTask, bool bTakeOwnership = false);
 	_kc_hidden unsigned int threadCount(void) const;
 	_kc_hidden void setThreadCount(unsigned int cuont, bool wait = false);
-	
+
 private:	// methods
 	_kc_hidden virtual bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
 	_kc_hidden void joinTerminated(std::unique_lock<std::mutex> &);
 	_kc_hidden static void *threadFunc(void *);
-	
+
 	ThreadSet m_setThreads, m_setTerminated;
 	TaskList	m_listTasks;
-	
+
 	mutable std::mutex m_hMutex;
 	std::condition_variable m_hCondition, m_hCondTerminated;
 	mutable std::condition_variable m_hCondTaskDone;
 
 	ECThreadPool(const ECThreadPool &) = delete;
 	ECThreadPool &operator=(const ECThreadPool &) = delete;
-	
+
 	unsigned int m_ulTermReq = 0;
 };
 
@@ -78,11 +76,11 @@ public:
 	_kc_hidden virtual ~ECTask(void) = default;
 	_kc_hidden virtual void execute(void);
 	_kc_hidden bool dispatchOn(ECThreadPool *, bool transfer_ownership = false);
-	
+
 protected:
 	_kc_hidden virtual void run(void) = 0;
 	_kc_hidden ECTask(void) {};
-	
+
 private:
 	// Make the object non-copyable
 	ECTask(const ECTask &) = delete;
@@ -102,8 +100,6 @@ inline bool ECTask::dispatchOn(ECThreadPool *lpThreadPool, bool bTransferOwnersh
 	return lpThreadPool ? lpThreadPool->dispatch(this, bTransferOwnership) : false;
 }
 
-
-
 /**
  * This class represents a task that can be executed on an ECThreadPool or
  * derived object. It's similar to an ECTask, but one can wait for the task
@@ -112,18 +108,18 @@ inline bool ECTask::dispatchOn(ECThreadPool *lpThreadPool, bool bTransferOwnersh
 class _kc_export ECWaitableTask : public ECTask {
 public:
 	static const unsigned WAIT_INFINITE = (unsigned)-1;
-	
+
 	enum State {
 		Idle = 1,
 		Running = 2,
 		Done = 4
 	};
-	
+
 	virtual ~ECWaitableTask();
 	virtual void execute(void) _kc_override;
 	_kc_hidden bool done() const { return m_state == Done; }
 	bool wait(unsigned timeout = WAIT_INFINITE, unsigned waitMask = Done) const;
-	
+
 protected:
 	ECWaitableTask();
 
@@ -148,12 +144,12 @@ public:
 	 */
 	ECDeferredFunc(Fn fn, const At &arg) : m_fn(fn), m_arg(arg)
 	{ }
-	
+
 	virtual void run(void) _kc_override
 	{
 		m_result = m_fn(m_arg);
 	}
-	
+
 	/**
 	 * Get the result of the asynchronous function. This method will
 	 * block until the method has been executed.
@@ -163,7 +159,7 @@ public:
 		wait();
 		return m_result;
 	}
-	
+
 private:
 	Rt m_result = 0;
 	Fn m_fn;

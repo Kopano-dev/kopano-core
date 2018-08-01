@@ -23,9 +23,9 @@ public:
 	_kc_hidden convstring(const char *);
 	convstring(const wchar_t *lpsz);
 	convstring(const TCHAR *lpsz, ULONG ulFlags);
-	
+
 	bool null_or_empty() const;
-	
+
 	operator utf8string() const;
 	operator std::string(void) const;
 	operator std::wstring(void) const;

@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 // -*- Mode: c++ -*-
 #ifndef ECLOGGER_H
 #define ECLOGGER_H
@@ -37,7 +36,6 @@ static const unsigned int EC_LOGLEVEL_NOTICE	 = 4;
 static const unsigned int EC_LOGLEVEL_INFO	 = 5;
 static const unsigned int EC_LOGLEVEL_DEBUG	 = 6;
 static const unsigned int EC_LOGLEVEL_ALWAYS     = 0xf;
-
 static const unsigned int EC_LOGLEVEL_MASK	 = 0xF;
 
 // extended log options
@@ -186,7 +184,6 @@ class _kc_export ECLogger {
 	logprefix prefix;
 };
 
-
 /**
  * Dummy null logger, drops every log message.
  */
@@ -216,13 +213,11 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 	std::string logname;
 	bool timestamp;
 	size_t buffer_size;
-
 	open_func fnOpen;
 	close_func fnClose;
 	printf_func fnPrintf;
 	fileno_func fnFileno;
 	const char *szMode;
-
 	char prevmsg[_LOG_BUFSIZE];
 	int prevcount;
 	unsigned int prevloglevel;
@@ -329,7 +324,6 @@ extern _kc_export HRESULT ec_log_hrcode(HRESULT, unsigned int level, const char 
 extern _kc_export ECLogger *CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
 extern _kc_export int DeleteLogger(ECLogger *);
 extern _kc_export void LogConfigErrors(ECConfig *);
-
 extern _kc_export void generic_sigsegv_handler(ECLogger *, const char *app, const char *vers, int sig, const siginfo_t *, const void *uctx);
 
 } /* namespace */

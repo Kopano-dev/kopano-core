@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef TABLE_H
 #define TABLE_H
 
@@ -10,7 +9,7 @@
  * How this works
  *
  * Basically, we only have to keep a table in-memory of the object IDs of the objects
- * in a table, so when data is requested, we can give a list of all the object IDs 
+ * in a table, so when data is requested, we can give a list of all the object IDs
  * and the actual data can be retrieved from the database.
  *
  * The table class handles this, by having a table of rows, with per-row a TableRow
@@ -46,7 +45,6 @@
 #include <map>
 #include <mutex>
 #include <vector>
-
 #define BOOKMARK_LIMIT		100
 
 namespace KC {
@@ -150,12 +148,12 @@ public:
 	// FIXME this is rather ugly, the names must differ from those in mapi.h, as they clash !
 	enum UpdateType {
 		TABLE_CHANGE=1, TABLE_ERR, TABLE_ROW_ADD,
-					TABLE_ROW_DELETE, TABLE_ROW_MODIFY,TABLE_SORT, 
+					TABLE_ROW_DELETE, TABLE_ROW_MODIFY,TABLE_SORT,
 					TABLE_RESTRICT, TABLE_SETCOL, TABLE_DO_RELOAD,
 	};
 
 	enum { EC_SEEK_SET=0, EC_SEEK_CUR, EC_SEEK_END };
-	
+
 	ECKeyTable();
 	~ECKeyTable();
 	ECRESULT UpdateRow(UpdateType ulType, const sObjectTableKey *lpsRowItem, std::vector<ECSortCol> &&, sObjectTableKey *lpsPrevRow, bool fHidden = false, UpdateType *lpulAction = nullptr);
@@ -167,22 +165,17 @@ public:
 	ECRESULT	GetRowCount(unsigned int *ulRowCount, unsigned int *ulCurrentRow);
 	ECRESULT	QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList, bool bDirBackward, unsigned int ulFlags, bool bShowHidden = false);
 	ECRESULT	Clear();
-
 	_kc_hidden ECRESULT GetBookmark(unsigned int p1, int *p2);
 	ECRESULT	CreateBookmark(unsigned int* lpulbkPosition);
 	ECRESULT	FreeBookmark(unsigned int ulbkPosition);
-
 	ECRESULT	GetRowsBySortPrefix(sObjectTableKey *lpsRowItem, ECObjectTableList *lpRowList);
 	ECRESULT	HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lpHiddenList);
 	ECRESULT	UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lpUnhiddenList);
-
 	// Returns the first row where the sort columns are not less than the specified sortkey
 	ECRESULT LowerBound(const std::vector<ECSortCol> &);
 	ECRESULT Find(const std::vector<ECSortCol> &, sObjectTableKey *);
 	ECRESULT UpdatePartialSortKey(sObjectTableKey *lpsRowItem, size_t ulColumn, const ECSortCol &, sObjectTableKey *lpsPrevRow, bool *lpfHidden, ECKeyTable::UpdateType *lpulAction);
 	ECRESULT 	GetRow(sObjectTableKey *lpsRowItem, ECTableRow **lpRow);
-	
-
 	unsigned int GetObjectSize();
 
 private:

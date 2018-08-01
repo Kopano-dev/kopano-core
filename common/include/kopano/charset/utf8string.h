@@ -25,7 +25,7 @@ public:
 	typedef std::string::value_type		value_type;
 	typedef std::string::const_pointer	const_pointer;
 	typedef std::string::size_type		size_type;
-	
+
 	static utf8string from_string(const std::string &str) {
 		utf8string s;
 		s.m_str.assign(str);
@@ -44,7 +44,7 @@ public:
 	utf8string(size_t n, char c): m_bNull(false), m_str(n, c) {}
 	utf8string &operator=(const utf8string &) = default;
 	utf8string &operator=(utf8string &&) = default;
-	
+
 	const_pointer c_str() const {
 		return m_bNull ? NULL : m_str.c_str();
 	}
@@ -52,7 +52,7 @@ public:
 	const_pointer data() const {
 		return m_bNull ? NULL : m_str.data();
 	}
-	
+
 	const std::string &str() const {
 		return m_str;
 	}
@@ -60,7 +60,7 @@ public:
 	size_type size() const {
 		return m_str.size();
 	}
-	
+
 	bool empty() const {
 		return m_str.empty();
 	}
@@ -68,7 +68,7 @@ public:
 	size_type length() const {
 		return m_str.length();
 	}
-	
+
 	void append(const_pointer lpData, size_t cbData) {
 		m_str.append(lpData, cbData);
 		m_bNull = false;
@@ -78,7 +78,7 @@ public:
 		m_str.append(str.m_str);
 		m_bNull = false;
 	}
-	
+
 	void clear() {
 		m_str.clear();
 	}
@@ -87,7 +87,7 @@ public:
 		clear();
 		m_bNull = true;
 	}
-	
+
 private:
 	bool m_bNull = false;
 	std::string	m_str;

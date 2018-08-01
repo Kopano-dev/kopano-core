@@ -31,23 +31,20 @@ locale_t createUTF8Locale()
 		*dot = '\0';
 	}
 	new_locale = std::string(cur_locale) + ".UTF-8";
-	loc = createlocale(LC_CTYPE, new_locale.c_str()); 
+	loc = createlocale(LC_CTYPE, new_locale.c_str());
 	if (loc)
 		return loc;
-
 	loc = createlocale(LC_CTYPE, "en_US.UTF-8");
-
 exit:
 	// too bad, but I don't want to return an unusable object
 	if (!loc)
 		loc = createlocale(LC_CTYPE, "C");
-
 	return loc;
 }
 
 /**
  * Initializes the locale to the current language, forced in UTF-8.
- * 
+ *
  * @param[in]	bOutput	Print errors during init to stderr
  * @param[out]	lpstrLocale Last locale trying to set (optional)
  * @retval	true	successfully initialized

@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef _STRINGUTIL_H
 #define _STRINGUTIL_H
 
@@ -70,7 +69,6 @@ extern _kc_export std::string stringify(unsigned int x, bool usehex, bool _signe
 extern _kc_export std::string stringify_int64(int64_t, bool usehex = false);
 extern _kc_export std::string stringify_float(float);
 extern _kc_export std::string stringify_double(double, int prec = 18, bool locale = false);
-
 extern _kc_export std::wstring wstringify(unsigned int x, bool usehex, bool _signed = false);
 
 #define tstringify			wstringify
@@ -100,7 +98,6 @@ extern _kc_export std::string bin2hex(const SBinary &);
 extern _kc_export std::string urlEncode(const std::string &);
 extern _kc_export std::string urlEncode(const std::wstring &, const char *charset);
 extern _kc_export std::string urlEncode(const wchar_t *input, const char *charset);
-
 extern _kc_export std::string urlDecode(const std::string &);
 extern _kc_export void BufferLFtoCRLF(size_t size, const char *input, char *output, size_t *outsize);
 extern _kc_export void StringCRLFtoLF(const std::wstring &in, std::wstring *out);
@@ -111,10 +108,8 @@ template<typename T>
 std::vector<T> tokenize(const T &str, const T &delimiters)
 {
 	std::vector<T> tokens;
-
 	// skip delimiters at beginning.
    	typename T::size_type lastPos = str.find_first_not_of(delimiters, 0);
-
 	// find first "non-delimiter".
    	typename T::size_type pos = str.find_first_of(delimiters, lastPos);
 
@@ -122,10 +117,8 @@ std::vector<T> tokenize(const T &str, const T &delimiters)
    	{
        	// found a token, add it to the std::vector.
 		tokens.emplace_back(str.substr(lastPos, pos - lastPos));
-
        	// skip delimiters.  Note the "not_of"
        	lastPos = str.find_first_not_of(delimiters, pos);
-
        	// find next "non-delimiter"
        	pos = str.find_first_of(delimiters, lastPos);
    	}

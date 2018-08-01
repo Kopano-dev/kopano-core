@@ -26,7 +26,7 @@ namespace KC {
 // ECChannel is the communication channel with the other side. Initially, it is
 // a simple way to read/write full lines of data. The reason why we specify
 // a special 'HrWriteLine' instead of 'HrWrite' is that SSL encryption prefers
-// writing all the data at once, instead of via multiple write() calls. Also, 
+// writing all the data at once, instead of via multiple write() calls. Also,
 // this ensures that the ECChannel class is responsible for reading, writing
 // and culling newline characters.
 
@@ -43,7 +43,6 @@ public:
 	_kc_hidden HRESULT HrReadBytes(char *buf, ULONG count);
 	HRESULT HrReadBytes(std::string * strBuffer, ULONG ulByteCount);
 	HRESULT HrReadAndDiscardBytes(ULONG ulByteCount);
-
 	HRESULT HrSelect(int seconds);
 	_kc_hidden void SetIPAddress(const struct sockaddr *, size_t);
 	_kc_hidden const char *peer_addr(void) const { return peer_atxt; }
@@ -76,7 +75,6 @@ extern _kc_export int ec_listen_inet(const char *bind, uint16_t port, int *fd);
 extern _kc_export int ec_listen_generic(const char *bind, int *fd, int mode = -1);
 /* accept data on connection */
 extern _kc_export HRESULT HrAccept(int fd, ECChannel **ch);
-
 extern _kc_export int zcp_bindtodevice(int fd, const char *iface);
 extern int zcp_peeraddr_is_local(const struct sockaddr *, socklen_t);
 extern _kc_export int zcp_peerfd_is_local(int);

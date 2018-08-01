@@ -28,8 +28,6 @@ FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 */
-
-
 #ifndef UTF8_FOR_CPP_CORE_H_2675DCD0_9480_4c0c_B92A_CC14C027B731
 #define UTF8_FOR_CPP_CORE_H_2675DCD0_9480_4c0c_B92A_CC14C027B731
 
@@ -108,15 +106,15 @@ namespace internal {
     inline bool is_overlong_sequence(uint32_t cp, int length)
     {
         if (cp < 0x80) {
-            if (length != 1) 
+            if (length != 1)
                 return true;
         }
         else if (cp < 0x800) {
-            if (length != 2) 
+            if (length != 2)
                 return true;
         }
         else if (cp < 0x10000) {
-            if (length != 3) 
+            if (length != 3)
                 return true;
         }
 
@@ -148,7 +146,6 @@ namespace internal {
             if (++it != end) {
                 if (is_trail(*it)) {
                     cp = ((cp << 6) & 0x7ff) + ((*it) & 0x3f);
-
                     if (code_point)
                         *code_point = cp;
                     ret_code = UTF8_OK;
@@ -181,7 +178,7 @@ namespace internal {
                                 *code_point = cp;
                             ret_code = UTF8_OK;
                         }
-                        else 
+                        else
                             ret_code = INCOMPLETE_SEQUENCE;
                     }
                     else
@@ -213,7 +210,6 @@ namespace internal {
                             if (++it != end) {
                                 if (is_trail(*it)) {
                                     cp += (*it) & 0x3f;
-
                                     if (code_point)
                                         *code_point = cp;
                                     ret_code = UTF8_OK;
@@ -230,7 +226,7 @@ namespace internal {
                     else
                         ret_code = NOT_ENOUGH_ROOM;
                 }
-                else 
+                else
                     ret_code = INCOMPLETE_SEQUENCE;
             }
             else
@@ -283,7 +279,7 @@ namespace internal {
                 else
                     err = OVERLONG_SEQUENCE;
             }
-            else 
+            else
                 err = INVALID_CODE_POINT;
         }
 
@@ -336,5 +332,3 @@ namespace internal {
 } /* namespace */
 
 #endif // header guard
-
-
