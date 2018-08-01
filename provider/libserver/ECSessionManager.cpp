@@ -1239,10 +1239,7 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 	new_prop.ulPropTag = PR_SORT_LOCALE_ID;
 	new_prop.Value.ul = *lpLcid;
 	new_prop.__union = SOAP_UNION_propValData_ul;
-	er = cache->SetCell(&key, PR_SORT_LOCALE_ID, &new_prop);
-	if (er != erSuccess)
-		return er;
-	return erSuccess;
+	return cache->SetCell(&key, PR_SORT_LOCALE_ID, &new_prop);
 }
 
 LPCSTR ECSessionManager::GetDefaultSortLocaleID()

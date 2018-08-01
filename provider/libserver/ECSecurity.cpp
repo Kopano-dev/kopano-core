@@ -1321,32 +1321,23 @@ size_t ECSecurity::GetObjectSize(void) const
 	ulSize += m_impersonatorDetails.GetObjectSize();
 
 	if (m_lpGroups) {
-		size_t ulItems = 0;
-		for (const auto &i : *m_lpGroups) {
-			++ulItems;
+		for (const auto &i : *m_lpGroups)
 			ulSize += i.GetObjectSize();
-		}
-		ulSize += MEMORY_USAGE_LIST(ulItems, std::list<localobjectdetails_t>);
+		ulSize += MEMORY_USAGE_LIST(m_lpGroups->size(), std::list<localobjectdetails_t>);
 	}
 
 	if (m_lpViewCompanies)
 	{
-		size_t ulItems = 0;
-		for (const auto &i : *m_lpViewCompanies) {
-			++ulItems;
+		for (const auto &i : *m_lpViewCompanies)
 			ulSize += i.GetObjectSize();
-		}
-		ulSize += MEMORY_USAGE_LIST(ulItems, std::list<localobjectdetails_t>);
+		ulSize += MEMORY_USAGE_LIST(m_lpViewCompanies->size(), std::list<localobjectdetails_t>);
 	}
 
 	if (m_lpAdminCompanies)
 	{
-		size_t ulItems = 0;
-		for (const auto &i : *m_lpAdminCompanies) {
-			++ulItems;
+		for (const auto &i : *m_lpAdminCompanies)
 			ulSize += i.GetObjectSize();
-		}
-		ulSize += MEMORY_USAGE_LIST(ulItems, std::list<localobjectdetails_t>);
+		ulSize += MEMORY_USAGE_LIST(m_lpAdminCompanies->size(), std::list<localobjectdetails_t>);
 	}
 
 	return ulSize;

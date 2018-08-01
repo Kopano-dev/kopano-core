@@ -250,19 +250,13 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 ECRESULT ECTPropsPurge::GetDeferredCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsigned int *lpulCount)
 {
 	DB_RESULT lpDBResult;
-	unsigned int ulCount = 0;
-
 	std::string strQuery = "SELECT count(*) FROM deferredupdate WHERE folderid = " + stringify(ulFolderId);
 	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
 	auto lpDBRow = lpDBResult.fetch_row();
-	if(!lpDBRow || !lpDBRow[0])
-		ulCount = 0;
-	else
-		ulCount = atoui(lpDBRow[0]);
-
-	*lpulCount = ulCount;
+	*lpulCount = (lpDBRow != nullptr && lpDBRow[0] != nullptr) ?
+	             atoui(lpDBRow[0]) : 0;
 	return erSuccess;
 }
 

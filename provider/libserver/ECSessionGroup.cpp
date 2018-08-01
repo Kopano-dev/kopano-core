@@ -431,12 +431,9 @@ size_t ECSessionGroup::GetObjectSize(void)
 	ulSize += MEMORY_USAGE_MAP(m_mapSubscribe.size(), SUBSCRIBEMAP);
 	ulSize += MEMORY_USAGE_MAP(m_mapChangeSubscribe.size(), CHANGESUBSCRIBEMAP);
 
-	size_t ulItems = 0;
-	for (const auto &n : m_listNotification) {
-		++ulItems;
+	for (const auto &n : m_listNotification)
 		ulSize += n.GetObjectSize();
-	}
-	ulSize += MEMORY_USAGE_LIST(ulItems, ECNOTIFICATIONLIST);
+	ulSize += MEMORY_USAGE_LIST(m_listNotification.size(), ECNOTIFICATIONLIST);
 	l_note.unlock();
 
 	ulSize += sizeof(*this);
