@@ -14,7 +14,6 @@ namespace KC {
 
 extern _kc_export bool isrtfhtml(const char *, unsigned int);
 extern _kc_export bool isrtftext(const char *, unsigned int);
-
 extern _kc_export HRESULT HrExtractHTMLFromRTF(const std::string &rtf, std::string &html, ULONG codepage);
 extern _kc_export HRESULT HrExtractHTMLFromTextRTF(const std::string &rtf, std::string &html, ULONG codepage);
 extern _kc_export HRESULT HrExtractHTMLFromRealRTF(const std::string &rtf, std::string &html, ULONG codepage);

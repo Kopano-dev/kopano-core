@@ -43,7 +43,6 @@ ECConfigImpl::ECConfigImpl(const configsetting_t *lpDefaults,
 	// allowed directives in this config object
 	for (int i = 0; lpszDirectives != NULL && lpszDirectives[i] != NULL; ++i)
 		m_lDirectives.emplace_back(lpszDirectives[i]);
-
 	InitDefaults(LOADSETTING_INITIALIZING | LOADSETTING_UNKNOWN | LOADSETTING_OVERWRITE);
 }
 
@@ -119,10 +118,8 @@ bool ECConfigImpl::ReloadSettings()
 	if (fp == nullptr)
 		return false;
 	fclose(fp);
-
 	// reset to defaults because unset items in config file should return to default values.
 	InitDefaults(LOADSETTING_OVERWRITE_RELOAD);
-
 	return InitConfigFile(LOADSETTING_OVERWRITE_RELOAD);
 }
 
@@ -210,7 +207,6 @@ const char *ECConfigImpl::GetMapEntry(const settingmap_t *lpMap,
 	settingkey_t key = {""};
 	if (strlen(szName) >= sizeof(key.s))
 		return NULL;
-
 	strcpy(key.s, szName);
 
 	KC::shared_lock<KC::shared_mutex> lset(m_settingsRWLock);
@@ -302,7 +298,6 @@ bool ECConfigImpl::InitDefaults(unsigned int ls_flags)
 		auto f = ls_flags | LOADSETTING_MARK_DEFAULT;
 		AddSetting(m_lpDefaults[i++], f);
 	}
-
 	return true;
 }
 
@@ -314,7 +309,6 @@ bool ECConfigImpl::InitConfigFile(unsigned int ls_flags)
 		return false;
 	auto bResult = ReadConfigFile(m_szConfigFile, ls_flags);
 	m_readFiles.clear();
-
 	return bResult;
 }
 
@@ -362,11 +356,9 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 			continue;
 
 		strLine = string(cBuffer);
-
 		/* Skip empty lines any lines which start with # */
 		if (strLine.empty() || strLine[0] == '#')
  			continue;
-
 		/* Handle special directives which start with '!' */
 		if (strLine[0] == '!') {
 			if (!HandleDirective(strLine, ls_flags))
@@ -381,7 +373,6 @@ bool ECConfigImpl::ReadConfigFile(const std::string &file,
 			strValue = strLine.substr(pos + 1);
 		} else
 			continue;
-
 		/*
 		 * The line is build up like this:
 		 * config_name = bla bla
@@ -414,7 +405,6 @@ bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ls_flags)
 		auto f = find(m_lDirectives.cbegin(), m_lDirectives.cend(), strName);
 		if (f != m_lDirectives.cend())
 			return (this->*s_sDirectives[i].fExecute)(strLine.substr(pos).c_str(), ls_flags);
-
 		warnings.emplace_back("Unsupported directive '" + strName + "' found!");
 		return true;
 	}
@@ -449,7 +439,6 @@ bool ECConfigImpl::CopyConfigSetting(const configsetting_t &lpsSetting,
 {
 	if (lpsSetting.szName == nullptr || lpsSetting.szValue == nullptr)
 		return false;
-
 	memset(lpsKey, 0, sizeof(*lpsKey));
 	kc_strlcpy(lpsKey->s, lpsSetting.szName, sizeof(lpsKey->s));
 	lpsKey->cs_flags = lpsSetting.cs_flags;
@@ -461,12 +450,10 @@ bool ECConfigImpl::CopyConfigSetting(const settingkey_t *lpsKey, const char *szV
 {
 	if (strlen(lpsKey->s) == 0 || szValue == NULL)
 		return false;
-
 	lpsSetting->szName = lpsKey->s;
 	lpsSetting->szValue = szValue;
 	lpsSetting->cs_flags = lpsKey->cs_flags;
 	lpsSetting->ulGroup = lpsKey->ulGroup;
-
 	return true;
 }
 

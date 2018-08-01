@@ -218,7 +218,6 @@ ECRESULT ECKeyTable::UpdateCounts(ECTableRow *lpRow)
 
 		// Get the height of the highest subtree
 		ulHeight = 0;
-
 		if(lpRow->lpLeft)
 			ulHeight = lpRow->lpLeft->ulHeight;
 		if(lpRow->lpRight)
@@ -226,7 +225,6 @@ ECRESULT ECKeyTable::UpdateCounts(ECTableRow *lpRow)
 
 		// Our height is highest subtree plus one
 		lpRow->ulHeight += ulHeight;
-
 		lpRow = lpRow->lpParent;
 	}
 	return erSuccess;
@@ -329,7 +327,6 @@ ECRESULT ECKeyTable::UpdateRow_Delete(const sObjectTableKey *lpsRowItem,
 	// Delete this uncoupled node
 	InvalidateBookmark(lpRow); //ignore errors
 	delete lpRow;
-
 	// Remove the row from the id map
 	mapRow.erase(*lpsRowItem);
 	if (lpulAction)
@@ -455,11 +452,9 @@ ECRESULT ECKeyTable::UpdateRow_Modify(const sObjectTableKey *lpsRowItem,
 
 	// Add it in the id map
 	mapRow[*lpsRowItem] = lpNewRow;
-
 	// Do a recursive update of the counts in the branch
 	UpdateCounts(lpNewRow);
 	RestructureRecursive(lpNewRow);
-	
 	// Reposition the cursor if it used to be on the old row
 	if (fRelocateCursor)
 		lpCurrent = lpNewRow;
@@ -486,7 +481,6 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 /* 
  * Clears the KeyTable. This is done in linear time.
  */
-
 ECRESULT ECKeyTable::Clear()
 {
 	scoped_rlock biglock(mLock);
@@ -503,16 +497,13 @@ ECRESULT ECKeyTable::Clear()
 		else {
 			// remember parent node
 			lpParent = lpRow->lpParent;
-
 			// decouple from parent
 			if(lpRow->fLeft)
 				lpParent->lpLeft = NULL;
 			else
 				lpParent->lpRight = NULL;
-
 			// delete this node
 			delete lpRow;
-
 			// continue with parent
 			lpRow = lpParent;
 		}
@@ -548,7 +539,6 @@ ECRESULT ECKeyTable::GetBookmark(unsigned int ulbkPosition, int* lpbkPosition)
 		return er;
 	if (iPosition->second.ulFirstRowPosition != ulCurrPosition)
 		er = KCWARN_POSITION_CHANGED;
-
 	*lpbkPosition = ulCurrPosition;
 	return er;
 }
@@ -632,12 +622,10 @@ ECRESULT ECKeyTable::SeekRow(unsigned int lbkOrgin, int lSeekTo, int *lplRowsSou
 
 	if(lDestRow < 0)
 		lDestRow = 0;
-
 	if((ULONG)lDestRow >= ulRowCount)
 		lDestRow = ulRowCount;
 
 	// Go to the correct row
-
 	if(lplRowsSought) {
 		switch(lbkOrgin) {
 		case EC_SEEK_SET:
@@ -661,16 +649,13 @@ ECRESULT ECKeyTable::SeekRow(unsigned int lbkOrgin, int lSeekTo, int *lplRowsSou
 	}
 
 	lpRow = lpRoot->lpRight;
-
 	while(1) {
 		if((!lpRow->lpLeft && lDestRow == 0) || (lpRow->lpLeft && lpRow->lpLeft->ulBranchCount == (ULONG)lDestRow))
 			break; // found the row!
-
 		if(lpRow->lpLeft == NULL && lpRow->lpRight == NULL) {
 			lpRow = NULL;
 			break;
 		}
-
 		else if(lpRow->lpLeft && lpRow->lpRight == NULL) {
 			// Follow the left branche
 			lpRow = lpRow->lpLeft;
@@ -714,27 +699,22 @@ ECRESULT ECKeyTable::CurrentRow(ECTableRow *lpRow, unsigned int *lpulCurrentRow)
 
 	if (lpulCurrentRow == NULL)
 		return KCERR_INVALID_PARAMETER;
-
 	if(lpRow == NULL) {
 		*lpulCurrentRow = lpRoot->ulBranchCount;
 		return erSuccess;
 	}
-
 	if(lpRow == lpRoot) {
 		*lpulCurrentRow = 0;
 		return erSuccess;
 	}
-
 	if (lpRow->lpLeft)
 		ulCurrentRow += lpRow->lpLeft->ulBranchCount;
 
 	while (lpRow && lpRow->lpParent != NULL && lpRow->lpParent != lpRoot) {
 		if (!lpRow->fLeft)
 			ulCurrentRow += lpRow->lpParent->ulBranchCount - lpRow->ulBranchCount;
-
 		lpRow = lpRow->lpParent;
 	}
-
 	*lpulCurrentRow = ulCurrentRow;
 	return erSuccess;
 }
@@ -766,7 +746,6 @@ ECRESULT ECKeyTable::QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList
         }
 		if (bDirBackward && lpCurrent == lpRoot->lpRight)
 			break;
-	
 		if (bDirBackward)
 		    Prev();
 		else /* Go to next row */
@@ -824,16 +803,14 @@ ECRESULT ECKeyTable::GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTa
 	ECRESULT er = SeekId((sObjectTableKey *)lpsRowItem);
     if(er != erSuccess)
 		return er;
-    
+   
     Prev();
     while (lpCurrent && lpCurrent->fHidden)
         Prev();
-    
     if (lpCurrent != nullptr)
         *lpsPrev = lpCurrent->sKey;
     else
         er = KCERR_NOT_FOUND;
-    
     // Go back to the previous cursor position
     lpCurrent = lpPos;
     return er;
@@ -847,14 +824,12 @@ void ECKeyTable::RotateL(ECTableRow *lpPivot)
 	// First, move left leg into position of pivot
 	lpLeft->lpParent = lpPivot->lpParent;
 	lpLeft->fLeft = lpPivot->fLeft;
-
 	if(lpPivot->fLeft)
 		lpPivot->lpParent->lpLeft = lpLeft;
 	else
 		lpPivot->lpParent->lpRight = lpLeft;
 
 	// Pivot is now an orphan, with only a right leg
-
 	// Now, move right leg of left leg to left leg of pivot
 	lpPivot->lpLeft = lpLeft->lpRight;
 	if(lpLeft->lpRight) {
@@ -863,12 +838,10 @@ void ECKeyTable::RotateL(ECTableRow *lpPivot)
 	}
 
 	// Now, pivot is orphan with left and right leg, and left leg has no right leg
-
 	// Connect pivot as right leg
 	lpLeft->lpRight = lpPivot;
 	lpPivot->lpParent = lpLeft;
 	lpPivot->fLeft = false;
-
 	UpdateCounts(lpPivot);
 	UpdateCounts(lpLeft);
 }
@@ -881,14 +854,12 @@ void ECKeyTable::RotateR(ECTableRow *lpPivot)
 	// First, move right leg into position of pivot
 	lpRight->lpParent = lpPivot->lpParent;
 	lpRight->fLeft = lpPivot->fLeft;
-	
 	if(lpPivot->fLeft)
 		lpPivot->lpParent->lpLeft = lpRight;
 	else
 		lpPivot->lpParent->lpRight = lpRight;
 
 	// Pivot is now an orphan, with only a left leg
-
 	// Now, move left leg of right leg to right leg of pivot
 	lpPivot->lpRight = lpRight->lpLeft;
 	if(lpRight->lpLeft) {
@@ -897,12 +868,10 @@ void ECKeyTable::RotateR(ECTableRow *lpPivot)
 	}
 
 	// Now, pivot is orphan with left and right leg, and right leg has no left leg
-
 	// Connect pivot as left leg
 	lpRight->lpLeft = lpPivot;
 	lpPivot->lpParent = lpRight;
 	lpPivot->fLeft = true;
-
 	UpdateCounts(lpPivot);
 	UpdateCounts(lpRight);
 }
@@ -910,7 +879,6 @@ void ECKeyTable::RotateR(ECTableRow *lpPivot)
 void ECKeyTable::RotateLR(ECTableRow *lpPivot)
 {
 	ECTableRow *lpParent = lpPivot->lpParent;
-
 	RotateR(lpPivot);
 	RotateL(lpParent);
 }
@@ -918,7 +886,6 @@ void ECKeyTable::RotateLR(ECTableRow *lpPivot)
 void ECKeyTable::RotateRL(ECTableRow *lpPivot)
 {
 	ECTableRow *lpParent = lpPivot->lpParent;
-
 	RotateL(lpPivot);
 	RotateR(lpParent);
 }
@@ -1012,12 +979,9 @@ ECRESULT ECKeyTable::HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lp
             break;
 		lpHiddenList->emplace_back(lpCurrent->sKey);
         lpCurrent->fHidden = true;
-        
         UpdateCounts(lpCurrent); // FIXME SLOW
-
         if(lpCurrent == lpCursor) 
             fCursorHidden = true;
-            
         Next();
     }
     
@@ -1046,7 +1010,6 @@ ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *
     
     // Go to next row; we don't unhide the first row, as it is the header, 
     Next();
-
     if(lpCurrent == NULL)
 		return erSuccess; /* No more rows */
             
@@ -1060,10 +1023,8 @@ ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *
 		if (lpCurrent->m_cols.size() == ulFirstCols) {
 			lpUnhiddenList->emplace_back(lpCurrent->sKey);
             lpCurrent->fHidden = false;
-
             UpdateCounts(lpCurrent); // FIXME SLOW
         }
-                
         Next();
     }
 	return erSuccess;
@@ -1074,7 +1035,6 @@ ECRESULT ECKeyTable::LowerBound(const std::vector<ECSortCol> &cols)
 	scoped_rlock biglock(mLock);
 
 	// With B being the passed sort key, find the first item A, for which !(A < B), AKA B >= A
-	
 	lpCurrent = lpRoot->lpRight;
 
     // This is a standard binary search through the entire tree	
@@ -1122,7 +1082,6 @@ ECRESULT ECKeyTable::Find(const std::vector<ECSortCol> &cols, sObjectTableKey *l
 		*lpsKey = lpCurrent->sKey;
     
     // *lpCurrent >= *search && !(*lpCurrent > *search), so *lpCurrent >= *search && *lpCurrent <= *search, so *lpCurrent == *search
-    
 exit:
 	lpCurrent = lpCurPos;
     return er;
@@ -1139,10 +1098,8 @@ unsigned int ECKeyTable::GetObjectSize()
 	scoped_rlock biglock(mLock);
 	
 	ulSize += MEMORY_USAGE_MAP(mapRow.size(), ECTableRowMap);
-
 	for (const auto &r : mapRow)
 		ulSize += r.second->GetObjectSize();
-
 	ulSize += MEMORY_USAGE_MAP(m_mapBookmarks.size(), ECBookmarkMap);
 	return ulSize;
 }
@@ -1201,9 +1158,7 @@ ECRESULT ECKeyTable::GetRow(sObjectTableKey *lpsRowItem, ECTableRow **lpRow)
 	ECRESULT er = SeekId(lpsRowItem);
     if(er != erSuccess)
         goto exit;
-    
     *lpRow = lpCurrent;
-    
 exit:
     lpCurrent = lpCursor;
     return er;

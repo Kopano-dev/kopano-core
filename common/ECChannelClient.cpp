@@ -38,22 +38,18 @@ ECRESULT ECChannelClient::DoCmd(const std::string &strCommand, std::vector<std::
 	auto er = Connect();
 	if (er != erSuccess)
 		return er;
-
 	er = m_lpChannel->HrWriteLine(strCommand);
 	if (er != erSuccess)
 		return er;
-
 	er = m_lpChannel->HrSelect(m_ulTimeout);
 	if (er != erSuccess)
 		return er;
-
 	// @todo, should be able to read more than 4MB of results
 	er = m_lpChannel->HrReadLine(strResponse, 4*1024*1024);
 	if (er != erSuccess)
 		return er;
 
 	lstResponse = tokenize(strResponse, m_strTokenizer);
-
 	if (!lstResponse.empty() && lstResponse.front() == "OK")
 		lstResponse.erase(lstResponse.begin());
 	else
@@ -65,7 +61,6 @@ ECRESULT ECChannelClient::Connect()
 {
 	if (m_lpChannel)
 		return erSuccess;
-
 	return m_bSocket ? ConnectSocket() : ConnectHttp();
 }
 
@@ -85,20 +80,17 @@ ECRESULT ECChannelClient::ConnectSocket()
 	auto fd = socket(PF_UNIX, SOCK_STREAM, 0);
 	if (fd < 0)
 		return KCERR_INVALID_PARAMETER;
-
 	if (connect(fd, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
 		if (fd != -1)
 			close(fd);
 		return KCERR_NETWORK_ERROR;
 	}
-
 	m_lpChannel.reset(new(std::nothrow) ECChannel(fd));
 	if (!m_lpChannel) {
 		if (fd != -1)
 			close(fd);
 		return KCERR_NOT_ENOUGH_MEMORY;
 	}
-
 	return erSuccess;
 }
 
@@ -129,7 +121,6 @@ ECRESULT ECChannelClient::ConnectHttp()
 		if (fd < 0)
 			/* Socket type could not be created */
 			continue;
-
 		if (connect(fd, sock_addr->ai_addr,
 		    sock_addr->ai_addrlen) < 0) {
 			/* No route */
@@ -151,7 +142,6 @@ ECRESULT ECChannelClient::ConnectHttp()
 			close(fd);
 		return KCERR_NOT_ENOUGH_MEMORY;
 	}
-
 	return erSuccess;
 }
 

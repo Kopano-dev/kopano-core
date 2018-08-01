@@ -56,10 +56,8 @@ void ConsoleTable::Resize(size_t rows, size_t columns)
 {
 	m_nRow = 0;
 	bHaveHeader = false;
-
 	m_iRows = rows;
 	m_iColumns = columns;
-
 	m_vTable.resize(rows);
 	for (size_t i = 0; i < rows; ++i)
 		m_vTable[i].resize(columns);
@@ -84,9 +82,7 @@ bool ConsoleTable::SetHeader(size_t col, const std::string &entry)
 	len = entry.length();
 	if (len > m_vMaxLengths[col])
 		m_vMaxLengths[col] = len;
-
 	bHaveHeader = true;
-
 	return true;
 }
 
@@ -102,14 +98,11 @@ bool ConsoleTable::AddColumn(size_t col, const std::string &entry)
 {
 	if (col >= m_iColumns)
 		return false;
-
 	if (m_nRow >= m_iRows) {
 		PrintTable();
 		Clear();
 	}
-
 	SetColumn(m_nRow, col, entry);
-
 	return true;
 }
 
@@ -125,17 +118,14 @@ bool ConsoleTable::SetColumn(size_t row, size_t col, const std::string &entry)
 {
 	if (col >= m_iColumns || row >= m_iRows)
 		return false;
-
 	// we want to count number of printable characters, which is not possible using UTF-8
 	m_vTable[row][col] = m_converter.convert_to<std::wstring>(CHARSET_WCHAR, entry, entry.length(), CHARSET_CHAR);
 	auto len = m_vTable[row][col].length();
 	if (len > m_vMaxLengths[col])
 		m_vMaxLengths[col] = len;
-
 	m_nRow = row;
 	if (col+1 == m_iColumns)
 		++m_nRow;
-
 	return true;
 }
 
@@ -192,11 +182,9 @@ void ConsoleTable::PrintTable()
 
 		for (size_t nCol = 0; nCol < m_iColumns; ++nCol)
 			total += m_vMaxLengths[nCol];
-
 		total += (m_iColumns -1) * 8;
 		cout << m_lead << std::string(total, '-') << endl;
 	}
-
 	for (size_t nRow = 0; nRow < m_nRow; ++nRow)
 		PrintRow(m_vTable[nRow]);
 }

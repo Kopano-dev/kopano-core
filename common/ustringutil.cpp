@@ -89,7 +89,6 @@ const char* str_ifind(const char *haystack, const char *needle)
 	while(*haystack) {
 		if (toupper_l(*haystack, loc) == toupper_l(*needlepos, loc)) {
 			++needlepos;
-
 			if(*needlepos == 0)
 				goto exit;
 		} else {
@@ -100,10 +99,8 @@ const char* str_ifind(const char *haystack, const char *needle)
 		++haystack;
 	}
 	needlestart = NULL;
-
 exit:
 	freelocale(loc);
-
 	return needlestart;
 }
 
@@ -141,7 +138,6 @@ bool str_equals(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
-
     return a.compare(b) == 0;
 }
 
@@ -162,7 +158,6 @@ bool str_iequals(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
-
     return a.caseCompare(b, 0) == 0;
 }
 
@@ -183,7 +178,6 @@ bool str_startswith(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
-
     return a.compare(0, b.length(), b) == 0;
 }
 
@@ -204,7 +198,6 @@ bool str_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
-
     return a.caseCompare(0, b.length(), b, 0) == 0;
 }
 
@@ -234,10 +227,8 @@ int str_icompare(const char *s1, const char *s2, const ECLocale &locale)
 
 	UnicodeString a = StringToUnicode(s1);
 	UnicodeString b = StringToUnicode(s2);
-
 	a.foldCase();
 	b.foldCase();
-
 	return ptrCollator->compare(a,b,status);
 }
 
@@ -264,7 +255,6 @@ bool str_contains(const char *haystack, const char *needle, const ECLocale &loca
 	assert(needle);
     UnicodeString a = StringToUnicode(haystack);
     UnicodeString b = StringToUnicode(needle);
-
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
@@ -288,7 +278,6 @@ bool str_icontains(const char *haystack, const char *needle, const ECLocale &loc
 
     a.foldCase();
     b.foldCase();
-
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
@@ -309,7 +298,6 @@ bool wcs_equals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
-
     return a.compare(b) == 0;
 }
 
@@ -330,7 +318,6 @@ bool wcs_iequals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
-
     return a.caseCompare(b, 0) == 0;
 }
 
@@ -351,7 +338,6 @@ bool wcs_startswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale
 	assert(s2);
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
-
     return a.compare(0, b.length(), b) == 0;
 }
 
@@ -372,7 +358,6 @@ bool wcs_istartswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &local
 	assert(s2);
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
-
     return a.caseCompare(0, b.length(), b, 0) == 0;
 }
 
@@ -402,10 +387,8 @@ int wcs_icompare(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 
 	UnicodeString a = WCHARToUnicode(s1);
 	UnicodeString b = WCHARToUnicode(s2);
-
 	a.foldCase();
 	b.foldCase();
-
 	return ptrCollator->compare(a,b,status);
 }
 
@@ -432,7 +415,6 @@ bool wcs_contains(const wchar_t *haystack, const wchar_t *needle, const ECLocale
 	assert(needle);
     UnicodeString a = WCHARToUnicode(haystack);
     UnicodeString b = WCHARToUnicode(needle);
-
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
@@ -462,7 +444,6 @@ bool wcs_icontains(const wchar_t *haystack, const wchar_t *needle, const ECLocal
 
     a.foldCase();
     b.foldCase();
-
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
@@ -483,7 +464,6 @@ bool u8_equals(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
-
     return a.compare(b) == 0;
 }
 
@@ -504,7 +484,6 @@ bool u8_iequals(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
-
     return a.caseCompare(b, 0) == 0;
 }
 
@@ -525,7 +504,6 @@ bool u8_startswith(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
-
     return a.compare(0, b.length(), b) == 0;
 }
 
@@ -546,7 +524,6 @@ bool u8_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
-
     return a.caseCompare(0, b.length(), b, 0) == 0;
 }
 
@@ -576,10 +553,8 @@ int u8_icompare(const char *s1, const char *s2, const ECLocale &locale)
 
 	UnicodeString a = UTF8ToUnicode(s1);
 	UnicodeString b = UTF8ToUnicode(s2);
-	
 	a.foldCase();
 	b.foldCase();
-
 	return ptrCollator->compare(a,b,status);
 }
 
@@ -606,7 +581,6 @@ bool u8_contains(const char *haystack, const char *needle, const ECLocale &local
 	assert(needle);
     UnicodeString a = UTF8ToUnicode(haystack);
     UnicodeString b = UTF8ToUnicode(needle);
-
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
@@ -630,7 +604,6 @@ bool u8_icontains(const char *haystack, const char *needle, const ECLocale &loca
 
     a.foldCase();
     b.foldCase();
-
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
@@ -961,7 +934,6 @@ ECRESULT LocaleIdToLCID(const char *lpszLocaleID, ULONG *lpulLcid)
 	for (size_t i = 0; lpMapEntry == nullptr && i < ARRAY_SIZE(localeMap); ++i)
 		if (strcasecmp(localeMap[i].lpszLocaleID, lpszLocaleID) == 0)
 			lpMapEntry = &localeMap[i];
-
 	if (lpMapEntry == NULL)
 		return KCERR_NOT_FOUND;
 	*lpulLcid = lpMapEntry->ulLCID;
@@ -976,7 +948,6 @@ ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
 	for (size_t i = 0; lpMapEntry == nullptr && i < ARRAY_SIZE(localeMap); ++i)
 		if (localeMap[i].ulLCID == ulLcid)
 			lpMapEntry = &localeMap[i];
-
 	if (lpMapEntry == NULL)
 		return KCERR_NOT_FOUND;
 	*lppszLocaleID = lpMapEntry->lpszLocaleID;
@@ -999,7 +970,6 @@ static CollationKey createSortKey(UnicodeString &&s, int nCap,
 {
 	if (nCap > 1)
 		s.truncate(nCap);
-
 	// Quick workaround for sorting items starting with ' (like From and To) and ( and '(
 	if (s.startsWith("'") || s.startsWith("("))
 		s.remove(0, 1);

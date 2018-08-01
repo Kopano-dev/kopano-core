@@ -68,7 +68,6 @@ public:
 		m_ulMaxSize = ulMaxSize;
 	}
 
-
 protected:
 	ECCacheBase(const std::string &strCachename, size_type ulMaxSize, long lMaxAge);
 	_kc_hidden void IncrementHitCount(void) { ++m_ulCacheHit; }
@@ -214,7 +213,6 @@ private:
 		}
 
 		lstEntries.sort(KeyEntryOrder<key_type>);
-
 		// We now have a list of all cache items, sorted by access time, (oldest first)
 		size_t ulDelete = m_map.size() * ratio;
 

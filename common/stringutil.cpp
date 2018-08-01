@@ -39,15 +39,12 @@ std::string stringify_int64(int64_t x, bool usehex) {
 		s.setf(std::ios::uppercase);
 	}
 	s << x;
-
 	return s.str();
 }
 
 std::string stringify_float(float x) {
 	std::ostringstream s;
-
 	s << x;
-
 	return s.str();
 }
 
@@ -81,7 +78,6 @@ std::wstring wstringify(unsigned int x, bool usehex, bool _signed)
 		s.setf(std::ios::uppercase);
 	}
 	s << x;
-
 	return s.str();
 }
 
@@ -100,21 +96,17 @@ int memsubstr(const void* haystack, size_t haystackSize, const void* needle, siz
 		if(*databuf == *searchbuf){
 			++searchbuf;
 			++match;
-
 			if(match == needleSize)
 				return 0;
 		}else{
 			databuf -= match;
 			pos -= match;
-
 			searchbuf = (BYTE*)needle;
 			match = 0;
 		}
-
 		++databuf;
 		++pos;
 	}
-
 	return 1;
 }
 
@@ -123,7 +115,6 @@ std::string str_storage(uint64_t ulBytes, bool bUnlimited) {
 
 	if (ulBytes == 0 && bUnlimited)
 		return "unlimited";
-
 	return stringify_double((double)ulBytes / MB, 2) + " MB";
 }
 
@@ -136,11 +127,9 @@ std::string GetServerNameFromPath(const char *szPath) {
 		/* Remove prefixed type information */
 		path.erase(0, pos + 3);
 	}
-
 	pos = path.find(':');
 	if (pos != std::string::npos)
 		path.erase(pos, std::string::npos);
-
 	return path;
 }
 
@@ -150,16 +139,12 @@ std::string GetServerPortFromPath(const char *szPath) {
 
 	if (strncmp(path.c_str(), "http", 4) != 0)
 		return std::string();
-
 	pos = path.rfind(':');
 	if (pos == std::string::npos)
 		return std::string();
-	
 	pos += 1; /* Skip ':' */
-
 	/* Remove all leading characters */
 	path.erase(0, pos);
-
 	/* Strip additional path */
 	pos = path.rfind('/');
 	if (pos != std::string::npos)
@@ -182,7 +167,6 @@ std::vector<std::wstring> tokenize(const std::wstring &strInput, const WCHAR sep
 			vct.emplace_back(begin, end);
 		begin = end+1;
 	}
-
 	return vct;
 }
 
@@ -202,7 +186,6 @@ std::vector<std::string> tokenize(const std::string &strInput, const char sep, b
 			vct.emplace_back(begin, end);
 		begin = end+1;
 	}
-
 	return vct;
 }
 
@@ -213,14 +196,11 @@ std::string trim(const std::string &strInput, const std::string &strTrim)
 
 	if (s.empty())
 		return s;
-
 	pos = s.find_first_not_of(strTrim); 
 	s.erase(0, pos); 
-	 	 
 	pos = s.find_last_not_of(strTrim);
 	if (pos != std::string::npos) 
 		s.erase(pos + 1, std::string::npos); 
- 	 
 	return s;
 }
 
@@ -240,7 +220,6 @@ std::string hex2bin(const std::string &input)
 
 	if (input.length() % 2 != 0)
 		return buffer;
-
 	buffer.reserve(input.length() / 2);
 	for (unsigned int i = 0; i < input.length(); ) {
 		unsigned char c;
@@ -248,7 +227,6 @@ std::string hex2bin(const std::string &input)
 		c |= x2b(input[i++]);
 		buffer += c;
 	}
-
 	return buffer;
 }
 
@@ -258,7 +236,6 @@ std::string hex2bin(const std::wstring &input)
 
 	if (input.length() % 2 != 0)
 		return buffer;
-
 	buffer.reserve(input.length() / 2);
 	for (unsigned int i = 0; i < input.length(); ) {
 		unsigned char c;
@@ -266,7 +243,6 @@ std::string hex2bin(const std::wstring &input)
 		c |= x2b((char)input[i++]);
 		buffer += c;
 	}
-
 	return buffer;
 }
 
@@ -283,7 +259,6 @@ std::string bin2hex(size_t inLength, const void *vinput)
 		buffer[j+1] = digits[*input & 0x0F];
 		++input;
 	}
-
 	return buffer;
 }
 
@@ -399,7 +374,6 @@ std::string urlDecode(const std::string &input)
 		else 
 			output += input[i];
 	}
-
 	return output;
 }
 
@@ -448,7 +422,6 @@ void StringTabtoSpaces(const std::wstring &strInput, std::wstring *lpstrOutput) 
 	 * at most two reallocs happen (with capacity doubling).
 	 */
 	strOutput.reserve(strInput.length());
-
 	for (auto c : strInput)
 		if (c == '\t')
 			strOutput.append(4, ' ');
@@ -468,7 +441,6 @@ void StringCRLFtoLF(const std::wstring &strInput, std::wstring *lpstrOutput) {
 	std::wstring strOutput;
 
 	strOutput.reserve(strInput.length());
-
 	for (; iInput != strInput.end(); ++iInput) {
 		// skips /r if /r/n found together in the text
 		if (*iInput == '\r' && (iInput + 1 != strInput.end() && *(iInput + 1) == '\n')) 
@@ -489,7 +461,6 @@ void StringLFtoCRLF(std::string &strInOut)
 	std::string::const_iterator i;
 	/* Output at most double the size of input => one realloc normally */
 	strOutput.reserve(strInOut.size());
-
 	for (i = strInOut.begin(); i != strInOut.end(); ++i)
 		if (*i == '\n' && i != strInOut.begin() && *(i-1) != '\r')
 			strOutput.append("\r\n");
@@ -508,7 +479,6 @@ std::string format(const char *const fmt, ...) {
 
         std::string result = buffer;
         free(buffer);
-
         return result;
 }
 

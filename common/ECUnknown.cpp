@@ -131,7 +131,6 @@ HRESULT ECUnknown::Suicide() {
 	// DELETED object. We must make sure that nobody ever follows pointer references
 	// in this list during this interval. The list is, therefore PRIVATE to this object,
 	// and may only be access through functions in ECUnknown.
-
 	// Now, tell our parent to delete this object
 	if (parent != nullptr)
 		parent->RemoveChild(self);

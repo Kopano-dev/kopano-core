@@ -603,7 +603,6 @@ bool CHtmlEntity::validateHtmlEntity(const std::wstring &strEntity)
 		return false;
 	
 	size_t pos = strEntity.find(';');
-
 	if (pos == std::wstring::npos || pos < 3)
 		return false;
 	if (strEntity[1] == '#') {
@@ -633,19 +632,17 @@ WCHAR CHtmlEntity::HtmlEntityToChar(const std::wstring &strEntity)
 		return '?';
 	}
 	// We have a unicode number, use iconv to get the WCHAR
-
 	std::string strUnicode;
 	int base = 10;
 	auto pNum = strEntity.c_str() + 1;
-
 	if (strEntity.size() > 2 && strEntity[1] == 'x') {
 		base = 16;
 		++pNum;
 	}
+
 	unsigned int ulCode = wcstoul(pNum, nullptr, base);
 	if (ulCode <= 0xFFFF /*USHRT_MAX*/)
 		return (WCHAR)ulCode;
-
 	strUnicode.append(1, (ulCode & 0xff));
 	strUnicode.append(1, (ulCode >> 8) & 0xff);
 	strUnicode.append(1, (ulCode >> 16) & 0xff);

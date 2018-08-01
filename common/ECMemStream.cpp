@@ -57,9 +57,7 @@ HRESULT	ECMemBlock::ReadAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulByte
 	ULONG ulToRead = cbCurrent - ulPos;
 
 	ulToRead = ulLen < ulToRead ? ulLen : ulToRead;
-
 	memcpy(buffer, lpCurrent+ulPos, ulToRead);
-
 	if(ulBytesRead)
 		*ulBytesRead = ulToRead;
 	return hrSuccess;
@@ -75,7 +73,6 @@ HRESULT ECMemBlock::WriteAt(ULONG ulPos, ULONG ulLen, const char *buffer,
 		auto lpNew = static_cast<char *>(realloc(lpCurrent, newsize));
 		if (lpNew == NULL)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
-
 		lpCurrent = lpNew;
 		memset(lpCurrent+cbTotal, 0, newsize-cbTotal);	// clear new alloced mem
 		cbTotal = newsize;		// set new size
@@ -84,7 +81,6 @@ HRESULT ECMemBlock::WriteAt(ULONG ulPos, ULONG ulLen, const char *buffer,
 	if (dsize > cbCurrent)			// if write part is bigger than actual data
 		cbCurrent = ulPos + ulLen;	// set _real_ buffer size
 	memcpy(lpCurrent+ulPos, buffer, ulLen);
-
 	if(ulBytesWritten)
 		*ulBytesWritten = ulLen;
 	return hrSuccess;
@@ -126,14 +122,12 @@ HRESULT ECMemBlock::SetSize(ULONG ulSize)
 	lpCurrent = lpNew;
 	cbCurrent = ulSize;
 	cbTotal = ulSize;
-
 	return hrSuccess;
 }
 
 HRESULT ECMemBlock::GetSize(ULONG *ulSize) const
 {
 	*ulSize = cbCurrent;
-
 	return hrSuccess;
 }
 
@@ -178,7 +172,6 @@ HRESULT ECMemStream::QueryInterface(REFIID refiid, void **lppInterface)
 ULONG ECMemStream::Release()
 {
 	// Releasing last reference
-
 	// If you read the docs on STGM_SHARE_EXCLUSIVE it doesn't say you need
 	// to Commit() at the end, so if the client hasn't called Commit() yet,
 	// we need to do it for them before throwing away the data.
@@ -213,10 +206,8 @@ HRESULT ECMemStream::Read(void *pv, ULONG cb, ULONG *pcbRead)
 	auto hr = lpMemBlock->ReadAt(static_cast<ULONG>(liPos.QuadPart),
 	          cb, static_cast<char *>(pv), &ulRead);
 	liPos.QuadPart += ulRead;
-
 	if(pcbRead)
 		*pcbRead = ulRead;
-
 	return hr;
 }
 
@@ -230,12 +221,9 @@ HRESULT ECMemStream::Write(const void *pv, ULONG cb, ULONG *pcbWritten)
 	          cb, static_cast<const char *>(pv), &ulWritten);
 	if(hr != hrSuccess)
 		return hr;
-
 	liPos.QuadPart += ulWritten;
-
 	if(pcbWritten)
 		*pcbWritten = ulWritten;
-
 	fDirty = TRUE;
 
 	// If we're not in transacted mode, don't auto-commit; we should wait for the user
@@ -266,7 +254,6 @@ HRESULT ECMemStream::Seek(LARGE_INTEGER dlibmove, DWORD dwOrigin, ULARGE_INTEGER
 	}
 	if(liPos.QuadPart > ulSize)
 		liPos.QuadPart = ulSize;
-
 	if(plibNewPosition)
 		plibNewPosition->QuadPart = liPos.QuadPart;
 	return hrSuccess;
@@ -299,10 +286,8 @@ HRESULT ECMemStream::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pc
 
 	if(pcbRead)
 		pcbRead->QuadPart = ulOffset - liPos.u.LowPart;
-
 	if(pcbWritten)
 		pcbWritten->QuadPart = ulOffset - liPos.u.LowPart;
-
 	liPos.QuadPart = ulOffset;
 	return hrSuccess;
 }
@@ -355,7 +340,6 @@ HRESULT ECMemStream::Stat(STATSTG *pstatstg, DWORD grfStatFlag)
 
 	memset(pstatstg, 0, sizeof(STATSTG));
 	pstatstg->cbSize.QuadPart = ulSize;
-
 	pstatstg->type = STGTY_STREAM;
 	pstatstg->grfMode = ulFlags;
 	return hrSuccess;

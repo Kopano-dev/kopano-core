@@ -200,7 +200,6 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 					bNeg = true;
 					++szInput;
 				}
-
 				if(isdigit(*szInput)) {
 					lArg = 0;
 					while (isdigit(*szInput)) {
@@ -249,10 +248,8 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 						fontmap_t::const_iterator i = mapFontToCharset.find(lArg);
 						if (i == mapFontToCharset.cend())
 							continue;
-
 						// Output any data before this point
 						strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
-
 						// Set new charset			
 						HrGetCharsetByRTFID(i->second, &sState[ulState].szCharset);
 						if (sState[ulState].szCharset == nullptr)
@@ -304,7 +301,6 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 						ulChar = ulChar << 4;
 						++szInput;
 					}
-
 					if(*szInput) {
 						ulChar += (unsigned int) (strchr(szHex, toupper(*szInput)) == NULL ? 0 : (strchr(szHex, toupper(*szInput)) - szHex));
 						++szInput;
@@ -327,7 +323,6 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 		else if(*szInput == '{') {
 			// Dump output data
 			strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
-
 			++ulState;
 			if (ulState >= RTF_MAXSTATE)
 				return MAPI_E_NOT_ENOUGH_MEMORY;
@@ -353,7 +348,6 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 	}
 
 	strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
-
 	try {
 		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {
@@ -416,7 +410,6 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 	wstrUnicodeTmp.resize(0,0);
 	TryConvert(convertContext, tmp, rawsize(tmp), "us-ascii", wstrUnicodeTmp);
 	strOutput.append(wstrUnicodeTmp);
-
 	InitRTFState(&sState[0]);
 
 	while (szInput < rtfend) {
@@ -441,7 +434,6 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 					bNeg = true;
 					++szInput;
 				}
-
 				if(isdigit(*szInput)) {
 					lArg = 0;
 					while (isdigit(*szInput)) {
@@ -495,10 +487,8 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 						fontmap_t::const_iterator i = mapFontToCharset.find(lArg);
 						if (i == mapFontToCharset.cend())
 							continue;
-
 						// Output any data before this point
 						strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
-
 						// Set new charset			
 						HrGetCharsetByRTFID(i->second, &sState[ulState].szCharset);
 						if (sState[ulState].szCharset == nullptr)
@@ -562,7 +552,6 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 						ulChar = ulChar << 4;
 						++szInput;
 					}
-
 					if(*szInput) {
 						ulChar += (unsigned int) (strchr(szHex, toupper(*szInput)) == NULL ? 0 : (strchr(szHex, toupper(*szInput)) - szHex));
 						++szInput;
@@ -594,12 +583,10 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 			if (ulState >= RTF_MAXSTATE)
 				return MAPI_E_NOT_ENOUGH_MEMORY;
 			sState[ulState] = sState[ulState-1];
-
 			++szInput;
 		} else if(*szInput == '}') {
 			// Dump output data
 			strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
-
 			if(ulState > 0)
 				--ulState;
 			++szInput;
@@ -641,7 +628,6 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 	strOutput += L"\r\n" \
 		     L"</BODY>\r\n" \
 		     L"</HTML>\r\n";
-
 	try {
 		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {
@@ -703,7 +689,6 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 
 	TryConvert(convertContext, tmp, rawsize(tmp), "us-ascii", wstrUnicodeTmp);
 	strOutput.append(wstrUnicodeTmp);
-
 	InitRTFState(&sState[0]);
 
 	while (szInput < rtfend) {
@@ -728,7 +713,6 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 					bNeg = true;
 					++szInput;
 				}
-
 				if(isdigit(*szInput)) {
 					lArg = 0;
 					while (isdigit(*szInput)) {
@@ -789,12 +773,10 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 						fontmap_t::const_iterator i = mapFontToCharset.find(lArg);
 						if (i == mapFontToCharset.cend())
 							continue;
-
 						// Output any data before this point
 						if (!sState[ulState].output.empty()) {
 							strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
 						}
-
 						// Set new charset
 						HrGetCharsetByRTFID(i->second, &sState[ulState].szCharset);
 						if (sState[ulState].szCharset == nullptr)
@@ -845,7 +827,6 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 				else if(strcmp(szCommand,"generator") == 0){
 					while (*szInput != ';' && *szInput != '}' && *szInput)
 						++szInput;
-
 					if(*szInput == ';') 
 						++szInput;
 				}
@@ -853,7 +834,6 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 					// skip bookmark name
 					while (*szInput && isalnum(*szInput))
 						++szInput;
-
 					sState[ulState].bInSkipTbl = true;
 				} else if (strcmp(szCommand, "endash") == 0) {
 					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
@@ -921,7 +901,6 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 						ulChar = ulChar << 4;
 						++szInput;
 					}
-
 					if(*szInput) {
 						ulChar += (unsigned int) (strchr(szHex, toupper(*szInput)) == NULL ? 0 : (strchr(szHex, toupper(*szInput)) - szHex));
 						++szInput;	
@@ -944,17 +923,14 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 		else if(*szInput == '{') {
 			// Dump output data
 			strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
-
 			++ulState;
 			if (ulState >= RTF_MAXSTATE)
 				return MAPI_E_NOT_ENOUGH_MEMORY;
 			sState[ulState] = sState[ulState-1];
-
 			++szInput;
 		} else if(*szInput == '}') {
 			// Dump output data
 			strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
-
 			if(ulState > 0)
 				--ulState;
 			++szInput;
@@ -987,7 +963,6 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 	strOutput += L"\r\n" \
 		     L"</BODY>\r\n" \
 		     L"</HTML>\r\n";
-
 	try {
 		lpStrHTMLOut = convertContext.convert_to<std::string>(strConvertCharset.c_str(), strOutput, rawsize(strOutput), CHARSET_WCHAR);
 	} catch (const convert_exception &ce) {

@@ -107,7 +107,6 @@ int unix_chown(const char *filename, const char *username, const char *groupname
 	gid_t gid;
 
 	gid = getgid();
-
 	if (groupname && strcmp(groupname,"")) {
 		gr = getgrnam(groupname);
 		if (gr)
@@ -115,7 +114,6 @@ int unix_chown(const char *filename, const char *username, const char *groupname
 	}
 
 	uid = getuid();
-
 	if (username && strcmp(username,"")) {
 		pw = getpwnam(username);
 		if (pw)
@@ -238,9 +236,7 @@ int unix_daemonize(ECConfig *lpConfig)
 	}
 	if (ret)
 		_exit(0);				// close parent process
-
 	setsid();					// start new session
-
 	ret = fork();
 	if (ret == -1) {
 		ec_log_crit("Daemonizing failed on 2nd step");
@@ -253,7 +249,6 @@ int unix_daemonize(ECConfig *lpConfig)
 	fclose(stdin);
 	freopen("/dev/null", "a+", stdout);
 	freopen("/dev/null", "a+", stderr);
-
 	return 0;
 }
 

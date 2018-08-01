@@ -27,12 +27,9 @@ HRESULT IStreamAdapter::Read(void *pv, ULONG cb, ULONG *pcbRead)
 	size_t toread = std::min(cb, (ULONG)(m_str.size() - m_pos));
 	
 	memcpy(pv, m_str.data() + m_pos, toread);
-	
 	m_pos += toread;
-	
 	if(pcbRead)
 		*pcbRead = toread;
-	
 	return hrSuccess;
 }
 
@@ -40,13 +37,10 @@ HRESULT IStreamAdapter::Write(const void *pv, ULONG cb, ULONG *pcbWritten)
 {
 	if (m_pos + cb > m_str.size())
 		m_str.resize(m_pos+cb);
-
 	memcpy(const_cast<char *>(m_str.data() + m_pos), pv, cb);
 	m_pos += cb;
-	
 	if(pcbWritten)
 		*pcbWritten = cb;
-	
 	return hrSuccess;
 }
 
@@ -76,10 +70,8 @@ HRESULT IStreamAdapter::Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTE
 	// Fix overflow		
 	if (m_pos > m_str.size())
 		m_pos = m_str.size();
-	
 	if (plibNewPosition)
 		plibNewPosition->QuadPart = m_pos;
-		
 	return hrSuccess;
 }
 
@@ -99,10 +91,8 @@ HRESULT IStreamAdapter::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER 
 		auto hr = Read(buf, sizeof(buf), &len);
 		if(hr != hrSuccess)
 			return hr;
-			
 		if(len == 0)
 			break;
-			
 		hr = pstm->Write(buf, len, NULL);
 		if(hr != hrSuccess)
 			return hr;
@@ -114,7 +104,6 @@ HRESULT IStreamAdapter::Stat(STATSTG *pstatstg, DWORD grfStatFlag)
 {
 	memset(pstatstg, 0, sizeof(STATSTG));
 	pstatstg->cbSize.QuadPart = m_str.size();
-	
 	return hrSuccess;
 }
 

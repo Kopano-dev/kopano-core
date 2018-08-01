@@ -109,7 +109,6 @@ DWORD GetTempPath(DWORD inLen, char *lpBuffer) {
 	auto outLen = snprintf(lpBuffer, inLen, "%s/", KC::TmpPath::instance.getTempPath().c_str());
 	if (outLen > inLen)
 		return 0;
-
 	return outLen;
 }
 
@@ -133,7 +132,6 @@ static void rand_fail(void)
 void rand_get(char *p, int n)
 {
 	int fd = open("/dev/urandom", O_RDONLY);
-
 	if (fd == -1)
 		rand_fail();
 	
@@ -141,22 +139,17 @@ void rand_get(char *p, int n)
 	while(n > 0)
 	{
 		int rc = read(fd, p, n);
-
 		if (rc == 0)
 			rand_fail();
-
 		if (rc == -1)
 		{
 			if (errno == EINTR)
 				continue;
-
 			rand_fail();
 		}
-
 		p += rc;
 		n -= rc;
 	}
-
 		close(fd);
 	}
 	
@@ -173,7 +166,6 @@ void rand_init() {
 int rand_mt() {
 	int dummy = 0;
 	rand_get((char *)&dummy, sizeof dummy);
-
 	if (dummy == INT_MIN)
 		dummy = INT_MAX;
 	else
@@ -202,9 +194,7 @@ namespace KC {
 time_t GetProcessTime()
 {
 	time_t t;
-
 	time(&t);
-
 	return t;
 }
 

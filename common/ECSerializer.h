@@ -21,13 +21,10 @@ class ECSerializer {
 public:
 	virtual ~ECSerializer(void) = default;
 	virtual ECRESULT SetBuffer(void *lpBuffer) = 0;
-
 	virtual ECRESULT Write(const void *ptr, size_t size, size_t nmemb) = 0;
 	virtual ECRESULT Read(void *ptr, size_t size, size_t nmemb) = 0;
-
 	virtual ECRESULT Skip(size_t size, size_t nmemb) = 0;
 	virtual ECRESULT Flush() = 0;
-	
 	virtual ECRESULT Stat(ULONG *lpulRead, ULONG *lpulWritten) = 0;
 };
 

@@ -63,18 +63,15 @@ void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 		++m_ulTermReq;
 		m_hCondition.notify_one();
 	}
-	
 	else if (ulThreadCount < threadCount()) {
 		m_ulTermReq += (threadCount() - ulThreadCount);
 		m_hCondition.notify_all();
 	}
-
 	else {
 		unsigned ulThreadsToAdd = ulThreadCount - threadCount();
 		
 		if (ulThreadsToAdd <= m_ulTermReq)
 			m_ulTermReq -= ulThreadsToAdd;
-		
 		else {
 			ulThreadsToAdd -= m_ulTermReq;
 			m_ulTermReq = 0;
@@ -136,7 +133,6 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 	
 	*lpsTaskInfo = m_listTasks.front();
 	m_listTasks.pop_front();
-
 	return true;
 }
 
@@ -148,7 +144,6 @@ void ECThreadPool::joinTerminated(ulock_normal &locker)
 	assert(locker.owns_lock());
 	for (auto thr : m_setTerminated)
 		pthread_join(thr, NULL);
-	
 	m_setTerminated.clear();
 }
 
