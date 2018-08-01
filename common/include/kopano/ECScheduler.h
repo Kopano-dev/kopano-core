@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECSCHEDULER_H
 #define ECSCHEDULER_H
 
@@ -38,7 +37,6 @@ class _kc_export ECScheduler _kc_final {
 public:
 	ECScheduler();
 	~ECScheduler(void);
-
 	HRESULT AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle, void* (*lpFunction)(void*), void* lpData = NULL);
 
 private:

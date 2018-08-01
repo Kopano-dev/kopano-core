@@ -43,7 +43,6 @@ public:
 	_kc_hidden HRESULT HrReadBytes(char *buf, ULONG count);
 	HRESULT HrReadBytes(std::string * strBuffer, ULONG ulByteCount);
 	HRESULT HrReadAndDiscardBytes(ULONG ulByteCount);
-
 	HRESULT HrSelect(int seconds);
 	_kc_hidden void SetIPAddress(const struct sockaddr *, size_t);
 	_kc_hidden const char *peer_addr(void) const { return peer_atxt; }
@@ -76,7 +75,6 @@ extern _kc_export int ec_listen_inet(const char *bind, uint16_t port, int *fd);
 extern _kc_export int ec_listen_generic(const char *bind, int *fd, int mode = -1);
 /* accept data on connection */
 extern _kc_export HRESULT HrAccept(int fd, ECChannel **ch);
-
 extern _kc_export int zcp_bindtodevice(int fd, const char *iface);
 extern int zcp_peeraddr_is_local(const struct sockaddr *, socklen_t);
 extern _kc_export int zcp_peerfd_is_local(int);

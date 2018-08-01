@@ -28,8 +28,6 @@ FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 */
-
-
 #ifndef UTF8_FOR_CPP_CORE_H_2675DCD0_9480_4c0c_B92A_CC14C027B731
 #define UTF8_FOR_CPP_CORE_H_2675DCD0_9480_4c0c_B92A_CC14C027B731
 
@@ -148,7 +146,6 @@ namespace internal {
             if (++it != end) {
                 if (is_trail(*it)) {
                     cp = ((cp << 6) & 0x7ff) + ((*it) & 0x3f);
-
                     if (code_point)
                         *code_point = cp;
                     ret_code = UTF8_OK;
@@ -213,7 +210,6 @@ namespace internal {
                             if (++it != end) {
                                 if (is_trail(*it)) {
                                     cp += (*it) & 0x3f;
-
                                     if (code_point)
                                         *code_point = cp;
                                     ret_code = UTF8_OK;
@@ -336,5 +332,3 @@ namespace internal {
 } /* namespace */
 
 #endif // header guard
-
-

@@ -21,5 +21,4 @@ namespace KC {
 // a bit of a bother. NS 16 October 2013
 #define _(string) KC_W(string)
 
-
 #endif // ndef ECGetText_INCLUDED

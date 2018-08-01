@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ustringutil_INCLUDED
 #define ustringutil_INCLUDED
 
@@ -45,7 +44,6 @@ extern _kc_export bool u8_istartswith(const char *, const char *, const ECLocale
 extern _kc_export int u8_icompare(const char *, const char *, const ECLocale &);
 extern _kc_export bool u8_contains(const char *haystack, const char *needle, const ECLocale &);
 extern _kc_export bool u8_icontains(const char *haystack, const char *needle, const ECLocale &);
-
 extern _kc_export unsigned int u8_ncpy(const char *src, unsigned int n, std::string *dst);
 extern _kc_export unsigned int u8_cappedbytes(const char *s, unsigned int max);
 extern _kc_export unsigned int u8_len(const char *);

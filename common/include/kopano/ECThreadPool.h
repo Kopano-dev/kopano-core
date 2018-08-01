@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECThreadPool_INCLUDED
 #define ECThreadPool_INCLUDED
 
@@ -35,7 +34,6 @@ private:	// types
 public:
 	ECThreadPool(unsigned ulThreadCount);
 	virtual ~ECThreadPool(void);
-	
 	virtual bool dispatch(ECTask *lpTask, bool bTakeOwnership = false);
 	_kc_hidden unsigned int threadCount(void) const;
 	_kc_hidden void setThreadCount(unsigned int cuont, bool wait = false);
@@ -101,8 +99,6 @@ private:
 inline bool ECTask::dispatchOn(ECThreadPool *lpThreadPool, bool bTransferOwnership) {
 	return lpThreadPool ? lpThreadPool->dispatch(this, bTransferOwnership) : false;
 }
-
-
 
 /**
  * This class represents a task that can be executed on an ECThreadPool or

@@ -34,14 +34,11 @@ locale_t createUTF8Locale()
 	loc = createlocale(LC_CTYPE, new_locale.c_str()); 
 	if (loc)
 		return loc;
-
 	loc = createlocale(LC_CTYPE, "en_US.UTF-8");
-
 exit:
 	// too bad, but I don't want to return an unusable object
 	if (!loc)
 		loc = createlocale(LC_CTYPE, "C");
-
 	return loc;
 }
 

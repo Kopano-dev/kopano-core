@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef TABLE_H
 #define TABLE_H
 
@@ -46,7 +45,6 @@
 #include <map>
 #include <mutex>
 #include <vector>
-
 #define BOOKMARK_LIMIT		100
 
 namespace KC {
@@ -167,22 +165,17 @@ public:
 	ECRESULT	GetRowCount(unsigned int *ulRowCount, unsigned int *ulCurrentRow);
 	ECRESULT	QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList, bool bDirBackward, unsigned int ulFlags, bool bShowHidden = false);
 	ECRESULT	Clear();
-
 	_kc_hidden ECRESULT GetBookmark(unsigned int p1, int *p2);
 	ECRESULT	CreateBookmark(unsigned int* lpulbkPosition);
 	ECRESULT	FreeBookmark(unsigned int ulbkPosition);
-
 	ECRESULT	GetRowsBySortPrefix(sObjectTableKey *lpsRowItem, ECObjectTableList *lpRowList);
 	ECRESULT	HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lpHiddenList);
 	ECRESULT	UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lpUnhiddenList);
-
 	// Returns the first row where the sort columns are not less than the specified sortkey
 	ECRESULT LowerBound(const std::vector<ECSortCol> &);
 	ECRESULT Find(const std::vector<ECSortCol> &, sObjectTableKey *);
 	ECRESULT UpdatePartialSortKey(sObjectTableKey *lpsRowItem, size_t ulColumn, const ECSortCol &, sObjectTableKey *lpsPrevRow, bool *lpfHidden, ECKeyTable::UpdateType *lpulAction);
 	ECRESULT 	GetRow(sObjectTableKey *lpsRowItem, ECTableRow **lpRow);
-	
-
 	unsigned int GetObjectSize();
 
 private:
