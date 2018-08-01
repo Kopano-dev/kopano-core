@@ -67,7 +67,7 @@ HRESULT ECMemBlock::WriteAt(ULONG ulPos, ULONG ulLen, const char *buffer,
     ULONG *ulBytesWritten)
 {
 	ULONG dsize = ulPos + ulLen;
-	
+
 	if(cbTotal < dsize) {
 		ULONG newsize = cbTotal + ((dsize / EC_MEMBLOCK_SIZE) + 1) * EC_MEMBLOCK_SIZE; // + at least 8k
 		auto lpNew = static_cast<char *>(realloc(lpCurrent, newsize));
@@ -229,7 +229,7 @@ HRESULT ECMemStream::Write(const void *pv, ULONG cb, ULONG *pcbWritten)
 	// If we're not in transacted mode, don't auto-commit; we should wait for the user
 	// to commit() the flags. In exclusive mode, nobody else can see this stream, so there's
 	// no point in committing already. We simply defer the commit until the stream is Released
-	if(!(ulFlags & STGM_TRANSACTED) && !(ulFlags & STGM_SHARE_EXCLUSIVE)) 
+	if(!(ulFlags & STGM_TRANSACTED) && !(ulFlags & STGM_SHARE_EXCLUSIVE))
 		Commit(0);
 	return hrSuccess;
 }

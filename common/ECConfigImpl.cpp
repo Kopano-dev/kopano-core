@@ -51,24 +51,24 @@ bool ECConfigImpl::LoadSettings(const char *szFilename, bool ignore_missing)
 	struct stat sb;
 	if (stat(szFilename, &sb) != 0 && errno == ENOENT && ignore_missing)
 		return true;
-	m_szConfigFile = szFilename;	
+	m_szConfigFile = szFilename;
 	return InitConfigFile(LOADSETTING_OVERWRITE);
 }
 
 /**
  * Parse commandline parameters to override the values loaded from the
  * config files.
- * 
+ *
  * This function accepts only long options in the form
  * --option-name=value. All dashes in the option-name will be converted
  * to underscores. The option-name should then match a valid config option.
  * This config option will be set to value. No processing is done on value
  * except for removing leading and trailing whitespaces.
- * 
+ *
  * The aray in argv will be reordered so all non-long-option values will
  * be located after the long-options. On return *lpargidx will be the
  * index of the first non-long-option in the array.
- * 
+ *
  * @param[in]	argc		The number of arguments to parse.
  * @param[in]	argv		The parameters to parse. The size of the
  * 							array must be at least argc.
@@ -138,11 +138,11 @@ ECConfigImpl::~ECConfigImpl()
 		delete[] e.second;
 }
 
-/** 
+/**
  * Returns the size in bytes for a size marked config value
- * 
+ *
  * @param szValue input value from config file
- * 
+ *
  * @return size in bytes
  */
 size_t ECConfigImpl::GetSize(const char *szValue)
@@ -163,11 +163,11 @@ size_t ECConfigImpl::GetSize(const char *szValue)
 	return rv;
 }
 
-/** 
+/**
  * Adds a new setting to the map, or replaces the current data.
  * Only the first 1024 bytes of the value are saved, longer values are truncated.
  * The map must be locked by the m_settingsRWLock.
- * 
+ *
  * @param lpMap settings map to set value in
  * @param s key to access map point
  * @param szValue new value to set in map
@@ -190,7 +190,7 @@ void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, c
 		lpMap->erase(i);
 		lpMap->insert({s, data});
 	}
-	
+
 	if (bIsSize)
 		len = snprintf(data, 1024, "%zu", GetSize(szValue));
 	else

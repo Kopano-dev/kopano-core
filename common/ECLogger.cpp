@@ -996,7 +996,7 @@ void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,
 		lpLogger->logf(EC_LOGLEVEL_FATAL, "getrusage() failed: %s", strerror(errno));
 	else
 		lpLogger->logf(EC_LOGLEVEL_FATAL, "Peak RSS: %ld", rusage.ru_maxrss);
-        
+
 	switch (signr) {
 	case SIGSEGV:
 		lpLogger->logf(EC_LOGLEVEL_FATAL, "Pid %d caught SIGSEGV (%d), traceback:", getpid(), signr);

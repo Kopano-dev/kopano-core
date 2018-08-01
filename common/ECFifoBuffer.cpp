@@ -114,7 +114,7 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 	ulock_normal locker(m_hMutex);
 	while (cbRead < cbBuf) {
 		while (IsEmpty()) {
-			if (IsClosed(cfWrite)) 
+			if (IsClosed(cfWrite))
 				goto exit;
 
 			if (ulTimeoutMs > 0) {
@@ -135,7 +135,7 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 		m_hCondNotFull.notify_one();
 		cbRead += cbNow;
 	}
-	
+
 	if (IsEmpty() && IsClosed(cfWrite))
 		m_hCondFlushed.notify_one();
 exit:

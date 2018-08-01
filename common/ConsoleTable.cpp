@@ -14,9 +14,9 @@ namespace KC {
 using std::cout;
 using std::endl;
 
-/** 
+/**
  * Creates a static string table in set sizes
- * 
+ *
  * @param[in] rows number of rows in the table (if exceeding, table will be printed and cleared)
  * @param[in] columns exact number of columns
  */
@@ -46,9 +46,9 @@ void ConsoleTable::Clear()
 	bHaveHeader = false;
 }
 
-/** 
+/**
  * Removes all contents from the current table and makes the table size in the new given size
- * 
+ *
  * @param[in] rows guessed number of rows in the table
  * @param[in] columns exact number of columns
  */
@@ -65,9 +65,9 @@ void ConsoleTable::Resize(size_t rows, size_t columns)
 	m_vHeader.resize(m_iColumns);
 }
 
-/** 
+/**
  * Sets the header name for a column. This is optional, as not all tables have headers.
- * 
+ *
  * @param[in] col column numer to set header name for
  * @param[in] entry name of the header
  * @retval		true on success, false if offsets are out of range
@@ -129,9 +129,9 @@ bool ConsoleTable::SetColumn(size_t row, size_t col, const std::string &entry)
 	return true;
 }
 
-/** 
+/**
  * Prints one row of a table
- * 
+ *
  * @param[in] vRow reference to the row wanted on the screen
  */
 void ConsoleTable::PrintRow(const std::vector<std::wstring> &vRow)
@@ -151,9 +151,9 @@ void ConsoleTable::PrintRow(const std::vector<std::wstring> &vRow)
 	cout << endl;
 }
 
-/** 
+/**
  * Dumps one row of a table as comma separated fields
- * 
+ *
  * @param[in] vRow reference to the row wanted on the screen
  */
 void ConsoleTable::DumpRow(const std::vector<std::wstring> &vRow)

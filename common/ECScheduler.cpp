@@ -128,7 +128,7 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 			if (hasExpired(ttime, &sl)) {
 				//Create task thread
 				int err = 0;
-				
+
 				if((err = pthread_create(&hThread, NULL, sl.lpFunction, static_cast<void *>(sl.lpData))) != 0) {
 					ec_log_err("Could not create ECScheduler worker thread: %s", strerror(err));
 					goto task_fail;

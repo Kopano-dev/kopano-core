@@ -96,13 +96,13 @@ void GetSystemTimeAsFileTime(FILETIME *ft) {
 	ft->dwHighDateTime = now >> 32;
 }
 
-/** 
+/**
  * copies the path of the temp directory, including trailing /, into
  * given buffer.
- * 
+ *
  * @param[in] inLen size of buffer, inclusive \0 char
  * @param[in,out] lpBuffer buffer to place path in
- * 
+ *
  * @return length used or what would've been required if it would fit in lpBuffer
  */
 DWORD GetTempPath(DWORD inLen, char *lpBuffer) {
@@ -128,13 +128,13 @@ static void rand_fail(void)
 	kill(0, SIGTERM);
 	exit(1);
 }
-	
+
 void rand_get(char *p, int n)
 {
 	int fd = open("/dev/urandom", O_RDONLY);
 	if (fd == -1)
 		rand_fail();
-	
+
 	// handle EINTR
 	while(n > 0)
 	{
@@ -152,7 +152,7 @@ void rand_get(char *p, int n)
 	}
 		close(fd);
 	}
-	
+
 void rand_init() {
 	if (rand_init_done)
 		return;

@@ -25,7 +25,7 @@ HRESULT IStreamAdapter::QueryInterface(REFIID iid, void **pv){
 HRESULT IStreamAdapter::Read(void *pv, ULONG cb, ULONG *pcbRead)
 {
 	size_t toread = std::min(cb, (ULONG)(m_str.size() - m_pos));
-	
+
 	memcpy(pv, m_str.data() + m_pos, toread);
 	m_pos += toread;
 	if(pcbRead)
@@ -67,7 +67,7 @@ HRESULT IStreamAdapter::Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTE
 			m_pos = m_str.size() + dlibMove.QuadPart;
 	}
 
-	// Fix overflow		
+	// Fix overflow
 	if (m_pos > m_str.size())
 		m_pos = m_str.size();
 	if (plibNewPosition)
@@ -86,7 +86,7 @@ HRESULT IStreamAdapter::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER 
 {
 	char buf[4096];
 	ULONG len = 0;
-	
+
 	while(1) {
 		auto hr = Read(buf, sizeof(buf), &len);
 		if(hr != hrSuccess)

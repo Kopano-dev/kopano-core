@@ -42,7 +42,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-/* 
+/*
  * This is an IStream-compatible wrapper for ECMemBlock
  */
 class _kc_export ECMemStream _kc_final : public ECUnknown, public IStream {

@@ -25,16 +25,16 @@
 
 namespace KC {
 
-/** 
+/**
  * Reads the contents of a file, and writes it to the output file
  * while converting Unix \n enters to DOS \r\n enters.
- * 
+ *
  * @todo this function prints errors to screen using perror(), which should be removed
  * @todo this function doesn't return the filepointer in case of an error, but also doesn't unlink the tempfile either.
  *
  * @param[in] fin input file to read strings from
  * @param[out] fout new filepointer to a temporary file
- * 
+ *
  * @return MAPI error code
  */
 HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
@@ -69,13 +69,13 @@ HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Reads a file into a std::string
  *
  * @param[in] f file to read in memory
  * @param[out] lpstrBuffer string containing the file contents
- * 
- * @return 
+ *
+ * @return
  */
 HRESULT HrMapFileToString(FILE *f, std::string *lpstrBuffer)
 {

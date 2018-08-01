@@ -71,13 +71,13 @@ typedef std::unique_ptr<Collator> unique_ptr_Collator;
 
 namespace KC {
 
-/** 
+/**
  * US-ASCII version to find a case-insensitive string part in a
  * haystack.
- * 
+ *
  * @param haystack search this haystack for a case-insensitive needle
  * @param needle search this needle in the case-insensitive haystack
- * 
+ *
  * @return pointer where needle is found or NULL
  */
 const char* str_ifind(const char *haystack, const char *needle)
@@ -123,11 +123,11 @@ static inline UnicodeString WCHARToUnicode(const wchar_t *sz)
 
 /**
  * Check if two strings are canonical equivalent.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -143,11 +143,11 @@ bool str_equals(const char *s1, const char *s2, const ECLocale &locale)
 
 /**
  * Check if two strings are canonical equivalent when ignoring the case.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to convert the case of the strings.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -163,11 +163,11 @@ bool str_iequals(const char *s1, const char *s2, const ECLocale &locale)
 
 /**
  * Check if the string s1 starts with s2.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -183,11 +183,11 @@ bool str_startswith(const char *s1, const char *s2, const ECLocale &locale)
 
 /**
  * Check if the string s1 starts with s2 when ignoring the case.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to convert the case of the strings.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -203,16 +203,16 @@ bool str_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 
 /**
  * Compare two strings using the collator to determine the sort order.
- * 
+ *
  * Both strings are expectes to be in the current locale. The comparison is
  * case insensitive. Effectively this only changes behavior compared to strcmp_unicode
  * if the two strings are the same if the case is discarded. It doesn't effect the
  * sorting in any other way.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	collator	The collator used to determine which string precedes the other.
- * 
+ *
  * @return		An integer.
  * @retval		-1	s1 is smaller than s2
  * @retval		0	s1 equals s2.
@@ -283,11 +283,11 @@ bool str_icontains(const char *haystack, const char *needle, const ECLocale &loc
 
 /**
  * Check if two strings are canonical equivalent.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -303,11 +303,11 @@ bool wcs_equals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 
 /**
  * Check if two strings are canonical equivalent when ignoring the case.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to convert the case of the strings.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -323,11 +323,11 @@ bool wcs_iequals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 
 /**
  * Check if s1 starts with s2.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -343,11 +343,11 @@ bool wcs_startswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale
 
 /**
  * Check if s1 starts with s2 when ignoring the case.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to convert the case of the strings.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -363,16 +363,16 @@ bool wcs_istartswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &local
 
 /**
  * Compare two strings using the collator to determine the sort order.
- * 
+ *
  * Both strings are expectes to be in the current locale. The comparison is
  * case insensitive. Effectively this only changes behavior compared to strcmp_unicode
  * if the two strings are the same if the case is discarded. It doesn't effect the
  * sorting in any other way.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	collator	The collator used to determine which string precedes the other.
- * 
+ *
  * @return		An integer.
  * @retval		-1	s1 is smaller than s2
  * @retval		0	s1 equals s2.
@@ -449,11 +449,11 @@ bool wcs_icontains(const wchar_t *haystack, const wchar_t *needle, const ECLocal
 
 /**
  * Check if two strings are canonical equivalent.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -469,11 +469,11 @@ bool u8_equals(const char *s1, const char *s2, const ECLocale &locale)
 
 /**
  * Check if two strings are canonical equivalent when ignoring the case.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale to use when converting case.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -489,11 +489,11 @@ bool u8_iequals(const char *s1, const char *s2, const ECLocale &locale)
 
 /**
  * Check if s1 starts with s2.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -509,11 +509,11 @@ bool u8_startswith(const char *s1, const char *s2, const ECLocale &locale)
 
 /**
  * Check if s1 starts with s2 when ignoring the case.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale to use when converting case.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -529,16 +529,16 @@ bool u8_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 
 /**
  * Compare two strings using the collator to determine the sort order.
- * 
+ *
  * Both strings are expectes to be encoded in UTF-8. The comparison is
  * case insensitive. Effectively this only changes behavior compared to strcmp_unicode
  * if the two strings are the same if the case is discarded. It doesn't effect the
  * sorting in any other way.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	collator	The collator used to determine which string precedes the other.
- * 
+ *
  * @return		An integer.
  * @retval		-1	s1 is smaller than s2
  * @retval		0	s1 equals s2.
@@ -1048,7 +1048,7 @@ std::string createSortKeyDataFromUTF8(const char *s, int nCap,
 
 /**
  * Compare two sort keys previously created with createSortKey.
- * 
+ *
  * @param[in]	cbKey1		The size i nbytes of key 1.
  * @param[in]	lpKey1		Key 1.
  * @param[in]	cbKey2		The size i nbytes of key 2.

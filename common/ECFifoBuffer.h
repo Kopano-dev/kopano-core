@@ -29,12 +29,12 @@ public:
 	_kc_hidden bool IsClosed(ULONG flags) const;
 	_kc_hidden bool IsEmpty() const { return m_storage.empty(); }
 	_kc_hidden bool IsFull() const { return m_storage.size() == m_ulMaxSize; }
-	
+
 private:
 	// prohibit copy
 	ECFifoBuffer(const ECFifoBuffer &) = delete;
 	ECFifoBuffer &operator=(const ECFifoBuffer &) = delete;
-	
+
 	storage_type	m_storage;
 	size_type		m_ulMaxSize;
 	bool m_bReaderClosed = false, m_bWriterClosed = false;

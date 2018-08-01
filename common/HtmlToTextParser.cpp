@@ -191,7 +191,7 @@ void CHtmlToTextParser::parseTag(const WCHAR* &lpwHTML)
 	decltype(tagMap)::const_iterator iterTag;
 	std::wstring tagName;
 
-	while (*lpwHTML != 0 && !bTagEnd) 
+	while (*lpwHTML != 0 && !bTagEnd)
 	{
 		if (bTagName && *lpwHTML == '!') {
 			// HTML comment or doctype detect, ignore all the text

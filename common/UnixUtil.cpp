@@ -289,10 +289,10 @@ int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pClo
 	return 0;
 }
 
-/** 
+/**
  * Starts a new process with a read and write channel. Optionally sets
  * resource limites and environment variables.
- * 
+ *
  * @param lpLogger[in] Logger object where error messages during the function may be sent to. Cannot be NULL.
  * @param lpszCommand[in] The command to execute in the new subprocess.
  * @param lpulIn[out] The filedescriptor to read data of the command from.
@@ -301,7 +301,7 @@ int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pClo
  * @param env[in] Optional environment variables to set in the new subprocess.
  * @param bNonBlocking[in] Make the in and out pipes non-blocking on read and write calls.
  * @param bStdErr[in] Add STDERR output to *lpulOut
- * 
+ *
  * @return new process pid, or -1 on failure.
  */
 static pid_t unix_popen_rw(const char *const *argv, int *lpulIn, int *lpulOut,
@@ -363,7 +363,7 @@ exit:
  * @param lpLogger[in] 		NULL or pointer to logger object to log to (will be logged via EC_LOGLEVEL_INFO)
  * @param lsszLogName[in]	Name to show in the log. Will show NAME[pid]: DATA
  * @param lpszCommand[in] 	String to command to be started, which will be executed with /bin/sh -c "string"
- * @param env[in] 			NULL-terminated array of strings with environment settings in the form ENVNAME=VALUE, see 
+ * @param env[in] 			NULL-terminated array of strings with environment settings in the form ENVNAME=VALUE, see
  *                			execlp(3) for details
  *
  * @return Returns TRUE on success, FALSE on failure
@@ -395,7 +395,7 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 		close(fdout);
 		return false;
 	}
-	
+
 	char buffer[1024];
 	while (fgets(buffer, sizeof(buffer), fp)) {
 		size_t z = strlen(buffer);
@@ -403,7 +403,7 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 			buffer[--z] = '\0';
 		ec_log_debug("%s[%d]: %s", lpszLogName, pid, buffer);
 	}
-	
+
 	fclose(fp);
 	int status = 0;
 	if (waitpid(pid, &status, 0) < 0)

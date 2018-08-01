@@ -21,10 +21,10 @@ namespace KC {
  * - Fast row update by row ID
  * - Fast seek by row number
  * - Fast current row number retrieval
- * 
+ *
  * The insertion and row number functions can be directly related to the balanced b-tree. This makes sure that
  * inserting data only requires updating parent nodes and is therefore a O(log n) operation. Deletion also needs
- * to update parent nodes, and is therefore also a O(log n) operation. 
+ * to update parent nodes, and is therefore also a O(log n) operation.
  *
  * For the row ID retrieval, a simple hash map is used for almost constant-time retrieval of nodes. This makes row
  * update extremely fast, while getting the current row number is also O(log n)
@@ -40,7 +40,7 @@ namespace KC {
  */
 
 /*
- * A table row in the KeyTable contains only the row ID, used for the PR_INSTANCE_KEY in 
+ * A table row in the KeyTable contains only the row ID, used for the PR_INSTANCE_KEY in
  * the client table, and any columns that are required for sorting. This class does *not*
  * communicate with the database and is a standalone KeyTable implementation. Any other data
  * must be collected by the caller.
@@ -99,7 +99,7 @@ bool ECTableRow::rowcompare(const ECSortColView &a, const ECSortColView &b,
 	for (i = 0; i < ulSortCols; ++i) {
 		const auto &ak = a[i].key, &bk = b[i].key;
 	    int cmp = 0;
-	    
+
 	    if (a[i].flags & TABLEROW_FLAG_FLOAT) {
 			if (ak.size() != sizeof(double) || bk.size() != sizeof(double)) {
 	            cmp = 0;
@@ -126,7 +126,7 @@ bool ECTableRow::rowcompare(const ECSortColView &a, const ECSortColView &b,
 	        // Sort data is pre-constructed so a simple memcmp suffices for sorting
 			cmp = memcmp(ak.c_str(), bk.c_str(), ak.size() < bk.size() ? ak.size() : bk.size());
         }
-        
+
 		if(cmp < 0) {
 			ret = true;
 			break;
@@ -140,7 +140,7 @@ bool ECTableRow::rowcompare(const ECSortColView &a, const ECSortColView &b,
 			break;
 		}
 	}
- 
+
 	if(i == ulSortCols) {
 		if (a.size() == b.size())
 			// equal, always return false independent of asc/desc
@@ -202,7 +202,7 @@ ECRESULT ECKeyTable::UpdateCounts(ECTableRow *lpRow)
 	while(lpRow != NULL) {
 		if(lpRow == lpRoot) {
 			lpRow->ulHeight = 0;
-			lpRow->ulBranchCount = 0; // makes sure that lpRoot->ulBranchCount is the total size 
+			lpRow->ulBranchCount = 0; // makes sure that lpRoot->ulBranchCount is the total size
 		} else if(lpRow->fHidden) {
 		    lpRow->ulHeight = 1;		// Hidden rows count as 'height' for AVL ..
 		    lpRow->ulBranchCount = 0;   // .. but not as a 'row' for rowcount
@@ -383,7 +383,7 @@ ECRESULT ECKeyTable::UpdateRow_Modify(const sObjectTableKey *lpsRowItem,
 					lpsPrevRow->ulOrderId = 0;
 				}
 			}
-			
+
 			// Delete the unused new node
 			delete lpNewRow;
 			return erSuccess;
@@ -420,7 +420,7 @@ ECRESULT ECKeyTable::UpdateRow_Modify(const sObjectTableKey *lpsRowItem,
 		}
 		lpRow = lpRow->lpRight;
 	}
-		
+
 	// lpRow now points to our parent, fLeft is whether we're the new left or right node of this parent
 	// Get the predecesor ID
 	if (lpsPrevRow) {
@@ -434,7 +434,7 @@ ECRESULT ECKeyTable::UpdateRow_Modify(const sObjectTableKey *lpsRowItem,
 				lpsPrevRow->ulObjId = 0;
 				lpsPrevRow->ulOrderId = 0;
 			} else
-				*lpsPrevRow = lpPredecessor->lpParent->sKey;			
+				*lpsPrevRow = lpPredecessor->lpParent->sKey;
 		} else {
 			// Our predecessor is simply our parent
 			*lpsPrevRow = lpRow->sKey;
@@ -444,7 +444,7 @@ ECRESULT ECKeyTable::UpdateRow_Modify(const sObjectTableKey *lpsRowItem,
 	// Link the row into the table
 	if (fLeft)
 		lpRow->lpLeft = lpNewRow;
-	else 
+	else
 		lpRow->lpRight = lpNewRow;
 
 	lpNewRow->lpParent = lpRow;
@@ -478,7 +478,7 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 	return erSuccess;
 }
 
-/* 
+/*
  * Clears the KeyTable. This is done in linear time.
  */
 ECRESULT ECKeyTable::Clear()
@@ -488,7 +488,7 @@ ECRESULT ECKeyTable::Clear()
 
 	/* Depth-first deletion of all nodes (excluding root) */
 	while(lpRow) {
-		if(lpRow->lpLeft) 
+		if(lpRow->lpLeft)
 			lpRow = lpRow->lpLeft;
 		else if(lpRow->lpRight)
 			lpRow = lpRow->lpRight;
@@ -729,7 +729,7 @@ ECRESULT ECKeyTable::QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList
 {
 	scoped_rlock biglock(mLock);
 	auto lpOrig = lpCurrent;
-	
+
 	if (bDirBackward && lpCurrent == nullptr)
 		SeekRow(EC_SEEK_CUR, -1, NULL);
 	else if (lpCurrent == lpRoot && lpRoot->ulBranchCount != 0)
@@ -761,7 +761,7 @@ void ECKeyTable::Next()
 {
     if(lpCurrent == NULL)
         return; // Already at end
-        
+
     if(lpCurrent->lpRight) {
         lpCurrent = lpCurrent->lpRight;
         // go to leftmost node in right tree
@@ -803,7 +803,7 @@ ECRESULT ECKeyTable::GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTa
 	ECRESULT er = SeekId((sObjectTableKey *)lpsRowItem);
     if(er != erSuccess)
 		return er;
-   
+
     Prev();
     while (lpCurrent && lpCurrent->fHidden)
         Prev();
@@ -956,7 +956,7 @@ ECRESULT ECKeyTable::GetRowsBySortPrefix(sObjectTableKey *lpsRowItem, ECObjectTa
 		lpRowList->emplace_back(lpCurrent->sKey);
         Next();
     }
-    
+
     lpCurrent = lpCursor;
 	return erSuccess;
 }
@@ -972,7 +972,7 @@ ECRESULT ECKeyTable::HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lp
 	const auto &dat = lpCurrent->m_cols;
     // Go to next row; we never hide the first row, as it is the header
     Next();
-    
+
     while(lpCurrent) {
         // Stop hiding when lpCurrent > prefix, so prefix < lpCurrent
 		if (ECTableRow::rowcompareprefix(dat.size(), dat, lpCurrent->m_cols))
@@ -980,11 +980,11 @@ ECRESULT ECKeyTable::HideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *lp
 		lpHiddenList->emplace_back(lpCurrent->sKey);
         lpCurrent->fHidden = true;
         UpdateCounts(lpCurrent); // FIXME SLOW
-        if(lpCurrent == lpCursor) 
+        if(lpCurrent == lpCursor)
             fCursorHidden = true;
         Next();
     }
-    
+
     // If the row pointed to by the cursor was not touched, leave it there, otherwise, put the cursor on the next unhidden row
     if(!fCursorHidden) {
         lpCurrent = lpCursor;
@@ -1007,12 +1007,12 @@ ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *
 	if (lpCurrent->fHidden)
 		/* You cannot expand a category whose header is hidden */
 		return KCERR_NOT_FOUND;
-    
-    // Go to next row; we don't unhide the first row, as it is the header, 
+
+    // Go to next row; we don't unhide the first row, as it is the header,
     Next();
     if(lpCurrent == NULL)
 		return erSuccess; /* No more rows */
-            
+
 	auto ulFirstCols = lpCurrent->m_cols.size();
     while(lpCurrent) {
         // Stop unhiding when lpCurrent > prefix, so prefix < lpCurrent
@@ -1029,7 +1029,7 @@ ECRESULT ECKeyTable::UnhideRows(sObjectTableKey *lpsRowItem, ECObjectTableList *
     }
 	return erSuccess;
 }
-        
+
 ECRESULT ECKeyTable::LowerBound(const std::vector<ECSortCol> &cols)
 {
 	scoped_rlock biglock(mLock);
@@ -1037,7 +1037,7 @@ ECRESULT ECKeyTable::LowerBound(const std::vector<ECSortCol> &cols)
 	// With B being the passed sort key, find the first item A, for which !(A < B), AKA B >= A
 	lpCurrent = lpRoot->lpRight;
 
-    // This is a standard binary search through the entire tree	
+    // This is a standard binary search through the entire tree
 	while(lpCurrent) {
 		if (ECTableRow::rowcompare(lpCurrent->m_cols, cols)) {
 	        // Value we're looking for is right
@@ -1067,20 +1067,20 @@ ECRESULT ECKeyTable::Find(const std::vector<ECSortCol> &cols, sObjectTableKey *l
 	auto er = LowerBound(cols);
     if(er != erSuccess)
         goto exit;
-     
-    // No item is *lpCurrent >= *search, so not found   
+
+    // No item is *lpCurrent >= *search, so not found
     if(lpCurrent == NULL) {
         er = KCERR_NOT_FOUND;
         goto exit;
     }
-        
+
     // Lower bound has put us either on the first matching row, or at the first item which is *lpCurrent > *search, aka *lpCurrent >= *search
     if (ECTableRow::rowcompare(cols, lpCurrent->m_cols))
         // *lpCurrent >= *search && *lpCurrent > *search, so *lpCurrent != *search
         er = KCERR_NOT_FOUND;
 	else
 		*lpsKey = lpCurrent->sKey;
-    
+
     // *lpCurrent >= *search && !(*lpCurrent > *search), so *lpCurrent >= *search && *lpCurrent <= *search, so *lpCurrent == *search
 exit:
 	lpCurrent = lpCurPos;
@@ -1096,7 +1096,7 @@ unsigned int ECKeyTable::GetObjectSize()
 {
 	unsigned int ulSize = sizeof(*this);
 	scoped_rlock biglock(mLock);
-	
+
 	ulSize += MEMORY_USAGE_MAP(mapRow.size(), ECTableRowMap);
 	for (const auto &r : mapRow)
 		ulSize += r.second->GetObjectSize();
@@ -1131,7 +1131,7 @@ ECRESULT ECKeyTable::UpdatePartialSortKey(sObjectTableKey *lpsRowItem,
 		return er;
 	if (ulColumn >= lpCursor->m_cols.size())
 		return KCERR_INVALID_PARAMETER;
-    
+
 	/* Copy the sortkeys that we used to have; modify the updated colum */
 	auto copy = lpCursor->m_cols;
 	copy[ulColumn] = col;

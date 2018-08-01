@@ -196,11 +196,11 @@ std::string trim(const std::string &strInput, const std::string &strTrim)
 
 	if (s.empty())
 		return s;
-	pos = s.find_first_not_of(strTrim); 
-	s.erase(0, pos); 
+	pos = s.find_first_not_of(strTrim);
+	s.erase(0, pos);
 	pos = s.find_last_not_of(strTrim);
-	if (pos != std::string::npos) 
-		s.erase(pos + 1, std::string::npos); 
+	if (pos != std::string::npos)
+		s.erase(pos + 1, std::string::npos);
 	return s;
 }
 
@@ -272,14 +272,14 @@ std::string bin2hex(const SBinary &b)
 	return bin2hex(b.cb, b.lpb);
 }
 
-/** 
+/**
  * Encodes a string for inclusion into an url.
  *
  * @note this does not encode an url to another more valid url (since / would get encoded!)
  * @note watch the locale of the string, make sure it's the same as the rest of the url.
- * 
+ *
  * @param[in] input string to encode
- * 
+ *
  * @return encoded string valid to include in an url
  */
 std::string urlEncode(const std::string &input)
@@ -330,12 +330,12 @@ std::string urlEncode(const std::string &input)
 	return output;
 }
 
-/** 
+/**
  * encode an url part, input in wide char, and destination charset in encoded characters
- * 
+ *
  * @param[in] input wide string to convert to valid url encoded ascii string
  * @param[in] charset non-ascii characters will be encoded for this charset
- * 
+ *
  * @return url valid encoded string
  */
 std::string urlEncode(const std::wstring &input, const char* charset)
@@ -348,14 +348,14 @@ std::string urlEncode(const WCHAR* input, const char* charset)
 	return urlEncode(convert_to<std::string>(charset, input, rawsize(input), CHARSET_WCHAR));
 }
 
-/** 
+/**
  * replaces %## values by ascii values
  * i.e Amsterdam%2C -> Amsterdam,
- * @note 1. this can take a full url, since it just replaces the %## 
+ * @note 1. this can take a full url, since it just replaces the %##
  * @note 2. you need to handle the locale of the string yourself!
- * 
+ *
  * @param[in] input url encoded string
- * 
+ *
  * @return decoded url in the locale it was encoded in
  */
 std::string urlDecode(const std::string &input)
@@ -370,17 +370,17 @@ std::string urlDecode(const std::string &input)
 			c = x2b(input[++i]) << 4;
 			c |= x2b(input[++i]);
 			output += c;
-		} 
-		else 
+		}
+		else
 			output += input[i];
 	}
 	return output;
 }
 
-/** 
+/**
  * Convert a memory buffer with strings with Unix \n enters to DOS
  * \r\n enters.
- * 
+ *
  * @param[in] size length of the input
  * @param[in] input buffer containing strings with enters to convert
  * @param[out] output buffer with enough space to hold input + extra \r characters
@@ -443,16 +443,16 @@ void StringCRLFtoLF(const std::wstring &strInput, std::wstring *lpstrOutput) {
 	strOutput.reserve(strInput.length());
 	for (; iInput != strInput.end(); ++iInput) {
 		// skips /r if /r/n found together in the text
-		if (*iInput == '\r' && (iInput + 1 != strInput.end() && *(iInput + 1) == '\n')) 
+		if (*iInput == '\r' && (iInput + 1 != strInput.end() && *(iInput + 1) == '\n'))
 			continue;
 		strOutput.append(1, *iInput);
 	}
 	*lpstrOutput = std::move(strOutput);
 }
 
-/** 
+/**
  * converts a string inline from \n enters to \r\n
- * 
+ *
  * @param strInOut string to edit
  */
 void StringLFtoCRLF(std::string &strInOut)
@@ -521,7 +521,7 @@ std::string base64_encode(const void *bte, unsigned int in_len)
 	int i = 0, j = 0;
 	std::string ret;
 	ret.reserve((in_len + 2) / 3 * 4);
-	
+
 	while (in_len--) {
 		char_array_3[i++] = *(bytes_to_encode++);
 		if (i != 3)
@@ -654,7 +654,7 @@ static std::string SymmetricDecryptBlob(unsigned int ulAlg, const std::string &s
 {
 	std::string strRaw = strXORed;
 	size_t z = strRaw.size();
-	
+
 	assert(ulAlg == 1 || ulAlg == 2);
 	for (unsigned int i = 0; i < z; ++i)
 		strRaw[i] ^= 0xA5;

@@ -295,13 +295,13 @@ HRESULT ECChannel::HrGets(char *szBuffer, ULONG ulBufSize, ULONG *lpulRead) {
 	return MAPI_E_CALL_FAILED;
 }
 
-/** 
+/**
  * Read a line from a socket. Reads as much data until it encounters a
  * \n characters.
- * 
+ *
  * @param[out] strBuffer network data will be placed in this buffer
  * @param[in] ulMaxBuffer optional, default 65k, breaks reading after this limit is reached
- * 
+ *
  * @return MAPI_ERROR_CODE
  * @retval MAPI_E_TOO_BIG more data in the network buffer than requested to read
  */
@@ -338,12 +338,12 @@ HRESULT ECChannel::HrWriteString(const std::string & strBuffer) {
  * Writes a line of data to socket
  *
  * Function takes specified lenght of data from the pointer,
- * if length is not specified all the data of pointed by buffer is used. 
+ * if length is not specified all the data of pointed by buffer is used.
  * It then adds CRLF to the end of the data and writes it to the socket
  *
  * @param[in]	szBuffer	pointer to the data to be written to socket
  * @param[in]	len			optional paramter to specify lenght of data in szBuffer, if empty then all data of szBuffer is written to socket.
- * 
+ *
  * @retval		MAPI_E_CALL_FAILED	unable to write data to socket
  */
 HRESULT ECChannel::HrWriteLine(const char *szBuffer, int len) {
@@ -367,7 +367,7 @@ HRESULT ECChannel::HrWriteLine(const std::string & strBuffer) {
  *
  * Read from socket and discard the data
  *
- * @param[in] ulByteCount Amount of bytes to discard 
+ * @param[in] ulByteCount Amount of bytes to discard
  *
  * @retval MAPI_E_NETWORK_ERROR Unable to read bytes.
  * @retval MAPI_E_CALL_FAILED Reading wrong amount of data.
@@ -457,13 +457,13 @@ HRESULT ECChannel::HrSelect(int seconds) {
 	return hrSuccess;
 }
 
-/** 
+/**
  * read from buffer until \n is found, or buffer length is reached
  * return buffer always contains \0 in the end, so max read from network is *lpulLen -1
  *
  * @param[out] buf buffer to read network data in
  * @param[in,out] lpulLen input is max size to read, output is read bytes from network
- * 
+ *
  * @return NULL on error, or buf
  */
 char * ECChannel::fd_gets(char *buf, int *lpulLen) {
@@ -537,7 +537,7 @@ char * ECChannel::SSL_gets(char *buf, int *lpulLen) {
 		bp += n;
 		len -= n;
 	} while (!newline && len > 0);
-	
+
 	//remove the lf or crlf
 	if(newline){
 		--bp;
