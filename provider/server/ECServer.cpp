@@ -1111,18 +1111,21 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 	auto issuer = g_lpConfig->GetSetting("kcoidc_issuer_identifier");
 	if (issuer && strlen(issuer) > 0) {
+		ec_log_info("KCOIDC: initializing provider (%s)", issuer);
 		auto res = kcoidc_initialize(const_cast<char *>(issuer));
 		if (res != 0) {
-			ec_log_err("KCOIDC: initialize failed: 0x%llx", res);
+			ec_log_err("KCOIDC: provider (%s) initialization failed: 0x%llx", issuer, res);
 			return retval;
 		}
 		auto kcoidc_initialize_timeout = atoi(g_lpConfig->GetSetting("kcoidc_initialize_timeout"));
+		ec_log_debug("KCOIDC: provider (%s) waiting on initialization for %d seconds", issuer, kcoidc_initialize_timeout);
 		if (kcoidc_initialize_timeout > 0) {
 			res = kcoidc_wait_until_ready(kcoidc_initialize_timeout);
 			if (res != 0) {
-				ec_log_err("KCOIDC: wait_until_ready failed: 0x%llx", res);
+				ec_log_err("KCOIDC: provider (%s) failed to initialize: 0x%llx", issuer, res);
 				return retval;
 			}
+			ec_log_info("KCOIDC: initialized oidc provider (%s)", issuer);
 		}
 		kcoidc_initialized = true;
 	}
