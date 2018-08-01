@@ -16,7 +16,7 @@ extern _kc_export void SSL_library_cleanup(void);
 extern _kc_export void ssl_random_init(void);
 extern _kc_export void ssl_random(bool b64bit, uint64_t *out);
 
-#define KC_DEFAULT_CIPHERLIST "ALL:!LOW:!SSLv2:!EXPORT:!aNULL"
+#define KC_DEFAULT_CIPHERLIST "DEFAULT:!LOW:!SSLv2:!EXPORT:!aNULL"
 
 } /* namespace */
 
