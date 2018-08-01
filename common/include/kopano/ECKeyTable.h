@@ -9,7 +9,7 @@
  * How this works
  *
  * Basically, we only have to keep a table in-memory of the object IDs of the objects
- * in a table, so when data is requested, we can give a list of all the object IDs 
+ * in a table, so when data is requested, we can give a list of all the object IDs
  * and the actual data can be retrieved from the database.
  *
  * The table class handles this, by having a table of rows, with per-row a TableRow
@@ -148,12 +148,12 @@ public:
 	// FIXME this is rather ugly, the names must differ from those in mapi.h, as they clash !
 	enum UpdateType {
 		TABLE_CHANGE=1, TABLE_ERR, TABLE_ROW_ADD,
-					TABLE_ROW_DELETE, TABLE_ROW_MODIFY,TABLE_SORT, 
+					TABLE_ROW_DELETE, TABLE_ROW_MODIFY,TABLE_SORT,
 					TABLE_RESTRICT, TABLE_SETCOL, TABLE_DO_RELOAD,
 	};
 
 	enum { EC_SEEK_SET=0, EC_SEEK_CUR, EC_SEEK_END };
-	
+
 	ECKeyTable();
 	~ECKeyTable();
 	ECRESULT UpdateRow(UpdateType ulType, const sObjectTableKey *lpsRowItem, std::vector<ECSortCol> &&, sObjectTableKey *lpsPrevRow, bool fHidden = false, UpdateType *lpulAction = nullptr);

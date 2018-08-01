@@ -28,11 +28,11 @@ public:
 		eIllegalSequence
 	};
 	convert_exception(enum exception_type type, const std::string &message);
-	
+
 	enum exception_type type() const {
 		return m_type;
 	}
-	
+
 private:
 	enum exception_type m_type;
 };
@@ -55,20 +55,20 @@ class _kc_export_throw illegal_sequence_exception _kc_final :
 	illegal_sequence_exception(const std::string &message);
 };
 
-/** 
+/**
  * @brief	Performs the generic iconv processing.
  */
 class _kc_export iconv_context_base {
 	public:
 	virtual ~iconv_context_base();
-	
+
 	protected:
 	/**
 	 * @param[in]  tocode		The destination charset.
 	 * @param[out] fromcode		The source charset.
 	 */
 	iconv_context_base(const char* tocode, const char* fromcode);
-	
+
 	/**
 	 * @brief Performs the actual conversion.
 	 *
@@ -78,7 +78,7 @@ class _kc_export iconv_context_base {
 	 * @param[in] cbFrom	Size of the source data in bytes.
 	 */
 	void doconvert(const char *lpFrom, size_t cbFrom);
-	
+
 	private:
 	/**
 	 * @brief Appends converted data to the result.
@@ -87,11 +87,11 @@ class _kc_export iconv_context_base {
 	 * @param[in] cbBuf		Size of the data to be appended in bytes.
 	 */
 	_kc_hidden virtual void append(const char *buf, size_t bufsize) = 0;
-	
+
 	iconv_t	m_cd;
 	bool m_bForce;
 	bool m_bHTML;
-	
+
 	iconv_context_base(const iconv_context_base &) = delete;
 	iconv_context_base &operator=(const iconv_context_base &) = delete;
 };
@@ -110,7 +110,7 @@ class _kc_export_dycast iconv_context _kc_final :
 	iconv_context() :
 		iconv_context_base(iconv_charset<To_Type>::name(), iconv_charset<From_Type>::name())
 	{}
-	
+
 	/**
 	 * Constructs a iconv_context_base with the tocode based on the To_Type
 	 * and the passed fromcode.
@@ -118,13 +118,13 @@ class _kc_export_dycast iconv_context _kc_final :
 	iconv_context(const char *fromcode) :
 		iconv_context_base(iconv_charset<To_Type>::name(), fromcode)
 	{}
-	
+
 	/**
 	 * Constructs a iconv_context_base with the tocode based on the To_Type
 	 * and the passed fromcode.
 	 */
 	iconv_context(const char *tocode, const char *fromcode)
-		: iconv_context_base(tocode, fromcode) 
+		: iconv_context_base(tocode, fromcode)
 	{}
 
 	/**
@@ -141,7 +141,7 @@ class _kc_export_dycast iconv_context _kc_final :
 		doconvert(lpRaw, cbRaw);
 		return m_to;
 	}
-	
+
 	/**
 	 * @brief Performs the conversion.
 	 *
@@ -154,7 +154,7 @@ class _kc_export_dycast iconv_context _kc_final :
 		return convert(iconv_charset<From_Type>::rawptr(_from),
 		       iconv_charset<From_Type>::rawsize(_from));
 	}
-	
+
 	private:
 	_kc_hidden void append(const char *lpBuf, size_t cbBuf) _kc_override
 	{
@@ -178,7 +178,7 @@ class _kc_export_dycast iconv_context _kc_final :
  *
  * Derivation happens with iconv_charset<> where the defaults are set.
  *
- * This is the function to call when a one of conversion from one charset to 
+ * This is the function to call when a one of conversion from one charset to
  * another is required.
  * @tparam	  To_Type		The type of the destination string.
  * @param[in] _from			The string that is to be converted to another charset.
@@ -214,7 +214,7 @@ inline To_Type convert_to(const char *tocode, const From_Type &_from,
 
 /**
  * @brief	Allows multiple conversions within the same context.
- * 
+ *
  * The convert_context class is used to perform multiple conversions within the
  * same context. This basically means that the iconv_context classes can
  * be reused, removing the need to recreate them for each conversion.
@@ -227,7 +227,7 @@ public:
 	/**
 	 * @brief	Converts a string to a string wirh a different charset.
 	 *
-	 * The to- and from charsets are implicitly determined by on one side the 
+	 * The to- and from charsets are implicitly determined by on one side the
 	 * passed To_Type and on the other side the _from argument.
 	 * @tparam	  To_Type		The type of the destination string.
 	 * @param[in] _from			The string that is to be converted to another charset.
@@ -236,14 +236,14 @@ public:
 	template<typename To_Type, typename From_Type>
 	_kc_hidden To_Type convert_to(const From_Type &_from)
 	{
-		return helper<To_Type>(*this).convert(_from);		
+		return helper<To_Type>(*this).convert(_from);
 	}
-	
+
 	/**
 	 * @brief	Converts a string to a string wirh a different charset.
 	 *
 	 * The to charset is implicitly determined by the passed To_Type.
-	 * The from charset is passed in fromcode. 
+	 * The from charset is passed in fromcode.
 	 * @tparam	  To_Type		The type of the destination string.
 	 * @param[in] _from			The string that is to be converted to another charset.
 	 * @param[in] cbBytes		The size in bytes of the string to convert.
@@ -256,12 +256,12 @@ public:
 	{
 		return helper<To_Type>(*this).convert(_from, cbBytes, fromcode);
 	}
-	
+
 	/**
 	 * @brief	Converts a string to a string wirh a different charset.
 	 *
 	 * The to charset is passed in tocode.
-	 * The from charset is passed in fromcode. 
+	 * The from charset is passed in fromcode.
 	 * @param[in] tocode		the destination charset.
 	 * @param[in] _from			The string that is to be converted to another charset.
 	 * @param[in] cbBytes		The size in bytes of the string to convert.
@@ -274,7 +274,7 @@ public:
 	{
 		return helper<To_Type>(*this).convert(tocode, _from, cbBytes, fromcode);
 	}
-	
+
 private:
 	/**
 	 * @brief	Helper class for converting from one charset to another.
@@ -285,7 +285,7 @@ private:
 	template<typename Type> class _kc_hidden helper _kc_final {
 	public:
 		helper(convert_context &context)
-			: m_context(context) 
+			: m_context(context)
 		{}
 
 		/**
@@ -303,7 +303,7 @@ private:
 			static_assert(!std::is_same<Type, Other_Type>::value, "pointless conversion");
 			return m_context.get_context<Type, Other_Type>()->convert(_from);
 		}
-		
+
 		/**
 		 * @brief Converts a string to a string with a different charset.
 		 *
@@ -320,7 +320,7 @@ private:
 		{
 			return m_context.get_context<Type, Other_Type>(fromcode)->convert(iconv_charset<Other_Type>::rawptr(_from), cbBytes);
 		}
-		
+
 		/**
 		 * @brief Converts a string to a string with a different charset.
 		 *
@@ -339,11 +339,11 @@ private:
 		{
 			return m_context.get_context<Type, Other_Type>(tocode, fromcode)->convert(iconv_charset<Other_Type>::rawptr(_from), cbBytes);
 		}
-		
+
 	private:
 		convert_context	&m_context;
 	};
-	
+
 	/**
 	 * @brief	Helper class for converting from one charset to another.
 	 *
@@ -354,9 +354,9 @@ private:
 	template<typename Type> class _kc_hidden helper<Type *> _kc_final {
 	public:
 		typedef std::basic_string<Type> string_type;
-	
+
 		helper(convert_context &context)
-			: m_context(context) 
+			: m_context(context)
 			, m_helper(context)
 		{}
 
@@ -374,7 +374,7 @@ private:
 			string_type s = m_helper.convert(_from);
 			return m_context.persist_string(s);
 		}
-		
+
 		/**
 		 * @brief Converts a string to a string with a different charset.
 		 *
@@ -392,7 +392,7 @@ private:
 			string_type s = m_helper.convert(_from, cbBytes, fromcode);
 			return m_context.persist_string(s);
 		}
-		
+
 		/**
 		 * @brief Converts a string to a string with a different charset.
 		 *
@@ -412,12 +412,12 @@ private:
 			string_type s = m_helper.convert(tocode, _from, cbBytes, fromcode);
 			return m_context.persist_string(s);
 		}
-		
+
 	private:
 		convert_context	&m_context;
 		helper<string_type> m_helper;
 	};
-	
+
 	/**
 	 * @brief Key for the context_map;
 	 */
@@ -477,7 +477,7 @@ private:
 	 * @brief Set containing dynamic allocated from- and to codes.
 	 */
 	typedef std::set<const char*> code_set;
-	
+
 	/**
 	 * @brief Obtains an iconv_context object.
 	 *
@@ -499,7 +499,7 @@ private:
 		}
 		return dynamic_cast<iconv_context<To_Type, From_Type> *>(iContext->second);
 	}
-	
+
 	/**
 	 * @brief Obtains an iconv_context object.
 	 *
@@ -518,7 +518,7 @@ private:
 		context_map::const_iterator iContext = m_contexts.find(key);
 		if (iContext == m_contexts.cend()) {
 			auto lpContext = new iconv_context<To_Type, From_Type>(fromcode);
-			
+
 			// Before we store it, we need to copy the fromcode as we don't know what the
 			// lifetime will be.
 			persist_code(key, pfFromCode);
@@ -545,7 +545,7 @@ private:
 		context_map::const_iterator iContext = m_contexts.find(key);
 		if (iContext == m_contexts.cend()) {
 			auto lpContext = new iconv_context<To_Type, From_Type>(tocode, fromcode);
-			
+
 			// Before we store it, we need to copy the fromcode as we don't know what the
 			// lifetime will be.
 			persist_code(key, pfToCode|pfFromCode);
@@ -569,34 +569,34 @@ private:
 	 * @param[in,out]	key		The key for which the second field will be persisted.
 	 */
 	_kc_export void persist_code(context_key &key, unsigned flags);
-	
+
 	/**
 	 * Persist the string so a raw pointer to its content can be used.
-	 * 
+	 *
 	 * The pointer that can be used is returned by this function. Using the
 	 * pointer to the data of the original string will be a recipe to disaster.
-	 * 
+	 *
 	 * @param[in]	string		The string to persist.
 	 * @return		The raw pointer that can be used as long as the convert_context exists.
 	 */
 	char *persist_string(const std::string &);
-	
+
 	/**
 	 * Persist the string so a raw pointer to its content can be used.
-	 * 
+	 *
 	 * The pointer that can be used is returned by this function. Using the
 	 * pointer to the data of the original string will be a recipe to disaster.
-	 * 
+	 *
 	 * @param[in]	string		The string to persist.
 	 * @return		The raw pointer that can be used as long as the convert_context exists.
 	 */
 	wchar_t *persist_string(const std::wstring &wstrValue);
-	
+
 	code_set	m_codes;
 	context_map	m_contexts;
 	std::list<std::string>	m_lstStrings;
 	std::list<std::wstring>	m_lstWstrings;
-	
+
 // a convert_context is not supposed to be copyable.
 	convert_context(const convert_context &) = delete;
 	convert_context &operator=(const convert_context &) = delete;

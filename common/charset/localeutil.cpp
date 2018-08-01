@@ -31,7 +31,7 @@ locale_t createUTF8Locale()
 		*dot = '\0';
 	}
 	new_locale = std::string(cur_locale) + ".UTF-8";
-	loc = createlocale(LC_CTYPE, new_locale.c_str()); 
+	loc = createlocale(LC_CTYPE, new_locale.c_str());
 	if (loc)
 		return loc;
 	loc = createlocale(LC_CTYPE, "en_US.UTF-8");
@@ -44,7 +44,7 @@ exit:
 
 /**
  * Initializes the locale to the current language, forced in UTF-8.
- * 
+ *
  * @param[in]	bOutput	Print errors during init to stderr
  * @param[out]	lpstrLocale Last locale trying to set (optional)
  * @retval	true	successfully initialized

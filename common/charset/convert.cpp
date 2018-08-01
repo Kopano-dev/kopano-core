@@ -20,8 +20,8 @@ convert_exception::convert_exception(enum exception_type type, const std::string
 	, m_type(type)
 {}
 
-unknown_charset_exception::unknown_charset_exception(const std::string &message) 
-	: convert_exception(eUnknownCharset, message) 
+unknown_charset_exception::unknown_charset_exception(const std::string &message)
+	: convert_exception(eUnknownCharset, message)
 {}
 
 illegal_sequence_exception::illegal_sequence_exception(const std::string &message)
@@ -134,10 +134,10 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 	size_t cbSrc = 0;
 	size_t cbDst = 0;
 	size_t err;
-	
+
 	lpSrc = lpFrom;
 	cbSrc = cbFrom;
-	
+
 	while (cbSrc) {
 		lpDst = buf;
 		cbDst = sizeof(buf);
@@ -191,7 +191,7 @@ void iconv_context_base::doconvert(const char *lpFrom, size_t cbFrom)
 	err = iconv(m_cd, NULL, NULL, &lpDst, &cbDst);
 	append(buf, sizeof(buf) - cbDst);
 }
-	
+
 convert_context::~convert_context()
 {
 	for (auto &ictx : m_contexts)

@@ -26,7 +26,7 @@ namespace KC {
 // ECChannel is the communication channel with the other side. Initially, it is
 // a simple way to read/write full lines of data. The reason why we specify
 // a special 'HrWriteLine' instead of 'HrWrite' is that SSL encryption prefers
-// writing all the data at once, instead of via multiple write() calls. Also, 
+// writing all the data at once, instead of via multiple write() calls. Also,
 // this ensures that the ECChannel class is responsible for reading, writing
 // and culling newline characters.
 

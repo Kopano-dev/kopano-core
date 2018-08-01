@@ -70,7 +70,7 @@ protected:
 
 	std::atomic<unsigned int> m_cRef{0};
 	const char *szClassName;
-	std::list<ECUnknown *>	lstChildren; 
+	std::list<ECUnknown *>	lstChildren;
 	std::mutex mutex;
 };
 
