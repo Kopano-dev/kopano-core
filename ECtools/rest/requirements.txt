@@ -1,0 +1,11 @@
+falcon
+prometheus_client
+setproctitle
+bjoern
+bsddb3
+ujson
+pytz
+dateutil
+requests
+kopano
+MAPI

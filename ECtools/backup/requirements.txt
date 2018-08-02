@@ -1,0 +1,3 @@
+MAPI
+bsddb3
+kopano
