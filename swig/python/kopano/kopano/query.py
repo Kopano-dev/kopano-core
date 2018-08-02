@@ -154,9 +154,8 @@ class Term(object):
             # comparison operator
             if self.op in ('<', '>', '>=', '<=', '<>'):
                 if PROP_TYPE(proptag) == PT_SYSTIME:
-                    d = dateutil.parser.parse(self.value)
+                    d = dateutil.parser.parse(self.value, dayfirst=True)
                     d = datetime_to_filetime(d)
-
                     restr = SPropertyRestriction(
                                 OP_RELOP[self.op],
                                 proptag,
@@ -280,12 +279,12 @@ class Term(object):
 
                     elif '..' in self.value:
                         date1, date2 = self.value.split('..') # TODO hours etc
-                        d = dateutil.parser.parse(date1)
-                        d2 = dateutil.parser.parse(date2)
+                        d = dateutil.parser.parse(date1, dayfirst=True)
+                        d2 = dateutil.parser.parse(date2, dayfirst=True)
                         restr = _interval_restriction(proptag, d, d2)
 
                     else:
-                        d = dateutil.parser.parse(self.value) # TODO hours etc
+                        d = dateutil.parser.parse(self.value, dayfirst=True) # TODO hours etc
                         d2 = d + datetime.timedelta(days=1)
                         restr = _interval_restriction(proptag, d, d2)
 
