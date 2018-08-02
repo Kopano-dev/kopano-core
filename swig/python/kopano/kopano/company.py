@@ -140,6 +140,9 @@ class Company(Properties):
                 prop = PpropFindProp(row, PR_EC_STOREGUID)
                 if prop:
                     yield _store.Store(_benc(prop.Value), self.server)
+            public_store = self.public_store # TODO why not included above?
+            if public_store:
+                yield public_store
         else:
             for store in self.server.stores():
                 yield store
