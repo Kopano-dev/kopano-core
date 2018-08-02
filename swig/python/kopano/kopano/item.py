@@ -904,6 +904,8 @@ class Item(Properties, Contact, Appointment):
 
     @property
     def replyto(self):
+        """ :class:`Addresses <Address>` where reply should be sent """
+
         try:
             entries = self[PR_REPLY_RECIPIENT_ENTRIES]
         except NotFoundError:
