@@ -178,9 +178,11 @@ class Folder(Properties):
     @property
     def parent(self):
         """:class:`Parent <Folder>` folder"""
-        parent_eid = _benc(self._get_fast(PR_PARENT_ENTRYID))
-        if parent_eid != self.entryid: # root parent is itself
-            return Folder(self.store, parent_eid, _check_mapiobj=False)
+        parent_eid = self._get_fast(PR_PARENT_ENTRYID)
+        if parent_eid:
+            parent_eid = _benc(parent_eid)
+            if parent_eid != self.entryid: # root parent is itself
+                return Folder(self.store, parent_eid, _check_mapiobj=False)
 
     @property
     def hierarchyid(self):
@@ -720,12 +722,15 @@ class Folder(Properties):
             yield Rule(row, rule_table)
 
     def create_rule(self, name=None, restriction=None):
+        if name:
+            name = _unicode(name)
+
         propid = len(list(self.rules()))+1
         row = [
             SPropValue(PR_RULE_STATE, ST_ENABLED), # TODO configurable
             SPropValue(PR_RULE_PROVIDER_DATA, codecs.decode('010000000000000074da402772c2e440', 'hex')),
             SPropValue(PR_RULE_SEQUENCE, propid), # TODO max+1?
-            SPropValue(0x6681001f, 'RuleOrganizer'), # TODO name
+            SPropValue(0x6681001f, u'RuleOrganizer'), # TODO name
             SPropValue(PR_RULE_ID, propid), # TODO max+1
         ]
         if name:
