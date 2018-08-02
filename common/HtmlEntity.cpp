@@ -548,10 +548,10 @@ const WCHAR *CHtmlEntity::toName( WCHAR c )
  * Convert a character to HTML entity. when no entity is needed, false
  * is returned. Output parameter will always contain correct
  * representation of input.
- * 
+ *
  * @param[in] c wide character to convert into HTML entity
  * @param[out] strHTML HTML version of input
- * 
+ *
  * @return false if no conversion took place, true if it did.
  */
 bool CHtmlEntity::CharToHtmlEntity(WCHAR c, std::wstring &strHTML)
@@ -587,23 +587,22 @@ bool CHtmlEntity::CharToHtmlEntity(WCHAR c, std::wstring &strHTML)
 	return bHTML;
 }
 
-/** 
+/**
  * Validate HTML entity
  *
  * Valid:
  *   &{#100 | #x64 | amp};test
- * 
+ *
  * @param[in] strEntity a string part to test if this is a HTML entity, which could be a single wide character
- * 
+ *
  * @return true if input is HTML, false if it is a normal string
  */
 bool CHtmlEntity::validateHtmlEntity(const std::wstring &strEntity)
 {
 	if(strEntity.size() < 3 || strEntity[0] != '&')
 		return false;
-	
-	size_t pos = strEntity.find(';');
 
+	size_t pos = strEntity.find(';');
 	if (pos == std::wstring::npos || pos < 3)
 		return false;
 	if (strEntity[1] == '#') {
@@ -617,11 +616,11 @@ bool CHtmlEntity::validateHtmlEntity(const std::wstring &strEntity)
 	return CHtmlEntity::toChar(str.c_str()) > 0;
 }
 
-/** 
+/**
  * Convert HTML entity to a single wide character.
- * 
+ *
  * @param[in] strEntity valid HTML entity to convert
- * 
+ *
  * @return wide character for entity, or ? if conversion failed.
  */
 WCHAR CHtmlEntity::HtmlEntityToChar(const std::wstring &strEntity)
@@ -633,19 +632,17 @@ WCHAR CHtmlEntity::HtmlEntityToChar(const std::wstring &strEntity)
 		return '?';
 	}
 	// We have a unicode number, use iconv to get the WCHAR
-
 	std::string strUnicode;
 	int base = 10;
 	auto pNum = strEntity.c_str() + 1;
-
 	if (strEntity.size() > 2 && strEntity[1] == 'x') {
 		base = 16;
 		++pNum;
 	}
+
 	unsigned int ulCode = wcstoul(pNum, nullptr, base);
 	if (ulCode <= 0xFFFF /*USHRT_MAX*/)
 		return (WCHAR)ulCode;
-
 	strUnicode.append(1, (ulCode & 0xff));
 	strUnicode.append(1, (ulCode >> 8) & 0xff);
 	strUnicode.append(1, (ulCode >> 16) & 0xff);

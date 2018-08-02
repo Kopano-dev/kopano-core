@@ -18,7 +18,7 @@ namespace KC {
  */
 ECThreadPool::ECThreadPool(unsigned ulThreadCount)
 {
-	setThreadCount(ulThreadCount);	
+	setThreadCount(ulThreadCount);
 }
 
 /**
@@ -58,30 +58,27 @@ bool ECThreadPool::dispatch(ECTask *lpTask, bool bTakeOwnership)
 void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 {
 	ulock_normal locker(m_hMutex);
-	
+
 	if (ulThreadCount == threadCount() - 1) {
 		++m_ulTermReq;
 		m_hCondition.notify_one();
 	}
-	
 	else if (ulThreadCount < threadCount()) {
 		m_ulTermReq += (threadCount() - ulThreadCount);
 		m_hCondition.notify_all();
 	}
-
 	else {
 		unsigned ulThreadsToAdd = ulThreadCount - threadCount();
-		
+
 		if (ulThreadsToAdd <= m_ulTermReq)
 			m_ulTermReq -= ulThreadsToAdd;
-		
 		else {
 			ulThreadsToAdd -= m_ulTermReq;
 			m_ulTermReq = 0;
-			
+
 			for (unsigned i = 0; i < ulThreadsToAdd; ++i) {
 				pthread_t hThread;
-		
+
 				auto ret = pthread_create(&hThread, nullptr, &threadFunc, this);
 				if (ret != 0) {
 					ec_log_err("Could not create ECThreadPool worker thread: %s", strerror(ret));
@@ -93,7 +90,7 @@ void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 			}
 		}
 	}
-	
+
 	while (bWait && m_setThreads.size() > ulThreadCount) {
 		m_hCondTerminated.wait(locker);
 		joinTerminated(locker);
@@ -121,7 +118,7 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 	bool bTerminate = false;
 	while (!(bTerminate = m_ulTermReq > 0) && m_listTasks.empty())
 		m_hCondition.wait(locker);
-		
+
 	if (bTerminate) {
 		pthread_t self = pthread_self();
 		auto iThread = std::find_if(m_setThreads.cbegin(), m_setThreads.cend(),
@@ -133,10 +130,9 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 		m_hCondTerminated.notify_one();
 		return false;
 	}
-	
+
 	*lpsTaskInfo = m_listTasks.front();
 	m_listTasks.pop_front();
-
 	return true;
 }
 
@@ -148,7 +144,6 @@ void ECThreadPool::joinTerminated(ulock_normal &locker)
 	assert(locker.owns_lock());
 	for (auto thr : m_setTerminated)
 		pthread_join(thr, NULL);
-	
 	m_setTerminated.clear();
 }
 
@@ -160,36 +155,36 @@ void ECThreadPool::joinTerminated(ulock_normal &locker)
 void* ECThreadPool::threadFunc(void *lpVoid)
 {
 	auto lpPool = static_cast<ECThreadPool *>(lpVoid);
-	
+
 	while (true) {
 		STaskInfo sTaskInfo = {NULL, false};
 		bool bResult = false;
-	
+
 		ulock_normal locker(lpPool->m_hMutex);
 		bResult = lpPool->getNextTask(&sTaskInfo, locker);
 		locker.unlock();
 		if (!bResult)
 			break;
-			
+
 		assert(sTaskInfo.lpTask != NULL);
 		sTaskInfo.lpTask->execute();
 		if (sTaskInfo.bDelete)
 			delete sTaskInfo.lpTask;
 		lpPool->m_hCondTaskDone.notify_one();
 	}
-	
+
 	return NULL;
 }
 
 /**
  * Execute an ECTask instance, just calls the run() method of the derived class.
  */
-void ECTask::execute() 
+void ECTask::execute()
 {
 	run();
 }
 
-/** 
+/**
  * Construct an ECWaitableTask object.
  */
 ECWaitableTask::ECWaitableTask()
@@ -197,7 +192,7 @@ ECWaitableTask::ECWaitableTask()
 {
 }
 
-/** 
+/**
  * Destruct an ECWaitableTask object.
  */
 ECWaitableTask::~ECWaitableTask()
@@ -217,7 +212,7 @@ void ECWaitableTask::execute()
 	big.unlock();
 
 	ECTask::execute();
-	
+
 	big.lock();
 	m_state = Done;
 	m_hCondition.notify_all();
@@ -235,14 +230,14 @@ void ECWaitableTask::execute()
 bool ECWaitableTask::wait(unsigned timeout, unsigned waitMask) const
 {
 	ulock_normal locker(m_hMutex);
-	
+
 	switch (timeout) {
 	case 0:
 		return (m_state & waitMask) != 0;
 	case WAIT_INFINITE:
 		m_hCondition.wait(locker, [&](void) { return m_state & waitMask; });
 		return true;
-	default: 
+	default:
 		while (!(m_state & waitMask))
 			if (m_hCondition.wait_for(locker, std::chrono::milliseconds(timeout)) ==
 			    std::cv_status::timeout)

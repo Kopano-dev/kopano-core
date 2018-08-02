@@ -45,7 +45,7 @@ class converter _kc_final {
 		auto insResult = m_cache.emplace(lpsz, L"");
 		if (insResult.second) /* successful insert, so not found in cache */
 			insResult.first->second.assign(m_converter.convert_to<std::wstring>(lpsz, strlen(lpsz), "UTF-8"));
-		
+
 		const wchar_t *lpszW = insResult.first->second.c_str();
 		return lpszW;
 	}
@@ -84,7 +84,6 @@ LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid)
 		init = true;
 	}
 	const char *lpsz = msgid;
-
 	lpsz = dcgettext(domainname, msgid, LC_MESSAGES);
 	return const_cast<wchar_t *>(converter::getInstance()->convert(lpsz));
 }

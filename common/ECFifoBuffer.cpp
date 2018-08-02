@@ -36,10 +36,8 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 
 	if (lpBuf == NULL)
 		return KCERR_INVALID_PARAMETER;
-
 	if (IsClosed(cfWrite))
 	    return KCERR_NETWORK_ERROR;
-
 	if (cbBuf == 0) {
 		if (lpcbWritten)
 			*lpcbWritten = 0;
@@ -80,7 +78,6 @@ exit:
 	locker.unlock();
 	if (lpcbWritten && (er == erSuccess || er == KCERR_TIMEOUT))
 		*lpcbWritten = cbWritten;
-
 	return er;
 }
 
@@ -105,7 +102,6 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 
 	if (lpBuf == NULL)
 		return KCERR_INVALID_PARAMETER;
-
 	if (IsClosed(cfRead))
 		return KCERR_NETWORK_ERROR;
 
@@ -118,7 +114,7 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 	ulock_normal locker(m_hMutex);
 	while (cbRead < cbBuf) {
 		while (IsEmpty()) {
-			if (IsClosed(cfWrite)) 
+			if (IsClosed(cfWrite))
 				goto exit;
 
 			if (ulTimeoutMs > 0) {
@@ -139,14 +135,13 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 		m_hCondNotFull.notify_one();
 		cbRead += cbNow;
 	}
-	
+
 	if (IsEmpty() && IsClosed(cfWrite))
 		m_hCondFlushed.notify_one();
 exit:
 	locker.unlock();
 	if (lpcbRead && (er == erSuccess || er == KCERR_TIMEOUT))
 		*lpcbRead = cbRead;
-
 	return er;
 }
 

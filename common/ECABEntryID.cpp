@@ -49,13 +49,10 @@ static HRESULT CheckEntryId(unsigned int cbEntryId, const ENTRYID *lpEntryId,
 	auto lpEid = reinterpret_cast<const ABEID *>(lpEntryId);
 	if (lpEid->ulId != ulId)
 		bResult = false;
-		
 	else if (lpEid->ulType != ulType)
 		bResult = false;
-
 	else if (lpEid->ulVersion == 1 && lpEid->szExId[0])
 		bResult = false;
-
 	*lpbResult = bResult;
 	return hrSuccess;
 }

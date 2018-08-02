@@ -68,10 +68,8 @@ ECLogger::ECLogger(int max_ll) :
 ECLogger::~ECLogger() {
 	if (ec_log_target == this)
 		ec_log_set(NULL);
-
 	if (timelocale)
 		freelocale(timelocale);
-
 	if (datalocale)
 		freelocale(datalocale);
 }
@@ -94,9 +92,7 @@ size_t ECLogger::MakeTimestamp(char *buffer, size_t z)
 bool ECLogger::Log(unsigned int loglevel) {
 	unsigned int ext_bits = loglevel & EC_LOGLEVEL_EXTENDED_MASK;
 	unsigned int level = loglevel & EC_LOGLEVEL_MASK;
-
 	unsigned int max_loglevel_only = max_loglevel & EC_LOGLEVEL_MASK;
-
 	unsigned int allowed_extended_bits_only = max_loglevel & EC_LOGLEVEL_EXTENDED_MASK;
 
 	// any extended bits used? then only match those
@@ -105,7 +101,6 @@ bool ECLogger::Log(unsigned int loglevel) {
 		// set in the loglevel?
 		if (ext_bits & allowed_extended_bits_only)
 			return true;
-
 		return false;
 	}
 
@@ -113,10 +108,8 @@ bool ECLogger::Log(unsigned int loglevel) {
 	// is not 0
 	if (max_loglevel_only == EC_LOGLEVEL_NONE)
 		return false;
-
 	if (level == EC_LOGLEVEL_ALWAYS)
 		return true;
-
 	// is the parameter log-level <= max_loglevel?
 	return level <= max_loglevel_only;
 }
@@ -145,7 +138,6 @@ int ECLogger::snprintf(char *str, size_t size, const char *format, ...) {
 	va_start(va, format);
 	len = _vsnprintf_l(str, size, format, datalocale, va);
 	va_end(va);
-
 	return len;
 }
 
@@ -348,7 +340,6 @@ bool ECLogger_File::DupFilter(unsigned int loglevel, const char *message)
 			exit_with_true = true;
 	}
 	lr_dup.unlock();
-
 	if (exit_with_true)
 		return true;
 
@@ -454,7 +445,6 @@ void ECLogger_Syslog::logf(unsigned int loglevel, const char *format, ...)
 
 	if (!ECLogger::Log(loglevel))
 		return;
-
 	va_start(va, format);
 	logv(loglevel, format, va);
 	va_end(va);
@@ -567,7 +557,6 @@ ECLogger_Pipe::~ECLogger_Pipe() {
 	if (ec_log_target == this)
 		ec_log_set(nullptr);
 	close(m_fd);
-
 	if (m_childpid)
 		waitpid(m_childpid, NULL, 0);	// wait for the child if we're the one that forked it
 }
@@ -718,7 +707,6 @@ namespace PrivatePipe {
 				continue;
 
 			complete.clear();
-
 			do {
 				// if we don't read anything from the fd, it was the end
 				ret = read(readfd, buffer, sizeof buffer);
@@ -726,7 +714,6 @@ namespace PrivatePipe {
 					break;
 				complete.append(buffer,ret);
 			} while (ret == sizeof buffer);
-
 			if (ret <= 0)
 				break;
 
@@ -772,13 +759,10 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 
 	if (lpFileLogger == NULL)
 		return lpLogger;
-
 	filefd = lpFileLogger->GetFileDescriptor();
-
 	child = pipe(pipefds);
 	if (child < 0)
 		return NULL;
-
 	child = fork();
 	if (child < 0)
 		return NULL;
@@ -813,7 +797,6 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 	lpPipeLogger = new ECLogger_Pipe(pipefds[1], child, atoi(lpConfig->GetSetting("log_level"))); // let destructor wait on child
 	lpPipeLogger->SetLogprefix(prefix);
 	lpPipeLogger->logf(EC_LOGLEVEL_INFO, "Logger process started on pid %d", child);
-
 	return lpPipeLogger;
 }
 
@@ -886,7 +869,6 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 	}
 
 	loglevel = strtol(lpConfig->GetSetting((prepend+"log_level").c_str()), NULL, 0);
-
 	if (strcasecmp(log_method, "syslog") == 0) {
 		char *argzero = strdup(argv0);
 		lpLogger = new ECLogger_Syslog(loglevel, basename(argzero), syslog_facility);
@@ -964,7 +946,6 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 		bool logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
 		lpLogger = new ECLogger_File(loglevel, logtimestamp, "-", false);
 	}
-
 	return lpLogger;
 }
 
@@ -1015,7 +996,7 @@ void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,
 		lpLogger->logf(EC_LOGLEVEL_FATAL, "getrusage() failed: %s", strerror(errno));
 	else
 		lpLogger->logf(EC_LOGLEVEL_FATAL, "Peak RSS: %ld", rusage.ru_maxrss);
-        
+
 	switch (signr) {
 	case SIGSEGV:
 		lpLogger->logf(EC_LOGLEVEL_FATAL, "Pid %d caught SIGSEGV (%d), traceback:", getpid(), signr);

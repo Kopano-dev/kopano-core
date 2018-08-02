@@ -56,7 +56,6 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	const char *szFile = nullptr, *szPath = nullptr;;
 	auto cert_file = lpConfig->GetSetting("ssl_certificate_file");
 	auto key_file = lpConfig->GetSetting("ssl_private_key_file");
-
 	std::unique_ptr<char[], cstdlib_deleter> ssl_protocols(strdup(lpConfig->GetSetting("ssl_protocols")));
 	const char *ssl_ciphers = lpConfig->GetSetting("ssl_ciphers");
  	char *ssl_name = NULL;
@@ -69,7 +68,6 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 		ec_log_err("ECChannel::HrSetCtx(): no cert or key file");
 		return MAPI_E_CALL_FAILED;
 	}
-
 	auto key_fh = fopen(key_file, "r");
 	if (key_fh == nullptr) {
 		ec_log_err("ECChannel::HrSetCtx(): cannot open key file");
@@ -181,25 +179,20 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-
 	if (parseBool(lpConfig->GetSetting("ssl_prefer_server_ciphers"))) {
 		SSL_CTX_set_options(lpCTX, SSL_OP_CIPHER_SERVER_PREFERENCE);
 	}
-
 	SSL_CTX_set_default_verify_paths(lpCTX);
-
 	if (SSL_CTX_use_certificate_chain_file(lpCTX, cert_file) != 1) {
 		ec_log_err("SSL CTX certificate file error: %s", ERR_error_string(ERR_get_error(), 0));
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-
 	if (SSL_CTX_use_PrivateKey_file(lpCTX, key_file, SSL_FILETYPE_PEM) != 1) {
 		ec_log_err("SSL CTX private key file error: %s", ERR_error_string(ERR_get_error(), 0));
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-
 	if (SSL_CTX_check_private_key(lpCTX) != 1) {
 		ec_log_err("SSL CTX check private key error: %s", ERR_error_string(ERR_get_error(), 0));
 		hr = MAPI_E_CALL_FAILED;
@@ -213,19 +206,15 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 
 	if (lpConfig->GetSetting("ssl_verify_file")[0])
 		szFile = lpConfig->GetSetting("ssl_verify_file");
-
 	if (lpConfig->GetSetting("ssl_verify_path")[0])
 		szPath = lpConfig->GetSetting("ssl_verify_path");
-
 	if (szFile || szPath) {
 		if (SSL_CTX_load_verify_locations(lpCTX, szFile, szPath) != 1)
 			ec_log_err("SSL CTX error loading verify locations: %s", ERR_error_string(ERR_get_error(), 0));
 	}
-
 exit:
 	if (hr != hrSuccess)
 		HrFreeCtx();
-
 	return hr;
 }
 
@@ -267,9 +256,7 @@ HRESULT ECChannel::HrEnableTLS(void)
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-
 	SSL_clear(lpSSL);
-
 	if (SSL_set_fd(lpSSL, fd) != 1) {
 		ec_log_err("ECChannel::HrEnableTLS(): SSL_set_fd failed");
 		hr = MAPI_E_CALL_FAILED;
@@ -282,14 +269,12 @@ HRESULT ECChannel::HrEnableTLS(void)
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-
 exit:
 	if (hr != hrSuccess && lpSSL) {
 		SSL_shutdown(lpSSL);
 		SSL_free(lpSSL);
 		lpSSL = NULL;
 	}
-
 	return hr;
 }
 
@@ -299,27 +284,24 @@ HRESULT ECChannel::HrGets(char *szBuffer, ULONG ulBufSize, ULONG *lpulRead) {
 
 	if (!szBuffer || !lpulRead)
 		return MAPI_E_INVALID_PARAMETER;
-
 	if (lpSSL)
 		lpRet = SSL_gets(szBuffer, &len);
 	else
 		lpRet = fd_gets(szBuffer, &len);
-
 	if (lpRet) {
 		*lpulRead = len;
 		return hrSuccess;
 	}
-
 	return MAPI_E_CALL_FAILED;
 }
 
-/** 
+/**
  * Read a line from a socket. Reads as much data until it encounters a
  * \n characters.
- * 
+ *
  * @param[out] strBuffer network data will be placed in this buffer
  * @param[in] ulMaxBuffer optional, default 65k, breaks reading after this limit is reached
- * 
+ *
  * @return MAPI_ERROR_CODE
  * @retval MAPI_E_TOO_BIG more data in the network buffer than requested to read
  */
@@ -329,7 +311,6 @@ HRESULT ECChannel::HrReadLine(std::string &strBuffer, ULONG ulMaxBuffer) {
 
 	// clear the buffer before appending
 	strBuffer.clear();
-
 	do {
 		auto hr = HrGets(buffer, 65536, &ulRead);
 		if (hr != hrSuccess)
@@ -357,12 +338,12 @@ HRESULT ECChannel::HrWriteString(const std::string & strBuffer) {
  * Writes a line of data to socket
  *
  * Function takes specified lenght of data from the pointer,
- * if length is not specified all the data of pointed by buffer is used. 
+ * if length is not specified all the data of pointed by buffer is used.
  * It then adds CRLF to the end of the data and writes it to the socket
  *
  * @param[in]	szBuffer	pointer to the data to be written to socket
  * @param[in]	len			optional paramter to specify lenght of data in szBuffer, if empty then all data of szBuffer is written to socket.
- * 
+ *
  * @retval		MAPI_E_CALL_FAILED	unable to write data to socket
  */
 HRESULT ECChannel::HrWriteLine(const char *szBuffer, int len) {
@@ -386,7 +367,7 @@ HRESULT ECChannel::HrWriteLine(const std::string & strBuffer) {
  *
  * Read from socket and discard the data
  *
- * @param[in] ulByteCount Amount of bytes to discard 
+ * @param[in] ulByteCount Amount of bytes to discard
  *
  * @retval MAPI_E_NETWORK_ERROR Unable to read bytes.
  * @retval MAPI_E_CALL_FAILED Reading wrong amount of data.
@@ -407,16 +388,12 @@ HRESULT ECChannel::HrReadAndDiscardBytes(ULONG ulByteCount) {
 		if (ulRead == (ULONG)-1) {
 			if (errno == EINTR)
 				continue;
-
 			return MAPI_E_NETWORK_ERROR;
 		}
-
 		if (ulRead == 0 || ulRead > ulByteCount)
 			return MAPI_E_NETWORK_ERROR;
-
 		ulTotRead += ulRead;
 	}
-
 	return (ulTotRead == ulByteCount) ? hrSuccess : MAPI_E_CALL_FAILED;
 }
 
@@ -435,18 +412,13 @@ HRESULT ECChannel::HrReadBytes(char *szBuffer, ULONG ulByteCount) {
 		if (ulRead == (ULONG)-1) {
 			if (errno == EINTR)
 				continue;
-
 			return MAPI_E_NETWORK_ERROR;
 		}
-
 		if (ulRead == 0 || ulRead > ulByteCount)
 			return MAPI_E_NETWORK_ERROR;
-
 		ulTotRead += ulRead;
 	}
-
 	szBuffer[ulTotRead] = '\0';
-
 	return (ulTotRead == ulByteCount) ? hrSuccess : MAPI_E_CALL_FAILED;
 }
 
@@ -478,23 +450,20 @@ HRESULT ECChannel::HrSelect(int seconds) {
 			 * to e.g. shut down as a result of SIGTERM.
 			 */
 			return MAPI_E_CANCEL;
-
 		return MAPI_E_NETWORK_ERROR;
 	}
-
 	if (res == 0)
 		return MAPI_E_TIMEOUT;
-
 	return hrSuccess;
 }
 
-/** 
+/**
  * read from buffer until \n is found, or buffer length is reached
  * return buffer always contains \0 in the end, so max read from network is *lpulLen -1
  *
  * @param[out] buf buffer to read network data in
  * @param[in,out] lpulLen input is max size to read, output is read bytes from network
- * 
+ *
  * @return NULL on error, or buf
  */
 char * ECChannel::fd_gets(char *buf, int *lpulLen) {
@@ -503,21 +472,17 @@ char * ECChannel::fd_gets(char *buf, int *lpulLen) {
 
 	if (--len < 1)
 		return NULL;
-
 	do {
 		/*
 		 * Return NULL when we read nothing:
 		 * other side has closed its writing socket.
 		 */
 		int n = recv(fd, bp, len, MSG_PEEK);
-
 		if (n == 0)
 			return NULL;
-
 		if (n == -1) {
 			if (errno == EINTR)
 				continue;
-
 			return NULL;
 		}
 		newline = static_cast<char *>(memchr(bp, '\n', n));
@@ -526,17 +491,13 @@ char * ECChannel::fd_gets(char *buf, int *lpulLen) {
 
 	retry:
 		int recv_n = recv(fd, bp, n, 0);
-
 		if (recv_n == 0)
 			return NULL;
-
 		if (recv_n == -1) {
 			if (errno == EINTR)
 				goto retry;
-
 			return NULL;
 		}
-
 		bp += recv_n;
 		len -= recv_n;
 	}
@@ -549,10 +510,8 @@ char * ECChannel::fd_gets(char *buf, int *lpulLen) {
 		if(newline >= buf && *newline == '\r')
 			--bp;
 	}
-
 	*bp = '\0';
 	*lpulLen = (int)(bp - buf);
-
 	return buf;
 }
 
@@ -562,7 +521,6 @@ char * ECChannel::SSL_gets(char *buf, int *lpulLen) {
 
 	if (--len < 1)
 		return NULL;
-
 	do {
 		/*
 		 * Return NULL when we read nothing:
@@ -574,14 +532,12 @@ char * ECChannel::SSL_gets(char *buf, int *lpulLen) {
 		newline = static_cast<char *>(memchr(bp, '\n', n));
 		if (newline != nullptr)
 			n = newline - bp + 1;
-
 		if ((n = SSL_read(lpSSL, bp, n)) < 0)
 			return NULL;
-
 		bp += n;
 		len -= n;
 	} while (!newline && len > 0);
-	
+
 	//remove the lf or crlf
 	if(newline){
 		--bp;
@@ -589,7 +545,6 @@ char * ECChannel::SSL_gets(char *buf, int *lpulLen) {
 		if(newline >= buf && *newline == '\r')
 			--bp;
 	}
-
 	*bp = '\0';
 	*lpulLen = (int)(bp - buf);
 	return buf;
@@ -891,7 +846,6 @@ int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 			errno = saved_errno;
 			goto exit;
 		}
-
 		/*
 		 * Function signature currently only permits a single fd, so if
 		 * we have a good socket, try no more. The IPv6 socket is
@@ -910,9 +864,7 @@ int ec_listen_inet(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 		errno = ENOENT;
 		goto exit;
 	}
-
 	*lpulListenSocket = fd;
-
 exit:
 	int saved_errno = errno;
 	if (sock_res != NULL)

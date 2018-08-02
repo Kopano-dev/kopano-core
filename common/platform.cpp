@@ -33,7 +33,7 @@ time_t FileTimeToUnixTime(const FILETIME &ft)
 	__int64 l = (static_cast<__int64>(ft.dwHighDateTime) << 32) + ft.dwLowDateTime;
 	l -= NANOSECS_BETWEEN_EPOCHS;
 	l /= 10000000;
-	
+
 	if(sizeof(time_t) < 8) {
 		// On 32-bit systems, we cap the values at MAXINT and MININT
 		if (l < static_cast<__int64>(INT_MIN))
@@ -70,7 +70,7 @@ static FILETIME RTimeToFileTime(LONG rtime)
 	auto q = static_cast<ULONGLONG>(rtime) * UnitsPerMinute;
 	return {static_cast<DWORD>(q & 0xFFFFFFFF), static_cast<DWORD>(q >> 32)};
 }
- 
+
 LONG FileTimeToRTime(const FILETIME &pft)
 {
 	ULONGLONG q = pft.dwHighDateTime;

@@ -11,7 +11,7 @@
 
 namespace KC {
 
-enum ACLRIGHTS { 
+enum ACLRIGHTS {
 	RIGHTS_EDIT_OWN = 0x8,
 	RIGHTS_EDIT_ALL = 0x20,
 	RIGHTS_DELETE_OWN = 0x10,

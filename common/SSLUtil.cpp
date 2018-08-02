@@ -52,7 +52,7 @@ void ssl_threading_cleanup() {
 /**
  * Free most of the SSL library allocated memory.
  *
- * This will remove most of the memmory used by 
+ * This will remove most of the memmory used by
  * the ssl library. Don't use this function in libraries
  * because it will unload the whole SSL data.
  *
@@ -63,21 +63,18 @@ void SSL_library_cleanup()
 	#ifndef OPENSSL_NO_ENGINE
 		ENGINE_cleanup();
 	#endif
-
 	ERR_free_strings();
 	#if OPENSSL_VERSION_NUMBER < 0x10100000L
 		ERR_remove_state(0);
 	#endif
 	EVP_cleanup();
 	CRYPTO_cleanup_all_ex_data();
-
 	CONF_modules_unload(0);
 }
 
 void ssl_random_init()
 {
 	rand_init();
-
 	while (RAND_status() == 0) {
 		char buffer[16];
 		rand_get(buffer, sizeof buffer);

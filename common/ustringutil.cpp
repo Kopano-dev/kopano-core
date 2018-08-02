@@ -71,13 +71,13 @@ typedef std::unique_ptr<Collator> unique_ptr_Collator;
 
 namespace KC {
 
-/** 
+/**
  * US-ASCII version to find a case-insensitive string part in a
  * haystack.
- * 
+ *
  * @param haystack search this haystack for a case-insensitive needle
  * @param needle search this needle in the case-insensitive haystack
- * 
+ *
  * @return pointer where needle is found or NULL
  */
 const char* str_ifind(const char *haystack, const char *needle)
@@ -89,7 +89,6 @@ const char* str_ifind(const char *haystack, const char *needle)
 	while(*haystack) {
 		if (toupper_l(*haystack, loc) == toupper_l(*needlepos, loc)) {
 			++needlepos;
-
 			if(*needlepos == 0)
 				goto exit;
 		} else {
@@ -100,10 +99,8 @@ const char* str_ifind(const char *haystack, const char *needle)
 		++haystack;
 	}
 	needlestart = NULL;
-
 exit:
 	freelocale(loc);
-
 	return needlestart;
 }
 
@@ -126,11 +123,11 @@ static inline UnicodeString WCHARToUnicode(const wchar_t *sz)
 
 /**
  * Check if two strings are canonical equivalent.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -141,17 +138,16 @@ bool str_equals(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
-
     return a.compare(b) == 0;
 }
 
 /**
  * Check if two strings are canonical equivalent when ignoring the case.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to convert the case of the strings.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -162,17 +158,16 @@ bool str_iequals(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
-
     return a.caseCompare(b, 0) == 0;
 }
 
 /**
  * Check if the string s1 starts with s2.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -183,17 +178,16 @@ bool str_startswith(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
-
     return a.compare(0, b.length(), b) == 0;
 }
 
 /**
  * Check if the string s1 starts with s2 when ignoring the case.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to convert the case of the strings.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -204,22 +198,21 @@ bool str_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = StringToUnicode(s1);
     UnicodeString b = StringToUnicode(s2);
-
     return a.caseCompare(0, b.length(), b, 0) == 0;
 }
 
 /**
  * Compare two strings using the collator to determine the sort order.
- * 
+ *
  * Both strings are expectes to be in the current locale. The comparison is
  * case insensitive. Effectively this only changes behavior compared to strcmp_unicode
  * if the two strings are the same if the case is discarded. It doesn't effect the
  * sorting in any other way.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	collator	The collator used to determine which string precedes the other.
- * 
+ *
  * @return		An integer.
  * @retval		-1	s1 is smaller than s2
  * @retval		0	s1 equals s2.
@@ -234,10 +227,8 @@ int str_icompare(const char *s1, const char *s2, const ECLocale &locale)
 
 	UnicodeString a = StringToUnicode(s1);
 	UnicodeString b = StringToUnicode(s2);
-
 	a.foldCase();
 	b.foldCase();
-
 	return ptrCollator->compare(a,b,status);
 }
 
@@ -264,7 +255,6 @@ bool str_contains(const char *haystack, const char *needle, const ECLocale &loca
 	assert(needle);
     UnicodeString a = StringToUnicode(haystack);
     UnicodeString b = StringToUnicode(needle);
-
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
@@ -288,17 +278,16 @@ bool str_icontains(const char *haystack, const char *needle, const ECLocale &loc
 
     a.foldCase();
     b.foldCase();
-
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
 /**
  * Check if two strings are canonical equivalent.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -309,17 +298,16 @@ bool wcs_equals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
-
     return a.compare(b) == 0;
 }
 
 /**
  * Check if two strings are canonical equivalent when ignoring the case.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to convert the case of the strings.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -330,17 +318,16 @@ bool wcs_iequals(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
-
     return a.caseCompare(b, 0) == 0;
 }
 
 /**
  * Check if s1 starts with s2.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -351,17 +338,16 @@ bool wcs_startswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale
 	assert(s2);
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
-
     return a.compare(0, b.length(), b) == 0;
 }
 
 /**
  * Check if s1 starts with s2 when ignoring the case.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to convert the case of the strings.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -372,22 +358,21 @@ bool wcs_istartswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &local
 	assert(s2);
     UnicodeString a = WCHARToUnicode(s1);
     UnicodeString b = WCHARToUnicode(s2);
-
     return a.caseCompare(0, b.length(), b, 0) == 0;
 }
 
 /**
  * Compare two strings using the collator to determine the sort order.
- * 
+ *
  * Both strings are expectes to be in the current locale. The comparison is
  * case insensitive. Effectively this only changes behavior compared to strcmp_unicode
  * if the two strings are the same if the case is discarded. It doesn't effect the
  * sorting in any other way.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	collator	The collator used to determine which string precedes the other.
- * 
+ *
  * @return		An integer.
  * @retval		-1	s1 is smaller than s2
  * @retval		0	s1 equals s2.
@@ -402,10 +387,8 @@ int wcs_icompare(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
 
 	UnicodeString a = WCHARToUnicode(s1);
 	UnicodeString b = WCHARToUnicode(s2);
-
 	a.foldCase();
 	b.foldCase();
-
 	return ptrCollator->compare(a,b,status);
 }
 
@@ -432,7 +415,6 @@ bool wcs_contains(const wchar_t *haystack, const wchar_t *needle, const ECLocale
 	assert(needle);
     UnicodeString a = WCHARToUnicode(haystack);
     UnicodeString b = WCHARToUnicode(needle);
-
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
@@ -462,17 +444,16 @@ bool wcs_icontains(const wchar_t *haystack, const wchar_t *needle, const ECLocal
 
     a.foldCase();
     b.foldCase();
-
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
 /**
  * Check if two strings are canonical equivalent.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -483,17 +464,16 @@ bool u8_equals(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
-
     return a.compare(b) == 0;
 }
 
 /**
  * Check if two strings are canonical equivalent when ignoring the case.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale to use when converting case.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -504,17 +484,16 @@ bool u8_iequals(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
-
     return a.caseCompare(b, 0) == 0;
 }
 
 /**
  * Check if s1 starts with s2.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale used to perform string collation.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -525,17 +504,16 @@ bool u8_startswith(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
-
     return a.compare(0, b.length(), b) == 0;
 }
 
 /**
  * Check if s1 starts with s2 when ignoring the case.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	locale	The locale to use when converting case.
- * 
+ *
  * @return	boolean
  * @retval	true	The strings are canonical equivalent
  * @retval	false	The strings are not canonical equivalent
@@ -546,22 +524,21 @@ bool u8_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 	assert(s2);
     UnicodeString a = UTF8ToUnicode(s1);
     UnicodeString b = UTF8ToUnicode(s2);
-
     return a.caseCompare(0, b.length(), b, 0) == 0;
 }
 
 /**
  * Compare two strings using the collator to determine the sort order.
- * 
+ *
  * Both strings are expectes to be encoded in UTF-8. The comparison is
  * case insensitive. Effectively this only changes behavior compared to strcmp_unicode
  * if the two strings are the same if the case is discarded. It doesn't effect the
  * sorting in any other way.
- * 
+ *
  * @param[in]	s1		The string to compare s2 with.
  * @param[in]	s2		The string to compare s1 with.
  * @param[in]	collator	The collator used to determine which string precedes the other.
- * 
+ *
  * @return		An integer.
  * @retval		-1	s1 is smaller than s2
  * @retval		0	s1 equals s2.
@@ -576,10 +553,8 @@ int u8_icompare(const char *s1, const char *s2, const ECLocale &locale)
 
 	UnicodeString a = UTF8ToUnicode(s1);
 	UnicodeString b = UTF8ToUnicode(s2);
-	
 	a.foldCase();
 	b.foldCase();
-
 	return ptrCollator->compare(a,b,status);
 }
 
@@ -606,7 +581,6 @@ bool u8_contains(const char *haystack, const char *needle, const ECLocale &local
 	assert(needle);
     UnicodeString a = UTF8ToUnicode(haystack);
     UnicodeString b = UTF8ToUnicode(needle);
-
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
@@ -630,7 +604,6 @@ bool u8_icontains(const char *haystack, const char *needle, const ECLocale &loca
 
     a.foldCase();
     b.foldCase();
-
     return u_strstr(a.getTerminatedBuffer(), b.getTerminatedBuffer());
 }
 
@@ -961,7 +934,6 @@ ECRESULT LocaleIdToLCID(const char *lpszLocaleID, ULONG *lpulLcid)
 	for (size_t i = 0; lpMapEntry == nullptr && i < ARRAY_SIZE(localeMap); ++i)
 		if (strcasecmp(localeMap[i].lpszLocaleID, lpszLocaleID) == 0)
 			lpMapEntry = &localeMap[i];
-
 	if (lpMapEntry == NULL)
 		return KCERR_NOT_FOUND;
 	*lpulLcid = lpMapEntry->ulLCID;
@@ -976,7 +948,6 @@ ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
 	for (size_t i = 0; lpMapEntry == nullptr && i < ARRAY_SIZE(localeMap); ++i)
 		if (localeMap[i].ulLCID == ulLcid)
 			lpMapEntry = &localeMap[i];
-
 	if (lpMapEntry == NULL)
 		return KCERR_NOT_FOUND;
 	*lppszLocaleID = lpMapEntry->lpszLocaleID;
@@ -999,7 +970,6 @@ static CollationKey createSortKey(UnicodeString &&s, int nCap,
 {
 	if (nCap > 1)
 		s.truncate(nCap);
-
 	// Quick workaround for sorting items starting with ' (like From and To) and ( and '(
 	if (s.startsWith("'") || s.startsWith("("))
 		s.remove(0, 1);
@@ -1078,7 +1048,7 @@ std::string createSortKeyDataFromUTF8(const char *s, int nCap,
 
 /**
  * Compare two sort keys previously created with createSortKey.
- * 
+ *
  * @param[in]	cbKey1		The size i nbytes of key 1.
  * @param[in]	lpKey1		Key 1.
  * @param[in]	cbKey2		The size i nbytes of key 2.

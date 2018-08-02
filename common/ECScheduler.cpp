@@ -55,7 +55,6 @@ bool ECScheduler::hasExpired(time_t ttime, ECSCHEDULE *lpSchedule)
 	struct tm tmLastRunTime, tmtime;
 
 	localtime_r(&ttime, &tmtime);
-
 	if(lpSchedule->tLastRunTime > 0)
 		localtime_r(&lpSchedule->tLastRunTime, &tmLastRunTime);
 	else
@@ -105,7 +104,6 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 	auto lpScheduler = static_cast<ECScheduler *>(lpTmpScheduler);
 	HRESULT*			lperThread = NULL;
 	pthread_t			hThread;
-
 	time_t				ttime;
 
 	if (lpScheduler == NULL)
@@ -126,27 +124,22 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 			ulock_rec l_sched(lpScheduler->m_hSchedulerMutex);
 
 			//TODO If load on server high, check only items with a high priority
-
 			time(&ttime);
- 
 			if (hasExpired(ttime, &sl)) {
 				//Create task thread
 				int err = 0;
-				
+
 				if((err = pthread_create(&hThread, NULL, sl.lpFunction, static_cast<void *>(sl.lpData))) != 0) {
 					ec_log_err("Could not create ECScheduler worker thread: %s", strerror(err));
 					goto task_fail;
 				}
 
 				set_thread_name(hThread, "ECScheduler:worker");
-
 				sl.tLastRunTime = ttime;
-
 				if((err = pthread_join(hThread, (void**)&lperThread)) != 0) {
 					ec_log_err("Could not join ECScheduler work thread: %s", strerror(err));
 					goto task_fail;
 				}
-
 				delete lperThread;
 				lperThread = NULL;
 			}

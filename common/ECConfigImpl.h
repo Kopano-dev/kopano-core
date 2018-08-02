@@ -76,10 +76,8 @@ private:
 	bool	HandleDirective(const std::string &strLine, unsigned int ulFlags);
 	bool	HandleInclude(const char *lpszArgs, unsigned int ulFlags);
 	bool	HandlePropMap(const char *lpszArgs, unsigned int ulFlags);
-
 	size_t  GetSize(const char *szValue);
 	void	InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, const char* szValue, bool bIsSize);
-
 	const char *GetMapEntry(const settingmap_t *lpMap, const char *szName);
 	const char *GetAlias(const char *szAlias);
 	bool AddSetting(const configsetting_t &, unsigned int flags);

@@ -162,7 +162,6 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		er = KCERR_DATABASE_ERROR;
 		goto exit;
 	}
-
 	er = setup_gcm(gcm, reconnect);
  exit:
 	if (er != erSuccess)
@@ -213,7 +212,6 @@ ECRESULT KDatabase::CreateDatabase(ECConfig *cfg, bool reconnect)
 	er = DoInsert(query);
 	if (er != erSuccess)
 		return er;
-
 	ec_log_info("Database structure has been created");
 	return erSuccess;
 }
@@ -235,18 +233,15 @@ ECRESULT KDatabase::CreateTables(ECConfig *cfg)
 			ec_log_err("Error running query %s", query.c_str());
 			return er;
 		}
-
 		if (result.get_num_rows() > 0) {
 			ec_log_debug("Table \"%s\" exists", tables[i].lpComment);
 			continue;
 		}
-
 		ec_log_info("Create table: %s", tables[i].lpComment);
 		er = DoInsert(format(tables[i].lpSQL, engine));
 		if (er != erSuccess)
 			return er;
 	}
-
 	return erSuccess;
 }
 

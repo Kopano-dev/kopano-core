@@ -125,7 +125,7 @@ void StatsClient::submit(const std::string & key, const time_t ts, const double 
 		return;
 
 	char msg[4096];
-	int len = snprintf(msg, sizeof msg, "ADD float %s %ld %f", key.c_str(), ts, value); 
+	int len = snprintf(msg, sizeof msg, "ADD float %s %ld %f", key.c_str(), ts, value);
 
 	// in theory snprintf can return -1
 	if (len <= 0)

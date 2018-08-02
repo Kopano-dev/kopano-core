@@ -52,7 +52,7 @@ public:
 
 	// Decrement the valid count. Used from ECCacheManger::GetCell.
 	_kc_hidden void DecrementValidCount(void)
-	{ 
+	{
 		assert(m_ulCacheValid >= 1);
 		--m_ulCacheValid;
 	}
@@ -67,7 +67,6 @@ public:
 	{
 		m_ulMaxSize = ulMaxSize;
 	}
-
 
 protected:
 	ECCacheBase(const std::string &strCachename, size_type ulMaxSize, long lMaxAge);
@@ -86,12 +85,12 @@ template<typename MapType> class ECCache _kc_final : public ECCacheBase {
 public:
 	typedef typename MapType::key_type key_type;
 	typedef typename MapType::mapped_type mapped_type;
-	
+
 	ECCache(const std::string &strCachename, size_type ulMaxSize, long lMaxAge)
 		: ECCacheBase(strCachename, ulMaxSize, lMaxAge)
 		, m_ulSize(0)
 	{ }
-	
+
 	ECRESULT ClearCache()
 	{
 		m_map.clear();
@@ -99,19 +98,19 @@ public:
 		ClearCounters();
 		return erSuccess;
 	}
-	
+
 	count_type ItemCount(void) const _kc_override
 	{
 		return m_map.size();
 	}
-	
+
 	size_type Size(void) const _kc_override
 	{
 		/* It works with map and unordered_map. */
 		return m_map.size() * (sizeof(typename MapType::value_type) + sizeof(MapType)) + m_ulSize;
 	}
 
-	ECRESULT RemoveCacheItem(const key_type &key) 
+	ECRESULT RemoveCacheItem(const key_type &key)
 	{
 		auto iter = m_map.find(key);
 		if (iter == m_map.end())
@@ -122,12 +121,12 @@ public:
 		m_map.erase(iter);
 		return erSuccess;
 	}
-	
+
 	ECRESULT GetCacheItem(const key_type &key, mapped_type **lppValue)
 	{
 		time_t	tNow  = GetProcessTime();
 		auto iter = m_map.find(key);
-		
+
 		if (iter == m_map.end()) {
 			IncrementHitCount();
 			return KCERR_NOT_FOUND;
@@ -171,7 +170,7 @@ public:
 			values->emplace_back(*i);
 		return erSuccess;
 	}
-	
+
 	ECRESULT AddCacheItem(const key_type &key, const mapped_type &value)
 	{
 		if (MaxSize() == 0)
@@ -193,7 +192,7 @@ public:
 		UpdateCache(0.05F);
 		return erSuccess;
 	}
-	
+
 	// Used in ECCacheManager::SetCell, where the content of a cache item is modified.
 		ECRESULT AddToSize(int64_t ulSize)
 	{
@@ -214,7 +213,6 @@ private:
 		}
 
 		lstEntries.sort(KeyEntryOrder<key_type>);
-
 		// We now have a list of all cache items, sorted by access time, (oldest first)
 		size_t ulDelete = m_map.size() * ratio;
 
@@ -232,7 +230,7 @@ private:
 
 		return erSuccess;
 	}
-	
+
 	ECRESULT UpdateCache(float ratio)
 	{
 		if (Size() > MaxSize())
@@ -240,7 +238,7 @@ private:
 		return erSuccess;
 	}
 
-	MapType m_map;	
+	MapType m_map;
 	size_type			m_ulSize;
 };
 

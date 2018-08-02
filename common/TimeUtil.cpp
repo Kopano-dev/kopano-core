@@ -41,7 +41,6 @@ static time_t getDateByYearMonthWeekDayHour(WORD year, WORD month, WORD week,
 	gmtime_safe(date, &tm);
 	if (tm.tm_mon != month-1)
 		date -= 7 * 24 * 60 * 60;
-
 	return date;
 }
 

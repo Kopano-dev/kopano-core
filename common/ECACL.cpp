@@ -63,7 +63,6 @@ static const AclRightName *FindAclRight(unsigned ulRights) {
 	const AclRightName *lpRightName = std::lower_bound(g_rights, ARRAY_END(g_rights), rn);
 	if (lpRightName != ARRAY_END(g_rights) && lpRightName->ulRight == ulRights)
 		return lpRightName;
-
 	return NULL;
 }
 
@@ -72,7 +71,6 @@ static const AclRoleName *FindAclRole(unsigned ulRights) {
 	const AclRoleName *lpRoleName = std::lower_bound(g_roles, ARRAY_END(g_roles), rn);
 	if (lpRoleName != ARRAY_END(g_roles) && lpRoleName->ulRights == ulRights)
 		return lpRoleName;
-
 	return NULL;
 }
 
@@ -80,7 +78,6 @@ std::string AclRightsToString(unsigned ulRights)
 {
 	if (ulRights == unsigned(-1))
 		return "missing or invalid";
-	
 	if (IsRight(ulRights)) {
 		const AclRightName *lpRightName = FindAclRight(ulRights);
 		if (lpRightName == NULL)

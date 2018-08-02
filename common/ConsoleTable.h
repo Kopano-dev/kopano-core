@@ -18,7 +18,6 @@ public:
 	ConsoleTable(size_t rows, size_t columns);
 	_kc_hidden void Clear(void);
 	void Resize(size_t rows, size_t columns);
-
 	bool SetHeader(size_t col, const std::string& entry);
 	void set_lead(const char *lead) { m_lead = lead; }
 	bool AddColumn(size_t col, const std::string& entry);

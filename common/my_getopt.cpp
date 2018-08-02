@@ -8,11 +8,9 @@ int my_getopt_long_permissive(int argc, char **argv, const char *shortopts,
     const struct option *longopts, int *longind)
 {
 	int opterr_save = opterr, saved_optind = optind;
-
 	opterr = 0;
 
 	int c = getopt_long(argc, argv, shortopts, longopts, longind);
-
 	if (c == '?') {
 		// Move this parameter to the end of the list if it a long option
 		if (argv[optind - 1][0] == '-' && argv[optind - 1][1] == '-' && argv[optind - 1][2] != '\0') {
@@ -37,14 +35,12 @@ int my_getopt_long_permissive(int argc, char **argv, const char *shortopts,
 	}
 
 	opterr = opterr_save;
-
 	// Show error
 	if (c == '?') {
 		optind = saved_optind;
 		if (getopt_long(argc, argv, shortopts, longopts, longind) != 0)
 			/* ignore return value */;
 	}
-
 	return c;
 }
 

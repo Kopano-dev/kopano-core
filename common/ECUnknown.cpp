@@ -83,11 +83,11 @@ HRESULT ECUnknown::SetParent(ECUnknown *parent)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Returns whether this object is the parent of passed object
- * 
+ *
  * @param lpObject Possible child object
- * 
+ *
  * @return this is a parent of lpObject, or not
  */
 BOOL ECUnknown::IsParentOf(const ECUnknown *lpObject) const
@@ -99,11 +99,11 @@ BOOL ECUnknown::IsParentOf(const ECUnknown *lpObject) const
 	return FALSE;
 }
 
-/** 
+/**
  * Returns whether this object is a child of passed object
- * 
+ *
  * @param lpObject IUnknown object which may be a child of this
- * 
+ *
  * @return lpObject is a parent of this, or not
  */
 BOOL ECUnknown::IsChildOf(const ECUnknown *lpObject) const
@@ -117,7 +117,7 @@ BOOL ECUnknown::IsChildOf(const ECUnknown *lpObject) const
 }
 
 // We kill the local object if there are no external (AddRef()) and no internal
-// (AddChild) objects depending on us. 
+// (AddChild) objects depending on us.
 
 HRESULT ECUnknown::Suicide() {
 	auto parent = lpParent;
@@ -127,11 +127,10 @@ HRESULT ECUnknown::Suicide() {
 	lpParent = nullptr;
 	delete this;
 
-	// WARNING: The child list of our parent now contains a pointer to this 
+	// WARNING: The child list of our parent now contains a pointer to this
 	// DELETED object. We must make sure that nobody ever follows pointer references
 	// in this list during this interval. The list is, therefore PRIVATE to this object,
 	// and may only be access through functions in ECUnknown.
-
 	// Now, tell our parent to delete this object
 	if (parent != nullptr)
 		parent->RemoveChild(self);

@@ -33,7 +33,6 @@ public:
 	virtual HRESULT Revert();
 	virtual HRESULT SetSize(ULONG ulSize);
 	virtual HRESULT GetSize(ULONG *size) const;
-
 	virtual char *GetBuffer(void) { return lpCurrent; }
 
 private:
@@ -43,7 +42,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-/* 
+/*
  * This is an IStream-compatible wrapper for ECMemBlock
  */
 class _kc_export ECMemStream _kc_final : public ECUnknown, public IStream {

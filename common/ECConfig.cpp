@@ -33,7 +33,7 @@ ECConfig *ECConfig::Create(const std::nothrow_t &,
  * 						The basename of the requested configuration file. Passing
  * 						NULL or an empty string will result in the default path
  * 						to be returned.
- * 
+ *
  * @returns		The full path to the requested configuration file. Memory for
  * 				the returned data is allocated in this function and will be freed
  * 				at program termination.

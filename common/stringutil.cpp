@@ -39,15 +39,12 @@ std::string stringify_int64(int64_t x, bool usehex) {
 		s.setf(std::ios::uppercase);
 	}
 	s << x;
-
 	return s.str();
 }
 
 std::string stringify_float(float x) {
 	std::ostringstream s;
-
 	s << x;
-
 	return s.str();
 }
 
@@ -81,7 +78,6 @@ std::wstring wstringify(unsigned int x, bool usehex, bool _signed)
 		s.setf(std::ios::uppercase);
 	}
 	s << x;
-
 	return s.str();
 }
 
@@ -100,21 +96,17 @@ int memsubstr(const void* haystack, size_t haystackSize, const void* needle, siz
 		if(*databuf == *searchbuf){
 			++searchbuf;
 			++match;
-
 			if(match == needleSize)
 				return 0;
 		}else{
 			databuf -= match;
 			pos -= match;
-
 			searchbuf = (BYTE*)needle;
 			match = 0;
 		}
-
 		++databuf;
 		++pos;
 	}
-
 	return 1;
 }
 
@@ -123,7 +115,6 @@ std::string str_storage(uint64_t ulBytes, bool bUnlimited) {
 
 	if (ulBytes == 0 && bUnlimited)
 		return "unlimited";
-
 	return stringify_double((double)ulBytes / MB, 2) + " MB";
 }
 
@@ -136,11 +127,9 @@ std::string GetServerNameFromPath(const char *szPath) {
 		/* Remove prefixed type information */
 		path.erase(0, pos + 3);
 	}
-
 	pos = path.find(':');
 	if (pos != std::string::npos)
 		path.erase(pos, std::string::npos);
-
 	return path;
 }
 
@@ -150,16 +139,12 @@ std::string GetServerPortFromPath(const char *szPath) {
 
 	if (strncmp(path.c_str(), "http", 4) != 0)
 		return std::string();
-
 	pos = path.rfind(':');
 	if (pos == std::string::npos)
 		return std::string();
-	
 	pos += 1; /* Skip ':' */
-
 	/* Remove all leading characters */
 	path.erase(0, pos);
-
 	/* Strip additional path */
 	pos = path.rfind('/');
 	if (pos != std::string::npos)
@@ -182,7 +167,6 @@ std::vector<std::wstring> tokenize(const std::wstring &strInput, const WCHAR sep
 			vct.emplace_back(begin, end);
 		begin = end+1;
 	}
-
 	return vct;
 }
 
@@ -202,7 +186,6 @@ std::vector<std::string> tokenize(const std::string &strInput, const char sep, b
 			vct.emplace_back(begin, end);
 		begin = end+1;
 	}
-
 	return vct;
 }
 
@@ -213,14 +196,11 @@ std::string trim(const std::string &strInput, const std::string &strTrim)
 
 	if (s.empty())
 		return s;
-
-	pos = s.find_first_not_of(strTrim); 
-	s.erase(0, pos); 
-	 	 
+	pos = s.find_first_not_of(strTrim);
+	s.erase(0, pos);
 	pos = s.find_last_not_of(strTrim);
-	if (pos != std::string::npos) 
-		s.erase(pos + 1, std::string::npos); 
- 	 
+	if (pos != std::string::npos)
+		s.erase(pos + 1, std::string::npos);
 	return s;
 }
 
@@ -240,7 +220,6 @@ std::string hex2bin(const std::string &input)
 
 	if (input.length() % 2 != 0)
 		return buffer;
-
 	buffer.reserve(input.length() / 2);
 	for (unsigned int i = 0; i < input.length(); ) {
 		unsigned char c;
@@ -248,7 +227,6 @@ std::string hex2bin(const std::string &input)
 		c |= x2b(input[i++]);
 		buffer += c;
 	}
-
 	return buffer;
 }
 
@@ -258,7 +236,6 @@ std::string hex2bin(const std::wstring &input)
 
 	if (input.length() % 2 != 0)
 		return buffer;
-
 	buffer.reserve(input.length() / 2);
 	for (unsigned int i = 0; i < input.length(); ) {
 		unsigned char c;
@@ -266,7 +243,6 @@ std::string hex2bin(const std::wstring &input)
 		c |= x2b((char)input[i++]);
 		buffer += c;
 	}
-
 	return buffer;
 }
 
@@ -283,7 +259,6 @@ std::string bin2hex(size_t inLength, const void *vinput)
 		buffer[j+1] = digits[*input & 0x0F];
 		++input;
 	}
-
 	return buffer;
 }
 
@@ -297,14 +272,14 @@ std::string bin2hex(const SBinary &b)
 	return bin2hex(b.cb, b.lpb);
 }
 
-/** 
+/**
  * Encodes a string for inclusion into an url.
  *
  * @note this does not encode an url to another more valid url (since / would get encoded!)
  * @note watch the locale of the string, make sure it's the same as the rest of the url.
- * 
+ *
  * @param[in] input string to encode
- * 
+ *
  * @return encoded string valid to include in an url
  */
 std::string urlEncode(const std::string &input)
@@ -355,12 +330,12 @@ std::string urlEncode(const std::string &input)
 	return output;
 }
 
-/** 
+/**
  * encode an url part, input in wide char, and destination charset in encoded characters
- * 
+ *
  * @param[in] input wide string to convert to valid url encoded ascii string
  * @param[in] charset non-ascii characters will be encoded for this charset
- * 
+ *
  * @return url valid encoded string
  */
 std::string urlEncode(const std::wstring &input, const char* charset)
@@ -373,14 +348,14 @@ std::string urlEncode(const WCHAR* input, const char* charset)
 	return urlEncode(convert_to<std::string>(charset, input, rawsize(input), CHARSET_WCHAR));
 }
 
-/** 
+/**
  * replaces %## values by ascii values
  * i.e Amsterdam%2C -> Amsterdam,
- * @note 1. this can take a full url, since it just replaces the %## 
+ * @note 1. this can take a full url, since it just replaces the %##
  * @note 2. you need to handle the locale of the string yourself!
- * 
+ *
  * @param[in] input url encoded string
- * 
+ *
  * @return decoded url in the locale it was encoded in
  */
 std::string urlDecode(const std::string &input)
@@ -395,18 +370,17 @@ std::string urlDecode(const std::string &input)
 			c = x2b(input[++i]) << 4;
 			c |= x2b(input[++i]);
 			output += c;
-		} 
-		else 
+		}
+		else
 			output += input[i];
 	}
-
 	return output;
 }
 
-/** 
+/**
  * Convert a memory buffer with strings with Unix \n enters to DOS
  * \r\n enters.
- * 
+ *
  * @param[in] size length of the input
  * @param[in] input buffer containing strings with enters to convert
  * @param[out] output buffer with enough space to hold input + extra \r characters
@@ -448,7 +422,6 @@ void StringTabtoSpaces(const std::wstring &strInput, std::wstring *lpstrOutput) 
 	 * at most two reallocs happen (with capacity doubling).
 	 */
 	strOutput.reserve(strInput.length());
-
 	for (auto c : strInput)
 		if (c == '\t')
 			strOutput.append(4, ' ');
@@ -468,19 +441,18 @@ void StringCRLFtoLF(const std::wstring &strInput, std::wstring *lpstrOutput) {
 	std::wstring strOutput;
 
 	strOutput.reserve(strInput.length());
-
 	for (; iInput != strInput.end(); ++iInput) {
 		// skips /r if /r/n found together in the text
-		if (*iInput == '\r' && (iInput + 1 != strInput.end() && *(iInput + 1) == '\n')) 
+		if (*iInput == '\r' && (iInput + 1 != strInput.end() && *(iInput + 1) == '\n'))
 			continue;
 		strOutput.append(1, *iInput);
 	}
 	*lpstrOutput = std::move(strOutput);
 }
 
-/** 
+/**
  * converts a string inline from \n enters to \r\n
- * 
+ *
  * @param strInOut string to edit
  */
 void StringLFtoCRLF(std::string &strInOut)
@@ -489,7 +461,6 @@ void StringLFtoCRLF(std::string &strInOut)
 	std::string::const_iterator i;
 	/* Output at most double the size of input => one realloc normally */
 	strOutput.reserve(strInOut.size());
-
 	for (i = strInOut.begin(); i != strInOut.end(); ++i)
 		if (*i == '\n' && i != strInOut.begin() && *(i-1) != '\r')
 			strOutput.append("\r\n");
@@ -508,7 +479,6 @@ std::string format(const char *const fmt, ...) {
 
         std::string result = buffer;
         free(buffer);
-
         return result;
 }
 
@@ -551,7 +521,7 @@ std::string base64_encode(const void *bte, unsigned int in_len)
 	int i = 0, j = 0;
 	std::string ret;
 	ret.reserve((in_len + 2) / 3 * 4);
-	
+
 	while (in_len--) {
 		char_array_3[i++] = *(bytes_to_encode++);
 		if (i != 3)
@@ -684,7 +654,7 @@ static std::string SymmetricDecryptBlob(unsigned int ulAlg, const std::string &s
 {
 	std::string strRaw = strXORed;
 	size_t z = strRaw.size();
-	
+
 	assert(ulAlg == 1 || ulAlg == 2);
 	for (unsigned int i = 0; i < z; ++i)
 		strRaw[i] ^= 0xA5;
