@@ -19,7 +19,7 @@ def get_body(req, item):
     if type_ == 'text':
         return {'contentType': 'text', 'content': item.text}
     else:
-        return {'contentType': 'html', 'content': item.html.decode('utf8')} # TODO if not utf8?
+        return {'contentType': 'html', 'content': item.html.decode('utf8', 'ignore')} # TODO if not utf8, use PR_INTERNET_CPID? (like webapp?)
 
 def set_body(item, arg):
     if arg['contentType'] == 'text':
