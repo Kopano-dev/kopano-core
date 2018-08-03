@@ -222,6 +222,12 @@ def user_counts(server): # XXX allowed/available
     print(fmt.format('NA Equipment', stats['usercnt_equipment']))
     print(fmt.format('Total', int(stats['usercnt_active'])+int(stats['usercnt_nonactive'])))
 
+def quota_str(limit): # TODO in pyko?
+    if not limit:
+        return 'unlimited'
+    else:
+        return '%d MB' % (float(limit) / 2**20)
+
 def user_details(user):
     fmt = '{:<30}{:<}'
     print(fmt.format('Name:', _encode(user.name)))
@@ -257,9 +263,9 @@ def user_details(user):
 
     print('Current user store quota settings:')
     print(fmt.format('    Quota overrides:', yesno(not user.quota.use_default)))
-    print(fmt.format('    Warning level:', str(user.quota.warning_limit or 'unlimited')))
-    print(fmt.format('    Soft level:', str(user.quota.soft_limit or 'unlimited')))
-    print(fmt.format('    Hard level:', str(user.quota.hard_limit or 'unlimited')))
+    print(fmt.format('    Warning level:', quota_str(user.quota.warning_limit)))
+    print(fmt.format('    Soft level:', quota_str(user.quota.soft_limit)))
+    print(fmt.format('    Hard level:', quota_str(user.quota.hard_limit)))
 
     list_groups('Groups', user.groups())
     list_permissions(user.store)
@@ -304,11 +310,11 @@ def quota_options(user, options):
     if options.quota_override is not None:
         user.quota.use_default = not options.quota_override
     if options.quota_warn is not None:
-        user.quota.warning_limit = options.quota_warn
+        user.quota.warning_limit = options.quota_warn * (2**20) # TODO make pyko accept '2 GB' etc?
     if options.quota_soft is not None:
-        user.quota.soft_limit = options.quota_soft
+        user.quota.soft_limit = options.quota_soft * (2**20)
     if options.quota_hard is not None:
-        user.quota.hard_limit = options.quota_hard
+        user.quota.hard_limit = options.quota_hard * (2**20)
 
 def delegation_options(user, options, server):
     for delegation in options.add_delegation:
