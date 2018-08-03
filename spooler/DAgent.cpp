@@ -2831,6 +2831,7 @@ static void *HandlerLMTP(void *lpArg)
 			if (lmtp.HrCommandLHLO(inBuffer, heloName) == hrSuccess) {
 				lmtp.HrResponse("250-SERVER ready"); 
 				lmtp.HrResponse("250-PIPELINING");
+				lmtp.HrResponse("250-8BITMIME");
 				lmtp.HrResponse("250-ENHANCEDSTATUSCODE");
 				lmtp.HrResponse("250 RSET");
 			} else {
