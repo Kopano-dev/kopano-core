@@ -1,3 +1,4 @@
+import glob
 import logging
 from logging.handlers import QueueHandler, QueueListener
 import multiprocessing
@@ -35,8 +36,7 @@ the respective WSGI app (rest, notify or metrics).
 
 """
 
-# TODO use kopano.Service
-
+PID_FILE = '/var/run/kopano/mfr.pid'
 SOCKET_PATH = '/var/run/kopano'
 WORKERS = 8
 METRICS_LISTEN = 'localhost:6060'
@@ -44,6 +44,27 @@ METRICS_LISTEN = 'localhost:6060'
 # metrics
 if PROMETHEUS:
     REQUEST_TIME = Summary('kopano_mfr_request_processing_seconds', 'Time spent processing request', ['method', 'endpoint'])
+
+# TODO use kopano.Service, for config file, pidfile, logging, restarting etc.
+def create_pidfile():
+    try:
+        with open(PID_FILE, 'r') as _file:
+            last_pid = int(_file.read())
+
+        # check if pid/name match
+        last_process_cmdline = '/proc/%d/cmdline' % last_pid
+        with open(last_process_cmdline, 'r') as _file:
+            cmdline = _file.read()
+            if 'kopano-mfr' in cmdline:
+                print('Kopano-mfr is already running..', file=sys.stderr)
+                sys.exit(-1)
+
+    except FileNotFoundError:
+        pass
+
+    with open(PID_FILE, 'w') as _file:
+        pid = str(os.getpid())
+        _file.write(pid)
 
 def opt_args():
     parser = optparse.OptionParser()
@@ -170,8 +191,16 @@ def logger_init():
 
 def main():
     options, args = opt_args()
+
     socket_path = options.socket_path or SOCKET_PATH
     nworkers = options.workers if options.workers is not None else WORKERS
+
+    create_pidfile()
+
+    for f in glob.glob(os.path.join(SOCKET_PATH, 'rest*.sock')):
+        os.unlink(f)
+    for f in glob.glob(os.path.join(SOCKET_PATH, 'notify*.sock')):
+        os.unlink(f)
 
     q_listener, q = logger_init()
     logging.info('starting kopano-mfr')
