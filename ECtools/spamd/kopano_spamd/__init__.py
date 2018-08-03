@@ -118,6 +118,8 @@ def main():
     parser = kopano.parser('ckpsFl')  # select common cmd-line options
     options = parser.parse_args()[0]
     service = Service('spamd', config=CONFIG, options=options)
+    if service.config['learn_ham'] == True and not os.path.exists(service.config['ham_dir']):
+        os.makedirs(service.config['ham_dir'])
     service.start()
 
 
