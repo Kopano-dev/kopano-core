@@ -192,6 +192,7 @@ extern _kc_export std::wstring string_strip_nuls(const std::wstring &);
 extern _kc_export std::string string_strip_crlf(const char *);
 extern _kc_export bool SymmetricIsCrypted(const char *);
 extern _kc_export std::string SymmetricDecrypt(const char *);
+extern _kc_export std::string content_type_get_charset(const char *in, const char *dflt);
 
 } /* namespace */
 
