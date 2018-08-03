@@ -21,12 +21,12 @@ public:
 	HRESULT HrResponse(const std::string &strResponse);
 
 	HRESULT HrCommandLHLO(const std::string &strInput, std::string & nameOut);
-	HRESULT HrCommandMAILFROM(const std::string &strFrom, std::string *const strAddress);
-	HRESULT HrCommandRCPTTO(const std::string &to_address, std::string *mail_address_unsolved);
+	HRESULT HrCommandMAILFROM(const std::string &buffer, std::string &addr);
+	HRESULT HrCommandRCPTTO(const std::string &buffer, std::string &addr_unsolved);
 	HRESULT HrCommandDATA(FILE *tmp);
 
 private:
-	HRESULT HrParseAddress(const std::string &strAddress, std::string *strEmail);
+	HRESULT HrParseAddress(const std::string &buffer, std::string &email);
 
 	KC::ECChannel *m_lpChannel;
 	KC::ECConfig *m_lpConfig;

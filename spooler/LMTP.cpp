@@ -105,8 +105,8 @@ HRESULT LMTP::HrCommandLHLO(const string &strInput, string & nameOut)
 
 /** 
  * Parse the received string for a valid MAIL FROM: command.
- * The correct syntax for the MAIL FROM is:
- *  MAIL FROM:<email@address.domain>
+ * The correct syntax for the MAIL FROM is (RFC 5321 §3.3):
+ *  "MAIL FROM:" <reverse-path> [ SP <mail-parameters> ] <CRLF>
  *
  * However, it's possible extra spaces are added in the string, and we
  * should correctly accept this to deliver the mail.
@@ -117,7 +117,7 @@ HRESULT LMTP::HrCommandLHLO(const string &strInput, string & nameOut)
  * @return MAPI error code
  * @retval MAPI_E_NOT_FOUND < or > character was not found: this is fatal.
  */
-HRESULT LMTP::HrCommandMAILFROM(const string &strFrom, std::string *const strAddress)
+HRESULT LMTP::HrCommandMAILFROM(const string &strFrom, std::string &strAddress)
 {
 	// strFrom is only checked for syntax
 	return HrParseAddress(strFrom, strAddress);
@@ -132,12 +132,13 @@ HRESULT LMTP::HrCommandMAILFROM(const string &strFrom, std::string *const strAdd
  * @return MAPI error code
  * @retval MAPI_E_NOT_FOUND < or > character was not found: this is fatal.
  */
-HRESULT LMTP::HrCommandRCPTTO(const string &strTo, string *strUnresolved)
+HRESULT LMTP::HrCommandRCPTTO(const std::string &strTo,
+    std::string &strUnresolved)
 {
 	HRESULT hr = HrParseAddress(strTo, strUnresolved);
 	if (hr == hrSuccess)
 		ec_log_debug("Resolved command \"%s\" to recipient address \"%s\"",
-			strTo.c_str(), strUnresolved->c_str());
+			strTo.c_str(), strUnresolved.c_str());
 	else
 		ec_log_err("Invalid recipient address in command \"%s\": %s (%x)",
 			strTo.c_str(), GetMAPIErrorMessage(hr), hr);
@@ -204,7 +205,8 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
  * @return MAPI error code
  * @retval MAPI_E_NOT_FOUND mandatory < or > not found in command.
  */
-HRESULT LMTP::HrParseAddress(const std::string &strInput, std::string *strAddress)
+HRESULT LMTP::HrParseAddress(const std::string &strInput,
+    std::string &strAddress)
 {
 	auto pos1 = strInput.find('<');
 	auto pos2 = strInput.find('>', pos1);
@@ -212,6 +214,6 @@ HRESULT LMTP::HrParseAddress(const std::string &strInput, std::string *strAddres
 		return MAPI_E_NOT_FOUND;
 	auto strAddr = strInput.substr(pos1 + 1, pos2 - pos1 - 1);
 	trim(strAddr);
-	*strAddress = std::move(strAddr);
+	strAddress = std::move(strAddr);
 	return hrSuccess;
 }
