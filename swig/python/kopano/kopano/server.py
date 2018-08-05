@@ -53,7 +53,6 @@ from .parser import parser
 from .table import Table
 from .company import Company
 from .group import Group
-from .property_ import _proptag_to_name
 from .query import _query_to_restriction
 
 from .compat import (
@@ -745,14 +744,6 @@ class Server(object):
             return self.user(HrGetOneProp(mailuser, PR_ACCOUNT_W).Value).email # XXX PR_SMTP_ADDRESS_W from mailuser?
         except (Error, MAPIErrorNotFound): # XXX deleted user
             return '' # XXX groups
-
-    def id_to_name(self, proptag):
-        """Give the name representation of an property id. For example 0x80710003 => 'task:33025'.
-
-        :param proptag: the property identifier
-        """
-
-        return _proptag_to_name(proptag, self.admin_store)
 
     def __unicode__(self):
         return u'Server(%s)' % self.server_socket
