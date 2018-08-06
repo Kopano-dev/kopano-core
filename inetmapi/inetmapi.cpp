@@ -77,6 +77,8 @@ static void InitializeVMime()
 		return;
 
 	vmime::generationContext::getDefaultContext().setWrapMessageId(false);
+	/* Sucky Outlook _still_ does not know RFC 2231. */
+	vmime::generationContext::getDefaultContext().setEncodedParameterValueMode(vmime::generationContext::EncodedParameterValueModes::PARAMETER_VALUE_RFC2231_AND_RFC2047);
 	// need to have a unique indentifier in the mediaType
 	vmime::textPartFactory::getInstance()->registerType<vmime::mapiTextPart>(vmime::mediaType(vmime::mediaTypes::TEXT, "mapi"));
 	// init our random engine for random message id generation
