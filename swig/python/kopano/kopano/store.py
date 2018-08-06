@@ -31,7 +31,7 @@ from MAPI.Tags import (
     PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME, IID_IExchangeModifyTable,
     PR_MAILBOX_OWNER_ENTRYID, PR_EC_STOREGUID, PR_EC_STORETYPE,
     PR_EC_USERNAME_W, PR_EC_COMPANY_NAME_W, PR_MESSAGE_CLASS_W,
-    PR_SUBJECT,
+    PR_SUBJECT_W,
     PR_WLINK_STORE_ENTRYID, PR_WLINK_ENTRYID,
     PR_EXTENDED_FOLDER_FLAGS, PR_WB_SF_ID, PR_FREEBUSY_ENTRYIDS,
     PR_SCHDINFO_DELEGATE_ENTRYIDS, PR_SCHDINFO_DELEGATE_NAMES_W,
@@ -62,7 +62,7 @@ from .restriction import Restriction
 from . import notification as _notification
 
 from .compat import (
-    encode as _encode, bdec as _bdec, benc as _benc
+    encode as _encode, bdec as _bdec, benc as _benc, fake_unicode as _unicode
 )
 
 if sys.hexversion >= 0x03000000:
@@ -473,8 +473,9 @@ class Store(Properties):
 
         :param name: The config item name
         """
+        name = _unicode(name)
         table = self.subtree.mapiobj.GetContentsTable(MAPI_DEFERRED_ERRORS | MAPI_ASSOCIATED)
-        table.Restrict(SPropertyRestriction(RELOP_EQ, PR_SUBJECT, SPropValue(PR_SUBJECT, name)), 0)
+        table.Restrict(SPropertyRestriction(RELOP_EQ, PR_SUBJECT_W, SPropValue(PR_SUBJECT_W, name)), 0)
         rows = table.QueryRows(1, 0)
         # No config item found, create new message
         if len(rows) == 0:
@@ -487,12 +488,12 @@ class Store(Properties):
     @property
     def last_logon(self):
         """Return :datetime Last logon of a user on this store."""
-        return self.prop(PR_LAST_LOGON_TIME).value or None
+        return self.get(PR_LAST_LOGON_TIME)
 
     @property
     def last_logoff(self):
         """Return :datetime of the last logoff of a user on this store."""
-        return self.prop(PR_LAST_LOGOFF_TIME).value or None
+        return self.get(PR_LAST_LOGOFF_TIME)
 
     @property
     def outofoffice(self):

@@ -625,7 +625,7 @@ class Item(Properties, Contact, Appointment):
             message_headers = self.prop(PR_TRANSPORT_MESSAGE_HEADERS)
             if sys.hexversion >= 0x03000000:
                 headers = email_parser.BytesParser().parsebytes(message_headers.value, headersonly=True)
-            else:
+            else: # pragma: no cover
                 headers = email_parser.Parser().parsestr(message_headers.value, headersonly=True)
             return headers
         except NotFoundError:
