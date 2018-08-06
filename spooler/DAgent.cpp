@@ -2833,7 +2833,7 @@ static void *HandlerLMTP(void *lpArg)
 
 		case LMTP_Command_MAIL_FROM:
 			// @todo, if this command is received a second time, repond: 503 5.5.1 Error: nested MAIL command
-			if (lmtp.HrCommandMAILFROM(inBuffer, &curFrom) != hrSuccess) {
+			if (lmtp.HrCommandMAILFROM(inBuffer, curFrom) != hrSuccess) {
 				lmtp.HrResponse("503 5.1.7 Bad sender's mailbox address syntax");
 				lpArgs->sc->countInc("DAgent::LMTP", "bad_sender_address");
 			}
@@ -2843,7 +2843,7 @@ static void *HandlerLMTP(void *lpArg)
 			break;
 
 		case LMTP_Command_RCPT_TO: {
-			if (lmtp.HrCommandRCPTTO(inBuffer, &strMailAddress) != hrSuccess) {
+			if (lmtp.HrCommandRCPTTO(inBuffer, strMailAddress) != hrSuccess) {
 				lmtp.HrResponse("503 5.1.3 Bad destination mailbox address syntax");
 				lpArgs->sc->countInc("DAgent::LMTP", "bad_recipient_address");
 				break;

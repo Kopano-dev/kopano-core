@@ -173,7 +173,7 @@ static ECRESULT main2(int argc, char **argv)
 	};
 
 	if (!forceUTF8Locale(true))
-		return hrSuccess;
+		return E_FAIL;
 
 	while(1) {
 		auto c = my_getopt_long_permissive(argc, argv, "c:h:iuFV", long_options, NULL);

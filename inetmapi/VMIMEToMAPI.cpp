@@ -2626,51 +2626,6 @@ void ignoreError(void *ctx, const char *msg, ...)
 }
 
 /**
- * Determine character set from a possibly broken Content-Type value.
- * @in:		string in the form of m{^text/foo\s*(;?\s*key=value)*}
- * @cset:	the default return value if no charset= is to be found
- *
- * Attempt to extract the character set parameter, e.g. from a HTML <meta> tag,
- * or from a Content-Type MIME header (though we do not use it for MIME headers
- * currently).
- */
-static std::string fix_content_type_charset(const char *in, const char *cset)
-{
-	const char *cset_end = cset + strlen(cset);
-
-	while (!isspace(*in) && *in != '\0')	/* skip type */
-		++in;
-	while (*in != '\0') {
-		while (isspace(*in))
-			++in; /* skip possible whitespace before ';' */
-		if (*in == ';') {
-			++in;
-			while (isspace(*in))	/* skip WS after ';' */
-				++in;
-		}
-		if (strncasecmp(in, "charset=", 8) == 0) {
-			in += 8;
-			if (*in == '"') {
-				cset = ++in;
-				while (*in != '\0' && *in != '"')
-					++in;
-				cset_end = in;
-			} else {
-				cset = in;
-				while (!isspace(*in) && *in != ';' && *in != '\0')
-					++in;	/* skip value */
-				cset_end = in;
-			}
-			continue;
-			/* continue parsing for more charset= values */
-		}
-		while (!isspace(*in) && *in != ';' && *in != '\0')
-			++in;
-	}
-	return std::string(cset, cset_end - cset);
-}
-
-/**
  * Find alternate backup character set declaration
  *
  * @strHTML:		input MIME body part (HTML document)
@@ -2739,7 +2694,7 @@ int VMIMEToMAPI::getCharsetFromHTML(const string &strHTML, vmime::charset *htmlC
 			lpValue = xmlGetProp(lpNode, (const xmlChar*)"content");
 			if (lpValue) {
 				ec_log_debug("HTML4 meta tag found: charset=\"%s\"", lpValue);
-				charset = fix_content_type_charset(reinterpret_cast<const char *>(lpValue), "");
+				charset = content_type_get_charset(reinterpret_cast<const char *>(lpValue), "");
 			}
 			break;
 		}
