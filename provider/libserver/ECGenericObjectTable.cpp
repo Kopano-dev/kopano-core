@@ -199,9 +199,9 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *rt,
 	    rt->lpProp->lpProp->Value.bin && rt->lpProp->lpProp->Value.bin->__size == sizeof(unsigned int) * 2)
 	{
 		uint32_t tmp4;
-		memcpy(&tmp4, lpsRestrict->lpProp->lpProp->Value.bin->__ptr, sizeof(tmp4));
+		memcpy(&tmp4, rt->lpProp->lpProp->Value.bin->__ptr, sizeof(tmp4));
 		sRowItem.ulObjId = le32_to_cpu(tmp4);
-		memcpy(&tmp4, lpsRestrict->lpProp->lpProp->Value.bin->__ptr + sizeof(tmp4), sizeof(tmp4));
+		memcpy(&tmp4, rt->lpProp->lpProp->Value.bin->__ptr + sizeof(tmp4), sizeof(tmp4));
 		sRowItem.ulOrderId = le32_to_cpu(tmp4);
 		return lpKeyTable->SeekId(&sRowItem);
 	}
