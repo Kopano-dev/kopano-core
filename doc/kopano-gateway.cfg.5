@@ -261,17 +261,20 @@ The path with the files to verify the clients certificates with.
 Default: value not set.
 .SS ssl_protocols
 .PP
-Disabled or enabled protocol names. Supported protocol names depend on the
-system's SSL library; depending on version, one or more of the following are
-available: \fBTLSv1.3\fP, \fBTLSv1.2\fP, \fBTLSv1.1\fP, \fBSSLv3\fP,
-\fBSSLv2\fP. To disable a protocol, prefix the name with an exclamation mark.
+A space-separated list of disabled or enabled protocol names.
+Supported protocol names depend on the system's SSL library;
+depending on version, one or more of the following are available:
+\fBTLSv1.3\fP, \fBTLSv1.2\fP, \fBTLSv1.1\fP, \fBSSLv3\fP,
+\fBSSLv2\fP. To disable a protocol, prefix the name with an
+exclamation mark.
 .PP
 Default: \fISSLv2\fP
 .SS ssl_ciphers
 .PP
-SSL ciphers to use, set to
-\fIALL\fR
-for backward compatibility. See ciphers(1) for details.
+A colon-separated list of disabled or enabled SSL/TLS ciphers. Supported cipher
+names depend on the system's SSL library, and are generally plentiful. To
+disable a cipher or cipher group, prefix the name with a minus or exclamation
+mark. Details and meaning of the syntax are described in ciphers(1).
 .PP
 Default:
 \fIDEFAULT:!LOW:!SSLv2:!EXP:!aNULL\fP
