@@ -316,6 +316,8 @@ class Store(Properties):
 
     def _extract_ipm_ol2007_entryid(self, offset):
         # Extracts entryids from PR_IPM_OL2007_ENTRYIDS blob using logic from common/Util.cpp Util::ExtractAdditionalRenEntryID
+        if not self.inbox:
+            raise NotFoundError('no inbox')
         blob = self.inbox.prop(PR_IPM_OL2007_ENTRYIDS).value
         pos = 0
         while True:
