@@ -344,7 +344,7 @@ int main(int argc, char *argv[]) {
 		{"ssl_verify_file", "", CONFIGSETTING_RELOADABLE},
 		{"ssl_verify_path", "", CONFIGSETTING_RELOADABLE},
 		{"ssl_protocols", "!SSLv2", CONFIGSETTING_RELOADABLE},
-		{"ssl_ciphers", "ALL:!LOW:!SSLv2:!EXP:!aNULL", CONFIGSETTING_RELOADABLE},
+		{"ssl_ciphers", KC_DEFAULT_CIPHERLIST, CONFIGSETTING_RELOADABLE},
 		{"ssl_prefer_server_ciphers", "no", CONFIGSETTING_RELOADABLE},
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},
 		{"log_file", ""},
