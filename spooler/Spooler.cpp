@@ -80,6 +80,12 @@ using std::map;
 using std::string;
 using std::wstring;
 
+enum {
+	SPC_EXITED,
+	SPC_SIGNALED,
+	SPC_ABNORMAL,
+};
+
 static std::unique_ptr<StatsClient> sc;
 
 // spooler exit codes
@@ -113,7 +119,7 @@ static map<pid_t, int> mapFinished;	// exit status of finished processes
 static std::mutex hMutexFinished; /* mutex for mapFinished */
 
 static HRESULT running_server(const char *szSMTP, int port, const char *szPath);
-static HRESULT handle_child_exit(IMAPISession *, IECSpooler *, StatsClient *, pid_t, unsigned int, const SendData &);
+static HRESULT handle_child_exit(IMAPISession *, IECSpooler *, StatsClient *, pid_t, unsigned int, unsigned int, const SendData &);
 
 /**
  * Print command line options, only for daemon version, not for mailer fork process
@@ -346,23 +352,25 @@ static void CleanFinishedMessages(IMAPISession *lpAdminSession,
 			/* not a mail worker subprocess */
 			continue;
 		/* Find exit status, and decide to remove mail from queue or not */
-		handle_child_exit(lpAdminSession, lpSpooler, sc.get(), i.first, i.second, sdi->second);
+		auto mode = WIFEXITED(i.second) ? SPC_EXITED : WIFSIGNALED(i.second) ? SPC_SIGNALED : SPC_ABNORMAL;
+		auto value = WIFEXITED(i.second) ? WEXITSTATUS(i.second) : WIFSIGNALED(i.second) ? WTERMSIG(i.second) : 0;
+		handle_child_exit(lpAdminSession, lpSpooler, sc.get(), i.first, mode, value, sdi->second);
 		mapSendData.erase(i.first);
 	}
 }
 
 static HRESULT handle_child_exit(IMAPISession *lpAdminSession,
-    IECSpooler *lpSpooler, StatsClient *sc, pid_t pid, unsigned int status,
-    const SendData &sSendData)
+    IECSpooler *lpSpooler, StatsClient *sc, pid_t pid, unsigned int mode,
+    unsigned int status, const SendData &sSendData)
 {
 	bool wasSent = false, bErrorMail = false;
 
-	if (WIFEXITED(status)) { /* Child exited by itself */
-		if (WEXITSTATUS(status) == EXIT_WAIT) {
+	if (mode == SPC_EXITED) {
+		if (status == EXIT_WAIT) {
 			// timed message, try again later
 			ec_log_info("Message for user %ls will be tried again later", sSendData.strUsername.c_str());
 			sc->countInc("Spooler", "exit_wait");
-		} else if (WEXITSTATUS(status) == EXIT_SUCCESS || WEXITSTATUS(status) == EXIT_FAILURE) {
+		} else if (status == EXIT_SUCCESS || status == EXIT_FAILURE) {
 			// message was sent, or the user already received an error mail.
 			ec_log_info("Processed message for user %ls", sSendData.strUsername.c_str());
 			wasSent = true;
@@ -371,9 +379,9 @@ static HRESULT handle_child_exit(IMAPISession *lpAdminSession,
 			bErrorMail = true;
 			ec_log_warn("Failed message for user %ls will be removed from queue, error 0x%x", sSendData.strUsername.c_str(), status);
 		}
-	} else if (WIFSIGNALED(status)) { /* Child was killed by a signal */
+	} else if (mode == SPC_SIGNALED) {
 		bErrorMail = true;
-		ec_log_notice("Spooler process %d was killed by signal %d", pid, WTERMSIG(status));
+		ec_log_notice("Spooler process %d was killed by signal %d", pid, status);
 		ec_log_warn("Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
 		sc->countInc("Spooler", "sig_killed");
 	} else { /* Something strange happened */
