@@ -240,17 +240,20 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	argv[argc] = nullptr;
 	std::vector<std::string> cmd{argv, argv + argc};
 	ec_log_debug("Executing \"%s\"", kc_join(cmd, "\" \"").c_str());
-
+	/*
+	 * Due to inclusion of the Python interpreter with global state (as it
+	 * is being said), it is not possible to thread; separate processes are
+	 * required.
+	 */
 	pid = vfork();
 	if (pid < 0) {
 		ec_log_crit(string("Unable to start new spooler process: ") + strerror(errno));
 		return MAPI_E_CALL_FAILED;
 	}
 	/*
-	 * We execute because of all the MAPI memory in use would be duplicated
-	 * in the child, and there will not be a nice way to clean it all up
-	 * (that is fixable though). Moreover, due to inclusion of the Python
-	 * interpreter with global state (as it is being said), we cannot thread.
+	 * We must exec. spooler still has the IMAPISession object alive in the
+	 * caller, and that destructor must not be called now, since the actual
+	 * socket connection/fd remains shared between children.
 	 */
 	if (pid == 0) {
 		execvp(argv[0], const_cast<char *const *>(argv));
