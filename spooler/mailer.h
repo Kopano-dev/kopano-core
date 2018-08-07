@@ -11,6 +11,6 @@
 #include <kopano/ECDefs.h>
 
 extern HRESULT SendUndeliverable(KC::ECSender *, IMsgStore *, IMessage *);
-HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP, int ulPort, const char *szPath, ULONG cbMsgEntryId, LPENTRYID lpMsgEntryId, bool bDoSentMail);
+extern HRESULT ProcessMessageForked(const wchar_t *user, const char *smtp_host, int smtp_port, const char *path, unsigned int eid_size, const ENTRYID *msg_eid, bool do_sentmail);
 
 #endif

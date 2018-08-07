@@ -1125,8 +1125,8 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
  * @return		HRESULT
  */
 static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
-    LPENTRYID lpOwnerEID, ULONG ulDistListCB, LPENTRYID lpDistListEID,
-    ULONG *lpulCmp, int level = 0)
+    const ENTRYID *lpOwnerEID, unsigned int ulDistListCB,
+    const ENTRYID *lpDistListEID, unsigned int *lpulCmp, int level = 0)
 {
 	ULONG ulCmp = 0;
 	ULONG ulObjType = 0;
@@ -1193,7 +1193,7 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
  */
 static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
     IMsgStore *lpUserStore, IMAPISession *lpAdminSession, ULONG ulRepresentCB,
-    LPENTRYID lpRepresentEID, LPMDB *lppRepStore)
+    const ENTRYID *lpRepresentEID, IMsgStore **lppRepStore)
 {
 	ULONG ulObjType = 0;
 	object_ptr<IMAPIProp> lpRepresenting;
@@ -1259,7 +1259,7 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
  */
 static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
     const wchar_t *lpszMailer, IAddrBook *lpAddrBook, ULONG ulOwnerCB,
-    LPENTRYID lpOwnerEID, ULONG cValues, SBinary *lpEntryIDs,
+    const ENTRYID *lpOwnerEID, unsigned int cValues, SBinary *lpEntryIDs,
     ULONG *lpulObjType, bool *lpbAllowed)
 {
 	HRESULT hr = hrSuccess;
@@ -1311,8 +1311,8 @@ static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
  */
 static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
     IMAPISession *lpAdminSession, ECSender *lpMailer, ULONG ulOwnerCB,
-    LPENTRYID lpOwnerEID, ULONG ulRepresentCB, LPENTRYID lpRepresentEID,
-    bool *lpbAllowed, LPMDB *lppRepStore)
+    const ENTRYID *lpOwnerEID, unsigned int ulRepresentCB,
+    const ENTRYID *lpRepresentEID, bool *lpbAllowed, IMsgStore **lppRepStore)
 {
 	bool bAllowed = false;
 	bool bHasStore = false;
@@ -1429,9 +1429,9 @@ exit:
  * @retval		hrSuccess, always returned, actual return value in lpbAllowed.
  */
 static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
-    IMAPISession *lpAdminSession, ULONG ulOwnerCB, LPENTRYID lpOwnerEID,
-    ULONG ulRepresentCB, LPENTRYID lpRepresentEID, bool *lpbAllowed,
-    LPMDB *lppRepStore)
+    IMAPISession *lpAdminSession, unsigned int ulOwnerCB,
+    const ENTRYID *lpOwnerEID, unsigned int ulRepresentCB,
+    const ENTRYID *lpRepresentEID, bool *lpbAllowed, IMsgStore **lppRepStore)
 {
 	bool bAllowed = false;
 	ULONG ulObjType;
@@ -1653,7 +1653,7 @@ static void lograw1(IMAPISession *ses, IAddrBook *ab, IMessage *msg,
 static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
     IMAPISession *lpUserSession, IECServiceAdmin *lpServiceAdmin,
     IECSecurity *lpSecurity, IMsgStore *lpUserStore, IAddrBook *lpAddrBook,
-    ECSender *lpMailer, ULONG cbMsgEntryId, LPENTRYID lpMsgEntryId,
+    ECSender *lpMailer, unsigned int cbMsgEntryId, const ENTRYID *lpMsgEntryId,
     IMessage **lppMessage, bool &doSentMail)
 {
 	object_ptr<IMessage> lpMessage;
@@ -1730,7 +1730,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	}
 
 	// open the message we need to send
-	hr = lpUserStore->OpenEntry(cbMsgEntryId, reinterpret_cast<ENTRYID *>(lpMsgEntryId), &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
+	hr = lpUserStore->OpenEntry(cbMsgEntryId, reinterpret_cast<const ENTRYID *>(lpMsgEntryId),
+	     &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if (hr != hrSuccess) {
 		ec_log_err("Could not open message in store from user %ls: %s (%x)",
 			lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
@@ -2084,8 +2085,8 @@ exit:
  * @return		HRESULT
  */
 HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
-    int ulPort, const char *szPath, ULONG cbMsgEntryId, LPENTRYID lpMsgEntryId,
-    bool bDoSentMail)
+    int ulPort, const char *szPath, unsigned int cbMsgEntryId,
+    const ENTRYID *lpMsgEntryId, bool bDoSentMail)
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<IMAPISession> lpAdminSession, lpUserSession;
