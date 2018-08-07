@@ -325,15 +325,14 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
  * @param[in]	lpSpooler		IECSpooler object
  * @return		HRESULT
  */
-static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
+static void CleanFinishedMessages(IMAPISession *lpAdminSession,
     IECSpooler *lpSpooler)
 {
-	HRESULT hr = hrSuccess;
 	int status;
 	std::unique_lock<std::mutex> lock(hMutexFinished);
 
 	if (mapFinished.empty())
-		return hr;
+		return;
 
 	// copy map contents and clear it, so hMutexFinished can be unlocked again asap
 	auto finished = std::move(mapFinished);
@@ -349,10 +348,9 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 			continue;
 		/* Find exit status, and decide to remove mail from queue or not */
 		status = i.second;
-		hr = handle_child_exit(lpAdminSession, lpSpooler, sc.get(), i.first, status, sdi->second);
+		handle_child_exit(lpAdminSession, lpSpooler, sc.get(), i.first, status, sdi->second);
 		mapSendData.erase(i.first);
 	}
-	return hr;
 }
 
 static HRESULT handle_child_exit(IMAPISession *lpAdminSession,
