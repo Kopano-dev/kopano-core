@@ -32,7 +32,6 @@
 #include <kopano/CommonUtil.h>
 #include "SSLUtil.h"
 #include "fileutil.h"
-#include <execinfo.h>
 #include <kopano/UnixUtil.h>
 #include <unicode/uclean.h>
 #include <openssl/ssl.h>
@@ -130,7 +129,7 @@ int main(int argc, char **argv) {
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/ical.pid" },
-		{"running_path", "/var/lib/kopano/empty"},
+		{"running_path", "/var/lib/kopano/empty", CONFIGSETTING_OBSOLETE},
 		{ "process_model", "thread" },
 		{ "server_bind", "" },
 		{"coredump_enabled", "systemdefault"},

@@ -108,7 +108,6 @@
 #include <csignal>
 #include "SSLUtil.h"
 #include "StatsClient.h"
-#include <execinfo.h>
 
 using namespace KC;
 using namespace KC::string_literals;
