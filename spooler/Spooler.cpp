@@ -135,26 +135,6 @@ static void print_help(const char *name)
 }
 
 /**
- * Encode a wide string in UTF-8 and output it in hexadecimal.
- * @param[in]	lpszW	The wide string to encode
- * @return				The encoded string.
- */
-static string encodestring(const wchar_t *lpszW) {
-	const utf8string u8 = convstring(lpszW);
-	return bin2hex(u8.size(), u8.c_str());
-}
-
-/**
- * Decode a string previously encoded with encodestring.
- * @param[in]	lpszA	The string containing the hexadecimal
- * 						representation of the UTF-8 encoded string.
- * @return				The original wide string.
- */
-static wstring decodestring(const char *lpszA) {
-	return convert_to<std::wstring>(utf8string::from_string(hex2bin(lpszA)));
-}
-
-/**
  * Notification callback will be called about new messages in the
  * queue. Since this will happen from a different thread, we'll need
  * to use a mutex.
@@ -242,7 +222,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	auto eidhex = bin2hex(cbMsgEntryId, lpMsgEntryId);
 	argv[argc++] = "--send-message-entryid";
 	argv[argc++] = eidhex.c_str();
-	auto encuser = encodestring(szUsername);
+	auto encuser = convert_to<std::string>("UTF-8", szUsername, rawsize(szUsername), CHARSET_WCHAR);
 	argv[argc++] = "--send-username-enc";
 	argv[argc++] = encuser.c_str();
 	auto logfd = stringify(g_lpLogger->GetFileDescriptor());
@@ -953,7 +933,7 @@ int main(int argc, char *argv[]) {
 			break;
 		case OPT_SEND_USERNAME:
 			bForked = true;
-			strUsername = decodestring(optarg);
+			strUsername = convert_to<std::wstring>(optarg, rawsize(optarg), "UTF-8");
 			break;
 		case OPT_LOGFD:
 			logfd = atoi(optarg);
