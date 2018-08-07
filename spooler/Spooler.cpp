@@ -328,7 +328,6 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 static void CleanFinishedMessages(IMAPISession *lpAdminSession,
     IECSpooler *lpSpooler)
 {
-	int status;
 	std::unique_lock<std::mutex> lock(hMutexFinished);
 
 	if (mapFinished.empty())
@@ -347,8 +346,7 @@ static void CleanFinishedMessages(IMAPISession *lpAdminSession,
 			/* not a mail worker subprocess */
 			continue;
 		/* Find exit status, and decide to remove mail from queue or not */
-		status = i.second;
-		handle_child_exit(lpAdminSession, lpSpooler, sc.get(), i.first, status, sdi->second);
+		handle_child_exit(lpAdminSession, lpSpooler, sc.get(), i.first, i.second, sdi->second);
 		mapSendData.erase(i.first);
 	}
 }
@@ -364,25 +362,21 @@ static HRESULT handle_child_exit(IMAPISession *lpAdminSession,
 			// timed message, try again later
 			ec_log_info("Message for user %ls will be tried again later", sSendData.strUsername.c_str());
 			sc->countInc("Spooler", "exit_wait");
-		}
-		else if (WEXITSTATUS(status) == EXIT_SUCCESS || WEXITSTATUS(status) == EXIT_FAILURE) {
+		} else if (WEXITSTATUS(status) == EXIT_SUCCESS || WEXITSTATUS(status) == EXIT_FAILURE) {
 			// message was sent, or the user already received an error mail.
 			ec_log_info("Processed message for user %ls", sSendData.strUsername.c_str());
 			wasSent = true;
-		}
-		else {
+		} else {
 			// message was not sent, and could not be removed from queue. Notify user also.
 			bErrorMail = true;
 			ec_log_warn("Failed message for user %ls will be removed from queue, error 0x%x", sSendData.strUsername.c_str(), status);
 		}
-	}
-	else if (WIFSIGNALED(status)) { /* Child was killed by a signal */
+	} else if (WIFSIGNALED(status)) { /* Child was killed by a signal */
 		bErrorMail = true;
 		ec_log_notice("Spooler process %d was killed by signal %d", pid, WTERMSIG(status));
 		ec_log_warn("Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
 		sc->countInc("Spooler", "sig_killed");
-	}
-	else { /* Something strange happened */
+	} else { /* Something strange happened */
 		bErrorMail = true;
 		ec_log_notice("Spooler process %d terminated abnormally", pid);
 		ec_log_warn("Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
@@ -400,9 +394,7 @@ static HRESULT handle_child_exit(IMAPISession *lpAdminSession,
 	object_ptr<IMessage> lpMessage;
 	object_ptr<IAddrBook> lpAddrBook;
 	std::unique_ptr<ECSender> lpMailer;
-	HRESULT hr;
-
-	hr = GetErrorObjects(sSendData, lpAdminSession, &~lpAddrBook, &unique_tie(lpMailer), &~lpUserStore, &~lpMessage);
+	auto hr = GetErrorObjects(sSendData, lpAdminSession, &~lpAddrBook, &unique_tie(lpMailer), &~lpUserStore, &~lpMessage);
 	if (hr == hrSuccess) {
 		lpMailer->setError(_("A fatal error occurred while processing your message, and Kopano is unable to send your email."));
 		hr = SendUndeliverable(lpMailer.get(), lpUserStore, lpMessage);
