@@ -1077,6 +1077,7 @@ class Item(Properties, Contact, Appointment):
 
     def _dump(self, attachments=True, archiver=True, skip_broken=False, _main_item=None):
         _main_item = _main_item or self
+        log = self.server.log
 
         # props
         props = []
@@ -1130,20 +1131,13 @@ class Item(Properties, Contact, Appointment):
                     try:
                         data = _utils.stream(att, PR_ATTACH_DATA_BIN)
                     except MAPIErrorNotFound:
-                        service = self.server.service
-                        log = (service or self.server).log
-                        if log:
-                            log.warn("no data found for attachment of item with entryid %s" % _main_item.entryid)
+                        log.warn("no data found for attachment of item with entryid %s" % _main_item.entryid)
                         data = ''
                     atts.append(([[a, b, None] for a, b in row.items()], data))
             except Exception as e: # XXX generalize so usable in more places
-                service = self.server.service
-                log = (service or self.server).log
-                if log:
-                    log.error('could not serialize attachment for item with entryid %s' % _main_item.entryid)
+                log.error('could not serialize attachment for item with entryid %s' % _main_item.entryid)
                 if skip_broken:
-                    if log:
-                        log.error(traceback.format_exc(e))
+                    log.error(traceback.format_exc())
                     if service and service.stats:
                         service.stats['errors'] += 1
                 else:

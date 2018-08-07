@@ -777,7 +777,7 @@ class Folder(Properties):
         if state is None:
             state = _benc(8 * b'\0')
         importer.store = self.store
-        return _ics.sync(self.store.server, self.mapiobj, importer, state, log, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
+        return _ics.sync(self.store.server, self.mapiobj, importer, state, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
 
     def hierarchy_sync(self, importer, state=None):
         if state is None:

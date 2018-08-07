@@ -63,9 +63,12 @@ else: # pragma: no cover
     import user as _user
 
 class TrackingHierarchyImporter(ECImportHierarchyChanges):
-    def __init__(self, server, importer, log, stats):
+    def __init__(self, server, importer, stats):
         ECImportHierarchyChanges.__init__(self, [IID_IExchangeImportHierarchyChanges, IID_IECImportHierarchyChanges])
+        self.server = server
+        self.log = server.log
         self.importer = importer
+        self.stats = stats
 
     def ImportFolderChange(self, props):
         if hasattr(self.importer, 'update'):
@@ -84,11 +87,11 @@ class TrackingHierarchyImporter(ECImportHierarchyChanges):
         pass
 
 class TrackingContentsImporter(ECImportContentsChanges):
-    def __init__(self, server, importer, log, stats):
+    def __init__(self, server, importer, stats):
         ECImportContentsChanges.__init__(self, [IID_IExchangeImportContentsChanges, IID_IECImportContentsChanges])
         self.server = server
+        self.log = server.log
         self.importer = importer
-        self.log = log
         self.stats = stats
         self.skip = False
 
@@ -117,14 +120,10 @@ class TrackingContentsImporter(ECImportContentsChanges):
                 if hasattr(self.importer, 'update'):
                     self.importer.update(item, flags)
             except (MAPIErrorNotFound, MAPIErrorNoAccess): # XXX, mail already deleted, can we do this in a cleaner way?
-                if self.log:
-                    self.log.debug('received change for entryid %s, but it could not be opened', _benc(entryid.Value))
+                self.log.debug('received change for entryid %s, but it could not be opened', _benc(entryid.Value))
         except Exception:
-            if self.log:
-                self.log.error('could not process change for entryid %s (%r):', _benc(entryid.Value), props)
-                self.log.error(traceback.format_exc())
-            else:
-                traceback.print_exc()
+            self.log.error('could not process change for entryid %s (%r):', _benc(entryid.Value), props)
+            self.log.error(traceback.format_exc())
             if self.stats:
                 self.stats['errors'] += 1
         raise MAPIError(SYNC_E_IGNORE)
@@ -140,11 +139,8 @@ class TrackingContentsImporter(ECImportContentsChanges):
                 if hasattr(self.importer, 'delete'):
                     self.importer.delete(item, flags)
         except Exception:
-            if self.log:
-                self.log.error('could not process delete for entries: %s', [_benc(entry) for entry in entries])
-                self.log.error(traceback.format_exc())
-            else:
-                traceback.print_exc()
+            self.log.error('could not process delete for entries: %s', [_benc(entry) for entry in entries])
+            self.log.error(traceback.format_exc())
             if self.stats:
                 self.stats['errors'] += 1
 
@@ -188,8 +184,8 @@ def state(mapiobj, associated=False):
     stream.Seek(0, STREAM_SEEK_SET)
     return _benc(stream.Read(0xFFFFF))
 
-def hierarchy_sync(server, syncobj, importer, state, log=None, stats=None):
-    importer = TrackingHierarchyImporter(server, importer, log, stats)
+def hierarchy_sync(server, syncobj, importer, state, stats=None):
+    importer = TrackingHierarchyImporter(server, importer, stats)
     exporter = syncobj.OpenProperty(PR_HIERARCHY_SYNCHRONIZER, IID_IExchangeExportChanges, 0, 0)
 
     stream = IStream()
@@ -210,8 +206,10 @@ def hierarchy_sync(server, syncobj, importer, state, log=None, stats=None):
     stream.Seek(0, STREAM_SEEK_SET)
     return _benc(stream.Read(0xFFFFF))
 
-def sync(server, syncobj, importer, state, log, max_changes, associated=False, window=None, begin=None, end=None, stats=None):
-    importer = TrackingContentsImporter(server, importer, log, stats)
+def sync(server, syncobj, importer, state, max_changes, associated=False, window=None, begin=None, end=None, stats=None):
+    log = server.log
+
+    importer = TrackingContentsImporter(server, importer, stats)
     exporter = syncobj.OpenProperty(PR_CONTENTS_SYNCHRONIZER, IID_IExchangeExportChanges, 0, 0)
 
     stream = IStream()
@@ -243,8 +241,7 @@ def sync(server, syncobj, importer, state, log, max_changes, associated=False, w
     try:
         exporter.Config(stream, flags, importer, restriction, None, None, 0)
     except MAPIErrorNotFound: # syncid purged because of 'sync_lifetime' option in server.cfg: get new syncid.
-        if log:
-            log.warn("Sync state does not exist on server (anymore); requesting new one")
+        log.warn("Sync state does not exist on server (anymore); requesting new one")
 
         syncid, changeid = struct.unpack('<II', _bdec(state))
         stream = IStream()
@@ -270,8 +267,7 @@ def sync(server, syncobj, importer, state, log, max_changes, associated=False, w
                 break
 
         except MAPIError as e:
-            if log:
-                log.warn("Received a MAPI error or timeout (error=0x%x, retry=%d/5)", e.hr, retry)
+            log.warn("Received a MAPI error or timeout (error=0x%x, retry=%d/5)", e.hr, retry)
 
             time.sleep(sleep_time)
 
@@ -281,8 +277,7 @@ def sync(server, syncobj, importer, state, log, max_changes, associated=False, w
             if retry < 5:
                 retry += 1
             else:
-                if log:
-                    log.error("Too many retries, skipping change")
+                log.error("Too many retries, skipping change")
                 if stats:
                     stats['errors'] += 1
 
