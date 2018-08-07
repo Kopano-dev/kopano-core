@@ -15,6 +15,19 @@ import sys
 import threading
 import traceback
 
+FMT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
+def _kopano_logger():
+    log = logging.getLogger('kopano')
+    log.setLevel(logging.WARNING)
+    fh = logging.StreamHandler(sys.stderr)
+    log.addHandler(fh)
+    formatter = logging.Formatter(FMT)
+    fh.setFormatter(formatter)
+    return log
+
+LOG = _kopano_logger()
+
 def _loglevel(options, config):
     if options and getattr(options, 'loglevel', None):
         log_level = options.loglevel
@@ -41,8 +54,7 @@ def logger(service, options=None, stdout=False, config=None, name=''):
     logger = logging.getLogger(name or service)
     if logger.handlers:
         return logger
-    fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    formatter = logging.Formatter(fmt)
+    formatter = logging.Formatter(FMT)
     log_method = 'file'
     log_file = '/var/log/kopano/%s.log' % service
     if config:
