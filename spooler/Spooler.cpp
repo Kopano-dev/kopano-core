@@ -357,8 +357,6 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 		bErrorMail = false;
 
 		bool wasSent = false;
-
-#ifdef WEXITSTATUS
 		if(WIFEXITED(status)) {					/* Child exited by itself */
 			if (WEXITSTATUS(status) == EXIT_WAIT) {
 				// timed message, try again later
@@ -388,13 +386,6 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 			ec_log_warn("Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
 			sc -> countInc("Spooler", "abnormal_terminate");
 		}
-#else
-		if (status) {
-			bErrorMail = true;
-			ec_log_err("Spooler process %d exited with status %d", i.first, status);
-		}
-#endif
-
 		if (wasSent)
 			sc -> countInc("Spooler", "sent");
 		else if (bErrorMail)
