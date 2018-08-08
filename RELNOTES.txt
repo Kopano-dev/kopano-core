@@ -25,6 +25,14 @@ Packaging changes:
   for a default install to function.
 
 
+8.6.x
+=====
+* dagent: advertise 8BITMIME/RFC6152 support [KS-41452]
+* gateway, spooler: (re-)activate RFC 2047 header generation
+  (Outlook is still unable to read the RFC 2231 headers that
+  are generated normally) [KC-1226]
+
+
 8.6.6 (2018-07-31)
 ==================
 Fixes:
