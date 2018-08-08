@@ -104,10 +104,7 @@ static std::condition_variable hCondMessagesWaiting;
 
 // messages being processed
 struct SendData {
-	ULONG cbStoreEntryId;
-	BYTE* lpStoreEntryId;
-	ULONG cbMessageEntryId;
-	BYTE* lpMessageEntryId;
+	std::string store_eid, msg_eid;
 	ULONG ulFlags;
 	wstring strUsername;
 };
@@ -202,14 +199,8 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	std::string strPort = stringify(ulSMTPPort);
 
 	// place pid with entryid copy in map
-	sSendData.cbStoreEntryId = cbStoreEntryId;
-	auto hr = KAllocCopy(lpStoreEntryId, cbStoreEntryId, reinterpret_cast<void **>(&sSendData.lpStoreEntryId));
-	if (hr != hrSuccess)
-		return kc_perrorf("MAPIAllocateBuffer failed(1)", hr);
-	sSendData.cbMessageEntryId = cbMsgEntryId;
-	hr = KAllocCopy(lpMsgEntryId, cbMsgEntryId, reinterpret_cast<void **>(&sSendData.lpMessageEntryId));
-	if (hr != hrSuccess)
-		return kc_perror("MAPIAllocateBuffer failed(2)", hr);
+	sSendData.store_eid.assign(reinterpret_cast<const char *>(lpStoreEntryId), cbStoreEntryId);
+	sSendData.msg_eid.assign(reinterpret_cast<const char *>(lpMsgEntryId), cbMsgEntryId);
 	sSendData.ulFlags = ulFlags;
 	sSendData.strUsername = szUsername;
 
@@ -307,13 +298,18 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 	}
 
 	if (*lppUserStore == NULL) {
-		auto hr = lpAdminSession->OpenMsgStore(0, sSendData.cbStoreEntryId, reinterpret_cast<ENTRYID *>(sSendData.lpStoreEntryId), nullptr, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, lppUserStore);
+		auto hr = lpAdminSession->OpenMsgStore(0, sSendData.store_eid.size(),
+		          reinterpret_cast<const ENTRYID *>(sSendData.store_eid.data()),
+		          nullptr, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, lppUserStore);
 		if (hr != hrSuccess)
 			return kc_perror("Unable to open store of user for error mail (skipping)", hr);
 	}
 
 	if (*lppMessage == NULL) {
-		auto hr = (*lppUserStore)->OpenEntry(sSendData.cbMessageEntryId, reinterpret_cast<ENTRYID *>(sSendData.lpMessageEntryId), &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<IUnknown **>(lppMessage));
+		auto hr = (*lppUserStore)->OpenEntry(sSendData.msg_eid.size(),
+		          reinterpret_cast<const ENTRYID *>(sSendData.msg_eid.data()),
+		          &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType,
+		          reinterpret_cast<IUnknown **>(lppMessage));
 		if (hr != hrSuccess)
 			return kc_perror("Unable to open message of user for error mail (skipping)", hr);
 	}
@@ -420,7 +416,8 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 					sSendData.strUsername.c_str(), GetMAPIErrorMessage(hr), hr);
 
 			// remove mail from queue
-			hr = lpSpooler->DeleteFromMasterOutgoingTable(sSendData.cbMessageEntryId, (LPENTRYID)sSendData.lpMessageEntryId, sSendData.ulFlags);
+			hr = lpSpooler->DeleteFromMasterOutgoingTable(sSendData.msg_eid.size(),
+			     reinterpret_cast<const ENTRYID *>(sSendData.msg_eid.data()), sSendData.ulFlags);
 			if (hr != hrSuccess)
 				kc_pwarn("Could not remove invalid message from queue", hr);
 			// move mail to sent items folder
@@ -430,9 +427,6 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 					kc_perror("Unable to move sent mail to Sent Items folder", hr);
 			}
 		}
-
-		MAPIFreeBuffer(sSendData.lpStoreEntryId);
-		MAPIFreeBuffer(sSendData.lpMessageEntryId);
 		mapSendData.erase(i.first);
 	}
 	return hr;
@@ -530,8 +524,8 @@ static HRESULT ProcessAllEntries2(IMAPISession *lpAdminSession,
 		// Check if there is already an active process for this message
 		bool bMatch = false;
 		for (const auto &i : mapSendData)
-			if (i.second.cbMessageEntryId == lpsRowSet[0].lpProps[2].Value.bin.cb &&
-			    memcmp(i.second.lpMessageEntryId, lpsRowSet[0].lpProps[2].Value.bin.lpb, i.second.cbMessageEntryId) == 0) {
+			if (i.second.msg_eid.size() == lpsRowSet[0].lpProps[2].Value.bin.cb &&
+			    memcmp(i.second.msg_eid.data(), lpsRowSet[0].lpProps[2].Value.bin.lpb, i.second.msg_eid.size()) == 0) {
 				bMatch = true;
 				break;
 			}
