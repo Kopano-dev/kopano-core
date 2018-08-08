@@ -7,6 +7,7 @@
 #define SSLUTIL_H
 
 #include <kopano/zcdefs.h>
+#include <openssl/obj_mac.h>
 
 namespace KC {
 
@@ -18,10 +19,11 @@ extern _kc_export void ssl_random(bool b64bit, uint64_t *out);
 
 #define KC_DEFAULT_SSLPROTOLIST "!SSLv2 !SSLv3"
 #define KC_DEFAULT_CIPHERLIST "DEFAULT:!LOW:!SSLv2:!SSLv3:!EXPORT:!aNULL"
-// NOTE(longsleep): Unfortunately OpenSSL does not allow to specify curves which
-// are not supported by the particular release. Thus for now curve X25519 is not
-// in the default ECDH curve list since it is only supported starting OpenSSL 1.1.
-#define KC_DEFAULT_ECDH_CURVES "P-521:P-384:P-256"
+#ifdef NID_X25519
+#	define KC_DEFAULT_ECDH_CURVES "X25519:P-521:P-384:P-256"
+#else
+#	define KC_DEFAULT_ECDH_CURVES "P-521:P-384:P-256"
+#endif
 
 } /* namespace */
 
