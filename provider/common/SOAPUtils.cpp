@@ -2291,4 +2291,9 @@ const char *GetSourceAddr(struct soap *soap)
 	return soap->host;
 }
 
+void ec_soap_deleter::operator()(struct soap *s)
+{
+	soap_free(s);
+}
+
 } /* namespace */

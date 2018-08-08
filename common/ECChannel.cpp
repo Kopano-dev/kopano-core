@@ -11,6 +11,7 @@
 #include <kopano/ECChannel.h>
 #include <kopano/stringutil.h>
 #include <csignal>
+#include <fcntl.h>
 #include <netdb.h>
 #include <poll.h>
 #include <sys/types.h>
@@ -977,6 +978,95 @@ bool ec_bindaddr_less::operator()(const std::string &a, const std::string &b) co
 	if (p.first == q.first && p.second < q.second)
 		return true;
 	return false;
+}
+
+/**
+ * Unset FD_CLOEXEC on listening sockets so that they survive an execve().
+ */
+void ec_reexec_prepare_sockets()
+{
+	for (int fd = 3; fd < INT_MAX; ++fd) {
+		int set = 0;
+		socklen_t setlen = sizeof(set);
+		auto ret = getsockopt(fd, SOL_SOCKET, SO_ACCEPTCONN, &set, &setlen);
+		if (ret < 0 && errno == EBADF)
+			break;
+		else if (ret < 0 || set == 0)
+			continue;
+		unsigned int flags = 0;
+		if (fcntl(fd, F_GETFD, &flags) == 0) {
+			flags &= ~FD_CLOEXEC;
+			fcntl(fd, F_SETFD, flags);
+		}
+	}
+}
+
+static int ec_fdtable_socket_ai(const struct addrinfo *ai,
+    struct sockaddr_storage *oaddr, socklen_t *olen)
+{
+	for (int fd = 3; fd < INT_MAX; ++fd) {
+		int set = 0;
+		socklen_t arglen = sizeof(set);
+		auto ret = getsockopt(fd, SOL_SOCKET, SO_ACCEPTCONN, &set, &arglen);
+		if (ret < 0 && errno == EBADF)
+			break;
+		else if (ret < 0 || set == 0)
+			continue;
+		struct sockaddr_storage addr{};
+		arglen = sizeof(addr);
+		ret = getsockname(fd, reinterpret_cast<struct sockaddr *>(&addr), &arglen);
+		if (ret < 0)
+			continue;
+		for (auto sk = ai; sk != nullptr; sk = sk->ai_next) {
+			if (arglen != sk->ai_addrlen ||
+			    memcmp(&addr, sk->ai_addr, arglen) != 0)
+				continue;
+			if (oaddr != nullptr) {
+				memset(oaddr, 0, sizeof(*oaddr));
+				memcpy(oaddr, sk->ai_addr, arglen);
+			}
+			if (olen != nullptr)
+				*olen = arglen;
+			fcntl(fd, F_SETFD, FD_CLOEXEC);
+			return fd;
+		}
+	}
+	return -1;
+}
+
+/**
+ * Search the file descriptor table for a listening socket matching
+ * the host:port specification, and return the fd and exact sockaddr.
+ *
+ * This somewhat convoluted search is necessary because some daemons
+ * have both plain and SSL sockets and must match each fd with the
+ * config directives.
+ */
+int ec_fdtable_socket(const char *spec, struct sockaddr_storage *oaddr,
+    socklen_t *olen)
+{
+	struct addrinfo hints{}, *res = nullptr;
+	hints.ai_flags    = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;
+	hints.ai_socktype = SOCK_STREAM;
+	if (strncmp(spec, "unix:", 5) == 0) {
+		struct sockaddr_un u{};
+		kc_strlcpy(u.sun_path, spec + 5, sizeof(u.sun_path));
+		hints.ai_family  = u.sun_family = AF_LOCAL;
+		hints.ai_addr    = reinterpret_cast<struct sockaddr *>(&u);
+		hints.ai_addrlen = sizeof(u) - sizeof(u.sun_path) + strlen(u.sun_path) + 1;
+		return ec_fdtable_socket_ai(&hints, oaddr, olen);
+	}
+	hints.ai_family = AF_UNSPEC;
+	auto parts = ec_parse_bindaddr(spec);
+	if (parts.first == "!" || parts.second == 0)
+		return -EINVAL;
+	auto ret = getaddrinfo(parts.first[0] == '\0' ? nullptr : parts.first.c_str(),
+	           std::to_string(parts.second).c_str(), &hints, &res);
+	if (ret != 0 || res == nullptr)
+		return -1;
+	ret = ec_fdtable_socket_ai(res, oaddr, olen);
+	freeaddrinfo(res);
+	return ret;
 }
 
 } /* namespace */

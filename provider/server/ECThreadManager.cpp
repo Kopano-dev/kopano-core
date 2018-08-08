@@ -412,10 +412,8 @@ ECDispatcher::ECDispatcher(ECConfig *lpConfig)
 
 ECDispatcher::~ECDispatcher()
 {
-	for (auto &s : m_setListenSockets) {
-		kopano_end_soap_listener(s.second);
-		soap_free(s.second);
-	}
+	for (auto &s : m_setListenSockets)
+		kopano_end_soap_listener(s.second.get());
 }
 
 ECRESULT ECDispatcher::GetThreadCount(unsigned int *lpulThreads, unsigned int *lpulIdleThreads)
@@ -451,11 +449,11 @@ ECRESULT ECDispatcher::GetQueueLength(unsigned int *lpulLength)
     return erSuccess;
 }
 
-ECRESULT ECDispatcher::AddListenSocket(struct soap *soap)
+ECRESULT ECDispatcher::AddListenSocket(std::unique_ptr<struct soap, KC::ec_soap_deleter> &&soap)
 {
 	soap->recv_timeout = m_nReadTimeout; // Use m_nReadTimeout, the value for timeouts during XML reads
 	soap->send_timeout = m_nSendTimeout;
-	m_setListenSockets.emplace(soap->socket, soap);
+	m_setListenSockets.emplace(soap->socket, std::move(soap));
     return erSuccess;
 }
 
@@ -581,21 +579,22 @@ ECRESULT ECDispatcher::DoHUP()
 		auto ulType = SOAP_CONNECTION_TYPE(p.second);
 		if (ulType != CONNECTION_TYPE_SSL)
 			continue;
-		if (soap_ssl_server_context(p.second, SOAP_SSL_DEFAULT,
+		if (soap_ssl_server_context(p.second.get(), SOAP_SSL_DEFAULT,
 		    m_lpConfig->GetSetting("server_ssl_key_file"),
 		    m_lpConfig->GetSetting("server_ssl_key_pass", "", NULL),
 		    m_lpConfig->GetSetting("server_ssl_ca_file", "", NULL),
 		    m_lpConfig->GetSetting("server_ssl_ca_path", "", NULL),
 		    NULL, NULL, "EC")) {
-			ec_log_crit("K-3904: Unable to setup ssl context: %s", *soap_faultdetail(p.second));
+			ec_log_crit("K-3904: Unable to setup ssl context: %s", *soap_faultdetail(p.second.get()));
 			return KCERR_CALL_FAILED;
 		}
 
-		char *server_ssl_protocols = strdup(m_lpConfig->GetSetting("server_ssl_protocols"));
-		er = kc_ssl_options(p.second, server_ssl_protocols,
+		std::unique_ptr<char[], cstdlib_deleter> server_ssl_protocols(strdup(m_lpConfig->GetSetting("server_ssl_protocols")));
+		if (server_ssl_protocols == nullptr)
+			return KCERR_NOT_ENOUGH_MEMORY;
+		er = kc_ssl_options(p.second.get(), server_ssl_protocols.get(),
 			m_lpConfig->GetSetting("server_ssl_ciphers"),
 			m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers"));
-		free(server_ssl_protocols);
 	}
 	return erSuccess;
 }
@@ -735,7 +734,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 			}
 			const auto &p = *sockiter;
 			ACTIVESOCKET sActive;
-			auto newsoap = soap_copy(p.second);
+			auto newsoap = soap_copy(p.second.get());
 			if (newsoap == NULL) {
 				ec_log_crit("Unable to accept new connection: out of memory");
 				continue;
@@ -848,8 +847,6 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	ECWatchDog *lpWatchDog = NULL;
 	time_t now = 0;
 	time_t last = 0;
-	std::map<int, ACTIVESOCKET>::iterator iterSockets;
-	std::map<int, struct soap *>::const_iterator iterListenSockets;
 	CONNECTION_TYPE ulType;
 	epoll_event epevent;
 	epoll_event *epevents;
@@ -859,11 +856,9 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	// setup epoll for listen sockets
 	memset(&epevent, 0, sizeof(epoll_event));
 	epevent.events = EPOLLIN | EPOLLPRI; // wait for input and priority (?) events
-	for (iterListenSockets = m_setListenSockets.begin();
-	     iterListenSockets != m_setListenSockets.end();
-	     ++iterListenSockets) {
-		epevent.data.fd = iterListenSockets->second->socket;
-		epoll_ctl(m_epFD, EPOLL_CTL_ADD, iterListenSockets->second->socket, &epevent);
+	for (const auto &pair : m_setListenSockets) {
+		epevent.data.fd = pair.second->socket;
+		epoll_ctl(m_epFD, EPOLL_CTL_ADD, pair.second->socket, &epevent);
 	}
 
 	// This will start the threads
@@ -877,15 +872,13 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 		// find timedout sockets once per second
 		ulock_normal l_sock(m_mutexSockets);
 		if(now > last) {
-            iterSockets = m_setSockets.begin();
-            while (iterSockets != m_setSockets.end()) {
-                ulType = SOAP_CONNECTION_TYPE(iterSockets->second.soap);
-                if (ulType != CONNECTION_TYPE_NAMED_PIPE &&
-                    ulType != CONNECTION_TYPE_NAMED_PIPE_PRIORITY &&
-                    now - static_cast<time_t>(iterSockets->second.ulLastActivity) > m_nRecvTimeout)
-                    // Socket has been inactive for more than server_recv_timeout seconds, close the socket
-                    shutdown(iterSockets->second.soap->socket, SHUT_RDWR);
-                ++iterSockets;
+			for (const auto &pair : m_setSockets) {
+				ulType = SOAP_CONNECTION_TYPE(pair.second.soap);
+				if (ulType != CONNECTION_TYPE_NAMED_PIPE &&
+				    ulType != CONNECTION_TYPE_NAMED_PIPE_PRIORITY &&
+				    now - static_cast<time_t>(pair.second.ulLastActivity) > m_nRecvTimeout)
+					// Socket has been inactive for more than server_recv_timeout seconds, close the socket
+					shutdown(pair.second.soap->socket, SHUT_RDWR);
             }
             last = now;
         }
@@ -894,14 +887,12 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 		n = epoll_wait(m_epFD, epevents, m_fdMax, 1000); // timeout -1 is wait indefinitely
 		l_sock.lock();
 		for (int i = 0; i < n; ++i) {
-			iterListenSockets = m_setListenSockets.find(epevents[i].data.fd);
+			auto iterListenSockets = m_setListenSockets.find(epevents[i].data.fd);
 
 			if (iterListenSockets != m_setListenSockets.end()) {
 				// this was a listen socket .. accept and continue
-				struct soap *newsoap;
 				ACTIVESOCKET sActive;
-
-				newsoap = soap_copy(iterListenSockets->second);
+				auto newsoap = soap_copy(iterListenSockets->second.get());
                 kopano_new_soap_connection(SOAP_CONNECTION_TYPE(iterListenSockets->second), newsoap);
 				// Record last activity (now)
 				time(&sActive.ulLastActivity);
@@ -942,7 +933,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 				}
 			} else {
 				// this is a new request from an existing client
-				iterSockets = m_setSockets.find(epevents[i].data.fd);
+				auto iterSockets = m_setSockets.find(epevents[i].data.fd);
 				// remove from epfd, either close socket, or it will be reactivated later in the epfd
 				epevent.data.fd = iterSockets->second.soap->socket;
 				epoll_ctl(m_epFD, EPOLL_CTL_DEL, iterSockets->second.soap->socket, &epevent);
@@ -981,9 +972,9 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	l_item.unlock();
     // Close all sockets. This will cause all that we were listening on clients to get an EOF
 	ulock_normal l_sock(m_mutexSockets);
-    for (iterSockets = m_setSockets.begin(); iterSockets != m_setSockets.end(); ++iterSockets) {
-        kopano_end_soap_connection(iterSockets->second.soap);
-        soap_free(iterSockets->second.soap);
+	for (auto &pair : m_setSockets) {
+		kopano_end_soap_connection(pair.second.soap);
+		soap_free(pair.second.soap);
     }
 	m_setSockets.clear();
 	l_sock.unlock();

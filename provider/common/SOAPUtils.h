@@ -143,7 +143,17 @@ struct SOAPINFO {
 	const char *szFname;
 };
 
+class ec_soap_deleter {
+	public:
+	void operator()(struct soap *);
+};
+
 static inline struct SOAPINFO *soap_info(struct soap *s)
+{
+	return static_cast<struct SOAPINFO *>(s->user);
+}
+
+static inline struct SOAPINFO *soap_info(const std::unique_ptr<struct soap, ec_soap_deleter> &s)
 {
 	return static_cast<struct SOAPINFO *>(s->user);
 }

@@ -500,39 +500,36 @@ static ECRESULT check_server_configuration(void)
 }
 
 /**
- * Restart the program with a new preloaded library.
+ * Setup env vars for loading a new allocator on restart
  * @argv:	full argv of current invocation
  * @lib:	library to load via LD_PRELOAD
  *
  * As every program under Linux is linked to libc and symbol resolution is done
  * breadth-first, having just libkcserver.so linked to the alternate allocator
  * is not enough to ensure the allocator is being used in favor of libc malloc.
+ * As such, one will have to use the exec syscall to completely re-launch the
+ * program.
  *
  * A program built against glibc will have a record for e.g.
  * "malloc@GLIBC_2.2.5". The use of LD_PRELOAD appears to relax the version
  * requirement, though; the benefit would be that libtcmalloc's malloc will
  * take over _all_ malloc calls.
  */
-static int kc_reexec_with_allocator(char **argv, const char *lib)
+static int kc_reexec_setup_allocator(const char *lib)
 {
-	if (lib == NULL || *lib == '\0')
+	if (getenv("KC_AVOID_REEXEC") != nullptr)
 		return 0;
-	const char *s = getenv("KC_ALLOCATOR_DONE");
-	if (s != NULL) {
+	auto handle = dlopen(lib, RTLD_LAZY | RTLD_GLOBAL);
+	if (handle == nullptr)
 		/*
-		 * KC_ALLOCATOR_DONE is a sign that we should not reexec again.
-		 * Now, restore the previous LD_PRELOAD so we do not start,
-		 * for example, ntlm_auth, with it.
+		 * Ignore libraries that won't load anyway. This avoids
+		 * ld.so emitting a scary warning if we did re-exec.
 		 */
-		s = getenv("KC_ORIGINAL_PRELOAD");
-		if (s == nullptr)
-			unsetenv("LD_PRELOAD");
-		else
-			setenv("LD_PRELOAD", s, true);
 		return 0;
-	}
-	s = getenv("LD_PRELOAD");
+	dlclose(handle);
+	auto s = getenv("LD_PRELOAD");
 	if (s == nullptr) {
+		setenv("KC_ORIGINAL_PRELOAD", "", true);
 		setenv("LD_PRELOAD", lib, true);
 	} else if (strstr(s, "/valgrind/") != nullptr) {
 		/*
@@ -545,15 +542,30 @@ static int kc_reexec_with_allocator(char **argv, const char *lib)
 		setenv("KC_ORIGINAL_PRELOAD", s, true);
 		setenv("LD_PRELOAD", (std::string(s) + ":" + lib).c_str(), true);
 	}
-	void *handle = dlopen(lib, RTLD_LAZY | RTLD_GLOBAL);
-	if (handle == NULL)
-		/*
-		 * Ignore libraries that won't load anyway. This avoids
-		 * ld.so emitting a scary warning if we did re-exec.
-		 */
+	return 0;
+}
+
+static int ec_reexec(char **argv)
+{
+	if (getenv("KC_AVOID_REEXEC") != nullptr)
 		return 0;
-	dlclose(handle);
-	setenv("KC_ALLOCATOR_DONE", lib, true);
+	auto s = getenv("KC_REEXEC_DONE");
+	if (s != nullptr) {
+		/*
+		 * 2nd time ec_reexec is called. Restore the previous
+		 * environment.
+		 */
+		unsetenv("KC_REEXEC_DONE");
+		s = getenv("KC_ORIGINAL_PRELOAD");
+		if (s == nullptr)
+			unsetenv("LD_PRELOAD");
+		else
+			setenv("LD_PRELOAD", s, true);
+		return 0;
+	}
+
+	/* 1st time ec_reexec is called. */
+	setenv("KC_REEXEC_DONE", "1", true);
 
 	/* Resolve "exe" symlink before exec to please the sysadmin */
 	std::vector<char> linkbuf(16); /* mutable std::string::data is C++17 only */
@@ -566,15 +578,13 @@ static int kc_reexec_with_allocator(char **argv, const char *lib)
 	}
 	if (linklen < 0) {
 		int ret = -errno;
-		ec_log_debug("kc_reexec_with_allocator: readlink: %s", strerror(errno));
+		ec_log_debug("ec_reexec: readlink: %s", strerror(errno));
 		return ret;
 	}
 	linkbuf[linklen] = '\0';
-	ec_log_debug("Reexecing %s with %s", &linkbuf[0], lib);
+	ec_log_debug("Reexecing %s", &linkbuf[0]);
 	execv(&linkbuf[0], argv);
-	int ret = -errno;
-	ec_log_info("Failed to reexec self: %s. Continuing with standard allocator.", strerror(errno));
-	return ret;
+	return -errno;
 }
 
 int main(int argc, char* argv[])
@@ -1027,7 +1037,12 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 	if (g_dump_config)
 		return g_lpConfig->dump_config(stdout) == 0 ? hrSuccess : MAPI_E_CALL_FAILED;
-	kc_reexec_with_allocator(argv, g_lpConfig->GetSetting("allocator_library"));
+	kc_reexec_setup_allocator(g_lpConfig->GetSetting("allocator_library"));
+	auto ret = ec_reexec(argv);
+	if (ret < 0)
+		ec_log_notice("K-1240: Failed to re-exec self: %s. "
+			"Continuing with standard allocator and/or restricted coredumps.",
+			strerror(-ret));
 
 	// setup logging
 	g_lpLogger = CreateLogger(g_lpConfig, szName, "KopanoServer");
@@ -1048,12 +1063,38 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	else
 		ec_log_info("Audit logging not enabled.");
 
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-server version " PROJECT_VERSION " (pid %d)", getpid());
+	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-server version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
 	if (g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig);
 
+	/* setup connection handler */
+	g_lpSoapServerConn.reset(new(std::nothrow) ECSoapServerConnection(g_lpConfig));
+	er = ksrv_listen_inet(g_lpSoapServerConn.get(), g_lpConfig);
+	if (er != erSuccess)
+		return retval;
+	er = ksrv_listen_pipe(g_lpSoapServerConn.get(), g_lpConfig);
+	if (er != erSuccess)
+		return retval;
+
+	struct rlimit limit;
+	limit.rlim_cur = KC_DESIRED_FILEDES;
+	limit.rlim_max = KC_DESIRED_FILEDES;
+	if (setrlimit(RLIMIT_NOFILE, &limit) < 0) {
+		ec_log_warn("setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets.", KC_DESIRED_FILEDES, getdtablesize());
+		ec_log_warn("Either start the process as root, or increase user limits for open file descriptors.");
+	}
+	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
+	if (unix_runas(g_lpConfig)) {
+		er = MAPI_E_CALL_FAILED;
+		return retval;
+	}
+
 	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0) {
-		// directory will be created using startup (probably root) and then chowned to the new 'runas' username
+		/*
+		 * Either (1.) the attachment directory or (2.) its immediate
+		 * parent directory needs to exist with right permissions.
+		 * (Official KC builds use #2 as of this writing.)
+		 */
 		if (CreatePath(g_lpConfig->GetSetting("attachment_path")) != 0) {
 			ec_log_err("Unable to create attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
 			er = KCERR_DATABASE_ERROR;
@@ -1127,28 +1168,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		kcoidc_initialized = true;
 	}
 #endif
-
-	// setup connection handler
-	g_lpSoapServerConn.reset(new(std::nothrow) ECSoapServerConnection(g_lpConfig));
-	er = ksrv_listen_inet(g_lpSoapServerConn.get(), g_lpConfig);
-	if (er != erSuccess)
-		return retval;
-
-	struct rlimit limit;
-	limit.rlim_cur = KC_DESIRED_FILEDES;
-	limit.rlim_max = KC_DESIRED_FILEDES;
-	if(setrlimit(RLIMIT_NOFILE, &limit) < 0) {
-		ec_log_warn("setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets.", KC_DESIRED_FILEDES, getdtablesize());
-		ec_log_warn("WARNING: Either start the process as root, or increase user limits for open file descriptors.");
-	}
-	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
-	if (unix_runas(g_lpConfig)) {
-		er = MAPI_E_CALL_FAILED;
-		return retval;
-	}
-	er = ksrv_listen_pipe(g_lpSoapServerConn.get(), g_lpConfig);
-	if (er != erSuccess)
-		return retval;
 
 	// Test database settings
 	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig));

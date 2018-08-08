@@ -154,7 +154,8 @@ public:
     ECRESULT GetQueueLength(unsigned int *lpulQueueLength);	// Number of requests in the queue
     ECRESULT SetThreadCount(unsigned int ulThreads);
     // Add a listen socket
-    ECRESULT AddListenSocket(struct soap *soap);
+	ECRESULT AddListenSocket(std::unique_ptr<struct soap, KC::ec_soap_deleter> &&);
+
 	// Add soap socket in the work queue
 	ECRESULT QueueItem(struct soap *soap);
 
@@ -186,7 +187,7 @@ protected:
 	std::queue<WORKITEM *> m_queuePrioItems;
 	std::condition_variable m_condPrioItems;
 	std::map<int, ACTIVESOCKET> m_setSockets;
-	std::map<int, struct soap *> m_setListenSockets;
+	std::map<int, std::unique_ptr<struct soap, KC::ec_soap_deleter>> m_setListenSockets;
 	std::mutex m_mutexSockets;
 	bool m_bExit = false;
 	std::atomic<unsigned int> m_ulIdle{0};
