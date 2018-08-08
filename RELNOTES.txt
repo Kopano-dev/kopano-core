@@ -25,8 +25,8 @@ Packaging changes:
   for a default install to function.
 
 
-8.6.6
-=====
+8.6.6 (2018-07-31)
+==================
 Fixes:
 * server: avoid SSL crash near ERR_clear_error on shutdown [KC-1132]
 * ical: recognize quotes in Content-Type charset [KC-1198]
