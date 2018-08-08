@@ -189,9 +189,8 @@ static LONG AdviseCallback(void *lpContext, ULONG cNotif,
  * @return		HRESULT
  */
 static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
-    int ulSMTPPort, const char *szPath, ULONG cbStoreEntryId,
-    BYTE *lpStoreEntryId, ULONG cbMsgEntryId, BYTE *lpMsgEntryId,
-    ULONG ulFlags)
+    int ulSMTPPort, const char *szPath, const SBinary &store_eid,
+    const SBinary &msg_eid, unsigned int ulFlags)
 {
 	SendData sSendData;
 	pid_t pid;
@@ -199,8 +198,8 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	std::string strPort = stringify(ulSMTPPort);
 
 	// place pid with entryid copy in map
-	sSendData.store_eid.assign(reinterpret_cast<const char *>(lpStoreEntryId), cbStoreEntryId);
-	sSendData.msg_eid.assign(reinterpret_cast<const char *>(lpMsgEntryId), cbMsgEntryId);
+	sSendData.store_eid.assign(reinterpret_cast<const char *>(store_eid.lpb), store_eid.cb);
+	sSendData.msg_eid.assign(reinterpret_cast<const char *>(msg_eid.lpb), msg_eid.cb);
 	sSendData.ulFlags = ulFlags;
 	sSendData.strUsername = szUsername;
 
@@ -210,7 +209,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	argv[argc++] = szCommand;
 	std::unique_ptr<char[], cstdlib_deleter> bname(strdup(szCommand));
 	argv[argc++] = basename(bname.get());
-	auto eidhex = bin2hex(cbMsgEntryId, lpMsgEntryId);
+	auto eidhex = bin2hex(msg_eid.cb, msg_eid.lpb);
 	argv[argc++] = "--send-message-entryid";
 	argv[argc++] = eidhex.c_str();
 	auto encuser = convert_to<std::string>("UTF-8", szUsername, rawsize(szUsername), CHARSET_WCHAR);
@@ -534,8 +533,7 @@ static HRESULT ProcessAllEntries2(IMAPISession *lpAdminSession,
 
 		// Start new process to send the mail
 		hr = StartSpoolerFork(strUsername.c_str(), szSMTP, ulPort, szPath,
-		     lpsRowSet[0].lpProps[1].Value.bin.cb, lpsRowSet[0].lpProps[1].Value.bin.lpb,
-		     lpsRowSet[0].lpProps[2].Value.bin.cb, lpsRowSet[0].lpProps[2].Value.bin.lpb,
+		     lpsRowSet[0].lpProps[1].Value.bin, lpsRowSet[0].lpProps[2].Value.bin,
 		     lpsRowSet[0].lpProps[3].Value.ul);
 		if (hr != hrSuccess)
 			return kc_pwarn("ProcessAllEntries(): Failed starting spooler", hr);
