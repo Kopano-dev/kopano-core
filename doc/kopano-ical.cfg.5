@@ -193,10 +193,12 @@ Default:
 \fIDEFAULT:!LOW:!SSLv2:!SSLv3:!TLSv1.0:!TLSv1.1:!EXPORT:!DH:!PSK:!kRSA:!aDSS:!aNULL:+AES\fP
 .SS ssl_prefer_server_ciphers
 .PP
-Prefer the server\*(Aqs order of SSL ciphers over client\*(Aqs.
+In SSLv3 and newer, the server side gets to make the ultimate cipher pick out
+of the set that both ends support. In doing so, it can either use the client
+preference list, or, if this directive is set to "yes", its own list (as
+determined by \fBssl_cipher\fP).
 .PP
-Default:
-\fIno\fR
+Default: \fIyes\fP
 .SS ssl_curves
 .PP
 ECDH curves to use for SSL
