@@ -895,11 +895,11 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 
 				if(newsoap->socket == SOAP_INVALID_SOCKET) {
 					if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-						ec_log_debug("Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
+						ec_log_debug("epaccept(%d) on file://%s: %s", newsoap->master, m_lpConfig->GetSetting("server_pipe_name"), *soap_faultstring(newsoap));
 					else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-						ec_log_debug("Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
+						ec_log_debug("epaccept(%d) on file://%s: %s", newsoap->master, m_lpConfig->GetSetting("server_pipe_priority"), *soap_faultstring(newsoap));
 					else
-						ec_log_debug("Error accepting incoming connection from network.");
+						ec_log_debug("epaccept(%d): %s", newsoap->master, *soap_faultstring(newsoap));
 					kopano_end_soap_connection(newsoap);
 					soap_free(newsoap);
 				} else {
