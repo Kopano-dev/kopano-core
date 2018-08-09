@@ -181,7 +181,7 @@ more of the following are available: \fBTLSv1.3\fP, \fBTLSv1.2\fP,
 \fBTLSv1.1\fP, \fBSSLv3\fP, \fBSSLv2\fP. To disable a protocol, prefix the name
 with an exclamation mark.
 .PP
-Default: \fI!SSLv2 !SSLv3\fP
+Default: \fI!SSLv2 !SSLv3 !TLSv1.0 !TLSv1.1\fP
 .SS ssl_ciphers
 .PP
 A colon-separated list of disabled or enabled SSL/TLS ciphers. Supported cipher
@@ -190,7 +190,7 @@ disable a cipher or cipher group, prefix the name with a minus or exclamation
 mark. Details and meaning of the syntax are described in ciphers(1).
 .PP
 Default:
-\fIDEFAULT:!LOW:!SSLv2:!SSLv3:!EXPORT:!DH:!PSK:!kRSA:!aDSS:!aNULL\fP
+\fIDEFAULT:!LOW:!SSLv2:!SSLv3:!TLSv1.0:!TLSv1.1:!EXPORT:!DH:!PSK:!kRSA:!aDSS:!aNULL\fP
 .SS ssl_prefer_server_ciphers
 .PP
 Prefer the server\*(Aqs order of SSL ciphers over client\*(Aqs.
