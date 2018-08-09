@@ -3019,6 +3019,8 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 	auto port = cfg->GetSetting("lmtp_port");
 	if (port[0] != '\0')
 		lmtp_sock.emplace("["s + addr + "]:" + stringify(strtoul(port, nullptr, 10)));
+	if (lmtp_sock.empty())
+		lmtp_sock.emplace("*:2003");
 
 	auto intf = cfg->GetSetting("server_bind_intf");
 	struct pollfd x;
@@ -3402,8 +3404,8 @@ int main(int argc, char *argv[]) {
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/dagent.pid" },
 		{"coredump_enabled", "systemdefault"},
-		{"lmtp_listen", "*:2003", CONFIGSETTING_NONEMPTY},
-		{"lmtp_port", "", CONFIGSETTING_OBSOLETE},
+		{"lmtp_listen", ""}, /* default in dagent_listen */
+		{"lmtp_port", "2003", CONFIGSETTING_OBSOLETE},
 		{ "lmtp_max_threads", "20" },
 		{"process_model", "fork", CONFIGSETTING_NONEMPTY},
 		{"log_method", "auto", CONFIGSETTING_NONEMPTY},

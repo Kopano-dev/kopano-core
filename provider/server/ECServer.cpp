@@ -709,17 +709,17 @@ static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 		http_sock.clear();
 	} else if (strcmp(cvar, "yes") == 0) {
 		/* "yes" := "read extra historic variable" */
-		uint16_t port = strtoul(cfg->GetSetting("server_tcp_port"), nullptr, 10);
-		if (port != 0)
-			http_sock.emplace("["s + addr + "]:" + std::to_string(port));
+		auto port = cfg->GetSetting("server_tcp_port");
+		if (*port != '\0')
+			http_sock.emplace("["s + addr + "]:" + port);
 	}
 	cvar = cfg->GetSetting("server_ssl_enabled");
 	if (!parseBool(cvar)) {
 		https_sock.clear();
 	} else if (strcmp(cvar, "yes") == 0) {
-		uint16_t port = strtoul(cfg->GetSetting("server_ssl_port"), nullptr, 10);
-		if (port != 0)
-			https_sock.emplace("["s + addr + "]:" + std::to_string(port));
+		auto port = cfg->GetSetting("server_ssl_port");
+		if (*port != '\0')
+			https_sock.emplace("["s + addr + "]:" + port);
 	}
 
 	/* Launch */
