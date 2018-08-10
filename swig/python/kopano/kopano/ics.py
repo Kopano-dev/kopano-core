@@ -184,7 +184,7 @@ def state(mapiobj, associated=False):
     stream.Seek(0, STREAM_SEEK_SET)
     return _benc(stream.Read(0xFFFFF))
 
-def hierarchy_sync(server, syncobj, importer, state, stats=None):
+def sync_hierarchy(server, syncobj, importer, state, stats=None):
     importer = TrackingHierarchyImporter(server, importer, stats)
     exporter = syncobj.OpenProperty(PR_HIERARCHY_SYNCHRONIZER, IID_IExchangeExportChanges, 0, 0)
 
