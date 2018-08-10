@@ -1216,7 +1216,7 @@ class Item(Properties, Contact, Appointment):
         ])
         if kwargs.get('subject'):
             attach.SetProps([
-                SPropValue(PR_DISPLAY_NAME_W, kwargs.get('subject')),
+                SPropValue(PR_DISPLAY_NAME_W, _unicode(kwargs.get('subject'))),
             ])
 
         msg = attach.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)

@@ -137,7 +137,7 @@ def bytes_to_human(b):
     i = 0
     len_suffixes = len(suffixes) - 1
     while b >= 1024 and i < len_suffixes:
-        b /= 1024
+        b //= 1024
         i += 1
     f = ('%.2f' % b).rstrip('0').rstrip('.')
     return '%s %s' % (f, suffixes[i])
@@ -185,7 +185,7 @@ def _bdec_eid(entryid):
         raise ArgumentError("invalid entryid: %r" % entryid)
     try:
         return _bdec(entryid)
-    except (TypeError, binascii.Error):
+    except (TypeError, AttributeError, binascii.Error):
         raise ArgumentError("invalid entryid: %r" % entryid)
 
 def _save(mapiobj):
