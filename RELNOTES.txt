@@ -1,7 +1,8 @@
 8.7.x
 =====
 Fixes:
-* caldav: better support recurring tasks [KC-781]
+* daemons: TLS ECDH curves can now be specified in config [KC-1233]
+* ical: better support recurring tasks [KC-781]
 Enhancements:
 * dagent: support for threaded mode [KC-1170]
 * dagent: modern socket specification in dagent.cfg [KC-1174]
@@ -9,6 +10,7 @@ Enhancements:
 * dagent: limited support for RFC 6531 (SMTPUTF8) [KC-833]
 * dagent: "mark mail as read" rule action support [KC-1080]
 * gateway: modern socket specification in gateway.cfg [KC-1130]
+* ical: "coredump_enable" config option now recognized [ZCP-11696]
 * ical: modern socket specification in ical.cfg [KC-1187]
 * server: multivalue properties are now cached [KC-1162]
 * server: LDAP STARTTLS support [KC-1188]
@@ -16,9 +18,11 @@ Enhancements:
 * php: new functions to get freebusy message [KC-1077]
 Changes:
 * daemons: the default logging target is now syslog/journalctl [KC-1100]
+* daemons: SSLv3, TLSv1.0 and TLSv1.1 are now disabled by default [KC-1231]
 * dagent will no longer join HTML MIME parts together by default;
   a new config directive "insecure_html_join" was added [KC-1157]
 * kopano-mr-accept was replaced by a Python script
+* systemd services start with more restrictions [KC-430]
 Packaging changes:
 * libkcpyplug.so.0 is dlopened from kopano-{dagent,spooler};
   dagent/spooler packages need a Require on it
