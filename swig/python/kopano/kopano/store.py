@@ -48,7 +48,7 @@ from .defs import (
     RSF_PID_RSS_SUBSCRIPTION, NAMED_PROPS_ARCHIVER
 )
 
-from .errors import NotFoundError, ArgumentError
+from .errors import NotFoundError, ArgumentError, DuplicateError
 from .properties import Properties
 from .autoaccept import AutoAccept
 from .autoprocess import AutoProcess
@@ -681,6 +681,15 @@ class Store(Properties):
                     yield store.folder(entryid=_benc(entryid.value))
             except NotFoundError:
                 pass
+
+    def add_favorite(self, folder): # TODO remove_favorite, folder.favorite
+        if folder in self.favorites():
+            raise DuplicateError("folder '%s' already in favorites" % folder.name)
+
+        item = self.common_views.associated.create_item()
+        item.message_class = u'IPM.Microsoft.WunderBar.Link'
+        item[PR_WLINK_ENTRYID] = _bdec(folder.entryid)
+        item[PR_WLINK_STORE_ENTRYID] = _bdec(folder.store.entryid)
 
     def _subprops(self, value):
         result = {}
