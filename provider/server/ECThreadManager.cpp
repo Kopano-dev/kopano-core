@@ -619,7 +619,6 @@ ECDispatcherSelect::ECDispatcherSelect(std::shared_ptr<ECConfig> lpConfig) :
 ECRESULT ECDispatcherSelect::MainLoop()
 {
 	ECRESULT er = erSuccess;
-	ECWatchDog *lpWatchDog = NULL;
 	int maxfds = getdtablesize();
 	if (maxfds < 0)
 		throw std::runtime_error("getrlimit failed");
@@ -638,9 +637,9 @@ ECRESULT ECDispatcherSelect::MainLoop()
 	}
 
     // This will start the threads
-	m_lpThreadManager = new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads")));
+	m_lpThreadManager.reset(new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads"))));
     // Start the watchdog
-	lpWatchDog = new ECWatchDog(m_lpConfig.get(), this, m_lpThreadManager);
+	std::unique_ptr<ECWatchDog> lpWatchDog(new ECWatchDog(m_lpConfig.get(), this, m_lpThreadManager.get()));
 
     // Main loop
     while(!m_bExit) {
@@ -781,7 +780,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 	}
 
     // Delete the watchdog. This makes sure no new threads will be started.
-    delete lpWatchDog;
+	lpWatchDog.reset();
     // Set the thread count to zero so that threads will exit
     m_lpThreadManager->SetThreadCount(0);
     // Notify threads that they should re-query their idle state (and exit)
@@ -791,7 +790,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
     l_item.unlock();
     // Delete thread manager (waits for threads to become idle). During this time
     // the threads may report back a workitem as being done. If this is the case, we directly close that socket too.
-    delete m_lpThreadManager;
+	m_lpThreadManager.reset();
 
     // Empty the queue
 	l_item.lock();
@@ -845,7 +844,6 @@ ECDispatcherEPoll::~ECDispatcherEPoll()
 ECRESULT ECDispatcherEPoll::MainLoop()
 {
 	ECRESULT er = erSuccess;
-	ECWatchDog *lpWatchDog = NULL;
 	time_t now = 0;
 	time_t last = 0;
 	CONNECTION_TYPE ulType;
@@ -863,9 +861,9 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	}
 
 	// This will start the threads
-	m_lpThreadManager = new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads")));
+	m_lpThreadManager.reset(new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads"))));
 	// Start the watchdog
-	lpWatchDog = new ECWatchDog(m_lpConfig.get(), this, m_lpThreadManager);
+	std::unique_ptr<ECWatchDog> lpWatchDog(new ECWatchDog(m_lpConfig.get(), this, m_lpThreadManager.get()));
 
 	while (!m_bExit) {
 		time(&now);
@@ -956,7 +954,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	}
 
 	// Delete the watchdog. This makes sure no new threads will be started.
-	delete lpWatchDog;
+	lpWatchDog.reset();
     // Set the thread count to zero so that threads will exit
     m_lpThreadManager->SetThreadCount(0);
     // Notify threads that they should re-query their idle state (and exit)
@@ -964,7 +962,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	m_condItems.notify_all();
 	m_condPrioItems.notify_all();
 	l_item.unlock();
-	delete m_lpThreadManager;
+	m_lpThreadManager.reset();
 
     // Empty the queue
 	l_item.lock();
