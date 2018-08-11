@@ -2636,6 +2636,8 @@ static HRESULT loadobject_cache(ECCacheManager *cache,
 {
 	struct propValArray arr;
 	auto iter = p->find(objid);
+	if (iter == p->cend() || iter->second.lpPropVals == nullptr)
+		return erSuccess;
 	auto ret = iter->second.lpPropVals->GetPropValArray(&arr, false);
 	if (ret != erSuccess)
 		return ret;
