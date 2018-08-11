@@ -628,7 +628,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 	std::unique_ptr<struct pollfd[]> pollfd(new struct pollfd[maxfds]);
 
 	for (size_t n = 0; n < maxfds; ++n)
-		pollfd[n].events = 0;
+		pollfd[n].events = POLLIN;
 
     // This will start the threads
 	m_lpThreadManager.reset(new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads"))));
@@ -641,9 +641,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
         time(&now);
 
         // Listen on rescan trigger
-		pollfd[0].fd = m_fdRescanRead;
-		pollfd[0].events = POLLIN;
-		++nfds;
+		pollfd[nfds++].fd = m_fdRescanRead;
 
         // Listen on active sockets
 		ulock_normal l_sock(m_mutexSockets);
@@ -655,15 +653,12 @@ ECRESULT ECDispatcherSelect::MainLoop()
 				now - static_cast<time_t>(p.second.ulLastActivity) > m_nRecvTimeout)
 				// Socket has been inactive for more than server_recv_timeout seconds, close the socket
 				shutdown(p.second.soap->socket, SHUT_RDWR);
-			pollfd[nfds].fd = p.second.soap->socket;
-			pollfd[nfds++].events = POLLIN;
+			pollfd[nfds++].fd = p.second.soap->socket;
         }
         // Listen on listener sockets
 		pfd_begin_listen = nfds;
-		for (const auto &p : m_setListenSockets) {
-			pollfd[nfds].fd = p.second->socket;
-			pollfd[nfds++].events = POLLIN;
-        }
+		for (const auto &p : m_setListenSockets)
+			pollfd[nfds++].fd = p.second->socket;
 		l_sock.unlock();
 
         // Wait for at most 1 second, so that we can close inactive sockets
