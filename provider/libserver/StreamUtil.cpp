@@ -1120,7 +1120,6 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 exit:
 	if (er != erSuccess)
 		ec_log_err("SerializeObject failed with error code 0x%08x for object %d", er, ulObjId );
-	FreeChildProps(&mapChildProps);
 	return er;
 }
 

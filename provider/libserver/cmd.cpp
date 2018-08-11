@@ -1286,7 +1286,7 @@ SOAP_ENTRY_END()
 
 static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
     unsigned int ulObjId, unsigned ulObjType, unsigned int ulObjTypeParent,
-    CHILDPROPS sChildProps, struct propTagArray *lpsPropTag,
+    const CHILDPROPS &sChildProps, struct propTagArray *lpsPropTag,
     struct propValArray *lpsPropVal)
 {
 	ECRESULT er = erSuccess;
@@ -2659,15 +2659,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	ChildPropsMap mapChildProps;
 	ChildPropsMap::const_iterator iterProps;
 	USE_DATABASE();
-	CHILDPROPS		sEmptyProps;
-
-	sEmptyProps.lpPropVals = new DynamicPropValArray(soap);
-	sEmptyProps.lpPropTags = new DynamicPropTagArray(soap);
-
-	auto laters = make_scope_success([&]() {
-		delete sEmptyProps.lpPropVals;
-		delete sEmptyProps.lpPropTags;
-	});
+	CHILDPROPS sEmptyProps(soap);
 
 	memset(&sSavedObject, 0, sizeof(saveObject));
 	// Check permission
@@ -2694,20 +2686,13 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 		if (er != erSuccess)
 			return er;
 
-		CHILDPROPS sChild;
-		sChild.lpPropTags = new DynamicPropTagArray(soap);
-		sChild.lpPropVals = new DynamicPropValArray(soap, 20);
-
+		CHILDPROPS sChild(soap, 20);
 		for (auto proptag : proptags) {
 			sObjectTableKey key(ulObjId, 0);
 			struct propVal prop;
 			er = cache->GetCell(&key, proptag, &prop, nullptr, false, false);
-			if (er != erSuccess) {
-				delete sChild.lpPropTags;
-				delete sChild.lpPropVals;
-				FreeChildProps(&mapChildProps);
+			if (er != erSuccess)
 				return er;
-			}
 			if (PROP_TYPE(prop.ulPropTag) == PT_ERROR)
 				continue;
 			if (PROP_TYPE(prop.ulPropTag) == PT_STRING8)
@@ -2747,7 +2732,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 		er = ReadProps(soap, lpecSession, ulObjId, ulObjType, ulParentObjType, iterProps->second, &sSavedObject.delProps, &sSavedObject.modProps);
 	if (er != erSuccess)
 		return er;
-    FreeChildProps(&mapChildProps);
+	mapChildProps.clear();
 
 	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
 		if (!complete) {
@@ -2775,7 +2760,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 			}
 			LoadObject(soap, lpecSession, atoi(lpDBRow[0]), atoi(lpDBRow[1]), ulObjType, &sSavedObject.__ptr[i], complete ? nullptr : &mapChildProps);
 		}
-    	FreeChildProps(&mapChildProps);
+		mapChildProps.clear();
 	}
 
 	if (ulObjType == MAPI_MESSAGE) {
