@@ -627,14 +627,8 @@ ECRESULT ECDispatcherSelect::MainLoop()
 	CONNECTION_TYPE ulType;
 	std::unique_ptr<struct pollfd[]> pollfd(new struct pollfd[maxfds]);
 
-	for (size_t n = 0; n < maxfds; ++n) {
-		/*
-		 * Use an identity mapping, quite like fd_set, but without the
-		 * limits of FD_SETSIZE.
-		 */
-		pollfd[n].fd = n;
+	for (size_t n = 0; n < maxfds; ++n)
 		pollfd[n].events = 0;
-	}
 
     // This will start the threads
 	m_lpThreadManager.reset(new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads"))));
