@@ -2631,6 +2631,22 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 }
 SOAP_ENTRY_END()
 
+static HRESULT loadobject_cache(ECCacheManager *cache,
+    std::map<unsigned int, CHILDPROPS> *p, unsigned int objid)
+{
+	struct propValArray arr;
+	auto iter = p->find(objid);
+	auto ret = iter->second.lpPropVals->GetPropValArray(&arr, false);
+	if (ret != erSuccess)
+		return ret;
+	for (int i = 0; i < arr.__size; ++i) {
+		sObjectTableKey key(objid, 0);
+		cache->SetCell(&key, arr.__ptr[i].ulPropTag, &arr.__ptr[i]);
+	}
+	cache->SetComplete(objid);
+	return erSuccess;
+}
+
 static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
     unsigned int ulObjId, unsigned int ulObjType, unsigned int ulParentObjType,
     struct saveObject *lpsSaveObj,
@@ -2717,16 +2733,9 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 
 	/* not in cache, so let us cache it */
 	if (!complete) {
-		struct propValArray arr;
-		iterProps = lpChildProps->find(ulObjId);
-		er = iterProps->second.lpPropVals->GetPropValArray(&arr, false);
+		er = loadobject_cache(cache, lpChildProps, ulObjId);
 		if (er != erSuccess)
 			return er;
-		for (int i = 0; i < arr.__size; ++i) {
-			sObjectTableKey key(ulObjId, 0);
-			cache->SetCell(&key, arr.__ptr[i].ulPropTag, &arr.__ptr[i]);
-		}
-		cache->SetComplete(ulObjId);
 	}
 
 	iterProps = lpChildProps->find(ulObjId);
