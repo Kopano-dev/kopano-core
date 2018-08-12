@@ -152,7 +152,7 @@ public:
 	bool IsMVSet();
 	void SetTableId(unsigned int ulTableId);
 	virtual	ECRESULT	GetPropCategory(struct soap *soap, unsigned int ulPropTag, sObjectTableKey sKey, struct propVal *lpPropVal);
-	virtual unsigned int GetCategories();
+	virtual unsigned int GetCategories() { return m_ulCategories; }
 	virtual size_t GetObjectSize(void);
 
 protected:
@@ -173,7 +173,7 @@ protected:
 	virtual ECRESULT GetMVRowCount(std::list<unsigned int> &&ids, std::map<unsigned int, unsigned int> &count);
 	virtual ECRESULT ReloadTable(enumReloadType eType);
 	virtual ECRESULT	Load();
-	virtual ECRESULT	CheckPermissions(unsigned int ulObjId); // normally overridden by subclass
+	virtual ECRESULT CheckPermissions(unsigned int objid) { return hrSuccess; } /* normally overridden by subclass */
 	const ECLocale &GetLocale() const { return m_locale; }
 
 	// Constants

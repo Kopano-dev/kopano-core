@@ -2542,17 +2542,6 @@ ECRESULT ECGenericObjectTable::GetPropCategory(struct soap *soap, unsigned int u
 	return er;
 }
 
-unsigned int ECGenericObjectTable::GetCategories()
-{
-	return m_ulCategories;
-}
-
-// Normally overridden by subclasses
-ECRESULT ECGenericObjectTable::CheckPermissions(unsigned int ulObjId)
-{
-    return hrSuccess;
-}
-
 /**
  * Get object size
  *
