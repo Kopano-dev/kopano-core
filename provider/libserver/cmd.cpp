@@ -3311,9 +3311,8 @@ SOAP_ENTRY_START(tableSetSearchCriteria, *result, const entryId &sEntryId,
 		return er;
 
 	// If a STOP was requested, then that's all we need to do
-	if(ulFlags & STOP_SEARCH) {
+	if (ulFlags & STOP_SEARCH)
 		return lpecSession->GetSessionManager()->GetSearchFolders()->SetSearchCriteria(ulStoreId, ulParent, nullptr);
-	}
 	struct searchCriteria sSearchCriteria;
 	if (!bSupportUnicode) {
 		er = FixRestrictionEncoding(soap, stringCompat, In, lpRestrict);
@@ -6045,9 +6044,8 @@ SOAP_ENTRY_START(abortSubmit, *result, const entryId &sEntryId,
 	if(er != erSuccess)
 		return er;
 // FIXME: can be also more than 2??
-	if (lpDBResult.get_num_rows() != 1) {
+	if (lpDBResult.get_num_rows() != 1)
 		return KCERR_NOT_IN_QUEUE;
-	}
 	lpDBRow = lpDBResult.fetch_row();
 	if(lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 		ec_log_err("abortSubmit(): row/col null");

@@ -751,9 +751,8 @@ static void cleanup(ECRESULT er)
 #ifdef HAVE_KCOIDC_H
 	if (kcoidc_initialized) {
 		auto res = kcoidc_uninitialize();
-		if (res != 0) {
+		if (res != 0)
 			ec_log_always("KCOIDC: failed to uninitialize: 0x%llx", res);
-		}
 	}
 #endif
 	kopano_unloadlibrary();

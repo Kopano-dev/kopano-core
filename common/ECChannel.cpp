@@ -181,10 +181,8 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-	if (parseBool(lpConfig->GetSetting("ssl_prefer_server_ciphers"))) {
+	if (parseBool(lpConfig->GetSetting("ssl_prefer_server_ciphers")))
 		SSL_CTX_set_options(lpCTX, SSL_OP_CIPHER_SERVER_PREFERENCE);
-	}
-
 #if !defined(OPENSSL_NO_ECDH) && defined(SSL_CTX_set1_curves_list)
 	if (ssl_curves && SSL_CTX_set1_curves_list(lpCTX, ssl_curves) != 1) {
 		ec_log_err("Can not set SSL curve list to \"%s\": %s", ssl_curves, ERR_error_string(ERR_get_error(), 0));

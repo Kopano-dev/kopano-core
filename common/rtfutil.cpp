@@ -774,9 +774,8 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 						if (i == mapFontToCharset.cend())
 							continue;
 						// Output any data before this point
-						if (!sState[ulState].output.empty()) {
+						if (!sState[ulState].output.empty())
 							strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
-						}
 						// Set new charset
 						HrGetCharsetByRTFID(i->second, &sState[ulState].szCharset);
 						if (sState[ulState].szCharset == nullptr)

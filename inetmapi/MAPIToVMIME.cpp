@@ -1181,10 +1181,9 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 
 		// If HTML, create HTML and plaintext parts
 		if (!strHTMLOut.empty()) {
-			if (m_vmCharset.getName() != m_strHTMLCharset) {
+			if (m_vmCharset.getName() != m_strHTMLCharset)
 				// convert from HTML charset to vmime output charset
 				strHTMLOut = m_converter.convert_to<string>(m_vmCharset.getName().c_str(), strHTMLOut, rawsize(strHTMLOut), m_strHTMLCharset.c_str());
-			}
 			vmime::shared_ptr<vmime::mapiTextPart> textPart = vmime::dynamicCast<vmime::mapiTextPart>(lpVMMessageBuilder->getTextPart());
 			textPart->setText(vmime::make_shared<vmime::stringContentHandler>(strHTMLOut));
 			textPart->setCharset(m_vmCharset);

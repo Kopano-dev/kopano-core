@@ -1025,17 +1025,9 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 	}
 
 	strExistingFolder = strToUpper(strExistingFolder);
-	if (strExistingFolder.compare(L"INBOX") == 0) {
-		// FIXME, rfc text:
-		//
-		//       Renaming INBOX is permitted, and has special behavior.  It moves
-		//       all messages in INBOX to a new mailbox with the given name,
-		//       leaving INBOX empty.  If the server implementation supports
-		//       inferior hierarchical names of INBOX, these are unaffected by a
-		//       rename of INBOX.
-
+	if (strExistingFolder.compare(L"INBOX") == 0)
+		/* FIXME: But RFC 3501 §6.3.5 page 4 says renaming INBOX is permitted.. */
 		return MAPI_E_CALL_FAILED;
-	}
 	hr = check_mboxname_with_resp(strExistingFolder, strTag, "RENAME");
 	if (hr != hrSuccess)
 		return hr;
@@ -1045,6 +1037,7 @@ HRESULT IMAP::HrCmdRename(const std::string &strTag,
 		return hr;
 	}
 	if (IsSpecialFolder(cb, entry_id)) {
+		/* FIXME: apply §6.3.5 logic too */
 		HrResponse(RESP_TAGGED_NO, strTag, "RENAME special folder may not be moved or renamed");
 		return hr;
 	}
