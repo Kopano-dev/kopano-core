@@ -29,7 +29,7 @@
 #include <kopano/stringutil.h>
 
 using namespace KC;
-static int opt_purge_deferred, opt_purge_softdelete;
+static int opt_purge_deferred, opt_purge_softdelete = -1;
 static unsigned int opt_cache_bits;
 static const char *opt_config_file, *opt_host, *opt_clear_cache;
 static std::unique_ptr<ECConfig> adm_config;
@@ -114,7 +114,7 @@ static HRESULT adm_perform()
 		return adm_clear_cache(srvctx.m_svcadm);
 	if (opt_purge_deferred)
 		return adm_purge_deferred(srvctx.m_svcadm);
-	if (opt_purge_softdelete)
+	if (opt_purge_softdelete >= 0)
 		return adm_purge_softdelete(srvctx.m_svcadm);
 	return MAPI_E_CALL_FAILED;
 }
