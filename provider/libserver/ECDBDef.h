@@ -323,13 +323,6 @@
 															('imapseq', '3'), \
 															('charset', 'utf8');"
 
-// Database update definitions
-#define Z_UPDATE_VERSIONTBL_MICRO 64
-#define Z_UPDATE_CHANGES_PKEY 65
-#define Z_UPDATE_ABCHANGES_PKEY 66
-#define Z_DROP_CLIENTUPDATESTATUS_PKEY 67
-#define Z_DB_UPDATE_68 68
-
 /*
  * The first population of the SQL tables can use both create-type and
  * update-type operations; %Z_UPDATE_RELEASE_ID specifies the schema

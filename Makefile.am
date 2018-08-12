@@ -533,7 +533,6 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECDatabase.h \
 	provider/libserver/ECDatabaseFactory.cpp provider/libserver/ECDatabaseFactory.h \
 	provider/libserver/ECDatabaseMySQL.cpp \
-	provider/libserver/ECDatabaseUpdate.cpp provider/libserver/ECDatabaseUpdate.h \
 	provider/libserver/ECDatabaseUtils.cpp provider/libserver/ECDatabaseUtils.h \
 	provider/libserver/ECGenProps.cpp provider/libserver/ECGenProps.h \
 	provider/libserver/ECGenericObjectTable.cpp \

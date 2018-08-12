@@ -58,6 +58,8 @@ public:
 #endif
 };
 
+extern _kc_export bool searchfolder_restart_required;
+
 } /* namespace */
 
 #endif // ECDATABASE_H

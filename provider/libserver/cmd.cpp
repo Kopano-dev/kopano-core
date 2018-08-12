@@ -18,7 +18,6 @@
 #include "ECSessionManager.h"
 #include "ECPluginFactory.h"
 #include "ECDBDef.h"
-#include "ECDatabaseUpdate.h"
 #include <kopano/ECGuid.h>
 #include "soapH.h"
 #include <mutex>

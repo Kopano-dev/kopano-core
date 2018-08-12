@@ -22,7 +22,6 @@
 #include "ECDatabase.h"
 #include "SOAPUtils.h"
 #include "ECSearchFolders.h"
-#include "ECDatabaseUpdate.h"
 #include "ECStatsCollector.h"
 
 namespace KC {
@@ -53,18 +52,102 @@ class zcp_versiontuple _kc_final {
 	unsigned int v_major, v_minor, v_micro, v_rev, v_schema;
 };
 
+bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an upgrade
+
+static ECRESULT InsertServerGUID(ECDatabase *lpDatabase)
+{
+	GUID guid;
+	if (CoCreateGuid(&guid) != S_OK) {
+		ec_log_err("InsertServerGUID(): CoCreateGuid failed");
+		return KCERR_DATABASE_ERROR;
+	}
+	return lpDatabase->DoInsert("INSERT INTO `settings` VALUES ('server_guid', " + lpDatabase->EscapeBinary(reinterpret_cast<unsigned char *>(&guid), sizeof(GUID)) + ")");
+}
+
+static ECRESULT dbup64(ECDatabase *db)
+{
+	return db->DoUpdate(
+		"alter table `versions` "
+		"add column `micro` int(11) unsigned not null default 0 after `minor`, "
+		"drop primary key, "
+		"add primary key (`major`, `minor`, `micro`, `revision`, `databaserevision`)");
+}
+
+static ECRESULT dbup65(ECDatabase *db)
+{
+	return db->DoUpdate(
+		"alter table `changes` "
+		"modify change_type int(11) unsigned not null default 0");
+}
+
+static ECRESULT dbup66(ECDatabase *db)
+{
+	return db->DoUpdate(
+		"alter table `abchanges` "
+		"modify change_type int(11) unsigned not null default 0");
+}
+
+static ECRESULT dbup68(ECDatabase *db)
+{
+	auto ret = db->DoUpdate("ALTER TABLE `hierarchy` MODIFY COLUMN `owner` int(11) unsigned NOT NULL DEFAULT 0");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	ret = db->DoUpdate("ALTER TABLE `stores` MODIFY COLUMN `id` int(11) unsigned NOT NULL auto_increment");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	ret = db->DoUpdate("ALTER TABLE `stores` MODIFY COLUMN `user_id` int(11) unsigned NOT NULL DEFAULT 0");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	ret = db->DoUpdate("ALTER TABLE `stores` MODIFY COLUMN `company` int(11) unsigned NOT NULL DEFAULT 0");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	ret = db->DoUpdate("ALTER TABLE `users` MODIFY COLUMN `id` int(11) NOT NULL AUTO_INCREMENT");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	return db->DoUpdate("ALTER TABLE `users` MODIFY COLUMN `company` int(11) NOT NULL DEFAULT 0");
+}
+
+static ECRESULT dbup69(ECDatabase *db)
+{
+	/*
+	 * Add new indexes first to see if that runs afoul of the dataset. The
+	 * operation is atomic; either both indexes will exist afterwards, or
+	 * neither.
+	 */
+	auto ret = db->DoUpdate("ALTER TABLE `names` ADD UNIQUE INDEX `gni` (`guid`(16), `nameid`), ADD UNIQUE INDEX `gns` (`guid`(16), `namestring`), DROP INDEX `guidnameid`, DROP INDEX `guidnamestring`");
+	if (ret == hrSuccess)
+		return hrSuccess;
+
+	ec_log_err("K-1216: Cannot update to schema v69, because the \"names\" table contains unexpected rows. Certain prior versions of the server erroneously allowed these duplicates to be added (KC-1108).");
+	DB_RESULT res;
+	unsigned long long ai = ~0ULL;
+	ret = db->DoSelect("SELECT MAX(id)+1 FROM names", &res);
+	if (ret == erSuccess) {
+		auto row = res.fetch_row();
+		if (row != nullptr && row[0] != nullptr)
+			ai = strtoull(row[0], nullptr, 0);
+	}
+	if (ai >= 31485)
+		ec_log_err("K-1219: It is possible that K-1216 has, in the past, led old clients to misplace data in the DB. This cannot be reliably detected and such data is effectively lost already.");
+	ec_log_err("K-1220: To fix the excess rows, use `kopano-dbadm k-1216`. Consult the manpage and preferably make a backup first.");
+	ec_log_err("K-1221: Alternatively, the server may be started with --ignore-da to forego the schema update.");
+	return KCERR_INVALID_VERSION; /* allow use of ignore-da */
+}
+
 static const sUpdateList_t sUpdateList[] = {
 	// New in 7.2.2
-	{ Z_UPDATE_VERSIONTBL_MICRO, 0, "Add \"micro\" column to \"versions\" table", UpdateVersionsTbl },
-
+	{64, 0, "Add \"micro\" column to \"versions\" table", dbup64},
 	// New in 8.1.0 / 7.2.4, MySQL 5.7 compatibility
-	{ Z_UPDATE_ABCHANGES_PKEY, 0, "Updating abchanges table", UpdateABChangesTbl },
-	{ Z_UPDATE_CHANGES_PKEY, 0, "Updating changes table", UpdateChangesTbl },
-	{Z_DROP_CLIENTUPDATESTATUS_PKEY, 0, "Drop clientupdatestatus table", DropClientUpdateStatusTbl},
-	{68, 0, "Perform column type upgrade missed in SVN r23897", db_update_68},
-	{69, 0, "Update \"names\" with uniqueness constraints", db_update_69},
-	{70, 0, "names.guid change from blob to binary(16); drop old indexes", db_update_70},
-	{71, 0, "Add the \"filename\" column to \"singleinstances\"", db_update_71},
+	{65, 0, "Updating abchanges table", dbup65},
+	{66, 0, "Updating changes table", dbup66},
+	{67, 0, "Drop clientupdatestatus table", [](ECDatabase *db) {
+		return db->DoUpdate("DROP TABLE IF EXISTS `clientupdatestatus`"); }},
+	{68, 0, "Perform column type upgrade missed in SVN r23897", dbup68},
+	{69, 0, "Update \"names\" with uniqueness constraints", dbup69},
+	{70, 0, "names.guid change from blob to binary(16); drop old indexes", [](ECDatabase *db) {
+		return db->DoUpdate("ALTER TABLE `names` CHANGE COLUMN `guid` `guid` binary(16) NOT NULL"); }},
+	{71, 0, "Add the \"filename\" column to \"singleinstances\"", [](ECDatabase *db) {
+		return db->DoUpdate("ALTER TABLE `singleinstances` ADD COLUMN `filename` VARCHAR(255) DEFAULT NULL"); }},
 };
 
 static const char *const server_groups[] = {

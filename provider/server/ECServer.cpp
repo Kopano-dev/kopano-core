@@ -21,7 +21,6 @@
 #include "soapH.h"
 #include "ECDatabase.h"
 #include "ECDatabaseFactory.h"
-#include "ECDatabaseUpdate.h"
 #include "ECDatabaseUtils.h"
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
