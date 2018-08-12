@@ -33,7 +33,6 @@ namespace KC {
 
 struct sUpdateList_t {
 	unsigned int ulVersion;
-	unsigned int ulVersionMin; // Version to start the update
 	const char *lpszLogComment;
 	ECRESULT (*lpFunction)(ECDatabase* lpDatabase);
 };
@@ -136,17 +135,17 @@ static ECRESULT dbup69(ECDatabase *db)
 
 static const sUpdateList_t sUpdateList[] = {
 	// New in 7.2.2
-	{64, 0, "Add \"micro\" column to \"versions\" table", dbup64},
+	{64, "Add \"micro\" column to \"versions\" table", dbup64},
 	// New in 8.1.0 / 7.2.4, MySQL 5.7 compatibility
-	{65, 0, "Updating abchanges table", dbup65},
-	{66, 0, "Updating changes table", dbup66},
-	{67, 0, "Drop clientupdatestatus table", [](ECDatabase *db) {
+	{65, "Updating abchanges table", dbup65},
+	{66, "Updating changes table", dbup66},
+	{67, "Drop clientupdatestatus table", [](ECDatabase *db) {
 		return db->DoUpdate("DROP TABLE IF EXISTS `clientupdatestatus`"); }},
-	{68, 0, "Perform column type upgrade missed in SVN r23897", dbup68},
-	{69, 0, "Update \"names\" with uniqueness constraints", dbup69},
-	{70, 0, "names.guid change from blob to binary(16); drop old indexes", [](ECDatabase *db) {
+	{68, "Perform column type upgrade missed in SVN r23897", dbup68},
+	{69, "Update \"names\" with uniqueness constraints", dbup69},
+	{70, "names.guid change from blob to binary(16); drop old indexes", [](ECDatabase *db) {
 		return db->DoUpdate("ALTER TABLE `names` CHANGE COLUMN `guid` `guid` binary(16) NOT NULL"); }},
-	{71, 0, "Add the \"filename\" column to \"singleinstances\"", [](ECDatabase *db) {
+	{71, "Add the \"filename\" column to \"singleinstances\"", [](ECDatabase *db) {
 		return db->DoUpdate("ALTER TABLE `singleinstances` ADD COLUMN `filename` VARCHAR(255) DEFAULT NULL"); }},
 };
 
