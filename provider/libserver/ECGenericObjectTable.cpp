@@ -1901,12 +1901,11 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		sEntryId.__ptr = lpProp->Value.bin->__ptr;
 		sEntryId.__size = lpProp->Value.bin->__size;
 		unsigned int ulResId = 0;
-		if (lpCacheManager->GetObjectFromEntryId(&sEntryId, &ulResId) == erSuccess)
-		{
-			auto r = (*lpSubResults)[ulSubRestrict].find(ulResId); // If the item is in the set, it matched
-			if (r != (*lpSubResults)[ulSubRestrict].cend())
-				fMatch = true;
-		}
+		if (lpCacheManager->GetObjectFromEntryId(&sEntryId, &ulResId) != erSuccess)
+			break;
+		auto r = (*lpSubResults)[ulSubRestrict].find(ulResId); // If the item is in the set, it matched
+		if (r != (*lpSubResults)[ulSubRestrict].cend())
+			fMatch = true;
 		break;
 	}
 	default:

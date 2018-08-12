@@ -6837,17 +6837,15 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		return er;
 	}
 
-	if (lpDBResult.get_num_rows() > 0) {
-		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-			if(lpDBRow[0] == NULL)
-				continue; // FIXME: Skip, give an error/warning ?
-			er = CopyObject(lpecSession, lpAttachmentStorage, atoui(lpDBRow[0]), ulNewObjectId, false, false, false, ulSyncId);
-			if (er != erSuccess && er != KCERR_NOT_FOUND) {
-				ec_log_err("CopyObject: CopyObject(%s) failed: %s (%x)", lpDBRow[0], GetMAPIErrorMessage(er), er);
-				return er;
-			} else {
-				er = erSuccess;
-			}
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
+		if(lpDBRow[0] == NULL)
+			continue; // FIXME: Skip, give an error/warning ?
+		er = CopyObject(lpecSession, lpAttachmentStorage, atoui(lpDBRow[0]), ulNewObjectId, false, false, false, ulSyncId);
+		if (er != erSuccess && er != KCERR_NOT_FOUND) {
+			ec_log_err("CopyObject: CopyObject(%s) failed: %s (%x)", lpDBRow[0], GetMAPIErrorMessage(er), er);
+			return er;
+		} else {
+			er = erSuccess;
 		}
 	}
 
