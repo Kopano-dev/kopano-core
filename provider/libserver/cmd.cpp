@@ -8823,13 +8823,12 @@ static ECRESULT SerializeObject(void *arg)
 	assert(lpStreamInfo != NULL);
 	lpStreamInfo->lpSessionInfo->lpSharedDatabase->ThreadInit();
 
-	std::unique_ptr<ECFifoSerializer> lpSink(new ECFifoSerializer(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::serialize));
+	ECFifoSerializer lpSink(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::serialize);
 	auto er = SerializeMessage(lpStreamInfo->lpSessionInfo->lpecSession,
 	     lpStreamInfo->lpSessionInfo->lpSharedDatabase.get(),
 	     lpStreamInfo->lpSessionInfo->lpAttachmentStorage.get(), nullptr,
 	     lpStreamInfo->ulObjectId, MAPI_MESSAGE, lpStreamInfo->ulStoreId,
-	     &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink.get(), true);
-	lpSink.reset();
+	     &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, &lpSink, true);
 	lpStreamInfo->lpSessionInfo->lpSharedDatabase->ThreadEnd();
 	lpStreamInfo->lpSessionInfo->er = er;
 	return er;
@@ -9045,6 +9044,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
         }
 
 		auto lpStreamInfo = static_cast<MTOMStreamInfo *>(soap_malloc(soap, sizeof(MTOMStreamInfo)));
+		static_assert(std::is_trivially_constructible<MTOMStreamInfo>::value, "MTOMStreamInfo must remain TC");
 		lpStreamInfo->ulObjectId = ulObjectId;
 		lpStreamInfo->ulStoreId = ulStoreId;
 		lpStreamInfo->bNewItem = false;
@@ -9096,10 +9096,13 @@ static ECRESULT DeserializeObject(void *arg)
 {
 	auto lpStreamInfo = static_cast<MTOMStreamInfo *>(arg);
 	assert(lpStreamInfo != NULL);
-	ECSerializer *lpSource = new ECFifoSerializer(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::deserialize);
-	auto er = DeserializeObject(lpStreamInfo->lpSessionInfo->lpecSession, lpStreamInfo->lpSessionInfo->lpDatabase, lpStreamInfo->lpSessionInfo->lpAttachmentStorage.get(), NULL, lpStreamInfo->ulObjectId, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->bNewItem, lpStreamInfo->ullIMAP, lpSource, &lpStreamInfo->lpPropValArray);
-	delete lpSource;
-	return er;
+	ECFifoSerializer lpSource(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::deserialize);
+	return DeserializeObject(lpStreamInfo->lpSessionInfo->lpecSession,
+	       lpStreamInfo->lpSessionInfo->lpDatabase,
+	       lpStreamInfo->lpSessionInfo->lpAttachmentStorage.get(), nullptr,
+	       lpStreamInfo->ulObjectId, lpStreamInfo->ulStoreId,
+	       &lpStreamInfo->sGuid, lpStreamInfo->bNewItem,
+	       lpStreamInfo->ullIMAP, &lpSource, &lpStreamInfo->lpPropValArray);
 }
 
 static void *MTOMWriteOpen(struct soap *soap, void *handle,
