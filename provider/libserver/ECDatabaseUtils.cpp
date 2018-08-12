@@ -134,8 +134,7 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 			u8_ncpy(lpPropVal->Value.lpszA, TABLE_CAP_STRING, &strData);
 		else
 			strData = lpPropVal->Value.lpszA;
-
-		strColData = "'" +  lpDatabase->Escape(FilterBMP(strData)) + "'";
+		strColData = "'" +  lpDatabase->Escape(strData) + "'";
 		*lpulColNr = VALUE_NR_STRING;
 		break;
 	}
@@ -300,7 +299,7 @@ ECRESULT CopySOAPPropValToDatabaseMVPropVal(struct propVal *lpPropVal, int nItem
 		if (lpPropVal->__union != SOAP_UNION_propValData_mvszA ||
 		    lpPropVal->Value.mvszA.__ptr == NULL)
 			return KCERR_INVALID_PARAMETER;
-		strColData = "'" + lpDatabase->Escape(FilterBMP(lpPropVal->Value.mvszA.__ptr[nItem])) + "'";
+		strColData = "'" + lpDatabase->Escape(lpPropVal->Value.mvszA.__ptr[nItem]) + "'";
 		strColName = PROPCOL_STRING;
 		break;
 	case PT_MV_CLSID:
