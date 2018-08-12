@@ -458,7 +458,7 @@ ECRESULT KDatabase::InitEngine(bool reconnect)
 		return KCERR_DATABASE_ERROR;
 	}
 	m_bMysqlInitialize = true;
-	my_bool value = reconnect;
+	char value = reconnect;
 	mysql_options(&m_lpMySQL, MYSQL_OPT_RECONNECT, &value);
 	return erSuccess;
 }
@@ -509,7 +509,7 @@ ECRESULT KDatabase::Query(const std::string &q)
 	/* Callers without reconnect will emit different messages. */
 	auto ers = mysql_error(&m_lpMySQL);
 #ifdef HAVE_MYSQL_GET_OPTION
-	my_bool reconn = false;
+	char reconn = false;
 	if (mysql_get_option(&m_lpMySQL, MYSQL_OPT_RECONNECT, &reconn) == 0 && reconn)
 #else
 	if (m_lpMySQL.reconnect)
