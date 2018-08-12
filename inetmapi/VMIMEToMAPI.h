@@ -51,7 +51,7 @@ void ignoreError(void *ctx, const char *msg, ...);
 class VMIMEToMAPI _kc_final {
 public:
 	VMIMEToMAPI();
-	VMIMEToMAPI(LPADRBOOK lpAdrBook, delivery_options dopt);
+	VMIMEToMAPI(IAddrBook *, delivery_options &&);
 
 	HRESULT convertVMIMEToMAPI(const std::string &input, IMessage *lpMessage);
 	HRESULT createIMAPProperties(const std::string &input, std::string *envelope, std::string *body, std::string *bodystruct);

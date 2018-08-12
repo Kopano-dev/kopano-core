@@ -4,6 +4,7 @@
  */
 #include <exception>
 #include <mutex>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
 #include <string>
@@ -142,7 +143,7 @@ HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore,
 	}
 
 	// fill mapi object from buffer
-	return VMIMEToMAPI(lpAddrBook, dopt).convertVMIMEToMAPI(input, lpMessage);
+	return VMIMEToMAPI(lpAddrBook, std::move(dopt)).convertVMIMEToMAPI(input, lpMessage);
 }
 
 // Read properties from lpMessage object and fill a buffer with internet rfc822 format message

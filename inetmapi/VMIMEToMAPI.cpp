@@ -139,8 +139,8 @@ VMIMEToMAPI::VMIMEToMAPI() :
  * @param[in]	lpAdrBook	Addressbook of a user.
  * @param[in]	dopt		delivery options handle differences in DAgent and Gateway behaviour.
  */
-VMIMEToMAPI::VMIMEToMAPI(LPADRBOOK lpAdrBook, delivery_options dopt) :
-	m_genctx(imopt_default_genctx()), m_dopt(dopt), m_lpAdrBook(lpAdrBook)
+VMIMEToMAPI::VMIMEToMAPI(IAddrBook *ab, delivery_options &&dopt) :
+	m_genctx(imopt_default_genctx()), m_dopt(std::move(dopt)), m_lpAdrBook(ab)
 {
 }
 
