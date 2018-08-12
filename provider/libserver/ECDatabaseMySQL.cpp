@@ -133,6 +133,11 @@ static ECRESULT dbup69(ECDatabase *db)
 	return KCERR_INVALID_VERSION; /* allow use of ignore-da */
 }
 
+/*
+ * ALTER statements are non-transacted. An update function using ALTER must not
+ * issue other modification statements.
+ */
+
 static const sUpdateList_t sUpdateList[] = {
 	// New in 7.2.2
 	{64, "Add \"micro\" column to \"versions\" table", dbup64},
@@ -147,6 +152,15 @@ static const sUpdateList_t sUpdateList[] = {
 		return db->DoUpdate("ALTER TABLE `names` CHANGE COLUMN `guid` `guid` binary(16) NOT NULL"); }},
 	{71, "Add the \"filename\" column to \"singleinstances\"", [](ECDatabase *db) {
 		return db->DoUpdate("ALTER TABLE `singleinstances` ADD COLUMN `filename` VARCHAR(255) DEFAULT NULL"); }},
+	/*
+	 * The InnoDB Antelope (= COMPACT) row format has a limitation of 767
+	 * bytes, which interferes with utf8mb4*255.
+	 */
+	{72, "Shrink index key 1/5", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `names` MODIFY COLUMN `namestring` VARCHAR(191) BINARY DEFAULT NULL"); }},
+	{73, "Shrink index key 2/5", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `receivefolder` MODIFY COLUMN `messageclass` VARCHAR(191) NOT NULL"); }},
+	{74, "Shrink index key 3/5", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectproperty` MODIFY COLUMN `propname` VARCHAR(191) BINARY NOT NULL"); }},
+	{75, "Shrink index key 4/5", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectmvproperty` MODIFY COLUMN `propname` VARCHAR(191) BINARY NOT NULL"); }},
+	{76, "Shrink index key 5/5", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `settings` MODIFY COLUMN `name` VARCHAR(191) BINARY NOT NULL"); }},
 };
 
 static const char *const server_groups[] = {
