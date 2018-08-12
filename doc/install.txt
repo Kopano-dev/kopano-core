@@ -30,6 +30,10 @@ Optional build-time dependencies and their minimum versions:
 	* OpenLDAP libldap_r
 	* php 5.4
 
+Mandatory components during runtime:
+
+	* MySQL 5.5.3 or higher, or MariaDB
+
 Optional components during runtime:
 
 	* libtcmalloc or jemalloc as an alternate allocator

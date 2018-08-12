@@ -57,7 +57,7 @@
 										`type` tinyint(4) unsigned NOT NULL default '0', \
 										`rights` int(11) unsigned NOT NULL default '0', \
 										PRIMARY KEY  (`hierarchy_id`,`id`,`type`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_HIERARCHY		"CREATE TABLE `hierarchy` ( \
 										`id` int(11) unsigned NOT NULL auto_increment, \
@@ -67,19 +67,19 @@
 										`owner` int(11) unsigned NOT NULL default '0', \
 										PRIMARY KEY  (`id`), \
 										KEY `parenttypeflags` (`parent`, `type`, `flags`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_NAMES			"CREATE TABLE `names` ( \
 										`id` int(11) NOT NULL auto_increment, \
 										`nameid` int(11) default NULL, \
-										`namestring` varchar(255) binary default NULL, \
+		`namestring` varchar(191) BINARY DEFAULT NULL, \
 										`guid` binary(16) NOT NULL, \
 										PRIMARY KEY  (`id`), \
 										KEY `nameid` (`nameid`), \
 										KEY `namestring` (`namestring`), \
 										UNIQUE KEY `gni` (`guid`,`nameid`), \
 										UNIQUE KEY `gns` (`guid`,`namestring`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_MVPROPERTIES		"CREATE TABLE `mvproperties` ( \
 										`hierarchyid` int(11) unsigned NOT NULL default '0', \
@@ -94,7 +94,7 @@
 										`val_hi` int(11) default NULL, \
 										`val_lo` int(11) unsigned default NULL, \
 										PRIMARY KEY (`hierarchyid`, `tag`, `type`, `orderid`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_TPROPERTIES		"CREATE TABLE `tproperties` ( \
 										`folderid` int(11) unsigned NOT NULL default '0', \
@@ -110,7 +110,7 @@
 										`val_lo` int(11) unsigned default NULL, \
 										PRIMARY KEY `ht` (`folderid`,`tag`,`hierarchyid`,`type`), \
 										KEY `hi` (`hierarchyid`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_DELAYEDUPDATE	"CREATE TABLE `deferredupdate` (\
                                         `hierarchyid` int(11) unsigned NOT NULL, \
@@ -118,7 +118,7 @@
                                         `srcfolderid` int(11) unsigned, \
                                         PRIMARY KEY(`hierarchyid`), \
                                         KEY `folderid` (`folderid`) \
-                                    ) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_PROPERTIES		"CREATE TABLE `properties` ( \
 										`hierarchyid` int(11) unsigned NOT NULL default '0', \
@@ -133,16 +133,16 @@
 										`val_lo` int(11) unsigned default NULL, \
 										`comp` bool default false, \
 										PRIMARY KEY `ht` (`hierarchyid`,`tag`,`type`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_RECEIVEFOLDER	"CREATE TABLE `receivefolder` (  \
 										`id` int(11) unsigned NOT NULL auto_increment, \
 										`storeid` int(11) unsigned NOT NULL default '0', \
 										`objid` int(11) unsigned NOT NULL default '0', \
-										`messageclass` varchar(255) NOT NULL default '', \
+		`messageclass` varchar(191) NOT NULL, \
 										PRIMARY KEY  (`id`), \
 										UNIQUE KEY `storeid` (`storeid`,`messageclass`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_STORES			"CREATE TABLE `stores` ( \
 										`id` int(11) unsigned NOT NULL auto_increment, \
@@ -154,7 +154,7 @@
 										`guid` blob NOT NULL, \
 										PRIMARY KEY  (`user_id`, `hierarchy_id`, `type`), \
 										UNIQUE KEY `id` (`id`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_USERS			"CREATE TABLE `users` ( \
 										`id` int(11) unsigned NOT NULL auto_increment, \
@@ -164,14 +164,14 @@
 										`company` int(11) unsigned NOT NULL default '0', \
 										PRIMARY KEY  (`id`), \
 										UNIQUE KEY externid (`externid`(255), `objectclass`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_OUTGOINGQUEUE	"CREATE TABLE `outgoingqueue` ( \
 										`store_id` int(11) unsigned NOT NULL default '0', \
 										`hierarchy_id` int(11) unsigned NOT NULL default '0', \
 										`flags` tinyint(4) unsigned NOT NULL default '0', \
 										PRIMARY KEY (`hierarchy_id`,`flags`,`store_id`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_LOB				"CREATE TABLE `lob` ( \
 										`instanceid` int(11) unsigned NOT NULL, \
@@ -179,7 +179,7 @@
 										`tag` smallint(6) unsigned NOT NULL, \
 										`val_binary` longblob, \
 										PRIMARY KEY (`instanceid`,`tag`,`chunkid`) \
-									) ENGINE=%s MAX_ROWS=1000000000 AVG_ROW_LENGTH=1750 CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s MAX_ROWS=1000000000 AVG_ROW_LENGTH=1750 CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_REFERENCES "CREATE TABLE `singleinstances` ( \
 	`instanceid` int(11) unsigned NOT NULL auto_increment, \
@@ -188,7 +188,7 @@
 	`filename` varchar(255) DEFAULT NULL, \
 	PRIMARY KEY (`instanceid`, `hierarchyid`, `tag`), \
 	UNIQUE KEY `hkey` (`hierarchyid`, `tag`) \
-) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_OBJECT			"CREATE TABLE object ( \
 										`id` int(11) unsigned NOT NULL auto_increment, \
@@ -197,29 +197,29 @@
 										PRIMARY KEY (`id`, `objectclass`), \
 										UNIQUE KEY id (`id`), \
 										UNIQUE KEY externid (`externid`(255), `objectclass`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_OBJECT_PROPERTY	"CREATE TABLE objectproperty ( \
 										`objectid` int(11) unsigned NOT NULL default '0', \
-										`propname` varchar(255) binary NOT NULL, \
+		`propname` varchar(191) BINARY NOT NULL, \
 										`value` text, \
 										PRIMARY KEY  (`objectid`, `propname`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_OBJECT_MVPROPERTY "CREATE TABLE objectmvproperty ( \
 										`objectid` int(11) unsigned NOT NULL default '0', \
-										`propname` varchar(255) binary NOT NULL, \
+		`propname` varchar(191) BINARY NOT NULL, \
 										`orderid` tinyint(11) unsigned NOT NULL default '0', \
 										`value` text, \
 										PRIMARY KEY (`objectid`, `orderid`, `propname`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_OBJECT_RELATION	"CREATE TABLE objectrelation ( \
 										`objectid` int(11) unsigned NOT NULL default '0', \
 										`parentobjectid` int(11) unsigned NOT NULL default '0', \
 										`relationtype` tinyint(11) unsigned NOT NULL, \
 										PRIMARY KEY  (`objectid`, `parentobjectid`, `relationtype`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_VERSIONS			"CREATE TABLE versions ( \
 										`major` int(11) unsigned NOT NULL default '0', \
@@ -229,14 +229,14 @@
 										`databaserevision` int(11) unsigned NOT NULL default '0', \
 										`updatetime` datetime NOT NULL, \
 										PRIMARY KEY  (`major`, `minor`, `micro`, `revision`, `databaserevision`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_SEARCHRESULTS	"CREATE TABLE searchresults ( \
 										`folderid` int(11) unsigned NOT NULL default '0', \
 										`hierarchyid` int(11) unsigned NOT NULL default '0', \
 										`flags` int(11) unsigned NOT NULL default '0', \
 										PRIMARY KEY (`folderid`, `hierarchyid`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_CHANGES			"CREATE TABLE `changes` ( \
 										`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, \
@@ -248,7 +248,7 @@
 										PRIMARY KEY (`parentsourcekey`,`sourcekey`,`change_type`), \
 										UNIQUE KEY `changeid` (`id`), \
 										UNIQUE KEY `state` (`parentsourcekey`,`id`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_ABCHANGES		"CREATE TABLE `abchanges` ( \
 										`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, \
@@ -257,7 +257,7 @@
 										`change_type` INT(11) UNSIGNED NOT NULL DEFAULT '0', \
 										PRIMARY KEY (`parentsourcekey`,`change_type`,`sourcekey`), \
 										UNIQUE KEY `changeid` (`id`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_SYNCS			"CREATE TABLE `syncs` ( \
 										`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, \
@@ -269,7 +269,7 @@
 										KEY `foldersync` (`sourcekey`,`sync_type`), \
 										KEY `changes` (`change_id`), \
 										KEY `sync_time` (`sync_time`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEFS_SYNCEDMESSAGES	"CREATE TABLE `syncedmessages` ( \
 										`sync_id` int(11) unsigned NOT NULL, \
@@ -278,7 +278,7 @@
 										`parentsourcekey` varbinary(64) NOT NULL, \
 										PRIMARY KEY  (`sync_id`,`change_id`,`sourcekey`), \
 										KEY `sync_state` (`sync_id`,`change_id`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 #define Z_TABLEDEF_INDEXED_PROPERTIES	"CREATE TABLE indexedproperties ( \
 											`hierarchyid` int(11) unsigned NOT NULL default '0', \
@@ -289,10 +289,10 @@
 										) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
 #define Z_TABLEDEF_SETTINGS		"CREATE TABLE settings ( \
-										`name` varchar(255) binary NOT NULL, \
+		`name` varchar(191) BINARY NOT NULL, \
 										`value` blob NOT NULL, \
 										PRIMARY KEY  (`name`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+	) ENGINE=%s CHARACTER SET utf8mb4;"
 
 // Default mysql table data
 #define Z_TABLEDATA_ACL				"INSERT INTO `acl` VALUES (2, 2, 2, 1531), \
@@ -329,9 +329,9 @@
  * version that can be reached with creates only.
  * (This is never less than %Z_UPDATE_LAST.)
  */
-#define Z_UPDATE_RELEASE_ID 76
+#define Z_UPDATE_RELEASE_ID 102
 
 // This is the last update ID always update this to the last ID
-#define Z_UPDATE_LAST 76
+#define Z_UPDATE_LAST 102
 
 #endif
