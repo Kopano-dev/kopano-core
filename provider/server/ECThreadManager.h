@@ -9,6 +9,7 @@
 #include <kopano/zcdefs.h>
 #include <atomic>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <set>
@@ -144,7 +145,7 @@ private:
  */
 class ECDispatcher {
 public:
-	ECDispatcher(KC::ECConfig *);
+	ECDispatcher(std::shared_ptr<KC::ECConfig>);
 	virtual ~ECDispatcher();
 
     // Statistics
@@ -179,7 +180,7 @@ public:
     virtual ECRESULT MainLoop() = 0;
 
 protected:
-	KC::ECConfig *m_lpConfig;
+	std::shared_ptr<KC::ECConfig> m_lpConfig;
 	ECThreadManager *m_lpThreadManager = nullptr;
 	std::mutex m_mutexItems;
 	std::queue<WORKITEM *> m_queueItems;
@@ -203,7 +204,7 @@ private:
     int			m_fdRescanWrite;
 
 public:
-	ECDispatcherSelect(KC::ECConfig *);
+	ECDispatcherSelect(std::shared_ptr<KC::ECConfig>);
     virtual ECRESULT MainLoop();
     virtual ECRESULT ShutDown();
     virtual ECRESULT NotifyRestart(SOAP_SOCKET s);
@@ -216,7 +217,7 @@ private:
 	int m_epFD;
 
 public:
-	ECDispatcherEPoll(KC::ECConfig *);
+	ECDispatcherEPoll(std::shared_ptr<KC::ECConfig>);
     virtual ~ECDispatcherEPoll();
     virtual ECRESULT MainLoop();
     virtual ECRESULT NotifyRestart(SOAP_SOCKET s);

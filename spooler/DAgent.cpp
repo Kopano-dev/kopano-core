@@ -248,9 +248,9 @@ static bool g_bTempfail = true; // Most errors are tempfails
 static pthread_t g_main_thread;
 static bool g_use_threads;
 static std::atomic<unsigned int> g_nLMTPThreads{0};
-static ECLogger *g_lpLogger;
-extern ECConfig *g_lpConfig;
-ECConfig *g_lpConfig = NULL;
+static object_ptr<ECLogger> g_lpLogger;
+extern std::shared_ptr<ECConfig> g_lpConfig;
+std::shared_ptr<ECConfig> g_lpConfig;
 static bool g_dump_config;
 
 class sortRecipients {
@@ -2725,7 +2725,7 @@ static void *HandlerLMTP(void *lpArg)
 	PyMapiPluginFactory pyMapiPluginFactory;
 	convert_context converter;
 	std::string curFrom = "???", heloName = "???";
-	LMTP lmtp(lpArgs->lpChannel.get(), lpArgs->strPath.c_str(), g_lpConfig);
+	LMTP lmtp(lpArgs->lpChannel.get(), lpArgs->strPath.c_str(), g_lpConfig.get());
 
 	/* For resolving addresses from Address Book */
 	object_ptr<IMAPISession> lpSession;
@@ -2903,7 +2903,7 @@ static void *HandlerLMTP(void *lpArg)
 			hr = lmtp.HrCommandDATA(tmp);
 			if (hr == hrSuccess) {
 				std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
-				hr = pyMapiPluginFactory.create_plugin(g_lpConfig, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
+				hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 				if (hr != hrSuccess) {
 					ec_log_crit("K-1731: Unable to initialize the dagent plugin manager: %s (%x).",
 						GetMAPIErrorMessage(hr), hr);
@@ -3060,7 +3060,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	// Setup sockets
 	std::vector<struct pollfd> lmtp_poll;
 	std::vector<int> closefd;
-	err = dagent_listen(g_lpConfig, lmtp_poll, closefd);
+	err = dagent_listen(g_lpConfig.get(), lmtp_poll, closefd);
 	if (err < 0)
 		return MAPI_E_NETWORK_ERROR;
 
@@ -3076,16 +3076,15 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig))
+	if (unix_runas(g_lpConfig.get()))
 		return hr;
-	if (bDaemonize && unix_daemonize(g_lpConfig))
+	if (bDaemonize && unix_daemonize(g_lpConfig.get()))
 		return hr;
 	
 	if (!bDaemonize)
 		setsid();
-
-	unix_create_pidfile(servicename, g_lpConfig);
-	g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger); // maybe replace logger
+	unix_create_pidfile(servicename, g_lpConfig.get());
+	g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
 	ec_log_set(g_lpLogger);
 
 	AutoMAPI mapiinit;
@@ -3558,8 +3557,7 @@ int main(int argc, char *argv[]) {
 		};
 	}
 
-	g_lpConfig = ECConfig::Create(lpDefaults);
-	auto free_config = make_scope_success([&]() { delete g_lpConfig; });
+	g_lpConfig.reset(ECConfig::Create(lpDefaults));
 	/* When LoadSettings fails, provide warning to user (but wait until we actually have the Logger) */
 	if (!g_lpConfig->LoadSettings(szConfig))
 		bDefaultConfigWarning = true;
@@ -3593,15 +3591,13 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (!loglevel)
-		g_lpLogger = new ECLogger_Null();
+		g_lpLogger.reset(new(std::nothrow) ECLogger_Null);
 	else 
-		g_lpLogger = CreateLogger(g_lpConfig, argv[0], "KopanoDAgent");
+		g_lpLogger.reset(CreateLogger(g_lpConfig.get(), argv[0], "KopanoDAgent"));
 	ec_log_set(g_lpLogger);
 	if (!g_lpLogger->Log(loglevel))
 		/* raise loglevel if there are more -v on the command line than in dagent.cfg */
 		g_lpLogger->SetLoglevel(loglevel);
-
-	auto free_logger = make_scope_success([&]() { DeleteLogger(g_lpLogger); });
 
 	/* Warn users that we are using the default configuration */
 	if (bDefaultConfigWarning && bExplicitConfig) {
@@ -3610,13 +3606,13 @@ int main(int argc, char *argv[]) {
 	}
 
 	if ((bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) || g_lpConfig->HasWarnings())
-		LogConfigErrors(g_lpConfig);
-	if (!TmpPath::instance.OverridePath(g_lpConfig))
+		LogConfigErrors(g_lpConfig.get());
+	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path-setting!");
 
 	/* If something went wrong, create special Logger, log message and bail out */
 	if (g_lpConfig->HasErrors() && bExplicitConfig) {
-		LogConfigErrors(g_lpConfig);
+		LogConfigErrors(g_lpConfig.get());
 		return get_return_value(E_FAIL, bListenLMTP, qmail);
 	}
 	if (g_dump_config)
@@ -3718,7 +3714,7 @@ int main(int argc, char *argv[]) {
 		std::shared_ptr<StatsClient> sc(new StatsClient);
 		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 		sDeliveryArgs.sc = std::move(sc);
-		hr = pyMapiPluginFactory.create_plugin(g_lpConfig, "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
+		hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
 		if (hr != hrSuccess) {
 			ec_log_crit("K-1732: Unable to initialize the dagent plugin manager: %s (%x).",
 				GetMAPIErrorMessage(hr), hr);

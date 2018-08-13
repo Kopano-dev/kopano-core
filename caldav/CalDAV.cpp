@@ -8,6 +8,7 @@
 #include <memory>
 #include <new>
 #include <type_traits>
+#include <utility>
 #include <vector>
 #include <climits>
 #include <cstdlib>
@@ -51,7 +52,7 @@ struct socks {
 };
 
 static bool g_bDaemonize = true, g_bQuit, g_bThreads, g_dump_config;
-static ECLogger *g_lpLogger = NULL;
+static object_ptr<ECLogger> g_lpLogger;
 static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
 static std::atomic<int> nChildren{0};
@@ -212,7 +213,7 @@ int main(int argc, char **argv) {
 	if (!g_lpConfig->LoadSettings(lpszCfg, !exp_config) ||
 	    g_lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
-		g_lpLogger = new ECLogger_File(1, 0, "-", false);
+		g_lpLogger.reset(new(std::nothrow) ECLogger_File(1, 0, "-", false));
 		if (g_lpLogger == nullptr) {
 			hr = MAPI_E_NOT_ENOUGH_MEMORY;
 			goto exit;
@@ -223,7 +224,7 @@ int main(int argc, char **argv) {
 	}
 	if (g_dump_config)
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
-	g_lpLogger = CreateLogger(g_lpConfig.get(), argv[0], "KopanoICal");
+	g_lpLogger.reset(CreateLogger(g_lpConfig.get(), argv[0], "KopanoICal"));
 	if (!g_lpLogger) {
 		fprintf(stderr, "Error loading configuration or parsing commandline arguments.\n");
 		goto exit;
@@ -272,7 +273,7 @@ int main(int argc, char **argv) {
 		setsid();
 	unix_create_pidfile(argv[0], g_lpConfig.get());
 	if (!g_bThreads)
-		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), g_lpLogger);
+		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger));
 	else
 		g_lpLogger->SetLogprefix(LP_TID);
 	ec_log_set(g_lpLogger);
@@ -310,7 +311,6 @@ exit2:
 	MAPIUninitialize();
 exit:
 	ECChannel::HrFreeCtx();
-	DeleteLogger(g_lpLogger);
 	SSL_library_cleanup(); // Remove SSL data for the main application and other related libraries
 	// Cleanup SSL parts
 	ssl_threading_cleanup();
