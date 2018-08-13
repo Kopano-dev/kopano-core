@@ -18,6 +18,8 @@
 #include <kopano/platform.h>
 #include <chrono>
 #include <condition_variable>
+#include <list>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <new>
@@ -80,6 +82,12 @@ using std::map;
 using std::string;
 using std::wstring;
 
+enum {
+	SPC_EXITED,
+	SPC_SIGNALED,
+	SPC_ABNORMAL,
+};
+
 static std::unique_ptr<StatsClient> sc;
 
 // spooler exit codes
@@ -96,6 +104,8 @@ extern std::shared_ptr<ECConfig> g_lpConfig;
 std::shared_ptr<ECConfig> g_lpConfig;
 static object_ptr<ECLogger> g_lpLogger;
 static bool g_dump_config;
+static bool g_use_threads;
+static pthread_t g_main_thread;
 
 // notification
 static bool bMessagesWaiting = false;
@@ -104,18 +114,27 @@ static std::condition_variable hCondMessagesWaiting;
 
 // messages being processed
 struct SendData {
-	ULONG cbStoreEntryId;
-	BYTE* lpStoreEntryId;
-	ULONG cbMessageEntryId;
-	BYTE* lpMessageEntryId;
+	std::string store_eid, msg_eid;
+	std::wstring strUsername;
 	ULONG ulFlags;
-	wstring strUsername;
+	int status;
 };
-static map<pid_t, SendData> mapSendData;
+
+struct sp_handlerargs {
+	struct SendData sd;
+	std::string smtp_host, path;
+	unsigned int smtp_port;
+	bool do_sentmail;
+};
+
+static std::map<pid_t, SendData> mapSendData; /* data for subprocesses */
+static std::list<SendData> g_senddata_thr; /* data for subthreads */
 static map<pid_t, int> mapFinished;	// exit status of finished processes
+static std::mutex g_senddata_mtx; /* protect g_senddata_thr */
 static std::mutex hMutexFinished; /* mutex for mapFinished */
 
 static HRESULT running_server(const char *szSMTP, int port, const char *szPath);
+static HRESULT handle_child_exit(IMAPISession *, IECSpooler *, StatsClient *, pid_t, unsigned int, unsigned int, const SendData &);
 
 /**
  * Print command line options, only for daemon version, not for mailer fork process
@@ -132,26 +151,6 @@ static void print_help(const char *name)
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/kopano-spooler.cfg)\n\t\tDefault: /etc/kopano/spooler.cfg" << endl;
 	cout << "  smtp server: The name or IP-address of the SMTP server, overriding the configuration" << endl;
 	cout << endl;
-}
-
-/**
- * Encode a wide string in UTF-8 and output it in hexadecimal.
- * @param[in]	lpszW	The wide string to encode
- * @return				The encoded string.
- */
-static string encodestring(const wchar_t *lpszW) {
-	const utf8string u8 = convstring(lpszW);
-	return bin2hex(u8.size(), u8.c_str());
-}
-
-/**
- * Decode a string previously encoded with encodestring.
- * @param[in]	lpszA	The string containing the hexadecimal
- * 						representation of the UTF-8 encoded string.
- * @return				The original wide string.
- */
-static wstring decodestring(const char *lpszA) {
-	return convert_to<std::wstring>(utf8string::from_string(hex2bin(lpszA)));
 }
 
 /**
@@ -183,6 +182,49 @@ static LONG AdviseCallback(void *lpContext, ULONG cNotif,
 	return 0;
 }
 
+static void *HandlerSP_Thread(void *varg)
+{
+	std::unique_ptr<sp_handlerargs> a(static_cast<sp_handlerargs *>(varg));
+	auto ret = ProcessMessageForked(a->sd.strUsername.c_str(),
+		a->smtp_host.c_str(), a->smtp_port, a->path.c_str(),
+		a->sd.msg_eid.length(), reinterpret_cast<const ENTRYID *>(a->sd.msg_eid.data()),
+		a->do_sentmail);
+	a->sd.status = ret;
+	std::unique_lock<std::mutex> lk(g_senddata_mtx);
+	g_senddata_thr.emplace_back(std::move(a->sd));
+	lk.unlock();
+	hCondMessagesWaiting.notify_one();
+	return nullptr;
+}
+
+static HRESULT StartSpoolerThread(SendData &&sd, const char *smtp_host,
+    uint16_t smtp_port, const char *path, unsigned int flags)
+{
+	std::unique_ptr<sp_handlerargs> th_arg(new(std::nothrow) sp_handlerargs);
+	if (th_arg == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	th_arg->sd = std::move(sd);
+	th_arg->smtp_host = smtp_host;
+	th_arg->smtp_port = smtp_port;
+	th_arg->path = path;
+	th_arg->do_sentmail = flags & EC_SUBMIT_DOSENTMAIL;
+
+	pthread_attr_t attr;
+	pthread_t tid;
+	pthread_attr_init(&attr);
+	pthread_attr_setstacksize(&attr, 1 << 20);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	auto err = pthread_create(&tid, &attr, HandlerSP_Thread, th_arg.get());
+	pthread_attr_destroy(&attr);
+	if (err != 0) {
+		ec_log_err("Could not create worker thread: %s", strerror(err));
+		return MAPI_E_CALL_FAILED;
+	}
+	th_arg.release();
+	ec_log_info("Worker thread 0x%lx started", static_cast<unsigned long>(tid));
+	return hrSuccess;
+}
+
 /*
  * starting fork, passes:
  * -c config    for all log settings and smtp server and such
@@ -212,37 +254,33 @@ static LONG AdviseCallback(void *lpContext, ULONG cNotif,
  * @return		HRESULT
  */
 static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
-    int ulSMTPPort, const char *szPath, ULONG cbStoreEntryId,
-    BYTE *lpStoreEntryId, ULONG cbMsgEntryId, BYTE *lpMsgEntryId,
-    ULONG ulFlags)
+    int ulSMTPPort, const char *szPath, const SBinary &store_eid,
+    const SBinary &msg_eid, unsigned int ulFlags)
 {
 	SendData sSendData;
-	pid_t pid;
 	bool bDoSentMail = ulFlags & EC_SUBMIT_DOSENTMAIL;
-	std::string strPort = stringify(ulSMTPPort);
 
 	// place pid with entryid copy in map
-	sSendData.cbStoreEntryId = cbStoreEntryId;
-	auto hr = KAllocCopy(lpStoreEntryId, cbStoreEntryId, reinterpret_cast<void **>(&sSendData.lpStoreEntryId));
-	if (hr != hrSuccess)
-		return kc_perrorf("MAPIAllocateBuffer failed(1)", hr);
-	sSendData.cbMessageEntryId = cbMsgEntryId;
-	hr = KAllocCopy(lpMsgEntryId, cbMsgEntryId, reinterpret_cast<void **>(&sSendData.lpMessageEntryId));
-	if (hr != hrSuccess)
-		return kc_perror("MAPIAllocateBuffer failed(2)", hr);
+	sSendData.store_eid.assign(reinterpret_cast<const char *>(store_eid.lpb), store_eid.cb);
+	sSendData.msg_eid.assign(reinterpret_cast<const char *>(msg_eid.lpb), msg_eid.cb);
 	sSendData.ulFlags = ulFlags;
 	sSendData.strUsername = szUsername;
 
+	if (g_use_threads)
+		return StartSpoolerThread(std::move(sSendData), szSMTP, ulSMTPPort, szPath, ulFlags);
+
+	pid_t pid;
+	std::string strPort = stringify(ulSMTPPort);
 	// execute the new spooler process to send the email
 	const char *argv[18];
 	int argc = 0;
 	argv[argc++] = szCommand;
 	std::unique_ptr<char[], cstdlib_deleter> bname(strdup(szCommand));
 	argv[argc++] = basename(bname.get());
-	auto eidhex = bin2hex(cbMsgEntryId, lpMsgEntryId);
+	auto eidhex = bin2hex(msg_eid.cb, msg_eid.lpb);
 	argv[argc++] = "--send-message-entryid";
 	argv[argc++] = eidhex.c_str();
-	auto encuser = encodestring(szUsername);
+	auto encuser = convert_to<std::string>("UTF-8", szUsername, rawsize(szUsername), CHARSET_WCHAR);
 	argv[argc++] = "--send-username-enc";
 	argv[argc++] = encuser.c_str();
 	auto logfd = stringify(g_lpLogger->GetFileDescriptor());
@@ -270,10 +308,9 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 		return MAPI_E_CALL_FAILED;
 	}
 	/*
-	 * We execute because of all the MAPI memory in use would be duplicated
-	 * in the child, and there will not be a nice way to clean it all up
-	 * (that is fixable though). Moreover, due to inclusion of the Python
-	 * interpreter with global state (as it is being said), we cannot thread.
+	 * We must exec. spooler still has the IMAPISession object alive in the
+	 * caller, and that destructor must not be called now, since the actual
+	 * socket connection/fd remains shared between children.
 	 */
 	if (pid == 0) {
 		execvp(argv[0], const_cast<char *const *>(argv));
@@ -327,17 +364,35 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 	}
 
 	if (*lppUserStore == NULL) {
-		auto hr = lpAdminSession->OpenMsgStore(0, sSendData.cbStoreEntryId, reinterpret_cast<ENTRYID *>(sSendData.lpStoreEntryId), nullptr, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, lppUserStore);
+		auto hr = lpAdminSession->OpenMsgStore(0, sSendData.store_eid.size(),
+		          reinterpret_cast<const ENTRYID *>(sSendData.store_eid.data()),
+		          nullptr, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, lppUserStore);
 		if (hr != hrSuccess)
 			return kc_perror("Unable to open store of user for error mail (skipping)", hr);
 	}
 
 	if (*lppMessage == NULL) {
-		auto hr = (*lppUserStore)->OpenEntry(sSendData.cbMessageEntryId, reinterpret_cast<ENTRYID *>(sSendData.lpMessageEntryId), &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<IUnknown **>(lppMessage));
+		auto hr = (*lppUserStore)->OpenEntry(sSendData.msg_eid.size(),
+		          reinterpret_cast<const ENTRYID *>(sSendData.msg_eid.data()),
+		          &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType,
+		          reinterpret_cast<IUnknown **>(lppMessage));
 		if (hr != hrSuccess)
 			return kc_perror("Unable to open message of user for error mail (skipping)", hr);
 	}
 	return hrSuccess;
+}
+
+static void CleanFinishedMessagesThreaded(IMAPISession *ses, IECSpooler *spooler)
+{
+	std::unique_lock<std::mutex> lk(g_senddata_mtx);
+	if (g_senddata_thr.empty())
+		return;
+	auto finished = std::move(g_senddata_thr);
+	g_senddata_thr.clear();
+	lk.unlock();
+	ec_log_debug("Cleaning %zu subthreads from queue", finished.size());
+	for (const auto &sd : finished)
+		handle_child_exit(ses, spooler, sc.get(), 0, SPC_EXITED, sd.status, sd);
 }
 
 /**
@@ -349,19 +404,18 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
  * @param[in]	lpSpooler		IECSpooler object
  * @return		HRESULT
  */
-static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
+static void CleanFinishedMessages(IMAPISession *lpAdminSession,
     IECSpooler *lpSpooler)
 {
-	HRESULT hr = hrSuccess;
-	bool bErrorMail;
-	int status;
-	// error message creation
-	object_ptr<IAddrBook> lpAddrBook;
-	std::unique_ptr<ECSender> lpMailer;
+	if (g_use_threads) {
+		CleanFinishedMessagesThreaded(lpAdminSession, lpSpooler);
+		return;
+	}
+
 	std::unique_lock<std::mutex> lock(hMutexFinished);
 
 	if (mapFinished.empty())
-		return hr;
+		return;
 
 	// copy map contents and clear it, so hMutexFinished can be unlocked again asap
 	auto finished = std::move(mapFinished);
@@ -375,85 +429,76 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 		if (sdi == mapSendData.cend())
 			/* not a mail worker subprocess */
 			continue;
-		auto sSendData = sdi->second;
 		/* Find exit status, and decide to remove mail from queue or not */
-		status = i.second;
-
-		bErrorMail = false;
-
-		bool wasSent = false;
-
-#ifdef WEXITSTATUS
-		if(WIFEXITED(status)) {					/* Child exited by itself */
-			if (WEXITSTATUS(status) == EXIT_WAIT) {
-				// timed message, try again later
-				ec_log_info("Message for user %ls will be tried again later", sSendData.strUsername.c_str());
-				sc -> countInc("Spooler", "exit_wait");
-			}
-			else if (WEXITSTATUS(status) == EXIT_SUCCESS || WEXITSTATUS(status) == EXIT_FAILURE) {
-				// message was sent, or the user already received an error mail.
-				ec_log_info("Processed message for user %ls", sSendData.strUsername.c_str());
-				wasSent = true;
-			}
-			else {
-				// message was not sent, and could not be removed from queue. Notify user also.
-				bErrorMail = true;
-				ec_log_warn("Failed message for user %ls will be removed from queue, error 0x%x", sSendData.strUsername.c_str(), status);
-			}
-		}
-		else if(WIFSIGNALED(status)) {        /* Child was killed by a signal */
-			bErrorMail = true;
-			ec_log_notice("Spooler process %d was killed by signal %d", i.first, WTERMSIG(status));
-			ec_log_warn("Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
-			sc -> countInc("Spooler", "sig_killed");
-		}
-		else {								/* Something strange happened */
-			bErrorMail = true;
-			ec_log_notice("Spooler process %d terminated abnormally", i.first);
-			ec_log_warn("Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
-			sc -> countInc("Spooler", "abnormal_terminate");
-		}
-#else
-		if (status) {
-			bErrorMail = true;
-			ec_log_err("Spooler process %d exited with status %d", i.first, status);
-		}
-#endif
-
-		if (wasSent)
-			sc -> countInc("Spooler", "sent");
-		else if (bErrorMail)
-			sc -> countInc("Spooler", "send_failed");
-
-		if (bErrorMail) {
-			object_ptr<IMsgStore> lpUserStore;
-			object_ptr<IMessage> lpMessage;
-
-			hr = GetErrorObjects(sSendData, lpAdminSession, &~lpAddrBook, &unique_tie(lpMailer), &~lpUserStore, &~lpMessage);
-			if (hr == hrSuccess) {
-				lpMailer->setError(_("A fatal error occurred while processing your message, and Kopano is unable to send your email."));
-				hr = SendUndeliverable(lpMailer.get(), lpUserStore, lpMessage);
-				// TODO: if failed, and we have the lpUserStore, create message?
-			}
-			if (hr != hrSuccess)
-				ec_log_warn("Failed to create error message for user %ls: %s (%x)",
-					sSendData.strUsername.c_str(), GetMAPIErrorMessage(hr), hr);
-
-			// remove mail from queue
-			hr = lpSpooler->DeleteFromMasterOutgoingTable(sSendData.cbMessageEntryId, (LPENTRYID)sSendData.lpMessageEntryId, sSendData.ulFlags);
-			if (hr != hrSuccess)
-				kc_pwarn("Could not remove invalid message from queue", hr);
-			// move mail to sent items folder
-			if (sSendData.ulFlags & EC_SUBMIT_DOSENTMAIL && lpMessage) {
-				hr = DoSentMail(lpAdminSession, lpUserStore, 0, std::move(lpMessage));
-				if (hr != hrSuccess)
-					kc_perror("Unable to move sent mail to Sent Items folder", hr);
-			}
-		}
-
-		MAPIFreeBuffer(sSendData.lpStoreEntryId);
-		MAPIFreeBuffer(sSendData.lpMessageEntryId);
+		auto mode = WIFEXITED(i.second) ? SPC_EXITED : WIFSIGNALED(i.second) ? SPC_SIGNALED : SPC_ABNORMAL;
+		auto value = WIFEXITED(i.second) ? WEXITSTATUS(i.second) : WIFSIGNALED(i.second) ? WTERMSIG(i.second) : 0;
+		handle_child_exit(lpAdminSession, lpSpooler, sc.get(), i.first, mode, value, sdi->second);
 		mapSendData.erase(i.first);
+	}
+}
+
+static HRESULT handle_child_exit(IMAPISession *lpAdminSession,
+    IECSpooler *lpSpooler, StatsClient *sc, pid_t pid, unsigned int mode,
+    unsigned int status, const SendData &sSendData)
+{
+	bool wasSent = false, bErrorMail = false;
+
+	if (mode == SPC_EXITED) {
+		if (status == EXIT_WAIT) {
+			// timed message, try again later
+			ec_log_info("Message for user %ls will be tried again later", sSendData.strUsername.c_str());
+			sc->countInc("Spooler", "exit_wait");
+		} else if (status == EXIT_SUCCESS || status == EXIT_FAILURE) {
+			// message was sent, or the user already received an error mail.
+			ec_log_info("Processed message for user %ls", sSendData.strUsername.c_str());
+			wasSent = true;
+		} else {
+			// message was not sent, and could not be removed from queue. Notify user also.
+			bErrorMail = true;
+			ec_log_warn("Failed message for user %ls will be removed from queue, error 0x%x", sSendData.strUsername.c_str(), status);
+		}
+	} else if (mode == SPC_SIGNALED) {
+		bErrorMail = true;
+		ec_log_notice("Spooler process %d was killed by signal %d", pid, status);
+		ec_log_warn("Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
+		sc->countInc("Spooler", "sig_killed");
+	} else { /* Something strange happened */
+		bErrorMail = true;
+		ec_log_notice("Spooler process %d terminated abnormally", pid);
+		ec_log_warn("Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
+		sc->countInc("Spooler", "abnormal_terminate");
+	}
+	if (wasSent)
+		sc->countInc("Spooler", "sent");
+	else if (bErrorMail)
+		sc->countInc("Spooler", "send_failed");
+
+	if (!bErrorMail)
+		return hrSuccess;
+
+	object_ptr<IMsgStore> lpUserStore;
+	object_ptr<IMessage> lpMessage;
+	object_ptr<IAddrBook> lpAddrBook;
+	std::unique_ptr<ECSender> lpMailer;
+	auto hr = GetErrorObjects(sSendData, lpAdminSession, &~lpAddrBook, &unique_tie(lpMailer), &~lpUserStore, &~lpMessage);
+	if (hr == hrSuccess) {
+		lpMailer->setError(_("A fatal error occurred while processing your message, and Kopano is unable to send your email."));
+		hr = SendUndeliverable(lpMailer.get(), lpUserStore, lpMessage);
+		// TODO: if failed, and we have the lpUserStore, create message?
+	}
+	if (hr != hrSuccess)
+		ec_log_warn("Failed to create error message for user %ls: %s (%x)",
+			sSendData.strUsername.c_str(), GetMAPIErrorMessage(hr), hr);
+	// remove mail from queue
+	hr = lpSpooler->DeleteFromMasterOutgoingTable(sSendData.msg_eid.size(),
+	     reinterpret_cast<const ENTRYID *>(sSendData.msg_eid.data()), sSendData.ulFlags);
+	if (hr != hrSuccess)
+		kc_pwarn("Could not remove invalid message from queue", hr);
+	// move mail to sent items folder
+	if (sSendData.ulFlags & EC_SUBMIT_DOSENTMAIL && lpMessage) {
+		hr = DoSentMail(lpAdminSession, lpUserStore, 0, std::move(lpMessage));
+		if (hr != hrSuccess)
+			kc_perror("Unable to move sent mail to Sent Items folder", hr);
 	}
 	return hr;
 }
@@ -550,8 +595,8 @@ static HRESULT ProcessAllEntries2(IMAPISession *lpAdminSession,
 		// Check if there is already an active process for this message
 		bool bMatch = false;
 		for (const auto &i : mapSendData)
-			if (i.second.cbMessageEntryId == lpsRowSet[0].lpProps[2].Value.bin.cb &&
-			    memcmp(i.second.lpMessageEntryId, lpsRowSet[0].lpProps[2].Value.bin.lpb, i.second.cbMessageEntryId) == 0) {
+			if (i.second.msg_eid.size() == lpsRowSet[0].lpProps[2].Value.bin.cb &&
+			    memcmp(i.second.msg_eid.data(), lpsRowSet[0].lpProps[2].Value.bin.lpb, i.second.msg_eid.size()) == 0) {
 				bMatch = true;
 				break;
 			}
@@ -560,8 +605,7 @@ static HRESULT ProcessAllEntries2(IMAPISession *lpAdminSession,
 
 		// Start new process to send the mail
 		hr = StartSpoolerFork(strUsername.c_str(), szSMTP, ulPort, szPath,
-		     lpsRowSet[0].lpProps[1].Value.bin.cb, lpsRowSet[0].lpProps[1].Value.bin.lpb,
-		     lpsRowSet[0].lpProps[2].Value.bin.cb, lpsRowSet[0].lpProps[2].Value.bin.lpb,
+		     lpsRowSet[0].lpProps[1].Value.bin, lpsRowSet[0].lpProps[2].Value.bin,
 		     lpsRowSet[0].lpProps[3].Value.ul);
 		if (hr != hrSuccess)
 			return kc_pwarn("ProcessAllEntries(): Failed starting spooler", hr);
@@ -770,6 +814,8 @@ static void process_signal(int sig)
 	}
 
 	case SIGHUP:
+		if (g_use_threads && !pthread_equal(pthread_self(), g_main_thread))
+			break;
 		if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 		    g_lpLogger != nullptr)
 			ec_log_warn("Unable to reload configuration file, continuing with current settings.");
@@ -916,6 +962,7 @@ int main(int argc, char *argv[]) {
 		{ "tmp_path", "/tmp" },
 		{"log_raw_message_path", "/var/lib/kopano", CONFIGSETTING_RELOADABLE},
 		{"log_raw_message_stage1", "no", CONFIGSETTING_RELOADABLE},
+		{"process_model", "fork", CONFIGSETTING_NONEMPTY},
 		{ NULL, NULL },
 	};
     // SIGSEGV backtrace support
@@ -953,7 +1000,7 @@ int main(int argc, char *argv[]) {
 			break;
 		case OPT_SEND_USERNAME:
 			bForked = true;
-			strUsername = decodestring(optarg);
+			strUsername = convert_to<std::wstring>(optarg, rawsize(optarg), "UTF-8");
 			break;
 		case OPT_LOGFD:
 			logfd = atoi(optarg);
@@ -1026,6 +1073,19 @@ int main(int argc, char *argv[]) {
 		return g_lpConfig->dump_config(stdout) == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 	if (!TmpPath::instance.OverridePath(g_lpConfig.get()))
 		ec_log_err("Ignoring invalid path setting!");
+	g_main_thread = pthread_self();
+	if (strcmp(g_lpConfig->GetSetting("process_model"), "thread") == 0) {
+		if (parseBool(g_lpConfig->GetSetting("plugin_enabled")))
+			/*
+			 * Though you can create multiple interpreters, they
+			 * cannot run simultaneously, defeating the purpose.
+			 */
+			ec_log_err("Use of Python (plugin_enabled=yes) forces process_model=fork");
+		else
+			g_use_threads = true;
+	}
+	if (g_use_threads)
+		g_lpLogger->SetLogprefix(LP_TID);
 
 	// set socket filename
 	if (!szPath)

@@ -991,17 +991,14 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
  * A contacts folder EntryID contains an offset that is an index in three different possible EntryID named properties.
  *
  * @param[in]	lpUserStore	The store of the user where the contact is stored.
- * @param[in]	cbEntryId	The number of bytes in lpEntryId
- * @param[in]	lpEntryId	The contact EntryID
- * @param[in]	eid_size The number of bytes in eidp
- * @param[in]	eidp  The EntryID where the contact points to
+ * @param[in]	ct		The contact EntryID
+ * @param[out]	kp		The EntryID where the contact points to
  * @return		HRESULT
  */
 static HRESULT ContactToKopano(IMsgStore *lpUserStore,
-    ULONG cbEntryId, const ENTRYID *lpEntryId, ULONG *eid_size,
-    LPENTRYID *eidp)
+    const SBinary &ct, SBinary *kp)
 {
-	auto lpContabEntryID = reinterpret_cast<const CONTAB_ENTRYID *>(lpEntryId);
+	auto lpContabEntryID = reinterpret_cast<const CONTAB_ENTRYID *>(ct.lpb);
 	auto guid = reinterpret_cast<const GUID *>(&lpContabEntryID->muid);
 	ULONG ulObjType;
 	object_ptr<IMAPIProp> lpContact;
@@ -1011,7 +1008,7 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 	memory_ptr<MAPINAMEID> lpNames;
 	memory_ptr<MAPINAMEID *> lppNames;
 
-	if (sizeof(CONTAB_ENTRYID) > cbEntryId ||
+	if (sizeof(CONTAB_ENTRYID) > ct.cb ||
 	    *guid != PSETID_CONTACT_FOLDER_RECIPIENT ||
 	    lpContabEntryID->email_offset > 2)
 		return MAPI_E_NOT_FOUND;
@@ -1055,10 +1052,10 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 		ec_log_err("Offset %d not found in contact", lpContabEntryID->email_offset);
 		return MAPI_E_NOT_FOUND;
 	}
-	hr = KAllocCopy(lpEntryIds[lpContabEntryID->email_offset].Value.bin.lpb, lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb, reinterpret_cast<void **>(eidp));
+	hr = KAllocCopy(lpEntryIds[lpContabEntryID->email_offset].Value.bin.lpb, lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb, reinterpret_cast<void **>(kp->lpb));
 	if (hr != hrSuccess)
 		return kc_perror("No memory for contact EID", hr);
-	*eid_size = lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb;
+	kp->cb = lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb;
 	return hrSuccess;
 }
 
@@ -1067,23 +1064,21 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
  *
  * @param[in]	lpAddrBook	The Global Addressbook of the user sending the mail.
  * @param[in]	ulSMTPEID	The number of bytes in lpSMTPEID
- * @param[in]	lpSMTPEID	The One off EntryID.
- * @param[out]	eid_size	The number of bytes in eidp
- * @param[out]	eidp	The ZARAFA entryid of the user defined in the One off.
+ * @param[in]	smtp	The One off EntryID.
+ * @param[out]	zeid	The ZARAFA entryid of the user defined in the One off.
  * @return		HRESULT
  * @retval		MAPI_E_NOT_FOUND	User not a Kopano user, or lpSMTPEID is not an One-off EntryID
  */
-static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
-    const ENTRYID *lpSMTPEID, ULONG *eid_size, LPENTRYID *eidp)
+static HRESULT SMTPToZarafa(IAddrBook *lpAddrBook, const SBinary &smtp,
+    SBinary *zeid)
 {
 	wstring wstrName, wstrType, wstrEmailAddress;
 	adrlist_ptr lpAList;
-	const SPropValue *lpSpoofEID;
-	LPENTRYID lpSpoofBin = NULL;
 
 	// representing entryid can also be a one off id, so search the user, and then get the entryid again ..
 	// we then always should have yourself as the sender, otherwise: denied
-	if (ECParseOneOff(lpSMTPEID, ulSMTPEID, wstrName, wstrType, wstrEmailAddress) != hrSuccess)
+	if (ECParseOneOff(reinterpret_cast<const ENTRYID *>(smtp.lpb),
+	    smtp.cb, wstrName, wstrType, wstrEmailAddress) != hrSuccess)
 		return MAPI_E_NOT_FOUND;
 	auto hr = MAPIAllocateBuffer(CbNewADRLIST(1), &~lpAList);
 	if (hr != hrSuccess)
@@ -1098,17 +1093,16 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 	hr = lpAddrBook->ResolveName(0, EMS_AB_ADDRESS_LOOKUP, NULL, lpAList);
 	if (hr != hrSuccess)
 		return kc_perrorf("ResolveName failed", hr);
-	lpSpoofEID = lpAList->aEntries[0].cfind(PR_ENTRYID);
+	auto lpSpoofEID = lpAList->aEntries[0].cfind(PR_ENTRYID);
 	if (!lpSpoofEID) {
 		hr = MAPI_E_NOT_FOUND;
 		kc_perror("PpropFindProp failed", hr);
 		return hrSuccess;
 	}
-	hr = KAllocCopy(lpSpoofEID->Value.bin.lpb, lpSpoofEID->Value.bin.cb, reinterpret_cast<void **>(&lpSpoofBin));
+	hr = KAllocCopy(lpSpoofEID->Value.bin.lpb, lpSpoofEID->Value.bin.cb, reinterpret_cast<void **>(&zeid->lpb));
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffer failed", hr);
-	*eidp = lpSpoofBin;
-	*eid_size = lpSpoofEID->Value.bin.cb;
+	zeid->cb = lpSpoofEID->Value.bin.cb;
 	return hrSuccess;
 }
 
@@ -1116,17 +1110,14 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
  * Find a user in a group. Used when checking for send-as users.
  *
  * @param[in]	lpAdrBook		The Global Addressbook of the user sending the mail.
- * @param[in]	ulOwnerCB		Number of bytes in lpOwnerEID
- * @param[in]	lpOwnerEID		The EntryID of the user to find in the group
- * @param[in]	ulDistListCB	The number of bytes in lpDistlistEID
- * @param[in]	lpDistlistEID	The EntryID of the group
+ * @param[in]	owner		The EntryID of the user to find in the group
+ * @param[in]	dl		The EntryID of the group (distlist)
  * @param[out]	lpulCmp			The result of the comparison of CompareEntryID. FALSE if not found, TRUE if found.
  * @param[in]	level			Internal parameter to keep track of recursion. Max is 10 levels deep before it gives up.
  * @return		HRESULT
  */
-static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
-    LPENTRYID lpOwnerEID, ULONG ulDistListCB, LPENTRYID lpDistListEID,
-    ULONG *lpulCmp, int level = 0)
+static HRESULT HrFindUserInGroup(IAddrBook *lpAdrBook, const SBinary &owner,
+    const SBinary &dl, unsigned int *lpulCmp, int level = 0)
 {
 	ULONG ulCmp = 0;
 	ULONG ulObjType = 0;
@@ -1143,7 +1134,8 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 			level, GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	auto hr = lpAdrBook->OpenEntry(ulDistListCB, lpDistListEID, &iid_of(lpDistList), 0, &ulObjType, &~lpDistList);
+	auto hr = lpAdrBook->OpenEntry(dl.cb, reinterpret_cast<const ENTRYID *>(dl.lpb),
+	          &iid_of(lpDistList), 0, &ulObjType, &~lpDistList);
 	if (hr != hrSuccess)
 		return kc_perrorf("OpenEntry failed", hr);
 	hr = lpDistList->GetContentsTable(0, &~lpMembersTable);
@@ -1166,13 +1158,12 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 		    lpRowSet[0].lpProps[1].ulPropTag != PR_OBJECT_TYPE)
 			continue;
 		if (lpRowSet[0].lpProps[1].Value.ul == MAPI_MAILUSER)
-			hr = lpAdrBook->CompareEntryIDs(ulOwnerCB, lpOwnerEID,
+			hr = lpAdrBook->CompareEntryIDs(owner.cb, reinterpret_cast<const ENTRYID *>(owner.lpb),
 			     lpRowSet[0].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpRowSet[0].lpProps[0].Value.bin.lpb),
 			     0, &ulCmp);
 		else if (lpRowSet[0].lpProps[1].Value.ul == MAPI_DISTLIST)
-			hr = HrFindUserInGroup(lpAdrBook, ulOwnerCB, lpOwnerEID, 
-			     lpRowSet[0].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpRowSet[0].lpProps[0].Value.bin.lpb),
-			     &ulCmp, level+1);
+			hr = HrFindUserInGroup(lpAdrBook, owner,
+			     lpRowSet[0].lpProps[0].Value.bin, &ulCmp, level + 1);
 		if (hr == hrSuccess && ulCmp == TRUE)
 			break;
 	}
@@ -1192,8 +1183,8 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
  * @return		HRESULT
  */
 static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
-    IMsgStore *lpUserStore, IMAPISession *lpAdminSession, ULONG ulRepresentCB,
-    LPENTRYID lpRepresentEID, LPMDB *lppRepStore)
+    IMsgStore *lpUserStore, IMAPISession *lpAdminSession, const SBinary &repr,
+    IMsgStore **lppRepStore)
 {
 	ULONG ulObjType = 0;
 	object_ptr<IMAPIProp> lpRepresenting;
@@ -1203,7 +1194,8 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
 	memory_ptr<ENTRYID> lpRepStoreEID;
 	object_ptr<IMsgStore> lpRepStore;
 
-	auto hr = lpAddrBook->OpenEntry(ulRepresentCB, lpRepresentEID, &iid_of(lpRepresenting), 0, &ulObjType, &~lpRepresenting);
+	auto hr = lpAddrBook->OpenEntry(repr.cb, reinterpret_cast<const ENTRYID *>(repr.lpb),
+	          &iid_of(lpRepresenting), 0, &ulObjType, &~lpRepresenting);
 	if (hr != hrSuccess) {
 		ec_log_info("Unable to open representing user in addressbook: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -1248,33 +1240,31 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
  * @param[in] szFunc Context name how this function is used. Used in logging.
  * @param[in] lpszMailer The name of the user sending the email.
  * @param[in] lpAddrBook The Global Addressbook.
- * @param[in] ulOwnerCB number of bytes in lpOwnerEID
- * @param[in] lpOwnerEID EntryID of the "Owner" object, which is searched in the array
- * @param[in] cValues Number of EntryIDs in lpEntryIds
- * @param[in] lpEntryIDs Array of EntryIDs to search in
+ * @param[in] owner EntryID of the "Owner" object, which is searched in the array
+ * @param[in] mv Array of EntryIDs to search in
  * @param[out] lpulObjType lpOwnerEID was found in this type of object (user or group)
  * @param[out] lpbAllowed User is (not) found in array
  * 
  * @return hrSuccess
  */
 static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
-    const wchar_t *lpszMailer, IAddrBook *lpAddrBook, ULONG ulOwnerCB,
-    LPENTRYID lpOwnerEID, ULONG cValues, SBinary *lpEntryIDs,
-    ULONG *lpulObjType, bool *lpbAllowed)
+    const wchar_t *lpszMailer, IAddrBook *lpAddrBook, const SBinary &owner,
+    const SBinaryArray &mv, unsigned int *lpulObjType, bool *lpbAllowed)
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulObjType;
 	ULONG ulCmpRes;
 
-	for (ULONG i = 0; i < cValues; ++i) {
+	for (unsigned int i = 0; i < mv.cValues; ++i) {
 		// quick way to see what object the entryid points to .. otherwise we need to call OpenEntry, which is slow
-		if (GetNonPortableObjectType(lpEntryIDs[i].cb, (LPENTRYID)lpEntryIDs[i].lpb, &ulObjType))
+		if (GetNonPortableObjectType(mv.lpbin[i].cb, reinterpret_cast<const ENTRYID *>(mv.lpbin[i].lpb), &ulObjType))
 			continue;
 
 		if (ulObjType == MAPI_DISTLIST) {
-			hr = HrFindUserInGroup(lpAddrBook, ulOwnerCB, lpOwnerEID, lpEntryIDs[i].cb, (LPENTRYID)lpEntryIDs[i].lpb, &ulCmpRes);
+			hr = HrFindUserInGroup(lpAddrBook, owner, mv.lpbin[i], &ulCmpRes);
 		} else if (ulObjType == MAPI_MAILUSER) {
-			hr = lpAddrBook->CompareEntryIDs(ulOwnerCB, lpOwnerEID, lpEntryIDs[i].cb, (LPENTRYID)lpEntryIDs[i].lpb, 0, &ulCmpRes);
+			hr = lpAddrBook->CompareEntryIDs(owner.cb, reinterpret_cast<const ENTRYID *>(owner.lpb),
+			     mv.lpbin[i].cb, reinterpret_cast<const ENTRYID *>(mv.lpbin[i].lpb), 0, &ulCmpRes);
 		} else {
 			ec_log_err("Invalid object %d in %s list of user \"%ls\": %s (%x)",
 				ulObjType, szFunc, lpszMailer, GetMAPIErrorMessage(hr), hr);
@@ -1301,18 +1291,15 @@ static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
  * @param[in]	lpUserStore	The store of the user trying to send an email.
  * @param[in]	lpAdminSession MAPI session of the Kopano SYSTEM user.
  * @param[in]	lpMailer	ECSender object (inetmapi), used to set an error for an error mail if not allowed.
- * @param[in]	ulOwnerCB	Number of bytes in lpOwnerEID
- * @param[in]	lpOwnerEID	EntryID of the user sending the mail.
- * @param[in]	ulRepresentCB Number of bytes in lpRepresentEID.
- * @param[in]	lpRepresentEID EntryID of the user set in the From address. Can be a One-off entryid.
+ * @param[in]	owner		EntryID of the user sending the mail.
+ * @param[in]	repr		EntryID of the user set in the From address. Can be a One-off entryid.
  * @param[out]	lpbAllowed	Set to true if the lpOwnerEID is a delegate of lpRepresentEID
  * @param[out]	lppRepStore	The store of the delegate when allowed.
  * @return		HRESULT
  */
 static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
-    IMAPISession *lpAdminSession, ECSender *lpMailer, ULONG ulOwnerCB,
-    LPENTRYID lpOwnerEID, ULONG ulRepresentCB, LPENTRYID lpRepresentEID,
-    bool *lpbAllowed, LPMDB *lppRepStore)
+    IMAPISession *lpAdminSession, ECSender *lpMailer, const SBinary &owner,
+    SBinary repr, bool *lpbAllowed, IMsgStore **lppRepStore)
 {
 	bool bAllowed = false;
 	bool bHasStore = false;
@@ -1326,23 +1313,22 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 		PR_DISPLAY_TYPE}};
 	ULONG cValues = 0;
 
-	auto hr = SMTPToZarafa(lpAddrBook, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, reinterpret_cast<ENTRYID **>(&sSpoofEID.Value.bin.lpb));
+	auto hr = SMTPToZarafa(lpAddrBook, repr, &sSpoofEID.Value.bin);
 	if (hr != hrSuccess)
-		hr = ContactToKopano(lpUserStore, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, (LPENTRYID*)&sSpoofEID.Value.bin.lpb);
-	if (hr == hrSuccess) {
-		ulRepresentCB = sSpoofEID.Value.bin.cb;
-		lpRepresentEID = (LPENTRYID)sSpoofEID.Value.bin.lpb;
-	}
-
+		hr = ContactToKopano(lpUserStore, repr, &sSpoofEID.Value.bin);
+	if (hr == hrSuccess)
+		repr = std::move(sSpoofEID.Value.bin);
 	// you can always send as yourself
-	if (lpAddrBook->CompareEntryIDs(ulOwnerCB, lpOwnerEID, ulRepresentCB, lpRepresentEID, 0, &ulCmpRes)	== hrSuccess && ulCmpRes == TRUE)
-	{
+	if (lpAddrBook->CompareEntryIDs(owner.cb, reinterpret_cast<const ENTRYID *>(owner.lpb),
+	    repr.cb, reinterpret_cast<const ENTRYID *>(repr.lpb), 0, &ulCmpRes) == hrSuccess &&
+	    ulCmpRes == true) {
 		bAllowed = true;
 		goto exit;
 	}
 
 	// representing entryid is now always a Kopano Entry ID. Open the user so we can log the display name
-	hr = lpAddrBook->OpenEntry(ulRepresentCB, lpRepresentEID, &iid_of(lpRepresenting), 0, &ulObjType, &~lpRepresenting);
+	hr = lpAddrBook->OpenEntry(repr.cb, reinterpret_cast<const ENTRYID *>(repr.lpb),
+	     &iid_of(lpRepresenting), 0, &ulObjType, &~lpRepresenting);
 	if (hr != hrSuccess) {
 		kc_perrorf("OpenEntry failed(1)", hr);
 		goto exit;
@@ -1356,7 +1342,8 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	hr = hrSuccess;
 
 	// Open the owner to get the displayname for logging
-	if (lpAddrBook->OpenEntry(ulOwnerCB, lpOwnerEID, &iid_of(lpMailboxOwner), 0, &ulObjType, &~lpMailboxOwner) != hrSuccess) {
+	if (lpAddrBook->OpenEntry(owner.cb, reinterpret_cast<const ENTRYID *>(owner.lpb),
+	    &iid_of(lpMailboxOwner), 0, &ulObjType, &~lpMailboxOwner) != hrSuccess) {
 		kc_perrorf("OpenEntry failed(2)", hr);
 		goto exit;
 	}
@@ -1382,8 +1369,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 
 	hr = HrCheckAllowedEntryIDArray("sendas",
 	     lpRepresentProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpRepresentProps[0].Value.lpszW : L"<no name>",
-	     lpAddrBook, ulOwnerCB, lpOwnerEID,
-	     lpRepresentProps[1].Value.MVbin.cValues, lpRepresentProps[1].Value.MVbin.lpbin, &ulObjType, &bAllowed);
+	     lpAddrBook, owner, lpRepresentProps[1].Value.MVbin, &ulObjType, &bAllowed);
 	if (bAllowed)
 		ec_log_err("Mail for user \"%ls\" is sent as %s \"%ls\"",
 			lpOwnerProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpOwnerProps[0].Value.lpszW : L"<no name>",
@@ -1403,7 +1389,7 @@ exit:
 	}
 
 	if (bAllowed && bHasStore)
-		hr = HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, ulRepresentCB, lpRepresentEID, lppRepStore);
+		hr = HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, repr, lppRepStore);
 	else
 		*lppRepStore = NULL;
 
@@ -1419,19 +1405,16 @@ exit:
  * @param[in]	lpAddrBook	The Global Addressbook of the user trying to send an email.
  * @param[in]	lpUserStore	The store of the user trying to send an email.
  * @param[in]	lpAdminSession MAPI session of the Kopano SYSTEM user.
- * @param[in]	ulOwnerCB	Number of bytes in lpOwnerEID
- * @param[in]	lpOwnerEID	EntryID of the user sending the mail.
- * @param[in]	ulRepresentCB Number of bytes in lpRepresentEID.
- * @param[in]	lpRepresentEID EntryID of the user set in the From address. Can be a One-off entryid.
+ * @param[in]	owner		EntryID of the user sending the mail.
+ * @param[in]	repr		EntryID of the user set in the From address. Can be a One-off entryid.
  * @param[out]	lpbAllowed	Set to true if the lpOwnerEID is a delegate of lpRepresentEID
  * @param[out]	lppRepStore	The store of the delegate when allowed.
  * @return		HRESULT
  * @retval		hrSuccess, always returned, actual return value in lpbAllowed.
  */
 static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
-    IMAPISession *lpAdminSession, ULONG ulOwnerCB, LPENTRYID lpOwnerEID,
-    ULONG ulRepresentCB, LPENTRYID lpRepresentEID, bool *lpbAllowed,
-    LPMDB *lppRepStore)
+    IMAPISession *lpAdminSession, const SBinary &owner, SBinary repr,
+    bool *lpbAllowed, IMsgStore **lppRepStore)
 {
 	bool bAllowed = false;
 	ULONG ulObjType;
@@ -1442,14 +1425,12 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	object_ptr<IMessage> lpRepFBMessage;
 	SPropValue sSpoofEID = {0};
 
-	auto hr = SMTPToZarafa(lpAddrBook, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, reinterpret_cast<ENTRYID **>(&sSpoofEID.Value.bin.lpb));
+	auto hr = SMTPToZarafa(lpAddrBook, repr, &sSpoofEID.Value.bin);
 	if (hr != hrSuccess)
-		hr = ContactToKopano(lpUserStore, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, (LPENTRYID*)&sSpoofEID.Value.bin.lpb);
-	if (hr == hrSuccess) {
-		ulRepresentCB = sSpoofEID.Value.bin.cb;
-		lpRepresentEID = (LPENTRYID)sSpoofEID.Value.bin.lpb;
-	}
-	hr = HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, ulRepresentCB, lpRepresentEID, &~lpRepStore);
+		hr = ContactToKopano(lpUserStore, repr, &sSpoofEID.Value.bin);
+	if (hr == hrSuccess)
+		repr = std::move(sSpoofEID.Value.bin);
+	hr = HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, repr, &~lpRepStore);
 	if (hr == MAPI_E_NOT_FOUND) {
 		hr = hrSuccess;	// No store: no delegate allowed!
 		goto exit;
@@ -1501,8 +1482,8 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
-
-	hr = HrCheckAllowedEntryIDArray("delegate", lpRepOwnerName ? lpRepOwnerName->Value.lpszW : L"<no name>", lpAddrBook, ulOwnerCB, lpOwnerEID, lpDelegates->Value.MVbin.cValues, lpDelegates->Value.MVbin.lpbin, &ulObjType, &bAllowed);
+	hr = HrCheckAllowedEntryIDArray("delegate", lpRepOwnerName ? lpRepOwnerName->Value.lpszW : L"<no name>",
+	     lpAddrBook, owner, lpDelegates->Value.MVbin, &ulObjType, &bAllowed);
 	if (hr != hrSuccess) {
 		kc_perrorf("HrCheckAllowedEntryIDArray failed", hr);
 		goto exit;
@@ -1653,7 +1634,7 @@ static void lograw1(IMAPISession *ses, IAddrBook *ab, IMessage *msg,
 static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
     IMAPISession *lpUserSession, IECServiceAdmin *lpServiceAdmin,
     IECSecurity *lpSecurity, IMsgStore *lpUserStore, IAddrBook *lpAddrBook,
-    ECSender *lpMailer, ULONG cbMsgEntryId, LPENTRYID lpMsgEntryId,
+    ECSender *lpMailer, unsigned int cbMsgEntryId, const ENTRYID *lpMsgEntryId,
     IMessage **lppMessage, bool &doSentMail)
 {
 	object_ptr<IMessage> lpMessage;
@@ -1730,7 +1711,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	}
 
 	// open the message we need to send
-	hr = lpUserStore->OpenEntry(cbMsgEntryId, reinterpret_cast<ENTRYID *>(lpMsgEntryId), &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
+	hr = lpUserStore->OpenEntry(cbMsgEntryId, reinterpret_cast<const ENTRYID *>(lpMsgEntryId),
+	     &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if (hr != hrSuccess) {
 		ec_log_err("Could not open message in store from user %ls: %s (%x)",
 			lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
@@ -1857,7 +1839,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			if (strcmp(g_lpConfig->GetSetting("always_send_delegates"), "yes") == 0) {
 				// pre 6.20 behaviour
 				bAllowDelegate = true;
-				HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, lpRepEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpRepEntryID->Value.bin.lpb), &~lpRepStore);
+				HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, lpRepEntryID->Value.bin, &~lpRepStore);
 				// ignore error if unable to open, just the copy of the mail might possibily not be done.
 			} else if(strcmp(g_lpConfig->GetSetting("allow_delegate_meeting_request"), "yes") == 0 &&
 			    HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMsgClass) == hrSuccess &&
@@ -1868,14 +1850,14 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 				// you can always sent with 'on behalve of'. This behavior is like exchange.
 				bAllowDelegate = true;
 			} else {
-				hr = CheckDelegate(lpAddrBook, lpUserStore, lpAdminSession, lpPropOwner->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropOwner->Value.bin.lpb),
-				     lpRepEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpRepEntryID->Value.bin.lpb), &bAllowDelegate, &~lpRepStore);
+				hr = CheckDelegate(lpAddrBook, lpUserStore, lpAdminSession, lpPropOwner->Value.bin,
+				     lpRepEntryID->Value.bin, &bAllowDelegate, &~lpRepStore);
 				if (hr != hrSuccess)
 					goto exit;
 			}
 			if (!bAllowDelegate) {
-				hr = CheckSendAs(lpAddrBook, lpUserStore, lpAdminSession, lpMailer, lpPropOwner->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropOwner->Value.bin.lpb),
-				     lpRepEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpRepEntryID->Value.bin.lpb), &bAllowSendAs, &~lpRepStore);
+				hr = CheckSendAs(lpAddrBook, lpUserStore, lpAdminSession, lpMailer, lpPropOwner->Value.bin,
+				     lpRepEntryID->Value.bin, &bAllowSendAs, &~lpRepStore);
 				if (hr != hrSuccess)
 					goto exit;
 				if (!bAllowSendAs) {
@@ -2084,8 +2066,8 @@ exit:
  * @return		HRESULT
  */
 HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
-    int ulPort, const char *szPath, ULONG cbMsgEntryId, LPENTRYID lpMsgEntryId,
-    bool bDoSentMail)
+    int ulPort, const char *szPath, unsigned int cbMsgEntryId,
+    const ENTRYID *lpMsgEntryId, bool bDoSentMail)
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<IMAPISession> lpAdminSession, lpUserSession;
