@@ -2284,7 +2284,7 @@ HRESULT KServerContext::logon(const char *user, const char *pass)
 		return kc_perror("MAPIInitialize", ret);
 	if (user == nullptr)
 		user = pass = KOPANO_SYSTEM_USER;
-	ret = HrOpenECSession(&~m_session, "storeadm", PROJECT_VERSION,
+	ret = HrOpenECSession(&~m_session, m_app_misc, PROJECT_VERSION,
 	      user, pass, m_host, m_ses_flags, m_ssl_keyfile, m_ssl_keypass);
 	if (ret != hrSuccess)
 		return kc_perror("OpenECSession", ret);
