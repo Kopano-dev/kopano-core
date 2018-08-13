@@ -7047,6 +7047,15 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	MAPI_G(hr) = lpIcalToMapi->ParseICal(icalMsg, "utf-8", "UTC", mailuser, 0);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
+	if (lpIcalToMapi->GetItemCount() == 0) {
+		/*
+		 * Since there are 0 appointments in the message, GetItem(0)
+		 * would fail with MAPI_E_INVALID_PARAMETER. Try giving
+		 * something more appropriate.
+		 */
+		MAPI_G(hr) = MAPI_E_TABLE_EMPTY;
+		goto exit;
+	}
 	MAPI_G(hr) = lpIcalToMapi->GetItem(0, 0, lpMessage);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
