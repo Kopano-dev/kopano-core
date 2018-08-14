@@ -8,7 +8,7 @@ dist_systemunit_DATA = kopano-dagent.service kopano-gateway.service \
                   kopano-ical.service kopano-monitor.service \
                   kopano-presence.service kopano-search.service \
                   kopano-server.service kopano-spooler.service \
-                  kopano-spamd.service
+                  kopano-spamd.service kopano-grapi.service
 
 dist_sysusers_DATA = kopano-sysusers.conf
 dist_tmpfiles_DATA = kopano-tmpfiles.conf
@@ -18,7 +18,7 @@ config_files = \
 	server.cfg unix.cfg presence.cfg \
 	spooler.cfg gateway.cfg monitor.cfg dagent.cfg ical.cfg search.cfg \
 	autorespond archiver.cfg backup.cfg migration-pst.cfg \
-	autorespond.cfg spamd.cfg
+	autorespond.cfg spamd.cfg grapi.cfg
 
 data_configdir = ${docdir}/example-config
 dist_data_config_DATA = ${config_files} ldap.cfg sysconfig.txt
@@ -46,7 +46,7 @@ ldap.openldap.cfg: ldap.m4
 ldap.active-directory.cfg: ldap.m4
 	m4 -DTYPE=ADS ${top_srcdir}/installer/linux/ldap.m4 > $@
 
-dist_sbin_SCRIPTS = kopano-autorespond
+dist_sbin_SCRIPTS = kopano-autorespond kopano-grapi
 
 sysconf_rotatedir = ${sysconfdir}/logrotate.d
 dist_sysconf_rotate_DATA = kopano.logrotate
