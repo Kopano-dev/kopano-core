@@ -564,7 +564,7 @@ def check_options(parser, options, server):
     updates = [name for name in sum(UPDATE_MATRIX, ()) if getattr(options, name) not in (None, [])]
 
     if not (actions or updates or objtypes):
-        return
+        raise Exception('no object or action specified')
     if not (actions or updates):
         options.details = True
 

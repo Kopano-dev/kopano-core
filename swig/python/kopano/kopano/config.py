@@ -50,7 +50,10 @@ class ConfigOption:
             raise ConfigError("%s: '%s' is not a legal value" % (key, value))
         if self.kwargs.get('multiple'):
             return [int(x, base=self.kwargs.get('base', 10)) for x in value.split()]
-        return int(value, base=self.kwargs.get('base', 10))
+        try:
+            return int(value, base=self.kwargs.get('base', 10))
+        except ValueError:
+            raise ConfigError("%s: '%s' is not a legal value" % (key, value))
 
     def parse_boolean(self, key, value):
         return {'no': False, 'yes': True, '0': False, '1': True, 'false': False, 'true': True}[value]
@@ -93,10 +96,11 @@ Example::
 
         try:
             fh = open(filename, "r")
-            self._parse_config(fh)
         except:
-            msg = "cannot open config file %s running with defaults"
+            msg = "could not open config file %s, running with defaults" % filename
             self.info.append(msg)
+        else:
+            self._parse_config(fh)
 
         if self.config is not None:
             for key, val in self.config.items():
@@ -128,7 +132,7 @@ Example::
                         self.data[key] = self.config[key].parse(key, value)
                     except ConfigError as e:
                         if self.service:
-                            self.errors.append(e.message)
+                            self.errors.append(str(e))
                         else:
                             raise
             else:
