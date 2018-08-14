@@ -1,5 +1,5 @@
-8.6.x
-=====
+8.6.7 (2018-08-14)
+==================
 Fixes:
 * gateway, spooler: (re-)activate RFC 2047 header generation
   (Outlook is still unable to read the RFC 2231 headers that
