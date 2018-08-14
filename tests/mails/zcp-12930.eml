@@ -1,0 +1,38 @@
+thread-index: AdAsFM3RT6D4QeHWQZiQIvG4rFX18w==
+From: <u@localhost>
+To: <u@localhost>
+Subject: ZCP-12930 test
+Date: Fri, 9 Jan 2015 06:01:45 -0800
+Message-ID: <0@localhost>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_2728_01D02BD1.BFADEBF0"
+X-Mailer: Microsoft CDO for Exchange 2000
+Content-Class: urn:content-classes:message
+Importance: normal
+Priority: normal
+X-MimeOLE: Produced By Microsoft MimeOLE V6.00.3790.4913
+
+The HTML part has a broken HTML tree, rendering the Content-type field
+as being practically absent.
+See also: ZCP-12716
+------=_NextPart_000_2728_01D02BD1.BFADEBF0
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_001_2729_01D02BD1.BFADEBF0"
+
+
+------=_NextPart_001_2729_01D02BD1.BFADEBF0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+
+trimmed for brevity
+
+
+------=_NextPart_001_2729_01D02BD1.BFADEBF0
+Content-Type: text/html
+Content-Transfer-Encoding: 7bit
+
+<html><head><style><!--body, td, a, p, .h {FONT-SIZE: 11px;FONT-FAMILY: Verdana, Arial, Helvetica;color: #000000;} .cborder {border-bottom:1px solid #999999; border-right:1px solid #999999;text-align: center;} .tborder {border-top:1px solid #999999; border-left:1px solid #999999;}//--></style><meta http-equiv='Content-Type' charset=iso-8859-1'></head><body>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum. FILLER FILLER FILLER FILLER FILLER Lorem Ipsum is simply dummy t
+ ext of the printing and typesetting industry. The mail chain chopped up messages at after 999 characters, and restarts with a space (possibly erroneously?) in the next line.
+------=_NextPart_001_2729_01D02BD1.BFADEBF0--

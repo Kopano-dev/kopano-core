@@ -1,0 +1,12 @@
+Return-Path: <t@localhots>
+Subject: C7
+From: <t@localhost>
+To: <t@localhost>
+Date: Wed, 1 Apr 2015 00:00:00 +0000
+Content-Type: text/html
+Message-Id: <0@localhost>
+
+<html><head><meta http-equiv="Content-Type" content="text/html" /></head>
+<p>This mail has a meta tag, but without a charset parameter, which
+tests a specific code branch in VMIMEToMAPI::getCharsetFromHTML
+(charset of length zero).</p></body>

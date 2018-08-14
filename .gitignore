@@ -81,6 +81,10 @@ stamp-h2
 /ECtools/migration-pst/kopano_migration_pst/version.py
 /swig/python/kopano/kopano/version.py
 /swig/python/MAPI/version.py
+/tests/imtomapi
+/tests/kc-335
+/tests/mapialloctime
+/tests/readflag
 
 # /autoconf/
 /autoconf/ltsugar.m4

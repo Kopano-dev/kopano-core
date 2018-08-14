@@ -1,0 +1,23 @@
+Subject: two-part
+From: <z@z>
+To: <z@z>
+Content-Type: multipart/alternative; boundary="__0"
+
+--__0
+Content-Type: text/plain
+
+If this the only line you will ever see of the entire mail:
+YOUR MAIL SYSTEM IS WORTHLESS
+--__0
+
+For being able to access this mail part - well, you seem to
+have one of the few and good mail systems, honestly.
+--__0
+Content-Type: text/plain
+
+If this the only line you will ever see of the entire mail:
+YOUR MAIL SYSTEM SUCKS BALLS
+--__0
+
+Your mail system appears RFC-compliant with regard to this test.
+--__0--

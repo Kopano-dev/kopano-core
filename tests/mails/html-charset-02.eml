@@ -1,0 +1,7 @@
+Subject: not an iconv charset
+Content-Type: text/html; charset=utf-8-prunus
+Content-Transfer-Encoding: quoted-printable
+
+<html><head><meta http-equiv=3D"Content-Type"
+content=3D"text/html; charset=3Diso-8859-1" />
+foo=D0=A7bar

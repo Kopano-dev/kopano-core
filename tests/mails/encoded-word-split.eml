@@ -1,0 +1,30 @@
+Return-Path: <t@localhost>
+263a 0020 0076 0173 002e 0020 003f bb98
+Subject: =?utf-8?q?=e2?==?utf-8?q?=98?==?utf-8?q?=ba?=
+ =?utf-16?q?=fe=ff=00=20=00=76=01?==?utf-16?q?=73=00=2e=00=20=00?=
+ =?utf-8?q?=e2?==?utf-16?q?=98=bb?=
+From: <t@localhost>
+To: <t@localhost>
+Date: Wed, 1 Apr 2015 00:00:00 +0000
+Content-Type: text/plain; charset=us-ascii
+Message-Id: <0@localhost>
+
+Test to see what happens if a multibyte character is segmented
+into multiple RFC "encoded-word"s.
+
+Possible outcomes:
+
+ - dropping incomplete sequences at end of encoded-words
+
+ - concatenation where possible (where encoded-words of same charset
+   are next to each other)
+
+What they do comes down to implementation (mostly of third parties
+like iconv).
+
+PINE/Alpine 2.20 (not too nice; stops at 2nd =E2):
+	U+263A U+FEFF U+0020 U+0076 U+7300 U+2E00 U+2000
+Thunderbird 38.5 (broken because it ignores =00):
+	U+263A U+FFFE U+0073 U+BB98
+ZCP 7.2.1 (good):
+	U+263A U+0020 U+0076 U+0173 U+002E U+0020 U+003F U+BB98

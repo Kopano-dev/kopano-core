@@ -1,0 +1,15 @@
+Return-Path: <s@localhost>
+MIME-Version: 1.0
+From: s@localhost
+To: p@localhost
+Date: 14 Apr 2015 07:40:49 +0200
+Subject: Duplicate HTML meta tag
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
+Message-Id: <0@localhost>
+
+PGh0bWw+DQogIDxoZWFkPg0KICAgIDxNRVRBIGh0dHAtZXF1aXY9IkNvbnRlbnQtVHlwZSIgY29u
+dGVudD0idGV4dC9odG1sOyBjaGFyc2V0PXV0Zi0xNiI+DQogICAgPG1ldGEgaHR0cC1lcXVpdj0i
+Y29udGVudC10eXBlIiBjb250ZW50PSJ0ZXh0L2h0bWw7IGNoYXJzZXQ9dXRmLTgiPg0KICA8L2hl
+YWQ+DQogIDxib2R5Pg0KICAgIDxwPlJhcG9ydCB6Z8WCb3N6ZcWEIGRsYSB1xbx5dGtvd25pa2E8
+L3A+DQogIDwvYm9keT4NCjwvaHRtbD4NCg==
