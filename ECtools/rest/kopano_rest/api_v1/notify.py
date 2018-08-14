@@ -178,7 +178,10 @@ class SubscriptionResource:
         except Exception:
             raise falcon.HTTPBadRequest(None, "Subscription validation request failed.")
 
-        target, folder_types, data_type = _subscription_object(store, fields['resource'])
+        subscription_object = _subscription_object(store, fields['resource'])
+        if not subscription_object:
+            raise falcon.HTTPBadRequest(None, "Subscription object invalid.")
+        target, folder_types, data_type = subscription_object
 
         # create subscription
         id_ = str(uuid.uuid4())
