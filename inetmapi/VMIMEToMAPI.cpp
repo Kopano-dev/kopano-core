@@ -2380,7 +2380,8 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 		}
 		/*
 		 * PR_HTML is a PT_BINARY, and can handle 0x00 bytes
-		 * (e.g. in case of UTF-16 encoding).
+		 * (e.g. in case of UTF-32 encoding).
+		 * PR_BODY_HTML could only carry UTF-16 reliably.
 		 */
 
 		// write codepage for PR_HTML property
@@ -2389,6 +2390,11 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 			sCodepage.Value.ul = 65001;
 			strHTML = m_converter.convert_to<std::string>("UTF-8", strHTML, rawsize(strHTML), cs_cand[cs_best].c_str());
 			ec_log_info("No Win32 CPID for \"%s\" - upgrading text/html MIME body to UTF-8", cs_cand[cs_best].c_str());
+		} else if (m_dopt.html_safety_filter) {
+			sCodepage.Value.ul = 65001;
+			strHTML = m_converter.convert_to<std::string>("UTF-8", strHTML, rawsize(strHTML), cs_cand[cs_best].c_str());
+			/* libtidy only knows a very limited subset */
+			ec_log_debug("Upgrading HTML to UTF-8 because of libtidy");
 		}
 
 		if (bAppendBody && m_mailState.bodyLevel == BODY_HTML && m_mailState.ulLastCP && sCodepage.Value.ul != m_mailState.ulLastCP) {
