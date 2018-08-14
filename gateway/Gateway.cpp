@@ -452,11 +452,14 @@ int main(int argc, char *argv[]) {
 		g_strHostString = GetServerFQDN();
 	g_strHostString.insert(0, " on ");
 	hr = running_service(szPath, argv[0]);
+	ECChannel::HrFreeCtx();
 exit:
 	if (hr != hrSuccess)
 		fprintf(stderr, "%s: Startup failed: %s (%x). Please check the logfile (%s) for details.\n",
 			argv[0], GetMAPIErrorMessage(hr), hr, g_lpConfig->GetSetting("log_file"));
+	SSL_library_cleanup();
 	ssl_threading_cleanup();
+	u_cleanup();
 	return hr == hrSuccess ? 0 : 1;
 }
 
@@ -567,6 +570,60 @@ static HRESULT gw_listen(ECConfig *cfg)
 	return hrSuccess;
 }
 
+static HRESULT handler_client(size_t i)
+{
+	// One socket has signalled a new incoming connection
+	std::unique_ptr<HandlerArgs> lpHandlerArgs(new HandlerArgs);
+	lpHandlerArgs->lpLogger = g_lpLogger;
+	lpHandlerArgs->lpConfig = g_lpConfig;
+	lpHandlerArgs->type = g_socks.pop3[i] ? ST_POP3 : ST_IMAP;
+	lpHandlerArgs->bUseSSL = g_socks.ssl[i];
+	const char *method = "", *model = bThreads ? "thread" : "process";
+
+	if (lpHandlerArgs->type == ST_POP3)
+		method = lpHandlerArgs->bUseSSL ? "POP3s" : "POP3";
+	else if (lpHandlerArgs->type == ST_IMAP)
+		method = lpHandlerArgs->bUseSSL ? "IMAPs" : "IMAP";
+	auto hr = HrAccept(g_socks.pollfd[i].fd, &unique_tie(lpHandlerArgs->lpChannel));
+	if (hr != hrSuccess) {
+		ec_log_err("Unable to accept %s socket connection.", method);
+		return hr;
+	}
+
+	pthread_t tid;
+	ec_log_notice("Starting worker %s for %s request", model, method);
+	if (!bThreads) {
+		++nChildren;
+		if (unix_fork_function(Handler, lpHandlerArgs.get(), g_socks.linfd.size(), &g_socks.linfd[0]) < 0) {
+			ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
+			--nChildren;
+		}
+		return MAPI_E_CALL_FAILED;
+	}
+	pthread_attr_t attr;
+	if (pthread_attr_init(&attr) != 0)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) != 0) {
+		ec_log_warn("Could not set thread attribute to detached.");
+		pthread_attr_destroy(&attr);
+		return MAPI_E_CALL_FAILED;
+	}
+	if (pthread_attr_setstacksize(&attr, 1U << 20)) {
+		ec_log_err("Could not set thread stack size to 1Mb");
+		pthread_attr_destroy(&attr);
+		return MAPI_E_CALL_FAILED;
+	}
+	auto err = pthread_create(&tid, &attr, Handler_Threaded, lpHandlerArgs.get());
+	pthread_attr_destroy(&attr);
+	if (err != 0) {
+		ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
+		return MAPI_E_CALL_FAILED;
+	}
+	set_thread_name(tid, "ZGateway " + std::string(method));
+	lpHandlerArgs.release();
+	return hrSuccess;
+}
+
 /**
  * Runs the gateway service, starting a new thread or fork child for
  * incoming connections on any configured service.
@@ -576,33 +633,25 @@ static HRESULT gw_listen(ECConfig *cfg)
  */
 static HRESULT running_service(const char *szPath, const char *servicename)
 {
-	HRESULT hr = hrSuccess;
 	int err = 0;
-	pthread_attr_t ThreadAttr;
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION " (pid %d)", getpid());
+
+	struct rlimit file_limit;
+	file_limit.rlim_cur = KC_DESIRED_FILEDES;
+	file_limit.rlim_max = KC_DESIRED_FILEDES;
+	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
+		ec_log_warn("setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", KC_DESIRED_FILEDES, getdtablesize());
+	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
+	auto hr = gw_listen(g_lpConfig.get());
+	if (hr != hrSuccess)
+		return hr;
+	if (unix_runas(g_lpConfig.get()))
+		return MAPI_E_CALL_FAILED;
 
 	// SIGSEGV backtrace support
 	KAlternateStack sigstack;
 	struct sigaction act;
 	memset(&act, 0, sizeof(act));
-
-	if (bThreads) {
-		if (pthread_attr_init(&ThreadAttr) != 0)
-			return MAPI_E_NOT_ENOUGH_MEMORY;
-		if (pthread_attr_setdetachstate(&ThreadAttr, PTHREAD_CREATE_DETACHED) != 0) {
-			ec_log_err("Can't set thread attribute to detached");
-			goto exit;
-		}
-		// 1Mb of stack space per thread
-		if (pthread_attr_setstacksize(&ThreadAttr, 1024 * 1024)) {
-			ec_log_err("Can't set thread stack size to 1Mb");
-			goto exit;
-		}
-	}
-
-	hr = gw_listen(g_lpConfig.get());
-	if (hr != hrSuccess)
-		return hr;
 
 	// Setup signals
 	signal(SIGPIPE, SIG_IGN);
@@ -621,19 +670,10 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	act.sa_handler = sigchld;
 	sigaction(SIGCHLD, &act, nullptr);
 
-    struct rlimit file_limit;
-	file_limit.rlim_cur = KC_DESIRED_FILEDES;
-	file_limit.rlim_max = KC_DESIRED_FILEDES;
-	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
-		ec_log_warn("setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors", KC_DESIRED_FILEDES, getdtablesize());
-	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
-
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig.get()))
-		goto exit;
 	if (daemonize && unix_daemonize(g_lpConfig.get()))
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	if (!daemonize)
 		setsid();
 	unix_create_pidfile(servicename, g_lpConfig.get());
@@ -645,10 +685,9 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to initialize MAPI: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION " (pid %d)", getpid());
 	// Mainloop
 	while (!quit) {
 		auto nfds = g_socks.pollfd.size();
@@ -669,42 +708,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			if (!(g_socks.pollfd[i].revents & POLLIN))
 				/* OS might set more bits than requested */
 				continue;
-
-		// One socket has signalled a new incoming connection
-		std::unique_ptr<HandlerArgs> lpHandlerArgs(new HandlerArgs);
-		lpHandlerArgs->lpLogger = g_lpLogger;
-		lpHandlerArgs->lpConfig = g_lpConfig;
-		lpHandlerArgs->type = g_socks.pop3[i] ? ST_POP3 : ST_IMAP;
-		lpHandlerArgs->bUseSSL = g_socks.ssl[i];
-		const char *method = "", *model = bThreads ? "thread" : "process";
-
-		if (lpHandlerArgs->type == ST_POP3)
-			method = lpHandlerArgs->bUseSSL ? "POP3s" : "POP3";
-		else if (lpHandlerArgs->type == ST_IMAP)
-			method = lpHandlerArgs->bUseSSL ? "IMAPs" : "IMAP";
-		hr = HrAccept(g_socks.pollfd[i].fd, &unique_tie(lpHandlerArgs->lpChannel));
-		if (hr != hrSuccess) {
-			ec_log_err("Unable to accept %s socket connection.", method);
-			continue;
-		}
-
-		pthread_t tid;
-		ec_log_notice("Starting worker %s for %s request", model, method);
-		if (!bThreads) {
-			++nChildren;
-			if (unix_fork_function(Handler, lpHandlerArgs.get(), g_socks.linfd.size(), &g_socks.linfd[0]) < 0) {
-				ec_log_err("Could not create %s %s: %s", method, model, strerror(errno));
-				--nChildren;
-			}
-			continue;
-		}
-		err = pthread_create(&tid, &ThreadAttr, Handler_Threaded, lpHandlerArgs.get());
-		if (err != 0) {
-			ec_log_err("Could not create %s %s: %s", method, model, strerror(err));
-			continue;
-		}
-		set_thread_name(tid, "ZGateway " + std::string(method));
-		lpHandlerArgs.release();
+			handler_client(i);
 		}
 	}
 
@@ -725,14 +729,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	else
 		ec_log_notice("POP3/IMAP Gateway shutdown complete");
 	MAPIUninitialize();
-exit:
-	ECChannel::HrFreeCtx();
-	SSL_library_cleanup(); // Remove SSL data for the main application and other related libraries
-	if (bThreads)
-		pthread_attr_destroy(&ThreadAttr);
-	// cleanup ICU data so valgrind is happy
-	u_cleanup();
-	return hr;
+	return hrSuccess;
 }
 
 /** @} */

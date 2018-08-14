@@ -181,7 +181,7 @@ public:
 
 protected:
 	std::shared_ptr<KC::ECConfig> m_lpConfig;
-	ECThreadManager *m_lpThreadManager = nullptr;
+	std::unique_ptr<ECThreadManager> m_lpThreadManager;
 	std::mutex m_mutexItems;
 	std::queue<WORKITEM *> m_queueItems;
 	std::condition_variable m_condItems;

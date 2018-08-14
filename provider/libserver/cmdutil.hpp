@@ -196,13 +196,13 @@ struct NAMEDPROPDEF {
 typedef std::map<unsigned int, NAMEDPROPDEF> NamedPropDefMap;
 
 struct CHILDPROPS {
-    DynamicPropValArray *lpPropVals;
-    DynamicPropTagArray *lpPropTags;
+	CHILDPROPS(struct soap *soap, unsigned int hint = 20);
+	std::unique_ptr<DynamicPropTagArray> lpPropTags;
+	std::unique_ptr<DynamicPropValArray> lpPropVals;
 };
 typedef std::map<unsigned int, CHILDPROPS> ChildPropsMap;
 
 ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQuery, bool fUnicode, unsigned int ulObjId, unsigned int ulParentId, unsigned int ulMaxSize, ChildPropsMap *lpChildProps, NamedPropDefMap *lpNamedProps);
-ECRESULT FreeChildProps(std::map<unsigned int, CHILDPROPS> *lpChildProps);
 
 } /* namespace */
 

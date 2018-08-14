@@ -100,6 +100,82 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
 	generic_sigsegv_handler(g_lpLogger, "kopano-ical", PROJECT_VERSION, signr, si, uc);
 }
 
+static HRESULT running_service(char **argv)
+{
+	ssl_threading_setup();
+	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
+	auto hr = ical_listen(g_lpConfig.get());
+	if (hr != hrSuccess)
+		return hr;
+
+	// setup signals
+	KAlternateStack sigstack;
+	struct sigaction act{};
+	signal(SIGPIPE, SIG_IGN);
+	act.sa_sigaction = sigsegv;
+	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
+	sigemptyset(&act.sa_mask);
+	sigaction(SIGSEGV, &act, nullptr);
+	sigaction(SIGBUS, &act, nullptr);
+	sigaction(SIGABRT, &act, nullptr);
+	act.sa_flags = SA_RESTART;
+	act.sa_handler = sigterm;
+	sigaction(SIGTERM, &act, nullptr);
+	sigaction(SIGINT, &act, nullptr);
+	act.sa_handler = sighup;
+	sigaction(SIGHUP, &act, nullptr);
+	act.sa_handler = sigchld;
+	sigaction(SIGCHLD, &act, nullptr);
+	/*
+	 * Fork if needed and drop privileges as requested. this must be done
+	 * before we do anything with pthreads.
+	 */
+	if (unix_runas(g_lpConfig.get()))
+		return MAPI_E_CALL_FAILED;
+	if (g_bDaemonize && unix_daemonize(g_lpConfig.get()))
+		return MAPI_E_CALL_FAILED;
+	if (!g_bDaemonize)
+		setsid();
+	unix_create_pidfile(argv[0], g_lpConfig.get());
+	if (!g_bThreads)
+		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger));
+	else
+		g_lpLogger->SetLogprefix(LP_TID);
+	ec_log_set(g_lpLogger);
+
+	AutoMAPI mapiinit;
+	hr = mapiinit.Initialize();
+	if (hr != hrSuccess) {
+		kc_perror("Messaging API could not be initialized", hr);
+		return hr;
+	}
+	mainthread = pthread_self();
+	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-ical version " PROJECT_VERSION " (pid %d)", getpid());
+	hr = HrProcessConnections();
+	if (hr != hrSuccess)
+		return hr;
+	ec_log_info("CalDAV Gateway will now exit");
+
+	// in forked mode, send all children the exit signal
+	if (!g_bThreads) {
+		signal(SIGTERM, SIG_IGN);
+		kill(0, SIGTERM);
+		int i = 30; /* wait max 30 seconds */
+		while (nChildren && i) {
+			if (i % 5 == 0)
+				ec_log_notice("Waiting for %d processes/threads to exit", nChildren.load());
+			sleep(1);
+			--i;
+		}
+
+		if (nChildren)
+			ec_log_notice("Forced shutdown with %d processes/threads left", nChildren.load());
+		else
+			ec_log_info("CalDAV Gateway shutdown complete");
+	}
+	return hrSuccess;
+}
+
 using std::cout;
 using std::endl;
 
@@ -122,7 +198,6 @@ static void PrintVersion(void)
 int main(int argc, char **argv) {
 	HRESULT hr = hrSuccess;
 	bool bIgnoreUnknownConfigOptions = false;
-	struct sigaction act{};
 	// Configuration
 	const char *lpszCfg = ECConfig::GetDefaultPath("ical.cfg");
 	bool exp_config = false;
@@ -176,7 +251,6 @@ int main(int argc, char **argv) {
 	};
 
 	setlocale(LC_CTYPE, "");
-	KAlternateStack sigstack;
 
 	while (1) {
 		int opt = my_getopt_long_permissive(argc, argv, "Fhc:V", long_options, nullptr);
@@ -239,76 +313,7 @@ int main(int argc, char **argv) {
 		g_lpLogger->SetLogprefix(LP_TID);
 	}
 
-	// initialize SSL threading
-    ssl_threading_setup();
-	hr = ical_listen(g_lpConfig.get());
-	if (hr != hrSuccess)
-		goto exit;
-
-	// setup signals
-	signal(SIGPIPE, SIG_IGN);
-	act.sa_sigaction = sigsegv;
-	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
-	sigemptyset(&act.sa_mask);
-	sigaction(SIGSEGV, &act, NULL);
-	sigaction(SIGBUS, &act, NULL);
-	sigaction(SIGABRT, &act, NULL);
-	act.sa_flags = SA_RESTART;
-	act.sa_handler = sigterm;
-	sigaction(SIGTERM, &act, nullptr);
-	sigaction(SIGINT, &act, nullptr);
-	act.sa_handler = sighup;
-	sigaction(SIGHUP, &act, nullptr);
-	act.sa_handler = sigchld;
-	sigaction(SIGCHLD, &act, nullptr);
-
-	unix_coredump_enable(g_lpConfig->GetSetting("coredump_enabled"));
-	// fork if needed and drop privileges as requested.
-	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig.get()))
-		goto exit;
-	if (g_bDaemonize && unix_daemonize(g_lpConfig.get()))
-		goto exit;
-	if (!g_bDaemonize)
-		setsid();
-	unix_create_pidfile(argv[0], g_lpConfig.get());
-	if (!g_bThreads)
-		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger));
-	else
-		g_lpLogger->SetLogprefix(LP_TID);
-	ec_log_set(g_lpLogger);
-
-	hr = MAPIInitialize(NULL);
-	if (hr != hrSuccess) {
-		kc_perror("Messaging API could not be initialized", hr);
-		goto exit;
-	}
-	mainthread = pthread_self();
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-ical version " PROJECT_VERSION " (pid %d)", getpid());
-	hr = HrProcessConnections();
-	if (hr != hrSuccess)
-		goto exit2;
-
-	ec_log_info("CalDAV Gateway will now exit");
-
-	// in forked mode, send all children the exit signal
-	if (!g_bThreads) {
-		signal(SIGTERM, SIG_IGN);
-		kill(0, SIGTERM);
-		int i = 30; /* wait max 30 seconds */
-		while (nChildren && i) {
-			if (i % 5 == 0)
-				ec_log_notice("Waiting for %d processes/threads to exit", nChildren.load());
-			sleep(1);
-			--i;
-		}
-		if (nChildren)
-			ec_log_notice("Forced shutdown with %d processes/threads left", nChildren.load());
-		else
-			ec_log_info("CalDAV Gateway shutdown complete");
-	}
-exit2:
-	MAPIUninitialize();
+	hr = running_service(argv);
 exit:
 	ECChannel::HrFreeCtx();
 	SSL_library_cleanup(); // Remove SSL data for the main application and other related libraries
@@ -318,7 +323,7 @@ exit:
 	xmlCleanupParser();
 	// cleanup ICU data so valgrind is happy
 	u_cleanup();
-	return hr;
+	return hr == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 static HRESULT ical_listen(ECConfig *cfg)

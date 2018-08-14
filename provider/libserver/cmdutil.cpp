@@ -1915,15 +1915,9 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 
 		auto ulChildId = atoui(lpDBRow[FIELD_NR_MAX]);
 		auto iterChild = lpChildProps->find(ulChildId);
-		if (iterChild == lpChildProps->cend()) {
-            CHILDPROPS sChild;
-
-            sChild.lpPropTags = new DynamicPropTagArray(soap);
-            sChild.lpPropVals = new DynamicPropValArray(soap, 20);
+		if (iterChild == lpChildProps->cend())
             // First property for this child
-			iterChild = lpChildProps->emplace(ulChildId, sChild).first;
-        }
-
+			iterChild = lpChildProps->emplace(ulChildId, CHILDPROPS(soap, 20)).first;
 		auto er = iterChild->second.lpPropTags->AddPropTag(ulPropTag);
         if(er != erSuccess)
 			return er;
@@ -2007,15 +2001,9 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 
 		auto ulChildId = atoui(lpDBRow[FIELD_NR_MAX]);
 		auto iterChild = lpChildProps->find(ulChildId);
-		if (iterChild == lpChildProps->cend()) {
-            CHILDPROPS sChild;
-
-            sChild.lpPropTags = new DynamicPropTagArray(soap);
-            sChild.lpPropVals = new DynamicPropValArray(soap, 20);
+		if (iterChild == lpChildProps->cend())
             // First property for this child
-			iterChild = lpChildProps->emplace(ulChildId, sChild).first;
-        }
-
+			iterChild = lpChildProps->emplace(ulChildId, CHILDPROPS(soap, 20)).first;
 		auto er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &sPropVal);
         if(er != erSuccess)
             continue;
@@ -2032,16 +2020,9 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 	return erSuccess;
 }
 
-ECRESULT FreeChildProps(std::map<unsigned int, CHILDPROPS> *lpChildProps)
-{
-	for (const auto &cp : *lpChildProps) {
-		if (cp.second.lpPropVals)
-			delete cp.second.lpPropVals;
-		if (cp.second.lpPropTags)
-			delete cp.second.lpPropTags;
-	}
-    lpChildProps->clear();
-    return erSuccess;
-}
+CHILDPROPS::CHILDPROPS(struct soap *soap, unsigned int hint) :
+	lpPropTags(new DynamicPropTagArray(soap)),
+	lpPropVals(new DynamicPropValArray(soap, hint))
+{}
 
 } /* namespace */

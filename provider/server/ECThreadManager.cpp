@@ -619,7 +619,6 @@ ECDispatcherSelect::ECDispatcherSelect(std::shared_ptr<ECConfig> lpConfig) :
 ECRESULT ECDispatcherSelect::MainLoop()
 {
 	ECRESULT er = erSuccess;
-	ECWatchDog *lpWatchDog = NULL;
 	int maxfds = getdtablesize();
 	if (maxfds < 0)
 		throw std::runtime_error("getrlimit failed");
@@ -628,19 +627,13 @@ ECRESULT ECDispatcherSelect::MainLoop()
 	CONNECTION_TYPE ulType;
 	std::unique_ptr<struct pollfd[]> pollfd(new struct pollfd[maxfds]);
 
-	for (size_t n = 0; n < maxfds; ++n) {
-		/*
-		 * Use an identity mapping, quite like fd_set, but without the
-		 * limits of FD_SETSIZE.
-		 */
-		pollfd[n].fd = n;
-		pollfd[n].events = 0;
-	}
+	for (size_t n = 0; n < maxfds; ++n)
+		pollfd[n].events = POLLIN;
 
     // This will start the threads
-	m_lpThreadManager = new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads")));
+	m_lpThreadManager.reset(new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads"))));
     // Start the watchdog
-	lpWatchDog = new ECWatchDog(m_lpConfig.get(), this, m_lpThreadManager);
+	std::unique_ptr<ECWatchDog> lpWatchDog(new ECWatchDog(m_lpConfig.get(), this, m_lpThreadManager.get()));
 
     // Main loop
     while(!m_bExit) {
@@ -648,9 +641,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
         time(&now);
 
         // Listen on rescan trigger
-		pollfd[0].fd = m_fdRescanRead;
-		pollfd[0].events = POLLIN;
-		++nfds;
+		pollfd[nfds++].fd = m_fdRescanRead;
 
         // Listen on active sockets
 		ulock_normal l_sock(m_mutexSockets);
@@ -662,15 +653,12 @@ ECRESULT ECDispatcherSelect::MainLoop()
 				now - static_cast<time_t>(p.second.ulLastActivity) > m_nRecvTimeout)
 				// Socket has been inactive for more than server_recv_timeout seconds, close the socket
 				shutdown(p.second.soap->socket, SHUT_RDWR);
-			pollfd[nfds].fd = p.second.soap->socket;
-			pollfd[nfds++].events = POLLIN;
+			pollfd[nfds++].fd = p.second.soap->socket;
         }
         // Listen on listener sockets
 		pfd_begin_listen = nfds;
-		for (const auto &p : m_setListenSockets) {
-			pollfd[nfds].fd = p.second->socket;
-			pollfd[nfds++].events = POLLIN;
-        }
+		for (const auto &p : m_setListenSockets)
+			pollfd[nfds++].fd = p.second->socket;
 		l_sock.unlock();
 
         // Wait for at most 1 second, so that we can close inactive sockets
@@ -781,7 +769,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 	}
 
     // Delete the watchdog. This makes sure no new threads will be started.
-    delete lpWatchDog;
+	lpWatchDog.reset();
     // Set the thread count to zero so that threads will exit
     m_lpThreadManager->SetThreadCount(0);
     // Notify threads that they should re-query their idle state (and exit)
@@ -791,7 +779,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
     l_item.unlock();
     // Delete thread manager (waits for threads to become idle). During this time
     // the threads may report back a workitem as being done. If this is the case, we directly close that socket too.
-    delete m_lpThreadManager;
+	m_lpThreadManager.reset();
 
     // Empty the queue
 	l_item.lock();
@@ -845,7 +833,6 @@ ECDispatcherEPoll::~ECDispatcherEPoll()
 ECRESULT ECDispatcherEPoll::MainLoop()
 {
 	ECRESULT er = erSuccess;
-	ECWatchDog *lpWatchDog = NULL;
 	time_t now = 0;
 	time_t last = 0;
 	CONNECTION_TYPE ulType;
@@ -863,9 +850,9 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	}
 
 	// This will start the threads
-	m_lpThreadManager = new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads")));
+	m_lpThreadManager.reset(new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads"))));
 	// Start the watchdog
-	lpWatchDog = new ECWatchDog(m_lpConfig.get(), this, m_lpThreadManager);
+	std::unique_ptr<ECWatchDog> lpWatchDog(new ECWatchDog(m_lpConfig.get(), this, m_lpThreadManager.get()));
 
 	while (!m_bExit) {
 		time(&now);
@@ -908,11 +895,11 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 
 				if(newsoap->socket == SOAP_INVALID_SOCKET) {
 					if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-						ec_log_debug("Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
+						ec_log_debug("epaccept(%d) on file://%s: %s", newsoap->master, m_lpConfig->GetSetting("server_pipe_name"), *soap_faultstring(newsoap));
 					else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-						ec_log_debug("Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
+						ec_log_debug("epaccept(%d) on file://%s: %s", newsoap->master, m_lpConfig->GetSetting("server_pipe_priority"), *soap_faultstring(newsoap));
 					else
-						ec_log_debug("Error accepting incoming connection from network.");
+						ec_log_debug("epaccept(%d): %s", newsoap->master, *soap_faultstring(newsoap));
 					kopano_end_soap_connection(newsoap);
 					soap_free(newsoap);
 				} else {
@@ -956,7 +943,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	}
 
 	// Delete the watchdog. This makes sure no new threads will be started.
-	delete lpWatchDog;
+	lpWatchDog.reset();
     // Set the thread count to zero so that threads will exit
     m_lpThreadManager->SetThreadCount(0);
     // Notify threads that they should re-query their idle state (and exit)
@@ -964,7 +951,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	m_condItems.notify_all();
 	m_condPrioItems.notify_all();
 	l_item.unlock();
-	delete m_lpThreadManager;
+	m_lpThreadManager.reset();
 
     // Empty the queue
 	l_item.lock();
