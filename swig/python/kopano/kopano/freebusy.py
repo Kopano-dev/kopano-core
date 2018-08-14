@@ -9,8 +9,8 @@ import datetime
 import time
 try:
     import libfreebusy
-except ImportError:
-    pass # pragma: no cover
+except ImportError: # pragma: no cover
+    pass
 
 from MAPI.Time import (
     FileTime,

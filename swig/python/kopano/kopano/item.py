@@ -529,18 +529,6 @@ class Item(Properties, Contact, Appointment):
         return self.create_prop('common:34054', value, proptype=PT_BOOLEAN)
 
     @property
-    def reminder(self):
-        """ PidLidReminderSet - Specifies whether a reminder is set on the object """
-        try:
-            return self.prop('common:34051').value
-        except NotFoundError:
-            return False
-
-    @reminder.setter
-    def reminder(self, value):
-        return self.create_prop('common:34051', value, proptype=PT_BOOLEAN)
-
-    @property
     def messageid(self):
         return self.get(PR_INTERNET_MESSAGE_ID_W)
 

@@ -153,7 +153,7 @@ class Appointment(object):
         return self.get(PidLidReminderSet, False)
 
     @reminder.setter
-    def reminder(self, value):
+    def reminder(self, value): # TODO move to item, because common?
         self[PidLidReminderSet] = value
 
     @property
