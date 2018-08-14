@@ -3,7 +3,7 @@ import calendar
 import datetime
 try:
     import ujson as json
-except ImportError:
+except ImportError: # pragma: no cover
     import json
 import time
 
@@ -21,7 +21,7 @@ UTC = dateutil.tz.tzutc()
 INDENT = True
 try:
     json.dumps({}, indent=True) # ujson 1.33 doesn't support 'indent'
-except TypeError:
+except TypeError: # pragma: no cover
     INDENT = False
 
 import dateutil.parser

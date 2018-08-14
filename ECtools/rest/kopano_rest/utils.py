@@ -127,13 +127,10 @@ def _store(server, userid):
 def _server_store(req, userid, options):
     try:
         server = _server(req, options)
+        store = _store(server, userid)
+        return server, store
     except Exception:
         raise falcon.HTTPForbidden('Unauthorized', None)
-    try:
-        store = _store(server, userid)
-    except Exception:
-        raise falcon.HTTPNotFound(description="The user wasn't found")
-    return server, store
 
 def _folder(store, folderid):
     name = folderid.lower()
