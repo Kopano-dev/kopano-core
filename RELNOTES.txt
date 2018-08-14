@@ -29,12 +29,19 @@ Packaging changes:
   for a default install to function.
 
 
-8.6.x
-=====
-* dagent: advertise 8BITMIME/RFC6152 support [KS-41452]
+8.6.7 (2018-08-14)
+==================
+Fixes:
 * gateway, spooler: (re-)activate RFC 2047 header generation
   (Outlook is still unable to read the RFC 2231 headers that
   are generated normally) [KC-1226]
+* srvadm: make --purge-softdelete=0 work
+Enhancements:
+* dagent: advertise 8BITMIME/RFC6152 support [KS-41452]
+Changes:
+* PHP function mapi_icaltomapi now returns MAPI_E_TABLE_EMPTY
+  rather than MAPI_E_INVALID_PARAMETER when the .ics file has no (usable)
+  appointments. [KC-1227]
 
 
 8.6.6 (2018-07-31)
