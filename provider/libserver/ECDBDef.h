@@ -181,13 +181,14 @@
 										PRIMARY KEY (`instanceid`,`tag`,`chunkid`) \
 									) ENGINE=%s MAX_ROWS=1000000000 AVG_ROW_LENGTH=1750 CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
-#define Z_TABLEDEF_REFERENCES		"CREATE TABLE `singleinstances` ( \
-										`instanceid` int(11) unsigned NOT NULL auto_increment, \
-										`hierarchyid` int(11) unsigned NOT NULL default '0', \
-										`tag` smallint(6) unsigned NOT NULL default '0', \
-										PRIMARY KEY (`instanceid`, `hierarchyid`, `tag`), \
-										UNIQUE KEY `hkey` (`hierarchyid`, `tag`) \
-									) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
+#define Z_TABLEDEF_REFERENCES "CREATE TABLE `singleinstances` ( \
+	`instanceid` int(11) unsigned NOT NULL auto_increment, \
+	`hierarchyid` int(11) unsigned NOT NULL default '0', \
+	`tag` smallint(6) unsigned NOT NULL default '0', \
+	`filename` varchar(255) DEFAULT NULL, \
+	PRIMARY KEY (`instanceid`, `hierarchyid`, `tag`), \
+	UNIQUE KEY `hkey` (`hierarchyid`, `tag`) \
+) ENGINE=%s CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
 #define Z_TABLEDEF_OBJECT			"CREATE TABLE object ( \
 										`id` int(11) unsigned NOT NULL auto_increment, \
@@ -335,9 +336,9 @@
  * version that can be reached with creates only.
  * (This is never less than %Z_UPDATE_LAST.)
  */
-#define Z_UPDATE_RELEASE_ID 70
+#define Z_UPDATE_RELEASE_ID 71
 
 // This is the last update ID always update this to the last ID
-#define Z_UPDATE_LAST 70
+#define Z_UPDATE_LAST 71
 
 #endif

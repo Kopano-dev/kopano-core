@@ -64,6 +64,7 @@ static const sUpdateList_t sUpdateList[] = {
 	{68, 0, "Perform column type upgrade missed in SVN r23897", db_update_68},
 	{69, 0, "Update \"names\" with uniqueness constraints", db_update_69},
 	{70, 0, "names.guid change from blob to binary(16); drop old indexes", db_update_70},
+	{71, 0, "Add the \"filename\" column to \"singleinstances\"", db_update_71},
 };
 
 static const char *const server_groups[] = {

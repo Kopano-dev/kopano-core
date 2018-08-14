@@ -59,12 +59,6 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 	}
 
 	m_lpNotificationManager.reset(new ECNotificationManager());
-	err = ECAttachmentConfig::create(m_lpConfig, &unique_tie(m_atxconfig));
-	if (err != hrSuccess) {
-		err = kcerr_to_mapierr(err);
-		ec_log_crit("Could not initialize attachment store: %s", GetMAPIErrorMessage(err));
-		throw KMAPIError(err);
-	}
 }
 
 ECSessionManager::~ECSessionManager()
@@ -94,7 +88,7 @@ ECRESULT ECSessionManager::LoadSettings(){
 	ECDatabase *	lpDatabase = NULL;
 	DB_RESULT lpDBResult;
 
-	if (m_lpServerGuid != nullptr)
+	if (m_sguid_set)
 		return KCERR_BAD_VALUE;
 	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory.get(), &lpDatabase);
 	if(er != erSuccess)
@@ -110,8 +104,7 @@ ECRESULT ECSessionManager::LoadSettings(){
 	    lpDBLenths == nullptr || lpDBLenths[0] != sizeof(GUID))
 		return KCERR_NOT_FOUND;
 
-	m_lpServerGuid.reset(new GUID);
-	memcpy(m_lpServerGuid.get(), lpDBRow[0], sizeof(GUID));
+	memcpy(&m_server_guid, lpDBRow[0], sizeof(m_server_guid));
 	strQuery = "SELECT `value` FROM settings WHERE `name` = 'source_key_auto_increment' LIMIT 1";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
@@ -123,6 +116,13 @@ ECRESULT ECSessionManager::LoadSettings(){
 		return KCERR_NOT_FOUND;
 
 	memcpy(&m_ullSourceKeyAutoIncrement, lpDBRow[0], sizeof(m_ullSourceKeyAutoIncrement));
+	m_sguid_set = true;
+
+	er = ECAttachmentConfig::create(m_server_guid, m_lpConfig, &unique_tie(m_atxconfig));
+	if (er != hrSuccess) {
+		ec_log_crit("Could not initialize attachment store: %s", GetMAPIErrorMessage(kcerr_to_mapierr(er)));
+		return er;
+	}
 	return erSuccess;
 }
 
@@ -1021,7 +1021,7 @@ ECRESULT ECSessionManager::DumpStats()
 ECRESULT ECSessionManager::GetServerGUID(GUID* lpServerGuid){
 	if (lpServerGuid == NULL)
 		return KCERR_INVALID_PARAMETER;
-	memcpy(lpServerGuid, m_lpServerGuid.get(), sizeof(GUID));
+	*lpServerGuid = m_server_guid;
 	return erSuccess;
 }
 
@@ -1036,7 +1036,7 @@ ECRESULT ECSessionManager::GetNewSourceKey(SOURCEKEY* lpSourceKey){
 			return er;
 		m_ulSourceKeyQueue = 50;
 	}
-	*lpSourceKey = SOURCEKEY(*m_lpServerGuid, m_ullSourceKeyAutoIncrement + 1);
+	*lpSourceKey = SOURCEKEY(m_server_guid, m_ullSourceKeyAutoIncrement + 1);
 	++m_ullSourceKeyAutoIncrement;
 	--m_ulSourceKeyQueue;
 	return erSuccess;

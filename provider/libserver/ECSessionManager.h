@@ -181,8 +181,9 @@ protected:
 	unsigned long long m_ulSeqIMAP = 0;
 	unsigned int m_ulSeqIMAPQueue = 0;
 
+	bool m_sguid_set = false;
+	GUID m_server_guid{};
 	object_ptr<ECLogger> m_lpAudit;
-	std::unique_ptr<GUID> m_lpServerGuid;
 	std::unique_ptr<ECPluginFactory> m_lpPluginFactory;
 	std::unique_ptr<ECSearchFolders> m_lpSearchFolders;
 	std::unique_ptr<ECDatabaseFactory> m_lpDatabaseFactory;
