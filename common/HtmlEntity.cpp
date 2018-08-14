@@ -7,7 +7,7 @@
 #include "HtmlEntity.h"
 #include <kopano/charset/convert.h>
 
-using namespace KC::string_literals;
+using namespace std::string_literals;
 
 namespace KC {
 

@@ -7,6 +7,7 @@
 #include <kopano/ECLogger.h>
 #include <algorithm>
 #include <mutex>
+#include <shared_mutex>
 #include <string>
 #include <cassert>
 #include <climits>
@@ -194,7 +195,7 @@ ECLogger_File::ECLogger_File(unsigned int max_ll, bool add_timestamp,
 
 ECLogger_File::~ECLogger_File() {
 	// not required at this stage but only added here for consistency
-	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
+	std::shared_lock<KC::shared_mutex> lh(handle_lock);
 	char pb[LOG_PFXSIZE];
 
 	if (prevcount > 1)
@@ -279,7 +280,7 @@ void ECLogger_File::Reset() {
 }
 
 int ECLogger_File::GetFileDescriptor() {
-	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
+	std::shared_lock<KC::shared_mutex> lh(handle_lock);
 	if (fh != nullptr && fnFileno != nullptr)
 		return fnFileno(fh);
 	return -1;
@@ -332,7 +333,7 @@ char *ECLogger_File::DoPrefix(char *buffer, size_t z)
 bool ECLogger_File::DupFilter(unsigned int loglevel, const char *message)
 {
 	bool exit_with_true = false;
-	KC::shared_lock<KC::shared_mutex> lr_dup(dupfilter_lock);
+	std::shared_lock<KC::shared_mutex> lr_dup(dupfilter_lock);
 	if (strncmp(prevmsg, message, sizeof(prevmsg)) == 0) {
 		++prevcount;
 
@@ -344,7 +345,7 @@ bool ECLogger_File::DupFilter(unsigned int loglevel, const char *message)
 		return true;
 
 	if (prevcount > 1) {
-		KC::shared_lock<KC::shared_mutex> lr_handle(handle_lock);
+		std::shared_lock<KC::shared_mutex> lr_handle(handle_lock);
 		char pb[LOG_PFXSIZE], el[LOG_LVLSIZE];
 		fnPrintf(fh, "%s%sPrevious message logged %d times\n", DoPrefix(pb, sizeof(pb)), EmitLevel(prevloglevel, el, sizeof(el)), prevcount);
 	}
@@ -363,7 +364,7 @@ void ECLogger_File::log(unsigned int loglevel, const char *message)
 	if (DupFilter(loglevel, message))
 		return;
 
-	KC::shared_lock<KC::shared_mutex> lh(handle_lock);
+	std::shared_lock<KC::shared_mutex> lh(handle_lock);
 	if (fh == nullptr)
 		return;
 	char pb[LOG_PFXSIZE], el[LOG_LVLSIZE];

@@ -7,6 +7,7 @@
 #include <list>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <string>
 #include <utility>
 #include <cerrno>
@@ -208,8 +209,7 @@ const char *ECConfigImpl::GetMapEntry(const settingmap_t *lpMap,
 	if (strlen(szName) >= sizeof(key.s))
 		return NULL;
 	strcpy(key.s, szName);
-
-	KC::shared_lock<KC::shared_mutex> lset(m_settingsRWLock);
+	std::shared_lock<KC::shared_mutex> lset(m_settingsRWLock);
 	auto itor = lpMap->find(key);
 	if (itor != lpMap->cend())
 		return itor->second;
@@ -558,8 +558,7 @@ bool ECConfigImpl::HasWarnings() {
 
 bool ECConfigImpl::HasErrors() {
 	/* First validate the configuration settings */
-	KC::shared_lock<KC::shared_mutex> lset(m_settingsRWLock);
-
+	std::shared_lock<KC::shared_mutex> lset(m_settingsRWLock);
 	for (const auto &s : m_mapSettings)
 		if (s.first.cs_flags & CONFIGSETTING_NONEMPTY)
 			if (!s.second || strlen(s.second) == 0)

@@ -9,6 +9,7 @@
 #include <mutex>
 #include <new>
 #include <set>
+#include <shared_mutex>
 #include <utility>
 #include <pthread.h>
 #include <mapidefs.h>
@@ -30,7 +31,7 @@
 #include <edkmdb.h>
 #include "StorageUtil.h"
 
-using namespace KC::chrono_literals;
+using namespace std::chrono_literals;
 
 namespace KC {
 
@@ -137,7 +138,7 @@ ECRESULT ECSessionManager::LoadSettings(){
 ECRESULT ECSessionManager::GetSessionGroup(ECSESSIONGROUPID sessionGroupID, ECSession *lpSession, ECSessionGroup **lppSessionGroup)
 {
 	ECSessionGroup *lpSessionGroup = NULL;
-	KC::shared_lock<KC::shared_mutex> lr_group(m_hGroupLock);
+	std::shared_lock<KC::shared_mutex> lr_group(m_hGroupLock);
 	std::unique_lock<KC::shared_mutex> lw_group(m_hGroupLock, std::defer_lock_t());
 
 	/* Workaround for old clients, when sessionGroupID is 0 each session is its own group */
@@ -256,7 +257,7 @@ ECRESULT ECSessionManager::CancelAllSessions(ECSESSIONID sessionIDException)
 // used by ECStatsTable
 ECRESULT ECSessionManager::ForEachSession(void(*callback)(ECSession*, void*), void *obj)
 {
-	KC::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
+	std::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	for (const auto &p : m_mapSessions)
 		callback(dynamic_cast<ECSession *>(p.second), obj);
 	return erSuccess;
@@ -311,7 +312,7 @@ ECRESULT ECSessionManager::ValidateBTSession(struct soap *soap,
     ECSESSIONID sessionID, BTSession **lppSession)
 {
 	// Read lock
-	KC::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
+	std::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	auto lpSession = GetSession(sessionID, true);
 	l_cache.unlock();
 
@@ -556,7 +557,7 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 
 	// Send each subscribed session group one notification
 	for (const auto &grp : setGroups) {
-		KC::shared_lock<KC::shared_mutex> grplk(m_hGroupLock);
+		std::shared_lock<KC::shared_mutex> grplk(m_hGroupLock);
 		auto iIterator = m_mapSessionGroups.find(grp);
 		if (iIterator != m_mapSessionGroups.cend())
 			iIterator->second->AddNotification(notifyItem, ulKey, ulStore);
@@ -707,7 +708,7 @@ ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
     // For each of the sessions that are interested, send the table change
 	for (const auto &ses : setSessions) {
 		// Get session
-		KC::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
+		std::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 		auto lpBTSession = GetSession(ses, true);
 		l_cache.unlock();
 
@@ -896,8 +897,7 @@ exit:
 ECRESULT ECSessionManager::NotificationChange(const std::set<unsigned int> &syncIds,
     unsigned int ulChangeId, unsigned int ulChangeType)
 {
-	KC::shared_lock<KC::shared_mutex> grplk(m_hGroupLock);
-
+	std::shared_lock<KC::shared_mutex> grplk(m_hGroupLock);
 	// Send the notification to all sessionsgroups so that any client listening for these
 	// notifications can receive them
 	for (const auto &p : m_mapSessionGroups)
@@ -954,13 +954,13 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 	memset(&sStats, 0, sizeof(sSessionManagerStats));
 
 	// Get session data
-	KC::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
+	std::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	sStats.session.ulItems = m_mapSessions.size();
 	sStats.session.ullSize = MEMORY_USAGE_MAP(sStats.session.ulItems, SESSIONMAP);
 	l_cache.unlock();
 
 	// Get group data
-	KC::shared_lock<KC::shared_mutex> l_group(m_hGroupLock);
+	std::shared_lock<KC::shared_mutex> l_group(m_hGroupLock);
 	sStats.group.ulItems = m_mapSessionGroups.size();
 	sStats.group.ullSize = MEMORY_USAGE_HASHMAP(sStats.group.ulItems, EC_SESSIONGROUPMAP);
 
@@ -1293,8 +1293,7 @@ ECRESULT ECSessionManager::RemoveBusyState(ECSESSIONID ecSessionId, pthread_t th
 	ECRESULT er = erSuccess;
 	BTSession *lpSession = NULL;
 	ECSession *lpECSession = NULL;
-
-	KC::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
+	std::shared_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 	lpSession = GetSession(ecSessionId, true);
 	l_cache.unlock();
 	if(!lpSession)
@@ -1345,7 +1344,7 @@ ECRESULT ECLockManager::UnlockObject(unsigned int objid, ECSESSIONID sid)
 
 bool ECLockManager::IsLocked(unsigned int objid, ECSESSIONID *sid)
 {
-	KC::shared_lock<KC::shared_mutex> lock(m_hRwLock);
+	std::shared_lock<KC::shared_mutex> lock(m_hRwLock);
 	auto i = m_mapLocks.find(objid);
 	if (i != m_mapLocks.cend() && sid != nullptr)
 		*sid = i->second;

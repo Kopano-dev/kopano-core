@@ -144,7 +144,7 @@ static ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict,
                 sMultiSearch = std::move(terms);
 			else if (sMultiSearch.strTerm == terms.strTerm)
 				// Add the search fields from the subrestriction into ours
-				sMultiSearch.setFields.insert(gcc5_make_move_iterator(terms.setFields.begin()), gcc5_make_move_iterator(terms.setFields.end()));
+				sMultiSearch.setFields.insert(std::make_move_iterator(terms.setFields.begin()), std::make_move_iterator(terms.setFields.end()));
 			else
 				// There are different search terms in this OR (case 2)
 				return KCERR_INVALID_PARAMETER;

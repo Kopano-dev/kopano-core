@@ -30,7 +30,7 @@
 #include <map>
 #include <string>
 
-using namespace KC::string_literals;
+using namespace std::string_literals;
 
 /*
 	streams are as follows:

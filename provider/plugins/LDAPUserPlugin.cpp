@@ -35,7 +35,7 @@
 #endif
 
 using namespace KC;
-using namespace KC::string_literals;
+using namespace std::string_literals;
 
 extern "C" {
 

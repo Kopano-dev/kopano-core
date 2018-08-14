@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <kopano/ECLogger.h>
 
-using namespace KC::string_literals;
+using namespace std::string_literals;
 
 namespace KC {
 

@@ -42,13 +42,6 @@
 /* Mark classes which explicitly must not be final in the C++ side… for SWIG */
 #define _no_final
 
-#if defined(__GNUG__) && __GNUG__ < 5
-	/* std::set::insert(it, it) has a problem with move_iterators */
-#	define gcc5_make_move_iterator(x) (x)
-#else
-#	define gcc5_make_move_iterator(x) std::make_move_iterator(x)
-#endif
-
 namespace KC {}
 
 #endif /* ZCOMMON_DEFS_H */

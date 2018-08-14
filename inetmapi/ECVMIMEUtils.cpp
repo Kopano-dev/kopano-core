@@ -28,7 +28,7 @@
 #include <kopano/mapi_ptr.h>
 #include <vmime/base.hpp>
 
-using namespace KC::string_literals;
+using namespace std::string_literals;
 
 namespace KC {
 
