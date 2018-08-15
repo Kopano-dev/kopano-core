@@ -187,7 +187,7 @@ HRESULT M4LProfAdmin::CreateProfile(const TCHAR *lpszProfileName,
 		ec_log_err("M4LProfAdmin::CreateProfile(): duplicate profile name");
 		return MAPI_E_NO_ACCESS; /* duplicate profile name */
     }
-	std::unique_ptr<profEntry> entry(new(std::nothrow) profEntry);
+	auto entry = make_unique_nt<profEntry>();
     if (!entry) {
 		ec_log_crit("M4LProfAdmin::CreateProfile(): ENOMEM");
 		return MAPI_E_NOT_ENOUGH_MEMORY;
@@ -467,7 +467,7 @@ HRESULT M4LMsgServiceAdmin::CreateMsgServiceEx(const char *lpszService,
 		kc_perrorf("service already exists", hr);
 		return MAPI_E_NO_ACCESS; /* already exists */
 	}
-	std::unique_ptr<serviceEntry> entry(new(std::nothrow) serviceEntry);
+	auto entry = make_unique_nt<serviceEntry>();
 	if (!entry) {
 		ec_log_crit("M4LMsgServiceAdmin::CreateMsgService(): ENOMEM");
 		return MAPI_E_NOT_ENOUGH_MEMORY;
@@ -2506,7 +2506,7 @@ HRESULT SessionRestorer::restore_services(IProfAdmin *profadm)
 		 * Since this is a new profile, there are no services yet
 		 * and we need not check for their existence like in CreateMsgServiceEx.
 		 */
-		std::unique_ptr<serviceEntry> entry(new(std::nothrow) serviceEntry);
+		auto entry = make_unique_nt<serviceEntry>();
 		if (entry == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 		auto svcname = svcname_prop->Value.lpszA;
@@ -2562,7 +2562,7 @@ HRESULT SessionRestorer::restore_providers()
 		if (svc == nullptr)
 			return MAPI_E_CORRUPT_DATA;
 
-		std::unique_ptr<providerEntry> entry(new(std::nothrow) providerEntry);
+		auto entry = make_unique_nt<providerEntry>();
 		if (entry == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 		memcpy(&entry->uid, provuid_prop->Value.bin.lpb, sizeof(entry->uid));

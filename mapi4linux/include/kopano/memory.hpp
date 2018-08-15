@@ -365,6 +365,32 @@ template<typename T> template<typename P> P object_ptr<T>::as(void)
 	return tmp;
 }
 
+template<typename T> struct mkuniq_helper {
+	typedef std::unique_ptr<T> single_object;
+};
+
+template<typename T> struct mkuniq_helper<T[]> {
+	typedef std::unique_ptr<T[]> array;
+};
+
+template<typename T, size_t Z> struct mkuniq_helper<T[Z]> {
+	struct invalid_type {};
+};
+
+template<typename T, typename... Args> inline typename mkuniq_helper<T>::single_object
+make_unique_nt(Args &&...args)
+{
+	return std::unique_ptr<T>(new(std::nothrow) T(std::forward<Args>(args)...));
+}
+
+template<typename T> inline typename mkuniq_helper<T>::array make_unique_nt(size_t z)
+{
+	return std::unique_ptr<T>(new(std::nothrow) typename std::remove_extent<T>::type[z]);
+}
+
+template<typename T, typename... Args> inline typename mkuniq_helper<T>::invalid_type
+make_unique_nt(Args &&...) = delete;
+
 } /* namespace */
 
 #endif /* _KC_MEMORY_HPP */

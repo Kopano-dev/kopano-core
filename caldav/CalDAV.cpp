@@ -459,7 +459,7 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 {
 	pthread_attr_t pThreadAttr;
 	pthread_t pThread;
-	std::unique_ptr<HandlerArgs> lpHandlerArgs(new(std::nothrow) HandlerArgs);
+	auto lpHandlerArgs = make_unique_nt<HandlerArgs>();
 	if (lpHandlerArgs == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	lpHandlerArgs->lpChannel = lpChannel;

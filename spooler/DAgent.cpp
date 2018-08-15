@@ -1463,7 +1463,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	while (environ[s] != nullptr)
 		s++;
 
-	std::unique_ptr<const char *[]> env(new(std::nothrow) const char *[s + 5]);
+	auto env = make_unique_nt<const char *[]>(s + 5);
 	if (env == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 

@@ -439,7 +439,7 @@ ECRESULT ECFifoSerializer::Read(void *ptr, size_t size, size_t nmemb)
 
 ECRESULT ECFifoSerializer::Skip(size_t size, size_t nmemb)
 {
-	std::unique_ptr<char[]> buf(new(std::nothrow) char[size*nmemb]);
+	auto buf = make_unique_nt<char[]>(size * nmemb);
 	if (buf == nullptr)
 		return KCERR_NOT_ENOUGH_MEMORY;
 	return Read(buf.get(), size, nmemb);

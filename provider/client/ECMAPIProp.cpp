@@ -365,7 +365,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	    // If HrLoadProp failed, just fallback to the 'normal' way of loading properties.
 	    lpStorage->HrLoadProp(0, ulPropTag, &~lpsPropValue) == erSuccess) {
 		/* is freed by HrStreamCleanup, called by ECMemStream on refcount == 0 */
-		std::unique_ptr<STREAMDATA> lpStreamData(new(std::nothrow) STREAMDATA);
+		auto lpStreamData = make_unique_nt<STREAMDATA>();
 		if (lpStreamData == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 		lpStreamData->ulPropTag = ulPropTag;
@@ -415,7 +415,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		return MAPI_E_NOT_FOUND;
 
 	/* is freed by HrStreamCleanup, called by ECMemStream on refcount == 0 */
-	std::unique_ptr<STREAMDATA> lpStreamData(new(std::nothrow) STREAMDATA);
+	auto lpStreamData = make_unique_nt<STREAMDATA>();
 	if (lpStreamData == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	lpStreamData->ulPropTag = ulPropTag;

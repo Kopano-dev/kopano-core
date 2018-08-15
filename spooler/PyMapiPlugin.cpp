@@ -11,6 +11,7 @@
 #include <mapiutil.h>
 #include <mapidefs.h>
 #include <kopano/mapiext.h>
+#include <kopano/memory.hpp>
 #include <mapiguid.h>
 #include "PythonSWIGRuntime.h"
 #include "PyMapiPlugin.h"
@@ -308,7 +309,7 @@ HRESULT plugin_manager_init(ECConfig *lpConfig,
 	m_priv.m_ptrModMapiPlugin.reset(PyImport_Import(ptrName));
 	PY_HANDLE_ERROR(m_priv.m_ptrModMapiPlugin);
 
-	std::unique_ptr<PyMapiPlugin> lpPlugin(new(std::nothrow) PyMapiPlugin);
+	auto lpPlugin = make_unique_nt<PyMapiPlugin>();
 	if (lpPlugin == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpPlugin->Init(m_priv.m_ptrModMapiPlugin, lpPluginManagerClassName, strPluginPath.c_str());

@@ -118,7 +118,7 @@ HRESULT ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent,
 	if (lpParent != nullptr &&
 	    lpParent->OpenProperty(PR_RULES_DATA, &IID_IStream, 0, 0, &~lpRulesData) == hrSuccess) {
 		lpRulesData->Stat(&statRulesData, 0);
-		std::unique_ptr<char[]> szXML(new(std::nothrow) char[statRulesData.cbSize.LowPart+1]);
+		auto szXML = make_unique_nt<char[]>(statRulesData.cbSize.LowPart + 1);
 		if (szXML == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 		// TODO: Loop to read all data?

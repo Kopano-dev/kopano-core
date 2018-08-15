@@ -126,7 +126,7 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 		return MAPI_E_INVALID_PARAMETER;
 
 	ULONG		ulConnection = 0;
-	std::unique_ptr<ECADVISE> pEcAdvise(new(std::nothrow) ECADVISE);
+	auto pEcAdvise = make_unique_nt<ECADVISE>();
 	if (pEcAdvise == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	*lpulConnection = 0;
@@ -182,7 +182,7 @@ HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
     IECChangeAdviseSink *lpChangeAdviseSink, ULONG *lpulConnection)
 {
 	ULONG			ulConnection = 0;
-	std::unique_ptr<ECCHANGEADVISE> pEcAdvise(new(std::nothrow) ECCHANGEADVISE);
+	auto pEcAdvise = make_unique_nt<ECCHANGEADVISE>();
 	if (pEcAdvise == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	*lpulConnection = 0;
