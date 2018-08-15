@@ -85,6 +85,7 @@ stamp-h2
 /tests/kc-335
 /tests/mapialloctime
 /tests/readflag
+/tests/zcpmd5
 
 # /autoconf/
 /autoconf/ltsugar.m4
