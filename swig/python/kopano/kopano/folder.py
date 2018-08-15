@@ -148,7 +148,7 @@ class Folder(Properties):
             try:
                 self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
             except (MAPIErrorNotFound, MAPIErrorInvalidEntryid):
-                raise NotFoundError("cannot open folder with entryid '%s'" % _benc(self._entryid)) # XXX check too late??
+                raise NotFoundError("no folder with entryid '%s'" % _benc(self._entryid)) # XXX check too late??
         except MAPIErrorNoAccess: # XXX XXX
             self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, 0)
 
@@ -592,7 +592,7 @@ class Folder(Properties):
             try:
                 return Folder(self.store, entryid)
             except (MAPIErrorInvalidEntryid, MAPIErrorNotFound, TypeError):
-                raise NotFoundError('cannot open folder with entryid "%s"' % entryid)
+                raise NotFoundError('no folder with entryid "%s"' % entryid)
 
         if '/' in path.replace('\\/', ''): # XXX MAPI folders may contain '/' (and '\') in their names..
             subfolder = self

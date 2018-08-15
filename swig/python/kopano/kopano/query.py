@@ -168,10 +168,7 @@ class Term(object):
                     if [x for x in ('KB', 'MB', 'GB') if value.endswith(x)]:
                         value, unit = value[:-2], value[-2:]
 
-                    if PROP_TYPE(proptag) in (PT_FLOAT, PT_DOUBLE):
-                        value = float(value)
-                    else:
-                        value = int(value)
+                    value = int(value)
 
                     if unit == 'KB':
                         value *= 1024
@@ -319,14 +316,6 @@ class Term(object):
 
         return restr
 
-    def __repr__(self):
-        return 'Term(%s%s%s%s)' % (
-            self.sign or '',
-            self.field or '',
-            '('+(self.op or '')+')',
-            self.value
-        )
-
 class Operation(object):
     def __init__(self, op=None, args=None):
         self.op = op
@@ -345,12 +334,6 @@ class Operation(object):
             return SNotRestriction(
                 self.args[0].restriction(type_, store)
             )
-
-    def __repr__(self):
-        return '%s(%s)' % (
-            self.op,
-            ','.join(repr(arg) for arg in self.args)
-        )
 
 # build parser
 

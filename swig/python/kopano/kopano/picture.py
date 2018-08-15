@@ -10,7 +10,7 @@ import mimetypes
 
 try:
     from PIL import Image
-except ImportError:
+except ImportError: # pragma: no cover
     pass
 
 from .compat import repr as _repr

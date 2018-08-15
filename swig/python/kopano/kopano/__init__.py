@@ -73,6 +73,7 @@ from .meetingrequest import MeetingRequest
 from .outofoffice import OutOfOffice
 from .property_ import Property
 from .permission import Permission
+from .picture import Picture
 from .quota import Quota
 from .recurrence import Recurrence, Occurrence
 from .restriction import Restriction

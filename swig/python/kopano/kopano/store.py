@@ -99,8 +99,8 @@ class Store(Properties):
         elif entryid:
             try:
                 mapiobj = self.server._store2(_bdec(entryid))
-            except MAPIErrorNotFound:
-                raise NotFoundError("cannot open store with entryid '%s'" % entryid)
+            except (MAPIErrorNotFound, MAPIErrorInvalidEntryid):
+                raise NotFoundError("no store with entryid '%s'" % entryid)
 
         self.mapiobj = mapiobj
         # XXX: fails if store is orphaned and guid is given..
@@ -383,7 +383,7 @@ class Store(Properties):
             try:
                 return _folder.Folder(self, entryid)
             except (MAPIErrorInvalidEntryid, MAPIErrorNotFound): # XXX move to Folder
-                raise NotFoundError("no folder with entryid: '%s'" % entryid)
+                raise NotFoundError("no folder with entryid '%s'" % entryid)
 
         return self.subtree.folder(path, recurse=recurse, create=create)
 
