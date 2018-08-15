@@ -956,6 +956,13 @@ static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
 {
 	const auto &repl = action.actReply;
 	sc->countInc("rules", "reply_and_oof");
+
+	memory_ptr<SPropValue> pv;
+	if (HrGetOneProp(*msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
+	    dagent_avoid_autoreply(tokenize(pv->Value.lpszA, "\n"))) {
+		ec_log_warn("Rule \""s + rule + "\": Not replying to an autoreply");
+		return {ROP_NOOP};
+	}
 	if (action.acttype == OP_REPLY)
 		ec_log_debug("Rule action: replying e-mail");
 	else
@@ -1004,6 +1011,12 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		ec_log_debug("Forwarding rule doesn't have recipients");
 		return {ROP_NOOP};
 	}
+	memory_ptr<SPropValue> pv;
+	if (HrGetOneProp(*lppMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
+	    dagent_avoid_autoreply(tokenize(pv->Value.lpszA, "\n"))) {
+		ec_log_warn("Rule \""s + rule + "\": Not forwarding autoreplies");
+		return {ROP_NOOP};
+	}
 	if (parseBool(g_lpConfig->GetSetting("no_double_forward"))) {
 		/*
 		 * Loop protection. When header is added to the message, it
@@ -1014,9 +1027,7 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		hr = m_propmap.Resolve(*lppMessage);
 		if (hr != hrSuccess)
 			return {ROP_FAILURE, hr};
-
-		memory_ptr<SPropValue> lpPropRule;
-		if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &~lpPropRule) == hrSuccess) {
+		if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &~pv) == hrSuccess) {
 			ec_log_warn("Rule "s + rule + ": FORWARD loop protection. Message will not be forwarded or redirected because it includes header \"x-kopano-rule-action\"");
 			return {ROP_NOOP};
 		}
