@@ -3094,7 +3094,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	std::shared_ptr<StatsClient> sc(new StatsClient);
+	auto sc = std::make_shared<StatsClient>();
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent version " PROJECT_VERSION " (pid %d) (LMTP mode)", getpid());
 
@@ -3304,7 +3304,7 @@ static HRESULT direct_delivery(int argc, char **argv,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	std::shared_ptr<StatsClient> sc(new StatsClient);
+	auto sc = std::make_shared<StatsClient>();
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	sDeliveryArgs.sc = std::move(sc);
 	hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));
