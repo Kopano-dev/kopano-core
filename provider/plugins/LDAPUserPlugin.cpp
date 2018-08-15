@@ -841,8 +841,7 @@ signatures_t LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn,
 	if (m_bHosted && !strCompanyDN.empty())
 		dnFilter = m_lpCache->getChildrenForDN(m_lpCache->getObjectDNCache(this, CONTAINER_COMPANY), strCompanyDN);
 
-	std::unique_ptr<attrArray> request_attrs(new attrArray(15));
-
+	auto request_attrs = std::make_unique<attrArray>(15);
 	/* Needed for GetObjectIdForEntry() */
 	CONFIG_TO_ATTR(request_attrs, class_attr, "ldap_object_type_attribute");
 	CONFIG_TO_ATTR(request_attrs, nonactive_attr, "ldap_nonactive_attribute");
@@ -1202,8 +1201,7 @@ string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool
 	 */
 	string			ldap_basedn = getSearchBase();
 	string			ldap_filter = getObjectSearchFilter(uniqueid);
-	std::unique_ptr<attrArray> request_attrs(new attrArray(1));
-
+	auto request_attrs = std::make_unique<attrArray>(1);
 	request_attrs->add("dn");
 
 	my_ldap_search_s(
@@ -1343,7 +1341,7 @@ LDAPUserPlugin::resolveObjectsFromAttributesType(objectclass_t objclass,
 
 objectsignature_t LDAPUserPlugin::resolveName(objectclass_t objclass, const string &name, const objectid_t &company)
 {
-	std::unique_ptr<attrArray> attrs(new attrArray(6));
+	auto attrs = std::make_unique<attrArray>(6);
 	const char *loginname_attr = m_config->GetSetting("ldap_loginname_attribute", "", NULL);
 	const char *groupname_attr = m_config->GetSetting("ldap_groupname_attribute", "", NULL);
 	const char *dyngroupname_attr = m_config->GetSetting("ldap_dynamicgroupname_attribute", "", NULL);
@@ -1485,7 +1483,7 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 	objectdetails_t	d;
 	objectsignature_t signature;
 
-	std::unique_ptr<attrArray> request_attrs(new attrArray(4));
+	auto request_attrs = std::make_unique<attrArray>(4);
 	CONFIG_TO_ATTR(request_attrs, loginname_attr, "ldap_loginname_attribute" );
 	CONFIG_TO_ATTR(request_attrs, password_attr, "ldap_password_attribute");
 	CONFIG_TO_ATTR(request_attrs, unique_attr, "ldap_user_unique_attribute");
@@ -1635,8 +1633,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	list<postaction> lPostActions;
 	std::set<objectid_t> setObjectIds;
 	list<configsetting_t>	lExtraAttrs = m_config->GetSettingGroup(CONFIGGROUP_PROPMAP);
-	std::unique_ptr<attrArray> request_attrs(new attrArray(33 + lExtraAttrs.size()));
-
+	auto request_attrs = std::make_unique<attrArray>(33 + lExtraAttrs.size());
 	CONFIG_TO_ATTR(request_attrs, object_attr, "ldap_object_type_attribute");
 	CONFIG_TO_ATTR(request_attrs, user_unique_attr, "ldap_user_unique_attribute");
 	CONFIG_TO_ATTR(request_attrs, user_unique_attr_type, "ldap_user_unique_attribute_type");
@@ -2360,9 +2357,8 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	const char *member_attr = nullptr, *member_attr_type = nullptr;
 	const char *base_attr = NULL;
 
-	std::unique_ptr<attrArray> member_attr_rel(new attrArray(5));
-	std::unique_ptr<attrArray> child_unique_attr(new attrArray(5));
-
+	auto member_attr_rel = std::make_unique<attrArray>(5);
+	auto child_unique_attr = std::make_unique<attrArray>(5);
 	CONFIG_TO_ATTR(child_unique_attr, user_unique_attr, "ldap_user_unique_attribute");
 	CONFIG_TO_ATTR(child_unique_attr, group_unique_attr, "ldap_group_unique_attribute");
 	CONFIG_TO_ATTR(child_unique_attr, company_unique_attr, "ldap_company_unique_attribute");
@@ -2607,7 +2603,7 @@ objectdetails_t LDAPUserPlugin::getPublicStoreDetails()
 	if (publicstore_attr)
 		search_filter = "(&" + search_filter + "(" + publicstore_attr + "=1))";
 
-	std::unique_ptr<attrArray> request_attrs(new attrArray(1));
+	auto request_attrs = std::make_unique<attrArray>(1);
 	CONFIG_TO_ATTR(request_attrs, unique_attr, "ldap_server_unique_attribute");
 
 	// Do a search request to get all attributes for this user. The
@@ -2651,8 +2647,7 @@ serverlist_t LDAPUserPlugin::getServers()
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 	auto ldap_basedn = getSearchBase();
 	auto search_filter = "(&" + getServerSearchFilter() + ")";
-
-	std::unique_ptr<attrArray> request_attrs(new attrArray(1));
+	auto request_attrs = std::make_unique<attrArray>(1);
 	CONFIG_TO_ATTR(request_attrs, name_attr, "ldap_server_unique_attribute");
 
 	my_ldap_search_s(
@@ -2690,7 +2685,7 @@ serverdetails_t LDAPUserPlugin::getServerDetails(const std::string &server)
 		getSearchFilter(server, m_config->GetSetting("ldap_server_unique_attribute")) +
 		")";
 
-	std::unique_ptr<attrArray> request_attrs(new attrArray(5));
+	auto request_attrs = std::make_unique<attrArray>(5);
 	CONFIG_TO_ATTR(request_attrs, address_attr, "ldap_server_address_attribute");
 	CONFIG_TO_ATTR(request_attrs, http_port_attr, "ldap_server_http_port_attribute");
 	CONFIG_TO_ATTR(request_attrs, ssl_port_attr, "ldap_server_ssl_port_attribute");
@@ -2798,7 +2793,7 @@ quotadetails_t LDAPUserPlugin::getQuota(const objectid_t &id,
 	if (multiplier_s != nullptr)
 		multiplier = fromstring<const char *, long long>(multiplier_s);
 
-	std::unique_ptr<attrArray> request_attrs(new attrArray(4));
+	auto request_attrs = std::make_unique<attrArray>(4);
 	CONFIG_TO_ATTR(request_attrs, usedefaults_attr,
 		bGetUserDefault ?
 			"ldap_userdefault_quotaoverride_attribute" :

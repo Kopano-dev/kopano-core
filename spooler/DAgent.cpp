@@ -3133,7 +3133,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			}
 
 			// One socket has signalled a new incoming connection
-			std::unique_ptr<DeliveryArgs> da(new DeliveryArgs(*lpArgs));
+			auto da = std::make_unique<DeliveryArgs>(*lpArgs);
 			hr = HrAccept(lmtp_poll[i].fd, &unique_tie(da->lpChannel));
 			if (hr != hrSuccess) {
 				kc_perrorf("HrAccept failed", hr);

@@ -111,7 +111,7 @@ HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 	if (iterPropsFound != lstProps.end()) {
 		iterPropsFound->second.HrSetProp(lpsPropValue);
 	} else { // Add new property
-		std::unique_ptr<ECProperty> lpProperty(new ECProperty(lpsPropValue));
+		auto lpProperty = std::make_unique<ECProperty>(lpsPropValue);
 		if (lpProperty->GetLastError() != 0)
 			return lpProperty->GetLastError();
 

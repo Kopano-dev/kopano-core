@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <memory>
 #include <utility>
 #include <cassert>
 #include "ECSubRestriction.h"
@@ -123,7 +124,7 @@ static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
     ECObjectTableList::const_iterator iterObject;
     ECObjectTableList lstSubObjects;
     std::map<unsigned int, unsigned int> mapParent;
-	std::unique_ptr<SUBRESTRICTIONRESULT> lpResult(new SUBRESTRICTIONRESULT);
+	auto lpResult = std::make_unique<SUBRESTRICTIONRESULT>();
     struct rowSet *lpRowSet = NULL;
     bool fMatch = false;
     unsigned int ulSubObject = 0;

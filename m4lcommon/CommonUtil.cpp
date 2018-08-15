@@ -240,7 +240,7 @@ HRESULT HrOpenECSession(IMAPISession **lppSession,
     ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password,
     const char *profname)
 {
-	std::unique_ptr<char[]> szProfName(new char[strlen(PROFILEPREFIX)+10+1]);
+	auto szProfName = std::make_unique<char[]>(strlen(PROFILEPREFIX) + 10 + 1);
 	IMAPISession *lpMAPISession = NULL;
 
 	if (profname == nullptr)
@@ -1662,7 +1662,6 @@ void ECPropMap::AddProp(ULONG *lpId, ULONG ulType, const ECPropMapEntry &entry)
 }
     
 HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
-	std::unique_ptr<MAPINAMEID *[]> lppNames;
     int n = 0;
 	memory_ptr<SPropTagArray> lpPropTags;
 
@@ -1670,7 +1669,7 @@ HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
 		return MAPI_E_INVALID_PARAMETER;
     
     // Do GetIDsFromNames() and store result in correct places
-	lppNames.reset(new MAPINAMEID *[lstNames.size()]);
+	auto lppNames = std::make_unique<MAPINAMEID *[]>(lstNames.size());
 	for (auto &mapent : lstNames)
 		lppNames[n++] = mapent.GetMAPINameId();
 	auto hr = lpMAPIProp->GetIDsFromNames(n, lppNames.get(), MAPI_CREATE, &~lpPropTags);

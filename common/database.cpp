@@ -394,8 +394,7 @@ ECRESULT KDatabase::DoUpdate(const std::string &q, unsigned int *aff)
 std::string KDatabase::Escape(const std::string &s)
 {
 	auto size = s.length() * 2 + 1;
-	std::unique_ptr<char[]> esc(new char[size]);
-
+	auto esc = std::make_unique<char[]>(size);
 	memset(esc.get(), 0, size);
 	mysql_real_escape_string(&m_lpMySQL, esc.get(), s.c_str(), s.length());
 	return esc.get();
@@ -404,8 +403,7 @@ std::string KDatabase::Escape(const std::string &s)
 std::string KDatabase::EscapeBinary(const void *data, size_t len)
 {
 	auto size = len * 2 + 1;
-	std::unique_ptr<char[]> esc(new char[size]);
-
+	auto esc = std::make_unique<char[]>(size);
 	memset(esc.get(), 0, size);
 	mysql_real_escape_string(&m_lpMySQL, esc.get(), reinterpret_cast<const char *>(data), len);
 	return "'" + std::string(esc.get()) + "'";

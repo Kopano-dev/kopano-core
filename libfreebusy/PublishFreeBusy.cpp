@@ -77,7 +77,7 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
 	ULONG cValues = 0;
 
 	ec_log_debug("current time %d", (int)tsStart);
-	std::unique_ptr<PublishFreeBusy> lpFreeBusy(new PublishFreeBusy(lpSession, lpDefStore, tsStart, ulMonths));
+	auto lpFreeBusy = std::make_unique<PublishFreeBusy>(lpSession, lpDefStore, tsStart, ulMonths);
 	auto hr = lpFreeBusy->HrInit();
 	if (hr != hrSuccess)
 		return hr;

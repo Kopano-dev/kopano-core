@@ -573,7 +573,7 @@ static HRESULT gw_listen(ECConfig *cfg)
 static HRESULT handler_client(size_t i)
 {
 	// One socket has signalled a new incoming connection
-	std::unique_ptr<HandlerArgs> lpHandlerArgs(new HandlerArgs);
+	auto lpHandlerArgs = std::make_unique<HandlerArgs>();
 	lpHandlerArgs->lpLogger = g_lpLogger;
 	lpHandlerArgs->lpConfig = g_lpConfig;
 	lpHandlerArgs->type = g_socks.pop3[i] ? ST_POP3 : ST_IMAP;

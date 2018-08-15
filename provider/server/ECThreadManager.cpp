@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <chrono>
+#include <memory>
 #include <mutex>
 #include <string>
 #include "ECThreadManager.h"
@@ -625,7 +626,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
     char s = 0;
     time_t now;
 	CONNECTION_TYPE ulType;
-	std::unique_ptr<struct pollfd[]> pollfd(new struct pollfd[maxfds]);
+	auto pollfd = std::make_unique<struct pollfd[]>(maxfds);
 
 	for (size_t n = 0; n < maxfds; ++n)
 		pollfd[n].events = POLLIN;
@@ -633,7 +634,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
     // This will start the threads
 	m_lpThreadManager.reset(new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads"))));
     // Start the watchdog
-	std::unique_ptr<ECWatchDog> lpWatchDog(new ECWatchDog(m_lpConfig.get(), this, m_lpThreadManager.get()));
+	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this, m_lpThreadManager.get());
 
     // Main loop
     while(!m_bExit) {
@@ -852,7 +853,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	// This will start the threads
 	m_lpThreadManager.reset(new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads"))));
 	// Start the watchdog
-	std::unique_ptr<ECWatchDog> lpWatchDog(new ECWatchDog(m_lpConfig.get(), this, m_lpThreadManager.get()));
+	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this, m_lpThreadManager.get());
 
 	while (!m_bExit) {
 		time(&now);

@@ -2323,7 +2323,7 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
 		soa = &sSortSimple;
     }
 
-	std::unique_ptr<struct propVal[]> lpOrderedProps(new struct propVal[cValues]);
+	auto lpOrderedProps = std::make_unique<propVal[]>(cValues);
 	std::vector<ECSortCol> zort(cValues);
 	memset(lpOrderedProps.get(), 0, sizeof(struct propVal) * cValues);
 
