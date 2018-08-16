@@ -22,43 +22,8 @@ HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 	*lppLogger = NULL;
 
 	scoped_lock lock(s_hMutex);
-
-	if (s_lpLogger == NULL) {
-		auto lpSettings = &ECSyncSettings::instance;
-
-		if (lpSettings->SyncLogEnabled()) {
-			char dummy[MAX_PATH + 1] = { 0 };
-
-			if (GetTempPath(sizeof dummy, dummy) >= sizeof dummy)
-				dummy[0] = 0x00;
-
-			std::string strPath = dummy + std::string("/");
-
-			if (lpSettings->ContinuousLogging()) {
-				time_t now = time(NULL);
-
-				strPath += "synclog-";
-				strPath += stringify(now);
-				strPath += ".txt.gz";
-				s_lpLogger.reset(new ECLogger_File(lpSettings->SyncLogLevel(), 1, strPath.c_str(), true));
-			} else {
-				strPath += "synclog.txt";
-				s_lpLogger.reset(new ECLogger_File(lpSettings->SyncLogLevel(), 1, strPath.c_str(), false));
-			}
-
-			s_lpLogger->Log(EC_LOGLEVEL_FATAL, "********************");
-			s_lpLogger->Log(EC_LOGLEVEL_FATAL, "New sync log session openend (Kopano " PROJECT_VERSION ")");
-			s_lpLogger->logf(EC_LOGLEVEL_FATAL, " - Log level: %u", lpSettings->SyncLogLevel());
-			s_lpLogger->logf(EC_LOGLEVEL_FATAL, " - Sync stream: %s", lpSettings->SyncStreamEnabled() ? "enabled" : "disabled");
-			s_lpLogger->logf(EC_LOGLEVEL_FATAL, " - Change notifications: %s", lpSettings->ChangeNotificationsEnabled() ? "enabled" : "disabled");
-			s_lpLogger->logf(EC_LOGLEVEL_FATAL, " - State collector: %s", lpSettings->StateCollectorEnabled() ? "enabled" : "disabled");
-			s_lpLogger->Log(EC_LOGLEVEL_FATAL, "********************");
-		}
-		else {
-			s_lpLogger.reset(new ECLogger_Null);
-		}
-	}
-
+	if (s_lpLogger == nullptr)
+		s_lpLogger.reset(new ECLogger_Null);
 	if (!s_lpLogger)
 		s_lpLogger.reset(new ECLogger_Syslog(EC_LOGLEVEL_DEBUG, "kclibsync", LOG_MAIL));
 	*lppLogger = s_lpLogger;
