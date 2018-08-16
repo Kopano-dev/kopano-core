@@ -38,6 +38,7 @@
 #include <unordered_set>
 #include <utility>
 #include <climits>
+#include <clocale>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -1396,7 +1397,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 		return hr;
 	}
 
-	locale_t timelocale = createlocale(LC_TIME, "C");
+	auto timelocale = newlocale(LC_TIME_MASK, "C", nullptr);
 	time_t now = time(NULL);
 	tm local;
 	localtime_r(&now, &local);

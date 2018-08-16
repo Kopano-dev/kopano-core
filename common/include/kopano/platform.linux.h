@@ -441,8 +441,6 @@ extern _kc_export time_t GetProcessTime(void);
 #define GetTickCount() 0L
 
 #define TICKS_PER_SEC (sysconf(_SC_CLK_TCK))
-#define createlocale(_cat, _loc) newlocale(_cat ## _MASK, _loc, NULL)
-#define createlocale_real(_cat, _loc) newlocale(_cat, _loc, NULL)
 
 /**
  * Tell the compiler that a funtion/method behaves like printf.

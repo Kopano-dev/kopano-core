@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <clocale>
 #include <kopano/platform.h>
 #include <mapidefs.h>
 #include <mapitags.h>
@@ -384,7 +385,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 	unsigned int ulLastPos;
 	std::string	strData;
 	unsigned int type = atoi(lpRow[FIELD_NR_TYPE]);
-	locale_t loc = createlocale(LC_NUMERIC, "C");
+	auto loc = newlocale(LC_NUMERIC_MASK, "C", nullptr);
 
 	if ((type & MVI_FLAG) == MVI_FLAG)
 		// Treat MVI as normal property

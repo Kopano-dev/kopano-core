@@ -62,7 +62,7 @@ ECLogger::ECLogger(int max_ll) :
 	max_loglevel(max_ll), prefix(LP_NONE)
 {
 	// get system locale for time, NULL is returned if locale was not found.
-	timelocale = createlocale(LC_TIME, "C");
+	timelocale = newlocale(LC_TIME_MASK, "C", nullptr);
 	datalocale = createUTF8Locale();
 }
 
