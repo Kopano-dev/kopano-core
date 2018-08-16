@@ -1,21 +1,25 @@
 8.7.x
 =====
 Fixes:
-* daemons: TLS ECDH curves can now be specified in config [KC-1233]
 * ical: better support recurring tasks [KC-781]
 Enhancements:
-* dagent: support for threaded mode [KC-1170]
-* dagent: modern socket specification in dagent.cfg [KC-1174]
-* dagent: PF_LOCAL socket support [KC-1131]
+* dagent: support for process_model=thread mode [KC-1170]
+* dagent: modern socket specification in dagent.cfg with lmtp_listen= [KC-1174]
+* dagent: PF_LOCAL socket support for communicating with postfix [KC-1131]
 * dagent: limited support for RFC 6531 (SMTPUTF8) [KC-833]
 * dagent: "mark mail as read" rule action support [KC-1080]
-* gateway: modern socket specification in gateway.cfg [KC-1130]
-* ical: "coredump_enable" config option now recognized [ZCP-11696]
-* ical: modern socket specification in ical.cfg [KC-1187]
+* gateway: modern socket specification in gateway.cfg with
+  imap_listen=, pop3_listen=, etc. [KC-1130]
+* ical: "coredump_enable" config directive now recognized [ZCP-11696]
+* ical: modern socket specification in ical.cfg with
+  ical_listen=, etc. [KC-1187]
 * server: multivalue properties are now cached [KC-1162]
-* server: LDAP STARTTLS support [KC-1188]
+* server: LDAP STARTTLS support for user backend [KC-1188]
+* server: support for Unicode supplemental plane [KC-725]
+* spooler: support for process_model=thread mode [KC-1235]
 * spooler: new config value log_raw_message=error [KC-1105]
 * php: new functions to get freebusy message [KC-1077]
+* daemons: TLS ECDH curves can now be specified in config [KC-1233]
 Changes:
 * daemons: the default logging target is now syslog/journalctl [KC-1100]
 * daemons: SSLv3, TLSv1.0 and TLSv1.1 are now disabled by default [KC-1231]
@@ -27,6 +31,7 @@ Packaging changes:
 * libkcpyplug.so.0 is dlopened from kopano-{dagent,spooler};
   dagent/spooler packages need a Require on it
   for a default install to function.
+* build support for MySQL 8 [KC-1237]
 
 
 8.6.7 (2018-08-14)
