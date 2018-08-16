@@ -22,7 +22,6 @@
 #include "ECDatabase.h"
 #include "SOAPUtils.h"
 #include "ECSearchFolders.h"
-#include "ECDatabaseUpdate.h"
 #include "ECStatsCollector.h"
 
 namespace KC {
@@ -34,7 +33,6 @@ namespace KC {
 
 struct sUpdateList_t {
 	unsigned int ulVersion;
-	unsigned int ulVersionMin; // Version to start the update
 	const char *lpszLogComment;
 	ECRESULT (*lpFunction)(ECDatabase* lpDatabase);
 };
@@ -53,18 +51,143 @@ class zcp_versiontuple _kc_final {
 	unsigned int v_major, v_minor, v_micro, v_rev, v_schema;
 };
 
+bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an upgrade
+
+static ECRESULT InsertServerGUID(ECDatabase *lpDatabase)
+{
+	GUID guid;
+	if (CoCreateGuid(&guid) != S_OK) {
+		ec_log_err("InsertServerGUID(): CoCreateGuid failed");
+		return KCERR_DATABASE_ERROR;
+	}
+	return lpDatabase->DoInsert("INSERT INTO `settings` VALUES ('server_guid', " + lpDatabase->EscapeBinary(reinterpret_cast<unsigned char *>(&guid), sizeof(GUID)) + ")");
+}
+
+static ECRESULT dbup64(ECDatabase *db)
+{
+	return db->DoUpdate(
+		"alter table `versions` "
+		"add column `micro` int(11) unsigned not null default 0 after `minor`, "
+		"drop primary key, "
+		"add primary key (`major`, `minor`, `micro`, `revision`, `databaserevision`)");
+}
+
+static ECRESULT dbup65(ECDatabase *db)
+{
+	return db->DoUpdate(
+		"alter table `changes` "
+		"modify change_type int(11) unsigned not null default 0");
+}
+
+static ECRESULT dbup66(ECDatabase *db)
+{
+	return db->DoUpdate(
+		"alter table `abchanges` "
+		"modify change_type int(11) unsigned not null default 0");
+}
+
+static ECRESULT dbup68(ECDatabase *db)
+{
+	auto ret = db->DoUpdate("ALTER TABLE `hierarchy` MODIFY COLUMN `owner` int(11) unsigned NOT NULL DEFAULT 0");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	ret = db->DoUpdate("ALTER TABLE `stores` MODIFY COLUMN `id` int(11) unsigned NOT NULL auto_increment");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	ret = db->DoUpdate("ALTER TABLE `stores` MODIFY COLUMN `user_id` int(11) unsigned NOT NULL DEFAULT 0");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	ret = db->DoUpdate("ALTER TABLE `stores` MODIFY COLUMN `company` int(11) unsigned NOT NULL DEFAULT 0");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	ret = db->DoUpdate("ALTER TABLE `users` MODIFY COLUMN `id` int(11) NOT NULL AUTO_INCREMENT");
+	if (ret != erSuccess)
+		return KCERR_DATABASE_ERROR;
+	return db->DoUpdate("ALTER TABLE `users` MODIFY COLUMN `company` int(11) NOT NULL DEFAULT 0");
+}
+
+static ECRESULT dbup69(ECDatabase *db)
+{
+	/*
+	 * Add new indexes first to see if that runs afoul of the dataset. The
+	 * operation is atomic; either both indexes will exist afterwards, or
+	 * neither.
+	 */
+	auto ret = db->DoUpdate("ALTER TABLE `names` ADD UNIQUE INDEX `gni` (`guid`(16), `nameid`), ADD UNIQUE INDEX `gns` (`guid`(16), `namestring`), DROP INDEX `guidnameid`, DROP INDEX `guidnamestring`");
+	if (ret == hrSuccess)
+		return hrSuccess;
+
+	ec_log_err("K-1216: Cannot update to schema v69, because the \"names\" table contains unexpected rows. Certain prior versions of the server erroneously allowed these duplicates to be added (KC-1108).");
+	DB_RESULT res;
+	unsigned long long ai = ~0ULL;
+	ret = db->DoSelect("SELECT MAX(id)+1 FROM names", &res);
+	if (ret == erSuccess) {
+		auto row = res.fetch_row();
+		if (row != nullptr && row[0] != nullptr)
+			ai = strtoull(row[0], nullptr, 0);
+	}
+	if (ai >= 31485)
+		ec_log_err("K-1219: It is possible that K-1216 has, in the past, led old clients to misplace data in the DB. This cannot be reliably detected and such data is effectively lost already.");
+	ec_log_err("K-1220: To fix the excess rows, use `kopano-dbadm k-1216`. Consult the manpage and preferably make a backup first.");
+	ec_log_err("K-1221: Alternatively, the server may be started with --ignore-da to forego the schema update.");
+	return KCERR_INVALID_VERSION; /* allow use of ignore-da */
+}
+
+/*
+ * ALTER statements are non-transacted. An update function using ALTER must not
+ * issue other modification statements.
+ */
+
 static const sUpdateList_t sUpdateList[] = {
 	// New in 7.2.2
-	{ Z_UPDATE_VERSIONTBL_MICRO, 0, "Add \"micro\" column to \"versions\" table", UpdateVersionsTbl },
-
+	{64, "Add \"micro\" column to \"versions\" table", dbup64},
 	// New in 8.1.0 / 7.2.4, MySQL 5.7 compatibility
-	{ Z_UPDATE_ABCHANGES_PKEY, 0, "Updating abchanges table", UpdateABChangesTbl },
-	{ Z_UPDATE_CHANGES_PKEY, 0, "Updating changes table", UpdateChangesTbl },
-	{Z_DROP_CLIENTUPDATESTATUS_PKEY, 0, "Drop clientupdatestatus table", DropClientUpdateStatusTbl},
-	{68, 0, "Perform column type upgrade missed in SVN r23897", db_update_68},
-	{69, 0, "Update \"names\" with uniqueness constraints", db_update_69},
-	{70, 0, "names.guid change from blob to binary(16); drop old indexes", db_update_70},
-	{71, 0, "Add the \"filename\" column to \"singleinstances\"", db_update_71},
+	{65, "Updating abchanges table", dbup65},
+	{66, "Updating changes table", dbup66},
+	{67, "Drop clientupdatestatus table", [](ECDatabase *db) {
+		return db->DoUpdate("DROP TABLE IF EXISTS `clientupdatestatus`"); }},
+	{68, "Perform column type upgrade missed in SVN r23897", dbup68},
+	{69, "Update \"names\" with uniqueness constraints", dbup69},
+	{70, "names.guid change from blob to binary(16); drop old indexes", [](ECDatabase *db) {
+		return db->DoUpdate("ALTER TABLE `names` CHANGE COLUMN `guid` `guid` binary(16) NOT NULL"); }},
+	{71, "Add the \"filename\" column to \"singleinstances\"", [](ECDatabase *db) {
+		return db->DoUpdate("ALTER TABLE `singleinstances` ADD COLUMN `filename` VARCHAR(255) DEFAULT NULL"); }},
+	/*
+	 * The InnoDB Antelope (= COMPACT) row format has a limitation of 767
+	 * bytes, which interferes with utf8mb4*255.
+	 */
+	{72, "Shrink index key 1/5", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `names` MODIFY COLUMN `namestring` VARCHAR(191) BINARY DEFAULT NULL"); }},
+	{73, "Shrink index key 2/5", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `receivefolder` MODIFY COLUMN `messageclass` VARCHAR(191) NOT NULL"); }},
+	{74, "Shrink index key 3/5", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectproperty` MODIFY COLUMN `propname` VARCHAR(191) BINARY NOT NULL"); }},
+	{75, "Shrink index key 4/5", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectmvproperty` MODIFY COLUMN `propname` VARCHAR(191) BINARY NOT NULL"); }},
+	{76, "Shrink index key 5/5", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `settings` MODIFY COLUMN `name` VARCHAR(191) BINARY NOT NULL"); }},
+	{77, "utf8mb4 support 1/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `acl` CONVERT TO CHARSET utf8mb4"); }},
+	{78, "utf8mb4 support 2/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `hierarchy` CONVERT TO CHARSET utf8mb4"); }},
+	{79, "utf8mb4 support 3/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `names` CONVERT TO CHARSET utf8mb4"); }},
+	{80, "utf8mb4 support 4/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `mvproperties` CONVERT TO CHARSET utf8mb4"); }},
+	{81, "utf8mb4 support 5/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `tproperties` CONVERT TO CHARSET utf8mb4"); }},
+	{82, "utf8mb4 support 6/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `deferredupdate` CONVERT TO CHARSET utf8mb4"); }},
+	{83, "utf8mb4 support 7/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `properties` CONVERT TO CHARSET utf8mb4"); }},
+	{84, "utf8mb4 support 8/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `receivefolder` CONVERT TO CHARSET utf8mb4"); }},
+	{85, "utf8mb4 support 9/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `stores` CONVERT TO CHARSET utf8mb4"); }},
+	{86, "utf8mb4 support 10/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `users` CONVERT TO CHARSET utf8mb4"); }},
+	{87, "utf8mb4 support 11/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `outgoingqueue` CONVERT TO CHARSET utf8mb4"); }},
+	{88, "utf8mb4 support 12/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `lob` CONVERT TO CHARSET utf8mb4"); }},
+	{89, "utf8mb4 support 13/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `singleinstances` CONVERT TO CHARSET utf8mb4"); }},
+	{90, "utf8mb4 support 14/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `object` CONVERT TO CHARSET utf8mb4"); }},
+	{91, "utf8mb4 support 15/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectproperty` CONVERT TO CHARSET utf8mb4"); }},
+	{92, "utf8mb4 support 16/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectmvproperty` CONVERT TO CHARSET utf8mb4"); }},
+	{93, "utf8mb4 support 17/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectrelation` CONVERT TO CHARSET utf8mb4"); }},
+	{94, "utf8mb4 support 18/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `versions` CONVERT TO CHARSET utf8mb4"); }},
+	{95, "utf8mb4 support 19/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `searchresults` CONVERT TO CHARSET utf8mb4"); }},
+	{96, "utf8mb4 support 20/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `changes` CONVERT TO CHARSET utf8mb4"); }},
+	{97, "utf8mb4 support 21/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `abchanges` CONVERT TO CHARSET utf8mb4"); }},
+	{98, "utf8mb4 support 22/22", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `syncs` CONVERT TO CHARSET utf8mb4"); }},
+	/* CONVERT_TO also changed the collation. Put it back. */
+	{99, "Restore BINARY collation 1/4", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `names` MODIFY COLUMN `namestring` VARCHAR(191) BINARY DEFAULT NULL"); }},
+	{100, "Restore BINARY collation 2/4", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectproperty` MODIFY COLUMN `propname` VARCHAR(191) BINARY NOT NULL"); }},
+	{101, "Restore BINARY collation 3/4", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `objectmvproperty` MODIFY COLUMN `propname` VARCHAR(191) BINARY NOT NULL"); }},
+	{102, "Restore BINARY collation 4/4", [](ECDatabase *d) { return d->DoUpdate("ALTER TABLE `settings` MODIFY COLUMN `name` VARCHAR(191) BINARY NOT NULL"); }},
 };
 
 static const char *const server_groups[] = {

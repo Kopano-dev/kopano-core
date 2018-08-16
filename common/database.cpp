@@ -157,8 +157,8 @@ ECRESULT KDatabase::Connect(ECConfig *cfg, bool reconnect,
 		ec_log_warn("max_allowed_packet is smaller than 16M (%d). You are advised to increase this value by adding max_allowed_packet=16M in the [mysqld] section of my.cnf.", m_ulMaxAllowedPacket);
 
 	m_bConnected = true;
-	if (mysql_set_character_set(&m_lpMySQL, "utf8")) {
-		ec_log_err("Unable to set character set to \"utf8\"");
+	if (mysql_set_character_set(&m_lpMySQL, "utf8mb4")) {
+		ec_log_err("Unable to set character set to \"utf8mb4\"");
 		er = KCERR_DATABASE_ERROR;
 		goto exit;
 	}

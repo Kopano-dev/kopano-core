@@ -50,8 +50,8 @@ extern ECRESULT CompareMVPropWithProp(struct propVal *lpMVProp1, const struct pr
 
 size_t PropSize(const struct propVal *);
 ECRESULT			FreePropVal(struct propVal *lpProp, bool bBasePointerDel);
-ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst, struct soap *soap = NULL, bool bTruncate = false, bool filterbmp = false);
-ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal **lppDst, struct soap *soap = NULL, bool bTruncate = false, bool filterbmp = false); /* allocates new lpDst and calls other version */
+extern ECRESULT CopyPropVal(const struct propVal *src, struct propVal *dst, struct soap * = nullptr, bool truncate = false);
+extern ECRESULT CopyPropVal(const struct propVal *src, struct propVal **dst, struct soap * = nullptr, bool truncate = false); /* allocates new lpDst and calls other version */
 
 // EntryList
 ECRESULT			CopyEntryList(struct soap *soap, struct entryList *lpSrc, struct entryList **lppDst);
