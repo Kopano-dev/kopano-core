@@ -13,6 +13,7 @@ except ImportError:
 
 import pytz
 import dateutil
+from jsonschema import ValidationError
 
 UTC = dateutil.tz.tzutc()
 
@@ -229,3 +230,15 @@ class Resource(object):
             return self.generator(req, yielder, 0)
         else:
             return self.generator(req, folder.items, folder.count)
+
+    def load_json(self, req):
+        try:
+            return json.loads(req.stream.read().decode('utf-8'))
+        except ValueError as e:
+            raise falcon.HTTPBadRequest(None, "Invalid JSON")
+
+    def validate_json(self, schema, fields):
+        try:
+            schema.validate(fields)
+        except ValidationError as e:
+            raise falcon.HTTPBadRequest(None, "JSON schema violation: %s " % e.message)
