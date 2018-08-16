@@ -241,4 +241,5 @@ class EventResource(ItemResource):
         folder = _folder(store, folderid or 'calendar')
         event = folder.event(eventid)
         folder.delete(event)
-        resp.status = falcon.HTTP_204
+
+        self.respond_204(resp)

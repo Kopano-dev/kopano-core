@@ -65,7 +65,8 @@ class AttachmentResource(Resource):
 
         attachment = item.attachment(attachmentid)
         item.delete(attachment)
-        resp.status = falcon.HTTP_204
+
+        self.respond_204(resp)
 
 class FileAttachmentResource(AttachmentResource):
     fields = AttachmentResource.fields.copy()

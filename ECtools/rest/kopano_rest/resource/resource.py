@@ -195,6 +195,10 @@ class Resource(object):
 
             resp.body = self.json(req, obj, fields, all_fields or self.fields, expand=expand)
 
+    def respond_204(self, resp): # TODO integrate with respond, status_code=..?
+        resp.set_header('Content-Length', '0') # https://github.com/jonashaag/bjoern/issues/139
+        resp.status = falcon.HTTP_204
+
     def generator(self, req, generator, count=0):
         # determine pagination and ordering
         args = urlparse.parse_qs(req.query_string)

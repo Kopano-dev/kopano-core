@@ -227,10 +227,12 @@ class SubscriptionResource:
 
         store.unsubscribe(sink)
         del SUBSCRIPTIONS[subscriptionid]
-        resp.status = falcon.HTTP_204
 
         if self.options and self.options.with_metrics:
             SUBSCR_ACTIVE.set(len(SUBSCRIPTIONS))
+
+        resp.set_header('Content-Length', '0') # https://github.com/jonashaag/bjoern/issues/139
+        resp.status = falcon.HTTP_204
 
 class NotifyAPI(falcon.API):
     def __init__(self, options=None, middleware=None):
