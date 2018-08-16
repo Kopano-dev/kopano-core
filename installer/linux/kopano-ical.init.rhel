@@ -26,12 +26,11 @@ ICALCONFIG_OPT=""
 [ ! -z $ICALCONFIG -a -f $ICALCONFIG ] && ICALCONFIG_OPT="-c $ICALCONFIG"
 
 # Switch to C, like at boot time.
-unset LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MESSAGES LC_ALL
+unset LANG LC_CTYPE LC_NUMERIC LC_COLLATE LC_MESSAGES LC_ALL
 # Update with user settings.
 LC_CTYPE=en_US.UTF-8
-LC_TIME=en_US.UTF-8
 [ -f /etc/sysconfig/kopano ] && . /etc/sysconfig/kopano
-export LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MESSAGES LC_ALL
+export LANG LC_CTYPE LC_NUMERIC LC_COLLATE LC_MESSAGES LC_ALL
 
 # Source function library.
 . /etc/rc.d/init.d/functions
