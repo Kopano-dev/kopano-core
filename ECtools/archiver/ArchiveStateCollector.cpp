@@ -25,16 +25,18 @@ namespace KC {
  */
 class MailboxDataCollector _kc_final : public DataCollector {
 public:
-	MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap &mapArchiveInfo, ECLogger *lpLogger);
+	MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap &mapArchiveInfo, std::shared_ptr<ECLogger>);
 	HRESULT GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagArray *lppPropTagArray) const _kc_override;
 	HRESULT CollectData(LPMAPITABLE lpStoreTable) _kc_override;
 
 private:
 	ArchiveStateCollector::ArchiveInfoMap &m_mapArchiveInfo;
-	object_ptr<ECLogger> m_lpLogger;
+	std::shared_ptr<ECLogger> m_lpLogger;
 };
 
-MailboxDataCollector::MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap &mapArchiveInfo, ECLogger *lpLogger): m_mapArchiveInfo(mapArchiveInfo), m_lpLogger(lpLogger)
+MailboxDataCollector::MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap &mapArchiveInfo,
+     std::shared_ptr<ECLogger> lpLogger) :
+	m_mapArchiveInfo(mapArchiveInfo), m_lpLogger(std::move(lpLogger))
 {
 }
 
@@ -119,10 +121,11 @@ HRESULT MailboxDataCollector::CollectData(LPMAPITABLE lpStoreTable)
  * @param[in]	lpLogger		The logger.
  * @param[out]	lpptrCollector	The new ArchiveStateCollector instance.
  */
-HRESULT ArchiveStateCollector::Create(const ArchiverSessionPtr &ptrSession, ECLogger *lpLogger, ArchiveStateCollectorPtr *lpptrCollector)
+HRESULT ArchiveStateCollector::Create(const ArchiverSessionPtr &ptrSession,
+    std::shared_ptr<ECLogger> lpLogger, ArchiveStateCollectorPtr *lpptrCollector)
 {
 	ArchiveStateCollectorPtr ptrCollector(
-		new(std::nothrow) ArchiveStateCollector(ptrSession, lpLogger));
+		new(std::nothrow) ArchiveStateCollector(ptrSession, std::move(lpLogger)));
 	if (ptrCollector == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	*lpptrCollector = std::move(ptrCollector);
@@ -133,9 +136,9 @@ HRESULT ArchiveStateCollector::Create(const ArchiverSessionPtr &ptrSession, ECLo
  * @param[in]	ArchiverSessionPtr		The archive session
  * @param[in]	lpLogger		The logger.
  */
-ArchiveStateCollector::ArchiveStateCollector(const ArchiverSessionPtr &ptrSession, ECLogger *lpLogger)
-: m_ptrSession(ptrSession)
-, m_lpLogger(new ECArchiverLogger(lpLogger), false)
+ArchiveStateCollector::ArchiveStateCollector(const ArchiverSessionPtr &ptrSession,
+    std::shared_ptr<ECLogger> lpLogger) :
+	m_ptrSession(ptrSession), m_lpLogger(new ECArchiverLogger(std::move(lpLogger)))
 { }
 
 /**

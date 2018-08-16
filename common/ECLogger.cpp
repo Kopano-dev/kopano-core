@@ -119,19 +119,6 @@ void ECLogger::SetLogprefix(logprefix lp) {
 	prefix = lp;
 }
 
-unsigned int ECLogger::AddRef(void)
-{
-	assert(m_ulRef < UINT_MAX);
-	return ++m_ulRef;
-}
-
-unsigned ECLogger::Release() {
-	unsigned int ulRef = --m_ulRef;
-	if (ulRef == 0)
-		delete this;
-	return ulRef;
-}
-
 HRESULT ECLogger::perr(const char *text, HRESULT code)
 {
 	logf(EC_LOGLEVEL_ERROR, "%s: %s (%x)", text, GetMAPIErrorMessage(code), code);
@@ -527,10 +514,11 @@ void ECLogger_Tee::logv(unsigned int level, const char *format, va_list &va)
  *
  * @param[in]	lpLogger	The logger to attach.
  */
-void ECLogger_Tee::AddLogger(ECLogger *lpLogger) {
+void ECLogger_Tee::AddLogger(std::shared_ptr<ECLogger> lpLogger)
+{
 	if (lpLogger == nullptr)
 		return;
-	m_loggers.emplace_back(object_ptr<ECLogger>(lpLogger));
+	m_loggers.emplace_back(std::move(lpLogger));
 }
 
 ECLogger_Pipe::ECLogger_Pipe(int fd, pid_t childpid, int loglevel) :
@@ -632,7 +620,7 @@ void ECLogger_Pipe::Disown()
 }
 
 namespace PrivatePipe {
-	ECLogger_File *m_lpFileLogger;
+	std::shared_ptr<ECLogger> m_lpFileLogger;
 	ECConfig *m_lpConfig;
 	pthread_t signal_thread;
 	sigset_t signal_mask;
@@ -650,7 +638,7 @@ namespace PrivatePipe {
 		m_lpFileLogger->Reset();
 		m_lpFileLogger->logf(EC_LOGLEVEL_INFO, "[%5d] Log process received sighup", getpid());
 	}
-	static int PipePassLoop(int readfd, ECLogger_File *lpFileLogger,
+	static int PipePassLoop(int readfd, std::shared_ptr<ECLogger> &&logger,
 	    ECConfig *lpConfig)
 	{
 		ssize_t ret;
@@ -661,8 +649,7 @@ namespace PrivatePipe {
 		int l;
 
 		m_lpConfig = lpConfig;
-		m_lpFileLogger = lpFileLogger;
-		m_lpFileLogger->AddRef();
+		m_lpFileLogger = std::move(logger);
 
 		struct sigaction act;
 		memset(&act, 0, sizeof(act));
@@ -719,7 +706,7 @@ namespace PrivatePipe {
 					p = NULL;
 					continue;
 				}
-				lpFileLogger->log(l, p);
+				m_lpFileLogger->log(l, p);
 				++s;		// add \0
 				p += s;		// skip string
 				ret -= s;
@@ -728,7 +715,7 @@ namespace PrivatePipe {
 		// we need to stop fetching signals
 		kill(getpid(), SIGPIPE);
 		m_lpFileLogger->logf(EC_LOGLEVEL_INFO, "[%5d] Log process is done", getpid());
-		m_lpFileLogger->Release();
+		m_lpFileLogger.reset();
 		return ret;
 	}
 }
@@ -742,8 +729,8 @@ namespace PrivatePipe {
  * @param[in]	lpLogger	Pointer to your current ECLogger object.
  * @return		ECLogger	Returns the same or new ECLogger object to use in your program.
  */
-object_ptr<ECLogger> StartLoggerProcess(ECConfig *lpConfig,
-    object_ptr<ECLogger> &&lpLogger)
+std::shared_ptr<ECLogger> StartLoggerProcess(ECConfig *lpConfig,
+    std::shared_ptr<ECLogger> &&lpLogger)
 {
 	auto lpFileLogger = dynamic_cast<ECLogger_File *>(lpLogger.get());
 	int pipefds[2];
@@ -765,26 +752,15 @@ object_ptr<ECLogger> StartLoggerProcess(ECConfig *lpConfig,
 			if (i == pipefds[0] || i == filefd) continue;
 			close(i);
 		}
-		PrivatePipe::PipePassLoop(pipefds[0], lpFileLogger, lpConfig);
+		PrivatePipe::PipePassLoop(pipefds[0], std::move(lpLogger), lpConfig);
 		close(pipefds[0]);
 		delete lpConfig;
 		_exit(0);
 	}
 
 	auto prefix = lpLogger->prefix;
-	// this is the main fork, which doesn't log anything anymore, except through the pipe version.
-	// we should release the lpFileLogger
-	unsigned int refs = lpLogger->Release();
-	if (refs > 0)
-		/*
-		 * The object must have had a refcount of 1 (the caller);
-		 * if not, this means that some other class is carrying a
-		 * pointer. This is not critical but is ill-favored.
-		 */
-		lpLogger->logf(EC_LOGLEVEL_WARNING, "StartLoggerProcess called with large refcount %u", refs + 1);
-
 	close(pipefds[0]);
-	object_ptr<ECLogger> lpPipeLogger(new(std::nothrow) ECLogger_Pipe(pipefds[1], child, atoi(lpConfig->GetSetting("log_level")))); // let destructor wait on child
+	std::shared_ptr<ECLogger> lpPipeLogger(new(std::nothrow) ECLogger_Pipe(pipefds[1], child, atoi(lpConfig->GetSetting("log_level")))); // let destructor wait on child
 	if (lpPipeLogger == nullptr)
 		return nullptr;
 	lpPipeLogger->SetLogprefix(prefix);
@@ -1029,11 +1005,9 @@ void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,
  * This function gets called from destructors, so you must not invoke
  * ec_log_target->anyfunction at this point any more.
  */
-void ec_log_set(ECLogger *logger)
+void ec_log_set(std::shared_ptr<ECLogger> logger)
 {
-	if (logger == NULL)
-		logger = &ec_log_fallback_target;
-	ec_log_target = logger;
+	ec_log_target = (logger == nullptr) ? &ec_log_fallback_target : logger.get();
 }
 
 ECLogger *ec_log_get(void)

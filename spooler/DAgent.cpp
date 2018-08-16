@@ -232,7 +232,7 @@ static bool g_bTempfail = true; // Most errors are tempfails
 static pthread_t g_main_thread;
 static bool g_use_threads;
 static std::atomic<unsigned int> g_nLMTPThreads{0};
-static object_ptr<ECLogger> g_lpLogger;
+static std::shared_ptr<ECLogger> g_lpLogger;
 extern std::shared_ptr<ECConfig> g_lpConfig;
 std::shared_ptr<ECConfig> g_lpConfig;
 static bool g_dump_config;
@@ -284,7 +284,7 @@ static void sigchld(int)
 // Look for segmentation faults
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
-	generic_sigsegv_handler(g_lpLogger, "kopano-dagent", PROJECT_VERSION, signr, si, uc);
+	generic_sigsegv_handler(g_lpLogger.get(), "kopano-dagent", PROJECT_VERSION, signr, si, uc);
 }
 
 /**
@@ -2222,7 +2222,7 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 			hr = Archive::Create(ptrAdminSession, &ptrArchive);
 			if (hr != hrSuccess)
 				return kc_perror("Unable to instantiate archive object", hr);
-			hr = ptrArchive->HrArchiveMessageForDelivery(lpDeliveryMessage);
+			hr = ptrArchive->HrArchiveMessageForDelivery(lpDeliveryMessage, g_lpLogger);
 			if (hr != hrSuccess) {
 				kc_perror("Unable to archive message", hr);
 				Util::HrDeleteMessage(lpSession, lpDeliveryMessage);

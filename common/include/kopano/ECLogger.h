@@ -96,12 +96,12 @@ class _kc_export ECLogger {
 	 * @param[in]	max_ll	Max loglevel allowed to enter in the log. Messages with higher loglevel will be skipped.
 	 */
 	ECLogger(int max_ll);
+
+	public:
 	/**
 	 * Implementations should close the log they're writing to.
 	 */
 	virtual ~ECLogger();
-
-	public:
 	/**
 	 * Query if a message would be logged under this loglevel
 	 *
@@ -124,15 +124,6 @@ class _kc_export ECLogger {
 	 * @param[in]	lp	New logprefix LP_TID or LP_PID. Disable prefix with LP_NONE.
 	 */
 	void SetLogprefix(logprefix lp);
-	/**
-	 * Adds reference to this object
-	 */
-	unsigned AddRef();
-	/**
-	 * Removes a reference from this object, and deletes it if all
-	 * references are removed.
-	 */
-	unsigned Release();
 	/**
 	 * Used for log rotation. Implementations should prepare to log in a new log.
 	 *
@@ -266,7 +257,7 @@ class _kc_export_dycast ECLogger_Pipe _kc_final : public ECLogger {
 
 	public:
 	ECLogger_Pipe(int fd, pid_t childpid, int loglevel);
-	_kc_hidden ~ECLogger_Pipe(void);
+	~ECLogger_Pipe(void);
 	_kc_hidden virtual void Reset(void) _kc_override;
 	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
 	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
@@ -275,7 +266,7 @@ class _kc_export_dycast ECLogger_Pipe _kc_final : public ECLogger {
 	void Disown();
 };
 
-extern _kc_export object_ptr<ECLogger> StartLoggerProcess(ECConfig *, object_ptr<ECLogger> &&file_logger);
+extern _kc_export std::shared_ptr<ECLogger> StartLoggerProcess(ECConfig *, std::shared_ptr<ECLogger> &&file_logger);
 
 /**
  * This class can be used if log messages need to go to
@@ -286,7 +277,7 @@ extern _kc_export object_ptr<ECLogger> StartLoggerProcess(ECConfig *, object_ptr
  */
 class _kc_export ECLogger_Tee _kc_final : public ECLogger {
 	private:
-	std::list<object_ptr<ECLogger>> m_loggers;
+	std::list<std::shared_ptr<ECLogger>> m_loggers;
 
 	public:
 	ECLogger_Tee();
@@ -295,11 +286,11 @@ class _kc_export ECLogger_Tee _kc_final : public ECLogger {
 	_kc_hidden virtual void log(unsigned int level, const char *msg) _kc_override;
 	_kc_hidden virtual void logf(unsigned int level, const char *fmt, ...) _kc_override KC_LIKE_PRINTF(3, 4);
 	_kc_hidden virtual void logv(unsigned int level, const char *fmt, va_list &) _kc_override;
-	void AddLogger(ECLogger *lpLogger);
+	void AddLogger(std::shared_ptr<ECLogger>);
 };
 
 extern _kc_export ECLogger *ec_log_get(void);
-extern _kc_export void ec_log_set(ECLogger *);
+extern _kc_export void ec_log_set(std::shared_ptr<ECLogger>);
 extern _kc_export void ec_log(unsigned int level, const char *msg, ...) KC_LIKE_PRINTF(2, 3);
 extern _kc_export void ec_log(unsigned int level, const std::string &msg);
 

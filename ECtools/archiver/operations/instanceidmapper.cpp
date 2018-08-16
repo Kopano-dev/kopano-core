@@ -17,7 +17,8 @@
 
 namespace KC { namespace operations {
 
-HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, InstanceIdMapperPtr *lpptrMapper)
+HRESULT InstanceIdMapper::Create(std::shared_ptr<ECLogger> lpLogger,
+    ECConfig *lpConfig, InstanceIdMapperPtr *lpptrMapper)
 {
 	std::unique_ptr<InstanceIdMapper> lpMapper;
 	std::unique_ptr<ECConfig> lpLocalConfig;
@@ -30,7 +31,7 @@ HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, Instanc
 			LogConfigErrors(lpLocalConfig.get());
 		lpConfig = lpLocalConfig.get();
 	}
-	lpMapper.reset(new(std::nothrow) InstanceIdMapper(lpLogger));
+	lpMapper.reset(new(std::nothrow) InstanceIdMapper(std::move(lpLogger)));
 	if (lpMapper == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto hr = lpMapper->Init(lpConfig);
@@ -41,7 +42,7 @@ HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, Instanc
 	return hrSuccess;
 }
 
-InstanceIdMapper::InstanceIdMapper(ECLogger *lpLogger) :
+InstanceIdMapper::InstanceIdMapper(std::shared_ptr<ECLogger>) :
 	m_ptrDatabase(new KCMDatabaseMySQL)
 { }
 

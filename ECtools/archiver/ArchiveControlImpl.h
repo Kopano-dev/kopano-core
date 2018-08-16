@@ -6,6 +6,7 @@
 #ifndef ARCHIVECONTROLIMPL_H_INCLUDED
 #define ARCHIVECONTROLIMPL_H_INCLUDED
 
+#include <memory>
 #include <set>
 #include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
@@ -98,7 +99,7 @@ class ECArchiverLogger;
  */
 class ArchiveControlImpl _kc_final : public ArchiveControl {
 public:
-	static HRESULT Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, bool bForceCleanup, ArchiveControlPtr *lpptrArchiveControl);
+	static HRESULT Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, std::shared_ptr<ECLogger>, bool bForceCleanup, ArchiveControlPtr *lpptrArchiveControl);
 	eResult ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsigned int ulFlags) _kc_override;
 	HRESULT Archive2(const tstring &user, bool auto_attach, unsigned int flags);
 	eResult Archive(const tstring &strUser, bool bAutoAttach, unsigned int ulFlags) _kc_override;
@@ -119,7 +120,7 @@ private:
 	typedef std::set<entryid_t> EntryIDSet;
 	typedef std::set<std::pair<entryid_t, entryid_t>, ReferenceLessCompare> ReferenceSet;
 
-	ArchiveControlImpl(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, bool bForceCleanup);
+	ArchiveControlImpl(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, std::shared_ptr<ECLogger>, bool bForceCleanup);
 	HRESULT Init();
 	HRESULT DoArchive(const tstring& strUser);
 	HRESULT DoCleanup(const tstring& strUser);
@@ -145,7 +146,7 @@ private:
 
 	ArchiverSessionPtr m_ptrSession;
 	ECConfig *m_lpConfig = nullptr;
-	object_ptr<ECArchiverLogger> m_lpLogger;
+	std::shared_ptr<ECArchiverLogger> m_lpLogger;
 	FILETIME m_ftCurrent = {0, 0};
 	bool m_bArchiveEnable = true;
 	int m_ulArchiveAfter = 30;

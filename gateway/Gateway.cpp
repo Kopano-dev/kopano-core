@@ -66,7 +66,7 @@ static int daemonize = 1;
 int quit = 0;
 static bool bThreads, g_dump_config;
 static const char *szPath;
-static object_ptr<ECLogger> g_lpLogger;
+static std::shared_ptr<ECLogger> g_lpLogger;
 static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
 static std::atomic<int> nChildren{0};
@@ -113,7 +113,7 @@ static void sigchld(int)
 // SIGSEGV catcher
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
-	generic_sigsegv_handler(g_lpLogger, "kopano-gateway", PROJECT_VERSION, signr, si, uc);
+	generic_sigsegv_handler(g_lpLogger.get(), "kopano-gateway", PROJECT_VERSION, signr, si, uc);
 }
 
 static HRESULT running_service(char **argv);
@@ -134,7 +134,7 @@ enum serviceType { ST_POP3 = 0, ST_IMAP };
 struct HandlerArgs {
 	serviceType type;
 	std::unique_ptr<ECChannel> lpChannel;
-	object_ptr<ECLogger> lpLogger;
+	std::shared_ptr<ECLogger> lpLogger;
 	std::shared_ptr<ECConfig> lpConfig;
 	bool bUseSSL;
 };

@@ -21,12 +21,12 @@ namespace operations {
 
 class _kc_export InstanceIdMapper _kc_final {
 	public:
-		static HRESULT Create(ECLogger *lpLogger, ECConfig *lpConfig, InstanceIdMapperPtr *lpptrMapper);
+	static HRESULT Create(std::shared_ptr<ECLogger>, ECConfig *, InstanceIdMapperPtr *);
 	_kc_hidden HRESULT GetMappedInstanceId(const SBinary &src_server_uid, ULONG src_instance_id_size, LPENTRYID src_instance_id, const SBinary &dst_server_uid, ULONG *dst_instance_id_size, LPENTRYID *dst_instance_id);
 	_kc_hidden HRESULT SetMappedInstances(ULONG prop_id, const SBinary &src_server_uid, ULONG src_instance_id_size, LPENTRYID src_instance_id, const SBinary &dst_server_uid, ULONG dst_instance_id_size, LPENTRYID dst_instance_id);
 
 	private:
-	_kc_hidden InstanceIdMapper(ECLogger *);
+	_kc_hidden InstanceIdMapper(std::shared_ptr<ECLogger>);
 	_kc_hidden HRESULT Init(ECConfig *);
 
 	std::shared_ptr<KCMDatabaseMySQL> m_ptrDatabase;

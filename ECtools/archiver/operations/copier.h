@@ -7,7 +7,6 @@
 #define copier_INCLUDED
 
 #include <memory>
-#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include "operations.h"
 #include "postsaveaction.h"
@@ -20,6 +19,7 @@
 namespace KC {
 
 class ECConfig;
+class ECLogger;
 
 namespace operations {
 
@@ -28,7 +28,7 @@ namespace operations {
  */
 class _kc_export Copier _kc_final : public ArchiveOperationBaseEx {
 public:
-	_kc_hidden Copier(ArchiverSessionPtr, ECConfig *, ECArchiverLogger *, const ObjectEntryList &archives, const SPropTagArray *exclprop, int age, bool process_unread);
+	_kc_hidden Copier(ArchiverSessionPtr, ECConfig *, std::shared_ptr<ECArchiverLogger>, const ObjectEntryList &archives, const SPropTagArray *exclprop, int age, bool process_unread);
 	_kc_hidden ~Copier(void);
 
 	/**
@@ -51,7 +51,7 @@ public:
 
 	class _kc_export Helper { // For lack of a better name
 	public:
-		Helper(ArchiverSessionPtr, ECLogger *, const InstanceIdMapperPtr &, const SPropTagArray *exclprop, LPMAPIFOLDER folder);
+		Helper(ArchiverSessionPtr, std::shared_ptr<ECLogger>, const InstanceIdMapperPtr &, const SPropTagArray *exclprop, LPMAPIFOLDER folder);
 
 		/**
 		 * Create a copy of a message in the archive, effectively archiving the message.
@@ -95,7 +95,7 @@ public:
 		ArchiveFolderMap m_mapArchiveFolders;
 
 		ArchiverSessionPtr m_ptrSession;
-		object_ptr<ECLogger> m_lpLogger;
+		std::shared_ptr<ECLogger> m_lpLogger;
 		const SPropTagArray *m_lpExcludeProps;
 		MAPIFolderPtr m_ptrFolder;
 		InstanceIdMapperPtr m_ptrMapper;

@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <memory>
 #include <new>
 #include <utility>
 #include <kopano/ECConfig.h>
@@ -27,10 +28,10 @@ using namespace KC::helpers;
 
 namespace KC { namespace operations {
 
-Copier::Helper::Helper(ArchiverSessionPtr ptrSession, ECLogger *lpLogger,
+Copier::Helper::Helper(ArchiverSessionPtr ptrSession, std::shared_ptr<ECLogger> lpLogger,
     const InstanceIdMapperPtr &ptrMapper, const SPropTagArray *lpExcludeProps,
     LPMAPIFOLDER lpFolder) :
-	m_ptrSession(ptrSession), m_lpLogger(lpLogger),
+	m_ptrSession(ptrSession), m_lpLogger(std::move(lpLogger)),
 	m_lpExcludeProps(lpExcludeProps), m_ptrFolder(lpFolder, true),
 	// do an AddRef so we don't take ownership of the folder
 	m_ptrMapper(ptrMapper)
@@ -309,7 +310,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
  *					The list of properties that will not be copied during the archive operation.
  */
 Copier::Copier(ArchiverSessionPtr ptrSession, ECConfig *lpConfig,
-    ECArchiverLogger *lpLogger, const ObjectEntryList &lstArchives,
+    std::shared_ptr<ECArchiverLogger> lpLogger, const ObjectEntryList &lstArchives,
     const SPropTagArray *lpExcludeProps, int ulAge, bool bProcessUnread) :
 	ArchiveOperationBaseEx(lpLogger, ulAge, bProcessUnread, ARCH_NEVER_ARCHIVE),
 	m_ptrSession(ptrSession), m_lpConfig(lpConfig),

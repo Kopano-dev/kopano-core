@@ -2,6 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <memory>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
 #include "operations.h"
@@ -26,11 +28,10 @@ namespace KC { namespace operations {
  * @param[in]	lpLogger
  *					Pointer to an ECLogger object that's used for logging.
  */
-ArchiveOperationBase::ArchiveOperationBase(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread, ULONG ulInhibitMask)
-: m_lpLogger(lpLogger)
-, m_ulAge(ulAge)
-, m_bProcessUnread(bProcessUnread)
-, m_ulInhibitMask(ulInhibitMask)
+ArchiveOperationBase::ArchiveOperationBase(std::shared_ptr<ECArchiverLogger> lpLogger,
+    int ulAge, bool bProcessUnread, ULONG ulInhibitMask) :
+	m_lpLogger(std::move(lpLogger)), m_ulAge(ulAge),
+	m_bProcessUnread(bProcessUnread), m_ulInhibitMask(ulInhibitMask)
 {
 	GetSystemTimeAsFileTime(&m_ftCurrent);
 }
@@ -92,8 +93,9 @@ HRESULT ArchiveOperationBase::VerifyRestriction(LPMESSAGE lpMessage)
  * @param[in]	lpLogger
  *					Pointer to an ECLogger object that's used for logging.
  */
-ArchiveOperationBaseEx::ArchiveOperationBaseEx(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread, ULONG ulInhibitMask)
-: ArchiveOperationBase(lpLogger, ulAge, bProcessUnread, ulInhibitMask)
+ArchiveOperationBaseEx::ArchiveOperationBaseEx(std::shared_ptr<ECArchiverLogger> lpLogger,
+    int ulAge, bool bProcessUnread, ULONG ulInhibitMask) :
+	ArchiveOperationBase(std::move(lpLogger), ulAge, bProcessUnread, ulInhibitMask)
 { }
 
 /**

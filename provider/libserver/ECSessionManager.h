@@ -15,6 +15,7 @@
 #include <condition_variable>
 #include <list>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <set>
 #include <pthread.h>
@@ -142,7 +143,7 @@ public:
 	_kc_hidden ECCacheManager *GetCacheManager() const { return m_lpECCacheManager.get(); }
 	_kc_hidden ECSearchFolders *GetSearchFolders() const { return m_lpSearchFolders.get(); }
 	_kc_hidden ECConfig *GetConfig() const { return m_lpConfig; }
-	_kc_hidden ECLogger *GetAudit() const { return m_lpAudit; }
+	_kc_hidden std::shared_ptr<ECLogger> GetAudit() const { return m_lpAudit; }
 	_kc_hidden ECPluginFactory *GetPluginFactory() const { return m_lpPluginFactory.get(); }
 	_kc_hidden ECLockManager *GetLockManager() const { return m_ptrLockManager.get(); }
 	_kc_hidden ECAttachmentConfig *get_atxconfig() const { return m_atxconfig.get(); }
@@ -183,7 +184,7 @@ protected:
 
 	bool m_sguid_set = false;
 	GUID m_server_guid{};
-	object_ptr<ECLogger> m_lpAudit;
+	std::shared_ptr<ECLogger> m_lpAudit;
 	std::unique_ptr<ECPluginFactory> m_lpPluginFactory;
 	std::unique_ptr<ECSearchFolders> m_lpSearchFolders;
 	std::unique_ptr<ECDatabaseFactory> m_lpDatabaseFactory;

@@ -20,12 +20,12 @@ public:
 	typedef ArchiveStateCollector::ArchiveInfo		ArchiveInfo;
 	typedef ArchiveStateCollector::ArchiveInfoMap	ArchiveInfoMap;
 
-	_kc_hidden static HRESULT Create(const ArchiverSessionPtr &, ECLogger *, const ArchiveInfoMap &, ArchiveStateUpdaterPtr *);
+	_kc_hidden static HRESULT Create(const ArchiverSessionPtr &, std::shared_ptr<ECLogger>, const ArchiveInfoMap &, ArchiveStateUpdaterPtr *);
 	HRESULT UpdateAll(unsigned int ulAttachFlags);
 	HRESULT Update(const tstring &userName, unsigned int ulAttachFlags);
 
 private:
-	_kc_hidden ArchiveStateUpdater(const ArchiverSessionPtr &, ECLogger *, const ArchiveInfoMap &);
+	_kc_hidden ArchiveStateUpdater(const ArchiverSessionPtr &, std::shared_ptr<ECLogger>, const ArchiveInfoMap &);
 	_kc_hidden HRESULT PopulateUserList(void);
 	_kc_hidden HRESULT PopulateFromContainer(LPABCONT container);
 	_kc_hidden HRESULT UpdateOne(const abentryid_t &user_id, const ArchiveInfo &, unsigned int attach_flags);
@@ -37,7 +37,7 @@ private:
 	_kc_hidden HRESULT FindArchiveEntry(const tstring &archive, const tstring &folder, SObjectEntry *obj_entry);
 
 	ArchiverSessionPtr	m_ptrSession;
-	object_ptr<ECLogger> m_lpLogger;
+	std::shared_ptr<ECLogger> m_lpLogger;
 	ArchiveInfoMap	m_mapArchiveInfo;
 };
 

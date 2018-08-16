@@ -33,11 +33,12 @@ namespace KC {
  *					Pointer to a Session pointer that will be assigned the address of the returned
  *					ArchiverSession object.
  */
-HRESULT ArchiverSession::Create(ECConfig *lpConfig, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
+HRESULT ArchiverSession::Create(ECConfig *lpConfig,
+    std::shared_ptr<ECLogger> lpLogger, ArchiverSessionPtr *lpptrSession)
 {
 	if (!lpConfig || !lpLogger)
 		return MAPI_E_INVALID_PARAMETER;
-	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(lpLogger));
+	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(std::move(lpLogger)));
 	if (lpSession == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto hr = lpSession->Init(lpConfig);
@@ -59,9 +60,10 @@ HRESULT ArchiverSession::Create(ECConfig *lpConfig, ECLogger *lpLogger, Archiver
  *					Pointer to a Session pointer that will be assigned the address of the returned
  *					Session object.
  */
-HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
+HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession,
+    std::shared_ptr<ECLogger> lpLogger, ArchiverSessionPtr *lpptrSession)
 {
-	return ArchiverSession::Create(ptrSession, NULL, lpLogger, lpptrSession);
+	return ArchiverSession::Create(ptrSession, nullptr, std::move(lpLogger), lpptrSession);
 }
 
 /**
@@ -78,22 +80,24 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECLogger *lpLo
  *					Pointer to a ArchiverSession pointer that will be assigned the address of the returned
  *					ArchiverSession object.
  */
-HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
+HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession,
+    ECConfig *lpConfig, std::shared_ptr<ECLogger> lpLogger,
+    ArchiverSessionPtr *lpptrSession)
 {
-	object_ptr<ECLogger> lpLocalLogger;
+	std::shared_ptr<ECLogger> lpLocalLogger;
 	const char *lpszSslKeyFile = nullptr, *lpszSslKeyPass = nullptr;
 
 	if (lpLogger != nullptr)
-		lpLocalLogger.reset(lpLogger);
+		lpLocalLogger = std::move(lpLogger);
 	else
-		lpLocalLogger.reset(new ECLogger_Null(), false);
+		lpLocalLogger.reset(new ECLogger_Null);
 
 	if (lpConfig) {
 		lpszSslKeyFile = lpConfig->GetSetting("sslkey_file", "", NULL);
 		lpszSslKeyPass = lpConfig->GetSetting("sslkey_pass", "", NULL);
 	}
 
-	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(lpLocalLogger));
+	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(std::move(lpLocalLogger)));
 	if (lpSession == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto hr = lpSession->Init(ptrSession, lpszSslKeyFile, lpszSslKeyPass);
@@ -103,7 +107,8 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECConfig *lpCo
 	return hrSuccess;
 }
 
-ArchiverSession::ArchiverSession(ECLogger *lpLogger): m_lpLogger(lpLogger)
+ArchiverSession::ArchiverSession(std::shared_ptr<ECLogger> lpLogger) :
+	m_lpLogger(std::move(lpLogger))
 {
 }
 
@@ -536,9 +541,10 @@ HRESULT ArchiverSession::CompareStoreIds(const entryid_t &sEntryId1, const entry
  *
  * @retval	hrSuccess	The new ArchiverSession was successfully created.
  */
-HRESULT ArchiverSession::CreateRemote(const char *lpszServerPath, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession)
+HRESULT ArchiverSession::CreateRemote(const char *lpszServerPath,
+    std::shared_ptr<ECLogger> lpLogger, ArchiverSessionPtr *lpptrSession)
 {
-	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(lpLogger));
+	std::unique_ptr<ArchiverSession> lpSession(new(std::nothrow) ArchiverSession(std::move(lpLogger)));
 	if (lpSession == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	HRESULT hr = lpSession->Init(lpszServerPath, m_strSslPath.c_str(), m_strSslPass.c_str());

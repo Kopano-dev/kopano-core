@@ -38,7 +38,7 @@ public:
 	 * @param[in]	lpLogger
 	 *					The logger to log to.
 	 */
-	ECSyncContext(LPMDB lpStore, ECLogger *lpLogger);
+	ECSyncContext(LPMDB lpStore, std::shared_ptr<ECLogger>);
 
 	/**
 	 * Get a pointer to the message store on which this sync context operates.
@@ -297,7 +297,7 @@ private:	// methods
 	 */
 	HRESULT HrReleaseChangeAdvisor();
 
-	object_ptr<ECLogger> m_lpLogger;
+	std::shared_ptr<ECLogger> m_lpLogger;
 	object_ptr<IMsgStore> m_lpStore;
 	ECSyncSettings			*m_lpSettings;
 	object_ptr<IECChangeAdviseSink> m_lpChangeAdviseSink;

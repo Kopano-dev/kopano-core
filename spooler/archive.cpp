@@ -58,7 +58,8 @@ Archive::Archive(IMAPISession *lpSession)
 {
 }
 
-HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
+HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
+    std::shared_ptr<KC::ECLogger> logger)
 {
 	HRESULT hr = hrSuccess;
 	ULONG cMsgProps;
@@ -114,19 +115,19 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	     &iid_of(ptrFolder), MAPI_MODIFY, &ulType, &~ptrFolder);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): StoreHelper::OpenEntry failed", hr);
-	hr = ArchiverSession::Create(m_ptrSession, ec_log_get(), &ptrSession);
+	hr = ArchiverSession::Create(m_ptrSession, logger, &ptrSession);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): ArchiverSession::Create failed", hr);
 	/**
 	 * @todo: Create an archiver config object globally in the calling application to
 	 *        avoid the creation of the configuration for each message to be archived.
 	 */
-	hr = InstanceIdMapper::Create(ec_log_get(), NULL, &ptrMapper);
+	hr = InstanceIdMapper::Create(logger, nullptr, &ptrMapper);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): InstanceIdMapper::Create failed", hr);
 	// First create all (mostly one) the archive messages without saving them.
-	ptrHelper.reset(new(std::nothrow) Copier::Helper(ptrSession,
-		ec_log_get(), ptrMapper, nullptr, ptrFolder));
+	ptrHelper.reset(new(std::nothrow) Copier::Helper(ptrSession, logger,
+		ptrMapper, nullptr, ptrFolder));
 	if (ptrHelper == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	for (const auto &arc : lstArchives) {
@@ -174,7 +175,8 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	return ptrMsgHelper->SetArchiveList(lstReferences, true);
 }
 
-HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *lpResult)
+HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
+    ArchiveResult *lpResult, std::shared_ptr<KC::ECLogger> logger)
 {
 	HRESULT hr = hrSuccess;
 	ULONG cMsgProps;
@@ -219,20 +221,20 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 		return hr;
 	}
 
-	hr = ArchiverSession::Create(m_ptrSession, ec_log_get(), &ptrSession);
+	hr = ArchiverSession::Create(m_ptrSession, logger, &ptrSession);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForSending(): ArchiverSession::Create failed", hr);
 	/**
 	 * @todo: Create an archiver config object globally in the calling application to
 	 *        avoid the creation of the configuration for each message to be archived.
 	 */
-	hr = InstanceIdMapper::Create(ec_log_get(), NULL, &ptrMapper);
+	hr = InstanceIdMapper::Create(logger, nullptr, &ptrMapper);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForSending(): InstanceIdMapper::Create failed", hr);
 	// First create all (mostly one) the archive messages without saving them.
 	// We pass an empty MAPIFolderPtr here!
-	ptrHelper.reset(new(std::nothrow) Copier::Helper(ptrSession,
-		ec_log_get(), ptrMapper, nullptr, MAPIFolderPtr()));
+	ptrHelper.reset(new(std::nothrow) Copier::Helper(ptrSession, logger,
+		ptrMapper, nullptr, MAPIFolderPtr()));
 	if (ptrHelper == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	for (const auto &arc : lstArchives) {
@@ -241,7 +243,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 		MessagePtr ptrArchivedMsg;
 		PostSaveActionPtr ptrPSAction;
 
-		hr = ArchiveHelper::Create(ptrSession, arc, ec_log_get(), &ptrArchiveHelper);
+		hr = ArchiveHelper::Create(ptrSession, arc, logger, &ptrArchiveHelper);
 		if (hr != hrSuccess) {
 			SetErrorMessage(hr, _("Unable to open archive."));
 			return hr;

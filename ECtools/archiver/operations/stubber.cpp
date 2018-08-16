@@ -2,6 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <memory>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
 #include <kopano/MAPIErrors.h>
@@ -46,9 +48,10 @@ namespace operations {
  * @param[in]	ulptStubbed
  *					The proptag of the stubbed property {72e98ebc-57d2-4ab5-b0aad50a7b531cb9}/stubbed
  */
-Stubber::Stubber(ECArchiverLogger *lpLogger, ULONG ulptStubbed, int ulAge, bool bProcessUnread)
-: ArchiveOperationBase(lpLogger, ulAge, bProcessUnread, ARCH_NEVER_STUB)
-, m_ulptStubbed(ulptStubbed)
+Stubber::Stubber(std::shared_ptr<ECArchiverLogger> lpLogger, ULONG ulptStubbed,
+    int ulAge, bool bProcessUnread) :
+	ArchiveOperationBase(std::move(lpLogger), ulAge, bProcessUnread, ARCH_NEVER_STUB),
+	m_ulptStubbed(ulptStubbed)
 { }
 
 HRESULT Stubber::ProcessEntry(IMAPIFolder * lpFolder, const SRow &proprow)

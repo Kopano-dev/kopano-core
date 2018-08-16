@@ -42,7 +42,7 @@ class _kc_export ArchiveHelper _kc_final {
 public:
 	_kc_hidden static HRESULT Create(LPMDB arc_store, const tstring &folder, const char *server_path, ArchiveHelperPtr *);
 	_kc_hidden static HRESULT Create(LPMDB arc_store, LPMAPIFOLDER arc_folder, const char *server_path, ArchiveHelperPtr *);
-	static HRESULT Create(ArchiverSessionPtr ptrSession, const SObjectEntry &archiveEntry, ECLogger *lpLogger, ArchiveHelperPtr *lpptrArchiveHelper);
+	static HRESULT Create(ArchiverSessionPtr ptrSession, const SObjectEntry &archiveEntry, std::shared_ptr<ECLogger>, ArchiveHelperPtr *lpptrArchiveHelper);
 	_kc_hidden HRESULT GetAttachedUser(abentryid_t *user_eid);
 	_kc_hidden HRESULT SetAttachedUser(const abentryid_t &user_eid);
 	_kc_hidden HRESULT GetArchiveEntry(bool create, SObjectEntry *obj_entry);

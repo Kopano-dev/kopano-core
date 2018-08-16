@@ -483,7 +483,8 @@ int main(int argc, char **argv)
 
 	cfg->AddSetting("log_method", "file");
 	cfg->AddSetting("log_file", "-");
-	ec_log_set(CreateLogger(cfg, argv[0], "kopano-dbadm", false));
+	std::shared_ptr<ECLogger> g_logger(CreateLogger(cfg, argv[0], "kopano-dbadm", false));
+	ec_log_set(g_logger);
 	if (!ec_log_get()->Log(EC_LOGLEVEL_INFO))
 		ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);
 	auto db = std::make_shared<KDatabase>();

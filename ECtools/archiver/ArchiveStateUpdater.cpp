@@ -63,11 +63,13 @@ namespace Predicates {
  * 								primary store.
  * @param[out]	lpptrUpdater	The new ArchiveStateUpdater instance
  */
-HRESULT ArchiveStateUpdater::Create(const ArchiverSessionPtr &ptrSession, ECLogger *lpLogger, const ArchiveInfoMap &mapArchiveInfo, ArchiveStateUpdaterPtr *lpptrUpdater)
+HRESULT ArchiveStateUpdater::Create(const ArchiverSessionPtr &ptrSession,
+    std::shared_ptr<ECLogger> lpLogger, const ArchiveInfoMap &mapArchiveInfo,
+    ArchiveStateUpdaterPtr *lpptrUpdater)
 {
 	ArchiveStateUpdaterPtr ptrUpdater(
-		new(std::nothrow) ArchiveStateUpdater(ptrSession, lpLogger,
-		mapArchiveInfo));
+		new(std::nothrow) ArchiveStateUpdater(ptrSession,
+		std::move(lpLogger), mapArchiveInfo));
 	if (ptrUpdater == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	*lpptrUpdater = std::move(ptrUpdater);
@@ -82,12 +84,12 @@ HRESULT ArchiveStateUpdater::Create(const ArchiverSessionPtr &ptrSession, ECLogg
  * 								primary store.
  */
 ArchiveStateUpdater::ArchiveStateUpdater(const ArchiverSessionPtr &ptrSession,
-    ECLogger *lpLogger, const ArchiveInfoMap &mapArchiveInfo) :
-	m_ptrSession(ptrSession), m_lpLogger(lpLogger),
+    std::shared_ptr<ECLogger> lpLogger, const ArchiveInfoMap &mapArchiveInfo) :
+	m_ptrSession(ptrSession), m_lpLogger(std::move(lpLogger)),
 	m_mapArchiveInfo(mapArchiveInfo)
 {
 	if (m_lpLogger == nullptr)
-		m_lpLogger.reset(new ECLogger_Null, false);
+		m_lpLogger.reset(new ECLogger_Null);
 }
 
 /**

@@ -6,7 +6,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include <kopano/memory.hpp>
+#include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
 
@@ -14,7 +14,7 @@ namespace KC {
 
 class _kc_export ECArchiverLogger _kc_final : public ECLogger {
 public:
-	ECArchiverLogger(ECLogger *lpLogger);
+	ECArchiverLogger(std::shared_ptr<ECLogger>);
 	_kc_hidden tstring SetUser(tstring = tstring());
 	tstring SetFolder(tstring strFolder = tstring());
 	_kc_hidden const tstring &GetUser(void) const { return m_strUser; }
@@ -30,34 +30,34 @@ private:
 	ECArchiverLogger(const ECArchiverLogger &) = delete;
 	ECArchiverLogger &operator=(const ECArchiverLogger &) = delete;
 
-	object_ptr<ECLogger> m_lpLogger;
+	std::shared_ptr<ECLogger> m_lpLogger;
 	tstring		m_strUser;
 	tstring		m_strFolder;
 };
 
 class _kc_export ScopedUserLogging _kc_final {
 public:
-	ScopedUserLogging(ECArchiverLogger *lpLogger, const tstring &strUser);
+	ScopedUserLogging(std::shared_ptr<ECArchiverLogger>, const tstring &strUser);
 	~ScopedUserLogging();
 
 private:
 	ScopedUserLogging(const ScopedUserLogging &) = delete;
 	ScopedUserLogging &operator=(const ScopedUserLogging &) = delete;
 
-	ECArchiverLogger *m_lpLogger;
+	std::shared_ptr<ECArchiverLogger> m_lpLogger;
 	const tstring m_strPrevUser;
 };
 
 class _kc_export ScopedFolderLogging _kc_final {
 public:
-	ScopedFolderLogging(ECArchiverLogger *lpLogger, const tstring &strFolder);
+	ScopedFolderLogging(std::shared_ptr<ECArchiverLogger>, const tstring &strFolder);
 	~ScopedFolderLogging();
 
 private:
 	ScopedFolderLogging(const ScopedFolderLogging &) = delete;
 	ScopedFolderLogging &operator=(const ScopedFolderLogging &) = delete;
 
-	ECArchiverLogger *m_lpLogger;
+	std::shared_ptr<ECArchiverLogger> m_lpLogger;
 	const tstring m_strPrevFolder;
 };
 

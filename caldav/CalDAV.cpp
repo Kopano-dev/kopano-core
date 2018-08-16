@@ -52,7 +52,7 @@ struct socks {
 };
 
 static bool g_bDaemonize = true, g_bQuit, g_bThreads, g_dump_config;
-static object_ptr<ECLogger> g_lpLogger;
+static std::shared_ptr<ECLogger> g_lpLogger;
 static std::shared_ptr<ECConfig> g_lpConfig;
 static pthread_t mainthread;
 static std::atomic<int> nChildren{0};
@@ -97,7 +97,7 @@ static void sigchld(int)
 
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
-	generic_sigsegv_handler(g_lpLogger, "kopano-ical", PROJECT_VERSION, signr, si, uc);
+	generic_sigsegv_handler(g_lpLogger.get(), "kopano-ical", PROJECT_VERSION, signr, si, uc);
 }
 
 static HRESULT running_service(char **argv)
