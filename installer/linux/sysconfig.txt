@@ -22,15 +22,6 @@ LC_CTYPE=en_US.UTF-8
 ## Type:        string
 ## Default:     "en_US.UTF-8"
 #
-# Locale for timestamps. The magic string "en_DK" selects ISO 8601 time format.
-#
-LC_TIME=en_US.UTF-8
-
-## Path:        Network/Mail/Kopano
-## Description: Kopano timestamp format/locale
-## Type:        string
-## Default:     "en_US.UTF-8"
-#
 # Locale setting for Kopano userscripts. This is assigned to LC_MESSAGES
 # and therefore affects the emitted language, e.g. folder names for new
 # message stores.
