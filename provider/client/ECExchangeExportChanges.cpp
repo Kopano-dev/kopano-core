@@ -21,7 +21,6 @@
 #include "Mem.h"
 #include "ECMessage.h"
 #include <kopano/stringutil.h>
-#include "ECSyncLog.h"
 #include "ECSyncUtil.h"
 #include "ECSyncSettings.h"
 #include "EntryPoint.h"
@@ -37,9 +36,8 @@ ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore,
 	m_strDisplay(szDisplay != nullptr ? szDisplay : L"<Unknown>"),
 	/* In server-side sync, only use a batch size of 1. */
 	m_ulBatchSize(sk.empty() ? 1 : 256), m_iidMessage(IID_IMessage),
-	m_lpStore(lpStore)
+	m_lpLogger(new ECLogger_Null), m_lpStore(lpStore)
 {
-	ECSyncLog::GetLogger(&~m_lpLogger);
 	memset(&m_tmsStart, 0, sizeof(m_tmsStart));
 }
 
