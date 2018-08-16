@@ -21,9 +21,7 @@ from MAPI.Tags import (
     PR_ATTACH_CONTENT_LOCATION_W,
 )
 from MAPI.Defs import HrGetOneProp
-from MAPI.Struct import (
-    MAPIErrorNotFound, MAPIErrorNoAccess,
-)
+from MAPI.Struct import MAPIErrorNoAccess
 
 if sys.hexversion >= 0x03000000:
     try:
@@ -33,6 +31,7 @@ if sys.hexversion >= 0x03000000:
 else: # pragma: no cover
     import item as _item
 
+from .errors import NotFoundError
 from .properties import Properties
 
 from .compat import (
@@ -123,7 +122,7 @@ class Attachment(Properties):
         """Is attachment an embedded message."""
         try:
             return self[PR_ATTACH_METHOD] == ATTACH_EMBEDDED_MSG
-        except MAPIErrorNotFound:
+        except NotFoundError:
             return False
 
     @property

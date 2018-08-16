@@ -124,7 +124,7 @@ def _interval_restriction(proptag, start, end):
 # AST nodes
 
 class Term(object):
-    def __init__(self, sign=None, field=None, op=None, value=None):
+    def __init__(self, sign=None, field=None, op=None, value=None, hoepa=None):
         self.sign = sign
         self.field = field
         self.op = op
@@ -381,12 +381,13 @@ def _build_parser():
 
     sign = CharSet('+-')
 
-    term = Sequence(Optional(Sequence(Optional(sign), word, operator)), value)
+    term = Sequence(Optional(sign), Optional(Sequence(word, operator)), value)
     term.modifier = lambda t: Term(
-        sign=t[0][0] if t[0] else None,
-        field=t[0][1] if t[0] else None,
-        op=t[0][2] if t[0] else None,
-        value=t[1]
+        sign=t[0] if t[0] else None,
+        field=t[1][0] if t[1] else None,
+        op=t[1][1] if t[1] else None,
+        value=t[2],
+        hoepa=t
     )
 
     termplus = OneOrMore(alphaplus)
