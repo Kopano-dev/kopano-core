@@ -134,11 +134,6 @@ class _kc_export ECLogger {
 	 */
 	unsigned Release();
 	/**
-	 * Like the CRT snprintf, but uses the datalocale used by the current
-	 * ECLogger instance.
-	 */
-	int snprintf(char *str, size_t size, const char *format, ...) KC_LIKE_PRINTF(4, 5);
-	/**
 	 * Used for log rotation. Implementations should prepare to log in a new log.
 	 *
 	 * @param[in]	lp	New logprefix LP_TID or LP_PID. Disable prefix with LP_NONE.

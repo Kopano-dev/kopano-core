@@ -65,10 +65,10 @@ std::string ECArchiverLogger::CreateFormat(const char *format)
 		return strPrefix + format;
 
 	if (m_strFolder.empty()) {
-		auto len = m_lpLogger->snprintf(buffer, sizeof(buffer), "For '" TSTRING_PRINTF "': ", m_strUser.c_str());
+		auto len = snprintf(buffer, sizeof(buffer), "For \"" TSTRING_PRINTF "\": ", m_strUser.c_str());
 		strPrefix = EscapeFormatString(std::string(buffer, len));
 	} else {
-		auto len = m_lpLogger->snprintf(buffer, sizeof(buffer), "For '" TSTRING_PRINTF "' in folder '" TSTRING_PRINTF "': ", m_strUser.c_str(), m_strFolder.c_str());
+		auto len = snprintf(buffer, sizeof(buffer), "For \"" TSTRING_PRINTF "\" in folder \"" TSTRING_PRINTF "\": ", m_strUser.c_str(), m_strFolder.c_str());
 		strPrefix = EscapeFormatString(std::string(buffer, len));
 	}
 

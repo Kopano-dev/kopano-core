@@ -132,16 +132,6 @@ unsigned ECLogger::Release() {
 	return ulRef;
 }
 
-int ECLogger::snprintf(char *str, size_t size, const char *format, ...) {
-	va_list va;
-	int len = 0;
-
-	va_start(va, format);
-	len = _vsnprintf_l(str, size, format, datalocale, va);
-	va_end(va);
-	return len;
-}
-
 HRESULT ECLogger::perr(const char *text, HRESULT code)
 {
 	logf(EC_LOGLEVEL_ERROR, "%s: %s (%x)", text, GetMAPIErrorMessage(code), code);
