@@ -36,7 +36,6 @@ public:
 	
 	virtual HRESULT GetChangeCount(ULONG *lpcChanges);
 	virtual HRESULT SetMessageInterface(REFIID refiid);
-	virtual HRESULT SetLogger(ECLogger *lpLogger);
 
 private:
 	void LogMessageProps(int loglevel, ULONG cValues, LPSPropValue lpPropArray);

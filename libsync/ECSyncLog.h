@@ -17,7 +17,6 @@ class ECLogger;
 class ECSyncLog final {
 public:
 	static HRESULT GetLogger(ECLogger **);
-	static HRESULT SetLogger(ECLogger *annoyingswig);
 
 private:
 	static std::mutex s_hMutex;

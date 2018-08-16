@@ -43,12 +43,6 @@ ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore,
 	memset(&m_tmsStart, 0, sizeof(m_tmsStart));
 }
 
-HRESULT ECExchangeExportChanges::SetLogger(ECLogger *lpLogger)
-{
-	m_lpLogger.reset(lpLogger);
-	return hrSuccess;
-}
-
 HRESULT ECExchangeExportChanges::Create(ECMsgStore *lpStore, REFIID iid, const std::string& sourcekey, const wchar_t *szDisplay, unsigned int ulSyncType, LPEXCHANGEEXPORTCHANGES* lppExchangeExportChanges){
 	if (lpStore == NULL || (ulSyncType != ICS_SYNC_CONTENTS && ulSyncType != ICS_SYNC_HIERARCHY))
 		return MAPI_E_INVALID_PARAMETER;

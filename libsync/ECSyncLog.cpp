@@ -32,13 +32,6 @@ HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 	return hr;
 }
 
-HRESULT ECSyncLog::SetLogger(ECLogger *lpLogger)
-{
-	scoped_lock lock(s_hMutex);
-	s_lpLogger.reset(lpLogger);
-	return hrSuccess;
-}
-
 std::mutex ECSyncLog::s_hMutex;
 object_ptr<ECLogger> ECSyncLog::s_lpLogger;
 
