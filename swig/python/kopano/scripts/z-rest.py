@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# SPDX-License-Identifier: AGPL-3.0-only
 
 # experimental REST interface on top of python-kopano
 

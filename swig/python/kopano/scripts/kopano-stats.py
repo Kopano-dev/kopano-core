@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# SPDX-License-Identifier: AGPL-3.0-only
 
 # replacement for regular kopano-stats (practically complete)
 

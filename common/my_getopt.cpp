@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * Copyright 2005 - 2016 Zarafa and its licensors
+ */
 #include <getopt.h>
 #include <string.h>
 #include <kopano/my_getopt.h>

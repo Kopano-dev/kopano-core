@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright 2016 Kopano and its licensors
+ */
 #include <type_traits>
 #include <cstring>
 #include "soapH.h"

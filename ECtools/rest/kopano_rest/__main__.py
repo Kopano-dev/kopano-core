@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import multiprocessing
 import sys
 from wsgiref.simple_server import make_server

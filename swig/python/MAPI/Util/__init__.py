@@ -1,4 +1,5 @@
 # -*- indent-tabs-mode: nil -*-
+# SPDX-License-Identifier: AGPL-3.0-only
 
 import os.path
 import random

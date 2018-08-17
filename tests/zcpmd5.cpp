@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * Copyright 2016 Zarafa and its licensors
+ */
 #include <kopano/platform.h>
 #include <cstdio>
 #include <cstdlib>

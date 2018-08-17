@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
 // Python
 %include <python/std_basic_string.i>
 %include <python/cwstring.i>

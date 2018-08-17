@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
 %include "typemaps.i"
 
 %apply (ULONG cbEntryID, LPENTRYID lpEntryID) {(ULONG cbUserId, LPENTRYID lpUserId), (ULONG cbStoreId, LPENTRYID lpStoreId), (ULONG cbRootId, LPENTRYID lpRootId), (ULONG cbCompanyId, LPENTRYID lpCompanyId), (ULONG cbCompanyId, ENTRYID *lpCompanyId), (ULONG cbGroupId, LPENTRYID lpGroupId), (ULONG cbSenderId, LPENTRYID lpSenderId), (ULONG cbRecipientId, LPENTRYID lpRecipientId), (ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId)};

@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# SPDX-License-Identifier: AGPL-3.0-only
 
 # print names and email addresses of sender/recipients
 

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 # Parser building blocks taken from:
 #
 # https://gist.github.com/kssreeram/16549d95711a98702ed3

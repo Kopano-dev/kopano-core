@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
 %apply (ULONG cbEntryID, LPENTRYID lpEntryID) {(ULONG cbOrigEntry, LPENTRYID lpOrigEntry)};
 
 HRESULT WrapStoreEntryID(ULONG ulFlags, LPTSTR lpszDLLName, ULONG cbOrigEntry, LPENTRYID lpOrigEntry, ULONG *OUTPUT, LPENTRYID *OUTPUT);

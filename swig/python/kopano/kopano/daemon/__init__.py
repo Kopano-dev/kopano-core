@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# SPDX-License-Identifier: Python-2.0-or-later
 
 # daemon/__init__.py
 # Part of python-daemon, an implementation of PEP 3143.

@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# SPDX-License-Identifier: AGPL-3.0-only
 
 # call (learning) "spam command" for items in junk folders, optionally deleting them
 

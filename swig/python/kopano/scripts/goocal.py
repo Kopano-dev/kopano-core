@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright 2015 Zarafa and its licensors
 
 # display calendar occurrences in familiar calendar widget (slow as we don't filter on range yet)
 

@@ -1,4 +1,5 @@
 #! /usr/bin/python
+# SPDX-License-Identifier: BSD-3-Clause
 #
 # Copyright (c) 2014, Dionach Ltd.
 # All rights reserved.

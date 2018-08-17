@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 //
 // VMime library (http://www.vmime.org)
 // Copyright (C) 2002-2008 Vincent Richard <vincent@vincent-richard.net>
