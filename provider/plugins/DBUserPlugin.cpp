@@ -10,6 +10,7 @@
 #include <cerrno>
 #include <cassert>
 #include <mutex>
+#include <utility>
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECDefs.h>
@@ -54,9 +55,9 @@ DBUserPlugin::DBUserPlugin(std::mutex &pluginlock,
 		throw notsupported("Distributed Kopano not supported when using the Database Plugin");
 }
 
-void DBUserPlugin::InitPlugin()
+void DBUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
 {
-	DBPlugin::InitPlugin();
+	DBPlugin::InitPlugin(std::move(sc));
 }
 
 objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string &name, const objectid_t &company)

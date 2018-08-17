@@ -1512,7 +1512,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
         // Nothing updated
 		return er = erSuccess;
 
-	g_lpStatsCollector->Increment(SCN_DATABASE_COUNTER_RESYNCS);
+	g_lpSessionManager->g_lpStatsCollector->Increment(SCN_DATABASE_COUNTER_RESYNCS);
 	er = cache->GetParent(ulObjId, &ulParent);
 	if (er != erSuccess)
 		// No parent -> root folder. Nothing else we need to do now.

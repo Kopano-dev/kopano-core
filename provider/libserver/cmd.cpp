@@ -792,9 +792,9 @@ exit:
 	if (lpecSession)
 		lpecSession->unlock();
 	if (er == erSuccess)
-		g_lpStatsCollector->Increment(SCN_LOGIN_SSO);
+		g_lpSessionManager->g_lpStatsCollector->Increment(SCN_LOGIN_SSO);
 	else if (er != KCERR_SSO_CONTINUE)
-		g_lpStatsCollector->Increment(SCN_LOGIN_DENIED);
+		g_lpSessionManager->g_lpStatsCollector->Increment(SCN_LOGIN_DENIED);
 nosso:
 	lpsResponse->er = er;
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &endTimes);
@@ -1096,7 +1096,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 				return er;
 			lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
 			ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
-			g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
+			g_lpSessionManager->g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
 			return KCERR_UNABLE_TO_COMPLETE;
 		}
 	}
@@ -1175,7 +1175,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 					return er;
                 lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
                 ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
-                g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
+ 				g_lpSessionManager->g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
 				return KCERR_UNABLE_TO_COMPLETE;
             }
 		}
@@ -2626,7 +2626,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er,
 	// but don't nofity if parent object is a store and object type is attachment or message
 	CreateNotifications(ulObjId, ulObjType, ulParentObjId, ulGrandParent, fNewItem, &lpsSaveObj->modProps, pvCommitTime);
 	lpsLoadObjectResponse->sSaveObject = sReturnObject;
-	g_lpStatsCollector->Increment(SCN_DATABASE_MWOPS);
+	g_lpSessionManager->g_lpStatsCollector->Increment(SCN_DATABASE_MWOPS);
 }
 SOAP_ENTRY_END()
 
@@ -2909,7 +2909,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, const entryId &sEntryId,
 	if (er != erSuccess)
 		return er;
 	lpsLoadObjectResponse->sSaveObject = sSavedObject;
-	g_lpStatsCollector->Increment(SCN_DATABASE_MROPS);
+	g_lpSessionManager->g_lpStatsCollector->Increment(SCN_DATABASE_MROPS);
 }
 SOAP_ENTRY_END()
 
@@ -4863,7 +4863,7 @@ SOAP_ENTRY_START(purgeCache, *result, unsigned int ulFlags, unsigned int *result
 		return KCERR_NO_ACCESS;
     er = g_lpSessionManager->GetCacheManager()->PurgeCache(ulFlags);
 	kc_purge_cache_tcmalloc();
-	g_lpStatsCollector->SetTime(SCN_SERVER_LAST_CACHECLEARED, time(NULL));
+	g_lpSessionManager->g_lpStatsCollector->SetTime(SCN_SERVER_LAST_CACHECLEARED, time(nullptr));
 	return er;
 }
 SOAP_ENTRY_END()
@@ -6187,7 +6187,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 						return er;
 					lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
 					ec_log_info("Redirecting request to \"%s\'", lpsResponse->lpszServerPath);
-					g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
+					g_lpSessionManager->g_lpStatsCollector->Increment(SCN_REDIRECT_COUNT, 1);
 					return KCERR_UNABLE_TO_COMPLETE;
                 }
 			}
@@ -9083,7 +9083,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
 	soap->fmimereadopen = &MTOMReadOpen;
 	soap->fmimeread = &MTOMRead;
 	soap->fmimereadclose = &MTOMReadClose;
-	g_lpStatsCollector->Increment(SCN_DATABASE_MROPS, (int)ulObjCnt);
+	g_lpSessionManager->g_lpStatsCollector->Increment(SCN_DATABASE_MROPS, static_cast<int>(ulObjCnt));
 	return erSuccess;
 }
 SOAP_ENTRY_END()
@@ -9394,7 +9394,7 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags,
 		return er;
 	// Notification
 	CreateNotifications(ulObjectId, MAPI_MESSAGE, ulParentId, ulGrandParentId, bIsNew, lpsStreamInfo->lpPropValArray, NULL);
-	g_lpStatsCollector->Increment(SCN_DATABASE_MWOPS);
+	g_lpSessionManager->g_lpStatsCollector->Increment(SCN_DATABASE_MWOPS);
 	return erSuccess;
 }
 SOAP_ENTRY_END()

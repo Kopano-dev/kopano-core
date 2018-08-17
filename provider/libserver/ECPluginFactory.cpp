@@ -15,10 +15,10 @@
 namespace KC {
 
 ECPluginFactory::ECPluginFactory(std::shared_ptr<ECConfig> cfg,
-    ECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed) :
-	m_config(std::move(cfg))
+    std::shared_ptr<ECStatsCollector> sc, bool bHosted, bool bDistributed) :
+	m_config(std::move(cfg)), m_stats(std::move(sc))
 {
-	ECPluginSharedData::GetSingleton(&m_shareddata, m_config, lpStatsCollector, bHosted, bDistributed);
+	ECPluginSharedData::GetSingleton(&m_shareddata, m_config, sc, bHosted, bDistributed);
 }
 
 ECPluginFactory::~ECPluginFactory() {
@@ -87,7 +87,7 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
     }
 	try {
 		lpPlugin = m_getUserPluginInstance(m_plugin_lock, m_shareddata);
-		lpPlugin->InitPlugin();
+		lpPlugin->InitPlugin(m_stats);
 	} catch (const std::exception &e) {
 		ec_log_crit("Cannot instantiate user plugin: %s", e.what());
 		return KCERR_NOT_FOUND;

@@ -242,8 +242,8 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 	er = lpDatabase->DoDelete(strQuery, &ulAffected);
 	if(er != erSuccess)
 		return er;
-	g_lpStatsCollector->Increment(SCN_DATABASE_MERGES);
-	g_lpStatsCollector->Increment(SCN_DATABASE_MERGED_RECORDS, (int)ulAffected);
+	g_lpSessionManager->g_lpStatsCollector->Increment(SCN_DATABASE_MERGES);
+	g_lpSessionManager->g_lpStatsCollector->Increment(SCN_DATABASE_MERGED_RECORDS, static_cast<int>(ulAffected));
 	return erSuccess;
 }
 

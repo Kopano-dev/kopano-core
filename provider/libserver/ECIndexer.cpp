@@ -22,6 +22,7 @@
 #include <utility>
 #include <list>
 #include <sys/time.h>
+#include "ECSessionManager.h"
 
 namespace KC {
 
@@ -300,9 +301,9 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	auto laters = make_scope_success([&]() {
 		FreeRestrictTable(lpOptimizedRestrict);
 		if (er != erSuccess)
-			g_lpStatsCollector->Increment(SCN_DATABASE_SEARCHES);
+			g_lpSessionManager->g_lpStatsCollector->Increment(SCN_DATABASE_SEARCHES);
 		else
-			g_lpStatsCollector->Increment(SCN_INDEXED_SEARCHES);
+			g_lpSessionManager->g_lpStatsCollector->Increment(SCN_INDEXED_SEARCHES);
 	});
 
 	if (!lpDatabase) {
@@ -345,11 +346,11 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	tstart = decltype(tstart)::clock::now();
 	er = lpSearchClient->Query(guidServer, guidStore, lstFolders, lstMultiSearches, lstMatches, suggestion);
 	llelapsedtime = std::chrono::duration_cast<std::chrono::milliseconds>(decltype(tstart)::clock::now() - tstart).count();
-	g_lpStatsCollector->Max(SCN_INDEXER_SEARCH_MAX, llelapsedtime);
-	g_lpStatsCollector->Avg(SCN_INDEXER_SEARCH_AVG, llelapsedtime);
+	g_lpSessionManager->g_lpStatsCollector->Max(SCN_INDEXER_SEARCH_MAX, llelapsedtime);
+	g_lpSessionManager->g_lpStatsCollector->Avg(SCN_INDEXER_SEARCH_AVG, llelapsedtime);
 
 	if (er != erSuccess) {
-		g_lpStatsCollector->Increment(SCN_INDEXER_SEARCH_ERRORS);
+		g_lpSessionManager->g_lpStatsCollector->Increment(SCN_INDEXER_SEARCH_ERRORS);
 		ec_log_err("Error while querying search on \"%s\": %s (%x)",
 			szSocket, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 	} else

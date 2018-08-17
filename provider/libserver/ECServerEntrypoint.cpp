@@ -93,12 +93,12 @@ ECRESULT kopano_unloadlibrary(void)
 }
 
 ECRESULT kopano_init(std::shared_ptr<ECConfig> cfg, std::shared_ptr<ECLogger> ad,
-    bool bHostedKopano, bool bDistributedKopano)
+    std::shared_ptr<ECStatsCollector> sc, bool bHostedKopano, bool bDistributedKopano)
 {
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
 	try {
-		g_lpSessionManager = new ECSessionManager(std::move(cfg), std::move(ad), bHostedKopano, bDistributedKopano);
+		g_lpSessionManager = new ECSessionManager(std::move(cfg), std::move(ad), std::move(sc), bHostedKopano, bDistributedKopano);
 	} catch (const KMAPIError &e) {
 		return e.code();
 	}
@@ -200,13 +200,13 @@ void kopano_disconnect_soap_connection(struct soap *soap)
 }
 
 // Export functions
-ECRESULT GetDatabaseObject(ECDatabase **lppDatabase)
+ECRESULT GetDatabaseObject(std::shared_ptr<ECStatsCollector> sc, ECDatabase **lppDatabase)
 {
 	if (g_lpSessionManager == NULL)
 		return KCERR_UNKNOWN;
 	if (lppDatabase == NULL)
 		return KCERR_INVALID_PARAMETER;
-	ECDatabaseFactory db(g_lpSessionManager->GetConfig());
+	ECDatabaseFactory db(g_lpSessionManager->GetConfig(), std::move(sc));
 	return GetThreadLocalDatabase(&db, lppDatabase);
 }
 

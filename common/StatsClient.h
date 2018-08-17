@@ -118,8 +118,6 @@ public:
 	_kc_hidden void submit(const std::string &key, time_t ts, int64_t value);
 };
 
-extern _kc_export ECStatsCollector *const g_lpStatsCollector;
-
 } /* namespace */
 
 #endif

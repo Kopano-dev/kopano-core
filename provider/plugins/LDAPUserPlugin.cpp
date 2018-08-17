@@ -404,7 +404,7 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 	m_timeout.tv_usec = 0;
 }
 
-void LDAPUserPlugin::InitPlugin()
+void LDAPUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector>)
 {
 	const char *ldap_binddn = m_config->GetSetting("ldap_bind_user");
 	const char *ldap_bindpw = m_config->GetSetting("ldap_bind_passwd");

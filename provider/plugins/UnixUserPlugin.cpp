@@ -92,8 +92,9 @@ UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock,
 		throw notsupported("Distributed Kopano not supported when using the Unix Plugin");
 }
 
-void UnixUserPlugin::InitPlugin() {
-	DBPlugin::InitPlugin();
+void UnixUserPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
+{
+	DBPlugin::InitPlugin(std::move(sc));
 
 	// we only need unix_charset -> kopano charset
 	try {

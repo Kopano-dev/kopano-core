@@ -347,8 +347,8 @@ int zcp_versiontuple::compare(const zcp_versiontuple &rhs) const
 	return 0;
 }
 
-ECDatabase::ECDatabase(std::shared_ptr<ECConfig> c) :
-	m_lpConfig(std::move(c))
+ECDatabase::ECDatabase(std::shared_ptr<ECConfig> c, std::shared_ptr<ECStatsCollector> sc) :
+	m_lpConfig(std::move(c)), g_lpStatsCollector(std::move(sc))
 {
 	auto s = m_lpConfig->GetSetting("mysql_database");
 	if (s != nullptr)

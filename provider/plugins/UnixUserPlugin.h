@@ -20,6 +20,7 @@
  * @ingroup userplugin
  * @{
  */
+namespace KC { class ECStatsCollector; }
 using KC::objectclass_t;
 using KC::objectdetails_t;
 using KC::objectid_t;
@@ -56,7 +57,7 @@ public:
     /**
 	 * Initialize plugin
 	 */
-	void InitPlugin();
+	virtual void InitPlugin(std::shared_ptr<KC::ECStatsCollector>) override;
 
 	/**
 	 * Resolve name and company to objectsignature

@@ -74,7 +74,7 @@ public:
 	 *
 	 * @throw runtime_error when the database could not be initialized
 	 */	
-	virtual void InitPlugin();
+	virtual void InitPlugin(std::shared_ptr<ECStatsCollector>) override;
 
 	/**
 	 * Request a list of objects for a particular company and specified objectclass.

@@ -15,8 +15,9 @@ namespace KC {
 // The ECDatabaseFactory creates database objects connected to the server database. Which
 // database is returned is chosen by the database_engine configuration setting.
 
-ECDatabaseFactory::ECDatabaseFactory(std::shared_ptr<ECConfig> c) :
-	m_lpConfig(std::move(c))
+ECDatabaseFactory::ECDatabaseFactory(std::shared_ptr<ECConfig> c,
+    std::shared_ptr<ECStatsCollector> s) :
+	m_stats(std::move(s)), m_lpConfig(std::move(c))
 {}
 
 ECRESULT ECDatabaseFactory::GetDatabaseFactory(ECDatabase **lppDatabase)
@@ -24,7 +25,7 @@ ECRESULT ECDatabaseFactory::GetDatabaseFactory(ECDatabase **lppDatabase)
 	const char *szEngine = m_lpConfig->GetSetting("database_engine");
 
 	if(strcasecmp(szEngine, "mysql") == 0) {
-		*lppDatabase = new ECDatabase(m_lpConfig);
+		*lppDatabase = new ECDatabase(m_lpConfig, m_stats);
 	} else {
 		ec_log_crit("ECDatabaseFactory::GetDatabaseFactory(): database not mysql");
 		return KCERR_DATABASE_ERROR;

@@ -74,7 +74,7 @@ class SOURCEKEY;
 
 class _kc_export ECSessionManager _kc_final {
 public:
-	_kc_hidden ECSessionManager(std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit, bool hosted, bool distributed);
+	_kc_hidden ECSessionManager(std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit, std::shared_ptr<ECStatsCollector>, bool hosted, bool distributed);
 	_kc_hidden virtual ~ECSessionManager(void);
 	_kc_hidden virtual ECRESULT CreateAuthSession(struct soap *, unsigned int caps, ECSESSIONID *, ECAuthSession **, bool register_ses, bool lock_ses);
 	// Creates a session based on passed credentials
@@ -147,6 +147,8 @@ public:
 	_kc_hidden ECPluginFactory *GetPluginFactory() const { return m_lpPluginFactory.get(); }
 	_kc_hidden ECLockManager *GetLockManager() const { return m_ptrLockManager.get(); }
 	_kc_hidden ECAttachmentConfig *get_atxconfig() const { return m_atxconfig.get(); }
+
+	std::shared_ptr<ECStatsCollector> g_lpStatsCollector;
 
 protected:
 	_kc_hidden BTSession *GetSession(ECSESSIONID, bool lock_ses = false);

@@ -14,15 +14,19 @@
 
 namespace KC {
 
+class ECStatsCollector;
+
 // The ECDatabaseFactory creates database objects connected to the server database. Which
 // database is returned is chosen by the database_engine configuration setting.
 
 class _kc_export ECDatabaseFactory _kc_final {
 public:
-	ECDatabaseFactory(std::shared_ptr<ECConfig>);
+	ECDatabaseFactory(std::shared_ptr<ECConfig>, std::shared_ptr<ECStatsCollector>);
 	ECRESULT		CreateDatabaseObject(ECDatabase **lppDatabase, std::string &ConnectError);
 	ECRESULT		CreateDatabase();
 	ECRESULT		UpdateDatabase(bool bForceUpdate, std::string &strError);
+
+	std::shared_ptr<ECStatsCollector> m_stats;
 
 private:
 	_kc_hidden ECRESULT GetDatabaseFactory(ECDatabase **);
