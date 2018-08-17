@@ -1,5 +1,5 @@
 [Unit]
-Description=Kopano Core Search Engine
+Description=Kopano Groupware Core Search Daemon
 Documentation=man:kopano-search(8) man:kopano-search.cfg(5)
 
 [Service]

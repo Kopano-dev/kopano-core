@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# kopano-monitor Kopano Core Quota Monitor
+# kopano-monitor Kopano Groupware Core Quota Monitor
 #
 # chkconfig: 345 86 24
 # processname: /usr/sbin/kopano-monitor
@@ -13,7 +13,7 @@
 # Required-Stop: $local_fs $network $remote_fs $syslog
 # Should-Start: kopano-server
 # Should-Stop: kopano-server
-# Short-Description: Kopano Core Quota Monitor
+# Short-Description: Kopano Grouwware Core Quota Monitor
 ### END INIT INFO
 
 MONITORCONFIG=/etc/kopano/monitor.cfg

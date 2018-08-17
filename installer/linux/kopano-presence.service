@@ -1,5 +1,5 @@
 [Unit]
-Description=Kopano Core Presence Daemon
+Description=Kopano Groupware Core Presence Daemon
 
 [Service]
 Type=simple

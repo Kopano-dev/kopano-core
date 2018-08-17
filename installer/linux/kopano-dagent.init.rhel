@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# kopano-dagent Kopano Core Delivery Agent
+# kopano-dagent Kopano Groupware Core Delivery Agent
 #
 # chkconfig: - 86 24
 # processname: /usr/sbin/kopano-dagent
@@ -13,7 +13,7 @@
 # Required-Stop: $local_fs $network $remote_fs $syslog
 # Should-Start: kopano-server
 # Should-Stop: kopano-server
-# Short-Description: Kopano Core Delivery Agent
+# Short-Description: Kopano Groupware Core Delivery Agent
 ### END INIT INFO
 
 DAGENTCONFIG=/etc/kopano/dagent.cfg

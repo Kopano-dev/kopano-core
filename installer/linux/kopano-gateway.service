@@ -1,5 +1,5 @@
 [Unit]
-Description=Kopano Core IMAP/POP3 Gateway
+Description=Kopano Groupware Core IMAP/POP3 Gateway
 Documentation=man:kopano-gateway(8) man:kopano-gateway.cfg(5)
 
 [Service]

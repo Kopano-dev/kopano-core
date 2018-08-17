@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# kopano-search Kopano Core Search Indexer
+# kopano-search Kopano Groupware Core Search Daemon
 #
 # chkconfig: 345 86 24
 # processname: /usr/sbin/kopano-search
@@ -13,7 +13,7 @@
 # Required-Stop: $local_fs $network $remote_fs $syslog
 # Should-Start: kopano-server
 # Should-Stop: kopano-server
-# Short-Description: Kopano Core Search Indexer
+# Short-Description: Kopano Groupware Core Search Daemon
 ### END INIT INFO
 
 SEARCHCONFIG=/etc/kopano/search.cfg

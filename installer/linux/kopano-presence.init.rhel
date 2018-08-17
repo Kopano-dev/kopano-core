@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# kopano-presence Kopano Core Presence Daemon
+# kopano-presence Kopano Groupware Core Presence Daemon
 #
 # chkconfig: 345 86 24
 # processname: /usr/sbin/kopano-presence

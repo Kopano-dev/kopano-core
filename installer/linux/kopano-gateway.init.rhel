@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# kopano-gateway Kopano Core POP3/IMAP Gateway
+# kopano-gateway Kopano Groupware Core POP3/IMAP Gateway
 #
 # chkconfig: 345 86 24
 # processname: /usr/sbin/kopano-gateway
@@ -13,7 +13,7 @@
 # Required-Stop: $local_fs $network $remote_fs $syslog
 # Should-Start: kopano-server
 # Should-Stop: kopano-server
-# Short-Description: Kopano Core POP3/IMAP Gateway
+# Short-Description: Kopano Groupware Core POP3/IMAP Gateway
 ### END INIT INFO
 
 GATEWAYCONFIG=/etc/kopano/gateway.cfg

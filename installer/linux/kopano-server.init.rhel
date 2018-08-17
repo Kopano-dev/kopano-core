@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# kopano-server Kopano Core Storage Server
+# kopano-server Kopano Groupware Core MAPI Server
 #
 # chkconfig: 345 85 25
 # processname: /usr/sbin/kopano-server
@@ -13,7 +13,7 @@
 # Required-Stop: $local_fs $network $remote_fs $syslog
 # Should-Start: mysqld
 # Should-Stop: mysqld
-# Short-Description: Kopano Core Storage Server
+# Short-Description: Kopano Core MAPI Server
 ### END INIT INFO
 
 SERVERCONFIG=/etc/kopano/server.cfg

@@ -1,5 +1,5 @@
 [Unit]
-Description=Kopano Core Quota Manager
+Description=Kopano Groupware Core Quota Monitor
 Documentation=man:kopano-monitor(8) man:kopano-monitor.cfg(5)
 
 [Service]
