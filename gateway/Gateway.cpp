@@ -115,7 +115,7 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
 	generic_sigsegv_handler(g_lpLogger, "kopano-gateway", PROJECT_VERSION, signr, si, uc);
 }
 
-static HRESULT running_service(const char *szPath, const char *servicename);
+static HRESULT running_service(char **argv);
 
 static void print_help(const char *name)
 {
@@ -451,7 +451,7 @@ int main(int argc, char *argv[]) {
 	if (g_strHostString.empty())
 		g_strHostString = GetServerFQDN();
 	g_strHostString.insert(0, " on ");
-	hr = running_service(szPath, argv[0]);
+	hr = running_service(argv);
 	ECChannel::HrFreeCtx();
 exit:
 	if (hr != hrSuccess)
@@ -530,9 +530,12 @@ static HRESULT gw_listen(ECConfig *cfg)
 	struct pollfd pfd;
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.events = POLLIN;
-	int ret;
 	for (const auto &spec : pop3_sock) {
-		ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		if (ret >= 0)
+			pfd.fd = ret;
+		else
+			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
 		if (ret < 0)
 			return MAPI_E_NETWORK_ERROR;
 		g_socks.pollfd.push_back(pfd);
@@ -541,7 +544,11 @@ static HRESULT gw_listen(ECConfig *cfg)
 		g_socks.ssl.push_back(false);
 	}
 	for (const auto &spec : pop3s_sock) {
-		ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		if (ret >= 0)
+			pfd.fd = ret;
+		else
+			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
 		if (ret < 0)
 			return MAPI_E_NETWORK_ERROR;
 		g_socks.pollfd.push_back(pfd);
@@ -550,7 +557,11 @@ static HRESULT gw_listen(ECConfig *cfg)
 		g_socks.ssl.push_back(true);
 	}
 	for (const auto &spec : imap_sock) {
-		ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		if (ret >= 0)
+			pfd.fd = ret;
+		else
+			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
 		if (ret < 0)
 			return MAPI_E_NETWORK_ERROR;
 		g_socks.pollfd.push_back(pfd);
@@ -559,7 +570,11 @@ static HRESULT gw_listen(ECConfig *cfg)
 		g_socks.ssl.push_back(false);
 	}
 	for (const auto &spec : imaps_sock) {
-		ret = ec_listen_generic(spec.c_str(), &pfd.fd);
+		auto ret = ec_fdtable_socket(spec.c_str(), nullptr, nullptr);
+		if (ret >= 0)
+			pfd.fd = ret;
+		else
+			ret = ec_listen_generic(spec.c_str(), &pfd.fd);
 		if (ret < 0)
 			return MAPI_E_NETWORK_ERROR;
 		g_socks.pollfd.push_back(pfd);
@@ -627,14 +642,11 @@ static HRESULT handler_client(size_t i)
 /**
  * Runs the gateway service, starting a new thread or fork child for
  * incoming connections on any configured service.
- *
- * @param[in]	szPath		Unused, should be removed.
- * @param[in]	servicename	Name of the service, used to create a Unix pidfile.
  */
-static HRESULT running_service(const char *szPath, const char *servicename)
+static HRESULT running_service(char **argv)
 {
 	int err = 0;
-	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION " (pid %d)", getpid());
+	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-gateway version " PROJECT_VERSION " (pid %d uid %u)", getpid(), getuid());
 
 	struct rlimit file_limit;
 	file_limit.rlim_cur = KC_DESIRED_FILEDES;
@@ -647,6 +659,12 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		return hr;
 	if (unix_runas(g_lpConfig.get()))
 		return MAPI_E_CALL_FAILED;
+	ec_reexec_prepare_sockets();
+	auto ret = ec_reexec(argv);
+	if (ret < 0)
+		ec_log_notice("K-1240: Failed to re-exec self: %s. "
+			"Continuing with standard allocator and/or restricted coredumps.",
+			strerror(-ret));
 
 	// SIGSEGV backtrace support
 	KAlternateStack sigstack;
@@ -676,7 +694,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 		return MAPI_E_CALL_FAILED;
 	if (!daemonize)
 		setsid();
-	unix_create_pidfile(servicename, g_lpConfig.get());
+	unix_create_pidfile(argv[0], g_lpConfig.get());
 	if (!bThreads)
 		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
 	ec_log_set(g_lpLogger);
