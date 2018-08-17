@@ -19,7 +19,7 @@ def get_body(req, item):
     if type_ == 'text':
         return {'contentType': 'text', 'content': item.text}
     else:
-        return {'contentType': 'html', 'content': item.html.decode('utf8')} # TODO if not utf8?
+        return {'contentType': 'html', 'content': codecs.decode(item.html_utf8, 'utf-8')} # TODO can we use bytes to avoid recoding?
 
 def set_body(item, arg):
     if arg['contentType'] == 'text':

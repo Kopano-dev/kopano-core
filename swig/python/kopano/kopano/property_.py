@@ -139,15 +139,6 @@ def _name_to_proptag(proptag, mapiobj, proptype=None):
 
     return proptag, proptype, namespace, name
 
-def _proptag_to_name(proptag, store, proptype=False):
-    lpname = store.mapiobj.GetNamesFromIDs([proptag], None, 0)[0]
-    namespace = GUID_NAMESPACE.get(lpname.guid)
-    name = lpname.id
-    if proptype:
-        type_ = REV_TYPE.get(PROP_TYPE(proptag))
-        return u'%s:%s:%s' % (namespace, name, type_)
-    return u'%s:%s' % (namespace, name)
-
 def create_prop(self, mapiobj, proptag, value=None, proptype=None): # XXX selfie
     if _is_int(proptag) or \
        (_is_str(proptag) and ':' not in proptag):

@@ -48,12 +48,12 @@ from .errors import (
     Error, NotFoundError, DuplicateError, NotSupportedError,
     LogonError
 )
+from .log import LOG
 
 from .parser import parser
 from .table import Table
 from .company import Company
 from .group import Group
-from .property_ import _proptag_to_name
 from .query import _query_to_restriction
 
 from .compat import (
@@ -178,7 +178,6 @@ class Server(object):
         :param config: path of configuration file containing common server options, for example ``/etc/kopano/admin.cfg``
         :param auth_user: username to user for user authentication
         :param auth_pass: password to use for user authentication
-        :param log: logger object to receive useful (debug) information
         :param options: OptionParser instance to get settings from (see :func:`parser`)
         :param parse_args: set this True if cli arguments should be parsed
         """
@@ -188,7 +187,12 @@ class Server(object):
         self.sslkey_pass = sslkey_pass
         self.server_socket = server_socket
         self.service = service
-        self.log = log
+        if log: # TODO deprecate?
+            self.log = log
+        elif service:
+            self.log = service.log
+        else:
+            self.log = LOG
         self.mapisession = mapisession
         self.store_cache = store_cache
 
@@ -251,7 +255,7 @@ class Server(object):
                     break
                 except (MAPIErrorNetworkError, MAPIErrorDiskError):
                     if service:
-                        service.log.warn("could not connect to server at '%s', retrying in 5 sec" % self.server_socket)
+                        self.log.warn("could not connect to server at '%s', retrying in 5 sec" % self.server_socket)
                         time.sleep(5)
                     else:
                         raise Error("could not connect to server at '%s'" % self.server_socket)
@@ -731,7 +735,7 @@ class Server(object):
         :log: logger instance to receive important warnings/errors
         """
         importer.store = None
-        return _ics.sync(self, self.mapistore, importer, state, log or self.log, max_changes, window=window, begin=begin, end=end, stats=stats)
+        return _ics.sync(self, self.mapistore, importer, state, max_changes, window=window, begin=begin, end=end, stats=stats)
 
     def sync_gab(self, importer, state=None):
         if state is None:
@@ -745,14 +749,6 @@ class Server(object):
             return self.user(HrGetOneProp(mailuser, PR_ACCOUNT_W).Value).email # XXX PR_SMTP_ADDRESS_W from mailuser?
         except (Error, MAPIErrorNotFound): # XXX deleted user
             return '' # XXX groups
-
-    def id_to_name(self, proptag):
-        """Give the name representation of an property id. For example 0x80710003 => 'task:33025'.
-
-        :param proptag: the property identifier
-        """
-
-        return _proptag_to_name(proptag, self.admin_store)
 
     def __unicode__(self):
         return u'Server(%s)' % self.server_socket

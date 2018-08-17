@@ -1019,4 +1019,4 @@ def main():
         Service('backup', options=options, config=CONFIG, args=args).start()
 
 if __name__ == '__main__':
-    main()
+    main() # pragma: no cover

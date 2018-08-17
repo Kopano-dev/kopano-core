@@ -16,6 +16,8 @@ from MAPI.Tags import (
     PR_ATTACH_LONG_FILENAME_W, PR_ATTACH_SIZE, PR_ATTACH_DATA_BIN, PR_ENTRYID,
     PR_LAST_MODIFICATION_TIME, IID_IAttachment, PR_ATTACH_METHOD,
     ATTACH_EMBEDDED_MSG, PR_ATTACH_DATA_OBJ, IID_IMessage,
+    PR_ATTACHMENT_HIDDEN, PR_ATTACH_FLAGS, PR_ATTACH_CONTENT_ID_W,
+    PR_ATTACH_CONTENT_LOCATION_W,
 )
 from MAPI.Defs import HrGetOneProp
 from MAPI.Struct import (
@@ -94,6 +96,26 @@ class Attachment(Properties):
     def filename(self):
         """Filename"""
         return self.get(PR_ATTACH_LONG_FILENAME_W, u'')
+
+    @property
+    def hidden(self):
+        """Is attachment hidden from end user."""
+        return self.get(PR_ATTACHMENT_HIDDEN, False)
+
+    @property
+    def inline(self):
+        """Is attachment inline."""
+        return bool(self.get(PR_ATTACH_FLAGS, 0) & 4)
+
+    @property
+    def content_id(self):
+        """Identifier used to reference (inline) attachment."""
+        return self.get(PR_ATTACH_CONTENT_ID_W)
+
+    @property
+    def content_location(self):
+        """URI pointing to contents of (inline) attachment."""
+        return self.get(PR_ATTACH_CONTENT_LOCATION_W)
 
     @property
     def embedded(self):

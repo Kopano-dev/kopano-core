@@ -6,7 +6,6 @@ Copyright 2016 - Kopano and its licensors (see LICENSE file)
 """
 import codecs
 import datetime
-import pytz
 import struct
 import sys
 
@@ -142,16 +141,7 @@ class Appointment(object):
 
     def occurrence(self, id_=None):
         if self.recurring:
-            if isinstance(id_, datetime.datetime):
-                # TODO optimize
-                for occ in self.occurrences():
-                    if occ.start == id_:
-                        return occ
-                        break
-                else:
-                    raise NotFoundError('no occurrence for date: %s' % id_)
-            else:
-                return self.recurrence.occurrence(id_)
+            return self.recurrence.occurrence(id_)
         else:
             # TODO check if matches args
             return Occurrence(self)

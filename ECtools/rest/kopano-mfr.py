@@ -1,3 +1,4 @@
+import glob
 import logging
 from logging.handlers import QueueHandler, QueueListener
 import multiprocessing
@@ -35,8 +36,8 @@ the respective WSGI app (rest, notify or metrics).
 
 """
 
-# TODO use kopano.Service
-
+PID_FILE = '/var/run/kopano/mfr.pid'
+PROCESS_NAME = 'kopano-mfr'
 SOCKET_PATH = '/var/run/kopano'
 WORKERS = 8
 METRICS_LISTEN = 'localhost:6060'
@@ -45,11 +46,34 @@ METRICS_LISTEN = 'localhost:6060'
 if PROMETHEUS:
     REQUEST_TIME = Summary('kopano_mfr_request_processing_seconds', 'Time spent processing request', ['method', 'endpoint'])
 
+# TODO use kopano.Service, for config file, pidfile, logging, restarting etc.
+def create_pidfile(path):
+    try:
+        with open(path, 'r') as _file:
+            last_pid = int(_file.read())
+
+        # check if pid/name match
+        last_process_cmdline = '/proc/%d/cmdline' % last_pid
+        with open(last_process_cmdline, 'r') as _file:
+            cmdline = _file.read()
+            if 'kopano-mfr' in cmdline:
+                print('Kopano-mfr is already running..', file=sys.stderr)
+                sys.exit(-1)
+
+    except FileNotFoundError:
+        pass
+
+    with open(path, 'w') as _file:
+        pid = str(os.getpid())
+        _file.write(pid)
+
 def opt_args():
     parser = optparse.OptionParser()
 
     parser.add_option("", "--socket-path", dest="socket_path",
                       help="parent directory for unix sockets", metavar="PATH")
+    parser.add_option("", "--pid-file", dest='pid_file', default=PID_FILE,
+                      help="pid file location", metavar="PATH")
     parser.add_option("-w", "--workers", dest="workers", type='int',
                       help="number of workers (unix sockets)", metavar="N")
     parser.add_option("", "--insecure", dest='insecure', action='store_true', default=False,
@@ -64,6 +88,8 @@ def opt_args():
                       help="enable metrics process")
     parser.add_option("", "--metrics-listen", dest='metrics_listen', metavar='ADDRESS:PORT',
                       default=METRICS_LISTEN, help="metrics process address")
+    parser.add_option("", "--process-name", dest='process_name', default=PROCESS_NAME,
+                      help="set process name", metavar="NAME")
 
     options, args = parser.parse_args()
     if args:
@@ -110,7 +136,7 @@ def metrics_app(environ, start_response):
 # TODO merge run_*
 def run_app(socket_path, n, options):
     if SETPROCTITLE:
-        setproctitle.setproctitle('kopano-mfr rest %d' % n)
+        setproctitle.setproctitle('%s rest %d' % (options.process_name, n))
     if options.with_metrics:
         middleware=[FalconMetrics()]
     else:
@@ -126,7 +152,7 @@ def run_app(socket_path, n, options):
 
 def run_notify(socket_path, options):
     if SETPROCTITLE:
-        setproctitle.setproctitle('kopano-mfr notify')
+        setproctitle.setproctitle('%s notify' % options.process_name)
     if options.with_metrics:
         middleware=[FalconMetrics()]
     else:
@@ -142,7 +168,7 @@ def run_notify(socket_path, options):
 
 def run_metrics(socket_path, options):
     if SETPROCTITLE:
-        setproctitle.setproctitle('kopano-mfr metrics')
+        setproctitle.setproctitle('%s metrics' % options.process_name)
     address = options.metrics_listen
     logging.info('starting metrics worker: %s', address)
     address = address.split(':')
@@ -170,8 +196,19 @@ def logger_init():
 
 def main():
     options, args = opt_args()
+
+    if SETPROCTITLE:
+        setproctitle.setproctitle(options.process_name + ' master')
+
     socket_path = options.socket_path or SOCKET_PATH
     nworkers = options.workers if options.workers is not None else WORKERS
+
+    create_pidfile(options.pid_file)
+
+    for f in glob.glob(os.path.join(SOCKET_PATH, 'rest*.sock')):
+        os.unlink(f)
+    for f in glob.glob(os.path.join(SOCKET_PATH, 'notify*.sock')):
+        os.unlink(f)
 
     q_listener, q = logger_init()
     logging.info('starting kopano-mfr')

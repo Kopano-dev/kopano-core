@@ -5,6 +5,7 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import codecs
 import datetime
 import email.parser as email_parser
 import email.utils as email_utils
@@ -46,7 +47,7 @@ from MAPI.Struct import (
 from MAPI.Tags import (
     PR_BODY, PR_DISPLAY_NAME_W, PR_MESSAGE_CLASS_W, PR_CHANGE_KEY,
     PR_CONTAINER_CLASS_W, PR_ENTRYID, PR_EC_HIERARCHYID, PR_HASATTACH,
-    PR_SOURCE_KEY, PR_SUBJECT_W, PR_ATTACH_LONG_FILENAME_W,
+    PR_SOURCE_KEY, PR_SUBJECT_W, PR_ATTACH_LONG_FILENAME_W, PR_INTERNET_CPID,
     PR_MESSAGE_SIZE, PR_BODY_W, PR_CREATION_TIME, PR_CLIENT_SUBMIT_TIME,
     PR_MESSAGE_DELIVERY_TIME, PR_LAST_MODIFICATION_TIME,
     PR_MESSAGE_FLAGS, PR_PARENT_ENTRYID, PR_IMPORTANCE,
@@ -89,7 +90,7 @@ from .compat import (
 from .defs import (
     NAMED_PROPS_ARCHIVER, NAMED_PROP_CATEGORY, ADDR_PROPS,
     PSETID_Archive, URGENCY, REV_URGENCY, ASF_MEETING, ASF_RECEIVED,
-    ASF_CANCELED
+    ASF_CANCELED, CODEPAGE_ENCODING
 )
 from .errors import (
     Error, NotFoundError, _DeprecationWarning
@@ -624,7 +625,7 @@ class Item(Properties, Contact, Appointment):
             message_headers = self.prop(PR_TRANSPORT_MESSAGE_HEADERS)
             if sys.hexversion >= 0x03000000:
                 headers = email_parser.BytesParser().parsebytes(message_headers.value, headersonly=True)
-            else:
+            else: # pragma: no cover
                 headers = email_parser.Parser().parsestr(message_headers.value, headersonly=True)
             return headers
         except NotFoundError:
@@ -655,6 +656,16 @@ class Item(Properties, Contact, Appointment):
     @html.setter
     def html(self, x):
         self.create_prop(PR_HTML, x)
+
+    @property
+    def html_utf8(self):
+        """ HTML representation, encoded with utf-8  """
+        if self.encoding == 'utf-8':
+            return self.html
+        else:
+            html = codecs.decode(self.html, self.encoding or 'ascii', 'replace')
+            # TODO set meta charset to utf-8!?
+            return html.encode('utf-8')
 
     @property
     def filtered_html(self):
@@ -904,6 +915,8 @@ class Item(Properties, Contact, Appointment):
 
     @property
     def replyto(self):
+        """ :class:`Addresses <Address>` where reply should be sent """
+
         try:
             entries = self[PR_REPLY_RECIPIENT_ENTRIES]
         except NotFoundError:
@@ -1064,6 +1077,7 @@ class Item(Properties, Contact, Appointment):
 
     def _dump(self, attachments=True, archiver=True, skip_broken=False, _main_item=None):
         _main_item = _main_item or self
+        log = self.server.log
 
         # props
         props = []
@@ -1117,20 +1131,13 @@ class Item(Properties, Contact, Appointment):
                     try:
                         data = _utils.stream(att, PR_ATTACH_DATA_BIN)
                     except MAPIErrorNotFound:
-                        service = self.server.service
-                        log = (service or self.server).log
-                        if log:
-                            log.warn("no data found for attachment of item with entryid %s" % _main_item.entryid)
+                        log.warn("no data found for attachment of item with entryid %s" % _main_item.entryid)
                         data = ''
                     atts.append(([[a, b, None] for a, b in row.items()], data))
             except Exception as e: # XXX generalize so usable in more places
-                service = self.server.service
-                log = (service or self.server).log
-                if log:
-                    log.error('could not serialize attachment for item with entryid %s' % _main_item.entryid)
+                log.error('could not serialize attachment for item with entryid %s' % _main_item.entryid)
                 if skip_broken:
-                    if log:
-                        log.error(traceback.format_exc(e))
+                    log.error(traceback.format_exc())
                     if service and service.stats:
                         service.stats['errors'] += 1
                 else:
@@ -1209,7 +1216,7 @@ class Item(Properties, Contact, Appointment):
         ])
         if kwargs.get('subject'):
             attach.SetProps([
-                SPropValue(PR_DISPLAY_NAME_W, kwargs.get('subject')),
+                SPropValue(PR_DISPLAY_NAME_W, _unicode(kwargs.get('subject'))),
             ])
 
         msg = attach.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
@@ -1329,6 +1336,20 @@ class Item(Properties, Contact, Appointment):
     def is_meetingrequest(self):
         """ Is the item a meeting request """
         return self.message_class.startswith('IPM.Schedule.Meeting.')
+
+    @property
+    def codepage(self):
+        """ Windows codepage """
+        return self.get(PR_INTERNET_CPID)
+
+    @property
+    def encoding(self):
+        """ Encoding used for html body"""
+        if self.codepage is not None:
+            try:
+                return CODEPAGE_ENCODING[self.codepage]
+            except KeyError:
+                pass
 
     def __eq__(self, i): # XXX check same store?
         if isinstance(i, Item):

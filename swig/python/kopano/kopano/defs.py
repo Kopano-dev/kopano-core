@@ -249,3 +249,61 @@ REV_URGENCY = dict((b, a) for (a, b) in URGENCY.items())
 ASF_MEETING = 1
 ASF_RECEIVED = 2
 ASF_CANCELED = 4
+
+CODEPAGE_ENCODING = {
+# TODO unbeknownst to python, although one separate codec exists:
+#
+# https://bugs.python.org/file11214/ia5.py
+#
+# 20106: 'DIN_66003',
+# 20108: 'NS_4551-1',
+# 20107: 'SEN_850200_B',
+
+    950: 'big5',
+    50221: 'csISO2022JP',
+    51932: 'euc-jp',
+    51936: 'euc-cn',
+    51949: 'euc-kr',
+    949: 'euc-kr',
+    949: 'cp949',
+    949: 'ks_c_5601-1987',
+    936: 'gb18030',
+    936: 'gb2312',
+    936: 'GBK',
+    52936: 'hz',
+    852: 'ibm852',
+    866: 'ibm866',
+    50220: 'iso-2022-jp',
+    50222: 'iso-2022-jp',
+    50225: 'iso-2022-kr',
+    1252: 'windows-1252',
+    28591: 'iso-8859-1',
+    28592: 'iso-8859-2',
+    28593: 'iso-8859-3',
+    28594: 'iso-8859-4',
+    28595: 'iso-8859-5',
+    28596: 'iso-8859-6',
+    28597: 'iso-8859-7',
+    28598: 'iso-8859-8',
+    28599: 'iso-8859-9',
+    28603: 'iso-8859-13',
+    28605: 'iso-8859-15',
+    20866: 'koi8-r',
+    21866: 'koi8-u',
+    932: 'shift-jis',
+    932: 'shift_jis',
+    1200: 'utf-16-le',
+    1201: 'utf-16-be',
+    65000: 'utf-7',
+    65001: 'utf-8',
+    1250: 'windows-1250',
+    1251: 'windows-1251',
+    1253: 'windows-1253',
+    1254: 'windows-1254',
+    1255: 'windows-1255',
+    1256: 'windows-1256',
+    1257: 'windows-1257',
+    1258: 'windows-1258',
+    874: 'cp874',
+    20127: 'us-ascii',
+}

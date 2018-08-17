@@ -12,11 +12,8 @@ import falcon
 class AttachmentResource(Resource):
     fields = {
         'id': lambda attachment: attachment.entryid,
-        'name': lambda attachment: attachment.name,
         'lastModifiedDateTime': lambda attachment: _date(attachment.last_modified),
         'size': lambda attachment: attachment.size,
-        'isInline': lambda attachment: False, # TODO
-        'contentType': lambda attachment: attachment.mimetype,
     }
 
     # TODO to ItemAttachmentResource
@@ -68,13 +65,19 @@ class AttachmentResource(Resource):
 
         attachment = item.attachment(attachmentid)
         item.delete(attachment)
-        resp.status = falcon.HTTP_204
+
+        self.respond_204(resp)
 
 class FileAttachmentResource(AttachmentResource):
     fields = AttachmentResource.fields.copy()
     fields.update({
         '@odata.type': lambda attachment: '#microsoft.graph.fileAttachment',
+        'name': lambda attachment: attachment.name,
         'contentBytes': lambda attachment: base64.urlsafe_b64encode(attachment.data).decode('ascii'),
+        'isInline': lambda attachment: attachment.inline,
+        'contentType': lambda attachment: attachment.mimetype,
+        'contentId': lambda attachment: attachment.content_id,
+        'contentLocation': lambda attachment: attachment.content_location,
     })
 
 class ItemAttachmentResource(AttachmentResource):

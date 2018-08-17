@@ -1,0 +1,3 @@
+bsddb3
+kopano
+xapian

@@ -426,7 +426,7 @@ class Service(kopano.Service):
                 print("no such store: %s" % store_guid, file=sys.stderr)
                 sys.exit(1)
             else:
-                store_guids.append(store_guid)
+                store_guids.append(store.guid)
 
         for store_guid in store_guids:
             with closing(kopano.client_socket(self.config['server_bind_name'], ssl_cert=self.config['ssl_certificate_file'])) as s:
@@ -444,4 +444,4 @@ def main():
         service.start()
 
 if __name__ == '__main__':
-    main()
+    main() # pragma: no cover

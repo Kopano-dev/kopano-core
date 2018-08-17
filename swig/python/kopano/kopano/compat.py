@@ -16,12 +16,6 @@ try:
 except ImportError: # pragma: no cover
     from .lru_cache import lru_cache
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    # We only need it for Python 2
-    pass
-
 import base64
 import codecs
 import io
@@ -114,7 +108,7 @@ else: # pragma: no cover
         return isinstance(i, (int, long))
 
     def is_file(f):
-        return isinstance(f, file) or isinstance(f, StringIO)
+        return isinstance(f, file) or isinstance(f, (io.BytesIO, io.StringIO))
 
     def encode(s):
         # sys.stdout can be StringIO (nosetests)

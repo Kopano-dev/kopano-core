@@ -121,9 +121,12 @@ class UserResource(Resource):
             data = self.generator(req, calendar.items, calendar.count)
             self.respond(req, resp, data, EventResource.fields)
 
-        elif method == 'calendarView': # TODO multiple calendars?
+        elif method == 'calendarView': # TODO multiple calendars? merge code with calendar.py
             start, end = _start_end(req)
-            data = (store.calendar.occurrences(start, end), DEFAULT_TOP, 0, 0)
+            def yielder(**kwargs):
+                for occ in store.calendar.occurrences(start, end):
+                    yield occ
+            data = self.generator(req, yielder)
             self.respond(req, resp, data, EventResource.fields)
 
         elif method == 'reminderView': # TODO multiple calendars?

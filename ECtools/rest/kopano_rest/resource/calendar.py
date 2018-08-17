@@ -30,7 +30,14 @@ class CalendarResource(FolderResource):
 
             if method == 'calendarView':
                 start, end = _start_end(req)
-                data = (folder.occurrences(start, end), DEFAULT_TOP, 0, 0)
+                def yielder(page_limit=None, **kwargs):
+                    count = 0
+                    for occ in folder.occurrences(start, end):
+                        yield occ
+                        count += 1
+                        if page_limit is not None and count >= page_limit:
+                            break
+                data = self.generator(req, yielder)
                 fields = EventResource.fields
 
             elif method == 'events':

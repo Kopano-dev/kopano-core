@@ -777,13 +777,13 @@ class Folder(Properties):
         if state is None:
             state = _benc(8 * b'\0')
         importer.store = self.store
-        return _ics.sync(self.store.server, self.mapiobj, importer, state, log, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
+        return _ics.sync(self.store.server, self.mapiobj, importer, state, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
 
-    def hierarchy_sync(self, importer, state=None):
+    def sync_hierarchy(self, importer, state=None, stats=None): # TODO rename as sync_hierarchy? consistent with sync, sync_gab..?
         if state is None:
             state = _benc(8 * b'\0')
         importer.store = self.store
-        return _ics.hierarchy_sync(self.store.server, self.mapiobj, importer, state)
+        return _ics.sync_hierarchy(self.store.server, self.mapiobj, importer, state, stats)
 
     def readmbox(self, location):
         for message in mailbox.mbox(location):

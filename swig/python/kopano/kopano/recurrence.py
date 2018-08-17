@@ -173,10 +173,7 @@ class Recurrence(object):
             pts = 0
             for weekday in value:
                 pts |= (1 << weekdays[weekday])
-            self._pattern_type_specific = [pts]
-
-            if self._pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
-                self._pattern_type_specific.append(5) # TODO
+            self._pattern_type_specific[0] = pts
 
         # TODO fill in
 
@@ -188,7 +185,12 @@ class Recurrence(object):
     @property
     def month(self):
         if self._recur_frequency == FREQ_YEAR:
-            return self.start.month # TODO isn't this stored explicitly!?
+            return self.start.month # TODO remove dependency on self.start being set
+
+    @month.setter
+    def month(self, value):
+        if self._recur_frequency == FREQ_YEAR:
+            self.start = self.start.replace(month=value)
 
     @property
     def monthday(self):
@@ -198,7 +200,7 @@ class Recurrence(object):
     @monthday.setter
     def monthday(self, value):
         if self._pattern_type in (PATTERN_MONTHLY, PATTERN_HJMONTHLY):
-            self._pattern_type_specific = [value]
+            self._pattern_type_specific[0] = value
 
     @property
     def index(self):
@@ -211,6 +213,16 @@ class Recurrence(object):
                 5: u'last',
             }[self._pattern_type_specific[1]]
 
+    @index.setter
+    def index(self, value):
+        self._pattern_type_specific[1] = {
+            u'first': 1,
+            u'second': 2,
+            u'third': 3,
+            u'fourth': 4,
+            u'last': 5,
+        }[_unicode(value)] # TODO ArgumentError
+
     @property
     def interval(self):
         if self._recur_frequency == FREQ_YEAR:
@@ -222,11 +234,12 @@ class Recurrence(object):
 
     @interval.setter
     def interval(self, value):
-        if self._pattern_type == PATTERN_DAILY:
+        if self._recur_frequency == FREQ_YEAR:
+            self._period = value*12
+        elif self._pattern_type == PATTERN_DAILY:
             self._period = value * (24 * 60)
         else:
             self._period = value
-        # TODO fill in
 
     @property
     def range_type(self):
@@ -326,7 +339,7 @@ class Recurrence(object):
         rec._first_datetime = 0
         rec._period = 0
         rec._sliding_flag = 0
-        rec._pattern_type_specific = []
+        rec._pattern_type_specific = [0, 0]
         rec._end_type = 0
         rec._occurrence_count = 0
         rec._first_dow = 0
@@ -374,12 +387,12 @@ class Recurrence(object):
 
         pos = 5 * SHORT + 3 * LONG
 
-        self._pattern_type_specific = []
+        self._pattern_type_specific = [0, 0]
         if self._pattern_type != PATTERN_DAILY:
-            self._pattern_type_specific.append(_utils.unpack_long(value, pos))
+            self._pattern_type_specific[0] = _utils.unpack_long(value, pos)
             pos += LONG
             if self._pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
-                self._pattern_type_specific.append(_utils.unpack_long(value, pos))
+                self._pattern_type_specific[1] = _utils.unpack_long(value, pos)
                 pos += LONG
 
         self._end_type = _utils.unpack_long(value, pos)
@@ -551,8 +564,10 @@ class Recurrence(object):
 
         data += struct.pack('<III', self._first_datetime, self._period, self._sliding_flag)
 
-        for i in self._pattern_type_specific:
-            data += struct.pack('<I', i)
+        if self._pattern_type != PATTERN_DAILY:
+            data += struct.pack('<I', self._pattern_type_specific[0])
+            if self._pattern_type in (PATTERN_MONTHNTH, PATTERN_HJMONTHNTH):
+                data += struct.pack('<I', self._pattern_type_specific[1])
 
         data += struct.pack('<I', self._end_type)
 
@@ -684,7 +699,16 @@ class Recurrence(object):
         rule = rruleset()
 
         start = self.start + datetime.timedelta(minutes=self._starttime_offset)
-        end =  self.end + datetime.timedelta(minutes=self._endtime_offset)
+        if self.range_type == u'forever':
+            end = None
+        else:
+            end = self.end + datetime.timedelta(minutes=self._endtime_offset)
+            # FIXME: add one day, so that we don't miss the last recurrence, since the end date is for example 11-3-2015 on 1:00
+            # But the recurrence is on 8:00 that day and we should include it.
+            if self._pattern_type == PATTERN_WEEKLY:
+                end += datetime.timedelta(days=1)
+
+        # TODO for occurrence count?
 
         if self._pattern_type == PATTERN_DAILY:
             rule.rrule(rrule(DAILY, dtstart=start, until=end, interval=self._period // (24 * 60)))
@@ -694,9 +718,7 @@ class Recurrence(object):
             for index, week in RRULE_WEEKDAYS.items():
                 if (self._pattern_type_specific[0] >> index ) & 1:
                     byweekday += (week,)
-            # FIXME: add one day, so that we don't miss the last recurrence, since the end date is for example 11-3-2015 on 1:00
-            # But the recurrence is on 8:00 that day and we should include it.
-            rule.rrule(rrule(WEEKLY, wkst=start.weekday(), dtstart=start, until=end + datetime.timedelta(days=1), byweekday=byweekday, interval=self._period))
+            rule.rrule(rrule(WEEKLY, wkst=start.weekday(), dtstart=start, until=end, byweekday=byweekday, interval=self._period))
 
         elif self._pattern_type == PATTERN_MONTHLY:
             # X Day of every Y month(s)
@@ -1063,7 +1085,7 @@ class Recurrence(object):
                     break
 
             self._modified_instance_count -= 1
-            self._modified_instance_dates = [m for m in self._modified_instance_dates if m != exc['start_datetime']]
+            self._modified_instance_dates = [m for m in self._modified_instance_dates if m != exc['original_start_date']]
 
             del self._exceptions[i]
             del self._extended_exceptions[i]

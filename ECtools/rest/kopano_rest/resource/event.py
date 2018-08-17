@@ -9,7 +9,7 @@ from ..utils import (
     _server_store, _folder
 )
 from .resource import (
-    DEFAULT_TOP, json, _date, set_date, _start_end
+    DEFAULT_TOP, json, _date, _tzdate, set_date, _start_end
 )
 from .item import (
     ItemResource, get_email, get_body, set_body
@@ -139,8 +139,8 @@ class EventResource(ItemResource):
         'id': lambda item: item.eventid,
         'subject': lambda item: item.subject,
         'recurrence': recurrence_json,
-        'start': lambda item: {'dateTime': _date(item.start, True), 'timeZone': 'UTC'} if item.start else None,
-        'end': lambda item: {'dateTime': _date(item.end, True), 'timeZone': 'UTC'} if item.end else None,
+        'start': lambda req, item: _tzdate(item.start, req),
+        'end': lambda req, item: _tzdate(item.end, req),
         'location': lambda item: {'displayName': item.location, 'address': {}}, # TODO
         'importance': lambda item: item.urgency,
         'sensitivity': lambda item: sensitivity_map[item.sensitivity],
@@ -241,4 +241,5 @@ class EventResource(ItemResource):
         folder = _folder(store, folderid or 'calendar')
         event = folder.event(eventid)
         folder.delete(event)
-        resp.status = falcon.HTTP_204
+
+        self.respond_204(resp)
