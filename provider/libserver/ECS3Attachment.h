@@ -6,6 +6,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <list>
+#include <memory>
 #include <set>
 #include <string>
 #include <libs3.h>
@@ -27,7 +28,7 @@ struct s3_cache_entry {
 class ECS3Config final : public ECAttachmentConfig {
 	public:
 	virtual ~ECS3Config();
-	virtual ECRESULT init(ECConfig *) override;
+	virtual ECRESULT init(std::shared_ptr<ECConfig>) override;
 	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
 
 	private:

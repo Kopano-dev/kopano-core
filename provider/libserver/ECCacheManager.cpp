@@ -6,6 +6,7 @@
 #include <chrono>
 #include <list>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <string>
@@ -62,7 +63,7 @@ template<> size_t GetCacheAdditionalSize(const ECsUEIdKey &val)
 	return MEMORY_USAGE_STRING(val.strExternId);
 }
 
-ECCacheManager::ECCacheManager(ECConfig *lpConfig,
+ECCacheManager::ECCacheManager(std::shared_ptr<ECConfig> lpConfig,
     ECDatabaseFactory *lpDatabaseFactory) :
 	m_lpDatabaseFactory(lpDatabaseFactory),
 	m_QuotaCache("quota", atoi(lpConfig->GetSetting("cache_quota_size")), atoi(lpConfig->GetSetting("cache_quota_lifetime")) * 60)

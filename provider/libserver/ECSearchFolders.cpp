@@ -888,7 +888,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	if(er != erSuccess)
 		return er;
 
-	if (GetIndexerResults(lpDatabase, m_lpSessionManager->GetConfig(), cache,
+	if (GetIndexerResults(lpDatabase, m_lpSessionManager->GetConfig().get(), cache,
 	    &guidServer, &guidStore, lstFolders, lpSearchCrit->lpRestrict,
 	    &lpAdditionalRestrict, lstIndexerResults, suggestion) == erSuccess)
 		er = search_r1(lpDatabase, lpSession, std::move(ecODStore),

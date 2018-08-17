@@ -2,6 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <memory>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
 #include <kopano/ECLogger.h>
@@ -19,9 +21,9 @@ namespace KC {
 
 extern ECStatsCollector*     g_lpStatsCollector;
 
-ECTPropsPurge::ECTPropsPurge(ECConfig *lpConfig,
+ECTPropsPurge::ECTPropsPurge(std::shared_ptr<ECConfig> c,
     ECDatabaseFactory *lpDatabaseFactory) :
-	m_lpConfig(lpConfig), m_lpDatabaseFactory(lpDatabaseFactory)
+	m_lpConfig(std::move(c)), m_lpDatabaseFactory(lpDatabaseFactory)
 {
     // Start our purge thread
 	auto ret = pthread_create(&m_hThread, nullptr, Thread, this);

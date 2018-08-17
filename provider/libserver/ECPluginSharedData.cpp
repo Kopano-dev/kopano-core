@@ -2,6 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <memory>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
@@ -12,9 +14,9 @@ ECPluginSharedData *ECPluginSharedData::m_lpSingleton = NULL;
 std::mutex ECPluginSharedData::m_SingletonLock;
 std::mutex ECPluginSharedData::m_CreateConfigLock;
 
-ECPluginSharedData::ECPluginSharedData(ECConfig *lpParent,
+ECPluginSharedData::ECPluginSharedData(std::shared_ptr<ECConfig> parent,
     ECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed) :
-	m_lpParentConfig(lpParent), m_lpStatsCollector(lpStatsCollector),
+	m_lpParentConfig(std::move(parent)), m_lpStatsCollector(lpStatsCollector),
 	m_bHosted(bHosted), m_bDistributed(bDistributed)
 {
 }
@@ -37,13 +39,13 @@ ECPluginSharedData::~ECPluginSharedData()
 }
 
 void ECPluginSharedData::GetSingleton(ECPluginSharedData **lppSingleton,
-    ECConfig *lpParent, ECStatsCollector *lpStatsCollector, bool bHosted,
-    bool bDistributed)
+    std::shared_ptr<ECConfig> parent, ECStatsCollector *lpStatsCollector,
+    bool bHosted, bool bDistributed)
 {
 	scoped_lock lock(m_SingletonLock);
 
 	if (!m_lpSingleton)
-		m_lpSingleton = new ECPluginSharedData(lpParent, lpStatsCollector, bHosted, bDistributed);
+		m_lpSingleton = new ECPluginSharedData(std::move(parent), lpStatsCollector, bHosted, bDistributed);
 	++m_lpSingleton->m_ulRefCount;
 	*lppSingleton = m_lpSingleton;
 }

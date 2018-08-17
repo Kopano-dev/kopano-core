@@ -137,8 +137,8 @@ static const char *RelationTypeToName(userobject_relation_t type)
 }
 
 ECUserManagement::ECUserManagement(BTSession *s,
-    ECPluginFactory *f, ECConfig *c) :
-	m_lpPluginFactory(f), m_lpSession(s), m_lpConfig(c)
+    ECPluginFactory *f, std::shared_ptr<ECConfig> c) :
+	m_lpPluginFactory(f), m_lpSession(s), m_lpConfig(std::move(c))
 {}
 
 // Authenticate a user (NOTE: ECUserManagement will never authenticate SYSTEM unless it is actually

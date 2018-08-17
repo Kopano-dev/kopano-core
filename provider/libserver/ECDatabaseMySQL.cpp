@@ -6,7 +6,9 @@
 #include <kopano/platform.h>
 #include <iostream>
 #include <list>
+#include <memory>
 #include <string>
+#include <utility>
 #include <errmsg.h>
 #include "mysqld_error.h"
 #include <kopano/stringutil.h>
@@ -345,10 +347,10 @@ int zcp_versiontuple::compare(const zcp_versiontuple &rhs) const
 	return 0;
 }
 
-ECDatabase::ECDatabase(ECConfig *cfg) :
-    m_lpConfig(cfg)
+ECDatabase::ECDatabase(std::shared_ptr<ECConfig> c) :
+	m_lpConfig(std::move(c))
 {
-	auto s = cfg->GetSetting("mysql_database");
+	auto s = m_lpConfig->GetSetting("mysql_database");
 	if (s != nullptr)
 		/* used by db_update_69 */
 		m_dbname = s;
@@ -448,7 +450,7 @@ ECRESULT ECDatabase::Connect(void)
 	 * want to know when the connection is broken since this creates a new
 	 * MySQL session, and we want to set some session variables.
 	 */
-	auto er = KDatabase::Connect(m_lpConfig, false,
+	auto er = KDatabase::Connect(m_lpConfig.get(), false,
 	          CLIENT_MULTI_STATEMENTS, gcm);
 	if (er != erSuccess)
 		return er;
@@ -718,10 +720,10 @@ void ECDatabase::ThreadEnd(void)
 
 ECRESULT ECDatabase::CreateDatabase(void)
 {
-	auto er = KDatabase::CreateDatabase(m_lpConfig, false);
+	auto er = KDatabase::CreateDatabase(m_lpConfig.get(), false);
 	if (er != erSuccess)
 		return er;
-	er = KDatabase::CreateTables(m_lpConfig);
+	er = KDatabase::CreateTables(m_lpConfig.get());
 	if (er != erSuccess)
 		return er;
 

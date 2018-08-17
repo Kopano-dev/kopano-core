@@ -6,6 +6,7 @@
 #ifndef ECDATABASEFACTORY_H
 #define ECDATABASEFACTORY_H
 
+#include <memory>
 #include <kopano/zcdefs.h>
 #include "ECDatabase.h"
 #include <kopano/ECConfig.h>
@@ -18,7 +19,7 @@ namespace KC {
 
 class _kc_export ECDatabaseFactory _kc_final {
 public:
-	ECDatabaseFactory(ECConfig *lpConfig);
+	ECDatabaseFactory(std::shared_ptr<ECConfig>);
 	ECRESULT		CreateDatabaseObject(ECDatabase **lppDatabase, std::string &ConnectError);
 	ECRESULT		CreateDatabase();
 	ECRESULT		UpdateDatabase(bool bForceUpdate, std::string &strError);
@@ -26,7 +27,7 @@ public:
 private:
 	_kc_hidden ECRESULT GetDatabaseFactory(ECDatabase **);
 
-	ECConfig*		m_lpConfig;
+	std::shared_ptr<ECConfig> m_lpConfig;
 };
 
 ECRESULT	GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDatabase);

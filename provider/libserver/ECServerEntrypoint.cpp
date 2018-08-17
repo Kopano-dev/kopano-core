@@ -4,7 +4,9 @@
  */
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
+#include <memory>
 #include <mutex>
+#include <utility>
 #include <pthread.h>
 #include <kopano/ECLogger.h>
 #include <kopano/hl.hpp>
@@ -92,12 +94,13 @@ ECRESULT kopano_unloadlibrary(void)
 	return erSuccess;
 }
 
-ECRESULT kopano_init(ECConfig *lpConfig, std::shared_ptr<ECLogger> ad, bool bHostedKopano, bool bDistributedKopano)
+ECRESULT kopano_init(std::shared_ptr<ECConfig> cfg, std::shared_ptr<ECLogger> ad,
+    bool bHostedKopano, bool bDistributedKopano)
 {
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
 	try {
-		g_lpSessionManager = new ECSessionManager(lpConfig, std::move(ad), bHostedKopano, bDistributedKopano);
+		g_lpSessionManager = new ECSessionManager(std::move(cfg), std::move(ad), bHostedKopano, bDistributedKopano);
 	} catch (const KMAPIError &e) {
 		return e.code();
 	}

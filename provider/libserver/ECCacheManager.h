@@ -407,7 +407,7 @@ typedef std::unordered_map<ECsIndexProp, ECsIndexObject> ECMapPropToObject;
 
 class ECCacheManager _kc_final {
 public:
-	ECCacheManager(ECConfig *lpConfig, ECDatabaseFactory *lpDatabase);
+	ECCacheManager(std::shared_ptr<ECConfig>, ECDatabaseFactory *lpDatabase);
 	virtual ~ECCacheManager();
 	ECRESULT PurgeCache(unsigned int ulFlags);
 
