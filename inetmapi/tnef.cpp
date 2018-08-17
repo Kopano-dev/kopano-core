@@ -1264,8 +1264,7 @@ HRESULT ECTNEF::FinishComponent(ULONG flags, ULONG ulComponentID,
     AttachRendData sData;
 	static constexpr const SizedSPropTagArray(2, sptaTags) =
 		{2, {PR_ATTACH_METHOD, PR_RENDERING_POSITION}};
-	std::unique_ptr<tnefattachment> sTnefAttach(new(std::nothrow) tnefattachment);
-
+	auto sTnefAttach = make_unique_nt<tnefattachment>();
 	if (sTnefAttach == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	if (flags != TNEF_COMPONENT_ATTACHMENT)

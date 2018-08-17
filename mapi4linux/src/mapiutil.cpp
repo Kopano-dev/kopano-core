@@ -116,7 +116,7 @@ static HRESULT RTFCommitFunc(IStream *lpUncompressedStream, void *lpData)
 	auto hr = lpUncompressedStream->Stat(&sStatStg, STATFLAG_NONAME);
 	if(hr != hrSuccess)
 		return hr;
-	std::unique_ptr<char[]> lpUncompressed(new(std::nothrow) char[sStatStg.cbSize.LowPart]);
+	auto lpUncompressed = make_unique_nt<char[]>(sStatStg.cbSize.LowPart);
 	if (lpUncompressed == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto lpReadPtr = lpUncompressed.get();

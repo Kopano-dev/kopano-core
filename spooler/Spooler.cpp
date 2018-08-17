@@ -200,7 +200,7 @@ static void *HandlerSP_Thread(void *varg)
 static HRESULT StartSpoolerThread(SendData &&sd, const char *smtp_host,
     uint16_t smtp_port, const char *path, unsigned int flags)
 {
-	std::unique_ptr<sp_handlerargs> th_arg(new(std::nothrow) sp_handlerargs);
+	auto th_arg = make_unique_nt<sp_handlerargs>();
 	if (th_arg == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	th_arg->sd = std::move(sd);

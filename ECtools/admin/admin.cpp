@@ -1769,7 +1769,7 @@ static int fexec(const std::string &admin, std::vector<std::string> &&cmd)
 		cmd[0] = admin.substr(0, pos + 1) + cmd[0];
 	cerr << "The selected option is deprecated in this utility.\n";
 	cerr << "\e[1;33m""Forwarding call to: `" << kc_join(cmd, " ") << "`.\e[0m\n";
-	std::unique_ptr<const char *[]> argv(new(std::nothrow) const char *[cmd.size()+1]);
+	auto argv = make_unique_nt<const char *[]>(cmd.size() + 1);
 	int argc = 0;
 	if (argv == nullptr) {
 		perror("new");

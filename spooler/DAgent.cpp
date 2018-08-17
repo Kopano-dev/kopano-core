@@ -1463,7 +1463,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	while (environ[s] != nullptr)
 		s++;
 
-	std::unique_ptr<const char *[]> env(new(std::nothrow) const char *[s + 5]);
+	auto env = make_unique_nt<const char *[]>(s + 5);
 	if (env == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 
@@ -3094,7 +3094,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	std::shared_ptr<StatsClient> sc(new StatsClient);
+	auto sc = std::make_shared<StatsClient>();
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent version " PROJECT_VERSION " (pid %d) (LMTP mode)", getpid());
 
@@ -3133,7 +3133,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			}
 
 			// One socket has signalled a new incoming connection
-			std::unique_ptr<DeliveryArgs> da(new DeliveryArgs(*lpArgs));
+			auto da = std::make_unique<DeliveryArgs>(*lpArgs);
 			hr = HrAccept(lmtp_poll[i].fd, &unique_tie(da->lpChannel));
 			if (hr != hrSuccess) {
 				kc_perrorf("HrAccept failed", hr);
@@ -3304,7 +3304,7 @@ static HRESULT direct_delivery(int argc, char **argv,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-	std::shared_ptr<StatsClient> sc(new StatsClient);
+	auto sc = std::make_shared<StatsClient>();
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	sDeliveryArgs.sc = std::move(sc);
 	hr = pyMapiPluginFactory.create_plugin(g_lpConfig.get(), "DAgentPluginManager", &unique_tie(ptrPyMapiPlugin));

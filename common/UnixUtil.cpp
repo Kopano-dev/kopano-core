@@ -7,6 +7,7 @@
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
 #include <kopano/UnixUtil.h>
+#include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -364,7 +365,7 @@ bool unix_system(const char *lpszLogName, const std::vector<std::string> &cmd,
 	int argc = 0;
 	if (cmd.size() == 0)
 		return false;
-	std::unique_ptr<const char *[]> argv(new(std::nothrow) const char *[cmd.size()+1]);
+	auto argv = make_unique_nt<const char *[]>(cmd.size() + 1);
 	if (argv == nullptr)
 		return false;
 	for (const auto &e : cmd)

@@ -19,6 +19,7 @@
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <kopano/mapiext.h>
+#include <kopano/memory.hpp>
 #include <kopano/tie.hpp>
 #include <mapiguid.h>
 #include <kopano/CommonUtil.h>
@@ -588,7 +589,9 @@ static HRESULT gw_listen(ECConfig *cfg)
 static HRESULT handler_client(size_t i)
 {
 	// One socket has signalled a new incoming connection
-	std::unique_ptr<HandlerArgs> lpHandlerArgs(new HandlerArgs);
+	auto lpHandlerArgs = make_unique_nt<HandlerArgs>();
+	if (lpHandlerArgs == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	lpHandlerArgs->lpLogger = g_lpLogger;
 	lpHandlerArgs->lpConfig = g_lpConfig;
 	lpHandlerArgs->type = g_socks.pop3[i] ? ST_POP3 : ST_IMAP;

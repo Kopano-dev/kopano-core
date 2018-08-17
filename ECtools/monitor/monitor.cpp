@@ -19,6 +19,7 @@
 #include <mapiguid.h>
 #include <kopano/ECScheduler.h>
 #include <kopano/automapi.hpp>
+#include <kopano/memory.hpp>
 #include <kopano/my_getopt.h>
 #include "ECMonitorDefs.h"
 #include "ECQuotaMonitor.h"
@@ -46,7 +47,7 @@ static HRESULT running_service(void)
 		ec_log_crit("Unable to initialize MAPI");
 		return hr;
 	}
-	std::unique_ptr<ECScheduler> lpECScheduler(new(std::nothrow) ECScheduler);
+	auto lpECScheduler = make_unique_nt<ECScheduler>();
 	if (lpECScheduler == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	unsigned int ulInterval = atoi(m_lpThreadMonitor->lpConfig->GetSetting("quota_check_interval", nullptr, "15"));

@@ -16,6 +16,7 @@
 #include <mapitags.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/hl.hpp>
+#include <kopano/memory.hpp>
 #include <kopano/tie.hpp>
 #include "ECMAPI.h"
 #include "ECDatabase.h"
@@ -475,9 +476,9 @@ ECRESULT ECSessionManager::CreateSessionInternal(ECSession **lppSession, unsigne
 
 	CreateSessionID(KOPANO_CAP_LARGE_SESSIONID, &newSID);
 
-	std::unique_ptr<ECSession> lpSession(new(std::nothrow) ECSession("<internal>",
+	auto lpSession = make_unique_nt<ECSession>("<internal>",
 		newSID, 0, m_lpDatabaseFactory.get(), this, 0,
-		ECSession::METHOD_NONE, 0, "internal", "kopano-server", "", ""));
+		ECSession::METHOD_NONE, 0, "internal", "kopano-server", "", "");
 	if (lpSession == NULL)
 		return KCERR_LOGON_FAILED;
 	auto er = lpSession->GetSecurity()->SetUserContext(ulUserId, EC_NO_IMPERSONATOR);

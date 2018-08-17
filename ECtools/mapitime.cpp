@@ -333,7 +333,7 @@ static int mpt_main_bin2hex()
 {
 	struct mpt_stat_entry dp;
 	static constexpr const size_t bufsize = 1048576;
-	std::unique_ptr<char[]> temp(new char[bufsize]);
+	auto temp = std::make_unique<char[]>(bufsize);
 	memset(temp.get(), 0, bufsize);
 	while (mpt_repeat-- > 0) {
 		dp.start = clk::now();

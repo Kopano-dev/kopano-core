@@ -6,6 +6,7 @@
 #include <memory>
 #include <new>
 #include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 #include "WSMessageStreamExporter.h"
 #include "WSSerializedMessage.h"
 #include "WSTransport.h"
@@ -34,7 +35,7 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 		return MAPI_E_INVALID_PARAMETER;
 	
 	for (gsoap_size_t i = 0; i < streams.__size; ++i) {
-		std::unique_ptr<StreamInfo> lpsi(new(std::nothrow) StreamInfo);
+		auto lpsi = make_unique_nt<StreamInfo>();
 		if (lpsi == nullptr)
 			return MAPI_E_NOT_ENOUGH_MEMORY;
 		lpsi->id.assign(streams.__ptr[i].sStreamData.xop__Include.id);

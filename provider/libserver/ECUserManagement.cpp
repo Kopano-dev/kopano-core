@@ -343,8 +343,6 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 {
 	bool bSync = ulFlags & USERMANAGEMENT_FORCE_SYNC || parseBool(m_lpConfig->GetSetting("sync_gab_realtime"));
 	bool bIsSafeMode = parseBool(m_lpConfig->GetSetting("user_safe_mode"));
-	// Return data
-	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects(new std::list<localobjectdetails_t>);
 	// Local ids
 	std::unique_ptr<std::list<unsigned int> > lpLocalIds;
 	// Extern ids
@@ -388,6 +386,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	if (er != erSuccess)
 		return er;
 
+	auto lpObjects = std::make_unique<std::list<localobjectdetails_t>>();
 	for (const auto &loc_id : *lpLocalIds) {
 		if (IsInternalObject(loc_id)) {
 			// Local user, add it to the result array directly
@@ -505,8 +504,6 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t relation, unsigned int ulParentId,
 														std::list<localobjectdetails_t> **lppObjects, unsigned int ulFlags)
 {
-	// Return data
-	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects(new std::list<localobjectdetails_t>);
 	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 	// Extern ids
 	signatures_t lpSignatures;
@@ -525,6 +522,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 		return KCERR_NO_SUPPORT;
 
 	// The 'everyone' group contains all visible users for the currently logged in user.
+	auto lpObjects = std::make_unique<std::list<localobjectdetails_t>>();
 	if (relation == OBJECTRELATION_GROUP_MEMBER && ulParentId == KOPANO_UID_EVERYONE) {
 		ECSecurity *lpSecurity = NULL;
 
@@ -605,8 +603,6 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
  */
 ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t relation, unsigned int ulChildId,
 														   std::list<localobjectdetails_t> **lppObjects, unsigned int ulFlags) {
-	// Return data
-	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects(new std::list<localobjectdetails_t>());
 	// Extern ids
 	signatures_t lpSignatures;
 	// Extern -> Local
@@ -628,6 +624,7 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 	    relation == OBJECTRELATION_COMPANY_ADMIN))
 		return KCERR_NO_SUPPORT;
 
+	auto lpObjects = std::make_unique<std::list<localobjectdetails_t>>();
 	if (relation == OBJECTRELATION_GROUP_MEMBER && ulChildId == KOPANO_UID_SYSTEM) {
 		// System has no objects
 	} else {
@@ -1224,7 +1221,6 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 {
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpResult;
-	std::unique_ptr<std::list<unsigned int> > lpObjects(new std::list<unsigned int>);
 
 	auto er = m_lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
@@ -1247,6 +1243,7 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 	if (er != erSuccess)
 		return er;
 
+	auto lpObjects = std::make_unique<std::list<unsigned int>>();
 	while(1) {
 		auto lpRow = lpResult.fetch_row();
 		if(lpRow == NULL)
@@ -4024,7 +4021,7 @@ ECRESULT ECUserManagement::GetABSourceKeyV1(unsigned int ulUserId, SOURCEKEY *lp
 		return er;
 
 	unsigned int ulLen = CbNewABEID(strEncExId.c_str());
-	std::unique_ptr<char[]> abchar(new char[ulLen]);
+	auto abchar = std::make_unique<char[]>(ulLen);
 	memset(abchar.get(), 0, ulLen);
 	auto lpAbeid = reinterpret_cast<ABEID *>(abchar.get());
 	lpAbeid->ulId = ulUserId;

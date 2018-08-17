@@ -892,7 +892,9 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 		hr = lpStream->Stat(&sStreamStat, 0);
 		if (hr != hrSuccess)
 			return kc_perror("Could not find size of signed attachment", hr);
-		lpszRawSMTP.reset(new char[(ULONG)sStreamStat.cbSize.QuadPart+1]);
+		lpszRawSMTP = make_unique_nt<char[]>(static_cast<ULONG>(sStreamStat.cbSize.QuadPart) + 1);
+		if (lpszRawSMTP == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		hr = lpStream->Read(lpszRawSMTP.get(), (ULONG)sStreamStat.cbSize.QuadPart, NULL);
 		if (hr != hrSuccess)
 			return kc_perror("Could not read data of signed attachment", hr);
@@ -1192,7 +1194,9 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 		// else just plaintext
 		else if (!strBodyConverted.empty()) {
 			// make sure we give vmime CRLF data, so SMTP servers (qmail) won't complain on the forced plaintext
-			std::unique_ptr<char[]> crlfconv(new char[strBodyConverted.length()*2+1]);
+			auto crlfconv = make_unique_nt<char[]>(strBodyConverted.length() * 2 + 1);
+			if (crlfconv == nullptr)
+				return MAPI_E_NOT_ENOUGH_MEMORY;
 			size_t outsize = 0;
 			BufferLFtoCRLF(strBodyConverted.length(), strBodyConverted.c_str(), crlfconv.get(), &outsize);
 			strBodyConverted.assign(crlfconv.get(), outsize);
@@ -1282,9 +1286,10 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
 		    PROP_TYPE(lpPropArray[i].ulPropTag) != PT_STRING8)
 			continue;
 
-		std::unique_ptr<char[]> str;
 		int l = wcstombs(NULL, lppNames[i]->Kind.lpwstrName, 0) +1;
-		str.reset(new char[l]);
+		auto str = make_unique_nt<char[]>(l);
+		if (str == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		wcstombs(str.get(), lppNames[i]->Kind.lpwstrName, l);
 
 		bool xh = (str[0] == 'X' || str[0] == 'x') && str[1] == '-';

@@ -76,7 +76,7 @@ unsigned int rtf_decompress(char *lpDest, const char *lpSrc,
 		return UINT_MAX;
 	}
 	// Allocate a buffer to decompress into (uncompressed size plus prebuffered data)
-	std::unique_ptr<char[]> lpBuffer(new char[uncomp_size+prebufSize]);
+	auto lpBuffer = std::make_unique<char[]>(uncomp_size + prebufSize);
 	memcpy(lpBuffer.get(), lpPrebuf, prebufSize);
 
 	// Start writing just after the prebuffered data

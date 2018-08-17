@@ -76,7 +76,9 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(const TIMEZONE_STRUCT &sTimeZo
 		dtUTCEnd = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 	}
 
-	std::unique_ptr<recurrence> lpRec(new recurrence);
+	auto lpRec = make_unique_nt<recurrence>();
+	if (lpRec == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	// recurrence class contains LOCAL times only, so convert UTC -> LOCAL
 	lpRec->setStartDateTime(dtLocalStart);
 

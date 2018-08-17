@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <utility>
+#include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
 #include <pthread.h>
 #include <mapidefs.h>
@@ -213,7 +214,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
 	if (!bReStartSearch)
 		return erSuccess;
 	lpSearchFolder->bThreadFree = false;
-	std::unique_ptr<THREADINFO> ti(new(std::nothrow) THREADINFO);
+	auto ti = make_unique_nt<THREADINFO>();
 	if (ti == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	ti->lpSearchFolders = this;

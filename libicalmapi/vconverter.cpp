@@ -103,7 +103,9 @@ HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEve
 			return hrSuccess;
 	}
 
-	std::unique_ptr<icalitem> lpIcalItem(new icalitem);
+	auto lpIcalItem = make_unique_nt<icalitem>();
+	if (lpIcalItem == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = MAPIAllocateBuffer(sizeof(void *), &~lpIcalItem->base);
 	if (hr != hrSuccess)
 		return hr;
@@ -2218,7 +2220,9 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 		return hr;
 	if (sStreamStat.cbSize.LowPart == 0)
 		return MAPI_E_NOT_FOUND;
-	std::unique_ptr<wchar_t[]> lpBody(new WCHAR[sStreamStat.cbSize.LowPart + sizeof(WCHAR)]);
+	auto lpBody = make_unique_nt<wchar_t[]>(sStreamStat.cbSize.LowPart + sizeof(wchar_t));
+	if (lpBody == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	memset(lpBody.get(), 0, (sStreamStat.cbSize.LowPart+1) * sizeof(WCHAR));
 
 	hr = lpStream->Read(lpBody.get(), sStreamStat.cbSize.LowPart * sizeof(WCHAR), NULL);
@@ -2408,7 +2412,9 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		hr = lpStream->Stat(&sStreamStat, 0);
 		if (hr != hrSuccess)
 			return hr;
-		std::unique_ptr<char[]> lpRecurrenceData(new char[sStreamStat.cbSize.LowPart]);
+		auto lpRecurrenceData = make_unique_nt<char[]>(sStreamStat.cbSize.LowPart);
+		if (lpRecurrenceData == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		hr = lpStream->Read(lpRecurrenceData.get(), sStreamStat.cbSize.LowPart, NULL);
 		if (hr != hrSuccess)
 			return hr;
