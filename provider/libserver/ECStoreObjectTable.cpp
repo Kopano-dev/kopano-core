@@ -56,8 +56,6 @@
 
 namespace KC {
 
-extern ECStatsCollector*  g_lpStatsCollector;
-
 static bool IsTruncatableType(unsigned int ulTag)
 {
     switch(PROP_TYPE(ulTag)) {

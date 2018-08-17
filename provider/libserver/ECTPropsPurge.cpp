@@ -19,8 +19,6 @@ using namespace std::chrono_literals;
 
 namespace KC {
 
-extern ECStatsCollector*     g_lpStatsCollector;
-
 ECTPropsPurge::ECTPropsPurge(std::shared_ptr<ECConfig> c,
     ECDatabaseFactory *lpDatabaseFactory) :
 	m_lpConfig(std::move(c)), m_lpDatabaseFactory(lpDatabaseFactory)

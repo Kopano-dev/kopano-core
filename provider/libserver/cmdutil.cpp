@@ -38,7 +38,6 @@
 namespace KC {
 
 extern ECSessionManager*    g_lpSessionManager; // FIXME: remove this global and change the depended source code!
-extern ECStatsCollector* 	g_lpStatsCollector;
 
 static void FreeDeleteItem(DELETEITEM *);
 

@@ -23,7 +23,6 @@ pthread_key_t database_key;
 pthread_key_t plugin_key;
 
 _kc_export ECSessionManager *g_lpSessionManager;
-_kc_export ECStatsCollector *g_lpStatsCollector;
 static std::set<ECDatabase *> g_lpDBObjectList;
 static std::mutex g_hMutexDBObjectList;
 static bool g_bInitLib = false;
@@ -62,7 +61,6 @@ ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 
 	// Init mutex for database object list
 	auto er = ECDatabase::InitLibrary(lpDatabaseDir, lpConfigFile);
-	g_lpStatsCollector = new ECStatsCollector();
 
 	//TODO: with an error remove all variables and g_bInitLib = false
 	g_bInitLib = true;
@@ -122,8 +120,6 @@ ECRESULT kopano_exit()
 
 	delete g_lpSessionManager;
 	g_lpSessionManager = NULL;
-	delete g_lpStatsCollector;
-	g_lpStatsCollector = NULL;
 
 	// Close all database connections
 	scoped_lock l_obj(g_hMutexDBObjectList);

@@ -118,8 +118,7 @@ public:
 	_kc_hidden void submit(const std::string &key, time_t ts, int64_t value);
 };
 
-/* actual variable is in ECServerEntryPoint.cpp */
-extern ECStatsCollector *g_lpStatsCollector;
+extern _kc_export ECStatsCollector *const g_lpStatsCollector;
 
 } /* namespace */
 
