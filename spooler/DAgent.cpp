@@ -35,7 +35,6 @@
 #include <atomic>
 #include <memory>
 #include <string>
-#include <unordered_set>
 #include <utility>
 #include <climits>
 #include <cstdio>
@@ -223,22 +222,6 @@ public:
 	SBinary sEntryId;
 	SBinary sSearchKey;
 	bool bHasIMAP = false;
-};
-
-class kc_icase_hash {
-	public:
-	size_t operator()(const std::string &i) const
-	{
-		return std::hash<std::string>()(strToLower(i));
-	}
-};
-
-class kc_icase_equal {
-	public:
-	bool operator()(const std::string &a, const std::string &b) const
-	{
-		return strcasecmp(a.c_str(), b.c_str()) == 0;
-	}
 };
 
 //Global variables
@@ -1160,57 +1143,6 @@ static bool dagent_oof_active(const SPropValue *prop)
 	if (prop[4].ulPropTag == PR_EC_OUTOFOFFICE_UNTIL)
 		a &= now <= FileTimeToUnixTime(prop[4].Value.ft);
 	return a;
-}
-
-/**
- * Contains all the exact-match header names that will inhibit autoreplies.
- */
-static const std::unordered_set<std::string, kc_icase_hash, kc_icase_equal> kc_stopreply_hdr = {
-	/* Kopano - Vacation header already present, do not send vacation reply. */
-	"X-Kopano-Vacation",
-	/* RFC 3834 - Precedence: list/bulk/junk, do not reply to these mails. */
-	"Auto-Submitted",
-	"Precedence",
-	/* RFC 2919 */
-	"List-Id",
-	/* RFC 2369 */
-	"List-Help",
-	"List-Subscribe",
-	"List-Unsubscribe",
-	"List-Post",
-	"List-Owner",
-	"List-Archive",
-};
-
-/* A list of prefix searches for entire header-value lines */
-static const std::unordered_set<std::string, kc_icase_hash, kc_icase_equal> kc_stopreply_hdr2 = {
-	/* From the package "vacation" */
-	"X-Spam-Flag: YES",
-	/* From openSUSE's vacation package */
-	"X-Is-Junk: YES",
-	"X-AMAZON",
-	"X-LinkedIn",
-};
-
-/**
- * Determines from a set of lines from internet headers (can be wrapped or
- * not) whether to inhibit autoreplies.
- */
-static bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
-{
-	for (const auto &line : hl) {
-		if (isspace(line[0]))
-			continue;
-		size_t pos = line.find_first_of(':');
-		if (pos == std::string::npos || pos == 0)
-			continue;
-		if (kc_stopreply_hdr.find(line.substr(0, pos)) != kc_stopreply_hdr.cend())
-			return true;
-		for (const auto &elem : kc_stopreply_hdr2)
-			if (kc_stopreply_hdr2.find(line.substr(0, elem.size())) != kc_stopreply_hdr2.cend())
-				return true;
-	}
-	return false;
 }
 
 /** 

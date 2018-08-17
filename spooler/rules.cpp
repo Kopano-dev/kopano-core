@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include "rules.h"
 #include <mapi.h>
 #include <mapidefs.h>
@@ -46,6 +47,73 @@ struct actresult {
 	enum actstatus status;
 	HRESULT code;
 };
+
+class kc_icase_hash {
+	public:
+	size_t operator()(const std::string &i) const
+	{
+		return std::hash<std::string>()(strToLower(i));
+	}
+};
+
+class kc_icase_equal {
+	public:
+	bool operator()(const std::string &a, const std::string &b) const
+	{
+		return strcasecmp(a.c_str(), b.c_str()) == 0;
+	}
+};
+
+/**
+ * Contains all the exact-match header names that will inhibit autoreplies.
+ */
+static const std::unordered_set<std::string, kc_icase_hash, kc_icase_equal> kc_stopreply_hdr = {
+	/* Kopano - Vacation header already present, do not send vacation reply. */
+	"X-Kopano-Vacation",
+	/* RFC 3834 - Precedence: list/bulk/junk, do not reply to these mails. */
+	"Auto-Submitted",
+	"Precedence",
+	/* RFC 2919 */
+	"List-Id",
+	/* RFC 2369 */
+	"List-Help",
+	"List-Subscribe",
+	"List-Unsubscribe",
+	"List-Post",
+	"List-Owner",
+	"List-Archive",
+};
+
+/* A list of prefix searches for entire header-value lines */
+static const std::unordered_set<std::string, kc_icase_hash, kc_icase_equal> kc_stopreply_hdr2 = {
+	/* From the package "vacation" */
+	"X-Spam-Flag: YES",
+	/* From openSUSE's vacation package */
+	"X-Is-Junk: YES",
+	"X-AMAZON",
+	"X-LinkedIn",
+};
+
+/**
+ * Determines from a set of lines from internet headers (can be wrapped or
+ * not) whether to inhibit autoreplies.
+ */
+bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
+{
+	for (const auto &line : hl) {
+		if (isspace(line[0]))
+			continue;
+		size_t pos = line.find_first_of(':');
+		if (pos == std::string::npos || pos == 0)
+			continue;
+		if (kc_stopreply_hdr.find(line.substr(0, pos)) != kc_stopreply_hdr.cend())
+			return true;
+		for (const auto &elem : kc_stopreply_hdr2)
+			if (kc_stopreply_hdr2.find(line.substr(0, elem.size())) != kc_stopreply_hdr2.cend())
+				return true;
+	}
+	return false;
+}
 
 static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
     std::wstring &wstrCc, std::wstring &wstrBcc)
@@ -888,6 +956,13 @@ static struct actresult proc_op_reply(IMAPISession *ses, IMsgStore *store,
 {
 	const auto &repl = action.actReply;
 	sc->countInc("rules", "reply_and_oof");
+
+	memory_ptr<SPropValue> pv;
+	if (HrGetOneProp(*msg, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
+	    dagent_avoid_autoreply(tokenize(pv->Value.lpszA, "\n"))) {
+		ec_log_warn("Rule \""s + rule + "\": Not replying to an autoreply");
+		return {ROP_NOOP};
+	}
 	if (action.acttype == OP_REPLY)
 		ec_log_debug("Rule action: replying e-mail");
 	else
@@ -936,6 +1011,12 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		ec_log_debug("Forwarding rule doesn't have recipients");
 		return {ROP_NOOP};
 	}
+	memory_ptr<SPropValue> pv;
+	if (HrGetOneProp(*lppMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &~pv) == hrSuccess &&
+	    dagent_avoid_autoreply(tokenize(pv->Value.lpszA, "\n"))) {
+		ec_log_warn("Rule \""s + rule + "\": Not forwarding autoreplies");
+		return {ROP_NOOP};
+	}
 	if (parseBool(g_lpConfig->GetSetting("no_double_forward"))) {
 		/*
 		 * Loop protection. When header is added to the message, it
@@ -946,9 +1027,7 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		hr = m_propmap.Resolve(*lppMessage);
 		if (hr != hrSuccess)
 			return {ROP_FAILURE, hr};
-
-		memory_ptr<SPropValue> lpPropRule;
-		if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &~lpPropRule) == hrSuccess) {
+		if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &~pv) == hrSuccess) {
 			ec_log_warn("Rule "s + rule + ": FORWARD loop protection. Message will not be forwarded or redirected because it includes header \"x-kopano-rule-action\"");
 			return {ROP_NOOP};
 		}
