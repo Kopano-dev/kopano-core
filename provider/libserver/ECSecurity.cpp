@@ -58,11 +58,10 @@ static const char *RightsToString(unsigned int ulecRights)
  */
 ECSecurity::ECSecurity(ECSession *lpSession, std::shared_ptr<ECConfig> c,
     std::shared_ptr<ECLogger> lpAudit) :
-	m_lpSession(lpSession), m_lpAudit(std::move(lpAudit)), m_lpConfig(std::move(c))
-{
-	m_bRestrictedAdmin = parseBool(m_lpConfig->GetSetting("restrict_admin_permissions"));
-	m_bOwnerAutoFullAccess = parseBool(m_lpConfig->GetSetting("owner_auto_full_access"));
-}
+	m_lpSession(lpSession), m_lpAudit(std::move(lpAudit)), m_lpConfig(std::move(c)),
+	m_bRestrictedAdmin(parseBool(m_lpConfig->GetSetting("restrict_admin_permissions"))),
+	m_bOwnerAutoFullAccess(parseBool(m_lpConfig->GetSetting("owner_auto_full_access")))
+{}
 
 /**
  * Called once for each login after the object was constructed. Since

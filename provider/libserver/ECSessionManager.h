@@ -186,8 +186,8 @@ protected:
 	GUID m_server_guid{};
 	std::shared_ptr<ECLogger> m_lpAudit;
 	std::unique_ptr<ECPluginFactory> m_lpPluginFactory;
-	std::unique_ptr<ECSearchFolders> m_lpSearchFolders;
 	std::unique_ptr<ECDatabaseFactory> m_lpDatabaseFactory;
+	std::unique_ptr<ECSearchFolders> m_lpSearchFolders;
 	std::unique_ptr<ECCacheManager> m_lpECCacheManager;
 	std::unique_ptr<ECTPropsPurge> m_lpTPropsPurge;
 	ECLockManagerPtr m_ptrLockManager;

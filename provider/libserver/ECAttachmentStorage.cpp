@@ -131,11 +131,9 @@ using std::string;
  */
 
 // Generic Attachment storage
-ECAttachmentStorage::ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ulCompressionLevel)
-	: m_lpDatabase(lpDatabase)
+ECAttachmentStorage::ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ulCompressionLevel) :
+	m_lpDatabase(lpDatabase), m_bFileCompression(ulCompressionLevel != 0)
 {
-	m_bFileCompression = ulCompressionLevel != 0;
-
 	if (ulCompressionLevel > Z_BEST_COMPRESSION)
 		ulCompressionLevel = Z_BEST_COMPRESSION;
 

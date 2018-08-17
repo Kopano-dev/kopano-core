@@ -39,15 +39,14 @@ namespace KC {
 ECSessionManager::ECSessionManager(std::shared_ptr<ECConfig> cfg,
     std::shared_ptr<ECLogger> ad, bool bHostedKopano, bool bDistributedKopano) :
 	m_lpConfig(std::move(cfg)), m_bHostedKopano(bHostedKopano),
-	m_bDistributedKopano(bDistributedKopano), m_lpAudit(std::move(ad))
+	m_bDistributedKopano(bDistributedKopano), m_lpAudit(std::move(ad)),
+	m_lpPluginFactory(new ECPluginFactory(m_lpConfig, g_lpStatsCollector, bHostedKopano, bDistributedKopano)),
+	m_lpDatabaseFactory(new ECDatabaseFactory(m_lpConfig)),
+	m_lpSearchFolders(new ECSearchFolders(this, m_lpDatabaseFactory.get())),
+	m_lpECCacheManager(new ECCacheManager(m_lpConfig, m_lpDatabaseFactory.get())),
+	m_lpTPropsPurge(new ECTPropsPurge(m_lpConfig, m_lpDatabaseFactory.get())),
+	m_ptrLockManager(ECLockManager::Create())
 {
-	m_lpPluginFactory.reset(new ECPluginFactory(m_lpConfig, g_lpStatsCollector, bHostedKopano, bDistributedKopano));
-	m_lpDatabaseFactory.reset(new ECDatabaseFactory(m_lpConfig));
-	m_lpSearchFolders.reset(new ECSearchFolders(this, m_lpDatabaseFactory.get()));
-	m_lpECCacheManager.reset(new ECCacheManager(m_lpConfig, m_lpDatabaseFactory.get()));
-	m_lpTPropsPurge.reset(new ECTPropsPurge(m_lpConfig, m_lpDatabaseFactory.get()));
-	m_ptrLockManager = ECLockManager::Create();
-
 	// init SSL randomness for session IDs
 	ssl_random_init();
 

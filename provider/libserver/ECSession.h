@@ -96,9 +96,9 @@ protected:
 	std::atomic<unsigned int> m_ulRefCount{0};
 	std::string		m_strSourceAddr;
 	ECSESSIONID		m_sessionID;
-	bool			m_bCheckIP;
+	bool m_bCheckIP = true;
 	time_t			m_sessionTime;
-	unsigned int		m_ulSessionTimeout;
+	unsigned int m_ulSessionTimeout = 300;
 	ECDatabaseFactory	*m_lpDatabaseFactory;
 	ECSessionManager	*m_lpSessionManager;
 	unsigned int		m_ulClientCapabilities;
@@ -109,10 +109,9 @@ protected:
 	std::condition_variable m_hThreadReleased;
 	std::mutex m_hThreadReleasedMutex;
 	std::mutex m_hRequestStats;
-	unsigned int		m_ulRequests;
+	unsigned int m_ulRequests = 0, m_ulLastRequestPort = 0;
 	std::string		m_strLastRequestURL;
 	std::string		m_strProxyHost;
-	unsigned int		m_ulLastRequestPort;
 	std::string		m_strClientApplicationVersion, m_strClientApplicationMisc;
 };
 
