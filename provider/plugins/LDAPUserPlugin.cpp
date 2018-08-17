@@ -23,7 +23,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
 #include <kopano/memory.hpp>
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include <kopano/stringutil.h>
 #include "LDAPUserPlugin.h"
 #include "ldappasswords.h"

@@ -22,7 +22,7 @@
 #include "ECDatabase.h"
 #include "ECSessionGroup.h"
 #include "ECSessionManager.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECTPropsPurge.h"
 #include "ECDatabaseUtils.h"
 #include "ECSecurity.h"

@@ -24,7 +24,7 @@
 #include "ECDatabase.h"
 #include "SOAPUtils.h"
 #include "ECSearchFolders.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 
 namespace KC {
 

@@ -50,7 +50,7 @@
 #include "ECUserManagement.h"
 #include "ECSecurity.h"
 #include "ECICS.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECStringCompat.h"
 #include "ECTableManager.h"
 #include "ECTPropsPurge.h"

@@ -18,7 +18,7 @@
 #include "ECSubRestriction.h"
 #include "ECSearchFolders.h"
 #include "ECSessionManager.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECIndexer.h"
 #include <kopano/ECTags.h>
 #include "cmdutil.hpp"

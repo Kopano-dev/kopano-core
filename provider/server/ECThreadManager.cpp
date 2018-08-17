@@ -19,7 +19,7 @@
 #endif
 #include <kopano/CommonUtil.h>
 #include "ECSessionManager.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECServerEntrypoint.h"
 #include "ECSoapServerConnection.h"
 #include "soapKCmdService.h"

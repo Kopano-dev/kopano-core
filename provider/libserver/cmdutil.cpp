@@ -26,7 +26,7 @@
 #include "ECICS.h"
 #include "StorageUtil.h"
 #include "ECAttachmentStorage.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECStringCompat.h"
 #include "ECTPropsPurge.h"
 #include "cmdutil.hpp"

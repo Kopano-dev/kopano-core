@@ -11,7 +11,7 @@
 #include "ECSession.h"
 #include "ECSessionManager.h"
 #include "ECDatabaseFactory.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include <kopano/kcodes.h>
 #include "ECTPropsPurge.h"
 

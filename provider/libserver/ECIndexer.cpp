@@ -12,7 +12,7 @@
 #include "ECCacheManager.h"
 #include "cmdutil.hpp"
 #include <kopano/Util.h>
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECIndexer.h"
 #include <iterator>
 #include <map>

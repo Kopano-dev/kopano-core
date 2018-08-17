@@ -12,7 +12,7 @@
 #include <kopano/hl.hpp>
 #include "ECDatabase.h"
 #include "ECSessionManager.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECDatabaseFactory.h"
 #include "ECServerEntrypoint.h"
 #include "ECS3Attachment.h"

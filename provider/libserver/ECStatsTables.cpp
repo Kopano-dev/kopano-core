@@ -21,7 +21,7 @@
 #include <kopano/ECTags.h>
 #include <kopano/stringutil.h>
 #include <kopano/Util.h>
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #if defined(HAVE_GPERFTOOLS_MALLOC_EXTENSION_H)
 #	include <gperftools/malloc_extension_c.h>
 #	define HAVE_TCMALLOC 1

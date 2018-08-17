@@ -27,7 +27,7 @@
 #include "ECPluginFactory.h"
 #include "ECNotificationManager.h"
 #include "ECSessionManager.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECStatsTables.h"
 #include <climits>
 #include <csignal>

@@ -41,7 +41,7 @@
 #include <kopano/Util.h>
 #include "ECGenProps.h"
 #include "ECStoreObjectTable.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECSecurity.h"
 #include "ECIndexer.h"
 #include "ECSearchClient.h"
