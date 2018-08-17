@@ -121,6 +121,10 @@ static bool rosie_strip_nodes(TidyDoc tdoc)
 	return rosie_strip_nodes(tdoc, tidyGetRoot(tdoc));
 }
 
+/*
+ * @in:		Input HTML, which must be encoded as UTF-8. (<meta> is ignored.)
+ * @output:	Output HTML, also UTF-8.
+ */
 bool rosie_clean_html(const std::string &in, std::string *const out,
     std::vector<std::string> *const errors)
 {
@@ -144,6 +148,7 @@ bool rosie_clean_html(const std::string &in, std::string *const out,
 	tidyOptSetBool(tdoc, TidyHideComments, yes); /* they don't help */
 	tidyOptSetBool(tdoc, TidyReplaceColor, yes);
 	tidyOptSetBool(tdoc, TidyPreserveEntities, yes);
+	tidySetCharEncoding(tdoc, "utf8");
 
 	rc = tidySetErrorBuffer(tdoc, &errbuf); /* capture diagnostics */
 	if (rc != 0 && errors != NULL)

@@ -34,6 +34,13 @@ Packaging changes:
 * build support for MySQL 8 [KC-1237]
 
 
+8.6.x
+=====
+Fixes:
+* dagent/client: fixed broken umlauts in PR_EC_BODY_FILTERED
+  when input was not UTF-8 [KC-1225]
+
+
 8.6.7 (2018-08-14)
 ==================
 Fixes:

@@ -1951,9 +1951,13 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		hr = lpMessage->HrGetRealProp(PR_EC_BODY_FILTERED, ulFlags, lpBase, lpsPropValue);
 		if (hr == hrSuccess) // yes, then use that
 			break;
+		const char *codepage;
+		hr = lpMessage->HrGetRealProp(PR_INTERNET_CPID, ulFlags, lpBase, lpsPropValue);
+		if (hr != hrSuccess || HrGetCharsetByCP(lpsPropValue->Value.ul, &codepage) != hrSuccess)
+			codepage = "iso-8859-15"; /* [MS-OXCMAIL] §2.1.3.3.1 */
 
 		lpsPropValue->ulPropTag = PR_EC_BODY_FILTERED;
-		// else generate it on the fly
+		/* generate it on the fly */
 		memory_ptr<SPropValue> tprop;
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~tprop);
 		if (hr != hrSuccess)
@@ -1964,14 +1968,13 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 			break;
 		}
 
-		std::string fltblk, memblk(reinterpret_cast<const char *>(tprop->Value.bin.lpb), tprop->Value.bin.cb);
-		std::copy_if(memblk.cbegin(), memblk.cend(), std::back_inserter(fltblk), [](char x) { return x != '\0'; });
-		std::string result;
+		std::string result, fltblk = convert_to<std::string>("UTF-8", reinterpret_cast<const char *>(tprop->Value.bin.lpb), tprop->Value.bin.cb, codepage);
 		std::vector<std::string> errors;
 		bool rc = rosie_clean_html(fltblk, &result, &errors);
 
 		// FIXME emit error somewhere somehow
 		if (rc) {
+			result = convert_to<std::string>((codepage + std::string("//IGNORE")).c_str(), result.c_str(), result.size(), "UTF-8");
 			ULONG ulSize = result.size();
 
 			hr = ECAllocateMore(ulSize + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.bin.lpb));
