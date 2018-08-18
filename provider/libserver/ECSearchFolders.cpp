@@ -955,16 +955,16 @@ ECRESULT ECSearchFolders::search_r1(ECDatabase *lpDatabase, ECSession *lpSession
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::Search() database commit failed", er);
 
+	if (!bNotify)
+		return erSuccess;
 	// Notify the search folder and his parent
-	if (bNotify) {
-		// Add matched rows and send a notification to update views of this search (if any are open)
-		m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE, 0, ulFolderId, 0, MAPI_MESSAGE);
-		cache->Update(fnevObjectModified, ulFolderId);
-		m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
-		unsigned int ulParent = 0;
-		if (cache->GetParent(ulFolderId, &ulParent) == erSuccess)
-			m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER); // PR_CONTENT_* has changed in tables too
-	}
+	// Add matched rows and send a notification to update views of this search (if any are open)
+	m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE, 0, ulFolderId, 0, MAPI_MESSAGE);
+	cache->Update(fnevObjectModified, ulFolderId);
+	m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
+	unsigned int ulParent = 0;
+	if (cache->GetParent(ulFolderId, &ulParent) == erSuccess)
+		m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER); // PR_CONTENT_* has changed in tables too
 	return erSuccess;
 }
 
