@@ -243,6 +243,8 @@ private:
      * @param[in] bNotify If TRUE, send notifications to table listeners, else do not (eg when doing RestartSearches())
      */
 	_kc_hidden virtual ECRESULT Search(unsigned int store_id, unsigned int folder_id, const struct searchCriteria *, bool *cancel, bool notify = true);
+	_kc_hidden ECRESULT search_r1(ECDatabase *, ECSession *, ECODStore &&, ECCacheManager *, const struct restrictTable *extra_restr, unsigned int store_id, unsigned int folder_id, const std::list<unsigned int> &ix_results, const std::string &sugg, bool notify, bool *cancel);
+	_kc_hidden ECRESULT search_r2(ECDatabase *, ECSession *, ECODStore &&, const struct searchCriteria *, unsigned int store_id, unsigned int folder_id, const ECListInt &folders, bool notify, bool *cancel);
 
     /**
      * Get the state of a search folder

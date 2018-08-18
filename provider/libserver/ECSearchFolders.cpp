@@ -890,138 +890,152 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 
 	if (GetIndexerResults(lpDatabase, m_lpSessionManager->GetConfig(), cache,
 	    &guidServer, &guidStore, lstFolders, lpSearchCrit->lpRestrict,
-	    &lpAdditionalRestrict, lstIndexerResults, suggestion) == erSuccess) {
-		er = [this](ECDatabase *lpDatabase, ECSession *lpSession, ECODStore &&ecODStore, ECCacheManager *cache, const struct restrictTable *lpAdditionalRestrict, unsigned int ulStoreId, unsigned int ulFolderId, const std::list<unsigned int> &lstIndexerResults, const std::string &suggestion, bool bNotify, bool *lpbCancel) -> ECRESULT {
-		std::string strQuery = "INSERT INTO properties (hierarchyid, tag, type, val_string) VALUES(" + stringify(ulFolderId) + "," + stringify(PROP_ID(PR_EC_SUGGESTION)) + "," + stringify(PROP_TYPE(PR_EC_SUGGESTION)) + ",'" + lpDatabase->Escape(suggestion) + "') ON DUPLICATE KEY UPDATE val_string='" + lpDatabase->Escape(suggestion) + "'";
-		auto er = lpDatabase->DoInsert(strQuery);
-		if(er != erSuccess) {
-			ec_log_err("ECSearchFolders::Search(): could not add suggestion");
-			return er;
-		}
-		// Get the additional restriction properties ready
-		std::list<unsigned int> lstPrefix;
-		lstPrefix.emplace_back(PR_MESSAGE_FLAGS);
-		struct propTagArray *lpPropTags = nullptr;
-		auto cleantags = make_scope_success([&]() { FreePropTagArray(lpPropTags); });
-		er = ECGenericObjectTable::GetRestrictPropTags(lpAdditionalRestrict, &lstPrefix, &lpPropTags);
-		if (er != erSuccess)
-			return ec_perror("ECSearchFolders::Search() ECGenericObjectTable::GetRestrictPropTags failed", er);
-        // Since an indexed search should be fast, do the entire query as a single transaction, and notify after Commit()
-		auto dtx = lpDatabase->Begin(er);
-		if (er != erSuccess)
-			return ec_perror("ECSearchFolders::Search() database begin failed", er);
-
-        auto iterResults = lstIndexerResults.cbegin();
-        while(1) {
-            // Loop through the results data
-            int n = 0;
-			ECObjectTableList ecRows;
-            for (; iterResults != lstIndexerResults.cend() &&
-                 (lpbCancel == NULL || !*lpbCancel) && n < 200; ++iterResults) {
-				sObjectTableKey sRow;
-                sRow.ulObjId = *iterResults;
-                sRow.ulOrderId = 0;
-				ecRows.emplace_back(sRow);
-            }
-
-            if(ecRows.empty())
-                break; // no more rows
-            // Note that we do not want ProcessCandidateRows to send notifications since we will send a bulk TABLE_CHANGE later, so bNotify == false here
-			er = ProcessCandidateRows(lpDatabase, lpSession, lpAdditionalRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, m_lpSessionManager->GetSortLocale(ulStoreId));
-            if (er != erSuccess)
-				return ec_perror("ECSearchFolders::Search() ProcessCandidateRows failed", er);
-        }
-
-		er = dtx.commit();
-		if (er != erSuccess)
-			return ec_perror("ECSearchFolders::Search() database commit failed", er);
-
-		// Notify the search folder and his parent
-		if(bNotify) {
-			// Add matched rows and send a notification to update views of this search (if any are open)
-			m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE, 0, ulFolderId, 0, MAPI_MESSAGE);
-
-			cache->Update(fnevObjectModified, ulFolderId);
-			m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
-			unsigned int ulParent = 0;
-			if (cache->GetParent(ulFolderId, &ulParent) == erSuccess)
-				m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER); // PR_CONTENT_* has changed in tables too
-		}
-		return erSuccess;
-		}(lpDatabase, lpSession, std::move(ecODStore), cache, lpAdditionalRestrict, ulStoreId, ulFolderId, lstIndexerResults, suggestion, bNotify, lpbCancel);
-	} else {
-		er = [this](ECDatabase *lpDatabase, ECSession *lpSession, ECODStore &&ecODStore, const struct searchCriteria *lpSearchCrit, unsigned int ulStoreId, unsigned int ulFolderId, const ECListInt &lstFolders, bool bNotify, bool *lpbCancel) -> ECRESULT {
-		// Get the restriction ready for this search folder
-		std::list<unsigned int> lstPrefix;
-		lstPrefix.emplace_back(PR_MESSAGE_FLAGS);
-		struct propTagArray *lpPropTags = nullptr;
-		auto cleantags = make_scope_success([&]() { FreePropTagArray(lpPropTags); });
-		auto er = ECGenericObjectTable::GetRestrictPropTags(lpSearchCrit->lpRestrict, &lstPrefix, &lpPropTags);
-		if (er != erSuccess)
-			return ec_perror("ECSearchFolders::Search() ECGenericObjectTable::GetRestrictPropTags failed", er);
-		// If we needn't notify, we don't need to commit each message before notifying, so Begin() here
-		kd_trans dtx;
-		if(!bNotify)
-			dtx = lpDatabase->Begin(er);
-
-		// lstFolders now contains all folders to search through
-		for (auto iterFolders = lstFolders.cbegin();
-		     iterFolders != lstFolders.cend() &&
-		     (lpbCancel == NULL || !*lpbCancel); ++iterFolders) {
-			// Optimisation: we know the folder id of the objects we're querying
-			ecODStore.ulFolderId = *iterFolders;
-
-			// Get a list of messages in folders, sorted descending by creation date so the newest are found first
-			std::string strQuery = "SELECT hierarchy.id from hierarchy WHERE hierarchy.parent = " + stringify(*iterFolders) + " AND hierarchy.type=5 AND hierarchy.flags & " + stringify(MSGFLAG_DELETED|MSGFLAG_ASSOCIATED) + " = 0 ORDER by hierarchy.id DESC";
-			DB_RESULT lpDBResult;
-			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-			if (er != erSuccess) {
-				ec_perror("ECSearchFolders::Search() SELECT failed", er);
-				continue;
-			}
-
-			while(1) {
-				if(lpbCancel && *lpbCancel)
-					break;
-
-				// Read max. 20 rows from the database
-				unsigned int i = 0;
-				ECObjectTableList ecRows;
-				DB_ROW lpDBRow = nullptr;
-				while (i < 20 && (lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-					if(lpDBRow[0] == NULL)
-						continue;
-					sObjectTableKey sRow;
-					sRow.ulObjId = atoui(lpDBRow[0]);
-					sRow.ulOrderId = 0;
-					ecRows.emplace_back(sRow);
-					++i;
-				}
-
-				if(ecRows.empty())
-					break; // no more rows
-				if(bNotify)
-					er = ProcessCandidateRowsNotify(lpDatabase, lpSession, lpSearchCrit->lpRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, m_lpSessionManager->GetSortLocale(ulStoreId));
-				else
-					er = ProcessCandidateRows(lpDatabase, lpSession, lpSearchCrit->lpRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, m_lpSessionManager->GetSortLocale(ulStoreId));
-				if (er != erSuccess)
-					return ec_perror("ECSearchFolders::Search() ProcessCandidateRows failed", er);
-			}
-		}
-
-		// Search done
-		// If we needn't notify, we don't need to commit each message before notifying, so Commit() here
-		if(!bNotify)
-			dtx.commit();
-		return erSuccess;
-		}(lpDatabase, lpSession, std::move(ecODStore), lpSearchCrit, ulStoreId, ulFolderId, lstFolders, bNotify, lpbCancel);
-	} //if(!bUseIndexer)
+	    &lpAdditionalRestrict, lstIndexerResults, suggestion) == erSuccess)
+		er = search_r1(lpDatabase, lpSession, std::move(ecODStore),
+		     cache, lpAdditionalRestrict, ulStoreId, ulFolderId,
+		     lstIndexerResults, suggestion, bNotify, lpbCancel);
+	else
+		er = search_r2(lpDatabase, lpSession, std::move(ecODStore),
+		     lpSearchCrit, ulStoreId, ulFolderId, lstFolders, bNotify,
+		     lpbCancel);
 	if (er != erSuccess)
 		return er;
 
     // Save this information in the database.
     SetStatus(ulFolderId, EC_SEARCHFOLDER_STATUS_RUNNING);
     return erSuccess;
+}
+
+ECRESULT ECSearchFolders::search_r1(ECDatabase *lpDatabase, ECSession *lpSession,
+    ECODStore &&ecODStore, ECCacheManager *cache,
+    const struct restrictTable *lpAdditionalRestrict, unsigned int ulStoreId,
+    unsigned int ulFolderId, const std::list<unsigned int> &lstIndexerResults,
+    const std::string &suggestion, bool bNotify, bool *lpbCancel)
+{
+	std::string strQuery = "INSERT INTO properties (hierarchyid, tag, type, val_string) VALUES(" + stringify(ulFolderId) + "," + stringify(PROP_ID(PR_EC_SUGGESTION)) + "," + stringify(PROP_TYPE(PR_EC_SUGGESTION)) + ",'" + lpDatabase->Escape(suggestion) + "') ON DUPLICATE KEY UPDATE val_string='" + lpDatabase->Escape(suggestion) + "'";
+	auto er = lpDatabase->DoInsert(strQuery);
+	if (er != erSuccess) {
+		ec_log_err("ECSearchFolders::Search(): could not add suggestion");
+		return er;
+	}
+	// Get the additional restriction properties ready
+	std::list<unsigned int> lstPrefix;
+	lstPrefix.emplace_back(PR_MESSAGE_FLAGS);
+	struct propTagArray *lpPropTags = nullptr;
+	auto cleantags = make_scope_success([&]() { FreePropTagArray(lpPropTags); });
+	er = ECGenericObjectTable::GetRestrictPropTags(lpAdditionalRestrict, &lstPrefix, &lpPropTags);
+	if (er != erSuccess)
+		return ec_perror("ECSearchFolders::Search() ECGenericObjectTable::GetRestrictPropTags failed", er);
+	// Since an indexed search should be fast, do the entire query as a single transaction, and notify after Commit()
+	auto dtx = lpDatabase->Begin(er);
+	if (er != erSuccess)
+		return ec_perror("ECSearchFolders::Search() database begin failed", er);
+
+	auto iterResults = lstIndexerResults.cbegin();
+	while (1) {
+		// Loop through the results data
+		int n = 0;
+		ECObjectTableList ecRows;
+		for (; iterResults != lstIndexerResults.cend() &&
+		     (lpbCancel == NULL || !*lpbCancel) && n < 200; ++iterResults) {
+			sObjectTableKey sRow;
+			sRow.ulObjId = *iterResults;
+			sRow.ulOrderId = 0;
+			ecRows.emplace_back(sRow);
+		}
+		if (ecRows.empty())
+			break; // no more rows
+		// Note that we do not want ProcessCandidateRows to send notifications since we will send a bulk TABLE_CHANGE later, so bNotify == false here
+		er = ProcessCandidateRows(lpDatabase, lpSession, lpAdditionalRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, m_lpSessionManager->GetSortLocale(ulStoreId));
+		if (er != erSuccess)
+			return ec_perror("ECSearchFolders::Search() ProcessCandidateRows failed", er);
+	}
+
+	er = dtx.commit();
+	if (er != erSuccess)
+		return ec_perror("ECSearchFolders::Search() database commit failed", er);
+
+	// Notify the search folder and his parent
+	if (bNotify) {
+		// Add matched rows and send a notification to update views of this search (if any are open)
+		m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE, 0, ulFolderId, 0, MAPI_MESSAGE);
+		cache->Update(fnevObjectModified, ulFolderId);
+		m_lpSessionManager->NotificationModified(MAPI_FOLDER, ulFolderId); // folder has modified due to PR_CONTENT_*
+		unsigned int ulParent = 0;
+		if (cache->GetParent(ulFolderId, &ulParent) == erSuccess)
+			m_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParent, ulFolderId, MAPI_FOLDER); // PR_CONTENT_* has changed in tables too
+	}
+	return erSuccess;
+}
+
+ECRESULT ECSearchFolders::search_r2(ECDatabase *lpDatabase, ECSession *lpSession,
+    ECODStore &&ecODStore, const struct searchCriteria *lpSearchCrit,
+    unsigned int ulStoreId, unsigned int ulFolderId, const ECListInt &lstFolders,
+    bool bNotify, bool *lpbCancel)
+{
+	// Get the restriction ready for this search folder
+	std::list<unsigned int> lstPrefix;
+	lstPrefix.emplace_back(PR_MESSAGE_FLAGS);
+	struct propTagArray *lpPropTags = nullptr;
+	auto cleantags = make_scope_success([&]() { FreePropTagArray(lpPropTags); });
+	auto er = ECGenericObjectTable::GetRestrictPropTags(lpSearchCrit->lpRestrict, &lstPrefix, &lpPropTags);
+	if (er != erSuccess)
+		return ec_perror("ECSearchFolders::Search() ECGenericObjectTable::GetRestrictPropTags failed", er);
+	// If we needn't notify, we don't need to commit each message before notifying, so Begin() here
+	kd_trans dtx;
+	if (!bNotify)
+		dtx = lpDatabase->Begin(er);
+
+	// lstFolders now contains all folders to search through
+	for (auto iterFolders = lstFolders.cbegin();
+	     iterFolders != lstFolders.cend() &&
+	     (lpbCancel == NULL || !*lpbCancel); ++iterFolders) {
+		// Optimisation: we know the folder id of the objects we're querying
+		ecODStore.ulFolderId = *iterFolders;
+
+		// Get a list of messages in folders, sorted descending by creation date so the newest are found first
+		std::string strQuery = "SELECT hierarchy.id from hierarchy WHERE hierarchy.parent = " + stringify(*iterFolders) + " AND hierarchy.type=5 AND hierarchy.flags & " + stringify(MSGFLAG_DELETED|MSGFLAG_ASSOCIATED) + " = 0 ORDER by hierarchy.id DESC";
+		DB_RESULT lpDBResult;
+		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
+		if (er != erSuccess) {
+			ec_perror("ECSearchFolders::Search() SELECT failed", er);
+			continue;
+		}
+
+		while (1) {
+			if (lpbCancel && *lpbCancel)
+				break;
+
+			// Read max. 20 rows from the database
+			unsigned int i = 0;
+			ECObjectTableList ecRows;
+			DB_ROW lpDBRow = nullptr;
+			while (i < 20 && (lpDBRow = lpDBResult.fetch_row()) != nullptr) {
+				if (lpDBRow[0] == NULL)
+					continue;
+				sObjectTableKey sRow;
+				sRow.ulObjId = atoui(lpDBRow[0]);
+				sRow.ulOrderId = 0;
+				ecRows.emplace_back(sRow);
+				++i;
+			}
+
+			if (ecRows.empty())
+				break; // no more rows
+			if (bNotify)
+				er = ProcessCandidateRowsNotify(lpDatabase, lpSession, lpSearchCrit->lpRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, m_lpSessionManager->GetSortLocale(ulStoreId));
+			else
+				er = ProcessCandidateRows(lpDatabase, lpSession, lpSearchCrit->lpRestrict, lpbCancel, ulStoreId, ulFolderId, &ecODStore, ecRows, lpPropTags, m_lpSessionManager->GetSortLocale(ulStoreId));
+			if (er != erSuccess)
+				return ec_perror("ECSearchFolders::Search() ProcessCandidateRows failed", er);
+		}
+	}
+
+	// Search done
+	// If we needn't notify, we don't need to commit each message before notifying, so Commit() here
+	if (!bNotify)
+		dtx.commit();
+	return erSuccess;
 }
 
 // Return whether we are stopped (no entry found), active (no thread found), or rebuilding (thread active)
