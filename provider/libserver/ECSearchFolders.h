@@ -91,7 +91,7 @@ public:
      * @param[in] ulFolderId The folder id (hierarchyid) of the searchfolder being modified
      * @param[in] lpSearchCriteria Search criteria to be set
      */
-	_kc_hidden virtual ECRESULT SetSearchCriteria(unsigned int store_id, unsigned int folder_id, struct searchCriteria *);
+	_kc_hidden virtual ECRESULT SetSearchCriteria(unsigned int store_id, unsigned int folder_id, const struct searchCriteria *);
 
     /**
      * Retrieve search criteria for an existing search folder
@@ -214,7 +214,7 @@ private:
      * @param[in] fStartSearch TRUE if a rebuild must take place, FALSE if not (eg this happens at server startup)
      * @param[in] lpSearchCriteria Search criteria for this search folder
      */
-	    _kc_hidden virtual ECRESULT AddSearchFolder(unsigned int store_id, unsigned int folder_id, bool start_search, struct searchCriteria *);
+	    _kc_hidden virtual ECRESULT AddSearchFolder(unsigned int store_id, unsigned int folder_id, bool start_search, const struct searchCriteria *);
 
     /**
      * Cancel a search.
@@ -242,7 +242,7 @@ private:
      * @param[in] lpbCancel Pointer to cancel flag. This is polled frequently to be able to cancel the search action
      * @param[in] bNotify If TRUE, send notifications to table listeners, else do not (eg when doing RestartSearches())
      */
-	_kc_hidden virtual ECRESULT Search(unsigned int store_id, unsigned int folder_id, struct searchCriteria *, bool *cancel, bool notify = true);
+	_kc_hidden virtual ECRESULT Search(unsigned int store_id, unsigned int folder_id, const struct searchCriteria *, bool *cancel, bool notify = true);
 
     /**
      * Get the state of a search folder
@@ -327,7 +327,7 @@ private:
      * @param[in] ulFolderId Folder id of the search folder
      * @param[in] lpSearchCriteria Search criteria to save
      */
-	_kc_hidden virtual ECRESULT SaveSearchCriteria(unsigned int folder_id, struct searchCriteria *);
+	_kc_hidden virtual ECRESULT SaveSearchCriteria(unsigned int folder_id, const struct searchCriteria *);
 
     /**
      * Main processing thread entrypoint
@@ -348,7 +348,7 @@ private:
 	 * @param[in] ulFolderId Folder id (hierarchy id) of the searchfolder to write
 	 * @param[in] lpSearchCriteria Search criteria to write
 	 */
-	_kc_hidden static ECRESULT SaveSearchCriteriaRow(ECDatabase *, unsigned int folder_id, struct searchCriteria *);
+	_kc_hidden static ECRESULT SaveSearchCriteriaRow(ECDatabase *, unsigned int folder_id, const struct searchCriteria *);
 
     /**
      * Process candidate rows and add them to search folder results
@@ -369,9 +369,9 @@ private:
      * @param[in] bNotify TRUE on a live system, FALSE if only the database must be updated.
      * @return result
      */
-	_kc_hidden virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &, std::list<unsigned int> &);
-	_kc_hidden virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &);
-	_kc_hidden virtual ECRESULT ProcessCandidateRowsNotify(ECDatabase *, ECSession *, struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &);
+	_kc_hidden virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, const struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &, std::list<unsigned int> &);
+	_kc_hidden virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, const struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &);
+	_kc_hidden virtual ECRESULT ProcessCandidateRowsNotify(ECDatabase *, ECSession *, const struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &);
 
     // Map StoreID -> SearchFolderId -> SearchCriteria
     // Because searchfolders only work within a store, this allows us to skip 99% of all

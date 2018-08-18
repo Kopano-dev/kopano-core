@@ -121,7 +121,8 @@ ECRESULT ECSearchFolders::LoadSearchFolders()
 }
 
 // Called from IMAPIContainer::SetSearchCriteria
-ECRESULT ECSearchFolders::SetSearchCriteria(unsigned int ulStoreId, unsigned int ulFolderId, struct searchCriteria *lpSearchCriteria)
+ECRESULT ECSearchFolders::SetSearchCriteria(unsigned int ulStoreId,
+    unsigned int ulFolderId, const struct searchCriteria *lpSearchCriteria)
 {
     if(lpSearchCriteria == NULL) {
         /* Always return successful, so that Outlook 2007 works */
@@ -158,7 +159,9 @@ ECRESULT ECSearchFolders::GetSearchCriteria(unsigned int ulStoreId, unsigned int
 }
 
 // Add or modify a search folder
-ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int ulFolderId, bool bReStartSearch, struct searchCriteria *lpSearchCriteria)
+ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId,
+    unsigned int ulFolderId, bool bReStartSearch,
+    const struct searchCriteria *lpSearchCriteria)
 {
     struct searchCriteria *lpCriteria = NULL;
     unsigned int ulParent = 0;
@@ -672,7 +675,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 }
 
 ECRESULT ECSearchFolders::ProcessCandidateRowsNotify(ECDatabase *lpDatabase,
-    ECSession *lpSession, struct restrictTable *lpRestrict, bool *lpbCancel,
+    ECSession *lpSession, const struct restrictTable *lpRestrict, bool *lpbCancel,
     unsigned int ulStoreId, unsigned int ulFolderId, ECODStore *lpODStore,
     ECObjectTableList ecRows, struct propTagArray *lpPropTags,
     const ECLocale &locale)
@@ -711,7 +714,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRowsNotify(ECDatabase *lpDatabase,
 }
 
 ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
-    ECSession *lpSession, struct restrictTable *lpRestrict, bool *lpbCancel,
+    ECSession *lpSession, const struct restrictTable *lpRestrict, bool *lpbCancel,
     unsigned int ulStoreId, unsigned int ulFolderId, ECODStore *lpODStore,
     ECObjectTableList ecRows, struct propTagArray *lpPropTags,
     const ECLocale &locale)
@@ -742,7 +745,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
  * @return result
  */
 ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
-    ECSession *lpSession, struct restrictTable *lpRestrict, bool *lpbCancel,
+    ECSession *lpSession, const struct restrictTable *lpRestrict, bool *lpbCancel,
     unsigned int ulStoreId, unsigned int ulFolderId, ECODStore *lpODStore,
     ECObjectTableList ecRows, struct propTagArray *lpPropTags,
     const ECLocale &locale, std::list<unsigned int> &lstMatches)
@@ -805,7 +808,8 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 
 // Does an actual search of a specific search Criteria in store ulStoreId, search folder ulFolderId. Will cancel if *lpbCancel
 // is TRUE. We check after each message row set to see if the cancel has been requested.
-ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId, struct searchCriteria *lpSearchCrit, bool *lpbCancel, bool bNotify)
+ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId,
+    const struct searchCriteria *lpSearchCrit, bool *lpbCancel, bool bNotify)
 {
 	ECListInt			lstFolders;
 	ECObjectTableList ecRows;
@@ -1314,7 +1318,8 @@ ECRESULT ECSearchFolders::LoadSearchCriteria2(const std::string &xmldata,
 }
 
 // Saves the search criteria in the database
-ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulFolderId, struct searchCriteria *lpSearchCriteria)
+ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulFolderId,
+    const struct searchCriteria *lpSearchCriteria)
 {
 	ECDatabase		*lpDatabase = NULL;
 
@@ -1335,7 +1340,8 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(unsigned int ulFolderId, struct sea
 }
 
 // Serialize and save the search criteria for a certain folder. The property is saved as a PR_EC_SEARCHCRIT property
-ECRESULT ECSearchFolders::SaveSearchCriteriaRow(ECDatabase *lpDatabase, unsigned int ulFolderId, struct searchCriteria *lpSearchCriteria)
+ECRESULT ECSearchFolders::SaveSearchCriteriaRow(ECDatabase *lpDatabase,
+    unsigned int ulFolderId, const struct searchCriteria *lpSearchCriteria)
 {
 	struct soap				xmlsoap;
 	struct searchCriteria	sSearchCriteria;
