@@ -1586,7 +1586,7 @@ HRESULT Util::HrMAPIErrorToText(HRESULT hr, LPTSTR *lppszError, void *lpBase)
 			strError.append(1, ' ');
 			strError.append(_("MAPI error code:"));
 			strError.append(1, ' ');
-			strError.append(tstringify(hr, true));
+			strError.append(tstringify_hex(hr));
 			lpszError = strError.c_str();
 		}
 		break;

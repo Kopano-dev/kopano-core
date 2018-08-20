@@ -65,13 +65,15 @@ static inline std::wstring wstringify(unsigned int x)
 	return std::to_wstring(x);
 }
 
-extern _kc_export std::string stringify(unsigned int x, bool usehex, bool _signed = false);
+extern _kc_export std::string stringify_hex(unsigned int);
+extern _kc_export std::string stringify_signed(int);
 extern _kc_export std::string stringify_int64(int64_t, bool usehex = false);
 extern _kc_export std::string stringify_float(float);
 extern _kc_export std::string stringify_double(double, int prec = 18, bool locale = false);
-extern _kc_export std::wstring wstringify(unsigned int x, bool usehex, bool _signed = false);
+extern _kc_export std::wstring wstringify_hex(unsigned int);
 
 #define tstringify			wstringify
+#define tstringify_hex wstringify_hex
 
 static inline unsigned int atoui(const char *s) { return strtoul(s, nullptr, 10); }
 static inline unsigned int xtoi(const char *s) { return strtoul(s, nullptr, 16); }

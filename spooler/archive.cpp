@@ -296,7 +296,7 @@ void Archive::SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage)
 
 	oss << lpszMessage << endl;
 	oss << _("Error code:") << KC_T(" ") << convert_to<tstring>(GetMAPIErrorMessage(hr))
-		<< KC_T(" (") << tstringify(hr, true) << KC_T(")") << endl;
+	    << KC_T(" (") << tstringify_hex(hr) << KC_T(")") << endl;
 	if (Util::HrMAPIErrorToText(hr, &lpszDesc) == hrSuccess)
 		oss << _("Error description:") << KC_T(" ") << lpszDesc << endl;
 	m_strErrorMessage.assign(oss.str());

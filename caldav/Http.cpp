@@ -601,7 +601,7 @@ HRESULT Http::HrToHTTPCode(HRESULT hr)
 	else if (hr == MAPI_E_NOT_FOUND)
 		return HrResponseHeader(404, "Not Found");
 	// @todo other codes?
-	return  HrResponseHeader(500, "Unhanded error " + stringify(hr, true));
+	return HrResponseHeader(500, "Unhanded error " + stringify_hex(hr));
 }
 
 /**
@@ -680,7 +680,7 @@ HRESULT Http::HrFlushHeaders()
 	HrResponseHeader("Date", lpszChar);
 	if (m_ulKeepAlive != 0 && strcasecmp(strConnection.c_str(), "keep-alive") == 0) {
 		HrResponseHeader("Connection", "Keep-Alive");
-		HrResponseHeader("Keep-Alive", stringify(m_ulKeepAlive, false));
+		HrResponseHeader("Keep-Alive", stringify(m_ulKeepAlive));
 	}
 	else
 	{

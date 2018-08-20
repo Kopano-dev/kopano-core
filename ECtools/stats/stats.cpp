@@ -511,7 +511,7 @@ static HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true 
 		return hr;
 	ct.Resize(ptrRows.size(), ptrColumns->cValues);
 	for (unsigned int i = 0; i < ptrColumns->cValues; ++i)
-		ct.SetHeader(i, stringify(ptrColumns->aulPropTag[i], true));
+		ct.SetHeader(i, stringify_hex(ptrColumns->aulPropTag[i]));
 	for (unsigned int i = 0; i < ptrRows.size(); ++i)
 		for (unsigned int j = 0; j < ptrRows[i].cValues; ++j)
 			ct.SetColumn(i, j, mapitable_ToString(&ptrRows[i].lpProps[j]));

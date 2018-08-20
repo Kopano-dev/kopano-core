@@ -102,7 +102,7 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 		if (lpPropVal->__union != SOAP_UNION_propValData_hilo ||
 		    lpPropVal->Value.hilo == NULL)
 			return KCERR_INVALID_PARAMETER;
-		strColData = stringify(lpPropVal->Value.hilo->hi,false,true) + "," + stringify(lpPropVal->Value.hilo->lo);
+		strColData = stringify_signed(lpPropVal->Value.hilo->hi) + "," + stringify(lpPropVal->Value.hilo->lo);
 		*lpulColNr = VALUE_NR_HILO;
 		break;
 	case PT_APPTIME:
@@ -115,7 +115,7 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 		if (lpPropVal->__union != SOAP_UNION_propValData_hilo ||
 		    lpPropVal->Value.hilo == NULL)
 			return KCERR_INVALID_PARAMETER;
-		strColData = stringify(lpPropVal->Value.hilo->hi,false,true) + "," + stringify(lpPropVal->Value.hilo->lo);
+		strColData = stringify_signed(lpPropVal->Value.hilo->hi) + "," + stringify(lpPropVal->Value.hilo->lo);
 		*lpulColNr = VALUE_NR_HILO;
 		break;
 	case PT_I8:
@@ -270,7 +270,7 @@ ECRESULT CopySOAPPropValToDatabaseMVPropVal(struct propVal *lpPropVal, int nItem
 		if (lpPropVal->__union != SOAP_UNION_propValData_mvhilo ||
 		    lpPropVal->Value.mvhilo.__ptr == NULL)
 			return KCERR_INVALID_PARAMETER;
-		strColData = stringify(lpPropVal->Value.mvhilo.__ptr[nItem].hi,false,true) + "," + stringify(lpPropVal->Value.mvhilo.__ptr[nItem].lo);
+		strColData = stringify_signed(lpPropVal->Value.mvhilo.__ptr[nItem].hi) + "," + stringify(lpPropVal->Value.mvhilo.__ptr[nItem].lo);
 		strColName = PROPCOL_HILO;
 		break;
 	case PT_MV_APPTIME:
@@ -284,7 +284,7 @@ ECRESULT CopySOAPPropValToDatabaseMVPropVal(struct propVal *lpPropVal, int nItem
 		if (lpPropVal->__union != SOAP_UNION_propValData_mvhilo ||
 		    lpPropVal->Value.mvhilo.__ptr == NULL)
 			return KCERR_INVALID_PARAMETER;
-		strColData = stringify(lpPropVal->Value.mvhilo.__ptr[nItem].hi,false,true) + "," + stringify(lpPropVal->Value.mvhilo.__ptr[nItem].lo);
+		strColData = stringify_signed(lpPropVal->Value.mvhilo.__ptr[nItem].hi) + "," + stringify(lpPropVal->Value.mvhilo.__ptr[nItem].lo);
 		strColName = PROPCOL_HILO;
 		break;
 	case PT_MV_BINARY:

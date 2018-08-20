@@ -384,7 +384,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 			strData = ap.second;
 		strQuery +=
 			"((" + strSubQuery + "),"
-			"'" + m_lpDatabase->Escape(stringify(ap.first, true)) + "',"
+			"'" + m_lpDatabase->Escape(stringify_hex(ap.first)) + "',"
 			"'" +  m_lpDatabase->Escape(strData) + "')";
 		bFirstOne = false;
 	}
@@ -409,7 +409,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		unsigned int ulOrderId = 0;
 		if (!bFirstDel)
 			strDeleteQuery += ",";
-		strDeleteQuery += "'" + m_lpDatabase->Escape(stringify(mva.first, true)) + "'";
+		strDeleteQuery += "'" + m_lpDatabase->Escape(stringify_hex(mva.first)) + "'";
 		bFirstDel = false;
 
 		if (mva.second.empty())
@@ -426,7 +426,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 				strData = prop;
 			strQuery +=
 				"((" + strSubQuery + "),"
-				"'" + m_lpDatabase->Escape(stringify(mva.first, true)) + "',"
+				"'" + m_lpDatabase->Escape(stringify_hex(mva.first)) + "',"
 				"" + stringify(ulOrderId) + ","
 				"'" +  m_lpDatabase->Escape(strData) + "')";
 			++ulOrderId;

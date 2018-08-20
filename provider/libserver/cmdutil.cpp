@@ -1134,9 +1134,9 @@ ECRESULT UpdateFolderCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsi
 	std::string strQuery = "UPDATE properties SET val_ulong = ";
 	// make sure val_ulong stays a positive number
 	if (lDelta < 0)
-		strQuery += "IF (val_ulong >= " + stringify(abs(lDelta),false,true) + ", val_ulong + " + stringify(lDelta,false,true) + ", 0)";
+		strQuery += "IF (val_ulong >= " + stringify_signed(abs(lDelta)) + ", val_ulong + " + stringify_signed(lDelta) + ", 0)";
 	else
-		strQuery += "val_ulong + " + stringify(lDelta,false,true);
+		strQuery += "val_ulong + " + stringify_signed(lDelta);
 	strQuery += " WHERE hierarchyid = " + stringify(ulFolderId) + " AND tag = " + stringify(PROP_ID(ulPropTag)) + " AND type = " + stringify(PROP_TYPE(ulPropTag));
 	er = lpDatabase->DoUpdate(strQuery);
 	if(er != erSuccess)

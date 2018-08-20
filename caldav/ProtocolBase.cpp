@@ -305,6 +305,6 @@ std::string ProtocolBase::SPropValToString(const SPropValue *lpSprop)
 	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_BINARY)
 		HrGetICalUidFromBinUid(lpSprop->Value.bin, &strRetVal);
 	else if (PROP_TYPE(lpSprop->ulPropTag) == PT_LONG)
-		strRetVal = stringify(lpSprop->Value.ul, false);
+		strRetVal = stringify(lpSprop->Value.ul);
 	return strRetVal;
 }

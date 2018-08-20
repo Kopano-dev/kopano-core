@@ -483,7 +483,7 @@ static HRESULT setQuota(IECServiceAdmin *lpServiceAdmin, ULONG cbEid,
 	if(hr != hrSuccess) {
 		cerr << "Unable to request updated quota information: " <<
 			GetMAPIErrorMessage(hr) << " (" <<
-			stringify(hr, true) << ")" << endl;
+			stringify_hex(hr) << ")" << endl;
 		return hr;
 	}
 	cout << "New quota settings:" << endl;
@@ -543,7 +543,7 @@ static string getMapiPropertyString(ULONG ulPropTag)
 		 PROP_TO_STRING(PR_EC_ARCHIVE_SERVERS);
 		 PROP_TO_STRING(PR_EC_ARCHIVE_COUPLINGS);
 		 default:
-		 return stringify(ulPropTag, true);
+		 return stringify_hex(ulPropTag);
 	}
 }
 
@@ -870,7 +870,7 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 		return;
 
 	cout << "Client update Information:" << endl;
-	cout << " Trackid:\t\t" << ((lpECUCUS->ulTrackId != 0 ) ? stringify(lpECUCUS->ulTrackId, true).c_str() : "-" ) << endl;
+	cout << " Trackid:\t\t" << (lpECUCUS->ulTrackId != 0 ? stringify_hex(lpECUCUS->ulTrackId).c_str() : "-" ) << endl;
 	cout << " Last update:\t\t" << ( (lpECUCUS->tUpdatetime>0) ? UnixtimeToString(lpECUCUS->tUpdatetime) : "-" ) << endl;
 	cout << " From version:\t\t" << ( (lpECUCUS->lpszCurrentversion) ? (LPSTR)lpECUCUS->lpszCurrentversion : "-" ) << endl;
 	cout << " To version:\t\t" << ( (lpECUCUS->lpszLatestversion) ? (LPSTR)lpECUCUS->lpszLatestversion : "-" ) << endl;
@@ -1097,7 +1097,7 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 		if (hr != hrSuccess) {
 			cerr << "Unable to get auto update status: " <<
 				GetMAPIErrorMessage(hr) << " (" <<
-				stringify(hr, true) << ")" << endl;
+				stringify_hex(hr) << ")" << endl;
 			hr = hrSuccess;
 		}
 		print_user_settings(lpStore, lpECUser, bAutoAccept, bDeclineConflict, bDeclineRecurring, lstArchives, lpECUCUS);
@@ -1175,7 +1175,7 @@ static HRESULT print_details(LPMAPISESSION lpSession,
 			cerr << "Unable to access node '" <<
 				(LPSTR)lpArchiveServers->lpszValues[i] <<
 				"': " << GetMAPIErrorMessage(hr) <<
-				"(" << stringify(hrTmp, true) <<
+				"(" << stringify_hex(hrTmp) <<
 				")" << endl;
 			continue;
 		}
@@ -1438,7 +1438,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 			cerr << "Failed to force resync for user " <<
 				ptrRows[i].lpProps[0].Value.lpszA <<
 				": " << GetMAPIErrorMessage(hr) <<
-				" (" << stringify(hr, true) << ")" <<
+				" (" << stringify_hex(hr) << ")" <<
 				endl;
 			bFail = true;
 		}
@@ -1463,7 +1463,7 @@ static HRESULT ForceResync(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 			continue;
 		cerr << "Failed to force resync for user " <<
 			user << ": " << GetMAPIErrorMessage(hr) <<
-			" (" << stringify(hr, true) << ")" << endl;
+			" (" << stringify_hex(hr) << ")" << endl;
 		bFail = true;
 	}
 
@@ -1564,7 +1564,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 		ct.SetColumn(0, COL_AVAILABLE, "-");
 	} else {
 		ct.SetColumn(0, COL_ALLOWED, stringify(ulLicensedUsers));
-		ct.SetColumn(0, COL_AVAILABLE, stringify(ulLicensedUsers - ulActiveUsers - ulActiveAsNonActive, false, true));
+		ct.SetColumn(0, COL_AVAILABLE, stringify_signed(ulLicensedUsers - ulActiveUsers - ulActiveAsNonActive));
 	}
 
 	ct.SetColumn(1, 0, "Non-active");
@@ -1576,12 +1576,12 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 		ct.SetColumn(1, COL_ALLOWED, "no limit");
 		ct.SetColumn(1, COL_AVAILABLE, "-");
 	} else {
-		ct.SetColumn(1, COL_ALLOWED, stringify(ulMaxTotal - ulLicensedUsers, false, true));
+		ct.SetColumn(1, COL_ALLOWED, stringify_signed(ulMaxTotal - ulLicensedUsers));
 		if (ulNonActiveTotal > ulNonActiveLow)
-			ct.SetColumn(1, COL_AVAILABLE, "0 (+" + stringify(ulLicensedUsers - ulActiveUsers - ulActiveAsNonActive, false, true) + ")");
+			ct.SetColumn(1, COL_AVAILABLE, "0 (+" + stringify_signed(ulLicensedUsers - ulActiveUsers - ulActiveAsNonActive) + ")");
 		else
-			ct.SetColumn(1, COL_AVAILABLE, stringify(ulNonActiveLow - ulNonActiveTotal, false, true) +
-					" (+" + stringify(ulLicensedUsers - ulActiveUsers - ulActiveAsNonActive, false, true) + ")");
+			ct.SetColumn(1, COL_AVAILABLE, stringify_signed(ulNonActiveLow - ulNonActiveTotal) +
+					" (+" + stringify_signed(ulLicensedUsers - ulActiveUsers - ulActiveAsNonActive) + ")");
 	}
 
 	if (ulNonActiveUsers != (ULONG)-1) {
@@ -2585,7 +2585,7 @@ int main(int argc, char* argv[])
 	if(hr != hrSuccess) {
 		cerr << "Unable to open Admin session: " <<
 			GetMAPIErrorMessage(hr) << " (" <<
-			stringify(hr, true) << ")" << endl;
+			stringify_hex(hr) << ")" << endl;
 		switch (hr) {
 		case MAPI_E_NETWORK_ERROR:
 			cerr << "The server is not running, or not accessible";
@@ -2607,7 +2607,7 @@ int main(int argc, char* argv[])
 	if(hr != hrSuccess) {
 		cerr << "Unable to open Admin store: " <<
 			GetMAPIErrorMessage(hr) << " (" <<
-			stringify(hr,true) << ")" << endl;
+			stringify_hex(hr) << ")" << endl;
 		goto exit;
 	}
 
@@ -2618,7 +2618,7 @@ int main(int argc, char* argv[])
 		if (hr != hrSuccess) {
 			cerr << "Unable to connect to node '" << node << "':" <<
 				GetMAPIErrorMessage(hr) << " (" <<
-				stringify(hr, true) << ")" << endl;
+				stringify_hex(hr) << ")" << endl;
 			switch (hr) {
 			case MAPI_E_NETWORK_ERROR:
 				cerr << "The server is not running, or not accessible." << endl;

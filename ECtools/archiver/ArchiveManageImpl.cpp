@@ -528,20 +528,20 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		auto hrTmp = m_ptrSession->OpenStore(arc.sStoreEntryId, &~ptrArchiveStore);
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->perr("Failed to open store", hrTmp);
-			entry.StoreName = "Failed id=" + arc.sStoreEntryId.tostring() + ": " + GetMAPIErrorMessage(hrTmp) + " (" + stringify(hrTmp, true) + ")";
+			entry.StoreName = "Failed id=" + arc.sStoreEntryId.tostring() + ": " + GetMAPIErrorMessage(hrTmp) + " (" + stringify_hex(hrTmp) + ")";
 			lstEntries.emplace_back(std::move(entry));
 			continue;
 		}
 
 		hrTmp = ptrArchiveStore->GetProps(sptaStoreProps, 0, &cStoreProps, &~ptrStoreProps);
 		if (FAILED(hrTmp))
-			entry.StoreName = entry.StoreOwner = "Unknown (" + stringify(hrTmp, true) + ")";
+			entry.StoreName = entry.StoreOwner = "Unknown (" + stringify_hex(hrTmp) + ")";
 		else {
 			if (ptrStoreProps[IDX_DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME_A)
 				entry.StoreName = ptrStoreProps[IDX_DISPLAY_NAME].Value.lpszA;
 			else
-				entry.StoreName = "Unknown (" + stringify(ptrStoreProps[IDX_DISPLAY_NAME].Value.err, true) + ")";
-
+				entry.StoreName = "Unknown (" + stringify_hex(ptrStoreProps[IDX_DISPLAY_NAME].Value.err) + ")";
+				
 			if (ptrStoreProps[IDX_MAILBOX_OWNER_ENTRYID].ulPropTag == PR_MAILBOX_OWNER_ENTRYID) {
 				MAPIPropPtr ptrOwner;
 
@@ -553,9 +553,9 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 				if (hrTmp == hrSuccess)
 					entry.StoreOwner = ptrPropValue->Value.lpszA;
 				else
-					entry.StoreOwner = "Unknown (" + stringify(hrTmp, true) + ")";
+					entry.StoreOwner = "Unknown (" + stringify_hex(hrTmp) + ")";
 			} else
-				entry.StoreOwner = "Unknown (" + stringify(ptrStoreProps[IDX_MAILBOX_OWNER_ENTRYID].Value.err, true) + ")";
+				entry.StoreOwner = "Unknown (" + stringify_hex(ptrStoreProps[IDX_MAILBOX_OWNER_ENTRYID].Value.err) + ")";
 
 			if (lpszIpmSubtreeSubstitude) {
 				if (ptrStoreProps[IDX_IPM_SUBTREE_ENTRYID].ulPropTag != PR_IPM_SUBTREE_ENTRYID)
@@ -577,7 +577,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &iid_of(ptrArchiveFolder), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->perr("Failed to open folder", hrTmp);
-			entry.FolderName = "Failed id=" + arc.sStoreEntryId.tostring() + ": " + GetMAPIErrorMessage(hr) + " (" + stringify(hrTmp, true) + ")";
+			entry.FolderName = "Failed id=" + arc.sStoreEntryId.tostring() + ": " + GetMAPIErrorMessage(hr) + " (" + stringify_hex(hrTmp) + ")";
 			lstEntries.emplace_back(std::move(entry));
 			continue;
 		}
@@ -588,7 +588,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		} else {
 			hrTmp = HrGetOneProp(ptrArchiveFolder, PR_DISPLAY_NAME_A, &~ptrPropValue);
 			if (hrTmp != hrSuccess)
-				entry.FolderName = "Unknown (" + stringify(hrTmp, true) + ")";
+				entry.FolderName = "Unknown (" + stringify_hex(hrTmp) + ")";
 			else
 				entry.FolderName = ptrPropValue->Value.lpszA ;
 		}

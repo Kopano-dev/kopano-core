@@ -576,7 +576,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	hr = HrParseURL(strUrl, &ulFlag);
 	if (hr != hrSuccess) {
 		kc_perror("Client request is invalid", hr);
-		lpRequest.HrResponseHeader(400, "Bad Request: " + stringify(hr,true));
+		lpRequest.HrResponseHeader(400, "Bad Request: " + stringify_hex(hr));
 		goto exit;
 	}
 	if (ulFlag & SERVICE_CALDAV)

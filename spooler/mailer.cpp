@@ -2140,7 +2140,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	if (hr != hrSuccess && hr != MAPI_E_WAIT && hr != MAPI_W_NO_SERVICE && lpMessage) {
 		// use lpMailer to set body in SendUndeliverable
 		if (!lpMailer->haveError())
-			lpMailer->setError(_("Error found while trying to send your message. Error code: ") + wstringify(hr,true));
+			lpMailer->setError(_("Error found while trying to send your message. Error code: ") + wstringify_hex(hr));
 		hr = SendUndeliverable(lpMailer.get(), lpUserStore, lpMessage);
 		if (hr != hrSuccess) {
 			// dont make parent complain too

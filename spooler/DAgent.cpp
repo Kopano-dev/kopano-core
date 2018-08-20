@@ -2326,7 +2326,7 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 		// notify LMTP client soft error to try again later
 		for (const auto &recip : listRecipients)
 			// error will be shown in postqueue status in postfix, probably too in other serves and mail syslog service
-			recip->wstrDeliveryStatus = "450 4.5.0 %s network or permissions error to storage server: " + stringify(hr, true);
+			recip->wstrDeliveryStatus = "450 4.5.0 %s network or permissions error to storage server: " + stringify_hex(hr);
 		return hr;
 	}
 
@@ -2804,7 +2804,7 @@ static void *HandlerLMTP(void *lpArg)
 				}
 			} else {
 				kc_perror("Failed to lookup email address", hr);
-				lmtp.HrResponse("503 5.1.1 Connection error: "+stringify(hr,1));
+				lmtp.HrResponse("503 5.1.1 Connection error: " + stringify_hex(hr));
 			}
 
 			/*

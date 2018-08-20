@@ -18,16 +18,18 @@
 
 namespace KC {
 
-std::string stringify(unsigned int x, bool usehex, bool _signed) {
-	char szBuff[33];
+std::string stringify_hex(unsigned int x)
+{
+	char b[33];
+	snprintf(b, sizeof(b), "0x%08X", x);
+	return b;
+}
 
-	if(usehex)
-		sprintf(szBuff, "0x%08X", x);
-	else if (_signed)
-		sprintf(szBuff, "%d", x);
-	else
-		sprintf(szBuff, "%u", x);
-	return szBuff;
+std::string stringify_signed(int x)
+{
+	char b[33];
+	snprintf(b, sizeof(b), "%d", x);
+	return b;
 }
 
 std::string stringify_int64(int64_t x, bool usehex) {
@@ -67,18 +69,11 @@ std::string stringify_double(double x, int prec, bool bLocale) {
 	return s.str();
 }
 
-// FIXME support only unsigned int!!!
-std::wstring wstringify(unsigned int x, bool usehex, bool _signed)
+std::wstring wstringify_hex(unsigned int x)
 {
-	std::wostringstream s;
-
-	if (usehex) {
-		s.flags(std::ios::showbase);
-		s.setf(std::ios::hex, std::ios::basefield); // showbase && basefield: add 0x prefix
-		s.setf(std::ios::uppercase);
-	}
-	s << x;
-	return s.str();
+	wchar_t b[33];
+	swprintf(b, ARRAY_SIZE(b), L"0x%08X", x);
+	return b;
 }
 
 int memsubstr(const void* haystack, size_t haystackSize, const void* needle, size_t needleSize)
