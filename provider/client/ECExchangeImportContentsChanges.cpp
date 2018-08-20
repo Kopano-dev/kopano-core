@@ -11,7 +11,6 @@
 #include "WSMessageStreamImporter.h"
 #include "ECMessageStreamImporterIStreamAdapter.h"
 #include <kopano/ECLogger.h>
-#include "ECSyncLog.h"
 #include <kopano/Util.h>
 #include <edkguid.h>
 #include <kopano/ECGuid.h>
@@ -30,10 +29,8 @@
 using namespace KC;
 
 ECExchangeImportContentsChanges::ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder) :
-	m_lpFolder(lpFolder)
-{
-	ECSyncLog::GetLogger(&~m_lpLogger);
-}
+	m_lpLogger(new ECLogger_Null), m_lpFolder(lpFolder)
+{}
 
 HRESULT ECExchangeImportContentsChanges::Create(ECMAPIFolder *lpFolder, LPEXCHANGEIMPORTCONTENTSCHANGES* lppExchangeImportContentsChanges){
 	if(!lpFolder)

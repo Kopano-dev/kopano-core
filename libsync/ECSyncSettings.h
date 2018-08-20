@@ -7,7 +7,6 @@
 #define ECSYNCSETTINGS_INCLUDED
 
 #include <memory>
-#include <mutex>
 #include <kopano/zcdefs.h>
 
 namespace KC {
@@ -33,15 +32,6 @@ public:
 	// Stream settings
 	ULONG StreamTimeout() const { return m_ulStreamTimeout; }
 	ULONG StreamBufferSize() const { return m_ulStreamBufferSize; }
-	ULONG StreamBatchSize() const { return m_ulStreamBatchSize; }
-
-	// Update settings
-	bool	EnableSyncLog(bool bEnable);
-	ULONG	SetSyncLogLevel(ULONG ulLogLevel);
-	ULONG	SetSyncOptions(ULONG ulOptions);
-	ULONG	SetStreamTimeout(ULONG ulTimeout);
-	ULONG	SetStreamBufferSize(ULONG ulBufferSize);
-	ULONG	SetStreamBatchSize(ULONG ulBatchSize);
 
 	static ECSyncSettings instance;
 
@@ -49,10 +39,8 @@ private:
 	_kc_hidden ECSyncSettings(void);
 
 	ULONG m_ulSyncLog = 0, m_ulSyncLogLevel;
-	ULONG m_ulSyncOpts = EC_SYNC_OPT_ALL, m_ulStreamTimeout = 30000;
-	ULONG m_ulStreamBufferSize = 131072, m_ulStreamBatchSize = 256;
-
-	static std::mutex s_hMutex;
+	static const unsigned int m_ulSyncOpts = EC_SYNC_OPT_ALL;
+	unsigned int m_ulStreamTimeout = 30000, m_ulStreamBufferSize = 131072;
 };
 
 } /* namespace */

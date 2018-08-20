@@ -114,7 +114,6 @@ class IECExportChanges : public IExchangeExportChanges {
 	virtual HRESULT ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) = 0;
 	virtual HRESULT GetChangeCount(ULONG *lpcChanges) = 0;
 	virtual HRESULT SetMessageInterface(REFIID refiid) = 0;
-	virtual HRESULT SetLogger(ECLogger *lpLogger) = 0;
 };
 
 class IECImportAddressbookChanges : public virtual IUnknown {

@@ -13,16 +13,13 @@
 #include "ECMsgStore.h"
 #include "ECExportAddressbookChanges.h"
 #include <kopano/ECLogger.h>
-#include <ECSyncLog.h>
 #include <kopano/stringutil.h>
 #include <kopano/Util.h>
 #include <edkmdb.h>
 
 ECExportAddressbookChanges::ECExportAddressbookChanges(ECMsgStore *lpStore) :
-	m_lpMsgStore(lpStore)
-{
-	ECSyncLog::GetLogger(&~m_lpLogger);
-}
+	m_lpMsgStore(lpStore), m_lpLogger(new ECLogger_Null)
+{}
 
 HRESULT ECExportAddressbookChanges::QueryInterface(REFIID refiid, void **lppInterface) {
 	REGISTER_INTERFACE2(ECUnknown, this);

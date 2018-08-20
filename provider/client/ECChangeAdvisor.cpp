@@ -6,7 +6,6 @@
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECGuid.h>
-#include <ECSyncLog.h>
 #include <kopano/ECLogger.h>
 #include "ECChangeAdvisor.h"
 #include "ECMsgStore.h"
@@ -23,17 +22,15 @@ bool ECChangeAdvisor::CompareSyncId(const ConnectionMap::value_type &sConnection
 	return sConnection.first < sSyncState.first;
 }
 
-ECChangeAdvisor::ECChangeAdvisor(ECMsgStore *lpMsgStore)
-	: m_lpMsgStore(lpMsgStore)
-{ 
-	ECSyncLog::GetLogger(&~m_lpLogger);
+ECChangeAdvisor::ECChangeAdvisor(ECMsgStore *lpMsgStore) :
+	m_lpMsgStore(lpMsgStore), m_lpLogger(new ECLogger_Null)
 	// Need MUTEX RECURSIVE because with a reconnection the funtion PurgeStates called indirect the function Reload again:
 	// ECChangeAdvisor::Reload(....)
  	// WSTransport::HrReLogon()
  	// WSTransport::HrGetSyncStates(....)
  	// ECChangeAdvisor::PurgeStates()
  	// ECChangeAdvisor::UpdateState(IStream * lpStream)
-}
+{}
 
 ECChangeAdvisor::~ECChangeAdvisor()
 {
