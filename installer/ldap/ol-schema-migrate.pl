@@ -32,12 +32,8 @@
 # - Fedora DS bug you need to correct by hang (this script is not taking it into account):
 #    https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=179956
 #
-# Patch 
-# 
 # GPL license
 #
-
-use File::Basename;
 
 my $optionCount = 0;
 my $optionPrint = 0;
@@ -58,9 +54,6 @@ die "Usage : ol-schema-migrate-v2.pl [ -c ] [ -b ] [ -d ] schema\n" .
     "  -b\tconvert and beautify your schema\n" .
     "  -d\tdisplay unrecognized elements, find empty and duplicated OID\n" .
     "  -h\tthis help\n" if ($filename eq "" || ($optionHelp || (!$optionCount && !$optionPrint && !$optionBadEntries)));
-
-my @name = split('\.', basename($filename));
-my $schemaName = shift(@name);
 
 if($optionCount) {
   print "Schema verification counters:\n";
@@ -148,8 +141,8 @@ if($optionBadEntries) {
   my $nbDup = 0;
   foreach (keys %dup) {
     my $sumOid = 0;
-    $sumOid += @{$dup{$_}{attr}};
-    $sumOid += @{$dup{$_}{objc}};
+    $sumOid += @{$dup{$_}{attr}} if(@{$dup{$_}{attr}});
+    $sumOid += @{$dup{$_}{objc}} if(@{$dup{$_}{objc}});
     if( $sumOid > 1 && $_ ne "") {
       $nbDup ++;
       print "#" x 80 ."\n";
@@ -176,16 +169,14 @@ if($optionBadEntries) {
 sub printit {
   my $ldapdata = shift;
   &printSeparator;
-  print "dn: cn=$schemaName,cn=schema,cn=config\n";
-  print "objectClass: olcSchemaConfig\n";
-  print "cn: $schemaName\n";
+  print "dn: cn=schema\n";
   &printSeparator;
 
   # print elements in RFC2252 order
 
   foreach (@{$ldapdata->{attributes}}) {
     my $attr = $_;
-    print "olcAttributeTypes: (\n";
+    print "attributeTypes: (\n";
     print "  $attr->{OID}\n";
     print "  NAME $attr->{NAME}\n";
     print "  DESC '$attr->{DESC}'\n"         if(defined $attr->{DESC});
@@ -210,7 +201,7 @@ sub printit {
     $objc->{MUST}        =~ s/^\(\s*(.*?)\s*\)$/\( $1 \)/  if (defined $objc->{MUST}); 
     $objc->{MAY}         =~ s/^\(\s*(.*?)\s*\)$/\( $1 \)/  if (defined $objc->{MAY}); 
 
-    print "olcObjectClasses: (\n";
+    print "objectClasses: (\n";
     print "  $objc->{OID}\n";
     print "  NAME $objc->{NAME}\n";
     print "  DESC '$objc->{DESC}'\n"  if(defined $objc->{DESC});
