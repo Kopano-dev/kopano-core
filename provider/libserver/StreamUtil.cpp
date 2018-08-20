@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <new>
+#include <clocale>
 #include <cstdint>
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
@@ -365,7 +366,7 @@ static ECRESULT SerializeDatabasePropVal(const StreamCaps *lpStreamCaps,
 {
 	unsigned int type = 0, ulPropTag = 0;
 	std::string strData, strNameString;
-	locale_t loc = createlocale(LC_NUMERIC, "C");
+	auto loc = newlocale(LC_NUMERIC_MASK, "C", nullptr);
 	convert_context converter;
 	hiloLong hilo;
 

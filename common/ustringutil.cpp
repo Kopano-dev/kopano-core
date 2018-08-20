@@ -53,6 +53,7 @@ At some point we need to rewqrite these functions to do all the conversion on th
 #include <kopano/CommonUtil.h>
 #include "utf8/unchecked.h"
 #include <cassert>
+#include <clocale>
 #include <memory>
 #include <string>
 #include <unicode/unorm.h>
@@ -82,7 +83,7 @@ namespace KC {
  */
 const char* str_ifind(const char *haystack, const char *needle)
 {
-	locale_t loc = createlocale(LC_CTYPE, "C");
+	auto loc = newlocale(LC_CTYPE_MASK, "C", nullptr);
 	const char *needlepos = needle;
 	const char *needlestart = haystack;
 

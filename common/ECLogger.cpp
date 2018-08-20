@@ -62,7 +62,7 @@ ECLogger::ECLogger(int max_ll) :
 	max_loglevel(max_ll), prefix(LP_NONE)
 {
 	// get system locale for time, NULL is returned if locale was not found.
-	timelocale = createlocale(LC_TIME, "C");
+	timelocale = newlocale(LC_TIME_MASK, "C", nullptr);
 	datalocale = createUTF8Locale();
 }
 
@@ -130,16 +130,6 @@ unsigned ECLogger::Release() {
 	if (ulRef == 0)
 		delete this;
 	return ulRef;
-}
-
-int ECLogger::snprintf(char *str, size_t size, const char *format, ...) {
-	va_list va;
-	int len = 0;
-
-	va_start(va, format);
-	len = _vsnprintf_l(str, size, format, datalocale, va);
-	va_end(va);
-	return len;
 }
 
 HRESULT ECLogger::perr(const char *text, HRESULT code)

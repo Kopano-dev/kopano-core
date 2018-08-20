@@ -5,6 +5,7 @@
 #include <kopano/platform.h>
 #include <string>
 #include <iostream>
+#include <clocale>
 #include <cstring>
 #include "localeutil.h"
 
@@ -12,10 +13,8 @@ namespace KC {
 
 locale_t createUTF8Locale()
 {
-	locale_t loc;
-
 	/* this trick only works on newer distros */
-	loc = createlocale(LC_CTYPE, "C.UTF-8");
+	auto loc = newlocale(LC_CTYPE_MASK, "C.UTF-8", nullptr);
 	if (loc)
 		return loc;
 
@@ -24,21 +23,21 @@ locale_t createUTF8Locale()
 	char *dot = strchr(cur_locale, '.');
 	if (dot) {
 		if (strcmp(dot+1, "UTF-8") == 0 || strcmp(dot+1, "utf8") == 0) {
-			loc = createlocale(LC_CTYPE, cur_locale);
+			loc = newlocale(LC_CTYPE_MASK, cur_locale, nullptr);
 			goto exit;
 		}
 		// strip current charset selector, to be replaced
 		*dot = '\0';
 	}
 	new_locale = std::string(cur_locale) + ".UTF-8";
-	loc = createlocale(LC_CTYPE, new_locale.c_str());
+	loc = newlocale(LC_CTYPE_MASK, new_locale.c_str(), nullptr);
 	if (loc)
 		return loc;
-	loc = createlocale(LC_CTYPE, "en_US.UTF-8");
+	loc = newlocale(LC_CTYPE_MASK, "en_US.UTF-8", nullptr);
 exit:
 	// too bad, but I don't want to return an unusable object
 	if (!loc)
-		loc = createlocale(LC_CTYPE, "C");
+		loc = newlocale(LC_CTYPE_MASK, "C", nullptr);
 	return loc;
 }
 
