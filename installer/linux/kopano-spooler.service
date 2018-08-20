@@ -1,5 +1,5 @@
 [Unit]
-Description=Kopano Core Spooler
+Description=Kopano Groupware Core Spooler
 Documentation=man:kopano-spooler(8) man:kopano-spooler.cfg(5)
 
 [Service]

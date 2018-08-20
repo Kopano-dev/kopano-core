@@ -1,5 +1,5 @@
 [Unit]
-Description=Kopano Core iCal/CalDAV Gateway
+Description=Kopano Groupware Core iCal/CalDAV Gateway
 Documentation=man:kopano-ical(8) man:kopano-ical.cfg(5)
 
 [Service]

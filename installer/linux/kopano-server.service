@@ -1,5 +1,5 @@
 [Unit]
-Description=Kopano Core Storage Server
+Description=Kopano Groupware Core Storage Server
 Documentation=man:kopano-server(8) man:kopano-server.cfg(5) man:kopano-admin(8)
 After=network.target mysql.service mariadb.service
 

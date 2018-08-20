@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# kopano-ical Kopano Core iCal Gateway
+# kopano-ical Kopano Groupware Core iCal/CalDAV Gateway
 #
 # chkconfig: 345 86 24
 # processname: /usr/sbin/kopano-ical
@@ -13,7 +13,7 @@
 # Required-Stop: $local_fs $network $remote_fs $syslog
 # Should-Start: kopano-server
 # Should-Stop: kopano-server
-# Short-Description: Kopano Core iCal Gateway
+# Short-Description: Kopano Groupware Core iCal/CalDAV Gateway
 ### END INIT INFO
 
 ICALCONFIG=/etc/kopano/ical.cfg

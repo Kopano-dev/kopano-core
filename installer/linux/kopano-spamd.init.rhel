@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# kopano-spamd Kopano Core Spamd
+# kopano-spamd Kopano Groupware Core SPAM learning Daemon
 #
 # chkconfig: 345 86 24
 # processname: /usr/sbin/kopano-spamd
@@ -13,7 +13,7 @@
 # Required-Stop: $local_fs $network $remote_fs $syslog
 # Should-Start: kopano-server
 # Should-Stop: kopano-server
-# Short-Description: Kopano Core Spamd
+# Short-Description: Kopano Groupware Core SPAM learning Daemon
 ### END INIT INFO
 
 SPAMDCONFIG=/etc/kopano/spamd.cfg

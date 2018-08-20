@@ -1,5 +1,5 @@
 [Unit]
-Description=Kopano Core Spamd
+Description=Kopano Groupware Core SPAM learning Daemon
 Documentation=man:kopano-spamd(8) man:kopano-spamd.cfg(5)
 
 [Service]

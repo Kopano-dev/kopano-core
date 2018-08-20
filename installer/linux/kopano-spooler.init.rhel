@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# kopano-spooler Kopano Core Spooler Daemon
+# kopano-spooler Kopano Groupware Core Spooler
 #
 # chkconfig: 345 86 24
 # processname: /usr/sbin/kopano-spooler
@@ -13,7 +13,7 @@
 # Required-Stop: $local_fs $network $remote_fs $syslog
 # Should-Start: kopano-server
 # Should-Stop: kopano-server
-# Short-Description: Kopano Core Spooler Daemon
+# Short-Description: Kopano Groupware Core Spooler
 ### END INIT INFO
 
 SPOOLERCONFIG=/etc/kopano/spooler.cfg
