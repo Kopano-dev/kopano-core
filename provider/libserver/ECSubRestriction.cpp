@@ -18,9 +18,9 @@
 
 namespace KC {
 
-static ECRESULT RunSubRestriction(ECSession *, const void *ecod_store, struct restrictSub *, ECObjectTableList *, const ECLocale &, SUBRESTRICTIONRESULT &);
+static ECRESULT RunSubRestriction(ECSession *, const void *ecod_store, const struct restrictSub *, const ECObjectTableList *, const ECLocale &, SUBRESTRICTIONRESULT &);
 
-static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
+static ECRESULT GetSubRestrictionRecursive(const struct restrictTable *lpRestrict,
     unsigned int *lpulCount, unsigned int ulSubRestriction,
     struct restrictSub **lppSubRestrict, unsigned int maxdepth)
 {
@@ -74,20 +74,22 @@ static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
 	return erSuccess;
 }
 
-ECRESULT GetSubRestrictionCount(struct restrictTable *lpRestrict, unsigned int *lpulCount)
+ECRESULT GetSubRestrictionCount(const struct restrictTable *lpRestrict,
+    unsigned int *lpulCount)
 {
 	// Recursively get the amount of subqueries in the given restriction
 	return GetSubRestrictionRecursive(lpRestrict, lpulCount, 0, NULL, SUBRESTRICTION_MAXDEPTH);
 }
 
-ECRESULT GetSubRestriction(struct restrictTable *lpBase, unsigned int ulCount, struct restrictSub **lppSubRestrict)
+ECRESULT GetSubRestriction(const struct restrictTable *lpBase,
+    unsigned int ulCount, struct restrictSub **lppSubRestrict)
 {
 	return GetSubRestrictionRecursive(lpBase, NULL, ulCount, lppSubRestrict, SUBRESTRICTION_MAXDEPTH);
 }
 
 // Get results for all subqueries for a set of objects
 ECRESULT RunSubRestrictions(ECSession *lpSession, const void *lpECODStore,
-    struct restrictTable *lpRestrict, ECObjectTableList *lpObjects,
+    const struct restrictTable *lpRestrict, const ECObjectTableList *lpObjects,
     const ECLocale &locale, SUBRESTRICTIONRESULTS &results)
 {
     unsigned int ulCount = 0;
@@ -113,7 +115,7 @@ ECRESULT RunSubRestrictions(ECSession *lpSession, const void *lpECODStore,
 
 // Run a single subquery on a set of objects
 static ECRESULT RunSubRestriction(ECSession *lpSession, const void *lpECODStore,
-    struct restrictSub *lpRestrict, ECObjectTableList *lpObjects,
+    const struct restrictSub *lpRestrict, const ECObjectTableList *lpObjects,
     const ECLocale &locale, SUBRESTRICTIONRESULT &result)
 {
     unsigned int ulType = 0;

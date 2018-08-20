@@ -37,11 +37,11 @@ typedef std::set<unsigned int> SUBRESTRICTIONRESULT;
 // A list of sets of subquery matches
 typedef std::vector<SUBRESTRICTIONRESULT> SUBRESTRICTIONRESULTS;
 
-ECRESULT GetSubRestrictionCount(struct restrictTable *lpRestrict, unsigned int *lpulCount);
-ECRESULT GetSubRestriction(struct restrictTable *lpBase, unsigned int ulCount, struct restrictSub **lppSubRestrict);
+extern ECRESULT GetSubRestrictionCount(const struct restrictTable *, unsigned int *count);
+extern ECRESULT GetSubRestriction(const struct restrictTable *base, unsigned int count, struct restrictSub **subp);
 
 // Get results for all subqueries for a set of objects
-extern ECRESULT RunSubRestrictions(ECSession *, const void *ecod_store, struct restrictTable *, ECObjectTableList *, const ECLocale &, SUBRESTRICTIONRESULTS &);
+extern ECRESULT RunSubRestrictions(ECSession *, const void *ecod_store, const struct restrictTable *, const ECObjectTableList *, const ECLocale &, SUBRESTRICTIONRESULTS &);
 
 #define SUBRESTRICTION_MAXDEPTH	64
 
