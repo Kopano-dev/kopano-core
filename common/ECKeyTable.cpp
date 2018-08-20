@@ -172,7 +172,7 @@ bool ECTableRow::operator <(const ECTableRow &other) const
  *
  * @return Object size in bytes
  */
-unsigned int ECTableRow::GetObjectSize(void) const
+size_t ECTableRow::GetObjectSize() const
 {
 	size_t ulSize = sizeof(*this) + sizeof(ECSortCol) * m_cols.size();
 	for (const auto &p : m_cols)
@@ -1092,9 +1092,9 @@ exit:
  *
  * @return Object size in bytes
  */
-unsigned int ECKeyTable::GetObjectSize()
+size_t ECKeyTable::GetObjectSize()
 {
-	unsigned int ulSize = sizeof(*this);
+	size_t ulSize = sizeof(*this);
 	scoped_rlock biglock(mLock);
 
 	ulSize += MEMORY_USAGE_MAP(mapRow.size(), ECTableRowMap);
