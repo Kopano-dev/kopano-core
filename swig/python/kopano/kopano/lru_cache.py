@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """
 Backport of LRU cache decorator introduced in Python 3.3
 

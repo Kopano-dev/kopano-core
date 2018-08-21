@@ -6,7 +6,7 @@
 # processname: /usr/sbin/kopano-presence
 # config: /etc/kopano/presence.cfg
 # pidfile: /var/run/kopano/presence.pid
-
+# SPDX-License-Identifier: AGPL-3.0-only
 ### BEGIN INIT INFO
 # Provides: kopano-presence
 # Required-Start: $local_fs $network $remote_fs $syslog

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-only
 
 MP_CONTINUE         = 0
 MP_FAILED           = 1

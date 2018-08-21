@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+# SPDX-License-Identifier: AGPL-3.0-only
 use strict;
 use Net::LDAP;
 use MIME::Base64;

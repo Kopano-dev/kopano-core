@@ -1,4 +1,5 @@
 #!/usr/bin/python -u
+# SPDX-License-Identifier: AGPL-3.0-only
 
 from collections import defaultdict
 from datetime import datetime

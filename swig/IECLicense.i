@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
 %apply (unsigned char *, unsigned int)					{(unsigned char *lpData, unsigned int ulSize)}
 
 %include <typemaps/cstrings.swg>

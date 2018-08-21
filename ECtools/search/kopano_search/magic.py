@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """
 magic is a wrapper around the libmagic file identification library.
 

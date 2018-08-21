@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
 class IECSpooler : public virtual IUnknown {
 public:
 	// Gets an IMAPITable containing all the outgoing messages on the server

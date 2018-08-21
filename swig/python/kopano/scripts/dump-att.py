@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# SPDX-License-Identifier: AGPL-3.0-only
 
 # Dumps all attachments for a given user to files.
 # This can be used to verify that attachments did not

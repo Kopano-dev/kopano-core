@@ -1,4 +1,5 @@
 #-*- mode: shell-script;-*-
+# SPDX-License-Identifier: AGPL-3.0-only
 
 # kopano completion (admin, backup, dagent, archiver, fsck, passwd..)
 

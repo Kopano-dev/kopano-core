@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-only
 from MAPICore import *
 from MAPI.Defs import *
 import MAPI

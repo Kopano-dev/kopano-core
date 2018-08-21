@@ -1,4 +1,5 @@
 #!@PYTHON@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import sys
 from kopano_utils import mr_process
 from kopano_utils import __version__

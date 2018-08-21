@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-only
 import kopano
 
 #user1 = kopano.user('user1')

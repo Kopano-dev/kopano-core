@@ -6,7 +6,7 @@
 # processname: /usr/sbin/kopano-gateway
 # config: /etc/kopano/gateway.cfg
 # pidfile: /var/run/kopano/gateway.pid
-
+# SPDX-License-Identifier: AGPL-3.0-only
 ### BEGIN INIT INFO
 # Provides: kopano-gateway
 # Required-Start: $local_fs $network $remote_fs $syslog

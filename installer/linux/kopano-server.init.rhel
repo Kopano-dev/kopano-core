@@ -6,7 +6,7 @@
 # processname: /usr/sbin/kopano-server
 # config: /etc/kopano/server.cfg
 # pidfile: /var/run/kopano/server.pid
-
+# SPDX-License-Identifier: AGPL-3.0-only
 ### BEGIN INIT INFO
 # Provides: kopano-server
 # Required-Start: $local_fs $network $remote_fs $syslog

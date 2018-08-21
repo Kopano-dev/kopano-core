@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MIT
 """
 lockfile.py - Platform-independent advisory file locks.
 

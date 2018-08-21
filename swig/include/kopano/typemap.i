@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
 // Generic typemaps
 %apply unsigned int {ULONG};
 %apply unsigned long {ULONG_PTR};

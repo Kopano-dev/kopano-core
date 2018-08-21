@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-only
 from MAPI.Defs import *
 from MAPI.Tags import *
 from MAPI.Struct import *

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
 %constant unsigned int MAPI_E_CALL_FAILED                              = 0x80004005;
 %constant unsigned int MAPI_E_NOT_ENOUGH_MEMORY                        = 0x8007000E;
 %constant unsigned int MAPI_E_INVALID_PARAMETER 					   = 0x80070057;

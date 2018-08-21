@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: AGPL-3.0-or-later
 # Emit distance-based commit identifier.
 #
 if ! which git >/dev/null 2>/dev/null || ! which perl >/dev/null 2>/dev/null; then

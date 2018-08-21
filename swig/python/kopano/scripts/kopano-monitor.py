@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# SPDX-License-Identifier: AGPL-3.0-or-later
 
 # example of using Service class, in the form of an (incomplete) python version of kopano-monitor
 

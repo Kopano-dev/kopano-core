@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
 class IECMultiStoreTable : public virtual IUnknown {
 public:
 	/* ulFlags is currently unused */

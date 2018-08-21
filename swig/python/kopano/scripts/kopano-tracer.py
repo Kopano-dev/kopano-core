@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# SPDX-License-Identifier: AGPL-3.0-only
 
 # traces ICS events of a user and displays the changed/new MAPI properties
 

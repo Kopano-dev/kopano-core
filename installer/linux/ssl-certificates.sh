@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: AGPL-3.0-only
 
 CADIR=./demoCA
 DAYS=$((3*365))

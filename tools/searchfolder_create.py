@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 # Create a lot of dummy SFs
 import kopano
 s = kopano.Server(auth_user='bar', auth_pass='xbar')

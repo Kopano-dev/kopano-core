@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * Copyright 2016 Zarafa and its licensors
+ */
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif

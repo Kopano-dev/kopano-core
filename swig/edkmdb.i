@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
 %{
 // Hack to get around OP_DELETE being an enum in perl\lib\core\opnames.h and EdkMdb.h
 namespace EdkMdb {

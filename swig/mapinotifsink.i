@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
 // Force constructor on MAPINotifSink even though we're not exposing all abstract
 // methods
 %feature("notabstract") MAPINotifSink;
