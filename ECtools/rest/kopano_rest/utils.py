@@ -43,7 +43,8 @@ def _auth(req, options):
             'password': password,
         }
 
-    elif not options or options.auth_passthrough:
+    # TODO remove
+    elif not options or options.auth_passthrough: # pragma: no cover
         userid = req.get_header('X-Kopano-UserEntryID')
         if userid:
             return {
@@ -91,7 +92,8 @@ def _server(req, options):
         return kopano.Server(auth_user=auth['user'], auth_pass=auth['password'],
             parse_args=False)
 
-    elif auth['method'] == 'passthrough':
+    # TODO remove
+    elif auth['method'] == 'passthrough': # pragma: no cover
         userid = auth['userid']
         sessiondata = USERID_SESSION.get(userid)
         if sessiondata:
@@ -105,7 +107,8 @@ def _server(req, options):
             USERID_SESSION[userid] = sessiondata
         return server
 
-def _username(userid):
+# TODO remove
+def _username(userid): # pragma: no cover
     global SERVER
     reconnect = False
     try:

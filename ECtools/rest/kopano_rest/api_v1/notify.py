@@ -7,7 +7,7 @@ import traceback
 import uuid
 try:
     from queue import Queue
-except ImportError:
+except ImportError: # pragma: no cover
     from Queue import Queue
 import requests
 from threading import Thread
@@ -18,7 +18,7 @@ from falcon import routing
 try:
     from prometheus_client import Counter, Gauge
     PROMETHEUS = True
-except ImportError:
+except ImportError: # pragma: no cover
     PROMETHEUS = False
 
 from MAPI import MAPI_MESSAGE # TODO avoid MAPI
@@ -77,7 +77,7 @@ def _user(req, options, reconnect=False):
     elif auth['method'] == 'basic':
         username = codecs.decode(auth['user'], 'utf8')
         server = _server(username, auth['password'])
-    elif auth['method'] == 'passthrough':
+    elif auth['method'] == 'passthrough': # pragma: no cover
         username = utils._username(auth['userid'])
         server = _server(username, '')
     try:

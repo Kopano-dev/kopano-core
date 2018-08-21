@@ -18,38 +18,31 @@ class CalendarResource(FolderResource):
 
     def on_get(self, req, resp, userid=None, folderid=None, method=None):
         server, store = _server_store(req, userid, self.options)
-        path = req.path
-        fields = None
 
-        if method:
-            path = '/'.join(path.split('/')[:-1])
+        folder = _folder(store, folderid or 'calendar')
 
-        if path.split('/')[-1] == 'calendars':
-            data = self.generator(req, store.calendars)
+        if method == 'calendarView':
+            start, end = _start_end(req)
+            def yielder(page_limit=None, **kwargs):
+                count = 0
+                for occ in folder.occurrences(start, end):
+                    yield occ
+                    count += 1
+                    if page_limit is not None and count >= page_limit:
+                        break
+            data = self.generator(req, yielder)
+            fields = EventResource.fields
+
+        elif method == 'events':
+            data = self.generator(req, folder.items, folder.count)
+            fields = EventResource.fields
+
+        elif method:
+            raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
+
         else:
-            folder = _folder(store, folderid or 'calendar')
-
-            if method == 'calendarView':
-                start, end = _start_end(req)
-                def yielder(page_limit=None, **kwargs):
-                    count = 0
-                    for occ in folder.occurrences(start, end):
-                        yield occ
-                        count += 1
-                        if page_limit is not None and count >= page_limit:
-                            break
-                data = self.generator(req, yielder)
-                fields = EventResource.fields
-
-            elif method == 'events':
-                data = self.generator(req, folder.items, folder.count)
-                fields = EventResource.fields
-
-            elif method:
-                raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
-
-            else:
-                data = folder
+            data = folder
+            fields = None
 
         self.respond(req, resp, data, fields)
 

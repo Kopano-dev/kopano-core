@@ -81,10 +81,7 @@ class ContactResource(ItemResource):
             self.delta(req, resp, folder)
             return
 
-        if itemid:
-            data = _item(folder, itemid)
-        else:
-            data = self.generator(req, folder.items, folder.count)
+        data = _item(folder, itemid)
 
         self.respond(req, resp, data)
 
