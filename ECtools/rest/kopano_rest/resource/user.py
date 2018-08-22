@@ -17,6 +17,8 @@ from .mailfolder import MailFolderResource
 from .message import MessageResource
 from .reminder import ReminderResource
 
+from .schema import event_schema
+
 from MAPI.Util import GetDefaultStore
 import kopano # TODO remove?
 
@@ -154,7 +156,7 @@ class UserResource(Resource):
     # TODO redirect to other resources?
     def on_post(self, req, resp, userid=None, method=None):
         server, store = _server_store(req, userid, self.options)
-        fields = json.loads(req.stream.read().decode('utf-8'))
+        fields = self.load_json(req)
 
         if method == 'sendMail':
             message = self.create_message(store.outbox, fields['message'],
@@ -174,6 +176,8 @@ class UserResource(Resource):
             self.respond(req, resp, item, MessageResource.fields)
 
         elif method == 'events':
+            self.validate_json(event_schema, fields)
+
             item = self.create_message(store.calendar, fields,
                 EventResource.set_fields)
             item.send()
