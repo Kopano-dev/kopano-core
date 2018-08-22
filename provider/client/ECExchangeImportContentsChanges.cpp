@@ -519,7 +519,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	memory_ptr<SPropValue> lpAdditionalREN, lpNewAdditionalREN;
 	memory_ptr<SPropValue> lpIPMSubTree;
 	memory_ptr<ENTRYID> lpEntryId;
-	unsigned int cbEntryId = 0, ulObjType = 0, ulCount = 0;
+	unsigned int cbEntryId = 0, ulObjType = 0;
 
 	auto hr = m_lpFolder->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpRootFolder);
 	if(hr != hrSuccess) {
@@ -565,7 +565,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 
 	//copy from original PR_ADDITIONAL_REN_ENTRYIDS
 	if(lpAdditionalREN)
-		for (ulCount = 0; ulCount < lpAdditionalREN->Value.MVbin.cValues; ++ulCount)
+		for (unsigned int ulCount = 0; ulCount < lpAdditionalREN->Value.MVbin.cValues; ++ulCount)
 			lpNewAdditionalREN->Value.MVbin.lpbin[ulCount] = lpAdditionalREN->Value.MVbin.lpbin[ulCount];
 
 	hr = CreateConflictFolder(_("Sync Issues"), lpNewAdditionalREN, 1, lpParentFolder, &~lpConflictFolder);
