@@ -1,7 +1,6 @@
 KERNEL32_1 {
 global:
 	GetSystemTimeAsFileTime;
-	GetTempPath;
 	GlobalAlloc;
 	Sleep;
 	lstrcmpW;

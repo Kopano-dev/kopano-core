@@ -391,7 +391,6 @@ extern "C" {
 
 extern _kc_export HRESULT CoCreateGuid(LPGUID);
 extern _kc_export void GetSystemTimeAsFileTime(FILETIME *);
-extern _kc_export DWORD GetTempPath(DWORD len, char *buf);
 
 /* Some wrappers to map Windows unicode functions */
 static inline int lstrcmpW(LPCWSTR str1, LPCWSTR str2)
