@@ -750,9 +750,9 @@ static HRESULT ProcessQueue(const char *smtp, int port, const char *path)
 	hr = ProcessQueue2(lpAdminSession, lpSpooler, smtp, port, path);
 	/* When we exit, we must make sure all forks started are cleaned. */
 	if (bQuit) {
-		size_t ulCount = 0, ulThreads = 0;
+		size_t ulCount = 0;
 		while (ulCount < 60) {
-			ulThreads = mapSendData.size();
+			size_t ulThreads = mapSendData.size();
 			if (ulThreads == 0)
 				break;
 			if ((ulCount % 5) == 0)
