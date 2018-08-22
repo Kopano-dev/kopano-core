@@ -1,11 +1,10 @@
 import glob
 import logging
-from logging.handlers import QueueHandler, QueueListener
+from logging.handlers import QueueListener
 import multiprocessing
 import optparse
 import os
 import os.path
-import signal
 import sys
 import time
 
