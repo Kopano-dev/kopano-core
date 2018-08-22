@@ -754,8 +754,6 @@ PyObject *List_from_LPSPropTagArray(const SPropTagArray *a)
 void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, void *lpBase)
 {
 	pyobj_ptr iter;
-	Py_ssize_t len;
-	int n = 0;
 
 	if(lpBase == NULL)
 		lpBase = lpsRestriction;
@@ -775,7 +773,7 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 			PyErr_SetString(PyExc_RuntimeError, "lpRes missing for restriction");
 			return;
 		}
-		len = PyObject_Length(sub);
+		Py_ssize_t len = PyObject_Length(sub);
 
 		// Handle RES_AND and RES_OR the same since they are binary-compatible
 		if (MAPIAllocateMore(sizeof(SRestriction) * len, lpBase, (void **)&lpsRestriction->res.resAnd.lpRes) != hrSuccess) {
@@ -785,6 +783,8 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 		iter.reset(PyObject_GetIter(sub));
 		if(iter == NULL)
 			return;
+
+		int n = 0;
 		do {
 			pyobj_ptr elem(PyIter_Next(iter));
 			if (elem == nullptr)
@@ -1987,7 +1987,7 @@ Object_to_MVPROPMAP(PyObject *elem, T *&lpObj, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
 	PyObject *Item, *ListItem;
-	int ValuesLength, MVPropMapsSize = 0;
+	int MVPropMapsSize = 0;
 
 	/* Multi-Value PropMap support. */
 	pyobj_ptr MVPropMaps(PyObject_GetAttrString(elem, "MVPropMap"));
@@ -2020,7 +2020,7 @@ Object_to_MVPROPMAP(PyObject *elem, T *&lpObj, ULONG ulFlags)
 		lpObj->sMVPropmap.lpEntries[i].lpszValues = NULL;
 
 		//if ((PropID != NULL && PropID != Py_None) && (Values != NULL && Values != Py_None && PyList_Check(Values)))
-		ValuesLength = PyList_Size(Values);
+		int ValuesLength = PyList_Size(Values);
 		lpObj->sMVPropmap.lpEntries[i].cValues = ValuesLength;
 
 		if (ValuesLength > 0) {
