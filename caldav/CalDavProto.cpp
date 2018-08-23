@@ -191,7 +191,6 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 		ec_log_err("Error in GetProps for user %ls, error code: 0x%08X %s", m_wstrUser.c_str(), hr, GetMAPIErrorMessage(hr));
 		return hr;
 	}
-	hr = hrSuccess;
 	HrSetDavPropName(&(sDavResp.sPropName), "response", WEBDAVNS);
 	HrSetDavPropName(&(sDavResp.sHRef.sPropName), "href", WEBDAVNS);
 	// fetches escaped url
