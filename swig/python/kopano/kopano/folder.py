@@ -322,7 +322,7 @@ class Folder(Properties):
         return item
 
     def items(self, restriction=None, page_start=None, page_limit=None,
-              order=None):
+              order=None, query=None):
         """Return all :class:`items <Item>` in folder, reverse sorted on
         received date.
 
@@ -344,12 +344,12 @@ class Folder(Properties):
             PR_BODY_W, # body preview, not entire body!
         ]
 
-        if is_str(restriction):
+        if query is not None:
             if self.container_class == 'IPF.Contact':
                 type_ = 'contact'
             else:
                 type_ = 'message'
-            restriction = _query_to_restriction(restriction, type_, self.store)
+            restriction = _query_to_restriction(query, type_, self.store)
 
         try:
             table = Table(

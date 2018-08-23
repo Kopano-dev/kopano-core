@@ -226,7 +226,7 @@ class Resource(object):
         if '$search' in args:
             query = args['$search'][0]
             def yielder(**kwargs):
-                for item in folder.items(query):
+                for item in folder.items(query=query):
                     yield item
             return self.generator(req, yielder, 0)
         else:
