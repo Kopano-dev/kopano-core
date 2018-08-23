@@ -1825,8 +1825,6 @@ ECRESULT ECUserManagement::GetUserAndCompanyFromLoginName(const std::string &str
 		return er;
 	}
 
-	if (pos_s == std::string::npos)
-		pos_s = 0;
 	if (pos_m == std::string::npos)
 		pos_m = pos_b;
 	if (pos_u < pos_c) {
