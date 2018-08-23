@@ -374,8 +374,6 @@ def user_options(name, options, server):
 
     shared_options(user, options, server)
 
-    if options.create_store:
-        user.create_store()
     if options.unhook_store:
         user.unhook()
     if options.hook_store:
@@ -384,6 +382,8 @@ def user_options(name, options, server):
         user.unhook_archive()
     if options.hook_archive:
         user.hook_archive(server.store(options.hook_archive))
+    if options.create_store:
+        user.create_store()
 
     if options.reset_folder_count:
         for folder in [user.root] + list(user.folders()):
@@ -460,12 +460,12 @@ def group_options(name, options, server):
         server.delete(group)
 
 def company_update_options(company, options, server):
-    if options.create_store:
-        company.create_public_store()
     if options.unhook_store:
         company.unhook_public_store()
     if options.hook_store:
         company.hook_public_store(server.store(options.hook_store))
+    if options.create_store:
+        company.create_public_store()
 
     shared_options(company, options, server)
 
