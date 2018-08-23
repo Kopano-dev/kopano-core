@@ -96,22 +96,6 @@ void GetSystemTimeAsFileTime(FILETIME *ft) {
 	ft->dwHighDateTime = now >> 32;
 }
 
-/**
- * copies the path of the temp directory, including trailing /, into
- * given buffer.
- *
- * @param[in] inLen size of buffer, inclusive \0 char
- * @param[in,out] lpBuffer buffer to place path in
- *
- * @return length used or what would've been required if it would fit in lpBuffer
- */
-DWORD GetTempPath(DWORD inLen, char *lpBuffer) {
-	auto outLen = snprintf(lpBuffer, inLen, "%s/", KC::TmpPath::instance.getTempPath().c_str());
-	if (outLen > inLen)
-		return 0;
-	return outLen;
-}
-
 void Sleep(unsigned int msec) {
 	struct timespec ts;
 	ts.tv_sec = msec/1000;

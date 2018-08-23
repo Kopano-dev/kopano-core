@@ -34,18 +34,6 @@ public:
 		m_lpData(lpData), m_ulLen(ulLen)
 	{}
     
-    int ReadByte(unsigned int *lpData) {
-        if(m_ulCursor + 1 > m_ulLen)
-            return -1;
-            
-		DEBUGPRINT("%s ", bin2hex(1, m_lpData + m_ulCursor).c_str());
-        *lpData = m_lpData[m_ulCursor];
-        m_ulCursor+=1;
-        
-        DEBUGPRINT("%10u %08X ", *lpData, *lpData);
-        return 1;
-    };
-    
     int ReadShort(unsigned int *lpData) {
         if(m_ulCursor + 2 > m_ulLen)
             return -1;
