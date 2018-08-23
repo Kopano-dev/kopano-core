@@ -365,10 +365,7 @@ class Item(Properties, Contact, Appointment):
     @property
     def created(self):
         """Creation time."""
-        try:
-            return self.prop(PR_CREATION_TIME).value
-        except NotFoundError:
-            pass
+        return self._get_fast(PR_CREATION_TIME)
 
     @property
     def received(self):
@@ -1331,6 +1328,10 @@ class Item(Properties, Contact, Appointment):
         """ Windows codepage """
         return self.get(PR_INTERNET_CPID)
 
+    @codepage.setter
+    def codepage(self, value):
+        self[PR_INTERNET_CPID] = value
+
     @property
     def encoding(self):
         """ Encoding used for html body"""
@@ -1338,7 +1339,7 @@ class Item(Properties, Contact, Appointment):
             try:
                 return CODEPAGE_ENCODING[self.codepage]
             except KeyError:
-                pass
+                raise NotFoundError('no encoding for codepage: %d' % self.codepage)
 
     def __eq__(self, i): # XXX check same store?
         if isinstance(i, Item):

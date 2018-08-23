@@ -110,10 +110,6 @@ class UserResource(Resource):
             data = self.folder_gen(req, store.contacts)
             self.respond(req, resp, data, ContactResource.fields)
 
-        elif method == 'calendar':
-            data = store.calendar
-            self.respond(req, resp, data, CalendarResource.fields)
-
         elif method == 'calendars':
             data = self.generator(req, store.calendars, 0)
             self.respond(req, resp, data, CalendarResource.fields)

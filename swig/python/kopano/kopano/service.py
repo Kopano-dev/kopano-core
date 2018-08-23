@@ -161,7 +161,7 @@ Encapsulates everything to create a simple service, such as:
         self._server = None
 
     def main(self):
-        raise _errors.Error('Service.main not implemented')
+        raise _errors.Error('Service.main not implemented') # pragma: no cover
 
     @property
     def server(self):
@@ -206,7 +206,7 @@ class Worker(Process):
         return self._server
 
     def main(self):
-        raise _errors.Error('Worker.main not implemented')
+        raise _errors.Error('Worker.main not implemented') # pragma: no cover
 
     def run(self):
         signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -215,7 +215,7 @@ class Worker(Process):
         with _log.log_exc(self.log):
             self.main()
 
-class _ZSocket: # XXX megh, double wrapper
+class _ZSocket:
     def __init__(self, addr, ssl_key, ssl_cert):
         self.ssl_key = ssl_key
         self.ssl_cert = ssl_cert
@@ -229,7 +229,7 @@ class _ZSocket: # XXX megh, double wrapper
         return connstream, fromaddr
 
 
-def server_socket(addr, ssl_key=None, ssl_cert=None, log=None): # XXX https, merge code with client_socket
+def server_socket(addr, ssl_key=None, ssl_cert=None, log=None):
     if addr.startswith('file://'):
         addr2 = addr.replace('file://', '')
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
