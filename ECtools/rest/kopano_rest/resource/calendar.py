@@ -4,7 +4,6 @@ import falcon
 from .resource import (
     DEFAULT_TOP, json, _start_end,
 )
-from .event import EventResource
 from ..utils import (
     _server_store, _folder
 )
@@ -56,3 +55,6 @@ class CalendarResource(FolderResource):
             item.send()
             self.respond(req, resp, item, EventResource.fields)
 
+from .event import (
+    EventResource
+)

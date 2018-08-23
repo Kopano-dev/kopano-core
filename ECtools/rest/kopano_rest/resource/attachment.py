@@ -86,3 +86,7 @@ class ItemAttachmentResource(AttachmentResource):
     fields.update({
         '@odata.type': lambda attachment: '#microsoft.graph.itemAttachment',
     })
+
+from .message import (
+    EmbeddedMessageResource
+)

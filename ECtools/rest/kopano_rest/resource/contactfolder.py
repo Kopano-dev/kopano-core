@@ -5,7 +5,6 @@ from .resource import json
 from ..utils import (
     _server_store, _folder
 )
-from .contact import ContactResource
 from .folder import FolderResource
 
 class DeletedContactFolderResource(FolderResource):
@@ -56,3 +55,7 @@ class ContactFolderResource(FolderResource):
 
             self.respond(req, resp, item, ContactResource.fields)
             resp.status = falcon.HTTP_201
+
+from .contact import (
+    ContactResource
+)

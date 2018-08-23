@@ -9,9 +9,7 @@ from ..utils import (
 from .resource import (
     DEFAULT_TOP, _date, json
 )
-from .attachment import (
-    AttachmentResource
-)
+
 from .item import (
     ItemResource, get_body, set_body, get_email, get_attachments,
 )
@@ -151,3 +149,7 @@ class EmbeddedMessageResource(MessageResource):
         'id': lambda item: '',
     })
     del fields['parentFolderId'] # TODO more?
+
+from .attachment import (
+    AttachmentResource
+)
