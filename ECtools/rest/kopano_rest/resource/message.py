@@ -148,7 +148,9 @@ class EmbeddedMessageResource(MessageResource):
     fields.update({
         'id': lambda item: '',
     })
-    del fields['parentFolderId'] # TODO more?
+    del fields['@odata.etag'] # TODO check MSG
+    del fields['parentFolderId']
+    del fields['changeKey']
 
 from .attachment import (
     AttachmentResource

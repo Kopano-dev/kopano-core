@@ -85,6 +85,8 @@ class ItemAttachmentResource(AttachmentResource):
     fields = AttachmentResource.fields.copy()
     fields.update({
         '@odata.type': lambda attachment: '#microsoft.graph.itemAttachment',
+        'contentType': lambda attachment: 'message/rfc822',
+        'name': lambda attachment: attachment.item.subject, # TODO faster? attachment.something?
     })
 
 from .message import (
