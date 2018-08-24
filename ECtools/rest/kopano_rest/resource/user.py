@@ -142,8 +142,14 @@ class UserResource(Resource):
             data = (user.groups(), DEFAULT_TOP, 0, 0)
             self.respond(req, resp, data, GroupResource.fields)
 
-        elif method == 'photos': # TODO
-            pass
+        elif method == 'photos': # TODO multiple photos?
+            user = server.user(userid=userid)
+            def yielder(**kwargs):
+                photo = user.photo
+                if photo:
+                    yield photo
+            data = self.generator(req, yielder)
+            self.respond(req, resp, data, ProfilePhotoResource.fields)
 
         elif method:
             raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
@@ -184,4 +190,7 @@ class UserResource(Resource):
 
 from .group import (
     GroupResource
+)
+from .profilephoto import (
+    ProfilePhotoResource
 )

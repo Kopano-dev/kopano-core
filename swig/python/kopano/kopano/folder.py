@@ -957,10 +957,7 @@ class Folder(Properties):
 
     @property
     def created(self):
-        try:
-            return self.prop(PR_CREATION_TIME).value
-        except NotFoundError:
-            pass
+        return self._get_fast(PR_CREATION_TIME)
 
     @property
     def last_modified(self):

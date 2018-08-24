@@ -1226,7 +1226,10 @@ class Occurrence(object):
             self.item.create_attendee(type_, addr)
 
     def cancel(self):
-        self._update(canceled=True)
+        if self.item.recurring:
+            self._update(canceled=True)
+        else:
+            self.item.cancel()
 
     @property
     def canceled(self):

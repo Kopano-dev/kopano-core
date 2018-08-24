@@ -70,10 +70,7 @@ class ContactResource(ItemResource):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid or 'contacts') # TODO all folders?
 
-        if method == 'photos':
-            pass # TODO
-
-        elif method:
+        if method:
             raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
         if itemid == 'delta':
