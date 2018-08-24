@@ -424,8 +424,8 @@ class Server(object):
         :param create_store: should a store be created for the new user
         :return: :class:`<User>`
         """
+        fullname = _unicode(fullname or name or '')
         name = _unicode(name)
-        fullname = _unicode(fullname or '')
         if email:
             email = _unicode(email)
         else:
