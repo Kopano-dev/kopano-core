@@ -216,13 +216,16 @@ class Recurrence(object):
 
     @index.setter
     def index(self, value):
-        self._pattern_type_specific[1] = {
-            u'first': 1,
-            u'second': 2,
-            u'third': 3,
-            u'fourth': 4,
-            u'last': 5,
-        }[_unicode(value)] # TODO ArgumentError
+        try:
+            self._pattern_type_specific[1] = {
+                u'first': 1,
+                u'second': 2,
+                u'third': 3,
+                u'fourth': 4,
+                u'last': 5,
+            }[_unicode(value)]
+        except KeyError:
+            raise ArgumentError('invalid recurrence index: %s' % value)
 
     @property
     def interval(self):
