@@ -220,6 +220,7 @@ class _ZSocket:
         self.ssl_key = ssl_key
         self.ssl_cert = ssl_cert
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.s.bind(addr)
         self.s.listen(socket.SOMAXCONN)
 
@@ -245,6 +246,7 @@ def server_socket(addr, ssl_key=None, ssl_cert=None, log=None):
         addr2 = addr.replace('http://', '').split(':')
         addr2 = (addr2[0], int(addr2[1]))
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind(addr2)
         s.listen(socket.SOMAXCONN)
     if log:
