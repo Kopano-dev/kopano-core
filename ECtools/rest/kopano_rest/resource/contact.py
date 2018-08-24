@@ -23,6 +23,13 @@ def _phys_address(addr):
     }
     return {a:b for (a,b) in data.items() if b}
 
+class DeletedContactResource(ItemResource):
+    fields = {
+        '@odata.type': lambda item: '#microsoft.graph.contact', # TODO
+        'id': lambda item: item.entryid,
+        '@removed': lambda item: {'reason': 'deleted'} # TODO soft deletes
+    }
+
 class ContactResource(ItemResource):
     fields = ItemResource.fields.copy()
     fields.update({
@@ -65,6 +72,8 @@ class ContactResource(ItemResource):
         'displayName': lambda item, arg: setattr(item, 'name', arg),
         'emailAddresses': set_email_addresses,
     }
+
+    deleted_resource = DeletedContactResource
 
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid, self.options)
