@@ -1781,14 +1781,14 @@ ECRESULT ECCacheManager::SetExcludedIndexProperties(const std::set<unsigned int>
 
 void ECCacheManager::DisableCellCache()
 {
-	LOG_CELLCACHE_DEBUG("%s", "Disable cell cache");
-    m_bCellCacheDisabled = true;
+	LOG_CELLCACHE_DEBUG("Disable cell cache");
+	m_bCellCacheDisabled = true;
 }
 
 void ECCacheManager::EnableCellCache()
 {
-	LOG_CELLCACHE_DEBUG("%s", "Enable cell cache");
-    m_bCellCacheDisabled = false;
+	LOG_CELLCACHE_DEBUG("Enable cell cache");
+	m_bCellCacheDisabled = false;
 }
 
 } /* namespace */
