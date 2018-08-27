@@ -194,7 +194,7 @@ public:
 	}
 
 	// Used in ECCacheManager::SetCell, where the content of a cache item is modified.
-		ECRESULT AddToSize(int64_t ulSize)
+	ECRESULT AddToSize(int64_t ulSize)
 	{
 		m_ulSize += ulSize;
 		return erSuccess;
