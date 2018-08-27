@@ -1519,8 +1519,6 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
         // Nothing updated
 		return er = erSuccess;
 
-    // Trigger an assertion since in practice this should never happen
-//	assert(false);
 	g_lpStatsCollector->Increment(SCN_DATABASE_COUNTER_RESYNCS);
 	er = cache->GetParent(ulObjId, &ulParent);
 	if (er != erSuccess)
