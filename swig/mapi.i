@@ -314,8 +314,6 @@ LPCIID IIDFromType(const char *type)
 %}
 
 #if SWIGPYTHON
-%include "ECLogger.i"
-
 // Directors for IStream
 
 %{
