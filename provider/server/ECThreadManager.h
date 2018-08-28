@@ -15,20 +15,12 @@
 #include <set>
 #include <pthread.h>
 #include <kopano/ECConfig.h>
+#include <kopano/ECThreadPool.h>
 #include <kopano/kcodes.h>
 #include "SOAPUtils.h"
 #include "soapH.h"
 
 using KC::ECRESULT;
-
-/*
- * A single work item - it doesn't contain much since we defer all processing, including XML
- * parsing until a worker thread starts processing
- */
-struct WORKITEM {
-    struct soap *soap;			// socket and state associated with the connection
-	KC::time_point dblReceiveStamp; /* time at which activity was detected on the socket */
-};
 
 struct ACTIVESOCKET _kc_final {
     struct soap *soap;
@@ -160,10 +152,6 @@ public:
 	// Add soap socket in the work queue
 	ECRESULT QueueItem(struct soap *soap);
 
-    // Get the next work item on the queue, if bWait is TRUE, will block until a work item is available. The returned
-    // workitem should not be freed, but returned to the class via NotifyDone(), at which point it will be cleaned up
-    ECRESULT GetNextWorkItem(WORKITEM **item, bool bWait, bool bPrio);
-
     // Reload variables from config
     ECRESULT DoHUP();
 
@@ -181,15 +169,10 @@ public:
 
 protected:
 	std::shared_ptr<KC::ECConfig> m_lpConfig;
-	std::unique_ptr<ECThreadManager> m_lpThreadManager;
-	std::mutex m_mutexItems;
-	std::queue<WORKITEM *> m_queueItems;
-	std::condition_variable m_condItems;
-	std::queue<WORKITEM *> m_queuePrioItems;
-	std::condition_variable m_condPrioItems;
+	KC::ECThreadPool m_pool{0}, m_prio{0};
 	std::map<int, ACTIVESOCKET> m_setSockets;
 	std::map<int, std::unique_ptr<struct soap, KC::ec_soap_deleter>> m_setListenSockets;
-	std::mutex m_mutexSockets;
+	std::mutex m_poolcount, m_mutexSockets;
 	bool m_bExit = false;
 	std::atomic<unsigned int> m_ulIdle{0};
 	// Socket settings (TCP + SSL)
