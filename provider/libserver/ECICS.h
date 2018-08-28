@@ -25,6 +25,7 @@ public:
 	{
 		if (ulSize > 0) {
 			lpData.reset(new char[s.ulSize]);
+			assert(s.lpData != nullptr);
 			memcpy(lpData.get(), s.lpData.get(), s.ulSize);
 		}
 	}
@@ -55,6 +56,7 @@ public:
 	{
 		if (ulSize > 0) {
 			lpData.reset(new char[ulSize]);
+			assert(sourcekey.__ptr != nullptr);
 			memcpy(lpData.get(), sourcekey.__ptr, sourcekey.__size);
 		}
 	}
@@ -62,7 +64,10 @@ public:
         if(&s == this) return *this;
 		lpData.reset(new char[s.ulSize]);
 		ulSize = s.ulSize;
-		memcpy(lpData.get(), s.lpData.get(), ulSize);
+		if (ulSize > 0) {
+			assert(s.lpData != nullptr);
+			memcpy(lpData.get(), s.lpData.get(), ulSize);
+		}
         return *this;
     }
 

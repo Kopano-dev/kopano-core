@@ -8614,7 +8614,8 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er,
 		ec_log_err("setSyncStatus(): row/col NULL");
 		return er = KCERR_DATABASE_ERROR; /* this should never happen */
 	}
-	if(lpDBLen[0] != sSourceKey.size() || memcmp(lpDBRow[0], sSourceKey, sSourceKey.size()) != 0){
+	if (lpDBLen[0] != sSourceKey.size() || sSourceKey.size() == 0 ||
+	    memcmp(lpDBRow[0], sSourceKey, sSourceKey.size()) != 0) {
 		ec_log_err("setSyncStatus(): collision");
 		return er = KCERR_COLLISION;
 	}
