@@ -33,13 +33,13 @@ private:	// types
 
 public:
 	ECThreadPool(unsigned ulThreadCount);
-	virtual ~ECThreadPool(void);
-	virtual bool enqueue(ECTask *lpTask, bool bTakeOwnership = false);
+	~ECThreadPool();
+	bool enqueue(ECTask *lpTask, bool bTakeOwnership = false);
 	_kc_hidden unsigned int threadCount(void) const;
 	_kc_hidden void setThreadCount(unsigned int cuont, bool wait = false);
 
 private:	// methods
-	_kc_hidden virtual bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
+	_kc_hidden bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
 	_kc_hidden void joinTerminated(std::unique_lock<std::mutex> &);
 	_kc_hidden static void *threadFunc(void *);
 
