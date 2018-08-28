@@ -31,14 +31,14 @@ ECThreadPool::~ECThreadPool()
 }
 
 /**
- * Dispatch a task object on the threadpool instance.
- * @param[in]	lpTask			The task object to dispatch.
+ * Queue a task object on the threadpool instance.
+ * @param[in]	lpTask			The task object to queue.
  * @param[in]	bTakeOwnership	Boolean parameter specifying whether the threadpool
  *                              should take ownership of the task object, and thus
  *                              is responsible for deleting the object when done.
  * @returns true if the task was successfully queued, false otherwise.
  */
-bool ECThreadPool::dispatch(ECTask *lpTask, bool bTakeOwnership)
+bool ECThreadPool::enqueue(ECTask *lpTask, bool bTakeOwnership)
 {
 	STaskInfo sTaskInfo = {lpTask, bTakeOwnership};
 	ulock_normal locker(m_hMutex);

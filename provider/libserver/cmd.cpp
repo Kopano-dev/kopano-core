@@ -8877,7 +8877,7 @@ static void *MTOMReadOpen(struct soap *soap, void *handle, const char *id,
 
 	if (strncmp(id, "emcas-", 6) == 0) {
 		std::unique_ptr<task_type> ptrTask(new task_type(SerializeObject, lpStreamInfo));
-		if (!ptrTask->dispatchOn(lpStreamInfo->lpSessionInfo->lpThreadPool.get())) {
+		if (!ptrTask->queue_on(lpStreamInfo->lpSessionInfo->lpThreadPool.get())) {
 			ec_log_err("Failed to dispatch serialization task for \"%s\"", id);
 			soap->error = SOAP_FATAL_ERROR;
 			delete lpStreamInfo->lpFifoBuffer;
@@ -9139,7 +9139,7 @@ static void *MTOMWriteOpen(struct soap *soap, void *handle,
 	lpStreamInfo->lpFifoBuffer = new ECFifoBuffer();
 
 	std::unique_ptr<task_type> ptrTask(new task_type(DeserializeObject, lpStreamInfo));
-	if (!ptrTask->dispatchOn(lpStreamInfo->lpSessionInfo->lpThreadPool.get())) {
+	if (!ptrTask->queue_on(lpStreamInfo->lpSessionInfo->lpThreadPool.get())) {
 		ec_log_err("Failed to dispatch deserialization task");
 		lpStreamInfo->lpSessionInfo->er = KCERR_UNABLE_TO_COMPLETE;
 		soap->error = SOAP_FATAL_ERROR;

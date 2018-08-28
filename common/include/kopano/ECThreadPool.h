@@ -34,7 +34,7 @@ private:	// types
 public:
 	ECThreadPool(unsigned ulThreadCount);
 	virtual ~ECThreadPool(void);
-	virtual bool dispatch(ECTask *lpTask, bool bTakeOwnership = false);
+	virtual bool enqueue(ECTask *lpTask, bool bTakeOwnership = false);
 	_kc_hidden unsigned int threadCount(void) const;
 	_kc_hidden void setThreadCount(unsigned int cuont, bool wait = false);
 
@@ -65,17 +65,18 @@ inline unsigned ECThreadPool::threadCount() const {
 }
 
 /**
- * This class represents a task that can be dispatched on an ECThreadPool or
+ * This class represents a task that can be queued on an ECThreadPool or
  * derived object.
- * Once dispatched, the objects run method will be executed once the threadpool
- * has a free worker and all previously queued tasks have been processed. There's
- * no way of knowing when the task is done.
+ * Once the threadpool has a free worker and all previously queued tasks have
+ * been processed, the task will be dispatched and its "run" method
+ * executed.
+ * There is no way of knowing when the task is done.
  */
 class _kc_export ECTask {
 public:
 	_kc_hidden virtual ~ECTask(void) = default;
 	_kc_hidden virtual void execute(void);
-	_kc_hidden bool dispatchOn(ECThreadPool *, bool transfer_ownership = false);
+	_kc_hidden bool queue_on(ECThreadPool *, bool transfer_ownership = false);
 
 protected:
 	_kc_hidden virtual void run(void) = 0;
@@ -88,16 +89,17 @@ private:
 };
 
 /**
- * Dispatch a task object on a particular threadpool.
+ * Queue a task object on a particular threadpool.
  *
- * @param[in]	lpThreadPool		The threadpool on which to dispatch the task.
- * @param[in]	bTransferOwnership	Boolean parameter specifying whether the threadpool
+ * @param[in]	p	The threadpool on which to queue the task.
+ * @param[in]	own	Boolean parameter specifying whether the threadpool
  *                                  should take ownership of the task object, and thus
  *                                  is responsible for deleting the object when done.
  * @retval true if the task was successfully queued, false otherwise.
  */
-inline bool ECTask::dispatchOn(ECThreadPool *lpThreadPool, bool bTransferOwnership) {
-	return lpThreadPool ? lpThreadPool->dispatch(this, bTransferOwnership) : false;
+inline bool ECTask::queue_on(ECThreadPool *p, bool own)
+{
+	return p != nullptr ? p->enqueue(this, own) : false;
 }
 
 /**
