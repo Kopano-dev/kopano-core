@@ -77,6 +77,16 @@ Whether to show the hostname in the logon greeting to clients. This config optio
 .PP
 Default:
 \fIno\fR
+.SS socketspec
+.PP
+This directive is for the purpose of backwards compatibility with old config
+files. It selects whether listening sockets are defined by the historic or
+modern directives. (Old config files do not have this directive, and that is
+how they are detected.) This directive ought to be set to \fBv2\fP so that
+\fBimap_listen\fP, \fBimaps_listen\fP, \fBpop3_listen\fP and \fBpop3s_listen\fP
+are used.
+.PP
+Default: \fIv1\fP
 .SS imap_listen
 .PP
 A space-separated list of address:port specifiers for where the server should
