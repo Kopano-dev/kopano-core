@@ -195,26 +195,18 @@ static ECRESULT ltm_sync_time(ECCacheManager *cache, ECDatabase *db,
 	if (row == nullptr)
 		return erSuccess;
 	unsigned int store_id = strtoul(row[0], nullptr, 0);
-	unsigned int prop = dir ? PR_LAST_LOGON_TIME : PR_LAST_LOGOFF_TIME;
-	result = DB_RESULT();
-	query = "REPLACE INTO properties (tag, type, hierarchyid, val_hi, val_lo) VALUES(" +
-                stringify(PROP_ID(prop)) + "," + stringify(PROP_TYPE(prop)) + "," +
-                stringify(store_id) + "," + stringify(ft.dwHighDateTime) + "," +
-                stringify(ft.dwLowDateTime) + ")";
-	ret = db->DoInsert(query);
-	if (ret != erSuccess)
-		return ret;
-	if (cache == nullptr)
-		return erSuccess;
 	struct hiloLong hl;
 	hl.hi = ft.dwHighDateTime;
 	hl.lo = ft.dwLowDateTime;
 	struct propVal pv;
 	pv.__union = SOAP_UNION_propValData_hilo;
-	pv.ulPropTag = prop;
+	pv.ulPropTag = dir ? PR_LAST_LOGON_TIME : PR_LAST_LOGOFF_TIME;
 	pv.Value.hilo = &hl;
+	ret = WriteProp(db, store_id, 0, &pv);
+	if (cache == nullptr)
+		return erSuccess;
 	sObjectTableKey key(store_id, 0);
-	return cache->SetCell(&key, prop, &pv);
+	return cache->SetCell(&key, pv.ulPropTag, &pv);
 }
 
 void sync_logon_times(ECCacheManager *cache, ECDatabase *db)
