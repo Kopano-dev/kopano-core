@@ -180,7 +180,7 @@ ECRESULT UpdateObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned
 	return erSuccess;
 }
 
-static ECRESULT ltm_sync_time(ECDatabase *db,
+static ECRESULT ltm_sync_time(ECCacheManager *cache, ECDatabase *db,
     const std::pair<unsigned int, time_t> &e, bool dir)
 {
 	auto ft = UnixTimeToFileTime(e.second);
@@ -201,10 +201,23 @@ static ECRESULT ltm_sync_time(ECDatabase *db,
                 stringify(PROP_ID(prop)) + "," + stringify(PROP_TYPE(prop)) + "," +
                 stringify(store_id) + "," + stringify(ft.dwHighDateTime) + "," +
                 stringify(ft.dwLowDateTime) + ")";
-	return db->DoInsert(query);
+	ret = db->DoInsert(query);
+	if (ret != erSuccess)
+		return ret;
+	if (cache == nullptr)
+		return erSuccess;
+	struct hiloLong hl;
+	hl.hi = ft.dwHighDateTime;
+	hl.lo = ft.dwLowDateTime;
+	struct propVal pv;
+	pv.__union = SOAP_UNION_propValData_hilo;
+	pv.ulPropTag = prop;
+	pv.Value.hilo = &hl;
+	sObjectTableKey key(store_id, 0);
+	return cache->SetCell(&key, prop, &pv);
 }
 
-void sync_logon_times(ECDatabase *db)
+void sync_logon_times(ECCacheManager *cache, ECDatabase *db)
 {
 	/*
 	 * Switchgrab the global map, so that we can run it to the database
@@ -220,9 +233,9 @@ void sync_logon_times(ECDatabase *db)
 	std::swap(ltm_offtime_cache, logoff_time);
 	ltm_offtime_mutex.unlock();
 	for (const auto &i : logon_time)
-		failed |= ltm_sync_time(db, i, 0) != erSuccess;
+		failed |= ltm_sync_time(cache, db, i, 0) != erSuccess;
 	for (const auto &i : logoff_time)
-		failed |= ltm_sync_time(db, i, 1) != erSuccess;
+		failed |= ltm_sync_time(cache, db, i, 1) != erSuccess;
 	if (failed)
 		ec_log_warn("Writeout of logon/off time cache unsuccessful");
 }

@@ -646,7 +646,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		}
 
 		lstSessions.clear();
-		KC::sync_logon_times(db);
+		KC::sync_logon_times(lpSessionManager->GetCacheManager(), db);
 
 		// Wait for a terminate signal or return after a few minutes
 		ulock_normal l_exit(lpSessionManager->m_hExitMutex);
