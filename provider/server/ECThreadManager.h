@@ -45,65 +45,7 @@ private:
 	SOAP_SOCKET s;
 };
 
-class ECThreadManager;
 class ECDispatcher;
-
-/*
- * Each instance of ECWorkerThread represents a single worker thread; the thread is started
- * when constructed, and exits when it is deleted. It needs access to the thread manager to notify
- * it of the thread state, possibly exiting if needed, and needs access to the dispatcher to retrieve
- * the next work item.
- */
-class ECWorkerThread {
-public:
-	ECWorkerThread(ECThreadManager *, ECDispatcher *, bool nostart = false);
-
-protected:
-    // The destructor is protected since we self-cleanup; you cannot delete this object externally.
-	virtual ~ECWorkerThread(void) = default;
-    static void *Work(void *param);
-
-    pthread_t m_thread;
-    ECThreadManager *m_lpManager;
-    ECDispatcher *m_lpDispatcher;
-	bool m_thread_active = false;
-};
-
-class _kc_export_dycast ECPriorityWorkerThread _kc_final :
-    public ECWorkerThread {
-	public:
-	_kc_hidden ECPriorityWorkerThread(ECThreadManager *, ECDispatcher *);
-	// The destructor is public since this thread isn't detached, we wait for the thread and clean it
-	_kc_hidden ~ECPriorityWorkerThread(void);
-};
-
-/*
- * It is the thread manager's job to keep track of processing threads, and adding or removing threads
- * when requested.
- */
-class ECThreadManager _kc_final {
-public:
-    // ulThreads is the normal number of threads that are started; These threads are pre-started and will be in an idle state.
-	ECThreadManager(ECDispatcher *, unsigned int threads);
-    ~ECThreadManager();
-
-    // Adds n threads above the standard thread count. Threads are removed back to the normal thread count whenever the message
-    // queue hits size 0 and there is an idle thread.
-    ECRESULT ForceAddThread(int nThreads);
-    // Some statistics
-    ECRESULT GetThreadCount(unsigned int *lpulThreads);
-    // This is the same parameter as passed in the constructor
-    ECRESULT SetThreadCount(unsigned int ulThreads);
-    // Called by the worker thread when it is idle. *lpfStop is set to TRUE then the thread will terminate and delete itself.
-    ECRESULT NotifyIdle(ECWorkerThread *, bool *lpfStop);
-
-private:
-	std::mutex m_mutexThreads;
-    std::list<ECWorkerThread *> m_lstThreads;
-	ECPriorityWorkerThread *	m_lpPrioWorker;
-    ECDispatcher *				m_lpDispatcher;
-    unsigned int				m_ulThreads;
-};
 
 /*
  * Represents the watchdog thread. This monitors the dispatcher and acts when needed.
