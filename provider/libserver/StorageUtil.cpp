@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
@@ -25,7 +26,7 @@ namespace KC {
 // External objects
 extern ECSessionManager *g_lpSessionManager;	// ECServerEntrypoint.cpp
 
-static std::unordered_map<unsigned int, time_t> ltm_ontime_cache, ltm_offtime_cache;
+static std::unordered_map<unsigned int, FILETIME> ltm_ontime_cache, ltm_offtime_cache;
 static std::mutex ltm_ontime_mutex, ltm_offtime_mutex;
 
 ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned int ulParentObjId, unsigned int ulParentType, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulObjId)
@@ -181,9 +182,8 @@ ECRESULT UpdateObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned
 }
 
 static ECRESULT ltm_sync_time(ECCacheManager *cache, ECDatabase *db,
-    const std::pair<unsigned int, time_t> &e, bool dir)
+    const std::pair<unsigned int, FILETIME> &e, bool dir)
 {
-	auto ft = UnixTimeToFileTime(e.second);
 	auto query = "SELECT hierarchy_id FROM stores WHERE stores.user_id=" + stringify(e.first) + " LIMIT 1";
 	DB_RESULT result;
 	auto ret = db->DoSelect(query, &result);
@@ -196,8 +196,8 @@ static ECRESULT ltm_sync_time(ECCacheManager *cache, ECDatabase *db,
 		return erSuccess;
 	unsigned int store_id = strtoul(row[0], nullptr, 0);
 	struct hiloLong hl;
-	hl.hi = ft.dwHighDateTime;
-	hl.lo = ft.dwLowDateTime;
+	hl.hi = e.second.dwHighDateTime;
+	hl.lo = e.second.dwLowDateTime;
 	struct propVal pv;
 	pv.__union = SOAP_UNION_propValData_hilo;
 	pv.ulPropTag = dir ? PR_LAST_LOGON_TIME : PR_LAST_LOGOFF_TIME;
@@ -239,14 +239,15 @@ void sync_logon_times(ECCacheManager *cache, ECDatabase *db)
 void record_logon_time(ECSession *ses, bool logon)
 {
 	unsigned int uid = ses->GetSecurity()->GetUserId();
-	auto now = time(nullptr);
+	FILETIME ft;
+	GetSystemTimeAsFileTime(&ft);
 	if (logon) {
 		ltm_ontime_mutex.lock();
-		ltm_ontime_cache[uid] = now;
+		ltm_ontime_cache[uid] = std::move(ft);
 		ltm_ontime_mutex.unlock();
 	} else {
 		ltm_offtime_mutex.lock();
-		ltm_offtime_cache[uid] = now;
+		ltm_offtime_cache[uid] = std::move(ft);
 		ltm_offtime_mutex.unlock();
 	}
 }
