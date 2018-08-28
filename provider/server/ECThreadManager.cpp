@@ -164,92 +164,89 @@ void WORKITEM::run()
 	int err = 0;
 	pthread_t thrself = pthread_self();
 
-		set_thread_name(thrself, format("z-s: %s", lpWorkItem->soap->host).c_str());
+	set_thread_name(thrself, format("z-s: %s", lpWorkItem->soap->host).c_str());
 
-		// For SSL connections, we first must do the handshake and pass it back to the queue
-		if (lpWorkItem->soap->ctx && !lpWorkItem->soap->ssl) {
-			err = soap_ssl_accept(lpWorkItem->soap);
-			if (err) {
-				ec_log_warn("%s", soap_faultdetail(lpWorkItem->soap)[0]);
-				ec_log_debug("%s: %s", GetSoapError(err).c_str(), soap_faultstring(lpWorkItem->soap)[0]);
+	// For SSL connections, we first must do the handshake and pass it back to the queue
+	if (lpWorkItem->soap->ctx && !lpWorkItem->soap->ssl) {
+		err = soap_ssl_accept(lpWorkItem->soap);
+		if (err) {
+			ec_log_warn("%s", soap_faultdetail(lpWorkItem->soap)[0]);
+			ec_log_debug("%s: %s", GetSoapError(err).c_str(), soap_faultstring(lpWorkItem->soap)[0]);
+		}
+	} else {
+		err = 0;
+		// Record start of handling of this request
+		auto dblStart = std::chrono::steady_clock::now();
+		// Reset last session ID so we can use it reliably after the call is done
+		auto info = soap_info(lpWorkItem->soap);
+		info->ulLastSessionId = 0;
+		// Pass information on start time of the request into soap->user, so that it can be applied to the correct
+		// session after XML parsing
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->threadstart);
+		info->start = decltype(dblStart)::clock::now();
+		info->szFname = nullptr;
+		info->fdone = NULL;
+
+		// Do processing of work item
+		soap_begin(lpWorkItem->soap);
+		if (soap_begin_recv(lpWorkItem->soap)) {
+			if (lpWorkItem->soap->error < SOAP_STOP) {
+				// Client Updater returns 404 to the client to say it doesn't need to update, so skip this HTTP error
+				if (lpWorkItem->soap->error != SOAP_EOF && lpWorkItem->soap->error != 404)
+					ec_log_debug("gSOAP error on receiving request: %s", GetSoapError(lpWorkItem->soap->error).c_str());
+				soap_send_fault(lpWorkItem->soap);
+				goto done;
 			}
-        } else {
-			err = 0;
-			// Record start of handling of this request
-			auto dblStart = std::chrono::steady_clock::now();
-			// Reset last session ID so we can use it reliably after the call is done
-			auto info = soap_info(lpWorkItem->soap);
-			info->ulLastSessionId = 0;
-            // Pass information on start time of the request into soap->user, so that it can be applied to the correct
-            // session after XML parsing
-			clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->threadstart);
-			info->start = decltype(dblStart)::clock::now();
-			info->szFname = nullptr;
-			info->fdone = NULL;
+			soap_closesock(lpWorkItem->soap);
+			goto done;
+		}
 
-            // Do processing of work item
-            soap_begin(lpWorkItem->soap);
-            if(soap_begin_recv(lpWorkItem->soap)) {
-                if(lpWorkItem->soap->error < SOAP_STOP) {
-					// Client Updater returns 404 to the client to say it doesn't need to update, so skip this HTTP error
-					if (lpWorkItem->soap->error != SOAP_EOF && lpWorkItem->soap->error != 404)
-						ec_log_debug("gSOAP error on receiving request: %s", GetSoapError(lpWorkItem->soap->error).c_str());
-                    soap_send_fault(lpWorkItem->soap);
-                    goto done;
-                }
-                soap_closesock(lpWorkItem->soap);
-                goto done;
-            }
+		// WARNING
+		//
+		// From the moment we call soap_serve_request, the soap object MAY be handled
+		// by another thread. In this case, soap_serve_request() returns SOAP_NULL. We
+		// can NOT rely on soap->error being this value since the other thread may already
+		// have overwritten the error value.
+		if (soap_envelope_begin_in(lpWorkItem->soap) ||
+		    soap_recv_header(lpWorkItem->soap) ||
+		    soap_body_begin_in(lpWorkItem->soap)) {
+			err = lpWorkItem->soap->error;
+		} else {
+			try {
+				err = KCmdService(lpWorkItem->soap).dispatch();
+			} catch (const int &) {
+				/* matching part is in cmd.cpp: "throw SOAP_NULL;" (23) */
+				// Reply processing is handled by the callee, totally ignore the rest of processing for this item
+				lpWorkItem->soap = nullptr;
+				return;
+			}
+		}
 
-            // WARNING
-            //
-            // From the moment we call soap_serve_request, the soap object MAY be handled
-            // by another thread. In this case, soap_serve_request() returns SOAP_NULL. We
-            // can NOT rely on soap->error being this value since the other thread may already
-            // have overwritten the error value.
-            if(soap_envelope_begin_in(lpWorkItem->soap)
-              || soap_recv_header(lpWorkItem->soap)
-              || soap_body_begin_in(lpWorkItem->soap))
-            {
-                err = lpWorkItem->soap->error;
-            } else {
-                try {
-					err = KCmdService(lpWorkItem->soap).dispatch();
-				} catch (const int &) {
-					/* matching part is in cmd.cpp: "throw SOAP_NULL;" (23) */
-                    // Reply processing is handled by the callee, totally ignore the rest of processing for this item
-                    return;
-                }
-            }
-
-            if(err)
-            {
+		if (err) {
 			ec_log_debug("gSOAP error on processing request: %s", GetSoapError(err).c_str());
-                soap_send_fault(lpWorkItem->soap);
-                goto done;
-            }
+			soap_send_fault(lpWorkItem->soap);
+			goto done;
+		}
 
 done:
-			if (info->fdone != nullptr)
-				info->fdone(lpWorkItem->soap, info->fdoneparam);
+		if (info->fdone != nullptr)
+			info->fdone(lpWorkItem->soap, info->fdoneparam);
 
-			auto dblEnd = decltype(dblStart)::clock::now();
-
-            // Tell the session we're done processing the request for this session. This will also tell the session that this
-            // thread is done processing the item, so any time spent in this thread until now can be accounted in that session.
-			g_lpSessionManager->RemoveBusyState(info->ulLastSessionId, thrself);
-
+		auto dblEnd = decltype(dblStart)::clock::now();
+		// Tell the session we're done processing the request for this session. This will also tell the session that this
+		// thread is done processing the item, so any time spent in this thread until now can be accounted in that session.
+		g_lpSessionManager->RemoveBusyState(info->ulLastSessionId, thrself);
 		// Track cpu usage server-wide
 		g_lpStatsCollector->Increment(SCN_SOAP_REQUESTS);
-			g_lpStatsCollector->Increment(SCN_PROCESSING_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
-			g_lpStatsCollector->Increment(SCN_RESPONSE_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - lpWorkItem->dblReceiveStamp).count());
-        }
+		g_lpStatsCollector->Increment(SCN_PROCESSING_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
+		g_lpStatsCollector->Increment(SCN_RESPONSE_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - lpWorkItem->dblReceiveStamp).count());
+	}
 
 	// Clear memory used by soap calls. Note that this does not actually
 	// undo our soap_new2() call so the soap object is still valid after these calls
 	soap_destroy(lpWorkItem->soap);
 	soap_end(lpWorkItem->soap);
-        // We're done processing the item, the workitem's socket is returned to the queue
+	// We're done processing the item, the workitem's socket is returned to the queue
 	dispatcher->NotifyDone(lpWorkItem->soap);
 	/* Ownership lives with ECDispatcher, so make sure ~WORKITEM does not end the socket. */
 	lpWorkItem->soap = nullptr;
