@@ -5,6 +5,7 @@
 #ifndef ECThreadPool_INCLUDED
 #define ECThreadPool_INCLUDED
 
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <pthread.h>
@@ -25,6 +26,7 @@ class _kc_export ECThreadPool _kc_final {
 private:	// types
 	struct STaskInfo {
 		ECTask			*lpTask;
+		KC::time_point enq_stamp;
 		bool			bDelete;
 	};
 
@@ -35,10 +37,13 @@ public:
 	ECThreadPool(unsigned ulThreadCount);
 	~ECThreadPool();
 	bool enqueue(ECTask *lpTask, bool bTakeOwnership = false);
-	unsigned int threadCount(void) const;
 	void setThreadCount(unsigned int cuont, bool wait = false);
+	double front_item_age() const;
+	size_t queue_length() const;
+	void thread_counts(size_t *active, size_t *idle) const;
 
 private:	// methods
+	_kc_hidden size_t threadCount() const; /* unlocked variant */
 	_kc_hidden bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
 	_kc_hidden void joinTerminated(std::unique_lock<std::mutex> &);
 	_kc_hidden static void *threadFunc(void *);
@@ -49,20 +54,11 @@ private:	// methods
 	mutable std::mutex m_hMutex;
 	std::condition_variable m_hCondition, m_hCondTerminated;
 	mutable std::condition_variable m_hCondTaskDone;
+	std::atomic<size_t> m_active{0}, m_ulTermReq{0};
 
 	ECThreadPool(const ECThreadPool &) = delete;
 	ECThreadPool &operator=(const ECThreadPool &) = delete;
-
-	unsigned int m_ulTermReq = 0;
 };
-
-/**
- * Get the number of worker threads.
- * @retval The number of available worker threads.
- */
-inline unsigned ECThreadPool::threadCount() const {
-	return m_setThreads.size() - m_ulTermReq;
-}
 
 /**
  * This class represents a task that can be queued on an ECThreadPool or
