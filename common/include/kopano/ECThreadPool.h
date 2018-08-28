@@ -35,8 +35,8 @@ public:
 	ECThreadPool(unsigned ulThreadCount);
 	~ECThreadPool();
 	bool enqueue(ECTask *lpTask, bool bTakeOwnership = false);
-	_kc_hidden unsigned int threadCount(void) const;
-	_kc_hidden void setThreadCount(unsigned int cuont, bool wait = false);
+	unsigned int threadCount(void) const;
+	void setThreadCount(unsigned int cuont, bool wait = false);
 
 private:	// methods
 	_kc_hidden bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
@@ -74,13 +74,13 @@ inline unsigned ECThreadPool::threadCount() const {
  */
 class _kc_export ECTask {
 public:
-	_kc_hidden virtual ~ECTask(void) = default;
-	_kc_hidden virtual void execute(void);
-	_kc_hidden bool queue_on(ECThreadPool *, bool transfer_ownership = false);
+	virtual ~ECTask(void) = default;
+	virtual void execute(void);
+	bool queue_on(ECThreadPool *, bool transfer_ownership = false);
 
 protected:
-	_kc_hidden virtual void run(void) = 0;
-	_kc_hidden ECTask(void) {};
+	virtual void run(void) = 0;
+	ECTask(void) {};
 
 private:
 	// Make the object non-copyable
@@ -119,7 +119,7 @@ public:
 
 	virtual ~ECWaitableTask();
 	virtual void execute(void) _kc_override;
-	_kc_hidden bool done() const { return m_state == Done; }
+	bool done() const { return m_state == Done; }
 	bool wait(unsigned timeout = WAIT_INFINITE, unsigned waitMask = Done) const;
 
 protected:
