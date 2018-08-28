@@ -123,7 +123,7 @@ private:
  */
 class ECWatchDog _kc_final {
 public:
-	ECWatchDog(KC::ECConfig *, ECDispatcher *, ECThreadManager *);
+	ECWatchDog(KC::ECConfig *, ECDispatcher *);
     ~ECWatchDog();
 private:
     // Main watch thread
@@ -131,7 +131,6 @@ private:
 
 	KC::ECConfig *m_lpConfig;
     ECDispatcher *		m_lpDispatcher;
-    ECThreadManager*	m_lpThreadManager;
     pthread_t			m_thread;
 	bool m_thread_active = false, m_bExit = false;
 	std::mutex m_mutexExit;
@@ -154,6 +153,7 @@ public:
     ECRESULT GetFrontItemAge(double *lpdblAge);		// Age of the front queue item (time since the item was queued and now)
     ECRESULT GetQueueLength(unsigned int *lpulQueueLength);	// Number of requests in the queue
     ECRESULT SetThreadCount(unsigned int ulThreads);
+	void force_add_threads(size_t);
     // Add a listen socket
 	ECRESULT AddListenSocket(std::unique_ptr<struct soap, KC::ec_soap_deleter> &&);
 

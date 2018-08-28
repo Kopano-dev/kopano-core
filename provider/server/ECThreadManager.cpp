@@ -347,10 +347,8 @@ ECRESULT ECThreadManager::NotifyIdle(ECWorkerThread *lpThread, bool *lpfStop)
 	return erSuccess;
 }
 
-ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECDispatcher *lpDispatcher,
-    ECThreadManager *lpThreadManager) :
-	m_lpConfig(lpConfig), m_lpDispatcher(lpDispatcher),
-	m_lpThreadManager(lpThreadManager)
+ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECDispatcher *lpDispatcher) :
+	m_lpConfig(lpConfig), m_lpDispatcher(lpDispatcher)
 {
 	auto ret = pthread_create(&m_thread, nullptr, ECWatchDog::Watch, this);
 	if (ret != 0) {
@@ -389,7 +387,7 @@ void *ECWatchDog::Watch(void *lpParam)
         // If the age of the front item in the queue is older than the specified maximum age, force
         // a new thread to be started
         if(lpThis->m_lpDispatcher->GetFrontItemAge(&dblAge) == erSuccess && dblAge > dblMaxAge)
-            lpThis->m_lpThreadManager->ForceAddThread(1);
+			lpThis->m_lpDispatcher->force_add_threads(1);
 
         // Check to see if exit flag is set, and limit rate to dblMaxFreq Hz
 		ulock_normal l_exit(lpThis->m_mutexExit);
@@ -566,6 +564,11 @@ ECRESULT ECDispatcher::SetThreadCount(unsigned int ulThreads)
 	return erSuccess;
 }
 
+void ECDispatcher::force_add_threads(size_t n)
+{
+	m_lpThreadManager->ForceAddThread(1);
+}
+
 ECRESULT ECDispatcher::DoHUP()
 {
 	m_nRecvTimeout = atoi(m_lpConfig->GetSetting("server_recv_timeout"));
@@ -634,7 +637,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
     // This will start the threads
 	m_lpThreadManager.reset(new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads"))));
     // Start the watchdog
-	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this, m_lpThreadManager.get());
+	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this);
 
     // Main loop
     while(!m_bExit) {
@@ -853,7 +856,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	// This will start the threads
 	m_lpThreadManager.reset(new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads"))));
 	// Start the watchdog
-	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this, m_lpThreadManager.get());
+	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this);
 
 	while (!m_bExit) {
 		time(&now);
