@@ -1605,17 +1605,17 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 
 		hr = ptrAttach->SetProps(3, sAttProps, NULL);
 		if (hr != hrSuccess)
-			return kc_perror("dissect_ical-1811: Unable to create message attachment for iCal data", hr);
+			return kc_perror("K-1811: Unable to create message attachment for iCal data", hr);
 		lpIcalMessage = ptrNewMessage.get();
 	}
 
 	auto hr = CreateICalToMapi(lpMessage, m_lpAdrBook, true, &tmpicalmapi);
 	lpIcalMapi.reset(tmpicalmapi);
 	if (hr != hrSuccess)
-		return kc_perror("dissect_ical-1820: Unable to create iCal converter", hr);
+		return kc_perror("K-1820: Unable to create iCal converter", hr);
 	hr = lpIcalMapi->ParseICal(icaldata, strCharset, "UTC" , NULL, 0);
 	if (hr != hrSuccess || lpIcalMapi->GetItemCount() != 1) {
-		ec_log_err("dissect_ical-1826: Unable to parse ical information: %s (%x), items: %d, adding as normal attachment",
+		ec_log_err("K-1826: Unable to parse ical information: %s (%x), items: %d, adding as normal attachment",
 			GetMAPIErrorMessage(hr), hr, lpIcalMapi->GetItemCount());
 		return handleAttachment(vmHeader, vmBody, lpMessage, L"unparsable_ical");
 	}
@@ -1623,7 +1623,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	if (lpIcalMessage != lpMessage) {
 		hr = lpIcalMapi->GetItem(0, 0, lpIcalMessage);
 		if (hr != hrSuccess)
-			return kc_perror("dissect_ical-1833: Error while converting iCal to MAPI", hr);
+			return kc_perror("K-1833: Error while converting iCal to MAPI", hr);
 	}
 
 	if (bIsAttachment)
@@ -1632,7 +1632,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	/* Calendar properties need to be on the main message in any case. */
 	hr = lpIcalMapi->GetItem(0, ical_mapi_flags, lpMessage);
 	if (hr != hrSuccess)
-		return kc_perror("dissect_ical-1834: Error while converting iCal to MAPI", hr);
+		return kc_perror("K-1834: Error while converting iCal to MAPI", hr);
 
 	/* Evaluate whether vconverter gave us an initial body */
 	if (!bIsAttachment && m_mailState.bodyLevel < BODY_PLAIN &&
@@ -1653,10 +1653,10 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 
 	hr = ptrNewMessage->SaveChanges(0);
 	if (hr != hrSuccess)
-		return kc_perror("dissect_ical-1851: Unable to save iCal message", hr);
+		return kc_perror("K-1851: Unable to save iCal message", hr);
 	hr = ptrAttach->SaveChanges(0);
 	if (hr != hrSuccess)
-		return kc_perror("dissect_ical-1856: Unable to save iCal message attachment", hr);
+		return kc_perror("K-1856: Unable to save iCal message attachment", hr);
 
 	// make sure we show the attachment icon
 	m_mailState.attachLevel = ATTACH_NORMAL;
