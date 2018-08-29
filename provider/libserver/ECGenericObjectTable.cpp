@@ -1517,7 +1517,6 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 	ECRESULT		er = erSuccess;
 	bool			fMatch = false;
 	int				lCompare = 0;
-	unsigned int	ulSize = 0;
 	struct propVal	*lpProp = NULL;
 	struct propVal	*lpProp2 = NULL;
 	char* lpSearchString;
@@ -1873,30 +1872,27 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager *lpCacheManager,
 		lpProp = FindProp(lpPropVals, lpsRestrict->lpSize->ulPropTag);
 		if (lpProp == NULL)
 			return KCERR_INVALID_TYPE;
-		ulSize = PropSize(lpProp);
-		lCompare = ulSize - lpsRestrict->lpSize->cb;
-
 		switch(lpsRestrict->lpSize->ulType) {
 		case RELOP_GE:
-			fMatch = lCompare >= 0;
+			fMatch = PropSize(lpProp) >= lpsRestrict->lpSize->cb;
 			break;
 		case RELOP_GT:
-			fMatch = lCompare > 0;
+			fMatch = PropSize(lpProp) > lpsRestrict->lpSize->cb;
 			break;
 		case RELOP_LE:
-			fMatch = lCompare <= 0;
+			fMatch = PropSize(lpProp) <= lpsRestrict->lpSize->cb;
 			break;
 		case RELOP_LT:
-			fMatch = lCompare < 0;
+			fMatch = PropSize(lpProp) < lpsRestrict->lpSize->cb;
 			break;
 		case RELOP_NE:
-			fMatch = lCompare != 0;
+			fMatch = PropSize(lpProp) != lpsRestrict->lpSize->cb;
 			break;
 		case RELOP_RE:
 			fMatch = false; // FIXME ?? how should this work ??
 			break;
 		case RELOP_EQ:
-			fMatch = lCompare == 0;
+			fMatch = PropSize(lpProp) == lpsRestrict->lpSize->cb;
 			break;
 		}
 		break;
