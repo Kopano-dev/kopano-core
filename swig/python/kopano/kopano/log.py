@@ -103,12 +103,15 @@ Example usage::
     try: yield
     except Exception:
         log.error(traceback.format_exc())
-        if stats:
+        if stats is not None:
+            if 'errors' not in stats:
+                stats['errors'] = 0
             stats['errors'] += 1
 
+# TODO use python3 builtins if available (log.handlers.*?)
 
 # log-to-queue handler copied from Vinay Sajip
-class QueueHandler(logging.Handler):
+class QueueHandler(logging.Handler): # pragma: no cover
     def __init__(self, queue):
         logging.Handler.__init__(self)
         self.queue = queue
@@ -130,7 +133,7 @@ class QueueHandler(logging.Handler):
             self.handleError(record)
 
 # log-to-queue listener copied from Vinay Sajip
-class QueueListener(object):
+class QueueListener(object): # pragma: no cover
     def __init__(self, queue, *handlers):
         self.queue = queue
         self.handlers = handlers

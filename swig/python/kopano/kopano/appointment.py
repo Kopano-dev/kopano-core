@@ -23,20 +23,20 @@ from MAPI.Tags import (
 from MAPI.Struct import SPropValue
 
 from .attendee import Attendee
-from .errors import NotFoundError
+from .errors import NotFoundError, ArgumentError
 from .recurrence import Recurrence, Occurrence
 
 from .compat import (
     benc as _benc, bdec as _bdec, fake_unicode as _unicode,
 )
 from .defs import (
-    PSETID_Appointment, ASF_CANCELED
+    PSETID_Appointment, ASF_CANCELED, NR_COLOR, COLOR_NR
 )
 from .pidlid import (
     PidLidReminderSet, PidLidReminderDelta, PidLidAppointmentSubType,
     PidLidBusyStatus, PidLidGlobalObjectId, PidLidRecurring,
     PidLidTimeZoneStruct, PidLidTimeZoneDescription, PidLidLocation,
-    PidLidAppointmentStateFlags,
+    PidLidAppointmentStateFlags, PidLidAppointmentColor,
 )
 if sys.hexversion >= 0x03000000:
     try:
@@ -268,3 +268,16 @@ class Appointment(object):
     @property
     def canceled(self):
         return bool(self[PidLidAppointmentStateFlags] & ASF_CANCELED)
+
+    @property
+    def color(self): # property used by old clients
+        nr = self.get(PidLidAppointmentColor, 0)
+        if nr != 0:
+            return NR_COLOR[nr]
+
+    @color.setter
+    def color(self, value):
+        try:
+            self[PidLidAppointmentColor] = COLOR_NR[value]
+        except KeyError:
+            raise ArgumentError('invalid color: %r' % value)

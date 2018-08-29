@@ -308,3 +308,17 @@ CODEPAGE_ENCODING = {
     874: 'cp874',
     20127: 'us-ascii',
 }
+
+NR_COLOR = { # PidLidAppointmentColor - only used by old clients
+    1: 'red',
+    2: 'blue',
+    3: 'green',
+    4: 'grey',
+    5: 'orange',
+    6: 'cyan',
+    7: 'olive',
+    8: 'purple',
+    9: 'teal',
+    10: 'yellow',
+}
+COLOR_NR = dict((b, a) for (a, b) in NR_COLOR.items())

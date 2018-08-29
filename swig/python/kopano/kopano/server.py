@@ -237,6 +237,7 @@ class Server(object):
             self.auth_pass = auth_pass or getattr(self.options, 'auth_pass', None) or ''
 
             flags = 0
+            self.notifications = notifications
             if not notifications:
                 flags |= EC_PROFILE_FLAGS_NO_NOTIFICATIONS
 
@@ -558,7 +559,7 @@ class Server(object):
             raise NotSupportedError("cannot create company in single-tenant mode")
         return self.company(name)
 
-    def _store(self, guid):
+    def _store(self, guid): # TODO move guid checks to caller
         if len(guid) != 32:
             raise Error("invalid store id: '%s'" % guid)
         try:
@@ -716,7 +717,7 @@ class Server(object):
     def _pubhelper(self):
         try:
             self.sa.GetCompanyList(MAPI_UNICODE)
-            raise Error('request for server-wide public store in multi-tenant setup')
+            raise NotSupportedError('request for server-wide public store in multi-tenant setup')
         except MAPIErrorNoSupport:
             return next(self.companies())
 

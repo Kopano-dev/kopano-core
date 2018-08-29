@@ -82,11 +82,12 @@ def _split(mapiobj, store):
         yield notif
 
     elif mapiobj.ulEventType == fnevObjectDeleted:
-        item._folder = store.folder(entryid=_benc(mapiobj.lpParentID))
+        if mapiobj.ulObjType == MAPI_MESSAGE:
+            item._folder = store.folder(entryid=_benc(mapiobj.lpParentID))
         notif.event_type = 'deleted'
         yield notif
 
-    elif mapiobj.ulEventType == fnevObjectMoved:
+    elif mapiobj.ulEventType == fnevObjectMoved: # TODO test with folders/add test
         notif.event_type = 'created'
         yield notif
 
@@ -162,6 +163,9 @@ def _flags(object_types, event_types):
 
 def subscribe(store, folder, sink, object_types=None, folder_types=None,
         event_types=None):
+
+    if not store.server.notifications:
+        raise NotSupportedError('server connection does not support notifications (try Server(notifications=True))')
 
     object_types = object_types or OBJECT_TYPES
     folder_types = folder_types or FOLDER_TYPES
