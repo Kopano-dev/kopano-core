@@ -329,10 +329,8 @@ HRESULT ECChannel::HrReadLine(std::string &strBuffer, ULONG ulMaxBuffer) {
 		if (hr != hrSuccess)
 			return hr;
 		strBuffer.append(buffer, ulRead);
-		if (strBuffer.size() > ulMaxBuffer) {
-			hr = MAPI_E_TOO_BIG;
-			break;
-		}
+		if (strBuffer.size() > ulMaxBuffer)
+			return MAPI_E_TOO_BIG;
 	} while (ulRead == 65535);	// zero-terminator is not counted
 	return hrSuccess;
 }
