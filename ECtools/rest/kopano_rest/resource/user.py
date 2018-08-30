@@ -90,7 +90,7 @@ class UserResource(Resource):
                         yield from server._user_query(query) # TODO .users(query)?
                 else:
                     def yielder(**kwargs):
-                        yield from server.users(hidden=False, inactive=False)
+                        yield from server.users(hidden=False, inactive=False, **kwargs)
                 data = self.generator(req, yielder)
             self.respond(req, resp, data)
 
@@ -122,7 +122,7 @@ class UserResource(Resource):
         elif method == 'calendarView': # TODO multiple calendars? merge code with calendar.py
             start, end = _start_end(req)
             def yielder(**kwargs):
-                for occ in store.calendar.occurrences(start, end):
+                for occ in store.calendar.occurrences(start, end, **kwargs):
                     yield occ
             data = self.generator(req, yielder)
             self.respond(req, resp, data, EventResource.fields)

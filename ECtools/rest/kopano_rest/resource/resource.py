@@ -139,11 +139,17 @@ class Resource(object):
         header = b'{\n'
         header += b'  "@odata.context": "%s",\n' % req.path.encode('utf-8')
         if add_count:
-              header += b'  "@odata.count": "%d",\n' % count
+            header += b'  "@odata.count": "%d",\n' % count
         if deltalink:
-              header += b'  "@odata.deltaLink": "%s",\n' % deltalink
-        elif skip+top < count:
-              header += b'  "@odata.nextLink": "%s?$skip=%d",\n' % (req.path.encode('utf-8'), skip+top)
+            header += b'  "@odata.deltaLink": "%s",\n' % deltalink
+        else:
+            path = req.path
+            if req.query_string:
+                args = urlparse.parse_qs(req.query_string)
+                if '$skip' in args:
+                    del args['$skip']
+                path += '?'+'&'.join(a+'='+','.join(b) for (a,b) in args.items())
+            header += b'  "@odata.nextLink": "%s?$skip=%d",\n' % (path.encode('utf-8'), skip+top)
         header += b'  "value": [\n'
         yield header
         first = True

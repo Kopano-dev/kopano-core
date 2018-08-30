@@ -385,7 +385,9 @@ class Folder(Properties):
             )
             yield item
 
-    def occurrences(self, start=None, end=None):
+    def occurrences(self, start=None, end=None, page_start=None, page_limit=None, order=None):
+        count = 0
+        pos = 0
         if start and end:
             startstamp = time.mktime(start.timetuple())
             endstamp = time.mktime(end.timetuple())
@@ -451,12 +453,26 @@ class Folder(Properties):
                     cache=dict(zip(columns, row))
                 )
                 for occurrence in item.occurrences(start, end):
-                    yield occurrence
+                    if page_start is None or pos >= page_start:
+                        yield occurrence
+                        count += 1
+                    if page_limit is not None and count >= page_limit:
+                        break
+                    pos += 1
+                if page_limit is not None and count >= page_limit:
+                    break
 
         else:
             for item in self:
                 for occurrence in item.occurrences(start, end):
-                    yield occurrence
+                    if page_start is None or pos >= page_start:
+                        yield occurrence
+                        count += 1
+                    if page_limit is not None and count >= page_limit:
+                        break
+                    pos += 1
+                if page_limit is not None and count >= page_limit:
+                    break
 
     def create_item(self, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, save=True, **kwargs): # XXX associated
         item = _item.Item(self, eml=eml, ics=ics, vcf=vcf, load=load, loads=loads, attachments=attachments, create=True, save=save)
