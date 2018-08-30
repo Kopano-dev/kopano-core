@@ -113,10 +113,11 @@ class Resource(object):
         fields = fields or all_fields or self.fields
         result = {}
         for f in fields:
-            if all_fields[f].__code__.co_argcount == 1:
-                result[f] = all_fields[f](obj)
-            else:
-                result[f] = all_fields[f](req, obj)
+            if f in all_fields:
+                if all_fields[f].__code__.co_argcount == 1:
+                    result[f] = all_fields[f](obj)
+                else:
+                    result[f] = all_fields[f](req, obj)
 
         # TODO do not handle here
         if '@odata.type' in result and not result['@odata.type']:
