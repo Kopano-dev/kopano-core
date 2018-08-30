@@ -1664,6 +1664,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	PyMapiPluginFactory pyMapiPluginFactory;
 	std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
 	ULONG ulResult = 0;
+	const char *cts = nullptr;
 
 	ArchiveResult	archiveResult;
 
@@ -1901,12 +1902,15 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		goto exit;
 	}
 
-	if (lpRepStore != nullptr &&
-	    parseBool(g_lpConfig->GetSetting("copy_delegate_mails", NULL, "yes")))
+	cts = g_lpConfig->GetSetting("copy_delegate_mails");
+	if (lpRepStore != nullptr && (strcmp(cts, "yes") == 0 ||
+	    strcmp(cts, "move-to-rep") == 0))
 		// copy the original message with the actual sender data
 		// so you see the "on behalf of" in the sent-items version, even when send-as is used (see below)
 		CopyDelegateMessageToSentItems(lpMessage, lpRepStore, &~lpRepMessage);
 		// possible error is logged in function.
+	if (strcmp(cts, "move-to-rep") == 0)
+		doSentMail = false;
 
 	if (bAllowSendAs) {
 		// move PR_REPRESENTING to PR_SENDER_NAME
