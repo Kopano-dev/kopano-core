@@ -205,9 +205,9 @@ def main():
 
     create_pidfile(options.pid_file)
 
-    for f in glob.glob(os.path.join(SOCKET_PATH, 'rest*.sock')):
+    for f in glob.glob(os.path.join(socket_path, 'rest*.sock')):
         os.unlink(f)
-    for f in glob.glob(os.path.join(SOCKET_PATH, 'notify*.sock')):
+    for f in glob.glob(os.path.join(socket_path, 'notify*.sock')):
         os.unlink(f)
 
     q_listener, q = logger_init()
