@@ -2,6 +2,7 @@
 .libs/
 Makefile
 Makefile.in
+.*.dep
 *.la
 *.ldd
 *.ldx

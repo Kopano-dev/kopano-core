@@ -139,26 +139,29 @@ datadir = ${pythondir}
 data_DATA = MAPICore.py inetmapi.py icalmapi.py libfreebusy.py
 noinst_datadir = RecurrenceState.py
 
+DEPFLAGS = -MMD -MF .$@.dep
 
 mapi_wrap.h: mapi_wrap.cxx
-mapi_wrap.cxx: ../mapi.i ../mapiutil.i ../mapidefs.i ../mapicode.i ../mapix.i ../mapinotifsink.i ../mapiutil.i ../include/kopano/typemap.i ../helpers.i ../edkmdb.i ../IECServiceAdmin.i ../ecdefs.i include/kopano/typemap_python.i helpers_python.i
+mapi_wrap.cxx: ../mapi.i
 	if test "x$(SWIG_EXEC)" = "x"; then echo "swig is required for 'make dist'"; exit 1; fi
-	${SWIG_EXEC} -I${top_srcdir}/common/include -I${top_srcdir}/libsync ${SWIG_FLAGS} ${SWIG_CXXFLAGS} -o $@ $<
+	${SWIG_EXEC} -I${top_srcdir}/common/include -I${top_srcdir}/libsync ${DEPFLAGS} ${SWIG_FLAGS} ${SWIG_CXXFLAGS} -o $@ $<
 
-inetmapi_wrap.cxx: ../inetmapi.i ../include/kopano/typemap.i ../inetmapi.i include/kopano/typemap_python.i helpers_python.i
-	${SWIG_EXEC} ${SWIG_CXXFLAGS} -o $@ $<
+inetmapi_wrap.cxx: ../inetmapi.i
+	${SWIG_EXEC} ${DEPFLAGS} ${SWIG_CXXFLAGS} -o $@ $<
 
-icalmapi_wrap.cxx: ../icalmapi.i ../include/kopano/typemap.i include/kopano/typemap_python.i helpers_python.i
-	${SWIG_EXEC} -I${top_srcdir}/libicalmapi -I${top_srcdir}/libfreebusy ${SWIG_CXXFLAGS} -o $@ $<
+icalmapi_wrap.cxx: ../icalmapi.i
+	${SWIG_EXEC} -I${top_srcdir}/libicalmapi -I${top_srcdir}/libfreebusy ${DEPFLAGS} ${SWIG_CXXFLAGS} -o $@ $<
 
-archiver_wrap.cxx: ../archiver.i archiver_python.i
-	${SWIG_EXEC} -I${top_srcdir}/ECtools/archiver ${SWIG_CXXFLAGS} -o $@ $<
+archiver_wrap.cxx: ../archiver.i
+	${SWIG_EXEC} -I${top_srcdir}/ECtools/archiver ${DEPFLAGS} ${SWIG_CXXFLAGS} -o $@ $<
 
 RecurrenceState_wrap.cxx: ../RecurrenceState.i
-	${SWIG_EXEC} -I${top_srcdir}/common -I${top_srcdir}/m4lcommon ${SWIG_CXXFLAGS} -o $@ $<
+	${SWIG_EXEC} -I${top_srcdir}/common -I${top_srcdir}/m4lcommon ${DEPFLAGS} ${SWIG_CXXFLAGS} -o $@ $<
 
 libfreebusy_wrap.cxx: ../libfreebusy.i
-	${SWIG_EXEC} -I${top_srcdir}/libfreebusy ${SWIG_CXXFLAGS} -o $@ $<
+	${SWIG_EXEC} -I${top_srcdir}/libfreebusy ${DEPFLAGS} ${SWIG_CXXFLAGS} -o $@ $<
+
+-include .*.dep
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
