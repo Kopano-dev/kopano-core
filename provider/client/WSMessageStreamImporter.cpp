@@ -120,7 +120,7 @@ HRESULT WSMessageStreamImporter::StartTransfer(WSMessageStreamSink **lppSink)
 {
 	KC::object_ptr<WSMessageStreamSink> ptrSink;
 	
-	if (!m_threadPool.dispatch(this))
+	if (!m_threadPool.enqueue(this))
 		return MAPI_E_CALL_FAILED;
 	auto hr = WSMessageStreamSink::Create(&m_fifoBuffer, m_ulTimeout, this, &~ptrSink);
 	if (hr != hrSuccess) {

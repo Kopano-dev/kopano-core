@@ -31,21 +31,46 @@ ECThreadPool::~ECThreadPool()
 }
 
 /**
- * Dispatch a task object on the threadpool instance.
- * @param[in]	lpTask			The task object to dispatch.
+ * Queue a task object on the threadpool instance.
+ * @param[in]	lpTask			The task object to queue.
  * @param[in]	bTakeOwnership	Boolean parameter specifying whether the threadpool
  *                              should take ownership of the task object, and thus
  *                              is responsible for deleting the object when done.
  * @returns true if the task was successfully queued, false otherwise.
  */
-bool ECThreadPool::dispatch(ECTask *lpTask, bool bTakeOwnership)
+bool ECThreadPool::enqueue(ECTask *lpTask, bool bTakeOwnership)
 {
-	STaskInfo sTaskInfo = {lpTask, bTakeOwnership};
+	STaskInfo sTaskInfo = {lpTask, decltype(STaskInfo::enq_stamp)::clock::now(), bTakeOwnership};
 	ulock_normal locker(m_hMutex);
 	m_listTasks.emplace_back(std::move(sTaskInfo));
 	m_hCondition.notify_one();
 	joinTerminated(locker);
 	return true;
+}
+
+double ECThreadPool::front_item_age() const
+{
+	auto now = std::chrono::steady_clock::now();
+	scoped_lock lock(m_hMutex);
+	return m_listTasks.empty() ? 0 : dur2dbl(now - m_listTasks.front().enq_stamp);
+}
+
+size_t ECThreadPool::queue_length() const
+{
+	scoped_lock lk(m_hMutex);
+	return m_listTasks.size();
+}
+
+void ECThreadPool::thread_counts(size_t *active, size_t *idle) const
+{
+	scoped_lock lk(m_hMutex);
+	*active = m_active;
+	*idle   = m_setThreads.size() - *active;
+}
+
+size_t ECThreadPool::threadCount() const
+{
+	return m_setThreads.size() - m_ulTermReq;
 }
 
 /**
@@ -157,7 +182,7 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 	auto lpPool = static_cast<ECThreadPool *>(lpVoid);
 
 	while (true) {
-		STaskInfo sTaskInfo = {NULL, false};
+		STaskInfo sTaskInfo{};
 		bool bResult = false;
 
 		ulock_normal locker(lpPool->m_hMutex);

@@ -5,6 +5,7 @@
 #ifndef ECThreadPool_INCLUDED
 #define ECThreadPool_INCLUDED
 
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <pthread.h>
@@ -25,6 +26,7 @@ class _kc_export ECThreadPool _kc_final {
 private:	// types
 	struct STaskInfo {
 		ECTask			*lpTask;
+		KC::time_point enq_stamp;
 		bool			bDelete;
 	};
 
@@ -33,13 +35,16 @@ private:	// types
 
 public:
 	ECThreadPool(unsigned ulThreadCount);
-	virtual ~ECThreadPool(void);
-	virtual bool dispatch(ECTask *lpTask, bool bTakeOwnership = false);
-	_kc_hidden unsigned int threadCount(void) const;
-	_kc_hidden void setThreadCount(unsigned int cuont, bool wait = false);
+	~ECThreadPool();
+	bool enqueue(ECTask *lpTask, bool bTakeOwnership = false);
+	void setThreadCount(unsigned int cuont, bool wait = false);
+	double front_item_age() const;
+	size_t queue_length() const;
+	void thread_counts(size_t *active, size_t *idle) const;
 
 private:	// methods
-	_kc_hidden virtual bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
+	_kc_hidden size_t threadCount() const; /* unlocked variant */
+	_kc_hidden bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
 	_kc_hidden void joinTerminated(std::unique_lock<std::mutex> &);
 	_kc_hidden static void *threadFunc(void *);
 
@@ -49,37 +54,29 @@ private:	// methods
 	mutable std::mutex m_hMutex;
 	std::condition_variable m_hCondition, m_hCondTerminated;
 	mutable std::condition_variable m_hCondTaskDone;
+	std::atomic<size_t> m_active{0}, m_ulTermReq{0};
 
 	ECThreadPool(const ECThreadPool &) = delete;
 	ECThreadPool &operator=(const ECThreadPool &) = delete;
-
-	unsigned int m_ulTermReq = 0;
 };
 
 /**
- * Get the number of worker threads.
- * @retval The number of available worker threads.
- */
-inline unsigned ECThreadPool::threadCount() const {
-	return m_setThreads.size() - m_ulTermReq;
-}
-
-/**
- * This class represents a task that can be dispatched on an ECThreadPool or
+ * This class represents a task that can be queued on an ECThreadPool or
  * derived object.
- * Once dispatched, the objects run method will be executed once the threadpool
- * has a free worker and all previously queued tasks have been processed. There's
- * no way of knowing when the task is done.
+ * Once the threadpool has a free worker and all previously queued tasks have
+ * been processed, the task will be dispatched and its "run" method
+ * executed.
+ * There is no way of knowing when the task is done.
  */
 class _kc_export ECTask {
 public:
-	_kc_hidden virtual ~ECTask(void) = default;
-	_kc_hidden virtual void execute(void);
-	_kc_hidden bool dispatchOn(ECThreadPool *, bool transfer_ownership = false);
+	virtual ~ECTask(void) = default;
+	virtual void execute(void);
+	bool queue_on(ECThreadPool *, bool transfer_ownership = false);
 
 protected:
-	_kc_hidden virtual void run(void) = 0;
-	_kc_hidden ECTask(void) {};
+	virtual void run(void) = 0;
+	ECTask(void) {};
 
 private:
 	// Make the object non-copyable
@@ -88,16 +85,17 @@ private:
 };
 
 /**
- * Dispatch a task object on a particular threadpool.
+ * Queue a task object on a particular threadpool.
  *
- * @param[in]	lpThreadPool		The threadpool on which to dispatch the task.
- * @param[in]	bTransferOwnership	Boolean parameter specifying whether the threadpool
+ * @param[in]	p	The threadpool on which to queue the task.
+ * @param[in]	own	Boolean parameter specifying whether the threadpool
  *                                  should take ownership of the task object, and thus
  *                                  is responsible for deleting the object when done.
  * @retval true if the task was successfully queued, false otherwise.
  */
-inline bool ECTask::dispatchOn(ECThreadPool *lpThreadPool, bool bTransferOwnership) {
-	return lpThreadPool ? lpThreadPool->dispatch(this, bTransferOwnership) : false;
+inline bool ECTask::queue_on(ECThreadPool *p, bool own)
+{
+	return p != nullptr ? p->enqueue(this, own) : false;
 }
 
 /**
@@ -117,7 +115,7 @@ public:
 
 	virtual ~ECWaitableTask();
 	virtual void execute(void) _kc_override;
-	_kc_hidden bool done() const { return m_state == Done; }
+	bool done() const { return m_state == Done; }
 	bool wait(unsigned timeout = WAIT_INFINITE, unsigned waitMask = Done) const;
 
 protected:

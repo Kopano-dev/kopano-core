@@ -32,6 +32,19 @@
 using namespace KC;
 using std::string;
 
+/*
+ * A single work item - it doesn't contain much since we defer all processing, including XML
+ * parsing until a worker thread starts processing
+ */
+class WORKITEM final : public ECTask {
+	public:
+	virtual ~WORKITEM();
+	virtual void run();
+	struct soap *soap = nullptr; /* socket and state associated with the connection */
+	KC::time_point dblReceiveStamp; /* time at which activity was detected on the socket */
+	ECDispatcher *dispatcher = nullptr;
+};
+
 static string GetSoapError(int err)
 {
 	switch (err) {
@@ -86,271 +99,115 @@ static string GetSoapError(int err)
 	return stringify(err);
 }
 
-ECWorkerThread::ECWorkerThread(ECThreadManager *lpManager,
-    ECDispatcher *lpDispatcher, bool bDoNotStart)
+WORKITEM::~WORKITEM()
 {
-	m_lpManager = lpManager;
-	m_lpDispatcher = lpDispatcher;
-
-	if (bDoNotStart) {
-		memset(&m_thread, 0, sizeof(m_thread));
+	if (soap == nullptr)
 		return;
-	}
-	auto ret = pthread_create(&m_thread, nullptr, ECWorkerThread::Work, this);
-	if (ret != 0) {
-		ec_log_crit("Could not create ECWorkerThread: %s", strerror(ret));
-		return;
-	}
-	m_thread_active = true;
-	set_thread_name(m_thread, "ECWorkerThread");
-	pthread_detach(m_thread);
+	/*
+	 * This part only runs when ECDispatcher ends operation and unprocessed
+	 * items remain in the queue. Then, ~ECThreadPool will clear all the
+	 * tasks, and the soap must be released.
+	 */
+	kopano_end_soap_connection(soap);
+	soap_free(soap);
 }
 
-ECPriorityWorkerThread::ECPriorityWorkerThread(ECThreadManager *lpManager,
-    ECDispatcher *lpDispatcher) :
-	ECWorkerThread(lpManager, lpDispatcher, true)
-{
-	auto ret = pthread_create(&m_thread, nullptr, ECWorkerThread::Work, static_cast<ECWorkerThread *>(this));
-	if (ret != 0) {
-		ec_log_crit("Could not create ECPriorityWorkerThread: %s", strerror(ret));
-		return;
-	}
-	m_thread_active = true;
-	set_thread_name(m_thread, "ECPriorityWorkerThread");
-	// do not detach
-}
-
-ECPriorityWorkerThread::~ECPriorityWorkerThread()
-{
-	if (m_thread_active)
-		pthread_join(m_thread, nullptr);
-}
-
-void *ECWorkerThread::Work(void *lpParam)
+void WORKITEM::run()
 {
 	kcsrv_blocksigs();
-	auto lpThis = static_cast<ECWorkerThread *>(lpParam);
-	auto lpPrio = dynamic_cast<ECPriorityWorkerThread *>(lpThis);
-    WORKITEM *lpWorkItem = NULL;
-    ECRESULT er = erSuccess;
-    bool fStop = false;
+	auto lpWorkItem = this;
 	int err = 0;
 	pthread_t thrself = pthread_self();
+	struct soap *soap = lpWorkItem->soap;
+	lpWorkItem->soap = nullptr; /* Snatch soap away from ~WORKITEM */
 
-	ec_log_debug("Started%sthread %lu", lpPrio ? " priority " : " ", kc_threadid());
-    while(1) {
-		set_thread_name(thrself, "z-s: idle thread");
+	set_thread_name(thrself, format("z-s: %s", soap->host).c_str());
 
-        // Get the next work item, don't wait for new items
-        if(lpThis->m_lpDispatcher->GetNextWorkItem(&lpWorkItem, false, lpPrio != NULL) != erSuccess) {
-            // Nothing in the queue, notify that we're idle now
-            lpThis->m_lpManager->NotifyIdle(lpThis, &fStop);
-            // We were requested to exit due to idle state
-            if(fStop) {
-				ec_log_debug("Thread %lu idle and requested to exit", kc_threadid());
-                break;
-            }
-            // Wait for next work item in the queue
-            er = lpThis->m_lpDispatcher->GetNextWorkItem(&lpWorkItem, true, lpPrio != NULL);
-            if (er != erSuccess)
-                // This could happen because we were waken up because we are exiting
-                continue;
-        }
+	// For SSL connections, we first must do the handshake and pass it back to the queue
+	if (soap->ctx && soap->ssl == nullptr) {
+		err = soap_ssl_accept(soap);
+		if (err) {
+			ec_log_warn("%s", *soap_faultdetail(soap));
+			ec_log_debug("%s: %s", GetSoapError(err).c_str(), *soap_faultstring(soap));
+		}
+	} else {
+		err = 0;
+		// Record start of handling of this request
+		auto dblStart = std::chrono::steady_clock::now();
+		// Reset last session ID so we can use it reliably after the call is done
+		auto info = soap_info(soap);
+		info->ulLastSessionId = 0;
+		// Pass information on start time of the request into soap->user, so that it can be applied to the correct
+		// session after XML parsing
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->threadstart);
+		info->start = decltype(dblStart)::clock::now();
+		info->szFname = nullptr;
+		info->fdone = NULL;
 
-		set_thread_name(thrself, format("z-s: %s", lpWorkItem->soap->host).c_str());
-
-		// For SSL connections, we first must do the handshake and pass it back to the queue
-		if (lpWorkItem->soap->ctx && !lpWorkItem->soap->ssl) {
-			err = soap_ssl_accept(lpWorkItem->soap);
-			if (err) {
-				ec_log_warn("%s", soap_faultdetail(lpWorkItem->soap)[0]);
-				ec_log_debug("%s: %s", GetSoapError(err).c_str(), soap_faultstring(lpWorkItem->soap)[0]);
+		// Do processing of work item
+		soap_begin(soap);
+		if (soap_begin_recv(soap)) {
+			if (soap->error < SOAP_STOP) {
+				// Client Updater returns 404 to the client to say it doesn't need to update, so skip this HTTP error
+				if (soap->error != SOAP_EOF && soap->error != 404)
+					ec_log_debug("gSOAP error on receiving request: %s", GetSoapError(soap->error).c_str());
+				soap_send_fault(soap);
+				goto done;
 			}
-        } else {
-			err = 0;
-			// Record start of handling of this request
-			auto dblStart = std::chrono::steady_clock::now();
-			// Reset last session ID so we can use it reliably after the call is done
-			auto info = soap_info(lpWorkItem->soap);
-			info->ulLastSessionId = 0;
-            // Pass information on start time of the request into soap->user, so that it can be applied to the correct
-            // session after XML parsing
-			clock_gettime(CLOCK_THREAD_CPUTIME_ID, &info->threadstart);
-			info->start = decltype(dblStart)::clock::now();
-			info->szFname = nullptr;
-			info->fdone = NULL;
+			soap_closesock(soap);
+			goto done;
+		}
 
-            // Do processing of work item
-            soap_begin(lpWorkItem->soap);
-            if(soap_begin_recv(lpWorkItem->soap)) {
-                if(lpWorkItem->soap->error < SOAP_STOP) {
-					// Client Updater returns 404 to the client to say it doesn't need to update, so skip this HTTP error
-					if (lpWorkItem->soap->error != SOAP_EOF && lpWorkItem->soap->error != 404)
-						ec_log_debug("gSOAP error on receiving request: %s", GetSoapError(lpWorkItem->soap->error).c_str());
-                    soap_send_fault(lpWorkItem->soap);
-                    goto done;
-                }
-                soap_closesock(lpWorkItem->soap);
-                goto done;
-            }
+		// WARNING
+		//
+		// From the moment we call soap_serve_request, the soap object MAY be handled
+		// by another thread. In this case, soap_serve_request() returns SOAP_NULL. We
+		// can NOT rely on soap->error being this value since the other thread may already
+		// have overwritten the error value.
+		if (soap_envelope_begin_in(soap) || soap_recv_header(soap) ||
+		    soap_body_begin_in(soap)) {
+			err = soap->error;
+		} else {
+			try {
+				err = KCmdService(soap).dispatch();
+			} catch (const int &) {
+				/* matching part is in cmd.cpp: "throw SOAP_NULL;" (23) */
+				// Reply processing is handled by the callee, totally ignore the rest of processing for this item
+				return;
+			}
+		}
 
-            // WARNING
-            //
-            // From the moment we call soap_serve_request, the soap object MAY be handled
-            // by another thread. In this case, soap_serve_request() returns SOAP_NULL. We
-            // can NOT rely on soap->error being this value since the other thread may already
-            // have overwritten the error value.
-            if(soap_envelope_begin_in(lpWorkItem->soap)
-              || soap_recv_header(lpWorkItem->soap)
-              || soap_body_begin_in(lpWorkItem->soap))
-            {
-                err = lpWorkItem->soap->error;
-            } else {
-                try {
-					err = KCmdService(lpWorkItem->soap).dispatch();
-				} catch (const int &) {
-					/* matching part is in cmd.cpp: "throw SOAP_NULL;" (23) */
-                    // Reply processing is handled by the callee, totally ignore the rest of processing for this item
-                    delete lpWorkItem;
-                    continue;
-                }
-            }
-
-            if(err)
-            {
+		if (err) {
 			ec_log_debug("gSOAP error on processing request: %s", GetSoapError(err).c_str());
-                soap_send_fault(lpWorkItem->soap);
-                goto done;
-            }
+			soap_send_fault(soap);
+			goto done;
+		}
 
 done:
-			if (info->fdone != nullptr)
-				info->fdone(lpWorkItem->soap, info->fdoneparam);
+		if (info->fdone != nullptr)
+			info->fdone(soap, info->fdoneparam);
 
-			auto dblEnd = decltype(dblStart)::clock::now();
-
-            // Tell the session we're done processing the request for this session. This will also tell the session that this
-            // thread is done processing the item, so any time spent in this thread until now can be accounted in that session.
-			g_lpSessionManager->RemoveBusyState(info->ulLastSessionId, thrself);
-
+		auto dblEnd = decltype(dblStart)::clock::now();
+		// Tell the session we're done processing the request for this session. This will also tell the session that this
+		// thread is done processing the item, so any time spent in this thread until now can be accounted in that session.
+		g_lpSessionManager->RemoveBusyState(info->ulLastSessionId, thrself);
 		// Track cpu usage server-wide
 		g_lpStatsCollector->Increment(SCN_SOAP_REQUESTS);
-			g_lpStatsCollector->Increment(SCN_PROCESSING_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
-			g_lpStatsCollector->Increment(SCN_RESPONSE_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - lpWorkItem->dblReceiveStamp).count());
-        }
+		g_lpStatsCollector->Increment(SCN_PROCESSING_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
+		g_lpStatsCollector->Increment(SCN_RESPONSE_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - lpWorkItem->dblReceiveStamp).count());
+	}
 
 	// Clear memory used by soap calls. Note that this does not actually
 	// undo our soap_new2() call so the soap object is still valid after these calls
-	soap_destroy(lpWorkItem->soap);
-	soap_end(lpWorkItem->soap);
-        // We're done processing the item, the workitem's socket is returned to the queue
-        lpThis->m_lpDispatcher->NotifyDone(lpWorkItem->soap);
-        delete lpWorkItem;
-    }
-
-	/** free ssl error data **/
-	#if OPENSSL_VERSION_NUMBER < 0x10100000L
-		ERR_remove_state(0);
-	#endif
-    // We're detached, so we should clean up ourselves
-	if (lpPrio == NULL)
-		delete lpThis;
-    return NULL;
+	soap_destroy(soap);
+	soap_end(soap);
+	// We're done processing the item, the workitem's socket is returned to the queue
+	dispatcher->NotifyDone(soap);
+	set_thread_name(thrself, "z-s: idle thread");
 }
 
-ECThreadManager::ECThreadManager(ECDispatcher *lpDispatcher,
-    unsigned int ulThreads) :
-	m_lpDispatcher(lpDispatcher), m_ulThreads(ulThreads)
-{
-	scoped_lock l_thr(m_mutexThreads);
-    // Start our worker threads
-	m_lpPrioWorker = new ECPriorityWorkerThread(this, lpDispatcher);
-	for (unsigned int i = 0; i < ulThreads; ++i)
-		m_lstThreads.emplace_back(new ECWorkerThread(this, lpDispatcher));
-}
-
-ECThreadManager::~ECThreadManager()
-{
-	unsigned int ulThreads;
-
-    // Wait for the threads to exit
-    while(1) {
-		ulock_normal l_thr(m_mutexThreads);
-		ulThreads = m_lstThreads.size();
-		l_thr.unlock();
-        if(ulThreads > 0) {
-			ec_log_notice("Still waiting for %d worker threads to exit", ulThreads);
-            Sleep(1000);
-        }
-        else
-            break;
-    }
-	delete m_lpPrioWorker;
-}
-
-ECRESULT ECThreadManager::ForceAddThread(int nThreads)
-{
-	scoped_lock l_thr(m_mutexThreads);
-	for (int i = 0; i < nThreads; ++i)
-		m_lstThreads.emplace_back(new ECWorkerThread(this, m_lpDispatcher));
-	return erSuccess;
-}
-
-ECRESULT ECThreadManager::GetThreadCount(unsigned int *lpulThreads)
-{
-	unsigned int ulThreads;
-	scoped_lock l_thr(m_mutexThreads);
-	ulThreads = m_lstThreads.size();
-	*lpulThreads = ulThreads;
-	return erSuccess;
-}
-
-ECRESULT ECThreadManager::SetThreadCount(unsigned int ulThreads)
-{
-    // If we're under the number of threads at the moment, start new ones
-	scoped_lock l_thr(m_mutexThreads);
-
-    // Set the default thread count
-    m_ulThreads = ulThreads;
-    while(ulThreads > m_lstThreads.size())
-		m_lstThreads.emplace_back(new ECWorkerThread(this, m_lpDispatcher));
-    // If we are OVER the number of threads, then the code in NotifyIdle() will bring this down
-    return erSuccess;
-}
-
-// Called by worker threads only when it is idle. This is the only place where the worker thread can be
-// deleted.
-ECRESULT ECThreadManager::NotifyIdle(ECWorkerThread *lpThread, bool *lpfStop)
-{
-	std::list<ECWorkerThread *>::iterator iterThreads;
-    *lpfStop = false;
-
-	scoped_lock l_thr(m_mutexThreads);
-	// special case for priority worker
-	if (lpThread == m_lpPrioWorker) {
-		// exit requested?
-		*lpfStop = (m_ulThreads == 0);
-		return erSuccess;
-	}
-	if (m_ulThreads >= m_lstThreads.size())
-		return erSuccess;
-        // We are currently running more threads than we want, so tell the thread to stop
-        iterThreads = std::find(m_lstThreads.begin(), m_lstThreads.end(), lpThread);
-	if (iterThreads == m_lstThreads.end()) {
-		ec_log_crit("A thread that we don't know is idle ...");
-		return KCERR_NOT_FOUND;
-	}
-        // Remove the thread from our running thread list
-        m_lstThreads.erase(iterThreads);
-        // Tell the thread to exit. The thread will self-cleanup; we therefore needn't delete the object nor join with the running thread
-        *lpfStop = true;
-	return erSuccess;
-}
-
-ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECDispatcher *lpDispatcher,
-    ECThreadManager *lpThreadManager) :
-	m_lpConfig(lpConfig), m_lpDispatcher(lpDispatcher),
-	m_lpThreadManager(lpThreadManager)
+ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECDispatcher *lpDispatcher) :
+	m_lpConfig(lpConfig), m_lpDispatcher(lpDispatcher)
 {
 	auto ret = pthread_create(&m_thread, nullptr, ECWatchDog::Watch, this);
 	if (ret != 0) {
@@ -389,7 +246,7 @@ void *ECWatchDog::Watch(void *lpParam)
         // If the age of the front item in the queue is older than the specified maximum age, force
         // a new thread to be started
         if(lpThis->m_lpDispatcher->GetFrontItemAge(&dblAge) == erSuccess && dblAge > dblMaxAge)
-            lpThis->m_lpThreadManager->ForceAddThread(1);
+			lpThis->m_lpDispatcher->force_add_threads(1);
 
         // Check to see if exit flag is set, and limit rate to dblMaxFreq Hz
 		ulock_normal l_exit(lpThis->m_mutexExit);
@@ -419,34 +276,23 @@ ECDispatcher::~ECDispatcher()
 
 ECRESULT ECDispatcher::GetThreadCount(unsigned int *lpulThreads, unsigned int *lpulIdleThreads)
 {
-	ECRESULT er = m_lpThreadManager->GetThreadCount(lpulThreads);
-	if (er != erSuccess)
-		return er;
-	*lpulIdleThreads = m_ulIdle;
+	size_t a, i;
+	m_pool.thread_counts(&a, &i);
+	*lpulThreads = a;
+	*lpulIdleThreads = i;
 	return erSuccess;
 }
 
 // Get the age (in seconds) of the next-in-line item in the queue, or 0 if the queue is empty
 ECRESULT ECDispatcher::GetFrontItemAge(double *lpdblAge)
 {
-	auto now = std::chrono::steady_clock::now();
-
-	scoped_lock lock(m_mutexItems);
-    if(m_queueItems.empty() && m_queuePrioItems.empty())
-		*lpdblAge = 0;
-    else if (m_queueItems.empty()) // normal items queue is more important when checking queue age
-		*lpdblAge = dur2dbl(now - m_queuePrioItems.front()->dblReceiveStamp);
-	else
-		*lpdblAge = dur2dbl(now - m_queueItems.front()->dblReceiveStamp);
+	*lpdblAge = m_pool.front_item_age();
     return erSuccess;
 }
 
 ECRESULT ECDispatcher::GetQueueLength(unsigned int *lpulLength)
 {
-    unsigned int ulLength = 0;
-	scoped_lock lock(m_mutexItems);
-    ulLength = m_queueItems.size() + m_queuePrioItems.size();
-    *lpulLength = ulLength;
+	*lpulLength = m_pool.queue_length() + m_prio.queue_length();
     return erSuccess;
 }
 
@@ -465,60 +311,13 @@ ECRESULT ECDispatcher::QueueItem(struct soap *soap)
 
 	item->soap = soap;
 	item->dblReceiveStamp = std::chrono::steady_clock::now();
+	item->dispatcher = this;
 	ulType = SOAP_CONNECTION_TYPE(soap);
-
-	scoped_lock lock(m_mutexItems);
-	if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
-		m_queuePrioItems.push(item);
-		m_condPrioItems.notify_one();
-	} else {
-		m_queueItems.push(item);
-		m_condItems.notify_one();
-	}
+	if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+		m_prio.enqueue(item, true);
+	else
+		m_pool.enqueue(item, true);
 	return erSuccess;
-}
-
-/**
- * Called by worker threads to get an item to work on
- *
- * @param[out] lppItem soap call to process
- * @param[in] bWait wait for an item until present or return immediately
- * @param[in] bPrio handle priority or normal queue
- *
- * @return error code
- * @retval KCERR_NOT_FOUND no soap call in the queue present
- */
-ECRESULT ECDispatcher::GetNextWorkItem(WORKITEM **lppItem, bool bWait, bool bPrio)
-{
-    WORKITEM *lpItem = NULL;
-    ECRESULT er = erSuccess;
-	std::queue<WORKITEM *>* queue = bPrio ? &m_queuePrioItems : &m_queueItems;
-	auto &condItems = bPrio ? m_condPrioItems : m_condItems;
-	ulock_normal l_item(m_mutexItems);
-
-    // Check the queue
-    if(!queue->empty()) {
-        // Item is waiting, return that
-        lpItem = queue->front();
-        queue->pop();
-    } else if (!bWait || m_bExit) {
-        // No wait requested, return not found
-		return KCERR_NOT_FOUND;
-    } else {
-        // No item waiting
-		++m_ulIdle;
-		/* If requested, wait until item is available */
-		condItems.wait(l_item);
-		--m_ulIdle;
-        if (queue->empty() || m_bExit)
-            // Condition fired, but still nothing there. Probably exit requested or wrong queue signal
-			return KCERR_NOT_FOUND;
-        lpItem = queue->front();
-        queue->pop();
-    }
-
-    *lppItem = lpItem;
-    return er;
 }
 
 // Called by a worker thread when it's done with an item
@@ -552,18 +351,16 @@ ECRESULT ECDispatcher::NotifyDone(struct soap *soap)
 // Set the nominal thread count
 ECRESULT ECDispatcher::SetThreadCount(unsigned int ulThreads)
 {
-	// if we receive a signal before the MainLoop() has started, we don't have thread manager yet
-	if (m_lpThreadManager == NULL)
-		return erSuccess;
-	ECRESULT er = m_lpThreadManager->SetThreadCount(ulThreads);
-	if (er != erSuccess)
-		return er;
-    // Since the threads may be blocking while waiting for the next queue item, broadcast
-    // a wakeup for all threads so that they re-check their idle state (and exit if the thread count
-    // is now lower)
-	scoped_lock l_item(m_mutexItems);
-	m_condItems.notify_all();
+	m_pool.setThreadCount(ulThreads);
 	return erSuccess;
+}
+
+void ECDispatcher::force_add_threads(size_t n)
+{
+	size_t a, i;
+	scoped_lock lk(m_poolcount);
+	m_pool.thread_counts(&a, &i);
+	m_pool.setThreadCount(a + i + n);
 }
 
 ECRESULT ECDispatcher::DoHUP()
@@ -632,9 +429,10 @@ ECRESULT ECDispatcherSelect::MainLoop()
 		pollfd[n].events = POLLIN;
 
     // This will start the threads
-	m_lpThreadManager.reset(new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads"))));
+	m_pool.setThreadCount(atoui(m_lpConfig->GetSetting("threads")));
+	m_prio.setThreadCount(1);
     // Start the watchdog
-	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this, m_lpThreadManager.get());
+	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this);
 
     // Main loop
     while(!m_bExit) {
@@ -772,21 +570,9 @@ ECRESULT ECDispatcherSelect::MainLoop()
     // Delete the watchdog. This makes sure no new threads will be started.
 	lpWatchDog.reset();
     // Set the thread count to zero so that threads will exit
-    m_lpThreadManager->SetThreadCount(0);
-    // Notify threads that they should re-query their idle state (and exit)
-    ulock_normal l_item(m_mutexItems);
-    m_condItems.notify_all();
-    m_condPrioItems.notify_all();
-    l_item.unlock();
-    // Delete thread manager (waits for threads to become idle). During this time
-    // the threads may report back a workitem as being done. If this is the case, we directly close that socket too.
-	m_lpThreadManager.reset();
+	m_pool.setThreadCount(0, true);
+	m_prio.setThreadCount(0, true);
 
-    // Empty the queue
-	l_item.lock();
-    while(!m_queueItems.empty()) { kopano_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
-    while(!m_queuePrioItems.empty()) { kopano_end_soap_connection(m_queuePrioItems.front()->soap); soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
-	l_item.unlock();
 	// Close all sockets. This will cause all that we were listening on clients to get an EOF
 	ulock_normal l_sock(m_mutexSockets);
 	for (const auto &p : m_setSockets) {
@@ -851,9 +637,10 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	}
 
 	// This will start the threads
-	m_lpThreadManager.reset(new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads"))));
+	m_pool.setThreadCount(atoui(m_lpConfig->GetSetting("threads")));
+	m_prio.setThreadCount(1);
 	// Start the watchdog
-	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this, m_lpThreadManager.get());
+	auto lpWatchDog = std::make_unique<ECWatchDog>(m_lpConfig.get(), this);
 
 	while (!m_bExit) {
 		time(&now);
@@ -945,20 +732,9 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 
 	// Delete the watchdog. This makes sure no new threads will be started.
 	lpWatchDog.reset();
-    // Set the thread count to zero so that threads will exit
-    m_lpThreadManager->SetThreadCount(0);
-    // Notify threads that they should re-query their idle state (and exit)
-	ulock_normal l_item(m_mutexItems);
-	m_condItems.notify_all();
-	m_condPrioItems.notify_all();
-	l_item.unlock();
-	m_lpThreadManager.reset();
+	m_pool.setThreadCount(0);
+	m_prio.setThreadCount(0);
 
-    // Empty the queue
-	l_item.lock();
-    while(!m_queueItems.empty()) { kopano_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
-    while(!m_queuePrioItems.empty()) { kopano_end_soap_connection(m_queuePrioItems.front()->soap); soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
-	l_item.unlock();
     // Close all sockets. This will cause all that we were listening on clients to get an EOF
 	ulock_normal l_sock(m_mutexSockets);
 	for (auto &pair : m_setSockets) {
