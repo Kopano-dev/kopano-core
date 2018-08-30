@@ -65,7 +65,8 @@ from .restriction import Restriction
 from . import notification as _notification
 
 from .compat import (
-    encode as _encode, bdec as _bdec, benc as _benc, fake_unicode as _unicode
+    encode as _encode, bdec as _bdec, benc as _benc, fake_unicode as _unicode,
+    fake_ord as _ord,
 )
 
 if sys.hexversion >= 0x03000000:
@@ -697,8 +698,8 @@ class Store(Properties):
         result = {}
         pos = 0
         while pos < len(value):
-            id_ = value[pos]
-            cb = value[pos + 1]
+            id_ = _ord(value[pos])
+            cb = _ord(value[pos + 1])
             result[id_] = value[pos + 2:pos + 2 + cb]
             pos += 2 + cb
         return result

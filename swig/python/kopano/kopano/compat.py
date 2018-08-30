@@ -74,6 +74,9 @@ if sys.hexversion >= 0x03000000:
     def encode(s):
         return s.encode()
 
+    def fake_ord(b):
+        return b
+
 # Python 2
 else: # pragma: no cover
     def is_str(s):
@@ -123,6 +126,9 @@ else: # pragma: no cover
 
     def fake_unicode(u):
         return unicode(u)
+
+    def fake_ord(b):
+        return ord(b)
 
 def set_bin_encoding(encoding):
     """Override encoding to use for binary identifiers (hex or base64)."""
