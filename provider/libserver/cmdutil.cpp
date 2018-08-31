@@ -1075,14 +1075,8 @@ ECRESULT UpdateTProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned in
 
     // Update tproperties by taking value from properties
 	auto strQuery = "UPDATE tproperties JOIN properties on properties.hierarchyid=tproperties.hierarchyid AND properties.tag=tproperties.tag AND properties.type=tproperties.type SET tproperties.val_ulong = properties.val_ulong "
-    			"WHERE properties.tag = " + stringify(PROP_ID(ulPropTag)) + " AND properties.type = " + stringify(PROP_TYPE(ulPropTag)) + " AND tproperties.folderid = " + stringify(ulFolderId) + " AND properties.hierarchyid IN (";
-
-    for (auto iObjectid = lpObjectIDs->cbegin(); iObjectid != lpObjectIDs->cend(); ++iObjectid) {
-        if(iObjectid != lpObjectIDs->cbegin())
-            strQuery += ",";
-        strQuery += stringify(*iObjectid);
-    }
-    strQuery += ")";
+	                "WHERE properties.tag = " + stringify(PROP_ID(ulPropTag)) + " AND properties.type = " + stringify(PROP_TYPE(ulPropTag)) + " AND tproperties.folderid = " + stringify(ulFolderId) + " AND properties.hierarchyid IN (" +
+	                kc_join(*lpObjectIDs, ",", stringify) + ")";
 	return lpDatabase->DoUpdate(strQuery);
 }
 
@@ -1649,14 +1643,8 @@ static ECRESULT LockFolders(ECDatabase *lpDatabase, bool bShared,
 {
     if(setParents.empty())
 		return erSuccess;
-	std::string strQuery = "SELECT 1 FROM properties WHERE hierarchyid IN(";
-	for (auto pa_id : setParents) {
-		strQuery += stringify(pa_id);
-        strQuery += ",";
-    }
-    strQuery.resize(strQuery.size()-1);
-    strQuery += ") ";
-
+	auto strQuery = "SELECT 1 FROM properties WHERE hierarchyid IN(" +
+		kc_join(setParents, ",", [](std::set<unsigned int>::key_type p) { return stringify(p); }) + ")";
 	if (bShared)
 		strQuery += "LOCK IN SHARE MODE";
 	else
@@ -1707,13 +1695,8 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 
     if(!setUncached.empty()) {
         // For the items that were uncached, go directly to their parent (or the item itself for folders) in the DB
-        strQuery = "SELECT hierarchyid, hierarchy.type, hierarchy.parent, hierarchy.owner, hierarchy.flags FROM indexedproperties JOIN hierarchy ON hierarchy.id=indexedproperties.hierarchyid WHERE tag = " + stringify(ulTag) + " AND val_binary IN(";
-        for (auto i = setUncached.cbegin(); i != setUncached.cend(); ++i) {
-            if (i != setUncached.cbegin())
-                strQuery += ",";
-            strQuery += lpDatabase->EscapeBinary(*i);
-        }
-        strQuery += ")";
+        strQuery = "SELECT hierarchyid, hierarchy.type, hierarchy.parent, hierarchy.owner, hierarchy.flags FROM indexedproperties JOIN hierarchy ON hierarchy.id=indexedproperties.hierarchyid WHERE tag = " + stringify(ulTag) + " AND val_binary IN(" +
+		kc_join(setUncached, ",", [&](const auto &i) { return lpDatabase->EscapeBinary(i); }) + ")";
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
             return er;
@@ -1743,14 +1726,8 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 
     // Query uncached parents from the database
     if(!setUncachedMessages.empty()) {
-        strQuery = "SELECT parent FROM hierarchy WHERE id IN(";
-		for (auto i = setUncachedMessages.cbegin();
-		     i != setUncachedMessages.cend(); ++i) {
-            if(i != setUncachedMessages.begin())
-                strQuery += ",";
-            strQuery += stringify(*i);
-        }
-        strQuery += ")";
+		strQuery = "SELECT parent FROM hierarchy WHERE id IN(" +
+			kc_join(setUncachedMessages, ",", stringify) + ")";
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)
             return er;

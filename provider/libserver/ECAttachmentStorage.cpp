@@ -253,14 +253,7 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 	std::string strQuery =
 		"SELECT DISTINCT `instanceid`, `filename` "
 		"FROM `singleinstances` "
-		"WHERE `hierarchyid` IN (";
-	for (auto i = lstObjIds.cbegin(); i != lstObjIds.cend(); ++i) {
-		if (i != lstObjIds.cbegin())
-			strQuery += ",";
-		strQuery += stringify(*i);
-	}
-
-	strQuery += ")";
+		"WHERE `hierarchyid` IN (" + kc_join(lstObjIds, ",", stringify) + ")";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return er;
@@ -354,13 +347,9 @@ ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ext_sii
 	std::string strQuery =
 		"SELECT DISTINCT `instanceid`, `filename` "
 		"FROM `singleinstances` "
-		"WHERE `instanceid` IN ( ";
-	for (auto i = lstInstanceIds.cbegin(); i != lstInstanceIds.cend(); ++i) {
-		if (i != lstInstanceIds.cbegin())
-			strQuery += ",";
-		strQuery += stringify(i->siid);
-	}
-	strQuery +=	")";
+		"WHERE `instanceid` IN (" +
+		kc_join(lstInstanceIds, ",", [](const auto &i) { return stringify(i.siid); }) +
+		")";
 	auto er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		return ec_perror("ECAttachmentStorage::GetOrphanedSingleInstances(): DoSelect failed", er);
@@ -638,14 +627,8 @@ ECRESULT ECAttachmentStorage::DeleteAttachments(const std::list<ULONG> &lstDelet
 	 */
 	std::string strQuery =
 		"DELETE FROM `singleinstances` "
-		"WHERE `hierarchyid` IN (";
-	for (auto i = lstDeleteObjects.cbegin(); i != lstDeleteObjects.cend(); ++i) {
-		if (i != lstDeleteObjects.cbegin())
-			strQuery += ",";
-		strQuery += stringify(*i);
-	}
-	strQuery += ")";
-
+		"WHERE `hierarchyid` IN (" +
+		kc_join(lstDeleteObjects, ",", stringify) + ")";
 	er = m_lpDatabase->DoDelete(strQuery);
 	if (er != erSuccess)
 		return ec_perror("ECAttachmentStorage::DeleteAttachments(): DoDelete failed", er);
@@ -938,16 +921,8 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(const ext_siid &ulInstance
  */
 ECRESULT ECDatabaseAttachment::DeleteAttachmentInstances(const std::list<ext_siid> &lstDeleteInstances, bool bReplace)
 {
-	auto strQuery = "DELETE FROM lob WHERE instanceid IN ("s;
-	for (auto iterDel = lstDeleteInstances.cbegin();
-	     iterDel != lstDeleteInstances.cend(); ++iterDel) {
-		if (iterDel != lstDeleteInstances.cbegin())
-			strQuery += ",";
-		strQuery += stringify(iterDel->siid);
-	}
-
-	strQuery += ")";
-	return m_lpDatabase->DoDelete(strQuery);
+	return m_lpDatabase->DoDelete("DELETE FROM lob WHERE instanceid IN ("s +
+		kc_join(lstDeleteInstances, ",", [](const auto &i) { return stringify(i.siid); }) + ")");
 }
 
 /**

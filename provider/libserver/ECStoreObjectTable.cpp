@@ -212,19 +212,10 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 		++j;
 		break; //FIXME: limit 1 column, multi MV cols
 	} // for iterListMVPropTag
-
-	strQuery += " WHERE h.id IN(";
-
-	j = 0;
-	size_t cListRows = lplistRows->size();
-	for (const auto &row : *lplistRows) {
-		strQuery += stringify(row.ulObjId);
-		if(j != (int)(cListRows-1))
-			strQuery += ",";
-		++j;
-	}
-	strQuery += ") ORDER by id, orderid";
-
+		
+	strQuery += " WHERE h.id IN(" +
+		kc_join(*lplistRows, ",", [](const auto &row) { return stringify(row.ulObjId); }) +
+		") ORDER BY id, orderid";
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;
@@ -737,7 +728,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
     const std::map<sObjectTableKey, unsigned int> &mapObjIds,
     struct rowSet *lpsRowSet)
 {
-	std::string strQuery, strHierarchyIds, strTags, strMVTags, strMVITags;
+	std::string strQuery, strTags, strMVTags, strMVITags;
     std::set<std::pair<unsigned int, unsigned int> > setDone;
     sObjectTableKey key;
 	DB_RESULT lpDBResult;
@@ -780,12 +771,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 		ulMax = std::max(ulMax, PROP_ID(col.first));
     }
 
-    for (const auto &ob : mapObjIds) {
-		if (!strHierarchyIds.empty())
-			strHierarchyIds += ",";
-		strHierarchyIds += stringify(ob.first.ulObjId);
-    }
-
+	auto strHierarchyIds = kc_join(mapObjIds, ",", [](const auto &ob) { return stringify(ob.first.ulObjId); });
 	// Get data
 	if (!strTags.empty())
 		strQuery = "SELECT " PROPCOLORDER ", hierarchyid, 0 FROM tproperties AS properties WHERE folderid=" + stringify(ulFolderId) + " AND hierarchyid IN(" + strHierarchyIds + ") AND tag IN (" + strTags +") AND tag >= " + stringify(ulMin) + " AND tag <= " + stringify(ulMax);
@@ -1169,18 +1155,8 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase,
 	DB_ROW lpDBRow = NULL;
 
 	lpDeferred->clear();
-
-	std::string strQuery = "SELECT hierarchyid FROM deferredupdate WHERE hierarchyid IN( ";
-
-	for (const auto &row : *lpRowList) {
-		strQuery += stringify(row.ulObjId);
-		strQuery += ",";
-	}
-
-	// Remove trailing comma
-	strQuery.resize(strQuery.size()-1);
-	strQuery += ")";
-
+	auto strQuery = "SELECT hierarchyid FROM deferredupdate WHERE hierarchyid IN(" +
+		kc_join(*lpRowList, ",", [](const auto &row) { return stringify(row.ulObjId); }) + ")";
 	auto er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		return er;

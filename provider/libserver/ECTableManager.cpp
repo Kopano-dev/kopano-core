@@ -630,13 +630,8 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 		er = lpSession->GetDatabase(&lpDatabase);
 		if (er != erSuccess)
 			return er;
-		for(auto it = lstChildId.begin(); it != lstChildId.end(); ++it) {
-			if(it != lstChildId.begin())
-				strInQuery += ",";
-			strInQuery += stringify(*it);
-		}
-
-		strQuery = "SELECT hierarchyid FROM properties WHERE hierarchyid IN (" + strInQuery + ") AND tag = " + stringify(PROP_ID(PR_SENSITIVITY)) + " AND val_ulong >= 2;";
+		strInQuery = kc_join(lstChildId, ",", stringify);
+		strQuery = "SELECT hierarchyid FROM properties WHERE hierarchyid IN (" + std::move(strInQuery) + ") AND tag = " + stringify(PROP_ID(PR_SENSITIVITY)) + " AND val_ulong >= 2;";
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if(er != erSuccess)
 			return er;
@@ -754,15 +749,9 @@ ECRESULT ECSearchObjectTable::Load()
 	er = lpSession->GetDatabase(&db);
 	if (er != erSuccess)
 		return er;
-	std::string in_query;
-	for (auto it = objlist.begin(); it != objlist.end(); ++it) {
-		if (it != objlist.begin())
-			in_query += ",";
-		in_query += stringify(*it);
-	}
-
+	auto in_query = kc_join(objlist, ",", stringify);
 	auto query = "SELECT hierarchyid FROM properties WHERE hierarchyid IN (" +
-	             in_query + ") AND tag = " + stringify(PROP_ID(PR_SENSITIVITY)) +
+	             std::move(in_query) + ") AND tag = " + stringify(PROP_ID(PR_SENSITIVITY)) +
 	             " AND val_ulong >= 2;";
 	DB_RESULT result;
 	DB_ROW row;

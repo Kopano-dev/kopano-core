@@ -1164,12 +1164,9 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulFolderId, std::list<unsigned
 	auto er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::AddResults(): GetThreadLocalDatabase failed", er);
-	std::string strQuery = "SELECT 1 FROM searchresults WHERE folderid = " +  stringify(ulFolderId) + " AND hierarchyid IN (";
-	for (const auto n : lstObjId)
-		strQuery += stringify(n) + ",";
-	strQuery.resize(strQuery.size()-1);
-	strQuery += ") FOR UPDATE";
-
+	auto strQuery = "SELECT 1 FROM searchresults WHERE folderid = " +
+		stringify(ulFolderId) + " AND hierarchyid IN (" +
+		kc_join(lstObjId, ",", stringify) + ") FOR UPDATE";
 	er = lpDatabase->DoSelect(strQuery, NULL);
 	if (er != erSuccess)
 		return ec_perror("ECSearchFolders::AddResults(): DoSelect failed", er);

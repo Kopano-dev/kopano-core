@@ -10,6 +10,7 @@
 #include <iterator>
 #include <set>
 #include <string>
+#include <type_traits>
 #include <vector>
 #include <algorithm>
 #include <cctype>
@@ -173,6 +174,10 @@ template<typename Iter> std::string kc_join(Iter cur, Iter end, const char *sep)
 {
 	/* This is faster than std::copy(,,ostream_iterator(stringstream)); on gcc libstdc++ */
 	std::string s;
+	using fr = std::remove_cv_t<std::remove_reference_t<decltype(*cur)>>;
+	static_assert(std::is_same<fr, std::string>::value ||
+		std::is_same<fr, const char *>::value ||
+		std::is_same<fr, char *>::value, "container thing must be some string");
 	if (cur != end)
 		s += *cur++;
 	while (cur != end) {
@@ -185,6 +190,23 @@ template<typename Iter> std::string kc_join(Iter cur, Iter end, const char *sep)
 template<typename Container> std::string kc_join(const Container &v, const char *sep)
 {
 	return kc_join(cbegin(v), cend(v), sep);
+}
+
+template<typename C, typename F> std::string
+kc_join(const C &v, const char *sep, F &&func)
+{
+	std::string result;
+	auto it = v.cbegin();
+	using fr = std::remove_reference_t<decltype(func(*it))>;
+	static_assert(std::is_same<fr, std::string>::value ||
+		std::is_same<fr, const char *>::value ||
+		std::is_same<fr, char *>::value, "func must return some string");
+	if (it == v.cend())
+		return result;
+	result += func(*it++);
+	while (it != v.cend())
+		result += sep + func(*it++);
+	return result;
 }
 
 extern _kc_export std::string base64_encode(const void *, unsigned int);
