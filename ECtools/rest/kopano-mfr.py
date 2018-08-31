@@ -6,6 +6,7 @@ import multiprocessing
 import optparse
 import os
 import os.path
+import signal
 import sys
 import time
 
@@ -45,6 +46,19 @@ METRICS_LISTEN = 'localhost:6060'
 # metrics
 if PROMETHEUS:
     REQUEST_TIME = Summary('kopano_mfr_request_processing_seconds', 'Time spent processing request', ['method', 'endpoint'])
+
+RUNNING = True
+
+def sigchld(*args):
+    global RUNNING
+    if RUNNING:
+        logging.info('child was terminated, initiate shutdown')
+        RUNNING = False
+
+def sigterm(*args):
+    global RUNNING
+    logging.info('process received shutdown signal')
+    RUNNING = False
 
 # TODO use kopano.Service, for config file, pidfile, logging, restarting etc.
 def create_pidfile(path):
@@ -135,6 +149,7 @@ def metrics_app(environ, start_response):
 
 # TODO merge run_*
 def run_app(socket_path, n, options):
+    signal.signal(signal.SIGINT, lambda *args: 0)
     if SETPROCTITLE:
         setproctitle.setproctitle('%s rest %d' % (options.process_name, n))
     if options.with_metrics:
@@ -145,12 +160,10 @@ def run_app(socket_path, n, options):
     app.add_error_handler(Exception, error_handler)
     unix_socket = 'unix:' + os.path.join(socket_path, 'rest%d.sock' % n)
     logging.info('starting rest worker: %s', unix_socket)
-    try:
-        bjoern.run(app, unix_socket)
-    except KeyboardInterrupt:
-        pass
+    bjoern.run(app, unix_socket)
 
 def run_notify(socket_path, options):
+    signal.signal(signal.SIGINT, lambda *args: 0)
     if SETPROCTITLE:
         setproctitle.setproctitle('%s notify' % options.process_name)
     if options.with_metrics:
@@ -161,21 +174,16 @@ def run_notify(socket_path, options):
     app.add_error_handler(Exception, error_handler)
     unix_socket = 'unix:' + os.path.join(socket_path, 'notify.sock')
     logging.info('starting notify worker: %s', unix_socket)
-    try:
-        bjoern.run(app, unix_socket)
-    except KeyboardInterrupt:
-        pass
+    bjoern.run(app, unix_socket)
 
 def run_metrics(socket_path, options):
+    signal.signal(signal.SIGINT, lambda *args: 0)
     if SETPROCTITLE:
         setproctitle.setproctitle('%s metrics' % options.process_name)
     address = options.metrics_listen
     logging.info('starting metrics worker: %s', address)
     address = address.split(':')
-    try:
-        bjoern.run(metrics_app, address[0], int(address[1]))
-    except KeyboardInterrupt:
-        pass
+    bjoern.run(metrics_app, address[0], int(address[1]))
 
 def logger_init():
     q = multiprocessing.Queue()
@@ -195,6 +203,8 @@ def logger_init():
     return ql, q
 
 def main():
+    global RUNNING
+
     options, args = opt_args()
 
     if SETPROCTITLE:
@@ -237,29 +247,40 @@ def main():
         worker.daemon = True
         worker.start()
 
+    signal.signal(signal.SIGCHLD, sigchld)
+    signal.signal(signal.SIGTERM, sigterm)
+
     try:
-        for worker in workers:
-            worker.join()
+        while RUNNING:
+            signal.pause()
     except KeyboardInterrupt:
+        RUNNING = False
+        logging.info('keyboard interrupt')
+
+    logging.info('starting shutdown')
+
+    for worker in workers:
+        worker.terminate()
+        worker.join()
+
+    q_listener.stop()
+
+    sockets = []
+    for n in range(nworkers):
+        sockets.append('rest%d.sock' % n)
+    sockets.append('notify.sock')
+    for socket in sockets:
+        try:
+            unix_socket = os.path.join(socket_path, socket)
+            os.unlink(unix_socket)
+        except OSError:
+            pass
+
+    if options.with_metrics:
         for worker in workers:
-            worker.terminate()
-    finally:
-        q_listener.stop()
+            multiprocess.mark_process_dead(worker.pid)
 
-        sockets = []
-        for n in range(nworkers):
-            sockets.append('rest%d.sock' % n)
-        sockets.append('notify.sock')
-        for socket in sockets:
-            try:
-                unix_socket = os.path.join(socket_path, socket)
-                os.unlink(unix_socket)
-            except OSError:
-                pass
-
-        if options.with_metrics:
-            for worker in workers:
-                multiprocess.mark_process_dead(worker.pid)
+    logging.info('shutdown complete')
 
 if __name__ == '__main__':
     main()
