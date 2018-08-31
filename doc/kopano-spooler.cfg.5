@@ -234,10 +234,23 @@ Default:
 \fIyes\fR
 .SS copy_delegate_mails
 .PP
-Make a copy of the sent mail of delegates in the sent items folder of the representee. This is done for both delegate and send\-as e\-mails.
+This directive controls into which "Sent Items" folder(s) an e-mail message will be
+placed when sending messages. This applies to both these types of delegation:
+.IP \(bu 4
+"on behalf of", where, in RFC 5322 terms, the From: line is changed, and a
+Sender: line is added.
+.IP \(bu 4
+"send as", where the From: line is changed, and no Sender: line is emitted.
 .PP
-Default:
-\fIyes\fR
+Possible values are: \fIno\fP (message stays with delegate's "Sent Items"),
+\fIyes\fP (message is copied to representee's "Sent Items"),
+\fImove-to-rep\fP (message is moved from delegate to representee).
+.PP
+Some MAPI clients (such as Outlook with the Zarafa DLL) \fImay\fP independently
+retain and store a copy of the message into "Sent Items", unbeknownst to
+kopano-spooler, thereby defeating the effectiveness of \fImove-to-rep\fP.
+.PP
+Default: \fIyes\fP
 .SS allow_delegate_meeting_request
 .PP
 Normally, users are not allowed to send meeting requests as external delegate. However, when you want to forward meeting requests you need delegate permissions. Enabling this option allows you to sent and forward a meeting request as a delegate Kopano and SMTP user.
