@@ -687,9 +687,6 @@ HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 	}
 
 	auto hr = RespStructToXml(&sWebMStatus, &strXml);
-	if (hr != hrSuccess)
-		goto exit;
-exit:
 	if (hr == hrSuccess) {
 		m_lpRequest.HrResponseHeader(200, "OK");
 		m_lpRequest.HrResponseHeader("Content-Type", "application/xml; charset=\"utf-8\"");

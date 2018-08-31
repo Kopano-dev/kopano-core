@@ -2345,8 +2345,6 @@ ECRESULT ECUserManagement::CreateLocalObjectSimple(const objectsignature_t &sign
 			stringify(ulCompanyId) + ", " +
 			"'" + lpDatabase->Escape(signature.signature) + "')";
 	er = lpDatabase->DoInsert(strQuery);
-	if(er != erSuccess)
-		goto exit;
 exit:
 	if (bLocked)
 		lpDatabase->DoInsert("UNLOCK TABLES");
