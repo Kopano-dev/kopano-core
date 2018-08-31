@@ -1,5 +1,19 @@
-8.7.x
-=====
+8.7.dev
+=======
+Fixes:
+* server: logon/logoff times were not reported correctly [KC-1257]
+Enhancements:
+* server: support for Unicode supplemental plane (Emojis) [KC-725]
+* spooler: support for process_model=thread mode [KC-1235]
+* spooler: add copy_delegate_mails=move-to-rep config directive [KC-412]
+Changes:
+* dagent: ignore OP_REPLY/OP_FORWARD for autoreplies [KC-1244]
+Packaging changes:
+* The MySQL 8 C API is now supported at build time [KC-1237]
+
+
+8.6.81 (8.7 Milestone 1)
+========================
 Fixes:
 * ical: better support recurring tasks [KC-781]
 Enhancements:
@@ -15,11 +29,9 @@ Enhancements:
   ical_listen=, etc. [KC-1187]
 * server: multivalue properties are now cached [KC-1162]
 * server: LDAP STARTTLS support for user backend [KC-1188]
-* server: support for Unicode supplemental plane [KC-725]
-* spooler: support for process_model=thread mode [KC-1235]
 * spooler: new config value log_raw_message=error [KC-1105]
-* php: new functions to get freebusy message [KC-1077]
 * daemons: TLS ECDH curves can now be specified in config [KC-1233]
+* php: new functions to get freebusy message [KC-1077]
 Changes:
 * daemons: the default logging target is now syslog/journalctl [KC-1100]
 * daemons: SSLv3, TLSv1.0 and TLSv1.1 are now disabled by default [KC-1231]
@@ -31,7 +43,6 @@ Packaging changes:
 * libkcpyplug.so.0 is dlopened from kopano-{dagent,spooler};
   dagent/spooler packages need a Require on it
   for a default install to function.
-* build support for MySQL 8 [KC-1237]
 
 
 8.6.x
