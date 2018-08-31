@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Copyright 2018+, Kopano and its licensors
  */
+#include <exception>
 #include <memory>
 #include <string>
 #include <cerrno>
@@ -252,11 +253,13 @@ static HRESULT oof_login()
 	return oof_show(usr_store);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char **argv) try
 {
 	setlocale(LC_ALL, "");
 	auto ret = oof_parse_options(argc, argv);
 	if (ret != hrSuccess)
 		return EXIT_FAILURE;
 	return oof_login() == hrSuccess ? EXIT_SUCCESS : EXIT_FAILURE;
+} catch (...) {
+	std::terminate();
 }

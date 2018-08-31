@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <exception>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -399,7 +400,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	return hrSuccess;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv) try
 {
 	CHECKMAP checkmap;
 	char* strUser = NULL;
@@ -539,4 +540,6 @@ int main(int argc, char *argv[])
 	} else {
 		return 1;
 	}
+} catch (...) {
+	std::terminate();
 }

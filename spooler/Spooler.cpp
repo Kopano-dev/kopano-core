@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <chrono>
 #include <condition_variable>
+#include <exception>
 #include <list>
 #include <map>
 #include <memory>
@@ -881,7 +882,8 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
 	return hr;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char **argv) try
+{
 	HRESULT hr = hrSuccess;
 	const char *szPath = NULL;
 	const char *szSMTP = NULL;
@@ -1178,4 +1180,6 @@ exit:
 
 	// forked: failed sending message, but is already removed from the queue
 	return EXIT_FAILURE;
+} catch (...) {
+	std::terminate();
 }
