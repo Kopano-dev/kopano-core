@@ -21,9 +21,7 @@ from MAPI.Tags import (
     PR_ATTACH_CONTENT_LOCATION_W,
 )
 from MAPI.Defs import HrGetOneProp
-from MAPI.Struct import (
-    MAPIErrorNotFound, MAPIErrorNoAccess,
-)
+from MAPI.Struct import MAPIErrorNoAccess
 
 if sys.hexversion >= 0x03000000:
     try:
@@ -33,6 +31,7 @@ if sys.hexversion >= 0x03000000:
 else: # pragma: no cover
     import item as _item
 
+from .errors import NotFoundError
 from .properties import Properties
 
 from .compat import (
@@ -44,8 +43,14 @@ if sys.hexversion >= 0x03000000:
         from . import utils as _utils
     except ImportError: # pragma: no cover
         _utils = sys.modules[__package__ + '.utils']
+    try:
+        from . import property_ as _prop
+    except ImportError: # pragma: no cover
+        _prop = sys.modules[__package__ + '.property_']
+
 else: # pragma: no cover
     import utils as _utils
+    import property_ as _prop
 
 class Attachment(Properties):
     """Attachment class"""
@@ -66,6 +71,13 @@ class Attachment(Properties):
             self._entryid, IID_IAttachment, 0
         )
         return self._mapiobj
+
+    def delete(self, objects):
+        objects = _utils.arg_objects(objects, (_prop.Property,), 'Attachment.delete')
+        proptags = [item.proptag for item in objects if isinstance(item, _prop.Property)]
+        if proptags:
+            self.mapiobj.DeleteProps(proptags)
+        _utils._save(self.parent.mapiobj)
 
     @property
     def entryid(self):
@@ -123,7 +135,7 @@ class Attachment(Properties):
         """Is attachment an embedded message."""
         try:
             return self[PR_ATTACH_METHOD] == ATTACH_EMBEDDED_MSG
-        except MAPIErrorNotFound:
+        except NotFoundError:
             return False
 
     @property

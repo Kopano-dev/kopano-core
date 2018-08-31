@@ -15,9 +15,6 @@ from .resource import (
 from .item import (
     ItemResource, get_email, get_body, set_body
 )
-from .attachment import (
-    AttachmentResource
-)
 
 pattern_map = {
     'monthly': 'absoluteMonthly',
@@ -244,3 +241,7 @@ class EventResource(ItemResource):
         folder.delete(event)
 
         self.respond_204(resp)
+
+from .attachment import (
+    AttachmentResource
+)

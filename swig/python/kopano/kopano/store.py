@@ -6,7 +6,9 @@ Copyright 2005 - 2016 Zarafa and its licensors (see LICENSE file for details)
 Copyright 2016 - Kopano and its licensors (see LICENSE file for details)
 """
 
+import codecs
 import json
+import os
 import uuid
 import sys
 
@@ -48,7 +50,7 @@ from .defs import (
     RSF_PID_RSS_SUBSCRIPTION, NAMED_PROPS_ARCHIVER
 )
 
-from .errors import NotFoundError, ArgumentError
+from .errors import NotFoundError, ArgumentError, DuplicateError
 from .properties import Properties
 from .autoaccept import AutoAccept
 from .autoprocess import AutoProcess
@@ -63,7 +65,8 @@ from .restriction import Restriction
 from . import notification as _notification
 
 from .compat import (
-    encode as _encode, bdec as _bdec, benc as _benc, fake_unicode as _unicode
+    encode as _encode, bdec as _bdec, benc as _benc, fake_unicode as _unicode,
+    fake_ord as _ord,
 )
 
 if sys.hexversion >= 0x03000000:
@@ -97,8 +100,8 @@ class Store(Properties):
         elif entryid:
             try:
                 mapiobj = self.server._store2(_bdec(entryid))
-            except MAPIErrorNotFound:
-                raise NotFoundError("cannot open store with entryid '%s'" % entryid)
+            except (MAPIErrorNotFound, MAPIErrorInvalidEntryid):
+                raise NotFoundError("no store with entryid '%s'" % entryid)
 
         self.mapiobj = mapiobj
         # XXX: fails if store is orphaned and guid is given..
@@ -381,7 +384,7 @@ class Store(Properties):
             try:
                 return _folder.Folder(self, entryid)
             except (MAPIErrorInvalidEntryid, MAPIErrorNotFound): # XXX move to Folder
-                raise NotFoundError("no folder with entryid: '%s'" % entryid)
+                raise NotFoundError("no folder with entryid '%s'" % entryid)
 
         return self.subtree.folder(path, recurse=recurse, create=create)
 
@@ -682,12 +685,21 @@ class Store(Properties):
             except NotFoundError:
                 pass
 
+    def add_favorite(self, folder): # TODO remove_favorite, folder.favorite
+        if folder in self.favorites():
+            raise DuplicateError("folder '%s' already in favorites" % folder.name)
+
+        item = self.common_views.associated.create_item()
+        item[PR_MESSAGE_CLASS_W] = u'IPM.Microsoft.WunderBar.Link'
+        item[PR_WLINK_ENTRYID] = _bdec(folder.entryid)
+        item[PR_WLINK_STORE_ENTRYID] = _bdec(folder.store.entryid)
+
     def _subprops(self, value):
         result = {}
         pos = 0
         while pos < len(value):
-            id_ = ord(value[pos])
-            cb = ord(value[pos + 1])
+            id_ = _ord(value[pos])
+            cb = _ord(value[pos + 1])
             result[id_] = value[pos + 2:pos + 2 + cb]
             pos += 2 + cb
         return result
@@ -706,7 +718,6 @@ class Store(Properties):
             except NotFoundError:
                 pass
 
-        # XXX why not just use PR_WLINK_ENTRYID??
         # match common_views SFInfo records against these guids
         table = self.common_views.mapiobj.GetContentsTable(MAPI_ASSOCIATED)
 
@@ -721,6 +732,21 @@ class Store(Properties):
                 yield guid_folder[row[1].Value]
             except KeyError:
                 pass
+
+    def add_search(self, searchfolder):
+        # add random tag, id to searchfolder
+        tag = os.urandom(4)
+        id_ = os.urandom(16)
+        flags = b"0104000000010304" + \
+                codecs.encode(tag, 'hex') + \
+                b"0210" + \
+                codecs.encode(id_, 'hex')
+        searchfolder[PR_EXTENDED_FOLDER_FLAGS] = codecs.decode(flags, 'hex')
+
+        # add matching entry to common views
+        item = self.common_views.associated.create_item()
+        item[PR_MESSAGE_CLASS_W] = u'IPM.Microsoft.WunderBar.SFInfo'
+        item[PR_WB_SF_ID] = id_
 
     @property
     def home_server(self):

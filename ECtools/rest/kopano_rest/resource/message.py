@@ -9,9 +9,7 @@ from ..utils import (
 from .resource import (
     DEFAULT_TOP, _date, json
 )
-from .attachment import (
-    AttachmentResource
-)
+
 from .item import (
     ItemResource, get_body, set_body, get_email, get_attachments,
 )
@@ -66,6 +64,10 @@ class MessageResource(ItemResource):
 
     deleted_resource = DeletedMessageResource
 
+    relations = {
+        'attachments': lambda message: (message.attachments, FileAttachmentResource), # TODO embedded
+    }
+
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid or 'inbox') # TODO all folders?
@@ -105,7 +107,7 @@ class MessageResource(ItemResource):
             fields = json.loads(req.stream.read().decode('utf-8'))
             if fields['@odata.type'] == '#microsoft.graph.fileAttachment': # TODO other types
                 att = item.create_attachment(fields['name'], base64.urlsafe_b64decode(fields['contentBytes']))
-                self.respond(req, resp, att, AttachmentResource.fields)
+                self.respond(req, resp, att, FileAttachmentResource.fields)
                 resp.status = falcon.HTTP_201
 
         elif method in ('copy', 'move'):
@@ -150,4 +152,10 @@ class EmbeddedMessageResource(MessageResource):
     fields.update({
         'id': lambda item: '',
     })
-    del fields['parentFolderId'] # TODO more?
+    del fields['@odata.etag'] # TODO check MSG
+    del fields['parentFolderId']
+    del fields['changeKey']
+
+from .attachment import (
+    FileAttachmentResource
+)

@@ -3,7 +3,7 @@ import calendar
 import datetime
 try:
     import ujson as json
-except ImportError:
+except ImportError: # pragma: no cover
     import json
 import time
 
@@ -21,7 +21,7 @@ UTC = dateutil.tz.tzutc()
 INDENT = True
 try:
     json.dumps({}, indent=True) # ujson 1.33 doesn't support 'indent'
-except TypeError:
+except TypeError: # pragma: no cover
     INDENT = False
 
 import dateutil.parser
@@ -113,10 +113,11 @@ class Resource(object):
         fields = fields or all_fields or self.fields
         result = {}
         for f in fields:
-            if all_fields[f].__code__.co_argcount == 1:
-                result[f] = all_fields[f](obj)
-            else:
-                result[f] = all_fields[f](req, obj)
+            if f in all_fields:
+                if all_fields[f].__code__.co_argcount == 1:
+                    result[f] = all_fields[f](obj)
+                else:
+                    result[f] = all_fields[f](req, obj)
 
         # TODO do not handle here
         if '@odata.type' in result and not result['@odata.type']:
@@ -138,11 +139,17 @@ class Resource(object):
         header = b'{\n'
         header += b'  "@odata.context": "%s",\n' % req.path.encode('utf-8')
         if add_count:
-              header += b'  "@odata.count": "%d",\n' % count
+            header += b'  "@odata.count": "%d",\n' % count
         if deltalink:
-              header += b'  "@odata.deltaLink": "%s",\n' % deltalink
-        elif skip+top < count:
-              header += b'  "@odata.nextLink": "%s?$skip=%d",\n' % (req.path.encode('utf-8'), skip+top)
+            header += b'  "@odata.deltaLink": "%s",\n' % deltalink
+        else:
+            path = req.path
+            if req.query_string:
+                args = urlparse.parse_qs(req.query_string)
+                if '$skip' in args:
+                    del args['$skip']
+                path += '?'+'&'.join(a+'='+','.join(b) for (a,b) in args.items())
+            header += b'  "@odata.nextLink": "%s?$skip=%d",\n' % (path.encode('utf-8'), skip+top)
         header += b'  "value": [\n'
         yield header
         first = True
@@ -226,7 +233,7 @@ class Resource(object):
         if '$search' in args:
             query = args['$search'][0]
             def yielder(**kwargs):
-                for item in folder.items(query):
+                for item in folder.items(query=query):
                     yield item
             return self.generator(req, yielder, 0)
         else:

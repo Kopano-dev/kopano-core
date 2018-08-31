@@ -12,7 +12,6 @@ from .calendar import CalendarResource
 from .contact import ContactResource
 from .contactfolder import ContactFolderResource
 from .event import EventResource
-from . import group
 from .mailfolder import MailFolderResource
 from .message import MessageResource
 from .reminder import ReminderResource
@@ -91,7 +90,7 @@ class UserResource(Resource):
                         yield from server._user_query(query) # TODO .users(query)?
                 else:
                     def yielder(**kwargs):
-                        yield from server.users(hidden=False, inactive=False)
+                        yield from server.users(hidden=False, inactive=False, **kwargs)
                 data = self.generator(req, yielder)
             self.respond(req, resp, data)
 
@@ -111,10 +110,6 @@ class UserResource(Resource):
             data = self.folder_gen(req, store.contacts)
             self.respond(req, resp, data, ContactResource.fields)
 
-        elif method == 'calendar':
-            data = store.calendar
-            self.respond(req, resp, data, CalendarResource.fields)
-
         elif method == 'calendars':
             data = self.generator(req, store.calendars, 0)
             self.respond(req, resp, data, CalendarResource.fields)
@@ -127,7 +122,7 @@ class UserResource(Resource):
         elif method == 'calendarView': # TODO multiple calendars? merge code with calendar.py
             start, end = _start_end(req)
             def yielder(**kwargs):
-                for occ in store.calendar.occurrences(start, end):
+                for occ in store.calendar.occurrences(start, end, **kwargs):
                     yield occ
             data = self.generator(req, yielder)
             self.respond(req, resp, data, EventResource.fields)
@@ -145,10 +140,16 @@ class UserResource(Resource):
         elif method == 'memberOf':
             user = server.user(userid=userid)
             data = (user.groups(), DEFAULT_TOP, 0, 0)
-            self.respond(req, resp, data, group.GroupResource.fields)
+            self.respond(req, resp, data, GroupResource.fields)
 
-        elif method == 'photos': # TODO
-            pass
+        elif method == 'photos': # TODO multiple photos?
+            user = server.user(userid=userid)
+            def yielder(**kwargs):
+                photo = user.photo
+                if photo:
+                    yield photo
+            data = self.generator(req, yielder)
+            self.respond(req, resp, data, ProfilePhotoResource.fields)
 
         elif method:
             raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
@@ -186,3 +187,10 @@ class UserResource(Resource):
         elif method == 'mailFolders':
             folder = store.create_folder(fields['displayName']) # TODO exception on conflict
             self.respond(req, resp, folder, MailFolderResource.fields)
+
+from .group import (
+    GroupResource
+)
+from .profilephoto import (
+    ProfilePhotoResource
+)

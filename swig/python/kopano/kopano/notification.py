@@ -9,7 +9,7 @@ import copy
 import sys
 try:
     from queue import Queue
-except ImportError:
+except ImportError: # pragma: no cover
     from Queue import Queue
 
 from MAPI import (
@@ -128,7 +128,7 @@ class AdviseSink(MAPIAdviseSink):
         self.event_types = event_types
         self.folder_types = folder_types
 
-    def OnNotify(self, notifications):
+    def OnNotify(self, notifications): # pragma: no cover
         # called from a thread created from C, and as tracing is set for each
         # thread separately from Python, tracing doesn't work here (so coverage
         # also doesn't work).
@@ -137,7 +137,9 @@ class AdviseSink(MAPIAdviseSink):
         # so we just 'inherit' any used tracer from the 'global' python thread.
         if TRACER:
             sys.settrace(TRACER)
+        return self._on_notify(notifications) # method call to start tracing
 
+    def _on_notify(self, notifications):
         if hasattr(self.sink, 'update'):
             for n in notifications:
                 for m in _filter(_split(n, self.store), self.folder,

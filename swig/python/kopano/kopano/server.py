@@ -388,14 +388,26 @@ class Server(object):
         :param remote: include users on remote server nodes
         :param system: include system users
         """
+        pos = 0
+        count = 0
         if parse and getattr(self.options, 'users', None):
             for username in self.options.users:
-                yield _user.User(username, self)
+                if page_start is None or pos >= page_start:
+                    yield _user.User(username, self)
+                    count += 1
+                if page_limit is not None and count >= page_limit:
+                    return
+                pos += 1
             return
         try:
             for name in self._companylist():
                 for user in Company(name, self).users(): # TODO filter for args?
-                    yield user
+                    if page_start is None or pos >= page_start:
+                        yield user
+                        count += 1
+                    if page_limit is not None and count >= page_limit:
+                        return
+                    pos += 1
         except MAPIErrorNoSupport:
             for ecuser in self.sa.GetUserList(None, MAPI_UNICODE):
                 user = _user.User(server=self, ecuser=ecuser)
@@ -403,7 +415,12 @@ class Server(object):
                     (remote or ecuser.Servername in (self.name, '')) and
                     (hidden or not user.hidden) and
                     (inactive or user.active)):
-                    yield user
+                    if page_start is None or pos >= page_start:
+                        yield user
+                        count += 1
+                    if page_limit is not None and count >= page_limit:
+                        return
+                    pos += 1
 
     def _user_query(self, query): # TODO merge as .users('..')?
         store = _store.Store(mapiobj=self.mapistore, server=self)
@@ -424,8 +441,8 @@ class Server(object):
         :param create_store: should a store be created for the new user
         :return: :class:`<User>`
         """
+        fullname = _unicode(fullname or name or '')
         name = _unicode(name)
-        fullname = _unicode(fullname or '')
         if email:
             email = _unicode(email)
         else:

@@ -165,8 +165,8 @@ class Contact(object):
             self.get(PidLidEmail3OriginalEntryId),
         )
 
-    @address2.setter
-    def address2(self, addr):
+    @address3.setter
+    def address3(self, addr):
         pr_addrtype, pr_dispname, pr_email, pr_entryid = \
             self._addr_props(addr)
 

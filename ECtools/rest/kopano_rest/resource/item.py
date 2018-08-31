@@ -10,9 +10,6 @@ from ..utils import (
 from .resource import (
     DEFAULT_TOP, Resource, _header_sub_arg, _date, urlparse
 )
-from .attachment import (
-    ItemAttachmentResource, FileAttachmentResource,
-)
 
 def get_body(req, item):
     type_ = _header_sub_arg(req, 'Prefer', 'outlook.body-content-type') or item.body_type
@@ -85,3 +82,7 @@ class ItemResource(Resource):
         # TODO include filter in token?
         deltalink = b"%s?$deltatoken=%s" % (req.path.encode('utf-8'), codecs.encode(newstate, 'ascii'))
         self.respond(req, resp, data, self.fields, deltalink=deltalink)
+
+from .attachment import (
+    ItemAttachmentResource, FileAttachmentResource,
+)

@@ -148,7 +148,7 @@ class Folder(Properties):
             try:
                 self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
             except (MAPIErrorNotFound, MAPIErrorInvalidEntryid):
-                raise NotFoundError("cannot open folder with entryid '%s'" % _benc(self._entryid)) # XXX check too late??
+                raise NotFoundError("no folder with entryid '%s'" % _benc(self._entryid)) # XXX check too late??
         except MAPIErrorNoAccess: # XXX XXX
             self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, 0)
 
@@ -322,7 +322,7 @@ class Folder(Properties):
         return item
 
     def items(self, restriction=None, page_start=None, page_limit=None,
-              order=None):
+              order=None, query=None):
         """Return all :class:`items <Item>` in folder, reverse sorted on
         received date.
 
@@ -344,12 +344,12 @@ class Folder(Properties):
             PR_BODY_W, # body preview, not entire body!
         ]
 
-        if is_str(restriction):
+        if query is not None:
             if self.container_class == 'IPF.Contact':
                 type_ = 'contact'
             else:
                 type_ = 'message'
-            restriction = _query_to_restriction(restriction, type_, self.store)
+            restriction = _query_to_restriction(query, type_, self.store)
 
         try:
             table = Table(
@@ -385,7 +385,9 @@ class Folder(Properties):
             )
             yield item
 
-    def occurrences(self, start=None, end=None):
+    def occurrences(self, start=None, end=None, page_start=None, page_limit=None, order=None):
+        count = 0
+        pos = 0
         if start and end:
             startstamp = time.mktime(start.timetuple())
             endstamp = time.mktime(end.timetuple())
@@ -451,12 +453,26 @@ class Folder(Properties):
                     cache=dict(zip(columns, row))
                 )
                 for occurrence in item.occurrences(start, end):
-                    yield occurrence
+                    if page_start is None or pos >= page_start:
+                        yield occurrence
+                        count += 1
+                    if page_limit is not None and count >= page_limit:
+                        break
+                    pos += 1
+                if page_limit is not None and count >= page_limit:
+                    break
 
         else:
             for item in self:
                 for occurrence in item.occurrences(start, end):
-                    yield occurrence
+                    if page_start is None or pos >= page_start:
+                        yield occurrence
+                        count += 1
+                    if page_limit is not None and count >= page_limit:
+                        break
+                    pos += 1
+                if page_limit is not None and count >= page_limit:
+                    break
 
     def create_item(self, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, save=True, **kwargs): # XXX associated
         item = _item.Item(self, eml=eml, ics=ics, vcf=vcf, load=load, loads=loads, attachments=attachments, create=True, save=save)
@@ -592,7 +608,7 @@ class Folder(Properties):
             try:
                 return Folder(self.store, entryid)
             except (MAPIErrorInvalidEntryid, MAPIErrorNotFound, TypeError):
-                raise NotFoundError('cannot open folder with entryid "%s"' % entryid)
+                raise NotFoundError('no folder with entryid "%s"' % entryid)
 
         if '/' in path.replace('\\/', ''): # XXX MAPI folders may contain '/' (and '\') in their names..
             subfolder = self
@@ -957,10 +973,7 @@ class Folder(Properties):
 
     @property
     def created(self):
-        try:
-            return self.prop(PR_CREATION_TIME).value
-        except NotFoundError:
-            pass
+        return self._get_fast(PR_CREATION_TIME)
 
     @property
     def last_modified(self):

@@ -5,7 +5,6 @@ from ..utils import _server_store
 from .resource import (
     DEFAULT_TOP, Resource
 )
-from . import user
 
 class GroupResource(Resource):
     fields = {
@@ -26,10 +25,14 @@ class GroupResource(Resource):
 
         if method == 'members':
             data = (group.users(), DEFAULT_TOP, 0, 0)
-            self.respond(req, resp, data, user.UserResource.fields)
+            self.respond(req, resp, data, UserResource.fields)
 
         elif method:
             raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
         else:
             self.respond(req, resp, data)
+
+from .user import (
+    UserResource
+)

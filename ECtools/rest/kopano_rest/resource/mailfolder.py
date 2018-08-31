@@ -40,10 +40,8 @@ class MailFolderResource(FolderResource):
             req.context['deltaid'] = '{folderid}'
             self.delta(req, resp, store)
             return
-        elif folderid:
-            data = _folder(store, folderid)
         else:
-            data = self.generator(req, store.folders, store.subtree.subfolder_count_recursive)
+            data = _folder(store, folderid)
 
         if not method:
             self.respond(req, resp, data)

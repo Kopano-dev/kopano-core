@@ -9,7 +9,7 @@ import datetime
 import time
 try:
     import libfreebusy
-except ImportError:
+except ImportError: # pragma: no cover
     pass
 
 from MAPI.Time import (

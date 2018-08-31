@@ -124,7 +124,7 @@ def _interval_restriction(proptag, start, end):
 # AST nodes
 
 class Term(object):
-    def __init__(self, sign=None, field=None, op=None, value=None):
+    def __init__(self, sign=None, field=None, op=None, value=None, hoepa=None):
         self.sign = sign
         self.field = field
         self.op = op
@@ -168,10 +168,7 @@ class Term(object):
                     if [x for x in ('KB', 'MB', 'GB') if value.endswith(x)]:
                         value, unit = value[:-2], value[-2:]
 
-                    if PROP_TYPE(proptag) in (PT_FLOAT, PT_DOUBLE):
-                        value = float(value)
-                    else:
-                        value = int(value)
+                    value = int(value)
 
                     if unit == 'KB':
                         value *= 1024
@@ -319,14 +316,6 @@ class Term(object):
 
         return restr
 
-    def __repr__(self):
-        return 'Term(%s%s%s%s)' % (
-            self.sign or '',
-            self.field or '',
-            '('+(self.op or '')+')',
-            self.value
-        )
-
 class Operation(object):
     def __init__(self, op=None, args=None):
         self.op = op
@@ -345,12 +334,6 @@ class Operation(object):
             return SNotRestriction(
                 self.args[0].restriction(type_, store)
             )
-
-    def __repr__(self):
-        return '%s(%s)' % (
-            self.op,
-            ','.join(repr(arg) for arg in self.args)
-        )
 
 # build parser
 
@@ -398,12 +381,13 @@ def _build_parser():
 
     sign = CharSet('+-')
 
-    term = Sequence(Optional(Sequence(Optional(sign), word, operator)), value)
+    term = Sequence(Optional(sign), Optional(Sequence(word, operator)), value)
     term.modifier = lambda t: Term(
-        sign=t[0][0] if t[0] else None,
-        field=t[0][1] if t[0] else None,
-        op=t[0][2] if t[0] else None,
-        value=t[1]
+        sign=t[0] if t[0] else None,
+        field=t[1][0] if t[1] else None,
+        op=t[1][1] if t[1] else None,
+        value=t[2],
+        hoepa=t
     )
 
     termplus = OneOrMore(alphaplus)

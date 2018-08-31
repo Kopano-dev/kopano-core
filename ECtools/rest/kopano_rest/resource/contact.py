@@ -23,6 +23,13 @@ def _phys_address(addr):
     }
     return {a:b for (a,b) in data.items() if b}
 
+class DeletedContactResource(ItemResource):
+    fields = {
+        '@odata.type': lambda item: '#microsoft.graph.contact', # TODO
+        'id': lambda item: item.entryid,
+        '@removed': lambda item: {'reason': 'deleted'} # TODO soft deletes
+    }
+
 class ContactResource(ItemResource):
     fields = ItemResource.fields.copy()
     fields.update({
@@ -66,14 +73,13 @@ class ContactResource(ItemResource):
         'emailAddresses': set_email_addresses,
     }
 
+    deleted_resource = DeletedContactResource
+
     def on_get(self, req, resp, userid=None, folderid=None, itemid=None, method=None):
         server, store = _server_store(req, userid, self.options)
         folder = _folder(store, folderid or 'contacts') # TODO all folders?
 
-        if method == 'photos':
-            pass # TODO
-
-        elif method:
+        if method:
             raise falcon.HTTPBadRequest(None, "Unsupported segment '%s'" % method)
 
         if itemid == 'delta':
@@ -81,10 +87,7 @@ class ContactResource(ItemResource):
             self.delta(req, resp, folder)
             return
 
-        if itemid:
-            data = _item(folder, itemid)
-        else:
-            data = self.generator(req, folder.items, folder.count)
+        data = _item(folder, itemid)
 
         self.respond(req, resp, data)
 
