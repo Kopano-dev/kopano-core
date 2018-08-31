@@ -614,19 +614,18 @@ HRESULT vcftomapi_impl::save_photo(IMessage *mapiprop)
 		break;
 	}
 
-	SPropValue props[5];
-	props[0].ulPropTag = PR_ATTACHMENT_CONTACTPHOTO;
-	props[0].Value.b = true;
-	props[1].ulPropTag = PR_ATTACH_METHOD;
-	props[1].Value.ul = ATTACH_BY_VALUE;
-	props[2].ulPropTag = PR_ATTACH_LONG_FILENAME_W;
-	props[2].Value.lpszW = const_cast<wchar_t *>(filename);
-	props[3].ulPropTag = PR_ATTACH_MIME_TAG_W;
-	props[3].Value.lpszW = const_cast<wchar_t *>(mimetype);
-	props[4].ulPropTag = PR_ATTACHMENT_HIDDEN;
-	props[4].Value.b = true;
-
-	hr = att->SetProps(5, props, nullptr);
+	SPropValue prop[5];
+	prop[0].ulPropTag = PR_ATTACHMENT_CONTACTPHOTO;
+	prop[0].Value.b = true;
+	prop[1].ulPropTag = PR_ATTACH_METHOD;
+	prop[1].Value.ul = ATTACH_BY_VALUE;
+	prop[2].ulPropTag = PR_ATTACH_LONG_FILENAME_W;
+	prop[2].Value.lpszW = const_cast<wchar_t *>(filename);
+	prop[3].ulPropTag = PR_ATTACH_MIME_TAG_W;
+	prop[3].Value.lpszW = const_cast<wchar_t *>(mimetype);
+	prop[4].ulPropTag = PR_ATTACHMENT_HIDDEN;
+	prop[4].Value.b = true;
+	hr = att->SetProps(ARRAY_SIZE(prop), prop, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 

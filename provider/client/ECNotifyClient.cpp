@@ -414,8 +414,8 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 
 	for (auto notp : lNotifications) {
 		LPNOTIFICATION tmp = NULL;
-		auto hr = CopySOAPNotificationToMAPINotification(m_lpProvider, notp, &tmp);
-		if (hr != hrSuccess)
+		auto ret = CopySOAPNotificationToMAPINotification(m_lpProvider, notp, &tmp);
+		if (ret != hrSuccess)
 			continue;
 		notifications.emplace_back(tmp);
 	}
@@ -434,8 +434,8 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 		while (iterNotification != notifications.cend()) {
 			memory_ptr<NOTIFICATION> lpNotifs;
 			/* Create a straight array of all the notifications */
-			hr = MAPIAllocateBuffer(sizeof(NOTIFICATION) * MAX_NOTIFS_PER_CALL, &~lpNotifs);
-			if (hr != hrSuccess)
+			auto ret = MAPIAllocateBuffer(sizeof(NOTIFICATION) * MAX_NOTIFS_PER_CALL, &~lpNotifs);
+			if (ret != hrSuccess)
 				continue;
 
 			ULONG i = 0;
