@@ -3021,7 +3021,8 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 	if (!bDaemonize)
 		setsid();
 	unix_create_pidfile(argv[0], g_lpConfig.get());
-	g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
+	if (!g_use_threads)
+		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
 	ec_log_set(g_lpLogger);
 
 	nMaxThreads = atoui(g_lpConfig->GetSetting("lmtp_max_threads"));
