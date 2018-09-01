@@ -3007,7 +3007,7 @@ static std::string StringEscape(const char *input, const char *tokens,
  * 
  * @return string with IMAP envelope list part
  */
-static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbox)
+static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> &&mbox)
 {
 	vector<string> lMBox;
 	string buffer;
@@ -3040,7 +3040,7 @@ static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbox)
  * 
  * @return string with IMAP envelope list part
  */
-static std::string addressListToEnvelope(vmime::shared_ptr<vmime::addressList> aList)
+static std::string addressListToEnvelope(vmime::shared_ptr<vmime::addressList> &&aList)
 {
 	list<string> lAddr;
 	string buffer;
