@@ -2404,13 +2404,11 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 	// Create Attach
 	auto hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~lpAtt);
 	if (hr != hrSuccess)
-		goto exit;
-
-	// open stream
+		return kc_perrorf("CreateAttach", hr);
 	hr = lpAtt->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE|STGM_TRANSACTED,
 	     MAPI_CREATE | MAPI_MODIFY, &~lpStream);
 	if (hr != hrSuccess)
-		goto exit;
+		return kc_perrorf("OpenProperty", hr);
 
 	try {
 		// attach adapter, generate in right encoding
@@ -2434,18 +2432,16 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 
 			hr = lpStream->Stat(&stat, 0);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return kc_perrorf("Stat", hr);
 			if (stat.cbSize.QuadPart == 0) {
 				ec_log_err("Empty attachment found when not allowed, dropping empty attachment.");
-				hr = MAPI_E_NOT_FOUND;
-				goto exit;
+				return MAPI_E_NOT_FOUND;
 			}
 		}
 
 		hr = lpStream->Commit(0);
 		if (hr != hrSuccess)
-			goto exit;
+			return kc_perrorf("Commit", hr);
 			
 		// Free memory used by the stream
 		lpStream.reset();
@@ -2529,30 +2525,23 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 		}
 		hr = lpAtt->SetProps(nProps, attProps.get(), nullptr);
 		if (hr != hrSuccess)
-			goto exit;
+			return kc_perrorf("SetProps", hr);
 	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception on attachment: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	} catch (const std::exception &e) {
 		ec_log_err("STD exception on attachment: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	catch (...) {
 		ec_log_err("Unknown generic exception occurred on attachment");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	hr = lpAtt->SaveChanges(0);
 	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	if (hr != hrSuccess)
-		ec_log_err("Unable to create attachment");
-	return hr;
+		return kc_perrorf("SaveChanges", hr);
+	return hrSuccess;
 }
 
 static const struct {
