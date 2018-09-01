@@ -320,8 +320,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			 * - We have an HTML body and there are only INLINE attachments (don't need to hide no attachments)
 			 * - We have a signed message and there are only INLINE attachments or no attachments at all (except for the signed message)
 			 */
-			MAPINAMEID sNameID;
-			LPMAPINAMEID lpNameID = &sNameID;
+			MAPINAMEID sNameID, *lpNameID = &sNameID;
 			memory_ptr<SPropTagArray> lpPropTag;
 
 			sNameID.lpguid = (GUID*)&PSETID_Common;
@@ -1083,11 +1082,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 	int				iAddressCount	= vmAddressList->getAddressCount();
 	ULONG			cbEntryID		= 0;
 	memory_ptr<ENTRYID> lpEntryID;
-	vmime::shared_ptr<vmime::mailbox> mbx;
-	vmime::shared_ptr<vmime::mailboxGroup> grp;
-	vmime::shared_ptr<vmime::address> vmAddress;
 	std::wstring	wstrName;
-	std::string		strEmail, strSearch;
 
 	// order and types are important for modifyFromAddressBook()
 	static constexpr const SizedSPropTagArray(7, sptaRecipientProps) =
@@ -1097,16 +1092,13 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 
 	// walk through all recipients
 	for (int iRecip = 0; iRecip < iAddressCount; ++iRecip) {
+		std::string strEmail;
 		try {
 			vmime::text vmText;
-
-			mbx = NULL;
-			grp = NULL;
-
-			vmAddress = vmAddressList->getAddressAt(iRecip);
+			auto vmAddress = vmAddressList->getAddressAt(iRecip);
 			
 			if (vmAddress->isGroup()) {
-				grp = vmime::dynamicCast<vmime::mailboxGroup>(vmAddress);
+				auto grp = vmime::dynamicCast<vmime::mailboxGroup>(vmAddress);
 				if (!grp)
 					continue;
 				strEmail.clear();
@@ -1114,7 +1106,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 				if (grp->isEmpty() && vmText == vmime::text("undisclosed-recipients"))
 					continue;
 			} else {
-				mbx = vmime::dynamicCast<vmime::mailbox>(vmAddress);
+				auto mbx = vmime::dynamicCast<vmime::mailbox>(vmAddress);
 				if (!mbx)
 					continue;
 				strEmail = mbx->getEmail().toString();
@@ -1141,7 +1133,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		auto &recip = lpRecipients->aEntries[iRecipNum];
 
 		// use email address or fullname to find GAB entry, do not pass fullname to keep resolved addressbook fullname
-		strSearch = strEmail;
+		auto strSearch = strEmail;
 		if (strSearch.empty())
 			strSearch = m_converter.convert_to<std::string>(wstrName);
 
