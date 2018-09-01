@@ -806,14 +806,8 @@ HRESULT Util::HrCopySRowSet(LPSRowSet lpDest, const SRowSet *lpSrc,
  */
 HRESULT	Util::HrCopySRow(LPSRow lpDest, const SRow *lpSrc, void *lpBase)
 {
-	HRESULT hr;
-
 	lpDest->cValues = lpSrc->cValues;
-
-	if (lpBase)
-		hr = MAPIAllocateMore(sizeof(SPropValue) * lpSrc->cValues, lpBase, (void **) &lpDest->lpProps);
-	else
-		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpSrc->cValues, (void **) &lpDest->lpProps);
+	auto hr = MAPIAllocateMore(sizeof(SPropValue) * lpSrc->cValues, lpBase, reinterpret_cast<void **>(&lpDest->lpProps));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -870,7 +864,6 @@ void Util::proptag_change_unicode(ULONG flags, SPropTagArray &src)
 HRESULT Util::HrCopyBinary(ULONG ulSize, const BYTE *lpSrc,
     ULONG *lpulDestSize, LPBYTE *lppDest, LPVOID lpBase)
 {
-	HRESULT hr;
 	LPBYTE lpDest = NULL;
 
 	if (ulSize == 0) {
@@ -878,11 +871,7 @@ HRESULT Util::HrCopyBinary(ULONG ulSize, const BYTE *lpSrc,
 		*lppDest = NULL;
 		return hrSuccess;
 	}
-
-	if (lpBase)
-		hr = MAPIAllocateMore(ulSize, lpBase, (void **)&lpDest);
-	else
-		hr = MAPIAllocateBuffer(ulSize, (void **) &lpDest);
+	auto hr = MAPIAllocateMore(ulSize, lpBase, reinterpret_cast<void **>(&lpDest));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2124,13 +2113,9 @@ HRESULT Util::bin2hex(ULONG inLength, const BYTE *input, char **output,
 {
 	static const char digits[] = "0123456789ABCDEF";
 	char *buffer = NULL;
-	HRESULT hr;
 	ULONG i, j;
 
-	if (parent)
-		hr = MAPIAllocateMore(inLength*2+1, parent, (void**)&buffer);
-	else
-		hr = MAPIAllocateBuffer(inLength*2+1, (void**)&buffer);
+	auto hr = MAPIAllocateMore(inLength * 2 + 1, parent, reinterpret_cast<void **>(&buffer));
 	if (hr != hrSuccess)
 		return hr;
 

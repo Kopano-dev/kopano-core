@@ -30,7 +30,6 @@ using namespace KC;
 
 static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase, convert_context *lpConverter)
 {
-	HRESULT hr = hrSuccess;
 	LPWSTR lpszResult = NULL;
 
 	if (!szWTF1252)
@@ -54,10 +53,7 @@ static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase, convert_context 
 	else
 		strConverted = convert_to<std::wstring>(str1252, rawsize(str1252), "WINDOWS-1252");
 
-	if (lpBase)
-		hr = MAPIAllocateMore((strConverted.size() + 1) * sizeof *lpszResult, lpBase, (LPVOID*)&lpszResult);
-	else
-		hr = MAPIAllocateBuffer((strConverted.size() + 1) * sizeof *lpszResult, (LPVOID*)&lpszResult);
+	auto hr = MAPIAllocateMore((strConverted.size() + 1) * sizeof(*lpszResult), lpBase, reinterpret_cast<void **>(&lpszResult));
 	if (hr == hrSuccess)
 		wcscpy(lpszResult, strConverted.c_str());
 
