@@ -55,6 +55,7 @@ using std::list;
 using std::string;
 using std::vector;
 using std::wstring;
+using namespace std::string_literals;
 
 namespace KC {
 
@@ -3042,9 +3043,7 @@ static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> &&mbox)
  */
 static std::string addressListToEnvelope(vmime::shared_ptr<vmime::addressList> &&aList)
 {
-	list<string> lAddr;
 	string buffer;
-
 	if (!aList)
 		throw vmime::exceptions::no_such_field();
 
@@ -3054,14 +3053,10 @@ static std::string addressListToEnvelope(vmime::shared_ptr<vmime::addressList> &
 	for (size_t i = 0; i < aCount; ++i) {
 		try {
 			buffer += mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(aList->getAddressAt(i)));
-			lAddr.emplace_back(buffer);
 		} catch (const vmime::exception &e) {
 		}
 	}
-	if (lAddr.empty())
-		return string("NIL");
-
-	return "(" + buffer + ")";
+	return buffer.size() == 0 ? "NIL"s : ("(" + buffer + ")");
 }
 
 /** 
