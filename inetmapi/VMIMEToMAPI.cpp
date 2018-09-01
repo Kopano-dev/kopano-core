@@ -58,6 +58,10 @@ using std::wstring;
 namespace KC {
 
 static vmime::charset vtm_upgrade_charset(vmime::charset cset, const char *ascii_upgrade = nullptr);
+static int getCharsetFromHTML(const string &, vmime::charset *);
+static HRESULT postWriteFixups(IMessage *);
+static size_t countBodyLines(const std::string &, size_t, size_t);
+static std::string parameterizedFieldToStructure(vmime::shared_ptr<vmime::parameterizedHeaderField>);
 
 static const char im_charset_unspec[] = "unspecified";
 
@@ -1859,8 +1863,7 @@ exit:
  *
  * Returns the transfer-decoded data.
  */
-std::string
-VMIMEToMAPI::content_transfer_decode(vmime::shared_ptr<vmime::body> im_body)
+static std::string content_transfer_decode(vmime::shared_ptr<vmime::body> im_body)
 {
 	/* TODO: Research how conversion could be minimized using streams. */
 	std::string data;
@@ -1886,8 +1889,7 @@ VMIMEToMAPI::content_transfer_decode(vmime::shared_ptr<vmime::body> im_body)
  * The function changes (may change) the mail @data in-place and returns the
  * new character set for it.
  */
-vmime::charset
-VMIMEToMAPI::get_mime_encoding(vmime::shared_ptr<vmime::header> im_header,
+static vmime::charset get_mime_encoding(vmime::shared_ptr<vmime::header> im_header,
     vmime::shared_ptr<vmime::body> im_body)
 {
 	auto ctf = vmime::dynamicCast<vmime::contentTypeField>(im_header->ContentType());
@@ -2097,7 +2099,7 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 	return hrSuccess;
 }
 
-bool VMIMEToMAPI::filter_html(IMessage *msg, IStream *stream, ULONG flags,
+static bool filter_html(IMessage *msg, IStream *stream, ULONG flags,
     const std::string &html)
 {
 #ifdef HAVE_TIDY_H
@@ -2650,7 +2652,7 @@ void ignoreError(void *ctx, const char *msg, ...)
  * returns 0 if it looked like HTML/XML, but no character set was specified,
  * and returns 1 if a character set was declared.
  */
-int VMIMEToMAPI::getCharsetFromHTML(const string &strHTML, vmime::charset *htmlCharset)
+static int getCharsetFromHTML(const string &strHTML, vmime::charset *htmlCharset)
 {
 	int ret = 0;
 	htmlNodePtr lpNode = nullptr;
@@ -2799,7 +2801,7 @@ std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
  * @param[in,out]	lpMessage	IMessage object to process
  * @return	MAPI error code.
  */
-HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
+static HRESULT postWriteFixups(IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpMessageClass, lpProps, lpRecProps;
@@ -3033,7 +3035,7 @@ static std::string StringEscape(const char *input, const char *tokens,
  * 
  * @return string with IMAP envelope list part
  */
-std::string VMIMEToMAPI::mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbox)
+static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbox)
 {
 	vector<string> lMBox;
 	string buffer;
@@ -3066,7 +3068,7 @@ std::string VMIMEToMAPI::mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbo
  * 
  * @return string with IMAP envelope list part
  */
-std::string VMIMEToMAPI::addressListToEnvelope(vmime::shared_ptr<vmime::addressList> aList)
+static std::string addressListToEnvelope(vmime::shared_ptr<vmime::addressList> aList)
 {
 	list<string> lAddr;
 	string buffer;
@@ -3483,7 +3485,7 @@ std::string VMIMEToMAPI::getStructureExtendedFields(vmime::shared_ptr<vmime::hea
  * 
  * @return IMAP list
  */
-std::string VMIMEToMAPI::parameterizedFieldToStructure(vmime::shared_ptr<vmime::parameterizedHeaderField> vmParamField)
+static std::string parameterizedFieldToStructure(vmime::shared_ptr<vmime::parameterizedHeaderField> vmParamField)
 {
 	list<string> lParams;
 	string buffer;
@@ -3514,7 +3516,7 @@ std::string VMIMEToMAPI::parameterizedFieldToStructure(vmime::shared_ptr<vmime::
  * 
  * @return number of lines
  */
-std::string::size_type VMIMEToMAPI::countBodyLines(const std::string &input, std::string::size_type start, std::string::size_type length)
+static size_t countBodyLines(const std::string &input, size_t start, size_t length)
 {
 	string::size_type lines = 0, pos = start;
 
