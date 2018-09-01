@@ -3115,8 +3115,7 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 
 	// from
 	try {
-		buffer = mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->From()->getValue()));
-		lItems.emplace_back("(" + buffer + ")");
+		lItems.emplace_back("(" + mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->From()->getValue())) + ")");
 	} catch (const vmime::exception &e) {
 		// this is not allowed, but better than nothing
 		lItems.emplace_back("NIL");
@@ -3125,8 +3124,7 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 
 	// sender
 	try {
-		buffer = mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue()));
-		lItems.emplace_back("(" + buffer + ")");
+		lItems.emplace_back("(" + mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())) + ")");
 	} catch (const vmime::exception &e) {
 		lItems.emplace_back(lItems.back());
 	}
@@ -3134,8 +3132,7 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 
 	// reply-to
 	try {
-		buffer = mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue()));
-		lItems.emplace_back("(" + buffer + ")");
+		lItems.emplace_back("(" + mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue())) + ")");
 	} catch (const vmime::exception &e) {
 		lItems.emplace_back(lItems.back());
 	}
@@ -3143,8 +3140,7 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 
 	// ((to),(to))
 	try {
-		buffer = addressListToEnvelope(vmime::dynamicCast<vmime::addressList>(vmHeader->To()->getValue()));
-		lItems.emplace_back(buffer);
+		lItems.emplace_back(addressListToEnvelope(vmime::dynamicCast<vmime::addressList>(vmHeader->To()->getValue())));
 	} catch (const vmime::exception &e) {
 		lItems.emplace_back("NIL");
 	}
@@ -3152,11 +3148,7 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 
 	// ((cc),(cc))
 	try {
-		auto aList = vmime::dynamicCast<vmime::addressList>(vmHeader->Cc()->getValue());
-		int aCount = aList->getAddressCount();
-		for (int i = 0; i < aCount; ++i)
-			buffer += mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(aList->getAddressAt(i)));
-		lItems.emplace_back(buffer.empty() ? "NIL" : "(" + buffer + ")");
+		lItems.emplace_back(addressListToEnvelope(vmime::dynamicCast<vmime::addressList>(vmHeader->Cc()->getValue())));
 	} catch (const vmime::exception &e) {
 		lItems.emplace_back("NIL");
 	}
@@ -3164,11 +3156,7 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 
 	// ((bcc),(bcc))
 	try {
-		auto aList = vmime::dynamicCast<vmime::addressList>(vmHeader->Bcc()->getValue());
-		int aCount = aList->getAddressCount();
-		for (int i = 0; i < aCount; ++i)
-			buffer += mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(aList->getAddressAt(i)));
-		lItems.emplace_back(buffer.empty() ? "NIL" : "(" + buffer + ")");
+		lItems.emplace_back(addressListToEnvelope(vmime::dynamicCast<vmime::addressList>(vmHeader->Bcc()->getValue())));
 	} catch (const vmime::exception &e) {
 		lItems.emplace_back("NIL");
 	}
