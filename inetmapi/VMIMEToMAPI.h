@@ -74,6 +74,7 @@ public:
 	HRESULT dissect_multipart(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *, bool filterDouble = false, bool appendBody = false);
 	HRESULT dissect_ical(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>, IMessage *, bool bIsAttachment);
 	std::string generate_wrap(vmime::shared_ptr<vmime::headerFieldValue> &&);
+	HRESULT hreplyto(vmime::shared_ptr<vmime::mailboxList> &&, std::wstring &, memory_ptr<FLATENTRYLIST> &);
 	HRESULT handleHeaders(vmime::shared_ptr<vmime::header>, IMessage* lpMessage);
 	HRESULT handleRecipients(vmime::shared_ptr<vmime::header>, IMessage* lpMessage);
 	HRESULT modifyRecipientList(LPADRLIST lpRecipients, vmime::shared_ptr<vmime::addressList>, ULONG ulRecipType);
