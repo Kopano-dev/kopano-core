@@ -13,6 +13,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/hl.hpp>
 #include <kopano/memory.hpp>
+#include <kopano/scope.hpp>
 #include <algorithm>
 #include <memory>
 #include <string>
@@ -1708,6 +1709,10 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 
 	if (vmHeader->hasField(vmime::fields::MIME_VERSION))
 		++m_mailState.mime_vtag_nest;
+	auto cleanup = make_scope_success([&]() {
+		if (vmHeader->hasField(vmime::fields::MIME_VERSION))
+			--m_mailState.mime_vtag_nest;
+	});
 
 	try {
 		auto mt = vmime::dynamicCast<vmime::mediaType>(vmHeader->ContentType()->getValue());
@@ -1727,11 +1732,11 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 		if (force_raw) {
 			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_transfer_encoding", true);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		} else if (mt->getType() == "multipart") {
 			hr = dissect_multipart(vmHeader, vmBody, lpMessage, bFilterDouble, bAppendBody);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		// Only handle as inline text if no filename is specified and not specified as 'attachment'
 		} else if (mt->getType() == vmime::mediaTypes::TEXT &&
 		    (mt->getSubType() == vmime::mediaTypes::TEXT_PLAIN || mt->getSubType() == vmime::mediaTypes::TEXT_HTML) &&
@@ -1742,12 +1747,12 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 				hr = handleHTMLTextpart(vmHeader, vmBody, lpMessage, m_dopt.insecure_html_join ? bAppendBody : false);
 				if (hr != hrSuccess) {
 					ec_log_err("Unable to parse mail HTML text");
-					goto exit;
+					return hr;
 				}
 			} else {
 				hr = handleTextpart(vmHeader, vmBody, lpMessage, bAppendBody);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 		} else if (mt->getType() == vmime::mediaTypes::MESSAGE) {
 			dissect_message(vmBody, lpMessage);
@@ -1756,13 +1761,13 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			
 			hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpStream);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 				
 			outputStreamMAPIAdapter str(lpStream);
 			vmBody->getContents()->extract(str);
 			hr = lpStream->Seek(zero, STREAM_SEEK_SET, NULL);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 			
 			ECTNEF tnef(TNEF_DECODE, lpMessage, lpStream);
 
@@ -1778,7 +1783,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 		} else if (mt->getType() == vmime::mediaTypes::TEXT && mt->getSubType() == "calendar") {
 			hr = dissect_ical(vmHeader, vmBody, lpMessage, bIsAttachment);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		} else if (filterDouble && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "applefile") {
 		} else if (filterDouble && mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "mac-binhex40") {
 				// ignore appledouble parts
@@ -1791,30 +1796,26 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 		} else if (mt->getType() == vmime::mediaTypes::APPLICATION && (mt->getSubType() == "pkcs7-mime" || mt->getSubType() == "x-pkcs7-mime")) {
 			// smime encrypted message (smime.p7m), attachment may not be empty
 			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"smime.p7m", false);
-			if (hr == MAPI_E_NOT_FOUND) {
+			if (hr == MAPI_E_NOT_FOUND)
 				// skip empty attachment
-				hr = hrSuccess;
-				goto exit;
-			}
+				return hrSuccess;
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			// Mark the message so outlook knows how to find the encoded message
 			sPropSMIMEClass.ulPropTag = PR_MESSAGE_CLASS_W;
 			sPropSMIMEClass.Value.lpszW = const_cast<wchar_t *>(L"IPM.Note.SMIME");
 
 			hr = lpMessage->SetProps(1, &sPropSMIMEClass, NULL);
-			if (hr != hrSuccess) {
-				ec_log_err("Unable to set message class");
-				goto exit;
-			}
+			if (hr != hrSuccess)
+				return kc_perror("Unable to set message class", hr);
 		} else if (mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == vmime::mediaTypes::APPLICATION_OCTET_STREAM) {
 			if (vmime::dynamicCast<vmime::contentDispositionField>(vmHeader->ContentDisposition())->hasParameter("filename") ||
 			    vmime::dynamicCast<vmime::contentTypeField>(vmHeader->ContentType())->hasParameter("name")) {
 				// should be attachment
 				hr = handleAttachment(vmHeader, vmBody, lpMessage);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 			} else {
 				/*
 				 * Possibly text?
@@ -1828,32 +1829,25 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 				 */
 				hr = handleTextpart(vmHeader, vmBody, lpMessage, false);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 		} else {
 			/* RFC 2049 §2 item 7 */
 			hr = handleAttachment(vmHeader, vmBody, lpMessage, L"unknown_content_type");
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	} catch (const vmime::exception &e) {
 		ec_log_err("VMIME exception on parsing body: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	} catch (const std::exception &e) {
 		ec_log_err("STD exception on parsing body: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	catch (...) {
 		ec_log_err("Unknown generic exception occurred on parsing body");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
-
-exit:
-	if (vmHeader->hasField(vmime::fields::MIME_VERSION))
-		--m_mailState.mime_vtag_nest;
 	return hr;
 }
 
