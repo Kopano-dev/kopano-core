@@ -526,6 +526,55 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 	return hr;
 }
 
+HRESULT VMIMEToMAPI::hreplyto(vmime::shared_ptr<vmime::mailboxList> &&mblist,
+    std::wstring &namelist, memory_ptr<FLATENTRYLIST> &fl)
+{
+	std::list<memory_ptr<FLATENTRY>> fegroup;
+	size_t flsize = 0;
+	namelist.clear();
+
+	for (size_t i = 0; i < mblist->getMailboxCount(); ++i) {
+		auto to = getWideFromVmimeText(mblist->getMailboxAt(i)->getName());
+		auto email = m_converter.convert_to<wstring>(mblist->getMailboxAt(i)->getEmail().toString());
+		if (to.empty())
+			to = email;
+		if (i > 0)
+			namelist += L"; ";
+		namelist += to;
+
+		memory_ptr<ENTRYID> eid;
+		unsigned int eid_size = 0;
+		auto ret = ECCreateOneOff(reinterpret_cast<const TCHAR *>(to.c_str()),
+		           reinterpret_cast<const TCHAR *>(L"SMTP"), reinterpret_cast<const TCHAR *>(email.c_str()),
+		           MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &eid_size, &~eid);
+		if (ret != hrSuccess) {
+			kc_perror("K-1241 ECCreateOneOff", ret);
+			continue;
+		}
+		memory_ptr<FLATENTRY> fe;
+		ret = MAPIAllocateBuffer(CbNewFLATENTRY(eid_size), &~fe);
+		if (ret != hrSuccess)
+			return ret;
+		memcpy(fe->abEntry, eid.get(), eid_size);
+		fe->cb = eid_size;
+		flsize += (CbFLATENTRY(fe) + 3) / 4 * 4;
+		fegroup.push_back(std::move(fe));
+	}
+
+	auto ret = MAPIAllocateBuffer(CbNewFLATENTRYLIST(flsize), &~fl);
+	if (ret != hrSuccess)
+		return ret;
+	memset(fl.get(), 0, CbNewFLATENTRYLIST(flsize));
+	fl->cEntries = mblist->getMailboxCount();
+	fl->cbEntries = 0;
+	for (const auto &fe : fegroup) {
+		memcpy(fl->abEntries + fl->cbEntries, fe.get(), CbFLATENTRY(fe));
+		fl->cbEntries += (CbFLATENTRY(fe) + 3) / 4 * 4;
+	}
+	assert(fl->cbEntries == flsize);
+	return hrSuccess;
+}
+
 /**
  * Convert all kinds of headers into MAPI properties.
  *
@@ -555,9 +604,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 	ULONG			cbSenderEntryID;
 	SPropValue		sConTopic;
 	// setprops
-	memory_ptr<FLATENTRY> lpEntry;
 	memory_ptr<FLATENTRYLIST> lpEntryList;
-	ULONG			cb = 0;
 	int				nProps = 0;
 	SPropValue		msgProps[22];
 	// temp
@@ -614,38 +661,23 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		}
 
 		// set ReplyTo
-		if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue())->isEmpty()) {
-			// First, set PR_REPLY_RECIPIENT_NAMES
-			wstrReplyTo = getWideFromVmimeText(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue())->getName());
-			wstrReplyToMail = m_converter.convert_to<wstring>(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue())->getEmail().toString());
-			if (wstrReplyTo.empty())
-				wstrReplyTo = wstrReplyToMail;
-
-			msgProps[nProps].ulPropTag = PR_REPLY_RECIPIENT_NAMES_W;
-			msgProps[nProps++].Value.lpszW = (WCHAR *)wstrReplyTo.c_str();
-
-			// Now, set PR_REPLY_RECIPIENT_ENTRIES (a FLATENTRYLIST)
-			hr = ECCreateOneOff((LPTSTR)wstrReplyTo.c_str(), (LPTSTR)L"SMTP", (LPTSTR)wstrReplyToMail.c_str(), MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
-			if (hr != hrSuccess)
-				return hr;
-			cb = CbNewFLATENTRY(cbEntryID);
-			hr = MAPIAllocateBuffer(cb, &~lpEntry);
-			if (hr != hrSuccess)
-				return hr;
-			memcpy(lpEntry->abEntry, lpEntryID, cbEntryID);
-			lpEntry->cb = cbEntryID;
-
-			cb = CbNewFLATENTRYLIST(cb);
-			hr = MAPIAllocateBuffer(cb, &~lpEntryList);
-			if (hr != hrSuccess)
-				return hr;
-			lpEntryList->cEntries = 1;
-			lpEntryList->cbEntries = CbFLATENTRY(lpEntry);
-			memcpy(&lpEntryList->abEntries, lpEntry, CbFLATENTRY(lpEntry));
-
+		field = vmHeader->findField(vmime::fields::REPLY_TO);
+		std::wstring names;
+		if (field != nullptr) {
+			auto hfv = field->getValue();
+			auto mblist = vmime::dynamicCast<vmime::mailboxList>(hfv);
+			if (mblist == nullptr) {
+				mblist = vmime::make_shared<vmime::mailboxList>();
+				mblist->appendMailbox(vmime::dynamicCast<vmime::mailbox>(hfv));
+			}
+			auto ret = hreplyto(std::move(mblist), names, lpEntryList);
+			if (ret != hrSuccess)
+				return ret;
 			msgProps[nProps].ulPropTag = PR_REPLY_RECIPIENT_ENTRIES;
 			msgProps[nProps].Value.bin.cb = CbFLATENTRYLIST(lpEntryList);
 			msgProps[nProps++].Value.bin.lpb = reinterpret_cast<unsigned char *>(lpEntryList.get());
+			msgProps[nProps].ulPropTag = PR_REPLY_RECIPIENT_NAMES;
+			msgProps[nProps++].Value.lpszW = const_cast<wchar_t *>(names.c_str());
 		}
 
 		// setting sent time
@@ -3225,7 +3257,7 @@ static std::string StringEscape(const char *input, const char *tokens,
  * 
  * @return string with IMAP envelope list part
  */
-std::string VMIMEToMAPI::mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbox)
+static std::string mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> &&mbox)
 {
 	vector<string> lMBox;
 	string buffer;
@@ -3252,6 +3284,11 @@ std::string VMIMEToMAPI::mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbo
 	return "(" + kc_join(lMBox, " ") + ")";
 }
 
+std::string VMIMEToMAPI::mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbox)
+{
+	return KC::mailboxToEnvelope(std::move(mbox));
+}
+
 /** 
  * Convert a vmime addresslist (To/Cc/Bcc) to an IMAP envelope list part.
  * 
@@ -3259,7 +3296,7 @@ std::string VMIMEToMAPI::mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbo
  * 
  * @return string with IMAP envelope list part
  */
-std::string VMIMEToMAPI::addressListToEnvelope(vmime::shared_ptr<vmime::addressList> aList)
+static std::string addressListToEnvelope(vmime::shared_ptr<vmime::addressList> &&aList)
 {
 	list<string> lAddr;
 	string buffer;
@@ -3283,6 +3320,28 @@ std::string VMIMEToMAPI::addressListToEnvelope(vmime::shared_ptr<vmime::addressL
 		return string("NIL");
 
 	return "(" + buffer + ")";
+}
+
+std::string VMIMEToMAPI::addressListToEnvelope(vmime::shared_ptr<vmime::addressList> aList)
+{
+	return KC::addressListToEnvelope(std::move(aList));
+}
+
+static std::string addressListToEnvelope(vmime::shared_ptr<vmime::mailboxList> &&list)
+{
+	std::string buffer;
+	if (list == nullptr)
+		throw vmime::exceptions::no_such_field();
+	auto count = list->getMailboxCount();
+	if (count == 0)
+		throw vmime::exceptions::no_such_field();
+	for (size_t i = 0; i < count; ++i) {
+		try {
+			buffer += mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(list->getMailboxAt(i)));
+		} catch (const vmime::exception &e) {
+		}
+	}
+	return buffer.size() == 0 ? std::string("NIL") : ("(" + buffer + ")");
 }
 
 /** 
@@ -3373,12 +3432,15 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::shared_ptr<vmime::message> vm
 	}
 	buffer.clear();
 
-	// reply-to
+	// ((reply-to),(reply-to))
 	try {
-		buffer = mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue()));
-		lItems.emplace_back("(" + buffer + ")");
+		lItems.emplace_back("(" + KC::addressListToEnvelope(vmime::dynamicCast<vmime::mailboxList>(vmHeader->ReplyTo()->getValue())) + ")");
 	} catch (const vmime::exception &e) {
-		lItems.emplace_back(lItems.back());
+		try {
+			lItems.emplace_back("(" + mailboxToEnvelope(vmime::dynamicCast<vmime::mailbox>(vmHeader->ReplyTo()->getValue())) + ")");
+		} catch (const vmime::exception &e) {
+			lItems.emplace_back(lItems.back());
+		}
 	}
 	buffer.clear();
 
