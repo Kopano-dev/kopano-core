@@ -206,7 +206,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			bUnix = true;
 		}
 		if (posHeaderEnd != std::string::npos) {
-			std::string strHeaders = input.substr(0, posHeaderEnd);
+			auto strHeaders = input.substr(0, posHeaderEnd);
 			KPropbuffer<1> prop;
 			// make sure we have US-ASCII headers
 			if (bUnix)
@@ -412,7 +412,7 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::shared_ptr<vmime::message> vmMessage,
 		}
 
 		if (vmime::mdn::MDNHelper::isMDN(vmMessage)) {
-			vmime::mdn::receivedMDNInfos receivedMDN = vmime::mdn::MDNHelper::getReceivedMDN(vmMessage);
+			auto receivedMDN = vmime::mdn::MDNHelper::getReceivedMDN(vmMessage);
 			auto myBody = vmMessage->getBody();
 			// it is possible to get 3 bodyparts.
 			// text/plain, message/disposition-notification, text/rfc822-headers
@@ -598,7 +598,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(*vmime::dynamicCast<vmime::datetime>(field->getValue()));
 
 			// set sent date (actual send date, disregarding timezone)
-			vmime::datetime d = *vmime::dynamicCast<vmime::datetime>(field->getValue());
+			auto d = *vmime::dynamicCast<vmime::datetime>(field->getValue());
 			d.setTime(0,0,0,0);
 			msgProps[nProps].ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
 			msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(d);
@@ -863,9 +863,8 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			auto mbReadReceipt = vmime::dynamicCast<vmime::mailboxList>(vmHeader->DispositionNotificationTo()->getValue())->getMailboxAt(0); // we only use the 1st
 			if (mbReadReceipt && !mbReadReceipt->isEmpty())
 			{
-				wstring wstrRRName = getWideFromVmimeText(mbReadReceipt->getName());
-				wstring wstrRREmail = m_converter.convert_to<wstring>(mbReadReceipt->getEmail().toString());
-
+				auto wstrRRName = getWideFromVmimeText(mbReadReceipt->getName());
+				auto wstrRREmail = m_converter.convert_to<wstring>(mbReadReceipt->getEmail().toString());
 				if (wstrRRName.empty())
 					wstrRRName = wstrRREmail;
 
@@ -1515,7 +1514,7 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 	// and remove from string
 	newMessage.erase(0, lpszBody - lpszBodyOrig);
 
-	HRESULT hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~pAtt);
+	auto hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~pAtt);
 	if (hr != hrSuccess)
 		return;
 	hr = pAtt->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0,
@@ -1995,8 +1994,7 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 		SPropValue sCodepage;
 
 		/* determine first choice character set */
-		vmime::charset mime_charset =
-			get_mime_encoding(vmHeader, vmBody);
+		auto mime_charset = get_mime_encoding(vmHeader, vmBody);
 		if (mime_charset == im_charset_unspec) {
 			if (m_mailState.mime_vtag_nest == 0) {
 				/* RFC 2045 §4 page 9 */
@@ -2205,12 +2203,11 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 	try {
 		/* process Content-Transfer-Encoding */
 		strHTML = content_transfer_decode(vmBody);
-		vmime::charset mime_charset =
-			get_mime_encoding(vmHeader, vmBody);
+		auto mime_charset = get_mime_encoding(vmHeader, vmBody);
 
 		/* Look for alternative in HTML */
 		vmime::charset html_charset(im_charset_unspec);
-		int html_analyze = getCharsetFromHTML(strHTML, &html_charset);
+		auto html_analyze = getCharsetFromHTML(strHTML, &html_charset);
 		if (html_analyze > 0 && html_charset != mime_charset &&
 		    mime_charset != im_charset_unspec)
 			/*
