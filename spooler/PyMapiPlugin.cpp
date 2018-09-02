@@ -85,6 +85,12 @@ static HRESULT PyHandleError(PyObject *pyobj)
 		assert(false);
 		return S_FALSE;
 	}
+	if (PyErr_ExceptionMatches(PyExc_KeyboardInterrupt))
+		return S_FALSE;
+	if (PyErr_ExceptionMatches(PyExc_SystemExit)) {
+		ec_log_err("Plugin called exit(), which is meaningless");
+		return S_FALSE;
+	}
 	PyObjectAPtr ptype, pvalue, ptraceback;
 	PyErr_Fetch(&~ptype, &~pvalue, &~ptraceback);
 	if (ptype == nullptr) {
