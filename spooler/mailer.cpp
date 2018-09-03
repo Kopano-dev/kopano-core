@@ -1909,8 +1909,16 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		// so you see the "on behalf of" in the sent-items version, even when send-as is used (see below)
 		CopyDelegateMessageToSentItems(lpMessage, lpRepStore, &~lpRepMessage);
 		// possible error is logged in function.
-	if (strcmp(cts, "move-to-rep") == 0)
-		doSentMail = false;
+	if (lpRepStore != nullptr && strcmp(cts, "move-to-rep") == 0) {
+		SizedSPropTagArray(1, dp) = {1, {PR_SENTMAIL_ENTRYID}};
+		/* don't move to SentItems of delegate (leave in Outbox) */
+		lpMessage->DeleteProps(dp, nullptr);
+		/* Trigger deletion from Outbox */
+		SPropValue pv;
+		pv.ulPropTag = PR_DELETE_AFTER_SUBMIT; /* delete from Outbox */
+		pv.Value.b = true;
+		lpMessage->SetProps(1, &pv, nullptr);
+	}
 
 	if (bAllowSendAs) {
 		// move PR_REPRESENTING to PR_SENDER_NAME
