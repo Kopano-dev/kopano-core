@@ -8,6 +8,10 @@ Enhancements:
 * spooler: add copy_delegate_mails=move-to-rep config directive [KC-412]
 Changes:
 * dagent: ignore OP_REPLY/OP_FORWARD for autoreplies [KC-1244]
+* daemons: to use the new socket spec ("ical_listen", "imap_listen",
+  "server_listen", etc.), config files need "socketspec=v2" now to
+  clearly disambiguate the mode of operation against the old "ical_port",
+  "imap_port", etc.)
 Packaging changes:
 * The MySQL 8 C API is now supported at build time [KC-1237]
 
