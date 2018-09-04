@@ -118,6 +118,13 @@ Default: value not set.
 The password of the SSL key file that is set in sslkey_file.
 .PP
 Default: value not set.
+.SS socketspec
+.PP
+This directive is for the purpose of backwards compatibility with old config
+files. It selects whether listening sockets are defined by the historic or
+modern directives. (Old config files do not have this directive, and that is
+how they are detected.) This directive ought to be set to \fBv2\fP so that
+\fBlmtp_listen\fP is used.
 .SS lmtp_listen
 .PP
 A space-separated list of address:port specifiers for where the server should

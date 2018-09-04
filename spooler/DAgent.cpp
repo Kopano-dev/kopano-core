@@ -2943,16 +2943,16 @@ static void *HandlerLMTP(void *lpArg)
 static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
     std::vector<int> &closefd)
 {
-	/* Modern directives */
-	auto lmtp_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("lmtp_listen"), ' ', true));
-
-	/* Historic directives */
-	auto addr = cfg->GetSetting("server_bind");
-	auto port = cfg->GetSetting("lmtp_port");
-	if (port[0] != '\0')
-		lmtp_sock.emplace("["s + addr + "]:" + stringify(strtoul(port, nullptr, 10)));
-	if (lmtp_sock.empty())
-		lmtp_sock.emplace("*:2003");
+	std::set<std::string, ec_bindaddr_less> lmtp_sock;
+	auto ss = cfg->GetSetting("socketspec");
+	if (strcmp(ss, "v2") == 0) {
+		lmtp_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("lmtp_listen"), ' ', true));
+	} else if (strcmp(ss, "v1") == 0) {
+		auto addr = cfg->GetSetting("server_bind");
+		auto port = cfg->GetSetting("lmtp_port");
+		if (port[0] != '\0')
+			lmtp_sock.emplace("["s + addr + "]:" + stringify(strtoul(port, nullptr, 10)));
+	}
 
 	auto intf = cfg->GetSetting("server_bind_intf");
 	struct pollfd x;
@@ -3372,7 +3372,8 @@ int main(int argc, char *argv[]) {
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/dagent.pid" },
 		{"coredump_enabled", "systemdefault"},
-		{"lmtp_listen", ""}, /* default in dagent_listen */
+		{"socketspec", "v1", CONFIGSETTING_NONEMPTY},
+		{"lmtp_listen", "*:2003"},
 		{"lmtp_port", "2003", CONFIGSETTING_OBSOLETE},
 		{ "lmtp_max_threads", "20" },
 		{"process_model", "fork", CONFIGSETTING_NONEMPTY},

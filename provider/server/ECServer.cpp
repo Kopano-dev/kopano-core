@@ -655,29 +655,23 @@ static void InitBindTextDomain(void)
 
 static int ksrv_listen_inet(ECSoapServerConnection *ssc, ECConfig *cfg)
 {
-	/* Modern directives */
-	auto http_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen"), ' ', true));
-	auto https_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen_tls"), ' ', true));
-
-	/* Historic directives */
-	auto addr = cfg->GetSetting("server_bind");
-	auto cvar = cfg->GetSetting("server_tcp_enabled");
-	if (!parseBool(cvar)) {
-		/* vetoes everything */
-		http_sock.clear();
-	} else if (strcmp(cvar, "yes") == 0) {
-		/* "yes" := "read extra historic variable" */
-		auto port = cfg->GetSetting("server_tcp_port");
-		if (*port != '\0')
-			http_sock.emplace("["s + addr + "]:" + port);
-	}
-	cvar = cfg->GetSetting("server_ssl_enabled");
-	if (!parseBool(cvar)) {
-		https_sock.clear();
-	} else if (strcmp(cvar, "yes") == 0) {
-		auto port = cfg->GetSetting("server_ssl_port");
-		if (*port != '\0')
-			https_sock.emplace("["s + addr + "]:" + port);
+	std::set<std::string, ec_bindaddr_less> http_sock, https_sock;
+	auto ss = cfg->GetSetting("socketspec");
+	if (strcmp(ss, "v2") == 0) {
+		http_sock  = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen"), ' ', true));
+		https_sock = vector_to_set<std::string, ec_bindaddr_less>(tokenize(cfg->GetSetting("server_listen_tls"), ' ', true));
+	} else if (strcmp(ss, "v1") == 0) {
+		auto addr = cfg->GetSetting("server_bind");
+		if (parseBool(cfg->GetSetting("server_tcp_enabled"))) {
+			auto port = cfg->GetSetting("server_tcp_port");
+			if (*port != '\0')
+				http_sock.emplace("["s + addr + "]:" + port);
+		}
+		if (parseBool(cfg->GetSetting("server_ssl_enabled"))) {
+			auto port = cfg->GetSetting("server_ssl_port");
+			if (*port != '\0')
+				https_sock.emplace("["s + addr + "]:" + port);
+		}
 	}
 
 	/* Launch */
@@ -789,7 +783,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		// server connections
 		{"server_bind", "", CONFIGSETTING_OBSOLETE},
 		{"server_tcp_port", "236", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
-		{"server_tcp_enabled", "auto", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"server_tcp_enabled", "yes", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
 		{"server_pipe_enabled", "yes", CONFIGSETTING_NONEMPTY},
 		{"server_pipe_name", KOPANO_SERVER_PIPE, CONFIGSETTING_NONEMPTY},
 		{"server_pipe_priority", KOPANO_SERVER_PRIO, CONFIGSETTING_NONEMPTY},
@@ -811,7 +805,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{ "license_socket",			"/var/run/kopano/licensed.sock" },
 		{ "license_timeout", 		"10", CONFIGSETTING_RELOADABLE},
 		{ "system_email_address",		"postmaster@localhost", CONFIGSETTING_RELOADABLE },
-		{"server_ssl_enabled", "auto", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
+		{"server_ssl_enabled", "no", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
 		{"server_ssl_port", "237", CONFIGSETTING_NONEMPTY | CONFIGSETTING_OBSOLETE},
 		{"server_ssl_key_file", "/etc/kopano/ssl/server.pem", CONFIGSETTING_RELOADABLE},
 		{"server_ssl_key_pass", "server", CONFIGSETTING_EXACT | CONFIGSETTING_RELOADABLE},
@@ -821,7 +815,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		{"server_ssl_ciphers", KC_DEFAULT_CIPHERLIST, CONFIGSETTING_RELOADABLE},
 		{"server_ssl_prefer_server_ciphers", "yes", CONFIGSETTING_RELOADABLE},
 		{"server_ssl_curves", KC_DEFAULT_ECDH_CURVES, CONFIGSETTING_RELOADABLE},
-		{"server_listen", ""},
+		{"socketspec", "v1", CONFIGSETTING_NONEMPTY},
+		{"server_listen", "*:236"},
 		{"server_listen_tls", ""},
 		{ "sslkeys_path",				"/etc/kopano/sslkeys" },	// login keys
 		// Database options
