@@ -11,8 +11,8 @@ from plugintemplates import *
 
 class DAgentPluginManager(object):
 
-    def __init__(self, plugindir, logger):
-        self.logger = WrapLogger(logger)
+    def __init__(self, plugindir):
+        self.logger = WrapLogger()
         self.pluginmanager = PluginManager(plugindir, self.logger)
 
         self.pluginmanager.loadPlugins(IMapiDAgentPlugin)
@@ -35,8 +35,8 @@ class DAgentPluginManager(object):
 
 class SpoolerPluginManager(object):
 
-    def __init__(self, plugindir, logger):
-        self.logger = WrapLogger(logger)
+    def __init__(self, plugindir):
+        self.logger = WrapLogger()
         self.pluginmanager = PluginManager(plugindir, self.logger)
 
         self.pluginmanager.loadPlugins(IMapiSpoolerPlugin)

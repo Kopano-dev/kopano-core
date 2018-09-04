@@ -47,10 +47,13 @@ namespace KC {
  * @param[out]	lpptrArchiver
  *					Pointer to a ArchivePtr that will be assigned the address of the returned object.
  */
-HRESULT ArchiveControlImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, bool bForceCleanup, ArchiveControlPtr *lpptrArchiveControl)
+HRESULT ArchiveControlImpl::Create(ArchiverSessionPtr ptrSession,
+    ECConfig *lpConfig, std::shared_ptr<ECLogger> lpLogger, bool bForceCleanup,
+    ArchiveControlPtr *lpptrArchiveControl)
 {
 	std::unique_ptr<ArchiveControlImpl> ptrArchiveControl(
-		new(std::nothrow) ArchiveControlImpl(ptrSession, lpConfig, lpLogger, bForceCleanup));
+		new(std::nothrow) ArchiveControlImpl(ptrSession, lpConfig,
+		std::move(lpLogger), bForceCleanup));
 	if (ptrArchiveControl == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	HRESULT hr = ptrArchiveControl->Init();
@@ -70,12 +73,11 @@ HRESULT ArchiveControlImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpCo
   * @param[in]	bForceCleanup	Force a cleanup operation to continue, even
  * 								if the settings aren't safe.
  */
-ArchiveControlImpl::ArchiveControlImpl(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, bool bForceCleanup)
-: m_ptrSession(ptrSession)
-, m_lpConfig(lpConfig)
-, m_lpLogger(new ECArchiverLogger(lpLogger), false)
-, m_cleanupAction(caStore)
-, m_bForceCleanup(bForceCleanup), m_propmap(5)
+ArchiveControlImpl::ArchiveControlImpl(ArchiverSessionPtr ptrSession,
+    ECConfig *lpConfig, std::shared_ptr<ECLogger> lpLogger, bool bForceCleanup) :
+	m_ptrSession(ptrSession), m_lpConfig(lpConfig),
+	m_lpLogger(new ECArchiverLogger(std::move(lpLogger))),
+	m_cleanupAction(caStore), m_bForceCleanup(bForceCleanup), m_propmap(5)
 {
 }
 

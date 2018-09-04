@@ -224,7 +224,7 @@ private:
 
 using namespace std;
 
-static ECLogger *lpLogger = NULL;
+static std::shared_ptr<ECLogger> lpLogger;
 
 #define MAPI_ASSERT_EX
 
@@ -517,7 +517,7 @@ static int LoadSettingsFile(void)
 			return FAILURE;
 
                 if (cfg->LoadSettings(cfg_file))
-			lpLogger = CreateLogger(cfg, "php-mapi", "PHPMapi");
+			lpLogger.reset(CreateLogger(cfg, "php-mapi", "PHPMapi"));
 
 		const char *temp = cfg->GetSetting(CE_PHP_MAPI_PERFORMANCE_TRACE_FILE);
 		if (temp != NULL) {
@@ -533,7 +533,7 @@ static int LoadSettingsFile(void)
 	}
 
 	if (!lpLogger)
-		lpLogger = new(std::nothrow) ECLogger_Null();
+		lpLogger.reset(new(std::nothrow) ECLogger_Null);
 	if (lpLogger == NULL)
 		return FAILURE;
 	lpLogger->Log(EC_LOGLEVEL_INFO, "php7-mapi " PROJECT_VERSION " instantiated");
@@ -622,9 +622,7 @@ PHP_MSHUTDOWN_FUNCTION(mapi)
 		lpLogger->Log(EC_LOGLEVEL_INFO, "PHP-MAPI shutdown");
 
 	MAPIUninitialize();
-	if (lpLogger != NULL)
-		lpLogger->Release();
-	lpLogger = NULL;
+	lpLogger.reset();
 	return SUCCESS;
 }
 

@@ -102,7 +102,7 @@ static const char *szConfig = ECConfig::GetDefaultPath("spooler.cfg");
 static bool sp_exp_config;
 extern std::shared_ptr<ECConfig> g_lpConfig;
 std::shared_ptr<ECConfig> g_lpConfig;
-static object_ptr<ECLogger> g_lpLogger;
+static std::shared_ptr<ECLogger> g_lpLogger;
 static bool g_dump_config;
 static bool g_use_threads;
 static pthread_t g_main_thread;
@@ -188,7 +188,7 @@ static void *HandlerSP_Thread(void *varg)
 	auto ret = ProcessMessageForked(a->sd.strUsername.c_str(),
 		a->smtp_host.c_str(), a->smtp_port, a->path.c_str(),
 		a->sd.msg_eid.length(), reinterpret_cast<const ENTRYID *>(a->sd.msg_eid.data()),
-		a->do_sentmail);
+		g_lpLogger, a->do_sentmail);
 	a->sd.status = ret;
 	std::unique_lock<std::mutex> lk(g_senddata_mtx);
 	g_senddata_thr.emplace_back(std::move(a->sd));
@@ -779,7 +779,7 @@ static HRESULT ProcessQueue(const char *smtp, int port, const char *path)
  */
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
-	generic_sigsegv_handler(g_lpLogger, "kopano-spooler", PROJECT_VERSION, signr, si, uc);
+	generic_sigsegv_handler(g_lpLogger.get(), "kopano-spooler", PROJECT_VERSION, signr, si, uc);
 }
 
 /** 
@@ -1156,7 +1156,9 @@ int main(int argc, char *argv[]) {
 	sc.reset(new StatsClient);
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	if (bForked)
-		hr = ProcessMessageForked(strUsername.c_str(), szSMTP, ulPort, szPath, strMsgEntryId.length(), (LPENTRYID)strMsgEntryId.data(), bDoSentMail);
+		hr = ProcessMessageForked(strUsername.c_str(), szSMTP, ulPort,
+		     szPath, strMsgEntryId.length(), reinterpret_cast<const ENTRYID *>(strMsgEntryId.data()),
+		     g_lpLogger, bDoSentMail);
 	else
 			hr = running_server(szSMTP, ulPort, szPath);
 	if (!bForked)

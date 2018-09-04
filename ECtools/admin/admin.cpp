@@ -1895,7 +1895,7 @@ int main(int argc, char* argv[])
 	wstring strCompanyName;
 	object_ptr<IMAPIFolder> lpDeletedStoresFolder, lpRootFolder;
 	unsigned int loglevel = EC_LOGLEVEL_NONE;
-	object_ptr<ECLogger> lpLogger;
+	std::shared_ptr<ECLogger> lpLogger;
 	const configsetting_t lpDefaults[] = {
 		{ "server_socket", "default:" },
 		{ "sslkey_file", "" },
@@ -2535,7 +2535,7 @@ int main(int argc, char* argv[])
 	if ((!bHaveConfig && bExplicitConfig) || (bHaveConfig && !bExplicitConfig && lpsConfig->HasErrors())) {
 		cerr << "Error while reading configuration file " << szConfig << endl;
 		// create fatal logger without a timestamp to stderr
-		lpLogger.reset(new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false), false);
+		lpLogger.reset(new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false));
 		ec_log_set(lpLogger);
 		LogConfigErrors(lpsConfig.get());
 		return 1;
@@ -2553,9 +2553,9 @@ int main(int argc, char* argv[])
 	if (loglevel > EC_LOGLEVEL_DEBUG)
 		loglevel = EC_LOGLEVEL_ALWAYS;
 	if (loglevel > EC_LOGLEVEL_NONE)
-		lpLogger.reset(new ECLogger_File(loglevel, 0, "-", false), false);
+		lpLogger.reset(new ECLogger_File(loglevel, 0, "-", false));
 	else
-		lpLogger.reset(new ECLogger_Null, false);
+		lpLogger.reset(new ECLogger_Null);
 
 	ec_log_set(lpLogger);
 

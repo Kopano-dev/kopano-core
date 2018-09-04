@@ -24,7 +24,7 @@ using namespace std::string_literals;
 
 namespace KC {
 
-extern ECLogger* g_lpLogger;
+extern std::shared_ptr<ECLogger> g_lpLogger;
 
 extern ECSessionManager*	g_lpSessionManager;
 

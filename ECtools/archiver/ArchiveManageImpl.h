@@ -6,7 +6,7 @@
 #ifndef ARCHIVEMANAGEIMPL_H_INCLUDED
 #define ARCHIVEMANAGEIMPL_H_INCLUDED
 
-#include <kopano/memory.hpp>
+#include <memory>
 #include <kopano/zcdefs.h>
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include "helpers/ArchiveHelper.h"
@@ -20,7 +20,7 @@ namespace KC {
  */
 class _kc_export_dycast ArchiveManageImpl _kc_final : public ArchiveManage {
 public:
-	static HRESULT Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, const TCHAR *lpszUser, ECLogger *lpLogger, ArchiveManagePtr *lpptrArchiveManage);
+	static HRESULT Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, const TCHAR *lpszUser, std::shared_ptr<ECLogger>, ArchiveManagePtr *lpptrArchiveManage);
 	_kc_hidden eResult AttachTo(const char *server, const TCHAR *archive, const TCHAR *folder, unsigned int flags) _kc_override;
 	_kc_hidden eResult DetachFrom(const char *server, const TCHAR *archive, const TCHAR *folder) _kc_override;
 	_kc_hidden eResult DetachFrom(unsigned int archive) _kc_override;
@@ -33,7 +33,7 @@ public:
 	_kc_hidden HRESULT AttachTo(LPMDB store, const tstring &folder, const char *server, const abentryid_t &user_eid, unsigned int flags, helpers::AttachType);
 
 private:
-	_kc_hidden ArchiveManageImpl(ArchiverSessionPtr, ECConfig *, const tstring &user, ECLogger *);
+	_kc_hidden ArchiveManageImpl(ArchiverSessionPtr, ECConfig *, const tstring &user, std::shared_ptr<ECLogger>);
 	_kc_hidden HRESULT Init(void);
 	_kc_hidden static UserEntry MakeUserEntry(const std::string &user);
 	_kc_hidden HRESULT GetRights(LPMAPIFOLDER folder, unsigned int *right);
@@ -41,7 +41,7 @@ private:
 	ArchiverSessionPtr	m_ptrSession;
 	ECConfig	*m_lpConfig;
 	tstring	m_strUser;
-	object_ptr<ECArchiverLogger> m_lpLogger;
+	std::shared_ptr<ECArchiverLogger> m_lpLogger;
 	MsgStorePtr	m_ptrUserStore;
 };
 

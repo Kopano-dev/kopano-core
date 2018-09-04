@@ -57,8 +57,8 @@ static const char *RightsToString(unsigned int ulecRights)
  * @param[in] lpAudit optional log object for auditing
  */
 ECSecurity::ECSecurity(ECSession *lpSession, ECConfig *lpConfig,
-    ECLogger *lpAudit) :
-	m_lpSession(lpSession), m_lpAudit(lpAudit), m_lpConfig(lpConfig)
+    std::shared_ptr<ECLogger> lpAudit) :
+	m_lpSession(lpSession), m_lpAudit(std::move(lpAudit)), m_lpConfig(lpConfig)
 {
 	m_bRestrictedAdmin = parseBool(lpConfig->GetSetting("restrict_admin_permissions"));
 	m_bOwnerAutoFullAccess = parseBool(lpConfig->GetSetting("owner_auto_full_access"));

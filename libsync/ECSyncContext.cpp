@@ -71,8 +71,8 @@ static HRESULT HrCreateECChangeAdviseSink(ECSyncContext *lpsSyncContext,
 	       .as(IID_IECChangeAdviseSink, lppAdviseSink);
 }
 
-ECSyncContext::ECSyncContext(IMsgStore *lpStore, ECLogger *lpLogger) :
-	m_lpLogger(lpLogger), m_lpStore(lpStore),
+ECSyncContext::ECSyncContext(IMsgStore *lpStore, std::shared_ptr<ECLogger> lpLogger) :
+	m_lpLogger(std::move(lpLogger)), m_lpStore(lpStore),
 	m_lpSettings(&ECSyncSettings::instance)
 {
 	if (m_lpSettings->ChangeNotificationsEnabled())

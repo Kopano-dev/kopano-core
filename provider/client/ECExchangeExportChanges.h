@@ -6,6 +6,7 @@
 #ifndef ECEXCHANGEEXPORTCHANGES_H
 #define ECEXCHANGEEXPORTCHANGES_H
 
+#include <memory>
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <vector>
@@ -72,7 +73,7 @@ private:
 	ULONG m_ulChanges = 0, m_ulMaxChangeId = 0;
 	clock_t m_clkStart = 0;
 	struct tms			m_tmsStart;
-	KC::object_ptr<ECLogger> m_lpLogger;
+	std::shared_ptr<ECLogger> m_lpLogger;
 	KC::memory_ptr<SRestriction> m_lpRestrict;
 	KC::object_ptr<IExchangeImportHierarchyChanges> m_lpImportHierarchy;
 	KC::object_ptr<IECImportContentsChanges> m_lpImportStreamedContents;

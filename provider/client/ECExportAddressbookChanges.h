@@ -6,6 +6,7 @@
 #ifndef ECEXPORTADDRESSBOOKCHANGES_H
 #define ECEXPORTADDRESSBOOKCHANGES_H
 
+#include <memory>
 #include <kopano/zcdefs.h>
 #include <set>
 #include <kopano/memory.hpp>
@@ -37,7 +38,7 @@ private:
 	ECMsgStore *m_lpMsgStore = nullptr;
 	unsigned int m_ulThisChange = 0, m_ulChanges = 0, m_ulMaxChangeId = 0;
 	std::set<ULONG>				m_setProcessed;
-	KC::object_ptr<ECLogger> m_lpLogger;
+	std::shared_ptr<ECLogger> m_lpLogger;
 	KC::object_ptr<IECImportAddressbookChanges> m_lpImporter;
 	KC::memory_ptr<ICSCHANGE> m_lpChanges; /* Same data as @m_lpRawChanges, but sorted (users, then groups) */
 	KC::memory_ptr<ICSCHANGE> m_lpRawChanges; /* Raw data from server */

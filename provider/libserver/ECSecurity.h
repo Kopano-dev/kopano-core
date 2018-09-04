@@ -26,7 +26,7 @@ class ECSession;
 
 class ECSecurity _kc_final {
 public:
-	ECSecurity(ECSession *lpSession, ECConfig *lpConfig, ECLogger *lpAudit);
+	ECSecurity(ECSession *lpSession, ECConfig *lpConfig, std::shared_ptr<ECLogger> audit);
 
 	/* must be called once the object is created */
 	virtual ECRESULT SetUserContext(unsigned int ulUserId, unsigned int ulImpersonatorID);
@@ -79,7 +79,7 @@ private:
 
 protected:
 	ECSession			*m_lpSession;
-	object_ptr<ECLogger> m_lpAudit;
+	std::shared_ptr<ECLogger> m_lpAudit;
 	ECConfig			*m_lpConfig;
 
 	unsigned int m_ulUserID = 0; // current user id

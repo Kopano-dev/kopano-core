@@ -1635,7 +1635,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
     IMAPISession *lpUserSession, IECServiceAdmin *lpServiceAdmin,
     IECSecurity *lpSecurity, IMsgStore *lpUserStore, IAddrBook *lpAddrBook,
     ECSender *lpMailer, unsigned int cbMsgEntryId, const ENTRYID *lpMsgEntryId,
-    IMessage **lppMessage, bool &doSentMail)
+    IMessage **lppMessage, std::shared_ptr<ECLogger> logger, bool &doSentMail)
 {
 	object_ptr<IMessage> lpMessage;
 	ULONG			ulObjType		= 0;
@@ -2004,8 +2004,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			kc_perror("Unable to instantiate archive object", hr);
 			goto exit;
 		}
-		
-		hr = ptrArchive->HrArchiveMessageForSending(lpMessage, &archiveResult);
+		hr = ptrArchive->HrArchiveMessageForSending(lpMessage, &archiveResult, logger);
 		if (hr != hrSuccess) {
 			if (ptrArchive->HaveErrorMessage())
 				lpMailer->setError(ptrArchive->GetErrorMessage());
@@ -2071,7 +2070,8 @@ exit:
  */
 HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
     int ulPort, const char *szPath, unsigned int cbMsgEntryId,
-    const ENTRYID *lpMsgEntryId, bool bDoSentMail)
+    const ENTRYID *lpMsgEntryId, std::shared_ptr<ECLogger> logger,
+    bool bDoSentMail)
 {
 	HRESULT			hr = hrSuccess;
 	object_ptr<IMAPISession> lpAdminSession, lpUserSession;
@@ -2140,7 +2140,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 
 	hr = ProcessMessage(lpAdminSession, lpUserSession, lpServiceAdmin,
 	     lpSecurity, lpUserStore, lpAddrBook, lpMailer.get(), cbMsgEntryId,
-	     lpMsgEntryId, &~lpMessage, bDoSentMail);
+	     lpMsgEntryId, &~lpMessage, logger, bDoSentMail);
 	if (hr != hrSuccess && hr != MAPI_E_WAIT && hr != MAPI_W_NO_SERVICE && lpMessage) {
 		// use lpMailer to set body in SendUndeliverable
 		if (!lpMailer->haveError())

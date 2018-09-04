@@ -81,7 +81,7 @@ static bool m_bIgnoreDbThreadStackSize = false;
 static pthread_t mainthread;
 std::shared_ptr<ECConfig> g_lpConfig;
 static bool g_listen_http, g_listen_https, g_listen_pipe;
-static object_ptr<ECLogger> g_lpLogger, g_lpAudit;
+static std::shared_ptr<ECLogger> g_lpLogger, g_lpAudit;
 static std::unique_ptr<ECScheduler> g_lpScheduler;
 static std::unique_ptr<ECSoapServerConnection> g_lpSoapServerConn;
 static bool m_bDatabaseUpdateIgnoreSignals = false;

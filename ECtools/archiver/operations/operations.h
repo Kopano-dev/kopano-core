@@ -6,6 +6,7 @@
 #ifndef operations_INCLUDED
 #define operations_INCLUDED
 
+#include <memory>
 #include <kopano/zcdefs.h>
 #include "operations_fwd.h"
 #include <mapix.h>
@@ -69,19 +70,15 @@ public:
  */
 class ArchiveOperationBase : public IArchiveOperation {
 public:
-	ArchiveOperationBase(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
+	ArchiveOperationBase(std::shared_ptr<ECArchiverLogger>, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
 	HRESULT GetRestriction(LPMAPIPROP LPMAPIPROP, LPSRestriction *lppRestriction) _kc_override;
 	HRESULT VerifyRestriction(LPMESSAGE lpMessage) _kc_override;
 
 protected:
-	/**
-	 * Returns a pointer to the logger.
-	 * @return An ECArchiverLogger pointer.
-	 */
-	ECArchiverLogger* Logger() { return m_lpLogger; }
+	std::shared_ptr<ECArchiverLogger> Logger() const { return m_lpLogger; }
 
 private:
-	ECArchiverLogger *m_lpLogger;
+	std::shared_ptr<ECArchiverLogger> m_lpLogger;
 	const int m_ulAge;
 	const bool m_bProcessUnread;
 	const ULONG m_ulInhibitMask;
@@ -95,7 +92,7 @@ private:
  */
 class ArchiveOperationBaseEx : public ArchiveOperationBase {
 public:
-	ArchiveOperationBaseEx(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
+	ArchiveOperationBaseEx(std::shared_ptr<ECArchiverLogger>, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
 	HRESULT ProcessEntry(IMAPIFolder *, const SRow &proprow) override;
 
 protected:

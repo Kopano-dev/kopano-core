@@ -6,6 +6,7 @@
 #ifndef deleter_INCLUDED
 #define deleter_INCLUDED
 
+#include <memory>
 #include <kopano/zcdefs.h>
 #include "operations.h"
 #include <kopano/archiver-common.h>
@@ -18,7 +19,7 @@ namespace KC { namespace operations {
  */
 class Deleter _kc_final : public ArchiveOperationBaseEx {
 public:
-	Deleter(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread);
+	Deleter(std::shared_ptr<ECArchiverLogger>, int ulAge, bool bProcessUnread);
 	~Deleter();
 
 private:

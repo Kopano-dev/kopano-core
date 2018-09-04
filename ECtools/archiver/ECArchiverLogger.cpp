@@ -2,14 +2,15 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <memory>
+#include <utility>
 #include <kopano/platform.h>
 #include "ECArchiverLogger.h"
 
 namespace KC {
 
-ECArchiverLogger::ECArchiverLogger(ECLogger *lpLogger)
-: ECLogger(0)
-, m_lpLogger(lpLogger)
+ECArchiverLogger::ECArchiverLogger(std::shared_ptr<ECLogger> lpLogger) :
+	ECLogger(0), m_lpLogger(std::move(lpLogger))
 {
 }
 
@@ -91,9 +92,10 @@ std::string ECArchiverLogger::EscapeFormatString(const std::string &strFormat)
 	return strEscaped;
 }
 
-ScopedUserLogging::ScopedUserLogging(ECArchiverLogger *lpLogger, const tstring &strUser)
-: m_lpLogger(lpLogger)
-, m_strPrevUser(lpLogger->SetUser(strUser))
+ScopedUserLogging::ScopedUserLogging(std::shared_ptr<ECArchiverLogger> lpLogger,
+    const tstring &strUser) :
+	m_lpLogger(std::move(lpLogger)),
+	m_strPrevUser(m_lpLogger->SetUser(strUser))
 { }
 
 ScopedUserLogging::~ScopedUserLogging()
@@ -101,9 +103,10 @@ ScopedUserLogging::~ScopedUserLogging()
 	m_lpLogger->SetUser(m_strPrevUser);
 }
 
-ScopedFolderLogging::ScopedFolderLogging(ECArchiverLogger *lpLogger, const tstring &strFolder)
-: m_lpLogger(lpLogger)
-, m_strPrevFolder(lpLogger->SetFolder(strFolder))
+ScopedFolderLogging::ScopedFolderLogging(std::shared_ptr<ECArchiverLogger> lpLogger,
+    const tstring &strFolder) :
+	m_lpLogger(std::move(lpLogger)),
+	m_strPrevFolder(m_lpLogger->SetFolder(strFolder))
 { }
 
 ScopedFolderLogging::~ScopedFolderLogging()

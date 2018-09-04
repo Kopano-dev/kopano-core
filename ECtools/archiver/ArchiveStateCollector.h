@@ -8,7 +8,6 @@
 
 #include <map>
 #include <memory>
-#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include "archivestateupdater_fwd.h"
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
@@ -28,7 +27,7 @@ typedef std::shared_ptr<ArchiveStateCollector> ArchiveStateCollectorPtr;
  */
 class _kc_export ArchiveStateCollector _kc_final {
 public:
-	static HRESULT Create(const ArchiverSessionPtr &ptrSession, ECLogger *lpLogger, ArchiveStateCollectorPtr *lpptrCollector);
+	static HRESULT Create(const ArchiverSessionPtr &ptrSession, std::shared_ptr<ECLogger>, ArchiveStateCollectorPtr *lpptrCollector);
 	HRESULT GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lpptrUpdater);
 
 	struct ArchiveInfo {
@@ -41,12 +40,12 @@ public:
 	typedef std::map<abentryid_t, ArchiveInfo> ArchiveInfoMap;
 
 private:
-	_kc_hidden ArchiveStateCollector(const ArchiverSessionPtr &, ECLogger *);
+	_kc_hidden ArchiveStateCollector(const ArchiverSessionPtr &, std::shared_ptr<ECLogger>);
 	_kc_hidden HRESULT PopulateUserList(void);
 	_kc_hidden HRESULT PopulateFromContainer(LPABCONT container);
 
 	ArchiverSessionPtr m_ptrSession;
-	object_ptr<ECArchiverLogger> m_lpLogger;
+	std::shared_ptr<ECArchiverLogger> m_lpLogger;
 	ArchiveInfoMap	m_mapArchiveInfo;
 };
 

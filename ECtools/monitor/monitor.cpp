@@ -32,7 +32,7 @@ using namespace KC;
 using std::cout;
 using std::endl;
 
-static object_ptr<ECLogger> g_lpLogger;
+static std::shared_ptr<ECLogger> g_lpLogger;
 static std::unique_ptr<ECTHREADMONITOR> m_lpThreadMonitor;
 static std::mutex m_hExitMutex;
 static std::condition_variable m_hExitSignal;

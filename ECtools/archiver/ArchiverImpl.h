@@ -13,7 +13,6 @@
 #include <kopano/zcdefs.h>
 #include <kopano/automapi.hpp>
 #include <kopano/ECLogger.h>
-#include <kopano/memory.hpp>
 #include "Archiver.h"               // for declaration of class Archiver
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
@@ -34,8 +33,8 @@ private:
 
 	AutoMAPI m_MAPI;
 	std::unique_ptr<ECConfig> m_lpsConfig;
-	object_ptr<ECLogger> m_lpLogger;
-	object_ptr<ECLogger> m_lpLogLogger; // Logs only to the log specified in the config
+	std::shared_ptr<ECLogger> m_lpLogger;
+	std::shared_ptr<ECLogger> m_lpLogLogger; // Logs only to the log specified in the config
 	ArchiverSessionPtr 		m_ptrSession;
 	std::unique_ptr<configsetting_t[]> m_lpDefaults;
 };

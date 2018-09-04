@@ -2,6 +2,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
+#include <memory>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/MAPIErrors.h>
 #include "ECArchiverLogger.h"
@@ -13,8 +15,9 @@ namespace KC { namespace operations {
  * @param[in]	lpLogger
  *					Pointer to the logger.
  */
-Deleter::Deleter(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread)
-: ArchiveOperationBaseEx(lpLogger, ulAge, bProcessUnread, ARCH_NEVER_DELETE)
+Deleter::Deleter(std::shared_ptr<ECArchiverLogger> lpLogger, int ulAge,
+    bool bProcessUnread) :
+	ArchiveOperationBaseEx(std::move(lpLogger), ulAge, bProcessUnread, ARCH_NEVER_DELETE)
 { }
 
 Deleter::~Deleter()

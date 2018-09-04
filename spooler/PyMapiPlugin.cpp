@@ -79,11 +79,13 @@ static HRESULT PyHandleError(PyObject *pyobj)
 {
 	if (pyobj != nullptr)
 		return hrSuccess;
+
 	PyObject *lpErr = PyErr_Occurred();
 	if (lpErr == nullptr) {
 		assert(false);
 		return S_FALSE;
 	}
+	PyErr_PrintEx(0);
 	PyObjectAPtr ptype, pvalue, ptraceback;
 	PyErr_Fetch(&~ptype, &~pvalue, &~ptraceback);
 	auto traceback = reinterpret_cast<PyTracebackObject *>(ptraceback.get());
@@ -154,7 +156,6 @@ HRESULT PyMapiPlugin::Init(PyObject *lpModMapiPlugin,
     const char *lpPluginManagerClassName, const char *lpPluginPath)
 {
 	HRESULT			hr = S_OK;
-	PyObjectAPtr	ptrPyLogger;
 	PyObjectAPtr	ptrClass;
 	PyObjectAPtr	ptrArgs;
 
@@ -166,16 +167,12 @@ HRESULT PyMapiPlugin::Init(PyObject *lpModMapiPlugin,
 	BUILD_SWIG_TYPE(type_p_IMsgStore, "_p_IMsgStore");
 	BUILD_SWIG_TYPE(type_p_IAddrBook, "_p_IAddrBook");
 	BUILD_SWIG_TYPE(type_p_IMAPIFolder, "_p_IMAPIFolder");
-	BUILD_SWIG_TYPE(type_p_ECLogger, "_p_ECLogger");
 	BUILD_SWIG_TYPE(type_p_IExchangeModifyTable, "_p_IExchangeModifyTable");
-
-	// Init logger swig object
-	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyLogger, ec_log_get(), type_p_ECLogger);
 
 	// Init plugin class	
 	ptrClass.reset(PyObject_GetAttrString(lpModMapiPlugin, /*char* */lpPluginManagerClassName));
 	PY_HANDLE_ERROR(ptrClass);
-	ptrArgs.reset(Py_BuildValue("(sO)", lpPluginPath, ptrPyLogger.get()));
+	ptrArgs.reset(Py_BuildValue("(s)", lpPluginPath));
 	PY_HANDLE_ERROR(ptrArgs);
 	m_ptrMapiPluginManager.reset(PyObject_CallObject(ptrClass, ptrArgs));
 	PY_HANDLE_ERROR(m_ptrMapiPluginManager);

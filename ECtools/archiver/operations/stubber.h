@@ -6,6 +6,7 @@
 #ifndef stubber_INCLUDED
 #define stubber_INCLUDED
 
+#include <memory>
 #include <kopano/zcdefs.h>
 #include "operations.h"
 
@@ -16,7 +17,7 @@ namespace KC { namespace operations {
  */
 class Stubber _kc_final : public ArchiveOperationBase {
 public:
-	Stubber(ECArchiverLogger *lpLogger, ULONG ulptStubbed, int ulAge, bool bProcessUnread);
+	Stubber(std::shared_ptr<ECArchiverLogger>, ULONG ulptStubbed, int ulAge, bool bProcessUnread);
 	HRESULT ProcessEntry(IMAPIFolder *, const SRow &proprow) override;
 	HRESULT ProcessEntry(LPMESSAGE lpMessage);
 

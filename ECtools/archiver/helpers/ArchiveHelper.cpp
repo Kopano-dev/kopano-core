@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <memory>
 #include <new>
 #include <utility>
 #include "ArchiveHelper.h"
@@ -71,7 +72,9 @@ HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder
 	return hrSuccess;
 }
 
-HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession, const SObjectEntry &archiveEntry, ECLogger *lpLogger, ArchiveHelperPtr *lpptrArchiveHelper)
+HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession,
+    const SObjectEntry &archiveEntry, std::shared_ptr<ECLogger> lpLogger,
+    ArchiveHelperPtr *lpptrArchiveHelper)
 {
 	MsgStorePtr ptrArchiveStore;
 	ULONG ulType;

@@ -40,13 +40,15 @@ namespace KC {
  * @param[out]	lpptrArchiveManager
  *					Pointer to an ArchiveManagePtr that will be assigned the address of the returned object.
  */
-HRESULT ArchiveManageImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, const TCHAR *lpszUser, ECLogger *lpLogger, ArchiveManagePtr *lpptrArchiveManage)
+HRESULT ArchiveManageImpl::Create(ArchiverSessionPtr ptrSession,
+    ECConfig *lpConfig, const TCHAR *lpszUser, std::shared_ptr<ECLogger> lpLogger,
+    ArchiveManagePtr *lpptrArchiveManage)
 {
 	if (lpszUser == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
 	std::unique_ptr<ArchiveManageImpl> ptrArchiveManage(
-		new(std::nothrow) ArchiveManageImpl(ptrSession, lpConfig, lpszUser, lpLogger));
+		new(std::nothrow) ArchiveManageImpl(ptrSession, lpConfig, lpszUser, std::move(lpLogger)));
 	if (ptrArchiveManage == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	auto hr = ptrArchiveManage->Init();
@@ -56,7 +58,9 @@ HRESULT ArchiveManageImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpCon
 	return hrSuccess;
 }
 
-HRESULT ArchiveManage::Create(LPMAPISESSION lpSession, ECLogger *lpLogger, const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage)
+HRESULT ArchiveManage::Create(IMAPISession *lpSession,
+    std::shared_ptr<ECLogger> lpLogger, const TCHAR *lpszUser,
+    ArchiveManagePtr *lpptrManage)
 {
 	ArchiverSessionPtr ptrArchiverSession;
 
@@ -65,7 +69,7 @@ HRESULT ArchiveManage::Create(LPMAPISESSION lpSession, ECLogger *lpLogger, const
 		return hr;
 
 	return ArchiveManageImpl::Create(ptrArchiverSession, NULL, lpszUser,
-		lpLogger, lpptrManage);
+	       std::move(lpLogger), lpptrManage);
 }
 
 /**
@@ -78,12 +82,14 @@ HRESULT ArchiveManage::Create(LPMAPISESSION lpSession, ECLogger *lpLogger, const
  * @param[in]	lpLogger
  *					Pointer to an ECLogger object to which message will be logged.
  */
-ArchiveManageImpl::ArchiveManageImpl(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, const tstring &strUser, ECLogger *lpLogger) :
+ArchiveManageImpl::ArchiveManageImpl(ArchiverSessionPtr ptrSession,
+    ECConfig *lpConfig, const tstring &strUser,
+    std::shared_ptr<ECLogger> lpLogger) :
 	m_ptrSession(ptrSession),
 	m_lpConfig(lpConfig),
 	m_strUser(strUser)
 {
-	m_lpLogger.reset(new(std::nothrow) ECArchiverLogger(lpLogger), false);
+	m_lpLogger.reset(new(std::nothrow) ECArchiverLogger(lpLogger));
 	if (m_lpLogger == nullptr)
 		return;
 	m_lpLogger->SetUser(strUser);
@@ -221,7 +227,7 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Archive Type: %d", static_cast<int>(aType));
 	if (aType == UndefArchive) {
 		m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Preparing archive for first use");
-		hr = ptrArchiveHelper->PrepareForFirstUse(m_lpLogger);
+		hr = ptrArchiveHelper->PrepareForFirstUse(m_lpLogger.get());
 		if (hr != hrSuccess)
 			return m_lpLogger->perr("Failed to prepare archive", hr);
 	} else if (aType == SingleArchive && !strFoldername.empty()) {

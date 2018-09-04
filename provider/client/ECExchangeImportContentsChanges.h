@@ -6,6 +6,8 @@
 #ifndef ECEXCHANGEIMPORTCONTENTSCHANGES_H
 #define ECEXCHANGEIMPORTCONTENTSCHANGES_H
 
+#include <memory>
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include "ECMAPIFolder.h"
@@ -58,7 +60,7 @@ private:
 	IStream *m_lpStream = nullptr;
 	unsigned int m_ulFlags = 0, m_ulSyncId = 0, m_ulChangeId = 0;
 	KC::memory_ptr<SPropValue> m_lpSourceKey;
-	KC::object_ptr<ECLogger> m_lpLogger;
+	std::shared_ptr<ECLogger> m_lpLogger;
 	KC::object_ptr<ECMAPIFolder> m_lpFolder;
 };
 

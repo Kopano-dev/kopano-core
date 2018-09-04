@@ -7,6 +7,7 @@
 #define ECCHANGEADVISOR_H
 
 #include <kopano/zcdefs.h>
+#include <memory>
 #include <mutex>
 #include <mapidefs.h>
 #include <mapispi.h>
@@ -118,7 +119,7 @@ private:
 	ConnectionMap			m_mapConnections;
 	SyncStateMap			m_mapSyncStates;
 	KC::object_ptr<ECMsgStore> m_lpMsgStore;
-	KC::object_ptr<ECLogger> m_lpLogger;
+	std::shared_ptr<ECLogger> m_lpLogger;
 	KC::object_ptr<IECChangeAdviseSink> m_lpChangeAdviseSink;
 };
 

@@ -13,6 +13,8 @@
 #include <list>
 #include <memory>
 
+namespace KC { class ECLogger; }
+
 class ArchiveResult _kc_final {
 public:
 	void AddMessage(KC::MessagePtr ptrMessage);
@@ -29,8 +31,8 @@ typedef std::unique_ptr<Archive> ArchivePtr;
 class Archive _kc_final {
 public:
 	static HRESULT Create(IMAPISession *, ArchivePtr *);
-	HRESULT HrArchiveMessageForDelivery(IMessage *lpMessage);
-	HRESULT HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *lpResult);
+	HRESULT HrArchiveMessageForDelivery(IMessage *lpMessage, std::shared_ptr<KC::ECLogger>);
+	HRESULT HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *lpResult, std::shared_ptr<KC::ECLogger>);
 
 	bool HaveErrorMessage() const { return !m_strErrorMessage.empty(); }
 	LPCTSTR GetErrorMessage() const { return m_strErrorMessage.c_str(); }
