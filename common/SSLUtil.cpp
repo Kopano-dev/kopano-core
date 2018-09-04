@@ -4,6 +4,7 @@
  */
 #include <mutex>
 #include <kopano/platform.h>
+#include <kopano/ECLogger.h>
 #include "SSLUtil.h"
 #include <pthread.h>
 #include <openssl/bn.h>
@@ -85,10 +86,14 @@ void ssl_random_init()
 void ssl_random(bool b64bit, uint64_t *id)
 {
 	#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-		RAND_bytes(reinterpret_cast<unsigned char *>(id), sizeof(*id));
+	int ret = RAND_bytes(reinterpret_cast<unsigned char *>(id), sizeof(*id));
 	#else
-		RAND_pseudo_bytes(reinterpret_cast<unsigned char *>(id), sizeof(*id));
+	int ret = RAND_pseudo_bytes(reinterpret_cast<unsigned char *>(id), sizeof(*id));
 	#endif
+	if (ret < 0) {
+		ec_log_crit("RAND_bytes < 0: %s\n", ERR_reason_error_string(ERR_get_error()));
+		abort();
+	}
 	if (!b64bit)
 		*id &= 0xFFFFFFFF;
 }
