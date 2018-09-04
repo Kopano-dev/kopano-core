@@ -232,7 +232,7 @@ std::unique_ptr<LDAPCache> LDAPUserPlugin::m_lpCache(new LDAPCache());
 
 template<typename T> static constexpr inline LONGLONG dur2us(const T &t)
 {
-	return std::chrono::duration_cast<std::chrono::milliseconds>(t).count();
+	return std::chrono::duration_cast<std::chrono::microseconds>(t).count();
 }
 
 LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
