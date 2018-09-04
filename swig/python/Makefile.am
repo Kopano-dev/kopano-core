@@ -12,7 +12,7 @@ noinst_LTLIBRARIES = _archiver.la _RecurrenceState.la
 noinst_DATA = libkcpyconv.ldd libkcpydirector.ldd \
 	_MAPICore.ldd _inetmapi.ldd _icalmapi.ldd \
 	_archiver.ldd _libfreebusy.ldd _RecurrenceState.ldd
-CLEANFILES = ${noinst_DATA}
+CLEANFILES = ${noinst_DATA} .*.dep
 
 # disable warnings since code is mostly generated
 AM_CPPFLAGS = ${ZCPPFLAGS} \
