@@ -407,7 +407,7 @@ skip:
 /**
  * Returns the total number of multi value rows of a specific object.
  *
- * This methode should be overridden and should return the total number of multi value rows of a specific object.
+ * This method should be overridden and should return the total number of multi value rows of a specific object.
  *
  * @param[in] ulObjId
  *					Object id to receive the number of multi value rows
@@ -673,9 +673,9 @@ ECRESULT ECGenericObjectTable::GetSortFlags(unsigned int ulPropTag, unsigned cha
 }
 
 /**
- * The ECGenericObjectTable::Restrict methode applies a filter to a table
+ * The ECGenericObjectTable::Restrict method applies a filter to a table
  *
- * The ECGenericObjectTable::Restrict methode applies a filter to a table, reducing
+ * The ECGenericObjectTable::Restrict method applies a filter to a table, reducing
  * the row set to only those rows matching the specified criteria.
  *
  * @param[in] lpsRestrict

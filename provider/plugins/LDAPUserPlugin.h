@@ -131,7 +131,7 @@ public:
 	 * @return A map of objectid with the matching objectdetails
 	 * @throw runtime_error When the LDAP query failed
 	 *
-	 * @remarks The methode returns a whole set of objectdetails but user may be missing if the user
+	 * @remarks The method returns a whole set of objectdetails but user may be missing if the user
 	 * 			details cannot be retrieved for some reason.
 	 */
 	virtual std::map<objectid_t, objectdetails_t> getObjectDetails(const std::list<objectid_t> &objectids) override;
