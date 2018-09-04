@@ -363,14 +363,8 @@ HRESULT ECNamedProp::ResolveCache(MAPINAMEID *lpName, ULONG *lpulPropTag)
  */
 HRESULT ECNamedProp::HrCopyNameId(LPMAPINAMEID lpSrc, LPMAPINAMEID *lppDst, void *lpBase)
 {
-	HRESULT			hr = hrSuccess;
 	LPMAPINAMEID	lpDst = NULL;
-
-	if(lpBase == NULL)
-		hr = ECAllocateBuffer(sizeof(MAPINAMEID), (void **) &lpDst);
-	else
-		hr = ECAllocateMore(sizeof(MAPINAMEID), lpBase, (void **) &lpDst);
-
+	auto hr = ECAllocateMore(sizeof(MAPINAMEID), lpBase, reinterpret_cast<void **>(&lpDst));
 	if(hr != hrSuccess)
 		return hr;
 

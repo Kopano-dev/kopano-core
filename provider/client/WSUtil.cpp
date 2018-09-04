@@ -849,13 +849,8 @@ HRESULT CopySOAPEntryIdToMAPIEntryId(const entryId *lpSrc, ULONG *lpcbDest,
 	if (lpSrc->__size == 0)
 		return MAPI_E_INVALID_ENTRYID;
 
-	HRESULT hr;
 	LPENTRYID	lpEntryId = NULL;
-
-	if(lpBase)
-		hr = ECAllocateMore(lpSrc->__size, lpBase, (void**)&lpEntryId);
-	else
-		hr = ECAllocateBuffer(lpSrc->__size, (void**)&lpEntryId);
+	auto hr = ECAllocateMore(lpSrc->__size, lpBase, reinterpret_cast<void **>(&lpEntryId));
 	if(hr != hrSuccess)
 		return hr;
 
@@ -1389,13 +1384,8 @@ static HRESULT CopySOAPPropTagArrayToMAPIPropTagArray(
 	if (lpsPropTagArray == nullptr || lppPropTagArray == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT hr;
 	LPSPropTagArray	lpPropTagArray = NULL;
-
-	if(lpBase)
-		hr = ECAllocateMore(CbNewSPropTagArray(lpsPropTagArray->__size), lpBase, (void**)&lpPropTagArray);
-	else
-		hr = ECAllocateBuffer(CbNewSPropTagArray(lpsPropTagArray->__size), (void**)&lpPropTagArray);
+	auto hr = ECAllocateMore(CbNewSPropTagArray(lpsPropTagArray->__size), lpBase, reinterpret_cast<void **>(&lpPropTagArray));
 	if(hr != hrSuccess)
 		return hr;
 
@@ -1413,14 +1403,9 @@ HRESULT Utf8ToTString(LPCSTR lpszUtf8, ULONG ulFlags, LPVOID lpBase, convert_con
 	if (lpszUtf8 == nullptr || lppszTString == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT	hr;
 	std::string strDest = CONVERT_TO(lpConverter, std::string, ((ulFlags & MAPI_UNICODE) ? CHARSET_WCHAR : CHARSET_CHAR), lpszUtf8, rawsize(lpszUtf8), "UTF-8");
 	size_t cbDest = strDest.length() + ((ulFlags & MAPI_UNICODE) ? sizeof(WCHAR) : sizeof(CHAR));
-	if (lpBase)
-		hr = ECAllocateMore(cbDest, lpBase, (LPVOID*)lppszTString);
-	else
-		hr = ECAllocateBuffer(cbDest, (LPVOID*)lppszTString);
-
+	auto hr = ECAllocateMore(cbDest, lpBase, reinterpret_cast<void **>(lppszTString));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1435,7 +1420,6 @@ static HRESULT TStringToUtf8(const TCHAR *lpszTstring, ULONG ulFlags,
 	if (lpszTstring == nullptr || lppszUtf8 == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT	hr;
 	std::string strDest;
 
 	if (ulFlags & MAPI_UNICODE)
@@ -1444,11 +1428,7 @@ static HRESULT TStringToUtf8(const TCHAR *lpszTstring, ULONG ulFlags,
 		strDest = CONVERT_TO(lpConverter, std::string, "UTF-8", (char*)lpszTstring, rawsize((char*)lpszTstring), CHARSET_CHAR);
 
 	size_t cbDest = strDest.length() + 1;
-	if (lpBase)
-		hr = ECAllocateMore(cbDest, lpBase, (LPVOID*)lppszUtf8);
-	else
-		hr = ECAllocateBuffer(cbDest, (LPVOID*)lppszUtf8);
-
+	auto hr = ECAllocateMore(cbDest, lpBase, reinterpret_cast<void **>(lppszUtf8));
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2183,13 +2163,8 @@ HRESULT CopySOAPChangeNotificationToSyncState(const struct notification *lpSrc,
 	if (lpSrc->ulEventType != fnevKopanoIcsChange)
 		return MAPI_E_INVALID_PARAMETER;
 
-	HRESULT hr = hrSuccess;
 	LPSBinary lpSBinary = NULL;
-
-	if (lpBase == NULL)
-		hr = ECAllocateBuffer(sizeof(*lpSBinary), reinterpret_cast<void **>(&lpSBinary));
-	else
-		hr = ECAllocateMore(sizeof(*lpSBinary), lpBase, reinterpret_cast<void **>(&lpSBinary));
+	auto hr = ECAllocateMore(sizeof(*lpSBinary), lpBase, reinterpret_cast<void **>(&lpSBinary));
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpSBinary, 0, sizeof *lpSBinary);

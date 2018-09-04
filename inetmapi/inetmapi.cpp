@@ -138,8 +138,12 @@ HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore,
 		vmime::mailbox mbox;
 		mbox.parse("=?UTF-8?Q?a=c2=a0b_=28c@d.e=29?= <f@g.h>");
 		if (*mbox.getName().getWholeBuffer().c_str() == '\0')
-			ec_log_notice("Detected old libvmime (< 0.9.2.42). "
+			ec_log_notice("K-1242: Detected old libvmime (< 0.9.2.42). "
 			"Consider having it upgraded to be able to parse more broken mails (KC-1124).");
+		vmime::header hdr;
+		if (hdr.ReplyTo()->getValue<vmime::mailboxList>() == nullptr)
+			ec_log_notice("K-1243: Detected old libvmime that "
+			"is unable to parse multi-address Reply-To (KC-434).");
 	}
 
 	// fill mapi object from buffer
