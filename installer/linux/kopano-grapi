@@ -1,0 +1,84 @@
+#!/bin/sh
+#
+# Kopano Groupware REST API (grapi) launcher
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright 2018 Kopano and its licensors
+#
+
+set -e
+
+# Base defines.
+
+EXE=/usr/libexec/kopano/kopano-mfr.py
+PROCESS_NAME=grapi
+PYTHON=python3
+EXTRA_PYTHONPATH=
+DEFAULT_SOCKET_PATH=/var/run/kopano-grapi
+DEFAULT_NUM_WORKERS=8
+DEFAULT_PID_FILE=${DEFAULT_SOCKET_PATH}/grapi.pid
+DEFAULT_STORAGE_SERVER_SOCKET=file:///var/run/kopano/server.sock
+
+# Handle parameters for configuration.
+
+if [ -z "${1}" ]; then
+	set -- "$@" --help
+fi
+case "${1}" in
+	serve)
+		# Inject values from environment into command line. This is mainly used
+		# when this script is run from systemd or docker.
+
+		shift
+
+		if [ -z "$socket_path" ]; then
+			socket_path="${DEFAULT_SOCKET_PATH}"
+		fi
+
+		if [ -z "$num_workers" ]; then
+			num_workers=${DEFAULT_NUM_WORKERS}
+		fi
+
+		if [ -z "$pid_file" ]; then
+			pid_file="${DEFAULT_PID_FILE}"
+		fi
+
+		if [ -z "$server_socket" ]; then
+			server_socket="${DEFAULT_STORAGE_SERVER_SOCKET}"
+		fi
+
+		if [ "$insecure" = "yes" ]; then
+			set -- "$@" --insecure
+		fi
+
+		set -- "$@" --socket-path="$socket_path" --workers="$num_workers" --pid-file="$pid_file" --process-name="${PROCESS_NAME}"
+
+		# Environment.
+
+		export KOPANO_SOCKET="$server_socket"
+
+		# Try to create stuff.
+
+		mkdir -p "$socket_path" || true
+		mkdir -p $(dirname "$pid_file") || true
+
+		;;
+
+	*)
+		;;
+esac
+
+# Setup python with extra path.
+
+if [ -n "${EXTRA_PYTHONPATH}" -a -d "${EXTRA_PYTHONPATH}" ]; then
+	export PYTHONPATH="${EXTRA_PYTHONPATH}:${PYTHONPATH}"
+fi
+
+
+# Set executable.
+
+set -- "${PYTHON}" "${EXE}" "$@"
+
+# Run.
+
+exec "$@"

@@ -9,7 +9,8 @@ SUBDIRS = . ECtools/archiver/include/kopano \
 SUBDIRS += installer po
 if ENABLE_PYTHON
 SUBDIRS += ECtools/backup ECtools/cli ECtools/migration-pst \
-	ECtools/presence ECtools/search ECtools/spamd ECtools/utils swig
+	ECtools/presence ECtools/rest ECtools/search ECtools/spamd \
+	ECtools/utils swig
 endif
 
 
@@ -64,6 +65,7 @@ if HAVE_TIDY
 noinst_PROGRAMS += rosie-test
 endif
 pkglibexec_PROGRAMS = kscriptrun mapitime
+pkglibexec_SCRIPTS = ECtools/rest/kopano-mfr.py
 check_PROGRAMS = tests/imtomapi tests/kc-335 tests/mapialloctime \
 	tests/readflag tests/zcpmd5
 noinst_PROGRAMS += ${check_PROGRAMS}
