@@ -66,7 +66,7 @@ noinst_PROGRAMS += rosie-test
 endif
 pkglibexec_PROGRAMS = kscriptrun mapitime
 pkglibexec_SCRIPTS = ECtools/rest/kopano-mfr.py
-check_PROGRAMS = tests/imtomapi tests/kc-335 tests/mapialloctime \
+check_PROGRAMS = tests/ablookup tests/imtomapi tests/kc-335 tests/mapialloctime \
 	tests/readflag tests/zcpmd5
 noinst_PROGRAMS += ${check_PROGRAMS}
 
@@ -761,6 +761,8 @@ mapitime_LDADD = ${clock_LIBS} libmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}
 rosie_test_SOURCES = librosie/test.cpp
 rosie_test_LDADD = libkcrosie.la
+tests_ablookup_SOURCES = tests/ablookup.cpp
+tests_ablookup_LDADD = libmapi.la libkcutil.la
 tests_imtomapi_SOURCES = tests/imtomapi.cpp tests/tbi.hpp
 tests_imtomapi_LDADD = libkcinetmapi.la libmapi.la libkcutil.la
 tests_kc_335_SOURCES = tests/kc-335.cpp tests/tbi.hpp
