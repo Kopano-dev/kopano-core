@@ -359,7 +359,7 @@ static ECRESULT CheckICSDeleteScope(ECDatabase *lpDatabase,
 /*
  * Calculate and update the store size for deleted items
  *
- * The DeleteObjectStoreSize methode calculate and update the store size. Only top-level messages will
+ * The DeleteObjectStoreSize method calculate and update the store size. Only top-level messages will
  * be calculate, all other objects are not supported and will be skipped. If a message has the
  * MSGFLAG_DELETED flag, the size will ignored because it is already subtract from the store size.
  * The deleted object list may include more than one store.
