@@ -1711,7 +1711,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 			return hr;
 
 		// Create Schedule folder
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("Schedule"), KC_T(""), PR_SCHEDULE_FOLDER_ENTRYID, 0, NULL, NULL);
+		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_TX("Schedule"), KC_T(""), PR_SCHEDULE_FOLDER_ENTRYID, 0, nullptr, nullptr);
 		if(hr != hrSuccess)
 			return hr;
 
