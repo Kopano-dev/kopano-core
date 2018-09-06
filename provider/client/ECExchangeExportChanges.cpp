@@ -619,7 +619,9 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			}
 			m_lpLogger->logf(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
 			if(hr != hrSuccess) {
-				ZLOG_DEBUG(m_lpLogger, "Error while getting entryid from sourcekey %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str());
+				m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Error while getting entryid from sourcekey %s: %s (%x)",
+					bin2hex(m_lstChange.at(m_ulStep).sSourceKey).c_str(),
+					GetMAPIErrorMessage(hr), hr);
 				goto exit;
 			}
 			hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMessage, MAPI_MODIFY, &ulObjType, &~lpSourceMessage);
@@ -628,14 +630,16 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				goto next;
 			}
 			if(hr != hrSuccess) {
-				ZLOG_DEBUG(m_lpLogger, "Unable to open message with entryid %s: %s", bin2hex(cbEntryID, lpEntryID.get()).c_str(), GetMAPIErrorMessage(hr));
+				m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Unable to open message with entryid %s: %s (%x)",
+					bin2hex(cbEntryID, lpEntryID.get()).c_str(), GetMAPIErrorMessage(hr), hr);
 				goto exit;
 			}
 			/* Check if requested interface exists */
 			void *throwaway;
 			hr = lpSourceMessage->QueryInterface(m_iidMessage, &throwaway);
 			if (hr != hrSuccess) {
-				ZLOG_DEBUG(m_lpLogger, "Unable to open message with entryid %s: %s", bin2hex(cbEntryID, lpEntryID.get()).c_str(), GetMAPIErrorMessage(hr));
+				m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Unable to open message with entryid %s: %s (%x)",
+					bin2hex(cbEntryID, lpEntryID.get()).c_str(), GetMAPIErrorMessage(hr), hr);
 				goto exit;
 			}
 			lpSourceMessage->Release(); /* give back one ref taken by QI */
@@ -744,7 +748,8 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		for (ulCount = 0; ulCount < lpRows->cRows; ++ulCount) {
 			hr = lpDestMessage->DeleteAttach(lpRows[ulCount].lpProps[0].Value.ul, 0, nullptr, 0);
 			if(hr != hrSuccess) {
-				ZLOG_DEBUG(m_lpLogger, "Unable to delete destination's attachment number %d", lpRows[ulCount].lpProps[0].Value.ul);
+				m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Unable to delete destination's attachment number %d: %s (%x)",
+					lpRows[ulCount].lpProps[0].Value.ul, GetMAPIErrorMessage(hr), hr);
 				goto exit;
 			}
 		}
@@ -764,7 +769,8 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			object_ptr<IAttach> lpSourceAttach, lpDestAttach;
 			hr = lpSourceMessage->OpenAttach(lpRows[ulCount].lpProps[0].Value.ul, &IID_IAttachment, 0, &~lpSourceAttach);
 			if(hr !=  hrSuccess) {
-				ZLOG_DEBUG(m_lpLogger, "Unable to open attachment %d in source message", lpRows[ulCount].lpProps[0].Value.ul);
+				m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "Unable to open attachment %d in source message: %s (%x)",
+					lpRows[ulCount].lpProps[0].Value.ul, GetMAPIErrorMessage(hr), hr);
 				goto exit;
 			}
 			hr = lpDestMessage->CreateAttach(&IID_IAttachment, 0, &ulObjType, &~lpDestAttach);
