@@ -392,12 +392,12 @@ std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 				   KC_T("</STYLE></HEAD><BODY><H1>")
 				<< "Kopano Archiver"
 				<< KC_T("</H1><P>")
-				<< _("An error has occurred while fetching the message from the archive.")
+				<< KC_TX("An error has occurred while fetching the message from the archive.")
 				<< KC_T(" ")
-				<< _("Please contact your system administrator.")
+				<< KC_TX("Please contact your system administrator.")
 				<< KC_T("</P><P class=\"spacing\"></P>")
 				   KC_T("<P>")
-				<< _("Error code:")
+				<< KC_TX("Error code:")
 				<< KC_T("<SPAN id=\"errcode\">")
 				<< tstringify_hex(hResult)
 				<< KC_T("</SPAN> (<SPAN id=\"errmsg\">")
@@ -407,22 +407,22 @@ std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 
 	if (hResult == MAPI_E_NO_SUPPORT) {
 		ossHtmlBody << KC_T("<P class=\"spacing\"></P><P>")
-				    << _("It seems no valid archiver license is installed.")
+			<< KC_TX("It seems no valid archiver license is installed.")
 					<< KC_T("</P>");
 	} else if (hResult == MAPI_E_NOT_FOUND) {
 		ossHtmlBody << KC_T("<P class=\"spacing\"></P><P>")
-				    << _("The archive could not be found.")
+			<< KC_TX("The archive could not be found.")
 					<< KC_T("</P>");
 	} else if (hResult == MAPI_E_NO_ACCESS) {
 		ossHtmlBody << KC_T("<P class=\"spacing\"></P><P>")
-				    << _("You don't have sufficient access to the archive.")
+			<< KC_TX("You don't have sufficient access to the archive.")
 					<< KC_T("</P>");
 	} else {
 		KC::memory_ptr<TCHAR> lpszDescription;
 		HRESULT hr = Util::HrMAPIErrorToText(hResult, &~lpszDescription);
 		if (hr == hrSuccess)
 			ossHtmlBody << KC_T("<P>")
-						<< _("Error description:")
+						<< KC_TX("Error description:")
 						<< KC_T("<DIV class=\"indented\">")
 						<< lpszDescription
 						<< KC_T("</DIV></P>");
@@ -449,7 +449,7 @@ std::string ECArchiveAwareMessage::CreateOfflineWarnBodyUtf8()
 				   KC_T("</STYLE></HEAD><BODY><H1>")
 				<< "Kopano Archiver"
 				<< KC_T("</H1><P>")
-				<< _("Archives can not be destubbed when working offline.")
+				<< KC_TX("Archives can not be destubbed when working offline.")
 				<< KC_T("</P></BODY></HTML>");
 
 	tstring strHtmlBody = ossHtmlBody.str();

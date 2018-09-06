@@ -558,16 +558,16 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 		for (unsigned int ulCount = 0; ulCount < lpAdditionalREN->Value.MVbin.cValues; ++ulCount)
 			lpNewAdditionalREN->Value.MVbin.lpbin[ulCount] = lpAdditionalREN->Value.MVbin.lpbin[ulCount];
 
-	hr = CreateConflictFolder(_("Sync Issues"), lpNewAdditionalREN, 1, lpParentFolder, &~lpConflictFolder);
+	hr = CreateConflictFolder(KC_TX("Sync Issues"), lpNewAdditionalREN, 1, lpParentFolder, &~lpConflictFolder);
 	if (hr != hrSuccess)
 		return zlog("Failed to create \"Sync Issues\" folder", hr);
-	hr = CreateConflictFolder(_("Conflicts"), lpNewAdditionalREN, 0, lpConflictFolder, NULL);
+	hr = CreateConflictFolder(KC_TX("Conflicts"), lpNewAdditionalREN, 0, lpConflictFolder, nullptr);
 	if (hr != hrSuccess)
 		return zlog("Failed to create \"Conflicts\" folder", hr);
-	hr = CreateConflictFolder(_("Local Failures"), lpNewAdditionalREN, 2, lpConflictFolder, NULL);
+	hr = CreateConflictFolder(KC_TX("Local Failures"), lpNewAdditionalREN, 2, lpConflictFolder, nullptr);
 	if (hr != hrSuccess)
 		return zlog("Failed to create \"Local Failures\" folder", hr);
-	hr = CreateConflictFolder(_("Server Failures"), lpNewAdditionalREN, 3, lpConflictFolder, NULL);
+	hr = CreateConflictFolder(KC_TX("Server Failures"), lpNewAdditionalREN, 3, lpConflictFolder, nullptr);
 	if (hr != hrSuccess)
 		return zlog("Failed to create \"Server Failures\" folder", hr);
 	hr = HrSetOneProp(lpRootFolder, lpNewAdditionalREN);

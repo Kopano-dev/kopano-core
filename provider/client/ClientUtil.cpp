@@ -245,12 +245,12 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 
 	if (ulFlags & MAPI_NON_READ) {
 		lpMsgClass = KC_T("REPORT.IPM.Note.IPNNRN");
-		lpReadText = _("Not read:");
-		lpReportText = _("was not read because it expired before reading at time");
+		lpReadText = KC_TX("Not read:");
+		lpReportText = KC_TX("was not read because it expired before reading at time");
 	}else{
 		lpMsgClass = KC_T("REPORT.IPM.Note.IPNRN");
-		lpReadText = _("Read:");
-		lpReportText = _("was read on");
+		lpReadText = KC_TX("Read:");
+		lpReportText = KC_TX("was read on");
 	}
 
 	auto hr = lpReadMessage->GetProps(sPropReadReceipt, fMapiUnicode, &cSrcValues, &~spv);
@@ -262,33 +262,33 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	if (!HAVE(REPORT_ENTRYID))
 		return MAPI_E_INVALID_PARAMETER;
 
-	tstring strBodyText = _("Your message");
+	tstring strBodyText = KC_TX("Your message");
 	strBodyText += KC_T("\r\n\r\n");
 
 	if (HAVE(DISPLAY_TO)) {
 		strBodyText += KC_T("\t");
-		strBodyText+= _("To:");
+		strBodyText += KC_TX("To:");
 		strBodyText += KC_T(" ");
 		strBodyText += spv[RR_DISPLAY_TO].Value.LPSZ;
 		strBodyText += KC_T("\r\n");
 	}
 	if (HAVE(DISPLAY_CC)) {
 		strBodyText += KC_T("\t");
-		strBodyText+= _("Cc:");
+		strBodyText += KC_TX("Cc:");
 		strBodyText += KC_T(" ");
 		strBodyText += spv[RR_DISPLAY_CC].Value.LPSZ;
 		strBodyText += KC_T("\r\n");
 	}
 	if (HAVE(SUBJECT)) {
 		strBodyText += KC_T("\t");
-		strBodyText+= _("Subject:");
+		strBodyText += KC_TX("Subject:");
 		strBodyText += KC_T(" ");
 		strBodyText += spv[RR_SUBJECT].Value.LPSZ;
 		strBodyText += KC_T("\r\n");
 	}
 	if (HAVE(CLIENT_SUBMIT_TIME)) {
 		strBodyText += KC_T("\t");
-		strBodyText+= _("Sent on:");
+		strBodyText += KC_TX("Sent on:");
 		strBodyText += KC_T(" ");
 		auto tt = FileTimeToUnixTime(spv[RR_CLIENT_SUBMIT_TIME].Value.ft);
 		auto tm = localtime(&tt);

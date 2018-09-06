@@ -22,8 +22,9 @@
 #include "ECSessionManager.h"
 #include <edkmdb.h>
 #include <kopano/mapiext.h>
+#include <kopano/ECGetText.h>
 
-#define _(string) dcgettext("kopano", string, LC_MESSAGES)
+using namespace std::string_literals;
 
 namespace KC {
 
@@ -747,7 +748,7 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 
 	// When the userid belongs to a company or group everybody, the store is considered a public store.
 	if(ulUserId == KOPANO_UID_EVERYONE || ulUserId == ulCompanyId) {
-	    strFormat = _("Public Folders");
+		strFormat = KC_A("Public Folders");
 	} else {
 		sPropTagArray.__ptr = s_alloc<unsigned int>(nullptr, 3);
         sPropTagArray.__ptr[0] = PR_DISPLAY_NAME;
@@ -787,9 +788,9 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
         }
 
 		if (ulStoreType == ECSTORE_TYPE_PRIVATE)
-			strFormat = std::string(_("Inbox")) + " - " + strFormat;
+			strFormat = KC_A("Inbox") + " - "s + strFormat;
 		else if (ulStoreType == ECSTORE_TYPE_ARCHIVE)
-			strFormat = std::string(_("Archive")) + " - " + strFormat;
+			strFormat = KC_A("Archive") + " - "s + strFormat;
 		else
 			assert(false);
     }

@@ -212,7 +212,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 		return kc_pwarn("Archive::HrArchiveMessageForSending(): StoreHelper::Create failed", hr);
 	hr = ptrStoreHelper->GetArchiveList(&lstArchives);
 	if (hr != hrSuccess) {
-		SetErrorMessage(hr, _("Unable to obtain list of attached archives."));
+		SetErrorMessage(hr, KC_TX("Unable to obtain list of attached archives."));
 		return kc_perror("Unable to obtain list of attached archives", hr);
 	}
 
@@ -245,23 +245,23 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 
 		hr = ArchiveHelper::Create(ptrSession, arc, logger, &ptrArchiveHelper);
 		if (hr != hrSuccess) {
-			SetErrorMessage(hr, _("Unable to open archive."));
+			SetErrorMessage(hr, KC_TX("Unable to open archive."));
 			return hr;
 		}
 		hr = ptrArchiveHelper->GetOutgoingFolder(&~ptrArchiveFolder);
 		if (hr != hrSuccess) {
-			SetErrorMessage(hr, _("Unable to get outgoing archive folder."));
+			SetErrorMessage(hr, KC_TX("Unable to get outgoing archive folder."));
 			return kc_perror("Failed to get outgoing archive folder", hr);
 		}
 		hr = ptrArchiveFolder->CreateMessage(&iid_of(ptrArchivedMsg), 0, &~ptrArchivedMsg);
 		if (hr != hrSuccess) {
-			SetErrorMessage(hr, _("Unable to create archive message in outgoing archive folder."));
+			SetErrorMessage(hr, KC_TX("Unable to create archive message in outgoing archive folder."));
 			return kc_perror("Failed to create message in outgoing archive folder", hr);
 		}
 
 		hr = ptrHelper->ArchiveMessage(lpMessage, NULL, ptrArchivedMsg, &ptrPSAction);
 		if (hr != hrSuccess) {
-			SetErrorMessage(hr, _("Unable to copy message data."));
+			SetErrorMessage(hr, KC_TX("Unable to copy message data."));
 			return hr;
 		}
 
@@ -273,7 +273,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 	for (const auto &msg : lstArchivedMessages) {
 		hr = msg.first->SaveChanges(KEEP_OPEN_READONLY);
 		if (hr != hrSuccess) {
-			SetErrorMessage(hr, _("Unable to save archived message."));
+			SetErrorMessage(hr, KC_TX("Unable to save archived message."));
 			return kc_perror("Failed to save message in archive", hr);
 		}
 
@@ -297,10 +297,10 @@ void Archive::SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage)
 	LPTSTR lpszDesc;
 
 	oss << lpszMessage << endl;
-	oss << _("Error code:") << KC_T(" ") << convert_to<tstring>(GetMAPIErrorMessage(hr))
+	oss << KC_TX("Error code:") << KC_T(" ") << convert_to<tstring>(GetMAPIErrorMessage(hr))
 	    << KC_T(" (") << tstringify_hex(hr) << KC_T(")") << endl;
 	if (Util::HrMAPIErrorToText(hr, &lpszDesc) == hrSuccess)
-		oss << _("Error description:") << KC_T(" ") << lpszDesc << endl;
+		oss << KC_TX("Error description:") << KC_T(" ") << lpszDesc << endl;
 	m_strErrorMessage.assign(oss.str());
 }
 

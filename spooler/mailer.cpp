@@ -1378,9 +1378,9 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 exit:
 	if (!bAllowed) {
 		if (lpRepresentProps && PROP_TYPE(lpRepresentProps[0].ulPropTag) != PT_ERROR)
-			lpMailer->setError(_("You are not allowed to send as user or group ")+wstring(lpRepresentProps[0].Value.lpszW));
+			lpMailer->setError(KC_TX("You are not allowed to send as user or group ") + std::wstring(lpRepresentProps[0].Value.lpszW));
 		else
-			lpMailer->setError(_("The user or group you try to send as could not be found."));
+			lpMailer->setError(KC_TX("The user or group you try to send as could not be found."));
 
 		ec_log_err("User \"%ls\" is not allowed to send as user or group \"%ls\". "
 			"You may enable all outgoing addresses by enabling the always_send_delegates option.",
@@ -2152,7 +2152,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	if (hr != hrSuccess && hr != MAPI_E_WAIT && hr != MAPI_W_NO_SERVICE && lpMessage) {
 		// use lpMailer to set body in SendUndeliverable
 		if (!lpMailer->haveError())
-			lpMailer->setError(_("Error found while trying to send your message. Error code: ") + wstringify_hex(hr));
+			lpMailer->setError(KC_TX("Error found while trying to send your message. Error code: ") + wstringify_hex(hr));
 		hr = SendUndeliverable(lpMailer.get(), lpUserStore, lpMessage);
 		if (hr != hrSuccess) {
 			// dont make parent complain too
