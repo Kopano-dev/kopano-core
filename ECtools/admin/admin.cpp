@@ -1821,26 +1821,17 @@ int main(int argc, char* argv[])
 {
 	AutoMAPI mapiinit;
 	object_ptr<IMAPISession> lpSession;
-	object_ptr<IMsgStore> lpMsgStore, lpPublicStore, lpUserStore;
+	object_ptr<IMsgStore> lpMsgStore, lpUserStore;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	unsigned int cbUserId = 0, cbEntryID = 0;
 	memory_ptr<ENTRYID> lpUserId, lpSenderId, lpGroupId, lpCompanyId;
 	memory_ptr<ENTRYID> lpSetCompanyId, lpEntryID, lpUnWrappedEntry;
-	memory_ptr<ENTRYID> lpStoreId, lpRootId;
 	unsigned int cbGroupId = 0, cbSenderId = 0, cbCompanyId = 0, cbSetCompanyId = 0;
-	memory_ptr<SPropValue> lpPropValue;
-	memory_ptr<GUID> lpGUID;
-
 	ECUSER sECUser;
 	memory_ptr<ECUSER> lpECUser, lpSenders;
 	ECGROUP		sECGroup;
-	memory_ptr<ECGROUP> lpECGroups;
 	unsigned int cCompanies = 0, cUsers = 0, cSenders = 0;
 	ECCOMPANY sECCompany, *lpECCompanies = nullptr;
-	memory_ptr<ECQUOTASTATUS> lpsQuotaStatus;
-	memory_ptr<ECQUOTA> lpsQuota;
-	memory_ptr<ECSVRNAMELIST> lpsServer;
-	memory_ptr<ECSERVERLIST> lpServerDetails;
 	objectclass_t ulClass = OBJECTCLASS_UNKNOWN;
 	const char *detailstype = nullptr, *path = nullptr;
 	char *username = nullptr, *groupname = nullptr, *new_username = nullptr;
@@ -1860,8 +1851,6 @@ int main(int argc, char* argv[])
 
 	bool bAutoAccept = false, bDeclineConflict = false, bDeclineRecurring = false;
 	object_ptr<IExchangeManageStore> lpIEMS;
-	std::wstring strUsername, strStorename, strStorenameTMP, strCompanyName;
-	object_ptr<IMAPIFolder> lpDeletedStoresFolder, lpRootFolder;
 	unsigned int loglevel = EC_LOGLEVEL_NONE;
 	std::shared_ptr<ECLogger> lpLogger;
 	const configsetting_t lpDefaults[] = {
