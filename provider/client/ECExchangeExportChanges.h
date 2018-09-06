@@ -49,6 +49,7 @@ private:
 	HRESULT ExportFolderDeletes();
 	HRESULT UpdateStream(LPSTREAM lpStream);
 	HRESULT ChangesToEntrylist(std::list<ICSCHANGE> * lpLstChanges, LPENTRYLIST * lppEntryList);
+	HRESULT zlog(const char *, HRESULT = 0);
 
 	unsigned long	m_ulSyncType;
 	bool m_bConfiged = false;

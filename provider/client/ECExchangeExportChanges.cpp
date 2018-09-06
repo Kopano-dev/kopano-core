@@ -191,12 +191,8 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	}
 
 	hr = HrDecodeSyncStateStream(m_lpStream, &ulSyncId, &ulChangeId, &m_setProcessedChanges);
-	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Unable to decode sync state stream: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return zlog("Unable to decode sync state stream", hr);
 	ZLOG_DEBUG(m_lpLogger, "Decoded state stream: syncid=%u, changeid=%u, processed changes=%lu", ulSyncId, ulChangeId, (long unsigned int)m_setProcessedChanges.size());
 
 	if(ulSyncId == 0) {
@@ -216,12 +212,8 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 		// Register our sync with the server, get a sync ID
 		hr = m_lpStore->lpTransport->HrSetSyncStatus(sourcekey, ulSyncId, ulChangeId, m_ulSyncType, 0, &ulSyncId);
-		if(hr != hrSuccess) {
-			ZLOG_DEBUG(m_lpLogger, "Unable to update sync status on server: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
-
+		if (hr != hrSuccess)
+			return zlog("Unable to update sync status on server", hr);
 		ZLOG_DEBUG(m_lpLogger, "New sync id for folder '%ls': %u", m_strDisplay.c_str(), ulSyncId);
 
 		bForceImplicitStateUpdate = true;
@@ -229,12 +221,8 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 	MAPIFreeBuffer(m_lpChanges);
 	hr = m_lpStore->lpTransport->HrGetChanges(sourcekey, ulSyncId, ulChangeId, m_ulSyncType, ulFlags, m_lpRestrict, &m_ulMaxChangeId, &m_ulChanges, &~m_lpChanges);
-	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Unable to get changes from server: %s (%x)",
-			GetMAPIErrorMessage(hr), hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return zlog("Unable to get changes from server", hr);
 	m_ulSyncId = ulSyncId;
 	m_ulChangeId = ulChangeId;
 	m_lpLogger->logf(EC_LOGLEVEL_INFO, "folder=\"%ls\" changes=%u syncid=%u changeid=%u", m_strDisplay.c_str(), m_ulChanges, m_ulSyncId, m_ulChangeId);
@@ -428,11 +416,8 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgre
 			hr = m_lpImportContents->UpdateState(NULL);
 		else
 			hr = m_lpImportHierarchy->UpdateState(NULL);
-		if(hr != hrSuccess) {
-			ZLOG_DEBUG(m_lpLogger, "Importer state update failed: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return zlog("Importer state update failed", hr);
 	}
 
 progress:
@@ -1309,4 +1294,10 @@ void ECExchangeExportChanges::LogMessageProps(int loglevel, ULONG cValues, LPSPr
 		lpPropFlags != NULL ? lpPropFlags->Value.ul : 0,
 		lpPropEntryID != NULL ? bin2hex(lpPropEntryID->Value.bin).c_str() : "<Unknown>",
 		lpPropSK != NULL ? bin2hex(lpPropSK->Value.bin).c_str() : "<Unknown>");
+}
+
+HRESULT ECExchangeExportChanges::zlog(const char *msg, HRESULT code)
+{
+	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "%s: %s (%x)", msg, GetMAPIErrorMessage(code), code);
+	return code;
 }
