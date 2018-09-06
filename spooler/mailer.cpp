@@ -1378,7 +1378,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 exit:
 	if (!bAllowed) {
 		if (lpRepresentProps && PROP_TYPE(lpRepresentProps[0].ulPropTag) != PT_ERROR)
-			lpMailer->setError(KC_TX("You are not allowed to send as user or group ") + std::wstring(lpRepresentProps[0].Value.lpszW));
+			lpMailer->setError(format(KC_A("You are not allowed to send as user or group \"%s\""), convert_to<std::string>(lpRepresentProps[0].Value.lpszW).c_str()));
 		else
 			lpMailer->setError(KC_TX("The user or group you try to send as could not be found."));
 
@@ -2152,7 +2152,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	if (hr != hrSuccess && hr != MAPI_E_WAIT && hr != MAPI_W_NO_SERVICE && lpMessage) {
 		// use lpMailer to set body in SendUndeliverable
 		if (!lpMailer->haveError())
-			lpMailer->setError(KC_TX("Error found while trying to send your message. Error code: ") + wstringify_hex(hr));
+			lpMailer->setError(format(KC_A("Error found while trying to send your message: %s (%x)"), GetMAPIErrorMessage(hr), hr));
 		hr = SendUndeliverable(lpMailer.get(), lpUserStore, lpMessage);
 		if (hr != hrSuccess) {
 			// dont make parent complain too
