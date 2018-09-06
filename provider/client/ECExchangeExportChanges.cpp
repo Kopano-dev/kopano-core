@@ -889,7 +889,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		hr = hrSuccess;
 		goto skip;
 	} else if (hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "ExportFast: Unable to get serialized message, hr = 0x%08x", hr);
+		zlog("ExportFast: Unable to get serialized message", hr);
 		goto exit;
 	}
 	hr = ptrSerializedMessage->GetProps(&cbProps, &~ptrProps);
@@ -910,21 +910,21 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		ZLOG_DEBUG(m_lpLogger, "ExportFast: %s", "Copying data");
 		hr = ptrSerializedMessage->CopyData(ptrDestStream);
 		if (hr != hrSuccess) {
-			ZLOG_DEBUG(m_lpLogger, "ExportFast: Failed to copy data, hr = 0x%08x", hr);
+			zlog("ExportFast: Failed to copy data", hr);
 			LogMessageProps(EC_LOGLEVEL_DEBUG, cbProps, ptrProps);
 			goto exit;
 		}
 		ZLOG_DEBUG(m_lpLogger, "ExportFast: %s", "Copied data");
 	} else if (hr == SYNC_E_IGNORE || hr == SYNC_E_OBJECT_DELETED) {
-		ZLOG_DEBUG(m_lpLogger, "ExportFast: Change ignored, code = 0x%08x", hr);
+		zlog("ExportFast: Change ignored", hr);
 		hr = ptrSerializedMessage->DiscardData();
 		if (hr != hrSuccess) {
-			ZLOG_DEBUG(m_lpLogger, "ExportFast: Failed to discard data, hr = 0x%08x", hr);
+			zlog("ExportFast: Failed to discard data", hr);
 			LogMessageProps(EC_LOGLEVEL_DEBUG, cbProps, ptrProps);
 			goto exit;
 		}
 	} else {
-		ZLOG_DEBUG(m_lpLogger, "ExportFast: Import failed, hr = 0x%08x", hr);
+		zlog("ExportFast: Import failed", hr);
 		LogMessageProps(EC_LOGLEVEL_DEBUG, cbProps, ptrProps);
 		goto exit;
 	}
@@ -937,9 +937,7 @@ skip:
 exit:
 	if (FAILED(hr))
 		m_ptrStreamExporter.reset();
-
-	ZLOG_DEBUG(m_lpLogger, "ExportFast: Done, hr = 0x%08x", hr);
-	return hr;
+	return zlog("ExportFast: Done", hr);
 }
 
 HRESULT ECExchangeExportChanges::ExportMessageFlags(){

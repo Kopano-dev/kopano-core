@@ -7,6 +7,7 @@
 #include <kopano/platform.h>
 #include <kopano/memory.hpp>
 #include <kopano/scope.hpp>
+#include <kopano/MAPIErrors.h>
 #include "ECExchangeImportContentsChanges.h"
 #include "WSMessageStreamImporter.h"
 #include "ECMessageStreamImporterIStreamAdapter.h"
@@ -522,31 +523,20 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	unsigned int cbEntryId = 0, ulObjType = 0;
 
 	auto hr = m_lpFolder->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpRootFolder);
-	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Failed to open root folder, hr = 0x%08x", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return zlog("Failed to open root folder", hr);
 	hr = m_lpFolder->GetMsgStore()->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryId, &~lpEntryId, nullptr);
-	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Failed to get 'IPM' receive folder id, hr = 0x%08x", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return zlog("Failed to get \"IPM\" receive folder id", hr);
 	hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpInbox);
-	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Failed to open 'IPM' receive folder, hr = 0x%08x", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return zlog("Failed to open \"IPM\" receive folder", hr);
 	hr = HrGetOneProp(m_lpFolder->GetMsgStore(), PR_IPM_SUBTREE_ENTRYID, &~lpIPMSubTree);
-	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Failed to get ipm subtree id, hr = 0x%08x", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return zlog("Failed to get IPM subtree id", hr);
 	hr = m_lpFolder->OpenEntry(lpIPMSubTree->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpIPMSubTree->Value.bin.lpb), &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpParentFolder);
-	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Failed to open ipm subtree folder, hr = 0x%08x", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return zlog("Failed to open IPM subtree folder", hr);
 
 	//make new PR_ADDITIONAL_REN_ENTRYIDS
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpNewAdditionalREN);
@@ -569,29 +559,17 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 			lpNewAdditionalREN->Value.MVbin.lpbin[ulCount] = lpAdditionalREN->Value.MVbin.lpbin[ulCount];
 
 	hr = CreateConflictFolder(_("Sync Issues"), lpNewAdditionalREN, 1, lpParentFolder, &~lpConflictFolder);
-	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Failed to create 'Sync Issues' folder, hr = 0x%08x", hr);
-		return hr;
-	}
-	
+	if (hr != hrSuccess)
+		return zlog("Failed to create \"Sync Issues\" folder", hr);
 	hr = CreateConflictFolder(_("Conflicts"), lpNewAdditionalREN, 0, lpConflictFolder, NULL);
-	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Failed to create 'Conflicts' folder, hr = 0x%08x", hr);
-		return hr;
-	}
-	
+	if (hr != hrSuccess)
+		return zlog("Failed to create \"Conflicts\" folder", hr);
 	hr = CreateConflictFolder(_("Local Failures"), lpNewAdditionalREN, 2, lpConflictFolder, NULL);
-	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Failed to create 'Local Failures' folder, hr = 0x%08x", hr);
-		return hr;
-	}
-	
+	if (hr != hrSuccess)
+		return zlog("Failed to create \"Local Failures\" folder", hr);
 	hr = CreateConflictFolder(_("Server Failures"), lpNewAdditionalREN, 3, lpConflictFolder, NULL);
-	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Failed to create 'Server Failures' folder, hr = 0x%08x", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return zlog("Failed to create \"Server Failures\" folder", hr);
 	hr = HrSetOneProp(lpRootFolder, lpNewAdditionalREN);
 	if(hr != hrSuccess)
 		return hr;
@@ -599,12 +577,10 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	if(hr != hrSuccess)
 		return hr;
 	hr = HrUpdateSearchReminders(lpRootFolder, lpNewAdditionalREN);
-	if (hr == MAPI_E_NOT_FOUND) {
+	if (hr == MAPI_E_NOT_FOUND)
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "No reminder searchfolder found, nothing to update");
-	} else if (hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "Failed to update search reminders, hr = 0x%08x", hr);
-		return hr;
-	}
+	else if (hr != hrSuccess)
+		return zlog("Failed to update search reminders", hr);
 	return hrSuccess;
 }
 
@@ -668,10 +644,8 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 	auto lpMessageSourceKey = PCpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
 	if (lpMessageSourceKey != NULL) {
 		hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId, m_lpSourceKey->Value.bin.cb, m_lpSourceKey->Value.bin.lpb, lpMessageSourceKey->Value.bin.cb, lpMessageSourceKey->Value.bin.lpb, &cbEntryId, &~ptrEntryId);
-		if (hr != MAPI_E_NOT_FOUND && hr != hrSuccess) {
-			ZLOG_DEBUG(m_lpLogger, "ImportFast: Failed to get entryid from sourcekey, hr = 0x%08x", hr);
-			return hr;
-		}
+		if (hr != MAPI_E_NOT_FOUND && hr != hrSuccess)
+			return zlog("ImportFast: Failed to get entryid from sourcekey", hr);
 	} else {
 	    // Source key not specified, therefore the message must be new since this is the only thing
 	    // we can do if there is no sourcekey. Z-Push uses this, while offline ICS does not (it always
@@ -693,17 +667,14 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 		hr = ImportMessageUpdateAsStream(cbEntryId, ptrEntryId, cValue, lpPropArray, &~ptrMessageImporter);
 	if (hr != hrSuccess) {
 		if (hr != SYNC_E_IGNORE && hr != SYNC_E_OBJECT_DELETED)
-			ZLOG_DEBUG(m_lpLogger, "ImportFast: Failed to get MessageImporter, hr = 0x%08x", hr);
+			zlog("ImportFast: Failed to get MessageImporter", hr);
 		return hr;
 	}
 
 	ZLOG_DEBUG(m_lpLogger, "ImportFast: %s", "Wrapping MessageImporter in IStreamAdapter");
 	hr = ECMessageStreamImporterIStreamAdapter::Create(ptrMessageImporter, &~ptrStream);
-	if (hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "ImportFast: Failed to wrap message importer, hr = 0x%08x" ,hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return zlog("ImportFast: Failed to wrap message importer", hr);
 	*lppStream = ptrStream.release();
 	return hrSuccess;
 }
@@ -729,18 +700,13 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValu
 	} else {
 		ZLOG_DEBUG(m_lpLogger, "CreateFast: %s", "Creating new entryid");
 		auto hr = HrCreateEntryId(m_lpFolder->GetMsgStore()->GetStoreGuid(), MAPI_MESSAGE, &cbEntryId, &lpEntryId);
-		if (hr != hrSuccess) {
-			ZLOG_DEBUG(m_lpLogger, "CreateFast: Failed to create entryid, hr = 0x%08x", hr);
-			return hr;
-		}
+		if (hr != hrSuccess)
+			return zlog("CreateFast: Failed to create entryid", hr);
 	}
 
 	auto hr = m_lpFolder->CreateMessageFromStream(ulNewFlags, m_ulSyncId, cbEntryId, lpEntryId, &~ptrMessageImporter);
-	if(hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "CreateFast: Failed to create message from stream, hr = 0x%08x", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return zlog("CreateFast: Failed to create message from stream", hr);
 	*lppMessageImporter = ptrMessageImporter.release();
 	return hrSuccess;
 }
@@ -763,7 +729,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 			ZLOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The destination item was deleted");
 			hr = SYNC_E_OBJECT_DELETED;
 		} else
-			ZLOG_DEBUG(m_lpLogger, "UpdateFast: Failed to get change info, hr = 0x%08x", hr);
+			zlog("UpdateFast: Failed to get change info", hr);
 		return hr;
 	}
 
@@ -791,8 +757,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 			ZLOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The destination item seems to have disappeared");
 			return SYNC_E_OBJECT_DELETED;
 		} else if (hr != hrSuccess) {
-			ZLOG_DEBUG(m_lpLogger, "UpdateFast: Failed to open conflicting message, hr = 0x%08x", hr);
-			return hr;
+			return zlog("UpdateFast: Failed to open conflicting message", hr);
 		}
 		if (CreateConflictMessageOnly(ptrMessage, &~ptrConflictItems) == MAPI_E_NOT_FOUND) {
 			CreateConflictFolders();
@@ -801,11 +766,8 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 	}
 
 	hr = m_lpFolder->UpdateMessageFromStream(m_ulSyncId, cbEntryId, lpEntryId, ptrConflictItems, &~ptrMessageImporter);
-	if (hr != hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "UpdateFast: Failed to update message from stream, hr = 0x%08x", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return zlog("UpdateFast: Failed to update message from stream", hr);
 	*lppMessageImporter = ptrMessageImporter.release();
 	return hrSuccess;
 }
@@ -943,4 +905,10 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 		return hr;
 
 	return ptrRemindersFolder->SetSearchCriteria(ptrPreRestriction, ptrOrigContainerList, RESTART_SEARCH | (ulOrigSearchState & (SEARCH_FOREGROUND | SEARCH_RECURSIVE)));
+}
+
+HRESULT ECExchangeImportContentsChanges::zlog(const char *msg, HRESULT code)
+{
+	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "%s: %s (%x)", msg, GetMAPIErrorMessage(code), code);
+	return code;
 }
