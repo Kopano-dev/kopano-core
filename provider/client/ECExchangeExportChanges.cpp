@@ -120,7 +120,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	std::string	sourcekey;
 
 	if(m_bConfiged){
-		ZLOG_DEBUG(m_lpLogger, "Config() called twice");
+		zlog("Config() called twice");
 		return MAPI_E_UNCONFIGURED;
 	}
 
@@ -136,7 +136,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 	if(! (ulFlags & SYNC_CATCHUP)) {
 		if(lpCollector == NULL) {
-			ZLOG_DEBUG(m_lpLogger, "No importer to export to");
+			zlog("No importer to export to");
 			return MAPI_E_INVALID_PARAMETER;
 		}
 
@@ -146,16 +146,16 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 			if (hr == hrSuccess && lpSyncSettings->SyncStreamEnabled()) {
 				m_lpStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &bCanStream);
 				if (bCanStream == TRUE) {
-					ZLOG_DEBUG(m_lpLogger, "Exporter supports enhanced ICS, checking importer...");
+					zlog("Exporter supports enhanced ICS, checking importer...");
 					hr = lpCollector->QueryInterface(IID_IECImportContentsChanges, &~m_lpImportStreamedContents);
 					if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED) {
 						assert(m_lpImportStreamedContents == NULL);
 						hr = hrSuccess;
-						ZLOG_DEBUG(m_lpLogger, "Importer doesn't support enhanced ICS");
+						zlog("Importer does not support enhanced ICS");
 					} else
-						ZLOG_DEBUG(m_lpLogger, "Importer supports enhanced ICS");
+						zlog("Importer supports enhanced ICS");
 				} else
-					ZLOG_DEBUG(m_lpLogger, "Exporter doesn't support enhanced ICS");
+					zlog("Exporter does not support enhanced ICS");
 			}
 		}else if(m_ulSyncType == ICS_SYNC_HIERARCHY){
 			hr = lpCollector->QueryInterface(IID_IExchangeImportHierarchyChanges, &~m_lpImportHierarchy);
@@ -171,7 +171,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		ULONG tmp[2] = { 0, 0 };
 		ULONG ulSize = 0;
 
-		ZLOG_DEBUG(m_lpLogger, "Creating new exporter stream");
+		zlog("Creating new exporter stream");
 		hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, sizeof(tmp)), true, &~m_lpStream);
 		if (hr != hrSuccess)
 			return zlog("Unable to create new exporter stream", hr);
@@ -356,7 +356,7 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgre
 	HRESULT			hr = hrSuccess;
 
 	if(!m_bConfiged){
-		ZLOG_DEBUG(m_lpLogger, "Config() not called before Synchronize()");
+		zlog("Config() not called before Synchronize()");
 		return MAPI_E_UNCONFIGURED;
 	}
 
@@ -452,7 +452,7 @@ progress:
 
 HRESULT ECExchangeExportChanges::UpdateState(LPSTREAM lpStream){
 	if(!m_bConfiged){
-		ZLOG_DEBUG(m_lpLogger, "Config() not called before UpdateState()");
+		zlog("Config() not called before UpdateState()");
 		return MAPI_E_UNCONFIGURED;
 	}
 	if (lpStream == NULL)
@@ -464,7 +464,7 @@ HRESULT ECExchangeExportChanges::GetChangeCount(ULONG *lpcChanges) {
 	ULONG cChanges = 0;
 
 	if(!m_bConfiged){
-		ZLOG_DEBUG(m_lpLogger, "Config() not called before GetChangeCount()");
+		zlog("Config() not called before GetChangeCount()");
 		return MAPI_E_UNCONFIGURED;
 	}
 
@@ -513,7 +513,7 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 			return MAPI_E_NO_SUPPORT;
 	}
 	if(m_bConfiged){
-		ZLOG_DEBUG(m_lpLogger, "Config() called twice");
+		zlog("Config() called twice");
 		return MAPI_E_UNCONFIGURED;
 	}
 	
@@ -526,16 +526,16 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 	if (hr == hrSuccess && lpSyncSettings->SyncStreamEnabled()) {
 		m_lpStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &bCanStream);
 		if (bCanStream == TRUE) {
-			ZLOG_DEBUG(m_lpLogger, "Exporter supports enhanced ICS, checking importer...");
+			zlog("Exporter supports enhanced ICS, checking importer...");
 			hr = lpCollector->QueryInterface(IID_IECImportContentsChanges, &~m_lpImportStreamedContents);
 			if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED) {
 				assert(m_lpImportStreamedContents == NULL);
 				hr = hrSuccess;
-				ZLOG_DEBUG(m_lpLogger, "Importer doesn't support enhanced ICS");
+				zlog("Importer does not support enhanced ICS");
 			} else
-				ZLOG_DEBUG(m_lpLogger, "Importer supports enhanced ICS");
+				zlog("Importer supports enhanced ICS");
 		} else
-			ZLOG_DEBUG(m_lpLogger, "Exporter doesn't support enhanced ICS");
+			zlog("Exporter does not support enhanced ICS");
 	}
 	
 	m_ulEntryPropTag = ulPropTag;
@@ -878,13 +878,13 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 			zlog("ExportFast: Stream export failed", hr);
 			goto exit;
 		}
-		ZLOG_DEBUG(m_lpLogger, "ExportFast: %s", "Got new batch");
+		zlog("ExportFast: Got new batch");
 	}
 
 	ZLOG_DEBUG(m_lpLogger, "ExportFast: Requesting serialized message, step = %u", m_ulStep);
 	hr = m_ptrStreamExporter->GetSerializedMessage(m_ulStep, &~ptrSerializedMessage);
 	if (hr == SYNC_E_OBJECT_DELETED) {
-		ZLOG_DEBUG(m_lpLogger, "ExportFast: %s", "Source message is deleted");
+		zlog("ExportFast: Source message is deleted");
 		hr = hrSuccess;
 		goto skip;
 	} else if (hr != hrSuccess) {
@@ -903,17 +903,17 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	if ((m_lstChange.at(m_ulStep).ulChangeType & ICS_ACTION_MASK) == ICS_NEW)
 		ulFlags |= SYNC_NEW_MESSAGE;
 
-	ZLOG_DEBUG(m_lpLogger, "ExportFast: %s", "Importing message change");
+	zlog("ExportFast: Importing message change");
 	hr = m_lpImportStreamedContents->ImportMessageChangeAsAStream(cbProps, ptrProps, ulFlags, &~ptrDestStream);
 	if (hr == hrSuccess) {
-		ZLOG_DEBUG(m_lpLogger, "ExportFast: %s", "Copying data");
+		zlog("ExportFast: Copying data");
 		hr = ptrSerializedMessage->CopyData(ptrDestStream);
 		if (hr != hrSuccess) {
 			zlog("ExportFast: Failed to copy data", hr);
 			LogMessageProps(EC_LOGLEVEL_DEBUG, cbProps, ptrProps);
 			goto exit;
 		}
-		ZLOG_DEBUG(m_lpLogger, "ExportFast: %s", "Copied data");
+		zlog("ExportFast: Copied data");
 	} else if (hr == SYNC_E_IGNORE || hr == SYNC_E_OBJECT_DELETED) {
 		zlog("ExportFast: Change ignored", hr);
 		hr = ptrSerializedMessage->DiscardData();
@@ -1263,6 +1263,9 @@ void ECExchangeExportChanges::LogMessageProps(int loglevel, ULONG cValues, LPSPr
 
 HRESULT ECExchangeExportChanges::zlog(const char *msg, HRESULT code)
 {
-	m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "%s: %s (%x)", msg, GetMAPIErrorMessage(code), code);
+	if (code == hrSuccess)
+		m_lpLogger->log(EC_LOGLEVEL_DEBUG, msg);
+	else
+		m_lpLogger->logf(EC_LOGLEVEL_DEBUG, "%s: %s (%x)", msg, GetMAPIErrorMessage(code), code);
 	return code;
 }
