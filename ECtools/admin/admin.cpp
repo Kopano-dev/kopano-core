@@ -2498,10 +2498,7 @@ int main(int argc, char* argv[])
 	}
 
 	if (lang && mode != MODE_CREATE_STORE) {
-		cerr << "You can only use the --lang option in combination with --create-store. If you" << endl;
-		cerr << "wish to create a store in this language, you must edit the 00createstore" << endl;
-		cerr << "script, which is probably in /etc/kopano/userscripts/createuser.d and" << endl;
-		cerr << "specify the --lang option there." << endl;
+		cerr << "You can only use the --lang option in combination with --create-store." << endl;
 		return 1;
 	}
 
