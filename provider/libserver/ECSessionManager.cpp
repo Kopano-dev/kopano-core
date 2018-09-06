@@ -36,10 +36,10 @@ using namespace std::chrono_literals;
 
 namespace KC {
 
-ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
+ECSessionManager::ECSessionManager(ECConfig *lpConfig, std::shared_ptr<ECLogger> ad,
     bool bHostedKopano, bool bDistributedKopano) :
 	m_lpConfig(lpConfig), m_bHostedKopano(bHostedKopano),
-	m_bDistributedKopano(bDistributedKopano), m_lpAudit(lpAudit)
+	m_bDistributedKopano(bDistributedKopano), m_lpAudit(std::move(ad))
 {
 	m_lpPluginFactory.reset(new ECPluginFactory(lpConfig, g_lpStatsCollector, bHostedKopano, bDistributedKopano));
 	m_lpDatabaseFactory.reset(new ECDatabaseFactory(lpConfig));

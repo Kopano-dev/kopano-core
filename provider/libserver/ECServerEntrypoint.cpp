@@ -92,12 +92,12 @@ ECRESULT kopano_unloadlibrary(void)
 	return erSuccess;
 }
 
-ECRESULT kopano_init(ECConfig *lpConfig, ECLogger *lpAudit, bool bHostedKopano, bool bDistributedKopano)
+ECRESULT kopano_init(ECConfig *lpConfig, std::shared_ptr<ECLogger> ad, bool bHostedKopano, bool bDistributedKopano)
 {
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
 	try {
-		g_lpSessionManager = new ECSessionManager(lpConfig, lpAudit, bHostedKopano, bDistributedKopano);
+		g_lpSessionManager = new ECSessionManager(lpConfig, std::move(ad), bHostedKopano, bDistributedKopano);
 	} catch (const KMAPIError &e) {
 		return e.code();
 	}

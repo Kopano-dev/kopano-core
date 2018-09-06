@@ -30,7 +30,7 @@ static inline bool SOAP_CONNECTION_TYPE_NAMED_PIPE(struct soap *soap)
 	       si->ulConnectionType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY;
 }
 
-extern _kc_export ECRESULT kopano_init(ECConfig *, ECLogger *audit, bool hosted_kopano, bool distr_kopano);
+extern _kc_export ECRESULT kopano_init(ECConfig *, std::shared_ptr<ECLogger> audit, bool hosted_kopano, bool distr_kopano);
 extern _kc_export ECRESULT kopano_exit(void);
 extern _kc_export void kopano_removeallsessions(void);
 

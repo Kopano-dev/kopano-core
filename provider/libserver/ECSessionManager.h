@@ -74,7 +74,7 @@ class SOURCEKEY;
 
 class _kc_export ECSessionManager _kc_final {
 public:
-	_kc_hidden ECSessionManager(ECConfig *, ECLogger *audit, bool hosted, bool distributed);
+	_kc_hidden ECSessionManager(ECConfig *, std::shared_ptr<ECLogger> audit, bool hosted, bool distributed);
 	_kc_hidden virtual ~ECSessionManager(void);
 	_kc_hidden virtual ECRESULT CreateAuthSession(struct soap *, unsigned int caps, ECSESSIONID *, ECAuthSession **, bool register_ses, bool lock_ses);
 	// Creates a session based on passed credentials

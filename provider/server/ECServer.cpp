@@ -1237,7 +1237,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		return retval;
 	//Init the main system, now you can use the values like session manager
 	// This also starts several threads, like SessionCleaner, NotificationThread and TPropsPurge.
-	er = kopano_init(g_lpConfig.get(), g_lpAudit.get(), hosted, distributed);
+	er = kopano_init(g_lpConfig.get(), g_lpAudit, hosted, distributed);
 	if (er != erSuccess) { // create SessionManager
 		ec_log_err("Unable to initialize kopano session manager");
 		return retval;
