@@ -31,7 +31,6 @@ unset LANG LC_CTYPE LC_NUMERIC LC_COLLATE LC_MESSAGES LC_ALL
 LC_CTYPE=en_US.UTF-8
 [ -f /etc/sysconfig/kopano ] && . /etc/sysconfig/kopano
 export LANG LC_CTYPE LC_NUMERIC LC_COLLATE LC_MESSAGES LC_ALL
-export KOPANO_USERSCRIPT_LOCALE
 
 # Source function library.
 . /etc/rc.d/init.d/functions

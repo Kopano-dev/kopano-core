@@ -1,8 +1,7 @@
 # shell include script
 
-KOPANO_LANG="${KOPANO_USERSCRIPT_LOCALE:-${LC_MESSAGES:-en_US}}"
 PATH=/bin:/usr/local/bin:/usr/bin
-export KOPANO_LANG PATH
+export PATH
 
 if [ -z "${KOPANO_GROUP_SCRIPTS}" ] ; then
     exec >&2

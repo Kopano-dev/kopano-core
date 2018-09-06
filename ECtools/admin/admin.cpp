@@ -1912,6 +1912,7 @@ int main(int argc, char* argv[])
 	unsigned int loglevel = EC_LOGLEVEL_NONE;
 	object_ptr<ECLogger> lpLogger;
 	const configsetting_t lpDefaults[] = {
+		{"default_store_locale", ""}, /* ignored here; creation is in storeadm */
 		{ "server_socket", "default:" },
 		{ "sslkey_file", "" },
 		{ "sslkey_pass", "", CONFIGSETTING_EXACT },

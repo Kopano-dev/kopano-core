@@ -8,4 +8,4 @@ PATH=$PATH:/sbin:/usr/local/sbin:/usr/sbin
 # The KOPANO_USER variable from the server will always be in UTF-8
 # format.  The --utf8 option must be set before this value is used,
 # since the current locale isn't necessarily UTF-8.
-kopano-admin -v --utf8 --create-store "${KOPANO_USER}" --lang "${KOPANO_LANG}"
+kopano-admin -v --utf8 --create-store "${KOPANO_USER}"
