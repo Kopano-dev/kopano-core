@@ -49,6 +49,7 @@
 #include <kopano/ECScheduler.h>
 #include <kopano/kcodes.h>
 #include <kopano/my_getopt.h>
+#include "charset/localeutil.h"
 #include "cmd.hpp"
 
 #include "ECServerEntrypoint.h"
@@ -1044,6 +1045,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	 * fails to cope with properly.
 	 */
 	setlocale(LC_ALL, "");
+	forceUTF8Locale(true);
 	InitBindTextDomain();
 
 	auto laters = make_scope_success([&]() {

@@ -61,6 +61,7 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/tie.hpp>
+#include "charset/localeutil.h"
 #include "fileutil.h"
 #include "PyMapiPlugin.h"
 #include <cerrno>
@@ -3404,9 +3405,7 @@ int main(int argc, char *argv[]) {
 		{ NULL, NULL },
 	};
 
-	// @todo: check if we need to setlocale(LC_MESSAGE, "");
-	setlocale(LC_CTYPE, "");
-
+	forceUTF8Locale(true);
 	if (argc < 2) {
 		print_help(argv[0]);
 		return EX_USAGE;
