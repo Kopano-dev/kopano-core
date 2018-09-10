@@ -11,8 +11,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <popt.h>
 #include <json/writer.h>
+#include <libHX/option.h>
 #include <kopano/automapi.hpp>
 #include <kopano/charset/convert.h>
 #include <kopano/CommonUtil.h>
@@ -31,21 +31,21 @@ static char *oof_from, *oof_until, *oof_subject, *oof_msgfile;
 static char *oof_host, *oof_user, *oof_pass, *oof_sslkey, *oof_sslpass;
 static struct tm oof_fromtm, oof_untiltm;
 static int oof_mode = -1, oof_passpr, oof_sslpr;
-static const struct poptOption oof_options[] = {
-	{"user", 'u', POPT_ARG_STRING, &oof_user, 0, "User to set out of office message for"},
-	{nullptr, 'x', POPT_ARG_NONE, &oof_sslpr, 0, "Prompt for plain password to use for login"},
-	{"mode", 'm', POPT_ARG_INT, &oof_mode, 0, "0 to disable out of office, 1 to enable"},
-	{"from", 0, POPT_ARG_STRING, &oof_from, 0, "Date/time (Y-m-d H:M) when OOF should become active"},
-	{"until", 0, POPT_ARG_STRING, &oof_until, 0, "Date/time or \"infinity\" when OOF should become inactive again"},
-	{"subject", 't', POPT_ARG_STRING, &oof_subject, 0, "The subject to be set in the OOF message"},
-	{"message", 'n', POPT_ARG_STRING, &oof_msgfile, 0, "text file containing the body of the message"},
-	{"host", 'h', POPT_ARG_STRING, &oof_host, 0, "Host to connect with (default: localhost)"},
-	{"sslkey-file", 's', POPT_ARG_STRING, &oof_sslkey, 0, "SSL key file to authenticate as admin"},
-	{"sslkey-pass", 'p', POPT_ARG_STRING, &oof_sslpass, 0, "Password for the SSL key file"},
-	{nullptr, 'P', POPT_ARG_NONE, &oof_sslpr, 0, "Prompt for SSL key password"},
-	{"dump-json", 0, POPT_ARG_STRING, nullptr, 0, "(Option is ignored for compatibility)"},
-	POPT_AUTOHELP
-	{nullptr}
+static constexpr const struct HXoption oof_options[] = {
+	{"user", 'u', HXTYPE_STRING, &oof_user, nullptr, nullptr, 0, "User to set out of office message for", "NAME"},
+	{nullptr, 'x', HXTYPE_NONE, &oof_sslpr, nullptr, nullptr, 0, "Prompt for plain password to use for login"},
+	{"mode", 'm', HXTYPE_INT, &oof_mode, nullptr, nullptr, 0, "0 to disable out of office, 1 to enable", "INT"},
+	{"from", 0, HXTYPE_STRING, &oof_from, nullptr, nullptr, 0, "Date/time (Y-m-d H:M) when OOF should become active", "TIMESPEC"},
+	{"until", 0, HXTYPE_STRING, &oof_until, nullptr, nullptr, 0, "Date/time or \"infinity\" when OOF should become inactive again", "TIMESPEC"},
+	{"subject", 't', HXTYPE_STRING, &oof_subject, nullptr, nullptr, 0, "The subject to be set in the OOF message", "TEXT"},
+	{"message", 'n', HXTYPE_STRING, &oof_msgfile, nullptr, nullptr, 0, "text file containing the body of the message", "FILENAME"},
+	{"host", 'h', HXTYPE_STRING, &oof_host, nullptr, nullptr, 0, "Host to connect with (default: localhost)", "HOSTNAME"},
+	{"sslkey-file", 's', HXTYPE_STRING, &oof_sslkey, nullptr, nullptr, 0, "SSL key file to authenticate as admin", "FILENAME"},
+	{"sslkey-pass", 'p', HXTYPE_STRING, &oof_sslpass, nullptr, nullptr, 0, "Password for the SSL key file", "TEXT"},
+	{nullptr, 'P', HXTYPE_NONE, &oof_sslpr, nullptr, nullptr, 0, "Prompt for SSL key password"},
+	{"dump-json", 0, HXTYPE_STRING, nullptr, nullptr, nullptr, 0, "(Option is ignored for compatibility)", "VALUE"},
+	HXOPT_AUTOHELP,
+	HXOPT_TABLEEND,
 };
 
 static bool oof_infinite(const char *t)
@@ -53,14 +53,12 @@ static bool oof_infinite(const char *t)
 	return t != nullptr && strcmp(t, "infinite") == 0;
 }
 
-static HRESULT oof_parse_options(int &argc, char **&argv)
+static HRESULT oof_parse_options(int &argc, const char **&argv)
 {
-	auto optctx = poptGetContext(nullptr, argc, const_cast<const char **>(argv), oof_options, 0);
-	while (poptGetNextOpt(optctx) >= 0)
-		/* just auto-parse */;
+	if (HX_getopt(oof_options, &argc, &argv, HXOPT_USAGEONERR) != HXOPT_ERR_SUCCESS)
+		return MAPI_E_CALL_FAILED;
 	if (argc < 2 || oof_user == nullptr) {
 		fprintf(stderr, "No username specified.\n");
-		poptPrintUsage(optctx, stderr, 0);
 		return -1;
 	}
 	static constexpr const char formula[] = "%Y-%m-%d %H:%M"; /* ISO 8601 */
@@ -253,7 +251,7 @@ static HRESULT oof_login()
 	return oof_show(usr_store);
 }
 
-int main(int argc, char **argv) try
+int main(int argc, const char **argv) try
 {
 	setlocale(LC_ALL, "");
 	auto ret = oof_parse_options(argc, argv);

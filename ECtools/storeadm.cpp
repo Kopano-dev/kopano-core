@@ -9,8 +9,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <mapidefs.h>
-#include <popt.h>
 #include <json/writer.h>
+#include <libHX/option.h>
 #include <kopano/automapi.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECABEntryID.h>
@@ -38,24 +38,24 @@ static const char *opt_entity_name, *opt_entity_type;
 static const char *opt_companyname, *opt_lang;
 static std::unique_ptr<ECConfig> adm_config;
 
-static constexpr const struct poptOption adm_options[] = {
-	{nullptr, 'A', POPT_ARG_STRING, &opt_attach_store, 0, "Attach an orphaned store by GUID to a user account (with -n)"},
-	{nullptr, 'C', POPT_ARG_NONE, &opt_create_store, 0, "Create a store and attach it to a user account (with -n)"},
-	{nullptr, 'D', POPT_ARG_NONE, &opt_detach_store, 0, "Detach a user's store (with -n) and make it orphan"},
-	{nullptr, 'M', POPT_ARG_NONE, &opt_list_mbt, 0, "Show the so-called mailbox table"},
-	{nullptr, 'O', POPT_ARG_NONE, &opt_list_orphan, 0, "List orphaned stores"},
-	{nullptr, 'P', POPT_ARG_NONE, &opt_create_public, 0, "Create a public store"},
-	{nullptr, 'R', POPT_ARG_STRING, &opt_remove_store, 0, "Remove an orphaned store by GUID"},
-	{nullptr, 'V', POPT_ARG_NONE, &opt_show_version, 0, "Show the program version"},
-	{nullptr, 'c', POPT_ARG_STRING, &opt_config_file, 'c', "Specify alternate config file"},
-	{nullptr, 'h', POPT_ARG_STRING, &opt_host, 0, "URI for server"},
-	{nullptr, 'k', POPT_ARG_STRING, &opt_companyname, 0, "Name of the company for creating a public store in a multi-tenant setup"},
-	{nullptr, 'l', POPT_ARG_STRING, &opt_lang, 0, "Use given locale for selecting folder names"},
-	{nullptr, 'n', POPT_ARG_STRING, &opt_entity_name, 0, "User/group/company account to work on for -A,-C,-D"},
-	{nullptr, 'p', POPT_ARG_NONE, &opt_copytopublic, 0, "Copy an orphaned store's root to a subfolder in the public store"},
-	{nullptr, 't', POPT_ARG_STRING, &opt_entity_type, 0, "Store type for the -n argument (user, archive, group, company)"},
-	POPT_AUTOHELP
-	{nullptr}
+static constexpr const struct HXoption adm_options[] = {
+	{nullptr, 'A', HXTYPE_STRING, &opt_attach_store, nullptr, nullptr, 0, "Attach an orphaned store by GUID to a user account (with -n)", "GUID"},
+	{nullptr, 'C', HXTYPE_NONE, &opt_create_store, nullptr, nullptr, 0, "Create a store and attach it to a user account (with -n)"},
+	{nullptr, 'D', HXTYPE_NONE, &opt_detach_store, nullptr, nullptr, 0, "Detach a user's store (with -n) and make it orphan"},
+	{nullptr, 'M', HXTYPE_NONE, &opt_list_mbt, nullptr, nullptr, 0, "Show the so-called mailbox table"},
+	{nullptr, 'O', HXTYPE_NONE, &opt_list_orphan, nullptr, nullptr, 0, "List orphaned stores"},
+	{nullptr, 'P', HXTYPE_NONE, &opt_create_public, nullptr, nullptr, 0, "Create a public store"},
+	{nullptr, 'R', HXTYPE_STRING, &opt_remove_store, nullptr, nullptr, 0, "Remove an orphaned store by GUID", "GUID"},
+	{nullptr, 'V', HXTYPE_NONE, &opt_show_version, nullptr, nullptr, 0, "Show the program version"},
+	{nullptr, 'c', HXTYPE_STRING, &opt_config_file, nullptr, nullptr, 0, "Specify alternate config file", "FILENAME"},
+	{nullptr, 'h', HXTYPE_STRING, &opt_host, nullptr, nullptr, 0, "URI for server", "URI"},
+	{nullptr, 'k', HXTYPE_STRING, &opt_companyname, nullptr, nullptr, 0, "Name of the company for creating a public store in a multi-tenant setup", "NAME"},
+	{nullptr, 'l', HXTYPE_STRING, &opt_lang, nullptr, nullptr, 0, "Use given locale for selecting folder names", "LOCALE"},
+	{nullptr, 'n', HXTYPE_STRING, &opt_entity_name, nullptr, nullptr, 0, "User/group/company account to work on for -A,-C,-D", "NAME"},
+	{nullptr, 'p', HXTYPE_NONE, &opt_copytopublic, nullptr, nullptr, 0, "Copy an orphaned store's root to a subfolder in the public store"},
+	{nullptr, 't', HXTYPE_STRING, &opt_entity_type, nullptr, nullptr, 0, "Store type for the -n argument (user, archive, group, company)", "TYPE"},
+	HXOPT_AUTOHELP,
+	HXOPT_TABLEEND,
 };
 
 static constexpr const configsetting_t adm_config_defaults[] = {
@@ -741,27 +741,19 @@ static HRESULT adm_perform()
 	return MAPI_E_CALL_FAILED;
 }
 
-static bool adm_parse_options(int &argc, char **&argv)
+static bool adm_parse_options(int &argc, const char **&argv)
 {
 	adm_config.reset(ECConfig::Create(adm_config_defaults));
-	opt_config_file = ECConfig::GetDefaultPath("admin.cfg");
-	adm_config->LoadSettings(opt_config_file);
+	adm_config->LoadSettings(ECConfig::GetDefaultPath("admin.cfg"));
 
-	auto ctx = poptGetContext(nullptr, argc, const_cast<const char **>(argv), adm_options, 0);
-	int c;
-	while ((c = poptGetNextOpt(ctx)) >= 0) {
-		if (c == 'c') {
-			adm_config->LoadSettings(opt_config_file);
-			if (adm_config->HasErrors()) {
-				fprintf(stderr, "Error reading config file %s\n", opt_config_file);
-				return false;
-			}
-		}
-	}
-	if (c < -1) {
-		fprintf(stderr, "%s\n", poptStrerror(c));
-		poptPrintHelp(ctx, stderr, 0);
+	if (HX_getopt(adm_options, &argc, &argv, HXOPT_USAGEONERR) != HXOPT_ERR_SUCCESS)
 		return false;
+	if (opt_config_file != nullptr) {
+		adm_config->LoadSettings(opt_config_file);
+		if (adm_config->HasErrors()) {
+			fprintf(stderr, "Error reading config file %s\n", opt_config_file);
+			return false;
+		}
 	}
 	auto act = !!opt_attach_store + !!opt_detach_store + !!opt_create_store +
 	           !!opt_remove_store + !!opt_create_public + !!opt_list_orphan +
@@ -787,7 +779,7 @@ static bool adm_parse_options(int &argc, char **&argv)
 	return true;
 }
 
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
 	setlocale(LC_ALL, "");
 	ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);
