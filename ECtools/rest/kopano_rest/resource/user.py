@@ -53,7 +53,7 @@ class UserResource(Resource):
     }
 
     def delta(self, req, resp, server):
-        args = urlparse.parse_qs(req.query_string)
+        args = self.parse_qs(req)
         token = args['$deltatoken'][0] if '$deltatoken' in args else None
         importer = UserImporter()
         newstate = server.sync_gab(importer, token)
@@ -83,7 +83,7 @@ class UserResource(Resource):
                 else:
                     data = server.user(userid=userid)
             else:
-                args = urlparse.parse_qs(req.query_string)
+                args = self.parse_qs(req)
                 if '$search' in args:
                     query = args['$search'][0]
                     def yielder(**kwargs):
