@@ -16,9 +16,8 @@ elif [ -f @sysconfdir@/default/kopano ]; then
   . @sysconfdir@/default/kopano
 fi
 KOPANO_COMPANY_SCRIPTS=/ignore/
-KOPANO_LANG="${KOPANO_USERSCRIPT_LOCALE:-${LC_MESSAGES:-en_US}}"
 PATH=/bin:/usr/local/bin:/usr/bin
-export KOPANO_LANG PATH
+export PATH
 if [ -z "${KOPANO_COMPANY}" -a -z "${KOPANO_COMPANYID}" ] ; then
     exec >&2
     echo "KOPANO_COMPANY and KOPANO_COMPANYID is not set."

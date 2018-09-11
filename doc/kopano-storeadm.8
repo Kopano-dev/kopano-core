@@ -98,6 +98,14 @@ Create pubilc store: kopano\-storeadm \-P
 Normally, no configuration file is used or required. If the file
 \fB/etc/kopano/admin.cfg\fP exists, it is used. The following options can be
 set in the configuration file:
+.SS default_store_locale
+.PP
+New folders being created as part of the initial store creation (see \-C) will
+use the language of the locale. A suitable locale string is in the form of an
+ISO 639 code for the language, followed by an underscore, followed by an ISO
+3166 code for the region, e.g. de_DE, en_US, etc.
+.PP
+Default: \fI(empty)\fP
 .SS server_socket
 .PP
 URI for the connection to the Kopano server.

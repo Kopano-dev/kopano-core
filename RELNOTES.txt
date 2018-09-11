@@ -54,6 +54,16 @@ Packaging changes:
 Fixes:
 * dagent/client: fixed broken umlauts in PR_EC_BODY_FILTERED
   when input was not UTF-8 [KC-1225]
+* daemons: avoid setting possibly nonexisting locales
+  (specifically en_US) [KC-1271]
+Changes:
+* kopano-server no longer reads the KOPANO_USERSCRIPT_LOCALE variable from
+  {/etc/sysconfig/kopano, /etc/default/kopano} and no longer passes it to
+  kopano-storeadm invocations.
+* Instead, kopano-storeadm reads default_store_locale", from admin.cfg, on its
+  own now, thereby making the behavior of kopano-storeadm consistent between
+  automatic invocations from kopano-server and manual invocations from a
+  command prompt. [KC-1262]
 
 
 8.6.7 (2018-08-14)

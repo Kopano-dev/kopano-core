@@ -7,6 +7,7 @@
 #include <iostream>
 #include <clocale>
 #include <cstring>
+#include <unistd.h>
 #include "localeutil.h"
 
 namespace KC {
@@ -67,7 +68,7 @@ bool forceUTF8Locale(bool bOutput, std::string *lpstrLastSetLocale)
 			return true; // no need to force anything
 		}
 	}
-	if (bOutput) {
+	if (bOutput && (isatty(STDOUT_FILENO) || isatty(STDERR_FILENO))) {
 		std::cerr << "Warning: Terminal locale not UTF-8, but UTF-8 locale is being forced." << std::endl;
 		std::cerr << "         Screen output may not be correctly printed." << std::endl;
 	}

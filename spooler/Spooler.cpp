@@ -70,6 +70,7 @@
 #include <kopano/charset/convstring.h>
 #include <kopano/charset/utf8string.h>
 #include <kopano/ECGetText.h>
+#include "charset/localeutil.h"
 #include "StatsClient.h"
 #include "fileutil.h"
 #include <map>
@@ -970,6 +971,7 @@ int main(int argc, char *argv[]) {
     memset(&act, 0, sizeof(act));
 
 	setlocale(LC_CTYPE, "");
+	forceUTF8Locale(true);
 	setlocale(LC_MESSAGES, "");
 
 	while(1) {

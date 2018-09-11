@@ -31,6 +31,7 @@
 #include <kopano/my_getopt.h>
 #include <kopano/ecversion.h>
 #include <kopano/CommonUtil.h>
+#include "charset/localeutil.h"
 #include "SSLUtil.h"
 #include "fileutil.h"
 #include <kopano/UnixUtil.h>
@@ -253,8 +254,7 @@ int main(int argc, char **argv) {
 		{NULL, 0, NULL, 0}
 	};
 
-	setlocale(LC_CTYPE, "");
-
+	forceUTF8Locale(true);
 	while (1) {
 		int opt = my_getopt_long_permissive(argc, argv, "Fhc:V", long_options, nullptr);
 		if (opt == -1)

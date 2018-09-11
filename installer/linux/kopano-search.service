@@ -4,7 +4,6 @@ Documentation=man:kopano-search(8) man:kopano-search.cfg(5)
 
 [Service]
 Type=simple
-Environment=LC_CTYPE=en_US.UTF-8
 EnvironmentFile=-/etc/sysconfig/kopano
 EnvironmentFile=-/etc/default/kopano
 ExecStart=/usr/sbin/kopano-search -F

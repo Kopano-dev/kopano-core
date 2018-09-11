@@ -36,6 +36,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/my_getopt.h>
 #include <kopano/ECChannel.h>
+#include "charset/localeutil.h"
 #include "POP3.h"
 #include "IMAP.h"
 #include <kopano/ecversion.h>
@@ -376,6 +377,7 @@ int main(int argc, char *argv[]) {
 		{NULL, 0, NULL, 0}
 	};
 
+	forceUTF8Locale(true);
 	// Get commandline options
 	while (1) {
 		c = my_getopt_long_permissive(argc, argv, "c:h:iuFV", long_options, NULL);

@@ -59,6 +59,7 @@ static constexpr const struct poptOption adm_options[] = {
 };
 
 static constexpr const configsetting_t adm_config_defaults[] = {
+	{"default_store_locale", ""},
 	{"server_socket", "default:"},
 	{"sslkey_file", ""},
 	{"sslkey_pass", ""},
@@ -652,7 +653,7 @@ static HRESULT adm_create_store(IECServiceAdmin *svcadm)
 	ret = svcadm->CreateStore(ECSTORE_TYPE_PRIVATE, user_size, user_eid,
 	      &store_size, &~store_eid, &root_size, &~root_fld);
 	if (ret == MAPI_E_COLLISION)
-		return kc_perror("Public store already exists", ret);
+		return kc_perror("User store already exists", ret);
 	if (ret != hrSuccess)
 		return kc_perror("Unable to create store", ret);
 	if (store_size == sizeof(EID))
@@ -781,6 +782,8 @@ static bool adm_parse_options(int &argc, char **&argv)
 		fprintf(stderr, "-l can only be used with -C or -P.\n");
 		return false;
 	}
+	if (opt_lang == nullptr)
+		opt_lang = adm_config->GetSetting("default_store_locale");
 	return true;
 }
 
@@ -790,7 +793,7 @@ int main(int argc, char **argv)
 	ec_log_get()->SetLoglevel(EC_LOGLEVEL_INFO);
 	if (!adm_parse_options(argc, argv))
 		return EXIT_FAILURE;
-	if (opt_lang != nullptr && setlocale(LC_MESSAGES, opt_lang) == nullptr) {
+	if (opt_lang != nullptr && *opt_lang != '\0' && setlocale(LC_MESSAGES, opt_lang) == nullptr) {
 		fprintf(stderr, "Your system does not have the \"%s\" locale available.\n", opt_lang);
 		return EXIT_FAILURE;
 	}

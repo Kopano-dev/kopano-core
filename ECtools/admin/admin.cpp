@@ -1897,6 +1897,7 @@ int main(int argc, char* argv[])
 	unsigned int loglevel = EC_LOGLEVEL_NONE;
 	std::shared_ptr<ECLogger> lpLogger;
 	const configsetting_t lpDefaults[] = {
+		{"default_store_locale", ""}, /* ignored here; creation is in storeadm */
 		{ "server_socket", "default:" },
 		{ "sslkey_file", "" },
 		{ "sslkey_pass", "", CONFIGSETTING_EXACT },
@@ -2483,10 +2484,7 @@ int main(int argc, char* argv[])
 	}
 
 	if (lang && mode != MODE_CREATE_STORE) {
-		cerr << "You can only use the --lang option in combination with --create-store. If you" << endl;
-		cerr << "wish to create a store in this language, you must edit the 00createstore" << endl;
-		cerr << "script, which is probably in /etc/kopano/userscripts/createuser.d and" << endl;
-		cerr << "specify the --lang option there." << endl;
+		cerr << "You can only use the --lang option in combination with --create-store." << endl;
 		return 1;
 	}
 
