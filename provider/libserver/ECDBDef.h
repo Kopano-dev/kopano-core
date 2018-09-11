@@ -329,9 +329,9 @@
  * version that can be reached with creates only.
  * (This is never less than %Z_UPDATE_LAST.)
  */
-#define Z_UPDATE_RELEASE_ID 112
+#define Z_UPDATE_RELEASE_ID 115
 
 // This is the last update ID always update this to the last ID
-#define Z_UPDATE_LAST 112
+#define Z_UPDATE_LAST 115
 
 #endif
