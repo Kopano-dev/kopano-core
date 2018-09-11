@@ -27,9 +27,6 @@ MONITORCONFIG_OPT=""
 
 # Switch to C, like at boot time.
 unset LANG LC_CTYPE LC_NUMERIC LC_COLLATE LC_MESSAGES LC_ALL
-# Update with user settings.
-[ -f /etc/sysconfig/kopano ] && . /etc/sysconfig/kopano
-export LANG LC_CTYPE LC_NUMERIC LC_COLLATE LC_MESSAGES LC_ALL
 
 # Source function library.
 . /etc/rc.d/init.d/functions

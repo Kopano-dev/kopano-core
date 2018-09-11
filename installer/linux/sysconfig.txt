@@ -1,9 +1,0 @@
-#
-# THESE DEFINITIONS ONLY APPLY WHEN
-# kopano-server runs /etc/kopano/*scripts*.
-#
-# IT DOES NOT GET USED IN ANY OTHER WAY,
-# ESPECIALLY NOT WHEN ISSUING kopano-storeadm FROM A SHELL.
-#
-
-

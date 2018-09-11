@@ -24,8 +24,6 @@ SPAMDPROGRAM=/usr/sbin/kopano-spamd
 
 SPAMDCONFIG_OPT=""
 [ ! -z $SPAMDCONFIG -a -f $SPAMDCONFIG ] && SPAMDCONFIG_OPT="-c $SPAMDCONFIG"
-
-[ -f /etc/sysconfig/kopano ] && . /etc/sysconfig/kopano
 if [ -z "$KOPANO_LOCALE" ]; then
 	KOPANO_LOCALE="C"
 fi

@@ -9,11 +9,6 @@
 # beware that this string can contain any characters, so take heed to
 # correct quoting.
 
-if [ -f @sysconfdir@/sysconfig/kopano ]; then
-  . @sysconfdir@/sysconfig/kopano
-elif [ -f @sysconfdir@/default/kopano ]; then
-  . @sysconfdir@/default/kopano
-fi
 PKGLIBEXECDIR=@PKGLIBEXECDIR@
 KOPANO_COMPANY_SCRIPTS=@USERSCRIPTDIR@/deletecompany.d
 . @USERSCRIPTDIR@/companies_common.sh
