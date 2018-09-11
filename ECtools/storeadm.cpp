@@ -609,7 +609,7 @@ static HRESULT adm_create_store(IECServiceAdmin *svcadm)
 	ret = svcadm->CreateStore(ECSTORE_TYPE_PRIVATE, user_size, user_eid,
 	      &store_size, &~store_eid, &root_size, &~root_fld);
 	if (ret == MAPI_E_COLLISION)
-		return kc_perror("Public store already exists", ret);
+		return kc_perror("User store already exists", ret);
 	if (ret != hrSuccess)
 		return kc_perror("Unable to create store", ret);
 	if (store_size == sizeof(EID))
