@@ -83,8 +83,7 @@ LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid)
 		bind_textdomain_codeset("kopano", "utf-8");
 		init = true;
 	}
-	const char *lpsz = msgid;
-	lpsz = dcgettext(domainname, msgid, LC_MESSAGES);
+	const char *lpsz = dcgettext(domainname, msgid, LC_MESSAGES);
 	return const_cast<wchar_t *>(converter::getInstance()->convert(lpsz));
 }
 

@@ -115,7 +115,7 @@ extern "C" {
 
 typedef size_t php_stringsize_t; /* cf. va_arg call in php/Zend/zend_API.c */
 
-// Destructor functions needed for the PHP resources. 
+// Destructor functions needed for the PHP resources.
 static void _php_free_mapi_rowset(zend_resource *rsrc TSRMLS_DC);
 
 // Not defined anymore in PHP 5.3.0
@@ -288,7 +288,7 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_msgstore_advise, NULL)
 	ZEND_FE(mapi_msgstore_unadvise, NULL)
 	ZEND_FE(mapi_msgstore_abortsubmit, nullptr)
-	
+
 	ZEND_FE(mapi_sink_create, NULL)
 	ZEND_FE(mapi_sink_timedwait, NULL)
 
@@ -497,7 +497,7 @@ PHP_MINFO_FUNCTION(mapi)
 
 static int LoadSettingsFile(void)
 {
-	const char *const cfg_file = ECConfig::GetDefaultPath("php-mapi.cfg"); 
+	const char *const cfg_file = ECConfig::GetDefaultPath("php-mapi.cfg");
 	struct stat st;
 	if (stat(cfg_file, &st) == 0) {
 		static const configsetting_t settings[] = {
@@ -617,7 +617,7 @@ PHP_MSHUTDOWN_FUNCTION(mapi)
 
 	free(perf_measure_file);
 	perf_measure_file = NULL;
-    
+
 	if (lpLogger)
 		lpLogger->Log(EC_LOGLEVEL_INFO, "PHP-MAPI shutdown");
 
