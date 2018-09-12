@@ -1141,11 +1141,11 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 		auto tsNow = StartOfYear(tsDayStart);
 		ec_log_debug("Recurrence Type Yearly");
 		while(tsNow < tsDayEnd) {
-			ULONG ulMonthDay = 0, ulValidDay = 0;
+			ULONG ulValidDay = 0;
 			time_t tsDayNow = 0, tMonthStart = 0, tsMonthNow = 0;
 
 			if(m_sRecState.ulDayOfMonth != 0) {
-				ulMonthDay = m_sRecState.ulDayOfMonth;
+				ULONG ulMonthDay = m_sRecState.ulDayOfMonth;
 				tMonthStart = tsNow + DaysTillMonth(tsNow, getMonth()-1) * 24 * 60 *60;
 
 				if( ulMonthDay > DaysInMonth(YearFromTime(tMonthStart),MonthFromTime(tMonthStart)))
