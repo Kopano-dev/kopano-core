@@ -142,11 +142,11 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 			return hr;
 
 		if(strValue.compare( L"Global Address Book" ) == 0)
-			lpszName = _("Global Address Book");
+			lpszName = KC_TX("Global Address Book");
 		else if(strValue.compare( L"Global Address Lists" ) == 0)
-			lpszName = _("Global Address Lists");
+			lpszName = KC_TX("Global Address Lists");
 		else if (strValue.compare( L"All Address Lists" ) == 0)
-			lpszName = _("All Address Lists");
+			lpszName = KC_TX("All Address Lists");
 
 		if (lpszName == nullptr)
 			break;

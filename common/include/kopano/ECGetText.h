@@ -8,6 +8,7 @@
 
 #include <kopano/zcdefs.h>
 #include <libintl.h>
+/* Input is always char * [C locale]. Output is either char * [C locale] or wchar_t * [Unicode] */
 #define KC_A(string) dcgettext("kopano", string, LC_MESSAGES)
 #define KC_W(string) kopano_dcgettext_wide("kopano", string)
 
@@ -15,10 +16,10 @@ namespace KC {
 	extern _kc_export LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid);
 }
 
-// This must go. Obviously someone was trying to be clever, but a macro named _
-// can cause all sorts of mischief that can be hard to trace. Unfortunately
-// it's in use in 51 different files all over the project, so changing it is
-// a bit of a bother. NS 16 October 2013
-#define _(string) KC_W(string)
+#ifdef UNICODE
+#	define KC_TX(s) KC_W(s)
+#else
+#	define KC_TX(s) KC_A(s)
+#endif
 
 #endif // ndef ECGetText_INCLUDED

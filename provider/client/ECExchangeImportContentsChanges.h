@@ -55,6 +55,7 @@ private:
 	HRESULT ImportMessageCreateAsStream(ULONG cValue, LPSPropValue lpPropArray, WSMessageStreamImporter **lppMessageImporter);
 	HRESULT ImportMessageUpdateAsStream(ULONG eid_size, const ENTRYID *eid, ULONG nvals, const SPropValue *, WSMessageStreamImporter **);
 	static HRESULT HrUpdateSearchReminders(LPMAPIFOLDER lpRootFolder, const SPropValue *);
+	HRESULT zlog(const char *, HRESULT = 0);
 	friend class ECExchangeImportHierarchyChanges;
 
 	IStream *m_lpStream = nullptr;

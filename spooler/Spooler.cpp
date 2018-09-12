@@ -483,7 +483,7 @@ static HRESULT handle_child_exit(IMAPISession *lpAdminSession,
 	std::unique_ptr<ECSender> lpMailer;
 	auto hr = GetErrorObjects(sSendData, lpAdminSession, &~lpAddrBook, &unique_tie(lpMailer), &~lpUserStore, &~lpMessage);
 	if (hr == hrSuccess) {
-		lpMailer->setError(_("A fatal error occurred while processing your message, and Kopano is unable to send your email."));
+		lpMailer->setError(KC_TX("A fatal error occurred while processing your message, and Kopano is unable to send your email."));
 		hr = SendUndeliverable(lpMailer.get(), lpUserStore, lpMessage);
 		// TODO: if failed, and we have the lpUserStore, create message?
 	}

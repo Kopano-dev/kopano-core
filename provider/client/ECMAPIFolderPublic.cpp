@@ -126,9 +126,9 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 	case PROP_ID(PR_DISPLAY_NAME): {
 		// FIXME: Should be from the global profile and/or gettext (PR_FAVORITES_DEFAULT_NAME)
 		if (lpFolder->m_ePublicEntryID == ePE_PublicFolders)
-			lpszName = _("Public Folders");
+			lpszName = KC_TX("Public Folders");
 		else if (lpFolder->m_ePublicEntryID == ePE_Favorites)
-			lpszName = _("Favorites");
+			lpszName = KC_TX("Favorites");
 		else if (lpFolder->m_ePublicEntryID == ePE_IPMSubtree)
 			lpszName = KC_T("IPM_SUBTREE");
 

@@ -751,21 +751,21 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 
 	switch (sfWhich) {
 	case sfBase:
-		lpszName = _("Kopano Archive");
-		lpszDesc = _("This folder contains the special archive folders.");
+		lpszName = KC_TX("Kopano Archive");
+		lpszDesc = KC_TX("This folder contains the special archive folders.");
 		ulCreateFlags = 0;
 		break;
 	case sfHistory:
-		lpszName = _("History");
-		lpszDesc = _("This folder contains archives that have been replaced by a newer version.");
+		lpszName = KC_TX("History");
+		lpszDesc = KC_TX("This folder contains archives that have been replaced by a newer version.");
 		break;
 	case sfOutgoing:
-		lpszName = _("Outgoing");
-		lpszDesc = _("This folder contains archives of all outgoing messages.");
+		lpszName = KC_TX("Outgoing");
+		lpszDesc = KC_TX("This folder contains archives of all outgoing messages.");
 		break;
 	case sfDeleted:
-		lpszName = _("Deleted");
-		lpszDesc = _("This folder contains archives of messages that have been deleted.");
+		lpszName = KC_TX("Deleted");
+		lpszDesc = KC_TX("This folder contains archives of messages that have been deleted.");
 		break;
 	default:
 		assert(false);

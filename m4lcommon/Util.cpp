@@ -1529,51 +1529,51 @@ HRESULT Util::HrMAPIErrorToText(HRESULT hr, LPTSTR *lppszError, void *lpBase)
 	switch(hr)
 	{
 	case MAPI_E_END_OF_SESSION:
-		lpszError = _("End of Session");
+		lpszError = KC_TX("End of Session");
 		break;
 	case MAPI_E_NETWORK_ERROR:
-		lpszError = _("Connection lost");
+		lpszError = KC_TX("Connection lost");
 		break;
 	case MAPI_E_NO_ACCESS:
-		lpszError = _("Access denied");
+		lpszError = KC_TX("Access denied");
 		break;
 	case MAPI_E_FOLDER_CYCLE:
-		lpszError = _("Unable to move or copy folders. Can't copy folder. A top-level can't be copied to one of its subfolders. Or, you may not have appropriate permissions for the folder. To check your permissions for the folder, right-click the folder, and then click Properties on the shortcut menu.");
+		lpszError = KC_TX("Unable to move or copy folders. Can't copy folder. A top-level can't be copied to one of its subfolders. Or, you may not have appropriate permissions for the folder. To check your permissions for the folder, right-click the folder, and then click Properties on the shortcut menu.");
 		break;
 	case MAPI_E_STORE_FULL:
-		lpszError = _("The message store has reached its maximum size. To reduce the amount of data in this message store, select some items that you no longer need, and permanently (SHIFT + DEL) delete them.");
+		lpszError = KC_TX("The message store has reached its maximum size. To reduce the amount of data in this message store, select some items that you no longer need, and permanently (SHIFT + DEL) delete them.");
 		break;
 	case MAPI_E_USER_CANCEL:
-		lpszError = _("The user canceled the operation, typically by clicking the Cancel button in a dialog box.");
+		lpszError = KC_TX("The user canceled the operation, typically by clicking the Cancel button in a dialog box.");
 		break;
 	case MAPI_E_LOGON_FAILED:
-		lpszError = _("A logon session could not be established.");
+		lpszError = KC_TX("A logon session could not be established.");
 		break;
 	case MAPI_E_COLLISION:
-		lpszError = _("The name of the folder being moved or copied is the same as that of a subfolder in the destination folder. The message store provider requires that folder names be unique. The operation stops without completing.");
+		lpszError = KC_TX("The name of the folder being moved or copied is the same as that of a subfolder in the destination folder. The message store provider requires that folder names be unique. The operation stops without completing.");
 		break;
 	case MAPI_W_PARTIAL_COMPLETION:
-		lpszError = _("The operation succeeded, but not all entries were successfully processed, copied, deleted or moved");// emptied
+		lpszError = KC_TX("The operation succeeded, but not all entries were successfully processed, copied, deleted or moved");// emptied
 		break;
 	case MAPI_E_UNCONFIGURED:
-		lpszError = _("The provider does not have enough information to complete the logon. Or, the service provider has not been configured.");
+		lpszError = KC_TX("The provider does not have enough information to complete the logon. Or, the service provider has not been configured.");
 		break;
 	case MAPI_E_FAILONEPROVIDER:
-		lpszError = _("One of the providers cannot log on, but this error should not disable the other services.");
+		lpszError = KC_TX("One of the providers cannot log on, but this error should not disable the other services.");
 		break;
 	case MAPI_E_DISK_ERROR:
-		lpszError = _("A database error or I/O error has occurred.");
+		lpszError = KC_TX("A database error or I/O error has occurred.");
 		break;
 	case MAPI_E_HAS_FOLDERS:
-		lpszError = _("The subfolder being deleted contains subfolders.");
+		lpszError = KC_TX("The subfolder being deleted contains subfolders.");
 		break;
 	case MAPI_E_HAS_MESSAGES:
-		lpszError = _("The subfolder being deleted contains messages.");
+		lpszError = KC_TX("The subfolder being deleted contains messages.");
 		break;
 	default: {
-			strError = _("No description available.");
+			strError = KC_TX("No description available.");
 			strError.append(1, ' ');
-			strError.append(_("MAPI error code:"));
+			strError.append(KC_TX("MAPI error code:"));
 			strError.append(1, ' ');
 			strError.append(tstringify_hex(hr));
 			lpszError = strError.c_str();
