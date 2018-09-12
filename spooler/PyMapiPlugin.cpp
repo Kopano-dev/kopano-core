@@ -85,34 +85,34 @@ static HRESULT PyHandleError(PyObject *pyobj)
 		assert(false);
 		return S_FALSE;
 	}
-	PyErr_PrintEx(0);
+	if (PyErr_ExceptionMatches(PyExc_KeyboardInterrupt))
+		return S_FALSE;
+	if (PyErr_ExceptionMatches(PyExc_SystemExit)) {
+		ec_log_err("Plugin called exit(), which is meaningless");
+		return S_FALSE;
+	}
 	PyObjectAPtr ptype, pvalue, ptraceback;
 	PyErr_Fetch(&~ptype, &~pvalue, &~ptraceback);
-	auto traceback = reinterpret_cast<PyTracebackObject *>(ptraceback.get());
-	const char *pStrErrorMessage = "Unknown";
-	const char *pStrType = "Unknown";
-
-	if (pvalue != nullptr)
-		pStrErrorMessage = PyString_AsString(pvalue.get());
-	if (ptype != nullptr)
-		pStrType = PyString_AsString(ptype.get());
-
-	ec_log_err("  Python type: %s", pStrType);
-	ec_log_err("  Python error: %s", pStrErrorMessage);
-	for (; traceback != nullptr && traceback->tb_next != nullptr;
-	     traceback = traceback->tb_next) {
-		auto frame = traceback->tb_frame;
-		if (frame == nullptr) {
-			ec_log_err("  Python trace: Unknown");
-			continue;
-		}
-		int line = frame->f_lineno;
-		const char *filename = PyString_AsString(frame->f_code->co_filename);
-		const char *funcname = PyString_AsString(frame->f_code->co_name);
-		ec_log_err("  Python trace: %s(%d) %s", filename, line, funcname);
+	if (ptype == nullptr) {
+		assert(false);
+		return S_FALSE;
 	}
-	PyErr_Clear();
-	assert(false);
+	PyErr_NormalizeException(&+ptype, &+pvalue, &+ptraceback);
+	if (ptraceback == nullptr) {
+		ptraceback.reset(Py_None);
+		Py_INCREF(ptraceback);
+	}
+#if PY_MAJOR_VERSION >= 3
+	PyException_SetTraceback(pvalue, ptraceback);
+#endif
+	if (ptype == nullptr) {
+		assert(false);
+		return S_FALSE;
+	}
+	ec_log_info("Python traceback is on stderr (possibly check journalctl instead of logfile)");
+	fprintf(stderr, "Python threw an exception:\n");
+	PyErr_Display(ptype, pvalue, ptraceback);
+	assert("Python threw an exception");
 	return S_FALSE;
 }
 
