@@ -2964,12 +2964,13 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 		case NONACTIVE_ROOM:
 		case NONACTIVE_EQUIPMENT:
 		case NONACTIVE_CONTACT:
-		{
+			er = [this,soap,ulId,lpDetails,lpPropTags,i,ulMapiType,lpPropVal]() -> ECRESULT {
+			ECRESULT er = erSuccess;
 			switch(NormalizePropTag(lpPropTags->__ptr[i])) {
 			case PR_ENTRYID: {
 				er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
 				if (er != erSuccess)
-					goto exit;
+					return er;
 				break;
 			}
 			case PR_EC_NONACTIVE:
@@ -2987,7 +2988,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 					objectdetails_t sCompanyDetails;
 					er = GetObjectDetails(lpDetails->GetPropInt(OB_PROP_I_COMPANYID), &sCompanyDetails);
 					if (er != erSuccess)
-						goto exit;
+						return er;
 					lpPropVal->Value.lpszA = s_strcpy(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
 				}
 				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
@@ -3238,13 +3239,18 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
 			}
+			return erSuccess;
+		}();
+			if (er != erSuccess)
+				goto exit;
 			break;
-		} // end case ACTIVE_USER*
 
 		case CONTAINER_COMPANY:
 		case DISTLIST_GROUP:
 		case DISTLIST_SECURITY:
-		case DISTLIST_DYNAMIC: {
+		case DISTLIST_DYNAMIC:
+			er = [this,soap,ulId,lpDetails,lpPropTags,i,ulMapiType,lpPropVal]() -> ECRESULT {
+			ECRESULT er = erSuccess;
 			switch(NormalizePropTag(lpPropTags->__ptr[i])) {
 			case PR_EC_COMPANY_NAME: {
 				if (IsInternalObject(ulId) || (! m_lpSession->GetSessionManager()->IsHostedSupported())) {
@@ -3253,7 +3259,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 					objectdetails_t sCompanyDetails;
 					er = GetObjectDetails(lpDetails->GetPropInt(OB_PROP_I_COMPANYID), &sCompanyDetails);
 					if (er != erSuccess)
-						goto exit;
+						return er;
 					lpPropVal->Value.lpszA = s_strcpy(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
 				}
 				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
@@ -3284,7 +3290,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 			case PR_ENTRYID:
 				er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
 				if (er != erSuccess)
-					goto exit;
+					return er;
 				break;
 			case PR_NORMALIZED_SUBJECT:
 			case PR_DISPLAY_NAME:
@@ -3430,8 +3436,11 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
 			}
+			return erSuccess;
+		}();
+			if (er != erSuccess)
+				goto exit;
 			break;
-		} // end case DISTLIST_GROUP
 		} // end switch(objclass)
 	}
 
@@ -3474,7 +3483,9 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 			er = KCERR_NOT_FOUND;
 			break;
 
-		case CONTAINER_ADDRESSLIST: {
+		case CONTAINER_ADDRESSLIST:
+			er = [this,soap,ulId,lpDetails,lpPropTags,i,ulMapiType,lpPropVal]() -> ECRESULT {
+			ECRESULT er = erSuccess;
 			uint32_t tmp4;
 			switch(NormalizePropTag(lpPropTags->__ptr[i])) {
 			case PR_ENTRYID: {
@@ -3545,10 +3556,15 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
 			}
+			return erSuccess;
+		}();
+			if (er != erSuccess)
+				return er;
 			break;
-		} // end case CONTAINER_ADDRESSLIST
 
-		case CONTAINER_COMPANY: {
+		case CONTAINER_COMPANY:
+			er = [this,soap,ulId,lpDetails,lpPropTags,i,ulMapiType,lpPropVal]() -> ECRESULT {
+			ECRESULT er = erSuccess;
 			uint32_t tmp4;
 			switch (NormalizePropTag(lpPropTags->__ptr[i])) {
 			case PR_CONTAINER_CLASS:
@@ -3650,7 +3666,11 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
 			}
-		} // end CONTAINER_COMPANY
+			return erSuccess;
+		}(); // end CONTAINER_COMPANY
+			if (er != erSuccess)
+				return er;
+			break;
 		} // end switch(objclass)
 	}
 	return er;
