@@ -35,20 +35,6 @@ ZCABContainer::ZCABContainer(const std::vector<zcabFolderEntry> *lpFolders,
 	m_lpProvider(lpProvider)
 {
 	assert(!(lpFolders != NULL && lpContacts != NULL));
-	if (m_lpMAPISup)
-		m_lpMAPISup->AddRef();
-	if (m_lpContactFolder)
-		m_lpContactFolder->AddRef();
-}
-
-ZCABContainer::~ZCABContainer()
-{
-	if (m_lpMAPISup)
-		m_lpMAPISup->Release();
-	if (m_lpContactFolder)
-		m_lpContactFolder->Release();
-	if (m_lpDistList)
-		m_lpDistList->Release();
 }
 
 HRESULT	ZCABContainer::QueryInterface(REFIID refiid, void **lppInterface)
@@ -93,23 +79,16 @@ HRESULT ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID,
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<ZCMAPIProp> lpDistList;
-	auto lpABContainer = new(std::nothrow) ZCABContainer(NULL, NULL, lpMAPISup, NULL, "IABContainer");
+	object_ptr<ZCABContainer> lpABContainer(new(std::nothrow) ZCABContainer(nullptr, nullptr, lpMAPISup, nullptr, "IABContainer"));
 	if (lpABContainer == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = ZCMAPIProp::Create(lpContact, cbEntryID, lpEntryID, &~lpDistList);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpDistList->QueryInterface(IID_IMAPIProp, (void **)&lpABContainer->m_lpDistList);
+		return hr;
+	hr = lpDistList->QueryInterface(IID_IMAPIProp, &~lpABContainer->m_lpDistList);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpABContainer->QueryInterface(IID_ZCDistList, (void **)lppABContainer);
-
-exit:
-	if (hr != hrSuccess)
-		delete lpABContainer;
-	return hr;
+		return hr;
+	return lpABContainer->QueryInterface(IID_ZCDistList, (void **)lppABContainer);
 }
 
 // IMAPIContainer
