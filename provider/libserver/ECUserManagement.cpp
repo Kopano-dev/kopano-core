@@ -3723,10 +3723,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			 * Only Outlook 2007 really complains when it gets a value
 			 * which is different then what it epxects.
 			 */
-			if (ulId == KOPANO_UID_ADDRESS_BOOK)
-				lpPropVal->Value.ul = DT_GLOBAL;
-			else
-				lpPropVal->Value.ul = DT_NOT_SPECIFIC;
+			lpPropVal->Value.ul = (ulId == KOPANO_UID_ADDRESS_BOOK) ? DT_GLOBAL : DT_NOT_SPECIFIC;
 			lpPropVal->__union = SOAP_UNION_propValData_ul;
 			break;
 		case PR_RECORD_KEY:
@@ -3772,31 +3769,32 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			    // 'All Address Lists' has ID 7000 in MSEX
 				lpPropVal->Value.ul = ulId == KOPANO_UID_GLOBAL_ADDRESS_LISTS ? 7000 : KOPANO_UID_ADDRESS_BOOK;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
-			} else {
-				// id 0 (kopano address book) has no container id
-				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->__ptr[i], PT_ERROR);
-				lpPropVal->Value.ul = KCERR_NOT_FOUND;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
+				break;
 			}
+			// id 0 (kopano address book) has no container id
+			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->__ptr[i], PT_ERROR);
+			lpPropVal->Value.ul = KCERR_NOT_FOUND;
+			lpPropVal->__union = SOAP_UNION_propValData_ul;
 			break;
 		case PR_EMS_AB_PARENT_ENTRYID:
-		case PR_PARENT_ENTRYID:
-			if (ulId != KOPANO_UID_ADDRESS_BOOK) {
-				ABEID abeid2;
-				abeid2.ulType = MAPI_ABCONT;
-				abeid2.ulId = KOPANO_UID_ADDRESS_BOOK;
-				memcpy(&abeid2.guid, &MUIDECSAB, sizeof(GUID));
-				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
-				lpPropVal->Value.bin->__size = sizeof(ABEID);
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				memcpy(lpPropVal->Value.bin->__ptr, &abeid2, sizeof(abeid2));
-			} else { /* Kopano Address Book */
+		case PR_PARENT_ENTRYID: {
+			if (ulId == KOPANO_UID_ADDRESS_BOOK) {
 				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->__ptr[i], PT_ERROR);
 				lpPropVal->Value.ul = KCERR_NOT_FOUND;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
+				break;
 			}
+			ABEID abeid2;
+			abeid2.ulType = MAPI_ABCONT;
+			abeid2.ulId = KOPANO_UID_ADDRESS_BOOK;
+			memcpy(&abeid2.guid, &MUIDECSAB, sizeof(GUID));
+			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
+			lpPropVal->Value.bin->__size = sizeof(ABEID);
+			lpPropVal->__union = SOAP_UNION_propValData_bin;
+			memcpy(lpPropVal->Value.bin->__ptr, &abeid2, sizeof(abeid2));
 			break;
+		}
 		default:
 			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->__ptr[i], PT_ERROR);
 			lpPropVal->Value.ul = KCERR_NOT_FOUND;
