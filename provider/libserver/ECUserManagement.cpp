@@ -2912,12 +2912,11 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 }
 
 ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
-    unsigned int ulId, unsigned int ulMapiType, const objectdetails_t *lpDetails,
-    const struct propTagArray *lpPropTags, unsigned int i,
-    struct propVal *lpPropVal)
+    unsigned int ulId, unsigned int ulMapiType, unsigned int proptag,
+    const objectdetails_t *lpDetails, struct propVal *lpPropVal)
 {
 	ECRESULT er = erSuccess;
-	switch (NormalizePropTag(lpPropTags->__ptr[i])) {
+	switch (NormalizePropTag(proptag)) {
 	case PR_ENTRYID: {
 		er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
 		if (er != erSuccess)
@@ -3008,7 +3007,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 		break;
 	case PR_EMS_AB_ROOM_DESCRIPTION: {
 		if (lpDetails->GetClass() == ACTIVE_USER) {
-			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(proptag, PT_ERROR);
 			lpPropVal->Value.ul = KCERR_NOT_FOUND;
 			lpPropVal->__union = SOAP_UNION_propValData_ul;
 			break;
@@ -3028,7 +3027,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 				break;
 			}
 		}
-		lpPropVal->ulPropTag = lpPropTags->__ptr[i];
+		lpPropVal->ulPropTag = proptag;
 		lpPropVal->Value.lpszA = s_strcpy(soap, strDesc.c_str());
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 		break;
@@ -3095,10 +3094,9 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 			/* This is quite annoying. The LDAP plugin loads it in a specific location, while the db plugin
 			  saves it through the anonymous map into the proptag location.
 			 */
-			strCerts = lpDetails->GetPropListString((property_key_t)lpPropTags->__ptr[i]);
-
+			strCerts = lpDetails->GetPropListString(static_cast<property_key_t>(proptag));
 		if (strCerts.empty()) {
-			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(proptag, PT_ERROR);
 			lpPropVal->Value.ul = KCERR_NOT_FOUND;
 			lpPropVal->__union = SOAP_UNION_propValData_ul;
 			break;
@@ -3117,7 +3115,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 	case PR_EC_SENDAS_USER_ENTRYIDS: {
 		auto userIds = lpDetails->GetPropListObject(OB_PROP_LO_SENDAS);
 		if (userIds.empty()) {
-			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(proptag, PT_ERROR);
 			lpPropVal->Value.ul = KCERR_NOT_FOUND;
 			lpPropVal->__union = SOAP_UNION_propValData_ul;
 			break;
@@ -3164,7 +3162,7 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			break;
 		}
-		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(proptag, PT_ERROR);
 		lpPropVal->Value.ul = KCERR_NOT_FOUND;
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		break;
@@ -3176,16 +3174,16 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			break;
 		}
-		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(proptag, PT_ERROR);
 		lpPropVal->Value.ul = KCERR_NOT_FOUND;
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		break;
 	}
 	default:
 		/* Property not handled in switch, try checking if user has mapped the property personally */
-		if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) == erSuccess)
+		if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, proptag, lpPropVal) == erSuccess)
 			break;
-		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(proptag, PT_ERROR);
 		lpPropVal->Value.ul = KCERR_NOT_FOUND;
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		break;
@@ -3194,12 +3192,11 @@ ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
 }
 
 ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
-    unsigned int ulId, unsigned int ulMapiType, const objectdetails_t *lpDetails,
-    const struct propTagArray *lpPropTags, unsigned int i,
-    struct propVal *lpPropVal)
+    unsigned int ulId, unsigned int ulMapiType, unsigned int proptag,
+    const objectdetails_t *lpDetails, struct propVal *lpPropVal)
 {
 	ECRESULT er = erSuccess;
-	switch (NormalizePropTag(lpPropTags->__ptr[i])) {
+	switch (NormalizePropTag(proptag)) {
 	case PR_EC_COMPANY_NAME: {
 		if (IsInternalObject(ulId) || (! m_lpSession->GetSessionManager()->IsHostedSupported())) {
 			lpPropVal->Value.lpszA = s_strcpy(soap, "");
@@ -3322,7 +3319,7 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 	case PR_EC_SENDAS_USER_ENTRYIDS: {
 		auto userIds = lpDetails->GetPropListObject(OB_PROP_LO_SENDAS);
 		if (userIds.empty()) {
-			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(proptag, PT_ERROR);
 			lpPropVal->Value.ul = KCERR_NOT_FOUND;
 			lpPropVal->__union = SOAP_UNION_propValData_ul;
 			break;
@@ -3371,15 +3368,15 @@ ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			break;
 		}
-		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(proptag, PT_ERROR);
 		lpPropVal->Value.ul = KCERR_NOT_FOUND;
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		break;
 	}
 	default:
-		if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) == erSuccess)
+		if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, proptag, lpPropVal) == erSuccess)
 			break;
-		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(proptag, PT_ERROR);
 		lpPropVal->Value.ul = KCERR_NOT_FOUND;
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		break;
@@ -3440,7 +3437,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 		case NONACTIVE_ROOM:
 		case NONACTIVE_EQUIPMENT:
 		case NONACTIVE_CONTACT:
-			er = cvt_user_to_props(soap, ulId, ulMapiType, lpDetails, lpPropTags, i, lpPropVal);
+			er = cvt_user_to_props(soap, ulId, ulMapiType, lpPropTags->__ptr[i], lpDetails, lpPropVal);
 			if (er != erSuccess)
 				goto exit;
 			break;
@@ -3449,7 +3446,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 		case DISTLIST_GROUP:
 		case DISTLIST_SECURITY:
 		case DISTLIST_DYNAMIC:
-			er = cvt_distlist_to_props(soap, ulId, ulMapiType, lpDetails, lpPropTags, i, lpPropVal);
+			er = cvt_distlist_to_props(soap, ulId, ulMapiType, lpPropTags->__ptr[i], lpDetails, lpPropVal);
 			if (er != erSuccess)
 				goto exit;
 			break;
@@ -3466,13 +3463,12 @@ exit:
 }
 
 ECRESULT ECUserManagement::cvt_adrlist_to_props(struct soap *soap,
-    unsigned int ulId, unsigned int ulMapiType, const objectdetails_t *lpDetails,
-    const struct propTagArray *lpPropTags, unsigned int i,
-    struct propVal *lpPropVal) const
+    unsigned int ulId, unsigned int ulMapiType, unsigned int proptag,
+    const objectdetails_t *lpDetails, struct propVal *lpPropVal) const
 {
 	ECRESULT er = erSuccess;
 	uint32_t tmp4;
-	switch (NormalizePropTag(lpPropTags->__ptr[i])) {
+	switch (NormalizePropTag(proptag)) {
 	case PR_ENTRYID: {
 		er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
 		if (er != erSuccess)
@@ -3536,7 +3532,7 @@ ECRESULT ECUserManagement::cvt_adrlist_to_props(struct soap *soap,
 		memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
 		break;
 	default:
-		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(proptag, PT_ERROR);
 		lpPropVal->Value.ul = KCERR_NOT_FOUND;
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		break;
@@ -3545,13 +3541,12 @@ ECRESULT ECUserManagement::cvt_adrlist_to_props(struct soap *soap,
 }
 
 ECRESULT ECUserManagement::cvt_company_to_props(struct soap *soap,
-    unsigned int ulId, unsigned int ulMapiType, const objectdetails_t *lpDetails,
-    const struct propTagArray *lpPropTags, unsigned int i,
-    struct propVal *lpPropVal) const
+    unsigned int ulId, unsigned int ulMapiType, unsigned int proptag,
+    const objectdetails_t *lpDetails, struct propVal *lpPropVal) const
 {
 	ECRESULT er = erSuccess;
 	uint32_t tmp4;
-	switch (NormalizePropTag(lpPropTags->__ptr[i])) {
+	switch (NormalizePropTag(proptag)) {
 	case PR_CONTAINER_CLASS:
 		lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.Contact");
 		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
@@ -3638,15 +3633,15 @@ ECRESULT ECUserManagement::cvt_company_to_props(struct soap *soap,
 			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 			break;
 		}
-		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(proptag, PT_ERROR);
 		lpPropVal->Value.ul = KCERR_NOT_FOUND;
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		break;
 	}
 	default:
-		if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) == erSuccess)
+		if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, proptag, lpPropVal) == erSuccess)
 			break;
-		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(proptag, PT_ERROR);
 		lpPropVal->Value.ul = KCERR_NOT_FOUND;
 		lpPropVal->__union = SOAP_UNION_propValData_ul;
 		break;
@@ -3685,13 +3680,13 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 			break;
 
 		case CONTAINER_ADDRESSLIST:
-			er = cvt_adrlist_to_props(soap, ulId, ulMapiType, lpDetails, lpPropTags, i, lpPropVal);
+			er = cvt_adrlist_to_props(soap, ulId, ulMapiType, lpPropTags->__ptr[i], lpDetails, lpPropVal);
 			if (er != erSuccess)
 				return er;
 			break;
 
 		case CONTAINER_COMPANY:
-			er = cvt_company_to_props(soap, ulId, ulMapiType, lpDetails, lpPropTags, i, lpPropVal);
+			er = cvt_company_to_props(soap, ulId, ulMapiType, lpPropTags->__ptr[i], lpDetails, lpPropVal);
 			if (er != erSuccess)
 				return er;
 			break;
