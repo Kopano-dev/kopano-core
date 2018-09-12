@@ -2043,7 +2043,6 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider,
     convert_context *lpConverter)
 {
 	ecmem_ptr<NOTIFICATION> lpNotification;
-	int nLen;
 
 	auto hr = ECAllocateBuffer(sizeof(NOTIFICATION), &~lpNotification);
 	if (hr != hrSuccess)
@@ -2066,7 +2065,7 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider,
 			// Ignore error
 			CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pParentId, &dst.cbParentID, &dst.lpParentID, lpNotification);
 		if(lpSrc->newmail->lpszMessageClass != NULL) {
-			nLen = strlen(lpSrc->newmail->lpszMessageClass)+1;
+			int nLen = strlen(lpSrc->newmail->lpszMessageClass)+1;
 			hr = ECAllocateMore(nLen, lpNotification, reinterpret_cast<void **>(&dst.lpszMessageClass));
 			if (hr != hrSuccess)
 				break;
