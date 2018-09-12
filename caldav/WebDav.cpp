@@ -983,7 +983,7 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
 				return hr;
 		}
 
-        //loop for sub properties
+		//loop for sub properties
 		for (int k = 0; !sWebProperty.lstValues.empty(); ++k)
 		{
 			WEBDAVVALUE sWebVal;
