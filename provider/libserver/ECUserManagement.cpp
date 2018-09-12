@@ -253,7 +253,7 @@ ECRESULT ECUserManagement::GetObjectDetails(unsigned int ulObjectId, objectdetai
 
 ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const std::list<objectsignature_t> &lstSignatures,
     const std::map<objectid_t, unsigned int> &mapExternToLocal,
-    unsigned int ulFlags, std::list<localobjectdetails_t> *lpDetails)
+    unsigned int ulFlags, std::list<localobjectdetails_t> *lpDetails) const
 {
 	ECSecurity *lpSecurity = NULL;
 	// Extern details
@@ -923,7 +923,9 @@ ECRESULT ECUserManagement::DeleteSubObjectFromObjectAndSync(userobject_relation_
 }
 
 // TODO: cache these values ?
-ECRESULT ECUserManagement::ResolveObject(objectclass_t objclass, const std::string &strName, const objectid_t &sCompany, objectid_t *lpsExternId)
+ECRESULT ECUserManagement::ResolveObject(objectclass_t objclass,
+    const std::string &strName, const objectid_t &sCompany,
+    objectid_t *lpsExternId) const
 {
 	objectid_t sObjectId;
 	UserPlugin *lpPlugin = NULL;
@@ -1066,7 +1068,9 @@ ECRESULT ECUserManagement::GetContainerProps(struct soap *soap, unsigned int ulO
 }
 
 // Get local details
-ECRESULT ECUserManagement::GetLocalObjectDetails(unsigned int ulId, objectdetails_t *lpDetails) {
+ECRESULT ECUserManagement::GetLocalObjectDetails(unsigned int ulId,
+    objectdetails_t *lpDetails) const
+{
 	ECRESULT er = erSuccess;
 	objectdetails_t sDetails;
 	objectdetails_t	sPublicStoreDetails;
@@ -1163,7 +1167,9 @@ ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdet
 //
 // **************************************************************************************************************************************
 
-ECRESULT ECUserManagement::GetExternalId(unsigned int ulId, objectid_t *lpExternId, unsigned int *lpulCompanyId, std::string *lpSignature)
+ECRESULT ECUserManagement::GetExternalId(unsigned int ulId,
+    objectid_t *lpExternId, unsigned int *lpulCompanyId,
+    std::string *lpSignature) const
 {
 	if (IsInternalObject(ulId))
 		return KCERR_INVALID_PARAMETER;
@@ -1171,7 +1177,8 @@ ECRESULT ECUserManagement::GetExternalId(unsigned int ulId, objectid_t *lpExtern
 	return mgr->GetUserObject(ulId, lpExternId, lpulCompanyId, lpSignature);
 }
 
-ECRESULT ECUserManagement::GetLocalId(const objectid_t &sExternId, unsigned int *lpulId, std::string *lpSignature)
+ECRESULT ECUserManagement::GetLocalId(const objectid_t &sExternId,
+    unsigned int *lpulId, std::string *lpSignature) const
 {
 	return m_lpSession->GetSessionManager()->GetCacheManager()->GetUserObject(sExternId, lpulId, NULL, lpSignature);
 }
@@ -1217,7 +1224,8 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const std::list<objectsign
 	return erSuccess;
 }
 
-ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned int ulCompanyId, std::list<unsigned int> **lppObjects)
+ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass,
+    unsigned int ulCompanyId, std::list<unsigned int> **lppObjects) const
 {
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpResult;
@@ -1776,7 +1784,7 @@ exit:
 }
 
 ECRESULT ECUserManagement::GetUserAndCompanyFromLoginName(const std::string &strLoginName,
-    std::string *username, std::string *companyname)
+    std::string *username, std::string *companyname) const
 {
 	ECRESULT er = erSuccess;
 	std::string format = m_lpConfig->GetSetting("loginname_format");
@@ -1988,7 +1996,7 @@ ECRESULT ECUserManagement::ConvertExternIDsToLocalIDs(objectdetails_t *lpDetails
 	return erSuccess;
 }
 
-ECRESULT ECUserManagement::ConvertLocalIDsToExternIDs(objectdetails_t *lpDetails)
+ECRESULT ECUserManagement::ConvertLocalIDsToExternIDs(objectdetails_t *lpDetails) const
 {
 	ECRESULT er;
 	objectid_t sExternID;
@@ -2029,7 +2037,7 @@ static inline std::set<std::string> getFeatures()
  *
  * @return erSuccess
  */
-ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
+ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails) const
 {
 	if (OBJECTCLASS_TYPE(lpDetails->GetClass()) != OBJECTTYPE_MAILUSER) {
 		// clear settings for anything but users
@@ -2082,7 +2090,7 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
  *
  * @return erSuccess
  */
-ECRESULT ECUserManagement::RemoveDefaultFeatures(objectdetails_t *lpDetails)
+ECRESULT ECUserManagement::RemoveDefaultFeatures(objectdetails_t *lpDetails) const
 {
 	if (lpDetails->GetClass() != ACTIVE_USER)
 		return erSuccess;
@@ -2777,7 +2785,9 @@ bool ECUserManagement::IsInternalObject(unsigned int ulUserId) const
  * @retval erSuccess value is set
  * @retval KCERR_UNKNOWN value for proptag is not found
  */
-ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap, objectdetails_t *lpDetails, unsigned int ulPropTag, struct propVal *lpPropVal)
+ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
+    const objectdetails_t *lpDetails, unsigned int ulPropTag,
+    struct propVal *lpPropVal) const
 {
 	ECRESULT er;
 	struct propVal sPropVal;
@@ -2919,7 +2929,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
  * @todo	make sure all strings in lpszA are valid UTF-8
  */
 ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
-    unsigned int ulId, objectdetails_t *lpDetails,
+    unsigned int ulId, const objectdetails_t *lpDetails,
     const struct propTagArray *lpPropTags, struct propValArray *lpPropValsRet)
 {
 	struct propVal *lpPropVal;
@@ -3433,8 +3443,8 @@ exit:
 
 // Convert a userdetails_t to a set of MAPI properties
 ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soap,
-    unsigned int ulId, objectdetails_t *lpDetails,
-    const struct propTagArray *lpPropTags, struct propValArray *lpPropVals)
+    unsigned int ulId, const objectdetails_t *lpDetails,
+    const struct propTagArray *lpPropTags, struct propValArray *lpPropVals) const
 {
 	struct propVal *lpPropVal;
 	unsigned int ulOrder = 0;
@@ -3646,7 +3656,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 
 ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
     unsigned int ulId, const struct propTagArray *lpPropTagArray,
-    struct propValArray *lpPropValArray)
+    struct propValArray *lpPropValArray) const
 {
 	std::string strName;
 	ABEID abeid;
@@ -3867,7 +3877,7 @@ ECRESULT ECUserManagement::GetCachedUserCount(usercount_t *lpUserCount)
 	return erSuccess;
 }
 
-ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails)
+ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails) const
 {
 	objectdetails_t details;
 	UserPlugin *lpPlugin = NULL;
@@ -4032,7 +4042,8 @@ ECRESULT ECUserManagement::GetABSourceKeyV1(unsigned int ulUserId, SOURCEKEY *lp
 	return erSuccess;
 }
 
-ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap, const objectid_t &sExternId, struct propVal *lpPropVal)
+ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
+    const objectid_t &sExternId, struct propVal *lpPropVal) const
 {
 	unsigned int ulObjId;
 	ULONG ulObjType;
@@ -4048,7 +4059,7 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap, const objectid_t &
 
 ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
     unsigned int ulVersion, unsigned int ulObjId, unsigned int ulType,
-    objectid_t *lpExternId, gsoap_size_t *lpcbEID, ABEID **lppEid)
+    objectid_t *lpExternId, gsoap_size_t *lpcbEID, ABEID **lppEid) const
 {
 	ABEID *lpEid = NULL;
 	gsoap_size_t ulSize = 0;
@@ -4095,7 +4106,8 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
  * @param lpPropVal Output of the entryid will be stored as binary data in lpPropVal
  * @return result
  */
-ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap, unsigned int ulObjId, unsigned int ulType, struct propVal *lpPropVal)
+ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
+    unsigned int ulObjId, unsigned int ulType, struct propVal *lpPropVal) const
 {
 	objectid_t 	sExternId;
 	unsigned int ulVersion = 0;
@@ -4114,7 +4126,7 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap, unsigned int ulObj
 	       reinterpret_cast<ABEID **>(&lpPropVal->Value.bin->__ptr));
 }
 
-ECRESULT ECUserManagement::GetSecurity(ECSecurity **lppSecurity)
+ECRESULT ECUserManagement::GetSecurity(ECSecurity **lppSecurity) const
 {
 	auto lpecSession = dynamic_cast<ECSession *>(m_lpSession);
 	if (lpecSession == NULL)

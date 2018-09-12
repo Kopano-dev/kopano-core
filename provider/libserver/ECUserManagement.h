@@ -145,7 +145,7 @@ public:
 	_kc_hidden virtual ECRESULT QueryHierarchyRowData(struct soap *, const ECObjectTableList *, const struct propTagArray *, struct rowSet **);
 	_kc_hidden virtual ECRESULT GetUserCount(usercount_t *);
 	_kc_hidden virtual ECRESULT GetCachedUserCount(usercount_t *);
-	_kc_hidden virtual ECRESULT GetPublicStoreDetails(objectdetails_t *);
+	_kc_hidden virtual ECRESULT GetPublicStoreDetails(objectdetails_t *) const;
 	virtual ECRESULT GetServerDetails(const std::string &server, serverdetails_t *);
 	_kc_hidden virtual ECRESULT GetServerList(serverlist_t *);
 
@@ -156,14 +156,14 @@ public:
 	_kc_hidden ECRESULT GetABSourceKeyV1(unsigned int user_id, SOURCEKEY *);
 
 	// Get userinfo from cache
-	_kc_hidden ECRESULT GetExternalId(unsigned int di, objectid_t *extern_id, unsigned int *company_id = nullptr, std::string *signature = nullptr);
-	_kc_hidden ECRESULT GetLocalId(const objectid_t &extern_id, unsigned int *id, std::string *signature = nullptr);
+	_kc_hidden ECRESULT GetExternalId(unsigned int di, objectid_t *extern_id, unsigned int *company_id = nullptr, std::string *signature = nullptr) const;
+	_kc_hidden ECRESULT GetLocalId(const objectid_t &extern_id, unsigned int *id, std::string *signature = nullptr) const;
 
 	/* calls localid->externid and login->user/company conversions */
 	_kc_hidden virtual ECRESULT UpdateUserDetailsFromClient(objectdetails_t *);
 
 	/* Create an ABEID in version 1 or version 0 */
-	_kc_hidden ECRESULT CreateABEntryID(struct soap *, unsigned int vers, unsigned int obj_id, unsigned int type, objectid_t *extern_id, gsoap_size_t *eid_size, ABEID **eid);
+	_kc_hidden ECRESULT CreateABEntryID(struct soap *, unsigned int vers, unsigned int obj_id, unsigned int type, objectid_t *extern_id, gsoap_size_t *eid_size, ABEID **eid) const;
 
 	/* Resync all objects from the plugin. */
 	_kc_hidden ECRESULT SyncAllObjects(void);
@@ -176,17 +176,17 @@ private:
 	/* convert extern IDs to local IDs */
 	_kc_hidden virtual ECRESULT ConvertExternIDsToLocalIDs(objectdetails_t *);
 	/* convert local IDs to extern IDs */
-	_kc_hidden virtual ECRESULT ConvertLocalIDsToExternIDs(objectdetails_t *);
+	_kc_hidden virtual ECRESULT ConvertLocalIDsToExternIDs(objectdetails_t *) const;
 	/* calls externid->localid and user/company->login conversions */
 	_kc_hidden virtual ECRESULT UpdateUserDetailsToClient(objectdetails_t *);
-	_kc_hidden ECRESULT ComplementDefaultFeatures(objectdetails_t *);
-	_kc_hidden ECRESULT RemoveDefaultFeatures(objectdetails_t *);
+	_kc_hidden ECRESULT ComplementDefaultFeatures(objectdetails_t *) const;
+	_kc_hidden ECRESULT RemoveDefaultFeatures(objectdetails_t *) const;
 	_kc_hidden bool MustHide(/*const*/ ECSecurity &, unsigned int flags, const objectdetails_t &) const;
 
 	// Get object details from list
-	_kc_hidden ECRESULT GetLocalObjectListFromSignatures(const std::list<objectsignature_t> &signatures, const std::map<objectid_t, unsigned int> &extern_to_local, unsigned int flags, std::list<localobjectdetails_t> *);
+	_kc_hidden ECRESULT GetLocalObjectListFromSignatures(const std::list<objectsignature_t> &signatures, const std::map<objectid_t, unsigned int> &extern_to_local, unsigned int flags, std::list<localobjectdetails_t> *) const;
 	// Get local details
-	_kc_hidden ECRESULT GetLocalObjectDetails(unsigned int id, objectdetails_t *);
+	_kc_hidden ECRESULT GetLocalObjectDetails(unsigned int id, objectdetails_t *) const;
 
 	// Get remote details
 	_kc_hidden ECRESULT GetExternalObjectDetails(unsigned int id, objectdetails_t *);
@@ -196,16 +196,16 @@ private:
 	_kc_hidden ECRESULT GetLocalObjectsIdsOrCreate(const std::list<objectsignature_t> &signatures, std::map<objectid_t, unsigned int> *local_objids);
 
 	// Get a list of local object IDs in the database plus any internal objects (SYSTEM, EVERYONE)
-	_kc_hidden ECRESULT GetLocalObjectIdList(objectclass_t, unsigned int company_id, std::list<unsigned int> **objs);
+	_kc_hidden ECRESULT GetLocalObjectIdList(objectclass_t, unsigned int company_id, std::list<unsigned int> **objs) const;
 
 	// Converts anonymous Object Detail to property. */
-	_kc_hidden ECRESULT ConvertAnonymousObjectDetailToProp(struct soap *, objectdetails_t *, unsigned int tag, struct propVal *);
+	_kc_hidden ECRESULT ConvertAnonymousObjectDetailToProp(struct soap *, const objectdetails_t *, unsigned int tag, struct propVal *) const;
 	// Converts the data in user/group/company details fields into property value array for content tables and MAPI_MAILUSER and MAPI_DISTLIST objects
-	_kc_hidden ECRESULT ConvertObjectDetailsToProps(struct soap *, unsigned int id, objectdetails_t *, const struct propTagArray *proptags, struct propValArray *propvals);
+	_kc_hidden ECRESULT ConvertObjectDetailsToProps(struct soap *, unsigned int id, const objectdetails_t *, const struct propTagArray *proptags, struct propValArray *propvals);
 	// Converts the data in company/addresslist details fields into property value array for hierarchy tables and MAPI_ABCONT objects
-	_kc_hidden ECRESULT ConvertContainerObjectDetailsToProps(struct soap *, unsigned int id, objectdetails_t *, const struct propTagArray *proptags, struct propValArray *propvals);
+	_kc_hidden ECRESULT ConvertContainerObjectDetailsToProps(struct soap *, unsigned int id, const objectdetails_t *, const struct propTagArray *proptags, struct propValArray *propvals) const;
 	// Create GlobalAddressBook properties
-	_kc_hidden ECRESULT ConvertABContainerToProps(struct soap *, unsigned int id, const struct propTagArray *, struct propValArray *);
+	_kc_hidden ECRESULT ConvertABContainerToProps(struct soap *, unsigned int id, const struct propTagArray *, struct propValArray *) const;
 
 	_kc_hidden ECRESULT MoveOrCreateLocalObject(const objectsignature_t &signature, unsigned int *obj_id, bool *moved);
 	_kc_hidden ECRESULT CreateLocalObjectSimple(const objectsignature_t &signature, unsigned int pref_id);
@@ -214,16 +214,16 @@ private:
 	_kc_hidden ECRESULT MoveLocalObject(unsigned int obj_id, objectclass_t, unsigned int company_id, const std::string &newusername);
 	_kc_hidden ECRESULT DeleteLocalObject(unsigned int obj_id, objectclass_t);
 	_kc_hidden ECRESULT UpdateObjectclassOrDelete(const objectid_t &extern_id, unsigned int *obj_id);
-	_kc_hidden ECRESULT GetUserAndCompanyFromLoginName(const std::string &login, std::string *user, std::string *company);
+	_kc_hidden ECRESULT GetUserAndCompanyFromLoginName(const std::string &login, std::string *user, std::string *company) const;
 
 	// Process the modification of a user-object
 	_kc_hidden ECRESULT CheckObjectModified(unsigned int obj_id, const std::string &localsignature, const std::string &remotesignature);
 	_kc_hidden ECRESULT ProcessModification(unsigned int id, const std::string &newsignature);
 
-	_kc_hidden ECRESULT ResolveObject(objectclass_t, const std::string &name, const objectid_t &company, objectid_t *extern_id);
-	_kc_hidden ECRESULT CreateABEntryID(struct soap *, const objectid_t &extern_id, struct propVal *);
-	_kc_hidden ECRESULT CreateABEntryID(struct soap *, unsigned int obj_id, unsigned int type, struct propVal *);
-	_kc_hidden ECRESULT GetSecurity(ECSecurity **);
+	_kc_hidden ECRESULT ResolveObject(objectclass_t, const std::string &name, const objectid_t &company, objectid_t *extern_id) const;
+	_kc_hidden ECRESULT CreateABEntryID(struct soap *, const objectid_t &extern_id, struct propVal *) const;
+	_kc_hidden ECRESULT CreateABEntryID(struct soap *, unsigned int obj_id, unsigned int type, struct propVal *) const;
+	_kc_hidden ECRESULT GetSecurity(ECSecurity **) const;
 
 protected:
 	ECPluginFactory 	*m_lpPluginFactory;
