@@ -113,6 +113,56 @@ HRESULT ZCABContainer::MakeWrappedEntryID(ULONG cbEntryID, LPENTRYID lpEntryID, 
 	return hrSuccess;
 }
 
+static constexpr const MAPINAMEID default_namedprops[(6*5)+2] = {
+	/* index with MVI_FLAG */
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidABPEmailList}},
+
+	/* MVI offset 0: email1 set */
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail1DisplayName}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail1AddressType}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail1Address}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail1OriginalDisplayName}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail1OriginalEntryID}},
+
+	/* MVI offset 1: email2 set */
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail2DisplayName}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail2AddressType}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail2Address}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail2OriginalDisplayName}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail2OriginalEntryID}},
+
+	/* MVI offset 2: email3 set */
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail3DisplayName}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail3AddressType}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail3Address}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail3OriginalDisplayName}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidEmail3OriginalEntryID}},
+
+	/* MVI offset 3: business fax (fax2) set */
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax2DisplayName}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax2AddressType}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax2Address}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax2OriginalDisplayName}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax2OriginalEntryID}},
+
+	/* MVI offset 4: home fax (fax3) set */
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax3DisplayName}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax3AddressType}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax3Address}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax3OriginalDisplayName}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax3OriginalEntryID}},
+
+	/* MVI offset 5: primary fax (fax1) set */
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax1DisplayName}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax1AddressType}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax1Address}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax1OriginalDisplayName}},
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidFax1OriginalEntryID}},
+
+	/* restriction */
+	{(GUID *)&PSETID_Address, MNID_ID, {dispidABPArrayType}},
+};
+
 HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT hr = hrSuccess;
@@ -156,55 +206,6 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	memory_ptr<MAPINAMEID *> lppNames;
 	ULONG ulNames = (6 * 5) + 2;
 	ULONG ulType = (ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8;
-	MAPINAMEID mnNamedProps[(6 * 5) + 2] = {
-		// index with MVI_FLAG
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidABPEmailList}},
-
-		// MVI offset 0: email1 set
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail1DisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail1AddressType}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail1Address}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail1OriginalDisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail1OriginalEntryID}},
-
-		// MVI offset 1: email2 set
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail2DisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail2AddressType}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail2Address}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail2OriginalDisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail2OriginalEntryID}},
-
-		// MVI offset 2: email3 set
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail3DisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail3AddressType}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail3Address}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail3OriginalDisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail3OriginalEntryID}},
-
-		// MVI offset 3: business fax (fax2) set
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax2DisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax2AddressType}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax2Address}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax2OriginalDisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax2OriginalEntryID}},
-
-		// MVI offset 4: home fax (fax3) set
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax3DisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax3AddressType}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax3Address}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax3OriginalDisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax3OriginalEntryID}},		
-
-		// MVI offset 5: primary fax (fax1) set
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax1DisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax1AddressType}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax1Address}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax1OriginalDisplayName}},
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidFax1OriginalEntryID}},
-
-		// restriction
-		{(LPGUID)&PSETID_Address, MNID_ID, {dispidABPArrayType}},
-	};
 
 	Util::proptag_change_unicode(ulFlags, inputCols);
 	Util::proptag_change_unicode(ulFlags, outputCols);
@@ -222,6 +223,8 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	if (hr != hrSuccess)
 		return hr;
 
+	std::remove_cv_t<decltype(default_namedprops)> mnNamedProps;
+	memcpy(mnNamedProps, default_namedprops, sizeof(default_namedprops));
 	for (i = 0; i < ulNames; ++i)
 		lppNames[i] = &mnNamedProps[i];
 	hr = m_lpContactFolder->GetIDsFromNames(ulNames, lppNames, MAPI_CREATE, &~ptrNameTags);
