@@ -21,7 +21,7 @@ config_files = \
 	autorespond.cfg spamd.cfg grapi.cfg
 
 data_configdir = ${docdir}/example-config
-dist_data_config_DATA = ${config_files} ldap.cfg sysconfig.txt
+dist_data_config_DATA = ${config_files} ldap.cfg
 
 dist_doc_DATA = \
 	db-calc-storesize db-convert-attachments-to-files \
@@ -54,7 +54,7 @@ dist_sysconf_rotate_DATA = kopano.logrotate
 sysconf_bcdir = ${datadir}/bash-completion/completions
 dist_sysconf_bc_DATA = kopano-bash-completion.sh
 
-EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 sysconfig.txt \
+EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 \
 	kopano-server.init.rhel kopano-spooler.init.rhel \
 	kopano-gateway.init.rhel kopano-monitor.init.rhel \
 	kopano-ical.init.rhel kopano-dagent.init.rhel kopano-search.init.rhel \

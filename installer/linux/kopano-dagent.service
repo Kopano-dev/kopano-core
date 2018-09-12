@@ -4,8 +4,6 @@ Documentation=man:kopano-dagent(8) man:kopano-dagent.cfg(5)
 
 [Service]
 Type=simple
-EnvironmentFile=-/etc/sysconfig/kopano
-EnvironmentFile=-/etc/default/kopano
 ExecStart=/usr/sbin/kopano-dagent -l
 ExecReload=/bin/kill -HUP $MAINPID
 

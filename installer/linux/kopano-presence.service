@@ -3,8 +3,6 @@ Description=Kopano Groupware Core Presence Daemon
 
 [Service]
 Type=simple
-EnvironmentFile=-/etc/sysconfig/kopano
-EnvironmentFile=-/etc/default/kopano
 ExecStart=/usr/sbin/kopano-presence -F
 ExecReload=/bin/kill -HUP $MAINPID
 

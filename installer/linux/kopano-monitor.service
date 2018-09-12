@@ -4,8 +4,6 @@ Documentation=man:kopano-monitor(8) man:kopano-monitor.cfg(5)
 
 [Service]
 Type=simple
-EnvironmentFile=-/etc/sysconfig/kopano
-EnvironmentFile=-/etc/default/kopano
 ExecStart=/usr/sbin/kopano-monitor -F
 ExecReload=/bin/kill -HUP $MAINPID
 

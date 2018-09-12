@@ -9,12 +9,6 @@
 # beware that this string can contain any characters, so take heed to
 # correct quoting.
 
-if [ -f @sysconfdir@/sysconfig/kopano ]; then
-  . @sysconfdir@/sysconfig/kopano
-elif [ -f @sysconfdir@/default/kopano ]; then
-  # Used on Debian in place of sysconfig
-  . @sysconfdir@/default/kopano
-fi
 KOPANO_COMPANY_SCRIPTS=/ignore/
 PATH=/bin:/usr/local/bin:/usr/bin
 export PATH

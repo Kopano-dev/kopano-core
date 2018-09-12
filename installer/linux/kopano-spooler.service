@@ -4,8 +4,6 @@ Documentation=man:kopano-spooler(8) man:kopano-spooler.cfg(5)
 
 [Service]
 Type=simple
-EnvironmentFile=-/etc/sysconfig/kopano
-EnvironmentFile=-/etc/default/kopano
 ExecStart=/usr/sbin/kopano-spooler -F
 ExecReload=/bin/kill -HUP $MAINPID
 

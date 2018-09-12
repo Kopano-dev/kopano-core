@@ -25,11 +25,6 @@ SPAMDPROGRAM=/usr/sbin/kopano-spamd
 SPAMDCONFIG_OPT=""
 [ ! -z $SPAMDCONFIG -a -f $SPAMDCONFIG ] && SPAMDCONFIG_OPT="-c $SPAMDCONFIG"
 
-[ -f /etc/sysconfig/kopano ] && . /etc/sysconfig/kopano
-if [ -z "$KOPANO_LOCALE" ]; then
-	KOPANO_LOCALE="C"
-fi
-
 # Source function library.
 . /etc/rc.d/init.d/functions
 
@@ -42,8 +37,6 @@ start() {
 	# Start in background, always succeeds
 	echo -n $"Starting $spamd: "
 	install -dm0775 -o kopano -g kopano /var/run/kopano
-	export LC_ALL=$KOPANO_LOCALE
-	export LANG=$KOPANO_LOCALE
 	daemon --pidfile="$pidfile" $SPAMDPROGRAM $SPAMDCONFIG_OPT >/dev/null 2>&1
 	RETVAL=$?
 	unset LC_ALL LANG

@@ -9,11 +9,6 @@
 # that this string can contain any characters, so take heed to correct
 # quoting.
 
-if [ -f @sysconfdir@/sysconfig/kopano ]; then
-  . @sysconfdir@/sysconfig/kopano
-elif [ -f @sysconfdir@/default/kopano ]; then
-  . @sysconfdir@/default/kopano
-fi
 KOPANO_USER_SCRIPTS=@USERSCRIPTDIR@/deleteuser.d
 PATH=/bin:/usr/local/bin:/usr/bin
 export PATH
