@@ -4,6 +4,7 @@
  */
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/tie.hpp>
 #include "ECDatabase.h"
 #include "ECDatabaseFactory.h"
@@ -14,8 +15,8 @@ namespace KC {
 // The ECDatabaseFactory creates database objects connected to the server database. Which
 // database is returned is chosen by the database_engine configuration setting.
 
-ECDatabaseFactory::ECDatabaseFactory(ECConfig *lpConfig) :
-	m_lpConfig(lpConfig)
+ECDatabaseFactory::ECDatabaseFactory(std::shared_ptr<ECConfig> c) :
+	m_lpConfig(std::move(c))
 {}
 
 ECRESULT ECDatabaseFactory::GetDatabaseFactory(ECDatabase **lppDatabase)

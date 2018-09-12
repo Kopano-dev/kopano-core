@@ -3,6 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <memory>
 #include <new>
 #include <stdexcept>
 #include <string>
@@ -38,7 +39,7 @@ class ECDatabaseAttachmentConfig final : public ECAttachmentConfig {
 
 class ECFileAttachmentConfig : public ECAttachmentConfig {
 	public:
-	virtual ECRESULT init(ECConfig *) override;
+	virtual ECRESULT init(std::shared_ptr<ECConfig>) override;
 	virtual ECAttachmentStorage *new_handle(ECDatabase *) override;
 
 	protected:
@@ -130,19 +131,17 @@ using std::string;
  */
 
 // Generic Attachment storage
-ECAttachmentStorage::ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ulCompressionLevel)
-	: m_lpDatabase(lpDatabase)
+ECAttachmentStorage::ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ulCompressionLevel) :
+	m_lpDatabase(lpDatabase), m_bFileCompression(ulCompressionLevel != 0)
 {
-	m_bFileCompression = ulCompressionLevel != 0;
-
 	if (ulCompressionLevel > Z_BEST_COMPRESSION)
 		ulCompressionLevel = Z_BEST_COMPRESSION;
 
 	m_CompressionLevel = stringify(ulCompressionLevel);
 }
 
-ECRESULT ECAttachmentConfig::create(const GUID &sguid, ECConfig *config,
-    ECAttachmentConfig **atcp)
+ECRESULT ECAttachmentConfig::create(const GUID &sguid,
+    std::shared_ptr<ECConfig> config, ECAttachmentConfig **atcp)
 {
 	auto type = config->GetSetting("attachment_storage");
 	std::unique_ptr<ECAttachmentConfig> a;
@@ -177,7 +176,7 @@ ECAttachmentStorage *ECDatabaseAttachmentConfig::new_handle(ECDatabase *db)
 	return new(std::nothrow) ECDatabaseAttachment(db);
 }
 
-ECRESULT ECFileAttachmentConfig::init(ECConfig *config)
+ECRESULT ECFileAttachmentConfig::init(std::shared_ptr<ECConfig> config)
 {
 	auto dir = config->GetSetting("attachment_path");
 	if (dir == nullptr) {

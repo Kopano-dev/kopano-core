@@ -108,9 +108,8 @@ ECRESULT ECSearchClient::Query(std::list<unsigned int> &lstMatches)
 		
 	if (lstResponse.empty())
 		return erSuccess; /* no matches */
-	auto lstResponseIds = tokenize(lstResponse[0], " ");
-	for (unsigned int i = 0; i < lstResponseIds.size(); ++i)
-		lstMatches.emplace_back(atoui(lstResponseIds[i].c_str()));
+	for (const auto &i : tokenize(lstResponse[0], " "))
+		lstMatches.emplace_back(atoui(i.c_str()));
 	return erSuccess;
 }
 

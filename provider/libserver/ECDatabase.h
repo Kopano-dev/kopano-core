@@ -7,8 +7,8 @@
 #define ECDATABASE_H
 
 #include <kopano/zcdefs.h>
-#include <kopano/ECConfig.h>
 #include <kopano/database.hpp>
+#include <memory>
 #include <string>
 
 namespace KC {
@@ -18,7 +18,7 @@ class zcp_versiontuple;
 
 class _kc_export ECDatabase _kc_final : public KDatabase {
 public:
-	ECDatabase(ECConfig *);
+	ECDatabase(std::shared_ptr<ECConfig>);
 	virtual ~ECDatabase(void);
 	static ECRESULT	InitLibrary(const char *dir, const char *config_file);
 	static void UnloadLibrary(void);
@@ -52,7 +52,7 @@ public:
 
 	std::string error, m_dbname;
 	bool m_bForceUpdate = false, m_bFirstResult = false;
-	ECConfig *m_lpConfig = nullptr;
+	std::shared_ptr<ECConfig> m_lpConfig;
 #ifdef KNOB144
 	unsigned int m_ulTransactionState = 0;
 #endif

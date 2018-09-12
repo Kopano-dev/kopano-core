@@ -1093,7 +1093,10 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
 	ECObjectTableList sMatchedRows;
 
 	auto sesmgr = lpSession->GetSessionManager();
-	if (GetIndexerResults(lpDatabase, sesmgr->GetConfig(), sesmgr->GetCacheManager(), &guidServer, lpODStore->lpGuid, lstFolders, lpsRestrict, &lpNewRestrict, lstIndexerResults, suggestion) != erSuccess) {
+	if (GetIndexerResults(lpDatabase, sesmgr->GetConfig().get(),
+	    sesmgr->GetCacheManager(), &guidServer, lpODStore->lpGuid,
+	    lstFolders, lpsRestrict, &lpNewRestrict, lstIndexerResults,
+	    suggestion) != erSuccess) {
     	    // Cannot handle this restriction with the indexer, use 'normal' restriction code
     	    // Reasons can be:
     	    //  - restriction too complex

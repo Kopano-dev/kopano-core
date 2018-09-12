@@ -257,9 +257,9 @@ public:
 
 	std::vector<unsigned int> GetPropTags() {
 		std::vector<unsigned int> result;
-		for (auto iter = mapPropVals.cbegin(); iter != mapPropVals.cend(); iter++) {
-			result.push_back(iter->first);
-		}
+		result.reserve(mapPropVals.size());
+		for (const auto &p : mapPropVals)
+			result.push_back(p.first);
 		return result;
 	}
 
@@ -407,7 +407,7 @@ typedef std::unordered_map<ECsIndexProp, ECsIndexObject> ECMapPropToObject;
 
 class ECCacheManager _kc_final {
 public:
-	ECCacheManager(ECConfig *lpConfig, ECDatabaseFactory *lpDatabase);
+	ECCacheManager(std::shared_ptr<ECConfig>, ECDatabaseFactory *lpDatabase);
 	virtual ~ECCacheManager();
 	ECRESULT PurgeCache(unsigned int ulFlags);
 

@@ -9,6 +9,7 @@
 #include <kopano/zcdefs.h>
 #include <list>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <ctime>
 #include <kopano/kcodes.h>
@@ -101,7 +102,7 @@ private:
 
 class _kc_export ECUserManagement _kc_final {
 public:
-	_kc_hidden ECUserManagement(BTSession *, ECPluginFactory *, ECConfig *);
+	_kc_hidden ECUserManagement(BTSession *, ECPluginFactory *, std::shared_ptr<ECConfig>);
 	_kc_hidden virtual ~ECUserManagement(void) = default;
 
 	// Authenticate a user
@@ -227,7 +228,7 @@ private:
 protected:
 	ECPluginFactory 	*m_lpPluginFactory;
 	BTSession			*m_lpSession;
-	ECConfig			*m_lpConfig;
+	std::shared_ptr<ECConfig> m_lpConfig;
 
 private:
 	std::recursive_mutex m_hMutex;

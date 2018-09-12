@@ -6837,17 +6837,15 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		return er;
 	}
 
-	if (lpDBResult.get_num_rows() > 0) {
-		while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
-			if(lpDBRow[0] == NULL)
-				continue; // FIXME: Skip, give an error/warning ?
-			er = CopyObject(lpecSession, lpAttachmentStorage, atoui(lpDBRow[0]), ulNewObjectId, false, false, false, ulSyncId);
-			if (er != erSuccess && er != KCERR_NOT_FOUND) {
-				ec_log_err("CopyObject: CopyObject(%s) failed: %s (%x)", lpDBRow[0], GetMAPIErrorMessage(er), er);
-				return er;
-			} else {
-				er = erSuccess;
-			}
+	while ((lpDBRow = lpDBResult.fetch_row()) != nullptr) {
+		if(lpDBRow[0] == NULL)
+			continue; // FIXME: Skip, give an error/warning ?
+		er = CopyObject(lpecSession, lpAttachmentStorage, atoui(lpDBRow[0]), ulNewObjectId, false, false, false, ulSyncId);
+		if (er != erSuccess && er != KCERR_NOT_FOUND) {
+			ec_log_err("CopyObject: CopyObject(%s) failed: %s (%x)", lpDBRow[0], GetMAPIErrorMessage(er), er);
+			return er;
+		} else {
+			er = erSuccess;
 		}
 	}
 
@@ -8313,10 +8311,8 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid,
 		lpUsers->emplace_front(ulUserid, details);
 	} else if (details.GetClass() == CONTAINER_COMPANY) {
 		/* Append the system administrator for the company */
-		unsigned int ulSystem;
 		objectdetails_t systemdetails;
-
-		ulSystem = details.GetPropInt(OB_PROP_I_SYSADMIN);
+		auto ulSystem = details.GetPropInt(OB_PROP_I_SYSADMIN);
 		er = sec->IsUserObjectVisible(ulSystem);
 		if (er != erSuccess)
 			return er;
@@ -8821,21 +8817,16 @@ typedef MTOMStreamInfo * LPMTOMStreamInfo;
 
 static ECRESULT SerializeObject(void *arg)
 {
-	ECRESULT            er = erSuccess;
-	LPMTOMStreamInfo	lpStreamInfo = NULL;
-	ECSerializer		*lpSink = NULL;
-
-	lpStreamInfo = (LPMTOMStreamInfo)arg;
+	auto lpStreamInfo = static_cast<MTOMStreamInfo *>(arg);
 	assert(lpStreamInfo != NULL);
 	lpStreamInfo->lpSessionInfo->lpSharedDatabase->ThreadInit();
 
-	lpSink = new ECFifoSerializer(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::serialize);
-	er = SerializeMessage(lpStreamInfo->lpSessionInfo->lpecSession,
+	ECFifoSerializer lpSink(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::serialize);
+	auto er = SerializeMessage(lpStreamInfo->lpSessionInfo->lpecSession,
 	     lpStreamInfo->lpSessionInfo->lpSharedDatabase.get(),
 	     lpStreamInfo->lpSessionInfo->lpAttachmentStorage.get(), nullptr,
 	     lpStreamInfo->ulObjectId, MAPI_MESSAGE, lpStreamInfo->ulStoreId,
-	     &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, lpSink, true);
-	delete lpSink;
+	     &lpStreamInfo->sGuid, lpStreamInfo->ulFlags, &lpSink, true);
 	lpStreamInfo->lpSessionInfo->lpSharedDatabase->ThreadEnd();
 	lpStreamInfo->lpSessionInfo->er = er;
 	return er;
@@ -8844,9 +8835,7 @@ static ECRESULT SerializeObject(void *arg)
 static void *MTOMReadOpen(struct soap *soap, void *handle, const char *id,
     const char* /*type*/, const char* /*options*/)
 {
-	LPMTOMStreamInfo	lpStreamInfo = NULL;
-
-	lpStreamInfo = (LPMTOMStreamInfo)handle;
+	auto lpStreamInfo = static_cast<MTOMStreamInfo *>(handle);
 	assert(lpStreamInfo != NULL);
 	if (lpStreamInfo->lpSessionInfo->er != erSuccess) {
 		soap->error = SOAP_FATAL_ERROR;
@@ -9053,6 +9042,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er,
         }
 
 		auto lpStreamInfo = static_cast<MTOMStreamInfo *>(soap_malloc(soap, sizeof(MTOMStreamInfo)));
+		static_assert(std::is_trivially_constructible<MTOMStreamInfo>::value, "MTOMStreamInfo must remain TC");
 		lpStreamInfo->ulObjectId = ulObjectId;
 		lpStreamInfo->ulStoreId = ulStoreId;
 		lpStreamInfo->bNewItem = false;
@@ -9104,10 +9094,13 @@ static ECRESULT DeserializeObject(void *arg)
 {
 	auto lpStreamInfo = static_cast<MTOMStreamInfo *>(arg);
 	assert(lpStreamInfo != NULL);
-	ECSerializer *lpSource = new ECFifoSerializer(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::deserialize);
-	auto er = DeserializeObject(lpStreamInfo->lpSessionInfo->lpecSession, lpStreamInfo->lpSessionInfo->lpDatabase, lpStreamInfo->lpSessionInfo->lpAttachmentStorage.get(), NULL, lpStreamInfo->ulObjectId, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->bNewItem, lpStreamInfo->ullIMAP, lpSource, &lpStreamInfo->lpPropValArray);
-	delete lpSource;
-	return er;
+	ECFifoSerializer lpSource(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::deserialize);
+	return DeserializeObject(lpStreamInfo->lpSessionInfo->lpecSession,
+	       lpStreamInfo->lpSessionInfo->lpDatabase,
+	       lpStreamInfo->lpSessionInfo->lpAttachmentStorage.get(), nullptr,
+	       lpStreamInfo->ulObjectId, lpStreamInfo->ulStoreId,
+	       &lpStreamInfo->sGuid, lpStreamInfo->bNewItem,
+	       lpStreamInfo->ullIMAP, &lpSource, &lpStreamInfo->lpPropValArray);
 }
 
 static void *MTOMWriteOpen(struct soap *soap, void *handle,

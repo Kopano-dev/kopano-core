@@ -9,6 +9,7 @@
 #include <kopano/zcdefs.h>
 #include "ECDatabase.h"
 #include <list>
+#include <memory>
 #include <set>
 #include <string>
 
@@ -34,11 +35,11 @@ class ext_siid {
 class ECAttachmentConfig {
 	public:
 	virtual ~ECAttachmentConfig() = default;
-	static ECRESULT create(const GUID &sguid, ECConfig *, ECAttachmentConfig **);
+	static ECRESULT create(const GUID &sguid, std::shared_ptr<ECConfig>, ECAttachmentConfig **);
 	virtual ECAttachmentStorage *new_handle(ECDatabase *) = 0;
 
 	private:
-	virtual ECRESULT init(ECConfig *) { return hrSuccess; }
+	virtual ECRESULT init(std::shared_ptr<ECConfig>) { return hrSuccess; }
 };
 
 class ECAttachmentStorage : public kt_completion {

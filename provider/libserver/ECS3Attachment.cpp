@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <chrono>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <cerrno>
@@ -58,7 +59,7 @@ struct s3_cdw {
 
 /* This ought to be moved into ECS3Attachment, if and when that becomes a singleton. */
 
-ECRESULT ECS3Config::init(ECConfig *cfg)
+ECRESULT ECS3Config::init(std::shared_ptr<ECConfig> cfg)
 {
 	ec_log_info("S3: initializing attachment storage");
 	/* Copy strings, in case ECConfig gets reloaded and changes pointers */

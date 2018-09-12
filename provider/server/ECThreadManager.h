@@ -118,15 +118,12 @@ protected:
 	bool m_bExit = false;
 	std::atomic<unsigned int> m_ulIdle{0};
 	// Socket settings (TCP + SSL)
-	int			m_nRecvTimeout;
-	int			m_nReadTimeout;
-	int			m_nSendTimeout;
+	int m_nRecvTimeout, m_nReadTimeout, m_nSendTimeout;
 };
 
 class ECDispatcherSelect _kc_final : public ECDispatcher {
 private:
-    int			m_fdRescanRead;
-    int			m_fdRescanWrite;
+	int m_fdRescanRead, m_fdRescanWrite;
 
 public:
 	ECDispatcherSelect(std::shared_ptr<KC::ECConfig>);
@@ -138,8 +135,7 @@ public:
 #ifdef HAVE_EPOLL_CREATE
 class ECDispatcherEPoll _kc_final : public ECDispatcher {
 private:
-	int m_fdMax;
-	int m_epFD;
+	int m_fdMax, m_epFD;
 
 public:
 	ECDispatcherEPoll(std::shared_ptr<KC::ECConfig>);

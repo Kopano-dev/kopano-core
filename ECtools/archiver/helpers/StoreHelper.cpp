@@ -431,7 +431,6 @@ HRESULT StoreHelper::DoCreateSearchFolder(LPMAPIFOLDER lpParent, eSearchFolder e
 
 HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const ECRestriction *lpresClassCheck, const ECRestriction *lpresArchiveCheck)
 {
-	HRESULT hr;
 	ECOrRestriction resClassCheck;
 	MAPIFolderPtr ptrIpmSubtree;
 	SPropValuePtr ptrPropEntryId;
@@ -443,18 +442,18 @@ HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const
 	if (lpSearchFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	if (!lpresClassCheck) {
-		hr = GetClassCheckRestriction(&resClassCheck);
+		auto hr = GetClassCheckRestriction(&resClassCheck);
 		if (hr != hrSuccess)
 			return hr;
 		lpresClassCheck = &resClassCheck;
 	}
 	if (!lpresArchiveCheck) {
-		hr = GetArchiveCheckRestriction(&resArchiveCheck);
+		auto hr = GetArchiveCheckRestriction(&resArchiveCheck);
 		if (hr != hrSuccess)
 			return hr;
 		lpresArchiveCheck = &resArchiveCheck;
 	}
-	hr = GetIpmSubtree(&~ptrIpmSubtree);
+	auto hr = GetIpmSubtree(&~ptrIpmSubtree);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrIpmSubtree, PR_ENTRYID, &~ptrPropEntryId);
@@ -507,7 +506,6 @@ HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const
 
 HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const ECRestriction *lpresClassCheck, const ECRestriction *lpresArchiveCheck)
 {
-	HRESULT hr;
 	ECOrRestriction resClassCheck;
 	MAPIFolderPtr ptrIpmSubtree;
 	SPropValuePtr ptrPropEntryId;
@@ -519,18 +517,18 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 	if (lpSearchFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	if (!lpresClassCheck) {
-		hr = GetClassCheckRestriction(&resClassCheck);
+		auto hr = GetClassCheckRestriction(&resClassCheck);
 		if (hr != hrSuccess)
 			return hr;
 		lpresClassCheck = &resClassCheck;
 	}
 	if (!lpresArchiveCheck) {
-		hr = GetArchiveCheckRestriction(&resArchiveCheck);
+		auto hr = GetArchiveCheckRestriction(&resArchiveCheck);
 		if (hr != hrSuccess)
 			return hr;
 		lpresArchiveCheck = &resArchiveCheck;
 	}
-	hr = GetIpmSubtree(&~ptrIpmSubtree);
+	auto hr = GetIpmSubtree(&~ptrIpmSubtree);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrIpmSubtree, PR_ENTRYID, &~ptrPropEntryId);
@@ -571,7 +569,6 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 
 HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const ECRestriction* /*lpresClassCheck*/, const ECRestriction *lpresArchiveCheck)
 {
-	HRESULT hr;
 	MAPIFolderPtr ptrIpmSubtree;
 	SPropValuePtr ptrPropEntryId;
 	SPropValue sPropStubbed, sPropMsgClass[2], sPropVersion;
@@ -583,12 +580,12 @@ HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const EC
 		return MAPI_E_INVALID_PARAMETER;
 
 	if (!lpresArchiveCheck) {
-		hr = GetArchiveCheckRestriction(&resArchiveCheck);
+		auto hr = GetArchiveCheckRestriction(&resArchiveCheck);
 		if (hr != hrSuccess)
 			return hr;
 		lpresArchiveCheck = &resArchiveCheck;
 	}
-	hr = GetIpmSubtree(&~ptrIpmSubtree);
+	auto hr = GetIpmSubtree(&~ptrIpmSubtree);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrIpmSubtree, PR_ENTRYID, &~ptrPropEntryId);

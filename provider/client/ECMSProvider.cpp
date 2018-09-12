@@ -319,10 +319,9 @@ HRESULT ECMSProvider::LogonByEntryID(object_ptr<WSTransport> &lpTransport,
 #	undef swprintf
 #endif
 
-ECMSProviderSwitch::ECMSProviderSwitch(ULONG ulFlags) : ECUnknown("ECMSProviderSwitch")
-{
-	m_ulFlags = ulFlags;
-}
+ECMSProviderSwitch::ECMSProviderSwitch(ULONG f) :
+	ECUnknown("ECMSProviderSwitch"), m_ulFlags(f)
+{}
 
 HRESULT ECMSProviderSwitch::Create(ULONG ulFlags, ECMSProviderSwitch **lppMSProvider)
 {

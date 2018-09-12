@@ -8,6 +8,7 @@
 
 #include <kopano/zcdefs.h>
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <kopano/ECConfig.h>
 
@@ -59,7 +60,7 @@ private:
 	 * 					Plugins are allowed to throw an exception when bDistributed is true
 	 *					while the plugin doesn't support multi-server.
 	 */
-	_kc_hidden ECPluginSharedData(ECConfig *parent, ECStatsCollector *, bool hosted, bool distributed);
+	_kc_hidden ECPluginSharedData(std::shared_ptr<ECConfig> parent, ECStatsCollector *, bool hosted, bool distributed);
 	_kc_hidden virtual ~ECPluginSharedData(void);
 
 public:
@@ -81,7 +82,7 @@ public:
 	 * 					Plugins are allowed to throw an exception when bDistributed is true
 	 *					while the plugin doesn't support multi-server.
 	 */
-	_kc_hidden static void GetSingleton(ECPluginSharedData **singleton, ECConfig *parent, ECStatsCollector *, bool hosted, bool distributed);
+	_kc_hidden static void GetSingleton(ECPluginSharedData **singleton, std::shared_ptr<ECConfig> parent, ECStatsCollector *, bool hosted, bool distributed);
 
 	/**
 	 * Increase reference count
@@ -142,7 +143,7 @@ private:
 	/**
 	 * Server configuration file
 	 */
-	ECConfig *m_lpParentConfig;
+	std::shared_ptr<ECConfig> m_lpParentConfig;
 
 	/**
 	 * Statistics collector

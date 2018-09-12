@@ -521,10 +521,9 @@ static HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true 
 
 static void dumptable(eTableType eTable, LPMDB lpStore, bool humanreadable)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 
-	hr = lpStore->OpenProperty(ulTableProps[eTable], &IID_IMAPITable, 0, MAPI_DEFERRED_ERRORS, &~lpTable);
+	auto hr = lpStore->OpenProperty(ulTableProps[eTable], &IID_IMAPITable, 0, MAPI_DEFERRED_ERRORS, &~lpTable);
 	if (hr != hrSuccess) {
 		cout << "Unable to open requested statistics table" << endl;
 		return;
@@ -559,8 +558,6 @@ static void print_help(const char *name)
 
 int main(int argc, char *argv[])
 {
-	HRESULT hr = hrSuccess;
-	std::shared_ptr<ECLogger> lpLogger(new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false));
 	AutoMAPI mapiinit;
 	object_ptr<IMAPISession> lpSession;
 	object_ptr<IMsgStore> lpStore;
@@ -610,7 +607,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	hr = mapiinit.Initialize();
+	auto hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
 		cerr << "Cannot init mapi" << endl;
 		return EXIT_FAILURE;

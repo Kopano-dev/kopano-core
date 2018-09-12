@@ -86,16 +86,10 @@ BTSession::BTSession(const char *src_addr, ECSESSIONID sessionID,
     ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager,
     unsigned int ulCapabilities) :
 	m_strSourceAddr(src_addr), m_sessionID(sessionID),
+	m_sessionTime(GetProcessTime()), m_ulClientCapabilities(ulCapabilities),
 	m_lpDatabaseFactory(lpDatabaseFactory),
-	m_lpSessionManager(lpSessionManager),
-	m_ulClientCapabilities(ulCapabilities)
-{
-	m_sessionTime = GetProcessTime();
-	m_ulSessionTimeout = 300;
-	m_bCheckIP = true;
-	m_ulRequests = 0;
-	m_ulLastRequestPort = 0;
-}
+	m_lpSessionManager(lpSessionManager)
+{}
 
 void BTSession::SetClientMeta(const char *const lpstrClientVersion, const char *const lpstrClientMisc)
 {
@@ -227,11 +221,11 @@ ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
 	    ulCapabilities),
 	m_ulAuthMethod(ulAuthMethod), m_ulConnectingPid(pid),
 	m_ecSessionGroupId(ecSessionGroupId), m_strClientVersion(cl_ver),
-	m_ulClientVersion(KOPANO_VERSION_UNKNOWN), m_strClientApp(cl_app)
+	m_ulClientVersion(KOPANO_VERSION_UNKNOWN), m_strClientApp(cl_app),
+	m_lpTableManager(new ECTableManager(this))
 {
-	m_lpTableManager.reset(new ECTableManager(this));
 	m_strClientApplicationVersion   = cl_app_ver;
-	m_strClientApplicationMisc	= cl_app_misc;
+	m_strClientApplicationMisc      = cl_app_misc;
 	ParseKopanoVersion(cl_ver, nullptr, &m_ulClientVersion);
 	// Ignore result.
 	m_ulSessionTimeout = atoi(lpSessionManager->GetConfig()->GetSetting("session_timeout"));

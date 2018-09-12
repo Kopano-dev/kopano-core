@@ -499,7 +499,6 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 
 static void *HandlerClient(void *lpArg)
 {
-	HRESULT hr = hrSuccess;
 	auto lpHandlerArgs = static_cast<HandlerArgs *>(lpArg);
 	ECChannel *lpChannel = lpHandlerArgs->lpChannel;
 	bool bUseSSL = lpHandlerArgs->bUseSSL;
@@ -512,7 +511,7 @@ static void *HandlerClient(void *lpArg)
     }
 
 	while (!g_bQuit) {
-		hr = lpChannel->HrSelect(KEEP_ALIVE_TIME);
+		auto hr = lpChannel->HrSelect(KEEP_ALIVE_TIME);
 		if (hr == MAPI_E_CANCEL)
 			/* signalled - reevaluate g_bQuit */
 			continue;

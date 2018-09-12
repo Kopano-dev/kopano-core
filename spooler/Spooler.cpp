@@ -1144,7 +1144,8 @@ int main(int argc, char *argv[]) {
 		ec_log_crit("main(): Failed creating PID file");
 		goto exit;
 	}
-	g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger));
+	if (!g_use_threads)
+		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger));
 	ec_log_set(g_lpLogger);
 	g_lpLogger->SetLogprefix(LP_PID);
 

@@ -74,7 +74,7 @@ class SOURCEKEY;
 
 class _kc_export ECSessionManager _kc_final {
 public:
-	_kc_hidden ECSessionManager(ECConfig *, ECLogger *audit, bool hosted, bool distributed);
+	_kc_hidden ECSessionManager(std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit, bool hosted, bool distributed);
 	_kc_hidden virtual ~ECSessionManager(void);
 	_kc_hidden virtual ECRESULT CreateAuthSession(struct soap *, unsigned int caps, ECSESSIONID *, ECAuthSession **, bool register_ses, bool lock_ses);
 	// Creates a session based on passed credentials
@@ -142,7 +142,7 @@ public:
 	_kc_hidden ECLocale GetSortLocale(ULONG store_id);
 	_kc_hidden ECCacheManager *GetCacheManager() const { return m_lpECCacheManager.get(); }
 	_kc_hidden ECSearchFolders *GetSearchFolders() const { return m_lpSearchFolders.get(); }
-	_kc_hidden ECConfig *GetConfig() const { return m_lpConfig; }
+	_kc_hidden std::shared_ptr<ECConfig> GetConfig() const { return m_lpConfig; }
 	_kc_hidden std::shared_ptr<ECLogger> GetAudit() const { return m_lpAudit; }
 	_kc_hidden ECPluginFactory *GetPluginFactory() const { return m_lpPluginFactory.get(); }
 	_kc_hidden ECLockManager *GetLockManager() const { return m_ptrLockManager.get(); }
@@ -162,7 +162,7 @@ protected:
 	std::mutex m_hExitMutex; /* Mutex needed for the release signal */
 	std::condition_variable m_hExitSignal; /* Signal that should be sent to the sessionncleaner when to exit */
 	pthread_t			m_hSessionCleanerThread;///< Thread that is used for the sessioncleaner
-	ECConfig*			m_lpConfig;
+	std::shared_ptr<ECConfig> m_lpConfig;
 	bool bExit = false, m_bTerminateThread, m_thread_active = false;
 	bool m_bHostedKopano, m_bDistributedKopano;
 	unsigned long long m_ullSourceKeyAutoIncrement = 0;
@@ -186,8 +186,8 @@ protected:
 	GUID m_server_guid{};
 	std::shared_ptr<ECLogger> m_lpAudit;
 	std::unique_ptr<ECPluginFactory> m_lpPluginFactory;
-	std::unique_ptr<ECSearchFolders> m_lpSearchFolders;
 	std::unique_ptr<ECDatabaseFactory> m_lpDatabaseFactory;
+	std::unique_ptr<ECSearchFolders> m_lpSearchFolders;
 	std::unique_ptr<ECCacheManager> m_lpECCacheManager;
 	std::unique_ptr<ECTPropsPurge> m_lpTPropsPurge;
 	ECLockManagerPtr m_ptrLockManager;

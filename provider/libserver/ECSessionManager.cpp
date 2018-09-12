@@ -36,18 +36,17 @@ using namespace std::chrono_literals;
 
 namespace KC {
 
-ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
-    bool bHostedKopano, bool bDistributedKopano) :
-	m_lpConfig(lpConfig), m_bHostedKopano(bHostedKopano),
-	m_bDistributedKopano(bDistributedKopano), m_lpAudit(lpAudit)
+ECSessionManager::ECSessionManager(std::shared_ptr<ECConfig> cfg,
+    std::shared_ptr<ECLogger> ad, bool bHostedKopano, bool bDistributedKopano) :
+	m_lpConfig(std::move(cfg)), m_bHostedKopano(bHostedKopano),
+	m_bDistributedKopano(bDistributedKopano), m_lpAudit(std::move(ad)),
+	m_lpPluginFactory(new ECPluginFactory(m_lpConfig, g_lpStatsCollector, bHostedKopano, bDistributedKopano)),
+	m_lpDatabaseFactory(new ECDatabaseFactory(m_lpConfig)),
+	m_lpSearchFolders(new ECSearchFolders(this, m_lpDatabaseFactory.get())),
+	m_lpECCacheManager(new ECCacheManager(m_lpConfig, m_lpDatabaseFactory.get())),
+	m_lpTPropsPurge(new ECTPropsPurge(m_lpConfig, m_lpDatabaseFactory.get())),
+	m_ptrLockManager(ECLockManager::Create())
 {
-	m_lpPluginFactory.reset(new ECPluginFactory(lpConfig, g_lpStatsCollector, bHostedKopano, bDistributedKopano));
-	m_lpDatabaseFactory.reset(new ECDatabaseFactory(lpConfig));
-	m_lpSearchFolders.reset(new ECSearchFolders(this, m_lpDatabaseFactory.get()));
-	m_lpECCacheManager.reset(new ECCacheManager(lpConfig, m_lpDatabaseFactory.get()));
-	m_lpTPropsPurge.reset(new ECTPropsPurge(lpConfig, m_lpDatabaseFactory.get()));
-	m_ptrLockManager = ECLockManager::Create();
-
 	// init SSL randomness for session IDs
 	ssl_random_init();
 
@@ -1236,9 +1235,8 @@ ECRESULT ECSessionManager::GetStoreSortLCID(ULONG ulStoreId, ULONG *lpLcid)
 		return KCERR_NOT_FOUND;
 	}
 
-	*lpLcid = strtoul(lpDBRow[0], NULL, 10);
 	new_prop.ulPropTag = PR_SORT_LOCALE_ID;
-	new_prop.Value.ul = *lpLcid;
+	new_prop.Value.ul = *lpLcid = strtoul(lpDBRow[0], nullptr, 10);
 	new_prop.__union = SOAP_UNION_propValData_ul;
 	return cache->SetCell(&key, PR_SORT_LOCALE_ID, &new_prop);
 }

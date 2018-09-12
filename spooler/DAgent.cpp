@@ -1176,19 +1176,15 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	ULONG cValues;
 
 	const wchar_t *szSubject = L"Out of office";
-	char szHeader[PATH_MAX] = {0};
+	char szHeader[PATH_MAX] = {0}, szTemp[PATH_MAX] = {0};
 	wchar_t szwHeader[PATH_MAX] = {0};
-	char szTemp[PATH_MAX] = {0};
 	int fd = -1;
 	wstring	strFromName, strFromType, strFromEmail, strBody;
 	string  unquoted, quoted;
 	std::vector<std::string> cmdline = {strBaseCommand};
 	// Environment
 	size_t s = 0;
-	std::string strToMe;
-	std::string strCcMe, strBccMe;
-	std::string strTmpFile;
-	std::string strTmpFileEnv;
+	std::string strToMe, strCcMe, strBccMe, strTmpFile, strTmpFileEnv;
 
 	sc -> countInc("DAgent", "OutOfOffice");
 
@@ -3022,7 +3018,8 @@ static HRESULT running_service(char **argv, bool bDaemonize,
 	if (!bDaemonize)
 		setsid();
 	unix_create_pidfile(argv[0], g_lpConfig.get());
-	g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
+	if (!g_use_threads)
+		g_lpLogger = StartLoggerProcess(g_lpConfig.get(), std::move(g_lpLogger)); // maybe replace logger
 	ec_log_set(g_lpLogger);
 
 	nMaxThreads = atoui(g_lpConfig->GetSetting("lmtp_max_threads"));

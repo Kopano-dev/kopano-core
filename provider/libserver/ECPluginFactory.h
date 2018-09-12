@@ -8,6 +8,7 @@
 #define ECPLUGINFACTORY_H
 
 #include <kopano/zcdefs.h>
+#include <memory>
 #include <mutex>
 #include <kopano/kcodes.h>
 #include "plugin.h"
@@ -20,7 +21,7 @@ class ECStatsCollector;
 
 class _kc_export ECPluginFactory _kc_final {
 public:
-	_kc_hidden ECPluginFactory(ECConfig *, ECStatsCollector *, bool hosted, bool distributed);
+	_kc_hidden ECPluginFactory(std::shared_ptr<ECConfig>, ECStatsCollector *, bool hosted, bool distributed);
 	_kc_hidden ~ECPluginFactory(void);
 	_kc_hidden ECRESULT CreateUserPlugin(UserPlugin **ret);
 	void		SignalPlugins(int signal);
@@ -29,7 +30,7 @@ private:
 	UserPlugin *(*m_getUserPluginInstance)(std::mutex &, ECPluginSharedData *) = nullptr;
 	void (*m_deleteUserPluginInstance)(UserPlugin *) = nullptr;
 	ECPluginSharedData *m_shareddata;
-	ECConfig *m_config;
+	std::shared_ptr<ECConfig> m_config;
 	std::mutex m_plugin_lock;
 	DLIB m_dl = nullptr;
 };

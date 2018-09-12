@@ -3,6 +3,8 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 #include <kopano/platform.h>
+#include <memory>
+#include <utility>
 #include <cstring>
 #include <climits>
 #include "ECPluginFactory.h"
@@ -12,9 +14,9 @@
 
 namespace KC {
 
-ECPluginFactory::ECPluginFactory(ECConfig *config, ECStatsCollector *lpStatsCollector,
-    bool bHosted, bool bDistributed) :
-	m_config(config)
+ECPluginFactory::ECPluginFactory(std::shared_ptr<ECConfig> cfg,
+    ECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed) :
+	m_config(std::move(cfg))
 {
 	ECPluginSharedData::GetSingleton(&m_shareddata, m_config, lpStatsCollector, bHosted, bDistributed);
 }
