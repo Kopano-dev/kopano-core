@@ -2933,7 +2933,6 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
     const struct propTagArray *lpPropTags, struct propValArray *lpPropValsRet)
 {
 	struct propVal *lpPropVal;
-	unsigned int ulOrder = 0;
 	ECSecurity *lpSecurity = NULL;
 	struct propValArray sPropVals;
 	struct propValArray *lpPropVals = &sPropVals;
@@ -3009,14 +3008,16 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 				lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
 				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 				break;
-			case PR_INSTANCE_KEY:
+			case PR_INSTANCE_KEY: {
 				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
 				lpPropVal->Value.bin->__size = 2*sizeof(ULONG);
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
 				memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
-				memcpy(lpPropVal->Value.bin->__ptr+sizeof(ULONG), &ulOrder, sizeof(ULONG));
+				uint32_t tmp4 = cpu_to_le32(0); /* "ulOrder" */
+				memcpy(lpPropVal->Value.bin->__ptr + sizeof(ULONG), &tmp4, sizeof(tmp4));
 				break;
+			}
 			case PR_OBJECT_TYPE:
 				lpPropVal->Value.ul = MAPI_MAILUSER;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
@@ -3301,15 +3302,17 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 				lpPropVal->Value.ul = MAPI_E_NOT_FOUND;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
 				break;
-			case PR_INSTANCE_KEY:
+			case PR_INSTANCE_KEY: {
 				lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
 				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
 				lpPropVal->Value.bin->__size = 2*sizeof(ULONG);
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
 
 				memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
-				memcpy(lpPropVal->Value.bin->__ptr+sizeof(ULONG), &ulOrder, sizeof(ULONG));
+				uint32_t tmp4 = cpu_to_le32(0); /* "ulOrder" */
+				memcpy(lpPropVal->Value.bin->__ptr + sizeof(ULONG), &tmp4, sizeof(tmp4));
 				break;
+			}
 			case PR_OBJECT_TYPE:
 				lpPropVal->Value.ul = MAPI_DISTLIST;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;
@@ -3447,7 +3450,6 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
     const struct propTagArray *lpPropTags, struct propValArray *lpPropVals) const
 {
 	struct propVal *lpPropVal;
-	unsigned int ulOrder = 0;
 	ECSecurity *lpSecurity = NULL;
 	ULONG ulMapiType = 0;
 
@@ -3506,7 +3508,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
 				tmp4 = cpu_to_le32(ulId);
 				memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
-				tmp4 = cpu_to_le32(ulOrder);
+				tmp4 = cpu_to_le32(0); /* "ulOrder" */
 				memcpy(lpPropVal->Value.bin->__ptr + sizeof(tmp4), &tmp4, sizeof(tmp4));
 				break;
 			case PR_OBJECT_TYPE:
@@ -3590,7 +3592,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 				lpPropVal->__union = SOAP_UNION_propValData_bin;
 				tmp4 = cpu_to_le32(ulId);
 				memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
-				tmp4 = cpu_to_le32(ulOrder);
+				tmp4 = cpu_to_le32(0); /* "ulOrder" */
 				memcpy(lpPropVal->Value.bin->__ptr + sizeof(tmp4), &tmp4, sizeof(tmp4));
 				break;
 			case PR_OBJECT_TYPE:
