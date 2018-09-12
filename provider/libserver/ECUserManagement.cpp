@@ -2911,6 +2911,482 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 	return erSuccess;
 }
 
+ECRESULT ECUserManagement::cvt_user_to_props(struct soap *soap,
+    unsigned int ulId, unsigned int ulMapiType, const objectdetails_t *lpDetails,
+    const struct propTagArray *lpPropTags, unsigned int i,
+    struct propVal *lpPropVal)
+{
+	ECRESULT er = erSuccess;
+	switch (NormalizePropTag(lpPropTags->__ptr[i])) {
+	case PR_ENTRYID: {
+		er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
+		if (er != erSuccess)
+			return er;
+		break;
+	}
+	case PR_EC_NONACTIVE:
+		lpPropVal->Value.b = (lpDetails->GetClass() != ACTIVE_USER);
+		lpPropVal->__union = SOAP_UNION_propValData_b;
+		break;
+	case PR_EC_ADMINISTRATOR:
+		lpPropVal->Value.ul = lpDetails->GetPropInt(OB_PROP_I_ADMINLEVEL);
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_EC_COMPANY_NAME: {
+		if (IsInternalObject(ulId) || (! m_lpSession->GetSessionManager()->IsHostedSupported())) {
+			lpPropVal->Value.lpszA = s_strcpy(soap, "");
+		} else {
+			objectdetails_t sCompanyDetails;
+			er = GetObjectDetails(lpDetails->GetPropInt(OB_PROP_I_COMPANYID), &sCompanyDetails);
+			if (er != erSuccess)
+				return er;
+			lpPropVal->Value.lpszA = s_strcpy(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
+		}
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	}
+	case PR_SMTP_ADDRESS:
+		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_EMAIL).c_str());
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_MESSAGE_CLASS:
+		lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.Contact");
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_NORMALIZED_SUBJECT:
+	case PR_7BIT_DISPLAY_NAME:
+	case PR_DISPLAY_NAME:
+	case PR_TRANSMITABLE_DISPLAY_NAME:
+		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_INSTANCE_KEY: {
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
+		lpPropVal->Value.bin->__size = 2*sizeof(ULONG);
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
+		uint32_t tmp4 = cpu_to_le32(0); /* "ulOrder" */
+		memcpy(lpPropVal->Value.bin->__ptr + sizeof(ULONG), &tmp4, sizeof(tmp4));
+		break;
+	}
+	case PR_OBJECT_TYPE:
+		lpPropVal->Value.ul = MAPI_MAILUSER;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_DISPLAY_TYPE:
+		if (lpDetails->GetClass() != NONACTIVE_CONTACT)
+			lpPropVal->Value.ul = DT_MAILUSER;
+		else
+			lpPropVal->Value.ul = DT_REMOTE_MAILUSER;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_DISPLAY_TYPE_EX:
+		switch(lpDetails->GetClass()) {
+		default:
+		case ACTIVE_USER:
+			lpPropVal->Value.ul = DT_MAILUSER | DTE_FLAG_ACL_CAPABLE;
+			break;
+		case NONACTIVE_USER:
+			lpPropVal->Value.ul = DT_MAILUSER;
+			break;
+		case NONACTIVE_ROOM:
+			lpPropVal->Value.ul = DT_ROOM;
+			break;
+		case NONACTIVE_EQUIPMENT:
+			lpPropVal->Value.ul = DT_EQUIPMENT;
+			break;
+		case NONACTIVE_CONTACT:
+			lpPropVal->Value.ul = DT_REMOTE_MAILUSER;
+			break;
+		};
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_EMS_AB_ROOM_CAPACITY:
+		lpPropVal->Value.ul = lpDetails->GetPropInt(OB_PROP_I_RESOURCE_CAPACITY);
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_EMS_AB_ROOM_DESCRIPTION: {
+		if (lpDetails->GetClass() == ACTIVE_USER) {
+			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+			lpPropVal->Value.ul = KCERR_NOT_FOUND;
+			lpPropVal->__union = SOAP_UNION_propValData_ul;
+			break;
+		}
+		std::string strDesc = lpDetails->GetPropString(OB_PROP_S_RESOURCE_DESCRIPTION);
+		if (strDesc.empty()) {
+			switch (lpDetails->GetClass()) {
+			case NONACTIVE_ROOM:
+				strDesc = "Room";
+				break;
+			case NONACTIVE_EQUIPMENT:
+				strDesc = "Equipment";
+				break;
+			default:
+				// actually to keep the compiler happy
+				strDesc = "Invalid";
+				break;
+			}
+		}
+		lpPropVal->ulPropTag = lpPropTags->__ptr[i];
+		lpPropVal->Value.lpszA = s_strcpy(soap, strDesc.c_str());
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	}
+	case PR_SEARCH_KEY: {
+		std::string strSearchKey = "ZARAFA:"s + strToUpper(lpDetails->GetPropString(OB_PROP_S_EMAIL));
+		lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, strSearchKey.size()+1);
+		lpPropVal->Value.bin->__size = strSearchKey.size()+1;
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		strcpy((char *)lpPropVal->Value.bin->__ptr, strSearchKey.c_str());
+		break;
+	}
+	case PR_ADDRTYPE:
+		lpPropVal->Value.lpszA = s_strcpy(soap, "ZARAFA");
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_RECORD_KEY:
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
+		lpPropVal->Value.bin->__size = sizeof(ULONG);
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
+		break;
+	case PR_EMS_AB_HOME_MDB: {
+		/* Make OL2010 happy */
+		auto serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
+		if (serverName.empty())
+			serverName = "Unknown";
+		auto hostname = "/o=Domain/ou=Location/cn=Configuration/cn=Servers/cn=" + serverName + "/cn=Microsoft Private MDB";
+		lpPropVal->Value.lpszA = s_strcpy(soap, hostname.c_str());
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	}
+	case PR_ACCOUNT:
+	case PR_EMAIL_ADDRESS:
+		// Dont use login name for NONACTIVE_CONTACT since it doesn't have a login name
+		if (lpDetails->GetClass() != NONACTIVE_CONTACT)
+			lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
+		else
+			lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_SEND_INTERNET_ENCODING:
+		lpPropVal->Value.ul = 0;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_SEND_RICH_INFO:
+		lpPropVal->Value.b = true;
+		lpPropVal->__union = SOAP_UNION_propValData_b;
+		break;
+	case PR_AB_PROVIDER_ID:
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		lpPropVal->Value.bin->__size = sizeof(GUID);
+
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
+		break;
+	case PR_EMS_AB_X509_CERT: {
+		auto strCerts = lpDetails->GetPropListString(OB_PROP_LS_CERTIFICATE);
+		if (strCerts.empty())
+			/* This is quite annoying. The LDAP plugin loads it in a specific location, while the db plugin
+			  saves it through the anonymous map into the proptag location.
+			 */
+			strCerts = lpDetails->GetPropListString((property_key_t)lpPropTags->__ptr[i]);
+
+		if (strCerts.empty()) {
+			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+			lpPropVal->Value.ul = KCERR_NOT_FOUND;
+			lpPropVal->__union = SOAP_UNION_propValData_ul;
+			break;
+		}
+		unsigned int j = 0;
+		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
+		lpPropVal->Value.mvbin.__size = strCerts.size();
+		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, strCerts.size());
+		for (const auto &cert : strCerts) {
+			lpPropVal->Value.mvbin.__ptr[j].__size = cert.size();
+			lpPropVal->Value.mvbin.__ptr[j].__ptr = s_alloc<unsigned char>(soap, cert.size());
+			memcpy(lpPropVal->Value.mvbin.__ptr[j++].__ptr, cert.data(), cert.size());
+		}
+		break;
+	}
+	case PR_EC_SENDAS_USER_ENTRYIDS: {
+		auto userIds = lpDetails->GetPropListObject(OB_PROP_LO_SENDAS);
+		if (userIds.empty()) {
+			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+			lpPropVal->Value.ul = KCERR_NOT_FOUND;
+			lpPropVal->__union = SOAP_UNION_propValData_ul;
+			break;
+		}
+		unsigned int j = 0;
+		struct propVal sPropVal;
+		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
+		lpPropVal->Value.mvbin.__size = 0;
+		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, userIds.size());
+		for (const auto &uid : userIds) {
+			er = CreateABEntryID(soap, uid, &sPropVal);
+			if (er != erSuccess)
+				continue;
+			lpPropVal->Value.mvbin.__ptr[j].__ptr = sPropVal.Value.bin->__ptr;
+			lpPropVal->Value.mvbin.__ptr[j++].__size = sPropVal.Value.bin->__size;
+		}
+		lpPropVal->Value.mvbin.__size = j;
+		break;
+	}
+	case PR_EMS_AB_PROXY_ADDRESSES: {
+		// Use upper-case 'SMTP' for primary
+		std::string strPrefix("SMTP:");
+		std::string address(lpDetails->GetPropString(OB_PROP_S_EMAIL));
+		std::list<std::string> lstAliases = lpDetails->GetPropListString(OB_PROP_LS_ALIASES);
+		unsigned int nAliases = lstAliases.size(), j = 0;
+
+		lpPropVal->__union = SOAP_UNION_propValData_mvszA;
+		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, 1 + nAliases);
+		if (!address.empty()) {
+			address = strPrefix + address;
+			lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, address.c_str());
+		}
+		// Use lower-case 'smtp' prefix for aliases
+		strPrefix = "smtp:";
+		for (const auto &alias : lstAliases)
+			lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, (strPrefix + alias).c_str());
+		lpPropVal->Value.mvszA.__size = j;
+		break;
+	}
+	case PR_EC_EXCHANGE_DN: {
+		std::string exchangeDN = lpDetails->GetPropString(OB_PROP_S_EXCH_DN);
+		if (!exchangeDN.empty()) {
+			lpPropVal->Value.lpszA = s_strcpy(soap, exchangeDN.c_str());
+			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+			break;
+		}
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->Value.ul = KCERR_NOT_FOUND;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	}
+	case PR_EC_HOMESERVER_NAME: {
+		std::string serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
+		if (!serverName.empty()) {
+			lpPropVal->Value.lpszA = s_strcpy(soap, serverName.c_str());
+			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+			break;
+		}
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->Value.ul = KCERR_NOT_FOUND;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	}
+	default:
+		/* Property not handled in switch, try checking if user has mapped the property personally */
+		if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) == erSuccess)
+			break;
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->Value.ul = KCERR_NOT_FOUND;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	}
+	return erSuccess;
+}
+
+ECRESULT ECUserManagement::cvt_distlist_to_props(struct soap *soap,
+    unsigned int ulId, unsigned int ulMapiType, const objectdetails_t *lpDetails,
+    const struct propTagArray *lpPropTags, unsigned int i,
+    struct propVal *lpPropVal)
+{
+	ECRESULT er = erSuccess;
+	switch (NormalizePropTag(lpPropTags->__ptr[i])) {
+	case PR_EC_COMPANY_NAME: {
+		if (IsInternalObject(ulId) || (! m_lpSession->GetSessionManager()->IsHostedSupported())) {
+			lpPropVal->Value.lpszA = s_strcpy(soap, "");
+		} else {
+			objectdetails_t sCompanyDetails;
+			er = GetObjectDetails(lpDetails->GetPropInt(OB_PROP_I_COMPANYID), &sCompanyDetails);
+			if (er != erSuccess)
+				return er;
+			lpPropVal->Value.lpszA = s_strcpy(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
+		}
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	}
+	case PR_SEARCH_KEY: {
+		std::string strSearchKey = "ZARAFA:"s + strToUpper(lpDetails->GetPropString(OB_PROP_S_FULLNAME));
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, strSearchKey.size()+1);
+		lpPropVal->Value.bin->__size = strSearchKey.size()+1;
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+
+		strcpy((char *)lpPropVal->Value.bin->__ptr, strSearchKey.c_str());
+		break;
+	}
+	case PR_ADDRTYPE:
+		lpPropVal->Value.lpszA = s_strcpy(soap, "ZARAFA");
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_EMAIL_ADDRESS:
+		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_MESSAGE_CLASS:
+		lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.DistList");
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_ENTRYID:
+		er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
+		if (er != erSuccess)
+			return er;
+		break;
+	case PR_NORMALIZED_SUBJECT:
+	case PR_DISPLAY_NAME:
+	case PR_TRANSMITABLE_DISPLAY_NAME:
+		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_SMTP_ADDRESS:
+		if (lpDetails->HasProp(OB_PROP_S_EMAIL)) {
+			lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_EMAIL).c_str());
+			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+			break;
+		}
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropVal->ulPropTag, PT_ERROR);
+		lpPropVal->Value.ul = MAPI_E_NOT_FOUND;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_INSTANCE_KEY: {
+		lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
+		lpPropVal->Value.bin->__size = 2*sizeof(ULONG);
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+
+		memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
+		uint32_t tmp4 = cpu_to_le32(0); /* "ulOrder" */
+		memcpy(lpPropVal->Value.bin->__ptr + sizeof(ULONG), &tmp4, sizeof(tmp4));
+		break;
+	}
+	case PR_OBJECT_TYPE:
+		lpPropVal->Value.ul = MAPI_DISTLIST;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_DISPLAY_TYPE:
+		if (lpDetails->GetClass() == CONTAINER_COMPANY)
+			lpPropVal->Value.ul = DT_ORGANIZATION;
+		else
+			lpPropVal->Value.ul = DT_DISTLIST;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_DISPLAY_TYPE_EX:
+		switch (lpDetails->GetClass()) {
+		case DISTLIST_GROUP:
+			lpPropVal->Value.ul = DT_DISTLIST;
+			break;
+		case DISTLIST_SECURITY:
+			lpPropVal->Value.ul = DT_SEC_DISTLIST | DTE_FLAG_ACL_CAPABLE;
+			break;
+		case DISTLIST_DYNAMIC:
+			lpPropVal->Value.ul = DT_AGENT;
+			break;
+		case CONTAINER_COMPANY:
+			lpPropVal->Value.ul = DT_ORGANIZATION | DTE_FLAG_ACL_CAPABLE;
+			break;
+		default:
+			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropVal->ulPropTag, PT_ERROR);
+			lpPropVal->Value.ul = MAPI_E_NOT_FOUND;
+			break;
+		}
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_RECORD_KEY:
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
+		lpPropVal->Value.bin->__size = sizeof(ULONG);
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+
+		memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
+		break;
+	case PR_ACCOUNT:
+		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_AB_PROVIDER_ID:
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		lpPropVal->Value.bin->__size = sizeof(GUID);
+
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
+		break;
+	case PR_EC_SENDAS_USER_ENTRYIDS: {
+		auto userIds = lpDetails->GetPropListObject(OB_PROP_LO_SENDAS);
+		if (userIds.empty()) {
+			lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+			lpPropVal->Value.ul = KCERR_NOT_FOUND;
+			lpPropVal->__union = SOAP_UNION_propValData_ul;
+			break;
+		}
+		unsigned int j = 0;
+		struct propVal sPropVal;
+		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
+		lpPropVal->Value.mvbin.__size = 0;
+		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, userIds.size());
+		for (const auto &uid : userIds) {
+			er = CreateABEntryID(soap, uid, &sPropVal);
+			if (er != erSuccess)
+				continue;
+			lpPropVal->Value.mvbin.__ptr[j].__ptr = sPropVal.Value.bin->__ptr;
+			lpPropVal->Value.mvbin.__ptr[j++].__size = sPropVal.Value.bin->__size;
+		}
+		lpPropVal->Value.mvbin.__size = j;
+		break;
+	}
+	case PR_EMS_AB_PROXY_ADDRESSES: {
+		// Use upper-case 'SMTP' for primary
+		std::string strPrefix("SMTP:");
+		std::string address(lpDetails->GetPropString(OB_PROP_S_EMAIL));
+		std::list<std::string> lstAliases = lpDetails->GetPropListString(OB_PROP_LS_ALIASES);
+		unsigned int nAliases = lstAliases.size(), j = 0;
+
+		lpPropVal->__union = SOAP_UNION_propValData_mvszA;
+		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, 1 + nAliases);
+
+		if (!address.empty()) {
+			address = strPrefix + address;
+			lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, address.c_str());
+		}
+
+		// Use lower-case 'smtp' prefix for aliases
+		strPrefix = "smtp:";
+		for (const auto &alias : lstAliases)
+			lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, (strPrefix + alias).c_str());
+		lpPropVal->Value.mvszA.__size = j;
+		break;
+	}
+	case PR_EC_HOMESERVER_NAME: {
+		std::string serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
+		if (!serverName.empty()) {
+			lpPropVal->Value.lpszA = s_strcpy(soap, serverName.c_str());
+			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+			break;
+		}
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->Value.ul = KCERR_NOT_FOUND;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	}
+	default:
+		if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) == erSuccess)
+			break;
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->Value.ul = KCERR_NOT_FOUND;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	}
+	return erSuccess;
+}
+
 /**
  * Convert objectdetails_t to a set of MAPI properties
  *
@@ -2964,283 +3440,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 		case NONACTIVE_ROOM:
 		case NONACTIVE_EQUIPMENT:
 		case NONACTIVE_CONTACT:
-			er = [this,soap,ulId,lpDetails,lpPropTags,i,ulMapiType,lpPropVal]() -> ECRESULT {
-			ECRESULT er = erSuccess;
-			switch(NormalizePropTag(lpPropTags->__ptr[i])) {
-			case PR_ENTRYID: {
-				er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
-				if (er != erSuccess)
-					return er;
-				break;
-			}
-			case PR_EC_NONACTIVE:
-				lpPropVal->Value.b = (lpDetails->GetClass() != ACTIVE_USER);
-				lpPropVal->__union = SOAP_UNION_propValData_b;
-				break;
-			case PR_EC_ADMINISTRATOR:
-				lpPropVal->Value.ul = lpDetails->GetPropInt(OB_PROP_I_ADMINLEVEL);
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_EC_COMPANY_NAME: {
-				if (IsInternalObject(ulId) || (! m_lpSession->GetSessionManager()->IsHostedSupported())) {
-					lpPropVal->Value.lpszA = s_strcpy(soap, "");
-				} else {
-					objectdetails_t sCompanyDetails;
-					er = GetObjectDetails(lpDetails->GetPropInt(OB_PROP_I_COMPANYID), &sCompanyDetails);
-					if (er != erSuccess)
-						return er;
-					lpPropVal->Value.lpszA = s_strcpy(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
-				}
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			}
-			case PR_SMTP_ADDRESS:
-				lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_EMAIL).c_str());
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_MESSAGE_CLASS:
-				lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.Contact");
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_NORMALIZED_SUBJECT:
-			case PR_7BIT_DISPLAY_NAME:
-			case PR_DISPLAY_NAME:
-			case PR_TRANSMITABLE_DISPLAY_NAME:
-				lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_INSTANCE_KEY: {
-				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
-				lpPropVal->Value.bin->__size = 2*sizeof(ULONG);
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
-				uint32_t tmp4 = cpu_to_le32(0); /* "ulOrder" */
-				memcpy(lpPropVal->Value.bin->__ptr + sizeof(ULONG), &tmp4, sizeof(tmp4));
-				break;
-			}
-			case PR_OBJECT_TYPE:
-				lpPropVal->Value.ul = MAPI_MAILUSER;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_DISPLAY_TYPE:
-				if (lpDetails->GetClass() != NONACTIVE_CONTACT)
-					lpPropVal->Value.ul = DT_MAILUSER;
-				else
-					lpPropVal->Value.ul = DT_REMOTE_MAILUSER;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_DISPLAY_TYPE_EX:
-				switch(lpDetails->GetClass()) {
-				default:
-				case ACTIVE_USER:
-					lpPropVal->Value.ul = DT_MAILUSER | DTE_FLAG_ACL_CAPABLE;
-					break;
-				case NONACTIVE_USER:
-					lpPropVal->Value.ul = DT_MAILUSER;
-					break;
-				case NONACTIVE_ROOM:
-					lpPropVal->Value.ul = DT_ROOM;
-					break;
-				case NONACTIVE_EQUIPMENT:
-					lpPropVal->Value.ul = DT_EQUIPMENT;
-					break;
-				case NONACTIVE_CONTACT:
-					lpPropVal->Value.ul = DT_REMOTE_MAILUSER;
-					break;
-				};
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_EMS_AB_ROOM_CAPACITY:
-				lpPropVal->Value.ul = lpDetails->GetPropInt(OB_PROP_I_RESOURCE_CAPACITY);
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_EMS_AB_ROOM_DESCRIPTION: {
-				if (lpDetails->GetClass() == ACTIVE_USER) {
-					lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
-					lpPropVal->Value.ul = KCERR_NOT_FOUND;
-					lpPropVal->__union = SOAP_UNION_propValData_ul;
-					break;
-				}
-				std::string strDesc = lpDetails->GetPropString(OB_PROP_S_RESOURCE_DESCRIPTION);
-				if (strDesc.empty()) {
-					switch (lpDetails->GetClass()) {
-					case NONACTIVE_ROOM:
-						strDesc = "Room";
-						break;
-					case NONACTIVE_EQUIPMENT:
-						strDesc = "Equipment";
-						break;
-					default:
-						// actually to keep the compiler happy
-						strDesc = "Invalid";
-						break;
-					}
-				}
-				lpPropVal->ulPropTag = lpPropTags->__ptr[i];
-				lpPropVal->Value.lpszA = s_strcpy(soap, strDesc.c_str());
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			}
-			case PR_SEARCH_KEY: {
-				std::string strSearchKey = "ZARAFA:"s + strToUpper(lpDetails->GetPropString(OB_PROP_S_EMAIL));
-				lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, strSearchKey.size()+1);
-				lpPropVal->Value.bin->__size = strSearchKey.size()+1;
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				strcpy((char *)lpPropVal->Value.bin->__ptr, strSearchKey.c_str());
-				break;
-			}
-			case PR_ADDRTYPE:
-				lpPropVal->Value.lpszA = s_strcpy(soap, "ZARAFA");
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_RECORD_KEY:
-				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
-				lpPropVal->Value.bin->__size = sizeof(ULONG);
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
-				break;
-			case PR_EMS_AB_HOME_MDB: {
-				/* Make OL2010 happy */
-				auto serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
-				if (serverName.empty())
-					serverName = "Unknown";
-				auto hostname = "/o=Domain/ou=Location/cn=Configuration/cn=Servers/cn=" + serverName + "/cn=Microsoft Private MDB";
-				lpPropVal->Value.lpszA = s_strcpy(soap, hostname.c_str());
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			}
-			case PR_ACCOUNT:
-			case PR_EMAIL_ADDRESS:
-				// Dont use login name for NONACTIVE_CONTACT since it doesn't have a login name
-				if(lpDetails->GetClass() != NONACTIVE_CONTACT)
-					lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
-				else
-					lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
-
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_SEND_INTERNET_ENCODING:
-				lpPropVal->Value.ul = 0;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_SEND_RICH_INFO:
-				lpPropVal->Value.b = true;
-				lpPropVal->__union = SOAP_UNION_propValData_b;
-				break;
-			case PR_AB_PROVIDER_ID:
-				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
-				lpPropVal->Value.bin->__size = sizeof(GUID);
-
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
-				break;
-			case PR_EMS_AB_X509_CERT: {
-				auto strCerts = lpDetails->GetPropListString(OB_PROP_LS_CERTIFICATE);
-				if (strCerts.empty())
-					/* This is quite annoying. The LDAP plugin loads it in a specific location, while the db plugin
-					  saves it through the anonymous map into the proptag location.
-					 */
-					strCerts = lpDetails->GetPropListString((property_key_t)lpPropTags->__ptr[i]);
-
-				if (strCerts.empty()) {
-					lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
-					lpPropVal->Value.ul = KCERR_NOT_FOUND;
-					lpPropVal->__union = SOAP_UNION_propValData_ul;
-					break;
-				}
-				unsigned int j = 0;
-				lpPropVal->__union = SOAP_UNION_propValData_mvbin;
-				lpPropVal->Value.mvbin.__size = strCerts.size();
-				lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, strCerts.size());
-				for (const auto &cert : strCerts) {
-					lpPropVal->Value.mvbin.__ptr[j].__size = cert.size();
-					lpPropVal->Value.mvbin.__ptr[j].__ptr = s_alloc<unsigned char>(soap, cert.size());
-					memcpy(lpPropVal->Value.mvbin.__ptr[j++].__ptr, cert.data(), cert.size());
-				}
-				break;
-			}
-			case PR_EC_SENDAS_USER_ENTRYIDS: {
-				auto userIds = lpDetails->GetPropListObject(OB_PROP_LO_SENDAS);
-				if (userIds.empty()) {
-					lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
-					lpPropVal->Value.ul = KCERR_NOT_FOUND;
-					lpPropVal->__union = SOAP_UNION_propValData_ul;
-					break;
-				}
-				unsigned int j = 0;
-				struct propVal sPropVal;
-				lpPropVal->__union = SOAP_UNION_propValData_mvbin;
-				lpPropVal->Value.mvbin.__size = 0;
-				lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, userIds.size());
-				for (const auto &uid : userIds) {
-					er = CreateABEntryID(soap, uid, &sPropVal);
-					if (er != erSuccess)
-						continue;
-					lpPropVal->Value.mvbin.__ptr[j].__ptr = sPropVal.Value.bin->__ptr;
-					lpPropVal->Value.mvbin.__ptr[j++].__size = sPropVal.Value.bin->__size;
-				}
-				lpPropVal->Value.mvbin.__size = j;
-				break;
-			}
-			case PR_EMS_AB_PROXY_ADDRESSES: {
-				// Use upper-case 'SMTP' for primary
-				std::string strPrefix("SMTP:");
-				std::string address(lpDetails->GetPropString(OB_PROP_S_EMAIL));
-				std::list<std::string> lstAliases = lpDetails->GetPropListString(OB_PROP_LS_ALIASES);
-				unsigned int nAliases = lstAliases.size(), j = 0;
-
-				lpPropVal->__union = SOAP_UNION_propValData_mvszA;
-				lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, 1 + nAliases);
-				if (!address.empty()) {
-					address = strPrefix + address;
-					lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, address.c_str());
-				}
-				// Use lower-case 'smtp' prefix for aliases
-				strPrefix = "smtp:";
-				for (const auto &alias : lstAliases)
-					lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, (strPrefix + alias).c_str());
-				lpPropVal->Value.mvszA.__size = j;
-				break;
-			}
-			case PR_EC_EXCHANGE_DN: {
-				std::string exchangeDN = lpDetails->GetPropString(OB_PROP_S_EXCH_DN);
-				if (!exchangeDN.empty()) {
-					lpPropVal->Value.lpszA = s_strcpy(soap, exchangeDN.c_str());
-					lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-					break;
-				}
-				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
-				lpPropVal->Value.ul = KCERR_NOT_FOUND;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			}
-			case PR_EC_HOMESERVER_NAME: {
-				std::string serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
-				if (!serverName.empty()) {
-					lpPropVal->Value.lpszA = s_strcpy(soap, serverName.c_str());
-					lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-					break;
-				}
-				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
-				lpPropVal->Value.ul = KCERR_NOT_FOUND;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			}
-			default:
-				/* Property not handled in switch, try checking if user has mapped the property personally */
-				if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) == erSuccess)
-					break;
-				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
-				lpPropVal->Value.ul = KCERR_NOT_FOUND;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			}
-			return erSuccess;
-		}();
+			er = cvt_user_to_props(soap, ulId, ulMapiType, lpDetails, lpPropTags, i, lpPropVal);
 			if (er != erSuccess)
 				goto exit;
 			break;
@@ -3249,195 +3449,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap,
 		case DISTLIST_GROUP:
 		case DISTLIST_SECURITY:
 		case DISTLIST_DYNAMIC:
-			er = [this,soap,ulId,lpDetails,lpPropTags,i,ulMapiType,lpPropVal]() -> ECRESULT {
-			ECRESULT er = erSuccess;
-			switch(NormalizePropTag(lpPropTags->__ptr[i])) {
-			case PR_EC_COMPANY_NAME: {
-				if (IsInternalObject(ulId) || (! m_lpSession->GetSessionManager()->IsHostedSupported())) {
-					lpPropVal->Value.lpszA = s_strcpy(soap, "");
-				} else {
-					objectdetails_t sCompanyDetails;
-					er = GetObjectDetails(lpDetails->GetPropInt(OB_PROP_I_COMPANYID), &sCompanyDetails);
-					if (er != erSuccess)
-						return er;
-					lpPropVal->Value.lpszA = s_strcpy(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
-				}
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			}
-			case PR_SEARCH_KEY: {
-				std::string strSearchKey = "ZARAFA:"s + strToUpper(lpDetails->GetPropString(OB_PROP_S_FULLNAME));
-				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, strSearchKey.size()+1);
-				lpPropVal->Value.bin->__size = strSearchKey.size()+1;
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-				strcpy((char *)lpPropVal->Value.bin->__ptr, strSearchKey.c_str());
-				break;
-			}
-			case PR_ADDRTYPE:
-				lpPropVal->Value.lpszA = s_strcpy(soap, "ZARAFA");
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_EMAIL_ADDRESS:
-				lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_MESSAGE_CLASS:
-				lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.DistList");
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_ENTRYID:
-				er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
-				if (er != erSuccess)
-					return er;
-				break;
-			case PR_NORMALIZED_SUBJECT:
-			case PR_DISPLAY_NAME:
-			case PR_TRANSMITABLE_DISPLAY_NAME:
-				lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_SMTP_ADDRESS:
-				if (lpDetails->HasProp(OB_PROP_S_EMAIL)) {
-					lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_EMAIL).c_str());
-					lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-					break;
-				}
-				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropVal->ulPropTag, PT_ERROR);
-				lpPropVal->Value.ul = MAPI_E_NOT_FOUND;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_INSTANCE_KEY: {
-				lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
-				lpPropVal->Value.bin->__size = 2*sizeof(ULONG);
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-				memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
-				uint32_t tmp4 = cpu_to_le32(0); /* "ulOrder" */
-				memcpy(lpPropVal->Value.bin->__ptr + sizeof(ULONG), &tmp4, sizeof(tmp4));
-				break;
-			}
-			case PR_OBJECT_TYPE:
-				lpPropVal->Value.ul = MAPI_DISTLIST;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_DISPLAY_TYPE:
-				if (lpDetails->GetClass() == CONTAINER_COMPANY)
-					lpPropVal->Value.ul = DT_ORGANIZATION;
-				else
-					lpPropVal->Value.ul = DT_DISTLIST;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_DISPLAY_TYPE_EX:
-				switch (lpDetails->GetClass()) {
-				case DISTLIST_GROUP:
-					lpPropVal->Value.ul = DT_DISTLIST;
-					break;
-				case DISTLIST_SECURITY:
-					lpPropVal->Value.ul = DT_SEC_DISTLIST | DTE_FLAG_ACL_CAPABLE;
-					break;
-				case DISTLIST_DYNAMIC:
-					lpPropVal->Value.ul = DT_AGENT;
-					break;
-				case CONTAINER_COMPANY:
-					lpPropVal->Value.ul = DT_ORGANIZATION | DTE_FLAG_ACL_CAPABLE;
-					break;
-				default:
-					lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropVal->ulPropTag, PT_ERROR);
-					lpPropVal->Value.ul = MAPI_E_NOT_FOUND;
-					break;
-				}
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_RECORD_KEY:
-				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
-				lpPropVal->Value.bin->__size = sizeof(ULONG);
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-
-				memcpy(lpPropVal->Value.bin->__ptr, &ulId, sizeof(ULONG));
-				break;
-			case PR_ACCOUNT:
-				lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_LOGIN).c_str());
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_AB_PROVIDER_ID:
-				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
-				lpPropVal->Value.bin->__size = sizeof(GUID);
-
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
-				break;
-			case PR_EC_SENDAS_USER_ENTRYIDS: {
-				auto userIds = lpDetails->GetPropListObject(OB_PROP_LO_SENDAS);
-				if (userIds.empty()) {
-					lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
-					lpPropVal->Value.ul = KCERR_NOT_FOUND;
-					lpPropVal->__union = SOAP_UNION_propValData_ul;
-					break;
-				}
-				unsigned int j = 0;
-				struct propVal sPropVal;
-				lpPropVal->__union = SOAP_UNION_propValData_mvbin;
-				lpPropVal->Value.mvbin.__size = 0;
-				lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, userIds.size());
-				for (const auto &uid : userIds) {
-					er = CreateABEntryID(soap, uid, &sPropVal);
-					if (er != erSuccess)
-						continue;
-					lpPropVal->Value.mvbin.__ptr[j].__ptr = sPropVal.Value.bin->__ptr;
-					lpPropVal->Value.mvbin.__ptr[j++].__size = sPropVal.Value.bin->__size;
-				}
-				lpPropVal->Value.mvbin.__size = j;
-				break;
-			}
-			case PR_EMS_AB_PROXY_ADDRESSES: {
-				// Use upper-case 'SMTP' for primary
-				std::string strPrefix("SMTP:");
-				std::string address(lpDetails->GetPropString(OB_PROP_S_EMAIL));
-				std::list<std::string> lstAliases = lpDetails->GetPropListString(OB_PROP_LS_ALIASES);
-				unsigned int nAliases = lstAliases.size(), j = 0;
-
-				lpPropVal->__union = SOAP_UNION_propValData_mvszA;
-				lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, 1 + nAliases);
-
-				if (!address.empty()) {
-					address = strPrefix + address;
-					lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, address.c_str());
-				}
-
-				// Use lower-case 'smtp' prefix for aliases
-				strPrefix = "smtp:";
-				for (const auto &alias : lstAliases)
-					lpPropVal->Value.mvszA.__ptr[j++] = s_strcpy(soap, (strPrefix + alias).c_str());
-				lpPropVal->Value.mvszA.__size = j;
-				break;
-			}
-			case PR_EC_HOMESERVER_NAME: {
-				std::string serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
-				if (!serverName.empty()) {
-					lpPropVal->Value.lpszA = s_strcpy(soap, serverName.c_str());
-					lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-					break;
-				}
-				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
-				lpPropVal->Value.ul = KCERR_NOT_FOUND;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			}
-			default:
-				if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) == erSuccess)
-					break;
-				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
-				lpPropVal->Value.ul = KCERR_NOT_FOUND;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			}
-			return erSuccess;
-		}();
+			er = cvt_distlist_to_props(soap, ulId, ulMapiType, lpDetails, lpPropTags, i, lpPropVal);
 			if (er != erSuccess)
 				goto exit;
 			break;
@@ -3451,6 +3463,195 @@ exit:
 	if (er != erSuccess && soap == NULL)
 		s_free(nullptr, lpPropVals->__ptr);
 	return er;
+}
+
+ECRESULT ECUserManagement::cvt_adrlist_to_props(struct soap *soap,
+    unsigned int ulId, unsigned int ulMapiType, const objectdetails_t *lpDetails,
+    const struct propTagArray *lpPropTags, unsigned int i,
+    struct propVal *lpPropVal) const
+{
+	ECRESULT er = erSuccess;
+	uint32_t tmp4;
+	switch (NormalizePropTag(lpPropTags->__ptr[i])) {
+	case PR_ENTRYID: {
+		er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
+		if (er != erSuccess)
+			return er;
+		break;
+	}
+	case PR_PARENT_ENTRYID: {
+		ABEID abeid;
+		abeid.ulType = MAPI_ABCONT;
+		abeid.ulId = 1;
+		memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
+		lpPropVal->Value.bin->__size = sizeof(ABEID);
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
+		break;
+	}
+	case PR_NORMALIZED_SUBJECT:
+	case PR_DISPLAY_NAME:
+	case 0x3A20001E:// PR_TRANSMITABLE_DISPLAY_NAME
+		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_INSTANCE_KEY:
+		lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
+		lpPropVal->Value.bin->__size = 2*sizeof(ULONG);
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		tmp4 = cpu_to_le32(ulId);
+		memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
+		tmp4 = cpu_to_le32(0); /* "ulOrder" */
+		memcpy(lpPropVal->Value.bin->__ptr + sizeof(tmp4), &tmp4, sizeof(tmp4));
+		break;
+	case PR_OBJECT_TYPE:
+		lpPropVal->Value.ul = MAPI_ABCONT;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_CONTAINER_FLAGS:
+		lpPropVal->Value.ul = AB_RECIPIENTS | AB_UNMODIFIABLE | AB_UNICODE_OK;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_DISPLAY_TYPE:
+		lpPropVal->Value.ul = DT_FOLDER;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_RECORD_KEY:
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
+		lpPropVal->Value.bin->__size = sizeof(ULONG);
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		tmp4 = cpu_to_le32(ulId);
+		memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
+		break;
+	case PR_AB_PROVIDER_ID:
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		lpPropVal->Value.bin->__size = sizeof(GUID);
+
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
+		break;
+	default:
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->Value.ul = KCERR_NOT_FOUND;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	}
+	return erSuccess;
+}
+
+ECRESULT ECUserManagement::cvt_company_to_props(struct soap *soap,
+    unsigned int ulId, unsigned int ulMapiType, const objectdetails_t *lpDetails,
+    const struct propTagArray *lpPropTags, unsigned int i,
+    struct propVal *lpPropVal) const
+{
+	ECRESULT er = erSuccess;
+	uint32_t tmp4;
+	switch (NormalizePropTag(lpPropTags->__ptr[i])) {
+	case PR_CONTAINER_CLASS:
+		lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.Contact");
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_ENTRYID: {
+		er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
+		if (er != erSuccess)
+			return er;
+		break;
+	}
+	case PR_EMS_AB_PARENT_ENTRYID:
+	case PR_PARENT_ENTRYID: {
+		ABEID abeid;
+		abeid.ulType = MAPI_ABCONT;
+		abeid.ulId = 1;
+		memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
+		lpPropVal->Value.bin->__size = sizeof(ABEID);
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
+		break;
+	}
+	case PR_ACCOUNT:
+	case PR_NORMALIZED_SUBJECT:
+	case PR_DISPLAY_NAME:
+	case 0x3A20001E:// PR_TRANSMITABLE_DISPLAY_NAME
+		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_EC_COMPANY_NAME:
+		lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
+		lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+		break;
+	case PR_INSTANCE_KEY:
+		lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
+		lpPropVal->Value.bin->__size = 2 * sizeof(ULONG);
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		tmp4 = cpu_to_le32(ulId);
+		memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
+		tmp4 = cpu_to_le32(0); /* "ulOrder" */
+		memcpy(lpPropVal->Value.bin->__ptr + sizeof(tmp4), &tmp4, sizeof(tmp4));
+		break;
+	case PR_OBJECT_TYPE:
+		lpPropVal->Value.ul = MAPI_ABCONT;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_DISPLAY_TYPE:
+		lpPropVal->Value.ul = DT_ORGANIZATION;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_RECORD_KEY:
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
+		lpPropVal->Value.bin->__size = sizeof(ULONG);
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		tmp4 = cpu_to_le32(ulId);
+		memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
+		break;
+	case PR_CONTAINER_FLAGS:
+		lpPropVal->Value.ul = AB_RECIPIENTS | AB_UNMODIFIABLE | AB_UNICODE_OK;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_AB_PROVIDER_ID:
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
+		lpPropVal->Value.bin->__size = sizeof(GUID);
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
+		break;
+	case PR_EMS_AB_IS_MASTER:
+		lpPropVal->Value.b = false;
+		lpPropVal->__union = SOAP_UNION_propValData_b;
+		break;
+	case PR_EMS_AB_CONTAINERID:
+		lpPropVal->Value.ul = ulId;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	case PR_EC_HOMESERVER_NAME: {
+		std::string serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
+		if (!serverName.empty()) {
+			lpPropVal->Value.lpszA = s_strcpy(soap, serverName.c_str());
+			lpPropVal->__union = SOAP_UNION_propValData_lpszA;
+			break;
+		}
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->Value.ul = KCERR_NOT_FOUND;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	}
+	default:
+		if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) == erSuccess)
+			break;
+		lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
+		lpPropVal->Value.ul = KCERR_NOT_FOUND;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		break;
+	}
+	return erSuccess;
 }
 
 // Convert a userdetails_t to a set of MAPI properties
@@ -3484,190 +3685,13 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 			break;
 
 		case CONTAINER_ADDRESSLIST:
-			er = [this,soap,ulId,lpDetails,lpPropTags,i,ulMapiType,lpPropVal]() -> ECRESULT {
-			ECRESULT er = erSuccess;
-			uint32_t tmp4;
-			switch(NormalizePropTag(lpPropTags->__ptr[i])) {
-			case PR_ENTRYID: {
-				er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
-				if (er != erSuccess)
-					return er;
-				break;
-			}
-			case PR_PARENT_ENTRYID: {
-				ABEID abeid;
-				abeid.ulType = MAPI_ABCONT;
-				abeid.ulId = 1;
-				memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
-				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
-				lpPropVal->Value.bin->__size = sizeof(ABEID);
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
-				break;
-			}
-			case PR_NORMALIZED_SUBJECT:
-			case PR_DISPLAY_NAME:
-			case 0x3A20001E:// PR_TRANSMITABLE_DISPLAY_NAME
-				lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_INSTANCE_KEY:
-				lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
-				lpPropVal->Value.bin->__size = 2*sizeof(ULONG);
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				tmp4 = cpu_to_le32(ulId);
-				memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
-				tmp4 = cpu_to_le32(0); /* "ulOrder" */
-				memcpy(lpPropVal->Value.bin->__ptr + sizeof(tmp4), &tmp4, sizeof(tmp4));
-				break;
-			case PR_OBJECT_TYPE:
-				lpPropVal->Value.ul = MAPI_ABCONT;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_CONTAINER_FLAGS:
-				lpPropVal->Value.ul = AB_RECIPIENTS | AB_UNMODIFIABLE | AB_UNICODE_OK;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_DISPLAY_TYPE:
-				lpPropVal->Value.ul = DT_FOLDER;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_RECORD_KEY:
-				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
-				lpPropVal->Value.bin->__size = sizeof(ULONG);
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				tmp4 = cpu_to_le32(ulId);
-				memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
-				break;
-			case PR_AB_PROVIDER_ID:
-				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
-				lpPropVal->Value.bin->__size = sizeof(GUID);
-
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
-				break;
-			default:
-				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
-				lpPropVal->Value.ul = KCERR_NOT_FOUND;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			}
-			return erSuccess;
-		}();
+			er = cvt_adrlist_to_props(soap, ulId, ulMapiType, lpDetails, lpPropTags, i, lpPropVal);
 			if (er != erSuccess)
 				return er;
 			break;
 
 		case CONTAINER_COMPANY:
-			er = [this,soap,ulId,lpDetails,lpPropTags,i,ulMapiType,lpPropVal]() -> ECRESULT {
-			ECRESULT er = erSuccess;
-			uint32_t tmp4;
-			switch (NormalizePropTag(lpPropTags->__ptr[i])) {
-			case PR_CONTAINER_CLASS:
-				lpPropVal->Value.lpszA = s_strcpy(soap, "IPM.Contact");
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_ENTRYID: {
-				er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
-				if (er != erSuccess)
-					return er;
-				break;
-			}
-			case PR_EMS_AB_PARENT_ENTRYID:
-			case PR_PARENT_ENTRYID: {
-				ABEID abeid;
-				abeid.ulType = MAPI_ABCONT;
-				abeid.ulId = 1;
-				memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
-				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ABEID));
-				lpPropVal->Value.bin->__size = sizeof(ABEID);
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				memcpy(lpPropVal->Value.bin->__ptr, &abeid, sizeof(abeid));
-				break;
-			}
-			case PR_ACCOUNT:
-			case PR_NORMALIZED_SUBJECT:
-			case PR_DISPLAY_NAME:
-			case 0x3A20001E:// PR_TRANSMITABLE_DISPLAY_NAME
-				lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_EC_COMPANY_NAME:
-				lpPropVal->Value.lpszA = s_strcpy(soap, lpDetails->GetPropString(OB_PROP_S_FULLNAME).c_str());
-				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-				break;
-			case PR_INSTANCE_KEY:
-				lpPropVal->Value.bin = s_alloc<xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, 2 * sizeof(ULONG));
-				lpPropVal->Value.bin->__size = 2 * sizeof(ULONG);
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				tmp4 = cpu_to_le32(ulId);
-				memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
-				tmp4 = cpu_to_le32(0); /* "ulOrder" */
-				memcpy(lpPropVal->Value.bin->__ptr + sizeof(tmp4), &tmp4, sizeof(tmp4));
-				break;
-			case PR_OBJECT_TYPE:
-				lpPropVal->Value.ul = MAPI_ABCONT;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_DISPLAY_TYPE:
-				lpPropVal->Value.ul = DT_ORGANIZATION;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_RECORD_KEY:
-				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
-				lpPropVal->Value.bin->__size = sizeof(ULONG);
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				tmp4 = cpu_to_le32(ulId);
-				memcpy(lpPropVal->Value.bin->__ptr, &tmp4, sizeof(tmp4));
-				break;
-			case PR_CONTAINER_FLAGS:
-				lpPropVal->Value.ul = AB_RECIPIENTS | AB_UNMODIFIABLE | AB_UNICODE_OK;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_AB_PROVIDER_ID:
-				lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-				lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
-				lpPropVal->Value.bin->__size = sizeof(GUID);
-				lpPropVal->__union = SOAP_UNION_propValData_bin;
-				memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
-				break;
-			case PR_EMS_AB_IS_MASTER:
-				lpPropVal->Value.b = false;
-				lpPropVal->__union = SOAP_UNION_propValData_b;
-				break;
-			case PR_EMS_AB_CONTAINERID:
-				lpPropVal->Value.ul = ulId;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			case PR_EC_HOMESERVER_NAME: {
-				std::string serverName = lpDetails->GetPropString(OB_PROP_S_SERVERNAME);
-				if (!serverName.empty()) {
-					lpPropVal->Value.lpszA = s_strcpy(soap, serverName.c_str());
-					lpPropVal->__union = SOAP_UNION_propValData_lpszA;
-					break;
-				}
-				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
-				lpPropVal->Value.ul = KCERR_NOT_FOUND;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			}
-			default:
-				if (ConvertAnonymousObjectDetailToProp(soap, lpDetails, lpPropTags->__ptr[i], lpPropVal) == erSuccess)
-					break;
-				lpPropVal->ulPropTag = CHANGE_PROP_TYPE(lpPropTags->__ptr[i], PT_ERROR);
-				lpPropVal->Value.ul = KCERR_NOT_FOUND;
-				lpPropVal->__union = SOAP_UNION_propValData_ul;
-				break;
-			}
-			return erSuccess;
-		}(); // end CONTAINER_COMPANY
+			er = cvt_company_to_props(soap, ulId, ulMapiType, lpDetails, lpPropTags, i, lpPropVal);
 			if (er != erSuccess)
 				return er;
 			break;
@@ -3786,7 +3810,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			lpPropVal->Value.bin->__size = sizeof(GUID);
 			lpPropVal->__union = SOAP_UNION_propValData_bin;
 			lpSession = dynamic_cast<ECSession *>(m_lpSession);
-			if(lpSession)
+			if (lpSession)
 				lpSession->GetClientApp(&strApp);
 			memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
 			break;
@@ -3797,7 +3821,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap,
 			break;
 		case PR_EMS_AB_CONTAINERID:
 			// 'Global Address Book' should be container ID 0, rest follows
-			if(ulId != KOPANO_UID_ADDRESS_BOOK) {
+			if (ulId != KOPANO_UID_ADDRESS_BOOK) {
 			    // 'All Address Lists' has ID 7000 in MSEX
 				lpPropVal->Value.ul = ulId == KOPANO_UID_GLOBAL_ADDRESS_LISTS ? 7000 : KOPANO_UID_ADDRESS_BOOK;
 				lpPropVal->__union = SOAP_UNION_propValData_ul;

@@ -201,6 +201,10 @@ private:
 	// Converts anonymous Object Detail to property. */
 	_kc_hidden ECRESULT ConvertAnonymousObjectDetailToProp(struct soap *, const objectdetails_t *, unsigned int tag, struct propVal *) const;
 	// Converts the data in user/group/company details fields into property value array for content tables and MAPI_MAILUSER and MAPI_DISTLIST objects
+	_kc_hidden ECRESULT cvt_user_to_props(struct soap *, unsigned int id, unsigned int mapitype, const objectdetails_t *, const struct propTagArray *tags, unsigned int tagindex, struct propVal *out);
+	_kc_hidden ECRESULT cvt_distlist_to_props(struct soap *, unsigned int id, unsigned int mapitype, const objectdetails_t *, const struct propTagArray *tags, unsigned int tagindex, struct propVal *out);
+	_kc_hidden ECRESULT cvt_adrlist_to_props(struct soap *, unsigned int id, unsigned int mapitype, const objectdetails_t *, const struct propTagArray *tags, unsigned int tagindex, struct propVal *out) const;
+	_kc_hidden ECRESULT cvt_company_to_props(struct soap *, unsigned int id, unsigned int mapitype, const objectdetails_t *, const struct propTagArray *tags, unsigned int tagindex, struct propVal *out) const;
 	_kc_hidden ECRESULT ConvertObjectDetailsToProps(struct soap *, unsigned int id, const objectdetails_t *, const struct propTagArray *proptags, struct propValArray *propvals);
 	// Converts the data in company/addresslist details fields into property value array for hierarchy tables and MAPI_ABCONT objects
 	_kc_hidden ECRESULT ConvertContainerObjectDetailsToProps(struct soap *, unsigned int id, const objectdetails_t *, const struct propTagArray *proptags, struct propValArray *propvals) const;
