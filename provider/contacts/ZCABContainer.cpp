@@ -34,7 +34,7 @@ ZCABContainer::ZCABContainer(const std::vector<zcabFolderEntry> *lpFolders,
 	m_lpContactFolder(lpContacts), m_lpMAPISup(lpMAPISup),
 	m_lpProvider(lpProvider)
 {
-	assert(!(lpFolders != NULL && lpContacts != NULL));
+	assert(lpFolders == nullptr || lpContacts == nullptr);
 }
 
 HRESULT	ZCABContainer::QueryInterface(REFIID refiid, void **lppInterface)
