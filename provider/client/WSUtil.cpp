@@ -1678,7 +1678,7 @@ static HRESULT SoapGroupToGroup(const struct group *lpGroup,
 	if (hr == hrSuccess && lpGroup->lpszFullname)
 		hr = Utf8ToTString(lpGroup->lpszFullname, ulFlags, lpBase, &converter, &lpsGroup->lpszFullname);
 
-	if (hr == hrSuccess && lpGroup->lpszFullEmail) 
+	if (hr == hrSuccess && lpGroup->lpszFullEmail)
 		hr = Utf8ToTString(lpGroup->lpszFullEmail, ulFlags, lpBase, &converter, &lpsGroup->lpszFullEmail);
 
 	if (hr != hrSuccess)
@@ -1834,21 +1834,21 @@ HRESULT SvrNameListToSoapMvString8(ECSVRNAMELIST *lpSvrNameList,
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpsSvrNameList, 0, sizeof *lpsSvrNameList);
-	
+
 	if (lpSvrNameList->cServers > 0) {
 		lpsSvrNameList->__size = lpSvrNameList->cServers;
 		hr = ECAllocateMore(lpSvrNameList->cServers * sizeof *lpsSvrNameList->__ptr, lpsSvrNameList, (void**)&lpsSvrNameList->__ptr);
 		if (hr != hrSuccess)
 			return hr;
 		memset(lpsSvrNameList->__ptr, 0, lpSvrNameList->cServers * sizeof *lpsSvrNameList->__ptr);
-		
+
 		for (unsigned i = 0; i < lpSvrNameList->cServers; ++i) {
 			hr = TStringToUtf8(lpSvrNameList->lpszaServer[i], ulFlags, lpSvrNameList, &converter, &lpsSvrNameList->__ptr[i]);
 			if (hr != hrSuccess)
 				return hr;
 		}
 	}
-	
+
 	*lppsSvrNameList = lpsSvrNameList.release();
 	return hrSuccess;
 }
@@ -1874,7 +1874,7 @@ HRESULT SoapServerListToServerList(const struct serverList *lpsServerList,
 	if (hr != hrSuccess)
 		return hr;
 	memset(lpServerList->lpsaServer, 0, lpsServerList->__size * sizeof *lpServerList->lpsaServer);
-	
+
 	for (gsoap_size_t i = 0; i < lpsServerList->__size; ++i) {
 		// Flags
 		lpServerList->lpsaServer[i].ulFlags = lpsServerList->__ptr[i].ulFlags;
@@ -2413,12 +2413,12 @@ HRESULT ConvertString8ToUnicode(LPSRow lpRow, void *base, convert_context &conve
 	return hrSuccess;
 }
 
-/** 
+/**
  * Converts PT_STRING8 to PT_UNICODE inside PT_SRESTRICTION and
  * PT_ACTION properties inside the rows
- * 
+ *
  * @param[in,out] lpRowSet Rowset to modify
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT ConvertString8ToUnicode(LPSRowSet lpRowSet)
