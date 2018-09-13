@@ -3079,7 +3079,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 	if (!bExist && bNotify) {
 		g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulParentId);
 		g_lpSessionManager->NotificationCreated(MAPI_FOLDER, ulFolderId, ulParentId);
-		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
+		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId, 0, true);
 		// Update all tables viewing this folder
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulParentId, ulFolderId, MAPI_FOLDER);
 		// Update notification, grandparent of the mainfolder
@@ -4482,7 +4482,7 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 	for (const auto &p : mapParents) {
         // The parent has changed its PR_CONTENT_UNREAD
 		cache->Update(fnevObjectModified, p.first);
-		g_lpSessionManager->NotificationModified(MAPI_FOLDER, p.first);
+		g_lpSessionManager->NotificationModified(MAPI_FOLDER, p.first, 0, true);
 
         // The grand parent's table view of the parent has changed
 		if (cache->GetObject(p.first, &ulGrandParent, nullptr, &ulFlagsNotify) == erSuccess)
@@ -5983,7 +5983,7 @@ table:
 	if (gcache->GetParent(ulObjId, &ulParentId) != erSuccess)
 		return erSuccess;
 	gcache->Update(fnevObjectModified, ulParentId);
-	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
+	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId, 0, true);
 	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParentId, ulObjId, MAPI_MESSAGE);
 	if (gcache->GetParent(ulParentId, &ulGrandParentId) != erSuccess)
 		return erSuccess;
@@ -6063,7 +6063,7 @@ SOAP_ENTRY_START(abortSubmit, *result, const entryId &sEntryId,
 	gcache->Update(fnevObjectModified, ulObjId);
 	g_lpSessionManager->NotificationModified(MAPI_MESSAGE, ulObjId, ulParentId);
 	gcache->Update(fnevObjectModified, ulParentId);
-	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
+	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId, 0, true);
 	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParentId, ulObjId, MAPI_MESSAGE);
 	if (gcache->GetParent(ulParentId, &ulGrandParentId) != erSuccess)
 		return erSuccess;
@@ -6583,12 +6583,12 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	for (auto &cop : lstCopyItems) {
 		if (!cop.bMoved)
 			continue;
-		// update destenation folder after PR_ENTRYID update
+		// update destination folder after PR_ENTRYID update
 		if (cCopyItems < EC_TABLE_CHANGE_THRESHOLD) {
 			// Update messages
 			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE,
 				0, cop.ulParent, cop.ulId, cop.ulType);
-			// Update destenation folder
+			// Update destination folder
 			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD,
 				0, ulDestFolderId, cop.ulId, cop.ulType);
 		}
@@ -6613,7 +6613,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 		// Get the grandparent
 		gcache->GetParent(pa_id, &ulGrandParent);
 		gcache->Update(fnevObjectModified, pa_id);
-		g_lpSessionManager->NotificationModified(MAPI_FOLDER, pa_id);
+		g_lpSessionManager->NotificationModified(MAPI_FOLDER, pa_id, 0, true);
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY,
 			0, ulGrandParent, pa_id, MAPI_FOLDER);
 	}
@@ -6626,7 +6626,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 
 	//Update destination folder
 	gcache->Update(fnevObjectModified, ulDestFolderId);
-	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId);
+	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId, 0, true);
 	// Update the grandfolder of dest. folder
 	gcache->GetParent(ulDestFolderId, &ulGrandParent);
 	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParent, ulDestFolderId, MAPI_FOLDER);
@@ -6953,10 +6953,10 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	g_lpSessionManager->GetCacheManager()->Update(fnevObjectModified, ulDestFolderId);
 	if (!bDoNotification)
 		return erSuccess;
-	// Update destenation folder
+	// Update destination folder
 	if (bDoTableNotification)
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulDestFolderId, ulNewObjectId, MAPI_MESSAGE);
-	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId);
+	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId, 0, true);
 	// Notify object is copied
 	g_lpSessionManager->NotificationCopied(MAPI_MESSAGE, ulNewObjectId, ulDestFolderId, ulObjId, ulParent);
 	return erSuccess;
@@ -7138,13 +7138,13 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 	// Notifications
 	if(ulItems > 0)
 	{
-		//Update destenation folder
+		//Update destination folder
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE, 0, ulNewDestFolderId, 0, MAPI_MESSAGE);
 		// Update the grandfolder of dest. folder
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulDestFolderId, ulNewDestFolderId, MAPI_FOLDER);
 		//Update destination folder
 		gcache->Update(fnevObjectModified, ulNewDestFolderId);
-		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulNewDestFolderId);
+		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulNewDestFolderId, 0, true);
 	}
 
 	gcache->GetParent(ulFolderFrom ,&ulGrandParent);
@@ -7183,7 +7183,7 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 }
 
 /**
- * Copy one or more messages to a destenation
+ * Copy one or more messages to a destination
  */
 SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
     const entryId &sDestFolderId, unsigned int ulFlags, unsigned int ulSyncId,
@@ -7261,7 +7261,7 @@ SOAP_ENTRY_START(copyObjects, *result, struct entryList *aMessages,
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParent, ulDestFolderId, MAPI_FOLDER);
 		//Update destination folder
 		gcache->Update(fnevObjectModified, ulDestFolderId);
-		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId);
+		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId, 0, true);
 	}
 
 	if(bPartialCompletion && er == erSuccess)
@@ -7525,13 +7525,13 @@ SOAP_ENTRY_START(copyFolder, *result, const entryId &sEntryId,
 	// Update the old folder
 	gcache->Update(fnevObjectModified, ulOldParent);
 	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, 0, ulOldParent, ulFolderId, MAPI_FOLDER);
-	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulOldParent);
+	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulOldParent, 0, true);
 	// Update the old folder's parent
 	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulOldGrandParent, ulOldParent, MAPI_FOLDER);
 	// Update the destination folder
 	gcache->Update(fnevObjectModified, ulDestFolderId);
 	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulDestFolderId, ulFolderId, MAPI_FOLDER);
-	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId);
+	g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulDestFolderId, 0, true);
 	// Update the destination's parent
 	gcache->GetParent(ulDestFolderId, &ulGrandParent);
 	g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParent, ulDestFolderId, MAPI_FOLDER);
