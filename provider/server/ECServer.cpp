@@ -986,12 +986,6 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 	}
 	if (g_dump_config)
 		return g_lpConfig->dump_config(stdout) == 0 ? hrSuccess : MAPI_E_CALL_FAILED;
-	kc_reexec_setup_allocator(g_lpConfig->GetSetting("allocator_library"));
-	auto ret = ec_reexec(argv);
-	if (ret < 0)
-		ec_log_notice("K-1240: Failed to re-exec self: %s. "
-			"Continuing with standard allocator and/or restricted coredumps.",
-			strerror(-ret));
 
 	// setup logging
 	g_lpLogger.reset(CreateLogger(g_lpConfig.get(), szName, "KopanoServer"));
@@ -1036,6 +1030,13 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		er = MAPI_E_CALL_FAILED;
 		return retval;
 	}
+	kc_reexec_setup_allocator(g_lpConfig->GetSetting("allocator_library"));
+	ec_reexec_prepare_sockets();
+	auto ret = ec_reexec(argv);
+	if (ret < 0)
+		ec_log_notice("K-1240: Failed to re-exec self: %s. "
+			"Continuing with standard allocator and/or restricted coredumps.",
+			strerror(-ret));
 
 	auto aback = g_lpConfig->GetSetting("attachment_storage");
 	if (strcmp(aback, "files") == 0 || strcmp(aback, "files_v2") == 0) {
