@@ -59,21 +59,21 @@ static HRESULT oof_parse_options(int &argc, const char **&argv)
 		return MAPI_E_CALL_FAILED;
 	if (argc < 2 || oof_user == nullptr) {
 		fprintf(stderr, "No username specified.\n");
-		return -1;
+		return MAPI_E_CALL_FAILED;
 	}
 	static constexpr const char formula[] = "%Y-%m-%d %H:%M"; /* ISO 8601 */
 	if (oof_from != nullptr && !oof_infinite(oof_from)) {
 		auto p = strptime(oof_from, formula, &oof_fromtm);
 		if (p == nullptr || *p != '\0') {
 			fprintf(stderr, "Time specification \"%s\" does not match pattern \"%s\"\n", oof_from, formula);
-			return -1;
+			return MAPI_E_CALL_FAILED;
 		}
 	}
 	if (oof_until != nullptr && !oof_infinite(oof_until)) {
 		auto p = strptime(oof_until, formula, &oof_untiltm);
 		if (p == nullptr || *p != '\0') {
 			fprintf(stderr, "Time specification \"%s\" does not match pattern \"%s\"\n", oof_until, formula);
-			return -1;
+			return MAPI_E_CALL_FAILED;
 		}
 	}
 	char *p = nullptr;
