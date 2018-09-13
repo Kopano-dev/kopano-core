@@ -165,7 +165,7 @@ public:
 	_kc_hidden ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int obj_id, unsigned int child_id, unsigned int obj_type);
 	_kc_hidden ECRESULT UpdateTables(ECKeyTable::UpdateType, unsigned int flags, unsigned int obj_id, std::list<unsigned int> &objects, unsigned int obj_type);
 	_kc_hidden ECRESULT UpdateOutgoingTables(ECKeyTable::UpdateType, unsigned int store_id, unsigned int obj_id, unsigned int flags, unsigned int obj_type);
-	_kc_hidden ECRESULT NotificationModified(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id = 0);
+	_kc_hidden ECRESULT NotificationModified(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id = 0, bool isCounter=false);
 	_kc_hidden ECRESULT NotificationCreated(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id);
 	_kc_hidden ECRESULT NotificationMoved(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id, unsigned int old_parent_id, entryId *old_eid = nullptr);
 	_kc_hidden ECRESULT NotificationCopied(unsigned int obj_type, unsigned int obj_id, unsigned int parent_id, unsigned int old_obj_id, unsigned int old_parent_id);
@@ -177,7 +177,7 @@ public:
 	_kc_hidden ECRESULT AddSessionClocks(ECSESSIONID, double user, double system, double real);
 	ECRESULT RemoveBusyState(ECSESSIONID ecSessionID, pthread_t thread);
 	_kc_hidden static void *SessionCleaner(void *tmp_ses_mgr);
-	_kc_hidden ECRESULT AddNotification(notification *item, unsigned int key, unsigned int store_id = 0, unsigned int folder_id = 0, unsigned int flags = 0);
+	_kc_hidden ECRESULT AddNotification(notification *item, unsigned int key, unsigned int store_id = 0, unsigned int folder_id = 0, unsigned int flags = 0, bool isCounter = false);
 	_kc_hidden ECRESULT DeferNotificationProcessing(ECSESSIONID, struct soap *);
 	_kc_hidden ECRESULT NotifyNotificationReady(ECSESSIONID);
 	_kc_hidden void update_extra_stats();

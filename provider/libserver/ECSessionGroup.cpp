@@ -159,7 +159,7 @@ ECRESULT ECSessionGroup::DelAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 	return hrSuccess;
 }
 
-ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int ulKey, unsigned int ulStore, ECSESSIONID ulSessionId)
+ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int ulKey, unsigned int ulStore, ECSESSIONID ulSessionId, bool isCounter)
 {
 	ulock_normal l_note(m_hNotificationLock);
 	ECNotification notify(*notifyItem);
@@ -215,6 +215,10 @@ ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int 
 			if (!(objtype & eventmask))
 				continue;
 		}
+
+		// not subscribed to counters
+		if (isCounter && (eventmask & fnevIgnoreCounters))
+			continue;
 
 		// send notification
 		notify.SetConnection(i.second.ulConnection);

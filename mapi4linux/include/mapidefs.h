@@ -736,6 +736,7 @@ IID_OF(IMAPIContainer)
 #define fnevStatusObjectModified    ((ULONG) 0x00000200)
 #define fnevObjTypeMessage          ((ULONG) 0x00010000)
 #define fnevObjTypeFolder           ((ULONG) 0x00020000)
+#define fnevIgnoreCounters          ((ULONG) 0x00040000)
 #define fnevReservedForMapi         ((ULONG) 0x40000000)
 #define fnevExtended                ((ULONG) 0x80000000)
 

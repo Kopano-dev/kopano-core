@@ -543,7 +543,7 @@ ECRESULT ECSessionManager::RemoveSession(ECSESSIONID sessionID){
  *
  * @return Kopano error code
  */
-ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned int ulKey, unsigned int ulStore, unsigned int ulFolderId, unsigned int ulFlags) {
+ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned int ulKey, unsigned int ulStore, unsigned int ulFolderId, unsigned int ulFlags, bool isCounter) {
 	std::set<ECSESSIONGROUPID> setGroups;
 
 	if(ulStore == 0) {
@@ -566,7 +566,7 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 		std::shared_lock<KC::shared_mutex> grplk(m_hGroupLock);
 		auto iIterator = m_mapSessionGroups.find(grp);
 		if (iIterator != m_mapSessionGroups.cend())
-			iIterator->second->AddNotification(notifyItem, ulKey, ulStore);
+			iIterator->second->AddNotification(notifyItem, ulKey, ulStore, 0, isCounter);
 	}
 
 	// Next, do an internal notification to update searchfolder views for message updates.
@@ -762,7 +762,7 @@ exit:
 	return er;
 }
 
-ECRESULT ECSessionManager::NotificationModified(unsigned int ulObjType, unsigned int ulObjId, unsigned int ulParentId)
+ECRESULT ECSessionManager::NotificationModified(unsigned int ulObjType, unsigned int ulObjId, unsigned int ulParentId, bool isCounter)
 {
 	struct notification notify;
 
@@ -782,7 +782,7 @@ ECRESULT ECSessionManager::NotificationModified(unsigned int ulObjType, unsigned
 		if(er != erSuccess)
 			goto exit;
 	}
-	AddNotification(&notify, ulObjId);
+	AddNotification(&notify, ulObjId, 0, 0, 0, isCounter);
 exit:
 	FreeNotificationStruct(&notify, false);
 	return er;

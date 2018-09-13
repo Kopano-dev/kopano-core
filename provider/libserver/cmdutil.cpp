@@ -813,7 +813,7 @@ static ECRESULT DeleteObjectNotifications(ECSession *lpSession,
 					lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE,
 						n->ulFlags, pa_id, 0, n->ulType);
 		}
-		lpSessionManager->NotificationModified(MAPI_FOLDER, pa_id);
+		lpSessionManager->NotificationModified(MAPI_FOLDER, pa_id, 0, true);
 		if (lpSessionManager->GetCacheManager()->GetParent(pa_id, &ulGrandParent) == erSuccess)
 			lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY,
 				0, ulGrandParent, pa_id, MAPI_FOLDER);
@@ -1283,7 +1283,7 @@ ECRESULT CreateNotifications(ULONG ulObjId, ULONG ulObjType, ULONG ulParentId, U
 				// Unread message
 				cache->UpdateCell(ulParentId, PR_CONTENT_UNREAD, 1);
 		}
-		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
+		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId, 0, true);
 		if (ulGrandParentId) {
 			cache->GetObjectFlags(ulParentId, &ulParentFlags);
 			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, ulParentFlags & MSGFLAG_NOTIFY_FLAGS, ulGrandParentId, ulParentId, MAPI_FOLDER);
