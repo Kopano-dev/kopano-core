@@ -45,7 +45,7 @@ AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare
 #
 # target programs
 #
-bin_PROGRAMS = kopano-fsck kopano-oof kopano-passwd kopano-stats
+bin_PROGRAMS = kopano-fsck kopano-ibrule kopano-oof kopano-passwd kopano-stats
 dist_bin_SCRIPTS = ECtools/migration-imap/kopano-migration-imap \
 	ECtools/utils/kopano-set-oof
 sbin_PROGRAMS = \
@@ -192,6 +192,10 @@ kopano_gateway_SOURCES = \
 kopano_gateway_LDADD = \
 	libkcinetmapi.la libmapi.la libkcutil.la -lpthread \
 	${PROG_LIBS} ${CRYPTO_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
+
+
+kopano_ibrule_SOURCES = ECtools/ibrule.cpp
+kopano_ibrule_LDADD = libmapi.la libkcutil.la ${libHX_LIBS}
 
 
 #
@@ -868,7 +872,7 @@ dist_man_MANS = \
 	doc/kopano-dagent.8 doc/kopano-dagent.cfg.5 doc/kopano-dbadm.8 \
 	doc/kopano-mr-accept.8 doc/kopano-mr-process.8 \
 	doc/kopano-fsck.1 \
-	doc/kopano-gateway.8 doc/kopano-gateway.cfg.5 \
+	doc/kopano-gateway.8 doc/kopano-gateway.cfg.5 doc/kopano-ibrule.1 \
 	doc/kopano-ical.8 doc/kopano-ical.cfg.5 \
 	doc/kopano-ldap.cfg.5 \
 	doc/kopano-mailbox-permissions.8 \
