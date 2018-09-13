@@ -3,6 +3,7 @@
 Fixes:
 * server: logon/logoff times were not reported correctly [KC-1257]
 Enhancements:
+* daemons: coredumps no longer rely on fs.suid_dumpable [KC-1043]
 * server: support for Unicode supplemental plane (Emojis) [KC-725]
 * spooler: support for process_model=thread mode [KC-1235]
 * spooler: add copy_delegate_mails=move-to-rep config directive [KC-412]
