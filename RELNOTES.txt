@@ -5,6 +5,9 @@ Fixes:
   when input was not UTF-8 [KC-1225]
 * daemons: avoid setting possibly nonexisting locales
   (specifically en_US) [KC-1271]
+Enhancements:
+* zcontacts: expose mobile phone number, business phone number and company name
+  through ZCABContainer [KC-1246]
 Changes:
 * kopano-server no longer reads the KOPANO_USERSCRIPT_LOCALE variable from
   {/etc/sysconfig/kopano, /etc/default/kopano} and no longer passes it to
