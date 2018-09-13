@@ -6,6 +6,7 @@
 #ifndef ZCABCONTAINER_H
 #define ZCABCONTAINER_H
 
+#include <kopano/memory.hpp>
 #include <kopano/zcdefs.h>
 #include <kopano/Util.h>
 #include <mapispi.h>
@@ -19,7 +20,6 @@ class ZCABContainer _kc_final :
     public KC::ECUnknown, public IABContainer, public IDistList {
 protected:
 	ZCABContainer(const std::vector<zcabFolderEntry> *folders, IMAPIFolder *contacts, IMAPISupport *, void *provider, const char *class_name);
-	virtual ~ZCABContainer();
 
 private:
 	HRESULT MakeWrappedEntryID(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulObjType, ULONG ulOffset, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
@@ -63,12 +63,12 @@ public:
 private:
 	/* reference to ZCABLogon .. ZCABLogon needs to live because of this, so AddChild */
 	const std::vector<zcabFolderEntry> *m_lpFolders;
-	IMAPIFolder *m_lpContactFolder;
-	LPMAPISUP m_lpMAPISup;
+	KC::object_ptr<IMAPIFolder> m_lpContactFolder;
+	KC::object_ptr<IMAPISupport> m_lpMAPISup;
 	void *m_lpProvider;
 
 	/* distlist version of this container */
-	IMAPIProp *m_lpDistList = nullptr;
+	KC::object_ptr<IMAPIProp> m_lpDistList;
 	ALLOC_WRAP_FRIEND;
 };
 
