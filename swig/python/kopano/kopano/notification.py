@@ -37,6 +37,7 @@ else: # pragma: no cover
 
 fnevObjTypeMessage = 0x00010000 # TODO to defs?
 fnevObjTypeFolder = 0x00020000
+fnevIgnoreCounters = 0x00040000
 
 OBJECT_TYPES = ['folder', 'item']
 FOLDER_TYPES = ['mail', 'contacts', 'calendar']
@@ -84,6 +85,7 @@ def _split(mapiobj, store):
     elif mapiobj.ulEventType == fnevObjectDeleted:
         if mapiobj.ulObjType == MAPI_MESSAGE:
             item._folder = store.folder(entryid=_benc(mapiobj.lpParentID))
+
         notif.event_type = 'deleted'
         yield notif
 
@@ -93,17 +95,22 @@ def _split(mapiobj, store):
 
         notif = copy.copy(notif)
 
-        item = _item.Item()
-        item.store = store
-        item.server = store.server
-        item._entryid = mapiobj.lpOldID
-        notif.object = item
-        item._folder = store.folder(entryid=_benc(mapiobj.lpOldParentID))
+        if mapiobj.ulObjType == MAPI_MESSAGE:
+            item = _item.Item()
+            item.store = store
+            item.server = store.server
+            item._entryid = mapiobj.lpOldID
+            notif.object = item
+            item._folder = store.folder(entryid=_benc(mapiobj.lpOldParentID))
+
+        elif mapiobj.ulObjType == MAPI_FOLDER: # TODO mapiobj.lpOldID not set?
+            folder = _folder.Folder(store=store, entryid=_benc(mapiobj.lpEntryID), _check_mapiobj=False)
+            notif.object = folder
 
         notif.event_type = 'deleted'
         yield notif
 
-def _filter(notifs, folder, event_types, folder_types):
+def _filter(notifs, folder, event_types, folder_types): # TODO can't server filter all this?
     for notif in notifs:
         if notif.event_type not in event_types:
             continue
@@ -149,10 +156,12 @@ class AdviseSink(MAPIAdviseSink):
         return 0
 
 def _flags(object_types, event_types):
-    flags = 0
-
-    flags = fnevObjectModified | fnevObjectCreated \
-        | fnevObjectMoved | fnevObjectCopied | fnevObjectDeleted
+    flags = fnevObjectModified | \
+            fnevObjectCreated | \
+            fnevObjectMoved | \
+            fnevObjectCopied | \
+            fnevObjectDeleted | \
+            fnevIgnoreCounters
 
     if 'folder' in object_types:
         flags |= fnevObjTypeFolder

@@ -16,7 +16,8 @@ from MAPI import (
     ECImportContentsChanges, SYNC_E_IGNORE, WrapStoreEntryID,
     SYNC_NORMAL, SYNC_ASSOCIATED, SYNC_CATCHUP, SYNC_UNICODE, IStream,
     STREAM_SEEK_SET, RELOP_GE, RELOP_LT, ECImportHierarchyChanges,
-    ECImportAddressbookChanges, MAPI_MAILUSER,
+    ECImportAddressbookChanges, MAPI_MAILUSER, SYNC_READ_STATE,
+    MSGFLAG_READ,
 )
 from MAPI.Defs import (
     PpropFindProp
@@ -154,7 +155,21 @@ class TrackingContentsImporter(ECImportContentsChanges):
                 self.stats['errors'] += 1
 
     def ImportPerUserReadStateChange(self, states):
-        pass
+        if self.skip:
+            return
+        try:
+            for state in states:
+                item = _item.Item()
+                item.server = self.server
+                item._sourcekey = _benc(state.SourceKey)
+                if hasattr(self.importer, 'read'):
+                    self.importer.read(item, bool(state.ulFlags & MSGFLAG_READ))
+
+        except Exception:
+            self.log.error('could not process readstate change')
+            self.log.error(traceback.format_exc())
+            if self.stats:
+                self.stats['errors'] += 1
 
     def UpdateState(self, stream):
         pass
@@ -244,7 +259,7 @@ def sync(server, syncobj, importer, state, max_changes, associated=False, window
         else:
             restriction = SAndRestriction(restrs)
 
-    flags = SYNC_NORMAL | SYNC_UNICODE
+    flags = SYNC_NORMAL | SYNC_UNICODE | SYNC_READ_STATE
     if associated:
         flags |= SYNC_ASSOCIATED
     try:

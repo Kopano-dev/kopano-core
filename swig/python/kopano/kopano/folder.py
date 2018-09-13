@@ -17,7 +17,7 @@ import icalmapi
 from MAPI import (
     MAPI_MODIFY, MAPI_ASSOCIATED, KEEP_OPEN_READWRITE, ROW_ADD,
     RELOP_GT, RELOP_LT, RELOP_EQ, MAPI_CREATE,
-    DEL_ASSOCIATED, DEL_FOLDERS, DEL_MESSAGES,
+    DEL_ASSOCIATED, DEL_FOLDERS, DEL_MESSAGES, COPY_SUBFOLDERS,
     BOOKMARK_BEGINNING, ROW_REMOVE, MESSAGE_MOVE, FOLDER_MOVE,
     FOLDER_GENERIC, MAPI_UNICODE, FL_SUBSTRING, FL_IGNORECASE,
     SEARCH_RECURSIVE, SEARCH_REBUILD, PT_MV_BINARY, PT_BINARY,
@@ -143,7 +143,7 @@ class Folder(Properties):
             return self._mapiobj
 
         try:
-            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | MAPI_DEFERRED_ERRORS)
+            self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY)
         except (MAPIErrorNotFound, MAPIErrorInvalidEntryid):
             try:
                 self._mapiobj = self.store.mapiobj.OpenEntry(self._entryid, IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES)
@@ -590,7 +590,7 @@ class Folder(Properties):
         if item_entryids:
             self.mapiobj.CopyMessages(item_entryids, IID_IMAPIFolder, folder.mapiobj, 0, None, (MESSAGE_MOVE if _delete else 0))
         for entryid in folder_entryids:
-            self.mapiobj.CopyFolder(entryid, IID_IMAPIFolder, folder.mapiobj, None, 0, None, (FOLDER_MOVE if _delete else 0))
+            self.mapiobj.CopyFolder(entryid, IID_IMAPIFolder, folder.mapiobj, None, 0, None, COPY_SUBFOLDERS | (FOLDER_MOVE if _delete else 0))
 
     def move(self, objects, folder):
         """Move items or subfolders to folder
@@ -614,6 +614,9 @@ class Folder(Properties):
                 raise NotFoundError('no folder with entryid "%s"' % entryid)
         elif path is None:
             raise ArgumentError('missing argument to identify folder')
+
+        if path is None:
+            raise ArgumentError('no path or entryid specified')
 
         if '/' in path.replace('\\/', ''): # XXX MAPI folders may contain '/' (and '\') in their names..
             subfolder = self
