@@ -212,32 +212,23 @@ public:
 	std::vector<std::string> vwstrRecipients;
 
 	/* User properties */
-	std::wstring wstrUsername;
-	std::wstring wstrFullname;
-	std::wstring wstrCompany;
-	std::wstring wstrEmail;
+	std::wstring wstrUsername, wstrFullname, wstrCompany, wstrEmail;
 	std::wstring wstrServerDisplayName;
-	std::string wstrDeliveryStatus;
-	ULONG ulDisplayType = 0;
-	ULONG ulAdminLevel = 0;
-	std::string strAddrType;
-	std::string strSMTP;
-	SBinary sEntryId;
-	SBinary sSearchKey;
+	std::string wstrDeliveryStatus, strAddrType, strSMTP;
+	unsigned int ulDisplayType = 0, ulAdminLevel = 0;
+	SBinary sEntryId, sSearchKey;
 	bool bHasIMAP = false;
 };
 
 //Global variables
 
-static bool g_bQuit = false;
+static bool g_bQuit = false, g_use_threads, g_dump_config;
 static bool g_bTempfail = true; // Most errors are tempfails
 static pthread_t g_main_thread;
-static bool g_use_threads;
 static std::atomic<unsigned int> g_nLMTPThreads{0};
 static std::shared_ptr<ECLogger> g_lpLogger;
 extern std::shared_ptr<ECConfig> g_lpConfig;
 std::shared_ptr<ECConfig> g_lpConfig;
-static bool g_dump_config;
 
 class sortRecipients {
 public:
@@ -543,8 +534,7 @@ static HRESULT OpenResolveAddrFolder(LPADRBOOK lpAdrBook,
     IABContainer **lppAddrDir)
 {
 	memory_ptr<ENTRYID> lpEntryId;
-	ULONG cbEntryId		= 0;
-	ULONG ulObj			= 0;
+	unsigned int cbEntryId = 0, ulObj = 0;
 
 	if (lpAdrBook == nullptr || lppAddrDir == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
@@ -899,10 +889,8 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 	object_ptr<IMAPIFolder> lpInbox, lpSubFolder, lpJunkFolder, lpDeliveryFolder;
 	object_ptr<IExchangeManageStore> lpIEMS;
 	memory_ptr<SPropValue> lpJunkProp, lpWritePerms;
-	ULONG cbUserStoreEntryId = 0;
+	unsigned int cbUserStoreEntryId = 0, cbEntryId = 0, ulObjType = 0;
 	memory_ptr<ENTRYID> lpUserStoreEntryId, lpEntryId;
-	ULONG cbEntryId = 0;
-	ULONG ulObjType = 0;
 	std::wstring strDeliveryFolder = lpArgs->strDeliveryFolder;
 	bool bPublicStore = false;
 
@@ -1159,11 +1147,10 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	wchar_t szwHeader[PATH_MAX] = {0};
 	int fd = -1;
 	wstring	strFromName, strFromType, strFromEmail, strBody;
-	string  unquoted, quoted;
 	std::vector<std::string> cmdline = {strBaseCommand};
 	// Environment
 	size_t s = 0;
-	std::string strToMe, strCcMe, strBccMe, strTmpFile, strTmpFileEnv;
+	std::string strTmpFile, strTmpFileEnv;
 
 	sc -> countInc("DAgent", "OutOfOffice");
 
@@ -1243,7 +1230,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 
 	// \n is on the beginning of the next header line because of snprintf and the requirement of the \n
 	// PATH_MAX should never be reached though.
-	quoted = ToQuotedBase64Header(lpRecip->wstrFullname);
+	auto quoted = ToQuotedBase64Header(lpRecip->wstrFullname);
 	snprintf(szHeader, PATH_MAX, "From: %s <%s>", quoted.c_str(), lpRecip->strSMTP.c_str());
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
 	if (hr != hrSuccess)
@@ -1317,7 +1304,7 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 		return kc_perrorf("WriteOrLogError failed(9)", hr);
 
 	// write body
-	unquoted = convert_to<string>("UTF-8", strBody, rawsize(strBody), CHARSET_WCHAR);
+	auto unquoted = convert_to<std::string>("UTF-8", strBody, rawsize(strBody), CHARSET_WCHAR);
 	quoted = base64_encode(unquoted.c_str(), unquoted.length());
 	hr = WriteOrLogError(fd, quoted.c_str(), quoted.length(), 76);
 	if (hr != hrSuccess)
@@ -1334,9 +1321,9 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	cmdline.emplace_back(szTemp);
 
 	// Set MESSAGE_TO_ME and MESSAGE_CC_ME in environment
-	strToMe = "MESSAGE_TO_ME="s + (lpMessageProps[1].ulPropTag == PR_MESSAGE_TO_ME && lpMessageProps[1].Value.b ? "1" : "0");
-	strCcMe = "MESSAGE_CC_ME="s + (lpMessageProps[2].ulPropTag == PR_MESSAGE_CC_ME && lpMessageProps[2].Value.b ? "1" : "0");
-	strBccMe = "MESSAGE_BCC_ME="s + (lpMessageProps[4].ulPropTag == PR_EC_MESSAGE_BCC_ME && lpMessageProps[4].Value.b ? "1" : "0");
+	auto strToMe = "MESSAGE_TO_ME="s + (lpMessageProps[1].ulPropTag == PR_MESSAGE_TO_ME && lpMessageProps[1].Value.b ? "1" : "0");
+	auto strCcMe = "MESSAGE_CC_ME="s + (lpMessageProps[2].ulPropTag == PR_MESSAGE_CC_ME && lpMessageProps[2].Value.b ? "1" : "0");
+	auto strBccMe = "MESSAGE_BCC_ME="s + (lpMessageProps[4].ulPropTag == PR_EC_MESSAGE_BCC_ME && lpMessageProps[4].Value.b ? "1" : "0");
 	while (environ[s] != nullptr)
 		s++;
 
@@ -1522,11 +1509,8 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 {
 	object_ptr<IMAPITable> lpRecipTable;
 	memory_ptr<SRestriction> lpRestrictRecipient;
-	SPropValue sPropRecip[4];
-	SPropValue sCmp[2];
-	bool bToMe = false;
-	bool bCcMe = false, bBccMe = false;
-	bool bRecipMe = false;
+	SPropValue sPropRecip[4], sCmp[2];
+	bool bToMe = false, bCcMe = false, bBccMe = false, bRecipMe = false;
 	static constexpr const SizedSPropTagArray(2, sptaColumns) =
 		{2, {PR_RECIPIENT_TYPE, PR_ENTRYID}};
 
@@ -1923,16 +1907,14 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	HRESULT hr = hrSuccess;
 	const char *szHeader = g_lpConfig->GetSetting("spam_header_name", "", NULL);
 	const char *szValue = g_lpConfig->GetSetting("spam_header_value", "", NULL);
-	size_t end, pos;
-	string match;
-	string strHeaders;
+	std::string strHeaders;
 	auto laters = make_scope_success([&]() { lpArgs->sc->countInc("DAgent", lpArgs->ulDeliveryMode == DM_JUNK ? "is_spam" : "is_ham"); });
 
 	if (!szHeader || !szValue)
 		return hr;
 
 	// find end of headers
-	end = strMail.find("\r\n\r\n");
+	auto end = strMail.find("\r\n\r\n");
 	if (end == string::npos)
 		return hr;
 	end += 2;
@@ -1940,10 +1922,10 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	// copy headers in upper case, need to resize destination first
 	strHeaders.resize(end);
 	transform(strMail.begin(), strMail.begin() +end, strHeaders.begin(), ::toupper);
-	match = strToUpper(std::string("\r\n") + szHeader);
+	auto match = strToUpper(std::string("\r\n") + szHeader);
 
 	// find header
-	pos = strHeaders.find(match.c_str());
+	auto pos = strHeaders.find(match.c_str());
 	if (pos == string::npos)
 		return hr;
 
@@ -2353,8 +2335,7 @@ static HRESULT ProcessDeliveryToCompany(pym_plugin_intf *lppyMapiPlugin,
 	object_ptr<IMessage> lpMasterMessage;
 	std::string strMail;
 	serverrecipients_t listServerPathRecips;
-	bool bFallbackDelivery = false;
-	bool bExpired = false;
+	bool bFallbackDelivery = false, bExpired = false;
 
 	lpArgs->sc->countInc("DAgent", "to_company");
 	if (lpServerNameRecips == nullptr)
@@ -2551,17 +2532,15 @@ static void add_misc_headers(FILE *tmp, const std::string &helo,
 static void *HandlerLMTP(void *lpArg)
 {
 	std::unique_ptr<DeliveryArgs> lpArgs(static_cast<DeliveryArgs *>(lpArg));
-	std::string strMailAddress;
+	std::string strMailAddress, inBuffer, curFrom = "???", heloName = "???";
 	companyrecipients_t mapRCPT;
 	std::list<std::string> lOrderedRecipients;
 	std::map<std::string, std::string> mapRecipientResults;
-	std::string inBuffer;
 	HRESULT hr = hrSuccess;
 	bool bLMTPQuit = false;
 	int timeouts = 0;
 	PyMapiPluginFactory pyMapiPluginFactory;
 	convert_context converter;
-	std::string curFrom = "???", heloName = "???";
 	LMTP lmtp(lpArgs->lpChannel.get(), lpArgs->strPath.c_str(), g_lpConfig.get());
 
 	/* For resolving addresses from Address Book */
@@ -3224,9 +3203,8 @@ int main(int argc, char **argv) try {
 	bool bExplicitConfig = false; // User added config option to commandline
 	bool bDaemonize = false; // The dagent is not daemonized by default
 	bool bListenLMTP = false; // Do not listen for LMTP by default
-	bool qmail = false;
+	bool qmail = false, strip_email = false;
 	int loglevel = EC_LOGLEVEL_WARNING;	// normally, log warnings and up
-	bool strip_email = false;
 	bool bIgnoreUnknownConfigOptions = false;
 	struct sigaction act;
 	struct rlimit file_limit;
@@ -3325,9 +3303,8 @@ int main(int argc, char **argv) try {
 		return EX_USAGE;
 	}
 
-	int c;
 	while (1) {
-		c = my_getopt_long_permissive(argc, argv, "c:jf:dh:a:F:P:p:qsvenCVrRlN", long_options, NULL);
+		auto c = my_getopt_long_permissive(argc, argv, "c:jf:dh:a:F:P:p:qsvenCVrRlN", long_options, nullptr);
 		if (c == -1)
 			break;
 		switch (c) {

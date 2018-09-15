@@ -96,17 +96,13 @@ static std::unique_ptr<StatsClient> sc;
 #define EXIT_WAIT 2
 #define EXIT_REMOVE 3
 
-static bool bQuit = false;
-static int nReload = 0;
-static int disconnects = 0;
+static bool bQuit = false, sp_exp_config, g_dump_config, g_use_threads;
+static int nReload = 0, disconnects = 0;
 static const char *szCommand = NULL;
 static const char *szConfig = ECConfig::GetDefaultPath("spooler.cfg");
-static bool sp_exp_config;
 extern std::shared_ptr<ECConfig> g_lpConfig;
 std::shared_ptr<ECConfig> g_lpConfig;
 static std::shared_ptr<ECLogger> g_lpLogger;
-static bool g_dump_config;
-static bool g_use_threads;
 static pthread_t g_main_thread;
 
 // notification
@@ -271,7 +267,6 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	if (g_use_threads)
 		return StartSpoolerThread(std::move(sSendData), szSMTP, ulSMTPPort, szPath, ulFlags);
 
-	pid_t pid;
 	std::string strPort = stringify(ulSMTPPort);
 	// execute the new spooler process to send the email
 	const char *argv[18];
@@ -304,7 +299,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	std::vector<std::string> cmd{argv, argv + argc};
 	ec_log_debug("Executing \"%s\"", kc_join(cmd, "\" \"").c_str());
 
-	pid = vfork();
+	auto pid = vfork();
 	if (pid < 0) {
 		ec_log_crit(string("Unable to start new spooler process: ") + strerror(errno));
 		return MAPI_E_CALL_FAILED;
@@ -525,9 +520,7 @@ static HRESULT ProcessAllEntries2(IMAPISession *lpAdminSession,
     IECSpooler *lpSpooler, IMAPITable *lpTable, const char *szSMTP, int ulPort,
     const char *szPath, bool &bForceReconnect)
 {
-	unsigned int ulMaxThreads	= 0;
 	ULONG ulRowCount = 0, later_mails = 0;
-	std::wstring strUsername;
 	auto report = make_scope_success([&]() {
 		if (ulRowCount != 0)
 			ec_log_debug("Messages with delayed delivery: %d", later_mails);
@@ -541,7 +534,7 @@ static HRESULT ProcessAllEntries2(IMAPISession *lpAdminSession,
 		sc -> countAdd("Spooler", "batch_count", int64_t(ulRowCount));
 	}
 
-	ulMaxThreads = atoi(g_lpConfig->GetSetting("max_threads"));
+	auto ulMaxThreads = atoi(g_lpConfig->GetSetting("max_threads"));
 	if (ulMaxThreads == 0)
 		ulMaxThreads = 1;
 
@@ -593,7 +586,7 @@ static HRESULT ProcessAllEntries2(IMAPISession *lpAdminSession,
 			continue;
 		}
 
-		strUsername = lpsRowSet[0].lpProps[0].Value.lpszW;
+		std::wstring strUsername = lpsRowSet[0].lpProps[0].Value.lpszW;
 		// Check if there is already an active process for this message
 		bool bMatch = false;
 		for (const auto &i : mapSendData)
@@ -885,16 +878,12 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
 int main(int argc, char **argv) try
 {
 	HRESULT hr = hrSuccess;
-	const char *szPath = NULL;
-	const char *szSMTP = NULL;
-	int ulPort = 0;
-	int daemonize = 1;
-	int logfd = -1;
+	const char *szPath = nullptr, *szSMTP = nullptr;
+	int ulPort = 0, daemonize = 1, logfd = -1;
 	bool bForked = false;
 	std::string strMsgEntryId;
 	std::wstring strUsername;
-	bool bDoSentMail = false;
-	bool bIgnoreUnknownConfigOptions = false;
+	bool bDoSentMail = false, bIgnoreUnknownConfigOptions = false;
 
 	// options
 	enum {

@@ -299,8 +299,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 	const char	*const lpszFaxDomain = g_lpConfig->GetSetting("fax_domain");
 	const char	*const lpszFaxInternational = g_lpConfig->GetSetting("fax_international");
 	string		strFaxMail;
-	ULONG		ulObjType;
-	ULONG		cValues;
+	unsigned int ulObjType, cValues;
 
 	// contab email_offset: 0: business, 1: home, 2: primary (outlook uses string 'other')
 	static constexpr const SizedSPropTagArray(3, sptaFaxNumbers) =
@@ -726,19 +725,15 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
     IMessage *lpMessage)
 {
 	object_ptr<IMAPIFolder> lpInbox;
-	object_ptr<IMessage> lpErrorMsg;
+	object_ptr<IMessage> lpErrorMsg, lpOriginalMessage;
 	memory_ptr<ENTRYID> lpEntryID;
-	ULONG			cbEntryID;
-	ULONG			ulObjType;
+	unsigned int cbEntryID, ulObjType, cValuesOriginal = 0, ulRows = 0;
 	wstring			newbody;
 	memory_ptr<SPropValue> lpPropValue, lpPropValueAttach, lpPropArrayOriginal;
 	unsigned int	ulPropPos = 0;
 	FILETIME		ft;
 	object_ptr<IAttach> lpAttach;
-	object_ptr<IMessage> lpOriginalMessage;
-	ULONG			cValuesOriginal = 0;
 	object_ptr<IMAPITable> lpTableMods;
-	ULONG			ulRows = 0;
 	/* CopyTo() vars */
 	unsigned int	ulPropAttachPos;
 	ULONG			ulAttachNum;
@@ -959,9 +954,8 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 {
 	auto lpContabEntryID = reinterpret_cast<const CONTAB_ENTRYID *>(ct.lpb);
 	auto guid = reinterpret_cast<const GUID *>(&lpContabEntryID->muid);
-	ULONG ulObjType;
+	unsigned int ulObjType, cValues;
 	object_ptr<IMAPIProp> lpContact;
-	ULONG cValues;
 	LPSPropValue lpEntryIds = NULL;
 	memory_ptr<SPropTagArray> lpPropTags;
 	memory_ptr<MAPINAMEID> lpNames;
@@ -1077,8 +1071,7 @@ static HRESULT SMTPToZarafa(IAddrBook *lpAddrBook, const SBinary &smtp,
 static HRESULT HrFindUserInGroup(IAddrBook *lpAdrBook, const SBinary &owner,
     const SBinary &dl, unsigned int *lpulCmp, int level = 0)
 {
-	ULONG ulCmp = 0;
-	ULONG ulObjType = 0;
+	unsigned int ulCmp = 0, ulObjType = 0;
 	object_ptr<IDistList> lpDistList;
 	object_ptr<IMAPITable> lpMembersTable;
 	static constexpr const SizedSPropTagArray(2, sptaIDProps) =
@@ -1144,11 +1137,10 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
     IMsgStore *lpUserStore, IMAPISession *lpAdminSession, const SBinary &repr,
     IMsgStore **lppRepStore)
 {
-	ULONG ulObjType = 0;
+	unsigned int ulObjType = 0, ulRepStoreCB = 0;
 	object_ptr<IMAPIProp> lpRepresenting;
 	memory_ptr<SPropValue> lpRepAccount;
 	object_ptr<IExchangeManageStore> lpExchangeManageStore;
-	ULONG ulRepStoreCB = 0;
 	memory_ptr<ENTRYID> lpRepStoreEID;
 	object_ptr<IMsgStore> lpRepStore;
 
@@ -1210,8 +1202,7 @@ static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
     const SBinaryArray &mv, unsigned int *lpulObjType, bool *lpbAllowed)
 {
 	HRESULT hr = hrSuccess;
-	ULONG ulObjType;
-	ULONG ulCmpRes;
+	unsigned int ulObjType, ulCmpRes;
 
 	for (unsigned int i = 0; i < mv.cValues; ++i) {
 		// quick way to see what object the entryid points to .. otherwise we need to call OpenEntry, which is slow
@@ -1259,17 +1250,15 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
     IMAPISession *lpAdminSession, ECSender *lpMailer, const SBinary &owner,
     SBinary repr, bool *lpbAllowed, IMsgStore **lppRepStore)
 {
-	bool bAllowed = false;
-	bool bHasStore = false;
+	bool bAllowed = false, bHasStore = false;
 	ULONG ulObjType;
 	object_ptr<IMAPIProp> lpMailboxOwner, lpRepresenting;
 	memory_ptr<SPropValue> lpOwnerProps, lpRepresentProps;
 	SPropValue sSpoofEID = {0};
-	ULONG ulCmpRes = 0;
+	unsigned int ulCmpRes = 0, cValues = 0;
 	static constexpr const SizedSPropTagArray(3, sptaIDProps) =
 		{3, {PR_DISPLAY_NAME_W, PR_EC_SENDAS_USER_ENTRYIDS,
 		PR_DISPLAY_TYPE}};
-	ULONG cValues = 0;
 
 	auto hr = SMTPToZarafa(lpAddrBook, repr, &sSpoofEID.Value.bin);
 	if (hr != hrSuccess)
@@ -1596,9 +1585,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
     IMessage **lppMessage, std::shared_ptr<ECLogger> logger, bool &doSentMail)
 {
 	object_ptr<IMessage> lpMessage;
-	ULONG			ulObjType		= 0;
-
-	ULONG			cbOwner			= 0;
+	unsigned int ulObjType = 0, cbOwner = 0, cValuesMoveProps = 0;
+	unsigned int ulCmpRes = 0, ulResult = 0;
 	memory_ptr<ENTRYID> lpOwner;
 	memory_ptr<ECUSER> lpUser;
 	SPropValue		sPropSender[4];
@@ -1608,11 +1596,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
 		PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_SEARCH_KEY}};
 	memory_ptr<SPropValue> lpMoveReprProps, lpPropOwner;
-	ULONG			cValuesMoveProps = 0;
-	bool			bAllowSendAs = false;
-	bool			bAllowDelegate = false;
-	ULONG			ulCmpRes = 0;
-	
+	bool bAllowSendAs = false, bAllowDelegate = false;
 	object_ptr<IMsgStore> lpRepStore;
 	object_ptr<IMessage> lpRepMessage;
 	memory_ptr<SPropValue> lpRepEntryID, lpSubject, lpMsgSize;
@@ -1621,7 +1605,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 
 	PyMapiPluginFactory pyMapiPluginFactory;
 	std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
-	ULONG ulResult = 0;
 	const char *cts = nullptr;
 
 	ArchiveResult	archiveResult;

@@ -155,9 +155,7 @@ HRESULT LMTP::HrCommandRCPTTO(const std::string &strTo,
  */
 HRESULT LMTP::HrCommandDATA(FILE *tmp)
 {
-	std::string inBuffer;
-	std::string message;
-
+	std::string inBuffer, message;
 	auto hr = HrResponse("354 2.1.5 Start mail input; end with <CRLF>.<CRLF>");
 	if (hr != hrSuccess)
 		return kc_perror("Error during DATA communication with client", hr);

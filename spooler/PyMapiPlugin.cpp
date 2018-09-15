@@ -54,8 +54,7 @@ class PyMapiPlugin _kc_final : public pym_plugin_intf {
 	swig_type_info *type_p_ECLogger = nullptr, *type_p_IAddrBook = nullptr;
 	swig_type_info *type_p_IMAPIFolder = nullptr;
 	swig_type_info *type_p_IMAPISession = nullptr;
-	swig_type_info *type_p_IMsgStore = nullptr;
-	swig_type_info *type_p_IMessage = nullptr;
+	swig_type_info *type_p_IMsgStore = nullptr, *type_p_IMessage = nullptr;
 	swig_type_info *type_p_IExchangeModifyTable = nullptr;
 
 	private:
@@ -156,8 +155,7 @@ HRESULT PyMapiPlugin::Init(PyObject *lpModMapiPlugin,
     const char *lpPluginManagerClassName, const char *lpPluginPath)
 {
 	HRESULT			hr = S_OK;
-	PyObjectAPtr	ptrClass;
-	PyObjectAPtr	ptrArgs;
+	pyobj_ptr ptrClass, ptrArgs;
 
 	if (!lpModMapiPlugin)
 		return S_OK;

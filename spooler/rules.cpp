@@ -165,24 +165,19 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 
 static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 {
-	SPropArrayPtr ptrBodies;
+	SPropArrayPtr ptrBodies, ptrInfo;
 	static constexpr const SizedSPropTagArray(4, sBody) =
 		{4, {PR_BODY_W, PR_HTML, PR_RTF_IN_SYNC, PR_INTERNET_CPID}};
-	SPropArrayPtr ptrInfo;
 	static constexpr const SizedSPropTagArray(4, sInfo) =
 		{4, {PR_SENT_REPRESENTING_NAME_W,
 		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_MESSAGE_DELIVERY_TIME,
 		PR_SUBJECT_W}};
-	ULONG ulCharset = 20127; /* US-ASCII */
-	ULONG cValues;
+	unsigned int cValues, ulCharset = 20127; /* US-ASCII */
 	bool bPlain = false;
 	SPropValue sNewBody;
 	StreamPtr ptrStream;
-	string strHTML;
-	string strHTMLForwardText;
-	wstring wstrBody;
-	wstring strForwardText;
-	wstring wstrTo, wstrCc, wstrBcc;
+	std::string strHTML, strHTMLForwardText;
+	std::wstring wstrBody, strForwardText, wstrTo, wstrCc, wstrBcc;
 
 	HRESULT hr = lpOrigMessage->GetProps(sBody, 0, &cValues, &~ptrBodies);
 	if (FAILED(hr))
@@ -343,9 +338,8 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 	memory_ptr<SPropValue> lpProp, lpFrom, lpReplyRecipient;
 	memory_ptr<SPropValue> lpSentMailEntryID;
 	std::wstring strwSubject;
-	ULONG cValues = 0;
+	ULONG cValues = 0, ulCmp = 0;
 	SizedADRLIST(1, sRecip) = {0, {}};
-	ULONG ulCmp = 0;
 	static constexpr const SizedSPropTagArray(5, sFrom) =
 		{5, {PR_RECEIVED_BY_ENTRYID, PR_RECEIVED_BY_NAME,
 		PR_RECEIVED_BY_ADDRTYPE, PR_RECEIVED_BY_EMAIL_ADDRESS,
@@ -453,8 +447,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 		return hr;
 
 	// return message
-	hr = lpReplyMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
-	return hr;
+	return lpReplyMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 }
 
 /**
@@ -997,7 +990,6 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
     IMessage **lppMessage)
 {
 	object_ptr<IMessage> lpFwdMsg;
-	HRESULT hr;
 
 	sc->countInc("rules", "forward");
 	// TODO: test act.lpAction[n].ulActionFlavor
@@ -1023,7 +1015,7 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		 */
 		PROPMAP_START(1)
 		PROPMAP_NAMED_ID(KopanoRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-kopano-rule-action")
-		hr = m_propmap.Resolve(*lppMessage);
+		auto hr = m_propmap.Resolve(*lppMessage);
 		if (hr != hrSuccess)
 			return {ROP_FAILURE, hr};
 		if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &~pv) == hrSuccess) {
@@ -1032,7 +1024,7 @@ static struct actresult proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		}
 	}
 	ec_log_debug("Rule action: %s e-mail", (act.ulActionFlavor & FWD_PRESERVE_SENDER) ? "redirecting" : "forwarding");
-	hr = CreateForwardCopy(abook, orig_store, *lppMessage,
+	auto hr = CreateForwardCopy(abook, orig_store, *lppMessage,
 	     act.lpadrlist, false, act.ulActionFlavor & FWD_PRESERVE_SENDER,
 	     act.ulActionFlavor & FWD_DO_NOT_MUNGE_MSG,
 	     act.ulActionFlavor & FWD_AS_ATTACHMENT, &~lpFwdMsg);
@@ -1165,8 +1157,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 {
 	object_ptr<IExchangeModifyTable> lpTable;
 	object_ptr<IMAPITable> lpView;
-	bool bAddFwdFlag = false;
-	bool bMoved = false;
+	bool bAddFwdFlag = false, bMoved = false, bOOFactive = false;
 	static constexpr const SizedSPropTagArray(11, sptaRules) =
 		{11, {PR_RULE_ID, PR_RULE_IDS, PR_RULE_SEQUENCE, PR_RULE_STATE,
 		PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS,
@@ -1179,12 +1170,9 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	ACTIONS* lpActions = NULL;
 
 	memory_ptr<SPropValue> OOFProps;
-	ULONG cValues;
-	bool bOOFactive = false;
-
+	unsigned int cValues, ulResult = 0;
 	SPropValue sForwardProps[4];
 	object_ptr<IECExchangeModifyTable> lpECModifyTable;
-	ULONG ulResult= 0;
 
 	sc -> countInc("rules", "invocations");
 	auto hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, &~lpTable);
@@ -1246,7 +1234,6 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 	}
 
 	while (1) {
-		const SPropValue *lpProp = NULL;
 		rowset_ptr lpRowSet;
 	        hr = lpView->QueryRows(1, 0, &~lpRowSet);
 		if (hr != hrSuccess) {
@@ -1280,7 +1267,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 
 		lpCondition = NULL;
 		lpActions = NULL;
-		lpProp = lpRowSet[0].cfind(PR_RULE_CONDITION);
+		auto lpProp = lpRowSet[0].cfind(PR_RULE_CONDITION);
 		if (lpProp)
 			// NOTE: object is placed in Value.lpszA, not Value.x
 			lpCondition = (LPSRestriction)lpProp->Value.lpszA;

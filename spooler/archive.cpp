@@ -62,20 +62,18 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
     std::shared_ptr<KC::ECLogger> logger)
 {
 	HRESULT hr = hrSuccess;
-	ULONG cMsgProps;
+	unsigned int cMsgProps, ulType;
 	SPropArrayPtr ptrMsgProps;
 	MsgStorePtr ptrStore;
-	ULONG ulType;
 	MAPIFolderPtr ptrFolder;
 	StoreHelperPtr ptrStoreHelper;
 	SObjectEntry refMsgEntry;
-	ObjectEntryList lstArchives;
+	ObjectEntryList lstArchives, lstReferences;
 	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	std::unique_ptr<Copier::Helper> ptrHelper;
 	list<pair<MessagePtr,PostSaveActionPtr> > lstArchivedMessages;
 	ArchiveResult result;
-	ObjectEntryList lstReferences;
 	MAPIPropHelperPtr ptrMsgHelper;
 	static constexpr const SizedSPropTagArray(3, sptaMessageProps) =
 		{3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
