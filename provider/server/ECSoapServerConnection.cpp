@@ -352,9 +352,9 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	return erSuccess;
 }
 
-ECRESULT ECSoapServerConnection::ShutDown()
+void ECSoapServerConnection::ShutDown()
 {
-    return m_lpDispatcher->ShutDown();
+	m_lpDispatcher->ShutDown();
 }
 
 ECRESULT ECSoapServerConnection::DoHUP()
@@ -367,18 +367,15 @@ ECRESULT ECSoapServerConnection::MainLoop()
 	return m_lpDispatcher->MainLoop();
 }
 
-ECRESULT ECSoapServerConnection::NotifyDone(struct soap *soap)
+void ECSoapServerConnection::NotifyDone(struct soap *soap)
 {
-	return m_lpDispatcher->NotifyDone(soap);
+	m_lpDispatcher->NotifyDone(soap);
 }
 
-ECRESULT ECSoapServerConnection::GetStats(unsigned int *lpulQueueLength, double *lpdblAge,unsigned int *lpulThreadCount, unsigned int *lpulIdleThreads)
+void ECSoapServerConnection::GetStats(unsigned int *lpulQueueLength,
+    double *lpdblAge,unsigned int *lpulThreadCount, unsigned int *lpulIdleThreads)
 {
-	ECRESULT er = m_lpDispatcher->GetQueueLength(lpulQueueLength);
-    if(er != erSuccess)
-		return er;
-    er = m_lpDispatcher->GetFrontItemAge(lpdblAge);
-    if(er != erSuccess)
-		return er;
-	return m_lpDispatcher->GetThreadCount(lpulThreadCount, lpulIdleThreads);
+	*lpulQueueLength = m_lpDispatcher->queue_length();
+	*lpdblAge = m_lpDispatcher->front_item_age();
+	m_lpDispatcher->GetThreadCount(lpulThreadCount, lpulIdleThreads);
 }

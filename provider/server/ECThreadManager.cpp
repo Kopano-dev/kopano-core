@@ -233,7 +233,6 @@ ECWatchDog::~ECWatchDog()
 void *ECWatchDog::Watch(void *lpParam)
 {
 	auto lpThis = static_cast<ECWatchDog *>(lpParam);
-    double dblAge;
 	kcsrv_blocksigs();
 
     while(1) {
@@ -245,7 +244,7 @@ void *ECWatchDog::Watch(void *lpParam)
 
         // If the age of the front item in the queue is older than the specified maximum age, force
         // a new thread to be started
-        if(lpThis->m_lpDispatcher->GetFrontItemAge(&dblAge) == erSuccess && dblAge > dblMaxAge)
+		if (lpThis->m_lpDispatcher->front_item_age() > dblMaxAge)
 			lpThis->m_lpDispatcher->force_add_threads(1);
 
         // Check to see if exit flag is set, and limit rate to dblMaxFreq Hz
@@ -274,37 +273,33 @@ ECDispatcher::~ECDispatcher()
 		kopano_end_soap_listener(s.second.get());
 }
 
-ECRESULT ECDispatcher::GetThreadCount(unsigned int *lpulThreads, unsigned int *lpulIdleThreads)
+void ECDispatcher::GetThreadCount(unsigned int *lpulThreads, unsigned int *lpulIdleThreads)
 {
 	size_t a, i;
 	m_pool.thread_counts(&a, &i);
 	*lpulThreads = a;
 	*lpulIdleThreads = i;
-	return erSuccess;
 }
 
 // Get the age (in seconds) of the next-in-line item in the queue, or 0 if the queue is empty
-ECRESULT ECDispatcher::GetFrontItemAge(double *lpdblAge)
+double ECDispatcher::front_item_age()
 {
-	*lpdblAge = m_pool.front_item_age();
-    return erSuccess;
+	return m_pool.front_item_age();
 }
 
-ECRESULT ECDispatcher::GetQueueLength(unsigned int *lpulLength)
+size_t ECDispatcher::queue_length()
 {
-	*lpulLength = m_pool.queue_length() + m_prio.queue_length();
-    return erSuccess;
+	return m_pool.queue_length() + m_prio.queue_length();
 }
 
-ECRESULT ECDispatcher::AddListenSocket(std::unique_ptr<struct soap, KC::ec_soap_deleter> &&soap)
+void ECDispatcher::AddListenSocket(std::unique_ptr<struct soap, KC::ec_soap_deleter> &&soap)
 {
 	soap->recv_timeout = m_nReadTimeout; // Use m_nReadTimeout, the value for timeouts during XML reads
 	soap->send_timeout = m_nSendTimeout;
 	m_setListenSockets.emplace(soap->socket, std::move(soap));
-    return erSuccess;
 }
 
-ECRESULT ECDispatcher::QueueItem(struct soap *soap)
+void ECDispatcher::QueueItem(struct soap *soap)
 {
 	auto item = new WORKITEM;
 	CONNECTION_TYPE ulType;
@@ -317,23 +312,22 @@ ECRESULT ECDispatcher::QueueItem(struct soap *soap)
 		m_prio.enqueue(item, true);
 	else
 		m_pool.enqueue(item, true);
-	return erSuccess;
 }
 
 // Called by a worker thread when it's done with an item
-ECRESULT ECDispatcher::NotifyDone(struct soap *soap)
+void ECDispatcher::NotifyDone(struct soap *soap)
 {
     // During exit, don't requeue active sockets, but close them
     if(m_bExit) {
 		kopano_end_soap_connection(soap);
         soap_free(soap);
-		return erSuccess;
+		return;
 	}
 	if (soap->socket == SOAP_INVALID_SOCKET) {
 		// SOAP has closed the socket, no need to requeue
 		kopano_end_soap_connection(soap);
 		soap_free(soap);
-		return erSuccess;
+		return;
 	}
 
 	SOAP_SOCKET socket = soap->socket;
@@ -345,14 +339,12 @@ ECRESULT ECDispatcher::NotifyDone(struct soap *soap)
 	l_sock.unlock();
 	// Notify select restart, send socket number which is done
 	NotifyRestart(socket);
-	return erSuccess;
 }
 
 // Set the nominal thread count
-ECRESULT ECDispatcher::SetThreadCount(unsigned int ulThreads)
+void ECDispatcher::SetThreadCount(unsigned int ulThreads)
 {
 	m_pool.setThreadCount(ulThreads);
-	return erSuccess;
 }
 
 void ECDispatcher::force_add_threads(size_t n)
@@ -368,10 +360,7 @@ ECRESULT ECDispatcher::DoHUP()
 	m_nRecvTimeout = atoi(m_lpConfig->GetSetting("server_recv_timeout"));
 	m_nReadTimeout = atoi(m_lpConfig->GetSetting("server_read_timeout"));
 	m_nSendTimeout = atoi(m_lpConfig->GetSetting("server_send_timeout"));
-
-	ECRESULT er = SetThreadCount(atoi(m_lpConfig->GetSetting("threads")));
-	if (er != erSuccess)
-		return er;
+	SetThreadCount(atoi(m_lpConfig->GetSetting("threads")));
 
 	for (auto const &p : m_setListenSockets) {
 		auto ulType = SOAP_CONNECTION_TYPE(p.second);
@@ -390,18 +379,19 @@ ECRESULT ECDispatcher::DoHUP()
 		std::unique_ptr<char[], cstdlib_deleter> server_ssl_protocols(strdup(m_lpConfig->GetSetting("server_ssl_protocols")));
 		if (server_ssl_protocols == nullptr)
 			return KCERR_NOT_ENOUGH_MEMORY;
-		er = kc_ssl_options(p.second.get(), server_ssl_protocols.get(),
+		auto er = kc_ssl_options(p.second.get(), server_ssl_protocols.get(),
 			m_lpConfig->GetSetting("server_ssl_ciphers"),
 			m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers"),
 			m_lpConfig->GetSetting("server_ssl_curves"));
+		if (er != erSuccess)
+			ec_log_err("SSL reload failed");
 	}
 	return erSuccess;
 }
 
-ECRESULT ECDispatcher::ShutDown()
+void ECDispatcher::ShutDown()
 {
     m_bExit = true;
-    return erSuccess;
 }
 
 ECDispatcherSelect::ECDispatcherSelect(std::shared_ptr<ECConfig> lpConfig) :
@@ -584,19 +574,17 @@ ECRESULT ECDispatcherSelect::MainLoop()
     return er;
 }
 
-ECRESULT ECDispatcherSelect::ShutDown()
+void ECDispatcherSelect::ShutDown()
 {
 	ECDispatcher::ShutDown();
     char s = 0;
     // Notify select wakeup
     write(m_fdRescanWrite, &s, 1);
-    return erSuccess;
 }
 
-ECRESULT ECDispatcherSelect::NotifyRestart(SOAP_SOCKET s)
+void ECDispatcherSelect::NotifyRestart(SOAP_SOCKET s)
 {
 	write(m_fdRescanWrite, &s, sizeof(SOAP_SOCKET));
-	return erSuccess;
 }
 
 #ifdef HAVE_EPOLL_CREATE
@@ -747,7 +735,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	return er;
 }
 
-ECRESULT ECDispatcherEPoll::NotifyRestart(SOAP_SOCKET s)
+void ECDispatcherEPoll::NotifyRestart(SOAP_SOCKET s)
 {
 	// add soap socket in epoll fd
 	epoll_event epevent;
@@ -755,6 +743,5 @@ ECRESULT ECDispatcherEPoll::NotifyRestart(SOAP_SOCKET s)
 	epevent.events = EPOLLIN | EPOLLPRI; // wait for input and priority (?) events
 	epevent.data.fd = s;
 	epoll_ctl(m_epFD, EPOLL_CTL_ADD, epevent.data.fd, &epevent);
-	return erSuccess;
 }
 #endif

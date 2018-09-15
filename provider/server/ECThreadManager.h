@@ -81,29 +81,24 @@ public:
 	ECDispatcher(std::shared_ptr<KC::ECConfig>);
 	virtual ~ECDispatcher();
 
-    // Statistics
-    ECRESULT GetIdle(unsigned int *lpulIdle); 				// Idle threads
-    ECRESULT GetThreadCount(unsigned int *lpulThreads, unsigned int *lpulIdleThreads);		// Total threads + idle threads
-    ECRESULT GetFrontItemAge(double *lpdblAge);		// Age of the front queue item (time since the item was queued and now)
-    ECRESULT GetQueueLength(unsigned int *lpulQueueLength);	// Number of requests in the queue
-    ECRESULT SetThreadCount(unsigned int ulThreads);
+	void GetThreadCount(unsigned int *total, unsigned int *idle);
+	double front_item_age();
+	size_t queue_length();
+	void SetThreadCount(unsigned int nthr);
 	void force_add_threads(size_t);
-    // Add a listen socket
-	ECRESULT AddListenSocket(std::unique_ptr<struct soap, KC::ec_soap_deleter> &&);
-
-	// Add soap socket in the work queue
-	ECRESULT QueueItem(struct soap *soap);
+	void AddListenSocket(std::unique_ptr<struct soap, KC::ec_soap_deleter> &&);
+	void QueueItem(struct soap *);
 
     // Reload variables from config
     ECRESULT DoHUP();
 
     // Called asynchronously during MainLoop() to shutdown the server
-    virtual ECRESULT ShutDown();
+	void ShutDown();
 
     // Inform that a soap request was processed and is finished. This will cause the dispatcher to start listening
     // on that socket for activity again
-    ECRESULT NotifyDone(struct soap *soap);
-    virtual ECRESULT NotifyRestart(SOAP_SOCKET s) = 0;
+	void NotifyDone(struct soap *);
+	virtual void NotifyRestart(SOAP_SOCKET) = 0;
 
     // Goes into main listen loop, accepting sockets and monitoring existing accepted sockets for activity. Also closes
     // sockets which are idle for more than ulSocketTimeout
@@ -128,8 +123,8 @@ private:
 public:
 	ECDispatcherSelect(std::shared_ptr<KC::ECConfig>);
     virtual ECRESULT MainLoop();
-    virtual ECRESULT ShutDown();
-    virtual ECRESULT NotifyRestart(SOAP_SOCKET s);
+	void ShutDown();
+	virtual void NotifyRestart(SOAP_SOCKET) override;
 };
 
 #ifdef HAVE_EPOLL_CREATE
@@ -141,7 +136,7 @@ public:
 	ECDispatcherEPoll(std::shared_ptr<KC::ECConfig>);
     virtual ~ECDispatcherEPoll();
     virtual ECRESULT MainLoop();
-    virtual ECRESULT NotifyRestart(SOAP_SOCKET s);
+	virtual void NotifyRestart(SOAP_SOCKET) override;
 };
 #endif
 

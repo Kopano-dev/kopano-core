@@ -25,10 +25,10 @@ public:
 	ECRESULT ListenPipe(const char* lpPipeName, bool bPriority = false);
 	ECRESULT MainLoop();
 	// These can be called asynchronously from MainLoop();
-	ECRESULT NotifyDone(struct soap *soap);
-	ECRESULT ShutDown();
+	void NotifyDone(struct soap *);
+	void ShutDown();
 	ECRESULT DoHUP();
-	ECRESULT GetStats(unsigned int *lpulQueueLength, double *lpdblAge, unsigned int *lpulThreadCount, unsigned int *lpulIdleThreads);
+	void GetStats(unsigned int *qlen, double *age, unsigned int *thrtotal, unsigned int *thridle);
 
 private:
     // Main thread handler
