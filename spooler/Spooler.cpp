@@ -410,10 +410,8 @@ static void CleanFinishedMessages(IMAPISession *lpAdminSession,
 	}
 
 	std::unique_lock<std::mutex> lock(hMutexFinished);
-
 	if (mapFinished.empty())
 		return;
-
 	// copy map contents and clear it, so hMutexFinished can be unlocked again asap
 	auto finished = std::move(mapFinished);
 	mapFinished.clear();
@@ -686,9 +684,7 @@ static HRESULT ProcessQueue2(IMAPISession *lpAdminSession,
 
 	while(!bQuit && !nReload) {
 		bMessagesWaiting = false;
-
 		lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
-
 		// also checks not to send a message again which is already sending
 		hr = ProcessAllEntries(lpAdminSession, lpSpooler, lpTable, szSMTP, ulPort, szPath);
 		if (hr != hrSuccess)
@@ -696,7 +692,6 @@ static HRESULT ProcessQueue2(IMAPISession *lpAdminSession,
 		// Exit signal, break the operation
 		if(bQuit)
 			break;
-			
 		if(nReload)
 			break;
 
@@ -707,7 +702,6 @@ static HRESULT ProcessQueue2(IMAPISession *lpAdminSession,
 				auto s = hCondMessagesWaiting.wait_until(lk, target);
 				if (s == std::cv_status::timeout || bMessagesWaiting || bQuit || nReload)
 					break;
-
 				// not timed out, no messages waiting, not quit requested, no table reload required:
 				// we were triggered for a cleanup call.
 				lk.unlock();
@@ -716,7 +710,6 @@ static HRESULT ProcessQueue2(IMAPISession *lpAdminSession,
 			}
 		}
 		lk.unlock();
-
 		// remove any entries that were done during the wait
 		CleanFinishedMessages(lpAdminSession, lpSpooler);
 	}
@@ -743,6 +736,7 @@ static HRESULT ProcessQueue(const char *smtp, int port, const char *path)
 	if (hr != hrSuccess)
 		return kc_perrorf("GetAdminSpooler failed", hr);
 	hr = ProcessQueue2(lpAdminSession, lpSpooler, smtp, port, path);
+
 	/* When we exit, we must make sure all forks started are cleaned. */
 	if (bQuit) {
 		size_t ulCount = 0;
@@ -754,7 +748,6 @@ static HRESULT ProcessQueue(const char *smtp, int port, const char *path)
 				ec_log_warn("Still waiting for %zu thread(s) to exit.", ulThreads);
 			if (lpSpooler != nullptr)
 				CleanFinishedMessages(lpAdminSession, lpSpooler);
-
 			Sleep(1000);
 			++ulCount;
 		}
@@ -797,7 +790,6 @@ static void process_signal(int sig)
 		ec_log_info("User requested graceful shutdown. To force quit, reissue the request.");
 		break;
 	}
-
 	case SIGCHLD: {
 		std::unique_lock<std::mutex> finlock(hMutexFinished);
 		while ((pid = waitpid (-1, &stat, WNOHANG)) > 0)
@@ -807,7 +799,6 @@ static void process_signal(int sig)
 		hCondMessagesWaiting.notify_one();
 		break;
 	}
-
 	case SIGHUP:
 		if (g_use_threads && !pthread_equal(pthread_self(), g_main_thread))
 			break;
@@ -825,7 +816,6 @@ static void process_signal(int sig)
 			ec_log_warn("Log connection was reset");
 		}
 		break;
-
 	case SIGUSR2: {
 		ec_log_debug("Spooler stats:");
 		ec_log_debug("Running threads: %zu", mapSendData.size());
@@ -856,21 +846,17 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
 	HRESULT hr = hrSuccess;
 	ec_log(EC_LOGLEVEL_ALWAYS, "Starting kopano-spooler version " PROJECT_VERSION " (pid %d)", getpid());
 	ec_log_debug("Using SMTP server: %s, port %d", szSMTP, ulPort);
-
 	disconnects = 0;
 
 	while (1) {
 		hr = ProcessQueue(szSMTP, ulPort, szPath);
-
 		if (bQuit)
 			break;
-
 		if (disconnects == 0)
 			ec_log_warn("Server connection lost. Reconnecting in 3 seconds...");
 		++disconnects;
 		Sleep(3000);			// wait 3s until retry to connect
 	}
-
 	bQuit = true;				// make sure the sigchld does not use the lock anymore
 	return hr;
 }
@@ -915,7 +901,6 @@ int main(int argc, char **argv) try
 		{"dump-config", 0, nullptr, OPT_DUMP_CONFIG},
 		{ NULL, 0, NULL, 0 }
 	};
-
 	// Default settings
 	static const configsetting_t lpDefaults[] = {
 		{ "smtp_server","localhost", CONFIGSETTING_RELOADABLE },
@@ -1042,18 +1027,15 @@ int main(int argc, char **argv) try
 	// adding argidx to optind will result in the index after all
 	// options are parsed.
 	optind += argidx;
-
 	// commandline overwrites spooler.cfg
 	if (optind < argc)
 		szSMTP = argv[optind];
 	else
 		szSMTP = g_lpConfig->GetSetting("smtp_server");
-	
 	if (!ulPort)
 		ulPort = atoui(g_lpConfig->GetSetting("smtp_port"));
 
 	szCommand = argv[0];
-
 	// setup logging, use pipe to log if started in forked mode and using pipe (file) logger, create normal logger for syslog
 	if (bForked && logfd != -1)
 		g_lpLogger.reset(new(std::nothrow) ECLogger_Pipe(logfd, 0, atoi(g_lpConfig->GetSetting("log_level"))));
@@ -1079,7 +1061,6 @@ int main(int argc, char **argv) try
 	}
 	if (g_use_threads)
 		g_lpLogger->SetLogprefix(LP_TID);
-
 	// set socket filename
 	if (!szPath)
 		szPath = g_lpConfig->GetSetting("server_socket");
@@ -1128,7 +1109,6 @@ int main(int argc, char **argv) try
 		ec_log_crit("main(): failed daemonizing");
 		goto exit;
 	}
-
 	if (!daemonize)
 		setsid();
 	if (!bForked && unix_create_pidfile(argv[0], g_lpConfig.get(), false) < 0) {

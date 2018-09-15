@@ -99,7 +99,6 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 		 * lpEmailAddress is only mandatory for MAPI_MAILUSER */
 		if (!lpEntryId || !lpObjectType || !lpDisplayName)
 			continue;
-
 		/* By default we inherit the recipient type from parent */
 		if (lpRecipType)
 			ulRecipType = lpRecipType->Value.ul;
@@ -295,12 +294,10 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 {
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropTagArray> lpRecipColumns;
-
 	const char	*const lpszFaxDomain = g_lpConfig->GetSetting("fax_domain");
 	const char	*const lpszFaxInternational = g_lpConfig->GetSetting("fax_international");
 	string		strFaxMail;
 	unsigned int ulObjType, cValues;
-
 	// contab email_offset: 0: business, 1: home, 2: primary (outlook uses string 'other')
 	static constexpr const SizedSPropTagArray(3, sptaFaxNumbers) =
 		{ 3, {PR_BUSINESS_FAX_NUMBER_A, PR_HOME_FAX_NUMBER_A,
@@ -333,7 +330,6 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		auto lpEntryID = lpRowSet[0].find(PR_ENTRYID);
 		if (!(lpEmailAddress && lpAddrType && lpEntryID && lpEmailName))
 			continue;
-
 		if (wcscmp(lpAddrType->Value.lpszW, L"FAX") != 0)
 			continue;
 
@@ -737,7 +733,6 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	/* CopyTo() vars */
 	unsigned int	ulPropAttachPos;
 	ULONG			ulAttachNum;
-
 	const std::vector<sFailedRecip> &temporaryFailedRecipients = lpMailer->getTemporaryFailedRecipients();
 	const std::vector<sFailedRecip> &permanentFailedRecipients = lpMailer->getPermanentFailedRecipients();
 
@@ -773,7 +768,6 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 			GetMAPIErrorMessage(hr), hr);
 		return MAPI_E_NOT_FOUND;
 	}
-
 	// make new message in inbox
 	hr = lpInbox->CreateMessage(nullptr, 0, &~lpErrorMsg);
 	if (hr != hrSuccess) {
@@ -781,7 +775,6 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-
 	// Get properties from the original message
 	hr = lpMessage->GetProps(sPropsOriginal, 0, &cValuesOriginal, &~lpPropArrayOriginal);
 	if (FAILED(hr))
@@ -790,7 +783,6 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffers failed", hr);
 
-	// Get the time to add to the message as PR_CLIENT_SUBMIT_TIME
 	GetSystemTimeAsFileTime(&ft);
 	mdnprop_populate(lpPropValue, ulPropPos, lpPropArrayOriginal, ft);
 
@@ -823,15 +815,12 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 	lpPropValueAttach[ulPropAttachPos].ulPropTag = PR_ATTACH_METHOD;
 	lpPropValueAttach[ulPropAttachPos++].Value.ul = ATTACH_EMBEDDED_MSG;
-
 	lpPropValueAttach[ulPropAttachPos].ulPropTag = PR_ATTACH_MIME_TAG_W;
 	lpPropValueAttach[ulPropAttachPos++].Value.lpszW = const_cast<wchar_t *>(L"message/rfc822");
-
 	if(PROP_TYPE(lpPropArrayOriginal[OR_SUBJECT].ulPropTag) != PT_ERROR) {
 		lpPropValueAttach[ulPropAttachPos].ulPropTag = CHANGE_PROP_TYPE(PR_DISPLAY_NAME, PROP_TYPE(lpPropArrayOriginal[OR_SUBJECT].ulPropTag));
 		lpPropValueAttach[ulPropAttachPos++].Value.lpszA = lpPropArrayOriginal[OR_SUBJECT].Value.lpszA;
 	}
-
 	lpPropValueAttach[ulPropAttachPos].ulPropTag = PR_RENDERING_POSITION;
 	lpPropValueAttach[ulPropAttachPos++].Value.ul = -1;
 
@@ -855,9 +844,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 	if (ulRows == 0 || (permanentFailedRecipients.empty() && temporaryFailedRecipients.empty())) {
 		// No specific failed recipients, so the entire message failed
-		
 		// If there's a pr_body, outlook will display that, and not the 'default' outlook error report
-
 		// Message error
 		newbody = L"Unfortunately, kopano-spooler was unable to deliver your mail.\nThe error given was:\n\n";
 		newbody.append(lpMailer->getErrorString());
@@ -926,12 +913,10 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	hr = lpErrorMsg->SetProps(ulPropPos, lpPropValue, NULL);
 	if (hr != hrSuccess)
 		return kc_perrorf("SetProps failed", hr);
-
 	// save message
 	hr = lpErrorMsg->SaveChanges(KEEP_OPEN_READONLY);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to commit message", hr);
-
 	// New mail notification
 	if (HrNewMailNotification(lpStore, lpErrorMsg) != hrSuccess)
 		ec_log_warn("Unable to issue \"New Mail\" notification: %s (%x)",
@@ -982,13 +967,11 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 	lpNames[0].ulKind = MNID_ID;
 	lpNames[0].Kind.lID = 0x8085;
 	lppNames[0] = &lpNames[0];
-
 	// Email2EntryID
 	lpNames[1].lpguid = (GUID*)&PSETID_Address;
 	lpNames[1].ulKind = MNID_ID;
 	lpNames[1].Kind.lID = 0x8095;
 	lppNames[1] = &lpNames[1];
-
 	// Email3EntryID
 	lpNames[2].lpguid = (GUID*)&PSETID_Address;
 	lpNames[2].ulKind = MNID_ID;
@@ -1097,7 +1080,6 @@ static HRESULT HrFindUserInGroup(IAddrBook *lpAdrBook, const SBinary &owner,
 		return kc_perrorf("SetColumns failed", hr);
 
 	// sort on PR_OBJECT_TYPE (MAILUSER < DISTLIST) ?
-
 	while (TRUE) {
 		rowset_ptr lpRowSet;
 		hr = lpMembersTable->QueryRows(1, 0, &~lpRowSet);
@@ -1285,7 +1267,6 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 		kc_perrorf("GetProps failed(1)", hr);
 		goto exit;
 	}
-
 	hr = hrSuccess;
 
 	// Open the owner to get the displayname for logging
@@ -1299,7 +1280,6 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 		kc_perrorf("GetProps failed(2)", hr);
 		goto exit;
 	}
-
 	hr = hrSuccess;
 
 	if (lpRepresentProps[2].ulPropTag != PR_DISPLAY_TYPE) {	// Required property for a mailuser object
@@ -1339,7 +1319,6 @@ exit:
 		hr = HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, repr, lppRepStore);
 	else
 		*lppRepStore = NULL;
-
 	*lpbAllowed = bAllowed;
 	MAPIFreeBuffer(sSpoofEID.Value.bin.lpb);
 	return hr;
@@ -1390,7 +1369,6 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	if (hr != hrSuccess)
 		ec_log_notice("CheckDelegate() PR_MAILBOX_OWNER_NAME(user) fetch failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-
 	hr = HrGetOneProp(lpRepStore, PR_MAILBOX_OWNER_NAME, &~lpRepOwnerName);
 	if (hr != hrSuccess)
 		ec_log_notice("CheckDelegate() PR_MAILBOX_OWNER_NAME(rep) fetch failed: %s (%x)",
@@ -1444,7 +1422,6 @@ exit:
 	*lpbAllowed = bAllowed;
 	// when any step failed, delegate is not setup correctly, so bAllowed == false
 	hr = hrSuccess;
-
 	if (bAllowed)
 		*lppRepStore = lpRepStore.release();
 	MAPIFreeBuffer(sSpoofEID.Value.bin.lpb);
@@ -1602,13 +1579,10 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	memory_ptr<SPropValue> lpRepEntryID, lpSubject, lpMsgSize;
 	memory_ptr<SPropValue> lpAutoForward, lpMsgClass, lpDeferSendTime;
 	memory_ptr<SPropValue> trash_eid, parent_entryid;
-
 	PyMapiPluginFactory pyMapiPluginFactory;
 	std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
 	const char *cts = nullptr;
-
 	ArchiveResult	archiveResult;
-
 	sending_options sopt;
 
 	imopt_default_sending_options(&sopt);
@@ -1623,10 +1597,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		sopt.use_tnef = 1;
 
 	sopt.allow_send_to_everyone = parseBool(g_lpConfig->GetSetting("allow_send_to_everyone"));
-
 	// Enable SMTP Delivery Status Notifications
 	sopt.enable_dsn = parseBool(g_lpConfig->GetSetting("enable_dsn"));
-
 	sopt.always_expand_distr_list = parseBool(g_lpConfig->GetSetting("expand_groups"));
 
 	// Init plugin system
@@ -1644,7 +1616,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		kc_perror("Unable to get owner information", hr);
 		goto exit;
 	}
-
 	// We now have the owner ID, get the owner information through the ServiceAdmin
 	hr = lpServiceAdmin->GetUser(cbOwner, lpOwner, MAPI_UNICODE, &~lpUser);
 	if (hr != hrSuccess) {
@@ -1660,13 +1631,11 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
-
 	hr = HrGetOneProp(lpUserStore, PR_IPM_WASTEBASKET_ENTRYID, &~trash_eid);
 	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
 		kc_perror("Unable to get wastebasket entryid", hr);
 		goto exit;
 	}
-
 	hr = HrGetOneProp(lpMessage, PR_PARENT_ENTRYID, &~parent_entryid);
 	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
 		kc_perror("Unable to get parent entryid", hr);
@@ -1686,7 +1655,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		kc_perror("Unable to get subject", hr);
 		goto exit;
 	}
-
 	hr = HrGetOneProp(lpMessage, PR_MESSAGE_SIZE, &~lpMsgSize);
 	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
 		kc_perror("Unable to get message size", hr);
@@ -1705,10 +1673,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 
 			localtime_r(&sendat, &tmp);
 			strftime(timestring, 256, "%c", &tmp);
-
 			ec_log_info("E-mail for user %ls, subject \"%ls\", should be sent later at \"%s\"",
 				lpUser->lpszUsername, lpSubject ? lpSubject->Value.lpszW : L"<none>", timestring);
-
 			hr = MAPI_E_WAIT;
 			goto exit;
 		}
@@ -1727,16 +1693,12 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			lpUser->lpszUsername, lpMsgSize ? lpMsgSize->Value.ul : 0);
 
 	/* 
-
 	   PR_SENDER_* maps to Sender:
 	   PR_SENT_REPRESENTING_* maps to From:
-
 	   Sender: field is optional, From: is mandatory
 	   PR_SENDER_* is mandatory, and always set by us (will be overwritten if was set)
 	   PR_SENT_REPRESENTING_* is optional, and set by outlook when the user modifies the From in outlook.
-
 	*/
-
 	// Set PR_SENT_REPRESENTING, as this is set on all "Sent" items and is the column
 	// that is shown by default in Outlook's "Sent Items" folder
 	if (HrGetOneProp(lpMessage, PR_SENT_REPRESENTING_ENTRYID, &~lpRepEntryID) != hrSuccess) {
@@ -1747,7 +1709,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		sPropSender[1].Value.lpszW = (LPTSTR)L"ZARAFA";
 		sPropSender[2].ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS_W;
 		sPropSender[2].Value.lpszW = (LPTSTR)lpUser->lpszMailAddress;
-
 		sPropSender[3].ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
 		sPropSender[3].Value.bin = lpUser->sUserId;
 
@@ -1824,7 +1785,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	sPropSender[1].Value.LPSZ = const_cast<TCHAR *>(KC_T("ZARAFA"));
 	sPropSender[2].ulPropTag = PR_SENDER_EMAIL_ADDRESS_W;
 	sPropSender[2].Value.LPSZ = lpUser->lpszMailAddress;
-
 	sPropSender[3].ulPropTag = PR_SENDER_ENTRYID;
 	sPropSender[3].Value.bin = lpUser->sUserId;
 	// @todo PR_SENDER_SEARCH_KEY
@@ -1834,7 +1794,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		kc_perror("Unable to update message with sender", hr);
 		goto exit;
 	}
-
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess) {
 		kc_perror("Unable to save message before sending", hr);
@@ -1866,7 +1825,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			kc_perror("Unable to find sender information", hr);
 			goto exit;
 		}
-
 		hr = lpMessage->DeleteProps(sptaMoveReprProps, NULL);
 		if (FAILED(hr)) {
 			kc_perror("Unable to remove sender information", hr);
@@ -1909,12 +1867,10 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			ec_log_warn("Unable to expand message recipient groups: %s (%x)",
 				GetMAPIErrorMessage(hr), hr);
 	}
-
 	hr = RewriteRecipients(lpUserSession, lpMessage);
 	if (hr != hrSuccess)
 		ec_log_warn("Unable to rewrite recipients: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-
 	if (sopt.always_expand_distr_list) {
 		// Only touch recips if we're expanding groups; the rationale is here that the user
 		// has typed a recipient twice if we have duplicates and expand_groups = no, so that's
@@ -1925,13 +1881,11 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			ec_log_warn("Unable to remove duplicate recipients: %s (%x)",
 				GetMAPIErrorMessage(hr), hr);
 	}
-
 	RewriteQuotedRecipients(lpMessage);
 
 	hr = ptrPyMapiPlugin->MessageProcessing("PreSending", lpUserSession, lpAddrBook, lpUserStore, NULL, lpMessage, &ulResult);
 	if (hr != hrSuccess)
 		goto exit;
-
 	if (ulResult == MP_RETRY_LATER) {
 		hr = MAPI_E_WAIT;
 		goto exit;
@@ -1964,7 +1918,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 
 	// Now hand message to library which will send it, inetmapi will handle addressbook
 	hr = IMToINet(lpUserSession, lpAddrBook, lpMessage, lpMailer, sopt);
-
 	// log using fatal, all other log messages are otherwise somewhat meaningless
 	if (hr == MAPI_W_NO_SERVICE) {
 		ec_log_warn("Unable to connect to SMTP server, retrying mail for user %ls later", lpUser->lpszUsername);
@@ -1972,12 +1925,10 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	} else if (hr != hrSuccess) {
 		ec_log_warn("E-mail for user %ls could not be sent, notifying user: %s (%x)",
 			lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
-
 		hr = SendUndeliverable(lpMailer, lpUserStore, lpMessage);
 		if (hr != hrSuccess)
 			ec_log_err("Unable to create undeliverable message for user %ls: %s (%x)",
 				lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
-
 		// we set hr to success, so the parent process does not create the undeliverable thing again
 		hr = hrSuccess;
 		goto exit;
@@ -1988,7 +1939,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	// If we have a repsenting message, save that now in the sent-items of that user
 	if (lpRepMessage) {
 		HRESULT hr2 = lpRepMessage->SaveChanges(0);
-
 		if (hr2 != hrSuccess)
 			kc_perror("The representee's mail copy could not be saved", hr2);
 	}
@@ -1996,7 +1946,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 exit:
 	if (FAILED(hr))
 		archiveResult.Undo(lpAdminSession);
-
 	// We always return the processes message to the caller, whether it failed or not
 	if (lpMessage)
 		lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);

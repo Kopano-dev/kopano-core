@@ -45,7 +45,6 @@ typedef pyobj_ptr PyObjectAPtr;
 class PyMapiPlugin _kc_final : public pym_plugin_intf {
 	public:
 	PyMapiPlugin(void) = default;
-
 	HRESULT Init(PyObject *lpModMapiPlugin, const char* lpPluginManagerClassName, const char *lpPluginPath);
 	virtual HRESULT MessageProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *result);
 	virtual HRESULT RulesProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IExchangeModifyTable *emt_rules, ULONG *result);

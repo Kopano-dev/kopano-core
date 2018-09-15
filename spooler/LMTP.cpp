@@ -178,13 +178,11 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 			ec_log_err("Error during DATA communication with client: %s", strerror(errno));
 			return MAPI_E_FAILURE;
 		}
-
 		// The data from HrReadLine does not contain the CRLF, so add that here
 		if (fwrite("\r\n", 1, 2, tmp) != 2) {
 			ec_log_err("Error during DATA communication with client: %s", strerror(errno));
 			return MAPI_E_FAILURE;
 		}
-
 		message += inBuffer + "\r\n";
 	}
 #if 0

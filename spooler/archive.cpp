@@ -159,14 +159,12 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage,
 			if (hrTmp != hrSuccess)
 				kc_pwarn("Failed to execute post save action", hrTmp);
 		}
-
 		result.AddMessage(msg.first);
 	}
 
 	// Now add the references to the original message.
 	lstReferences.sort();
 	lstReferences.unique();
-
 	hr = MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrMsgHelper);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForDelivery(): failed creating reference to original message", hr);
@@ -213,12 +211,10 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 		SetErrorMessage(hr, KC_TX("Unable to obtain list of attached archives."));
 		return kc_perror("Unable to obtain list of attached archives", hr);
 	}
-
 	if (lstArchives.empty()) {
 		ec_log_debug("No archives attached to store");
 		return hr;
 	}
-
 	hr = ArchiverSession::Create(m_ptrSession, logger, &ptrSession);
 	if (hr != hrSuccess)
 		return kc_pwarn("Archive::HrArchiveMessageForSending(): ArchiverSession::Create failed", hr);
@@ -256,7 +252,6 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 			SetErrorMessage(hr, KC_TX("Unable to create archive message in outgoing archive folder."));
 			return kc_perror("Failed to create message in outgoing archive folder", hr);
 		}
-
 		hr = ptrHelper->ArchiveMessage(lpMessage, NULL, ptrArchivedMsg, &ptrPSAction);
 		if (hr != hrSuccess) {
 			SetErrorMessage(hr, KC_TX("Unable to copy message data."));
@@ -274,13 +269,11 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage,
 			SetErrorMessage(hr, KC_TX("Unable to save archived message."));
 			return kc_perror("Failed to save message in archive", hr);
 		}
-
 		if (msg.second) {
 			HRESULT hrTmp = msg.second->Execute();
 			if (hrTmp != hrSuccess)
 				kc_pwarn("Failed to execute post save action", hrTmp);
 		}
-
 		result.AddMessage(msg.first);
 	}
 
