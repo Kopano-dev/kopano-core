@@ -542,6 +542,122 @@ static HRESULT RemoveP1Recipients(IMessage *lpMessage)
 	return hrSuccess;
 }
 
+enum eORPos {
+	OR_DISPLAY_TO, OR_DISPLAY_CC, OR_DISPLAY_BCC, OR_SEARCH_KEY,
+	OR_SENDER_ADDRTYPE, OR_SENDER_EMAIL_ADDRESS, OR_SENDER_ENTRYID,
+	OR_SENDER_NAME, OR_SENDER_SEARCH_KEY, OR_SENT_REPRESENTING_ADDRTYPE,
+	OR_SENT_REPRESENTING_EMAIL_ADDRESS, OR_SENT_REPRESENTING_ENTRYID,
+	OR_SENT_REPRESENTING_NAME, OR_SENT_REPRESENTING_SEARCH_KEY, OR_SUBJECT,
+	OR_CLIENT_SUBMIT_TIME,
+};
+
+static void mdnprop_populate(SPropValue *p, unsigned int &n,
+    const SPropValue *a, const FILETIME &ft)
+{
+	p[n].ulPropTag     = PR_SUBJECT_W;
+	p[n++].Value.lpszW = const_cast<wchar_t *>(L"Undelivered Mail Returned to Sender");
+	p[n].ulPropTag     = PR_MESSAGE_FLAGS;
+	p[n++].Value.ul    = 0;
+	p[n].ulPropTag     = PR_MESSAGE_CLASS_W;
+	p[n++].Value.lpszW = const_cast<wchar_t *>(L"REPORT.IPM.Note.NDR");
+	p[n].ulPropTag     = PR_CLIENT_SUBMIT_TIME;
+	p[n++].Value.ft    = ft;
+	p[n].ulPropTag     = PR_MESSAGE_DELIVERY_TIME;
+	p[n++].Value.ft    = ft;
+	p[n].ulPropTag     = PR_SENDER_NAME_W;
+	p[n++].Value.lpszW = const_cast<wchar_t *>(L"Mail Delivery System");
+	/*
+	 * Although lpszA is used, we just copy pointers. By not forcing _A or
+	 * _W, this works in unicode and normal compile mode. Set the
+	 * properties PR_RCVD_REPRESENTING_* and PR_RECEIVED_BY_* and
+	 * PR_ORIGINAL_SENDER_* and PR_ORIGINAL_SENT_*.
+	 */
+	if (PROP_TYPE(a[OR_SENDER_NAME].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_RECEIVED_BY_NAME;
+		p[n++].Value.lpszA = a[OR_SENDER_NAME].Value.lpszA;
+		p[n].ulPropTag     = PR_ORIGINAL_SENDER_NAME;
+		p[n++].Value.lpszA = a[OR_SENDER_NAME].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SENDER_EMAIL_ADDRESS].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_RECEIVED_BY_EMAIL_ADDRESS;
+		p[n++].Value.lpszA = a[OR_SENDER_EMAIL_ADDRESS].Value.lpszA;
+		p[n].ulPropTag     = PR_ORIGINAL_SENDER_EMAIL_ADDRESS;
+		p[n++].Value.lpszA = a[OR_SENDER_EMAIL_ADDRESS].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SENDER_ADDRTYPE].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_RECEIVED_BY_ADDRTYPE;
+		p[n++].Value.lpszA = a[OR_SENDER_ADDRTYPE].Value.lpszA;
+		p[n].ulPropTag     = PR_ORIGINAL_SENDER_ADDRTYPE;
+		p[n++].Value.lpszA = a[OR_SENDER_ADDRTYPE].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SENDER_SEARCH_KEY].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag   = PR_RECEIVED_BY_SEARCH_KEY;
+		p[n++].Value.bin = a[OR_SENDER_SEARCH_KEY].Value.bin;
+		p[n].ulPropTag   = PR_ORIGINAL_SENDER_SEARCH_KEY;
+		p[n++].Value.bin = a[OR_SENDER_SEARCH_KEY].Value.bin;
+	}
+	if (PROP_TYPE(a[OR_SENDER_ENTRYID].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag   = PR_RECEIVED_BY_ENTRYID;
+		p[n++].Value.bin = a[OR_SENDER_ENTRYID].Value.bin;
+		p[n].ulPropTag   = PR_ORIGINAL_SENDER_ENTRYID;
+		p[n++].Value.bin = a[OR_SENDER_ENTRYID].Value.bin;
+	}
+	if (PROP_TYPE(a[OR_SENT_REPRESENTING_NAME].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_RCVD_REPRESENTING_NAME;
+		p[n++].Value.lpszA = a[OR_SENT_REPRESENTING_NAME].Value.lpszA;
+		p[n].ulPropTag     = PR_ORIGINAL_SENT_REPRESENTING_NAME;
+		p[n++].Value.lpszA = a[OR_SENT_REPRESENTING_NAME].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SENT_REPRESENTING_EMAIL_ADDRESS].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_RCVD_REPRESENTING_EMAIL_ADDRESS;
+		p[n++].Value.lpszA = a[OR_SENT_REPRESENTING_EMAIL_ADDRESS].Value.lpszA;
+		p[n].ulPropTag     = PR_ORIGINAL_SENT_REPRESENTING_EMAIL_ADDRESS;
+		p[n++].Value.lpszA = a[OR_SENT_REPRESENTING_EMAIL_ADDRESS].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SENT_REPRESENTING_ADDRTYPE].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_RCVD_REPRESENTING_ADDRTYPE;
+		p[n++].Value.lpszA = a[OR_SENT_REPRESENTING_ADDRTYPE].Value.lpszA;
+		p[n].ulPropTag     = PR_ORIGINAL_SENT_REPRESENTING_ADDRTYPE;
+		p[n++].Value.lpszA = a[OR_SENT_REPRESENTING_ADDRTYPE].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SENT_REPRESENTING_SEARCH_KEY].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag   = PR_RCVD_REPRESENTING_SEARCH_KEY;
+		p[n++].Value.bin = a[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin;
+		p[n].ulPropTag   = PR_ORIGINAL_SENT_REPRESENTING_SEARCH_KEY;
+		p[n++].Value.bin = a[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin;
+	}
+	if (PROP_TYPE(a[OR_SENT_REPRESENTING_ENTRYID].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag   = PR_RCVD_REPRESENTING_ENTRYID;
+		p[n++].Value.bin = a[OR_SENT_REPRESENTING_ENTRYID].Value.bin;
+		p[n].ulPropTag   = PR_ORIGINAL_SENT_REPRESENTING_ENTRYID;
+		p[n++].Value.bin = a[OR_SENT_REPRESENTING_ENTRYID].Value.bin;
+	}
+	if (PROP_TYPE(a[OR_DISPLAY_TO].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_ORIGINAL_DISPLAY_TO;
+		p[n++].Value.lpszA = a[OR_DISPLAY_TO].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_DISPLAY_CC].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_ORIGINAL_DISPLAY_CC;
+		p[n++].Value.lpszA = a[OR_DISPLAY_CC].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_DISPLAY_BCC].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_ORIGINAL_DISPLAY_BCC;
+		p[n++].Value.lpszA = a[OR_DISPLAY_BCC].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SUBJECT].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_ORIGINAL_SUBJECT;
+		p[n++].Value.lpszA = a[OR_SUBJECT].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_CLIENT_SUBMIT_TIME].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag  = PR_ORIGINAL_SUBMIT_TIME;
+		p[n++].Value.ft = a[OR_CLIENT_SUBMIT_TIME].Value.ft;
+	}
+	if (PROP_TYPE(a[OR_SEARCH_KEY].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag   = PR_ORIGINAL_SEARCH_KEY;
+		p[n++].Value.bin = a[OR_SEARCH_KEY].Value.bin;
+	}
+}
+
 /**
  * Creates an MDN message in the inbox of the given store for the passed message.
  *
@@ -579,15 +695,6 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 	const std::vector<sFailedRecip> &temporaryFailedRecipients = lpMailer->getTemporaryFailedRecipients();
 	const std::vector<sFailedRecip> &permanentFailedRecipients = lpMailer->getPermanentFailedRecipients();
-
-	enum eORPos {
-		OR_DISPLAY_TO, OR_DISPLAY_CC, OR_DISPLAY_BCC, OR_SEARCH_KEY, OR_SENDER_ADDRTYPE,
-		OR_SENDER_EMAIL_ADDRESS, OR_SENDER_ENTRYID, OR_SENDER_NAME,
-		OR_SENDER_SEARCH_KEY, OR_SENT_REPRESENTING_ADDRTYPE,
-		OR_SENT_REPRESENTING_EMAIL_ADDRESS, OR_SENT_REPRESENTING_ENTRYID,
-		OR_SENT_REPRESENTING_NAME, OR_SENT_REPRESENTING_SEARCH_KEY,
-		OR_SUBJECT, OR_CLIENT_SUBMIT_TIME
-	};
 
 	// These props are on purpose without _A and _W
 	static constexpr const SizedSPropTagArray(16, sPropsOriginal) = {
@@ -640,147 +747,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 	// Get the time to add to the message as PR_CLIENT_SUBMIT_TIME
 	GetSystemTimeAsFileTime(&ft);
-	[](SPropValue *lpPropValue, unsigned int &ulPropPos, const SPropValue *lpPropArrayOriginal, const FILETIME &ft) {
-	// Subject
-	lpPropValue[ulPropPos].ulPropTag = PR_SUBJECT_W;
-	lpPropValue[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"Undelivered Mail Returned to Sender");
-
-	// Message flags
-	lpPropValue[ulPropPos].ulPropTag = PR_MESSAGE_FLAGS;
-	lpPropValue[ulPropPos++].Value.ul = 0;
-
-	// Message class
-	lpPropValue[ulPropPos].ulPropTag = PR_MESSAGE_CLASS_W;
-	lpPropValue[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"REPORT.IPM.Note.NDR");
-
-	// Submit time
-	lpPropValue[ulPropPos].ulPropTag = PR_CLIENT_SUBMIT_TIME;
-	lpPropValue[ulPropPos++].Value.ft = ft;
-
-	// Delivery time
-	lpPropValue[ulPropPos].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
-	lpPropValue[ulPropPos++].Value.ft = ft;
-
-	lpPropValue[ulPropPos].ulPropTag = PR_SENDER_NAME_W;
-	lpPropValue[ulPropPos++].Value.lpszW = (LPWSTR)L"Mail Delivery System";
-
-	// Although lpszA is used, we just copy pointers. By not forcing _A or _W, this works in unicode and normal compile mode.
-
-	// Set the properties PR_RCVD_REPRESENTING_* and PR_RECEIVED_BY_* and
-	// PR_ORIGINAL_SENDER_* and PR_ORIGINAL_SENT_*
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENDER_NAME].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RECEIVED_BY_NAME;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENDER_NAME].Value.lpszA;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENDER_NAME;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENDER_NAME].Value.lpszA;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENDER_EMAIL_ADDRESS].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RECEIVED_BY_EMAIL_ADDRESS;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENDER_EMAIL_ADDRESS].Value.lpszA;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENDER_EMAIL_ADDRESS;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENDER_EMAIL_ADDRESS].Value.lpszA;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENDER_ADDRTYPE].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RECEIVED_BY_ADDRTYPE;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENDER_ADDRTYPE].Value.lpszA;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENDER_ADDRTYPE;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENDER_ADDRTYPE].Value.lpszA;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RECEIVED_BY_SEARCH_KEY;
-		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].Value.bin;
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENDER_SEARCH_KEY;
-		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].Value.bin;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENDER_ENTRYID].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag		= PR_RECEIVED_BY_ENTRYID;
-		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENDER_ENTRYID].Value.bin;
-		lpPropValue[ulPropPos].ulPropTag		= PR_ORIGINAL_SENDER_ENTRYID;
-		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENDER_ENTRYID].Value.bin;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENT_REPRESENTING_NAME].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RCVD_REPRESENTING_NAME;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENT_REPRESENTING_NAME].Value.lpszA;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_NAME;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENT_REPRESENTING_NAME].Value.lpszA;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENT_REPRESENTING_EMAIL_ADDRESS].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RCVD_REPRESENTING_EMAIL_ADDRESS;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENT_REPRESENTING_EMAIL_ADDRESS].Value.lpszA;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_EMAIL_ADDRESS;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENT_REPRESENTING_EMAIL_ADDRESS].Value.lpszA;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENT_REPRESENTING_ADDRTYPE].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RCVD_REPRESENTING_ADDRTYPE;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENT_REPRESENTING_ADDRTYPE].Value.lpszA;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_ADDRTYPE;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENT_REPRESENTING_ADDRTYPE].Value.lpszA;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RCVD_REPRESENTING_SEARCH_KEY;
-		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin;
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_SEARCH_KEY;
-		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag		= PR_RCVD_REPRESENTING_ENTRYID;
-		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].Value.bin;
-		lpPropValue[ulPropPos].ulPropTag		= PR_ORIGINAL_SENT_REPRESENTING_ENTRYID;
-		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].Value.bin;
-	}
-
-	// Original display to
-	if(PROP_TYPE(lpPropArrayOriginal[OR_DISPLAY_TO].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_DISPLAY_TO;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_DISPLAY_TO].Value.lpszA;
-	}
-
-	// Original display cc
-	if(PROP_TYPE(lpPropArrayOriginal[OR_DISPLAY_CC].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_DISPLAY_CC;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_DISPLAY_CC].Value.lpszA;
-	}
-
-	// Original display bcc
-	if(PROP_TYPE(lpPropArrayOriginal[OR_DISPLAY_BCC].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_DISPLAY_BCC;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_DISPLAY_BCC].Value.lpszA;
-	}
-
-	// Original subject
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SUBJECT].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SUBJECT;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SUBJECT].Value.lpszA;
-	}
-
-	// Original submit time
-	if(PROP_TYPE(lpPropArrayOriginal[OR_CLIENT_SUBMIT_TIME].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SUBMIT_TIME;
-		lpPropValue[ulPropPos++].Value.ft = lpPropArrayOriginal[OR_CLIENT_SUBMIT_TIME].Value.ft;
-	}
-
-	// Original searchkey
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SEARCH_KEY].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag		= PR_ORIGINAL_SEARCH_KEY;
-		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SEARCH_KEY].Value.bin;
-	}
-	}(lpPropValue, ulPropPos, lpPropArrayOriginal, ft);
+	mdnprop_populate(lpPropValue, ulPropPos, lpPropArrayOriginal, ft);
 
 	// Add the original message into the errorMessage
 	hr = lpErrorMsg->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
