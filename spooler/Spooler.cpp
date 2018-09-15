@@ -170,7 +170,7 @@ static LONG AdviseCallback(void *lpContext, ULONG cNotif,
 			nReload = true;
 			bMessagesWaiting = true;
 			hCondMessagesWaiting.notify_one();
-		} 
+		}
 		else if (lpNotif[i].info.tab.ulTableEvent != TABLE_ROW_DELETED) {
 			bMessagesWaiting = true;
 			hCondMessagesWaiting.notify_one();
@@ -663,7 +663,7 @@ static HRESULT ProcessQueue2(IMAPISession *lpAdminSession,
 	});
 	// Mark reload as done since we reloaded the outgoing table
 	nReload = false;
-	
+
 	// Request the master outgoing table
 	auto hr = lpSpooler->GetMasterOutgoingTable(0, &~lpTable);
 	if (hr != hrSuccess)
@@ -675,7 +675,7 @@ static HRESULT ProcessQueue2(IMAPISession *lpAdminSession,
 	hr = lpTable->SortTable(sSort, 0);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to SortTable() on OutgoingQueue", hr);
-	hr = HrAllocAdviseSink(AdviseCallback, nullptr, &~lpAdviseSink);	
+	hr = HrAllocAdviseSink(AdviseCallback, nullptr, &~lpAdviseSink);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to allocate memory for advise sink", hr);
 
@@ -770,9 +770,9 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
 	generic_sigsegv_handler(g_lpLogger.get(), "kopano-spooler", PROJECT_VERSION, signr, si, uc);
 }
 
-/** 
+/**
  * actual signal handler, direct entry point if only linuxthreads is available.
- * 
+ *
  * @param[in] sig signal received
  */
 static void process_signal(int sig)

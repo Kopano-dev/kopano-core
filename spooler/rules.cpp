@@ -122,18 +122,18 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 	MAPITablePtr ptrRecips;
 	static constexpr const SizedSPropTagArray(2, sptaDisplay) =
 		{2, {PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE}};
-	
+
 	wstrTo.clear();
 	wstrCc.clear();
 	wstrBcc.clear();
-	
+
 	HRESULT hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~ptrRecips);
 	if(hr != hrSuccess)
 		return hr;
 	hr = ptrRecips->SetColumns(sptaDisplay, TBL_BATCH);
 	if(hr != hrSuccess)
 		return hr;
-		
+
 	while(1) {
 		hr = ptrRecips->QueryRows(1, 0, &~ptrRows);
 		if(hr != hrSuccess)
@@ -142,7 +142,7 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 			break;
 		if(ptrRows[0].lpProps[0].ulPropTag != PR_DISPLAY_NAME_W || ptrRows[0].lpProps[1].ulPropTag != PR_RECIPIENT_TYPE)
 			continue;
-			
+
 		switch(ptrRows[0].lpProps[1].Value.ul) {
 		case MAPI_TO:
 			if (!wstrTo.empty()) wstrTo += L"; ";
@@ -250,7 +250,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		hr = lpOrigMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrStream);
 		if (hr == hrSuccess)
 			hr = Util::HrStreamToString(ptrStream, strHTML);
-		// icase <body> tag 
+		// icase <body> tag
 		auto pos = str_ifind(strHTML.c_str(), "<body");
 		pos = pos ? pos + strlen("<body") : strHTML.c_str();
 		// if body tag was not found, this will make it be placed after the first tag, probably <html>
@@ -546,16 +546,16 @@ static HRESULT kc_send_fwdabort_notice(IMsgStore *store, const wchar_t *addr, co
 	return hrSuccess;
 }
 
-/** 
+/**
  * Checks the rule recipient list for a possible loop, and filters
  * that recipient. Returns an error when no recipients are left after
  * the filter.
- * 
+ *
  * @param[in] lpMessage The original delivered message performing the rule action
  * @param[in] lpRuleRecipients The recipient list from the rule
  * @param[in] bOpDelegate	If the action a delegate or forward action
  * @param[out] lppNewRecipients The actual recipient list to perform the action on
- * 
+ *
  * @return MAPI error code
  */
 static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
@@ -740,7 +740,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 		if (hr != hrSuccess)
 			return hr;
 	}
-	else {	
+	else {
 		hr = lpOrigMessage->CopyTo(0, NULL, lpExclude, 0, NULL, &IID_IMessage, lpFwdMsg, 0, NULL);
 		if (hr != hrSuccess)
 			return hr;
@@ -1155,7 +1155,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 		kc_perrorf("RulesProcessing failed", hr);
 		goto exit;
 	}
-	
+
 	// get OOF-state for recipient-store
 	static constexpr const SizedSPropTagArray(5, sptaStoreProps) = {3, {PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL,}};
 	hr = lpOrigStore->GetProps(sptaStoreProps, 0, &cValues, &~OOFProps);
@@ -1241,7 +1241,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			ec_log_debug("Rule '%s' has no action, skipping...", strRule.c_str());
 			continue;
 		}
-		
+
 		// test if action should be done...
 		// @todo: Create the correct locale for the current store.
 		hr = TestRestriction(lpCondition, *lppMessage, createLocaleFromName(""));
@@ -1249,7 +1249,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			ec_log_info("Rule \"%s\" does not match: %s (%x)", strRule.c_str(),
 				GetMAPIErrorMessage(hr), hr);
 			continue;
-		}	
+		}
 		ec_log_info("Rule "s + strRule + " matches");
 		sc -> countAdd("rules", "n_actions", int64_t(lpActions->cActions));
 

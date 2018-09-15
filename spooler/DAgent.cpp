@@ -9,7 +9,7 @@
  * agent parses the rfc822 message, setting properties on the MAPI object
  * as it goes along.
  *
- * The delivery agent should be called with sufficient privileges to be 
+ * The delivery agent should be called with sufficient privileges to be
  * able to open other users' inboxes.
  *
  * The actual decoding is done by the inetmapi library.
@@ -295,7 +295,7 @@ static bool FNeedsAutoAccept(IMsgStore *lpStore, LPMESSAGE lpMessage)
 	memory_ptr<SPropValue> lpProps;
 	ULONG cValues = 0;
 	bool bAutoAccept = false, bDeclineConflict = false, bDeclineRecurring = false;
-	
+
 	auto hr = lpMessage->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if (FAILED(hr)) {
 		kc_perrorf("GetProps failed", hr);
@@ -354,7 +354,7 @@ static bool FNeedsAutoProcessing(IMsgStore *lpStore, IMessage *lpMessage)
  * @param lpRecip Recipient for whom lpMessage is being delivered
  * @param lpStore Store in which lpMessage is being delivered
  * @param lpMessage Message being delivered, should be a meeting request
- * 
+ *
  * @return result
  */
 static HRESULT HrAutoAccept(StatsClient *sc, ECRecipient *lpRecip,
@@ -404,7 +404,7 @@ static HRESULT HrAutoAccept(StatsClient *sc, ECRecipient *lpRecip,
 		hr = MAPI_E_CALL_FAILED;
 		kc_perrorf("Invoking autoaccept script failed", hr);
 	}
-		
+
 	// Delete the copy, irrespective of the outcome of the script.
 	sEntryList.cValues = 1;
 	sEntryList.lpbin = &lpEntryID->Value.bin;
@@ -568,12 +568,12 @@ static HRESULT OpenResolveAddrFolder(IMAPISession *lpSession,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Resolve usernames/email addresses to Kopano users.
- * 
+ *
  * @param[in] lpAddrFolder resolve users from this addressbook container
  * @param[in,out] lRCPT the list of recipients to resolve in Kopano
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
@@ -583,7 +583,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 	static constexpr const SizedSPropTagArray(13, sptaAddress) = {13,
 	{ PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ACCOUNT_W, PR_SMTP_ADDRESS_A,
 	  PR_ADDRTYPE_A, PR_EMAIL_ADDRESS_W, PR_DISPLAY_TYPE, PR_SEARCH_KEY,
-	  PR_EC_COMPANY_NAME_W,	PR_EC_HOMESERVER_NAME_W, PR_EC_ADMINISTRATOR, 
+	  PR_EC_COMPANY_NAME_W,	PR_EC_HOMESERVER_NAME_W, PR_EC_ADMINISTRATOR,
 	  PR_EC_ENABLED_FEATURES_A, PR_OBJECT_TYPE }
 	};
 	ULONG ulRCPT = lRCPT->size();
@@ -700,12 +700,12 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Resolve a single recipient as Kopano user
- * 
+ *
  * @param[in] lpAddrFolder resolve users from this addressbook container
  * @param[in,out] lpRecip recipient to resolve in Kopano
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT ResolveUser(IABContainer *lpAddrFolder, ECRecipient *lpRecip)
@@ -722,11 +722,11 @@ static HRESULT ResolveUser(IABContainer *lpAddrFolder, ECRecipient *lpRecip)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Free a list of recipients
- * 
+ *
  * @param[in] lpCompanyRecips list to free memory of, and clear.
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT FreeServerRecipients(companyrecipients_t *lpCompanyRecips)
@@ -741,15 +741,15 @@ static HRESULT FreeServerRecipients(companyrecipients_t *lpCompanyRecips)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Add a recipient to a delivery list, grouped by companies and
  * servers. If recipient is added to the container, it will be set to
  * NULL so you can't free it anymore. It will be freed when the
  * container is freed.
- * 
+ *
  * @param[in,out] lpCompanyRecips container to add recipient in
  * @param[in,out] lppRecipient Recipient to add to the container
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT AddServerRecipient(companyrecipients_t *lpCompanyRecips,
@@ -779,14 +779,14 @@ static HRESULT AddServerRecipient(companyrecipients_t *lpCompanyRecips,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Make a map of recipients grouped by url instead of server name
- * 
+ *
  * @param[in] lpSession MAPI admin session
  * @param[in] lpServerNameRecips recipients grouped by server name
  * @param[in] strDefaultPath default connection url to kopano
  * @param[out] lpServerPathRecips recipients grouped by server url
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT ResolveServerToPath(IMAPISession *lpSession,
@@ -864,7 +864,7 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
  * @param[out] lppStore Store of the recipient
  * @param[out] lppInbox Inbox of the recipient
  * @param[out] lppFolder Delivery folder of the recipient
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
@@ -892,7 +892,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 	hr = lpUserStore->GetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0, &cbEntryId, &~lpEntryId, nullptr);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to resolve incoming folder", hr);
-	
+
 	// Open the inbox
 	hr = lpUserStore->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpInbox);
 	if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
@@ -974,12 +974,12 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Make the message a fallback message.
- * 
+ *
  * @param[in,out] lpMessage Message to place fallback data in
  * @param[in] msg original rfc2822 received message
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT FallbackDelivery(StatsClient *sc, IMessage *lpMessage,
@@ -1052,14 +1052,14 @@ static HRESULT FallbackDelivery(StatsClient *sc, IMessage *lpMessage,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Write into the given fd, and if that fails log an error.
- * 
+ *
  * @param[in] fd file descriptor to write to
  * @param[in] buffer buffer to write
  * @param[in] len length of buffer to write
  * @param[in] wrap optional wrapping, inserts a \r\n at the point of the wrapping point
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT WriteOrLogError(int fd, const char *buffer, size_t len,
@@ -1098,16 +1098,16 @@ static bool dagent_oof_active(const SPropValue *prop)
 	return a;
 }
 
-/** 
+/**
  * Create an out-of-office mail, and start the script to trigger its
  * optional sending.
- * 
+ *
  * @param[in] lpAdrBook Addressbook for email address rewrites
  * @param[in] lpMDB Store of the user that triggered the oof email
  * @param[in] lpMessage delivery message that triggered the oof email
  * @param[in] lpRecip delivery recipient sending the oof email from
  * @param[in] strBaseCommand Command to use to start the oof mailer (kopano-autorespond)
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
@@ -1329,14 +1329,14 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	return hr;
 }
 
-/** 
+/**
  * Create an empty message for delivery
- * 
+ *
  * @param[in] lpFolder Create the message in this folder
  * @param[in] lpFallbackFolder If write access forbids the creation, fallback to this folder
  * @param[out] lppDeliveryFolder The folder where the message was created
  * @param[out] lppMessage The newly created message
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT HrCreateMessage(IMAPIFolder *lpFolder,
@@ -1362,9 +1362,9 @@ static HRESULT HrCreateMessage(IMAPIFolder *lpFolder,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Convert the received rfc2822 email into a MAPI message
- * 
+ *
  * @param[in] strMail the received email
  * @param[in] lpSession a MAPI Session
  * @param[in] lpMsgStore The store of the delivery
@@ -1374,7 +1374,7 @@ static HRESULT HrCreateMessage(IMAPIFolder *lpFolder,
  * @param[in] lpArgs delivery options
  * @param[out] lppMessage The delivered message
  * @param[out] lpbFallbackDelivery indicating if the message is a fallback message or not
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT HrStringToMAPIMessage(const string &strMail,
@@ -1440,12 +1440,12 @@ exit:
 	return hr;
 }
 
-/** 
+/**
  * Check if the message was expired (delivery limit, header: Expiry-Time)
- * 
+ *
  * @param[in] lpMessage message for delivery
  * @param[out] bExpired message is expired or not
- * 
+ *
  * @return always hrSuccess
  */
 static HRESULT HrMessageExpired(StatsClient *sc, IMessage *lpMessage, bool *bExpired)
@@ -1470,12 +1470,12 @@ static HRESULT HrMessageExpired(StatsClient *sc, IMessage *lpMessage, bool *bExp
 	return hr;
 }
 
-/** 
+/**
  * Replace To recipient data in message with new recipient
- * 
+ *
  * @param[in] lpMessage delivery message to set new recipient data in
  * @param[in] lpRecip new recipient to deliver same message for
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
@@ -1545,12 +1545,12 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Replace To and From recipient data in fallback message with new recipient
- * 
+ *
  * @param[in] lpMessage fallback message to set new recipient data in
  * @param[in] lpRecip new recipient to deliver same message for
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT HrOverrideFallbackProps(IMessage *lpMessage, ECRecipient *r)
@@ -1614,12 +1614,12 @@ static HRESULT HrOverrideFallbackProps(IMessage *lpMessage, ECRecipient *r)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Set new To recipient data in message
- * 
+ *
  * @param[in] lpMessage message to update recipient data in
  * @param[in] lpRecip recipient data to use
- * 
+ *
  * @return MAPI error code
  */
 static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
@@ -1643,9 +1643,9 @@ static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Copy a delivered message to another recipient
- * 
+ *
  * @param[in] lpOrigMessage The original delivered message
  * @param[in] lpDeliverFolder The delivery folder of the new message
  * @param[in] lpRecip recipient data to use
@@ -1653,7 +1653,7 @@ static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
  * @param[in] bFallbackDelivery lpOrigMessage is a fallback delivery message
  * @param[out] lppFolder folder the new message was created in
  * @param[out] lppMessage the newly copied message
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
@@ -1712,7 +1712,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	// For a fallback, remove some more properties
 	if (bFallbackDelivery)
 		lpMessage->DeleteProps(sptaFallback, 0);
-		
+
 	// Make sure the message is not attached to an archive
 	hr = helpers::MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrArchiveHelper);
 	if (hr != hrSuccess)
@@ -1733,14 +1733,14 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Make a new MAPI session under a specific username
- * 
+ *
  * @param[in] lpArgs delivery options
  * @param[in] szUsername username to create mapi session for
  * @param[out] lppSession new MAPI session for user
  * @param[in] bSuppress suppress logging (default: false)
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
@@ -1781,10 +1781,10 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
 	return hr;
 }
 
-/** 
+/**
  * Run rules on a message and/or send an oof email before writing it
  * to the server.
- * 
+ *
  * @param[in] lpAdrBook Addressbook to use during rules
  * @param[in] lpStore Store the message will be written too
  * @param[in] lpInbox Inbox of the user message is being delivered to
@@ -1792,7 +1792,7 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
  * @param[in,out] lppMessage message being delivered, can return another message due to rules
  * @param[in] lpRecip recipient that is delivered to
  * @param[in] lpArgs delivery options
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
@@ -1861,13 +1861,13 @@ static HRESULT HrPostDeliveryProcessing(pym_plugin_intf *lppyMapiPlugin,
 	return hr;
 }
 
-/** 
+/**
  * Find spam header if needed, and mark delivery as spam delivery if
  * header found.
- * 
+ *
  * @param[in] strMail rfc2822 email being delivered
  * @param[in,out] lpArgs delivery options
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT FindSpamMarker(const std::string &strMail,
@@ -1911,10 +1911,10 @@ static HRESULT FindSpamMarker(const std::string &strMail,
 	return hr;
 }
 
-/** 
+/**
  * Deliver an email (source is either rfc2822 or previous delivered
  * mapi message) to a specific recipient.
- * 
+ *
  * @param[in] lpSession MAPI session (user session when not in LMTP mode, else admin session)
  * @param[in] lpStore default store for lpSession (user store when not in LMTP mode, else admin store)
  * @param[in] bIsAdmin indicates that lpSession and lpStore are an admin session and store (true in LMTP mode)
@@ -1926,7 +1926,7 @@ static HRESULT FindSpamMarker(const std::string &strMail,
  * @param[in] lpArgs delivery options
  * @param[out] lppMessage the newly delivered message
  * @param[out] lpbFallbackDelivery newly delivered message is a fallback message
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
@@ -2109,9 +2109,9 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 	return hr;
 }
 
-/** 
+/**
  * Log that the message was expired, and send that response for every given LMTP received recipient
- * 
+ *
  * @param[in] start Start of recipient list
  * @param[in] end End of recipient list
  */
@@ -2124,7 +2124,7 @@ static void RespondMessageExpired(recipients_t::const_iterator iter,
 		(*iter)->wstrDeliveryStatus = "250 2.4.7 %s Delivery time expired";
 }
 
-/** 
+/**
  * For a specific storage server, deliver the same message to a list of
  * recipients. This makes sure this message is correctly single
  * instanced on this server.
@@ -2142,7 +2142,7 @@ static void RespondMessageExpired(recipients_t::const_iterator iter,
  * @param[in] lpArgs delivery options
  * @param[out] lppMessage The newly delivered message
  * @param[out] lpbFallbackDelivery newly delivered message is a fallback message
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
@@ -2238,20 +2238,20 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 	return hr;
 }
 
-/** 
+/**
  * Commandline dagent delivery entrypoint.
  * Deliver an email to one recipient.
  *
  * Although this function is passed a recipient list, it's only
  * because the rest of the functions it calls requires this and the
  * caller of this function already has a list.
- * 
+ *
  * @param[in] lpSession User MAPI session
  * @param[in] lpAdrBook Global addressbook
  * @param[in] fp input file which contains the email to deliver
  * @param[in] lstSingleRecip list of recipients to deliver email to (one user)
  * @param[in] lpArgs delivery options
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT ProcessDeliveryToSingleRecipient(pym_plugin_intf *lppyMapiPlugin,
@@ -2275,16 +2275,16 @@ static HRESULT ProcessDeliveryToSingleRecipient(pym_plugin_intf *lppyMapiPlugin,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Deliver email from file to a list of recipients which are grouped
  * by server.
- * 
+ *
  * @param[in] lpSession Admin MAPI Session
  * @param[in] lpAdrBook Addressbook
  * @param[in] fp file containing the received email
  * @param[in] lpServerNameRecips recipients grouped by server
  * @param[in] lpArgs delivery options
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT ProcessDeliveryToCompany(pym_plugin_intf *lppyMapiPlugin,
@@ -2346,15 +2346,15 @@ static HRESULT ProcessDeliveryToCompany(pym_plugin_intf *lppyMapiPlugin,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Within a company space, find the recipient with the lowest
  * administrator rights. This user can be used to open the Global
  * Addressbook.
- * 
+ *
  * @param[in] lpServerRecips all recipients to deliver for within a company
  * @param[out] lppRecipient a recipient with the rights lower than server admin
- * 
- * @return MAPI Error code 
+ *
+ * @return MAPI Error code
  */
 static HRESULT
 FindLowestAdminLevelSession(const serverrecipients_t *lpServerRecips,
@@ -2400,15 +2400,15 @@ found:
 	return hr;
 }
 
-/** 
+/**
  * LMTP delivery entry point
  * Deliver email to a list of recipients, grouped by company, grouped by server.
- * 
+ *
  * @param[in] lpSession Admin MAPI Session
  * @param[in] fp file containing email to deliver
  * @param[in] lpCompanyRecips list of all recipients to deliver to
  * @param[in] lpArgs delivery options
- * 
+ *
  * @return MAPI Error code
  */
 static HRESULT ProcessDeliveryToList(pym_plugin_intf *lppyMapiPlugin,
@@ -2480,11 +2480,11 @@ static void add_misc_headers(FILE *tmp, const std::string &helo,
 	fprintf(tmp, "\t%s\r\n", time_str);
 }
 
-/** 
+/**
  * Handle an incoming LMTP connection
- * 
+ *
  * @param[in] lpArg delivery options
- * 
+ *
  * @return NULL
  */
 static void *HandlerLMTP(void *lpArg)
@@ -2569,7 +2569,7 @@ static void *HandlerLMTP(void *lpArg)
 			bLMTPQuit = true;
 			break;
 		}
-			
+
 		if (g_bQuit) {
 			lmtp.HrResponse("221 2.0.0 Server is shutting down");
 			bLMTPQuit = true;
@@ -2578,7 +2578,7 @@ static void *HandlerLMTP(void *lpArg)
 		}
 
 		ec_log_debug("> " + inBuffer);
-		hr = lmtp.HrGetCommand(inBuffer, eCommand);	
+		hr = lmtp.HrGetCommand(inBuffer, eCommand);
 		if (hr != hrSuccess) {
 			lmtp.HrResponse("555 5.5.4 Command not recognized");
 			lpArgs->sc->countInc("DAgent::LMTP", "unknown_command");
@@ -2588,7 +2588,7 @@ static void *HandlerLMTP(void *lpArg)
 		switch (eCommand) {
 		case LMTP_Command_LHLO:
 			if (lmtp.HrCommandLHLO(inBuffer, heloName) == hrSuccess) {
-				lmtp.HrResponse("250-SERVER ready"); 
+				lmtp.HrResponse("250-SERVER ready");
 				lmtp.HrResponse("250-PIPELINING");
 				lmtp.HrResponse("250-8BITMIME");
 				lmtp.HrResponse("250-ENHANCEDSTATUSCODE");
@@ -2597,7 +2597,7 @@ static void *HandlerLMTP(void *lpArg)
 			} else {
 				lmtp.HrResponse("501 5.5.4 Syntax: LHLO hostname");
 				lpArgs->sc->countInc("DAgent::LMTP", "LHLO_fail");
-			}				
+			}
 			break;
 
 		case LMTP_Command_MAIL_FROM:
@@ -2756,7 +2756,7 @@ static void *HandlerLMTP(void *lpArg)
 		case LMTP_Command_QUIT:
 			lmtp.HrResponse("221 2.0.0 Bye");
 			bLMTPQuit = true;
-			break;	
+			break;
 		}
 	}
 
@@ -2770,10 +2770,10 @@ static void *HandlerLMTP(void *lpArg)
  * connections and starts a new thread or child process to handle the
  * connection.  Only accepts the incoming connection when the maximum
  * number of processes hasn't been reached.
- * 
+ *
  * @param[in]	bDaemonize	Starts a forked process in this loop to run in the background if true.
  * @param[in]	lpArgs		Struct containing delivery parameters
- * @retval MAPI error code	
+ * @retval MAPI error code
  */
 static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
     std::vector<int> &closefd)
@@ -2816,7 +2816,7 @@ static int dagent_listen(ECConfig *cfg, std::vector<struct pollfd> &pollers,
 }
 
 static HRESULT running_service(char **argv, bool bDaemonize,
-    DeliveryArgs *lpArgs) 
+    DeliveryArgs *lpArgs)
 {
 	HRESULT hr = hrSuccess;
 	int err = 0;
@@ -2987,7 +2987,7 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 		strUsername = strUsername.substr(0, strUsername.find_first_of("@"));
 
 	ECRecipient single_recip(strUsername);
-	
+
 	// Always try to resolve the user unless we just stripped an email address.
 	if (!bStringEmail) {
 		// only suppress error when it has no meaning (e.g. delivery of Unix user to itself)
@@ -3017,7 +3017,7 @@ static HRESULT deliver_recipient(pym_plugin_intf *lppyMapiPlugin,
 		// set commandline user in resolved name to deliver without resolve function
 		single_recip.wstrUsername = convert_to<std::wstring>(single_recip.wstrRCPT);
 	}
-	
+
 	hr = HrGetSession(lpArgs, single_recip.wstrUsername.c_str(), &~lpSession);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_LOGON_FAILED)
@@ -3106,7 +3106,7 @@ static void print_help(const char *name)
 	cout << "  -h path\t path to connect to (e.g. file:///var/run/socket)" << endl;
 	cout << "  -c filename\t Use configuration file (e.g. /etc/kopano/dagent.cfg)\n\t\t Default: no config file used." << endl;
 	cout << "  -j\t\t deliver in Junkmail" << endl;
-	cout << "  -F foldername\t deliver in a subfolder of the store. Eg. 'Inbox\\sales'" << endl; 
+	cout << "  -F foldername\t deliver in a subfolder of the store. Eg. 'Inbox\\sales'" << endl;
 	cout << "  -P foldername\t deliver in a subfolder of the public store. Eg. 'sales\\incoming'" << endl;
 	cout << "  -p separator\t Override default path separator (\\). Eg. '-p % -F 'Inbox%dealers\\resellers'" << endl;
 	cout << "  -C\t\t Create the subfolder if it does not exist. Default behaviour is to revert to the normal Inbox folder" << endl;
@@ -3182,7 +3182,7 @@ int main(int argc, char **argv) try {
 		{ "file", 1, NULL, OPT_FILE },	// file as input
 		{ "host", 1, NULL, OPT_HOST },	// kopano host parameter
 		{ "daemonize",0 ,NULL,OPT_DAEMONIZE}, // daemonize and listen for LMTP
-		{ "listen", 0, NULL, OPT_LISTEN},   // listen for LMTP 
+		{ "listen", 0, NULL, OPT_LISTEN},   // listen for LMTP
 		{ "folder", 1, NULL, OPT_FOLDER },	// subfolder of store to deliver in
 		{ "public", 1, NULL, OPT_PUBLIC },	// subfolder of public to deliver in
 		{ "create", 0, NULL, OPT_CREATE },	// create subfolder if not exist
@@ -3382,7 +3382,7 @@ int main(int argc, char **argv) try {
 
 	if (!loglevel)
 		g_lpLogger.reset(new(std::nothrow) ECLogger_Null);
-	else 
+	else
 		g_lpLogger.reset(CreateLogger(g_lpConfig.get(), argv[0], "KopanoDAgent"));
 	ec_log_set(g_lpLogger);
 	if (!g_lpLogger->Log(loglevel))

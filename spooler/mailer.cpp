@@ -274,7 +274,7 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	 * it finds including all subgroups. It will use the lExpandedGroups list
 	 * to protect itself for circular subgroup membership */
 	std::list<SBinary> lExpandedGroups;
-	hr = ExpandRecipientsRecursive(lpAddrBook, lpMessage, lpTable, lpEntryRestriction, MAPI_TO, &lExpandedGroups); 
+	hr = ExpandRecipientsRecursive(lpAddrBook, lpMessage, lpTable, lpEntryRestriction, MAPI_TO, &lExpandedGroups);
 	if (hr != hrSuccess)
 		kc_perrorf("ExpandRecipientsRecursive failed", hr);
 	for (const auto &g : lExpandedGroups)
@@ -489,7 +489,7 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 		auto lpRecipType = lpRowSet[0].cfind(PR_RECIPIENT_TYPE);
 		if (!lpEmailAddress || !lpRecipType)
 			continue;
-   
+
 		std::wstring strEmail = lpEmailAddress->Value.lpszW;
 		bool quoted = (strEmail[0] == '\'' && strEmail[strEmail.size()-1] == '\'') ||
 		              (strEmail[0] == '"' && strEmail[strEmail.size()-1] == '"');
@@ -517,7 +517,7 @@ static HRESULT RemoveP1Recipients(IMessage *lpMessage)
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
 	SPropValue sPropRestrict;
-	
+
 	sPropRestrict.ulPropTag = PR_RECIPIENT_TYPE;
 	sPropRestrict.Value.ul = MAPI_P1;
 
@@ -903,7 +903,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 		// Only some recipients failed, so add only failed recipients to the MDN message. This causes
 		// resends only to go to those recipients. This means we should add all error recipients to the
-		// recipient list of the MDN message. 
+		// recipient list of the MDN message.
 		hr = mdn_error_rcpt(lpErrorMsg, temporaryFailedRecipients, ft, converter);
 		if (hr != hrSuccess)
 			return hr;
@@ -1164,11 +1164,11 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
 	       reinterpret_cast<void **>(lppRepStore));
 }
 
-/** 
+/**
  * Checks for the presence of an Addressbook EntryID in a given
  * array. If the array contains a group EntryID, it is opened, and
  * searched within the group for the presence of the given EntryID.
- * 
+ *
  * @param[in] szFunc Context name how this function is used. Used in logging.
  * @param[in] lpszMailer The name of the user sending the email.
  * @param[in] lpAddrBook The Global Addressbook.
@@ -1176,7 +1176,7 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
  * @param[in] mv Array of EntryIDs to search in
  * @param[out] lpulObjType lpOwnerEID was found in this type of object (user or group)
  * @param[out] lpbAllowed User is (not) found in array
- * 
+ *
  * @return hrSuccess
  */
 static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
@@ -1692,7 +1692,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		ec_log_info("Sending e-mail for user %ls, size: %d",
 			lpUser->lpszUsername, lpMsgSize ? lpMsgSize->Value.ul : 0);
 
-	/* 
+	/*
 	   PR_SENDER_* maps to Sender:
 	   PR_SENT_REPRESENTING_* maps to From:
 	   Sender: field is optional, From: is mandatory
@@ -1899,7 +1899,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	// Archive the message
 	if (parseBool(g_lpConfig->GetSetting("archive_on_send"))) {
 		ArchivePtr ptrArchive;
-		
+
 		hr = Archive::Create(lpAdminSession, &ptrArchive);
 		if (hr != hrSuccess) {
 			kc_perror("Unable to instantiate archive object", hr);
@@ -1978,7 +1978,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	object_ptr<IECSecurity> lpSecurity;
 	memory_ptr<SPropValue> lpsProp;
 	object_ptr<IMessage> lpMessage;
-	
+
 	lpMailer.reset(CreateSender(szSMTP, ulPort));
 	if (!lpMailer) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
@@ -1997,7 +1997,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 		goto exit;
 	}
 
-	/* 
+	/*
 	 * For proper group expansion, we'll need to login as the
 	 * user. When sending an email to group 'Everyone' it should not
 	 * be possible to send the email to users that cannot be viewed
