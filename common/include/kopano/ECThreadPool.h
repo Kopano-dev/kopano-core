@@ -38,7 +38,7 @@ public:
 	~ECThreadPool();
 	bool enqueue(ECTask *lpTask, bool bTakeOwnership = false);
 	void setThreadCount(unsigned int cuont, bool wait = false);
-	double front_item_age() const;
+	time_duration front_item_age() const;
 	size_t queue_length() const;
 	void thread_counts(size_t *active, size_t *idle) const;
 

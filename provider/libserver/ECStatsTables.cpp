@@ -41,7 +41,7 @@
 
 namespace KC {
 
-void (*kopano_get_server_stats)(unsigned int *qlen, double *qage, unsigned int *nthr, unsigned int *idlthr) = [](unsigned int *, double *, unsigned int *, unsigned int *) {};
+void (*kopano_get_server_stats)(unsigned int *qlen, KC::time_duration *qage, unsigned int *nthr, unsigned int *idlthr) = [](unsigned int *, KC::time_duration *, unsigned int *, unsigned int *) {};
 
 ECSystemStatsTable::ECSystemStatsTable(ECSession *ses, unsigned int ulFlags,
     const ECLocale &locale) :
@@ -96,7 +96,7 @@ void ECSystemStatsTable::load_tcmalloc(void)
 ECRESULT ECSystemStatsTable::Load()
 {
 	unsigned int ulQueueLen = 0;
-	double dblAge = 0;
+	KC::time_duration age(0);
 	unsigned int ulThreads = 0;
 	unsigned int ulIdleThreads = 0;
 	usercount_t userCount;
@@ -109,10 +109,10 @@ ECRESULT ECSystemStatsTable::Load()
 
 	// Receive session stats
 	sesmgr->GetStats(GetStatsCollectorData, this);
-	kopano_get_server_stats(&ulQueueLen, &dblAge, &ulThreads, &ulIdleThreads);
+	kopano_get_server_stats(&ulQueueLen, &age, &ulThreads, &ulIdleThreads);
 
 	GetStatsCollectorData("queuelen", "Current queue length", stringify(ulQueueLen), this);
-	GetStatsCollectorData("queueage", "Age of the front queue item", stringify_double(dblAge,3), this);
+	GetStatsCollectorData("queueage", "Age of the front queue item", stringify_double(dur2dbl(age), 3), this);
 	GetStatsCollectorData("threads", "Number of threads running to process items", stringify(ulThreads), this);
 	GetStatsCollectorData("threads_idle", "Number of idle threads", stringify(ulIdleThreads), this);
 	lpSession->GetUserManagement()->GetCachedUserCount(&userCount);

@@ -240,11 +240,11 @@ void *ECWatchDog::Watch(void *lpParam)
 			break;
 
         double dblMaxFreq = atoi(lpThis->m_lpConfig->GetSetting("watchdog_frequency"));
-        double dblMaxAge = atoi(lpThis->m_lpConfig->GetSetting("watchdog_max_age")) / 1000.0;
 
         // If the age of the front item in the queue is older than the specified maximum age, force
         // a new thread to be started
-		if (lpThis->m_lpDispatcher->front_item_age() > dblMaxAge)
+		if (lpThis->m_lpDispatcher->front_item_age() >
+		    std::chrono::milliseconds(atoi(lpThis->m_lpConfig->GetSetting("watchdog_max_age"))))
 			lpThis->m_lpDispatcher->force_add_threads(1);
 
         // Check to see if exit flag is set, and limit rate to dblMaxFreq Hz
@@ -282,7 +282,7 @@ void ECDispatcher::GetThreadCount(unsigned int *lpulThreads, unsigned int *lpulI
 }
 
 // Get the age (in seconds) of the next-in-line item in the queue, or 0 if the queue is empty
-double ECDispatcher::front_item_age()
+time_duration ECDispatcher::front_item_age()
 {
 	return m_pool.front_item_age();
 }

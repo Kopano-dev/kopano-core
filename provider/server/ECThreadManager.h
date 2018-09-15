@@ -82,7 +82,7 @@ public:
 	virtual ~ECDispatcher();
 
 	void GetThreadCount(unsigned int *total, unsigned int *idle);
-	double front_item_age();
+	KC::time_duration front_item_age();
 	size_t queue_length();
 	void SetThreadCount(unsigned int nthr);
 	void force_add_threads(size_t);

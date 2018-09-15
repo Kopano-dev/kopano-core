@@ -373,9 +373,9 @@ void ECSoapServerConnection::NotifyDone(struct soap *soap)
 }
 
 void ECSoapServerConnection::GetStats(unsigned int *lpulQueueLength,
-    double *lpdblAge,unsigned int *lpulThreadCount, unsigned int *lpulIdleThreads)
+    time_duration *age, unsigned int *lpulThreadCount, unsigned int *lpulIdleThreads)
 {
 	*lpulQueueLength = m_lpDispatcher->queue_length();
-	*lpdblAge = m_lpDispatcher->front_item_age();
+	*age = m_lpDispatcher->front_item_age();
 	m_lpDispatcher->GetThreadCount(lpulThreadCount, lpulIdleThreads);
 }

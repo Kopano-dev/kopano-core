@@ -48,11 +48,11 @@ bool ECThreadPool::enqueue(ECTask *lpTask, bool bTakeOwnership)
 	return true;
 }
 
-double ECThreadPool::front_item_age() const
+time_duration ECThreadPool::front_item_age() const
 {
 	auto now = std::chrono::steady_clock::now();
 	scoped_lock lock(m_hMutex);
-	return m_listTasks.empty() ? 0 : dur2dbl(now - m_listTasks.front().enq_stamp);
+	return m_listTasks.empty() ? time_duration(0) : now - m_listTasks.front().enq_stamp;
 }
 
 size_t ECThreadPool::queue_length() const

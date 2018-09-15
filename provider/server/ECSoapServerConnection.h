@@ -28,7 +28,7 @@ public:
 	void NotifyDone(struct soap *);
 	void ShutDown();
 	ECRESULT DoHUP();
-	void GetStats(unsigned int *qlen, double *age, unsigned int *thrtotal, unsigned int *thridle);
+	void GetStats(unsigned int *qlen, KC::time_duration *age, unsigned int *thrtotal, unsigned int *thridle);
 
 private:
     // Main thread handler

@@ -98,6 +98,7 @@ template<typename T> static inline constexpr const IID &iid_of(const T &)
 }
 
 using time_point = std::chrono::time_point<std::chrono::steady_clock>;
+using time_duration = std::chrono::steady_clock::duration;
 
 template<typename T> static constexpr inline double dur2dbl(const T &t)
 {
