@@ -2102,7 +2102,7 @@ ECUSER *Object_to_LPECUSER(PyObject *elem, ULONG ulFlags)
 		{conv_out_default<ECUSER, unsigned int, &ECUSER::ulIsAdmin>, "IsAdmin"},
 		{conv_out_default<ECUSER, unsigned int, &ECUSER::ulIsABHidden>, "IsHidden"},
 		{conv_out_default<ECUSER, unsigned int, &ECUSER::ulCapacity>, "Capacity"},
-		{conv_out_default<ECUSER, ECENTRYID, &ECUSER::sUserId>, "UserID"},
+		{conv_out_default<ECUSER, SBinary, &ECUSER::sUserId>, "UserID"},
 	};
 
 	HRESULT hr = hrSuccess;
@@ -2157,7 +2157,7 @@ ECGROUP *Object_to_LPECGROUP(PyObject *elem, ULONG ulFlags)
 		{conv_out_default<ECGROUP, LPTSTR, &ECGROUP::lpszFullname>, "Fullname"},
 		{conv_out_default<ECGROUP, LPTSTR, &ECGROUP::lpszFullEmail>, "Email"},
 		{conv_out_default<ECGROUP, unsigned int, &ECGROUP::ulIsABHidden>, "IsHidden"},
-		{conv_out_default<ECGROUP, ECENTRYID, &ECGROUP::sGroupId>, "GroupID"},
+		{conv_out_default<ECGROUP, SBinary, &ECGROUP::sGroupId>, "GroupID"},
 	};
 
 	HRESULT hr = hrSuccess;
@@ -2212,8 +2212,8 @@ ECCOMPANY *Object_to_LPECCOMPANY(PyObject *elem, ULONG ulFlags)
 		{conv_out_default<ECCOMPANY, LPTSTR, &ECCOMPANY::lpszCompanyname>, "Companyname"},
 		{conv_out_default<ECCOMPANY, LPTSTR, &ECCOMPANY::lpszServername>, "Servername"},
 		{conv_out_default<ECCOMPANY, unsigned int, &ECCOMPANY::ulIsABHidden>, "IsHidden"},
-		{conv_out_default<ECCOMPANY, ECENTRYID, &ECCOMPANY::sCompanyId>, "CompanyID"},
-		{conv_out_default<ECCOMPANY, ECENTRYID, &ECCOMPANY::sAdministrator>, "AdministratorID"},
+		{conv_out_default<ECCOMPANY, SBinary, &ECCOMPANY::sCompanyId>, "CompanyID"},
+		{conv_out_default<ECCOMPANY, SBinary, &ECCOMPANY::sAdministrator>, "AdministratorID"},
 	};
 
 	HRESULT hr = hrSuccess;

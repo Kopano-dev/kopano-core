@@ -8,6 +8,7 @@
 
 #include <string>
 #include <kopano/platform.h>
+#include <mapidefs.h>
 
 namespace KC {
 
@@ -120,11 +121,6 @@ enum userobject_admin_level_t {
 	ADMIN_LEVEL_SYSADMIN = 2		/* System administrator (same rights as SYSTEM). */
 };
 
-struct ECENTRYID {
-	unsigned int	cb;
-	unsigned char*	lpb;
-};
-
 struct ECSVRNAMELIST {
 	unsigned int	cServers;
 	LPTSTR*			lpszaServer;
@@ -167,24 +163,24 @@ struct ECUSER {
 	unsigned int	ulCapacity;		// Resource capacity
 	SPROPMAP		sPropmap;		// Extra anonymous properties for addressbook
 	MVPROPMAP		sMVPropmap;		// Extra anonymous MV properties for addressbook
-	ECENTRYID		sUserId;
+	SBinary sUserId;
 };
 
 struct ECGROUP {
 	LPTSTR			lpszGroupname; // groupname@companyname
 	LPTSTR			lpszFullname;
 	LPTSTR			lpszFullEmail;
-	ECENTRYID		sGroupId;
+	SBinary sGroupId;
 	unsigned int	ulIsABHidden;	// Is group hidden from address book
 	SPROPMAP		sPropmap;		// Extra anonymous properties for addressbook
 	MVPROPMAP		sMVPropmap;		// Extra anonymous MV properties for addressbook
 };
 
 struct ECCOMPANY {
-	ECENTRYID		sAdministrator; // userid of the administrator
+	SBinary sAdministrator; // userid of the administrator
 	LPTSTR			lpszCompanyname;
 	LPTSTR			lpszServername;
-	ECENTRYID		sCompanyId;
+	SBinary sCompanyId;
 	unsigned int	ulIsABHidden;	// Is company hidden from address book
 	SPROPMAP		sPropmap;		// Extra anonymous properties for addressbook
 	MVPROPMAP		sMVPropmap;		// Extra anonymous MV properties for addressbook
@@ -208,7 +204,7 @@ struct ECPERMISSION {
 	unsigned int	ulType;
 	unsigned int	ulRights;
 	unsigned int	ulState;
-	ECENTRYID		sUserId;
+	SBinary sUserId;
 };
 
 struct ECQUOTA {
