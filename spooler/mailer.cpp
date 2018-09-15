@@ -658,6 +658,56 @@ static void mdnprop_populate(SPropValue *p, unsigned int &n,
 	}
 }
 
+static HRESULT mdn_error_rcpt(IMessage *msg, const std::vector<sFailedRecip> &fr,
+    const FILETIME &ft, convert_context &conv)
+{
+	unsigned int ent = 0;
+	adrlist_ptr mods;
+	auto ret = MAPIAllocateBuffer(CbNewADRLIST(fr.size()), &~mods);
+	if (ret != hrSuccess)
+		return ret;
+
+	mods->cEntries = 0;
+	for (size_t j = 0; j < fr.size(); ++j) {
+		const sFailedRecip &cur = fr.at(j);
+		ret = MAPIAllocateBuffer(sizeof(SPropValue) * 10, reinterpret_cast<void **>(&mods->aEntries[ent].rgPropVals));
+		if (ret != hrSuccess)
+			return ret;
+
+		size_t pos = 0;
+		mods->cEntries = ent;
+
+		auto &pv = mods->aEntries[ent].rgPropVals;
+		pv[pos].ulPropTag = PR_RECIPIENT_TYPE;
+		pv[pos++].Value.ul = MAPI_TO;
+		pv[pos].ulPropTag = PR_EMAIL_ADDRESS_A;
+		pv[pos++].Value.lpszA = const_cast<char *>(cur.strRecipEmail.c_str());
+		pv[pos].ulPropTag = PR_ADDRTYPE_W;
+		pv[pos++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
+		pv[pos].ulPropTag = PR_DISPLAY_NAME_W;
+		if (!cur.strRecipName.empty())
+			pv[pos++].Value.lpszW = const_cast<wchar_t *>(cur.strRecipName.c_str());
+		else
+			pv[pos++].Value.lpszW = conv.convert_to<wchar_t *>(cur.strRecipEmail);
+
+		pv[pos].ulPropTag = PR_REPORT_TEXT_A;
+		pv[pos++].Value.lpszA = const_cast<char *>(cur.strSMTPResponse.c_str());
+		pv[pos].ulPropTag = PR_REPORT_TIME;
+		pv[pos++].Value.ft = ft;
+		pv[pos].ulPropTag = PR_TRANSMITABLE_DISPLAY_NAME_A;
+		pv[pos++].Value.lpszA = const_cast<char *>(cur.strRecipEmail.c_str());
+		pv[pos].ulPropTag = 0x0C200003; // PR_NDR_STATUS_CODE;
+		pv[pos++].Value.ul = cur.ulSMTPcode;
+		pv[pos].ulPropTag = PR_NDR_DIAG_CODE;
+		pv[pos++].Value.ul = MAPI_DIAG_MAIL_RECIPIENT_UNKNOWN;
+		pv[pos].ulPropTag = PR_NDR_REASON_CODE;
+		pv[pos++].Value.ul = MAPI_REASON_TRANSFER_FAILED;
+		mods->aEntries[ent].cValues = pos;
+		++ent;
+	}
+	return msg->ModifyRecipients(MODRECIP_ADD, mods);
+}
+
 /**
  * Creates an MDN message in the inbox of the given store for the passed message.
  *
@@ -872,53 +922,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		// Only some recipients failed, so add only failed recipients to the MDN message. This causes
 		// resends only to go to those recipients. This means we should add all error recipients to the
 		// recipient list of the MDN message. 
-		hr = [](IMessage *lpErrorMsg, const std::vector<sFailedRecip> &temporaryFailedRecipients, const FILETIME &ft, convert_context &converter) -> HRESULT {
-		unsigned int cEntries = 0;
-		adrlist_ptr lpMods;
-		auto hr = MAPIAllocateBuffer(CbNewADRLIST(temporaryFailedRecipients.size()), &~lpMods);
-		if (hr != hrSuccess)
-			return hr;
-
-		lpMods->cEntries = 0;
-		for (size_t j = 0; j < temporaryFailedRecipients.size(); ++j) {
-			const sFailedRecip &cur = temporaryFailedRecipients.at(j);
-
-			if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * 10, (void**)&lpMods->aEntries[cEntries].rgPropVals)) != hrSuccess)
-				return hr;
-
-			size_t ulPropModsPos = 0;
-			lpMods->cEntries = cEntries;
-
-			auto &pv = lpMods->aEntries[cEntries].rgPropVals;
-			pv[ulPropModsPos].ulPropTag = PR_RECIPIENT_TYPE;
-			pv[ulPropModsPos++].Value.ul = MAPI_TO;
-			pv[ulPropModsPos].ulPropTag = PR_EMAIL_ADDRESS_A;
-			pv[ulPropModsPos++].Value.lpszA = const_cast<char *>(cur.strRecipEmail.c_str());
-			pv[ulPropModsPos].ulPropTag = PR_ADDRTYPE_W;
-			pv[ulPropModsPos++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-			pv[ulPropModsPos].ulPropTag = PR_DISPLAY_NAME_W;
-			if (!cur.strRecipName.empty())
-				pv[ulPropModsPos++].Value.lpszW = const_cast<wchar_t *>(cur.strRecipName.c_str());
-			else
-				pv[ulPropModsPos++].Value.lpszW = converter.convert_to<wchar_t *>(cur.strRecipEmail);
-
-			pv[ulPropModsPos].ulPropTag = PR_REPORT_TEXT_A;
-			pv[ulPropModsPos++].Value.lpszA = const_cast<char *>(cur.strSMTPResponse.c_str());
-			pv[ulPropModsPos].ulPropTag = PR_REPORT_TIME;
-			pv[ulPropModsPos++].Value.ft = ft;
-			pv[ulPropModsPos].ulPropTag = PR_TRANSMITABLE_DISPLAY_NAME_A;
-			pv[ulPropModsPos++].Value.lpszA = const_cast<char *>(cur.strRecipEmail.c_str());
-			pv[ulPropModsPos].ulPropTag = 0x0C200003; // PR_NDR_STATUS_CODE;
-			pv[ulPropModsPos++].Value.ul = cur.ulSMTPcode;
-			pv[ulPropModsPos].ulPropTag = PR_NDR_DIAG_CODE;
-			pv[ulPropModsPos++].Value.ul = MAPI_DIAG_MAIL_RECIPIENT_UNKNOWN;
-			pv[ulPropModsPos].ulPropTag = PR_NDR_REASON_CODE;
-			pv[ulPropModsPos++].Value.ul = MAPI_REASON_TRANSFER_FAILED;
-			lpMods->aEntries[cEntries].cValues = ulPropModsPos;
-			++cEntries;
-		}
-		return lpErrorMsg->ModifyRecipients(MODRECIP_ADD, lpMods);
-		}(lpErrorMsg, temporaryFailedRecipients, ft, converter);
+		hr = mdn_error_rcpt(lpErrorMsg, temporaryFailedRecipients, ft, converter);
 		if (hr != hrSuccess)
 			return hr;
 	}
