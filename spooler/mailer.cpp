@@ -571,11 +571,8 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	object_ptr<IAttach> lpAttach;
 	object_ptr<IMessage> lpOriginalMessage;
 	ULONG			cValuesOriginal = 0;
-	unsigned int	ulPropModsPos;
 	object_ptr<IMAPITable> lpTableMods;
 	ULONG			ulRows = 0;
-	ULONG			cEntries = 0;
-
 	/* CopyTo() vars */
 	unsigned int	ulPropAttachPos;
 	ULONG			ulAttachNum;
@@ -641,6 +638,9 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffers failed", hr);
 
+	// Get the time to add to the message as PR_CLIENT_SUBMIT_TIME
+	GetSystemTimeAsFileTime(&ft);
+	[](SPropValue *lpPropValue, unsigned int &ulPropPos, const SPropValue *lpPropArrayOriginal, const FILETIME &ft) {
 	// Subject
 	lpPropValue[ulPropPos].ulPropTag = PR_SUBJECT_W;
 	lpPropValue[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"Undelivered Mail Returned to Sender");
@@ -652,9 +652,6 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	// Message class
 	lpPropValue[ulPropPos].ulPropTag = PR_MESSAGE_CLASS_W;
 	lpPropValue[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"REPORT.IPM.Note.NDR");
-
-	// Get the time to add to the message as PR_CLIENT_SUBMIT_TIME
-	GetSystemTimeAsFileTime(&ft);
 
 	// Submit time
 	lpPropValue[ulPropPos].ulPropTag = PR_CLIENT_SUBMIT_TIME;
@@ -783,6 +780,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		lpPropValue[ulPropPos].ulPropTag		= PR_ORIGINAL_SEARCH_KEY;
 		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SEARCH_KEY].Value.bin;
 	}
+	}(lpPropValue, ulPropPos, lpPropArrayOriginal, ft);
 
 	// Add the original message into the errorMessage
 	hr = lpErrorMsg->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
@@ -907,8 +905,10 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 		// Only some recipients failed, so add only failed recipients to the MDN message. This causes
 		// resends only to go to those recipients. This means we should add all error recipients to the
 		// recipient list of the MDN message. 
+		hr = [](IMessage *lpErrorMsg, const std::vector<sFailedRecip> &temporaryFailedRecipients, const FILETIME &ft, convert_context &converter) -> HRESULT {
+		unsigned int cEntries = 0;
 		adrlist_ptr lpMods;
-		hr = MAPIAllocateBuffer(CbNewADRLIST(temporaryFailedRecipients.size()), &~lpMods);
+		auto hr = MAPIAllocateBuffer(CbNewADRLIST(temporaryFailedRecipients.size()), &~lpMods);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -919,7 +919,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 			if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * 10, (void**)&lpMods->aEntries[cEntries].rgPropVals)) != hrSuccess)
 				return hr;
 
-			ulPropModsPos = 0;
+			size_t ulPropModsPos = 0;
 			lpMods->cEntries = cEntries;
 
 			auto &pv = lpMods->aEntries[cEntries].rgPropVals;
@@ -950,7 +950,8 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 			lpMods->aEntries[cEntries].cValues = ulPropModsPos;
 			++cEntries;
 		}
-		hr = lpErrorMsg->ModifyRecipients(MODRECIP_ADD, lpMods);
+		return lpErrorMsg->ModifyRecipients(MODRECIP_ADD, lpMods);
+		}(lpErrorMsg, temporaryFailedRecipients, ft, converter);
 		if (hr != hrSuccess)
 			return hr;
 	}
