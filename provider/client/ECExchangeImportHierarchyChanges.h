@@ -13,10 +13,8 @@
 #include <kopano/Util.h>
 #include <kopano/memory.hpp>
 
-using namespace KC;
-
 class ECExchangeImportHierarchyChanges _kc_final :
-    public ECUnknown, public IExchangeImportHierarchyChanges {
+    public KC::ECUnknown, public IExchangeImportHierarchyChanges {
 protected:
 	ECExchangeImportHierarchyChanges(ECMAPIFolder *lpFolder);
 public:

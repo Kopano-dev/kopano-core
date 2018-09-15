@@ -19,15 +19,13 @@ class ECLogger;
 
 }
 
-using namespace KC;
-
 class ECExportAddressbookChanges _kc_final :
-    public ECUnknown, public IECExportAddressbookChanges {
+    public KC::ECUnknown, public KC::IECExportAddressbookChanges {
 public:
 	ECExportAddressbookChanges(ECMsgStore *lpContainer);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	// IECExportAddressbookChanges
-	virtual HRESULT	Config(LPSTREAM lpState, ULONG ulFlags, IECImportAddressbookChanges *lpCollector);
+	virtual HRESULT Config(IStream *state, ULONG flags, KC::IECImportAddressbookChanges *collector);
 	virtual HRESULT Synchronize(ULONG *lpulSteps, ULONG *lpulProgress);
 	virtual HRESULT UpdateState(LPSTREAM lpState);
 
@@ -38,8 +36,8 @@ private:
 	ECMsgStore *m_lpMsgStore = nullptr;
 	unsigned int m_ulThisChange = 0, m_ulChanges = 0, m_ulMaxChangeId = 0;
 	std::set<ULONG>				m_setProcessed;
-	std::shared_ptr<ECLogger> m_lpLogger;
-	KC::object_ptr<IECImportAddressbookChanges> m_lpImporter;
+	std::shared_ptr<KC::ECLogger> m_lpLogger;
+	KC::object_ptr<KC::IECImportAddressbookChanges> m_lpImporter;
 	KC::memory_ptr<ICSCHANGE> m_lpChanges; /* Same data as @m_lpRawChanges, but sorted (users, then groups) */
 	KC::memory_ptr<ICSCHANGE> m_lpRawChanges; /* Raw data from server */
 };

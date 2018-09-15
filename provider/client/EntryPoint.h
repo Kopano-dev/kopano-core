@@ -23,6 +23,6 @@ extern HRESULT InitializeProvider(IProviderAdmin *, IProfSect *, const sGlobalPr
 
 // Global values
 extern ECMapProvider g_mapProviders;
-extern tstring		g_strProductName;
+extern KC::tstring g_strProductName;
 
 #endif // ENTRYPOINT_H

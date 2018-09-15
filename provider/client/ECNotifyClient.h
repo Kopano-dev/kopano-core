@@ -19,7 +19,6 @@
 #include <list>
 #include <mapispi.h>
 
-using namespace KC;
 struct ECADVISE;
 struct ECCHANGEADVISE;
 typedef std::map<int, std::unique_ptr<ECADVISE>> ECMAPADVISE;
@@ -28,7 +27,7 @@ typedef std::list<std::pair<syncid_t,connection_t> > ECLISTCONNECTION;
 
 class SessionGroupData;
 
-class ECNotifyClient _kc_final : public ECUnknown {
+class ECNotifyClient _kc_final : public KC::ECUnknown {
 protected:
 	ECNotifyClient(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport);
 	virtual ~ECNotifyClient();
@@ -36,7 +35,7 @@ public:
 	static HRESULT Create(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport, ECNotifyClient**lppNotifyClient);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT Advise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection);
-	virtual HRESULT Advise(const ECLISTSYNCSTATE &lstSyncStates, IECChangeAdviseSink *lpChangeAdviseSink, ECLISTCONNECTION *lplstConnections);
+	virtual HRESULT Advise(const ECLISTSYNCSTATE &, KC::IECChangeAdviseSink *, ECLISTCONNECTION *);
 	virtual HRESULT Unadvise(ULONG ulConnection);
 	virtual HRESULT Unadvise(const ECLISTCONNECTION &lstConnections);
 
@@ -51,7 +50,7 @@ public:
 
 	// Only register an advise client side
 	virtual HRESULT RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, bool bSynchronous, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection);
-	virtual HRESULT RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId, IECChangeAdviseSink *lpChangeAdviseSink, ULONG *lpulConnection);
+	virtual HRESULT RegisterChangeAdvise(ULONG sync_id, ULONG change_id, KC::IECChangeAdviseSink *, ULONG *conn);
 	virtual HRESULT UnRegisterAdvise(ULONG ulConnection);
 
 	virtual HRESULT UpdateSyncStates(const ECLISTSYNCID &lstSyncID, ECLISTSYNCSTATE *lplstSyncState);
@@ -67,7 +66,7 @@ private:
 	void*					m_lpProvider;
 	ULONG					m_ulProviderType;
 	std::recursive_mutex m_hMutex;
-	ECSESSIONGROUPID		m_ecSessionGroupId;
+	KC::ECSESSIONGROUPID m_ecSessionGroupId;
 	ALLOC_WRAP_FRIEND;
 };
 

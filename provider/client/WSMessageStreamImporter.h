@@ -15,7 +15,6 @@
 #include <kopano/ECThreadPool.h>
 #include "WSTransport.h"
 
-using namespace KC;
 class ECMAPIFolder;
 class WSMessageStreamImporter;
 
@@ -23,16 +22,16 @@ class WSMessageStreamImporter;
  * This class represents the data sink into which the stream data can be written.
  * It is returned from WSMessageStreamImporter::StartTransfer.
  */
-class WSMessageStreamSink _kc_final : public ECUnknown {
+class WSMessageStreamSink _kc_final : public KC::ECUnknown {
 public:
-	static HRESULT Create(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout, WSMessageStreamImporter *lpImporter, WSMessageStreamSink **lppSink);
+	static HRESULT Create(KC::ECFifoBuffer *, ULONG timeout, WSMessageStreamImporter *, WSMessageStreamSink **);
 	HRESULT Write(const void *data, unsigned int size);
 
 private:
-	WSMessageStreamSink(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout, WSMessageStreamImporter *lpImporter);
+	WSMessageStreamSink(KC::ECFifoBuffer *, ULONG timeout, WSMessageStreamImporter *);
 	~WSMessageStreamSink();
 
-	ECFifoBuffer	*m_lpFifoBuffer;
+	KC::ECFifoBuffer *m_lpFifoBuffer;
 	WSMessageStreamImporter *m_lpImporter;
 	ALLOC_WRAP_FRIEND;
 };
@@ -45,7 +44,7 @@ private:
  * be used to wait for the worker and obtain its return values.
  */
 class WSMessageStreamImporter _kc_final :
-    public ECUnknown, private ECWaitableTask {
+    public KC::ECUnknown, private KC::ECWaitableTask {
 public:
 	static HRESULT Create(ULONG flags, ULONG sync_id, ULONG eid_size, const ENTRYID *eid, ULONG feid_size, const ENTRYID *folder_eid, bool newmsg, const SPropValue *conflict_items, WSTransport *, WSMessageStreamImporter **);
 
@@ -72,8 +71,8 @@ private:
 	propVal m_sConflictItems;
 	KC::object_ptr<WSTransport> m_ptrTransport;
 	HRESULT m_hr = hrSuccess;
-	ECFifoBuffer m_fifoBuffer;
-	ECThreadPool m_threadPool;
+	KC::ECFifoBuffer m_fifoBuffer;
+	KC::ECThreadPool m_threadPool;
 	ULONG m_ulTimeout;
 };
 

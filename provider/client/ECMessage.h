@@ -128,8 +128,7 @@ protected:
 private:
 	enum eSyncChange {syncChangeNone, syncChangeBody, syncChangeRTF, syncChangeHTML};
 	enum eBodyType { bodyTypeUnknown, bodyTypePlain, bodyTypeRTF, bodyTypeHTML };
-
-	HRESULT UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObjKeyProp);
+	HRESULT UpdateTable(KC::ECMemTable *table, ULONG obj_type, ULONG obj_keyprop);
 	HRESULT SaveRecips();
 	HRESULT SyncAttachments();
 	BOOL HasAttachment();
@@ -156,7 +155,7 @@ private:
 
 public:
 	ULONG m_cbParentID = 0;
-	KC::object_ptr<ECMemTable> lpAttachments, lpRecips;
+	KC::object_ptr<KC::ECMemTable> lpAttachments, lpRecips;
 	KC::memory_ptr<ENTRYID> m_lpParentID;
 	ULONG ulNextRecipUniqueId = 0, ulNextAttUniqueId = 0;
 	ALLOC_WRAP_FRIEND;

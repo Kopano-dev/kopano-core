@@ -14,10 +14,9 @@
 #include "ECNotifyClient.h"
 #include "WSTransport.h"
 
-using namespace KC;
 class WSTransport;
 
-class ECABLogon _kc_final : public ECUnknown, public IABLogon {
+class ECABLogon _kc_final : public KC::ECUnknown, public IABLogon {
 protected:
 	ECABLogon(IMAPISupport *, WSTransport *, ULONG profile_flags, const GUID *);
 	virtual ~ECABLogon();

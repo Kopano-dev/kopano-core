@@ -24,19 +24,17 @@ class utf8string;
 
 class WSTransport;
 
-using namespace KC;
-
-class WSMAPIFolderOps _kc_final : public ECUnknown {
+class WSMAPIFolderOps _kc_final : public KC::ECUnknown {
 protected:
-	WSMAPIFolderOps(ECSESSIONID, ULONG eid_size, const ENTRYID *, WSTransport *);
+	WSMAPIFolderOps(KC::ECSESSIONID, ULONG eid_size, const ENTRYID *, WSTransport *);
 	virtual ~WSMAPIFolderOps();
 
 public:
-	static HRESULT Create(ECSESSIONID, ULONG eid_size, const ENTRYID *, WSTransport *, WSMAPIFolderOps **);
+	static HRESULT Create(KC::ECSESSIONID, ULONG eid_size, const ENTRYID *, WSTransport *, WSMAPIFolderOps **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	
 	// Creates a folder object with only a PR_DISPLAY_NAME and type
-	virtual HRESULT HrCreateFolder(ULONG fl_type, const utf8string &name, const utf8string &comment, BOOL fOpenIfExists, ULONG sync_id, const SBinary *srckey, ULONG neweid_size, ENTRYID *neweid, ULONG *eid_size, ENTRYID **eid);
+	virtual HRESULT HrCreateFolder(ULONG fl_type, const KC::utf8string &name, const KC::utf8string &comment, BOOL fOpenIfExists, ULONG sync_id, const SBinary *srckey, ULONG neweid_size, ENTRYID *neweid, ULONG *eid_size, ENTRYID **eid);
 
 	// Completely remove a folder, the messages in it, the folders in it or any combination
 	virtual HRESULT HrDeleteFolder(ULONG eid_size, const ENTRYID *, ULONG flags, ULONG sync_id);
@@ -52,7 +50,7 @@ public:
 	virtual HRESULT HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestriction *lppRestriction, ULONG *lpulFlags);
 
 	// Move or copy a folder
-	virtual HRESULT HrCopyFolder(ULONG srceid_size, const ENTRYID *srceid, ULONG dsteid_size, const ENTRYID *dsteid, const utf8string &newname, ULONG flags, ULONG sync_id);
+	virtual HRESULT HrCopyFolder(ULONG srceid_size, const ENTRYID *srceid, ULONG dsteid_size, const ENTRYID *dsteid, const KC::utf8string &newname, ULONG flags, ULONG sync_id);
 
 	// Move or copy a message
 	virtual HRESULT HrCopyMessage(ENTRYLIST *msglist, ULONG eid_size, const ENTRYID *dest_eid, ULONG flags, ULONG sync_id);
@@ -65,11 +63,11 @@ public:
 	virtual HRESULT HrGetChangeInfo(ULONG eid_size, const ENTRYID *, SPropValue **pcl, SPropValue **ck);
 
 	// Reload callback
-	static HRESULT Reload(void *lpParam, ECSESSIONID sessionid);
+	static HRESULT Reload(void *lpParam, KC::ECSESSIONID);
 
 private:
 	entryId			m_sEntryId;		// Entryid of the folder
-	ECSESSIONID		ecSessionId;	// Id of the session
+	KC::ECSESSIONID ecSessionId;
 	ULONG			m_ulSessionReloadCallback;
 	WSTransport *	m_lpTransport;
 	ALLOC_WRAP_FRIEND;

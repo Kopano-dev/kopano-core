@@ -23,14 +23,14 @@ namespace KC {
 class ECLogger;
 }
 
-using namespace KC;
 class ECMsgStore;
 
 /**
  * ECChangeAdvisor: Implementation IECChangeAdvisor, which allows one to register for 
  *                  change notifications on folders.
  */
-class ECChangeAdvisor _kc_final : public ECUnknown, public IECChangeAdvisor {
+class ECChangeAdvisor _kc_final :
+    public KC::ECUnknown, public KC::IECChangeAdvisor {
 protected:
 	/**
 	 * @param[in]	lpMsgStore
@@ -66,7 +66,7 @@ public:
 
 	// IECChangeAdvisor
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT Config(LPSTREAM lpStream, LPGUID lpGUID, IECChangeAdviseSink *lpAdviseSink, ULONG ulFlags);
+	virtual HRESULT Config(IStream *, GUID *guid, KC::IECChangeAdviseSink *, ULONG flags);
 	virtual HRESULT UpdateState(LPSTREAM lpStream);
 	virtual HRESULT AddKeys(LPENTRYLIST lpEntryList);
 	virtual HRESULT RemoveKeys(LPENTRYLIST lpEntryList);
@@ -107,7 +107,7 @@ private:
 	 * @param[in]	newSessionId
 	 *					The sessionid of the new session.
 	 */
-	static HRESULT					Reload(void *lpParam, ECSESSIONID newSessionId);
+	static HRESULT Reload(void *parm, KC::ECSESSIONID new_id);
 
 	/**
 	 * Purge all unused connections from advisor.
@@ -119,8 +119,8 @@ private:
 	ConnectionMap			m_mapConnections;
 	SyncStateMap			m_mapSyncStates;
 	KC::object_ptr<ECMsgStore> m_lpMsgStore;
-	std::shared_ptr<ECLogger> m_lpLogger;
-	KC::object_ptr<IECChangeAdviseSink> m_lpChangeAdviseSink;
+	std::shared_ptr<KC::ECLogger> m_lpLogger;
+	KC::object_ptr<KC::IECChangeAdviseSink> m_lpChangeAdviseSink;
 };
 
 #endif // ndef ECCHANGEADVISOR_H

@@ -18,7 +18,6 @@
 #include <map>
 #include <set>
 
-using namespace KC;
 // These are the callback functions called when a software-handled property is requested
 typedef HRESULT (*SetPropCallBack)(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
 typedef HRESULT (* GetPropCallBack)(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
@@ -43,7 +42,8 @@ typedef std::map<short, ECPropertyEntry>		ECPropertyEntryMap;
 typedef ECPropertyEntryMap::iterator			ECPropertyEntryIterator;
 
 class ECGenericProp :
-    public ECUnknown, public virtual IMAPIProp, public IECSingleInstance {
+    public KC::ECUnknown, public virtual IMAPIProp,
+    public KC::IECSingleInstance {
 protected:
 	ECGenericProp(void *lpProvider, ULONG ulObjType, BOOL fModify, const char *szClassName = NULL);
 	virtual ~ECGenericProp() = default;

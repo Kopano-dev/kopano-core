@@ -13,7 +13,6 @@
 #include <string>
 #include <map>
 
-using namespace KC;
 class WSTransport;
 class WSSerializedMessage;
 
@@ -21,7 +20,7 @@ class WSSerializedMessage;
  * This object encapsulates a set of exported streams. It allows the user to request each individual stream. The
  * streams must be requested in the correct sequence.
  */
-class WSMessageStreamExporter _kc_final : public ECUnknown {
+class WSMessageStreamExporter _kc_final : public KC::ECUnknown {
 public:
 	static HRESULT Create(ULONG ulOffset, ULONG ulCount, const messageStreamArray &streams, WSTransport *lpTransport, WSMessageStreamExporter **lppStreamExporter);
 
@@ -39,7 +38,7 @@ private:
 	struct StreamInfo {
 		std::string	id;
 		unsigned long	cbPropVals;
-		SPropArrayPtr	ptrPropVals;
+		KC::SPropArrayPtr ptrPropVals;
 	};
 	typedef std::map<ULONG, StreamInfo*>	StreamInfoMap;
 

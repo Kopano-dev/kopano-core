@@ -120,12 +120,12 @@ private:
     std::vector<ULONG> lstTypes;
 };
 
-#define PROPMAP_DECL() ECPropMap m_propmap;
-#define PROPMAP_START(hint) ECPropMap m_propmap(hint);
-#define PROPMAP_NAMED_ID(name, type, guid, id) ULONG PROP_##name; m_propmap.AddProp(&PROP_##name, type, ECPropMapEntry(guid, id));
+#define PROPMAP_DECL() KC::ECPropMap m_propmap;
+#define PROPMAP_START(hint) KC::ECPropMap m_propmap(hint);
+#define PROPMAP_NAMED_ID(name, type, guid, id) ULONG PROP_##name; m_propmap.AddProp(&PROP_##name, type, KC::ECPropMapEntry(guid, id));
 #define PROPMAP_INIT(lpObject) do { auto propmap_hr = m_propmap.Resolve(lpObject); if (propmap_hr != hrSuccess) return propmap_hr; } while (false);
 #define PROPMAP_DEF_NAMED_ID(name) ULONG PROP_##name = 0;
-#define PROPMAP_INIT_NAMED_ID(name, type, guid, id) m_propmap.AddProp(&PROP_##name, type, ECPropMapEntry(guid, id));
+#define PROPMAP_INIT_NAMED_ID(name, type, guid, id) m_propmap.AddProp(&PROP_##name, type, KC::ECPropMapEntry(guid, id));
 
 class _kc_export KServerContext {
 	public:

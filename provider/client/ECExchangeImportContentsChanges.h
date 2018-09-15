@@ -18,10 +18,8 @@ namespace KC {
 class ECLogger;
 }
 
-using namespace KC;
-
 class ECExchangeImportContentsChanges _kc_final :
-    public ECUnknown, public IECImportContentsChanges {
+    public KC::ECUnknown, public KC::IECImportContentsChanges {
 protected:
 	ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder);
 public:
@@ -61,7 +59,7 @@ private:
 	IStream *m_lpStream = nullptr;
 	unsigned int m_ulFlags = 0, m_ulSyncId = 0, m_ulChangeId = 0;
 	KC::memory_ptr<SPropValue> m_lpSourceKey;
-	std::shared_ptr<ECLogger> m_lpLogger;
+	std::shared_ptr<KC::ECLogger> m_lpLogger;
 	KC::object_ptr<ECMAPIFolder> m_lpFolder;
 };
 

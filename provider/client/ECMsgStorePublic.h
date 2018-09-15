@@ -29,8 +29,7 @@ public:
 	HRESULT InitEntryIDs();
 	HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID, void *lpBase, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 	HRESULT ComparePublicEntryId(enumPublicEntryID, ULONG eid_size, const ENTRYID *eid, ULONG *result);
-	ECMemTable *GetIPMSubTree();
-
+	KC::ECMemTable *GetIPMSubTree();
 	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
 
 protected:	
@@ -38,7 +37,7 @@ protected:
 	KC::memory_ptr<ENTRYID> m_lpIPMPublicFoldersID;
 	ULONG m_cIPMSubTreeID = 0, m_cIPMFavoritesID = 0;
 	ULONG m_cIPMPublicFoldersID = 0;
-	KC::object_ptr<ECMemTable> m_lpIPMSubTree; /* Built-in IPM subtree */
+	KC::object_ptr<KC::ECMemTable> m_lpIPMSubTree; /* Built-in IPM subtree */
 	KC::object_ptr<IMsgStore> m_lpDefaultMsgStore;
 
 	HRESULT BuildIPMSubTree();

@@ -20,10 +20,8 @@
 #include <kopano/memory.hpp>
 #include "WSMessageStreamExporter.h"
 
-using namespace KC;
-
 class ECExchangeExportChanges _kc_final :
-    public ECUnknown, public IECExportChanges {
+    public KC::ECUnknown, public KC::IECExportChanges {
 protected:
 	ECExchangeExportChanges(ECMsgStore *lpStore, const std::string& strSK, const wchar_t *szDisplay, unsigned int ulSyncType);
 public:
@@ -74,10 +72,10 @@ private:
 	ULONG m_ulChanges = 0, m_ulMaxChangeId = 0;
 	clock_t m_clkStart = 0;
 	struct tms			m_tmsStart;
-	std::shared_ptr<ECLogger> m_lpLogger;
+	std::shared_ptr<KC::ECLogger> m_lpLogger;
 	KC::memory_ptr<SRestriction> m_lpRestrict;
 	KC::object_ptr<IExchangeImportHierarchyChanges> m_lpImportHierarchy;
-	KC::object_ptr<IECImportContentsChanges> m_lpImportStreamedContents;
+	KC::object_ptr<KC::IECImportContentsChanges> m_lpImportStreamedContents;
 	KC::object_ptr<IExchangeImportContentsChanges> m_lpImportContents;
 	KC::object_ptr<IStream> m_lpStream;
 	KC::object_ptr<ECMsgStore> m_lpStore;

@@ -14,12 +14,10 @@
 #include <edkmdb.h>
 #include <kopano/IECInterfaces.hpp>
 
-using namespace KC;
-
 class ECExchangeModifyTable _kc_final :
-    public ECUnknown, public IECExchangeModifyTable {
+    public KC::ECUnknown, public KC::IECExchangeModifyTable {
 public:
-	ECExchangeModifyTable(ULONG ulUniqueTag, ECMemTable *table, ECMAPIProp *lpParent, ULONG ulStartRuleId, ULONG ulFlags);
+	ECExchangeModifyTable(ULONG unique_tag, KC::ECMemTable *table, ECMAPIProp *parent, ULONG start_rule, ULONG flags);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT GetTable(ULONG ulFlags, LPMAPITABLE *lppTable);
@@ -31,20 +29,19 @@ public:
 	static HRESULT CreateACLTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
 
 private:
-	static HRESULT HrSerializeTable(ECMemTable *lpTable, char **lppSerialized);
-	static HRESULT HrDeserializeTable(char *lpSerialized, ECMemTable *lpTable, ULONG *ulRuleId);
-
-	static HRESULT OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags, ECMemTable *lpTable, ULONG *lpulUniqueID);
-	static HRESULT SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lpTable);
+	static HRESULT HrSerializeTable(KC::ECMemTable *, char **serout);
+	static HRESULT HrDeserializeTable(char *ser, KC::ECMemTable *, ULONG *rule_id);
+	static HRESULT OpenACLS(ECMAPIProp *, ULONG flags, KC::ECMemTable *, ULONG *uniq_id);
+	static HRESULT SaveACLS(ECMAPIProp *, KC::ECMemTable *);
 
 	unsigned int m_ulUniqueId, m_ulUniqueTag, m_ulFlags;
 	KC::object_ptr<ECMAPIProp> m_lpParent;
-	KC::object_ptr<ECMemTable> m_ecTable;
+	KC::object_ptr<KC::ECMemTable> m_ecTable;
 	bool m_bPushToServer = true;
 };
 
 class ECExchangeRuleAction _kc_final :
-    public ECUnknown, public IExchangeRuleAction {
+    public KC::ECUnknown, public IExchangeRuleAction {
 public:
 	HRESULT ActionCount(ULONG *lpcActions);
 	HRESULT GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction);

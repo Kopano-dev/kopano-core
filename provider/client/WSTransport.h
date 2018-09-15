@@ -27,6 +27,7 @@ namespace KC {
 class utf8string;
 }
 
+using namespace KC;
 class KCmdProxy;
 class WSMessageStreamExporter;
 class WSMessageStreamImporter;

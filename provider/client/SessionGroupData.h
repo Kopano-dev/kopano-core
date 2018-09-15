@@ -15,7 +15,6 @@
 #include <kopano/memory.hpp>
 #include "ClientUtil.h"
 
-using namespace KC;
 class ECNotifyMaster;
 class WSTransport;
 
@@ -49,7 +48,7 @@ static inline bool operator<(const ECSessionGroupInfo &a, const ECSessionGroupIn
 class SessionGroupData _kc_final {
 private:
 	/* SessionGroup ID to which this data belongs */
-	ECSESSIONGROUPID	m_ecSessionGroupId;
+	KC::ECSESSIONGROUPID m_ecSessionGroupId;
 	ECSessionGroupInfo	m_ecSessionGroupInfo;
 
 	/* Notification information */
@@ -63,9 +62,8 @@ private:
 	std::atomic<unsigned int> m_cRef{0};
 
 public:
-	SessionGroupData(ECSESSIONGROUPID ecSessionGroupId, ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps);
-	static HRESULT Create(ECSESSIONGROUPID ecSessionGroupId, ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps, SessionGroupData **lppData);
-
+	SessionGroupData(KC::ECSESSIONGROUPID, ECSessionGroupInfo *, const sGlobalProfileProps &);
+	static HRESULT Create(KC::ECSESSIONGROUPID, ECSessionGroupInfo *, const sGlobalProfileProps &, SessionGroupData **out);
 	HRESULT GetOrCreateNotifyMaster(ECNotifyMaster **lppMaster);
 	HRESULT GetTransport(WSTransport **lppTransport);
 	
@@ -73,8 +71,7 @@ public:
 	ULONG Release();
 	
 	BOOL IsOrphan();
-
-	ECSESSIONGROUPID GetSessionGroupId();
+	KC::ECSESSIONGROUPID GetSessionGroupId();
 	ALLOC_WRAP_FRIEND;
 };
 

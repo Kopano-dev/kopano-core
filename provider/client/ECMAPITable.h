@@ -15,14 +15,12 @@
 #include <set>
 #include <kopano/memory.hpp>
 
-using namespace KC;
-
 /*
  * This is the superclass which contains common code for the Hierarchy and Contents
  * tables implementations
  */
 
-class ECMAPITable _kc_final : public ECUnknown, public IMAPITable {
+class ECMAPITable _kc_final : public KC::ECUnknown, public IMAPITable {
 protected:
 	ECMAPITable(const std::string &name, ECNotifyClient *, ULONG flags);
 	virtual ~ECMAPITable();

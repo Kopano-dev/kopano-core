@@ -13,12 +13,10 @@
 #include "soapStub.h"
 #include <string>
 
-using namespace KC;
-
 /**
  * This object represents one exported message stream. It is responsible for requesting the MTOM attachments from soap.
  */
-class WSSerializedMessage _kc_final : public ECUnknown {
+class WSSerializedMessage _kc_final : public KC::ECUnknown {
 public:
 	WSSerializedMessage(soap *, const std::string &stream_id, ULONG nprops, SPropValue *props);
 	HRESULT GetProps(ULONG *lpcbProps, LPSPropValue *lppProps);
@@ -42,7 +40,7 @@ private:
 	LPSPropValue		m_lpProps;	//	Points to data from parent object.
 
 	bool m_bUsed = false;
-	StreamPtr			m_ptrDestStream;
+	KC::object_ptr<IStream> m_ptrDestStream;
 	HRESULT m_hr = hrSuccess;
 };
 

@@ -16,10 +16,9 @@
 #define SET         1
 #define UNSET       2
 
-using namespace KC;
 class ECMsgStore;
 
-class ECMAPIProp : public ECGenericProp, public IECSecurity {
+class ECMAPIProp : public ECGenericProp, public KC::IECSecurity {
 protected:
 	ECMAPIProp(ECMsgStore *prov, ULONG obj_type, BOOL modify, const ECMAPIProp *root, const char *cls = nullptr);
 	virtual ~ECMAPIProp() = default;
@@ -59,16 +58,16 @@ protected:
 	virtual HRESULT HrSaveChild(ULONG flags, MAPIOBJECT *) override;
 	HRESULT GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValue);
 	HRESULT SetSerializedACLData(const SPropValue *lpsPropValue);
-	HRESULT	UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms);
+	HRESULT	UpdateACLs(ULONG nperm, KC::ECPERMISSION *newp);
 
 	// IECServiceAdmin and IECSecurity
-	virtual HRESULT GetUserList(ULONG eid_size, const ENTRYID *comp_eid, ULONG flags, ULONG *nusers, ECUSER **) override;
-	virtual HRESULT GetGroupList(ULONG eid_size, const ENTRYID *comp_eid, ULONG flags, ULONG *ngrps, ECGROUP **) override;
-	virtual HRESULT GetCompanyList(ULONG flags, ULONG *ncomp, ECCOMPANY **) override;
+	virtual HRESULT GetUserList(ULONG eid_size, const ENTRYID *comp_eid, ULONG flags, ULONG *nusers, KC::ECUSER **) override;
+	virtual HRESULT GetGroupList(ULONG eid_size, const ENTRYID *comp_eid, ULONG flags, ULONG *ngrps, KC::ECGROUP **) override;
+	virtual HRESULT GetCompanyList(ULONG flags, ULONG *ncomp, KC::ECCOMPANY **) override;
 	// IECSecurity
 	virtual HRESULT GetOwner(ULONG *id_size, ENTRYID **) override;
-	virtual HRESULT GetPermissionRules(int type, ULONG *nperm, ECPERMISSION **) override;
-	virtual HRESULT SetPermissionRules(ULONG n, const ECPERMISSION *) override;
+	virtual HRESULT GetPermissionRules(int type, ULONG *nperm, KC::ECPERMISSION **) override;
+	virtual HRESULT SetPermissionRules(ULONG n, const KC::ECPERMISSION *) override;
 
 public:
 	ECMsgStore *GetMsgStore() const { return static_cast<ECMsgStore *>(lpProvider); }

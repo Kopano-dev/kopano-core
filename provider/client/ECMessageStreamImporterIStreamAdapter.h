@@ -12,8 +12,6 @@
 #include <kopano/Util.h>
 #include "WSMessageStreamImporter.h"
 
-using namespace KC;
-
 /**
  * This class wraps a WSMessageStreamImporter object and exposes it as an IStream.
  * The actual import callto the server will be initiated by the first write to the
@@ -22,7 +20,7 @@ using namespace KC;
  * the return value will be returned.
  */
 class ECMessageStreamImporterIStreamAdapter _kc_final :
-    public ECUnknown, public IStream {
+    public KC::ECUnknown, public IStream {
 public:
 	static HRESULT Create(WSMessageStreamImporter *lpStreamImporter, IStream **lppStream);
 

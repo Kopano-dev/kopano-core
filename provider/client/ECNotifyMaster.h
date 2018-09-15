@@ -18,7 +18,6 @@
 #include <kopano/kcodes.h>
 #include <kopano/memory.hpp>
 
-using namespace KC;
 class ECNotifyClient;
 class ECNotifyMaster;
 class WSTransport;
@@ -45,7 +44,7 @@ typedef std::list<ECNotifyClient*> NOTIFYCLIENTLIST;
 typedef std::map<ULONG, ECNotifySink> NOTIFYCONNECTIONCLIENTMAP;
 typedef std::map<ULONG, NOTIFYLIST> NOTIFYCONNECTIONMAP;
 
-class ECNotifyMaster _kc_final : public ECUnknown {
+class ECNotifyMaster _kc_final : public KC::ECUnknown {
 protected:
 	ECNotifyMaster(SessionGroupData *lpData);
 	virtual ~ECNotifyMaster(void);

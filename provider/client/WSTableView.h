@@ -17,11 +17,10 @@
 class WSTransport;
 
 typedef HRESULT (*RELOADCALLBACK)(void *lpParam);
-using namespace KC;
 
-class WSTableView : public ECUnknown {
+class WSTableView : public KC::ECUnknown {
 protected:
-	WSTableView(ULONG type, ULONG flags, ECSESSIONID, ULONG eid_size, const ENTRYID *eid, WSTransport *, const char *cls_name = nullptr);
+	WSTableView(ULONG type, ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *eid, WSTransport *, const char *cls_name = nullptr);
 	virtual ~WSTableView();
 
 public:
@@ -47,13 +46,13 @@ public:
 	virtual HRESULT FreeBookmark(BOOKMARK bkPosition);
 	virtual HRESULT CreateBookmark(BOOKMARK* lpbkPosition);
 
-	static HRESULT Reload(void *lpParam, ECSESSIONID sessionID);
+	static HRESULT Reload(void *param, KC::ECSESSIONID);
 	virtual HRESULT SetReloadCallback(RELOADCALLBACK callback, void *lpParam);
 
 	ULONG ulTableId = 0;
 
 protected:
-	ECSESSIONID		ecSessionId;
+	KC::ECSESSIONID ecSessionId;
 	entryId			m_sEntryId;
 	void *			m_lpProvider;
 	unsigned int m_ulTableType, m_ulSessionReloadCallback;

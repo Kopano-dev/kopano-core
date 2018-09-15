@@ -10,9 +10,7 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/Util.h>
 
-using namespace KC;
-
-class ECABProvider _kc_final : public ECUnknown, public IABProvider {
+class ECABProvider _kc_final : public KC::ECUnknown, public IABProvider {
 protected:
 	ECABProvider(ULONG ulFlags, const char *szClassName);
 	virtual ~ECABProvider(void) = default;
@@ -26,7 +24,7 @@ public:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECABProviderSwitch _kc_final : public ECUnknown, public IABProvider {
+class ECABProviderSwitch _kc_final : public KC::ECUnknown, public IABProvider {
 protected:
 	ECABProviderSwitch(void);
 
