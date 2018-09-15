@@ -25,6 +25,7 @@
 /*
  * The WSMAPIFolderOps for use with the WebServices transport
  */
+using namespace KC;
 
 WSMAPIFolderOps::WSMAPIFolderOps(ECSESSIONID sid, ULONG cbEntryId,
     const ENTRYID *lpEntryId, WSTransport *lpTransport) :
@@ -410,7 +411,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
 
 	ECRESULT	er = erSuccess;
 	entryId sEntryId;
-	KC::memory_ptr<SPropValue> lpSPropValPCL, lpSPropValCK;
+	memory_ptr<SPropValue> lpSPropValPCL, lpSPropValCK;
 	getChangeInfoResponse sChangeInfo;
 	soap_lock_guard spg(*m_lpTransport);
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);

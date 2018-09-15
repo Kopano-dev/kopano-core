@@ -23,6 +23,8 @@
 	if(hr != hrSuccess) \
 		goto exit;
 
+using namespace KC;
+
 WSTableView::WSTableView(ULONG ty, ULONG fl, ECSESSIONID sid, ULONG cbEntryId,
     const ENTRYID *lpEntryId, WSTransport *lpTransport, const char *cls_name) :
 	ECUnknown(cls_name), ecSessionId(sid), m_lpTransport(lpTransport),

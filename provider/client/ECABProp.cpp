@@ -46,7 +46,7 @@ HRESULT	ECABProp::DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 	case PROP_ID(PR_STORE_SUPPORT_MASK):
 	{
 		unsigned int ulClientVersion = -1;
-		GetClientVersion(&ulClientVersion);
+		KC::GetClientVersion(&ulClientVersion);
 
 		// No real unicode support in outlook 2000 and xp
 		if (ulClientVersion > CLIENT_VERSION_OLK2002) {

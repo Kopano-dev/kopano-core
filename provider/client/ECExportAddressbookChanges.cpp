@@ -17,6 +17,8 @@
 #include <kopano/Util.h>
 #include <edkmdb.h>
 
+using namespace KC;
+
 ECExportAddressbookChanges::ECExportAddressbookChanges(ECMsgStore *lpStore) :
 	m_lpMsgStore(lpStore), m_lpLogger(new ECLogger_Null)
 {}

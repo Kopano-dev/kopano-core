@@ -28,6 +28,8 @@
 #define dispidDirty					"dirty"
 #define dispidOrigSourceKey			"original-sourcekey"
 
+using namespace KC;
+
 class PropFinder {
 public:
 	PropFinder(ULONG ulPropTag): m_ulPropTag(ulPropTag) {}
@@ -69,7 +71,7 @@ HRESULT	ECArchiveAwareMessage::Create(ECArchiveAwareMsgStore *lpMsgStore, BOOL f
 HRESULT ECArchiveAwareMessage::HrLoadProps()
 {
 	m_bLoading = true;
-	auto laters = KC::make_scope_success([&]() { m_bLoading = false; });
+	auto laters = make_scope_success([&]() { m_bLoading = false; });
 	auto hr = ECMessage::HrLoadProps();
 	if (hr != hrSuccess)
 		return hr;
@@ -354,7 +356,7 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDelet
 	ULARGE_INTEGER liZero = {{0, 0}};
 
 	fModify = true;
-	auto laters = KC::make_scope_success([&]() { fModify = false; });
+	auto laters = make_scope_success([&]() { fModify = false; });
 	auto hr = DeleteProps(lpptaDeleteProps, nullptr);
 	if (hr != hrSuccess)
 		return hr;
@@ -418,7 +420,7 @@ std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 			<< KC_TX("You don't have sufficient access to the archive.")
 					<< KC_T("</P>");
 	} else {
-		KC::memory_ptr<TCHAR> lpszDescription;
+		memory_ptr<TCHAR> lpszDescription;
 		HRESULT hr = Util::HrMAPIErrorToText(hResult, &~lpszDescription);
 		if (hr == hrSuccess)
 			ossHtmlBody << KC_T("<P>")

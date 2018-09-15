@@ -17,6 +17,8 @@
 #include <kopano/charset/convert.h>
 #include "EntryPoint.h"
 
+using namespace KC;
+
 ECGenericProp::ECGenericProp(void *prov, ULONG type, BOOL mod,
     const char *cls_name) :
 	ECUnknown(cls_name), ulObjType(type), fModify(mod), lpProvider(prov)
@@ -335,7 +337,7 @@ HRESULT ECGenericProp::HrRemoveModifications(MAPIOBJECT *lpsMapiObject, ULONG ul
 HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError)
 {
 	ecmem_ptr<MAPIERROR> lpMapiError;
-	KC::memory_ptr<TCHAR> lpszErrorMsg;
+	memory_ptr<TCHAR> lpszErrorMsg;
 	
 	auto hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &~lpszErrorMsg);
 	if (hr != hrSuccess)
@@ -584,7 +586,7 @@ HRESULT ECGenericProp::HrLoadProps()
 		lstProps.clear();
 		m_setDeletedProps.clear();
 	}
-	hr = lpStorage->HrLoadObject(&KC::unique_tie(m_sMapiObject));
+	hr = lpStorage->HrLoadObject(&unique_tie(m_sMapiObject));
 	if (hr != hrSuccess)
 		goto exit;
 	m_props_loaded = true;

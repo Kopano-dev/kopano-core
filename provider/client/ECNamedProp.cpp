@@ -12,6 +12,8 @@
 #include "ECNamedProp.h"
 #include "WSTransport.h"
 
+using namespace KC;
+
 /*
  * How our named properties work
  *

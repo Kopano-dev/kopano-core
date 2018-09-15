@@ -31,8 +31,7 @@ HRESULT WSSerializedMessage::GetProps(ULONG *lpcbProps, LPSPropValue *lppProps)
 {
 	if (lpcbProps == NULL || lppProps == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	return Util::HrCopyPropertyArray(m_lpProps, m_cbProps, lppProps, lpcbProps);
+	return KC::Util::HrCopyPropertyArray(m_lpProps, m_cbProps, lppProps, lpcbProps);
 }
 
 /**

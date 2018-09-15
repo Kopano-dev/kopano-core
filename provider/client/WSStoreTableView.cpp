@@ -12,6 +12,8 @@
 #include "WSUtil.h"
 #include "soapKCmdProxy.h"
 
+using namespace KC;
+
 WSStoreTableView::WSStoreTableView(ULONG type, ULONG flags, ECSESSIONID sid,
     ULONG cbEntryId, const ENTRYID *lpEntryId, ECMsgStore *lpMsgStore,
     WSTransport *lpTransport) :

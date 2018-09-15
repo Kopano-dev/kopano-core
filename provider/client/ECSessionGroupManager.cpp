@@ -10,6 +10,8 @@
 #include "SessionGroupData.h"
 #include "SSLUtil.h"
 
+using namespace KC;
+
 /* Global SessionManager for entire client */
 ECSessionGroupManager g_ecSessionManager;
 

@@ -10,7 +10,7 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Create(WSMessageStreamImporter *l
 {
 	if (lpStreamImporter == NULL || lppStream == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	return alloc_wrap<ECMessageStreamImporterIStreamAdapter>(lpStreamImporter)
+	return KC::alloc_wrap<ECMessageStreamImporterIStreamAdapter>(lpStreamImporter)
 	       .as(IID_IStream, reinterpret_cast<void **>(lppStream));
 }
 

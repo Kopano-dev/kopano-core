@@ -10,6 +10,8 @@
 #include "ECSyncSettings.h"
 #include "soapKCmdProxy.h"
 
+using namespace KC;
+
 /**
  * Create a new WSMessageStreamSink instance
  * @param[in]	lpFifoBuffer	The fifobuffer to write the data into.

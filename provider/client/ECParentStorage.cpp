@@ -27,7 +27,7 @@ HRESULT ECParentStorage::QueryInterface(REFIID refiid, void **lppInterface)
 
 HRESULT ECParentStorage::Create(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage, ECParentStorage **lppParentStorage)
 {
-	return alloc_wrap<ECParentStorage>(lpParentObject, ulUniqueId, ulObjId,
+	return KC::alloc_wrap<ECParentStorage>(lpParentObject, ulUniqueId, ulObjId,
 	       lpServerStorage).put(lppParentStorage);
 }
 
@@ -54,7 +54,7 @@ HRESULT ECParentStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		return MAPI_E_INVALID_OBJECT;
 
 	ECMapiObjects::const_iterator iterSObj;
-	scoped_rlock lock(m_lpParentObject->m_hMutexMAPIObject);
+	KC::scoped_rlock lock(m_lpParentObject->m_hMutexMAPIObject);
 	if (m_lpParentObject->m_sMapiObject == NULL)
 		return MAPI_E_INVALID_OBJECT;
 

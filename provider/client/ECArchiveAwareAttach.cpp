@@ -29,7 +29,7 @@ HRESULT ECArchiveAwareAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType,
     BOOL fModify, ULONG ulAttachNum, const ECMAPIProp *lpRoot,
     ECAttach **lppAttach)
 {
-	return alloc_wrap<ECArchiveAwareAttach>(lpMsgStore, ulObjType, fModify,
+	return KC::alloc_wrap<ECArchiveAwareAttach>(lpMsgStore, ulObjType, fModify,
 	       ulAttachNum, lpRoot).as(IID_ECAttach, lppAttach);
 }
 

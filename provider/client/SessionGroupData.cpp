@@ -12,6 +12,8 @@
 #include "SessionGroupData.h"
 #include "WSTransport.h"
 
+using namespace KC;
+
 SessionGroupData::SessionGroupData(ECSESSIONGROUPID ecSessionGroupId,
     ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps) :
 	m_ecSessionGroupId(ecSessionGroupId), m_sProfileProps(sProfileProps)

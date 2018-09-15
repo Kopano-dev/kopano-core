@@ -14,6 +14,8 @@
 #include "WSUtil.h"
 #include "soapKCmdProxy.h"
 
+using namespace KC;
+
 /**
  * Create a WSMessageStreamExporter instance.
  * @param[in]	ulOffset	The offset that should be used to index the streams. The server returns [0:B-A), while the client would
@@ -29,7 +31,7 @@
  */
 HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const messageStreamArray &streams, WSTransport *lpTransport, WSMessageStreamExporter **lppStreamExporter)
 {
-	convert_context converter;
+	KC::convert_context converter;
 	WSMessageStreamExporterPtr ptrStreamExporter(new(std::nothrow) WSMessageStreamExporter);
 	if (ptrStreamExporter == nullptr)
 		return MAPI_E_INVALID_PARAMETER;

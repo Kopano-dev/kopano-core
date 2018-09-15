@@ -19,6 +19,8 @@
 
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember)) 
 
+using namespace KC;
+
 inline ECNotifySink::ECNotifySink(ECNotifyClient *lpClient, NOTIFYCALLBACK fnCallback)
 	: m_lpClient(lpClient)
 	, m_fnCallback(fnCallback)
@@ -50,7 +52,7 @@ ECNotifyMaster::~ECNotifyMaster(void)
 
 HRESULT ECNotifyMaster::Create(SessionGroupData *lpData, ECNotifyMaster **lppMaster)
 {
-	return alloc_wrap<ECNotifyMaster>(lpData).put(lppMaster);
+	return KC::alloc_wrap<ECNotifyMaster>(lpData).put(lppMaster);
 }
 
 HRESULT ECNotifyMaster::ConnectToSession()

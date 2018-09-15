@@ -36,7 +36,7 @@ HRESULT ECDistList::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT ECDistList::Create(ECABLogon *lpProvider, BOOL fModify,
     ECDistList **lppDistList)
 {
-	return alloc_wrap<ECDistList>(lpProvider, fModify).put(lppDistList);
+	return KC::alloc_wrap<ECDistList>(lpProvider, fModify).put(lppDistList);
 }
 
 HRESULT ECDistList::TableRowGetProp(void *provider, const struct propVal *src,
@@ -84,7 +84,7 @@ ECMailUser::ECMailUser(ECABLogon *prov, BOOL modify) :
 HRESULT ECMailUser::Create(ECABLogon *lpProvider, BOOL fModify,
     ECMailUser **lppMailUser)
 {
-	return alloc_wrap<ECMailUser>(lpProvider, fModify).put(lppMailUser);
+	return KC::alloc_wrap<ECMailUser>(lpProvider, fModify).put(lppMailUser);
 }
 
 HRESULT	ECMailUser::QueryInterface(REFIID refiid, void **lppInterface) 

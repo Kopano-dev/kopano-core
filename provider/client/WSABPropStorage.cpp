@@ -20,11 +20,11 @@
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND); \
     if(hr != hrSuccess) \
         goto exit;
-                    
 
 /*
  * This is a PropStorage object for use with the WebServices storage platform
  */
+using namespace KC;
 
 WSABPropStorage::WSABPropStorage(ULONG cbEntryId, const ENTRYID *lpEntryId,
     ECSESSIONID sid, WSTransport *lpTransport) :
