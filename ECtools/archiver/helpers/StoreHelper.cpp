@@ -137,13 +137,9 @@ HRESULT StoreHelper::UpdateSearchFolders()
 	hr = MAPIAllocateMore(3 * sizeof(*ptrPropValue->Value.MVbin.lpbin), ptrPropValue, (LPVOID*)&ptrPropValue->Value.MVbin.lpbin);
 	if (hr != hrSuccess)
 		return hr;
-
-	ptrPropValue->Value.MVbin.lpbin[0].cb = ptrSearchArchiveEntryId->Value.bin.cb;
-	ptrPropValue->Value.MVbin.lpbin[0].lpb = ptrSearchArchiveEntryId->Value.bin.lpb;
-	ptrPropValue->Value.MVbin.lpbin[1].cb = ptrSearchDeleteEntryId->Value.bin.cb;
-	ptrPropValue->Value.MVbin.lpbin[1].lpb = ptrSearchDeleteEntryId->Value.bin.lpb;
-	ptrPropValue->Value.MVbin.lpbin[2].cb = ptrSearchStubEntryId->Value.bin.cb;
-	ptrPropValue->Value.MVbin.lpbin[2].lpb = ptrSearchStubEntryId->Value.bin.lpb;
+	ptrPropValue->Value.MVbin.lpbin[0] = ptrSearchArchiveEntryId->Value.bin;
+	ptrPropValue->Value.MVbin.lpbin[1] = ptrSearchDeleteEntryId->Value.bin;
+	ptrPropValue->Value.MVbin.lpbin[2] = ptrSearchStubEntryId->Value.bin;
 	return HrSetOneProp(m_ptrMsgStore, ptrPropValue);
 }
 
@@ -273,13 +269,9 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 		hr = MAPIAllocateMore(3 * sizeof(*ptrPropValue->Value.MVbin.lpbin), ptrPropValue, (LPVOID*)&ptrPropValue->Value.MVbin.lpbin);
 		if (hr != hrSuccess)
 			return hr;
-
-		ptrPropValue->Value.MVbin.lpbin[0].cb = ptrSearchArchiveEntryId->Value.bin.cb;
-		ptrPropValue->Value.MVbin.lpbin[0].lpb = ptrSearchArchiveEntryId->Value.bin.lpb;
-		ptrPropValue->Value.MVbin.lpbin[1].cb = ptrSearchDeleteEntryId->Value.bin.cb;
-		ptrPropValue->Value.MVbin.lpbin[1].lpb = ptrSearchDeleteEntryId->Value.bin.lpb;
-		ptrPropValue->Value.MVbin.lpbin[2].cb = ptrSearchStubEntryId->Value.bin.cb;
-		ptrPropValue->Value.MVbin.lpbin[2].lpb = ptrSearchStubEntryId->Value.bin.lpb;
+		ptrPropValue->Value.MVbin.lpbin[0] = ptrSearchArchiveEntryId->Value.bin;
+		ptrPropValue->Value.MVbin.lpbin[1] = ptrSearchDeleteEntryId->Value.bin;
+		ptrPropValue->Value.MVbin.lpbin[2] = ptrSearchStubEntryId->Value.bin;
 		hr = HrSetOneProp(m_ptrMsgStore, ptrPropValue);
 		if (hr != hrSuccess)
 			return hr;
@@ -466,9 +458,7 @@ HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const
 	hr = MAPIAllocateMore(sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
 	if (hr != hrSuccess)
 		return hr;
-	ptrEntryList->lpbin[0].cb = ptrPropEntryId->Value.bin.cb;
-	ptrEntryList->lpbin[0].lpb = ptrPropEntryId->Value.bin.lpb;
-
+	ptrEntryList->lpbin[0] = ptrPropEntryId->Value.bin;
 	sPropStubbed.ulPropTag = PROP_STUBBED; sPropStubbed.Value.b = 1;
 
 	// Create/Update the search folder that tracks unarchived message that are not flagged to be never archived
@@ -541,8 +531,7 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 	hr = MAPIAllocateMore(sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
 	if (hr != hrSuccess)
 		return hr;
-	ptrEntryList->lpbin[0].cb = ptrPropEntryId->Value.bin.cb;
-	ptrEntryList->lpbin[0].lpb = ptrPropEntryId->Value.bin.lpb;
+	ptrEntryList->lpbin[0] = ptrPropEntryId->Value.bin;
 
 	// Create/Update the search folder that tracks all archived message that are not flagged to be never deleted or never stubbed
 	resDeleteFolder +=
@@ -598,9 +587,7 @@ HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const EC
 	hr = MAPIAllocateMore(sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
 	if (hr != hrSuccess)
 		return hr;
-	ptrEntryList->lpbin[0].cb = ptrPropEntryId->Value.bin.cb;
-	ptrEntryList->lpbin[0].lpb = ptrPropEntryId->Value.bin.lpb;
-
+	ptrEntryList->lpbin[0] = ptrPropEntryId->Value.bin;
 	sPropStubbed.ulPropTag = PROP_STUBBED;
 	sPropStubbed.Value.b = 1;
 

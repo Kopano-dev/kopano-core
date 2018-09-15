@@ -187,8 +187,7 @@ HRESULT HrMakeBinaryUID(const std::string &strUid, void *base, SPropValue *lpPro
 		return hr;
 
 	// set return value
-	lpPropValue->Value.bin.cb  = sPropValue.Value.bin.cb;
-	lpPropValue->Value.bin.lpb = sPropValue.Value.bin.lpb;
+	lpPropValue->Value.bin = sPropValue.Value.bin;
 	return hrSuccess;
 }
 

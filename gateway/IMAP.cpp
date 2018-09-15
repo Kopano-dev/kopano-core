@@ -3202,9 +3202,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 	for (auto mail_idx : lstMails) {
 		const SPropValue *lpProp = NULL; // non-free // by default: no need to mark-as-read
 
-		sPropVal.Value.bin.cb = lstFolderMailEIDs[mail_idx].sInstanceKey.cb;
-		sPropVal.Value.bin.lpb = lstFolderMailEIDs[mail_idx].sInstanceKey.lpb;
-
+		sPropVal.Value.bin = lstFolderMailEIDs[mail_idx].sInstanceKey;
         // We use a read-ahead mechanism here, reading 50 rows at a time.
 		if (m_lpTable) {
             // First, see if the next row is somewhere in our already-read data
@@ -3237,11 +3235,8 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 				// possebly add message to mark-as-read
 				if (bMarkAsRead) {
 					lpProp = lpRow->cfind(PR_MESSAGE_FLAGS);
-					if (!lpProp || (lpProp->Value.ul & MSGFLAG_READ) == 0) {
-						lpEntryList->lpbin[lpEntryList->cValues].cb = lstFolderMailEIDs[mail_idx].sEntryID.cb;
-						lpEntryList->lpbin[lpEntryList->cValues].lpb = lstFolderMailEIDs[mail_idx].sEntryID.lpb;
-						++lpEntryList->cValues;
-					}
+					if (lpProp == nullptr || (lpProp->Value.ul & MSGFLAG_READ) == 0)
+						lpEntryList->lpbin[lpEntryList->cValues++] = lstFolderMailEIDs[mail_idx].sEntryID;
 				}
     		    cValues = lpRow->cValues;
 	    	    lpProps = lpRow->lpProps;
@@ -4334,11 +4329,8 @@ HRESULT IMAP::HrCopy(const list<ULONG> &lstMails,
 		return hr;
 
 	unsigned int ulCount = 0;
-	for (auto mail_idx : lstMails) {
-		entry_list->lpbin[ulCount].cb = lstFolderMailEIDs[mail_idx].sEntryID.cb;
-		entry_list->lpbin[ulCount].lpb = lstFolderMailEIDs[mail_idx].sEntryID.lpb;
-		++ulCount;
-	}
+	for (auto mail_idx : lstMails)
+		entry_list->lpbin[ulCount++] = lstFolderMailEIDs[mail_idx].sEntryID;
 	return lpFromFolder->CopyMessages(entry_list, nullptr, lpDestFolder,
 	       0, nullptr, bMove ? MESSAGE_MOVE : 0);
 }

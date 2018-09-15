@@ -802,8 +802,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	sForwardProps[cfp++].Value.lpszW = (WCHAR*)strSubject.c_str();
 
 	sForwardProps[cfp].ulPropTag = PR_SENTMAIL_ENTRYID;
-	sForwardProps[cfp].Value.bin.cb = lpSentMailEntryID->Value.bin.cb;
-	sForwardProps[cfp++].Value.bin.lpb = lpSentMailEntryID->Value.bin.lpb;
+	sForwardProps[cfp++].Value.bin = lpSentMailEntryID->Value.bin;
 
 	if (bForwardAsAttachment) {
 		sForwardProps[cfp].ulPropTag = PR_MESSAGE_CLASS;

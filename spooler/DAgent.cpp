@@ -1668,18 +1668,15 @@ static HRESULT HrOverrideFallbackProps(IMessage *lpMessage,
 
 	// PR_SENDER_SEARCH_KEY
 	sPropOverride[ulPropPos].ulPropTag = PR_SENDER_SEARCH_KEY;
-	sPropOverride[ulPropPos].Value.bin.cb = lpRecip->sSearchKey.cb;
-	sPropOverride[ulPropPos++].Value.bin.lpb = lpRecip->sSearchKey.lpb;
+	sPropOverride[ulPropPos++].Value.bin = lpRecip->sSearchKey;
 
 	// PR_RECEIVED_BY_SEARCH_KEY (set as previous)
 	sPropOverride[ulPropPos].ulPropTag = PR_RECEIVED_BY_SEARCH_KEY;
-	sPropOverride[ulPropPos].Value.bin.cb = lpRecip->sSearchKey.cb;
-	sPropOverride[ulPropPos++].Value.bin.lpb = lpRecip->sSearchKey.lpb;
+	sPropOverride[ulPropPos++].Value.bin = lpRecip->sSearchKey;
 
 	// PR_SENT_REPRESENTING_SEARCH_KEY (set as previous)
 	sPropOverride[ulPropPos].ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
-	sPropOverride[ulPropPos].Value.bin.cb = lpRecip->sSearchKey.cb;
-	sPropOverride[ulPropPos++].Value.bin.lpb = lpRecip->sSearchKey.lpb;
+	sPropOverride[ulPropPos++].Value.bin = lpRecip->sSearchKey;
 
 	auto hr = ECCreateOneOff(reinterpret_cast<const TCHAR *>(lpRecip->wstrFullname.c_str()), reinterpret_cast<const TCHAR *>(L"SMTP"), reinterpret_cast<const TCHAR *>(convert_to<std::wstring>(lpRecip->strSMTP).c_str()),
 	          MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryIdSender, &~lpEntryIdSender);
@@ -1729,16 +1726,12 @@ static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
 	sPropReceived[1].Value.lpszW = (WCHAR *)lpRecip->wstrUsername.c_str();
 
 	sPropReceived[2].ulPropTag = PR_RECEIVED_BY_ENTRYID;
-	sPropReceived[2].Value.bin.cb = lpRecip->sEntryId.cb;
-	sPropReceived[2].Value.bin.lpb = lpRecip->sEntryId.lpb;
-
+	sPropReceived[2].Value.bin = lpRecip->sEntryId;
 	sPropReceived[3].ulPropTag = PR_RECEIVED_BY_NAME_W;
 	sPropReceived[3].Value.lpszW = (WCHAR *)lpRecip->wstrFullname.c_str();
 
 	sPropReceived[4].ulPropTag = PR_RECEIVED_BY_SEARCH_KEY;
-	sPropReceived[4].Value.bin.cb = lpRecip->sSearchKey.cb;
-	sPropReceived[4].Value.bin.lpb = lpRecip->sSearchKey.lpb;
-
+	sPropReceived[4].Value.bin = lpRecip->sSearchKey;
 	HRESULT hr = lpMessage->SetProps(5, sPropReceived, NULL);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to set RECEIVED_BY properties", hr);

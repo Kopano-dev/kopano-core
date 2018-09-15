@@ -53,9 +53,7 @@ static HRESULT DeleteEntry(LPMAPIFOLDER lpFolder,
 		goto exit;
 
 	lpEntryList->cValues = 1;
-	lpEntryList->lpbin[0].cb = lpItemProperty->Value.bin.cb;
-	lpEntryList->lpbin[0].lpb = lpItemProperty->Value.bin.lpb;
-
+	lpEntryList->lpbin[0] = lpItemProperty->Value.bin;
 	hr = lpFolder->DeleteMessages(lpEntryList, 0, NULL, 0);
 
 exit:

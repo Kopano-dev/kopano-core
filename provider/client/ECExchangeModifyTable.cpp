@@ -307,9 +307,7 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 		lpsPropMember[2].Value.lpszW = (WCHAR*)lpMemberName;
 
 		lpsPropMember[3].ulPropTag = PR_MEMBER_ENTRYID;
-		lpsPropMember[3].Value.bin.cb = lpECPerms[i].sUserId.cb;
-		lpsPropMember[3].Value.bin.lpb= (LPBYTE)lpECPerms[i].sUserId.lpb;
-
+		lpsPropMember[3].Value.bin = lpECPerms[i].sUserId;
 		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &lpsPropMember[0], lpsPropMember, 4);
 		if(hr != hrSuccess)
 			return hr;
@@ -367,8 +365,7 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 			continue;
 
 		if (lpMemberID->Value.ul != 0) {
-			lpECPermissions[cECPerm].sUserId.cb = lpMemberEntryID->Value.bin.cb;
-			lpECPermissions[cECPerm].sUserId.lpb = lpMemberEntryID->Value.bin.lpb;
+			lpECPermissions[cECPerm].sUserId = lpMemberEntryID->Value.bin;
 		} else {
 			// Create everyone entryid
 			// NOTE: still makes a V0 entry id, because externid id part is empty

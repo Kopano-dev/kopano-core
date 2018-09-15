@@ -698,22 +698,16 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 	if(PROP_TYPE(lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].ulPropTag) != PT_ERROR) {
 		lpPropValue[ulPropPos].ulPropTag = PR_RECEIVED_BY_SEARCH_KEY;
-		lpPropValue[ulPropPos].Value.bin.cb = lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb = lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].Value.bin.lpb;
-
+		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].Value.bin;
 		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENDER_SEARCH_KEY;
-		lpPropValue[ulPropPos].Value.bin.cb = lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb = lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].Value.bin.lpb;
+		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].Value.bin;
 	}
 
 	if(PROP_TYPE(lpPropArrayOriginal[OR_SENDER_ENTRYID].ulPropTag) != PT_ERROR) {
 		lpPropValue[ulPropPos].ulPropTag		= PR_RECEIVED_BY_ENTRYID;
-		lpPropValue[ulPropPos].Value.bin.cb		= lpPropArrayOriginal[OR_SENDER_ENTRYID].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb	= lpPropArrayOriginal[OR_SENDER_ENTRYID].Value.bin.lpb;
-
+		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENDER_ENTRYID].Value.bin;
 		lpPropValue[ulPropPos].ulPropTag		= PR_ORIGINAL_SENDER_ENTRYID;
-		lpPropValue[ulPropPos].Value.bin.cb		= lpPropArrayOriginal[OR_SENDER_ENTRYID].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb	= lpPropArrayOriginal[OR_SENDER_ENTRYID].Value.bin.lpb;
+		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENDER_ENTRYID].Value.bin;
 	}
 
 	if(PROP_TYPE(lpPropArrayOriginal[OR_SENT_REPRESENTING_NAME].ulPropTag) != PT_ERROR) {
@@ -742,22 +736,16 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 	if(PROP_TYPE(lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].ulPropTag) != PT_ERROR) {
 		lpPropValue[ulPropPos].ulPropTag = PR_RCVD_REPRESENTING_SEARCH_KEY;
-		lpPropValue[ulPropPos].Value.bin.cb = lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb = lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin.lpb;
-
+		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin;
 		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_SEARCH_KEY;
-		lpPropValue[ulPropPos].Value.bin.cb = lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb = lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin.lpb;
+		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin;
 	}
 
 	if(PROP_TYPE(lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].ulPropTag) != PT_ERROR) {
 		lpPropValue[ulPropPos].ulPropTag		= PR_RCVD_REPRESENTING_ENTRYID;
-		lpPropValue[ulPropPos].Value.bin.cb		= lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb	= lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].Value.bin.lpb;
-
+		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].Value.bin;
 		lpPropValue[ulPropPos].ulPropTag		= PR_ORIGINAL_SENT_REPRESENTING_ENTRYID;
-		lpPropValue[ulPropPos].Value.bin.cb		= lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb	= lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].Value.bin.lpb;
+		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].Value.bin;
 	}
 
 	// Original display to
@@ -793,8 +781,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	// Original searchkey
 	if(PROP_TYPE(lpPropArrayOriginal[OR_SEARCH_KEY].ulPropTag) != PT_ERROR) {
 		lpPropValue[ulPropPos].ulPropTag		= PR_ORIGINAL_SEARCH_KEY;
-		lpPropValue[ulPropPos].Value.bin.cb		= lpPropArrayOriginal[OR_SEARCH_KEY].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb	= lpPropArrayOriginal[OR_SEARCH_KEY].Value.bin.lpb;
+		lpPropValue[ulPropPos++].Value.bin = lpPropArrayOriginal[OR_SEARCH_KEY].Value.bin;
 	}
 
 	// Add the original message into the errorMessage
@@ -1807,8 +1794,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		sPropSender[2].Value.lpszW = (LPTSTR)lpUser->lpszMailAddress;
 
 		sPropSender[3].ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
-		sPropSender[3].Value.bin.cb = lpUser->sUserId.cb;
-		sPropSender[3].Value.bin.lpb = lpUser->sUserId.lpb;
+		sPropSender[3].Value.bin = lpUser->sUserId;
 
 		HRESULT hr2 = lpMessage->SetProps(4, sPropSender, NULL);
 		if (hr2 != hrSuccess) {
@@ -1885,8 +1871,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	sPropSender[2].Value.LPSZ = lpUser->lpszMailAddress;
 
 	sPropSender[3].ulPropTag = PR_SENDER_ENTRYID;
-	sPropSender[3].Value.bin.cb = lpUser->sUserId.cb;
-	sPropSender[3].Value.bin.lpb = lpUser->sUserId.lpb;
+	sPropSender[3].Value.bin = lpUser->sUserId;
 	// @todo PR_SENDER_SEARCH_KEY
 
 	hr = lpMessage->SetProps(4, sPropSender, NULL);
