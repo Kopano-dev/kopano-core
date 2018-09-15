@@ -476,7 +476,7 @@ static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
 		return kc_perrorf("SaveChanges failed", hr);
 	hr = HrGetOneProp(lpMessageCopy, PR_ENTRYID, &~lpEntryID);
 	if (hr != hrSuccess)
-		kc_perrorf("HrGetOneProp failed", hr);
+		return kc_perrorf("HrGetOneProp failed", hr);
 	auto strEntryID = bin2hex(lpEntryID->Value.bin);
 
 	// We cannot rely on the 'current locale' to be able to represent the username in wstrUsername. We therefore
@@ -593,7 +593,7 @@ static HRESULT OpenResolveAddrFolder(IMAPISession *lpSession,
 		return hrSuccess;
 	hr = OpenResolveAddrFolder(*lppAdrBook, lppAddrDir);
 	if(hr != hrSuccess)
-		kc_perrorf("OpenResolveAddrFolder failed", hr);
+		return kc_perrorf("OpenResolveAddrFolder failed", hr);
 	return hrSuccess;
 }
 
