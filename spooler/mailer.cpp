@@ -538,8 +538,8 @@ static HRESULT RemoveP1Recipients(IMessage *lpMessage)
 		return kc_perrorf("QueryRows failed" ,hr);
 	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(lpRows.get()));
 	if (hr != hrSuccess)
-		kc_perrorf("ModifyRecipients failed", hr);
-	return hr;
+		return kc_perrorf("ModifyRecipients failed", hr);
+	return hrSuccess;
 }
 
 /**
@@ -1095,8 +1095,7 @@ static HRESULT SMTPToZarafa(IAddrBook *lpAddrBook, const SBinary &smtp,
 		return kc_perrorf("ResolveName failed", hr);
 	auto lpSpoofEID = lpAList->aEntries[0].cfind(PR_ENTRYID);
 	if (!lpSpoofEID) {
-		hr = MAPI_E_NOT_FOUND;
-		kc_perror("PpropFindProp failed", hr);
+		kc_perror("PpropFindProp failed", MAPI_E_NOT_FOUND);
 		return hrSuccess;
 	}
 	hr = KAllocCopy(lpSpoofEID->Value.bin.lpb, lpSpoofEID->Value.bin.cb, reinterpret_cast<void **>(&zeid->lpb));

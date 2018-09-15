@@ -553,8 +553,8 @@ static HRESULT OpenResolveAddrFolder(LPADRBOOK lpAdrBook,
 		return kc_perrorf("Unable to find default resolve directory", hr);
 	hr = lpAdrBook->OpenEntry(cbEntryId, lpEntryId, &iid_of(*lppAddrDir), 0, &ulObj, reinterpret_cast<IUnknown **>(lppAddrDir));
 	if (hr != hrSuccess)
-		kc_perror("Unable to open default resolve directory", hr);
-	return hr;
+		return kc_perror("Unable to open default resolve directory", hr);
+	return hrSuccess;
 }
 
 /**
@@ -738,11 +738,10 @@ static HRESULT ResolveUser(IABContainer *lpAddrFolder, ECRecipient *lpRecip)
 	list.emplace(lpRecip);
 	auto hr = ResolveUsers(lpAddrFolder, &list);
 	if (hr != hrSuccess)
-		kc_perrorf("ResolveUsers failed", hr);
+		return kc_perrorf("ResolveUsers failed", hr);
 	else if (lpRecip->ulResolveFlags != MAPI_RESOLVED)
-		hr = MAPI_E_NOT_FOUND;
-
-	return hr;
+		return MAPI_E_NOT_FOUND;
+	return hrSuccess;
 }
 
 /** 
@@ -990,10 +989,8 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 
 	// check if we may write in the selected folder
 	hr = HrGetOneProp(lpDeliveryFolder, PR_ACCESS_LEVEL, &~lpWritePerms);
-	if (FAILED(hr)) {
-		kc_perror("Unable to read folder properties", hr);
-		return hr;
-	}
+	if (FAILED(hr))
+		return kc_perror("Unable to read folder properties", hr);
 	if ((lpWritePerms->Value.ul & MAPI_MODIFY) == 0) {
 		ec_log_warn("No write access in folder, using regular inbox");
 		lpDeliveryStore = lpUserStore;
@@ -1098,8 +1095,8 @@ static HRESULT FallbackDelivery(StatsClient *sc, IMessage *lpMessage,
 		return kc_perrorf("SetProps failed(2)", hr);
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess)
-		kc_perrorf("lpMessage->SaveChanges failed", hr);
-	return hr;
+		return kc_perrorf("lpMessage->SaveChanges failed", hr);
+	return hrSuccess;
 }
 
 /** 
@@ -1254,11 +1251,8 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	});
 
 	hr = HrGetAddress(lpAdrBook, lpMessage, PR_SENDER_ENTRYID, PR_SENDER_NAME, PR_SENDER_ADDRTYPE, PR_SENDER_EMAIL_ADDRESS, strFromName, strFromType, strFromEmail);
-	if (hr != hrSuccess) {
-		kc_perror("Unable to get sender e-mail address for autoresponder", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perror("Unable to get sender e-mail address for autoresponder", hr);
 	snprintf(szTemp, PATH_MAX, "%s/autorespond.XXXXXX", TmpPath::instance.getTempPath().c_str());
 	fd = mkstemp(szTemp);
 	if (fd < 0) {
@@ -1271,37 +1265,26 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	quoted = ToQuotedBase64Header(lpRecip->wstrFullname);
 	snprintf(szHeader, PATH_MAX, "From: %s <%s>", quoted.c_str(), lpRecip->strSMTP.c_str());
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess) {
-		kc_perrorf("WriteOrLogError failed(1)", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("WriteOrLogError failed(1)", hr);
 	snprintf(szHeader, PATH_MAX, "\nTo: %ls", strFromEmail.c_str());
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess) {
-		kc_perrorf("WriteOrLogError failed(2)", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("WriteOrLogError failed(2)", hr);
 
 	// add anti-loop header for Kopano
 	snprintf(szHeader, PATH_MAX, "\nX-Kopano-Vacation: autorespond");
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess) {
-		kc_perrorf("WriteOrLogError failed(3)", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("WriteOrLogError failed(3)", hr);
 	/*
 	 * Add anti-loop header for Exchange, see
 	 * http://msdn.microsoft.com/en-us/library/ee219609(v=exchg.80).aspx
 	 */
 	snprintf(szHeader, PATH_MAX, "\nX-Auto-Response-Suppress: All");
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess) {
-		kc_perrorf("WriteOrLogError failed(4)", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("WriteOrLogError failed(4)", hr);
 	/*
 	 * Add anti-loop header for vacation(1) compatible implementations,
 	 * see book "Sendmail" (ISBN 0596555342), section 10.9.
@@ -1309,10 +1292,8 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	 */
 	snprintf(szHeader, PATH_MAX, "\nPrecedence: bulk");
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess) {
-		kc_perrorf("WriteOrLogError failed(5)", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("WriteOrLogError failed(5)", hr);
 
 	if (lpMessageProps[3].ulPropTag == PR_SUBJECT_W)
 		// convert as one string because of [] characters
@@ -1322,10 +1303,8 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	quoted = ToQuotedBase64Header(szwHeader);
 	snprintf(szHeader, PATH_MAX, "\nSubject: %s", quoted.c_str());
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess) {
-		kc_perrorf("WriteOrLogError failed(4)", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("WriteOrLogError failed(4)", hr);
 
 	auto timelocale = newlocale(LC_TIME_MASK, "C", nullptr);
 	time_t now = time(NULL);
@@ -1333,49 +1312,35 @@ static HRESULT SendOutOfOffice(StatsClient *sc, IAddrBook *lpAdrBook,
 	localtime_r(&now, &local);
 	strftime_l(szHeader, PATH_MAX, "\nDate: %a, %d %b %Y %T %z", &local, timelocale);
 	freelocale(timelocale);
-
-	if (WriteOrLogError(fd, szHeader, strlen(szHeader)) != hrSuccess) {
-		kc_perrorf("WriteOrLogError failed(5)", hr);
-		return hr;
-	}
+	if (WriteOrLogError(fd, szHeader, strlen(szHeader)) != hrSuccess)
+		return kc_perrorf("WriteOrLogError failed(5)", hr);
 
 	snprintf(szHeader, PATH_MAX, "\nContent-Type: text/plain; charset=utf-8; format=flowed");
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess) {
-		kc_perrorf("WriteOrLogError failed(6)", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("WriteOrLogError failed(6)", hr);
 
 	snprintf(szHeader, PATH_MAX, "\nContent-Transfer-Encoding: base64");
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess) {
-		kc_perrorf("WriteOrLogError failed(7)", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("WriteOrLogError failed(7)", hr);
 
 	snprintf(szHeader, PATH_MAX, "\nMime-Version: 1.0"); // add mime-version header, so some clients show high-characters correctly
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess) {
-		kc_perrorf("WriteOrLogError failed(8)", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("WriteOrLogError failed(8)", hr);
 
 	snprintf(szHeader, PATH_MAX, "\n\n"); // last header line has double \n
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
-	if (hr != hrSuccess) {
-		kc_perrorf("WriteOrLogError failed(9)", hr);
-		return hr;
-	}
+	if (hr != hrSuccess)
+		return kc_perrorf("WriteOrLogError failed(9)", hr);
 
 	// write body
 	unquoted = convert_to<string>("UTF-8", strBody, rawsize(strBody), CHARSET_WCHAR);
 	quoted = base64_encode(unquoted.c_str(), unquoted.length());
 	hr = WriteOrLogError(fd, quoted.c_str(), quoted.length(), 76);
-	if (hr != hrSuccess) {
-		kc_perrorf("WriteOrLogError failed(10)", hr);
-		return hr;
-	}
-
+	if (hr != hrSuccess)
+		return kc_perrorf("WriteOrLogError failed(10)", hr);
 	close(fd);
 	fd = -1;
 
@@ -1444,8 +1409,8 @@ static HRESULT HrCreateMessage(IMAPIFolder *lpFolder,
 		return kc_perrorf("QueryInterface:message failed", hr);
 	hr = lpFolder->QueryInterface(IID_IMAPIFolder, (void**)lppDeliveryFolder);
 	if (hr != hrSuccess)
-		kc_perrorf("QueryInterface:folder failed", hr);
-	return hr;
+		return kc_perrorf("QueryInterface:folder failed", hr);
+	return hrSuccess;
 }
 
 /** 
@@ -1640,8 +1605,8 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 
 	hr = lpMessage->SetProps(4, sPropRecip, NULL);
 	if (hr != hrSuccess)
-		kc_perror("SetProps failed", hr);
-	return hr;
+		return kc_perror("SetProps failed", hr);
+	return hrSuccess;
 }
 
 /** 
@@ -1739,8 +1704,8 @@ static HRESULT HrOverrideFallbackProps(IMessage *lpMessage,
 
 	hr = lpMessage->SetProps(ulPropPos, sPropOverride, NULL);
 	if (hr != hrSuccess)
-		kc_perror("Unable to set fallback delivery properties", hr);
-	return hr;
+		return kc_perror("Unable to set fallback delivery properties", hr);
+	return hrSuccess;
 }
 
 /** 
@@ -1776,8 +1741,8 @@ static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
 
 	HRESULT hr = lpMessage->SetProps(5, sPropReceived, NULL);
 	if (hr != hrSuccess)
-		kc_perror("Unable to set RECEIVED_BY properties", hr);
-	return hr;
+		return kc_perror("Unable to set RECEIVED_BY properties", hr);
+	return hrSuccess;
 }
 
 /** 
@@ -2222,9 +2187,8 @@ static HRESULT ProcessDeliveryToRecipient(pym_plugin_intf *lppyMapiPlugin,
 				return kc_perror("Unable to instantiate archive object", hr);
 			hr = ptrArchive->HrArchiveMessageForDelivery(lpDeliveryMessage, g_lpLogger);
 			if (hr != hrSuccess) {
-				kc_perror("Unable to archive message", hr);
 				Util::HrDeleteMessage(lpSession, lpDeliveryMessage);
-				return hr;
+				return kc_perror("Unable to archive message", hr);
 			}
 		}
 
@@ -2321,12 +2285,11 @@ static HRESULT ProcessDeliveryToServer(pym_plugin_intf *lppyMapiPlugin,
 		     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 		     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess || (hr = HrOpenDefaultStore(lpSession, &~lpStore)) != hrSuccess) {
-		kc_perror("Unable to open default store for system account", hr);
 		// notify LMTP client soft error to try again later
 		for (const auto &recip : listRecipients)
 			// error will be shown in postqueue status in postfix, probably too in other serves and mail syslog service
 			recip->wstrDeliveryStatus = "450 4.5.0 %s network or permissions error to storage server: " + stringify_hex(hr);
-		return hr;
+		return kc_perror("Unable to open default store for system account", hr);
 	}
 
 	for (auto iter = listRecipients.cbegin(); iter != listRecipients.end(); ++iter) {
@@ -2423,8 +2386,8 @@ static HRESULT ProcessDeliveryToSingleRecipient(pym_plugin_intf *lppyMapiPlugin,
 	hr = ProcessDeliveryToServer(lppyMapiPlugin, lpSession, NULL, false, strMail, lpArgs->strPath, lstSingleRecip, lpAdrBook, lpArgs, NULL, NULL);
 
 	if (hr != hrSuccess)
-		kc_perrorf("ProcessDeliveryToServer failed", hr);
-	return hr;
+		return kc_perrorf("ProcessDeliveryToServer failed", hr);
+	return hrSuccess;
 }
 
 /** 
