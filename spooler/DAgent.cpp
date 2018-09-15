@@ -1014,42 +1014,29 @@ static HRESULT FallbackDelivery(StatsClient *sc, IMessage *lpMessage,
     const std::string &msg)
 {
 	std::string newbody;
-	SPropValue lpPropValue[8], lpAttPropValue[4];
+	SPropValue pm[8], pa[4];
 	FILETIME		ft;
 	object_ptr<IAttach> lpAttach;
-	ULONG			ulAttachNum;
+	unsigned int ulAttachNum, m = 0, n = 0;
 	object_ptr<IStream> lpStream;
 
 	sc -> countInc("DAgent", "FallbackDelivery");
-
-	unsigned int ulPropPos = 0;
-
-	// Subject
-	lpPropValue[ulPropPos].ulPropTag = PR_SUBJECT_W;
-	lpPropValue[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"Fallback delivery");
-
-	// Message flags
-	lpPropValue[ulPropPos].ulPropTag = PR_MESSAGE_FLAGS;
-	lpPropValue[ulPropPos++].Value.ul = 0;
-
-	// Message class
-	lpPropValue[ulPropPos].ulPropTag = PR_MESSAGE_CLASS_W;
-	lpPropValue[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"IPM.Note");
-
+	pm[m].ulPropTag     = PR_SUBJECT_W;
+	pm[m++].Value.lpszW = const_cast<wchar_t *>(L"Fallback delivery");
+	pm[m].ulPropTag     = PR_MESSAGE_FLAGS;
+	pm[m++].Value.ul    = 0;
+	pm[m].ulPropTag     = PR_MESSAGE_CLASS_W;
+	pm[m++].Value.lpszW = const_cast<wchar_t *>(L"IPM.Note");
 	GetSystemTimeAsFileTime(&ft);
-
-	// Submit time
-	lpPropValue[ulPropPos].ulPropTag = PR_CLIENT_SUBMIT_TIME;
-	lpPropValue[ulPropPos++].Value.ft = ft;
-
-	// Delivery time
-	lpPropValue[ulPropPos].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
-	lpPropValue[ulPropPos++].Value.ft = ft;
+	pm[m].ulPropTag  = PR_CLIENT_SUBMIT_TIME;
+	pm[m++].Value.ft = ft;
+	pm[m].ulPropTag  = PR_MESSAGE_DELIVERY_TIME;
+	pm[m++].Value.ft = ft;
 
 	newbody = "An e-mail sent to you could not be delivered correctly.\n\n"
 	          "The original message is attached to this e-mail (the one you are reading right now).\n";
-	lpPropValue[ulPropPos].ulPropTag = PR_BODY_A;
-	lpPropValue[ulPropPos++].Value.lpszA = (char*)newbody.c_str();
+	pm[m].ulPropTag     = PR_BODY_A;
+	pm[m++].Value.lpszA = const_cast<char *>(newbody.c_str());
 
 	// Add the original message into the errorMessage
 	auto hr = lpMessage->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
@@ -1066,23 +1053,17 @@ static HRESULT FallbackDelivery(StatsClient *sc, IMessage *lpMessage,
 		return kc_perrorf("lpStream->Commit failed", hr);
 
 	// Add attachment properties
-	unsigned int ulAttPropPos = 0;
-
-	// Attach method .. ?
-	lpAttPropValue[ulAttPropPos].ulPropTag = PR_ATTACH_METHOD;
-	lpAttPropValue[ulAttPropPos++].Value.ul = ATTACH_BY_VALUE;
-
-	lpAttPropValue[ulAttPropPos].ulPropTag = PR_ATTACH_LONG_FILENAME_W;
-	lpAttPropValue[ulAttPropPos++].Value.lpszW = const_cast<wchar_t *>(L"original.eml");
-
-	lpAttPropValue[ulAttPropPos].ulPropTag = PR_ATTACH_FILENAME_W;
-	lpAttPropValue[ulAttPropPos++].Value.lpszW = const_cast<wchar_t *>(L"original.eml");
-
-	lpAttPropValue[ulAttPropPos].ulPropTag = PR_ATTACH_CONTENT_ID_W;
-	lpAttPropValue[ulAttPropPos++].Value.lpszW = const_cast<wchar_t *>(L"dagent-001@localhost");
+	pa[n].ulPropTag     = PR_ATTACH_METHOD;
+	pa[n++].Value.ul    = ATTACH_BY_VALUE;
+	pa[n].ulPropTag     = PR_ATTACH_LONG_FILENAME_W;
+	pa[n++].Value.lpszW = const_cast<wchar_t *>(L"original.eml");
+	pa[n].ulPropTag     = PR_ATTACH_FILENAME_W;
+	pa[n++].Value.lpszW = const_cast<wchar_t *>(L"original.eml");
+	pa[n].ulPropTag     = PR_ATTACH_CONTENT_ID_W;
+	pa[n++].Value.lpszW = const_cast<wchar_t *>(L"dagent-001@localhost");
 
 	// Add attachment properties
-	hr = lpAttach->SetProps(ulAttPropPos, lpAttPropValue, NULL);
+	hr = lpAttach->SetProps(n, pa, nullptr);
 	if (hr != hrSuccess)
 		return kc_perrorf("SetProps failed(1)", hr);
 	hr = lpAttach->SaveChanges(0);
@@ -1090,7 +1071,7 @@ static HRESULT FallbackDelivery(StatsClient *sc, IMessage *lpMessage,
 		return kc_perrorf("SaveChanges failed", hr);
 
 	// Add message properties
-	hr = lpMessage->SetProps(ulPropPos, lpPropValue, NULL);
+	hr = lpMessage->SetProps(m, pm, nullptr);
 	if (hr != hrSuccess)
 		return kc_perrorf("SetProps failed(2)", hr);
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
@@ -1617,89 +1598,62 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
  * 
  * @return MAPI Error code
  */
-static HRESULT HrOverrideFallbackProps(IMessage *lpMessage,
-    ECRecipient *lpRecip)
+static HRESULT HrOverrideFallbackProps(IMessage *lpMessage, ECRecipient *r)
 {
 	memory_ptr<ENTRYID> lpEntryIdSender;
-	ULONG cbEntryIdSender;
-	SPropValue sPropOverride[17];
-	ULONG ulPropPos = 0;
+	ULONG cbEntryIdSender, n = 0;
+	SPropValue p[17];
 
 	// Set From: and To: to the receiving party, reply will be to yourself...
 	// Too much information?
-	sPropOverride[ulPropPos].ulPropTag = PR_SENDER_NAME_W;
-	sPropOverride[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"System Administrator");
+	p[n].ulPropTag     = PR_SENDER_NAME_W;
+	p[n++].Value.lpszW = const_cast<wchar_t *>(L"System Administrator");
+	p[n].ulPropTag     = PR_SENT_REPRESENTING_NAME_W;
+	p[n++].Value.lpszW = const_cast<wchar_t *>(L"System Administrator");
+	p[n].ulPropTag     = PR_RECEIVED_BY_NAME_W;
+	p[n++].Value.lpszW = const_cast<wchar_t *>(r->wstrEmail.c_str());
+	p[n].ulPropTag     = PR_SENDER_EMAIL_ADDRESS_A;
+	p[n++].Value.lpszA = const_cast<char *>(r->strSMTP.c_str());
+	p[n].ulPropTag     = PR_SENT_REPRESENTING_EMAIL_ADDRESS_A;
+	p[n++].Value.lpszA = const_cast<char *>(r->strSMTP.c_str());
+	p[n].ulPropTag     = PR_RECEIVED_BY_EMAIL_ADDRESS_A;
+	p[n++].Value.lpszA = const_cast<char *>(r->strSMTP.c_str());
+	p[n].ulPropTag     = PR_RCVD_REPRESENTING_EMAIL_ADDRESS_A;
+	p[n++].Value.lpszA = const_cast<char *>(r->strSMTP.c_str());
+	p[n].ulPropTag     = PR_SENDER_ADDRTYPE_W;
+	p[n++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
+	p[n].ulPropTag     = PR_SENT_REPRESENTING_ADDRTYPE_W;
+	p[n++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
+	p[n].ulPropTag     = PR_RECEIVED_BY_ADDRTYPE_W;
+	p[n++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
+	p[n].ulPropTag     = PR_RCVD_REPRESENTING_ADDRTYPE_W;
+	p[n++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
+	p[n].ulPropTag     = PR_SENDER_SEARCH_KEY;
+	p[n++].Value.bin   = r->sSearchKey;
+	p[n].ulPropTag     = PR_RECEIVED_BY_SEARCH_KEY;
+	p[n++].Value.bin   = r->sSearchKey;
+	p[n].ulPropTag     = PR_SENT_REPRESENTING_SEARCH_KEY;
+	p[n++].Value.bin   = r->sSearchKey;
 
-	sPropOverride[ulPropPos].ulPropTag = PR_SENT_REPRESENTING_NAME_W;
-	sPropOverride[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"System Administrator");
-
-	sPropOverride[ulPropPos].ulPropTag = PR_RECEIVED_BY_NAME_W;
-	sPropOverride[ulPropPos++].Value.lpszW = (WCHAR *)lpRecip->wstrEmail.c_str();
-
-	// PR_SENDER_EMAIL_ADDRESS
-	sPropOverride[ulPropPos].ulPropTag = PR_SENDER_EMAIL_ADDRESS_A;
-	sPropOverride[ulPropPos++].Value.lpszA = (char *)lpRecip->strSMTP.c_str();
-
-	// PR_SENT_REPRESENTING_EMAIL_ADDRESS
-	sPropOverride[ulPropPos].ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS_A;
-	sPropOverride[ulPropPos++].Value.lpszA = (char *)lpRecip->strSMTP.c_str();
-
-	// PR_RECEIVED_BY_EMAIL_ADDRESS
-	sPropOverride[ulPropPos].ulPropTag = PR_RECEIVED_BY_EMAIL_ADDRESS_A;
-	sPropOverride[ulPropPos++].Value.lpszA = (char *)lpRecip->strSMTP.c_str();
-
-	sPropOverride[ulPropPos].ulPropTag = PR_RCVD_REPRESENTING_EMAIL_ADDRESS_A;
-	sPropOverride[ulPropPos++].Value.lpszA = (char *)lpRecip->strSMTP.c_str();
-
-	// PR_SENDER_ADDRTYPE
-	sPropOverride[ulPropPos].ulPropTag = PR_SENDER_ADDRTYPE_W;
-	sPropOverride[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-
-	// PR_SENT_REPRESENTING_ADDRTYPE
-	sPropOverride[ulPropPos].ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE_W;
-	sPropOverride[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-
-	// PR_RECEIVED_BY_ADDRTYPE
-	sPropOverride[ulPropPos].ulPropTag = PR_RECEIVED_BY_ADDRTYPE_W;
-	sPropOverride[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-
-	sPropOverride[ulPropPos].ulPropTag = PR_RCVD_REPRESENTING_ADDRTYPE_W;
-	sPropOverride[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-
-	// PR_SENDER_SEARCH_KEY
-	sPropOverride[ulPropPos].ulPropTag = PR_SENDER_SEARCH_KEY;
-	sPropOverride[ulPropPos++].Value.bin = lpRecip->sSearchKey;
-
-	// PR_RECEIVED_BY_SEARCH_KEY (set as previous)
-	sPropOverride[ulPropPos].ulPropTag = PR_RECEIVED_BY_SEARCH_KEY;
-	sPropOverride[ulPropPos++].Value.bin = lpRecip->sSearchKey;
-
-	// PR_SENT_REPRESENTING_SEARCH_KEY (set as previous)
-	sPropOverride[ulPropPos].ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
-	sPropOverride[ulPropPos++].Value.bin = lpRecip->sSearchKey;
-
-	auto hr = ECCreateOneOff(reinterpret_cast<const TCHAR *>(lpRecip->wstrFullname.c_str()), reinterpret_cast<const TCHAR *>(L"SMTP"), reinterpret_cast<const TCHAR *>(convert_to<std::wstring>(lpRecip->strSMTP).c_str()),
+	auto hr = ECCreateOneOff(reinterpret_cast<const TCHAR *>(r->wstrFullname.c_str()),
+	          reinterpret_cast<const TCHAR *>(L"SMTP"),
+	          reinterpret_cast<const TCHAR *>(convert_to<std::wstring>(r->strSMTP).c_str()),
 	          MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryIdSender, &~lpEntryIdSender);
 	if (hr == hrSuccess) {
-		// PR_SENDER_ENTRYID
-		sPropOverride[ulPropPos].ulPropTag = PR_SENDER_ENTRYID;
-		sPropOverride[ulPropPos].Value.bin.cb = cbEntryIdSender;
-		sPropOverride[ulPropPos++].Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryIdSender.get());
-
-		// PR_RECEIVED_BY_ENTRYID
-		sPropOverride[ulPropPos].ulPropTag = PR_RECEIVED_BY_ENTRYID;
-		sPropOverride[ulPropPos].Value.bin.cb = cbEntryIdSender;
-		sPropOverride[ulPropPos++].Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryIdSender.get());
-
-		// PR_SENT_REPRESENTING_ENTRYID
-		sPropOverride[ulPropPos].ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
-		sPropOverride[ulPropPos].Value.bin.cb = cbEntryIdSender;
-		sPropOverride[ulPropPos++].Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryIdSender.get());
+		p[n].ulPropTag       = PR_SENDER_ENTRYID;
+		p[n].Value.bin.cb    = cbEntryIdSender;
+		p[n++].Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryIdSender.get());
+		p[n].ulPropTag       = PR_RECEIVED_BY_ENTRYID;
+		p[n].Value.bin.cb    = cbEntryIdSender;
+		p[n++].Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryIdSender.get());
+		p[n].ulPropTag       = PR_SENT_REPRESENTING_ENTRYID;
+		p[n].Value.bin.cb    = cbEntryIdSender;
+		p[n++].Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryIdSender.get());
 	} else {
 		hr = hrSuccess;
 	}
 
-	hr = lpMessage->SetProps(ulPropPos, sPropOverride, NULL);
+	hr = lpMessage->SetProps(n, p, nullptr);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to set fallback delivery properties", hr);
 	return hrSuccess;
@@ -1716,23 +1670,19 @@ static HRESULT HrOverrideFallbackProps(IMessage *lpMessage,
 static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
     ECRecipient *lpRecip)
 {
-	SPropValue sPropReceived[5];
+	SPropValue p[5];
 
-	/* First set the PR_RECEIVED_BY_* properties */
-	sPropReceived[0].ulPropTag = PR_RECEIVED_BY_ADDRTYPE_A;
-	sPropReceived[0].Value.lpszA = (char *)lpRecip->strAddrType.c_str();
-
-	sPropReceived[1].ulPropTag = PR_RECEIVED_BY_EMAIL_ADDRESS_W;
-	sPropReceived[1].Value.lpszW = (WCHAR *)lpRecip->wstrUsername.c_str();
-
-	sPropReceived[2].ulPropTag = PR_RECEIVED_BY_ENTRYID;
-	sPropReceived[2].Value.bin = lpRecip->sEntryId;
-	sPropReceived[3].ulPropTag = PR_RECEIVED_BY_NAME_W;
-	sPropReceived[3].Value.lpszW = (WCHAR *)lpRecip->wstrFullname.c_str();
-
-	sPropReceived[4].ulPropTag = PR_RECEIVED_BY_SEARCH_KEY;
-	sPropReceived[4].Value.bin = lpRecip->sSearchKey;
-	HRESULT hr = lpMessage->SetProps(5, sPropReceived, NULL);
+	p[0].ulPropTag   = PR_RECEIVED_BY_ADDRTYPE_A;
+	p[0].Value.lpszA = const_cast<char *>(lpRecip->strAddrType.c_str());
+	p[1].ulPropTag   = PR_RECEIVED_BY_EMAIL_ADDRESS_W;
+	p[1].Value.lpszW = const_cast<wchar_t *>(lpRecip->wstrUsername.c_str());
+	p[2].ulPropTag   = PR_RECEIVED_BY_ENTRYID;
+	p[2].Value.bin   = lpRecip->sEntryId;
+	p[3].ulPropTag   = PR_RECEIVED_BY_NAME_W;
+	p[3].Value.lpszW = const_cast<wchar_t *>(lpRecip->wstrFullname.c_str());
+	p[4].ulPropTag   = PR_RECEIVED_BY_SEARCH_KEY;
+	p[4].Value.bin   = lpRecip->sSearchKey;
+	HRESULT hr = lpMessage->SetProps(ARRAY_SIZE(p), p, nullptr);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to set RECEIVED_BY properties", hr);
 	return hrSuccess;
