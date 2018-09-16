@@ -1230,7 +1230,7 @@ HRESULT HrProcessRules(const std::string &recip, pym_plugin_intf *pyMapiPlugin,
 			// NOTE: object is placed in Value.lpszA, not Value.x
 			lpCondition = (LPSRestriction)lpProp->Value.lpszA;
 		if (!lpCondition) {
-			ec_log_debug("Rule '%s' has no contition, skipping...", strRule.c_str());
+			ec_log_debug("Rule \"%s\" has no condition, skipping...", strRule.c_str());
 			continue;
 		}
 		lpProp = lpRowSet[0].cfind(PR_RULE_ACTIONS);
