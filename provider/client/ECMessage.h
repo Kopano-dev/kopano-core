@@ -144,7 +144,8 @@ private:
 	HRESULT SyncRtf();
 	HRESULT SyncHtmlToPlain();
 	HRESULT SyncHtmlToRtf();
-
+	HRESULT SetReadFlag2(unsigned int flags);
+	
 	BOOL fNew, m_bEmbedded, m_bExplicitSubjectPrefix = false;
 	BOOL m_bRecipsDirty = false, m_bInhibitSync = false;
 	eBodyType m_ulBodyType = bodyTypeUnknown;
