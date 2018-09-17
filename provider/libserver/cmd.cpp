@@ -3248,11 +3248,8 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 			return er;
 
 		// Object exists
-		if (!openifexists) {
-			ec_log_err("CreateFolder(): folder already exists");
+		if (!openifexists)
 			return KCERR_COLLISION;
-		}
-		
 		ulFolderId = atoi(lpDBRow[0]);
 	}
 	else {
