@@ -34,7 +34,6 @@ struct sfbEvent {
 	short rtmStart, rtmEnd;
 };
 
-#define FB_DATE(yearmonth,daytime)	((static_cast<ULONG>(static_cast<unsigned short>(yearmonth)) << 16) | static_cast<ULONG>(static_cast<unsigned short>(daytime)))
 #define FB_YEARMONTH(year, month)	(((static_cast<unsigned short>(year) << 4) & 0xFFF0) | static_cast<unsigned short>(month))
 #define FB_YEAR(yearmonth)		(static_cast<unsigned short>(yearmonth) >> 4)
 #define FB_MONTH(yearmonth)		(static_cast<unsigned short>(yearmonth) & 0x000F)

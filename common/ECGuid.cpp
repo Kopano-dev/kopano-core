@@ -29,9 +29,6 @@
 #define USES_IID_IStorage
 #define USES_IID_IMessageRaw
 
-// quick linux hack
-#define ECDEBUGCLIENT_USES_UIDS
-
 //Trace info
 #define USES_IID_IMAPISession
 #define USES_IID_IMAPIAdviseSink
@@ -126,7 +123,6 @@
 #define USES_IID_IFreeBusyData
 #define USES_IID_IFreeBusySupport
 #define USES_IID_IFreeBusyUpdate
-#define USES_pbGlobalProfileSectionGuid
 
 #include <mapiguid.h>
 #include <edkguid.h>
