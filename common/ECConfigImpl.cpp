@@ -281,26 +281,6 @@ const char *ECConfigImpl::GetSetting(const char *szName, const char *equal,
 		return value;
 }
 
-const wchar_t *ECConfigImpl::GetSettingW(const char *szName)
-{
-	const char *value = GetSetting(szName);
-	auto result = m_convertCache.emplace(value, L"");
-	auto iter = result.first;
-	if (result.second)
-		iter->second = convert_to<std::wstring>(value);
-	return iter->second.c_str();
-}
-
-const wchar_t *ECConfigImpl::GetSettingW(const char *szName,
-    const wchar_t *equal, const wchar_t *other)
-{
-	auto value = GetSettingW(szName);
-	if (value == equal || (value && equal && !wcscmp(value, equal)))
-		return other;
-	else
-		return value;
-}
-
 std::list<configsetting_t> ECConfigImpl::GetSettingGroup(unsigned int ulGroup)
 {
 	std::list<configsetting_t> lGroup;
