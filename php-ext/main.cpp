@@ -174,7 +174,6 @@ ZEND_END_ARG_INFO()
 #define USES_IID_IMsgStore
 #define USES_IID_IMessage
 #define USES_IID_IExchangeManageStore
-#define USES_IID_IECExportChanges
 
 #include <string>
 #include "util.h"
@@ -212,8 +211,6 @@ private:
 };
 
 static std::shared_ptr<ECLogger> lpLogger;
-
-#define MAPI_ASSERT_EX
 
 static unsigned int mapi_debug;
 static char *perf_measure_file;
