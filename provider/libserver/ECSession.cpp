@@ -957,7 +957,11 @@ ECRESULT ECAuthSession::ValidateSSOData_KCOIDC(struct soap* soap, const char* na
 {
 #ifdef HAVE_KCOIDC_H
 	auto input_str = std::string(reinterpret_cast<char *>(input->__ptr + 6), input->__size - 6);
+#if defined(KCOIDC_VERSION) && KCOIDC_VERSION >= 10100
+	auto res = kcoidc_validate_token_and_require_scope_s(const_cast<char *>(input_str.c_str()), "kopano/gc");
+#else
 	auto res = kcoidc_validate_token_s(const_cast<char *>(input_str.c_str()));
+#endif
 	auto laters = make_scope_success([&]() {
 		if (res.r0)
 			free(res.r0);
