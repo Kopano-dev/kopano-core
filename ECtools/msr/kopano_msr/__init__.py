@@ -32,6 +32,7 @@ USER_USER = _mgr.dict() # user mapping
 STORE_STORE = _mgr.dict() # store mapping
 STORE_FOLDER_QUEUED = _mgr.dict() # ensure max one worker per store (performance, correctness)
 STORE_FOLDERS_TODO = _mgr.dict() # store incoming updates until processed
+USER_SINK = {} # per-user notification sink
 
 def db_get(db_path, key):
     """ get value from db file """
@@ -179,20 +180,20 @@ def _queue_or_store(store_entryid, folder_entryid, iqueue):
             iqueue.put((store_entryid, folder_entryid))
 
 class NotificationSink:
-    def __init__(self, log, iqueue):
+    def __init__(self, store, iqueue, log):
+        self.store = store
         self.log = log
         self.iqueue = iqueue
 
     def update(self, notification):
         self.log.info('notif: %s %s', notification.object_type, notification.event_type)
-        store = notification.object.store
 
         if notification.object_type == 'item':
             folder = notification.object.folder
-            _queue_or_store(store.entryid, folder.entryid, self.iqueue)
+            _queue_or_store(self.store.entryid, folder.entryid, self.iqueue)
 
         elif notification.object_type == 'folder':
-            _queue_or_store(store.entryid, None, self.iqueue)
+            _queue_or_store(self.store.entryid, None, self.iqueue)
 
 class SyncWorker(kopano.Worker):
     """ worker process """
@@ -273,15 +274,18 @@ class Service(kopano.Service):
         # continue using notifications
         self.notify_sync()
 
-    def subscribe_user(self, server, sink, user, target_user):
+    def subscribe_user(self, server, user, target_user):
         self.log.info('subscribing: %s -> %s', user, target_user)
+
         usera = server.user(user)
         userb = server.user(target_user)
+        sink = NotificationSink(usera.store, self.iqueue, self.log)
 
         usera.store.subscribe(sink, object_types=['item', 'folder'])
 
         STORE_STORE[usera.store.entryid] = userb.store.entryid
         USER_USER[usera.name] = userb.name
+        USER_SINK[usera.name] = sink
 
         _queue_or_store(usera.store.entryid, None, self.iqueue)
         for folder in usera.folders():
@@ -289,13 +293,17 @@ class Service(kopano.Service):
 
     def unsubscribe_user(self, server, user):
         self.log.info('unsubscribing: %s', user)
+
         usera = server.user(user)
+        sink = USER_SINK[usera.name]
+
+        usera.store.unsubscribe(sink)
 
         del USER_USER[usera.name]
+        del USER_SINK[usera.name]
         del STORE_STORE[usera.store.entryid]
 
     def notify_sync(self):
-        sink = NotificationSink(self.log, self.iqueue)
         server = kopano.Server(notifications=True, options=self.options, parse_args=False) # TODO ugh
 
         while True:
@@ -303,7 +311,7 @@ class Service(kopano.Service):
             try:
                 user, target_user, subscribe = self.subscribe.get(timeout=0.01)
                 if subscribe:
-                    self.subscribe_user(server, sink, user, target_user)
+                    self.subscribe_user(server, user, target_user)
                 else:
                     self.unsubscribe_user(server, user)
 
