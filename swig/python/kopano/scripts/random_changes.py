@@ -1,6 +1,6 @@
 import random
+import string
 import time
-import uuid
 import sys
 
 from MAPI.Util import MAPIErrorCollision, MAPIErrorFolderCycle
@@ -11,12 +11,18 @@ import kopano
 #
 # folder/message create, update, read-unread, copy, move, delete
 #
-# usage: ./random_changes.py Username N
+# usage: ./random_changes.py Username N [SEED]
 #
 # (N==0 means infinite)
 
 username = sys.argv[1]
 total = int(sys.argv[2])
+if len(sys.argv) > 3:
+    seed = int(sys.argv[3])
+    random.seed(seed)
+
+def randname():
+    return ''.join(random.choice(string.ascii_lowercase) for x in range(10))
 
 user = kopano.user(username)
 store = user.store
@@ -59,10 +65,10 @@ while True:
             if action == 'create':
                 if folder == subtree:
                     continue
-                item = folder.create_item(subject=str(uuid.uuid4()))
+                item = folder.create_item(subject=randname())
 
             elif action == 'update':
-                item.subject = str(uuid.uuid4())
+                item.subject = randname()
 
             elif action == 'copy':
                 if folder2 == subtree:
@@ -87,10 +93,10 @@ while True:
 
         elif objtype == 'folder':
             if action == 'create':
-                folder.create_folder(name=str(uuid.uuid4()))
+                folder.create_folder(name=randname())
 
             elif action == 'update':
-                folder.name = str(uuid.uuid4())
+                folder.name = randname()
 
             elif action == 'copy':
                 folder.parent.copy(folder, folder2)
