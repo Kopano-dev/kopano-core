@@ -26,7 +26,7 @@ typedef std::list<std::pair<syncid_t,connection_t> > ECLISTCONNECTION;
 
 class SessionGroupData;
 
-class ECNotifyClient _kc_final : public KC::ECUnknown {
+class ECNotifyClient final : public KC::ECUnknown {
 protected:
 	ECNotifyClient(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport);
 	virtual ~ECNotifyClient();

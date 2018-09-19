@@ -23,7 +23,7 @@ class utf8string;
 
 class WSTransport;
 
-class WSMAPIFolderOps _kc_final : public KC::ECUnknown {
+class WSMAPIFolderOps final : public KC::ECUnknown {
 protected:
 	WSMAPIFolderOps(KC::ECSESSIONID, ULONG eid_size, const ENTRYID *, WSTransport *);
 	virtual ~WSMAPIFolderOps();

@@ -19,7 +19,7 @@ class WSSerializedMessage;
  * This object encapsulates a set of exported streams. It allows the user to request each individual stream. The
  * streams must be requested in the correct sequence.
  */
-class WSMessageStreamExporter _kc_final : public KC::ECUnknown {
+class WSMessageStreamExporter final : public KC::ECUnknown {
 public:
 	static HRESULT Create(ULONG ulOffset, ULONG ulCount, const messageStreamArray &streams, WSTransport *lpTransport, WSMessageStreamExporter **lppStreamExporter);
 	bool IsDone() const;

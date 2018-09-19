@@ -20,7 +20,7 @@ public:
 	ALLOC_WRAP_FRIEND;
 };
 
-class WSTableOutGoingQueue _kc_final : public WSStoreTableView {
+class WSTableOutGoingQueue final : public WSStoreTableView {
 protected:
 	WSTableOutGoingQueue(KC::ECSESSIONID, ULONG eid_size, const ENTRYID *, ECMsgStore *, WSTransport *);
 
@@ -31,7 +31,7 @@ public:
 	ALLOC_WRAP_FRIEND;
 };
 
-class WSTableMultiStore _kc_final : public WSStoreTableView {
+class WSTableMultiStore final : public WSStoreTableView {
 protected:
 	WSTableMultiStore(ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *);
     virtual ~WSTableMultiStore();
@@ -46,7 +46,7 @@ private:
 };
 
 /* not really store tables, but the code is the same.. */
-class WSTableMisc _kc_final : public WSStoreTableView {
+class WSTableMisc final : public WSStoreTableView {
 protected:
 	WSTableMisc(ULONG type, ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *eid, ECMsgStore *, WSTransport *);
 
@@ -62,7 +62,7 @@ private:
 /**
  * MailBox table which shows all the stores
  */
-class WSTableMailBox _kc_final : public WSStoreTableView {
+class WSTableMailBox final : public WSStoreTableView {
 protected:
 	WSTableMailBox(ULONG ulFlags, KC::ECSESSIONID, ECMsgStore *, WSTransport *);
 

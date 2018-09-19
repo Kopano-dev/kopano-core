@@ -15,7 +15,7 @@
 /**
  * This object represents one exported message stream. It is responsible for requesting the MTOM attachments from soap.
  */
-class WSSerializedMessage _kc_final : public KC::ECUnknown {
+class WSSerializedMessage final : public KC::ECUnknown {
 public:
 	WSSerializedMessage(soap *, const std::string &stream_id, ULONG nprops, SPropValue *props);
 	HRESULT GetProps(ULONG *lpcbProps, LPSPropValue *lppProps);

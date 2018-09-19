@@ -10,7 +10,7 @@
 #include <mapidefs.h>
 #include <mapicode.h>
 
-template<typename Type> class ECInvariantChecker _kc_final {
+template<typename Type> class ECInvariantChecker final {
 	public:
 	ECInvariantChecker(const Type *p) : m_p(p) { m_p->CheckInvariant(); }
 	~ECInvariantChecker() { m_p->CheckInvariant(); }
@@ -31,7 +31,7 @@ template<typename Type> class ECInvariantChecker _kc_final {
 #define DEF_INVARIANT_CHECK(__class) void __class::CheckInvariant() const
 
 // C++ class to represent a property in the property list.
-class ECProperty _kc_final {
+class ECProperty final {
 public:
 	ECProperty(const ECProperty &Property);
 	ECProperty(const SPropValue *);
@@ -58,7 +58,7 @@ private:
 
 // A class representing a property we have in-memory, a list of which is held by ECMAPIProp
 // Deleting a property just sets the property as deleted
-class ECPropertyEntry _kc_final {
+class ECPropertyEntry final {
 public:
 	ECPropertyEntry(ULONG ulPropTag);
 	ECPropertyEntry(std::unique_ptr<ECProperty> &&);

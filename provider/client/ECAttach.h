@@ -42,7 +42,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECAttachFactory _kc_final : public IAttachFactory {
+class ECAttachFactory final : public IAttachFactory {
 public:
 	HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *, ECAttach **) const;
 };

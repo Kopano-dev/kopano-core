@@ -16,7 +16,7 @@ struct ltmap {
 	bool operator()(const MAPINAMEID *, const MAPINAMEID *) const noexcept;
 };
 
-class ECNamedProp _kc_final {
+class ECNamedProp final {
 public:
 	ECNamedProp(WSTransport *lpTransport);
 	virtual ~ECNamedProp();

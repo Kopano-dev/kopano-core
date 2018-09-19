@@ -17,7 +17,7 @@
 class ECNotifyMaster;
 class WSTransport;
 
-class ECSessionGroupInfo _kc_final {
+class ECSessionGroupInfo final {
 public:
 	std::string strServer, strProfile;
 
@@ -44,7 +44,7 @@ static inline bool operator<(const ECSessionGroupInfo &a, const ECSessionGroupIn
 			((a.strServer.compare(b.strServer) == 0) && (a.strProfile.compare(b.strProfile) < 0));
 }
 
-class SessionGroupData _kc_final {
+class SessionGroupData final {
 private:
 	/* SessionGroup ID to which this data belongs */
 	KC::ECSESSIONGROUPID m_ecSessionGroupId;

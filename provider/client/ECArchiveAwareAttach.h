@@ -11,7 +11,7 @@
 
 class ECArchiveAwareMessage;
 
-class ECArchiveAwareAttach _kc_final : public ECAttach {
+class ECArchiveAwareAttach final : public ECAttach {
 protected:
 	ECArchiveAwareAttach(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root);
 
@@ -24,7 +24,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECArchiveAwareAttachFactory _kc_final : public IAttachFactory {
+class ECArchiveAwareAttachFactory final : public IAttachFactory {
 public:
 	HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root, ECAttach **) const;
 };

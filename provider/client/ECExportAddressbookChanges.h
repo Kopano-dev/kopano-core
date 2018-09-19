@@ -18,7 +18,7 @@ class ECLogger;
 
 }
 
-class ECExportAddressbookChanges _kc_final :
+class ECExportAddressbookChanges final :
     public KC::ECUnknown, public KC::IECExportAddressbookChanges {
 public:
 	ECExportAddressbookChanges(ECMsgStore *lpContainer);

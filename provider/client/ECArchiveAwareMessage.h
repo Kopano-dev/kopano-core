@@ -13,7 +13,7 @@
 
 class ECArchiveAwareMsgStore;
 
-class _kc_export_dycast ECArchiveAwareMessage _kc_final : public ECMessage {
+class _kc_export_dycast ECArchiveAwareMessage final : public ECMessage {
 protected:
 	/**
 	 * \param lpMsgStore	The store owning this message.
@@ -82,7 +82,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECArchiveAwareMessageFactory _kc_final : public IMessageFactory {
+class ECArchiveAwareMessageFactory final : public IMessageFactory {
 public:
 	HRESULT Create(ECMsgStore *, BOOL fnew, BOOL modify, ULONG flags, BOOL embedded, const ECMAPIProp *root, ECMessage **) const;
 };

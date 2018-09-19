@@ -172,7 +172,7 @@ private:
 	static HRESULT MsgStoreDnToPseudoUrl(const KC::utf8string &store_dn, KC::utf8string *pseudo_url);
 
 public:
-	class xMsgStoreProxy _kc_final :
+	class xMsgStoreProxy final :
 	    public IMsgStore, public KC::IECMultiStoreTable,
 	    public KC::IECTestProtocol {
 		virtual ULONG AddRef(void) _kc_override;
@@ -224,7 +224,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECMSLogon _kc_final : public KC::ECUnknown, public IMSLogon {
+class ECMSLogon final : public KC::ECUnknown, public IMSLogon {
 private:
 	ECMSLogon(ECMsgStore *lpStore);
 	ECMsgStore *m_lpStore;

@@ -33,7 +33,7 @@ class WSMessageStreamImporter;
 typedef HRESULT (*SESSIONRELOADCALLBACK)(void *parm, KC::ECSESSIONID new_id);
 typedef std::map<ULONG, std::pair<void *, SESSIONRELOADCALLBACK> > SESSIONRELOADLIST;
 
-class ECsResolveResult _kc_final : public KC::ECsCacheEntry {
+class ECsResolveResult final : public KC::ECsCacheEntry {
 public:
 	HRESULT	hr;
 	std::string serverPath;

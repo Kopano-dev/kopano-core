@@ -26,7 +26,7 @@ struct sGlobalProfileProps {
 	unsigned int ulProxyFlags = 0, ulProxyPort = 0;
 };
 
-class ClientUtil _kc_final {
+class ClientUtil final {
 public:
 	static HRESULT	HrInitializeStatusRow (const char * lpszProviderDisplay, ULONG ulResourceType, LPMAPISUP lpMAPISup, LPSPropValue lpspvIdentity, ULONG ulFlags);
 	static HRESULT	HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup, LPSPropValue* lppIdentityProps);

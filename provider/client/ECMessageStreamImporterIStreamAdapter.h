@@ -18,7 +18,7 @@
  * On commit, the call thread will block until the asynchronous call has completed, and
  * the return value will be returned.
  */
-class ECMessageStreamImporterIStreamAdapter _kc_final :
+class ECMessageStreamImporterIStreamAdapter final :
     public KC::ECUnknown, public IStream {
 public:
 	static HRESULT Create(WSMessageStreamImporter *lpStreamImporter, IStream **lppStream);

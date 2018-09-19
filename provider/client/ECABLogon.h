@@ -15,7 +15,7 @@
 
 class WSTransport;
 
-class ECABLogon _kc_final : public KC::ECUnknown, public IABLogon {
+class ECABLogon final : public KC::ECUnknown, public IABLogon {
 protected:
 	ECABLogon(IMAPISupport *, WSTransport *, ULONG profile_flags, const GUID *);
 	virtual ~ECABLogon();

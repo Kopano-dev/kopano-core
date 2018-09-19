@@ -13,7 +13,7 @@
 #include <edkmdb.h>
 #include <kopano/IECInterfaces.hpp>
 
-class ECExchangeModifyTable _kc_final :
+class ECExchangeModifyTable final :
     public KC::ECUnknown, public KC::IECExchangeModifyTable {
 public:
 	ECExchangeModifyTable(ULONG unique_tag, KC::ECMemTable *table, ECMAPIProp *parent, ULONG start_rule, ULONG flags);
@@ -39,7 +39,7 @@ private:
 	bool m_bPushToServer = true;
 };
 
-class ECExchangeRuleAction _kc_final :
+class ECExchangeRuleAction final :
     public KC::ECUnknown, public IExchangeRuleAction {
 public:
 	HRESULT ActionCount(ULONG *lpcActions);

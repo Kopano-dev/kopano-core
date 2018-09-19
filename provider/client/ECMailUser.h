@@ -13,7 +13,7 @@
 
 class ECABLogon;
 
-class ECDistList _kc_final : public ECABContainer, public IDistList {
+class ECDistList final : public ECABContainer, public IDistList {
 	public:
 	static HRESULT Create(ECABLogon *prov, BOOL modify, ECDistList **);
 	static HRESULT TableRowGetProp(void *prov, const struct propVal *src, SPropValue *dst, void **base, ULONG type);
@@ -31,7 +31,7 @@ class ECDistList _kc_final : public ECABContainer, public IDistList {
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECMailUser _kc_final : public ECABProp, public IMailUser {
+class ECMailUser final : public ECABProp, public IMailUser {
 private:
 	ECMailUser(ECABLogon *prov, BOOL modify);
 

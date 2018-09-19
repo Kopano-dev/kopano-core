@@ -19,7 +19,7 @@
  * tables implementations
  */
 
-class ECMAPITable _kc_final : public KC::ECUnknown, public IMAPITable {
+class ECMAPITable final : public KC::ECUnknown, public IMAPITable {
 protected:
 	ECMAPITable(const std::string &name, ECNotifyClient *, ULONG flags);
 	virtual ~ECMAPITable();

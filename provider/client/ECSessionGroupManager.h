@@ -17,7 +17,7 @@
 typedef std::map<ECSessionGroupInfo, KC::ECSESSIONGROUPID> SESSIONGROUPIDMAP;
 typedef std::map<ECSessionGroupInfo, SessionGroupData*> SESSIONGROUPMAP;
 
-class ECSessionGroupManager _kc_final {
+class ECSessionGroupManager final {
 private:
 	/*
 	 * Both maps must be protected under the same mutx: m_hMutex

@@ -12,7 +12,7 @@
 #include "WSTransport.h"
 #include <string>
 
-class ECMSProvider _kc_final : public KC::ECUnknown, public IMSProvider {
+class ECMSProvider final : public KC::ECUnknown, public IMSProvider {
 protected:
 	ECMSProvider(ULONG ulFlags, const char *szClassName);
 public:
@@ -31,7 +31,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECMSProviderSwitch _kc_final : public KC::ECUnknown, public IMSProvider {
+class ECMSProviderSwitch final : public KC::ECUnknown, public IMSProvider {
 protected:
 	ECMSProviderSwitch(ULONG ulFlags);
 

@@ -157,7 +157,7 @@ public:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECMessageFactory _kc_final : public IMessageFactory {
+class ECMessageFactory final : public IMessageFactory {
 public:
 	HRESULT Create(ECMsgStore *, BOOL fnew, BOOL modify, ULONG flags, BOOL embedded, const ECMAPIProp *root, ECMessage **) const;
 };

@@ -24,7 +24,7 @@ struct notification;
 
 typedef std::list<notification*> NOTIFYLIST;
 typedef HRESULT(ECNotifyClient::*NOTIFYCALLBACK)(ULONG,const NOTIFYLIST &);
-class ECNotifySink _kc_final {
+class ECNotifySink final {
 public:
 	ECNotifySink(ECNotifyClient *lpClient, NOTIFYCALLBACK fnCallback);
 	HRESULT Notify(ULONG ulConnection, const NOTIFYLIST &lNotifications) const;
@@ -43,7 +43,7 @@ typedef std::list<ECNotifyClient*> NOTIFYCLIENTLIST;
 typedef std::map<ULONG, ECNotifySink> NOTIFYCONNECTIONCLIENTMAP;
 typedef std::map<ULONG, NOTIFYLIST> NOTIFYCONNECTIONMAP;
 
-class ECNotifyMaster _kc_final : public KC::ECUnknown {
+class ECNotifyMaster final : public KC::ECUnknown {
 protected:
 	ECNotifyMaster(SessionGroupData *lpData);
 	virtual ~ECNotifyMaster(void);

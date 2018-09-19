@@ -17,7 +17,7 @@ namespace KC {
 class ECLogger;
 }
 
-class ECExchangeImportContentsChanges _kc_final :
+class ECExchangeImportContentsChanges final :
     public KC::ECUnknown, public KC::IECImportContentsChanges {
 protected:
 	ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder);

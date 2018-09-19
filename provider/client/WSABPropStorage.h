@@ -17,7 +17,7 @@
 #include <mapi.h>
 #include <mapispi.h>
 
-class WSABPropStorage _kc_final : public KC::ECUnknown, public IECPropStorage {
+class WSABPropStorage final : public KC::ECUnknown, public IECPropStorage {
 protected:
 	WSABPropStorage(ULONG eid_size, const ENTRYID *, KC::ECSESSIONID, WSTransport *);
 	virtual ~WSABPropStorage();
@@ -44,7 +44,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-class WSABTableView _kc_final : public WSTableView {
+class WSABTableView final : public WSTableView {
 	public:
 	static HRESULT Create(ULONG type, ULONG flags, KC::ECSESSIONID, ULONG eid_size, const ENTRYID *, ECABLogon *, WSTransport *, WSTableView **);
 	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;

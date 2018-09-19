@@ -19,7 +19,7 @@
 #include <kopano/memory.hpp>
 #include "WSMessageStreamExporter.h"
 
-class ECExchangeExportChanges _kc_final :
+class ECExchangeExportChanges final :
     public KC::ECUnknown, public KC::IECExportChanges {
 protected:
 	ECExchangeExportChanges(ECMsgStore *lpStore, const std::string& strSK, const wchar_t *szDisplay, unsigned int ulSyncType);

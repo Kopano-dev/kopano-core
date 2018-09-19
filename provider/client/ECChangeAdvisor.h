@@ -28,7 +28,7 @@ class ECMsgStore;
  * ECChangeAdvisor: Implementation IECChangeAdvisor, which allows one to register for 
  *                  change notifications on folders.
  */
-class ECChangeAdvisor _kc_final :
+class ECChangeAdvisor final :
     public KC::ECUnknown, public KC::IECChangeAdvisor {
 protected:
 	/**

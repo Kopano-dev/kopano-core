@@ -19,8 +19,7 @@ namespace KC {
 class convert_context;
 }
 
-class WSMAPIPropStorage _kc_final :
-    public KC::ECUnknown, public IECPropStorage {
+class WSMAPIPropStorage final : public KC::ECUnknown, public IECPropStorage {
 protected:
 	WSMAPIPropStorage(ULONG peid_size, const ENTRYID *parent_eid, ULONG eid_size, const ENTRYID *eid, ULONG flags, KC::ECSESSIONID, unsigned int srv_caps, WSTransport *);
 	virtual ~WSMAPIPropStorage();

@@ -11,7 +11,7 @@
 #include <kopano/Util.h>
 #include "ClientUtil.h"
 
-class ECMAPIFolderPublic _kc_final : public ECMAPIFolder {
+class ECMAPIFolderPublic final : public ECMAPIFolder {
 protected:
 	ECMAPIFolderPublic(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, enumPublicEntryID ePublicEntryID);
 
