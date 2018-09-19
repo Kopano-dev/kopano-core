@@ -21,19 +21,15 @@ ECSESSIONGROUPID ECSessionGroupManager::GetSessionGroupId(const sGlobalProfilePr
 	scoped_rlock lock(m_hMutex);
 	ECSessionGroupInfo ecSessionGroup(sProfileProps.strServerPath, sProfileProps.strProfileName);
 	auto result = m_mapSessionGroupIds.emplace(ecSessionGroup, 0);
-	if (result.second) {
+	if (!result.second)
+		return result.first->second;
         // Not found, generate one now
     	ssl_random((sizeof(ecSessionGroupId) == 8), &ecSessionGroupId);
-		// Register the new SessionGroupId, this is needed because we are not creating a SessionGroupData
-		// object yet, and thus we are not putting anything in the m_mapSessionGroups yet. To prevent 2
-		// threads to obtain 2 different SessionGroup IDs for the same server & profile combination we
-		// use this separate map containing SessionGroup IDs.
-		result.first->second = ecSessionGroupId;
-	}
-	else {
-		ecSessionGroupId = result.first->second;
-	}
-	return ecSessionGroupId;
+	// Register the new SessionGroupId, this is needed because we are not creating a SessionGroupData
+	// object yet, and thus we are not putting anything in the m_mapSessionGroups yet. To prevent 2
+	// threads to obtain 2 different SessionGroup IDs for the same server & profile combination we
+	// use this separate map containing SessionGroup IDs.
+	return result.first->second = ecSessionGroupId;
 }
 
 /*

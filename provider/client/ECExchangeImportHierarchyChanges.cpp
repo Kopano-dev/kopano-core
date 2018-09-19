@@ -338,21 +338,20 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 	 * they're supposed to be in sync.
 	 * NOTE: This is a workaround for Kopano not handling this property (and some others) as special properties.
 	 */
-	if (lpPropAdditionalREN != NULL && lpPropEntryId != NULL && lpPropEntryId->Value.bin.cb > 0) {
-		HRESULT hrTmp = hrSuccess;
-		MAPIFolderPtr ptrRoot;
+	if (lpPropAdditionalREN == nullptr || lpPropEntryId == nullptr || lpPropEntryId->Value.bin.cb == 0)
+		return hrSuccess;
 
-		hrTmp = m_lpFolder->OpenEntry(0, nullptr, &iid_of(ptrRoot), MAPI_BEST_ACCESS | MAPI_DEFERRED_ERRORS, &ulObjType, &~ptrRoot);
-		if (hrTmp != hrSuccess)
-			return hr;
-		hrTmp = ptrRoot->SetProps(1, lpPropAdditionalREN, NULL);
-		if (hrTmp != hrSuccess)
-			return hr;
-		hrTmp = ptrRoot->SaveChanges(KEEP_OPEN_READWRITE);
-		if (hrTmp != hrSuccess)
-			return hr;
-		hrTmp = ECExchangeImportContentsChanges::HrUpdateSearchReminders(ptrRoot, lpPropAdditionalREN);
-	}
+	MAPIFolderPtr ptrRoot;
+	auto hrTmp = m_lpFolder->OpenEntry(0, nullptr, &iid_of(ptrRoot), MAPI_BEST_ACCESS | MAPI_DEFERRED_ERRORS, &ulObjType, &~ptrRoot);
+	if (hrTmp != hrSuccess)
+		return hr;
+	hrTmp = ptrRoot->SetProps(1, lpPropAdditionalREN, NULL);
+	if (hrTmp != hrSuccess)
+		return hr;
+	hrTmp = ptrRoot->SaveChanges(KEEP_OPEN_READWRITE);
+	if (hrTmp != hrSuccess)
+		return hr;
+	hrTmp = ECExchangeImportContentsChanges::HrUpdateSearchReminders(ptrRoot, lpPropAdditionalREN);
 	return hrSuccess;
 }
 

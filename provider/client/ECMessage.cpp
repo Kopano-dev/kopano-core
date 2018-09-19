@@ -2220,16 +2220,16 @@ HRESULT ECMessage::HrLoadProps()
 		}
 	}
 
-	if (m_ulBodyType == bodyTypeUnknown) {
-		// We get here if there was no RTF data or when determining the body type based
-		// on that data failed.
-		if (fHTMLOK)
-			m_ulBodyType = bodyTypeHTML;
+	if (m_ulBodyType != bodyTypeUnknown)
+		return hrSuccess;
 
-		else if (fBodyOK)
-			m_ulBodyType = bodyTypePlain;
-	}
-	return hr;
+	// We get here if there was no RTF data or when determining the body type based
+	// on that data failed.
+	if (fHTMLOK)
+		m_ulBodyType = bodyTypeHTML;
+	else if (fBodyOK)
+		m_ulBodyType = bodyTypePlain;
+	return hrSuccess;
 }
 
 HRESULT ECMessage::HrSetRealProp(const SPropValue *lpsPropValue)

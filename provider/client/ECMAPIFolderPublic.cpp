@@ -310,14 +310,9 @@ HRESULT ECMAPIFolderPublic::SetProps(ULONG cValues,
 	auto hr = ECMAPIContainer::SetProps(cValues, lpPropArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
-
-	if (lpStorage)
-	{
-		hr = ECMAPIContainer::SaveChanges(KEEP_OPEN_READWRITE);
-		if (hr != hrSuccess)
-			return hr;
-	}
-	return hrSuccess;
+	if (lpStorage == nullptr)
+		return hrSuccess;
+	return ECMAPIContainer::SaveChanges(KEEP_OPEN_READWRITE);
 }
 
 HRESULT ECMAPIFolderPublic::DeleteProps(const SPropTagArray *lpPropTagArray,
