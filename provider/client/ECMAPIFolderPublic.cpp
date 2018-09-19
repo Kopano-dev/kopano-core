@@ -300,11 +300,8 @@ HRESULT ECMAPIFolderPublic::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 HRESULT ECMAPIFolderPublic::SaveChanges(ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
-
+	return hrSuccess;
 	// Nothing to do
-
-	return hr;
 }
 
 HRESULT ECMAPIFolderPublic::SetProps(ULONG cValues,

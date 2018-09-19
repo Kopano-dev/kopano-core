@@ -89,18 +89,12 @@ HRESULT WSTableMultiStore::HrOpenTable()
 
 	auto hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	ulTableId = sResponse.ulTableId;
 	if (m_lpTransport->m_lpCmd->tableSetMultiStoreEntryIDs(ecSessionId,
 	    ulTableId, &m_sEntryList, &er) != SOAP_OK)
 		er = KCERR_NETWORK_ERROR;
-
-	hr = kcerr_to_mapierr(er);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+	return kcerr_to_mapierr(er);
 }
 
 HRESULT WSTableMultiStore::HrSetEntryIDs(const ENTRYLIST *lpMsgList)
@@ -153,10 +147,9 @@ HRESULT WSTableMisc::HrOpenTable()
 
 	auto hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	ulTableId = sResponse.ulTableId;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 // WSTableMailBox view

@@ -243,18 +243,11 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
 	m_setProcessed.emplace(m_lpChanges[m_ulThisChange].ulChangeId);
 	++m_ulThisChange;
 
-    if(lpulSteps)
-        *lpulSteps = m_ulChanges;
-        
-    if(lpulProgress)
-        *lpulProgress = m_ulThisChange;
-        
-    if(m_ulThisChange >= m_ulChanges)
-        hr = hrSuccess;
-    else
-        hr = SYNC_W_PROGRESS;
-         
-    return hr;
+	if (lpulSteps)
+		*lpulSteps = m_ulChanges;
+	if (lpulProgress)
+		*lpulProgress = m_ulThisChange;
+	return m_ulThisChange >= m_ulChanges ? hrSuccess : SYNC_W_PROGRESS;
 }
 
 HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)

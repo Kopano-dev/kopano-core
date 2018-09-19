@@ -210,11 +210,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 		bAssociatedMessage = true;
 
 	if(hr == MAPI_E_NOT_FOUND){
-		if (bAssociatedMessage)
-		    ulNewFlags = MAPI_ASSOCIATED;
-		else
-		    ulNewFlags = 0;
-
+		ulNewFlags = bAssociatedMessage ? MAPI_ASSOCIATED : 0;
 		auto lpPassedEntryId = PCpropFindProp(lpPropArray, cValue, PR_ENTRYID);
 		// Create the message with the passed entry ID
 		if(lpPassedEntryId)

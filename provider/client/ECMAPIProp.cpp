@@ -243,22 +243,16 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 HRESULT ECMAPIProp::SetPropHandler(ULONG ulPropTag, void *lpProvider,
     const SPropValue *lpsPropValue, void *lpParam)
 {
-	HRESULT hr = hrSuccess;
 	auto lpProp = static_cast<ECMAPIProp *>(lpParam);
 
 	switch(ulPropTag) {
 	case PR_SOURCE_KEY:
 		if (lpProp->IsICSObject())
-			hr = lpProp->HrSetRealProp(lpsPropValue);
-		else
-			hr = hrSuccess; // ignore the property
-		break;
-
+			return lpProp->HrSetRealProp(lpsPropValue);
+		return hrSuccess; /* ignore the property */
 	default:
-		hr = MAPI_E_NOT_FOUND;
-		break;
+		return MAPI_E_NOT_FOUND;
 	}
-	return hr;
 }
 
 HRESULT ECMAPIProp::TableRowGetProp(void *lpProvider,

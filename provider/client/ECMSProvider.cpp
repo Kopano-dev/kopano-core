@@ -397,8 +397,6 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	    (CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &KOPANO_SERVICE_GUID) ||
 	     CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &MSEMS_SERVICE_GUID)))
 			bIsDefaultStore = true;
-	hr = hrSuccess;
-
 	hr = GetProviders(&g_mapProviders, lpMAPISup, tstrProfileName.c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;

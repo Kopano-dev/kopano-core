@@ -151,19 +151,14 @@ HRESULT ECMAPIFolder::TableRowGetProp(void *lpProvider,
     const struct propVal *lpsPropValSrc, SPropValue *lpsPropValDst,
     void **lpBase, ULONG ulType)
 {
-	HRESULT hr = hrSuccess;
-
 	switch(lpsPropValSrc->ulPropTag) {
 	case CHANGE_PROP_TYPE(PR_DISPLAY_TYPE, PT_ERROR):
 		lpsPropValDst->Value.l = DT_FOLDER;
 		lpsPropValDst->ulPropTag = PR_DISPLAY_TYPE;
-		break;
-	
+		return hrSuccess;
 	default:
-		hr = MAPI_E_NOT_FOUND;
+		return MAPI_E_NOT_FOUND;
 	}
-
-	return hr;
 }
 
 HRESULT	ECMAPIFolder::QueryInterface(REFIID refiid, void **lppInterface) 

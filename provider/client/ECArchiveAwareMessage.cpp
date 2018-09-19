@@ -320,20 +320,14 @@ HRESULT ECArchiveAwareMessage::SetPropHandler(ULONG ulPropTag,
     void */*lpProvider*/, const SPropValue *lpsPropValue, void *lpParam)
 {
 	auto lpMessage = static_cast<ECArchiveAwareMessage *>(lpParam);
-	HRESULT hr = hrSuccess;
-
 	switch(ulPropTag) {
 	case PR_MESSAGE_SIZE:
 		if (lpMessage->m_bLoading)
-			hr = lpMessage->ECMessage::HrSetRealProp(lpsPropValue);	// Don't call our own overridden HrSetRealProp
-		else
-			hr = MAPI_E_COMPUTED;
-		break;
+			return lpMessage->ECMessage::HrSetRealProp(lpsPropValue); /* Do not call our own overridden HrSetRealProp */
+		return MAPI_E_COMPUTED;
 	default:
-		hr = MAPI_E_NOT_FOUND;
-		break;
+		return MAPI_E_NOT_FOUND;
 	}
-	return hr;
 }
 
 HRESULT ECArchiveAwareMessage::MapNamedProps()

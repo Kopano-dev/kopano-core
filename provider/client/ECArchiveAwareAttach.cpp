@@ -37,18 +37,12 @@ HRESULT	ECArchiveAwareAttach::SetPropHandler(ULONG ulPropTag,
     void */*lpProvider*/, const SPropValue *lpsPropValue, void *lpParam)
 {
 	auto lpAttach = static_cast<ECArchiveAwareAttach *>(lpParam);
-	HRESULT hr = hrSuccess;
-
 	switch(ulPropTag) {
 	case PR_ATTACH_SIZE:
 		if (lpAttach->m_lpRoot && lpAttach->m_lpRoot->IsLoading())
-			hr = lpAttach->HrSetRealProp(lpsPropValue);
-		else
-			hr = MAPI_E_COMPUTED;
-		break;
+			return lpAttach->HrSetRealProp(lpsPropValue);
+		return MAPI_E_COMPUTED;
 	default:
-		hr = MAPI_E_NOT_FOUND;
-		break;
+		return MAPI_E_NOT_FOUND;
 	}
-	return hr;
 }
