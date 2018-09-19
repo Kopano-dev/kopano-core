@@ -88,7 +88,7 @@ HRESULT WSTableView::HrCloseTable()
 			er = KCERR_NETWORK_ERROR;
 
 		if(er == KCERR_END_OF_SESSION)
-			er = erSuccess; // Don't care about end of session 
+			er = erSuccess; // Don't care about end of session
 	}
 	END_SOAP_CALL
 
@@ -165,7 +165,7 @@ HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
 	ECRESULT er = erSuccess;
 	sortOrderArray sSort;
 	LPSSortOrderSet lpOld = m_lpsSortOrderSet;
-	
+
 	// Remember sort order for reconnect
 	m_lpsSortOrderSet = (LPSSortOrderSet)new char [CbSSortOrderSet(lpsSortOrderSet)];
 	memcpy(m_lpsSortOrderSet, lpsSortOrderSet, CbSSortOrderSet(lpsSortOrderSet));
@@ -376,7 +376,7 @@ HRESULT WSTableView::HrExpandRow(ULONG cbInstanceKey, BYTE *pbInstanceKey,
 	END_SOAP_CALL
 
 	if(lppRows)
-		hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.rowSet, lppRows, ulType);	
+		hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.rowSet, lppRows, ulType);
 	if(lpulMoreRows)
 		*lpulMoreRows = sResponse.ulMoreRows;
 exit:
@@ -491,7 +491,7 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 	struct tableQueryRowsRequest sQueryRows;
 	struct tableSortRequest sSort;
 	struct tableOpenRequest sOpen;
-	
+
 	if(ulTableId == 0) {
 	    sOpen.sEntryId = m_sEntryId;
 	    sOpen.ulTableType = m_ulTableType;
@@ -503,7 +503,7 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
     }
 
 	sRequest.ulFlags = ulDeferredFlags;
-	
+
 	if(lpsPropTagArray) {
 		// Save the proptag set for if we need to reload
 		delete[] m_lpsPropTagArray;
@@ -516,7 +516,7 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
     	sColumns.__ptr = (unsigned int *)&lpsPropTagArray->aulPropTag; // Don't copy, just reference their data
     	sRequest.lpSetColumns = &sColumns;
 	}
-    
+
 	soap_lock_guard spg(*m_lpTransport);
 	if(lpsRestriction) {
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpsRestrictTable, lpsRestriction);
@@ -524,7 +524,7 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
 			goto exit;
         sRequest.lpRestrict = lpsRestrictTable;
 	}
-	
+
 	if(lpsSortOrderSet) {
 		// Remember sort order for reconnect
 		delete[] m_lpsSortOrderSet;
@@ -538,12 +538,12 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags,
             sSort.sSortOrder.__ptr[i].ulOrder = lpsSortOrderSet->aSort[i].ulOrder;
             sSort.sSortOrder.__ptr[i].ulPropTag = lpsSortOrderSet->aSort[i].ulPropTag;
         }
-        
+
         sSort.ulExpanded = lpsSortOrderSet->cExpanded;
         sSort.ulCategories = lpsSortOrderSet->cCategories;
         sRequest.lpSort = &sSort;
 	}
-	
+
 	if(ulRowCount > 0) {
 	    sQueryRows.ulCount = ulRowCount;
 		sQueryRows.ulFlags = flags;
@@ -568,7 +568,7 @@ exit:
 	s_free(nullptr, sSort.sSortOrder.__ptr);
 	if(lpsRestrictTable)
 		FreeRestrictTable(lpsRestrictTable);
-    return hr;    
+	return hr;
 }
 
 HRESULT WSTableView::Reload(void *lpParam, ECSESSIONID sessionId)

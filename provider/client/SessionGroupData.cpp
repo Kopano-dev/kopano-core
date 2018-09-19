@@ -45,10 +45,10 @@ HRESULT SessionGroupData::GetTransport(WSTransport **lppTransport)
 {
 	WSTransport *lpTransport = NULL;
 	auto hr = WSTransport::Create(MDB_NO_DIALOG, &lpTransport);
-	if (hr != hrSuccess) 
+	if (hr != hrSuccess)
 		return hr;
 	hr = lpTransport->HrLogon(m_sProfileProps);
-	if (hr != hrSuccess) 
+	if (hr != hrSuccess)
 		return hr;
 	// Since we are doing request that take max EC_SESSION_KEEPALIVE_TIME, set timeout to that plus 10 seconds
 	lpTransport->HrSetRecvTimeout(EC_SESSION_KEEPALIVE_TIME + 10);

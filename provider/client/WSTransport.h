@@ -111,7 +111,7 @@ public:
 	// Named properties
 	virtual HRESULT HrGetIDsFromNames(LPMAPINAMEID *lppPropNamesUnresolved, ULONG cUnresolved, ULONG ulFlags, ULONG **lpServerIDs);
 	virtual HRESULT HrGetNamesFromIDs(SPropTagArray *tags, MAPINAMEID ***names, ULONG *resolved);
-	
+
 	// ReceiveFolder
 	virtual HRESULT HrGetReceiveFolder(ULONG store_eid_size, const ENTRYID *store_eid, const KC::utf8string &cls, ULONG *eid_size, ENTRYID **folder_eid, KC::utf8string *exp_class);
 	virtual HRESULT HrSetReceiveFolder(ULONG store_eid_size, const ENTRYID *store_eid, const KC::utf8string &cls, ULONG eid_size, const ENTRYID *folder_eid);
@@ -193,7 +193,7 @@ public:
 	virtual HRESULT HrAddUserToRemoteAdminList(ULONG ueid_size, const ENTRYID *user_eid, ULONG ceid_size, const ENTRYID *com_eid);
 	virtual HRESULT HrDelUserFromRemoteAdminList(ULONG ueid_size, const ENTRYID *user_eid, ULONG ceid_size, const ENTRYID *com_eid);
 	virtual HRESULT HrGetRemoteAdminList(ULONG ceid_size, const ENTRYID *com_eid, ULONG flags, ULONG *nusers, KC::ECUSER **);
-	
+
 	// IECServiceAdmin company and user functions
 	// Get the object rights
 	virtual HRESULT HrGetPermissionRules(int type, ULONG eid_size, const ENTRYID *, ULONG *nperm, KC::ECPERMISSION **);
@@ -234,10 +234,10 @@ public:
 
 	/* Return Session information */
 	virtual HRESULT HrGetSessionId(KC::ECSESSIONID *, KC::ECSESSIONGROUPID *);
-	
+
 	/* Get profile properties (connect info) */
 	virtual sGlobalProfileProps GetProfileProps();
-	
+
 	/* Get the server GUID obtained at logon */
 	virtual HRESULT GetServerGUID(LPGUID lpsServerGuid);
 

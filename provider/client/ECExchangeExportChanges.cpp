@@ -491,7 +491,7 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 
 	auto lpSyncSettings = &ECSyncSettings::instance;
 	BOOL bCanStream = false, bSupportsPropTag = false;
-	
+
 	if(ulPropTag == PR_ENTRYID) {
 		m_lpStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_EXPORT_PROPTAG, &bSupportsPropTag);
 		if (!bSupportsPropTag)
@@ -501,7 +501,7 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 		zlog("Config() called twice");
 		return MAPI_E_UNCONFIGURED;
 	}
-	// Only available for message syncing	
+	// Only available for message syncing
 	if (m_ulSyncType != ICS_SYNC_CONTENTS)
 		return MAPI_E_NO_SUPPORT;
 
@@ -521,7 +521,7 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 		} else
 			zlog("Exporter does not support enhanced ICS");
 	}
-	
+
 	m_ulEntryPropTag = ulPropTag;
 	// Fill m_lpChanges with items from lpEntries
 	hr = MAPIAllocateBuffer(sizeof(ICSCHANGE) * lpEntries->cValues, &~m_lpChanges);
@@ -540,12 +540,12 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 			if(hr != hrSuccess)
 				return hr;
 		}
-		
+
 		m_lpChanges[i].ulChangeType = ICS_MESSAGE_NEW;
 		// Since all changes are 'change' modifications, duplicate all data in m_lpChanges in m_lstChange
 		m_lstChange.emplace_back(m_lpChanges[i]);
 	}
-	
+
 	m_bConfiged = true;
 	return hrSuccess;
 }
@@ -826,7 +826,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		PR_SOURCE_KEY,
 		PR_PARENT_SOURCE_KEY,
 		PR_STORE_RECORD_KEY,
-		PR_STORE_ENTRYID, 
+		PR_STORE_ENTRYID,
 		PR_EC_HIERARCHYID,
 		PR_EC_PARENT_HIERARCHYID,
 		PR_ENTRYID
@@ -1106,7 +1106,7 @@ HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
 	LARGE_INTEGER liPos = {{0, 0}};
 	ULARGE_INTEGER liZero = {{0, 0}};
 	unsigned int ulSize, ulChangeCount = 0, ulChangeId = 0, ulSourceKeySize = 0;
-	
+
 	if(lpStream == NULL)
 		goto exit;
 	hr = lpStream->SetSize(liZero);

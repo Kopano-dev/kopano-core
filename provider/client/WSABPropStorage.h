@@ -26,7 +26,7 @@ public:
 	static HRESULT Create(ULONG eid_size, const ENTRYID *, KC::ECSESSIONID, WSTransport *, WSABPropStorage **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	static HRESULT Reload(void *parm, KC::ECSESSIONID);
-	
+
 private:
 	// Get a single (large) property
 	virtual HRESULT HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue);

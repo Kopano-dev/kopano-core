@@ -96,7 +96,7 @@ ECProperty::ECProperty(const ECProperty &Property) :
 
 	DEBUG_CHECK_INVARIANT;
 }
-	
+
 ECProperty::ECProperty(const SPropValue *lpsProp) :
 	ulSize(0)
 {
@@ -260,7 +260,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 			if (Value.MVl.lpl == nullptr)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
-		
+
 		ulSize = ulNewSize;
 		Value.MVl.cValues = lpsProp->Value.MVl.cValues;
 		memcpy(Value.MVl.lpl, lpsProp->Value.MVl.lpl, lpsProp->Value.MVl.cValues * sizeof(int));
@@ -277,7 +277,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 			if (Value.MVflt.lpflt == nullptr)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
-		
+
 		ulSize = ulNewSize;
 		Value.MVflt.cValues = lpsProp->Value.MVflt.cValues;
 		memcpy(Value.MVflt.lpflt, lpsProp->Value.MVflt.lpflt, lpsProp->Value.MVflt.cValues * sizeof(float));
@@ -311,7 +311,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 			if (Value.MVcur.lpcur == nullptr)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
-		
+
 		ulSize = ulNewSize;
 		Value.MVcur.cValues = lpsProp->Value.MVcur.cValues;
 		memcpy(Value.MVcur.lpcur, lpsProp->Value.MVcur.lpcur, lpsProp->Value.MVcur.cValues * sizeof(CURRENCY));
@@ -345,7 +345,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 			if (Value.MVft.lpft == nullptr)
 				return dwLastError = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
-		
+
 		ulSize = ulNewSize;
 		Value.MVft.cValues = lpsProp->Value.MVft.cValues;
 		memcpy(Value.MVft.lpft, lpsProp->Value.MVft.lpft, lpsProp->Value.MVft.cValues * sizeof(FILETIME));
@@ -456,7 +456,7 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 			for (unsigned int i = lpsProp->Value.MVszW.cValues; i < Value.MVszW.cValues; ++i)
 				delete[] Value.MVszW.lppszW[i];
 		}
-		
+
 		ulSize = ulNewSize;
 		Value.MVszW.cValues = lpsProp->Value.MVszW.cValues;
 

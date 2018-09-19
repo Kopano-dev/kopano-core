@@ -121,7 +121,7 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 		if(hr != hrSuccess)
 			return hr;
 		break;
-		
+
 	case PROP_ID(PR_MAPPING_SIGNATURE):
 		// get the mapping signature from the store
 		if (lpMsgStore == NULL || lpMsgStore->HrGetRealProp(PR_MAPPING_SIGNATURE, ulFlags, lpBase, lpsPropValue) != hrSuccess)
@@ -188,7 +188,7 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 			//lpsPropValue->Value.l = 0;
 			lpsPropValue->ulPropTag = PR_ACCESS_LEVEL;
 		}
-		break;	
+		break;
 	case PROP_ID(PR_PARENT_ENTRYID):
 		lpsPropValue->ulPropTag = PR_PARENT_ENTRYID;
 
@@ -457,7 +457,7 @@ HRESULT ECMAPIProp::SaveChanges(ULONG ulFlags)
 		return MAPI_E_NO_ACCESS;
 
 	object_ptr<WSMAPIPropStorage> lpMAPIPropStorage;
-	
+
 	// only folders and main messages have a syncid, attachments and msg-in-msg don't
 	if (lpStorage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage) == hrSuccess) {
 		auto hr = lpMAPIPropStorage->HrSetSyncId(m_ulSyncId);
@@ -715,7 +715,7 @@ HRESULT ECMAPIProp::HrStreamCleanup(void *lpData)
 HRESULT ECMAPIProp::HrSetSyncId(ULONG ulSyncId)
 {
 	object_ptr<WSMAPIPropStorage> lpMAPIPropStorage;
-	
+
 	if (lpStorage != nullptr && lpStorage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage) == hrSuccess) {
 		auto hr = lpMAPIPropStorage->HrSetSyncId(ulSyncId);
 		if(hr != hrSuccess)

@@ -136,7 +136,7 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 	// Get the default store for this user, not an issue if it fails when not on home server
 	if (lpTransport->HrGetStore(0, nullptr, &cbEntryStore, &~lpEntryStore, 0, nullptr) == hrSuccess) {
 		hr = lpMAPISup->WrapStoreEntryID(cbEntryStore, lpEntryStore, &cbEID, (&~lpEID).as<ENTRYID>());
-		if(hr != hrSuccess) 
+		if (hr != hrSuccess)
 			return hr;
 		idp[XPID_STORE_EID].ulPropTag = PR_OWN_STORE_ENTRYID;
 		idp[XPID_STORE_EID].Value.bin.cb = cbEID;
@@ -144,23 +144,23 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 		if (hr != hrSuccess)
 			return hr;
 	}
-	
+
 	// Set the identity in the global provider identity
 	*lppIdentityProps = idp.release();
 	return hrSuccess;
 }
 
-/** 
+/**
  * ReadReceipt replace function of MAPI for windows. MAPI for windows
  * support only UNICODE properties. We still can't use the support
  * version, since mapi4linux doesn't implement it. We could move this
  * code there, but then outlook and webaccess will sent different read
  * receipt messages.
- * 
+ *
  * @param[in] ulFlags 0 or MAPI_NON_READ
  * @param[in] lpReadMessage Original message to send read receipt for
  * @param[in,out] lppEmptyMessage Message to edit
- * 
+ *
  * @return MAPI Error code
  */
 HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAGE* lppEmptyMessage)
@@ -176,7 +176,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	memory_ptr<BYTE> lpByteTmp;
 	const TCHAR *lpMsgClass = NULL;
 	LPTSTR lpReportText = nullptr, lpReadText = nullptr;
-	FILETIME		ft;	
+	FILETIME	ft;
 	adrlist_ptr lpMods;
 	std::wstring strName, strType, strAddress;
 	time_t			zero = 0;
@@ -185,16 +185,16 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	tstring			tSubject;
 
 	// The same properties as under windows
-	enum ePropReadReceipt{	RR_REPORT_TAG, RR_CONVERSATION_TOPIC, RR_CONVERSATION_INDEX, 
+	enum ePropReadReceipt{	RR_REPORT_TAG, RR_CONVERSATION_TOPIC, RR_CONVERSATION_INDEX,
 							RR_SEARCH_KEY, RR_MESSAGE_CLASS, RR_SENDER_SEARCH_KEY,
-							RR_SUBJECT, RR_SUBJECT_PREFIX, RR_NORMALIZED_SUBJECT, 
-							RR_SENDER_NAME, RR_SENDER_ENTRYID, RR_SENDER_ADDRTYPE,												
-							RR_SENDER_EMAIL_ADDRESS, RR_REPORT_NAME, RR_REPORT_ENTRYID, 
+							RR_SUBJECT, RR_SUBJECT_PREFIX, RR_NORMALIZED_SUBJECT,
+							RR_SENDER_NAME, RR_SENDER_ENTRYID, RR_SENDER_ADDRTYPE,
+							RR_SENDER_EMAIL_ADDRESS, RR_REPORT_NAME, RR_REPORT_ENTRYID,
 							RR_READ_RECEIPT_ENTRYID, RR_RECEIVED_BY_NAME, RR_RECEIVED_BY_ENTRYID, RR_RECEIVED_BY_ADDRTYPE, RR_RECEIVED_BY_EMAIL_ADDRESS,
-							RR_PRIORITY, RR_IMPORTANCE, RR_SENT_REPRESENTING_NAME, 
-							RR_SENT_REPRESENTING_ENTRYID, RR_SENT_REPRESENTING_SEARCH_KEY, RR_RCVD_REPRESENTING_NAME, RR_RCVD_REPRESENTING_ENTRYID, 
+							RR_PRIORITY, RR_IMPORTANCE, RR_SENT_REPRESENTING_NAME,
+							RR_SENT_REPRESENTING_ENTRYID, RR_SENT_REPRESENTING_SEARCH_KEY, RR_RCVD_REPRESENTING_NAME, RR_RCVD_REPRESENTING_ENTRYID,
 							RR_MESSAGE_DELIVERY_TIME, RR_CLIENT_SUBMIT_TIME, RR_DISPLAY_TO,
-							RR_DISPLAY_CC, RR_DISPLAY_BCC, RR_SENSITIVITY, 
+							RR_DISPLAY_CC, RR_DISPLAY_BCC, RR_SENSITIVITY,
 							RR_INTERNET_MESSAGE_ID, RR_DELIVER_TIME, RR_SENT_REPRESENTING_ADDRTYPE, RR_SENT_REPRESENTING_EMAIL_ADDRESS,
 							RR_MDN_DISPOSITION_TYPE, RR_MDN_DISPOSITION_SENDINGMODE};
 
@@ -343,7 +343,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	if (HAVE(DELIVER_TIME)) {
 		dpv[dval].ulPropTag = PR_ORIGINAL_DELIVERY_TIME;
 		dpv[dval++].Value.ft = spv[RR_DELIVER_TIME].Value.ft;
-	}	
+	}
 	if (HAVE(CONVERSATION_TOPIC)) {
 		dpv[dval].ulPropTag = PR_CONVERSATION_TOPIC;
 		dpv[dval++].Value.LPSZ = spv[RR_CONVERSATION_TOPIC].Value.LPSZ;
@@ -433,7 +433,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		dpv[dval++].Value = spv[RR_RECEIVED_BY_ADDRTYPE].Value;
 	}
 
-//	PR_RCVD_REPRESENTING_NAME, PR_RCVD_REPRESENTING_ENTRYID	
+//	PR_RCVD_REPRESENTING_NAME, PR_RCVD_REPRESENTING_ENTRYID
 	if (HAVE(INTERNET_MESSAGE_ID)) {
 		dpv[dval].ulPropTag = PR_INTERNET_MESSAGE_ID;
 		dpv[dval++].Value.LPSZ = spv[RR_INTERNET_MESSAGE_ID].Value.LPSZ;
@@ -580,7 +580,7 @@ HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSe
 	return hrSuccess;
 }
 
-/* 
+/*
 entryid functions
 */
 HRESULT HrCreateEntryId(const GUID &guidStore, unsigned int ulObjType,

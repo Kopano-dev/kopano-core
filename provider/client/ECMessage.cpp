@@ -1985,7 +1985,7 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 			uint32_t tmp4 = cpu_to_le32(lpMessage->m_sMapiObject->ulObjId);
 			strID.assign(reinterpret_cast<const char *>(&tmp4), sizeof(tmp4));
 		}
-							
+
 		// Resize so it trails 6 null bytes
 		strID.resize(6,0);
 		strSourceKey = strServerGUID + strID;

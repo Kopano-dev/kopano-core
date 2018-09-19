@@ -74,7 +74,7 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 	abeid.ulType = MAPI_ABCONT;
 	memcpy(&abeid.guid, &MUIDECSAB, sizeof(GUID));
 	abeid.ulId = 1; // 1 is the first container
-    
+
     // The parent source key is the entryid of the AB container that we're sync'ing
 	m_lpChanges.reset();
 	hr = m_lpMsgStore->lpTransport->HrGetChanges(std::string(reinterpret_cast<const char *>(&abeid), sizeof(ABEID)),
@@ -172,7 +172,7 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 					m_lpRawChanges[i].ulChangeType, bin2hex(m_lpRawChanges[i].sSourceKey).c_str());
 				break;
 			}
-		}	
+		}
 
 		if (lpLastChange) {
 			m_lpChanges[n++] = *lpLastChange;
@@ -188,7 +188,7 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 }
 
 HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgress)
-{	
+{
     HRESULT hr = hrSuccess;
 
     // Check if we're already done
@@ -196,7 +196,7 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
 		*lpulSteps = m_ulChanges;
 		return hrSuccess;
 	}
-    
+
 	if (m_lpChanges[m_ulThisChange].sSourceKey.cb < sizeof(ABEID))
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -217,7 +217,7 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
     default:
         return MAPI_E_INVALID_PARAMETER;
     }
-    
+
 	if (hr == SYNC_E_IGNORE)
 		hr = hrSuccess;
 	else if (hr == MAPI_E_INVALID_TYPE) {
@@ -312,10 +312,10 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
  *					the left parameter.
  *
  * @return		boolean
- * @retval		true	
+ * @retval		true
  *					The ICSCHANGE specified by left must be processed before the ICSCHANGE
  *					specified bu right.
- * @retval		false	
+ * @retval		false
  *					The ICSCHANGE specified by left must NOT be processed before the ICSCHANGE
  *					specified by right. Note that this does not mean that the ICSCHANGE specified
  *					by right must be processed before the ICSCHANGE specified by left.

@@ -225,7 +225,7 @@ HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
 	if (iIterAdvise != m_mapAdvise.cend()) {
 		if(iIterAdvise->second->ulSupportConnection)
 			m_lpSupport->Unsubscribe(iIterAdvise->second->ulSupportConnection);
-		m_mapAdvise.erase(iIterAdvise);	
+		m_mapAdvise.erase(iIterAdvise);
 		return hr;
 	}
 	auto iIterChangeAdvise = m_mapChangeAdvise.find(ulConnection);
@@ -246,7 +246,7 @@ HRESULT ECNotifyClient::Advise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, LPM
 	if(hr != hrSuccess) {
 		UnRegisterAdvise(ulConnection);
 		return MAPI_E_NO_SUPPORT;
-	} 
+	}
 	// Set out value
 	*lpulConnection = ulConnection;
 	return hrSuccess;
@@ -280,10 +280,10 @@ HRESULT ECNotifyClient::Advise(const ECLISTSYNCSTATE &lstSyncStates,
 				for (auto iSyncUnadvise = lstAdvises.cbegin();
 				     iSyncUnadvise != iSyncAdvise; ++iSyncUnadvise)
 					m_lpTransport->HrUnSubscribe(iSyncUnadvise->ulConnection);
-				
+
 				hr = MAPI_E_NO_SUPPORT;
 				goto exit;
-			} 
+			}
 		}
 	}
 

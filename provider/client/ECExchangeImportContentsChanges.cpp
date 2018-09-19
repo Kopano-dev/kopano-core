@@ -67,7 +67,7 @@ HRESULT	ECExchangeImportContentsChanges::QueryInterface(REFIID refiid, void **lp
 HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError){
 	memory_ptr<MAPIERROR> lpMapiError;
 	memory_ptr<TCHAR> lpszErrorMsg;
-	
+
 	//FIXME: give synchronization errors messages
 	auto hr = Util::HrMAPIErrorToText((hResult == hrSuccess) ? MAPI_E_NO_ACCESS : hResult, &~lpszErrorMsg);
 	if (hr != hrSuccess)
@@ -75,7 +75,7 @@ HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulF
 	hr = MAPIAllocateBuffer(sizeof(MAPIERROR), &~lpMapiError);
 	if (hr != hrSuccess)
 		return hr;
-	
+
 	if (ulFlags & MAPI_UNICODE) {
 		std::wstring wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
 		std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
@@ -86,7 +86,7 @@ HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulF
 
 		if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
 			return hr;
-		wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str()); 
+		wcscpy((wchar_t *)lpMapiError->lpszComponent, wstrCompName.c_str());
 	} else {
 		std::string strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
 		std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
@@ -111,7 +111,7 @@ HRESULT ECExchangeImportContentsChanges::Config(LPSTREAM lpStream, ULONG ulFlags
 	HRESULT hr = hrSuccess;
 	LARGE_INTEGER zero = {{0,0}};
 	ULONG ulLen = 0;
-	
+
 	m_lpStream = lpStream;
 	if(lpStream == NULL) {
 		m_ulSyncId = 0;
@@ -132,7 +132,7 @@ HRESULT ECExchangeImportContentsChanges::Config(LPSTREAM lpStream, ULONG ulFlags
 		return hr;
 	if (ulLen != 4)
 		return MAPI_E_INVALID_PARAMETER;
-		
+
 	// The user specified the special sync key '0000000000000000', get a sync key from the server.
 	if (m_ulSyncId == 0) {
 		hr = m_lpFolder->GetMsgStore()->lpTransport->HrSetSyncStatus(std::string((char *)m_lpSourceKey->Value.bin.lpb, m_lpSourceKey->Value.bin.cb), m_ulSyncId, m_ulChangeId, ICS_SYNC_CONTENTS, 0, &m_ulSyncId);
@@ -168,7 +168,7 @@ HRESULT ECExchangeImportContentsChanges::UpdateState(LPSTREAM lpStream){
 }
 
 HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage){
-	HRESULT hr = hrSuccess; 
+	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpPropPCL, lpPropCK;
 	unsigned int cbEntryId = 0, ulObjType = 0, ulNewFlags = 0;
 	memory_ptr<ENTRYID> lpEntryId;
@@ -195,7 +195,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 
 	if (hr == MAPI_E_NOT_FOUND && (ulFlags & SYNC_NEW_MESSAGE) == 0)
 		// This is a change, but we don't already have the item. This can only mean
-		// that the item has been deleted on our side. 
+		// that the item has been deleted on our side.
 		return SYNC_E_OBJECT_DELETED;
 	if ((lpMessageFlags != NULL &&
 	    (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) ||
@@ -222,7 +222,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 		if (IsProcessed(lpRemoteCK, lpPropPCL))
 			//we already have this change
 			return SYNC_E_IGNORE;
-		
+
 		// Check for conflicts except for associated messages, take always the lastone
 		if (!bAssociatedMessage &&
 		    HrGetOneProp(lpMessage, PR_CHANGE_KEY, &~lpPropCK) == hrSuccess &&
@@ -278,7 +278,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageDeletion(ULONG ulFlags, LP
 			return hr;
 		++EntryList.cValues;
 	}
-	
+
 	if(EntryList.cValues == 0)
 		return hr;
 	return m_lpFolder->GetMsgStore()->lpTransport->HrDeleteObjects(ulFlags & SYNC_SOFT_DELETE ? 0 : DELETE_HARD_DELETE, &EntryList, m_ulSyncId);
@@ -362,7 +362,7 @@ bool ECExchangeImportContentsChanges::IsProcessed(const SPropValue *lpRemoteCK,
  *   us a change.
  * - If the remote PCL does not contain an entry with the same GUID as our local change key, than there's a conflict since
  *   we get a change from the other side while we have a change which is not seen yet by the other side.
- * 
+ *
  * @param[in]	lpLocalCK	The local change key
  * @param[in]	lpRemotePCL	The remote predecessor change list
  *
@@ -481,7 +481,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 		lpConflictItems->Value.MVbin.cValues = 0;
 		lpConflictItems->Value.MVbin.lpbin = NULL;
 	}
-	
+
 	hr = MAPIAllocateMore(sizeof(SBinary)*(lpConflictItems->Value.MVbin.cValues+1), lpConflictItems, (LPVOID*)&lpEntryIds);
 	if(hr != hrSuccess)
 		return hr;
@@ -635,7 +635,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 	}
 	if (hr == MAPI_E_NOT_FOUND && ((ulFlags & SYNC_NEW_MESSAGE) == 0)) {
 		// This is a change, but we don't already have the item. This can only mean
-		// that the item has been deleted on our side. 
+		// that the item has been deleted on our side.
 		ZLOG_DEBUG(m_lpLogger, "ImportFast: %s", "Destination message deleted");
 		return SYNC_E_OBJECT_DELETED;
 	}

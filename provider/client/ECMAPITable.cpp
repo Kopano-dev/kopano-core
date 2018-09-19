@@ -51,7 +51,7 @@ BOOL ECMAPITable::IsDeferred()
 
 ECMAPITable::~ECMAPITable()
 {
-	// Remove all advises	
+	// Remove all advises
 	auto iterMapInt = m_ulConnectionList.cbegin();
 	while (iterMapInt != m_ulConnectionList.cend()) {
 		auto iterMapIntDel = iterMapInt;
@@ -96,7 +96,7 @@ HRESULT ECMAPITable::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, UL
 
 	// FIXME: if a reconnection happens in another thread during the following call, the ulTableId sent here will be incorrect. The reconnection
 	// code will not yet know about this connection since we don't insert it until later, so you may end up getting an Advise() on completely the wrong
-	// table. 
+	// table.
 	hr = lpNotifyClient->Advise(4, (BYTE *)&lpTableOps->ulTableId, ulEventMask, lpAdviseSink, lpulConnection);
 	if(hr != hrSuccess)
 		return hr;
@@ -141,7 +141,7 @@ HRESULT ECMAPITable::SetColumns(const SPropTagArray *lpPropTagArray,
 	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpPropTagArray->cValues), &~m_lpSetColumns);
 	if (hr != hrSuccess)
 		return hr;
-        
+
     m_lpSetColumns->cValues = lpPropTagArray->cValues;
     memcpy(&m_lpSetColumns->aulPropTag, &lpPropTagArray->aulPropTag, lpPropTagArray->cValues * sizeof(ULONG));
 	if (!(ulFlags & TBL_BATCH))
@@ -395,9 +395,9 @@ HRESULT ECMAPITable::Reload(void *lpParam)
 {
 	auto lpThis = static_cast<ECMAPITable *>(lpParam);
 
-	// Locking m_hLock is not allowed here since when we are called, the SOAP transport in lpTableOps  
-	// will be locked. Since normally m_hLock is locked before SOAP, locking m_hLock *after* SOAP here  
-	// would be a lock-order violation causing deadlocks.  
+	// Locking m_hLock is not allowed here since when we are called, the SOAP transport in lpTableOps
+	// will be locked. Since normally m_hLock is locked before SOAP, locking m_hLock *after* SOAP here
+	// would be a lock-order violation causing deadlocks.
 
 	scoped_rlock lock(lpThis->m_hMutexConnectionList);
 

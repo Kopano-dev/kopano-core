@@ -91,7 +91,7 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	object_ptr<ECMAPITable> lpTable;
 	object_ptr<WSTableView> lpTableOps;
 	std::string		strName = "Hierarchy table";
-	
+
 #ifdef KNOB144
 	{
 		LPSPropValue lpDisplay;

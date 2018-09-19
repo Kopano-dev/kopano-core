@@ -87,7 +87,7 @@ HRESULT ECMailUser::Create(ECABLogon *lpProvider, BOOL fModify,
 	return KC::alloc_wrap<ECMailUser>(lpProvider, fModify).put(lppMailUser);
 }
 
-HRESULT	ECMailUser::QueryInterface(REFIID refiid, void **lppInterface) 
+HRESULT ECMailUser::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(ECMailUser, this);
 	REGISTER_INTERFACE2(ECABProp, this);

@@ -102,7 +102,7 @@ HRESULT MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
 	if (ulMAPIver != CURRENT_SPI_VERSION)
 		return MAPI_E_VERSION;
 	*lpulProviderVer = CURRENT_SPI_VERSION;
-	
+
 	// Save the pointers for later use
 	_pmalloc = pmalloc;
 	_pfnAllocBuf = pfnAllocBuf;
@@ -115,7 +115,7 @@ HRESULT MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
 	auto hr = ECMSProviderSwitch::Create(ulFlags, &~lpMSProvider);
 	if(hr != hrSuccess)
 		return hr;
-	return lpMSProvider->QueryInterface(IID_IMSProvider, reinterpret_cast<void **>(ppmsp)); 
+	return lpMSProvider->QueryInterface(IID_IMSProvider, reinterpret_cast<void **>(ppmsp));
 }
 
 /**
@@ -609,7 +609,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		{
 			if ((bShowDialog && ulFlags & SERVICE_UI_ALLOWED) || ulFlags & SERVICE_UI_ALWAYS)
 				hr = MAPI_E_USER_CANCEL;
-						
+
 			if(!(ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS) && (strServerName.empty() || sProfileProps.strUserName.empty())){
 				hr = MAPI_E_UNCONFIGURED;
 				goto exit2;
@@ -633,7 +633,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 			}else {
 				break; // Everything is oke
 			}
-			
+
 			// On incorrect password, and UI allowed, show incorrect password error
 			if((ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS)) {
 				// what do we do on linux?
@@ -643,7 +643,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 			}else if(!(ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS)){
 				// Do not reset the logon error from HrLogon()
 				// The DAgent uses this value to determain if the delivery is fatal or not
-				// 
+				//
 				// Although this error is not in the online spec from MS, it should not really matter .... right?
 				// hr = MAPI_E_UNCONFIGURED;
 				goto exit2;

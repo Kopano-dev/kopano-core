@@ -88,7 +88,7 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
     		er = sResponse.er;
     }
     END_SOAP_CALL
-    
+
 	// Convert the property tags to a MAPIOBJECT
 	//(type,objectid)
 	mo = new MAPIOBJECT;

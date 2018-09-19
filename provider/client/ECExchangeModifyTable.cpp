@@ -138,7 +138,7 @@ HRESULT ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent,
 			goto empty;
 		}
 	}
-	
+
 empty:
 	hr = ecTable->HrSetClean();
 	if(hr != hrSuccess)
@@ -332,7 +332,7 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 	auto hr = lpecMapiProp->QueryInterface(IID_IECSecurity, &~lpSecurity);
 	if (hr != hrSuccess)
 		return hr;
-	// Get a data  
+	// Get a data
 	hr = lpTable->HrGetAllWithStatus(&~lpRowSet, &~lpIDs, &~lpulStatus);
 	if (hr != hrSuccess)
 		return hr;

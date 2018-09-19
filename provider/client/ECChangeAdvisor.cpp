@@ -165,7 +165,7 @@ HRESULT ECChangeAdvisor::PurgeStates()
 
 	// Create a map based on the returned sync states
 	std::transform(lstSyncState.begin(), lstSyncState.end(), std::inserter(mapChangeId, mapChangeId.begin()), &ConvertSyncState);
-	
+
 	// Find all connections that are not used for the returned set of sync states and remove them
 	std::set_difference(m_mapConnections.begin(), m_mapConnections.end(), mapChangeId.begin(), mapChangeId.end(), std::back_inserter(lstObsolete), &CompareSyncId);
 
@@ -229,7 +229,7 @@ HRESULT ECChangeAdvisor::AddKeys(LPENTRYLIST lpEntryList)
 	ECLISTSYNCSTATE				listSyncStates;
 	scoped_rlock lock(m_hConnectionLock);
 	ZLOG_DEBUG(m_lpLogger, "Adding %u keys", lpEntryList->cValues);
-	
+
 	for (ULONG i = 0; hr == hrSuccess && i < lpEntryList->cValues; ++i) {
 		if (lpEntryList->lpbin[i].cb >= sizeof(SSyncState)) {
 			lpsSyncState = (SSyncState*)lpEntryList->lpbin[i].lpb;

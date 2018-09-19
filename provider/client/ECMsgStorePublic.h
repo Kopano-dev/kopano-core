@@ -31,7 +31,7 @@ public:
 	KC::ECMemTable *GetIPMSubTree();
 	virtual HRESULT Advise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn) override;
 
-protected:	
+protected:
 	KC::memory_ptr<ENTRYID> m_lpIPMSubTreeID, m_lpIPMFavoritesID;
 	KC::memory_ptr<ENTRYID> m_lpIPMPublicFoldersID;
 	ULONG m_cIPMSubTreeID = 0, m_cIPMFavoritesID = 0;

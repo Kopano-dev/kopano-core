@@ -145,7 +145,7 @@ public:
 
 	// ICS Streaming
 	virtual HRESULT ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag, const std::vector<ICSCHANGE> &sChanges, ULONG ulStart, ULONG ulCount, const SPropTagArray *lpsProps, WSMessageStreamExporter **lppsStreamExporter);
-	
+
 protected:
 	HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, const IMessageFactory &, ULONG *obj_type, IUnknown **);
 
@@ -207,7 +207,7 @@ public:
 		virtual HRESULT TestSet(const char *name, const char *value) _kc_override;
 		virtual HRESULT TestGet(const char *name, char **value) _kc_override;
 	} m_xMsgStoreProxy;
-	
+
 public:
 	KC::object_ptr<IMAPISupport> lpSupport;
 	KC::object_ptr<WSTransport> lpTransport;
@@ -228,7 +228,7 @@ class ECMSLogon final : public KC::ECUnknown, public IMSLogon {
 private:
 	ECMSLogon(ECMsgStore *lpStore);
 	ECMsgStore *m_lpStore;
-	
+
 public:
 	static HRESULT Create(ECMsgStore *lpStore, ECMSLogon **lppECMSLogon);
 	HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;

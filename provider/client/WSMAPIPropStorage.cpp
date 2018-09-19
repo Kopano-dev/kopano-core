@@ -46,7 +46,7 @@ WSMAPIPropStorage::~WSMAPIPropStorage()
 		soap_lock_guard spg(*m_lpTransport);
 		m_lpTransport->m_lpCmd->notifyUnSubscribe(ecSessionId, m_ulConnection, &er);
 	}
-	
+
 	FreeEntryId(&m_sEntryId, false);
 	FreeEntryId(&m_sParentEntryId, false);
 	m_lpTransport->RemoveSessionReloadCallback(m_ulSessionReloadCallback);
@@ -77,11 +77,11 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 
 	struct loadPropResponse	sResponse;
 	soap_lock_guard spg(*m_lpTransport);
-	
+
 	if (ulObjId == 0 && (ulServerCapabilities & KOPANO_CAP_LOADPROP_ENTRYID) == 0) {
-		hr = MAPI_E_NO_SUPPORT; 
-		goto exit; 
-	} 
+		hr = MAPI_E_NO_SUPPORT;
+		goto exit;
+	}
 
 	START_SOAP_CALL
 	{
@@ -119,7 +119,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 	HRESULT hr = hrSuccess;
 	ULONG ulPropId = 0;
 	GUID sServerGUID = {0}, sSIGUID = {0};
-	
+
 	if (lpsMapiObject->lpInstanceID) {
 		lpSaveObj->lpInstanceIds = s_alloc<entryList>(nullptr);
 		lpSaveObj->lpInstanceIds->__size = 1;
@@ -159,8 +159,8 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 		for (const auto &prop : lpsMapiObject->lstModified) {
 			SPropValue tmp = prop.GetMAPIPropValRef();
 			if (PROP_ID(tmp.ulPropTag) == ulPropId)
-				/* Skip the data if it is a Instance ID, If the instance id is invalid 
-				 * the data will be replaced in HrUpdateSoapObject function. The memory is already 
+				/* Skip the data if it is a Instance ID, If the instance id is invalid
+				 * the data will be replaced in HrUpdateSoapObject function. The memory is already
 				 * allocated, but not used. */
 				if (/*lpsMapiObject->bChangedInstance &&*/ lpsMapiObject->lpInstanceID)
 					continue;
@@ -199,7 +199,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(const MAPIOBJECT *lpsMapiObj
 	lpSaveObj->ulServerId = lpsMapiObject->ulObjId;
 	lpSaveObj->ulObjType = lpsMapiObject->ulObjType;
 	return hr;
-} 
+}
 
 HRESULT WSMAPIPropStorage::HrUpdateSoapObject(const MAPIOBJECT *lpsMapiObject,
     struct saveObject *lpsSaveObj, convert_context *lpConverter)
@@ -411,7 +411,7 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	// into their 'normal' properties list (lstProperties). This is correct because when we now
 	// open a subobject, it needs all the properties.
 	// However, because we already have all properties of the top-level message in-memory via
-	// ECGenericProps, the properties in 
+	// ECGenericProps, the properties in
 exit:
 	spg.unlock();
 	DeleteSoapObject(&sSaveObj);

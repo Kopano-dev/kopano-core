@@ -21,7 +21,7 @@ WSStoreTableView::WSStoreTableView(ULONG type, ULONG flags, ECSESSIONID sid,
 	    "WSStoreTableView")
 {
 	// OK, this is ugly, but the static row-wrapper routines need this object
-	// to get the guid and other information that has to be inlined into the table row. Really, 
+	// to get the guid and other information that has to be inlined into the table row. Really,
 	// the whole transport layer should have no references to the ECMAPI* classes, because that's
 	// upside-down in the layer model, but having the transport layer first deliver the properties,
 	// and have a different routine then go through all the properties is more memory intensive AND

@@ -280,7 +280,7 @@ HRESULT ECMsgStore::OpenStatsTable(unsigned int ulTableType, LPMAPITABLE *lppTab
 	hr = lpTable->HrSetTableOps(lpTableView, true);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);	
+	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
 	if (hr != hrSuccess)
 		return hr;
     AddChild(lpTable);
@@ -485,7 +485,7 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 {
 	if (lpulObjType == nullptr || lppUnk == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	
+
 	memory_ptr<ENTRYID> lpRootEntryID;
 	ULONG				cbRootEntryID = 0;
 	BOOL				fModifyObject = FALSE;
@@ -516,8 +516,8 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if(hr != hrSuccess)
 			return hr;
 		if(!(ulFlags & MAPI_DEFERRED_ERRORS)) {
-	        hr = lpTransport->HrCheckExistObject(cbEntryID, lpEntryID, (ulFlags&(SHOW_SOFT_DELETES))); 
-		    if(hr != hrSuccess) 
+			hr = lpTransport->HrCheckExistObject(cbEntryID, lpEntryID, (ulFlags & (SHOW_SOFT_DELETES)));
+			if (hr != hrSuccess)
 				return hr;
 		}
 	}
@@ -630,7 +630,7 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
 		*lpcbEntryID = 0;
 		*lppEntryID = NULL;
 	}
-	
+
 	if (lppszExplicitClass == nullptr)
 		return hrSuccess;
 	if (ulFlags & MAPI_UNICODE) {
@@ -1087,7 +1087,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(const TCHAR *lpszMsgStoreDN,
 			return CreateStoreEntryID(nullptr, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
 		else if (hr != hrSuccess)
 			return hr;
-		
+
 		// MsgStoreDN successfully converted
 		hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &~ptrServerPath, &bIsPeer);
 		if (hr == MAPI_E_NOT_FOUND && (ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0)
@@ -1095,7 +1095,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(const TCHAR *lpszMsgStoreDN,
 			return CreateStoreEntryID(nullptr, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
 		else if (hr != hrSuccess)
 			return hr;
-		
+
 		// Pseudo URL successfully resolved
 		if (bIsPeer) {
 			hr = lpTransport->HrResolveUserStore(tstrMailboxDN, OPENSTORE_OVERRIDE_HOME_MDB, NULL, &cbStoreEntryID, &~lpStoreEntryID);
@@ -1132,13 +1132,13 @@ HRESULT ECMsgStore::GetRights(ULONG cbUserEntryID, const ENTRYID *lpUserEntryID,
  * Get information about all of the mailboxes on a server.
  *
  * @param[in] lpszServerName	Points to a string that contains the name of the server
- * @param[out] lppTable			Points to a IMAPITable interface containing the information about all of 
+ * @param[out] lppTable			Points to a IMAPITable interface containing the information about all of
  *								the mailboxes on the server specified in lpszServerName
- * param[in] ulFlags			Specifies whether the server name is Unicode or not. The server name is 
+ * param[in] ulFlags			Specifies whether the server name is Unicode or not. The server name is
  *								default in ASCII format. With flags MAPI_UNICODE the server name is in Unicode format.
  * @return	Mapi error codes
  *
- * @remark	If named properties are used in the column set of the lppTable ensure you have the right named property id. 
+ * @remark	If named properties are used in the column set of the lppTable ensure you have the right named property id.
  *			The id can be different on each server.
  */
 HRESULT ECMsgStore::GetMailboxTable(const TCHAR *lpszServerName,
@@ -1156,9 +1156,9 @@ HRESULT ECMsgStore::GetMailboxTable(const TCHAR *lpszServerName,
 	std::string		strPseudoUrl;
 	convstring		tstrServerName(lpszServerName, ulFlags);
 	const utf8string strUserName = convert_to<utf8string>("SYSTEM");
-	
+
 	if (!tstrServerName.null_or_empty()) {
-		strPseudoUrl = "pseudo://"; 
+		strPseudoUrl = "pseudo://";
 		strPseudoUrl += tstrServerName;
 		auto hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &~ptrServerPath, &bIsPeer);
 		if (hr != hrSuccess)
@@ -1206,9 +1206,9 @@ HRESULT ECMsgStore::GetMailboxTable(const TCHAR *lpszServerName,
  * Get information about all of the public mailboxes on a server. (not implement)
  *
  * @param[in] lpszServerName	Points to a string that contains the name of the server
- * @param[out] lppTable			Points to a IMAPITable interface containing the information about all of 
+ * @param[out] lppTable			Points to a IMAPITable interface containing the information about all of
  *								the mailboxes on the server specified in lpszServerName
- * param[in] ulFlags			Specifies whether the server name is Unicode or not. The server name is 
+ * param[in] ulFlags			Specifies whether the server name is Unicode or not. The server name is
  *								default in ASCII format. With flags MAPI_UNICODE the server name is in Unicode format.
  *								Flag MDB_IPM		The public folders are interpersonal message (IPM) folders.
 								Flag MDB_NON_IPM	The public folders are non-IPM folders.
@@ -1378,11 +1378,11 @@ HRESULT ECMsgStore::AddRenAdditionalFolder(IMAPIFolder *lpFolder, ULONG ulType, 
 	SPropValue sPropValue;
 	std::string strBuffer;
 	ULONG ulBlockType = RSF_ELID_ENTRYID;
-	
+
 	if (HrGetOneProp(lpFolder, PR_IPM_OL2007_ENTRYIDS, &~lpRenEntryIDs) == hrSuccess)
 		strBuffer.assign((char *)lpRenEntryIDs->Value.bin.lpb, lpRenEntryIDs->Value.bin.cb);
 	// Remove trailing \0\0\0\0 if it's there
-	if(strBuffer.size() >= 4 && strBuffer.compare(strBuffer.size()-4, 4, "\0\0\0\0", 4) == 0) 
+	if (strBuffer.size() >= 4 && strBuffer.compare(strBuffer.size() - 4, 4, "\0\0\0\0", 4) == 0)
 		strBuffer.resize(strBuffer.size()-4);
 
 	uint16_t tmp2 = cpu_to_le16(ulType);
@@ -1395,7 +1395,7 @@ HRESULT ECMsgStore::AddRenAdditionalFolder(IMAPIFolder *lpFolder, ULONG ulType, 
 	strBuffer.append(1, (lpEntryID->cb>>8)&0xFF);
 	strBuffer.append((char*)lpEntryID->lpb, lpEntryID->cb);
 	strBuffer.append("\x00\x00\x00\x00", 4);
-	
+
 	sPropValue.ulPropTag = PR_IPM_OL2007_ENTRYIDS;
 	sPropValue.Value.bin.cb = strBuffer.size();
 	sPropValue.Value.bin.lpb = (LPBYTE)strBuffer.data();
@@ -1419,7 +1419,7 @@ HRESULT ECMsgStore::AddRenAdditionalFolder(IMAPIFolder *lpFolder, ULONG ulType, 
  * @param lpszContainerType Container type for the folder
  * @param fHidden TRUE if the folder must be marked hidden with PR_ATTR_HIDDEN
  * @return result
- */ 
+ */
 HRESULT ECMsgStore::CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
     IMAPIFolder *lpInboxFolder, IMAPIFolder *lpSubTreeFolder, ULONG ulType,
     const TCHAR *lpszFolderName, const TCHAR *lpszComment,
@@ -1428,14 +1428,14 @@ HRESULT ECMsgStore::CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
 	object_ptr<IMAPIFolder> lpMAPIFolder;
 	memory_ptr<SPropValue> lpPropValueEID;
 	SPropValue sPropValue;
-	
+
 	HRESULT hr = lpSubTreeFolder->CreateFolder(FOLDER_GENERIC,
 	     const_cast<LPTSTR>(lpszFolderName),
 	     const_cast<LPTSTR>(lpszComment), &IID_IMAPIFolder,
 	     OPEN_IF_EXISTS | fMapiUnicode, &~lpMAPIFolder);
 	if(hr != hrSuccess)
 		return hr;
-	
+
 	// Get entryid of the folder
 	hr = HrGetOneProp(lpMAPIFolder, PR_ENTRYID, &~lpPropValueEID);
 	if(hr != hrSuccess)
@@ -1447,7 +1447,7 @@ HRESULT ECMsgStore::CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
 	hr = HrSetOneProp(lpMAPIFolder, &sPropValue);
 	if(hr != hrSuccess)
 		return hr;
-		
+
 	if(fHidden) {
 		sPropValue.ulPropTag = PR_ATTR_HIDDEN;
 		sPropValue.Value.b = true;
@@ -1455,7 +1455,7 @@ HRESULT ECMsgStore::CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
 		if(hr != hrSuccess)
 			return hr;
 	}
-		
+
 	hr = AddRenAdditionalFolder(lpRootFolder, ulType, &lpPropValueEID->Value.bin);
 	if (hr != hrSuccess)
 		return hr;
@@ -1916,7 +1916,7 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId,
 		*lppStoreId = lpStoreId;
 		lpStoreId = NULL;
 	}
-		
+
 	if (*lpcbRootId == 0) {
 		*lpcbRootId = cbRootId;
 		*lppRootId = lpRootId;
@@ -2319,7 +2319,7 @@ HRESULT ECMsgStore::OpenUserStoresTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	hr = lpTable->HrSetTableOps(lpTableView, true);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);	
+	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
 	if (hr != hrSuccess)
 		return hr;
 	AddChild(lpTable);
@@ -2396,7 +2396,7 @@ HRESULT ECMsgStore::DeleteFromMasterOutgoingTable(ULONG cbEntryId,
 }
 
 // ProxyStoreObject
-HRESULT ECMsgStore::UnwrapNoRef(LPVOID *ppvObject) 
+HRESULT ECMsgStore::UnwrapNoRef(LPVOID *ppvObject)
 {
 	if (ppvObject == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -2590,7 +2590,7 @@ ECMSLogon::ECMSLogon(ECMsgStore *lpStore) :
 {
 	// Note we cannot AddRef() the store. This is because the reference order is:
 	// ECMsgStore -> IMAPISupport -> ECMSLogon
-	// Therefore AddRef()'ing the store from here would create a circular reference 
+	// Therefore AddRef()'ing the store from here would create a circular reference
 }
 
 HRESULT ECMSLogon::Create(ECMsgStore *lpStore, ECMSLogon **lppECMSLogon)

@@ -50,7 +50,7 @@ HRESULT ECMSProvider::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT ECMSProvider::Shutdown(ULONG * lpulFlags) 
+HRESULT ECMSProvider::Shutdown(ULONG *lpulFlags)
 {
 	return hrSuccess;
 }
@@ -137,12 +137,12 @@ HRESULT ECMSProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 		return hr;
 
 	// Register ourselves with mapisupport
-	//hr = lpMAPISup->SetProviderUID((MAPIUID *)&lpMsgStore->GetStoreGuid(), 0); 
+	//hr = lpMAPISup->SetProviderUID((MAPIUID *)&lpMsgStore->GetStoreGuid(), 0);
 	//if(hr != hrSuccess)
 	//	return hr;
-	
+
 	// Return the variables
-	if(lppMDB) { 
+	if (lppMDB) {
 		hr = lpECMsgStore->QueryInterface(IID_IMsgStore, (void **)lppMDB);
 		if(hr != hrSuccess)
 			return hr;
@@ -224,7 +224,7 @@ HRESULT ECMSProvider::SpoolerLogon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 
 	// Register ourselves with mapisupport
 	//guidStore = lpMsgStore->GetStoreGuid();
-	//hr = lpMAPISup->SetProviderUID((MAPIUID *)&guidStore, 0); 
+	//hr = lpMAPISup->SetProviderUID((MAPIUID *)&guidStore, 0);
 	//if(hr != hrSuccess)
 	//	goto exit;
 
@@ -241,7 +241,7 @@ HRESULT ECMSProvider::SpoolerLogon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 		return hr;
 	return lpLogon->QueryInterface(IID_IMSLogon, reinterpret_cast<void **>(lppMSLogon));
 }
-	
+
 HRESULT ECMSProvider::CompareStoreIDs(ULONG cbEntryID1,
     const ENTRYID *lpEntryID1, ULONG cbEntryID2, const ENTRYID *lpEntryID2,
     ULONG ulFlags, ULONG *lpulResult)

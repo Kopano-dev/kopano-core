@@ -17,7 +17,7 @@
 #include <sys/signal.h>
 #include <sys/types.h>
 
-#define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember)) 
+#define CALL_MEMBER_FN(object,ptrToMember) ((object).*(ptrToMember))
 
 using namespace KC;
 
@@ -174,7 +174,7 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 	m_bThreadExit = TRUE;
 
 	if (m_lpTransport) {
-		/* Get another transport so we can tell the server to end the session. We 
+		/* Get another transport so we can tell the server to end the session. We
 		 * can't use our own m_lpTransport since it is probably in a blocking getNextNotify()
 		 * call. Seems like a bit of a shame to open a new connection, but there's no
 		 * other option */
@@ -183,7 +183,7 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 			biglock.unlock();
 			return hr;
 		}
-    
+
 		lpTransport->HrLogOff();
 		/* Cancel any pending IO if the network transport is down, causing the logoff to fail */
 		m_lpTransport->HrCancelIO();

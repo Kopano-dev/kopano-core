@@ -31,7 +31,7 @@ public:
 	virtual HRESULT ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize);
 	virtual HRESULT Synchronize(ULONG *pulSteps, ULONG *pulProgress);
 	virtual HRESULT UpdateState(LPSTREAM lpStream);
-	
+
 	virtual HRESULT GetChangeCount(ULONG *lpcChanges);
 	virtual HRESULT SetMessageInterface(REFIID refiid);
 
@@ -64,7 +64,7 @@ private:
 	ChangeList m_lstFlag, m_lstSoftDelete, m_lstHardDelete;
 
 	typedef std::set<std::pair<unsigned int, std::string> > PROCESSEDCHANGESSET;
-	
+
 	PROCESSEDCHANGESSET m_setProcessedChanges;
 	ULONG m_ulChanges = 0, m_ulMaxChangeId = 0;
 	clock_t m_clkStart = 0;
@@ -77,7 +77,7 @@ private:
 	KC::object_ptr<IStream> m_lpStream;
 	KC::object_ptr<ECMsgStore> m_lpStore;
 	KC::memory_ptr<ICSCHANGE> m_lpChanges;
-	
+
 	HRESULT AddProcessedChanges(ChangeList &lstChanges);
 	ALLOC_WRAP_FRIEND;
 };

@@ -245,7 +245,7 @@ HRESULT ECMAPIFolderPublic::SetPropHandler(ULONG ulPropTag, void *lpProvider,
 		else
 			hr = lpFolder->HrSetRealProp(lpsPropValue);
 		break;
-	
+
 	default:
 		hr = MAPI_E_NOT_FOUND;
 		break;

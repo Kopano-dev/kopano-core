@@ -25,7 +25,7 @@ protected:
 public:
 	static HRESULT Create(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, ECMAPIFolder **lppECMAPIFolder);
 
-	static HRESULT	GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);	
+	static HRESULT GetPropHandler(ULONG ulPropTag, void *lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
 
 	// Our table-row getprop handler (handles client-side generation of table columns)
@@ -64,7 +64,7 @@ public:
 	// Override genericprops
 	virtual HRESULT SetEntryId(ULONG eid_size, const ENTRYID *eid);
 	virtual HRESULT HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProps);
-	
+
 	// Streaming support
 	virtual HRESULT CreateMessageFromStream(ULONG flags, ULONG sync_id, ULONG eid_size, const ENTRYID *eid, WSMessageStreamImporter **);
 	virtual HRESULT GetChangeInfo(ULONG eid_size, const ENTRYID *eid, SPropValue **pcl, SPropValue **ck);

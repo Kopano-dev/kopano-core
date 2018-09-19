@@ -35,7 +35,7 @@ HRESULT ECArchiveAwareMsgStore::OpenEntry(ULONG cbEntryID,
     ULONG *lpulObjType, IUnknown **lppUnk)
 {
 	// By default we'll try to open an archive aware message when a message is opened. The exception
-	// is when the client is not licensed to do so or when it's explicitly disabled by passing 
+	// is when the client is not licensed to do so or when it's explicitly disabled by passing
 	// IID_IECMessageRaw as the lpInterface parameter. This is for instance needed for the archiver
 	// itself becaus it needs to operate on the non-stubbed (or raw) message.
 	// In this override, we only check for the presence of IID_IECMessageRaw. If that's found, we'll
@@ -116,7 +116,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	MsgStoreMap::const_iterator iterStore = m_mapStores.find(eid);
 	if (iterStore != m_mapStores.cend())
 		return iterStore->second->QueryInterface(IID_ECMsgStore, (LPVOID*)lppArchiveStore);
-	
+
 	// @todo: Consolidate this with ECMSProvider::LogonByEntryID
 	object_ptr<IMsgStore> ptrUnknown;
 	ECMsgStorePtr ptrOnlineStore;

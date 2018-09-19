@@ -90,7 +90,7 @@ HRESULT ECMsgStorePublic::SetPropHandler(ULONG ulPropTag, void *lpProvider,
 HRESULT ECMsgStorePublic::SetEntryId(ULONG cbEntryId, const ENTRYID *lpEntryId)
 {
 	HRESULT hr;
-	
+
 	hr = ECMsgStore::SetEntryId(cbEntryId, lpEntryId);
 	if(hr != hrSuccess)
 		return hr;
@@ -150,7 +150,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 		lpEntryID = lpEntryIDIntern;
 	}
-	
+
 	hr = HrGetObjTypeFromEntryId(cbEntryID, reinterpret_cast<const BYTE *>(lpEntryID), &objtype);
 	if(hr != hrSuccess)
 		return hr;
@@ -204,7 +204,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if(hr != hrSuccess)
 			return hr;
 
-		// Get the parent entryid of a folder a check if this is the online subtree entryid. When it is, 
+		// Get the parent entryid of a folder a check if this is the online subtree entryid. When it is,
 		// change the parent to the static parent entryid
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 		if(hr != hrSuccess)
@@ -464,7 +464,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	if(hr != hrSuccess)
 		return hr;
 	++cProps;
-	
+
 	lpProps[cProps].ulPropTag = PR_LONGTERM_ENTRYID_FROM_TABLE;
 	hr = GetPublicEntryId(ePE_PublicFolders, lpProps, &lpProps[cProps].Value.bin.cb, (LPENTRYID*)&lpProps[cProps].Value.bin.lpb);
 	if(hr != hrSuccess)

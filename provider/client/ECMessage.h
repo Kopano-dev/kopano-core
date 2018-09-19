@@ -60,8 +60,8 @@ public:
 	/**
 	 * \brief Handles GetProp requests for previously registered properties.
 	 *
-	 * Properties can be registered through ECGenericProp::HrAddPropHandlers to be obtained through 
-	 * this function when special processing is needed. 
+	 * Properties can be registered through ECGenericProp::HrAddPropHandlers to be obtained through
+	 * this function when special processing is needed.
 	 *
 	 * \param[in] ulPropTag		The proptag of the requested property.
 	 * \param[in] lpProvider	The provider for the requested property (Probably an ECMsgStore pointer).
@@ -72,7 +72,7 @@ public:
 	 * \return hrSuccess on success.
 	 */
 	static HRESULT	GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
-	
+
 	/**
 	 * \brief Handles SetProp requests for previously registered properties.
 	 *
@@ -132,7 +132,7 @@ private:
 	HRESULT SyncRecips();
 	HRESULT SyncSubject();
 	HRESULT GetBodyType(eBodyType *lpulBodyType);
-	
+
 	// Override GetProps/GetPropList so we can sync RTF before calling GetProps
 	virtual HRESULT GetProps(const SPropTagArray *, ULONG flags, ULONG *nvals, SPropValue **) override;
 	virtual HRESULT GetPropList(ULONG flags, SPropTagArray **) override;
@@ -144,7 +144,7 @@ private:
 	HRESULT SyncRtf();
 	HRESULT SyncHtmlToPlain();
 	HRESULT SyncHtmlToRtf();
-	
+
 	BOOL fNew, m_bEmbedded, m_bExplicitSubjectPrefix = false;
 	BOOL m_bRecipsDirty = false, m_bInhibitSync = false;
 	eBodyType m_ulBodyType = bodyTypeUnknown;

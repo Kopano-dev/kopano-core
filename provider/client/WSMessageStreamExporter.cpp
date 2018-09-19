@@ -25,7 +25,7 @@ using namespace KC;
  *                          could be less if those messages didn't exist anymore on the server. This makes sure the client can still
  *                          request those streams and an appropriate error can be returned.
  * @param[in]	streams		The streams (or actually the information about the streams).
- * @param[in]	lpTransport	Pointer to the parent transport. Used to get the streams from the network. This transport MUST be used 
+ * @param[in]	lpTransport	Pointer to the parent transport. Used to get the streams from the network. This transport MUST be used
  *                          exclusively by this WSMessageStreamExporter only.
  * @param[out]	lppStreamExporter	The new instance.
  */
@@ -35,7 +35,7 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 	WSMessageStreamExporterPtr ptrStreamExporter(new(std::nothrow) WSMessageStreamExporter);
 	if (ptrStreamExporter == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	
+
 	for (gsoap_size_t i = 0; i < streams.__size; ++i) {
 		auto lpsi = make_unique_nt<StreamInfo>();
 		if (lpsi == nullptr)
@@ -93,7 +93,7 @@ HRESULT WSMessageStreamExporter::GetSerializedMessage(ULONG ulIndex, WSSerialize
 
 	AddChild(ptrMessage);
 	++m_ulExpectedIndex;
-	*lppSerializedMessage = ptrMessage.release();	
+	*lppSerializedMessage = ptrMessage.release();
 	return hrSuccess;
 }
 

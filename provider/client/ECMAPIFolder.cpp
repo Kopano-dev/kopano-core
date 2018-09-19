@@ -161,7 +161,7 @@ HRESULT ECMAPIFolder::TableRowGetProp(void *lpProvider,
 	}
 }
 
-HRESULT	ECMAPIFolder::QueryInterface(REFIID refiid, void **lppInterface) 
+HRESULT ECMAPIFolder::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE2(ECMAPIFolder, this);
 	REGISTER_INTERFACE2(ECMAPIContainer, this);
@@ -470,7 +470,7 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 	//if (hr != hrSuccess)
 		//goto exit;
 
-	// Check if right store	
+	// Check if right store
 	for (unsigned int i = 0; i < lpMsgList->cValues; ++i) {
 		hr = HrGetStoreGuidFromEntryId(lpMsgList->lpbin[i].cb, lpMsgList->lpbin[i].lpb, &guidMsg);
 		// check if the message in the store of the folder (serverside copy possible)
@@ -577,9 +577,9 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		return hr;
 
 	// Check if it's  the same store of kopano so we can copy/move fast
-	if( IsKopanoEntryId(cbEntryID, (LPBYTE)lpEntryID) && 
+	if (IsKopanoEntryId(cbEntryID, (LPBYTE)lpEntryID) &&
 		IsKopanoEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb) &&
-		HrGetStoreGuidFromEntryId(cbEntryID, (LPBYTE)lpEntryID, &guidFrom) == hrSuccess && 
+		HrGetStoreGuidFromEntryId(cbEntryID, (LPBYTE)lpEntryID, &guidFrom) == hrSuccess &&
 		HrGetStoreGuidFromEntryId(lpPropArray[0].Value.bin.cb, lpPropArray[0].Value.bin.lpb, &guidDest) == hrSuccess &&
 		memcmp(&guidFrom, &guidDest, sizeof(GUID)) == 0 &&
 		lpFolderOps != NULL)
@@ -637,7 +637,7 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 					bError = TRUE;
 			}else
 				bError = TRUE;
-			
+
 			// Progress bar
 			if((ulFlags&MESSAGE_DIALOG ) && lpProgress) {
 				if (ulPGFlags & MAPI_TOP_LEVEL)
@@ -702,7 +702,7 @@ HRESULT ECMAPIFolder::EmptyFolder(ULONG ulUIParam, LPMAPIPROGRESS lpProgress, UL
 HRESULT ECMAPIFolder::GetProps(const SPropTagArray *lpPropTagArray,
     ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
 {
-	// Check if there is a storage needed because favorites and ipmsubtree of the public folder 
+	// Check if there is a storage needed because favorites and ipmsubtree of the public folder
 	// doesn't have a prop storage.
 	if(lpStorage != NULL) {
 		auto hr = HrLoadProps();

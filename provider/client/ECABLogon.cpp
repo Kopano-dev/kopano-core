@@ -66,7 +66,7 @@ HRESULT ECABLogon::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lpp
 HRESULT ECABLogon::Logoff(ULONG ulFlags)
 {
 	//FIXME: Release all Other open objects ?
-	//Releases all open objects, such as any subobjects or the status object. 
+	//Releases all open objects, such as any subobjects or the status object.
 	//Releases the provider's support object.
 	m_lpMAPISup.reset();
 	return hrSuccess;
@@ -263,7 +263,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		auto lpPropVal = PCpropFindProp(rgpropvalsRecip, cPropsRecip, PR_ENTRYID);
 		if(!lpPropVal)
 			continue; // no
-		
+
 		auto lpABeid = reinterpret_cast<ABEID *>(lpPropVal->Value.bin.lpb);
 		auto cbABeid = lpPropVal->Value.bin.cb;
 		/* Is it one of ours? */
@@ -309,7 +309,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		lpRecipList->aEntries[i].rgPropVals	= lpNewPropArray.release();
 		lpRecipList->aEntries[i].cValues	= cValues;
 		if(rgpropvalsRecip) {
-			ECFreeBuffer(rgpropvalsRecip); 
+			ECFreeBuffer(rgpropvalsRecip);
 			rgpropvalsRecip = NULL;
 		}
 	}

@@ -57,7 +57,7 @@ HRESULT WSMAPIFolderOps::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE3(ECMAPIFolderOps, WSMAPIFolderOps, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
-	
+
 HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
     const utf8string &strFolderName, const utf8string &strComment,
     BOOL fOpenIfExists, ULONG ulSyncId, const SBinary *lpsSourceKey,
@@ -160,7 +160,7 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 	if(lpMsgList) {
 		if(lpMsgList->cValues == 0)
 			goto exit;
-		
+
 		hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, &sEntryList);
 		if(hr != hrSuccess)
 			goto exit;
@@ -196,7 +196,7 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(const ENTRYLIST *lpMsgList,
 		if(hr != hrSuccess)
 			goto exit;
 	}
-	if(lpRestriction) 
+	if (lpRestriction)
 	{
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpsRestrict, lpRestriction);
 		if(hr != hrSuccess)

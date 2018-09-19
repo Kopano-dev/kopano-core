@@ -3,7 +3,7 @@
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
 // Interface for writing and reading properties to disk (which does the actual transfer and save)
-// 
+//
 // Strategy is to load most of the small (ie not much data) properties at load-time. This saves
 // a lot of overhead if the properties were to be acquired one-by-one over the network. However, a
 // complete list of properties is also read through HrReadProps(), so the local system also knows
@@ -13,7 +13,7 @@
 // and HrWriteProps. HrWriteProps changes and/or adds any new or modified properties, while HrDeleteProps
 // removes any properties that have been completely removed.
 //
-// This keeps the overall performance high, by having relatively low latency problems as most message 
+// This keeps the overall performance high, by having relatively low latency problems as most message
 // accesses will be kept down to about 1 to 5 network accesses, and have low bandwidth requirements as
 // large data is only loaded on demand.
 //

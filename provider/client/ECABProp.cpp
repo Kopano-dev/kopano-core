@@ -61,7 +61,7 @@ HRESULT	ECABProp::DefaultABGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFl
 		hr = lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 		break;
 	}
-	
+
 	return hr;
 }
 

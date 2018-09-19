@@ -31,7 +31,7 @@ protected:
 public:
 	static HRESULT Create(KC::ECSESSIONID, ULONG eid_size, const ENTRYID *, WSTransport *, WSMAPIFolderOps **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
-	
+
 	// Creates a folder object with only a PR_DISPLAY_NAME and type
 	virtual HRESULT HrCreateFolder(ULONG fl_type, const KC::utf8string &name, const KC::utf8string &comment, BOOL fOpenIfExists, ULONG sync_id, const SBinary *srckey, ULONG neweid_size, ENTRYID *neweid, ULONG *eid_size, ENTRYID **eid);
 
@@ -53,11 +53,11 @@ public:
 
 	// Move or copy a message
 	virtual HRESULT HrCopyMessage(ENTRYLIST *msglist, ULONG eid_size, const ENTRYID *dest_eid, ULONG flags, ULONG sync_id);
-	
+
 	// Message status
 	virtual HRESULT HrGetMessageStatus(ULONG eid_size, const ENTRYID *, ULONG flags, ULONG *status);
 	virtual HRESULT HrSetMessageStatus(ULONG eid_size, const ENTRYID *, ULONG new_status, ULONG stmask, ULONG sync_id, ULONG *old_status);
-	
+
 	// Streaming Support
 	virtual HRESULT HrGetChangeInfo(ULONG eid_size, const ENTRYID *, SPropValue **pcl, SPropValue **ck);
 

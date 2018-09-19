@@ -74,4 +74,4 @@ private:
 typedef KC::object_ptr<WSMessageStreamImporter> WSMessageStreamImporterPtr;
 
 #endif // ndef WSMessageStreamImporter_INCLUDED
-	
+

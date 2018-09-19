@@ -24,7 +24,7 @@ using namespace KC;
  *
  * Normally, each GetIDsFromNames calls would have to consult the server for an ID, and then cache
  * and return the value to the client. This is a rather time-consuming thing to do as Outlook requests
- * quite a few different named properties at startup. We can make this much faster by hard-wiring 
+ * quite a few different named properties at startup. We can make this much faster by hard-wiring
  * a bunch of known named properties into the CLIENT-side DLL. This makes sure that most (say 90%) of
  * GetIDsFromNames calls can be handled locally without any reference to the server, while any other
  * (new) named properties can be handled in the standard way. This reduces client-server communications
@@ -36,12 +36,12 @@ using namespace KC;
 /*
  * Currently, serverside named properties are cached locally in a map<> object,
  * however, in the future, a bimap<> may be used to speed up reverse lookups (ie
- * getNamesFromIDs) but this is not used frequently so we can leave it like 
+ * getNamesFromIDs) but this is not used frequently so we can leave it like
  * this for now
  *
  * For the most part, this implementation is rather fast, (possible faster than
  * Exchange) due to the fact that we know which named properties are likely to be
- * requested. This means that we have 
+ * requested. This means that we have
  */
 
 /* Our local names
@@ -225,7 +225,7 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 		}
 
 	if(cUnresolved) {
-		// Let the server resolve these names 
+		// Let the server resolve these names
 		hr = lpTransport->HrGetIDsFromNames(lppPropNamesUnresolved.get(), cUnresolved, ulFlags, &~lpServerIDs);
 		if(hr != hrSuccess)
 			return hr;
@@ -241,7 +241,7 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 			    lpsPropTagArray->aulPropTag[i] == PROP_TAG(PT_ERROR, 0))
 				ResolveCache(lppPropNames[i], &lpsPropTagArray->aulPropTag[i]);
 	}
-	
+
 	// Finally, check for any errors left in the returned structure
 	hr = hrSuccess;
 	for (unsigned int i = 0; i < cPropNames; ++i)
@@ -372,9 +372,9 @@ HRESULT ECNamedProp::HrCopyNameId(LPMAPINAMEID lpSrc, LPMAPINAMEID *lppDst, void
 
 	lpDst->ulKind = lpSrc->ulKind;
 	if(lpSrc->lpguid) {
-		if(lpBase) 
+		if(lpBase)
 			hr = ECAllocateMore(sizeof(GUID), lpBase, (void **) &lpDst->lpguid);
-		else 
+		else
 			hr = ECAllocateMore(sizeof(GUID), lpDst, (void **) &lpDst->lpguid);
 		if(hr != hrSuccess)
 			goto exit;

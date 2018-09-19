@@ -87,7 +87,7 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 		*lpsProviderInfo = iterProvider->second;
 		return hrSuccess;
 	}
-		
+
 	// Get the username and password from the profile settings
 	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if(hr != hrSuccess)

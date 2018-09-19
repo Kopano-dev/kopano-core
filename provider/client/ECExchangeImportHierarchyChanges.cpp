@@ -49,7 +49,7 @@ HRESULT	ECExchangeImportHierarchyChanges::QueryInterface(REFIID refiid, void **l
 HRESULT ECExchangeImportHierarchyChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError){
 	ecmem_ptr<MAPIERROR> lpMapiError;
 	memory_ptr<TCHAR> lpszErrorMsg;
-	
+
 	//FIXME: give synchronization errors messages
 	auto hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &~lpszErrorMsg);
 	if (hr != hrSuccess)
@@ -68,7 +68,7 @@ HRESULT ECExchangeImportHierarchyChanges::GetLastError(HRESULT hResult, ULONG ul
 
 		if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
 			return hr;
-		wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str()); 
+		wcscpy((wchar_t *)lpMapiError->lpszComponent, wstrCompName.c_str());
 	} else {
 		std::string strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
 		std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
@@ -136,7 +136,7 @@ HRESULT ECExchangeImportHierarchyChanges::Config(LPSTREAM lpStream, ULONG ulFlag
 HRESULT ECExchangeImportHierarchyChanges::UpdateState(LPSTREAM lpStream){
 	LARGE_INTEGER zero = {{0,0}};
 	ULONG ulLen = 0;
-	
+
 	if(lpStream == NULL) {
 		if (m_lpStream == NULL)
 			return hrSuccess;
@@ -252,7 +252,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 		hr = HrGetOneProp(lpFolder, PR_PARENT_SOURCE_KEY, &~lpPropVal);
 		if(hr != hrSuccess)
 			return hr;
-		
+
 		//check if we have to move the folder
 		if(bRestored || lpPropVal->Value.bin.cb != lpPropParentSourceKey->Value.bin.cb || memcmp(lpPropVal->Value.bin.lpb, lpPropParentSourceKey->Value.bin.lpb, lpPropVal->Value.bin.cb) != 0){
 			if(lpPropParentSourceKey->Value.bin.cb > 0){
@@ -268,14 +268,14 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 				if(hr != hrSuccess)
 					return hr;
 			}
-			
+
 			// Do the move
 			hr = m_lpFolder->lpFolderOps->HrCopyFolder(cbEntryId, lpEntryId, cbDestEntryId, lpDestEntryId, utf8string(), FOLDER_MOVE, m_ulSyncId);
 			if(hr != hrSuccess)
 				return hr;
 		}
 	}
-	
+
 	//ignore change if remote changekey is in local changelist
 	if (lpPropChangeKey && HrGetOneProp(lpFolder, PR_PREDECESSOR_CHANGE_LIST, &~lpPropVal) == hrSuccess) {
 		strChangeList.assign((char *)lpPropVal->Value.bin.lpb, lpPropVal->Value.bin.cb);

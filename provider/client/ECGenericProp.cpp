@@ -79,7 +79,7 @@ HRESULT ECGenericProp::HrAddPropHandlers(ULONG ulPropTag, GetPropCallBack lpfnGe
 HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 {
 	ULONG ulPropId = 0;
-	
+
 	//FIXME: check the property structure -> lpsPropValue
 
 	if (m_bLoading == FALSE && m_sMapiObject) {
@@ -92,7 +92,7 @@ HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 		auto hr = HrLoadProps();
 		if(hr != hrSuccess)
 			return hr;
-	}			
+	}
 
 	auto iterPropsFound = lstProps.end();
 	// Loop through all properties, get the first EXACT matching property, but delete ALL
@@ -141,7 +141,7 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 		if(hr != hrSuccess)
 			return hr;
 		m_bReload = FALSE;
-	}			
+	}
 
 	// Find the property in our list
 	auto iterProps = lstProps.find(PROP_ID(ulPropTag));
@@ -185,12 +185,12 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 	return hrSuccess;
 }
 
-/** 
+/**
  * Deletes a property from the internal system
- * 
+ *
  * @param ulPropTag The requested ulPropTag to remove. Property type is ignored; only the property identifier is used.
  * @param fOverwriteRO Set to TRUE if the object is to be modified eventhough it's read-only. Currently unused! @todo parameter should be removed.
- * 
+ *
  * @return MAPI error code
  * @retval hrSuccess PropTag is set to be removed during the next SaveChanges call
  * @retval MAPI_E_NOT_FOUND The PropTag is not found in the list (can be type mismatch too)
@@ -201,7 +201,7 @@ HRESULT ECGenericProp::HrDeleteRealProp(ULONG ulPropTag, BOOL fOverwriteRO)
 		auto hr = HrLoadProps();
 		if(hr != hrSuccess)
 			return hr;
-	}			
+	}
 
 	// Now find the real value
 	auto iterProps = lstProps.find(PROP_ID(ulPropTag));
@@ -251,7 +251,7 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 		lpsPropValue->ulPropTag = PR_NULL;
 		memset(&lpsPropValue->Value, 0, sizeof(lpsPropValue->Value)); // make sure all bits, 32 or 64, are 0
 		break;
-	case PROP_ID(PR_OBJECT_TYPE): 
+	case PROP_ID(PR_OBJECT_TYPE):
 		lpsPropValue->Value.l = lpProp->ulObjType;
 		lpsPropValue->ulPropTag = PR_OBJECT_TYPE;
 		break;
@@ -334,14 +334,14 @@ HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR 
 {
 	ecmem_ptr<MAPIERROR> lpMapiError;
 	memory_ptr<TCHAR> lpszErrorMsg;
-	
+
 	auto hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &~lpszErrorMsg);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ECAllocateBuffer(sizeof(MAPIERROR), &~lpMapiError);
 	if(hr != hrSuccess)
 		return hr;
-		
+
 	if (ulFlags & MAPI_UNICODE) {
 		std::wstring wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
 		std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
@@ -352,7 +352,7 @@ HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR 
 
 		if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
 			return hr;
-		wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str()); 
+		wcscpy((wchar_t *)lpMapiError->lpszComponent, wstrCompName.c_str());
 	} else {
 		std::string strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
 		std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
@@ -393,7 +393,7 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	// Note: m_sMapiObject->lstProperties and m_sMapiObject->lstAvailable are empty
 	// here, because they are cleared after HrLoadProps and SaveChanges
 	// save into m_sMapiObject
-	
+
 	for (auto l : m_setDeletedProps) {
 		// Make sure the property is not present in deleted/modified list
 		HrRemoveModifications(m_sMapiObject.get(), l);
@@ -429,7 +429,7 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	if (hr != hrSuccess)
 		return hr;
 
-	// HrSaveObject() has appended any new properties in lstAvailable and lstProperties. We need to load the 
+	// HrSaveObject() has appended any new properties in lstAvailable and lstProperties. We need to load the
 	// new properties. The easiest way to do this is to simply load all properties. Note that in embedded objects
 	// that save to ECParentStorage, the object will be untouched. The code below will do nothing.
 	// Large properties received
@@ -496,7 +496,7 @@ HRESULT ECGenericProp::HrSetCleanProperty(ULONG ulPropTag)
 	    (PROP_TYPE(ulPropTag) != PT_UNSPECIFIED &&
 	    ulPropTag != iterProps->second.GetPropTag()))
 		return MAPI_E_NOT_FOUND;
-	
+
 	iterProps->second.HrSetClean();
 	return hrSuccess;
 }
@@ -507,7 +507,7 @@ HRESULT	ECGenericProp::HrGetHandler(ULONG ulPropTag, SetPropCallBack *lpfnSetPro
 	ECPropCallBackIterator iterCallBack;
 
 	iterCallBack = lstCallBack.find(PROP_ID(ulPropTag));
-	if(iterCallBack == lstCallBack.end() || 
+	if (iterCallBack == lstCallBack.end() ||
 		(ulPropTag != iterCallBack->second.ulPropTag && PROP_TYPE(ulPropTag) != PT_UNSPECIFIED &&
 		!(PROP_TYPE(iterCallBack->second.ulPropTag) == PT_TSTRING && (PROP_TYPE(ulPropTag) == PT_STRING8 || PROP_TYPE(ulPropTag) == PT_UNICODE) )
 		) )
@@ -623,7 +623,7 @@ HRESULT ECGenericProp::HrLoadProp(ULONG ulPropTag)
 		auto hr = HrLoadProps();
 		if(hr != hrSuccess)
 			return hr;
-	}			
+	}
 	auto iterProps = lstProps.find(PROP_ID(ulPropTag));
 	if (iterProps == lstProps.end() ||
 	    (PROP_TYPE(ulPropTag) != PT_UNSPECIFIED &&
@@ -699,12 +699,12 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 {
 	ecmem_ptr<SPropTagArray> lpPropTagArray;
 	int					n = 0;
-	
+
 	if (!m_props_loaded) {
 		auto hr = HrLoadProps();
 		if(hr != hrSuccess)
 			return hr;
-	}			
+	}
 
 	// The size of the property tag array is never larger than (static properties + generated properties)
 	auto hr = ECAllocateBuffer(CbNewSPropTagArray(lstProps.size() + lstCallBack.size()),
@@ -784,7 +784,7 @@ HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 
 	for (unsigned int i = 0; i < cValues; ++i) {
 		// Ignore the PR_NULL property tag and all properties with a type of PT_ERROR;
-		// no changes and report no problems in the SPropProblemArray structure. 
+		// no changes and report no problems in the SPropProblemArray structure.
 		if(PROP_TYPE(lpPropArray[i].ulPropTag) == PR_NULL ||
 			PROP_TYPE(lpPropArray[i].ulPropTag) == PT_ERROR)
 			continue;
@@ -810,12 +810,12 @@ HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	return hrSuccess;
 }
 
-/** 
+/**
  * Delete properties from the current object
- * 
+ *
  * @param lpPropTagArray PropTagArray with properties to remove from the object. If a property from this list is not found, it will be added to the lppProblems array.
  * @param lppProblems An array of proptags that could not be removed from the object. Returns NULL if everything requested was removed. Can be NULL not to want the problem array.
- * 
+ *
  * @remark Property types are ignored; only the property identifiers are used.
  *
  * @return MAPI error code
@@ -887,7 +887,7 @@ HRESULT ECGenericProp::GetNamesFromIDs(SPropTagArray **tags, const GUID *propset
 {
 	return MAPI_E_NO_SUPPORT;
 }
- 
+
 HRESULT ECGenericProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags)
 {
 	return MAPI_E_NO_SUPPORT;

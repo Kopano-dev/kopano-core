@@ -62,7 +62,7 @@ private:
 	KC::memory_ptr<SSortOrderSet> lpsSortOrderSet;
 	std::set<ULONG>		m_ulConnectionList;
 	std::recursive_mutex m_hMutexConnectionList;
-	
+
 	// Deferred calls
 	KC::memory_ptr<SPropTagArray> m_lpSetColumns;
 	KC::memory_ptr<SRestriction> m_lpRestrict;

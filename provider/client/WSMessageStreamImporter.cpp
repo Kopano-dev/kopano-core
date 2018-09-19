@@ -120,7 +120,7 @@ exit:
 HRESULT WSMessageStreamImporter::StartTransfer(WSMessageStreamSink **lppSink)
 {
 	KC::object_ptr<WSMessageStreamSink> ptrSink;
-	
+
 	if (!m_threadPool.enqueue(this))
 		return MAPI_E_CALL_FAILED;
 	auto hr = WSMessageStreamSink::Create(&m_fifoBuffer, m_ulTimeout, this, &~ptrSink);
@@ -155,11 +155,11 @@ WSMessageStreamImporter::WSMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, 
 , m_fifoBuffer(ulBufferSize)
 , m_threadPool(1)
 , m_ulTimeout(ulTimeout)
-{ 
+{
 }
 
 WSMessageStreamImporter::~WSMessageStreamImporter()
-{ 
+{
 	s_free(nullptr, m_sEntryId.__ptr);
 	s_free(nullptr, m_sFolderEntryId.__ptr);
 	if (m_sConflictItems.Value.bin)
@@ -181,7 +181,7 @@ void WSMessageStreamImporter::run()
 	sStreamData.xop__Include.type = const_cast<char *>("application/binary");
 
 	soap_lock_guard spg(*m_ptrTransport);
-	soap_set_omode(lpSoap, SOAP_ENC_MTOM | SOAP_IO_CHUNK);	
+	soap_set_omode(lpSoap, SOAP_ENC_MTOM | SOAP_IO_CHUNK);
     lpSoap->mode &= ~SOAP_XML_TREE;
     lpSoap->omode &= ~SOAP_XML_TREE;
 	lpSoap->fmimereadopen = &StaticMTOMReadOpen;
