@@ -612,10 +612,11 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	time_t last = 0;
 	CONNECTION_TYPE ulType;
 	epoll_event epevent;
-	epoll_event *epevents;
+	auto epevents = make_unique_nt<epoll_event[]>(m_fdMax);
 	int n;
 
-	epevents = new epoll_event[m_fdMax];
+	if (epevents == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	// setup epoll for listen sockets
 	memset(&epevent, 0, sizeof(epoll_event));
 	epevent.events = EPOLLIN | EPOLLPRI; // wait for input and priority (?) events
@@ -648,7 +649,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
         }
 		l_sock.unlock();
 
-		n = epoll_wait(m_epFD, epevents, m_fdMax, 1000); // timeout -1 is wait indefinitely
+		n = epoll_wait(m_epFD, epevents.get(), m_fdMax, 1000); // timeout -1 is wait indefinitely
 		l_sock.lock();
 		for (int i = 0; i < n; ++i) {
 			auto iterListenSockets = m_setListenSockets.find(epevents[i].data.fd);
@@ -731,7 +732,6 @@ ECRESULT ECDispatcherEPoll::MainLoop()
     }
 	m_setSockets.clear();
 	l_sock.unlock();
-	delete [] epevents;
 	return er;
 }
 
