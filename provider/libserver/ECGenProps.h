@@ -29,7 +29,7 @@ namespace KC {
 
 struct ECODStore;
 
-class ECGenProps _kc_final {
+class ECGenProps final {
 public:
 	// Returns whether a different property should be retrieved instead of the
 	// requested property.

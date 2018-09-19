@@ -77,7 +77,7 @@ std::string CommonQueryCreator::CreateQuery() const
  *                          that are new or have changed since the last check will be
  *                          returned (deleted is a change is this context).
  **/
-class IncrementalQueryCreator _kc_final : public CommonQueryCreator {
+class IncrementalQueryCreator final : public CommonQueryCreator {
 public:
 	IncrementalQueryCreator(ECDatabase *lpDatabase, unsigned int ulSyncId, unsigned int ulChangeId, const SOURCEKEY &sFolderSourceKey, unsigned int ulFlags);
 
@@ -134,7 +134,7 @@ std::string IncrementalQueryCreator::CreateOrderQuery() const
  *                   messages need to be processed afterwards to see what needs to be
  *                   send to the client.
  **/
-class FullQueryCreator _kc_final : public CommonQueryCreator {
+class FullQueryCreator final : public CommonQueryCreator {
 public:
 	FullQueryCreator(ECDatabase *lpDatabase, const SOURCEKEY &sFolderSourceKey, unsigned int ulFlags, unsigned int ulFilteredSourceSync = 0);
 
@@ -180,7 +180,7 @@ std::string FullQueryCreator::CreateOrderQuery() const
  * do not have a restriction set. (When a restriction is set, we still need to generate the message set
  * so we cannot optimize anything out then).
  **/
-class NullQueryCreator _kc_final : public CommonQueryCreator {
+class NullQueryCreator final : public CommonQueryCreator {
 public:
 	NullQueryCreator();
 
@@ -221,7 +221,7 @@ public:
  *                                which implies that all changes are genuin changes and no messages will be
  *                                rejected through a restriction.
  **/
-class NonLegacyIncrementalProcessor _kc_final : public IMessageProcessor {
+class NonLegacyIncrementalProcessor final : public IMessageProcessor {
 public:
 	NonLegacyIncrementalProcessor(unsigned int ulMaxChangeId);
 	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) _kc_override;
@@ -270,7 +270,7 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGT
  *                         client previously. Since we don't have legacy, we assume all messages
  *                         up to the current changeId are on the client.
  **/
-class NonLegacyFullProcessor _kc_final : public IMessageProcessor {
+class NonLegacyFullProcessor final : public IMessageProcessor {
 public:
 	NonLegacyFullProcessor(unsigned int ulChangeId, unsigned int ulSyncId);
 	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) _kc_override;
@@ -336,7 +336,7 @@ ECRESULT NonLegacyFullProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDB
 /**
  * LegacyProcessor: Processes accepted and rejected messages while keeping track of legacy messages.
  **/
-class LegacyProcessor _kc_final : public IMessageProcessor {
+class LegacyProcessor final : public IMessageProcessor {
 public:
 	LegacyProcessor(unsigned int ulChangeId, unsigned int ulSyncId, const MESSAGESET &setMessages, unsigned int ulMaxFolderChange);
 	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) _kc_override;
@@ -446,7 +446,7 @@ ECRESULT LegacyProcessor::GetResidualMessages(LPMESSAGESET lpsetResiduals)
  * FirstSyncProcessor: Processes accepted and rejected messages for initial syncs. And because
  *                     it is the first sync we assume there are no messages on the device yet.
  **/
-class FirstSyncProcessor _kc_final : public IMessageProcessor {
+class FirstSyncProcessor final : public IMessageProcessor {
 public:
 	FirstSyncProcessor(unsigned int ulMaxFolderChange);
 	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) _kc_override;

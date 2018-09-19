@@ -62,7 +62,7 @@ class ECS3Config final : public ECAttachmentConfig {
 	friend class ECS3Attachment;
 };
 
-class ECS3Attachment _kc_final : public ECAttachmentStorage {
+class ECS3Attachment final : public ECAttachmentStorage {
 	public:
 	ECS3Attachment(ECS3Config &, ECDatabase *);
 

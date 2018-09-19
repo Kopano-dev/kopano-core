@@ -81,7 +81,7 @@
 
 using namespace KC;
 
-class ECFifoSerializer _kc_final : public ECSerializer {
+class ECFifoSerializer final : public ECSerializer {
 	public:
 	enum eMode { serialize, deserialize };
 

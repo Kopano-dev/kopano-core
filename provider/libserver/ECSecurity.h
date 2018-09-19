@@ -24,7 +24,7 @@ class ECSession;
 
 #define EC_NO_IMPERSONATOR		((unsigned int)-1)
 
-class ECSecurity _kc_final {
+class ECSecurity final {
 public:
 	ECSecurity(ECSession *lpSession, std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit);
 

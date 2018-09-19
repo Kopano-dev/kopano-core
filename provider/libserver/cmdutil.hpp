@@ -21,7 +21,7 @@ namespace KC {
 // Above EC_TABLE_CHANGE_THRESHOLD, a TABLE_CHANGE notification is sent instead of individual notifications
 #define EC_TABLE_CHANGE_THRESHOLD 10
 
-class EntryId _kc_final {
+class EntryId final {
 public:
     EntryId() {
         updateStruct();
@@ -130,7 +130,7 @@ struct TABLECHANGENOTIFICATION {
 	unsigned int ulFlags, ulType;
 };
 
-class PARENTINFO _kc_final {
+class PARENTINFO final {
 public:
 	int lItems = 0, lFolders = 0, lAssoc = 0, lUnread = 0;
 	int lDeleted = 0, lDeletedFolders = 0, lDeletedAssoc = 0;

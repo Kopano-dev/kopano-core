@@ -55,7 +55,7 @@ struct changeSubscribeItem {
 };
 typedef std::multimap<unsigned int, changeSubscribeItem> CHANGESUBSCRIBEMAP;	// SyncId -> changeSubscribeItem
 
-class ECSessionGroup _kc_final {
+class ECSessionGroup final {
 public:
 	ECSessionGroup(ECSESSIONGROUPID sessionGroupId, ECSessionManager *lpSessionManager);
 	virtual ~ECSessionGroup();
@@ -65,12 +65,12 @@ public:
 	 */
 	virtual void lock();
 	virtual void unlock();
-	virtual bool IsLocked(void) const _kc_final { return m_ulRefCount > 0; }
+	virtual bool IsLocked() const final { return m_ulRefCount > 0; }
 
 	/*
 	 * Returns the SessionGroupId
 	 */
-	virtual ECSESSIONGROUPID GetSessionGroupId(void) const _kc_final { return m_sessionGroupId; }
+	virtual ECSESSIONGROUPID GetSessionGroupId() const final { return m_sessionGroupId; }
 
 	/*
 	 * Add/Remove Session from group

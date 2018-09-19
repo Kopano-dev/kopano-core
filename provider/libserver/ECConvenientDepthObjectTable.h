@@ -17,7 +17,7 @@ struct soap;
 
 namespace KC {
 
-class ECConvenientDepthObjectTable _kc_final : public ECStoreObjectTable {
+class ECConvenientDepthObjectTable final : public ECStoreObjectTable {
 protected:
 	ECConvenientDepthObjectTable(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale);
 public:
@@ -29,7 +29,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECConvenientDepthABObjectTable _kc_final : public ECABObjectTable {
+class ECConvenientDepthABObjectTable final : public ECABObjectTable {
 	public:
 	static ECRESULT Create(ECSession *, unsigned int ab_id, unsigned int ab_type, unsigned int ab_parent_id, unsigned int ab_parent_type, unsigned int flags, const ECLocale &, ECABObjectTable **);
 	virtual ECRESULT Load();

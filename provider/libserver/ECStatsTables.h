@@ -22,7 +22,7 @@ struct statstrings {
 	std::string value;
 };
 
-class ECSystemStatsTable _kc_final : public ECGenericObjectTable {
+class ECSystemStatsTable final : public ECGenericObjectTable {
 protected:
 	ECSystemStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
 
@@ -60,7 +60,7 @@ struct sessiondata {
 	std::string client_application_version, client_application_misc;
 };
 
-class ECSessionStatsTable _kc_final : public ECGenericObjectTable {
+class ECSessionStatsTable final : public ECGenericObjectTable {
 protected:
 	ECSessionStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
 
@@ -77,7 +77,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECUserStatsTable _kc_final : public ECGenericObjectTable {
+class ECUserStatsTable final : public ECGenericObjectTable {
 protected:
 	ECUserStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
 
@@ -91,7 +91,7 @@ private:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECCompanyStatsTable _kc_final : public ECGenericObjectTable {
+class ECCompanyStatsTable final : public ECGenericObjectTable {
 protected:
 	ECCompanyStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
 
@@ -102,7 +102,7 @@ public:
 	ALLOC_WRAP_FRIEND;
 };
 
-class ECServerStatsTable _kc_final : public ECGenericObjectTable {
+class ECServerStatsTable final : public ECGenericObjectTable {
 protected:
 	ECServerStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
 

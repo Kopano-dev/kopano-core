@@ -56,7 +56,7 @@ struct TABLE_ENTRY {
 	unsigned int ulSubscriptionId; // Subscription ID for table event subscription on session manager
 };
 
-class ECTableManager _kc_final {
+class ECTableManager final {
 public:
 	ECTableManager(ECSession *s) : lpSession(s) {}
 	~ECTableManager();

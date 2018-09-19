@@ -24,7 +24,7 @@ struct soap;
 
 namespace KC {
 
-class localobjectdetails_t _kc_final : public objectdetails_t {
+class localobjectdetails_t final : public objectdetails_t {
 public:
 	localobjectdetails_t(void) = default;
 	localobjectdetails_t(unsigned int id, objectclass_t objclass) : objectdetails_t(objclass), ulId(id) {};
@@ -35,7 +35,7 @@ public:
 	unsigned int ulId = 0;
 };
 
-class usercount_t _kc_final {
+class usercount_t final {
 public:
 	enum ucIndex {
 		ucActiveUser = 0,
@@ -100,7 +100,7 @@ private:
 #define USERMANAGEMENT_FORCE_SYNC		0x4		// Force sync with external database
 #define USERMANAGEMENT_SHOW_HIDDEN		0x8		// Show hidden entries
 
-class _kc_export ECUserManagement _kc_final {
+class _kc_export ECUserManagement final {
 public:
 	_kc_hidden ECUserManagement(BTSession *, ECPluginFactory *, std::shared_ptr<ECConfig>);
 	_kc_hidden virtual ~ECUserManagement(void) = default;

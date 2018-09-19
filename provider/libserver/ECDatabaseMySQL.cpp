@@ -39,7 +39,7 @@ struct sUpdateList_t {
 	ECRESULT (*lpFunction)(ECDatabase* lpDatabase);
 };
 
-class zcp_versiontuple _kc_final {
+class zcp_versiontuple final {
 	public:
 	zcp_versiontuple(unsigned int maj = 0, unsigned int min = 0,
 	    unsigned int mic = 0, unsigned int rev = 0, unsigned int dbs = 0) :

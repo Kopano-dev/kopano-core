@@ -19,7 +19,7 @@ class ECConfig;
 class ECPluginSharedData;
 class ECStatsCollector;
 
-class _kc_export ECPluginFactory _kc_final {
+class _kc_export ECPluginFactory final {
 public:
 	_kc_hidden ECPluginFactory(std::shared_ptr<ECConfig>, std::shared_ptr<ECStatsCollector>, bool hosted, bool distributed);
 	_kc_hidden ~ECPluginFactory(void);

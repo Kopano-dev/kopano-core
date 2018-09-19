@@ -18,7 +18,7 @@ namespace KC {
 // and have various ways of creating new SOURCEKEYs, including using a GUID and an ID, which is used for kopano-generated source keys.
 
 /* Variable size, but can also be prominently 22 bytes */
-class SOURCEKEY _kc_final {
+class SOURCEKEY final {
 public:
 	SOURCEKEY(void) : ulSize(0) {}
 	SOURCEKEY(const SOURCEKEY &s) : ulSize(s.ulSize)

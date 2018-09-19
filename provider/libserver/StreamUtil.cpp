@@ -68,7 +68,7 @@ enum {
 	MAX_SERVER_NPID = 0xFFFF - SERVER_NAMED_OFFSET,
 };
 
-class ECStreamSerializer _kc_final : public ECSerializer {
+class ECStreamSerializer final : public ECSerializer {
 	public:
 	ECStreamSerializer(IStream *lpBuffer);
 	virtual ECRESULT SetBuffer(void *) _kc_override;

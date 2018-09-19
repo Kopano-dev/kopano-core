@@ -40,7 +40,7 @@ class ECCacheManager;
 
 typedef std::map<ECTableRow, sObjectTableKey> ECSortedCategoryMap;
 
-class ECCategory _kc_final {
+class ECCategory final {
 public:
     ECCategory(unsigned int ulCategory, struct propVal *lpProps, unsigned int cProps, unsigned int nProps, ECCategory *lpParent, unsigned int ulDepth, bool fExpanded, const ECLocale &locale);
     virtual ~ECCategory();

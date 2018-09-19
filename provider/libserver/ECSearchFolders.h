@@ -24,7 +24,7 @@ namespace KC {
 
 class ECSessionManager;
 
-struct SEARCHFOLDER _kc_final {
+struct SEARCHFOLDER final {
 	SEARCHFOLDER(unsigned int store_id, unsigned int folder_id) :
 		sThreadId{}, ulStoreId(store_id), ulFolderId(folder_id)
 	{}
@@ -70,7 +70,7 @@ struct sSearchFolderStats {
  * except rebuilding searchfolders; when the server starts and finds a searchfolder that was only half-built, a complete
  * rebuild is started since we don't know how far the rebuild got last time.
  */
-class _kc_export ECSearchFolders _kc_final {
+class _kc_export ECSearchFolders final {
 public:
 	_kc_hidden ECSearchFolders(ECSessionManager *, ECDatabaseFactory *);
 	_kc_hidden virtual ~ECSearchFolders(void);

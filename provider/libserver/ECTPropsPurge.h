@@ -18,7 +18,7 @@ class ECConfig;
 class ECDatabaseFactory;
 class ECSession;
 
-class ECTPropsPurge _kc_final {
+class ECTPropsPurge final {
 public:
 	ECTPropsPurge(std::shared_ptr<ECConfig>, ECDatabaseFactory *lpDatabaseFactory);
     ~ECTPropsPurge();

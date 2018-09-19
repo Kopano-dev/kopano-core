@@ -18,7 +18,7 @@ class ECLockManager;
 
 typedef std::shared_ptr<ECLockManager> ECLockManagerPtr;
 
-class ECObjectLock _kc_final {
+class ECObjectLock final {
 public:
 	ECObjectLock() = default;
 	ECObjectLock(std::shared_ptr<ECLockManager>, unsigned int obj_id, ECSESSIONID);
@@ -36,7 +36,7 @@ private:
 ////////////////
 // ECLockManager
 ////////////////
-class ECLockManager _kc_final : public std::enable_shared_from_this<ECLockManager> {
+class ECLockManager final : public std::enable_shared_from_this<ECLockManager> {
 public:
 	static ECLockManagerPtr Create();
 	ECRESULT LockObject(unsigned int ulObjId, ECSESSIONID sessionId, ECObjectLock *lpOjbectLock);

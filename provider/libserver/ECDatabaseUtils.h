@@ -79,7 +79,7 @@ bool CompareDBPropTag(unsigned int ulPropTag1, unsigned int ulPropTag2);
  * This means the lock-error logging is restored when the scope in which an instance of
  * this class exists is exited.
  */
-class SuppressLockErrorLogging _kc_final {
+class SuppressLockErrorLogging final {
 public:
 	SuppressLockErrorLogging(ECDatabase *lpDatabase);
 	~SuppressLockErrorLogging();

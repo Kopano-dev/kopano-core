@@ -29,13 +29,13 @@ namespace KC {
 
 class ECSessionManager;
 
-class ECsStores _kc_final : public ECsCacheEntry {
+class ECsStores final : public ECsCacheEntry {
 public:
 	unsigned int	ulStore, ulType;
 	GUID			guidStore;
 };
 
-class ECsUserObject _kc_final : public ECsCacheEntry {
+class ECsUserObject final : public ECsCacheEntry {
 public:
 	objectclass_t		ulClass;
 	std::string strExternId, strSignature;
@@ -55,33 +55,33 @@ inline bool operator <(const ECsUEIdKey &a, const ECsUEIdKey &b)
 }
 
 /* Intern Id cache */
-class ECsUEIdObject _kc_final : public ECsCacheEntry {
+class ECsUEIdObject final : public ECsCacheEntry {
 public:
 	unsigned int ulCompanyId, ulUserId;
 	std::string			strSignature;
 };
 
-class ECsUserObjectDetails _kc_final : public ECsCacheEntry {
+class ECsUserObjectDetails final : public ECsCacheEntry {
 public:
 	objectdetails_t			sDetails;
 };
 
-class ECsServerDetails _kc_final : public ECsCacheEntry {
+class ECsServerDetails final : public ECsCacheEntry {
 public:
 	serverdetails_t			sDetails;
 };
 
-class ECsObjects _kc_final : public ECsCacheEntry {
+class ECsObjects final : public ECsCacheEntry {
 public:
 	unsigned int ulParent, ulOwner, ulFlags, ulType;
 };
 
-class ECsQuota _kc_final : public ECsCacheEntry {
+class ECsQuota final : public ECsCacheEntry {
 public:
 	quotadetails_t	quota;
 };
 
-class ECsIndexObject _kc_final : public ECsCacheEntry {
+class ECsIndexObject final : public ECsCacheEntry {
 public:
 	inline bool operator==(const ECsIndexObject &other) const noexcept
 	{
@@ -97,7 +97,7 @@ public:
 	unsigned int ulObjId, ulTag;
 };
 
-class ECsIndexProp _kc_final : public ECsCacheEntry {
+class ECsIndexProp final : public ECsCacheEntry {
 public:
 	ECsIndexProp(void) = default;
 	~ECsIndexProp() {
@@ -201,7 +201,7 @@ public:
 	unsigned char *lpData = nullptr;
 };
 
-class ECsCells _kc_final : public ECsCacheEntry {
+class ECsCells final : public ECsCacheEntry {
 public:
 	ECsCells(void) = default;
     ~ECsCells() {
@@ -328,7 +328,7 @@ public:
 	bool m_bComplete = false;
 };
 
-class ECsACLs _kc_final : public ECsCacheEntry {
+class ECsACLs final : public ECsCacheEntry {
 public:
 	ECsACLs(void) = default;
 	ECsACLs(const ECsACLs &src) : ulACLs(src.ulACLs)
@@ -405,7 +405,7 @@ typedef std::unordered_map<ECsIndexProp, ECsIndexObject> ECMapPropToObject;
 
 #define CACHE_NO_PARENT 0xFFFFFFFF
 
-class ECCacheManager _kc_final {
+class ECCacheManager final {
 public:
 	ECCacheManager(std::shared_ptr<ECConfig>, ECDatabaseFactory *lpDatabase);
 	virtual ~ECCacheManager();

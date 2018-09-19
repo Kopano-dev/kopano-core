@@ -33,8 +33,7 @@ struct ECUserStore {
 	unsigned long long ullStoreSize;// Size of the store
 };
 
-class _kc_export_dycast ECUserStoreTable _kc_final :
-    public ECGenericObjectTable {
+class _kc_export_dycast ECUserStoreTable final : public ECGenericObjectTable {
 	protected:
 	_kc_hidden ECUserStoreTable(ECSession *, unsigned int flags, const ECLocale &);
 

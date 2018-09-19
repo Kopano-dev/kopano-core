@@ -34,7 +34,7 @@ struct NOTIFREQUEST {
     time_t ulRequestTime;
 };
 
-class ECNotificationManager _kc_final {
+class ECNotificationManager final {
 public:
 	ECNotificationManager();
 	~ECNotificationManager();

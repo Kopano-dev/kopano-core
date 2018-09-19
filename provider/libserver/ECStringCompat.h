@@ -27,7 +27,7 @@ class convert_context;
  * from the windows-1252 codepage encoded as UTF8. So the difference
  * with UTF8 is that is a string with true unicode code points.
  */
-class ECStringCompat _kc_final {
+class ECStringCompat final {
 public:
 	static char *WTF1252_to_WINDOWS1252(soap *lpsoap, const char *szWTF1252, convert_context *lpConverter = NULL);
 	static char *WTF1252_to_UTF8(struct soap *lpsoap, const char *szWTF1252, convert_context *lpConverter = NULL);

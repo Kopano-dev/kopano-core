@@ -17,7 +17,7 @@ class ECConfig;
 class ECStatsCollector;
 class zcp_versiontuple;
 
-class _kc_export ECDatabase _kc_final : public KDatabase {
+class _kc_export ECDatabase final : public KDatabase {
 public:
 	ECDatabase(std::shared_ptr<ECConfig>, std::shared_ptr<ECStatsCollector>);
 	virtual ~ECDatabase(void);

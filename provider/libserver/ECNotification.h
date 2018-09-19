@@ -17,7 +17,7 @@ struct soap;
 
 namespace KC {
 
-class ECNotification _kc_final {
+class ECNotification final {
 public:
 	ECNotification();
 	virtual ~ECNotification();

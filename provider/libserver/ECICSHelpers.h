@@ -39,7 +39,7 @@ typedef std::map<SOURCEKEY,SAuxMessageData>	MESSAGESET, *LPMESSAGESET;
 class IDbQueryCreator;
 class IMessageProcessor;
 
-class ECGetContentChangesHelper _kc_final {
+class ECGetContentChangesHelper final {
 public:
 	static ECRESULT Create(struct soap *, ECSession *, ECDatabase *, const SOURCEKEY &folder, unsigned int sync_id, unsigned int change_id, unsigned int flags, const struct restrictTable *, ECGetContentChangesHelper **);
 	~ECGetContentChangesHelper();

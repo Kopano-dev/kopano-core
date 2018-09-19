@@ -72,7 +72,7 @@ struct sSessionManagerStats {
 
 class SOURCEKEY;
 
-class _kc_export ECSessionManager _kc_final {
+class _kc_export ECSessionManager final {
 public:
 	_kc_hidden ECSessionManager(std::shared_ptr<ECConfig>, std::shared_ptr<ECLogger> audit, std::shared_ptr<ECStatsCollector>, bool hosted, bool distributed);
 	_kc_hidden virtual ~ECSessionManager(void);
