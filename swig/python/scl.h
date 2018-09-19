@@ -130,14 +130,15 @@ namespace priv {
 	}
 
 	/**
-	 * Specialization for extracting an ECENTRYID from a script value.
+	 * Specialization for extracting an SBinary from a script value.
 	 *
 	 * @tparam		_Type	The type of the resulting value.
 	 * @param[in]	Value	The scripted value to convert.
 	 * @param[out]	result	The native value.
 	 */
 	template <>
-	void conv_out<ECENTRYID>(PyObject* value, LPVOID lpBase, ULONG /*ulFlags*/, ECENTRYID *lpResult) {
+	void conv_out<SBinary>(PyObject *value, void *lpBase, ULONG /*ulFlags*/, SBinary *lpResult)
+	{
 		char *data;
 		Py_ssize_t size;
 		if (value == Py_None || PyString_AsStringAndSize(value, &data, &size) < 0) {

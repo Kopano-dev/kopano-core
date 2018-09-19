@@ -235,15 +235,11 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	memset(lpPropfbEntryidsNew->Value.MVbin.lpbin, 0, sizeof(SBinary) * lpPropfbEntryidsNew->Value.MVbin.cValues);
 
 	// move the old entryids to the new array
-	if (lpPropfbEntryids) {
-		for (i = 0; i < lpPropfbEntryids->Value.MVbin.cValues; ++i) {
-			lpPropfbEntryidsNew->Value.MVbin.lpbin[i].cb = lpPropfbEntryids->Value.MVbin.lpbin[i].cb;
-			lpPropfbEntryidsNew->Value.MVbin.lpbin[i].lpb = lpPropfbEntryids->Value.MVbin.lpbin[i].lpb; //cheap copy
-		}
-	}
+	if (lpPropfbEntryids != nullptr)
+		for (i = 0; i < lpPropfbEntryids->Value.MVbin.cValues; ++i)
+			lpPropfbEntryidsNew->Value.MVbin.lpbin[i] = lpPropfbEntryids->Value.MVbin.lpbin[i]; /* cheap copy */
 	// Add the new entryid on position 3
-	lpPropfbEntryidsNew->Value.MVbin.lpbin[2].cb = lpPropFBMessage->Value.bin.cb;
-	lpPropfbEntryidsNew->Value.MVbin.lpbin[2].lpb = lpPropFBMessage->Value.bin.lpb;
+	lpPropfbEntryidsNew->Value.MVbin.lpbin[2] = lpPropFBMessage->Value.bin;
 	lpPropfbEntryidsNew->ulPropTag = PR_FREEBUSY_ENTRYIDS;
 	hr = lpFolder->SetProps(1, lpPropfbEntryidsNew, NULL);
 	if (hr != hrSuccess)

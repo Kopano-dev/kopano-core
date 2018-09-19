@@ -275,13 +275,10 @@ HRESULT M4LMAPISupport::CopyMessages(const IID *lpSrcInterface,
 		}
 
 		hr = lpDestMessage->SaveChanges(0);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			bPartial = true;
-		} else if (ulFlags & MAPI_MOVE) {
-			lpDeleteEntries->lpbin[lpDeleteEntries->cValues].cb = lpMsgList->lpbin[i].cb;
-			lpDeleteEntries->lpbin[lpDeleteEntries->cValues].lpb = lpMsgList->lpbin[i].lpb;
-			++lpDeleteEntries->cValues;
-		}
+		else if (ulFlags & MAPI_MOVE)
+			lpDeleteEntries->lpbin[lpDeleteEntries->cValues++] = lpMsgList->lpbin[i];
 	}
 
 	if ((ulFlags & MAPI_MOVE) && lpDeleteEntries->cValues > 0 &&

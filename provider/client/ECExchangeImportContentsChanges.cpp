@@ -501,13 +501,9 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 	hr = MAPIAllocateMore(sizeof(SBinary)*(lpConflictItems->Value.MVbin.cValues+1), lpConflictItems, (LPVOID*)&lpEntryIds);
 	if(hr != hrSuccess)
 		return hr;
-	for (ulCount = 0; ulCount < lpConflictItems->Value.MVbin.cValues; ++ulCount) {
-		lpEntryIds[ulCount].cb = lpConflictItems->Value.MVbin.lpbin[ulCount].cb;
-		lpEntryIds[ulCount].lpb = lpConflictItems->Value.MVbin.lpbin[ulCount].lpb;
-	}
-	lpEntryIds[ulCount].cb = lpEntryIdProp->Value.bin.cb;
-	lpEntryIds[ulCount].lpb = lpEntryIdProp->Value.bin.lpb;
-
+	for (ulCount = 0; ulCount < lpConflictItems->Value.MVbin.cValues; ++ulCount)
+		lpEntryIds[ulCount] = lpConflictItems->Value.MVbin.lpbin[ulCount];
+	lpEntryIds[ulCount] = lpEntryIdProp->Value.bin;
 	lpConflictItems->Value.MVbin.lpbin = lpEntryIds;
 	++lpConflictItems->Value.MVbin.cValues;
 	if (lppConflictItems)

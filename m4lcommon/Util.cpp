@@ -2690,13 +2690,10 @@ static HRESULT CopyContents(ULONG ulWhat, IMAPIFolder *lpSrc,
 			}
 
 			hr = lpDestMessage->SaveChanges(0);
-			if (hr != hrSuccess) {
+			if (hr != hrSuccess)
 				bPartial = true;
-			} else if (ulFlags & MAPI_MOVE) {
-				lpDeleteEntries->lpbin[lpDeleteEntries->cValues].cb  = lpRowSet[i].lpProps[0].Value.bin.cb;
-				lpDeleteEntries->lpbin[lpDeleteEntries->cValues].lpb = lpRowSet[i].lpProps[0].Value.bin.lpb;
-				++lpDeleteEntries->cValues;
-			}
+			else if (ulFlags & MAPI_MOVE)
+				lpDeleteEntries->lpbin[lpDeleteEntries->cValues++] = lpRowSet[i].lpProps[0].Value.bin;
 		}
 		if (ulFlags & MAPI_MOVE && lpDeleteEntries->cValues > 0 &&
 		    lpSrc->DeleteMessages(lpDeleteEntries, 0, NULL, 0) != hrSuccess)

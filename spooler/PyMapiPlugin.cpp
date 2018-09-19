@@ -45,7 +45,6 @@ typedef pyobj_ptr PyObjectAPtr;
 class PyMapiPlugin _kc_final : public pym_plugin_intf {
 	public:
 	PyMapiPlugin(void) = default;
-
 	HRESULT Init(PyObject *lpModMapiPlugin, const char* lpPluginManagerClassName, const char *lpPluginPath);
 	virtual HRESULT MessageProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IMAPIFolder *, IMessage *, ULONG *result);
 	virtual HRESULT RulesProcessing(const char *func, IMAPISession *, IAddrBook *, IMsgStore *, IExchangeModifyTable *emt_rules, ULONG *result);
@@ -54,8 +53,7 @@ class PyMapiPlugin _kc_final : public pym_plugin_intf {
 	swig_type_info *type_p_ECLogger = nullptr, *type_p_IAddrBook = nullptr;
 	swig_type_info *type_p_IMAPIFolder = nullptr;
 	swig_type_info *type_p_IMAPISession = nullptr;
-	swig_type_info *type_p_IMsgStore = nullptr;
-	swig_type_info *type_p_IMessage = nullptr;
+	swig_type_info *type_p_IMsgStore = nullptr, *type_p_IMessage = nullptr;
 	swig_type_info *type_p_IExchangeModifyTable = nullptr;
 
 	private:
@@ -72,7 +70,7 @@ struct pym_factory_priv {
 
 /**
  * Handle the python errors
- * 
+ *
  * note: The traceback doesn't work very well
  */
 static HRESULT PyHandleError(PyObject *pyobj)
@@ -132,10 +130,10 @@ static HRESULT PyHandleError(PyObject *pyobj)
 	}\
 }
 
-/** 
- * Helper macro to parse the python return values which work together 
+/**
+ * Helper macro to parse the python return values which work together
  * with the macro PY_CALL_METHOD.
- * 
+ *
  */
 #define PY_PARSE_TUPLE_HELPER(format, ...) {\
 	if(!PyArg_ParseTuple(ptrResult, format, __VA_ARGS__)) { \
@@ -156,8 +154,7 @@ HRESULT PyMapiPlugin::Init(PyObject *lpModMapiPlugin,
     const char *lpPluginManagerClassName, const char *lpPluginPath)
 {
 	HRESULT			hr = S_OK;
-	PyObjectAPtr	ptrClass;
-	PyObjectAPtr	ptrArgs;
+	pyobj_ptr ptrClass, ptrArgs;
 
 	if (!lpModMapiPlugin)
 		return S_OK;
@@ -169,7 +166,7 @@ HRESULT PyMapiPlugin::Init(PyObject *lpModMapiPlugin,
 	BUILD_SWIG_TYPE(type_p_IMAPIFolder, "_p_IMAPIFolder");
 	BUILD_SWIG_TYPE(type_p_IExchangeModifyTable, "_p_IExchangeModifyTable");
 
-	// Init plugin class	
+	// Init plugin class
 	ptrClass.reset(PyObject_GetAttrString(lpModMapiPlugin, /*char* */lpPluginManagerClassName));
 	PY_HANDLE_ERROR(ptrClass);
 	ptrArgs.reset(Py_BuildValue("(s)", lpPluginPath));
@@ -182,7 +179,7 @@ HRESULT PyMapiPlugin::Init(PyObject *lpModMapiPlugin,
 /**
  * Plugin python call between MAPI and python.
  *
- * @param[in]	lpFunctionName	Python function name to call in the plugin framework. 
+ * @param[in]	lpFunctionName	Python function name to call in the plugin framework.
  * 								 The function must be exist the lpPluginManagerClassName defined in the init function.
  * @param[in] lpMapiSession		Pointer to a mapi session. Not NULL.
  * @param[in] lpAdrBook			Pointer to a mapi Addressbook. Not NULL.
@@ -202,7 +199,7 @@ HRESULT PyMapiPlugin::MessageProcessing(const char *lpFunctionName, IMAPISession
 	if (!m_ptrMapiPluginManager)
 		return hrSuccess;
 	if (!lpFunctionName || !lpMapiSession || !lpAdrBook)
-		return MAPI_E_INVALID_PARAMETER; 
+		return MAPI_E_INVALID_PARAMETER;
 	if (!m_ptrMapiPluginManager)
 		return MAPI_E_CALL_FAILED;
 
@@ -223,7 +220,7 @@ HRESULT PyMapiPlugin::MessageProcessing(const char *lpFunctionName, IMAPISession
 /**
  * Hook for change the rules.
  *
- * @param[in] lpFunctionName	Python function name to hook the rules in the plugin framework. 
+ * @param[in] lpFunctionName	Python function name to hook the rules in the plugin framework.
  * 								 The function must be exist the lpPluginManagerClassName defined in the init function.
  * @param[in] lpEMTRules		Pointer to a mapi IExchangeModifyTable object
  */
@@ -238,7 +235,7 @@ HRESULT PyMapiPlugin::RulesProcessing(const char *lpFunctionName, IMAPISession *
 		return MAPI_E_INVALID_PARAMETER;
 	if (!m_ptrMapiPluginManager)
 		return MAPI_E_CALL_FAILED;
-	
+
 	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPySession, lpMapiSession, type_p_IMAPISession)
 	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyAddrBook, lpAdrBook, type_p_IAddrBook)
 	NEW_SWIG_INTERFACE_POINTER_OBJ(ptrPyStore, lpMsgStore, type_p_IMsgStore)

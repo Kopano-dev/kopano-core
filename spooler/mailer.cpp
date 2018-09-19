@@ -99,7 +99,6 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 		 * lpEmailAddress is only mandatory for MAPI_MAILUSER */
 		if (!lpEntryId || !lpObjectType || !lpDisplayName)
 			continue;
-
 		/* By default we inherit the recipient type from parent */
 		if (lpRecipType)
 			ulRecipType = lpRecipType->Value.ul;
@@ -275,7 +274,7 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	 * it finds including all subgroups. It will use the lExpandedGroups list
 	 * to protect itself for circular subgroup membership */
 	std::list<SBinary> lExpandedGroups;
-	hr = ExpandRecipientsRecursive(lpAddrBook, lpMessage, lpTable, lpEntryRestriction, MAPI_TO, &lExpandedGroups); 
+	hr = ExpandRecipientsRecursive(lpAddrBook, lpMessage, lpTable, lpEntryRestriction, MAPI_TO, &lExpandedGroups);
 	if (hr != hrSuccess)
 		kc_perrorf("ExpandRecipientsRecursive failed", hr);
 	for (const auto &g : lExpandedGroups)
@@ -295,13 +294,10 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 {
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropTagArray> lpRecipColumns;
-
 	const char	*const lpszFaxDomain = g_lpConfig->GetSetting("fax_domain");
 	const char	*const lpszFaxInternational = g_lpConfig->GetSetting("fax_international");
 	string		strFaxMail;
-	ULONG		ulObjType;
-	ULONG		cValues;
-
+	unsigned int ulObjType, cValues;
 	// contab email_offset: 0: business, 1: home, 2: primary (outlook uses string 'other')
 	static constexpr const SizedSPropTagArray(3, sptaFaxNumbers) =
 		{ 3, {PR_BUSINESS_FAX_NUMBER_A, PR_HOME_FAX_NUMBER_A,
@@ -334,7 +330,6 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		auto lpEntryID = lpRowSet[0].find(PR_ENTRYID);
 		if (!(lpEmailAddress && lpAddrType && lpEntryID && lpEmailName))
 			continue;
-
 		if (wcscmp(lpAddrType->Value.lpszW, L"FAX") != 0)
 			continue;
 
@@ -494,7 +489,7 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 		auto lpRecipType = lpRowSet[0].cfind(PR_RECIPIENT_TYPE);
 		if (!lpEmailAddress || !lpRecipType)
 			continue;
-   
+
 		std::wstring strEmail = lpEmailAddress->Value.lpszW;
 		bool quoted = (strEmail[0] == '\'' && strEmail[strEmail.size()-1] == '\'') ||
 		              (strEmail[0] == '"' && strEmail[strEmail.size()-1] == '"');
@@ -522,7 +517,7 @@ static HRESULT RemoveP1Recipients(IMessage *lpMessage)
 	object_ptr<IMAPITable> lpTable;
 	rowset_ptr lpRows;
 	SPropValue sPropRestrict;
-	
+
 	sPropRestrict.ulPropTag = PR_RECIPIENT_TYPE;
 	sPropRestrict.Value.ul = MAPI_P1;
 
@@ -538,8 +533,174 @@ static HRESULT RemoveP1Recipients(IMessage *lpMessage)
 		return kc_perrorf("QueryRows failed" ,hr);
 	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(lpRows.get()));
 	if (hr != hrSuccess)
-		kc_perrorf("ModifyRecipients failed", hr);
-	return hr;
+		return kc_perrorf("ModifyRecipients failed", hr);
+	return hrSuccess;
+}
+
+enum eORPos {
+	OR_DISPLAY_TO, OR_DISPLAY_CC, OR_DISPLAY_BCC, OR_SEARCH_KEY,
+	OR_SENDER_ADDRTYPE, OR_SENDER_EMAIL_ADDRESS, OR_SENDER_ENTRYID,
+	OR_SENDER_NAME, OR_SENDER_SEARCH_KEY, OR_SENT_REPRESENTING_ADDRTYPE,
+	OR_SENT_REPRESENTING_EMAIL_ADDRESS, OR_SENT_REPRESENTING_ENTRYID,
+	OR_SENT_REPRESENTING_NAME, OR_SENT_REPRESENTING_SEARCH_KEY, OR_SUBJECT,
+	OR_CLIENT_SUBMIT_TIME,
+};
+
+static void mdnprop_populate(SPropValue *p, unsigned int &n,
+    const SPropValue *a, const FILETIME &ft)
+{
+	p[n].ulPropTag     = PR_SUBJECT_W;
+	p[n++].Value.lpszW = const_cast<wchar_t *>(L"Undelivered Mail Returned to Sender");
+	p[n].ulPropTag     = PR_MESSAGE_FLAGS;
+	p[n++].Value.ul    = 0;
+	p[n].ulPropTag     = PR_MESSAGE_CLASS_W;
+	p[n++].Value.lpszW = const_cast<wchar_t *>(L"REPORT.IPM.Note.NDR");
+	p[n].ulPropTag     = PR_CLIENT_SUBMIT_TIME;
+	p[n++].Value.ft    = ft;
+	p[n].ulPropTag     = PR_MESSAGE_DELIVERY_TIME;
+	p[n++].Value.ft    = ft;
+	p[n].ulPropTag     = PR_SENDER_NAME_W;
+	p[n++].Value.lpszW = const_cast<wchar_t *>(L"Mail Delivery System");
+	/*
+	 * Although lpszA is used, we just copy pointers. By not forcing _A or
+	 * _W, this works in unicode and normal compile mode. Set the
+	 * properties PR_RCVD_REPRESENTING_* and PR_RECEIVED_BY_* and
+	 * PR_ORIGINAL_SENDER_* and PR_ORIGINAL_SENT_*.
+	 */
+	if (PROP_TYPE(a[OR_SENDER_NAME].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_RECEIVED_BY_NAME;
+		p[n++].Value.lpszA = a[OR_SENDER_NAME].Value.lpszA;
+		p[n].ulPropTag     = PR_ORIGINAL_SENDER_NAME;
+		p[n++].Value.lpszA = a[OR_SENDER_NAME].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SENDER_EMAIL_ADDRESS].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_RECEIVED_BY_EMAIL_ADDRESS;
+		p[n++].Value.lpszA = a[OR_SENDER_EMAIL_ADDRESS].Value.lpszA;
+		p[n].ulPropTag     = PR_ORIGINAL_SENDER_EMAIL_ADDRESS;
+		p[n++].Value.lpszA = a[OR_SENDER_EMAIL_ADDRESS].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SENDER_ADDRTYPE].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_RECEIVED_BY_ADDRTYPE;
+		p[n++].Value.lpszA = a[OR_SENDER_ADDRTYPE].Value.lpszA;
+		p[n].ulPropTag     = PR_ORIGINAL_SENDER_ADDRTYPE;
+		p[n++].Value.lpszA = a[OR_SENDER_ADDRTYPE].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SENDER_SEARCH_KEY].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag   = PR_RECEIVED_BY_SEARCH_KEY;
+		p[n++].Value.bin = a[OR_SENDER_SEARCH_KEY].Value.bin;
+		p[n].ulPropTag   = PR_ORIGINAL_SENDER_SEARCH_KEY;
+		p[n++].Value.bin = a[OR_SENDER_SEARCH_KEY].Value.bin;
+	}
+	if (PROP_TYPE(a[OR_SENDER_ENTRYID].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag   = PR_RECEIVED_BY_ENTRYID;
+		p[n++].Value.bin = a[OR_SENDER_ENTRYID].Value.bin;
+		p[n].ulPropTag   = PR_ORIGINAL_SENDER_ENTRYID;
+		p[n++].Value.bin = a[OR_SENDER_ENTRYID].Value.bin;
+	}
+	if (PROP_TYPE(a[OR_SENT_REPRESENTING_NAME].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_RCVD_REPRESENTING_NAME;
+		p[n++].Value.lpszA = a[OR_SENT_REPRESENTING_NAME].Value.lpszA;
+		p[n].ulPropTag     = PR_ORIGINAL_SENT_REPRESENTING_NAME;
+		p[n++].Value.lpszA = a[OR_SENT_REPRESENTING_NAME].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SENT_REPRESENTING_EMAIL_ADDRESS].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_RCVD_REPRESENTING_EMAIL_ADDRESS;
+		p[n++].Value.lpszA = a[OR_SENT_REPRESENTING_EMAIL_ADDRESS].Value.lpszA;
+		p[n].ulPropTag     = PR_ORIGINAL_SENT_REPRESENTING_EMAIL_ADDRESS;
+		p[n++].Value.lpszA = a[OR_SENT_REPRESENTING_EMAIL_ADDRESS].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SENT_REPRESENTING_ADDRTYPE].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_RCVD_REPRESENTING_ADDRTYPE;
+		p[n++].Value.lpszA = a[OR_SENT_REPRESENTING_ADDRTYPE].Value.lpszA;
+		p[n].ulPropTag     = PR_ORIGINAL_SENT_REPRESENTING_ADDRTYPE;
+		p[n++].Value.lpszA = a[OR_SENT_REPRESENTING_ADDRTYPE].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SENT_REPRESENTING_SEARCH_KEY].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag   = PR_RCVD_REPRESENTING_SEARCH_KEY;
+		p[n++].Value.bin = a[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin;
+		p[n].ulPropTag   = PR_ORIGINAL_SENT_REPRESENTING_SEARCH_KEY;
+		p[n++].Value.bin = a[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin;
+	}
+	if (PROP_TYPE(a[OR_SENT_REPRESENTING_ENTRYID].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag   = PR_RCVD_REPRESENTING_ENTRYID;
+		p[n++].Value.bin = a[OR_SENT_REPRESENTING_ENTRYID].Value.bin;
+		p[n].ulPropTag   = PR_ORIGINAL_SENT_REPRESENTING_ENTRYID;
+		p[n++].Value.bin = a[OR_SENT_REPRESENTING_ENTRYID].Value.bin;
+	}
+	if (PROP_TYPE(a[OR_DISPLAY_TO].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_ORIGINAL_DISPLAY_TO;
+		p[n++].Value.lpszA = a[OR_DISPLAY_TO].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_DISPLAY_CC].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_ORIGINAL_DISPLAY_CC;
+		p[n++].Value.lpszA = a[OR_DISPLAY_CC].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_DISPLAY_BCC].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_ORIGINAL_DISPLAY_BCC;
+		p[n++].Value.lpszA = a[OR_DISPLAY_BCC].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_SUBJECT].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag     = PR_ORIGINAL_SUBJECT;
+		p[n++].Value.lpszA = a[OR_SUBJECT].Value.lpszA;
+	}
+	if (PROP_TYPE(a[OR_CLIENT_SUBMIT_TIME].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag  = PR_ORIGINAL_SUBMIT_TIME;
+		p[n++].Value.ft = a[OR_CLIENT_SUBMIT_TIME].Value.ft;
+	}
+	if (PROP_TYPE(a[OR_SEARCH_KEY].ulPropTag) != PT_ERROR) {
+		p[n].ulPropTag   = PR_ORIGINAL_SEARCH_KEY;
+		p[n++].Value.bin = a[OR_SEARCH_KEY].Value.bin;
+	}
+}
+
+static HRESULT mdn_error_rcpt(IMessage *msg, const std::vector<sFailedRecip> &fr,
+    const FILETIME &ft, convert_context &conv)
+{
+	unsigned int ent = 0;
+	adrlist_ptr mods;
+	auto ret = MAPIAllocateBuffer(CbNewADRLIST(fr.size()), &~mods);
+	if (ret != hrSuccess)
+		return ret;
+
+	mods->cEntries = 0;
+	for (size_t j = 0; j < fr.size(); ++j) {
+		const sFailedRecip &cur = fr.at(j);
+		ret = MAPIAllocateBuffer(sizeof(SPropValue) * 10, reinterpret_cast<void **>(&mods->aEntries[ent].rgPropVals));
+		if (ret != hrSuccess)
+			return ret;
+
+		size_t pos = 0;
+		mods->cEntries = ent;
+
+		auto &pv = mods->aEntries[ent].rgPropVals;
+		pv[pos].ulPropTag = PR_RECIPIENT_TYPE;
+		pv[pos++].Value.ul = MAPI_TO;
+		pv[pos].ulPropTag = PR_EMAIL_ADDRESS_A;
+		pv[pos++].Value.lpszA = const_cast<char *>(cur.strRecipEmail.c_str());
+		pv[pos].ulPropTag = PR_ADDRTYPE_W;
+		pv[pos++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
+		pv[pos].ulPropTag = PR_DISPLAY_NAME_W;
+		if (!cur.strRecipName.empty())
+			pv[pos++].Value.lpszW = const_cast<wchar_t *>(cur.strRecipName.c_str());
+		else
+			pv[pos++].Value.lpszW = conv.convert_to<wchar_t *>(cur.strRecipEmail);
+
+		pv[pos].ulPropTag = PR_REPORT_TEXT_A;
+		pv[pos++].Value.lpszA = const_cast<char *>(cur.strSMTPResponse.c_str());
+		pv[pos].ulPropTag = PR_REPORT_TIME;
+		pv[pos++].Value.ft = ft;
+		pv[pos].ulPropTag = PR_TRANSMITABLE_DISPLAY_NAME_A;
+		pv[pos++].Value.lpszA = const_cast<char *>(cur.strRecipEmail.c_str());
+		pv[pos].ulPropTag = 0x0C200003; // PR_NDR_STATUS_CODE;
+		pv[pos++].Value.ul = cur.ulSMTPcode;
+		pv[pos].ulPropTag = PR_NDR_DIAG_CODE;
+		pv[pos++].Value.ul = MAPI_DIAG_MAIL_RECIPIENT_UNKNOWN;
+		pv[pos].ulPropTag = PR_NDR_REASON_CODE;
+		pv[pos++].Value.ul = MAPI_REASON_TRANSFER_FAILED;
+		mods->aEntries[ent].cValues = pos;
+		++ent;
+	}
+	return msg->ModifyRecipients(MODRECIP_ADD, mods);
 }
 
 /**
@@ -560,37 +721,20 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
     IMessage *lpMessage)
 {
 	object_ptr<IMAPIFolder> lpInbox;
-	object_ptr<IMessage> lpErrorMsg;
+	object_ptr<IMessage> lpErrorMsg, lpOriginalMessage;
 	memory_ptr<ENTRYID> lpEntryID;
-	ULONG			cbEntryID;
-	ULONG			ulObjType;
+	unsigned int cbEntryID, ulObjType, cValuesOriginal = 0, ulRows = 0;
 	wstring			newbody;
 	memory_ptr<SPropValue> lpPropValue, lpPropValueAttach, lpPropArrayOriginal;
 	unsigned int	ulPropPos = 0;
 	FILETIME		ft;
 	object_ptr<IAttach> lpAttach;
-	object_ptr<IMessage> lpOriginalMessage;
-	ULONG			cValuesOriginal = 0;
-	unsigned int	ulPropModsPos;
 	object_ptr<IMAPITable> lpTableMods;
-	ULONG			ulRows = 0;
-	ULONG			cEntries = 0;
-
 	/* CopyTo() vars */
 	unsigned int	ulPropAttachPos;
 	ULONG			ulAttachNum;
-
 	const std::vector<sFailedRecip> &temporaryFailedRecipients = lpMailer->getTemporaryFailedRecipients();
 	const std::vector<sFailedRecip> &permanentFailedRecipients = lpMailer->getPermanentFailedRecipients();
-
-	enum eORPos {
-		OR_DISPLAY_TO, OR_DISPLAY_CC, OR_DISPLAY_BCC, OR_SEARCH_KEY, OR_SENDER_ADDRTYPE,
-		OR_SENDER_EMAIL_ADDRESS, OR_SENDER_ENTRYID, OR_SENDER_NAME,
-		OR_SENDER_SEARCH_KEY, OR_SENT_REPRESENTING_ADDRTYPE,
-		OR_SENT_REPRESENTING_EMAIL_ADDRESS, OR_SENT_REPRESENTING_ENTRYID,
-		OR_SENT_REPRESENTING_NAME, OR_SENT_REPRESENTING_SEARCH_KEY,
-		OR_SUBJECT, OR_CLIENT_SUBMIT_TIME
-	};
 
 	// These props are on purpose without _A and _W
 	static constexpr const SizedSPropTagArray(16, sPropsOriginal) = {
@@ -624,7 +768,6 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 			GetMAPIErrorMessage(hr), hr);
 		return MAPI_E_NOT_FOUND;
 	}
-
 	// make new message in inbox
 	hr = lpInbox->CreateMessage(nullptr, 0, &~lpErrorMsg);
 	if (hr != hrSuccess) {
@@ -632,7 +775,6 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
-
 	// Get properties from the original message
 	hr = lpMessage->GetProps(sPropsOriginal, 0, &cValuesOriginal, &~lpPropArrayOriginal);
 	if (FAILED(hr))
@@ -641,161 +783,8 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	if (hr != hrSuccess)
 		return kc_perrorf("MAPIAllocateBuffers failed", hr);
 
-	// Subject
-	lpPropValue[ulPropPos].ulPropTag = PR_SUBJECT_W;
-	lpPropValue[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"Undelivered Mail Returned to Sender");
-
-	// Message flags
-	lpPropValue[ulPropPos].ulPropTag = PR_MESSAGE_FLAGS;
-	lpPropValue[ulPropPos++].Value.ul = 0;
-
-	// Message class
-	lpPropValue[ulPropPos].ulPropTag = PR_MESSAGE_CLASS_W;
-	lpPropValue[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"REPORT.IPM.Note.NDR");
-
-	// Get the time to add to the message as PR_CLIENT_SUBMIT_TIME
 	GetSystemTimeAsFileTime(&ft);
-
-	// Submit time
-	lpPropValue[ulPropPos].ulPropTag = PR_CLIENT_SUBMIT_TIME;
-	lpPropValue[ulPropPos++].Value.ft = ft;
-
-	// Delivery time
-	lpPropValue[ulPropPos].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
-	lpPropValue[ulPropPos++].Value.ft = ft;
-
-	lpPropValue[ulPropPos].ulPropTag = PR_SENDER_NAME_W;
-	lpPropValue[ulPropPos++].Value.lpszW = (LPWSTR)L"Mail Delivery System";
-
-	// Although lpszA is used, we just copy pointers. By not forcing _A or _W, this works in unicode and normal compile mode.
-
-	// Set the properties PR_RCVD_REPRESENTING_* and PR_RECEIVED_BY_* and
-	// PR_ORIGINAL_SENDER_* and PR_ORIGINAL_SENT_*
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENDER_NAME].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RECEIVED_BY_NAME;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENDER_NAME].Value.lpszA;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENDER_NAME;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENDER_NAME].Value.lpszA;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENDER_EMAIL_ADDRESS].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RECEIVED_BY_EMAIL_ADDRESS;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENDER_EMAIL_ADDRESS].Value.lpszA;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENDER_EMAIL_ADDRESS;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENDER_EMAIL_ADDRESS].Value.lpszA;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENDER_ADDRTYPE].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RECEIVED_BY_ADDRTYPE;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENDER_ADDRTYPE].Value.lpszA;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENDER_ADDRTYPE;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENDER_ADDRTYPE].Value.lpszA;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RECEIVED_BY_SEARCH_KEY;
-		lpPropValue[ulPropPos].Value.bin.cb = lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb = lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].Value.bin.lpb;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENDER_SEARCH_KEY;
-		lpPropValue[ulPropPos].Value.bin.cb = lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb = lpPropArrayOriginal[OR_SENDER_SEARCH_KEY].Value.bin.lpb;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENDER_ENTRYID].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag		= PR_RECEIVED_BY_ENTRYID;
-		lpPropValue[ulPropPos].Value.bin.cb		= lpPropArrayOriginal[OR_SENDER_ENTRYID].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb	= lpPropArrayOriginal[OR_SENDER_ENTRYID].Value.bin.lpb;
-
-		lpPropValue[ulPropPos].ulPropTag		= PR_ORIGINAL_SENDER_ENTRYID;
-		lpPropValue[ulPropPos].Value.bin.cb		= lpPropArrayOriginal[OR_SENDER_ENTRYID].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb	= lpPropArrayOriginal[OR_SENDER_ENTRYID].Value.bin.lpb;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENT_REPRESENTING_NAME].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RCVD_REPRESENTING_NAME;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENT_REPRESENTING_NAME].Value.lpszA;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_NAME;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENT_REPRESENTING_NAME].Value.lpszA;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENT_REPRESENTING_EMAIL_ADDRESS].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RCVD_REPRESENTING_EMAIL_ADDRESS;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENT_REPRESENTING_EMAIL_ADDRESS].Value.lpszA;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_EMAIL_ADDRESS;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENT_REPRESENTING_EMAIL_ADDRESS].Value.lpszA;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENT_REPRESENTING_ADDRTYPE].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RCVD_REPRESENTING_ADDRTYPE;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENT_REPRESENTING_ADDRTYPE].Value.lpszA;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_ADDRTYPE;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SENT_REPRESENTING_ADDRTYPE].Value.lpszA;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_RCVD_REPRESENTING_SEARCH_KEY;
-		lpPropValue[ulPropPos].Value.bin.cb = lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb = lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin.lpb;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SENT_REPRESENTING_SEARCH_KEY;
-		lpPropValue[ulPropPos].Value.bin.cb = lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb = lpPropArrayOriginal[OR_SENT_REPRESENTING_SEARCH_KEY].Value.bin.lpb;
-	}
-
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag		= PR_RCVD_REPRESENTING_ENTRYID;
-		lpPropValue[ulPropPos].Value.bin.cb		= lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb	= lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].Value.bin.lpb;
-
-		lpPropValue[ulPropPos].ulPropTag		= PR_ORIGINAL_SENT_REPRESENTING_ENTRYID;
-		lpPropValue[ulPropPos].Value.bin.cb		= lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb	= lpPropArrayOriginal[OR_SENT_REPRESENTING_ENTRYID].Value.bin.lpb;
-	}
-
-	// Original display to
-	if(PROP_TYPE(lpPropArrayOriginal[OR_DISPLAY_TO].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_DISPLAY_TO;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_DISPLAY_TO].Value.lpszA;
-	}
-
-	// Original display cc
-	if(PROP_TYPE(lpPropArrayOriginal[OR_DISPLAY_CC].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_DISPLAY_CC;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_DISPLAY_CC].Value.lpszA;
-	}
-
-	// Original display bcc
-	if(PROP_TYPE(lpPropArrayOriginal[OR_DISPLAY_BCC].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_DISPLAY_BCC;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_DISPLAY_BCC].Value.lpszA;
-	}
-
-	// Original subject
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SUBJECT].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SUBJECT;
-		lpPropValue[ulPropPos++].Value.lpszA = lpPropArrayOriginal[OR_SUBJECT].Value.lpszA;
-	}
-
-	// Original submit time
-	if(PROP_TYPE(lpPropArrayOriginal[OR_CLIENT_SUBMIT_TIME].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag = PR_ORIGINAL_SUBMIT_TIME;
-		lpPropValue[ulPropPos++].Value.ft = lpPropArrayOriginal[OR_CLIENT_SUBMIT_TIME].Value.ft;
-	}
-
-	// Original searchkey
-	if(PROP_TYPE(lpPropArrayOriginal[OR_SEARCH_KEY].ulPropTag) != PT_ERROR) {
-		lpPropValue[ulPropPos].ulPropTag		= PR_ORIGINAL_SEARCH_KEY;
-		lpPropValue[ulPropPos].Value.bin.cb		= lpPropArrayOriginal[OR_SEARCH_KEY].Value.bin.cb;
-		lpPropValue[ulPropPos++].Value.bin.lpb	= lpPropArrayOriginal[OR_SEARCH_KEY].Value.bin.lpb;
-	}
+	mdnprop_populate(lpPropValue, ulPropPos, lpPropArrayOriginal, ft);
 
 	// Add the original message into the errorMessage
 	hr = lpErrorMsg->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
@@ -826,15 +815,12 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 	lpPropValueAttach[ulPropAttachPos].ulPropTag = PR_ATTACH_METHOD;
 	lpPropValueAttach[ulPropAttachPos++].Value.ul = ATTACH_EMBEDDED_MSG;
-
 	lpPropValueAttach[ulPropAttachPos].ulPropTag = PR_ATTACH_MIME_TAG_W;
 	lpPropValueAttach[ulPropAttachPos++].Value.lpszW = const_cast<wchar_t *>(L"message/rfc822");
-
 	if(PROP_TYPE(lpPropArrayOriginal[OR_SUBJECT].ulPropTag) != PT_ERROR) {
 		lpPropValueAttach[ulPropAttachPos].ulPropTag = CHANGE_PROP_TYPE(PR_DISPLAY_NAME, PROP_TYPE(lpPropArrayOriginal[OR_SUBJECT].ulPropTag));
 		lpPropValueAttach[ulPropAttachPos++].Value.lpszA = lpPropArrayOriginal[OR_SUBJECT].Value.lpszA;
 	}
-
 	lpPropValueAttach[ulPropAttachPos].ulPropTag = PR_RENDERING_POSITION;
 	lpPropValueAttach[ulPropAttachPos++].Value.ul = -1;
 
@@ -858,9 +844,7 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 	if (ulRows == 0 || (permanentFailedRecipients.empty() && temporaryFailedRecipients.empty())) {
 		// No specific failed recipients, so the entire message failed
-		
 		// If there's a pr_body, outlook will display that, and not the 'default' outlook error report
-
 		// Message error
 		newbody = L"Unfortunately, kopano-spooler was unable to deliver your mail.\nThe error given was:\n\n";
 		newbody.append(lpMailer->getErrorString());
@@ -919,51 +903,8 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 
 		// Only some recipients failed, so add only failed recipients to the MDN message. This causes
 		// resends only to go to those recipients. This means we should add all error recipients to the
-		// recipient list of the MDN message. 
-		adrlist_ptr lpMods;
-		hr = MAPIAllocateBuffer(CbNewADRLIST(temporaryFailedRecipients.size()), &~lpMods);
-		if (hr != hrSuccess)
-			return hr;
-
-		lpMods->cEntries = 0;
-		for (size_t j = 0; j < temporaryFailedRecipients.size(); ++j) {
-			const sFailedRecip &cur = temporaryFailedRecipients.at(j);
-
-			if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * 10, (void**)&lpMods->aEntries[cEntries].rgPropVals)) != hrSuccess)
-				return hr;
-
-			ulPropModsPos = 0;
-			lpMods->cEntries = cEntries;
-
-			auto &pv = lpMods->aEntries[cEntries].rgPropVals;
-			pv[ulPropModsPos].ulPropTag = PR_RECIPIENT_TYPE;
-			pv[ulPropModsPos++].Value.ul = MAPI_TO;
-			pv[ulPropModsPos].ulPropTag = PR_EMAIL_ADDRESS_A;
-			pv[ulPropModsPos++].Value.lpszA = const_cast<char *>(cur.strRecipEmail.c_str());
-			pv[ulPropModsPos].ulPropTag = PR_ADDRTYPE_W;
-			pv[ulPropModsPos++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-			pv[ulPropModsPos].ulPropTag = PR_DISPLAY_NAME_W;
-			if (!cur.strRecipName.empty())
-				pv[ulPropModsPos++].Value.lpszW = const_cast<wchar_t *>(cur.strRecipName.c_str());
-			else
-				pv[ulPropModsPos++].Value.lpszW = converter.convert_to<wchar_t *>(cur.strRecipEmail);
-
-			pv[ulPropModsPos].ulPropTag = PR_REPORT_TEXT_A;
-			pv[ulPropModsPos++].Value.lpszA = const_cast<char *>(cur.strSMTPResponse.c_str());
-			pv[ulPropModsPos].ulPropTag = PR_REPORT_TIME;
-			pv[ulPropModsPos++].Value.ft = ft;
-			pv[ulPropModsPos].ulPropTag = PR_TRANSMITABLE_DISPLAY_NAME_A;
-			pv[ulPropModsPos++].Value.lpszA = const_cast<char *>(cur.strRecipEmail.c_str());
-			pv[ulPropModsPos].ulPropTag = 0x0C200003; // PR_NDR_STATUS_CODE;
-			pv[ulPropModsPos++].Value.ul = cur.ulSMTPcode;
-			pv[ulPropModsPos].ulPropTag = PR_NDR_DIAG_CODE;
-			pv[ulPropModsPos++].Value.ul = MAPI_DIAG_MAIL_RECIPIENT_UNKNOWN;
-			pv[ulPropModsPos].ulPropTag = PR_NDR_REASON_CODE;
-			pv[ulPropModsPos++].Value.ul = MAPI_REASON_TRANSFER_FAILED;
-			lpMods->aEntries[cEntries].cValues = ulPropModsPos;
-			++cEntries;
-		}
-		hr = lpErrorMsg->ModifyRecipients(MODRECIP_ADD, lpMods);
+		// recipient list of the MDN message.
+		hr = mdn_error_rcpt(lpErrorMsg, temporaryFailedRecipients, ft, converter);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -972,12 +913,10 @@ HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
 	hr = lpErrorMsg->SetProps(ulPropPos, lpPropValue, NULL);
 	if (hr != hrSuccess)
 		return kc_perrorf("SetProps failed", hr);
-
 	// save message
 	hr = lpErrorMsg->SaveChanges(KEEP_OPEN_READONLY);
 	if (hr != hrSuccess)
 		return kc_perror("Unable to commit message", hr);
-
 	// New mail notification
 	if (HrNewMailNotification(lpStore, lpErrorMsg) != hrSuccess)
 		ec_log_warn("Unable to issue \"New Mail\" notification: %s (%x)",
@@ -1000,9 +939,8 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 {
 	auto lpContabEntryID = reinterpret_cast<const CONTAB_ENTRYID *>(ct.lpb);
 	auto guid = reinterpret_cast<const GUID *>(&lpContabEntryID->muid);
-	ULONG ulObjType;
+	unsigned int ulObjType, cValues;
 	object_ptr<IMAPIProp> lpContact;
-	ULONG cValues;
 	LPSPropValue lpEntryIds = NULL;
 	memory_ptr<SPropTagArray> lpPropTags;
 	memory_ptr<MAPINAMEID> lpNames;
@@ -1029,13 +967,11 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 	lpNames[0].ulKind = MNID_ID;
 	lpNames[0].Kind.lID = 0x8085;
 	lppNames[0] = &lpNames[0];
-
 	// Email2EntryID
 	lpNames[1].lpguid = (GUID*)&PSETID_Address;
 	lpNames[1].ulKind = MNID_ID;
 	lpNames[1].Kind.lID = 0x8095;
 	lppNames[1] = &lpNames[1];
-
 	// Email3EntryID
 	lpNames[2].lpguid = (GUID*)&PSETID_Address;
 	lpNames[2].ulKind = MNID_ID;
@@ -1095,8 +1031,7 @@ static HRESULT SMTPToZarafa(IAddrBook *lpAddrBook, const SBinary &smtp,
 		return kc_perrorf("ResolveName failed", hr);
 	auto lpSpoofEID = lpAList->aEntries[0].cfind(PR_ENTRYID);
 	if (!lpSpoofEID) {
-		hr = MAPI_E_NOT_FOUND;
-		kc_perror("PpropFindProp failed", hr);
+		kc_perror("PpropFindProp failed", MAPI_E_NOT_FOUND);
 		return hrSuccess;
 	}
 	hr = KAllocCopy(lpSpoofEID->Value.bin.lpb, lpSpoofEID->Value.bin.cb, reinterpret_cast<void **>(&zeid->lpb));
@@ -1119,8 +1054,7 @@ static HRESULT SMTPToZarafa(IAddrBook *lpAddrBook, const SBinary &smtp,
 static HRESULT HrFindUserInGroup(IAddrBook *lpAdrBook, const SBinary &owner,
     const SBinary &dl, unsigned int *lpulCmp, int level = 0)
 {
-	ULONG ulCmp = 0;
-	ULONG ulObjType = 0;
+	unsigned int ulCmp = 0, ulObjType = 0;
 	object_ptr<IDistList> lpDistList;
 	object_ptr<IMAPITable> lpMembersTable;
 	static constexpr const SizedSPropTagArray(2, sptaIDProps) =
@@ -1146,7 +1080,6 @@ static HRESULT HrFindUserInGroup(IAddrBook *lpAdrBook, const SBinary &owner,
 		return kc_perrorf("SetColumns failed", hr);
 
 	// sort on PR_OBJECT_TYPE (MAILUSER < DISTLIST) ?
-
 	while (TRUE) {
 		rowset_ptr lpRowSet;
 		hr = lpMembersTable->QueryRows(1, 0, &~lpRowSet);
@@ -1186,11 +1119,10 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
     IMsgStore *lpUserStore, IMAPISession *lpAdminSession, const SBinary &repr,
     IMsgStore **lppRepStore)
 {
-	ULONG ulObjType = 0;
+	unsigned int ulObjType = 0, ulRepStoreCB = 0;
 	object_ptr<IMAPIProp> lpRepresenting;
 	memory_ptr<SPropValue> lpRepAccount;
 	object_ptr<IExchangeManageStore> lpExchangeManageStore;
-	ULONG ulRepStoreCB = 0;
 	memory_ptr<ENTRYID> lpRepStoreEID;
 	object_ptr<IMsgStore> lpRepStore;
 
@@ -1232,11 +1164,11 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
 	       reinterpret_cast<void **>(lppRepStore));
 }
 
-/** 
+/**
  * Checks for the presence of an Addressbook EntryID in a given
  * array. If the array contains a group EntryID, it is opened, and
  * searched within the group for the presence of the given EntryID.
- * 
+ *
  * @param[in] szFunc Context name how this function is used. Used in logging.
  * @param[in] lpszMailer The name of the user sending the email.
  * @param[in] lpAddrBook The Global Addressbook.
@@ -1244,7 +1176,7 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
  * @param[in] mv Array of EntryIDs to search in
  * @param[out] lpulObjType lpOwnerEID was found in this type of object (user or group)
  * @param[out] lpbAllowed User is (not) found in array
- * 
+ *
  * @return hrSuccess
  */
 static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
@@ -1252,8 +1184,7 @@ static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
     const SBinaryArray &mv, unsigned int *lpulObjType, bool *lpbAllowed)
 {
 	HRESULT hr = hrSuccess;
-	ULONG ulObjType;
-	ULONG ulCmpRes;
+	unsigned int ulObjType, ulCmpRes;
 
 	for (unsigned int i = 0; i < mv.cValues; ++i) {
 		// quick way to see what object the entryid points to .. otherwise we need to call OpenEntry, which is slow
@@ -1301,17 +1232,15 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
     IMAPISession *lpAdminSession, ECSender *lpMailer, const SBinary &owner,
     SBinary repr, bool *lpbAllowed, IMsgStore **lppRepStore)
 {
-	bool bAllowed = false;
-	bool bHasStore = false;
+	bool bAllowed = false, bHasStore = false;
 	ULONG ulObjType;
 	object_ptr<IMAPIProp> lpMailboxOwner, lpRepresenting;
 	memory_ptr<SPropValue> lpOwnerProps, lpRepresentProps;
 	SPropValue sSpoofEID = {0};
-	ULONG ulCmpRes = 0;
+	unsigned int ulCmpRes = 0, cValues = 0;
 	static constexpr const SizedSPropTagArray(3, sptaIDProps) =
 		{3, {PR_DISPLAY_NAME_W, PR_EC_SENDAS_USER_ENTRYIDS,
 		PR_DISPLAY_TYPE}};
-	ULONG cValues = 0;
 
 	auto hr = SMTPToZarafa(lpAddrBook, repr, &sSpoofEID.Value.bin);
 	if (hr != hrSuccess)
@@ -1338,7 +1267,6 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 		kc_perrorf("GetProps failed(1)", hr);
 		goto exit;
 	}
-
 	hr = hrSuccess;
 
 	// Open the owner to get the displayname for logging
@@ -1352,7 +1280,6 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 		kc_perrorf("GetProps failed(2)", hr);
 		goto exit;
 	}
-
 	hr = hrSuccess;
 
 	if (lpRepresentProps[2].ulPropTag != PR_DISPLAY_TYPE) {	// Required property for a mailuser object
@@ -1392,7 +1319,6 @@ exit:
 		hr = HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, repr, lppRepStore);
 	else
 		*lppRepStore = NULL;
-
 	*lpbAllowed = bAllowed;
 	MAPIFreeBuffer(sSpoofEID.Value.bin.lpb);
 	return hr;
@@ -1443,7 +1369,6 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	if (hr != hrSuccess)
 		ec_log_notice("CheckDelegate() PR_MAILBOX_OWNER_NAME(user) fetch failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-
 	hr = HrGetOneProp(lpRepStore, PR_MAILBOX_OWNER_NAME, &~lpRepOwnerName);
 	if (hr != hrSuccess)
 		ec_log_notice("CheckDelegate() PR_MAILBOX_OWNER_NAME(rep) fetch failed: %s (%x)",
@@ -1497,7 +1422,6 @@ exit:
 	*lpbAllowed = bAllowed;
 	// when any step failed, delegate is not setup correctly, so bAllowed == false
 	hr = hrSuccess;
-
 	if (bAllowed)
 		*lppRepStore = lpRepStore.release();
 	MAPIFreeBuffer(sSpoofEID.Value.bin.lpb);
@@ -1638,9 +1562,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
     IMessage **lppMessage, std::shared_ptr<ECLogger> logger, bool &doSentMail)
 {
 	object_ptr<IMessage> lpMessage;
-	ULONG			ulObjType		= 0;
-
-	ULONG			cbOwner			= 0;
+	unsigned int ulObjType = 0, cbOwner = 0, cValuesMoveProps = 0;
+	unsigned int ulCmpRes = 0, ulResult = 0;
 	memory_ptr<ENTRYID> lpOwner;
 	memory_ptr<ECUSER> lpUser;
 	SPropValue		sPropSender[4];
@@ -1650,24 +1573,16 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
 		PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_SEARCH_KEY}};
 	memory_ptr<SPropValue> lpMoveReprProps, lpPropOwner;
-	ULONG			cValuesMoveProps = 0;
-	bool			bAllowSendAs = false;
-	bool			bAllowDelegate = false;
-	ULONG			ulCmpRes = 0;
-	
+	bool bAllowSendAs = false, bAllowDelegate = false;
 	object_ptr<IMsgStore> lpRepStore;
 	object_ptr<IMessage> lpRepMessage;
 	memory_ptr<SPropValue> lpRepEntryID, lpSubject, lpMsgSize;
 	memory_ptr<SPropValue> lpAutoForward, lpMsgClass, lpDeferSendTime;
 	memory_ptr<SPropValue> trash_eid, parent_entryid;
-
 	PyMapiPluginFactory pyMapiPluginFactory;
 	std::unique_ptr<pym_plugin_intf> ptrPyMapiPlugin;
-	ULONG ulResult = 0;
 	const char *cts = nullptr;
-
 	ArchiveResult	archiveResult;
-
 	sending_options sopt;
 
 	imopt_default_sending_options(&sopt);
@@ -1682,10 +1597,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		sopt.use_tnef = 1;
 
 	sopt.allow_send_to_everyone = parseBool(g_lpConfig->GetSetting("allow_send_to_everyone"));
-
 	// Enable SMTP Delivery Status Notifications
 	sopt.enable_dsn = parseBool(g_lpConfig->GetSetting("enable_dsn"));
-
 	sopt.always_expand_distr_list = parseBool(g_lpConfig->GetSetting("expand_groups"));
 
 	// Init plugin system
@@ -1703,7 +1616,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		kc_perror("Unable to get owner information", hr);
 		goto exit;
 	}
-
 	// We now have the owner ID, get the owner information through the ServiceAdmin
 	hr = lpServiceAdmin->GetUser(cbOwner, lpOwner, MAPI_UNICODE, &~lpUser);
 	if (hr != hrSuccess) {
@@ -1719,13 +1631,11 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
-
 	hr = HrGetOneProp(lpUserStore, PR_IPM_WASTEBASKET_ENTRYID, &~trash_eid);
 	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
 		kc_perror("Unable to get wastebasket entryid", hr);
 		goto exit;
 	}
-
 	hr = HrGetOneProp(lpMessage, PR_PARENT_ENTRYID, &~parent_entryid);
 	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
 		kc_perror("Unable to get parent entryid", hr);
@@ -1745,7 +1655,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		kc_perror("Unable to get subject", hr);
 		goto exit;
 	}
-
 	hr = HrGetOneProp(lpMessage, PR_MESSAGE_SIZE, &~lpMsgSize);
 	if (hr != hrSuccess && hr != MAPI_E_NOT_FOUND) {
 		kc_perror("Unable to get message size", hr);
@@ -1764,10 +1673,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 
 			localtime_r(&sendat, &tmp);
 			strftime(timestring, 256, "%c", &tmp);
-
 			ec_log_info("E-mail for user %ls, subject \"%ls\", should be sent later at \"%s\"",
 				lpUser->lpszUsername, lpSubject ? lpSubject->Value.lpszW : L"<none>", timestring);
-
 			hr = MAPI_E_WAIT;
 			goto exit;
 		}
@@ -1785,17 +1692,13 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		ec_log_info("Sending e-mail for user %ls, size: %d",
 			lpUser->lpszUsername, lpMsgSize ? lpMsgSize->Value.ul : 0);
 
-	/* 
-
+	/*
 	   PR_SENDER_* maps to Sender:
 	   PR_SENT_REPRESENTING_* maps to From:
-
 	   Sender: field is optional, From: is mandatory
 	   PR_SENDER_* is mandatory, and always set by us (will be overwritten if was set)
 	   PR_SENT_REPRESENTING_* is optional, and set by outlook when the user modifies the From in outlook.
-
 	*/
-
 	// Set PR_SENT_REPRESENTING, as this is set on all "Sent" items and is the column
 	// that is shown by default in Outlook's "Sent Items" folder
 	if (HrGetOneProp(lpMessage, PR_SENT_REPRESENTING_ENTRYID, &~lpRepEntryID) != hrSuccess) {
@@ -1806,10 +1709,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		sPropSender[1].Value.lpszW = (LPTSTR)L"ZARAFA";
 		sPropSender[2].ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS_W;
 		sPropSender[2].Value.lpszW = (LPTSTR)lpUser->lpszMailAddress;
-
 		sPropSender[3].ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
-		sPropSender[3].Value.bin.cb = lpUser->sUserId.cb;
-		sPropSender[3].Value.bin.lpb = lpUser->sUserId.lpb;
+		sPropSender[3].Value.bin = lpUser->sUserId;
 
 		HRESULT hr2 = lpMessage->SetProps(4, sPropSender, NULL);
 		if (hr2 != hrSuccess) {
@@ -1884,10 +1785,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	sPropSender[1].Value.LPSZ = const_cast<TCHAR *>(KC_T("ZARAFA"));
 	sPropSender[2].ulPropTag = PR_SENDER_EMAIL_ADDRESS_W;
 	sPropSender[2].Value.LPSZ = lpUser->lpszMailAddress;
-
 	sPropSender[3].ulPropTag = PR_SENDER_ENTRYID;
-	sPropSender[3].Value.bin.cb = lpUser->sUserId.cb;
-	sPropSender[3].Value.bin.lpb = lpUser->sUserId.lpb;
+	sPropSender[3].Value.bin = lpUser->sUserId;
 	// @todo PR_SENDER_SEARCH_KEY
 
 	hr = lpMessage->SetProps(4, sPropSender, NULL);
@@ -1895,7 +1794,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		kc_perror("Unable to update message with sender", hr);
 		goto exit;
 	}
-
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess) {
 		kc_perror("Unable to save message before sending", hr);
@@ -1927,7 +1825,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			kc_perror("Unable to find sender information", hr);
 			goto exit;
 		}
-
 		hr = lpMessage->DeleteProps(sptaMoveReprProps, NULL);
 		if (FAILED(hr)) {
 			kc_perror("Unable to remove sender information", hr);
@@ -1970,12 +1867,10 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			ec_log_warn("Unable to expand message recipient groups: %s (%x)",
 				GetMAPIErrorMessage(hr), hr);
 	}
-
 	hr = RewriteRecipients(lpUserSession, lpMessage);
 	if (hr != hrSuccess)
 		ec_log_warn("Unable to rewrite recipients: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-
 	if (sopt.always_expand_distr_list) {
 		// Only touch recips if we're expanding groups; the rationale is here that the user
 		// has typed a recipient twice if we have duplicates and expand_groups = no, so that's
@@ -1986,13 +1881,11 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			ec_log_warn("Unable to remove duplicate recipients: %s (%x)",
 				GetMAPIErrorMessage(hr), hr);
 	}
-
 	RewriteQuotedRecipients(lpMessage);
 
 	hr = ptrPyMapiPlugin->MessageProcessing("PreSending", lpUserSession, lpAddrBook, lpUserStore, NULL, lpMessage, &ulResult);
 	if (hr != hrSuccess)
 		goto exit;
-
 	if (ulResult == MP_RETRY_LATER) {
 		hr = MAPI_E_WAIT;
 		goto exit;
@@ -2006,7 +1899,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	// Archive the message
 	if (parseBool(g_lpConfig->GetSetting("archive_on_send"))) {
 		ArchivePtr ptrArchive;
-		
+
 		hr = Archive::Create(lpAdminSession, &ptrArchive);
 		if (hr != hrSuccess) {
 			kc_perror("Unable to instantiate archive object", hr);
@@ -2025,7 +1918,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 
 	// Now hand message to library which will send it, inetmapi will handle addressbook
 	hr = IMToINet(lpUserSession, lpAddrBook, lpMessage, lpMailer, sopt);
-
 	// log using fatal, all other log messages are otherwise somewhat meaningless
 	if (hr == MAPI_W_NO_SERVICE) {
 		ec_log_warn("Unable to connect to SMTP server, retrying mail for user %ls later", lpUser->lpszUsername);
@@ -2033,12 +1925,10 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	} else if (hr != hrSuccess) {
 		ec_log_warn("E-mail for user %ls could not be sent, notifying user: %s (%x)",
 			lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
-
 		hr = SendUndeliverable(lpMailer, lpUserStore, lpMessage);
 		if (hr != hrSuccess)
 			ec_log_err("Unable to create undeliverable message for user %ls: %s (%x)",
 				lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
-
 		// we set hr to success, so the parent process does not create the undeliverable thing again
 		hr = hrSuccess;
 		goto exit;
@@ -2049,7 +1939,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	// If we have a repsenting message, save that now in the sent-items of that user
 	if (lpRepMessage) {
 		HRESULT hr2 = lpRepMessage->SaveChanges(0);
-
 		if (hr2 != hrSuccess)
 			kc_perror("The representee's mail copy could not be saved", hr2);
 	}
@@ -2057,7 +1946,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 exit:
 	if (FAILED(hr))
 		archiveResult.Undo(lpAdminSession);
-
 	// We always return the processes message to the caller, whether it failed or not
 	if (lpMessage)
 		lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
@@ -2090,7 +1978,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	object_ptr<IECSecurity> lpSecurity;
 	memory_ptr<SPropValue> lpsProp;
 	object_ptr<IMessage> lpMessage;
-	
+
 	lpMailer.reset(CreateSender(szSMTP, ulPort));
 	if (!lpMailer) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
@@ -2109,7 +1997,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 		goto exit;
 	}
 
-	/* 
+	/*
 	 * For proper group expansion, we'll need to login as the
 	 * user. When sending an email to group 'Everyone' it should not
 	 * be possible to send the email to users that cannot be viewed

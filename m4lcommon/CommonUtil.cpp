@@ -951,8 +951,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam,
 	if(hr != hrSuccess)
 		return hr;
 
-	sEntryID.cb = lpPropValue[DSM_ENTRYID].Value.bin.cb;
-	sEntryID.lpb = lpPropValue[DSM_ENTRYID].Value.bin.lpb;
+	sEntryID = lpPropValue[DSM_ENTRYID].Value.bin;
 	sMsgList.cValues = 1;
 	sMsgList.lpbin = &sEntryID;
 
@@ -1996,23 +1995,17 @@ HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 						lpPropFBNew->Value.MVbin.lpbin[2] = lpPropFB->Value.MVbin.lpbin[2];
 				}
 
-				lpPropFBNew->Value.MVbin.lpbin[1].cb = lpEntryID->Value.bin.cb;
-				lpPropFBNew->Value.MVbin.lpbin[1].lpb = lpEntryID->Value.bin.lpb;
-
-				lpPropFBNew->Value.MVbin.lpbin[3].cb = lpPVFBFolder->Value.bin.cb;
-				lpPropFBNew->Value.MVbin.lpbin[3].lpb = lpPVFBFolder->Value.bin.lpb;
+				lpPropFBNew->Value.MVbin.lpbin[1] = lpEntryID->Value.bin;
+				lpPropFBNew->Value.MVbin.lpbin[3] = lpPVFBFolder->Value.bin;
 			} else if(eDGMsgType == dgAssociated) {
-				lpPropFBNew->Value.MVbin.lpbin[0].cb = lpEntryID->Value.bin.cb;
-				lpPropFBNew->Value.MVbin.lpbin[0].lpb = lpEntryID->Value.bin.lpb;
+				lpPropFBNew->Value.MVbin.lpbin[0] = lpEntryID->Value.bin;
 			}
 
 			lpPropFBNew->Value.MVbin.cValues = 4; // no problem if the data is NULL
 
 			lpPropFBRef = lpPropFBNew; // use this one later on
 		} else {
-			lpPropFB->Value.MVbin.lpbin[eDGMsgType].cb = lpEntryID->Value.bin.cb;
-			lpPropFB->Value.MVbin.lpbin[eDGMsgType].lpb = lpEntryID->Value.bin.lpb;
-
+			lpPropFB->Value.MVbin.lpbin[eDGMsgType] = lpEntryID->Value.bin;
 			lpPropFBRef = lpPropFB; // use this one later on
 		}
 

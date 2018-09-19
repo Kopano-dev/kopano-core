@@ -33,7 +33,7 @@ LMTP::LMTP(ECChannel *lpChan, const char *szServerPath, ECConfig *lpConf) :
 	m_lpChannel(lpChan), m_lpConfig(lpConf), m_strPath(szServerPath)
 {}
 
-/** 
+/**
  * Tests the start of the input for the LMTP command. LMTP is case
  * insensitive.
  * LMTP commands are:
@@ -43,10 +43,10 @@ LMTP::LMTP(ECChannel *lpChan, const char *szServerPath, ECConfig *lpConf) :
  * @arg DATA
  * @arg RSET
  * @arg QUIT
- * 
+ *
  * @param[in]  strCommand The received line from the LMTP client
  * @param[out] eCommand enum describing the received command
- * 
+ *
  * @return MAPI error code
  * @retval MAPI_E_CALL_FAILED unknown or unsupported command received
  */
@@ -69,11 +69,11 @@ HRESULT LMTP::HrGetCommand(const string &strCommand, LMTP_Command &eCommand)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Send the following response to the LMTP client.
- * 
+ *
  * @param[in] strResponse String to send
- * 
+ *
  * @return Possible error during write to the client
  */
 HRESULT LMTP::HrResponse(const string &strResponse)
@@ -85,11 +85,11 @@ HRESULT LMTP::HrResponse(const string &strResponse)
 	return hr;
 }
 
-/** 
+/**
  * Parse the received string for a valid LHLO command.
- * 
+ *
  * @param[in] strInput the full LHLO command received
- * 
+ *
  * @return always hrSuccess
  */
 HRESULT LMTP::HrCommandLHLO(const string &strInput, string & nameOut)
@@ -103,7 +103,7 @@ HRESULT LMTP::HrCommandLHLO(const string &strInput, string & nameOut)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Parse the received string for a valid MAIL FROM: command.
  * The correct syntax for the MAIL FROM is (RFC 5321 §3.3):
  *  "MAIL FROM:" <reverse-path> [ SP <mail-parameters> ] <CRLF>
@@ -111,9 +111,9 @@ HRESULT LMTP::HrCommandLHLO(const string &strInput, string & nameOut)
  * However, it's possible extra spaces are added in the string, and we
  * should correctly accept this to deliver the mail.
  * We ignore the contents from the address, and use the From: header.
- * 
+ *
  * @param[in] strFrom the full MAIL FROM command
- * 
+ *
  * @return MAPI error code
  * @retval MAPI_E_NOT_FOUND < or > character was not found: this is fatal.
  */
@@ -123,12 +123,12 @@ HRESULT LMTP::HrCommandMAILFROM(const string &strFrom, std::string &strAddress)
 	return HrParseAddress(strFrom, strAddress);
 }
 
-/** 
+/**
  * Parse the received string for a valid RCPT TO: command.
- * 
+ *
  * @param[in]  strTo the full RCPT TO command
  * @param[out] strUnresolved the parsed email address from the command, user will be resolved by DAgent.
- * 
+ *
  * @return MAPI error code
  * @retval MAPI_E_NOT_FOUND < or > character was not found: this is fatal.
  */
@@ -145,19 +145,17 @@ HRESULT LMTP::HrCommandRCPTTO(const std::string &strTo,
 	return hr;
 }
 
-/** 
+/**
  * Receive the DATA from the client and save to a file using \r\n
  * enters. This file will be mmap()ed by the DAgent.
- * 
+ *
  * @param[in] tmp a FILE pointer to a temporary file with write access
- * 
+ *
  * @return MAPI error code, read/write errors from client.
  */
 HRESULT LMTP::HrCommandDATA(FILE *tmp)
 {
-	std::string inBuffer;
-	std::string message;
-
+	std::string inBuffer, message;
 	auto hr = HrResponse("354 2.1.5 Start mail input; end with <CRLF>.<CRLF>");
 	if (hr != hrSuccess)
 		return kc_perror("Error during DATA communication with client", hr);
@@ -180,13 +178,11 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 			ec_log_err("Error during DATA communication with client: %s", strerror(errno));
 			return MAPI_E_FAILURE;
 		}
-
 		// The data from HrReadLine does not contain the CRLF, so add that here
 		if (fwrite("\r\n", 1, 2, tmp) != 2) {
 			ec_log_err("Error during DATA communication with client: %s", strerror(errno));
 			return MAPI_E_FAILURE;
 		}
-
 		message += inBuffer + "\r\n";
 	}
 #if 0
@@ -196,12 +192,12 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 	return hrSuccess;
 }
 
-/** 
+/**
  * Parse an address given in a MAIL FROM or RCPT TO command.
- * 
+ *
  * @param[in]  strInput a full MAIL FROM or RCPT TO command
  * @param[out] strAddress the address found in the command
- * 
+ *
  * @return MAPI error code
  * @retval MAPI_E_NOT_FOUND mandatory < or > not found in command.
  */
