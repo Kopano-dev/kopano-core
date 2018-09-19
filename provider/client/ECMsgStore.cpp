@@ -1505,15 +1505,9 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 	object_ptr<ECMsgStore> lpecMsgStore;
 	object_ptr<ECMAPIFolder> lpMapiFolderRoot;
 	/* Root container, IPM_SUBTREE and NON_IPM_SUBTREE */
-	object_ptr<IMAPIFolder> lpFolderRoot, lpFolderRootST, lpFolderRootNST;
-	object_ptr<IMAPIFolder> lpMAPIFolder, lpMAPIFolder2, lpMAPIFolder3;
+	object_ptr<IMAPIFolder> lpFolderRoot, lpFolderRootST;
 	object_ptr<IECPropStorage> storage;
-	object_ptr<ECMAPIFolder> lpECMapiFolderInbox;
-	object_ptr<IMAPIFolder> lpInboxFolder, lpCalendarFolder;
-	ecmem_ptr<SPropValue> lpPropValue;
 	unsigned int objtype = 0, cbStoreId = 0, cbRootId = 0;
-	object_ptr<IECSecurity> lpECSecurity;
-	ECPERMISSION		sPermission;
 	ecmem_ptr<ECUSER> lpECUser;
 	ecmem_ptr<ECCOMPANY> lpECCompany;
 	ecmem_ptr<ECGROUP> lpECGroup;
@@ -1587,8 +1581,10 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 		return hr;
 
 	if(ulStoreType == ECSTORE_TYPE_PUBLIC) { // Public folder action
+		hr = [this](ECMsgStore *lpecMsgStore, IMAPIFolder *lpFolderRoot, IMAPIFolder *lpFolderRootST, const ENTRYID *lpUserId, unsigned int cbUserId) -> HRESULT {
 		// Create Folder NON_IPM_SUBTREE into the rootfolder
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("NON_IPM_SUBTREE"), KC_T(""), PR_NON_IPM_SUBTREE_ENTRYID, 0, NULL, &~lpFolderRootNST);
+		object_ptr<IMAPIFolder> lpFolderRootNST, lpMAPIFolder, lpMAPIFolder2, lpMAPIFolder3;
+		auto hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("NON_IPM_SUBTREE"), KC_T(""), PR_NON_IPM_SUBTREE_ENTRYID, 0, NULL, &~lpFolderRootNST);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -1597,6 +1593,8 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 		if (hr != hrSuccess)
 			return hr;
 
+		ECPERMISSION sPermission;
+		object_ptr<IECSecurity> lpECSecurity;
 		sPermission.ulRights = ecRightsFolderVisible|ecRightsReadAny|ecRightsCreateSubfolder|ecRightsEditOwned|ecRightsDeleteOwned;
 		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
 		sPermission.ulType = ACCESS_TYPE_GRANT;
@@ -1658,6 +1656,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 
 		// indicate, validity of the entry identifiers of the folders in a message store
 		// Public folder have default the mask
+		memory_ptr<SPropValue> lpPropValue;
 		unsigned int cValues = 2;
 		hr = ECAllocateBuffer(sizeof(SPropValue) * cValues, &~lpPropValue);
 		if (hr != hrSuccess)
@@ -1670,14 +1669,17 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 		lpPropValue[1].Value.lpszW = const_cast<wchar_t *>(L"Public folder"); //FIXME: set the right public folder name here?
 
 		// Set the property into the store
-		hr = lpecMsgStore->SetProps(cValues, lpPropValue, NULL);
+		return lpecMsgStore->SetProps(cValues, lpPropValue, NULL);
+		}(lpecMsgStore, lpFolderRoot, lpFolderRootST, lpUserId, cbUserId);
 		if(hr != hrSuccess)
 			return hr;
 	}else if(ulStoreType == ECSTORE_TYPE_PRIVATE) { //Private folder
+		hr = [this](ECMsgStore *lpecMsgStore, ECMAPIFolder *lpMapiFolderRoot, IMAPIFolder *lpFolderRoot, IMAPIFolder *lpFolderRootST) -> HRESULT {
+		object_ptr<IMAPIFolder> lpMAPIFolder, lpMAPIFolder3, lpInboxFolder, lpCalendarFolder;
 
 		// Create Folder COMMON_VIEWS into the rootfolder
 		// folder holds views that are standard for the message store
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("IPM_COMMON_VIEWS"), KC_T(""), PR_COMMON_VIEWS_ENTRYID, 0, NULL, NULL);
+		auto hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("IPM_COMMON_VIEWS"), KC_T(""), PR_COMMON_VIEWS_ENTRYID, 0, NULL, NULL);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -1692,6 +1694,8 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 		if(hr != hrSuccess)
 			return hr;
 
+		object_ptr<IECSecurity> lpECSecurity;
+		ECPERMISSION sPermission;
 		sPermission.ulRights = ecRightsFolderVisible|ecRightsReadAny|ecRightsCreateSubfolder|ecRightsEditOwned|ecRightsDeleteOwned;
 		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
 		sPermission.ulType = ACCESS_TYPE_GRANT;
@@ -1724,6 +1728,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 			return hr;
 
 		// Get entryid of the folder
+		memory_ptr<SPropValue> lpPropValue;
 		hr = HrGetOneProp(lpInboxFolder, PR_ENTRYID, &~lpPropValue);
 		if(hr != hrSuccess)
 			return hr;
@@ -1736,6 +1741,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 		hr = lpecMsgStore->SetReceiveFolder(LPCTSTR("REPORT.IPM"), 0, lpPropValue->Value.bin.cb, (LPENTRYID)lpPropValue->Value.bin.lpb);
 		if(hr != hrSuccess)
 			return hr;
+		object_ptr<ECMAPIFolder> lpECMapiFolderInbox;
 		hr = lpInboxFolder->QueryInterface(IID_ECMAPIFolder, &~lpECMapiFolderInbox);
 		if(hr != hrSuccess)
 			return hr;
@@ -1839,7 +1845,8 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 		lpPropValue[0].Value.ul = FOLDER_VIEWS_VALID | FOLDER_COMMON_VIEWS_VALID|FOLDER_FINDER_VALID | FOLDER_IPM_INBOX_VALID | FOLDER_IPM_OUTBOX_VALID | FOLDER_IPM_SENTMAIL_VALID | FOLDER_IPM_SUBTREE_VALID | FOLDER_IPM_WASTEBASKET_VALID;
 
 		// Set the property into the store
-		hr = lpecMsgStore->SetProps(cValues, lpPropValue, NULL);
+		return lpecMsgStore->SetProps(cValues, lpPropValue, NULL);
+		}(lpecMsgStore, lpMapiFolderRoot, lpFolderRoot, lpFolderRootST);
 		if(hr != hrSuccess)
 			return hr;
 	}
