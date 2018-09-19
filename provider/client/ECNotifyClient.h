@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECNOTIFYCLIENT_H
 #define ECNOTIFYCLIENT_H
 
@@ -41,9 +40,7 @@ public:
 
 	// Re-request the connection from the server. You may pass an updated key if required.
 	virtual HRESULT Reregister(ULONG ulConnection, ULONG cbKey = 0, LPBYTE lpKey = NULL);
-
 	virtual HRESULT ReleaseAll();
-
 	virtual HRESULT Notify(ULONG ulConnection, const NOTIFYLIST &lNotifications);
 	virtual HRESULT NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNotifications);
 	virtual HRESULT NotifyReload(); // Called when all tables should be notified of RELOAD
@@ -52,7 +49,6 @@ public:
 	virtual HRESULT RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, bool bSynchronous, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection);
 	virtual HRESULT RegisterChangeAdvise(ULONG sync_id, ULONG change_id, KC::IECChangeAdviseSink *, ULONG *conn);
 	virtual HRESULT UnRegisterAdvise(ULONG ulConnection);
-
 	virtual HRESULT UpdateSyncStates(const ECLISTSYNCID &lstSyncID, ECLISTSYNCSTATE *lplstSyncState);
 
 private:

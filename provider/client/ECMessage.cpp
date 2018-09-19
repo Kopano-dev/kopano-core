@@ -141,7 +141,6 @@ HRESULT ECMessage::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 			/* plain */   { PR_BODY_W, PR_RTF_COMPRESSED, PR_HTML },
 			/* rtf */     { PR_RTF_COMPRESSED, PR_HTML, PR_BODY_W },
 			/* html */    { PR_HTML, PR_RTF_COMPRESSED, PR_BODY_W }};
-
 		SPropTagArrayPtr	ptrPropTagArray;
 		ULONG				ulBestMatch = 0;
 
@@ -155,7 +154,6 @@ HRESULT ECMessage::GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags,
 			hr = GetPropList(ulFlags, &~ptrPropTagArray);
 			if (hr != hrSuccess)
 				return hr;
-
 			lBodyIdx = Util::FindPropInArray(ptrPropTagArray, CHANGE_PROP_TYPE(PR_BODY_W, PT_UNSPECIFIED));
 			lRtfIdx = Util::FindPropInArray(ptrPropTagArray, CHANGE_PROP_TYPE(PR_RTF_COMPRESSED, PT_UNSPECIFIED));
 			lHtmlIdx = Util::FindPropInArray(ptrPropTagArray, CHANGE_PROP_TYPE(PR_HTML, PT_UNSPECIFIED));
@@ -293,7 +291,6 @@ HRESULT ECMessage::GetSyncedBodyProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 	    lpsPropValue->Value.err != MAPI_E_NOT_FOUND ||
 	    m_ulBodyType == bodyTypeUnknown)
 		return HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
-
 	// If a non-best body was requested, we might need to generate it.
 	if ((m_ulBodyType == bodyTypePlain && PROP_ID(ulPropTag) == PROP_ID(PR_BODY)) ||
 	    (m_ulBodyType == bodyTypeRTF && PROP_ID(ulPropTag) == PROP_ID(PR_RTF_COMPRESSED)) ||
@@ -324,9 +321,7 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 		return MAPI_E_NO_SUPPORT;
 
 	const BOOL fModifyOld = fModify;
-
 	auto laters = make_scope_success([&]() { fModify = fModifyOld; });
-
 	// Temporary enable write access
 	fModify = TRUE;
 
@@ -353,7 +348,6 @@ HRESULT ECMessage::SyncBody(ULONG ulPropTag)
 HRESULT ECMessage::SyncPlainToRtf()
 {
 	StreamPtr ptrBodyStream, ptrCompressedRtfStream, ptrUncompressedRtfStream;
-
 	ULARGE_INTEGER emptySize = {{0,0}};
 	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
@@ -365,7 +359,6 @@ HRESULT ECMessage::SyncPlainToRtf()
 	hr = ECMAPIProp::OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrCompressedRtfStream);
 	if (hr != hrSuccess)
 		return hr;
-
 	//Truncate to zero
 	hr = ptrCompressedRtfStream->SetSize(emptySize);
 	if (hr != hrSuccess)
@@ -373,17 +366,14 @@ HRESULT ECMessage::SyncPlainToRtf()
 	hr = WrapCompressedRTFStream(ptrCompressedRtfStream, MAPI_MODIFY, &~ptrUncompressedRtfStream);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Convert it now
 	hr = Util::HrTextToRtf(ptrBodyStream, ptrUncompressedRtfStream);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Commit uncompress data
 	hr = ptrUncompressedRtfStream->Commit(0);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Commit compresed data
 	hr = ptrCompressedRtfStream->Commit(0);
 	if (hr != hrSuccess)
@@ -391,7 +381,6 @@ HRESULT ECMessage::SyncPlainToRtf()
 
 	// We generated this property but don't really want to save it to the server
 	HrSetCleanProperty(PR_RTF_COMPRESSED);
-
 	// and mark it as deleted, since we want the server to remove the old version if this was in the database
 	m_setDeletedProps.emplace(PR_RTF_COMPRESSED);
 	return hrSuccess;
@@ -416,26 +405,21 @@ HRESULT ECMessage::SyncPlainToHtml()
 	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrHtmlStream);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = GetCodePage(&ulCodePage);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = ptrHtmlStream->SetSize(emptySize);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = Util::HrTextToHtml(ptrBodyStream, ptrHtmlStream, ulCodePage);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = ptrHtmlStream->Commit(0);
 	if (hr != hrSuccess)
 		return hr;
 
 	// We generated this property but don't really want to save it to the server
 	HrSetCleanProperty(PR_HTML);
-
 	// and mark it as deleted, since we want the server to remove the old version if this was in the database
 	m_setDeletedProps.emplace(PR_HTML);
 	return hrSuccess;
@@ -453,7 +437,6 @@ HRESULT ECMessage::SyncRtf()
 	StreamPtr ptrHTMLStream;
 	ULONG ulWritten = 0;
 	eRTFType rtfType = RTFTypeOther;
-
 	ULARGE_INTEGER emptySize = {{0,0}};
 	LARGE_INTEGER moveBegin = {{0,0}};
 	assert(!m_bInhibitSync);
@@ -470,7 +453,6 @@ HRESULT ECMessage::SyncRtf()
 	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrHTMLStream);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = ptrHTMLStream->SetSize(emptySize);
 	if (hr != hrSuccess)
 		return hr;
@@ -492,19 +474,15 @@ HRESULT ECMessage::SyncRtf()
 			hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrBodyStream);
 			if (hr != hrSuccess)
 				return hr;
-
 			hr = ptrHTMLStream->SetSize(emptySize);
 			if (hr != hrSuccess)
 				return hr;
-
 			hr = Util::HrTextToHtml(ptrBodyStream, ptrHTMLStream, ulCodePage);
 			if (hr != hrSuccess)
 				return hr;
-
 			hr = ptrHTMLStream->Commit(0);
 			if (hr != hrSuccess)
 				return hr;
-
 			bDone = true;
 		}
 	}
@@ -530,26 +508,21 @@ HRESULT ECMessage::SyncRtf()
 		hr = ptrHTMLStream->Write(strHTML.c_str(), strHTML.size(), &ulWritten);
 		if (hr != hrSuccess)
 			return hr;
-
 		hr = ptrHTMLStream->Commit(0);
 		if (hr != hrSuccess)
 			return hr;
-
 		hr = ptrHTMLStream->Seek(moveBegin, STREAM_SEEK_SET, NULL);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrBodyStream);
 		if (hr != hrSuccess)
 			return hr;
-
 		hr = ptrBodyStream->SetSize(emptySize);
 		if (hr != hrSuccess)
 			return hr;
-
 		hr = Util::HrHtmlToText(ptrHTMLStream, ptrBodyStream, ulCodePage);
 		if (hr != hrSuccess)
 			return hr;
-
 		hr = ptrBodyStream->Commit(0);
 		if (hr != hrSuccess)
 			return hr;
@@ -573,7 +546,6 @@ HRESULT ECMessage::SyncRtf()
 		// And delete from server.
 		m_setDeletedProps.emplace(PR_RTF_COMPRESSED);
 	}
-
 	return hr;
 }
 
@@ -584,7 +556,6 @@ HRESULT ECMessage::SyncHtmlToPlain()
 {
 	StreamPtr ptrHtmlStream, ptrBodyStream;
 	unsigned int ulCodePage;
-
 	ULARGE_INTEGER emptySize = {{0,0}};
 
 	assert(m_bInhibitSync == FALSE);
@@ -597,15 +568,12 @@ HRESULT ECMessage::SyncHtmlToPlain()
 	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrBodyStream);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = ptrBodyStream->SetSize(emptySize);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = GetCodePage(&ulCodePage);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = Util::HrHtmlToText(ptrHtmlStream, ptrBodyStream, ulCodePage);
 	if (hr != hrSuccess)
 		return hr;
@@ -619,7 +587,6 @@ HRESULT ECMessage::SyncHtmlToRtf()
 {
 	StreamPtr ptrHtmlStream, ptrRtfCompressedStream, ptrRtfUncompressedStream;
 	unsigned int ulCodePage;
-
 	ULARGE_INTEGER emptySize = {{0,0}};
 	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
@@ -628,32 +595,26 @@ HRESULT ECMessage::SyncHtmlToRtf()
 	auto hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrHtmlStream);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = ECMAPIProp::OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, &~ptrRtfCompressedStream);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = ptrRtfCompressedStream->SetSize(emptySize);
 	if (hr != hrSuccess)
 		return hr;
 	hr = WrapCompressedRTFStream(ptrRtfCompressedStream, MAPI_MODIFY, &~ptrRtfUncompressedStream);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = GetCodePage(&ulCodePage);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Convert it now
 	hr = Util::HrHtmlToRtf(ptrHtmlStream, ptrRtfUncompressedStream, ulCodePage);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Commit uncompress data
 	hr = ptrRtfUncompressedStream->Commit(0);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Commit compresed data
 	hr = ptrRtfCompressedStream->Commit(0);
 	if (hr != hrSuccess)
@@ -661,7 +622,6 @@ HRESULT ECMessage::SyncHtmlToRtf()
 
 	// We generated this property but don't really want to save it to the server
 	HrSetCleanProperty(PR_RTF_COMPRESSED);
-
 	// and mark it as deleted, since we want the server to remove the old version if this was in the database
 	m_setDeletedProps.emplace(PR_RTF_COMPRESSED);
 	return hrSuccess;
@@ -929,10 +889,8 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 		return hr;
 
 	hr = lpAttach->QueryInterface(IID_IAttachment, (void **)lppAttach);
-
 	AddChild(lpAttach);
 	*lpulAttachmentNum = sID.Value.ul;
-
 	// successfully created attachment, so increment counter for the next
 	++ulNextAttUniqueId;
 	return hr;
@@ -1173,7 +1131,6 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	hr = GetRecipientTable(fMapiUnicode, &~lpRecipientTable);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Check if recipientslist is empty
 	hr = lpRecipientTable->GetRowCount(0, &ulRepCount);
 	if(hr != hrSuccess)
@@ -1219,10 +1176,8 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 
 	lpsPropArray[0].ulPropTag = PR_CLIENT_SUBMIT_TIME;
 	lpsPropArray[0].Value.ft = ft;
-
 	lpsPropArray[1].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 	lpsPropArray[1].Value.ft = ft;
-
 	hr = SetProps(2, lpsPropArray, NULL);
   	if (hr != hrSuccess)
 		return hr;
@@ -1245,12 +1200,10 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	hr = SetProps(1, lpsPropArray, NULL);
 	if (hr != hrSuccess)
 		return hr;
-
 	// All done, save changes
 	hr = SaveChanges(KEEP_OPEN_READWRITE);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Add the message to the master outgoing queue, and request the spooler to DoSentMail()
 	return GetMsgStore()->lpTransport->HrSubmitMessage(m_cbEntryId,
 	       m_lpEntryId, EC_SUBMIT_MASTER | EC_SUBMIT_DOSENTMAIL);
@@ -1500,7 +1453,6 @@ BOOL ECMessage::HasAttachment()
 		if (hr != hrSuccess)
 			return false; /* hr */
 	}
-
 	for (iterObjects = m_sMapiObject->lstChildren.cbegin();
 	     iterObjects != m_sMapiObject->lstChildren.cend(); ++iterObjects)
 		if ((*iterObjects)->ulObjType == MAPI_ATTACH)
@@ -1611,7 +1563,6 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 	// could not have modified (easy way out of my bug)
 	if (!fModify)
 		return MAPI_E_NO_ACCESS;
-
 	// nothing changed -> no need to save
 	if (!m_props_loaded)
 		return hrSuccess;
@@ -1692,7 +1643,6 @@ HRESULT ECMessage::SyncSubject()
 	// if both not present or not dirty
 	if( (hr1 != hrSuccess && hr2 != hrSuccess) || (hr1 == hr2 && bDirtySubject == FALSE && bDirtySubjectPrefix == FALSE) )
 		return hrSuccess;
-
 	// If subject is deleted but the prefix is not, delete it
 	if(hr1 != hrSuccess && hr2 == hrSuccess)
 		return HrDeleteRealProp(CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED), FALSE);
@@ -2030,7 +1980,6 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 			return hr;
 
 		// The server did not supply a PR_SOURCE_KEY, generate one ourselves.
-
 		strServerGUID.assign((char*)&lpMessage->GetMsgStore()->GetStoreGuid(), sizeof(GUID));
 		if (lpMessage->m_sMapiObject != nullptr) {
 			uint32_t tmp4 = cpu_to_le32(lpMessage->m_sMapiObject->ulObjId);
@@ -2039,7 +1988,6 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 							
 		// Resize so it trails 6 null bytes
 		strID.resize(6,0);
-
 		strSourceKey = strServerGUID + strID;
 		lpsPropValue->ulPropTag = PR_SOURCE_KEY;
 		lpsPropValue->Value.bin.cb = strSourceKey.size();
@@ -2237,7 +2185,6 @@ HRESULT ECMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 	auto hr = ECMAPIProp::HrSetRealProp(lpsPropValue);
 	if(hr != hrSuccess)
 		return hr;
-
 	// If we're in the middle of syncing bodies, we don't want any more logic to kick in.
 	if (m_bInhibitSync)
 		return hrSuccess;
@@ -2309,7 +2256,6 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	}
 	if (lpAttachments == nullptr)
 		return MAPI_E_CALL_FAILED;
-
 	if (!m_sMapiObject) {
 		// when does this happen? .. just a simple precaution for now
 		assert(m_sMapiObject != NULL);
@@ -2359,7 +2305,6 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 		++ulProps;
 		lpPropID = &lpProps[i++];
 	}
-
 	if (lpPropObjType == NULL) {
 		++ulProps;
 		lpPropObjType = &lpProps[i++];
@@ -2367,10 +2312,8 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 
 	lpPropObjType->ulPropTag = PR_OBJECT_TYPE;
 	lpPropObjType->Value.ul = MAPI_ATTACH;
-
 	lpPropID->ulPropTag = PR_ATTACH_NUM;
 	lpPropID->Value.ul = lpsMapiObject->ulUniqueId;
-
 	sKeyProp.ulPropTag = PR_EC_HIERARCHYID;
 	sKeyProp.Value.ul = lpsMapiObject->ulObjId;
 	return lpAttachments->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, ulProps);
@@ -2436,10 +2379,8 @@ HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
 		hr = ptrRtfUncompressedStream->Read(lpBuf, 4096, &ulRead);
 		if (hr != hrSuccess)
 			return hr;
-
 		if (ulRead == 0)
 			break;
-
 		strRtfData.append(lpBuf, ulRead);
 	}
 

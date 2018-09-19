@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 // Interface for writing and reading properties to disk (which does the actual transfer and save)
 // 
 // Strategy is to load most of the small (ie not much data) properties at load-time. This saves
@@ -18,7 +17,6 @@
 // accesses will be kept down to about 1 to 5 network accesses, and have low bandwidth requirements as
 // large data is only loaded on demand.
 //
-
 #ifndef IECPROPSTORAGE_H
 #define IECPROPSTORAGE_H
 
@@ -41,7 +39,6 @@ struct MAPIOBJECT {
 
 	bool operator < (const MAPIOBJECT &other) const {
 		std::pair<unsigned int, unsigned int> me(ulObjType, ulUniqueId), him(other.ulObjType, other.ulUniqueId);
-		
 		return me < him;
 	};
 
@@ -87,16 +84,12 @@ typedef std::set<MAPIOBJECT*, MAPIOBJECT::CompareMAPIOBJECT>	ECMapiObjects;
 
 class IECPropStorage : public virtual IUnknown {
 public:
-
 	// Get a single (large) property from an object
 	virtual HRESULT HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue) = 0;
-
 	// Save a complete object to the server
 	virtual HRESULT HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpSavedObjects) = 0;
-
 	// Load a complete object from the server
 	virtual HRESULT HrLoadObject(MAPIOBJECT **lppSavedObjects) = 0;
-
 	// Returns the correct storage which can connect to the server
 	virtual IECPropStorage* GetServerStorage() = 0;
 };

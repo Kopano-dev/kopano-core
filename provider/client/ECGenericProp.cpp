@@ -88,12 +88,12 @@ HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 		if (ulPropId == PROP_ID(lpsPropValue->ulPropTag))
 			SetSingleInstanceId(0, NULL);
 	}
-
 	if (!m_props_loaded) {
 		auto hr = HrLoadProps();
 		if(hr != hrSuccess)
 			return hr;
 	}			
+
 	auto iterPropsFound = lstProps.end();
 	// Loop through all properties, get the first EXACT matching property, but delete ALL
 	// other properties with this PROP_ID and the wrong type - this makes sure you can SetProps() with 0x60010003,
@@ -158,12 +158,10 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 		lpsPropValue->Value.err = MAPI_E_NOT_FOUND;
 		return MAPI_W_ERRORS_RETURNED;
 	}
-
 	if(!iterProps->second.FIsLoaded()) {
 		lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_ERROR);
 		lpsPropValue->Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
 		return MAPI_W_ERRORS_RETURNED;
-
 		// The load should have loaded into the value pointed to by iterProps, so we can use that now
 	}
 
@@ -173,7 +171,6 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 		lpsPropValue->Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
 		return MAPI_W_ERRORS_RETURNED;
 	}
-
 	if (PROP_TYPE(ulPropTag) == PT_UNSPECIFIED) {
 		if (PROP_TYPE(iterProps->second.GetPropTag()) == PT_UNICODE)
 			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, ((ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
@@ -310,7 +307,6 @@ HRESULT ECGenericProp::HrSetClean()
 	// also remove deleted marked properties, since the object isn't reloaded from the server anymore
 	for (auto iterProps = lstProps.begin(); iterProps != lstProps.end(); ++iterProps)
 		iterProps->second.HrSetClean();
-
 	m_setDeletedProps.clear();
 	return hrSuccess;
 }
@@ -396,7 +392,6 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 
 	// Note: m_sMapiObject->lstProperties and m_sMapiObject->lstAvailable are empty
 	// here, because they are cleared after HrLoadProps and SaveChanges
-
 	// save into m_sMapiObject
 	
 	for (auto l : m_setDeletedProps) {
@@ -409,7 +404,6 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 		// Property is dirty, so we have to save it
 		if (p.second.FIsDirty()) {
 			// Save in the 'modified' list
-
 			// Make sure the property is not present in deleted/modified list
 			HrRemoveModifications(m_sMapiObject.get(), p.second.GetPropTag());
 			// Save modified property
@@ -430,7 +424,6 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 
 	// Our s_MapiObject now contains its full property list in lstProperties and lstAvailable,
 	// and its modifications in lstModified and lstDeleted.
-
 	// save to parent or server
 	hr = lpStorage->HrSaveObject(ulObjFlags, m_sMapiObject.get());
 	if (hr != hrSuccess)
@@ -439,7 +432,6 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	// HrSaveObject() has appended any new properties in lstAvailable and lstProperties. We need to load the 
 	// new properties. The easiest way to do this is to simply load all properties. Note that in embedded objects
 	// that save to ECParentStorage, the object will be untouched. The code below will do nothing.
-
 	// Large properties received
 	for (auto tag : m_sMapiObject->lstAvailable) {
 		// ONLY if not present
@@ -458,16 +450,13 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 		}
 
 	// Note that we currently don't support the server removing properties after the SaveObject call
-
 	// We have loaded all properties, so clear the properties in the m_sMapiObject
 	m_sMapiObject->lstProperties.clear();
 	m_sMapiObject->lstAvailable.clear();
 
 	// We are now in sync with the server again, so set everything as clean
 	HrSetClean();
-
 	fSaved = true;
-
 exit:
 	if (hr == hrSuccess)
 		// Unless the user requests to continue with modify access, switch
@@ -486,7 +475,7 @@ HRESULT ECGenericProp::IsPropDirty(ULONG ulPropTag, BOOL *lpbDirty)
 	    (PROP_TYPE(ulPropTag) != PT_UNSPECIFIED &&
 	    ulPropTag != iterProps->second.GetPropTag()))
 		return MAPI_E_NOT_FOUND;
-	
+
 	*lpbDirty = iterProps->second.FIsDirty();
 	return hrSuccess;
 }
@@ -526,10 +515,8 @@ HRESULT	ECGenericProp::HrGetHandler(ULONG ulPropTag, SetPropCallBack *lpfnSetPro
 
 	if(lpfnSetProp)
 		*lpfnSetProp = iterCallBack->second.lpfnSetProp;
-
 	if(lpfnGetProp)
 		*lpfnGetProp = iterCallBack->second.lpfnGetProp;
-
 	if(lpParam)
 		*lpParam = iterCallBack->second.lpParam;
 	return hrSuccess;
@@ -609,16 +596,12 @@ HRESULT ECGenericProp::HrLoadProps()
 	m_sMapiObject->lstProperties.clear(); // pointers are now only present in lstProps (this removes memory usage!)
 
 	// at this point: children still known, ulObjId and ulObjType too
-
 	// Mark all properties now in memory as 'clean' (need not be saved)
 	hr = HrSetClean();
-
 	if(hr != hrSuccess)
 		goto exit;
-
 	// We just read the properties from the disk, so it is a 'saved' (ie on-disk) message
 	fSaved = true;
-
 exit:
 	m_bReload = FALSE;
 	m_bLoading = FALSE;
@@ -646,7 +629,6 @@ HRESULT ECGenericProp::HrLoadProp(ULONG ulPropTag)
 	    (PROP_TYPE(ulPropTag) != PT_UNSPECIFIED &&
 	    PROP_TYPE(ulPropTag) != PROP_TYPE(iterProps->second.GetPropTag())))
 		return MAPI_E_NOT_FOUND;
-
 	// Don't load the data if it was already loaded
 	if (iterProps->second.FIsLoaded())
 		return MAPI_E_NOT_FOUND;
@@ -658,7 +640,6 @@ HRESULT ECGenericProp::HrLoadProp(ULONG ulPropTag)
 	hr = iterProps->second.HrSetProp(new ECProperty(lpsPropVal));
 	if(hr != hrSuccess)
 		return hr;
-
 	// It's clean 'cause we just loaded it
 	iterProps->second.HrSetClean();
 	return hrSuccess;
@@ -732,7 +713,6 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 		return hr;
 
 	// Some will overlap so we've actually allocated slightly too much memory
-
 	// Add the callback types first
 	for (auto iterCallBack = lstCallBack.begin();
 	     iterCallBack != lstCallBack.end(); ++iterCallBack) {
@@ -742,7 +722,6 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArr
 
 		// Check if the callback actually returns OK
 		// a bit wasteful but fine for now.
-
 		ecmem_ptr<SPropValue> lpsPropValue;
 		HRESULT hrT = hrSuccess;
 
@@ -881,7 +860,6 @@ HRESULT ECGenericProp::DeleteProps(const SPropTagArray *lpPropTagArray,
 	}
 
 	lpProblems->cProblem = nProblem;
-
 	if(lppProblems && nProblem)
 		*lppProblems = lpProblems.release();
 	else if (lppProblems != nullptr)

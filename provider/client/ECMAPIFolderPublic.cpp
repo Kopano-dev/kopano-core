@@ -376,7 +376,6 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID,
 		hr = ((IMAPIProp*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-	
 	if(hr != hrSuccess)
 		return hr;
 
@@ -421,7 +420,6 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID,
 	if (cbEntryID <= 4 || !(lpEntryID->abFlags[3] & KOPANO_FAVORITE))
 		return ECMAPIFolder::DeleteFolder(cbEntryID, lpEntryID,
 		       ulUIParam, lpProgress, ulFlags);
-
 	// favorite folder not supported
 	return MAPI_E_NO_SUPPORT;
 }
@@ -449,7 +447,6 @@ HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterfa
 		hr = ((IMAPIProp*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-	
 	if(hr != hrSuccess)
 		return hr;
 
@@ -457,11 +454,9 @@ HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterfa
 	hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &~lpPropArray);
 	if(hr != hrSuccess)
 		return hr;
-
 	// if the destination is the publicfolders entryid, just block
 	if(((ECMsgStorePublic*)GetMsgStore())->ComparePublicEntryId(ePE_PublicFolders, lpPropArray[0].Value.bin.cb, (LPENTRYID)lpPropArray[0].Value.bin.lpb, &ulResult) == hrSuccess && ulResult == TRUE)
 		return MAPI_E_NO_ACCESS;
-
 	return ECMAPIFolder::CopyMessages(lpMsgList, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
 }
 
@@ -469,6 +464,5 @@ HRESULT ECMAPIFolderPublic::CreateMessage(LPCIID lpInterface, ULONG ulFlags, LPM
 {
 	if (m_ePublicEntryID == ePE_PublicFolders)
 		return MAPI_E_NO_ACCESS;
-
 	return ECMAPIFolder::CreateMessage(lpInterface, ulFlags, lppMessage);
 }

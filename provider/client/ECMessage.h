@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECMESSAGE_H
 #define ECMESSAGE_H
 
@@ -119,9 +118,7 @@ public:
 
 protected:
 	void RecursiveMarkDelete(MAPIOBJECT *lpObj);
-
 	HRESULT CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttachFactory &refFactory, ULONG *lpulAttachmentNum, LPATTACH *lppAttach);
-
 	HRESULT GetRtfData(std::string *lpstrRtfData);
 	HRESULT GetCodePage(unsigned int *lpulCodePage);
 
@@ -132,7 +129,6 @@ private:
 	HRESULT SaveRecips();
 	HRESULT SyncAttachments();
 	BOOL HasAttachment();
-
 	HRESULT SyncRecips();
 	HRESULT SyncSubject();
 	HRESULT GetBodyType(eBodyType *lpulBodyType);

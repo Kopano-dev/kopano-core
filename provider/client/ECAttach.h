@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECATTACH_H
 #define ECATTACH_H
 
@@ -47,6 +46,5 @@ class ECAttachFactory _kc_final : public IAttachFactory {
 public:
 	HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *, ECAttach **) const;
 };
-
 
 #endif // ECATTACH_H

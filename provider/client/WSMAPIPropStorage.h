@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef WSMAPIPROPSTORAGE_H
 #define WSMAPIPROPSTORAGE_H
 
@@ -39,7 +38,6 @@ public:
 	virtual HRESULT GetEntryIDByRef(ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 
 private:
-
 	// Get a single (large) property
 	virtual HRESULT HrLoadProp(ULONG obj_id, ULONG proptag, SPropValue **) override;
 
@@ -73,6 +71,5 @@ private:
 	bool m_bSubscribed = false;
 	ALLOC_WRAP_FRIEND;
 };
-
 
 #endif

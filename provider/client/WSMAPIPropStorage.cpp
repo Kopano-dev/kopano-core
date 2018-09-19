@@ -15,13 +15,9 @@
 #include "soapKCmdProxy.h"
 
 /*
- *
  * This is a PropStorage object for use with the WebServices storage platform
- *
  */
-
 #define START_SOAP_CALL retry:
-
 #define END_SOAP_CALL 	\
 	if (er == KCERR_END_OF_SESSION && m_lpTransport->HrReLogon() == hrSuccess) \
 		goto retry; \
@@ -53,7 +49,6 @@ WSMAPIPropStorage::~WSMAPIPropStorage()
 	
 	FreeEntryId(&m_sEntryId, false);
 	FreeEntryId(&m_sParentEntryId, false);
-
 	m_lpTransport->RemoveSessionReloadCallback(m_ulSessionReloadCallback);
 }
 
@@ -99,7 +94,6 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 	END_SOAP_CALL
 
 	hr = ECAllocateBuffer(sizeof(SPropValue), (void **)&lpsPropValDst);
-
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -109,9 +103,7 @@ HRESULT WSMAPIPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropVal
 	}
 
 	hr = CopySOAPPropValToMAPIPropVal(lpsPropValDst, sResponse.lpPropVal, lpsPropValDst);
-
 	*lppsPropValue = lpsPropValDst;
-
 exit:
 	return hr;
 }
@@ -226,7 +218,6 @@ HRESULT WSMAPIPropStorage::HrUpdateSoapObject(const MAPIOBJECT *lpsMapiObject,
 		auto hr = HrSIEntryIDToID(lpsSaveObj->lpInstanceIds->__ptr[0].__size, lpsSaveObj->lpInstanceIds->__ptr[0].__ptr, NULL, NULL, (unsigned int*)&ulPropId);
 		if (hr != hrSuccess)
 			return hr;
-
 		/* Instance ID was incorrect, remove it */
 		FreeEntryList(lpsSaveObj->lpInstanceIds, true);
 		lpsSaveObj->lpInstanceIds = NULL;
@@ -280,7 +271,6 @@ void WSMAPIPropStorage::DeleteSoapObject(struct saveObject *lpSaveObj)
 			DeleteSoapObject(&lpSaveObj->__ptr[i]);
 		s_free(nullptr, lpSaveObj->__ptr);
 	}
-
 	if (lpSaveObj->modProps.__ptr) {
 		for (gsoap_size_t i = 0; i < lpSaveObj->modProps.__size; ++i)
 			FreePropVal(&lpSaveObj->modProps.__ptr[i], false);
@@ -324,13 +314,10 @@ HRESULT WSMAPIPropStorage::HrUpdateMapiObject(MAPIOBJECT *lpClientObj,
     const struct saveObject *lpsServerObj)
 {
 	lpClientObj->ulObjId = lpsServerObj->ulServerId;
-
 	// The deleted properties have been deleted, so forget about them
 	lpClientObj->lstDeleted.clear();
-
 	// The modified properties have been sent. Delete them.
 	lpClientObj->lstModified.clear();
-
 	// The object is no longer 'changed'
 	lpClientObj->bChangedInstance = false;
 	lpClientObj->bChanged = false;
@@ -411,7 +398,6 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 		hr = HrUpdateSoapObject(lpsMapiObject, &sSaveObj, &converter);
 		if (hr != hrSuccess)
 			goto exit;
-
 		goto retry;
 	}
 	END_SOAP_CALL
@@ -424,14 +410,11 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	// HrUpdateMapiObject() has now moved the modified properties of all objects recursively
 	// into their 'normal' properties list (lstProperties). This is correct because when we now
 	// open a subobject, it needs all the properties.
-
 	// However, because we already have all properties of the top-level message in-memory via
 	// ECGenericProps, the properties in 
-
 exit:
 	spg.unlock();
 	DeleteSoapObject(&sSaveObj);
-
 	return hr;
 }
 
@@ -443,10 +426,8 @@ ECRESULT WSMAPIPropStorage::ECSoapObjectToMapiObject(const struct saveObject *lp
 
 	// delProps contains all the available property tag
 	EcFillPropTags(lpsSaveObj, lpsMapiObject);
-
 	// modProps contains all the props < 8K
 	EcFillPropValues(lpsSaveObj, lpsMapiObject);
-
 	// delete stays false, unique id is set upon allocation
 	lpsMapiObject->ulObjId = lpsSaveObj->ulServerId;
 	lpsMapiObject->ulObjType = lpsSaveObj->ulObjType;
@@ -489,7 +470,6 @@ HRESULT WSMAPIPropStorage::RegisterAdvise(ULONG ulEventMask, ULONG ulConnection)
 {
 	m_ulConnection = ulConnection;
 	m_ulEventMask = ulEventMask;
-
 	return hrSuccess;
 }
 
@@ -497,7 +477,6 @@ HRESULT WSMAPIPropStorage::GetEntryIDByRef(ULONG *lpcbEntryID, LPENTRYID *lppEnt
 {
 	if (lpcbEntryID == NULL || lppEntryID == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
 	*lpcbEntryID = m_sEntryId.__size;
 	*lppEntryID = (LPENTRYID)m_sEntryId.__ptr;
 	return hrSuccess;
@@ -515,7 +494,6 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		// Register notification
 		sNotSubscribe.ulConnection = m_ulConnection;
 		sNotSubscribe.ulEventMask = m_ulEventMask;
-
 		sNotSubscribe.sKey.__size = m_sEntryId.__size;
 		sNotSubscribe.sKey.__ptr = m_sEntryId.__ptr;
 	}
@@ -526,7 +504,6 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
 	}
-
 	if (*lppsMapiObject) {
 		// memleak detected
 		assert(false);
@@ -544,6 +521,7 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 			er = sResponse.er;
 	}
 	//END_SOAP_CALL
+
 	if (er == KCERR_END_OF_SESSION && m_lpTransport->HrReLogon() == hrSuccess)
 		goto retry;
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND);
@@ -553,11 +531,8 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 		goto exit;
 	lpsMapiObject = new MAPIOBJECT; /* ulObjType, ulObjId and ulUniqueId are unknown here */
 	ECSoapObjectToMapiObject(&sResponse.sSaveObject, lpsMapiObject);
-
 	*lppsMapiObject = lpsMapiObject;
-	
 	m_bSubscribed = m_ulConnection != 0;
-
 exit:
 	return hr;
 }

@@ -60,14 +60,11 @@ ECNotifyClient::ECNotifyClient(ULONG ulProviderType, void *lpProvider,
     /* Get the sessiongroup ID of the provider that we will be handling notifications for */
 	if (m_lpTransport->HrGetSessionId(&ecSessionId, &m_ecSessionGroupId) != hrSuccess)
 		throw std::runtime_error("ECNotifyClient/HrGetSessionId failed");
-
     /* Get the session group that this session belongs to */
 	if (g_ecSessionManager.GetSessionGroupData(m_ecSessionGroupId, m_lpTransport->GetProfileProps(), &~m_lpSessionGroup) != hrSuccess)
 		throw std::runtime_error("ECNotifyClient/GetSessionGroupData failed");
-
 	if (m_lpSessionGroup->GetOrCreateNotifyMaster(&m_lpNotifyMaster) != hrSuccess)
 		throw std::runtime_error("ECNotifyClient/GetOrCreateNotifyMaster failed");
-
 	m_lpNotifyMaster->AddSession(this);
 }
 
@@ -155,7 +152,6 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 		hr = CoCreateGuid((GUID *)lpKeySupport->ab);
 		if(hr != hrSuccess)
 			return hr;
-
 		// Get support object connection id
 		hr = m_lpSupport->Subscribe(lpKeySupport, (ulEventMask&~fnevLongTermEntryIDs), 0, lpAdviseSink, &pEcAdvise->ulSupportConnection);
 		if(hr != hrSuccess)
@@ -251,7 +247,6 @@ HRESULT ECNotifyClient::Advise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, LPM
 		UnRegisterAdvise(ulConnection);
 		return MAPI_E_NO_SUPPORT;
 	} 
-	
 	// Set out value
 	*lpulConnection = ulConnection;
 	return hrSuccess;
@@ -371,7 +366,6 @@ HRESULT ECNotifyClient::Reregister(ULONG ulConnection, ULONG cbKey, LPBYTE lpKey
 HRESULT ECNotifyClient::ReleaseAll()
 {
 	scoped_rlock biglock(m_hMutex);
-
 	for (auto &p : m_mapAdvise)
 		p.second->lpAdviseSink.reset();
 	return hrSuccess;
@@ -387,7 +381,6 @@ HRESULT ECNotifyClient::NotifyReload()
 	NOTIFYLIST notifications;
 
 	memset(&table, 0, sizeof(table));
-
 	notif.ulEventType = fnevTableModified;
 	notif.tab = &table;
 	notif.tab->ulTableEvent = TABLE_RELOAD;
@@ -451,9 +444,9 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 					ec_log_debug("ECNotifyClient::Notify: Error by notify a client");
 				continue;
 			}
+
 			memory_ptr<NOTIFKEY> lpKey;
 			ULONG ulResult = 0;
-
 			hr = MAPIAllocateBuffer(CbNewNOTIFKEY(sizeof(GUID)), &~lpKey);
 			if (hr != hrSuccess)
 				goto exit;

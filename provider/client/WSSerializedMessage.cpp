@@ -46,7 +46,6 @@ HRESULT WSSerializedMessage::CopyData(LPSTREAM lpDestStream)
 	auto hr = DoCopyData(lpDestStream);
 	if (hr != hrSuccess)
 		return hr;
-
 	return lpDestStream->Commit(0);
 }
 
@@ -68,11 +67,9 @@ HRESULT WSSerializedMessage::DoCopyData(LPSTREAM lpDestStream)
 {
 	if (m_bUsed)
 		return MAPI_E_UNCONFIGURED;
-
 	m_bUsed = true;
 	m_hr = hrSuccess;
 	m_ptrDestStream.reset(lpDestStream);
-
 	m_lpSoap->fmimewriteopen = StaticMTOMWriteOpen;
 	m_lpSoap->fmimewrite = StaticMTOMWrite;
 	m_lpSoap->fmimewriteclose = StaticMTOMWriteClose;
@@ -105,7 +102,6 @@ void* WSSerializedMessage::MTOMWriteOpen(struct soap *soap, void *handle, const 
 		m_hr = MAPI_E_INVALID_TYPE;
 		m_ptrDestStream.reset();
 	}
-
 	return handle;
 }
 

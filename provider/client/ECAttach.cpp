@@ -131,7 +131,6 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 		hr = lpMessage->HrLoadEmptyProps();
 		if (hr != hrSuccess)
 			return hr;
-
 		//Set defaults
 		// Same as ECMAPIFolder::CreateMessage
 		hr = ECAllocateBuffer(sizeof(MAPIUID), &~lpMapiUID);
@@ -173,7 +172,6 @@ HRESULT	ECAttach::GetPropHandler(ULONG ulPropTag, void *lpProvider, ULONG ulFlag
 			lpsPropValue->Value.x = 1;
 		}else
 			hr = MAPI_E_NOT_FOUND;
-	
 		break;
 	case PR_ATTACH_DATA_BIN:
 		sPropArray.cValues = 1;
@@ -250,7 +248,6 @@ HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 		assert(m_sMapiObject != NULL);
 		m_sMapiObject.reset(new MAPIOBJECT(0, 0, MAPI_MESSAGE));
 	}
-
 	// attachments can only have 1 sub-message
 	auto iterSObj = m_sMapiObject->lstChildren.cbegin();
 	if (iterSObj != m_sMapiObject->lstChildren.cend()) {

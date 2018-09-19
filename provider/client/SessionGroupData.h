@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECSESSIONGROUPDATA_H
 #define ECSESSIONGROUPDATA_H
 
@@ -66,10 +65,8 @@ public:
 	static HRESULT Create(KC::ECSESSIONGROUPID, ECSessionGroupInfo *, const sGlobalProfileProps &, SessionGroupData **out);
 	HRESULT GetOrCreateNotifyMaster(ECNotifyMaster **lppMaster);
 	HRESULT GetTransport(WSTransport **lppTransport);
-	
 	ULONG AddRef();
 	ULONG Release();
-	
 	BOOL IsOrphan();
 	KC::ECSESSIONGROUPID GetSessionGroupId();
 	ALLOC_WRAP_FRIEND;

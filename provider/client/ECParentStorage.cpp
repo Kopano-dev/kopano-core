@@ -42,7 +42,6 @@ HRESULT ECParentStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 {
 	if (m_lpParentObject == NULL)
 		return MAPI_E_INVALID_OBJECT;
-
 	lpsMapiObject->ulUniqueId = m_ulUniqueId;
 	lpsMapiObject->ulObjId = m_ulObjId;
 	return m_lpParentObject->HrSaveChild(ulFlags, lpsMapiObject);

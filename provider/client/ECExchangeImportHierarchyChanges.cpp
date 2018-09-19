@@ -96,7 +96,6 @@ HRESULT ECExchangeImportHierarchyChanges::Config(LPSTREAM lpStream, ULONG ulFlag
 	memory_ptr<SPropValue> lpPropSourceKey;
 
 	m_lpStream = lpStream;
-
 	if(lpStream == NULL) {
 		m_ulSyncId = 0;
 		m_ulChangeId = 0;
@@ -126,7 +125,6 @@ HRESULT ECExchangeImportHierarchyChanges::Config(LPSTREAM lpStream, ULONG ulFlag
 		if (hr != hrSuccess)
 			return hr;
 	}
-
 	// The sync key we got from the server can be used to retrieve all items in the database now when given to IEEC->Config(). At the same time, any
 	// items written to this importer will send the sync ID to the server so that any items written here will not be returned by the exporter,
 	// preventing local looping of items.
@@ -150,7 +148,6 @@ HRESULT ECExchangeImportHierarchyChanges::UpdateState(LPSTREAM lpStream){
 	auto hr = lpStream->Seek(zero, STREAM_SEEK_SET, nullptr);
 	if(hr != hrSuccess)
 		return hr;
-		
 	hr = lpStream->Write(&m_ulSyncId, 4, &ulLen);
 	if(hr != hrSuccess)
 		return hr;
@@ -176,12 +173,10 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 	object_ptr<IMAPIFolder> lpFolder, lpParentFolder;
 	object_ptr<ECMAPIFolder> lpECFolder, lpECParentFolder;
 	ULONG ulFolderType = FOLDER_GENERIC;
-
 	utf8string strFolderComment;
 	unsigned int ulPos = 0, cbOrigEntryId = 0;
 	BYTE *lpOrigEntryId = NULL;
 	const SBinary *lpOrigSourceKey = NULL;
-
 	std::string strChangeList;
 
 	if (lpPropParentSourceKey == nullptr || lpPropSourceKey == nullptr ||
@@ -189,12 +184,10 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 		return MAPI_E_CALL_FAILED;
 	if (lpPropComment)
 		strFolderComment = convert_to<utf8string>(lpPropComment->Value.lpszW);
-
 	if (lpPropEntryId && IsKopanoEntryId(lpPropEntryId->Value.bin.cb, lpPropEntryId->Value.bin.lpb)) {
 		cbOrigEntryId = lpPropEntryId->Value.bin.cb;
 		lpOrigEntryId = lpPropEntryId->Value.bin.lpb;
 	}
-
 	if (lpPropSourceKey != nullptr)
 		lpOrigSourceKey = &lpPropSourceKey->Value.bin;
 	if (lpPropFolderType != nullptr)
@@ -219,7 +212,6 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 			hr = lpParentFolder->QueryInterface(IID_ECMAPIFolder, &~lpECParentFolder);
 			if(hr != hrSuccess)
 				return hr;
-			
 			// Create the folder, loop through some names if it collides
 			hr = lpECParentFolder->lpFolderOps->HrCreateFolder(ulFolderType, convstring(lpPropDisplayName->Value.lpszW), strFolderComment, 0, m_ulSyncId, lpOrigSourceKey, cbOrigEntryId, (LPENTRYID)lpOrigEntryId, &cbEntryId, &~lpEntryId);
 			if(hr != hrSuccess)

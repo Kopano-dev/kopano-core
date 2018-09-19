@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECNOTIFYMASTER_H
 #define ECNOTIFYMASTER_H
 
@@ -51,12 +50,9 @@ protected:
 
 public:
 	static HRESULT Create(SessionGroupData *lpData, ECNotifyMaster **lppMaster);
-
 	virtual HRESULT ConnectToSession();
-
 	virtual HRESULT AddSession(ECNotifyClient* lpClient);
 	virtual HRESULT ReleaseSession(ECNotifyClient* lpClient);
-
 	virtual HRESULT ReserveConnection(ULONG *lpulConnection);
 	virtual HRESULT ClaimConnection(ECNotifyClient* lpClient, NOTIFYCALLBACK fnCallback, ULONG ulConnection);
 	virtual HRESULT DropConnection(ULONG ulConnection);
@@ -65,7 +61,6 @@ private:
 	/* Threading functions */
 	virtual HRESULT StartNotifyWatch();
 	virtual HRESULT StopNotifyWatch();
-
 	static void* NotifyWatch(void *pTmpNotifyClient);
 
 	/* List of Clients attached to this master. */
@@ -88,4 +83,3 @@ private:
 };
 
 #endif /* ECNOTIFYMASTER_H */
-

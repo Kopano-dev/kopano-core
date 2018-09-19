@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECCHANGEADVISOR_H
 #define ECCHANGEADVISOR_H
 
@@ -38,7 +37,6 @@ protected:
 	 *					change notifications.
 	 */
 	ECChangeAdvisor(ECMsgStore *lpMsgStore);
-
 	virtual ~ECChangeAdvisor();
 
 public:
@@ -85,7 +83,6 @@ private:
 	 * @return A new SyncStateMap entry.
 	 */
 	static SyncStateMap::value_type	ConvertSyncState(const SSyncState &sSyncState);
-
 	static SSyncState				ConvertSyncStateMapEntry(const SyncStateMap::value_type &sMapEntry);
 
 	/**

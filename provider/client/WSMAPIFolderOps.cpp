@@ -41,7 +41,6 @@ WSMAPIFolderOps::WSMAPIFolderOps(ECSESSIONID sid, ULONG cbEntryId,
 WSMAPIFolderOps::~WSMAPIFolderOps()
 {
 	m_lpTransport->RemoveSessionReloadCallback(m_ulSessionReloadCallback);
-
 	FreeEntryId(&m_sEntryId, false);
 }
 
@@ -77,7 +76,6 @@ HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
 		if(hr != hrSuccess)
 			goto exit;
 	}
-
 	if (lpsSourceKey) {
 		sSourceKey.__ptr = lpsSourceKey->lpb;
 		sSourceKey.__size = lpsSourceKey->cb;
@@ -109,7 +107,6 @@ exit:
 	spg.unlock();
 	if(lpsEntryId)
 		FreeEntryId(lpsEntryId, true);
-
 	return hr;
 }
 
@@ -132,7 +129,6 @@ HRESULT WSMAPIFolderOps::HrDeleteFolder(ULONG cbEntryId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-
 exit:
 	return hr;
 }
@@ -150,7 +146,6 @@ HRESULT WSMAPIFolderOps::HrEmptyFolder(ULONG ulFlags, ULONG ulSyncId)
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-
 exit:
 	return hr;
 }
@@ -183,7 +178,6 @@ HRESULT WSMAPIFolderOps::HrSetReadFlags(ENTRYLIST *lpMsgList, ULONG ulFlags, ULO
 exit:
 	spg.unlock();
 	FreeEntryList(&sEntryList, false);
-
 	return hr;
 }
 
@@ -192,7 +186,6 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(const ENTRYLIST *lpMsgList,
 {
 	ECRESULT		er = erSuccess;
 	HRESULT			hr = hrSuccess;
-
 	struct entryList*		lpsEntryList = NULL;
 	struct restrictTable*	lpsRestrict = NULL;
 	soap_lock_guard spg(*m_lpTransport);
@@ -203,14 +196,12 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(const ENTRYLIST *lpMsgList,
 		if(hr != hrSuccess)
 			goto exit;
 	}
-
 	if(lpRestriction) 
 	{
 		hr = CopyMAPIRestrictionToSOAPRestriction(&lpsRestrict, lpRestriction);
 		if(hr != hrSuccess)
 			goto exit;
 	}
-	
 	START_SOAP_CALL
 	{
 		if (m_lpTransport->m_lpCmd->tableSetSearchCriteria(ecSessionId,
@@ -227,10 +218,8 @@ exit:
 	spg.unlock();
 	if(lpsRestrict)
 		FreeRestrictTable(lpsRestrict);
-
 	if(lpsEntryList)
 		FreeEntryList(lpsEntryList, true);
-	
 	return hr;
 }
 
@@ -258,25 +247,21 @@ HRESULT WSMAPIFolderOps::HrGetSearchCriteria(ENTRYLIST **lppMsgList, LPSRestrict
 		hr = ECAllocateBuffer(sizeof(SRestriction), &~lpRestriction);
 		if(hr != hrSuccess)
 			goto exit;
-
 		hr = CopySOAPRestrictionToMAPIRestriction(lpRestriction, sResponse.lpRestrict, lpRestriction);
 		if(hr != hrSuccess)
 			goto exit;
 	}
-
 	if(lppMsgList) {
 		hr = CopySOAPEntryListToMAPIEntryList(sResponse.lpFolderIDs, &~lpMsgList);
 		if(hr != hrSuccess)
 			goto exit;
 	}
-
 	if(lppMsgList)
 		*lppMsgList = lpMsgList.release();
 	if(lppRestriction)
 		*lppRestriction = lpRestriction.release();
 	if(lpulFlags)
 		*lpulFlags = sResponse.ulFlags;
-
 exit:
 	return hr;
 }
@@ -288,10 +273,10 @@ HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom,
 	ECRESULT	er = erSuccess;
 	entryId sEntryFrom, sEntryDest; /* Do not free, cheap copy */
 	soap_lock_guard spg(*m_lpTransport);
+
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryFrom, lpEntryFrom, &sEntryFrom, true);
 	if(hr != hrSuccess)
 		goto exit;
-
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryDest, lpEntryDest, &sEntryDest, true);
 	if(hr != hrSuccess)
 		goto exit;
@@ -303,7 +288,6 @@ HRESULT WSMAPIFolderOps::HrCopyFolder(ULONG cbEntryFrom,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-
 exit:
 	return hr;
 }
@@ -318,10 +302,10 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
 	struct entryList sEntryList;
 	entryId			sEntryDest;	//Do not free, cheap copy
 	soap_lock_guard spg(*m_lpTransport);
+
 	auto hr = CopyMAPIEntryListToSOAPEntryList(lpMsgList, &sEntryList);
 	if(hr != hrSuccess)
 		goto exit;
-
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryDest, lpEntryDest, &sEntryDest, true);
 	if(hr != hrSuccess)
 		goto exit;
@@ -337,7 +321,6 @@ HRESULT WSMAPIFolderOps::HrCopyMessage(ENTRYLIST *lpMsgList, ULONG cbEntryDest,
 exit:
 	spg.unlock();
 	FreeEntryList(&sEntryList, false);
-	
 	return hr;
 }
 
@@ -364,9 +347,7 @@ HRESULT WSMAPIFolderOps::HrGetMessageStatus(ULONG cbEntryID,
 			er = sMessageStatus.er;
 	}
 	END_SOAP_CALL
-
 	*lpulMessageStatus = sMessageStatus.ulMessageStatus;
-
 exit:
 	return hr;
 }
@@ -430,7 +411,6 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
 		hr = MAPIAllocateBuffer(sizeof *lpSPropValPCL, &~lpSPropValPCL);
 		if (hr != hrSuccess)
 			goto exit;
-
 		hr = CopySOAPPropValToMAPIPropVal(lpSPropValPCL, &sChangeInfo.sPropPCL, lpSPropValPCL);
 		if (hr != hrSuccess)
 			goto exit;
@@ -440,7 +420,6 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID,
 		hr = MAPIAllocateBuffer(sizeof *lpSPropValCK, &~lpSPropValCK);
 		if (hr != hrSuccess)
 			goto exit;
-
 		hr = CopySOAPPropValToMAPIPropVal(lpSPropValCK, &sChangeInfo.sPropCK, lpSPropValCK);
 		if (hr != hrSuccess)
 			goto exit;

@@ -84,7 +84,6 @@ HRESULT ECMSProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Open profile settings
 	hr = lpMAPISup->OpenProfileSection(nullptr, MAPI_MODIFY, &~lpProfSect);
 	if(hr != hrSuccess)
@@ -145,7 +144,6 @@ HRESULT ECMSProvider::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	// Return the variables
 	if(lppMDB) { 
 		hr = lpECMsgStore->QueryInterface(IID_IMsgStore, (void **)lppMDB);
-
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -184,7 +182,6 @@ HRESULT ECMSProvider::SpoolerLogon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Open profile settings
 	hr = lpMAPISup->OpenProfileSection(nullptr, MAPI_MODIFY, &~lpProfSect);
 	if(hr != hrSuccess)
@@ -219,7 +216,6 @@ HRESULT ECMSProvider::SpoolerLogon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	hr = LogonByEntryID(lpTransport, &sProfileProps, cbEntryID, lpEntryID);
 	if (hr != hrSuccess)
 		return MAPI_E_UNCONFIGURED;
-
 	// Get a message store object
 	hr = CreateMsgStoreObject((LPSTR)sProfileProps.strProfileName.c_str(), lpMAPISup, cbEntryID, lpEntryID, ulFlags, sProfileProps.ulProfileFlags, lpTransport,
 	     &guidMDBProvider, true, true, false, &~lpMsgStore);
@@ -235,7 +231,6 @@ HRESULT ECMSProvider::SpoolerLogon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	// Return the variables
 	if(lppMDB) {
 		hr = lpMsgStore->QueryInterface(IID_IMsgStore, (void **)lppMDB);
-
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -284,7 +279,6 @@ HRESULT ECMSProvider::LogonByEntryID(object_ptr<WSTransport> &lpTransport,
 	// Log on the transport to the server
 	if (!bIsPseudoUrl) {
 		sGlobalProfileProps sOtherProps = *lpsProfileProps;
-		
 		sOtherProps.strServerPath = extractedServerPath;
 		hr = lpTransport->HrLogon(sOtherProps);
 		if (hr != hrSuccess)
@@ -362,7 +356,6 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	object_ptr<IMSProvider> lpOnline;
 	convert_context converter;
 	memory_ptr<ENTRYID> lpStoreID;
-
 	convstring			tstrProfileName(lpszProfileName, ulFlags);
 	auto laters = make_scope_success([&]() {
 		if (lppMAPIError != nullptr)
@@ -373,7 +366,6 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Open profile settings
 	hr = lpMAPISup->OpenProfileSection(nullptr, MAPI_MODIFY, &~lpProfSect);
 	if (hr != hrSuccess)
@@ -383,7 +375,6 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 		// Try to initialize the provider
 		if (InitializeProvider(NULL, lpProfSect, sProfileProps, &cbStoreID, &~lpStoreID) != hrSuccess)
 			return MAPI_E_UNCONFIGURED;
-
 		lpEntryID = lpStoreID;
 		cbEntryID = cbStoreID;
 	}
@@ -400,7 +391,6 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	hr = sProviderInfo.lpMSProviderOnline->QueryInterface(IID_IMSProvider, &~lpOnline);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Default error
 	hr = MAPI_E_LOGON_FAILED; //or MAPI_E_FAILONEPROVIDER
 
@@ -408,7 +398,6 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	// - Online store was specifically requested (MDB_ONLINE)
 	// - Profile is not offline capable
 	// - Store being opened is not the user's default store
-
 	if ((ulFlags & MDB_ONLINE) ||
 	    !(sProviderInfo.ulProfileFlags & EC_PROFILE_FLAGS_OFFLINE) ||
 	    !bIsDefaultStore) {
@@ -438,12 +427,10 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	hr = lpMDB->QueryInterface(IID_ECMsgStore, &~lpecMDB);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Register ourselves with mapisupport
 	hr = lpMAPISup->SetProviderUID((MAPIUID *)&lpecMDB->GetStoreGuid(), 0);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Set profile identity
 	hr = ClientUtil::HrSetIdentity(lpecMDB->lpTransport, lpMAPISup, &~lpIdentityProps);
 	if (hr != hrSuccess)
@@ -473,13 +460,11 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 		if (hr != hrSuccess)
 			return hr;
 	}
-
 	if (lppMSLogon) {
 		hr = lpMSLogon->QueryInterface(IID_IMSLogon, (void **)lppMSLogon);
 		if (hr != hrSuccess)
 			return hr;
 	}
-	
 	if (lppMDB) {
 		hr = lpMDB->QueryInterface(IID_IMsgStore, (void **)lppMDB);
 		if (hr != hrSuccess)
@@ -494,11 +479,9 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 		hr = MAPIAllocateBuffer(cbSpoolSecurity, (void **)lppbSpoolSecurity);
 		if(hr != hrSuccess)
 			return hr;
-
 		swprintf((wchar_t*)*lppbSpoolSecurity, cbSpoolSecurity, L"%s%c%s", sProfileProps.strUserName.c_str(), 0, sProfileProps.strPassword.c_str());
 		*lpcbSpoolSecurity = cbSpoolSecurity;
 	}
-
 	return hr;
 }
 
@@ -533,7 +516,6 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(IMAPISupport *lpMAPISup,
 	hr = lpMDB->QueryInterface(IID_ECMsgStore, &~lpecMDB);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Register ourselves with mapisupport
 	hr = lpMAPISup->SetProviderUID((MAPIUID *)&lpecMDB->GetStoreGuid(), 0);
 	if (hr != hrSuccess)
@@ -544,7 +526,6 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(IMAPISupport *lpMAPISup,
 		if (hr != hrSuccess)
 			return hr;
 	}
-	
 	if (lppMDB) {
 		hr = lpMDB->QueryInterface(IID_IMsgStore, (void **)lppMDB);
 		if (hr != hrSuccess)

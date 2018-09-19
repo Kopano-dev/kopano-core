@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef WSTRANSPORT_H
 #define WSTRANSPORT_H
 
@@ -62,21 +61,16 @@ protected:
 
 public:
 	static HRESULT Create(ULONG ulUIFlags, WSTransport **lppTransport);
-
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
-
 	virtual HRESULT HrLogon2(const struct sGlobalProfileProps &);
 	virtual HRESULT HrLogon(const struct sGlobalProfileProps &);
 	virtual HRESULT HrReLogon();
 	virtual HRESULT HrClone(WSTransport **lppTransport);
-
 	virtual HRESULT HrLogOff();
 	HRESULT logoff_nd(void);
 	virtual HRESULT HrSetRecvTimeout(unsigned int ulSeconds);
-
 	virtual HRESULT CreateAndLogonAlternate(LPCSTR szServer, WSTransport **lppTransport) const;
 	virtual HRESULT CloneAndRelogon(WSTransport **lppTransport) const;
-
 	virtual HRESULT HrGetStore(ULONG meid_size, const ENTRYID *master_eid, ULONG *seid_size, ENTRYID **store_eid, ULONG *reid_size, ENTRYID **root_eid, std::string *redir_srv = nullptr);
 	virtual HRESULT HrGetStoreName(ULONG seid_size, const ENTRYID *store_eid, ULONG flags, TCHAR **store_name);
 	virtual HRESULT HrGetStoreType(ULONG seid_size, const ENTRYID *store_eid, ULONG *store_type);
@@ -153,7 +147,6 @@ public:
 	virtual HRESULT HrGetSendAsList(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, ULONG *nsenders, KC::ECUSER **senders);
 	virtual HRESULT HrAddSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid);
 	virtual HRESULT HrDelSendAsUser(ULONG ueid_size, const ENTRYID *user_eid, ULONG seid_size, const ENTRYID *sender_eid);
-	
 	virtual HRESULT HrRemoveAllObjects(ULONG ueid_size, const ENTRYID *user_eid);
 	virtual HRESULT HrGetUserClientUpdateStatus(ULONG ueid_size, const ENTRYID *user_eid, ULONG flags, KC::ECUSERCLIENTUPDATESTATUS **);
 
@@ -175,7 +168,6 @@ public:
 
 	// IECServiceAdmin group functions
 	virtual HRESULT HrResolveGroupName(LPCTSTR lpszGroupName, ULONG ulFlags, ULONG *lpcbGroupId, LPENTRYID *lppGroupId);
-
 	virtual HRESULT HrCreateGroup(KC::ECGROUP *, ULONG flags, ULONG *eid_size, ENTRYID **grp_eid);
 	virtual HRESULT HrSetGroup(KC::ECGROUP *, ULONG flags);
 	virtual HRESULT HrGetGroup(ULONG grp_size, const ENTRYID *grp_eid, ULONG flags, KC::ECGROUP **);
@@ -203,20 +195,15 @@ public:
 	virtual HRESULT HrGetRemoteAdminList(ULONG ceid_size, const ENTRYID *com_eid, ULONG flags, ULONG *nusers, KC::ECUSER **);
 	
 	// IECServiceAdmin company and user functions
-
 	// Get the object rights
 	virtual HRESULT HrGetPermissionRules(int type, ULONG eid_size, const ENTRYID *, ULONG *nperm, KC::ECPERMISSION **);
-
 	// Set the object rights
 	virtual HRESULT HrSetPermissionRules(ULONG eid_size, const ENTRYID *eid, ULONG nperm, const KC::ECPERMISSION *);
-
 	// Get owner information
 	virtual HRESULT HrGetOwner(ULONG eid_size, const ENTRYID *, ULONG *ouid_size, ENTRYID **owner_eid);
-
 	//Addressbook function
 	virtual HRESULT HrResolveNames(const SPropTagArray *lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList);
 	virtual HRESULT HrSyncUsers(ULONG ceid_size, const ENTRYID *com_eid);
-
 
 	// Incremental Change Synchronization
 	virtual HRESULT HrGetChanges(const std::string &sourcekey, ULONG sync_id, ULONG change_id, ULONG sync_type, ULONG flags, const SRestriction *, ULONG *max_change, ULONG *nchanges, ICSCHANGE **);

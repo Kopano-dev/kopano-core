@@ -106,7 +106,6 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	HRESULT hr;
 	unsigned int ulSyncId = 0, ulChangeId = 0, ulStep = 0;
 	BOOL		bCanStream = FALSE;
-
 	bool		bForceImplicitStateUpdate = false;
 	auto lpSyncSettings = &ECSyncSettings::instance;
 	typedef std::map<SBinary, ChangeListIter, Util::SBinaryLess>	ChangeMap;
@@ -120,7 +119,6 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		zlog("Config() called twice");
 		return MAPI_E_UNCONFIGURED;
 	}
-
 	if(lpRestriction) {
 		hr = Util::HrCopySRestriction(&~m_lpRestrict, lpRestriction);
 		if (hr != hrSuccess)
@@ -190,7 +188,6 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		// Ignore any trailing garbage in the stream
 		if (m_sourcekey.size() < 24 && (m_sourcekey[m_sourcekey.size()-1] & 0x80)) {
 			// If we're getting a truncated sourcekey, untruncate it now so we can pass it to GetChanges()
-
 			sourcekey = m_sourcekey;
 			sourcekey[m_sourcekey.size()-1] &= ~0x80;
 			sourcekey.append(1, '\x00');
@@ -204,7 +201,6 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		if (hr != hrSuccess)
 			return zlog("Unable to update sync status on server", hr);
 		ZLOG_DEBUG(m_lpLogger, "New sync id for folder '%ls': %u", m_strDisplay.c_str(), ulSyncId);
-
 		bForceImplicitStateUpdate = true;
 	}
 
@@ -355,7 +351,6 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgre
 		zlog("Config() not called before Synchronize()");
 		return MAPI_E_UNCONFIGURED;
 	}
-
 	if(m_ulFlags & SYNC_CATCHUP){
 		m_ulChangeId = m_ulMaxChangeId > m_ulChangeId ? m_ulMaxChangeId : m_ulChangeId;
 		hr = UpdateStream(m_lpStream);
@@ -363,7 +358,6 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgre
 			*lpulProgress = *lpulSteps = 0;
 		return hr;
 	}
-
 	if (*lpulProgress == 0 && m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
 		m_clkStart = times(&m_tmsStart);
 
@@ -371,14 +365,11 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgre
 		hr = ExportMessageChanges();
 		if(hr == SYNC_W_PROGRESS)
 			goto progress;
-
 		if(hr != hrSuccess)
 			return hr;
-
 		hr = ExportMessageDeletes();
 		if(hr != hrSuccess)
 			return hr;
-
 		hr = ExportMessageFlags();
 		if(hr != hrSuccess)
 			return hr;
@@ -388,7 +379,6 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgre
 			goto progress;
 		if(hr != hrSuccess)
 			return hr;
-
 		hr = ExportFolderDeletes();
 		if(hr != hrSuccess)
 			return hr;
@@ -468,7 +458,6 @@ HRESULT ECExchangeExportChanges::GetChangeCount(ULONG *lpcChanges) {
 	if(!m_lstHardDelete.empty() || !m_lstSoftDelete.empty() || !m_lstFlag.empty())
 		++cChanges;
 	cChanges += m_lstChange.size();
-
 	*lpcChanges = cChanges;
 	return hrSuccess;
 }
@@ -512,7 +501,6 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 		zlog("Config() called twice");
 		return MAPI_E_UNCONFIGURED;
 	}
-	
 	// Only available for message syncing	
 	if (m_ulSyncType != ICS_SYNC_CONTENTS)
 		return MAPI_E_NO_SUPPORT;
@@ -535,7 +523,6 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 	}
 	
 	m_ulEntryPropTag = ulPropTag;
-
 	// Fill m_lpChanges with items from lpEntries
 	hr = MAPIAllocateBuffer(sizeof(ICSCHANGE) * lpEntries->cValues, &~m_lpChanges);
 	if(hr != hrSuccess)
@@ -555,7 +542,6 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 		}
 		
 		m_lpChanges[i].ulChangeType = ICS_MESSAGE_NEW;
-
 		// Since all changes are 'change' modifications, duplicate all data in m_lpChanges in m_lstChange
 		m_lstChange.emplace_back(m_lpChanges[i]);
 	}
@@ -602,7 +588,6 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		rowset_ptr lpRows;
 		if(!m_sourcekey.empty()) {
 			// Normal exporter, get the import properties we need by opening the source message
-
 			hr = m_lpStore->EntryIDFromSourceKey(
 				m_lstChange.at(m_ulStep).sParentSourceKey.cb,
 				m_lstChange.at(m_ulStep).sParentSourceKey.lpb,
@@ -660,12 +645,10 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		if (hr == SYNC_E_IGNORE) {
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "ignored change");
 			// Mark this change as processed
-
 			hr = hrSuccess;
 			goto next;
 		}else if(hr == SYNC_E_OBJECT_DELETED){
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "ignored change for deleted item");
-
 			// Mark this change as processed
 			hr = hrSuccess;
 			goto next;
@@ -706,7 +689,6 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			zlog("Unable to get column set from source message's recipient table", hr);
 			goto exit;
 		}
-
 		hr = lpTable->SetColumns(lpPropTagArray, 0);
 		if (hr != hrSuccess) {
 			zlog("Unable to set column set for source message's recipient table", hr);
@@ -717,7 +699,6 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			zlog("Unable to read recipients from source message", hr);
 			goto exit;
 		}
-
 		//FIXME: named property in the recipienttable ?
 		hr = lpDestMessage->ModifyRecipients(0, reinterpret_cast<ADRLIST *>(lpRows.get()));
 		if(hr !=  hrSuccess)
@@ -780,7 +761,6 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				zlog("Unable to copy attachment", hr);
 				goto exit;
 			}
-
 			hr = lpDestAttach->SaveChanges(0);
 			if(hr !=  hrSuccess) {
 				zlog("SaveChanges() failed for destination attachment", hr);
@@ -794,13 +774,11 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			zlog("Unable to get property list of source message", hr);
 			goto exit;
 		}
-
 		hr = Util::HrDeleteResidualProps(lpDestMessage, lpSourceMessage, lpPropTagArray);
 		if (hr != hrSuccess) {
 			zlog("Unable to remove old properties from destination message", hr);
 			goto exit;
 		}
-
 		hr = lpDestMessage->SaveChanges(0);
 		if(hr != hrSuccess) {
 			zlog("SaveChanges failed for destination message", hr);
@@ -853,7 +831,6 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		PR_EC_PARENT_HIERARCHYID,
 		PR_ENTRYID
 	} };
-
 	const auto lpImportProps = m_sourcekey.empty() ? sptImportPropsServerWide : sptImportProps;
 
 	// No more changes (add/modify).
@@ -892,7 +869,6 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		zlog("ExportFast: Unable to get required properties from serialized message", hr);
 		goto exit;
 	}
-
 	lpPropVal = PCpropFindProp(ptrProps, cbProps, PR_MESSAGE_FLAGS);
 	if (lpPropVal != NULL && (lpPropVal->Value.ul & MSGFLAG_ASSOCIATED))
 		ulFlags |= SYNC_ASSOCIATED;
@@ -928,7 +904,6 @@ skip:
 	m_setProcessedChanges.emplace(m_lstChange.at(m_ulStep).ulChangeId, std::string(reinterpret_cast<const char *>(m_lstChange.at(m_ulStep).sSourceKey.lpb), m_lstChange.at(m_ulStep).sSourceKey.cb));
 	if (++m_ulStep < m_lstChange.size())
 		hr = SYNC_W_PROGRESS;
-
 exit:
 	if (FAILED(hr))
 		m_ptrStreamExporter.reset();
@@ -964,7 +939,6 @@ HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 			zlog("Read state change failed", hr);
 			goto exit;
 		}
-
 		// Mark the flag changes as processed
 		for (const auto &change : m_lstFlag)
 			m_setProcessedChanges.emplace(change.ulChangeId, std::string(reinterpret_cast<const char *>(change.sSourceKey.lpb), change.sSourceKey.cb));
@@ -1135,28 +1109,23 @@ HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
 	
 	if(lpStream == NULL)
 		goto exit;
-
 	hr = lpStream->SetSize(liZero);
 	if(hr != hrSuccess)
 		goto exit;
-
 	hr = lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);
 	if(hr != hrSuccess)
 		goto exit;
-
 	hr = lpStream->Write(&m_ulSyncId, 4, &ulSize);
 	if(hr != hrSuccess)
 		goto exit;
 	if (m_ulSyncId == 0)
 		m_ulChangeId = 0;
-
 	hr = lpStream->Write(&m_ulChangeId, 4, &ulSize);
 	if(hr != hrSuccess)
 		goto exit;
 
 	if(!m_setProcessedChanges.empty()) {
 		ulChangeCount = m_setProcessedChanges.size();
-
 		hr = lpStream->Write(&ulChangeCount, 4, &ulSize);
 		if(hr != hrSuccess)
 			goto exit;
@@ -1178,7 +1147,6 @@ HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
 
 	// Seek back to the beginning after we've finished
 	lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);
-
 exit:
 	if (hr != hrSuccess)
 		return zlog("Stream operation failed", hr);
@@ -1211,8 +1179,8 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 	}else{
 		lpEntryList->lpbin = NULL;
 	}
-	lpEntryList->cValues = ulCount;
 
+	lpEntryList->cValues = ulCount;
 	*lppEntryList = lpEntryList.release();
 	return hrSuccess;
 }

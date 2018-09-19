@@ -38,10 +38,8 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Write(const void *pv, ULONG cb, U
 	auto hr = m_ptrSink->Write(pv, cb);
 	if (hr != hrSuccess)
 		return hr;
-
 	if (pcbWritten)
 		*pcbWritten = cb;
-
 	return hrSuccess;
 }
 
@@ -67,7 +65,6 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Commit(DWORD /*grfCommitFlags*/)
 
 	if (m_ptrSink == NULL)
 		return MAPI_E_UNCONFIGURED;
-
 	m_ptrSink.reset();
 	auto hr = m_ptrStreamImporter->GetAsyncResult(&hrAsync);
 	if (hr == hrSuccess)
@@ -81,7 +78,6 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Revert(void)
 }
 
 HRESULT ECMessageStreamImporterIStreamAdapter::LockRegion(ULARGE_INTEGER /*libOffset*/, ULARGE_INTEGER /*cb*/, DWORD /*dwLockType*/)
-
 {
 	return MAPI_E_NO_SUPPORT;
 }

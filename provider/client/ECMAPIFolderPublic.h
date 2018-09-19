@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECMAPIFOLDERPUBLIC_H
 #define ECMAPIFOLDERPUBLIC_H
 
@@ -41,6 +40,5 @@ protected:
 	virtual HRESULT SaveChanges(ULONG ulFlags);
 	ALLOC_WRAP_FRIEND;
 };
-
 
 #endif //#ifndef ECMAPIFOLDERPUBLIC_H

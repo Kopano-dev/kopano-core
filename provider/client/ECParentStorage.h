@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECPARENTSTORAGE_H
 #define ECPARENTSTORAGE_H
 
@@ -35,16 +34,13 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 private:
-
 	// Get a single (large) property
 	virtual HRESULT HrLoadProp(ULONG obj_id, ULONG proptag, SPropValue **) override;
-
 	// Save complete object, deletes/adds/modifies/creates
 	virtual HRESULT HrSaveObject(ULONG flags, MAPIOBJECT *to) override;
-
 	// Load complete object, deletes/adds/modifies/creates
 	virtual HRESULT HrLoadObject(MAPIOBJECT **) override;
-	
+
 	// Returns the correct storage which can connect to the server
 	virtual IECPropStorage *GetServerStorage() override { return m_lpServerStorage; }
 
@@ -54,6 +50,5 @@ private:
 	KC::object_ptr<IECPropStorage> m_lpServerStorage;
 	ALLOC_WRAP_FRIEND;
 };
-
 
 #endif

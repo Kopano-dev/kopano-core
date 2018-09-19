@@ -17,7 +17,6 @@ DEF_INVARIANT_CHECK(ECPropertyEntry) {
 	// There should always be a proptag set.
 	assert(ulPropTag != 0);
 	assert(PROP_ID(ulPropTag) != 0);
-
 	// PT_STRING8 and PT_MV_STRING8 are never stored.
 	assert(PROP_TYPE(ulPropTag) != PT_STRING8);
 	assert(PROP_TYPE(ulPropTag) != PT_MV_STRING8);
@@ -72,17 +71,12 @@ HRESULT ECPropertyEntry::HrSetClean()
 }
 
 // ECProperty
-//
 // C++ class representing a property
-//
-//
-// 
 //
 DEF_INVARIANT_CHECK(ECProperty) {
 	// There should always be a proptag set.
 	assert(ulPropTag != 0);
 	assert(PROP_ID(ulPropTag) != 0);
-
 	// PT_STRING8 and PT_MV_STRING8 are never stored.
 	assert(PROP_TYPE(ulPropTag) != PT_STRING8);
 	assert(PROP_TYPE(ulPropTag) != PT_MV_STRING8);
@@ -165,7 +159,6 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 
 		if (lpsProp->Value.lpszA == NULL)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
-
 		if (TryConvert(lpsProp->Value.lpszA, wstrTmp) != hrSuccess)
 			return dwLastError = MAPI_E_INVALID_PARAMETER;
 
@@ -398,7 +391,6 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 			}
 			Value.MVbin.lpbin[i].cb = lpsProp->Value.MVbin.lpbin[i].cb;
 		}
-
 		break;
 	}
 	case PT_MV_STRING8: {
@@ -477,7 +469,6 @@ HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
 			}
 			wcscpy(Value.MVszW.lppszW[i], lpsProp->Value.MVszW.lppszW[i]);
 		}
-
 		break;
 	}
 	case PT_MV_CLSID: {

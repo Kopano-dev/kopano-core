@@ -41,7 +41,6 @@ static struct rights ECPermToRightsCheap(const ECPERMISSION &p)
 	r.ulState = p.ulState;
 	r.sUserId.__size = p.sUserId.cb;
 	r.sUserId.__ptr = p.sUserId.lpb;
-
 	return r;
 }
 
@@ -50,7 +49,6 @@ static ECPERMISSION RightsToECPermCheap(const struct rights r)
 	ECPERMISSION p = {r.ulType, r.ulRights, RIGHT_NEW};	// Force to new
 	p.sUserId.cb = r.sUserId.__size;
 	p.sUserId.lpb = r.sUserId.__ptr;
-
 	return p;
 }
 
@@ -102,7 +100,6 @@ HRESULT ECMAPIProp::HrLoadProps()
 HRESULT ECMAPIProp::SetICSObject(BOOL bICSObject)
 {
 	m_bICSObject = bICSObject;
-
 	return hrSuccess;
 }
 
@@ -153,11 +150,9 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 
 		if(lpMsgStore->m_ulClientVersion == CLIENT_VERSION_OLK2000)
 			lpsPropValue->Value.l &=~STORE_HTML_OK; // Remove the flag, other way outlook 2000 crashed
-
 		// No real unicode support in outlook 2000 and xp
 		if (lpMsgStore->m_ulClientVersion <= CLIENT_VERSION_OLK2002)
 			lpsPropValue->Value.l &=~ STORE_UNICODE_OK;
-
 		lpsPropValue->ulPropTag = CHANGE_PROP_TYPE(ulPropTag,PT_LONG);
 		break;
 
@@ -244,7 +239,6 @@ HRESULT ECMAPIProp::SetPropHandler(ULONG ulPropTag, void *lpProvider,
     const SPropValue *lpsPropValue, void *lpParam)
 {
 	auto lpProp = static_cast<ECMAPIProp *>(lpParam);
-
 	switch(ulPropTag) {
 	case PR_SOURCE_KEY:
 		if (lpProp->IsICSObject())
@@ -298,11 +292,9 @@ HRESULT ECMAPIProp::TableRowGetProp(void *lpProvider,
 
 		if (lpMsgStore->m_ulClientVersion == CLIENT_VERSION_OLK2000)
 			lpsPropValDst->Value.l &=~STORE_HTML_OK; // Remove the flag, other way outlook 2000 crashed
-
 		// No real unicode support in outlook 2000 and xp
 		if (lpMsgStore->m_ulClientVersion <= CLIENT_VERSION_OLK2002)
 			lpsPropValDst->Value.l &=~ STORE_UNICODE_OK;
-
 		lpsPropValDst->ulPropTag = CHANGE_PROP_TYPE(lpsPropValSrc->ulPropTag, PT_LONG);
 		break;
 
@@ -374,14 +366,13 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		AddChild(lpStream);
 		return hr;
 	}
+
 	if (ulFlags & MAPI_MODIFY)
 		ulInterfaceOptions |= STGM_WRITE;
-
 	// IStream requested for a property
 	auto hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Yank the property in from disk if it wasn't loaded yet
 	HrLoadProp(ulPropTag);
 
@@ -623,17 +614,14 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 			hr = MAPIAllocateBuffer((cPerms + cNewPerms) * sizeof(ECPERMISSION), &~ptrTmpPerms);
 			if (hr != hrSuccess)
 				return hr;
-
 			memcpy(ptrTmpPerms, ptrPerms, cPerms * sizeof(ECPERMISSION));
 			memcpy(ptrTmpPerms + cPerms, lpNewPerms, cNewPerms * sizeof(ECPERMISSION));
-
 			lpPermissions = ptrTmpPerms;
 		}
 	}
 
 	if (cPerms + cNewPerms > 0)
 		hr = ptrSecurity->SetPermissionRules(cPerms + cNewPerms, lpPermissions);
-
 	return hrSuccess;
 }
 
@@ -677,14 +665,12 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpStream->Stat(&sStat, 0);
-
 	if(hr != hrSuccess)
 		return hr;
 
 	if(PROP_TYPE(lpStreamData->ulPropTag) == PT_STRING8) {
 		char *buffer = nullptr;
 		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart+1, lpPropValue, (void **)&buffer);
-	
 		if(hr != hrSuccess)
 			return hr;
 		// read the data into the buffer
@@ -694,7 +680,6 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 	} else if(PROP_TYPE(lpStreamData->ulPropTag) == PT_UNICODE) {
 		wchar_t *buffer = nullptr;
 		hr = ECAllocateMore((ULONG)sStat.cbSize.QuadPart+sizeof(WCHAR), lpPropValue, (void **)&buffer);
-	
 		if(hr != hrSuccess)
 			return hr;
 		// read the data into the buffer
@@ -794,7 +779,6 @@ HRESULT ECMAPIProp::SetParentID(ULONG cbParentID, const ENTRYID *lpParentID)
 	auto hr = KAllocCopy(lpParentID, cbParentID, &~m_lpParentID);
 	if (hr != hrSuccess)
 		return hr;
-
 	m_cbParentID = cbParentID;
 	return hrSuccess;
 }

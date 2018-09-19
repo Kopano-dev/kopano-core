@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef PROVIDERUTIL_H
 #define PROVIDERUTIL_H
 
@@ -26,7 +25,6 @@ HRESULT CompareStoreIDs(ULONG eid1_size, const ENTRYID *eid1, ULONG eid2_size, c
 extern HRESULT CreateMsgStoreObject(const char *profile, IMAPISupport *, ULONG eid_size, const ENTRYID *eid, ULONG msg_flags, ULONG profile_flags, WSTransport *, const MAPIUID *mdb_prov, BOOL spooler, BOOL deflt_store, BOOL offline_store, ECMsgStore **);
 HRESULT SetProviderMode(IMAPISupport *lpMAPISup, ECMapProvider *lpmapProvider, LPCSTR lpszProfileName, ULONG ulConnectType);
 HRESULT GetProviders(ECMapProvider *lpmapProvider, IMAPISupport *lpMAPISup, LPCSTR lpszProfileName, ULONG ulFlags, PROVIDER_INFO *lpsProviderInfo);
-
 HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerName, ULONG ulFlags, WSTransport **lppTransport);
 
 #endif // #ifndef PROVIDERUTIL_H

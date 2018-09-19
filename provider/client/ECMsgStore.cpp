@@ -100,7 +100,6 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, IMAPISupport *sup,
 ECMsgStore::~ECMsgStore() {
 	if(lpTransport)
 		lpTransport->HrLogOff();
-
 	// remove all advices
 	if(m_lpNotifyClient)
 		m_lpNotifyClient->ReleaseAll();
@@ -196,7 +195,6 @@ HRESULT ECMsgStore::SetProps(ULONG cValues, const SPropValue *lpPropArray,
 	HRESULT hr = ECMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
-
 	return ECMAPIProp::SaveChanges(KEEP_OPEN_READWRITE);
 }
 
@@ -206,7 +204,6 @@ HRESULT ECMsgStore::DeleteProps(const SPropTagArray *lpPropTagArray,
 	HRESULT hr = ECMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
-
 	return ECMAPIProp::SaveChanges(KEEP_OPEN_READWRITE);
 }
 
@@ -330,7 +327,6 @@ HRESULT ECMsgStore::InternalAdvise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 
 	if(m_lpNotifyClient->RegisterAdvise(cbEntryID, (LPBYTE)lpEntryID, ulEventMask, true, lpAdviseSink, lpulConnection) != S_OK)
 		hr = MAPI_E_NO_SUPPORT;
-
 	if(hr != hrSuccess)
 		return hr;
 	m_setAdviseConnections.emplace(*lpulConnection);
@@ -542,11 +538,9 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if(hr != hrSuccess)
 			return hr;
 		hr = lpMAPIFolder->HrSetPropStorage(lpPropStorage, !(ulFlags & MAPI_DEFERRED_ERRORS));
-
 		if(hr != hrSuccess)
 			return hr;
 		hr = lpMAPIFolder->SetEntryId(cbEntryID, lpEntryID);
-
 		if(hr != hrSuccess)
 			return hr;
 		AddChild(lpMAPIFolder);
@@ -555,10 +549,8 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			hr = lpMAPIFolder->QueryInterface(*lpInterface,(void **)lppUnk);
 		else
 			hr = lpMAPIFolder->QueryInterface(IID_IMAPIFolder, (void **)lppUnk);
-
 		if(lpulObjType)
 			*lpulObjType = MAPI_FOLDER;
-
 		break;
 	case MAPI_MESSAGE:
 		hr = msgfac.Create(this, FALSE, fModifyObject, 0, FALSE, nullptr, &~lpMessage);
@@ -571,11 +563,9 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		if(hr != hrSuccess)
 			return hr;
 		hr = lpMessage->SetEntryId(cbEntryID, lpEntryID);
-
 		if(hr != hrSuccess)
 			return hr;
 		hr = lpMessage->HrSetPropStorage(lpPropStorage, false);
-
 		if(hr != hrSuccess)
 			return hr;
 		AddChild(lpMessage);
@@ -584,10 +574,8 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 			hr = lpMessage->QueryInterface(*lpInterface,(void **)lppUnk);
 		else
 			hr = lpMessage->QueryInterface(IID_IMessage, (void **)lppUnk);
-
 		if(lpulObjType)
 			*lpulObjType = MAPI_MESSAGE;
-
 		break;
 	default:
 		return MAPI_E_NOT_FOUND;
@@ -656,7 +644,6 @@ HRESULT ECMsgStore::GetReceiveFolder(const TCHAR *lpszMessageClass,
 	}
 
 	std::string dst = convert_to<std::string>(strExplicitClass);
-
 	hr = MAPIAllocateBuffer(dst.length() + 1, (void **)lppszExplicitClass);
 	if (hr != hrSuccess)
 		return hr;
@@ -693,7 +680,6 @@ HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		if(hr != hrSuccess)
 			return hr;
 	}
-
 	hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
 		return hr;
@@ -712,7 +698,6 @@ HRESULT ECMsgStore::AbortSubmit(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG
 	// Check input/output variables
 	if (lpEntryID == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
 	return lpTransport->HrAbortSubmit(cbEntryID, lpEntryID);
 }
 
@@ -734,11 +719,9 @@ HRESULT ECMsgStore::GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable)
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
-
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
-
 	AddChild(lpTable);
 	return hr;
 }
@@ -789,9 +772,9 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 	hr = ECAllocateBuffer(sizeof(SPropValue), &~lpsPropArray);
 	if (hr != hrSuccess)
 		return hr;
+
 	lpsPropArray[0].ulPropTag = PR_SUBMIT_FLAGS;
 	lpsPropArray[0].Value.l = ulSubmitFlag;
-
 	hr = lpMessage->SetProps(1, lpsPropArray, NULL);
 	if (hr != hrSuccess)
 		return hr;
@@ -824,7 +807,6 @@ HRESULT ECMsgStore::FinishedMsg(ULONG ulFlags, ULONG cbEntryID, const ENTRYID *l
 	hr = OpenEntry(cbEntryID, lpEntryID, &IID_IMessage, MAPI_MODIFY, &objtype, &~lpMessage);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Unlock the message
 	hr = SetLockState(lpMessage, MSG_UNLOCKED);
 	if(hr != hrSuccess)
@@ -838,18 +820,15 @@ HRESULT ECMsgStore::NotifyNewMail(const NOTIFICATION *lpNotification)
 	/* if (!IsSpooler())
 		return MAPI_E_NO_SUPPORT;
 	*/
-
 	// Check input/output variables
 	if (lpNotification == NULL || lpNotification->info.newmail.lpParentID == NULL || lpNotification->info.newmail.lpEntryID == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	auto hr = HrCompareEntryIdWithStoreGuid(lpNotification->info.newmail.cbEntryID, lpNotification->info.newmail.lpEntryID, &GetStoreGuid());
 	if(hr != hrSuccess)
 		return hr;
-
 	hr = HrCompareEntryIdWithStoreGuid(lpNotification->info.newmail.cbParentID, lpNotification->info.newmail.lpParentID, &GetStoreGuid());
 	if(hr != hrSuccess)
 		return hr;
-
 	return lpTransport->HrNotify(lpNotification);
 }
 
@@ -1176,7 +1155,6 @@ HRESULT ECMsgStore::GetMailboxTable(const TCHAR *lpszServerName,
 	memory_ptr<char> ptrServerPath;
 	std::string		strPseudoUrl;
 	convstring		tstrServerName(lpszServerName, ulFlags);
-
 	const utf8string strUserName = convert_to<utf8string>("SYSTEM");
 	
 	if (!tstrServerName.null_or_empty()) {
@@ -1264,7 +1242,6 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 		return hr;
 
 	memset(lpFBPropValue, 0, sizeof(SPropValue));
-
 	lpFBPropValue->ulPropTag = PR_FREEBUSY_ENTRYIDS;
 	lpFBPropValue->Value.MVbin.cValues = 4;
 	hr = ECAllocateMore(sizeof(SBinary)*lpFBPropValue->Value.MVbin.cValues, lpFBPropValue, (void**)&lpFBPropValue->Value.MVbin.lpbin);
@@ -1304,19 +1281,14 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 
 	lpPropValue[cCurValues].ulPropTag = PR_MESSAGE_CLASS_A;
 	lpPropValue[cCurValues++].Value.lpszA = const_cast<char *>("IPM.Microsoft.ScheduleData.FreeBusy");
-
 	lpPropValue[cCurValues].ulPropTag = PR_SUBJECT_A;
 	lpPropValue[cCurValues++].Value.lpszA = const_cast<char *>("LocalFreebusy");
-
 	lpPropValue[cCurValues].ulPropTag = PR_FREEBUSY_NUM_MONTHS;
 	lpPropValue[cCurValues++].Value.ul = ECFREEBUSY_DEFAULT_PUBLISH_MONTHS;
-
 	lpPropValue[cCurValues].ulPropTag = PR_DECLINE_RECURRING_MEETING_REQUESTS;
 	lpPropValue[cCurValues++].Value.b = false;
-
 	lpPropValue[cCurValues].ulPropTag = PR_DECLINE_CONFLICTING_MEETING_REQUESTS;
 	lpPropValue[cCurValues++].Value.b = false;
-
 	lpPropValue[cCurValues].ulPropTag = PR_PROCESS_MEETING_REQUESTS;
 	lpPropValue[cCurValues++].Value.b = false;
 
@@ -1326,7 +1298,6 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 	hr = lpFBMessage->SaveChanges(KEEP_OPEN_READONLY);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Get entryid of localfreebusy
 	hr = HrGetOneProp(lpFBMessage, PR_ENTRYID, &~lpPropValue);
 	if(hr != hrSuccess)
@@ -1351,10 +1322,8 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 
 	lpPropValue[cCurValues].ulPropTag = PR_MESSAGE_CLASS_A;
 	lpPropValue[cCurValues++].Value.lpszA = const_cast<char *>("IPM.Microsoft.ScheduleData.FreeBusy");
-
 	lpPropValue[cCurValues].ulPropTag = PR_SUBJECT_A;
 	lpPropValue[cCurValues++].Value.lpszA = const_cast<char *>("LocalFreebusy");
-
 	lpPropValue[cCurValues].ulPropTag = PR_FREEBUSY_NUM_MONTHS;
 	lpPropValue[cCurValues++].Value.ul = ECFREEBUSY_DEFAULT_PUBLISH_MONTHS;
 
@@ -1369,7 +1338,6 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 	hr = HrGetOneProp(lpFBMessage, PR_ENTRYID, &~lpPropValue);
 	if(hr != hrSuccess)
 		return hr;
-
 	//Fill in position 0 of the FBProperty, with associated localfreebusy message entryid
 	hr = ECAllocateMore(lpPropValue->Value.bin.cb, lpFBPropValue, (void**)&lpFBPropValue->Value.MVbin.lpbin[0].lpb);
 	if(hr != hrSuccess)
@@ -1413,7 +1381,6 @@ HRESULT ECMsgStore::AddRenAdditionalFolder(IMAPIFolder *lpFolder, ULONG ulType, 
 	
 	if (HrGetOneProp(lpFolder, PR_IPM_OL2007_ENTRYIDS, &~lpRenEntryIDs) == hrSuccess)
 		strBuffer.assign((char *)lpRenEntryIDs->Value.bin.lpb, lpRenEntryIDs->Value.bin.cb);
-		
 	// Remove trailing \0\0\0\0 if it's there
 	if(strBuffer.size() >= 4 && strBuffer.compare(strBuffer.size()-4, 4, "\0\0\0\0", 4) == 0) 
 		strBuffer.resize(strBuffer.size()-4);
@@ -1484,13 +1451,11 @@ HRESULT ECMsgStore::CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
 	if(fHidden) {
 		sPropValue.ulPropTag = PR_ATTR_HIDDEN;
 		sPropValue.Value.b = true;
-		
 		hr = HrSetOneProp(lpMAPIFolder, &sPropValue);
 		if(hr != hrSuccess)
 			return hr;
 	}
 		
-
 	hr = AddRenAdditionalFolder(lpRootFolder, ulType, &lpPropValueEID->Value.bin);
 	if (hr != hrSuccess)
 		return hr;
@@ -1810,7 +1775,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 	hr = lpTransport->HrOpenPropStorage(0, nullptr, cbStoreId, lpStoreId, 0, &~storage);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Set up the message store to use this storage
 	hr = lpecMsgStore->HrSetPropStorage(storage, true);
 	if(hr != hrSuccess)
@@ -1818,7 +1782,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 	hr = lpecMsgStore->SetEntryId(cbStoreId, lpStoreId);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Open rootfolder
 	hr = lpecMsgStore->OpenEntry(cbRootId, lpRootId, &IID_ECMAPIFolder, MAPI_MODIFY, &objtype, &~lpMapiFolderRoot);
 	if(hr != hrSuccess)

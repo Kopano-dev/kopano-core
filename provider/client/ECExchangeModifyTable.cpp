@@ -56,7 +56,6 @@ static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase, convert_context 
 	auto hr = MAPIAllocateMore((strConverted.size() + 1) * sizeof(*lpszResult), lpBase, reinterpret_cast<void **>(&lpszResult));
 	if (hr == hrSuccess)
 		wcscpy(lpszResult, strConverted.c_str());
-
 	return lpszResult;
 }
 
@@ -302,10 +301,8 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 
 		lpsPropMember[1].ulPropTag = PR_MEMBER_RIGHTS;
 		lpsPropMember[1].Value.ul = lpECPerms[i].ulRights;
-
 		lpsPropMember[2].ulPropTag = PR_MEMBER_NAME;
 		lpsPropMember[2].Value.lpszW = (WCHAR*)lpMemberName;
-
 		lpsPropMember[3].ulPropTag = PR_MEMBER_ENTRYID;
 		lpsPropMember[3].Value.bin = lpECPerms[i].sUserId;
 		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &lpsPropMember[0], lpsPropMember, 4);
@@ -335,7 +332,6 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 	auto hr = lpecMapiProp->QueryInterface(IID_IECSecurity, &~lpSecurity);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Get a data  
 	hr = lpTable->HrGetAllWithStatus(&~lpRowSet, &~lpIDs, &~lpulStatus);
 	if (hr != hrSuccess)
@@ -410,27 +406,22 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 	auto hr = lpTable->HrGetView(createLocaleFromName(""), MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Get all Columns
 	hr = lpView->QueryColumns(TBL_ALL_COLUMNS, &~lpCols);
 	if(hr != hrSuccess)
 		return hr;
-
 	hr = lpView->SetColumns(lpCols, 0);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Get all rows
 	hr = lpView->QueryRows(0x7fffffff, 0, &~lpRowSet);
 	if(hr != hrSuccess)
 		return hr;
-
 	// we need to convert data from clients which save PT_STRING8 inside PT_SRESTRICTION and PT_ACTIONS structures,
 	// because unicode clients won't be able to understand those anymore.
 	hr = ConvertString8ToUnicode(lpRowSet.get());
 	if(hr != hrSuccess)
 		return hr;
-
 	// Convert to SOAP rows
 	hr = CopyMAPIRowSetToSOAPRowSet(lpRowSet.get(), &lpSOAPRowSet);
 	if(hr != hrSuccess)
@@ -450,7 +441,6 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 	szXML = new char [ os.str().size()+1 ];
 	strcpy(szXML, os.str().c_str());
 	szXML[os.str().size()] = 0;
-
 	*lppSerialized = std::move(szXML);
 	return hr;
 }
@@ -476,10 +466,8 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 	soap_begin(&soap);
 	if (soap_begin_recv(&soap) != 0)
 		return MAPI_E_NETWORK_FAILURE;
-
 	if (!soap_get_rowSet(&soap, &sSOAPRowSet, "tableData", "rowSet"))
 		return MAPI_E_CORRUPT_DATA;
-
 	if (soap_end_recv(&soap) != 0)
 		return MAPI_E_NETWORK_FAILURE;
 	auto hr = CopySOAPRowSetToMAPIRowSet(NULL, &sSOAPRowSet, &~lpsRowSet, 0);

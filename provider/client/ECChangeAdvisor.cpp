@@ -36,7 +36,6 @@ ECChangeAdvisor::~ECChangeAdvisor()
 {
 	if (m_ulReloadId)
 		m_lpMsgStore->lpTransport->RemoveSessionReloadCallback(m_ulReloadId);
-
 	// Unregister notifications
 	if (!(m_ulFlags & SYNC_CATCHUP))
 		m_lpMsgStore->m_lpNotifyClient->Unadvise(ECLISTCONNECTION(m_mapConnections.begin(), m_mapConnections.end()));
@@ -122,6 +121,7 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 	hr = MAPIAllocateMore(ulVal * sizeof *lpEntryList->lpbin, lpEntryList, (void**)&lpEntryList->lpbin);
 	if (hr != hrSuccess)
 		return hr;
+
 	lpEntryList->cValues = ulVal;
 	for (ULONG i = 0; i < lpEntryList->cValues; ++i) {
 		hr = lpStream->Read(&ulVal, sizeof(ulVal), &ulRead);
@@ -153,7 +153,6 @@ HRESULT ECChangeAdvisor::PurgeStates()
 	ECLISTSYNCID		lstSyncId;
 	ECLISTSYNCSTATE		lstSyncState;
 	SyncStateMap		mapChangeId;
-
 	std::list<ConnectionMap::value_type>			lstObsolete;
 	std::list<ConnectionMap::value_type>::const_iterator iterObsolete;
 
@@ -198,11 +197,9 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 	// Since m_mapSyncStates are related m_mapConnection the maps should
 	// be equal in size.
 	assert(m_mapConnections.size() == m_mapSyncStates.size());
-
 	// Create the status stream
 	lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);
 	lpStream->SetSize(uliSize);
-
 	// First the amount of items in the stream
 	ulVal = (ULONG)m_mapConnections.size();
 	lpStream->Write(&ulVal, sizeof(ulVal), NULL);
@@ -211,7 +208,6 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 		// The size of the sync state
 		ulVal = 2 * sizeof(ULONG);		// syncid, changeid
 		lpStream->Write(&ulVal, sizeof(ulVal), NULL);
-
 		// syncid
 		lpStream->Write(&p.first, sizeof(p.first), NULL);
 		// changeid
@@ -239,13 +235,11 @@ HRESULT ECChangeAdvisor::AddKeys(LPENTRYLIST lpEntryList)
 			lpsSyncState = (SSyncState*)lpEntryList->lpbin[i].lpb;
 
 			ZLOG_DEBUG(m_lpLogger, " - Key %u: syncid=%u, changeid=%u", i, lpsSyncState->ulSyncId, lpsSyncState->ulChangeId);
-
 			// Check if we don't have this sync state already
 			if (m_mapConnections.find(lpsSyncState->ulSyncId) != m_mapConnections.end()) {
 				ZLOG_DEBUG(m_lpLogger, " - Key %u: duplicate!", lpsSyncState->ulSyncId);
 				continue;
 			}
-
 			if (!(m_ulFlags & SYNC_CATCHUP))
 				listSyncStates.emplace_back(*lpsSyncState);
 			else
@@ -258,7 +252,6 @@ HRESULT ECChangeAdvisor::AddKeys(LPENTRYLIST lpEntryList)
 
 	if (!(m_ulFlags & SYNC_CATCHUP))
 		hr = m_lpMsgStore->m_lpNotifyClient->Advise(listSyncStates, m_lpChangeAdviseSink, &listConnections);
-
 	if (hr == hrSuccess) {
 		m_mapConnections.insert(std::make_move_iterator(listConnections.begin()), std::make_move_iterator(listConnections.end()));
 		std::transform(listSyncStates.begin(), listSyncStates.end(), std::inserter(m_mapSyncStates, m_mapSyncStates.begin()), &ConvertSyncState);
@@ -332,8 +325,6 @@ HRESULT ECChangeAdvisor::Reload(void *lpParam, ECSESSIONID /*newSessionId*/)
 	// Unregister notifications first
 	lpChangeAdvisor->m_lpMsgStore->m_lpNotifyClient->Unadvise(ECLISTCONNECTION(lpChangeAdvisor->m_mapConnections.begin(), lpChangeAdvisor->m_mapConnections.end()));
 	lpChangeAdvisor->m_mapConnections.clear();
-
-	
 	// Now re-register the notifications
 	std::transform(lpChangeAdvisor->m_mapSyncStates.begin(), lpChangeAdvisor->m_mapSyncStates.end(), std::back_inserter(listSyncStates),
 		[](const SyncStateMap::value_type &e) -> SSyncState { return {e.first, e.second}; });

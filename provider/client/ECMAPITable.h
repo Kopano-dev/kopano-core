@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECMAPITABLE_H
 #define ECMAPITABLE_H
 
@@ -24,7 +23,6 @@ class ECMAPITable _kc_final : public KC::ECUnknown, public IMAPITable {
 protected:
 	ECMAPITable(const std::string &name, ECNotifyClient *, ULONG flags);
 	virtual ~ECMAPITable();
-
 
 public:
 	static HRESULT Create(const std::string &name, ECNotifyClient *, ULONG flags, ECMAPITable **);

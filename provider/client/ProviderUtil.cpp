@@ -41,10 +41,8 @@ HRESULT CompareStoreIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 
 	if(memcmp(&peid1->guid, &peid2->guid, sizeof(GUID)) != 0)
 		goto exit;
-
 	if(peid1->ulVersion != peid2->ulVersion)
 		goto exit;
-
 	if(peid1->usType != peid2->usType)
 		goto exit;
 
@@ -63,11 +61,9 @@ HRESULT CompareStoreIDs(ULONG cbEntryID1, const ENTRYID *lpEntryID1,
 	}
 
 	fTheSame = TRUE;
-
 exit:
 	if(lpulResult)
 		*lpulResult = fTheSame;
-
 	return hr;
 }
 
@@ -98,19 +94,16 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 		return hr;
 
 	// Init providers
-
 	// Message store online
 	hr = ECMSProvider::Create(ulFlags, &~lpECMSProvider);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Addressbook online
 	hr = ECABProvider::Create(&~lpECABProvider);
 	if(hr != hrSuccess)
 		return hr;
 
 	// Fill in the Provider info struct
-	
 	//Init only the firsttime the flags
 	sProviderInfo.ulProfileFlags = sProfileProps.ulProfileFlags;
 	sProviderInfo.ulConnectType = CT_ONLINE;
@@ -149,7 +142,6 @@ HRESULT CreateMsgStoreObject(const char *lpszProfname, IMAPISupport *lpMAPISup,
 		hr = ECMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, FALSE, bOfflineStore, &~lpMsgStore);
 	else
 		hr = ECArchiveAwareMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, fIsDefaultStore, bOfflineStore, &~lpMsgStore);
-
 	if (hr != hrSuccess)
 		return hr;
 
@@ -159,12 +151,10 @@ HRESULT CreateMsgStoreObject(const char *lpszProfname, IMAPISupport *lpMAPISup,
 	hr = lpTransport->HrOpenPropStorage(0, nullptr, cbEntryID, lpEntryID, 0, &~lpStorage);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Set up the message store to use this storage
 	hr = lpMsgStore->HrSetPropStorage(lpStorage, FALSE);
 	if (hr != hrSuccess)
 		return hr;
-
 	// Setup callback for session change
 	hr = lpTransport->AddSessionReloadCallback(lpMsgStore, ECMsgStore::Reload, NULL);
 	if (hr != hrSuccess)
@@ -189,10 +179,10 @@ HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerNa
 	WSTransport *lpNewTransport = NULL;
 	utf8string strServerName = convstring(lpszServerName, ulFlags);
 	strPseudoUrl.append(strServerName);
+
 	auto hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &lpszServerPath, &bIsPeer);
 	if (hr != hrSuccess)
 		return hr;
-
 	if (bIsPeer) {
 		lpNewTransport = lpTransport;
 		lpNewTransport->AddRef();

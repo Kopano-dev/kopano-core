@@ -40,7 +40,6 @@ WSABPropStorage::WSABPropStorage(ULONG cbEntryId, const ENTRYID *lpEntryId,
 WSABPropStorage::~WSABPropStorage()
 {
     m_lpTransport->RemoveSessionReloadCallback(m_ulSessionReloadCallback);
-    
 	FreeEntryId(&m_sEntryId, false);
 }
 
@@ -93,7 +92,6 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	// Convert the property tags to a MAPIOBJECT
 	//(type,objectid)
 	mo = new MAPIOBJECT;
-
 	/*
 	 * This is only done to have a base for AllocateMore, otherwise a local
 	 * automatic variable would have sufficed.
@@ -118,7 +116,6 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	}
 
 	*lppsMapiObject = mo;
-
 exit:
 	spg.unlock();
 	if (hr != hrSuccess)

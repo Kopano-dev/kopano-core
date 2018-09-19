@@ -40,12 +40,9 @@ public:
 	virtual HRESULT HrCollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulFlags, ULONG *lpulRowCount);
 	virtual HRESULT HrGetCollapseState(BYTE **lppCollapseState, ULONG *lpcbCollapseState, BYTE *lpbInstanceKey, ULONG cbInstanceKey);
 	virtual HRESULT HrSetCollapseState(BYTE *lpCollapseState, ULONG cbCollapseState, BOOKMARK *lpbkPosition);
-
 	virtual HRESULT HrMulti(ULONG ulDeferredFlags, LPSPropTagArray lpsPropTagArray, LPSRestriction lpsRestriction, LPSSortOrderSet lpsSortOrderSet, ULONG ulRowCount, ULONG ulFlags, LPSRowSet *lppRowSet);
-
 	virtual HRESULT FreeBookmark(BOOKMARK bkPosition);
 	virtual HRESULT CreateBookmark(BOOKMARK* lpbkPosition);
-
 	static HRESULT Reload(void *param, KC::ECSESSIONID);
 	virtual HRESULT SetReloadCallback(RELOADCALLBACK callback, void *lpParam);
 
@@ -61,7 +58,6 @@ protected:
 	SSortOrderSet *m_lpsSortOrderSet = nullptr;
 	SRestriction *m_lpsRestriction = nullptr;
 	unsigned int ulFlags, ulType;
-
 	void *m_lpParam = nullptr;
 	RELOADCALLBACK m_lpCallback = nullptr;
 };

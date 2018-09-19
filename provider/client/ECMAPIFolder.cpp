@@ -290,7 +290,6 @@ HRESULT ECMAPIFolder::DeleteProps(const SPropTagArray *lpPropTagArray,
 	auto hr = ECMAPIContainer::DeleteProps(lpPropTagArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
-
 	return ECMAPIContainer::SaveChanges(KEEP_OPEN_READWRITE);
 }
 
@@ -366,12 +365,10 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(const IID *lpInterface,
 	hr = lpMessage->HrSetPropStorage(storage, false);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Load an empty property set
 	hr = lpMessage->HrLoadEmptyProps();
 	if(hr != hrSuccess)
 		return hr;
-
 	//Set defaults
 	// Same as ECAttach::OpenProperty
 	hr = ECAllocateBuffer(sizeof(MAPIUID), &~lpMapiUID);
@@ -383,10 +380,8 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(const IID *lpInterface,
 
 	sPropValue[0].ulPropTag = PR_MESSAGE_FLAGS;
 	sPropValue[0].Value.l = MSGFLAG_UNSENT | MSGFLAG_READ;
-
 	sPropValue[1].ulPropTag = PR_MESSAGE_CLASS_A;
 	sPropValue[1].Value.lpszA = const_cast<char *>("IPM");
-		
 	sPropValue[2].ulPropTag = PR_SEARCH_KEY;
 	sPropValue[2].Value.bin.cb = sizeof(MAPIUID);
 	sPropValue[2].Value.bin.lpb = reinterpret_cast<BYTE *>(lpMapiUID.get());
@@ -431,7 +426,6 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 		hr = ((IMAPIProp *)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-	
 	if(hr != hrSuccess)
 		return hr;
 
@@ -456,7 +450,6 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 	hr = HrGetStoreGuidFromEntryId(lpDestPropArray[0].Value.bin.cb, lpDestPropArray[0].Value.bin.lpb, &guidFolder);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Allocate memory for support list and kopano list
 	hr = ECAllocateBuffer(sizeof(ENTRYLIST), &~lpMsgListEC);
 	if (hr != hrSuccess)
@@ -575,7 +568,6 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		hr = ((IMAPIProp*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-	
 	if(hr != hrSuccess)
 		return hr;
 
@@ -668,7 +660,6 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 
 	if(hr == hrSuccess && bError == TRUE)
 		hr = MAPI_W_PARTIAL_COMPLETION;
-
 	return hr;
 }
 
@@ -718,7 +709,6 @@ HRESULT ECMAPIFolder::GetProps(const SPropTagArray *lpPropTagArray,
 		if (hr != hrSuccess)
 			return hr;
 	}
-
 	return ECMAPIProp::GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
 }
 
@@ -740,7 +730,6 @@ HRESULT ECMAPIFolder::CreateMessageFromStream(ULONG ulFlags, ULONG ulSyncId,
 	          true, nullptr, &~ptrStreamImporter);
 	if (hr != hrSuccess)
 		return hr;
-
 	*lppsStreamImporter = ptrStreamImporter.release();
 	return hrSuccess;
 }
@@ -761,7 +750,6 @@ HRESULT ECMAPIFolder::UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID,
 	          false, lpConflictItems, &~ptrStreamImporter);
 	if (hr != hrSuccess)
 		return hr;
-
 	*lppsStreamImporter = ptrStreamImporter.release();
 	return hrSuccess;
 }

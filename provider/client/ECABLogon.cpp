@@ -37,7 +37,6 @@ ECABLogon::~ECABLogon()
 {
 	if(m_lpTransport)
 		m_lpTransport->HrLogOff();
-
 	// Disable all advises
 	if(m_lpNotifyClient)
 		m_lpNotifyClient->ReleaseAll();
@@ -95,7 +94,6 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, const ENTRYID *lpEntryID,
 		else
 			fModifyObject = TRUE;
 	}
-
 	if(ulFlags & MAPI_BEST_ACCESS)
 		fModifyObject = fModify;
 	*/
@@ -217,7 +215,6 @@ HRESULT ECABLogon::Advise(ULONG cbEntryID, const ENTRYID *lpEntryID,
 	if (lpEntryID == NULL)
 		//NOTE: Normal you must give the entryid of the addressbook toplevel
 		return MAPI_E_INVALID_PARAMETER;
-
 	assert(m_lpNotifyClient != NULL && (lpEntryID != NULL || true));
 	if(m_lpNotifyClient->Advise(cbEntryID, (LPBYTE)lpEntryID, ulEventMask, lpAdviseSink, lpulConnection) != S_OK)
 		return MAPI_E_NO_SUPPORT;
@@ -269,7 +266,6 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		
 		auto lpABeid = reinterpret_cast<ABEID *>(lpPropVal->Value.bin.lpb);
 		auto cbABeid = lpPropVal->Value.bin.cb;
-
 		/* Is it one of ours? */
 		if ( cbABeid  < CbNewABEID("") || lpABeid == NULL)
 			continue;	// no
@@ -283,7 +279,6 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		hr = lpIMailUser->GetProps(lpPropTagArray, 0, &cValues, &~lpPropArray);
 		if(FAILED(hr) != hrSuccess)
 			continue;	// no
-
 		// merge the properties
 		hr = ECAllocateBuffer((cValues + cPropsRecip) * sizeof(SPropValue), &~lpNewPropArray);
 		if (hr != hrSuccess)
@@ -294,10 +289,8 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 
 			if(PROP_TYPE(lpPropArray[j].ulPropTag) == PT_ERROR)
 				lpPropVal = PCpropFindProp(rgpropvalsRecip, cPropsRecip, lpPropTagArray->aulPropTag[j]);
-
 			if(lpPropVal == NULL)
 				lpPropVal = &lpPropArray[j];
-
 			hr = Util::HrCopyProperty(lpNewPropArray + j, lpPropVal, lpNewPropArray);
 			if(hr != hrSuccess)
 				return hr;
@@ -307,7 +300,6 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 			if (PCpropFindProp(lpNewPropArray, cValues, rgpropvalsRecip[j].ulPropTag) ||
 				PROP_TYPE( rgpropvalsRecip[j].ulPropTag ) == PT_ERROR )
 				continue;
-			
 			hr = Util::HrCopyProperty(lpNewPropArray + cValues, &rgpropvalsRecip[j], lpNewPropArray);
 			if(hr != hrSuccess)
 				return hr;
@@ -316,7 +308,6 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 
 		lpRecipList->aEntries[i].rgPropVals	= lpNewPropArray.release();
 		lpRecipList->aEntries[i].cValues	= cValues;
-
 		if(rgpropvalsRecip) {
 			ECFreeBuffer(rgpropvalsRecip); 
 			rgpropvalsRecip = NULL;

@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECNAMEDPROP_H
 #define ECNAMEDPROP_H
 
@@ -34,7 +33,6 @@ private:
 	HRESULT ResolveReverseCache(ULONG ulId, const GUID *, ULONG flags, void *base, MAPINAMEID **name);
 	HRESULT			UpdateCache(ULONG ulId, MAPINAMEID *lpName);
 	HRESULT			HrCopyNameId(LPMAPINAMEID lpSrc, LPMAPINAMEID *lppDst, void *lpBase);
-
 };
 
 #endif // ECNAMEDPROP_H

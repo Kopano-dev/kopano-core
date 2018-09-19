@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef EC_EXCHANGE_MODIFY_TABLE_H
 #define EC_EXCHANGE_MODIFY_TABLE_H
 

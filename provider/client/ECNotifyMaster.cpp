@@ -156,7 +156,6 @@ HRESULT ECNotifyMaster::StartNotifyWatch()
 	}
 	pthread_attr_destroy(&m_hAttrib);
 	set_thread_name(m_hThread, "NotifyThread");
-
 	m_bThreadRunning = TRUE;
 	return hrSuccess;
 }
@@ -186,14 +185,13 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 		}
     
 		lpTransport->HrLogOff();
-
 		/* Cancel any pending IO if the network transport is down, causing the logoff to fail */
 		m_lpTransport->HrCancelIO();
 	}
+
 	biglock.unlock();
 	if (pthread_join(m_hThread, NULL) != 0)
 		ec_log_debug("ECNotifyMaster::StopNotifyWatch: Invalid thread join");
-
 	m_bThreadRunning = FALSE;
 	return hrSuccess;
 }
@@ -228,7 +226,6 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 		 * Request notification (Blocking Call)
 		 */
 		notificationArray *pNotifyArray = NULL;
-
 		auto hr = pNotifyMaster->m_lpTransport->HrGetNotify(&pNotifyArray);
 		if (static_cast<unsigned int>(hr) == KCWARN_CALL_KEEPALIVE) {
 			if (bReconnect)
@@ -275,7 +272,6 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 
 		if (bReconnect)
 			bReconnect = false;
-
 		/* This is when the connection is interupted */
 		if (pNotifyArray == NULL)
 			continue;
@@ -320,4 +316,3 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 	}
 	return NULL;
 }
-

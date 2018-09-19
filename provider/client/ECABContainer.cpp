@@ -242,7 +242,6 @@ HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
-
 	AddChild(lpTable);
 	return hr;
 }
@@ -261,11 +260,9 @@ HRESULT ECABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
-
 	if(hr != hrSuccess)
 		return hr;
 	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
-
 	AddChild(lpTable);
 	return hr;
 }

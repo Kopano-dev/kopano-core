@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef WSMessageStreamImporter_INCLUDED
 #define WSMessageStreamImporter_INCLUDED
 
@@ -47,20 +46,16 @@ class WSMessageStreamImporter _kc_final :
     public KC::ECUnknown, private KC::ECWaitableTask {
 public:
 	static HRESULT Create(ULONG flags, ULONG sync_id, ULONG eid_size, const ENTRYID *eid, ULONG feid_size, const ENTRYID *folder_eid, bool newmsg, const SPropValue *conflict_items, WSTransport *, WSMessageStreamImporter **);
-
 	HRESULT StartTransfer(WSMessageStreamSink **lppSink);
 	HRESULT GetAsyncResult(HRESULT *lphrResult);
 
 private:
 	WSMessageStreamImporter(ULONG flags, ULONG sync_id, const entryId &eid, const entryId &feid, bool newmsg, const propVal &conflict_items, WSTransport *, ULONG bufsize, ULONG timeout);
 	~WSMessageStreamImporter();
-
 	void run();
-
 	static void  *StaticMTOMReadOpen(struct soap *soap, void *handle, const char *id, const char *type, const char *description);
 	static size_t StaticMTOMRead(struct soap *soap, void *handle, char *buf, size_t len);
 	static void   StaticMTOMReadClose(struct soap *soap, void *handle);
-
 	void  *MTOMReadOpen(struct soap *soap, void *handle, const char *id, const char *type, const char *description);
 	size_t MTOMRead(struct soap *soap, void *handle, char *buf, size_t len);
 	void   MTOMReadClose(struct soap *soap, void *handle);
@@ -79,3 +74,4 @@ private:
 typedef KC::object_ptr<WSMessageStreamImporter> WSMessageStreamImporterPtr;
 
 #endif // ndef WSMessageStreamImporter_INCLUDED
+	

@@ -20,7 +20,6 @@ ECArchiveAwareAttach::ECArchiveAwareAttach(ECMsgStore *lpMsgStore,
 	m_lpRoot(dynamic_cast<const ECArchiveAwareMessage *>(lpRoot))
 {
 	assert(m_lpRoot != NULL);	// We don't expect an ECArchiveAwareAttach to be ever created by any other object than a ECArchiveAwareMessage.
-
 	// Override the handler defined in ECAttach
 	HrAddPropHandlers(PR_ATTACH_SIZE, ECAttach::GetPropHandler, SetPropHandler, this, false, false);
 }

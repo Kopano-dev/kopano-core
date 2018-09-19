@@ -71,7 +71,6 @@ public:
     }
     ~CKopanoApp() {
         ssl_threading_cleanup();
-
 		RemoveAllProviders(&g_mapProviders);
     }
 };
@@ -194,7 +193,6 @@ initprov_service(struct initprov &d, const sGlobalProfileProps &profprop)
 
 	/* This should be a real URL */
 	assert(redir_srv.compare(0, 9, "pseudo://") != 0);
-
 	if (d.provadm == NULL || redir_srv.empty())
 		return hrSuccess;
 
@@ -284,7 +282,6 @@ static HRESULT initprov_storearc(struct initprov &d)
 	      &~alt_transport);
 	if (ret != hrSuccess)
 		return ret;
-
 	d.transport = std::move(alt_transport);
 	return d.transport->HrResolveTypedStore(convstring::from_SPropValue(name),
 	       ECSTORE_TYPE_ARCHIVE, &d.eid_size, &~d.eid);
@@ -475,12 +472,10 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 	auto hr = lpAdminProviders->GetProviderTable(0, &~ptrTable);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Get the rows
 	hr = ptrTable->QueryRows(0xFF, 0, &~ptrRows);
 	if(hr != hrSuccess)
 		return hr;
-
 	//Check if exist one or more rows
 	if (ptrRows.size() == 0)
 		return MAPI_E_NOT_FOUND;
@@ -497,7 +492,6 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 		hr = lpAdminProviders->OpenProfileSection((MAPIUID *)lpsProviderUID->Value.bin.lpb, nullptr, MAPI_MODIFY, &~ptrProfSect);
 		if(hr != hrSuccess)
 			return hr;
-
 		// Set already PR_PROVIDER_UID, ignore error
 		HrSetOneProp(ptrProfSect, lpsProviderUID);
 		hr = InitializeProvider(lpAdminProviders, ptrProfSect, sProfileProps, nullptr, nullptr);
@@ -564,9 +558,7 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		break;
 	case MSG_SERVICE_PROVIDER_DELETE:
 		hr = hrSuccess;
-
 		//FIXME: delete Offline database
-
 		break;
 	case MSG_SERVICE_CONFIGURE:
 		//bShowAllSettingsPages = true;
@@ -576,10 +568,8 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 		hr = lpAdminProviders->OpenProfileSection(reinterpret_cast<const MAPIUID *>(&pbGlobalProfileSectionGuid), nullptr, MAPI_MODIFY, &~ptrGlobalProfSect);
 		if(hr != hrSuccess)
 			return hr;
-
 		if(cvals) {
 			hr = ptrGlobalProfSect->SetProps(cvals, pvals, NULL);
-
 			if(hr != hrSuccess)
 				return hr;
 		}
@@ -644,7 +634,6 @@ extern "C" HRESULT MSGServiceEntry(HINSTANCE hInst,
 				break; // Everything is oke
 			}
 			
-
 			// On incorrect password, and UI allowed, show incorrect password error
 			if((ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS)) {
 				// what do we do on linux?

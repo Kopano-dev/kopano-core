@@ -113,7 +113,6 @@ HRESULT ECExchangeImportContentsChanges::Config(LPSTREAM lpStream, ULONG ulFlags
 	ULONG ulLen = 0;
 	
 	m_lpStream = lpStream;
-
 	if(lpStream == NULL) {
 		m_ulSyncId = 0;
 		m_ulChangeId = 0;
@@ -140,7 +139,6 @@ HRESULT ECExchangeImportContentsChanges::Config(LPSTREAM lpStream, ULONG ulFlags
 		if(hr != hrSuccess)
 			return hr;
 	}
-
 	// The sync key we got from the server can be used to retrieve all items in the database now when given to IEEC->Config(). At the same time, any
 	// items written to this importer will send the sync ID to the server so that any items written here will not be returned by the exporter,
 	// preventing local looping of items.
@@ -163,7 +161,6 @@ HRESULT ECExchangeImportContentsChanges::UpdateState(LPSTREAM lpStream){
 	auto hr = lpStream->Seek(zero, STREAM_SEEK_SET, nullptr);
 	if(hr != hrSuccess)
 		return hr;
-
 	hr = lpStream->Write(&m_ulSyncId, 4, &ulLen);
 	if(hr != hrSuccess)
 		return hr;
@@ -200,7 +197,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 		// This is a change, but we don't already have the item. This can only mean
 		// that the item has been deleted on our side. 
 		return SYNC_E_OBJECT_DELETED;
-
 	if ((lpMessageFlags != NULL &&
 	    (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) ||
 	    (lpMessageAssociated != NULL && lpMessageAssociated->Value.b))
@@ -214,7 +210,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 			hr = m_lpFolder->CreateMessageWithEntryID(&IID_IMessage, ulNewFlags, lpPassedEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPassedEntryId->Value.bin.lpb), &~lpMessage);
 		else
 			hr = m_lpFolder->CreateMessage(&IID_IMessage, ulNewFlags, &~lpMessage);
-
 		if(hr != hrSuccess)
 			return hr;
 	}else{
@@ -224,7 +219,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 			return SYNC_E_OBJECT_DELETED;
 		if(hr != hrSuccess)
 			return hr;
-
 		if (IsProcessed(lpRemoteCK, lpPropPCL))
 			//we already have this change
 			return SYNC_E_IGNORE;
@@ -245,7 +239,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 	hr = lpECMessage->HrSetSyncId(m_ulSyncId);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Mark as ICS object
 	hr = lpECMessage->SetICSObject(TRUE);
 	if(hr != hrSuccess)
@@ -408,7 +401,6 @@ bool ECExchangeImportContentsChanges::IsConflict(const SPropValue *lpLocalCK,
 
 	if (!bGuidFound)
 		bConflict = true;
-
 	return bConflict;
 }
 
@@ -470,7 +462,6 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 	lpConflictItems->ulPropTag = PR_CONFLICT_ITEMS;
 	lpConflictItems->Value.MVbin.cValues = 1;
 	lpConflictItems->Value.MVbin.lpbin = &lpEntryIdProp->Value.bin;
-
 	hr = HrSetOneProp(lpConflictMessage, lpConflictItems);
 	if(hr != hrSuccess)
 		return hr;
@@ -642,7 +633,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 	    ulFlags |= SYNC_NEW_MESSAGE;
 		hr = MAPI_E_NOT_FOUND;
 	}
-
 	if (hr == MAPI_E_NOT_FOUND && ((ulFlags & SYNC_NEW_MESSAGE) == 0)) {
 		// This is a change, but we don't already have the item. This can only mean
 		// that the item has been deleted on our side. 
@@ -857,7 +847,6 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 	auto hr = lpRootFolder->GetProps(sptaREMProps, 0, &cREMProps, &~ptrREMProps);
 	if (FAILED(hr))
 		return hr;
-
 	// Find the correct reminders folder.
 	if (PROP_TYPE(ptrREMProps[1].ulPropTag) != PT_ERROR)
 		lpREMEntryID = &ptrREMProps[1];

@@ -371,16 +371,13 @@ HRESULT ECNamedProp::HrCopyNameId(LPMAPINAMEID lpSrc, LPMAPINAMEID *lppDst, void
 		return hr;
 
 	lpDst->ulKind = lpSrc->ulKind;
-
 	if(lpSrc->lpguid) {
 		if(lpBase) 
 			hr = ECAllocateMore(sizeof(GUID), lpBase, (void **) &lpDst->lpguid);
 		else 
 			hr = ECAllocateMore(sizeof(GUID), lpDst, (void **) &lpDst->lpguid);
-
 		if(hr != hrSuccess)
 			goto exit;
-
 		memcpy(lpDst->lpguid, lpSrc->lpguid, sizeof(GUID));
 	} else {
 		lpDst->lpguid = NULL;
@@ -407,10 +404,8 @@ HRESULT ECNamedProp::HrCopyNameId(LPMAPINAMEID lpSrc, LPMAPINAMEID *lppDst, void
 	}
 
 	*lppDst = lpDst;
-
 exit:
 	if (hr != hrSuccess && lpBase == nullptr)
 		ECFreeBuffer(lpDst);
-
 	return hr;
 }

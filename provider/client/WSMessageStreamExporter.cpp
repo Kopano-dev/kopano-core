@@ -50,14 +50,12 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 				return hr;
 		}
 		lpsi->cbPropVals = streams.__ptr[i].sPropVals.__size;
-
 		ptrStreamExporter->m_mapStreamInfo[streams.__ptr[i].ulStep + ulOffset] = lpsi.release();
 	}
 
 	ptrStreamExporter->m_ulExpectedIndex = ulOffset;
 	ptrStreamExporter->m_ulMaxIndex = ulOffset + ulCount;
 	ptrStreamExporter->m_ptrTransport.reset(lpTransport);
-
 	*lppStreamExporter = ptrStreamExporter.release();
 	return hrSuccess;
 }
@@ -92,8 +90,8 @@ HRESULT WSMessageStreamExporter::GetSerializedMessage(ULONG ulIndex, WSSerialize
 	KC::object_ptr<WSSerializedMessage> ptrMessage(new(std::nothrow) WSSerializedMessage(m_ptrTransport->m_lpCmd->soap, iStreamInfo->second->id, iStreamInfo->second->cbPropVals, iStreamInfo->second->ptrPropVals.get()));
 	if (ptrMessage == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	AddChild(ptrMessage);
 
+	AddChild(ptrMessage);
 	++m_ulExpectedIndex;
 	*lppSerializedMessage = ptrMessage.release();	
 	return hrSuccess;
@@ -108,7 +106,6 @@ WSMessageStreamExporter::~WSMessageStreamExporter()
 		// messages that we'd just discard. Probably we will need to reconnect very soon after this call, to LogOff()
 		// the transport's session, but that's better than receiving unwanted data.
 		m_ptrTransport->m_lpCmd->soap->fshutdownsocket(m_ptrTransport->m_lpCmd->soap, m_ptrTransport->m_lpCmd->soap->socket, 0);
-
 	for (const auto &i : m_mapStreamInfo)
 		delete i.second;
 }

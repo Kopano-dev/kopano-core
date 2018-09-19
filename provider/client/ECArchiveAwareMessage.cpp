@@ -75,7 +75,6 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 	auto hr = ECMessage::HrLoadProps();
 	if (hr != hrSuccess)
 		return hr;
-
 	// If we noticed we are stubbed, we need to perform a merge here.
 	if (m_mode != MODE_STUBBED)
 		return hr;
@@ -95,7 +94,6 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 			// This is quite a serious error since an ECArchiveAwareMessage can only be created by an
 			// ECArchiveAwareMsgStore. We won't just die here though...
 			return MAPI_E_NOT_FOUND;
-
 		hr = lpStore->OpenItemFromArchive(m_ptrStoreEntryIDs, m_ptrItemEntryIDs, &~m_ptrArchiveMsg);
 		if (hr != hrSuccess)
 			return CreateInfoMessage(sptaDeleteProps, CreateErrorBodyUtf8(hr));
@@ -106,7 +104,6 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 	// obtained anyway to determine the type of the body.
 	// Also if the stub's PR_MESSAGE_CLASS equals IPM.Zarafa.Stub (old migrator behaviour), we'll overwrite
 	// that with the archive's PR_MESSAGE_CLASS and overwrite the PR_ICON_INDEX.
-
 	// We need to temporary enable write access on the underlying objects in order for the following
 	// 5 calls to succeed.
 	fModify = true;
@@ -162,7 +159,6 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 		if (lpsPropValue->ulPropTag == PROP_ARCHIVE_STORE_ENTRYIDS) {
 			if (m_mode == MODE_UNARCHIVED)
 				m_mode = MODE_ARCHIVED;
-
 			// Store list
 			auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~m_ptrStoreEntryIDs);
 			if (hr == hrSuccess)
@@ -170,11 +166,9 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 			if (hr != hrSuccess)
 				return hr;
 		}
-
 		else if (lpsPropValue->ulPropTag == PROP_ARCHIVE_ITEM_ENTRYIDS) {
 			if (m_mode == MODE_UNARCHIVED)
 				m_mode = MODE_ARCHIVED;
-
 			// Store list
 			auto hr = MAPIAllocateBuffer(sizeof(SPropValue), &~m_ptrItemEntryIDs);
 			if (hr == hrSuccess)
@@ -182,17 +176,14 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 			if (hr != hrSuccess)
 				return hr;
 		}
-
 		else if (lpsPropValue->ulPropTag == PROP_STUBBED) {
 			if (lpsPropValue->Value.b == TRUE)
 				m_mode = MODE_STUBBED;
-
 			// The message is not stubbed once destubbed.
 			// This fixes all kind of weird copy issues where the stubbed property does not
 			// represent the actual state of the message.
 			copy.Value.b = FALSE;
 		}
-
 		else if (lpsPropValue->ulPropTag == PROP_DIRTY) {
 			if (lpsPropValue->Value.b != FALSE)
 				m_mode = MODE_DIRTY;
@@ -213,7 +204,6 @@ HRESULT	ECArchiveAwareMessage::HrDeleteRealProp(ULONG ulPropTag, BOOL fOverwrite
 	auto hr = ECMessage::HrDeleteRealProp(ulPropTag, fOverwriteRO);
 	if (hr == hrSuccess && !m_bLoading)
 		m_bChanged = true;
-
 	return hr;
 }
 
@@ -246,7 +236,6 @@ HRESULT ECArchiveAwareMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterf
 HRESULT ECArchiveAwareMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach)
 {
 	HRESULT hr = hrSuccess;
-
 	/*
 	 * Here, we want to create an ECArchiveAwareAttach when we are still
 	 * loading. We need that because an ECArchiveAwareAttach allows its
@@ -254,13 +243,11 @@ HRESULT ECArchiveAwareMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, U
 	 */
 	if (m_bLoading)
 		hr = ECMessage::CreateAttach(lpInterface, ulFlags, ECArchiveAwareAttachFactory(), lpulAttachmentNum, lppAttach);
-
 	else {
 		hr = ECMessage::CreateAttach(lpInterface, ulFlags, ECAttachFactory(), lpulAttachmentNum, lppAttach);
 		if (hr == hrSuccess)
 			m_bChanged = true;	// Definitely changed.
 	}
-
 	return hr;
 }
 
@@ -269,7 +256,6 @@ HRESULT ECArchiveAwareMessage::DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIPar
 	auto hr = ECMessage::DeleteAttach(ulAttachmentNum, ulUIParam, lpProgress, ulFlags);
 	if (hr == hrSuccess && !m_bLoading)
 		m_bChanged = true;	// Definitely changed.
-
 	return hr;
 }
 
@@ -279,7 +265,6 @@ HRESULT ECArchiveAwareMessage::ModifyRecipients(ULONG ulFlags,
 	auto hr = ECMessage::ModifyRecipients(ulFlags, lpMods);
 	if (hr == hrSuccess)
 		m_bChanged = true;
-
 	return hr;
 }
 
@@ -289,12 +274,10 @@ HRESULT ECArchiveAwareMessage::SaveChanges(ULONG ulFlags)
 
 	if (!fModify)
 		return MAPI_E_NO_ACCESS;
-
 	// We can't use this->lstProps here since that would suggest things have changed because we might have
 	// destubbed ourselves, which is a change from the object model point of view.
 	if (!m_bChanged)
 		return hrSuccess;
-
 	// From here on we're no longer stubbed.
 	if (m_bNamedPropsMapped) {
 		auto hr = DeleteProps(sptaStubbedProp, NULL);
@@ -310,7 +293,6 @@ HRESULT ECArchiveAwareMessage::SaveChanges(ULONG ulFlags)
 		auto hr = SetProps(1, &propDirty, nullptr);
 		if (hr != hrSuccess)
 			return hr;
-
 		m_mode = MODE_DIRTY;	// We have an archived version that's now out of sync.
 	}
 	return ECMessage::SaveChanges(ulFlags);
@@ -363,11 +345,9 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDelet
 	hr = OpenProperty(PR_HTML, &iid_of(ptrHtmlStream), 0, MAPI_CREATE | MAPI_MODIFY, &~ptrHtmlStream);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = ptrHtmlStream->SetSize(liZero);
 	if (hr != hrSuccess)
 		return hr;
-
 	hr = ptrHtmlStream->Write(strBodyHtml.c_str(), strBodyHtml.size(), NULL);
 	if (hr != hrSuccess)
 		return hr;
@@ -425,7 +405,6 @@ std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 	}
 
 	ossHtmlBody << KC_T("</BODY></HTML>");
-
 	tstring strHtmlBody = ossHtmlBody.str();
 	return convert_to<std::string>("UTF-8", strHtmlBody, rawsize(strHtmlBody), CHARSET_TCHAR);
 }

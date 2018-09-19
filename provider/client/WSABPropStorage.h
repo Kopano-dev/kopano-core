@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef WSABPROPSTORAGE_H
 #define WSABPROPSTORAGE_H
 
@@ -29,13 +28,10 @@ public:
 	static HRESULT Reload(void *parm, KC::ECSESSIONID);
 	
 private:
-
 	// Get a single (large) property
 	virtual HRESULT HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue);
-
 	// Save complete object to disk
 	virtual HRESULT HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);
-
 	// Load complete object from disk
 	virtual HRESULT HrLoadObject(MAPIOBJECT **lppsMapiObject);
 	virtual IECPropStorage *GetServerStorage() override { return this; }

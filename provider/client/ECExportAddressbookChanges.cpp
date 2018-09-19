@@ -43,7 +43,6 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 	auto hr = lpStream->Stat(&sStatStg, 0);
 	if(hr != hrSuccess)
 		return hr;
-
 	hr = lpStream->Seek(lint, STREAM_SEEK_SET, NULL);
 	if (hr != hrSuccess)
 		return hr;
@@ -57,7 +56,6 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 		hr = lpStream->Read(&m_ulChangeId, sizeof(ULONG), &ulRead);
 		if(hr != hrSuccess)
 			return hr;
-
 		hr = lpStream->Read(&ulCount, sizeof(ULONG), &ulRead);
 		if(hr != hrSuccess)
 			return hr;
@@ -125,7 +123,6 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 				m_lpChanges[n++] = *lpLastChange;
 				lpLastChange = NULL;
 			}
-
 			if (lpLastChange == nullptr) {
 				lpLastChange = &m_lpRawChanges[i];
 				continue;
@@ -185,7 +182,6 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 
 	m_ulChanges = n;
 	ZLOG_DEBUG(m_lpLogger, "Got %u address book changes after sorting/filtering.", m_ulChanges);
-
     // Next change is first one
     m_ulThisChange = 0;
     return hr;
@@ -224,14 +220,12 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
     
 	if (hr == SYNC_E_IGNORE)
 		hr = hrSuccess;
-
 	else if (hr == MAPI_E_INVALID_TYPE) {
 		m_lpLogger->logf(EC_LOGLEVEL_WARNING, "Ignoring invalid entry, type=%04x, sourcekey=%s",
 			m_lpChanges[m_ulThisChange].ulChangeType,
 			bin2hex(m_lpChanges[m_ulThisChange].sSourceKey).c_str());
 		hr = hrSuccess;
 	}
-
 	else if (hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "failed type=%04x, %s, hr=%x, sourcekey=%s",
 			m_lpChanges[m_ulThisChange].ulChangeType, GetMAPIErrorMessage(hr), hr,
@@ -242,7 +236,6 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
 	// Mark the change as processed
 	m_setProcessed.emplace(m_lpChanges[m_ulThisChange].ulChangeId);
 	++m_ulThisChange;
-
 	if (lpulSteps)
 		*lpulSteps = m_ulChanges;
 	if (lpulProgress)
@@ -259,7 +252,6 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 	if(m_ulThisChange == m_ulChanges) {
 		// All changes have been processed, we can discard processed changes and go to the next server change ID
 		m_setProcessed.clear();
-
 		// The last change ID we received is always the highest change ID
 		if(m_ulMaxChangeId > 0)
 			m_ulChangeId = m_ulMaxChangeId;
@@ -268,11 +260,9 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 	auto hr = lpStream->Seek(zero, STREAM_SEEK_SET, nullptr);
 	if(hr != hrSuccess)
 		return hr;
-
 	hr = lpStream->SetSize(uzero);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Write the change ID
 	hr = lpStream->Write(&m_ulChangeId, sizeof(ULONG), &ulWritten);
 	if(hr != hrSuccess)
@@ -293,7 +283,6 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 	}
 
 	lpStream->Seek(zero, STREAM_SEEK_SET, NULL);
-
 	// All done
 	return hrSuccess;
 }
@@ -335,18 +324,14 @@ bool ECExportAddressbookChanges::LeftPrecedesRight(const ICSCHANGE &left, const 
 {
 	ULONG ulTypeLeft = ((ABEID*)left.sSourceKey.lpb)->ulType;
 	assert(ulTypeLeft == MAPI_MAILUSER || ulTypeLeft == MAPI_DISTLIST || ulTypeLeft == MAPI_ABCONT);
-
 	ULONG ulTypeRight = ((ABEID*)right.sSourceKey.lpb)->ulType;
 	assert(ulTypeRight == MAPI_MAILUSER || ulTypeRight == MAPI_DISTLIST || ulTypeRight == MAPI_ABCONT);
 
 	if (ulTypeLeft == ulTypeRight)
 		return SortCompareABEID(left.sSourceKey.cb, (LPENTRYID)left.sSourceKey.lpb, right.sSourceKey.cb, (LPENTRYID)right.sSourceKey.lpb) < 0;
-
 	if (ulTypeRight == MAPI_ABCONT)		// Company is always bigger.
 		return true;
-
 	if (ulTypeRight == MAPI_DISTLIST && ulTypeLeft == MAPI_MAILUSER)	// Group is only bigger than user.
 		return true;
-
 	return false;
 }

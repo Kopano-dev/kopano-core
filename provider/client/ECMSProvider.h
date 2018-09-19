@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef MSPROVIDER_H
 #define MSPROVIDER_H
 
@@ -35,6 +34,7 @@ private:
 class ECMSProviderSwitch _kc_final : public KC::ECUnknown, public IMSProvider {
 protected:
 	ECMSProviderSwitch(ULONG ulFlags);
+
 public:
 	static  HRESULT Create(ULONG ulFlags, ECMSProviderSwitch **lppMSProvider);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
@@ -44,7 +44,6 @@ public:
 	virtual HRESULT CompareStoreIDs(ULONG eid1_size, const ENTRYID *eid1, ULONG eid2_size, const ENTRYID *eid2, ULONG flags, ULONG *result) override;
 
 protected:
-	
 	ULONG			m_ulFlags;
 	ALLOC_WRAP_FRIEND;
 };

@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef WSMessageStreamExporter_INCLUDED
 #define WSMessageStreamExporter_INCLUDED
 
@@ -23,14 +22,12 @@ class WSSerializedMessage;
 class WSMessageStreamExporter _kc_final : public KC::ECUnknown {
 public:
 	static HRESULT Create(ULONG ulOffset, ULONG ulCount, const messageStreamArray &streams, WSTransport *lpTransport, WSMessageStreamExporter **lppStreamExporter);
-
 	bool IsDone() const;
 	HRESULT GetSerializedMessage(ULONG ulIndex, WSSerializedMessage **lppSerializedMessage);
 
 private:
 	WSMessageStreamExporter(void) = default;
 	~WSMessageStreamExporter();
-
 	// Inhibit copying
 	WSMessageStreamExporter(const WSMessageStreamExporter &) = delete;
 	WSMessageStreamExporter &operator=(const WSMessageStreamExporter &) = delete;

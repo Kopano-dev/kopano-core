@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECWSUTIL_H
 #define ECWSUTIL_H
 
@@ -23,12 +22,10 @@ extern HRESULT CopySOAPPropValToMAPIPropVal(SPropValue *dst, const struct propVa
 extern HRESULT CopySOAPRowToMAPIRow(void *prov, const struct propValArray *src, SPropValue *dst, void **base, ULONG type, KC::convert_context * = nullptr);
 HRESULT CopySOAPRowSetToMAPIRowSet(void *lpProvider, const struct rowSet *lpsRowSetSrc, LPSRowSet *lppRowSetDst, ULONG ulType);
 extern HRESULT CopySOAPRestrictionToMAPIRestriction(SRestriction *dst, const struct restrictTable *src, void *base, KC::convert_context * = nullptr);
-
 extern HRESULT CopyMAPIRestrictionToSOAPRestriction(struct restrictTable **dst, const SRestriction *src, KC::convert_context * = nullptr);
 extern HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *src, struct rowSet **dst, KC::convert_context * = nullptr);
 extern HRESULT CopyMAPIRowToSOAPRow(const SRow *src, struct propValArray *dst, KC::convert_context * = nullptr);
 extern HRESULT CopySOAPRowToMAPIRow(const struct propValArray *src, SPropValue *dst, void *base, KC::convert_context * = nullptr);
-
 HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc, const ENTRYID *lpEntryIdSrc, entryId **lppDest);
 HRESULT CopyMAPIEntryIdToSOAPEntryId(ULONG cbEntryIdSrc, const ENTRYID *lpEntryIdSrc, entryId *lpDest, bool bCheapCopy = false);
 HRESULT CopySOAPEntryIdToMAPIEntryId(const entryId *lpSrc, ULONG *lpcbDest, LPENTRYID *lppEntryIdDest, void *lpBase = NULL);
@@ -60,5 +57,3 @@ HRESULT ConvertString8ToUnicode(LPSRowSet lpRowSet);
 extern HRESULT ConvertString8ToUnicode(SRow *row, void *base, KC::convert_context &);
 
 #endif
-
-

@@ -57,11 +57,11 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	object_ptr<ECABLogon> lpABLogon;
 	sGlobalProfileProps	sProfileProps;
 	object_ptr<WSTransport> lpTransport;
+
 	// Get the username and password from the profile settings
 	auto hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if(hr != hrSuccess)
 		return hr;
-
 	// Create a transport for this provider
 	hr = WSTransport::Create(ulFlags, &~lpTransport);
 	if(hr != hrSuccess)
@@ -74,16 +74,13 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	if(hr != hrSuccess)
 		return hr;
 	AddChild(lpABLogon);
-
 	hr = lpABLogon->QueryInterface(IID_IABLogon, (void **)lppABLogon);
 	if(hr != hrSuccess)
 		return hr;
 	if (lpulcbSecurity)
 		*lpulcbSecurity = 0;
-
 	if (lppbSecurity)
 		*lppbSecurity = NULL;
-
 	if (lppMAPIError)
 		*lppMAPIError = NULL;
 	return hrSuccess;
@@ -118,8 +115,8 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 	PROVIDER_INFO sProviderInfo;
 	object_ptr<IABLogon> lpABLogon;
 	object_ptr<IABProvider> lpOnline;
-
 	convstring tstrProfileName(lpszProfileName, ulFlags);
+
 	auto hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
 		return hr;
@@ -153,10 +150,8 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG_PTR ulUIParam,
 		return hr;
 	if(lpulcbSecurity)
 		*lpulcbSecurity = 0;
-
 	if(lppbSecurity)
 		*lppbSecurity = NULL;
-
 	if (lppMAPIError)
 		*lppMAPIError = NULL;
 	return hrSuccess;

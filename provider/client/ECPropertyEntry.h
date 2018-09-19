@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECPROPERTYENTRY_H
 #define ECPROPERTYENTRY_H
 
@@ -37,14 +36,11 @@ public:
 	ECProperty(const ECProperty &Property);
 	ECProperty(const SPropValue *);
 	~ECProperty();
-
 	HRESULT CopyFrom(const SPropValue *);
 	HRESULT CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulPropTag);
 	HRESULT CopyToByRef(LPSPropValue lpsProp) const;
-	
 	bool operator==(const ECProperty &property) const;
 	SPropValue GetMAPIPropValRef(void) const;
-
 	ULONG GetSize() const { return ulSize; }
 	ULONG GetPropTag() const { return ulPropTag; }
 	DWORD GetLastError() const { return dwLastError; }
@@ -68,7 +64,6 @@ public:
 	ECPropertyEntry(std::unique_ptr<ECProperty> &&);
 	ECPropertyEntry(ECPropertyEntry &&) = default;
 	~ECPropertyEntry();
-
 	HRESULT			HrSetProp(ECProperty *property);
 	HRESULT HrSetProp(const SPropValue *);
 	HRESULT			HrSetClean();

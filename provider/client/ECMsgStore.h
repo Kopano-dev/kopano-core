@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECMSGSTORE_H
 #define ECMSGSTORE_H
 
@@ -41,14 +40,12 @@ class ECMsgStore :
 protected:
 	ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore);
 	virtual ~ECMsgStore();
-
 	static HRESULT GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
 
 public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT QueryInterfaceProxy(REFIID refiid, void **lppInterface);
-
 	static HRESULT Create(const char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL bIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore);
 	virtual HRESULT SaveChanges(ULONG flags) override;
 	virtual HRESULT SetProps(ULONG nvals, const SPropValue *, SPropProblemArray **) override;
@@ -159,7 +156,6 @@ public:
 	BOOL IsDelegateStore() const;
 	BOOL IsOfflineStore() const { return false; }
 	LPCSTR GetProfileName() const { return m_strProfname.c_str(); }
-
 	const GUID& GetStoreGuid();
 	HRESULT GetWrappedStoreEntryID(ULONG* lpcbWrapped, LPENTRYID* lppWrapped);
 	//Special wrapper for the spooler vs outgoing queue
@@ -247,4 +243,3 @@ public:
 };
 
 #endif // ECMSGSTORE_H
-

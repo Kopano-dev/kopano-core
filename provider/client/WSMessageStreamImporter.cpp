@@ -83,14 +83,13 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId,
 	struct propVal sConflictItems;
 	WSMessageStreamImporterPtr ptrStreamImporter;
 	ECSyncSettings* lpSyncSettings = NULL;
+
 	auto hr = CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, false);
 	if (hr != hrSuccess)
 		goto exit;
-
 	hr = CopyMAPIEntryIdToSOAPEntryId(cbFolderEntryID, lpFolderEntryID, &sFolderEntryId, false);
 	if (hr != hrSuccess)
 		goto exit;
-
 	if (lpConflictItems) {
 		hr = CopyMAPIPropValToSOAPPropVal(&sConflictItems, lpConflictItems);
 		if (hr != hrSuccess)
@@ -226,7 +225,6 @@ size_t WSMessageStreamImporter::MTOMRead(struct soap* soap, void* /*handle*/, ch
 		m_hr = kcerr_to_mapierr(er);
 		return 0;
 	}
-
 	return cbRead;
 }
 

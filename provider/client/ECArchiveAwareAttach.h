@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECARCHIVEAWAREATTACH_INCLUDED
 #define ECARCHIVEAWAREATTACH_INCLUDED
 
@@ -29,6 +28,5 @@ class ECArchiveAwareAttachFactory _kc_final : public IAttachFactory {
 public:
 	HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root, ECAttach **) const;
 };
-
 
 #endif // ndef ECARCHIVEAWAREATTACH_INCLUDED

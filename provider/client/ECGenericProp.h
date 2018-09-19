@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  * Copyright 2005 - 2016 Zarafa and its licensors
  */
-
 #ifndef ECGENERICPROP_H
 #define ECGENERICPROP_H
 
@@ -121,7 +120,6 @@ protected:
 	BOOL fSaved = false; // only 0 if just created, // not saved until we either read or write from/to disk
 	ULONG					ulObjType;
 	ULONG ulObjFlags = 0; // message: MAPI_ASSOCIATED, folder: FOLDER_SEARCH (last?)
-
 	BOOL					fModify;
 	void*					lpProvider;
 	BOOL isTransactedObject = true; // only ECMsgStore and ECMAPIFolder are not transacted
@@ -138,8 +136,6 @@ public:
 	std::unique_ptr<MAPIOBJECT> m_sMapiObject;
 };
 
-
-// Inlines
 inline bool ECGenericProp::IsReadOnly() const {
 	return !fModify;
 }

@@ -4007,7 +4007,6 @@ std::string WSTransport::GetAppName()
 		return m_strAppName;
 	std::string procpath = "/proc/" + stringify(getpid()) + "/cmdline";
 	std::string s;
-
 	std::ifstream in(procpath.c_str());	
 
 	if (!getline(in, s))

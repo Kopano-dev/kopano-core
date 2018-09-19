@@ -100,7 +100,6 @@ HRESULT WSTableMultiStore::HrOpenTable()
 HRESULT WSTableMultiStore::HrSetEntryIDs(const ENTRYLIST *lpMsgList)
 {
 	// Not really a transport function, but this is the best place for it for now
-
 	return CopyMAPIEntryListToSOAPEntryList(lpMsgList, &m_sEntryList);
 }
 
