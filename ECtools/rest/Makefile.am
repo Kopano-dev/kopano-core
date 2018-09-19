@@ -1,4 +1,5 @@
 # -*- Makefile -*-
+if WITH_PYTHON3
 
 EXTRA_DIST = setup.py \
 	setup.cfg \
@@ -38,3 +39,5 @@ install-exec-local:
 uninstall-local:
 	rm -Rf ${DESTDIR}${pythondir}/kopano_rest \
 		${DESTDIR}${pythondir}/kopano_rest-*.egg-info
+
+endif

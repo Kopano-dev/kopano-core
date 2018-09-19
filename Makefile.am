@@ -65,7 +65,10 @@ if HAVE_TIDY
 noinst_PROGRAMS += rosie-test
 endif
 pkglibexec_PROGRAMS = kscriptrun mapitime
-pkglibexec_SCRIPTS = ECtools/rest/kopano-mfr.py
+pkglibexec_SCRIPTS =
+if WITH_PYTHON3
+pkglibexec_SCRIPTS += ECtools/rest/kopano-mfr.py
+endif
 check_PROGRAMS = tests/ablookup tests/imtomapi tests/kc-335 tests/mapialloctime \
 	tests/readflag tests/zcpmd5
 noinst_PROGRAMS += ${check_PROGRAMS}

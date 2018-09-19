@@ -673,6 +673,7 @@ AS_IF([test -n "$PYTHON"], [
 	AS_IF([test -z "$PYTHON"], [PYTHON="$1"])
 	shift
 	PYTHON=$(echo "$PYTHON $@")
+	PYTHON_MAJOR_VERSION=$($PYTHON -c "from __future__ import print_function;import sys;print(sys.version_info[[0]])" 2>/dev/null)
 ])
 AH_TEMPLATE([ENABLE_PYTHON], [Build dagent/spooler with Python plugin support])
 AC_ARG_ENABLE([python], [AS_HELP_STRING([--enable-python], [Enable building of Python bindings (default: auto)])],
@@ -690,6 +691,8 @@ AS_IF([test "$want_python" != no], [
 ])
 AM_CONDITIONAL([ENABLE_PYTHON], [test "$want_python" != no -a -n "$PYTHON_LIBS"])
 
+AM_CONDITIONAL([WITH_PYTHON3], [test "x$PYTHON_MAJOR_VERSION" = "x3"])
+AM_CONDITIONAL([WITH_PYTHON2], [test "x$PYTHON_MAJRO_VERSION" = "x2"])
 
 #
 # Output files
@@ -794,4 +797,5 @@ KCOIDC lib	:	$kcoidc_LIBS
 ICU libs	:	$icu_uc_LIBS $icu_i18n_LIBS
 Python flags	:	$PYTHON_CFLAGS
 Python libs	:	$PYTHON_LIBS
+Python version  :       $PYTHON_MAJOR_VERSION
 ])
