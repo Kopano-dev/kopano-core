@@ -41,68 +41,67 @@ static constexpr const SizedSPropTagArray(20, sptaKopanoProfile) =
 
 HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULONG ulResourceType, LPMAPISUP lpMAPISup, LPSPropValue lpspvIdentity, ULONG ulFlags)
 {
-	memory_ptr<SPropValue> lpspvStatusRow;
-	ULONG			cCurVal = 0;
-
-	auto hResult = MAPIAllocateBuffer(sizeof(SPropValue) * 13, &~lpspvStatusRow);
+	memory_ptr<SPropValue> row;
+	size_t n = 0;
+	auto hResult = MAPIAllocateBuffer(sizeof(SPropValue) * 13, &~row);
 	if(hResult != hrSuccess)
 		return hResult;
 
-	memset(lpspvStatusRow, 0, sizeof(SPropValue) * 13);
+	memset(row, 0, sizeof(SPropValue) * 13);
 
 	if(lpszProviderDisplay)
 	{
 		unsigned int size = strlen(lpszProviderDisplay) + 1;
 		// Set the PR_PROVIDER_DISPLAY property:
-		lpspvStatusRow[cCurVal].ulPropTag = PR_PROVIDER_DISPLAY_A;
-		hResult = KAllocCopy(lpszProviderDisplay, size, reinterpret_cast<void **>(&lpspvStatusRow[cCurVal].Value.lpszA), lpspvStatusRow);
+		row[n].ulPropTag = PR_PROVIDER_DISPLAY_A;
+		hResult = KAllocCopy(lpszProviderDisplay, size, reinterpret_cast<void **>(&row[n].Value.lpszA), row);
 		if(hResult != hrSuccess)
 			return hResult;
-		++cCurVal;
+		++n;
 
 	// Set the PR_DISPLAY_NAME property
-		lpspvStatusRow[cCurVal].ulPropTag = PR_DISPLAY_NAME_A;
-		hResult = KAllocCopy(lpszProviderDisplay, size, reinterpret_cast<void **>(&lpspvStatusRow[cCurVal].Value.lpszA), lpspvStatusRow);
+		row[n].ulPropTag = PR_DISPLAY_NAME_A;
+		hResult = KAllocCopy(lpszProviderDisplay, size, reinterpret_cast<void **>(&row[n].Value.lpszA), row);
 		if(hResult != hrSuccess)
 			return hResult;
-		++cCurVal;
+		++n;
 	}
 
 	// PR_PROVIDER_DLL_NAME
-	lpspvStatusRow[cCurVal].ulPropTag = PR_PROVIDER_DLL_NAME_A;
-	lpspvStatusRow[cCurVal++].Value.lpszA = (LPSTR)WCLIENT_DLL_NAME;
+	row[n].ulPropTag     = PR_PROVIDER_DLL_NAME_A;
+	row[n++].Value.lpszA = const_cast<char *>(WCLIENT_DLL_NAME);
 
 	// Set the PR_STATUS_CODE property:
-	lpspvStatusRow[cCurVal].ulPropTag = PR_STATUS_CODE;
-	lpspvStatusRow[cCurVal++].Value.l = 1;
+	row[n].ulPropTag     = PR_STATUS_CODE;
+	row[n++].Value.l     = 1;
 
 	// Set the PR_STATUS_STRING property
-	lpspvStatusRow[cCurVal].ulPropTag = PR_STATUS_STRING_W;
-	lpspvStatusRow[cCurVal++].Value.lpszW = KC_W("Available");
+	row[n].ulPropTag     = PR_STATUS_STRING_W;
+	row[n++].Value.lpszW = KC_W("Available");
 
 	// Set the PR_IDENTITY_ENTRYID property
-	lpspvStatusRow[cCurVal].ulPropTag = PR_IDENTITY_ENTRYID;
-	lpspvStatusRow[cCurVal++].Value.bin = lpspvIdentity[XPID_EID].Value.bin;
+	row[n].ulPropTag     = PR_IDENTITY_ENTRYID;
+	row[n++].Value.bin   = lpspvIdentity[XPID_EID].Value.bin;
 
 	// Set the PR_IDENTITY_DISPLAY property
-	lpspvStatusRow[cCurVal].ulPropTag = CHANGE_PROP_TYPE(PR_IDENTITY_DISPLAY, PROP_TYPE(lpspvIdentity[XPID_NAME].ulPropTag));
-	lpspvStatusRow[cCurVal++].Value.LPSZ = lpspvIdentity[XPID_NAME].Value.LPSZ;
+	row[n].ulPropTag     = CHANGE_PROP_TYPE(PR_IDENTITY_DISPLAY, PROP_TYPE(lpspvIdentity[XPID_NAME].ulPropTag));
+	row[n++].Value.LPSZ  = lpspvIdentity[XPID_NAME].Value.LPSZ;
 
 	// Set the PR_IDENTITY_SEARCH_KEY property
-	lpspvStatusRow[cCurVal].ulPropTag = PR_IDENTITY_SEARCH_KEY;
-	lpspvStatusRow[cCurVal++].Value.bin = lpspvIdentity[XPID_SEARCH_KEY].Value.bin;
+	row[n].ulPropTag     = PR_IDENTITY_SEARCH_KEY;
+	row[n++].Value.bin   = lpspvIdentity[XPID_SEARCH_KEY].Value.bin;
 
 	// Set the PR_OWN_STORE_ENTRYID property
-	lpspvStatusRow[cCurVal].ulPropTag = PR_OWN_STORE_ENTRYID;
-	lpspvStatusRow[cCurVal++].Value.bin = lpspvIdentity[XPID_STORE_EID].Value.bin;
+	row[n].ulPropTag     = PR_OWN_STORE_ENTRYID;
+	row[n++].Value.bin   = lpspvIdentity[XPID_STORE_EID].Value.bin;
 
-	lpspvStatusRow[cCurVal].ulPropTag = PR_RESOURCE_METHODS;
-	lpspvStatusRow[cCurVal++].Value.l = STATUS_VALIDATE_STATE;
+	row[n].ulPropTag     = PR_RESOURCE_METHODS;
+	row[n++].Value.l     = STATUS_VALIDATE_STATE;
 
-	lpspvStatusRow[cCurVal].ulPropTag = PR_RESOURCE_TYPE;
-	lpspvStatusRow[cCurVal++].Value.l = ulResourceType; //like MAPI_STORE_PROVIDER or MAPI_TRANSPORT_PROVIDER
+	row[n].ulPropTag     = PR_RESOURCE_TYPE;
+	row[n++].Value.l     = ulResourceType; //like MAPI_STORE_PROVIDER or MAPI_TRANSPORT_PROVIDER
 
-	return lpMAPISup->ModifyStatusRow(cCurVal, lpspvStatusRow, ulFlags);
+	return lpMAPISup->ModifyStatusRow(n, row, ulFlags);
 }
 
 HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup, LPSPropValue* lppIdentityProps)
@@ -110,50 +109,50 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 	ULONG cbEntryStore = 0, cbEID = 0;
 	memory_ptr<ENTRYID> lpEntryStore, lpEID;
 	memory_ptr<ECUSER> lpUser;
-	memory_ptr<SPropValue> lpIdentityProps;
+	memory_ptr<SPropValue> idp;
 
 	// Get the username and email adress
 	auto hr = lpTransport->HrGetUser(0, NULL, fMapiUnicode, &~lpUser);
 	if(hr != hrSuccess)
 		return hr;
 	unsigned int cValues = NUM_IDENTITY_PROPS;
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpIdentityProps);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~idp);
 	if (hr != hrSuccess)
 		return hr;
-	memset(lpIdentityProps, 0, sizeof(SPropValue) * cValues);
+	memset(idp, 0, sizeof(SPropValue) * cValues);
 
 	auto strProfileSenderSearchKey = strToUpper(tstring(TRANSPORT_ADDRESS_TYPE_ZARAFA) + KC_T(":") + lpUser->lpszMailAddress);
-	lpIdentityProps[XPID_EID].ulPropTag = PR_SENDER_ENTRYID;
-	lpIdentityProps[XPID_EID].Value.bin.cb = lpUser->sUserId.cb;
-	hr = KAllocCopy(lpUser->sUserId.lpb, lpUser->sUserId.cb, reinterpret_cast<void **>(&lpIdentityProps[XPID_EID].Value.bin.lpb), lpIdentityProps);
+	idp[XPID_EID].ulPropTag = PR_SENDER_ENTRYID;
+	idp[XPID_EID].Value.bin.cb = lpUser->sUserId.cb;
+	hr = KAllocCopy(lpUser->sUserId.lpb, lpUser->sUserId.cb, reinterpret_cast<void **>(&idp[XPID_EID].Value.bin.lpb), idp);
 	if (hr != hrSuccess)
 		return hr;
 
 	// Create the PR_SENDER_NAME property value.
-	lpIdentityProps[XPID_NAME].ulPropTag = PR_SENDER_NAME;
+	idp[XPID_NAME].ulPropTag = PR_SENDER_NAME;
 	unsigned int ulSize = sizeof(TCHAR) * (_tcslen(lpUser->lpszFullName) + 1);
-	hr = KAllocCopy(lpUser->lpszFullName, ulSize, reinterpret_cast<void **>(&lpIdentityProps[XPID_NAME].Value.LPSZ), lpIdentityProps);
+	hr = KAllocCopy(lpUser->lpszFullName, ulSize, reinterpret_cast<void **>(&idp[XPID_NAME].Value.LPSZ), idp);
 	if (hr != hrSuccess)
 		return hr;
 
 	// Create the PR_SENDER_SEARCH_KEY value. 
-	lpIdentityProps[XPID_SEARCH_KEY].ulPropTag = PR_SENDER_SEARCH_KEY;
-	lpIdentityProps[XPID_SEARCH_KEY].Value.bin.cb = strProfileSenderSearchKey.size()+1;
-	hr = KAllocCopy(strProfileSenderSearchKey.c_str(), lpIdentityProps[XPID_SEARCH_KEY].Value.bin.cb, reinterpret_cast<void **>(&lpIdentityProps[XPID_SEARCH_KEY].Value.bin.lpb), lpIdentityProps);
+	idp[XPID_SEARCH_KEY].ulPropTag = PR_SENDER_SEARCH_KEY;
+	idp[XPID_SEARCH_KEY].Value.bin.cb = strProfileSenderSearchKey.size()+1;
+	hr = KAllocCopy(strProfileSenderSearchKey.c_str(), idp[XPID_SEARCH_KEY].Value.bin.cb, reinterpret_cast<void **>(&idp[XPID_SEARCH_KEY].Value.bin.lpb), idp);
 	if (hr != hrSuccess)
 		return hr;
 
 	// PR_SENDER_EMAIL_ADDRESS
-	lpIdentityProps[XPID_ADDRESS].ulPropTag = PR_SENDER_EMAIL_ADDRESS;
+	idp[XPID_ADDRESS].ulPropTag = PR_SENDER_EMAIL_ADDRESS;
 	ulSize = sizeof(TCHAR) * (_tcslen(lpUser->lpszMailAddress) + 1);
-	hr = KAllocCopy(lpUser->lpszMailAddress, ulSize, reinterpret_cast<void **>(&lpIdentityProps[XPID_ADDRESS].Value.LPSZ), lpIdentityProps);
+	hr = KAllocCopy(lpUser->lpszMailAddress, ulSize, reinterpret_cast<void **>(&idp[XPID_ADDRESS].Value.LPSZ), idp);
 	if (hr != hrSuccess)
 		return hr;
 
 	// PR_SENDER_ADDRTYPE
-	lpIdentityProps[XPID_ADDRTYPE].ulPropTag = PR_SENDER_ADDRTYPE;
+	idp[XPID_ADDRTYPE].ulPropTag = PR_SENDER_ADDRTYPE;
 	ulSize = sizeof(TCHAR) * (_tcslen(TRANSPORT_ADDRESS_TYPE_ZARAFA) + 1);
-	hr = KAllocCopy(TRANSPORT_ADDRESS_TYPE_ZARAFA, ulSize, reinterpret_cast<void **>(&lpIdentityProps[XPID_ADDRTYPE].Value.LPSZ), lpIdentityProps);
+	hr = KAllocCopy(TRANSPORT_ADDRESS_TYPE_ZARAFA, ulSize, reinterpret_cast<void **>(&idp[XPID_ADDRTYPE].Value.LPSZ), idp);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -163,15 +162,15 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 		hr = lpMAPISup->WrapStoreEntryID(cbEntryStore, lpEntryStore, &cbEID, (&~lpEID).as<ENTRYID>());
 		if(hr != hrSuccess) 
 			return hr;
-		lpIdentityProps[XPID_STORE_EID].ulPropTag = PR_OWN_STORE_ENTRYID;
-		lpIdentityProps[XPID_STORE_EID].Value.bin.cb = cbEID;
-		hr = KAllocCopy(lpEID.get(), cbEID, reinterpret_cast<void **>(&lpIdentityProps[XPID_STORE_EID].Value.bin.lpb), lpIdentityProps);
+		idp[XPID_STORE_EID].ulPropTag = PR_OWN_STORE_ENTRYID;
+		idp[XPID_STORE_EID].Value.bin.cb = cbEID;
+		hr = KAllocCopy(lpEID.get(), cbEID, reinterpret_cast<void **>(&idp[XPID_STORE_EID].Value.bin.lpb), idp);
 		if (hr != hrSuccess)
 			return hr;
 	}
 	
 	// Set the identity in the global provider identity
-	*lppIdentityProps = lpIdentityProps.release();
+	*lppIdentityProps = idp.release();
 	return hrSuccess;
 }
 
