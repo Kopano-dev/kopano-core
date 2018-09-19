@@ -308,8 +308,7 @@ HRESULT ECMsgStorePublic::ComparePublicEntryId(enumPublicEntryID ePublicEntryID,
 		return MAPI_E_INVALID_PARAMETER;
 
 	HRESULT hr;
-	ULONG ulResult = 0;
-	ULONG cbPublicID = 0;
+	unsigned int ulResult = 0, cbPublicID = 0;
 	LPENTRYID lpPublicID = NULL;
 
 	hr = InitEntryIDs();

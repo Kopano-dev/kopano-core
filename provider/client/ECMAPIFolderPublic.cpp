@@ -307,9 +307,7 @@ HRESULT ECMAPIFolderPublic::SaveChanges(ULONG ulFlags)
 HRESULT ECMAPIFolderPublic::SetProps(ULONG cValues,
     const SPropValue *lpPropArray, SPropProblemArray **lppProblems)
 {
-	HRESULT hr;
-
-	hr = ECMAPIContainer::SetProps(cValues, lpPropArray, lppProblems);
+	auto hr = ECMAPIContainer::SetProps(cValues, lpPropArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -325,9 +323,7 @@ HRESULT ECMAPIFolderPublic::SetProps(ULONG cValues,
 HRESULT ECMAPIFolderPublic::DeleteProps(const SPropTagArray *lpPropTagArray,
     SPropProblemArray **lppProblems)
 {
-	HRESULT hr;
-
-	hr = ECMAPIContainer::DeleteProps(lpPropTagArray, lppProblems);
+	auto hr = ECMAPIContainer::DeleteProps(lpPropTagArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
 	if (lpStorage == nullptr)
@@ -372,8 +368,7 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID,
 	ULONG ulResult = 0;
 	object_ptr<IMAPIFolder> lpMapiFolder;
 	ecmem_ptr<SPropValue> lpPropArray;
-	GUID guidDest;
-	GUID guidFrom;
+	GUID guidDest, guidFrom;
 
 	//Get the interface of destinationfolder
 	if(lpInterface == NULL || *lpInterface == IID_IMAPIFolder)

@@ -353,18 +353,15 @@ HRESULT ECMSProviderSwitch::Logon(IMAPISupport *lpMAPISup, ULONG_PTR ulUIParam,
 	sGlobalProfileProps	sProfileProps;
 	object_ptr<IProfSect> lpProfSect;
 	memory_ptr<SPropValue> lpsPropArray, lpProp, lpIdentityProps;
-	ULONG			cValues = 0;
-
+	unsigned int cValues = 0, ulConnectType = CT_UNSPECIFIED, cbStoreID = 0;
 	char*			lpDisplayName = NULL;
 	bool			bIsDefaultStore = false;
 	object_ptr<IMsgStore> lpMDB;
 	object_ptr<IMSLogon> lpMSLogon;
 	PROVIDER_INFO sProviderInfo;
-	ULONG ulConnectType = CT_UNSPECIFIED;
 	object_ptr<IMSProvider> lpOnline;
 	convert_context converter;
 	memory_ptr<ENTRYID> lpStoreID;
-	ULONG			cbStoreID = 0;
 
 	convstring			tstrProfileName(lpszProfileName, ulFlags);
 	auto laters = make_scope_success([&]() {

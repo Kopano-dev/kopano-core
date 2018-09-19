@@ -104,10 +104,7 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 
 HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize){
 	HRESULT hr;
-
-	ULONG		ulSyncId = 0;
-	ULONG		ulChangeId = 0;
-	ULONG		ulStep = 0;
+	unsigned int ulSyncId = 0, ulChangeId = 0, ulStep = 0;
 	BOOL		bCanStream = FALSE;
 
 	bool		bForceImplicitStateUpdate = false;
@@ -168,8 +165,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 	if (lpStream == NULL){
 		LARGE_INTEGER lint = {{ 0, 0 }};
-		ULONG tmp[2] = { 0, 0 };
-		ULONG ulSize = 0;
+		unsigned int tmp[2] = {0, 0}, ulSize = 0;
 
 		zlog("Creating new exporter stream");
 		hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, sizeof(tmp)), true, &~m_lpStream);
@@ -1016,12 +1012,7 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 	HRESULT			hr = hrSuccess;
 	LPSPropValue	lpPropVal = NULL;
-
-	ULONG			ulObjType = 0;
-	ULONG			ulCount = 0;
-	ULONG			ulSteps = 0;
-
-	ULONG			cbEntryID = 0;
+	unsigned int ulObjType = 0, ulCount = 0, ulSteps = 0, cbEntryID = 0;
 
 	while(m_ulStep < m_lstChange.size() && (m_ulBufferSize == 0 || ulSteps < m_ulBufferSize)){
 		object_ptr<IMAPIFolder> lpFolder;
@@ -1140,10 +1131,7 @@ HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
 	HRESULT hr = hrSuccess;
 	LARGE_INTEGER liPos = {{0, 0}};
 	ULARGE_INTEGER liZero = {{0, 0}};
-	ULONG ulSize;
-	ULONG ulChangeCount = 0;
-	ULONG ulChangeId = 0;
-	ULONG ulSourceKeySize = 0;
+	unsigned int ulSize, ulChangeCount = 0, ulChangeId = 0, ulSourceKeySize = 0;
 	
 	if(lpStream == NULL)
 		goto exit;

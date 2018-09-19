@@ -173,19 +173,16 @@ HRESULT ECExchangeImportContentsChanges::UpdateState(LPSTREAM lpStream){
 HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage){
 	HRESULT hr = hrSuccess; 
 	memory_ptr<SPropValue> lpPropPCL, lpPropCK;
-	ULONG cbEntryId = 0;
+	unsigned int cbEntryId = 0, ulObjType = 0, ulNewFlags = 0;
 	memory_ptr<ENTRYID> lpEntryId;
 	auto lpMessageSourceKey = PCpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
 	auto lpMessageFlags = PCpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
 	auto lpMessageAssociated = PCpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
 	auto lpRemotePCL = PCpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
 	auto lpRemoteCK = PCpropFindProp(lpPropArray, cValue, PR_CHANGE_KEY);
-
-	ULONG ulObjType = 0;
 	bool bAssociatedMessage = false;
 	object_ptr<IMessage> lpMessage;
 	object_ptr<ECMessage> lpECMessage;
-	ULONG ulNewFlags = 0;
 
 	if(lpMessageSourceKey != NULL) {
 		hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId, m_lpSourceKey->Value.bin.cb, m_lpSourceKey->Value.bin.lpb, lpMessageSourceKey->Value.bin.cb, lpMessageSourceKey->Value.bin.lpb, &cbEntryId, &~lpEntryId);
