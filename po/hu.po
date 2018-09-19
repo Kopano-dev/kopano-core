@@ -7,15 +7,16 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-15 00:03+0100\n"
-"PO-Revision-Date: 2013-02-14 19:02+0200\n"
-"Last-Translator: Szimilkó <info@optimalpc.hu>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2018-03-18 22:09+0000\n"
+"Last-Translator: Zoltan Kiss <zoltan.kiss@serverside.hu>\n"
+"Language-Team: Hungarian <http://translate.kopano.io/projects/kopano/kopano-"
+"core/hu/>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Pootle 2.1.5\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 2.4\n"
 "X-Poedit-KeywordsList: KC_TX;KC_A;KC_W\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -103,7 +104,7 @@ msgstr ""
 
 #: common/Util.cpp:1801
 msgid "A logon session could not be established."
-msgstr "A logon Munkafolyamatot nem lehet létrehozni."
+msgstr "Bejelentkezési munkafolyamatot nem lehet létrehozni."
 
 #: common/Util.cpp:1804
 msgid ""
@@ -153,7 +154,7 @@ msgstr "az almappa törlődik az üzenetekkel."
 
 #: common/Util.cpp:1825
 msgid "No description available."
-msgstr "Nincs elérhető leírás"
+msgstr "Nincs elérhető leírás."
 
 #: common/Util.cpp:1827
 msgid "MAPI error code:"
@@ -201,12 +202,12 @@ msgstr "Beérkezett üzenetek"
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:137
 #: provider/client/ECMsgStore.cpp:2468
 msgid "Contacts"
-msgstr "Névjegyalbum"
+msgstr "Névjegyzék"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:138
 #: provider/client/ECMsgStore.cpp:2514
 msgid "Notes"
-msgstr "Feljegyzések"
+msgstr "Jegyzetek"
 
 #: provider/ECProps/ECDelegatePermissionDlg.cpp:139
 #: provider/client/ECMsgStore.cpp:2502
@@ -291,7 +292,7 @@ msgstr "Hiba történt a levél archívumból történő betöltésekor."
 
 #: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "Please contact your system administrator."
-msgstr "Kérem vegye fel a kapcsolatot a rendszergazdával."
+msgstr "Kérem, lépjen kapcsolatba a rendszergazdával."
 
 #: provider/client/ECArchiveAwareMessage.cpp:478 spooler/archive.cpp:335
 msgid "Error code:"
@@ -358,18 +359,16 @@ msgid "Conversation Action Settings"
 msgstr "Társalgás beállításai"
 
 #: provider/client/ECMsgStore.cpp:2568
-#, fuzzy
 msgid "Quick Step Settings"
-msgstr "Gyors beálítások"
+msgstr "Gyors beállítások"
 
 #: provider/client/ECMsgStore.cpp:2572
-#, fuzzy
 msgid "Suggested Contacts"
-msgstr "Ájánlott névjegyek"
+msgstr "Ajánlott névjegyek"
 
 #: provider/contacts/ZCABContainer.cpp:761
 msgid "Kopano Contacts Folders"
-msgstr ""
+msgstr "Kopano Névjegyek Mappa"
 
 #: provider/libserver/ECGenProps.cpp:949
 msgid "Archive"
@@ -401,15 +400,15 @@ msgstr ""
 
 #: spooler/archive.cpp:292
 msgid "Unable to copy message data."
-msgstr ""
+msgstr "Az üzenet adatai nem másolhatóak."
 
 #: spooler/archive.cpp:305
 msgid "Unable to save archived message."
-msgstr ""
+msgstr "Archivált üzenet nem menthető."
 
 #: spooler/mailer.cpp:1717
 msgid "You are not allowed to send as user or group "
-msgstr "Nincs engedélye, hogy felhasználó vagy csoportként küldjön"
+msgstr "Nincs engedélye, hogy felhasználó vagy csoport nevében küldjön "
 
 #: spooler/mailer.cpp:1719
 msgid "The user or group you try to send as could not be found."
@@ -417,75 +416,75 @@ msgstr "A felhasználó vagy csoport aki álltal próbálta küldeni nem találh
 
 #: spooler/mailer.cpp:2554
 msgid "Error found while trying to send your message. Error code: "
-msgstr "Hibát talált mialatt próbálta küldeni az üzenetet. Hibakód:"
+msgstr "Hiba történt az üzenet elküldése közben. Hibakód: "
 
 #: installer/linux/kopano-mr-accept:403
 msgid "Recurring meetings are not allowed"
-msgstr ""
+msgstr "Ismétlődő találkozók nem megengedettek"
 
 #: installer/linux/kopano-mr-accept:453
 msgid "The requested time slot is unavailable"
-msgstr ""
+msgstr "A kért időablak nem elérhető"
 
 #: installer/linux/kopano-mr-accept:455
 msgid "The requested time slots are unavailble on the following dates:"
-msgstr ""
+msgstr "Az igényelt időablakok nem elérhetőek a következő alkalmakkor:"
 
 #: installer/linux/kopano-mr-accept:458
 #, php-format
 msgid "%x %X"
-msgstr ""
+msgstr "%x %X"
 
 #: php-ext/include/mapi/class.recurrence.php:528
 msgid "workday"
-msgstr ""
+msgstr "munkanap"
 
 #: php-ext/include/mapi/class.recurrence.php:531
 msgid "day"
-msgstr ""
+msgstr "nap"
 
 #: php-ext/include/mapi/class.recurrence.php:535
 msgid "days"
-msgstr ""
+msgstr "napok"
 
 #: php-ext/include/mapi/class.recurrence.php:542
 msgid "week"
-msgstr ""
+msgstr "hét"
 
 #: php-ext/include/mapi/class.recurrence.php:545
 msgid "weeks"
-msgstr ""
+msgstr "hetek"
 
 #: php-ext/include/mapi/class.recurrence.php:552
 msgid "month"
-msgstr ""
+msgstr "hónap"
 
 #: php-ext/include/mapi/class.recurrence.php:555
 msgid "months"
-msgstr ""
+msgstr "hónapok"
 
 #: php-ext/include/mapi/class.recurrence.php:563
 msgid "year"
-msgstr ""
+msgstr "év"
 
 #: php-ext/include/mapi/class.recurrence.php:567
 msgid "years"
-msgstr ""
+msgstr "évek"
 
 #: php-ext/include/mapi/class.recurrence.php:577
 #: php-ext/include/mapi/class.recurrence.php:578
 msgid "d-m-Y"
-msgstr ""
+msgstr "Y-m-d"
 
 #: php-ext/include/mapi/class.recurrence.php:579
 #: php-ext/include/mapi/class.recurrence.php:580
 msgid "G:i"
-msgstr ""
+msgstr "G:i"
 
 #: php-ext/include/mapi/class.recurrence.php:593
 #, php-format
 msgid "Occurs every %s effective %s from %s to %s."
-msgstr ""
+msgstr "Előfordulása %s, Érvénybe lép %s, kezdete: %s, vége: %s."
 
 #: php-ext/include/mapi/class.recurrence.php:595
 #, php-format
@@ -495,7 +494,7 @@ msgstr ""
 #: php-ext/include/mapi/class.recurrence.php:599
 #, php-format
 msgid "Occurs every %s effective %s."
-msgstr ""
+msgstr "Előfordulása %s, kezdete: %s."
 
 #: php-ext/include/mapi/class.recurrence.php:601
 #, php-format
@@ -506,15 +505,15 @@ msgstr ""
 #, php-format
 msgid "Occurs every %s effective %s for %s occurence from %s to %s."
 msgid_plural "Occurs every %s effective %s for %s occurences from %s to %s."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Ismétlődés minden %s érvényes %s %s-tól/től %s-ig."
+msgstr[1] "Ismétlődés minden %s érvényes %s %s-tól/től %s-ig/%s-ig."
 
 #: php-ext/include/mapi/class.recurrence.php:611
 #, php-format
 msgid "Occurs every %s %s effective %s for %s occurence from %s to %s."
 msgid_plural "Occurs every %s %s effective %s for %s occurences %s to %s."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Ismétlődés minden %s %s, érvényes %s %s előfordulásra %s-tól/től %s-ig."
+msgstr[1] "Ismétlődés minden %s érvényes %s %s-tól/től %s-ig/%s-ig."
 
 #: php-ext/include/mapi/class.recurrence.php:616
 #, php-format
@@ -552,49 +551,48 @@ msgstr ""
 
 #: php-ext/include/mapi/class.meetingrequest.php:1659
 msgid "Accepted"
-msgstr ""
+msgstr "Elfogadta"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1663
 msgid "Declined"
-msgstr ""
+msgstr "Elutasította"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1667
 msgid "Tentatively accepted"
-msgstr ""
+msgstr "Feltételesen elfogadta"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1673
 msgid "New Time Proposed"
-msgstr ""
+msgstr "Új időpont javaslat"
 
 # 75%
 #: php-ext/include/mapi/class.meetingrequest.php:2692
-#, fuzzy
 msgid "Canceled"
-msgstr "Mégse"
+msgstr "Megszakítva"
 
 #: php-ext/include/mapi/class.mapiexception.php:24
 msgid "You have insufficient privileges to open this object."
-msgstr ""
+msgstr "Nincs elegendő jogosultsága az elem megnyitásához."
 
 #: php-ext/include/mapi/class.mapiexception.php:27
 msgid "Logon Failed. Please check your name/password."
-msgstr ""
+msgstr "Bejelentkezés nem sikerült. Ellenőrizze felhasználónevét/jelszavát."
 
 #: php-ext/include/mapi/class.mapiexception.php:29
 msgid "Can not connect to Kopano server."
-msgstr ""
+msgstr "Nem lehet kapcsolódni a Kopano kiszolgálóhoz."
 
 #: php-ext/include/mapi/class.mapiexception.php:31
 msgid "Can not open object with provided id."
-msgstr ""
+msgstr "Nem nyitható meg a megadott azonosítójú elem."
 
 #: php-ext/include/mapi/class.mapiexception.php:33
 msgid "There are no recipients in the message."
-msgstr ""
+msgstr "Nincsenek címzettek megjelölve az üzenetben."
 
 #: php-ext/include/mapi/class.mapiexception.php:35
 msgid "Can not find object."
-msgstr ""
+msgstr "Elem nem található."
 
 #: php-ext/include/mapi/class.mapiexception.php:47
 #, php-format
@@ -603,66 +601,66 @@ msgstr "Ismeretlen MAPI hiba: %s"
 
 #: php-ext/include/mapi/class.taskrequest.php:881
 msgid "Start Date"
-msgstr ""
+msgstr "Kezdési időpont"
 
 #: php-ext/include/mapi/class.taskrequest.php:881
 #: php-ext/include/mapi/class.taskrequest.php:882
 msgid "%A, %B %d, %Y"
-msgstr ""
+msgstr "%Y. %B %d. %A"
 
 #: php-ext/include/mapi/class.taskrequest.php:882
 msgid "Due Date"
-msgstr ""
+msgstr "Határidő"
 
 #: php-ext/include/mapi/class.taskrequest.php:886
 msgid "Status"
-msgstr ""
+msgstr "Státusz"
 
 #: php-ext/include/mapi/class.taskrequest.php:887
 msgid "Not Started"
-msgstr ""
+msgstr "Nem megkezdett"
 
 #: php-ext/include/mapi/class.taskrequest.php:888
 msgid "In Progress"
-msgstr ""
+msgstr "Folyamatban"
 
 #: php-ext/include/mapi/class.taskrequest.php:889
 msgid "Complete"
-msgstr ""
+msgstr "Kész"
 
 #: php-ext/include/mapi/class.taskrequest.php:890
 msgid "Wait for other person"
-msgstr ""
+msgstr "Másik személyre vár"
 
 #: php-ext/include/mapi/class.taskrequest.php:891
 msgid "Deferred"
-msgstr ""
+msgstr "Elhalasztott"
 
 #: php-ext/include/mapi/class.taskrequest.php:895
 msgid "Percent Complete"
-msgstr ""
+msgstr "Készültség Szintje"
 
 #: php-ext/include/mapi/class.taskrequest.php:898
 msgid "Date Completed"
-msgstr ""
+msgstr "Befejezés Időpontja"
 
 #: php-ext/include/mapi/class.taskrequest.php:902
 msgid "Total Work"
-msgstr ""
+msgstr "Teljes Munkaidő"
 
 #: php-ext/include/mapi/class.taskrequest.php:902
 #: php-ext/include/mapi/class.taskrequest.php:903
 msgid "hours"
-msgstr ""
+msgstr "óra"
 
 #: php-ext/include/mapi/class.taskrequest.php:903
 msgid "Actual Work"
-msgstr ""
+msgstr "Tényleges Munkaidő"
 
 #: php-ext/include/mapi/class.taskrequest.php:911
 msgid "Billing Information"
-msgstr ""
+msgstr "Számlázási Adatok"
 
 #: php-ext/include/mapi/class.taskrequest.php:912
 msgid "Mileage"
-msgstr ""
+msgstr "Mérföldkő"

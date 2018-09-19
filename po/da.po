@@ -4,15 +4,16 @@ msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-12 00:03+0100\n"
-"PO-Revision-Date: 2012-12-28 12:37+0200\n"
-"Last-Translator: Claus <cb@rishavepark.dk>\n"
-"Language-Team: da_DK <da@li.org>\n"
+"PO-Revision-Date: 2018-02-06 18:03+0000\n"
+"Last-Translator: jengelh <jengelh@inai.de>\n"
+"Language-Team: Danish <http://translate.kopano.io/projects/kopano/kopano-"
+"core/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Pootle 2.1.5\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 2.4\n"
 "X-Poedit-KeywordsList: KC_TX;KC_A;KC_W\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -20,38 +21,37 @@ msgstr ""
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:922
 msgid "Kopano Archive"
-msgstr ""
+msgstr "Kopano arkiv"
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:923
 msgid "This folder contains the special archive folders."
-msgstr ""
+msgstr "Denne mappen indeholder specielle arkivmapper."
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:928
 msgid "History"
-msgstr ""
+msgstr "Historik"
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:929
 msgid ""
 "This folder contains archives that have been replaced by a newer version."
-msgstr ""
+msgstr "Denne mappen indeholder arkiver der er erstattet af en nyere version."
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:933
 msgid "Outgoing"
-msgstr ""
+msgstr "Udgående"
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:934
 msgid "This folder contains archives of all outgoing messages."
-msgstr ""
+msgstr "Denne mappen indeholder arkiver af alle udgående meddelelser."
 
 # 85%
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:938
-#, fuzzy
 msgid "Deleted"
-msgstr "Slet"
+msgstr "Slettet"
 
 #: ECtools/kopano-archiver/helpers/archivehelper.cpp:939
 msgid "This folder contains archives of messages that have been deleted."
-msgstr ""
+msgstr "Denne mappen indeholder arkiver af meddelelser der er blevet slettet."
 
 #: common/Util.cpp:1783
 msgid "End of Session"
@@ -135,23 +135,23 @@ msgstr ""
 
 #: common/Util.cpp:1816
 msgid "A database error or I/O error has occurred."
-msgstr ""
+msgstr "En database eller anden I/O fejl er opstået."
 
 #: common/Util.cpp:1819
 msgid "The subfolder being deleted contains subfolders."
-msgstr ""
+msgstr "Den slettede undermappe indeholder undermapper."
 
 #: common/Util.cpp:1822
 msgid "The subfolder being deleted contains messages."
-msgstr ""
+msgstr "Den slettede undermappe indeholder slettede meddelelser."
 
 #: common/Util.cpp:1825
 msgid "No description available."
-msgstr ""
+msgstr "Ingen beskrivelse er tilgængelig."
 
 #: common/Util.cpp:1827
 msgid "MAPI error code:"
-msgstr ""
+msgstr "MAPI fejlkode:"
 
 #: provider/ECProps/Addin.cpp:957 provider/client/ECMsgStorePublic.cpp:547
 #: provider/client/ECMAPIFolderPublic.cpp:164
@@ -218,16 +218,14 @@ msgstr "Emne"
 
 # 75%
 #: provider/client/ECABContainer.cpp:246 provider/client/ECABContainer.cpp:301
-#, fuzzy
 msgid "Global Address Lists"
-msgstr "Global Adressekartotek"
+msgstr "Global Adresseliste"
 
 # 75%
 # 80%
 #: provider/client/ECABContainer.cpp:248 provider/client/ECABContainer.cpp:303
-#, fuzzy
 msgid "All Address Lists"
-msgstr "Global Adressekartotek"
+msgstr "Alle adresselister"
 
 #: provider/client/ECExchangeImportContentsChanges.cpp:842
 msgid "Sync Issues"
@@ -247,7 +245,7 @@ msgstr "Serverfejl"
 
 #: provider/client/ClientUtil.cpp:81
 msgid "Available"
-msgstr ""
+msgstr "Tilgængelig"
 
 #: provider/client/ClientUtil.cpp:301
 msgid "Not read:"
@@ -287,11 +285,11 @@ msgstr ""
 
 #: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "Please contact your system administrator."
-msgstr ""
+msgstr "Kontakt venligst din systemadministrator."
 
 #: provider/client/ECArchiveAwareMessage.cpp:478 spooler/archive.cpp:335
 msgid "Error code:"
-msgstr ""
+msgstr "Fejlkode:"
 
 #: provider/client/ECArchiveAwareMessage.cpp:487
 msgid "It seems no valid archiver license is installed."
@@ -299,15 +297,15 @@ msgstr ""
 
 #: provider/client/ECArchiveAwareMessage.cpp:491
 msgid "The archive could not be found."
-msgstr ""
+msgstr "Arkivet kunne ikke findes."
 
 #: provider/client/ECArchiveAwareMessage.cpp:495
 msgid "You don't have sufficient access to the archive."
-msgstr ""
+msgstr "Du har ikke tilstrækkelig adgang til arkivet."
 
 #: provider/client/ECArchiveAwareMessage.cpp:502 spooler/archive.cpp:339
 msgid "Error description:"
-msgstr ""
+msgstr "Fejlbeskrivelse:"
 
 #: provider/client/ECArchiveAwareMessage.cpp:531
 msgid "Archives can not be destubbed when working offline."
@@ -357,7 +355,7 @@ msgstr ""
 
 #: provider/client/ECMsgStore.cpp:2572
 msgid "Suggested Contacts"
-msgstr ""
+msgstr "Foreslåede kontakter"
 
 #: provider/contacts/ZCABContainer.cpp:761
 msgid "Kopano Contacts Folders"
@@ -365,7 +363,7 @@ msgstr ""
 
 #: provider/libserver/ECGenProps.cpp:949
 msgid "Archive"
-msgstr ""
+msgstr "Arkiv"
 
 #: spooler/Spooler.cpp:485
 msgid ""
@@ -379,7 +377,7 @@ msgstr ""
 
 #: spooler/archive.cpp:272
 msgid "Unable to open archive."
-msgstr ""
+msgstr "Kunne ikke åbne arkivet."
 
 #: spooler/archive.cpp:279
 msgid "Unable to get outgoing archive folder."
@@ -424,53 +422,53 @@ msgstr ""
 #: installer/linux/kopano-mr-accept:458
 #, php-format
 msgid "%x %X"
-msgstr ""
+msgstr "%x %X"
 
 #: php-ext/include/mapi/class.recurrence.php:528
 msgid "workday"
-msgstr ""
+msgstr "arbejdsdag"
 
 #: php-ext/include/mapi/class.recurrence.php:531
 msgid "day"
-msgstr ""
+msgstr "dag"
 
 #: php-ext/include/mapi/class.recurrence.php:535
 msgid "days"
-msgstr ""
+msgstr "dage"
 
 #: php-ext/include/mapi/class.recurrence.php:542
 msgid "week"
-msgstr ""
+msgstr "uge"
 
 #: php-ext/include/mapi/class.recurrence.php:545
 msgid "weeks"
-msgstr ""
+msgstr "uger"
 
 #: php-ext/include/mapi/class.recurrence.php:552
 msgid "month"
-msgstr ""
+msgstr "måned"
 
 #: php-ext/include/mapi/class.recurrence.php:555
 msgid "months"
-msgstr ""
+msgstr "måneder"
 
 #: php-ext/include/mapi/class.recurrence.php:563
 msgid "year"
-msgstr ""
+msgstr "år"
 
 #: php-ext/include/mapi/class.recurrence.php:567
 msgid "years"
-msgstr ""
+msgstr "år"
 
 #: php-ext/include/mapi/class.recurrence.php:577
 #: php-ext/include/mapi/class.recurrence.php:578
 msgid "d-m-Y"
-msgstr ""
+msgstr "d.m.Y"
 
 #: php-ext/include/mapi/class.recurrence.php:579
 #: php-ext/include/mapi/class.recurrence.php:580
 msgid "G:i"
-msgstr ""
+msgstr "G:i"
 
 #: php-ext/include/mapi/class.recurrence.php:593
 #, php-format
@@ -550,11 +548,11 @@ msgstr ""
 
 #: php-ext/include/mapi/class.meetingrequest.php:1667
 msgid "Tentatively accepted"
-msgstr ""
+msgstr "Foreløbigt accepteret"
 
 #: php-ext/include/mapi/class.meetingrequest.php:1673
 msgid "New Time Proposed"
-msgstr ""
+msgstr "Ny tid foreslået"
 
 # 75%
 #: php-ext/include/mapi/class.meetingrequest.php:2692
@@ -564,11 +562,11 @@ msgstr "Annullér"
 
 #: php-ext/include/mapi/class.mapiexception.php:24
 msgid "You have insufficient privileges to open this object."
-msgstr ""
+msgstr "Du har ikke tilstrækkelige rettigheder til at åbne dette objekt."
 
 #: php-ext/include/mapi/class.mapiexception.php:27
 msgid "Logon Failed. Please check your name/password."
-msgstr ""
+msgstr "Login mislykkedes. Tjek venligst dit brugernavn/password."
 
 #: php-ext/include/mapi/class.mapiexception.php:29
 msgid "Can not connect to Kopano server."
@@ -576,20 +574,20 @@ msgstr ""
 
 #: php-ext/include/mapi/class.mapiexception.php:31
 msgid "Can not open object with provided id."
-msgstr ""
+msgstr "Kan ikke åbne objektet med det angivne id."
 
 #: php-ext/include/mapi/class.mapiexception.php:33
 msgid "There are no recipients in the message."
-msgstr ""
+msgstr "Der er ingen modtagere i denne meddelelse."
 
 #: php-ext/include/mapi/class.mapiexception.php:35
 msgid "Can not find object."
-msgstr ""
+msgstr "Kan ikke finde objekt."
 
 #: php-ext/include/mapi/class.mapiexception.php:47
 #, php-format
 msgid "Unknown MAPI Error: %s"
-msgstr ""
+msgstr "Ukendt MAPI fejl: %s"
 
 #: php-ext/include/mapi/class.taskrequest.php:881
 msgid "Start Date"
@@ -606,7 +604,7 @@ msgstr ""
 
 #: php-ext/include/mapi/class.taskrequest.php:886
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #: php-ext/include/mapi/class.taskrequest.php:887
 msgid "Not Started"
@@ -626,33 +624,33 @@ msgstr ""
 
 #: php-ext/include/mapi/class.taskrequest.php:891
 msgid "Deferred"
-msgstr ""
+msgstr "Udsat"
 
 #: php-ext/include/mapi/class.taskrequest.php:895
 msgid "Percent Complete"
-msgstr ""
+msgstr "Procent udført"
 
 #: php-ext/include/mapi/class.taskrequest.php:898
 msgid "Date Completed"
-msgstr ""
+msgstr "Fuldført dato"
 
 #: php-ext/include/mapi/class.taskrequest.php:902
 msgid "Total Work"
-msgstr ""
+msgstr "Total tid"
 
 #: php-ext/include/mapi/class.taskrequest.php:902
 #: php-ext/include/mapi/class.taskrequest.php:903
 msgid "hours"
-msgstr ""
+msgstr "timer"
 
 #: php-ext/include/mapi/class.taskrequest.php:903
 msgid "Actual Work"
-msgstr ""
+msgstr "Forbrugt tid"
 
 #: php-ext/include/mapi/class.taskrequest.php:911
 msgid "Billing Information"
-msgstr ""
+msgstr "Fakturainformation"
 
 #: php-ext/include/mapi/class.taskrequest.php:912
 msgid "Mileage"
-msgstr ""
+msgstr "Fremskridt"

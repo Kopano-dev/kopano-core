@@ -4,15 +4,16 @@ msgstr ""
 "Project-Id-Version: PHP-Langadmin 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-02-12 00:03+0100\n"
-"PO-Revision-Date: 2012-06-13 17:14+0200\n"
-"Last-Translator: Michele <m.brodoloni@casalicomputers.com>\n"
-"Language-Team: it_IT <it@li.org>\n"
+"PO-Revision-Date: 2018-05-08 15:14+0000\n"
+"Last-Translator: Marco <MARCO@COSTANTINO.CO.UK>\n"
+"Language-Team: Italian <http://translate.kopano.io/projects/kopano/kopano-"
+"core/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Pootle 2.1.5\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 2.4\n"
 "X-Poedit-KeywordsList: KC_TX;KC_A;KC_W\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -285,7 +286,7 @@ msgstr ""
 
 #: provider/client/ECArchiveAwareMessage.cpp:475
 msgid "Please contact your system administrator."
-msgstr "Contattare l'amministratore di sistema."
+msgstr "Prego contattare il vostro amministratore di sistema."
 
 #: provider/client/ECArchiveAwareMessage.cpp:478 spooler/archive.cpp:335
 msgid "Error code:"
@@ -563,15 +564,15 @@ msgstr "Nuovo orario proposto"
 # 75%
 #: php-ext/include/mapi/class.meetingrequest.php:2692
 msgid "Canceled"
-msgstr "Annullato"
+msgstr "Cancellato"
 
 #: php-ext/include/mapi/class.mapiexception.php:24
 msgid "You have insufficient privileges to open this object."
-msgstr "Privilegi insufficienti per aprire questo oggetto."
+msgstr "Non hai permessi sufficienti per aprire questo elemento."
 
 #: php-ext/include/mapi/class.mapiexception.php:27
 msgid "Logon Failed. Please check your name/password."
-msgstr "Accesso fallito. Nome utente e password non validi."
+msgstr "Accesso non riuscito. Verifica le tue credenziali e prova di nuovo."
 
 #: php-ext/include/mapi/class.mapiexception.php:29
 msgid "Can not connect to Kopano server."
@@ -601,7 +602,7 @@ msgstr "Data inizio"
 #: php-ext/include/mapi/class.taskrequest.php:881
 #: php-ext/include/mapi/class.taskrequest.php:882
 msgid "%A, %B %d, %Y"
-msgstr "%A %d %B %Y"
+msgstr "%A, %B %d, %Y"
 
 #: php-ext/include/mapi/class.taskrequest.php:882
 msgid "Due Date"
