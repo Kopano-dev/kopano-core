@@ -9486,7 +9486,7 @@ SOAP_ENTRY_START(testPerform, *result, const char *szCommand,
 {
 	if (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_test_protocol")))
 		return KCERR_NO_ACCESS;
-	return TestPerform(soap, lpecSession, szCommand, sPerform.__size, sPerform.__ptr);
+	return TestPerform(lpecSession, szCommand, sPerform.__size, sPerform.__ptr);
 }
 SOAP_ENTRY_END()
 
@@ -9495,7 +9495,7 @@ SOAP_ENTRY_START(testSet, *result, const char *szVarName, const char *szValue,
 {
 	if (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_test_protocol")))
 		return KCERR_NO_ACCESS;
-	return TestSet(soap, lpecSession, szVarName, szValue);
+	return TestSet(szVarName, szValue);
 }
 SOAP_ENTRY_END()
 
@@ -9504,7 +9504,7 @@ SOAP_ENTRY_START(testGet, lpsResponse->er, const char *szVarName,
 {
 	if (!parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_test_protocol")))
 		return KCERR_NO_ACCESS;
-	return TestGet(soap, lpecSession, szVarName, &lpsResponse->szValue);
+	return TestGet(soap, szVarName, &lpsResponse->szValue);
 }
 SOAP_ENTRY_END()
 

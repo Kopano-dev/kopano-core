@@ -16,7 +16,7 @@ namespace KC {
 
 extern ECSessionManager*    g_lpSessionManager;
 
-ECRESULT TestPerform(struct soap *soap, ECSession *lpSession,
+ECRESULT TestPerform(ECSession *lpSession,
     const char *szCommand, unsigned int ulArgs, char **args)
 {
     ECRESULT er = erSuccess;
@@ -58,8 +58,7 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession,
     return er;
 }
 
-ECRESULT TestSet(struct soap *soap, ECSession *lpSession,
-    const char *szVarName, const char *szValue)
+ECRESULT TestSet(const char *szVarName, const char *szValue)
 {
     if(strcasecmp(szVarName, "cell_cache_disabled") == 0) {
         if(atoi(szValue) > 0)
@@ -77,8 +76,7 @@ ECRESULT TestSet(struct soap *soap, ECSession *lpSession,
 	return erSuccess;
 }
 
-ECRESULT TestGet(struct soap *soap, ECSession *lpSession,
-    const char *szVarName, char **szValue)
+ECRESULT TestGet(struct soap *soap, const char *szVarName, char **szValue)
 {
 	if (strcasecmp(szVarName, "ping") == 0)
 		*szValue = s_strcpy(soap, "pong");
