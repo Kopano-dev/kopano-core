@@ -166,6 +166,8 @@ public:
 	HRESULT GetWrappedServerStoreEntryID(ULONG cbEntryId, LPBYTE lpEntryId, ULONG* lpcbWrapped, LPENTRYID* lppWrapped);
 	HRESULT InternalAdvise(ULONG eid_size, const ENTRYID *, ULONG evt_mask, IMAPIAdviseSink *, ULONG *conn);
 private:
+	HRESULT create_store_public(ECMsgStore *, IMAPIFolder *, IMAPIFolder *, const ENTRYID *, size_t);
+	HRESULT create_store_private(ECMsgStore *, ECMAPIFolder *, IMAPIFolder *, IMAPIFolder *);
 	HRESULT CreateSpecialFolder(LPMAPIFOLDER lpFolderParent, ECMAPIProp *lpFolderPropSet, const TCHAR *lpszFolderName, const TCHAR *lpszFolderComment, unsigned int ulPropTag, unsigned int ulMVPos, const TCHAR *lpszContainerClass, LPMAPIFOLDER *lppMAPIFolder);
 	HRESULT SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp *lpFolderPropSet, unsigned int ulPropTag, unsigned int ulMVPos);
 	HRESULT OpenStatsTable(unsigned int ulTableType, LPMAPITABLE *lppTable);

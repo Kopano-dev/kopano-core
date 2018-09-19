@@ -1497,6 +1497,265 @@ HRESULT ECMsgStore::CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
 	return AddRenAdditionalFolder(lpInboxFolder, ulType, &lpPropValueEID->Value.bin);
 }
 
+HRESULT ECMsgStore::create_store_public(ECMsgStore *store,
+    IMAPIFolder *root, IMAPIFolder *st, const ENTRYID *user, size_t usize)
+{
+	object_ptr<IMAPIFolder> nst, fld, fld2, fld3;
+	auto ret = CreateSpecialFolder(root, store, KC_T("NON_IPM_SUBTREE"),
+	           KC_T(""), PR_NON_IPM_SUBTREE_ENTRYID, 0, nullptr, &~nst);
+	if (ret != hrSuccess)
+		return ret;
+	ret = CreateSpecialFolder(root, store, KC_T("FINDER_ROOT"), KC_T(""),
+	      PR_FINDER_ENTRYID, 0, nullptr, &~fld3);
+	if (ret != hrSuccess)
+		return ret;
+
+	ECPERMISSION perm;
+	object_ptr<IECSecurity> sec;
+	perm.ulRights    = ecRightsFolderVisible | ecRightsReadAny | ecRightsCreateSubfolder | ecRightsEditOwned | ecRightsDeleteOwned;
+	perm.ulState     = RIGHT_NEW | RIGHT_AUTOUPDATE_DENIED;
+	perm.ulType      = ACCESS_TYPE_GRANT;
+	perm.sUserId.cb  = g_cbEveryoneEid;
+	perm.sUserId.lpb = g_lpEveryoneEid;
+	ret = fld3->QueryInterface(IID_IECSecurity, &~sec);
+	if (ret != hrSuccess)
+		return ret;
+	ret = sec->SetPermissionRules(1, &perm);
+	if (ret != hrSuccess)
+		return ret;
+	ret = CreateSpecialFolder(nst, store, KC_T("SCHEDULE+ FREE BUSY"),
+	      KC_T(""), PR_SPLUS_FREE_BUSY_ENTRYID, 0, nullptr, &~fld);
+	if (ret != hrSuccess)
+		return ret;
+
+	/* Set ACLs on the folder */
+	perm.ulRights    = ecRightsReadAny | ecRightsFolderVisible;
+	perm.ulState     = RIGHT_NEW | RIGHT_AUTOUPDATE_DENIED;
+	perm.ulType      = ACCESS_TYPE_GRANT;
+	perm.sUserId.cb  = usize;
+	perm.sUserId.lpb = reinterpret_cast<unsigned char *>(const_cast<ENTRYID *>(user));
+	ret = fld->QueryInterface(IID_IECSecurity, &~sec);
+	if (ret != hrSuccess)
+		return ret;
+	ret = sec->SetPermissionRules(1, &perm);
+	if (ret != hrSuccess)
+		return ret;
+	ret = CreateSpecialFolder(fld, store, KC_T("Zarafa 1"), KC_T(""),
+	      PR_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID, 0, nullptr, &~fld2);
+	if (ret != hrSuccess)
+		return ret;
+
+	/* Set ACLs on the folder */
+	perm.ulRights    = ecRightsAll; /* ecRightsReadAny | ecRightsCreate | ecRightsEditOwned | ecRightsDeleteOwned | ecRightsCreateSubfolder | ecRightsFolderVisible; */
+	perm.ulState     = RIGHT_NEW | RIGHT_AUTOUPDATE_DENIED;
+	perm.ulType      = ACCESS_TYPE_GRANT;
+	perm.sUserId.cb  = usize;
+	perm.sUserId.lpb = reinterpret_cast<unsigned char *>(const_cast<ENTRYID *>(user));
+	ret = fld2->QueryInterface(IID_IECSecurity, &~sec);
+	if (ret != hrSuccess)
+		return ret;
+	ret = sec->SetPermissionRules(1, &perm);
+	if (ret != hrSuccess)
+		return ret;
+
+	/* Set ACLs on the IPM subtree folder */
+	perm.ulRights    = ecRightsReadAny | ecRightsCreate | ecRightsEditOwned | ecRightsDeleteOwned | ecRightsCreateSubfolder | ecRightsFolderVisible;
+	perm.ulState     = RIGHT_NEW | RIGHT_AUTOUPDATE_DENIED;
+	perm.ulType      = ACCESS_TYPE_GRANT;
+	perm.sUserId.cb  = usize;
+	perm.sUserId.lpb = reinterpret_cast<unsigned char *>(const_cast<ENTRYID *>(user));
+	ret = st->QueryInterface(IID_IECSecurity, &~sec);
+	if (ret != hrSuccess)
+		return ret;
+	ret = sec->SetPermissionRules(1, &perm);
+	if (ret != hrSuccess)
+		return ret;
+
+	/* indicate validity of the entry identifiers of the folders in a message store */
+	/* Public folder have default the mask */
+	memory_ptr<SPropValue> pv;
+	ret = ECAllocateBuffer(sizeof(SPropValue) * 2, &~pv);
+	if (ret != hrSuccess)
+		return ret;
+	pv[0].ulPropTag   = PR_VALID_FOLDER_MASK;
+	pv[0].Value.ul    = FOLDER_FINDER_VALID | FOLDER_IPM_SUBTREE_VALID | FOLDER_IPM_INBOX_VALID | FOLDER_IPM_OUTBOX_VALID | FOLDER_IPM_WASTEBASKET_VALID | FOLDER_IPM_SENTMAIL_VALID | FOLDER_VIEWS_VALID | FOLDER_COMMON_VIEWS_VALID;
+	pv[1].ulPropTag   = PR_DISPLAY_NAME_W;
+	pv[1].Value.lpszW = const_cast<wchar_t *>(L"Public folder"); /* FIXME: set the right public folder name here? */
+	return store->SetProps(2, pv, nullptr);
+}
+
+HRESULT ECMsgStore::create_store_private(ECMsgStore *store,
+    ECMAPIFolder *ecroot, IMAPIFolder *root, IMAPIFolder *st)
+{
+	object_ptr<IMAPIFolder> fld, fld3, inbox, cal;
+
+	/* folder holds views that are standard for the message store */
+	auto ret = CreateSpecialFolder(root, store, KC_T("IPM_COMMON_VIEWS"),
+	           KC_T(""), PR_COMMON_VIEWS_ENTRYID, 0, nullptr, nullptr);
+	if (ret != hrSuccess)
+		return ret;
+
+	/* Personal: folder holds views that are defined by a particular user */
+	ret = CreateSpecialFolder(root, store, KC_T("IPM_VIEWS"), KC_T(""),
+	      PR_VIEWS_ENTRYID, 0, nullptr, nullptr);
+	if (ret != hrSuccess)
+		return ret;
+	ret = CreateSpecialFolder(root, store, KC_T("FINDER_ROOT"), KC_T(""),
+	      PR_FINDER_ENTRYID, 0, nullptr, &~fld3);
+	if (ret != hrSuccess)
+		return ret;
+
+	object_ptr<IECSecurity> sec;
+	ECPERMISSION perm;
+	perm.ulRights    = ecRightsFolderVisible | ecRightsReadAny | ecRightsCreateSubfolder | ecRightsEditOwned | ecRightsDeleteOwned;
+	perm.ulState     = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
+	perm.ulType      = ACCESS_TYPE_GRANT;
+	perm.sUserId.cb  = g_cbEveryoneEid;
+	perm.sUserId.lpb = g_lpEveryoneEid;
+	ret = fld3->QueryInterface(IID_IECSecurity, &~sec);
+	if (ret != hrSuccess)
+		return ret;
+	ret = sec->SetPermissionRules(1, &perm);
+	if (ret != hrSuccess)
+		return ret;
+
+	/* Shortcuts for the favorites */
+	ret = CreateSpecialFolder(root, store, KC_TX("Shortcut"), KC_T(""),
+	      PR_IPM_FAVORITES_ENTRYID, 0, nullptr, nullptr);
+	if (ret != hrSuccess)
+		return ret;
+	ret = CreateSpecialFolder(root, store, KC_TX("Schedule"), KC_T(""),
+	      PR_SCHEDULE_FOLDER_ENTRYID, 0, nullptr, nullptr);
+	if (ret != hrSuccess)
+		return ret;
+	ret = CreateSpecialFolder(st, nullptr, KC_TX("Inbox"), KC_T(""),
+	      0, 0, nullptr, &~inbox);
+	if (ret != hrSuccess)
+		return ret;
+
+	memory_ptr<SPropValue> pv;
+	ret = HrGetOneProp(inbox, PR_ENTRYID, &~pv);
+	if (ret != hrSuccess)
+		return ret;
+	ret = store->SetReceiveFolder(nullptr, 0, pv->Value.bin.cb, reinterpret_cast<ENTRYID *>(pv->Value.bin.lpb));
+	if (ret != hrSuccess)
+		return ret;
+	ret = store->SetReceiveFolder(reinterpret_cast<const TCHAR *>("IPM"), 0,
+	      pv->Value.bin.cb, reinterpret_cast<ENTRYID *>(pv->Value.bin.lpb));
+	if (ret != hrSuccess)
+		return ret;
+	ret = store->SetReceiveFolder(reinterpret_cast<const TCHAR *>("REPORT.IPM"),
+	      0, pv->Value.bin.cb, reinterpret_cast<ENTRYID *>(pv->Value.bin.lpb));
+	if (ret != hrSuccess)
+		return ret;
+	object_ptr<ECMAPIFolder> ecinbox;
+	ret = inbox->QueryInterface(IID_ECMAPIFolder, &~ecinbox);
+	if (ret != hrSuccess)
+		return ret;
+
+	ret = CreateSpecialFolder(st, store, KC_TX("Outbox"), KC_T(""),
+	      PR_IPM_OUTBOX_ENTRYID, 0, nullptr, nullptr);
+	if (ret != hrSuccess)
+		return ret;
+	ret = CreateSpecialFolder(st, store, KC_TX("Deleted Items"), KC_T(""),
+	      PR_IPM_WASTEBASKET_ENTRYID, 0, nullptr, nullptr);
+	if (ret != hrSuccess)
+		return ret;
+	ret = CreateSpecialFolder(st, store, KC_TX("Sent Items"), KC_T(""),
+	      PR_IPM_SENTMAIL_ENTRYID, 0, nullptr, nullptr);
+	if (ret != hrSuccess)
+		return ret;
+
+	ret = CreateSpecialFolder(st, ecinbox, KC_TX("Contacts"), KC_T(""),
+	      PR_IPM_CONTACT_ENTRYID, 0, KC_T("IPF.Contact"), &~fld);
+	if (ret != hrSuccess)
+		return ret;
+	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_CONTACT_ENTRYID, 0);
+	if (ret != hrSuccess)
+		return ret;
+
+	ret = CreateSpecialFolder(st, ecinbox, KC_TX("Calendar"), KC_T(""),
+	      PR_IPM_APPOINTMENT_ENTRYID, 0, KC_T("IPF.Appointment"), &~cal);
+	if (ret != hrSuccess)
+		return ret;
+	ret = SetSpecialEntryIdOnFolder(cal, ecroot, PR_IPM_APPOINTMENT_ENTRYID, 0);
+	if (ret != hrSuccess)
+		return ret;
+
+	ret = CreateSpecialFolder(st, ecinbox, KC_TX("Drafts"), KC_T(""),
+	      PR_IPM_DRAFTS_ENTRYID, 0, KC_T("IPF.Note"), &~fld);
+	if (ret != hrSuccess)
+		return ret;
+	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_DRAFTS_ENTRYID, 0);
+	if (ret != hrSuccess)
+		return ret;
+
+	ret = CreateSpecialFolder(st, ecinbox, KC_TX("Journal"), KC_T(""),
+	      PR_IPM_JOURNAL_ENTRYID, 0, KC_T("IPF.Journal"), &~fld);
+	if (ret != hrSuccess)
+		return ret;
+	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_JOURNAL_ENTRYID, 0);
+	if (ret != hrSuccess)
+		return ret;
+
+	ret = CreateSpecialFolder(st, ecinbox, KC_TX("Notes"), KC_T(""),
+	      PR_IPM_NOTE_ENTRYID, 0, KC_T("IPF.StickyNote"), &~fld);
+	if (ret != hrSuccess)
+		return ret;
+	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_NOTE_ENTRYID, 0);
+	if (ret != hrSuccess)
+		return ret;
+
+	ret = CreateSpecialFolder(st, ecinbox, KC_TX("Tasks"), KC_T(""),
+	      PR_IPM_TASK_ENTRYID, 0, KC_T("IPF.Task"), &~fld);
+	if (ret != hrSuccess)
+		return ret;
+	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_IPM_TASK_ENTRYID, 0);
+	if (ret != hrSuccess)
+		return ret;
+
+	/* Create Junk mail (position 5(4 in array) in the mvprop PR_ADDITIONAL_REN_ENTRYIDS) */
+	ret = CreateSpecialFolder(st, ecinbox, KC_TX("Junk E-mail"), KC_T(""),
+	      PR_ADDITIONAL_REN_ENTRYIDS, 4, KC_T("IPF.Note"), &~fld);
+	if (ret != hrSuccess)
+		return ret;
+	ret = SetSpecialEntryIdOnFolder(fld, ecroot, PR_ADDITIONAL_REN_ENTRYIDS, 4);
+	if (ret != hrSuccess)
+		return ret;
+	ret = CreatePrivateFreeBusyData(root, inbox, cal);
+	if (ret != hrSuccess)
+		return ret;
+
+	/* Create Outlook 2007/2010 additional folders */
+	ret = CreateAdditionalFolder(root, inbox, st, RSF_PID_RSS_SUBSCRIPTION,
+	      KC_TX("RSS Feeds"), KC_TX("RSS Feed comment"), KC_T("IPF.Note.OutlookHomepage"), false);
+	if (ret != hrSuccess)
+		return ret;
+	ret = CreateAdditionalFolder(root, inbox, st, RSF_PID_CONV_ACTIONS,
+	      KC_TX("Conversation Action Settings"), KC_T(""), KC_T("IPF.Configuration"), true);
+	if (ret != hrSuccess)
+		return ret;
+	ret = CreateAdditionalFolder(root, inbox, st, RSF_PID_COMBINED_ACTIONS,
+	      KC_TX("Quick Step Settings"), KC_T(""), KC_T("IPF.Configuration"), true);
+	if (ret != hrSuccess)
+		return ret;
+	ret = CreateAdditionalFolder(root, inbox, st, RSF_PID_SUGGESTED_CONTACTS,
+	      KC_TX("Suggested Contacts"), KC_T(""), KC_T("IPF.Contact"), false);
+	if (ret != hrSuccess)
+		return ret;
+
+	/* indicate validity of the entry identifiers of the folders in a message store */
+	ret = ECAllocateBuffer(sizeof(SPropValue), &~pv);
+	if (ret != hrSuccess)
+		return ret;
+	pv[0].ulPropTag = PR_VALID_FOLDER_MASK;
+	pv[0].Value.ul = FOLDER_VIEWS_VALID | FOLDER_COMMON_VIEWS_VALID |
+	                 FOLDER_FINDER_VALID | FOLDER_IPM_INBOX_VALID |
+	                 FOLDER_IPM_OUTBOX_VALID | FOLDER_IPM_SENTMAIL_VALID |
+	                 FOLDER_IPM_SUBTREE_VALID | FOLDER_IPM_WASTEBASKET_VALID;
+	return store->SetProps(1, pv, nullptr);
+}
+
 HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
     const ENTRYID *lpUserId, ULONG *lpcbStoreId, ENTRYID **lppStoreId,
     ULONG *lpcbRootId, ENTRYID **lppRootId)
@@ -1580,276 +1839,12 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId,
 	if(hr != hrSuccess)
 		return hr;
 
-	if(ulStoreType == ECSTORE_TYPE_PUBLIC) { // Public folder action
-		hr = [this](ECMsgStore *lpecMsgStore, IMAPIFolder *lpFolderRoot, IMAPIFolder *lpFolderRootST, const ENTRYID *lpUserId, unsigned int cbUserId) -> HRESULT {
-		// Create Folder NON_IPM_SUBTREE into the rootfolder
-		object_ptr<IMAPIFolder> lpFolderRootNST, lpMAPIFolder, lpMAPIFolder2, lpMAPIFolder3;
-		auto hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("NON_IPM_SUBTREE"), KC_T(""), PR_NON_IPM_SUBTREE_ENTRYID, 0, NULL, &~lpFolderRootNST);
-		if (hr != hrSuccess)
-			return hr;
-
-		// Create Folder FINDER_ROOT into the rootfolder
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("FINDER_ROOT"), KC_T(""), PR_FINDER_ENTRYID, 0, NULL, &~lpMAPIFolder3);
-		if (hr != hrSuccess)
-			return hr;
-
-		ECPERMISSION sPermission;
-		object_ptr<IECSecurity> lpECSecurity;
-		sPermission.ulRights = ecRightsFolderVisible|ecRightsReadAny|ecRightsCreateSubfolder|ecRightsEditOwned|ecRightsDeleteOwned;
-		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
-		sPermission.ulType = ACCESS_TYPE_GRANT;
-		sPermission.sUserId.cb = g_cbEveryoneEid;
-		sPermission.sUserId.lpb = g_lpEveryoneEid;
-		hr = lpMAPIFolder3->QueryInterface(IID_IECSecurity, &~lpECSecurity);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpECSecurity->SetPermissionRules(1, &sPermission);
-		if (hr != hrSuccess)
-			return hr;
-
-		//Free busy time folder
-		hr = CreateSpecialFolder(lpFolderRootNST, lpecMsgStore, KC_T("SCHEDULE+ FREE BUSY"), KC_T(""), PR_SPLUS_FREE_BUSY_ENTRYID, 0, NULL, &~lpMAPIFolder);
-		if(hr != hrSuccess)
-			return hr;
-
-		/* Set ACLs on the folder */
-		sPermission.ulRights = ecRightsReadAny|ecRightsFolderVisible;
-		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
-		sPermission.ulType = ACCESS_TYPE_GRANT;
-		sPermission.sUserId.cb = cbUserId;
-		sPermission.sUserId.lpb = (unsigned char*)lpUserId;
-		hr = lpMAPIFolder->QueryInterface(IID_IECSecurity, &~lpECSecurity);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpECSecurity->SetPermissionRules(1, &sPermission);
-		if(hr != hrSuccess)
-			return hr;
-		hr = CreateSpecialFolder(lpMAPIFolder, lpecMsgStore, KC_T("Zarafa 1"), KC_T(""), PR_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID, 0, NULL, &~lpMAPIFolder2);
-		if(hr != hrSuccess)
-			return hr;
-
-		/* Set ACLs on the folder */
-		sPermission.ulRights = ecRightsAll;//ecRightsReadAny| ecRightsCreate | ecRightsEditOwned| ecRightsDeleteOwned | ecRightsCreateSubfolder | ecRightsFolderVisible;
-		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
-		sPermission.ulType = ACCESS_TYPE_GRANT;
-		sPermission.sUserId.cb = cbUserId;
-		sPermission.sUserId.lpb = (unsigned char*)lpUserId;
-		hr = lpMAPIFolder2->QueryInterface(IID_IECSecurity, &~lpECSecurity);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpECSecurity->SetPermissionRules(1, &sPermission);
-		if(hr != hrSuccess)
-			return hr;
-
-		/* Set ACLs on the IPM subtree folder */
-		sPermission.ulRights = ecRightsReadAny| ecRightsCreate | ecRightsEditOwned| ecRightsDeleteOwned | ecRightsCreateSubfolder | ecRightsFolderVisible;
-		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
-		sPermission.ulType = ACCESS_TYPE_GRANT;
-		sPermission.sUserId.cb = cbUserId;
-		sPermission.sUserId.lpb = (unsigned char*)lpUserId;
-		hr = lpFolderRootST->QueryInterface(IID_IECSecurity, &~lpECSecurity);
-		if (hr != hrSuccess)
-			return hr;
-		hr = lpECSecurity->SetPermissionRules(1, &sPermission);
-		if (hr != hrSuccess)
-			return hr;
-
-		// indicate, validity of the entry identifiers of the folders in a message store
-		// Public folder have default the mask
-		memory_ptr<SPropValue> lpPropValue;
-		unsigned int cValues = 2;
-		hr = ECAllocateBuffer(sizeof(SPropValue) * cValues, &~lpPropValue);
-		if (hr != hrSuccess)
-			return hr;
-		lpPropValue->ulPropTag = PR_VALID_FOLDER_MASK;
-		lpPropValue->Value.ul = FOLDER_FINDER_VALID | FOLDER_IPM_SUBTREE_VALID | FOLDER_IPM_INBOX_VALID | FOLDER_IPM_OUTBOX_VALID | FOLDER_IPM_WASTEBASKET_VALID | FOLDER_IPM_SENTMAIL_VALID | FOLDER_VIEWS_VALID | FOLDER_COMMON_VIEWS_VALID;
-
-		// Set store displayname
-		lpPropValue[1].ulPropTag = PR_DISPLAY_NAME_W;
-		lpPropValue[1].Value.lpszW = const_cast<wchar_t *>(L"Public folder"); //FIXME: set the right public folder name here?
-
-		// Set the property into the store
-		return lpecMsgStore->SetProps(cValues, lpPropValue, NULL);
-		}(lpecMsgStore, lpFolderRoot, lpFolderRootST, lpUserId, cbUserId);
-		if(hr != hrSuccess)
-			return hr;
-	}else if(ulStoreType == ECSTORE_TYPE_PRIVATE) { //Private folder
-		hr = [this](ECMsgStore *lpecMsgStore, ECMAPIFolder *lpMapiFolderRoot, IMAPIFolder *lpFolderRoot, IMAPIFolder *lpFolderRootST) -> HRESULT {
-		object_ptr<IMAPIFolder> lpMAPIFolder, lpMAPIFolder3, lpInboxFolder, lpCalendarFolder;
-
-		// Create Folder COMMON_VIEWS into the rootfolder
-		// folder holds views that are standard for the message store
-		auto hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("IPM_COMMON_VIEWS"), KC_T(""), PR_COMMON_VIEWS_ENTRYID, 0, NULL, NULL);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Folder VIEWS into the rootfolder
-		// Personal: folder holds views that are defined by a particular user
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("IPM_VIEWS"), KC_T(""), PR_VIEWS_ENTRYID, 0, NULL, NULL);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Folder FINDER_ROOT into the rootfolder
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_T("FINDER_ROOT"), KC_T(""), PR_FINDER_ENTRYID, 0, NULL, &~lpMAPIFolder3);
-		if(hr != hrSuccess)
-			return hr;
-
-		object_ptr<IECSecurity> lpECSecurity;
-		ECPERMISSION sPermission;
-		sPermission.ulRights = ecRightsFolderVisible|ecRightsReadAny|ecRightsCreateSubfolder|ecRightsEditOwned|ecRightsDeleteOwned;
-		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
-		sPermission.ulType = ACCESS_TYPE_GRANT;
-		sPermission.sUserId.cb = g_cbEveryoneEid;
-		sPermission.sUserId.lpb = g_lpEveryoneEid;
-		hr = lpMAPIFolder3->QueryInterface(IID_IECSecurity, &~lpECSecurity);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpECSecurity->SetPermissionRules(1, &sPermission);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Shortcuts
-		// Shortcuts for the favorites
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_TX("Shortcut"), KC_T(""), PR_IPM_FAVORITES_ENTRYID, 0, nullptr, nullptr);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Schedule folder
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, KC_TX("Schedule"), KC_T(""), PR_SCHEDULE_FOLDER_ENTRYID, 0, nullptr, nullptr);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create folders into IPM_SUBTREE
-		// Folders like: Inbox, outbox, tasks, agenda, notes, trashcan, send items, contacts,concepts
-
-		// Create Inbox
-		hr = CreateSpecialFolder(lpFolderRootST, nullptr, KC_TX("Inbox"), KC_T(""), 0, 0, nullptr, &~lpInboxFolder);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Get entryid of the folder
-		memory_ptr<SPropValue> lpPropValue;
-		hr = HrGetOneProp(lpInboxFolder, PR_ENTRYID, &~lpPropValue);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpecMsgStore->SetReceiveFolder(NULL, 0, lpPropValue->Value.bin.cb, (LPENTRYID)lpPropValue->Value.bin.lpb);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpecMsgStore->SetReceiveFolder(LPCTSTR("IPM"), 0, lpPropValue->Value.bin.cb, (LPENTRYID)lpPropValue->Value.bin.lpb);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpecMsgStore->SetReceiveFolder(LPCTSTR("REPORT.IPM"), 0, lpPropValue->Value.bin.cb, (LPENTRYID)lpPropValue->Value.bin.lpb);
-		if(hr != hrSuccess)
-			return hr;
-		object_ptr<ECMAPIFolder> lpECMapiFolderInbox;
-		hr = lpInboxFolder->QueryInterface(IID_ECMAPIFolder, &~lpECMapiFolderInbox);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Outbox
-		hr = CreateSpecialFolder(lpFolderRootST, lpecMsgStore, KC_TX("Outbox"), KC_T(""), PR_IPM_OUTBOX_ENTRYID, 0, nullptr, nullptr);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Trashcan
-		hr = CreateSpecialFolder(lpFolderRootST, lpecMsgStore, KC_TX("Deleted Items"), KC_T(""), PR_IPM_WASTEBASKET_ENTRYID, 0, nullptr, nullptr);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Sent Items
-		hr = CreateSpecialFolder(lpFolderRootST, lpecMsgStore, KC_TX("Sent Items"), KC_T(""), PR_IPM_SENTMAIL_ENTRYID, 0, nullptr, nullptr);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Contacts
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, KC_TX("Contacts"), KC_T(""), PR_IPM_CONTACT_ENTRYID, 0, KC_T("IPF.Contact"), &~lpMAPIFolder);
-		if(hr != hrSuccess)
-			return hr;
-		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpMapiFolderRoot, PR_IPM_CONTACT_ENTRYID, 0);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create calendar
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, KC_TX("Calendar"), KC_T(""), PR_IPM_APPOINTMENT_ENTRYID, 0, KC_T("IPF.Appointment"), &~lpCalendarFolder);
-		if(hr != hrSuccess)
-			return hr;
-		hr = SetSpecialEntryIdOnFolder(lpCalendarFolder, lpMapiFolderRoot, PR_IPM_APPOINTMENT_ENTRYID, 0);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Drafts
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, KC_TX("Drafts"), KC_T(""), PR_IPM_DRAFTS_ENTRYID, 0, KC_T("IPF.Note"), &~lpMAPIFolder);
-		if(hr != hrSuccess)
-			return hr;
-		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpMapiFolderRoot, PR_IPM_DRAFTS_ENTRYID, 0);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create journal
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, KC_TX("Journal"), KC_T(""), PR_IPM_JOURNAL_ENTRYID, 0, KC_T("IPF.Journal"), &~lpMAPIFolder);
-		if(hr != hrSuccess)
-			return hr;
-		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpMapiFolderRoot, PR_IPM_JOURNAL_ENTRYID, 0);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Notes
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, KC_TX("Notes"), KC_T(""), PR_IPM_NOTE_ENTRYID, 0, KC_T("IPF.StickyNote"), &~lpMAPIFolder);
-		if(hr != hrSuccess)
-			return hr;
-		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpMapiFolderRoot, PR_IPM_NOTE_ENTRYID, 0);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Tasks
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, KC_TX("Tasks"), KC_T(""), PR_IPM_TASK_ENTRYID, 0, KC_T("IPF.Task"), &~lpMAPIFolder);
-		if(hr != hrSuccess)
-			return hr;
-		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpMapiFolderRoot, PR_IPM_TASK_ENTRYID, 0);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Junk mail (position 5(4 in array) in the mvprop PR_ADDITIONAL_REN_ENTRYIDS)
-		hr = CreateSpecialFolder(lpFolderRootST, lpECMapiFolderInbox, KC_TX("Junk E-mail"), KC_T(""), PR_ADDITIONAL_REN_ENTRYIDS, 4, KC_T("IPF.Note"), &~lpMAPIFolder);
-		if(hr != hrSuccess)
-			return hr;
-		hr = SetSpecialEntryIdOnFolder(lpMAPIFolder, lpMapiFolderRoot, PR_ADDITIONAL_REN_ENTRYIDS, 4);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Freebusy folder data
-		hr = CreatePrivateFreeBusyData(lpFolderRoot, lpInboxFolder, lpCalendarFolder);
-		if(hr != hrSuccess)
-			return hr;
-
-		// Create Outlook 2007/2010 Additional folders
-		hr = CreateAdditionalFolder(lpFolderRoot, lpInboxFolder, lpFolderRootST, RSF_PID_RSS_SUBSCRIPTION, KC_TX("RSS Feeds"), KC_TX("RSS Feed comment"), KC_T("IPF.Note.OutlookHomepage"), false);
-		if(hr != hrSuccess)
-			return hr;
-		hr = CreateAdditionalFolder(lpFolderRoot, lpInboxFolder, lpFolderRootST, RSF_PID_CONV_ACTIONS, KC_TX("Conversation Action Settings"), KC_T(""), KC_T("IPF.Configuration"), true);
-		if(hr != hrSuccess)
-			return hr;
-		hr = CreateAdditionalFolder(lpFolderRoot, lpInboxFolder, lpFolderRootST, RSF_PID_COMBINED_ACTIONS, KC_TX("Quick Step Settings"), KC_T(""), KC_T("IPF.Configuration"), true);
-		if(hr != hrSuccess)
-			return hr;
-		hr = CreateAdditionalFolder(lpFolderRoot, lpInboxFolder, lpFolderRootST, RSF_PID_SUGGESTED_CONTACTS, KC_TX("Suggested Contacts"), KC_T(""), KC_T("IPF.Contact"), false);
-		if(hr != hrSuccess)
-			return hr;
-
-		// indicate, validity of the entry identifiers of the folders in a message store
-		unsigned int cValues = 1;
-		hr = ECAllocateBuffer(sizeof(SPropValue) * cValues, &~lpPropValue);
-		if (hr != hrSuccess)
-			return hr;
-		lpPropValue[0].ulPropTag = PR_VALID_FOLDER_MASK;
-		lpPropValue[0].Value.ul = FOLDER_VIEWS_VALID | FOLDER_COMMON_VIEWS_VALID|FOLDER_FINDER_VALID | FOLDER_IPM_INBOX_VALID | FOLDER_IPM_OUTBOX_VALID | FOLDER_IPM_SENTMAIL_VALID | FOLDER_IPM_SUBTREE_VALID | FOLDER_IPM_WASTEBASKET_VALID;
-
-		// Set the property into the store
-		return lpecMsgStore->SetProps(cValues, lpPropValue, NULL);
-		}(lpecMsgStore, lpMapiFolderRoot, lpFolderRoot, lpFolderRootST);
-		if(hr != hrSuccess)
-			return hr;
-	}
+	if (ulStoreType == ECSTORE_TYPE_PUBLIC)
+		hr = create_store_public(lpecMsgStore, lpFolderRoot, lpFolderRootST, lpUserId, cbUserId);
+	else if (ulStoreType == ECSTORE_TYPE_PRIVATE)
+		hr = create_store_private(lpecMsgStore, lpMapiFolderRoot, lpFolderRoot, lpFolderRootST);
+	if (hr != hrSuccess)
+		return hr;
 
 	*lpcbStoreId = cbStoreId;
 	*lppStoreId = lpStoreId;
