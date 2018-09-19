@@ -29,8 +29,8 @@
 using namespace KC;
 
 // profile properties
-static constexpr const SizedSPropTagArray(22, sptaKopanoProfile) =
-	{22, {PR_EC_PATH, PR_PROFILE_NAME_A, PR_EC_USERNAME_A,
+static constexpr const SizedSPropTagArray(20, sptaKopanoProfile) =
+	{20, {PR_EC_PATH, PR_PROFILE_NAME_A, PR_EC_USERNAME_A,
 	PR_EC_USERNAME_W, PR_EC_USERPASSWORD_A, PR_EC_USERPASSWORD_W,
 	PR_EC_IMPERSONATEUSER_A, PR_EC_IMPERSONATEUSER_W, PR_EC_FLAGS,
 	PR_EC_SSLKEY_FILE, PR_EC_SSLKEY_PASS, PR_EC_PROXY_HOST,
@@ -526,55 +526,56 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlob
 	return ClientUtil::GetGlobalProfileProperties(lpGlobalProfSect, lpsProfileProps);
 }
 
-HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, struct sGlobalProfileProps* lpsProfileProps)
+HRESULT ClientUtil::GetGlobalProfileProperties(IProfSect *sect, struct sGlobalProfileProps *gp)
 {
-	if (lpGlobalProfSect == nullptr || lpsProfileProps == nullptr)
+	if (sect == nullptr || gp == nullptr)
 		return MAPI_E_INVALID_OBJECT;
 
-	memory_ptr<SPropValue> lpsPropArray;
+	memory_ptr<SPropValue> s;
 	ULONG			cValues = 0;
 	// Get the properties we need directly from the global profile section
-	auto hr = lpGlobalProfSect->GetProps(sptaKopanoProfile, 0, &cValues, &~lpsPropArray);
+	auto hr = sect->GetProps(sptaKopanoProfile, 0, &cValues, &~s);
 	if(FAILED(hr))
 		return hr;
 
-	auto lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PATH);
-	if (lpProp != nullptr)
-		lpsProfileProps->strServerPath = lpProp->Value.lpszA;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_PROFILE_NAME_A)) != NULL)
-		lpsProfileProps->strProfileName = lpProp->Value.lpszA;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERNAME_W)) != nullptr ||
-	    (lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERNAME_A)) != nullptr)
-		lpsProfileProps->strUserName = convstring::from_SPropValue(lpProp);
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERPASSWORD_W)) != nullptr ||
-	    (lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERPASSWORD_A)) != nullptr)
-		lpsProfileProps->strPassword = convstring::from_SPropValue(lpProp);
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_IMPERSONATEUSER_W)) != nullptr ||
-	    (lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_IMPERSONATEUSER_A)) != nullptr)
-		lpsProfileProps->strImpersonateUser = convstring::from_SPropValue(lpProp);
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_FLAGS)) != NULL)
-		lpsProfileProps->ulProfileFlags = lpProp->Value.ul;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_SSLKEY_FILE)) != NULL)
-		lpsProfileProps->strSSLKeyFile = lpProp->Value.lpszA;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_SSLKEY_PASS)) != NULL)
-		lpsProfileProps->strSSLKeyPass = lpProp->Value.lpszA;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_HOST)) != NULL)
-		lpsProfileProps->strProxyHost = lpProp->Value.lpszA;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_PORT)) != NULL)
-		lpsProfileProps->ulProxyPort = lpProp->Value.ul;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_FLAGS)) != NULL)
-		lpsProfileProps->ulProxyFlags = lpProp->Value.ul;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_USERNAME)) != NULL)
-		lpsProfileProps->strProxyUserName = lpProp->Value.lpszA;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_PASSWORD)) != NULL)
-		lpsProfileProps->strProxyPassword = lpProp->Value.lpszA;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_CONNECTION_TIMEOUT)) != NULL)
-		lpsProfileProps->ulConnectionTimeOut = lpProp->Value.ul;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION)) != NULL)
-		lpsProfileProps->strClientAppVersion = lpProp->Value.lpszA;
-	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC)) != NULL)
-		lpsProfileProps->strClientAppMisc = lpProp->Value.lpszA;
-
+	if (s[0].ulPropTag == PR_EC_PATH)
+		gp->strServerPath = s[0].Value.lpszA;
+	if (s[1].ulPropTag == PR_PROFILE_NAME_A)
+		gp->strProfileName = s[1].Value.lpszA;
+	if (s[3].ulPropTag == PR_EC_USERNAME_W)
+		gp->strUserName = s[3].Value.lpszW;
+	else if (s[2].ulPropTag == PR_EC_USERNAME_A)
+		gp->strUserName = convstring::from_SPropValue(&s[2]);
+	if (s[5].ulPropTag == PR_EC_USERPASSWORD_W)
+		gp->strPassword = s[5].Value.lpszW;
+	else if (s[4].ulPropTag == PR_EC_USERPASSWORD_A)
+		gp->strPassword = convstring::from_SPropValue(&s[4]);
+	if (s[7].ulPropTag == PR_EC_IMPERSONATEUSER_W)
+		gp->strImpersonateUser = s[7].Value.lpszW;
+	else if (s[6].ulPropTag == PR_EC_IMPERSONATEUSER_A)
+		gp->strImpersonateUser = convstring::from_SPropValue(&s[6]);
+	if (s[8].ulPropTag == PR_EC_FLAGS)
+		gp->ulProfileFlags = s[8].Value.ul;
+	if (s[9].ulPropTag == PR_EC_SSLKEY_FILE)
+		gp->strSSLKeyFile = s[9].Value.lpszA;
+	if (s[10].ulPropTag == PR_EC_SSLKEY_PASS)
+		gp->strSSLKeyPass = s[10].Value.lpszA;
+	if (s[11].ulPropTag == PR_EC_PROXY_HOST)
+		gp->strProxyHost = s[11].Value.lpszA;
+	if (s[12].ulPropTag == PR_EC_PROXY_PORT)
+		gp->ulProxyPort = s[12].Value.ul;
+	if (s[13].ulPropTag == PR_EC_PROXY_USERNAME)
+		gp->strProxyUserName = s[13].Value.lpszA;
+	if (s[14].ulPropTag == PR_EC_PROXY_PASSWORD)
+		gp->strProxyPassword = s[14].Value.lpszA;
+	if (s[15].ulPropTag == PR_EC_PROXY_FLAGS)
+		gp->ulProxyFlags = s[15].Value.ul;
+	if (s[16].ulPropTag == PR_EC_CONNECTION_TIMEOUT)
+		gp->ulConnectionTimeOut = s[16].Value.ul;
+	if (s[18].ulPropTag == PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION)
+		gp->strClientAppVersion = s[18].Value.lpszA;
+	if (s[19].ulPropTag == PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC)
+		gp->strClientAppMisc = s[19].Value.lpszA;
 	return hrSuccess;
 }
 
