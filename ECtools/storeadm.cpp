@@ -752,6 +752,7 @@ static bool adm_parse_options(int &argc, const char **&argv)
 		adm_config->LoadSettings(opt_config_file);
 		if (adm_config->HasErrors()) {
 			fprintf(stderr, "Error reading config file %s\n", opt_config_file);
+			LogConfigErrors(adm_config.get());
 			return false;
 		}
 	}
