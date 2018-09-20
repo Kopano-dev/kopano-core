@@ -179,6 +179,7 @@ class Folder(Properties):
     @property
     def parent(self):
         """:class:`Parent <Folder>` folder"""
+
         parent_eid = self._get_fast(PR_PARENT_ENTRYID)
         if parent_eid:
             parent_eid = _benc(parent_eid)

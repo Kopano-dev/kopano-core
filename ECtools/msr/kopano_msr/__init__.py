@@ -101,48 +101,56 @@ class ControlWorker(kopano.Worker):
                         conn.close()
 
 class HierarchyImporter:
-    def __init__(self, state_path, store2, store_entryid, iqueue, log):
+    def __init__(self, state_path, store2, store_entryid, iqueue, subtree_sk, log):
         self.state_path = state_path
         self.store2 = store2
         self.store_entryid = store_entryid
         self.iqueue = iqueue
+        self.subtree_sk = subtree_sk
         self.log = log
 
     def update(self, f):
         entryid2 = db_get(self.state_path, 'folder_map_'+f.sourcekey)
+        psk = f.parent.sourcekey or self.subtree_sk # TODO default pyko to subtree_sk?
 
-        # update (including move)
+        self.log.info('updated: %s', f)
+
+        parent2_eid = db_get(self.state_path, 'folder_map_'+psk)
+        parent2 = self.store2.folder(entryid=parent2_eid)
+
+        self.log.info('parent: %s', parent2)
+
         if entryid2:
-            self.log.info('updated folder: %s (%s)', f.sourcekey, f.name)
+            self.log.info('exists')
 
             folder2 = self.store2.folder(entryid=entryid2)
             folder2.name = f.name
             folder2.container_class = f.container_class
 
-            parent_sk = f.parent.sourcekey
-            parent2_eid = db_get(self.state_path, 'folder_map_'+parent_sk)
-            if parent2_eid not in (None, folder2.parent.entryid):
-                self.log.info('move to %s', parent2_eid)
-                parent2 = self.store2.folder(entryid=parent2_eid)
+            if folder2.parent.entryid != parent2_eid:
+                self.log.info('move folder')
+
                 folder2.parent.move(folder2, parent2)
 
-        # new
         else:
-            path = f.path
-            if path is not None: # above subtree
-                self.log.info('new folder: %s (%s)', f.sourcekey, f.name)
+            self.log.info('create')
 
-                folder2 = self.store2.folder(path, create=True)
-                db_put(self.state_path, 'folder_map_'+f.sourcekey, folder2.entryid)
+            folder2 = parent2.create_folder(f.name) # TODO potential name conflict
 
-                _queue_or_store(self.store_entryid, f.entryid, self.iqueue)
+            db_put(self.state_path, 'folder_map_'+f.sourcekey, folder2.entryid)
+
+        _queue_or_store(self.store_entryid, f.entryid, self.iqueue)
+
 
     def delete(self, f, flags):
         self.log.info('deleted folder: %s', f.sourcekey)
 
         entryid2 = db_get(self.state_path, 'folder_map_'+f.sourcekey)
-        folder2 = self.store2.folder(entryid=entryid2)
-        self.store2.delete(folder2)
+        if entryid2: # TODO why this check
+            folder2 = self.store2.folder(entryid=entryid2)
+            self.store2.delete(folder2)
+
+        # TODO delete from mapping
 
 class FolderImporter:
     def __init__(self, state_path, folder2, log):
@@ -246,7 +254,7 @@ class SyncWorker(kopano.Worker):
                         self.log.info('found previous store sync state: %s', state)
 
                     # sync and store new state
-                    importer = HierarchyImporter(state_path, store2, store_entryid, self.iqueue, self.log)
+                    importer = HierarchyImporter(state_path, store2, store_entryid, self.iqueue, store.subtree.sourcekey, self.log)
                     newstate = store.subtree.sync_hierarchy(importer, state)
                     db_put(state_path, 'store_state_'+store_entryid, newstate)
 
@@ -287,9 +295,12 @@ class Service(kopano.Service):
         USER_USER[usera.name] = userb.name
         USER_SINK[usera.name] = sink
 
+        state_path = os.path.join(self.config['state_path'], usera.store.entryid)
+        db_put(state_path, 'folder_map_'+usera.subtree.sourcekey, userb.subtree.entryid)
+
         _queue_or_store(usera.store.entryid, None, self.iqueue)
-        for folder in usera.folders():
-            _queue_or_store(usera.store.entryid, folder.entryid, self.iqueue)
+#        for folder in usera.folders():
+#            _queue_or_store(usera.store.entryid, folder.entryid, self.iqueue)
 
     def unsubscribe_user(self, server, user):
         self.log.info('unsubscribing: %s', user)
