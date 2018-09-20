@@ -13,10 +13,10 @@
 #include "Mem.h"
 #include <kopano/stringutil.h>
 #include <kopano/ECGuid.h>
-#include "ECABProvider.h"
+#include "ECABContainer.h"
 #include "ECMSProvider.h"
 #include "ECMsgStore.h"
-#include "ECArchiveAwareMsgStore.h"
+#include "ECArchiveAwareMessage.h"
 #include "ECMsgStorePublic.h"
 #include <kopano/charset/convstring.h>
 #include "EntryPoint.h"
