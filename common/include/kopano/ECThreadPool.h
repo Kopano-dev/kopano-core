@@ -7,9 +7,10 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <map>
+#include <memory>
 #include <mutex>
 #include <pthread.h>
-#include <set>
 #include <list>
 #include <kopano/zcdefs.h>
 #include <kopano/timeutil.hpp>
@@ -17,6 +18,17 @@
 namespace KC {
 
 class ECTask;
+class ECThreadPool;
+
+class _kc_export ECThreadWorker {
+	public:
+	ECThreadWorker(ECThreadPool *);
+	virtual ~ECThreadWorker() {}
+	virtual bool init() { return true; }
+	virtual void exit() {}
+
+	ECThreadPool *m_pool = nullptr;
+};
 
 /**
  * This class represents a thread pool with a fixed amount of worker threads.
@@ -31,12 +43,12 @@ class _kc_export ECThreadPool {
 		bool			bDelete;
 	};
 
-	typedef std::set<pthread_t> ThreadSet;
+	typedef std::map<pthread_t, std::shared_ptr<ECThreadWorker>> ThreadSet;
 	typedef std::list<STaskInfo> TaskList;
 
 public:
 	ECThreadPool(unsigned ulThreadCount);
-	~ECThreadPool();
+	virtual ~ECThreadPool();
 	bool enqueue(ECTask *lpTask, bool bTakeOwnership = false);
 	void setThreadCount(unsigned int cuont, bool wait = false);
 	time_duration front_item_age() const;
@@ -44,6 +56,7 @@ public:
 	void thread_counts(size_t *active, size_t *idle) const;
 
 	protected:
+	virtual std::unique_ptr<ECThreadWorker> make_worker();
 	_kc_hidden size_t threadCount() const; /* unlocked variant */
 	_kc_hidden bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
 	_kc_hidden void joinTerminated(std::unique_lock<std::mutex> &);
