@@ -35,7 +35,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/ECtools/archiver \
 	${CRYPTO_CFLAGS} ${curl_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
 	${jsoncpp_CFLAGS} \
-	${KRB5_CFLAGS} ${LDAP_FLAGS} ${MYSQL_INCLUDES} ${popt_CFLAGS} \
+	${KRB5_CFLAGS} ${LDAP_FLAGS} ${libHX_CFLAGS} ${MYSQL_INCLUDES} \
 	${SSL_CFLAGS} \
 	${s3_CFLAGS} ${kcoidc_CFLAGS} ${TCMALLOC_CFLAGS} ${tidy_CPPFLAGS} \
 	${VMIME_CFLAGS} ${XML2_CFLAGS}
@@ -220,7 +220,7 @@ kopano_monitor_LDADD = libmapi.la libkcutil.la ${PROG_LIBS}
 
 
 kopano_oof_SOURCES = ECtools/oof.cpp
-kopano_oof_LDADD = ${jsoncpp_LIBS} ${popt_LIBS} libmapi.la libkcutil.la
+kopano_oof_LDADD = ${jsoncpp_LIBS} ${libHX_LIBS} libmapi.la libkcutil.la
 
 
 #
@@ -242,7 +242,7 @@ kopano_spooler_LDADD = \
 
 
 kopano_srvadm_SOURCES = ECtools/srvadm.cpp
-kopano_srvadm_LDADD = ${popt_LIBS} libmapi.la libkcutil.la
+kopano_srvadm_LDADD = ${libHX_LIBS} libmapi.la libkcutil.la
 
 
 #
@@ -256,7 +256,7 @@ kopano_stats_LDADD = ${NCURSES_LIBS} libmapi.la libkcutil.la ${PROG_LIBS}
 
 
 kopano_storeadm_SOURCES = ECtools/storeadm.cpp
-kopano_storeadm_LDADD = ${jsoncpp_LIBS} ${popt_LIBS} libmapi.la libkcutil.la
+kopano_storeadm_LDADD = ${jsoncpp_LIBS} ${libHX_LIBS} libmapi.la libkcutil.la
 
 
 #
