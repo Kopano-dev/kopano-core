@@ -74,9 +74,9 @@ static bool Prefix(const std::string &strInput, const std::string &strPrefix)
     return (strInput.compare(0, strPrefix.size(), strPrefix) == 0);
 }
 
-IMAP::IMAP(const char *szServerPath, std::shared_ptr<ECChannel> lpChannel,
-    std::shared_ptr<ECConfig> lpConfig) :
-	ClientProto(szServerPath, std::move(lpChannel), lpConfig)
+IMAP::IMAP(const char *szServerPath, std::shared_ptr<ECChannel> ch,
+    std::shared_ptr<ECConfig> cfg) :
+	ClientProto(szServerPath, std::move(ch), cfg)
 {
 	imopt_default_delivery_options(&dopt);
 	dopt.add_imap_data = true;
@@ -2742,7 +2742,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 	int n = 0;
 	SMail sMail;
 	bool bNewMail = false;
-	enum { EID, IKEY, IMAPID, FLAGS, FLAGSTATUS, MSGSTATUS, LAST_VERB, NUM_COLS };
+	enum { EID, IKEY, IMAPID, MFLAGS, FLAGSTATUS, MSGSTATUS, LAST_VERB, NUM_COLS };
 	std::map<unsigned int, unsigned int> mapUIDs; // Map UID -> ID
 	SPropValue sPropMax;
 	unsigned int ulMailnr = 0, ulRecent = 0, ulUnseen = 0;
@@ -2825,8 +2825,8 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, unsigne
 
                 // Remember the first unseen message
 				if (ulUnseen == 0 &&
-				    lpRows[ulMailnr].lpProps[FLAGS].ulPropTag == PR_MESSAGE_FLAGS &&
-				    (lpRows[ulMailnr].lpProps[FLAGS].Value.ul & MSGFLAG_READ) == 0)
+				    lpRows[ulMailnr].lpProps[MFLAGS].ulPropTag == PR_MESSAGE_FLAGS &&
+				    (lpRows[ulMailnr].lpProps[MFLAGS].Value.ul & MSGFLAG_READ) == 0)
                         ulUnseen = lstFolderMailEIDs.size()-1+1; // size()-1 = last offset, mail ID = position + 1
 				continue;
             }
@@ -3969,10 +3969,9 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 		if (ulPos == string::npos) {
 			// single number
 			ulMailnr = LastOrNumber(vSequences[i].c_str(), true);
-
-			auto i = find(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulMailnr);
-			if (i != lstFolderMailEIDs.cend())
-				lstMails.emplace_back(std::distance(lstFolderMailEIDs.cbegin(), i));
+			auto j = find(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulMailnr);
+			if (j != lstFolderMailEIDs.cend())
+				lstMails.emplace_back(std::distance(lstFolderMailEIDs.cbegin(), j));
 			continue;
 		}
 		// range
@@ -3988,8 +3987,8 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 
 		auto b = std::lower_bound(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulBeginMailnr);
 		auto e = std::upper_bound(b, lstFolderMailEIDs.cend(), ulMailnr);
-		for (auto i = b; i != e; ++i)
-			lstMails.emplace_back(std::distance(lstFolderMailEIDs.cbegin(), i));
+		for (auto j = b; j != e; ++j)
+			lstMails.emplace_back(std::distance(lstFolderMailEIDs.cbegin(), j));
 	}
 
 	lstMails.sort();

@@ -280,7 +280,6 @@ HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
 
     for (auto &exc : lstExceptions) {
         ExtendedException sExtendedException;
-		unsigned int ulReservedBlock1Size, ulReservedBlock2Size;
 		unsigned int ulWideCharSubjectLength, ulWideCharLocationLength;
         unsigned int ulChangeHighlightSize;
         

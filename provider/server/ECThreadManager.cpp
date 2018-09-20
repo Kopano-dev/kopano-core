@@ -40,7 +40,7 @@ class WORKITEM final : public ECTask {
 	public:
 	virtual ~WORKITEM();
 	virtual void run();
-	struct soap *soap = nullptr; /* socket and state associated with the connection */
+	struct soap *xsoap = nullptr; /* socket and state associated with the connection */
 	KC::time_point dblReceiveStamp; /* time at which activity was detected on the socket */
 	ECDispatcher *dispatcher = nullptr;
 };
@@ -101,15 +101,15 @@ static string GetSoapError(int err)
 
 WORKITEM::~WORKITEM()
 {
-	if (soap == nullptr)
+	if (xsoap == nullptr)
 		return;
 	/*
 	 * This part only runs when ECDispatcher ends operation and unprocessed
 	 * items remain in the queue. Then, ~ECThreadPool will clear all the
 	 * tasks, and the soap must be released.
 	 */
-	kopano_end_soap_connection(soap);
-	soap_free(soap);
+	kopano_end_soap_connection(xsoap);
+	soap_free(xsoap);
 }
 
 void WORKITEM::run()
@@ -118,8 +118,8 @@ void WORKITEM::run()
 	auto lpWorkItem = this;
 	int err = 0;
 	pthread_t thrself = pthread_self();
-	struct soap *soap = lpWorkItem->soap;
-	lpWorkItem->soap = nullptr; /* Snatch soap away from ~WORKITEM */
+	struct soap *soap = lpWorkItem->xsoap;
+	lpWorkItem->xsoap = nullptr; /* Snatch soap away from ~WORKITEM */
 
 	set_thread_name(thrself, format("z-s: %s", soap->host).c_str());
 
@@ -309,7 +309,7 @@ ECRESULT ECDispatcher::QueueItem(struct soap *soap)
 	auto item = new WORKITEM;
 	CONNECTION_TYPE ulType;
 
-	item->soap = soap;
+	item->xsoap = soap;
 	item->dblReceiveStamp = std::chrono::steady_clock::now();
 	item->dispatcher = this;
 	ulType = SOAP_CONNECTION_TYPE(soap);
@@ -420,7 +420,6 @@ ECRESULT ECDispatcherSelect::MainLoop()
 	int maxfds = getdtablesize();
 	if (maxfds < 0)
 		throw std::runtime_error("getrlimit failed");
-    char s = 0;
     time_t now;
 	CONNECTION_TYPE ulType;
 	auto pollfd = std::make_unique<struct pollfd[]>(maxfds);
@@ -493,6 +492,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 
 		// Activity on a TCP/pipe socket
 		// First, check for EOF
+			char s = 0;
 			if (recv(pollfd[i].fd, &s, 1, MSG_PEEK) == 0) {
 			// EOF occurred, just close the socket and remove it from the socket list
 			kopano_end_soap_connection(iterSockets->second.soap);

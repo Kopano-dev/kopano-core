@@ -14,8 +14,8 @@
 
 using namespace KC;
 
-ZCABProvider::ZCABProvider(ULONG ulFlags, const char *szClassName) :
-    ECUnknown(szClassName)
+ZCABProvider::ZCABProvider(ULONG ulFlags, const char *cls_name) :
+	ECUnknown(cls_name)
 {
 }
 

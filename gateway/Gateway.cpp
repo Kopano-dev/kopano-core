@@ -230,7 +230,6 @@ static void *Handler(void *lpArg)
 			continue;
 		}
 
-		HRESULT hr = hrSuccess;
 		try {
 			/* Process IMAP command */
 			hr = client->HrProcessCommand(inBuffer);

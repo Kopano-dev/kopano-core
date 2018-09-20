@@ -15,7 +15,7 @@
 #include <mapispi.h>
 
 typedef std::map<std::string, std::string> inf_section;
-typedef std::map<std::string, inf_section> inf;
+typedef std::map<std::string, inf_section> inf_file;
 
 /* MAPI Providers EntryPoint functions */
 typedef HRESULT (*SVC_MSGServiceEntry)(HINSTANCE, IMalloc *, IMAPISupport *, ULONG ui_param, ULONG flags, ULONG context, ULONG nprops, const SPropValue *props, IProviderAdmin *, MAPIERROR **errout);
@@ -33,10 +33,9 @@ public:
 private:
 	std::vector<std::string> GetINFPaths();
 	HRESULT LoadINF(const char *filename);
-
-	inf m_mapSections;
-
 	ULONG DefinitionFromString(const std::string& strDef, bool bProp) const;
+
+	inf_file m_mapSections;
 	std::map<std::string, unsigned int> m_mapDefs;
 };
 

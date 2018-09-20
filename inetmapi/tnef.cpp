@@ -834,7 +834,7 @@ HRESULT ECTNEF::HrReadPropStream(const char *lpBuffer, ULONG ulSize,
 HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
     ULONG *lpulRead, LPSPropValue *lppProp)
 {
-	ULONG ulCount = 0, ulLen = 0, ulOrigSize = ulSize;
+	ULONG ulCount = 0, ulOrigSize = ulSize;
 	memory_ptr<SPropValue> lpProp;
 	GUID sGuid;
 	MAPINAMEID sNameID, *lpNameID = &sNameID;
@@ -1084,15 +1084,15 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			lpBuffer += 8;
 			ulSize -= 8;
 			break;
-		case PT_STRING8:
+		case PT_STRING8: {
 			if (ulSize < 8)
 				return MAPI_E_CORRUPT_DATA;
 			if((PROP_TYPE(ulPropTag) & MV_FLAG) == 0) {
     			lpBuffer += 4; // Skip next 4 bytes, they are always '1'
 	    		ulSize -= 4;
             }
-            memcpy(&ulLen, lpBuffer, sizeof(ULONG));
-			ulLen = le32_to_cpu(ulLen);
+			memcpy(&tmp4, lpBuffer, sizeof(tmp4));
+			unsigned int ulLen = le32_to_cpu(tmp4);
 			lpBuffer += 4; 
 			ulSize -= 4;
 
@@ -1119,8 +1119,8 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			lpBuffer += ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			ulSize -= ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			break;
-
-		case PT_UNICODE:
+		}
+		case PT_UNICODE: {
 			// Make sure we read UCS-2, since that is the format of PT_UNICODE in Win32.
 			if (ulSize < 8)
 				return MAPI_E_CORRUPT_DATA;
@@ -1128,8 +1128,8 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
     			lpBuffer += 4; // Skip next 4 bytes, they are always '1'
 	    		ulSize -= 4;
             }
-            memcpy(&ulLen, lpBuffer, sizeof(ULONG)); // Assumes 'len' in file is BYTES, not chars
-			ulLen = le32_to_cpu(ulLen);
+			memcpy(&tmp4, lpBuffer, sizeof(tmp4)); // Assumes 'len' in file is BYTES, not chars
+			unsigned int ulLen = le32_to_cpu(tmp4);
 			lpBuffer += 4;
 			ulSize -= 4;
 			if (ulSize < ulLen)
@@ -1158,17 +1158,17 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			lpBuffer += ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			ulSize -= ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			break;
-
+		}
 		case PT_OBJECT:			// PST sends PT_OBJECT data. Treat as PT_BINARY
-		case PT_BINARY:
+		case PT_BINARY: {
 			if (ulSize < 8)
 				return MAPI_E_CORRUPT_DATA;
 			if((PROP_TYPE(ulPropTag) & MV_FLAG) == 0) {
     			lpBuffer += 4;	// Skip next 4 bytes, it's always '1' (ULONG)
 	    		ulSize -= 4;
             }
-            memcpy(&ulLen, lpBuffer, sizeof(ULONG));
-			ulLen = le32_to_cpu(ulLen);
+			memcpy(&tmp4, lpBuffer, sizeof(tmp4));
+			unsigned int ulLen = le32_to_cpu(tmp4);
 			lpBuffer += 4;
 			ulSize -= 4;
 
@@ -1199,6 +1199,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 			lpBuffer += ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			ulSize -= ulLen & 3 ? 4 - (ulLen & 3) : 0;
 			break;
+		}
 		case PT_CLSID:
 			if (ulSize < sizeof(GUID))
 				return MAPI_E_CORRUPT_DATA;
@@ -1415,7 +1416,7 @@ HRESULT ECTNEF::Finish()
 				}
 
 				object_ptr<IStream> lpSubStream;
-				auto hr = CreateStreamOnHGlobal(nullptr, true, &~lpSubStream);
+				hr = CreateStreamOnHGlobal(nullptr, true, &~lpSubStream);
 				if (hr != hrSuccess)
 					return hr;
 				hr = lpSubStream->Write(p->Value.bin.lpb, p->Value.bin.cb, NULL);
@@ -1443,7 +1444,7 @@ HRESULT ECTNEF::Finish()
 			if (!has_obj && att->data != NULL) {
 				object_ptr<IStream> lpAttStream;
 
-				auto hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpAttStream);
+				hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpAttStream);
 				if (hr != hrSuccess)
 					return hr;
 				hr = lpAttStream->Write(att->data, att->size,NULL);

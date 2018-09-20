@@ -38,9 +38,9 @@ using std::string;
  * @ingroup gateway_pop3
  * @{
  */
-POP3::POP3(const char *szServerPath, std::shared_ptr<ECChannel> lpChannel,
-    std::shared_ptr<ECConfig> lpConfig) :
-	ClientProto(szServerPath, std::move(lpChannel), std::move(lpConfig))
+POP3::POP3(const char *szServerPath, std::shared_ptr<ECChannel> ch,
+    std::shared_ptr<ECConfig> cfg) :
+	ClientProto(szServerPath, std::move(ch), std::move(cfg))
 {
 	imopt_default_sending_options(&sopt);
 	sopt.no_recipients_workaround = true;	// do not stop processing mail on empty recipient table

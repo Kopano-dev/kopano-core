@@ -99,7 +99,7 @@ HRESULT INFLoader::LoadINFs()
 #define MAXLINELEN 4096
 HRESULT INFLoader::LoadINF(const char *filename)
 {
-	inf::iterator iSection = m_mapSections.end();
+	auto iSection = m_mapSections.end();
 	std::string strName, strValue;
 
 	auto fp = fopen(filename, "r");
@@ -154,7 +154,7 @@ HRESULT INFLoader::LoadINF(const char *filename)
  */
 const inf_section *INFLoader::GetSection(const std::string &strSectionName) const
 {
-	inf::const_iterator iSection = m_mapSections.find(strSectionName);
+	auto iSection = m_mapSections.find(strSectionName);
 	if (iSection == m_mapSections.cend()) {
 		static inf_section empty;
 		return &empty;

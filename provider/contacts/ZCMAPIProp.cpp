@@ -19,8 +19,8 @@
 
 using namespace KC;
 
-ZCMAPIProp::ZCMAPIProp(ULONG ulObjType, const char *szClassName) :
-    ECUnknown(szClassName), m_ulObject(ulObjType)
+ZCMAPIProp::ZCMAPIProp(ULONG ulObjType, const char *cls_name) :
+	ECUnknown(cls_name), m_ulObject(ulObjType)
 {
 }
 
