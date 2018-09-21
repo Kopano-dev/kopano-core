@@ -401,13 +401,6 @@ void ECStatsCollector::ForEachStat(void(callback)(const std::string &, const std
 	}
 }
 
-void ECStatsCollector::ForEachString(void(callback)(const std::string &, const std::string &, const std::string &, void *), void *obj)
-{
-	scoped_lock lk(m_StringsLock);
-	for (const auto &i : m_StatStrings)
-		callback(i.first, i.second.description, i.second.value, obj);
-}
-
 void ECStatsCollector::Reset()
 {
 	for (auto &i : m_StatData) {

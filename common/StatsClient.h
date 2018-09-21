@@ -83,7 +83,6 @@ class _kc_export ECStatsCollector _kc_final {
 	std::string GetValue(const SCMap::const_iterator::value_type &);
 	std::string GetValue(const SCName &name);
 	void ForEachStat(void (*cb)(const std::string &, const std::string &, const std::string &, void *), void *obj);
-	void ForEachString(void (*cb)(const std::string &, const std::string &, const std::string &, void *), void *obj);
 	void Reset();
 	void Reset(SCName name);
 
@@ -91,8 +90,6 @@ class _kc_export ECStatsCollector _kc_final {
 	_kc_hidden void AddStat(SCName index, SCType type, const char *name, const char *desc);
 
 	SCMap m_StatData;
-	std::mutex m_StringsLock;
-	std::map<std::string, ECStrings> m_StatStrings;
 };
 
 class _kc_export StatsClient _kc_final {

@@ -102,7 +102,6 @@ ECRESULT ECSystemStatsTable::Load()
 	usercount_t userCount;
 
 	id = 0;
-	g_lpSessionManager->m_stats->ForEachString(GetStatsCollectorData, this);
 	g_lpSessionManager->m_stats->ForEachStat(GetStatsCollectorData, this);
 	auto sesmgr = lpSession->GetSessionManager();
 	sesmgr->GetCacheManager()->ForEachCacheItem(GetStatsCollectorData, this);
