@@ -154,7 +154,7 @@ static void process_signal(int sig)
 			g_lpAudit->SetLoglevel(new_ll);
 			g_lpAudit->Reset();
 		}
-		g_lpSessionManager->g_lpStatsCollector->SetTime(SCN_SERVER_LAST_CONFIGRELOAD, time(nullptr));
+		g_lpSessionManager->m_stats->SetTime(SCN_SERVER_LAST_CONFIGRELOAD, time(nullptr));
 		g_lpSoapServerConn->DoHUP();
 		break;
 	default:

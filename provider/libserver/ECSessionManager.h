@@ -148,7 +148,7 @@ public:
 	_kc_hidden ECLockManager *GetLockManager() const { return m_ptrLockManager.get(); }
 	_kc_hidden ECAttachmentConfig *get_atxconfig() const { return m_atxconfig.get(); }
 
-	std::shared_ptr<ECStatsCollector> g_lpStatsCollector;
+	std::shared_ptr<ECStatsCollector> m_stats;
 
 protected:
 	_kc_hidden BTSession *GetSession(ECSESSIONID, bool lock_ses = false);

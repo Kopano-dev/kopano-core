@@ -192,9 +192,9 @@ done:
 		// thread is done processing the item, so any time spent in this thread until now can be accounted in that session.
 		g_lpSessionManager->RemoveBusyState(info->ulLastSessionId, thrself);
 		// Track cpu usage server-wide
-		g_lpSessionManager->g_lpStatsCollector->Increment(SCN_SOAP_REQUESTS);
-		g_lpSessionManager->g_lpStatsCollector->Increment(SCN_PROCESSING_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
-		g_lpSessionManager->g_lpStatsCollector->Increment(SCN_RESPONSE_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - lpWorkItem->dblReceiveStamp).count());
+		g_lpSessionManager->m_stats->Increment(SCN_SOAP_REQUESTS);
+		g_lpSessionManager->m_stats->Increment(SCN_PROCESSING_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - dblStart).count());
+		g_lpSessionManager->m_stats->Increment(SCN_RESPONSE_TIME, std::chrono::duration_cast<std::chrono::milliseconds>(dblEnd - lpWorkItem->dblReceiveStamp).count());
 	}
 
 	// Clear memory used by soap calls. Note that this does not actually
@@ -558,8 +558,8 @@ ECRESULT ECDispatcherSelect::MainLoop()
 				continue;
 			}
 			newsoap->socket = ec_relocate_fd(newsoap->socket);
-			g_lpSessionManager->g_lpStatsCollector->Max(SCN_MAX_SOCKET_NUMBER, static_cast<LONGLONG>(newsoap->socket));
-			g_lpSessionManager->g_lpStatsCollector->Increment(SCN_SERVER_CONNECTIONS);
+			g_lpSessionManager->m_stats->Max(SCN_MAX_SOCKET_NUMBER, static_cast<LONGLONG>(newsoap->socket));
+			g_lpSessionManager->m_stats->Increment(SCN_SERVER_CONNECTIONS);
 			sActive.soap = newsoap;
 			l_sock.lock();
 			m_setSockets.emplace(sActive.soap->socket, sActive);
@@ -700,8 +700,8 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 							ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
 							newsoap->host);
 					newsoap->socket = ec_relocate_fd(newsoap->socket);
-					g_lpSessionManager->g_lpStatsCollector->Max(SCN_MAX_SOCKET_NUMBER, static_cast<LONGLONG>(newsoap->socket));
-					g_lpSessionManager->g_lpStatsCollector->Increment(SCN_SERVER_CONNECTIONS);
+					g_lpSessionManager->m_stats->Max(SCN_MAX_SOCKET_NUMBER, static_cast<LONGLONG>(newsoap->socket));
+					g_lpSessionManager->m_stats->Increment(SCN_SERVER_CONNECTIONS);
 					// directly make worker thread active
                     sActive.soap = newsoap;
 					m_setSockets.emplace(sActive.soap->socket, sActive);

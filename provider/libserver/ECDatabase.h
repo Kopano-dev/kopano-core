@@ -54,7 +54,7 @@ public:
 	std::string error, m_dbname;
 	bool m_bForceUpdate = false, m_bFirstResult = false;
 	std::shared_ptr<ECConfig> m_lpConfig;
-	std::shared_ptr<ECStatsCollector> g_lpStatsCollector;
+	std::shared_ptr<ECStatsCollector> m_stats;
 #ifdef KNOB144
 	unsigned int m_ulTransactionState = 0;
 #endif
