@@ -126,7 +126,7 @@ public:
 	 *
 	 * @throw std::exception
 	 */
-	virtual void InitPlugin() = 0;
+	virtual void InitPlugin(std::shared_ptr<ECStatsCollector>) = 0;
 
 	/**
 	 * Resolve name and company to objectsignature
@@ -411,7 +411,7 @@ protected:
 	/**
 	 * Pointer to statscollector
 	 */
-	ECStatsCollector *m_lpStatsCollector;
+	std::shared_ptr<ECStatsCollector> m_lpStatsCollector;
 
 	/**
 	 * Boolean to indicate if multi-company features are enabled

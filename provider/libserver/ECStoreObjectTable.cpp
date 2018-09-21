@@ -41,7 +41,7 @@
 #include <kopano/Util.h>
 #include "ECGenProps.h"
 #include "ECStoreObjectTable.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECSecurity.h"
 #include "ECIndexer.h"
 #include "ECSearchClient.h"
@@ -55,8 +55,6 @@
 #include <map>
 
 namespace KC {
-
-extern ECStatsCollector*  g_lpStatsCollector;
 
 static bool IsTruncatableType(unsigned int ulTag)
 {
@@ -400,7 +398,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 				for (auto iterIncomplete = mapIncompleteRows.lower_bound(sKey);
 				     iterIncomplete != mapIncompleteRows.cend() && iterIncomplete->first.ulObjId == dfr;
 				     ++iterIncomplete) {
-					g_lpStatsCollector->Increment(SCN_DATABASE_DEFERRED_FETCHES);
+					g_lpSessionManager->m_stats->inc(SCN_DATABASE_DEFERRED_FETCHES);
 					mapRows[iterIncomplete->first] = iterIncomplete->second;
 				}
 			}
@@ -558,8 +556,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
-
-	g_lpStatsCollector->Increment(SCN_DATABASE_ROW_READS, 1);
+	g_lpSessionManager->m_stats->inc(SCN_DATABASE_ROW_READS);
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 
     for (const auto &col : mapColumns) {

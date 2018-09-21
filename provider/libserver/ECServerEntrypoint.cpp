@@ -12,7 +12,7 @@
 #include <kopano/hl.hpp>
 #include "ECDatabase.h"
 #include "ECSessionManager.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECDatabaseFactory.h"
 #include "ECServerEntrypoint.h"
 #include "ECS3Attachment.h"
@@ -23,7 +23,6 @@ pthread_key_t database_key;
 pthread_key_t plugin_key;
 
 _kc_export ECSessionManager *g_lpSessionManager;
-_kc_export ECStatsCollector *g_lpStatsCollector;
 static std::set<ECDatabase *> g_lpDBObjectList;
 static std::mutex g_hMutexDBObjectList;
 static bool g_bInitLib = false;
@@ -62,7 +61,6 @@ ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 
 	// Init mutex for database object list
 	auto er = ECDatabase::InitLibrary(lpDatabaseDir, lpConfigFile);
-	g_lpStatsCollector = new ECStatsCollector();
 
 	//TODO: with an error remove all variables and g_bInitLib = false
 	g_bInitLib = true;
@@ -95,12 +93,12 @@ ECRESULT kopano_unloadlibrary(void)
 }
 
 ECRESULT kopano_init(std::shared_ptr<ECConfig> cfg, std::shared_ptr<ECLogger> ad,
-    bool bHostedKopano, bool bDistributedKopano)
+    std::shared_ptr<ECStatsCollector> sc, bool bHostedKopano, bool bDistributedKopano)
 {
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
 	try {
-		g_lpSessionManager = new ECSessionManager(std::move(cfg), std::move(ad), bHostedKopano, bDistributedKopano);
+		g_lpSessionManager = new ECSessionManager(std::move(cfg), std::move(ad), std::move(sc), bHostedKopano, bDistributedKopano);
 	} catch (const KMAPIError &e) {
 		return e.code();
 	}
@@ -122,8 +120,6 @@ ECRESULT kopano_exit()
 
 	delete g_lpSessionManager;
 	g_lpSessionManager = NULL;
-	delete g_lpStatsCollector;
-	g_lpStatsCollector = NULL;
 
 	// Close all database connections
 	scoped_lock l_obj(g_hMutexDBObjectList);
@@ -204,13 +200,13 @@ void kopano_disconnect_soap_connection(struct soap *soap)
 }
 
 // Export functions
-ECRESULT GetDatabaseObject(ECDatabase **lppDatabase)
+ECRESULT GetDatabaseObject(std::shared_ptr<ECStatsCollector> sc, ECDatabase **lppDatabase)
 {
 	if (g_lpSessionManager == NULL)
 		return KCERR_UNKNOWN;
 	if (lppDatabase == NULL)
 		return KCERR_INVALID_PARAMETER;
-	ECDatabaseFactory db(g_lpSessionManager->GetConfig());
+	ECDatabaseFactory db(g_lpSessionManager->GetConfig(), std::move(sc));
 	return GetThreadLocalDatabase(&db, lppDatabase);
 }
 

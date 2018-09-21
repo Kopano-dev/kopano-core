@@ -15,8 +15,8 @@ std::mutex ECPluginSharedData::m_SingletonLock;
 std::mutex ECPluginSharedData::m_CreateConfigLock;
 
 ECPluginSharedData::ECPluginSharedData(std::shared_ptr<ECConfig> parent,
-    ECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed) :
-	m_lpParentConfig(std::move(parent)), m_lpStatsCollector(lpStatsCollector),
+    std::shared_ptr<ECStatsCollector> sc, bool bHosted, bool bDistributed) :
+	m_lpParentConfig(std::move(parent)), m_lpStatsCollector(std::move(sc)),
 	m_bHosted(bHosted), m_bDistributed(bDistributed)
 {
 }
@@ -39,13 +39,13 @@ ECPluginSharedData::~ECPluginSharedData()
 }
 
 void ECPluginSharedData::GetSingleton(ECPluginSharedData **lppSingleton,
-    std::shared_ptr<ECConfig> parent, ECStatsCollector *lpStatsCollector,
+    std::shared_ptr<ECConfig> parent, std::shared_ptr<ECStatsCollector> sc,
     bool bHosted, bool bDistributed)
 {
 	scoped_lock lock(m_SingletonLock);
 
 	if (!m_lpSingleton)
-		m_lpSingleton = new ECPluginSharedData(std::move(parent), lpStatsCollector, bHosted, bDistributed);
+		m_lpSingleton = new ECPluginSharedData(std::move(parent), std::move(sc), bHosted, bDistributed);
 	++m_lpSingleton->m_ulRefCount;
 	*lppSingleton = m_lpSingleton;
 }

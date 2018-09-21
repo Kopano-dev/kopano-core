@@ -26,7 +26,7 @@
 #include "ECICS.h"
 #include "StorageUtil.h"
 #include "ECAttachmentStorage.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECStringCompat.h"
 #include "ECTPropsPurge.h"
 #include "cmdutil.hpp"
@@ -38,7 +38,6 @@
 namespace KC {
 
 extern ECSessionManager*    g_lpSessionManager; // FIXME: remove this global and change the depended source code!
-extern ECStatsCollector* 	g_lpStatsCollector;
 
 static void FreeDeleteItem(DELETEITEM *);
 
@@ -1513,7 +1512,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
         // Nothing updated
 		return er = erSuccess;
 
-	g_lpStatsCollector->Increment(SCN_DATABASE_COUNTER_RESYNCS);
+	g_lpSessionManager->m_stats->inc(SCN_DATABASE_COUNTER_RESYNCS);
 	er = cache->GetParent(ulObjId, &ulParent);
 	if (er != erSuccess)
 		// No parent -> root folder. Nothing else we need to do now.

@@ -27,7 +27,7 @@
 #include "ECPluginFactory.h"
 #include "ECNotificationManager.h"
 #include "ECSessionManager.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECStatsTables.h"
 #include <climits>
 #include <csignal>
@@ -154,8 +154,7 @@ static void process_signal(int sig)
 			g_lpAudit->SetLoglevel(new_ll);
 			g_lpAudit->Reset();
 		}
-
-		g_lpStatsCollector->SetTime(SCN_SERVER_LAST_CONFIGRELOAD, time(NULL));
+		g_lpSessionManager->m_stats->SetTime(SCN_SERVER_LAST_CONFIGRELOAD, time(nullptr));
 		g_lpSoapServerConn->DoHUP();
 		break;
 	default:
@@ -1120,7 +1119,8 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 #endif
 
 	// Test database settings
-	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig));
+	std::shared_ptr<ECStatsCollector> stats = make_unique_nt<ECStatsCollector>();
+	lpDatabaseFactory.reset(new(std::nothrow) ECDatabaseFactory(g_lpConfig, stats));
 	// open database
 	er = lpDatabaseFactory->CreateDatabaseObject(&unique_tie(lpDatabase), dbError);
 	if(er == KCERR_DATABASE_NOT_FOUND) {
@@ -1240,7 +1240,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 		return retval;
 	//Init the main system, now you can use the values like session manager
 	// This also starts several threads, like SessionCleaner, NotificationThread and TPropsPurge.
-	er = kopano_init(g_lpConfig, g_lpAudit, hosted, distributed);
+	er = kopano_init(g_lpConfig, g_lpAudit, stats, hosted, distributed);
 	if (er != erSuccess) { // create SessionManager
 		ec_log_err("Unable to initialize kopano session manager");
 		return retval;
@@ -1269,7 +1269,7 @@ static int running_server(char *szName, const char *szConfig, bool exp_config,
 
 	// high loglevel to always see when server is started.
 	ec_log_notice("Startup succeeded on pid %d", getpid() );
-	g_lpStatsCollector->SetTime(SCN_SERVER_STARTTIME, time(NULL));
+	stats->SetTime(SCN_SERVER_STARTTIME, time(nullptr));
 
 	// Enter main accept loop
 	retval = 0;

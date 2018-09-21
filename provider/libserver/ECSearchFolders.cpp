@@ -18,7 +18,7 @@
 #include "ECSubRestriction.h"
 #include "ECSearchFolders.h"
 #include "ECSessionManager.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECIndexer.h"
 #include <kopano/ECTags.h>
 #include "cmdutil.hpp"
@@ -213,7 +213,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId,
 	l_sf.lock();
 	auto iterStore = m_mapSearchFolders.emplace(ulStoreId, FOLDERIDSEARCH()).first;
 	iterStore->second.emplace(ulFolderId, lpSearchFolder);
-	g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_COUNT);
+	g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_COUNT);
 	if (!bReStartSearch)
 		return erSuccess;
 	lpSearchFolder->bThreadFree = false;
@@ -256,7 +256,7 @@ ECRESULT ECSearchFolders::CancelSearchFolder(unsigned int ulStoreID, unsigned in
 	auto lpFolder = iterFolder->second;
     // Remove the item from the list
     iterStore->second.erase(iterFolder);
-	g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_COUNT, -1);
+	g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_COUNT, -1);
 	l_sf.unlock();
 	DestroySearchFolder(std::move(lpFolder));
 	return erSuccess;
@@ -304,7 +304,7 @@ ECRESULT ECSearchFolders::RemoveSearchFolder(unsigned int ulStoreID)
 
 //@fixme: server shutdown can result in a crash?
 	for (auto srfolder : listSearchFolders) {
-		g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_COUNT, -1);
+		g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_COUNT, -1);
 		auto ulFolderID = srfolder->ulFolderId;
 		// Wait and free searchfolder data
 		DestroySearchFolder(std::move(srfolder));
@@ -433,7 +433,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					ec_log_crit("ECSearchFolders::ProcessMessageChange(): database rollback failed %d", er);
 					goto exit;
 				}
-				g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_UPDATE_RETRY);
+				g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_UPDATE_RETRY);
 				continue;
 			} else if (er != erSuccess) {
 				ec_log_crit("ECSearchFolders::ProcessMessageChange(): unexpected error %d", er);
@@ -617,7 +617,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 							ec_log_crit("ECSearchFolders::ProcessMessageChange(): database rollback failed(1) %d", er);
 							goto exit;
 						}
-						g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_UPDATE_RETRY);
+						g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_UPDATE_RETRY);
 						continue;
 					} else
 						goto exit;
@@ -643,7 +643,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 						ec_log_crit("ECSearchFolders::ProcessMessageChange(): database rollback failed(2) %d", er);
 						goto exit;
 					}
-					g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_UPDATE_RETRY);
+					g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_UPDATE_RETRY);
 					continue;
 				} else
 					goto exit;
@@ -658,7 +658,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 		if (ulAttempts == 0) {
 			// The only way to get here is if all attempts failed with an SQL error.
 			assert(er != KCERR_DATABASE_ERROR);
-			g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_UPDATE_FAIL);
+			g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_UPDATE_FAIL);
 		}
     }
  exit:
@@ -1070,7 +1070,7 @@ void* ECSearchFolders::SearchThread(void *lpParam)
 
     // We no longer need this
     delete ti;
-	g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_THREADS);
+	g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_THREADS);
     // Start the search
     lpSearchFolders->Search(lpFolder->ulStoreId, lpFolder->ulFolderId, lpFolder->lpSearchCriteria, &lpFolder->bThreadExit);
     // Signal search complete to clients
@@ -1082,7 +1082,7 @@ void* ECSearchFolders::SearchThread(void *lpParam)
 	l_thr.unlock();
     // We may not access lpFolder from this point on (it will be freed when the searchfolder is removed)
     lpFolder = NULL;
-	g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_THREADS, -1);
+	g_lpSessionManager->m_stats->inc(SCN_SEARCHFOLDER_THREADS, -1);
     return NULL;
 }
 

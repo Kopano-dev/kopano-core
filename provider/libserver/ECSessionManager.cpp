@@ -22,7 +22,7 @@
 #include "ECDatabase.h"
 #include "ECSessionGroup.h"
 #include "ECSessionManager.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include "ECTPropsPurge.h"
 #include "ECDatabaseUtils.h"
 #include "ECSecurity.h"
@@ -37,11 +37,13 @@ using namespace std::chrono_literals;
 namespace KC {
 
 ECSessionManager::ECSessionManager(std::shared_ptr<ECConfig> cfg,
-    std::shared_ptr<ECLogger> ad, bool bHostedKopano, bool bDistributedKopano) :
+    std::shared_ptr<ECLogger> ad, std::shared_ptr<ECStatsCollector> sc,
+    bool bHostedKopano, bool bDistributedKopano) :
+	m_stats(std::move(sc)),
 	m_lpConfig(std::move(cfg)), m_bHostedKopano(bHostedKopano),
 	m_bDistributedKopano(bDistributedKopano), m_lpAudit(std::move(ad)),
-	m_lpPluginFactory(new ECPluginFactory(m_lpConfig, g_lpStatsCollector, bHostedKopano, bDistributedKopano)),
-	m_lpDatabaseFactory(new ECDatabaseFactory(m_lpConfig)),
+	m_lpPluginFactory(new ECPluginFactory(m_lpConfig, m_stats, bHostedKopano, bDistributedKopano)),
+	m_lpDatabaseFactory(new ECDatabaseFactory(m_lpConfig, m_stats)),
 	m_lpSearchFolders(new ECSearchFolders(this, m_lpDatabaseFactory.get())),
 	m_lpECCacheManager(new ECCacheManager(m_lpConfig, m_lpDatabaseFactory.get())),
 	m_lpTPropsPurge(new ECTPropsPurge(m_lpConfig, m_lpDatabaseFactory.get())),
@@ -144,7 +146,7 @@ ECRESULT ECSessionManager::GetSessionGroup(ECSESSIONGROUPID sessionGroupID, ECSe
 	/* Workaround for old clients, when sessionGroupID is 0 each session is its own group */
 	if (sessionGroupID == 0) {
 		lpSessionGroup = new ECSessionGroup(sessionGroupID, this);
-		g_lpStatsCollector->Increment(SCN_SESSIONGROUPS_CREATED);
+		g_lpSessionManager->m_stats->inc(SCN_SESSIONGROUPS_CREATED);
 	} else {
 		auto iter = m_mapSessionGroups.find(sessionGroupID);
 		/* Check if the SessionGroup already exists on the server */
@@ -154,7 +156,7 @@ ECRESULT ECSessionManager::GetSessionGroup(ECSESSIONGROUPID sessionGroupID, ECSe
 			lw_group.lock();
 			lpSessionGroup = new ECSessionGroup(sessionGroupID, this);
 			m_mapSessionGroups.emplace(sessionGroupID, lpSessionGroup);
-			g_lpStatsCollector->Increment(SCN_SESSIONGROUPS_CREATED);
+			g_lpSessionManager->m_stats->inc(SCN_SESSIONGROUPS_CREATED);
 		} else
 			lpSessionGroup = iter->second;
 	}
@@ -186,7 +188,7 @@ ECRESULT ECSessionManager::DeleteIfOrphaned(ECSessionGroup *lpGroup)
 
 	if (lpSessionGroup) {
 		delete lpSessionGroup;
-		g_lpStatsCollector->Increment(SCN_SESSIONGROUPS_DELETED);
+		g_lpSessionManager->m_stats->inc(SCN_SESSIONGROUPS_DELETED);
 	}
 	return erSuccess;
 }
@@ -357,7 +359,7 @@ ECRESULT ECSessionManager::CreateAuthSession(struct soap *soap, unsigned int ulC
 		std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
 		m_mapSessions.emplace(newSessionID, lpAuthSession);
 		l_cache.unlock();
-		g_lpStatsCollector->Increment(SCN_SESSIONS_CREATED);
+		g_lpSessionManager->m_stats->inc(SCN_SESSIONS_CREATED);
 	}
 
 	*sessionID = newSessionID;
@@ -395,19 +397,19 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 
 	// If we've connected with SSL, check if there is a certificate, and check if we accept that certificate for that user
 	if (soap->ssl && lpAuthSession->ValidateUserCertificate(soap, szName, szImpersonateUser) == erSuccess) {
-		g_lpStatsCollector->Increment(SCN_LOGIN_SSL);
+		g_lpSessionManager->m_stats->inc(SCN_LOGIN_SSL);
 		method = "SSL Certificate";
 		goto authenticated;
 	}
 	// First, try socket authentication (dagent, won't print error)
 	if(fAllowUidAuth && lpAuthSession->ValidateUserSocket(soap->socket, szName, szImpersonateUser) == erSuccess) {
-		g_lpStatsCollector->Increment(SCN_LOGIN_SOCKET);
+		g_lpSessionManager->m_stats->inc(SCN_LOGIN_SOCKET);
 		method = "Pipe socket";
 		goto authenticated;
 	}
 	// If that fails, try logon with supplied username/password (clients, may print logon error)
 	if(lpAuthSession->ValidateUserLogon(szName, szPassword, szImpersonateUser) == erSuccess) {
-		g_lpStatsCollector->Increment(SCN_LOGIN_PASSWORD);
+		g_lpSessionManager->m_stats->inc(SCN_LOGIN_PASSWORD);
 		method = "User supplied password";
 		goto authenticated;
 	}
@@ -415,7 +417,7 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 	// whoops, out of auth options.
 	ZLOG_AUDIT(m_lpAudit, "authenticate failed user='%s' from='%s' program='%s'",
 		szName, from.c_str(), szClientApp);
-	g_lpStatsCollector->Increment(SCN_LOGIN_DENIED);
+	g_lpSessionManager->m_stats->inc(SCN_LOGIN_DENIED);
 	return KCERR_LOGON_FAILED;
 
 authenticated:
@@ -465,7 +467,7 @@ ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession,
 	l_cache.unlock();
 	*lpSessionID = std::move(newSID);
 	*lppSession = lpSession;
-	g_lpStatsCollector->Increment(SCN_SESSIONS_CREATED);
+	g_lpSessionManager->m_stats->inc(SCN_SESSIONS_CREATED);
 	return er;
 }
 
@@ -483,7 +485,7 @@ ECRESULT ECSessionManager::CreateSessionInternal(ECSession **lppSession, unsigne
 	auto er = lpSession->GetSecurity()->SetUserContext(ulUserId, EC_NO_IMPERSONATOR);
 	if (er != erSuccess)
 		return er;
-	g_lpStatsCollector->Increment(SCN_SESSIONS_INTERNAL_CREATED);
+	m_stats->inc(SCN_SESSIONS_INTERNAL_CREATED);
 	*lppSession = lpSession.release();
 	return erSuccess;
 }
@@ -492,14 +494,14 @@ void ECSessionManager::RemoveSessionInternal(ECSession *lpSession)
 {
 	if (lpSession == nullptr)
 		return;
-	g_lpStatsCollector->Increment(SCN_SESSIONS_INTERNAL_DELETED);
+	m_stats->inc(SCN_SESSIONS_INTERNAL_DELETED);
 	delete lpSession;
 }
 
 ECRESULT ECSessionManager::RemoveSession(ECSESSIONID sessionID){
 	BTSession	*lpSession	= NULL;
 
-	g_lpStatsCollector->Increment(SCN_SESSIONS_DELETED);
+	m_stats->inc(SCN_SESSIONS_DELETED);
 
 	// Make sure no other thread can read or write the sessions list
 	std::unique_lock<KC::shared_mutex> l_cache(m_hCacheRWLock);
@@ -625,7 +627,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 			// Remember all the session to be deleted
 			lstSessions.emplace_back(iIterator->second);
 			// Remove the session from the list, no new threads can start on this session after this point.
-			g_lpStatsCollector->Increment(SCN_SESSIONS_TIMEOUT);
+			g_lpSessionManager->m_stats->inc(SCN_SESSIONS_TIMEOUT);
 			iIterator = lpSessionManager->m_mapSessions.erase(iIterator);
 		}
 

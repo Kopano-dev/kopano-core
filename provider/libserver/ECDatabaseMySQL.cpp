@@ -24,7 +24,7 @@
 #include "ECDatabase.h"
 #include "SOAPUtils.h"
 #include "ECSearchFolders.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 
 namespace KC {
 
@@ -347,8 +347,8 @@ int zcp_versiontuple::compare(const zcp_versiontuple &rhs) const
 	return 0;
 }
 
-ECDatabase::ECDatabase(std::shared_ptr<ECConfig> c) :
-	m_lpConfig(std::move(c))
+ECDatabase::ECDatabase(std::shared_ptr<ECConfig> c, std::shared_ptr<ECStatsCollector> sc) :
+	m_lpConfig(std::move(c)), m_stats(std::move(sc))
 {
 	auto s = m_lpConfig->GetSetting("mysql_database");
 	if (s != nullptr)
@@ -474,9 +474,9 @@ ECRESULT ECDatabase::Connect(void)
 	}
 exit:
 	if (er == erSuccess)
-		g_lpStatsCollector->Increment(SCN_DATABASE_CONNECTS);
+		m_stats->inc(SCN_DATABASE_CONNECTS);
 	else
-		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_CONNECTS);
+		m_stats->inc(SCN_DATABASE_FAILED_CONNECTS);
 	return er;
 }
 
@@ -520,10 +520,10 @@ ECRESULT ECDatabase::DoSelect(const std::string &strQuery,
     DB_RESULT *lppResult, bool fStreamResult)
 {
 	ECRESULT er = KDatabase::DoSelect(strQuery, lppResult, fStreamResult);
-	g_lpStatsCollector->Increment(SCN_DATABASE_SELECTS);
+	m_stats->inc(SCN_DATABASE_SELECTS);
 	if (er != erSuccess) {
-		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
-		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
+		m_stats->inc(SCN_DATABASE_FAILED_SELECTS);
+		m_stats->SetTime(SCN_DATABASE_LAST_FAILED, time(nullptr));
 	}
 	return er;
 }
@@ -540,11 +540,11 @@ ECRESULT ECDatabase::DoSelectMulti(const std::string &strQuery)
 		goto exit;
 	}
 	m_bFirstResult = true;
-	g_lpStatsCollector->Increment(SCN_DATABASE_SELECTS);
+	m_stats->inc(SCN_DATABASE_SELECTS);
 exit:
 	if (er != erSuccess) {
-		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
-		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
+		m_stats->inc(SCN_DATABASE_FAILED_SELECTS);
+		m_stats->SetTime(SCN_DATABASE_LAST_FAILED, time(nullptr));
 	}
 	return er;
 }
@@ -586,8 +586,8 @@ ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
 		*lppResult = std::move(lpResult);
 exit:
 	if (er != erSuccess) {
-		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
-		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
+		m_stats->inc(SCN_DATABASE_FAILED_SELECTS);
+		m_stats->SetTime(SCN_DATABASE_LAST_FAILED, time(nullptr));
 	}
 	return er;
 }
@@ -616,10 +616,10 @@ ECRESULT ECDatabase::DoUpdate(const std::string &strQuery,
     unsigned int *lpulAffectedRows)
 {
 	auto er = KDatabase::DoUpdate(strQuery, lpulAffectedRows);
-	g_lpStatsCollector->Increment(SCN_DATABASE_UPDATES);
+	m_stats->inc(SCN_DATABASE_UPDATES);
 	if (er != erSuccess) {
-		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_UPDATES);
-		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
+		m_stats->inc(SCN_DATABASE_FAILED_UPDATES);
+		m_stats->SetTime(SCN_DATABASE_LAST_FAILED, time(nullptr));
 	}
 	return er;
 }
@@ -628,10 +628,10 @@ ECRESULT ECDatabase::DoInsert(const std::string &strQuery,
     unsigned int *lpulInsertId, unsigned int *lpulAffectedRows)
 {
 	auto er = KDatabase::DoInsert(strQuery, lpulInsertId, lpulAffectedRows);
-	g_lpStatsCollector->Increment(SCN_DATABASE_INSERTS);
+	m_stats->inc(SCN_DATABASE_INSERTS);
 	if (er != erSuccess) {
-		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_INSERTS);
-		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
+		m_stats->inc(SCN_DATABASE_FAILED_INSERTS);
+		m_stats->SetTime(SCN_DATABASE_LAST_FAILED, time(nullptr));
 	}
 	return er;
 }
@@ -640,10 +640,10 @@ ECRESULT ECDatabase::DoDelete(const std::string &strQuery,
     unsigned int *lpulAffectedRows)
 {
 	auto er = KDatabase::DoDelete(strQuery, lpulAffectedRows);
-	g_lpStatsCollector->Increment(SCN_DATABASE_DELETES);
+	m_stats->inc(SCN_DATABASE_DELETES);
 	if (er != erSuccess) {
-		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_DELETES);
-		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
+		m_stats->inc(SCN_DATABASE_FAILED_DELETES);
+		m_stats->SetTime(SCN_DATABASE_LAST_FAILED, time(nullptr));
 	}
 	return er;
 }

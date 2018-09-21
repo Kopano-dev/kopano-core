@@ -11,15 +11,13 @@
 #include "ECSession.h"
 #include "ECSessionManager.h"
 #include "ECDatabaseFactory.h"
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #include <kopano/kcodes.h>
 #include "ECTPropsPurge.h"
 
 using namespace std::chrono_literals;
 
 namespace KC {
-
-extern ECStatsCollector*     g_lpStatsCollector;
 
 ECTPropsPurge::ECTPropsPurge(std::shared_ptr<ECConfig> c,
     ECDatabaseFactory *lpDatabaseFactory) :
@@ -244,8 +242,8 @@ ECRESULT ECTPropsPurge::PurgeDeferredTableUpdates(ECDatabase *lpDatabase, unsign
 	er = lpDatabase->DoDelete(strQuery, &ulAffected);
 	if(er != erSuccess)
 		return er;
-	g_lpStatsCollector->Increment(SCN_DATABASE_MERGES);
-	g_lpStatsCollector->Increment(SCN_DATABASE_MERGED_RECORDS, (int)ulAffected);
+	g_lpSessionManager->m_stats->inc(SCN_DATABASE_MERGES);
+	g_lpSessionManager->m_stats->inc(SCN_DATABASE_MERGED_RECORDS, static_cast<int>(ulAffected));
 	return erSuccess;
 }
 

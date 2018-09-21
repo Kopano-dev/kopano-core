@@ -21,7 +21,7 @@
 #include <kopano/ECTags.h>
 #include <kopano/stringutil.h>
 #include <kopano/Util.h>
-#include "ECStatsCollector.h"
+#include "StatsClient.h"
 #if defined(HAVE_GPERFTOOLS_MALLOC_EXTENSION_H)
 #	include <gperftools/malloc_extension_c.h>
 #	define HAVE_TCMALLOC 1
@@ -102,8 +102,8 @@ ECRESULT ECSystemStatsTable::Load()
 	usercount_t userCount;
 
 	id = 0;
-	g_lpStatsCollector->ForEachString(GetStatsCollectorData, this);
-	g_lpStatsCollector->ForEachStat(GetStatsCollectorData, this);
+	g_lpSessionManager->m_stats->ForEachString(GetStatsCollectorData, this);
+	g_lpSessionManager->m_stats->ForEachStat(GetStatsCollectorData, this);
 	auto sesmgr = lpSession->GetSessionManager();
 	sesmgr->GetCacheManager()->ForEachCacheItem(GetStatsCollectorData, this);
 

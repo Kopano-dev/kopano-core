@@ -49,7 +49,7 @@ public:
 	 *
 	 * Calls DBPlugin::InitPlugin()
 	 */
-	virtual void InitPlugin();
+	virtual void InitPlugin(std::shared_ptr<KC::ECStatsCollector>) override;
 
 	/**
 	 * Resolve name and company to objectsignature

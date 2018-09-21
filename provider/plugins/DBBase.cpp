@@ -10,6 +10,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include "DBBase.h"
 #include <kopano/ECDefs.h>
 #include <kopano/EMSAbTag.h>
@@ -30,8 +31,9 @@ DBPlugin::DBPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :
 //    // Do not delete m_lpDatabase as it is freed when the thread exits
 //}
 
-void DBPlugin::InitPlugin() {
-	if(GetDatabaseObject(&m_lpDatabase) != erSuccess)
+void DBPlugin::InitPlugin(std::shared_ptr<ECStatsCollector> sc)
+{
+	if (GetDatabaseObject(std::move(sc), &m_lpDatabase) != erSuccess)
 	    throw runtime_error(string("db_init: cannot get handle to database"));
 }
 
