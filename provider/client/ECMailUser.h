@@ -9,7 +9,6 @@
 #include <kopano/Util.h>
 #include <mapidefs.h>
 #include "ECABContainer.h"
-#include "ECABProp.h"
 
 class ECABLogon;
 

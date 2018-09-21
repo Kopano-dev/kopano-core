@@ -16,7 +16,7 @@
 #include "kcore.hpp"
 #include "Mem.h"
 #include "ECMSProvider.h"
-#include "ECABProvider.h"
+#include "ECABContainer.h"
 #include <iostream>
 #include <kopano/ecversion.h>
 #include <kopano/stringutil.h>

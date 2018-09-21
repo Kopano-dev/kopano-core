@@ -15,7 +15,7 @@
 #include <kopano/ECGuid.h>
 #include "ECMSProvider.h"
 #include "ECMsgStore.h"
-#include "ECABProvider.h"
+#include "ECABContainer.h"
 #include "ClientUtil.h"
 #include "EntryPoint.h"
 #include "WSUtil.h"

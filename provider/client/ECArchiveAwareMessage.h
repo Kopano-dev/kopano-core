@@ -7,11 +7,37 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/memory.hpp>
+#include "ECAttach.h"
 #include "ECMessage.h"
+#include "ECMsgStore.h"
 #include <kopano/CommonUtil.h>
+#include <kopano/ECGuid.h>
+#include <kopano/Util.h>
+#include <list>
+#include <map>
 #include <string>
+#include <vector>
 
-class ECArchiveAwareMsgStore;
+class _kc_export_dycast ECArchiveAwareMsgStore final : public ECMsgStore {
+	public:
+	_kc_hidden ECArchiveAwareMsgStore(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, ULONG profflags, BOOL is_spooler, BOOL is_dfl_store, BOOL offline_store);
+	_kc_hidden static HRESULT Create(const char *profname, IMAPISupport *, WSTransport *, BOOL modify, ULONG profflags, BOOL is_spooler, BOOL is_dfl_store, BOOL offline_store, ECMsgStore **ret);
+	_kc_hidden virtual HRESULT OpenEntry(ULONG eid_size, const ENTRYID *eid, const IID *intf, ULONG flags, ULONG *obj_type, IUnknown **);
+	_kc_hidden virtual HRESULT OpenItemFromArchive(LPSPropValue propstore_eids, LPSPropValue propitem_eids, ECMessage **ret);
+
+	private:
+	typedef std::list<SBinary *> BinaryList;
+	typedef BinaryList::iterator BinaryListIterator;
+	typedef KC::object_ptr<ECMsgStore> ECMsgStorePtr;
+	typedef std::vector<BYTE> EntryID;
+	typedef std::map<EntryID, ECMsgStorePtr> MsgStoreMap;
+
+	_kc_hidden HRESULT CreateCacheBasedReorderedList(SBinaryArray b_store_eids, SBinaryArray b_item_eids, BinaryList *store_eids, BinaryList *item_eids);
+	_kc_hidden HRESULT GetArchiveStore(LPSBinary store_eid, ECMsgStore **ret);
+
+	MsgStoreMap m_mapStores;
+	ALLOC_WRAP_FRIEND;
+};
 
 class _kc_export_dycast ECArchiveAwareMessage final : public ECMessage {
 protected:
@@ -85,6 +111,24 @@ private:
 class ECArchiveAwareMessageFactory final : public IMessageFactory {
 public:
 	HRESULT Create(ECMsgStore *, BOOL fnew, BOOL modify, ULONG flags, BOOL embedded, const ECMAPIProp *root, ECMessage **) const;
+};
+
+class ECArchiveAwareAttach final : public ECAttach {
+	protected:
+	ECArchiveAwareAttach(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root);
+
+	public:
+	static HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root, ECAttach **);
+	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
+
+	private:
+	const ECArchiveAwareMessage *m_lpRoot;
+	ALLOC_WRAP_FRIEND;
+};
+
+class ECArchiveAwareAttachFactory final : public IAttachFactory {
+	public:
+	HRESULT Create(ECMsgStore *, ULONG obj_type, BOOL modify, ULONG attach_num, const ECMAPIProp *root, ECAttach **) const;
 };
 
 #endif // ndef ECARCHIVEAWAREMESSAGE_H

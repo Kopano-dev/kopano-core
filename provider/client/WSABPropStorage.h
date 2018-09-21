@@ -11,7 +11,7 @@
 #include <kopano/Util.h>
 #include "IECPropStorage.h"
 #include <kopano/kcodes.h>
-#include "ECABLogon.h"
+#include "ECABContainer.h"
 #include "WSTableView.h"
 #include "WSTransport.h"
 #include <mapi.h>

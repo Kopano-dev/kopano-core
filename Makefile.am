@@ -347,12 +347,7 @@ libkcclient_la_SOURCES = \
 	libsync/ECSyncUtil.cpp libsync/ECSyncUtil.h \
 	provider/client/ClientUtil.cpp provider/client/ClientUtil.h \
 	provider/client/ECABContainer.cpp provider/client/ECABContainer.h \
-	provider/client/ECABLogon.cpp provider/client/ECABLogon.h \
-	provider/client/ECABProp.cpp provider/client/ECABProp.h \
-	provider/client/ECABProvider.cpp provider/client/ECABProvider.h \
-	provider/client/ECArchiveAwareAttach.cpp provider/client/ECArchiveAwareAttach.h \
 	provider/client/ECArchiveAwareMessage.cpp provider/client/ECArchiveAwareMessage.h \
-	provider/client/ECArchiveAwareMsgStore.cpp provider/client/ECArchiveAwareMsgStore.h \
 	provider/client/ECAttach.cpp provider/client/ECAttach.h \
 	provider/client/ECChangeAdvisor.cpp provider/client/ECChangeAdvisor.h \
 	provider/client/ECExchangeExportChanges.cpp provider/client/ECExchangeExportChanges.h \

@@ -18,7 +18,7 @@
 #include "WSMAPIFolderOps.h"
 #include "WSMAPIPropStorage.h"
 #include "ECParentStorage.h"
-#include "ECABLogon.h"
+#include "ECABContainer.h"
 #include "ics_client.hpp"
 #include <ECCache.h>
 
