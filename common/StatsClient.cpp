@@ -156,12 +156,9 @@ void StatsClient::submit(const std::string & key, const time_t ts, const int64_t
 		ec_log_debug("StatsClient submit int failed: %s", strerror(errno));
 }
 
-void StatsClient::countInc(const std::string & key, const std::string & key_sub) {
-	countAdd(key, key_sub, int64_t(1));
-}
-
-void StatsClient::countAdd(const std::string & key, const std::string & key_sub, const double n) {
-	std::string kp = key + " " + key_sub;
+void StatsClient::inc(enum SCName k, double n)
+{
+	auto kp = std::to_string(k);
 	scoped_lock l_map(mapsLock);
 
 	auto doubleIterator = countsMapDouble.find(kp);
@@ -171,8 +168,9 @@ void StatsClient::countAdd(const std::string & key, const std::string & key_sub,
 		doubleIterator -> second += n;
 }
 
-void StatsClient::countAdd(const std::string & key, const std::string & key_sub, const int64_t n) {
-	std::string kp = key + " " + key_sub;
+void StatsClient::inc(enum SCName k, int64_t n)
+{
+	auto kp = std::to_string(k);
 	scoped_lock l_map(mapsLock);
 
 	auto int64Iterator = countsMapInt64.find(kp);
