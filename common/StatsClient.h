@@ -66,9 +66,8 @@ struct ECStrings {
 	std::string description, value;
 };
 
-class _kc_export ECStatsCollector _kc_final {
+class _kc_export ECStatsCollector {
 	public:
-	ECStatsCollector();
 	void inc(enum SCName, float inc);
 	void inc(enum SCName, int inc = 1);
 	void inc(enum SCName, LONGLONG inc);
@@ -86,9 +85,14 @@ class _kc_export ECStatsCollector _kc_final {
 	void Reset();
 	void Reset(SCName name);
 
-	private:
-	_kc_hidden void AddStat(SCName index, SCType type, const char *name, const char *desc);
+	protected:
+	/*
+	 * The "name" parameter may not be longer than 19 characters, since we
+	 * want to use those in RRDtool.
+	 */
+	void AddStat(enum SCName index, SCType type, const char *name, const char *desc);
 
+	private:
 	SCMap m_StatData;
 };
 
