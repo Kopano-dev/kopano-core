@@ -398,7 +398,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis,
 				for (auto iterIncomplete = mapIncompleteRows.lower_bound(sKey);
 				     iterIncomplete != mapIncompleteRows.cend() && iterIncomplete->first.ulObjId == dfr;
 				     ++iterIncomplete) {
-					g_lpSessionManager->m_stats->Increment(SCN_DATABASE_DEFERRED_FETCHES);
+					g_lpSessionManager->m_stats->inc(SCN_DATABASE_DEFERRED_FETCHES);
 					mapRows[iterIncomplete->first] = iterIncomplete->second;
 				}
 			}
@@ -556,8 +556,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
-
-	g_lpSessionManager->m_stats->Increment(SCN_DATABASE_ROW_READS, 1);
+	g_lpSessionManager->m_stats->inc(SCN_DATABASE_ROW_READS, 1);
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 
     for (const auto &col : mapColumns) {

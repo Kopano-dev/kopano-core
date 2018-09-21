@@ -69,9 +69,9 @@ struct ECStrings {
 class _kc_export ECStatsCollector _kc_final {
 	public:
 	ECStatsCollector();
-	void Increment(SCName name, float inc);
-	void Increment(SCName name, int inc = 1);
-	void Increment(SCName name, LONGLONG inc);
+	void inc(enum SCName, float inc);
+	void inc(enum SCName, int inc = 1);
+	void inc(enum SCName, LONGLONG inc);
 	void Set(SCName name, float set);
 	void Set(SCName name, LONGLONG set);
 	void SetTime(SCName name, time_t set);

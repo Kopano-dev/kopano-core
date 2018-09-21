@@ -474,9 +474,9 @@ ECRESULT ECDatabase::Connect(void)
 	}
 exit:
 	if (er == erSuccess)
-		m_stats->Increment(SCN_DATABASE_CONNECTS);
+		m_stats->inc(SCN_DATABASE_CONNECTS);
 	else
-		m_stats->Increment(SCN_DATABASE_FAILED_CONNECTS);
+		m_stats->inc(SCN_DATABASE_FAILED_CONNECTS);
 	return er;
 }
 
@@ -520,9 +520,9 @@ ECRESULT ECDatabase::DoSelect(const std::string &strQuery,
     DB_RESULT *lppResult, bool fStreamResult)
 {
 	ECRESULT er = KDatabase::DoSelect(strQuery, lppResult, fStreamResult);
-	m_stats->Increment(SCN_DATABASE_SELECTS);
+	m_stats->inc(SCN_DATABASE_SELECTS);
 	if (er != erSuccess) {
-		m_stats->Increment(SCN_DATABASE_FAILED_SELECTS);
+		m_stats->inc(SCN_DATABASE_FAILED_SELECTS);
 		m_stats->SetTime(SCN_DATABASE_LAST_FAILED, time(nullptr));
 	}
 	return er;
@@ -540,10 +540,10 @@ ECRESULT ECDatabase::DoSelectMulti(const std::string &strQuery)
 		goto exit;
 	}
 	m_bFirstResult = true;
-	m_stats->Increment(SCN_DATABASE_SELECTS);
+	m_stats->inc(SCN_DATABASE_SELECTS);
 exit:
 	if (er != erSuccess) {
-		m_stats->Increment(SCN_DATABASE_FAILED_SELECTS);
+		m_stats->inc(SCN_DATABASE_FAILED_SELECTS);
 		m_stats->SetTime(SCN_DATABASE_LAST_FAILED, time(nullptr));
 	}
 	return er;
@@ -586,7 +586,7 @@ ECRESULT ECDatabase::GetNextResult(DB_RESULT *lppResult)
 		*lppResult = std::move(lpResult);
 exit:
 	if (er != erSuccess) {
-		m_stats->Increment(SCN_DATABASE_FAILED_SELECTS);
+		m_stats->inc(SCN_DATABASE_FAILED_SELECTS);
 		m_stats->SetTime(SCN_DATABASE_LAST_FAILED, time(nullptr));
 	}
 	return er;
@@ -616,9 +616,9 @@ ECRESULT ECDatabase::DoUpdate(const std::string &strQuery,
     unsigned int *lpulAffectedRows)
 {
 	auto er = KDatabase::DoUpdate(strQuery, lpulAffectedRows);
-	m_stats->Increment(SCN_DATABASE_UPDATES);
+	m_stats->inc(SCN_DATABASE_UPDATES);
 	if (er != erSuccess) {
-		m_stats->Increment(SCN_DATABASE_FAILED_UPDATES);
+		m_stats->inc(SCN_DATABASE_FAILED_UPDATES);
 		m_stats->SetTime(SCN_DATABASE_LAST_FAILED, time(nullptr));
 	}
 	return er;
@@ -628,9 +628,9 @@ ECRESULT ECDatabase::DoInsert(const std::string &strQuery,
     unsigned int *lpulInsertId, unsigned int *lpulAffectedRows)
 {
 	auto er = KDatabase::DoInsert(strQuery, lpulInsertId, lpulAffectedRows);
-	m_stats->Increment(SCN_DATABASE_INSERTS);
+	m_stats->inc(SCN_DATABASE_INSERTS);
 	if (er != erSuccess) {
-		m_stats->Increment(SCN_DATABASE_FAILED_INSERTS);
+		m_stats->inc(SCN_DATABASE_FAILED_INSERTS);
 		m_stats->SetTime(SCN_DATABASE_LAST_FAILED, time(nullptr));
 	}
 	return er;
@@ -640,9 +640,9 @@ ECRESULT ECDatabase::DoDelete(const std::string &strQuery,
     unsigned int *lpulAffectedRows)
 {
 	auto er = KDatabase::DoDelete(strQuery, lpulAffectedRows);
-	m_stats->Increment(SCN_DATABASE_DELETES);
+	m_stats->inc(SCN_DATABASE_DELETES);
 	if (er != erSuccess) {
-		m_stats->Increment(SCN_DATABASE_FAILED_DELETES);
+		m_stats->inc(SCN_DATABASE_FAILED_DELETES);
 		m_stats->SetTime(SCN_DATABASE_LAST_FAILED, time(nullptr));
 	}
 	return er;

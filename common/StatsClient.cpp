@@ -274,7 +274,7 @@ void ECStatsCollector::AddStat(SCName index, SCType type, const char *name,
 	newStat.description = description;
 }
 
-void ECStatsCollector::Increment(SCName name, float inc)
+void ECStatsCollector::inc(SCName name, float inc)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
@@ -284,12 +284,12 @@ void ECStatsCollector::Increment(SCName name, float inc)
 	iSD->second.data.f += inc;
 }
 
-void ECStatsCollector::Increment(SCName name, int inc)
+void ECStatsCollector::inc(SCName name, int v)
 {
-	Increment(name, static_cast<LONGLONG>(inc));
+	inc(name, static_cast<LONGLONG>(v));
 }
 
-void ECStatsCollector::Increment(SCName name, LONGLONG inc)
+void ECStatsCollector::inc(SCName name, LONGLONG inc)
 {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())

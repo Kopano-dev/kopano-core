@@ -301,9 +301,9 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	auto laters = make_scope_success([&]() {
 		FreeRestrictTable(lpOptimizedRestrict);
 		if (er != erSuccess)
-			g_lpSessionManager->m_stats->Increment(SCN_DATABASE_SEARCHES);
+			g_lpSessionManager->m_stats->inc(SCN_DATABASE_SEARCHES);
 		else
-			g_lpSessionManager->m_stats->Increment(SCN_INDEXED_SEARCHES);
+			g_lpSessionManager->m_stats->inc(SCN_INDEXED_SEARCHES);
 	});
 
 	if (!lpDatabase) {
@@ -350,7 +350,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	g_lpSessionManager->m_stats->Avg(SCN_INDEXER_SEARCH_AVG, llelapsedtime);
 
 	if (er != erSuccess) {
-		g_lpSessionManager->m_stats->Increment(SCN_INDEXER_SEARCH_ERRORS);
+		g_lpSessionManager->m_stats->inc(SCN_INDEXER_SEARCH_ERRORS);
 		ec_log_err("Error while querying search on \"%s\": %s (%x)",
 			szSocket, GetMAPIErrorMessage(kcerr_to_mapierr(er)), er);
 	} else

@@ -450,8 +450,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 		biglock.unlock();
 
 		if (rc != LDAP_SUCCESS) {
-			m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_FAILED);
-
+			m_lpStatsCollector->inc(SCN_LDAP_CONNECT_FAILED);
 			ec_log_crit("Failed to initialize LDAP for \"%s\": %s", currentServer.c_str(), ldap_err2string(rc));
 			goto fail2;
 		}
@@ -515,8 +514,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 		++ldapServerIndex;
 		if (ldapServerIndex >= ldap_servers.size())
 			ldapServerIndex = 0;
-		m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_FAILED);
-
+		m_lpStatsCollector->inc(SCN_LDAP_CONNECT_FAILED);
 		ld = NULL;
 
 		if (loop == ldap_servers.size() - 1)
@@ -524,8 +522,8 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn,
 	}
 
 	auto llelapsedtime = dur2us(decltype(tstart)::clock::now() - tstart);
-	m_lpStatsCollector->Increment(SCN_LDAP_CONNECTS);
-	m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_TIME, llelapsedtime);
+	m_lpStatsCollector->inc(SCN_LDAP_CONNECTS);
+	m_lpStatsCollector->inc(SCN_LDAP_CONNECT_TIME, llelapsedtime);
 	m_lpStatsCollector->Max(SCN_LDAP_CONNECT_TIME_MAX, llelapsedtime);
 
 	LOG_PLUGIN_DEBUG("ldaptiming [%08.2f] connected to ldap", llelapsedtime / 1000000.0);
@@ -586,7 +584,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 
 		/// @todo encode the user and password, now it's depended in which charset the config is saved
 		m_ldap = ConnectLDAP(ldap_binddn, ldap_bindpw, starttls);
-		m_lpStatsCollector->Increment(SCN_LDAP_RECONNECTS);
+		m_lpStatsCollector->inc(SCN_LDAP_RECONNECTS);
 		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs,
 		          attrsonly, serverControls, nullptr, nullptr, 0, &~res);
 	}
@@ -611,15 +609,13 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	LOG_PLUGIN_DEBUG("ldaptiming [%08.2f] (\"%s\" \"%s\" %s), results: %d", llelapsedtime/1000000.0, base, filter, req.c_str(), ldap_count_entries(m_ldap, res));
 
 	*lppres = res.release(); // deref the pointer from object
-
-	m_lpStatsCollector->Increment(SCN_LDAP_SEARCH);
-	m_lpStatsCollector->Increment(SCN_LDAP_SEARCH_TIME, llelapsedtime);
+	m_lpStatsCollector->inc(SCN_LDAP_SEARCH);
+	m_lpStatsCollector->inc(SCN_LDAP_SEARCH_TIME, llelapsedtime);
 	m_lpStatsCollector->Max(SCN_LDAP_SEARCH_TIME_MAX, llelapsedtime);
 
 exit:
 	if (result != LDAP_SUCCESS) {
-		m_lpStatsCollector->Increment(SCN_LDAP_SEARCH_FAILED);
-
+		m_lpStatsCollector->inc(SCN_LDAP_SEARCH_FAILED);
 		// throw ldap error
 		throw ldap_error(string("ldap_search_ext_s: ") + ldap_err2string(result), result);
 	}
@@ -631,7 +627,7 @@ exit:
 	// ldap_search_s is inconsistent.
 	// The easiest way around this is to net let this function return with a NULL result.
 	else if (*lppres == NULL) {
-		m_lpStatsCollector->Increment(SCN_LDAP_SEARCH_FAILED);
+		m_lpStatsCollector->inc(SCN_LDAP_SEARCH_FAILED);
 		throw ldap_error("ldap_search_ext_s: spurious NULL result");
 	}
 }
@@ -1439,13 +1435,13 @@ objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const
 		else
 			id = authenticateUserBind(username, password, company);
 	} catch (...) {
-		m_lpStatsCollector->Increment(SCN_LDAP_AUTH_DENIED);
+		m_lpStatsCollector->inc(SCN_LDAP_AUTH_DENIED);
 		throw;
 	}
 
 	auto llelapsedtime = dur2us(decltype(tstart)::clock::now() - tstart);
-	m_lpStatsCollector->Increment(SCN_LDAP_AUTH_LOGINS);
-	m_lpStatsCollector->Increment(SCN_LDAP_AUTH_TIME, llelapsedtime);
+	m_lpStatsCollector->inc(SCN_LDAP_AUTH_LOGINS);
+	m_lpStatsCollector->inc(SCN_LDAP_AUTH_TIME, llelapsedtime);
 	m_lpStatsCollector->Max(SCN_LDAP_AUTH_TIME_MAX, llelapsedtime);
 	m_lpStatsCollector->Avg(SCN_LDAP_AUTH_TIME_AVG, llelapsedtime);
 
