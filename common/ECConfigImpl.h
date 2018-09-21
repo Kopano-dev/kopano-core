@@ -59,8 +59,6 @@ public:
 	bool AddSetting(const char *name, const char *value, const unsigned int group = 0) _kc_override;
 	const char *GetSetting(const char *name) _kc_override;
 	const char *GetSetting(const char *name, const char *equal, const char *other) _kc_override;
-	const wchar_t *GetSettingW(const char *name) _kc_override;
-	const wchar_t *GetSettingW(const char *name, const wchar_t *equal, const wchar_t *other) _kc_override;
 	std::list<configsetting_t> GetSettingGroup(unsigned int group) _kc_override;
 	std::list<configsetting_t> GetAllSettings(void) _kc_override;
 	bool HasWarnings(void) _kc_override;

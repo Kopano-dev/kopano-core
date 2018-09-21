@@ -27,8 +27,6 @@ struct configsetting_t {
 #define CONFIGGROUP_PROPMAP			0x0001
 };
 
-#define GetConfigSetting(_config, _name) ((_config)->GetSettingW(_name))
-
 static const char *const lpszDEFAULTDIRECTIVES[] = {"include", NULL};
 
 class _kc_export ECConfig {
@@ -44,8 +42,6 @@ public:
 	_kc_hidden virtual bool	AddSetting(const char *name, const char *value, unsigned int group = 0) = 0;
 	_kc_hidden virtual const char *GetSetting(const char *name) = 0;
 	_kc_hidden virtual const char *GetSetting(const char *name, const char *equal, const char *other) = 0;
-	_kc_hidden virtual const wchar_t *GetSettingW(const char *name) = 0;
-	_kc_hidden virtual const wchar_t *GetSettingW(const char *name, const wchar_t *equal, const wchar_t *other) = 0;
 	_kc_hidden virtual std::list<configsetting_t> GetSettingGroup(unsigned int group) = 0;
 	_kc_hidden virtual std::list<configsetting_t> GetAllSettings(void) = 0;
 	_kc_hidden virtual bool	HasWarnings(void) = 0;

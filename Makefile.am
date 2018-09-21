@@ -630,7 +630,7 @@ libkcutil_la_SOURCES = \
 	common/ConsoleTable.cpp common/ECABEntryID.cpp \
 	common/ECACL.cpp common/ECCache.cpp \
 	common/ECChannel.cpp common/ECChannelClient.cpp \
-	common/ECConfig.cpp common/ECConfigImpl.cpp common/ECFifoBuffer.cpp \
+	common/ECConfigImpl.cpp common/ECFifoBuffer.cpp \
 	common/ECGetText.cpp common/ECGuid.cpp \
 	common/ECKeyTable.cpp common/ECLogger.cpp \
 	common/ECMemStream.cpp \

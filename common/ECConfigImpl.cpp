@@ -35,6 +35,51 @@ const directive_t ECConfigImpl::s_sDirectives[] = {
 	{ NULL }
 };
 
+ECConfig *ECConfig::Create(const configsetting_t *dfl,
+    const char *const *direc)
+{
+	return new ECConfigImpl(dfl, direc);
+}
+
+ECConfig *ECConfig::Create(const std::nothrow_t &,
+    const configsetting_t *dfl, const char *const *direc)
+{
+	return new(std::nothrow) ECConfigImpl(dfl, direc);
+}
+
+/**
+ * Get the default path for the configuration file specified with lpszBasename.
+ * Usually this will return '/etc/kopano/<lpszBasename>'. However, the path to
+ * the configuration files can be altered by setting the 'KOPANO_CONFIG_PATH'
+ * environment variable.
+ *
+ * @param[in]	lpszBasename
+ * 						The basename of the requested configuration file. Passing
+ * 						NULL or an empty string will result in the default path
+ * 						to be returned.
+ *
+ * @returns		The full path to the requested configuration file. Memory for
+ * 				the returned data is allocated in this function and will be freed
+ * 				at program termination.
+ *
+ * @warning This function is not thread safe!
+ */
+const char *ECConfig::GetDefaultPath(const char *base)
+{
+	static std::map<std::string, std::string> s_mapPaths;
+
+	if (base == nullptr)
+		base = "";
+	auto result = s_mapPaths.emplace(base, "");
+	if (result.second) { /* New item added, so create the actual path */
+		const char *dir = getenv("KOPANO_CONFIG_PATH");
+		if (dir == nullptr || *dir == '\0')
+			dir = "/etc/kopano";
+		result.first->second = std::string(dir) + "/" + base;
+	}
+	return result.first->second.c_str();
+}
+
 // Configuration file parser
 
 ECConfigImpl::ECConfigImpl(const configsetting_t *lpDefaults,
@@ -231,26 +276,6 @@ const char *ECConfigImpl::GetSetting(const char *szName, const char *equal,
 {
 	auto value = GetSetting(szName);
 	if (value == equal || (value && equal && !strcmp(value, equal)))
-		return other;
-	else
-		return value;
-}
-
-const wchar_t *ECConfigImpl::GetSettingW(const char *szName)
-{
-	const char *value = GetSetting(szName);
-	auto result = m_convertCache.emplace(value, L"");
-	auto iter = result.first;
-	if (result.second)
-		iter->second = convert_to<std::wstring>(value);
-	return iter->second.c_str();
-}
-
-const wchar_t *ECConfigImpl::GetSettingW(const char *szName,
-    const wchar_t *equal, const wchar_t *other)
-{
-	auto value = GetSettingW(szName);
-	if (value == equal || (value && equal && !wcscmp(value, equal)))
 		return other;
 	else
 		return value;
