@@ -1096,7 +1096,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 				return er;
 			lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
 			ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
-			g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT, 1);
+			g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
 			return KCERR_UNABLE_TO_COMPLETE;
 		}
 	}
@@ -1175,7 +1175,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
 					return er;
                 lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
                 ec_log_info("Redirecting request to \"%s\"", lpsResponse->lpszServerPath);
-				g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT, 1);
+				g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
 				return KCERR_UNABLE_TO_COMPLETE;
             }
 		}
@@ -6187,7 +6187,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, const char *szUserName,
 						return er;
 					lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
 					ec_log_info("Redirecting request to \"%s\'", lpsResponse->lpszServerPath);
-					g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT, 1);
+					g_lpSessionManager->m_stats->inc(SCN_REDIRECT_COUNT);
 					return KCERR_UNABLE_TO_COMPLETE;
                 }
 			}

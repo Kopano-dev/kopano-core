@@ -556,7 +556,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 	auto er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		return er;
-	g_lpSessionManager->m_stats->inc(SCN_DATABASE_ROW_READS, 1);
+	g_lpSessionManager->m_stats->inc(SCN_DATABASE_ROW_READS);
 	auto cache = lpSession->GetSessionManager()->GetCacheManager();
 
     for (const auto &col : mapColumns) {
